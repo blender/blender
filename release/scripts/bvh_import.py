@@ -713,9 +713,16 @@ def load_bvh_ui(file):
 		return
 	Blender.Window.WaitCursor(1)
 	# Get the BVH data and act on it.
+	t1= Blender.sys.time()
+	print '\tpassing bvh...',
 	bvh_nodes= read_bvh(file, IMPORT_SCALE)
+	print '%.4f' % (Blender.sys.time()-t1)
+	t1= Blender.sys.time()
+	print '\timporting to blender...',
 	if IMPORT_AS_ARMATURE:	bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME)
 	if IMPORT_AS_EMPTIES:	bvh_node_dict2objects(bvh_nodes,  IMPORT_START_FRAME)
+	
+	print 'Done in %.4f\n' % (Blender.sys.time()-t1)
 	Blender.Window.WaitCursor(0)
 
 
