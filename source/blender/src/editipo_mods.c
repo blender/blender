@@ -651,7 +651,13 @@ static void set_ipocurve_linear(struct IpoCurve *icu) {
 static void set_ipocurve_bezier(struct IpoCurve *icu) {
 	/* Sets the type of the IPO curve to bezier
 	 */
+	
+	/* dont regenerate hendels for bezier ipo curves */
+	if (icu->ipo==IPO_BEZ) return;
+	
+	/* curve handels aren't generated for non bezier curve types */
 	icu->ipo= IPO_BEZ;
+	calchandles_ipocurve(icu);
 }
 
 

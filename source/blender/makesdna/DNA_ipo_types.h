@@ -367,11 +367,11 @@ typedef short IPO_Channel;
 #define IPO_SHORT_BIT	17
 #define IPO_INT_BIT		18
 
-/* icu->ipo */
+/* icu->ipo:  the type of curve */
 #define IPO_CONST		0
 #define IPO_LIN			1
 #define IPO_BEZ			2
-#define IPO_MIXED		3
+#define IPO_MIXED		3 /* not used yet */
 
 /* icu->extrap */
 #define IPO_HORIZ		0

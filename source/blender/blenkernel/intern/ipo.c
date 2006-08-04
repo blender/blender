@@ -453,7 +453,9 @@ void calchandles_ipocurve(IpoCurve *icu)
 	int a;
 
 	a= icu->totvert;
-	if(a<2) return;
+	
+	/* IPO_CONST or IPO_LIN, dont have handels */
+	if(a<2 || icu->ipo==IPO_LIN || icu->ipo==IPO_CONST) return;
 	
 	bezt= icu->bezt;
 	prev= 0;
