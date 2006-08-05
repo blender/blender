@@ -1117,20 +1117,31 @@ static void draw_ipovertices(int sel)
 			 * on TNT2 / Linux with NVidia's drivers
 			 * (at least up to ver. 4349) */		
 			
-			bglBegin(GL_POINTS);
+			a= ei->icu->totvert;
+			
+			/* Dont bother looping through the points if the last point is to the left of teh xmin */
+			bezt= ei->icu->bezt+(a-1);
+			if ((ei->icu->ipo!=IPO_BEZ || !(ei->flag & IPO_EDIT)) && bezt->vec[1][0] < G.v2d->cur.xmin)
+				continue;
 			
 			bezt= ei->icu->bezt;
-			a= ei->icu->totvert;
-			while(a--) {				
+			bglBegin(GL_POINTS);
+			
+			while(a--) {
 				
+				/* IPO_DISPBITS is used for displaying layer ipo types as well as modes */
 				if(ei->disptype==IPO_DISPBITS) {
 					ok= 0;
+					
+					if (bezt->vec[1][0] > G.v2d->cur.xmax)
+						break;
+				
 					if(ei->flag & IPO_EDIT) {
 						if( (bezt->f2 & 1) == sel ) ok= 1;
 					}
 					else ok= 1;
 					
-					if(ok) {
+					if(ok && bezt->vec[1][0] > G.v2d->cur.xmin) {
 						val= bezt->vec[1][1];
 						b= 0;
 						v1[0]= bezt->vec[1][0];
@@ -1144,27 +1155,39 @@ static void draw_ipovertices(int sel)
 						}
 					}
 				}
-				else {
-					
+				else { /* normal non bit curves */
 					if(ei->flag & IPO_EDIT) {
 						if(ei->icu->ipo==IPO_BEZ) {
-							if( (bezt->f1 & 1) == sel )	
+							/* Draw the editmode hendels for a bezier curve */
+							if( (bezt->f1 & 1) == sel && bezt->vec[0][0] > G.v2d->cur.xmin)
 								bglVertex3fv(bezt->vec[0]);
-							if( (bezt->f3 & 1) == sel )	
+							
+							if( (bezt->f3 & 1) == sel && bezt->vec[0][0] > G.v2d->cur.xmin)
 								bglVertex3fv(bezt->vec[2]);
-						}
-						if( (bezt->f2 & 1) == sel )	
+							
+						} else if (bezt->vec[1][0] > G.v2d->cur.xmax) 
+							/* dont draw beyond the bounds for non bezier curves in editmode */
+							break;
+						
+						if( (bezt->f2 & 1) == sel && bezt->vec[0][0] > G.v2d->cur.xmin)
 							bglVertex3fv(bezt->vec[1]);
 						
 					}
 					else {
-						bglVertex3fv(bezt->vec[1]);
+						/* Since were not drawing any spline handels out of editmode
+						we can break if were beyond the xmax */
+						if (bezt->vec[1][0] > G.v2d->cur.xmax)
+							break;
+						
+						/* draw only if in bounds */
+						if (bezt->vec[1][0] > G.v2d->cur.xmin)
+							bglVertex3fv(bezt->vec[1]);
+						
 					}
 				}
 				
 				bezt++;
 			}
-
 			bglEnd();
 		}
 	}
