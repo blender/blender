@@ -234,7 +234,6 @@ PyObject *Matrix_Invert(MatrixObject * self)
 	f = Matrix_Determinant(self);
 	det = (float)PyFloat_AS_DOUBLE(f); /*Increfs, so we need to decref*/
 	Py_DECREF(f);
-	det= 10.0;
 
 	if(det != 0) {
 		/*calculate the classical adjoint*/

@@ -2,7 +2,6 @@ import Blender
 from Blender import Mathutils, Window, Scene, Draw, Mesh
 from Blender.Mathutils import CrossVecs, Matrix, Vector, Intersect, LineIntersect
 
-
 # DESCRIPTION:
 # screen_x, screen_y the origin point of the pick ray
 # it is either the mouse location
@@ -44,7 +43,7 @@ def mouseViewRay(screen_x, screen_y, localMatrix=None, useMid = False):
 			# sorry - i cannot explain here what they all do
 			# - if you're not familiar with all those matrices take a look at an introduction to OpenGL...
 			pm	= Window.GetPerspMatrix()   # the prespective matrix
-			pmi  = pm.inverted() # the inverted perspective matrix
+			pmi  = Matrix(pm); pmi.invert() # the inverted perspective matrix
 			
 			if (1.0 - epsilon < pmi[3][3] < 1.0 + epsilon):
 				# pmi[3][3] is 1.0 if the 3dwin is in ortho-projection mode (toggled with numpad 5)
@@ -54,7 +53,7 @@ def mouseViewRay(screen_x, screen_y, localMatrix=None, useMid = False):
 				# ortho mode: is a bit strange - actually there's no definite location of the camera ...
 				# but the camera could be displaced anywhere along the viewing direction.
 				
-				ortho_d[:] = Window.GetViewVector()
+				ortho_d.x, ortho_d.y, ortho_d.z = Window.GetViewVector()
 				ortho_d.w = 0
 				
 				# all rays are parallel in ortho mode - so the direction vector is simply the viewing direction
@@ -73,7 +72,7 @@ def mouseViewRay(screen_x, screen_y, localMatrix=None, useMid = False):
 			# is used in sculpt_mesh to initialize backface culling...)
 			else:
 				# PERSPECTIVE MODE: here everything is well defined - all rays converge at the camera's location
-				vmi  = Window.GetViewMatrix().inverted() # the inverse viewing matrix
+				vmi  = Matrix(Window.GetViewMatrix()); vmi.invert() # the inverse viewing matrix
 				fp = mouseViewRay.fp
 				
 				dx = pm[3][3] * (((screen_x-win_min_x)/win_size_x)-1.0) - pm[3][0]
@@ -104,9 +103,13 @@ def mouseViewRay(screen_x, screen_y, localMatrix=None, useMid = False):
 			# Do we want to return a direction in object's localspace?
 			
 			if localMatrix:
-				localInvMatrix = localMatrix.inverted()
+				localInvMatrix = Matrix(localMatrix)
+				localInvMatrix.invert()
 				p = p*localInvMatrix
-				d = d*localInvMatrix.rotationPart() # normalize_v3
+				d = d*localInvMatrix # normalize_v3
+				p.x += localInvMatrix[3][0]
+				p.y += localInvMatrix[3][1]
+				p.z += localInvMatrix[3][2]
 				
 			#else: # Worldspace, do nothing
 			
@@ -123,6 +126,37 @@ mouseViewRay.fp = Vector(0,0,0)
 
 mouseViewRay.hms = Vector(0,0,0,0) # ortho only 4d
 mouseViewRay.ortho_d = Vector(0,0,0,0) # ortho only 4d
+
+
+LMB= Window.MButs['L']
+def mouseup():
+	# Loop until click
+	mouse_buttons = Window.GetMouseButtons()
+	while not mouse_buttons & LMB:
+		Blender.sys.sleep(10)
+		mouse_buttons = Window.GetMouseButtons()
+	while mouse_buttons & LMB:
+		Blender.sys.sleep(10)
+		mouse_buttons = Window.GetMouseButtons()
+
+
+if __name__=='__main__':
+	mouseup()
+	x,y= Window.GetMouseCoords()
+	isect, point, dir= mouseViewRay(x,y)
+	if isect:
+		scn= Blender.Scene.GetCurrent()
+		me = Blender.Mesh.New()
+		ob= Blender.Object.New('Mesh')
+		ob.link(me)
+		scn.link(ob)
+		ob.sel= 1
+		me.verts.extend([point, dir])
+		me.verts[0].sel= 1
+		
+	print isect, point, dir
+	
+	
 
 def spaceRect():
 	'''

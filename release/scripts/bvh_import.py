@@ -513,7 +513,7 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 			if bvh_node.has_loc:
 				# Set the Location, simple too
 				pose_bone.loc= (\
-				TranslationMatrix(Vector(lx*10, ly*10, lz*10)) *\
+				TranslationMatrix(Vector(lx, ly, lz)) *\
 				bone_rest_matrix_inv).translationPart() # WHY * 10? - just how pose works
 			
 			# Get the transform 
@@ -587,7 +587,7 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 			return tuple((bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).toQuat()) # qw,qx,qy,qz
 		
 		def pose_loc(anim_data):
-			return tuple((TranslationMatrix(Vector(anim_data[0]*10, anim_data[1]*10, anim_data[2]*10)) * bone_rest_matrix_inv).translationPart())
+			return tuple((TranslationMatrix(Vector(anim_data[0], anim_data[1], anim_data[2])) * bone_rest_matrix_inv).translationPart())
 		
 		
 		last_frame= len(bvh_node.anim_data)+IMPORT_START_FRAME-1

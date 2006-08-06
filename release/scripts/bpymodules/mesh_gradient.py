@@ -108,8 +108,9 @@ def vertexGradientPick(ob, MODE):
 	else: # Ortho - Same direction, different origin
 		cross_grad= CrossVecs(DirectionA, OriginA-OriginB)
 		ORTHO= True
-		
-	cross_grad= cross_grad.normalized() * 100
+	
+	cross_grad.normalize()
+	cross_grad= cross_grad * 100
 	
 	lineA= (OriginA, OriginA+(DirectionA*100))
 	lineB= (OriginB, OriginB+(DirectionB*100))
