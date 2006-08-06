@@ -199,7 +199,7 @@ def veckey2d(v):
 def write(filename, objects,\
 EXPORT_TRI=False,  EXPORT_EDGES=False,  EXPORT_NORMALS=False,  EXPORT_NORMALS_HQ=False,\
 EXPORT_UV=True,  EXPORT_MTL=True,  EXPORT_COPY_IMAGES=False,\
-EXPORT_APPLY_MODIFIERS=True,  EXPORT_BLEN_OBS=True,\
+EXPORT_APPLY_MODIFIERS=True, EXPORT_ROTX90=True, EXPORT_BLEN_OBS=True,\
 EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 	'''
 	Basic write function. The context and options must be alredy set
@@ -326,8 +326,13 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 				file.write('g %s\n' % obnamestring)
 			
 		# Vert
-		for v in m.verts:
-			file.write('v %.6f %.6f %.6f\n' % tuple(v.co))
+		if not EXPORT_ROTX90:
+			for v in m.verts:
+				file.write('v %.6f %.6f %.6f\n' % tuple(v.co))
+		else:
+			for v in m.verts:
+				x,y,z= v.co
+				file.write('v %.6f %.6f %.6f\n' % (x,z,-y))
 		
 		# UV
 		if m.faceUV and EXPORT_UV:
@@ -348,14 +353,20 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 						if not globalNormals.has_key( noKey ):
 							globalNormals[noKey] = totno
 							totno +=1
-							file.write('vn %.6f %.6f %.6f\n' % noKey)
+							if not EXPORT_ROTX90:
+								file.write('vn %.6f %.6f %.6f\n' % noKey)
+							else:
+								file.write('vn %.6f %.6f %.6f\n' % (noKey[0], noKey[2], -noKey[1]))
 				else:
 					# Hard, 1 normal from the face.
 					noKey = veckey3d(f.no)
 					if not globalNormals.has_key( noKey ):
 						globalNormals[noKey] = totno
 						totno +=1
-						file.write('vn %.6f %.6f %.6f\n' % noKey)
+						if not EXPORT_ROTX90:
+							file.write('vn %.6f %.6f %.6f\n' % noKey)
+						else:
+							file.write('vn %.6f %.6f %.6f\n' % (noKey[0], noKey[2], -noKey[1]))
 		
 		
 		uvIdx = 0
@@ -500,6 +511,7 @@ def write_ui(filename):
 		Window.QHandle(s['id'])
 	
 	EXPORT_APPLY_MODIFIERS = Draw.Create(1)
+	EXPORT_ROTX90 = Draw.Create(1)
 	EXPORT_TRI = Draw.Create(0)
 	EXPORT_EDGES = Draw.Create(0)
 	EXPORT_NORMALS = Draw.Create(0)
@@ -519,6 +531,7 @@ def write_ui(filename):
 	pup_block = [\
 	('Mesh Options...'),\
 	('Apply Modifiers', EXPORT_APPLY_MODIFIERS, 'Use transformed mesh data from each object. May break vert order for morph targets.'),\
+	('Rotate X90', EXPORT_ROTX90 , 'Rotate on export so Blenders UP is translated into OBJs UP'),\
 	('Triangulate', EXPORT_TRI, 'Triangulate quadsModifiers.'),\
 	('Edges', EXPORT_EDGES, 'Edges not connected to faces.'),\
 	('Normals', EXPORT_NORMALS, 'Export vertex normal data (Ignored on import).'),\
@@ -542,6 +555,7 @@ def write_ui(filename):
 	Window.WaitCursor(1)
 	
 	EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS.val
+	EXPORT_ROTX90 = EXPORT_ROTX90.val
 	EXPORT_TRI = EXPORT_TRI.val
 	EXPORT_EDGES = EXPORT_EDGES.val
 	EXPORT_NORMALS = EXPORT_NORMALS.val
@@ -600,7 +614,8 @@ def write_ui(filename):
 			EXPORT_TRI, EXPORT_EDGES, EXPORT_NORMALS,\
 			EXPORT_NORMALS_HQ, EXPORT_UV, EXPORT_MTL,\
 			EXPORT_COPY_IMAGES, EXPORT_APPLY_MODIFIERS,\
-			EXPORT_BLEN_OBS, EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT)
+			EXPORT_ROTX90, EXPORT_BLEN_OBS,\
+			EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT)
 		
 		Blender.Set('curframe', orig_frame)
 	
