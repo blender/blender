@@ -444,25 +444,19 @@ static PyObject *Sound_unpack( BPy_Sound * self, PyObject * args )
 	int mode;
 	if( !PyArg_ParseTuple( args, "i", &mode ) )
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
-							"expected 1 integer" );
+							"expected an integer from Blender.UnpackModes" );
 
-	if (!sound_sample_is_null(sound))
-	{
+	if (!sound_sample_is_null(sound)) {
 	    bSample *sample = sound_find_sample(sound);
-	    if (sample->packedfile==NULL)
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"sound not packed" );
-	    if (unpackSample(sample, mode) == RET_ERROR)
-                return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-                                "error unpacking sound" );
-	}
-	else
-	{
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"sound has no samples" );
+		if (sample->packedfile) {
+			if (unpackSample(sample, mode) == RET_ERROR)
+					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+									"error unpacking sound");
+		}
+	} else {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError, "sound has no samples" );
 	}
 	Py_RETURN_NONE;
-	 
 }
 
 /* pack sound */

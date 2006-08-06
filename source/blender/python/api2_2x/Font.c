@@ -66,12 +66,15 @@ struct PyMethodDef M_Font_methods[] = {
 };
 
 /*--------------- Python BPy_Font methods declarations:-------------------*/
-static PyObject *Font_pack( BPy_Font * self, PyObject * args );
+static PyObject *Font_pack( BPy_Font * self );
+static PyObject *Font_unpack( BPy_Font * self, PyObject * args );
 
 /*--------------- Python BPy_Font methods table:--------------------------*/
 static PyMethodDef BPy_Font_methods[] = {
-	{"pack", ( PyCFunction ) Font_pack, METH_VARARGS,
-	 "() - pack/unpack Font"},
+	{"pack", ( PyCFunction ) Font_pack, METH_NOARGS,
+	 "() - pack this Font"},
+	{"unpack", ( PyCFunction ) Font_unpack, METH_VARARGS,
+	 "(mode) - unpack this packed font"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -227,7 +230,6 @@ static int Font_setName( BPy_Font * self, PyObject * value )
 static int Font_setFilename( BPy_Font * self, PyObject * value )
 {
 	char *name = NULL;
-	int namelen = 0;
 
 	/* max len is FILE_MAXDIR = 160 chars like done in DNA_image_types.h */
 	
@@ -244,19 +246,28 @@ static int Font_setFilename( BPy_Font * self, PyObject * value )
 
 
 /*--------------- BPy_Font.pack()---------------------------------*/
-static PyObject *Font_pack( BPy_Font * self, PyObject * args ) 
+static PyObject *Font_pack( BPy_Font * self ) 
 {
-	int pack= 0;
-	if( !PyArg_ParseTuple( args, "i", &pack ) )
+	if( !self->font->packedfile ) 
+		self->font->packedfile = newPackedFile(self->font->name);
+	return EXPP_incr_ret( Py_None );
+}
+
+/*--------------- BPy_Font.unpack()---------------------------------*/
+static PyObject *Font_unpack( BPy_Font * self, PyObject * args ) 
+{
+	int mode= 0;
+	VFont *font= self->font;
+	
+	if( !PyArg_ParseTuple( args, "i", &mode ) )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_AttributeError,
-			   "expected int argument" ) );
-	if( pack && !self->font->packedfile ) 
-		self->font->packedfile = newPackedFile(self->font->name);
-	else if (self->font->packedfile)
-		if (unpackVFont(self->font, PF_ASK) == RET_OK)
-			G.fileflags &= ~G_AUTOPACK;
+			   "expected int argument from Blender.UnpackModes" ) );
 	
+	if (font->packedfile)
+		if (unpackVFont(font, mode) == RET_ERROR)
+                return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+                                "error unpacking font" );
 
 	return EXPP_incr_ret( Py_None );
 }

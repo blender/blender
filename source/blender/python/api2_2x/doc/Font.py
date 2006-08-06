@@ -45,14 +45,25 @@ class Font:
   ======================
     This object gives access  Blender's B{Font} objects
   @ivar name: The Font name.
-  @ivar filename: The filename of the file loaded into this Font.
-  @ivar packed: The packed status of this font.
+  @ivar filename: The filename (path) of the file loaded into this Font.
+  @ivar packed: Boolean, True when the sample is packed (readonly).
   @ivar users: The number of users this font has (read only)
   """
-  def pack(value):
+
+  def pack():
     """
-    Get the name of this Text3d object.
-    @type value: int
-    @param value: 0 to unpack, 1 to pack.
-    @rtype: None
+    Packs the sound into the current blend file.
+    @note: An error will be raised if the sound is alredy packed or the filename path does not exist.
+    @returns: nothing
+    @rtype: none
+    """
+
+  def unpack(mode):
+    """
+    Unpacks the sound to the samples filename.
+    @param mode: One of the values in Blender.UnpackModes dict.
+    @note: An error will be raised if the sound is not packed or the filename path does not exist.
+    @returns: nothing
+    @rtype: none
+    @type mode: int
     """
