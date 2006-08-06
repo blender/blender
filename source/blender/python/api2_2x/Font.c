@@ -33,13 +33,17 @@
 #include "DNA_packedFile_types.h"
 #include "BKE_packedFile.h"
 #include "BKE_global.h"
+#include "BKE_library.h" /* for rename_id() */
 #include "BLI_blenlib.h"
 #include "gen_utils.h"
+
+#include "BKE_main.h" /* so we can access G.main->vfont.first */
+#include "DNA_space_types.h" /* for FILE_MAXDIR only */
 
 extern PyObject *M_Text3d_LoadFont( PyObject * self, PyObject * args );
 
 /*--------------------Python API function prototypes for the Font module----*/
-PyObject *M_Font_New( PyObject * self, PyObject * args );
+static PyObject *M_Font_Load( PyObject * self, PyObject * args );
 static PyObject *M_Font_Get( PyObject * self, PyObject * args );
 
 /*------------------------Python API Doc strings for the Font module--------*/
@@ -47,75 +51,350 @@ char M_Font_doc[] = "The Blender Font module\n\n\
 This module provides control over **Font Data** objects in Blender.\n\n\
 Example::\n\n\
 	from Blender import Text3d.Font\n\
-	l = Text3d.Font.New()\n";
-char M_Font_New_doc[] = "(name) - return a new Font of name 'name'.";
-char M_Font_Get_doc[] = "(name) - return a new Font of name 'name'.";
+	l = Text3d.Font.Load('/usr/share/fonts/verdata.ttf')\n";
+char M_Font_Get_doc[] = "(name) - return an existing font called 'name'\
+when no argument is given it returns a list of blenders fonts.";
+char M_Font_Load_doc[] =
+	"(filename) - return font from file filename as Font Object, \
+returns None if not found.\n";
 
 /*----- Python method structure definition for Blender.Text3d.Font module---*/
 struct PyMethodDef M_Font_methods[] = {
-	{"New", ( PyCFunction ) M_Font_New, METH_VARARGS, M_Font_New_doc},
-	{"Get", ( PyCFunction ) M_Font_Get, METH_VARARGS, M_Font_New_doc},
+	{"Get", ( PyCFunction ) M_Font_Get, METH_VARARGS, M_Font_Get_doc},
+	{"Load", ( PyCFunction ) M_Font_Load, METH_VARARGS, M_Font_Load_doc},
 	{NULL, NULL, 0, NULL}
 };
 
-/*--------------- Python BPy_Bone methods declarations:-------------------*/
-static PyObject *Font_getName( BPy_Font * self );
-static PyObject *Font_setName( BPy_Font * self, PyObject * args );
+/*--------------- Python BPy_Font methods declarations:-------------------*/
 static PyObject *Font_pack( BPy_Font * self, PyObject * args );
-static PyObject *Font_isPacked( BPy_Font * self );
 
 /*--------------- Python BPy_Font methods table:--------------------------*/
 static PyMethodDef BPy_Font_methods[] = {
-	{"GetName", ( PyCFunction ) Font_getName, METH_NOARGS,
-	 "() - return Font name"},
-	{"getName", ( PyCFunction ) Font_getName, METH_NOARGS,
-	 "() - return Font name"},
-	{"setName", ( PyCFunction ) Font_setName, METH_VARARGS,
-	 "() - return Font name"},
 	{"pack", ( PyCFunction ) Font_pack, METH_VARARGS,
-	 "() - pack/unpack Font"},
-	{"isPacked", ( PyCFunction ) Font_isPacked, METH_NOARGS,
 	 "() - pack/unpack Font"},
 	{NULL, NULL, 0, NULL}
 };
 
-/*--------------- Python TypeBone callback function prototypes----------*/
+/*--------------- Python TypeFont callback function prototypes----------*/
 static void Font_dealloc( BPy_Font * font );
-static PyObject *Font_getAttr( BPy_Font * bone, char *name );
-static int Font_setAttr( BPy_Font * font, char *name, PyObject * v );
 static int Font_compare( BPy_Font * a1, BPy_Font * a2 );
 static PyObject *Font_repr( BPy_Font * font );
 
-PyTypeObject Font_Type = {
-	PyObject_HEAD_INIT( NULL )
-		0,		/* ob_size */
-	"Font",		/* tp_name */
-	sizeof( BPy_Font ),	/* tp_basicsize */
-	0,			/* tp_itemsize */
-	/* methods */
-	( destructor ) Font_dealloc,	/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) Font_getAttr,	/* tp_getattr */
-	( setattrfunc ) Font_setAttr,	/* tp_setattr */
-	( cmpfunc ) Font_compare,			/* tp_compare */
-	( reprfunc ) Font_repr,	/* tp_repr */
-	0,			/* tp_as_number */
-	0,			/* tp_as_sequence */
-	0,			/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_doc */
-	0, 0, 0, 0, 0, 0,
-	BPy_Font_methods,	/* tp_methods */
-	0,			/* tp_members */
+
+/*--------------- Python Font Module methods------------------------*/
+
+/*--------------- Blender.Text3d.Font.Get()-----------------------*/
+static PyObject *M_Font_Get( PyObject * self, PyObject * args )
+{
+	char *name = NULL;
+	VFont *vfont_iter;
+
+	if( !PyArg_ParseTuple( args, "|s", &name ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected string argument (or nothing)" ) );
+
+	vfont_iter = G.main->vfont.first;
+
+	if( name ) {		/* (name) - Search font by name */
+
+		BPy_Font *wanted_vfont = NULL;
+
+		while(vfont_iter) {
+			if( strcmp( name, vfont_iter->id.name + 2 ) == 0 ) {
+				wanted_vfont =
+					( BPy_Font * )
+					Font_CreatePyObject( vfont_iter );
+				break;
+			}
+			vfont_iter = vfont_iter->id.next;
+		}
+
+		if( wanted_vfont == NULL ) { /* Requested font doesn't exist */
+			char error_msg[64];
+			PyOS_snprintf( error_msg, sizeof( error_msg ),
+				       "Font \"%s\" not found", name );
+			return ( EXPP_ReturnPyObjError
+				 ( PyExc_NameError, error_msg ) );
+		}
+
+		return ( PyObject * ) wanted_vfont;
+	}
+
+	else {		/* () - return a list of all fonts in the scene */
+		int index = 0;
+		PyObject *vfontlist, *pyobj;
+
+		vfontlist = PyList_New( BLI_countlist( &( G.main->vfont ) ) );
+
+		if( vfontlist == NULL )
+			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+							"couldn't create font list" ) );
+
+		while( vfont_iter ) {
+			pyobj = Font_CreatePyObject( vfont_iter );
+
+			if( !pyobj )
+				return ( EXPP_ReturnPyObjError
+					 ( PyExc_MemoryError,
+					   "couldn't create Object" ) );
+
+			PyList_SET_ITEM( vfontlist, index, pyobj );
+
+			vfont_iter = vfont_iter->id.next;
+			index++;
+		}
+
+		return vfontlist;
+	}
+}
+
+
+/*--------------- Blender.Text3d.Font.New()-----------------------*/
+PyObject *M_Font_Load( PyObject * self, PyObject * args )
+{
+	char *filename_str;
+	BPy_Font *py_font = NULL;	/* for Font Data object wrapper in Python */
+	PyObject *tmp; 
+
+	if( !PyArg_ParseTuple( args, "s", &filename_str ) )
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected string or empty argument" ) );
+
+	/*create python font*/
+	if( !S_ISDIR(BLI_exist(filename_str)) )  {
+		tmp= Py_BuildValue("(s)", filename_str);
+		py_font= (BPy_Font *) M_Text3d_LoadFont (self, Py_BuildValue("(s)", filename_str));
+		Py_DECREF (tmp);
+	}
+	else
+		return EXPP_incr_ret( Py_None );
+	return ( PyObject * ) py_font;
+}
+
+/*--------------- Python BPy_Font methods---------------------------*/
+
+/*--------------- BPy_Font.getName()--------------------------------*/
+static PyObject *Font_getName( BPy_Font * self )
+{
+	PyObject *attr = NULL;
+
+	if( self->font )
+		attr = PyString_FromString( self->font->id.name+2 );
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Font.name attribute" ) );
+}
+
+/*--------------- BPy_Font.getFilename()--------------------------------*/
+static PyObject *Font_getFilename( BPy_Font * self )
+{
+	PyObject *attr = NULL;
+
+	if( self->font )
+		attr = PyString_FromString( self->font->name );
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Font.filename attribute" ) );
+}
+
+static int Font_setName( BPy_Font * self, PyObject * value )
+{
+	char *name = NULL;
+	char buf[21];
+	
+	if( !(self->font) )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      "Blender Font was deleted!" );
+	
+	name = PyString_AsString ( value );
+	if( !name )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected string argument" );
+
+	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
+
+	rename_id( &self->font->id, buf );
+	
+	return 0;
+}
+
+
+
+static int Font_setFilename( BPy_Font * self, PyObject * value )
+{
+	char *name = NULL;
+	int namelen = 0;
+
+	/* max len is FILE_MAXDIR = 160 chars like done in DNA_image_types.h */
+	
+	name = PyString_AsString ( value );
+	if( !name )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected string argument" );
+
+	PyOS_snprintf( self->font->name, FILE_MAXDIR * sizeof( char ), "%s",
+		       name );
+
+	return 0;
+}
+
+
+/*--------------- BPy_Font.pack()---------------------------------*/
+static PyObject *Font_pack( BPy_Font * self, PyObject * args ) 
+{
+	int pack= 0;
+	if( !PyArg_ParseTuple( args, "i", &pack ) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_AttributeError,
+			   "expected int argument" ) );
+	if( pack && !self->font->packedfile ) 
+		self->font->packedfile = newPackedFile(self->font->name);
+	else if (self->font->packedfile)
+		if (unpackVFont(self->font, PF_ASK) == RET_OK)
+			G.fileflags &= ~G_AUTOPACK;
+	
+
+	return EXPP_incr_ret( Py_None );
+}
+
+/*--------------- BPy_Font.packed---------------------------------*/
+static PyObject *Font_getPacked( BPy_Font * self ) 
+{
+	if (G.fileflags & G_AUTOPACK)
+		return EXPP_incr_ret_True();
+	else
+		return EXPP_incr_ret_False();
+}
+
+static PyObject *Font_getUsers( BPy_Font* self )
+{
+	return PyInt_FromLong( self->font->id.us );
+}
+
+/*****************************************************************************/
+/* Python attributes get/set structure:                                      */
+/*****************************************************************************/
+static PyGetSetDef BPy_Font_getseters[] = {
+	{"name",
+	 (getter)Font_getName, (setter)Font_setName,
+	 "Font name",
+	 NULL},
+	{"filename",
+	 (getter)Font_getFilename, (setter)Font_setFilename,
+	 "Font filepath",
+	 NULL},
+	{"users",
+	 (getter)Font_getUsers, (setter)NULL,
+	 "Number of font users",
+	 NULL},
+	{"packed",
+	 (getter)Font_getPacked, (setter)NULL,
+	 "Packed status",
+	 NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
+
+/*****************************************************************************/
+/* Python TypeFont structure definition:                                     */
+/*****************************************************************************/
+PyTypeObject Font_Type = {
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+	/*  For printing, in format "<module>.<name>" */
+	"Blender Font",             /* char *tp_name; */
+	sizeof( BPy_Font ),         /* int tp_basicsize; */
+	0,                          /* tp_itemsize;  For allocation */
+
+	/* Methods to implement standard operations */
+
+	( destructor ) Font_dealloc,/* destructor tp_dealloc; */
+	NULL,                       /* printfunc tp_print; */
+	NULL,                       /* getattrfunc tp_getattr; */
+	NULL,                       /* setattrfunc tp_setattr; */
+	( cmpfunc ) Font_compare,   /* cmpfunc tp_compare; */
+	( reprfunc ) Font_repr,     /* reprfunc tp_repr; */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_Font_methods,           /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_Font_getseters,         /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
+};
+
+
+
+
+
 
 /*--------------- Font Module Init-----------------------------*/
 PyObject *Font_Init( void )
 {
 	PyObject *submodule;
 
-	Font_Type.ob_type = &PyType_Type;
+	if( PyType_Ready( &Font_Type ) < 0 )
+		return NULL;
 
 	submodule = Py_InitModule3( "Blender.Text3d.Font",
 				    M_Font_methods, M_Font_doc );
@@ -123,8 +402,8 @@ PyObject *Font_Init( void )
 	return ( submodule );
 }
 
-/*--------------- Bone module internal callbacks-----------------*/
-/*---------------BPy_Bone internal callbacks/methods-------------*/
+/*--------------- Font module internal callbacks-----------------*/
+/*---------------BPy_Font internal callbacks/methods-------------*/
 
 //--------------- dealloc------------------------------------------
 static void Font_dealloc( BPy_Font * self )
@@ -132,24 +411,12 @@ static void Font_dealloc( BPy_Font * self )
 	PyObject_DEL( self );
 }
 
-/*---------------getattr-------------------------------------------*/
-static PyObject *Font_getAttr( BPy_Font * self, char *name )
-{
-	return Py_FindMethod( BPy_Font_methods, ( PyObject * ) self, name );
-}
-
-/*--------------- setattr-------------------------------------------*/
-static int Font_setAttr( BPy_Font * self, char *name, PyObject * value )
-{
-	return 0;
-}
-
 /*--------------- repr---------------------------------------------*/
 static PyObject *Font_repr( BPy_Font * self )
 {
 	if( self->font )
 		return PyString_FromFormat( "[Font \"%s\"]",
-					    self->font->name );
+					    self->font->id.name+2 );
 	else
 		return PyString_FromString( "NULL" );
 }
@@ -168,7 +435,6 @@ PyObject *Font_CreatePyObject( struct VFont * font )
 
 	blen_font = ( BPy_Font * ) PyObject_NEW( BPy_Font, &Font_Type );
 
-	/*set the all important Bone flag*/
 	blen_font->font = font;
 
 	return ( ( PyObject * ) blen_font );
@@ -190,101 +456,9 @@ struct VFont *Font_FromPyObject( PyObject * py_obj )
 		//use python vars
 		return NULL;
 	} else {
-		//use bone datastruct
 		return ( blen_obj->font );
 	}
 }
 
-/*--------------- Python Font Module methods------------------------*/
 
-/*--------------- Blender.Text3d.Font.New()-----------------------*/
-PyObject *M_Font_New( PyObject * self, PyObject * args )
-{
-	char *name_str = "<builtin>";
-//	char *parent_str = "";
-	BPy_Font *py_font = NULL;	/* for Font Data object wrapper in Python */
-	PyObject *tmp; 
-
-	if( !PyArg_ParseTuple( args, "|s", &name_str ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected string or empty argument" ) );
-
-	/*create python font*/
-	if( !S_ISDIR(BLI_exist(name_str)) )  {
-		tmp= Py_BuildValue("(s)", name_str);
-		py_font= (BPy_Font *) M_Text3d_LoadFont (self, Py_BuildValue("(s)", name_str));
-		Py_DECREF (tmp);
-	}
-	else
-		return EXPP_incr_ret( Py_None );
-	return ( PyObject * ) py_font;
-}
-
-/*--------------- Blender.Text3d.Font.Get()-----------------------*/
-static PyObject *M_Font_Get( PyObject * self, PyObject * args )
-{
-	return M_Font_New (self, args);
-}
-
-/*--------------- Python BPy_Font methods---------------------------*/
-
-/*--------------- BPy_Font.getName()--------------------------------*/
-static PyObject *Font_getName( BPy_Font * self )
-{
-	PyObject *attr = NULL;
-
-	if( self->font )
-		attr = PyString_FromString( self->font->name );
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Bone.name attribute" ) );
-}
-
-/*--------------- BPy_Font.setName()---------------------------------*/
-static PyObject *Font_setName( BPy_Font * self, PyObject * args )
-{
-	char *name;
-	char buf[256];
-
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError,
-			   "expected string argument" ) );
-
-	/* guarantee a null terminated string of reasonable size */
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-
-	if( self->font )
-		BLI_strncpy( self->font->name, buf, sizeof( buf )  );
-	return EXPP_incr_ret( Py_None );
-}
-
-/*--------------- BPy_Font.pack()---------------------------------*/
-static PyObject *Font_pack( BPy_Font * self, PyObject * args ) 
-{
-	int pack= 0;
-	if( !PyArg_ParseTuple( args, "i", &pack ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError,
-			   "expected int argument" ) );
-	if( pack && !self->font->packedfile ) 
-		self->font->packedfile = newPackedFile(self->font->name);
-	else if (self->font->packedfile)
-		if (unpackVFont(self->font, PF_ASK) == RET_OK)
-			G.fileflags &= ~G_AUTOPACK;
-	
-
-	return EXPP_incr_ret( Py_None );
-}
-
-/*--------------- BPy_Font.ispack()---------------------------------*/
-static PyObject *Font_isPacked( BPy_Font * self ) 
-{
-	if (G.fileflags & G_AUTOPACK)
-		return EXPP_incr_ret_True();
-	else
-		return EXPP_incr_ret_False();
-}
 

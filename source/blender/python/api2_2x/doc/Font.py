@@ -1,4 +1,4 @@
-# Blender.Text3 module and the Text3d PyType object
+# Blender.Text3d.Font module and the Font PyType object
 
 """
 The Blender.Text3d.Font subsubmodule.
@@ -10,74 +10,49 @@ This module provides access to B{Font} objects in Blender.
 
 Example::
   import Blender
-  from Blender import Window, Curve, Object, Scene, Text3d
-  #
-  txt = Text3d.New("MyText")  # create a new Text3d object called MyText
-  cur = Scene.getCurrent()    # get current scene
-  ob = Object.New('Text')     # make curve object
-  fnt_obj= Text3d.LoadFont('/home/joilnen/c0419bt_.pfb') # here a valid font file
-  txt.setFont(fnt_obj)
-  ob.link(txt)                # link curve data with this object
-  cur.link(ob)                # link object into scene
-  ob.makeDisplayList()        # rebuild the display list for this object
-  Window.RedrawAll()
+  from Blender import Text3d
+  
+  # Load a font
+  myfont= Text3d.Font.Load('/usr/share/fonts/ttf/verdana.ttf')
+  
+  # 
+  for font in Text3d.Font.Get():
+    print font.name, font.filename, font.packed
 """
 
-def New (name = None):
+def Load (filename):
   """
   Create a new Text3d.Font object.
-  @type name: string
-  @param name: file of the font
+  @type filename: string
+  @param filename: file of the font
   @rtype: Blender Text3d.Font
   @return: The created Text3d.Font Data object.
   """
 
 def Get (name = None):
   """
-  Get the Text3d object(s) from Blender.
+  Get the Text3d.Font object(s) from Blender.
   @type name: string
   @param name: The name of the Text3d object.
   @rtype: Blender Text3d or a list of Blender Text3ds
   @return: It depends on the 'name' parameter:
       - (name): The Text3d object with the given name;
-      - ():     A list with all Text3d objects in the current scene.
+      - ():     A list with all Font objects in the current .blend file.
   """
 class Font:
   """
   The Text3d.Font object
   ======================
     This object gives access  Blender's B{Font} objects
-  @ivar name: The Text3d name.
-  @ivar filename: The filename of the file loaded into this Text.
-  @ivar mode: The follow_mode flag: if 1 it is 'on'; if 0, 'off'.
-  @ivar nlines: The number of lines in this Text.
+  @ivar name: The Font name.
+  @ivar filename: The filename of the file loaded into this Font.
+  @ivar packed: The packed status of this font.
+  @ivar users: The number of users this font has (read only)
   """
-
-  def getName():
+  def pack(value):
     """
     Get the name of this Text3d object.
-    @rtype: string
+    @type value: int
+    @param value: 0 to unpack, 1 to pack.
+    @rtype: None
     """
-
-  def setName( name ):
-    """
-    Set the name of this Text3d object.
-    @type name: string
-    @param name: The new name.
-    @returns: None
-    """
-
-  def getText():
-    """
-    Get text string for this object
-    @rtype: string
-    """
-
-  def setText( name ):
-    """
-    Set the text string in this Text3d object
-    @type name: string
-    @param name:  The new text string for this object.
-    @returns: None
-    """
-

@@ -1,4 +1,4 @@
-# Blender.Text3 module and the Text3d PyType object
+# Blender.Text3d module and the Text3d PyType object
 
 """
 The Blender.Text3d submodule.
