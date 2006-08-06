@@ -13,8 +13,8 @@ Example::
   from Blender import Sound
   #
   sound = Sound.Load("/path/to/my/sound.wav")    # load a sound file
-  print "Sound from", sound.getFilename(),
-  print "loaded to obj", sound.getName())
+  print "Sound from", sound.filename,
+  print "loaded to obj", sound.name
   print "All Sounds available now:", Sound.Get()
 
 No way to get the actual audio data is provided by this library,
@@ -66,14 +66,26 @@ class Sound:
     @rtype: string
     """
 
-  def play():
+  def setName():
     """
-    Play this sound.
+    Set the name of this Sound object.
+    @rtype: None
+    """
+
+  def setFilename():
+    """
+    Set the filename of the sound file loaded into this Sound object.
+    @rtype: None
     """
 
   def setCurrent():
     """
     Make this the active sound in the sound buttons window (also redraws).
+    """
+
+  def play():
+    """
+    Play this sound.
     """
 
   def getVolume():

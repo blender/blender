@@ -40,6 +40,7 @@
 #include "BKE_packedFile.h"
 #include "mydevice.h"		/* redraw defines */
 #include "gen_utils.h"
+#include "DNA_space_types.h" /* for FILE_MAXDIR only */
 
 /*****************************************************************************/
 /* Python BPy_Sound defaults:					*/
@@ -123,11 +124,13 @@ static PyObject *Sound_set ## funcname(BPy_Sound *self, PyObject *args) { \
 /*****************************************************************************/
 static PyObject *Sound_getName( BPy_Sound * self );
 static PyObject *Sound_getFilename( BPy_Sound * self );
-static PyObject *Sound_play( BPy_Sound * self );
+static PyObject *Sound_setName( BPy_Sound * self, PyObject * args );
+static PyObject *Sound_setFilename( BPy_Sound * self, PyObject * args );
 static PyObject *Sound_setCurrent( BPy_Sound * self );
+static PyObject *Sound_play( BPy_Sound * self );
 static PyObject *Sound_unpack( BPy_Sound * self, PyObject * args);
 static PyObject *Sound_pack( BPy_Sound * self );
-//static PyObject *Sound_reload ( BPy_Sound * self );
+/*static PyObject *Sound_reload ( BPy_Sound * self );*/
 SOUND_FLOAT_METHODS( Volume, volume )
 SOUND_FLOAT_METHODS( Attenuation, attenuation )
 SOUND_FLOAT_METHODS( Pitch, pitch )
@@ -148,10 +151,14 @@ static PyMethodDef BPy_Sound_methods[] = {
 	 "() - Return Sound object name"},
 	{"getFilename", ( PyCFunction ) Sound_getFilename, METH_NOARGS,
 	 "() - Return Sound object filename"},
-	{"play", ( PyCFunction ) Sound_play, METH_NOARGS,
-	 "() - play this sound"},
+	{"setName", ( PyCFunction ) Sound_setName, METH_VARARGS,
+	 "(name) - Set Sound object name"},
+	{"setFilename", ( PyCFunction ) Sound_setFilename, METH_VARARGS,
+	 "(filename) - Set Sound object filename"},
 	{"setCurrent", ( PyCFunction ) Sound_setCurrent, METH_NOARGS,
 	 "() - make this the active sound in the sound buttons win (also redraws)"},
+	{"play", ( PyCFunction ) Sound_play, METH_NOARGS,
+				 "() - play this sound"},
 	{"unpack", ( PyCFunction ) Sound_unpack, METH_VARARGS,
 		         "(int) - Unpack sound. Uses one of the values defined in Blender.UnpackModes."},
 	{"pack", ( PyCFunction ) Sound_pack, METH_NOARGS,
@@ -411,6 +418,46 @@ static PyObject *Sound_getFilename( BPy_Sound * self )
 					"couldn't get Sound.filename attribute" ) );
 }
 
+
+static PyObject *Sound_setName( BPy_Sound * self, PyObject * args )
+{
+	char *name;
+	char buf[21];
+
+	if( !PyArg_ParseTuple( args, "s", &name ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected a String as argument" ) );
+	}
+
+	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
+
+	rename_id( &self->sound->id, buf );
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *Sound_setFilename( BPy_Sound * self, PyObject * args )
+{
+	char *name;
+	int namelen = 0;
+
+	/* max len is FILE_MAXDIR = 160 chars like done in DNA_image_types.h */
+
+	if( !PyArg_ParseTuple( args, "s#", &name, &namelen ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected a string argument" ) );
+
+	if( namelen >= FILE_MAXDIR )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"string argument is limited to 160 chars at most" ) );
+
+	PyOS_snprintf( self->sound->name, FILE_MAXDIR * sizeof( char ), "%s",
+		       name );
+
+	Py_RETURN_NONE;
+}
+
+
 static PyObject *Sound_play( BPy_Sound * self )
 {
 	sound_play_sound( self->sound );
@@ -508,9 +555,6 @@ static PyObject *Sound_getAttr( BPy_Sound * self, char *name )
 		attr = PyString_FromString( self->sound->id.name + 2 );
 	else if( strcmp( name, "filename" ) == 0 )
 		attr = PyString_FromString( self->sound->name );
-
-	else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s,s]", "name", "filename" );
 	else if( strcmp( name, "packed" ) == 0 ) {
 		if (!sound_sample_is_null(self->sound))
 		{
@@ -521,9 +565,10 @@ static PyObject *Sound_getAttr( BPy_Sound * self, char *name )
 				attr = EXPP_incr_ret_False();
 		}
 		else
-			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"Sound has no sample to unpack!" ) );
-	}
+			attr = EXPP_incr_ret_False();
+	} else if( strcmp( name, "__members__" ) == 0 )
+		attr = Py_BuildValue( "[s,s]", "name", "filename" );
+	
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"couldn't create PyObject" ) );
@@ -543,40 +588,38 @@ static PyObject *Sound_getAttr( BPy_Sound * self, char *name )
 /*****************************************************************************/
 static int Sound_setAttr( BPy_Sound * self, char *name, PyObject * value )
 {
-	PyObject *valtuple;
-//	PyObject *error = NULL;
-
-/* We're playing a trick on the Python API users here.	Even if they use
- * Sound.member = val instead of Sound.setMember(value), we end up using the
- * function anyway, since it already has error checking, clamps to the right
- * interval and updates the Blender Sound structure when necessary. */
-
-	valtuple = Py_BuildValue( "(O)", value );	/*the set* functions expect a tuple */
-
+	PyObject *valtuple, *result=NULL;
+	
+	/* Put the value(s) in a tuple. For some variables, we want to */
+	/* pass the values to a function, and these functions only accept */
+	/* PyTuples. */
+	valtuple = Py_BuildValue( "(O)", value );
 	if( !valtuple )
 		return EXPP_ReturnIntError( PyExc_MemoryError,
-					    "SoundSetAttr: couldn't create PyTuple" );
-
-/*	if (strcmp (name, "name") == 0)
-		error = Sound_setName (self, valtuple);
-	else */  {
-		/* Error: no such member in the Sound object structure */
-		Py_DECREF( value );
-		Py_DECREF( valtuple );
-		return ( EXPP_ReturnIntError( PyExc_KeyError,
-					      "attribute not found or immutable" ) );
+				"Sound_setAttr: couldn't create PyTuple" );
+	
+	if( StringEqual( name, "name" ) )
+		result = Sound_setName( self, valtuple );
+	else if( StringEqual( name, "filename" ) ) {
+		result = Sound_setFilename( self , valtuple );
+	} else { /* if it turns out here, it's not an attribute*/
+		Py_DECREF(valtuple);
+		return EXPP_ReturnIntError( PyExc_KeyError, "attribute not found" );
 	}
 
-/*	===This code is unreachable===
-	Py_DECREF( valtuple );
+/* valtuple won't be returned to the caller, so we need to DECREF it */
+	Py_DECREF(valtuple);
 
-	if( error != Py_None )
-		return -1;
+	if( result != Py_None )
+		return -1;	/* error return */
 
-	Py_DECREF( Py_None );	// incref'ed by the called set* function /
-	return 0;		// normal exit 
-	*/
+/* Py_None was incref'ed by the called Scene_set* function. We probably
+ * don't need to decref Py_None (!), but since Python/C API manual tells us
+ * to treat it like any other PyObject regarding ref counting ... */
+	Py_DECREF( Py_None );
+	return 0;		/* normal return */
 }
+
 
 /*****************************************************************************/
 /* Function:	Sound_compare					*/
