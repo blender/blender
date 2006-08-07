@@ -16,26 +16,24 @@ This script unwelds faces from one or several selected vertex/vertices.
 
 Usage:
 
-In edit mode Select at least a vertex, then run this script.
+In edit mode Select at least one vertex, then run this script.
 
-Its options are:
+The options are:
 
 - unbind points;<br>
-		a new piont is added to each face connect to the selectected one .
+		a new point is added to each face connected to the selected one.
 		
 - with noise;<br>
-		the new point is located not exactely at the same place but
-		with a bit of noise
+		the new points location is varied with noise
 		
 - middle face;<br>
-		the new point is located not exactely at the same place but
-		at the center of face to whicxh it is connected (may be useful)
+		the new point is located at the center of face to which it is connected
 """
 
 # ------------------------------------------
 # Un-Weld script 0.4.6 
 # name="UnWeld"
-# Tip= 'Unweld all faces from a selected and common vertex. Made vertex bevelling'
+# Tip= 'Unweld all faces from a selected and common vertex.'
 # date='06/08/2006'
 # split all faces from one selected vertex
 # (c) 2004 J-M Soler released under GPL licence
@@ -51,7 +49,7 @@ Its options are:
 # Changelog
 #----------------------------------------------
 # 25/05 :
-# -- separate choise, normal (same place) or spread at random, middle of the face
+# -- separate choice, normal (same place) or spread at random, middle of the face
 # -- works on several vertices too
 # -- Quite vertex bevelling on <<lone>> vertex : create hole in faces around this
 # vertex
@@ -241,7 +239,5 @@ if OBJECT and OBJECT.getType()=='Mesh':
 	Blender.Window.EditMode(EDITMODE)
 	
 else:
-	name = "Nothing to do! Did you selected a vertex at least ?"
+	name = "Nothing to do! Did you select at least one vertex?"
 	result = Blender.Draw.PupMenu(name)
-
-                                   	
