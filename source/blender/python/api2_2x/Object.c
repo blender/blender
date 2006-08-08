@@ -3591,6 +3591,8 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 
 	if( StringEqual( name, "track" ) )
 		return Object_CreatePyObject( object->track );
+	if( StringEqual( name, "type" ) )
+		return Object_getType( obj );
 	if( StringEqual( name, "data" ) ) {
 		PyObject *getdata, *tuple = PyTuple_New(0);
 

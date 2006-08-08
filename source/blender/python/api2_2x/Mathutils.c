@@ -656,9 +656,13 @@ PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		return EXPP_ReturnPyObjError (PyExc_TypeError, 
 			"Mathutils.RotationMatrix(): expected float int and optional string and vector\n");
 	}
-	if(angle < -360.0f || angle > 360.0f)
-		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-			"Mathutils.RotationMatrix(): angle size not appropriate\n");
+	
+	/* Clamp to -360:360 */
+	while (angle<-360.0f)
+		angle+=360.0;
+	while (angle>360.0f)
+		angle-=360.0;
+	
 	if(matSize != 2 && matSize != 3 && matSize != 4)
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 			"Mathutils.RotationMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
