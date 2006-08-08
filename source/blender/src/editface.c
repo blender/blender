@@ -122,7 +122,7 @@
 /* returns 0 if not found, otherwise 1 */
 int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect)
 {
-	if (!me->tface || me->totface==0)
+	if (!me || !me->tface || me->totface==0)
 		return 0;
 
 	if (G.vd->flag & V3D_NEEDBACKBUFDRAW) {
