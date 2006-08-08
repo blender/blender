@@ -1948,8 +1948,6 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 		if(ok==0) {
 			printf("Render error: cannot save %s\n", name);
 			G.afbreek=1;
-			IMB_freeImBuf(ibuf);	
-			return;
 		}
 		else printf("Saved: %s", name);
 		
