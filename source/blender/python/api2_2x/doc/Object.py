@@ -233,6 +233,8 @@ class Object:
         the 3d View and Buttons windows) is redrawn.
     @ivar parent: The parent object of the object. (Read-only)
     @ivar track: The object tracking this object. (Read-only)
+    @ivar type: The object type. (Read-only)
+    @type type: string.
     @ivar data: The data of the object. (Read-only)
     @ivar ipo: The ipo data associated with the object. (Read-only)
     @ivar mat: alias for L{matrix<Object.Object.matrix>}: the matrix of the object in world space. (Read-only)
@@ -553,7 +555,8 @@ class Object:
     the scene and prints the name of each object::
       import Blender
 
-      objects = Blender.Object.Get()
+      scn= Blender.Scene.GetCurrent()
+      objects = scn.getChildren()
 
       for obj in objects:
           print obj.getName()
@@ -689,7 +692,7 @@ class Object:
     @note: Join will only work for object types Mesh, Armature, Curve and Surface,
         an error will be raised if the object is not of this type.
     @note: objects in the list will be ignored if they to not match the base object.
-    @note: objects must be in the current scene to be joined.
+    @note: The base object as all objects must be in the current scene to be joined.
     @note: this function will not work in background mode (no user interface)
     @note: An error in the join function input will raise a TypeError,
         otherwise an error in the data input will raise a RuntimeError,

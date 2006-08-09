@@ -569,8 +569,8 @@ class Effect:
           
           effects= Effect.Get()
           for eff in effects:
-              for p in ee.getParticlesLoc():
-                  # p is either a vector or a list of vectors
+              for p in eff.getParticlesLoc():
+                  # p is either a vector or a list of vectors. me.verts.extend() will deal with either
                   print p
                   me.verts.extend(p)
           
