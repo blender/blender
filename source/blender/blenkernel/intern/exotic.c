@@ -2579,7 +2579,6 @@ static void write_videoscape_mesh(Object *ob, char *str)
 	}
 
 	kleur[0]= 0x00C0C0C0;
-	if(G.order==L_ENDIAN) SWITCH_INT(kleur[0]);
 
 	cp= (char *)kleur;
 	for(a=0; a<ob->totcol; a++, cp+=4) {
@@ -2590,11 +2589,10 @@ static void write_videoscape_mesh(Object *ob, char *str)
 			cp[1]= (unsigned char) (255.0*ma->b);
 			cp[2]= (unsigned char) (255.0*ma->g);
 			cp[3]= (unsigned char) (255.0*ma->r);
+			if(G.order==L_ENDIAN) SWITCH_INT(kleur[a]);
 		}
 		else kleur[a]= 0x00C0C0C0;
 	
-		if(G.order==L_ENDIAN) SWITCH_INT(kleur[a]);
-		
 		if(a>30) break;
 	}
 	
