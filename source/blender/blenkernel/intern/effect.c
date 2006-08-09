@@ -1536,7 +1536,7 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	Group *group= NULL;
 	Object *obcopy;
 	Base *base;
-	float framelenold, cfrao;
+	float framelenold, cfrao, sfo;
 	
 	/* object can be linked in group... stupid exception */
 	if(NULL==object_in_scene(ob, G.scene))
@@ -1547,8 +1547,9 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	framelenold= G.scene->r.framelen;
 	G.scene->r.framelen= 1.0f;
 	cfrao= G.scene->r.cfra;
+	sfo= ob->sf;
 	ob->sf= 0.0f;
-	
+
 	/* clear storage */
 	for(obcopy= G.main->object.first; obcopy; obcopy= obcopy->id.next) 
 		obcopy->id.newid= NULL;
@@ -1600,7 +1601,8 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	/* restore */
 	G.scene->r.cfra= cfrao;
 	G.scene->r.framelen= framelenold;
-
+	ob->sf= sfo;
+	
 	if(group) {
 		GroupObject *go;
 		
