@@ -32,15 +32,19 @@
 #include "Effect.h" /*This must come first */
 
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h" /* for G.scene->r.cfra */
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_effect.h"
 #include "BKE_object.h"
 #include "BKE_deform.h"
+#include "BKE_scene.h"       /* for G.scene->r.cfra */
+#include "BKE_ipo.h"         /* frame_to_float() */
 #include "BLI_blenlib.h"
 #include "gen_utils.h"
 #include "blendef.h"
-
+#include "vector.h"
+ 
 #define EXPP_EFFECT_STA_MIN           -250.0f
 #define EXPP_EFFECT_END_MIN              1.0f
 #define EXPP_EFFECT_LIFETIME_MIN         1.0f
@@ -104,6 +108,8 @@ static PyObject *M_Effect_Get( PyObject * self, PyObject * args );
 /*****************************************************************************/
 static PyObject *Effect_getType( BPy_Effect * self );
 static int Effect_setType( void );
+static PyObject *Effect_getStype( BPy_Effect * self );
+static int Effect_setStype( BPy_Effect * self, PyObject * args );
 static PyObject *Effect_getFlag( BPy_Effect * self );
 static int Effect_setFlag( BPy_Effect * self, PyObject * args );
 static PyObject *Effect_getSta( BPy_Effect * self );
@@ -160,9 +166,10 @@ static PyObject *Effect_getVertGroup( BPy_Effect * self );
 static int Effect_setVertGroup( BPy_Effect * self, PyObject * a );
 static PyObject *Effect_getSpeedVertGroup( BPy_Effect * self );
 static int Effect_setSpeedVertGroup( BPy_Effect * self, PyObject * a );
-static PyObject *Effect_getParticlesLoc( BPy_Effect * self, PyObject * a  );
+static PyObject *Effect_getParticlesLoc( BPy_Effect * self  );
 
 static PyObject *Effect_oldsetType( void );
+static PyObject *Effect_oldsetStype( BPy_Effect * self, PyObject * args );
 static PyObject *Effect_oldsetFlag( BPy_Effect * self, PyObject * args );
 static PyObject *Effect_oldsetSta( BPy_Effect * self, PyObject * a );
 static PyObject *Effect_oldsetEnd( BPy_Effect * self, PyObject * a );
@@ -222,6 +229,10 @@ static PyMethodDef BPy_Effect_methods[] = {
 	 METH_NOARGS, "() - Return Effect type"},
 	{"setType", ( PyCFunction ) Effect_oldsetType,
 	 METH_VARARGS, "() - Set Effect type"},
+	{"getStype", ( PyCFunction ) Effect_getStype,
+	 METH_NOARGS, "() - Return Effect stype"},
+	{"setStype", ( PyCFunction ) Effect_oldsetStype,
+	 METH_VARARGS, "() - Set Effect stype"},  
 	{"getFlag", ( PyCFunction ) Effect_getFlag,
 	 METH_NOARGS, "() - Return Effect flag"},
 	{"setFlag", ( PyCFunction ) Effect_oldsetFlag,
@@ -302,7 +313,7 @@ static PyMethodDef BPy_Effect_methods[] = {
 	 METH_NOARGS, "()-Return particle life time"},
 	{"setDefvec", ( PyCFunction ) Effect_oldsetDefvec, METH_VARARGS,
 	 "()- Sets particle life time "},
-	{"getParticlesLoc", ( PyCFunction ) Effect_getParticlesLoc, METH_VARARGS,
+	{"getParticlesLoc", ( PyCFunction ) Effect_getParticlesLoc, METH_NOARGS,
 	 "()- Sets particle life time "},
 	{NULL, NULL, 0, NULL}
 };
@@ -314,6 +325,10 @@ static PyGetSetDef BPy_Effect_getseters[] = {
 	{"flag",
 	 (getter)Effect_getFlag, (setter)Effect_setFlag,
 	 "The particle flag bitfield",
+	 NULL},
+	{"stype",
+	 (getter)Effect_getStype, (setter)Effect_setStype,
+	 "The particle stype bitfield",
 	 NULL},
 	{"type",
 	 (getter)Effect_getType, (setter)Effect_setType,
@@ -756,6 +771,27 @@ static PyObject *Effect_getType( BPy_Effect * self )
 static int Effect_setType( void )
 {
 	return 0;
+}
+
+static int Effect_setStype( BPy_Effect * self, PyObject * args )
+{
+	short param;
+	if( !PyArg_Parse( args, "h", &param ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected an int as argument" );
+	self->effect->stype |= 1-param;
+	return 0;
+}
+
+static PyObject *Effect_getStype( BPy_Effect * self )
+{
+	PyObject *attr;
+	long stype = (long)( self->effect->stype );
+
+	attr = PyInt_FromLong( stype );
+	if( attr )		return attr;
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Effect.stype attribute" );
 }
 
 static PyObject *Effect_getFlag( BPy_Effect * self )
@@ -1383,53 +1419,132 @@ static int Effect_setSpeedVertGroup( BPy_Effect * self, PyObject * value )
 /* Method:              getParticlesLoc                                      */
 /* Python equivalent:   effect.getParticlesLoc                               */
 /* Description:         Get the current location of each  particle           */
-/*                      and return a list of 3D coords                       */
-/* Data:                float currentframe                                   */
-/* Return:              One python list of python lists of 3D coords         */
+/*                      and return a list of 3D vectors                      */
+/*                      or a list of ists of two 3D vectors                  */
+/*                      if effect.vect  has any sense                        */
+/* Data:                notihng get the current time from   G.scene          */
+/* Return:              One python list of 3D vector                         */
 /*****************************************************************************/
-static PyObject *Effect_getParticlesLoc( BPy_Effect * self, PyObject * args  )
+static PyObject *Effect_getParticlesLoc( BPy_Effect * self )
 {
 	Object *ob;
+	Effect *eff;
 	PartEff *paf;
-	Particle *pa;
+	Particle *pa=0;
+	PyObject  *list, *strand_list;
+	float p_time, c_time, vec[3], vec1[3], cfra, m_time, s_time;
 	int a;
-	PyObject *list;
-	float p_time, c_time, vec[3], cfra;
-
-	if( !PyArg_ParseTuple( args, "f", &cfra) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected float argument" );
-
-	ob = self->object;
-	paf = (PartEff *)self->effect;
-
-	pa = paf->keys;
-	if( !pa )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"Particles location: no keys" );
+	short disp=100 ;
 	
+	cfra=frame_to_float( G.scene->r.cfra );
+	
+	/* as we need to update the particles system we try to retrieve
+	the object to which the effect is connected */
+	eff =(Effect *) self->effect;
+	
+	ob= self->object;
+	if(!ob)
+		return ( EXPP_ReturnPyObjError (PyExc_AttributeError,
+							   "Effect has no object" ) );
+	/*get the particles data */
+	paf= (PartEff *)eff;
+
+	/* particles->disp reduce the  display  number of particles */
+	/* as we want the complete  list ... we backup the disp value and restore later */ 
+	if (paf->disp<100)
+		disp= paf->disp; paf->disp=100;
+	
+	
+	build_particle_system(ob);
+	pa= paf->keys;
+
+	if(!pa)
+		return ( EXPP_ReturnPyObjError (PyExc_AttributeError,
+							   "Particles Location : no Keys" ) );
+
+	/* if object is in motion */
 	if( ob->ipoflag & OB_OFFS_PARTICLE )
 		p_time= ob->sf;
 	else
 		p_time= 0.0;
-	
-	c_time= bsystem_time( ob, 0, cfra, p_time );
+
 	list = PyList_New( 0 );
 	if( !list )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError, "PyList() failed" );
-	
-	for( a=0; a<paf->totpart; a++, pa += paf->totkey ) {
-		if( c_time > pa->time && c_time < pa->time+pa->lifetime ) {
-			where_is_particle(paf, pa, c_time, vec);
-			if( PyList_Append( list, Py_BuildValue("[fff]", 
-							vec[0], vec[1], vec[2]) ) < 0 ) {
-				Py_DECREF( list );
-				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						  "Couldn't append item to PyList" );
+
+	c_time= bsystem_time( ob, 0, cfra, p_time );
+
+	for( a=0; a < paf->totpart; a++, pa += paf->totkey ) {
+		
+		if(paf->flag & PAF_STATIC ) {
+			strand_list = PyList_New( 0 );
+			m_time= pa->time+pa->lifetime+paf->staticstep-1;
+            for(c_time= pa->time; c_time<m_time; c_time+=paf->staticstep) {
+				where_is_particle(paf, pa, c_time, vec);
+				MTC_Mat4MulVecfl(ob->obmat, vec); /* make worldspace like the others */
+				if( PyList_Append( strand_list, newVectorObject(vec, 3, Py_NEW)) < 0 ) {
+					Py_DECREF( list );
+					Py_DECREF( strand_list );
+					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+							"Couldn't append item to PyList" );
+				}
+			}
+			
+			if( PyList_Append( list, strand_list) < 0 ) {
+					Py_DECREF( list );
+					Py_DECREF( strand_list );
+					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+							"Couldn't append item to PyList" );
+			}
+			
+		} else {
+			if(c_time > pa->time && c_time < pa->time+pa->lifetime ) {
+				/* vector particles are a tuple of 2 vectors */
+                if( paf->stype==PAF_VECT ) {
+                    s_time= c_time;
+					p_time= c_time+1.0f;
+					if(c_time < pa->time) {
+						if(paf->flag & PAF_UNBORN)
+							p_time= pa->time+1.0f;
+						else
+							continue;
+					}
+					if(c_time > pa->time+pa->lifetime) {
+						if(paf->flag & PAF_DIED)
+							s_time= pa->time+pa->lifetime-1.0f;
+						else
+							continue;
+					}
+                    where_is_particle(paf, pa, s_time, vec);
+                    where_is_particle(paf, pa, p_time, vec1);
+                    if( PyList_Append( list,
+                        Py_BuildValue("[OO]",
+								newVectorObject(vec, 3, Py_NEW),
+								newVectorObject(vec1, 3, Py_NEW))) < 0 )
+					{
+                        Py_DECREF( list );
+                        return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+							"Couldn't append item to PyList" );
+					}
+				} else { /* not a vector */
+					where_is_particle(paf, pa, c_time, vec);
+					if( PyList_Append( list,
+						newVectorObject(vec, 3, Py_NEW)) < 0 ) {
+                                        Py_DECREF( list );
+                                        return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+                                        "Couldn't append item to PyList" );
+					}
+				}
 			}
 		}
 	}
-
+	
+	/* restore the real disp value */
+	if (disp<100){
+		paf->disp=disp;	
+		build_particle_system(ob);
+	}
+	
 	return list;	
 }
 
@@ -1582,6 +1697,11 @@ static PyObject *Effect_oldsetVectsize( BPy_Effect * self, PyObject * args )
 static PyObject *Effect_oldsetFlag( BPy_Effect * self, PyObject * args )
 {
 	return EXPP_setterWrapper( (void *)self, args, (setter)Effect_setFlag );
+}
+
+static PyObject *Effect_oldsetStype( BPy_Effect * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Effect_setStype );
 }
 
 static PyObject *Effect_oldsetType( void )

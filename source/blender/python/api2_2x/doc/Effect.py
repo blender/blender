@@ -23,12 +23,12 @@ were implemented.
 
 Example::
   import Blender
-	listffects = Blender.Effect.Get()
-	print listeffects
-	eff = listeffects[0]
-	#we suppose the first effect is a build effect
-	print eff.getLen()
-	eff.setLen(500)	
+    listffects = Blender.Effect.Get()
+    print listeffects
+    eff = listeffects[0]
+    #we suppose the first effect is a build effect
+    print eff.getLen()
+    eff.setLen(500)	
 
 @type Flags: read-only dictionary
 @var Flags: The particle effect flags.  Values can be ORed.
@@ -227,7 +227,6 @@ class Effect:
     @return:  the end time of the effect.
     """
 
-	
   def setEnd(newendrt):
     """
     Sets the end time of an particle effect object
@@ -236,7 +235,7 @@ class Effect:
     @rtype: None
     @return:  None
     """
-		
+
   def getLifetime():
     """
     Retrieves the lifetime of a particle effect object
@@ -261,7 +260,6 @@ class Effect:
     @return:  normal strength of the particles (relatively to mesh).
     """
 
-	
   def setNormfac(newnormfac):
     """
     Sets the normal strength of the particles (relatively to mesh).
@@ -270,7 +268,7 @@ class Effect:
     @rtype: None
     @return:  None
     """
-		
+
   def getObfac():
     """
     Retrieves the initial strength of the particles relatively to objects.
@@ -278,7 +276,6 @@ class Effect:
     @return: initial strength of the particles (relatively to mesh).
     """
 
-	
   def setObfac(newobfac):
     """
     Sets the initial strength of the particles relatively to objects.
@@ -295,12 +292,27 @@ class Effect:
     @return: random  strength applied to the particles.
     """
 
-	
   def setRandfac(newrandfac):
     """
     Sets the random  strength applied to the particles. 
     @type newrandfac: float
     @param newrandfac: the random  strength applied to the particles.
+    @rtype: None
+    @return:  None
+    """
+    
+  def getStype():
+    """
+    Retrieves the vect state of an effect object.
+    @rtype: int 
+    @return:  the Stype (Vect) of an effect object : 0 , Vect is not enabled, 1, Vect is enabled 
+    (particle effect)
+    """
+
+  def setStype(int):
+    """
+    @type int : int
+    @param int : state of the Stype : 0 not enabled, 1 enabled. 
     @rtype: None
     @return:  None
     """
@@ -312,7 +324,6 @@ class Effect:
     @return: strength applied to the particles from the texture of the object.
     """
 
-	
   def setTexfac(newtexfac):
     """
     Sets the strength applied to the particles from the texture of the object. 
@@ -329,7 +340,6 @@ class Effect:
     @return: variability of the life of the particles.
     """
 
-	
   def setRandlife(newrandlife):
     """
     Sets the variability of the life of the particles.
@@ -453,14 +463,14 @@ class Effect:
     @rtype: None
     @return:  None
     """
-		
+
   def getLife():
     """
     Retrieves the average life of the particles (4 generations)
     @rtype: tuple of 4 floats 
     @return: average life of the particles (4 generations)
     """
-	
+
   def setLife(newlife):
     """
     Sets the average life of the particles (4 generations).
@@ -469,14 +479,14 @@ class Effect:
     @rtype: None
     @return:  None
     """
-		
+
   def getChild():
     """
     Retrieves the average number of children of the particles (4 generations).
     @rtype: tuple of 4 ints 
     @return: average number of children of the particles (4 generations).
     """
-	
+
   def setChild(newchild):
     """
     Sets the average number of children of the particles (4 generations).
@@ -492,7 +502,7 @@ class Effect:
     @rtype: tuple of 4 ints 
     @return: indexes of the materials associated to the particles (4 generations).
     """
-	
+
   def setMat(newmat):
     """
     Sets the indexes of the materials associated to the particles (4 generations).
@@ -508,7 +518,7 @@ class Effect:
     @rtype: tuple of 3 floats 
     @return: x, y and z components of the force defined by the texture.
     """
-	
+
   def setDefvec(newdefvec):
     """
     Sets the x, y and z components of the force defined by the texture.
@@ -519,11 +529,58 @@ class Effect:
     @return:  None
     """
 
-  def getParticlesLoc ( time ):
+  def getParticlesLoc():
     """
-    Get the location of each particle at a given time.
-    @type time: int
-    @param time: The desired time during the particle effect.
-    @rtype: List of x,y,z coordinates
-    @return: The coordinates of each particle at the requested time.
+    Gets the location of each particle at the current time in worldspace.
+    @rtype: A list of vector or a list of vector lists.
+    @return: The coordinates of each particle at the current time.
+    If the "Vect" option is enabled a list Vector pairs will be returned with a start and end point for each particle.
+    When static particles are enabled, a list of lists will be returned, each item a strand of particles.
+
+    Example::
+
+          import Blender
+          from Blender import Effect, Object
+          scn= Blender.Scene.GetCurrent()
+          ob= scn.getActiveObject()
+          effect= ob.effects[0]
+          particles= effect.getParticlesLoc()
+
+          # Check that particles are points only (not static and not vectors)
+          if not effect.getFlag() & Effect.Flags.STATIC or not effect.getStype():
+            for pt in particles: 
+              ob_empty= Object.New('Empty')
+              ob_empty.setLocation(pt)
+              scn.link(ob_empty)
+          
+          else: # Particles will be a list
+            for pt in particles:
+              for pt_item in pt:
+                ob_empty= Object.New('Empty')
+                ob_empty.setLocation(pt_item)
+                scn.link(ob_empty)
+
+    Example::
+          # Converts particles into a mesh with edges for strands
+          from Blender import Scene, Mathutils, Effect, Mesh, Object
+          scn= Scene.GetCurrent()
+          ob= scn.getActiveObject()
+          me= Mesh.New()
+          
+          effects= Effect.Get()
+          for eff in effects:
+              for p in ee.getParticlesLoc():
+                  # p is either a vector or a list of vectors
+                  print p
+                  me.verts.extend(p)
+          
+                  if type(p)==list: # Are we a strand or a pair, then add edges.
+                      if len(p)>1:
+                          edges= [(i, i+1) for i in range(len(me.verts)-len(p), len(me.verts)-1)]
+                          me.edges.extend( edges )
+          
+          print len(me.verts)
+          ob= Object.New('Mesh')
+          ob.link(me)
+          scn.link(ob)
     """
