@@ -301,6 +301,8 @@ Object *find_basis_mball(Object *basis)
 				/* if bob object is in edit mode, then dynamic list of all MetaElems
 				 * is stored in editelems */
 				if(ob==G.obedit) ml= editelems.first;
+				/* keep track of linked data too! */
+				else if(G.obedit && G.obedit->data==ob->data) ml= editelems.first;
 				/* if bob object is in object mode */
 				else ml= ((MetaBall*)ob->data)->elems.first;
 			}
