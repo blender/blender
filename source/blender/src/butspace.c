@@ -484,7 +484,7 @@ void curvemap_buttons(uiBlock *block, CurveMapping *cumap, char labeltype, short
 	bt= uiDefIconBlockBut(block, curvemap_clipping_func, cumap, event, icon, xco, yco, dx, 18, "Clipping Options");
 	
 	xco= (short)(rect->xmin+8.0f*dx);
-	bt= uiDefIconBut(block, BUT, redraw, ICON_X, xco, yco, dx, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Delete points");
+	bt= uiDefIconBut(block, BUT, event, ICON_X, xco, yco, dx, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Delete points");
 	uiButSetFunc(bt, curvemap_buttons_delete, cumap, NULL);
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);

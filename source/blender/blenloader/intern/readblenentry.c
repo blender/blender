@@ -263,7 +263,7 @@ BlendFileData *BLO_read_from_file(char *file, BlendReadError *error_r)
 		bfd= blo_read_file_internal(fd, error_r);
 		if (bfd) {
 			bfd->type= BLENFILETYPE_BLEND;
-			strcpy(bfd->main->name, file);
+			strncpy(bfd->main->name, file, sizeof(bfd->main->name)-1);
 		}
 		blo_freefiledata(fd);			
 	}

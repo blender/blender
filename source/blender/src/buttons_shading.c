@@ -2586,6 +2586,21 @@ void do_matbuts(unsigned short event)
 			allqueue(REDRAWIPO, 0);
 		}		
 		break;
+	case B_MAT_VCOL_PAINT:
+		if(ma) {
+			ma->mode &= ~MA_VERTEXCOL;
+			BIF_preview_changed(ID_MA);
+			allqueue(REDRAWBUTSSHADING, 0);
+		}
+		break;
+	case B_MAT_VCOL_LIGHT:
+		if(ma) {
+			ma->mode &= ~MA_VERTEXCOLP;
+			BIF_preview_changed(ID_MA);
+			allqueue(REDRAWBUTSSHADING, 0);
+		}
+		break;
+		
 	}
 }
 
@@ -3105,8 +3120,8 @@ static void material_panel_material(Material *ma)
 		if(!(ma->mode & MA_HALO)) {
 			uiBlockBeginAlign(block);
 			uiBlockSetCol(block, TH_BUT_SETTING1);
-			uiDefButBitI(block, TOG, MA_VERTEXCOL, B_REDR,	"VCol Light",	8,166,74,20, &(ma->mode), 0, 0, 0, 0, "Adds vertex colours as extra light");
-			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_REDR, "VCol Paint",	82,166,74,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
+			uiDefButBitI(block, TOG, MA_VERTEXCOL, B_MAT_VCOL_LIGHT,	"VCol Light",	8,166,74,20, &(ma->mode), 0, 0, 0, 0, "Adds vertex colours as extra light");
+			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_MAT_VCOL_PAINT, "VCol Paint",	82,166,74,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
 			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,166,74,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
 			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	230,166,73,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
 			uiDefButBitI(block, TOG, MA_NOMIST, B_NOP,	"No Mist",	8,146,146,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");

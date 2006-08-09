@@ -203,6 +203,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 
 #define B_MAT_LAYERBROWSE	1220
 #define B_MAT_USENODES		1221
+#define B_MAT_VCOL_PAINT	1222
+#define B_MAT_VCOL_LIGHT	1223
 
 /* *********************** */
 #define B_TEXBUTS		1400

@@ -501,7 +501,7 @@ void start_qt(struct RenderData *rd, int rectx, int recty) {
 
 		if(err != noErr) {
 			G.afbreek = 1;
-			error("Unable to create Quicktime movie: %s\n", name);
+			error("Unable to create Quicktime movie: %s", name);
 		} else {
 			printf("Created QuickTime movie: %s\n", name);
 

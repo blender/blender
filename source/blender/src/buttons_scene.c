@@ -829,11 +829,11 @@ static uiBlock *edge_render_menu(void *arg_unused)
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, 0, "R ",   45, 50, 175,19,   &G.scene->r.edgeR, 0.0, 1.0, B_EDGECOLSLI, 0,
-		  "For unified renderer: Colour for edges in toon shading mode.");
+		  "Colour for edges in toon shading mode.");
 	uiDefButF(block, NUMSLI, 0, "G ",  	45, 30, 175,19,  &G.scene->r.edgeG, 0.0, 1.0, B_EDGECOLSLI, 0,
-		  "For unified renderer: Colour for edges in toon shading mode.");
+		  "Colour for edges in toon shading mode.");
 	uiDefButF(block, NUMSLI, 0, "B ",  	45, 10, 175,19,  &G.scene->r.edgeB, 0.0, 1.0, B_EDGECOLSLI, 0,
-		  "For unified renderer: Colour for edges in toon shading mode.");
+		  "Colour for edges in toon shading mode.");
 
 	
 	uiBlockSetDirection(block, UI_TOP);
