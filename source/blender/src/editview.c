@@ -2320,7 +2320,11 @@ void fly(void)
 			VECCOPY(G.vd->ofs, ofs_backup);
 			G.vd->persp= persp_backup;
 		}
-	} else if (persp_backup!=2) { /* not camera */
+	}
+	else if (persp_backup==2) {	/* camera */
+		compatible_eul(G.vd->camera->rot, rot_backup);
+	}
+	else { /* not camera */
 		/* Apply the fly mode view */
 		/*restore the dist*/
 		upvec[0]= upvec[1]= 0;
