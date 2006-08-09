@@ -1943,12 +1943,15 @@ static void testareas(void)
 			}
 
 			if (!rcti_eq(&oldwr, &sa->winrct)) {
+				SpaceLink *sl= sa->spacedata.first;
+				
 				mywinposition(sa->win, sa->winrct.xmin, sa->winrct.xmax, sa->winrct.ymin, sa->winrct.ymax);
 				addqueue(sa->win, CHANGED, 1);
 				
 				/* exception handling... probably we need generic event */
-				if(sa->spacetype==SPACE_VIEW3D)
-					BIF_view3d_previewrender_free(sa->spacedata.first);
+				for(; sl; sl= sl->next)
+					if(sl->spacetype==SPACE_VIEW3D)
+						BIF_view3d_previewrender_free((View3D *)sl);
 			}
 		}
 	}

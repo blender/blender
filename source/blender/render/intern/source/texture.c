@@ -2370,7 +2370,7 @@ int externtex(MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *t
 	int rgb;
 	
 	tex= mtex->tex;
-	if(tex==NULL) return;
+	if(tex==NULL) return 0;
 	texr.nor= NULL;
 	
 	/* placement */
