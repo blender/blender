@@ -1743,6 +1743,7 @@ static void do_render_all_options(Render *re)
 	re->i.starttime= PIL_check_seconds_timer();
 
 	if(re->r.scemode & R_DOSEQ) {
+		/* note: do_render_seq() frees rect32 when sequencer returns float images */
 		if(!re->test_break()) 
 			do_render_seq(re->result, re->r.cfra);
 		

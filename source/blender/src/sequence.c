@@ -1258,6 +1258,13 @@ void do_render_seq(RenderResult *rr, int cfra)
 				rr->rectf= MEM_mallocN(4*sizeof(float)*rr->rectx*rr->recty, "render_seq rectf");
 			
 			memcpy(rr->rectf, ibuf->rect_float, 4*sizeof(float)*rr->rectx*rr->recty);
+			
+			/* TSK! Since sequence render doesn't free the *rr render result, the old rect32
+			   can hang around when sequence render has rendered a 32 bits one before */
+			if(rr->rect32) {
+				MEM_freeN(rr->rect32);
+				rr->rect32= NULL;
+			}
 		}
 		else if(ibuf->rect) {
 			if (!rr->rect32)
