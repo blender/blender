@@ -679,30 +679,48 @@ static bNodeType cmp_node_composite= {
 /* **************** OUTPUT FILE ******************** */
 static bNodeSocketType cmp_node_output_file_in[]= {
 	{	SOCK_RGBA, 1, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
-
 
 static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* image assigned to output */
 	/* stack order input sockets: col, alpha */
 	
-	if(node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
+	if(in[0]->data) {
+		RenderData *rd= data;
+		NodeImageFile *nif= node->storage;
+		CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
+		ImBuf *ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
+		char string[256];
+		
+		ibuf->rect_float= cbuf->rect;
+		ibuf->dither= rd->dither_intensity;
+		
+		BKE_makepicstring(string, nif->name, rd->cfra, nif->imtype);
+		
+		if(0 == BKE_write_ibuf(ibuf, string, nif->imtype, nif->subimtype, nif->imtype==R_OPENEXR?nif->codec:nif->quality))
+			printf("Cannot save Node File Output to %s\n", string);
+		else
+			printf("Saved: %s\n", string);
+		
+		IMB_freeImBuf(ibuf);	
+		
+		generate_preview(node, cbuf);
+		
+		if(in[0]->data != cbuf) 
+			free_compbuf(cbuf);
 	}
-	else if(in[0]->data)
-		generate_preview(node, in[0]->data);
 }
 
 static bNodeType cmp_node_output_file= {
 	/* type code   */	CMP_NODE_OUTPUT_FILE,
 	/* name        */	"File Output",
-	/* width+range */	80, 60, 200,
-	/* class+opts  */	NODE_CLASS_FILE, NODE_PREVIEW,
+	/* width+range */	140, 80, 300,
+	/* class+opts  */	NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS,
 	/* input sock  */	cmp_node_output_file_in,
 	/* output sock */	NULL,
-	/* storage     */	"",
+	/* storage     */	"NodeImageFile",
 	/* execfunc    */	node_composit_exec_output_file
 	
 };

@@ -513,7 +513,7 @@ void playback_anim(void)
 		else error("Can't find movie: %s", file);
 	}
 	else {
-		BKE_makepicstring(file, G.scene->r.sfra);
+		BKE_makepicstring(file, G.scene->r.pic, G.scene->r.sfra, G.scene->r.imtype);
 		if(BLI_exist(file)) {
 			run_playanim(file);
 		}

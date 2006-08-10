@@ -1027,6 +1027,59 @@ static int node_composit_buts_dilateerode(uiBlock *block, bNodeTree *ntree, bNod
 	return 20;
 }
 
+/* allocate sufficient! */
+static void node_imagetype_string(char *str)
+{
+	str += sprintf(str, "Save Image as: %%t|");
+	str += sprintf(str, "Targa %%x%d|", R_TARGA);
+	str += sprintf(str, "Targa Raw %%x%d|", R_RAWTGA);
+	str += sprintf(str, "PNG %%x%d|", R_PNG);
+	str += sprintf(str, "BMP %%x%d|", R_BMP);
+	str += sprintf(str, "Jpeg %%x%d|", R_JPEG90);
+	str += sprintf(str, "Iris %%x%d|", R_IRIS);
+	str += sprintf(str, "Radiance HDR %%x%d|", R_RADHDR);
+	str += sprintf(str, "Cineon %%x%d|", R_CINEON);
+	str += sprintf(str, "DPX %%x%d|", R_DPX);
+	str += sprintf(str, "OpenEXR %%x%d", R_OPENEXR);
+}
+
+static int node_composit_buts_file_output(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeImageFile *nif= node->storage;
+		char str[320];
+		
+		node_imagetype_string(str);
+		
+		uiBlockBeginAlign(block);
+		
+		uiDefBut(block, TEX, B_NOP, "",
+				  butr->xmin, butr->ymin+40.0f, butr->xmax-butr->xmin, 20, 
+				  nif->name, 0.0f, 240.0f, 0, 0, "");
+		
+		uiDefButS(block, MENU, B_NOP, str,
+				  butr->xmin, butr->ymin+20.0f, butr->xmax-butr->xmin, 20, 
+				  &nif->imtype, 0.0f, 1.0f, 0, 0, "");
+		
+		if(nif->imtype==R_OPENEXR) {
+			uiDefButBitS(block, TOG, R_OPENEXR_HALF, B_NOP, "Half",	
+						butr->xmin, butr->ymin, (butr->xmax-butr->xmin)/2, 20, 
+						&nif->subimtype, 0, 0, 0, 0, "");
+
+			uiDefButS(block, MENU,B_NOP, "Codec %t|None %x0|Pxr24 (lossy) %x1|ZIP (lossless) %x2|PIZ (lossless) %x3|RLE (lossless) %x4",  
+						butr->xmin+(butr->xmax-butr->xmin)/2, butr->ymin, (butr->xmax-butr->xmin)/2, 20, 
+						&nif->codec, 0, 0, 0, 0, "");
+		}
+		else {
+			uiDefButS(block, NUM, B_NOP, "Quality: ",
+				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
+				  &nif->quality, 10.0f, 100.0f, 10, 0, "");
+		}
+	}
+	return 60;
+}
+
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -1087,6 +1140,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_DILATEERODE:
 			ntype->butfunc= node_composit_buts_dilateerode;
+			break;
+		case CMP_NODE_OUTPUT_FILE:
+			ntype->butfunc= node_composit_buts_file_output;
 			break;
 		default:
 			ntype->butfunc= NULL;

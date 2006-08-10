@@ -446,32 +446,28 @@ int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quali
 }
 
 
-void BKE_makepicstring(char *string, int frame)
+void BKE_makepicstring(char *string, char *base, int frame, int imtype)
 {
-	short i,len;
-	char num[10], *extension;
+	short i, len, digits= 4;	/* digits in G.scene? */
+	char num[10];
 
-	if (string==0) return;
+	if (string==NULL) return;
 
-	extension= "";
-
-	strcpy(string, G.scene->r.pic);
-	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
+	BLI_strncpy(string, base, FILE_MAXDIR + FILE_MAXFILE - 10);	/* weak assumption */
+	BLI_convertstringcode(string, G.sce, frame);
 
 	len= strlen(string);
 			
-	/* can also: sprintf(num, "%04d", frame); */
-
-	i=4-sprintf(num,"%d",frame);
-	for(;i>0;i--){
-		string[len]='0';
+	i= digits - sprintf(num, "%d", frame);
+	for(; i>0; i--){
+		string[len]= '0';
 		len++;
 	}
-	string[len]=0;
-	strcat(string,num);
+	string[len]= 0;
+	strcat(string, num);
 
 	if(G.scene->r.scemode & R_EXTENSION) 
-		BKE_add_image_extension(string, G.scene->r.imtype);
+		BKE_add_image_extension(string, imtype);
 		
 }
 

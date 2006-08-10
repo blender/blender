@@ -1251,7 +1251,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 				char name[FILE_MAXDIR+FILE_MAXFILE];
 				int ok;
 				
-				BKE_makepicstring(name, (G.scene->r.cfra));
+				BKE_makepicstring(name, G.scene->r.pic, G.scene->r.cfra, G.scene->r.imtype);
 
 				ibuf->rect= rr->rect32;    
 				ok= BKE_write_ibuf(ibuf, name, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);

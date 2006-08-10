@@ -196,5 +196,10 @@ typedef struct NodeHueSat {
 	float hue, sat, val;
 } NodeHueSat;
 
+typedef struct NodeImageFile {
+	char name[256];
+	short imtype, subimtype, quality, codec;
+} NodeImageFile;
+
 #endif
 

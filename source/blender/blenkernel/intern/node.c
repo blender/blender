@@ -797,6 +797,14 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 			nhs->sat= 1.0f;
 			nhs->val= 1.0f;
 		}
+		else if(type==CMP_NODE_OUTPUT_FILE) {
+			NodeImageFile *nif= MEM_callocN(sizeof(NodeImageFile), "node image file");
+			node->storage= nif;
+			BLI_strncpy(nif->name, G.scene->r.pic, sizeof(nif->name));
+			nif->imtype= G.scene->r.imtype;
+			nif->subimtype= G.scene->r.subimtype;
+			nif->quality= G.scene->r.quality;
+		}
 	}
 	
 	return node;

@@ -51,7 +51,7 @@ void free_unused_animimages(void);
 struct Image *new_image(int width, int height, char *name, short uvtestgrid);
 
 int BKE_write_ibuf(struct ImBuf *ibuf, char *name, int imtype, int subimtype, int quality);
-void BKE_makepicstring(char *string, int frame);
+void BKE_makepicstring(char *string, char *base, int frame, int imtype);
 void BKE_add_image_extension(char *string, int imtype);
 int BKE_imtype_is_movie(int imtype);
 

@@ -1933,7 +1933,7 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 		ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0, 0);
 		int ok;
 		
-		BKE_makepicstring(name, (scene->r.cfra));
+		BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype);
 
                 /* if not exists, BKE_write_ibuf makes one */
 		ibuf->rect= rres.rect32;    
