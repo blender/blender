@@ -485,12 +485,11 @@ int calc_manipulator_stats(ScrArea *sa)
 			}
 			/* no break we define 'normal' as 'local' in Object mode */
 		case V3D_MANIP_LOCAL:
-			if(totsel==1 || v3d->around==V3D_LOCAL || G.obedit || (ob->flag & OB_POSEMODE)) {
-				strcpy(t->spacename, "local");
-				Mat4CpyMat4(v3d->twmat, ob->obmat);
-				Mat4Ortho(v3d->twmat);
-			}
+			strcpy(t->spacename, "local");
+			Mat4CpyMat4(v3d->twmat, ob->obmat);
+			Mat4Ortho(v3d->twmat);
 			break;
+			
 		case V3D_MANIP_VIEW:
 			{
 				float mat[3][3];
