@@ -53,6 +53,7 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
+#include "BLI_ghash.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
@@ -467,17 +468,20 @@ XXX Is only used here, so local inside this file (ton)
 #define	TRAIL_MIDPOINTS 8
 
 typedef struct CutCurve {
-	short  x; 
-	short  y;
+	float  x; 
+	float  y;
 } CutCurve;
 
-static CutCurve *get_mouse_trail(int *len, char mode)
+static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash *gh)
 {
-
 	CutCurve *curve,*temp;
 	int i=0, j, blocks=1, lasti=0;
-	short event, val, ldown=0, restart=0, rubberband=0;
-	short  mval[2], lockaxis=0, lockx=0, locky=0, lastx=0, lasty=0;
+	short event, val, qual, vsnap=0, ldown=0, restart=0, rubberband=0;
+	short mval1[2], lockaxis=0, lockx=0, locky=0, oldmode; 
+	
+	EditVert *snapvert;
+	short sdist;
+	float *scr, mval[2], lastx=0, lasty=0;
 	
 	*len=0;
 	curve=(CutCurve *)MEM_callocN(1024*sizeof(CutCurve), "MouseTrail");
@@ -487,11 +491,25 @@ static CutCurve *get_mouse_trail(int *len, char mode)
 		return(NULL);
 	}
 	mywinset(curarea->win);
-	glDrawBuffer(GL_FRONT);
 	
-	headerprint("LMB to draw, Enter to finish (with CTRL to leave only the "
-				"cut line selected), ESC to abort.");
-
+	
+	if(cutmode == KNIFE_EXACT){ 
+		headerprint("LMB to draw, Enter to finish (with CTRL to leave only the "
+					"cut line selected), ESC to abort, ALT key for vertex snap.");
+		
+		/*redraw backbuffer if in zbuffered selection mode but not vertex selection*/
+		if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+			oldmode = G.scene->selectmode;
+			G.scene->selectmode = SCE_SELECT_VERTEX;
+			backdrawview3d(0);
+			G.scene->selectmode = oldmode;
+		}
+	}
+	else
+		headerprint("LMB to draw, Enter to finish (with CTRL to leave only the "
+					"cut line selected), ESC to abort.");
+	
+	glDrawBuffer(GL_FRONT);
 	persp(PERSP_WIN);
 	
 	glColor3ub(200, 200, 0);
@@ -514,13 +532,54 @@ static CutCurve *get_mouse_trail(int *len, char mode)
 		
 		if (rubberband)  { /* rubberband mode, undraw last rubberband */
 			glLineWidth(2.0);
-			sdrawXORline(curve[i-1].x, curve[i-1].y,mval[0], mval[1]); 
+			sdrawXORline((int)curve[i-1].x, (int)curve[i-1].y,(int)mval[0],(int) mval[1]); 
 			glLineWidth(1.0);
 			glFlush();
 			rubberband=0;
 		}
 		
-		getmouseco_areawin(mval);
+		/*handle vsnap*/
+		if(cutmode == KNIFE_EXACT){
+			qual = get_qual();
+			if(qual & LR_ALTKEY) vsnap = 1;
+			else vsnap = 0;
+		}
+		else vsnap = 0;
+		
+		if(vsnap){ 
+			headerprint("LMB to draw, Enter to finish (with CTRL to leave only the "
+						"cut line selected), ESC to abort, ALT key for vertex snap.");
+			persp(PERSP_VIEW);
+			sdist = 75;
+			snapvert = findnearestvert(&sdist, SELECT);
+			glColor3ub(200, 200, 0);
+			glDrawBuffer(GL_FRONT);
+			persp(PERSP_WIN);
+			if(snapvert && (sdist < 75)){
+				scr = BLI_ghash_lookup(gh, snapvert);
+				mval[0] = scr[0];
+				mval[1] = scr[1];
+			}
+			else{ 
+				getmouseco_areawin(mval1);
+				mval[0] = (float)mval1[0];
+				mval[1] = (float)mval1[1];
+			}
+		}
+		
+		else{
+			if(cutmode == KNIFE_EXACT){
+				headerprint("LMB to draw, Enter to finish (with CTRL to leave only the "
+							"cut line selected), ESC to abort, ALT key for vertex snap.");
+				glColor3ub(200, 200, 0);
+				glDrawBuffer(GL_FRONT);
+				persp(PERSP_WIN);
+			}
+			getmouseco_areawin(mval1);
+			mval[0] = (float)mval1[0];
+			mval[1] = (float)mval1[1];
+		}
+		
 		
 		if (lockaxis==1) mval[1]=locky;
 		if (lockaxis==2) mval[0]=lockx;
@@ -537,8 +596,8 @@ static CutCurve *get_mouse_trail(int *len, char mode)
 			
 			ldown=1;
 			if (restart) { 
-				for(j=1;j<i;j++) sdrawXORline(curve[j-1].x, curve[j-1].y, curve[j].x, curve[j].y);
-				if (rubberband) sdrawXORline(curve[j].x, curve[j].y, mval[0], mval[1]);
+				for(j=1;j<i;j++) sdrawXORline((int)curve[j-1].x, (int)curve[j-1].y, (int)curve[j].x, (int)curve[j].y);
+				if (rubberband) sdrawXORline((int)curve[j].x, (int)curve[j].y, (int)mval[0], (int)mval[1]);
 				glFlush();
 				rubberband=0;
 				lasti=i=0;
@@ -560,13 +619,13 @@ static CutCurve *get_mouse_trail(int *len, char mode)
 		}
 		
 		if ((i>1)&&(i!=lasti)) {  /*Draw recorded part of curve */
-			sdrawline(curve[i-2].x, curve[i-2].y, curve[i-1].x, curve[i-1].y);
+			sdrawline((int)curve[i-2].x, (int)curve[i-2].y, (int)curve[i-1].x, (int)curve[i-1].y);
 			glFlush();
 		}
 		
 		if ((i==lasti)&&(i>0)) { /*Draw rubberband */
 			glLineWidth(2.0);
-			sdrawXORline(curve[i-1].x, curve[i-1].y,mval[0], mval[1]);
+			sdrawXORline((int)curve[i-1].x, (int)curve[i-1].y,(int)mval[0], (int)mval[1]);
 			glLineWidth(1.0);
 			glFlush();
 			rubberband=1;
@@ -612,17 +671,21 @@ static CutCurve *get_mouse_trail(int *len, char mode)
 */
 
 /* prototype */
-static short seg_intersect(struct EditEdge * e, CutCurve *c, int len);
+static float seg_intersect(struct EditEdge * e, CutCurve *c, int len, char mode, struct GHash *gh);
 
 void KnifeSubdivide(char mode)
 {
 	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	EditVert *eve;
 	CutCurve *curve;		
-	EditEdge *eed; 
-	Window *win;	
+	Window *win;
+	
+	struct GHash *gh;
 	int oldcursor, len=0;
-	short isect=0;
+	float isect=0.0;
 	short numcuts=1;
+	float  *scr, co[4];
 	
 	if (G.obedit==0) return;
 
@@ -643,21 +706,36 @@ void KnifeSubdivide(char mode)
 
 	/* Set a knife cursor here */
 	oldcursor=get_cursor();
-
+	
 	win=winlay_get_active_window();
 	
 	SetBlenderCursor(BC_KNIFECURSOR);
 	
-	curve=get_mouse_trail(&len, TRAIL_MIXED);
+	for(eed=em->edges.first; eed; eed= eed->next) eed->tmp.fp = 0.0; /*store percentage of edge cut for KNIFE_EXACT here.*/
+	
+	/*the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer*/
+	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	for(eve=em->verts.first; eve; eve=eve->next){
+		scr = MEM_mallocN(sizeof(float)*2, "Vertex Screen Coordinates");
+		VECCOPY(co, eve->co);
+		co[3]= 1.0;
+		Mat4MulVec4fl(G.obedit->obmat, co);
+		project_float(co,scr);
+		BLI_ghash_insert(gh, eve, scr);
+		eve->f1 = 0; /*store vertex intersection flag here*/
+	
+	}
+	
+	curve=get_mouse_trail(&len, TRAIL_MIXED, mode, gh);
 	
 	if (curve && len && mode){
 		eed= em->edges.first;		
 		while(eed) {	
 			if( eed->v1->f & eed->v2->f & SELECT ){		// NOTE: uses vertex select, subdiv doesnt do edges yet
-				isect=seg_intersect(eed, curve, len);
+				isect=seg_intersect(eed, curve, len, mode, gh);
 				if (isect) eed->f2= 1;
 				else eed->f2=0;
-				eed->f1= isect;
+				eed->tmp.fp= isect;
 				//printf("isect=%i\n", isect);
 			}
 			else {
@@ -682,36 +760,32 @@ void KnifeSubdivide(char mode)
 	
 	addqueue(curarea->win,  REDRAW, 0);
 	window_set_cursor(win, oldcursor);
+	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
 	if (curve) MEM_freeN(curve);
-
 	BIF_undo_push("Knife");
 }
 
 /* seg_intersect() Determines if and where a mouse trail intersects an EditEdge */
 
-static short seg_intersect(EditEdge *e, CutCurve *c, int len)
+static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct GHash *gh)
 {
 #define MAXSLOPE 100000
 	float  x11, y11, x12=0, y12=0, x2max, x2min, y2max;
 	float  y2min, dist, lastdist=0, xdiff2, xdiff1;
 	float  m1, b1, m2, b2, x21, x22, y21, y22, xi;
 	float  yi, x1min, x1max, y1max, y1min, perc=0; 
-	float  scr[2], co[4];
+	float  *scr;
+	float  threshold;
 	int  i;
-	short isect=0;
+	
+	threshold = 0.000001; /*tolerance for vertex intersection*/
 	
 	/* Get screen coords of verts */
-	VECCOPY(co, e->v1->co);
-	co[3]= 1.0;
-	Mat4MulVec4fl(G.obedit->obmat, co);
-	project_float(co, scr);
+	scr = BLI_ghash_lookup(gh, e->v1);
 	x21=scr[0];
 	y21=scr[1];
 	
-	VECCOPY(co, e->v2->co);
-	co[3]= 1.0;
-	Mat4MulVec4fl(G.obedit->obmat, co);
-	project_float(co, scr);
+	scr = BLI_ghash_lookup(gh, e->v2);
 	x22=scr[0];
 	y22=scr[1];
 	
@@ -724,6 +798,37 @@ static short seg_intersect(EditEdge *e, CutCurve *c, int len)
 		m2=MAXSLOPE;  /* Verticle slope  */
 		b2=x22;      
 	}
+	
+	/*check for *exact* vertex intersection first*/
+	if(mode==KNIFE_EXACT){
+		for (i=0; i<len; i++){
+			if (i>0){
+				x11=x12;
+				y11=y12;
+			}
+			else {
+				x11=c[i].x;
+				y11=c[i].y;
+			}
+			x12=c[i].x;
+			y12=c[i].y;
+			
+			/*test e->v1*/
+			if((x11 == x21 && y11 == y21) || (x12 == x21 && y12 == y21)){
+				e->v1->f1 = 1;
+				perc = 0;
+				return(perc);
+			}
+			/*test e->v2*/
+			else if((x11 == x22 && y11 == y22) || (x12 == x22 && y12 == y22)){
+				e->v2->f1 = 1;
+				perc = 0;
+				return(perc);
+			}
+		}
+	}
+	
+	/*now check for edge interesect (may produce vertex intersection as well)*/
 	for (i=0; i<len; i++){
 		if (i>0){
 			x11=x12;
@@ -735,7 +840,7 @@ static short seg_intersect(EditEdge *e, CutCurve *c, int len)
 		}
 		x12=c[i].x;
 		y12=c[i].y;
-
+		
 		/* Perp. Distance from point to line */
 		if (m2!=MAXSLOPE) dist=(y12-m2*x12-b2);/* /sqrt(m2*m2+1); Only looking for */
 						       /* change in sign.  Skip extra math */	
@@ -760,7 +865,7 @@ static short seg_intersect(EditEdge *e, CutCurve *c, int len)
 			y2min=MIN2(y21,y22)-0.001;
 			
 			/* Found an intersect,  calc intersect point */
-			if (m1==m2){ 		/* co-incident lines */
+			if (m1==m2){ /* co-incident lines */
 						/* cut at 50% of overlap area*/
 				x1max=MAX2(x11, x12);
 				x1min=MIN2(x11, x12);
@@ -785,15 +890,32 @@ static short seg_intersect(EditEdge *e, CutCurve *c, int len)
 			
 			/* Intersect inside bounding box of edge?*/
 			if ((xi>=x2min)&&(xi<=x2max)&&(yi<=y2max)&&(yi>=y2min)){
+				/*test for vertex intersect that may be 'close enough'*/
+				if(mode==KNIFE_EXACT){
+					if(xi <= (x21 + threshold) && xi >= (x21 - threshold)){
+						if(yi <= (y21 + threshold) && yi >= (y21 - threshold)){
+							e->v1->f1 = 1;
+							perc = 0;
+							break;
+						}
+					}
+					if(xi <= (x22 + threshold) && xi >= (x22 - threshold)){
+						if(yi <= (y22 + threshold) && yi >= (y22 - threshold)){
+							e->v2->f1 = 1;
+							perc = 0;
+							break;
+						}
+					}
+				}
 				if ((m2<=1.0)&&(m2>=-1.0)) perc = (xi-x21)/(x22-x21);	
 				else perc=(yi-y21)/(y22-y21); /*lower slope more accurate*/
-				isect=32768.0*(perc+0.0000153); /* Percentage in 1/32768ths */
+				//isect=32768.0*(perc+0.0000153); /* Percentage in 1/32768ths */
 				break;
 			}
 		}	
 		lastdist=dist;
 	}
-	return(isect);
+	return(perc);
 } 
 
 void LoopMenu() /* Called by KKey */

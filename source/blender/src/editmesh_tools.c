@@ -1182,7 +1182,7 @@ void fill_mesh(void)
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push("Fill");
 }
-
+/*GB*/
 /*-------------------------------------------------------------------------------*/
 /*--------------------------- Edge Based Subdivide ------------------------------*/
 
@@ -2415,6 +2415,145 @@ static void fill_tri_triple(EditFace *efa, struct GHash *gh, int numcuts, float 
 	MEM_freeN(innerverts);
 }
 
+//Next two fill types are for knife exact only and are provided to allow for knifing through vertices
+//This means there is no multicut!
+static void fill_quad_doublevert(EditFace *efa, int v1, int v2){
+	EditFace *hold;
+	/*
+		Depending on which two vertices have been knifed through (v1 and v2), we
+		triangulate like the patterns below.
+				X-------|	|-------X
+				| \  	|	|     / |
+				|   \	|	|   /	|
+				|	  \	|	| /	    |
+				--------X	X--------
+	*/
+	
+	if(v1 == 1 && v2 == 3){
+		hold= addfacelist(efa->v1, efa->v2, efa->v3, 0, efa, NULL);
+		hold->e1->f2 |= EDGENEW;
+		hold->e2->f2 |= EDGENEW;
+		hold->e3->f2 |= EDGENEW;
+		hold->e3->f2 |= EDGEINNER;
+		facecopy(efa, hold);
+		
+		hold= addfacelist(efa->v1, efa->v3, efa->v4, 0, efa, NULL);
+		hold->e1->f2 |= EDGENEW;
+		hold->e2->f2 |= EDGENEW;
+		hold->e3->f2 |= EDGENEW;
+		hold->e1->f2 |= EDGEINNER;
+		facecopy(efa, hold);
+	}
+	else{
+		hold= addfacelist(efa->v1, efa->v2, efa->v4, 0, efa, NULL);
+		hold->e1->f2 |= EDGENEW;
+		hold->e2->f2 |= EDGENEW;
+		hold->e3->f2 |= EDGENEW;
+		hold->e2->f2 |= EDGEINNER;
+		facecopy(efa, hold);
+		
+		hold= addfacelist(efa->v2, efa->v3, efa->v4, 0, efa, NULL);
+		hold->e1->f2 |= EDGENEW;
+		hold->e2->f2 |= EDGENEW;
+		hold->e3->f2 |= EDGENEW;
+		hold->e3->f2 |= EDGEINNER;
+		facecopy(efa, hold);
+	}
+}
+
+static void fill_quad_singlevert(EditFace *efa, struct GHash *gh)
+{
+	EditEdge *cedge=NULL;
+	EditVert *v[4], **verts;
+	EditFace *hold;
+	short start=0, end, left, right, vertsize;   
+							
+	v[0] = efa->v1;
+	v[1] = efa->v2;
+	v[2] = efa->v3;
+	v[3] = efa->v4;	 
+
+	if(efa->e1->f & SELECT)	  { cedge = efa->e1; start = 0;}
+	else if(efa->e2->f & SELECT) { cedge = efa->e2; start = 1;}	   
+	else if(efa->e3->f & SELECT) { cedge = efa->e3; start = 2;}	   
+	else if(efa->e4->f & SELECT) { cedge = efa->e4; start = 3;}		 
+
+	// Point verts to the array of new verts for cedge
+	verts = BLI_ghash_lookup(gh, cedge);
+	//This is the index size of the verts array
+	vertsize = 3;
+
+	// Is the original v1 the same as the first vert on the selected edge?
+	// if not, the edge is running the opposite direction in this face so flip
+	// the array to the correct direction
+
+	if(verts[0] != v[start]) {flipvertarray(verts,3);}
+	end	= (start+1)%4;
+	left   = (start+2)%4;
+	right  = (start+3)%4; 
+
+/*
+	We should have something like this now
+
+			  end		 start				 
+			   2     1     0   
+			   |-----*-----|
+			   |		   |
+			   |		   |	   
+			   |		   |
+			   -------------	   
+			  left	   right
+
+	where start,end,left, right are indexes of EditFace->v1, etc (stored in v)
+	and 0,1,2 are the indexes of the new verts stored in verts. We fill like
+	this, depending on whether its vertex 'left' or vertex 'right' thats
+	been knifed through...
+				
+				|---*---|	|---*---|
+				|  /	|	|    \  |
+				| /		|	|	  \ |
+				|/		|	|	   \|
+				X--------	--------X
+*/
+
+	if(v[left]->f1){
+		//triangle is composed of cutvert, end and left
+		hold = addfacelist(verts[1],v[end],v[left],NULL, NULL,NULL);
+		hold->e1->f2 |= EDGENEW;
+		hold->e2->f2 |= EDGENEW;
+		hold->e3->f2 |= EDGENEW;
+		hold->e3->f2 |= EDGEINNER;
+		facecopy(efa, hold);
+		
+		//quad is composed of cutvert, left, right and start
+		hold = addfacelist(verts[1],v[left],v[right],v[start], NULL, NULL);
+		hold->e1->f2 |= EDGENEW;
+		hold->e2->f2 |= EDGENEW;
+		hold->e3->f2 |= EDGENEW;
+		hold->e4->f2 |= EDGENEW;
+		hold->e1->f2 |= EDGEINNER;
+		facecopy(efa, hold);
+	}
+	else if(v[right]->f1){
+		//triangle is composed of cutvert, right and start
+		hold = addfacelist(verts[1],v[right],v[start], NULL, NULL, NULL);
+		hold->e1->f2 |= EDGENEW;
+		hold->e2->f2 |= EDGENEW;
+		hold->e3->f2 |= EDGENEW;
+		hold->e1->f2 |= EDGEINNER;
+		facecopy(efa, hold);
+		//quad is composed of cutvert, end, left, right
+		hold = addfacelist(verts[1],v[end], v[left], v[right], NULL, NULL);
+		hold->e1->f2 |= EDGENEW;
+		hold->e2->f2 |= EDGENEW;
+		hold->e3->f2 |= EDGENEW;
+		hold->e4->f2 |= EDGENEW;
+		hold->e4->f2 |= EDGEINNER;
+		facecopy(efa, hold);
+	}
+	
+}	
+
 // This function takes an example edge, the current point to create and 
 // the total # of points to create, then creates the point and return the
 // editvert pointer to it.
@@ -2424,7 +2563,8 @@ static EditVert *subdivideedgenum(EditEdge *edge, int curpoint, int totpoint, fl
 	float percent;
 	 
 	if (beauty & (B_PERCENTSUBD) && totpoint == 1)
-		percent=(float)(edge->f1)/32768.0f;
+		//percent=(float)(edge->tmp.l)/32768.0f;
+		percent= edge->tmp.fp;
 	else
 		percent= (float)curpoint/(float)(totpoint+1);
 
@@ -2442,7 +2582,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	EditVert **templist;
 	struct GHash *gh;
 	float length[4], v1mat[3], v2mat[3], v3mat[3], v4mat[3];
-	int i, j, edgecount, facetype,hold;
+	int i, j, edgecount, touchcount, facetype,hold;
 	
 	//Set faces f1 to 0 cause we need it later
 	for(ef=em->faces.first;ef;ef = ef->next) {
@@ -2540,8 +2680,8 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	// If we are knifing, We only need the selected edges that were cut, so deselect if it was not cut
 	if(beauty & B_KNIFE) {	
 		for(eed= em->edges.first;eed;eed=eed->next) {	
-			if( eed->f1 == 0 ) {
-				EM_select_edge(eed,0);   
+			if( eed->tmp.fp == 0 ) {
+				EM_select_edge(eed,0);
 			}
 		}
 	}  
@@ -2584,9 +2724,60 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 		}  
 		if(facetype == 4) {
 			switch(edgecount) {
-				case 0: break;
-				case 1: ef->f1 = SELECT;
-					fill_quad_single(ef, gh, numcuts, seltype);
+				case 0:
+					if(beauty & B_KNIFE && beauty & B_PERCENTSUBD){
+						/*Test for when knifing through two opposite verts but no edges*/
+						touchcount = 0;
+						if(ef->v1->f1) touchcount++;
+						if(ef->v2->f1) touchcount++;
+						if(ef->v3->f1) touchcount++;
+						if(ef->v4->f1) touchcount++;
+						if(touchcount == 2){
+							if(ef->v1->f1 && ef->v3->f1){ 
+								ef->f1 = SELECT;
+								fill_quad_doublevert(ef, 1, 3); 
+							}
+							else if(ef->v2->f1 && ef->v4->f1){
+								ef->f1 = SELECT;
+								fill_quad_doublevert(ef, 2, 4);
+							}
+						}
+					}
+					break; 
+				
+				case 1: 
+					/*this whole damn thing is nasty. Rewrite it*/
+					if(beauty & B_KNIFE && beauty & B_PERCENTSUBD){
+						/*Test for when knifing through an edge and one vert*/
+						touchcount = 0;
+						if(ef->v1->f1) touchcount++;
+						if(ef->v2->f1) touchcount++;
+						if(ef->v3->f1) touchcount++;
+						if(ef->v4->f1) touchcount++;
+						
+						if(touchcount == 1){
+							if( (ef->e1->f & flag && ( !ef->e1->v1->f1 && !ef->e1->v2->f1 )) ||
+								(ef->e2->f & flag && ( !ef->e2->v1->f1 && !ef->e2->v2->f1 )) ||
+								(ef->e3->f & flag && ( !ef->e3->v1->f1 && !ef->e3->v2->f1 )) ||
+								(ef->e4->f & flag && ( !ef->e4->v1->f1 && !ef->e4->v2->f1 )) ){
+								
+								ef->f1 = SELECT; 
+								fill_quad_singlevert(ef, gh);
+							}
+							else{
+								ef->f1 = SELECT;
+								fill_quad_single(ef, gh, numcuts, seltype);
+							}
+						}
+						else{ 
+							ef->f1 = SELECT; 
+							fill_quad_single(ef, gh, numcuts, seltype);
+						}
+					}
+					else{ 
+						ef->f1 = SELECT;
+						fill_quad_single(ef, gh, numcuts, seltype);
+					}
 					break;   
 				case 2: ef->f1 = SELECT;
 					// if there are 2, we check if edge 1 and 3 are either both on or off that way
@@ -6540,6 +6731,7 @@ void loop_to_region(void)
 				if(efa->f1 == testflag){
 					if(efa->f&SELECT) EM_select_face(efa, 0);
 					else EM_select_face(efa,1);
+					
 				}
 			}
 		}

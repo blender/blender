@@ -343,7 +343,7 @@ static void findnearestvert__doClosest(void *userData, EditVert *eve, int x, int
 		}
 	}
 }
-static EditVert *findnearestvert(short *dist, short sel)
+EditVert *findnearestvert(short *dist, short sel)
 {
 	short mval[2];
 
