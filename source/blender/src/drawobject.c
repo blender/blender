@@ -801,6 +801,8 @@ static void drawlamp(Object *ob)
 	
 	glDisable(GL_BLEND);
 	
+	/* restore for drawing extra stuff */
+	glColor3fv(curcol);
 
 }
 
@@ -2124,11 +2126,14 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 {
 	DispList *dl;
 	int nr, parts, ofs, p1, p2, p3, p4, a, b, *index;
-	float *data, *v1, *v2, *v3, *v4;
+	float *data, *v1, *v2, *v3, *v4, curcol[4];
 	float *ndata, *n1, *n2, *n3, *n4;
 	
-	if(lb==0) return;
+	if(lb==NULL) return;
 	
+	/* for drawing wire */
+	glGetFloatv(GL_CURRENT_COLOR, curcol);
+
 	glEnable(GL_LIGHTING);
 	
 	if(ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
@@ -2146,8 +2151,8 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 		switch(dl->type) {
 		case DL_SEGM:
 			if(ob->type==OB_SURF) {
-				BIF_ThemeColor(TH_WIRE);
 				glDisable(GL_LIGHTING);
+				glColor3fv(curcol);
 				parts= dl->parts;
 				while(parts--) {
 					nr= dl->nr;
