@@ -70,6 +70,7 @@
 #include "BIF_resources.h"
 #include "BIF_mywindow.h"
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
