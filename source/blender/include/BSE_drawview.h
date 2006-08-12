@@ -35,7 +35,7 @@
 
 struct Object;
 struct BGpic;
-struct rcti;
+struct rctf;
 struct ScrArea;
 struct ImBuf;
 
@@ -61,7 +61,7 @@ void drawview3dspace(struct ScrArea *sa, void *spacedata);
 void drawview3d_render(struct View3D *v3d, int winx, int winy);
 
 int update_time(void);
-void calc_viewborder(struct View3D *v3d, struct rcti *viewborder_r);
+void calc_viewborder(struct View3D *v3d, struct rctf *viewborder_r);
 void view3d_set_1_to_1_viewborder(struct View3D *v3d);
 
 int view3d_test_clipping(struct View3D *v3d, float *vec);

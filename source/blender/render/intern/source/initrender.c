@@ -456,8 +456,6 @@ void RE_SetCamera(Render *re, Object *camera)
 	rctf viewplane;
 	float pixsize, clipsta, clipend;
 	float lens;
-	float xd, yd;
-	int blursample= 0;	/* make new call for that */
 	
 	/* question mark */
 	re->ycor= ( (float)re->r.yasp)/( (float)re->r.xasp);
@@ -541,18 +539,12 @@ void RE_SetCamera(Render *re, Object *camera)
 			viewplane.ymax+= .5*re->ycor;
 		}
 	}
-
-	xd= yd= 0.0;
-	if(blursample != -1 && re->osa != 0 ) {
-		re->bluroffsx= xd= re->jit[blursample % re->osa][0];
-		re->bluroffsy= yd= re->ycor*re->jit[blursample % re->osa][1];
-	}
-	else re->bluroffsx=re->bluroffsy= 0.0f;
-
-	viewplane.xmin= pixsize*(viewplane.xmin+xd);
-	viewplane.xmax= pixsize*(viewplane.xmax+xd);
-	viewplane.ymin= pixsize*(viewplane.ymin+yd);
-	viewplane.ymax= pixsize*(viewplane.ymax+yd);
+	/* the window matrix is used for clipping, and not changed during OSA steps */
+	/* using an offset of +0.5 here would give clip errors on edges */
+	viewplane.xmin= pixsize*(viewplane.xmin);
+	viewplane.xmax= pixsize*(viewplane.xmax);
+	viewplane.ymin= pixsize*(viewplane.ymin);
+	viewplane.ymax= pixsize*(viewplane.ymax);
 	
 	re->viewdx= pixsize;
 	re->viewdy= re->ycor*pixsize;
@@ -562,7 +554,8 @@ void RE_SetCamera(Render *re, Object *camera)
 	else 
 		RE_SetWindow(re, &viewplane, clipsta, clipend);
 
-	//printmatrix4("win", re->winmat);
+	/* we clip faces with a minimum of 2 pixel boundary outside of image border. see zbuf.c */
+	re->clipcrop= 1.0f + 2.0f/(float)(re->winx>re->winy?re->winy:re->winx);
 }
 
 

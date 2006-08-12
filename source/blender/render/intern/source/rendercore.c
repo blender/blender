@@ -2453,8 +2453,8 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 				float fx= 2.0/(R.winx*R.winmat[0][0]);
 				float fy= 2.0/(R.winy*R.winmat[1][1]);
 				
-				shi.co[0]= (0.5 + x - 0.5*R.winx)*fx - R.winmat[3][0]/R.winmat[0][0];
-				shi.co[1]= (0.5 + y - 0.5*R.winy)*fy - R.winmat[3][1]/R.winmat[1][1];
+				shi.co[0]= (x - 0.5*R.winx)*fx - R.winmat[3][0]/R.winmat[0][0];
+				shi.co[1]= (y - 0.5*R.winy)*fy - R.winmat[3][1]/R.winmat[1][1];
 				
 				/* using a*x + b*y + c*z = d equation, (a b c) is normal */
 				if(shi.facenor[2]!=0.0f)
@@ -2675,8 +2675,8 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 					float fx= 2.0/(R.rectx*R.winmat[0][0]);
 					float fy= 2.0/(R.recty*R.winmat[1][1]);
 					
-					shi.co[0]= (0.5 + x - 0.5*R.rectx)*fx - R.winmat[3][0]/R.winmat[0][0];
-					shi.co[1]= (0.5 + y - 0.5*R.recty)*fy - R.winmat[3][1]/R.winmat[1][1];
+					shi.co[0]= (x - 0.5*R.rectx)*fx - R.winmat[3][0]/R.winmat[0][0];
+					shi.co[1]= (y - 0.5*R.recty)*fy - R.winmat[3][1]/R.winmat[1][1];
 				}
 				
 				calc_view_vector(shi.view, x, y);
@@ -2696,6 +2696,10 @@ static void shadepixel_sky(ShadePixelInfo *shpi, float x, float y, int z, int fa
 {
 	VlakRen *vlr;
 	float collector[4], rco[3];
+	
+	/* correction back for zbuffer filling in */
+	x+= 0.5f;
+	y+= 0.5f;
 	
 	vlr= shadepixel(shpi, x, y, z, facenr, mask, rco);
 	if(shpi->shr.combined[3] != 1.0) {

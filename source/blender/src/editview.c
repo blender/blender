@@ -1980,14 +1980,14 @@ void set_render_border(void)
 	
 	val= get_border(&rect, 3);
 	if(val) {
-		rcti vb;
+		rctf vb;
 
 		calc_viewborder(G.vd, &vb);
 
-		G.scene->r.border.xmin= (float) (rect.xmin-vb.xmin)/(vb.xmax-vb.xmin);
-		G.scene->r.border.ymin= (float) (rect.ymin-vb.ymin)/(vb.ymax-vb.ymin);
-		G.scene->r.border.xmax= (float) (rect.xmax-vb.xmin)/(vb.xmax-vb.xmin);
-		G.scene->r.border.ymax= (float) (rect.ymax-vb.ymin)/(vb.ymax-vb.ymin);
+		G.scene->r.border.xmin= ((float)rect.xmin-vb.xmin)/(vb.xmax-vb.xmin);
+		G.scene->r.border.ymin= ((float)rect.ymin-vb.ymin)/(vb.ymax-vb.ymin);
+		G.scene->r.border.xmax= ((float)rect.xmax-vb.xmin)/(vb.xmax-vb.xmin);
+		G.scene->r.border.ymax= ((float)rect.ymax-vb.ymin)/(vb.ymax-vb.ymin);
 		
 		CLAMP(G.scene->r.border.xmin, 0.0, 1.0);
 		CLAMP(G.scene->r.border.ymin, 0.0, 1.0);

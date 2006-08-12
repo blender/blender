@@ -108,6 +108,7 @@ struct Render
 	rcti disprect;			/* part within winx winy */
 	rctf viewplane;			/* mapped on winx winy */
 	float viewdx, viewdy;	/* size of 1 pixel */
+	float clipcrop;			/* 2 pixel boundary to prevent clip when filter used */
 	
 	/* final picture width and height (within disprect) */
 	int rectx, recty;
@@ -120,7 +121,6 @@ struct Render
 	
 	/* values for viewing */
 	float lens, ycor, viewfac;
-	float bluroffsx, bluroffsy;
 	float panophi, panosi, panoco, panodxp, panodxv;
 	
 	/* Matrices */

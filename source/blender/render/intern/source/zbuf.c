@@ -1307,8 +1307,8 @@ static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a
 		v13= v1[3];
 	}
 	else {
-		dw= 1.005f*(v2[3]-v1[3]);
-		v13= 1.005f*v1[3];
+		dw= R.clipcrop*(v2[3]-v1[3]);
+		v13= R.clipcrop*v1[3];
 	}	
 	/* according the original article by Liang&Barsky, for clipping of
 	 * homogenous coordinates with viewplane, the value of "0" is used instead of "-w" .
@@ -1527,7 +1527,6 @@ void zbufclip(ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, int c1, 
 	hoco_to_zco(zspan, vez, f1);
 	hoco_to_zco(zspan, vez+4, f2);
 	hoco_to_zco(zspan, vez+8, f3);
-
 	zspan->zbuffunc(zspan, zvlnr, vez,vez+4,vez+8, NULL);
 }
 
@@ -1628,6 +1627,7 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 	/* needed for transform from hoco to zbuffer co */
 	zspan.zmulx=  ((float)R.winx)/2.0;
 	zspan.zmuly=  ((float)R.winy)/2.0;
+	
 	if(R.osa) {
 		zspan.zofsx= -pa->disprect.xmin - R.jit[pa->sample][0];
 		zspan.zofsy= -pa->disprect.ymin - R.jit[pa->sample][1];
@@ -1640,6 +1640,9 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 		zspan.zofsx= -pa->disprect.xmin;
 		zspan.zofsy= -pa->disprect.ymin;
 	}
+	/* to centre the sample position */
+	zspan.zofsx -= 0.5f;
+	zspan.zofsy -= 0.5f;
 	
 	/* the buffers */
 	zspan.rectz= pa->rectz;
@@ -1752,8 +1755,8 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem, Re
 	zbuf_alloc_span(&zspan, vw->rectx, vw->recty);
 	zspan.zmulx=  ((float)vw->rectx)/2.0;
 	zspan.zmuly=  ((float)vw->recty)/2.0;
-	zspan.zofsx= 0;
-	zspan.zofsy= 0;
+	zspan.zofsx= -0.5f;
+	zspan.zofsy= -0.5f;
 	
 	/* the buffers */
 	zspan.rectz= vw->rectz;
@@ -2409,8 +2412,6 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 	/* needed for transform from hoco to zbuffer co */
 	zspan.zmulx=  ((float)R.winx)/2.0;
 	zspan.zmuly=  ((float)R.winy)/2.0;
-	zspan.zofsx= -pa->disprect.xmin;
-	zspan.zofsy= -pa->disprect.ymin;
 	
 	/* the buffers */
 	zspan.arectz= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "Arectz");
@@ -2430,13 +2431,20 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 		zspan.mask= 1<<zsample;
 		
 		if(R.osa) {
-			zspan.zofsx= -pa->disprect.xmin-R.jit[zsample][0];
-			zspan.zofsy= -pa->disprect.ymin-R.jit[zsample][1];
+			zspan.zofsx= -pa->disprect.xmin - R.jit[zsample][0];
+			zspan.zofsy= -pa->disprect.ymin - R.jit[zsample][1];
 		}
 		else if(R.i.curblur) {
 			zspan.zofsx= -pa->disprect.xmin - R.jit[R.i.curblur-1][0];
 			zspan.zofsy= -pa->disprect.ymin - R.jit[R.i.curblur-1][1];
 		}
+		else {
+			zspan.zofsx= -pa->disprect.xmin;
+			zspan.zofsy= -pa->disprect.ymin;
+		}
+		/* to centre the sample position */
+		zspan.zofsx -= 0.5f;
+		zspan.zofsy -= 0.5f;
 		
 		for(v=0; v<R.totvlak; v++) {
 			if((v & 255)==0)
@@ -2605,6 +2613,10 @@ static void shadetrapixel(ShadePixelInfo *shpi, float x, float y, int z, int fac
 		printf("error in shadetrapixel nr: %d\n", (facenr & RE_QUAD_MASK));
 		return;
 	}
+	/* correction back for zbuffer filling in */
+	x+= 0.5f;
+	y+= 0.5f;
+	
 	if(R.osa) {
 		VlakRen *vlr= RE_findOrAddVlak(&R, (facenr-1) & RE_QUAD_MASK);
 		float accumcol[4]={0,0,0,0}, tot=0.0;

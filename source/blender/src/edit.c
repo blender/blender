@@ -247,7 +247,7 @@ int get_border(rcti *rect, short flag)
 						BMF_DrawString(G.fonts, str);
 					}
 					else if(G.vd->persp==2) {
-						rcti vb;
+						rctf vb;
 	
 						calc_viewborder(G.vd, &vb);
 	

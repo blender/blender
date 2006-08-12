@@ -393,7 +393,7 @@ static void draw_bgpic(void)
 	}
 
 	if(G.vd->persp==2) {
-		rcti vb;
+		rctf vb;
 
 		calc_viewborder(G.vd, &vb);
 
@@ -864,7 +864,7 @@ static void view3d_get_viewborder_size(View3D *v3d, float size_r[2])
 	}
 }
 
-void calc_viewborder(struct View3D *v3d, rcti *viewborder_r)
+void calc_viewborder(struct View3D *v3d, rctf *viewborder_r)
 {
 	float zoomfac, size[2];
 	float dx= 0.0f, dy= 0.0f;
@@ -964,7 +964,7 @@ static void drawviewborder(void)
 	float fac, a;
 	float x1, x2, y1, y2;
 	float x3, y3, x4, y4;
-	rcti viewborder;
+	rctf viewborder;
 	Camera *ca= NULL;
 
 	if(G.vd->camera==NULL)
