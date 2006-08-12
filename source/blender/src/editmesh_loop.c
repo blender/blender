@@ -494,9 +494,6 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 	
 	
 	if(cutmode == KNIFE_EXACT){ 
-		headerprint("LMB to draw, Enter to finish (with CTRL to leave only the "
-					"cut line selected), ESC to abort, ALT key for vertex snap.");
-		
 		/*redraw backbuffer if in zbuffered selection mode but not vertex selection*/
 		if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
 			oldmode = G.scene->selectmode;
@@ -504,15 +501,19 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 			backdrawview3d(0);
 			G.scene->selectmode = oldmode;
 		}
+		glDrawBuffer(GL_FRONT);
+		headerprint("LMB to draw, CTRL while drawing for vertex snap. Enter to finish (with CTRL to leave only the "
+					"cut line selected), ESC to abort.");
 	}
-	else
+	else{
+		glDrawBuffer(GL_FRONT);
 		headerprint("LMB to draw, Enter to finish (with CTRL to leave only the "
 					"cut line selected), ESC to abort.");
+	}
 	
-	glDrawBuffer(GL_FRONT);
 	persp(PERSP_WIN);
 	
-	glColor3ub(200, 200, 0);
+	glColor3ub(255, 0, 255);
 	
 	while(TRUE) {
 		
@@ -539,20 +540,17 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 		}
 		
 		/*handle vsnap*/
+		vsnap = 0;
 		if(cutmode == KNIFE_EXACT){
 			qual = get_qual();
-			if(qual & LR_ALTKEY) vsnap = 1;
-			else vsnap = 0;
+			if(qual & LR_CTRLKEY) vsnap = 1;
 		}
-		else vsnap = 0;
 		
 		if(vsnap){ 
-			headerprint("LMB to draw, Enter to finish (with CTRL to leave only the "
-						"cut line selected), ESC to abort, ALT key for vertex snap.");
 			persp(PERSP_VIEW);
 			sdist = 75;
 			snapvert = findnearestvert(&sdist, SELECT);
-			glColor3ub(200, 200, 0);
+			glColor3ub(255, 0, 255);
 			glDrawBuffer(GL_FRONT);
 			persp(PERSP_WIN);
 			if(snapvert && (sdist < 75)){
@@ -568,13 +566,6 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 		}
 		
 		else{
-			if(cutmode == KNIFE_EXACT){
-				headerprint("LMB to draw, Enter to finish (with CTRL to leave only the "
-							"cut line selected), ESC to abort, ALT key for vertex snap.");
-				glColor3ub(200, 200, 0);
-				glDrawBuffer(GL_FRONT);
-				persp(PERSP_WIN);
-			}
 			getmouseco_areawin(mval1);
 			mval[0] = (float)mval1[0];
 			mval[1] = (float)mval1[1];
