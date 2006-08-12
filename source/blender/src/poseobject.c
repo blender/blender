@@ -295,7 +295,8 @@ void pose_select_constraint_target(void)
 					if(ob==target) {
 						if(subtarget) {
 							bPoseChannel *pchanc= get_pose_channel(ob->pose, subtarget);
-							pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+							if(pchanc)
+								pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 						}
 					}
 				}

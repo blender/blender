@@ -359,6 +359,7 @@ Object *get_constraint_target(bConstraint *con, char **subtarget)
 	case CONSTRAINT_TYPE_SIZELIKE:
 		{
 			bSizeLikeConstraint *data = con->data;
+			*subtarget= data->subtarget;
 			return data->tar;
 		}
 		break;
