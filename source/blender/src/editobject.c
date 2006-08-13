@@ -2174,7 +2174,7 @@ void special_editmenu(void)
 	}
 	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Set Goal Weight %x3");
+		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Set Goal Weight %x3|Set Radius %x4");
 		
 		switch(nr) {
 		case 1:
@@ -2208,6 +2208,39 @@ void special_editmenu(void)
 						}
 					}	
 				}
+			}
+			break;
+		case 4:
+			{
+				static float radius= 1.0f;
+				extern ListBase editNurb;
+				Nurb *nu;
+				BezTriple *bezt;
+				BPoint *bp;
+				int a;
+				
+				if(fbutton(&radius, 0.0001f, 10.0f, 10, 10, "Set Radius")) {
+					for(nu= editNurb.first; nu; nu= nu->next) {
+						if(nu->bezt) {
+							for(bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++) {
+								if(bezt->f2 & SELECT)
+									bezt->radius= radius;
+							}
+						}
+						else if(nu->bp) {
+							for(bp=nu->bp, a=0; a<nu->pntsu*nu->pntsv; a++, bp++) {
+								if(bp->f1 & SELECT)
+									bp->radius= radius;
+							}
+						}
+					}	
+				}
+				
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				allqueue(REDRAWVIEW3D, 0);
+				allqueue(REDRAWBUTSALL, 0);
+				allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
+				
 			}
 			break;
 		}

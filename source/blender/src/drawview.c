@@ -1573,7 +1573,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		
 		nu= editNurb.first;
 		while(nu) {
-			if((nu->type & 7)==1) {
+			if((nu->type & 7)==CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
@@ -2387,17 +2387,6 @@ static void view3d_panel_background(short cntrl)	// VIEW3D_HANDLER_BACKGROUND
 
 		uiDefButF(block, NUM, REDRAWVIEW3D, "X Offset:",	0, 6, 140, 19, &vd->bgpic->xof, -250.0*vd->grid,250.0*vd->grid, 10, 2, "Set the horizontal offset of the background image");
 		uiDefButF(block, NUM, REDRAWVIEW3D, "Y Offset:",	150, 6, 140, 19, &vd->bgpic->yof, -250.0*vd->grid,250.0*vd->grid, 10, 2, "Set the vertical offset of the background image");
-
-	
-		
-		// uiDefButF(block, NUM, REDRAWVIEW3D, "Size:", 		160,160,150,20, &vd->bgpic->size, 0.1, 250.0, 100, 0, "Set the size for the width of the BackGroundPic");
-		
-
-
-//		uiDefButF(block, NUMSLI, B_BLENDBGPIC, "Blend:",	120,100,190,20,&vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the BackGroundPic transparency");
-		
-//		uiDefButF(block, NUM, B_DIFF, "Center X: ",	10,70,140,20,&vd->bgpic->xof, -20.0,20.0, 10, 2, "Set the BackGroundPic X Offset");
-//		uiDefButF(block, NUM, B_DIFF, "Center Y: ",	160,70,140,20,&vd->bgpic->yof, -20.0,20.0, 10, 2, "Set the BackGroundPic Y Offset");
 
 	}
 }

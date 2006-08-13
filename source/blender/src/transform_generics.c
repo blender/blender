@@ -367,6 +367,7 @@ void initTransModeFlags(TransInfo *t, int mode)
 	case TFM_SHEAR:
 	case TFM_CREASE:
 	case TFM_BONE_ENVELOPE:
+	case TFM_CURVE_SHRINKFATTEN:
 		t->flag |= T_NO_CONSTRAINT;
 		break;
 	}
@@ -499,7 +500,7 @@ static void apply_grid3(TransInfo *t, float *val, int max_index, float fac1, flo
 
 	if(t->mode==TFM_ROTATION || t->mode==TFM_WARP || t->mode==TFM_TILT || t->mode==TFM_TRACKBALL)
 		invert = U.flag & USER_AUTOROTGRID;
-	else if(t->mode==TFM_RESIZE || t->mode==TFM_SHEAR || t->mode==TFM_BONESIZE || t->mode==TFM_SHRINKFATTEN)
+	else if(t->mode==TFM_RESIZE || t->mode==TFM_SHEAR || t->mode==TFM_BONESIZE || t->mode==TFM_SHRINKFATTEN || t->mode==TFM_CURVE_SHRINKFATTEN)
 		invert = U.flag & USER_AUTOSIZEGRID;
 	else
 		invert = U.flag & USER_AUTOGRABGRID;

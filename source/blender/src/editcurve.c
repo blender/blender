@@ -1367,6 +1367,9 @@ void subdivideNurb()
 						if(a==0 && (nu->flagu & 1)) {VECCOPY(beztnew->vec[0], vec+6);}
 						else {VECCOPY(bezt->vec[0], vec+6);}
 						
+						beztn->radius = (prevbezt->radius + bezt->radius)/2.0f;
+						beztn->weight = (prevbezt->weight + bezt->weight)/2.0f;
+						
 						beztn++;
 					}
 
@@ -1801,6 +1804,8 @@ int convertspline(short type, Nurb *nu)
 				VECCOPY(bezt->vec[1], bp->vec);
 				bezt->f1=bezt->f2=bezt->f3= bp->f1;
 				bezt->h1= bezt->h2= HD_VECT;
+				bezt->weight= bp->weight;
+				bezt->radius= bp->radius;
 				bp++;
 				bezt++;
 			}
@@ -1840,6 +1845,8 @@ int convertspline(short type, Nurb *nu)
 					bp->vec[3]= 1.0;
 					bp->f1= bezt->f2;
 					nr-= 2;
+					bp->radius= bezt->radius;
+					bp->weight= bezt->weight;
 					bp++;
 				}
 				else {
@@ -1849,6 +1856,8 @@ int convertspline(short type, Nurb *nu)
 						if(c==0) bp->f1= bezt->f1;
 						else if(c==1) bp->f1= bezt->f2;
 						else bp->f1= bezt->f3;
+						bp->radius= bezt->radius;
+						bp->weight= bezt->weight;
 						bp++;
 					}
 				}
@@ -1898,6 +1907,8 @@ int convertspline(short type, Nurb *nu)
 					bp++;
 					VECCOPY(bezt->vec[2], bp->vec);
 					bezt->f3= bp->f1;
+					bezt->radius= bp->radius;
+					bezt->weight= bp->weight;
 					bp++;
 					bezt++;
 				}
@@ -2769,7 +2780,7 @@ void makecyclicNurb()
 				bp= nu->bp;
 				while(a--) {
 					if( bp->f1 & 1 ) {
-						if(nu->flagu & 1) nu->flagu--;
+						if(nu->flagu & CU_CYCLIC) nu->flagu--;
 						else nu->flagu++;
 						break;
 					}
@@ -2781,7 +2792,7 @@ void makecyclicNurb()
 				bezt= nu->bezt;
 				while(a--) {
 					if( BEZSELECTED(bezt) ) {
-						if(nu->flagu & 1) nu->flagu--;
+						if(nu->flagu & CU_CYCLIC) nu->flagu--;
 						else nu->flagu++;
 						break;
 					}
@@ -2794,7 +2805,7 @@ void makecyclicNurb()
 				bp= nu->bp;
 				while(a--) {
 					if( bp->f1 & 1 ) {
-						if(nu->flagu & 1) nu->flagu--;
+						if(nu->flagu & CU_CYCLIC) nu->flagu--;
 						else {
 							nu->flagu++;
 							nu->flagu &= ~2;	/* endpoint flag, fixme */
@@ -2823,7 +2834,7 @@ void makecyclicNurb()
 	
 					if( bp->f1 & 1) {
 						if(cyclmode==1 && nu->pntsu>1) {
-							if(nu->flagu & 1) nu->flagu--;
+							if(nu->flagu & CU_CYCLIC) nu->flagu--;
 							else {
 								nu->flagu++;
 								fp= MEM_mallocN(sizeof(float)*KNOTSU(nu), "makecyclicN");
@@ -3415,6 +3426,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			bezt= nu->bezt;
 			bezt->h1= bezt->h2= HD_ALIGN;
 			bezt->f1= bezt->f2= bezt->f3= 1;
+			bezt->radius = 1.0;
 
 			for(a=0;a<3;a++) {
 				VECCOPY(bezt->vec[a], cent);
@@ -3429,6 +3441,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			bezt++;
 			bezt->h1= bezt->h2= HD_ALIGN;
 			bezt->f1= bezt->f2= bezt->f3= 1;
+			bezt->radius = bezt->weight = 1.0;
 
 			for(a=0;a<3;a++) {
 				VECCOPY(bezt->vec[a], cent);
@@ -3449,6 +3462,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 				VECCOPY(bp->vec, cent);
 				bp->vec[3]= 1.0;
 				bp->f1= 1;
+				bp->radius = bp->weight = 1.0;
 			}
 
 			bp= nu->bp;
@@ -3472,7 +3486,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 
 		}
 		break;
-	case 6:	/* 5 point pad */
+	case 6:	/* 5 point path */
 		nu->pntsu= 5;
 		nu->pntsv= 1;
 		nu->orderu= 5;
@@ -3485,6 +3499,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			VECCOPY(bp->vec, cent);
 			bp->vec[3]= 1.0;
 			bp->f1= 1;
+			bp->radius = bp->weight = 1.0;
 		}
 
 		bp= nu->bp;
@@ -3523,7 +3538,8 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			bezt->f1= bezt->f2= bezt->f3= 1;
 			bezt->vec[1][0]+= -G.vd->grid;
 			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
-
+			bezt->radius = bezt->weight = 1.0;
+			
 			bezt++;
 			for(a=0;a<3;a++) {
 				VECCOPY(bezt->vec[a], cent);
@@ -3532,6 +3548,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			bezt->f1= bezt->f2= bezt->f3= 1;
 			bezt->vec[1][1]+= G.vd->grid;
 			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
+			bezt->radius = bezt->weight = 1.0;
 
 			bezt++;
 			for(a=0;a<3;a++) {
@@ -3541,6 +3558,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			bezt->f1= bezt->f2= bezt->f3= 1;
 			bezt->vec[1][0]+= G.vd->grid;
 			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
+			bezt->radius = bezt->weight = 1.0;
 
 			bezt++;
 			for(a=0;a<3;a++) {
@@ -3550,6 +3568,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			bezt->f1= bezt->f2= bezt->f3= 1;
 			bezt->vec[1][1]+= -G.vd->grid;
 			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
+			bezt->radius = bezt->weight = 1.0;
 
 			calchandlesNurb(nu);
 		}
@@ -3576,6 +3595,8 @@ Nurb *addNurbprim(int type, int stype, int newname)
 				if(a & 1) bp->vec[3]= 0.25*sqrt(2.0);
 				else bp->vec[3]= 1.0;
 				Mat3MulVecfl(imat,bp->vec);
+				bp->radius = bp->weight = 1.0;
+				
 				bp++;
 			}
 

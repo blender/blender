@@ -89,7 +89,7 @@ typedef struct BevPoint {
 */
 typedef struct BezTriple {
 	float vec[3][3];
-	float alfa, weight, pad;
+	float alfa, weight, radius;	/* alfa: tilt in 3D View, weight: used for softbody goal weight, radius: for bevel tapering */
 	short h1, h2;
 	char f1, f2, f3, hide;
 } BezTriple;
@@ -97,17 +97,18 @@ typedef struct BezTriple {
 /* note; alfa location in struct is abused by Key system */
 typedef struct BPoint {
 	float vec[4];
-	float alfa, weight;
+	float alfa, weight;		/* alfa: tilt in 3D View, weight: used for softbody goal weight */
 	short f1, hide;
+	float radius, pad;		/* user-set radius per point for bevelling etc */
 } BPoint;
 
 typedef struct Nurb {
-	struct Nurb *next, *prev;
+	struct Nurb *next, *prev;	/* multiple nurbs per curve object are allowed */
 	short type;
-	short mat_nr;          /* index into material list */
+	short mat_nr;		/* index into material list */
 	short hide, flag;
-	short pntsu, pntsv;
-	short resolu, resolv;
+	short pntsu, pntsv;		/* number of points in the U or V directions */
+	short resolu, resolv;	/* tesselation resolution in the U or V directions */
 	short orderu, orderv;
 	short flagu, flagv;
 	

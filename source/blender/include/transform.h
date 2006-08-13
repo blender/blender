@@ -267,6 +267,9 @@ int ShrinkFatten(TransInfo *t, short mval[2]);
 void initTilt(TransInfo *t);
 int Tilt(TransInfo *t, short mval[2]);
 
+void initCurveShrinkFatten(TransInfo *t);
+int CurveShrinkFatten(TransInfo *t, short mval[2]);
+
 void initTrackball(TransInfo *t);
 int Trackball(TransInfo *t, short mval[2]);
 

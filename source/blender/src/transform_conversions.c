@@ -1139,8 +1139,14 @@ static void createTransCurveVerts(TransInfo *t)
 						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
-						td->val = &(bezt->alfa);
-						td->ival = bezt->alfa;
+						
+						if (t->mode==TFM_CURVE_SHRINKFATTEN) {
+							td->val = &(bezt->radius);
+							td->ival = bezt->radius;
+						} else {
+							td->val = &(bezt->alfa);
+							td->ival = bezt->alfa;
+						}
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);
@@ -1188,8 +1194,14 @@ static void createTransCurveVerts(TransInfo *t)
 						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
-						td->val = &(bp->alfa);
-						td->ival = bp->alfa;
+						
+						if (t->mode==TFM_CURVE_SHRINKFATTEN) {
+							td->val = &(bp->radius);
+							td->ival = bp->radius;
+						} else {
+							td->val = &(bp->alfa);
+							td->ival = bp->alfa;
+						}
 
 						Mat3CpyMat3(td->smtx, smtx);
 						Mat3CpyMat3(td->mtx, mtx);

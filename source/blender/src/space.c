@@ -1737,8 +1737,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						if(G.obedit->type==OB_ARMATURE) {
 							initTransform(TFM_BONESIZE, CTX_NONE);
 						}
-						else
+						else if (G.obedit->type==OB_CURVE) {
+							initTransform(TFM_CURVE_SHRINKFATTEN, CTX_NONE);
+						} else {
 							initTransform(TFM_SHRINKFATTEN, CTX_NONE);
+						}
 						Transform();
 					}
 					else if(G.qual==LR_CTRLKEY) {

@@ -786,6 +786,9 @@ void initTransform(int mode, int context) {
 	case TFM_TILT:
 		initTilt(&Trans);
 		break;
+	case TFM_CURVE_SHRINKFATTEN:
+		initCurveShrinkFatten(&Trans);
+		break;
 	case TFM_TRACKBALL:
 		initTrackball(&Trans);
 		break;
@@ -2327,6 +2330,85 @@ int Tilt(TransInfo *t, short mval[2])
 	helpline (t, t->center);
 
 	return 1;
+}
+
+
+/* ******************** Curve Shrink/Fatten *************** */
+
+int CurveShrinkFatten(TransInfo *t, short mval[2]) 
+{
+	TransData *td = t->data;
+	float ratio;
+	int i;
+	char str[50];
+	
+	if(t->flag & T_SHIFT_MOD) {
+		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
+		float dx= (float)(t->center2d[0] - t->shiftmval[0]);
+		float dy= (float)(t->center2d[1] - t->shiftmval[1]);
+		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
+		
+		dx= (float)(t->center2d[0] - mval[0]);
+		dy= (float)(t->center2d[1] - mval[1]);
+		ratio+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -ratio);
+		
+	}
+	else {
+		float dx= (float)(t->center2d[0] - mval[0]);
+		float dy= (float)(t->center2d[1] - mval[1]);
+		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
+	}
+	
+	snapGrid(t, &ratio);
+	
+	applyNumInput(&t->num, &ratio);
+	
+	/* header print for NumInput */
+	if (hasNumInput(&t->num)) {
+		char c[20];
+		
+		outputNumInput(&(t->num), c);
+		sprintf(str, "Shrink/Fatten: %s", c);
+	}
+	else {
+		sprintf(str, "Shrink/Fatten: %3f", ratio);
+	}
+	
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+		
+		if(td->val) {
+			//*td->val= ratio;
+			*td->val= td->ival*ratio;
+			if (*td->val <= 0.0f) *td->val = 0.0001f;
+		}
+	}
+	
+	recalcData(t);
+	
+	headerprint(str);
+	
+	viewRedrawForce(t);
+	
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
+	
+	return 1;
+}
+
+void initCurveShrinkFatten(TransInfo *t)
+{
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+	t->transform = CurveShrinkFatten;
+	t->fac = (float)sqrt( (
+		   ((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
+		   +
+		   ((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
+		   ) );
 }
 
 /* ************************** PUSH/PULL *************************** */
