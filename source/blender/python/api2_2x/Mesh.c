@@ -6437,6 +6437,29 @@ static PyObject *Mesh_fill( BPy_Mesh * self )
 	return Mesh_Tools( self, MESH_TOOL_FILL, NULL );
 }
 
+
+/*
+ * "__copy__" return a copy of the mesh
+ */
+
+static PyObject *Mesh_copy( BPy_Mesh * self )
+{
+	BPy_Mesh *obj;
+
+	obj = (BPy_Mesh *)PyObject_NEW( BPy_Mesh, &Mesh_Type );
+
+	if( !obj )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				       "PyObject_New() failed" );
+	
+	obj->mesh = copy_mesh( self->mesh );
+	obj->mesh->id.us= 0;
+	obj->object = NULL;
+	obj->new = 1;
+	return (PyObject *)obj;
+}
+
+
 static struct PyMethodDef BPy_Mesh_methods[] = {
 	{"calcNormals", (PyCFunction)Mesh_calcNormals, METH_NOARGS,
 		"all recalculate vertex normals"},
@@ -6486,6 +6509,10 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Removes duplicates from selected vertices (experimental)"},
 	{"recalcNormals", (PyCFunction)Mesh_recalcNormals, METH_VARARGS,
 		"Recalculates inside or outside normals (experimental)"},
+	
+	/* python standard class functions */
+	{"__copy__", (PyCFunction)Mesh_copy, METH_NOARGS,
+		"Return a copy of the mesh"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -6976,7 +7003,7 @@ static int Mesh_setTexMesh( BPy_Mesh * self, PyObject * arg )
 		/*This is a mesh so it needs to be added */
 		self->mesh->texcomesh= blen_obj->mesh;
 		self->mesh->texcomesh->id.us++;
-		blen_obj->new==0;
+		blen_obj->new= 0;
 	}
 	return 0;
 }
@@ -7296,7 +7323,6 @@ static PyObject *M_Mesh_New( PyObject * self_unused, PyObject * args )
 				       "FATAL: could not create mesh object" );
 	}
 	mesh->id.us = 0;
-	G.totmesh++;
 
 	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
 	rename_id( &mesh->id, buf );
@@ -7563,6 +7589,7 @@ PyObject *Mesh_CreatePyObject( Mesh * me, Object *obj )
 	nmesh->mesh = me;
 	nmesh->object = obj;
 	nmesh->new = 0;
+	G.totmesh++;
 
 	return ( PyObject * ) nmesh;
 }

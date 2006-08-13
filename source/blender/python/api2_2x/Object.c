@@ -323,6 +323,7 @@ static PyObject *Object_setSBStiffQuads( BPy_Object * self, PyObject * args );
 static PyObject *Object_insertShapeKey(BPy_Object * self);
 static PyObject *Object_copyNLA( BPy_Object * self, PyObject * args );
 static PyObject *Object_convertActionToStrip( BPy_Object * self );
+static PyObject *Object_copy(BPy_Object * self); /* __copy__ */
 
 /*****************************************************************************/
 /* Python BPy_Object methods table:					   */
@@ -645,8 +646,10 @@ works only if self and the object specified are of the same type."},
 	 METH_VARARGS,
 	 "() - Delete all scriptlinks from this object.\n"
 	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this object."},
-	{"insertShapeKey", ( PyCFunction ) Object_insertShapeKey,
-	 METH_NOARGS, "() - Insert a Shape Key in the current object"},
+	{"insertShapeKey", ( PyCFunction ) Object_insertShapeKey, METH_NOARGS,
+	 "() - Insert a Shape Key in the current object"},
+	{"__copy__", ( PyCFunction ) Object_copy, METH_NOARGS,
+	 "() - Return a copy of this object."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -3396,6 +3399,22 @@ static  PyObject *Object_insertShapeKey(BPy_Object * self)
 	insert_shapekey(self->object);
 	return Py_None;
 }
+
+/* __copy__() */
+static  PyObject *Object_copy(BPy_Object * self)
+{
+	/* copy_object never returns NULL */
+	struct Object *object= copy_object( self->object );
+	object->id.us= 0; /*is 1 by default, not sure why */
+	
+	/* Create a Python object from it. */
+	return Object_CreatePyObject( object );
+	
+	
+	
+
+}
+
 
 /*****************************************************************************/
 /* Function:	Object_CreatePyObject					 */
