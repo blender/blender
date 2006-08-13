@@ -326,6 +326,23 @@ static int BezTriple_setWeight( BPy_BezTriple * self, PyObject *value )
 	return 0;
 }
 
+static PyObject *BezTriple_getRadius( BPy_BezTriple * self )
+{
+	return PyFloat_FromDouble( self->beztriple->radius );
+}
+
+static int BezTriple_setRadius( BPy_BezTriple * self, PyObject *value )
+{
+	PyObject *num = PyNumber_Float( value );
+
+	if( !num )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected a float" );
+
+	self->beztriple->radius = (float)PyFloat_AsDouble( num );
+	Py_DECREF( num );
+	return 0;
+}
+
 static PyObject *BezTriple_getHide( BPy_BezTriple * self )
 {
 	return PyInt_FromLong( self->beztriple->hide == IPO_BEZ );
@@ -453,6 +470,10 @@ static PyGetSetDef BPy_BezTriple_getseters[] = {
 	{"weight",
 	 (getter)BezTriple_getWeight, (setter)BezTriple_setWeight,
 	 "point weight",
+	 NULL},
+	{"radius",
+	 (getter)BezTriple_getRadius, (setter)BezTriple_setRadius,
+	 "point radius",
 	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };

@@ -51,6 +51,8 @@ class BezTriple:
   @type vec: list of points
   @ivar tilt: the tilt/alpha value for the point
   @type tilt: float
+  @ivar radius: the radius of this point (used for tapering bevels)
+  @type radius: float
   @ivar hide: the visibility status of the knot.  B{Note}: true/nonzero means
   I{not} hidden.  B{Note}: primarily intended for curves; not a good idea to 
   hide IPO control points.

@@ -50,6 +50,7 @@
 #include "MTex.h"
 #include "Texture.h"
 #include "Ipo.h"
+#include "Group.h"
 #include "gen_utils.h"
 
 /*****************************************************************************/
@@ -466,7 +467,7 @@ static PyObject *Matr_oldsetDiffuseDarkness( BPy_Material * self, PyObject * arg
 static PyObject *Matr_oldsetRefracIndex( BPy_Material * self, PyObject * args );
 static PyObject *Matr_oldsetRms( BPy_Material * self, PyObject * args );
 static PyObject *Matr_oldsetTranslucency( BPy_Material * self, PyObject * args );
-;
+
 static int Material_setIpo( BPy_Material * self, PyObject * value );
 static int Material_setName( BPy_Material * self, PyObject * value );
 static int Material_setMode( BPy_Material * self, PyObject * value );
@@ -482,6 +483,7 @@ static int Material_setAlpha( BPy_Material * self, PyObject * value );
 static int Material_setRef( BPy_Material * self, PyObject * value );
 static int Material_setSpec( BPy_Material * self, PyObject * value );
 static int Material_setZOffset( BPy_Material * self, PyObject * value );
+static int Material_setLightGroup( BPy_Material * self, PyObject * value );
 static int Material_setAdd( BPy_Material * self, PyObject * value );
 static int Material_setHaloSize( BPy_Material * self, PyObject * value );
 static int Material_setFlareSize( BPy_Material * self, PyObject * value );
@@ -525,8 +527,8 @@ static PyObject *Material_getColorComponent( BPy_Material * self,
 static PyObject *Material_getOopsLoc( BPy_Material * self );
 static PyObject *Material_getOopsSel( BPy_Material * self );
 static PyObject *Material_getUsers( BPy_Material * self );
-//static int Material_setSeptex( BPy_Material * self, PyObject * value );
-//static PyObject *Material_getSeptex( BPy_Material * self );
+/*static int Material_setSeptex( BPy_Material * self, PyObject * value );
+  static PyObject *Material_getSeptex( BPy_Material * self );*/
 
 /*****************************************************************************/
 /* Python BPy_Material methods declarations: */
@@ -546,6 +548,7 @@ static PyObject *Material_getSpec( BPy_Material * self );
 static PyObject *Material_getSpecTransp( BPy_Material * self );
 static PyObject *Material_getAdd( BPy_Material * self );
 static PyObject *Material_getZOffset( BPy_Material * self );
+static PyObject *Material_getLightGroup( BPy_Material * self );
 static PyObject *Material_getHaloSize( BPy_Material * self );
 static PyObject *Material_getHaloSeed( BPy_Material * self );
 static PyObject *Material_getFlareSize( BPy_Material * self );
@@ -1046,6 +1049,10 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	 (getter)Material_getZOffset, (setter)Material_setZOffset,
 	 "Artificial offset in the Z buffer (for Ztransp option)",
 	 NULL},
+	{"lightGroup",
+	 (getter)Material_getLightGroup, (setter)Material_setLightGroup,
+	 "Set the light group for this material",
+	 NULL},
 	{"R",
 	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
 	 "Diffuse color red component",
@@ -1515,6 +1522,18 @@ static PyObject *Material_getZOffset( BPy_Material * self )
 
 	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				      "couldn't get Material.zOffset attribute" );
+}
+
+static PyObject *Material_getLightGroup( BPy_Material * self )
+{
+	PyObject *attr =
+		Group_CreatePyObject( self->material->group );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't get Material.lightGroup attribute" );
 }
 
 static PyObject *Material_getHaloSize( BPy_Material * self )
@@ -2096,6 +2115,20 @@ static int Material_setZOffset( BPy_Material * self, PyObject * value )
 	return EXPP_setFloatClamped ( value, &self->material->zoffs,
 		   						EXPP_MAT_ZOFFS_MIN,
 								EXPP_MAT_ZOFFS_MAX );
+}
+
+static int Material_setLightGroup( BPy_Material * self, PyObject * value ) {
+	BPy_Group *pygrp=NULL;
+	if ( PyObject_TypeCheck(value, &Group_Type) ) {
+		pygrp= (BPy_Group *)value;
+		self->material->group= pygrp->group;
+	} else if (value==Py_None) {
+		self->material->group= NULL;
+	} else {
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected a group or None" );
+	}
+	return 0;
 }
 
 static int Material_setAdd( BPy_Material * self, PyObject * value )

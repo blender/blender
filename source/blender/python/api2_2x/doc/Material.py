@@ -276,6 +276,8 @@ class Material:
   @ivar zOffset:  Artificial offset in the Z buffer (for Ztransp option).
   Value is clamped to the range [0.0,10.0].
   @type zOffset:  float
+  @ivar lightGroup:  Limits lights that affect this material to a group.
+  @type lightGroup:  Group or None
   @warning: Most member variables assume values in some [Min, Max] interval.
    When trying to set them, the given parameter will be clamped to lie in
    that range: if val < Min, then val = Min, if val > Max, then val = Max.
