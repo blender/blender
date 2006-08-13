@@ -170,6 +170,30 @@ typedef struct bStretchToConstraint{
 	char		subtarget[32];
 } bStretchToConstraint;
 
+/* transform limiting constraints - zero target */
+typedef struct bLocLimitConstraint{
+	float 		xmin, xmax;
+	float 		ymin, ymax;
+	float		zmin, zmax;
+	short 		flag;
+	short 		flag2;
+} bLocLimitConstraint;
+
+typedef struct bRotLimitConstraint{
+	float		xmin, xmax;
+	float		ymin, ymax;
+	float		zmin, zmax;
+	short 		flag;
+	short		pad1;
+} bRotLimitConstraint;
+
+typedef struct bSizeLimitConstraint{
+	float 		xmin, xmax;
+	float		ymin, ymax;
+	float 		zmin, zmax;
+	short 		flag;
+	short		pad1;
+} bSizeLimitConstraint;
 
 /* bConstraint.type */
 #define CONSTRAINT_TYPE_NULL		0
@@ -177,9 +201,9 @@ typedef struct bStretchToConstraint{
 #define CONSTRAINT_TYPE_TRACKTO		2	
 #define CONSTRAINT_TYPE_KINEMATIC	3	
 #define CONSTRAINT_TYPE_FOLLOWPATH	4
-#define CONSTRAINT_TYPE_ROTLIMIT	5	/* Unimplemented */
-#define CONSTRAINT_TYPE_LOCLIMIT	6	/* Unimplemented */
-#define CONSTRAINT_TYPE_SIZELIMIT	7	/* Unimplemented */
+#define CONSTRAINT_TYPE_ROTLIMIT	5	/* Unimplemented no longer :) - Aligorith */
+#define CONSTRAINT_TYPE_LOCLIMIT	6	/* Unimplemented no longer :) - Aligorith */
+#define CONSTRAINT_TYPE_SIZELIMIT	7	/* Unimplemented no longer :) - Aligorith */
 #define CONSTRAINT_TYPE_ROTLIKE		8	
 #define CONSTRAINT_TYPE_LOCLIKE		9	
 #define CONSTRAINT_TYPE_SIZELIKE	10
@@ -253,6 +277,20 @@ typedef struct bStretchToConstraint{
 #define CONSTRAINT_IK_ROT		2
 #define CONSTRAINT_IK_AUTO		4
 #define CONSTRAINT_IK_TEMP		8
+
+/* transform limiting constraints -> flag  */
+#define LIMIT_XMIN 0x01
+#define LIMIT_XMAX 0x02
+#define LIMIT_YMIN 0x04
+#define LIMIT_YMAX 0x08
+#define LIMIT_ZMIN 0x10
+#define LIMIT_ZMAX 0x20
+
+#define LIMIT_XROT 0x01
+#define LIMIT_YROT 0x02
+#define LIMIT_ZROT 0x04
+
+#define LIMIT_NOPARENT 0x01
 
 #endif
 

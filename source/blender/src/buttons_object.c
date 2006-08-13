@@ -355,6 +355,15 @@ void get_constraint_typestring (char *str, void *con_v)
 	case CONSTRAINT_TYPE_STRETCHTO:
 		strcpy (str, "Stretch To");
 		return;
+	case CONSTRAINT_TYPE_LOCLIMIT:
+		strcpy (str, "Limit Location");
+		return;
+	case CONSTRAINT_TYPE_ROTLIMIT:
+		strcpy (str, "Limit Rotation");
+		return;
+	case CONSTRAINT_TYPE_SIZELIMIT:
+		strcpy (str, "Limit Scale");
+		return;
 	default:
 		strcpy (str, "Unknown");
 		return;
@@ -386,6 +395,12 @@ static int get_constraint_col(bConstraint *con)
 		return TH_BUT_SETTING2;
 	case CONSTRAINT_TYPE_STRETCHTO:
 		return TH_BUT_SETTING;
+	case CONSTRAINT_TYPE_LOCLIMIT:
+		return TH_BUT_POPUP;
+	case CONSTRAINT_TYPE_ROTLIMIT:
+		return TH_BUT_POPUP;
+	case CONSTRAINT_TYPE_SIZELIMIT:
+		return TH_BUT_POPUP;
 	default:
 		return TH_REDALERT;
 	}
@@ -985,6 +1000,138 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockEndAlign(block);
 				}
 			break;
+		case CONSTRAINT_TYPE_LOCLIMIT:
+			{
+				bLocLimitConstraint *data = con->data;
+				
+				int togButWidth = 50;
+				int textButWidth = ((width/2)-togButWidth);
+				
+				height = 118; 
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				
+				/* Draw Pairs of LimitToggle+LimitValue */
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_XMIN, B_CONSTRAINT_TEST, "minX", *xco, *yco-28, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x value"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-28, (textButWidth-5), 18, &(data->xmin), -1000, 1000, 0.1,0.5,"Lowest x value to allow"); 
+				uiBlockEndAlign(block); 
+				
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_XMAX, B_CONSTRAINT_TEST, "maxX", *xco+(width-(textButWidth-5)-togButWidth), *yco-28, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum x value"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-28, (textButWidth-5), 18, &(data->xmax), -1000, 1000, 0.1,0.5,"Highest x value to allow"); 
+				uiBlockEndAlign(block); 
+				
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_YMIN, B_CONSTRAINT_TEST, "minY", *xco, *yco-50, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y value"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-50, (textButWidth-5), 18, &(data->ymin), -1000, 1000, 0.1,0.5,"Lowest y value to allow"); 
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_YMAX, B_CONSTRAINT_TEST, "maxY", *xco+(width-(textButWidth-5)-togButWidth), *yco-50, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum y value"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-50, (textButWidth-5), 18, &(data->ymax), -1000, 1000, 0.1,0.5,"Highest y value to allow"); 
+				uiBlockEndAlign(block); 
+				
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_ZMIN, B_CONSTRAINT_TEST, "minZ", *xco, *yco-72, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z value"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-72, (textButWidth-5), 18, &(data->zmin), -1000, 1000, 0.1,0.5,"Lowest z value to allow"); 
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_ZMAX, B_CONSTRAINT_TEST, "maxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-72, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum z value"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-72, (textButWidth-5), 18, &(data->zmax), -1000, 1000, 0.1,0.5,"Highest z value to allow"); 
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block);
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST,"Co-ordinate Space:",*xco, *yco-100,150,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				if (ob->type == OB_ARMATURE) 
+					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco+160, *yco-100, 60, 18, &con->flag, 0, 24, 0, 0, "Limit locations relative to the bone's rest-position");
+				else if (ob->parent != NULL)
+					uiDefButBitS(block, TOG, LIMIT_NOPARENT, B_CONSTRAINT_TEST, "Local", *xco+160, *yco-100, 60, 18, &data->flag2, 0, 24, 0, 0, "Limit locations relative to parent, not origin/world");
+				else 
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST,"World",*xco+160, *yco-100,60,18, NULL, 0.0, 0.0, 0.0, 0.0, "Limit locations relative to origin/world"); 
+				uiBlockEndAlign(block);
+			}
+			break;
+		case CONSTRAINT_TYPE_ROTLIMIT:
+			{
+				bRotLimitConstraint *data = con->data;
+				
+				int normButWidth = (width/3);
+				
+				height = 118; 
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				
+				/* Draw Pairs of LimitToggle+LimitValue */
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_XROT, B_CONSTRAINT_TEST, "LimitX", *xco, *yco-28, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Limit rotation on x-axis"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min:", *xco+normButWidth, *yco-28, normButWidth, 18, &(data->xmin), -360, 360, 0.1,0.5,"Lowest x value to allow"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max:", *xco+(normButWidth * 2), *yco-28, normButWidth, 18, &(data->xmax), -360, 360, 0.1,0.5,"Highest x value to allow"); 
+				uiBlockEndAlign(block); 
+				
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_YROT, B_CONSTRAINT_TEST, "LimitY", *xco, *yco-50, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Limit rotation on y-axis"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min:", *xco+normButWidth, *yco-50, normButWidth, 18, &(data->ymin), -360, 360, 0.1,0.5,"Lowest y value to allow"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max:", *xco+(normButWidth * 2), *yco-50, normButWidth, 18, &(data->ymax), -360, 360, 0.1,0.5,"Highest y value to allow"); 
+				uiBlockEndAlign(block); 
+				
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_ZROT, B_CONSTRAINT_TEST, "LimitZ", *xco, *yco-72, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Limit rotation on z-axis"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min:", *xco+normButWidth, *yco-72, normButWidth, 18, &(data->zmin), -360, 360, 0.1,0.5,"Lowest z value to allow"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max:", *xco+(normButWidth * 2), *yco-72, normButWidth, 18, &(data->zmax), -360, 360, 0.1,0.5,"Highest z value to allow"); 
+				uiBlockEndAlign(block); 
+				
+				if (ob->type == OB_ARMATURE) {
+					uiBlockBeginAlign(block);
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST,"Co-ordinate Space:",*xco, *yco-100,150,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco+160, *yco-100, 60, 18, &con->flag, 0, 24, 0, 0, "Work on a Pose's local transform");
+					uiBlockEndAlign(block);
+				}
+			}
+			break;
+		case CONSTRAINT_TYPE_SIZELIMIT:
+			{
+				bSizeLimitConstraint *data = con->data;
+				
+				int togButWidth = 50;
+				int textButWidth = ((width/2)-togButWidth);
+				
+				height = 90; 
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				
+				/* Draw Pairs of LimitToggle+LimitValue */
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_XMIN, B_CONSTRAINT_TEST, "minX", *xco, *yco-28, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x value"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-28, (textButWidth-5), 18, &(data->xmin), 0.0001, 1000, 0.1,0.5,"Lowest x value to allow"); 
+				uiBlockEndAlign(block); 
+
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_XMAX, B_CONSTRAINT_TEST, "maxX", *xco+(width-(textButWidth-5)-togButWidth), *yco-28, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum x value"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-28, (textButWidth-5), 18, &(data->xmax), 0.0001, 1000, 0.1,0.5,"Highest x value to allow"); 
+				uiBlockEndAlign(block); 
+
+
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_YMIN, B_CONSTRAINT_TEST, "minY", *xco, *yco-50, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y value"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-50, (textButWidth-5), 18, &(data->ymin), 0.0001, 1000, 0.1,0.5,"Lowest y value to allow"); 
+				uiBlockEndAlign(block); 
+
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_YMAX, B_CONSTRAINT_TEST, "maxY", *xco+(width-(textButWidth-5)-togButWidth), *yco-50, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum y value"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-50, (textButWidth-5), 18, &(data->ymax), 0.0001, 1000, 0.1,0.5,"Highest y value to allow"); 
+				uiBlockEndAlign(block); 
+
+
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_ZMIN, B_CONSTRAINT_TEST, "minZ", *xco, *yco-72, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z value"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-72, (textButWidth-5), 18, &(data->zmin), 0.0001, 1000, 0.1,0.5,"Lowest z value to allow"); 
+				uiBlockEndAlign(block); 
+
+				uiBlockBeginAlign(block); 
+				uiDefButBitS(block, TOG, LIMIT_ZMAX, B_CONSTRAINT_TEST, "maxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-72, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum z value"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-72, (textButWidth-5), 18, &(data->zmax), 0.0001, 1000, 0.1,0.5,"Highest z value to allow"); 
+				uiBlockEndAlign(block);
+			}
+			break;
 		case CONSTRAINT_TYPE_NULL:
 			{
 				height = 17;
@@ -1031,6 +1178,12 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCLIKE,"Copy Location",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_ROTLIKE,"Copy Rotation",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_SIZELIKE,"Copy Scale",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCLIMIT,"Limit Location",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_ROTLIMIT,"Limit Rotation",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_SIZELIMIT,"Limit Scale",			0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -1182,6 +1335,36 @@ void do_constraintbuts(unsigned short event)
 			con = add_new_constraint(CONSTRAINT_TYPE_STRETCHTO);
 			add_constraint_to_active(ob, con);
 				
+			BIF_undo_push("Add constraint");
+		}
+		break;
+	case B_CONSTRAINT_ADD_LOCLIMIT:
+		{
+			bConstraint *con;
+
+			con = add_new_constraint(CONSTRAINT_TYPE_LOCLIMIT);
+			add_constraint_to_active(ob, con);
+
+			BIF_undo_push("Add constraint");
+		}
+		break;
+	case B_CONSTRAINT_ADD_ROTLIMIT:
+		{
+			bConstraint *con;
+
+			con = add_new_constraint(CONSTRAINT_TYPE_ROTLIMIT);
+			add_constraint_to_active(ob, con);
+
+			BIF_undo_push("Add constraint");
+		}
+		break;
+	case B_CONSTRAINT_ADD_SIZELIMIT:
+		{
+			bConstraint *con;
+
+			con = add_new_constraint(CONSTRAINT_TYPE_SIZELIMIT);
+			add_constraint_to_active(ob, con);
+
 			BIF_undo_push("Add constraint");
 		}
 		break;

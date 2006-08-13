@@ -205,7 +205,24 @@ void relink_constraints (struct ListBase *list)
 				ID_NEW(data->tar);
 			}
 				break;
-				
+			case CONSTRAINT_TYPE_LOCLIMIT:
+			{
+				bLocLimitConstraint *data;
+				data = con->data;
+			}
+				break;
+			case CONSTRAINT_TYPE_ROTLIMIT:
+			{
+				bRotLimitConstraint *data;
+				data = con->data;
+			}
+				break;
+			case CONSTRAINT_TYPE_SIZELIMIT:
+			{
+				bSizeLimitConstraint *data;
+				data = con->data;
+			}
+				break;
 		}
 	}
 }
@@ -658,6 +675,55 @@ void *new_constraint_data (short type)
 			result = data;
 		}
 		break; 
+	case CONSTRAINT_TYPE_LOCLIMIT:
+		{
+			bLocLimitConstraint *data;
+			data = MEM_callocN(sizeof(bLocLimitConstraint), "LocLimitConstraint");
+			
+			data->flag = 0;
+			data->flag2 = 0;
+			data->xmin = 0.0f;
+			data->xmax = 0.0f;
+			data->ymin = 0.0f;
+			data->ymax = 0.0f;
+			data->zmin = 0.0f;
+			data->zmax = 0.0f;
+			
+			result = data;
+		}
+		break;
+	case CONSTRAINT_TYPE_ROTLIMIT:
+		{
+			bRotLimitConstraint *data;
+			data = MEM_callocN(sizeof(bRotLimitConstraint), "RotLimitConstraint");
+			
+			data->flag = 0;
+			data->xmin = 0.0f;
+			data->xmax = 0.0f;
+			data->ymin = 0.0f;
+			data->ymax = 0.0f;
+			data->zmin = 0.0f;
+			data->zmax = 0.0f;
+			
+			result = data;
+		}
+		break;
+	case CONSTRAINT_TYPE_SIZELIMIT:
+		{
+			bSizeLimitConstraint *data;
+			data = MEM_callocN(sizeof(bSizeLimitConstraint), "SizeLimitConstraint");
+			
+			data->flag = 0;
+			data->xmin = 0.0f;
+			data->xmax = 0.0f;
+			data->ymin = 0.0f;
+			data->ymax = 0.0f;
+			data->zmin = 0.0f;
+			data->zmax = 0.0f;
+			
+			result = data;
+		}
+		break;
 	default:
 		result = NULL;
 		break;
@@ -1739,7 +1805,223 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
             }
         }
         break;
-	
+	case CONSTRAINT_TYPE_LOCLIMIT:
+		{
+			bLocLimitConstraint *data;
+
+			data = constraint->data;
+			
+			/* limit location relative to origin or parent   */
+			if (data->flag2 & LIMIT_NOPARENT) {
+				/* limiting relative to parent */
+				float parmat[4][4]; /* matrix of parent */
+				float objLoc[3], parLoc[3]; /* location of object, and location of parent */
+				float relLoc[3]; /* objLoc  - parLoc*/
+				
+				/* get matrix of parent */
+				Mat4CpyMat4(parmat, ob->parent->obmat);
+				
+				/* get locations as vectors */
+				objLoc[0] = ob->obmat[3][0];
+				objLoc[1] = ob->obmat[3][1];
+				objLoc[2] = ob->obmat[3][2];
+				
+				parLoc[0] = parmat[3][0];
+				parLoc[1] = parmat[3][1];
+				parLoc[2] = parmat[3][2];
+				
+				/* get relative location of obj from parent */
+				VecSubf(relLoc, objLoc, parLoc);
+				
+				/* limiting location */
+				if (data->flag & LIMIT_XMIN) {
+					if(relLoc[0] < data->xmin) 
+						ob->obmat[3][0] = (parLoc[0]+data->xmin);
+				}
+				if (data->flag & LIMIT_XMAX) {
+					if (relLoc[0] > data->xmax) 
+						ob->obmat[3][0] = (parLoc[0]+data->xmax);
+				}
+				if (data->flag & LIMIT_YMIN) {
+					if(relLoc[1] < data->ymin) 
+						ob->obmat[3][1] = (parLoc[1]+data->ymin);
+				}
+				if (data->flag & LIMIT_YMAX) {
+					if (relLoc[1] > data->ymax) 
+						ob->obmat[3][1] = (parLoc[1]+data->ymax);
+				}
+				if (data->flag & LIMIT_ZMIN) {
+					if(relLoc[2] < data->zmin) 
+						ob->obmat[3][2] = (parLoc[2]+data->zmin);
+				}
+				if (data->flag & LIMIT_ZMAX) {
+					if (relLoc[2] > data->zmax) 
+						ob->obmat[3][2] = (parLoc[2]+data->zmax);
+				}
+			} else {
+				/* limiting relative to origin */
+				if (data->flag & LIMIT_XMIN) {
+					if(ob->obmat[3][0] < data->xmin)
+						ob->obmat[3][0] = data->xmin;
+				}
+				if (data->flag & LIMIT_XMAX) {
+					if (ob->obmat[3][0] > data->xmax)
+						ob->obmat[3][0] = data->xmax;
+				}
+				if (data->flag & LIMIT_YMIN) {
+					if(ob->obmat[3][1] < data->ymin)
+						ob->obmat[3][1] = data->ymin;
+				}
+				if (data->flag & LIMIT_YMAX) {
+					if (ob->obmat[3][1] > data->ymax)
+						ob->obmat[3][1] = data->ymax;
+				}
+				if (data->flag & LIMIT_ZMIN) {
+					if(ob->obmat[3][2] < data->zmin) 
+						ob->obmat[3][2] = data->zmin;
+				}
+				if (data->flag & LIMIT_ZMAX) {
+					if (ob->obmat[3][2] > data->zmax)
+						ob->obmat[3][2] = data->zmax;
+				}
+			}
+		}
+		break;
+	case CONSTRAINT_TYPE_ROTLIMIT:
+		{
+			bRotLimitConstraint *data;
+			float tmat[3][3];
+			float eul[3];
+			float size[3];
+			
+			data = constraint->data;
+			
+			Mat4ToSize(ob->obmat, size);
+			
+			Mat3CpyMat4(tmat, ob->obmat);
+			Mat3Ortho(tmat); 
+			Mat3ToEul(tmat, eul);
+			
+			/* eulers: radians to degrees! */
+			eul[0] = (eul[0] / M_PI * 180);
+			eul[1] = (eul[1] / M_PI * 180);
+			eul[2] = (eul[2] / M_PI * 180);
+			
+			/* limiting of euler values... */
+			if (data->flag & LIMIT_XROT) {
+				if (eul[0] < data->xmin) 
+					eul[0] = data->xmin;
+					
+				if (eul[0] > data->xmax)
+					eul[0] = data->xmax;
+			}
+			if (data->flag & LIMIT_YROT) {
+				if (eul[1] < data->ymin)
+					eul[1] = data->ymin;
+					
+				if (eul[1] > data->ymax)
+					eul[1] = data->ymax;
+			}
+			if (data->flag & LIMIT_ZROT) {
+				if (eul[2] < data->zmin)
+					eul[2] = data->zmin;
+					
+				if (eul[2] > data->zmax)
+					eul[2] = data->zmax;
+			}
+				
+			/* eulers: degrees to radians ! */
+			eul[0] = (eul[0] / 180 * M_PI); 
+			eul[1] = (eul[1] / 180 * M_PI);
+			eul[2] = (eul[2] / 180 * M_PI);
+			
+			EulToMat3(eul, tmat);
+			
+			ob->obmat[0][0] = tmat[0][0]*size[0];
+			ob->obmat[0][1] = tmat[0][1]*size[1];
+			ob->obmat[0][2] = tmat[0][2]*size[2];
+
+			ob->obmat[1][0] = tmat[1][0]*size[0];
+			ob->obmat[1][1] = tmat[1][1]*size[1];
+			ob->obmat[1][2] = tmat[1][2]*size[2];
+
+			ob->obmat[2][0] = tmat[2][0]*size[0];
+			ob->obmat[2][1] = tmat[2][1]*size[1];
+			ob->obmat[2][2] = tmat[2][2]*size[2];
+		}
+		break;
+	case CONSTRAINT_TYPE_SIZELIMIT:
+		{
+			bSizeLimitConstraint *data;
+			float obsize[3], size[3];
+			int clearNegScale=0;
+			
+			data = constraint->data;
+			
+			Mat4ToSize(ob->obmat, size);
+			Mat4ToSize(ob->obmat, obsize);
+			
+			if (data->flag & LIMIT_XMIN) {
+				if (ob->transflag & OB_NEG_SCALE) {
+					size[0] *= -1;
+					
+					if (size[0] < data->xmin) { 
+						size[0] = data->xmin;
+						clearNegScale += 1;
+					}
+				} else {
+					if (size[0] < data->xmin) 
+						size[0] = data->xmin;	
+				}	
+			}
+			if (data->flag & LIMIT_XMAX) {
+				if (size[0] > data->xmax) 
+					size[0] = data->xmax;
+			}
+			if (data->flag & LIMIT_YMIN) {
+				if (ob->transflag & OB_NEG_SCALE) {
+					size[1] *= -1;
+					
+					if (size[1] < data->ymin) { 
+						size[1] = data->ymin;
+						clearNegScale += 1;
+					}
+				} else {
+					if (size[1] < data->ymin) 
+						size[1] = data->ymin;	
+				}	
+			}
+			if (data->flag & LIMIT_YMAX) {
+				if (size[1] > data->ymax) 
+					size[1] = data->ymax;
+			}
+			if (data->flag & LIMIT_ZMIN) {
+				if (ob->transflag & OB_NEG_SCALE) {
+					size[2] *= -1;
+					
+					if (size[2] < data->zmin) { 
+						size[2] = data->zmin;
+						clearNegScale += 1;
+					}
+				} else {
+					if (size[2] < data->zmin) 
+						size[2] = data->zmin;	
+				}	
+			}
+			if (data->flag & LIMIT_ZMAX) {
+				if (size[2] > data->zmax) 
+					size[2] = data->zmax;
+			}
+			
+			if (clearNegScale != 0) {
+				ob->transflag &= ~OB_NEG_SCALE;  /* is this how we remove that flag? */	
+			}
+			
+			VecMulf(ob->obmat[0], size[0]/obsize[0]);
+			VecMulf(ob->obmat[1], size[1]/obsize[1]);
+			VecMulf(ob->obmat[2], size[2]/obsize[2]);
+		}
+		break;
 	default:
 		printf ("Error: Unknown constraint type\n");
 		break;

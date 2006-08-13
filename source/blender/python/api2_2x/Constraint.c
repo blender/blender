@@ -102,6 +102,28 @@ enum constraint_constants {
 	EXPP_CONSTR_STICKY,
 
 	EXPP_CONSTR_COPY,
+	EXPP_CONSTR_LIMIT,
+	
+	EXPP_CONSTR_LIMXMIN = LIMIT_XMIN,
+	EXPP_CONSTR_LIMXMAX = LIMIT_XMAX,
+	EXPP_CONSTR_LIMYMIN = LIMIT_YMIN,
+	EXPP_CONSTR_LIMYMAX = LIMIT_YMAX,
+	EXPP_CONSTR_LIMZMIN = LIMIT_ZMIN,
+	EXPP_CONSTR_LIMZMAX = LIMIT_ZMAX,
+	
+	EXPP_CONSTR_LIMXROT = LIMIT_XROT,
+	EXPP_CONSTR_LIMYROT = LIMIT_YROT,
+	EXPP_CONSTR_LIMZROT = LIMIT_ZROT,
+	
+	EXPP_CONSTR_XMIN,
+	EXPP_CONSTR_XMAX,
+	EXPP_CONSTR_YMIN,
+	EXPP_CONSTR_YMAX,
+	EXPP_CONSTR_ZMIN,
+	EXPP_CONSTR_ZMAX,
+	
+	EXPP_CONSTR_LIMLOCALBONE,
+	EXPP_CONSTR_LIMLOCALNOPAR,
 };
 
 /*****************************************************************************/
@@ -959,6 +981,171 @@ static int sizelike_setter( BPy_Constraint *self, int type, PyObject *value )
 	}
 }
 
+static PyObject *loclimit_getter( BPy_Constraint * self, int type)
+{
+	bLocLimitConstraint *con = (bLocLimitConstraint *)(self->con->data);
+
+	switch( type ) {
+	case EXPP_CONSTR_LIMIT:
+		return PyInt_FromLong( (long)con->flag );
+	case EXPP_CONSTR_LIMLOCALBONE:
+		return PyBool_FromLong( (long)
+					( self->con->flag & CONSTRAINT_LOCAL ) ) ;
+	case EXPP_CONSTR_LIMLOCALNOPAR:
+		return PyBool_FromLong( (long)
+					( con->flag2 & LIMIT_NOPARENT ) ) ;
+	case EXPP_CONSTR_XMIN:
+		return PyFloat_FromDouble( (double)con->xmin );
+	case EXPP_CONSTR_XMAX:
+		return PyFloat_FromDouble( (double)con->xmax );
+	case EXPP_CONSTR_YMIN:
+		return PyFloat_FromDouble( (double)con->ymin );
+	case EXPP_CONSTR_YMAX:
+		return PyFloat_FromDouble( (double)con->ymax );
+	case EXPP_CONSTR_ZMIN:
+		return PyFloat_FromDouble( (double)con->zmin );
+	case EXPP_CONSTR_ZMAX:
+		return PyFloat_FromDouble( (double)con->zmax );
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );	
+	}
+}
+
+static int loclimit_setter( BPy_Constraint *self, int type, PyObject *value )
+{
+	bLocLimitConstraint *con = (bLocLimitConstraint *)(self->con->data);	
+	
+	switch( type ) {
+	case EXPP_CONSTR_LIMIT:
+		return EXPP_setIValueRange( value, &con->flag, 0, 
+			LIMIT_XMIN | LIMIT_XMAX | LIMIT_YMIN | LIMIT_YMAX | LIMIT_ZMIN | LIMIT_ZMAX , 'i' );
+	case EXPP_CONSTR_LIMLOCALBONE:
+		return EXPP_setBitfield( value, &self->con->flag,
+				CONSTRAINT_LOCAL, 'h' );
+	case EXPP_CONSTR_LIMLOCALNOPAR:
+		return EXPP_setBitfield( value, &con->flag2,
+				LIMIT_NOPARENT, 'h' );
+	case EXPP_CONSTR_XMIN:
+		return EXPP_setFloatClamped( value, &con->xmin, -1000.0, 1000.0 );
+	case EXPP_CONSTR_XMAX:
+		return EXPP_setFloatClamped( value, &con->xmax, -1000.0, 1000.0 );
+	case EXPP_CONSTR_YMIN:
+		return EXPP_setFloatClamped( value, &con->ymin, -1000.0, 1000.0 );
+	case EXPP_CONSTR_YMAX:
+		return EXPP_setFloatClamped( value, &con->ymax, -1000.0, 1000.0 );
+	case EXPP_CONSTR_ZMIN:
+		return EXPP_setFloatClamped( value, &con->zmin, -1000.0, 1000.0 );
+	case EXPP_CONSTR_ZMAX:
+		return EXPP_setFloatClamped( value, &con->zmax, -1000.0, 1000.0 );
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static PyObject *rotlimit_getter( BPy_Constraint * self, int type )
+{
+	bRotLimitConstraint *con = (bRotLimitConstraint *)(self->con->data);
+
+	switch( type ) {
+	case EXPP_CONSTR_LIMIT:
+		return PyInt_FromLong( (long)con->flag );
+	case EXPP_CONSTR_LIMLOCALBONE:
+		return PyBool_FromLong( (long)
+					(self->con->flag & CONSTRAINT_LOCAL ) ); 
+	case EXPP_CONSTR_XMIN:
+		return PyFloat_FromDouble( (double)con->xmin );
+	case EXPP_CONSTR_XMAX:
+		return PyFloat_FromDouble( (double)con->xmax );
+	case EXPP_CONSTR_YMIN:
+		return PyFloat_FromDouble( (double)con->ymin );
+	case EXPP_CONSTR_YMAX:
+		return PyFloat_FromDouble( (double)con->ymax );
+	case EXPP_CONSTR_ZMIN:
+		return PyFloat_FromDouble( (double)con->zmin );
+	case EXPP_CONSTR_ZMAX:
+		return PyFloat_FromDouble( (double)con->zmax );
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );	
+	}
+}
+
+static int rotlimit_setter( BPy_Constraint *self, int type, PyObject *value )
+{
+	bRotLimitConstraint *con = (bRotLimitConstraint *)(self->con->data);	
+	
+	switch( type ) {
+	case EXPP_CONSTR_LIMIT:
+		return EXPP_setIValueRange( value, &con->flag, 0, 
+			LIMIT_XROT | LIMIT_YROT | LIMIT_ZROT, 'i' );
+	case EXPP_CONSTR_LIMLOCALBONE:
+		return EXPP_setBitfield( value, &self->con->flag,
+				CONSTRAINT_LOCAL, 'h' );
+	case EXPP_CONSTR_XMIN:
+		return EXPP_setFloatClamped( value, &con->xmin, -360.0, 360.0 );
+	case EXPP_CONSTR_XMAX:
+		return EXPP_setFloatClamped( value, &con->xmax, -360.0, 360.0 );
+	case EXPP_CONSTR_YMIN:
+		return EXPP_setFloatClamped( value, &con->ymin, -360.0, 360.0 );
+	case EXPP_CONSTR_YMAX:
+		return EXPP_setFloatClamped( value, &con->ymax, -360.0, 360.0 );
+	case EXPP_CONSTR_ZMIN:
+		return EXPP_setFloatClamped( value, &con->zmin, -360.0, 360.0 );
+	case EXPP_CONSTR_ZMAX:
+		return EXPP_setFloatClamped( value, &con->zmax, -360.0, 360.0 );
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static PyObject *sizelimit_getter( BPy_Constraint * self, int type)
+{
+	bSizeLimitConstraint *con = (bSizeLimitConstraint *)(self->con->data);
+
+	switch( type ) {
+	case EXPP_CONSTR_LIMIT:
+		return PyInt_FromLong( (long)con->flag );
+	case EXPP_CONSTR_XMIN:
+		return PyFloat_FromDouble( (double)con->xmin );
+	case EXPP_CONSTR_XMAX:
+		return PyFloat_FromDouble( (double)con->xmax );
+	case EXPP_CONSTR_YMIN:
+		return PyFloat_FromDouble( (double)con->ymin );
+	case EXPP_CONSTR_YMAX:
+		return PyFloat_FromDouble( (double)con->ymax );
+	case EXPP_CONSTR_ZMIN:
+		return PyFloat_FromDouble( (double)con->zmin );
+	case EXPP_CONSTR_ZMAX:
+		return PyFloat_FromDouble( (double)con->zmax );
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );	
+	}
+}
+
+static int sizelimit_setter( BPy_Constraint *self, int type, PyObject *value )
+{
+	bSizeLimitConstraint *con = (bSizeLimitConstraint *)(self->con->data);	
+	
+	switch( type ) {
+	case EXPP_CONSTR_LIMIT:
+		return EXPP_setIValueRange( value, &con->flag, 0, 
+			LIMIT_XMIN | LIMIT_XMAX | LIMIT_YMIN | LIMIT_YMAX | LIMIT_ZMIN | LIMIT_ZMAX, 'i' );
+	case EXPP_CONSTR_XMIN:
+		return EXPP_setFloatClamped( value, &con->xmin, -1000.0, 1000.0 );
+	case EXPP_CONSTR_XMAX:
+		return EXPP_setFloatClamped( value, &con->xmax, -1000.0, 1000.0 );
+	case EXPP_CONSTR_YMIN:
+		return EXPP_setFloatClamped( value, &con->ymin, -1000.0, 1000.0 );
+	case EXPP_CONSTR_YMAX:
+		return EXPP_setFloatClamped( value, &con->ymax, -1000.0, 1000.0 );
+	case EXPP_CONSTR_ZMIN:
+		return EXPP_setFloatClamped( value, &con->zmin, -1000.0, 1000.0 );
+	case EXPP_CONSTR_ZMAX:
+		return EXPP_setFloatClamped( value, &con->zmax, -1000.0, 1000.0 );
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
+
 /*
  * get data from a constraint
  */
@@ -999,11 +1186,13 @@ static PyObject *Constraint_getData( BPy_Constraint * self, PyObject * key )
 			return rotatelike_getter( self, setting );
 		case CONSTRAINT_TYPE_SIZELIKE:
 			return sizelike_getter( self, setting );
-
-		case CONSTRAINT_TYPE_CHILDOF:	/* Unimplemented */
 		case CONSTRAINT_TYPE_ROTLIMIT:
+			return rotlimit_getter( self, setting );
 		case CONSTRAINT_TYPE_LOCLIMIT:
+			return loclimit_getter( self, setting );
 		case CONSTRAINT_TYPE_SIZELIMIT:
+			return sizelimit_getter( self, setting );
+		case CONSTRAINT_TYPE_CHILDOF:	/* Unimplemented */
 		case CONSTRAINT_TYPE_PYTHON:
 		default:
 			return EXPP_ReturnPyObjError( PyExc_KeyError,
@@ -1055,12 +1244,18 @@ static int Constraint_setData( BPy_Constraint * self, PyObject * key,
 	case CONSTRAINT_TYPE_SIZELIKE:
 		result = sizelike_setter( self, key_int, arg );
 		break;
+	case CONSTRAINT_TYPE_ROTLIMIT:
+		result = rotlimit_setter( self, key_int, arg );
+		break;
+	case CONSTRAINT_TYPE_LOCLIMIT:
+		result = loclimit_setter( self, key_int, arg );
+		break;
+	case CONSTRAINT_TYPE_SIZELIMIT:
+		result = sizelimit_setter( self, key_int, arg);
+		break;
 	case CONSTRAINT_TYPE_NULL:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	case CONSTRAINT_TYPE_CHILDOF:	/* Unimplemented */
-	case CONSTRAINT_TYPE_ROTLIMIT:
-	case CONSTRAINT_TYPE_LOCLIMIT:
-	case CONSTRAINT_TYPE_SIZELIMIT:
 	case CONSTRAINT_TYPE_PYTHON:
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -1535,6 +1730,12 @@ static PyObject *M_Constraint_TypeDict( void )
 				PyInt_FromLong( CONSTRAINT_TYPE_STRETCHTO ) );
 		PyConstant_Insert( d, "FLOOR", 
 				PyInt_FromLong( CONSTRAINT_TYPE_MINMAX ) );
+		PyConstant_Insert( d, "LIMITLOC", 
+				PyInt_FromLong( CONSTRAINT_TYPE_LOCLIMIT ) );
+		PyConstant_Insert( d, "LIMITROT", 
+				PyInt_FromLong( CONSTRAINT_TYPE_ROTLIMIT ) );
+		PyConstant_Insert( d, "LIMITSIZE", 
+				PyInt_FromLong( CONSTRAINT_TYPE_SIZELIMIT ) );
 	}
 	return S;
 }
@@ -1675,6 +1876,46 @@ static PyObject *M_Constraint_SettingsDict( void )
 
 		PyConstant_Insert( d, "COPY",
 				PyInt_FromLong( EXPP_CONSTR_COPY ) );
+		PyConstant_Insert( d, "LIMIT",
+				PyInt_FromLong( EXPP_CONSTR_LIMIT ) );
+		
+		PyConstant_Insert( d, "LIMIT_XMIN",
+				PyInt_FromLong( EXPP_CONSTR_LIMXMIN ) );
+		PyConstant_Insert( d, "LIMIT_XMAX",
+				PyInt_FromLong( EXPP_CONSTR_LIMXMAX ) );
+		PyConstant_Insert( d, "LIMIT_YMIN",
+				PyInt_FromLong( EXPP_CONSTR_LIMYMIN ) );
+		PyConstant_Insert( d, "LIMIT_YMAX",
+				PyInt_FromLong( EXPP_CONSTR_LIMYMAX ) );
+		PyConstant_Insert( d, "LIMIT_ZMIN",
+				PyInt_FromLong( EXPP_CONSTR_LIMZMIN ) );
+		PyConstant_Insert( d, "LIMIT_ZMAX",
+				PyInt_FromLong( EXPP_CONSTR_LIMZMAX ) );
+		
+		PyConstant_Insert( d, "LIMIT_XROT",
+				PyInt_FromLong( EXPP_CONSTR_LIMXROT ) );
+		PyConstant_Insert( d, "LIMIT_YROT",
+				PyInt_FromLong( EXPP_CONSTR_LIMYROT ) );
+		PyConstant_Insert( d, "LIMIT_ZROT",
+				PyInt_FromLong( EXPP_CONSTR_LIMZROT ) );
+		
+		PyConstant_Insert( d, "XMIN",
+				PyInt_FromLong( EXPP_CONSTR_XMIN ) );
+		PyConstant_Insert( d, "XMAX",
+				PyInt_FromLong( EXPP_CONSTR_XMAX ) );
+		PyConstant_Insert( d, "YMIN",
+				PyInt_FromLong( EXPP_CONSTR_YMIN ) );
+		PyConstant_Insert( d, "YMAX",
+				PyInt_FromLong( EXPP_CONSTR_YMAX ) );
+		PyConstant_Insert( d, "ZMIN",
+				PyInt_FromLong( EXPP_CONSTR_ZMIN ) );
+		PyConstant_Insert( d, "ZMAX",
+				PyInt_FromLong( EXPP_CONSTR_ZMAX ) );
+		
+		PyConstant_Insert( d, "LIMIT_LOCAL_BONE",
+				PyInt_FromLong( EXPP_CONSTR_LIMLOCALBONE ) );
+		PyConstant_Insert( d, "LIMIT_LOCAL_NOPARENT",
+				PyInt_FromLong( EXPP_CONSTR_LIMLOCALNOPAR ) );
 	}
 	return S;
 }

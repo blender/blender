@@ -666,6 +666,15 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 		case CONSTRAINT_TYPE_MINMAX:
 			writestruct(wd, DATA, "bMinMaxConstraint", 1, con->data);
 			break;
+		case CONSTRAINT_TYPE_LOCLIMIT:
+			writestruct(wd, DATA, "bLocLimitConstraint", 1, con->data);
+			break;
+		case CONSTRAINT_TYPE_ROTLIMIT:
+			writestruct(wd, DATA, "bRotLimitConstraint", 1, con->data);
+			break;
+		case CONSTRAINT_TYPE_SIZELIMIT:
+			writestruct(wd, DATA, "bSizeLimitConstraint", 1, con->data);
+			break;
 		default:
 			break;
 		}

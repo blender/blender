@@ -31,14 +31,16 @@ Or to print all the constraints attached to each bone in a pose::
 @var Type: Constant Constraint dict used by L{Constraints.append()} and 
   for comparison with L{Constraint.type}.  Values are
   TRACKTO, IKSOLVER, FOLLOWPATH, COPYROT, COPYLOC, COPYSIZE, ACTION,
-  LOCKTRACK, STRETCHTO, FLOOR, NULL
+  LOCKTRACK, STRETCHTO, FLOOR, LIMITLOC, LIMITROT, LIMITSIZE, NULL
 
 @type Settings: readonly dictionary
 @var Settings: Constant dict used for changing constraint settings.
   - Used for all constraints
-    - TARGET (Object)
+    - TARGET (Object) (Note: not used by Limit Location (LIMITLOC), 
+      Limit Rotation (LIMITROT), Limit Scale (LIMITSIZE))
     - BONE (string): name of Bone sub-target (for armature targets) (Note: not
-      used by Stretch To (STRETCHTO))
+      used by Stretch To (STRETCHTO), Limit Location (LIMITLOC), Limit Rotation 
+      (LIMITROT), Limit Scale (LIMITSIZE))
   - Used by IK Solver (IKSOLVER) constraint:
     - TOLERANCE (float): clamped to [0.0001:1.0]
     - ITERATIONS (int): clamped to [1,10000]
@@ -84,6 +86,40 @@ Or to print all the constraints attached to each bone in a pose::
     - LOCAL (bool): Only for constraints which Armature targets.
   - Used by Copy Size (COPYSIZE) constraint:
     - COPY (bitfield): any combination of COPYX, COPYY and COPYZ
+  - Used by Limit Location (LIMITLOC) constraint:
+    - LIMIT (bitfield): any combination of LIMIT_XMIN, LIMIT_XMAX,
+      LIMIT_YMIN, LIMIT_YMAX, LIMIT_ZMIN, LIMIT_ZMAX
+    - LIMIT_LOCAL_BONE (boolean): USE WITH CAUTION. Only do something
+      with this value if constraint is assigned to a bone.
+    - LIMIT_LOCAL_NOPARENT (boolean): USE WITH CAUTION. Only do something
+      with this value if constraint is assigned to an object with that 
+      has been parented to something.
+    - XMIN (float): clamped to [-1000.0,1000.0]
+    - XMAX (float): clamped to [-1000.0,1000.0]
+    - YMIN (float): clamped to [-1000.0,1000.0]
+    - YMAX (float): clamped to [-1000.0,1000.0]
+    - ZMIN (float): clamped to [-1000.0,1000.0]
+    - ZMAX (float): clamped to [-1000.0,1000.0]
+  - Used by Limit Rotation (LIMITROT) constraint:
+    - LIMIT (bitfield): any combination of LIMIT_XROT, LIMIT_YROT, 
+      LIMIT_ZROT
+    - LIMIT_LOCAL_BONE (boolean): USE WITH CAUTION. Only do something
+      with this value if constraint is assigned to a bone.
+    - XMIN (float): clamped to [-360.0,360.0]
+    - XMAX (float): clamped to [-360.0,360.0]
+    - YMIN (float): clamped to [-360.0,360.0]
+    - YMAX (float): clamped to [-360.0,360.0]
+    - ZMIN (float): clamped to [-360.0,360.0]
+    - ZMAX (float): clamped to [-360.0,360.0]
+  - Used by Limit Scale (LIMITSIZE) constraint:
+    - LIMIT (bitfield): any combination of LIMIT_XMIN, LIMIT_XMAX,
+      LIMIT_YMIN, LIMIT_YMAX, LIMIT_ZMIN, LIMIT_ZMAX
+    - XMIN (float): clamped to [-1000.0,1000.0]
+    - XMAX (float): clamped to [-1000.0,1000.0]
+    - YMIN (float): clamped to [-1000.0,1000.0]
+    - YMAX (float): clamped to [-1000.0,1000.0]
+    - ZMIN (float): clamped to [-1000.0,1000.0]
+    - ZMAX (float): clamped to [-1000.0,1000.0]
 
 """
 

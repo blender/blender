@@ -1464,6 +1464,84 @@ static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
 				}
 			}
 		}
+			break;
+		case CONSTRAINT_TYPE_LOCLIMIT:
+		{
+			bLocLimitConstraint *data= con->data;
+			
+			/* Aligorith: don't know whether this function really evaluates constraints, but here goes anyways */
+			if (data->flag & LIMIT_XMIN) {
+				if(pchan->loc[0] < data->xmin)
+					pchan->loc[0] = data->xmin;
+			}
+			if (data->flag & LIMIT_XMAX) {
+				if (pchan->loc[0] > data->xmax)
+					pchan->loc[0] = data->xmax;
+			}
+			if (data->flag & LIMIT_YMIN) {
+				if(pchan->loc[1] < data->ymin)
+					pchan->loc[1] = data->ymin;
+			}
+			if (data->flag & LIMIT_YMAX) {
+				if (pchan->loc[1] > data->ymax)
+					pchan->loc[1] = data->ymax;
+			}
+			if (data->flag & LIMIT_ZMIN) {
+				if(pchan->loc[2] < data->zmin)
+					pchan->loc[2] = data->zmin;
+			}
+			if (data->flag & LIMIT_ZMAX) {
+				if (pchan->loc[2] > data->zmax)
+					pchan->loc[2] = data->zmax;
+			}
+		}	
+			break;
+		case CONSTRAINT_TYPE_ROTLIMIT:
+		{
+			bRotLimitConstraint *data = con->data;
+			float eul[3];
+			
+			/*Aligorith:  don't know whether this function is really for evaluating constraints, but here goes anyways */
+			
+			QuatToEul(pchan->quat, eul);
+			
+			/* eulers: radians to degrees! */
+			eul[0] = (eul[0] / (2*M_PI) * 360);
+			eul[1] = (eul[1] / (2*M_PI) * 360);
+			eul[2] = (eul[2] / (2*M_PI) * 360);
+			
+			/* limiting of euler values... */
+			if (data->flag & LIMIT_XROT) {
+				if (eul[0] < data->xmin) 
+					eul[0] = data->xmin;
+					
+				if (eul[0] > data->xmax)
+					eul[0] = data->xmax;
+			}
+			if (data->flag & LIMIT_YROT) {
+				if (eul[1] < data->ymin)
+					eul[1] = data->ymin;
+					
+				if (eul[1] > data->ymax)
+					eul[1] = data->ymax;
+			}
+			if (data->flag & LIMIT_ZROT) {
+				if (eul[2] < data->zmin)
+					eul[2] = data->zmin;
+					
+				if (eul[2] > data->zmax)
+					eul[2] = data->zmax;
+			}
+				
+			/* eulers: degrees to radians ! */
+			eul[0] = (eul[0] / 360 * (2*M_PI)); 
+			eul[1] = (eul[1] / 360 * (2*M_PI));
+			eul[2] = (eul[2] / 360 * (2*M_PI));
+			
+			/* convert back */
+			EulToQuat(eul, pchan->quat);
+		}
+			break;
 	}
 }
 
