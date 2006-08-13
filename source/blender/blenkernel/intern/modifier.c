@@ -891,7 +891,8 @@ static DispListMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		mf->v1 = indexMap[inMF->v1].new;
 		mf->v2 = indexMap[inMF->v2].new;
 		mf->v3 = indexMap[inMF->v3].new;
-		mf->v4 = indexMap[inMF->v4].new;
+		if(inMF->v4)
+			mf->v4 = indexMap[inMF->v4].new;
 
 		/* if vertices are to be merged with the final copies of their
 		 * merge targets, calculate that final copy
@@ -902,19 +903,19 @@ static DispListMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			mf->v2 = calc_mapping(indexMap, indexMap[inMF->v2].merge, count-2);
 		if(indexMap[inMF->v3].merge_final)
 			mf->v3 = calc_mapping(indexMap, indexMap[inMF->v3].merge, count-2);
-		if(indexMap[inMF->v4].merge_final)
+		if(inMF->v4 && indexMap[inMF->v4].merge_final)
 			mf->v4 = calc_mapping(indexMap, indexMap[inMF->v4].merge, count-2);
 
 		if (initFlags) mf->flag |= ME_FACE_STEPINDEX;
 
 		if (inDLM->tface) {
 			TFace *inTF = &inDLM->tface[i];
-			TFace *tf = &dlm->tface[dlm->totface-1];
+			tf = &dlm->tface[dlm->totface-1];
 
 			*tf = *inTF;
 		} else if (inDLM->mcol) {
 			MCol *inMC = &inDLM->mcol[i*4];
-			MCol *mc = &dlm->mcol[(dlm->totface-1)*4];
+			mc = &dlm->mcol[(dlm->totface-1)*4];
 
 			mc[0] = inMC[0];
 			mc[1] = inMC[1];
@@ -922,6 +923,12 @@ static DispListMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			mc[3] = inMC[3];
 		}
 		
+		test_index_face(mf, mc, tf, inMF->v4?4:3);
+
+		/* if the face has fewer than 3 vertices, don't create it */
+		if(mf->v3 == 0)
+			dlm->totface--;
+
 		for(j=0; j < count - 1; j++)
 		{
 			mf2 = &dlm->mface[dlm->totface++];
