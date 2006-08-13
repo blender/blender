@@ -157,6 +157,8 @@ Mat3ToEul(
 
 void compatible_eul(float *eul, float *oldrot);
 
+void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot);
+
 /**
  * @section Quaternion arithmetic routines
  */
@@ -785,11 +787,7 @@ MinMax3(
 	float *max, 
 	float *vec
 );
-	void 
-Mat3ToEuln(
-	float tmat[][3],
-	float *eul
-);
+
 	void 
 SizeToMat3(
 	float *size, 

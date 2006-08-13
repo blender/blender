@@ -2169,8 +2169,8 @@ void EulToMat4( float *eul,float mat[][4])
 	mat[3][3]= 1.0f;
 }
 
-
-void Mat3ToEul(float tmat[][3], float *eul)
+/* returns two euler calculation methods, so we can pick the best */
+static void mat3_to_eul2(float tmat[][3], float *eul1, float *eul2)
 {
 	float cy, quat[4], mat[3][3];
 	
@@ -2180,9 +2180,8 @@ void Mat3ToEul(float tmat[][3], float *eul)
 	Mat3Ortho(mat);
 	
 	cy = (float)sqrt(mat[0][0]*mat[0][0] + mat[0][1]*mat[0][1]);
-
+	
 	if (cy > 16.0*FLT_EPSILON) {
-		float eul1[3], eul2[3];
 		
 		eul1[0] = (float)atan2(mat[1][2], mat[2][2]);
 		eul1[1] = (float)atan2(-mat[0][2], cy);
@@ -2192,47 +2191,29 @@ void Mat3ToEul(float tmat[][3], float *eul)
 		eul2[1] = (float)atan2(-mat[0][2], -cy);
 		eul2[2] = (float)atan2(-mat[0][1], -mat[0][0]);
 		
-		/* return best, which is just the one with lowest values it in */
-		if( fabs(eul1[0])+fabs(eul1[1])+fabs(eul1[2]) > fabs(eul2[0])+fabs(eul2[1])+fabs(eul2[2])) {
-			VecCopyf(eul, eul2);
-		}
-		else {
-			VecCopyf(eul, eul1);
-		}
-		
 	} else {
-		eul[0] = (float)atan2(-mat[2][1], mat[1][1]);
-		eul[1] = (float)atan2(-mat[0][2], cy);
-		eul[2] = 0.0f;
+		eul1[0] = (float)atan2(-mat[2][1], mat[1][1]);
+		eul1[1] = (float)atan2(-mat[0][2], cy);
+		eul1[2] = 0.0f;
+		
+		VecCopyf(eul2, eul1);
 	}
 }
 
-void Mat3ToEuln( float tmat[][3], float *eul)
+void Mat3ToEul(float tmat[][3], float *eul)
 {
-	float sin1, cos1, sin2, cos2, sin3, cos3;
+	float eul1[3], eul2[3];
 	
-	sin1 = -tmat[2][0];
-	cos1 = (float)sqrt(1 - sin1*sin1);
-
-	if ( fabs(cos1) > FLT_EPSILON ) {
-		sin2 = tmat[2][1] / cos1;
-		cos2 = tmat[2][2] / cos1;
-		sin3 = tmat[1][0] / cos1;
-		cos3 = tmat[0][0] / cos1;
-    } 
+	mat3_to_eul2(tmat, eul1, eul2);
+		
+	/* return best, which is just the one with lowest values it in */
+	if( fabs(eul1[0])+fabs(eul1[1])+fabs(eul1[2]) > fabs(eul2[0])+fabs(eul2[1])+fabs(eul2[2])) {
+		VecCopyf(eul, eul2);
+	}
 	else {
-		sin2 = -tmat[1][2];
-		cos2 = tmat[1][1];
-		sin3 = 0.0;
-		cos3 = 1.0;
-    }
-	
-	eul[0] = (float)atan2(sin3, cos3);
-	eul[1] = (float)atan2(sin1, cos1);
-	eul[2] = (float)atan2(sin2, cos2);
-
-} 
-
+		VecCopyf(eul, eul1);
+	}
+}
 
 void QuatToEul( float *quat, float *eul)
 {
@@ -2384,10 +2365,9 @@ void compatible_eul(float *eul, float *oldrot)
 		if(dz > 0.0) eul[2] -= 2.0*M_PI; else eul[2]+= 2.0*M_PI;
 	}
 	
-	/* this return was there from ancient days... but why! probably because the code sucks :)
+	/* the method below was there from ancient days... but why! probably because the code sucks :)
 		*/
-	return;
-	
+#if 0	
 	/* calc again */
 	dx= eul[0] - oldrot[0];
 	dy= eul[1] - oldrot[1];
@@ -2411,10 +2391,32 @@ void compatible_eul(float *eul, float *oldrot)
 		if(dy > 0.0) eul[1] -= M_PI; else eul[1]+= M_PI;
 		if(dz > 0.0) eul[2] -= M_PI; else eul[2]+= M_PI;
 	}
-	
+#endif	
 }
 
-
+/* uses 2 methods to retrieve eulers, and picks the closest */
+void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot)
+{
+	float eul1[3], eul2[3];
+	float d1, d2;
+	
+	mat3_to_eul2(mat, eul1, eul2);
+	
+	compatible_eul(eul1, oldrot);
+	compatible_eul(eul2, oldrot);
+	
+	d1= fabs(eul1[0]-oldrot[0]) + fabs(eul1[1]-oldrot[1]) + fabs(eul1[2]-oldrot[2]);
+	d2= fabs(eul2[0]-oldrot[0]) + fabs(eul2[1]-oldrot[1]) + fabs(eul2[2]-oldrot[2]);
+	
+	/* return best, which is just the one with lowest difference */
+	if( d1 > d2) {
+		VecCopyf(eul, eul2);
+	}
+	else {
+		VecCopyf(eul, eul1);
+	}
+	
+}
 
 /* ******************************************** */
 

@@ -80,8 +80,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_bad_level_calls.h"/* popmenu and error	*/
 
-#include "BDR_editobject.h"		/* compatible_eul		*/
-
 #include "BSE_view.h"
 
 #include "BLI_arithb.h"
@@ -1739,8 +1737,8 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 				EulToMat3(eul, obmat);
 				/* mat = transform, obmat = object rotation */
 				Mat3MulMat3(fmat, mat, obmat);
-				Mat3ToEul(fmat, eul);
-				compatible_eul(eul, td->ext->irot);
+				
+				Mat3ToCompatibleEul(fmat, eul, td->ext->irot);
 				
 				/* correct back for delta rot */
 				if(tdi->flag & TOB_IPODROT) {
@@ -1768,8 +1766,8 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 				EulToMat3(eul, obmat);
 				/* mat = transform, obmat = object rotation */
 				Mat3MulMat3(fmat, smat, obmat);
-				Mat3ToEul(fmat, eul);
-				compatible_eul(eul, td->ext->irot);
+				
+				Mat3ToCompatibleEul(fmat, eul, td->ext->irot);
 				
 				/* correct back for delta rot */
 				VecSubf(eul, eul, td->ext->drot);
