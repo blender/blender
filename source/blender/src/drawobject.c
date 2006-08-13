@@ -2913,11 +2913,13 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 			BevPoint *bevp= (BevPoint *)(bl+1);		
 			int nr= bl->nr;
 			int skip= nu->resolu/16;
+			float fac;
 			
 			while (nr-->0) {
-				float ox = G.scene->editbutsize*bevp->mat[0][0];
-				float oy = G.scene->editbutsize*bevp->mat[0][1];
-				float oz = G.scene->editbutsize*bevp->mat[0][2];
+				fac = calc_curve_subdiv_radius(cu, nu, (bl->nr - nr));
+				float ox = G.scene->editbutsize*fac*bevp->mat[0][0];
+				float oy = G.scene->editbutsize*fac*bevp->mat[0][1];
+				float oz = G.scene->editbutsize*fac*bevp->mat[0][2];
 
 				glVertex3f(bevp->x - ox, bevp->y - oy, bevp->z - oz);
 				glVertex3f(bevp->x + ox, bevp->y + oy, bevp->z + oz);

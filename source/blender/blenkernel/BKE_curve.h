@@ -71,6 +71,8 @@ float *make_orco_surf( struct Object *ob);
 void makebevelcurve( struct Object *ob,  struct ListBase *disp);
 
 void makeBevelList( struct Object *ob);
+float calc_curve_subdiv_radius( struct Curve *cu, struct Nurb *nu, int cursubdiv);
+
 void calchandleNurb( struct BezTriple *bezt, struct BezTriple *prev,  struct BezTriple *next, int mode);
 void calchandlesNurb( struct Nurb *nu);
 void testhandlesNurb( struct Nurb *nu);
