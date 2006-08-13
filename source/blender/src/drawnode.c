@@ -1205,6 +1205,7 @@ static void draw_nodespace_grid(SpaceNode *snode)
 static void draw_nodespace_back(ScrArea *sa, SpaceNode *snode)
 {
 	Image *ima;
+	int x, y; 
 	
 	draw_nodespace_grid(snode);
 	
@@ -1217,10 +1218,13 @@ static void draw_nodespace_back(ScrArea *sa, SpaceNode *snode)
 			/* ortho at pixel level curarea */
 			myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 
+			x = (sa->winx-ima->ibuf->x)/2 + snode->xof;
+			y = (sa->winx-ima->ibuf->y)/2 + snode->yof;
+
 			if(ima->ibuf->rect)
-				glaDrawPixelsSafe((sa->winx-ima->ibuf->x)/2, (sa->winy-ima->ibuf->y)/2, ima->ibuf->x, ima->ibuf->y, ima->ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ima->ibuf->rect);
+				glaDrawPixelsSafe(x, y, ima->ibuf->x, ima->ibuf->y, ima->ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ima->ibuf->rect);
 			else
-				glaDrawPixelsSafe((sa->winx-ima->ibuf->x)/2, (sa->winy-ima->ibuf->y)/2, ima->ibuf->x, ima->ibuf->y, ima->ibuf->x, GL_RGBA, GL_FLOAT, ima->ibuf->rect_float);
+				glaDrawPixelsSafe(x, y, ima->ibuf->x, ima->ibuf->y, ima->ibuf->x, GL_RGBA, GL_FLOAT, ima->ibuf->rect_float);
 			
 			/* sort this out, this should not be needed */
 			myortho2(snode->v2d.cur.xmin, snode->v2d.cur.xmax, snode->v2d.cur.ymin, snode->v2d.cur.ymax);

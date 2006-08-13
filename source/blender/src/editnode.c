@@ -54,6 +54,7 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_cursors.h"
 #include "BIF_editview.h"
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -78,11 +79,13 @@
 #include "BDR_editobject.h"
 
 #include "RE_pipeline.h"
+#include "IMB_imbuf_types.h"
 
 #include "blendef.h"
 #include "butspace.h"
 #include "PIL_time.h"
 #include "mydevice.h"
+#include "winlay.h"
 
 
 /* currently called from BIF_preview_changed */
@@ -697,6 +700,9 @@ void snode_home(ScrArea *sa, SpaceNode *snode)
 		}
 	}
 	snode->v2d.tot= snode->v2d.cur;
+	
+	snode->xof = snode->yof = 0.0;
+	
 	test_view2d(G.v2d, sa->winx, sa->winy);
 	
 }
@@ -725,6 +731,65 @@ void snode_zoom_in(ScrArea *sa)
 	G.v2d->cur.ymin+= dx;
 	G.v2d->cur.ymax-= dx;
 	test_view2d(G.v2d, sa->winx, sa->winy);
+}
+
+static void snode_bg_viewmove(SpaceNode *snode)
+{
+	ScrArea *sa;
+	short mval[2], mvalo[2];
+	short rectx, recty, xmin, xmax, ymin, ymax, pad;
+	Window *win;
+	int oldcursor;
+	Image *ima;
+	
+	ima= (Image *)find_id("IM", "Viewer Node");
+	
+	sa = snode->area;
+	
+	if(ima && ima->ibuf) {
+		rectx = ima->ibuf->x;
+		recty = ima->ibuf->y;
+	} else {
+		rectx = recty = 1;
+	}
+	
+	pad = 10;
+	xmin = -(sa->winx/2) - rectx/2 + pad;
+	xmax = sa->winx/2 + rectx/2 - pad;
+	ymin = -(sa->winy/2) - recty/2 + pad;
+	ymax = sa->winy/2 + recty/2 - pad;
+	
+	getmouseco_sc(mvalo);
+	
+	/* store the old cursor to temporarily change it */
+	oldcursor=get_cursor();
+	win=winlay_get_active_window();
+	
+	SetBlenderCursor(BC_NSEW_SCROLLCURSOR);
+	
+	while(get_mbut()&(L_MOUSE|M_MOUSE)) {
+		
+		getmouseco_sc(mval);
+		
+		if(mvalo[0]!=mval[0] || mvalo[1]!=mval[1]) {
+			
+			snode->xof -= (mvalo[0]-mval[0]);
+			snode->yof -= (mvalo[1]-mval[1]);
+			
+			/* prevent dragging image outside of the window and losing it! */
+			CLAMP(snode->xof, xmin, xmax);
+			CLAMP(snode->yof, ymin, ymax);
+			
+			mvalo[0]= mval[0];
+			mvalo[1]= mval[1];
+			
+			scrarea_do_windraw(curarea);
+			screen_swapbuffers();
+		}
+		else BIF_wait_for_statechange();
+	}
+	
+	window_set_cursor(win, oldcursor);
 }
 
 /* checks mouse position, and returns found node/socket */
@@ -1838,6 +1903,11 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 			break;
 		case MIDDLEMOUSE:
+			if (G.qual==LR_SHIFTKEY) {
+				snode_bg_viewmove(snode);
+			} else {
+				view2dmove(event);
+			}
 		case WHEELUPMOUSE:
 		case WHEELDOWNMOUSE:
 			view2dmove(event);	/* in drawipo.c */

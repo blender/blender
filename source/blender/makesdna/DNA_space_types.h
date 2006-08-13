@@ -316,6 +316,8 @@ typedef struct SpaceNode {
 	float aspect;
 	void *curfont;
 	
+	float xof, yof;	/* offset for drawing the backdrop */
+	
 	struct bNodeTree *nodetree, *edittree;
 	int treetype, pad;			/* treetype: as same nodetree->type */
 	
