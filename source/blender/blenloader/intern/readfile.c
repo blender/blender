@@ -5561,7 +5561,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 		}
 	}
-	
+		
+	if(main->versionfile <= 242) {
+		Scene *sce;
+		
+		for(sce= main->scene.first; sce; sce= sce->id.next) {
+			if (sce->toolsettings->select_thresh == 0.0f)
+				sce->toolsettings->select_thresh= 0.01f;
+		}
+	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

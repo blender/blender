@@ -224,6 +224,7 @@ Scene *add_scene(char *name)
 	sce->toolsettings->uvcalc_mapdir = 1;
 	sce->toolsettings->uvcalc_mapalign = 1;
 	sce->toolsettings->unwrapper = 1;
+	sce->toolsettings->select_thresh= 0.01f;
 	
 	sce->jumpframe = 10;
 	sce->audio.mixrate = 44100;
