@@ -649,7 +649,12 @@ static int calc_mapping(IndexMapEntry *indexMap, int oldVert, int copy)
 		/* vert was merged with another vert */
 		int mergeVert = indexMap[oldVert].merge;
 
-		if (mergeVert == indexMap[mergeVert].merge)
+		/* follow the chain of merges to the end */
+		while(indexMap[mergeVert].merge >= 0
+		      && indexMap[mergeVert].merge != mergeVert)
+			mergeVert = indexMap[mergeVert].merge;
+
+		if(indexMap[mergeVert].merge == mergeVert)
 			/* vert merged with vert that was merged with itself */
 			newVert = indexMap[mergeVert].new;
 		else
