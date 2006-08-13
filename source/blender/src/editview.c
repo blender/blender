@@ -1422,9 +1422,10 @@ void mouse_select(void)
 				if(G.f & G_VERTEXPAINT) {
 					set_vpaint();	/* toggle */
 				}
-				if(G.f & G_FACESELECT) {
-					set_faceselect();	/* toggle */
-				}
+			}
+			/* always end this */
+			if(G.f & G_FACESELECT) {
+				set_faceselect();	/* toggle */
 			}
 			
 			allqueue(REDRAWBUTSLOGIC, 0);
