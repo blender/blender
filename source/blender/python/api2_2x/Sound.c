@@ -36,6 +36,7 @@
 #include "BKE_main.h"
 #include "BLI_blenlib.h"
 #include "BKE_sound.h"
+#include "BKE_library.h"
 #include "BIF_editsound.h"
 #include "BKE_packedFile.h"
 #include "mydevice.h"		/* redraw defines */
