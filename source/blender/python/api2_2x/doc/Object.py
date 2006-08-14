@@ -4,6 +4,8 @@
 The Blender.Object submodule
 
 B{New}:
+  - Addition of attributes for particle deflection, softbodies, and
+    rigidbodies.
   - Objects now increment the Blender user count when they are created and
     decremented it when they are destroyed.  This means Python scripts can
     keep the object "alive" if it is deleted in the Blender GUI.
@@ -32,6 +34,65 @@ Example::
   ob.setLocation (0.0, -5.0, 1.0)       # position the object in the scene
 
   Blender.Redraw()                      # redraw the scene to show the updates.
+
+@type DrawModes: readonly dictionary
+@var DrawModes: Constant dict used for with L{Object.drawMode} bitfield
+    attribute.  Values can be ORed together.  Individual bits can also
+    be set/cleared with boolean attributes.
+      - AXIS: Enable display of active object's center and axis.
+      - TEXSPACE: Enable display of active object's texture space.
+      - NAME: Enable display of active object's name.
+      - WIRE: Enable the active object's wireframe over solid drawing.
+      - XRAY: Enable drawing the active object in front of others.
+      - TRANSP: Enable transparent materials for the active object (mesh only).
+
+@type DrawTypes: readonly dictionary
+@var DrawTypes: Constant dict used for with L{Object.drawType} attribute.
+    Only one type can be selected at a time.
+      - BOUNDBOX: Only draw object with bounding box
+      - WIRE: Draw object in wireframe
+      - SOLID: Draw object in solid
+      - SHADED: Draw object with shaded or textured
+
+@type ProtectFlags: readonly dictionary
+@var ProtectFlags: Constant dict used for with L{Object.protectFlags} attribute.
+    Values can be ORed together.  
+      - LOCX, LOCY, LOCZ: lock x, y or z location individually
+      - ROTX, ROTY, ROTZ: lock x, y or z rotation individually
+      - SIZEX, SIZEY, SIZEZ: lock x, y or z size individually
+      - LOC, ROT, SIZE: lock all 3 attributes for location, rotation or size
+
+@type PITypes: readonly dictionary
+@var PITypes: Constant dict used for with L{Object.piType} attribute.
+    Only one type can be selected at a time.
+      - NONE: No force influence on particles
+      - FORCE: Object center attracts or repels particles ("Spherical")
+      - VORTEX: Particles swirl around Z-axis of the object
+      - WIND: Constant force applied in direction of object Z axis
+      - GUIDE: Use a Curve Path to guide particles
+
+@type RBFlags: readonly dictionary
+@var RBFlags: Constant dict used for with L{Object.rbFlags} attribute.
+    Values can be ORed together.  
+      - SECTOR: All game elements should be in the Sector boundbox
+      - PROP: An Object fixed within a sector
+      - BOUNDS: Specify a bounds object for physics
+      - ACTOR: Enables objects that are evaluated by the engine
+      - DYNAMIC: Enables motion defined by laws of physics (requires ACTOR)
+      - GHOST: Enable objects that don't restitute collisions (requires ACTOR)
+      - MAINACTOR: Enables MainActor (requires ACTOR)
+      - RIGIDBODY: Enable rolling physics (requires ACTOR, DYNAMIC)
+      - COLLISION_RESPONSE: Disable auto (de)activation (requires ACTOR, DYNAMIC)
+      - USEFH: Use Fh settings in Materials (requires ACTOR, DYNAMIC)
+      - ROTFH: Use face normal to rotate Object (requires ACTOR, DYNAMIC)
+      - ANISOTROPIC: Enable anisotropic friction (requires ACTOR, DYNAMIC)
+      - CHILD: reserved
+
+@type RBShapes: readonly dictionary
+@var RBShapes: Constant dict used for with L{Object.rbShapeBoundType}
+    attribute.  Only one type can be selected at a time.  Values are
+    BOX, SPHERE, CYLINDER, CONE, and POLYHEDERON
+
 """
 
 def New (type, name='type'):
@@ -43,7 +104,7 @@ def New (type, name='type'):
   @type name: string
   @param name: The name of the object. By default, the name will be the same
       as the object type.
-      If the name is already in use, this new object will have a number at the end of the name.
+      If the name is alredy in use, this new object will have a number at the end of the name.
   @return: The created Object.
 
   I{B{Example:}}
@@ -105,9 +166,9 @@ def GetSelected ():
     objects = Blender.Object.GetSelected()
     print objects
   @note: The active object will always be the first object in the list (if selected).
-  @note: The user selection is made up of selected objects from Blenders current scene only.
-  @note: The user selection is limited to objects on visible layers,
-      if the users last active 3d view is in localview then the selection will be limited to the objects in that localview.
+  @note: The user selection is made up of selected objects from Blender's current scene only.
+  @note: The user selection is limited to objects on visible layers;
+      if the user's last active 3d view is in localview then the selection will be limited to the objects in that localview.
   """
 
 
@@ -167,46 +228,68 @@ class Object:
     This object gives access to generic data from all objects in Blender. 
 
     B{Note}:
-    When dealing with properties and functions such as LocX/RotY/getLocation(), getSize() and getEuler() 
-    Keep in mind that these transformation properties are relative to the objects parent (if any).
+    When dealing with properties and functions such as LocX/RotY/getLocation(), getSize() and getEuler(),
+    keep in mind that these transformation properties are relative to the objects parent (if any).
 
     To get these values in worldspace (taking into account vertex parents, constraints etc)
     pass the argument 'worldspace' to these functions.
 
     @ivar LocX: The X location coordinate of the object.
+    @type LocX: float
     @ivar LocY: The Y location coordinate of the object.
+    @type LocY: float
     @ivar LocZ: The Z location coordinate of the object.
-    @ivar loc: The (X,Y,Z) location coordinates of the object (vector).
+    @type LocZ: float
+    @ivar loc: The (X,Y,Z) location coordinates of the object.
+    @type loc: tuple of 3 floats
     @ivar dLocX: The delta X location coordinate of the object.
         This variable applies to IPO Objects only.
+    @type dLocX: float
     @ivar dLocY: The delta Y location coordinate of the object.
         This variable applies to IPO Objects only.
+    @type dLocY: float
     @ivar dLocZ: The delta Z location coordinate of the object.
         This variable applies to IPO Objects only.
+    @type dLocZ: float
     @ivar dloc: The delta (X,Y,Z) location coordinates of the object (vector).
         This variable applies to IPO Objects only.
+    @type dloc: tuple of 3 floats
     @ivar RotX: The X rotation angle (in radians) of the object.
+    @type RotX: float
     @ivar RotY: The Y rotation angle (in radians) of the object.
+    @type RotY: float
     @ivar RotZ: The Z rotation angle (in radians) of the object.
-    @ivar rot: The (X,Y,Z) rotation angles (in radians) of the object (vector).
+    @type RotZ: float
+    @ivar rot: The (X,Y,Z) rotation angles (in radians) of the object.
+    @type rot: euler (Py_WRAPPED)
     @ivar dRotX: The delta X rotation angle (in radians) of the object.
         This variable applies to IPO Objects only.
+    @type dRotX: float
     @ivar dRotY: The delta Y rotation angle (in radians) of the object.
         This variable applies to IPO Objects only.
+    @type dRotY: float
     @ivar dRotZ: The delta Z rotation angle (in radians) of the object.
         This variable applies to IPO Objects only.
-    @ivar drot: The delta (X,Y,Z) rotation angles (in radians) of the object
-        (vector).
+    @type dRotZ: float
+    @ivar drot: The delta (X,Y,Z) rotation angles (in radians) of the object.
         This variable applies to IPO Objects only.
+    @type drot: tuple of 3 floats
     @ivar SizeX: The X size of the object.
+    @type SizeX: float
     @ivar SizeY: The Y size of the object.
+    @type SizeY: float
     @ivar SizeZ: The Z size of the object.
-    @ivar size: The (X,Y,Z) size of the object (vector).
+    @type SizeZ: float
+    @ivar size: The (X,Y,Z) size of the object.
+    @type size: tuple of 3 floats
     @ivar dSizeX: The delta X size of the object.
+    @type dSizeX: float
     @ivar dSizeY: The delta Y size of the object.
+    @type dSizeY: float
     @ivar dSizeZ: The delta Z size of the object.
+    @type dSizeZ: float
     @ivar dsize: The delta (X,Y,Z) size of the object.
-    @type Layers: integer (bitmask)
+    @type dsize: tuple of 3 floats
     @ivar Layers: The object layers (also check the newer attribute
         L{layers<layers>}).  This value is a bitmask with at 
         least one position set for the 20 possible layers starting from the low
@@ -216,6 +299,7 @@ class Object:
           ob.Layer = 0x04 # sets layer 3 ( bit pattern 0100 )
         After setting the Layer value, call Blender.Redraw( -1 ) to update
         the interface.
+    @type Layers: integer (bitmask)
     @type layers: list of integers
     @ivar layers: The layers this object is visible in (also check the older
         attribute L{Layers<Layers>}).  This returns a list of
@@ -231,51 +315,50 @@ class Object:
           print ob.layers # will print: [1, 4, 10]
         B{Note}: changes will only be visible after the screen (at least
         the 3d View and Buttons windows) is redrawn.
-    @ivar parent: The parent object of the object. (Read-only)
-    @ivar track: The object tracking this object. (Read-only)
-    @ivar type: The object type. (Read-only)
-    @type type: string.
-    @ivar data: The data of the object. (Read-only)
-    @ivar ipo: The ipo data associated with the object. (Read-only)
-    @ivar mat: alias for L{matrix<Object.Object.matrix>}: the matrix of the object in world space. (Read-only)
-    @ivar matrix: The matrix of the object in world space, same as L{matrixWorld<Object.Object.matrixWorld>}. (Read-only)
-    @ivar matrixLocal: The matrix of the object relative to its parent (or L{matrixWorld<Object.Object.matrixWorld>} if there is no parent). (Read-only)
-    @ivar matrixWorld: The matrix of the object in world space. (Read-only)
+    @ivar parent: The parent object of the object (if defined). Read-only.
+    @type parent: Object or None
+    @ivar data: The Datablock object linked to this object.  Read-only.
+    @type data: varies
+    @ivar ipo: Contains the Ipo if one is assigned to the object, B{None}
+         otherwise.  Setting to B{None} clears the current Ipo.
+    @type ipo:  Ipo
+    @ivar mat: The matrix of the object in world space (absolute, takes vertex parents, tracking
+        and Ipos into account).  Read-only.
+    @type mat: Matrix
+    @ivar matrix: Same as L{mat}.  Read-only.
+    @type matrix: Matrix
+    @ivar matrixLocal: The matrix of the object relative to its parent; if there is no parent,
+    returns the world matrix (L{matrixWorld<Object.Object.matrixWorld>}).  Read-only.
+    @type matrixLocal: Matrix
+    @ivar matrixOldWorld: Old-type worldspace matrix (prior to Blender 2.34).
+        Read-only.
+    @type matrixOldWorld: Matrix
+    @ivar matrixWorld: Same as L{mat}. Read-only.
+    @type matrixWorld: Matrix
     @ivar colbits: The Material usage mask. A set bit #n means: the Material
         #n in the Object's material list is used. Otherwise, the Material #n
         of the Objects Data material list is displayed.
         Example::
             object.colbits = (1<<0) + (1<<5) # use mesh materials 0 (1<<0) and 5 (1<<5)
                                   # use object materials for all others
-    @ivar drawType: The object's drawing type used. 1 - Bounding box,
-        2 - wire, 3 - Solid, 4- Shaded, 5 - Textured.
-    @ivar drawMode: The object's drawing mode used. The value can be a sum
-        of: 2 - axis, 4 - texspace, 8 - drawname, 16 - drawimage,
-        32 - drawwire, 64 - xray.
-    @ivar name: The name of the object, 21 chars max.
-    @ivar sel: The selection state of the object in the current scene, 1 is selected, 0 is unselected. (Selecting makes the object active)
-    @ivar effects: The list of particle effects associated with the object.  (Read-only)
-    @ivar parentbonename: The string name of the parent bone.
-    @ivar users: The number of users of the object.  (Read-only)
-    @type users: int
+    @ivar sel: The selection state of the object in the current scene. 
+        True is selected, False is unselected. Setting makes the object active.
+    @type sel: boolean
+    @ivar effects: The list of particle effects associated with the object.
+        Read-only.
+    @type effects: list of Effect objects
+    @ivar parentbonename: The string name of the parent bone (if defined).
+        Read-only.
+    @type parentbonename: string or None
     @ivar protectFlags: The "transform locking" bitfield flags for the object.  
-    Setting bits lock the following attributes:
-       - bit 0: X location
-       - bit 1: Y location
-       - bit 2: Z location
-       - bit 3: X rotation
-       - bit 4: Y rotation
-       - bit 5: Z rotation
-       - bit 6: X size
-       - bit 7: Y size
-       - bit 8: Z size
+    See L{ProtectFlags} const dict for values.
     @type protectFlags: int
-    @ivar DupGroup: The DupliGroup Animation Property.
-        Assign a group to DupGroup to make this object an instance of that group.
+    @ivar DupGroup: The DupliGroup Animation Property. Assign a group to
+        DupGroup to make this object an instance of that group.
         This does not enable or disable the DupliGroup option, for that use
-        getDupliGroup and setDupliGroup.
-        The dupliGroup is None when this object does not have a dupliGroup.
-        (Use with L{enableDupGroup<enableDupGroup>})
+        L{enableDupGroup}.
+        The attribute returns None when this object does not have a dupliGroup, 
+        and setting the attrbute to None deletes the object from the group.
     @type DupGroup: Group or None
     @ivar DupObjects: The Dupli object instances.  Read-only.
         Returns of list of tuples for object duplicated
@@ -297,52 +380,186 @@ class Object:
          Blender.Redraw()
     @type DupObjects: list of tuples containing (object, matrix)
     @ivar enableDupVerts: The DupliVerts status of the object.
-        True/False - does not indicate that this object has any dupliVerts,
-        (as returned by DupObjects) just that dupliVerts are enabled.
-    @type enableDupVerts: bool (True/False)
+        Does not indicate that this object has any dupliVerts,
+        (as returned by L{DupObjects}) just that dupliVerts are enabled.
+    @type enableDupVerts: boolean
     @ivar enableDupFrames: The DupliFrames status of the object.
-        True/False - does not indicate that this object has any dupliFrames,
-        (as returned by DupObjects) just that dupliFrames are enabled.
-    @type enableDupFrames: bool (True/False)
+        Does not indicate that this object has any dupliFrames,
+        (as returned by L{DupObjects}) just that dupliFrames are enabled.
+    @type enableDupFrames: boolean
     @ivar enableDupGroup: The DupliGroup status of the object.
-        True/False - Set DupGroup to a group for this to take effect,
-        Use DupObjects to get the object data from this instance. (Use with L{DupObjects<DupObjects>})
-    @type enableDupGroup: bool (True/False)
-        Set True to make this object an instance of the objects DupGroup.
+        Set True to make this object an instance of the object's L{DupGroup},
+        and set L{DupGroup} to a group for this to take effect,
+        Use L{DupObjects} to get the object data from this instance.
+    @type enableDupGroup: boolean
     @ivar enableDupRot: The DupliRot status of the object.
-        True/False - Use with enableDupVerts to rotate each instance
-        by the vertex normal. (Use with L{enableDupVerts<enableDupVerts>})
-    @type enableDupRot: bool (True/False)
+        Use with L{enableDupVerts} to rotate each instance
+        by the vertex normal.
+    @type enableDupRot: boolean
     @ivar enableDupNoSpeed: The DupliNoSpeed status of the object.
-        True/False - Use with enableDupFrames to ignore
-        dupliFrame speed. (Use with L{enableDupFrames<enableDupFrames>})
-    @type enableDupNoSpeed: bool (True/False)
-    @ivar DupSta: The DupliFrame starting frame. (Use with L{enableDupFrames<enableDupFrames>})
+        Use with L{enableDupFrames} to ignore dupliFrame speed. 
+    @type enableDupNoSpeed: boolean
+    @ivar DupSta: The DupliFrame starting frame. Use with L{enableDupFrames}.
+        Value clamped to [1,32767].
     @type DupSta: int
-    @ivar DupEnd: The DupliFrame end frame. (Use with L{enableDupFrames<enableDupFrames>})
+    @ivar DupEnd: The DupliFrame end frame. Use with L{enableDupFrames}.
+        Value clamped to [1,32767].
     @type DupEnd: int
     @ivar DupOn: The DupliFrames in succession between DupOff frames.
-        (Use with L{enableDupFrames<enableDupFrames>} and L{DupOff<DupOff>} > 0)
+        Value is clamped to [1,1500].
+        Use with L{enableDupFrames} and L{DupOff} > 0.
     @type DupOn: int
-    @ivar DupOff: The DupliFrame removal of every Nth frame for this object. (Use with L{enableDupFrames<enableDupFrames>})
+    @ivar DupOff: The DupliFrame removal of every Nth frame for this object.
+        Use with L{enableDupFrames}.  Value is clamped to [0,1500].
     @type DupOff: int
-    @ivar drawSize: The drawsize for empty objects. 1.0. is default.
+    @ivar drawSize: The size to display the Empty.
+    Value clamped to [0.01,10.0].
     @type drawSize: float
-    @type modifiers: BPy_Modifiers
-    @ivar modifiers: a L{sequence<Modifier.Modifiers>} of
-    L{modifiers<Modifier.Modifier>} for the object.
-    @type constraints: BPy_Constraints
+    @ivar modifiers: The modifiers associated with the object.  Read-only.
+    @type modifiers: L{Modifier Sequence<Modifier.Modifiers>}
     @ivar constraints: a L{sequence<Constraint.Constraints>} of
-    L{constraints<Constraint.Constraint>} for the object.
-    @type rbMass: float
-    @ivar rbMass: Rigid body mass.  Must be a positive value.
-    @type rbFlags: int
-    @ivar rbFlags: Rigid body flags.
-    @type rbShapeBoundType: int
-    @ivar rbShapeBoundType: Rigid body shape bound type.
-    @type actionStrips: BPy_ActionStrips
+        L{constraints<Constraint.Constraint>} for the object. Read-only.
+    @type constraints: Constraint Sequence
     @ivar actionStrips: a L{sequence<NLA.ActionStrips>} of
-    L{action strips<NLA.ActionStrip>} for the object.
+        L{action strips<NLA.ActionStrip>} for the object.  Read-only.
+    @type actionStrips: BPy_ActionStrips
+    @ivar action: The action associated with this object (if defined).
+        Read-only.
+    @type action: L{Action<NLA.Action>} or None
+    @ivar name: Object data name.  Maximum length 20 characters.
+    @type name: string
+    @ivar oopsLoc: Object's (X,Y) OOPs location.  Returns None if object
+        is not found in list.
+    @type oopsLoc:  tuple of 2 floats
+    @ivar oopsSel: Object OOPs selection flag.
+    @type oopsSel: boolean
+    @ivar properties: The object's properties.  Read-only.
+    @type properties: list of Properties.
+    @ivar timeOffset: The time offset of the object's animation.
+        Value clamped to [-300000.0,300000.0].
+    @type timeOffset: float
+    @ivar track: The object's tracked object.  B{None} is returned if no
+        object is tracked.  Also, assigning B{None} clear the tracked object. 
+    @type track: Object or None
+    @ivar type: The object's type.  Read-only.
+    @type type: string
+    @ivar users: The number of users of the object.  Read-only.
+    @type users: int
+    @ivar boundingBox: The bounding box of this object.  Read-only.
+    @type boundingBox: list of 8 3D vectors
+    @ivar drawType: The object's drawing type.
+        See L{DrawTypes} constant dict for values.
+    @type drawType: int
+    @ivar axis: Enable display of active object's center and axis.
+        Also see B{AXIS} bit in L{drawMode} attribute.
+    @type axis: boolean
+    @ivar texSpace: Enable display of active object's texture space.
+        Also see B{TEXSPACE} bit in L{drawMode} attribute.
+    @type texSpace: boolean
+    @ivar nameMode: Enable display of active object's name.
+        Also see B{NAME} bit in L{drawMode} attribute.
+    @type nameMode: boolean
+    @ivar wireMode: Enable the active object's wireframe over solid drawing.
+        Also see B{WIRE} bit in L{drawMode} attribute.
+    @type wireMode: boolean
+    @ivar xRay: Enable drawing the active object in front of others.
+        Also see B{XRAY} bit in L{drawMode} attribute.
+    @type xRay: boolean
+    @ivar transp: Enable transparent materials for the active object
+        (mesh only).  Also see B{TRANSP} bit in L{drawMode} attribute.
+    @type transp: boolean
+    @ivar drawMode: The object's drawing mode bitfield.
+        See L{DrawModes} constant dict for values.
+    @type drawMode: int
+
+    @ivar piType: Type of particle interaction. 
+        See L{PITypes} constant dict for values.
+    @type piType: int
+    @ivar piFalloff: The particle interaction falloff power.
+        Value clamped to [0.0,10.0].
+    @type piFalloff: float
+    @ivar piMaxDist: Max distance for the particle interaction field to work.
+        Value clamped to [0.0,1000.0].
+    @type piMaxDist: float
+    @ivar piPermeability: Probability that a particle will pass through the
+        mesh.  Value clamped to [0.0,1.0].
+    @type piPermeability: float
+    @ivar piRandomDamp: Random variation of particle interaction damping.
+        Value clamped to [0.0,1.0].
+    @type piRandomDamp: float
+    @ivar piSoftbodyDamp: Damping factor for softbody deflection.
+        Value clamped to [0.0,1.0].
+    @type piSoftbodyDamp: float
+    @ivar piSoftbodyIThick: Inner face thickness for softbody deflection.
+        Value clamped to [0.001,1.0].
+    @type piSoftbodyIThick: float
+    @ivar piSoftbodyOThick: Outer face thickness for softbody deflection.
+        Value clamped to [0.001,1.0].
+    @type piSoftbodyOThick: float
+    @ivar piStrength: Particle interaction force field strength.
+        Value clamped to [0.0,1000.0].
+    @type piStrength: float
+    @ivar piSurfaceDamp: Amount of damping during particle collision.
+        Value clamped to [0.0,1.0].
+    @type piSurfaceDamp: float
+    @ivar piUseMaxDist: Use a maximum distance for the field to work.
+    @type piUseMaxDist: boolean
+
+    @ivar isSoftBody: True if object is a soft body.  Read-only.
+    @type isSoftBody: boolean
+    @ivar SBDefaultGoal: Default softbody goal value, when no vertex group used.
+        Value clamped to [0.0,1.0].
+    @type SBDefaultGoal: float
+    @ivar SBErrorLimit: Softbody Runge-Kutta ODE solver error limit (low values give more precision).
+        Value clamped to [0.01,1.0].
+    @type SBErrorLimit: float
+    @ivar SBFriction: General media friction for softbody point movements.
+        Value clamped to [0.0,10.0].
+    @type SBFriction: float
+    @ivar SBGoalFriction: Softbody goal (vertex target position) friction.
+        Value clamped to [0.0,10.0].
+    @type SBGoalFriction: float
+    @ivar SBGoalSpring: Softbody goal (vertex target position) spring stiffness.
+        Value clamped to [0.0,0.999].
+    @type SBGoalSpring: float
+    @ivar SBGrav: Apply gravitation to softbody point movement.
+        Value clamped to [0.0,10.0].
+    @type SBGrav: float
+    @ivar SBInnerSpring: Softbody edge spring stiffness.
+        Value clamped to [0.0,0.999].
+    @type SBInnerSpring: float
+    @ivar SBInnerSpringFrict: Softbody edge spring friction.
+        Value clamped to [0.0,10.0].
+    @type SBInnerSpringFrict: float
+    @ivar SBMass: Softbody point mass (heavier is slower).
+        Value clamped to [0.001,50.0].
+    @type SBMass: float
+    @ivar SBMaxGoal: Softbody goal maximum (vertex group weights scaled to
+        match this range).  Value clamped to [0.0,1.0].
+    @type SBMaxGoal: float
+    @ivar SBMinGoal: Softbody goal minimum (vertex group weights scaled to
+        match this range).  Value clamped to [0.0,1.0].
+    @type SBMinGoal: float
+    @ivar SBSpeed: Tweak timing for physics to control softbody frequency and
+        speed.  Value clamped to [0.0,10.0].
+    @type SBSpeed: float
+    @ivar SBStiffQuads: Softbody adds diagonal springs on 4-gons enabled.
+    @type SBStiffQuads: boolean
+    @ivar SBUseEdges: Softbody use edges as springs enabled.
+    @type SBUseEdges: boolean
+    @ivar SBUseGoal: Softbody forces for vertices to stick to animated position enabled.
+    @type SBUseGoal: boolean
+
+    @ivar rbFlags: Rigid body bitfield.  See L{RBFlags} for valid values.
+    @type rbFlags: int
+    @ivar rbMass: Rigid body mass.  Must be a positive value.
+    @type rbMass: float
+    @ivar rbRadius: Rigid body bounding sphere size.  Must be a positive
+        value.
+    @type rbRadius: float
+    @ivar rbShapeBoundType: Rigid body shape bound type.  See L{RBShapes}
+        const dict for values.
+    @type rbShapeBoundType: int
   """
 
   def buildParts():
@@ -391,12 +608,12 @@ class Object:
 
   def getData(name_only=False, mesh=False):
     """
-    Returns the Datablock object (Mesh, Lamp, Camera, etc.) linked to this Object.
-    If the keyword parameter B{name_only} is True, only the Datablock
+    Returns the Datablock object (Mesh, Lamp, Camera, etc.) linked to this 
+    Object.  If the keyword parameter B{name_only} is True, only the Datablock
     name is returned as a string.  It the object is of type Mesh, then the
-    B{mesh} keyword can also be used; if True the data return is a Mesh object,
-    otherwise it is an NMesh object (the default).
-    Using the B{mesh} keyword is ignored for non-mesh objects.
+    B{mesh} keyword can also be used; the data return is a Mesh object if
+    True, otherwise it is an NMesh object (the default).
+    The B{mesh} keyword is ignored for non-mesh objects.
     @type name_only: bool
     @param name_only: This is a keyword parameter.  If True (or nonzero),
     only the name of the data object is returned. 
@@ -406,8 +623,7 @@ class Object:
     @rtype: specific Object type or string
     @return: Depends on the type of Datablock linked to the Object.  If
     B{name_only} is True, it returns a string.
-    @note: For Mesh objects Mesh is faster then NMesh because Mesh is a thin
-    wrapper.
+    @note: Mesh is faster than NMesh because Mesh is a thin wrapper.
     @note: This function is different from L{NMesh.GetRaw} and L{Mesh.Get}
     because it keeps a link to the original mesh, which is needed if you are
     dealing with Mesh weight groups.
@@ -535,7 +751,7 @@ class Object:
       - worldspace (default): absolute, taking vertex parents, tracking and
           Ipo's into account;
       - localspace: relative to the object's parent (returns worldspace
-          matrix if the object doesn't have a parent);
+           matrix if the object doesn't have a parent);
       - old_worldspace: old behavior, prior to Blender 2.34, where eventual
           changes made by the script itself were not taken into account until
           a redraw happened, either called by the script or upon its exit.
@@ -608,8 +824,9 @@ class Object:
   def getType():
     """
     Returns the type of the object in 'Armature', 'Camera', 'Curve', 'Lamp', 'Lattice',
-    'MBall', 'Mesh', 'Surf', 'Empty', 'Wave' (deprecated) or 'unknown' in exceptional cases.
+    'Mball', 'Mesh', 'Surf', 'Empty', 'Wave' (deprecated) or 'unknown' in exceptional cases.
     @return: The type of object.
+    @rtype: String
 
     I{B{Example:}}
 
@@ -632,23 +849,20 @@ class Object:
 
   def insertIpoKey(keytype):
     """
-    Inserts keytype values in object ipo at curframe.
-    Uses module constants such as Blender.Object.LOC
+    Inserts keytype values in object ipo at curframe. Uses module constants.
     @type keytype: Integer
     @param keytype:
-
-      - LOC
-      - ROT
-      - SIZE
-      - LOCROT
-      - LOCROTSIZE
-      - PI_STRENGTH
-      - PI_FALLOFF
-      - PI_PERM
-      - PI_SURFACEDAMP
-      - PI_RANDOMDAMP
-
-    @return: py_none
+           -LOC
+           -ROT
+           -SIZE
+           -LOCROT
+           -LOCROTSIZE
+           -PI_STRENGTH
+           -PI_FALLOFF
+           -PI_PERM
+           -PI_SURFACEDAMP
+           -PI_RANDOMDAMP
+    @return: None
     """
 
   def link(datablock):
@@ -684,21 +898,20 @@ class Object:
     Uses the object as a base for all of the objects in the provided list to join into.
     
     @type objects: Sequence of Blender Object
-    @param objects: A list of objects matching the objects type.
-    @note: Objects in the list will not be removed from the scene,
-        to avoid overlapping data you may want to remove them manually after joining.
-    @note: Join modifies the base objects data in place so that
-        other objects are joined into it. no new object or data is created.
-    @note: Join will only work for object types Mesh, Armature, Curve and Surface,
-        an error will be raised if the object is not of this type.
-    @note: objects in the list will be ignored if they to not match the base object.
-    @note: The base object as all objects must be in the current scene to be joined.
-    @note: this function will not work in background mode (no user interface)
-    @note: An error in the join function input will raise a TypeError,
-        otherwise an error in the data input will raise a RuntimeError,
-        for situations where you don't have tight control on the data that is being joined,
-        you should handle the RuntimeError error, letting the user know the data cant be joined.
-        This an happen if the data is too large or one of the objects data has a shape key.
+    @param objects: A list of objects matching the object's type.
+    @note: Objects in the list will not be removed from the scene.
+        To avoid overlapping data you may want to remove them manually after joining.
+    @note: Join modifies the base object's data in place so that
+        other objects are joined into it. No new object or data is created.
+    @note: Join will only work for object types Mesh, Armature, Curve and Surface;
+        an excption will be raised if the object is not of these types.
+    @note: Objects in the list will be ignored if they to not match the base object.
+    @note: The base object must be in the current scene to be joined.
+    @note: This function will not work in background mode (no user interface).
+    @note: An error in the function input will raise a TypeError or AttributeError,
+        otherwise an error in the data input will raise a RuntimeError.
+        For situations where you don't have tight control on the data that is being joined,
+        you should handle the RuntimeError error, letting the user know the data can't be joined.
     """
 
   def makeParentDeform(objects, noninverse = 0, fast = 0):
@@ -812,9 +1025,9 @@ class Object:
     list element is either a Material or None.  Also see L{colbits}.
     @type materials: Materials list
     @param materials: A list of Blender material objects.
-    @note: Blender materials are assigned to the objects data by default.
-    So unless you know the material is applied to the object or are changing the
-    objects colbits then you need to look at the object datas materials.
+    @note: Materials are assigned to the object's data by default.  Unless
+    you know the material is applied to the object or are changing the
+    object's L{colbits}, you need to look at the object data's materials.
     """
 
   def setMatrix(matrix):
@@ -852,12 +1065,12 @@ class Object:
   
   def shareFrom(object):
     """
-    Link data of object specified in the argument with self. This works only
-    if self and the object specified are of the same type.
+    Link data of a specified argument with this object. This works only
+    if both objects are of the same type.
     @type object: Blender Object
     @param object: A Blender Object of the same type.
-    @note: This function is faster then using getData() and setData()
-    because it skips making a python object from the objects data.
+    @note: This function is faster then using L{getData()} and setData()
+    because it skips making a Python object from the object's data.
     """
   
   def select(boolean):
@@ -889,12 +1102,13 @@ class Object:
     the "SubSurf" mode for a mesh:
 
     Example::
-     import Blender
-     scene= Blender.Scene.GetCurrent()
-     object= scene.getActiveObject()
-     object.modifiers.append(Blender.Modifier.Type.SUBSURF)
-     object.makeDisplayList()
-     Blender.Window.RedrawAll()
+      import Blender
+
+      scene = Blender.Scene.GetCurrent()
+      object = scene.getActiveObject()
+      object.modifiers.append(Blender.Modifier.Type.SUBSURF)
+      object.makeDisplayList()
+      Blender.Window.RedrawAll()
 
     If you try this example without the line to update the display list, the
     object will disappear from the screen until you press "SubSurf".
@@ -1027,7 +1241,7 @@ class Object:
 
   def setPIStrength(strength):
     """
-    Set the the Object's Particle Interaction Strength.
+    Set the Object's Particle Interaction Strength.
     Values between -1000.0 to 1000.0
     @rtype: None
     @type strength: float
@@ -1042,7 +1256,7 @@ class Object:
 
   def setPIFalloff(falloff):
     """
-    Set the the Object's Particle Interaction falloff.
+    Set the Object's Particle Interaction falloff.
     Values between 0 to 10.0
     @rtype: None
     @type falloff: float
@@ -1057,7 +1271,7 @@ class Object:
 
   def setPIMaxDist(MaxDist):
     """
-    Set the the Object's Particle Interaction MaxDist.
+    Set the Object's Particle Interaction MaxDist.
     Values between 0 to 1000.0
     @rtype: None
     @type MaxDist: float
@@ -1072,7 +1286,7 @@ class Object:
 
   def setPIType(type):
     """
-    Set the the Object's Particle Interaction type.
+    Set the Object's Particle Interaction type.
     Use Module Constants
       - NONE
       - WIND
@@ -1092,7 +1306,7 @@ class Object:
 
   def setPIUseMaxDist(status):
     """
-    Set the the Object's Particle Interaction MaxDist.
+    Set the Object's Particle Interaction MaxDist.
     0 = Off, 1 = on
     @rtype: None
     @type status: int
@@ -1107,7 +1321,7 @@ class Object:
 
   def setPIDeflection(status):
     """
-    Set the the Object's Particle Interaction Deflection Setting.
+    Set the Object's Particle Interaction Deflection Setting.
     0 = Off, 1 = on
     @rtype: None
     @type status: int
@@ -1122,7 +1336,7 @@ class Object:
 
   def setPIPerm(perm):
     """
-    Set the the Object's Particle Interaction Permeability.
+    Set the Object's Particle Interaction Permeability.
     Values between 0 to 10.0
     @rtype: None
     @type perm: float
@@ -1137,7 +1351,7 @@ class Object:
 
   def setPIRandomDamp(damp):
     """
-    Set the the Object's Particle Interaction RandomDamp.
+    Set the Object's Particle Interaction RandomDamp.
     Values between 0 to 10.0
     @rtype: None
     @type damp: float
@@ -1152,7 +1366,7 @@ class Object:
 
   def setPISurfaceDamp(damp):
     """
-    Set the the Object's Particle Interaction SurfaceDamp.
+    Set the Object's Particle Interaction SurfaceDamp.
     Values between 0 to 10.0
     @rtype: None
     @type damp: float
@@ -1167,7 +1381,7 @@ class Object:
 
   def setSBMass(mass):
     """
-    Set the the Object's SoftBody Mass.
+    Set the Object's SoftBody Mass.
     Values between 0 to 50.0
     @rtype: None
     @type mass: float
@@ -1182,7 +1396,7 @@ class Object:
 
   def setSBGravity(grav):
     """
-    Set the the Object's SoftBody Gravity.
+    Set the Object's SoftBody Gravity.
     Values between 0 to 10.0
     @rtype: None
     @type grav: float
@@ -1197,7 +1411,7 @@ class Object:
 
   def setSBFriction(frict):
     """
-    Set the the Object's SoftBody Friction.
+    Set the Object's SoftBody Friction.
     Values between 0 to 10.0
     @rtype: None
     @type frict: float
@@ -1212,7 +1426,7 @@ class Object:
 
   def setSBErrorLimit(err):
     """
-    Set the the Object's SoftBody ErrorLimit.
+    Set the Object's SoftBody ErrorLimit.
     Values between 0 to 1.0
     @rtype: None
     @type err: float
@@ -1227,7 +1441,7 @@ class Object:
 
   def setSBGoalSpring(gs):
     """
-    Set the the Object's SoftBody GoalSpring.
+    Set the Object's SoftBody GoalSpring.
     Values between 0 to 0.999
     @rtype: None
     @type gs: float
@@ -1242,7 +1456,7 @@ class Object:
 
   def setSBGoalFriction(gf):
     """
-    Set the the Object's SoftBody GoalFriction.
+    Set the Object's SoftBody GoalFriction.
     Values between 0 to 10.0
     @rtype: None
     @type gf: float
@@ -1257,7 +1471,7 @@ class Object:
 
   def setSBMinGoal(mg):
     """
-    Set the the Object's SoftBody MinGoal.
+    Set the Object's SoftBody MinGoal.
     Values between 0 to 1.0
     @rtype: None
     @type mg: float
@@ -1272,7 +1486,7 @@ class Object:
 
   def setSBMaxGoal(mg):
     """
-    Set the the Object's SoftBody MaxGoal.
+    Set the Object's SoftBody MaxGoal.
     Values between 0 to 1.0
     @rtype: None
     @type mg: float
@@ -1287,7 +1501,7 @@ class Object:
 
   def setSBInnerSpring(sprr):
     """
-    Set the the Object's SoftBody InnerSpring.
+    Set the Object's SoftBody InnerSpring.
     Values between 0 to 0.999
     @rtype: None
     @type sprr: float
@@ -1302,7 +1516,7 @@ class Object:
 
   def setSBInnerSpringFriction(sprf):
     """
-    Set the the Object's SoftBody InnerSpringFriction.
+    Set the Object's SoftBody InnerSpringFriction.
     Values between 0 to 10.0
     @rtype: None
     @type sprf: float
@@ -1317,7 +1531,7 @@ class Object:
 
   def setSBDefaultGoal(goal):
     """
-    Set the the Object's SoftBody DefaultGoal.
+    Set the Object's SoftBody DefaultGoal.
     Values between 0 to 1.0
     @rtype: None
     @type goal: float
@@ -1326,8 +1540,8 @@ class Object:
 
   def isSB():
     """
-    Get if the Object's SoftBody is Enabled.
-    @rtype: int
+    Returns the Object's SoftBody enabled state.
+    @rtype: boolean
     """
 
   def getSBPostDef():
@@ -1420,13 +1634,13 @@ class Property:
     @param name: The new name of the property
     """
 
-  def getData ():
+  def getData():
     """
     Get the data for this property.
     @rtype: string, int, or float
     """
 
-  def setData (data):
+  def setData(data):
     """
     Set the data for this property.
     @type data: string, int, or float
@@ -1443,3 +1657,65 @@ class Property:
     Get the type for this property.
     @rtype: string
     """
+
+  def insertPoseKey(action,chanName,actframe,curframe):
+	"""
+	Inserts a key into Action.
+    @param action: action to copy poses from
+    @type action: L{Action<NLA.Action>} object
+    @param chanName: channel or bone name
+    @type chanName: string
+    @param actframe: frame to extract action from
+    @type actframe: int
+    @param curframe: frame at which to insert action key
+    @type curframe: int
+	"""
+
+  def insertCurrentPoseKey(chanName,curframe):
+	"""
+	Inserts a key into Action based on current pose.
+    @param chanName: channel or bone name
+    @type chanName: string
+    @param curframe: frame at which to insert action key
+    @type curframe: int
+	"""
+
+  def insertMatrixKey(chanName,curframe):
+	"""
+	Inserts a key into Action based on current/giventime object matrix.
+    @param chanName: channel or bone name
+    @type chanName: string
+    @param curframe: frame at which to insert action key
+    @type curframe: int
+	"""
+
+  def bake_to_action():
+	"""
+	Creates a new action with the information from object animations.
+	"""
+
+  def setConstraintInfluenceForBone(boneName, constName, influence):
+	"""
+	Sets a constraint influence for a certain bone in this (armature) object.
+    @param boneName: bone name
+    @type boneName: string
+    @param constName: constraint name
+    @type constName: string
+    @param influence: influence value
+    @type influence: float
+	"""
+
+  def copyNLA(obj):
+	"""
+	Copies all NLA strips from another object to this object.
+    @param obj: an object to copy NLA strips from.
+    @type obj: L{Object}
+	"""
+
+  def convertActionToStrip():
+	"""
+	Convert an object's action into an action strip.
+    @rtype: L{ActionStrips<NLA.ActionStrip>}
+    @return: the new action strip
+	"""
+
