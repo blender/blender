@@ -1951,9 +1951,11 @@ void makeDispListMesh(Object *ob)
 		
 		mesh_build_data(ob);
 		
-		if(paf)
+		if(paf) {
+			printf("ob %s %d\n", ob->id.name, ob->recalc);
 			if((paf->flag & PAF_STATIC) || (ob->recalc & OB_RECALC_TIME)==0)
 				build_particle_system(ob);
+		}
 	}
 }
 

@@ -102,8 +102,9 @@ static void envmap_split_ima(EnvMap *env)
 			0, 0, dx, dx, dx, dx);
 		IMB_rectcpy(env->cube[5]->ibuf, env->ima->ibuf, 
 			0, 0, 2*dx, dx, dx, dx);
-		env->ok= 2;
+		env->ok= ENV_OSA;
 	}
+	printf("split\n");
 }
 
 /* ------------------------------------------------------------------------- */
@@ -476,33 +477,47 @@ void make_envmaps(Render *re)
 		while(tex) {
 			if(tex->id.us && tex->type==TEX_ENVMAP) {
 				if(tex->env && tex->env->object) {
-					if(tex->env->object->lay & G.scene->lay) {
-						if(tex->env->stype!=ENV_LOAD) {
+					EnvMap *env= tex->env;
+					
+					if(env->object->lay & G.scene->lay) {
+						if(env->stype==ENV_LOAD) {
+							float orthmat[4][4], mat[4][4], tmat[4][4];
+							
+							/* precalc orthmat for object */
+							MTC_Mat4CpyMat4(orthmat, env->object->obmat);
+							MTC_Mat4Ortho(orthmat);
+							
+							/* need imat later for texture imat */
+							MTC_Mat4MulMat4(mat, orthmat, re->viewmat);
+							MTC_Mat4Invert(tmat, mat);
+							MTC_Mat3CpyMat4(env->obimat, tmat);
+						}
+						else {
 							
 							/* decide if to render an envmap (again) */
-							if(tex->env->depth >= depth) {
+							if(env->depth >= depth) {
 								
 								/* set 'recalc' to make sure it does an entire loop of recalcs */
 								
-								if(tex->env->ok) {
+								if(env->ok) {
 										/* free when OSA, and old one isn't OSA */
-									if((re->r.mode & R_OSA) && tex->env->ok==ENV_NORMAL) 
-										BKE_free_envmapdata(tex->env);
+									if((re->r.mode & R_OSA) && env->ok==ENV_NORMAL) 
+										BKE_free_envmapdata(env);
 										/* free when size larger */
-									else if(tex->env->lastsize < re->r.size) 
-										BKE_free_envmapdata(tex->env);
+									else if(env->lastsize < re->r.size) 
+										BKE_free_envmapdata(env);
 										/* free when env is in recalcmode */
-									else if(tex->env->recalc)
-										BKE_free_envmapdata(tex->env);
+									else if(env->recalc)
+										BKE_free_envmapdata(env);
 								}
 								
-								if(tex->env->ok==0 && depth==0) tex->env->recalc= 1;
+								if(env->ok==0 && depth==0) env->recalc= 1;
 								
-								if(tex->env->ok==0) {
+								if(env->ok==0) {
 									do_init= 1;
-									render_envmap(re, tex->env);
+									render_envmap(re, env);
 									
-									if(depth==tex->env->depth) tex->env->recalc= 0;
+									if(depth==env->depth) env->recalc= 0;
 								}
 							}
 						}
@@ -618,6 +633,9 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	float fac, vec[3], sco[3], dxts[3], dyts[3];
 	int face, face1;
 	
+	if((R.r.mode & R_ENVMAP)==0)
+		return 0;
+	
 	env= tex->env;
 	if(env==NULL || (env->stype!=ENV_LOAD && env->object==NULL)) {
 		texres->tin= 0.0;
@@ -626,11 +644,13 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	if(env->stype==ENV_LOAD) {
 		env->ima= tex->ima;
 		if(env->ima && env->ima->ok) {
-			// Now thread safe
-			BLI_lock_thread(LOCK_MALLOC);
-			if(env->ima->ibuf==NULL) ima_ibuf_is_nul(tex, tex->ima);
-			if(env->ima->ok && env->ok==0) envmap_split_ima(env);
-			BLI_unlock_thread(LOCK_MALLOC);
+			if(env->ima->ibuf==NULL) {
+				printf("load ibuf\n");
+				BLI_lock_thread(LOCK_MALLOC);
+				ima_ibuf_is_nul(tex, tex->ima);
+				if(env->ima->ok && env->ok==0) envmap_split_ima(env);
+				BLI_unlock_thread(LOCK_MALLOC);
+			}
 		}
 	}
 
