@@ -12,6 +12,12 @@ BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'openal_static'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 
+WITH_BF_FFMPEG = 'false'
+BF_FFMPEG = LCGDIR + '/gcc/ffmpeg'
+BF_FFMPEG_LIB = 'avformat avutil avcodec'
+BF_FFMPEG_LIBPATH =  '${BF_FFMPEG}/lib'
+BF_FFMPEG_INC = '${BF_FFMPEG}/include'
+
 WITH_BF_SDL = 'true'
 BF_SDL = LCGDIR + '/sdl'
 BF_SDL_INC = '${BF_SDL}/include'

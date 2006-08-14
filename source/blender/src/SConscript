@@ -34,6 +34,7 @@ if env['WITH_BF_QUICKTIME']==1:
 
 if env['WITH_BF_FFMPEG'] == 1:
     defs.append('WITH_FFMPEG')
+    incs += ' ' + env['BF_FFMPEG_INC']
 
 # TODO buildinfo
 if env['BF_BUILDINFO'] == 1:

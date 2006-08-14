@@ -119,6 +119,7 @@ def setup_staticlibs(lenv):
         lenv['BF_ICONV_LIBPATH']
         ]
     libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
+    libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
 
     if lenv['WITH_BF_INTERNATIONAL']:
         libincs += Split(lenv['BF_GETTEXT_LIBPATH'])
