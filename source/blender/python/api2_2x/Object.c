@@ -664,7 +664,7 @@ Possible arguments (provide as strings):\n\
 	 "Sets the object's delta location which must be a vector triple."},
 	{"setDrawMode", ( PyCFunction ) Object_SetDrawMode, METH_VARARGS,
 	 "Sets the object's drawing mode. The argument can be a sum of:\n\
-2:	axis\n4:  texspace\n8:	drawname\n16: drawimage\n32: drawwire"},
+2: axis\n4: texspace\n8: drawname\n16: drawimage\n32: drawwire\n64: drawxray\n128: drawtransp"},
 	{"setDrawType", ( PyCFunction ) Object_SetDrawType, METH_VARARGS,
 	 "Sets the object's drawing type. The argument must be one of:\n\
 1: Bounding box\n2: Wire\n3: Solid\n4: Shaded\n5: Textured"},
