@@ -1410,14 +1410,11 @@ void view3d_home(int centre)
 		max[0]= max[1]= max[2]= -1.0e10;
 	}
 	
-	base= FIRSTBASE;
-	if(base==0) return;
-	while(base) {
+	for(base= FIRSTBASE; base; base= base->next) {
 		if(base->lay & G.vd->lay) {
 			onedone= 1;
 			minmax_object(base->object, min, max);
 		}
-		base= base->next;
 	}
 	if(!onedone) return;
 	

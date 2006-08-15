@@ -1517,6 +1517,7 @@ void imagestodisplist(void)
 	/* removed */
 }
 
+/* this is confusing, there's also min_max_object, appplying the obmat... */
 static void boundbox_displist(Object *ob)
 {
 	BoundBox *bb=0;
@@ -1529,6 +1530,7 @@ static void boundbox_displist(Object *ob)
 
 	if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		Curve *cu= ob->data;
+		int doit= 0;
 
 		if(cu->bb==0) cu->bb= MEM_callocN(sizeof(BoundBox), "boundbox");	
 		bb= cu->bb;
@@ -1541,11 +1543,18 @@ static void boundbox_displist(Object *ob)
 			
 			vert= dl->verts;
 			for(a=0; a<tot; a++, vert+=3) {
+				doit= 1;
 				DO_MINMAX(vert, min, max);
 			}
 
 			dl= dl->next;
 		}
+		
+		if(!doit) {
+			min[0] = min[1] = min[2] = -1.0f;
+			max[0] = max[1] = max[2] = 1.0f;
+		}
+		
 	}
 	
 	if(bb) {
