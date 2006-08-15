@@ -1811,7 +1811,7 @@ static void world_panel_amb_occ(World *wrld)
 	if(uiNewPanel(curarea, block, "Amb Occ", "World", 320, 0, 318, 204)==0) return;
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButBitS(block, TOG, WO_AMB_OCC, B_REDR,	"Ambient Occlusion",10,150,300,19, &wrld->mode, 0, 0, 0, 0, "Toggles ambient occlusion");
+	uiDefButBitS(block, TOG, WO_AMB_OCC, B_REDR,	"Ambient Occlusion",10,150,300,19, &wrld->mode, 0, 0, 0, 0, "Toggles ambient occlusion (soft shadows)");
 	uiBlockSetCol(block, TH_AUTO);
 
 	if(wrld->mode & WO_AMB_OCC) {

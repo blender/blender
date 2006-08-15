@@ -699,7 +699,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 
 	uiBlockEndAlign(block);
 
-	uiDefIDPoinBut(block, test_meshpoin_but, ID_ME, B_REDR, "TexMesh: ",	175,124,230,19, &me->texcomesh, "Enter the name of a Meshblock");
+	uiDefIDPoinBut(block, test_meshpoin_but, ID_ME, B_REDR, "TexMesh: ",	175,124,230,19, &me->texcomesh, "Derive texture coordinates from another mesh.");
 	
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT, B_SLOWERDRAW,"SlowerDraw",			175,30,95,19, 0, 0, 0, 0, 0, "Displays the active object with all possible edges shown");
