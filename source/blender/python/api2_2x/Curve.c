@@ -113,6 +113,7 @@ static PyObject *Curve_setBevOb( BPy_Curve * self, PyObject * args );
 
 static PyObject *Curve_getTaperOb( BPy_Curve * self );
 static PyObject *Curve_setTaperOb( BPy_Curve * self, PyObject * args );
+static PyObject *Curve_copy( BPy_Curve * self );
 
 static PyObject *Curve_getIter( BPy_Curve * self );
 static PyObject *Curve_iterNext( BPy_Curve * self );
@@ -226,6 +227,8 @@ Sets a control point "},
 	 "() - returns Taper Object assigned to this Curve"},
 	{"setTaperOb", ( PyCFunction ) Curve_setTaperOb, METH_VARARGS,
 	 "() - assign a Taper Object to this Curve"},
+	{"__copy__", ( PyCFunction ) Curve_copy, METH_NOARGS,
+	 "() - make a copy of this curve data"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1384,6 +1387,40 @@ PyObject *Curve_setTaperOb( BPy_Curve * self, PyObject * args )
 
 	return EXPP_incr_ret( Py_None );
 }
+
+/*****************************************************************************/
+/* Function:    Curve_copy                                                   */
+/* Description: Return a copy of this curve data.                            */
+/*****************************************************************************/
+
+PyObject *Curve_copy( BPy_Curve * self )
+{
+	BPy_Curve *pycurve;	/* for Curve Data object wrapper in Python */
+	Curve *blcurve = 0;	/* for actual Curve Data we create in Blender */
+
+	/* copies the data */
+	blcurve = copy_curve( self->curve );	/* first create the Curve Data in Blender */
+
+	if( blcurve == NULL )	/* bail out if add_curve() failed */
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_RuntimeError,
+			   "couldn't create Curve Data in Blender" ) );
+
+	/* return user count to zero because add_curve() inc'd it */
+	blcurve->id.us = 0;
+	
+	/* create python wrapper obj */
+	pycurve = ( BPy_Curve * ) PyObject_NEW( BPy_Curve, &Curve_Type );
+
+	if( pycurve == NULL )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_MemoryError,
+			   "couldn't create Curve Data object" ) );
+
+	pycurve->curve = blcurve;	/* link Python curve wrapper to Blender Curve */
+	return ( PyObject * ) pycurve;
+}
+
 
 /*
  * Curve_getIter

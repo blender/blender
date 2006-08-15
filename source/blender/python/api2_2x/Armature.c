@@ -474,6 +474,7 @@ AttributeError:
 	return EXPP_objError(PyExc_AttributeError, "%s%s", 
 		sArmatureBadArgs, "The armature cannot be placed manually in editmode before you call makeEditable()!");
 }
+
 //------------------------Armature.update()
 //This is a bit ugly because you need an object link to do this
 static PyObject *Armature_update(BPy_Armature *self)
@@ -500,6 +501,18 @@ AttributeError:
 	return EXPP_objError(PyExc_AttributeError, "%s%s", 
 		sArmatureBadArgs, "The armature must be linked to an object before you can save changes!");
 }
+
+//------------------------Armature.__copy__()
+static PyObject *Armature_copy(BPy_Armature *self)
+{
+	PyObject *py_armature = NULL;
+	bArmature *bl_armature;
+	bl_armature= copy_armature(self->armature);
+	bl_armature->id.us= 0;
+	py_armature= PyArmature_FromArmature( bl_armature );
+	return py_armature;
+}
+
 //------------------ATTRIBUTE IMPLEMENTATION---------------------------
 //------------------------Armature.autoIK (getter)
 static PyObject *Armature_getAutoIK(BPy_Armature *self, void *closure)
@@ -953,6 +966,8 @@ static PyMethodDef BPy_Armature_methods[] = {
 		"() - Unlocks the ability to modify armature bones"},
 	{"update", (PyCFunction) Armature_update, METH_NOARGS, 
 		"() - Rebuilds the armature based on changes to bones since the last call to makeEditable"},
+	{"__copy__", (PyCFunction) Armature_copy, METH_NOARGS, 
+		"() - Return a copy of the armature."},
 	{NULL, NULL, 0, NULL}
 };
 //------------------------tp_getset

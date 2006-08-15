@@ -597,6 +597,7 @@ static PyObject *Material_addScriptLink(BPy_Material * self, PyObject * args );
 static PyObject *Material_clearScriptLinks(BPy_Material *self, PyObject *args);
 
 static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args );
+static PyObject *Material_copy( BPy_Material * self );
 
 
 /*****************************************************************************/
@@ -820,6 +821,8 @@ static PyMethodDef BPy_Material_methods[] = {
 	{"clearScriptLinks", ( PyCFunction ) Material_clearScriptLinks, METH_VARARGS,
 	 "() - Delete all scriptlinks from this material.\n"
 	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this material."},
+	{"__copy__", ( PyCFunction ) Material_copy, METH_NOARGS,
+	 "() - Return a copy of the material."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2471,6 +2474,29 @@ static PyObject *Material_getScriptLinks( BPy_Material * self,
 		return ret;
 	else
 		return NULL;
+}
+
+/* mat.__copy__ */
+static PyObject *Material_copy( BPy_Material * self )
+{
+	BPy_Material *pymat; /* for Material Data object wrapper in Python */
+	Material *blmat; /* for actual Material Data we create in Blender */
+	
+	blmat = copy_material( self->material );	/* first copy the Material Data in Blender */
+
+	if( blmat )		/* now create the wrapper obj in Python */
+		pymat = ( BPy_Material * ) Material_CreatePyObject( blmat );
+	else
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						"couldn't create Material Data in Blender" ) );
+
+	blmat->id.us = 0;	/* was incref'ed by add_material() above */
+
+	if( pymat == NULL )
+		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+						"couldn't create Material Data object" ) );
+
+	return ( PyObject * ) pymat;
 }
 
 /*****************************************************************************/

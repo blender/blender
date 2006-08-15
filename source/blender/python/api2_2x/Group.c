@@ -1,3 +1,5 @@
+#include "MEM_guardedalloc.h"
+
 #include "Group.h" /* This must come first */
 
 #include "DNA_group_types.h"
@@ -24,45 +26,72 @@ static PyObject *M_Group_New( PyObject * self, PyObject * args );
 PyObject *M_Group_Get( PyObject * self, PyObject * args );
 PyObject *M_Group_Unlink( PyObject * self, PyObject * args );
 
-/*****************************************************************************/
-/* The following string definitions are used for documentation strings.	 */
-/* In Python these will be written to the console when doing a		 */
-/* Blender.Group.__doc__						 */
-/*****************************************************************************/
-char M_Group_doc[] = "The Blender Group module\n\n\
-This module provides access to **Group Data** in Blender.\n";
-
-char M_Group_New_doc[] =
-	"(name) Add a new empty group";
-
-char M_Group_Get_doc[] =
-	"(name) - return the group with the name 'name', returns None if not\
-	found.\n\
-	If 'name' is not specified, it returns a list of all groups.";
-	
-char M_Group_Unlink_doc[] =
-"(group) - Unlink (delete) this group from Blender.";
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Object module:	 */
 /*****************************************************************************/
 struct PyMethodDef M_Group_methods[] = {
 	{"New", ( PyCFunction ) M_Group_New, METH_VARARGS,
-	 M_Group_New_doc},
+	 "(name) Add a new empty group"},
 	{"Get", ( PyCFunction ) M_Group_Get, METH_VARARGS,
-	 M_Group_Get_doc},
+"(name) - return the group with the name 'name',\
+returns None if notfound.\nIf 'name' is not specified, it returns a list of all groups."},
 	{"Unlink", ( PyCFunction ) M_Group_Unlink, METH_VARARGS,
-	 M_Group_Unlink_doc},
+	 "(group) - Unlink (delete) this group from Blender."},
 	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/
 /* Python BPy_Group methods table:					   */
 /*****************************************************************************/
+static PyObject *BPy_Group_copy( BPy_Group * self );
+
 static PyMethodDef BPy_Group_methods[] = {
 	/* name, method, flags, doc */
+	{"__copy__", ( PyCFunction ) BPy_Group_copy, METH_VARARGS,
+	 "() - Return a copy of the group containing the same objects."},
 	{NULL, NULL, 0, NULL}
 };
+
+
+static PyObject *BPy_Group_copy( BPy_Group * self )
+{
+	
+	if( !(self->group) ) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Blender Group was deleted!" );
+	} else {
+		BPy_Group *py_group;	/* for Group Data object wrapper in Python */
+		struct Group *bl_group;
+		GroupObject *group_ob, *group_ob_new; /* Group object, copied and added to the groups */
+		
+		bl_group= add_group();
+		
+		if( bl_group )		/* now create the wrapper grp in Python */
+			py_group = ( BPy_Group * ) Group_CreatePyObject( bl_group );
+		else
+			return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+							"couldn't create Group Data in Blender" ) );
+		
+		rename_id( &bl_group->id, self->group->id.name + 2 );
+		
+		
+		/* user count be incremented in Group_CreatePyObject */
+		bl_group->id.us = 0;
+		
+		/* Now add the objects to the group */
+		group_ob= self->group->gobject.first;
+		while(group_ob) {
+			/* save time by not using */
+			group_ob_new= MEM_callocN(sizeof(GroupObject), "groupobject");
+			group_ob_new->ob= group_ob->ob;
+			BLI_addtail( &bl_group->gobject, group_ob_new);
+			group_ob= group_ob->next;
+		}
+		
+		return ( PyObject * ) py_group;
+	}
+}
 
 
 /************************************************************************
@@ -457,10 +486,11 @@ PyObject *Group_Init( void )
 		return NULL;
 	
 	submodule = Py_InitModule3( "Blender.Group", M_Group_methods,
-				 M_Group_doc );
+				 "The Blender Group module\n\n\
+This module provides access to **Group Data** in Blender.\n" );
 
-	//Add SUBMODULES to the module
-	//PyDict_SetItemString(dict, "Constraint", Constraint_Init()); //creates a *new* module
+	/*Add SUBMODULES to the module*/
+	/*PyDict_SetItemString(dict, "Constraint", Constraint_Init()); //creates a *new* module*/
 	return submodule;
 }
 
