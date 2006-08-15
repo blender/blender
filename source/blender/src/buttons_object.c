@@ -534,9 +534,11 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	Object *ob= OBACT;
 	uiBut *but;
 	char typestr[64];
-	short height, width = 265;
+	short height, width = 265, is_pose;
 	int curCol, rb_col;
 
+	is_pose= (ob->type==OB_ARMATURE && (ob->flag & OB_POSEMODE));
+	
 	/* unless button has own callback, it adds this callback to button */
 	uiBlockSetFunc(block, constraint_active_func, ob, con);
 	
@@ -618,7 +620,6 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_ACTION:
 			{
 				bActionConstraint *data = con->data;
-				bArmature *arm;
 
 				height = 88;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
@@ -629,9 +630,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockBeginAlign(block);
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
-				arm = get_armature(data->tar);
-				if (arm){
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+				if (is_pose){
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
 				else
@@ -657,7 +657,6 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_LOCLIKE:
 			{
 				bLocateLikeConstraint *data = con->data;
-				bArmature *arm;
 				
 				height = 66;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
@@ -668,9 +667,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockBeginAlign(block);
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
-				arm = get_armature(data->tar);
-				if (arm){
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+				if (is_pose) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
 				else
@@ -679,7 +677,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
-				if (arm)
+				if (is_pose)
 					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco+((width/2)-98), *yco-64, 50, 18, &con->flag, 0, 24, 0, 0, "Work on a Pose's local transform");
 				but=uiDefButBitI(block, TOG, LOCLIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
 				but=uiDefButBitI(block, TOG, LOCLIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
@@ -690,7 +688,6 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_ROTLIKE:
 			{
 				bRotateLikeConstraint *data = con->data;
-				bArmature *arm;
 				
 				/* also old files stuff... version patch is too much code! */
 				if(data->flag==0) data->flag = ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z;
@@ -704,9 +701,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockBeginAlign(block);
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
-				arm = get_armature(data->tar);
-				if (arm){
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+				if (is_pose) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
 				else
@@ -715,7 +711,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
-				if (arm)
+				if (is_pose)
 					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco+((width/2)-98), *yco-64, 50, 18, &con->flag, 0, 24, 0, 0, "Work on a Pose's local transform");
 				uiDefButBitI(block, TOG, ROTLIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
 				uiDefButBitI(block, TOG, ROTLIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
@@ -726,7 +722,6 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_SIZELIKE:
 			{
 				bSizeLikeConstraint *data = con->data;
-				bArmature *arm;
 				height = 66;
 			
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
@@ -737,9 +732,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockBeginAlign(block);
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 				
-				arm = get_armature(data->tar);
-				if (arm){
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+				if (is_pose) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
 				else
@@ -757,7 +751,6 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_KINEMATIC:
 			{
 				bKinematicConstraint *data = con->data;
-				bArmature *arm;
 				
 				height = 108;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
@@ -770,8 +763,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockBeginAlign(block);
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 19, &data->tar, "Target Object"); 
 
-				arm = get_armature(data->tar);
-				if (arm) {
+				if (is_pose) {
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,19, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
@@ -793,7 +785,6 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_TRACKTO:
 			{
 				bTrackToConstraint *data = con->data;
-				bArmature *arm;
 
 				height = 66;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
@@ -804,8 +795,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockBeginAlign(block);
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
-				arm = get_armature(data->tar);
-				if (arm){
+				if (is_pose) {
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
@@ -836,7 +826,6 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_MINMAX:
 			{
 				bMinMaxConstraint *data = con->data;
-				bArmature *arm;
 
 				height = 66;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
@@ -849,8 +838,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockBeginAlign(block);
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
-				arm = get_armature(data->tar);
-				if (arm){
+				if (is_pose) {
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
@@ -875,7 +863,6 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_LOCKTRACK:
 			{
 				bLockTrackConstraint *data = con->data;
-				bArmature *arm;
 				height = 66;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 
@@ -885,8 +872,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockBeginAlign(block);
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
-				arm = get_armature(data->tar);
-				if (arm){
+				if (is_pose) {
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
@@ -955,20 +941,17 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_STRETCHTO:
 			{
 				bStretchToConstraint *data = con->data;
-				bArmature *arm;
 				
 				height = 105;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
-
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
-				arm = get_armature(data->tar);
-				if (arm){
+				if (is_pose) {
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
@@ -1043,12 +1026,14 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				uiBlockBeginAlign(block);
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST,"Co-ordinate Space:",*xco, *yco-100,150,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				if (ob->type == OB_ARMATURE) 
+				
+				if (is_pose) 
 					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco+160, *yco-100, 60, 18, &con->flag, 0, 24, 0, 0, "Limit locations relative to the bone's rest-position");
 				else if (ob->parent != NULL)
 					uiDefButBitS(block, TOG, LIMIT_NOPARENT, B_CONSTRAINT_TEST, "Local", *xco+160, *yco-100, 60, 18, &data->flag2, 0, 24, 0, 0, "Limit locations relative to parent, not origin/world");
 				else 
 					uiDefBut(block, LABEL, B_CONSTRAINT_TEST,"World",*xco+160, *yco-100,60,18, NULL, 0.0, 0.0, 0.0, 0.0, "Limit locations relative to origin/world"); 
+				
 				uiBlockEndAlign(block);
 			}
 			break;
@@ -1080,7 +1065,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max:", *xco+(normButWidth * 2), *yco-72, normButWidth, 18, &(data->zmax), -360, 360, 0.1,0.5,"Highest z value to allow"); 
 				uiBlockEndAlign(block); 
 				
-				if (ob->type == OB_ARMATURE) {
+				if (is_pose) {
 					uiBlockBeginAlign(block);
 					uiDefBut(block, LABEL, B_CONSTRAINT_TEST,"Co-ordinate Space:",*xco, *yco-100,150,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco+160, *yco-100, 60, 18, &con->flag, 0, 24, 0, 0, "Work on a Pose's local transform");
