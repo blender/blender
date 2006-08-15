@@ -1015,8 +1015,7 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 	node_unlink_node(ntree, node);
 	BLI_remlink(&ntree->nodes, node);
 
-	if(node->id)
-		node->id->us--;
+	/* since it is called while free database, node->id is undefined */
 	
 	if(ntree->type==NTREE_COMPOSIT)
 		composit_free_node_cache(node);

@@ -1635,8 +1635,12 @@ void node_delete(SpaceNode *snode)
 	
 	for(node= snode->edittree->nodes.first; node; node= next) {
 		next= node->next;
-		if(node->flag & SELECT)
+		if(node->flag & SELECT) {
+			/* check id user here, nodeFreeNode is called for free dbase too */
+			if(node->id)
+				node->id->us--;
 			nodeFreeNode(snode->edittree, node);
+		}
 	}
 	
 	snode_verify_groups(snode);
