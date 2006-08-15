@@ -20,7 +20,7 @@
 
 import Blender
 import BPyMesh_redux # seperated because of its size.
-reload(BPyMesh_redux)
+# reload(BPyMesh_redux)
 redux= BPyMesh_redux.redux
 
 # python 2.3 has no reversed() iterator. this will only work on lists and tuples

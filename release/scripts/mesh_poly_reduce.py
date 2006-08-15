@@ -16,7 +16,7 @@ This script simplifies the mesh by removing faces, keeping the overall shape of 
 
 from Blender import Draw, Window, Scene, Mesh, Mathutils, sys, Object
 import BPyMesh
-reload(BPyMesh)
+# reload(BPyMesh)
 
 # ***** BEGIN GPL LICENSE BLOCK *****
 #

@@ -543,11 +543,16 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 			
 			current_face_count -= len(ced.faces)
 			
-			# Interpolate the bone weights.
-			if DO_WEIGHTS:
+			# Find and assign the real weights based on collapse loc.
+			
+			# Find the weights from the collapse error
+			if DO_WEIGHTS or DO_UV or DO_VCOL:
 				i1, i2= ced.key
-				w1= vert_weights[i1]
-				w2= vert_weights[i2]
+				# Dont use these weights since they may not have been used to make the collapse loc.
+				#w1= vert_weights[i1]
+				#w2= vert_weights[i2]
+				w1= (ced.v2.co-ced.collapse_loc).length
+				w2= (ced.v1.co-ced.collapse_loc).length
 				
 				# Normalize weights
 				wscale= w1+w2
@@ -558,77 +563,58 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 					w2/= wscale
 				
 				
-				# add verts vgroups to eachother
-				'''
-				wd1= vWeightDict[i1] # v1 weight dict
-				wd2= vWeightDict[i2] # v2 weight dict
-				
-				# Make sure vert groups on both verts exist.
-				for wd_from, wd_to in ((wd1, wd2), (wd2, wd1)):
-					for group_key, weight_value in wd_from.iteritems():
-						try: wd_to[group_key] # We have this weight?
-						except: wd_to[group_key]= 0.0 # Adding a zero weight.
-				
-				# Mix the weights for vert groups
-				for group_key in wd_from.iterkeys():
-					wd1[group_key]= wd2[group_key]= (wd1[group_key]*w1) + (wd2[group_key]*w2)
-				'''
-				
-				wl1= vWeightList[i1] # v1 weight dict
-				wl2= vWeightList[i2] # v2 weight dict
-				for group_index in xrange(len_vgroups):
-					wl1[group_index]= wl2[group_index]= (wl1[group_index]*w1) + (wl2[group_index]*w2)
-				
-			
-			if DO_UV or DO_VCOL:
-				# Handel UV's and vert Colors!
-				for v, my_weight, other_weight, edge_my_uvs, edge_other_uvs, edge_my_cols, edge_other_cols in (\
-				( ced.v1, vert_weights[ced.key[0]], vert_weights[ced.key[1]], ced.uv1, ced.uv2, ced.col1, ced.col2),\
-				( ced.v2, vert_weights[ced.key[1]], vert_weights[ced.key[0]], ced.uv2, ced.uv1, ced.col2, ced.col1)\
-				):
+				# Interpolate the bone weights.
+				if DO_WEIGHTS:
 					
-					# Normalize weights
-					wscale= my_weight+other_weight
-					if not wscale: # no scale?
-						my_weight=other_weight= 0.5
-					else:
-						my_weight/= wscale
-						other_weight/= wscale
-					
-					uvs_mixed=   [ uv_key_mix(edge_my_uvs[iii],   edge_other_uvs[iii],  my_weight, other_weight)  for iii in xrange(len(edge_my_uvs))  ]
-					cols_mixed=  [ col_key_mix(edge_my_cols[iii], edge_other_cols[iii], my_weight, other_weight) for iii in xrange(len(edge_my_cols)) ]
-					
-					for face_vert_index, cfa in vert_face_users[v.index]:
-						if len(cfa.verts)==3 and cfa not in ced.faces: # if the face is apart of this edge then dont bother finding the uvs since the face will be removed anyway.
+					# add verts vgroups to eachother
+					wl1= vWeightList[i1] # v1 weight dict
+					wl2= vWeightList[i2] # v2 weight dict
+					for group_index in xrange(len_vgroups):
+						wl1[group_index]= wl2[group_index]= (wl1[group_index]*w1) + (wl2[group_index]*w2)
+				# Done finding weights.
+				
+				
+				
+				if DO_UV or DO_VCOL:
+					# Handel UV's and vert Colors!
+					for v, my_weight, other_weight, edge_my_uvs, edge_other_uvs, edge_my_cols, edge_other_cols in (\
+					(ced.v1, w1, w2, ced.uv1, ced.uv2, ced.col1, ced.col2),\
+					(ced.v2, w2, w1, ced.uv2, ced.uv1, ced.col2, ced.col1)\
+					):
+						uvs_mixed=   [ uv_key_mix(edge_my_uvs[iii],   edge_other_uvs[iii],  my_weight, other_weight)  for iii in xrange(len(edge_my_uvs))  ]
+						cols_mixed=  [ col_key_mix(edge_my_cols[iii], edge_other_cols[iii], my_weight, other_weight) for iii in xrange(len(edge_my_cols)) ]
 						
-							if DO_UV:
-								# UV COORDS
-								uvk=  cfa.orig_uv[face_vert_index] 
-								try:
-									tex_index= edge_my_uvs.index(uvk)
-								except:
-									tex_index= None
-									""" # DEBUG!
-									if DEBUG:
-										print 'not found', uvk, 'in', edge_my_uvs, 'ed index', ii, '\nwhat about', edge_other_uvs
-									"""
-								if tex_index != None: # This face uses a uv in the collapsing face. - do a merge
-									other_uv= edge_other_uvs[tex_index]
-									uv_vec= cfa.uv[face_vert_index]
-									uv_vec.x, uv_vec.y= uvs_mixed[tex_index]
+						for face_vert_index, cfa in vert_face_users[v.index]:
+							if len(cfa.verts)==3 and cfa not in ced.faces: # if the face is apart of this edge then dont bother finding the uvs since the face will be removed anyway.
 							
-							# TEXFACE COLORS
-							if DO_VCOL:
-								colk= cfa.orig_col[face_vert_index] 
-								try:    tex_index= edge_my_cols.index(colk)
-								except: pass
-								if tex_index != None:
-									other_col= edge_other_cols[tex_index]
-									col_ob= cfa.col[face_vert_index]
-									col_ob.r, col_ob.g, col_ob.b= cols_mixed[tex_index]
-							
-							# DEBUG! if DEBUG: rd()
-				
+								if DO_UV:
+									# UV COORDS
+									uvk=  cfa.orig_uv[face_vert_index] 
+									try:
+										tex_index= edge_my_uvs.index(uvk)
+									except:
+										tex_index= None
+										""" # DEBUG!
+										if DEBUG:
+											print 'not found', uvk, 'in', edge_my_uvs, 'ed index', ii, '\nwhat about', edge_other_uvs
+										"""
+									if tex_index != None: # This face uses a uv in the collapsing face. - do a merge
+										other_uv= edge_other_uvs[tex_index]
+										uv_vec= cfa.uv[face_vert_index]
+										uv_vec.x, uv_vec.y= uvs_mixed[tex_index]
+								
+								# TEXFACE COLORS
+								if DO_VCOL:
+									colk= cfa.orig_col[face_vert_index] 
+									try:    tex_index= edge_my_cols.index(colk)
+									except: pass
+									if tex_index != None:
+										other_col= edge_other_cols[tex_index]
+										col_ob= cfa.col[face_vert_index]
+										col_ob.r, col_ob.g, col_ob.b= cols_mixed[tex_index]
+								
+								# DEBUG! if DEBUG: rd()
+			
 			# Execute the collapse
 			ced.v1.sel= ced.v2.sel= True # Select so remove doubles removed the edges and faces that use it
 			ced.v1.co= ced.v2.co=  ced.collapse_loc
