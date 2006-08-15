@@ -59,8 +59,8 @@ Example::
     Values can be ORed together.  
       - LOCX, LOCY, LOCZ: lock x, y or z location individually
       - ROTX, ROTY, ROTZ: lock x, y or z rotation individually
-      - SIZEX, SIZEY, SIZEZ: lock x, y or z size individually
-      - LOC, ROT, SIZE: lock all 3 attributes for location, rotation or size
+      - SCALEX, SCALEY, SCALEZ: lock x, y or z scale individually
+      - LOC, ROT, SCALE: lock all 3 attributes for location, rotation or scale
 
 @type PITypes: readonly dictionary
 @var PITypes: Constant dict used for with L{Object.piType} attribute.
