@@ -399,9 +399,13 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 	
 	if(ob->action) {
 		bActionChannel *chan;
+		bConstraintChannel *conchan;
 		for (chan = ob->action->chanbase.first; chan; chan=chan->next){
 			if(chan->ipo)
 				dag_add_driver_relation(chan->ipo, dag, node, 1);
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
+				if(conchan->ipo)
+					dag_add_driver_relation(conchan->ipo, dag, node, 1);
 		}
 	}
 	if(ob->nlastrips.first) {
