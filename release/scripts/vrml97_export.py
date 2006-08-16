@@ -455,8 +455,9 @@ class VRML2Export:
 		if (me.vertexColors):
 			if len(me.materials) > 0:
 				mat = me.materials[0]
-				if (mat.mode & Blender.Material.Modes['VCOL_PAINT']):
-					self.vcolors = 1
+				if mat:
+					if (mat.mode & Blender.Material.Modes['VCOL_PAINT']):
+						self.vcolors = 1
 			
 		# check if object is wireframe only
 		if ob.drawType == Blender.Object.DrawTypes.WIRE:
@@ -557,26 +558,31 @@ class VRML2Export:
 		issmooth = 0
 
 		maters = me.materials
+		nummats = self.getNumMaterials(me)
 
 		# Vertex and Face colors trump materials and image textures
 		if (self.facecolors or self.vcolors):
-			if len(maters) > 0:
-				self.writeShape(ob, me, 0, None)
+			if nummats > 0:
+				if maters[0]:
+					self.writeShape(ob, me, 0, None)
+				else:
+					self.writeShape(ob, me, -1, None)
 			else:
 				self.writeShape(ob, me, -1, None)
 		# Do meshes with materials, possible with image textures
-		elif len(maters) > 0:
+		elif nummats > 0:
 			for matnum in range(len(maters)):
-				images = []
-				if me.faceUV:
-					images = self.getImages(me, matnum)
-					if len(images) > 0:
-						for image in images:
-							self.writeShape(ob, me, matnum, image)
+				if maters[matnum]:
+					images = []
+					if me.faceUV:
+						images = self.getImages(me, matnum)
+						if len(images) > 0:
+							for image in images:
+								self.writeShape(ob, me, matnum, image)
+						else:
+							self.writeShape(ob, me, matnum, None)
 					else:
 						self.writeShape(ob, me, matnum, None)
-				else:
-					self.writeShape(ob, me, matnum, None)
 		else:
 			if me.faceUV:
 				images = self.getImages(me, -1)
@@ -603,6 +609,15 @@ class VRML2Export:
 						images.append(face.image)
 						imageNames[imName]=1
 		return images
+
+	def getNumMaterials(self, me):
+		# Oh silly Blender, why do you sometimes have 'None' as
+		# a member of the me.materials array?
+		num = 0
+		for mat in me.materials:
+			if mat:
+				num = num + 1
+		return num
 
 	def writeCoordinates(self, me, meshName):
 		coordName = "coord_%s" % (meshName)
@@ -631,6 +646,10 @@ class VRML2Export:
 		self.writeIndented("\n")
 
 	def writeShape(self, ob, me, matnum, image):
+		# Note: at this point it is assumed for matnum!=-1 that the 
+		# material in me.materials[matnum] is not equal to 'None'.
+		# Such validation should be performed by the function that
+		# calls this one.
 		self.writeIndented("Shape {\n",1)
 
 		self.writeIndented("appearance Appearance {\n", 1)
