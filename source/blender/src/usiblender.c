@@ -371,7 +371,10 @@ void BIF_read_file(char *name)
 		undo_editmode_clear();
 		BKE_reset_undo();
 		BKE_write_undo("original");	/* save current state */
+
+#ifdef INTERNATIONAL
 		refresh_interface_font();
+#endif
 	}
 	else if(retval==1)
 		BIF_undo_push("Import file");
