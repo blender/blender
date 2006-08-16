@@ -4050,7 +4050,7 @@ static int Object_setDrawModeBits( BPy_Object *self, PyObject *value,
 static PyObject *Object_getTransflagBits( BPy_Object *self, void *type )
 {
 	return EXPP_getBitfield( (void *)&self->object->transflag,
-			(int)type, 'b' );
+			(int)type, 'h' );
 }
 
 static int Object_setTransflagBits( BPy_Object *self, PyObject *value,
@@ -4058,7 +4058,7 @@ static int Object_setTransflagBits( BPy_Object *self, PyObject *value,
 {
 	self->object->recalc |= OB_RECALC_OB;  
 	return EXPP_setBitfield( value, (void *)&self->object->transflag,
-			(int)type, 'b' );
+			(int)type, 'h' );
 }
 
 static PyObject *Object_getLayers( BPy_Object * self )
@@ -4911,15 +4911,15 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 "Make copy of object for every frame",
 	 (void *)OB_DUPLIFRAMES},
 	{"enableDupGroup",
-	 (getter)Object_getDrawModeBits, (setter)Object_setDrawModeBits,
+	 (getter)Object_getTransflagBits, (setter)Object_setTransflagBits,
 	 "Enable group instancing",
 	 (void *)OB_DUPLIGROUP},
 	{"enableDupRot",
-	 (getter)Object_getDrawModeBits, (setter)Object_setDrawModeBits,
+	 (getter)Object_getTransflagBits, (setter)Object_setTransflagBits,
 	 "Rotate dupli according to vertex normal",
 	 (void *)OB_DUPLIROT},
 	{"enableDupNoSpeed",
-	 (getter)Object_getDrawModeBits, (setter)Object_setDrawModeBits,
+	 (getter)Object_getTransflagBits, (setter)Object_setTransflagBits,
 	 "Set dupliframes to still, regardless of frame",
 	 (void *)OB_DUPLINOSPEED},
 	{"DupObjects",
