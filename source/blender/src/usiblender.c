@@ -52,8 +52,8 @@
 #include "MEM_CacheLimiterC-Api.h"
 
 #include "BMF_Api.h"
-#ifdef INTERNATIONAL
 #include "BIF_language.h"
+#ifdef INTERNATIONAL
 #include "FTF_Api.h"
 #endif
 
@@ -338,9 +338,9 @@ static void init_userdef_file(void)
 	
 #ifdef INTERNATIONAL
 	read_languagefile();
+#endif
 	
 	refresh_interface_font();
-#endif // INTERNATIONAL
 
 }
 
@@ -372,9 +372,7 @@ void BIF_read_file(char *name)
 		BKE_reset_undo();
 		BKE_write_undo("original");	/* save current state */
 
-#ifdef INTERNATIONAL
 		refresh_interface_font();
-#endif
 	}
 	else if(retval==1)
 		BIF_undo_push("Import file");
@@ -845,9 +843,10 @@ void exit_usiblender(void)
 	freeNurblist(&editNurb);
 
 	fsmenu_free();
+
 #ifdef INTERNATIONAL
 	free_languagemenu();
-#endif	
+#endif
 	
 	RE_FreeAllRender();
 	
