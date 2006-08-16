@@ -95,6 +95,7 @@ static PyObject *World_getScriptLinks( BPy_World * self, PyObject * args );
 static PyObject *World_addScriptLink( BPy_World * self, PyObject * args );
 static PyObject *World_clearScriptLinks( BPy_World * self, PyObject * args );
 static PyObject *World_setCurrent( BPy_World * self );
+static PyObject *World_copy( BPy_World * self );
 
 
 /*****************************************************************************/
@@ -222,6 +223,8 @@ static PyMethodDef BPy_World_methods[] = {
 	 "please use setCurrent instead, this alias will be removed."},
 	{"insertIpoKey", ( PyCFunction ) World_insertIpoKey, METH_VARARGS,
 	 "( World IPO type ) - Inserts a key into the IPO"},
+	{"__copy__", ( PyCFunction ) World_copy, METH_NOARGS,
+	 "() - Makes a copy of this world."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -895,6 +898,33 @@ static PyObject *World_setCurrent( BPy_World * self )
 	G.scene->world = world;
 	Py_INCREF( Py_None );
 	return Py_None;
+}
+
+/* world.__copy__ */
+static PyObject *World_copy( BPy_World * self )
+{
+	BPy_World *pyworld;
+	World *blworld;
+
+	blworld = copy_world( self->world );
+
+	if( blworld ) {
+		/* return user count to zero because add_world() inc'd it */
+		blworld->id.us = 0;
+		/* create python wrapper obj */
+		pyworld =
+			( BPy_World * ) PyObject_NEW( BPy_World, &World_Type );
+	} else
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						"couldn't create World Data in Blender" ) );
+
+	if( pyworld == NULL )
+		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+						"couldn't create World Data object" ) );
+
+	pyworld->world = blworld;
+
+	return ( PyObject * ) pyworld;
 }
 
 

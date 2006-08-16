@@ -122,6 +122,7 @@ static PyObject *Camera_getScriptLinks( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_addScriptLink( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_clearScriptLinks( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_insertIpoKey( BPy_Camera * self, PyObject * args );
+static PyObject *Camera_copy( BPy_Camera * self );
 
 Camera *GetCameraByName( char *name );
 
@@ -184,6 +185,8 @@ static PyMethodDef BPy_Camera_methods[] = {
 	 METH_NOARGS,
 	 "() - Delete all scriptlinks from this camera.\n"
 	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this camera."},
+	{"__copy__", ( PyCFunction ) Camera_copy, METH_NOARGS,
+	 "() - Return a copy of the camera."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -809,6 +812,31 @@ static PyObject *Camera_getScriptLinks( BPy_Camera * self, PyObject * args )
 		return ret;
 	else
 		return NULL;
+}
+
+/* cam.__copy__ */
+static PyObject *Camera_copy( BPy_Camera * self )
+{
+	PyObject *pycam;	/* for Camera Data object wrapper in Python */
+	Camera *blcam;		/* for actual Camera Data we create in Blender */
+
+	blcam = copy_camera( self->camera );	/* first create the Camera Data in Blender */
+
+	if( blcam )		/* now create the wrapper obj in Python */
+		pycam = Camera_CreatePyObject( blcam );
+	else
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "couldn't create Camera Data in Blender" );
+
+	/* let's return user count to zero, because ... */
+	blcam->id.us = 0;	/* ... copy_camera() incref'ed it */
+	/* XXX XXX Do this in other modules, too */
+
+	if( pycam == NULL )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "couldn't create Camera PyObject" );
+
+	return pycam;
 }
 
 static void Camera_dealloc( BPy_Camera * self )

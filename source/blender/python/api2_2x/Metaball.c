@@ -108,6 +108,7 @@ static PyObject *Metaball_getrot( BPy_Metaball * self );
 static PyObject *Metaball_setrot( BPy_Metaball * self, PyObject * args );
 static PyObject *Metaball_getsize( BPy_Metaball * self );
 static PyObject *Metaball_setsize( BPy_Metaball * self, PyObject * args );
+static PyObject *Metaball_copy( BPy_Metaball * self );
 
 /*****************************************************************************/
 /* Python BPy_Metaball methods table:                                       */
@@ -180,6 +181,8 @@ static PyMethodDef BPy_Metaball_methods[] = {
 	 METH_NOARGS, "() - Gets Metaball size values"},
 	{"setsize", ( PyCFunction ) Metaball_setsize,
 	 METH_VARARGS, "(f f f) - Sets Metaball size values"},
+	{"__copy__", ( PyCFunction ) Metaball_copy,
+	 METH_NOARGS, "() - Return a copy of this metaball"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -675,6 +678,34 @@ static PyObject *Metaball_setThresh( BPy_Metaball * self, PyObject * args )
 	Py_INCREF( Py_None );
 	return Py_None;
 
+}
+
+
+static PyObject *Metaball_copy( BPy_Metaball * self )
+{
+	BPy_Metaball *pymball;	/* for Data object wrapper in Python */
+	MetaBall *blmball;	/* for actual Data we create in Blender */
+	
+	blmball = copy_mball( self->metaball );	/* first create the MetaBall Data in Blender */
+
+	if( blmball ) {
+		/* return user count to zero since add_mball() incref'ed it */
+		blmball->id.us = 0;
+		/* now create the wrapper obj in Python */
+		pymball =
+			( BPy_Metaball * ) PyObject_NEW( BPy_Metaball,
+							 &Metaball_Type );
+	} else
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						"couldn't create MetaBall Data in Blender" ) );
+
+	if( pymball == NULL )
+		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+						"couldn't create MetaBall Data object" ) );
+
+	pymball->metaball = blmball;
+	
+	return ( PyObject * ) pymball;
 }
 
 

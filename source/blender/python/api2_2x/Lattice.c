@@ -99,6 +99,7 @@ static PyObject *Lattice_setPoint( BPy_Lattice * self, PyObject * args );
 static PyObject *Lattice_getPoint( BPy_Lattice * self, PyObject * args );
 static PyObject *Lattice_applyDeform( BPy_Lattice * self, PyObject *args );
 static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args );
+static PyObject *Lattice_copy( BPy_Lattice * self );
 
 /*****************************************************************************/
 /*  Lattice Strings			 */
@@ -146,6 +147,9 @@ mode). If forced, the deformation will be applied over any previous one(s).";
 static char Lattice_insertKey_doc[] =
 	"(str) - Set a new key for the lattice at specified frame";
 
+static char Lattice_copy_doc[] =
+	"() - Return a copy of the lattice.";
+
 /*****************************************************************************/
 /* Python BPy_Lattice methods table:	*/
 /*****************************************************************************/
@@ -177,6 +181,8 @@ static PyMethodDef BPy_Lattice_methods[] = {
 	 Lattice_applyDeform_doc},
 	{"insertKey", ( PyCFunction ) Lattice_insertKey, METH_VARARGS,
 	 Lattice_insertKey_doc},
+	{"__copy__", ( PyCFunction ) Lattice_copy, METH_NOARGS,
+	 Lattice_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -767,6 +773,26 @@ static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args )
 
 	Py_INCREF( Py_None );
 	return Py_None;
+}
+
+static PyObject *Lattice_copy( BPy_Lattice * self )
+{
+	Lattice *bl_Lattice;	// blender Lattice object 
+	PyObject *py_Lattice;	// python wrapper 
+
+	bl_Lattice = copy_lattice( self->Lattice );
+	bl_Lattice->id.us = 0;
+
+	if( bl_Lattice )
+		py_Lattice = Lattice_CreatePyObject( bl_Lattice );
+	else
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "couldn't create Lattice Object in Blender" );
+	if( !py_Lattice )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "couldn't create Lattice Object wrapper" );
+
+	return py_Lattice;
 }
 
 //***************************************************************************
