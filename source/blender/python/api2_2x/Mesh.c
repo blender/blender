@@ -7434,6 +7434,7 @@ static PyObject *M_Mesh_FaceModesDict( void )
 		PyConstant_Insert( d, "LIGHT", PyInt_FromLong( TF_LIGHT ) );
 		PyConstant_Insert( d, "OBCOL", PyInt_FromLong( TF_OBCOL ) );
 		PyConstant_Insert( d, "SHADOW", PyInt_FromLong( TF_SHADOW ) );
+		PyConstant_Insert( d, "TEXT", PyInt_FromLong( TF_BMFONT ) );
 		PyConstant_Insert( d, "SHAREDVERT", PyInt_FromLong( TF_SHAREDVERT ) );
 		PyConstant_Insert( d, "SHAREDCOL", PyInt_FromLong( TF_SHAREDCOL ) );
 		PyConstant_Insert( d, "TEX", PyInt_FromLong( TF_TEX ) );

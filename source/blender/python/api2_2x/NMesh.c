@@ -3342,19 +3342,20 @@ static PyObject *M_NMesh_FaceModesDict( void )
 		BPy_constant *d = ( BPy_constant * ) FM;
 
 		PyConstant_Insert( d, "BILLBOARD",
-				 PyInt_FromLong( TF_BILLBOARD2 ) );
-		PyConstant_Insert( d, "ALL", PyInt_FromLong( 0xffff ) );
+		                       PyInt_FromLong( TF_BILLBOARD2 ) );
+		PyConstant_Insert( d, "ALL", PyInt_FromLong( 0x7fff ) );
 		PyConstant_Insert( d, "HALO", PyInt_FromLong( TF_BILLBOARD ) );
-		EXPP_ADDCONST( d, DYNAMIC );
-		EXPP_ADDCONST( d, INVISIBLE );
-		EXPP_ADDCONST( d, LIGHT );
-		EXPP_ADDCONST( d, OBCOL );
-		EXPP_ADDCONST( d, SHADOW );
-		EXPP_ADDCONST( d, SHAREDVERT );
-		EXPP_ADDCONST( d, SHAREDCOL );
-		EXPP_ADDCONST( d, TEX );
-		EXPP_ADDCONST( d, TILES );
-		EXPP_ADDCONST( d, TWOSIDE );
+		PyConstant_Insert( d, "DYNAMIC", PyInt_FromLong( TF_DYNAMIC ) );
+		PyConstant_Insert( d, "INVISIBLE", PyInt_FromLong( TF_INVISIBLE ) );
+		PyConstant_Insert( d, "LIGHT", PyInt_FromLong( TF_LIGHT ) );
+		PyConstant_Insert( d, "OBCOL", PyInt_FromLong( TF_OBCOL ) );
+		PyConstant_Insert( d, "SHADOW", PyInt_FromLong( TF_SHADOW ) );
+		PyConstant_Insert( d, "TEXT", PyInt_FromLong( TF_BMFONT ) );
+		PyConstant_Insert( d, "SHAREDVERT", PyInt_FromLong( TF_SHAREDVERT ) );
+		PyConstant_Insert( d, "SHAREDCOL", PyInt_FromLong( TF_SHAREDCOL ) );
+		PyConstant_Insert( d, "TEX", PyInt_FromLong( TF_TEX ) );
+		PyConstant_Insert( d, "TILES", PyInt_FromLong( TF_TILES ) );
+		PyConstant_Insert( d, "TWOSIDE", PyInt_FromLong( TF_TWOSIDE ) );
 	}
 
 	return FM;
