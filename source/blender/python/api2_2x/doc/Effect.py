@@ -95,6 +95,9 @@ class Effect:
   @ivar defvec: The x, y and z axis of the force defined by the texture.
     Values are clamped to the range [-1.0,1.0].
   @type defvec: tuple of 3 floats
+  @ivar disp: The percentage of particles displayed.
+    Value is clamped to the range [0,100].
+  @type disp: int
   @ivar dispMat: The material used for the particles.
     Value is clamped to the range [1,16].
   @type dispMat: int
@@ -150,6 +153,11 @@ class Effect:
   @ivar sta: The start time of the effect.
     Value is clamped to the range [-250.0,30000.0].
   @type sta: float
+  @ivar staticStep: percentage of skipped particles in static display.
+    Value is clamped to the range [1,100].
+  @type staticStep: int  
+  @ivar stype: The bitfield for vector.
+  @type stype: int
   @ivar texfac: The initial speed of the particles caused by the texture.
     Value is clamped to the range [0.0,2.0].
   @type texfac: float

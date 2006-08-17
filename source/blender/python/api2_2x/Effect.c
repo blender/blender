@@ -98,6 +98,11 @@
 #define EXPP_EFFECT_SPEEDTYPE_RGB        1
 #define EXPP_EFFECT_SPEEDTYPE_GRADIENT   2
 
+#define EXPP_EFFECT_STATICSTEP_MIN      1
+#define EXPP_EFFECT_STATICSTEP_MAX      100
+#define EXPP_EFFECT_DISP_MIN      0
+#define EXPP_EFFECT_DISP_MAX      100
+
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.		             */
 /*****************************************************************************/
@@ -167,6 +172,10 @@ static PyObject *Effect_getVertGroup( BPy_Effect * self );
 static int Effect_setVertGroup( BPy_Effect * self, PyObject * a );
 static PyObject *Effect_getSpeedVertGroup( BPy_Effect * self );
 static int Effect_setSpeedVertGroup( BPy_Effect * self, PyObject * a );
+static PyObject *Effect_getStaticStep( BPy_Effect * self );
+static int Effect_setStaticStep( BPy_Effect * self , PyObject * a);
+static PyObject *Effect_getDisp( BPy_Effect * self );
+static int Effect_setDisp( BPy_Effect * self , PyObject * a);
 static PyObject *Effect_getParticlesLoc( BPy_Effect * self  );
 
 static PyObject *Effect_oldsetType( void );
@@ -331,6 +340,14 @@ static PyGetSetDef BPy_Effect_getseters[] = {
 	 (getter)Effect_getStype, (setter)Effect_setStype,
 	 "The particle stype bitfield",
 	 NULL},
+	{"disp",
+	 (getter)Effect_getDisp, (setter)Effect_setDisp,
+	 "The particle display value",
+	 NULL},
+	{"staticStep",
+	 (getter)Effect_getStaticStep, (setter)Effect_setStaticStep,
+	 "The particle static step value",
+	 NULL},
 	{"type",
 	 (getter)Effect_getType, (setter)Effect_setType,
 	 "The effect's type (deprecated)",
@@ -439,7 +456,6 @@ static PyGetSetDef BPy_Effect_getseters[] = {
 	 (getter)Effect_getVectsize, (setter)Effect_setVectsize,
 	 "The speed for particle's rotation direction",
 	 NULL},
-
 	{"vGroup",
 	 (getter)Effect_getVertGroup, (setter)Effect_setVertGroup,
 	 "Vertex group for emitted particles",
@@ -1417,6 +1433,53 @@ static int Effect_setSpeedVertGroup( BPy_Effect * self, PyObject * value )
 }
 
 /*****************************************************************************/
+/* attribute:           getDisp                                              */
+/* Description:         the current value of the display number button       */
+/* Data:                self effect                                          */
+/* Return:              integer value between 0  and 100                     */
+/*****************************************************************************/
+static PyObject *Effect_getDisp( BPy_Effect * self )
+{
+	PyObject *attr = PyInt_FromLong( ( long )self->effect->disp );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Effect.disp attribute" );
+}
+
+static int Effect_setDisp( BPy_Effect * self, PyObject * args )
+{
+	return EXPP_setIValueRange( args, &self->effect->disp,
+			EXPP_EFFECT_DISP_MIN, EXPP_EFFECT_DISP_MAX, 'h' );
+}
+
+/*****************************************************************************/
+/* attribute:           getStep                                              */
+/* Description:         the current value of the Step number button          */
+/* Data:                self effect                                          */
+/* Return:              integer value between 1 and 100                      */
+/*****************************************************************************/
+static PyObject *Effect_getStaticStep( BPy_Effect * self )
+{
+	PyObject *attr = PyInt_FromLong( ( long )self->effect->staticstep );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Effect.staticStep attribute" );
+}
+
+static int Effect_setStaticStep( BPy_Effect * self , PyObject * args )
+{
+	return EXPP_setIValueRange( args, &self->effect->staticstep,
+			EXPP_EFFECT_STATICSTEP_MIN, EXPP_EFFECT_STATICSTEP_MAX,
+			'h' );
+}
+
+/*****************************************************************************/
 /* Method:              getParticlesLoc                                      */
 /* Python equivalent:   effect.getParticlesLoc                               */
 /* Description:         Get the current location of each  particle           */
@@ -1480,7 +1543,7 @@ static PyObject *Effect_getParticlesLoc( BPy_Effect * self )
 		if(paf->flag & PAF_STATIC ) {
 			strand_list = PyList_New( 0 );
 			m_time= pa->time+pa->lifetime+paf->staticstep-1;
-            for(c_time= pa->time; c_time<m_time; c_time+=paf->staticstep) {
+			for(c_time= pa->time; c_time<m_time; c_time+=paf->staticstep) {
 				where_is_particle(paf, pa, c_time, vec);
 				MTC_Mat4MulVecfl(ob->obmat, vec); /* make worldspace like the others */
 				if( PyList_Append( strand_list, newVectorObject(vec, 3, Py_NEW)) < 0 ) {
@@ -1501,8 +1564,8 @@ static PyObject *Effect_getParticlesLoc( BPy_Effect * self )
 		} else {
 			if(c_time > pa->time && c_time < pa->time+pa->lifetime ) {
 				/* vector particles are a tuple of 2 vectors */
-                if( paf->stype==PAF_VECT ) {
-                    s_time= c_time;
+				if( paf->stype==PAF_VECT ) {
+					s_time= c_time;
 					p_time= c_time+1.0f;
 					if(c_time < pa->time) {
 						if(paf->flag & PAF_UNBORN)
@@ -1516,30 +1579,28 @@ static PyObject *Effect_getParticlesLoc( BPy_Effect * self )
 						else
 							continue;
 					}
-                    where_is_particle(paf, pa, s_time, vec);
-                    where_is_particle(paf, pa, p_time, vec1);
-                    if( PyList_Append( list,
-                        Py_BuildValue("[OO]",
-								newVectorObject(vec, 3, Py_NEW),
-								newVectorObject(vec1, 3, Py_NEW))) < 0 )
-					{
-                        Py_DECREF( list );
-                        return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-							"Couldn't append item to PyList" );
+					where_is_particle(paf, pa, s_time, vec);
+					where_is_particle(paf, pa, p_time, vec1);
+					if( PyList_Append( list, Py_BuildValue("[OO]",
+									newVectorObject(vec, 3, Py_NEW),
+									newVectorObject(vec1, 3, Py_NEW))) < 0 ) {
+						Py_DECREF( list );
+						return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+								"Couldn't append item to PyList" );
 					}
 				} else { /* not a vector */
 					where_is_particle(paf, pa, c_time, vec);
 					if( PyList_Append( list,
-						newVectorObject(vec, 3, Py_NEW)) < 0 ) {
-                                        Py_DECREF( list );
-                                        return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-                                        "Couldn't append item to PyList" );
+								newVectorObject(vec, 3, Py_NEW)) < 0 ) {
+						Py_DECREF( list );
+						return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+								"Couldn't append item to PyList" );
 					}
 				}
 			}
 		}
 	}
-	
+
 	/* restore the real disp value */
 	if (disp<100){
 		paf->disp=disp;	
