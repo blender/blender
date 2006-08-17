@@ -1248,14 +1248,46 @@ AttributeError:
 		sModuleBadArgs, "Get(): ", "- Expects (optional) string sequence");
 }
 
+
+//----------------Blender.Armature.New()
+static PyObject *M_Armature_New(PyObject * self, PyObject * args)
+{
+	char *name = "Armature";
+	struct bArmature *armature;
+	BPy_Armature *obj;
+	char buf[21];
+
+	if( !PyArg_ParseTuple( args, "|s", &name ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected nothing or a string as argument" );
+
+	armature= add_armature();
+	armature->id.us = 0;
+	obj = PyArmature_FromArmature(armature); //*new*
+
+	if( !obj )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				       "PyObject_New() failed" );	
+
+	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
+	rename_id( &armature->id, buf );
+
+	obj->armature = armature;
+	return (PyObject *)obj;
+}
+
+
 //-------------------MODULE METHODS DEFINITION-----------------------------
 
 static char M_Armature_Get_doc[] = "(name) - return the armature with the name 'name', \
   returns None if not found.\n If 'name' is not specified, it returns a list of all \
   armatures in the\ncurrent scene.";
 
+static char M_Armature_New_doc[] = "(name) - return a new armature object.";
+
 struct PyMethodDef M_Armature_methods[] = {
 	{"Get", M_Armature_Get, METH_VARARGS, M_Armature_Get_doc},
+	{"New", M_Armature_New, METH_VARARGS, M_Armature_New_doc},
 	{NULL, NULL, 0, NULL}
 };
 //------------------VISIBLE PROTOTYPE IMPLEMENTATION-----------------------

@@ -116,6 +116,15 @@ def Get (name = None):
       - ():     A list with all Armature objects in the current scene.
   """
 
+def New (name = None):
+  """
+  Return a new armatre.
+  @type name: string or nothing
+  @param name: The string name of the new armature.
+  @rtype: Blender Armature.
+  @return: A new armature.
+  """
+
 class Armature:
   """
   The Armature object
