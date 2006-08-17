@@ -55,7 +55,7 @@
 #ifdef _WIN32
 #include <QTML.h>
 #include <Movies.h>
-#include <QuicktimeComponents.h>
+#include <QuickTimeComponents.h>
 #include <TextUtils.h> 
 #endif /* _WIN32 */
 
@@ -65,7 +65,7 @@
 #define __AIFF__
 #endif
 #include <QuickTime/Movies.h>
-#include <QuickTime/QuicktimeComponents.h>
+#include <QuickTime/QuickTimeComponents.h>
 #include <fcntl.h> /* open() */
 #include <unistd.h> /* close() */
 #include <sys/stat.h> /* file permissions */
