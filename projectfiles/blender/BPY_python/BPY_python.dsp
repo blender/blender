@@ -165,6 +165,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\gen_utils.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\Geometry.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\Group.c
 # End Source File
 # Begin Source File
@@ -410,6 +414,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Font.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\gen_utils.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Geometry.h
 # End Source File
 # Begin Source File
 

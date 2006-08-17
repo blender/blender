@@ -40,8 +40,8 @@ RSC=rc.exe
 # PROP Output_Dir "..\..\..\obj\windows\blender\render"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\render"
 # PROP Target_Dir ""
-MTL=midl.exe
 LINK32=link.exe -lib
+MTL=midl.exe
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\..\lib\windows\sdl\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\misc" /I "..\..\..\source\kernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\source\blender\render\intern\include" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender" /I "..\..\..\source\blender\yafray" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_QUICKTIME" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -65,8 +65,8 @@ LIB32=link.exe -lib
 # PROP Output_Dir "..\..\..\obj\windows\blender\render\debug"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\render\debug"
 # PROP Target_Dir ""
-MTL=midl.exe
 LINK32=link.exe -lib
+MTL=midl.exe
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\..\lib\windows\sdl\include" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\kernel\gen_messaging" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender\misc" /I "..\..\..\source\kernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\source\blender\render\intern\include" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender" /I "..\..\..\source\blender\yafray" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_QUICKTIME" /YX /J /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -90,10 +90,6 @@ LIB32=link.exe -lib
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\render\intern\source\convertblender.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\render\intern\source\edgeRender.c
 # End Source File
 # Begin Source File
 
