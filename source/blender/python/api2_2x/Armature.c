@@ -324,12 +324,12 @@ static int BonesDict_SetItem(BPy_BonesDict *self, PyObject *key, PyObject *value
 				/*this is ugly but you have to set the parent to NULL for else 
 				editbones_to_armature will crash looking for this bone*/
 				for (editbone = self->editbones.first; editbone; editbone = editbone->next){
-					if (editbone->parent == editbone_for_deletion->editbone)
+					if (editbone->parent == editbone_for_deletion->editbone) {
 						editbone->parent = NULL;
-					    /*any parent's were connected to this we must remove the flag
-					    or else the 'root' ball doesn't get draw*/
-					    if (editbone->flag & BONE_CONNECTED)
-							editbone->flag &= ~BONE_CONNECTED;
+						 /* remove the connected flag or else the 'root' ball
+						  * doesn't get drawn */
+						editbone->flag &= ~BONE_CONNECTED;
+					}
 				}
 				BLI_freelinkN(&self->editbones, editbone_for_deletion->editbone);
 				if(PyDict_DelItem(self->editbonesMap, key) == -1)
@@ -1263,7 +1263,7 @@ static PyObject *M_Armature_New(PyObject * self, PyObject * args)
 
 	armature= add_armature();
 	armature->id.us = 0;
-	obj = PyArmature_FromArmature(armature); //*new*
+	obj = (BPy_Armature *)PyArmature_FromArmature(armature); /*new*/
 
 	if( !obj )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
