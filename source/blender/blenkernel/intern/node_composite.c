@@ -2839,7 +2839,7 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 	}
 	else {
 		
-		if(in[1]->vec[0]==0.0f) {
+		if(in[1]->vec[0]<=0.001f) {	/* time node inputs can be a tiny value */
 			/* pass on image */
 			new= pass_on_compbuf(img);
 		}
