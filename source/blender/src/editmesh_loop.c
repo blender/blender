@@ -480,10 +480,11 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 	short mval1[2], lockaxis=0, lockx=0, locky=0, oldmode; 
 	
 	EditVert *snapvert;
-	short sdist;
+	short sdist, stolerance;
 	float *scr, mval[2], lastx=0, lasty=0;
 	
 	*len=0;
+	stolerance = (int)(G.scene->toolsettings->select_thresh * 1000);
 	curve=(CutCurve *)MEM_callocN(1024*sizeof(CutCurve), "MouseTrail");
 
 	if (!curve) {
@@ -548,12 +549,12 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 		
 		if(vsnap){ 
 			persp(PERSP_VIEW);
-			sdist = 75;
+			sdist = stolerance;
 			snapvert = findnearestvert(&sdist, SELECT);
 			glColor3ub(255, 0, 255);
 			glDrawBuffer(GL_FRONT);
 			persp(PERSP_WIN);
-			if(snapvert && (sdist < 75)){
+			if(snapvert && (sdist < stolerance)){
 				scr = BLI_ghash_lookup(gh, snapvert);
 				mval[0] = scr[0];
 				mval[1] = scr[1];

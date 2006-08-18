@@ -3443,7 +3443,7 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	
 	uiDefBut(block, BUT,B_REMDOUB,"Rem Doubles",	10,135,78,19, 0, 0, 0, 0, 0, "Removes duplicates from selected vertices");
 	uiDefButF(block, NUM, B_DIFF, "Limit:",			88,135,117,19, &G.scene->toolsettings->doublimit, 0.0001, 1.0, 10, 0, "Specifies the max distance 'Rem Doubles' will consider vertices as 'doubled'");
-	uiDefButF(block, NUM, B_DIFF, "Threshold:",			205,135,120,19, &G.scene->toolsettings->select_thresh, 0.0001, 1.0, 10, 0, "Tolerence for the 'Select Group' tool (Shift+G).");
+	uiDefButF(block, NUM, B_DIFF, "Threshold:",			205,135,120,19, &G.scene->toolsettings->select_thresh, 0.0001, 1.0, 10, 0, "Tolerence for the 'Select Group' tool (Shift+G) and 'Knife Exact' (vertex snap).");
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, BUT,B_EXTR,"Extrude",			10,105,315,24, 0, 0, 0, 0, 0, "Converts selected edges to faces and selects the new vertices");
