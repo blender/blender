@@ -17,7 +17,34 @@ Example::
     print mod,mod.name           # print each modifier and its name
   mod = mods.append(Modifier.Type.SUBSURF) # add a new subsurf modifier
   mod[Modifier.Settings.LEVELS] = 3     # set subsurf subdivision levels to 3
-  
+
+
+Example::
+	# Apply a lattice to an object and get the deformed object
+	# Uses an object called 'Cube' and a lattive called ''Lattive
+	
+	from Blender import *
+	ob_mesh= Object.Get('Cube')
+	ob_lattice= Object.Get('Lattice')
+
+	myMeshMod = ob_mesh.modifiers
+	mod = myMeshMod.append(Modifier.Type.LATTICE)
+	mod[Modifier.Settings.OBJECT] = ob_lattice
+
+	ob_mesh.makeDisplayList() # Needed to apply the modifier
+
+	Window.RedrawAll() # View the change
+
+	deformed_mesh= Mesh.New()
+	deformed_mesh.getFromObject(ob_mesh.name)
+
+
+	# Print the deformed locations
+	for v in deformed_mesh.verts:
+		print v.co
+
+
+
 @type Type: readonly dictionary
 @var Type: Constant Modifier dict used for  L{Modifiers.append()} to a
   modifier sequence and comparing with L{Modifier.type}:
