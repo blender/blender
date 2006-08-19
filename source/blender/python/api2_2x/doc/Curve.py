@@ -33,7 +33,46 @@ Iterator Example::
     for point in cur:
       print type( point ), point
 
-
+Creating a Curve from a list of Vec triples Examples::
+  from Blender import *
+  def bezList2Curve(bezier_vecs):
+    '''
+    Take a list or vector triples and converts them into a bezier curve object
+    '''
+    
+    def bezFromVecs(vecs):
+    	'''
+    	Bezier triple from 3 vecs, shortcut functon
+    	'''
+    	bt= BezTriple.New(\
+    	vecs[0].x, vecs[0].y, vecs[0].z,\
+    	vecs[1].x, vecs[1].y, vecs[1].z,\
+    	vecs[2].x, vecs[2].y, vecs[2].z)
+    	
+    	bt.handleTypes= (BezTriple.HandleTypes.FREE, BezTriple.HandleTypes.FREE)
+    	
+    	return bt
+    
+    # Create the curve data with one point
+    cu= Curve.New()
+    cu.appendNurb(bezFromVecs(bezier_vecs[0])) # We must add with a point to start with
+    cu_nurb= cu[0] # Get the first curve just added in the CurveData
+    
+    
+    i= 1 # skip first vec triple because it was used to init the curve
+    while i<len(bezier_vecs):
+    	bt_vec_triple= bezier_vecs[i]
+    	bt= bezFromVecs(bt_vec_triple)
+    	cu_nurb.append(bt)
+    	i+=1
+    
+    # Add the Curve into the scene
+    ob= Object.New('Curve')
+    ob.link(cu)
+    scn= Scene.GetCurrent()
+    scn.link(ob)
+    ob.Layers= scn.Layers
+  	return ob
 """
 
 def New ( name):
