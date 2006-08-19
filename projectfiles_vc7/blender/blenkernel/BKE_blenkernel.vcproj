@@ -345,6 +345,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\bmfont.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\brush.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\CCGSubSurf.c">
 			</File>
 			<File
@@ -500,6 +503,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_booleanops_mesh.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_brush.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_colortools.h">

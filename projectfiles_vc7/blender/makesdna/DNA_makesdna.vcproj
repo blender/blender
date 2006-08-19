@@ -439,6 +439,9 @@ DNA_makesdna.exe dna.c
 				RelativePath="..\..\..\source\blender\makesdna\DNA_armature_types.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_brush_types.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_camera_types.h">
 			</File>
 			<File
