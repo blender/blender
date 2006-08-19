@@ -1460,8 +1460,9 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 							/* for each point of poly make a bevel piece */
 						bevp= (BevPoint *)(bl+1);
 						for(a=0; a<bl->nr; a++,bevp++) {
-							float fac;
-							if ((cu->taperobj==NULL) && !((cu->flag & CU_FRONT) || (cu->flag & CU_BACK))) {
+							float fac=1.0;
+							if (cu->taperobj==NULL) {
+								if ( (cu->bevobj!=NULL) || !((cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) )
 								fac = calc_curve_subdiv_radius(cu, nu, a);
 							} else {
 								fac = calc_taper(cu->taperobj, a, bl->nr);
