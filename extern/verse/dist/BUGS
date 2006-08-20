@@ -1,0 +1,8 @@
+
+Known problems with Verse
+
+2004-03-03
+* The source code needs plenty of cleaning up in order to compile more
+  cleanly.
+* License information needs to be added all over the place.
+* Decent documentation is missing.

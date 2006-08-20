@@ -1,0 +1,23 @@
+
+				Verse
+
+This is the Verse protocol and sample server implementations.
+
+For more information, see <http://verse.blender.org/>.
+
+Running "make" here will build the API library, "libverse.a" (and its
+header file, "verse.h"). These two will then be used to build the
+reference Verse server binary, called "verse".
+
+
+RELEASE LABELING
+Verse uses a simple two-level numbering scheme to identify releases.
+There is a "release number", and a "patch level" on each release. The
+intent is that within a release, the API does not change and neither
+should the network protocol. Between releases, we might improve the
+API which will require application programmers to update their code
+to stay in sync. We can do non-API-altering changes within a release
+by increasing the patch level, for bug fixing and other things.
+	The symbols V_RELEASE_NUMBER and V_RELEASE_PATCH are integer
+literals that hold the values for the API you have, and can be used
+(and displayed) in application source code as you see fit.
