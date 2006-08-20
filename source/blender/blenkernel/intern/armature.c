@@ -877,7 +877,6 @@ void where_is_armature_bone(Bone *bone, Bone *prevbone)
 	
 	/* Bone Space */
 	VecSubf (vec, bone->tail, bone->head);
-	printvecf(bone->name, vec);
 	vec_roll_to_mat3(vec, bone->roll, bone->bone_mat);
 
 	bone->length= VecLenf(bone->head, bone->tail);
