@@ -277,6 +277,14 @@ void BLI_builddir(char *dirname, char *relname)
 				BLI_addhead(dirbase,dlink);
 				newnum++;
 			}
+#else // WIN32
+			if (seen_ == 0) {	/* should only happen for root paths like "C:\" */
+				dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
+				strcpy(buf+rellen,".");
+				dlink->name = BLI_strdup(buf);
+				BLI_addhead(dirbase,dlink);
+				newnum++;
+			}
 #endif			
 
 			if (files) files=(struct direntry *)realloc(files,(totnum+newnum) * sizeof(struct direntry));

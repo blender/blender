@@ -94,7 +94,7 @@ char *BLI_gethome(void);
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
 void BLI_make_exist(char *dir);
 void BLI_make_existing_file(char *name);
-void BLI_split_dirfile(char *string, char *dir, char *file);
+void BLI_split_dirfile(const char *string, char *dir, char *file);
 int BLI_testextensie(char *str, char *ext);
 void addlisttolist(ListBase *list1, ListBase *list2);
 void BLI_insertlink(struct ListBase *listbase, void *vprevlink, void *vnewlink);

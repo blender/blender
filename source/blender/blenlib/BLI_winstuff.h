@@ -113,6 +113,7 @@ void RegisterBlendExtension(char * str);
 DIR *opendir (const char *path);
 struct dirent *readdir(DIR *dp);
 int closedir (DIR *dp);
+void get_default_root(char* root);
 
 #endif /* __WINSTUFF_H__ */
 

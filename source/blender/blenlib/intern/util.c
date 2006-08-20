@@ -449,8 +449,7 @@ void BLI_cleanup_dir(const char *relabase, char *dir)
 	
 #ifdef WIN32
 	if(dir[0]=='.') {	/* happens for example in FILE_MAIN */
-	   dir[0]= '\\';
-	   dir[1]= 0;
+	   get_default_root(dir);
 	   return;
 	}	
 
@@ -534,6 +533,9 @@ void BLI_makestringcode(const char *relfile, char *file)
 	/* if file is already relative, bail out */
 	if(file[0]=='/' && file[1]=='/') return;
 	
+	/* also bail out if relative path is not set */
+	if (relfile[0] == 0) return;
+
 	strcpy(temp, relfile);
 	
 #ifdef WIN32
@@ -596,7 +598,24 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 	char tmp[FILE_MAXDIR+FILE_MAXFILE];
 	char base[FILE_MAXDIR];
 	
+	wasrelative= (strncmp(path, "//", 2)==0);
+
+#ifdef WIN32
+	if (!wasrelative && path[1] != ':') {
+		get_default_root(tmp);
+		// get rid of the slashes at the beginning of the path
+		while (*path == '\\' || *path == '/') {
+			path++;
+		}
+		strcat(tmp, path);
+	}
+	else {
+		strcpy(tmp, path);
+	}
+#else
 	strcpy(tmp, path);
+#endif
+
 	strcpy(base, basepath);
 	
 	/* push slashes into unix mode - strings entering this part are
@@ -606,9 +625,7 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 	   of paths and solving some problems (and prevent potential future
 	   ones) -jesterKing. */
 	BLI_char_switch(tmp, '\\', '/');
-	BLI_char_switch(base, '\\', '/');
-	
-	wasrelative= (strncmp(tmp, "//", 2)==0);
+	BLI_char_switch(base, '\\', '/');	
 
 	if (tmp[0] == '/' && tmp[1] == '/') {
 		char *filepart= BLI_strdup(tmp+2); /* skip code */
@@ -761,7 +778,8 @@ void BLI_make_exist(char *dir) {
 		}
 		if (a >= 0) dir[a+1] = 0;
 		else {
-			strcpy(dir,"\\");
+			/* defaulting to first valid drive hoping it's not empty CD and DVD drives */
+			get_default_root(dir);
 			break;
 		}
 	}
@@ -825,7 +843,29 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 
 		dir+=2; /* Skip over the relative reference */
 	}
-	
+#ifdef WIN32
+	else {
+		if (strlen(dir) >= 2 && dir[1] == ':' ) {
+			BLI_strncpy(string, dir, 3);
+			dir += 2;
+		}
+		else { /* no drive specified */
+			/* first option: get the drive from the relabase if it has one */
+			if (relabase && strlen(relabase) >= 2 && relabase[1] == ':' ) {
+				BLI_strncpy(string, relabase, 3);	
+				string[2] = '\\';
+				string[3] = '\0';
+			}
+			else { /* we're out of luck here, guessing the first valid drive, usually c:\ */
+				get_default_root(string);
+			}
+			
+			/* ignore leading slashes */
+			while (*dir == '/' || *dir == '\\') dir++;
+		}
+	}
+#endif
+
 	strcat(string, dir);
 
 	/* Make sure string ends in one (and only one) slash */	
@@ -868,56 +908,64 @@ int BLI_testextensie(char *str, char *ext)
 
 
 
-void BLI_split_dirfile(char *string, char *dir, char *file)
+void BLI_split_dirfile(const char *string, char *dir, char *file)
 {
 	int a;
-	
+	int sl;
+	short is_relative = 0;
+
 	dir[0]= 0;
 	file[0]= 0;
 
 #ifdef WIN32
 	BLI_char_switch(string, '/', '\\'); /* make sure we have a valid path format */
-
-	if (strlen(string)) {
+	sl = strlen(string);
+	if (sl) {
 		int len;
 		if (string[0] == '/' || string[0] == '\\') { 
 			BLI_strncpy(dir, string, FILE_MAXDIR);
-		} else if (string[1] == ':' && string[2] == '\\') {
-            BLI_strncpy(dir, string, FILE_MAXDIR);
-        } else {
-            BLI_getwdN(dir);
-            strcat(dir,"/");
-            strcat(dir,string);
-            BLI_strncpy(string,dir,FILE_MAXDIR+FILE_MAXFILE);
-        }
+			if (sl > 1 && string[0] == '\\' && string[1] == '\\') is_relative = 1;
+		} else if (sl > 2 && string[1] == ':' && string[2] == '\\') {
+			BLI_strncpy(dir, string, FILE_MAXDIR);
+		} else {
+			BLI_getwdN(dir);
+			strcat(dir,"\\");
+			strcat(dir,string);
+			BLI_strncpy(string,dir,FILE_MAXDIR+FILE_MAXFILE);
+		}
 
-        BLI_make_exist(dir);
+		// BLI_exist doesn't recognize a slashed dirname as a dir
+		//  check if a trailing slash exists, and remove it. Do not do this
+		//  when we are already at root. -jesterKing
+		a = strlen(dir);
+		if(a>=4 && dir[a-1]=='\\') dir[a-1] = 0;
 
-        // BLI_exist doesn't recognize a slashed dirname as a dir
-        //  check if a trailing slash exists, and remove it. Do not do this
-        //  when we are already at root. -jesterKing
-        a = strlen(dir);
-        if(a>=4 && dir[a-1]=='\\') dir[a-1] = 0;
+		if (is_relative) {
+			printf("WARNING: BLI_split_dirfile needs absolute dir");
+		}
+		else {
+			BLI_make_exist(dir);
+		}
 
-        if (S_ISDIR(BLI_exist(dir))) {
+		if (S_ISDIR(BLI_exist(dir))) {
 
-	    /* copy from end of string into file, to ensure filename itself isn't truncated 
-	       if string is too long. (aphex) */
+			/* copy from end of string into file, to ensure filename itself isn't truncated 
+			if string is too long. (aphex) */
 
-	    len = FILE_MAXFILE - strlen(string);
+			len = FILE_MAXFILE - strlen(string);
 
-	    if (len < 0)
-		BLI_strncpy(file,string + abs(len),FILE_MAXFILE);
-	    else
-		BLI_strncpy(file,string,FILE_MAXFILE);
-	    
-            if (strrchr(string,'\\')){
-		BLI_strncpy(file,strrchr(string,'\\')+1,FILE_MAXFILE);
-	    }
+			if (len < 0)
+				BLI_strncpy(file,string + abs(len),FILE_MAXFILE);
+			else
+				BLI_strncpy(file,string,FILE_MAXFILE);
+		    
+			if (strrchr(string,'\\')){
+				BLI_strncpy(file,strrchr(string,'\\')+1,FILE_MAXFILE);
+			}
 
-            if (a = strlen(dir)) {
-                if (dir[a-1] != '\\') strcat(dir,"\\");
-            }
+			if (a = strlen(dir)) {
+				if (dir[a-1] != '\\') strcat(dir,"\\");
+			}
 		}
 		else {
 			a = strlen(dir) - 1;
@@ -925,10 +973,11 @@ void BLI_split_dirfile(char *string, char *dir, char *file)
 			dir[a + 1] = 0;
 			BLI_strncpy(file, string + strlen(dir),FILE_MAXFILE);
 		}
-		
+
 	}
 	else {
-		strcpy(dir, "\\");
+		/* defaulting to first valid drive hoping it's not empty CD and DVD drives */
+		get_default_root(dir);
 		file[0]=0;
 	}
 #else

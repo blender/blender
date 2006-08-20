@@ -459,6 +459,8 @@ static void show_splash(void)
 static void filesel_u_yfexportdir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+
+	BLI_cleanup_dir(G.sce, name);
 	BLI_split_dirfile(name, dir, file);
 
 	strcpy(U.yfexportdir, dir);
@@ -468,6 +470,8 @@ static void filesel_u_yfexportdir(char *name)
 static void filesel_u_fontdir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+	
+	BLI_cleanup_dir(G.sce, name);
 	BLI_split_dirfile(name, dir, file);
 
 	strcpy(U.fontdir, dir);
@@ -477,6 +481,8 @@ static void filesel_u_fontdir(char *name)
 static void filesel_u_textudir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+
+	BLI_cleanup_dir(G.sce, name);
 	BLI_split_dirfile(name, dir, file);
 
 	strcpy(U.textudir, dir);
@@ -486,6 +492,8 @@ static void filesel_u_textudir(char *name)
 static void filesel_u_plugtexdir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+
+	BLI_cleanup_dir(G.sce, name);
 	BLI_split_dirfile(name, dir, file);
 
 	strcpy(U.plugtexdir, dir);
@@ -495,6 +503,8 @@ static void filesel_u_plugtexdir(char *name)
 static void filesel_u_plugseqdir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+
+	BLI_cleanup_dir(G.sce, name);
 	BLI_split_dirfile(name, dir, file);
 
 	strcpy(U.plugseqdir, dir);
@@ -504,6 +514,8 @@ static void filesel_u_plugseqdir(char *name)
 static void filesel_u_renderdir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+
+	BLI_cleanup_dir(G.sce, name);
 	BLI_split_dirfile(name, dir, file);
 
 	strcpy(U.renderdir, dir);
@@ -513,6 +525,8 @@ static void filesel_u_renderdir(char *name)
 static void filesel_u_pythondir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+
+	BLI_cleanup_dir(G.sce, name);
 	BLI_split_dirfile(name, dir, file);
 
 	strcpy(U.pythondir, dir);
@@ -522,6 +536,8 @@ static void filesel_u_pythondir(char *name)
 static void filesel_u_sounddir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+
+	BLI_cleanup_dir(G.sce, name);
 	BLI_split_dirfile(name, dir, file);
 
 	strcpy(U.sounddir, dir);
@@ -531,6 +547,8 @@ static void filesel_u_sounddir(char *name)
 static void filesel_u_tempdir(char *name)
 {
 	char dir[FILE_MAXDIR], file[FILE_MAXFILE];
+
+	BLI_cleanup_dir(G.sce, name);
 	BLI_split_dirfile(name, dir, file);
 
 	strcpy(U.tempdir, dir);

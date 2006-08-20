@@ -55,7 +55,7 @@ int BLI_getInstallationDir( char * str ) {
 	int a;
 	
 	GetModuleFileName(NULL,str,FILE_MAXDIR+FILE_MAXFILE);
-	BLI_split_dirfile(str,dir,file);
+	BLI_split_dirfile(str,dir,file); /* shouldn't be relative */
 	a = strlen(dir);
 	if(dir[a-1] == '\\') dir[a-1]=0;
 	
@@ -104,7 +104,7 @@ DIR *opendir (const char *path) {
 		DIR *newd= MEM_mallocN(sizeof(DIR), "opendir");
 
 		newd->handle = INVALID_HANDLE_VALUE;
-		sprintf(newd->path, "%s/*.*",path);
+		sprintf(newd->path, "%s\\*",path);
 		
 		newd->direntry.d_ino= 0;
 		newd->direntry.d_off= 0;
@@ -147,6 +147,30 @@ int closedir (DIR *dp) {
 	MEM_freeN(dp);
 	
 	return 0;
+}
+
+void get_default_root(char* root) {
+	DWORD tmp;
+	int i;
+
+	tmp= GetLogicalDrives();
+
+	for (i=2; i < 26; i++) {
+		if ((tmp>>i) & 1) {
+			root[0] = 'a'+i;
+			root[1] = ':';
+			root[2] = '\\';
+			root[3] = '\0';
+			if (GetFileAttributes(root) != 0xFFFFFFFF)
+				return;			
+		}
+	}
+
+	printf("ERROR in 'get_default_root': can't find a valid drive!");
+	root[0] = 'c';
+	root[1] = ':';
+	root[2] = '\\';
+	root[3] = '\0';
 }
 
 #else

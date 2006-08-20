@@ -705,7 +705,9 @@ void parent(SpaceFile *sfile)
 	if( (a = strlen(dir)) ) {
 		if (dir[a-1] != '\\') strcat(dir,"\\");
 	}
-	else if(sfile->type!=FILE_MAIN) strcpy(dir,"\\");
+	else if(sfile->type!=FILE_MAIN) { 
+		get_default_root(dir);
+	}
 #else
 	if( (a = strlen(dir)) ) {				/* remove all '/' at the end */
 		while(dir[a-1] == '/') {
@@ -1518,7 +1520,15 @@ static void filesel_execute(SpaceFile *sfile)
 			BLI_strncpy(name, sfile->dir, sizeof(name));
 			strcat(name, sfile->file);
 			
-			if(sfile->flag & FILE_STRINGCODE) BLI_makestringcode(G.sce, name);
+			if(sfile->flag & FILE_STRINGCODE) {
+				if (!G.relbase_valid) {
+					okee("You have to save the .blend file before using relative paths! Using absolute path instead.");
+					sfile->flag & ~FILE_STRINGCODE;
+				}
+				else {
+					BLI_makestringcode(G.sce, name);
+				}
+			}
 
 			sfile->returnfunc(name);
 		}
@@ -1549,6 +1559,8 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 		BLI_cleanup_dir(G.sce, sfile->dir);
 
 		BLI_make_file_string(G.sce, butname, sfile->dir, "");
+		BLI_strncpy(sfile->dir, butname, sizeof(sfile->dir));
+
 		/* strip the trailing slash if its a real dir */
 		if (strlen(butname)!=1)
 			butname[strlen(butname)-1]=0;

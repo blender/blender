@@ -368,6 +368,8 @@ void BIF_read_file(char *name)
 
 		if(retval==2) init_userdef_file();	// in case a userdef is read from regular .blend
 		
+		G.relbase_valid = 1;
+
 		undo_editmode_clear();
 		BKE_reset_undo();
 		BKE_write_undo("original");	/* save current state */
@@ -417,6 +419,7 @@ int BIF_read_homefile(void)
 	}
 	BLI_freelistN(&G.ttfdata);
 		
+	G.relbase_valid = 0;
 	BLI_make_file_string(G.sce, tstr, home, ".B.blend");
 	strcpy(scestr, G.sce);	/* temporal store */
 	
@@ -558,7 +561,7 @@ static void readBlog(void)
 	fsmenu_append_seperator();
 	
 	/* add last saved file */
-	BLI_split_dirfile(G.sce, name, filename);
+	BLI_split_dirfile(G.sce, name, filename); /* G.sce shouldn't be relative */
 	
 	fsmenu_insert_entry(name, 0);
 	
@@ -683,6 +686,7 @@ void BIF_write_file(char *target)
 	
 	if (BLO_write_file(di, writeflags, &err)) {
 		strcpy(G.sce, di);
+		G.relbase_valid = 1;
 		strcpy(G.main->name, di);	/* is guaranteed current file */
 
 		mainwindow_set_filename_to_title(G.main->name);

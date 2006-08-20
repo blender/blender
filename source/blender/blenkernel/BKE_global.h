@@ -88,6 +88,9 @@ typedef struct Global {
 	/* strings: lastsaved */
 	char ima[160], sce[160], lib[160];
 
+	/* flag: if != 0 G.sce contains valid relative base path */
+	int relbase_valid;
+
 	/* strings of recent opend files */
 	struct ListBase recent_files;
     
