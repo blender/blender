@@ -498,7 +498,7 @@ static PyObject *IpoCurve_append( C_IpoCurve * self, PyObject * args )
 		BezTriple *newb = MEM_callocN( (icu->totvert+1)*sizeof(BezTriple),
 				"BPyBeztriple" );
 		if( icu->bezt ) {
-			memcpy( newb, icu->bezt, ( icu->totvert+1 )*sizeof( BezTriple ) );
+			memcpy( newb, icu->bezt, ( icu->totvert )*sizeof( BezTriple ) );
 			MEM_freeN( icu->bezt );
 		}
 		icu->bezt = newb;
