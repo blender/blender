@@ -508,15 +508,14 @@ void converttopremul(struct ImBuf *ibuf)
 }
 
 /* used by sequencer, texture */
-struct anim *openanim(char * name, int flags)
+struct anim *openanim(char *name, int flags)
 {
-	struct anim * anim;
-	struct ImBuf * ibuf;
+	struct anim *anim;
+	struct ImBuf *ibuf;
 	
 	anim = IMB_open_anim(name, flags);
-	if (anim == 0) return(0);
+	if (anim == NULL) return(0);
 
-	
 	ibuf = IMB_anim_absolute(anim, 0);
 	if (ibuf == NULL) {
 		printf("not an anim; %s\n", name);
@@ -646,7 +645,7 @@ void ima_ibuf_is_nul(Tex *tex, Image *ima)
 	
 	if(tex->imaflag & TEX_ANIM5) {
 		
-		if(ima->anim==0) ima->anim = openanim(str, IB_cmap | IB_rect);
+		if(ima->anim==NULL) ima->anim = openanim(str, IB_cmap | IB_rect);
 		if (ima->anim) {
 			dur = IMB_anim_get_duration(ima->anim);
 			

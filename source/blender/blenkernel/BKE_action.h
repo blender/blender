@@ -148,7 +148,7 @@ float get_action_frame_inv(struct Object *ob, float cframe);
 };
 #endif
 
-/* nla strip flag */
+/* nla strip->mode, for action blending */
 enum	{
 			POSE_BLEND		= 0,
 			POSE_ADD

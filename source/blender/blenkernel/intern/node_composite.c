@@ -770,7 +770,17 @@ static void animated_image(bNode *node, int cfra)
 		imanr= calcimanr(cfra, nia);
 		
 		if(nia->movie) {
-			if(ima->anim==NULL) ima->anim = openanim(ima->name, IB_cmap | IB_rect);
+			char str[FILE_MAXDIR+FILE_MAXFILE];
+			
+			strcpy(str, ima->name);
+			if(ima->id.lib)
+				BLI_convertstringcode(str, ima->id.lib->filename, cfra);
+			else
+				BLI_convertstringcode(str, G.sce, cfra);
+			
+			if(ima->anim==NULL) 
+				ima->anim = openanim(str, IB_cmap | IB_rect);
+			
 			if (ima->anim) {
 				int dur = IMB_anim_get_duration(ima->anim);
 				
