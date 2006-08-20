@@ -68,6 +68,10 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
+#ifdef WITH_VERSE
+#include "BKE_verse.h"
+#endif
+
 #include "BIF_editmesh.h"
 #include "BIF_resources.h"
 #include "BIF_gl.h"
@@ -80,6 +84,10 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
 
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
@@ -2792,6 +2800,11 @@ void righthandfaces(int select)	/* makes faces righthand turning */
 	recalc_editnormals();
 	
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+#endif
 	
 	waitcursor(0);
 }
@@ -3081,6 +3094,11 @@ void vertexsmooth(void)
 
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_verseverts_with_editverts(G.editMesh->vnode);
+#endif
 	BIF_undo_push("Vertex Smooth");
 }
 
@@ -3128,6 +3146,10 @@ void vertexnoise(void)
 	recalc_editnormals();
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_verseverts_with_editverts(G.editMesh->vnode);
+#endif
 	BIF_undo_push("Vertex Noise");
 }
 
@@ -3192,6 +3214,10 @@ void vertices_to_sphere(void)
 	recalc_editnormals();
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_verseverts_with_editverts(G.editMesh->vnode);
+#endif
 	BIF_undo_push("To Sphere");
 }
 

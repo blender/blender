@@ -68,6 +68,9 @@ typedef struct EditVert
 	int hash;
 	struct MDeformWeight *dw;	/* __NLA a pointer to an array of defirm weights */
 	int keyindex; /* original index #, for restoring  key information */
+/*#ifdef WITH_VERSE*/
+	void *vvert;
+/*#endif*/
 } EditVert;
 
 struct EditEdge;
@@ -124,6 +127,9 @@ typedef struct EditFace
 	unsigned char f, f1, h;
 	unsigned char fast;			/* only 0 or 1, for editmesh_fastmalloc */
 	unsigned char fgonf;		/* flag for fgon options */
+/*#ifdef WITH_VERSE*/
+	void *vface;
+/*#endif*/
 } EditFace;
 
 
@@ -154,6 +160,10 @@ typedef struct EditMesh
 		 * to derived final, care should be taken on release.
 		 */
 	struct DerivedMesh *derivedCage, *derivedFinal;
+
+#ifdef WITH_VERSE
+	void *vnode;
+#endif
 } EditMesh;
 
 #endif

@@ -357,7 +357,6 @@ int main(int argc, char **argv)
 			case 'v':
 				print_version();
 				exit(0);
-
 			default:
 				break;
 			}

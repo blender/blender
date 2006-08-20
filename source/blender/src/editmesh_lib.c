@@ -63,6 +63,10 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 
 #include "BIF_editmesh.h"
 
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
+
 #include "BSE_edit.h"
 
 #include "editmesh.h"
@@ -1711,6 +1715,10 @@ void flip_editnormals(void)
 		}
 		efa= efa->next;
 	}
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+#endif
 }
 
 /* does face centers too */

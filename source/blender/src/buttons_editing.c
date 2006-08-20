@@ -117,6 +117,10 @@
 #include "BIF_previewrender.h"
 #include "BIF_butspace.h"
 
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
+
 #include "mydevice.h"
 #include "blendef.h"
 
@@ -3499,6 +3503,10 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	
 	/* Measurement drawing options */
 	uiBlockBeginAlign(block);
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		uiDefButBitI(block, TOG, G_DRAW_VERSE_DEBUG, REDRAWVIEW3D, "Draw VDebug",1125,132,150,19, &G.f, 0, 0, 0, 0, "Displays verse debug information");
+#endif
 	uiDefButBitI(block, TOG, G_DRAW_VNORMALS, REDRAWVIEW3D, "Draw VNormals",1125,110,150,19, &G.f, 0, 0, 0, 0, "Displays vertex normals as lines");
 	uiDefButBitI(block, TOG, G_DRAW_EDGELEN, REDRAWVIEW3D, "Edge Length",	1125,88,150,19, &G.f, 0, 0, 0, 0, "Displays selected edge lengths");
 	uiDefButBitI(block, TOG, G_DRAW_EDGEANG, REDRAWVIEW3D, "Edge Angles",	1125,66,150,19,  &G.f, 0, 0, 0, 0, "Displays the angles in the selected edges in degrees");
@@ -3608,7 +3616,13 @@ static void editing_panel_links(Object *ob)
 	}
 	if(ob) {
 		but = uiDefBut(block, TEX, B_IDNAME, "OB:",	xco, 180, 454-xco, YIC, ob->id.name+2, 0.0, 19.0, 0, 0, "Displays Active Object name. Click to change.");
+#ifdef WITH_VERSE
+		if(ob->vnode) uiButSetFunc(but, test_and_send_idbutton_cb, ob, ob->id.name);
+		else uiButSetFunc(but, test_idbutton_cb, ob->id.name, NULL);
+#else
 		uiButSetFunc(but, test_idbutton_cb, ob->id.name, NULL);
+#endif
+
 	}
 
 

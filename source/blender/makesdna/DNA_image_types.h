@@ -73,6 +73,9 @@ typedef struct Image {
 	short animspeed;
 	short reserved1;
 	int   reserved2;
+/*#ifdef WITH_VERSE*/
+	void *vnode;		/* pointer at verse bitmap node */
+/*#endif*/
 } Image;
 
 /*  in Image struct */

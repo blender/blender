@@ -138,7 +138,28 @@ int join_mesh(void)
 	
 	ob= OBACT;
 	if(!ob || ob->type!=OB_MESH) return 0;
-	
+
+#ifdef WITH_VERSE
+	/* it isn't allowed to join shared object at verse server
+	 * this function will be implemented as soon as possible */
+	base= FIRSTBASE;
+	while(base) {
+		if TESTBASELIB(base) {
+			if(base->object->type==OB_MESH) {
+				if(base->object->vnode) {
+					haskey= 1;
+					break;
+				}
+			}
+		}
+		base= base->next;
+	}
+	if(haskey) {
+		error("Can't join meshes shared at verse server");
+		return 0;
+	}
+#endif
+
 	/* count */
 	base= FIRSTBASE;
 	while(base) {

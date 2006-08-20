@@ -143,6 +143,10 @@
 #include "BIF_toolbox.h"
 #include "BIF_toets.h"
 
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
+
 #include "BSE_edit.h"
 #include "BSE_editipo.h"
 #include "BSE_filesel.h"	/* For activate_databrowse() */
@@ -255,7 +259,9 @@ void delete_obj(int ok)
 		if TESTBASE(base) {
 			if(ok==0 &&  (ok=okee("Erase selected Object(s)"))==0) return;
 			if(base->object->type==OB_LAMP) islamp= 1;
-			
+#ifdef WITH_VERSE
+			if(base->object->vnode) b_verse_delete_object(base->object);
+#endif			
 			free_and_unlink_base(base);
 		}
 		
@@ -961,16 +967,40 @@ void clear_object(char mode)
 					memset(ob->drot, 0, 3*sizeof(float));
 					QuatOne(ob->quat);
 					QuatOne(ob->dquat);
+#ifdef WITH_VERSE
+					if(ob->vnode) {
+						struct VNode *vnode = (VNode*)ob->vnode;
+						((VObjectData*)vnode->data)->flag |= ROT_SEND_READY;
+						b_verse_send_transformation(ob);
+					}
+#endif
+
 				}
 				else if(mode=='g') {
 					memset(ob->loc, 0, 3*sizeof(float));
 					memset(ob->dloc, 0, 3*sizeof(float));
+#ifdef WITH_VERSE
+					if(ob->vnode) {
+						struct VNode *vnode = (VNode*)ob->vnode;
+						((VObjectData*)vnode->data)->flag |= POS_SEND_READY;
+						b_verse_send_transformation(ob);
+					}
+#endif
+
 				}
 				else if(mode=='s') {
 					memset(ob->dsize, 0, 3*sizeof(float));
 					ob->size[0]= 1.0;
 					ob->size[1]= 1.0;
 					ob->size[2]= 1.0;
+#ifdef WITH_VERSE
+					if(ob->vnode) {
+						struct VNode *vnode = (VNode*)ob->vnode;
+						((VObjectData*)vnode->data)->flag |= SCALE_SEND_READY;
+						b_verse_send_transformation(ob);
+					}
+#endif
+
 				}
 				else if(mode=='o') {
 					if(ob->parent) {
@@ -1661,7 +1691,6 @@ void docentre(int centremode)
 						Mat4MulVecfl(base->object->imat, cent);
 					} else {
 						INIT_MINMAX(min, max);
-		
 						mvert= me->mvert;
 						for(a=0; a<me->totvert; a++, mvert++) {
 							DO_MINMAX(mvert->co, min, max);
@@ -1671,7 +1700,7 @@ void docentre(int centremode)
 						cent[1]= (min[1]+max[1])/2.0f;
 						cent[2]= (min[2]+max[2])/2.0f;
 					}
-						
+
 					mvert= me->mvert;
 					for(a=0; a<me->totvert; a++, mvert++) {
 						VecSubf(mvert->co, mvert->co, cent);
@@ -3770,7 +3799,19 @@ void single_obdata_users(int flag)
 	Mesh *me;
 	ID *id;
 	int a;
-	
+
+#ifdef WITH_VERSE
+	base= FIRSTBASE;
+	while(base) {
+		ob= base->object;
+		if(ob->vnode) {
+			error("Can't make data single user, when data are shared at verse server");
+			return;
+		}
+		base = base->next;
+	}
+#endif
+
 	base= FIRSTBASE;
 	while(base) {
 		ob= base->object;
@@ -4478,6 +4519,13 @@ void adduplicate(int mode, int dupflag)
 						}
 					}
 				}
+#ifdef WITH_VERSE
+				/* send new created object to verse server,
+				 * when original object was linked with object node */
+				if(ob->vnode) {
+					b_verse_duplicate_object(((VNode*)ob->vnode)->session, ob, obn);
+				}
+#endif
 			}
 						
 		}

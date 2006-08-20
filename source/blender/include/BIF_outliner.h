@@ -66,6 +66,11 @@ typedef struct TreeElement {
 #define TSE_SCRIPT_BASE		12
 #define TSE_POSE_BASE		13
 #define TSE_POSE_CHANNEL	14
+/*#ifdef WITH_VERSE*/
+#define TSE_VERSE_SESSION	15
+#define TSE_VERSE_OBJ_NODE	16
+#define TSE_VERSE_GEOM_NODE	17
+/*#endif*/
 
 /* button events */
 #define OL_NAMEBUTTON		1

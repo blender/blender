@@ -60,6 +60,11 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
+#ifdef WITH_VERSE
+#include "BKE_verse.h"
+#endif
+
+
 #include "BIF_editmesh.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
@@ -68,6 +73,10 @@
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 #include "BIF_transform.h"
+
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
 
 #include "BDR_editobject.h" 
 
@@ -232,6 +241,12 @@ void add_click_mesh(void)
 	}
 	
 	countall();
+
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode) {
+		sync_all_verseverts_with_editverts((VNode*)G.editMesh->vnode);
+	}
+#endif
 
 	BIF_undo_push("Add vertex/edge/face");
 	allqueue(REDRAWVIEW3D, 0);
@@ -561,7 +576,18 @@ static void fix_new_face(EditFace *eface)
 		eface->flag &= ~ME_SMOOTH;
 
 	/* flip face, when too much "face normals" in neighbourhood is different */
-	if(count > 0) flipface(eface);
+	if(count > 0) {
+		flipface(eface);
+#ifdef WITH_VERSE
+		if(eface->vface) {
+			struct VNode *vnode;
+			struct VLayer *vlayer;
+			vnode = (VNode*)((Mesh*)G.obedit->data)->vnode;
+			vlayer = find_verse_layer_type((VGeomData*)vnode->data, POLYGON_LAYER);
+			add_item_to_send_queue(&(vlayer->queue), (void*)eface->vface, VERSE_FACE);
+		}
+#endif
+	}
 }
 
 void addedgeface_mesh(void)

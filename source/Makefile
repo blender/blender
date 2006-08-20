@@ -209,6 +209,18 @@ ifeq ($(INTERNATIONAL), true)
     endif
 endif
 
+ifeq ($(WITH_VERSE), true)
+   ifeq ($(OS), windows)
+       ifeq ($(FREE_WINDOWS), true)
+           COMLIB += $(NAN_VERSE)/lib/libverse.a
+       else
+           COMLIB += $(NAN_VERSE)/lib/verse.lib
+       endif
+   else
+       COMLIB += $(NAN_VERSE)/lib/libverse.a
+   endif
+endif
+
 ifeq ($(OS), irix)
     COMLIB += $(NAN_SDL)/lib/libSDL.a
 endif

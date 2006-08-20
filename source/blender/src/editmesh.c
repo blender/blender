@@ -74,6 +74,10 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
+#ifdef WITH_VERSE
+#include "BKE_verse.h"
+#endif
+
 #include "BIF_editkey.h"
 #include "BIF_editmesh.h"
 #include "BIF_editmode_undo.h"
@@ -83,6 +87,10 @@
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
+
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
 
 #include "BSE_view.h"
 #include "BSE_edit.h"
@@ -141,11 +149,27 @@ EditVert *addvertlist(float *vec)
 	 * have a pre-editmode vertex order
 	 */
 	eve->keyindex = -1;
+
+#ifdef WITH_VERSE
+	createVerseVert(eve);
+#endif
+
 	return eve;
 }
 
 void free_editvert (EditVert *eve)
 {
+#ifdef WITH_VERSE
+	if(eve->vvert) {
+		/* it prevents from removing all verse vertexes
+		 * during entering edit mode ... messy solution */
+		if(G.editMesh->vnode)
+			b_verse_send_vertex_delete(eve);
+		else
+			((VerseVert*)eve->vvert)->vertex = NULL;
+	}
+#endif
+
 	if(eve->dw) MEM_freeN(eve->dw);
 	EM_remove_selection(eve, EDITVERT);
 	if(eve->fast==0){ 
@@ -288,6 +312,16 @@ void free_editedge(EditEdge *eed)
 
 void free_editface(EditFace *efa)
 {
+#ifdef WITH_VERSE
+	if(efa->vface) {
+		/* it prevents from removing all verse faces
+		 * during entering edit mode ... messy solution */
+		if(G.editMesh->vnode)
+			b_verse_send_face_delete(efa);
+		else
+			((VerseFace*)efa->vface)->face = NULL;
+	}
+#endif
 	EM_remove_selection(efa, EDITFACE);
 	if(efa->fast==0){ 
 		free(efa);
@@ -397,6 +431,10 @@ EditFace *addfacelist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 		CalcCent3f(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co);
 	}
 
+#ifdef WITH_VERSE
+	createVerseFace(efa);
+#endif
+
 	return efa;
 }
 
@@ -500,8 +538,18 @@ static void end_editmesh_fastmalloc(void)
 
 void free_editMesh(EditMesh *em)
 {
+#ifdef WITH_VERSE
+	struct VNode *vnode=NULL;
+#endif
 	if(em==NULL) return;
-	
+
+#ifdef WITH_VERSE
+	if(em->vnode) {
+		vnode = (VNode*)em->vnode;
+		em->vnode = NULL;
+	}
+#endif
+
 	if(em->verts.first) free_vertlist(&em->verts);
 	if(em->edges.first) free_edgelist(&em->edges);
 	if(em->faces.first) free_facelist(&em->faces);
@@ -516,6 +564,12 @@ void free_editMesh(EditMesh *em)
 		em->derivedCage->release(em->derivedCage);
 		em->derivedCage= NULL;
 	}
+
+#ifdef WITH_VERSE
+	if(vnode) {
+		em->vnode = (void*)vnode;
+	}
+#endif
 
 	/* DEBUG: hashtabs are slowest part of enter/exit editmode. here a testprint */
 #if 0
@@ -727,6 +781,13 @@ void make_editMesh()
 	EditSelection *ese;
 	int tot, a, eekadoodle= 0;
 
+#ifdef WITH_VERSE
+	if(me->vnode){
+		create_edit_mesh_from_geom_node(me->vnode);
+		return;
+	}
+#endif
+
 	/* because of reload */
 	free_editMesh(G.editMesh);
 	
@@ -907,6 +968,15 @@ void load_editMesh(void)
 	MDeformVert *dvert;
 
 	waitcursor(1);
+
+#ifdef WITH_VERSE
+	if(em->vnode) {
+		struct VNode *vnode = (VNode*)em->vnode;
+		((VGeomData*)vnode->data)->editmesh = NULL;
+		em->vnode = NULL;
+	}
+#endif
+
 	countall();
 
 	/* this one also tests of edges are not in faces: */
@@ -989,7 +1059,13 @@ void load_editMesh(void)
 		if(eve->f1==1) mvert->flag |= ME_SPHERETEST;
 		mvert->flag |= (eve->f & SELECT);
 		if (eve->h) mvert->flag |= ME_HIDE;			
-			
+
+#ifdef WITH_VERSE
+		if(eve->vvert) {
+			((VerseVert*)eve->vvert)->vertex = NULL;
+			eve->vvert = NULL;
+		}
+#endif			
 		eve= eve->next;
 		mvert++;
 		if(dvert) dvert++;
@@ -1069,7 +1145,13 @@ void load_editMesh(void)
 
 		/* no index '0' at location 3 or 4 */
 		test_index_face(mface, NULL, &efa->tf, efa->v4?4:3);
-		
+
+#ifdef WITH_VERSE
+		if(efa->vface) {
+			((VerseFace*)efa->vface)->face = NULL;
+			efa->vface = NULL;
+		}
+#endif		
 		efa->tmp.l = a++;
 		i++;
 		efa= efa->next;
@@ -1326,6 +1408,9 @@ void separate_mesh(void)
 	Mesh *me, *men;
 	Base *base, *oldbase;
 	ListBase edve, eded, edvl;
+#ifdef WITH_VERSE
+	struct VNode *vnode = NULL;
+#endif
 	
 	TEST_EDITMESH	
 
@@ -1359,9 +1444,21 @@ void separate_mesh(void)
 		base= base->next;
 	}
 	
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode) {
+		vnode = G.editMesh->vnode;
+		G.editMesh->vnode = NULL;
+	}
+#endif
 	/* no test for split, split doesn't split when a loose part is selected */
 	/* SPLIT: first make duplicate */
 	adduplicateflag(SELECT);
+
+#ifdef WITH_VERSE
+	if(vnode) {
+		G.editMesh->vnode = vnode;
+	}
+#endif
 	/* SPLIT: old faces have 3x flag 128 set, delete these ones */
 	delfaceflag(128);
 	
@@ -1376,7 +1473,14 @@ void separate_mesh(void)
 		if((eve->f & SELECT)==0) {
 			BLI_remlink(&em->verts, eve);
 			BLI_addtail(&edve, eve);
+#ifdef WITH_VERSE
+			if(eve->vvert) {
+				((VerseVert*)eve->vvert)->vertex = NULL;
+				eve->vvert = NULL;
+			}
+#endif
 		}
+		
 		eve= v1;
 	}
 	eed= em->edges.first;
@@ -1394,6 +1498,12 @@ void separate_mesh(void)
 		if((efa->f & SELECT)==0) {
 			BLI_remlink(&em->faces, efa);
 			BLI_addtail(&edvl, efa);
+#ifdef WITH_VERSE
+			if(efa->vface) {
+				((VerseFace*)efa->vface)->face = NULL;
+				efa->vface = NULL;
+			}
+#endif
 		}
 		efa= vl1;
 	}
@@ -1401,7 +1511,18 @@ void separate_mesh(void)
 	oldob= G.obedit;
 	oldbase= BASACT;
 	
+#ifdef WITH_VERSE
+	if(G.obedit->vnode) {
+		vnode = G.obedit->vnode;
+		G.obedit->vnode = NULL;
+	}
+#endif
 	adduplicate(1, 0); /* notrans and a linked duplicate*/
+#ifdef WITH_VERSE
+	if(vnode) {
+		G.obedit->vnode = vnode;
+	}
+#endif
 	
 	G.obedit= BASACT->object;	/* basact was set in adduplicate()  */
 
@@ -1428,7 +1549,7 @@ void separate_mesh(void)
 	
 	/* hashedges are freed now, make new! */
 	editMesh_set_hash();
-	
+
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	G.obedit= oldob;
 	BASACT= oldbase;
@@ -1449,13 +1570,28 @@ void separate_mesh_loose(void)
 	EditVert *eve, *v1;
 	EditEdge *eed, *e1;
 	EditFace *efa, *vl1;
-	Object *oldob;
+	Object *oldob=NULL;
 	Mesh *me, *men;
 	Base *base, *oldbase;
 	ListBase edve, eded, edvl;
 	int vertsep=0;	
 	short done=0, check=1;
-		
+#ifdef WITH_VERSE
+	struct VNode *vnode = NULL;
+#endif
+			
+	me= get_mesh(G.obedit);
+#ifdef WITH_VERSE
+	if(me->vnode) {
+		error("Can't separate a mesh shared at verse server");
+		return;
+	}
+#endif
+	if(me->key) {
+		error("Can't separate a mesh with vertex keys");
+		return;
+	}
+	
 	TEST_EDITMESH
 	waitcursor(1);	
 	
@@ -1467,18 +1603,10 @@ void separate_mesh_loose(void)
 	 * 5. freelist and get back old verts, edges, facs
 	 */
 			
-	
-			
 	while(!done){		
 		vertsep=check=1;
 		
 		countall();
-		
-		me= get_mesh(G.obedit);
-		if(me->key) {
-			error("Can't separate a mesh with vertex keys");
-			return;
-		}		
 		
 		/* make only obedit selected */
 		base= FIRSTBASE;
@@ -1541,6 +1669,11 @@ void separate_mesh_loose(void)
 				if((eve->f & SELECT)==0) {
 					BLI_remlink(&em->verts, eve);
 					BLI_addtail(&edve, eve);
+#ifdef WITH_VERSE
+					if(eve->vvert) {
+						b_verse_send_vertex_delete(eve);
+					}
+#endif
 				}
 				eve= v1;
 			}
@@ -1559,6 +1692,11 @@ void separate_mesh_loose(void)
 				if( (efa->f & SELECT)==0 ) {
 					BLI_remlink(&em->faces, efa);
 					BLI_addtail(&edvl, efa);
+#ifdef WITH_VERSE
+					if(efa->vface) {
+						b_verse_send_face_delete(efa);
+					}
+#endif
 				}
 				efa= vl1;
 			}
@@ -1566,10 +1704,21 @@ void separate_mesh_loose(void)
 			oldob= G.obedit;
 			oldbase= BASACT;
 			
-			adduplicate(1, 0); /* notrans and 0 for linked duplicate */
+#ifdef WITH_VERSE
+			if(G.obedit->vnode) {
+				vnode = G.obedit->vnode;
+				G.obedit->vnode = NULL;
+			}
+#endif
+			adduplicate(1, 0); /* notrans and a linked duplicate*/
+#ifdef WITH_VERSE
+			if(vnode) {
+				G.obedit->vnode = vnode;
+			}
+#endif
 			
 			G.obedit= BASACT->object;	/* basact was set in adduplicate()  */
-		
+
 			men= copy_mesh(me);
 			set_mesh(G.obedit, men);
 			/* because new mesh is a copy: reduce user count */
@@ -1627,7 +1776,7 @@ typedef struct EditVertC
 	unsigned char f, h;
 	short totweight;
 	struct MDeformWeight *dw;
-	int keyindex; 
+	int keyindex;
 } EditVertC;
 
 typedef struct EditEdgeC
@@ -1791,17 +1940,27 @@ static void undoMesh_to_editMesh(void *umv)
 	EditSelectionC *esec;
 	TFace *tface;
 	int a=0;
-	
+
+#ifdef WITH_VERSE
+	struct VNode *vnode = G.editMesh->vnode;
+	if(vnode) {
+		/* send delete command to all verse vertexes and verse face ...
+		 * verse mesh will be recreated from new edit mesh */
+		destroy_versemesh(vnode);
+	}
+#endif	
 	G.scene->selectmode = um->selectmode;
 	
 	free_editMesh(G.editMesh);
 	
 	/* malloc blocks */
 	memset(em, 0, sizeof(EditMesh));
-
-	
 		
 	init_editmesh_fastmalloc(em, um->totvert, um->totedge, um->totface);
+
+#ifdef WITH_VERSE
+	G.editMesh->vnode = vnode;
+#endif
 
 	/* now copy vertices */
 	if(um->totvert) evar= MEM_mallocN(um->totvert*sizeof(EditVert *), "vertex ar");
@@ -1867,6 +2026,7 @@ static void undoMesh_to_editMesh(void *umv)
 		}
 		EM_free_index_arrays();
 	}
+
 }
 
 

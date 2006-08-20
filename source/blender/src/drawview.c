@@ -112,6 +112,10 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
+
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
@@ -2228,7 +2232,13 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	}
 	else {
 		bt= uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 19.0, 0, 0, "");
+#ifdef WITH_VERSE
+		if(ob->vnode) uiButSetFunc(bt, test_and_send_idbutton_cb, ob, ob->id.name);
+		else uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
+#else
 		uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
+#endif
+
 
 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 	}

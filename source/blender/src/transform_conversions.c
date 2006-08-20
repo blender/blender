@@ -1428,6 +1428,15 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	td->tdi = NULL;
 	td->val = NULL;
 	td->tdmir= NULL;
+
+#ifdef WITH_VERSE
+	if(eve->vvert) {
+		td->verse = (void*)eve->vvert;
+		td->flag |= TD_VERSE_VERT;
+	}
+	else
+		td->flag &= ~TD_VERSE_VERT;
+#endif
 }
 
 /* *********************** CrazySpace correction. Now without doing subsurf optimal ****************** */
@@ -2051,6 +2060,14 @@ static void ObjectToTransData(TransData *td, Object *ob)
 		Mat3One(td->smtx);
 		Mat3One(td->mtx);
 	}
+#ifdef WITH_VERSE
+	if(ob->vnode) {
+		td->verse = (void*)ob;
+		td->flag |= TD_VERSE_OBJECT;
+	}
+	else
+		td->flag &= ~TD_VERSE_OBJECT;
+#endif
 }
 
 

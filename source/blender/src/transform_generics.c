@@ -59,6 +59,10 @@
 #include "BIF_editsima.h"
 #include "BIF_meshtools.h"
 
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
+
 #include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_armature.h"
@@ -73,6 +77,10 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+
+#ifdef WITH_VERSE
+#include "BKE_verse.h"
+#endif
 
 #include "BSE_view.h"
 #include "BDR_unwrapper.h"
@@ -202,6 +210,9 @@ static void editmesh_apply_to_mirror(TransInfo *t)
 void recalcData(TransInfo *t)
 {
 	Base *base;
+#ifdef WITH_VERSE
+	struct TransData *td;
+#endif
 		
 	if (G.obedit) {
 		if (G.obedit->type == OB_MESH) {
@@ -334,6 +345,17 @@ void recalcData(TransInfo *t)
 			}
 		} 
 	}
+
+#ifdef WITH_VERSE
+	for (td = t->data; td < t->data + t->total; td++) {
+		if(td->flag & TD_VERSE_VERT) {
+			if(td->verse)
+				send_versevert_pos((VerseVert*)td->verse);
+		}
+		else if(td->flag & TD_VERSE_OBJECT)
+			if(td->verse) b_verse_send_transformation((Object*)td->verse);
+	}
+#endif
 	
 	/* update shaded drawmode while transform */
 	if(t->spacetype==SPACE_VIEW3D && G.vd->drawtype == OB_SHADED)
@@ -463,6 +485,25 @@ void initTrans (TransInfo *t)
 void postTrans (TransInfo *t) 
 {
 	G.moving = 0; // Set moving flag off (display as usual)
+#ifdef WITH_VERSE
+	struct TransData *td;
+
+	for (td = t->data; td < t->data + t->total; td++) {
+		if(td->flag & TD_VERSE_VERT) {
+			if(td->verse) send_versevert_pos((VerseVert*)td->verse);
+		}
+		else if(td->flag & TD_VERSE_OBJECT) {
+			if(td->verse) {
+				struct VNode *vnode;
+				vnode = (VNode*)((Object*)td->verse)->vnode;
+				((VObjectData*)vnode->data)->flag |= POS_SEND_READY;
+				((VObjectData*)vnode->data)->flag |= ROT_SEND_READY;
+				((VObjectData*)vnode->data)->flag |= SCALE_SEND_READY;
+				b_verse_send_transformation((Object*)td->verse);
+			}
+		}
+	}
+#endif
 
 	stopConstraint(t);
 	
@@ -619,6 +660,25 @@ void restoreTransObjects(TransInfo *t)
 	
 	for (td = t->data; td < t->data + t->total; td++) {
 		restoreElement(td);
+#ifdef WITH_VERSE
+		/* position of vertexes and object transformation matrix is sent
+		 * extra, becuase blender uses synchronous sending of vertexes
+		 * position as well object trans. matrix and it isn't possible to
+		 * send it in recalcData sometimes */
+		if(td->flag & TD_VERSE_VERT) {
+			if(td->verse) {
+				((VerseVert*)td->verse)->flag |= VERT_POS_OBSOLETE;
+			}
+		}
+		else if(td->flag & TD_VERSE_OBJECT)
+			if(td->verse) {
+				struct VNode *vnode;
+				vnode = (VNode*)((Object*)td->verse)->vnode;
+				((VObjectData*)vnode->data)->flag |= POS_SEND_READY;
+				((VObjectData*)vnode->data)->flag |= ROT_SEND_READY;
+				((VObjectData*)vnode->data)->flag |= SCALE_SEND_READY;
+			}
+#endif
 	}	
 	recalcData(t);
 }

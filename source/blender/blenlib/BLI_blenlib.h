@@ -84,6 +84,7 @@ struct rcti;
 struct EditVert;
 struct PackedFile;
 struct LinkNode;
+struct DynamicList;
 
 #ifdef __cplusplus
 extern "C" {
@@ -111,6 +112,17 @@ void BLI_freelist(struct ListBase *listbase);
 int BLI_countlist(struct ListBase *listbase);
 void BLI_freelinkN(ListBase *listbase, void *vlink);
 void BLI_splitdirstring(char *di,char *fi);
+
+struct DynamicList *BLI_dlist_from_listbase(struct ListBase *lb);
+struct ListBase *BLI_listbase_from_dlist(struct DynamicList *dlist, struct ListBase *lb);
+void * BLI_dlist_find_link(struct DynamicList *dlist, unsigned int index);
+unsigned int BLI_count_items(struct DynamicList *dlist);
+void BLI_dlist_free_item(struct DynamicList *dlist, unsigned int index);
+void BLI_dlist_rem_item(struct DynamicList *dlist, unsigned int index);
+void * BLI_dlist_add_item_index(struct DynamicList *dlist, void *item, unsigned int index);
+void BLI_dlist_destroy(struct DynamicList *dlist);
+void BLI_dlist_init(struct DynamicList *dlist);
+void BLI_dlist_reinit(struct DynamicList *dlist);
 
 	/**
 	 * dir can be any input, like from buttons, and this function

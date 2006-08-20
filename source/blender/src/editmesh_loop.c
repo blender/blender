@@ -63,6 +63,10 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
+#ifdef WITH_VERSE
+#include "BKE_verse.h"
+#endif
+
 #include "BIF_cursors.h"
 #include "BIF_editmesh.h"
 #include "BIF_gl.h"
@@ -73,6 +77,10 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
 
 #include "BSE_view.h"
 #include "BSE_edit.h"
@@ -402,8 +410,12 @@ void CutEdgeloop(int numcuts)
 	}	
 	
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_verseverts_with_editverts((VNode*)G.editMesh->vnode);
+#endif
 	scrarea_queue_headredraw(curarea);
-	scrarea_queue_winredraw(curarea);	
+	scrarea_queue_winredraw(curarea);
 	return;
 }
 
@@ -754,6 +766,12 @@ void KnifeSubdivide(char mode)
 	window_set_cursor(win, oldcursor);
 	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
 	if (curve) MEM_freeN(curve);
+
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+#endif
+
 	BIF_undo_push("Knife");
 }
 

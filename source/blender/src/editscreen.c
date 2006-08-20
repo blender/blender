@@ -76,6 +76,10 @@
 #include "BKE_blender.h"
 #include "BKE_screen.h"
 
+#ifdef WITH_VERSE
+#include "BKE_verse.h"
+#endif
+
 #include "BIF_cursors.h"
 #include "BIF_drawscene.h"
 #include "BIF_editsound.h"
@@ -1118,6 +1122,10 @@ int do_screenhandlers(bScreen *sc)
 					done= 1;
 					break;
 				case SCREEN_HANDLER_VERSE:
+#ifdef WITH_VERSE
+					b_verse_update();
+#endif
+
 					done= 1;
 					break;
 			}

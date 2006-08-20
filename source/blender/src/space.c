@@ -4327,7 +4327,12 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			view2dmove(event);	/* in drawipo.c */
 			break;
 		case RIGHTMOUSE:
+#ifdef WITH_VERSE
+			/* evil hack due to verse */
+			outliner_mouse_event(sa, event);
+#else
 			outliner_operation_menu(sa);
+#endif
 			break;
 			
 		case AKEY:

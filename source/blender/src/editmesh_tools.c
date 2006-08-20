@@ -72,6 +72,10 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
+#ifdef WITH_VERSE
+#include "BKE_verse.h"
+#endif
+
 #include "BIF_cursors.h"
 #include "BIF_editmesh.h"
 #include "BIF_gl.h"
@@ -84,6 +88,10 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BIF_resources.h"
 #include "BIF_toolbox.h"
 #include "BIF_transform.h"
+
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
 
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
@@ -200,6 +208,11 @@ void convert_to_triface(int direction)
 	}
 	
 	EM_fgon_flags();	// redo flags and indices for fgons
+
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+#endif
 	BIF_undo_push("Convert Quads to Triangles");
 	
 }
@@ -509,6 +522,13 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 		eve= nextve;
 	}
 
+#ifdef WITH_VERSE
+	if((a>0) && (G.editMesh->vnode)) {
+		sync_all_verseverts_with_editverts((VNode*)G.editMesh->vnode);
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+	}
+#endif
+
 	return a;	/* amount */
 }
 
@@ -549,6 +569,12 @@ void xsortvert_flag(int flag)
 	addlisttolist(&em->verts, &tbase);
 	
 	MEM_freeN(sortblock);
+
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+#endif
+
 	BIF_undo_push("Xsort");
 	
 }
@@ -609,6 +635,10 @@ void hashvert_flag(int flag)
 	addlisttolist(&em->verts, &tbase);
 	
 	MEM_freeN(sortblock);
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+#endif
 	BIF_undo_push("Hash");
 
 }
@@ -710,6 +740,12 @@ void split_mesh(void)
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+#endif
+
 	BIF_undo_push("Split");
 
 }
@@ -747,7 +783,7 @@ void extrude_repeat_mesh(int steps, float offs)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-	
+
 	BIF_undo_push("Extrude Repeat");
 }
 
@@ -833,6 +869,7 @@ void spin_mesh(int steps, int degr, float *dvec, int mode)
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+
 	
 	if(dvec==NULL) BIF_undo_push("Spin");
 }
@@ -1180,6 +1217,12 @@ void fill_mesh(void)
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+#endif
+
 	BIF_undo_push("Fill");
 }
 /*GB*/
@@ -3310,6 +3353,10 @@ void beauty_fill(void)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+#endif
 	BIF_undo_push("Beauty Fill");
 }
 
@@ -3404,6 +3451,10 @@ void join_triangles(void)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+#endif
 	BIF_undo_push("Convert Triangles to Quads");
 }
 
@@ -3515,6 +3566,10 @@ void edge_flip(void)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+#endif
 	BIF_undo_push("Flip Triangle Edges");
 	
 }
@@ -3974,7 +4029,12 @@ void edge_rotate_selected(int dir)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-	
+
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode)
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+#endif
+
 	BIF_undo_push("Rotate Edge");	
 }
 
@@ -5377,9 +5437,17 @@ int EdgeSlide(short immediate, float imperc)
 	BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
 	BLI_linklist_free(vertlist,NULL); 
 	BLI_linklist_free(edgelist,NULL); 
-	
+
 	if(cancel == 1) {
 		return -1;
+	}
+	else {
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode) {
+		sync_all_verseverts_with_editverts((VNode*)G.editMesh->vnode);
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+	}
+#endif
 	}
 	return 1;
 }
@@ -5638,7 +5706,14 @@ void mesh_rip(void)
 	}
 	
 	countall();	// apparently always needed when adding stuff, derived mesh
-	
+
+#ifdef WITH_VERSE
+	if(G.editMesh->vnode) {
+		sync_all_verseverts_with_editverts((VNode*)G.editMesh->vnode);
+		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
+	}
+#endif
+
 	BIF_TransformSetUndo("Rip");
 	initTransform(TFM_TRANSLATION, 0);
 	Transform();

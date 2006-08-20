@@ -140,6 +140,11 @@ typedef struct Library {
 			/* used in outliner... */
 #define ID_NLA		MAKE_ID2('N', 'L')
 
+/*#ifdef WITH_VERSE*/
+#define ID_VS		MAKE_ID2('V', 'S')	/* fake id for VerseSession, needed for outliner */
+#define ID_VN		MAKE_ID2('V', 'N')	/* fake id for VerseNode, needed for outliner */
+/*#endif*/
+
 
 /* id->flag: set frist 8 bits always at zero while reading */
 #define LIB_LOCAL		0

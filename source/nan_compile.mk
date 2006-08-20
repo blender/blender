@@ -143,8 +143,8 @@ ifeq ($(OS),linux)
     CFLAGS	+= -pipe -fPIC 
     CCFLAGS	+= -pipe -fPIC
 #    CCFLAGS	+= -pipe
-    REL_CFLAGS	+= -O2
-    REL_CCFLAGS	+= -O2
+    REL_CFLAGS	+= -ggdb
+    REL_CCFLAGS	+= -ggdb
     NAN_DEPEND = true
   ifeq ($(CPU),alpha)
     CFLAGS += -mieee

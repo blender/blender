@@ -128,6 +128,9 @@ typedef struct TransData {
 	void *tdmir;		 /* mirrored element pointer, in editmode mesh to EditVert */
     short  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
+/*#ifdef WITH_VERSE*/
+	void *verse;			/* pointer at verse data struct (VerseVert, etc.) */
+/*#endif*/
 } TransData;
 
 typedef struct TransInfo {
@@ -232,6 +235,10 @@ typedef struct TransInfo {
 #define	TD_USEQUAT			4
 #define TD_NOTCONNECTED		8
 #define TD_SINGLESIZE		16	/* used for scaling of MetaElem->rad */
+#ifdef WITH_VERSE
+#define TD_VERSE_OBJECT		32
+#define TD_VERSE_VERT		64
+#endif
 
 void checkFirstTime(void);
 

@@ -82,6 +82,10 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
+#ifdef WITH_VERSE
+#include "BKE_verse.h"
+#endif
+
 #include "BIF_editmesh.h"
 #include "BIF_editview.h"
 #include "BIF_editarmature.h"
@@ -93,6 +97,10 @@
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
+
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
 
 #include "BSE_edit.h"
 #include "BSE_drawipo.h"
@@ -759,6 +767,10 @@ static void special_transvert_update(void)
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		
 		if(G.obedit->type==OB_MESH) {
+#ifdef WITH_VERSE
+			if(G.editMesh->vnode)
+				sync_all_verseverts_with_editverts((VNode*)G.editMesh->vnode);
+#endif
 			recalc_editnormals();	// does face centers too
 		}
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
@@ -1114,6 +1126,9 @@ void snap_sel_to_grid()
 					ob->loc[1]+= vec[1];
 					ob->loc[2]+= vec[2];
 				}
+#ifdef WITH_VERSE
+				if(ob->vnode) b_verse_send_transformation(ob);
+#endif
 			}
 		}
 
@@ -1212,6 +1227,9 @@ void snap_sel_to_curs()
 					ob->loc[1]+= vec[1];
 					ob->loc[2]+= vec[2];
 				}
+#ifdef WITH_VERSE
+				if(ob->vnode) b_verse_send_transformation(ob);
+#endif
 			}
 		}
 
@@ -1519,6 +1537,9 @@ void snap_to_center()
 					ob->loc[1]+= vec[1];
 					ob->loc[2]+= vec[2];
 				}
+#ifdef WITH_VERSE
+				if(ob->vnode) b_verse_send_transformation(ob);
+#endif
 			}
 		}
 

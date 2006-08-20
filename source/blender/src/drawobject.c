@@ -92,6 +92,9 @@
 #include "BKE_mball.h"
 #include "BKE_object.h"
 #include "BKE_anim.h"			//for the where_on_path function
+#ifdef WITH_VERSE
+#include "BKE_verse.h"
+#endif
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -325,7 +328,13 @@ static void drawcentercircle(float *vec, int selstate, int special_color)
 	glEnable(GL_BLEND);
 	
 	if(special_color) {
+#ifdef WITH_VERSE
+		if (selstate==VERSE) glColor4ub(0x00, 0xFF, 0x00, 155);
+		else if (selstate==ACTIVE || selstate==SELECT) glColor4ub(0x88, 0xFF, 0xFF, 155);
+#else
 		if (selstate==ACTIVE || selstate==SELECT) glColor4ub(0x88, 0xFF, 0xFF, 155);
+#endif
+
 		else glColor4ub(0x55, 0xCC, 0xCC, 155);
 	}
 	else {
@@ -1506,6 +1515,71 @@ static void draw_em_fancy_edges(DerivedMesh *cageDM)
 	}
 }	
 
+#ifdef WITH_VERSE
+/*
+ * draw some debug info about verse mesh (vertex indexes,
+ * face indexes, status of )
+ */
+static draw_verse_debug(Object *ob, EditMesh *em)
+{
+	struct EditVert *eve=NULL;
+	struct EditFace *efa=NULL;
+	float v1[3], v2[3], v3[3], v4[3], fvec[3], col[3];
+	char val[32];
+	
+	if(G.vd->zbuf && (G.vd->flag & V3D_ZBUF_SELECT)==0)
+		glDisable(GL_DEPTH_TEST);
+
+	if(G.vd->zbuf) bglPolygonOffset(5.0);
+
+	BIF_GetThemeColor3fv(TH_TEXT, col);
+	/* make color a bit more red */
+	if(col[0]> 0.5) {col[1]*=0.7; col[2]*= 0.7;}
+	else col[0]= col[0]*0.7 + 0.3;
+	glColor3fv(col);
+
+	/* draw IDs of verse vertexes */
+	for(eve = em->verts.first; eve; eve = eve->next) {
+		if(eve->vvert) {
+			VecLerpf(fvec, ob->loc, eve->co, 1.1);
+			glRasterPos3f(fvec[0], fvec[1], fvec[2]);
+
+			sprintf(val, "%d", ((VerseVert*)eve->vvert)->id);
+			BMF_DrawString(G.fonts, val);
+		}
+	}
+
+	/* draw IDs of verse faces */
+	for(efa = em->faces.first; efa; efa = efa->next) {
+		if(efa->vface) {
+			VECCOPY(v1, efa->v1->co);
+			VECCOPY(v2, efa->v2->co);
+			VECCOPY(v3, efa->v3->co);
+			if(efa->v4) {
+				VECCOPY(v4, efa->v4->co);
+				glRasterPos3f(0.25*(v1[0]+v2[0]+v3[0]+v4[0]),
+						0.25*(v1[1]+v2[1]+v3[1]+v4[1]),
+						0.25*(v1[2]+v2[2]+v3[2]+v4[2]));
+			}
+			else {
+				glRasterPos3f((v1[0]+v2[0]+v3[0])/3,
+						(v1[1]+v2[1]+v3[1])/3,
+						(v1[2]+v2[2]+v3[2])/3);
+			}
+			
+			sprintf(val, "%d", ((VerseFace*)efa->vface)->id);
+			BMF_DrawString(G.fonts, val);
+			
+		}
+	}
+	
+	if(G.vd->zbuf) {
+		glEnable(GL_DEPTH_TEST);
+		bglPolygonOffset(0.0);
+	}
+}
+#endif
+
 static void draw_em_measure_stats(Object *ob, EditMesh *em)
 {
 	EditEdge *eed;
@@ -1760,6 +1834,10 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 
 		if(G.f & (G_DRAW_EDGELEN|G_DRAW_FACEAREA|G_DRAW_EDGEANG))
 			draw_em_measure_stats(ob, em);
+#ifdef WITH_VERSE
+		if(em->vnode && (G.f & G_DRAW_VERSE_DEBUG))
+			draw_verse_debug(ob, em);
+#endif
 	}
 
 	if(dt>OB_WIRE) {
@@ -1808,8 +1886,31 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 	Material *ma= give_current_material(ob, 1);
 	int hasHaloMat = (ma && (ma->mode&MA_HALO));
 	int draw_wire = ob->dtx&OB_DRAWWIRE;
+	int totvert, totedge, totface;
 	DispList *dl;
 
+#ifdef WITH_VERSE
+	if(me->vnode) {
+		struct VNode *vnode = (VNode*)me->vnode;
+		struct VLayer *vert_vlayer = find_verse_layer_type((VGeomData*)vnode->data, VERTEX_LAYER);
+		struct VLayer *face_vlayer = find_verse_layer_type((VGeomData*)vnode->data, POLYGON_LAYER);
+
+		if(vert_vlayer) totvert = vert_vlayer->dl.da.count;
+		else totvert = 0;
+		totedge = 0;	/* total count of edge needn't to be zero, but verse doesn't know edges */
+		if(face_vlayer) totface = face_vlayer->dl.da.count;
+		else totface = 0;
+	}
+	else {
+		totvert = me->totvert;
+		totedge = me->totedge;
+		totface = me->totface;
+	}
+#else
+	totvert = me->totvert;
+	totedge = me->totedge;
+	totface = me->totface;
+#endif
 	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
@@ -1818,12 +1919,12 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 	if(dt==OB_BOUNDBOX) {
 		draw_bounding_volume(ob);
 	}
-	else if(hasHaloMat || (me->totface==0 && me->totedge==0)) {
+	else if(hasHaloMat || (totface==0 && totedge==0)) {
 		glPointSize(1.5);
 		dm->drawVerts(dm);
 		glPointSize(1.0);
 	}
-	else if(dt==OB_WIRE || me->totface==0) {
+	else if(dt==OB_WIRE || totface==0) {
 		draw_wire = 1;
 	}
 	else if( (ob==OBACT && (G.f & G_FACESELECT)) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
@@ -1946,7 +2047,7 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 //		if (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT)) {
 //			baseDM->drawEdges(baseDM, dt==OB_WIRE);
 //		} else {
-			dm->drawEdges(dm, (dt==OB_WIRE || me->totface==0));
+			dm->drawEdges(dm, (dt==OB_WIRE || totface==0));
 //		}
 
 		if (dt!=OB_WIRE) {
@@ -3999,7 +4100,12 @@ void draw_object(Base *base, int flag)
 			} 
 			else if((flag & DRAW_CONSTCOLOR)==0) {
 				/* we don't draw centers for duplicators and sets */
-				drawcentercircle(ob->obmat[3], do_draw_center, ob->id.lib || ob->id.us>1);
+#ifdef WITH_VERSE
+				if(ob->vnode)
+					drawcentercircle(ob->obmat[3], VERSE, 1);
+				else
+#endif
+					drawcentercircle(ob->obmat[3], do_draw_center, ob->id.lib || ob->id.us>1);
 			}
 		}
 	}

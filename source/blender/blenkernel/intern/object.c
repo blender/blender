@@ -910,6 +910,11 @@ Object *copy_object(Object *ob)
 	obn->derivedDeform = NULL;
 	obn->derivedFinal = NULL;
 
+#ifdef WITH_VERSE
+	obn->vnode = NULL;
+#endif
+
+
 	return obn;
 }
 

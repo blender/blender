@@ -201,6 +201,10 @@ typedef struct Object {
 	struct FluidsimSettings *fluidsimSettings; /* if fluidsim enabled, store additional settings */
   
 	struct DerivedMesh *derivedDeform, *derivedFinal;
+
+/*#ifdef WITH_VERSE*/
+	void *vnode;			/* pointer at object VerseNode */
+/*#endif*/
 } Object;
 
 typedef struct ObHook {

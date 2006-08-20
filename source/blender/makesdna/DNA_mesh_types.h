@@ -99,6 +99,10 @@ typedef struct Mesh {
 	short totcol;
 	short subsurftype; 
 
+/*ifdef WITH_VERSE*/
+	/* not written in file, pointer at geometry VerseNode */
+	void *vnode;
+/*#endif*/
 } Mesh;
 
 

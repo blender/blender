@@ -98,6 +98,10 @@ endif
       export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include
     endif
 
+    ifeq ($(WITH_VERSE), true)
+      export NAN_VERSE ?= $(LCGDIR)/verse
+    endif
+
     export WITH_OPENEXR ?= true
     ifeq ($(OS),windows)
       ifeq ($(FREE_WINDOWS), true)

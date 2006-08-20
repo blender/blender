@@ -82,6 +82,10 @@
 #include "BKE_packedFile.h"
 #include "BKE_utildefines.h"
 
+#ifdef WITH_VERSE
+#include "BKE_verse.h"
+#endif
+
 #include "BLI_vfontdata.h"
 
 #include "BIF_fsmenu.h"
@@ -103,6 +107,11 @@
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 #include "BIF_cursors.h"
+
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
+
 
 #include "BSE_drawview.h"
 #include "BSE_edit.h"
@@ -344,13 +353,38 @@ static void init_userdef_file(void)
 
 }
 
+#ifdef WITH_VERSE
+extern ListBase session_list;
+#endif
+
 void BIF_read_file(char *name)
 {
 	extern short winqueue_break; /* editscreen.c */
 	int retval;
-	
-	//NOT here!
-	//sound_end_all_sounds();
+#ifdef WITH_VERSE
+	struct VerseSession *session;
+	struct VNode *vnode;
+
+	session = session_list.first;
+	while(session) {
+		vnode = session->nodes.lb.first;
+		while(vnode) {
+			switch(vnode->type) {
+				case V_NT_OBJECT:
+					unsubscribe_from_obj_node(vnode);
+					break;
+				case V_NT_GEOMETRY:
+					unsubscribe_from_geom_node(vnode);
+					break;
+				case V_NT_BITMAP:
+					unsubscribe_from_bitmap_node(vnode);
+					break;
+			}
+			vnode = vnode->next;
+		}
+		session = session->next;
+	}
+#endif
 
 	/* first try to read exotic file formats... */
 	/* it throws error box when file doesnt exist and returns -1 */
@@ -567,7 +601,6 @@ static void readBlog(void)
 	
 	BLI_free_file_lines(lines);
 }
-
 
 static void writeBlog(void)
 {
@@ -858,6 +891,10 @@ void exit_usiblender(void)
 
 	sound_exit_audio();
 	if(G.listener) MEM_freeN(G.listener);
+
+#ifdef WITH_VERSE
+	end_all_verse_sessions();
+#endif
 
 	libtiff_exit();
 

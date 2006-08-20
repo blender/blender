@@ -68,6 +68,10 @@
 #include "BKE_modifier.h"
 #include "BKE_key.h"
 
+#ifdef WITH_VERSE
+#include "BKE_verse.h"
+#endif
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -1490,6 +1494,454 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm, float (*vertexCos)
 	return (DerivedMesh*) ssdm;
 }
 
+#ifdef WITH_VERSE
+
+/* verse derived mesh */
+typedef struct {
+	struct DerivedMesh dm;
+	struct VNode *vnode;
+	struct VLayer *vertex_layer;
+	struct VLayer *polygon_layer;
+	float (*verts)[3];
+} VDerivedMesh;
+
+/* this function set up border points of verse mesh bounding box */
+static void vDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
+{
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	struct VerseVert *vvert;
+
+	if(!vdm->vertex_layer) return;
+
+	vvert = (VerseVert*)vdm->vertex_layer->dl.lb.first;
+
+	if(vdm->vertex_layer->dl.da.count > 0) {
+		while(vvert) {
+			DO_MINMAX(vdm->verts ? vvert->cos : vvert->co, min_r, max_r);
+			vvert = vvert->next;
+		}
+	}
+	else {
+		min_r[0] = min_r[1] = min_r[2] = max_r[0] = max_r[1] = max_r[2] = 0.0;
+	}
+}
+
+/* this function return number of vertexes in vertex layer */
+static int vDM_getNumVerts(DerivedMesh *dm)
+{
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+
+	if(!vdm->vertex_layer) return 0;
+	else return vdm->vertex_layer->dl.da.count;
+}
+
+/* this function returns number of polygons in polygon layer */
+static int vDM_getNumFaces(DerivedMesh *dm)
+{
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+
+	if(!vdm->polygon_layer) return 0;
+	else return vdm->polygon_layer->dl.da.count;
+}
+
+/* create diplist mesh from verse mesh */
+static DispListMesh* vDM_convertToDispListMesh(DerivedMesh *dm, int allowShared)
+{
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	DispListMesh *dlm = MEM_callocN(sizeof(*dlm), "dlm");
+	struct VerseVert *vvert;
+	struct VerseFace *vface;
+	struct MVert *mvert=NULL;
+	struct MFace *mface=NULL;
+	float *norms;
+	unsigned int i;
+
+	if(!vdm->vertex_layer || !vdm->polygon_layer) {
+		dlm->totvert = 0;
+		dlm->totedge = 0;
+		dlm->totface = 0;
+		dlm->dontFreeVerts = dlm->dontFreeOther = dlm->dontFreeNors = 0;
+
+		return dlm;
+	};
+	
+	/* number of vertexes, edges and faces */
+	dlm->totvert = vdm->vertex_layer->dl.da.count;
+	dlm->totedge = 0;
+	dlm->totface = vdm->polygon_layer->dl.da.count;
+
+	/* create dynamic array of mverts */
+	mvert = (MVert*)MEM_mallocN(sizeof(MVert)*dlm->totvert, "dlm verts");
+	dlm->mvert = mvert;
+	vvert = (VerseVert*)vdm->vertex_layer->dl.lb.first;
+	i = 0;
+	while(vvert) {
+		VECCOPY(mvert->co, vdm->verts ? vvert->cos : vvert->co);
+		VECCOPY(mvert->no, vvert->no);
+		mvert->mat_nr = 0;
+		mvert->flag = 0;
+
+		vvert->tmp.index = i++;
+		mvert++;
+		vvert = vvert->next;
+	}
+
+	/* verse doesn't support edges */
+	dlm->medge = NULL;
+
+	/* create dynamic array of faces */
+	mface = (MFace*)MEM_mallocN(sizeof(MFace)*dlm->totface, "dlm faces");
+	dlm->mface = mface;
+	vface = (VerseFace*)vdm->polygon_layer->dl.lb.first;
+	i = 0;
+	while(vface) {
+		mface->v1 = vface->vvert0->tmp.index;
+		mface->v2 = vface->vvert1->tmp.index;
+		mface->v3 = vface->vvert2->tmp.index;
+		if(vface->vvert3) mface->v4 = vface->vvert3->tmp.index;
+		else mface->v4 = 0;
+
+		mface->pad = 0;
+		mface->mat_nr = 0;
+		mface->flag = 0;
+		mface->edcode = 0;
+
+		test_index_face(mface, NULL, NULL, vface->vvert3?4:3);
+
+		mface++;
+		vface = vface->next;
+	}
+
+	/* textures and verex colors aren't supported yet */
+	dlm->tface = NULL;
+	dlm->mcol = NULL;
+
+	/* faces normals */
+	norms = (float*)MEM_mallocN(sizeof(float)*3*dlm->totface, "dlm norms");
+	dlm->nors = norms;
+
+	vface = (VerseFace*)vdm->polygon_layer->dl.lb.first;
+	while(vface){
+		VECCOPY(norms, vface->no);
+		norms += 3;
+		vface = vface->next;
+	}
+
+	/* free everything, nothing is shared */
+	dlm->dontFreeVerts = dlm->dontFreeOther = dlm->dontFreeNors = 0;
+
+	return dlm;
+}
+
+/* return coordination of vertex with index ... I suppose, that it will
+ * be very hard to do, becuase there can be holes in access array */
+static void vDM_getVertCo(DerivedMesh *dm, int index, float co_r[3])
+{
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	struct VerseVert *vvert = NULL;
+
+	if(!vdm->vertex_layer) return;
+
+	vvert = BLI_dlist_find_link(&(vdm->vertex_layer->dl), index);
+	if(vvert) {
+		VECCOPY(co_r, vdm->verts ? vvert->cos : vvert->co);
+	}
+	else {
+		co_r[0] = co_r[1] = co_r[2] = 0.0;
+	}
+}
+
+/* return array of vertex coordiantions */
+static void vDM_getVertCos(DerivedMesh *dm, float (*cos_r)[3])
+{
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	struct VerseVert *vvert;
+	int i = 0;
+
+	if(!vdm->vertex_layer) return;
+
+	vvert = vdm->vertex_layer->dl.lb.first;
+	while(vvert) {
+		VECCOPY(cos_r[i], vdm->verts ? vvert->cos : vvert->co);
+		i++;
+		vvert = vvert->next;
+	}
+}
+
+/* return normal of vertex with index ... again, it will be hard to
+ * implemente, because access array */
+static void vDM_getVertNo(DerivedMesh *dm, int index, float no_r[3])
+{
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	struct VerseVert *vvert = NULL;
+
+	if(!vdm->vertex_layer) return;
+
+	vvert = BLI_dlist_find_link(&(vdm->vertex_layer->dl), index);
+	if(vvert) {
+		VECCOPY(no_r, vvert->no);
+	}
+	else {
+		no_r[0] = no_r[1] = no_r[2] = 0.0;
+	}
+}
+
+/* draw all VerseVertexes */
+static void vDM_drawVerts(DerivedMesh *dm)
+{
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	struct VerseVert *vvert;
+
+	if(!vdm->vertex_layer) return;
+
+	vvert = vdm->vertex_layer->dl.lb.first;
+
+	bglBegin(GL_POINTS);
+	while(vvert) {
+		bglVertex3fv(vdm->verts ? vvert->cos : vvert->co);
+		vvert = vvert->next;
+	}
+	bglEnd();
+}
+
+/* draw all edges of VerseFaces ... it isn't optimal, because verse
+ * specification doesn't support edges :-( ... bother eskil ;-)
+ * ... some edges (most of edges) are drawn twice */
+static void vDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
+{
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	struct VerseFace *vface;
+
+	if(!vdm->polygon_layer) return;
+
+	vface = vdm->polygon_layer->dl.lb.first;
+
+	while(vface) {
+		glBegin(GL_LINE_LOOP);
+		glVertex3fv(vdm->verts ? vface->vvert0->cos : vface->vvert0->co);
+		glVertex3fv(vdm->verts ? vface->vvert1->cos : vface->vvert1->co);
+		glVertex3fv(vdm->verts ? vface->vvert2->cos : vface->vvert2->co);
+		if(vface->vvert3) glVertex3fv(vdm->verts ? vface->vvert3->cos : vface->vvert3->co);
+		glEnd();
+
+		vface = vface->next;
+	}
+}
+
+/* verse spec doesn't support edges ... loose edges can't exist */
+void vDM_drawLooseEdges(DerivedMesh *dm)
+{
+}
+
+/* draw uv edges, not supported yet */
+static void vDM_drawUVEdges(DerivedMesh *dm)
+{
+}
+
+/* draw all VerseFaces */
+static void vDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
+{
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	struct VerseFace *vface;
+
+	if(!vdm->polygon_layer) return;
+
+	vface = vdm->polygon_layer->dl.lb.first;
+
+	while(vface) {
+/*		if((vface->smooth) && (vface->smooth->value)){
+			glShadeModel(GL_SMOOTH);
+			glBegin(vface->vvert3?GL_QUADS:GL_TRIANGLES);
+			glNormal3fv(vface->vvert0->no);
+			glVertex3fv(vdm->verts ? vface->vvert0->cos : vface->vvert0->co);
+			glNormal3fv(vface->vvert1->no);
+			glVertex3fv(vdm->verts ? vface->vvert1->cos : vface->vvert1->co);
+			glNormal3fv(vface->vvert2->no);
+			glVertex3fv(vdm->verts ? vface->vvert2->cos : vface->vvert2->co);
+			if(vface->vvert3){
+				glNormal3fv(vface->vvert3->no);
+				glVertex3fv(vdm->verts ? vface->vvert3->cos : vface->vvert3->co);
+			}
+			glEnd();
+		}
+		else { */
+			glShadeModel(GL_FLAT);
+			glBegin(vface->vvert3?GL_QUADS:GL_TRIANGLES);
+			glNormal3fv(vface->no);
+			glVertex3fv(vdm->verts ? vface->vvert0->cos : vface->vvert0->co);
+			glVertex3fv(vdm->verts ? vface->vvert1->cos : vface->vvert1->co);
+			glVertex3fv(vdm->verts ? vface->vvert2->cos : vface->vvert2->co);
+			if(vface->vvert3)
+				glVertex3fv(vdm->verts ? vface->vvert3->cos : vface->vvert3->co);
+			glEnd();
+/*		} */
+
+		vface = vface->next;
+	}
+	glShadeModel(GL_FLAT);
+}
+
+/* this function should draw mesh with colored faces (weight paint, vertex
+ * colors, etc.), but it isn't supported yet */
+static void vDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned char *col1, unsigned char *col2)
+{
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	struct VerseFace *vface;
+
+	if(!vdm->polygon_layer) return;
+
+	vface = vdm->polygon_layer->dl.lb.first;
+
+	while(vface) {
+		glBegin(vface->vvert3?GL_QUADS:GL_TRIANGLES);
+		glVertex3fv(vdm->verts ? vface->vvert0->cos : vface->vvert0->co);
+		glVertex3fv(vdm->verts ? vface->vvert1->cos : vface->vvert1->co);
+		glVertex3fv(vdm->verts ? vface->vvert2->cos : vface->vvert2->co);
+		if(vface->vvert3)
+			glVertex3fv(vdm->verts ? vface->vvert3->cos : vface->vvert3->co);
+		glEnd();
+
+		vface = vface->next;
+	}
+}
+
+/**/
+static void vDM_foreachMappedVert(
+		DerivedMesh *dm,
+		void (*func)(void *userData, int index, float *co, float *no_f, short *no_s),
+		void *userData)
+{
+}
+
+/**/
+static void vDM_foreachMappedEdge(
+		DerivedMesh *dm,
+		void (*func)(void *userData, int index, float *v0co, float *v1co),
+		void *userData)
+{
+}
+
+/**/
+static void vDM_foreachMappedFaceCenter(
+		DerivedMesh *dm,
+		void (*func)(void *userData, int index, float *cent, float *no),
+		void *userData)
+{
+}
+
+/**/
+static void vDM_drawMappedFacesTex(
+		DerivedMesh *dm,
+		int (*setDrawOptions)(void *userData, int index, int matnr),
+		void *userData)
+{
+}
+
+/**/
+static void vDM_drawMappedFaces(
+		DerivedMesh *dm,
+		int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r),
+		void *userData,
+		int useColors)
+{
+}
+
+/**/
+static void vDM_drawMappedEdges(
+		DerivedMesh *dm,
+		int (*setDrawOptions)(void *userData, int index),
+		void *userData)
+{
+}
+
+/**/
+static void vDM_drawMappedEdgesInterp(
+		DerivedMesh *dm, 
+		int (*setDrawOptions)(void *userData, int index), 
+		void (*setDrawInterpOptions)(void *userData, int index, float t),
+		void *userData)
+{
+}
+
+/* free all DerivedMesh data */
+static void vDM_release(DerivedMesh *dm)
+{
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+
+	if(vdm->verts) MEM_freeN(vdm->verts);
+	MEM_freeN(vdm);
+}
+
+/* create derived mesh from verse mesh ... it is used in object mode, when some other client can
+ * change shared data and want to see this changes in real time too */
+DerivedMesh *derivedmesh_from_versemesh(VNode *vnode, float (*vertexCos)[3])
+{
+	VDerivedMesh *vdm = MEM_callocN(sizeof(*vdm), "vdm");
+	struct VerseVert *vvert;
+
+	vdm->vnode = vnode;
+	vdm->vertex_layer = find_verse_layer_type((VGeomData*)vnode->data, VERTEX_LAYER);
+	vdm->polygon_layer = find_verse_layer_type((VGeomData*)vnode->data, POLYGON_LAYER);
+
+	vdm->dm.getMinMax = vDM_getMinMax;
+
+	vdm->dm.getNumVerts = vDM_getNumVerts;
+	vdm->dm.getNumFaces = vDM_getNumFaces;
+
+	vdm->dm.foreachMappedVert = vDM_foreachMappedVert;
+	vdm->dm.foreachMappedEdge = vDM_foreachMappedEdge;
+	vdm->dm.foreachMappedFaceCenter = vDM_foreachMappedFaceCenter;
+
+	vdm->dm.convertToDispListMesh = vDM_convertToDispListMesh;
+
+	vdm->dm.getVertCos = vDM_getVertCos;
+	vdm->dm.getVertCo = vDM_getVertCo;
+	vdm->dm.getVertNo = vDM_getVertNo;
+
+	vdm->dm.drawVerts = vDM_drawVerts;
+
+	vdm->dm.drawEdges = vDM_drawEdges;
+	vdm->dm.drawLooseEdges = vDM_drawLooseEdges;
+	vdm->dm.drawUVEdges = vDM_drawUVEdges;
+
+	vdm->dm.drawFacesSolid = vDM_drawFacesSolid;
+	vdm->dm.drawFacesColored = vDM_drawFacesColored;
+
+	vdm->dm.drawMappedFacesTex = vDM_drawMappedFacesTex;
+	vdm->dm.drawMappedFaces = vDM_drawMappedFaces;
+	vdm->dm.drawMappedEdges = vDM_drawMappedEdges;
+	vdm->dm.drawMappedEdgesInterp = vDM_drawMappedEdgesInterp;
+
+	vdm->dm.release = vDM_release;
+
+	if(vdm->vertex_layer) {
+		if(vertexCos) {
+			int i;
+
+			vdm->verts = MEM_mallocN(sizeof(float)*3*vdm->vertex_layer->dl.da.count, "verse mod vertexes");
+			vvert = vdm->vertex_layer->dl.lb.first;
+
+			for(i=0; i<vdm->vertex_layer->dl.da.count && vvert; i++, vvert = vvert->next) {
+				VECCOPY(vdm->verts[i], vertexCos[i]);
+				vvert->cos = vdm->verts[i];
+			}
+		}
+		else {
+			vdm->verts = NULL;
+			vvert = vdm->vertex_layer->dl.lb.first;
+
+			while(vvert) {
+				vvert->cos = NULL;
+				vvert = vvert->next;
+			}
+		}
+	}
+
+	return (DerivedMesh*) vdm;
+}
+
+#endif
+
 /***/
 
 DerivedMesh *mesh_create_derived_for_modifier(Object *ob, ModifierData *md)
@@ -1506,8 +1958,13 @@ DerivedMesh *mesh_create_derived_for_modifier(Object *ob, ModifierData *md)
 		float (*deformedVerts)[3] = mesh_getVertexCos(me, &numVerts);
 
 		mti->deformVerts(md, ob, NULL, deformedVerts, numVerts);
-		
+#ifdef WITH_VERSE
+		if(me->vnode) dm = derivedmesh_from_versemesh(me->vnode, deformedVerts);
+		else dm = getMeshDerivedMesh(me, ob, deformedVerts);
+#else
 		dm = getMeshDerivedMesh(me, ob, deformedVerts);
+#endif
+
 		MEM_freeN(deformedVerts);
 	} else {
 		dm = mti->applyModifier(md, ob, NULL, NULL, 0, 0);
@@ -1566,7 +2023,13 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 			 * places that wish to use the original mesh but with deformed
 			 * coordinates (vpaint, etc.)
 			 */
-		if (deform_r) *deform_r = getMeshDerivedMesh(me, ob, deformedVerts);
+		if (deform_r)
+#ifdef WITH_VERSE
+			if(me->vnode) *deform_r = derivedmesh_from_versemesh(me->vnode, deformedVerts);
+			else *deform_r = getMeshDerivedMesh(me, ob, deformedVerts);
+#else
+			*deform_r = getMeshDerivedMesh(me, ob, deformedVerts);
+#endif
 	} else {
 		if(!fluidsimMeshUsed) {
 			// default behaviour for meshes
@@ -1651,7 +2114,12 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 	} else if (dm) {
 		*final_r = dm;
 	} else {
+#ifdef WITH_VERSE
+		if(me->vnode) *final_r = derivedmesh_from_versemesh(me->vnode, deformedVerts);
+		else *final_r = getMeshDerivedMesh(me, ob, deformedVerts);
+#else
 		*final_r = getMeshDerivedMesh(me, ob, deformedVerts);
+#endif
 	}
 
 	if (deformedVerts && deformedVerts!=inputVertexCos) {

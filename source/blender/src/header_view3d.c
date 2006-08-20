@@ -1,4 +1,4 @@
-/**
+/*
  * header_view3d.c oct-2003
  *
  * Functions to draw the "3D Viewport" window header
@@ -69,6 +69,10 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 
+#ifdef WITH_VERSE
+#include "BKE_verse.h"
+#endif
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
@@ -105,6 +109,10 @@
 #include "BIF_toets.h"
 #include "BIF_toolbox.h"
 #include "BIF_transform.h"
+
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
 
 #include "BPY_extern.h"
 #include "BPY_menus.h"
@@ -2074,11 +2082,18 @@ static uiBlock *view3d_edit_object_scriptsmenu(void *arg_unused)
 	return block;
 }
 
+#ifdef WITH_VERSE
+extern ListBase session_list;
+#endif
+
 static void do_view3d_edit_objectmenu(void *arg, int event)
 {
 	/* needed to check for valid selected objects */
 	Base *base=NULL;
 	Object *ob=NULL;
+#ifdef WITH_VERSE
+	struct VerseSession *session=NULL;
+#endif
 
 	base= BASACT;
 	if (base) ob= base->object;
@@ -2118,6 +2133,13 @@ static void do_view3d_edit_objectmenu(void *arg, int event)
 	case 15: /* Object Panel */
 		add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
 		break;
+#ifdef WITH_VERSE
+	case 16: /* Share Object at Verse server */
+		if(session_list.first != session_list.last) session = session_menu();
+		else session = session_list.first;
+		if(session) b_verse_push_object(session, ob);
+		break;
+#endif
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2130,6 +2152,19 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_objectmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_objectmenu, NULL);
 	
+#ifdef WITH_VERSE
+	if(session_list.first != NULL) {
+		Base *base = BASACT;
+		Object *ob = NULL;
+		if (base) ob= base->object;
+
+		if((ob->type == OB_MESH) && (!ob->vnode)) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Share at Verse Server", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
+			uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		}
+	}
+#endif
+
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_object_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
@@ -2610,6 +2645,10 @@ static uiBlock *view3d_edit_mesh_scriptsmenu(void *arg_unused)
 
 static void do_view3d_edit_meshmenu(void *arg, int event)
 {
+#ifdef WITH_VERSE
+	struct VerseSession *session;
+#endif
+
 	switch(event) {
 	
 	case 0: /* Undo Editing */
@@ -2652,6 +2691,13 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 		if(G.scene->proportional) G.scene->proportional= 0;
 		else G.scene->proportional= 1;
 		break;
+#ifdef WITH_VERSE
+	case 13:
+		if(session_list.first != session_list.last) session = session_menu();
+		else session = session_list.first;
+		if(session) b_verse_push_object(session, G.obedit);
+		break;
+#endif
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2664,7 +2710,15 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 		
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_meshmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_meshmenu, NULL);
-		
+
+#ifdef WITH_VERSE
+	if((session_list.first != NULL) && (!G.obedit->vnode)) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Share at Verse Server",
+				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+		uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	}
+#endif
+
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Editing|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Redo Editing|Shift U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefIconTextBlockBut(block, editmode_undohistorymenu, NULL, ICON_RIGHTARROW_THIN, "Undo History", 0, yco-=20, 120, 19, "");

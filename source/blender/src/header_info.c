@@ -79,6 +79,10 @@
 #include "BIF_writeimage.h"
 #include "BIF_drawscene.h"
 
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
+
 #include "BKE_blender.h"
 #include "BKE_depsgraph.h"
 #include "BKE_exotic.h"
@@ -90,6 +94,10 @@
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
 #include "BKE_world.h"
+
+#ifdef WITH_VERSE
+#include "BKE_verse.h"
+#endif
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -720,6 +728,82 @@ static uiBlock *info_file_exportmenu(void *arg_unused)
 	return block;
 }
 
+#ifdef WITH_VERSE
+
+extern ListBase session_list;
+
+static void do_verse_filemenu(void *arg, int event)
+{
+	char address[64];		/* lenght of domain name is 63 characters or less */
+	VerseSession *session = NULL;
+	ScrArea *sa;
+	
+	if(curarea->spacetype==SPACE_INFO) {
+		sa= closest_bigger_area();
+		areawinset(sa->win);
+	}
+
+	switch(event) {
+		case 0:
+			waitcursor(1);
+			printf("Connecting to localhost!\n");
+			b_verse_connect("localhost");
+			waitcursor(0);
+			break;
+		case 1:
+			address[0] = '\0';
+			if(sbutton(address, 0, 63, "Server:")) {
+				waitcursor(1);
+				printf("Connecting to %s\n", address);
+				b_verse_connect(address);
+				waitcursor(0);
+			}
+			break;
+		case 2:
+			session = session_menu();
+			if(session) {
+				printf("Disconnecting session: %s!\n", session->address);
+				end_verse_session(session, 1);
+			}
+			break;
+		case 3:
+			printf("Disconnecting all sessions!\n");
+			end_all_verse_sessions();
+			break;
+	}
+}
+
+static uiBlock *verse_filemenu(void *unusedargs)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "verse_filemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_verse_filemenu, NULL);
+		
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Connect to localhost", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Connect ...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	if(session_list.first != NULL) {
+		if(session_list.first != session_list.last) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Disconnect ...",
+					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Disconnect all",
+					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+		}
+		else {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Disconnect",
+					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+		}
+		
+	}
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+#endif
+
 static void do_info_filemenu(void *arg, int event)
 {
 	ScrArea *sa;
@@ -871,6 +955,9 @@ static uiBlock *info_filemenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "New|Ctrl X",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|F1",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+#ifdef WITH_VERSE
+	uiDefIconTextBlockBut(block, verse_filemenu, NULL, ICON_RIGHTARROW_THIN, "Verse", 0, yco-=20, menuwidth, 19, "");
+#endif
 	uiDefIconTextBlockBut(block, info_openrecentmenu, NULL, ICON_RIGHTARROW_THIN, "Open Recent",0, yco-=20, 120, 19, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Recover Last Session",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 

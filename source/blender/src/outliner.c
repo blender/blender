@@ -70,6 +70,10 @@
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
+#ifdef WITH_VERSE
+#include "BKE_verse.h"
+#endif
+
 #include "BIF_butspace.h"
 #include "BIF_drawscene.h"
 #include "BIF_drawtext.h"
@@ -94,6 +98,10 @@
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 
+#ifdef WITH_VERSE
+#include "BIF_verse.h"
+#endif
+
 #ifdef INTERNATIONAL
 #include "FTF_Api.h"
 #endif
@@ -113,6 +121,10 @@
 #define TS_CHUNK	128
 
 #define TREESTORE(a) ((a)?soops->treestore->data+(a)->store_index:NULL)
+
+#ifdef WITH_VERSE
+extern ListBase session_list;
+#endif
 
 /* ******************** PERSISTANT DATA ***************** */
 
@@ -702,6 +714,34 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			break;
 		}
 	}
+#ifdef WITH_VERSE
+	else if(type==ID_VS) {
+		struct VerseSession *session = (VerseSession*)idv;
+		te->name = session->address;
+		te->directdata = (void*)session;
+		te->idcode = ID_VS;
+	}
+	else if(type==ID_VN) {
+		struct VNode *vnode = (VNode*)idv;
+		te->name = vnode->name;
+		te->idcode = ID_VN;
+		if(vnode->type==V_NT_OBJECT) {
+			struct TreeElement *ten;
+			struct VNode *child_node;
+			struct VLink *vlink;
+			
+			vlink = ((VObjectData*)vnode->data)->links.lb.first;
+			while(vlink) {
+				child_node = vlink->target;
+				if(child_node && child_node->type==V_NT_GEOMETRY) {
+					ten = outliner_add_element(soops, &te->subtree, child_node, te, ID_VN, 0);
+					ten->directdata = child_node;
+				}
+				vlink = vlink->next;
+			}
+		}
+	}
+#endif
 	return te;
 }
 
@@ -754,6 +794,9 @@ static void outliner_build_tree(SpaceOops *soops)
 	TreeElement *te, *ten;
 	TreeStoreElem *tselem;
 	int show_opened= soops->treestore==NULL; /* on first view, we open scenes */
+#ifdef WITH_VERSE
+	struct VerseSession *session;
+#endif
 
 	outliner_free_tree(&soops->tree);
 	outliner_storage_cleanup(soops);
@@ -840,7 +883,28 @@ static void outliner_build_tree(SpaceOops *soops)
 		ten= outliner_add_element(soops, &soops->tree, OBACT, NULL, 0, 0);
 		if(ten) ten->directdata= BASACT;
 	}
-	
+
+#ifdef WITH_VERSE
+	/* add all session to the "root" of hierarchy */
+	for(session=session_list.first; session; session = session->next) {
+		struct VNode *vnode;
+		if(session->flag & VERSE_CONNECTED) {
+			te= outliner_add_element(soops, &soops->tree, session, NULL, ID_VS, 0);
+			/* add all object nodes as childreen of session */
+			for(vnode=session->nodes.lb.first; vnode; vnode=vnode->next) {
+				if(vnode->type==V_NT_OBJECT) {
+					ten= outliner_add_element(soops, &te->subtree, vnode, te, ID_VN, 0);
+					ten->directdata= vnode;
+				}
+				else if(vnode->type==V_NT_BITMAP) {
+					ten= outliner_add_element(soops, &te->subtree, vnode, te, ID_VN, 0);
+					ten->directdata= vnode;
+				}
+			}
+		}
+	}
+#endif
+
 	outliner_sort(soops, &soops->tree);
 }
 
@@ -1509,6 +1573,59 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 				}
 			}
 			else {
+#ifdef WITH_VERSE
+				if(event==RIGHTMOUSE) {
+					short event;
+					if(te->idcode==ID_VS) {
+						struct VerseSession *session = (VerseSession*)te->directdata;
+						struct VNode *vnode;
+						if(!(session->flag & VERSE_AUTOSUBSCRIBE)) {
+							event = pupmenu("VerseSession %t| End Session %x1| Subscribe to All Nodes %x2| Start Autosubscribe %x3");
+						}
+						else {
+							event = pupmenu("VerseSession %t| End Session %x1| Subscribe to All Nodes %x2| Stop Autosubscribe %x4");
+						}
+						switch(event) {
+							case 1:
+								end_verse_session(session, 1);
+								break;
+							case 2:
+								vnode = session->nodes.lb.first;
+								while(vnode) {
+									b_verse_pop_node(vnode);
+									vnode = vnode->next;
+								}
+								break;
+							case 3:
+								vnode = session->nodes.lb.first;
+								while(vnode) {
+									b_verse_pop_node(vnode);
+									vnode = vnode->next;
+								}
+								session->flag |= VERSE_AUTOSUBSCRIBE;
+								break;
+							case 4:
+								session->flag &= ~VERSE_AUTOSUBSCRIBE;
+								break;
+						}
+					}
+					else if(te->idcode==ID_VN) {
+						struct VNode *vnode = (VNode*)te->directdata;
+						event = pupmenu("VerseNode %t| Subscribe %x1| Unsubscribe %x2");
+						switch(event) {
+							case 1:
+								b_verse_pop_node(vnode);
+								break;
+							case 2:
+								/* Global */
+								b_verse_unsubscribe(vnode);
+								break;
+						}
+					}
+				}
+				else {
+#endif
+
 				/* always makes active object */
 				tree_element_active_object(soops, te);
 				
@@ -1533,6 +1650,9 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 					
 				}
 				else tree_element_type_active(soops, te, tselem, 1);
+#ifdef WITH_VERSE
+				}
+#endif
 			}
 			return 1;
 		}
@@ -1722,7 +1842,13 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb)
 		tselem= TREESTORE(te);
 		if(tselem->flag & TSE_SELECTED) {
 			if(tselem->type) {
+#ifdef WITH_VERSE
+				if(te->idcode==ID_VS) datalevel= TSE_VERSE_SESSION;
+				else if(te->idcode==ID_VN) datalevel= TSE_VERSE_OBJ_NODE;
+				else if(datalevel==0) datalevel= tselem->type;
+#else
 				if(datalevel==0) datalevel= tselem->type;
+#endif
 				else if(datalevel!=tselem->type) datalevel= -1;
 			}
 			else {
@@ -1973,6 +2099,17 @@ static void ebone_cb(int event, TreeElement *te, TreeStoreElem *tselem)
 		ebone->flag &= ~BONE_HIDDEN_A;
 }
 
+#ifdef WITH_VERSE
+static void vsession_cb(int event, TreeElement *te, TreeStoreElem *tselem)
+{
+/*	struct VerseSession *vsession =(VerseSession*)te->directdata;*/
+
+	if(event==1) {
+		printf("\tending verse session\n");
+	}
+}
+#endif
+
 static void outliner_do_data_operation(SpaceOops *soops, int type, int event, ListBase *lb, 
 										 void (*operation_cb)(int, TreeElement *, TreeStoreElem *))
 {
@@ -2095,6 +2232,14 @@ void outliner_operation_menu(ScrArea *sa)
 					BIF_undo_push("EditBone operation");
 				}
 			}
+#ifdef WITH_VERSE
+			else if(datalevel==TSE_VERSE_SESSION) {
+				short event= pupmenu("VerseSession %t| End %x1");
+				if(event>0) {
+					outliner_do_data_operation(soops, datalevel, event, &soops->tree, vsession_cb);
+				}
+			}
+#endif
 			
 			allqueue(REDRAWOOPS, 0);
 			allqueue(REDRAWBUTSALL, 0);
@@ -2163,6 +2308,12 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				BIF_icon_draw(x, y, ICON_ARMATURE_DEHLT); break;
 			case TSE_POSE_CHANNEL:
 				BIF_icon_draw(x, y, ICON_WPAINT_DEHLT); break;
+#ifdef WITH_VERSE
+			case ID_VS:
+				BIF_icon_draw(x, y, ICON_VERSE); break;
+			case ID_VN:
+				BIF_icon_draw(x, y, ICON_VERSE); break;
+#endif
 			default:
 				BIF_icon_draw(x, y, ICON_DOT); break;
 		}
@@ -2354,9 +2505,14 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		else BIF_ThemeColor(TH_TEXT);
 		glRasterPos2i(startx+offsx, *starty+5);
 		BIF_RasterPos(startx+offsx, *starty+5);
-		BIF_DrawString(G.font, te->name, 0);
-		
-		offsx+= OL_X + BIF_GetStringWidth(G.font, te->name, 0);
+#ifdef WITH_VERSE
+		if(te->name) {
+#endif
+			BIF_DrawString(G.font, te->name, 0);
+			offsx+= OL_X + BIF_GetStringWidth(G.font, te->name, 0);
+#ifdef WITH_VERSE
+		}
+#endif
 		
 		/* closed item, we draw the icons, not when it's a scene though */
 		if(tselem->flag & TSE_CLOSED) {

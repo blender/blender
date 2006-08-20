@@ -184,6 +184,11 @@ typedef struct Global {
 
 #define G_RECORDKEYS	(1 << 25)
 
+/*#ifdef WITH_VERSE*/
+#define G_VERSE_CONNECTED  (1 << 26)
+#define G_DRAW_VERSE_DEBUG (1 << 27)
+/*#endif*/
+
 /* G.fileflags */
 
 #define G_AUTOPACK               (1 << 0)
