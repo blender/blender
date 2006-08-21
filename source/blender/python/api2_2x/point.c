@@ -400,12 +400,14 @@ static PyObject *Point_mul(PyObject * p1, PyObject * p2)
 static PyObject *Point_neg(PointObject *self)
 {
 	int x;
-	for(x = 0; x < self->size; x++){
-		self->coord[x] = -self->coord[x];
-	}
+	float coord[3];
 
-	return EXPP_incr_ret((PyObject *)self);
+	for(x = 0; x < self->size; x++)
+		coord[x] = -self->coord[x];
+
+	return newPointObject(coord, self->size, Py_NEW);
 }
+
 //------------------------coerce(obj, obj)-----------------------
 //coercion of unknown types to type PointObject for numeric protocols
 /*Coercion() is called whenever a math operation has 2 operands that
