@@ -4317,7 +4317,7 @@ static void bbs_mesh_solid(Object *ob)
 
 	/* draw edges for seam marking in faceselect mode, but not when painting,
 	   so that painting doesn't get interrupted on an edge */
-	if ((G.f & G_FACESELECT) && !(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))) {
+	if ((G.f & G_FACESELECT) && !(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) && me->tface) {
 		struct { Mesh *me; EdgeHash *eh; int offset; } userData;
 
 		userData.me = me;

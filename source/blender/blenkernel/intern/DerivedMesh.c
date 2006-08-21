@@ -1781,6 +1781,29 @@ static void vDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 	glShadeModel(GL_FLAT);
 }
 
+/* thsi function should draw mesh with mapped texture, but it isn't supported yet */
+static void vDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(struct TFace *tface, int matnr))
+{
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	struct VerseFace *vface;
+
+	if(!vdm->polygon_layer) return;
+
+	vface = vdm->polygon_layer->dl.lb.first;
+
+	while(vface) {
+		glBegin(vface->vvert3?GL_QUADS:GL_TRIANGLES);
+		glVertex3fv(vdm->verts ? vface->vvert0->cos : vface->vvert0->co);
+		glVertex3fv(vdm->verts ? vface->vvert1->cos : vface->vvert1->co);
+		glVertex3fv(vdm->verts ? vface->vvert2->cos : vface->vvert2->co);
+		if(vface->vvert3)
+			glVertex3fv(vdm->verts ? vface->vvert3->cos : vface->vvert3->co);
+		glEnd();
+
+		vface = vface->next;
+	}
+}
+
 /* this function should draw mesh with colored faces (weight paint, vertex
  * colors, etc.), but it isn't supported yet */
 static void vDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned char *col1, unsigned char *col2)
@@ -1905,6 +1928,7 @@ DerivedMesh *derivedmesh_from_versemesh(VNode *vnode, float (*vertexCos)[3])
 	vdm->dm.drawUVEdges = vDM_drawUVEdges;
 
 	vdm->dm.drawFacesSolid = vDM_drawFacesSolid;
+	vdm->dm.drawFacesTex = vDM_drawFacesTex;
 	vdm->dm.drawFacesColored = vDM_drawFacesColored;
 
 	vdm->dm.drawMappedFacesTex = vDM_drawMappedFacesTex;

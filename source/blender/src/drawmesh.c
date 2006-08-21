@@ -916,7 +916,15 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		int editing= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
 		int start, totface;
 
+#ifdef WITH_VERSE
+		if(me->vnode) {
+			/* verse-blender doesn't support uv mapping of textures yet */
+			dm->drawFacesTex(dm, NULL);
+		}
+		else if(ob==OBACT && (G.f & G_FACESELECT) && me && me->tface)
+#else
 		if(ob==OBACT && (G.f & G_FACESELECT) && me && me->tface)
+#endif
 			dm->drawMappedFacesTex(dm, draw_tface_mapped__set_draw, (void*)me);
 		else
 			dm->drawFacesTex(dm, draw_tface__set_draw);
