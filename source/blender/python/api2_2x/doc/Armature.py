@@ -118,7 +118,7 @@ def Get (name = None):
 
 def New (name = None):
   """
-  Return a new armatre.
+  Return a new armature.
   @type name: string or nothing
   @param name: The string name of the new armature.
   @rtype: Blender Armature.

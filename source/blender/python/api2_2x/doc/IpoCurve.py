@@ -13,8 +13,8 @@ BezTriples.
 
 Example::
   import Blender
-  ob = Blender.Ipo.Get('ObIpo')  # retrieves an Ipo object
-  ob.name = 'ipo1'				 # change the Ipo's name
+  ipo = Blender.Ipo.Get('ObIpo')  # retrieves an Ipo object
+  ipo.name = 'ipo1'				 # change the Ipo's name
   icu = ipo[Blender.Ipo.OB_LOCX] # request X Location Ipo curve object
   if icu != None and len(icu.bezierPoints) > 0: # if curve exists and has BezTriple points
      val = icu[2.5]              # get the curve's value at time 2.5
@@ -153,8 +153,7 @@ class IpoCurve:
 
   def delBezier(index):
     """
-    Deletes a Bezier point from a curve (B{deprecated}). B{Note}:
-    new scripts should use B{del icu[index]} instead.
+    Deletes a Bezier point from a curve.
     @type index: integer
     @param index: the index of the Bezier point.  Negative values index from the end of the list.
     @rtype: None

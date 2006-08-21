@@ -21,7 +21,7 @@ Example::
 
 Example::
 	# Apply a lattice to an object and get the deformed object
-	# Uses an object called 'Cube' and a lattive called ''Lattive
+	# Uses an object called 'Cube' and a lattice called 'Lattice'
 	
 	from Blender import *
 	ob_mesh= Object.Get('Cube')
