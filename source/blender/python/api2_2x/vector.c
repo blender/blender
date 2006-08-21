@@ -39,24 +39,25 @@
 /*-------------------------DOC STRINGS ---------------------------*/
 char Vector_Zero_doc[] = "() - set all values in the vector to 0";
 char Vector_Normalize_doc[] = "() - normalize the vector";
-char Vector_Normalized_doc[] = "() - return a normalized copy of the vector";
 char Vector_Negate_doc[] = "() - changes vector to it's additive inverse";
 char Vector_Resize2D_doc[] = "() - resize a vector to [x,y]";
 char Vector_Resize3D_doc[] = "() - resize a vector to [x,y,z]";
 char Vector_Resize4D_doc[] = "() - resize a vector to [x,y,z,w]";
 char Vector_toPoint_doc[] = "() - create a new Point Object from this vector";
 char Vector_ToTrackQuat_doc[] = "(track, up) - extract a quaternion from the vector and the track and up axis";
+char Vector_copy_doc[] = "() - return a copy of the vector";
 /*-----------------------METHOD DEFINITIONS ----------------------*/
 struct PyMethodDef Vector_methods[] = {
 	{"zero", (PyCFunction) Vector_Zero, METH_NOARGS, Vector_Zero_doc},
 	{"normalize", (PyCFunction) Vector_Normalize, METH_NOARGS, Vector_Normalize_doc},
-	{"normalized", (PyCFunction) Vector_Normalized, METH_NOARGS, Vector_Normalized_doc},
 	{"negate", (PyCFunction) Vector_Negate, METH_NOARGS, Vector_Negate_doc},
 	{"resize2D", (PyCFunction) Vector_Resize2D, METH_NOARGS, Vector_Resize2D_doc},
 	{"resize3D", (PyCFunction) Vector_Resize3D, METH_NOARGS, Vector_Resize2D_doc},
 	{"resize4D", (PyCFunction) Vector_Resize4D, METH_NOARGS, Vector_Resize2D_doc},
 	{"toPoint", (PyCFunction) Vector_toPoint, METH_NOARGS, Vector_toPoint_doc},
 	{"toTrackQuat", ( PyCFunction ) Vector_ToTrackQuat, METH_VARARGS, Vector_ToTrackQuat_doc},
+	{"copy", (PyCFunction) Vector_copy, METH_NOARGS, Vector_copy_doc},
+	{"__copy__", (PyCFunction) Vector_copy, METH_NOARGS, Vector_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
 /*-----------------------------METHODS----------------------------
@@ -101,16 +102,7 @@ PyObject *Vector_Normalize(VectorObject * self)
 	for(x = 0; x < self->size; x++) {
 		self->vec[x] /= norm;
 	}
-	Py_RETURN_NONE;
-}
-
-/*----------------------------Vector.normalized() -----------------
- return a normalized copy*/
-PyObject *Vector_Normalized(VectorObject * self)
-{
-	VectorObject *vec= (VectorObject*)newVectorObject(self->vec, self->size, Py_NEW);
-	Vector_Normalize(vec);
-	return (PyObject*)vec;
+	return EXPP_incr_ret((PyObject*)self);
 }
 
 
@@ -289,6 +281,16 @@ PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 
 	return newQuaternionObject(vectoquat(vec, track, up), Py_NEW);
 }
+
+
+
+/*----------------------------Vector.copy() --------------------------------------
+  return a copy of the vector */
+PyObject *Vector_copy(VectorObject * self)
+{
+	return newVectorObject(self->vec, self->size, Py_NEW);
+}
+
 /*----------------------------dealloc()(internal) ----------------
   free the py_object */
 static void Vector_dealloc(VectorObject * self)
@@ -704,11 +706,12 @@ static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 static PyObject *Vector_neg(VectorObject *self)
 {
 	int x;
+	float vec[4];
 	for(x = 0; x < self->size; x++){
-		self->vec[x] = -self->vec[x];
+		vec[x] = -self->vec[x];
 	}
 
-	return EXPP_incr_ret((PyObject *)self);
+	return newVectorObject(vec, self->size, Py_NEW);
 }
 /*------------------------coerce(obj, obj)-----------------------
   coercion of unknown types to type VectorObject for numeric protocols
@@ -969,7 +972,7 @@ PyObject *Vector_Negate(VectorObject * self)
 	for(x = 0; x < self->size; x++) {
 		self->vec[x] = -(self->vec[x]);
 	}
-	printf("Vector.negate(): Deprecated: use -vector instead\n");
+	/*printf("Vector.negate(): Deprecated: use -vector instead\n");*/
 	return EXPP_incr_ret((PyObject*)self);
 }
 /*###################################################################

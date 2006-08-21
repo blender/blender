@@ -66,16 +66,15 @@ blender (stored in blend_data). This is an either/or struct not both*/
 PyObject *Matrix_Zero( MatrixObject * self );
 PyObject *Matrix_Identity( MatrixObject * self );
 PyObject *Matrix_Transpose( MatrixObject * self );
-PyObject *Matrix_Transposed( MatrixObject * self );
 PyObject *Matrix_Determinant( MatrixObject * self );
 PyObject *Matrix_Invert( MatrixObject * self );
-PyObject *Matrix_Inverted( MatrixObject * self );
 PyObject *Matrix_TranslationPart( MatrixObject * self );
 PyObject *Matrix_RotationPart( MatrixObject * self );
 PyObject *Matrix_scalePart( MatrixObject * self );
 PyObject *Matrix_Resize4x4( MatrixObject * self );
 PyObject *Matrix_toEuler( MatrixObject * self );
 PyObject *Matrix_toQuat( MatrixObject * self );
+PyObject *Matrix_copy( MatrixObject * self );
 PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type);
 
 #endif				/* EXPP_matrix_H */

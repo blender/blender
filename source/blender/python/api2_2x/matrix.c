@@ -39,31 +39,30 @@
 char Matrix_Zero_doc[] = "() - set all values in the matrix to 0";
 char Matrix_Identity_doc[] = "() - set the square matrix to it's identity matrix";
 char Matrix_Transpose_doc[] = "() - set the matrix to it's transpose";
-char Matrix_Transposed_doc[] = "() - return a copy transposed copy of the matrix";
 char Matrix_Determinant_doc[] = "() - return the determinant of the matrix";
 char Matrix_Invert_doc[] =  "() - set the matrix to it's inverse if an inverse is possible";
-char Matrix_Inverted_doc[] =  "() - set the matrix to it's inverse if an inverse is possible";
 char Matrix_TranslationPart_doc[] = "() - return a vector encompassing the translation of the matrix";
 char Matrix_RotationPart_doc[] = "() - return a vector encompassing the rotation of the matrix";
 char Matrix_scalePart_doc[] = "() - convert matrix to a 3D vector";
 char Matrix_Resize4x4_doc[] = "() - resize the matrix to a 4x4 square matrix";
 char Matrix_toEuler_doc[] = "() - convert matrix to a euler angle rotation";
 char Matrix_toQuat_doc[] = "() - convert matrix to a quaternion rotation";
+char Matrix_copy_doc[] = "() - return a copy of the matrix";
 /*-----------------------METHOD DEFINITIONS ----------------------*/
 struct PyMethodDef Matrix_methods[] = {
 	{"zero", (PyCFunction) Matrix_Zero, METH_NOARGS, Matrix_Zero_doc},
 	{"identity", (PyCFunction) Matrix_Identity, METH_NOARGS, Matrix_Identity_doc},
 	{"transpose", (PyCFunction) Matrix_Transpose, METH_NOARGS, Matrix_Transpose_doc},
-	{"transposed", (PyCFunction) Matrix_Transposed, METH_NOARGS, Matrix_Transposed_doc},
 	{"determinant", (PyCFunction) Matrix_Determinant, METH_NOARGS, Matrix_Determinant_doc},
 	{"invert", (PyCFunction) Matrix_Invert, METH_NOARGS, Matrix_Invert_doc},
-	{"inverted", (PyCFunction) Matrix_Inverted, METH_NOARGS, Matrix_Inverted_doc},
 	{"translationPart", (PyCFunction) Matrix_TranslationPart, METH_NOARGS, Matrix_TranslationPart_doc},
 	{"rotationPart", (PyCFunction) Matrix_RotationPart, METH_NOARGS, Matrix_RotationPart_doc},
 	{"scalePart", (PyCFunction) Matrix_scalePart, METH_NOARGS, Matrix_scalePart_doc},
 	{"resize4x4", (PyCFunction) Matrix_Resize4x4, METH_NOARGS, Matrix_Resize4x4_doc},
 	{"toEuler", (PyCFunction) Matrix_toEuler, METH_NOARGS, Matrix_toEuler_doc},
 	{"toQuat", (PyCFunction) Matrix_toQuat, METH_NOARGS, Matrix_toQuat_doc},
+	{"copy", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
+	{"__copy__", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
 /*-----------------------------METHODS----------------------------*/
@@ -264,20 +263,9 @@ PyObject *Matrix_Invert(MatrixObject * self)
 		return EXPP_ReturnPyObjError(PyExc_ValueError,
 				"matrix does not have an inverse");
 	}
-	/*return EXPP_incr_ret((PyObject*)self);*/ /*Changed after 2.42 relerase */
-	Py_RETURN_NONE;
+	return EXPP_incr_ret((PyObject*)self);
 }
 
-
-/*---------------------------Matrix.inverted() ------------------*/
-PyObject *Matrix_Inverted(MatrixObject * self)
-{
-	MatrixObject *pymat;	
-	/*copy the matrix*/
-	pymat= (MatrixObject*)newMatrixObject((float (*))*self->matrix, self->rowSize, self->colSize, Py_NEW);
-	Matrix_Invert(pymat);
-	return (PyObject*)pymat;
-}
 
 /*---------------------------Matrix.determinant() ----------------*/
 PyObject *Matrix_Determinant(MatrixObject * self)
@@ -324,18 +312,7 @@ PyObject *Matrix_Transpose(MatrixObject * self)
 		Mat4Transp((float (*)[4])*self->matrix);
 	}
 
-	/*return EXPP_incr_ret((PyObject*)self);*/ /*Changed after 2.42 relerase */
-	Py_RETURN_NONE;
-}
-
-/*---------------------------Matrix.transposed() ------------------*/
-PyObject *Matrix_Transposed(MatrixObject * self)
-{
-	MatrixObject *pymat;
-	/*copy the matrix*/
-	pymat= (MatrixObject*)newMatrixObject((float (*))*self->matrix, self->rowSize, self->colSize, Py_NEW);
-	Matrix_Transpose(pymat);
-	return (PyObject*)pymat;
+	return EXPP_incr_ret((PyObject*)self);
 }
 
 
@@ -372,6 +349,13 @@ PyObject *Matrix_Identity(MatrixObject * self)
 
 	return EXPP_incr_ret((PyObject*)self);
 }
+
+/*---------------------------Matrix.inverted() ------------------*/
+PyObject *Matrix_copy(MatrixObject * self)
+{
+	return (PyObject*)(MatrixObject*)newMatrixObject((float (*))*self->matrix, self->rowSize, self->colSize, Py_NEW);
+}
+
 /*----------------------------dealloc()(internal) ----------------*/
 /*free the py_object*/
 static void Matrix_dealloc(MatrixObject * self)

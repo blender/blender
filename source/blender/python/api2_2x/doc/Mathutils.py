@@ -130,7 +130,7 @@ def PolyFill(polylines):
 def CopyVec(vector):
   """
   Create a copy of the Vector object.
-  @attention: B{DEPRECATED} use Vector(vector) instead.
+  @attention: B{DEPRECATED} use vector.copy() instead.
   @type vector: Vector object.
   @param vector: A 2d,3d or 4d vector to be copied.
   @rtype: Vector object.
@@ -298,10 +298,9 @@ def CopyMat(matrix):
   @param matrix: A 2d,3d or 4d matrix to be copied.
   @rtype: Matrix object.
   @return: A new matrix object which is a copy of the one passed in.
-  @attention: B{DEPRECATED} You should use the matrix constructor to create
-  a copy of a matrix
+  @attention: B{DEPRECATED} Use the matrix copy funtion to make a copy.
   Example::
-      newMat = Matrix(myMat)
+      newMat = myMat.copy()
   """
 
 def MatMultVec(mat, vec):
@@ -429,7 +428,7 @@ class Vector:
       - vec * matrix
       - vec * vec
       - vec * quat
-      - -vec (this is shorthand for negate())
+      - -vec
   @note: You can access a vector object like a sequence
       - x = vector[0]
   @attention: Vector data can be wrapped or non-wrapped. When a object is wrapped it
@@ -468,10 +467,16 @@ class Vector:
         - ():     An empty 3 dimensional vector.
     """
 
+  def copy():
+    """
+    Returns a copy of this vector
+    @return: a copy of itself
+    """
+
   def zero():
     """
     Set all values to zero.
-    @return: a copy of itself
+    @return: an instance of itself
     """
 
   def normalize():
@@ -479,22 +484,13 @@ class Vector:
     Normalize the vector, making the length of the vector always 1.0
     @note: Normalize works for vectors of all sizes, however 4D Vectors w axis is left untouched.
     @note: Normalizing a vector where all values are zero results in all axis having a nan value (not a number).
-    @return: None
-    """
-
-  def normalized():
-    """
-    Same as normalize except it returns a normalized copy of the vector, leaving the original intact.
-    @return: a normalized copy of the vector
+    @return: an instance of itself
     """
 
   def negate():
     """
     Set all values to their negative.
-    @return: a copy of itself
-    @attention: B{DEPRECATED} You can use -vector instead
-    Example::
-        negVector = -myVec
+    @return: an instance of its self
     """
 
   def resize2D():
@@ -776,6 +772,13 @@ class Matrix:
   def zero():
     """
     Set all matrix values to 0.
+    @return: an instance of itself
+    """
+
+
+  def copy():
+    """
+    Returns a copy of this matrix
     @return: a copy of itself
     """
 
@@ -785,7 +788,7 @@ class Matrix:
     An object with zero location and rotation, a scale of 1, will have an identity matrix.
 
     See U{http://en.wikipedia.org/wiki/Identity_matrix}
-    @return: a copy of itself
+    @return: an instance of itself
     """
 
   def transpose():
@@ -794,12 +797,6 @@ class Matrix:
     
     See U{http://en.wikipedia.org/wiki/Transpose}
     @return: None
-    """
-
-  def transposed():
-    """
-    Same as transpose() except a transposed copy of the matrix is returned leaving the original intact.
-    @return: a transposed copy of the matrix
     """
 
   def determinant():
@@ -816,14 +813,8 @@ class Matrix:
     Set the matrix to its inverse.
     
     See U{http://en.wikipedia.org/wiki/Inverse_matrix}
-    @return: a copy of itself
+    @return: an instance of itself.
     @raise ValueError: When matrix is singular.
-    """
-
-  def inverted():
-    """
-    Same as invert() except an inverted copy of the matrix is returned leaving the original intact.
-    @return: an inverted copy of the matrix
     """
 
   def rotationPart():
@@ -854,7 +845,7 @@ class Matrix:
   def resize4x4():
     """
     Resize the matrix to by 4x4
-    @return: a copy of itself
+    @return: an instance of itself.
     """
   
   def toEuler():
