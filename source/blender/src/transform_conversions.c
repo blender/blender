@@ -612,12 +612,13 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 	
 	/* make sure no bone can be transformed when a parent is transformed */
 	/* since pchans are depsgraph sorted, the parents are in beginning of list */
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		bone= pchan->bone;
-		if(bone->flag & BONE_TRANSFORM)
-			bone_children_clear_transflag(&bone->childbase);
-	}
-	
+	if(t->mode!=TFM_BONESIZE) {
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			bone= pchan->bone;
+			if(bone->flag & BONE_TRANSFORM)
+				bone_children_clear_transflag(&bone->childbase);
+		}
+	}	
 	/* now count, and check if we have autoIK or have to switch from translate to rotate */
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		bone= pchan->bone;

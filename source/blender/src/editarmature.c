@@ -1279,7 +1279,7 @@ void addvert_armature(void)
 		
 		newbone->length= VecLenf(newbone->head, newbone->tail);
 		newbone->rad_tail= newbone->length*0.05f;
-		newbone->dist= newbone->length*0.1f;
+		newbone->dist= newbone->length*0.25f;
 		
 	}
 	
