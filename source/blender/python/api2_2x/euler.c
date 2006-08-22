@@ -43,6 +43,7 @@ char Euler_Unique_doc[] ="() - sets the euler rotation a unique shortest arc rot
 char Euler_ToMatrix_doc[] =	"() - returns a rotation matrix representing the euler rotation";
 char Euler_ToQuat_doc[] = "() - returns a quaternion representing the euler rotation";
 char Euler_Rotate_doc[] = "() - rotate a euler by certain amount around an axis of rotation";
+char Euler_copy_doc[] = "() - returns a copy of the euler.";
 //-----------------------METHOD DEFINITIONS ----------------------
 struct PyMethodDef Euler_methods[] = {
 	{"zero", (PyCFunction) Euler_Zero, METH_NOARGS, Euler_Zero_doc},
@@ -50,6 +51,8 @@ struct PyMethodDef Euler_methods[] = {
 	{"toMatrix", (PyCFunction) Euler_ToMatrix, METH_NOARGS, Euler_ToMatrix_doc},
 	{"toQuat", (PyCFunction) Euler_ToQuat, METH_NOARGS, Euler_ToQuat_doc},
 	{"rotate", (PyCFunction) Euler_Rotate, METH_VARARGS, Euler_Rotate_doc},
+	{"__copy__", (PyCFunction) Euler_copy, METH_VARARGS, Euler_copy_doc},
+	{"copy", (PyCFunction) Euler_copy, METH_VARARGS, Euler_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
 //-----------------------------METHODS----------------------------
@@ -171,6 +174,14 @@ PyObject *Euler_Rotate(EulerObject * self, PyObject *args)
 
 	return EXPP_incr_ret((PyObject*)self);
 }
+//----------------------------Euler.rotate()-----------------------
+// return a copy of the euler
+PyObject *Euler_copy(EulerObject * self, PyObject *args)
+{
+	return newEulerObject(self->eul, Py_NEW);
+}
+
+
 //----------------------------dealloc()(internal) ------------------
 //free the py_object
 static void Euler_dealloc(EulerObject * self)

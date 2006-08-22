@@ -496,20 +496,20 @@ class Vector:
   def resize2D():
     """
     Resize the vector to 2d.
-    @return: a copy of itself
+    @return: an instance of itself
     """
 
   def resize3D():
     """
     Resize the vector to 3d. New axis will be 0.0.
-    @return: a copy of itself
+    @return: an instance of itself
     """
 
   def resize4D():
     """
     Resize the vector to 4d. New axis will be 0.0.
     The last component will be 1.0, to make multiplying 3d vectors by 4x4 matrices easier.
-    @return: a copy of itself
+    @return: an instance of itself
     """
 
   def toTrackQuat(track, up):
@@ -580,13 +580,18 @@ class Euler:
   def zero():
     """
     Set all values to zero.
-    @return: a copy of itself
+    @return: an instance of itself
+    """
+
+  def copy():
+    """
+    @return: a copy of this euler.
     """
 
   def unique():
     """
     Calculate a unique rotation for this euler. Avoids gimble lock.
-    @return: a copy of itself
+    @return: an instance of itself
     """
 
   def toMatrix():
@@ -669,31 +674,37 @@ class Quaternion:
   def identity():
     """
     Set the quaternion to the identity quaternion.
+    @return: an instance of itself
+    """
+
+  def copy():
+    """
+    make a copy of the quaternion.
     @return: a copy of itself
     """
 
   def negate():
     """
     Set the quaternion to its negative.
-    @return: a copy of itself
+    @return: an instance of itself
     """
 
   def conjugate():
     """
     Set the quaternion to its conjugate.
-    @return: a copy of itself
+    @return: an instance of itself
     """
 
   def inverse():
     """
     Set the quaternion to its inverse
-    @return: a copy of itself
+    @return: an instance of itself
     """
 
   def normalize():
     """
     Normalize the quaternion.
-    @return: a copy of itself
+    @return: an instance of itself
     """
 
   def toEuler():

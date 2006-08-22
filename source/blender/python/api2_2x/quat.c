@@ -45,6 +45,7 @@ char Quaternion_Inverse_doc[] = "() - set the quaternion to it's inverse";
 char Quaternion_Normalize_doc[] = "() - normalize the vector portion of the quaternion";
 char Quaternion_ToEuler_doc[] = "() - return a euler rotation representing the quaternion";
 char Quaternion_ToMatrix_doc[] = "() - return a rotation matrix representing the quaternion";
+char Quaternion_copy_doc[] = "() - return a copy of the quat";
 //-----------------------METHOD DEFINITIONS ----------------------
 struct PyMethodDef Quaternion_methods[] = {
 	{"identity", (PyCFunction) Quaternion_Identity, METH_NOARGS, Quaternion_Identity_doc},
@@ -54,6 +55,8 @@ struct PyMethodDef Quaternion_methods[] = {
 	{"normalize", (PyCFunction) Quaternion_Normalize, METH_NOARGS, Quaternion_Normalize_doc},
 	{"toEuler", (PyCFunction) Quaternion_ToEuler, METH_NOARGS, Quaternion_ToEuler_doc},
 	{"toMatrix", (PyCFunction) Quaternion_ToMatrix, METH_NOARGS, Quaternion_ToMatrix_doc},
+	{"__copy__", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
+	{"copy", (PyCFunction) Quaternion_copy, METH_NOARGS, Quaternion_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
 //-----------------------------METHODS------------------------------
@@ -137,6 +140,13 @@ PyObject *Quaternion_Conjugate(QuaternionObject * self)
 	}
 	return EXPP_incr_ret((PyObject*)self);
 }
+//----------------------------Quaternion.copy()----------------
+//return a copy of the quat
+PyObject *Quaternion_copy(QuaternionObject * self)
+{
+	return newQuaternionObject(self->quat, Py_NEW);	
+}
+
 //----------------------------dealloc()(internal) ------------------
 //free the py_object
 static void Quaternion_dealloc(QuaternionObject * self)

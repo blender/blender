@@ -6740,6 +6740,33 @@ static PyObject *Mesh_getUsers( BPy_Mesh * self )
 					"couldn't get Mesh.users attribute" );
 }
 
+static PyObject *Mesh_getFakeUser( BPy_Mesh * self )
+{
+	if (self->mesh->id.flag & LIB_FAKEUSER)
+		EXPP_incr_ret_True();
+	else
+		EXPP_incr_ret_False();
+}
+
+static int Mesh_setFakeUser( BPy_Mesh * self, PyObject * value )
+{
+	int param;
+	
+	param = PyObject_IsTrue( value );
+
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument in range [0,1]" );
+	if (param) {
+		self->mesh->id.flag |= LIB_FAKEUSER;
+		self->mesh->id.us++;
+	} else {
+		self->mesh->id.flag &= ~LIB_FAKEUSER;
+		self->mesh->id.us--;
+	}
+	return 0;
+}
+
 static PyObject *Mesh_getFlag( BPy_Mesh * self, void *type )
 {
 	PyObject *attr;
@@ -7144,6 +7171,10 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	{"users",
 	 (getter)Mesh_getUsers, (setter)NULL,
 	 "Number of users of the mesh",
+	 NULL},
+	{"fakeUser",
+	 (getter)Mesh_getFakeUser, (setter)Mesh_setFakeUser,
+	 "The fake user status of this mesh",
 	 NULL},
 	{"activeGroup",
 	 (getter)Mesh_getActiveGroup, (setter)Mesh_setActiveGroup,
