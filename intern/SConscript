@@ -1,4 +1,6 @@
 #!/usr/bin/python
+Import ('env')
+
 SConscript(['SoundSystem/SConscript',
             'string/SConscript',
             'ghost/SConscript',
@@ -10,7 +12,6 @@ SConscript(['SoundSystem/SConscript',
             'decimation/SConscript',
             'iksolver/SConscript',
             'boolop/SConscript',
-            'elbeem/SConscript',
             'opennl/SConscript'])
 
 # NEW_CSG was intended for intern/csg, but
@@ -18,6 +19,9 @@ SConscript(['SoundSystem/SConscript',
 # intern/bsp has been used anyway, so
 # perhaps get rid of intern/csg?
 NEW_CSG='false'
+
+if env['BF_NO_ELBEEM'] == 'false':
+	SConscript(['elbeem/SConscript'])
 
 if NEW_CSG=='false':
 	SConscript(['bsp/SConscript'])

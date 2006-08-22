@@ -1461,8 +1461,7 @@ void softbody_bake(Object *ob)
 	allqueue(REDRAWBUTSOBJECT, 0);
 }
 
-
-// NT store processed path & file prefix for fluidsim bake directory
+// store processed path & file prefix for fluidsim bake directory
 void fluidsimFilesel(char *selection)
 {
 	Object *ob = OBACT;
@@ -1471,7 +1470,6 @@ void fluidsimFilesel(char *selection)
 	char *srch, *srchSub, *srchExt, *lastFound;
 	int isElbeemSurf = 0;
 
-	// check cfg?
 	// make prefix
 	strcpy(srcDir, selection);
 	BLI_splitdirstring(srcDir, srcFile);
@@ -1506,7 +1504,6 @@ void fluidsimFilesel(char *selection)
 	}
 
 	if(ob->fluidsimSettings) {
-		//strcpy(ob->fluidsimSettings->surfdataPath, selection);
 		strcpy(ob->fluidsimSettings->surfdataPath, srcDir);
 		//not necessary? strcat(ob->fluidsimSettings->surfdataPath, "/");
 		strcat(ob->fluidsimSettings->surfdataPath, prefix);
@@ -1599,7 +1596,6 @@ void do_object_panels(unsigned short event)
 		allqueue(REDRAWBUTSOBJECT, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
-
 	case B_FLUIDSIM_BAKE:
 		ob= OBACT;
 		/* write config files (currently no simulation) */
@@ -2521,6 +2517,7 @@ static void object_panel_particles(Object *ob)
 /* NT - Panel for fluidsim settings */
 static void object_panel_fluidsim(Object *ob)
 {
+#ifndef DISABLE_ELBEEM
 	uiBlock *block;
 	int yline = 160;
 	const int lineHeight = 20;
@@ -2567,7 +2564,6 @@ static void object_panel_fluidsim(Object *ob)
 				elbeemEstimateMemreq(fss->resolutionxyz, 
 						ob->fluidsimSettings->bbSize[0],ob->fluidsimSettings->bbSize[1],ob->fluidsimSettings->bbSize[2], fss->maxRefine, memString);
 				
-				//uiDefButBitS(block, TOG, 1, REDRAWBUTSOBJECT, "Advanced>>",	 0,yline, 75,objHeight, &fss->show_advancedoptions, 0, 0, 0, 0, "Show advanced domain options.");
 				uiBlockBeginAlign(block);
 				uiDefButS(block, ROW, REDRAWBUTSOBJECT, "Std",	 0,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 0, 20.0, 0, "Show standard domain options.");
 				uiDefButS(block, ROW, REDRAWBUTSOBJECT, "Adv",	25,yline, 25,objHeight, &fss->show_advancedoptions, 16.0, 1, 20.0, 1, "Show advanced domain options.");
@@ -2675,6 +2671,9 @@ static void object_panel_fluidsim(Object *ob)
 
 					uiDefBut(block, LABEL, 0, "Tracer Particles:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
 					uiDefButI(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->generateTracers, 0.0, 10000.0, 10,0, "Number of tracer particles to generate.");
+					yline -= lineHeight;
+					uiDefBut(block, LABEL, 0, "Generate Particles:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
+					uiDefButF(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->generateParticles, 0.0, 10.0, 10,0, "Amount of particles to generate (0=off, 1=normal, >1=more).");
 					yline -= lineHeight;
 
 					uiDefBut(block, LABEL, 0, "Surface Smoothing:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
@@ -2798,6 +2797,7 @@ static void object_panel_fluidsim(Object *ob)
 		uiDefBut(block, LABEL, 0, "Only Mesh Objects can participate", 0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
 		yline -= lineHeight;
 	}
+#endif // DISABLE_ELBEEM
 }
 
 void object_panels()

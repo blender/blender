@@ -159,6 +159,12 @@ else:
 opts = btools.read_opts(optfiles, B.arguments)
 opts.Update(env)
 
+# disable elbeem (fluidsim) compilation?
+if env['BF_NO_ELBEEM'] == 'true':
+	env['CPPFLAGS'].append('-DDISABLE_ELBEEM')
+	env['CXXFLAGS'].append('-DDISABLE_ELBEEM')
+	env['CCFLAGS'].append('-DDISABLE_ELBEEM')
+
 #check for additional debug libnames
 
 if env.has_key('BF_DEBUG_LIBS'):
@@ -374,7 +380,6 @@ if env['WITH_BF_PLAYER']:
 if not env['WITH_BF_GAMEENGINE']:
     blendernogame = env.Alias('blendernogame', B.program_list)
     Depends(blendernogame,installtarget)
-
 
 Default(B.program_list)
 Default(installtarget)

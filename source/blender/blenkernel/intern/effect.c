@@ -51,11 +51,6 @@
 #include "DNA_object_force.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
-// FSPARTICLE
-#include "DNA_object_fluidsim.h"
-#include "LBM_fluidsim.h"
-#include <zlib.h>
-#include <string.h>
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -87,8 +82,16 @@
 #include "BKE_utildefines.h"
 
 #include "PIL_time.h"
-#include "elbeem.h"
 #include "RE_render_ext.h"
+
+/* fluid sim particle import */
+#ifndef DISABLE_ELBEEM
+#include "DNA_object_fluidsim.h"
+#include "LBM_fluidsim.h"
+#include "elbeem.h"
+#include <zlib.h>
+#include <string.h>
+#endif // DISABLE_ELBEEM
 
 /* temporal struct, used for reading return of mesh_get_mapped_verts_nors() */
 typedef struct VeNoCo {
@@ -1682,7 +1685,8 @@ void build_particle_system(Object *ob)
 	
 	printf("build particles\n");
 	
-	// FSPARTICLE all own created...
+	/* fluid sim particle import handling, actual loading */
+	#ifndef DISABLE_ELBEEM
 	if( (1) && (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
 	    (ob->fluidsimSettings) && 
 		  (ob->fluidsimSettings->type == OB_FLUIDSIM_PARTICLE)) {
@@ -1775,8 +1779,8 @@ void build_particle_system(Object *ob)
 		snprintf(debugStrBuffer,256,"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", paf->totpart,activeParts,fileParts,readMask);
 		elbeemDebugOut(debugStrBuffer);
 		return;
-	}
-	
+	} // fluid sim particles done
+	#endif // DISABLE_ELBEEM
 	
 	if(paf->end < paf->sta) return;
 	

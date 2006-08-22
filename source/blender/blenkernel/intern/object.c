@@ -904,7 +904,10 @@ Object *copy_object(Object *ob)
 	/* NT copy fluid sim setting memory */
 	if(obn->fluidsimSettings) {
 		obn->fluidsimSettings = fluidsimSettingsCopy(ob->fluidsimSettings);
-		obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
+		/* copying might fail... */
+		if(obn->fluidsimSettings) {
+			obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
+		}
 	}
 	
 	obn->derivedDeform = NULL;

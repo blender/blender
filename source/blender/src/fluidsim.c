@@ -71,7 +71,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_ipo.h"
 #include "LBM_fluidsim.h"
-// TODO FIXME double elbeem.h in intern/extern...
+// warning - double elbeem.h in intern/extern...
 #include "elbeem.h"
 
 #include "BLI_editVert.h"
@@ -138,6 +138,11 @@ typedef struct {
 	Mesh *fsmesh;	// mesh struct to display (either surface, or original one)
 	char meshFree;	// free the mesh afterwards? (boolean)
 } fluidsimDerivedMesh;
+
+
+
+/* enable/disable overall compilation */
+#ifndef DISABLE_ELBEEM
 
 
 /* ********************** fluid sim settings struct functions ********************** */
@@ -1398,4 +1403,25 @@ void fluidsimBake(struct Object *ob)
 	}
 }
 
+
+#else /* DISABLE_ELBEEM */
+
+/* compile dummy functions for disabled fluid sim */
+
+FluidsimSettings *fluidsimSettingsNew(struct Object *srcob) {
+	return NULL;
+}
+
+void fluidsimSettingsFree(FluidsimSettings *fss) {
+}
+
+FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *fss) {
+	return NULL;
+}
+
+/* only compile dummy functions */
+void fluidsimBake(struct Object *ob) {
+}
+
+#endif /* DISABLE_ELBEEM */
 

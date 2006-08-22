@@ -2023,7 +2023,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 			}
 		}
 	}
-
+	
 	if (useDeform) {
 		if(do_ob_key(ob))	/* shape key makes deform verts */
 			deformedVerts = mesh_getVertexCos(me, &numVerts);
@@ -2585,12 +2585,13 @@ float *mesh_get_mapped_verts_nors(Object *ob)
 
 /* ************************* fluidsim bobj file handling **************************** */
 
+#ifndef DISABLE_ELBEEM
+
 #ifdef WIN32
 #ifndef snprintf
 #define snprintf _snprintf
 #endif
 #endif
-
 
 /* write .bobj.gz file for a mesh object */
 void writeBobjgz(char *filename, struct Object *ob, int useGlobalCoords, int append, float time) 
@@ -3144,4 +3145,11 @@ void fluidsimGetAxisAlignedBB(struct Mesh *mesh, float obmat[][4],
 	}
 }
 
+#else // DISABLE_ELBEEM
+
+/* dummy for mesh_calc_modifiers */
+void loadFluidsimMesh(Object *srcob, int useRenderParams) {
+}
+
+#endif // DISABLE_ELBEEM
 

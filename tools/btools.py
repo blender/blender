@@ -110,6 +110,7 @@ def SetupBufferedOutput( env ):
 def read_opts(cfg, args):
     localopts = Options.Options(cfg, args)
     localopts.AddOptions(
+        ('LCGDIR', 'The path to the CVS Lib folder, if you platform has it'),
         ('BF_DEBUG_LIBS', 'list of libraries to build with debug symbols'),
         ('BF_PYTHON', 'base path for python', ''),
         ('BF_PYTHON_VERSION', 'Python version to use', ''),
@@ -118,7 +119,7 @@ def read_opts(cfg, args):
         ('BF_PYTHON_LIB', 'Python library', ''),
         ('BF_PYTHON_LIBPATH', 'Library path', ''),
         ('BF_PYTHON_LINKFLAGS', 'Python link flags', ''),
-
+				('BF_NO_ELBEEM', 'Disable Fluid Sim', 'false'),
         (BoolOption('WITH_BF_OPENAL', 'Use OpenAL if true', '')),
         ('BF_OPENAL', 'base path for OpenAL', ''),
         ('BF_OPENAL_INC', 'include path for python headers', ''),
