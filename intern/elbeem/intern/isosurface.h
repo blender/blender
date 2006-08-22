@@ -47,6 +47,9 @@ class IsoSurface :
 		/*! Init ararys etc. */
 		virtual void initializeIsosurface(int setx, int sety, int setz, ntlVec3Gfx extent);
 
+		/*! Reset all values */
+		void resetAll(gfxReal val);
+
 		/*! triangulate the scalar field given by pointer*/
 		void triangulate( void );
 

@@ -439,7 +439,7 @@ int SimulationObject::checkCallerStatus(int status, int frame) {
 		}
 	}
 
-	errMsg("SimulationObject::checkCallerStatus","s="<<status<<",f="<<frame<<" "<<this->getName()<<" ret="<<ret);
+	//debMsgStd("SimulationObject::checkCallerStatus",DM_MSG, "s="<<status<<",f="<<frame<<" "<<this->getName()<<" ret="<<ret);
 	if(isSimworldOk()) return 0;
 	return 1;
 }

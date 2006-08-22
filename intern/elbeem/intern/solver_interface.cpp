@@ -285,7 +285,11 @@ void LbmSolverInterface::initGeoTree() {
 	if(mpGiTree != NULL) delete mpGiTree;
 	char treeFlag = (1<<(this->mLbmInitId+4));
 	mpGiTree = new ntlTree( 
+# if FSGR_STRICT_DEBUG!=1
 			15, 8,  // TREEwarning - fixed values for depth & maxtriangles here...
+# else // FSGR_STRICT_DEBUG==1
+			10, 20,  // reduced/slower debugging values
+# endif // FSGR_STRICT_DEBUG==1
 			scene, treeFlag );
 }
 

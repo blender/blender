@@ -86,6 +86,12 @@ void IsoSurface::initializeIsosurface(int setx, int sety, int setz, ntlVec3Gfx e
 
 
 
+/*! Reset all values */
+void IsoSurface::resetAll(gfxReal val) {
+	int nodes = mSizez*mSizey*mSizex;
+  for(int i=0;i<nodes;i++) { mpData[i] = val; }
+}
+
 
 /******************************************************************************
  * Destructor
@@ -173,6 +179,10 @@ void IsoSurface::triangulate( void )
 				value[5] = *getData(i+1,j  ,k+1);
 				value[6] = *getData(i+1,j+1,k+1);
 				value[7] = *getData(i  ,j+1,k+1);
+
+				/*int bndskip = 0; // BNDOFFT
+				for(int s=0; s<8; s++) if(value[s]==-76.) bndskip++;
+				if(bndskip>0) continue; // */
 
 				// check intersections of isosurface with edges, and calculate cubie index
 				cubeIndex = 0;

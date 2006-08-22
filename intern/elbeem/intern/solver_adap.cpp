@@ -21,10 +21,6 @@
 
 void LbmFsgrSolver::coarseCalculateFluxareas(int lev)
 {
-#if LBM_NOADCOARSENING==1
-	if(mMaxRefine>0) errMsg("LbmFsgrSolver","Adaptive Coarsening not compiled, but refinement switched on ("<<mMaxRefine<<")!");
-	lev =0; // get rid of warnings...
-#else
 	FSGR_FORIJK_BOUNDS(lev) {
 		if( RFLAG(lev, i,j,k,mLevel[lev].setCurr) & CFFluid) {
 			if( RFLAG(lev+1, i*2,j*2,k*2,mLevel[lev+1].setCurr) & CFGrFromCoarse) {
@@ -50,15 +46,10 @@ void LbmFsgrSolver::coarseCalculateFluxareas(int lev)
 		}
 	} // } TEST DEBUG
 	if(!this->mSilent){ debMsgStd("coarseCalculateFluxareas",DM_MSG,"level "<<lev<<" calculated", 7); }
-#endif //! LBM_NOADCOARSENING==1
 }
 	
 void LbmFsgrSolver::coarseAdvance(int lev)
 {
-#if LBM_NOADCOARSENING==1
-	if(mMaxRefine>0) errMsg("LbmFsgrSolver","Adaptive Coarsening not compiled, but refinement switched on ("<<mMaxRefine<<")!");
-	lev =0; // get rid of warnings...
-#else
 	LbmFloat calcCurrentMass = 0.0;
 	LbmFloat calcCurrentVolume = 0.0;
 
@@ -177,10 +168,9 @@ void LbmFsgrSolver::coarseAdvance(int lev)
   mLevel[lev].lmass   = calcCurrentMass   * mLevel[lev].lcellfactor;
   mLevel[lev].lvolume = calcCurrentVolume * mLevel[lev].lcellfactor;
 #if ELBEEM_PLUGIN!=1
-  errMsg("DFINI", " m l"<<lev<<" m="<<mLevel[lev].lmass<<" c="<<calcCurrentMass<<"  lcf="<< mLevel[lev].lcellfactor );
-  errMsg("DFINI", " v l"<<lev<<" v="<<mLevel[lev].lvolume<<" c="<<calcCurrentVolume<<"  lcf="<< mLevel[lev].lcellfactor );
+  debMsgStd("LbmFsgrSolver::coarseAdvance",DM_NOTIFY, "mass: lev="<<lev<<" m="<<mLevel[lev].lmass<<" c="<<calcCurrentMass<<"  lcf="<< mLevel[lev].lcellfactor, 8 );
+  debMsgStd("LbmFsgrSolver::coarseAdvance",DM_NOTIFY, "volume: lev="<<lev<<" v="<<mLevel[lev].lvolume<<" c="<<calcCurrentVolume<<"  lcf="<< mLevel[lev].lcellfactor, 8 );
 #endif // ELBEEM_PLUGIN
-#endif //! LBM_NOADCOARSENING==1
 }
 
 /*****************************************************************************/
@@ -191,10 +181,6 @@ void LbmFsgrSolver::coarseAdvance(int lev)
 // get dfs from level (lev+1) to (lev) coarse border nodes
 void LbmFsgrSolver::coarseRestrictFromFine(int lev)
 {
-#if LBM_NOADCOARSENING==1
-	if(mMaxRefine>0) errMsg("LbmFsgrSolver","Adaptive Coarsening not compiled, but refinement switched on ("<<mMaxRefine<<")!");
-	lev =0; // get rid of warnings...
-#else
 	if((lev<0) || ((lev+1)>mMaxRefine)) return;
 #if FSGR_STRICT_DEBUG==1
 	// reset all unused cell values to invalid
@@ -245,15 +231,9 @@ void LbmFsgrSolver::coarseRestrictFromFine(int lev)
 		} // & fluid
 	}}}
 	if(!this->mSilent){ errMsg("coarseRestrictFromFine"," from l"<<(lev+1)<<",s"<<mLevel[lev+1].setCurr<<" to l"<<lev<<",s"<<mLevel[lev].setCurr); }
-#endif //! LBM_NOADCOARSENING==1
 }
 
 bool LbmFsgrSolver::adaptGrid(int lev) {
-#if LBM_NOADCOARSENING==1
-	if(mMaxRefine>0) errMsg("LbmFsgrSolver","Adaptive Coarsening not compiled, but refinement switched on ("<<mMaxRefine<<")!");
-	lev =0; // get rid of warnings...
-	return false;
-#else
 	if((lev<0) || ((lev+1)>mMaxRefine)) return false;
 	bool change = false;
 	{ // refinement, PASS 1-3
@@ -706,7 +686,6 @@ bool LbmFsgrSolver::adaptGrid(int lev) {
 
 	if(!this->mSilent){ errMsg("adaptGrid"," for l"<<lev<<" done " ); }
 	return change;
-#endif //! LBM_NOADCOARSENING==1
 }
 
 /*****************************************************************************/
@@ -715,10 +694,6 @@ bool LbmFsgrSolver::adaptGrid(int lev) {
 
 void LbmFsgrSolver::coarseRestrictCell(int lev, int i,int j,int k, int srcSet, int dstSet)
 {
-#if LBM_NOADCOARSENING==1
-	if(mMaxRefine>0) errMsg("LbmFsgrSolver","Adaptive Coarsening not compiled, but refinement switched on ("<<mMaxRefine<<")!");
-	i=j=k=srcSet=dstSet=lev =0; // get rid of warnings...
-#else
 	LbmFloat *ccel = RACPNT(lev+1, 2*i,2*j,2*k,srcSet);
 	LbmFloat *tcel = RACPNT(lev  , i,j,k      ,dstSet);
 
@@ -862,15 +837,9 @@ void LbmFsgrSolver::coarseRestrictCell(int lev, int i,int j,int k, int srcSet, i
 	RAC(tcel, dWT) = (lcsmeq[dWT] + (MSRC_WT-lcsmeq[dWT] )*lcsmdfscale);
 	RAC(tcel, dWB) = (lcsmeq[dWB] + (MSRC_WB-lcsmeq[dWB] )*lcsmdfscale);
 #				endif // OPT3D==0
-#endif //! LBM_NOADCOARSENING==1
 }
 
 void LbmFsgrSolver::interpolateCellFromCoarse(int lev, int i, int j,int k, int dstSet, LbmFloat t, CellFlagType flagSet, bool markNbs) {
-#if LBM_NOADCOARSENING==1
-	if(mMaxRefine>0) errMsg("LbmFsgrSolver","Adaptive Coarsening not compiled, but refinement switched on ("<<mMaxRefine<<")!");
-	i=j=k=dstSet=lev =0; // get rid of warnings...
-	t=0.0; flagSet=0; markNbs=false;
-#else
 	LbmFloat rho=0.0, ux=0.0, uy=0.0, uz=0.0;
 	LbmFloat intDf[19] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
@@ -952,7 +921,6 @@ void LbmFsgrSolver::interpolateCellFromCoarse(int lev, int i, int j,int k, int d
 
 	IDF_WRITEBACK;
 	return;
-#endif //! LBM_NOADCOARSENING==1
 }
 
 
@@ -1008,8 +976,9 @@ void LbmFsgrSolver::adaptTimestep() {
 
 	LbmFloat dtdiff = fabs(newdt - this->mpParam->getTimestep());
 	if(!this->mSilent) {
-		debMsgStd("LbmFsgrSolver::TAdp",DM_MSG, "new"<<newdt<<" max"<<this->mpParam->getMaxTimestep()<<" min"<<this->mpParam->getMinTimestep()<<" diff"<<dtdiff<<
-			" simt:"<<mSimulationTime<<" minsteps:"<<(mSimulationTime/mMaxTimestep)<<" maxsteps:"<<(mSimulationTime/mMinTimestep) , 10); }
+		debMsgStd("LbmFsgrSolver::TAdp",DM_MSG, "new"<<newdt
+			<<" max"<<this->mpParam->getMaxTimestep()<<" min"<<this->mpParam->getMinTimestep()<<" diff"<<dtdiff
+			<<" simt:"<<mSimulationTime<<" minsteps:"<<(mSimulationTime/mMaxTimestep)<<" maxsteps:"<<(mSimulationTime/mMinTimestep) , 10); }
 
 	// in range, and more than X% change?
 	//if( newdt <  this->mpParam->getTimestep() ) // DEBUG
@@ -1025,7 +994,8 @@ void LbmFsgrSolver::adaptTimestep() {
 			rescale = true;
 			if(!this->mSilent) {
 				debMsgStd("LbmFsgrSolver::TAdp",DM_NOTIFY,"\n\n\n\n",10);
-				debMsgStd("LbmFsgrSolver::TAdp",DM_NOTIFY,"Timestep change: new="<<newdt<<" old="<<this->mpParam->getTimestep()<<" maxSpeed:"<<this->mpParam->getSimulationMaxSpeed()<<" next:"<<nextmax<<" step:"<<this->mStepCnt, 10 );
+				debMsgStd("LbmFsgrSolver::TAdp",DM_NOTIFY,"Timestep change: new="<<newdt<<" old="<<this->mpParam->getTimestep()
+						<<" maxSpeed:"<<this->mpParam->getSimulationMaxSpeed()<<" next:"<<nextmax<<" step:"<<this->mStepCnt, 10 );
 				debMsgStd("LbmFsgrSolver::TAdp",DM_NOTIFY,"Timestep change: "<<
 						"rhoAvg="<<rhoAvg<<" cMass="<<mCurrentMass<<" cVol="<<mCurrentVolume,10);
 			}

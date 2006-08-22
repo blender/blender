@@ -11,15 +11,33 @@
 #include "solver_relax.h"
 #include "particletracer.h"
 
+// MPT
+#include "ntl_world.h"
+#include "simulation_object.h"
+
 
 /******************************************************************************
  * helper functions
  *****************************************************************************/
 
+// try to enhance surface?
+#define SURFACE_ENH 2
+
 //! for raytracing
 void LbmFsgrSolver::prepareVisualization( void ) {
 	int lev = mMaxRefine;
 	int workSet = mLevel[lev].setCurr;
+
+	int mainGravDir=0;
+	LbmFloat mainGravLen = 0.;
+	FORDF1{
+		LbmFloat thisGravLen = dot(LbmVec(dfVecX[l],dfVecY[l],dfVecZ[l]), getNormalized(mLevel[mMaxRefine].gravity) );
+		if(thisGravLen>mainGravLen) {
+			mainGravLen = thisGravLen;
+			mainGravDir = l;
+		}
+		//errMsg("GRAVT","l"<<l<<" dfv"<<LbmVec(dfVecX[l],dfVecY[l],dfVecZ[l])<<" g"<< mLevel[mMaxRefine].gravity<< " mgl"<<mainGravLen<<" mgd"<<mainGravDir);
+	}
 
 	//make same prepareVisualization and getIsoSurface...
 #if LBMDIM==2
@@ -45,8 +63,17 @@ void LbmFsgrSolver::prepareVisualization( void ) {
 	}
 #endif // LBMDIM==2
 
+	// MPT, ignore
+	//if( strstr( this->getName().c_str(), "mpfluid2" ) != NULL) {
+		//errMsg("MPT TESTX","skipping mpfluid2");
+		//return;
+	//}
+	if( strstr( this->getName().c_str(), "mpfluid1" ) != NULL) {
+		mpIso->resetAll(0.);
+	}
 
-	LbmFloat minval = this->mIsoValue*1.1; // / mIsoWeight[13]; 
+
+	LbmFloat minval = this->mIsoValue*1.05; // / mIsoWeight[13]; 
 	// add up...
 	float val = 0.0;
 	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) 
@@ -54,60 +81,67 @@ void LbmFsgrSolver::prepareVisualization( void ) {
     for(int i=1;i<mLevel[lev].lSizex-1;i++) {
 			const CellFlagType cflag = RFLAG(lev, i,j,k,workSet);
 			//if(cflag&(CFBnd|CFEmpty)) {
-			if(cflag&(CFBnd)) {
+
+#if SURFACE_ENH==0
+
+			// no enhancements...
+			if( (cflag&(CFFluid|CFUnused)) ) {
+				val = 1.;
+			} else if( (cflag&CFInter) ) {
+				val = (QCELL(lev, i,j,k,workSet, dFfrac)); 
+			} else {
 				continue;
+			}
 
-			} else if( (cflag&CFEmpty) ) {
-				//continue; // OFF DEBUG
-				int noslipbnd = 0;
-				int intercnt = 0;
-				CellFlagType nbored;
-				FORDF1 { 
-					const CellFlagType nbflag = RFLAG_NB(lev, i,j,k, workSet,l);
-					if((l==6)&&(nbflag&CFBnd)){ noslipbnd=1; }
-					if(nbflag&CFInter){ intercnt++; }
-					nbored |= nbflag;
-				}
-				//? val = (QCELL(lev, i,j,k,workSet, dFfrac)); 
-				if((noslipbnd)&&(intercnt>6)) {
-					//if(val<minval) val = minval; 
-					//*this->mpIso->lbmGetData(i,j,ZKOFF) += minval-( val * mIsoWeight[13] ); 
-					*this->mpIso->lbmGetData(i,j,ZKOFF) += minval;
-				} else if((noslipbnd)&&(intercnt>0)) {
-					*this->mpIso->lbmGetData(i,j,ZKOFF) += this->mIsoValue*0.95;
-				} else {
-				}
+#else // SURFACE_ENH!=1
+			if(cflag&CFBnd) {
+				// treated in second loop
 				continue;
-
-			//} else if( (cflag&CFInter) ) {
-
-			} else if( (cflag&CFFluid) && (cflag&CFNoBndFluid) ) {
+			} else if(cflag&CFUnused) {
+				val = 1.;
+			} else if( (cflag&CFFluid) && (cflag&CFNoBndFluid)) {
 				// optimized fluid
 				val = 1.;
-
-			} else if( (cflag&(CFInter|CFFluid)) ) {
+			} else if( (cflag&(CFEmpty|CFInter|CFFluid)) ) {
 				int noslipbnd = 0;
+				int intercnt = 0;
 				FORDF1 { 
 					const CellFlagType nbflag = RFLAG_NB(lev, i,j,k, workSet,l);
-					if((l==6)&&(nbflag&CFBnd)){ noslipbnd=1; l=100; } 
+					if(nbflag&CFInter){ intercnt++; }
+
+					if(l!=mainGravDir) continue; // only check bnd along main grav. dir
+					//if((nbflag&CFBnd)&&(nbflag&CFBndNoslip)){ noslipbnd=1; }
+					if((nbflag&CFBnd)){ noslipbnd=1; }
 				}
-				// no empty nb interface cells are treated as full
-				if(cflag&(CFNoNbEmpty|CFFluid)) {
+
+				if(cflag&CFEmpty) {
+					// special empty treatment
+					if((noslipbnd)&&(intercnt>6)) {
+						*this->mpIso->lbmGetData(i,j,ZKOFF) += minval;
+					} else if((noslipbnd)&&(intercnt>0)) {
+						// necessary?
+						*this->mpIso->lbmGetData(i,j,ZKOFF) += this->mIsoValue*0.9;
+					} else {
+						// nothing to do...
+					}
+
+					continue;
+				} else if(cflag&(CFNoNbEmpty|CFFluid)) {
+					// no empty nb interface cells are treated as full
 					val=1.0;
+				} else {
+					val = (QCELL(lev, i,j,k,workSet, dFfrac)); 
 				}
-				val = (QCELL(lev, i,j,k,workSet, dFfrac)); 
 				
 				if(noslipbnd) {
-					//errMsg("NEWVAL", PRINT_IJK<<" val"<<val <<" f"<< convertCellFlagType2String(cflag)<<" "<<noslipbnd); //" nbfl"<<convertCellFlagType2String(nbored) );
 					if(val<minval) val = minval; 
 					*this->mpIso->lbmGetData(i,j,ZKOFF) += minval-( val * mIsoWeight[13] ); 
 				}
-				// */
+#endif // SURFACE_ENH>0
 
-			} else { // unused?
+			} else { // all others, unused?
 				continue;
-				// old fluid val = 1.0; 
-			} // */
+			} 
 
 			*this->mpIso->lbmGetData( i-1 , j-1 ,ZKOFF-ZKD1) += ( val * mIsoWeight[0] ); 
 			*this->mpIso->lbmGetData( i   , j-1 ,ZKOFF-ZKD1) += ( val * mIsoWeight[1] ); 
@@ -147,6 +181,105 @@ void LbmFsgrSolver::prepareVisualization( void ) {
 			*this->mpIso->lbmGetData( i   , j+1 ,ZKOFF+ZKD1) += ( val * mIsoWeight[25] ); 
 			*this->mpIso->lbmGetData( i+1 , j+1 ,ZKOFF+ZKD1) += ( val * mIsoWeight[26] ); 
 	}
+
+	// TEST!?
+#if SURFACE_ENH>=2
+
+	if(mFsSurfGenSetting&fssgNoObs) {
+		for(int k= getForZMin1(); k< getForZMax1(lev); ++k) 
+		 for(int j=1;j<mLevel[lev].lSizey-1;j++) 
+			for(int i=1;i<mLevel[lev].lSizex-1;i++) {
+				const CellFlagType cflag = RFLAG(lev, i,j,k,workSet);
+				if(cflag&(CFBnd)) {
+					CellFlagType nbored=0;
+					LbmFloat avgfill=0.,avgfcnt=0.;
+					FORDF1 { 
+						const int ni = i+this->dfVecX[l];
+						const int nj = j+this->dfVecY[l];
+						const int nk = ZKOFF+this->dfVecZ[l];
+
+						const CellFlagType nbflag = RFLAG(lev, ni,nj,nk, workSet);
+						nbored |= nbflag;
+						if(nbflag&CFInter) {
+							avgfill += QCELL(lev, ni,nj,nk, workSet,dFfrac); avgfcnt += 1.;
+						} else if(nbflag&CFFluid) {
+							avgfill += 1.; avgfcnt += 1.;
+						} else if(nbflag&CFEmpty) {
+							avgfill += 0.; avgfcnt += 1.;
+						}
+
+						//if( (ni<0) || (nj<0) || (nk<0) 
+						 //|| (ni>=mLevel[mMaxRefine].lSizex) 
+						 //|| (nj>=mLevel[mMaxRefine].lSizey) 
+						 //|| (nk>=mLevel[mMaxRefine].lSizez) ) continue;
+					}
+
+					if(nbored&CFInter) {
+						if(avgfcnt>0.) avgfill/=avgfcnt;
+						*this->mpIso->lbmGetData(i,j,ZKOFF) = avgfill; continue;
+					} 
+					else if(nbored&CFFluid) {
+						*this->mpIso->lbmGetData(i,j,ZKOFF) = 1.; continue;
+					}
+
+				}
+			}
+
+		// move surface towards inner "row" of obstacle
+		// cells if necessary (all obs cells without fluid/inter
+		// nbs (=iso==0) next to obstacles...)
+		for(int k= getForZMin1(); k< getForZMax1(lev); ++k) 
+			for(int j=1;j<mLevel[lev].lSizey-1;j++) 
+				for(int i=1;i<mLevel[lev].lSizex-1;i++) {
+					const CellFlagType cflag = RFLAG(lev, i,j,k,workSet);
+					if( (cflag&(CFBnd)) && (*this->mpIso->lbmGetData(i,j,ZKOFF)==0.)) {
+						int bndnbcnt=0;
+						FORDF1 { 
+							const int ni = i+this->dfVecX[l];
+							const int nj = j+this->dfVecY[l];
+							const int nk = ZKOFF+this->dfVecZ[l];
+							const CellFlagType nbflag = RFLAG(lev, ni,nj,nk, workSet);
+							if(nbflag&CFBnd) bndnbcnt++;
+						}
+						if(bndnbcnt>0) *this->mpIso->lbmGetData(i,j,ZKOFF)=this->mIsoValue*0.95; 
+					}
+				}
+	}
+	// */
+
+	if(mFsSurfGenSetting&fssgNoNorth) 
+		for(int k= getForZMinBnd(); k< getForZMaxBnd(lev); ++k) 
+			for(int j=0;j<mLevel[lev].lSizey-0;j++) {
+				*this->mpIso->lbmGetData(0,                   j,ZKOFF) = *this->mpIso->lbmGetData(1,                   j,ZKOFF);
+			}
+	if(mFsSurfGenSetting&fssgNoEast) 
+		for(int k= getForZMinBnd(); k< getForZMaxBnd(lev); ++k) 
+			for(int i=0;i<mLevel[lev].lSizex-0;i++) {
+				*this->mpIso->lbmGetData(i,0,                   ZKOFF) = *this->mpIso->lbmGetData(i,1,                   ZKOFF);
+			}
+	if(mFsSurfGenSetting&fssgNoSouth) 
+		for(int k= getForZMinBnd(); k< getForZMaxBnd(lev); ++k) 
+			for(int j=0;j<mLevel[lev].lSizey-0;j++) {
+				*this->mpIso->lbmGetData(mLevel[lev].lSizex-1,j,ZKOFF) = *this->mpIso->lbmGetData(mLevel[lev].lSizex-2,j,ZKOFF);
+			}
+	if(mFsSurfGenSetting&fssgNoWest) 
+		for(int k= getForZMinBnd(); k< getForZMaxBnd(lev); ++k) 
+			for(int i=0;i<mLevel[lev].lSizex-0;i++) {
+				*this->mpIso->lbmGetData(i,mLevel[lev].lSizey-1,ZKOFF) = *this->mpIso->lbmGetData(i,mLevel[lev].lSizey-2,ZKOFF);
+			}
+	if(LBMDIM>2) {
+		if(mFsSurfGenSetting&fssgNoBottom) 
+			for(int j=0;j<mLevel[lev].lSizey-0;j++) 
+				for(int i=0;i<mLevel[lev].lSizex-0;i++) {
+					*this->mpIso->lbmGetData(i,j,0                   ) = *this->mpIso->lbmGetData(i,j,1                   );
+				} 
+		if(mFsSurfGenSetting&fssgNoTop) 
+			for(int j=0;j<mLevel[lev].lSizey-0;j++) 
+				for(int i=0;i<mLevel[lev].lSizex-0;i++) {
+					*this->mpIso->lbmGetData(i,j,mLevel[lev].lSizez-1) = *this->mpIso->lbmGetData(i,j,mLevel[lev].lSizez-2);
+				} 
+	}
+#endif // SURFACE_ENH>=2
 
 
 	// update preview, remove 2d?
@@ -215,7 +348,47 @@ void LbmFsgrSolver::prepareVisualization( void ) {
 		}
 	}
 
-	// correction
+	// MPT
+#if LBM_INCLUDE_TESTSOLVERS==1
+	if( ( strstr( this->getName().c_str(), "mpfluid1" ) != NULL) && (mInitDone) ) {
+		errMsg("MPT TESTX","special mpfluid1");
+		vector<SimulationObject*> *sims = mpGlob->getSims();
+		for(int simi=0; simi<(int)(sims->size()); simi++) {
+			SimulationObject *sim = (*sims)[simi];
+			if( strstr( sim->getName().c_str(), "mpfluid2" ) != NULL) {
+				LbmFsgrSolver *fsgr = (LbmFsgrSolver *)(sim->getSolver());
+				int msyLev = mMaxRefine;
+				int simLev = fsgr->mMaxRefine;
+
+				IsoSurface* simIso = fsgr->mpIso;
+				int idst = mLevel[msyLev].lSizex-2 -1; // start at boundary
+				int isrc = 0                    +2;
+				if((simIso)&&(fsgr->mInitDone)) {
+				fsgr->prepareVisualization();
+
+				for(int k=0;k<=mLevel[simLev].lSizez-1;++k) {
+					for(int j=0;j<=mLevel[simLev].lSizey-1;++j) {
+						for(int i=isrc; i<mLevel[simLev].lSizex-1; i++) {
+							//LbmFloat *cceldst = &QCELL(          msyLev ,idst+i,j,k, msySet,0);
+							//LbmFloat *ccelsrc = &SIM_QCELL(fsgr, simLev ,isrc+i,j,k, simSet,0);
+							//for(int l=0; l<dTotalNum; l++) {
+								//RAC(cceldst,l) = RAC(ccelsrc,l);
+							//}
+							// both flag sets, make sure curr/other are same!?
+							//RFLAG(msyLev ,idst+i,j,k, 0) = SIM_RFLAG(fsgr, simLev ,isrc+i,j,k, 0);
+							//RFLAG(msyLev ,idst+i,j,k, 1) = SIM_RFLAG(fsgr, simLev ,isrc+i,j,k, 1);
+							errMsg("TESTX"," "<<PRINT_VEC(idst+i,j,k)<<" < "<<PRINT_VEC(i,j,k) );
+							*mpIso->lbmGetData(idst+i,j,k) = *simIso->lbmGetData(i,j,k);
+						}
+					}
+				}
+
+				} // simIso
+			}
+		}
+	}
+#endif // LBM_INCLUDE_TESTSOLVERS==1
+
 	return;
 }
 
@@ -315,7 +488,7 @@ int LbmFsgrSolver::initParticles() {
     //if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, workSet), (CFFluid) ) 
     //&& TESTFLAG( RFLAG(mMaxRefine, i,j,k, workSet), CFNoNbFluid ) 
     //if( RFLAG(mMaxRefine, i,j,k, workSet) & (CFFluid|CFInter|CFMbndInflow) ) { 
-    if( RFLAG(mMaxRefine, i,j,k, workSet) & (CFNoBndFluid) ) { 
+    if( RFLAG(mMaxRefine, i,j,k, workSet) & (CFNoBndFluid|CFUnused) ) { 
 			bool cellOk = true;
 			//? FORDF1 { if(!(RFLAG_NB(mMaxRefine,i,j,k,workSet, l) & CFFluid)) cellOk = false; }
 			if(!cellOk) continue;
@@ -426,10 +599,22 @@ int LbmFsgrSolver::initParticles() {
     /* errMsg("PIT","U pit"<<(p)->getId()<<" pos:"<< (p)->getPos()<<" status:"<<convertFlags2String((p)->getFlags())<<" to "<< (newtype) ); */ \
 		p->setType(newtype); 
 
+// tracer defines
+#define TRACE_JITTER 0.025
+#define TRACE_RAND (rand()/(RAND_MAX+1.0))*TRACE_JITTER-(TRACE_JITTER*0.5)
+#define FFGET_NORM(var,dl) \
+							if(RFLAG_NB(lev,i,j,k,workSet, dl) &(CFInter)){ (var) = QCELL_NB(lev,i,j,k,workSet,dl,dFfrac); } \
+							else if(RFLAG_NB(lev,i,j,k,workSet, dl) &(CFFluid|CFUnused)){ (var) = 1.; } else (var) = 0.0;
+
+// float jitter
+#define FLOAT_JITTER_BND (FLOAT_JITTER*2.0)
+#define FLOAT_JITTBNDRAND(x) ((rand()/(RAND_MAX+1.0))*FLOAT_JITTER_BND*(1.-(x/(LbmFloat)maxdw))-(FLOAT_JITTER_BND*(1.-(x)/(LbmFloat)maxdw)*0.5)) 
+
+
 void LbmFsgrSolver::advanceParticles() { 
   int workSet = mLevel[mMaxRefine].setCurr;
 	LbmFloat vx=0.0,vy=0.0,vz=0.0;
-	LbmFloat rho, df[27]; //feq[27];
+	//LbmFloat df[27]; //feq[27];
 #define DEL_PART { \
 	/*errMsg("PIT","DEL AT "<< __LINE__<<" type:"<<p->getType()<<"  ");  */ \
 	p->setActive( false ); \
@@ -453,10 +638,6 @@ void LbmFsgrSolver::advanceParticles() {
 	const bool useff = (mFarFieldSize>2.); // if(mpTest->mDebugvalue1>0.0){ 
 
 	// TODO use timestep size
-	//bool isIn,isOut,isInZ;
-	//const int cutval = 1+mCutoff/2; // TODO FIXME add half border!
-	//const int cutval = mCutoff/2; // TODO FIXME add half border!
-	//const int cutval = 0; // TODO FIXME add half border!
 	const int cutval = mCutoff; // use full border!?
 	int actCnt=0;
 	if(this->mStepCnt%50==49) { mpParticles->cleanup(); }
@@ -518,27 +699,39 @@ void LbmFsgrSolver::advanceParticles() {
 		    (p->getType()==PART_TRACER) ) {
 
 			// no interpol
-			rho = vx = vy = vz = 0.0;
+			vx = vy = vz = 0.0;
 			if(p->getStatus()&PART_IN) { // IN
 				if(k>=cutval) {
 					if(k>this->mSizez-1-cutval) DEL_PART; 
-					FORDF0{
-						LbmFloat cdf = QCELL(mMaxRefine, i,j,k, workSet, l);
-						df[l] = cdf;
-						rho += cdf; 
-						vx  += (this->dfDvecX[l]*cdf); 
-						vy  += (this->dfDvecY[l]*cdf);  
-						vz  += (this->dfDvecZ[l]*cdf);  
-					}
 
-					// remove gravity influence
-					const LbmFloat lesomega = mLevel[mMaxRefine].omega; // no les
-					vx -= mLevel[mMaxRefine].gravity[0] * lesomega*0.5;
-					vy -= mLevel[mMaxRefine].gravity[1] * lesomega*0.5;
-					vz -= mLevel[mMaxRefine].gravity[2] * lesomega*0.5;
-
-					if( RFLAG(mMaxRefine, i,j,k, workSet)&(CFFluid) ) {
+					if( RFLAG(mMaxRefine, i,j,k, workSet)&(CFFluid|CFUnused) ) {
 						// still ok
+						int partLev = mMaxRefine;
+						int si=i, sj=j, sk=k;
+						while(partLev>0 && RFLAG(partLev, si,sj,sk, workSet)&(CFUnused)) {
+							partLev--;
+							si/=2;
+							sj/=2;
+							sk/=2;
+						}
+						//LbmFloat cdf = QCELL(mMaxRefine, i,j,k, workSet, l);
+						LbmFloat *ccel = RACPNT(partLev, si,sj,sk, workSet);
+						FORDF1{
+							//LbmFloat cdf = QCELL(mMaxRefine, i,j,k, workSet, l);
+							LbmFloat cdf = RAC(ccel, l);
+							// TODO update below
+							//df[l] = cdf;
+							vx  += (this->dfDvecX[l]*cdf); 
+							vy  += (this->dfDvecY[l]*cdf);  
+							vz  += (this->dfDvecZ[l]*cdf);  
+						}
+
+						// remove gravity influence
+						const LbmFloat lesomega = mLevel[mMaxRefine].omega; // no les
+						vx -= mLevel[mMaxRefine].gravity[0] * lesomega*0.5;
+						vy -= mLevel[mMaxRefine].gravity[1] * lesomega*0.5;
+						vz -= mLevel[mMaxRefine].gravity[2] * lesomega*0.5;
+
 					} else { // OUT
 						// out of bounds, deactivate...
 						// FIXME make fsgr treatment
@@ -548,12 +741,12 @@ void LbmFsgrSolver::advanceParticles() {
 					// below 3d region, just rise
 				}
 			} else { // OUT
-#if LBM_INCLUDE_TESTSOLVERS==1
+#				if LBM_INCLUDE_TESTSOLVERS==1
 				if(useff) { mpTest->handleParticle(p, i,j,k); }
 				else DEL_PART;
-#else // LBM_INCLUDE_TESTSOLVERS==1
+#				else // LBM_INCLUDE_TESTSOLVERS==1
 				DEL_PART;
-#endif // LBM_INCLUDE_TESTSOLVERS==1
+#				endif // LBM_INCLUDE_TESTSOLVERS==1
 				// TODO use x,y vel...?
 			}
 
@@ -577,15 +770,11 @@ void LbmFsgrSolver::advanceParticles() {
 				//LbmVec change = (fb+fd) *timestep / (pvolume*rhoAir)  *(timestep/cellsize);
 				//actCnt++; // should be after active test
 				if(actCnt<0) {
-					errMsg("\nPIT","BTEST1   vol="<<pvolume<<" radius="<<radius<<" vn="<<velRelNorm<<" velPart="<<velPart<<" velRel"<<velRel);
+					errMsg("PIT","BTEST1   vol="<<pvolume<<" radius="<<radius<<" vn="<<velRelNorm<<" velPart="<<velPart<<" velRel"<<velRel);
 					errMsg("PIT","BTEST2        cellsize="<<cellsize<<" timestep="<<timestep<<" viscW="<<viscWater<<" ss/mb="<<(timestep/(pvolume*rhoAir)));
 					errMsg("PIT","BTEST2        grav="<<rwgrav<<"  " );
 					errMsg("PIT","BTEST2        change="<<(change)<<" fb="<<(fb)<<" fd="<<(fd)<<" ");
 					errMsg("PIT","BTEST2        change="<<norm(change)<<" fb="<<norm(fb)<<" fd="<<norm(fd)<<" ");
-#if LOOPTEST==1
-					errMsg("PIT","BTEST2        n="<<n<<" "); // LOOPTEST! DEBUG
-#endif // LOOPTEST==1
-					errMsg("PIT","\n");
 				}
 					
 				//v += change;
@@ -601,25 +790,15 @@ void LbmFsgrSolver::advanceParticles() {
 				if(fflag&(CFFluid|CFInter) ) { p->setInFluid(true);
 				} else { p->setInFluid(false); }
 
-				//if(( fflag&CFFluid ) && ( fflag&CFNoBndFluid )) {
 				if( (( fflag&CFFluid ) && ( fflag&CFNoBndFluid )) ||
 						(( fflag&CFInter ) && (!(fflag&CFNoNbFluid)) ) ) {
 					// only real fluid
-#define TRACE_JITTER 0.025
-#define TRACE_RAND (rand()/(RAND_MAX+1.0))*TRACE_JITTER-(TRACE_JITTER*0.5)
-#define __TRACE_RAND 0.
-#if LBMDIM==3
+#					if LBMDIM==3
 					p->advance( TRACE_RAND,TRACE_RAND,TRACE_RAND);
-#else
+#					else
 					p->advance( TRACE_RAND,TRACE_RAND, 0.);
-#endif
+#					endif
 
-				//} // test!?
-				//if( fflag&(CFNoBndFluid) ) {
-					// ok
-				//} else if( fflag&(CFEmpty|CFNoNbFluid) ) {
-				//} else if( fflag&(CFEmpty) ) {
-					//v = p->getVel() + vec2G(mLevel[mMaxRefine].gravity);
 				} else {
 					// move inwards along normal, make sure normal is valid first
 					const int lev = mMaxRefine;
@@ -629,25 +808,21 @@ void LbmFsgrSolver::advanceParticles() {
 					if(i>=this->mSizex-1) { nx =  1.; nonorm = true; }
 					if(j<=0)              { ny = -1.; nonorm = true; }
 					if(j>=this->mSizey-1) { ny =  1.; nonorm = true; }
-#if LBMDIM==3
+#					if LBMDIM==3
 					if(k<=0)              { nz = -1.; nonorm = true; }
 					if(k>=this->mSizez-1) { nz =  1.; nonorm = true; }
-#endif // LBMDIM==3
-			//mynbfac = QCELL_NB(lev, i,j,k,SRCS(lev),l, dFlux) / QCELL(lev, i,j,k,SRCS(lev), dFlux);
+#					endif // LBMDIM==3
 					if(!nonorm) {
-						if(RFLAG_NB(lev,i,j,k,workSet, dE) &(CFFluid|CFInter)){ nv1 = QCELL_NB(lev,i,j,k,workSet,dE,dFfrac); } else nv1 = 0.0;
-						if(RFLAG_NB(lev,i,j,k,workSet, dW) &(CFFluid|CFInter)){ nv2 = QCELL_NB(lev,i,j,k,workSet,dW,dFfrac); } else nv2 = 0.0;
+						FFGET_NORM(nv1,dE); FFGET_NORM(nv2,dW);
 						nx = 0.5* (nv2-nv1);
-						if(RFLAG_NB(lev,i,j,k,workSet, dN) &(CFFluid|CFInter)){ nv1 = QCELL_NB(lev,i,j,k,workSet,dN,dFfrac); } else nv1 = 0.0;
-						if(RFLAG_NB(lev,i,j,k,workSet, dS) &(CFFluid|CFInter)){ nv2 = QCELL_NB(lev,i,j,k,workSet,dS,dFfrac); } else nv2 = 0.0;
+						FFGET_NORM(nv1,dN); FFGET_NORM(nv2,dS);
 						ny = 0.5* (nv2-nv1);
-#if LBMDIM==3
-						if(RFLAG_NB(lev,i,j,k,workSet, dT) &(CFFluid|CFInter)){ nv1 = QCELL_NB(lev,i,j,k,workSet,dT,dFfrac); } else nv1 = 0.0;
-						if(RFLAG_NB(lev,i,j,k,workSet, dB) &(CFFluid|CFInter)){ nv2 = QCELL_NB(lev,i,j,k,workSet,dB,dFfrac); } else nv2 = 0.0;
+#						if LBMDIM==3
+						FFGET_NORM(nv1,dT); FFGET_NORM(nv2,dB);
 						nz = 0.5* (nv2-nv1);
-#else //LBMDIM==3
-						nz = 0.0;
-#endif //LBMDIM==3
+#						else // LBMDIM==3
+						nz = 0.;
+#						endif // LBMDIM==3
 					} else {
 						v = p->getVel() + vec2G(mLevel[mMaxRefine].gravity);
 					}
@@ -708,7 +883,7 @@ void LbmFsgrSolver::advanceParticles() {
 					if( RFLAG(mMaxRefine, i,j,k, workSet)& (CFEmpty|CFInter|CFBnd)) {
 						// still ok
 					// shipt3 } else if( RFLAG(mMaxRefine, i,j,k, workSet) & (CFFluid|CFInter) ){
-					} else if( RFLAG(mMaxRefine, i,j,k, workSet) & (CFFluid) ){
+					} else if( RFLAG(mMaxRefine, i,j,k, workSet) & (CFFluid|CFUnused) ){
 						// FIXME make fsgr treatment
 						P_CHANGETYPE(p, PART_FLOAT ); continue; 
 						// jitter in cell to prevent stacking when hitting a steep surface
@@ -721,12 +896,12 @@ void LbmFsgrSolver::advanceParticles() {
 					}
 				}
 			} else { // OUT
-#if LBM_INCLUDE_TESTSOLVERS==1
+#				if LBM_INCLUDE_TESTSOLVERS==1
 				if(useff) { mpTest->handleParticle(p, i,j,k); }
 				else{ DEL_PART; }
-#else // LBM_INCLUDE_TESTSOLVERS==1
+#				else // LBM_INCLUDE_TESTSOLVERS==1
 				{ DEL_PART; }
-#endif // LBM_INCLUDE_TESTSOLVERS==1
+#				endif // LBM_INCLUDE_TESTSOLVERS==1
 			}
 
 		} // air particle
@@ -741,7 +916,7 @@ void LbmFsgrSolver::advanceParticles() {
 
 				if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, workSet), CFInter ) ) {
 					// still ok
-				} else if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, workSet), CFFluid ) ) {
+				} else if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, workSet), (CFFluid|CFUnused) ) ) {
     			//errMsg("PIT","NEWBUB pit "<< (*pit).getPos()<<" status:"<<convertFlags2String((*pit).getFlags())  );
 
 					//P_CHANGETYPE(p, PART_BUBBLE ); continue;
@@ -767,7 +942,7 @@ void LbmFsgrSolver::advanceParticles() {
 			//  test - delte on boundary!?
 			//if( (i<=cutval)||(i>=this->mSizex-1-cutval)|| (j<=cutval)||(j>=this->mSizey-1-cutval)) { DEL_PART; } // DEBUG TEST
 
-#if LBM_INCLUDE_TESTSOLVERS==1
+#				if LBM_INCLUDE_TESTSOLVERS==1
 			/*LbmFloat prob = 1.0;
 			// vanishing
 			prob = (rand()/(RAND_MAX+1.0));
@@ -783,30 +958,26 @@ void LbmFsgrSolver::advanceParticles() {
 			//? if(k>this->mSizez*3/4) {	if(prob<3.0*mLevel[mMaxRefine].timestep*0.1) DEL_PART;}
 			// */
 
-#else // LBM_INCLUDE_TESTSOLVERS==1
-#endif // LBM_INCLUDE_TESTSOLVERS==1
+#				endif // LBM_INCLUDE_TESTSOLVERS==1
 
 			if(p->getStatus()&PART_IN) { // IN
 				//if((k<cutval)||(k>this->mSizez-1-cutval)) DEL_PART; 
 				if(k<cutval) DEL_PART; 
 				if(k>this->mSizez-1-cutval) { P_CHANGETYPE(p, PART_DROP ); continue; } // create new drop
 				//ntlVec3Gfx v = getVelocityAt(i,j,k);
-				rho = vx = vy = vz = 0.0;
+				vx = vy = vz = 0.0;
 
 				// define from particletracer.h
 #if MOVE_FLOATS==1
 				const int DEPTH_AVG=3; // only average interface vels
 				int ccnt=0;
 				for(int kk=0;kk<DEPTH_AVG;kk+=1) {
-				//for(int kk=1;kk<DEPTH_AVG;kk+=1) {
 					if((k-kk)<1) continue;
-					//if(RFLAG(mMaxRefine, i,j,k, workSet)&(CFFluid|CFInter)) {} else continue;
 					if(RFLAG(mMaxRefine, i,j,k, workSet)&(CFInter)) {} else continue;
 					ccnt++;
-					FORDF0{
+					FORDF1{
 						LbmFloat cdf = QCELL(mMaxRefine, i,j,k-kk, workSet, l);
-						df[l] = cdf;
-						//rho += cdf; 
+						//df[l] = cdf;
 						vx  += (this->dfDvecX[l]*cdf); 
 						vy  += (this->dfDvecY[l]*cdf);  
 						vz  += (this->dfDvecZ[l]*cdf);  
@@ -824,7 +995,7 @@ void LbmFsgrSolver::advanceParticles() {
 				vy += (rand()/(RAND_MAX+1.0))*(FLOAT_JITTER*0.2)-(FLOAT_JITTER*0.2*0.5);
 
 				//bool delfloat = false;
-				if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, workSet), CFFluid ) ) {
+				if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, workSet), (CFFluid|CFUnused) ) ) {
 					// in fluid cell
 					/*if((1) && (k<this->mSizez-3) && 
 							(
@@ -888,16 +1059,10 @@ void LbmFsgrSolver::advanceParticles() {
 				// use half butoff border 1/8
 				int maxdw = (int)(mLevel[mMaxRefine].lSizex*0.125*0.5);
 				if(maxdw<3) maxdw=3;
-#define FLOAT_JITTER_BND (FLOAT_JITTER*2.0)
-#define FLOAT_JITTBNDRAND(x) ((rand()/(RAND_MAX+1.0))*FLOAT_JITTER_BND*(1.-(x/(LbmFloat)maxdw))-(FLOAT_JITTER_BND*(1.-(x)/(LbmFloat)maxdw)*0.5)) 
-				//if(ABS(i-(               cutval))<maxdw) { p->advance(  (rand()/(RAND_MAX+1.0))*FLOAT_JITTER_BND-(FLOAT_JITTER_BND*0.5)   ,0.,0.); }
-				//if(ABS(i-(this->mSizex-1-cutval))<maxdw) { p->advance(  (rand()/(RAND_MAX+1.0))*FLOAT_JITTER_BND-(FLOAT_JITTER_BND*0.5)   ,0.,0.); }
 				if((j>=0)&&(j<=this->mSizey-1)) {
 					if(ABS(i-(               cutval))<maxdw) { p->advance(  FLOAT_JITTBNDRAND( ABS(i-(               cutval))), 0.,0.); }
 					if(ABS(i-(this->mSizex-1-cutval))<maxdw) { p->advance(  FLOAT_JITTBNDRAND( ABS(i-(this->mSizex-1-cutval))), 0.,0.); }
 				}
-//#undef FLOAT_JITTER_BND
-#undef FLOAT_JITTBNDRAND
 				//if( (i<cutval)||(i>this->mSizex-1-cutval)|| //(j<cutval)||(j>this->mSizey-1-cutval)
 			}
 		}  // PART_FLOAT
@@ -1306,11 +1471,15 @@ int LbmFsgrSolver::debLBMGI(int level, int ii,int ij,int ik, int is) {
 	if(level <  0){ errMsg("LbmStrict::debLBMGI"," invLev- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; } 
 	if(level >  mMaxRefine){ errMsg("LbmStrict::debLBMGI"," invLev+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; } 
 
-	if(ii<0){ errMsg("LbmStrict"," invX- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-	if(ij<0){ errMsg("LbmStrict"," invY- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if((ii==-1)&&(ij==0)) {
+		// special case for main loop, ok
+	} else {
+		if(ii<0){ errMsg("LbmStrict"," invX- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+		if(ij<0){ errMsg("LbmStrict"," invY- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+		if(ii>mLevel[level].lSizex-1){ errMsg("LbmStrict"," invX+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+		if(ij>mLevel[level].lSizey-1){ errMsg("LbmStrict"," invY+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	}
 	if(ik<0){ errMsg("LbmStrict"," invZ- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-	if(ii>mLevel[level].lSizex-1){ errMsg("LbmStrict"," invX+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-	if(ij>mLevel[level].lSizey-1){ errMsg("LbmStrict"," invY+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
 	if(ik>mLevel[level].lSizez-1){ errMsg("LbmStrict"," invZ+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
 	if(is<0){ errMsg("LbmStrict"," invS- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
 	if(is>1){ errMsg("LbmStrict"," invS+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
@@ -1338,11 +1507,15 @@ int LbmFsgrSolver::debLBMQI(int level, int ii,int ij,int ik, int is, int l) {
 	if(level <  0){ errMsg("LbmStrict::debLBMQI"," invLev- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; } 
 	if(level >  mMaxRefine){ errMsg("LbmStrict::debLBMQI"," invLev+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; } 
 
-	if(ii<0){ errMsg("LbmStrict"," invX- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-	if(ij<0){ errMsg("LbmStrict"," invY- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if((ii==-1)&&(ij==0)) {
+		// special case for main loop, ok
+	} else {
+		if(ii<0){ errMsg("LbmStrict"," invX- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+		if(ij<0){ errMsg("LbmStrict"," invY- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+		if(ii>mLevel[level].lSizex-1){ errMsg("LbmStrict"," invX+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+		if(ij>mLevel[level].lSizey-1){ errMsg("LbmStrict"," invY+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	}
 	if(ik<0){ errMsg("LbmStrict"," invZ- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-	if(ii>mLevel[level].lSizex-1){ errMsg("LbmStrict"," invX+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-	if(ij>mLevel[level].lSizey-1){ errMsg("LbmStrict"," invY+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
 	if(ik>mLevel[level].lSizez-1){ errMsg("LbmStrict"," invZ+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
 	if(is<0){ errMsg("LbmStrict"," invS- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
 	if(is>1){ errMsg("LbmStrict"," invS+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
@@ -1561,7 +1734,10 @@ void LbmFsgrSolver::debugDisplayNode(int dispset, CellIdentifierInterface* cell 
 void LbmFsgrSolver::lbmDebugDisplay(int dispset) {
 	// DEBUG always display testdata
 #if LBM_INCLUDE_TESTSOLVERS==1
-	if(mUseTestdata){ mpTest->testDebugDisplay(dispset); }
+	if(mUseTestdata){ 
+		cpDebugDisplay(dispset); 
+		mpTest->testDebugDisplay(dispset); 
+	}
 #endif // LBM_INCLUDE_TESTSOLVERS==1
 	if(dispset<=FLUIDDISPNothing) return;
 	//if(!dispset->on) return;

@@ -10,15 +10,60 @@
 #include "solver_class.h"
 #include "solver_relax.h"
 #include "particletracer.h"
+#include "loop_tools.h"
 
 /*****************************************************************************/
 /*! perform a single LBM step */
 /*****************************************************************************/
 
+double globdfcnt;
+double globdfavg[19];
+double globdfmax[19];
+double globdfmin[19];
 
 void LbmFsgrSolver::step() { 
 	initLevelOmegas();
 	stepMain(); 
+
+	// intlbm test
+	if(0) {
+		if(this->mStepCnt<5) {
+			// init
+			globdfcnt=0.;
+			FORDF0{ 
+				globdfavg[l] = 0.;
+				globdfmax[l] = -1000.; //this->dfEquil[l];
+				globdfmin[l] = 1000.; // this->dfEquil[l];
+			}
+		} else {
+
+			int workSet = mLevel[mMaxRefine].setCurr;
+			for(int k= getForZMinBnd(); k< getForZMaxBnd(mMaxRefine); ++k)  {
+				for(int j=0;j<mLevel[mMaxRefine].lSizey-0;j++)  {
+					for(int i=0;i<mLevel[mMaxRefine].lSizex-0;i++) {
+						//float val = 0.;
+						if(RFLAG(mMaxRefine, i,j,k, workSet) & CFFluid) {
+							//val = QCELL(mMaxRefine,i,j,k, workSet,dFfrac);
+							FORDF0{ 
+								const double df = (double)QCELL(mMaxRefine,i,j,k, workSet,l);
+								globdfavg[l] += df;
+								if(df>globdfmax[l]) globdfmax[l] = df;
+								//if(df<=0.01) { errMsg("GLOBDFERR"," at "<<PRINT_IJK<<" "<<l); }
+								if(df<globdfmin[l]) globdfmin[l] = df;
+								//errMsg("GLOBDFERR"," at "<<PRINT_IJK<<" "<<l<<" "<<df<<" "<<globdfmin[l]); 
+							}
+							globdfcnt+=1.;
+						}
+					}
+				}
+			}
+			if(this->mStepCnt%10==0) {
+				FORDF0{ errMsg("GLOBDF","l="<<l<<" avg="<<(globdfavg[l]/globdfcnt)<<"   max="<<globdfmax[l]<<"   min="<<globdfmin[l]<<"   "<<globdfcnt); }
+			}
+
+		}
+	}
+	// intlbm test */
 }
 
 void LbmFsgrSolver::stepMain()
@@ -189,6 +234,7 @@ void LbmFsgrSolver::stepMain()
 
 #if LBM_INCLUDE_TESTSOLVERS==1
 	if((mUseTestdata)&&(this->mInitDone)) { handleTestdata(); }
+	testXchng();
 #endif
 
 	// advance positions with current grid
@@ -213,8 +259,13 @@ void LbmFsgrSolver::stepMain()
 
 	// output total step time
 	timeend = getTime();
+	double mdelta = (lastMass-mCurrentMass);
+	if(ABS(mdelta)<1e-12) mdelta=0.;
 	debMsgStd("LbmFsgrSolver::stepMain",DM_MSG,"step:"<<this->mStepCnt
-			<<": dccd="<< mCurrentMass<<",d"<<(lastMass-mCurrentMass)<<"/"<<mCurrentVolume<<"(fix="<<this->mFixMass<<",ini="<<mInitialMass<<"), "
+			<<": dccd="<< mCurrentMass
+			<<",d"<<mdelta
+			<<",ds"<<(mCurrentMass-mObjectMassMovnd[1])
+			<<"/"<<mCurrentVolume<<"(fix="<<this->mFixMass<<",ini="<<mInitialMass<<"), "
 			<<" totst:"<<getTimeString(timeend-timestart), 3);
 	// nicer output
 	debMsgDirect(std::endl); 
@@ -248,7 +299,7 @@ void LbmFsgrSolver::fineAdvance()
 	// time adaptivity
 	this->mpParam->setSimulationMaxSpeed( sqrt(mMaxVlen / 1.5) );
 	//if(mStartSymm) { checkSymmetry("step2"); } // DEBUG 
-	if(!this->mSilent){ errMsg("fineAdvance"," stepped from "<<mLevel[mMaxRefine].setCurr<<" to "<<mLevel[mMaxRefine].setOther<<" step"<< (mLevel[mMaxRefine].lsteps) ); }
+	if(!this->mSilent){ debMsgStd("fineAdvance",DM_NOTIFY," stepped from "<<mLevel[mMaxRefine].setCurr<<" to "<<mLevel[mMaxRefine].setOther<<" step"<< (mLevel[mMaxRefine].lsteps), 3 ); }
 
 	// update other set
   mLevel[mMaxRefine].setOther   = mLevel[mMaxRefine].setCurr;
@@ -257,62 +308,117 @@ void LbmFsgrSolver::fineAdvance()
 
 	// flag init... (work on current set, to simplify flag checks)
 	reinitFlags( mLevel[mMaxRefine].setCurr );
-	if(!this->mSilent){ errMsg("fineAdvance"," flags reinit on set "<< mLevel[mMaxRefine].setCurr ); }
+	if(!this->mSilent){ debMsgStd("fineAdvance",DM_NOTIFY," flags reinit on set "<< mLevel[mMaxRefine].setCurr, 3 ); }
+
+	// DEBUG VEL CHECK
+	if(0) {
+		int lev = mMaxRefine;
+		int workSet = mLevel[lev].setCurr;
+		int mi=0,mj=0,mk=0;
+		LbmFloat compRho=0.;
+		LbmFloat compUx=0.;
+		LbmFloat compUy=0.;
+		LbmFloat compUz=0.;
+		LbmFloat maxUlen=0.;
+		LbmVec maxU(0.);
+		LbmFloat maxRho=-100.;
+		int ri=0,rj=0,rk=0;
+
+		FSGR_FORIJK1(lev) {
+			if( (RFLAG(lev,i,j,k, workSet) & (CFFluid| CFInter| CFGrFromCoarse| CFGrFromFine| CFGrNorm)) ) {
+				compRho=QCELL(lev, i,j,k,workSet, dC);
+				compUx = compUy = compUz = 0.0;
+				for(int l=1; l<this->cDfNum; l++) {
+					LbmFloat df = QCELL(lev, i,j,k,workSet, l);
+					compRho += df;
+					compUx  += (this->dfDvecX[l]*df);
+					compUy  += (this->dfDvecY[l]*df); 
+					compUz  += (this->dfDvecZ[l]*df); 
+				} 
+				LbmVec u(compUx,compUy,compUz);
+				LbmFloat nu = norm(u);
+				if(nu>maxUlen) {
+					maxU = u;
+					maxUlen = nu;
+					mi=i; mj=j; mk=k;
+				}
+				if(compRho>maxRho) {
+					maxRho=compRho;
+					ri=i; rj=j; rk=k;
+				}
+			} else {
+				continue;
+			}
+		}
+
+		errMsg("MAXVELCHECK"," at "<<PRINT_VEC(mi,mj,mk)<<" norm:"<<maxUlen<<" u:"<<maxU);
+		errMsg("MAXRHOCHECK"," at "<<PRINT_VEC(ri,rj,rk)<<" rho:"<<maxRho);
+		printLbmCell(lev, 30,36,23, -1);
+	} // DEBUG VEL CHECK
+
 }
 
 
-/*****************************************************************************/
-//! fine step function
-/*****************************************************************************/
 
+// fine step defines
 
 // access to own dfs during step (may be changed to local array)
 #define MYDF(l) RAC(ccel, l)
 
+// drop model definitions
+#define RWVEL_THRESH 1.5
+#define RWVEL_WINDTHRESH (RWVEL_THRESH*0.5)
+
+#if LBMDIM==3
+			// normal
+#define SLOWDOWNREGION (this->mSizez/4)
+#else // LBMDIM==2
+			// off
+#define SLOWDOWNREGION 10 
+#endif // LBMDIM==2
+#define P_LCSMQO 0.01
+
+/*****************************************************************************/
+//! fine step function
+/*****************************************************************************/
 void 
 LbmFsgrSolver::mainLoop(int lev)
 {
 	// loops over _only inner_ cells  -----------------------------------------------------------------------------------
-	LbmFloat calcCurrentMass = 0.0;
-	LbmFloat calcCurrentVolume = 0.0;
-	int      calcCellsFilled = this->mNumFilledCells;
-	int      calcCellsEmptied = this->mNumEmptiedCells;
-	int      calcNumUsedCells = this->mNumUsedCells;
+	
+	// slow surf regions smooth (if below)
+	const LbmFloat smoothStrength = 0.0; //0.01;
+	const LbmFloat sssUsqrLimit = 1.5 * 0.03*0.03;
+	const LbmFloat sssUsqrLimitInv = 1.0/sssUsqrLimit;
+
 	const int cutMin  = 1;
 	const int cutConst = mCutoff+2;
+
 
 #	if LBM_INCLUDE_TESTSOLVERS==1
 	// 3d region off... quit
 	if((mUseTestdata)&&(mpTest->mDebugvalue1>0.0)) { return; }
-#endif // ELBEEM_PLUGIN!=1
-	//printLbmCell(lev, 6,6,16, mLevel[lev].setCurr ); // DEBUG
+#	endif // ELBEEM_PLUGIN!=1
 	
+  // main loop region
+	const bool doReduce = true;
+	const int gridLoopBound=1;
+	GRID_REGION_INIT();
 #if PARALLEL==1
-#include "paraloop.h"
+#include "paraloopstart.h"
+	GRID_REGION_START();
 #else // PARALLEL==1
-  { // main loop region
-	int kstart=getForZMin1(), kend=getForZMax1(mMaxRefine);
-	//{ errMsg("LbmFsgrSolver::mainLoop","Err MAINADVANCE0 ks:"<< kstart<<" ke:"<<kend<<" dim:"<<LBMDIMcDimension<<" mlsz:"<< mLevel[mMaxRefine].lSizez<<" zmax1:"<<getForZMax1(mMaxRefine) ); } // DEBUG
-#define PERFORM_USQRMAXCHECK USQRMAXCHECK(usqr,ux,uy,uz, mMaxVlen, mMxvx,mMxvy,mMxvz);
-#define LIST_EMPTY(x) mListEmpty.push_back( x );
-#define LIST_FULL(x)  mListFull.push_back( x );
+	GRID_REGION_START();
 #endif // PARALLEL==1
 
-	// local to loop
+	// local to main
 	CellFlagType nbflag[LBM_DFNUM]; 
-	LbmFloat *ccel = NULL;
-	LbmFloat *tcel = NULL;
-	int oldFlag;
-	int newFlag;
-	int nbored;
+	int oldFlag, newFlag, nbored;
 	LbmFloat m[LBM_DFNUM];
 	LbmFloat rho, ux, uy, uz, tmp, usqr;
-	LbmFloat mass, change, lcsmqo=0.0;
-	usqr = tmp = 0.0; 
-#if OPT3D==1 
-	LbmFloat lcsmqadd, lcsmeq[LBM_DFNUM], lcsmomega;
-#endif // OPT3D==true 
 
+	// smago vars
+	LbmFloat lcsmqadd, lcsmeq[LBM_DFNUM], lcsmomega;
 	
 	// ifempty cell conversion flags
 	bool iffilled, ifemptied;
@@ -320,72 +426,22 @@ LbmFsgrSolver::mainLoop(int lev)
 	int recons[LBM_DFNUM];   // reconstruct this DF?
 	int numRecons;           // how many are reconstructed?
 
-	// slow surf regions smooth (if below)
-	const LbmFloat smoothStrength = 0.0; //0.01;
-	const LbmFloat sssUsqrLimit = 1.5 * 0.03*0.03;
-	const LbmFloat sssUsqrLimitInv = 1.0/sssUsqrLimit;
-	
-	CellFlagType *pFlagSrc;
-	CellFlagType *pFlagDst;
-	pFlagSrc = &RFLAG(lev, 0,1, kstart,SRCS(lev)); // omp
-	pFlagDst = &RFLAG(lev, 0,1, kstart,TSET(lev)); // omp
-	ccel = RACPNT(lev, 0,1, kstart ,SRCS(lev)); // omp
-	tcel = RACPNT(lev, 0,1, kstart ,TSET(lev)); // omp
-	//CellFlagType *pFlagTar = NULL;
-	int pFlagTarOff;
-	if(mLevel[lev].setOther==1) pFlagTarOff = mLevel[lev].lOffsz;
-	else pFlagTarOff = -mLevel[lev].lOffsz;
-#define ADVANCE_POINTERS(p)	\
-	ccel += (QCELLSTEP*(p));	\
-	tcel += (QCELLSTEP*(p));	\
-	pFlagSrc+= (p); \
-	pFlagDst+= (p); \
-	i+= (p);
+	LbmFloat mass=0., change=0., lcsmqo=0.;
+	rho= ux= uy= uz= usqr= tmp= 0.; 
+	lcsmqadd = lcsmomega = 0.;
+	FORDF0{ lcsmeq[l] = 0.; }
 
 	// ---
 	// now stream etc.
-
-	//{ errMsg("LbmFsgrSolver::mainLoop","Err MAINADVANCE0 ks:"<< kstart<<" ke:"<<kend<<" dim:"<<LBMDIM<<" mlsz:"<<mLevel[mMaxRefine].lSizez ); } // DEBUG
-
 	// use //template functions for 2D/3D
-#if COMPRESSGRIDS==0
-  for(int k=kstart;k<kend;++k) {
-  for(int j=1;j<mLevel[lev].lSizey-1;++j) {
-  for(int i=0;i<mLevel[lev].lSizex-2;   ) {
-#else // COMPRESSGRIDS==0
-	int kdir = 1; // COMPRT ON
-	if(mLevel[mMaxRefine].setCurr==1) {
-		kdir = -1;
-		int temp = kend;
-		kend = kstart-1;
-		kstart = temp-1;
-	} // COMPRT
 
-#if PARALLEL==0
-  //const int id = 0, Nthrds = 1;
-	const int jstart = 0;
-	const int jend   = mLevel[mMaxRefine].lSizey;
-//#endif // PARALLEL==1
-#else // PARALLEL==1
-	PARA_INITIALIZE();
-	errMsg("LbmFsgrSolver::mainLoop","id="<<id<<" js="<<jstart<<" je="<<jend<<" jdir="<<(1) ); // debug
-#endif // PARALLEL==1
+	GRID_LOOP_START();
+		// loop start
+		// stream from current set to other, then collide and store
+		//errMsg("l2"," at "<<PRINT_IJK<<" id"<<id);
 
-  for(int k=kstart;k!=kend;k+=kdir) {
-
-	//errMsg("LbmFsgrSolver::mainLoop","k="<<k<<" ks="<<kstart<<" ke="<<kend<<" kdir="<<kdir<<" x*y="<<mLevel[mMaxRefine].lSizex*mLevel[mMaxRefine].lSizey*dTotalNum ); // debug
-  pFlagSrc = &RFLAG(lev, 0, jstart, k, SRCS(lev)); // omp test // COMPRT ON
-  pFlagDst = &RFLAG(lev, 0, jstart, k, TSET(lev)); // omp test
-  ccel = RACPNT(lev,     0, jstart, k, SRCS(lev)); // omp test
-  tcel = RACPNT(lev,     0, jstart, k, TSET(lev)); // omp test // COMPRT ON
-
-  //for(int j=1;j<mLevel[lev].lSizey-1;++j) {
-  for(int j=jstart;j!=jend;++j) {
-  for(int i=0;i<mLevel[lev].lSizex-2;   ) {
-#endif // COMPRESSGRIDS==0
-
-		ADVANCE_POINTERS(1); 
-#if FSGR_STRICT_DEBUG==1
+#		if FSGR_STRICT_DEBUG==1
+		// safety pointer check
 		rho = ux = uy = uz = tmp = usqr = -100.0; // DEBUG
 		if( (&RFLAG(lev, i,j,k,mLevel[lev].setCurr) != pFlagSrc) || 
 		    (&RFLAG(lev, i,j,k,mLevel[lev].setOther) != pFlagDst) ) {
@@ -405,13 +461,11 @@ LbmFsgrSolver::mainLoop(int lev)
 					); 
 			CAUSE_PANIC;
 		}	
-#endif
+#		endif
 		oldFlag = *pFlagSrc;
-		//DEBUG if(LBMDIM==2) { errMsg("LbmFsgrSolver::mainLoop","Err flagp "<<PRINT_IJK<<"="<< RFLAG(lev, i,j,k,mLevel[lev].setCurr)<<" "); }
-		// stream from current set to other, then collide and store
 		
 		// old INTCFCOARSETEST==1
-		if( (oldFlag & (CFGrFromCoarse)) ) {  // interpolateFineFromCoarse test!
+		if( (oldFlag & (CFGrFromCoarse)) ) { 
 			if(( this->mStepCnt & (1<<(mMaxRefine-lev)) ) ==1) {
 				FORDF0 { RAC(tcel,l) = RAC(ccel,l); }
 			} else {
@@ -419,7 +473,7 @@ LbmFsgrSolver::mainLoop(int lev)
 				calcNumUsedCells++;
 			}
 			continue; // interpolateFineFromCoarse test!
-		} // interpolateFineFromCoarse test!  old INTCFCOARSETEST==1
+		} // interpolateFineFromCoarse test! 
 	
 		if(oldFlag & (CFMbndInflow)) {
 			// fluid & if are ok, fill if later on
@@ -434,9 +488,10 @@ LbmFsgrSolver::mainLoop(int lev)
 				RAC(tcel, dMass) = RAC(tcel, dFfrac) = iniRho;
 				RAC(tcel, dFlux) = FLUX_INIT;
 				changeFlag(lev, i,j,k, TSET(lev), CFInter);
-				calcCurrentMass += iniRho; calcCurrentVolume += 1.0; calcNumUsedCells++;
+				calcCurrentMass += iniRho; 
+				calcCurrentVolume += 1.0; 
+				calcNumUsedCells++;
 				mInitialMass += iniRho;
-				//errMsg("INFLOW_DEBUG","ini at "<<PRINT_IJK<<" v="<<vel<<" inirho="<<iniRho);
 				// dont treat cell until next step
 				continue;
 			} 
@@ -456,11 +511,6 @@ LbmFsgrSolver::mainLoop(int lev)
 				// same as ifemptied for if below
 				LbmPoint oemptyp; oemptyp.flag = 0;
 				oemptyp.x = i; oemptyp.y = j; oemptyp.z = k;
-#if PARALLEL==1
-				//calcListEmpty[id].push_back( oemptyp );
-#else // PARALLEL==1
-				//mListEmpty.push_back( oemptyp );
-#endif // PARALLEL==1
 				LIST_EMPTY(oemptyp);
 				calcCellsEmptied++;
 				continue;
@@ -597,7 +647,7 @@ LbmFsgrSolver::mainLoop(int lev)
 		// for fluid cells - just the f_i difference from streaming to empty cells  ----
 		numRecons = 0;
 		bool onlyBndnb = ((!(oldFlag&CFNoBndFluid))&&(oldFlag&CFNoNbFluid)&&(nbored&CFBndNoslip));
-	//onlyBndnb = false; // DEBUG test off
+		//onlyBndnb = false; // DEBUG test off
 
 		FORDF1 { // dfl loop
 			recons[l] = 0;
@@ -690,13 +740,13 @@ LbmFsgrSolver::mainLoop(int lev)
 		if(nbflag[dN] &(CFFluid|CFInter)){ nv1 = RAC((ccel+(mLevel[lev].lOffsx*QCELLSTEP)),dFfrac); } else nv1 = 0.0;
 		if(nbflag[dS] &(CFFluid|CFInter)){ nv2 = RAC((ccel-(mLevel[lev].lOffsx*QCELLSTEP)),dFfrac); } else nv2 = 0.0;
 		ny = 0.5* (nv2-nv1);
-#if LBMDIM==3
+#		if LBMDIM==3
 		if(nbflag[dT] &(CFFluid|CFInter)){ nv1 = RAC((ccel+(mLevel[lev].lOffsy*QCELLSTEP)),dFfrac); } else nv1 = 0.0;
 		if(nbflag[dB] &(CFFluid|CFInter)){ nv2 = RAC((ccel-(mLevel[lev].lOffsy*QCELLSTEP)),dFfrac); } else nv2 = 0.0;
 		nz = 0.5* (nv2-nv1);
-#else // LBMDIM==3
+#		else // LBMDIM==3
 		nz = 0.0;
-#endif // LBMDIM==3
+#		endif // LBMDIM==3
 
 		if( (ABS(nx)+ABS(ny)+ABS(nz)) > LBM_EPSILON) {
 			// normal ok and usable...
@@ -712,16 +762,27 @@ LbmFsgrSolver::mainLoop(int lev)
 		// calculate macroscopic cell values
 		LbmFloat oldUx, oldUy, oldUz;
 		LbmFloat oldRho; // OLD rho = ccel->rho;
-#if OPT3D==0
-			oldRho=RAC(ccel,0);
-			oldUx = oldUy = oldUz = 0.0;
-			for(int l=1; l<this->cDfNum; l++) {
-				oldRho += RAC(ccel,l);
-				oldUx  += (this->dfDvecX[l]*RAC(ccel,l));
-				oldUy  += (this->dfDvecY[l]*RAC(ccel,l)); 
-				oldUz  += (this->dfDvecZ[l]*RAC(ccel,l)); 
-			} 
-#else // OPT3D==0
+#		define REFERENCE_PRESSURE 1.0 // always atmosphere...
+#		if OPT3D==0
+		oldRho=RAC(ccel,0);
+		oldUx = oldUy = oldUz = 0.0;
+		for(int l=1; l<this->cDfNum; l++) {
+			oldRho += RAC(ccel,l);
+			oldUx  += (this->dfDvecX[l]*RAC(ccel,l));
+			oldUy  += (this->dfDvecY[l]*RAC(ccel,l)); 
+			oldUz  += (this->dfDvecZ[l]*RAC(ccel,l)); 
+		} 
+		// reconstruct dist funcs from empty cells
+		FORDF1 {
+			if(recons[ l ]) {
+				m[ this->dfInv[l] ] = 
+					this->getCollideEq(l, REFERENCE_PRESSURE, oldUx,oldUy,oldUz) + 
+					this->getCollideEq(this->dfInv[l], REFERENCE_PRESSURE, oldUx,oldUy,oldUz) 
+					- MYDF( l );
+			}
+		}
+		usqr = 1.5 * (oldUx*oldUx + oldUy*oldUy + oldUz*oldUz); // needed later on
+#		else // OPT3D==0
 		oldRho = + RAC(ccel,dC)  + RAC(ccel,dN )
 				+ RAC(ccel,dS ) + RAC(ccel,dE )
 				+ RAC(ccel,dW ) + RAC(ccel,dT )
@@ -733,39 +794,25 @@ LbmFsgrSolver::mainLoop(int lev)
 				+ RAC(ccel,dEB) + RAC(ccel,dWT)
 				+ RAC(ccel,dWB);
 
-			oldUx = + RAC(ccel,dE) - RAC(ccel,dW)
+		oldUx = + RAC(ccel,dE) - RAC(ccel,dW)
 				+ RAC(ccel,dNE) - RAC(ccel,dNW)
 				+ RAC(ccel,dSE) - RAC(ccel,dSW)
 				+ RAC(ccel,dET) + RAC(ccel,dEB)
 				- RAC(ccel,dWT) - RAC(ccel,dWB);
 
-			oldUy = + RAC(ccel,dN) - RAC(ccel,dS)
+		oldUy = + RAC(ccel,dN) - RAC(ccel,dS)
 				+ RAC(ccel,dNE) + RAC(ccel,dNW)
 				- RAC(ccel,dSE) - RAC(ccel,dSW)
 				+ RAC(ccel,dNT) + RAC(ccel,dNB)
 				- RAC(ccel,dST) - RAC(ccel,dSB);
 
-			oldUz = + RAC(ccel,dT) - RAC(ccel,dB)
+		oldUz = + RAC(ccel,dT) - RAC(ccel,dB)
 				+ RAC(ccel,dNT) - RAC(ccel,dNB)
 				+ RAC(ccel,dST) - RAC(ccel,dSB)
 				+ RAC(ccel,dET) - RAC(ccel,dEB)
 				+ RAC(ccel,dWT) - RAC(ccel,dWB);
-#endif
 
 		// now reconstruction
-#define REFERENCE_PRESSURE 1.0 // always atmosphere...
-#if OPT3D==0
-		// NOW - construct dist funcs from empty cells
-		FORDF1 {
-			if(recons[ l ]) {
-				m[ this->dfInv[l] ] = 
-					this->getCollideEq(l, REFERENCE_PRESSURE, oldUx,oldUy,oldUz) + 
-					this->getCollideEq(this->dfInv[l], REFERENCE_PRESSURE, oldUx,oldUy,oldUz) 
-					- MYDF( l );
-			}
-		}
-		usqr = 1.5 * (oldUx*oldUx + oldUy*oldUy + oldUz*oldUz); // needed later on
-#else
 		ux=oldUx, uy=oldUy, uz=oldUz;  // no local vars, only for usqr
 		rho = REFERENCE_PRESSURE;
 		usqr = 1.5 * (ux*ux + uy*uy + uz*uz); // needed later on
@@ -787,7 +834,7 @@ LbmFsgrSolver::mainLoop(int lev)
 		if(recons[dEB]) { m[dWT] = EQEB + EQWT - MYDF(dEB); }
 		if(recons[dWT]) { m[dEB] = EQWT + EQEB - MYDF(dWT); }
 		if(recons[dWB]) { m[dET] = EQWB + EQET - MYDF(dWB); }
-#endif		
+#		endif		
 
 
 		// inflow bc handling
@@ -835,9 +882,6 @@ LbmFsgrSolver::mainLoop(int lev)
 				&& (this->mPartGenProb>0.0)) {
 			bool doAdd = true;
 			bool bndOk=true;
-			//if( (i<1+mCutoff)||(i>this->mSizex-1-mCutoff)||
-					//(j<1+mCutoff)||(j>this->mSizey-1-mCutoff)||
-					//(k<1+mCutoff)||(k>this->mSizez-1-mCutoff) ) { bndOk=false; }
 			if( (i<cutMin)||(i>this->mSizex-cutMin)||
 					(j<cutMin)||(j>this->mSizey-cutMin)||
 					(k<cutMin)||(k>this->mSizez-cutMin) ) { bndOk=false; }
@@ -853,27 +897,14 @@ LbmFsgrSolver::mainLoop(int lev)
 			LbmFloat prob = (rand()/(RAND_MAX+1.0));
 			LbmFloat basethresh = this->mPartGenProb*lcsmqo*rl;
 
-			// reduce probability in outer region
-			//if( (i<cutConst)||(i>this->mSizex-cutConst) ){ prob *= 0.5; }
-			//if( (j<cutConst)||(j>this->mSizey-cutConst) ){ prob *= 0.5; }
-			//if( (k<cutConst)||(k>this->mSizez-cutConst) ){ prob *= 0.5; }
-			// NEW TEST 040627
-			//if( (i<cutConst)||(i>this->mSizex-cutConst) ){ doAdd=false; }
-			//if( (j<cutConst)||(j>this->mSizey-cutConst) ){ doAdd=false; }
-			//if( (k<cutConst)||(k>this->mSizez-cutConst) ){ doAdd=false; }
+			// reduce probability in outer region?
 			const int pibord = mLevel[mMaxRefine].lSizex/2-cutConst;
 			const int pjbord = mLevel[mMaxRefine].lSizey/2-cutConst;
 			LbmFloat pifac = 1.-(LbmFloat)(ABS(i-pibord)) / (LbmFloat)(pibord);
 			LbmFloat pjfac = 1.-(LbmFloat)(ABS(j-pjbord)) / (LbmFloat)(pjbord);
 			if(pifac<0.) pifac=0.;
 			if(pjfac<0.) pjfac=0.;
-			//const LbmFloat pkfac = 1.-(LbmFloat)(ABS(k-mLevel[mMaxRefine].lSizez/2))/(LbmFloat)(mLevel[mMaxRefine].lSizez/2);
-			//errMsg("PROBTTT"," at "<<PRINT_IJK<<" prob"<<prob<<" pifac"<<pifac<<" pjfac"<<pjfac<<" "<<(basethresh*rl*pifac*pjfac));
-			//prob *= pifac*pjfac; //*pkfac;
 
-//#define RWVEL_THRESH 1.0
-#define RWVEL_THRESH 1.5
-#define RWVEL_WINDTHRESH (RWVEL_THRESH*0.5)
 			//if( (prob< (basethresh*rl)) && (lcsmqo>0.0095) && (rl>RWVEL_THRESH) ) {
 			if( (prob< (basethresh*rl*pifac*pjfac)) && (lcsmqo>0.0095) && (rl>RWVEL_THRESH) ) {
 				// add
@@ -881,24 +912,12 @@ LbmFsgrSolver::mainLoop(int lev)
 				doAdd = false; // dont...
 			}
 
-//#define SLOWDOWNREGION (2*mCutoff)
-#if LBMDIM==3
-			// normal
-#define SLOWDOWNREGION (this->mSizez/4)
-#else // LBMDIM==2
-			// off
-#define SLOWDOWNREGION 10 
-#endif // LBMDIM==2
-#define P_LCSMQO 0.01
-
 			// "wind" disturbance
 			// use realworld relative velocity here instead?
 			if( (doAdd && 
 					((rl>RWVEL_WINDTHRESH) && (lcsmqo<P_LCSMQO)) )// normal checks
 					||(k>this->mSizez-SLOWDOWNREGION)   ) {
 				LbmFloat nuz = uz;
-				//? LbmFloat jdf; // = 0.05 * (rand()/(RAND_MAX+1.0));
-				//? if(rl>RWVEL_WINDTHRESH) jdf *= (rl-RWVEL_WINDTHRESH);
 				if(k>this->mSizez-SLOWDOWNREGION) {
 					// special case
 					LbmFloat zfac = (LbmFloat)( k-(this->mSizez-SLOWDOWNREGION) );
@@ -917,7 +936,6 @@ LbmFsgrSolver::mainLoop(int lev)
 					const LbmFloat add =  this->dfLength[l]*(-ux*this->dfDvecX[l]-uy*this->dfDvecY[l]-nuz*this->dfDvecZ[l])*jdf;
 					RAC(tcel,l) += add; }
 				}
-				//errMsg("TOPDOWNCORR"," jdf:"<<jdf<<" rl"<<rl<<" vel "<<PRINT_VEC(ux,uy,nuz)<<" rwv"<<PRINT_VEC(rux,ruy,ruz) );
 				//errMsg("TOPDOWNCORR"," jdf:"<<jdf<<" rl"<<rl<<" vel "<<norm(LbmVec(ux,uy,nuz))<<" rwv"<<norm(LbmVec(rux,ruy,ruz)) );
 			} // wind disturbance
 
@@ -972,17 +990,13 @@ LbmFsgrSolver::mainLoop(int lev)
 				mpParticles->getLast()->setType(type);
 				//if((s%3)==2) mpParticles->getLast()->setType(PART_FLOAT);
 				mpParticles->getLast()->setSize(size);
-				//errMsg("NEWPART"," at "<<PRINT_IJK<<"   u="<<PRINT_VEC(ux,uy,uz) <<" RWu="<<PRINT_VEC(rux,ruy,ruz)<<" add"<<doAdd<<" pvel="<<pv );
 				//errMsg("NEWPART"," at "<<PRINT_IJK<<"   u="<<norm(LbmVec(ux,uy,uz)) <<" RWu="<<norm(LbmVec(rux,ruy,ruz))<<" add"<<doAdd<<" pvel="<<norm(pv) );
-				//if(!bndOk){ mass -= val2fac*size*0.02; } // FORCEDISSOLVE
-				//const LbmFloat val2fac = 1.0; //? TODO N test? /(this->mPartGenProb); // FIXME remove factor!
-				//mass -= val2fac*size*0.0015; // NTEST!
-				//mass -= val2fac*size*0.001; // NTEST!
+				//mass -= size*0.001; // NTEST!
 				mass -= size*0.0020; // NTEST!
-#if LBMDIM==2
+#				if LBMDIM==2
 				mpParticles->getLast()->setVel(pv[0],pv[1],0.0);
 				mpParticles->getLast()->setPos(ntlVec3Gfx(srci,srcj,0.5));
-#endif // LBMDIM==2
+#				endif // LBMDIM==2
     		//errMsg("PIT","NEW pit"<<mpParticles->getLast()->getId()<<" pos:"<< mpParticles->getLast()->getPos()<<" status:"<<convertFlags2String(mpParticles->getLast()->getFlags())<<" vel:"<< mpParticles->getLast()->getVel()  );
 				} // multiple parts
 			} // doAdd
@@ -1004,8 +1018,8 @@ LbmFsgrSolver::mainLoop(int lev)
 		}
 
 		// looks much nicer... LISTTRICK
-#if FSGR_LISTTRICK==1
-		if((oldFlag&CFNoNbEmpty)&&(newFlag&CFNoNbEmpty)) { TEST_IF_CHECK; }
+#		if FSGR_LISTTRICK==1
+		//if((oldFlag&CFNoNbEmpty)&&(newFlag&CFNoNbEmpty)) { TEST_IF_CHECK; }
 		if(newFlag&CFNoBndFluid) { // test NEW TEST
 			if(!iffilled) {
 				// remove cells independent from amount of change...
@@ -1023,7 +1037,7 @@ LbmFsgrSolver::mainLoop(int lev)
 				} 
 			}
 		} // nobndfluid only */
-#endif
+#		endif
 		//iffilled = ifemptied = 0; // DEBUG!!!!!!!!!!!!!!!
 		
 
@@ -1032,11 +1046,6 @@ LbmFsgrSolver::mainLoop(int lev)
 			LbmPoint filledp; filledp.flag=0;
 			if(!(newFlag&CFNoBndFluid)) filledp.flag |= 1;  // NEWSURFT
 			filledp.x = i; filledp.y = j; filledp.z = k;
-#if PARALLEL==1
-			//calcListFull[id].push_back( filledp );
-#else // PARALLEL==1
-			//mListFull.push_back( filledp );
-#endif // PARALLEL==1
 			LIST_FULL(filledp);
 			//this->mNumFilledCells++; // DEBUG
 			calcCellsFilled++;
@@ -1045,11 +1054,6 @@ LbmFsgrSolver::mainLoop(int lev)
 			LbmPoint emptyp; emptyp.flag=0;
 			if(!(newFlag&CFNoBndFluid)) emptyp.flag |= 1; //  NEWSURFT
 			emptyp.x = i; emptyp.y = j; emptyp.z = k;
-#if PARALLEL==1
-			//calcListEmpty[id].push_back( emptyp );
-#else // PARALLEL==1
-			//mListEmpty.push_back( emptyp );
-#endif // PARALLEL==1
 			LIST_EMPTY(emptyp);
 			//this->mNumEmptiedCells++; // DEBUG
 			calcCellsEmptied++;
@@ -1087,38 +1091,133 @@ LbmFsgrSolver::mainLoop(int lev)
 		calcCurrentVolume += RAC(tcel,dFfrac);
 
 		// interface cell handling done...
-	} // i
-	int i=0; //dummy
-	ADVANCE_POINTERS(2);
-	} // j
 
-#if COMPRESSGRIDS==1
-#if PARALLEL==1
-	//frintf(stderr," (id=%d k=%d) ",id,k);
-# pragma omp barrier
+//#if PARALLEL==1
+//#include "paraloopend.h"
+	//GRID_REGION_END();
+//#else // PARALLEL==1
+	//GRID_LOOPREG_END();
+	//GRID_REGION_END();
+//#endif // PARALLEL==1
+#if PARALLEL!=1
+	GRID_LOOPREG_END();
+#else // PARALLEL==1
+#include "paraloopend.h" // = GRID_LOOPREG_END();
 #endif // PARALLEL==1
-#else // COMPRESSGRIDS==1
-	int i=0; //dummy
-	ADVANCE_POINTERS(mLevel[lev].lSizex*2);
-#endif // COMPRESSGRIDS==1
-  } // all cell loop k,j,i
 
-	} // main loop region
-
-	// write vars from parallel computations to class
-	//errMsg("DFINI"," maxr l"<<mMaxRefine<<" cm="<<calcCurrentMass<<" cv="<<calcCurrentVolume );
+	// write vars from computations to class
 	mLevel[lev].lmass    = calcCurrentMass;
 	mLevel[lev].lvolume  = calcCurrentVolume;
 	this->mNumFilledCells  = calcCellsFilled;
 	this->mNumEmptiedCells = calcCellsEmptied;
 	this->mNumUsedCells = calcNumUsedCells;
-#if PARALLEL==1
-	PARA_FINISH();
-#endif // PARALLEL==1
-
-	// check other vars...?
 }
 
+
+
+void 
+LbmFsgrSolver::preinitGrids()
+{
+	const int lev = mMaxRefine;
+	const bool doReduce = false;
+	const int gridLoopBound=0;
+
+	// touch both grids
+	for(int s=0; s<2; s++) {
+	
+	GRID_REGION_INIT();
+#if PARALLEL==1
+#include "paraloopstart.h"
+#endif // PARALLEL==1
+	GRID_REGION_START();
+	GRID_LOOP_START();
+		FORDF0{ RAC(ccel,l) = 0.; }
+		*pFlagSrc =0;
+		*pFlagDst =0;
+		//errMsg("l1"," at "<<PRINT_IJK<<" id"<<id);
+#if PARALLEL!=1
+	GRID_LOOPREG_END();
+#else // PARALLEL==1
+#include "paraloopend.h" // = GRID_LOOPREG_END();
+#endif // PARALLEL==1
+	//GRID_REGION_END();
+	// TEST! */
+
+	/* dummy remove warnings */ 
+	calcCurrentMass = calcCurrentVolume = 0.;
+	calcCellsFilled = calcCellsEmptied = calcNumUsedCells = 0;
+	
+	// change grid
+  mLevel[mMaxRefine].setOther   = mLevel[mMaxRefine].setCurr;
+  mLevel[mMaxRefine].setCurr   ^= 1;
+	}
+}
+
+void 
+LbmFsgrSolver::standingFluidPreinit()
+{
+	const int lev = mMaxRefine;
+	const bool doReduce = false;
+	const int gridLoopBound=1;
+
+	GRID_REGION_INIT();
+#if PARALLEL==1
+#include "paraloopstart.h"
+#endif // PARALLEL==1
+	GRID_REGION_START();
+
+	LbmFloat rho, ux,uy,uz, usqr; 
+	CellFlagType nbflag[LBM_DFNUM];
+	LbmFloat m[LBM_DFNUM];
+	LbmFloat lcsmqo;
+#	if OPT3D==1 
+	LbmFloat lcsmqadd, lcsmeq[LBM_DFNUM], lcsmomega;
+	CellFlagType nbored=0;
+#	endif // OPT3D==true 
+
+	GRID_LOOP_START();
+		//FORDF0{ RAC(ccel,l) = 0.; }
+		//*pFlagSrc =0;
+		//*pFlagDst =0;
+		//errMsg("l1"," at "<<PRINT_IJK<<" id"<<id);
+		const CellFlagType currFlag = *pFlagSrc; //RFLAG(lev, i,j,k,workSet);
+		if( (currFlag & (CFEmpty|CFBnd)) ) continue;
+		//ccel = RACPNT(lev, i,j,k,workSet); 
+		//tcel = RACPNT(lev, i,j,k,otherSet);
+
+		if( (currFlag & (CFInter)) ) {
+			// copy all values
+			for(int l=0; l<dTotalNum;l++) { RAC(tcel,l) = RAC(ccel,l); }
+			continue;
+		}
+
+		if( (currFlag & CFNoBndFluid)) {
+			OPTIMIZED_STREAMCOLLIDE;
+		} else {
+			FORDF1 {
+				nbflag[l] = RFLAG_NB(lev, i,j,k, SRCS(lev),l);
+			} 
+			DEFAULT_STREAM;
+			//ux = [0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; 
+			DEFAULT_COLLIDEG(mLevel[lev].gravity);
+		}
+		for(int l=LBM_DFNUM; l<dTotalNum;l++) { RAC(tcel,l) = RAC(ccel,l); }
+#if PARALLEL!=1
+	GRID_LOOPREG_END();
+#else // PARALLEL==1
+#include "paraloopend.h" // = GRID_LOOPREG_END();
+#endif // PARALLEL==1
+	//GRID_REGION_END();
+	// TEST! */
+
+	/* dummy remove warnings */ 
+	calcCurrentMass = calcCurrentVolume = 0.;
+	calcCellsFilled = calcCellsEmptied = calcNumUsedCells = 0;
+	
+	// change grid
+  mLevel[mMaxRefine].setOther   = mLevel[mMaxRefine].setCurr;
+  mLevel[mMaxRefine].setCurr   ^= 1;
+}
 
 
 /******************************************************************************

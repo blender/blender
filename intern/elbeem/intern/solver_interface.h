@@ -128,6 +128,7 @@ typedef int BubbleId;
 
 // above 24 is used to encode in/outflow object type
 #define CFPersistMask (0xFF000000 | CFMbndInflow | CFMbndOutflow)
+#define CFNoPersistMask (~CFPersistMask)
 
 
 // nk

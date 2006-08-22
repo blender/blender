@@ -106,6 +106,10 @@
 #endif
 #endif
 
+#if LBM_INCLUDE_TESTSOLVERS==1
+#include "solver_test.h"
+#endif // LBM_INCLUDE_TESTSOLVERS==1
+
 /*****************************************************************************/
 /*! cell access classes */
 class UniformFsgrCellIdentifier : 
@@ -216,10 +220,10 @@ class LbmFsgrSolver :
 		//! notify object that dump is in progress (e.g. for field dump) 
 		virtual void notifySolverOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename);
 
-#if LBM_USE_GUI==1
+#		if LBM_USE_GUI==1
 		//! show simulation info (implement LbmSolverInterface pure virtual func)
 		virtual void debugDisplay(int set);
-#endif
+#		endif
 		
 		// implement CellIterator<UniformFsgrCellIdentifier> interface
 		typedef UniformFsgrCellIdentifier stdCellId;
@@ -254,6 +258,7 @@ class LbmFsgrSolver :
 		LBM_INLINED void initEmptyCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass);
 		LBM_INLINED void initVelocityCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass, LbmVec vel);
 		LBM_INLINED void changeFlag(int level, int xx,int yy,int zz,int set,CellFlagType newflag);
+		LBM_INLINED void forceChangeFlag(int level, int xx,int yy,int zz,int set,CellFlagType newflag);
 		//! interpolate velocity and density at a given position
 		void interpolateCellValues(int level,int ei,int ej,int ek,int workSet, LbmFloat &retrho, LbmFloat &retux, LbmFloat &retuy, LbmFloat &retuz);
 
@@ -279,11 +284,11 @@ class LbmFsgrSolver :
 		virtual vector<ntlGeometryObject*> getDebugObjects();
 	
 		// gui/output debugging functions
-#if LBM_USE_GUI==1
+#		if LBM_USE_GUI==1
 		virtual void debugDisplayNode(int dispset, CellIdentifierInterface* cell );
 		virtual void lbmDebugDisplay(int dispset);
 		virtual void lbmMarkedCellDisplay();
-#endif // LBM_USE_GUI==1
+#		endif // LBM_USE_GUI==1
 		virtual void debugPrintNodeInfo(CellIdentifierInterface* cell, int forceSet=-1);
 
 		//! for raytracing, preprocess
@@ -298,8 +303,10 @@ class LbmFsgrSolver :
 		void printLbmCell(int level, int i, int j, int k,int set);
 		// debugging use CellIterator interface to mark cell
 		void debugMarkCellCall(int level, int vi,int vj,int vk);
-
+		
+		// loop over grid, stream&collide update
 		void mainLoop(int lev);
+		// change time step size
 		void adaptTimestep();
 		//! init mObjectSpeeds for current parametrization
 		void recalculateObjectSpeeds();
@@ -320,6 +327,11 @@ class LbmFsgrSolver :
 		LBM_INLINED int getForZMin1();
 		LBM_INLINED int getForZMaxBnd(int lev);
 		LBM_INLINED int getForZMax1(int lev);
+
+		// touch grid and flags once
+		void preinitGrids();
+		// one relaxation step for standing fluid
+		void standingFluidPreinit();
 
 
 		// member vars
@@ -355,6 +367,20 @@ class LbmFsgrSolver :
 		LbmFloat mGfxEndTime;
 		//! smoother surface initialization?
 		int mInitSurfaceSmoothing;
+		//! surface generation settings, default is all off (=0)
+		//  each flag switches side on off,  fssgNoObs is for obstacle sides
+		//  -1 equals all on
+		typedef enum {
+			 fssgNormal   =  0,
+			 fssgNoNorth  =  1,
+			 fssgNoSouth  =  2,
+			 fssgNoEast   =  4,
+			 fssgNoWest   =  8,
+			 fssgNoTop    = 16,
+			 fssgNoBottom = 32,
+			 fssgNoObs    = 64
+		} fsSurfaceGen;
+		int mFsSurfGenSetting;
 
 		//! lock time step down switching
 		int mTimestepReduceLock;
@@ -392,10 +418,6 @@ class LbmFsgrSolver :
 		int mMaxNoCells, mMinNoCells;
 		LONGINT mAvgNumUsedCells;
 
-		//! for interactive - how to drop drops?
-		int mDropMode;
-		LbmFloat mDropSize;
-		LbmVec mDropSpeed;
 		//! precalculated objects speeds for current parametrization
 		vector<LbmVec> mObjectSpeeds;
 		//! partslip bc. values for obstacle boundary conditions
@@ -406,6 +428,7 @@ class LbmFsgrSolver :
 		//! permanent movobj vert storage
 	  vector<ntlVec3Gfx>  mMOIVertices;
   	vector<ntlVec3Gfx>  mMOIVerticesOld;
+	  vector<ntlVec3Gfx>  mMOINormals;
 
 		//! get isofield weights
 		int mIsoWeightMethod;
@@ -443,6 +466,8 @@ class LbmFsgrSolver :
 
 		//! debug function to disable standing f init
 		int mDisableStandingFluidInit;
+		//! init 2d with skipped Y/Z coords
+		bool mInit2dYZ;
 		//! debug function to force tadap syncing
 		int mForceTadapRefine;
 		//! border cutoff value
@@ -463,14 +488,31 @@ class LbmFsgrSolver :
 #		endif // FSGR_STRICT_DEBUG==1
 
 		bool mUseTestdata;
+#		if LBM_INCLUDE_TESTSOLVERS==1
+		// test functions
+		LbmTestdata *mpTest;
+		void initTestdata();
+		void destroyTestdata();
+		void handleTestdata();
+		void set3dHeight(int ,int );
 
-	public: // former LbmModelLBGK  functions
+		void initCpdata();
+		void handleCpdata();
+		void cpDebugDisplay(int dispset);
+
+		void testXchng(); 
+	public:
+		// needed for testdata
+		void find3dHeight(int i,int j, LbmFloat prev, LbmFloat &ret, LbmFloat *retux, LbmFloat *retuy, LbmFloat *retuz);
+#		endif // LBM_INCLUDE_TESTSOLVERS==1
+
+		// former LbmModelLBGK  functions
 		// relaxation funtions - implemented together with relax macros
 		static inline LbmFloat getVelVecLen(int l, LbmFloat ux,LbmFloat uy,LbmFloat uz);
 		static inline LbmFloat getCollideEq(int l, LbmFloat rho,  LbmFloat ux, LbmFloat uy, LbmFloat uz);
 		inline LbmFloat getLesNoneqTensorCoeff( LbmFloat df[], 				LbmFloat feq[] );
 		inline LbmFloat getLesOmega(LbmFloat omega, LbmFloat csmago, LbmFloat Qo);
-		inline void collideArrays( int i, int j, int k, // position - more for debugging
+		inline void collideArrays( int lev, int i, int j, int k, // position - more for debugging
 				LbmFloat df[], LbmFloat &outrho, // out only!
 				// velocity modifiers (returns actual velocity!)
 				LbmFloat &mux, LbmFloat &muy, LbmFloat &muz, 
@@ -479,12 +521,10 @@ class LbmFsgrSolver :
 
 
 		// former LBM models
-	public:
+		//! shorten static const definitions
+#		define STCON static const
 
-//! shorten static const definitions
-#define STCON static const
-
-#if LBMDIM==3
+#		if LBMDIM==3
 		
 		//! id string of solver
 		virtual string getIdString() { return string("FreeSurfaceFsgrSolver[BGK_D3Q19]"); }
@@ -581,7 +621,7 @@ class LbmFsgrSolver :
 		static LbmFloat lesCoeffDiag[ (3-1)*(3-1) ][ 27 ];
 		static LbmFloat lesCoeffOffdiag[ 3 ][ 27 ];
 
-#else // end LBMDIM==3 , LBMDIM==2
+#		else // end LBMDIM==3 , LBMDIM==2
 		
 		//! id string of solver
 		virtual string getIdString() { return string("FreeSurfaceFsgrSolver[BGK_D2Q9]"); }
@@ -667,7 +707,7 @@ class LbmFsgrSolver :
 		static LbmFloat lesCoeffDiag[ (2-1)*(2-1) ][ 9 ];
 		static LbmFloat lesCoeffOffdiag[ 2 ][ 9 ];
 
-#endif  // LBMDIM==2
+#		endif  // LBMDIM==2
 };
 
 #undef STCON
@@ -691,7 +731,8 @@ class LbmFsgrSolver :
 
 // flag array defines -----------------------------------------------------------------------------------------------
 
-// lbm testsolver get index define
+// lbm testsolver get index define, note - ignores is (set) as flag
+// array is only a single entry
 #define _LBMGI(level, ii,ij,ik, is) ( (mLevel[level].lOffsy*(ik)) + (mLevel[level].lOffsx*(ij)) + (ii) )
 
 //! flag array acces macro
@@ -701,7 +742,6 @@ class LbmFsgrSolver :
 
 // array handling  -----------------------------------------------------------------------------------------------
 
-//#define _LBMQI(level, ii,ij,ik, is, lunused) ( ((is)*mLevel[level].lOffsz) + (mLevel[level].lOffsy*(ik)) + (mLevel[level].lOffsx*(ij)) + (ii) )
 #define _LBMQI(level, ii,ij,ik, is, lunused) ( (mLevel[level].lOffsy*(ik)) + (mLevel[level].lOffsx*(ij)) + (ii) )
 #define _QCELL(level,xx,yy,zz,set,l) (mLevel[level].mprsCells[(set)][ LBMQI((level),(xx),(yy),(zz),(set), l)*dTotalNum +(l)])
 #define _QCELL_NB(level,xx,yy,zz,set, dir,l) (mLevel[level].mprsCells[(set)][ LBMQI((level),(xx)+this->dfVecX[dir],(yy)+this->dfVecY[dir],(zz)+this->dfVecZ[dir],set, l)*dTotalNum +(l)])
@@ -835,12 +875,17 @@ inline LbmFloat LbmFsgrSolver::getCollideEq(int l, LbmFloat rho,  LbmFloat ux, L
 				+ rho - (3.0/2.0*(ux*ux + uy*uy + uz*uz)) 
 				+ 3.0 *tmp 
 				+ 9.0/2.0 *(tmp*tmp) )
-			);
+		 	); // */
 };
 
 /*****************************************************************************/
 /* init a given cell with flag, density, mass and equilibrium dist. funcs */
 
+void LbmFsgrSolver::forceChangeFlag(int level, int xx,int yy,int zz,int set,CellFlagType newflag) {
+	// also overwrite persisting flags
+	// function is useful for tracking accesses...
+	RFLAG(level,xx,yy,zz,set) = newflag;
+}
 void LbmFsgrSolver::changeFlag(int level, int xx,int yy,int zz,int set,CellFlagType newflag) {
 	CellFlagType pers = RFLAG(level,xx,yy,zz,set) & CFPersistMask;
 	RFLAG(level,xx,yy,zz,set) = newflag | pers;
@@ -857,7 +902,6 @@ LbmFsgrSolver::initEmptyCell(int level, int i,int j,int k, CellFlagType flag, Lb
 	RAC(ecel, dMass) = mass;
 	RAC(ecel, dFfrac) = mass/rho;
 	RAC(ecel, dFlux) = FLUX_INIT;
-	//RFLAG(level, i,j,k, workSet)= flag;
 	changeFlag(level, i,j,k, workSet, flag);
 
   workSet ^= 1;
@@ -875,7 +919,6 @@ LbmFsgrSolver::initVelocityCell(int level, int i,int j,int k, CellFlagType flag,
 	RAC(ecel, dMass) = mass;
 	RAC(ecel, dFfrac) = mass/rho;
 	RAC(ecel, dFlux) = FLUX_INIT;
-	//RFLAG(level, i,j,k, workSet) = flag;
 	changeFlag(level, i,j,k, workSet, flag);
 
   workSet ^= 1;

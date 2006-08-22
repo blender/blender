@@ -118,6 +118,7 @@ class ntlGeometryObject : public ntlGeometryClass
 		void initMovingPointsAnim(
 		 double srctime, vector<ntlVec3Gfx> &srcpoints,
 		 double dsttime, vector<ntlVec3Gfx> &dstpoints,
+		 vector<ntlVec3Gfx> *dstnormals,
 		 gfxReal featureSize, ntlVec3Gfx geostart, ntlVec3Gfx geoend );
 		/*! Prepare points for moving objects (copy into ret) */
 		void getMovingPoints(vector<ntlVec3Gfx> &ret, vector<ntlVec3Gfx> *norms = NULL);
@@ -181,11 +182,11 @@ class ntlGeometryObject : public ntlGeometryClass
 		
 		/*! moving point/normal storage */
 		vector<ntlVec3Gfx> mMovPoints;
-		// unused vector<ntlVec3Gfx> mMovNormals;
+		vector<ntlVec3Gfx> mMovNormals;
 		/*! cached points for non moving objects/timeslots */
 		bool mHaveCachedMov;
 		vector<ntlVec3Gfx> mCachedMovPoints;
-		// unused vector<ntlVec3Gfx> mCachedMovNormals;
+		vector<ntlVec3Gfx> mCachedMovNormals;
 		/*! precomputed triangle divisions */
 		vector<int> mTriangleDivs1,mTriangleDivs2,mTriangleDivs3;
 		/*! inited? */

@@ -78,6 +78,7 @@ typedef struct elbeemSimulationSettings {
 	short generateVertexVectors;
 	/* strength of surface smoothing */
 	float surfaceSmoothing;
+	// TODO add surf gen flags
 
 	/* global transformation to apply to fluidsim mesh */
 	float surfaceTrafo[4*4];

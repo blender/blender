@@ -33,9 +33,9 @@ ntlGeometryObject::ntlGeometryObject() :
 	mInitialPos(0.),
 	mcTrans(0.), mcRot(0.), mcScale(1.),
 	mIsAnimated(false),
-	mMovPoints(), //mMovNormals(),
+	mMovPoints(), mMovNormals(),
 	mHaveCachedMov(false),
-	mCachedMovPoints(), //mCachedMovNormals(),
+	mCachedMovPoints(), mCachedMovNormals(),
 	mTriangleDivs1(), mTriangleDivs2(), mTriangleDivs3(),
 	mMovPntsInited(-100.0), mMaxMovPnt(-1),
 	mcGeoActive(1.)
@@ -169,14 +169,6 @@ void ntlGeometryObject::initialize(ntlRenderGlobals *glob)
 	// always use channel
 	if(!mcGeoActive.isInited()) { mcGeoActive = AnimChannel<double>(geoactive); }
 
-	//if(    (mcTrans.accessValues().size()>1)  // VALIDATE
-	    //|| (mcRot.accessValues().size()>1) 
-	    //|| (mcScale.accessValues().size()>1) 
-	    //|| (mcGeoActive.accessValues().size()>1) 
-	    //|| (mcInitialVelocity.accessValues().size()>1) 
-		//) {
-		//mIsAnimated = true;
-	//}
 	checkIsAnimated();
 
 	mIsInitialized = true;
@@ -340,14 +332,6 @@ void ntlGeometryObject::initChannels(
 	if((act)&&(nAct>0)) {      ADD_CHANNEL_FLOAT(mcGeoActive, nAct, act); }
 	if((ivel)&&(nIvel>0)) {    ADD_CHANNEL_VEC(mcInitialVelocity, nIvel, ivel); }
 
-	//if(    (mcTrans.accessValues().size()>1)  // VALIDATE
-	    //|| (mcRot.accessValues().size()>1) 
-	    //|| (mcScale.accessValues().size()>1) 
-	    //|| (mcGeoActive.accessValues().size()>1) 
-	    //|| (mcInitialVelocity.accessValues().size()>1) 
-		//) {
-		//mIsAnimated = true;
-	//}
 	checkIsAnimated();
 	if(debugInitc) { 
 		debMsgStd("ntlGeometryObject::initChannels",DM_MSG,getName()<<
@@ -422,6 +406,9 @@ void ntlGeometryObject::calcTriangleDivs(vector<ntlVec3Gfx> &verts, vector<ntlTr
 	mTriangleDivs1.resize( tris.size() );
 	mTriangleDivs2.resize( tris.size() );
 	mTriangleDivs3.resize( tris.size() );
+
+	//fsTri *= 2.; // DEBUG! , wrong init!
+
 	for(size_t i=0; i<tris.size(); i++) {
 		const ntlVec3Gfx p0 = verts[ tris[i].getPoints()[0] ];
 		const ntlVec3Gfx p1 = verts[ tris[i].getPoints()[1] ];
@@ -432,17 +419,7 @@ void ntlGeometryObject::calcTriangleDivs(vector<ntlVec3Gfx> &verts, vector<ntlTr
 		int divs1=0, divs2=0, divs3=0;
 		if(normNoSqrt(side1) > fsTri*fsTri) { divs1 = (int)(norm(side1)/fsTri); }
 		if(normNoSqrt(side2) > fsTri*fsTri) { divs2 = (int)(norm(side2)/fsTri); }
-		//if(normNoSqrt(side3) > fsTri*fsTri) { divs3 = (int)(norm(side3)/fsTri); }
-		/*if(getMeshAnimated()) {
-			vector<ntlSetVec3f> *verts =mcAniVerts.accessValues();
-			for(int s=0; s<verts->size(); s++) {
-				int tdivs1=0, tdivs2=0, tdivs3=0;
-				if(normNoSqrt(side1) > fsTri*fsTri) { tdivs1 = (int)(norm(side1)/fsTri); }
-				if(normNoSqrt(side2) > fsTri*fsTri) { tdivs2 = (int)(norm(side2)/fsTri); }
-				if(tdivs1>divs1) divs1=tdivs1;
-				if(tdivs2>divs2) divs2=tdivs2;
-			}
-		}*/
+
 		mTriangleDivs1[i] = divs1;
 		mTriangleDivs2[i] = divs2;
 		mTriangleDivs3[i] = divs3;
@@ -454,15 +431,14 @@ void ntlGeometryObject::initMovingPoints(double time, gfxReal featureSize) {
 	if((mMovPntsInited==featureSize)&&(!getMeshAnimated())) return;
 	const bool debugMoinit=false;
 
-	//vector<ntlVec3Gfx> movNormals;
 	vector<ntlTriangle> triangles; 
 	vector<ntlVec3Gfx> vertices; 
 	vector<ntlVec3Gfx> vnormals; 
 	int objectId = 1;
 	this->getTriangles(time, &triangles,&vertices,&vnormals,objectId);
 	
-	mMovPoints.clear(); //= vertices;
-	//movNormals.clear(); //= vnormals;
+	mMovPoints.clear();
+	mMovNormals.clear();
 	if(debugMoinit) errMsg("ntlGeometryObject::initMovingPoints","Object "<<getName()<<" has v:"<<vertices.size()<<" t:"<<triangles.size() );
 	// no points?
 	if(vertices.size()<1) {
@@ -523,7 +499,7 @@ void ntlGeometryObject::initMovingPoints(double time, gfxReal featureSize) {
 			if(dot(mInitialVelocity,n)<0.0) continue;
 		}
 		mMovPoints.push_back(p);
-		//movNormals.push_back(n);
+		mMovNormals.push_back(n);
 		//errMsg("ntlGeometryObject::initMovingPoints","std"<<i<<" p"<<p<<" n"<<n<<" ");
 	}
 	// init points & refine...
@@ -533,9 +509,9 @@ void ntlGeometryObject::initMovingPoints(double time, gfxReal featureSize) {
 		const ntlVec3Gfx side1 = vertices[ trips[1] ] - p0;
 		const ntlVec3Gfx side2 = vertices[ trips[2] ] - p0;
 		int divs1=mTriangleDivs1[i], divs2=mTriangleDivs2[i];
-		//if(normNoSqrt(side1) > fsTri*fsTri) { divs1 = (int)(norm(side1)/fsTri); }
-		//if(normNoSqrt(side2) > fsTri*fsTri) { divs2 = (int)(norm(side2)/fsTri); }
-		const ntlVec3Gfx trinorm = getNormalized(cross(side1,side2))*0.5*featureSize;
+		
+		const ntlVec3Gfx trinormOrg = getNormalized(cross(side1,side2));
+		const ntlVec3Gfx trinorm = trinormOrg*0.25*featureSize;
 		if(discardInflowBack) { 
 			if(dot(mInitialVelocity,trinorm)<0.0) continue;
 		}
@@ -557,24 +533,15 @@ void ntlGeometryObject::initMovingPoints(double time, gfxReal featureSize) {
 					//normalize(n);
 					// discard inflow backsides
 
-					mMovPoints.push_back(p);
+					mMovPoints.push_back(p + trinorm); // NEW!?
 					mMovPoints.push_back(p - trinorm);
-					//movNormals.push_back(n);
-					//movNormals.push_back(trinorm);
+					mMovNormals.push_back(trinormOrg);
+					mMovNormals.push_back(trinormOrg); 
 					//errMsg("TRINORM","p"<<p<<" n"<<n<<" trin"<<trinorm);
 				}
 			}
 		}
 	}
-
-	// duplicate insides
-	//size_t mpsize = mMovPoints.size();
-	//for(size_t i=0; i<mpsize; i++) {
-		//normalize(vnormals[i]);
-		//errMsg("TTAT"," moved:"<<(mMovPoints[i] - mMovPoints[i]*featureSize)<<" org"<<mMovPoints[i]<<" norm"<<mMovPoints[i]<<" fs"<<featureSize);
-		//mMovPoints.push_back(mMovPoints[i] - movNormals[i]*0.5*featureSize);
-		//movNormals.push_back(movNormals[i]);
-	//}
 
 	// find max point
 	mMaxMovPnt = 0;
@@ -594,7 +561,7 @@ void ntlGeometryObject::initMovingPoints(double time, gfxReal featureSize) {
 		// also do trafo...
 	} else {
 		mCachedMovPoints = mMovPoints;
-		//mCachedMovNormals = movNormals;
+		mCachedMovNormals = mMovNormals;
 		//applyTransformation(time, &mCachedMovPoints, &mCachedMovNormals, 0, mCachedMovPoints.size(), true);
 		applyTransformation(time, &mCachedMovPoints, NULL, 0, mCachedMovPoints.size(), true);
 		mHaveCachedMov = true;
@@ -610,31 +577,27 @@ void ntlGeometryObject::initMovingPoints(double time, gfxReal featureSize) {
 void ntlGeometryObject::initMovingPointsAnim(
 		 double srctime, vector<ntlVec3Gfx> &srcmovPoints,
 		 double dsttime, vector<ntlVec3Gfx> &dstmovPoints,
+		 vector<ntlVec3Gfx> *dstmovNormals,
 		 gfxReal featureSize,
 		 ntlVec3Gfx geostart, ntlVec3Gfx geoend
 		 ) {
 	const bool debugMoinit=false;
-
-	//vector<ntlVec3Gfx> srcmovNormals;
-	//vector<ntlVec3Gfx> dstmovNormals;
 
 	vector<ntlTriangle> srctriangles; 
 	vector<ntlVec3Gfx> srcvertices; 
 	vector<ntlVec3Gfx> unused_normals; 
 	vector<ntlTriangle> dsttriangles; 
 	vector<ntlVec3Gfx> dstvertices; 
-	//vector<ntlVec3Gfx> dstnormals; 
+	vector<ntlVec3Gfx> dstnormals; 
 	int objectId = 1;
 	// TODO optimize? , get rid of normals?
 	unused_normals.clear();
 	this->getTriangles(srctime, &srctriangles,&srcvertices,&unused_normals,objectId);
 	unused_normals.clear();
-	this->getTriangles(dsttime, &dsttriangles,&dstvertices,&unused_normals,objectId);
+	this->getTriangles(dsttime, &dsttriangles,&dstvertices,&dstnormals,objectId);
 	
 	srcmovPoints.clear();
 	dstmovPoints.clear();
-	//srcmovNormals.clear();
-	//dstmovNormals.clear();
 	if(debugMoinit) errMsg("ntlGeometryObject::initMovingPointsAnim","Object "<<getName()<<" has srcv:"<<srcvertices.size()<<" srct:"<<srctriangles.size() );
 	if(debugMoinit) errMsg("ntlGeometryObject::initMovingPointsAnim","Object "<<getName()<<" has dstv:"<<dstvertices.size()<<" dstt:"<<dsttriangles.size() );
 	// no points?
@@ -668,7 +631,7 @@ void ntlGeometryObject::initMovingPointsAnim(
 	}
 	for(size_t i=0; i<dstvertices.size(); i++) {
 		dstmovPoints.push_back(dstvertices[i]);
-		//dstmovNormals.push_back(dstnormals[i]);
+		if(dstmovNormals) (*dstmovNormals).push_back(dstnormals[i]);
 	}
 	if(debugMoinit) errMsg("ntlGeometryObject::initMovingPointsAnim","stats src:"<<srcmovPoints.size()<<" dst:"<<dstmovPoints.size()<<" " );
 	// init points & refine...
@@ -684,8 +647,9 @@ void ntlGeometryObject::initMovingPointsAnim(
 			const ntlVec3Gfx dstp0 =    dstvertices[ dsttrips[0] ];
 			const ntlVec3Gfx dstside1 = dstvertices[ dsttrips[1] ] - dstp0;
 			const ntlVec3Gfx dstside2 = dstvertices[ dsttrips[2] ] - dstp0;
-			const ntlVec3Gfx src_trinorm = getNormalized(cross(srcside1,srcside2))*0.5*featureSize;
-			const ntlVec3Gfx dst_trinorm = getNormalized(cross(dstside1,dstside2))*0.5*featureSize;
+			const ntlVec3Gfx src_trinorm    = getNormalized(cross(srcside1,srcside2))*0.25*featureSize;
+			const ntlVec3Gfx dst_trinormOrg = getNormalized(cross(dstside1,dstside2));
+			const ntlVec3Gfx dst_trinorm    = dst_trinormOrg                         *0.25*featureSize;
 			//errMsg("ntlGeometryObject::initMovingPointsAnim","Tri1 "<<srcvertices[srctrips[0]]<<","<<srcvertices[srctrips[1]]<<","<<srcvertices[srctrips[2]]<<" "<<divs1<<","<<divs2 );
 			for(int u=0; u<=divs1; u++) {
 				for(int v=0; v<=divs2; v++) {
@@ -709,59 +673,18 @@ void ntlGeometryObject::initMovingPointsAnim(
 					if((srcp[1]>geoend[1]  ) && (dstp[1]>geoend[1]  )) continue;
 					if((srcp[2]>geoend[2]  ) && (dstp[2]>geoend[2]  )) continue;
 					
-					//ntlVec3Gfx srcn = 
-						//srcnormals[ srctriangles[i].getPoints()[0] ] * (1.0-uf-vf)+
-						//srcnormals[ srctriangles[i].getPoints()[1] ] * uf +
-						//srcnormals[ srctriangles[i].getPoints()[2] ] * vf;
-					//normalize(srcn);
-					srcmovPoints.push_back(srcp);
+					srcmovPoints.push_back(srcp+src_trinorm); // SURFENHTEST
 					srcmovPoints.push_back(srcp-src_trinorm);
-					//srcmovNormals.push_back(srcn);
 
-					//ntlVec3Gfx dstn = 
-						//dstnormals[ dsttriangles[i].getPoints()[0] ] * (1.0-uf-vf)+
-						//dstnormals[ dsttriangles[i].getPoints()[1] ] * uf +
-						//dstnormals[ dsttriangles[i].getPoints()[2] ] * vf;
-					//normalize(dstn);
-					dstmovPoints.push_back(dstp);
+					dstmovPoints.push_back(dstp+dst_trinorm); // SURFENHTEST
 					dstmovPoints.push_back(dstp-dst_trinorm);
-					//dstmovNormals.push_back(dstn);
-
-					/*if(debugMoinit && (i>=0)) errMsg("ntlGeometryObject::initMovingPointsAnim"," "<<
-					//srcmovPoints[ srcmovPoints.size()-1 ]<<","<<
-					//srcmovNormals[ srcmovNormals.size()-1 ]<<"   "<<
-					//dstmovPoints[ dstmovPoints.size()-1 ]<<","<<
-					//dstmovNormals[ dstmovNormals.size()-1 ]<<" " 
-					(srcmovNormals[ srcmovPoints.size()-1 ]-
-					dstmovNormals[ dstmovPoints.size()-1 ])<<" "
-					);
-					// */
+					if(dstmovNormals) {
+						(*dstmovNormals).push_back(dst_trinormOrg);
+						(*dstmovNormals).push_back(dst_trinormOrg); }
 				}
 			}
 		}
 	}
-
-	/*if(debugMoinit) errMsg("ntlGeometryObject::initMovingPointsAnim","stats src:"<<srcmovPoints.size()<<","<<srcmovNormals.size()<<" dst:"<<dstmovPoints.size()<<","<<dstmovNormals.size() );
-	// duplicate insides
-	size_t mpsize = srcmovPoints.size();
-	for(size_t i=0; i<mpsize; i++) {
-		srcmovPoints.push_back(srcmovPoints[i] - srcmovNormals[i]*1.0*featureSize);
-		//? srcnormals.push_back(srcnormals[i]);
-	}
-	mpsize = dstmovPoints.size();
-	for(size_t i=0; i<mpsize; i++) {
-		dstmovPoints.push_back(dstmovPoints[i] - dstmovNormals[i]*1.0*featureSize);
-		//? dstnormals.push_back(dstnormals[i]);
-	}
-	// */
-
-	/*if(debugMoinit) errMsg("ntlGeometryObject::initMovingPointsAnim","stats src:"<<srcmovPoints.size()<<","<<srcmovNormals.size()<<" dst:"<<dstmovPoints.size()<<","<<dstmovNormals.size() );
-	for(size_t i=0; i<srcmovPoints.size(); i++) {
-		ntlVec3Gfx p1 = srcmovPoints[i];
-		ntlVec3Gfx p2 = dstmovPoints[i];
-	  gfxReal len = norm(p1-p2);
-		if(len>0.01) { errMsg("ntlGeometryObject::initMovingPointsAnim"," i"<<i<<" "<< p1<<" "<<p2<<" "<<len); }
-	} // */
 
 	// find max point not necessary
 	debMsgStd("ntlGeometryObject::initMovingPointsAnim",DM_MSG,"Object "<<getName()<<" inited v:"<<srcvertices.size()<<"->"<<srcmovPoints.size()<<","<<dstmovPoints.size() , 5);
@@ -772,8 +695,8 @@ void ntlGeometryObject::getMovingPoints(vector<ntlVec3Gfx> &ret, vector<ntlVec3G
 	if(mHaveCachedMov) {
 		ret = mCachedMovPoints;
 		if(norms) { 
-			//*norms = mCachedMovNormals; 
-			errMsg("ntlGeometryObject","getMovingPoints - Normals currently unused!");
+			*norms = mCachedMovNormals; 
+			//errMsg("ntlGeometryObject","getMovingPoints - Normals currently unused!");
 		}
 		//errMsg ("ntlGeometryObject::getMovingPoints","Object "<<getName()<<" used cached points "); // DEBUG
 		return;
@@ -781,8 +704,8 @@ void ntlGeometryObject::getMovingPoints(vector<ntlVec3Gfx> &ret, vector<ntlVec3G
 
 	ret = mMovPoints;
 	if(norms) { 
-		errMsg("ntlGeometryObject","getMovingPoints - Normals currently unused!");
-		//*norms = mMovNormals; 
+		//errMsg("ntlGeometryObject","getMovingPoints - Normals currently unused!");
+		*norms = mMovNormals; 
 	}
 }
 
