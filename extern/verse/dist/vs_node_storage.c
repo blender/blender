@@ -20,6 +20,8 @@ static struct {
 	VSSubscriptionList *list[V_NT_NUM_TYPES];
 } VSNodeStorage;
 
+extern void	callback_send_tag_group_create(void *user, VNodeID node_id, uint16 group_id, const char *name);
+
 void vs_init_node_storage(void)
 {
 	unsigned int i;

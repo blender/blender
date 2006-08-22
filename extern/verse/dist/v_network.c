@@ -180,7 +180,7 @@ unsigned int v_n_wait_for_incoming(unsigned int microseconds)
 	v_n_get_current_time(&s1, &f1);
 	select(1, &fd_select, NULL, NULL, &tv);
 	v_n_get_current_time(&s2, &f2);
-	return 1000000 * (s2 - s1) + (1000000.0 / 0xffffffffu) * (long) (f2 - f1);	/* Must cast to (long) for f1 > f2 case! */
+	return (unsigned int) (1000000 * (s2 - s1) + (1000000.0 / 0xffffffffu) * (long) (f2 - f1));	/* Must cast to (long) for f1 > f2 case! */
 }
 
 #endif
@@ -221,9 +221,9 @@ void v_n_get_current_time(uint32 *seconds, uint32 *fractions)
 
 	QueryPerformanceCounter(&counter);
 	if(seconds != NULL)
-		*seconds = counter.QuadPart / frequency.QuadPart;
+		*seconds = (uint32) (counter.QuadPart / frequency.QuadPart);
 	if(fractions != NULL)
-		*fractions = (uint32)((0xffffffffULL * (counter.QuadPart % frequency.QuadPart)) / frequency.QuadPart);
+		*fractions = (uint32) ((0xffffffffUL * (counter.QuadPart % frequency.QuadPart)) / frequency.QuadPart);
 }
 
 #else

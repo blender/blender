@@ -84,7 +84,7 @@ void v_randgen_get(VRandGen *gen, void *bytes, size_t num)
 {
 	if(gen != NULL && bytes != NULL)
 	{
-		if(read(gen->fd, bytes, num) != num)
+		if(read(gen->fd, bytes, num) != (int) num)
 			fprintf(stderr, __FILE__ ": Failed to read %u bytes of random data from " SOURCE "\n", (unsigned int) num);
 	}
 }

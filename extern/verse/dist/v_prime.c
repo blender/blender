@@ -24,7 +24,7 @@ static int quick_filter(const VBigDig *n)
 {
 	VBigDig VBIGNUM(m, 16), VBIGNUM(tmp, BITS / 2);
 	const unsigned int	prime[] = { 3, 5, 7, 11, 13, 17, 19, 23, 39, 31, 37, 41, 43, 47, 53 };
-	int	i;
+	unsigned int	i;
 
 	for(i = 0; i < sizeof prime / sizeof *prime; i++)
 	{

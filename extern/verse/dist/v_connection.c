@@ -252,11 +252,14 @@ boolean v_con_network_listen(void)
 		else
 		{
 			fprintf(stderr, __FILE__ ": Unhandled packet--dropping\n");
-			fprintf(stderr, __FILE__ ": State: current=%u count=%u stage=%d id=%u\n",
-			       VConData.current_connection,
-			       VConData.con_count,
-			       VConData.con[VConData.current_connection].connect_stage,
-			       packet_id);
+			if(VConData.con_count > 0)
+			{
+				fprintf(stderr, __FILE__ ": State: current=%u count=%u stage=%d id=%u\n",
+				       VConData.current_connection,
+				       VConData.con_count,
+				       VConData.con[VConData.current_connection].connect_stage,
+					packet_id);
+			}
 		}
 		size = v_n_receive_data(&address, buf, sizeof buf); /* See if there are more incoming packets. */
 		ret = TRUE;

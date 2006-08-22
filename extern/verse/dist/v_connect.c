@@ -112,7 +112,7 @@ static void v_send_hidden_connect_terminate(VNetworkAddress *address, unsigned i
 
 VSession verse_send_connect(const char *name, const char *pass, const char *address, const uint8 *expected_key)
 {
-	uint8 *my_key, *key;
+	uint8 *my_key, *key = NULL;
 	unsigned int i;
 	VNetworkAddress a; 
 	VSession *session;
@@ -151,9 +151,9 @@ VSession verse_send_connect(const char *name, const char *pass, const char *addr
 
 void v_update_connection_pending(boolean resend)
 {
-	VSession (* func_connect)(void *user_data, const char *name, const char *pass, const char *address, const uint8 *key);
+	VSession (* func_connect)(void *user_data, const char *name, const char *pass, const char *address, const uint8 *key) = NULL;
 	VSession (* func_connect_accept)(void *user_data, VNodeID avatar, char *address, uint8 *host_id);
-	void (* func_connect_termanate)(void *user_data, char *address, const char *bye);
+	void (* func_connect_terminate)(void *user_data, char *address, const char *bye);
 	char address_string[32];
 
 	switch(v_con_get_connect_stage())
@@ -193,13 +193,13 @@ void v_update_connection_pending(boolean resend)
 		break;
 	case V_CS_PENDING_CLIENT_CALLBACK_TERMINATE : /* Host got login waits for accept connect callback */
 		v_con_set_connect_stage(V_CS_CONNECTED);
-		func_connect_termanate = v_fs_get_user_func(2);
+		func_connect_terminate = v_fs_get_user_func(2);
 		v_n_get_address_string(v_con_get_network_address(), address_string);
 #if defined(V_PRINT_RECEIVE_COMMANDS)
-		printf("receive: func_connect_termanate(address = %s, bye = %s); callback = %p\n", address_string, "no message", func_connect);
+		printf("receive: func_connect_terminate(address = %s, bye = %s); callback = %p\n", address_string, "no message", func_connect);
 #endif
-		if(func_connect_termanate != 0)
-			func_connect_termanate(v_fs_get_user_data(2), address_string, "no message");
+		if(func_connect_terminate != 0)
+			func_connect_terminate(v_fs_get_user_data(2), address_string, "no message");
 		break;
 	default:
 		;

@@ -34,8 +34,8 @@ void v_timer_advance(VUtilTimer *timer, double seconds)
 {
 	if(timer == NULL)
 		return;
-	timer->seconds   += (int) seconds;
-	timer->fractions += (seconds - (int) seconds) * (double) 0xffffffff;
+	timer->seconds   += (uint32) seconds;
+	timer->fractions += (uint32) ((seconds - (int) seconds) * (double) 0xffffffff);
 }
 
 double v_timer_elapsed(const VUtilTimer *timer)
@@ -79,10 +79,10 @@ VNQuat32 * v_quat32_from_quat64(VNQuat32 *dst, const VNQuat64 *src)
 {
 	if(dst == NULL || src == NULL)
 		return NULL;
-	dst->x = src->x;	
-	dst->y = src->y;
-	dst->z = src->z;	
-	dst->w = src->w;
+	dst->x = (real32) src->x;
+	dst->y = (real32) src->y;
+	dst->z = (real32) src->z;	
+	dst->w = (real32) src->w;
 	return dst;
 }
 

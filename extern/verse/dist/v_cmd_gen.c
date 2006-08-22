@@ -403,7 +403,8 @@ static unsigned int v_cg_compute_command_size(unsigned int start, boolean end)
 
 void v_cg_set_command_address(FILE *f, boolean alias)
 {
-	unsigned int i, count = 0, length, size = 1, *param, def[] ={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+	unsigned int i, j, count = 0, length, size = 1, *param, def[] ={0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+
 	for(i = 0; i < VCGData.param_count; i++)
 		if(VCGData.param_type[i] == VCGP_END_ADDRESS)
 			break;
@@ -422,9 +423,9 @@ void v_cg_set_command_address(FILE *f, boolean alias)
 	if(i == VCGData.param_count)
 		return;
 	fprintf(f, "\tif(");
-	for(i = 0; i < length; i++)
+	for(i = j = 0; i < VCGData.param_count; i++)
 	{
-		switch(VCGData.param_type[param[i]])
+		switch(VCGData.param_type[i])
 		{
 			case  VCGP_UINT8 :
 			case  VCGP_ENUM :
@@ -434,25 +435,46 @@ void v_cg_set_command_address(FILE *f, boolean alias)
 			case  VCGP_LAYER_ID :
 			case  VCGP_BUFFER_ID :
 			case  VCGP_FRAGMENT_ID :
-				if(count++ != 0)
-					fprintf(f, " || ");
-				fprintf(f, "%s == (uint16)(-1)", VCGData.param_name[param[i]]);
 				size += 2;
 				break;
 			case  VCGP_NODE_ID : 
 			case  VCGP_UINT32 :
 			case  VCGP_REAL32 :
-				if(count++ != 0)
-					fprintf(f, " || ");
-				fprintf(f, "%s == (uint32)(-1)", VCGData.param_name[param[i]]);
 				size += 4;
 				break;
-			case VCGP_END_ADDRESS :
-				fprintf(f, ")\n");
-				fprintf(f, "\t\tv_cmd_buf_set_unique_address_size(head, %u);\n", size);
-				fprintf(f, "\telse\n");
-				fprintf(f, "\t\tv_cmd_buf_set_address_size(head, %u);\n", size);
-				return;
+		}
+		if(j < length && param[j] == i)
+		{
+			switch(VCGData.param_type[param[j]])
+			{
+				case  VCGP_UINT8 :
+				case  VCGP_ENUM :
+					break;
+				case  VCGP_UINT16 :
+				case  VCGP_LAYER_ID :
+				case  VCGP_BUFFER_ID :
+				case  VCGP_FRAGMENT_ID :
+					if(count++ != 0)
+						fprintf(f, " || ");
+					fprintf(f, "%s == (uint16)(-1)", VCGData.param_name[param[j]]);
+					break;
+				case  VCGP_NODE_ID : 
+				case  VCGP_UINT32 :
+				case  VCGP_REAL32 :
+					if(count++ != 0)
+						fprintf(f, " || ");
+					fprintf(f, "%s == (uint32)(-1)", VCGData.param_name[param[j]]);
+					break;
+			}
+			j++;
+		}
+		if(VCGData.param_type[i] == VCGP_END_ADDRESS)
+		{
+			fprintf(f, ")\n");
+			fprintf(f, "\t\tv_cmd_buf_set_unique_address_size(head, %u);\n", size);
+			fprintf(f, "\telse\n");
+			fprintf(f, "\t\tv_cmd_buf_set_address_size(head, %u);\n", size);
+			return;
 		}
 	}
 	fprintf(f, ")\n");
@@ -568,7 +590,15 @@ static void v_cg_gen_pack(boolean alias)
 			break;
 		}
 		if(no_param)
-			param = "-1";
+		{
+			/* Horrible work-around, that prevents vertex/polygon deletes from misbehaving. */
+			if(strncmp(VCGData.alias_name, "g_vertex_delete_real", 20) == 0 && i == 1)
+				param = "0";
+			else if(strncmp(VCGData.alias_name, "g_polygon_delete", 16) == 0 && i == 1)
+				param = "1";
+			else
+				param = "-1";
+		}
 		switch(VCGData.param_type[i])
 		{	
 			case VCGP_NODE_ID :

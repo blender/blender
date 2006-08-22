@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 
 	signal(SIGINT, cb_sigint_handler);
 
-	for(i = 1; i < argc; i++)
+	for(i = 1; i < (uint32) argc; i++)
 	{
 		if(strcmp(argv[i], "-Q") == 0)
 			ms_address = NULL;
@@ -121,6 +121,11 @@ int main(int argc, char **argv)
 			ms_address = argv[i] + 9;
 		else if(strncmp(argv[i], "-port=", 6) == 0)
 			port = strtoul(argv[i] + 6, NULL, 0);
+		else if(strcmp(argv[i], "-version") == 0)
+		{
+			printf("r%up%u%s\n", V_RELEASE_NUMBER, V_RELEASE_PATCH, V_RELEASE_LABEL);
+			return EXIT_SUCCESS;
+		}
 		else
 			fprintf(stderr, "Ignoring unknown argument \"%s\"\n", argv[i]);
 	}

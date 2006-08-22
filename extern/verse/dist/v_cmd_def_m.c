@@ -159,7 +159,7 @@ void v_gen_material_cmd_def(void)
 	"\t\t\tbuffer_pos += vnp_raw_unpack_real64(&buf[buffer_pos], &frag.transparency.refraction_index);\n"
 	"\t\t\tbreak;\n"
 	"\t\tcase VN_M_FT_VOLUME :\n"
-	"\t\t\tif(buffer_pos + 34 > buffer_length)\n"
+	"\t\t\tif(buffer_pos + 32 > buffer_length)\n"
 	"\t\t\t\treturn -1;\n"
 	"\t\t\tbuffer_pos += vnp_raw_unpack_real64(&buf[buffer_pos], &frag.volume.diffusion);\n"
 	"\t\t\tbuffer_pos += vnp_raw_unpack_real64(&buf[buffer_pos], &frag.volume.col_r);\n"

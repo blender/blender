@@ -15,7 +15,7 @@ extern VSSubscriptionList * vs_create_subscription_list(void);
 extern void			vs_destroy_subscription_list(VSSubscriptionList *list);
 extern int			vs_add_new_subscriptor(VSSubscriptionList *list);
 extern void			vs_remove_subscriptor(VSSubscriptionList *list);
-extern size_t		vs_get_subscript_count(const VSSubscriptionList *list);
+extern unsigned int		vs_get_subscript_count(const VSSubscriptionList *list);
 extern void			vs_set_subscript_session(VSSubscriptionList *list, unsigned int session);
 extern void			vs_reset_subscript_session(void);
 extern uint32		vs_get_avatar(void);

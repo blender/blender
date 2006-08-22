@@ -52,11 +52,11 @@ VERSE_OBJ = vs_connection.obj vs_main.obj vs_node_audio.obj vs_node_bitmap.obj v
 
 ALL:		verse.lib verse.exe
 
-verse.exe:	$(VERSE_OBJ) verse.lib
-		cl /Fe$@ $**  $** wsock32.lib
+verse.exe:	$(VERSE_OBJ) verse.lib resources\verse.res
+		cl /Fe$@ $** wsock32.lib
 
 verse.lib:	$(LIBVERSE_OBJ)
-		lib /nologo /out:$@ $**
+		link /lib /nologo /out:$@ $**
 
 # -----------------------------------------------------
 

@@ -336,26 +336,26 @@ void verse_send_c_key_set(VNodeID node_id, VLayerID curve_id, uint32 key_id, uin
 		printf("send: verse_send_c_key_set(node_id = %u curve_id = %u key_id = %u dimensions = %u pre_value = %f pre_pos = %u value = %f pos = %f, pre_value = %f pre_pos = %u ); callback = %p\n", node_id, curve_id, key_id, dimensions, pre_value[0], pre_pos[0], value[0], pos, pre_value[0], pre_pos[0], v_fs_get_user_func(130));
 	break;
 	case 2:
-		printf("sende: verse_send_c_key_set(node_id = %u curve_id = %u key_id = %u dimensions = %u pre_value = {%f, %f} pre_pos = {%u, %u} value = {%f, %f} pos = {%f, %f}, pre_value = {%f, %f} pre_pos = {%u, %u}); callback = %p\n",
+		printf("sende: verse_send_c_key_set(node_id = %u curve_id = %u key_id = %u dimensions = %u pre_value = {%f, %f} pre_pos = {%u, %u} value = {%f, %f} pos = %f, pre_value = {%f, %f} pre_pos = {%u, %u}); callback = %p\n",
 			node_id, curve_id, key_id, dimensions, 
 			pre_value[0], pre_value[1], 
 			pre_pos[0], pre_pos[1], 
-			value[0], value[1], pos, 
+			value[0], value[1], pos,
 			pre_value[0], pre_value[1],  
 			pre_pos[0], pre_pos[1], v_fs_get_user_func(130));
 	break;
 	case 3:
-		printf("send: verse_send_c_key_set(node_id = %u curve_id = %u key_id = %u dimensions = %u pre_value = {%f, %f, %f} pre_pos = {%u, %u, %u} value = {%f, %f, %f} pos = {%f, %f, %f}, pre_value = {%f, %f, %f} pre_pos = {%u, %u, %u}); callback = %p\n",
+		printf("send: verse_send_c_key_set(node_id = %u curve_id = %u key_id = %u dimensions = %u pre_value = {%f, %f, %f} pre_pos = {%u, %u, %u} value = {%f, %f, %f} pos = %f, pre_value = {%f, %f, %f} pre_pos = {%u, %u, %u}); callback = %p\n",
 			node_id, curve_id, key_id, dimensions, 
 			pre_value[0], pre_value[1], pre_value[2],  
 			pre_pos[0], pre_pos[1], pre_pos[2],  
-			value[0], value[1], value[2], pos, 
+			value[0], value[1], value[2], pos,
 			pre_value[0], pre_value[1], pre_value[2],  
 			pre_pos[0], pre_pos[1], pre_pos[2], v_fs_get_user_func(130));
 		
 	break;
 	case 4:
-		printf("send: verse_send_c_key_set(node_id = %u curve_id = %u key_id = %u dimensions = %u pre_value = {%f, %f, %f, %f} pre_pos = {%u, %u, %u, %u} value = {%f, %f, %f, %f} pos = {%f, %f, %f, %f}, pre_value = {%f, %f, %f, %f} pre_pos = {%u, %u, %u, %u}); callback = %p\n",
+		printf("send: verse_send_c_key_set(node_id = %u curve_id = %u key_id = %u dimensions = %u pre_value = {%f, %f, %f, %f} pre_pos = {%u, %u, %u, %u} value = {%f, %f, %f, %f} pos = %f, pre_value = {%f, %f, %f, %f} pre_pos = {%u, %u, %u, %u}); callback = %p\n",
 			node_id, curve_id, key_id, dimensions, 
 			pre_value[0], pre_value[1], pre_value[2], pre_value[3], 
 			pre_pos[0], pre_pos[1], pre_pos[2], pre_pos[3], 
@@ -448,7 +448,7 @@ unsigned int v_unpack_c_key_set(const char *buf, size_t buffer_length)
 			printf("receive: verse_send_c_key_set(node_id = %u curve_id = %u key_id = %u dimensions = %u pre_value = %f pre_pos = %u value = %f pos = %f, pre_value = %f pre_pos = %u ); callback = %p\n", node_id, curve_id, key_id, dimensions, pre_value[0], pre_pos[0], value[0], pos, pre_value[0], pre_pos[0], v_fs_get_user_func(130));
 		break;
 		case 2:
-			printf("receive: verse_send_c_key_set(node_id = %u curve_id = %u key_id = %u dimensions = %u pre_value = {%f, %f} pre_pos = {%u, %u} value = {%f, %f} pos = {%f, %f}, pre_value = {%f, %f} pre_pos = {%u, %u}); callback = %p\n",
+			printf("receive: verse_send_c_key_set(node_id = %u curve_id = %u key_id = %u dimensions = %u pre_value = {%f, %f} pre_pos = {%u, %u} value = {%f, %f} pos = %f, pre_value = {%f, %f} pre_pos = {%u, %u}); callback = %p\n",
 				node_id, curve_id, key_id, dimensions, 
 				pre_value[0], pre_value[1], 
 				pre_pos[0], pre_pos[1], 
@@ -457,7 +457,7 @@ unsigned int v_unpack_c_key_set(const char *buf, size_t buffer_length)
 				pre_pos[0], pre_pos[1], v_fs_get_user_func(130));
 		break;
 		case 3:
-			printf("receive: verse_send_c_key_set(node_id = %u curve_id = %u key_id = %u dimensions = %u pre_value = {%f, %f, %f} pre_pos = {%u, %u, %u} value = {%f, %f, %f} pos = {%f, %f, %f}, pre_value = {%f, %f, %f} pre_pos = {%u, %u, %u}); callback = %p\n",
+			printf("receive: verse_send_c_key_set(node_id = %u curve_id = %u key_id = %u dimensions = %u pre_value = {%f, %f, %f} pre_pos = {%u, %u, %u} value = {%f, %f, %f} pos = %f, pre_value = {%f, %f, %f} pre_pos = {%u, %u, %u}); callback = %p\n",
 				node_id, curve_id, key_id, dimensions, 
 				pre_value[0], pre_value[1], pre_value[2],  
 				pre_pos[0], pre_pos[1], pre_pos[2],  
@@ -467,7 +467,7 @@ unsigned int v_unpack_c_key_set(const char *buf, size_t buffer_length)
 			
 		break;
 		case 4:
-			printf("receive: verse_send_c_key_set(node_id = %u curve_id = %u key_id = %u dimensions = %u pre_value = {%f, %f, %f, %f} pre_pos = {%u, %u, %u, %u} value = {%f, %f, %f, %f} pos = {%f, %f, %f, %f}, pre_value = {%f, %f, %f, %f} pre_pos = {%u, %u, %u, %u}); callback = %p\n",
+			printf("receive: verse_send_c_key_set(node_id = %u curve_id = %u key_id = %u dimensions = %u pre_value = {%f, %f, %f, %f} pre_pos = {%u, %u, %u, %u} value = {%f, %f, %f, %f} pos = %f, pre_value = {%f, %f, %f, %f} pre_pos = {%u, %u, %u, %u}); callback = %p\n",
 				node_id, curve_id, key_id, dimensions, 
 				pre_value[0], pre_value[1], pre_value[2], pre_value[3], 
 				pre_pos[0], pre_pos[1], pre_pos[2], pre_pos[3], 

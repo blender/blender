@@ -227,7 +227,7 @@ unsigned int v_unpack_m_fragment_create(const char *buf, size_t buffer_length)
 			buffer_pos += vnp_raw_unpack_real64(&buf[buffer_pos], &frag.transparency.refraction_index);
 			break;
 		case VN_M_FT_VOLUME :
-			if(buffer_pos + 34 > buffer_length)
+			if(buffer_pos + 32 > buffer_length)
 				return -1;
 			buffer_pos += vnp_raw_unpack_real64(&buf[buffer_pos], &frag.volume.diffusion);
 			buffer_pos += vnp_raw_unpack_real64(&buf[buffer_pos], &frag.volume.col_r);

@@ -48,7 +48,7 @@ size_t vnp_raw_pack_uint16(void *buffer, uint16 data)
 
 size_t vnp_raw_unpack_uint16(const void *buffer, uint16 *data)
 {
-	const register uint8	*b = buffer;
+	register const uint8	*b = buffer;
 	register uint16	tmp;
 
 	tmp = ((uint16) *b++) << 8;

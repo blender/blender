@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "verse_header.h"
 #include "v_pack.h"
@@ -34,7 +35,7 @@ void cmd_buf_init(void)
 	for(i = 0; i < VCMDBS_COUNT; i++)
 	{
 		VCMDBufData.buffers[i] = NULL;
-		VCMDBufData.available[i] = vcmdbuf_chunk_size[i] * VCMDBUF_INIT_CHUNK_FACTOR;
+		VCMDBufData.available[i] = (unsigned int) (vcmdbuf_chunk_size[i] * VCMDBUF_INIT_CHUNK_FACTOR);
 		for(j = 0, buf = NULL; j < VCMDBufData.available[i]; j++, buf = b)
 		{
 			b = v_cmd_buf_allocate(i);
@@ -87,8 +88,6 @@ void v_cmd_buf_free(VCMDBufHead *head)
 
 void v_cmd_buf_set_size(VCMDBufHead *head, unsigned int size)
 {
-	if(head->address_size > size);
-		head->address_size = size;
 	head->size = size;
 }
 
@@ -112,14 +111,9 @@ void v_cmd_buf_set_unique_address_size(VCMDBufHead *head, unsigned int size)
 
 boolean	v_cmd_buf_compare(VCMDBufHead *a, VCMDBufHead *b)
 {
-	unsigned int i;
-
 	if(a->address_sum != b->address_sum)
 		return FALSE;
 	if(a->address_size != b->address_size)
 		return FALSE;
-	for(i = 0; i < a->address_size; i++)
-		if(((VCMDBuffer1500 *)a)->buf[i] != ((VCMDBuffer1500 *)b)->buf[i])
-			return FALSE;
-	return TRUE;
+	return memcmp(((VCMDBuffer1500 *)a)->buf, ((VCMDBuffer1500 *)b)->buf, a->address_size) == 0;
 }

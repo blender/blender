@@ -91,7 +91,7 @@ void v_gen_geometry_cmd_def(void)
 	v_cg_add_param(VCGP_UINT32,		"v1");
 	v_cg_add_param(VCGP_UINT32,		"v2");
 	v_cg_add_param(VCGP_UINT32,		"v3");
-	v_cg_alias(FALSE, "g_polygon_delete", "if(layer_id == (VLayerID) ~0)", 2, order);
+	v_cg_alias(FALSE, "g_polygon_delete", "if(layer_id == 1 && v0 == ~0u)", 2, order);
 	v_cg_end_cmd();
 
 	v_cg_new_cmd(V_NT_GEOMETRY,		"g_polygon_set_corner_real64", 56, VCGCT_NORMAL); 

@@ -415,8 +415,10 @@ extern void		verse_session_get_time(uint32 *seconds, uint32 *fractions);
 extern VNOPackedParams * verse_method_call_pack(uint32 param_count, const VNOParamType *param_type, const VNOParam *params);
 extern boolean	verse_method_call_unpack(const VNOPackedParams *data, uint32 param_count, const VNOParamType *param_type, VNOParam *params);
 
+/*
 #define V_PRINT_SEND_COMMANDS
 #define V_PRINT_RECEIVE_COMMANDS
+*/
 
 #endif		/* VERSE_TYPES */
 

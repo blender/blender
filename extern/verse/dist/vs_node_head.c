@@ -64,7 +64,7 @@ void destroy_node_head(VSNodeHead *node)
 	}
 }
 
- void callback_send_tag_group_create(void *user, VNodeID node_id, uint16 group_id, char *name)
+ void callback_send_tag_group_create(void *user, VNodeID node_id, uint16 group_id, const char *name)
 {
 	VSNodeHead *node;
 	unsigned int count, i, j, element;
