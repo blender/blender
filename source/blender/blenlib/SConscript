@@ -13,6 +13,10 @@ defs = ''
 if env['WITH_BF_INTERNATIONAL'] == 1:
     defs = 'WITH_FREETYPE2'
 
+if env['WITH_BF_VERSE']:
+	defs += ' WITH_VERSE'
+	incs += ' ' + env['BF_VERSE_INCLUDE']
+
 if env['OURPLATFORM'] == 'linux2':
     cflags='-pthread'
 

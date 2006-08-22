@@ -205,9 +205,9 @@ if env['OURPLATFORM'] == 'linux2' :
         os.rmdir(root)
 
 if len(B.quickdebug) > 0 and printdebug != 0:
-	print B.bc.OKGREEN + "Buildings these libs with debug symbols:" + B.bc.ENDC
-	for l in B.quickdebug:
-		print "\t" + l
+    print B.bc.OKGREEN + "Buildings these libs with debug symbols:" + B.bc.ENDC
+    for l in B.quickdebug:
+        print "\t" + l
 
 # check target for blenderplayer. Set WITH_BF_PLAYER if found on cmdline
 if 'blenderplayer' in B.targets:
@@ -355,18 +355,18 @@ textinstall = env.Install(dir=env['BF_INSTALLDIR'], source=textlist)
 allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall]
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
-    dllsources = ['#../lib/windows/gettext/lib/gnu_gettext.dll',
-                        '#../lib/windows/png/lib/libpng.dll',
-                        '#../lib/windows/python/lib/python24.dll',
+    dllsources = ['${LCGDIR}/gettext/lib/gnu_gettext.dll',
+                        '${LCGDIR}/png/lib/libpng.dll',
+                        '${LCGDIR}/python/lib/python24.dll',
                         '#release/windows/extra/python24.zip',
                         '#release/windows/extra/zlib.pyd',
-                        '#../lib/windows/sdl/lib/SDL.dll',
-                        '#../lib/windows/zlib/lib/zlib.dll',
-                        '#../lib/windows/tiff/lib/libtiff.dll']
+                        '${LCGDIR}/sdl/lib/SDL.dll',
+                        '${LCGDIR}/zlib/lib/zlib.dll',
+                        '${LCGDIR}/tiff/lib/libtiff.dll']
     if env['OURPLATFORM'] == 'win32-mingw':
-        dllsources += ['#../lib/windows/pthreads/lib/pthreadGC2.dll']
+        dllsources += ['${LCGDIR}/pthreads/lib/pthreadGC2.dll']
     else:
-        dllsources += ['#../lib/windows/pthreads/lib/pthreadVC2.dll']
+        dllsources += ['${LCGDIR}/pthreads/lib/pthreadVC2.dll']
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
     allinstall += windlls
 

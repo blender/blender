@@ -10,4 +10,9 @@ incs += ' ../render/extern/include'
 
 incs += ' ' + env['BF_ZLIB_INC']
 
-env.BlenderLib ( 'bf_blenloader', sources, Split(incs), [], libtype=['core','player'], priority = [70, 30] )
+defs = ''
+if env['WITH_BF_VERSE']:
+	defs += ' WITH_VERSE'
+	incs += ' ' + env['BF_VERSE_INCLUDE']
+
+env.BlenderLib ( 'bf_blenloader', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [70, 30] )

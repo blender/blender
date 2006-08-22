@@ -41,12 +41,14 @@ def validate_arguments(args, bc):
             'CFLAGS', 'CCFLAGS', 'CPPFLAGS', 
             'REL_CFLAGS', 'REL_CCFLAGS',
             'C_WARN', 'CC_WARN', 'LLIBS', 'PLATFORM_LINKFLAGS',
-            'BF_PROFILE_FLAGS' ]
+            'BF_PROFILE_FLAGS', 'LCGDIR', 'WITH_BF_VERSE', 
+            'BF_VERSE', 'BF_VERSE_LIBPATH', 'BF_VERSE_INCLUDE', 'BF_VERSE_LIB',
+            'VERSE_BUILD_BINARY', 'VERSE_BUILD_DIR', 'VERSE_REGEN_PROTO']
+
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
             'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
             'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE', 'BF_DEBUG', 'BF_DEBUG_FLAGS',
-            'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', "BF_QUICKDEBUG", "BF_LISTDEBUG"
-           ]
+            'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', "BF_QUICKDEBUG", "BF_LISTDEBUG", 'LCGDIR']
 
     all_list = opts_list + arg_list
     okdict = {}
@@ -110,7 +112,18 @@ def SetupBufferedOutput( env ):
 def read_opts(cfg, args):
     localopts = Options.Options(cfg, args)
     localopts.AddOptions(
-        ('LCGDIR', 'The path to the CVS Lib folder, if you platform has it'),
+        ('VERSE_BUILD_BINARY', 'Build a release or debug binary.', 'release'),
+        ('VERSE_BUILD_DIR', 'Target directory for intermediate files.', "${BF_BUILDDIR}/extern/verse"),
+        ('VERSE_REGEN_PROTO', 'Whether to regenerate the protocol files', 'yes'),
+        (BoolOption('WITH_BF_VERSE', 'Use VERSE if true', 'false')),
+        ('BF_VERSE',  'verse dir', '/usr/lib'),
+        ('BF_VERSE_LIBPATH', 'verse lib dir',  '/usr/lib'),
+        ('BF_VERSE_INCLUDE', 'verse include dir', '/usr/include'),
+        ('BF_VERSE_LIB', 'verse libs', ''),
+        ('LCGDIR', 'location of cvs lib dir'),
+        ('VERSE_BUILD_BINARY', 'Build a release or debug binary.', 'release'),
+        ('VERSE_BUILD_DIR', 'Target directory for intermediate files.', "${BF_BUILDDIR}/extern/verse"),
+        ('VERSE_REGEN_PROTO', 'Whether to regenerate the protocol files', 'yes'),
         ('BF_DEBUG_LIBS', 'list of libraries to build with debug symbols'),
         ('BF_PYTHON', 'base path for python', ''),
         ('BF_PYTHON_VERSION', 'Python version to use', ''),
@@ -149,9 +162,11 @@ def read_opts(cfg, args):
         (BoolOption('WITH_BF_FFMPEG', 'Use FFMPEG if true', 'false')),
         ('BF_FFMPEG', 'FFMPEG base path', ''),
         ('BF_FFMPEG_LIB', 'FFMPEG library', ''),
+
         ('BF_FFMPEG_INC', 'FFMPEG includes', ''),
         ('BF_FFMPEG_LIBPATH', 'FFMPEG library path', ''),
         
+
         (BoolOption('WITH_BF_JPEG', 'Use JPEG if true', 'true')),
         ('BF_JPEG', 'JPEG base path', ''),
         ('BF_JPEG_INC', 'JPEG include path', ''),

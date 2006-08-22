@@ -1,4 +1,11 @@
 LCGDIR = '../lib/linux2'
+LIBDIR = "${LCGDIR}"
+
+BF_VERSE = "#extern/verse/dist"
+BF_VERSE_LIBPATH = "${BF_BUILDDIR}/extern/verse/dist"
+BF_VERSE_INCLUDE = BF_VERSE
+BF_VERSE_LIBS = "libverse"
+
 BF_PYTHON = '/usr'
 BF_PYTHON_VERSION = '2.4'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
@@ -17,7 +24,7 @@ BF_SDL_INC = '${BF_SDL}/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
 BF_SDL_LIB = 'SDL' #BF_SDL #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
 
 WITH_BF_FMOD = 'false'
-BF_FMOD = LCGDIR + '/fmod'
+BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = 'true'
 BF_OPENEXR = '/usr'
@@ -57,7 +64,7 @@ BF_FTGL_LIB = 'extern_ftgl'
 WITH_BF_GAMEENGINE='true'
 
 WITH_BF_ODE = 'false'
-BF_ODE = LCGDIR + '/ode'
+BF_ODE = LIBDIR + '/ode'
 BF_ODE_INC = BF_ODE + '/include'
 BF_ODE_LIB = BF_ODE + '/lib/libode.a'
 
@@ -71,14 +78,14 @@ BF_SOLID_INC = '${BF_SOLID}'
 BF_SOLID_LIB = 'extern_solid'
 
 #WITH_BF_NSPR = 'true'
-#BF_NSPR = $(LCGDIR)/nspr
+#BF_NSPR = $(LIBDIR)/nspr
 #BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
 #BF_NSPR_LIB = 
 
 # Uncomment the following line to use Mozilla inplace of netscape
 #CPPFLAGS += -DMOZ_NOT_NET
 # Location of MOZILLA/Netscape header files...
-#BF_MOZILLA = $(LCGDIR)/mozilla
+#BF_MOZILLA = $(LIBDIR)/mozilla
 #BF_MOZILLA_INC = -I$(BF_MOZILLA)/include/mozilla/nspr -I$(BF_MOZILLA)/include/mozilla -I$(BF_MOZILLA)/include/mozilla/xpcom -I$(BF_MOZILLA)/include/mozilla/idl
 #BF_MOZILLA_LIB =
 # Will fall back to look in BF_MOZILLA_INC/nspr and BF_MOZILLA_LIB

@@ -36,6 +36,10 @@ if env['WITH_BF_FFMPEG'] == 1:
     defs.append('WITH_FFMPEG')
     incs += ' ' + env['BF_FFMPEG_INC']
 
+if env['WITH_BF_VERSE']:
+	defs.append('WITH_VERSE')
+	incs += ' ' + env['BF_VERSE_INCLUDE']
+
 # TODO buildinfo
 if env['BF_BUILDINFO'] == 1:
     defs.append('NAN_BUILDINFO')

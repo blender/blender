@@ -1,5 +1,12 @@
 LCGDIR = '#../lib/windows'
-BF_PYTHON = LCGDIR + '/python'
+LIBDIR = '${LCGDIR}'
+
+BF_VERSE = "#extern/verse/dist"
+BF_VERSE_LIBPATH = "${BF_BUILDDIR}/extern/verse/dist"
+BF_VERSE_INCLUDE = BF_VERSE
+BF_VERSE_LIBS = "libverse"
+
+BF_PYTHON = LIBDIR + '/python'
 BF_PYTHON_VERSION = '2.4'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
@@ -7,74 +14,74 @@ BF_PYTHON_LIB = 'python24'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 
 WITH_BF_OPENAL = 'true'
-BF_OPENAL = LCGDIR + '/openal'
+BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include ${BF_OPENAL}/include/AL '
 BF_OPENAL_LIB = 'openal_static'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 
 WITH_BF_ICONV = 'true'
-BF_ICONV = LCGDIR + '/iconv'
+BF_ICONV = LIBDIR + '/iconv'
 BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 
 WITH_BF_SDL = 'true'
-BF_SDL = LCGDIR + '/sdl'
+BF_SDL = LIBDIR + '/sdl'
 BF_SDL_INC = '${BF_SDL}/include'
 BF_SDL_LIB = 'SDL.lib'
 BF_SDL_LIBPATH = '${BF_SDL}/lib'
 
-BF_PTHREADS = LCGDIR + '/pthreads'
+BF_PTHREADS = LIBDIR + '/pthreads'
 BF_PTHREADS_INC = '${BF_PTHREADS}/include'
 BF_PTHREADS_LIB = 'pthreadVC2'
 BF_PTHREADS_LIBPATH = '${BF_PTHREADS}/lib'
 
 WITH_BF_FMOD = 'false'
-BF_FMOD = LCGDIR + '/fmod'
+BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = 'true'
-BF_OPENEXR = LCGDIR + '/openexr'
+BF_OPENEXR = LIBDIR + '/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/IlmImf ${BF_OPENEXR}/include/Iex ${BF_OPENEXR}/include/Imath '
 BF_OPENEXR_LIB = ' Iex Half IlmImf Imath '
-BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
+BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib_msvc'
 
 WITH_BF_JPEG = 'true'
-BF_JPEG = LCGDIR + '/jpeg'
+BF_JPEG = LIBDIR + '/jpeg'
 BF_JPEG_INC = '${BF_JPEG}/include'
 BF_JPEG_LIB = 'libjpeg'
 BF_JPEG_LIBPATH = '${BF_JPEG}/lib'
 
 WITH_BF_PNG = 'true'
-BF_PNG = LCGDIR + '/png'
+BF_PNG = LIBDIR + '/png'
 BF_PNG_INC = '${BF_PNG}/include'
 BF_PNG_LIB = 'libpng_st'
 BF_PNG_LIBPATH = '${BF_PNG}/lib'
 
-BF_TIFF = LCGDIR + '/tiff'
+BF_TIFF = LIBDIR + '/tiff'
 BF_TIFF_INC = '${BF_TIFF}/include'
 
 WITH_BF_ZLIB = 'true'
-BF_ZLIB = LCGDIR + '/zlib'
+BF_ZLIB = LIBDIR + '/zlib'
 BF_ZLIB_INC = '${BF_ZLIB}/include'
 BF_ZLIB_LIB = 'libz'
 BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
 WITH_BF_INTERNATIONAL = 'true'
 
-BF_GETTEXT = LCGDIR + '/gettext'
+BF_GETTEXT = LIBDIR + '/gettext'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gnu_gettext'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_FTGL = 'true'
-BF_FTGL = LCGDIR + '/ftgl'
+BF_FTGL = LIBDIR + '/ftgl'
 BF_FTGL_INC = '${BF_FTGL}/include'
 BF_FTGL_LIB = 'extern_ftgl'
 
 WITH_BF_GAMEENGINE = 'true'
 
 WITH_BF_ODE = 'true'
-BF_ODE = LCGDIR + '/ode'
+BF_ODE = LIBDIR + '/ode'
 BF_ODE_INC = BF_ODE + '/include'
 BF_ODE_LIB = BF_ODE + '/lib/libode.a'
 
@@ -88,14 +95,14 @@ BF_SOLID_INC = '${BF_SOLID}'
 BF_SOLID_LIB = 'extern_solid'
 
 #WITH_BF_NSPR = 'true'
-#BF_NSPR = $(LCGDIR)/nspr
+#BF_NSPR = $(LIBDIR)/nspr
 #BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
 #BF_NSPR_LIB = 
 
 # Uncomment the following line to use Mozilla inplace of netscape
 #CPPFLAGS += -DMOZ_NOT_NET
 # Location of MOZILLA/Netscape header files...
-#BF_MOZILLA = $(LCGDIR)/mozilla
+#BF_MOZILLA = $(LIBDIR)/mozilla
 #BF_MOZILLA_INC = -I$(BF_MOZILLA)/include/mozilla/nspr -I$(BF_MOZILLA)/include/mozilla -I$(BF_MOZILLA)/include/mozilla/xpcom -I$(BF_MOZILLA)/include/mozilla/idl
 #BF_MOZILLA_LIB =
 # Will fall back to look in BF_MOZILLA_INC/nspr and BF_MOZILLA_LIB
@@ -105,13 +112,13 @@ BF_SOLID_LIB = 'extern_solid'
 #BF_PARANOID = 'true'
 
 # enable freetype2 support for text objects
-BF_FREETYPE = LCGDIR + '/freetype'
+BF_FREETYPE = LIBDIR + '/freetype'
 BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype2ST'
 BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
 WITH_BF_QUICKTIME = 'true' # -DWITH_QUICKTIME
-BF_QUICKTIME = LCGDIR + '/QTDevWin'
+BF_QUICKTIME = LIBDIR + '/QTDevWin'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/CIncludes'
 BF_QUICKTIME_LIB = 'qtmlClient'
 BF_QUICKTIME_LIBPATH = '${BF_QUICKTIME}/Libraries'

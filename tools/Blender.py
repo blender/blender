@@ -402,6 +402,7 @@ class BlenderEnvironment(SConsEnvironment):
         if  lenv['OURPLATFORM']=='darwin':
             lenv['BINARYKIND'] = binarykind
             lenv.AddPostAction(prog,Action(AppIt,strfunction=my_appit_print))
+        return prog
 
     def Glob(lenv, pattern):
         path = string.replace(GetBuildPath(lenv,'SConscript'),'SConscript', '')

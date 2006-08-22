@@ -485,8 +485,8 @@ void initTrans (TransInfo *t)
 void postTrans (TransInfo *t) 
 {
 	G.moving = 0; // Set moving flag off (display as usual)
-#ifdef WITH_VERSE
 	struct TransData *td;
+#ifdef WITH_VERSE
 
 	for (td = t->data; td < t->data + t->total; td++) {
 		if(td->flag & TD_VERSE_VERT) {

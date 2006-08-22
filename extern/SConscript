@@ -10,3 +10,6 @@ if env['WITH_BF_GAMEENGINE']:
 
 if env['WITH_BF_INTERNATIONAL']:
     SConscript(['bFTGL/SConscript'])
+
+if env['WITH_BF_VERSE']:
+    SConscript(['verse/dist/SConstruct'])
