@@ -6743,9 +6743,9 @@ static PyObject *Mesh_getUsers( BPy_Mesh * self )
 static PyObject *Mesh_getFakeUser( BPy_Mesh * self )
 {
 	if (self->mesh->id.flag & LIB_FAKEUSER)
-		EXPP_incr_ret_True();
+		Py_RETURN_TRUE;
 	else
-		EXPP_incr_ret_False();
+		Py_RETURN_FALSE;
 }
 
 static int Mesh_setFakeUser( BPy_Mesh * self, PyObject * value )
