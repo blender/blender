@@ -484,8 +484,9 @@ void initTrans (TransInfo *t)
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
 void postTrans (TransInfo *t) 
 {
+	TransData *td;
+
 	G.moving = 0; // Set moving flag off (display as usual)
-	struct TransData *td;
 #ifdef WITH_VERSE
 
 	for (td = t->data; td < t->data + t->total; td++) {
@@ -509,7 +510,6 @@ void postTrans (TransInfo *t)
 	
 	/* postTrans can be called when nothing is selected, so data is NULL already */
 	if (t->data) {
-		TransData *td;
 		int a;
 
 		/* since ipokeys are optional on objects, we mallocced them per trans-data */
