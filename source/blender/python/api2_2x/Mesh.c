@@ -4594,7 +4594,8 @@ static PyObject *MFaceSeq_nextIter( BPy_MFaceSeq * self )
  *
  ************************************************************************/
 
-static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
+static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
+	  PyObject *keywds )
 {
 	/*
 	 * (a) check input for valid edge objects, faces which consist of
@@ -4615,14 +4616,26 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	PyObject *tmp;
 	MFace *tmpface;
 	Mesh *mesh = self->mesh;
+	int ignore_dups = 0;
+	PyObject *return_list = NULL;
 
 	/* before we try to add faces, add edges; if it fails; exit */
 
 	tmp = MEdgeSeq_extend( self, args );
 	if( !tmp )
 		return NULL;
-
 	Py_DECREF( tmp );
+
+	/* process any keyword arguments */
+	if( keywds ) {
+		PyObject *res = PyDict_GetItemString( keywds, "ignoreDups" );
+		if( res )
+			ignore_dups = PyObject_IsTrue( res );
+
+		res = PyDict_GetItemString( keywds, "indexList" );
+		if( res && PyObject_IsTrue( res ) )
+			return_list = PyList_New( 0 );
+	}
 
 	/* make sure we get a tuple of sequences of something */
 
@@ -4775,9 +4788,6 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		++tmppair;
 	}
 
-	/* sort the new face pairs */
-	qsort( newpair, new_face_count, sizeof(SrchFaces), mface_comp );
-
 	/*
 	 * find duplicates in the new list and mark.  if it's a duplicate,
 	 * then mark by setting second vert index to 0 (a real edge won't have
@@ -4788,18 +4798,24 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 
 	tmppair = newpair;	/* "last good edge" */
 	tmppair2 = &tmppair[1];	/* "current candidate edge" */
-	for( i = 0; i < new_face_count; ++i ) {
-		if( mface_comp( tmppair, tmppair2 ) )
-			tmppair = tmppair2;	/* last != current, so current == last */
-		else {
-			tmppair2->v[1] = 0; /* last == current, so mark as duplicate */
-			--good_faces;		/* one less good face */
+	if( !ignore_dups ) {
+
+	/* sort the new face pairs */
+		qsort( newpair, new_face_count, sizeof(SrchFaces), mface_comp );
+
+		for( i = 0; i < new_face_count; ++i ) {
+			if( mface_comp( tmppair, tmppair2 ) )
+				tmppair = tmppair2;	/* last != current, so current == last */
+			else {
+				tmppair2->v[1] = 0; /* last == current, so mark as duplicate */
+				--good_faces;		/* one less good face */
+			}
+			tmppair2++;
 		}
-		tmppair2++;
 	}
 
 	/* if mesh has faces, see if any of the new faces are already in it */
-	if( mesh->totface ) {
+	if( mesh->totface && !ignore_dups ) {
 		oldpair = (SrchFaces *)MEM_callocN( sizeof(SrchFaces)*mesh->totface,
 				"MFacePairs" );
 
@@ -4837,8 +4853,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 
 	/* eliminate new faces already in the mesh */
 		tmppair = newpair;
-		i = good_faces;
-		while( i ) {
+		for( i = good_faces; i ; ) {
 			if( tmppair->v[1] ) {
 				if( bsearch( tmppair, oldpair, mesh->totface, 
 						sizeof(SrchFaces), mface_comp ) ) {
@@ -4853,7 +4868,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	}
 
 	/* if any new faces are left, add to list */
-	if( good_faces ) {
+	if( good_faces || return_list ) {
 		int totface = mesh->totface+good_faces;	/* new face count */
 
 	/* if mesh has tfaces, reallocate them first */
@@ -4882,7 +4897,9 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		}
 
 	/* sort the faces back into their original input list order */
-		qsort( newpair, new_face_count, sizeof(SrchFaces), mface_index_comp );
+		if( !ignore_dups )
+			qsort( newpair, new_face_count, sizeof(SrchFaces),
+					mface_index_comp );
 
 	/* allocate new face list */
 		tmpface = MEM_callocN(totface*sizeof(MFace), "Mesh_addFaces");
@@ -4898,6 +4915,9 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		tmpface = &mesh->mface[mesh->totface];
 		tmppair = newpair;
 
+		if( return_list )
+			good_faces = new_face_count;	/* assume all faces good to start */
+			
 	/* as we find a good face, add it */
 		while ( good_faces ) {
 			if( tmppair->v[1] ) {
@@ -4918,8 +4938,17 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 				tmpface->v4 = tmppair->v[index[3]];
 
 				tmpface->flag = 0;
+
+				if( return_list )
+					PyList_Append( return_list, 
+							PyInt_FromLong( mesh->totface ) );
+
 				mesh->totface++;
 				++tmpface;
+				--good_faces;
+			} else if( return_list ) {
+				Py_INCREF( Py_None );
+				PyList_Append( return_list, Py_None );
 				--good_faces;
 			}
 			tmppair++;
@@ -4930,7 +4959,11 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	mesh_update( mesh );
 	Py_DECREF ( args );
 	MEM_freeN( newpair );
-	Py_RETURN_NONE;
+
+	if( return_list )
+		return return_list;
+	else
+		Py_RETURN_NONE;
 }
 
 struct fourEdges
@@ -5177,7 +5210,7 @@ static PyObject *MFaceSeq_selected( BPy_MFaceSeq * self )
 }
 
 static struct PyMethodDef BPy_MFaceSeq_methods[] = {
-	{"extend", (PyCFunction)MFaceSeq_extend, METH_VARARGS,
+	{"extend", (PyCFunction)MFaceSeq_extend, METH_VARARGS|METH_KEYWORDS,
 		"add faces to mesh"},
 	{"delete", (PyCFunction)MFaceSeq_delete, METH_VARARGS,
 		"delete faces from mesh"},

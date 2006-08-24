@@ -17,32 +17,32 @@ face's attributes (the vertex color):
 
 Example::
 
-  from Blender import *
+ from Blender import *
 
-  editmode = Window.EditMode()    # are we in edit mode?  If so ...
-  if editmode: Window.EditMode(0) # leave edit mode before getting the mesh
+ editmode = Window.EditMode()    # are we in edit mode?  If so ...
+ if editmode: Window.EditMode(0) # leave edit mode before getting the mesh
 
-  # define vertices and faces for a pyramid
-  coords=[ [-1,-1,-1], [1,-1,-1], [1,1,-1], [-1,1,-1], [0,0,1] ]	
-  faces= [ [3,2,1,0], [0,1,4], [1,2,4], [2,3,4], [3,0,4] ]
+ # define vertices and faces for a pyramid
+ coords=[ [-1,-1,-1], [1,-1,-1], [1,1,-1], [-1,1,-1], [0,0,1] ]	
+ faces= [ [3,2,1,0], [0,1,4], [1,2,4], [2,3,4], [3,0,4] ]
 
-  me = Mesh.New('myMesh')          # create a new mesh
+ me = Mesh.New('myMesh')          # create a new mesh
 
-  me.verts.extend(coords)          # add vertices to mesh
-  me.faces.extend(faces)           # add faces to the mesh (also adds edges)
+ me.verts.extend(coords)          # add vertices to mesh
+ me.faces.extend(faces)           # add faces to the mesh (also adds edges)
 
-  me.vertexColors = 1              # enable vertex colors 
-  me.faces[1].col[0].r = 255       # make each vertex a different color
-  me.faces[1].col[1].g = 255
-  me.faces[1].col[2].b = 255
+ me.vertexColors = 1              # enable vertex colors 
+ me.faces[1].col[0].r = 255       # make each vertex a different color
+ me.faces[1].col[1].g = 255
+ me.faces[1].col[2].b = 255
 
-  ob = Object.New('Mesh','myObj')  # link mesh to an object
-  ob.link(me)
+ ob = Object.New('Mesh','myObj')  # link mesh to an object
+ ob.link(me)
 
-  sc = Scene.GetCurrent()          # link object to current scene
-  sc.link(ob)
+ sc = Scene.GetCurrent()          # link object to current scene
+ sc.link(ob)
 
-  if editmode: Window.EditMode(1)  # optional, just being nice
+ if editmode: Window.EditMode(1)  # optional, just being nice
 
 Vertices, edges and faces are added to a mesh using the .extend() methods.
 For best speed and efficiency, gather all vertices, edges or faces into a
@@ -613,7 +613,7 @@ class MFaceSeq:
     This object provides sequence and iterator access to the mesh's faces.
   """
 
-  def extend(vertseq):
+  def extend(vertseq,ignoreDups=True,indexList=True):
     """
     Add zero or more faces and edges to the mesh.  Faces which already exist
     in the mesh, or faces which contain the same vertex multiple times are
@@ -634,6 +634,16 @@ class MFaceSeq:
     @type vertseq: sequence(s) of MVerts
     @param vertseq: either two to four ints or MVerts, or sequence (list or
     tuple) of sequences each containing two to four ints or MVerts.
+    @type ignoreDups: boolean
+    @param ignoreDups: keyword parameter (default is False).  If supplied and
+    True, do not check the input list or mesh for duplicate faces.  This can
+    speed up scripts but can prossibly produce undesirable effects.  Only
+    use if you know what you're doing.
+    @type indexList: boolean
+    @param indexList: keyword parameter (default is False).  If supplied and
+    True, the method will return a list representing the new index for each
+    face in the input list.  If faces are removed as duplicates, None is
+    inserted in place of the index.
     """
 
   def delete(deledges, faces):
