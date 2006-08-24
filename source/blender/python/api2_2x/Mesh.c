@@ -4837,13 +4837,15 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 
 	/* eliminate new faces already in the mesh */
 		tmppair = newpair;
-		for( i = good_faces; i-- ; ) {
+		i = good_faces;
+		while( i ) {
 			if( tmppair->v[1] ) {
 				if( bsearch( tmppair, oldpair, mesh->totface, 
 						sizeof(SrchFaces), mface_comp ) ) {
 					tmppair->v[1] = 0;	/* mark as duplicate */
 					--good_faces;
-				} 
+				}
+				--i;
 			}
 			tmppair++;
 		}
