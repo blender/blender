@@ -8,7 +8,7 @@ Tooltip: 'Import from 3DS file format (.3ds)'
 
 __author__= ['Bob Holcomb', 'Richard L?rk?ng', 'Damien McGinnes', 'Campbell Barton']
 __url__= ('blender', 'elysiun', 'http://www.gametutorials.com')
-__version__= '0.96'
+__version__= '0.98'
 __bpydoc__= '''\
 
 3ds Importer
@@ -17,6 +17,10 @@ This script imports a 3ds file and the materials into Blender for editing.
 
 Loader is based on 3ds loader from www.gametutorials.com (Thanks DigiBen).
 
+
+0.98 by Campbell Barton<br>
+- import faces and verts to lists instead of a mesh, convert to a mesh later
+- use new index mapping feature of mesh to re-map faces that were not added.
 
 0.97 by Campbell Barton<br>
 - Strip material names of spaces
@@ -296,7 +300,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 	contextObName= None
 	contextLamp= [None, None] # object, Data
 	contextMaterial= None
-	contextMatrix= Blender.Mathutils.Matrix(); contextMatrix.identity()
+	# contextMatrix= Blender.Mathutils.Matrix(); contextMatrix.identity()
 	contextMesh_vertls= None
 	contextMesh_facels= None
 	contextMeshMaterials= {} # matname:[face_idxs]
@@ -317,17 +321,8 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 	def putContextMesh(myContextMesh_vertls, myContextMesh_facels, myContextMeshMaterials):
 		####contextMesh.transform(contextMatrix.copy().invert())
 		
-		# Copy UV's to mesh
-		"""
-		if contextMeshUV:
-			myContextMesh.faceUV= 1
-			for f in myContextMesh.faces:
-				# v.index-1 because of the DUMMYVERT
-				f.uv= [contextMeshUV[v.index-1] for v in f]
-		"""
+		materialFaces= set() # faces that have a material. Can optimize?
 		
-		materialFaces= set() # faces that have a material. Can optimize
-		allFaces= set(range(len( myContextMesh_facels )))
 		# Now make copies with assigned materils.
 		
 		def makeMeshMaterialCopy(matName, faces):			
@@ -357,25 +352,19 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			##bmesh = Mesh.New(contextMesh.name)
 			bmesh = Mesh.New()
 			
-			if matName != None:
-				bmat = MATDICT[matName][1]
-				try:
-					img= TEXTURE_DICT[bmat.name]
-				except:
-					img= None
-				bmesh.materials= [bmat]
-			else:
+			if matName == None:
 				img= None
+			else:
+				bmat = MATDICT[matName][1]
+				bmesh.materials= [bmat]
+				try:	img= TEXTURE_DICT[bmat.name]
+				except:	img= None
+				
 			
 			bmesh.verts.extend( [Vector()] )
 			bmesh.verts.extend( [myContextMesh_vertls[i] for i in vertsToUse] )
 			# +1 because of DUMMYVERT
-			###bmesh.faces.extend( [ [ bmesh.verts[ myVertMapping[v.index]+1] for v in myContextMesh.faces[fIdx].v] for fIdx in faces ] )
 			face_mapping= bmesh.faces.extend( [ [ bmesh.verts[ myVertMapping[vindex]+1] for vindex in myContextMesh_facels[fIdx]] for fIdx in faces ], indexList=True )
-			print len(face_mapping), len(faces)
-			
-			if len(face_mapping) == len(faces):
-				print face_mapping
 			
 			if contextMeshUV or img:
 				bmesh.faceUV= 1
@@ -393,7 +382,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 						if img:
 							targetFace.image= img
 			
-			tempName= contextObName + '_' + str(matName) # str because we may be None
+			tempName= '%s_%s' % (contextObName, matName) # matName may be None.
 			bmesh.name= tempName
 			ob = Object.New('Mesh', tempName)
 			ob.link(bmesh)
@@ -406,9 +395,8 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			
 		if len(materialFaces)!=len(myContextMesh_facels):
 			# Invert material faces.
-			makeMeshMaterialCopy(None, allFaces - materialFaces)
+			makeMeshMaterialCopy(None, set(range(len( myContextMesh_facels ))) - materialFaces)
 			#raise 'Some UnMaterialed faces', len(contextMesh.faces)
-		
 	
 	#a spare chunk
 	new_chunk= chunk()
@@ -428,7 +416,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			#read in the version of the file
 			#it's an unsigned short (H)
 			temp_data= file.read(calcsize('I'))
-			version,= unpack('<I', temp_data)
+			version = unpack('<I', temp_data)[0]
 			new_chunk.bytes_read+= 4 #read the 4 bytes for the version number
 			#this loader works with version 3 and below, but may not with 4 and above
 			if (version>3):
@@ -598,7 +586,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			contextLamp[0].setLocation(x,y,z)
 			
 			# Reset matrix
-			contextMatrix= Mathutils.Matrix(); contextMatrix.identity()	
+			####contextMatrix= Mathutils.Matrix(); contextMatrix.identity()	
 			#print contextLamp.name, 
 			
 			
@@ -607,14 +595,13 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			if contextMesh_facels != None: # Write context mesh if we have one.
 				putContextMesh(contextMesh_vertls, contextMesh_facels, contextMeshMaterials)
 			
-			#contextMesh= Mesh.New()
-			contextMesh_vertls= []
-			contextMesh_facels= []
+			contextMesh_vertls= []; contextMesh_facels= []
+			
 			contextMeshMaterials= {} # matname:[face_idxs]
 			contextMeshUV= None
 			#contextMesh.vertexUV= 1 # Make sticky coords.
 			# Reset matrix
-			contextMatrix= Blender.Mathutils.Matrix(); contextMatrix.identity()
+			####contextMatrix= Blender.Mathutils.Matrix(); contextMatrix.identity()
 		
 		elif (new_chunk.ID==OBJECT_VERTICES):
 			'''
@@ -622,25 +609,12 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			'''
 			# print 'elif (new_chunk.ID==OBJECT_VERTICES):'
 			temp_data=file.read(STRUCT_SIZE_UNSIGNED_SHORT)
-			num_verts,=unpack('<H', temp_data)
+			num_verts=unpack('<H', temp_data)[0]
 			new_chunk.bytes_read+=2
 			
 			# print 'number of verts: ', num_verts
 			def getvert():
 				temp_data= unpack('<3f', file.read(STRUCT_SIZE_3FLOAT))
-				
-				# Set the bounds if user selected
-				if BOUNDS_3DS:
-					# xmin, ymin,zmin, xmax,ymax, zmax
-					if temp_data[0] < BOUNDS_3DS[0]: BOUNDS_3DS[0]= temp_data[0]
-					if temp_data[1] < BOUNDS_3DS[1]: BOUNDS_3DS[1]= temp_data[1]
-					if temp_data[2] < BOUNDS_3DS[2]: BOUNDS_3DS[2]= temp_data[2]
-					
-					if temp_data[0] > BOUNDS_3DS[3]: BOUNDS_3DS[3]= temp_data[0]
-					if temp_data[1] > BOUNDS_3DS[4]: BOUNDS_3DS[4]= temp_data[1]
-					if temp_data[2] > BOUNDS_3DS[5]: BOUNDS_3DS[5]= temp_data[2]
-					
-				
 				new_chunk.bytes_read += STRUCT_SIZE_3FLOAT #12: 3 floats x 4 bytes each
 				return temp_data
 			
@@ -652,7 +626,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 		elif (new_chunk.ID==OBJECT_FACES):
 			# print 'elif (new_chunk.ID==OBJECT_FACES):'
 			temp_data= file.read(STRUCT_SIZE_UNSIGNED_SHORT)
-			num_faces,= unpack('<H', temp_data)
+			num_faces= unpack('<H', temp_data)[0]
 			new_chunk.bytes_read+= 2
 			#print 'number of faces: ', num_faces
 			
@@ -661,9 +635,6 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 				temp_data= file.read(STRUCT_SIZE_4UNSIGNED_SHORT)
 				new_chunk.bytes_read+= STRUCT_SIZE_4UNSIGNED_SHORT #4 short ints x 2 bytes each
 				v1,v2,v3,dummy= unpack('<4H', temp_data)
-				##if v1==v2 or v1==v3 or v2==v3:
-				##	return None
-				# DUMMYVERT! - remove +1 when blenders internals are fixed,
 				return v1, v2, v3
 			
 			contextMesh_facels= [ getface() for i in xrange(num_faces) ]
@@ -674,35 +645,22 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			material_name= read_string(file)
 			new_chunk.bytes_read += len(material_name)+1 # remove 1 null character.
 			
-			tempMatFaceIndexList = contextMeshMaterials[material_name]= set()
-			
 			temp_data=file.read(STRUCT_SIZE_UNSIGNED_SHORT)
-			num_faces_using_mat,= unpack('<H', temp_data)
+			num_faces_using_mat = unpack('<H', temp_data)[0]
 			new_chunk.bytes_read += STRUCT_SIZE_UNSIGNED_SHORT
 			
-			#list of faces using mat
-			for face_counter in xrange(num_faces_using_mat):
+			def getmat():
 				temp_data= file.read(STRUCT_SIZE_UNSIGNED_SHORT)
 				new_chunk.bytes_read+= STRUCT_SIZE_UNSIGNED_SHORT
-				faceIndex,= unpack('<H', temp_data)
-				
-				# We dont have to use context face mapping.
-				#if contextFaceMapping:
-				#	meshFaceIndex= contextFaceMapping[faceIndex]
-				#else:
-				meshFaceIndex= faceIndex
-				
-				if meshFaceIndex != None:
-					tempMatFaceIndexList.add(meshFaceIndex)
+				return unpack('<H', temp_data)[0]
 			
-			####tempMatFaceIndexList.sort()
-			del tempMatFaceIndexList
+			contextMeshMaterials[material_name]= [ getmat() for i in xrange(num_faces_using_mat) ]
+			
 			#look up the material in all the materials
 
 		elif (new_chunk.ID==OBJECT_UV):
-			# print 'elif (new_chunk.ID==OBJECT_UV):'
 			temp_data=file.read(STRUCT_SIZE_UNSIGNED_SHORT)
-			num_uv,=unpack('<H', temp_data)
+			num_uv=unpack('<H', temp_data)[0]
 			new_chunk.bytes_read+= 2
 			
 			def getuv():
@@ -713,19 +671,18 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			contextMeshUV= [ getuv() for i in xrange(num_uv) ]
 		
 		elif (new_chunk.ID== OBJECT_TRANS_MATRIX):
-			# print 'elif (new_chunk.ID== OBJECT_TRANS_MATRIX):'
 			temp_data=file.read(STRUCT_SIZE_4x3MAT)
 			data= list( unpack('<ffffffffffff', temp_data) )
 			new_chunk.bytes_read += STRUCT_SIZE_4x3MAT 
 			
-			contextMatrix= Blender.Mathutils.Matrix(\
+			"""contextMatrix= Blender.Mathutils.Matrix(\
 			 data[:3] + [0],\
 			 data[3:6] + [0],\
 			 data[6:9] + [0],\
 			 data[9:] + [1])
+			"""
 		
 		elif  (new_chunk.ID==MAT_MAP_FILENAME):
-			raise 'Hello--'
 			texture_name=read_string(file)
 			try:
 				TEXTURE_DICT[contextMaterial.name]
@@ -835,9 +792,21 @@ def load_3ds(filename, PREF_UI= True):
 			ob.sel= 1
 	
 	if IMPORT_CONSTRAIN_BOUNDS!=0.0:
+		# Set bounds from objecyt bounding box
+		for ob in importedObjects:
+			if ob.type=='Mesh':
+				ob.makeDisplayList() # Why dosnt this update the bounds?
+				for v in ob.getBoundBox():
+					for i in (0,1,2):
+						if v[i] < BOUNDS_3DS[i]:
+							BOUNDS_3DS[i]= v[i] # min
+						
+						if v[i] > BOUNDS_3DS[i+3]:
+							BOUNDS_3DS[i+3]= v[i] # min
+		
 		# Get the max axis x/y/z
 		max_axis= max(BOUNDS_3DS[3]-BOUNDS_3DS[0], BOUNDS_3DS[4]-BOUNDS_3DS[1], BOUNDS_3DS[5]-BOUNDS_3DS[2])
-		
+		print max_axis
 		if max_axis < 1<<30: # Should never be false but just make sure.
 			
 			# Get a new scale factor if set as an option
@@ -882,7 +851,7 @@ else:
 		return False
 		
 	for i, _3ds in enumerate(lines):
-		if between(i, 1, 40):
+		if between(i, 1,200):
 			_3ds= _3ds[:-1]
 			print 'Importing', _3ds, '\nNUMBER', i, 'of', len(lines)
 			_3ds_file= _3ds.split('/')[-1].split('\\')[-1]
