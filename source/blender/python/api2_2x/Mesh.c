@@ -4702,8 +4702,8 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 	for( i = 0; i < len; ++i ) {
 		tmp = PySequence_ITEM( args, i );
 		nverts = PySequence_Size( tmp );
-		if( nverts != 2 )		/* new faces cannot have only 2 verts */
-			++new_face_count;
+		if( return_list || nverts != 2 )		
+			++new_face_count; /* new faces must have 3 or 4 verts */
 		Py_DECREF( tmp );
 	}
 
@@ -4723,6 +4723,8 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 		nverts = PySequence_Size( tmp );
 
 		if( nverts == 2 ) {	/* again, ignore 2-vert tuples */
+			if( return_list )	/* if returning indices, mark as deleted */
+				tmppair->v[1] = 0;
 			Py_DECREF( tmp );
 			continue;
 		}
@@ -4777,9 +4779,13 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 				break;
 			tmppair->v[j] = vert[j];
 		}
-		if( j >= 0 ) {
-			--new_face_count;
-			continue;
+		if( j >= 0 ) {				/* a duplicate vertex found */
+			if( return_list ) {		/* if returning index list */
+				tmppair->v[1] = 0;	/*    mark as deleted */
+			} else {
+				--new_face_count;	/* otherwise skip */
+				continue;
+			}
 		}
 		tmppair->index = i;
 
