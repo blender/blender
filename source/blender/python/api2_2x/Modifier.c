@@ -20,9 +20,6 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
  * This is a new part of Blender.
  *
  * Contributor(s): Ken Hughes, Campbell Barton
@@ -718,6 +715,23 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 				"This modifier has been removed!" );
 	
 	key_int = PyInt_AsLong( key );
+	
+	/* Chach for standard modifier settings */
+	switch( key_int ) {
+	case EXPP_MOD_RENDER:
+		return EXPP_setBitfield( arg, &self->md->mode,
+				eModifierMode_Render, 'h' );
+	case EXPP_MOD_REALTIME:
+		return EXPP_setBitfield( arg, &self->md->mode,
+				eModifierMode_Realtime, 'h' );
+	case EXPP_MOD_EDITMODE:
+		return EXPP_setBitfield( arg, &self->md->mode,
+				eModifierMode_Editmode, 'h' );
+	case EXPP_MOD_ONCAGE:
+		return EXPP_setBitfield( arg, &self->md->mode,
+				eModifierMode_OnCage, 'h' );
+	}
+	
 	switch( self->md->type ) {
     	case eModifierType_Subsurf:
 			return subsurf_setter( self, key_int, arg );
