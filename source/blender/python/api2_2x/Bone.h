@@ -34,13 +34,13 @@
 #include <Python.h>
 #include "DNA_armature_types.h"
 
-//-------------------TYPE CHECKS---------------------------------
+/*-------------------TYPE CHECKS---------------------------------*/
 #define BoneObject_Check(v) ((v)->ob_type == &Bone_Type)
 #define EditBoneObject_Check(v) ((v)->ob_type == &EditBone_Type)
-//-------------------TYPEOBJECT----------------------------------
+/*-------------------TYPEOBJECT----------------------------------*/
 extern PyTypeObject EditBone_Type;
 extern PyTypeObject Bone_Type;
-//-------------------STRUCT DEFINITION----------------------------
+/*-------------------STRUCT DEFINITION----------------------------*/
 
 typedef struct {
 	PyObject_HEAD
@@ -66,7 +66,7 @@ typedef struct {
 	float rad_tail;
 	short segments;
 } BPy_EditBone;
-//-------------------VISIBLE PROTOTYPES-------------------------
+/*-------------------VISIBLE PROTOTYPES-------------------------*/
 PyObject *PyBone_FromBone(struct Bone *bone);
 struct Bone *PyBone_AsBone(BPy_Bone *py_Bone);
 PyObject *PyEditBone_FromBone(Bone *bone);

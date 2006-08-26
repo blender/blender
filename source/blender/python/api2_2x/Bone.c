@@ -639,6 +639,76 @@ static int EditBone_setLength(BPy_EditBone *self, PyObject *value, void *closure
 	printf("Sorry this isn't implemented yet.... :/");
 	return 1;
 }
+
+
+//------------------------Bone.headRadius (get)
+static PyObject *EditBone_getHeadRadius(BPy_EditBone *self, void *closure)
+{
+	if (self->editbone)
+		if (self->editbone->parent && self->editbone->flag & BONE_CONNECTED)
+			return PyFloat_FromDouble(self->editbone->parent->rad_tail);
+		else
+			return PyFloat_FromDouble(self->editbone->rad_head);
+	else
+		if (self->parent && self->flag & BONE_CONNECTED)
+			return PyFloat_FromDouble(self->parent->rad_tail);
+		else
+			return PyFloat_FromDouble(self->rad_head);
+}
+//------------------------Bone.headRadius (set)
+static int EditBone_setHeadRadius(BPy_EditBone *self, PyObject *value, void *closure)
+{  
+	float radius;
+	if (!PyArg_Parse(value, "f", &radius))
+		goto AttributeError;
+	CLAMP(radius, 0.0f, 10000.0f);
+
+	if (self->editbone)
+		if (self->editbone->parent && self->editbone->flag & BONE_CONNECTED)
+			self->editbone->parent->rad_tail= radius;
+		else
+			self->editbone->rad_head= radius;
+	else
+		if (self->parent && self->flag & BONE_CONNECTED)
+			self->parent->rad_tail= radius;
+		else
+			self->rad_head= radius;
+	return 0;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
+		sEditBoneError, ".headRadius: ", "expects a float");
+}
+
+
+//------------------------Bone.tailRadius (get)
+static PyObject *EditBone_getTailRadius(BPy_EditBone *self, void *closure)
+{
+	if (self->editbone)
+		return PyFloat_FromDouble(self->editbone->rad_tail);
+	else
+		return PyFloat_FromDouble(self->rad_tail);
+}
+//------------------------Bone.tailRadius (set)
+static int EditBone_setTailRadius(BPy_EditBone *self, PyObject *value, void *closure)
+{  
+	float radius;
+	if (!PyArg_Parse(value, "f", &radius))
+		goto AttributeError;
+	CLAMP(radius, 0.0f, 10000.0f);
+
+	if (self->editbone)
+		self->editbone->rad_tail = radius;
+	else
+		self->rad_tail = radius;
+	return 0;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
+		sEditBoneError, ".tailRadius: ", "expects a float");
+}
+
+
 //------------------TYPE_OBECT IMPLEMENTATION--------------------------
 //------------------------tp_methods
 //This contains a list of all methods the object contains
@@ -674,6 +744,10 @@ static PyGetSetDef BPy_EditBone_getset[] = {
 		"The parent bone of this bone", NULL},
 	{"length", (getter)EditBone_getLength, (setter)EditBone_setLength, 
 		"The length of this bone", NULL},
+	{"tailRadius", (getter)EditBone_getTailRadius, (setter)EditBone_setTailRadius, 
+		"Set the radius of this bones tip", NULL},
+	{"headRadius", (getter)EditBone_getHeadRadius, (setter)EditBone_setHeadRadius, 
+		"Set the radius of this bones head", NULL},
 	{NULL, NULL, NULL, NULL,NULL}
 };
 
@@ -1056,6 +1130,56 @@ static int Bone_setLength(BPy_Bone *self, PyObject *value, void *closure)
   return EXPP_intError(PyExc_ValueError, "%s%s", 
 		sBoneError, "You must first call .makeEditable() to edit the armature");
 }
+
+//------------------------Bone.headRadius (get)
+static PyObject *Bone_getHeadRadius(BPy_Bone *self, void *closure)
+{
+
+	if (self->bone->parent && self->bone->flag & BONE_CONNECTED)
+		return PyFloat_FromDouble(self->bone->parent->rad_tail);
+	else
+		return PyFloat_FromDouble(self->bone->rad_head);
+}
+//------------------------Bone.headRadius (set)
+static int Bone_setHeadRadius(BPy_Bone *self, PyObject *value, void *closure)
+{  
+	float radius;
+	if (!PyArg_Parse(value, "f", &radius))
+		goto AttributeError;
+	CLAMP(radius, 0.0f, 10000.0f);
+
+	if (self->bone->parent && self->bone->flag & BONE_CONNECTED)
+		self->bone->parent->rad_tail= radius;
+	else
+		self->bone->rad_head= radius;
+	return 0;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
+		sEditBoneError, ".headRadius: ", "expects a float");
+}
+
+//------------------------Bone.tailRadius (get)
+static PyObject *Bone_getTailRadius(BPy_Bone *self, void *closure)
+{
+	return PyFloat_FromDouble(self->bone->rad_tail);
+}
+
+//------------------------Bone.headRadius (set)
+static int Bone_setTailRadius(BPy_Bone *self, PyObject *value, void *closure)
+{  
+	float radius;
+	if (!PyArg_Parse(value, "f", &radius))
+		goto AttributeError;
+	CLAMP(radius, 0.0f, 10000.0f);
+	self->bone->rad_tail= radius;
+	return 0;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
+		sEditBoneError, ".headRadius: ", "expects a float");
+}
+
 //------------------TYPE_OBECT IMPLEMENTATION--------------------------
 //------------------------tp_methods
 //This contains a list of all methods the object contains
@@ -1095,6 +1219,10 @@ static PyGetSetDef BPy_Bone_getset[] = {
 		"The child bones of this bone", NULL},
 	{"length", (getter)Bone_getLength, (setter)Bone_setLength, 
 		"The length of this bone", NULL},
+	{"tailRadius", (getter)Bone_getTailRadius, (setter)Bone_setTailRadius, 
+		"Set the radius of this bones tip", NULL},
+	{"headRadius", (getter)Bone_getHeadRadius, (setter)Bone_setHeadRadius, 
+		"Set the radius of this bones head", NULL},
 	{NULL, NULL, NULL, NULL,NULL}
 };
 //------------------------tp_repr

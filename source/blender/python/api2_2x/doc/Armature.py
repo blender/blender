@@ -277,6 +277,10 @@ class Bone:
   @type deformDist: Float
   @ivar length: The length of the bone. This cannot be set.
   @type length: Float
+  @ivar headRadius: The radius of this bones head (used for envalope bones)
+  @type headRadius: Float
+  @ivar tailRadius: The radius of this bones head (used for envalope bones)
+  @type tailRadius: Float
   """
 
   def hasParent():
@@ -334,6 +338,10 @@ class Editbone:
   @type deformDist: Float
   @ivar length: The length of the bone. This cannot be set.
   @type length: Float
+  @ivar headRadius: The radius of this bones head (used for envalope bones)
+  @type headRadius: Float
+  @ivar tailRadius: The radius of this bones head (used for envalope bones)
+  @type tailRadius: Float
   """
 
   def hasParent():
