@@ -15,6 +15,77 @@ Example::
  ob.link(mb)
  sc = Blender.Scene.getCurrent()
  sc.link(ob)
+
+from Blender import *
+
+Example::
+    # Converts the active armature into metaballs
+    def main():
+
+            scn= Scene.GetCurrent()
+            ob_arm= scn.getActiveObject()
+            if not ob_arm or ob_arm.type!='Armature':
+                    Draw.PupMenu('No Armature Selected')
+                    return
+            arm= ob_arm.data
+
+            res= Draw.PupFloatInput('res:', 0.2, 0.05, 2.0)
+            if not res:
+                    return
+
+            # Make a metaball
+            ob_mb= Object.New('Mball')
+            mb= Metaball.New()
+            mb.setWiresize(res)
+            
+            # Link to the Scene
+            ob_mb.link(mb)
+            scn.link(ob_mb)
+            ob_mb.sel=1
+            ob_arm.sel= 0
+            ob_mb.setMatrix(ob_arm.matrixWorld)
+
+
+            meta_type= 0 # all elemts are ball type
+            meta_shiftness= 2.0 # Volume
+
+            for bone in arm.bones.values():
+                    print bone
+
+                    # Find out how many metaballs to add based on bone length, 4 min
+                    length= bone.length
+                    if length < res:
+                            mballs= 4
+                    else:
+                            mballs= int(length/res)
+                            if mballs < 4:
+                                    mballs = 4
+
+                    print 'metaball count', mballs
+
+                    # get the bone properties
+                    head_rad= bone.headRadius
+                    tail_rad= bone.tailRadius
+
+                    head_loc= bone.head['ARMATURESPACE']
+                    tail_loc= bone.tail['ARMATURESPACE']
+
+
+                    for i in range(mballs):
+                            f= float(i)
+
+                            w1= f/mballs # weighting of this position on the bone for rad and loc
+                            w2= 1-w1
+
+                            loc= head_loc*w1 + tail_loc*w2
+                            rad= (head_rad*w1 + tail_rad*w2) * 1.3
+
+                            # Add the metaball
+                            mb.addMetaelem([meta_type, loc.x, loc.y, loc.z, rad, meta_shiftness, 0, 0, 0])
+
+            Window.RedrawAll()
+
+    main()
 """
 
 
@@ -64,9 +135,8 @@ class Metaball:
         - 7 for a cube
       - params 2,3,4: floats - the x, y and z coordinates of the metaelem.
       - param 5: float - the rad value of the metaelem.
-      - param 6: int - the lay value.
-      - param 7: float - the s value of the metaelem.
-      - params 8,9,10: floats - the expx, expy and expz values of the metaelem.
+      - param 6: float - the shiftness value (default is 2.0).
+      - params 7,8,9: floats - the expx, expy and expz values of the metaelem.
     @type paramslist: list
     @param paramslist: the list of the parameters for creating a new metaelem.
     @rtype: None

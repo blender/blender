@@ -413,21 +413,24 @@ static PyObject *Metaball_addMetaelem( BPy_Metaball * self, PyObject * args )
 	float x, y, z, rad, s, expx, expy, expz;
 	if( !PyArg_ParseTuple( args, "O", &listargs ) )
 		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected a list" ) );
+			 ( PyExc_TypeError, "expected a list of 9 args" ) );
 	if( !PyList_Check( listargs ) )
 		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected a list" ) );
-
+			 ( PyExc_TypeError, "expected a list of 9 args" ) );
+	
+	if (PyList_Size(listargs) != 9)
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected a list of 9 args" ) );
 
 	type = PyInt_AsLong( PyList_GetItem( listargs, 0 ) );
 	x = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
 	y = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
 	z = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 3 ) );
 	rad = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 4 ) );
-	s = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 6 ) );
-	expx = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 7 ) );
-	expy = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 8 ) );
-	expz = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 9 ) );
+	s = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 5 ) );
+	expx = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 6 ) );
+	expy = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 7 ) );
+	expz = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 8 ) );
 
 	ml = MEM_callocN( sizeof( MetaElem ), "metaelem" );
 	BLI_addhead( &( self->metaball->elems ), ml );
@@ -533,10 +536,14 @@ static PyObject *Metaball_setloc( BPy_Metaball * self, PyObject * args )
 	int i;
 	if( !PyArg_ParseTuple( args, "O", &listargs ) )
 		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected a list" ) );
+			 ( PyExc_TypeError, "expected a list of 3 floats" ) );
 	if( !PyList_Check( listargs ) )
 		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected a list" ) );
+			 ( PyExc_TypeError, "expected a list of 3 floats" ) );
+	if (PyList_Size(listargs) != 3)
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected a list of 3 floats" ) );
+	
 	for( i = 0; i < 3; i++ ) {
 		PyObject *xx = PyList_GetItem( listargs, i );
 		self->metaball->loc[i] = (float)PyFloat_AsDouble( xx );
@@ -564,6 +571,10 @@ static PyObject *Metaball_setrot( BPy_Metaball * self, PyObject * args )
 	if( !PyList_Check( listargs ) )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "expected a list" ) );
+	if (PyList_Size(listargs) != 3)
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected a list of 3 floats" ) );
+	
 	for( i = 0; i < 3; i++ ) {
 		PyObject *xx = PyList_GetItem( listargs, i );
 		self->metaball->rot[i] = (float)PyFloat_AsDouble( xx );
@@ -614,6 +625,10 @@ static PyObject *Metaball_setsize( BPy_Metaball * self, PyObject * args )
 	if( !PyList_Check( listargs ) )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "expected a list" ) );
+	if (PyList_Size(listargs) != 3)
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected a list of 3 floats" ) );
+	
 	for( i = 0; i < 3; i++ ) {
 		PyObject *xx = PyList_GetItem( listargs, i );
 		self->metaball->size[i] = (float)PyFloat_AsDouble( xx );
@@ -1192,6 +1207,10 @@ static PyObject *Metaelem_setdims( BPy_Metaelem * self, PyObject * args )
 	if( !PyList_Check( listargs ) )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "expected a list" ) );
+	if (PyList_Size(listargs) != 3)
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected a list of 3 floats" ) );
+	
 	self->metaelem->expx =
 		(float)PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
 	self->metaelem->expy =
@@ -1224,6 +1243,10 @@ static PyObject *Metaelem_setcoords( BPy_Metaelem * self, PyObject * args )
 	if( !PyList_Check( listargs ) )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "expected a list" ) );
+	if (PyList_Size(listargs) != 3)
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected a list of 3 floats" ) );
+	
 	self->metaelem->x = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
 	self->metaelem->y = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
 	self->metaelem->z = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
