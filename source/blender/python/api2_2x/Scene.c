@@ -115,6 +115,7 @@ static PyObject *Scene_addScriptLink( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_clearScriptLinks( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_play( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_getTimeLine( BPy_Scene * self );
+static PyObject *Scene_getObjects( BPy_Scene * self );
 
 
 //internal
@@ -223,18 +224,21 @@ PyTypeObject Scene_Type = {
 //-----------------------Scene module Init())-----------------------------
 PyObject *Scene_Init( void )
 {
+
 	PyObject *submodule;
 	PyObject *dict;
-
-	Scene_Type.ob_type = &PyType_Type;
-	submodule =
-		Py_InitModule3( "Blender.Scene", M_Scene_methods,
-				M_Scene_doc );
+	
+	if( PyType_Ready( &Scene_Type ) < 0 )
+		return NULL;
+	if( PyType_Ready( &SceneObSeq_Type ) < 0 )
+		return NULL;
+	
+	submodule = Py_InitModule3( "Blender.Scene", M_Scene_methods, M_Scene_doc );
 
 	dict = PyModule_GetDict( submodule );
 	PyDict_SetItemString( dict, "Render", Render_Init(  ) );
 	PyDict_SetItemString( dict, "Radio", Radio_Init(  ) );
-
+	
 	return submodule;
 }
 
@@ -260,12 +264,13 @@ static PyObject *Scene_getAttr( BPy_Scene * self, char *name )
 	else if( strncmp( name, "Layer", 5 ) == 0 )
 		attr = PyInt_FromLong( self->scene->lay );
 	/* Layers returns a bitmask, layers returns a list of integers */
-	else if( strcmp( name, "layers") == 0) {
+	else if( strcmp( name, "layers") == 0)
 		return Scene_getLayers(self);
-	}
+	else if( strcmp( name, "objects") == 0)
+		return Scene_getObjects(self);
 
 	else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[ss]", "name", "Layers", "layers" );
+		attr = Py_BuildValue( "[sss]", "name", "Layers", "layers", "objects");
 
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
@@ -1106,3 +1111,247 @@ static PyObject *Scene_getTimeLine( BPy_Scene *self )
 }
 
 
+static PyObject *Scene_getObjects( BPy_Scene *self ) 
+{
+	BPy_SceneObSeq *seq = PyObject_NEW( BPy_SceneObSeq, &SceneObSeq_Type);
+	seq->bpyscene = self; Py_INCREF(self);
+	return (PyObject *)seq;
+}
+
+/************************************************************************
+ *
+ * Object Sequence 
+ *
+ ************************************************************************/
+/*
+ * create a thin wrapper for the scenes objects
+ */
+
+static PyObject *SceneObSeq_CreatePyObject( Scene *scene, int i )
+{
+	int index=0;
+	PyObject *bpy_obj;
+	Base *base;
+	
+	for (base= scene->base.first; base&& i!=index; base= base->next, index++) {}
+	
+	if (!(base))
+		return EXPP_ReturnPyObjError( PyExc_IndexError,
+					      "array index out of range" );
+	
+	bpy_obj = Object_CreatePyObject( base->object );
+
+	if( !bpy_obj )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"PyObject_New() failed" );
+
+	return (PyObject *)bpy_obj;
+}
+
+static int SceneObSeq_len( BPy_SceneObSeq * self )
+{
+	return BLI_countlist( &( self->bpyscene->scene->base ) );
+}
+
+/*
+ * retrive a single MGroupOb from somewhere in the GroupObex list
+ */
+
+static PyObject *SceneObSeq_item( BPy_SceneObSeq * self, int i )
+{
+	return SceneObSeq_CreatePyObject( self->bpyscene->scene, i );
+}
+
+static PySequenceMethods SceneObSeq_as_sequence = {
+	( inquiry ) SceneObSeq_len,	/* sq_length */
+	( binaryfunc ) 0,	/* sq_concat */
+	( intargfunc ) 0,	/* sq_repeat */
+	( intargfunc ) SceneObSeq_item,	/* sq_item */
+	( intintargfunc ) 0,	/* sq_slice */
+	( intobjargproc ) 0,	/* sq_ass_item */
+	( intintobjargproc ) 0,	/* sq_ass_slice */
+	0,0,0,
+};
+
+
+/************************************************************************
+ *
+ * Python SceneObSeq_Type iterator (iterates over GroupObjects)
+ *
+ ************************************************************************/
+
+/*
+ * Initialize the interator index
+ */
+
+static PyObject *SceneObSeq_getIter( BPy_SceneObSeq * self )
+{
+	self->iter = self->bpyscene->scene->base.first;
+	return EXPP_incr_ret ( (PyObject *) self );
+}
+
+/*
+ * Return next SceneOb.
+ */
+
+static PyObject *SceneObSeq_nextIter( BPy_SceneObSeq * self )
+{
+	PyObject *object;
+	if( !(self->iter) ||  !(self->bpyscene->scene) )
+		return EXPP_ReturnPyObjError( PyExc_StopIteration,
+				"iterator at end" );
+	
+	object= Object_CreatePyObject( self->iter->object ); 
+	self->iter= self->iter->next;
+	return object;
+}
+
+
+static PyObject *SceneObSeq_add( BPy_SceneObSeq * self, PyObject *pyobj )
+{
+	/* this shold eventually replace Scene_link */
+	return Scene_link(self->bpyscene, pyobj);
+}
+
+
+
+static PyObject *SceneObSeq_remove( BPy_SceneObSeq * self, PyObject *args )
+{
+	PyObject *pyobj;
+	Object *blen_ob;
+	Base *base= NULL;
+	
+	if( !(self->bpyscene->scene) )
+		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Blender Scene was deleted!" ));
+	
+	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &pyobj ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected a python object as an argument" ) );
+	
+	blen_ob = ( ( BPy_Object * ) pyobj )->object;
+
+	/* is the object really in the scene? */
+	base = object_in_scene( blen_ob, self->bpyscene->scene );
+
+	if( base ) {		/* if it is, remove it */
+		/* check that there is a data block before decrementing refcount */
+		if( (ID *)blen_ob->data )
+			((ID *)blen_ob->data)->us--;
+		else if( blen_ob->type != OB_EMPTY )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Object has no data!" );
+
+		BLI_remlink( &(self->bpyscene->scene)->base, base );
+		blen_ob->id.us--;
+		MEM_freeN( base );
+		self->bpyscene->scene->basact = 0;	/* in case the object was selected */
+	}
+	return EXPP_incr_ret( Py_None );
+}
+
+
+static struct PyMethodDef BPy_SceneObSeq_methods[] = {
+	{"add", (PyCFunction)SceneObSeq_add, METH_VARARGS,
+		"add object to group"},
+	{"remove", (PyCFunction)SceneObSeq_remove, METH_VARARGS,
+		"remove object from group"},
+	{NULL, NULL, 0, NULL}
+};
+
+/************************************************************************
+ *
+ * Python SceneObSeq_Type standard operations
+ *
+ ************************************************************************/
+
+static void SceneObSeq_dealloc( BPy_SceneObSeq * self )
+{
+	Py_DECREF(self->bpyscene);
+	PyObject_DEL( self );
+}
+
+/*****************************************************************************/
+/* Python SceneObSeq_Type structure definition:                               */
+/*****************************************************************************/
+PyTypeObject SceneObSeq_Type = {
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+	/*  For printing, in format "<module>.<name>" */
+	"Blender SceneObSeq",           /* char *tp_name; */
+	sizeof( BPy_SceneObSeq ),       /* int tp_basicsize; */
+	0,                          /* tp_itemsize;  For allocation */
+
+	/* Methods to implement standard operations */
+
+	( destructor ) SceneObSeq_dealloc,/* destructor tp_dealloc; */
+	NULL,                       /* printfunc tp_print; */
+	NULL,                       /* getattrfunc tp_getattr; */
+	NULL,                       /* setattrfunc tp_setattr; */
+	NULL,                       /* cmpfunc tp_compare; */
+	NULL,                       /* reprfunc tp_repr; */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	&SceneObSeq_as_sequence,	    /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	( getiterfunc) SceneObSeq_getIter, /* getiterfunc tp_iter; */
+	( iternextfunc ) SceneObSeq_nextIter, /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_SceneObSeq_methods,       /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	NULL,                       /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
+};

@@ -38,6 +38,7 @@
 
 /* The Scene PyType Object defined in Scene.c */
 extern PyTypeObject Scene_Type;
+extern PyTypeObject SceneObSeq_Type;
 
 #define BPy_Scene_Check(v) \
     ((v)->ob_type == &Scene_Type)
@@ -49,6 +50,14 @@ typedef struct {
 } BPy_Scene;
 //---------------------------Python BPy_Scene visible prototypes-----------
 // Python Scene_Type helper functions needed by Blender (the Init function) and Object modules. 
+
+
+/* Scene object sequence, iterate on the scene object listbase*/
+typedef struct {
+	PyObject_VAR_HEAD /* required python macro   */
+	BPy_Scene *bpyscene; /* link to the python scene so we can know if its been removed */
+	Base *iter; /* so we can iterate over the objects */
+} BPy_SceneObSeq;
 
 
 PyObject *Scene_Init( void );

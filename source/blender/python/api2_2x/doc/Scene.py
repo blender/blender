@@ -101,6 +101,9 @@ class Scene:
           scene.layers = [3] # set layer 3
           scene.layers = scene.layers.append(1)
           print scene.layers # will print: [1, 3]
+  @type objects: list of integers
+  @ivar objects: An iterator for the scenes objects with set like functionality, 
+        .add() and .remove() to add and remove objects.
   """
 
   def getName():
