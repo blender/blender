@@ -726,8 +726,8 @@ class Matrix:
   The Matrix Object
   =================
     This object gives access to Matrices in Blender.
-  @ivar rowsize: The row size of the matrix.
-  @ivar colsize: The column size of the matrix.
+  @ivar rowSize: The row size of the matrix.
+  @ivar colSize: The column size of the matrix.
   @ivar wrapped: Whether or not this object wrapps internal data
   @note: Math can be performed on Matrix classes
       - mat + mat 
