@@ -327,7 +327,7 @@ uiBlock *editmode_undohistorymenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_mesh_undohistorymenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_editmode_undohistorymenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo All Changes|Ctrl U", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo All Changes", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 	
 	for(uel= undobase.first; uel; uel= uel->next, item++) {
 		if (uel==curundo) uiDefBut(block, SEPR, 0, "",		0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

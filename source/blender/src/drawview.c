@@ -1189,9 +1189,6 @@ ImBuf *read_backbuf(short xmin, short ymin, short xmax, short ymax)
 		dr++;
 	}
 	
-	ibuf->ftype= PNG;
-	IMB_saveiff(ibuf, "/tmp/rt.png", IB_rect);
-	
 	/* put clipped result back, if needed */
 	if(xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax) 
 		return ibuf;
