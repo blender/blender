@@ -1917,7 +1917,10 @@ void build_particle_system(Object *ob)
 						remainder += foweights[curface];
 						curface++;
 					}
-					foweights[curface] += remainder;
+					/* if this is the last face, the foweights[] can be zero, so we don't add a particle extra */
+					if(curface!=totface-1)
+						foweights[curface] += remainder;
+					
 					maxw= (paf->end-paf->sta)/foweights[curface];
 				}
 
