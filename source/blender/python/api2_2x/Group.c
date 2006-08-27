@@ -129,9 +129,9 @@ static PyObject *BPy_Group_copy( BPy_Group * self )
  * Python BPy_Object attributes
  *
  ************************************************************************/
-static PyObject *M_Group_getObjects( BPy_Group * self )
+static PyObject *Group_getObjects( BPy_Group * self )
 {
-	BPy_MGroupObSeq *seq = PyObject_NEW( BPy_MGroupObSeq, &MGroupObSeq_Type);
+	BPy_GroupObSeq *seq = PyObject_NEW( BPy_GroupObSeq, &GroupObSeq_Type);
 	seq->bpygroup = self; Py_INCREF(self);
 	return (PyObject *)seq;
 }
@@ -151,7 +151,7 @@ static void add_to_group_wraper(Group *group, Object *ob) {
 }
 
 /* only for internal use Blender.Group.Get("MyGroup").objects= []*/
-static int M_Group_setObjects( BPy_Group * self, PyObject * args )
+static int Group_setObjects( BPy_Group * self, PyObject * args )
 {
 	int i, list_size;
 	Group *group;
@@ -171,7 +171,7 @@ static int M_Group_setObjects( BPy_Group * self, PyObject * args )
 			add_to_group_wraper(group, blen_ob);
 		}
 	/*
-	} else if( args->ob_type == &MGroupObSeq_Type ) {
+	} else if( args->ob_type == &GroupObSeq_Type ) {
 	*/
 		/* todo, handle sequences here */
 	
@@ -275,7 +275,7 @@ static PyGetSetDef BPy_Group_getseters[] = {
 	 "Number of group users",
 	 NULL},
 	{"objects",
-	 (getter)M_Group_getObjects, (setter)M_Group_setObjects,
+	 (getter)Group_getObjects, (setter)Group_setObjects,
 	 "objects in this group",
 	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
@@ -512,7 +512,7 @@ PyObject *Group_Init( void )
 	PyObject *submodule;
 	if( PyType_Ready( &Group_Type ) < 0 )
 		return NULL;
-	if( PyType_Ready( &MGroupObSeq_Type ) < 0 )
+	if( PyType_Ready( &GroupObSeq_Type ) < 0 )
 		return NULL;
 	
 	submodule = Py_InitModule3( "Blender.Group", M_Group_methods,
@@ -636,10 +636,10 @@ static PyObject *Group_repr( BPy_Group * self )
  *
  ************************************************************************/
 /*
- * create a thin MGroupOb object
+ * create a thin GroupOb object
  */
 
-static PyObject *MGroupObSeq_CreatePyObject( Group *group, int i )
+static PyObject *GroupObSeq_CreatePyObject( Group *group, int i )
 {
 	int index=0;
 	PyObject *bpy_obj;
@@ -661,25 +661,25 @@ static PyObject *MGroupObSeq_CreatePyObject( Group *group, int i )
 }
 
 
-static int MGroupObSeq_len( BPy_MGroupObSeq * self )
+static int GroupObSeq_len( BPy_GroupObSeq * self )
 {
 	return BLI_countlist( &( self->bpygroup->group->gobject ) );
 }
 
 /*
- * retrive a single MGroupOb from somewhere in the GroupObex list
+ * retrive a single GroupOb from somewhere in the GroupObex list
  */
 
-static PyObject *MGroupObSeq_item( BPy_MGroupObSeq * self, int i )
+static PyObject *GroupObSeq_item( BPy_GroupObSeq * self, int i )
 {
-	return MGroupObSeq_CreatePyObject( self->bpygroup->group, i );
+	return GroupObSeq_CreatePyObject( self->bpygroup->group, i );
 }
 
-static PySequenceMethods MGroupObSeq_as_sequence = {
-	( inquiry ) MGroupObSeq_len,	/* sq_length */
+static PySequenceMethods GroupObSeq_as_sequence = {
+	( inquiry ) GroupObSeq_len,	/* sq_length */
 	( binaryfunc ) 0,	/* sq_concat */
 	( intargfunc ) 0,	/* sq_repeat */
-	( intargfunc ) MGroupObSeq_item,	/* sq_item */
+	( intargfunc ) GroupObSeq_item,	/* sq_item */
 	( intintargfunc ) 0,	/* sq_slice */
 	( intobjargproc ) 0,	/* sq_ass_item */
 	( intintobjargproc ) 0,	/* sq_ass_slice */
@@ -688,7 +688,7 @@ static PySequenceMethods MGroupObSeq_as_sequence = {
 
 /************************************************************************
  *
- * Python MGroupObSeq_Type iterator (iterates over GroupObjects)
+ * Python GroupObSeq_Type iterator (iterates over GroupObjects)
  *
  ************************************************************************/
 
@@ -696,17 +696,17 @@ static PySequenceMethods MGroupObSeq_as_sequence = {
  * Initialize the interator index
  */
 
-static PyObject *MGroupObSeq_getIter( BPy_MGroupObSeq * self )
+static PyObject *GroupObSeq_getIter( BPy_GroupObSeq * self )
 {
 	self->iter = self->bpygroup->group->gobject.first;
 	return EXPP_incr_ret ( (PyObject *) self );
 }
 
 /*
- * Return next MGroupOb.
+ * Return next GroupOb.
  */
 
-static PyObject *MGroupObSeq_nextIter( BPy_MGroupObSeq * self )
+static PyObject *GroupObSeq_nextIter( BPy_GroupObSeq * self )
 {
 	PyObject *object;
 	if( !(self->iter) ||  !(self->bpygroup->group) )
@@ -719,7 +719,7 @@ static PyObject *MGroupObSeq_nextIter( BPy_MGroupObSeq * self )
 }
 
 
-static PyObject *MGroupObSeq_append( BPy_MGroupObSeq * self, PyObject *args )
+static PyObject *GroupObSeq_add( BPy_GroupObSeq * self, PyObject *args )
 {
 	PyObject *pyobj;
 	Object *blen_ob;
@@ -739,7 +739,7 @@ static PyObject *MGroupObSeq_append( BPy_MGroupObSeq * self, PyObject *args )
 
 
 
-static PyObject *MGroupObSeq_remove( BPy_MGroupObSeq * self, PyObject *args )
+static PyObject *GroupObSeq_remove( BPy_GroupObSeq * self, PyObject *args )
 {
 	PyObject *pyobj;
 	Object *blen_ob;
@@ -770,40 +770,40 @@ static PyObject *MGroupObSeq_remove( BPy_MGroupObSeq * self, PyObject *args )
 }
 
 
-static struct PyMethodDef BPy_MGroupObSeq_methods[] = {
-	{"append", (PyCFunction)MGroupObSeq_append, METH_VARARGS,
+static struct PyMethodDef BPy_GroupObSeq_methods[] = {
+	{"add", (PyCFunction)GroupObSeq_add, METH_VARARGS,
 		"add object to group"},
-	{"remove", (PyCFunction)MGroupObSeq_remove, METH_VARARGS,
+	{"remove", (PyCFunction)GroupObSeq_remove, METH_VARARGS,
 		"remove object from group"},
 	{NULL, NULL, 0, NULL}
 };
 
 /************************************************************************
  *
- * Python MGroupObSeq_Type standard operations
+ * Python GroupObSeq_Type standard operations
  *
  ************************************************************************/
 
-static void MGroupObSeq_dealloc( BPy_MGroupObSeq * self )
+static void GroupObSeq_dealloc( BPy_GroupObSeq * self )
 {
 	Py_DECREF(self->bpygroup);
 	PyObject_DEL( self );
 }
 
 /*****************************************************************************/
-/* Python MGroupObSeq_Type structure definition:                               */
+/* Python GroupObSeq_Type structure definition:                               */
 /*****************************************************************************/
-PyTypeObject MGroupObSeq_Type = {
+PyTypeObject GroupObSeq_Type = {
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                          /* ob_size */
 	/*  For printing, in format "<module>.<name>" */
-	"Blender MGroupObSeq",           /* char *tp_name; */
-	sizeof( BPy_MGroupObSeq ),       /* int tp_basicsize; */
+	"Blender GroupObSeq",           /* char *tp_name; */
+	sizeof( BPy_GroupObSeq ),       /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
 	/* Methods to implement standard operations */
 
-	( destructor ) MGroupObSeq_dealloc,/* destructor tp_dealloc; */
+	( destructor ) GroupObSeq_dealloc,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -813,7 +813,7 @@ PyTypeObject MGroupObSeq_Type = {
 	/* Method suites for standard classes */
 
 	NULL,                       /* PyNumberMethods *tp_as_number; */
-	&MGroupObSeq_as_sequence,	    /* PySequenceMethods *tp_as_sequence; */
+	&GroupObSeq_as_sequence,	    /* PySequenceMethods *tp_as_sequence; */
 	NULL,                       /* PyMappingMethods *tp_as_mapping; */
 
 	/* More standard operations (here for binary compatibility) */
@@ -847,11 +847,11 @@ PyTypeObject MGroupObSeq_Type = {
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
-	( getiterfunc) MGroupObSeq_getIter, /* getiterfunc tp_iter; */
-	( iternextfunc ) MGroupObSeq_nextIter, /* iternextfunc tp_iternext; */
+	( getiterfunc) GroupObSeq_getIter, /* getiterfunc tp_iter; */
+	( iternextfunc ) GroupObSeq_nextIter, /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	BPy_MGroupObSeq_methods,       /* struct PyMethodDef *tp_methods; */
+	BPy_GroupObSeq_methods,       /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	NULL,                       /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */

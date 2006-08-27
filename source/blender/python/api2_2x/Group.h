@@ -38,10 +38,10 @@
 
 /* The Group PyTypeObject defined in Group.c */
 extern PyTypeObject Group_Type;
-extern PyTypeObject MGroupObSeq_Type;
+extern PyTypeObject GroupObSeq_Type;
 
 #define BPy_Group_Check(v)       ((v)->ob_type == &Group_Type)
-#define BPy_MGroupObSeq_Check(v)      ((v)->ob_type == &MGroupObSeq_Type)
+#define BPy_GroupObSeq_Check(v)      ((v)->ob_type == &GroupObSeq_Type)
 
 /*****************************************************************************/
 /* Python BPy_Group structure definition.                                  */
@@ -57,7 +57,7 @@ typedef struct {
 	PyObject_VAR_HEAD /* required python macro   */
 	BPy_Group *bpygroup; /* link to the python group so we can know if its been removed */
 	GroupObject *iter; /* so we can iterate over the objects */
-} BPy_MGroupObSeq;
+} BPy_GroupObSeq;
 
 PyObject *Group_Init( void );
 PyObject *Group_CreatePyObject( struct Group *group );

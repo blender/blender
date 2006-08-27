@@ -38,10 +38,13 @@ struct View3D;
 #include "BKE_main.h"
 #include "MEM_guardedalloc.h"	/* for MEM_callocN */
 #include "DNA_screen_types.h"	/* SPACE_VIEW3D, SPACE_SEQ */
+#include "DNA_userdef_types.h" /* U.userdefs */
+#include "DNA_object_types.h" /* SceneObSeq_new */
 #include "BKE_depsgraph.h"
 #include "BKE_library.h"
 #include "BKE_scene.h"
-#include "BLI_blenlib.h"
+#include "BKE_font.h"
+#include "BLI_blenlib.h" /* only for SceneObSeq_new */
 #include "BSE_drawview.h"	/* for play_anim */
 #include "BSE_headerbuttons.h"	/* for copy_scene */
 #include "BIF_drawscene.h"	/* for set_scene */
@@ -49,8 +52,21 @@ struct View3D;
 #include "BIF_screen.h"		/* curarea */
 #include "mydevice.h"		/* for #define REDRAW */
 #include "DNA_view3d_types.h"
+/* python types */
 #include "Object.h"
 #include "Camera.h"
+/* only for SceneObSeq_new */
+#include "BKE_material.h"
+#include "BLI_arithb.h"
+#include "Armature.h"
+#include "Lamp.h"
+#include "Curve.h"
+#include "NMesh.h"
+#include "Mesh.h"
+#include "Lattice.h"
+#include "Metaball.h"
+#include "Text3d.h"
+
 #include "gen_utils.h"
 #include "sceneRender.h"
 #include "sceneRadio.h"
@@ -795,7 +811,7 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 		base->lay = object->lay;
 		base->flag = object->flag;
 
-		object->id.us += 1;	/* incref the object user count in Blender */
+		//object->id.us += 1;	/* incref the object user count in Blender */
 
 		BLI_addhead( &scene->base, base );	/* finally, link new base to scene */
 	}
@@ -1209,10 +1225,153 @@ static PyObject *SceneObSeq_nextIter( BPy_SceneObSeq * self )
 
 static PyObject *SceneObSeq_add( BPy_SceneObSeq * self, PyObject *pyobj )
 {
+	if( !(self->bpyscene->scene) )
+		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Blender Scene was deleted!" ));
+	
 	/* this shold eventually replace Scene_link */
 	return Scene_link(self->bpyscene, pyobj);
 }
 
+
+/* This is buggy with new object data not alredy linked to an object, for now use the above code */
+static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
+{
+	void *data = NULL;
+	int type;
+	struct Object *object;
+	Base *base;
+	PyObject *py_data;
+	Scene *scene= self->bpyscene->scene;
+	
+	if( !(scene) )
+		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Blender Scene was deleted!" ));
+	
+	if( !PyArg_ParseTuple( args, "O", &py_data ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected an object as argument" );
+	
+	if( ArmatureObject_Check( py_data ) ) {
+		data = ( void * ) PyArmature_AsArmature((BPy_Armature*)py_data);
+		type = OB_ARMATURE;
+	} else if( Camera_CheckPyObject( py_data ) ) {
+		data = ( void * ) Camera_FromPyObject( py_data );
+		type = OB_CAMERA;
+	} else if( Lamp_CheckPyObject( py_data ) ) {
+		data = ( void * ) Lamp_FromPyObject( py_data );
+		type = OB_LAMP;
+	} else if( Curve_CheckPyObject( py_data ) ) {
+		data = ( void * ) Curve_FromPyObject( py_data );
+		type = OB_CURVE;
+	} else if( NMesh_CheckPyObject( py_data ) ) {
+		data = ( void * ) NMesh_FromPyObject( py_data, NULL );
+		type = OB_MESH;
+		if( !data )		/* NULL means there is already an error */
+			return NULL;
+	} else if( Mesh_CheckPyObject( py_data ) ) {
+		data = ( void * ) Mesh_FromPyObject( py_data, NULL );
+		type = OB_MESH;
+	} else if( Lattice_CheckPyObject( py_data ) ) {
+		data = ( void * ) Lattice_FromPyObject( py_data );
+		type = OB_LATTICE;
+	} else if( Metaball_CheckPyObject( py_data ) ) {
+		data = ( void * ) Metaball_FromPyObject( py_data );
+		type = OB_MBALL;
+	} else if( Text3d_CheckPyObject( py_data ) ) {
+		data = ( void * ) Text3d_FromPyObject( py_data );
+		type = OB_FONT;
+	}
+
+	/* have we set data to something good? */
+	if( !data )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"link argument type is not supported " );
+
+	object = alloc_libblock( &( G.main->object ), ID_OB, ((ID *)data)->name + 2 );
+	object->data = data;
+	((ID *)object->data)->us++;
+	
+	object->flag = 0;
+	object->type = (short)type;
+	
+	
+	
+	/* Object properties copied from M_Object_New */
+	
+	/* creates the curve for the text object */
+	if (type == OB_FONT) 
+		text_to_curve(object, 0);
+	
+	/* transforms */
+	QuatOne( object->quat );
+	QuatOne( object->dquat );
+
+	object->col[3] = 1.0;	/* alpha */
+
+	object->size[0] = object->size[1] = object->size[2] = 1.0;
+	object->loc[0] = object->loc[1] = object->loc[2] = 0.0;
+	Mat4One( object->parentinv );
+	Mat4One( object->obmat );
+	object->dt = OB_SHADED;	/* drawtype*/
+	object->empty_drawsize= 1.0;
+	object->empty_drawtype= OB_ARROWS;
+	
+	if( U.flag & USER_MAT_ON_OB ) {
+		object->colbits = -1;
+	}
+	switch ( object->type ) {
+	case OB_CAMERA:	/* fall through. */
+	case OB_LAMP:
+		object->trackflag = OB_NEGZ;
+		object->upflag = OB_POSY;
+		break;
+	default:
+		object->trackflag = OB_POSY;
+		object->upflag = OB_POSZ;
+	}
+	object->ipoflag = OB_OFFS_OB + OB_OFFS_PARENT;
+
+	/* duplivert settings */
+	object->dupon = 1;
+	object->dupoff = 0;
+	object->dupsta = 1;
+	object->dupend = 100;
+
+	/* Gameengine defaults */
+	object->mass = 1.0;
+	object->inertia = 1.0;
+	object->formfactor = 0.4f;
+	object->damping = 0.04f;
+	object->rdamping = 0.1f;
+	object->anisotropicFriction[0] = 1.0;
+	object->anisotropicFriction[1] = 1.0;
+	object->anisotropicFriction[2] = 1.0;
+	object->gameflag = OB_PROP;
+
+	G.totobj++;
+	
+	/* link to scene */
+	base = MEM_callocN( sizeof( Base ), "pynewbase" );
+
+	if( !base )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+						  "couldn't allocate new Base for object" );
+
+	
+	base->object = object;	/* link object to the new base */
+	base->lay= object->lay = scene->lay;	/* Layer, by default visible*/
+	
+	base->flag = 0;
+	object->id.us = 1; /* we will exist once in this scene */
+
+	BLI_addhead( &(scene->base), base );	/* finally, link new base to scene */
+	
+	/* make sure data and object materials are consistent */
+	test_object_materials( (ID *)object->data );
+	
+	return Object_CreatePyObject( object );
+}
 
 
 static PyObject *SceneObSeq_remove( BPy_SceneObSeq * self, PyObject *args )
@@ -1253,9 +1412,11 @@ static PyObject *SceneObSeq_remove( BPy_SceneObSeq * self, PyObject *args )
 
 static struct PyMethodDef BPy_SceneObSeq_methods[] = {
 	{"add", (PyCFunction)SceneObSeq_add, METH_VARARGS,
-		"add object to group"},
+		"add object to the scene"},
+	{"new", (PyCFunction)SceneObSeq_new, METH_VARARGS,
+		"add object data to this scene and return the object"},
 	{"remove", (PyCFunction)SceneObSeq_remove, METH_VARARGS,
-		"remove object from group"},
+		"remove object from the scene"},
 	{NULL, NULL, 0, NULL}
 };
 

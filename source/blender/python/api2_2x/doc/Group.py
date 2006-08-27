@@ -95,6 +95,6 @@ class Group:
   @ivar objects: Objects that this group uses.
   This is an iterator with list like access so use list(gp.objects) if you need to use a list. (where gp is a group object).
   The groups objects can be set by assigning a list or iterator of objects to the groups objects.
-  objects.append() and objects.remove() also work with the the objects iterator just like with lists.
+  objects.add() and objects.remove() also work with the the objects iterator just like with lists.
   """
 
