@@ -53,6 +53,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
@@ -2253,7 +2254,15 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT)) {
 		extern VPaint Gvp;         /* from vpaint */
 		static float hsv[3], old[3];	// used as temp mem for picker
-		uiBlockPickerButtons(block, &Gvp.r, hsv, old, hexcol, 'f', REDRAWBUTSEDIT);	/* 'f' is for floating panel */
+		float *rgb= NULL;
+		ToolSettings *settings= G.scene->toolsettings;
+
+		if(G.f & G_VERTEXPAINT) rgb= &Gvp.r;
+		else if(settings->imapaint.brush) rgb= settings->imapaint.brush->rgb;
+		
+		if (rgb)
+			/* 'f' is for floating panel */
+			uiBlockPickerButtons(block, rgb, hsv, old, hexcol, 'f', REDRAWBUTSEDIT);
 	}
 	else {
 		BoundBox *bb = NULL;

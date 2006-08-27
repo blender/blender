@@ -126,6 +126,7 @@
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
 #include "BDR_editcurve.h"
+#include "BDR_imagepaint.h"
 #include "BDR_vpaint.h"
 
 #include "BPY_extern.h"
@@ -875,6 +876,7 @@ void exit_usiblender(void)
 	free_matcopybuf();
 	free_ipocopybuf();
 	free_vertexpaint();
+	free_imagepaint();
 	
 	/* editnurb can remain to exist outside editmode */
 	freeNurblist(&editNurb);

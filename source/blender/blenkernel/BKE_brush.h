@@ -55,8 +55,10 @@ int brush_clone_image_set_nr(struct Brush *brush, int nr);
 int brush_clone_image_delete(struct Brush *brush);
 
 /* sampling */
-void brush_sample(struct Brush *brush, float *xy, float dist, float *rgb, float *alpha, short texonly);
-struct ImBuf *brush_imbuf_new(struct Brush *brush, short flt, short texonly, int size);
+float brush_sample_falloff(struct Brush *brush, float dist);
+void brush_sample_tex(struct Brush *brush, float *xy, float *rgba);
+void brush_imbuf_new(struct Brush *brush, short flt, short texfalloff, int size,
+	struct ImBuf **imbuf);
 
 /* painting */
 struct BrushPainter;
@@ -64,8 +66,11 @@ typedef struct BrushPainter BrushPainter;
 typedef int (*BrushFunc)(void *user, struct ImBuf *ibuf, float *lastpos, float *pos);
 
 BrushPainter *brush_painter_new(struct Brush *brush);
-void brush_painter_require_imbuf(BrushPainter *painter, short flt, short texonly, int size);
-int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, void *user);
+void brush_painter_require_imbuf(BrushPainter *painter, short flt,
+	short texonly, int size);
+int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos,
+	double time, void *user);
+void brush_painter_break_stroke(BrushPainter *painter);
 void brush_painter_free(BrushPainter *painter);
 
 #endif

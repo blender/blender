@@ -85,7 +85,7 @@
 #include "blendef.h"
 #include "mydevice.h"
 
-/* ImagePaint Utilities */
+/* Defines and Structs */
 
 #define IMAPAINT_FLOAT_TO_CHAR(f) ((char)(f*255))
 #define IMAPAINT_CHAR_TO_FLOAT(c) (c/255.0f)
@@ -96,29 +96,190 @@
 	f[1]=IMAPAINT_CHAR_TO_FLOAT(c[1]); f[2]=IMAPAINT_CHAR_TO_FLOAT(c[2]); }
 #define IMAPAINT_FLOAT_RGB_COPY(a, b) VECCOPY(a, b)
 
-static void imapaint_blend_line(ImBuf *ibuf, ImBuf *ibufb, float *start, float *end)
+#define IMAPAINT_TILE_BITS			6
+#define IMAPAINT_TILE_SIZE			(1 << IMAPAINT_TILE_BITS)
+#define IMAPAINT_TILE_NUMBER(size)	(((size)+IMAPAINT_TILE_SIZE-1) >> IMAPAINT_TILE_BITS)
+
+typedef struct ImagePaintState {
+	Brush *brush;
+	short tool;
+	Image *image;
+	ImBuf *canvas;
+	ImBuf *clonecanvas;
+	short clonefreefloat;
+	char *warnpackedfile;
+
+	/* texture paint only */
+	Object *ob;
+	Mesh *me;
+	TFace *tface;
+	float uv[2];
+} ImagePaintState;
+
+typedef struct ImagePaintUndo {
+	Image *image;
+	ImBuf *tilebuf;
+	void **tiles;
+	int xtiles, ytiles;
+} ImagePaintUndo;
+
+typedef struct ImagePaintPartialRedraw {
+	int x1, y1, x2, y2;
+	int enabled;
+} ImagePaintPartialRedraw;
+
+static ImagePaintUndo imapaintundo = {NULL, NULL, NULL, 0, 0};
+static ImagePaintPartialRedraw imapaintpartial = {0, 0, 0, 0, 0};
+
+static void init_imagapaint_undo(Image *ima)
 {
-	float numsteps, t, pos[2];
-	int step, d[2], ipos[2];
+	int xt, yt;
 
-	d[0] = (int)(end[0] - start[0]);
-	d[1] = (int)(end[1] - start[1]);
-	numsteps = sqrt(d[0]*d[0] + d[1]*d[1])/(ibufb->x/4.0f);
+	imapaintundo.image = ima;
+	imapaintundo.xtiles = xt = IMAPAINT_TILE_NUMBER(ima->ibuf->x);
+	imapaintundo.ytiles = yt = IMAPAINT_TILE_NUMBER(ima->ibuf->y);
+	imapaintundo.tiles = MEM_callocN(sizeof(void*)*xt*yt, "ImagePaintUndoTiles");
+	imapaintundo.tilebuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE,
+		ima->ibuf->depth, (ima->ibuf->rect_float)? IB_rectfloat: IB_rect, 0);
+}
 
-	if(numsteps < 1.0)
-		numsteps = 1.0f;
+static void imapaint_copy_tile(Image *ima, int tile, int x, int y, int swapundo)
+{
+	IMB_rectcpy(imapaintundo.tilebuf, ima->ibuf, 0, 0, x*IMAPAINT_TILE_SIZE,
+		y*IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
 
-	for (step=0; step < numsteps; step++) {
-		t = (step+1)/numsteps;
-		pos[0] = start[0] + d[0]*t;
-		pos[1] = start[1] + d[1]*t;
+	if (imapaintundo.tilebuf->rect_float)
+		SWAP(void*, imapaintundo.tilebuf->rect_float, imapaintundo.tiles[tile])
+	else
+		SWAP(void*, imapaintundo.tilebuf->rect, imapaintundo.tiles[tile])
+	
+	if (swapundo)
+		IMB_rectcpy(ima->ibuf, imapaintundo.tilebuf, x*IMAPAINT_TILE_SIZE,
+			y*IMAPAINT_TILE_SIZE, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
+}
 
-		ipos[0]= (int)(pos[0] - ibufb->x/2);
-		ipos[1]= (int)(pos[1] - ibufb->y/2);
-		IMB_rectblend(ibuf, ibufb, ipos[0], ipos[1], 0, 0,
-			ibufb->x, ibufb->y, IMB_BLEND_MIX);
+static void imapaint_clear_partial_redraw()
+{
+	memset(&imapaintpartial, 0, sizeof(imapaintpartial));
+}
+
+static void imapaint_dirty_region(Image *ima, int x, int y, int w, int h)
+{
+	int srcx= 0, srcy= 0, origx, tile, allocsize;
+
+	IMB_rectclip(ima->ibuf, NULL, &x, &y, &srcx, &srcy, &w, &h);
+
+	if (w == 0 || h == 0)
+		return;
+	
+	if (!imapaintpartial.enabled) {
+		imapaintpartial.x1 = x;
+		imapaintpartial.y1 = y;
+		imapaintpartial.x2 = x+w;
+		imapaintpartial.y2 = y+h;
+		imapaintpartial.enabled = 1;
+	}
+	else {
+		imapaintpartial.x1 = MIN2(imapaintpartial.x1, x);
+		imapaintpartial.y1 = MIN2(imapaintpartial.y1, y);
+		imapaintpartial.x2 = MAX2(imapaintpartial.x2, x+w);
+		imapaintpartial.y2 = MAX2(imapaintpartial.y2, y+h);
+	}
+
+	w = ((x + w - 1) >> IMAPAINT_TILE_BITS);
+	h = ((y + h - 1) >> IMAPAINT_TILE_BITS);
+	origx = (x >> IMAPAINT_TILE_BITS);
+	y = (y >> IMAPAINT_TILE_BITS);
+
+	for (; y <= h; y++) {
+		for (x=origx; x <= w; x++) {
+			if (ima != imapaintundo.image) {
+				free_imagepaint();
+				init_imagapaint_undo(ima);
+			}
+
+			tile = y*imapaintundo.xtiles + x;
+			if (!imapaintundo.tiles[tile]) {
+				allocsize= (ima->ibuf->rect_float)? sizeof(float): sizeof(char);
+				imapaintundo.tiles[tile]= MEM_mapallocN(allocsize*4*
+					IMAPAINT_TILE_SIZE*IMAPAINT_TILE_SIZE, "ImagePaintUndoTile");
+				imapaint_copy_tile(ima, tile, x, y, 0);
+			}
+		}
+	}
+
+	ima->ibuf->userflags |= IB_BITMAPDIRTY;
+}
+
+static void imapaint_image_update(Image *image, short texpaint)
+{
+	if(image->ibuf->rect_float)
+		imb_freerectImBuf(image->ibuf); /* force recreate of char rect */
+	
+	/* todo: should set_tpage create ->rect? */
+	if(texpaint || G.sima->lock) {
+		int w = imapaintpartial.x2 - imapaintpartial.x1;
+		int h = imapaintpartial.y2 - imapaintpartial.y1;
+		update_realtime_image(image, imapaintpartial.x1, imapaintpartial.y1, w, h);
 	}
 }
+
+static void imapaint_redraw(int final, int texpaint, Image *image)
+{
+	if(final) {
+		if(texpaint)
+			allqueue(REDRAWIMAGE, 0);
+		else if(!G.sima->lock) {
+			if(image)
+				free_realtime_image(image); /* force OpenGL reload */
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		allqueue(REDRAWHEADERS, 0);
+	}
+	else if(!texpaint && G.sima->lock)
+		force_draw_plus(SPACE_VIEW3D, 0);
+	else
+		force_draw(0);
+}
+
+void imagepaint_undo()
+{
+	int x, y, tile;
+	Image *ima= imapaintundo.image;
+
+	if (!ima || !ima->ibuf || !(ima->ibuf->rect || ima->ibuf->rect_float))
+		return;
+
+	for (tile = 0, y = 0; y < imapaintundo.ytiles; y++)
+		for (x = 0; x < imapaintundo.xtiles; x++, tile++)
+			if (imapaintundo.tiles[tile])
+				imapaint_copy_tile(ima, tile, x, y, 1);
+
+	allqueue(REDRAWIMAGE, 0);
+	allqueue(REDRAWVIEW3D, 0);
+
+	free_realtime_image(ima); /* force OpenGL reload */
+}
+
+void free_imagepaint()
+{
+	/* todo: does this need to be in the same places as editmode_undo_clear,
+	   vertex paint isn't? */
+	int i, size = imapaintundo.xtiles*imapaintundo.ytiles;
+
+	if (imapaintundo.tiles) {
+		for (i = 0; i < size; i++)
+			if (imapaintundo.tiles[i])
+				MEM_freeN(imapaintundo.tiles[i]);
+		MEM_freeN(imapaintundo.tiles);
+	}
+	if (imapaintundo.tilebuf)
+		IMB_freeImBuf(imapaintundo.tilebuf);
+
+	memset(&imapaintundo, 0, sizeof(imapaintundo));
+}
+
+/* Image Paint Operations */
 
 static void imapaint_ibuf_get_set_rgb(ImBuf *ibuf, int x, int y, short torus, short set, float *rgb)
 {
@@ -159,8 +320,6 @@ static int imapaint_ibuf_add_if(ImBuf *ibuf, unsigned int x, unsigned int y, flo
 
 	return 1;
 }
-
-/* ImagePaint Tools */
 
 static void imapaint_lift_soften(ImBuf *ibuf, ImBuf *ibufb, int *pos, short torus)
 {
@@ -236,15 +395,6 @@ static ImBuf *imapaint_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 	return clonebuf;
 }
 
-/* ImagePaint state and operations */
-
-typedef struct ImagePaintState {
-	Brush *brush;
-	short tool;
-	ImBuf *canvas;
-	ImBuf *clonecanvas;
-} ImagePaintState;
-
 static void imapaint_convert_brushco(ImBuf *ibufb, float *pos, int *ipos)
 {
 	ipos[0]= (int)(pos[0] - ibufb->x/2);
@@ -253,43 +403,45 @@ static void imapaint_convert_brushco(ImBuf *ibufb, float *pos, int *ipos)
 
 static int imapaint_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *pos)
 {
-	ImagePaintState s= *((ImagePaintState*)state);
+	ImagePaintState *s= ((ImagePaintState*)state);
 	ImBuf *clonebuf= NULL;
-	short torus= s.brush->flag & BRUSH_TORUS;
-	short blend= s.brush->blend;
-	float *offset= s.brush->clone.offset;
+	short torus= s->brush->flag & BRUSH_TORUS;
+	short blend= s->brush->blend;
+	float *offset= s->brush->clone.offset;
 	float liftpos[2];
 	int bpos[2], blastpos[2], bliftpos[2];
-
-	if ((s.tool == PAINT_TOOL_SMEAR) && (lastpos[0]==pos[0]) && (lastpos[1]==pos[1]))
-		return 0;
 
 	imapaint_convert_brushco(ibufb, pos, bpos);
 
 	/* lift from canvas */
-	if(s.tool == PAINT_TOOL_SOFTEN) {
-		imapaint_lift_soften(s.canvas, ibufb, bpos, torus);
+	if(s->tool == PAINT_TOOL_SOFTEN) {
+		imapaint_lift_soften(s->canvas, ibufb, bpos, torus);
 	}
-	else if(s.tool == PAINT_TOOL_SMEAR) {
+	else if(s->tool == PAINT_TOOL_SMEAR) {
+		if (lastpos[0]==pos[0] && lastpos[1]==pos[1])
+			return 0;
+
 		imapaint_convert_brushco(ibufb, lastpos, blastpos);
-		imapaint_lift_smear(s.canvas, ibufb, blastpos);
+		imapaint_lift_smear(s->canvas, ibufb, blastpos);
 	}
-	else if(s.tool == PAINT_TOOL_CLONE && s.clonecanvas) {
-		liftpos[0]= pos[0] - offset[0]*s.canvas->x;
-		liftpos[1]= pos[1] - offset[1]*s.canvas->y;
+	else if(s->tool == PAINT_TOOL_CLONE && s->clonecanvas) {
+		liftpos[0]= pos[0] - offset[0]*s->canvas->x;
+		liftpos[1]= pos[1] - offset[1]*s->canvas->y;
 
 		imapaint_convert_brushco(ibufb, liftpos, bliftpos);
-		clonebuf= imapaint_lift_clone(s.clonecanvas, ibufb, bliftpos);
+		clonebuf= imapaint_lift_clone(s->clonecanvas, ibufb, bliftpos);
 	}
+
+	imapaint_dirty_region(s->image, bpos[0], bpos[1], ibufb->x, ibufb->y);
 
 	/* blend into canvas */
 	if(torus)
-		IMB_rectblend_torus(s.canvas, (clonebuf)? clonebuf: ibufb,
+		IMB_rectblend_torus(s->canvas, (clonebuf)? clonebuf: ibufb,
 			bpos[0], bpos[1], 0, 0, ibufb->x, ibufb->y, blend);
 	else
-		IMB_rectblend(s.canvas, (clonebuf)? clonebuf: ibufb,
+		IMB_rectblend(s->canvas, (clonebuf)? clonebuf: ibufb,
 			bpos[0], bpos[1], 0, 0, ibufb->x, ibufb->y, blend);
-	
+			
 	if(clonebuf) IMB_freeImBuf(clonebuf);
 
 	return 1;
@@ -302,299 +454,230 @@ static void imapaint_compute_uvco(short *mval, float *uv)
 	areamouseco_to_ipoco(G.v2d, mval, &uv[0], &uv[1]);
 }
 
-static void imapaint_compute_imageco(ImBuf *ibuf, short *mval, float *mousepos)
+/* 3D TexturePaint */
+
+int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect);
+void texpaint_pick_uv(Object *ob, Mesh *mesh, TFace *tf, short *xy, float *mousepos);
+
+static int texpaint_break_stroke(float *prevuv, float *fwuv, float *bkuv, float *uv)
 {
-	areamouseco_to_ipoco(G.v2d, mval, &mousepos[0], &mousepos[1]);
-	mousepos[0] *= ibuf->x;
-	mousepos[1] *= ibuf->y;
+	float d1[2], d2[2];
+	float mismatch = Vec2Lenf(fwuv, uv);
+	float len1 = Vec2Lenf(prevuv, fwuv);
+	float len2 = Vec2Lenf(bkuv, uv);
+
+	Vec2Subf(d1, fwuv, prevuv);
+	Vec2Subf(d2, uv, bkuv);
+
+	return ((Inp2f(d1, d2) < 0.0f) || (mismatch > MAX2(len1, len2)*2));
 }
 
-void imapaint_redraw_tool(void)
-{
-	if(G.scene->toolsettings->imapaint.flag & IMAGEPAINT_DRAW_TOOL_DRAWING)
-		force_draw(0);
-}
+/* ImagePaint Common */
 
-static void imapaint_redraw(int final, int painted)
+static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 {
-	if(!final && !painted) {
-		imapaint_redraw_tool();
-		return;
+	/* verify that we can paint and set canvas */
+	if(ima->packedfile) {
+		s->warnpackedfile = ima->id.name + 2;
+		return 0;
 	}
-
-	if(final || painted) {
-		if (final || G.sima->lock) {
-			/* Make OpenGL aware of a changed texture */
-			free_realtime_image(G.sima->image);
-			force_draw_plus(SPACE_VIEW3D,0);
-		}
-		else
-			force_draw(0);
-	}
-
-	if(final)
-		allqueue(REDRAWHEADERS, 0);
-}
-
-static int imapaint_canvas_init(Brush *brush, short tool, ImBuf **canvas, ImBuf **clonecanvas, short *freefloat)
-{
-	Image *ima= G.sima->image;
-
-	/* verify that we can paint and create canvas */
-	if(!ima || !ima->ibuf || !(ima->ibuf->rect || ima->ibuf->rect_float))
+	else if(!ima || !ima->ibuf || !(ima->ibuf->rect || ima->ibuf->rect_float))
 		return 0;
 	else if(ima->packedfile)
 		return 0;
 
-	*canvas= ima->ibuf;
+	s->image= ima;
+	s->canvas= ima->ibuf;
 
-	/* create clone canvas */
-	if(clonecanvas && (tool == PAINT_TOOL_CLONE)) {
-		ima= brush->clone.image;
+	/* set clone canvas */
+	if(s->tool == PAINT_TOOL_CLONE) {
+		ima= s->brush->clone.image;
 		if(!ima || !ima->ibuf || !(ima->ibuf->rect || ima->ibuf->rect_float))
 			return 0;
 
-		*clonecanvas= ima->ibuf;
+		s->clonecanvas= ima->ibuf;
 
-		if((*canvas)->rect_float && !(*clonecanvas)->rect_float) {
+		if(s->canvas->rect_float && !s->clonecanvas->rect_float) {
 			/* temporarily add float rect for cloning */
-			*freefloat= 1;
-			IMB_float_from_rect(*clonecanvas);
+			IMB_float_from_rect(s->clonecanvas);
+			s->clonefreefloat= 1;
 		}
-		else if(!(*canvas)->rect_float && !(*clonecanvas)->rect) {
-			*freefloat= 0;
-			IMB_rect_from_float(*clonecanvas);
-		}
-		else
-			*freefloat= 0;
+		else if(!s->canvas->rect_float && !s->clonecanvas->rect)
+			IMB_rect_from_float(s->clonecanvas);
 	}
-	else if(clonecanvas)
-		*clonecanvas= NULL;
 
 	return 1;
 }
 
-void imagepaint_paint(short mousebutton)
+static void imapaint_canvas_free(ImagePaintState *s)
+{
+	if (s->clonefreefloat)
+		imb_freerectfloatImBuf(s->clonecanvas);
+}
+
+static int imapaint_do_paint(ImagePaintState *s, BrushPainter *painter, Image *image, short texpaint, float *uv, double time, int update)
+{
+	float pos[2];
+
+	pos[0] = uv[0]*image->ibuf->x;
+	pos[1] = uv[1]*image->ibuf->y;
+
+	brush_painter_require_imbuf(painter, ((image->ibuf->rect_float)? 1: 0), 0, 0);
+
+	if (brush_painter_paint(painter, imapaint_paint_op, pos, time, s)) {
+		if (update)
+			imapaint_image_update(image, texpaint);
+		return 1;
+	}
+	else return 0;
+}
+
+static void imapaint_do(ImagePaintState *s, BrushPainter *painter, short texpaint, short *prevmval, short *mval, double time)
+{
+	TFace *newtface = NULL;
+	Image *newimage = NULL;
+	float fwuv[2], bkuv[2], newuv[2];
+	unsigned int face_index;
+	int breakstroke = 0, redraw = 0;
+
+	if (texpaint) {
+
+		/* pick face and image */
+		if (facesel_face_pick(s->me, mval, &face_index, 0)) {
+			newtface = s->me->tface + face_index;
+			newimage = (Image*)newtface->tpage;
+			texpaint_pick_uv(s->ob, s->me, newtface, mval, newuv);
+		}
+		else
+			newuv[0] = newuv[1] = 0.0f;
+
+		/* see if stroke is broken, and if so finish painting in old position */
+		if (s->image) {
+			if (newimage == s->image) {
+				texpaint_pick_uv(s->ob, s->me, s->tface, mval, fwuv);
+				texpaint_pick_uv(s->ob, s->me, newtface, prevmval, bkuv);
+				breakstroke= texpaint_break_stroke(s->uv, fwuv, bkuv, newuv);
+			}
+			else
+				breakstroke= 1;
+		}
+
+		if (breakstroke) {
+			texpaint_pick_uv(s->ob, s->me, s->tface, mval, fwuv);
+			redraw |= imapaint_do_paint(s, painter, s->image, texpaint, fwuv, time, 1);
+			imapaint_clear_partial_redraw();
+			brush_painter_break_stroke(painter);
+		}
+
+		/* set new canvas */
+		if (newimage && (newimage != s->image))
+			if (!imapaint_canvas_set(s, newimage))
+				newimage = NULL;
+
+		/* paint in new image */
+		if (newimage) {
+			if (breakstroke)
+				redraw|= imapaint_do_paint(s, painter, newimage, texpaint, bkuv, time, 0);
+			redraw|= imapaint_do_paint(s, painter, newimage, texpaint, newuv, time, 1);
+		}
+
+		/* update state */
+		s->image = newimage;
+		s->tface = newtface;
+		s->uv[0] = newuv[0];
+		s->uv[1] = newuv[1];
+	}
+	else {
+		imapaint_compute_uvco(mval, newuv);
+		redraw |= imapaint_do_paint(s, painter, s->image, texpaint, newuv, time, 1);
+	}
+
+	if (redraw) {
+		imapaint_redraw(0, texpaint, NULL);
+		imapaint_clear_partial_redraw();
+	}
+}
+
+void imagepaint_paint(short mousebutton, short texpaint)
 {
 	ImagePaintState s;
 	BrushPainter *painter;
 	ToolSettings *settings= G.scene->toolsettings;
-	short prevmval[2], mval[2], freefloat=0;
-	float mousepos[2];
-	double mousetime;
+	short prevmval[2], mval[2];
+	double time;
 
 	/* initialize state */
+	memset(&s, 0, sizeof(s));
 	s.brush= settings->imapaint.brush;
 	s.tool= settings->imapaint.tool;
+	if(texpaint && (s.tool == PAINT_TOOL_CLONE))
+		s.tool = PAINT_TOOL_DRAW;
 
-	if(!s.brush) return;
-	if(!imapaint_canvas_init(s.brush, s.tool, &s.canvas, &s.clonecanvas, &freefloat)) {
-		if(G.sima->image && G.sima->image->packedfile)
-			error("Painting in packed images not supported");
+	if(!s.brush)
 		return;
+
+	if(texpaint) {
+		s.ob = OBACT;
+		if (!s.ob || !(s.ob->lay & G.vd->lay)) return;
+		s.me = get_mesh(s.ob);
+		if (!s.me) return;
+
+		persp(PERSP_VIEW);
+	}
+	else {
+		s.image = G.sima->image;
+
+		if(!imapaint_canvas_set(&s, G.sima->image)) {
+			if(s.warnpackedfile)
+				error("Painting in packed images not supported");
+			return;
+		}
 	}
 
 	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
+	free_imagepaint();
 
 	/* create painter and paint once */
 	painter= brush_painter_new(s.brush);
-	brush_painter_require_imbuf(painter, ((s.canvas->rect_float)? 1: 0), 0, 0);
 
 	getmouseco_areawin(mval);
-	mousetime= PIL_check_seconds_timer();
+	time= PIL_check_seconds_timer();
 	prevmval[0]= mval[0];
 	prevmval[1]= mval[1];
-	imapaint_compute_imageco(s.canvas, mval, mousepos);
 
-	if(brush_painter_paint(painter, imapaint_paint_op, mousepos, mousetime, &s)) {
-		if (s.canvas->rect_float)
-			imb_freerectImBuf(s.canvas); /* force recreate */
-		imapaint_redraw(0, 1);
-	}
+	imapaint_do(&s, painter, texpaint, prevmval, mval, time);
 
 	/* paint loop */
 	while(get_mbut() & mousebutton) {
 		getmouseco_areawin(mval);
-		mousetime= PIL_check_seconds_timer();
+		time= PIL_check_seconds_timer();
 
 		if((mval[0] != prevmval[0]) || (mval[1] != prevmval[1])) {
+			imapaint_do(&s, painter, texpaint, prevmval, mval, time);
 			prevmval[0]= mval[0];
 			prevmval[1]= mval[1];
-			imapaint_compute_imageco(s.canvas, mval, mousepos);
 		}
-		else if (!(s.brush->flag & BRUSH_AIRBRUSH))
-			continue;
-
-		if(brush_painter_paint(painter, imapaint_paint_op, mousepos, mousetime, &s)) {
-			if (s.canvas->rect_float)
-				imb_freerectImBuf(s.canvas); /* force recreate */
-			imapaint_redraw(0, 1);
-		}
-
-		/* todo: check if we can wait here to not take up all cpu usage? */
+		else if (s.brush->flag & BRUSH_AIRBRUSH)
+			imapaint_do(&s, painter, texpaint, prevmval, mval, time);
+		else
+			BIF_wait_for_statechange();
 	}
 
 	/* clean up */
 	settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
-	s.canvas->userflags |= IB_BITMAPDIRTY;
-
-	if (freefloat) imb_freerectfloatImBuf(s.clonecanvas);
-
+	imapaint_canvas_free(&s);
 	brush_painter_free(painter);
 
-	imapaint_redraw(1, 0);
-}
+	imapaint_redraw(1, texpaint, s.image);
 
-/* 3D TexturePaint */
+	if (texpaint) {
+		if (s.warnpackedfile)
+			error("Painting in packed images is not supported: %s", s.warnpackedfile);
 
-/* these will be moved */
-int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect);
-void texpaint_pick_uv(Object *ob, Mesh *mesh, TFace *tf, short *xy, float *mousepos);
-
-static void texpaint_compute_imageco(ImBuf *ibuf, Object *ob, Mesh *mesh, TFace *tf, short *xy, float *imageco)
-{
-	texpaint_pick_uv(ob, mesh, tf, xy, imageco);
-	imageco[0] *= ibuf->x;
-	imageco[1] *= ibuf->y;
-}
-
-void texturepaint_paint(short mousebutton)
-{
-	Object *ob;
-	Mesh *me;
-	TFace *face, *face_old = 0;
-	short xy[2], xy_old[2];
-	//int a, index;
-	Image *img=NULL, *img_old = NULL;
-	ImBuf *brush, *canvas = 0;
-	unsigned int face_index;
-	char *warn_packed_file = 0;
-	float uv[2], uv_old[2];
-	extern VPaint Gvp;
-	Brush tmpbrush;
-
-	ob = OBACT;
-	if (!ob || !(ob->lay & G.vd->lay)) return;
-	me = get_mesh(ob);
-	if (!me) return;
-
-	/* create a fake Brush for now - will be replaced soon */
-	memset(&tmpbrush, 0, sizeof(Brush));
-	tmpbrush.size= Gvp.size;
-	tmpbrush.alpha= Gvp.a;
-	tmpbrush.innerradius= 0.5f;
-	IMAPAINT_FLOAT_RGB_COPY(tmpbrush.rgb, &Gvp.r);
-	brush = brush_imbuf_new(&tmpbrush, 0, 0, tmpbrush.size);
-
-	persp(PERSP_VIEW);
-
-	getmouseco_areawin(xy_old);
-	while (get_mbut() & mousebutton) {
-		getmouseco_areawin(xy);
-		/* Check if cursor has moved */
-		if ((xy[0] != xy_old[0]) || (xy[1] != xy_old[1])) {
-
-			/* Get face to draw on */
-			if (!facesel_face_pick(me, xy, &face_index, 0)) face = NULL;
-			else face = (((TFace*)me->tface)+face_index);
-
-			/* Check if this is another face. */
-			if (face != face_old) {
-				/* The active face changed, check the texture */
-				if (face) {
-					img = face->tpage;
-					canvas = (img)? img->ibuf: NULL;
-				}
-				else {
-					img = 0;
-				}
-
-				if (img != img_old) {
-					/* Faces have different textures. Finish drawing in the old face. */
-					if (face_old && canvas) {
-						texpaint_compute_imageco(canvas, ob, me, face_old, xy, uv);
-						imapaint_blend_line(canvas, brush, uv_old, uv);
-						img_old->ibuf->userflags |= IB_BITMAPDIRTY;
-						canvas = 0;
-					}
-
-					/* Create new canvas and start drawing in the new face. */
-					if (img) {
-						if (canvas && img->packedfile == 0) {
-							/* MAART: skipx is not set most of the times. Make a guess. */
-							if (canvas) {
-								texpaint_compute_imageco(canvas, ob, me, face, xy_old, uv_old);
-								texpaint_compute_imageco(canvas, ob, me, face, xy, uv);
-								imapaint_blend_line(canvas, brush, uv_old, uv);
-								canvas->userflags |= IB_BITMAPDIRTY;
-							}
-						}
-						else {
-							if (img->packedfile) {
-								warn_packed_file = img->id.name + 2;
-								img = 0;
-							}
-						}
-					}
-				}
-				else {
-					/* Face changed and faces have the same texture. */
-					if (canvas) {
-						/* Finish drawing in the old face. */
-						if (face_old) {
-							texpaint_compute_imageco(canvas, ob, me, face_old, xy, uv);
-							imapaint_blend_line(canvas, brush, uv_old, uv);
-							img_old->ibuf->userflags |= IB_BITMAPDIRTY;
-						}
-
-						/* Start drawing in the new face. */
-						if (face) {
-							texpaint_compute_imageco(canvas, ob, me, face, xy_old, uv_old);
-							texpaint_compute_imageco(canvas, ob, me, face, xy, uv);
-							imapaint_blend_line(canvas, brush, uv_old, uv);
-							canvas->userflags |= IB_BITMAPDIRTY;
-						}
-					}
-				}
-			}
-			else {
-				/* Same face, continue drawing */
-				if (face && canvas) {
-					/* Get the new (u,v) coordinates */
-					texpaint_compute_imageco(canvas, ob, me, face, xy, uv);
-					imapaint_blend_line(canvas, brush, uv_old, uv);
-					canvas->userflags |= IB_BITMAPDIRTY;
-				}
-			}
-
-			if (face && img) {
-				/* Make OpenGL aware of a change in the texture */
-				free_realtime_image(img);
-				/* Redraw the view */
-				scrarea_do_windraw(curarea);
-				screen_swapbuffers();
-			}
-
-			xy_old[0] = xy[0];
-			xy_old[1] = xy[1];
-			uv_old[0] = uv[0];
-			uv_old[1] = uv[1];
-			face_old = face;
-			img_old = img;
-		}
+		persp(PERSP_WIN);
 	}
 
-	IMB_freeImBuf(brush);
-
-	if (warn_packed_file)
-		error("Painting in packed images is not supported: %s", warn_packed_file);
-
-	persp(PERSP_WIN);
-
-	BIF_undo_push("UV face draw");
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
-	allqueue(REDRAWHEADERS, 0);
+	/* todo: BIF_undo_push("Image paint"); */
 }
 
 void imagepaint_pick(short mousebutton)

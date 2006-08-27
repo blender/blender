@@ -1575,7 +1575,7 @@ void texpaint_pick_uv(Object *ob, Mesh *mesh, TFace *tf, short *xy, float *uv)
 
 	if (nvert == 4) {
 		texpaint_barycentric_2d(v1, v2, v4, p, w);
-
+		
 		if(w[0] < 0.0f) {
 			/* if w[0] is negative, co is on the other side of the v1-v3 edge,
 			   so we interpolate using the other triangle */

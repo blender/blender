@@ -64,6 +64,7 @@ typedef struct Brush {
 /* Brush.flag */
 #define BRUSH_AIRBRUSH	1
 #define BRUSH_TORUS		2
+#define BRUSH_FIXED_TEX	4
 
 /* Brush.blend */
 #define BRUSH_BLEND_MIX 	0

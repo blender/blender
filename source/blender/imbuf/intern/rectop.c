@@ -250,23 +250,23 @@ void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx,
 	if (dbuf == NULL) return;
 	
 	if (*destx < 0) {
-		*srcx -= *destx ;
-		*width += *destx ;
+		*srcx -= *destx;
+		*width += *destx;
 		*destx = 0;
 	}
 	if (*srcx < 0) {
-		*destx -= *srcx ;
-		*width += *destx ;
+		*destx -= *srcx;
+		*width += *destx;
 		*srcx = 0;
 	}
 	if (*desty < 0) {
-		*srcy -= *desty ;
-		*height += *desty ;
+		*srcy -= *desty;
+		*height += *desty;
 		*desty = 0;
 	}
 	if (*srcy < 0) {
-		*desty -= *srcy ;
-		*height += *desty ;
+		*desty -= *srcy;
+		*height += *desty;
 		*srcy = 0;
 	}
 
@@ -280,6 +280,11 @@ void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx,
 		if (*width > tmp) *width = tmp;
 		tmp = sbuf->y - *srcy;
 		if (*height > tmp) *height = tmp;
+	}
+
+	if ((*height <= 0) || (*width <= 0)) {
+		*width = 0;
+		*height = 0;
 	}
 }
 

@@ -769,8 +769,10 @@ void BIF_undo(void)
 			wpaint_undo();
 		else if(G.f & G_VERTEXPAINT)
 			vpaint_undo();
-		else if(G.f & G_TEXTUREPAINT); /* no texture paint undo yet */
-		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL));
+		else if(G.f & G_TEXTUREPAINT)
+			imagepaint_undo();
+		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL))
+			imagepaint_undo();
 		else {
 			/* now also in faceselect mode */
 			if(U.uiflag & USER_GLOBALUNDO) {
@@ -792,6 +794,10 @@ void BIF_redo(void)
 			wpaint_undo();
 		else if(G.f & G_VERTEXPAINT)
 			vpaint_undo();
+		else if(G.f & G_TEXTUREPAINT)
+			imagepaint_undo();
+		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL))
+			imagepaint_undo();
 		else {
 			/* includes faceselect now */
 			if(U.uiflag & USER_GLOBALUNDO) {
@@ -1011,7 +1017,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					vertex_paint();
 				}
 				else if (G.f & G_TEXTUREPAINT) {
-					texturepaint_paint(origevent==LEFTMOUSE? L_MOUSE: R_MOUSE);
+					imagepaint_paint(origevent==LEFTMOUSE? L_MOUSE: R_MOUSE, 1);
 				}
 				break;
 			case MIDDLEMOUSE:
@@ -1847,6 +1853,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						wpaint_undo();
 					else if(G.f & G_VERTEXPAINT)
 						vpaint_undo();
+					else if(G.f & G_TEXTUREPAINT)
+						imagepaint_undo();
 					else if (G.f & G_FACESELECT)
 						uv_autocalc_tface();
 					else {
@@ -4075,7 +4083,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				scrarea_queue_winredraw(sa);
 				break;
 			case LEFTMOUSE:
-				imagepaint_paint(origevent==LEFTMOUSE? L_MOUSE: R_MOUSE);
+				imagepaint_paint(origevent==LEFTMOUSE? L_MOUSE: R_MOUSE, 0);
 				break;
 			case RIGHTMOUSE:
 				imagepaint_pick(origevent==LEFTMOUSE? L_MOUSE: R_MOUSE);

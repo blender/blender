@@ -3904,25 +3904,41 @@ void do_fpaintbuts(unsigned short event)
 		}
 		break;
 	case B_BTEXBROWSE:
-		if(G.scene->toolsettings->imapaint.brush==0) return;
-		if(G.buts->menunr==-2) {
-			MTex *mtex= G.scene->toolsettings->imapaint.brush->mtex[0];
-			ID *id= (ID*)((mtex)? mtex->tex: NULL);
-			activate_databrowse(id, ID_TE, 0, B_BTEXBROWSE, &G.buts->menunr, do_global_buttons);
-			break;
+		if(settings->imapaint.brush) {
+			Brush *brush= settings->imapaint.brush;
+
+			if(G.buts->menunr==-2) {
+				MTex *mtex= brush->mtex[brush->texact];
+				ID *id= (ID*)((mtex)? mtex->tex: NULL);
+				activate_databrowse(id, ID_TE, 0, B_BTEXBROWSE, &G.buts->menunr, do_global_buttons);
+				break;
+			}
+			else if(G.buts->menunr < 0) break;
+				
+			if(brush_texture_set_nr(brush, G.buts->menunr)) {
+				BIF_undo_push("Browse Brush Texture");
+				allqueue(REDRAWBUTSSHADING, 0);
+				allqueue(REDRAWBUTSEDIT, 0);
+				allqueue(REDRAWIMAGE, 0);
+			}
 		}
-		else if(G.buts->menunr < 0) break;
-			
-		if(brush_texture_set_nr(G.scene->toolsettings->imapaint.brush, G.buts->menunr)) {
-			BIF_undo_push("Browse Brush Texture");
-			allqueue(REDRAWBUTSSHADING, 0);
-			allqueue(REDRAWBUTSEDIT, 0);
-			allqueue(REDRAWIMAGE, 0);
+		break;
+	case B_BTEXDELETE:
+		if(settings->imapaint.brush) {
+			if (brush_texture_delete(settings->imapaint.brush)) {
+				BIF_undo_push("Unlink Brush Texture");
+				allqueue(REDRAWBUTSSHADING, 0);
+				allqueue(REDRAWBUTSEDIT, 0);
+				allqueue(REDRAWIMAGE, 0);
+			}
 		}
+		break;
+	case B_BRUSHCHANGE:
+		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 	}
 }
-
 
 /* -------------------- MODE: vpaint  ------------------- */
 
@@ -3986,7 +4002,7 @@ static void editing_panel_mesh_paint(void)
 			uiBlockEndAlign(block);
 		}
 	}
-	else { // if(G.f & G_VERTEXPAINT) {
+	else if(G.f & G_VERTEXPAINT) {
 		extern VPaint Gvp;         /* from vpaint */
 		
 		uiBlockBeginAlign(block);
@@ -4025,7 +4041,6 @@ static void editing_panel_mesh_paint(void)
 		uiDefButF(block, NUM, B_DIFF, "Gamma:", 	1174,0,102,19, &Gvp.gamma, 0.1, 5.0, 10, 0, "Change the clarity of the vertex colors");
 		uiBlockEndAlign(block);
 	}
-#if 0
 	else { /* texture paint */
 		ToolSettings *settings= G.scene->toolsettings;
 		Brush *brush= settings->imapaint.brush;
@@ -4035,9 +4050,9 @@ static void editing_panel_mesh_paint(void)
 		yco= 160;
 
 		uiBlockBeginAlign(block);
-		uiDefButS(block, ROW, B_BRUSHCHANGE, "Draw",		0  ,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_DRAW, 0, 0, "Draw brush");
-		uiDefButS(block, ROW, B_BRUSHCHANGE, "Soften",		80 ,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SOFTEN, 0, 0, "Soften brush");
-		uiDefButS(block, ROW, B_BRUSHCHANGE, "Smear",		160,yco,80,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SMEAR, 0, 0, "Smear brush");	
+		uiDefButS(block, ROW, B_BRUSHCHANGE, "Draw",		0  ,yco,108,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_DRAW, 0, 0, "Draw brush");
+		uiDefButS(block, ROW, B_BRUSHCHANGE, "Soften",		108 ,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SOFTEN, 0, 0, "Soften brush");
+		uiDefButS(block, ROW, B_BRUSHCHANGE, "Smear",		214,yco,106,19, &settings->imapaint.tool, 7.0, PAINT_TOOL_SMEAR, 0, 0, "Smear brush");	
 		uiBlockEndAlign(block);
 		yco -= 30;
 
@@ -4049,13 +4064,13 @@ static void editing_panel_mesh_paint(void)
 		if(brush && !brush->id.lib) {
 			butw= 320-(xco+10);
 
-			uiDefButS(block, MENU, B_SIMANOTHING, "Mix %x0|Add %x1|Subtract %x2|Multiply %x3|Lighten %x4|Darken %x5", xco+10,yco,butw,19, &brush->blend, 0, 0, 0, 0, "Blending method for applying brushes");
+			uiDefButS(block, MENU, B_NOP, "Mix %x0|Add %x1|Subtract %x2|Multiply %x3|Lighten %x4|Darken %x5", xco+10,yco,butw,19, &brush->blend, 0, 0, 0, 0, "Blending method for applying brushes");
 
-			uiDefButBitS(block, TOG|BIT, BRUSH_TORUS, B_SIMABRUSHCHANGE, "Wrap",	xco+10,yco-25,butw,19, &brush->flag, 0, 0, 0, 0, "Enables torus wrapping");
+			uiDefButBitS(block, TOG|BIT, BRUSH_TORUS, B_BRUSHCHANGE, "Wrap",	xco+10,yco-25,butw,19, &brush->flag, 0, 0, 0, 0, "Enables torus wrapping");
 
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG|BIT, BRUSH_AIRBRUSH, B_SIMABRUSHCHANGE, "Airbrush",	xco+10,yco-50,butw,19, &brush->flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse (spray)");
-			uiDefButF(block, NUM, B_SIMANOTHING, "Rate ", xco+10,yco-70,butw,19, &brush->rate, 0.01, 1.0, 0, 0, "Number of paints per second for Airbrush");
+			uiDefButBitS(block, TOG|BIT, BRUSH_AIRBRUSH, B_BRUSHCHANGE, "Airbrush",	xco+10,yco-50,butw,19, &brush->flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse (spray)");
+			uiDefButF(block, NUM, B_NOP, "Rate ", xco+10,yco-70,butw,19, &brush->rate, 0.01, 1.0, 0, 0, "Number of paints per second for Airbrush");
 			uiBlockEndAlign(block);
 
 			yco -= 25;
@@ -4065,15 +4080,18 @@ static void editing_panel_mesh_paint(void)
 			uiDefButF(block, NUMSLI, B_NOP, "Opacity ",		0,yco-20,200,19, &brush->alpha, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
 			uiDefButI(block, NUMSLI, B_NOP, "Size ",		0,yco-40,200,19, &brush->size, 1, 200, 0, 0, "The size of the brush");
 			uiDefButF(block, NUMSLI, B_NOP, "Falloff ",		0,yco-60,200,19, &brush->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
-
-			if(brush->flag & BRUSH_AIRBRUSH)
-				uiDefButF(block, NUMSLI, B_NOP, "Flow ",	0,yco-80,200,19, &brush->spacing, 1.0, 100.0, 0, 0, "Paint Flow for Air Brush");
-			else
-				uiDefButF(block, NUMSLI, B_NOP, "Stepsize ",0,yco-80,200,19, &brush->spacing, 1.0, 100.0, 0, 0, "Repeating Paint On %% of Brush diameter");
+			uiDefButF(block, NUMSLI, B_NOP, "Spacing ",0,yco-80,200,19, &brush->spacing, 1.0, 100.0, 0, 0, "Repeating paint on %% of brush diameter");
 			uiBlockEndAlign(block);
+
+			yco -= 110;
+
+			uiBlockSetCol(block, TH_BUT_SETTING2);
+			id= (brush->mtex[0])? (ID*)brush->mtex[0]->tex: NULL;
+			xco= std_libbuttons(block, 0, yco, 0, NULL, B_BTEXBROWSE, ID_TE, 0, id, NULL, &(G.buts->menunr), 0, 0, B_BTEXDELETE, 0, 0);
+			/*uiDefButBitS(block, TOG|BIT, BRUSH_FIXED_TEX, B_BRUSHCHANGE, "Fixed",	xco+5,yco,butw,19, &brush->flag, 0, 0, 0, 0, "Keep texture origin in fixed position");*/
+			uiBlockSetCol(block, TH_AUTO);
 		}
 	}
-#endif
 }
 
 static void editing_panel_mesh_texface(void)

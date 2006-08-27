@@ -70,6 +70,8 @@ int get_linear_mipmap(void);
  */
 void clear_realtime_image_cache(void);
 
+
+void update_realtime_image(struct Image *ima, int x, int y, int w, int h);
 void free_realtime_image(struct Image *ima);
 void free_all_realtime_images(void);
 void make_repbind(struct Image *ima);

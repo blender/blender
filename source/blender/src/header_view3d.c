@@ -86,6 +86,7 @@
 #include "BDR_editface.h"
 #include "BDR_editmball.h"
 #include "BDR_editobject.h"
+#include "BDR_imagepaint.h"
 #include "BDR_vpaint.h"
 
 #include "BIF_editlattice.h"
@@ -3761,6 +3762,12 @@ static uiBlock *view3d_vpaintmenu(void *arg_unused)
 /* texture paint menu (placeholder, no items yet??) */
 static void do_view3d_tpaintmenu(void *arg, int event)
 {
+	switch(event) {
+	case 0: /* undo image painting */
+		imagepaint_undo();
+		break;
+	}
+
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -3772,6 +3779,7 @@ static uiBlock *view3d_tpaintmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_paintmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_tpaintmenu, NULL);
 	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Texture Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	if(curarea->headertype==HEADERTOP) {

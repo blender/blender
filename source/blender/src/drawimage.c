@@ -1097,6 +1097,7 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 			uiBlockSetCol(block, TH_BUT_SETTING2);
 			id= (brush->mtex[0])? (ID*)brush->mtex[0]->tex: NULL;
 			xco= std_libbuttons(block, 0, yco, 0, NULL, B_SIMABTEXBROWSE, ID_TE, 0, id, NULL, &(G.sima->menunr), 0, 0, B_SIMABTEXDELETE, 0, 0);
+			/*uiDefButBitS(block, TOG|BIT, BRUSH_FIXED_TEX, B_SIMABRUSHCHANGE, "Fixed",	xco+5,yco,butw,19, &brush->flag, 0, 0, 0, 0, "Keep texture origin in fixed position");*/
 			uiBlockSetCol(block, TH_AUTO);
 		}
 	}

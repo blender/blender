@@ -430,6 +430,34 @@ int set_tpage(TFace *tface)
 	return 1;
 }
 
+void update_realtime_image(Image *ima, int x, int y, int w, int h)
+{
+	if (ima->repbind || fDoMipMap || !ima->bindcode || !ima->ibuf ||
+		(!is_pow2(ima->ibuf->x) || !is_pow2(ima->ibuf->y)) ||
+		(w == 0) || (h == 0)) {
+		/* these special cases require full reload still */
+		free_realtime_image(ima);
+	}
+	else {
+		int row_length = glaGetOneInteger(GL_UNPACK_ROW_LENGTH);
+		int skip_pixels = glaGetOneInteger(GL_UNPACK_SKIP_PIXELS);
+		int skip_rows = glaGetOneInteger(GL_UNPACK_SKIP_ROWS);
+
+		glBindTexture(GL_TEXTURE_2D, ima->bindcode);
+
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, ima->ibuf->x);
+		glPixelStorei(GL_UNPACK_SKIP_PIXELS, x);
+		glPixelStorei(GL_UNPACK_SKIP_ROWS, y);
+
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
+			GL_UNSIGNED_BYTE, ima->ibuf->rect);
+
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
+		glPixelStorei(GL_UNPACK_SKIP_PIXELS, skip_pixels);
+		glPixelStorei(GL_UNPACK_SKIP_ROWS, skip_rows);
+	}
+}
+
 void free_realtime_image(Image *ima)
 {
 	if(ima->bindcode) {
