@@ -411,7 +411,7 @@ void mouse_select_seq(void)
 
 	seq= find_nearest_seq(&hand);
 
-	if(G.qual==0) deselect_all_seq();
+	if(!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
 
 	if(seq) {
 		last_seq= seq;
@@ -427,30 +427,23 @@ void mouse_select_seq(void)
 			}
 		}
 
-		if(G.qual==0) {
+		if((G.qual & LR_SHIFTKEY) && (seq->flag & SELECT)) {
+			if(hand==0) seq->flag &= SEQ_DESEL;
+			else if(hand==1) {
+				if(seq->flag & SEQ_LEFTSEL) 
+					seq->flag &= ~SEQ_LEFTSEL;
+				else seq->flag |= SEQ_LEFTSEL;
+			}
+			else if(hand==2) {
+				if(seq->flag & SEQ_RIGHTSEL) 
+					seq->flag &= ~SEQ_RIGHTSEL;
+				else seq->flag |= SEQ_RIGHTSEL;
+			}
+		}
+		else {
 			seq->flag |= SELECT;
 			if(hand==1) seq->flag |= SEQ_LEFTSEL;
 			if(hand==2) seq->flag |= SEQ_RIGHTSEL;
-		}
-		else {
-			if(seq->flag & SELECT) {
-				if(hand==0) seq->flag &= SEQ_DESEL;
-				else if(hand==1) {
-					if(seq->flag & SEQ_LEFTSEL) 
-						seq->flag &= ~SEQ_LEFTSEL;
-					else seq->flag |= SEQ_LEFTSEL;
-				}
-				else if(hand==2) {
-					if(seq->flag & SEQ_RIGHTSEL) 
-						seq->flag &= ~SEQ_RIGHTSEL;
-					else seq->flag |= SEQ_RIGHTSEL;
-				}
-			}
-			else {
-				seq->flag |= SELECT;
-				if(hand==1) seq->flag |= SEQ_LEFTSEL;
-				if(hand==2) seq->flag |= SEQ_RIGHTSEL;
-			}
 		}
 		recurs_sel_seq(seq);
 	}
