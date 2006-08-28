@@ -85,6 +85,7 @@ struct ID; /*keep me up here */
 #include "Registry.h"
 #include "Scene.h"
 #include "Sound.h"
+#include "SurfNurb.h"
 #include "Sys.h"
 #include "Text.h"
 #include "Texture.h"
@@ -960,6 +961,7 @@ void M_Blender_Init(void)
 	PyDict_SetItemString(dict, "Registry", Registry_Init());
 	PyDict_SetItemString(dict, "Scene", Scene_Init());
 	PyDict_SetItemString(dict, "Sound", Sound_Init());
+	PyDict_SetItemString(dict, "SurfNurb", SurfNurb_Init());
 	PyDict_SetItemString(dict, "sys", sys_Init());
 	PyDict_SetItemString(dict, "Types", Types_Init());
 	PyDict_SetItemString(dict, "Text", Text_Init());

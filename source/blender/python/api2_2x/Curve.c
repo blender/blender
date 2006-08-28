@@ -38,6 +38,7 @@
 #include "BKE_curve.h"
 #include "MEM_guardedalloc.h"	/* because we wil be mallocing memory */
 #include "CurNurb.h"
+#include "SurfNurb.h"
 #include "Material.h"
 #include "Object.h"
 #include "Key.h"
@@ -1455,14 +1456,15 @@ static PyObject *Curve_iterNext( BPy_Curve * self )
 	if( self->iter_pointer ) {
 		pnurb = self->iter_pointer;
 		self->iter_pointer = pnurb->next;	/* advance iterator */
-		po = CurNurb_CreatePyObject( pnurb );	/* make a bpy_nurb */
-
-		return ( PyObject * ) po;
+		if( pnurb->pntsv == 1 )
+			return CurNurb_CreatePyObject( pnurb ); /* make a bpy_curnurb */
+		else
+			return SurfNurb_CreatePyObject( pnurb ); /* make a bpy_surfnurb */
 	}
 
 	/* if iter_pointer was null, we are at end */
-	return ( EXPP_ReturnPyObjError
-		 ( PyExc_StopIteration, "iterator at end" ) );
+	return EXPP_ReturnPyObjError( PyExc_StopIteration,
+			"iterator at end" );
 }
 
 
@@ -1517,9 +1519,10 @@ PyObject *Curve_getNurb( BPy_Curve * self, int n )
 	if( !pNurb )		/* we came to the end of the list */
 		return ( EXPP_ReturnPyObjError( PyExc_IndexError,
 						"index out of range" ) );
-
-	pyo = CurNurb_CreatePyObject( pNurb );	/* make a bpy_curnurb */
-	return ( PyObject * ) pyo;
+	if( pNurb->pntsv == 1 )
+		return CurNurb_CreatePyObject( pNurb );	/* make a bpy_curnurb */
+	else
+		return SurfNurb_CreatePyObject( pNurb );	/* make a bpy_surfnurb */
 
 }
 

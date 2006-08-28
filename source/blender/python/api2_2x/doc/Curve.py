@@ -507,7 +507,7 @@ class CurNurb:
 
     def __getitem__( n ):
       """
-	  Get the Nth element in the curve. For Bezier curves, that element is a BezTriple. For the rest (Poly and Nurbs), it is a list of 5 floats: x, y, z, weight, tilt (in radians). NOTE 1: This element element is independant on the curve, modifying it will not affect the curve. NOTE 2: Each successive call returns a new object.
+	  Get the Nth element in the curve. For Bezier curves, that element is a BezTriple. For the rest (Poly and Nurbs), it is a list of 5 floats: x, y, z, weight, tilt (in radians). NOTE 1: This element is independent on the curve, modifying it will not affect the curve. NOTE 2: Each successive call returns a new object.
       @rtype: BezTriple (Bezier Curve) or List of 5 floats [x, y, z, w, t] for Poly or Nurbs
       @return: The Nth element in the curve
       @type n: integer
@@ -605,3 +605,66 @@ class CurNurb:
       @rtype: None
       @return: None
       """
+
+class SurfNurb:
+  """
+  The SurfNurb Object
+  ===================
+  This object provides access to the control points of the surfaces that make
+  up a Blender Curve.
+
+  The SurfNurb supports the Python iterator and sequence protocols which
+  means you can use a python B{for} statement or [] operator to access the
+  points in a surface.  Points are accessed linearly; for a N-by-M UV surface,
+  the first N control points correspond to V=0, then second N to V=1, and so
+  on.
+
+  @ivar flagU: The knot flag U.  Changing the knot type automatically
+  recalculates the knots.  The flag can be one of three values:
+           - 0 : uniform knots
+           - 1 : endpoints knots
+           - 2 : bezier knots
+  @type flagU: int
+  @ivar flagV: The knot flag V.  See L{flagU} for description.
+  @type flagV: int
+  @ivar pointsU: The number of control points in the U direction (read only).
+  @type pointsU: int
+  @ivar pointsV: The number of control points in the V direction (read only).
+  @type pointsV: int
+  @ivar cyclicU: The cyclic setting for the U direction (True = cyclic).
+  @type cyclicU: boolean
+  @ivar cyclicV: The cyclic setting for the V direction (True = cyclic).
+  @type cyclicV: boolean
+  @ivar orderU: The order setting for the U direction.  Values are clamped
+  to the range [2:6] and not greater than the U dimension.
+  @type orderU: int
+  @ivar orderV: The order setting for the V direction.  Values are clamped
+  to the range [2:6] and not greater than the V dimension.
+  @type orderV: int
+  """
+
+  def __setitem__( n, point ):
+      """
+	  Set the Nth control point in the surface. 
+      @rtype: None
+      @return: None
+      @type n: integer
+      @param n: the index of the point to replace
+      @type point: list of 4 floats (optional 5th float is the tilt value
+      in radians)
+      @param point: the point that will replace the one in the curve.  The
+      point is  list of 4 floats in x,y,z,w (optionally tilt in radians as
+      5th value) format.
+      """
+
+  def __getitem__( n ):
+      """
+	  Get the Nth control point in the surface. 
+      @rtype: List of 5 floats [x, y, z, w, t] for Poly or Nurbs
+      @return: The Nth point in the curve
+      @type n: integer
+      @param n: the index of the point to return
+      @note: This returned value is independent on the curve; modifying it will not affect the curve. 
+      @note: Each successive call returns a new object.
+      """
+

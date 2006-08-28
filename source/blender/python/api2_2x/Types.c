@@ -40,7 +40,7 @@ extern PyTypeObject Action_Type, Armature_Type;
 extern PyTypeObject Pose_Type;
 extern PyTypeObject BezTriple_Type, Bone_Type, Button_Type;
 extern PyTypeObject Camera_Type;
-extern PyTypeObject CurNurb_Type;
+extern PyTypeObject CurNurb_Type, SurfNurb_Type;
 extern PyTypeObject Curve_Type;
 extern PyTypeObject Effect_Type, Font_Type;
 extern PyTypeObject Image_Type, Ipo_Type, IpoCurve_Type;
@@ -109,6 +109,7 @@ void types_InitAll( void )
 	Group_Type.ob_type = &PyType_Type;
 	RenderData_Type.ob_type = &PyType_Type;
 	Scene_Type.ob_type = &PyType_Type;
+	SurfNurb_Type.ob_type = &PyType_Type;
 	Text_Type.ob_type = &PyType_Type;
 	Text3d_Type.ob_type = &PyType_Type;
 	Texture_Type.ob_type = &PyType_Type;
@@ -177,6 +178,8 @@ PyObject *Types_Init( void )
 
 	PyDict_SetItemString( dict, "CurNurb_Type",
 			      ( PyObject * ) &CurNurb_Type );
+	PyDict_SetItemString( dict, "SurfNurb_Type",
+			      ( PyObject * ) &SurfNurb_Type );
 	PyDict_SetItemString( dict, "CurveType", ( PyObject * ) &Curve_Type );
 
 	PyDict_SetItemString( dict, "IpoType", ( PyObject * ) &Ipo_Type );
