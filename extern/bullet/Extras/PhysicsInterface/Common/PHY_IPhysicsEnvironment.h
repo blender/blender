@@ -39,6 +39,8 @@ class PHY_IPhysicsEnvironment
 			float axisX,float axisY,float axisZ)=0;
 		virtual void		removeConstraint(int constraintid)=0;
 
+			virtual float		getAppliedImpulse(int	constraintid){ return 0.f;}
+
 		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 										float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)=0;
 

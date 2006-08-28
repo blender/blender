@@ -1,36 +1,22 @@
-/**
- * $Id$
- *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
- */
+/*
+Bullet Continuous Collision Detection and Physics Library
+Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose, 
+including commercial applications, and to alter it and redistribute it freely, 
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+3. This notice may not be removed or altered from any source distribution.
+*/
+
+
 #ifndef __PHY_DYNAMIC_TYPES
 #define __PHY_DYNAMIC_TYPES
+
 
 
 class	PHY_ResponseTable;
@@ -68,11 +54,6 @@ typedef enum
 		PHY__Vector3 m_normal;               /* point2 - point1 */ 
 	} PHY_CollData;
 
-/* A response callback is called by SOLID for each pair of collding objects. 'client-data'
-   is a pointer to an arbitrary structure in the client application. The client objects are
-   pointers to structures in the client application associated with the coliding objects.
-   'coll_data' is the collision data computed by SOLID.
-*/
 
 	typedef bool (*PHY_ResponseCallback)(void *client_data,
 										   void *client_object1,
@@ -101,9 +82,11 @@ typedef enum PHY_ConstraintType {
 	PHY_LINEHINGE_CONSTRAINT=2,
 	PHY_ANGULAR_CONSTRAINT = 3,//hinge without ball socket
 	PHY_VEHICLE_CONSTRAINT=11,//complex 'constraint' that turns a rigidbody into a vehicle
+	PHY_GENERIC_6DOF_CONSTRAINT=12,//can leave any of the 6 degree of freedom 'free' or 'locked'
 
 } PHY_ConstraintType;
 
+typedef float	PHY_Vector3[3];
 
 #endif //__PHY_DYNAMIC_TYPES
 

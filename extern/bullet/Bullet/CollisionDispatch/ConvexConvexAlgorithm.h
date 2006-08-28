@@ -55,7 +55,13 @@ public:
 
 	void	SetLowLevelOfDetail(bool useLowLevel);
 
-	
+	virtual void SetShapeIdentifiers(int partId0,int index0,	int partId1,int index1)
+	{
+			m_gjkPairDetector.m_partId0=partId0;
+			m_gjkPairDetector.m_partId1=partId1;
+			m_gjkPairDetector.m_index0=index0;
+			m_gjkPairDetector.m_index1=index1;		
+	}
 
 	const PersistentManifold*	GetManifold()
 	{

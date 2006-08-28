@@ -28,7 +28,7 @@ HingeConstraint::HingeConstraint(RigidBody& rbA,RigidBody& rbB, const SimdVector
 								 SimdVector3& axisInA,SimdVector3& axisInB)
 :TypedConstraint(rbA,rbB),m_pivotInA(pivotInA),m_pivotInB(pivotInB),
 m_axisInA(axisInA),
-m_axisInB(axisInB),
+m_axisInB(-axisInB),
 m_angularOnly(false)
 {
 
@@ -73,7 +73,7 @@ void	HingeConstraint::BuildJacobian()
 	//calculate two perpendicular jointAxis, orthogonal to hingeAxis
 	//these two jointAxis require equal angular velocities for both bodies
 
-	//this is ununsed for now, it's a todo
+	//this is unused for now, it's a todo
 	SimdVector3 axisWorldA = GetRigidBodyA().getCenterOfMassTransform().getBasis() * m_axisInA;
 	SimdVector3 jointAxis0;
 	SimdVector3 jointAxis1;
@@ -96,6 +96,102 @@ void	HingeConstraint::BuildJacobian()
 
 void	HingeConstraint::SolveConstraint(SimdScalar	timeStep)
 {
+//#define NEW_IMPLEMENTATION
+
+#ifdef NEW_IMPLEMENTATION
+	SimdScalar tau = 0.3f;
+	SimdScalar damping = 1.f;
+
+	SimdVector3 pivotAInW = m_rbA.getCenterOfMassTransform()*m_pivotInA;
+	SimdVector3 pivotBInW = m_rbB.getCenterOfMassTransform()*m_pivotInB;
+
+	// Dirk: Don't we need to update this after each applied impulse
+	SimdVector3 angvelA; // = m_rbA.getCenterOfMassTransform().getBasis().transpose() * m_rbA.getAngularVelocity();
+    SimdVector3 angvelB; // = m_rbB.getCenterOfMassTransform().getBasis().transpose() * m_rbB.getAngularVelocity();
+
+
+	if (!m_angularOnly)
+	{
+		SimdVector3 normal(0,0,0);
+
+		for (int i=0;i<3;i++)
+		{		
+			normal[i] = 1;
+			SimdScalar jacDiagABInv = 1.f / m_jac[i].getDiagonal();
+
+			SimdVector3 rel_pos1 = pivotAInW - m_rbA.getCenterOfMassPosition(); 
+			SimdVector3 rel_pos2 = pivotBInW - m_rbB.getCenterOfMassPosition();
+			
+			SimdVector3 vel1 = m_rbA.getVelocityInLocalPoint(rel_pos1);
+			SimdVector3 vel2 = m_rbB.getVelocityInLocalPoint(rel_pos2);
+			SimdVector3 vel = vel1 - vel2;
+
+			// Dirk: Get new angular velocity since it changed after applying an impulse
+			angvelA = m_rbA.getCenterOfMassTransform().getBasis().transpose() * m_rbA.getAngularVelocity();
+			angvelB = m_rbB.getCenterOfMassTransform().getBasis().transpose() * m_rbB.getAngularVelocity();
+	
+			//velocity error (first order error)
+			SimdScalar rel_vel = m_jac[i].getRelativeVelocity(m_rbA.getLinearVelocity(),angvelA, 
+																	m_rbB.getLinearVelocity(),angvelB);
+		
+			//positional error (zeroth order error)
+			SimdScalar depth = -(pivotAInW - pivotBInW).dot(normal); 
+			
+			SimdScalar impulse = tau*depth/timeStep * jacDiagABInv -  damping * rel_vel * jacDiagABInv;
+
+			SimdVector3 impulse_vector = normal * impulse;
+			m_rbA.applyImpulse( impulse_vector, pivotAInW - m_rbA.getCenterOfMassPosition());
+			m_rbB.applyImpulse(-impulse_vector, pivotBInW - m_rbB.getCenterOfMassPosition());
+			
+			normal[i] = 0;
+		}
+	}
+
+	///solve angular part
+
+	// get axes in world space
+	SimdVector3 axisA = GetRigidBodyA().getCenterOfMassTransform().getBasis() * m_axisInA;
+	SimdVector3 axisB = GetRigidBodyB().getCenterOfMassTransform().getBasis() * m_axisInB;
+
+	// constraint axes in world space
+	SimdVector3 jointAxis0;
+	SimdVector3 jointAxis1;
+	SimdPlaneSpace1(axisA,jointAxis0,jointAxis1);
+
+
+	// Dirk: Get new angular velocity since it changed after applying an impulse
+	angvelA = m_rbA.getCenterOfMassTransform().getBasis().transpose() * m_rbA.getAngularVelocity();
+    angvelB = m_rbB.getCenterOfMassTransform().getBasis().transpose() * m_rbB.getAngularVelocity();
+	
+	SimdScalar jacDiagABInv0 = 1.f / m_jacAng[0].getDiagonal();
+	SimdScalar rel_vel0 = m_jacAng[0].getRelativeVelocity(m_rbA.getLinearVelocity(),angvelA, 
+																	m_rbB.getLinearVelocity(),angvelB);
+	float tau1 = tau;//0.f;
+
+	SimdScalar impulse0 = (tau1 * axisB.dot(jointAxis1) / timeStep - damping * rel_vel0) * jacDiagABInv0;
+	SimdVector3 angular_impulse0 = jointAxis0 * impulse0;
+
+	m_rbA.applyTorqueImpulse( angular_impulse0);
+	m_rbB.applyTorqueImpulse(-angular_impulse0);
+
+
+
+	// Dirk: Get new angular velocity since it changed after applying an impulse	
+	angvelA = m_rbA.getCenterOfMassTransform().getBasis().transpose() * m_rbA.getAngularVelocity();
+    angvelB = m_rbB.getCenterOfMassTransform().getBasis().transpose() * m_rbB.getAngularVelocity();
+
+	SimdScalar jacDiagABInv1 = 1.f / m_jacAng[1].getDiagonal();
+	SimdScalar rel_vel1 = m_jacAng[1].getRelativeVelocity(m_rbA.getLinearVelocity(),angvelA, 
+																	m_rbB.getLinearVelocity(),angvelB);;
+
+	SimdScalar impulse1 = -(tau1 * axisB.dot(jointAxis0) / timeStep + damping * rel_vel1) * jacDiagABInv1;
+	SimdVector3 angular_impulse1 = jointAxis1 * impulse1;
+
+	m_rbA.applyTorqueImpulse( angular_impulse1);
+	m_rbB.applyTorqueImpulse(-angular_impulse1);
+
+#else
+
 
 	SimdVector3 pivotAInW = m_rbA.getCenterOfMassTransform()*m_pivotInA;
 	SimdVector3 pivotBInW = m_rbB.getCenterOfMassTransform()*m_pivotInB;
@@ -104,7 +200,7 @@ void	HingeConstraint::SolveConstraint(SimdScalar	timeStep)
 	SimdScalar tau = 0.3f;
 	SimdScalar damping = 1.f;
 
-	if (!m_angularOnly)
+//linear part
 	{
 		for (int i=0;i<3;i++)
 		{		
@@ -168,6 +264,8 @@ void	HingeConstraint::SolveConstraint(SimdScalar	timeStep)
 
 	m_rbA.applyTorqueImpulse(-velrel+angularError);
 	m_rbB.applyTorqueImpulse(velrel-angularError);
+
+#endif
 
 }
 

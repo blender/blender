@@ -14,7 +14,7 @@ subject to the following restrictions:
 */
 
 
-#include "SimpleConstraintSolver.h"
+#include "SequentialImpulseConstraintSolver.h"
 #include "NarrowPhaseCollision/PersistentManifold.h"
 #include "Dynamics/RigidBody.h"
 #include "ContactConstraint.h"
@@ -45,14 +45,14 @@ bool  MyContactDestroyedCallback(void* userPersistentData)
 }
 
 
-SimpleConstraintSolver::SimpleConstraintSolver()
+SequentialImpulseConstraintSolver::SequentialImpulseConstraintSolver()
 {
-	gContactCallback = &MyContactDestroyedCallback;
+	gContactDestroyedCallback = &MyContactDestroyedCallback;
 }
 
 
-/// SimpleConstraintSolver Sequentially applies impulses
-float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int numManifolds,const ContactSolverInfo& infoGlobal,IDebugDraw* debugDrawer)
+/// SequentialImpulseConstraintSolver Sequentially applies impulses
+float SequentialImpulseConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int numManifolds,const ContactSolverInfo& infoGlobal,IDebugDraw* debugDrawer)
 {
 	
 	ContactSolverInfo info = infoGlobal;
@@ -113,7 +113,7 @@ SimdScalar restitutionCurve(SimdScalar rel_vel, SimdScalar restitution)
 
 
 
-float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const ContactSolverInfo& info,int iter,IDebugDraw* debugDrawer)
+float SequentialImpulseConstraintSolver::Solve(PersistentManifold* manifoldPtr, const ContactSolverInfo& info,int iter,IDebugDraw* debugDrawer)
 {
 
 	RigidBody* body0 = (RigidBody*)manifoldPtr->GetBody0();
@@ -188,10 +188,10 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 				SimdScalar rel_vel;
 				rel_vel = cp.m_normalWorldOnB.dot(vel);
 				
-				float combinedRestitution = body0->getRestitution() * body1->getRestitution();
-
+				float combinedRestitution = cp.m_combinedRestitution;
+				
 				cpd->m_penetration = cp.GetDistance();
-
+				cpd->m_friction = cp.m_combinedFriction;
 				cpd->m_restitution = restitutionCurve(rel_vel, combinedRestitution);
 				if (cpd->m_restitution <= 0.) //0.f)
 				{
@@ -294,7 +294,7 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 	return maxImpulse;
 }
 
-float SimpleConstraintSolver::SolveFriction(PersistentManifold* manifoldPtr, const ContactSolverInfo& info,int iter,IDebugDraw* debugDrawer)
+float SequentialImpulseConstraintSolver::SolveFriction(PersistentManifold* manifoldPtr, const ContactSolverInfo& info,int iter,IDebugDraw* debugDrawer)
 {
 	RigidBody* body0 = (RigidBody*)manifoldPtr->GetBody0();
 	RigidBody* body1 = (RigidBody*)manifoldPtr->GetBody1();

@@ -15,39 +15,51 @@ subject to the following restrictions:
 
 #include "TriangleIndexVertexArray.h"
 
-TriangleIndexVertexArray::TriangleIndexVertexArray(int numTriangleIndices,int* triangleIndexBase,int triangleIndexStride,int numVertices,float* vertexBase,int vertexStride)
-:m_numTriangleIndices(numTriangleIndices),
-m_triangleIndexBase(triangleIndexBase),
-m_triangleIndexStride(triangleIndexStride),
-m_numVertices(numVertices),
-m_vertexBase(vertexBase),
-m_vertexStride(vertexStride)
+TriangleIndexVertexArray::TriangleIndexVertexArray(int numTriangles,int* triangleIndexBase,int triangleIndexStride,int numVertices,float* vertexBase,int vertexStride)
 {
+	IndexedMesh mesh;
+	
+	mesh.m_numTriangles = numTriangles;
+	mesh.m_triangleIndexBase = triangleIndexBase;
+	mesh.m_triangleIndexStride = triangleIndexStride;
+	mesh.m_numVertices = numVertices;
+	mesh.m_vertexBase = vertexBase;
+	mesh.m_vertexStride = vertexStride;
+	
+	AddIndexedMesh(mesh);
+
 }
 
 void	TriangleIndexVertexArray::getLockedVertexIndexBase(unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& vertexStride,unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart)
 {
-	numverts = m_numVertices;
-	(*vertexbase) = (unsigned char *)m_vertexBase;
-	type = PHY_FLOAT;
-	vertexStride = m_vertexStride;
+	ASSERT(subpart< getNumSubParts() );
+	
+	IndexedMesh& mesh = m_indexedMeshes[subpart];
 
-	numfaces = m_numTriangleIndices;
-	(*indexbase) = (unsigned char *)m_triangleIndexBase;
-	indexstride = m_triangleIndexStride;
+	numverts = mesh.m_numVertices;
+	(*vertexbase) = (unsigned char *) mesh.m_vertexBase;
+	type = PHY_FLOAT;
+	vertexStride = mesh.m_vertexStride;
+
+	numfaces = mesh.m_numTriangles;
+
+	(*indexbase) = (unsigned char *)mesh.m_triangleIndexBase;
+	indexstride = mesh.m_triangleIndexStride;
 	indicestype = PHY_INTEGER;
 }
 
 void	TriangleIndexVertexArray::getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& vertexStride,const unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart) const
 {
-	numverts = m_numVertices;
-	(*vertexbase) = (unsigned char *)m_vertexBase;
-	type = PHY_FLOAT;
-	vertexStride = m_vertexStride;
+	const IndexedMesh& mesh = m_indexedMeshes[subpart];
 
-	numfaces = m_numTriangleIndices;
-	(*indexbase) = (unsigned char *)m_triangleIndexBase;
-	indexstride = m_triangleIndexStride;
+	numverts = mesh.m_numVertices;
+	(*vertexbase) = (const unsigned char *)mesh.m_vertexBase;
+	type = PHY_FLOAT;
+	vertexStride = mesh.m_vertexStride;
+
+	numfaces = mesh.m_numTriangles;
+	(*indexbase) = (const unsigned char *)mesh.m_triangleIndexBase;
+	indexstride = mesh.m_triangleIndexStride;
 	indicestype = PHY_INTEGER;
 }
 

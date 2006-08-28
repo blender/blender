@@ -70,6 +70,7 @@ class BroadphaseInterface;
 #include "SimdTransform.h"
 #include "CollisionObject.h"
 #include "CollisionDispatcher.h" //for definition of CollisionObjectArray
+#include "BroadphaseCollision/OverlappingPairCache.h"
 
 #include <vector>
 
@@ -83,31 +84,36 @@ class CollisionWorld
 
 	std::vector<CollisionObject*>	m_collisionObjects;
 	
-	CollisionDispatcher*	m_dispatcher;
+	Dispatcher*	m_dispatcher1;
 
-	BroadphaseInterface*	m_broadphase;
+	OverlappingPairCache*	m_pairCache;
+	
 
 public:
 
-	CollisionWorld(CollisionDispatcher* dispatcher,BroadphaseInterface* broadphase)
-		:m_dispatcher(dispatcher),
-		m_broadphase(broadphase)
+	CollisionWorld(Dispatcher* dispatcher,OverlappingPairCache* pairCache)
+		:m_dispatcher1(dispatcher),
+		m_pairCache(pairCache)
 	{
 
 	}
 	virtual ~CollisionWorld();
 
-	virtual	void	UpdateActivationState();
-	virtual	void	StoreIslandActivationState();
 
 	BroadphaseInterface*	GetBroadphase()
 	{
-		return m_broadphase;
+		return m_pairCache;
 	}
 
-	CollisionDispatcher*	GetDispatcher()
+	OverlappingPairCache*	GetPairCache()
 	{
-		return m_dispatcher;
+		return m_pairCache;
+	}
+
+
+	Dispatcher*	GetDispatcher()
+	{
+		return m_dispatcher1;
 	}
 
 	///LocalShapeInfo gives extra information for complex shapes
@@ -201,7 +207,7 @@ public:
 	void	RayTest(const SimdVector3& rayFromWorld, const SimdVector3& rayToWorld, RayResultCallback& resultCallback);
 
 
-	void	AddCollisionObject(CollisionObject* collisionObject);
+	void	AddCollisionObject(CollisionObject* collisionObject,short int collisionFilterGroup=1,short int collisionFilterMask=1);
 
 	CollisionObjectArray& GetCollisionObjectArray()
 	{

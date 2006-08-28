@@ -27,14 +27,15 @@ struct CollisionResult;
 extern float gContactBreakingTreshold;
 
 typedef bool (*ContactDestroyedCallback)(void* userPersistentData);
+extern ContactDestroyedCallback	gContactDestroyedCallback;
 
-extern ContactDestroyedCallback	gContactCallback;
 
 
 
 #define MANIFOLD_CACHE_SIZE 4
 
-///PersistentManifold maintains contact points, and reduces them to 4
+///PersistentManifold maintains contact points, and reduces them to 4.
+///It does contact filtering/contact reduction.
 class PersistentManifold 
 {
 

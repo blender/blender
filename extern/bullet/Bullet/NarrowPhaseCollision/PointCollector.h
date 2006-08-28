@@ -35,6 +35,11 @@ struct PointCollector : public DiscreteCollisionDetectorInterface::Result
 	{
 	}
 
+	virtual void SetShapeIdentifiers(int partId0,int index0,	int partId1,int index1)
+	{
+		//??
+	}
+
 	virtual void AddContactPoint(const SimdVector3& normalOnBInWorld,const SimdVector3& pointInWorld,float depth)
 	{
 		if (depth< m_distance)

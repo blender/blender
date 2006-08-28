@@ -18,14 +18,16 @@ subject to the following restrictions:
 #include "NarrowPhaseCollision/SimplexSolverInterface.h"
 #include "NarrowPhaseCollision/ConvexPenetrationDepthSolver.h"
 
+#if defined(DEBUG) || defined (_DEBUG)
+#include <stdio.h> //for debug printf
+#endif
+
 static const SimdScalar rel_error = SimdScalar(1.0e-5);
 SimdScalar rel_error2 = rel_error * rel_error;
 float maxdist2 = 1.e30f;
-#include <stdio.h>
 
 
 int gGjkMaxIter=1000;
-bool gIrregularCatch = true;
 
 GjkPairDetector::GjkPairDetector(ConvexShape* objectA,ConvexShape* objectB,SimplexSolverInterface* simplexSolver,ConvexPenetrationDepthSolver*	penetrationDepthSolver)
 :m_cachedSeparatingAxis(0.f,0.f,1.f),
@@ -33,7 +35,11 @@ m_penetrationDepthSolver(penetrationDepthSolver),
 m_simplexSolver(simplexSolver),
 m_minkowskiA(objectA),
 m_minkowskiB(objectB),
-m_ignoreMargin(false)
+m_ignoreMargin(false),
+m_partId0(-1),
+m_index0(-1),
+m_partId1(-1),
+m_index1(-1)
 {
 }
 
@@ -71,7 +77,22 @@ int curIter = 0;
 		
 		while (true)
 		{
-		
+			//rare failure case, perhaps deferate shapes?
+			if (curIter++ > gGjkMaxIter)
+			{
+				#if defined(DEBUG) || defined (_DEBUG)
+					printf("GjkPairDetector maxIter exceeded:%i\n",curIter);
+					printf("sepAxis=(%f,%f,%f), squaredDistance = %f, shapeTypeA=%i,shapeTypeB=%i\n",
+					m_cachedSeparatingAxis.getX(),
+					m_cachedSeparatingAxis.getY(),
+					m_cachedSeparatingAxis.getZ(),
+					squaredDistance,
+					m_minkowskiA->GetShapeType(),
+					m_minkowskiB->GetShapeType());
+				#endif
+				break;
+
+			}
 
 			SimdVector3 seperatingAxisInA = (-m_cachedSeparatingAxis)* input.m_transformA.getBasis();
 			SimdVector3 seperatingAxisInB = m_cachedSeparatingAxis* input.m_transformB.getBasis();
@@ -134,39 +155,6 @@ int curIter = 0;
 				m_simplexSolver->backup_closest(m_cachedSeparatingAxis);
 				break;
 			}
-
-				//rare failure case, perhaps deferate shapes?
-			if (curIter++ > gGjkMaxIter)
-			{
-
-#define CATCH_ME 1
-#ifdef CATCH_ME
-//this should not happen, we need to catch it
-//#if defined(DEBUG) || defined (_DEBUG)
-				if (gIrregularCatch)
-				{
-					gIrregularCatch = false;
-
-					printf("Problem with collision geometry\n");
-						printf("sepAxis=(%f,%f,%f), squaredDistance = %f, shapeTypeA=%i,shapeTypeB=%i\n",
-						m_cachedSeparatingAxis.getX(),
-						m_cachedSeparatingAxis.getY(),
-						m_cachedSeparatingAxis.getZ(),
-						squaredDistance,
-						m_minkowskiA->GetShapeType(),
-						m_minkowskiB->GetShapeType());
-
-					printf("If you can reproduce this, please email bugs@continuousphysics.com\n");
-					printf("Please include above information, your Platform, version of OS.\n");
-					printf("Thanks.\n");
-				}
-//#endif
-#endif //CATCH_ME
-
-				break;
-
-			}
-
 		}
 
 		if (checkSimplex)
@@ -223,6 +211,8 @@ int curIter = 0;
 
 	if (isValid)
 	{
+		output.SetShapeIdentifiers(m_partId0,m_index0,m_partId1,m_index1);
+
 		output.AddContactPoint(
 			normalInB,
 			pointOnB,

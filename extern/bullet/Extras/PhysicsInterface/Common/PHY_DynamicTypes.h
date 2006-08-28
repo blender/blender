@@ -82,7 +82,7 @@ typedef enum PHY_ConstraintType {
 	PHY_LINEHINGE_CONSTRAINT=2,
 	PHY_ANGULAR_CONSTRAINT = 3,//hinge without ball socket
 	PHY_VEHICLE_CONSTRAINT=11,//complex 'constraint' that turns a rigidbody into a vehicle
-
+	PHY_GENERIC_6DOF_CONSTRAINT=12,//can leave any of the 6 degree of freedom 'free' or 'locked'
 
 } PHY_ConstraintType;
 

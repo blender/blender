@@ -178,7 +178,7 @@ void ContactJoint::GetInfo2(Info2 *info)
 	c2[1] = relativePositionB[1];
 	c2[2] = relativePositionB[2];
 	
-	
+	//combined friction is available in the contact point
 	float friction = FRICTION_CONSTANT*m_body0->getFriction() * m_body1->getFriction();
 	
 	// first friction direction

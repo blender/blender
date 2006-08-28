@@ -18,32 +18,19 @@ subject to the following restrictions:
 
 #include "BroadphaseCollision/Dispatcher.h"
 #include "NarrowPhaseCollision/PersistentManifold.h"
-#include "CollisionDispatch/UnionFind.h"
+
 #include "CollisionDispatch/ManifoldResult.h"
 
 #include "BroadphaseCollision/BroadphaseProxy.h"
-#include <vector>
+
 
 class IDebugDraw;
+class OverlappingPairCache;
 
-typedef std::vector<struct CollisionObject*> CollisionObjectArray;
+
+#include "CollisionCreateFunc.h"
 
 
-struct CollisionAlgorithmCreateFunc
-{
-	bool m_swapped;
-	
-	CollisionAlgorithmCreateFunc()
-		:m_swapped(false)
-	{
-	}
-	virtual ~CollisionAlgorithmCreateFunc(){};
-
-	virtual	CollisionAlgorithm* CreateCollisionAlgorithm(BroadphaseProxy& proxy0,BroadphaseProxy& proxy1)
-	{
-		return 0;
-	}
-};
 
 
 ///CollisionDispatcher supports algorithms that handle ConvexConvex and ConvexConcave collision pairs.
@@ -53,7 +40,7 @@ class CollisionDispatcher : public Dispatcher
 	
 	std::vector<PersistentManifold*>	m_manifoldsPtr;
 
-	UnionFind m_unionFind;
+	
 
 	bool m_useIslands;
 	
@@ -63,14 +50,9 @@ class CollisionDispatcher : public Dispatcher
 	
 public:
 	
-	UnionFind& GetUnionFind() { return m_unionFind;}
+	
 
-	struct	IslandCallback
-	{
-		virtual ~IslandCallback() {};
-
-		virtual	void	ProcessIsland(PersistentManifold**	manifolds,int numManifolds) = 0;
-	};
+	
 
 
 	int	GetNumManifolds() const
@@ -88,14 +70,6 @@ public:
 		return m_manifoldsPtr[index];
 	}
 
-	void InitUnionFind(int n)
-	{
-		if (m_useIslands)
-			m_unionFind.reset(n);
-	}
-	
-	void FindUnions();
-	
 	int m_count;
 	
 	CollisionDispatcher ();
@@ -106,8 +80,6 @@ public:
 	virtual void ReleaseManifold(PersistentManifold* manifold);
 
 	
-	virtual void BuildAndProcessIslands(CollisionObjectArray& collisionObjects, IslandCallback* callback);
-
 	///allows the user to get contact point callbacks 
 	virtual	ManifoldResult*	GetNewManifoldResult(CollisionObject* obj0,CollisionObject* obj1,PersistentManifold* manifold);
 
@@ -131,6 +103,8 @@ public:
 
 	virtual int GetUniqueId() { return RIGIDBODY_DISPATCHER;}
 	
+	virtual void	DispatchAllCollisionPairs(BroadphasePair* pairs,int numPairs,DispatcherInfo& dispatchInfo);
+
 	
 
 };

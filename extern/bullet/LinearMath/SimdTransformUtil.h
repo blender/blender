@@ -25,6 +25,13 @@ subject to the following restrictions:
 
 #define SimdRecipSqrt(x) ((float)(1.0f/SimdSqrt(float(x))))		/* reciprocal square root */
 
+inline SimdVector3 SimdAabbSupport(const SimdVector3& halfExtents,const SimdVector3& supportDir)
+{
+	return SimdVector3(supportDir.x() < SimdScalar(0.0f) ? -halfExtents.x() : halfExtents.x(),
+      supportDir.y() < SimdScalar(0.0f) ? -halfExtents.y() : halfExtents.y(),
+      supportDir.z() < SimdScalar(0.0f) ? -halfExtents.z() : halfExtents.z()); 
+}
+
 
 inline void SimdPlaneSpace1 (const SimdVector3& n, SimdVector3& p, SimdVector3& q)
 {

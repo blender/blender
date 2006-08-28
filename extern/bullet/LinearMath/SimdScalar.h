@@ -27,29 +27,29 @@ subject to the following restrictions:
 #include <float.h>
 
 #ifdef WIN32
-#pragma warning(disable:4530)
-#pragma warning(disable:4996)
-#ifdef __MINGW32__
-#define SIMD_FORCE_INLINE inline
+
+		#if defined(__MINGW32__) || defined(__CYGWIN__)
+			#define SIMD_FORCE_INLINE inline
+		#else
+			#pragma warning(disable:4530)
+			#pragma warning(disable:4996)
+			#define SIMD_FORCE_INLINE __forceinline
+		#endif //__MINGW32__
+	
+		//#define ATTRIBUTE_ALIGNED16(a) __declspec(align(16)) a
+		#define ATTRIBUTE_ALIGNED16(a) a
+		#include <assert.h>
+		#define ASSERT assert
 #else
-#define SIMD_FORCE_INLINE __forceinline
-#endif //__MINGW32__
+	
+	//non-windows systems
 
-//#define ATTRIBUTE_ALIGNED16(a) __declspec(align(16)) a
-#define ATTRIBUTE_ALIGNED16(a) a
-
-#include <assert.h>
-#define ASSERT assert
-#else
-#define SIMD_FORCE_INLINE inline
-#define ATTRIBUTE_ALIGNED16(a) a
-#ifndef assert
-#include <assert.h>
-#endif
-
-
-#define ASSERT assert
-
+		#define SIMD_FORCE_INLINE inline
+		#define ATTRIBUTE_ALIGNED16(a) a
+		#ifndef assert
+		#include <assert.h>
+		#endif
+		#define ASSERT assert
 #endif
 
 

@@ -34,6 +34,7 @@ struct ConstraintPersistentData
 	m_jacDiagABInv(0.f),
 	m_persistentLifeTime(0),
 	m_restitution(0.f),
+	m_friction(0.f),
 	m_penetration(0.f)
 	{
 	}
@@ -50,6 +51,7 @@ struct ConstraintPersistentData
 			float	m_jacDiagABInvTangent1;
 			int		m_persistentLifeTime;
 			float	m_restitution;
+			float	m_friction;
 			float	m_penetration;
 			SimdVector3	m_frictionWorldTangential0;
 			SimdVector3	m_frictionWorldTangential1;

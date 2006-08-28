@@ -32,10 +32,13 @@ RigidBody::RigidBody( const MassProps& massProps,SimdScalar linearDamping,SimdSc
 	m_angularVelocity(0.f,0.f,0.f),
 	m_linearDamping(0.f),
 	m_angularDamping(0.5f),
-	m_friction(friction),
-	m_restitution(restitution),
 	m_kinematicTimeStep(0.f)
 {
+
+	//moved to CollisionObject
+	m_friction = friction;
+	m_restitution = restitution;
+
 	m_debugBodyId = uniqueId++;
 	
 	setMassProps(massProps.m_mass, massProps.m_inertiaLocal);

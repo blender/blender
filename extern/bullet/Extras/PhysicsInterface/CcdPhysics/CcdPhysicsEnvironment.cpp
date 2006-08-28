@@ -30,14 +30,12 @@ subject to the following restrictions:
 
 #include "CollisionShapes/ConvexShape.h"
 #include "CollisionShapes/ConeShape.h"
-
-
+#include "CollisionDispatch/SimulationIslandManager.h"
 
 #include "BroadphaseCollision/Dispatcher.h"
 #include "NarrowPhaseCollision/PersistentManifold.h"
 #include "CollisionShapes/TriangleMeshShape.h"
-#include "ConstraintSolver/OdeConstraintSolver.h"
-#include "ConstraintSolver/SimpleConstraintSolver.h"
+#include "ConstraintSolver/SequentialImpulseConstraintSolver.h"
 
 
 //profiling/timings
@@ -56,7 +54,7 @@ subject to the following restrictions:
 #include "PHY_IMotionState.h"
 
 #include "CollisionDispatch/EmptyCollisionAlgorithm.h"
-#include "CollisionDispatch/UnionFind.h"
+
 
 
 #include "CollisionShapes/SphereShape.h"
@@ -77,6 +75,7 @@ RaycastVehicle::VehicleTuning	gTuning;
 #include "ConstraintSolver/ConstraintSolver.h"
 #include "ConstraintSolver/Point2PointConstraint.h"
 #include "ConstraintSolver/HingeConstraint.h"
+#include "ConstraintSolver/Generic6DofConstraint.h"
 
 
 //#include "BroadphaseCollision/QueryDispatcher.h"
@@ -322,7 +321,7 @@ static void DrawAabb(IDebugDraw* debugDrawer,const SimdVector3& from,const SimdV
 
 
 
-CcdPhysicsEnvironment::CcdPhysicsEnvironment(CollisionDispatcher* dispatcher,BroadphaseInterface* broadphase)
+CcdPhysicsEnvironment::CcdPhysicsEnvironment(Dispatcher* dispatcher,OverlappingPairCache* pairCache)
 :m_scalingPropagated(false),
 m_numIterations(10),
 m_numTimeSubSteps(1),
@@ -340,14 +339,14 @@ m_enableSatCollisionDetection(false)
 		dispatcher = new CollisionDispatcher();
 
 
-	if(!broadphase)
+	if(!pairCache)
 	{
 
 		//todo: calculate/let user specify this world sizes
 		SimdVector3 worldMin(-10000,-10000,-10000);
 		SimdVector3 worldMax(10000,10000,10000);
 
-		broadphase = new AxisSweep3(worldMin,worldMax);
+		pairCache = new AxisSweep3(worldMin,worldMax);
 
 		//broadphase = new SimpleBroadphase();
 	}
@@ -355,10 +354,12 @@ m_enableSatCollisionDetection(false)
 
 	setSolverType(1);//issues with quickstep and memory allocations
 
-	m_collisionWorld = new CollisionWorld(dispatcher,broadphase);
+	m_collisionWorld = new CollisionWorld(dispatcher,pairCache);
 
 	m_debugDrawer = 0;
 	m_gravity = SimdVector3(0.f,-10.f,0.f);
+
+	m_islandManager = new SimulationIslandManager();
 
 
 }
@@ -373,7 +374,7 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 	body->setGravity( m_gravity );
 	m_controllers.push_back(ctrl);
 
-	m_collisionWorld->AddCollisionObject(body);
+	m_collisionWorld->AddCollisionObject(body,ctrl->GetCollisionFilterGroup(),ctrl->GetCollisionFilterMask());
 
 	assert(body->m_broadphaseHandle);
 
@@ -385,7 +386,8 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 	assert(shapeinterface);
 
 	const SimdTransform& t = ctrl->GetRigidBody()->getCenterOfMassTransform();
-
+	
+	body->m_cachedInvertedWorldTransform = body->m_worldTransform.inverse();
 
 	SimdPoint3 minAabb,maxAabb;
 
@@ -637,6 +639,9 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 			CcdPhysicsController* ctrl = m_controllers[k];
 			//		SimdTransform predictedTrans;
 			RigidBody* body = ctrl->GetRigidBody();
+			
+			body->m_cachedInvertedWorldTransform = body->m_worldTransform.inverse();
+
 			if (body->IsActive())
 			{
 				if (!body->IsStatic())
@@ -654,7 +659,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	Profiler::endBlock("predictIntegratedTransform");
 #endif //USE_QUICKPROF
 
-	BroadphaseInterface*	scene = GetBroadphase();
+	OverlappingPairCache*	scene = m_collisionWorld->GetPairCache();
 
 
 	//
@@ -674,8 +679,10 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 	dispatchInfo.m_timeStep = timeStep;
 	dispatchInfo.m_stepCount = 0;
 	dispatchInfo.m_enableSatConvex = m_enableSatCollisionDetection;
+	dispatchInfo.m_debugDraw = this->m_debugDrawer;
 
-	scene->DispatchAllCollisionPairs(*GetDispatcher(),dispatchInfo);///numsubstep,g);
+	scene->RefreshOverlappingPairs();
+	GetCollisionWorld()->GetDispatcher()->DispatchAllCollisionPairs(&scene->GetOverlappingPair(0),scene->GetNumOverlappingPairs(),dispatchInfo);
 
 
 #ifdef USE_QUICKPROF
@@ -685,7 +692,8 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 
 	int numRigidBodies = m_controllers.size();
 
-	m_collisionWorld->UpdateActivationState();
+	
+	m_islandManager->UpdateActivationState(GetCollisionWorld(),GetCollisionWorld()->GetDispatcher());
 
 	{
 		int i;
@@ -702,15 +710,15 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 			{
 				if (colObj0->IsActive() || colObj1->IsActive())
 				{
-					GetDispatcher()->GetUnionFind().unite((colObj0)->m_islandTag1,
+
+					m_islandManager->GetUnionFind().unite((colObj0)->m_islandTag1,
 						(colObj1)->m_islandTag1);
 				}
 			}
 		}
 	}
 
-	m_collisionWorld->StoreIslandActivationState();
-
+	m_islandManager->StoreIslandActivationState(GetCollisionWorld());
 
 
 	//contacts
@@ -762,7 +770,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 
 
-	struct InplaceSolverIslandCallback : public CollisionDispatcher::IslandCallback
+	struct InplaceSolverIslandCallback : public SimulationIslandManager::IslandCallback
 	{
 
 		ContactSolverInfo& m_solverInfo;
@@ -803,7 +811,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 #endif //USE_QUICKPROF
 
 	/// solve all the contact points and contact friction
-	GetDispatcher()->BuildAndProcessIslands(m_collisionWorld->GetCollisionObjectArray(),&solverCallback);
+	m_islandManager->BuildAndProcessIslands(GetCollisionWorld()->GetDispatcher(),m_collisionWorld->GetCollisionObjectArray(),&solverCallback);
 
 #ifdef USE_QUICKPROF
 	Profiler::endBlock("BuildAndProcessIslands");
@@ -842,7 +850,9 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 				dispatchInfo.m_stepCount = 0;
 				dispatchInfo.m_dispatchFunc = DispatcherInfo::DISPATCH_CONTINUOUS;
 
-				scene->DispatchAllCollisionPairs( *GetDispatcher(),dispatchInfo);///numsubstep,g);
+				//pairCache->RefreshOverlappingPairs();//??
+				GetCollisionWorld()->GetDispatcher()->DispatchAllCollisionPairs(&scene->GetOverlappingPair(0),scene->GetNumOverlappingPairs(),dispatchInfo);
+				
 				toi = dispatchInfo.m_timeOfImpact;
 
 			}
@@ -871,6 +881,11 @@ bool	CcdPhysicsEnvironment::proceedDeltaTimeOneStep(float timeStep)
 
 						if (!body->IsStatic())
 						{
+							if (body->m_hitFraction < 1.f)
+							{
+								//set velocity to zero... until we have proper CCD integrated
+								body->setLinearVelocity(body->getLinearVelocity()*0.5f);
+							}
 							body->predictIntegratedTransform(timeStep*	toi, predictedTrans);
 							body->proceedToTransform( predictedTrans);
 						}
@@ -1033,7 +1048,7 @@ void		CcdPhysicsEnvironment::setSolverType(int solverType)
 			if (m_solverType != solverType)
 			{
 
-				m_solver = new SimpleConstraintSolver();
+				m_solver = new SequentialImpulseConstraintSolver();
 
 				break;
 			}
@@ -1043,7 +1058,7 @@ void		CcdPhysicsEnvironment::setSolverType(int solverType)
 	default:
 		if (m_solverType != solverType)
 		{
-			m_solver = new OdeConstraintSolver();
+//			m_solver = new OdeConstraintSolver();
 
 			break;
 		}
@@ -1182,8 +1197,8 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 	SimdVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : pivotInA;
 	SimdVector3 axisInA(axisX,axisY,axisZ);
 	SimdVector3 axisInB = rb1 ? 
-		(rb1->getCenterOfMassTransform().getBasis().inverse()*(rb0->getCenterOfMassTransform().getBasis() * -axisInA)) : 
-	rb0->getCenterOfMassTransform().getBasis() * -axisInA;
+		(rb1->getCenterOfMassTransform().getBasis().inverse()*(rb0->getCenterOfMassTransform().getBasis() * axisInA)) : 
+	rb0->getCenterOfMassTransform().getBasis() * axisInA;
 
 	bool angularOnly = false;
 
@@ -1213,8 +1228,54 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 			break;
 		}
 
+	case PHY_GENERIC_6DOF_CONSTRAINT:
+		{
+			Generic6DofConstraint* genericConstraint = 0;
+
+			if (rb1)
+			{
+				SimdTransform frameInA;
+				SimdTransform frameInB;
+				
+				SimdVector3 axis1, axis2;
+				SimdPlaneSpace1( axisInA, axis1, axis2 );
+
+				frameInA.getBasis().setValue( axisInA.x(), axis1.x(), axis2.x(),
+					                          axisInA.y(), axis1.y(), axis2.y(),
+											  axisInA.z(), axis1.z(), axis2.z() );
+
+	
+				SimdPlaneSpace1( axisInB, axis1, axis2 );
+				frameInB.getBasis().setValue( axisInB.x(), axis1.x(), axis2.x(),
+					                          axisInB.y(), axis1.y(), axis2.y(),
+											  axisInB.z(), axis1.z(), axis2.z() );
+
+				frameInA.setOrigin( pivotInA );
+				frameInB.setOrigin( pivotInB );
+
+				genericConstraint = new Generic6DofConstraint(
+					*rb0,*rb1,
+					frameInA,frameInB);
+
+
+			} else
+			{
+				// TODO: Implement single body case...
+
+			}
+			
+
+			m_constraints.push_back(genericConstraint);
+			genericConstraint->SetUserConstraintId(gConstraintUid++);
+			genericConstraint->SetUserConstraintType(type);
+			//64 bit systems can't cast pointer to int. could use size_t instead.
+			return genericConstraint->GetUserConstraintId();
+
+			break;
+		}
 	case PHY_ANGULAR_CONSTRAINT:
 		angularOnly = true;
+
 
 	case PHY_LINEHINGE_CONSTRAINT:
 		{
@@ -1271,21 +1332,62 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 
 }
 
-float		CcdPhysicsEnvironment::getAppliedImpulse(int	constraintid)
-{
-	std::vector<TypedConstraint*>::iterator i;
 
-	for (i=m_constraints.begin();
-		!(i==m_constraints.end()); i++)
+
+
+//Following the COLLADA physics specification for constraints
+int			CcdPhysicsEnvironment::createUniversalD6Constraint(
+						class PHY_IPhysicsController* ctrlRef,class PHY_IPhysicsController* ctrlOther,
+						SimdTransform& frameInA,
+						SimdTransform& frameInB,
+						const SimdVector3& linearMinLimits,
+						const SimdVector3& linearMaxLimits,
+						const SimdVector3& angularMinLimits,
+						const SimdVector3& angularMaxLimits
+)
+{
+
+	//we could either add some logic to recognize ball-socket and hinge, or let that up to the user
+	//perhaps some warning or hint that hinge/ball-socket is more efficient?
+	
+	Generic6DofConstraint* genericConstraint = 0;
+	CcdPhysicsController* ctrl0 = (CcdPhysicsController*) ctrlRef;
+	CcdPhysicsController* ctrl1 = (CcdPhysicsController*) ctrlOther;
+	
+	RigidBody* rb0 = ctrl0->GetRigidBody();
+	RigidBody* rb1 = ctrl1->GetRigidBody();
+
+	if (rb1)
 	{
-		TypedConstraint* constraint = (*i);
-		if (constraint->GetUserConstraintId() == constraintid)
-		{
-			return constraint->GetAppliedImpulse();
-		}
+		
+
+		genericConstraint = new Generic6DofConstraint(
+			*rb0,*rb1,
+			frameInA,frameInB);
+		genericConstraint->setLinearLowerLimit(linearMinLimits);
+		genericConstraint->setLinearUpperLimit(linearMaxLimits);
+		genericConstraint->setAngularLowerLimit(angularMinLimits);
+		genericConstraint->setAngularUpperLimit(angularMaxLimits);
+	} else
+	{
+		// TODO: Implement single body case...
+		//No, we can use a fixed rigidbody in above code, rather then unnecessary duplation of code
+
 	}
-	return 0.f;
+	
+	if (genericConstraint)
+	{
+		m_constraints.push_back(genericConstraint);
+		genericConstraint->SetUserConstraintId(gConstraintUid++);
+		genericConstraint->SetUserConstraintType(PHY_GENERIC_6DOF_CONSTRAINT);
+		//64 bit systems can't cast pointer to int. could use size_t instead.
+		return genericConstraint->GetUserConstraintId();
+	}
+	return 0;
 }
+
+
+
 void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
 {
 	std::vector<TypedConstraint*>::iterator i;
@@ -1296,15 +1398,7 @@ void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
 		TypedConstraint* constraint = (*i);
 		if (constraint->GetUserConstraintId() == constraintId)
 		{
-			//activate objects
-			if (constraint->GetRigidBodyA().mergesSimulationIslands())
-				constraint->GetRigidBodyA().activate();
-			if (constraint->GetRigidBodyB().mergesSimulationIslands())
-				constraint->GetRigidBodyB().activate();
-
 			std::swap(*i, m_constraints.back());
-
-			
 			m_constraints.pop_back();
 			break;
 		}
@@ -1352,13 +1446,6 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 	SimdVector3 rayFrom(fromX,fromY,fromZ);
 	SimdVector3 rayTo(toX,toY,toZ);
 
-	
-	if (m_debugDrawer->GetDebugMode() & IDebugDraw::DBG_DrawAabb)	
-	{
-		SimdVector3 color (1,0,0);
-		m_debugDrawer->DrawLine(rayFrom,rayTo,color);
-	}
-
 	SimdVector3	hitPointWorld,normalWorld;
 
 	//Either Ray Cast with or without filtering
@@ -1376,26 +1463,10 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 		hitX = 	rayCallback.m_hitPointWorld.getX();
 		hitY = 	rayCallback.m_hitPointWorld.getY();
 		hitZ = 	rayCallback.m_hitPointWorld.getZ();
-		if (rayCallback.m_hitNormalWorld.length2() > SIMD_EPSILON)
-		{
-			rayCallback.m_hitNormalWorld.normalize();
-		}
 
 		normalX = rayCallback.m_hitNormalWorld.getX();
 		normalY = rayCallback.m_hitNormalWorld.getY();
 		normalZ = rayCallback.m_hitNormalWorld.getZ();
-		
-		if (m_debugDrawer->GetDebugMode() & IDebugDraw::DBG_DrawAabb)	
-		{
-			SimdVector3 colorNormal(0,0,1);
-			m_debugDrawer->DrawLine(rayCallback.m_hitPointWorld,rayCallback.m_hitPointWorld+rayCallback.m_hitNormalWorld,colorNormal);
-		
-			SimdVector3 color (0,1,0);
-			m_debugDrawer->DrawLine(rayFrom,rayCallback.m_hitPointWorld,color);
-			
-		
-		}
-
 
 	}	
 
@@ -1425,15 +1496,6 @@ BroadphaseInterface*	CcdPhysicsEnvironment::GetBroadphase()
 
 
 
-const CollisionDispatcher* CcdPhysicsEnvironment::GetDispatcher() const
-{
-	return m_collisionWorld->GetDispatcher();
-}
-
-CollisionDispatcher* CcdPhysicsEnvironment::GetDispatcher()
-{
-	return m_collisionWorld->GetDispatcher();
-}
 
 CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 {
@@ -1448,6 +1510,8 @@ CcdPhysicsEnvironment::~CcdPhysicsEnvironment()
 	//first delete scene, then dispatcher, because pairs have to release manifolds on the dispatcher
 	//delete m_dispatcher;
 	delete m_collisionWorld;
+	
+	delete m_islandManager;
 
 }
 
@@ -1464,15 +1528,9 @@ CcdPhysicsController* CcdPhysicsEnvironment::GetPhysicsController( int index)
 }
 
 
-int	CcdPhysicsEnvironment::GetNumManifolds() const
-{
-	return GetDispatcher()->GetNumManifolds();
-}
 
-const PersistentManifold*	CcdPhysicsEnvironment::GetManifold(int index) const
-{
-	return GetDispatcher()->GetManifoldByIndexInternal(index);
-}
+
+
 
 TypedConstraint*	CcdPhysicsEnvironment::getConstraintById(int constraintId)
 {
@@ -1565,9 +1623,10 @@ void CcdPhysicsEnvironment::requestCollisionCallback(PHY_IPhysicsController* ctr
 
 void	CcdPhysicsEnvironment::CallbackTriggers()
 {
+	
 	CcdPhysicsController* ctrl0=0,*ctrl1=0;
 
-	if (m_triggerCallbacks[PHY_OBJECT_RESPONSE])
+	if (m_triggerCallbacks[PHY_OBJECT_RESPONSE] || (m_debugDrawer && (m_debugDrawer->GetDebugMode() & IDebugDraw::DBG_DrawContactPoints)))
 	{
 		//walk over all overlapping pairs, and if one of the involved bodies is registered for trigger callback, perform callback
 		int numManifolds = m_collisionWorld->GetDispatcher()->GetNumManifolds();
@@ -1577,6 +1636,16 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 			int numContacts = manifold->GetNumContacts();
 			if (numContacts)
 			{
+				if (m_debugDrawer && (m_debugDrawer->GetDebugMode() & IDebugDraw::DBG_DrawContactPoints))
+				{
+					for (int j=0;j<numContacts;j++)
+					{
+						SimdVector3 color(1,0,0);
+						const ManifoldPoint& cp = manifold->GetContactPoint(j);
+						if (m_debugDrawer)
+							m_debugDrawer->DrawContactPoint(cp.m_positionWorldOnB,cp.m_normalWorldOnB,cp.GetDistance(),cp.GetLifeTime(),color);
+					}
+				}
 				RigidBody* obj0 = static_cast<RigidBody* >(manifold->GetBody0());
 				RigidBody* obj1 = static_cast<RigidBody* >(manifold->GetBody1());
 
@@ -1602,6 +1671,7 @@ void	CcdPhysicsEnvironment::CallbackTriggers()
 
 
 	}
+
 
 }
 
@@ -1764,3 +1834,18 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::CreateConeController(float conera
 	return sphereController;
 }
 	
+float		CcdPhysicsEnvironment::getAppliedImpulse(int	constraintid)
+{
+	std::vector<TypedConstraint*>::iterator i;
+
+	for (i=m_constraints.begin();
+		!(i==m_constraints.end()); i++)
+	{
+		TypedConstraint* constraint = (*i);
+		if (constraint->GetUserConstraintId() == constraintid)
+		{
+			return constraint->GetAppliedImpulse();
+		}
+	}
+	return 0.f;
+}

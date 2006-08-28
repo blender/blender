@@ -26,8 +26,9 @@ subject to the following restrictions:
 #include "VoronoiSimplexSolver.h"
 #define SimplexSolverInterface VoronoiSimplexSolver
 #else
-/// for simplices from 1 to 4 vertices
-/// for example Johnson-algorithm or alternative approaches based on
+
+/// SimplexSolverInterface can incrementally calculate distance between origin and up to 4 vertices
+/// Used by GJK or Linear Casting. Can be implemented by the Johnson-algorithm or alternative approaches based on
 /// voronoi regions or barycentric coordinates
 class SimplexSolverInterface
 {

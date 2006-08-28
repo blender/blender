@@ -16,30 +16,24 @@ subject to the following restrictions:
 #ifndef TRIANGLE_MESH_SHAPE_H
 #define TRIANGLE_MESH_SHAPE_H
 
-#include "CollisionShapes/CollisionShape.h"
-#include "BroadphaseCollision/BroadphaseProxy.h" // for the types
-
-#include "StridingMeshInterface.h"
-#include "TriangleCallback.h"
-
+#include "CollisionShapes/ConcaveShape.h"
+#include "CollisionShapes/StridingMeshInterface.h"
 
 
 ///Concave triangle mesh. Uses an interface to access the triangles to allow for sharing graphics/physics triangles.
-class TriangleMeshShape : public CollisionShape
+class TriangleMeshShape : public ConcaveShape
 {
 protected:
 	StridingMeshInterface* m_meshInterface;
 	SimdVector3	m_localAabbMin;
 	SimdVector3	m_localAabbMax;
-	float m_collisionMargin;
+	
 
 public:
 	TriangleMeshShape(StridingMeshInterface* meshInterface);
 
 	virtual ~TriangleMeshShape();
 
-
-	
 	virtual SimdVector3 LocalGetSupportingVertex(const SimdVector3& vec) const;
 
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const
@@ -67,16 +61,6 @@ public:
 
 	//debugging
 	virtual char*	GetName()const {return "TRIANGLEMESH";}
-
-	
-	virtual float GetMargin() const {
-		return m_collisionMargin;
-	}
-	virtual void SetMargin(float collisionMargin)
-	{
-		m_collisionMargin = collisionMargin;
-	}
-
 
 
 };

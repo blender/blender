@@ -193,21 +193,14 @@ int	OptimizedBvh::CalcSplittingAxis(NodeArray&	leafNodes,int startIndex,int endI
 }
 
 
-	
+
 void	OptimizedBvh::ReportAabbOverlappingNodex(NodeOverlapCallback* nodeCallback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const
 {
-	if (aabbMin.length() > 1000.f)
-	{
-		for (size_t i=0;i<m_leafNodes.size();i++)
-		{
-			const OptimizedBvhNode&	node = m_leafNodes[i];
-			nodeCallback->ProcessNode(&node);
-		}
-	} else
-	{
-		//WalkTree(m_rootNode1,nodeCallback,aabbMin,aabbMax);
-		WalkStacklessTree(m_rootNode1,nodeCallback,aabbMin,aabbMax);
-	}
+	//either choose recursive traversal (WalkTree) or stackless (WalkStacklessTree)
+
+	//WalkTree(m_rootNode1,nodeCallback,aabbMin,aabbMax);
+
+	WalkStacklessTree(m_rootNode1,nodeCallback,aabbMin,aabbMax);
 }
 
 void	OptimizedBvh::WalkTree(OptimizedBvhNode* rootNode,NodeOverlapCallback* nodeCallback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const

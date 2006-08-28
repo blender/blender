@@ -39,8 +39,16 @@ class GjkPairDetector : public DiscreteCollisionDetectorInterface
 	ConvexShape* m_minkowskiA;
 	ConvexShape* m_minkowskiB;
 	bool		m_ignoreMargin;
+	
 
 public:
+
+	//experimental feature information, per triangle, per convex etc.
+	//'material combiner' / contact added callback
+	int	m_partId0;
+	int	m_index0;
+	int	m_partId1;
+	int	m_index1;
 
 	GjkPairDetector(ConvexShape* objectA,ConvexShape* objectB,SimplexSolverInterface* simplexSolver,ConvexPenetrationDepthSolver*	penetrationDepthSolver);
 	virtual ~GjkPairDetector() {};

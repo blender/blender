@@ -19,7 +19,8 @@ subject to the following restrictions:
 #include <assert.h>
 
 float						gContactBreakingTreshold = 0.02f;
-ContactDestroyedCallback	gContactCallback = 0;
+ContactDestroyedCallback	gContactDestroyedCallback = 0;
+
 
 
 PersistentManifold::PersistentManifold()
@@ -75,9 +76,9 @@ void PersistentManifold::ClearUserCache(ManifoldPoint& pt)
 		assert(occurance<=0);
 #endif //DEBUG_PERSISTENCY
 
-		if (pt.m_userPersistentData && gContactCallback)
+		if (pt.m_userPersistentData && gContactDestroyedCallback)
 		{
-			(*gContactCallback)(pt.m_userPersistentData);
+			(*gContactDestroyedCallback)(pt.m_userPersistentData);
 			pt.m_userPersistentData = 0;
 		}
 		

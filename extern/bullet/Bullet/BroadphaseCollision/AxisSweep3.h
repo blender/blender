@@ -21,10 +21,13 @@
 
 #include "SimdPoint3.h"
 #include "SimdVector3.h"
-#include "SimpleBroadphase.h"
+#include "OverlappingPairCache.h"
 #include "BroadphaseProxy.h"
 
-class AxisSweep3 : public SimpleBroadphase
+/// AxisSweep3 is an efficient implementation of the 3d axis sweep and prune broadphase.
+/// It uses arrays rather then lists for storage of the 3 axis. Also it operates using integer coordinates instead of floats.
+/// The TestOverlap check is optimized to check the array index, rather then the actual AABB coordinates/pos
+class AxisSweep3 : public OverlappingPairCache
 {
 
 public:
@@ -96,14 +99,14 @@ public:
 		//this is replace by sweep and prune
 	}
 	
-	unsigned short AddHandle(const SimdPoint3& aabbMin,const SimdPoint3& aabbMax, void* pOwner);
+	unsigned short AddHandle(const SimdPoint3& aabbMin,const SimdPoint3& aabbMax, void* pOwner,short int collisionFilterGroup,short int collisionFilterMask);
 	void RemoveHandle(unsigned short handle);
 	void UpdateHandle(unsigned short handle, const SimdPoint3& aabbMin,const SimdPoint3& aabbMax);
 	inline Handle* GetHandle(unsigned short index) const {return m_pHandles + index;}
 
 
 	//Broadphase Interface
-	virtual BroadphaseProxy*	CreateProxy(  const SimdVector3& min,  const SimdVector3& max,int shapeType,void* userPtr );
+	virtual BroadphaseProxy*	CreateProxy(  const SimdVector3& min,  const SimdVector3& max,int shapeType,void* userPtr ,short int collisionFilterGroup,short int collisionFilterMask);
 	virtual void	DestroyProxy(BroadphaseProxy* proxy);
 	virtual void	SetAabb(BroadphaseProxy* proxy,const SimdVector3& aabbMin,const SimdVector3& aabbMax);
 

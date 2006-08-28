@@ -21,11 +21,12 @@
 
 #include <assert.h>
 
-BroadphaseProxy*	AxisSweep3::CreateProxy(  const SimdVector3& min,  const SimdVector3& max,int shapeType,void* userPtr )
+BroadphaseProxy*	AxisSweep3::CreateProxy(  const SimdVector3& min,  const SimdVector3& max,int shapeType,void* userPtr,short int collisionFilterGroup,short int collisionFilterMask)
 {
-		unsigned short handleId = AddHandle(min,max, userPtr);
+		unsigned short handleId = AddHandle(min,max, userPtr,collisionFilterGroup,collisionFilterMask);
 		
 		Handle* handle = GetHandle(handleId);
+				
 		return handle;
 }
 
@@ -47,6 +48,7 @@ void	AxisSweep3::SetAabb(BroadphaseProxy* proxy,const SimdVector3& aabbMin,const
 
 
 AxisSweep3::AxisSweep3(const SimdPoint3& worldAabbMin,const SimdPoint3& worldAabbMax, int maxHandles, int maxOverlaps)
+:OverlappingPairCache(maxOverlaps)
 {
 	//assert(bounds.HasVolume());
 
@@ -156,7 +158,7 @@ void AxisSweep3::FreeHandle(unsigned short handle)
 
 
 
-unsigned short AxisSweep3::AddHandle(const SimdPoint3& aabbMin,const SimdPoint3& aabbMax, void* pOwner)
+unsigned short AxisSweep3::AddHandle(const SimdPoint3& aabbMin,const SimdPoint3& aabbMax, void* pOwner,short int collisionFilterGroup,short int collisionFilterMask)
 {
 	// quantize the bounds
 	unsigned short min[3], max[3];
@@ -169,10 +171,11 @@ unsigned short AxisSweep3::AddHandle(const SimdPoint3& aabbMin,const SimdPoint3&
 
 	Handle* pHandle = GetHandle(handle);
 	
-
 	pHandle->m_handleId = handle;
 	//pHandle->m_pOverlaps = 0;
 	pHandle->m_clientObject = pOwner;
+	pHandle->m_collisionFilterGroup = collisionFilterGroup;
+	pHandle->m_collisionFilterMask = collisionFilterMask;
 
 	// compute current limit of edge arrays
 	int limit = m_numHandles * 2;

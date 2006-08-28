@@ -48,24 +48,12 @@ public:
 	{
 		
 		SimdVector3 halfExtents = GetHalfExtents();
-		SimdVector3 margin(GetMargin(),GetMargin(),GetMargin());
-		halfExtents -= margin;
 		
 		SimdVector3 supVertex;
 		supVertex = SimdPoint3(vec.x() < SimdScalar(0.0f) ? -halfExtents.x() : halfExtents.x(),
                      vec.y() < SimdScalar(0.0f) ? -halfExtents.y() : halfExtents.y(),
                      vec.z() < SimdScalar(0.0f) ? -halfExtents.z() : halfExtents.z()); 
   
-		if ( GetMargin()!=0.f )
-		{
-			SimdVector3 vecnorm = vec;
-			if (vecnorm .length2() < (SIMD_EPSILON*SIMD_EPSILON))
-			{
-				vecnorm.setValue(-1.f,-1.f,-1.f);
-			} 
-			vecnorm.normalize();
-			supVertex+= GetMargin() * vecnorm;
-		}
 		return supVertex;
 	}
 

@@ -66,6 +66,17 @@ public:
 		return CYLINDER_SHAPE_PROXYTYPE;
 	}
 	
+	virtual int	GetUpAxis() const
+	{
+		return 1;
+	}
+
+	//debugging
+	virtual char*	GetName()const
+	{
+		return "CylinderY";
+	}
+
 
 
 };
@@ -77,6 +88,16 @@ public:
 
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const;
 	virtual void	BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const;
+	virtual int	GetUpAxis() const
+	{
+		return 0;
+	}
+		//debugging
+	virtual char*	GetName()const
+	{
+		return "CylinderX";
+	}
+
 };
 
 class CylinderShapeZ : public CylinderShape
@@ -86,6 +107,16 @@ public:
 
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const;
 	virtual void	BatchedUnitVectorGetSupportingVertexWithoutMargin(const SimdVector3* vectors,SimdVector3* supportVerticesOut,int numVectors) const;
+
+	virtual int	GetUpAxis() const
+	{
+		return 2;
+	}
+		//debugging
+	virtual char*	GetName()const
+	{
+		return "CylinderZ";
+	}
 
 };
 

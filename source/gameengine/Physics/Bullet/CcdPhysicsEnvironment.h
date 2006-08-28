@@ -20,11 +20,13 @@ subject to the following restrictions:
 #include <vector>
 class CcdPhysicsController;
 #include "SimdVector3.h"
+#include "SimdTransform.h"
+
 
 
 
 class TypedConstraint;
-
+class SimulationIslandManager;
 class CollisionDispatcher;
 class Dispatcher;
 //#include "BroadphaseInterface.h"
@@ -37,6 +39,7 @@ class Dispatcher;
 class WrapperVehicle;
 class PersistentManifold;
 class BroadphaseInterface;
+class OverlappingPairCache;
 class IDebugDraw;
 
 /// CcdPhysicsEnvironment is experimental mainloop for physics simulation using optional continuous collision detection.
@@ -47,12 +50,17 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 {
 	SimdVector3 m_gravity;
 	
+	
+
+protected:
 	IDebugDraw*	m_debugDrawer;
 	//solver iterations
 	int	m_numIterations;
 	
 	//timestep subdivisions
 	int	m_numTimeSubSteps;
+
+
 	int	m_ccdMode;
 	int	m_solverType;
 	int	m_profileTimings;
@@ -60,9 +68,10 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 	ContactSolverInfo	m_solverInfo;
 	
+	SimulationIslandManager*	m_islandManager;
 
 	public:
-		CcdPhysicsEnvironment(CollisionDispatcher* dispatcher=0, BroadphaseInterface* broadphase=0);
+		CcdPhysicsEnvironment(Dispatcher* dispatcher=0, OverlappingPairCache* pairCache=0);
 
 		virtual		~CcdPhysicsEnvironment();
 
@@ -98,7 +107,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		virtual void		endFrame() {};
 		/// Perform an integration step of duration 'timeStep'.
 		virtual	bool		proceedDeltaTime(double curTime,float timeStep);
-		bool				proceedDeltaTimeOneStep(float timeStep);
+		virtual bool		proceedDeltaTimeOneStep(float timeStep);
 
 		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep){};
 		//returns 0.f if no fixed timestep is used
@@ -112,9 +121,24 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,
 			float axisX,float axisY,float axisZ);
-	    virtual void		removeConstraint(int	constraintid);
-		virtual float		getAppliedImpulse(int	constraintid);
 
+
+		//Following the COLLADA physics specification for constraints
+		virtual int			createUniversalD6Constraint(
+		class PHY_IPhysicsController* ctrlRef,class PHY_IPhysicsController* ctrlOther,
+			SimdTransform& localAttachmentFrameRef,
+			SimdTransform& localAttachmentOther,
+			const SimdVector3& linearMinLimits,
+			const SimdVector3& linearMaxLimits,
+			const SimdVector3& angularMinLimits,
+			const SimdVector3& angularMaxLimits
+			);
+
+
+	    virtual void		removeConstraint(int	constraintid);
+
+		
+		virtual float		getAppliedImpulse(int	constraintid);
 
 		virtual void	CallbackTriggers();
 
@@ -160,9 +184,9 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 		BroadphaseInterface*	GetBroadphase();
 
-		CollisionDispatcher* GetDispatcher();
 		
-		const CollisionDispatcher* GetDispatcher() const;
+		
+		
 
 		bool	IsSatCollisionDetectionEnabled() const
 		{
@@ -180,16 +204,39 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 		CcdPhysicsController* GetPhysicsController( int index);
 
-		int	GetNumManifolds() const;
+		
 
 		const PersistentManifold*	GetManifold(int index) const;
 
 		std::vector<TypedConstraint*> m_constraints;
 
-	private:
-		
-		
 		void	SyncMotionStates(float timeStep);
+
+		
+		class CollisionWorld*	GetCollisionWorld()
+		{
+			return m_collisionWorld;
+		}
+
+		const class CollisionWorld*	GetCollisionWorld() const
+		{
+			return m_collisionWorld;
+		}
+
+		SimulationIslandManager*	GetSimulationIslandManager()
+		{
+			return m_islandManager;
+		}
+
+		const SimulationIslandManager*	GetSimulationIslandManager() const 
+		{
+			return m_islandManager;
+		}
+
+	protected:
+		
+		
+
 		
 		std::vector<CcdPhysicsController*> m_controllers;
 		
@@ -206,6 +253,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 		bool	m_scalingPropagated;
 
+		
 
 };
 

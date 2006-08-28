@@ -22,7 +22,7 @@ struct ContactSolverInfo
 
 	inline ContactSolverInfo()
 	{
-		m_tau = 0.4f;
+		m_tau = 0.6f;
 		m_damping = 1.0f;
 		m_friction = 0.3f;
 		m_restitution = 0.f;

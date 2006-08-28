@@ -14,21 +14,46 @@ subject to the following restrictions:
 */
 
 #include "StridingMeshInterface.h"
+#include <vector>
 
+///IndexedMesh indexes into existing vertex and index arrays, in a similar way OpenGL glDrawElements
+///instead of the number of indices, we pass the number of triangles
+///todo: explain with pictures
+struct	IndexedMesh
+	{
+		int			m_numTriangles;
+		int*		m_triangleIndexBase;
+		int			m_triangleIndexStride;
+		int			m_numVertices;
+		float*		m_vertexBase;
+		int			m_vertexStride;
+	};
 
+///TriangleIndexVertexArray allows to use multiple meshes, by indexing into existing triangle/index arrays.
+///Additional meshes can be added using AddIndexedMesh
+///No duplcate is made of the vertex/index data, it only indexes into external vertex/index arrays.
+///So keep those arrays around during the lifetime of this TriangleIndexVertexArray.
 class TriangleIndexVertexArray : public StridingMeshInterface
 {
+	std::vector<IndexedMesh>	m_indexedMeshes;
 
-	int			m_numTriangleIndices;
-	int*		m_triangleIndexBase;
-	int			m_triangleIndexStride;
-	int			m_numVertices;
-	float*		m_vertexBase;
-	int			m_vertexStride;
-	
+		
 public:
 
+	
+
+	TriangleIndexVertexArray()
+	{
+	}
+
+	//just to be backwards compatible
 	TriangleIndexVertexArray(int numTriangleIndices,int* triangleIndexBase,int triangleIndexStride,int numVertices,float* vertexBase,int vertexStride);
+	
+	void	AddIndexedMesh(const IndexedMesh& mesh)
+	{
+		m_indexedMeshes.push_back(mesh);
+	}
+	
 	
 	virtual void	getLockedVertexIndexBase(unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& vertexStride,unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart=0);
 
@@ -42,7 +67,9 @@ public:
 
 	/// getNumSubParts returns the number of seperate subparts
 	/// each subpart has a continuous array of vertices and indices
-	virtual int		getNumSubParts() const { return 1;}
+	virtual int		getNumSubParts() const { 
+		return (int)m_indexedMeshes.size();
+	}
 	
 	virtual void	preallocateVertices(int numverts){}
 	virtual void	preallocateIndices(int numindices){}

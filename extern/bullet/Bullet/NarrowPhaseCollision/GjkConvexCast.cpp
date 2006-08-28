@@ -122,12 +122,13 @@ bool	GjkConvexCast::calcTimeOfImpact(
 			n = x - c;
 			SimdScalar nDotr = n.dot(r);
 
-			if (nDotr >= 0.f)
+			if (nDotr >= -(SIMD_EPSILON*SIMD_EPSILON))
 				return false;
-
+			
 			lambda = lambda - n.dot(n) / nDotr;
 			if (lambda <= lastLambda)
 				break;
+
 			lastLambda = lambda;
 
 			x = s + lambda * r;

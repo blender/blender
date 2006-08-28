@@ -21,40 +21,15 @@ subject to the following restrictions:
 #include "CollisionDispatch/ConvexConvexAlgorithm.h"
 #include "CollisionDispatch/EmptyCollisionAlgorithm.h"
 #include "CollisionDispatch/ConvexConcaveCollisionAlgorithm.h"
+#include "CollisionDispatch/CompoundCollisionAlgorithm.h"
 #include "CollisionShapes/CollisionShape.h"
 #include "CollisionDispatch/CollisionObject.h"
 #include <algorithm>
+#include "BroadphaseCollision/OverlappingPairCache.h"
 
 int gNumManifold = 0;
 
-void CollisionDispatcher::FindUnions()
-{
-	if (m_useIslands)
-	{
-		for (int i=0;i<GetNumManifolds();i++)
-		{
-			const PersistentManifold* manifold = this->GetManifoldByIndexInternal(i);
-			//static objects (invmass 0.f) don't merge !
 
-			 const  CollisionObject* colObj0 = static_cast<const CollisionObject*>(manifold->GetBody0());
-			 const  CollisionObject* colObj1 = static_cast<const CollisionObject*>(manifold->GetBody1());
-
-			 if (colObj0 && colObj1 && NeedsResponse(*colObj0,*colObj1))
-			 {
-				if (((colObj0) && ((colObj0)->mergesSimulationIslands())) &&
-					((colObj1) && ((colObj1)->mergesSimulationIslands())))
-				{
-
-					m_unionFind.unite((colObj0)->m_islandTag1,
-						(colObj1)->m_islandTag1);
-				}
-			 }
-			
-			
-		}
-	}
-	
-}
 	
 
 	
@@ -79,7 +54,9 @@ CollisionDispatcher::CollisionDispatcher ():
 PersistentManifold*	CollisionDispatcher::GetNewManifold(void* b0,void* b1) 
 { 
 	gNumManifold++;
-	//printf("GetNewManifoldResult: gNumManifold %d\n",gNumManifold);
+	
+	//ASSERT(gNumManifold < 65535);
+	
 
 	CollisionObject* body0 = (CollisionObject*)b0;
 	CollisionObject* body1 = (CollisionObject*)b1;
@@ -119,96 +96,6 @@ void CollisionDispatcher::ReleaseManifold(PersistentManifold* manifold)
 }
 
 	
-//
-// todo: this is random access, it can be walked 'cache friendly'!
-//
-void CollisionDispatcher::BuildAndProcessIslands(CollisionObjectArray& collisionObjects, IslandCallback* callback)
-{
-	int numBodies  = collisionObjects.size();
-
-	for (int islandId=0;islandId<numBodies;islandId++)
-	{
-
-		std::vector<PersistentManifold*>  islandmanifold;
-		
-		//int numSleeping = 0;
-
-		bool allSleeping = true;
-
-		int i;
-		for (i=0;i<numBodies;i++)
-		{
-			CollisionObject* colObj0 = collisionObjects[i];
-			if (colObj0->m_islandTag1 == islandId)
-			{
-				if (colObj0->GetActivationState()== ACTIVE_TAG)
-				{
-					allSleeping = false;
-				}
-				if (colObj0->GetActivationState()== DISABLE_DEACTIVATION)
-				{
-					allSleeping = false;
-				}
-			}
-		}
-
-		
-		for (i=0;i<GetNumManifolds();i++)
-		{
-			 PersistentManifold* manifold = this->GetManifoldByIndexInternal(i);
-			 
-			 //filtering for response
-
-			 CollisionObject* colObj0 = static_cast<CollisionObject*>(manifold->GetBody0());
-			 CollisionObject* colObj1 = static_cast<CollisionObject*>(manifold->GetBody1());
-			 {
-				if (((colObj0) && (colObj0)->m_islandTag1 == (islandId)) ||
-					((colObj1) && (colObj1)->m_islandTag1 == (islandId)))
-				{
-
-					if (NeedsResponse(*colObj0,*colObj1))
-						islandmanifold.push_back(manifold);
-				}
-			 }
-		}
-		if (allSleeping)
-		{
-			int i;
-			for (i=0;i<numBodies;i++)
-			{
-				CollisionObject* colObj0 = collisionObjects[i];
-				if (colObj0->m_islandTag1 == islandId)
-				{
-					colObj0->SetActivationState( ISLAND_SLEEPING );
-				}
-			}
-
-			
-		} else
-		{
-
-			int i;
-			for (i=0;i<numBodies;i++)
-			{
-				CollisionObject* colObj0 = collisionObjects[i];
-				if (colObj0->m_islandTag1 == islandId)
-				{
-					if ( colObj0->GetActivationState() == ISLAND_SLEEPING)
-					{
-						colObj0->SetActivationState( WANTS_DEACTIVATION);
-					}
-				}
-			}
-
-			/// Process the actual simulation, only if not sleeping/deactivated
-			if (islandmanifold.size())
-			{
-				callback->ProcessIsland(&islandmanifold[0],islandmanifold.size());
-			}
-
-		}
-	}
-}
 
 
 
@@ -234,6 +121,17 @@ CollisionAlgorithm* CollisionDispatcher::InternalFindAlgorithm(BroadphaseProxy& 
 	if (body1->m_collisionShape->IsConvex() && body0->m_collisionShape->IsConcave())
 	{
 		return new ConvexConcaveCollisionAlgorithm(ci,&proxy1,&proxy0);
+	}
+
+	if (body0->m_collisionShape->IsCompound())
+	{
+		return new CompoundCollisionAlgorithm(ci,&proxy0,&proxy1);
+	} else
+	{
+		if (body1->m_collisionShape->IsCompound())
+		{
+			return new CompoundCollisionAlgorithm(ci,&proxy1,&proxy0);
+		}
 	}
 
 	//failed to find an algorithm
@@ -289,5 +187,71 @@ ManifoldResult*	CollisionDispatcher::GetNewManifoldResult(CollisionObject* obj0,
 ///allows the user to get contact point callbacks 
 void	CollisionDispatcher::ReleaseManifoldResult(ManifoldResult*)
 {
+
+}
+
+
+void	CollisionDispatcher::DispatchAllCollisionPairs(BroadphasePair* pairs,int numPairs,DispatcherInfo& dispatchInfo)
+{
+	//m_blockedForChanges = true;
+
+	int i;
+
+	int dispatcherId = GetUniqueId();
+
+	
+
+	for (i=0;i<numPairs;i++)
+	{
+
+		BroadphasePair& pair = pairs[i];
+
+		if (dispatcherId>= 0)
+		{
+			//dispatcher will keep algorithms persistent in the collision pair
+			if (!pair.m_algorithms[dispatcherId])
+			{
+				pair.m_algorithms[dispatcherId] = FindAlgorithm(
+					*pair.m_pProxy0,
+					*pair.m_pProxy1);
+			}
+
+			if (pair.m_algorithms[dispatcherId])
+			{
+				if (dispatchInfo.m_dispatchFunc == 		DispatcherInfo::DISPATCH_DISCRETE)
+				{
+					pair.m_algorithms[dispatcherId]->ProcessCollision(pair.m_pProxy0,pair.m_pProxy1,dispatchInfo);
+				} else
+				{
+					float toi = pair.m_algorithms[dispatcherId]->CalculateTimeOfImpact(pair.m_pProxy0,pair.m_pProxy1,dispatchInfo);
+					if (dispatchInfo.m_timeOfImpact > toi)
+						dispatchInfo.m_timeOfImpact = toi;
+
+				}
+			}
+		} else
+		{
+			//non-persistent algorithm dispatcher
+			CollisionAlgorithm* algo = FindAlgorithm(
+				*pair.m_pProxy0,
+				*pair.m_pProxy1);
+
+			if (algo)
+			{
+				if (dispatchInfo.m_dispatchFunc == 		DispatcherInfo::DISPATCH_DISCRETE)
+				{
+					algo->ProcessCollision(pair.m_pProxy0,pair.m_pProxy1,dispatchInfo);
+				} else
+				{
+					float toi = algo->CalculateTimeOfImpact(pair.m_pProxy0,pair.m_pProxy1,dispatchInfo);
+					if (dispatchInfo.m_timeOfImpact > toi)
+						dispatchInfo.m_timeOfImpact = toi;
+				}
+			}
+		}
+
+	}
+
+	//m_blockedForChanges = false;
 
 }

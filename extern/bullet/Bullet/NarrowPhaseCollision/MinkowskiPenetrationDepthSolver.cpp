@@ -32,6 +32,9 @@ struct MyResult : public DiscreteCollisionDetectorInterface::Result
 	float m_depth;
 	bool	m_hasResult;
 
+	virtual void SetShapeIdentifiers(int partId0,int index0,	int partId1,int index1)
+	{
+	}
 	void AddContactPoint(const SimdVector3& normalOnBInWorld,const SimdVector3& pointInWorld,float depth)
 	{
 		m_normalOnBInWorld = normalOnBInWorld;

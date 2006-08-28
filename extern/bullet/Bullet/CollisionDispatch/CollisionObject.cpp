@@ -21,8 +21,11 @@ CollisionObject::CollisionObject()
 		m_deactivationTime(0.f),
 		m_broadphaseHandle(0),
 		m_collisionShape(0),
-		m_hitFraction(1.f)
+		m_hitFraction(1.f),
+		m_ccdSweptShereRadius(0.f),
+		m_ccdSquareMotionTreshold(0.f)
 {
+	m_cachedInvertedWorldTransform.setIdentity();
 
 }
 

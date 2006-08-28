@@ -233,8 +233,9 @@ public:
 };
 #endif //USE_HULL
 
+
 //
-// box-box collision algorithm, for simplicity also applies resolution-impulse
+// Convex-Convex collision algorithm
 //
 void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy* ,const DispatcherInfo& dispatchInfo)
 {
@@ -314,7 +315,7 @@ void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy
 	input.m_maximumDistanceSquared = min0->GetMargin() + min1->GetMargin() + m_manifoldPtr->GetContactBreakingTreshold();
 	input.m_maximumDistanceSquared*= input.m_maximumDistanceSquared;
 	
-	//input.m_maximumDistanceSquared = 1e30f;//
+//	input.m_maximumDistanceSquared = 1e30f;
 	
 	input.m_transformA = col0->m_worldTransform;
 	input.m_transformB = col1->m_worldTransform;
@@ -323,15 +324,37 @@ void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy
 
 	m_dispatcher->ReleaseManifoldResult(resultOut);
 }
+
+
+
 bool disableCcd = false;
 float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,const DispatcherInfo& dispatchInfo)
 {
+	///Rather then checking ALL pairs, only calculate TOI when motion exceeds treshold
+    
+	///Linear motion for one of objects needs to exceed m_ccdSquareMotionTreshold
+	///col0->m_worldTransform,
+	float resultFraction = 1.f;
 
+	CollisionObject* col1 = static_cast<CollisionObject*>(m_box1.m_clientObject);
+	CollisionObject* col0 = static_cast<CollisionObject*>(m_box0.m_clientObject);
+
+	float squareMot0 = (col0->m_interpolationWorldTransform.getOrigin() - col0->m_worldTransform.getOrigin()).length2();
+	float squareMot1 = (col1->m_interpolationWorldTransform.getOrigin() - col1->m_worldTransform.getOrigin()).length2();
+    
+	if (squareMot0 < col0->m_ccdSquareMotionTreshold &&
+		squareMot0 < col0->m_ccdSquareMotionTreshold)
+		return resultFraction;
+
+
+
+	if (disableCcd)
+		return 1.f;
 
 	CheckPenetrationDepthSolver();
 
 	//An adhoc way of testing the Continuous Collision Detection algorithms
-	//One object is approximated as a point, to simplify things
+	//One object is approximated as a sphere, to simplify things
 	//Starting in penetration should report no time of impact
 	//For proper CCD, better accuracy and handling of 'allowed' penetration should be added
 	//also the mainloop of the physics should have a kind of toi queue (something like Brian Mirtich's application of Timewarp for Rigidbodies)
@@ -340,48 +363,70 @@ float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,Broad
 
 	if (!needsCollision)
 		return 1.f;
-
 	
-	CollisionObject* col0 = static_cast<CollisionObject*>(m_box0.m_clientObject);
-	CollisionObject* col1 = static_cast<CollisionObject*>(m_box1.m_clientObject);
-	
-	SphereShape	sphere(0.f);
-
-	ConvexShape* min0 = static_cast<ConvexShape*>(col0->m_collisionShape);
-	ConvexShape* min1 = static_cast<ConvexShape*>(col1->m_collisionShape);
-	
-	ConvexCast::CastResult result;
-
-
-	VoronoiSimplexSolver voronoiSimplex;
-	SubsimplexConvexCast ccd0(&sphere,min1,&voronoiSimplex);
-
-	///Simplification, one object is simplified as a sphere
-	GjkConvexCast ccd1(&sphere,min0,&voronoiSimplex);
-	//ContinuousConvexCollision ccd(min0,min1,&voronoiSimplex,0);
-
-	if (disableCcd)
-		return 1.f;
-
-	if (ccd1.calcTimeOfImpact(col0->m_worldTransform,col0->m_interpolationWorldTransform,
-		col1->m_worldTransform,col1->m_interpolationWorldTransform,result))
+		
+	/// Convex0 against sphere for Convex1
 	{
-	
-		//store result.m_fraction in both bodies
-	
-		if (col0->m_hitFraction	> result.m_fraction)
-			col0->m_hitFraction  = result.m_fraction;
+		ConvexShape* convex0 = static_cast<ConvexShape*>(col0->m_collisionShape);
 
-		if (col1->m_hitFraction > result.m_fraction)
-			col1->m_hitFraction  = result.m_fraction;
+		SphereShape	sphere1(col1->m_ccdSweptShereRadius); //todo: allow non-zero sphere sizes, for better approximation
+		ConvexCast::CastResult result;
+		VoronoiSimplexSolver voronoiSimplex;
+		//SubsimplexConvexCast ccd0(&sphere,min0,&voronoiSimplex);
+		///Simplification, one object is simplified as a sphere
+		GjkConvexCast ccd1( convex0 ,&sphere1,&voronoiSimplex);
+		//ContinuousConvexCollision ccd(min0,min1,&voronoiSimplex,0);
+		if (ccd1.calcTimeOfImpact(col0->m_worldTransform,col0->m_interpolationWorldTransform,
+			col1->m_worldTransform,col1->m_interpolationWorldTransform,result))
+		{
+		
+			//store result.m_fraction in both bodies
+		
+			if (col0->m_hitFraction	> result.m_fraction)
+				col0->m_hitFraction  = result.m_fraction;
 
-		return result.m_fraction;
+			if (col1->m_hitFraction > result.m_fraction)
+				col1->m_hitFraction  = result.m_fraction;
+
+			if (resultFraction > result.m_fraction)
+				resultFraction = result.m_fraction;
+
+		}
+		
+		
+
+
 	}
 
+	/// Sphere (for convex0) against Convex1
+	{
+		ConvexShape* convex1 = static_cast<ConvexShape*>(col1->m_collisionShape);
 
+		SphereShape	sphere0(col0->m_ccdSweptShereRadius); //todo: allow non-zero sphere sizes, for better approximation
+		ConvexCast::CastResult result;
+		VoronoiSimplexSolver voronoiSimplex;
+		//SubsimplexConvexCast ccd0(&sphere,min0,&voronoiSimplex);
+		///Simplification, one object is simplified as a sphere
+		GjkConvexCast ccd1(&sphere0,convex1,&voronoiSimplex);
+		//ContinuousConvexCollision ccd(min0,min1,&voronoiSimplex,0);
+		if (ccd1.calcTimeOfImpact(col0->m_worldTransform,col0->m_interpolationWorldTransform,
+			col1->m_worldTransform,col1->m_interpolationWorldTransform,result))
+		{
+		
+			//store result.m_fraction in both bodies
+		
+			if (col0->m_hitFraction	> result.m_fraction)
+				col0->m_hitFraction  = result.m_fraction;
+
+			if (col1->m_hitFraction > result.m_fraction)
+				col1->m_hitFraction  = result.m_fraction;
+
+			if (resultFraction > result.m_fraction)
+				resultFraction = result.m_fraction;
+
+		}
+	}
 	
-
-
-	return 1.f;
+	return resultFraction;
 
 }

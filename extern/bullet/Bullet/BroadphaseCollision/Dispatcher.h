@@ -21,6 +21,7 @@ struct BroadphaseProxy;
 class RigidBody;
 struct	CollisionObject;
 class ManifoldResult;
+class OverlappingPairCache;
 
 enum CollisionDispatcherId
 {
@@ -80,10 +81,17 @@ public:
 
 	virtual bool	NeedsCollision(BroadphaseProxy& proxy0,BroadphaseProxy& proxy1) = 0;
 
+	virtual bool	NeedsResponse(const CollisionObject& colObj0,const CollisionObject& colObj1)=0;
+
 	virtual	ManifoldResult* GetNewManifoldResult(CollisionObject* obj0,CollisionObject* obj1,PersistentManifold* manifold) =0;
 
 	virtual	void	ReleaseManifoldResult(ManifoldResult*)=0;
 
+	virtual void	DispatchAllCollisionPairs(struct BroadphasePair* pairs,int numPairs,DispatcherInfo& dispatchInfo)=0;
+
+	virtual int GetNumManifolds() const = 0;
+
+	virtual PersistentManifold* GetManifoldByIndexInternal(int index) = 0;
 
 };
 

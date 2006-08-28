@@ -27,6 +27,7 @@ enum BroadphaseNativeTypes
 	BOX_SHAPE_PROXYTYPE,
 	TRIANGLE_SHAPE_PROXYTYPE,
 	TETRAHEDRAL_SHAPE_PROXYTYPE,
+	CONVEX_TRIANGLEMESH_SHAPE_PROXYTYPE,
 	CONVEX_HULL_SHAPE_PROXYTYPE,
 //implicit convex shapes
 IMPLICIT_CONVEX_SHAPES_START_HERE,
@@ -42,6 +43,10 @@ CONCAVE_SHAPES_START_HERE,
 	//keep all the convex shapetype below here, for the check IsConvexShape in broadphase proxy!
 	TRIANGLE_MESH_SHAPE_PROXYTYPE,
 	EMPTY_SHAPE_PROXYTYPE,
+	STATIC_PLANE_PROXYTYPE,
+CONCAVE_SHAPES_END_HERE,
+
+	COMPOUND_SHAPE_PROXYTYPE,
 
 	MAX_BROADPHASE_COLLISION_TYPES
 };
@@ -53,12 +58,16 @@ struct BroadphaseProxy
 	
 	//Usually the client CollisionObject or Rigidbody class
 	void*	m_clientObject;
+	short int m_collisionFilterGroup;
+	short int m_collisionFilterMask;
 
-
+	//used for memory pools
 	BroadphaseProxy() :m_clientObject(0){}
-	BroadphaseProxy(int shapeType,void* userPtr)
-		:m_clientObject(userPtr)
-		//m_clientObjectType(shapeType)
+
+	BroadphaseProxy(void* userPtr,short int collisionFilterGroup, short int collisionFilterMask)
+		:m_clientObject(userPtr),
+		m_collisionFilterGroup(collisionFilterGroup),
+		m_collisionFilterMask(collisionFilterMask)
 	{
 	}
 	

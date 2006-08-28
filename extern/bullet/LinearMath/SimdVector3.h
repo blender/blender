@@ -183,7 +183,7 @@ operator+(const SimdVector3& v1, const SimdVector3& v2)
 SIMD_FORCE_INLINE SimdVector3 
 operator*(const SimdVector3& v1, const SimdVector3& v2) 
 {
-	return SimdVector3(v1.x() * v2.x(), v1.y() * v2.y(), v1.z() *+ v2.z());
+	return SimdVector3(v1.x() * v2.x(), v1.y() * v2.y(), v1.z() * v2.z());
 }
 
 SIMD_FORCE_INLINE SimdVector3 

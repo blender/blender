@@ -31,7 +31,6 @@ typedef SimdScalar dMatrix3[4*3];
 extern float gLinearAirDamping;
 extern bool gUseEpa;
 
-#define MAX_RIGIDBODIES 8192
 
 
 /// RigidBody class for RigidBody Dynamics
@@ -173,22 +172,7 @@ public:
 	void	getAabb(SimdVector3& aabbMin,SimdVector3& aabbMax) const;
 
 
-	void	setRestitution(float rest)
-	{
-		m_restitution = rest;
-	}
-	float	getRestitution() const
-	{
-		return m_restitution;
-	}
-	void	setFriction(float frict)
-	{
-		m_friction = frict;
-	}
-	float	getFriction() const
-	{
-		return m_friction;
-	}
+
 
 	
 	inline float ComputeImpulseDenominator(const SimdPoint3& pos, const SimdVector3& normal) const
@@ -228,8 +212,6 @@ private:
 	SimdScalar		m_angularDamping;
 	SimdScalar		m_inverseMass;
 
-	SimdScalar		m_friction;
-	SimdScalar		m_restitution;
 
 	SimdScalar		m_kinematicTimeStep;
 
@@ -254,6 +236,7 @@ public:
 		m_broadphaseProxy = broadphaseProxy;
 	}
 	
+	
 
 	/// for ode solver-binding
 	dMatrix3		m_R;//temp
@@ -261,10 +244,11 @@ public:
 	dMatrix3		m_invI;
 
 	int				m_odeTag;
-	float		m_padding[1024];
+	
 	SimdVector3		m_tacc;//temp
 	SimdVector3		m_facc;
-	
+
+
 
 	int	m_debugBodyId;
 };

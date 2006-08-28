@@ -1091,7 +1091,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	if (objprop->m_disableSleeping)
 		physicscontroller->GetRigidBody()->SetActivationState(DISABLE_DEACTIVATION);
 	
-	if (!objprop->m_angular_rigidbody)
+	if (objprop->m_dyna && !objprop->m_angular_rigidbody)
 	{
 		/*
 		//setting the inertia could achieve similar results to constraint the up

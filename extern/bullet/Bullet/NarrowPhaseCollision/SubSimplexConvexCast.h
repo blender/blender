@@ -22,7 +22,9 @@ subject to the following restrictions:
 class ConvexShape;
 
 /// SubsimplexConvexCast implements Gino van den Bergens' paper
+///"Ray Casting against General Convex Objects with Application to Continuous Collision Detection"
 /// GJK based Ray Cast, optimized version
+/// Objects should not start in overlap, otherwise results are not defined.
 class SubsimplexConvexCast : public ConvexCast
 {
 	SimplexSolverInterface* m_simplexSolver;
@@ -34,7 +36,8 @@ public:
 	SubsimplexConvexCast (ConvexShape*	shapeA,ConvexShape*	shapeB,SimplexSolverInterface* simplexSolver);
 
 	//virtual ~SubsimplexConvexCast();
-	
+	///SimsimplexConvexCast calculateTimeOfImpact calculates the time of impact+normal for the linear cast (sweep) between two moving objects.
+	///Precondition is that objects should not penetration/overlap at the start from the interval. Overlap can be tested using GjkPairDetector.
 	virtual bool	calcTimeOfImpact(
 			const SimdTransform& fromA,
 			const SimdTransform& toA,

@@ -42,28 +42,48 @@ public:
 		const SimdScalar massInvA,
 		const SimdVector3& inertiaInvB,
 		const SimdScalar massInvB)
-		:m_jointAxis(jointAxis)
+		:m_linearJointAxis(jointAxis)
 	{
-		m_aJ = world2A*(rel_pos1.cross(m_jointAxis));
-		m_bJ = world2B*(rel_pos2.cross(-m_jointAxis));
+		m_aJ = world2A*(rel_pos1.cross(m_linearJointAxis));
+		m_bJ = world2B*(rel_pos2.cross(-m_linearJointAxis));
 		m_0MinvJt	= inertiaInvA * m_aJ;
 		m_1MinvJt = inertiaInvB * m_bJ;
 		m_Adiag = massInvA + m_0MinvJt.dot(m_aJ) + massInvB + m_1MinvJt.dot(m_bJ);
+
+		ASSERT(m_Adiag > 0.0f);
 	}
 
-		//angular constraint between two different rigidbodies
+	//angular constraint between two different rigidbodies
 	JacobianEntry(const SimdVector3& jointAxis,
 		const SimdMatrix3x3& world2A,
 		const SimdMatrix3x3& world2B,
 		const SimdVector3& inertiaInvA,
 		const SimdVector3& inertiaInvB)
-		:m_jointAxis(m_jointAxis)
+		:m_linearJointAxis(SimdVector3(0.f,0.f,0.f))
 	{
-		m_aJ= world2A*m_jointAxis;
-		m_bJ = world2B*-m_jointAxis;
+		m_aJ= world2A*jointAxis;
+		m_bJ = world2B*-jointAxis;
 		m_0MinvJt	= inertiaInvA * m_aJ;
 		m_1MinvJt = inertiaInvB * m_bJ;
 		m_Adiag =  m_0MinvJt.dot(m_aJ) + m_1MinvJt.dot(m_bJ);
+
+		ASSERT(m_Adiag > 0.0f);
+	}
+
+	//angular constraint between two different rigidbodies
+	JacobianEntry(const SimdVector3& axisInA,
+		const SimdVector3& axisInB,
+		const SimdVector3& inertiaInvA,
+		const SimdVector3& inertiaInvB)
+		: m_linearJointAxis(SimdVector3(0.f,0.f,0.f))
+		, m_aJ(axisInA)
+		, m_bJ(-axisInB)
+	{
+		m_0MinvJt	= inertiaInvA * m_aJ;
+		m_1MinvJt = inertiaInvB * m_bJ;
+		m_Adiag =  m_0MinvJt.dot(m_aJ) + m_1MinvJt.dot(m_bJ);
+
+		ASSERT(m_Adiag > 0.0f);
 	}
 
 	//constraint on one rigidbody
@@ -73,13 +93,15 @@ public:
 		const SimdVector3& jointAxis,
 		const SimdVector3& inertiaInvA, 
 		const SimdScalar massInvA)
-		:m_jointAxis(jointAxis)
+		:m_linearJointAxis(jointAxis)
 	{
-		m_aJ= world2A*(rel_pos1.cross(m_jointAxis));
-		m_bJ = world2A*(rel_pos2.cross(-m_jointAxis));
+		m_aJ= world2A*(rel_pos1.cross(jointAxis));
+		m_bJ = world2A*(rel_pos2.cross(-jointAxis));
 		m_0MinvJt	= inertiaInvA * m_aJ;
 		m_1MinvJt = SimdVector3(0.f,0.f,0.f);
 		m_Adiag = massInvA + m_0MinvJt.dot(m_aJ);
+
+		ASSERT(m_Adiag > 0.0f);
 	}
 
 	SimdScalar	getDiagonal() const { return m_Adiag; }
@@ -88,7 +110,7 @@ public:
 	SimdScalar	getNonDiagonal(const JacobianEntry& jacB, const SimdScalar massInvA) const
 	{
 		const JacobianEntry& jacA = *this;
-		SimdScalar lin = massInvA * jacA.m_jointAxis.dot(jacB.m_jointAxis);
+		SimdScalar lin = massInvA * jacA.m_linearJointAxis.dot(jacB.m_linearJointAxis);
 		SimdScalar ang = jacA.m_0MinvJt.dot(jacB.m_aJ);
 		return lin + ang;
 	}
@@ -99,7 +121,7 @@ public:
 	SimdScalar	getNonDiagonal(const JacobianEntry& jacB,const SimdScalar massInvA,const SimdScalar massInvB) const
 	{
 		const JacobianEntry& jacA = *this;
-		SimdVector3 lin = jacA.m_jointAxis* jacB.m_jointAxis;
+		SimdVector3 lin = jacA.m_linearJointAxis * jacB.m_linearJointAxis;
 		SimdVector3 ang0 = jacA.m_0MinvJt * jacB.m_aJ;
 		SimdVector3 ang1 = jacA.m_1MinvJt * jacB.m_bJ;
 		SimdVector3 lin0 = massInvA * lin ;
@@ -113,7 +135,7 @@ public:
 		SimdVector3 linrel = linvelA - linvelB;
 		SimdVector3 angvela  = angvelA * m_aJ;
 		SimdVector3 angvelb  = angvelB * m_bJ;
-		linrel *= m_jointAxis;
+		linrel *= m_linearJointAxis;
 		angvela += angvelb;
 		angvela += linrel;
 		SimdScalar rel_vel2 = angvela[0]+angvela[1]+angvela[2];
@@ -121,7 +143,7 @@ public:
 	}
 //private:
 
-	SimdVector3	m_jointAxis;
+	SimdVector3	m_linearJointAxis;
 	SimdVector3	m_aJ;
 	SimdVector3	m_bJ;
 	SimdVector3	m_0MinvJt;

@@ -25,10 +25,10 @@ class Dispatcher;
 #include "BroadphaseCollision/BroadphaseProxy.h"
 
 
-
-class BoxTriangleCallback : public TriangleCallback
+///For each triangle in the concave mesh that overlaps with the AABB of a convex (m_convexProxy), ProcessTriangle is called.
+class ConvexTriangleCallback : public TriangleCallback
 {
-	BroadphaseProxy* m_boxProxy;
+	BroadphaseProxy* m_convexProxy;
 	BroadphaseProxy m_triangleProxy;
 
 	SimdVector3	m_aabbMin;
@@ -43,11 +43,11 @@ int	m_triangleCount;
 	
 	PersistentManifold*	m_manifoldPtr;
 
-	BoxTriangleCallback(Dispatcher* dispatcher,BroadphaseProxy* proxy0,BroadphaseProxy* proxy1);
+	ConvexTriangleCallback(Dispatcher* dispatcher,BroadphaseProxy* proxy0,BroadphaseProxy* proxy1);
 
 	void	SetTimeStepAndCounters(float collisionMarginTriangle,const DispatcherInfo& dispatchInfo);
 
-	virtual ~BoxTriangleCallback();
+	virtual ~ConvexTriangleCallback();
 
 	virtual void ProcessTriangle(SimdVector3* triangle, int partId, int triangleIndex);
 	
@@ -75,7 +75,7 @@ class ConvexConcaveCollisionAlgorithm  : public CollisionAlgorithm
 
 	BroadphaseProxy m_concave;
 
-	BoxTriangleCallback m_boxTriangleCallback;
+	ConvexTriangleCallback m_ConvexTriangleCallback;
 
 
 public:

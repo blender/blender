@@ -37,7 +37,7 @@ bool	SubsimplexConvexCast::calcTimeOfImpact(
 		CastResult& result)
 {
 
-		MinkowskiSumShape combi(m_convexA,m_convexB);
+	MinkowskiSumShape combi(m_convexA,m_convexB);
 	MinkowskiSumShape* convex = &combi;
 
 	SimdTransform	rayFromLocalA;
@@ -92,7 +92,7 @@ bool	SubsimplexConvexCast::calcTimeOfImpact(
 		{
 			VdotR = v.dot(r);
 
-			if (VdotR >= 0.f)
+			if (VdotR >= -(SIMD_EPSILON*SIMD_EPSILON))
 				return false;
 			else
 			{

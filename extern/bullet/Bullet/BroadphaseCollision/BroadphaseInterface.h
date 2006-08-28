@@ -29,11 +29,11 @@ class BroadphaseInterface
 public:
 	virtual ~BroadphaseInterface() {}
 
-	virtual BroadphaseProxy*	CreateProxy(  const SimdVector3& min,  const SimdVector3& max,int shapeType,void* userPtr ) =0;
+	virtual BroadphaseProxy*	CreateProxy(  const SimdVector3& min,  const SimdVector3& max,int shapeType,void* userPtr, short int collisionFilterGroup,short int collisionFilterMask) =0;
 	virtual void	DestroyProxy(BroadphaseProxy* proxy)=0;
 	virtual void	SetAabb(BroadphaseProxy* proxy,const SimdVector3& aabbMin,const SimdVector3& aabbMax)=0;
 	virtual void	CleanProxyFromPairs(BroadphaseProxy* proxy)=0;
-	virtual void	DispatchAllCollisionPairs(Dispatcher&	dispatcher,DispatcherInfo& dispatchInfo)=0;
+	
 
 };
 

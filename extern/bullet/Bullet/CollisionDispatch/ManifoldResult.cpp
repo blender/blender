@@ -18,6 +18,31 @@ subject to the following restrictions:
 #include "NarrowPhaseCollision/PersistentManifold.h"
 #include "CollisionDispatch/CollisionObject.h"
 
+
+///This is to allow MaterialCombiner/Custom Friction/Restitution values
+ContactAddedCallback		gContactAddedCallback=0;
+
+///User can override this material combiner by implementing gContactAddedCallback and setting body0->m_collisionFlags |= CollisionObject::customMaterialCallback;
+inline SimdScalar	calculateCombinedFriction(const CollisionObject* body0,const CollisionObject* body1)
+{
+	SimdScalar friction = body0->getFriction() * body1->getFriction();
+
+	const SimdScalar MAX_FRICTION  = 10.f;
+	if (friction < -MAX_FRICTION)
+		friction = -MAX_FRICTION;
+	if (friction > MAX_FRICTION)
+		friction = MAX_FRICTION;
+	return friction;
+
+}
+
+inline SimdScalar	calculateCombinedRestitution(const CollisionObject* body0,const CollisionObject* body1)
+{
+	return body0->getRestitution() * body1->getRestitution();
+}
+
+
+
 ManifoldResult::ManifoldResult(CollisionObject* body0,CollisionObject* body1,PersistentManifold* manifoldPtr)
 		:m_manifoldPtr(manifoldPtr),
 		m_body0(body0),
@@ -31,8 +56,12 @@ void ManifoldResult::AddContactPoint(const SimdVector3& normalOnBInWorld,const S
 	if (depth > m_manifoldPtr->GetContactBreakingTreshold())
 		return;
 
-	SimdTransform transAInv = m_body0->m_worldTransform.inverse();
-	SimdTransform transBInv= m_body1->m_worldTransform.inverse();
+
+	SimdTransform transAInv = m_body0->m_cachedInvertedWorldTransform;
+	SimdTransform transBInv= m_body1->m_cachedInvertedWorldTransform;
+
+	//transAInv = m_body0->m_worldTransform.inverse();
+	//transBInv= m_body1->m_worldTransform.inverse();
 	SimdVector3 pointA = pointInWorld + normalOnBInWorld * depth;
 	SimdVector3 localA = transAInv(pointA );
 	SimdVector3 localB = transBInv(pointInWorld);
@@ -52,6 +81,20 @@ void ManifoldResult::AddContactPoint(const SimdVector3& normalOnBInWorld,const S
 
 	} else
 	{
+
+		newPt.m_combinedFriction = calculateCombinedFriction(m_body0,m_body1);
+		newPt.m_combinedRestitution = calculateCombinedRestitution(m_body0,m_body1);
+
+		//User can override friction and/or restitution
+		if (gContactAddedCallback &&
+			//and if either of the two bodies requires custom material
+			 ((m_body0->m_collisionFlags & CollisionObject::customMaterialCallback) ||
+			   (m_body1->m_collisionFlags & CollisionObject::customMaterialCallback)))
+		{
+			//experimental feature info, for per-triangle material etc.
+			(*gContactAddedCallback)(newPt,m_body0,m_partId0,m_index0,m_body1,m_partId1,m_index1);
+		}
+
 		m_manifoldPtr->AddManifoldPoint(newPt);
 	}
 }

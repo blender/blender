@@ -40,6 +40,8 @@ class ManifoldPoint
 					m_localPointB( pointB ), 
 					m_normalWorldOnB( normal ), 
 					m_distance1( distance ),
+					m_combinedFriction(0.f),
+					m_combinedRestitution(0.f),
 					m_userPersistentData(0),					
 					m_lifeTime(0)
 			{
@@ -57,6 +59,8 @@ class ManifoldPoint
 			SimdVector3 m_normalWorldOnB;
 		
 			float	m_distance1;
+			float	m_combinedFriction;
+			float	m_combinedRestitution;
 
 				
 			void*	m_userPersistentData;

@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef EMPTY_SHAPE_H
 #define EMPTY_SHAPE_H
 
-#include "CollisionShape.h"
+#include "ConcaveShape.h"
 
 #include "SimdVector3.h"
 #include "SimdTransform.h"
@@ -27,8 +27,9 @@ subject to the following restrictions:
 
 
 
-/// EmptyShape is a collision shape without actual collision detection. It can be replaced by another shape during runtime
-class EmptyShape	: public CollisionShape
+/// EmptyShape is a collision shape without actual collision detection. 
+///It can be replaced by another shape during runtime
+class EmptyShape	: public ConcaveShape
 {
 public:
 	EmptyShape();
@@ -53,22 +54,13 @@ public:
 	
 	virtual int	GetShapeType() const { return EMPTY_SHAPE_PROXYTYPE;}
 
-	virtual void	SetMargin(float margin)
-	{
-		m_collisionMargin = margin;
-	}
-	virtual float	GetMargin() const
-	{
-		return m_collisionMargin;
-	}
+	
 	virtual char*	GetName()const
 	{
 		return "Empty";
 	}
 
 
-private:
-	SimdScalar	m_collisionMargin;
 protected:
 	SimdVector3	m_localScaling;
 

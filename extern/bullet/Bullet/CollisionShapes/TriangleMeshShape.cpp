@@ -23,8 +23,7 @@ subject to the following restrictions:
 #include "stdio.h"
 
 TriangleMeshShape::TriangleMeshShape(StridingMeshInterface* meshInterface)
-: m_meshInterface(meshInterface),
-m_collisionMargin(CONVEX_DISTANCE_MARGIN)
+: m_meshInterface(meshInterface)
 {
 	RecalcLocalAabb();
 }

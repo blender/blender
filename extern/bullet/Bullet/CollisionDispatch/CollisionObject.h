@@ -28,6 +28,9 @@ subject to the following restrictions:
 struct	BroadphaseProxy;
 class	CollisionShape;
 
+/// CollisionObject can be used to manage collision detection objects. 
+/// CollisionObject maintains all information that is needed for a collision detection: Shape, Transform and AABB proxy.
+/// They can be added to the CollisionWorld.
 struct	CollisionObject
 {
 	SimdTransform	m_worldTransform;
@@ -35,12 +38,14 @@ struct	CollisionObject
 	//m_interpolationWorldTransform is used for CCD and interpolation
 	//it can be either previous or future (predicted) transform
 	SimdTransform	m_interpolationWorldTransform;
-	
+
+	SimdTransform	m_cachedInvertedWorldTransform;
+
 	enum CollisionFlags
 	{
 		isStatic = 1,
 		noContactResponse = 2,
-
+		customMaterialCallback = 4,//this allows per-triangle material (friction/restitution)
 	};
 
 	int				m_collisionFlags;
@@ -49,13 +54,22 @@ struct	CollisionObject
 	int				m_activationState1;
 	float			m_deactivationTime;
 
+	SimdScalar		m_friction;
+	SimdScalar		m_restitution;
+
 	BroadphaseProxy*	m_broadphaseHandle;
 	CollisionShape*		m_collisionShape;
 
 	void*			m_userPointer;//not use by Bullet internally
 
-	//time of impact calculation
+	///time of impact calculation
 	float			m_hitFraction; 
+	
+	///Swept sphere radius (0.0 by default), see ConvexConvexAlgorithm::
+	float			m_ccdSweptShereRadius;
+
+	/// Don't do continuous collision detection if square motion (in one step) is less then m_ccdSquareMotionTreshold
+	float			m_ccdSquareMotionTreshold;
 
 	bool			mergesSimulationIslands() const;
 
@@ -89,6 +103,23 @@ struct	CollisionObject
 	inline bool IsActive() const
 	{
 		return ((GetActivationState() != ISLAND_SLEEPING) && (GetActivationState() != DISABLE_SIMULATION));
+	}
+
+		void	setRestitution(float rest)
+	{
+		m_restitution = rest;
+	}
+	float	getRestitution() const
+	{
+		return m_restitution;
+	}
+	void	setFriction(float frict)
+	{
+		m_friction = frict;
+	}
+	float	getFriction() const
+	{
+		return m_friction;
 	}
 
 

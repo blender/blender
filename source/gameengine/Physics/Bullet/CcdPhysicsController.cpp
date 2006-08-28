@@ -34,7 +34,7 @@ class BP_Proxy;
 float	gDeactivationTime = 2.f;
 bool	gDisableDeactivation = false;
 
-float gLinearSleepingTreshold = 0.4f;
+float gLinearSleepingTreshold = 0.8f;
 float gAngularSleepingTreshold = 1.0f;
 
 #include "Dynamics/MassProps.h"
@@ -209,28 +209,6 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 
 
 }
-
-void CcdPhysicsController::SetMargin(float margin)
-{
-	if (m_body && m_body->GetCollisionShape())
-	{
-		m_body->GetCollisionShape()->SetMargin(margin);
-	}
-
-
-}
-
-float CcdPhysicsController::GetMargin() const
-{
-	if (m_body && m_body->GetCollisionShape())
-	{
-		return m_body->GetCollisionShape()->GetMargin();
-	}
-
-	return 0.f;
-
-}
-
 
 		// kinematic methods
 void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local)
@@ -557,6 +535,7 @@ PHY_IPhysicsController*	CcdPhysicsController::GetReplica()
 DefaultMotionState::DefaultMotionState()
 {
 	m_worldTransform.setIdentity();
+	m_localScaling.setValue(1.f,1.f,1.f);
 }
 
 
@@ -574,9 +553,9 @@ void	DefaultMotionState::getWorldPosition(float& posX,float& posY,float& posZ)
 
 void	DefaultMotionState::getWorldScaling(float& scaleX,float& scaleY,float& scaleZ)
 {
-	scaleX = 1.;
-	scaleY = 1.;
-	scaleZ = 1.;
+	scaleX = m_localScaling.getX();
+	scaleY = m_localScaling.getY();
+	scaleZ = m_localScaling.getZ();
 }
 
 void	DefaultMotionState::getWorldOrientation(float& quatIma0,float& quatIma1,float& quatIma2,float& quatReal)
