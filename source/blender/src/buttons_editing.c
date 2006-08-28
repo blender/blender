@@ -1310,29 +1310,29 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		int lx = x + width - 60 - 15;
 
 		if (md->type==eModifierType_Subsurf) {
-			height = 106;
+			height = 105;
 		} else if (md->type==eModifierType_Lattice) {
-			height = 46;
+			height = 48;
 		} else if (md->type==eModifierType_Curve) {
-			height = 46;
+			height = 48;
 		} else if (md->type==eModifierType_Build) {
 			height = 86;
 		} else if (md->type==eModifierType_Mirror) {
-			height = 46;
+			height = 48;
 		} else if (md->type==eModifierType_EdgeSplit) {
-			height = 46;
+			height = 48;
 		} else if (md->type==eModifierType_Displace) {
 			DisplaceModifierData *dmd = (DisplaceModifierData *)md;
-			height = 134;
+			height = 124;
 			if(dmd->texmapping == MOD_DISP_MAP_OBJECT) height += 19;
 		} else if (md->type==eModifierType_UVProject) {
 			height = 67 + ((UVProjectModifierData *)md)->num_projectors * 19;
 		} else if (md->type==eModifierType_Decimate) {
-			height = 46;
+			height = 48;
 		} else if (md->type==eModifierType_Wave) {
 			height = 200;
 		} else if (md->type==eModifierType_Armature) {
-			height = 46;
+			height = 67;
 		} else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 			height = 86;
@@ -1343,9 +1343,9 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Softbody) {
 			height = 26;
 		} else if (md->type==eModifierType_Boolean) {
-			height = 46;
+			height = 48;
 		} else if (md->type==eModifierType_Array) {
-			height = 186;
+			height = 182;
 		}
 
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
@@ -1512,6 +1512,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			ArmatureModifierData *amd = (ArmatureModifierData*) md;
 			uiDefIDPoinBut(block, modifier_testArmatureObj, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &amd->object, "Armature object to deform with");
 			
+			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth,19, &amd->defgrp_name, 0.0, 31.0, 0, 0, "Vertex Group name to control overall armature influence");
+			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
 			uiDefButBitS(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vert.Groups",	lx,cy-=19,buttonWidth/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform");
 			uiDefButBitS(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	lx+buttonWidth/2,cy,(buttonWidth + 1)/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform");
 			

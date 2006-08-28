@@ -226,6 +226,7 @@ typedef struct ArmatureModifierData {
 	short deformflag, pad1;		/* deformflag replaces armature->deformflag */
 	int pad2;
 	struct Object *object;
+	char defgrp_name[32];
 } ArmatureModifierData;
 
 typedef struct HookModifierData {

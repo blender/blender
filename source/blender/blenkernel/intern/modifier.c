@@ -2976,7 +2976,7 @@ static void armatureModifier_deformVerts(
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 
 	armature_deform_verts(amd->object, ob, derivedData, vertexCos, numVerts,
-	                      amd->deformflag);
+	                      amd->deformflag, amd->defgrp_name);
 }
 
 static void armatureModifier_deformVertsEM(
@@ -2989,7 +2989,7 @@ static void armatureModifier_deformVertsEM(
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
 	armature_deform_verts(amd->object, ob, dm, vertexCos, numVerts,
-	                      amd->deformflag);
+	                      amd->deformflag, amd->defgrp_name);
 
 	if(!derivedData) dm->release(dm);
 }
