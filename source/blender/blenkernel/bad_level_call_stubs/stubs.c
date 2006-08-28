@@ -220,7 +220,10 @@ void bglVertex3fv(float *vec) {}
 void bglVertex3f(float x, float y, float z) {}
 void bglEnd(void) {}
 
+/* booleanops.c */
 struct DispListMesh *NewBooleanMeshDLM(struct Object *ob, struct Object *ob_select, int int_op_type) { return 0; }
+struct DerivedMesh *NewBooleanDerivedMesh(struct Object *ob,
+                                struct Object *ob_select, int int_op_type) {}
 
 // bobj read/write debug messages
 void elbeemDebugOut(char *msg) {}

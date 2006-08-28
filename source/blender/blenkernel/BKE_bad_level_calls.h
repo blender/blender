@@ -148,7 +148,11 @@ void bglEnd(void);
 
 struct DispListMesh;
 struct Object;
+
+/* booleanops.c */
 struct DispListMesh *NewBooleanMeshDLM(struct Object *ob, struct Object *ob_select, int int_op_type);
+struct DerivedMesh *NewBooleanDerivedMesh(struct Object *ob,
+                                struct Object *ob_select, int int_op_type);
 
 #endif
 
