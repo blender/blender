@@ -931,7 +931,8 @@ int edgegroup_select(short mode)
 	
 	if (mode==1) { /*store length*/
 		for(eed= em->edges.first; eed; eed= eed->next) {
-			eed->tmp.fp= VecLenf(eed->v1->co, eed->v2->co);
+			if (!eed->h) /* dont calc data for hidden edges*/
+				eed->tmp.fp= VecLenf(eed->v1->co, eed->v2->co);
 		}
 	} else if (mode==3) { /*store face users*/
 		EditFace *efa;
@@ -968,13 +969,15 @@ int edgegroup_select(short mode)
 						break;
 				} /* done looping */
 				
-				if (eed->f2==2)
-					break;
-				else if (eed->f2==0) /* first access, assign the face */
-					eed->tmp.f= efa;
-				else if (eed->f2==1) /* second, we assign the angle*/
-					eed->tmp.fp= VecAngle2(eed->tmp.f->n, efa->n)/180;
-				eed->f2++; /* f2==0 no face assigned. f2==1 one face found. f2==2 angle calculated.*/
+				if (!eed->h) { /* dont calc data for hidden edges*/
+					if (eed->f2==2)
+						break;
+					else if (eed->f2==0) /* first access, assign the face */
+						eed->tmp.f= efa;
+					else if (eed->f2==1) /* second, we assign the angle*/
+						eed->tmp.fp= VecAngle2(eed->tmp.f->n, efa->n)/180;
+					eed->f2++; /* f2==0 no face assigned. f2==1 one face found. f2==2 angle calculated.*/
+				}
 				j++;
 			}
 		}
