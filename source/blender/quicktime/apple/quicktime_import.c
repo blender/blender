@@ -291,6 +291,7 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 
 	ImBuf *ibuf = NULL;
 	unsigned int *rect;
+	unsigned char *from, *to;
 #ifdef _WIN32
 	unsigned char *crect;
 #endif
@@ -321,11 +322,16 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 	changePos = (uint32_t *) rect; //textureIMBuf *THE* data pointerrr
 
 #ifdef __APPLE__
-	// Swap alpha byte to the end, so ARGB become RGBA; note this is
- // big endian-centric.
-	for( index = 0; index < boxsize; index++, changePos++, readPos++ )
-		*( changePos ) = ( ( *readPos & 0xFFFFFF ) << 8 ) |
-			( ( *readPos >> 24 ) & 0xFF );
+	// Swap alpha byte to the end, so ARGB become RGBA;
+	from= (unsigned char *)readPos;
+	to= (unsigned char *)changePos;
+	
+	for( index = 0; index < boxsize; index++, from+=4, to+=4 ) {
+		to[3] = from[0];
+		to[0] = from[1];
+		to[1] = from[2];
+		to[2] = from[3];
+	}
 #endif
 
 #ifdef _WIN32
@@ -581,6 +587,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 
 	ImBuf *wbuf = NULL;
 	unsigned int *rect;
+	unsigned char *from, *to;
 #endif
 
 	if (mem == NULL)
@@ -678,9 +685,16 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	readPos = (uint32_t *) myPtr;
 	changePos = (uint32_t *) rect;
 
-	for( index = 0; index < boxsize; index++, changePos++, readPos++ )
-		*( changePos ) = ( ( *readPos & 0xFFFFFF ) << 8 ) |
-			( ( *readPos >> 24 ) & 0xFF );
+	// Swap alpha byte to the end, so ARGB become RGBA;
+	from= (unsigned char *)readPos;
+	to= (unsigned char *)changePos;
+	
+	for( index = 0; index < boxsize; index++, from+=4, to+=4 ) {
+		to[3] = from[0];
+		to[0] = from[1];
+		to[1] = from[2];
+		to[2] = from[3];
+	}
 #endif
 
 bail:
