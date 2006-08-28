@@ -765,27 +765,50 @@ static void modifiers_add(void *ob_v, int type)
 	BIF_undo_push("Add modifier");
 }
 
+typedef struct MenuEntry {
+	char *name;
+	int ID;
+} MenuEntry;
+
+static int menuEntry_compare_names(const void *entry1, const void *entry2)
+{
+	return strcmp(((MenuEntry *)entry1)->name, ((MenuEntry *)entry2)->name);
+}
+
 static uiBlock *modifiers_add_menu(void *ob_v)
 {
 	Object *ob = ob_v;
 	uiBlock *block;
 	int i, yco=0;
+	int numEntries = 0;
+	MenuEntry entries[NUM_MODIFIER_TYPES];
 	
-	block= uiNewBlock(&curarea->uiblocks, "modifier_add_menu", UI_EMBOSSP, UI_HELV, curarea->win);
+	block= uiNewBlock(&curarea->uiblocks, "modifier_add_menu",
+	                  UI_EMBOSSP, UI_HELV, curarea->win);
 	uiBlockSetButmFunc(block, modifiers_add, ob);
 
 	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
-			/* Only allow adding through appropriate other interfaces */
-		if (ELEM(i, eModifierType_Softbody, eModifierType_Hook)) continue;
-			
-		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
-				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
-			uiDefBut(block, BUTM, B_MODIFIER_RECALC, mti->name,		0, yco-=20, 160, 19, NULL, 0, 0, 1, i, "");
+		/* Only allow adding through appropriate other interfaces */
+		if(ELEM(i, eModifierType_Softbody, eModifierType_Hook)) continue;
+
+		if((mti->flags&eModifierTypeFlag_AcceptsCVs) ||
+		   (ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
+			entries[numEntries].name = mti->name;
+			entries[numEntries].ID = i;
+
+			++numEntries;
 		}
 	}
-	
+
+	qsort(entries, numEntries, sizeof(*entries), menuEntry_compare_names);
+
+
+	for(i = 0; i < numEntries; ++i)
+		uiDefBut(block, BUTM, B_MODIFIER_RECALC, entries[i].name,
+		         0, yco -= 20, 160, 19, NULL, 0, 0, 1, entries[i].ID, "");
+
 	uiTextBoundsBlock(block, 50);
 	uiBlockSetDirection(block, UI_DOWN);
 
@@ -943,12 +966,85 @@ static void modifier_testArmatureObj(char *name, ID **idpp)
 	*idpp= 0;
 }
 
+static void modifier_testTexture(char *name, ID **idpp)
+{
+	ID *id;
+
+	for(id = G.main->tex.first; id; id = id->next) {
+		if(strcmp(name, id->name + 2) == 0) {
+			*idpp = id;
+			return;
+		}
+	}
+	*idpp = 0;
+}
+
+static void modifier_testMaterial(char *name, ID **idpp)
+{
+	ID *id;
+
+	for(id = G.main->mat.first; id; id = id->next) {
+		if(strcmp(name, id->name + 2) == 0) {
+			*idpp = id;
+			return;
+		}
+	}
+	*idpp = 0;
+}
+
+static void modifier_testImage(char *name, ID **idpp)
+{
+	ID *id;
+
+	for(id = G.main->image.first; id; id = id->next) {
+		if(strcmp(name, id->name + 2) == 0) {
+			*idpp = id;
+			return;
+		}
+	}
+	*idpp = 0;
+}
+
+/* autocomplete callback for ID buttons */
+void autocomplete_image(char *str, void *arg_v)
+{
+	char truncate[40] = {0};
+
+	/* search if str matches the beginning of an ID struct */
+	if(str[0]) {
+		ID *id;
+
+		for(id = G.main->image.first; id; id = id->next) {
+			int a;
+
+			for(a = 0; a < 24 - 2; a++) {
+				if(str[a] == 0 || str[a] != id->name[a + 2])
+					break;
+			}
+			/* found a match */
+			if(str[a] == 0) {
+				/* first match */
+				if(truncate[0] == 0)
+					BLI_strncpy(truncate, id->name + 2, 24);
+				else {
+					/* remove from truncate what is not in bone->name */
+					for(a = 0; a < 23; a++) {
+						if(truncate[a] != id->name[a])
+							truncate[a] = 0;
+					}
+				}
+			}
+		}
+		if(truncate[0])
+			BLI_strncpy(str, truncate, 24);
+	}
+}
+
 static void modifiers_applyModifier(void *obv, void *mdv)
 {
 	Object *ob = obv;
 	ModifierData *md = mdv;
 	DerivedMesh *dm;
-	DispListMesh *dlm;
 	Mesh *me = ob->data;
 	int converted = 0;
 
@@ -972,20 +1068,9 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 			return;
 		}
 
-		dlm= dm->convertToDispListMesh(dm, 0);
+		DM_to_mesh(dm, me);
+		converted = 1;
 
-		if ((!me->tface || dlm->tface) || okee("Applying will delete mesh UVs and vertex colors")) {
-			if ((!me->mcol || dlm->mcol) || okee("Applying will delete mesh vertex colors")) {
-				if (dlm->totvert==me->totvert || okee("Applying will delete mesh sticky, keys, and vertex groups")) {
-					displistmesh_to_mesh(dlm, me);
-					converted = 1;
-				}
-			}
-		}
-
-		if (!converted) {
-			displistmesh_free(dlm);
-		}
 		dm->release(dm);
 	} 
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
@@ -1234,6 +1319,14 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 86;
 		} else if (md->type==eModifierType_Mirror) {
 			height = 46;
+		} else if (md->type==eModifierType_EdgeSplit) {
+			height = 46;
+		} else if (md->type==eModifierType_Displace) {
+			DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+			height = 134;
+			if(dmd->texmapping == MOD_DISP_MAP_OBJECT) height += 19;
+		} else if (md->type==eModifierType_UVProject) {
+			height = 67 + ((UVProjectModifierData *)md)->num_projectors * 19;
 		} else if (md->type==eModifierType_Decimate) {
 			height = 46;
 		} else if (md->type==eModifierType_Wave) {
@@ -1279,7 +1372,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			char subsurfmenu[]="Subsurf Type%t|Catmull-Clark%x0|Simple Subdiv.%x1";
 			uiDefButS(block, MENU, B_MODIFIER_RECALC, subsurfmenu,		lx,(cy-=19),buttonWidth,19, &smd->subdivType, 0, 0, 0, 0, "Selects type of subdivision algorithm.");
 			uiDefButS(block, NUM, B_MODIFIER_RECALC, "Levels:",		lx, (cy-=19), buttonWidth,19, &smd->levels, 1, 6, 0, 0, "Number subdivisions to perform");
-			uiDefButS(block, NUM, B_MODIFIER_RECALC, "Render Levels:",		lx, (cy-=19), buttonWidth,19, &smd->renderLevels, 1, 6, 0, 0, "Number subdivisions to perform when rendering");
+			uiDefButS(block, NUM, B_MODIFIER_REDRAW, "Render Levels:",		lx, (cy-=19), buttonWidth,19, &smd->renderLevels, 1, 6, 0, 0, "Number subdivisions to perform when rendering");
 
 			/* Disabled until non-EM DerivedMesh implementation is complete */
 
@@ -1294,12 +1387,12 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			LatticeModifierData *lmd = (LatticeModifierData*) md;
 			uiDefIDPoinBut(block, modifier_testLatticeObj, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &lmd->object, "Lattice object to deform with");
 			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth,19, &lmd->name, 0.0, 31.0, 0, 0, "Vertex Group name");
-			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)lmd->object);
+			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
 		} else if (md->type==eModifierType_Curve) {
 			CurveModifierData *cmd = (CurveModifierData*) md;
 			uiDefIDPoinBut(block, modifier_testCurveObj, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &cmd->object, "Curve object to deform with");
 			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth,19, &cmd->name, 0.0, 31.0, 0, 0, "Vertex Group name");
-			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)cmd->object);
+			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
 		} else if (md->type==eModifierType_Build) {
 			BuildModifierData *bmd = (BuildModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Start:", lx, (cy-=19), buttonWidth,19, &bmd->start, 1.0, MAXFRAMEF, 100, 0, "Specify the start frame of the effect");
@@ -1313,6 +1406,86 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButS(block, ROW, B_MODIFIER_RECALC, "Y",	lx+20, cy, 20,19, &mmd->axis, 1, 1, 0, 0, "Specify the axis to mirror about");
 			uiDefButS(block, ROW, B_MODIFIER_RECALC, "Z",	lx+40, cy, 20,19, &mmd->axis, 1, 2, 0, 0, "Specify the axis to mirror about");
 			uiDefButBitS(block, TOG, MOD_MIR_CLIPPING, B_MODIFIER_RECALC, "Do Clipping",	lx+60, cy, buttonWidth-60,19, &mmd->flag, 1, 2, 0, 0, "Prevents during Transform vertices to go through Mirror");
+		} else if (md->type==eModifierType_EdgeSplit) {
+			EdgeSplitModifierData *amd = (EdgeSplitModifierData*) md;
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Split Angle:",
+			          lx, (cy -= 19), buttonWidth, 19, &amd->split_angle,
+			          0.0, 180.0, 100, 2,
+			          "Angle above which to split edges");
+			uiDefButBitI(block, TOG, MOD_EDGESPLIT_FROMANGLE,
+			             B_MODIFIER_RECALC, "From Angle",
+			             lx, (cy-=19), buttonWidth/2, 19,
+			             &amd->flags, 0, 0, 0, 0,
+			             "Get edge sharpness from angle");
+			uiDefButBitI(block, TOG, MOD_EDGESPLIT_FROMFLAG,
+			             B_MODIFIER_RECALC, "From Flag",
+			             lx + buttonWidth/2, cy, (buttonWidth + 1)/2, 19,
+			             &amd->flags, 0, 0, 0, 0,
+			             "Get edge sharpness from flag");
+		} else if (md->type==eModifierType_Displace) {
+			DisplaceModifierData *dmd = (DisplaceModifierData*) md;
+			but = uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",
+			               lx, (cy -= 19), buttonWidth, 19,
+			               &dmd->defgrp_name, 0.0, 31.0, 0, 0,
+			               "Name of vertex group to displace"
+			               " (displace whole mesh if blank)");
+			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+			uiDefIDPoinBut(block, modifier_testTexture, ID_TE, B_CHANGEDEP,
+			               "Texture: ", lx, (cy -= 19), buttonWidth, 19,
+			               &dmd->texture,
+			               "Texture to use as displacement input");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Midlevel:",
+			          lx, (cy -= 19), buttonWidth, 19, &dmd->midlevel,
+			          0, 1, 10, 3,
+			          "Material value that gives no displacement");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Strength:",
+			          lx, (cy -= 19), buttonWidth, 19, &dmd->strength,
+			          -1000, 1000, 10, 10,
+			          "Strength of displacement");
+			sprintf(str, "Direction%%t|Normal%%x%d|Z%%x%d|Y%%x%d|X%%x%d",
+			        MOD_DISP_DIR_NOR,
+			        MOD_DISP_DIR_Z, MOD_DISP_DIR_Y, MOD_DISP_DIR_X);
+			uiDefButI(block, MENU, B_MODIFIER_RECALC, str,
+			          lx, (cy -= 19), buttonWidth, 19, &dmd->direction,
+			          0.0, 1.0, 0, 0, "Displace direction");
+			sprintf(str, "Texture Coordinates%%t"
+			        "|Local%%x%d|Global%%x%d|Object%%x%d|UV%%x%d",
+			        MOD_DISP_MAP_LOCAL, MOD_DISP_MAP_GLOBAL,
+			        MOD_DISP_MAP_OBJECT, MOD_DISP_MAP_UV);
+			uiDefButI(block, MENU, B_MODIFIER_RECALC, str,
+			          lx, (cy -= 19), buttonWidth, 19, &dmd->texmapping,
+			          0.0, 1.0, 0, 0,
+			          "Texture coordinates used for displacement input");
+			if(dmd->texmapping == MOD_DISP_MAP_OBJECT) {
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP,
+				               "Ob: ", lx, (cy -= 19), buttonWidth, 19,
+				               &dmd->map_object,
+				               "Object to get texture coordinates from");
+			}
+		} else if (md->type==eModifierType_UVProject) {
+			UVProjectModifierData *umd = (UVProjectModifierData *) md;
+			int i;
+			uiDefButBitI(block, TOG, MOD_UVPROJECT_ADDUVS,
+			             B_MODIFIER_RECALC, "Add UVs",
+			             lx, (cy-=19), buttonWidth, 19,
+			             &umd->flags, 0, 0, 0, 0,
+			             "Add UV coordinates if missing");
+			uiDefButI(block, NUM, B_MODIFIER_RECALC, "Projectors:",
+			          lx, (cy -= 19), buttonWidth, 19, &umd->num_projectors,
+			          1, MOD_UVPROJECT_MAXPROJECTORS, 0, 0,
+			          "Number of objects to use as projectors");
+			for(i = 0; i < umd->num_projectors; ++i) {
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP,
+				               "Ob: ", lx, (cy -= 19), buttonWidth, 19,
+				               &umd->projectors[i],
+				               "Object to use as projector");
+			}
+			uiDefIDPoinBut(block, modifier_testImage, ID_IM, B_CHANGEDEP,
+			               "Image: ", lx, (cy -= 19), buttonWidth, 19,
+			               &umd->image,
+			               "Image to project (only faces with this image "
+			               "will be altered");
+			uiButSetCompleteFunc(but, autocomplete_image, (void *)ob);
 		} else if (md->type==eModifierType_Decimate) {
 			DecimateModifierData *dmd = (DecimateModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Ratio:",	lx,(cy-=19),buttonWidth,19, &dmd->percent, 0.0, 1.0, 10, 0, "Defines the percentage of triangles to reduce to");
@@ -1340,7 +1513,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefIDPoinBut(block, modifier_testArmatureObj, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &amd->object, "Armature object to deform with");
 			
 			uiDefButBitS(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vert.Groups",	lx,cy-=19,buttonWidth/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform");
-			uiDefButBitS(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	lx+buttonWidth/2,cy,buttonWidth/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform");
+			uiDefButBitS(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	lx+buttonWidth/2,cy,(buttonWidth + 1)/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform");
 			
 		} else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
@@ -1349,7 +1522,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &hmd->object, "Parent Object for hook, also recalculates and clears offset"); 
 			if(hmd->indexar==NULL) {
 				but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &hmd->name, 0.0, 31.0, 0, 0, "Vertex Group name");
-				uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)hmd->object);
+				uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
 			}
 			uiBlockBeginAlign(block);
 			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Reset", 		lx, (cy-=19), 80,19,			NULL, 0.0, 0.0, 0, 0, "Recalculate and clear offset (transform) of hook");

@@ -56,6 +56,8 @@
 #include "BKE_anim.h"
 #include "BKE_armature.h"
 #include "BKE_curve.h"
+#include "BKE_cdderivedmesh.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
@@ -161,7 +163,7 @@ void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 
 		Mat4CpyMat4(mat, ltOb->obmat);
 		Mat4One(ltOb->obmat);
-		lattice_deform_verts(ltOb, NULL, vertexCos, uNew*vNew*wNew, NULL);
+		lattice_deform_verts(ltOb, NULL, NULL, vertexCos, uNew*vNew*wNew, NULL);
 		Mat4CpyMat4(ltOb->obmat, mat);
 
 		lt->typeu = typeu;
@@ -556,52 +558,85 @@ static void calc_curve_deform(Object *par, float *co, short axis, CurveDeform *c
 
 }
 
-void curve_deform_verts(Object *cuOb, Object *target, float (*vertexCos)[3], int numVerts, char *vgroup)
+void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3], int numVerts, char *vgroup)
 {
 	Curve *cu = cuOb->data;
 	int a, flag = cu->flag;
 	CurveDeform cd;
+	int use_vgroups;
 	
 	cu->flag |= (CU_PATH|CU_FOLLOW); // needed for path & bevlist
 
 	init_curve_deform(cuOb, target, &cd);
 		
-	INIT_MINMAX(cd.dmin, cd.dmax);
-		
-	for(a=0; a<numVerts; a++) {
-		Mat4MulVecfl(cd.curvespace, vertexCos[a]);
-		DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
-	}
+	/* check whether to use vertex groups (only possible if target is a Mesh)
+	 * we want either a Mesh with no derived data, or derived data with
+	 * deformverts
+	 */
+	if(target && target->type==OB_MESH) {
+		/* if there's derived data without deformverts, don't use vgroups */
+		if(dm && !dm->getVertData(dm, 0, LAYERTYPE_MDEFORMVERT))
+			use_vgroups = 0;
+		else
+			use_vgroups = 1;
+	} else
+		use_vgroups = 0;
 	
-	if(vgroup && vgroup[0] && target->type==OB_MESH) {
+	if(vgroup && vgroup[0] && use_vgroups) {
 		bDeformGroup *curdef;
 		Mesh *me= target->data;
-		int index= 0;
+		int index;
 		
 		/* find the group (weak loop-in-loop) */
-		for (curdef = target->defbase.first; curdef; curdef=curdef->next, index++)
+		for(index = 0, curdef = target->defbase.first; curdef;
+		    curdef = curdef->next, index++)
 			if (!strcmp(curdef->name, vgroup))
 				break;
-		/* check for numVerts because old files can have modifier over subsurf still */
-		if(curdef && me->dvert && numVerts==me->totvert) {
-			MDeformVert *dvert= me->dvert;
+
+		if(curdef && (me->dvert || dm)) {
+			MDeformVert *dvert = me->dvert;
 			float vec[3];
 			int j;
-			
-			for(a=0; a<numVerts; a++, dvert++) {
-				for(j=0; j<dvert->totweight; j++) {
-					if (dvert->dw[j].def_nr == index) {
+
+			INIT_MINMAX(cd.dmin, cd.dmax);
+
+			for(a = 0; a < numVerts; a++, dvert++) {
+				if(dm) dvert = dm->getVertData(dm, a, LAYERTYPE_MDEFORMVERT);
+
+				for(j = 0; j < dvert->totweight; j++) {
+					if(dvert->dw[j].def_nr == index) {
+						Mat4MulVecfl(cd.curvespace, vertexCos[a]);
+						DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
+						break;
+					}
+				}
+			}
+
+			dvert = me->dvert;
+			for(a = 0; a < numVerts; a++, dvert++) {
+				if(dm) dvert = dm->getVertData(dm, a, LAYERTYPE_MDEFORMVERT);
+
+				for(j = 0; j < dvert->totweight; j++) {
+					if(dvert->dw[j].def_nr == index) {
 						VECCOPY(vec, vertexCos[a]);
 						calc_curve_deform(cuOb, vec, target->trackflag, &cd);
-						VecLerpf(vertexCos[a], vertexCos[a], vec, dvert->dw[j].weight);
+						VecLerpf(vertexCos[a], vertexCos[a], vec,
+						         dvert->dw[j].weight);
 						Mat4MulVecfl(cd.objectspace, vertexCos[a]);
+						break;
 					}
 				}
 			}
 		}
-	}
-	else {
-		for(a=0; a<numVerts; a++) {
+	} else {
+		INIT_MINMAX(cd.dmin, cd.dmax);
+			
+		for(a = 0; a < numVerts; a++) {
+			Mat4MulVecfl(cd.curvespace, vertexCos[a]);
+			DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
+		}
+
+		for(a = 0; a < numVerts; a++) {
 			calc_curve_deform(cuOb, vertexCos[a], target->trackflag, &cd);
 			Mat4MulVecfl(cd.objectspace, vertexCos[a]);
 		}
@@ -609,37 +644,52 @@ void curve_deform_verts(Object *cuOb, Object *target, float (*vertexCos)[3], int
 	cu->flag = flag;
 }
 
-void lattice_deform_verts(Object *laOb, Object *target, float (*vertexCos)[3], int numVerts, char *vgroup)
+void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
+                          float (*vertexCos)[3], int numVerts, char *vgroup)
 {
 	int a;
+	int use_vgroups;
 
 	init_latt_deform(laOb, target);
+
+	/* check whether to use vertex groups (only possible if target is a Mesh)
+	 * we want either a Mesh with no derived data, or derived data with
+	 * deformverts
+	 */
+	if(target && target->type==OB_MESH) {
+		/* if there's derived data without deformverts, don't use vgroups */
+		if(dm && !dm->getVertData(dm, 0, LAYERTYPE_MDEFORMVERT))
+			use_vgroups = 0;
+		else
+			use_vgroups = 1;
+	} else
+		use_vgroups = 0;
 	
-	if(vgroup && vgroup[0] && target->type==OB_MESH) {
+	if(vgroup && vgroup[0] && use_vgroups) {
 		bDeformGroup *curdef;
-		Mesh *me= target->data;
-		int index= 0;
+		Mesh *me = target->data;
+		int index = 0;
 		
 		/* find the group (weak loop-in-loop) */
-		for (curdef = target->defbase.first; curdef; curdef=curdef->next, index++)
-			if (!strcmp(curdef->name, vgroup))
-				break;
-		/* check for numVerts because old files can have modifier over subsurf still */
-		if(curdef && me->dvert && numVerts==me->totvert) {
-			MDeformVert *dvert= me->dvert;
+		for(curdef = target->defbase.first; curdef;
+		    curdef = curdef->next, index++)
+			if(!strcmp(curdef->name, vgroup)) break;
+
+		if(curdef && (me->dvert || dm)) {
+			MDeformVert *dvert = me->dvert;
 			int j;
 			
-			for(a=0; a<numVerts; a++, dvert++) {
-				for(j=0; j<dvert->totweight; j++) {
+			for(a = 0; a < numVerts; a++, dvert++) {
+				if(dm) dvert = dm->getVertData(dm, a, LAYERTYPE_MDEFORMVERT);
+				for(j = 0; j < dvert->totweight; j++) {
 					if (dvert->dw[j].def_nr == index) {
 						calc_latt_deform(vertexCos[a], dvert->dw[j].weight);
 					}
 				}
 			}
 		}
-	}
-	else {
-		for(a=0; a<numVerts; a++) {
+	} else {
+		for(a = 0; a < numVerts; a++) {
 			calc_latt_deform(vertexCos[a], 1.0f);
 		}
 	}
@@ -652,7 +702,8 @@ int object_deform_mball(Object *ob)
 		DispList *dl;
 
 		for (dl=ob->disp.first; dl; dl=dl->next) {
-			lattice_deform_verts(ob->parent, ob, (float(*)[3]) dl->verts, dl->nr, NULL);
+			lattice_deform_verts(ob->parent, ob, NULL,
+			                     (float(*)[3]) dl->verts, dl->nr, NULL);
 		}
 
 		return 1;
@@ -765,7 +816,7 @@ void lattice_calc_modifiers(Object *ob)
 	for (; md; md=md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		if (!(md->mode&(1<<0))) continue;
+		if (!(md->mode&eModifierMode_Realtime)) continue;
 		if (editmode && !(md->mode&eModifierMode_Editmode)) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
 		if (mti->type!=eModifierTypeType_OnlyDeform) continue;

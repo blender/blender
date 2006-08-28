@@ -4312,9 +4312,11 @@ void make_local(int mode)
 	BIF_undo_push("Make local");
 }
 
-static void adduplicate__forwardModifierLinks(void *userData, Object *ob, Object **obpoin)
+static void adduplicate__forwardModifierLinks(void *userData, Object *ob,
+                                              ID **idpoin)
 {
-	ID_NEW(*obpoin);
+	/* this is copied from ID_NEW; it might be better to have a macro */
+	if(*idpoin && (*idpoin)->newid) *idpoin = (*idpoin)->newid;
 }
 
 /* This function duplicated the current visible selection, its used by Duplicate and Linked Duplicate
@@ -4543,7 +4545,8 @@ void adduplicate(int mode, int dupflag)
 					relink_constraints(&chan->constraints);
 				}
 			}
-			modifiers_foreachObjectLink(base->object, adduplicate__forwardModifierLinks, NULL);
+			modifiers_foreachIDLink(base->object,
+			                        adduplicate__forwardModifierLinks, NULL);
 			ID_NEW(base->object->parent);
 			ID_NEW(base->object->track);
 			

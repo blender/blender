@@ -1370,7 +1370,6 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *dra
 
 	if (efa->h==0) {
 		glColor4ubv(cols[(efa->f&SELECT)?1:0]);
-		*drawSmooth_r = (efa->flag&ME_SMOOTH);
 		return 1;
 	} else {
 		return 0;
@@ -1750,7 +1749,6 @@ static int draw_em_fancy__setFaceOpts(void *userData, int index, int *drawSmooth
 
 	if (efa->h==0) {
 		set_gl_material(efa->mat_nr+1);
-		*drawSmooth_r = efa->flag&ME_SMOOTH;
 		return 1;
 	} else {
 		return 0;

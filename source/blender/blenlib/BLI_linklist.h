@@ -39,7 +39,7 @@
 struct MemArena;
 
 typedef void (*LinkNodeFreeFP)(void *link);
-typedef void (*LinkNodeApplyFP)(void *link);
+typedef void (*LinkNodeApplyFP)(void *link, void *userdata);
 
 struct LinkNode;
 typedef struct LinkNode {
@@ -56,7 +56,7 @@ void	BLI_linklist_append	    	(struct LinkNode **listp, void *ptr);
 void	BLI_linklist_prepend_arena	(struct LinkNode **listp, void *ptr, struct MemArena *ma);
 
 void	BLI_linklist_free		(struct LinkNode *list, LinkNodeFreeFP freefunc);
-void	BLI_linklist_apply		(struct LinkNode *list, LinkNodeApplyFP applyfunc);
+void	BLI_linklist_apply		(struct LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata);
 
 #endif
 

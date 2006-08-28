@@ -113,7 +113,7 @@ void BLI_linklist_free(LinkNode *list, LinkNodeFreeFP freefunc) {
 	}
 }
 
-void BLI_linklist_apply(LinkNode *list, LinkNodeApplyFP applyfunc) {
+void BLI_linklist_apply(LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata) {
 	for (; list; list= list->next)
-		applyfunc(list->link);
+		applyfunc(list->link, userdata);
 }

@@ -2290,15 +2290,16 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 
 /* ************ READ OBJECT ***************** */
 
-static void lib_link_modifiers__linkModifiers(void *userData, Object *ob, Object **obpoin)
+static void lib_link_modifiers__linkModifiers(void *userData, Object *ob,
+                                              ID **idpoin)
 {
 	FileData *fd = userData;
 
-	*obpoin = newlibadr(fd, ob->id.lib, *obpoin);
+	*idpoin = newlibadr(fd, ob->id.lib, *idpoin);
 }
 static void lib_link_modifiers(FileData *fd, Object *ob)
 {
-	modifiers_foreachObjectLink(ob, lib_link_modifiers__linkModifiers, fd);
+	modifiers_foreachIDLink(ob, lib_link_modifiers__linkModifiers, fd);
 }
 
 static void lib_link_object(FileData *fd, Main *main)

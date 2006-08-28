@@ -1189,13 +1189,18 @@ static ModifierData *curve_get_tesselate_point(Object *ob, int forRender, int ed
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	ModifierData *preTesselatePoint;
+	int required_mode;
+
+	if(forRender) required_mode = eModifierMode_Render;
+	else required_mode = eModifierMode_Realtime;
+
+	if(editmode) required_mode |= eModifierMode_Editmode;
 
 	preTesselatePoint = NULL;
 	for (; md; md=md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		if (!(md->mode&(1<<forRender))) continue;
-		if (editmode && !(md->mode&eModifierMode_Editmode)) continue;
+		if ((md->mode & required_mode) != required_mode) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
 
 		if (md->type==eModifierType_Hook || md->type==eModifierType_Softbody) {
@@ -1214,6 +1219,12 @@ void curve_calc_modifiers_pre(Object *ob, ListBase *nurb, int forRender, float (
 	int numVerts = 0;
 	float (*originalVerts)[3] = NULL;
 	float (*deformedVerts)[3] = NULL;
+	int required_mode;
+
+	if(forRender) required_mode = eModifierMode_Render;
+	else required_mode = eModifierMode_Realtime;
+
+	if(editmode) required_mode |= eModifierMode_Editmode;
 
 	if(ob!=G.obedit && do_ob_key(ob)) {
 		deformedVerts = curve_getVertexCos(ob->data, nurb, &numVerts);
@@ -1224,8 +1235,7 @@ void curve_calc_modifiers_pre(Object *ob, ListBase *nurb, int forRender, float (
 		for (; md; md=md->next) {
 			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-			if (!(md->mode&(1<<forRender))) continue;
-			if (editmode && !(md->mode&eModifierMode_Editmode)) continue;
+			if ((md->mode & required_mode) != required_mode) continue;
 			if (mti->isDisabled && mti->isDisabled(md)) continue;
 			if (mti->type!=eModifierTypeType_OnlyDeform) continue;
 
@@ -1256,6 +1266,12 @@ void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *dispbase, i
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	ModifierData *preTesselatePoint = curve_get_tesselate_point(ob, forRender, editmode);
 	DispList *dl;
+	int required_mode;
+
+	if(forRender) required_mode = eModifierMode_Render;
+	else required_mode = eModifierMode_Realtime;
+
+	if(editmode) required_mode |= eModifierMode_Editmode;
 
 	if (preTesselatePoint) {
 		md = preTesselatePoint->next;
@@ -1264,8 +1280,7 @@ void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *dispbase, i
 	for (; md; md=md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		if (!(md->mode&(1<<forRender))) continue;
-		if (editmode && !(md->mode&eModifierMode_Editmode)) continue;
+		if ((md->mode & required_mode) != required_mode) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
 		if (mti->type!=eModifierTypeType_OnlyDeform) continue;
 

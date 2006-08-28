@@ -2548,10 +2548,42 @@ void editmesh_mark_seam(int clear)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
+void editmesh_mark_sharp(int set)
+{
+	EditMesh *em= G.editMesh;
+	EditEdge *eed;
+
+#if 0
+	/* auto-enable sharp edge drawing */
+	if(set) {
+		if(!(G.f & G_DRAWSEAMS)) {
+			G.f |= G_DRAWSEAMS;
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+	}
+#endif
+
+	if(set) {
+		eed= em->edges.first;
+		while(eed) {
+			if(!eed->h && (eed->f & SELECT)) eed->sharp = 1;
+			eed = eed->next;
+		}
+	} else {
+		eed= em->edges.first;
+		while(eed) {
+			if(!eed->h && (eed->f & SELECT)) eed->sharp = 0;
+			eed = eed->next;
+		}
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+}
+
 void Edge_Menu() {
 	short ret;
 
-	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2|Rotate Edge CW%x3|Rotate Edge CCW%x4|Loopcut%x6|Edge Slide%x5|Edge Loop Select%x7|Edge Ring Select%x8|Loop to Region%x9|Region to Loop%x10");
+	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2|Rotate Edge CW%x3|Rotate Edge CCW%x4|Loopcut%x6|Edge Slide%x5|Edge Loop Select%x7|Edge Ring Select%x8|Loop to Region%x9|Region to Loop%x10|Mark Sharp%x11|Clear Sharp%x12");
 
 	switch(ret)
 	{
@@ -2586,6 +2618,16 @@ void Edge_Menu() {
 		break;
 	case 10:
 		region_to_loop();
+		break;
+	case 11:
+		editmesh_mark_sharp(1);
+		BIF_undo_push("Mark Sharp");
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		break;
+	case 12: 
+		editmesh_mark_sharp(0);
+		BIF_undo_push("Clear Sharp");
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		break;
 	}
 }

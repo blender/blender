@@ -2221,8 +2221,7 @@ static int MEdge_setFlag( BPy_MEdge * self, PyObject * value )
 				| ME_HIDE
 				| ME_EDGERENDER
 				| ME_LOOSEEDGE
-				| ME_SEAM_LAST
-				| ME_EDGE_STEPINDEX;
+				| ME_SEAM_LAST;
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )

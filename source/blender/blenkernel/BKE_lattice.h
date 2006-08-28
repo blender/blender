@@ -36,6 +36,7 @@
 
 struct Lattice;
 struct Object;
+struct DerivedMesh;
 struct BPoint;
 
 extern struct Lattice *editLatt;
@@ -52,9 +53,13 @@ void calc_latt_deform(float *co, float weight);
 void end_latt_deform(void);
 int object_deform_mball(struct Object *ob);
 void outside_lattice(struct Lattice *lt);
-void curve_deform_verts(struct Object *cuOb, struct Object *target, float (*vertexCos)[3], int numVerts, char *vgroup);
-void lattice_deform_verts(struct Object *laOb, struct Object *target, float (*vertexCos)[3], int numVerts, char *vgroup);
-void armature_deform_verts(struct Object *armOb, struct Object *target, float (*vertexCos)[3], int numVerts, int deformflag);
+void curve_deform_verts(struct Object *cuOb, struct Object *target, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts, char *vgroup);
+void lattice_deform_verts(struct Object *laOb, struct Object *target,
+                          struct DerivedMesh *dm, float (*vertexCos)[3],
+                          int numVerts, char *vgroup);
+void armature_deform_verts(struct Object *armOb, struct Object *target,
+                           struct DerivedMesh *dm, float (*vertexCos)[3],
+                           int numVerts, int deformflag);
 float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3];
 void lattice_applyVertexCos(struct Object *ob, float (*vertexCos)[3]);
 void lattice_calc_modifiers(struct Object *ob);

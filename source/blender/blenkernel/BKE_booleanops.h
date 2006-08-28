@@ -57,7 +57,10 @@ NewBooleanMesh(
 
 struct DispListMesh *NewBooleanMeshDLM(struct Object *ob, struct Object *ob_select, int int_op_type);
 
-	
+struct DerivedMesh *NewBooleanDerivedMesh(struct Object *ob,
+                                          struct Object *ob_select,
+                                          int int_op_type);
+
 /**
  * Functions exposed for use by BKE_booleanops_mesh
  */

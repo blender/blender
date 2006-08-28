@@ -5,6 +5,8 @@
 #ifndef DNA_MODIFIER_TYPES_H
 #define DNA_MODIFIER_TYPES_H
 
+#define MODSTACK_DEBUG 1
+
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE! */
 
 typedef enum ModifierType {
@@ -21,14 +23,13 @@ typedef enum ModifierType {
 	eModifierType_Softbody,
 	eModifierType_Boolean,
 	eModifierType_Array,
+	eModifierType_EdgeSplit,
+	eModifierType_Displace,
+	eModifierType_UVProject,
 
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
-	/* These numerical values are explicitly chosen so that 
-	 * (mode&1) is true for realtime calc and (mode&2) is true
-	 * for render calc.
-	 */
 typedef enum ModifierMode {
 	eModifierMode_Realtime = (1<<0),
 	eModifierMode_Render = (1<<1),
@@ -146,6 +147,60 @@ typedef struct MirrorModifierData {
 
 /* MirrorModifierData->flag */
 #define MOD_MIR_CLIPPING	1
+
+typedef struct EdgeSplitModifierData {
+	ModifierData modifier;
+
+	float split_angle;    /* angle above which edges should be split */
+	int flags;
+} EdgeSplitModifierData;
+
+/* EdgeSplitModifierData->flags */
+#define MOD_EDGESPLIT_FROMANGLE   1<<1
+#define MOD_EDGESPLIT_FROMFLAG    1<<2
+
+typedef struct DisplaceModifierData {
+	ModifierData modifier;
+
+	struct Tex *texture;
+	float strength;
+	int direction;
+	char defgrp_name[32];
+	float midlevel;
+	int texmapping;
+	struct Object *map_object;
+} DisplaceModifierData;
+
+/* DisplaceModifierData->direction */
+enum {
+	MOD_DISP_DIR_X,
+	MOD_DISP_DIR_Y,
+	MOD_DISP_DIR_Z,
+	MOD_DISP_DIR_NOR,
+};
+
+/* DisplaceModifierData->texmapping */
+enum {
+	MOD_DISP_MAP_LOCAL,
+	MOD_DISP_MAP_GLOBAL,
+	MOD_DISP_MAP_OBJECT,
+	MOD_DISP_MAP_UV,
+};
+
+typedef struct UVProjectModifierData {
+	ModifierData modifier;
+
+	/* the objects which do the projecting */
+	struct Object *projectors[10];
+	struct Image *image;      /* the image to project */
+	int flags;
+	int num_projectors;
+} UVProjectModifierData;
+
+#define MOD_UVPROJECT_MAXPROJECTORS 10
+
+/* UVProjectModifierData->flags */
+#define MOD_UVPROJECT_ADDUVS 1<<0
 
 typedef struct DecimateModifierData {
 	ModifierData modifier;

@@ -1156,6 +1156,7 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 
 static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
 {
+	float tmpvec[3];
 	int retval=0; /* return value, int:0, col:1, nor:2, everything:3 */
 
 	texres->talpha= 0;	/* is set when image texture returns alpha (considered premul) */
@@ -1200,35 +1201,44 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	case TEX_MUSGRAVE:
 		/* newnoise: musgrave types */
 		
-		/* ton: added this, for Blender convention reason. scaling texvec here is so-so ... */
-		VecMulf(texvec, 1.0/tex->noisesize);
+		/* ton: added this, for Blender convention reason. 
+		 * artificer: added the use of tmpvec to avoid scaling texvec
+		 */
+		VECCOPY(tmpvec, texvec);
+		VecMulf(tmpvec, 1.0/tex->noisesize);
 		
 		switch(tex->stype) {
 		case TEX_MFRACTAL:
 		case TEX_FBM:
-			retval= mg_mFractalOrfBmTex(tex, texvec, texres);
+			retval= mg_mFractalOrfBmTex(tex, tmpvec, texres);
 			break;
 		case TEX_RIDGEDMF:
 		case TEX_HYBRIDMF:
-			retval= mg_ridgedOrHybridMFTex(tex, texvec, texres);
+			retval= mg_ridgedOrHybridMFTex(tex, tmpvec, texres);
 			break;
 		case TEX_HTERRAIN:
-			retval= mg_HTerrainTex(tex, texvec, texres);
+			retval= mg_HTerrainTex(tex, tmpvec, texres);
 			break;
 		}
 		break;
 	/* newnoise: voronoi type */
 	case TEX_VORONOI:
-		/* ton: added this, for Blender convention reason. scaling texvec here is so-so ... */
-		VecMulf(texvec, 1.0/tex->noisesize);
+		/* ton: added this, for Blender convention reason.
+		 * artificer: added the use of tmpvec to avoid scaling texvec
+		 */
+		VECCOPY(tmpvec, texvec);
+		VecMulf(tmpvec, 1.0/tex->noisesize);
 		
-		retval= voronoiTex(tex, texvec, texres);
+		retval= voronoiTex(tex, tmpvec, texres);
 		break;
 	case TEX_DISTNOISE:
-		/* ton: added this, for Blender convention reason. scaling texvec here is so-so ... */
-		VecMulf(texvec, 1.0/tex->noisesize);
+		/* ton: added this, for Blender convention reason.
+		 * artificer: added the use of tmpvec to avoid scaling texvec
+		 */
+		VECCOPY(tmpvec, texvec);
+		VecMulf(tmpvec, 1.0/tex->noisesize);
 		
-		retval= mg_distNoiseTex(tex, texvec, texres);
+		retval= mg_distNoiseTex(tex, tmpvec, texres);
 		break;
 	}
 

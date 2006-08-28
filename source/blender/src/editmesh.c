@@ -286,6 +286,7 @@ EditEdge *addedgelist(EditVert *v1, EditVert *v2, EditEdge *example)
 		   rule is to do this with addedgelist call, before addfacelist */
 		if(example) {
 			eed->crease= example->crease;
+			eed->sharp = example->sharp;
 			eed->seam = example->seam;
 			eed->h |= (example->h & EM_FGON);
 		}
@@ -858,6 +859,7 @@ void make_editMesh()
 				eed->crease= ((float)medge->crease)/255.0;
 				
 				if(medge->flag & ME_SEAM) eed->seam= 1;
+				if(medge->flag & ME_SHARP) eed->sharp = 1;
 				if(medge->flag & SELECT) eed->f |= SELECT;
 				if(medge->flag & ME_FGON) eed->h= EM_FGON;	// 2 different defines!
 				if(medge->flag & ME_HIDE) eed->h |= 1;
@@ -1081,6 +1083,7 @@ void load_editMesh(void)
 		medge->flag= (eed->f & SELECT) | ME_EDGERENDER;
 		if(eed->f2<2) medge->flag |= ME_EDGEDRAW;
 		if(eed->f2==0) medge->flag |= ME_LOOSEEDGE;
+		if(eed->sharp) medge->flag |= ME_SHARP;
 		if(eed->seam) medge->flag |= ME_SEAM;
 		if(eed->h & EM_FGON) medge->flag |= ME_FGON;	// different defines yes
 		if(eed->h & 1) medge->flag |= ME_HIDE;
@@ -1782,7 +1785,7 @@ typedef struct EditVertC
 typedef struct EditEdgeC
 {
 	int v1, v2;
-	unsigned char f, h, seam, pad;
+	unsigned char f, h, seam, sharp, pad;
 	short crease, fgoni;
 } EditEdgeC;
 
@@ -1888,6 +1891,7 @@ static void *editMesh_to_undoMesh(void)
 		eedc->f= eed->f;
 		eedc->h= eed->h;
 		eedc->seam= eed->seam;
+		eedc->sharp= eed->sharp;
 		eedc->crease= (short)(eed->crease*255.0);
 		eedc->fgoni= eed->fgoni;
 		eed->tmp.l = a; /*store index*/
@@ -1983,6 +1987,7 @@ static void undoMesh_to_editMesh(void *umv)
 		eed->f= eedc->f;
 		eed->h= eedc->h;
 		eed->seam= eedc->seam;
+		eed->sharp= eedc->sharp;
 		eed->fgoni= eedc->fgoni;
 		eed->crease= ((float)eedc->crease)/255.0;
 	}

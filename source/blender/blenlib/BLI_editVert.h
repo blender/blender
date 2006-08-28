@@ -38,6 +38,8 @@
 #ifndef BLI_EDITVERT_H
 #define BLI_EDITVERT_H
 
+#include "DNA_mesh_types.h"
+
 struct DerivedMesh;
 
 /* note; changing this also might affect the undo copy in editmesh.c */
@@ -97,7 +99,7 @@ typedef struct EditEdge
 		float			fp;
 	} tmp;
 	short f1, f2;	/* short, f1 is (ab)used in subdiv */
-	unsigned char f, h, dir, seam;
+	unsigned char f, h, dir, seam, sharp;
 	float crease;
 	short fast; 		/* only 0 or 1, for editmesh_fastmalloc */
 	short fgoni;		/* index for fgon, for search */
