@@ -428,6 +428,7 @@ void pose_copy_menu(void)
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan, *pchanact;
 	short nr;
+	int i=0;
 	
 	/* paranoia checks */
 	if(!ob && !ob->pose) return;
@@ -441,29 +442,77 @@ void pose_copy_menu(void)
 	if(pchan==NULL) return;
 	pchanact= pchan;
 	
-	nr= pupmenu("Copy Pose Attributes %t|Location%x1|Rotation%x2|Scale%x3|Constraints");
+	i= BLI_countlist(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
+	if (i<25)
+		nr= pupmenu("Copy Pose Attributes %t|Location%x1|Rotation%x2|Size%x3|Constraints (All)%x4|Constraints...%x5");
+	else
+		nr= pupmenu("Copy Pose Attributes %t|Location%x1|Rotation%x2|Size%x3|Constraints (All)%x4");
 	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(arm->layer & pchan->bone->layer) {
-			if(pchan->bone->flag & BONE_SELECTED) {
-				if(pchan!=pchanact) {
-					if(nr==1) {
-						VECCOPY(pchan->loc, pchanact->loc);
-					}
-					else if(nr==2) {
-						QUATCOPY(pchan->quat, pchanact->quat);
-					}
-					else if(nr==3) {
-						VECCOPY(pchan->size, pchanact->size);
-					}
-					else if(nr==4) {
-						free_constraints(&pchan->constraints);
-						copy_constraints(&pchan->constraints, &pchanact->constraints);
-						pchan->constflag = pchanact->constflag;
-					}
+	if(nr==-1) return;
+	if(nr!=5)  {
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if(	(arm->layer & pchan->bone->layer) &&
+				(pchan->bone->flag & BONE_SELECTED) &&
+				(pchan!=pchanact)
+			) {
+				if(nr==1) {
+					VECCOPY(pchan->loc, pchanact->loc);
+				}
+				else if(nr==2) {
+					QUATCOPY(pchan->quat, pchanact->quat);
+				}
+				else if(nr==3) {
+					VECCOPY(pchan->size, pchanact->size);
+				}
+				else if(nr==4) {
+					free_constraints(&pchan->constraints);
+					copy_constraints(&pchan->constraints, &pchanact->constraints);
+					pchan->constflag = pchanact->constflag;
 				}
 			}
 		}
+	} else { /* constraints, optional */
+		bConstraint *con, *con_back;
+		int const_toggle[24];
+		ListBase const_copy={0, 0};
+		
+		duplicatelist (&const_copy, &(pchanact->constraints));
+		
+		/* build the puplist of constraints */
+		for (con = pchanact->constraints.first, i=0; con; con=con->next, i++){
+			const_toggle[i]= 1;
+			add_numbut(i, TOG|INT, con->name, 0, 0, &(const_toggle[i]), "");
+		}
+		
+		if (!do_clever_numbuts("Select Constraints", i, REDRAW)) {
+			BLI_freelistN(&const_copy);
+			return;
+		}
+		
+		/* now build a new listbase from the options selected */
+		for (i=0, con=const_copy.first; con; i++) {
+			if (!const_toggle[i]) {
+				con_back= con->next;
+				BLI_freelinkN(&const_copy, con);
+				con= con_back;
+			} else {
+				con= con->next;
+			}
+		}
+		
+		/* Copy the temo listbase to the selected posebones */
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if(	(arm->layer & pchan->bone->layer) &&
+				(pchan->bone->flag & BONE_SELECTED) &&
+				(pchan!=pchanact)
+			) {
+				free_constraints(&pchan->constraints);
+				copy_constraints(&pchan->constraints, &const_copy);
+				pchan->constflag = pchanact->constflag;
+			}
+		}
+		BLI_freelistN(&const_copy);
+		update_pose_constraint_flags(ob->pose); /* we could work out the flags but its simpler to do this */
 	}
 	
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);	// and all its relations
