@@ -110,10 +110,11 @@ def isfaceCoLin(imagQuag):
 	# Work out how different from 90 each edge is.
 	diff = 0
 	try:
-		diff = abs(vecAngle(edgeVec1, edgeVec2) - 90)
-		diff = max(diff, abs(vecAngle(edgeVec2, edgeVec3) - 90))
-		diff = max(diff, abs(vecAngle(edgeVec3, edgeVec4) - 90))
-		diff = max(diff, abs(vecAngle(edgeVec4, edgeVec1) - 90))
+		diff = (\
+		abs(vecAngle(edgeVec1, edgeVec2) - 90)+\
+		abs(vecAngle(edgeVec2, edgeVec3) - 90)+\
+		abs(vecAngle(edgeVec3, edgeVec4) - 90)+\
+		abs(vecAngle(edgeVec4, edgeVec1) - 90)) / 360
 	except:
 		return 1.0
 	
@@ -121,7 +122,7 @@ def isfaceCoLin(imagQuag):
 	if not diff:
 		return 0.0
 	
-	return min(diff/90, 1.0)
+	return diff
 
 
 # Meause the areas of the 2 possible ways of subdividing the imagined quad.
