@@ -1523,7 +1523,7 @@ static void filesel_execute(SpaceFile *sfile)
 			if(sfile->flag & FILE_STRINGCODE) {
 				if (!G.relbase_valid) {
 					okee("You have to save the .blend file before using relative paths! Using absolute path instead.");
-					sfile->flag & ~FILE_STRINGCODE;
+					sfile->flag &= ~FILE_STRINGCODE;
 				}
 				else {
 					BLI_makestringcode(G.sce, name);
