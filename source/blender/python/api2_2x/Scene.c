@@ -75,17 +75,17 @@ struct View3D;
 
 PyObject *M_Object_Get( PyObject * self, PyObject * args ); /* from Object.c */
 
-//----------------------------------- Python BPy_Scene defaults------------
+/*----------------------------------- Python BPy_Scene defaults------------*/
 #define EXPP_SCENE_FRAME_MAX 30000
 #define EXPP_SCENE_RENDER_WINRESOLUTION_MIN 4
 #define EXPP_SCENE_RENDER_WINRESOLUTION_MAX 10000
-//-----------------------Python API function prototypes for the Scene module--
+/*-----------------------Python API function prototypes for the Scene module--*/
 static PyObject *M_Scene_New( PyObject * self, PyObject * args,
 			      PyObject * keywords );
 static PyObject *M_Scene_Get( PyObject * self, PyObject * args );
 static PyObject *M_Scene_GetCurrent( PyObject * self );
 static PyObject *M_Scene_Unlink( PyObject * self, PyObject * arg );
-//-----------------------Scene module doc strings-----------------------------
+/*-----------------------Scene module doc strings-----------------------------*/
 static char M_Scene_doc[] = "The Blender.Scene submodule";
 static char M_Scene_New_doc[] =
 	"(name = 'Scene') - Create a new Scene called 'name' in Blender.";
@@ -95,7 +95,7 @@ static char M_Scene_GetCurrent_doc[] =
 	"() - Return the currently active Scene in Blender.";
 static char M_Scene_Unlink_doc[] =
 	"(scene) - Unlink (delete) scene 'Scene' from Blender. (scene) is of type Blender scene.";
-//----------------------Scene module method def----------------------------
+/*----------------------Scene module method def----------------------------*/
 struct PyMethodDef M_Scene_methods[] = {
 	{"New", ( PyCFunction ) M_Scene_New, METH_VARARGS | METH_KEYWORDS,
 	 M_Scene_New_doc},
@@ -109,7 +109,7 @@ struct PyMethodDef M_Scene_methods[] = {
 	{"unlink", M_Scene_Unlink, METH_VARARGS, M_Scene_Unlink_doc},
 	{NULL, NULL, 0, NULL}
 };
-//-----------------------BPy_Scene  method declarations--------------------
+/*-----------------------BPy_Scene  method declarations--------------------*/
 static PyObject *Scene_getName( BPy_Scene * self );
 static PyObject *Scene_setName( BPy_Scene * self, PyObject * arg );
 static PyObject *Scene_getLayers( BPy_Scene * self );
@@ -134,13 +134,13 @@ static PyObject *Scene_getTimeLine( BPy_Scene * self );
 static PyObject *Scene_getObjects( BPy_Scene * self );
 
 
-//internal
+/*internal*/
 static void Scene_dealloc( BPy_Scene * self );
 static int Scene_setAttr( BPy_Scene * self, char *name, PyObject * v );
 static int Scene_compare( BPy_Scene * a, BPy_Scene * b );
 static PyObject *Scene_getAttr( BPy_Scene * self, char *name );
 static PyObject *Scene_repr( BPy_Scene * self );
-//-----------------------BPy_Scene method def------------------------------
+/*-----------------------BPy_Scene method def------------------------------*/
 static PyMethodDef BPy_Scene_methods[] = {
 	/* name, method, flags, doc */
 	{"getName", ( PyCFunction ) Scene_getName, METH_NOARGS,
@@ -212,7 +212,7 @@ static PyMethodDef BPy_Scene_methods[] = {
 	"() - Get time line of this Scene"},
 	{NULL, NULL, 0, NULL}
 };
-//-----------------------BPy_Scene method def------------------------------
+/*-----------------------BPy_Scene method def------------------------------*/
 PyTypeObject Scene_Type = {
 	PyObject_HEAD_INIT( NULL ) 
 	0,	/* ob_size */
@@ -237,7 +237,7 @@ PyTypeObject Scene_Type = {
 	0,			/* tp_members */
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
-//-----------------------Scene module Init())-----------------------------
+/*-----------------------Scene module Init())-----------------------------*/
 PyObject *Scene_Init( void )
 {
 
@@ -258,14 +258,14 @@ PyObject *Scene_Init( void )
 	return submodule;
 }
 
-//-----------------------Scene module internal callbacks------------------
-//-----------------------dealloc------------------------------------------
+/*-----------------------Scene module internal callbacks------------------
+  -----------------------dealloc------------------------------------------*/
 static void Scene_dealloc( BPy_Scene * self )
 {
 	PyObject_DEL( self );
 }
 
-//-----------------------getAttr----------------------------------------
+/*-----------------------getAttr----------------------------------------*/
 static PyObject *Scene_getAttr( BPy_Scene * self, char *name )
 {
 	PyObject *attr = Py_None;
@@ -299,7 +299,7 @@ static PyObject *Scene_getAttr( BPy_Scene * self, char *name )
 	return Py_FindMethod( BPy_Scene_methods, ( PyObject * ) self, name );
 }
 
-//-----------------------setAttr----------------------------------------
+/*-----------------------setAttr----------------------------------------*/
 static int Scene_setAttr( BPy_Scene * self, char *name, PyObject * value )
 {
 	PyObject *valtuple;
@@ -349,14 +349,14 @@ static int Scene_setAttr( BPy_Scene * self, char *name, PyObject * value )
 	return 0;		/* normal exit */
 }
 
-//-----------------------compare----------------------------------------
+/*-----------------------compare----------------------------------------*/
 static int Scene_compare( BPy_Scene * a, BPy_Scene * b )
 {
 	Scene *pa = a->scene, *pb = b->scene;
 	return ( pa == pb ) ? 0 : -1;
 }
 
-//----------------------repr--------------------------------------------
+/*----------------------repr--------------------------------------------*/
 static PyObject *Scene_repr( BPy_Scene * self )
 {
 	if( !(self->scene) )
@@ -366,7 +366,7 @@ static PyObject *Scene_repr( BPy_Scene * self )
 					self->scene->id.name + 2 );
 }
 
-//-----------------------CreatePyObject---------------------------------
+/*-----------------------CreatePyObject---------------------------------*/
 PyObject *Scene_CreatePyObject( Scene * scene )
 {
 	BPy_Scene *pyscene;
@@ -382,19 +382,19 @@ PyObject *Scene_CreatePyObject( Scene * scene )
 	return ( PyObject * ) pyscene;
 }
 
-//-----------------------CheckPyObject----------------------------------
+/*-----------------------CheckPyObject----------------------------------*/
 int Scene_CheckPyObject( PyObject * pyobj )
 {
 	return ( pyobj->ob_type == &Scene_Type );
 }
 
-//-----------------------FromPyObject-----------------------------------
+/*-----------------------FromPyObject-----------------------------------*/
 Scene *Scene_FromPyObject( PyObject * pyobj )
 {
 	return ( ( BPy_Scene * ) pyobj )->scene;
 }
 
-//-----------------------GetSceneByName()-------------------------------
+/*-----------------------GetSceneByName()-------------------------------*/
 /* Description: Returns the object with the name specified by the argument	name. 
 Note that the calling function has to remove the first two characters of the object name. 
 These two characters	specify the type of the object (OB, ME, WO, ...)The function 
@@ -416,8 +416,8 @@ Scene *GetSceneByName( char *name )
 }
 
 
-//-----------------------Scene module function defintions---------------
-//-----------------------Scene.New()------------------------------------
+/*-----------------------Scene module function defintions---------------*/
+/*-----------------------Scene.New()------------------------------------*/
 static PyObject *M_Scene_New( PyObject * self, PyObject * args,
 			      PyObject * kword )
 {
@@ -452,7 +452,7 @@ static PyObject *M_Scene_New( PyObject * self, PyObject * args,
 	return pyscene;
 }
 
-//-----------------------Scene.Get()------------------------------------
+/*-----------------------Scene.Get()------------------------------------*/
 static PyObject *M_Scene_Get( PyObject * self, PyObject * args )
 {
 	char *name = NULL;
@@ -516,13 +516,13 @@ static PyObject *M_Scene_Get( PyObject * self, PyObject * args )
 	}
 }
 
-//-----------------------Scene.GetCurrent()------------------------------
+/*-----------------------Scene.GetCurrent()------------------------------*/
 static PyObject *M_Scene_GetCurrent( PyObject * self )
 {
 	return Scene_CreatePyObject( ( Scene * ) G.scene );
 }
 
-//-----------------------Scene.Unlink()----------------------------------
+/*-----------------------Scene.Unlink()----------------------------------*/
 static PyObject *M_Scene_Unlink( PyObject * self, PyObject * args )
 {
 	PyObject *pyobj;
@@ -551,8 +551,8 @@ static PyObject *M_Scene_Unlink( PyObject * self, PyObject * args )
 	return Py_None;
 }
 
-//-----------------------BPy_Scene function defintions-------------------
-//-----------------------Scene.getName()---------------------------------
+/*-----------------------BPy_Scene function defintions-------------------*/
+/*-----------------------Scene.getName()---------------------------------*/
 static PyObject *Scene_getName( BPy_Scene * self )
 {
 	PyObject *attr = PyString_FromString( self->scene->id.name + 2 );
@@ -564,7 +564,7 @@ static PyObject *Scene_getName( BPy_Scene * self )
 					"couldn't get Scene.name attribute" ) );
 }
 
-//-----------------------Scene.setName()---------------------------------
+/*-----------------------Scene.setName()---------------------------------*/
 static PyObject *Scene_setName( BPy_Scene * self, PyObject * args )
 {
 	char *name;
@@ -582,7 +582,7 @@ static PyObject *Scene_setName( BPy_Scene * self, PyObject * args )
 	return Py_None;
 }
 
-//-----------------------Scene.getLayers()---------------------------------
+/*-----------------------Scene.getLayers()---------------------------------*/
 static PyObject *Scene_getLayers( BPy_Scene * self )
 {
 	PyObject *laylist = PyList_New( 0 ), *item;
@@ -606,7 +606,7 @@ static PyObject *Scene_getLayers( BPy_Scene * self )
 	return laylist;
 }
 
-//-----------------------Scene.setLayers()---------------------------------
+/*-----------------------Scene.setLayers()---------------------------------*/
 static PyObject *Scene_setLayers( BPy_Scene * self, PyObject * args )
 {
 	PyObject *list = NULL, *item = NULL;
@@ -690,7 +690,7 @@ static PyObject *Scene_setLayersMask(BPy_Scene *self, PyObject *args)
 	return EXPP_incr_ret(Py_None);
 }
 
-//-----------------------Scene.copy()------------------------------------
+/*-----------------------Scene.copy()------------------------------------*/
 static PyObject *Scene_copy( BPy_Scene * self, PyObject * args )
 {
 	short dup_objs = 1;
@@ -707,7 +707,7 @@ static PyObject *Scene_copy( BPy_Scene * self, PyObject * args )
 	return Scene_CreatePyObject( copy_scene( scene, dup_objs ) );
 }
 
-//-----------------------Scene.makeCurrent()-----------------------------
+/*-----------------------Scene.makeCurrent()-----------------------------*/
 static PyObject *Scene_makeCurrent( BPy_Scene * self )
 {
 	Scene *scene = self->scene;
@@ -721,7 +721,7 @@ static PyObject *Scene_makeCurrent( BPy_Scene * self )
 	return Py_None;
 }
 
-//-----------------------Scene.update()----------------------------------
+/*-----------------------Scene.update()----------------------------------*/
 static PyObject *Scene_update( BPy_Scene * self, PyObject * args )
 {
 	Scene *scene = self->scene;
@@ -755,7 +755,7 @@ static PyObject *Scene_update( BPy_Scene * self, PyObject * args )
 	return Py_None;
 }
 
-//-----------------------Scene.link()------------------------------------
+/*-----------------------Scene.link()------------------------------------*/
 static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 {
 	Scene *scene = self->scene;
@@ -771,8 +771,8 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 					      "expected Object argument" );
 	
 	
-		//return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-		//			          "Could not create data on demand for this object type!" );
+		/*return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					          "Could not create data on demand for this object type!" );*/
 	
 	object = bpy_obj->object;
 	
@@ -811,7 +811,7 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 		base->lay = object->lay;
 		base->flag = object->flag;
 
-		//object->id.us += 1;	/* incref the object user count in Blender */
+		object->id.us += 1;	/* incref the object user count in Blender */
 
 		BLI_addhead( &scene->base, base );	/* finally, link new base to scene */
 	}
@@ -820,7 +820,7 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 	return Py_None;
 }
 
-//-----------------------Scene.unlink()----------------------------------
+/*-----------------------Scene.unlink()----------------------------------*/
 static PyObject *Scene_unlink( BPy_Scene * self, PyObject * args )
 {
 	BPy_Object *bpy_obj = NULL;
@@ -860,7 +860,7 @@ static PyObject *Scene_unlink( BPy_Scene * self, PyObject * args )
 	return Py_BuildValue( "i", PyInt_FromLong( retval ) );
 }
 
-//-----------------------Scene.getChildren()-----------------------------
+/*-----------------------Scene.getChildren()-----------------------------*/
 static PyObject *Scene_getChildren( BPy_Scene * self )
 {
 	Scene *scene = self->scene;
@@ -893,7 +893,7 @@ static PyObject *Scene_getChildren( BPy_Scene * self )
 	return pylist;
 }
 
-//-----------------------Scene.getActiveObject()------------------------
+/*-----------------------Scene.getActiveObject()------------------------*/
 static PyObject *Scene_getActiveObject(BPy_Scene *self)
 {
 	Scene *scene = self->scene;
@@ -919,7 +919,7 @@ static PyObject *Scene_getActiveObject(BPy_Scene *self)
 	return EXPP_incr_ret(Py_None); /* no active object */
 }
 
-//-----------------------Scene.getCurrentCamera()------------------------
+/*-----------------------Scene.getCurrentCamera()------------------------*/
 static PyObject *Scene_getCurrentCamera( BPy_Scene * self )
 {
 	Object *cam_obj;
@@ -944,7 +944,7 @@ static PyObject *Scene_getCurrentCamera( BPy_Scene * self )
 	return Py_None;
 }
 
-//-----------------------Scene.setCurrentCamera()------------------------
+/*-----------------------Scene.setCurrentCamera()------------------------*/
 static PyObject *Scene_setCurrentCamera( BPy_Scene * self, PyObject * args )
 {
 	Object *object;
@@ -977,7 +977,7 @@ static PyObject *Scene_setCurrentCamera( BPy_Scene * self, PyObject * args )
 	return Py_None;
 }
 
-//-----------------------Scene.getRenderingContext()---------------------
+/*-----------------------Scene.getRenderingContext()---------------------*/
 static PyObject *Scene_getRenderingContext( BPy_Scene * self )
 {
 	if( !self->scene )
