@@ -94,6 +94,7 @@ done once.
     - SEAM - edge is a seam for UV unwrapping
     - FGON - edge is part of a F-Gon.
     - LOOSE - Edge is not a part of a face (only set on leaving editmode)
+    - SHARP - Edge will be rendered sharp when used with the "Edge Split" modifier.
 @type AssignModes: readonly dictionary.
 @var AssignModes: The available vertex group assignment modes, used by 
   L{mesh.assignVertsToGroup()<Mesh.Mesh.assignVertsToGroup>}.

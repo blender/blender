@@ -2221,7 +2221,8 @@ static int MEdge_setFlag( BPy_MEdge * self, PyObject * value )
 				| ME_HIDE
 				| ME_EDGERENDER
 				| ME_LOOSEEDGE
-				| ME_SEAM_LAST;
+				| ME_SEAM_LAST
+				| ME_SHARP;
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )
@@ -7560,6 +7561,7 @@ static PyObject *M_Mesh_EdgeFlagsDict( void )
 		PyConstant_Insert(d, "SEAM", PyInt_FromLong( ME_SEAM ) );
 		PyConstant_Insert(d, "FGON", PyInt_FromLong( ME_FGON ) );
 		PyConstant_Insert(d, "LOOSE", PyInt_FromLong( ME_LOOSEEDGE ) );
+		PyConstant_Insert(d, "SHARP", PyInt_FromLong( ME_SHARP ) );
 	}
 
 	return EF;
