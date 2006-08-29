@@ -2299,6 +2299,21 @@ static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
 	}
 }
 
+static void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
+{
+	int result_type;
+
+	result_type = multitex_ext(texture, tex_co, NULL,
+	                           NULL, 1, texres);
+
+	/* if the texture gave an RGB value, we assume it didn't give a valid
+	 * intensity, so calculate one (formula from do_material_tex)
+	 */
+	if(result_type & TEX_RGB)
+		texres->tin = (0.35 * texres->tr + 0.45 * texres->tg
+		               + 0.2 * texres->tb);
+}
+
 /* dm must be a CDDerivedMesh */
 static void displaceModifier_do(
                 DisplaceModifierData *dmd, Object *ob,
@@ -2349,7 +2364,7 @@ static void displaceModifier_do(
 		}
 
 		texres.nor = NULL;
-		multitex_ext(dmd->texture, tex_co[i], NULL, NULL, 1, &texres);
+		get_texture_value(dmd->texture, tex_co[i], &texres);
 
 		delta = texres.tin - dmd->midlevel;
 
