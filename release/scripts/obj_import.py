@@ -622,7 +622,7 @@ def load_obj(\
 					# Edge
 					currentMesh.addEdge(\
 					currentMesh.verts[currentUsedVertListSmoothGroup[vIdxLs[0]]],\
-					currentMesh.verts[currentUsedVertListSmoothGroup[vIdxLs[0]]]) 
+					currentMesh.verts[currentUsedVertListSmoothGroup[vIdxLs[1]]]) 
 					
 			elif face_vert_count == 4:
 				
