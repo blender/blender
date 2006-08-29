@@ -1369,6 +1369,7 @@ static void smoothmesh_free(SmoothMesh *mesh)
 	MEM_freeN(mesh);
 }
 
+#ifdef EDGESPLIT_DEBUG_0
 static void smoothmesh_print(SmoothMesh *mesh)
 {
 	int i, j;
@@ -1429,6 +1430,7 @@ static void smoothmesh_print(SmoothMesh *mesh)
 		printf("}\n");
 	}
 }
+#endif
 
 static SmoothMesh *smoothmesh_from_derivedmesh(DerivedMesh *dm)
 {
@@ -1659,6 +1661,7 @@ static void linklist_append_list_unique(LinkNode **target, LinkNode *source)
 		linklist_append_unique(target, source->link);
 }
 
+#if 0 /* this is no longer used, it should possibly be removed */
 /* prepends prepend to list - doesn't copy nodes, just joins the lists */
 static void linklist_prepend_linklist(LinkNode **list, LinkNode *prepend)
 {
@@ -1670,6 +1673,7 @@ static void linklist_prepend_linklist(LinkNode **list, LinkNode *prepend)
 		*list = prepend;
 	}
 }
+#endif
 
 /* empties the linked list
  * frees pointers with freefunc if freefunc is not NULL
@@ -1715,6 +1719,7 @@ static void linklist_remove_list(LinkNode **target, LinkNode *source,
 		linklist_remove_first(target, source->link, freefunc);
 }
 
+#ifdef EDGESPLIT_DEBUG_0
 static void print_ptr(void *ptr)
 {
 	printf("%p\n", ptr);
@@ -1731,6 +1736,7 @@ static void print_face(void *ptr)
 	SmoothFace *face = ptr;
 	printf(" %4d", face->newIndex);
 }
+#endif
 
 typedef struct ReplaceData {
 	void *find;

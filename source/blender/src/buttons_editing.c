@@ -979,6 +979,7 @@ static void modifier_testTexture(char *name, ID **idpp)
 	*idpp = 0;
 }
 
+#if 0 /* this is currently unused, but could be useful in the future */
 static void modifier_testMaterial(char *name, ID **idpp)
 {
 	ID *id;
@@ -991,6 +992,7 @@ static void modifier_testMaterial(char *name, ID **idpp)
 	}
 	*idpp = 0;
 }
+#endif
 
 static void modifier_testImage(char *name, ID **idpp)
 {
