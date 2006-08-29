@@ -41,6 +41,7 @@ class PersistentManifold;
 class BroadphaseInterface;
 class OverlappingPairCache;
 class IDebugDraw;
+class PHY_IVehicle;
 
 /// CcdPhysicsEnvironment is experimental mainloop for physics simulation using optional continuous collision detection.
 /// Physics Environment takes care of stepping the simulation and is a container for physics entities.
@@ -135,7 +136,7 @@ protected:
 			);
 
 
-	    virtual void		`straint(int	constraintid);
+	    virtual void		removeConstraint(int	constraintid);
 
 		virtual float		getAppliedImpulse(int	constraintid);
 

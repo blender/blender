@@ -24,6 +24,12 @@ int UnionFind::find(int x)
 
 	while (x != m_id[x]) 
 	{
+//not really a reason not to use path compression, and it flattens the trees/improves find performance dramatically
+#define USE_PATH_COMPRESSION 1
+#ifdef USE_PATH_COMPRESSION
+		//
+		m_id[x] = m_id[m_id[x]];
+#endif //
 		x = m_id[x];
 		assert(x < m_N);
 		assert(x >= 0);
@@ -89,6 +95,8 @@ void UnionFind ::unite(int p, int q)
 	int i = find(p), j = find(q);
 	if (i == j) 
 		return;
+
+	//weighted quick union, this keeps the 'trees' balanced, and keeps performance of unite O( log(n) )
 	if (m_sz[i] < m_sz[j])
 	{ 
 		m_id[i] = j; m_sz[j] += m_sz[i]; 

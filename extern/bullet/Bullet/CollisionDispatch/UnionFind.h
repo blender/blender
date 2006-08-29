@@ -17,6 +17,8 @@ subject to the following restrictions:
 #define UNION_FIND_H
 
 ///UnionFind calculates connected subsets
+// Implements weighted Quick Union with path compression
+// optimization: could use short ints instead of ints (halving memory, would limit the number of rigid bodies to 64k, sounds reasonable)
 class UnionFind
   {
     private:
@@ -31,6 +33,15 @@ class UnionFind
 		~UnionFind();
 
 	  void	reset(int N);
+
+	  inline int	getNumElements() const
+	  {
+		  return m_N;
+	  }
+	  inline bool  isRoot(int x) const
+	  {
+		  return (x == m_id[x]);
+	  }
 
       int find(int p, int q);
       void unite(int p, int q);

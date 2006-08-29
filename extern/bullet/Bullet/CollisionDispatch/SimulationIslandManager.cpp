@@ -116,88 +116,96 @@ void SimulationIslandManager::BuildAndProcessIslands(Dispatcher* dispatcher,Coll
 	
 	int numBodies  = collisionObjects.size();
 
-	for (int islandId=0;islandId<numBodies;islandId++)
+	//first calculate the number of islands, and iterate over the islands id's
+
+	const UnionFind& uf = this->GetUnionFind();
+
+	for (int islandId=0;islandId<uf.getNumElements();islandId++)
 	{
-
-		std::vector<PersistentManifold*>  islandmanifold;
-		
-		//int numSleeping = 0;
-
-		bool allSleeping = true;
-
-		int i;
-		for (i=0;i<numBodies;i++)
+		if (uf.isRoot(islandId))
 		{
-			CollisionObject* colObj0 = collisionObjects[i];
-		
-			if (colObj0->m_islandTag1 == islandId)
-			{
+
+			std::vector<PersistentManifold*>  islandmanifold;
 			
-				if (colObj0->GetActivationState()== ACTIVE_TAG)
-				{
-					allSleeping = false;
-				}
-				if (colObj0->GetActivationState()== DISABLE_DEACTIVATION)
-				{
-					allSleeping = false;
-				}
-			}
-		}
+			//int numSleeping = 0;
 
-		
-		for (i=0;i<dispatcher->GetNumManifolds();i++)
-		{
-			 PersistentManifold* manifold = dispatcher->GetManifoldByIndexInternal(i);
-			 
-			 //filtering for response
-
-			 CollisionObject* colObj0 = static_cast<CollisionObject*>(manifold->GetBody0());
-			 CollisionObject* colObj1 = static_cast<CollisionObject*>(manifold->GetBody1());
-			 {
-				if (((colObj0) && (colObj0)->m_islandTag1 == (islandId)) ||
-					((colObj1) && (colObj1)->m_islandTag1 == (islandId)))
-				{
-
-					if (dispatcher->NeedsResponse(*colObj0,*colObj1))
-						islandmanifold.push_back(manifold);
-				}
-			 }
-		}
-		if (allSleeping)
-		{
-			int i;
-			for (i=0;i<numBodies;i++)
-			{
-				CollisionObject* colObj0 = collisionObjects[i];
-				if (colObj0->m_islandTag1 == islandId)
-				{
-					colObj0->SetActivationState( ISLAND_SLEEPING );
-				}
-			}
-
-			
-		} else
-		{
+			bool allSleeping = true;
 
 			int i;
 			for (i=0;i<numBodies;i++)
 			{
 				CollisionObject* colObj0 = collisionObjects[i];
+			
 				if (colObj0->m_islandTag1 == islandId)
 				{
-					if ( colObj0->GetActivationState() == ISLAND_SLEEPING)
+				
+					if (colObj0->GetActivationState()== ACTIVE_TAG)
 					{
-						colObj0->SetActivationState( WANTS_DEACTIVATION);
+						allSleeping = false;
+					}
+					if (colObj0->GetActivationState()== DISABLE_DEACTIVATION)
+					{
+						allSleeping = false;
 					}
 				}
 			}
 
-			/// Process the actual simulation, only if not sleeping/deactivated
-			if (islandmanifold.size())
+			
+			for (i=0;i<dispatcher->GetNumManifolds();i++)
 			{
-				callback->ProcessIsland(&islandmanifold[0],islandmanifold.size());
-			}
+				 PersistentManifold* manifold = dispatcher->GetManifoldByIndexInternal(i);
+				 
+				 //filtering for response
 
+				 CollisionObject* colObj0 = static_cast<CollisionObject*>(manifold->GetBody0());
+				 CollisionObject* colObj1 = static_cast<CollisionObject*>(manifold->GetBody1());
+				 assert(colObj0);
+				 assert(colObj1);
+				 {
+					if (((colObj0)->m_islandTag1 == (islandId)) ||
+						((colObj1)->m_islandTag1 == (islandId)))
+					{
+						if (dispatcher->NeedsResponse(*colObj0,*colObj1))
+							islandmanifold.push_back(manifold);
+					}
+				 }
+			}
+			if (allSleeping)
+			{
+				int i;
+				for (i=0;i<numBodies;i++)
+				{
+					CollisionObject* colObj0 = collisionObjects[i];
+					if (colObj0->m_islandTag1 == islandId)
+					{
+						colObj0->SetActivationState( ISLAND_SLEEPING );
+					}
+				}
+
+				
+			} else
+			{
+
+				int i;
+				for (i=0;i<numBodies;i++)
+				{
+					CollisionObject* colObj0 = collisionObjects[i];
+					if (colObj0->m_islandTag1 == islandId)
+					{
+						if ( colObj0->GetActivationState() == ISLAND_SLEEPING)
+						{
+							colObj0->SetActivationState( WANTS_DEACTIVATION);
+						}
+					}
+				}
+
+				/// Process the actual simulation, only if not sleeping/deactivated
+				if (islandmanifold.size())
+				{
+					callback->ProcessIsland(&islandmanifold[0],islandmanifold.size());
+				}
+
+			}
 		}
 	}
 }
