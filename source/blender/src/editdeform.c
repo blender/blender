@@ -102,22 +102,36 @@ void sel_verts_defgroup (int select)
 	else EM_deselect_flush();
 }
 
+/* check if deform vertex has defgroup index */
+MDeformWeight *get_defweight (MDeformVert *dv, int defgroup)
+{
+	int i;
+	
+	if (!dv || defgroup<0)
+		return NULL;
+	
+	for (i=0; i<dv->totweight; i++){
+		if (dv->dw[i].def_nr == defgroup)
+			return dv->dw+i;
+	}
+	return NULL;
+}
+
 /* Ensures that mv has a deform weight entry for
    the specified defweight group */
 /* Note this function is mirrored in editmesh_tools.c, for use for editvertices */
 MDeformWeight *verify_defweight (MDeformVert *dv, int defgroup)
 {
 	MDeformWeight *newdw;
-	int	i;
 
+	/* do this check always, this function is used to check for it */
 	if (!dv || defgroup<0)
 		return NULL;
-
-	for (i=0; i<dv->totweight; i++){
-		if (dv->dw[i].def_nr == defgroup)
-			return dv->dw+i;
-	}
-
+	
+	newdw = get_defweight (dv, defgroup);
+	if (newdw)
+		return newdw;
+	
 	newdw = MEM_callocN (sizeof(MDeformWeight)*(dv->totweight+1), "deformWeight");
 	if (dv->dw){
 		memcpy (newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);

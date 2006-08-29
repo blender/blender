@@ -50,7 +50,10 @@ void del_defgroup (struct Object *ob);
 void assign_verts_defgroup (void);
 void remove_verts_defgroup (int allverts);
 void sel_verts_defgroup (int select);
+
+struct MDeformWeight *get_defweight (struct MDeformVert *dv, int defgroup);
 struct MDeformWeight *verify_defweight (struct MDeformVert *dv, int defgroup);
+
 void verify_defgroups (struct Object *ob);
 void add_vert_to_defgroup (struct Object *ob, struct bDeformGroup *dg, 
 						   int vertnum, float weight, 

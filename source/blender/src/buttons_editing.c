@@ -4171,10 +4171,12 @@ static void editing_panel_mesh_paint(void)
 		
 		if(ob){
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, VP_MIRROR_X, REDRAWVIEW3D, "X-Mirror",	10,-10,100,19, &Gwp.flag, 0, 0, 0, 0, "Mirrored Paint, applying on mirrored Weight Group name");
-			uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",	110,-10,100,19, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
-			uiDefBut(block, BUT, B_CLR_WPAINT, "Clear",					210,-10,100,19, NULL, 0, 0, 0, 0, "Removes reference to this deform group from all vertices");
-			uiBlockEndAlign(block);
+			uiDefButBitS(block, TOG, VP_ONLYVGROUP, 0, "Vgroup",		10,0,75,19, &Gwp.flag, 0, 0, 0, 0, "Only paint on verteces in the selected vertex group.");
+			uiDefButBitS(block, TOG, VP_MIRROR_X, REDRAWVIEW3D, "X-Mirror",	85,0,75,19, &Gwp.flag, 0, 0, 0, 0, "Mirrored Paint, applying on mirrored Weight Group name");
+			uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",	160,0,75,19, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
+			uiDefBut(block, BUT, B_CLR_WPAINT, "Clear",					235,0,75,19, NULL, 0, 0, 0, 0, "Removes reference to this deform group from all vertices");
+ 			uiBlockEndAlign(block);
+			
 		}
 	}
 	else if(G.f & G_VERTEXPAINT) {

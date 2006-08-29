@@ -424,5 +424,6 @@
 #define VP_SPRAY	16
 #define VP_MIRROR_X	32
 #define VP_HARD		64
+#define VP_ONLYVGROUP 128
 
 #endif
