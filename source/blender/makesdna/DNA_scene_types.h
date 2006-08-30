@@ -309,6 +309,12 @@ typedef struct TimeMarker {
 	unsigned int flag;
 } TimeMarker;
 
+struct ImagePaintSettings {
+	struct Brush *brush;
+	short flag, tool;
+	int pad3;
+};
+
 typedef struct ToolSettings {
 	/* Subdivide Settings */
 	short cornertype;
@@ -345,11 +351,8 @@ typedef struct ToolSettings {
 	float select_thresh;
 
 	/* Image Paint */
-	struct ImagePaintSettings {
-		struct Brush *brush;
-		short flag, tool;
-		int pad3;
-	} imapaint;
+	struct ImagePaintSettings imapaint;
+	
 } ToolSettings;
 
 typedef struct Scene {
