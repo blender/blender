@@ -54,6 +54,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_edgehash.h"
 #include "BLI_editVert.h"
 
 #include "BKE_utildefines.h"
@@ -2133,6 +2134,12 @@ static int vDM_getNumVerts(DerivedMesh *dm)
 	else return vdm->vertex_layer->dl.da.count;
 }
 
+/* this function return number of 'fake' edges */
+static int vDM_getNumEdges(DerivedMesh *dm)
+{
+	return 0;
+}
+
 /* this function returns number of polygons in polygon layer */
 static int vDM_getNumFaces(DerivedMesh *dm)
 {
@@ -2140,6 +2147,127 @@ static int vDM_getNumFaces(DerivedMesh *dm)
 
 	if(!vdm->polygon_layer) return 0;
 	else return vdm->polygon_layer->dl.da.count;
+}
+
+/* this function doesn't return vertex with index of access array,
+ * but it return 'indexth' vertex of dynamic list */
+void vDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
+{
+	VerseVert *vvert = ((VDerivedMesh*)dm)->vertex_layer->dl.lb.first;
+	int i;
+
+	for(i=0 ; i<index; i++) vvert = vvert->next;
+
+	if(vvert) {
+		VECCOPY(vert_r->co, vvert->co);
+
+		vert_r->no[0] = vvert->no[0] * 32767.0;
+		vert_r->no[1] = vvert->no[1] * 32767.0;
+		vert_r->no[2] = vvert->no[2] * 32767.0;
+
+		/* TODO what to do with vert_r->flag and vert_r->mat_nr? */
+		vert_r->mat_nr = 0;
+		vert_r->flag = 0;
+	}
+}
+
+/* dummy function, because verse mesh doesn't store edges */
+void vDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
+{
+	edge_r->flag = 0;
+	edge_r->crease = 0;
+	edge_r->v1 = 0;
+	edge_r->v2 = 0;
+}
+
+/* this function doesn't return face with index of access array,
+ * but it returns 'indexth' vertex of dynamic list */
+void vDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
+{
+	struct VerseFace *vface = ((VDerivedMesh*)dm)->polygon_layer->dl.lb.first;
+	struct VerseVert *vvert = ((VDerivedMesh*)dm)->vertex_layer->dl.lb.first;
+	struct VerseVert *vvert0, *vvert1, *vvert2, *vvert3;
+	int i;
+
+	for(i = 0; i < index; ++i) vface = vface->next;
+
+	face_r->mat_nr = 0;
+	face_r->flag = 0;
+
+	/* goddamn, we have to search all verts to find indices */
+	vvert0 = vface->vvert0;
+	vvert1 = vface->vvert1;
+	vvert2 = vface->vvert2;
+	vvert3 = vface->vvert3;
+	if(!vvert3) face_r->v4 = 0;
+
+	for(i = 0; vvert0 || vvert1 || vvert2 || vvert3; i++, vvert = vvert->next) {
+		if(vvert == vvert0) {
+			face_r->v1 = i;
+			vvert0 = NULL;
+		}
+		if(vvert == vvert1) {
+			face_r->v2 = i;
+			vvert1 = NULL;
+		}
+		if(vvert == vvert2) {
+			face_r->v3 = i;
+			vvert2 = NULL;
+		}
+		if(vvert == vvert3) {
+			face_r->v4 = i;
+			vvert3 = NULL;
+		}
+	}
+
+	test_index_face(face_r, NULL, NULL, vface->vvert3?4:3);
+}
+
+/* fill array of mvert */
+void vDM_getVertArray(DerivedMesh *dm, MVert *vert_r)
+{
+	VerseVert *vvert = ((VDerivedMesh *)dm)->vertex_layer->dl.lb.first;
+
+	for( ; vvert; vvert = vvert->next, ++vert_r) {
+		VECCOPY(vert_r->co, vvert->co);
+
+		vert_r->no[0] = vvert->no[0] * 32767.0;
+		vert_r->no[1] = vvert->no[1] * 32767.0;
+		vert_r->no[2] = vvert->no[2] * 32767.0;
+
+		vert_r->mat_nr = 0;
+		vert_r->flag = 0;
+	}
+}
+
+/* dummy function, edges arent supported in verse mesh */
+void vDM_getEdgeArray(DerivedMesh *dm, MEdge *edge_r)
+{
+}
+
+/* fill array of mfaces */
+void vDM_getFaceArray(DerivedMesh *dm, MFace *face_r)
+{
+	VerseFace *vface = ((VDerivedMesh*)dm)->polygon_layer->dl.lb.first;
+	VerseVert *vvert = ((VDerivedMesh*)dm)->vertex_layer->dl.lb.first;
+	int i;
+
+	/* store vert indices in the prev pointer (kind of hacky) */
+	for(i = 0; vvert; vvert = vvert->next, ++i)
+		vvert->tmp.index = i;
+
+	for( ; vface; vface = vface->next, ++face_r) {
+		face_r->mat_nr = 0;
+		face_r->flag = 0;
+
+		face_r->v1 = vface->vvert0->tmp.index;
+		face_r->v2 = vface->vvert1->tmp.index;
+		face_r->v3 = vface->vvert2->tmp.index;
+		if(vface->vvert3) face_r->v4 = vface->vvert3->tmp.index;
+		else face_r->v4 = 0;
+
+		test_index_face(face_r, NULL, NULL, vface->vvert3?4:3);
+	}
 }
 
 /* create diplist mesh from verse mesh */
@@ -2153,6 +2281,7 @@ static DispListMesh* vDM_convertToDispListMesh(DerivedMesh *dm, int allowShared)
 	struct MFace *mface=NULL;
 	float *norms;
 	unsigned int i;
+	EdgeHash *edges;
 
 	if(!vdm->vertex_layer || !vdm->polygon_layer) {
 		dlm->totvert = 0;
@@ -2165,7 +2294,6 @@ static DispListMesh* vDM_convertToDispListMesh(DerivedMesh *dm, int allowShared)
 	
 	/* number of vertexes, edges and faces */
 	dlm->totvert = vdm->vertex_layer->dl.da.count;
-	dlm->totedge = 0;
 	dlm->totface = vdm->polygon_layer->dl.da.count;
 
 	/* create dynamic array of mverts */
@@ -2184,8 +2312,7 @@ static DispListMesh* vDM_convertToDispListMesh(DerivedMesh *dm, int allowShared)
 		vvert = vvert->next;
 	}
 
-	/* verse doesn't support edges */
-	dlm->medge = NULL;
+	edges = BLI_edgehash_new();
 
 	/* create dynamic array of faces */
 	mface = (MFace*)MEM_mallocN(sizeof(MFace)*dlm->totface, "dlm faces");
@@ -2196,8 +2323,21 @@ static DispListMesh* vDM_convertToDispListMesh(DerivedMesh *dm, int allowShared)
 		mface->v1 = vface->vvert0->tmp.index;
 		mface->v2 = vface->vvert1->tmp.index;
 		mface->v3 = vface->vvert2->tmp.index;
-		if(vface->vvert3) mface->v4 = vface->vvert3->tmp.index;
-		else mface->v4 = 0;
+		if(!BLI_edgehash_haskey(edges, mface->v1, mface->v2))
+			BLI_edgehash_insert(edges, mface->v1, mface->v2, NULL);
+		if(!BLI_edgehash_haskey(edges, mface->v2, mface->v3))
+			BLI_edgehash_insert(edges, mface->v2, mface->v3, NULL);
+		if(vface->vvert3) {
+			mface->v4 = vface->vvert3->tmp.index;
+			if(!BLI_edgehash_haskey(edges, mface->v3, mface->v4))
+				BLI_edgehash_insert(edges, mface->v3, mface->v4, NULL);
+			if(!BLI_edgehash_haskey(edges, mface->v4, mface->v1))
+				BLI_edgehash_insert(edges, mface->v4, mface->v1, NULL);
+		} else {
+			mface->v4 = 0;
+			if(!BLI_edgehash_haskey(edges, mface->v3, mface->v1))
+				BLI_edgehash_insert(edges, mface->v3, mface->v1, NULL);
+		}
 
 		mface->pad = 0;
 		mface->mat_nr = 0;
@@ -2209,6 +2349,21 @@ static DispListMesh* vDM_convertToDispListMesh(DerivedMesh *dm, int allowShared)
 		mface++;
 		vface = vface->next;
 	}
+
+	dlm->totedge = BLI_edgehash_size(edges);
+
+	if(dlm->totedge) {
+		EdgeHashIterator *i;
+		MEdge *medge = dlm->medge = (MEdge *)MEM_mallocN(sizeof(MEdge)*dlm->totedge, "mesh_from_verse edge");
+
+		for(i = BLI_edgehashIterator_new(edges); !BLI_edgehashIterator_isDone(i); BLI_edgehashIterator_step(i), ++medge) {
+			BLI_edgehashIterator_getKey(i, (int*)&medge->v1, (int*)&medge->v2);
+			medge->crease = medge->pad = medge->flag = 0;
+		}
+		BLI_edgehashIterator_free(i);
+	}
+
+	BLI_edgehash_free(edges, NULL);
 
 	/* textures and verex colors aren't supported yet */
 	dlm->tface = NULL;
@@ -2453,7 +2608,7 @@ static void vDM_foreachMappedFaceCenter(
 /**/
 static void vDM_drawMappedFacesTex(
 		DerivedMesh *dm,
-		int (*setDrawOptions)(void *userData, int index, int matnr),
+		int (*setDrawParams)(void *userData, int index),
 		void *userData)
 {
 }
@@ -2489,6 +2644,8 @@ static void vDM_release(DerivedMesh *dm)
 {
 	VDerivedMesh *vdm = (VDerivedMesh*)dm;
 
+	DM_release(dm);
+
 	if(vdm->verts) MEM_freeN(vdm->verts);
 	MEM_freeN(vdm);
 }
@@ -2504,11 +2661,21 @@ DerivedMesh *derivedmesh_from_versemesh(VNode *vnode, float (*vertexCos)[3])
 	vdm->vertex_layer = find_verse_layer_type((VGeomData*)vnode->data, VERTEX_LAYER);
 	vdm->polygon_layer = find_verse_layer_type((VGeomData*)vnode->data, POLYGON_LAYER);
 
+	DM_init(&vdm->dm, vdm->vertex_layer->dl.da.count, 0, vdm->polygon_layer->dl.da.count);
+	
 	vdm->dm.getMinMax = vDM_getMinMax;
 
 	vdm->dm.getNumVerts = vDM_getNumVerts;
+	vdm->dm.getNumEdges = vDM_getNumEdges;
 	vdm->dm.getNumFaces = vDM_getNumFaces;
 
+	vdm->dm.getVert = vDM_getVert;
+	vdm->dm.getEdge = vDM_getEdge;
+	vdm->dm.getFace = vDM_getFace;
+	vdm->dm.getVertArray = vDM_getVertArray;
+	vdm->dm.getEdgeArray = vDM_getEdgeArray;
+	vdm->dm.getFaceArray = vDM_getFaceArray;
+	
 	vdm->dm.foreachMappedVert = vDM_foreachMappedVert;
 	vdm->dm.foreachMappedEdge = vDM_foreachMappedEdge;
 	vdm->dm.foreachMappedFaceCenter = vDM_foreachMappedFaceCenter;
@@ -2690,6 +2857,14 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	 * OnlyDeform ones. 
 	 */
 	dm = NULL;
+
+#ifdef WITH_VERSE
+	/* hack to make sure modifiers don't try to use mesh data from a verse
+	 * node
+	 */
+	if(me->vnode) dm = derivedmesh_from_versemesh(me->vnode, deformedVerts);
+#endif
+
 	for(; md; md = md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 

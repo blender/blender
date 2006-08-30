@@ -38,6 +38,7 @@
 
 #include "BLI_dynamiclist.h"
 #include "BLI_blenlib.h"
+#include "BLI_edgehash.h"
 #include "BLI_editVert.h"
 
 #include "BKE_global.h"
@@ -568,16 +569,19 @@ void unsubscribe_from_geom_node(VNode *vnode)
 	
 	if(vnode->type != V_NT_GEOMETRY) return;
 	
+	/* free bindings between verse node and blender mesh*/	
 	if(((VGeomData*)vnode->data)->mesh) {
 		((Mesh*)((VGeomData*)vnode->data)->mesh)->vnode = NULL;
 		((VGeomData*)vnode->data)->mesh = NULL;
 	}
-	
+
+	/* free bindings between verse node and blender editmesh */
 	if(((VGeomData*)vnode->data)->editmesh) {
 		((EditMesh*)((VGeomData*)vnode->data)->editmesh)->vnode = NULL;
 		((VGeomData*)vnode->data)->editmesh = NULL;
 	}
 	
+	/* free all verse layer data and unsubscribe from all layers */
 	while(vlayer) {
 		BLI_dlist_reinit(&(vlayer->dl));
 		BLI_freelistN(&(vlayer->queue));
@@ -1400,6 +1404,7 @@ void create_meshdata_from_geom_node(Mesh *me, VNode *vnode)
 	struct VerseFace *vface;
 	struct MVert *mvert;
 	struct MFace *mface;
+	struct EdgeHash *edges;
 	int index;
 
 	if(!me || !vnode) return;
@@ -1444,7 +1449,6 @@ void create_meshdata_from_geom_node(Mesh *me, VNode *vnode)
 
 	me->totvert = vert_vlayer->dl.da.count;
 	me->totface = face_vlayer->dl.da.count;
-	me->totedge = 0;
 	me->totselect = 0;
 
 	mvert = me->mvert = (MVert*)MEM_mallocN(sizeof(MVert)*me->totvert, "mesh_from_verse vert");
@@ -1462,15 +1466,28 @@ void create_meshdata_from_geom_node(Mesh *me, VNode *vnode)
 		mvert++;
 	}
 
+	edges = BLI_edgehash_new();
 	vface = face_vlayer->dl.lb.first;
 	while(vface) {
 		mface->v1 = vface->vvert0->tmp.index;
 		mface->v2 = vface->vvert1->tmp.index;
 		mface->v3 = vface->vvert2->tmp.index;
-		if(vface->vvert3)
+
+		if(!BLI_edgehash_haskey(edges, mface->v1, mface->v2))
+			BLI_edgehash_insert(edges, mface->v1, mface->v2, NULL);
+		if(!BLI_edgehash_haskey(edges, mface->v2, mface->v3))
+			BLI_edgehash_insert(edges, mface->v2, mface->v3, NULL);
+		if(vface->vvert3) {
 			mface->v4 = vface->vvert3->tmp.index;
-		else
+			if(!BLI_edgehash_haskey(edges, mface->v3, mface->v4))
+				BLI_edgehash_insert(edges, mface->v3, mface->v4, NULL);
+			if(!BLI_edgehash_haskey(edges, mface->v4, mface->v1))
+				BLI_edgehash_insert(edges, mface->v4, mface->v1, NULL);
+		} else {
 			mface->v4 = 0;
+			if(!BLI_edgehash_haskey(edges, mface->v3, mface->v1))
+				BLI_edgehash_insert(edges, mface->v3, mface->v1, NULL);
+		}
 
 		mface->flag = 0;
 		mface->pad = 0;
@@ -1485,6 +1502,21 @@ void create_meshdata_from_geom_node(Mesh *me, VNode *vnode)
 		mface++;
 	}
 	
+	me->totedge = BLI_edgehash_size(edges);
+
+	if(me->totedge) {
+		EdgeHashIterator *i;
+		MEdge *medge = me->medge = (MEdge *)MEM_mallocN(sizeof(MEdge)*me->totedge, "mesh_from_verse edge");
+
+		for(i = BLI_edgehashIterator_new(edges); !BLI_edgehashIterator_isDone(i); BLI_edgehashIterator_step(i), ++medge) {
+			BLI_edgehashIterator_getKey(i, (int*)&medge->v1, (int*)&medge->v2);
+			medge->crease = medge->pad = medge->flag = 0;
+		}
+		BLI_edgehashIterator_free(i);
+	}
+
+	BLI_edgehash_free(edges, NULL);
+
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 }
 

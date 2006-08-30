@@ -390,8 +390,8 @@ void b_verse_unsubscribe(VNode *vnode)
 	while(vlink){
 		if(vlink->target->type == V_NT_GEOMETRY) {
 			struct Mesh *me;
-			me = ((VGeomData*)vnode->data)->mesh;
-			create_meshdata_from_geom_node(me, vnode);
+			me = ((VGeomData*)vlink->target->data)->mesh;
+			create_meshdata_from_geom_node(me, vlink->target);
 			break;
 		}
 		vlink = vlink->next;
