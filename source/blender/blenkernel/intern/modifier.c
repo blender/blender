@@ -39,6 +39,7 @@
 #include "string.h"
 #include "stdarg.h"
 #include "math.h"
+#include "float.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
@@ -800,10 +801,10 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	   || amd->fit_type == MOD_ARR_FITCURVE) {
 		float dist = sqrt(MTC_dot3Float(offset[3], offset[3]));
 
-		if(dist != 0)
+		if(dist > FLT_EPSILON)
 			/* this gives length = first copy start to last copy end
 			   add a tiny offset for floating point rounding errors */
-			count = (length + 0.00001) / dist;
+			count = (length + FLT_EPSILON) / dist;
 		else
 			/* if the offset has no translation, just make one copy */
 			count = 1;
