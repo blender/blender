@@ -34,14 +34,6 @@ public:
 
 	virtual ~TriangleMeshShape();
 
-	virtual SimdVector3 LocalGetSupportingVertex(const SimdVector3& vec) const;
-
-	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const
-	{
-		assert(0);
-		return LocalGetSupportingVertex(vec);
-	}
-
 	void	RecalcLocalAabb();
 
 	virtual int	GetShapeType() const
@@ -50,6 +42,8 @@ public:
 	}
 
 	virtual void GetAabb(const SimdTransform& t,SimdVector3& aabbMin,SimdVector3& aabbMax) const;
+
+	void	NonVirtualProcessAllTriangles(TriangleCallback* callback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const;
 
 	virtual void	ProcessAllTriangles(TriangleCallback* callback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const;
 

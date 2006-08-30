@@ -58,63 +58,44 @@ void TriangleMeshShape::GetAabb(const SimdTransform& trans,SimdVector3& aabbMin,
 	
 }
 
-void	TriangleMeshShape::RecalcLocalAabb()
-{
-	for (int i=0;i<3;i++)
-	{
-		SimdVector3 vec(0.f,0.f,0.f);
-		vec[i] = 1.f;
-		SimdVector3 tmp = LocalGetSupportingVertex(vec);
-		m_localAabbMax[i] = tmp[i]+m_collisionMargin;
-		vec[i] = -1.f;
-		tmp = LocalGetSupportingVertex(vec);
-		m_localAabbMin[i] = tmp[i]-m_collisionMargin;
-	}
-}
 
 
-
-class SupportVertexCallback : public TriangleCallback
+class LocalAabbCalculator : public TriangleCallback
 {
 
-	SimdVector3 m_supportVertexLocal;
 public:
 
-	SimdTransform	m_worldTrans;
-	SimdScalar m_maxDot;
-	SimdVector3 m_supportVecLocal;
+	SimdVector3 m_localAabbMin;
+	SimdVector3 m_localAabbMax;
 
-	SupportVertexCallback(const SimdVector3& supportVecWorld,const SimdTransform& trans)
-		: m_supportVertexLocal(0.f,0.f,0.f), m_worldTrans(trans) ,m_maxDot(-1e30f)
-		
+	LocalAabbCalculator()
+		: m_localAabbMin(1e30f,1e30f,1e30f), m_localAabbMax(-1e30f,-1e30f,-1e30f)
 	{
-		m_supportVecLocal = supportVecWorld * m_worldTrans.getBasis();
 	}
 
 	virtual void ProcessTriangle( SimdVector3* triangle,int partId, int triangleIndex)
 	{
 		for (int i=0;i<3;i++)
 		{
-			SimdScalar dot = m_supportVecLocal.dot(triangle[i]);
-			if (dot > m_maxDot)
-			{
-				m_maxDot = dot;
-				m_supportVertexLocal = triangle[i];
-			}
+			m_localAabbMin.setMin(triangle[i]);
+			m_localAabbMax.setMax(triangle[i]);
 		}
 	}
-
-	SimdVector3 GetSupportVertexWorldSpace()
-	{
-		return m_worldTrans(m_supportVertexLocal);
-	}
-
-	SimdVector3	GetSupportVertexLocal()
-	{
-		return m_supportVertexLocal;
-	}
-
 };
+
+
+void	TriangleMeshShape::RecalcLocalAabb()
+{
+
+		LocalAabbCalculator aabbCalculator;
+		SimdVector3 aabbMax(1e30f,1e30f,1e30f);
+
+		NonVirtualProcessAllTriangles(&aabbCalculator,-aabbMax,aabbMax);
+		SimdVector3 marginVec(m_collisionMargin,m_collisionMargin,m_collisionMargin);
+		m_localAabbMax = aabbCalculator.m_localAabbMax + marginVec;
+		m_localAabbMin = aabbCalculator.m_localAabbMin - marginVec;
+		
+}
 
 	
 void TriangleMeshShape::setLocalScaling(const SimdVector3& scaling)
@@ -135,10 +116,8 @@ const SimdVector3& TriangleMeshShape::getLocalScaling() const
 
 //#define DEBUG_TRIANGLE_MESH
 
-
-void	TriangleMeshShape::ProcessAllTriangles(TriangleCallback* callback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const
+void	TriangleMeshShape::NonVirtualProcessAllTriangles(TriangleCallback* callback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const
 {
-
 	struct FilteredCallback : public InternalTriangleIndexCallback
 	{
 		TriangleCallback* m_callback;
@@ -171,8 +150,10 @@ void	TriangleMeshShape::ProcessAllTriangles(TriangleCallback* callback,const Sim
 }
 
 
-
-
+void	TriangleMeshShape::ProcessAllTriangles(TriangleCallback* callback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const
+{
+	NonVirtualProcessAllTriangles(callback,aabbMin,aabbMax);	
+}
 
 void	TriangleMeshShape::CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia)
 {
@@ -181,21 +162,3 @@ void	TriangleMeshShape::CalculateLocalInertia(SimdScalar mass,SimdVector3& inert
 	inertia.setValue(0.f,0.f,0.f);
 }
 
-
-SimdVector3 TriangleMeshShape::LocalGetSupportingVertex(const SimdVector3& vec) const
-{
-	SimdVector3 supportVertex;
-
-	SimdTransform ident;
-	ident.setIdentity();
-
-	SupportVertexCallback supportCallback(vec,ident);
-
-	SimdVector3 aabbMax(1e30f,1e30f,1e30f);
-	
-	ProcessAllTriangles(&supportCallback,-aabbMax,aabbMax);
-		
-	supportVertex = supportCallback.GetSupportVertexLocal();
-
-	return supportVertex;
-}
