@@ -1277,10 +1277,11 @@ static PySequenceMethods ActionStrips_as_sequence = {
  * helper function to check for a valid action strip argument
  */
 
-static bActionStrip *locate_strip( BPy_ActionStrips *self, PyObject * args )
+static bActionStrip *locate_strip( BPy_ActionStrips *self, 
+		PyObject *args, BPy_ActionStrip **stripobj )
 {
-	BPy_ActionStrip *pyobj;
 	bActionStrip *strip = NULL;
+	BPy_ActionStrip *pyobj;
 
 	/* check that argument is a constraint */
 	if( !PyArg_ParseTuple( args, "O!", &ActionStrip_Type, &pyobj ) ) {
@@ -1294,6 +1295,10 @@ static bActionStrip *locate_strip( BPy_ActionStrips *self, PyObject * args )
 				"This strip has been removed!" );
 		return NULL;
 	}
+
+	/* if caller needs the object, return it */
+	if( stripobj )
+		*stripobj = pyobj;
 
 	/* find the action strip in the NLA */
 	for( strip = self->ob->nlastrips.first; strip; strip = strip->next )
@@ -1313,7 +1318,7 @@ static bActionStrip *locate_strip( BPy_ActionStrips *self, PyObject * args )
 static PyObject *ActionStrips_remove( BPy_ActionStrips *self, PyObject * args )
 {
 	BPy_ActionStrip *pyobj;
-	bActionStrip *strip = locate_strip( self, args );
+	bActionStrip *strip = locate_strip( self, args, &pyobj );
 
 	/* return exception if we can't find the strip */
 	if( !strip )
@@ -1334,7 +1339,7 @@ static PyObject *ActionStrips_remove( BPy_ActionStrips *self, PyObject * args )
 
 static PyObject *ActionStrips_moveUp( BPy_ActionStrips *self, PyObject * args )
 {
-	bActionStrip *strip = locate_strip( self, args );
+	bActionStrip *strip = locate_strip( self, args, NULL );
 
 	/* return exception if we can't find the strip */
 	if( !strip )
@@ -1355,7 +1360,7 @@ static PyObject *ActionStrips_moveUp( BPy_ActionStrips *self, PyObject * args )
 
 static PyObject *ActionStrips_moveDown( BPy_ActionStrips *self, PyObject * args )
 {
-	bActionStrip *strip = locate_strip( self, args );
+	bActionStrip *strip = locate_strip( self, args, NULL );
 
 	/* return exception if we can't find the strip */
 	if( !strip )
