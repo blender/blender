@@ -1092,6 +1092,9 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 		vertexCos = curve_getVertexCos(cu, &cu->nurb, &numVerts);
 		mti->deformVerts(md, ob, NULL, vertexCos, numVerts);
 		curve_applyVertexCos(cu, &cu->nurb, vertexCos);
+
+		converted = 1;
+
 		MEM_freeN(vertexCos);
 
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
