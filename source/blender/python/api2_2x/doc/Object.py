@@ -379,6 +379,8 @@ class Object:
            empty_ob.setMatrix(dupe_matrix)
          Blender.Redraw()
     @type DupObjects: list of tuples containing (object, matrix)
+    @ivar enableNLAOverride: Whether the object uses NLA or active Action for animation.
+    @type enableNLAOverride: boolean
     @ivar enableDupVerts: The DupliVerts status of the object.
         Does not indicate that this object has any dupliVerts,
         (as returned by L{DupObjects}) just that dupliVerts are enabled.

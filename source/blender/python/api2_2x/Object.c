@@ -2877,6 +2877,33 @@ static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * args )
 	return EXPP_getScriptLinks( slink, args, 0 );
 }
 
+static PyObject *Object_getNLAflagBits ( BPy_Object * self ) 
+{
+	if (self->object->nlaflag & OB_NLA_OVERRIDE)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+static int Object_setNLAflagBits ( BPy_Object * self, PyObject * args ) 
+{
+	int value;
+
+	value = PyObject_IsTrue( args );
+	if( value == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected 1/0 for true/false" );
+
+	if (value==1)
+		self->object->nlaflag |= OB_NLA_OVERRIDE;
+	else 
+		self->object->nlaflag &= ~OB_NLA_OVERRIDE;
+		
+	self->object->recalc |= OB_RECALC_OB;  
+
+	return 0;
+}
+
 static PyObject *Object_getDupliObjects( BPy_Object * self )
 {
 	Object *ob= self->object;
@@ -4906,6 +4933,10 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getTransflagBits, (setter)Object_setTransflagBits,
 	 "Duplicate child objects on all vertices",
 	 (void *)OB_DUPLIVERTS},
+	{"enableNLAOverride",
+	 (getter)Object_getNLAflagBits, (setter)Object_setNLAflagBits,
+	 "Toggles Action-NLA based animation",
+	 (void *)OB_NLA_OVERRIDE},
 	{"enableDupFrames",
 	 (getter)Object_getTransflagBits, (setter)Object_setTransflagBits,
 	 "Make copy of object for every frame",
