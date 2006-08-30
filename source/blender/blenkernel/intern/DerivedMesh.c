@@ -2659,13 +2659,20 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 		 * places that wish to use the original mesh but with deformed
 		 * coordinates (vpaint, etc.)
 		 */
-		if (deform_r)
+		if (deform_r) {
 #ifdef WITH_VERSE
 			if(me->vnode) *deform_r = derivedmesh_from_versemesh(me->vnode, deformedVerts);
-			else *deform_r = getMeshDerivedMesh(me, ob, deformedVerts);
+			else {
+				*deform_r = CDDM_from_mesh(me);
+				if(deformedVerts)
+					CDDM_apply_vert_coords(*deform_r, deformedVerts);
+			}
 #else
-			*deform_r = getMeshDerivedMesh(me, ob, deformedVerts);
+			*deform_r = CDDM_from_mesh(me);
+			if(deformedVerts)
+				CDDM_apply_vert_coords(*deform_r, deformedVerts);
 #endif
+		}
 	} else {
 		if(!fluidsimMeshUsed) {
 			/* default behaviour for meshes */
@@ -2776,9 +2783,15 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	} else {
 #ifdef WITH_VERSE
 		if(me->vnode) *final_r = derivedmesh_from_versemesh(me->vnode, deformedVerts);
-		else *final_r = getMeshDerivedMesh(me, ob, deformedVerts);
+		else {
+			*final_r = CDDM_from_mesh(me);
+			if(deformedVerts)
+				CDDM_apply_vert_coords(*final_r, deformedVerts);
+		}
 #else
-		*final_r = getMeshDerivedMesh(me, ob, deformedVerts);
+		*final_r = CDDM_from_mesh(me);
+		if(deformedVerts)
+			CDDM_apply_vert_coords(*final_r, deformedVerts);
 #endif
 	}
 
