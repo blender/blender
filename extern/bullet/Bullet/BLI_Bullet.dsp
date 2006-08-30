@@ -40,8 +40,8 @@ RSC=rc.exe
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
-LINK32=link.exe -lib
 MTL=midl.exe
+LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD CPP /nologo /MT /W3 /GX /Zd /O2 /I "../LinearMath" /I "." /D "NDEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /D "BUM_INLINED" /D "USE_ALGEBRAIC" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -70,8 +70,8 @@ PostBuild_Cmds=XCOPY  /Y .\release\*.lib .\..\..\..\..\lib\windows\bullet\lib\*.
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
-LINK32=link.exe -lib
 MTL=midl.exe
+LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../LinearMath" /I "." /D "_DEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /D "BUM_INLINED" /D "USE_ALGEBRAIC" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -303,6 +303,14 @@ SOURCE=.\BroadphaseCollision\Dispatcher.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\BroadphaseCollision\OverlappingPairCache.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\BroadphaseCollision\OverlappingPairCache.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\BroadphaseCollision\SimpleBroadphase.cpp
 # End Source File
 # Begin Source File
@@ -343,6 +351,22 @@ SOURCE=.\CollisionShapes\CollisionShape.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CollisionShapes\CompoundShape.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionShapes\CompoundShape.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionShapes\ConcaveShape.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionShapes\ConcaveShape.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CollisionShapes\ConeShape.cpp
 # End Source File
 # Begin Source File
@@ -367,11 +391,11 @@ SOURCE=.\CollisionShapes\ConvexShape.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\CollisionShapes\ConvexTriangleCallback.cpp
+SOURCE=.\CollisionShapes\ConvexTriangleMeshShape.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\CollisionShapes\ConvexTriangleCallback.h
+SOURCE=.\CollisionShapes\ConvexTriangleMeshShape.h
 # End Source File
 # Begin Source File
 
@@ -439,6 +463,14 @@ SOURCE=.\CollisionShapes\SphereShape.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CollisionShapes\StaticPlaneShape.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionShapes\StaticPlaneShape.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CollisionShapes\StridingMeshInterface.cpp
 # End Source File
 # Begin Source File
@@ -487,6 +519,10 @@ SOURCE=.\CollisionShapes\TriangleShape.h
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=.\CollisionDispatch\CollisionCreateFunc.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CollisionDispatch\CollisionDispatcher.cpp
 # End Source File
 # Begin Source File
@@ -508,6 +544,14 @@ SOURCE=.\CollisionDispatch\CollisionWorld.cpp
 # Begin Source File
 
 SOURCE=.\CollisionDispatch\CollisionWorld.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\CompoundCollisionAlgorithm.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\CompoundCollisionAlgorithm.h
 # End Source File
 # Begin Source File
 
@@ -543,6 +587,14 @@ SOURCE=.\CollisionDispatch\ManifoldResult.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\CollisionDispatch\SimulationIslandManager.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\CollisionDispatch\SimulationIslandManager.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\CollisionDispatch\UnionFind.cpp
 # End Source File
 # Begin Source File
@@ -553,46 +605,6 @@ SOURCE=.\CollisionDispatch\UnionFind.h
 # Begin Group "Extras"
 
 # PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=..\Extras\PhysicsInterface\Common\PHY_DynamicTypes.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\Extras\PhysicsInterface\Common\PHY_IMotionState.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\Extras\PhysicsInterface\Common\PHY_IMotionState.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\Extras\PhysicsInterface\Common\PHY_IPhysicsController.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\Extras\PhysicsInterface\Common\PHY_IPhysicsController.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\Extras\PhysicsInterface\Common\PHY_IPhysicsEnvironment.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\Extras\PhysicsInterface\Common\PHY_IPhysicsEnvironment.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\Extras\PhysicsInterface\Common\PHY_IVehicle.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\Extras\PhysicsInterface\Common\PHY_IVehicle.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\Extras\PhysicsInterface\Common\PHY_Pro.h
-# End Source File
 # End Group
 # End Target
 # End Project
