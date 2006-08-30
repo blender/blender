@@ -709,11 +709,14 @@ static int calc_mapping(IndexMapEntry *indexMap, int oldVert, int copy)
 		/* vert was merged with another vert */
 		int mergeVert = indexMap[oldVert].merge;
 
-		/* follow the chain of merges to the end */
-		/* TODO should this only go as far as the number of copies allows? */
-		while(indexMap[mergeVert].merge >= 0
-		      && indexMap[mergeVert].merge != mergeVert)
+		/* follow the chain of merges to the end, or until we've passed
+		 * a number of vertices equal to the copy number
+		 */
+		while(copy > 0 && indexMap[mergeVert].merge >= 0
+		      && indexMap[mergeVert].merge != mergeVert) {
 			mergeVert = indexMap[mergeVert].merge;
+			--copy;
+		}
 
 		if(indexMap[mergeVert].merge == mergeVert)
 			/* vert merged with vert that was merged with itself */
