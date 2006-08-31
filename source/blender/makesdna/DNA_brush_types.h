@@ -39,6 +39,12 @@
 struct MTex;
 struct Image;
 
+typedef struct BrushClone {
+	struct Image *image;		/* image for clone tool */
+	float offset[2];			/* offset of clone image from canvas */
+	float alpha, pad;			/* transparency for drawing of clone image */
+} BrushClone;
+
 typedef struct Brush {
 	ID id;
 	
@@ -54,11 +60,7 @@ typedef struct Brush {
 	short texact, pad;
 	struct MTex *mtex[10];
 
-	struct Clone {
-		struct Image *image;	/* image for clone tool */
-		float offset[2];		/* offset of clone image from canvas */
-		float alpha;			/* transparency for drawing of clone image */
-	} clone;
+	struct BrushClone clone;
 } Brush;
 
 /* Brush.flag */
