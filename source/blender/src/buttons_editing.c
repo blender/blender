@@ -3665,35 +3665,41 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	if(uiNewPanel(curarea, block, "Mesh Tools 1", "Editing", 960, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_DOCENTRE, "Centre",	955, 200, 160, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
-	uiDefBut(block, BUT,B_HIDE,		"Hide",		1115, 200,  160, 19, 0, 0, 0, 0, 0, "Hides selected faces");
-	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	955, 180, 160, 19, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
-	uiDefBut(block, BUT,B_REVEAL,	"Reveal",		1115, 180,  160, 19, 0, 0, 0, 0, 0, "Reveals selected faces");
+	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	955, 200,  106, 19, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
+	uiDefBut(block, BUT,B_HIDE,		"Hide",		1061, 200, 106, 19, 0, 0, 0, 0, 0, "Hides selected faces");
+	uiDefBut(block, BUT,B_REVEAL,	"Reveal",		1167, 200,  107, 19, 0, 0, 0, 0, 0, "Reveals selected faces");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",	955, 131, 150, 19, &G.scene->editbutsize, 0.001, 2.0, 10, 0, "Sets the length to use when displaying face normals");
-	uiDefButBitI(block, TOG, G_DRAWNORMALS, REDRAWVIEW3D, "Draw Normals",	955,110,150,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
+	uiDefButF(block, NUM,					REDRAWVIEW3D, "NSize:",	955, 170, 150, 19, &G.scene->editbutsize, 0.001, 2.0, 10, 0, "Sets the length to use when displaying face normals");
+	uiDefButBitI(block, TOG, G_DRAWNORMALS, REDRAWVIEW3D, "Draw Normals",	955,148,150,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
+	uiDefButBitI(block, TOG, G_DRAW_VNORMALS, REDRAWVIEW3D, "Draw VNormals",955,126,150,19, &G.f, 0, 0, 0, 0, "Displays vertex normals as lines");
+	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, G_DRAWFACES, REDRAWVIEW3D, "Draw Faces",		955,88,150,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
 	uiDefButBitI(block, TOG, G_DRAWEDGES, REDRAWVIEW3D, "Draw Edges", 	955,66,150,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
 	uiDefButBitI(block, TOG, G_DRAWCREASES, REDRAWVIEW3D, "Draw Creases",	955,44,150,19, &G.f, 0, 0, 0, 0, "Displays creases created for subsurf weighting");
 	uiDefButBitI(block, TOG, G_DRAWSEAMS, REDRAWVIEW3D, "Draw Seams",	955,22,150,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
-	uiDefButBitI(block, TOG, G_ALLEDGES, 0, "All Edges",			955, 0,150,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");
+	uiDefButBitI(block, TOG, G_DRAWSHARP, REDRAWVIEW3D, "Draw Sharp",	955,0,150,19, &G.f, 0, 0, 0, 0, "Displays sharp edges, used with the EdgeSplit modifier");
 	uiBlockEndAlign(block);
 	
 	/* Measurement drawing options */
 	uiBlockBeginAlign(block);
+	uiDefButBitI(block, TOG, G_DRAW_EDGELEN, REDRAWVIEW3D, "Edge Length",	1125,170,150,19, &G.f, 0, 0, 0, 0, "Displays selected edge lengths");
+	uiDefButBitI(block, TOG, G_DRAW_EDGEANG, REDRAWVIEW3D, "Edge Angles",	1125,148,150,19,  &G.f, 0, 0, 0, 0, "Displays the angles in the selected edges in degrees");
+	uiDefButBitI(block, TOG, G_DRAW_FACEAREA, REDRAWVIEW3D, "Face Area",	1125,126,150,19, &G.f, 0, 0, 0, 0, "Displays the area of selected faces");
 #ifdef WITH_VERSE
 	if(G.editMesh->vnode)
-		uiDefButBitI(block, TOG, G_DRAW_VERSE_DEBUG, REDRAWVIEW3D, "Draw VDebug",1125,132,150,19, &G.f, 0, 0, 0, 0, "Displays verse debug information");
+		uiDefButBitI(block, TOG, G_DRAW_VERSE_DEBUG, REDRAWVIEW3D, "Draw VDebug",1125,104,150,19, &G.f, 0, 0, 0, 0, "Displays verse debug information");
 #endif
-	uiDefButBitI(block, TOG, G_DRAW_VNORMALS, REDRAWVIEW3D, "Draw VNormals",1125,110,150,19, &G.f, 0, 0, 0, 0, "Displays vertex normals as lines");
-	uiDefButBitI(block, TOG, G_DRAW_EDGELEN, REDRAWVIEW3D, "Edge Length",	1125,88,150,19, &G.f, 0, 0, 0, 0, "Displays selected edge lengths");
-	uiDefButBitI(block, TOG, G_DRAW_EDGEANG, REDRAWVIEW3D, "Edge Angles",	1125,66,150,19,  &G.f, 0, 0, 0, 0, "Displays the angles in the selected edges in degrees");
-	uiDefButBitI(block, TOG, G_DRAW_FACEAREA, REDRAWVIEW3D, "Face Area",	1125,44,150,19, &G.f, 0, 0, 0, 0, "Displays the area of selected faces");
+	
 	uiBlockEndAlign(block);
-
+	
+	uiBlockBeginAlign(block);
+	uiDefButBitI(block, TOG, G_ALLEDGES, 0, "All Edges",			1125, 22,150,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");
 	uiDefButBitS(block, TOG, B_MESH_X_MIRROR, B_DIFF, "X-axis mirror",1125,0,150,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "While using transforms, mirrors the transformation");
+	uiBlockEndAlign(block);
 }
 
 char *get_vertexgroup_menustr(Object *ob)

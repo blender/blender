@@ -1362,6 +1362,19 @@ static void draw_dm_edges_seams(DerivedMesh *dm)
 	dm->drawMappedEdges(dm, draw_dm_edges_seams__setDrawOptions, NULL);
 }
 
+	/* Draw only sharp edges */
+static int draw_dm_edges_sharp__setDrawOptions(void *userData, int index)
+{
+	EditEdge *eed = EM_get_edge_for_index(index);
+
+	return (eed->h==0 && eed->sharp);
+}
+static void draw_dm_edges_sharp(DerivedMesh *dm)
+{
+	dm->drawMappedEdges(dm, draw_dm_edges_sharp__setDrawOptions, NULL);
+}
+
+
 	/* Draw faces with color set based on selection */
 static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *drawSmooth_r)
 {
@@ -1807,6 +1820,16 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 		glLineWidth(2);
 
 		draw_dm_edges_seams(cageDM);
+
+		glColor3ub(0,0,0);
+		glLineWidth(1);
+	}
+	
+	if(G.f & G_DRAWSHARP) {
+		glColor3ub(255, 32, 32); /* todo, make theme-able */
+		glLineWidth(2);
+
+		draw_dm_edges_sharp(cageDM);
 
 		glColor3ub(0,0,0);
 		glLineWidth(1);
