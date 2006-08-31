@@ -2075,7 +2075,7 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 {
 	struct ShadBuf *shb;
-	float hoek, temp, viewinv[4][4];
+	float viewinv[4][4];
 	
 	/* if(la->spsi<16) return; */
 	
@@ -2110,13 +2110,9 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	MTC_Mat4MulMat4(shb->viewmat, viewinv, shb->winmat);
 	
 	/* projection */
-	hoek= saacos(lar->spotsi);
-	temp= 0.5*shb->size*cos(hoek)/sin(hoek);
 	shb->d= lar->clipsta;
-	
-	shb->pixsize= (shb->d)/temp;
-	
 	shb->clipend= lar->clipend;
+	
 	/* bias is percentage, made 2x karger because of correction for angle of incidence */
 	/* when a ray is closer to parallel of a face, bias value is increased during render */
 	shb->bias= (0.02*lar->bias)*0x7FFFFFFF;
@@ -2333,6 +2329,7 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 		if(re->r.mode & R_SHADOW) {
 			if (la->type==LA_SPOT && (lar->mode & LA_SHAD) ) {
 				/* Per lamp, one shadow buffer is made. */
+				lar->bufflag= la->bufflag;
 				Mat4CpyMat4(mat, ob->obmat);
 				initshadowbuf(re, lar, mat);	// mat is altered
 			}

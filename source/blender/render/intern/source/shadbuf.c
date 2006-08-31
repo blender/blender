@@ -30,6 +30,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_lamp_types.h"
+#include "DNA_material_types.h"
 
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -265,10 +266,95 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 
 }
 
+/* sets start/end clipping. lar->shb should be initialized */
+static void shadowbuf_autoclip(Render *re, LampRen *lar)
+{
+	VlakRen *vlr= NULL;
+	VertRen *ver= NULL;
+	Material *ma= NULL;
+	float minz, maxz, vec[3], viewmat[4][4];
+	unsigned int lay = -1;
+	int a, ok= 1;
+	
+	minz= 1.0e30f; maxz= -1.0e30f;
+	Mat4CpyMat4(viewmat, lar->shb->viewmat);
+	
+	if(lar->mode & LA_LAYER) lay= lar->lay;
+	
+	/* clear clip, is being set if face is visible (clip is calculated for real later) */
+	for(a=0; a<re->totvert; a++) {
+		if((a & 255)==0) ver= RE_findOrAddVert(re, a);
+		else ver++;
+		
+		ver->clip= 0;
+	}
+	
+	/* set clip in vertices when face visible */
+	for(a=0; a<re->totvlak; a++) {
+		
+		if((a & 255)==0) vlr= re->blovl[a>>8];
+		else vlr++;
+		
+		/* note; these conditions are copied from zbuffer_shadow() */
+		if(vlr->mat!= ma) {
+			ma= vlr->mat;
+			ok= 1;
+			if((ma->mode & MA_SHADBUF)==0) ok= 0;
+		}
+		
+		if(ok && (vlr->lay & lay)) {
+			vlr->v1->clip= 1;
+			vlr->v2->clip= 1;
+			vlr->v3->clip= 1;
+			if(vlr->v4) vlr->v4->clip= 1;
+		}			
+	}		
+	
+	/* calculate min and max */
+	for(a=0; a< re->totvert;a++) {
+		if((a & 255)==0) ver= RE_findOrAddVert(re, a);
+		else ver++;
+		
+		if(ver->clip) {
+			VECCOPY(vec, ver->co);
+			Mat4MulVecfl(viewmat, vec);
+			/* Z on visible side of lamp space */
+			if(vec[2] < 0.0f) {
+				float inpr, z= -vec[2];
+				
+				/* since vec is rotated in lampspace, this is how to get the cosine of angle */
+				/* precision is set 20% larger */
+				vec[2]*= 1.2f;
+				Normalise(vec);
+				inpr= - vec[2];
+
+				if(inpr>=lar->spotsi) {
+					if(z<minz) minz= z;
+					if(z>maxz) maxz= z;
+				}
+			}
+		}
+	}
+	
+	/* set clipping min and max */
+	if(minz < maxz) {
+		float delta= (maxz - minz)*0.02f;	/* threshold to prevent precision issues */
+		
+		if(lar->bufflag & LA_SHADBUF_AUTO_START)
+			lar->shb->d= minz - delta;
+		if(lar->bufflag & LA_SHADBUF_AUTO_END)
+			lar->shb->clipend= maxz + delta;
+		
+		/* bias was calculated as percentage, we scale it to prevent animation issues */
+		delta= (lar->clipend-lar->clipsta)/(maxz-minz);
+		lar->shb->bias= (int) (delta*(float)lar->shb->bias);
+	}
+}
+
 void makeshadowbuf(Render *re, LampRen *lar)
 {
 	ShadBuf *shb= lar->shb;
-	float wsize, *jitbuf, twozero[2]= {0.0f, 0.0f};
+	float wsize, *jitbuf, twozero[2]= {0.0f, 0.0f}, angle, temp;
 	int *rectz, samples;
 	
 	/* jitter, weights */
@@ -280,10 +366,17 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	else if(shb->totbuf==9) jitbuf= give_jitter_tab(3);
 	else jitbuf= twozero;
 	
+	if(lar->bufflag & (LA_SHADBUF_AUTO_START|LA_SHADBUF_AUTO_END))
+		shadowbuf_autoclip(re, lar);
+	
 	/* matrices and window: in winmat the transformation is being put,
 		transforming from observer view to lamp view, including lamp window matrix */
+	
+	angle= saacos(lar->spotsi);
+	temp= 0.5f*shb->size*cos(angle)/sin(angle);
+	shb->pixsize= (shb->d)/temp;
 	wsize= shb->pixsize*(shb->size/2.0);
-
+	
 	i_window(-wsize, wsize, -wsize, wsize, shb->d, shb->clipend, shb->winmat);
 	MTC_Mat4MulMat4(shb->persmat, shb->viewmat, shb->winmat);
 	/* temp, will be restored */

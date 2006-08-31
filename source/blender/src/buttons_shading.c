@@ -2148,11 +2148,12 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 		uiDefButBitS(block, TOG, LA_SHAD, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets spotlight produce shadows using shadow buffer");
 	uiBlockEndAlign(block);
 	
-	uiDefButBitS(block, TOG, LA_ONLYSHADOW, B_NOP,"OnlyShadow",			10,110,80,19,&la->mode, 0, 0, 0, 0, "Causes light to cast shadows only without illuminating objects");
+	uiDefButBitS(block, TOG, LA_ONLYSHADOW, B_NOP,"OnlyShadow",		10,110,80,19,&la->mode, 0, 0, 0, 0, "Causes light to cast shadows only without illuminating objects");
 
 	if(la->type==LA_SPOT) {
-		uiDefButBitS(block, TOG, LA_SQUARE, B_LAMPREDRAW,"Square",	10,70,80,19,&la->mode, 0, 0, 0, 0, "Sets square spotbundles");
-		uiDefButBitS(block, TOG, LA_HALO, B_LAMPREDRAW,"Halo",				10,50,80,19,&la->mode, 0, 0, 0, 0, "Renders spotlight with a volumetric halo"); 
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, LA_SQUARE, B_LAMPREDRAW,"Square",	10,60,80,19,&la->mode, 0, 0, 0, 0, "Sets square spotbundles");
+		uiDefButBitS(block, TOG, LA_HALO, B_LAMPREDRAW,"Halo",		10,40,80,19,&la->mode, 0, 0, 0, 0, "Renders spotlight with a volumetric halo"); 
 
 		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);
@@ -2174,14 +2175,24 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 //			uiDefButS(block, ROW,B_NOP,"9",					270,90,30,19, &la->buffers, 1.0, 9.0, 0, 0, "Amount of lampbuffer subsamples, this halves the shadowbuffer size");
 		
 			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM,REDRAWVIEW3D,"ClipSta:",	100,60,100,19,	&la->clipsta, 0.1*grid,1000.0*grid, 10, 0, "Sets the shadow map clip start: objects closer will not generate shadows");
-			uiDefButF(block, NUM,REDRAWVIEW3D,"ClipEnd:",	200,60,100,19,&la->clipend, 1.0, 5000.0*grid, 100, 0, "Sets the shadow map clip end beyond which objects will not generate shadows");
+			uiDefButS(block, NUM,B_LAMPREDRAW,"Samples:",	100,60,100,19,	&la->samp,1.0,16.0, 0, 0, "Sets the number of shadow map samples");
+			uiDefButS(block, NUM,B_NOP,"Halo step:",		200,60,100,19,	&la->shadhalostep, 0.0, 12.0, 0, 0, "Sets the volumetric halo sampling frequency");
+			uiDefButF(block, NUM,B_LAMPREDRAW,"Bias:",		100,40,100,19,	&la->bias, 0.01, 5.0, 1, 0, "Sets the shadow map sampling bias");
+			uiDefButF(block, NUM,B_LAMPREDRAW,"Soft:",		200,40,100,19,	&la->soft,1.0,100.0, 100, 0, "Sets the size of the shadow sample area");
+			
+			uiBlockBeginAlign(block);
+			uiDefIconButBitS(block, TOG, LA_SHADBUF_AUTO_START, B_REDR, ICON_AUTO,	10, 10, 25, 19, &la->bufflag, 0.0, 0.0, 0, 0, "Automatic calculation of clipping-start, based on visible vertices");
+			if(la->bufflag & LA_SHADBUF_AUTO_START)
+				uiDefBut(block, LABEL, B_NOP, "ClipSta: Auto",	35,10,115,19,	NULL, 0, 0, 0, 0, "");
+			else
+				uiDefButF(block, NUM,REDRAWVIEW3D,"ClipSta:",	35,10,115,19,	&la->clipsta, 0.1*grid,1000.0*grid, 10, 0, "Sets the shadow map clip start: objects closer will not generate shadows");
+			uiDefIconButBitS(block, TOG, LA_SHADBUF_AUTO_END, B_REDR, ICON_AUTO,	160, 10, 25, 19, &la->bufflag, 0.0, 0.0, 0, 0, "Automatic calculation of clipping-end, based on visible vertices");
+			if(la->bufflag & LA_SHADBUF_AUTO_END)
+				uiDefBut(block, LABEL,B_NOP, "ClipEnd: Auto",	185,10,115,19,	NULL, 0, 0, 0, 0, "");
+			else
+				uiDefButF(block, NUM,REDRAWVIEW3D,"ClipEnd:",	185,10,115,19,&la->clipend, 1.0, 5000.0*grid, 100, 0, "Sets the shadow map clip end beyond which objects will not generate shadows");
 			uiBlockEndAlign(block);
 			
-			uiDefButS(block, NUM,B_LAMPREDRAW,"Samples:",	100,30,100,19,	&la->samp,1.0,16.0, 0, 0, "Sets the number of shadow map samples");
-			uiDefButS(block, NUM,B_NOP,"Halo step:",		200,30,100,19,	&la->shadhalostep, 0.0, 12.0, 0, 0, "Sets the volumetric halo sampling frequency");
-			uiDefButF(block, NUM,B_LAMPREDRAW,"Bias:",		100,10,100,19,	&la->bias, 0.01, 5.0, 1, 0, "Sets the shadow map sampling bias");
-			uiDefButF(block, NUM,B_LAMPREDRAW,"Soft:",		200,10,100,19,	&la->soft,1.0,100.0, 100, 0, "Sets the size of the shadow sample area");
 		}
 	}
 	else if(la->type==LA_AREA && (la->mode & LA_SHAD_RAY)) {

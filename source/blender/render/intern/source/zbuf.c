@@ -1836,7 +1836,7 @@ void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size, float jitx, 
 {
 	ZSpan zspan;
 	VlakRen *vlr= NULL;
-	Material *ma=0;
+	Material *ma= NULL;
 	int a, ok=1, lay= -1;
 
 	if(lar->mode & LA_LAYER) lay= lar->lay;
@@ -1860,6 +1860,7 @@ void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size, float jitx, 
 		if((a & 255)==0) vlr= re->blovl[a>>8];
 		else vlr++;
 
+		/* note, these conditions are copied in shadowbuf_autoclip() */
 		if(vlr->mat!= ma) {
 			ma= vlr->mat;
 			ok= 1;

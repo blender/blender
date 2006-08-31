@@ -306,6 +306,8 @@ typedef struct LampRen
 	float soft;
 	/** amount of subsample buffers */
 	short buffers, filtertype;
+	/** autoclip */
+	short bufflag;
 	/** shadow plus halo: detail level */
 	short shadhalostep;
 	/** Near clip of the lamp */
