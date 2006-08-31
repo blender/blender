@@ -54,6 +54,8 @@
 #include "NLA.h"
 #include "gen_utils.h"
 
+#include "DNA_armature_types.h" /*used for pose bone select*/
+
 extern void chan_calc_mat(bPoseChannel *chan);
 
 //------------------------ERROR CODES---------------------------------
@@ -908,6 +910,38 @@ static int PoseBone_setTail(BPy_PoseBone *self, PyObject *value, void *closure)
 	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
 		sPoseBoneError, ".tail: ", "not able to set this property");
 }
+//------------------------PoseBone.sel (getter)
+//Gets the pose bones selection
+static PyObject *PoseBone_getSelect(BPy_PoseBone *self, void *closure)
+{
+	if (self->posechannel->bone->flag & BONE_SELECTED)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+//------------------------PoseBone.sel (setter)
+//Sets the pose bones selection
+static int PoseBone_setSelect(BPy_PoseBone *self, PyObject *value, void *closure)
+{
+	if (PyObject_IsTrue( value ))
+		self->posechannel->bone->flag |= BONE_SELECTED;
+	else
+		self->posechannel->bone->flag &= ~(BONE_SELECTED | BONE_ACTIVE);
+	return 0;
+}
+
+
+//------------------------PoseBone.parent (getter)
+//Gets the pose bones selection
+static PyObject *PoseBone_getParent(BPy_PoseBone *self, void *closure)
+{
+	if (self->posechannel->parent) {
+		return PyPoseBone_FromPosechannel(self->posechannel->parent);
+	} else {
+        return EXPP_incr_ret(Py_None);
+	}
+}
+
 //------------------TYPE_OBECT IMPLEMENTATION---------------------------
 //------------------------tp_getset
 //This contains methods for attributes that require checking
@@ -928,12 +962,16 @@ static PyGetSetDef BPy_PoseBone_getset[] = {
 		"The pose bone's head positon", NULL},
 	{"tail", (getter)PoseBone_getTail, (setter)PoseBone_setTail, 
 		"The pose bone's tail positon", NULL},
+	{"sel", (getter)PoseBone_getSelect, (setter)PoseBone_setSelect, 
+		"The pose selection state", NULL},
     {"limitMin", (getter)PoseBone_getLimitMin, (setter)PoseBone_setLimitMin,
         "The pose bone dof min", NULL},
     {"limitMax", (getter)PoseBone_getLimitMax, (setter)PoseBone_setLimitMax,
         "The pose bone dof max", NULL},
 	{"constraints", (getter)PoseBone_getConstraints, (setter)NULL, 
 		"The list of contraints that pertain to this pose bone", NULL},
+	{"parent", (getter)PoseBone_getParent, (setter)NULL, 
+		"The bones parent (read only for posebones)", NULL},
 	{NULL, NULL, NULL, NULL, NULL}
 };
 //------------------------tp_dealloc

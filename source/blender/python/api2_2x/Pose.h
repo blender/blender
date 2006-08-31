@@ -46,7 +46,7 @@ extern PyTypeObject PoseBonesDict_Type;
 //-------------------STRUCT DEFINITION----------------------------
 typedef struct {
 	PyObject_HEAD 
-	PyObject *bonesMap;  
+	PyObject *bonesMap;
 	ListBase *bones;  
 } BPy_PoseBonesDict;
 
@@ -60,6 +60,7 @@ typedef struct {
 typedef struct {
 	PyObject_HEAD
 	bPoseChannel *posechannel;
+	
 } BPy_PoseBone;
 
 //-------------------VISIBLE PROTOTYPES-------------------------

@@ -81,6 +81,10 @@ class PoseBone:
   @type head: Vector object
   @ivar tail: The final tail location for this PoseBone. (not settable)
   @type tail: Vector object
+  @ivar sel: The selection state of this bone
+  @type sel: Boolean
+  @ivar parent: The parent of this posebone (not settable)
+  @type parent: posebone or None
   @ivar localMatrix: The matrix combination of rot/quat/loc.
   @type localMatrix: Matrix object
   @ivar poseMatrix: The total transformation of this PoseBone including constraints.
