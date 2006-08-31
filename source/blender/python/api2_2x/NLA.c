@@ -907,6 +907,19 @@ static PyObject *ActionStrip_getStrideBone( BPy_ActionStrip * self )
 	return PyString_FromString( self->strip->stridechannel );
 }
 
+static PyObject *ActionStrip_getGroupTarget( BPy_ActionStrip * self )
+{
+	if( !self->strip )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+				
+	if (self->strip->object) {
+		return Object_CreatePyObject( self->strip->object );
+	} else {
+		Py_RETURN_NONE;
+	}
+}
+
 /*
  * set the stride bone name
  */
@@ -923,6 +936,22 @@ static int ActionStrip_setStrideBone( BPy_ActionStrip * self, PyObject * attr )
 	
 	BLI_strncpy( self->strip->stridechannel, name, 32 );
 
+	return 0;
+}
+
+static int ActionStrip_setGroupTarget( BPy_ActionStrip * self, PyObject * args )
+{
+	if( !self->strip )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This strip has been removed!" );
+
+	if( (PyObject *)args == Py_None )
+		self->strip->object = NULL;
+	else if( BPy_Object_Check( args ) )
+		self->strip->object = ((BPy_Object *)args)->object;
+	else
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected an object or None" );
 	return 0;
 }
 
@@ -969,6 +998,9 @@ static PyGetSetDef BPy_ActionStrip_getseters[] = {
 	{"strideBone",
 	(getter)ActionStrip_getStrideBone, (setter)ActionStrip_setStrideBone,
   	 "Name of Bone used for stride", NULL},
+	{"groupTarget",
+	(getter)ActionStrip_getGroupTarget, (setter)ActionStrip_setGroupTarget,
+	 "Name of target armature within group", NULL},	
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 

@@ -166,17 +166,17 @@ class ActionStrips:
 
   def __getitem__(index):
     """
-    This operator returns one of the constraints in the stack.
+    This operator returns one of the action strips in the stack.
     @type index: int
-    @return: an Constraint object
-    @rtype: Constraint
+    @return: an action strip object
+    @rtype: ActionStrip
     @raise KeyError: index was out of range
     """
 
   def __len__():
     """
     Returns the number of action strips for the object.
-    @return: number of Constraints
+    @return: number of action strips
     @rtype: int
     """
 
@@ -185,8 +185,8 @@ class ActionStrips:
     Appends a new action to the end of the action strip sequence.
     @type action: L{Action<NLA.Action>}
     @param action: the action to use in the action strip
-    @rtype: Constraint
-    @return: the new Constraint
+    @rtype: ActionStrip
+    @return: the new action strip
     """
 
   def remove(actionstrip):
@@ -240,6 +240,8 @@ class ActionStrip:
   @type strideLength: float 
   @ivar strideBone: Name of Bone used for stride
   @type strideBone: string 
+  @ivar groupTarget: Armature object within DupliGroup for local animation
+  @type groupTarget: object
   @ivar blendIn: Number of frames of motion blending.
   @type blendIn: float 
   @ivar blendOut: Number of frames of ease-out.
@@ -258,7 +260,7 @@ class ActionStrip:
   def resetStripSize():
     """
     Activates the functionality found in NLA Strip menu under "Reset  Strip
-    Size".  This method resets the Action Strip size to its creation values.
+    Size".  This method resets the action strip size to its creation values.
     @rtype: None
     """
 
