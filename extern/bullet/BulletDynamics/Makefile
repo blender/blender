@@ -53,3 +53,12 @@ objdirs:
 	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)ConstraintSolver
 	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)Dynamics
 
+optclean::
+	@-[ ! -d $(DIR)/Vehicle ] || (cd $(DIR)/Vehicle && $(RM) *.o *.a *.d *.res ii_files/*.ii *.class *.h)
+	@-[ ! -d $(DIR)/ConstraintSolver ] || (cd $(DIR)/ConstraintSolver && $(RM) *.o *.a *.d *.res ii_files/*.ii *.class *.h)
+	@-[ ! -d $(DIR)/Dynamics ] || (cd $(DIR)/Dynamics && $(RM) *.o *.a *.d *.res ii_files/*.ii *.class *.h)
+
+debugclean::
+	@-[ ! -d $(DIR)/debug/Vehicle ] || (cd $(DIR)/debug/Vehicle && $(RM) *.o *.a *.d *.res ii_files/*.ii *.class *.h)
+	@-[ ! -d $(DIR)/debug/ConstraintSolver ] || (cd $(DIR)/debug/ConstraintSolver && $(RM) *.o *.a *.d *.res ii_files/*.ii *.class *.h)
+	@-[ ! -d $(DIR)/debug/Dynamics ] || (cd $(DIR)/debug/Dynamics && $(RM) *.o *.a *.d *.res ii_files/*.ii *.class *.h)

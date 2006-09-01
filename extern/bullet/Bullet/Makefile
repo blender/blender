@@ -47,10 +47,22 @@ all debug:: objdirs
 
 include nan_compile.mk
 
-.PHONY: objdirs
+.PHONY: objdirs clean
 objdirs:
 	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)
 	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)BroadphaseCollision
 	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)NarrowPhaseCollision
 	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)CollisionShapes
 	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)CollisionDispatch
+
+optclean::
+	@-[ ! -d $(DIR)/BroadphaseCollision ] || (cd $(DIR)/BroadphaseCollision && $(RM) *.o *.a *.d *.res ii_files/*.ii *.class *.h)
+	@-[ ! -d $(DIR)/NarrowPhaseCollision ] || (cd $(DIR)/NarrowPhaseCollision && $(RM) *.o *.a *.d *.res ii_files/*.ii *.class *.h)
+	@-[ ! -d $(DIR)/CollisionShapes ] || (cd $(DIR)/CollisionShapes && $(RM) *.o *.a *.d *.res ii_files/*.ii *.class *.h)
+	@-[ ! -d $(DIR)/CollisionDispatch ] || (cd $(DIR)/CollisionDispatch && $(RM) *.o *.a *.d *.res ii_files/*.ii *.class *.h)
+
+debugclean::
+	@-[ ! -d $(DIR)/debug/BroadphaseCollision ] || (cd $(DIR)/debug/BroadphaseCollision && $(RM) *.o *.a *.d *.res ii_files/*.ii *.class *.h)
+	@-[ ! -d $(DIR)/debug/NarrowPhaseCollision ] || (cd $(DIR)/debug/NarrowPhaseCollision && $(RM) *.o *.a *.d *.res ii_files/*.ii *.class *.h)
+	@-[ ! -d $(DIR)/debug/CollisionShapes ] || (cd $(DIR)/debug/CollisionShapes && $(RM) *.o *.a *.d *.res ii_files/*.ii *.class *.h)
+	@-[ ! -d $(DIR)/debug/CollisionDispatch ] || (cd $(DIR)/debug/CollisionDispatch && $(RM) *.o *.a *.d *.res ii_files/*.ii *.class *.h)
