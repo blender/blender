@@ -26,7 +26,7 @@ $Id$
     ----------------
 
     To build Blender with the SCons scripts you need a full Python
-    install, version 2.3 or later (http://www.python.org) and a SCons
+    install, version 2.4 or later (http://www.python.org) and a SCons
     installation, version v0.96.1.D001 or later (http://www.scons.org).
 
     Check from the page
