@@ -65,6 +65,7 @@
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_screen.h"
@@ -105,6 +106,12 @@ void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 	int i, u, v, w;
 	float fu, fv, fw, uc, vc, wc, du=0.0, dv=0.0, dw=0.0;
 	float *co, (*vertexCos)[3] = NULL;
+	
+	/* vertex weight groups are just freed all for now */
+	if(lt->dvert) {
+		free_dverts(lt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
+		lt->dvert= NULL;
+	}
 	
 	while(uNew*vNew*wNew > 32000) {
 		if( uNew>=vNew && uNew>=wNew) uNew--;
@@ -222,12 +229,19 @@ Lattice *copy_lattice(Lattice *lt)
 	ltn->key= copy_key(ltn->key);
 	if(ltn->key) ltn->key->from= (ID *)ltn;
 	
+	if(lt->dvert) {
+		int tot= lt->pntsu*lt->pntsv*lt->pntsw;
+		ltn->dvert = MEM_mallocN (sizeof (MDeformVert)*tot, "Lattice MDeformVert");
+		copy_dverts(ltn->dvert, lt->dvert, tot);
+	}
+	
 	return ltn;
 }
 
 void free_lattice(Lattice *lt)
 {
 	if(lt->def) MEM_freeN(lt->def);
+	if(lt->dvert) free_dverts(lt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
 }
 
 

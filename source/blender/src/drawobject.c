@@ -96,15 +96,16 @@
 #include "BKE_verse.h"
 #endif
 
+#include "BIF_editarmature.h"
+#include "BIF_editdeform.h"
+#include "BIF_editmesh.h"
+#include "BIF_glutil.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_mywindow.h"
+#include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
-#include "BIF_editarmature.h"
-#include "BIF_editmesh.h"
-#include "BIF_glutil.h"
-#include "BIF_resources.h"
 
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
@@ -999,26 +1000,42 @@ void lattice_foreachScreenVert(void (*func)(void *userData, BPoint *bp, int x, i
 	}
 }
 
-static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w)
+static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, int use_wcol)
 {
 	int index = ((w*lt->pntsv + v)*lt->pntsu) + u;
 
+	if(use_wcol) {
+		float col[3];
+		MDeformWeight *mdw= get_defweight (lt->dvert+index, use_wcol-1);
+		
+		weight_to_rgb(mdw?mdw->weight:0.0f, col, col+1, col+2);
+		glColor3fv(col);
+	}
+	
 	if (dl) {
 		glVertex3fv(&dl->verts[index*3]);
 	} else {
 		glVertex3fv(lt->def[index].vec);
 	}
 }
+
+/* lattice color is hardcoded, now also shows weightgroup values in edit mode */
 static void drawlattice(Object *ob)
 {
 	Lattice *lt;
 	DispList *dl;
 	int u, v, w;
+	int use_wcol= 0;
 
 	lt= (ob==G.obedit)?editLatt:ob->data;
 	dl= find_displist(&ob->disp, DL_VERTS);
 	if(ob==G.obedit) {
 		cpack(0x004000);
+		
+		if(ob->defbase.first && lt->dvert) {
+			use_wcol= ob->actdef;
+			glShadeModel(GL_SMOOTH);
+		}
 	}
 	
 	glBegin(GL_LINES);
@@ -1030,22 +1047,26 @@ static void drawlattice(Object *ob)
 				int uxt = (u==0 || u==lt->pntsu-1);
 
 				if(w && ((uxt || vxt) || !(lt->flag & LT_OUTSIDE))) {
-					drawlattice__point(lt, dl, u, v, w-1);
-					drawlattice__point(lt, dl, u, v, w);
+					drawlattice__point(lt, dl, u, v, w-1, use_wcol);
+					drawlattice__point(lt, dl, u, v, w, use_wcol);
 				}
 				if(v && ((uxt || wxt) || !(lt->flag & LT_OUTSIDE))) {
-					drawlattice__point(lt, dl, u, v-1, w);
-					drawlattice__point(lt, dl, u, v, w);
+					drawlattice__point(lt, dl, u, v-1, w, use_wcol);
+					drawlattice__point(lt, dl, u, v, w, use_wcol);
 				}
 				if(u && ((vxt || wxt) || !(lt->flag & LT_OUTSIDE))) {
-					drawlattice__point(lt, dl, u-1, v, w);
-					drawlattice__point(lt, dl, u, v, w);
+					drawlattice__point(lt, dl, u-1, v, w, use_wcol);
+					drawlattice__point(lt, dl, u, v, w, use_wcol);
 				}
 			}
 		}
 	}		
 	glEnd();
 	
+	/* restoration for weight colors */
+	if(use_wcol)
+		glShadeModel(GL_FLAT);
+
 	if(ob==G.obedit) {
 		if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 		

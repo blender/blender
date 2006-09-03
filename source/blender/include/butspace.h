@@ -90,6 +90,7 @@ extern void get_constraint_ipo_context(void *ob_v, char *actname);
 extern void editing_panels(void);
 extern void do_common_editbuts(unsigned short event);
 extern void do_meshbuts(unsigned short event);
+extern void do_vgroupbuts(unsigned short event);
 extern void do_curvebuts(unsigned short event);
 extern void do_fontbuts(unsigned short event);
 extern void do_mballbuts(unsigned short event);
@@ -367,7 +368,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_NEXTKEY		2046
 #define B_LOCKKEY		2047
 
-#define B_MESHBUTS		2100
+#define B_MESHBUTS		2090
 
 #define B_FLIPNORM		2050
 #define B_SPIN			2051
@@ -378,34 +379,40 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SPLIT			2056
 #define B_REMDOUB		2057
 #define B_SUBDIV		2058
-#define B_FRACSUBDIV		2059
+#define B_FRACSUBDIV	2059
 #define B_XSORT			2060
 #define B_HASH			2061
 #define B_DELSTICKY		2062
 #define B_DELVERTCOL		2063
 #define B_MAKE_TFACES		2064
-#define B_TOSPHERE		2065
+#define B_TOSPHERE			2065
 #define B_DEL_TFACES		2066
-#define B_NEWVGROUP		2067
-#define B_DELVGROUP		2068
-#define B_ASSIGNVGROUP		2069
-#define B_REMOVEVGROUP		2070
-#define B_SELVGROUP		2071	
-#define B_DESELVGROUP		2072
-#define B_DECIM_FACES		2073
-#define B_DECIM_CANCEL		2074
-#define B_DECIM_APPLY		2075
-#define B_AUTOVGROUP		2076
-#define B_SLOWERDRAW		2077
-#define B_FASTERDRAW		2078
-#define B_VERTEXNOISE		2079
-#define B_VERTEXSMOOTH		2080
-#define B_MAKESTICKY		2082
-#define B_MAKEVERTCOL		2083
-#define B_CHROMADEPTH		2084
-#define B_DRAWEDGES		2087
-#define B_DRAWCREASES		2088
-#define B_LINKEDVGROUP		2089
+#define B_DECIM_FACES		2067
+#define B_DECIM_CANCEL		2068
+#define B_DECIM_APPLY		2069
+#define B_SLOWERDRAW		2070
+#define B_FASTERDRAW		2071
+#define B_VERTEXNOISE		2072
+#define B_VERTEXSMOOTH		2073
+#define B_MAKESTICKY		2074
+#define B_MAKEVERTCOL		2075
+#define B_CHROMADEPTH		2076
+#define B_DRAWEDGES			2077
+#define B_DRAWCREASES		2078
+
+/* *********************** */
+#define B_VGROUPBUTS		2100
+
+#define B_NEWVGROUP			2091
+#define B_DELVGROUP			2092
+#define B_ASSIGNVGROUP		2093
+#define B_REMOVEVGROUP		2094
+#define B_SELVGROUP			2095	
+#define B_DESELVGROUP		2096
+#define B_AUTOVGROUP		2097
+#define B_LINKEDVGROUP		2098
+
+
 
 /* *********************** */
 #define B_CURVEBUTS		2200

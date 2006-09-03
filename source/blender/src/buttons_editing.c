@@ -3409,27 +3409,18 @@ static void copy_linked_vgroup_channels(Object *ob)
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
-void do_meshbuts(unsigned short event)
+void do_vgroupbuts(unsigned short event)
 {
-	Object *ob;
-	Mesh *me;
-	float fac;
-	short randfac;
-	int count; /* store num of changes made to see if redraw & undo are needed*/
-	ob= OBACT;
-	if(ob && ob->type==OB_MESH) {
-
-		me= get_mesh(ob);
-		if(me==0) return;
-
-		switch(event) {
+	Object *ob= OBACT;
+	
+	switch(event) {
 		case B_NEWVGROUP:
-			add_defgroup (G.obedit);
+			add_defgroup (ob);
 			scrarea_queue_winredraw(curarea);
 			allqueue(REDRAWOOPS, 0);
 			break;
 		case B_DELVGROUP:
-			del_defgroup (G.obedit);
+			del_defgroup (ob);
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
 			BIF_undo_push("Delete vertex group");
@@ -3460,6 +3451,24 @@ void do_meshbuts(unsigned short event)
 		case B_LINKEDVGROUP:
 			copy_linked_vgroup_channels(ob);
 			break;
+	}
+}
+
+void do_meshbuts(unsigned short event)
+{
+	Object *ob;
+	Mesh *me;
+	float fac;
+	int count; /* store num of changes made to see if redraw & undo are needed*/
+	short randfac;
+	
+	ob= OBACT;
+	if(ob && ob->type==OB_MESH) {
+
+		me= get_mesh(ob);
+		if(me==NULL) return;
+		
+		switch(event) {
 		case B_DELSTICKY:
 
 			if(me->msticky) MEM_freeN(me->msticky);
@@ -3514,7 +3523,7 @@ void do_meshbuts(unsigned short event)
 			break;
 		}
 	}
-	if(G.obedit==0 || (G.obedit->type!=OB_MESH)) return;
+	if(G.obedit==NULL || (G.obedit->type!=OB_MESH)) return;
 
 	switch(event) {
 	case B_SPIN:
@@ -3811,12 +3820,7 @@ static void editing_panel_links(Object *ob)
 
 	}
 
-
-
-	/* to be sure */
-	if ELEM6(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL, OB_EMPTY);
-	else return;
-
+	/* empty display handling, note it returns! */
 	if (ob->type==OB_EMPTY) {
 		uiDefBut(block, LABEL,0,"Empty Display:",
 				xco, 154, 130,20, 0, 0, 0, 0, 0, "");
@@ -3829,7 +3833,61 @@ static void editing_panel_links(Object *ob)
 		uiBlockEndAlign(block);
 		return;
 	}
+	
+	/* vertex group... partially editmode... */
+	if(ob->type==OB_MESH || ob->type==OB_LATTICE) {
+		bDeformGroup *defGroup;
+		uiBut *but;
+		int	defCount;
+		
+		uiDefBut(block, LABEL,0,"Vertex Groups",
+				 143,153,130,20, 0, 0, 0, 0, 0, "");
+		
+		defCount=BLI_countlist(&ob->defbase);
+		
+		uiBlockBeginAlign(block);
+		if (defCount) {
+			char *menustr= get_vertexgroup_menustr(ob);
+			
+			uiDefButS(block, MENU, B_MAKEDISP, menustr, 143, 132,18,21, &ob->actdef, 1, defCount, 0, 0, "Browses available vertex groups");
+			MEM_freeN (menustr);
+		}
+		
+		if (ob->actdef){
+			defGroup = BLI_findlink(&ob->defbase, ob->actdef-1);
+			but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		161,132,140-18,21, defGroup->name, 0, 31, 0, 0, "Displays current vertex group name. Click to change. (Match bone name for deformation.)");
+			uiButSetFunc(but, verify_vertexgroup_name_func, defGroup, NULL);
+			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+			
+			uiDefButF(block, NUM, REDRAWVIEW3D, "Weight:",		143, 111, 140, 21, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
+		}
+		uiBlockEndAlign(block);
+		
+		if (G.obedit && G.obedit==ob){
+			uiBlockBeginAlign(block);
+			uiDefBut(block, BUT,B_NEWVGROUP,"New",			143,90,70,21, 0, 0, 0, 0, 0, "Creates a new vertex group");
+			uiDefBut(block, BUT,B_DELVGROUP,"Delete",		213,90,70,21, 0, 0, 0, 0, 0, "Removes the current vertex group");
+			
+			uiDefBut(block, BUT,B_ASSIGNVGROUP,"Assign",	143,69,70,21, 0, 0, 0, 0, 0, "Assigns selected vertices to the current vertex group");
+			uiDefBut(block, BUT,B_REMOVEVGROUP,"Remove",	213,69,70,21, 0, 0, 0, 0, 0, "Removes selected vertices from the current vertex group");
+			
+			uiDefBut(block, BUT,B_SELVGROUP,"Select",		143,48,70,21, 0, 0, 0, 0, 0, "Selects vertices belonging to the current vertex group");
+			uiDefBut(block, BUT,B_DESELVGROUP,"Desel.",		213,48,70,21, 0, 0, 0, 0, 0, "Deselects vertices belonging to the current vertex group");
+			uiBlockEndAlign(block);
+		}
+		else {
+			ID *id= ob->data;
+			if(id->us>1)
+				uiDefBut(block, BUT,B_LINKEDVGROUP, "Copy To Linked",	143,69,140,20, 0, 0, 0, 0, 0, "Creates identical vertex group names in other Objects using this Object-data");
+		}
+	}	
 
+	
+	/* now only objects that can be visible rendered */
+	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL);
+	else return;
+	
+	
 	if(ob->type==OB_MESH) poin= &( ((Mesh *)ob->data)->texflag );
 	else if(ob->type==OB_MBALL) poin= &( ((MetaBall *)ob->data)->texflag );
 	else poin= &( ((Curve *)ob->data)->texflag );
@@ -3857,54 +3915,6 @@ static void editing_panel_links(Object *ob)
 	uiDefBut(block, BUT,B_SETSMOOTH,"Set Smooth",	291,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'smooth' rendering of selected faces");
 	uiDefBut(block, BUT,B_SETSOLID,	"Set Solid",	373,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'solid' rendering of selected faces");
 	uiBlockEndAlign(block);
-
-	/* vertex group... partially editmode... */
-	if(ob->type==OB_MESH) {
-		Mesh *me= ob->data;
-		uiBut *but;
-		int	defCount;
-		bDeformGroup	*defGroup;
-	
-		uiDefBut(block, LABEL,0,"Vertex Groups",
-				 143,153,130,20, 0, 0, 0, 0, 0, "");
-
-		defCount=BLI_countlist(&ob->defbase);
-
-		uiBlockBeginAlign(block);
-		if (defCount) {
-			char *menustr= get_vertexgroup_menustr(ob);
-			
-			uiDefButS(block, MENU, B_MAKEDISP, menustr, 143, 132,18,21, &ob->actdef, 1, defCount, 0, 0, "Browses available vertex groups");
-			MEM_freeN (menustr);
-		}
-		
-		if (ob->actdef){
-			defGroup = BLI_findlink(&ob->defbase, ob->actdef-1);
-			but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		161,132,140-18,21, defGroup->name, 0, 31, 0, 0, "Displays current vertex group name. Click to change. (Match bone name for deformation.)");
-			uiButSetFunc(but, verify_vertexgroup_name_func, defGroup, NULL);
-			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
-
-			uiDefButF(block, NUM, REDRAWVIEW3D, "Weight:",		143, 111, 140, 21, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
-		}
-		uiBlockEndAlign(block);
-
-		if (G.obedit && G.obedit==ob){
-			uiBlockBeginAlign(block);
-			uiDefBut(block, BUT,B_NEWVGROUP,"New",			143,90,70,21, 0, 0, 0, 0, 0, "Creates a new vertex group");
-			uiDefBut(block, BUT,B_DELVGROUP,"Delete",		213,90,70,21, 0, 0, 0, 0, 0, "Removes the current vertex group");
-
-			uiDefBut(block, BUT,B_ASSIGNVGROUP,"Assign",	143,69,70,21, 0, 0, 0, 0, 0, "Assigns selected vertices to the current vertex group");
-			uiDefBut(block, BUT,B_REMOVEVGROUP,"Remove",	213,69,70,21, 0, 0, 0, 0, 0, "Removes selected vertices from the current vertex group");
-
-			uiDefBut(block, BUT,B_SELVGROUP,"Select",		143,48,70,21, 0, 0, 0, 0, 0, "Selects vertices belonging to the current vertex group");
-			uiDefBut(block, BUT,B_DESELVGROUP,"Desel.",		213,48,70,21, 0, 0, 0, 0, 0, "Deselects vertices belonging to the current vertex group");
-			uiBlockEndAlign(block);
-		}
-		else {
-			if(me->id.us>1)
-				uiDefBut(block, BUT,B_LINKEDVGROUP, "Copy To Linked",	143,69,140,20, 0, 0, 0, 0, 0, "Creates identical vertex group names in other Objects using this Mesh");
-		}
-	}
 
 
 }

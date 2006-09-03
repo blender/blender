@@ -569,6 +569,9 @@ void do_butspace(unsigned short event)
 	else if(event<=B_MESHBUTS) {
 		do_meshbuts(event);
 	}
+	else if(event<=B_VGROUPBUTS) {
+		do_vgroupbuts(event);
+	}
 	else if(event<=B_CURVEBUTS) {
 		do_curvebuts(event);
 	}

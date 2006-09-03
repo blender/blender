@@ -402,5 +402,7 @@ DerivedMesh *editmesh_get_derived_base(void);
 DerivedMesh *editmesh_get_derived_cage(int *needsFree_r);
 DerivedMesh *editmesh_get_derived_cage_and_final(DerivedMesh **final_r, int *cageNeedsFree_r, int *finalNeedsFree_r);
 
+void weight_to_rgb(float input, float *fr, float *fg, float *fb);
+
 #endif
 

@@ -47,6 +47,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
@@ -55,6 +56,7 @@
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
+#include "BKE_mesh.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_editlattice.h"
@@ -80,8 +82,11 @@ void free_editLatt(void)
 {
 	if(editLatt) {
 		if(editLatt->def) MEM_freeN(editLatt->def);
+		if(editLatt->dvert) 
+			free_dverts(editLatt->dvert, editLatt->pntsu*editLatt->pntsv*editLatt->pntsw);
+		
 		MEM_freeN(editLatt);
-		editLatt= 0;
+		editLatt= NULL;
 	}
 }
 
@@ -123,7 +128,12 @@ void make_editLatt(void)
 	editLatt= MEM_dupallocN(lt);
 	editLatt->def= MEM_dupallocN(lt->def);
 	
-	setflagsLatt(0);
+	if(lt->dvert) {
+		int tot= lt->pntsu*lt->pntsv*lt->pntsw;
+		editLatt->dvert = MEM_mallocN (sizeof (MDeformVert)*tot, "Lattice MDeformVert");
+		copy_dverts(editLatt->dvert, lt->dvert, tot);
+	}
+	
 	BIF_undo_push("original");
 }
 
@@ -171,6 +181,19 @@ void load_editLatt(void)
 		lt->typev= editLatt->typev;
 		lt->typew= editLatt->typew;
 	}
+	
+	if(lt->dvert) {
+		free_dverts(lt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
+		lt->dvert= NULL;
+	}
+	
+	if(editLatt->dvert) {
+		int tot= lt->pntsu*lt->pntsv*lt->pntsw;
+		
+		lt->dvert = MEM_mallocN (sizeof (MDeformVert)*tot, "Lattice MDeformVert");
+		copy_dverts(lt->dvert, editLatt->dvert, tot);
+	}
+	
 }
 
 void remake_editLatt(void)

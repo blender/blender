@@ -37,6 +37,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_curve_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -46,10 +47,12 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
+#include "BKE_global.h"
+#include "BKE_lattice.h"
 #include "BKE_mesh.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_editdeform.h"
 #include "BIF_editmesh.h"
@@ -61,26 +64,21 @@
 #include <config.h>
 #endif
 
-/* ----------------- function prototypes ---------------- */
-void remove_vert_def_nr (Object *, int , int );
-void add_vert_defnr (Object *, int , int vertnum, float , int );
-
-
+/* only in editmode */
 void sel_verts_defgroup (int select)
 {
-	EditMesh *em = G.editMesh;
-	EditVert		*eve;
-	Object			*ob;
-	int				i;
+	EditVert *eve;
+	Object *ob;
+	int i;
 
-	ob=G.obedit;
+	ob= G.obedit;
 
 	if (!ob)
 		return;
 
 	switch (ob->type){
 	case OB_MESH:
-		for (eve=em->verts.first; eve; eve=eve->next){
+		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
 			if (eve->totweight){
 				for (i=0; i<eve->totweight; i++){
 					if (eve->dw[i].def_nr == (ob->actdef-1)){
@@ -92,14 +90,37 @@ void sel_verts_defgroup (int select)
 				}
 			}
 		}
+		/* this has to be called, because this function operates on vertices only */
+		if(select) EM_select_flush();	// vertices to edges/faces
+		else EM_deselect_flush();
+		
 		break;
+	case OB_LATTICE:
+		if(editLatt->dvert) {
+			BPoint *bp;
+			MDeformVert *dvert= editLatt->dvert;
+			int a, tot;
+			
+			tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+			for(a=0, bp= editLatt->def; a<tot; a++, bp++, dvert++) {
+				for (i=0; i<dvert->totweight; i++){
+					if (dvert->dw[i].def_nr == (ob->actdef-1)) {
+						if(select) bp->f1 |= SELECT;
+						else bp->f1 &= ~SELECT;
+						
+						break;
+					}
+				}
+			}
+		}	
+		break;
+		
 	default:
 		break;
 	}
+	
 	countall();
-	/* this has to be called, because this function operates on vertices only */
-	if(select) EM_select_flush();	// vertices to edges/faces
-	else EM_deselect_flush();
+	
 }
 
 /* check if deform vertex has defgroup index */
@@ -139,7 +160,7 @@ MDeformWeight *verify_defweight (MDeformVert *dv, int defgroup)
 	}
 	dv->dw=newdw;
 	
-	dv->dw[dv->totweight].weight=0;
+	dv->dw[dv->totweight].weight=0.0f;
 	dv->dw[dv->totweight].def_nr=defgroup;
 	/* Group index */
 	
@@ -174,11 +195,8 @@ bDeformGroup *add_defgroup_name (Object *ob, char *name)
 
 void del_defgroup (Object *ob)
 {
-	EditMesh *em = G.editMesh;
 	bDeformGroup	*defgroup;
-	EditVert		*eve;
 	int				i;
-
 
 	if (!ob)
 		return;
@@ -194,14 +212,32 @@ void del_defgroup (Object *ob)
 	remove_verts_defgroup(1);
 
 	/* Make sure that any verts with higher indices are adjusted accordingly */
-	for (eve=em->verts.first; eve; eve=eve->next){
-		for (i=0; i<eve->totweight; i++){
-			if (eve->dw[i].def_nr > (ob->actdef-1))
-				eve->dw[i].def_nr--;
+	if(ob->type==OB_MESH) {
+		EditMesh *em = G.editMesh;
+		EditVert *eve;
+		
+		for (eve=em->verts.first; eve; eve=eve->next){
+			for (i=0; i<eve->totweight; i++){
+				if (eve->dw[i].def_nr > (ob->actdef-1))
+					eve->dw[i].def_nr--;
+			}
+		}
+	}
+	else {
+		BPoint *bp;
+		MDeformVert *dvert= editLatt->dvert;
+		int a, tot;
+		
+		tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+		for(a=0, bp= editLatt->def; a<tot; a++, bp++, dvert++) {
+			for (i=0; i<dvert->totweight; i++){
+				if (dvert->dw[i].def_nr > (ob->actdef-1))
+					dvert->dw[i].def_nr--;
+			}
 		}
 	}
 
-	/* Update the active material index if necessary */
+	/* Update the active deform index if necessary */
 	if (ob->actdef==BLI_countlist(&ob->defbase))
 		ob->actdef--;
 	
@@ -216,19 +252,23 @@ void del_defgroup (Object *ob)
 	}
 }
 
-void create_dverts(Mesh *me)
+void create_dverts(ID *id)
 {
-	/* create deform verts for the mesh
+	/* create deform verts
 	 */
-	int i;
 
-	me->dvert= MEM_mallocN(sizeof(MDeformVert)*me->totvert, "deformVert");
-	for (i=0; i < me->totvert; ++i) {
-		me->dvert[i].totweight = 0;
-		me->dvert[i].dw        = NULL;
+	if( GS(id->name)==ID_ME) {
+		Mesh *me= (Mesh *)id;
+		me->dvert= MEM_callocN(sizeof(MDeformVert)*me->totvert, "deformVert");
+	}
+	else if( GS(id->name)==ID_LT) {
+		Lattice *lt= (Lattice *)id;
+		lt->dvert= MEM_callocN(sizeof(MDeformVert)*lt->pntsu*lt->pntsv*lt->pntsw, "lattice deformVert");
 	}
 }
 
+/* for mesh in object mode
+   lattice can be in editmode */
 void remove_vert_def_nr (Object *ob, int def_nr, int vertnum)
 {
 	/* This routine removes the vertex from the deform
@@ -242,18 +282,26 @@ void remove_vert_def_nr (Object *ob, int def_nr, int vertnum)
 	 */
 
 	MDeformWeight *newdw;
-	MDeformVert *dvert;
+	MDeformVert *dvert= NULL;
 	int i;
 
-	/* if this mesh has no deform mesh abort
-	 */
-	if (!((Mesh*)ob->data)->dvert) return;
-
-	/* get the deform mesh cooresponding to the
+	/* get the deform vertices corresponding to the
 	 * vertnum
 	 */
-	dvert = ((Mesh*)ob->data)->dvert + vertnum;
-
+	if(ob->type==OB_MESH) {
+		if( ((Mesh*)ob->data)->dvert )
+			dvert = ((Mesh*)ob->data)->dvert + vertnum;
+	}
+	else if(ob->type==OB_LATTICE) {
+		Lattice *lt= ob->data;
+		
+		if(ob==G.obedit)
+			lt= editLatt;
+		
+		if(lt->dvert)
+			dvert = lt->dvert + vertnum;
+	}
+	
 	/* for all of the deform weights in the
 	 * deform vert
 	 */
@@ -293,22 +341,36 @@ void remove_vert_def_nr (Object *ob, int def_nr, int vertnum)
 
 }
 
+/* for Mesh in Object mode */
+/* allows editmode for Lattice */
 void add_vert_defnr (Object *ob, int def_nr, int vertnum, 
                            float weight, int assignmode)
 {
 	/* add the vert to the deform group with the
 	 * specified number
 	 */
-
-	MDeformVert *dv;
+	MDeformVert *dv= NULL;
 	MDeformWeight *newdw;
 	int	i;
 
-	/* get the vert
-	 */
-	if(((Mesh*)ob->data)->dvert)
-		dv = ((Mesh*)ob->data)->dvert + vertnum;
-	else 
+	/* get the vert */
+	if(ob->type==OB_MESH) {
+		if(((Mesh*)ob->data)->dvert)
+			dv = ((Mesh*)ob->data)->dvert + vertnum;
+	}
+	else if(ob->type==OB_LATTICE) {
+		Lattice *lt;
+		
+		if(ob==G.obedit)
+			lt= editLatt;
+		else
+			lt= ob->data;
+			
+		if(lt->dvert)
+			dv = lt->dvert + vertnum;
+	}
+	
+	if(dv==NULL)
 		return;
 	
 	/* Lets first check to see if this vert is
@@ -377,6 +439,7 @@ void add_vert_defnr (Object *ob, int def_nr, int vertnum,
 	}
 }
 
+/* called while not in editmode */
 void add_vert_to_defgroup (Object *ob, bDeformGroup *dg, int vertnum, 
                            float weight, int assignmode)
 {
@@ -391,11 +454,16 @@ void add_vert_to_defgroup (Object *ob, bDeformGroup *dg, int vertnum,
 	def_nr = get_defgroup_num(ob, dg);
 	if (def_nr < 0) return;
 
-	/* if this mesh has no deform verts then
+	/* if there's no deform verts then
 	 * create some
 	 */
-	if (!((Mesh*)ob->data)->dvert) {
-		create_dverts((Mesh*)ob->data);
+	if(ob->type==OB_MESH) {
+		if (!((Mesh*)ob->data)->dvert)
+			create_dverts(ob->data);
+	}
+	else if(ob->type==OB_LATTICE) {
+		if (!((Lattice*)ob->data)->dvert)
+			create_dverts(ob->data);
 	}
 
 	/* call another function to do the work
@@ -403,19 +471,17 @@ void add_vert_to_defgroup (Object *ob, bDeformGroup *dg, int vertnum,
 	add_vert_defnr (ob, def_nr, vertnum, weight, assignmode);
 }
 
-
-void assign_verts_defgroup (void)
 /* Only available in editmode */
+void assign_verts_defgroup (void)
 {
-	EditMesh *em = G.editMesh;
+	extern float editbutvweight;	/* buttons.c */
 	Object *ob;
 	EditVert *eve;
-	bDeformGroup	*dg, *eg;
-	extern float editbutvweight;	/* buttons.c */
-	int	i, done;
+	bDeformGroup *dg, *eg;
 	MDeformWeight *newdw;
+	int	i, done;
 
-	ob=G.obedit;
+	ob= G.obedit;
 
 	if (!ob)
 		return;
@@ -429,7 +495,7 @@ void assign_verts_defgroup (void)
 	switch (ob->type){
 	case OB_MESH:
 		/* Go through the list of editverts and assign them */
-		for (eve=em->verts.first; eve; eve=eve->next){
+		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
 			if (eve->f & 1){
 				done=0;
 				/* See if this vert already has a reference to this group */
@@ -453,14 +519,29 @@ void assign_verts_defgroup (void)
 					}
 					eve->dw=newdw;
 
-					eve->dw[eve->totweight].weight=editbutvweight;
-					eve->dw[eve->totweight].def_nr=ob->actdef-1;
+					eve->dw[eve->totweight].weight= editbutvweight;
+					eve->dw[eve->totweight].def_nr= ob->actdef-1;
 
 					eve->totweight++;
 
 				}
 			}
 		}
+		break;
+	case OB_LATTICE:
+		{
+			BPoint *bp;
+			int a, tot;
+			
+			if(editLatt->dvert==NULL)
+				create_dverts(&editLatt->id);
+			
+			tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+			for(a=0, bp= editLatt->def; a<tot; a++, bp++) {
+				if(bp->f1 & SELECT)
+					add_vert_defnr (ob, ob->actdef-1, a, editbutvweight, WEIGHT_REPLACE);
+			}
+		}	
 		break;
 	default:
 		printf ("Assigning deformation groups to unknown object type\n");
@@ -469,6 +550,7 @@ void assign_verts_defgroup (void)
 
 }
 
+/* mesh object mode, lattice can be in editmode */
 void remove_vert_defgroup (Object *ob, bDeformGroup	*dg, int vertnum)
 {
 	/* This routine removes the vertex from the specified
@@ -482,10 +564,6 @@ void remove_vert_defgroup (Object *ob, bDeformGroup	*dg, int vertnum)
 	if (!ob)
 		return;
 
-	/* if this isn't a mesh abort
-	 */
-	if (ob->type != OB_MESH) return;
-
 	/* get the deform number that cooresponds
 	 * to this deform group, and abort if it
 	 * can not be found.
@@ -498,17 +576,17 @@ void remove_vert_defgroup (Object *ob, bDeformGroup	*dg, int vertnum)
 	remove_vert_def_nr (ob, def_nr, vertnum);
 }
 
-void remove_verts_defgroup (int allverts)
 /* Only available in editmode */
+/* removes from active defgroup, if allverts==0 only selected vertices */
+void remove_verts_defgroup (int allverts)
 {
-	EditMesh *em = G.editMesh;
 	Object *ob;
 	EditVert *eve;
 	MDeformWeight *newdw;
-	bDeformGroup	*dg, *eg;
+	bDeformGroup *dg, *eg;
 	int	i;
 
-	ob=G.obedit;
+	ob= G.obedit;
 
 	if (!ob)
 		return;
@@ -521,7 +599,7 @@ void remove_verts_defgroup (int allverts)
 
 	switch (ob->type){
 	case OB_MESH:
-		for (eve=em->verts.first; eve; eve=eve->next){
+		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
 			if (eve->dw && ((eve->f & 1) || allverts)){
 				for (i=0; i<eve->totweight; i++){
 					/* Find group */
@@ -547,42 +625,32 @@ void remove_verts_defgroup (int allverts)
 			}
 		}
 		break;
+	case OB_LATTICE:
+		
+		if(editLatt->dvert) {
+			BPoint *bp;
+			int a, tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+				
+			for(a=0, bp= editLatt->def; a<tot; a++, bp++) {
+				if(allverts || (bp->f1 & SELECT))
+					remove_vert_defgroup (ob, dg, a);
+			}
+		}
+		break;
+		
 	default:
 		printf ("Removing deformation groups from unknown object type\n");
 		break;
 	}
 }
 
-void verify_defgroups (Object *ob)
-{
-	/* Ensure the defbase & the dverts match */
-	switch (ob->type){
-	case OB_MESH:
-
-		/* I'm pretty sure this means "If there are no
-		 * deform groups defined, yet there are deform
-		 * vertices, then delete the deform vertices
-		 */
-		if (!ob->defbase.first){
-			if (((Mesh*)ob->data)->dvert){
-				free_dverts(((Mesh*)ob->data)->dvert, 
-							((Mesh*)ob->data)->totvert);
-				((Mesh*)ob->data)->dvert=NULL;
-			}
-		}
-		break;
-	default:
-		break;
-	}
-}
-
 void unique_vertexgroup_name (bDeformGroup *dg, Object *ob)
 {
-	char		tempname[64];
-	int			number;
-	char		*dot;
-	int exists = 0;
 	bDeformGroup *curdef;
+	int number;
+	int exists = 0;
+	char tempname[64];
+	char *dot;
 	
 	if (!ob)
 		return;
@@ -628,7 +696,8 @@ void vertexgroup_select_by_name(Object *ob, char *name)
 	bDeformGroup *curdef;
 	int actdef= 1;
 	
-	if(ob==NULL || ob->type!=OB_MESH) return;
+	if(ob==NULL) return;
+	
 	for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++){
 		if (!strcmp(curdef->name, name)) {
 			ob->actdef= actdef;

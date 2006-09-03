@@ -37,29 +37,30 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_constraint_types.h"
 
+#include "BKE_armature.h"
+#include "BKE_action.h"
+#include "BKE_blender.h"
+#include "BKE_constraint.h"
 #include "BKE_curve.h"
+#include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_library.h"
-#include "BKE_blender.h"
-#include "BKE_armature.h"
-#include "BKE_action.h"
-#include "BKE_constraint.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_object.h"
-#include "BKE_deform.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_editdeform.h"
@@ -670,8 +671,8 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	MDeformVert *dverts = NULL;
 	float obinv[4][4], premat[4][4], postmat[4][4];
 	int use_envelope = deformflag & ARM_DEF_ENVELOPE;
-	int numGroups = 0;   /* safety for vertexgroup index overflow too */
-	int i;
+	int numGroups = 0;		/* safety for vertexgroup index overflow */
+	int i, target_totvert = 0;	/* safety for vertexgroup overflow */
 	int use_dverts = 0;
 	int armature_def_nr = -1;
 	bDeformGroup *dg;
@@ -700,10 +701,19 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 
 	/* get a vertex-deform-index to posechannel array */
 	if(deformflag & ARM_DEF_VGROUP) {
-		if(target->type == OB_MESH){
+		if(ELEM(target->type, OB_MESH, OB_LATTICE)) {
 			numGroups = BLI_countlist(&target->defbase);
-			dverts = ((Mesh*)target->data)->dvert;
 			
+			if(target->type==OB_MESH) {
+				Mesh *me= target->data;
+				dverts = me->dvert;
+				target_totvert = me->totvert;
+			}
+			else {
+				Lattice *lt= target->data;
+				dverts = lt->dvert;
+				target_totvert = lt->pntsu*lt->pntsv*lt->pntsw;
+			}
 			/* if we have a DerivedMesh, only use dverts if it has them */
 			if(dm)
 				if(dm->getVertData(dm, 0, LAYERTYPE_MDEFORMVERT))
@@ -742,7 +752,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 		
 		if(use_dverts || armature_def_nr >= 0) {
 			if(dm) dvert = dm->getVertData(dm, i, LAYERTYPE_MDEFORMVERT);
-			else if(i < ((Mesh*)target->data)->totvert) dvert = dverts + i;
+			else if(i < target_totvert) dvert = dverts + i;
 		} else
 			dvert = NULL;
 

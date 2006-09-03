@@ -54,13 +54,13 @@ void sel_verts_defgroup (int select);
 struct MDeformWeight *get_defweight (struct MDeformVert *dv, int defgroup);
 struct MDeformWeight *verify_defweight (struct MDeformVert *dv, int defgroup);
 
-void verify_defgroups (struct Object *ob);
+
 void add_vert_to_defgroup (struct Object *ob, struct bDeformGroup *dg, 
 						   int vertnum, float weight, 
 						   int assignmode);
 void remove_vert_defgroup (struct Object *ob, struct bDeformGroup  *dg, 
 						   int vertnum);
-void create_dverts(Mesh *me);
+void create_dverts(ID *id);
 
 void vertexgroup_select_by_name(struct Object *ob, char *name);
 

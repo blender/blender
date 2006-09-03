@@ -3128,7 +3128,7 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 	 * happens on enter/exit wpaint.
 	 */
 
-static void weight_to_rgb(float input, float *fr, float *fg, float *fb)
+void weight_to_rgb(float input, float *fr, float *fg, float *fb)
 {
 	float blend;
 	

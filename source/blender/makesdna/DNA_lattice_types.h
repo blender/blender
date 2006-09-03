@@ -37,6 +37,7 @@
 struct BPoint;
 struct Ipo;
 struct Key;
+struct MDeformVert;
 
 typedef struct Lattice {
 	ID id;
@@ -52,6 +53,8 @@ typedef struct Lattice {
 	
 	struct Ipo *ipo;
 	struct Key *key;
+	
+	struct MDeformVert *dvert;
 } Lattice;
 
 /* ***************** LATTICE ********************* */

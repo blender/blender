@@ -977,13 +977,13 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 
 static void write_dverts(WriteData *wd, int count, MDeformVert *dvlist)
 {
-	int	i;
-
-	/* Write the dvert list */
-	writestruct(wd, DATA, "MDeformVert", count, dvlist);
-
-	/* Write deformation data for each dvert */
 	if (dvlist) {
+		int	i;
+		
+		/* Write the dvert list */
+		writestruct(wd, DATA, "MDeformVert", count, dvlist);
+		
+		/* Write deformation data for each dvert */
 		for (i=0; i<count; i++) {
 			if (dvlist[i].dw)
 				writestruct(wd, DATA, "MDeformWeight", dvlist[i].totweight, dvlist[i].dw);
@@ -1027,6 +1027,26 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 		}
 		mesh= mesh->id.next;
+	}
+}
+
+static void write_lattices(WriteData *wd, ListBase *idbase)
+{
+	Lattice *lt;
+	
+	lt= idbase->first;
+	while(lt) {
+		if(lt->id.us>0 || wd->current) {
+			/* write LibData */
+			writestruct(wd, ID_LT, "Lattice", 1, lt);
+			
+			/* direct data */
+			writestruct(wd, DATA, "BPoint", lt->pntsu*lt->pntsv*lt->pntsw, lt->def);
+			
+			write_dverts(wd, lt->pntsu*lt->pntsv*lt->pntsw, lt->dvert);
+			
+		}
+		lt= lt->id.next;
 	}
 }
 
@@ -1155,22 +1175,6 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 	}
 }
 
-static void write_lattices(WriteData *wd, ListBase *idbase)
-{
-	Lattice *lt;
-
-	lt= idbase->first;
-	while(lt) {
-		if(lt->id.us>0 || wd->current) {
-			/* write LibData */
-			writestruct(wd, ID_LT, "Lattice", 1, lt);
-
-			/* direct data */
-			writestruct(wd, DATA, "BPoint", lt->pntsu*lt->pntsv*lt->pntsw, lt->def);
-		}
-		lt= lt->id.next;
-	}
-}
 
 static void write_scenes(WriteData *wd, ListBase *scebase)
 {

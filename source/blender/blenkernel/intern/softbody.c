@@ -1218,19 +1218,26 @@ static void get_scalar_from_vertexgroup(Object *ob, int vertID, short groupindex
 -- and yes this function must not be here but in a *vertex group module*
 */
 {
-	MDeformVert *dv;
+	MDeformVert *dv= NULL;
 	int i;
 	
 	/* spot the vert in deform vert list at mesh */
 	if(ob->type==OB_MESH) {
-		if (((Mesh *)ob->data)->dvert) {
-			dv = ((Mesh*)ob->data)->dvert + vertID;	
-			/* Lets see if this vert is in the weight group */
-			for (i=0; i<dv->totweight; i++){
-				if (dv->dw[i].def_nr == groupindex){
-					*target= dv->dw[i].weight; /* got it ! */
-					break;
-				}
+		Mesh *me= ob->data;
+		if (me->dvert)
+			dv = me->dvert + vertID;
+	}
+	else if(ob->type==OB_LATTICE) {	/* not yet supported in softbody btw */
+		Lattice *lt= ob->data;
+		if (lt->dvert)
+			dv = lt->dvert + vertID;
+	}
+	if(dv) {
+		/* Lets see if this vert is in the weight group */
+		for (i=0; i<dv->totweight; i++){
+			if (dv->dw[i].def_nr == groupindex){
+				*target= dv->dw[i].weight; /* got it ! */
+				break;
 			}
 		}
 	}

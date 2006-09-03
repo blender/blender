@@ -3006,7 +3006,7 @@ static void check_dverts(Mesh *me, int old_totvert)
 	else if (totvert > old_totvert) {
 		MDeformVert *mdv = me->dvert;
 		me->dvert = NULL;
-		create_dverts(me);
+		create_dverts( &me->id );
 		copy_dverts(me->dvert, mdv, old_totvert);
 		free_dverts(mdv, old_totvert);
 	}
@@ -3014,7 +3014,7 @@ static void check_dverts(Mesh *me, int old_totvert)
 	else {
 		MDeformVert *mdv = me->dvert;
 		me->dvert = NULL;
-		create_dverts(me);
+		create_dverts( &me->id );
 		copy_dverts(me->dvert, mdv, totvert);
 		free_dverts(mdv, old_totvert);
 	}
@@ -3897,7 +3897,7 @@ static PyObject *NMesh_assignVertsToGroup( PyObject * self, PyObject * args )
 
 	//makes a set of dVerts corresponding to the mVerts
 	if( !( ( Mesh * ) object->data )->dvert ) {
-		create_dverts( ( Mesh * ) object->data );
+		create_dverts( object->data );
 	}
 	//loop list adding verts to group
 	for( x = 0; x < PyList_Size( listObject ); x++ ) {

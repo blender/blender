@@ -1182,7 +1182,7 @@ void weight_paint(void)
 	
 	/* if nothing was added yet, we make dverts and a vertex deform group */
 	if (!me->dvert)
-		create_dverts(me);
+		create_dverts(&me->id);
 	
 	if(G.qual & LR_CTRLKEY) {
 		sample_wpaint(0);

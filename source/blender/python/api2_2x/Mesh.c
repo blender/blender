@@ -5953,7 +5953,7 @@ static PyObject *Mesh_assignVertsToGroup( BPy_Mesh * self, PyObject * args )
 
 	/* makes a set of dVerts corresponding to the mVerts */
 	if( !mesh->dvert ) 
-		create_dverts( mesh );
+		create_dverts( &mesh->id );
 
 	/* loop list adding verts to group */
 	for( x = 0; x < PyList_Size( listObject ); x++ ) {

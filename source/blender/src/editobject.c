@@ -1284,7 +1284,7 @@ void make_parent(void)
 		while(base) {
 			if TESTBASELIB(base) {
 				if(base!=BASACT) {
-					if(base->object->type==OB_MESH) {
+					if(ELEM(base->object->type, OB_MESH, OB_LATTICE)) {
 						if(par->flag & OB_POSEMODE)
 							mode= pupmenu("Make Parent To%t|Bone %x1|Armature %x2|Object %x3");
 						else
@@ -1393,7 +1393,7 @@ void make_parent(void)
 						memset(base->object->loc, 0, 3*sizeof(float));
 					}
 					else {
-						if(mode==PARSKEL && par->type == OB_ARMATURE) {
+						if(mode==PARSKEL && base->object->type==OB_MESH && par->type == OB_ARMATURE) {
 							/* Prompt the user as to whether he wants to
 								* add some vertex groups based on the bones
 								* in the parent armature.
@@ -1409,10 +1409,6 @@ void make_parent(void)
 						else
 							what_does_parent(base->object);
 						Mat4Invert(base->object->parentinv, workob.obmat);
-					}
-					
-					if(par->type==OB_ARMATURE && mode == PARSKEL){
-						verify_defgroups(base->object);
 					}
 				}
 			}

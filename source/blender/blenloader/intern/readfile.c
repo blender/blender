@@ -1652,30 +1652,6 @@ static void direct_link_camera(FileData *fd, Camera *ca)
 }
 
 
-/* ************ READ LATTICE ***************** */
-
-static void lib_link_latt(FileData *fd, Main *main)
-{
-	Lattice *lt;
-
-	lt= main->latt.first;
-	while(lt) {
-		if(lt->id.flag & LIB_NEEDLINK) {
-
-			lt->ipo= newlibadr_us(fd, lt->id.lib, lt->ipo);
-			lt->key= newlibadr_us(fd, lt->id.lib, lt->key);
-
-			lt->id.flag -= LIB_NEEDLINK;
-		}
-		lt= lt->id.next;
-	}
-}
-
-static void direct_link_latt(FileData *fd, Lattice *lt)
-{
-	lt->def= newdataadr(fd, lt->def);
-}
-
 /* ************ READ LAMP ***************** */
 
 static void lib_link_lamp(FileData *fd, Main *main)
@@ -2287,6 +2263,34 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		}
 	}
 }
+
+/* ************ READ LATTICE ***************** */
+
+static void lib_link_latt(FileData *fd, Main *main)
+{
+	Lattice *lt;
+	
+	lt= main->latt.first;
+	while(lt) {
+		if(lt->id.flag & LIB_NEEDLINK) {
+			
+			lt->ipo= newlibadr_us(fd, lt->id.lib, lt->ipo);
+			lt->key= newlibadr_us(fd, lt->id.lib, lt->key);
+			
+			lt->id.flag -= LIB_NEEDLINK;
+		}
+		lt= lt->id.next;
+	}
+}
+
+static void direct_link_latt(FileData *fd, Lattice *lt)
+{
+	lt->def= newdataadr(fd, lt->def);
+	
+	lt->dvert= newdataadr(fd, lt->dvert);
+	direct_link_dverts(fd, lt->pntsu*lt->pntsv*lt->pntsw, lt->dvert);
+}
+
 
 /* ************ READ OBJECT ***************** */
 
