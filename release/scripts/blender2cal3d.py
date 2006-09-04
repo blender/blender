@@ -1,5 +1,3 @@
-# -*- indent-tabs-mode: t -*-
-
 #!BPY
 
 """
