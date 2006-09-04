@@ -173,6 +173,8 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 
 			y-=CHANNELHEIGHT+CHANNELSKIP;
 			
+			/* see sliderval array in editkey.c */
+			if(i>=255) break;
 		}
 	}
 	uiDrawBlock(block);
