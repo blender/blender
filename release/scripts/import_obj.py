@@ -1,0 +1,701 @@
+#!BPY
+ 
+"""
+Name: 'Wavefront (.obj)...'
+Blender: 242
+Group: 'Import'
+Tooltip: 'Load a Wavefront OBJ File, Shift: batch import all dir.'
+"""
+
+__author__= "Campbell Barton"
+__url__= ["blender.org", "blenderartists.org"]
+__version__= "2.0"
+
+__bpydoc__= """\
+This script imports OBJ files to Blender.
+
+Usage:
+Run this script from "File->Import" menu and then load the desired OBJ file.
+Note, This loads mesh objects and materials only, nurbs and curves are unsupported.
+"""
+
+from Blender import *
+import BPyMesh
+import BPyImage
+
+def stripFile(path):
+	'''Return directory, where the file is'''
+	lastSlash= max(path.rfind('\\'), path.rfind('/'))
+	if lastSlash != -1:
+		path= path[:lastSlash]
+	return '%s%s' % (path, sys.sep)
+
+# Generic path functions
+def stripPath(path):
+	# Strips the slashes from the back of a string
+	return path.split('/')[-1].split('\\')[-1]
+
+def stripExt(name): # name is a string
+	'''Strips the prefix off the name before writing'''
+	index= name.rfind('.')
+	if index != -1:
+		return name[ : index ]
+	else:
+		return name
+# end path funcs
+
+def line_value(line_split):
+	'''Takes removes the first work from the line, None if theres only1 word'''
+	length= len(line_split)
+	if length == 1:
+		return None
+	
+	elif length == 2:
+		return line_split[1]
+	
+	elif length > 2:
+		return ' '.join( line_split[1:] )
+
+
+def create_materials(filepath, material_libs, unique_materials, unique_material_images):
+	'''Create all the used materials in this obj,
+	assign colors and images to the materials from all referenced material libs'''
+	DIR= stripFile(filepath)
+	
+	#==================================================================================#
+	# This function sets textures defined in .mtl file                                 #
+	#==================================================================================#
+	def load_material_image(blender_material, context_material_name, imagepath, type):
+		
+		texture= Texture.New(type)
+		texture.setType('Image')
+		
+		# Absolute path - c:\.. etc would work here
+		image= BPyImage.comprehensiveImageLoad(imagepath, DIR)
+		
+		# Adds textures for materials (rendering)
+		if type == 'Kd':
+			blender_material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL)
+			# adds textures to faces (Textured/Alt-Z mode)
+			# Only apply the diffuse texture to the face if the image has not been set with the inline usemat func.
+			unique_material_images[context_material_name]= image # set the texface image
+		
+		elif type == 'Ka':
+			blender_material.setTexture(1, texture, Texture.TexCo.UV, Texture.MapTo.CMIR) # TODO- Add AMB to BPY API
+			
+		elif type == 'Ks':
+			blender_material.setTexture(2, texture, Texture.TexCo.UV, Texture.MapTo.SPEC)
+		
+		elif type == 'Bump':
+			blender_material.setTexture(3, texture, Texture.TexCo.UV, Texture.MapTo.NOR)		
+		elif type == 'D':
+			blender_material.setTexture(4, texture, Texture.TexCo.UV, Texture.MapTo.ALPHA)				
+		elif type == 'refl':
+			blender_material.setTexture(5, texture, Texture.TexCo.UV, Texture.MapTo.REF)		
+	
+	
+	# Add an MTL with the same name as the obj if no MTLs are spesified.
+	temp_mtl= stripExt(stripPath(filepath))+ '.mtl'
+	if sys.exists(temp_mtl):
+		if temp_mtl not in material_libs:
+			material_libs.append( temp_mtl )
+	del temp_mtl
+	
+	#Create new materials
+	for name in unique_materials.iterkeys():
+		unique_materials[name]= Material.New(name)
+		
+		unique_material_images[name]= None # assign None to all material images to start with, add to later.
+		
+	unique_materials[None]= None
+	
+	for libname in material_libs:
+		mtlpath= DIR + libname
+		if not sys.exists(mtlpath):
+			#print '\tError Missing MTL: "%s"' % mtlpath
+			pass
+		else:
+			#print '\t\tloading mtl: "%s"' % mtlpath
+			context_material= None
+			mtl= open(mtlpath)
+			for line in mtl.xreadlines():
+				if line.startswith('newmtl'):
+					context_material_name= line_value(line.split())
+					if unique_materials.has_key(context_material_name):
+						context_material = unique_materials[ context_material_name ]
+					else:
+						context_material = None
+				
+				elif context_material:
+					# we need to make a material to assign properties to it.
+					line_split= line.split()
+					
+					if line.startswith('Ka'):
+						context_material.setMirCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
+					elif line.startswith('Kd'):
+						context_material.setRGBCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
+					elif line.startswith('Ks'):
+						context_material.setSpecCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
+					elif line.startswith('Ns'):
+						context_material.setHardness( int((float(line_split[1])*0.51)) )
+					elif line.startswith('Ni'): # Refraction index
+						context_material.setIOR( max(1, min(float(line_split[1]), 3))) # Between 1 and 3
+					elif line.startswith('d'):
+						context_material.setAlpha(float(line_split[1]))
+					elif line.startswith('Tr'):
+						context_material.setAlpha(float(line_split[1]))
+					elif line.startswith('map_Ka'):
+						img_filepath= line_value(line.split())
+						load_material_image(context_material, context_material_name, img_filepath, 'Ka')
+					elif line.startswith('map_Ks'):
+						img_filepath= line_value(line.split())
+						load_material_image(context_material, context_material_name, img_filepath, 'Ks')
+					elif line.startswith('map_Kd'):
+						img_filepath= line_value(line.split())
+						load_material_image(context_material, context_material_name, img_filepath, 'Kd')
+					elif line.startswith('map_Bump'):
+						img_filepath= line_value(line.split())
+						load_material_image(context_material, context_material_name, img_filepath, 'Bump')
+					elif line.startswith('map_D'): # Alpha map - Dissolve
+						img_filepath= line_value(line.split())
+						load_material_image(context_material, context_material_name, img_filepath, 'D')
+					
+					elif line.startswith('refl'): # Reflectionmap
+						img_filepath= line_value(line.split())
+						load_material_image(context_material, context_material_name, img_filepath, 'refl', meshDict)
+			mtl.close()
+
+			
+def split_mesh(verts_loc, faces, unique_materials, SPLIT_OBJECTS, SPLIT_MATERIALS):
+	if not SPLIT_OBJECTS and not SPLIT_MATERIALS:
+		return [(verts_loc, faces)]
+	
+	
+	# Return a key that makes the faces unique.
+	if SPLIT_OBJECTS and not SPLIT_MATERIALS:
+		def face_key(face):
+			return face[4] # object
+	
+	if not SPLIT_OBJECTS and SPLIT_MATERIALS:
+		def face_key(face):
+			return face[2] # material
+	
+	else: # Both
+		def face_key(face):
+			return face[2], face[4] # material		
+	
+	
+	face_split_dict= {}
+	
+	oldkey= -1 # initialize to a value what will never match the key
+	
+	for face in faces:
+		
+		key= face_key(face)
+		
+		if oldkey != key:
+			# Check the key has changed.
+			try:
+				faces_split, verts_split, unique_materials_split, vert_remap= face_split_dict[key]
+			except KeyError:
+				faces_split= []
+				verts_split= []
+				unique_materials_split= {}
+				vert_remap= [-1]*len(verts_loc)
+				
+				face_split_dict[key]= (faces_split, verts_split, unique_materials_split, vert_remap)
+			
+			oldkey= key
+			
+		face_vert_loc_indicies= face[0]
+		
+		# Remap verts to new vert list and add where needed
+		for enum, i in enumerate(face_vert_loc_indicies):
+			if vert_remap[i] == -1:
+				new_index= len(verts_split)
+				vert_remap[i]= new_index # set the new remapped index so we only add once and can reference next time.
+				face_vert_loc_indicies[enum] = new_index # remap to the local index
+				verts_split.append( verts_loc[i] ) # add the vert to the local verts 
+				
+			else:
+				face_vert_loc_indicies[enum] = vert_remap[i] # remap to the local index
+			
+			matname= face[2]
+			if matname and not unique_materials_split.has_key(matname):
+				unique_materials_split[matname] = unique_materials[matname]
+		
+		faces_split.append(face)
+	
+	
+	# remove one of the itemas and reorder
+	return [(verts_split, faces_split, unique_materials_split) for faces_split, verts_split, unique_materials_split, vert_remap in face_split_dict.itervalues()]
+
+
+def create_meshes(has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups):
+	
+	if not has_ngons:
+		CREATE_FGONS= False
+	
+	if unique_smooth_groups:
+		sharp_edges= {}
+		smooth_group_users= dict([ (context_smooth_group, {}) for context_smooth_group in unique_smooth_groups.iterkeys() ])
+		context_smooth_group_old= -1
+	
+	# Split fgons into tri's
+	fgon_edges= {} # Used for storing fgon keys
+	if CREATE_EDGES:
+		edges= []
+	
+	context_object= None
+	
+	# reverse loop through face indicies
+	for f_idx in xrange(len(faces)-1, -1, -1):
+		
+		face_vert_loc_indicies,\
+		face_vert_tex_indicies,\
+		context_material,\
+		context_smooth_group,\
+		context_object= faces[f_idx]
+		
+		len_face_vert_loc_indicies = len(face_vert_loc_indicies)
+		
+		if len_face_vert_loc_indicies==1:
+			faces.pop(f_idx)# cant add single vert faces
+		
+		elif not face_vert_tex_indicies: # images that are -1 are lines, a bit obscure but works.
+			if CREATE_EDGES:
+				edges.extend( (face_vert_loc_indicies[i], face_vert_loc_indicies[i+1]) for i in xrange(len_face_vert_loc_indicies-1) )
+				faces.pop(f_idx)
+		else:
+			
+			# Smooth Group
+			if unique_smooth_groups and context_smooth_group and len_face_vert_loc_indicies > 3:
+				# Is a part of of a smooth group and is a face
+				if context_smooth_group_old is not context_smooth_group:
+					edge_dict= smooth_group_users[context_smooth_group]
+					context_smooth_group_old= context_smooth_group
+				
+				for i in xrange(len_face_vert_loc_indicies):
+					i1= face_vert_loc_indicies[i]
+					i2= face_vert_loc_indicies[i-1]
+					if i1>i2: i1,i2= i2,i1
+					
+					try:
+						edge_dict[i1,i2]+= 1
+					except KeyError:
+						edge_dict[i1,i2]=  1
+			
+			# FGons into triangles
+			if has_ngons and len_face_vert_loc_indicies > 4:
+				
+				ngon_face_indices= BPyMesh.ngon(verts_loc, face_vert_loc_indicies)
+				
+				faces.extend(\
+				[(\
+				[face_vert_loc_indicies[ngon[0]], face_vert_loc_indicies[ngon[1]], face_vert_loc_indicies[ngon[2]] ],\
+				[face_vert_tex_indicies[ngon[0]], face_vert_tex_indicies[ngon[1]], face_vert_tex_indicies[ngon[2]] ],\
+				context_material,\
+				context_smooth_group,\
+				context_object)\
+				for ngon in ngon_face_indices]\
+				)
+				
+				# edges to make fgons
+				if CREATE_FGONS:
+					edge_users= {}
+					for ngon in ngon_face_indices:
+						for i in (0,1,2):
+							i1= face_vert_loc_indicies[ngon[i  ]]
+							i2= face_vert_loc_indicies[ngon[i-1]]
+							if i1>i2: i1,i2= i2,i1
+							
+							try:
+								edge_users[i1,i2]+=1
+							except KeyError:
+								edge_users[i1,i2]= 1
+					
+					for key, users in edge_users.iteritems():
+						if users>1:
+							fgon_edges[key]= None
+				
+				# remove all after 3, means we dont have to pop this one.
+				faces.pop(f_idx)
+		
+		
+	# Build sharp edges
+	if unique_smooth_groups:
+		for edge_dict in smooth_group_users.itervalues():
+			for key, users in edge_dict.iteritems():
+				if users==1: # This edge is on the boundry of a group
+					sharp_edges[key]= None
+	
+	
+	# mat the material names to an index
+	material_mapping= dict([(name, i) for i, name in enumerate(unique_materials.keys())])
+	
+	materials= [None] * len(unique_materials)
+	
+	for name, index in material_mapping.iteritems():
+		materials[index]= unique_materials[name]
+	
+	try:
+		me= Mesh.New(faces[0][5]) # object name from first face
+	except:
+		me= Mesh.New()
+	
+	me.materials= materials[0:16] # make sure the list isnt too big.
+	#me.verts.extend([(0,0,0)]) # dummy vert
+	me.verts.extend(verts_loc)
+	for f in faces:
+		if len(f[0]) not in (3,4):
+			print len(f[0])
+			raise "Error"
+	
+	face_mapping= me.faces.extend([f[0] for f in faces], indexList=True)
+	
+	if verts_tex and me.faces:
+		me.faceUV= 1
+		# TEXMODE= Mesh.FaceModes['TEX']
+	
+	context_material_old= -1 # avoid a dict lookup
+	mat= 0 # rare case it may be un-initialized.
+	me_faces= me.faces
+	for i, face in enumerate(faces):
+		if len(face[0])==2:
+			if CREATE_EDGES:
+				edges.append(face[0])
+		else:
+			face_index_map= face_mapping[i]
+			if face_index_map!=None: # None means the face wasnt added
+				blender_face= me.faces[face_index_map]
+				
+				face_vert_loc_indicies,\
+				face_vert_tex_indicies,\
+				context_material,\
+				context_smooth_group,\
+				context_object= face
+				
+				if context_smooth_group:
+					blender_face.smooth= True
+				
+				if context_material:
+					if context_material_old is not context_material:
+						mat= material_mapping[context_material]
+						if mat>15:
+							mat= 15
+						context_material_old= context_material
+					
+					blender_face.mat= mat
+				
+				
+				if verts_tex:	
+					if context_material:
+						image= unique_material_images[context_material]
+						if image: # Can be none if the material dosnt have an image.
+							blender_face.image= image
+					
+					# BUG - Evil eekadoodle problem where faces that have vert index 0 location at 3 or 4 are shuffled.
+					if len(face_vert_loc_indicies)==4:
+						if face_vert_loc_indicies[2]==0 or face_vert_loc_indicies[3]==0:
+							face_vert_tex_indicies= face_vert_tex_indicies[2], face_vert_tex_indicies[3], face_vert_tex_indicies[0], face_vert_tex_indicies[1]
+					else: # length of 3
+						if face_vert_loc_indicies[2]==0:
+							face_vert_tex_indicies= face_vert_tex_indicies[1], face_vert_tex_indicies[2], face_vert_tex_indicies[0]
+					# END EEEKADOODLE FIX
+					
+					# assign material, uv's and image
+					for ii, uv in enumerate(blender_face.uv):
+						uv.x, uv.y=  verts_tex[face_vert_tex_indicies[ii]]
+	del me_faces
+	
+	# Add edge faces.
+	me_edges= me.edges
+	if CREATE_FGONS and fgon_edges:
+		FGON= Mesh.EdgeFlags.FGON
+		for ed in me.findEdges( fgon_edges.keys() ):
+			if ed!=None:
+				me_edges[ed].flag |= FGON
+		del FGON
+	
+	if unique_smooth_groups and sharp_edges:
+		SHARP= Mesh.EdgeFlags.SHARP
+		for ed in me.findEdges( sharp_edges.keys() ):
+			if ed!=None:
+				me_edges[ed].flag |= SHARP
+		del SHARP
+	del me_edges
+	
+	if CREATE_EDGES:
+		me.edges.extend( edges )
+	
+	scn= Scene.GetCurrent()
+	ob= scn.objects.new(me)
+	#ob= Object.New('Mesh')
+	#ob.link(me)
+	#scn.link(ob)
+	ob.sel= 1
+	ob.makeDisplayList()
+
+
+
+def get_float_func(filepath):
+	'''
+	find the float function for this obj file
+	- weather to replace commas or not
+	'''
+	file= open(filepath, 'r')
+	for line in file.xreadlines():
+		if line.startswith('v'): # vn vt v 
+			if ',' in line:
+				return lambda f: float(f.replace(',', '.'))
+			elif '.' in line:
+				return float
+
+def load_obj(filepath, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS= True, CREATE_EDGES= True, SPLIT_OBJECTS= True, SPLIT_GROUPS= True, SPLIT_MATERIALS= True):
+	
+	print '\nimporting obj "%s"' % filepath
+	
+	time_main= sys.time()
+	
+	verts_loc= []
+	verts_tex= []
+	faces= [] # tuples of the faces
+	material_libs= [] # filanems to material libs this uses
+	
+	
+	# Get the string to float conversion func for this file- is 'float' for almost all files.
+	float_func= get_float_func(filepath)
+	
+	# Context variables
+	context_material= None
+	context_smooth_group= None
+	context_object= None
+	
+	has_ngons= False
+	# has_smoothgroups= False - is explicit with len(unique_smooth_groups) being > 0
+	
+	# Until we can use sets
+	unique_materials= {}
+	unique_material_images= {}
+	unique_smooth_groups= {}
+	# unique_obects= {} - no use for this variable since the objects are stored in the face.
+	
+	# when there are faces that end with \
+	# it means they are multiline- 
+	# since we use xreadline we cant skip to the next line
+	# so we need to know weather 
+	multi_line_face= False
+	
+	print '\tpassing obj file "%s"...' % filepath,
+	time_sub= sys.time()
+	file= open(filepath, 'r')
+	for line in file.xreadlines():
+		
+		if line.startswith('v '):
+			line_split= line.split()
+			# rotate X90: (x,-z,y)
+			verts_loc.append( (float_func(line_split[1]), -float_func(line_split[3]), float_func(line_split[2])) )
+				
+		elif line.startswith('vn '):
+			pass
+		
+		elif line.startswith('vt '):
+			line_split= line.split()
+			verts_tex.append( (float_func(line_split[1]), float_func(line_split[2])) ) 
+		
+		# Handel faces lines (as faces) and the second+ lines of fa multiline face here
+		# use 'f' not 'f ' because some objs (very rare have 'fo ' for faces)
+		elif line.startswith('f') or (line.startswith('l ') and CREATE_EDGES) or multi_line_face:
+			
+			if multi_line_face:
+				# use face_vert_loc_indicies and face_vert_tex_indicies previously defined and used the obj_face
+				line_split= line.split()
+				multi_line_face= False
+				
+			else:
+				line_split= line[2:].split()
+				face_vert_loc_indicies= []
+				face_vert_tex_indicies= []
+				
+				# Instance a face
+				faces.append((\
+				face_vert_loc_indicies,\
+				face_vert_tex_indicies,\
+				context_material,\
+				context_smooth_group,\
+				context_object\
+				))
+				
+			
+			if line_split[-1][-1]== '\\':
+				multi_line_face= True
+				if len(line_split[-1])==1:
+					line_split.pop() # remove the \ item
+				else:
+					line_split[-1]= line_split[-1][:-1] # remove the \ from the end last number
+			
+			isline= line.startswith('l')
+			
+			for v in line_split:
+				obj_vert= v.split('/')
+				
+				vert_loc_index= int(obj_vert[0])-1
+				
+				# Make relative negative vert indicies absolute
+				if vert_loc_index < 0:
+					vert_loc_index= len(verts_loc) + vert_loc_index + 1
+				
+				face_vert_loc_indicies.append(vert_loc_index)
+				
+				if not isline:
+					if len(obj_vert)>1 and obj_vert[1]:
+						# formatting for faces with normals and textures us 
+						# loc_index/tex_index/nor_index
+						
+						vert_tex_index= int(obj_vert[1])-1
+						# Make relative negative vert indicies absolute
+						if vert_tex_index < 0:
+							vert_tex_index= len(verts_tex) + vert_tex_index + 1
+						
+						face_vert_tex_indicies.append(vert_tex_index)
+					else:
+						# dummy
+						face_vert_tex_indicies.append(0)
+			
+			if len(face_vert_loc_indicies) > 4:
+				has_ngons= True
+			
+		elif line.startswith('s'):
+			if CREATE_SMOOTH_GROUPS:
+				context_smooth_group= line_value(line.split())
+				if context_smooth_group=='off':
+					context_smooth_group= None
+				elif context_smooth_group: # is not None
+					unique_smooth_groups[context_smooth_group]= None
+		
+		elif line.startswith('o'):
+			if SPLIT_OBJECTS:
+				context_object= line_value(line.split())
+				# unique_obects[context_object]= None
+			
+		elif line.startswith('g'):
+			if SPLIT_GROUPS:
+				context_object= line_value(line.split())
+				# print 'context_object', context_object
+				# unique_obects[context_object]= None
+		
+		elif line.startswith('usemtl'):
+			context_material= line_value(line.split())
+			unique_materials[context_material]= None
+		elif line.startswith('mtllib'): # usemap or usemat
+			material_libs.extend( line.split()[1:] ) # can have multiple mtllib filenames per line
+		
+		''' # How to use usemap? depricated?
+		elif line.startswith('usema'): # usemap or usemat
+			context_image= line_value(line.split())
+		'''
+	
+	file.close()
+	time_new= sys.time()
+	print '%.4f sec' % (time_new-time_sub)
+	time_sub= time_new
+	
+	
+	print '\tloading materials and images...',
+	create_materials(filepath, material_libs, unique_materials, unique_material_images)
+	
+	time_new= sys.time()
+	print '%.4f sec' % (time_new-time_sub)
+	time_sub= time_new
+	
+	
+	# deselect all
+	for ob in Scene.GetCurrent().objects: ob.sel= False
+	
+	print '\tbuilding geometry;\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % ( len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups) ),
+	# Split the mesh by objects/materials, may 
+	for verts_loc_split, faces_split, unique_materials_split in split_mesh(verts_loc, faces, unique_materials, SPLIT_OBJECTS, SPLIT_MATERIALS):
+		# Create meshes from the data
+		create_meshes(has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups)
+	
+	time_new= sys.time()
+	print '%.4f sec' % (time_new-time_sub)
+	
+	print 'finished importing: "%s" in %.4f sec.' % (filepath, (time_new-time_main))
+
+
+
+
+DEBUG= True
+
+
+def load_obj_ui(filepath):
+	CREATE_SMOOTH_GROUPS= Draw.Create(0)
+	CREATE_FGONS= Draw.Create(1)
+	CREATE_EDGES= Draw.Create(1)
+	SPLIT_OBJECTS= Draw.Create(1)
+	SPLIT_GROUPS= Draw.Create(1)
+	SPLIT_MATERIALS= Draw.Create(1)
+	
+	# Get USER Options
+	pup_block= [\
+	('Smooth Groups', CREATE_SMOOTH_GROUPS, 'Surround smooth groups by sharp edges'),\
+	('Create FGons', CREATE_FGONS, 'Import faces with more then 4 verts as fgons.'),\
+	('Lines', CREATE_EDGES, 'Import lines and faces with 2 verts as edges'),\
+	('Split by Object', SPLIT_OBJECTS, 'Import OBJ Objects into Blender Objects'),\
+	('Split by Groups', SPLIT_GROUPS, 'Import OBJ Groups into Blender Objects'),\
+	('Split by Material', SPLIT_MATERIALS, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)'),\
+	]
+	
+	if not Draw.PupBlock('Import OBJ...', pup_block):
+		return
+	
+	Window.WaitCursor(1)
+	
+	load_obj(filepath,\
+	  CREATE_FGONS.val,\
+	  CREATE_SMOOTH_GROUPS.val,\
+	  CREATE_EDGES.val,\
+	  SPLIT_OBJECTS.val,\
+	  SPLIT_GROUPS.val,\
+	  SPLIT_MATERIALS.val,\
+	)
+	
+	Window.WaitCursor(0)
+
+DEBUG= False
+if __name__=='__main__' and not DEBUG:
+	Window.FileSelector(load_obj_ui, 'Import a Wavefront OBJ', '*.obj')
+'''
+# For testing compatibility
+else:
+	# DEBUG ONLY
+	TIME= sys.time()
+	import os
+	print 'Searching for files'
+	os.system('find /fe/obj -iname "*.obj" > /tmp/temp3ds_list')
+	
+	print '...Done'
+	file= open('/tmp/temp3ds_list', 'r')
+	lines= file.readlines()
+	file.close()
+
+	def between(v,a,b):
+		if v <= max(a,b) and v >= min(a,b):
+			return True		
+		return False
+		
+	for i, _obj in enumerate(lines):
+		if between(i, 440,600):
+			_obj= _obj[:-1]
+			print 'Importing', _obj, '\nNUMBER', i, 'of', len(lines)
+			_obj_file= _obj.split('/')[-1].split('\\')[-1]
+			newScn= Scene.New(_obj_file)
+			newScn.makeCurrent()
+			load_obj(_obj, False)
+
+	print 'TOTAL TIME: %.6f' % (sys.time() - TIME)
+'''
+
+#load_obj('/test.obj')
+#load_obj('/fe/obj/mba1.obj')
