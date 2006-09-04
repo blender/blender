@@ -335,8 +335,8 @@ static uiBlock *ipo_editmenu_joinmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu_joinmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_ipo_editmenu_joinmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "All Selected|J, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Selected Doubles|J, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "All Selected|Ctrl J, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Selected Doubles|Ctrl J, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);

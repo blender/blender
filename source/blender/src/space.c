@@ -2233,7 +2233,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				sethandles_ipo(HD_ALIGN);
 			break;
 		case JKEY:
-			if((G.qual==0))
+			if((G.qual==LR_CTRLKEY))
 				join_ipo_menu();
 			break;
 		case KKEY:
