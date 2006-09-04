@@ -1593,6 +1593,8 @@ void do_ipo_selectbuttons(void)
 	getmouseco_areawin(mval);
 
 	nr= -(mval[1]-curarea->winy+30-G.sipo->butofs-IPOBUTY)/IPOBUTY;
+	if(G.sipo->blocktype==ID_KE) nr--;		/* keys show something else in first channel */
+	
 	if(nr>=0 && nr<G.sipo->totipo) {
 		ei= G.sipo->editipo;
 		ei+= nr;
