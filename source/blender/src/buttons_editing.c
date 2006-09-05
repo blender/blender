@@ -3845,23 +3845,24 @@ static void editing_panel_links(Object *ob)
 		
 		defCount=BLI_countlist(&ob->defbase);
 		
-		uiBlockBeginAlign(block);
 		if (defCount) {
 			char *menustr= get_vertexgroup_menustr(ob);
 			
+			uiBlockBeginAlign(block);
+			
 			uiDefButS(block, MENU, B_MAKEDISP, menustr, 143, 132,18,21, &ob->actdef, 1, defCount, 0, 0, "Browses available vertex groups");
 			MEM_freeN (menustr);
-		}
 		
-		if (ob->actdef){
-			defGroup = BLI_findlink(&ob->defbase, ob->actdef-1);
-			but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		161,132,140-18,21, defGroup->name, 0, 31, 0, 0, "Displays current vertex group name. Click to change. (Match bone name for deformation.)");
-			uiButSetFunc(but, verify_vertexgroup_name_func, defGroup, NULL);
-			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
-			
-			uiDefButF(block, NUM, REDRAWVIEW3D, "Weight:",		143, 111, 140, 21, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
+			if (ob->actdef){
+				defGroup = BLI_findlink(&ob->defbase, ob->actdef-1);
+				but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		161,132,140-18,21, defGroup->name, 0, 31, 0, 0, "Displays current vertex group name. Click to change. (Match bone name for deformation.)");
+				uiButSetFunc(but, verify_vertexgroup_name_func, defGroup, NULL);
+				uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+				
+				uiDefButF(block, NUM, REDRAWVIEW3D, "Weight:",		143, 111, 140, 21, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
+			}
+			uiBlockEndAlign(block);
 		}
-		uiBlockEndAlign(block);
 		
 		if (G.obedit && G.obedit==ob){
 			uiBlockBeginAlign(block);
@@ -3880,13 +3881,11 @@ static void editing_panel_links(Object *ob)
 			if(id->us>1)
 				uiDefBut(block, BUT,B_LINKEDVGROUP, "Copy To Linked",	143,69,140,20, 0, 0, 0, 0, 0, "Creates identical vertex group names in other Objects using this Object-data");
 		}
-	}	
-
+	}
 	
 	/* now only objects that can be visible rendered */
 	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL);
 	else return;
-	
 	
 	if(ob->type==OB_MESH) poin= &( ((Mesh *)ob->data)->texflag );
 	else if(ob->type==OB_MBALL) poin= &( ((MetaBall *)ob->data)->texflag );
