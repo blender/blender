@@ -2661,7 +2661,10 @@ DerivedMesh *derivedmesh_from_versemesh(VNode *vnode, float (*vertexCos)[3])
 	vdm->vertex_layer = find_verse_layer_type((VGeomData*)vnode->data, VERTEX_LAYER);
 	vdm->polygon_layer = find_verse_layer_type((VGeomData*)vnode->data, POLYGON_LAYER);
 
-	DM_init(&vdm->dm, vdm->vertex_layer->dl.da.count, 0, vdm->polygon_layer->dl.da.count);
+	if(vdm->vertex_layer && vdm->polygon_layer)
+		DM_init(&vdm->dm, vdm->vertex_layer->dl.da.count, 0, vdm->polygon_layer->dl.da.count);
+	else
+		DM_init(&vdm->dm, 0, 0, 0);
 	
 	vdm->dm.getMinMax = vDM_getMinMax;
 
