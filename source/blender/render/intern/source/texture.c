@@ -1737,16 +1737,31 @@ void do_material_tex(ShadeInput *shi)
 					
 					/* we need to code blending modes for normals too once.. now 1 exception hardcoded */
 					
-					if(tex->type==TEX_IMAGE && (tex->imaflag & TEX_NORMALMAP)) {
-						fact= Tnor*tex->norfac;
-						if(fact>1.0) fact= 1.0; else if(fact<-1.0) fact= -1.0;
-						facm= 1.0- fact;
-						if(shi->mat->mode & MA_TANGENT_V) {
-							shi->tang[0]= facm*shi->tang[0] + fact*texres.nor[0];
-							shi->tang[1]= facm*shi->tang[1] + fact*texres.nor[1];
-							shi->tang[2]= facm*shi->tang[2] + fact*texres.nor[2];
+					if ((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP)) {
+						/* qdn: for normalmaps, to invert the normalmap vector,
+						   it is better to negate x & y instead of subtracting the vector as was done before */
+						tex->norfac = mtex->norfac;
+						if (mtex->maptoneg & MAP_NORM) {
+							texres.nor[0] = -texres.nor[0];
+							texres.nor[1] = -texres.nor[1];
+						}
+						fact = Tnor*tex->norfac;
+						if (fact>1.f) fact = 1.f;
+						facm = 1.f-fact;
+						if (shi->mat->mode & MA_NORMAP_TANG) {
+							/* qdn: tangent space */
+							float B[3], tv[3];
+							Crossf(B, shi->vn, shi->tang);	/* bitangent */
+							/* transform norvec from tangent space to object surface in camera space */
+							tv[0] = texres.nor[0]*shi->tang[0] + texres.nor[1]*B[0] + texres.nor[2]*shi->vn[0];
+							tv[1] = texres.nor[0]*shi->tang[1] + texres.nor[1]*B[1] + texres.nor[2]*shi->vn[1];
+							tv[2] = texres.nor[0]*shi->tang[2] + texres.nor[1]*B[2] + texres.nor[2]*shi->vn[2];
+							shi->vn[0]= facm*shi->vn[0] + fact*tv[0];
+							shi->vn[1]= facm*shi->vn[1] + fact*tv[1];
+							shi->vn[2]= facm*shi->vn[2] + fact*tv[2];
 						}
 						else {
+							/* qdn: worldspace */
 							shi->vn[0]= facm*shi->vn[0] + fact*texres.nor[0];
 							shi->vn[1]= facm*shi->vn[1] + fact*texres.nor[1];
 							shi->vn[2]= facm*shi->vn[2] + fact*texres.nor[2];

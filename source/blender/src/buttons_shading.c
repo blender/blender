@@ -1047,7 +1047,9 @@ static void texture_panel_image(Tex *tex)
 	/* crop extend clip */
 	
 	uiDefButF(block, NUM, B_TEXPRV, "Filter :",			10,92,150,19, &tex->filtersize, 0.1, 25.0, 0, 3, "Sets the filter size used by mipmap and interpol");
-	uiDefButBitS(block, TOG, TEX_NORMALMAP, B_NOP, "Normal Map",	160,92,150,19, &tex->imaflag, 0.1, 25.0, 0, 0, "Use image RGB values for normal mapping");
+	
+	uiDefButBitS(block, TOG, TEX_NORMALMAP, B_NOP, "Normal Map",	160,92,150,19, &tex->imaflag,
+					0, 0, 0, 0, "Use image RGB values for normal mapping");
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_TEXREDR_PRV, "Extend",			10,70,63,19, &tex->extend, 4.0, 1.0, 0, 0, "Extends the colour of the edge pixels");
@@ -3021,6 +3023,9 @@ static void material_panel_shading(Material *ma)
 
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButBitI(block, TOG, MA_TANGENT_V, B_MATPRV, "Tangent V",	245,180,65,19, &(ma->mode), 0, 0, 0, 0, "Use the tangent vector in V direction for shading");
+		
+		/* qdn: normalmap tangents separated from shading */
+		uiDefButBitI(block, TOG, MA_NORMAP_TANG, B_MATPRV, "NMap TS",	245,160,65,19, &(ma->mode), 0, 0, 0, 0, "Enable Tangent Space normal mapping");
 
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, MA_SHADOW, B_MATPRV,	"Shadow",			245,140,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");

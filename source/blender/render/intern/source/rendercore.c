@@ -1365,7 +1365,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	/* dot product and reflectivity */
 	/* inp = dotproduct, is = shader result, i = lamp energy (with shadow) */
 	
-	/* tangent case; calculate fake face normal, aligned with lampvector */
+	/* tangent case; calculate fake face normal, aligned with lampvector */	
 	if(vlr->flag & R_TANGENT) {
 		float cross[3];
 		Crossf(cross, lv, vn);
@@ -1373,7 +1373,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 		vnor[0]= -vnor[0];vnor[1]= -vnor[1];vnor[2]= -vnor[2];
 		vn= vnor;
 	}
-	else if(ma->mode & MA_TANGENT_V) {
+	else if (ma->mode & MA_TANGENT_V) {
 		float cross[3];
 		Crossf(cross, lv, shi->tang);
 		Crossf(vnor, cross, shi->tang);
@@ -2051,7 +2051,7 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 	l= 1.0+u+v;
 	
 	/* calculate punos (vertexnormals) */
-	if(vlr->flag & R_SMOOTH) { 
+	if(vlr->flag & R_SMOOTH) {
 		float n1[3], n2[3], n3[3];
 		
 		if(shi->puno & p1) {
@@ -2089,7 +2089,8 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 
 		}
 		
-		if(mode & MA_TANGENT_V) {
+		/* qdn: normalmap tangent space separated from shading */
+		if (mode & (MA_TANGENT_V|MA_NORMAP_TANG)) {
 			float *s1, *s2, *s3;
 			
 			s1= RE_vertren_get_tangent(&R, v1, 0);
@@ -2099,14 +2100,28 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 				shi->tang[0]= (l*s3[0] - u*s1[0] - v*s2[0]);
 				shi->tang[1]= (l*s3[1] - u*s1[1] - v*s2[1]);
 				shi->tang[2]= (l*s3[2] - u*s1[2] - v*s2[2]);
+				/* qdn: normalize just in case */
+				Normalise(shi->tang);
 			}
 			else shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
-		}		
+		}
 	}
 	else {
 		VECCOPY(shi->vn, shi->facenor);
-		if(mode & MA_TANGENT_V) 
-			shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
+		/* qdn: normalmap tangent space separated from shading */
+		if (mode & (MA_TANGENT_V|MA_NORMAP_TANG)) {
+			/* qdn: flat faces have tangents too,
+			   could pick either one, using average here */
+			float *s1 = RE_vertren_get_tangent(&R, v1, 0);
+			float *s2 = RE_vertren_get_tangent(&R, v2, 0);
+			float *s3 = RE_vertren_get_tangent(&R, v3, 0);
+			if (s1 && s2 && s3) {
+				shi->tang[0] = (s1[0] + s2[0] + s3[0]);
+				shi->tang[1] = (s1[1] + s2[1] + s3[1]);
+				shi->tang[2] = (s1[2] + s2[2] + s3[2]);
+				Normalise(shi->tang);
+			}
+		}
 	}
 	
 	/* used in nodes */

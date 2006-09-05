@@ -193,9 +193,10 @@ int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
 		
 		if(texres->nor) {
 			if(tex->imaflag & TEX_NORMALMAP) {
-				texres->nor[0]= 0.5-texres->tr;
-				texres->nor[1]= 0.5-texres->tg;
-				texres->nor[2]= -texres->tb;
+				// qdn: normal from color
+				texres->nor[0] = 2.f*(texres->tr - 0.5f);
+				texres->nor[1] = 2.f*(0.5f - texres->tg);
+				texres->nor[2] = 2.f*(texres->tb - 0.5f);
 			}
 			else {
 				/* bump: take three samples */
@@ -948,9 +949,10 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 		}
 
 		if(texres->nor && (tex->imaflag & TEX_NORMALMAP)) {
-			texres->nor[0]= 0.5-texres->tr;
-			texres->nor[1]= 0.5-texres->tg;
-			texres->nor[2]= -texres->tb;
+			// qdn: normal from color
+			texres->nor[0] = 2.f*(texres->tr - 0.5f);
+			texres->nor[1] = 2.f*(0.5f - texres->tg);
+			texres->nor[2] = 2.f*(texres->tb - 0.5f);
 		}
 	}
 	else {

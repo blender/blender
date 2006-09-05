@@ -432,65 +432,88 @@ static void calc_edge_stress(Render *re, Mesh *me, int startvert, int startvlak)
 	MEM_freeN(accum);
 }
 
-static void calc_tangent_vector(Render *re, VlakRen *vlr, float fac1, float fac2, float fac3, float fac4)
+/* gets tangent from tface or orco */
+static void calc_tangent_vector(Render *re, VlakRen *vlr)
 {
 	TFace *tface= vlr->tface;
+	VertRen *v1=vlr->v1, *v2=vlr->v2, *v3=vlr->v3, *v4=vlr->v4;
+	float tang[3], tangv[3], ct[3], e1[3], e2[3], *tav;
+	float *uv1, *uv2, *uv3, *uv4;
+	float s1, s2, t1, t2, det;
+	float uv[4][2];
 	
 	if(tface) {
-		VertRen *v1=vlr->v1, *v2=vlr->v2, *v3=vlr->v3, *v4=vlr->v4;
-		float *uv1= tface->uv[0], *uv2= tface->uv[1], *uv3= tface->uv[2], *uv4= tface->uv[3];
-		float tang[3], *tav;
-		float s1, s2, t1, t2, det;
-		
-		/* we calculate quads as two triangles, so weight for diagonal gets halved */
-		if(v4) {
-			fac1*= 0.5f;
-			fac3*= 0.5f;
-		}
-		
-		/* first tria, we use the V now */
-		s1= uv2[0] - uv1[0];
-		s2= uv3[0] - uv1[0];
-		t1= uv2[1] - uv1[1];
-		t2= uv3[1] - uv1[1];
+		uv1= tface->uv[0];
+		uv2= tface->uv[1];
+		uv3= tface->uv[2];
+		uv4= tface->uv[3];
+	}
+	else if(v1->orco) {
+		uv1= uv[0]; uv2= uv[1]; uv3= uv[2]; uv4= uv[3];
+		spheremap(v1->orco[0], v1->orco[1], v1->orco[2], &uv[0][0], &uv[0][1]);
+		spheremap(v2->orco[0], v2->orco[1], v2->orco[2], &uv[1][0], &uv[1][1]);
+		spheremap(v3->orco[0], v3->orco[1], v3->orco[2], &uv[2][0], &uv[2][1]);
+		if(v4)
+			spheremap(v4->orco[0], v4->orco[1], v4->orco[2], &uv[3][0], &uv[3][1]);
+	}
+	else return;
+	
+	s1= uv2[0] - uv1[0];
+	s2= uv3[0] - uv1[0];
+	t1= uv2[1] - uv1[1];
+	t2= uv3[1] - uv1[1];
+	det= 1.0f / (s1 * t2 - s2 * t1);
+	
+	/* normals in render are inversed... */
+	VecSubf(e1, v1->co, v2->co);
+	VecSubf(e2, v1->co, v3->co);
+	tang[0] = (t2*e1[0] - t1*e2[0])*det;
+	tang[1] = (t2*e1[1] - t1*e2[1])*det;
+	tang[2] = (t2*e1[2] - t1*e2[2])*det;
+	tangv[0] = (s1*e2[0] - s2*e1[0])*det;
+	tangv[1] = (s1*e2[1] - s2*e1[1])*det;
+	tangv[2] = (s1*e2[2] - s2*e1[2])*det;
+	Crossf(ct, tang, tangv);
+	/* qdn: check flip */
+	if ((ct[0]*vlr->n[0] + ct[1]*vlr->n[1] + ct[2]*vlr->n[2]) < 0.f)
+		VecMulf(tang, -1.f);
+	
+	tav= RE_vertren_get_tangent(re, v1, 1);
+	VECADD(tav, tav, tang);
+	tav= RE_vertren_get_tangent(re, v2, 1);
+	VECADD(tav, tav, tang);
+	tav= RE_vertren_get_tangent(re, v3, 1);
+	VECADD(tav, tav, tang);
+	
+	if(v4) {
+		s1= uv3[0] - uv1[0];
+		s2= uv4[0] - uv1[0];
+		t1= uv3[1] - uv1[1];
+		t2= uv4[1] - uv1[1];
 		det= 1.0f / (s1 * t2 - s2 * t1);
 		
 		/* normals in render are inversed... */
-		tang[0]= (t2 * (v1->co[0]-v2->co[0]) - t1 * (v1->co[0]-v3->co[0])); 
-		tang[1]= (t2 * (v1->co[1]-v2->co[1]) - t1 * (v1->co[1]-v3->co[1]));
-		tang[2]= (t2 * (v1->co[2]-v2->co[2]) - t1 * (v1->co[2]-v3->co[2]));
+		VecSubf(e1, v1->co, v3->co);
+		VecSubf(e2, v1->co, v4->co);
+		tang[0] = (t2*e1[0] - t1*e2[0])*det;
+		tang[1] = (t2*e1[1] - t1*e2[1])*det;
+		tang[2] = (t2*e1[2] - t1*e2[2])*det;
+		tangv[0] = (s1*e2[0] - s2*e1[0])*det;
+		tangv[1] = (s1*e2[1] - s2*e1[1])*det;
+		tangv[2] = (s1*e2[2] - s2*e1[2])*det;
+		Crossf(ct, tang, tangv);
+		if ((ct[0]*vlr->n[0] + ct[1]*vlr->n[1] + ct[2]*vlr->n[2]) < 0.f)
+			VecMulf(tang, -1.f);
 		
 		tav= RE_vertren_get_tangent(re, v1, 1);
-		VECADDFAC(tav, tav, tang, fac1);
-		tav= RE_vertren_get_tangent(re, v2, 1);
-		VECADDFAC(tav, tav, tang, fac2);
+		VECADD(tav, tav, tang);
 		tav= RE_vertren_get_tangent(re, v3, 1);
-		VECADDFAC(tav, tav, tang, fac3);
-		
-		if(v4) {
-			/* 2nd tria, we use the V now */
-			s1= uv3[0] - uv1[0];
-			s2= uv4[0] - uv1[0];
-			t1= uv3[1] - uv1[1];
-			t2= uv4[1] - uv1[1];
-			det= 1.0f / (s1 * t2 - s2 * t1);
-			
-			/* normals in render are inversed... */
-			tang[0]= (t2 * (v1->co[0]-v3->co[0]) - t1 * (v1->co[0]-v4->co[0])); 
-			tang[1]= (t2 * (v1->co[1]-v3->co[1]) - t1 * (v1->co[1]-v4->co[1]));
-			tang[2]= (t2 * (v1->co[2]-v3->co[2]) - t1 * (v1->co[2]-v4->co[2]));
-			
-			Normalise(tang);
-			
-			tav= RE_vertren_get_tangent(re, v1, 1);
-			VECADDFAC(tav, tav, tang, fac1);
-			tav= RE_vertren_get_tangent(re, v3, 1);
-			VECADDFAC(tav, tav, tang, fac3);
-			tav= RE_vertren_get_tangent(re, v4, 1);
-			VECADDFAC(tav, tav, tang, fac4);
-		}
-	}	
+		VECADD(tav, tav, tang);
+		tav= RE_vertren_get_tangent(re, v4, 1);
+		VECADD(tav, tav, tang);
+	}
 }
+
 
 static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_tangent)
 {
@@ -564,8 +587,11 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 			v3->n[1] +=fac3*vlr->n[1];
 			v3->n[2] +=fac3*vlr->n[2];
 			
-			if(do_tangent)
-				calc_tangent_vector(re, vlr, fac1, fac2, fac3, fac4);
+		}
+		if(do_tangent) {
+			/* qdn: tangents still need to be calculated for flat faces too */
+			/* weighting removed, they are not vertexnormals */
+			calc_tangent_vector(re, vlr);
 		}
 	}
 
@@ -582,7 +608,7 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 			if(vlr->v4) {
 				f1= vlr->v4->n;
 				if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, vlr->n);
-			}			
+			}
 		}
 	}
 	
@@ -592,7 +618,14 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 		Normalise(ver->n);
 		if(do_tangent) {
 			float *tav= RE_vertren_get_tangent(re, ver, 0);
-			if(tav) Normalise(tav);
+			if (tav) {
+				/* qdn: orthonorm. */
+				float tdn = tav[0]*ver->n[0] + tav[1]*ver->n[1] + tav[2]*ver->n[2];
+				tav[0] -= ver->n[0]*tdn;
+				tav[1] -= ver->n[1]*tdn;
+				tav[2] -= ver->n[2]*tdn;
+				Normalise(tav);
+			}
 		}
 	}
 
@@ -664,8 +697,13 @@ static void calc_fluidsimnormals(Render *re, int startvert, int startvlak, int d
 				}
 			}
 
-			if(do_tangent)
-				calc_tangent_vector(re, vlr, fac1, fac2, fac3, fac4);
+			//if(do_tangent)
+			//	calc_tangent_vector(re, vlr, fac1, fac2, fac3, fac4);
+		}
+		if(do_tangent) {
+			/* qdn: tangents still need to be calculated for flat faces too */
+			/* weighting removed, they are not vertexnormals */
+			calc_tangent_vector(re, vlr);
 		}
 	}
 
@@ -1789,7 +1827,8 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 				need_orco= 1;
 			if(ma->texco & TEXCO_STRESS)
 				need_stress= 1;
-			if(ma->mode & MA_TANGENT_V)
+			/* qdn: normalmaps, test if tangents needed, separated from shading */
+			if ((ma->mode & MA_TANGENT_V) || (ma->mode & MA_NORMAP_TANG))
 				need_tangent= 1;
 			/* radio faces need autosmooth, to separate shared vertices in corners */
 			if(re->r.mode & R_RADIO)
