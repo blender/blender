@@ -1239,8 +1239,9 @@ static DerivedMesh *mirrorModifier_applyModifierEM(
  * or edge angle (can be used to achieve autosmoothing)
 */
 #if 0
-#define EDGESPLIT_DEBUG_1
+#define EDGESPLIT_DEBUG_3
 #define EDGESPLIT_DEBUG_2
+#define EDGESPLIT_DEBUG_1
 #define EDGESPLIT_DEBUG_0
 #endif
 
@@ -1263,7 +1264,14 @@ static void edgesplitModifier_copyData(ModifierData *md, ModifierData *target)
 	tamd->flags = emd->flags;
 }
 
-static void linklist_copy(LinkNode **target, LinkNode *source);
+typedef struct SmoothMesh {
+	GHash *verts;
+	GHash *edges;
+	GHash *faces;
+	DerivedMesh *dm;
+	float threshold; /* the cosine of the smoothing angle */
+	int flags;
+} SmoothMesh;
 
 /* Mesh data for edgesplit operation */
 typedef struct SmoothVert {
@@ -1272,13 +1280,18 @@ typedef struct SmoothVert {
 	int newIndex; /* the index of the new DispListMesh vert */
 } SmoothVert;
 
-static SmoothVert *smoothvert_copy(SmoothVert *vert)
+static SmoothVert *smoothvert_copy(SmoothVert *vert, SmoothMesh *mesh)
 {
 	SmoothVert *copy = MEM_callocN(sizeof(*copy), "copy_smoothvert");
 
 	*copy = *vert;
-	linklist_copy(&copy->faces, vert->faces);
+	copy->faces = NULL;
+	copy->newIndex = BLI_ghash_size(mesh->verts);
+	BLI_ghash_insert(mesh->verts, (void *)copy->newIndex, copy);
 
+#ifdef EDGESPLIT_DEBUG_2
+	printf("copied vert %4d to vert %4d\n", vert->newIndex, copy->newIndex);
+#endif
 	return copy;
 }
 
@@ -1304,13 +1317,18 @@ static void smoothedge_free(void *edge)
 	MEM_freeN(edge);
 }
 
-static SmoothEdge *smoothedge_copy(SmoothEdge *edge)
+static SmoothEdge *smoothedge_copy(SmoothEdge *edge, SmoothMesh *mesh)
 {
 	SmoothEdge *copy = MEM_callocN(sizeof(*copy), "copy_smoothedge");
 
 	*copy = *edge;
-	linklist_copy(&copy->faces, edge->faces);
+	copy->faces = NULL;
+	copy->newIndex = BLI_ghash_size(mesh->edges);
+	BLI_ghash_insert(mesh->edges, (void *)copy->newIndex, copy);
 
+#ifdef EDGESPLIT_DEBUG_2
+	printf("copied edge %4d to edge %4d\n", edge->newIndex, copy->newIndex);
+#endif
 	return copy;
 }
 
@@ -1337,23 +1355,6 @@ static void smoothface_free(void *face)
 {
 	MEM_freeN(face);
 }
-
-static int smoothface_has_edge(SmoothFace *face, SmoothEdge *edge)
-{
-	int i;
-	for(i = 0; i < SMOOTHFACE_MAX_EDGES && face->edges[i]; i++)
-		if(face->edges[i] == edge) return 1;
-
-	return 0;
-}
-
-
-typedef struct SmoothMesh {
-	GHash *verts;
-	GHash *edges;
-	GHash *faces;
-	DerivedMesh *dm;
-} SmoothMesh;
 
 static SmoothMesh *smoothmesh_new()
 {
@@ -1572,6 +1573,14 @@ static DerivedMesh *CDDM_from_smoothmesh(SmoothMesh *mesh)
 	return result;
 }
 
+/* returns the other vert in the given edge
+ */
+static SmoothVert *other_vert(SmoothEdge *edge, SmoothVert *vert)
+{
+	if(edge->verts[0] == vert) return edge->verts[1];
+	else return edge->verts[0];
+}
+
 /* returns the other edge in the given face that uses the given vert
  * returns NULL if no other edge in the given face uses the given vert
  * (this should never happen)
@@ -1594,32 +1603,20 @@ static SmoothEdge *other_edge(SmoothFace *face, SmoothVert *vert,
 	return NULL;
 }
 
-/* returns the face attached to the given edge which is smoothest with the
- * given face. Returns NULL if no other faces use this edge.
+/* returns a face attached to the given edge which is not the given face.
+ * returns NULL if no other faces use this edge.
  */
-static SmoothFace *smoothest_face(SmoothEdge *edge, SmoothFace *face)
+static SmoothFace *other_face(SmoothEdge *edge, SmoothFace *face)
 {
-	/* face with maximum dot product to this face's normal is smoothest */
-	float max_dot = -2;
-	SmoothFace *best_face = NULL;
 	LinkNode *node;
 
-	for(node = edge->faces; node != NULL; node = node->next) {
-		SmoothFace *tmp_face = node->link;
-		float dot;
-		if(tmp_face == face) continue;
+	for(node = edge->faces; node != NULL; node = node->next)
+		if(node->link != face) return node->link;
 
-		dot = MTC_dot3Float(tmp_face->normal, face->normal);
-
-		if(dot > max_dot) {
-			max_dot = dot;
-			best_face = tmp_face;
-		}
-	}
-
-	return best_face;
+	return NULL;
 }
 
+#if 0
 /* copies source list to target, overwriting target (target is not freed)
  * nodes in the copy will be in the same order as in source
  */
@@ -1639,6 +1636,7 @@ static void linklist_copy(LinkNode **target, LinkNode *source)
 		node->next = NULL;
 	}
 }
+#endif
 
 /* appends source to target if it's not already in target */
 static void linklist_append_unique(LinkNode **target, void *source) 
@@ -1679,6 +1677,31 @@ static void linklist_prepend_linklist(LinkNode **list, LinkNode *prepend)
 }
 #endif
 
+/* returns 1 if the linked list contains the given pointer, 0 otherwise
+ */
+static int linklist_contains(LinkNode *list, void *ptr)
+{
+	LinkNode *node;
+
+	for(node = list; node; node = node->next)
+		if(node->link == ptr) return 1;
+
+	return 0;
+}
+
+/* returns 1 if the first linked list is a subset of the second (comparing
+ * pointer values), 0 if not
+ */
+static int linklist_subset(LinkNode *list1, LinkNode *list2)
+{
+	for(; list1; list1 = list1->next)
+		if(!linklist_contains(list2, list1->link))
+			return 0;
+
+	return 1;
+}
+
+#if 0
 /* empties the linked list
  * frees pointers with freefunc if freefunc is not NULL
  */
@@ -1687,6 +1710,7 @@ static void linklist_empty(LinkNode **list, LinkNodeFreeFP freefunc)
 	BLI_linklist_free(*list, freefunc);
 	*list = NULL;
 }
+#endif
 
 /* removes the first instance of value from the linked list
  * frees the pointer with freefunc if freefunc is not NULL
@@ -1754,7 +1778,7 @@ static void edge_replace_vert(void *ptr, void *userdata)
 	SmoothVert *replace = ((ReplaceData *)userdata)->replace;
 	int i;
 
-#ifdef EDGESPLIT_DEBUG_2
+#ifdef EDGESPLIT_DEBUG_3
 	printf("replacing vert %4d with %4d in edge %4d",
 	       find->newIndex, replace->newIndex, edge->newIndex);
 	printf(": {%4d, %4d}", edge->verts[0]->newIndex, edge->verts[1]->newIndex);
@@ -1769,7 +1793,7 @@ static void edge_replace_vert(void *ptr, void *userdata)
 		}
 	}
 
-#ifdef EDGESPLIT_DEBUG_2
+#ifdef EDGESPLIT_DEBUG_3
 	printf(" -> {%4d, %4d}\n", edge->verts[0]->newIndex, edge->verts[1]->newIndex);
 #endif
 }
@@ -1790,7 +1814,7 @@ static void face_replace_edge(void *ptr, void *userdata)
 	SmoothEdge *replace = ((ReplaceData *)userdata)->replace;
 	int i;
 
-#ifdef EDGESPLIT_DEBUG_2
+#ifdef EDGESPLIT_DEBUG_3
 	printf("replacing edge %4d with %4d in face %4d",
 		   find->newIndex, replace->newIndex, face->newIndex);
 	if(face->edges[3])
@@ -1811,7 +1835,7 @@ static void face_replace_edge(void *ptr, void *userdata)
 		}
 	}
 
-#ifdef EDGESPLIT_DEBUG_2
+#ifdef EDGESPLIT_DEBUG_3
 	if(face->edges[3])
 		printf(" -> {%2d %2d %2d %2d}\n",
 		       face->edges[0]->newIndex, face->edges[1]->newIndex,
@@ -1823,20 +1847,44 @@ static void face_replace_edge(void *ptr, void *userdata)
 #endif
 }
 
+static int edge_is_loose(SmoothEdge *edge)
+{
+	return !(edge->faces && edge->faces->next);
+}
+
 static int edge_is_sharp(SmoothEdge *edge, int flags,
                          float threshold)
 {
+	/* treat all non-manifold edges as sharp */
+	if(edge->faces && edge->faces->next && edge->faces->next->next) {
+#ifdef EDGESPLIT_DEBUG_1
+		printf("edge %d: non-manifold\n", edge->newIndex);
+#endif
+		return 1;
+	}
+#ifdef EDGESPLIT_DEBUG_1
+	printf("edge %d: ", edge->newIndex);
+#endif
+
 	/* if all flags are disabled, edge cannot be sharp */
-	if(!(flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG)))
+	if(!(flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG))) {
+#ifdef EDGESPLIT_DEBUG_1
+		printf("not sharp\n");
+#endif
 		return 0;
+	}
 
 	/* edge can only be sharp if it has at least 2 faces */
-	if(edge->faces && edge->faces->next) {
+	if(!edge_is_loose(edge)) {
 		LinkNode *node1;
 		LinkNode *node2;
 
-		if((flags & MOD_EDGESPLIT_FROMFLAG) && (edge->flag & ME_SHARP))
-		    return 1;
+		if((flags & MOD_EDGESPLIT_FROMFLAG) && (edge->flag & ME_SHARP)) {
+#ifdef EDGESPLIT_DEBUG_1
+			printf("sharp\n");
+#endif
+			return 1;
+		}
 
 		if(flags & MOD_EDGESPLIT_FROMANGLE) {
 			/* check angles between all faces */
@@ -1846,203 +1894,259 @@ static int edge_is_sharp(SmoothEdge *edge, int flags,
 					SmoothFace *face2 = node2->link;
 					float edge_angle_cos = MTC_dot3Float(face1->normal,
 					                                     face2->normal);
-					if(edge_angle_cos < threshold) return 1;
+					if(edge_angle_cos < threshold) {
+#ifdef EDGESPLIT_DEBUG_1
+						printf("sharp\n");
+#endif
+						return 1;
+					}
 				}
 			}
 		}
 	}
 
+#ifdef EDGESPLIT_DEBUG_1
+	printf("not sharp\n");
+#endif
 	return 0;
 }
 
-/* returns 1 if vert was split, 0 if not */
-static int split_vert(SmoothVert *vert,
-                      SmoothEdge *start_edge, SmoothEdge *copy_edge,
-                      SmoothFace *start_face, SmoothMesh *mesh,
-                      float threshold, int flags)
+/* finds another sharp edge which uses vert, by traversing faces around the
+ * vert until it does one of the following:
+ * - hits a loose edge (the edge is returned)
+ * - hits a sharp edge (the edge is returned)
+ * - returns to the start edge (NULL is returned)
+ */
+static SmoothEdge *find_other_sharp_edge(SmoothVert *vert, SmoothEdge *edge,
+                           LinkNode **visited_faces, float threshold, int flags)
 {
-	ReplaceData repdata;
-	SmoothVert *copy_vert;
-	LinkNode *split_edges = NULL; /* edges to use the copy vert */
-
-	SmoothFace *current_face = start_face;
-	SmoothEdge *current_edge;
-	SmoothEdge *sharp_edge = NULL;
-	SmoothFace *end_face = NULL;
-	GHash *visited_edges;
-
-#ifdef EDGESPLIT_DEBUG_2
-	printf(">>>>>>>>>>>>>>>>>>>>> split_vert start >>>>>>>>>>>>>>>>>>>>>\n");
-	printf("vert = %4d, start_edge =%4d, copy_edge = %4d, start_face = %4d\n",
-	       vert->newIndex, start_edge->newIndex, copy_edge->newIndex,
-	       start_face->newIndex);
-	printf("*** Beginning face traversal ***\n");
+	SmoothFace *face = NULL;
+	SmoothEdge *edge2 = NULL;
+	/* holds the edges we've seen so we can avoid looping indefinitely */
+	LinkNode *visited_edges = NULL;
+#ifdef EDGESPLIT_DEBUG_1
+	printf("=== START === find_other_sharp_edge(edge = %4d, vert = %4d)\n",
+	       edge->newIndex, vert->newIndex);
 #endif
 
-	/* sanity check */
-	if(!smoothface_has_edge(current_face, copy_edge)) return 0;
-	if(!smoothedge_has_vert(copy_edge, vert)) return 0;
+	/* get a face on which to start */
+	if(edge->faces) face = edge->faces->link;
+	else return NULL;
 
-	visited_edges = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	/* record this edge as visited */
+	BLI_linklist_prepend(&visited_edges, edge);
 
-	/* make sure we don't include start_edge in the split edge list */
-	BLI_ghash_insert(visited_edges, start_edge, NULL);
+	/* get the next edge */
+	edge2 = other_edge(face, vert, edge);
 
-	end_face = current_face;
-	current_edge = other_edge(current_face, vert, copy_edge);
-	current_face = smoothest_face(current_edge, current_face);
+	/* record this face as visited */
+	if(visited_faces)
+		BLI_linklist_prepend(visited_faces, face);
 
-	/* find another sharp edge attached to the current vert */
-	while(current_face && !BLI_ghash_haskey(visited_edges, current_edge)) {
-		BLI_ghash_insert(visited_edges, current_edge, NULL);
+	/* search until we hit a loose edge or a sharp edge or an edge we've
+	 * seen before
+	 */
+	while(face && !edge_is_sharp(edge2, flags, threshold)
+	      && !linklist_contains(visited_edges, edge2)) {
+#ifdef EDGESPLIT_DEBUG_3
+		printf("current face %4d; current edge %4d\n", face->newIndex,
+		       edge2->newIndex);
+#endif
+		/* get the next face */
+		face = other_face(edge2, face);
 
-		/* if this edge is sharp, use it */
-		if(edge_is_sharp(current_edge, flags, threshold)) {
-			sharp_edge = current_edge;
-			break;
+		/* if face == NULL, edge2 is a loose edge */
+		if(face) {
+			/* record this face as visited */
+			if(visited_faces)
+				BLI_linklist_prepend(visited_faces, face);
+
+			/* record this edge as visited */
+			BLI_linklist_prepend(&visited_edges, edge2);
+
+			/* get the next edge */
+			edge2 = other_edge(face, vert, edge2);
+#ifdef EDGESPLIT_DEBUG_3
+			printf("next face %4d; next edge %4d\n",
+			       face->newIndex, edge2->newIndex);
+		} else {
+			printf("loose edge: %4d\n", edge2->newIndex);
+#endif
 		}
-
-		/* save end face for edge replacement later */
-		end_face = current_face;
-
-		/* this edge should use the copy vert */
-		BLI_linklist_prepend(&split_edges, current_edge);
-
-		/* get the next edge around the vert */ 
-		current_edge = other_edge(current_face, vert, current_edge);
-		/* get the smoothest next face */
-		current_face = smoothest_face(current_edge, current_face);
-	}
-#ifdef EDGESPLIT_DEBUG_2
-	printf("*** Ending face traversal ***\n");
-#endif
-	BLI_ghash_free(visited_edges, NULL, NULL);
-
-	/* if we've returned to the starting point without finding a sharp edge,
-	 * don't split the vert
-	 */
-	if(current_edge == start_edge || (current_face && !sharp_edge)) {
-		BLI_linklist_free(split_edges, NULL);
-		return 0;
 	}
 
-	/* if current_face == NULL, we've hit a loose edge
-	 * before finding a sharp edge
-	 */
-	if(!current_face) BLI_linklist_prepend(&split_edges, current_edge);
+	/* either we came back to the start edge or we found a sharp/loose edge */
+	if(linklist_contains(visited_edges, edge2))
+		/* we came back to the start edge */
+		edge2 = NULL;
 
-	/* copy the vertex */
-	copy_vert = smoothvert_copy(vert);
-	copy_vert->newIndex = BLI_ghash_size(mesh->verts);
-	linklist_empty(&copy_vert->faces, NULL);
-	BLI_ghash_insert(mesh->verts, (void *)copy_vert->newIndex, copy_vert);
+	BLI_linklist_free(visited_edges, NULL);
 
-	/* add copy_edge to split_edges so it will undergo vertex replacement */
-	BLI_linklist_prepend(&split_edges, copy_edge);
-
-	/* replace the vertex with the copy in edges being split off */
-	repdata.find = vert;
-	repdata.replace = copy_vert;
-	BLI_linklist_apply(split_edges, edge_replace_vert, &repdata);
-
-	/* if sharp_edge == NULL, we didn't find a sharp edge, so don't split
-	 * any more edges
-	 */
-	if(sharp_edge) {
-		/* copy the sharpest edge */
-		SmoothEdge *copy_sharp = smoothedge_copy(sharp_edge);
-		copy_sharp->newIndex = BLI_ghash_size(mesh->edges);
-		linklist_empty(&copy_sharp->faces, NULL);
-		BLI_ghash_insert(mesh->edges, (void *)copy_sharp->newIndex, copy_sharp);
-
-#ifdef EDGESPLIT_DEBUG_2
-		printf("sharpest edge is %4d\n",
-		       sharp_edge->newIndex);
+#ifdef EDGESPLIT_DEBUG_1
+	printf("=== END === find_other_sharp_edge(edge = %4d, vert = %4d), "
+	       "returning edge %d\n",
+	       edge->newIndex, vert->newIndex, edge2 ? edge2->newIndex : -1);
 #endif
-		/* replace the sharpest edge with the copy in end_face
-		 */
-		repdata.find = sharp_edge;
-		repdata.replace = copy_sharp;
-		face_replace_edge(end_face, &repdata);
-
-		/* replace the vertex with its copy in copy_sharp */
-		repdata.find = vert;
-		repdata.replace = copy_vert;
-		edge_replace_vert(copy_sharp, &repdata);
-
-		/* split the other vertex (don't need to check return value as it
-		 * doesn't matter if the split succeeds - the edge will be split
-		 * regardless
-		 */
-		if(copy_sharp->verts[0] == copy_vert)
-			split_vert(copy_sharp->verts[1], sharp_edge, copy_sharp,
-			           end_face, mesh, threshold, flags);
-		else
-			split_vert(copy_sharp->verts[0], sharp_edge, copy_sharp,
-			           end_face, mesh, threshold, flags);
-	}
-
-	BLI_linklist_free(split_edges, NULL);
-#ifdef EDGESPLIT_DEBUG_2
-	printf("<<<<<<<<<<<<<<<<<<<<< split_vert end <<<<<<<<<<<<<<<<<<<<<\n");
-#endif
-
-	return 1;
+	return edge2;
 }
 
-static void split_edge(SmoothEdge *edge, SmoothMesh *mesh, float threshold,
-                       int flags)
+static void split_single_vert(SmoothVert *vert, SmoothFace *face,
+                              SmoothMesh *mesh)
 {
-	LinkNode *split_node;
+	SmoothVert *copy_vert;
+	ReplaceData repdata;
 
-	/* split all the faces off but the first */
-	for(split_node = edge->faces->next; split_node; ) {
-		ReplaceData repdata;
-		int success[2];
-		SmoothFace *split_face = split_node->link;
+	copy_vert = smoothvert_copy(vert, mesh);
 
-		/* copy the start edge */
-		SmoothEdge *copy_edge = smoothedge_copy(edge);
-		copy_edge->newIndex = BLI_ghash_size(mesh->edges);
-		linklist_empty(&copy_edge->faces, NULL);
-		BLI_ghash_insert(mesh->edges, (void *)copy_edge->newIndex, copy_edge);
+	repdata.find = vert;
+	repdata.replace = copy_vert;
+	face_replace_vert(face, &repdata);
+}
 
-#ifdef EDGESPLIT_DEBUG_2
-		printf(">>>>>>>>>>>>>>>>>>>> split_edge start >>>>>>>>>>>>>>>>>>>>\n");
+static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh);
+
+static void propagate_split(SmoothEdge *edge, SmoothVert *vert,
+                            SmoothMesh *mesh)
+{
+	SmoothEdge *edge2;
+	LinkNode *visited_faces = NULL;
+#ifdef EDGESPLIT_DEBUG_1
+	printf("=== START === propagate_split(edge = %4d, vert = %4d)\n",
+	       edge->newIndex, vert->newIndex);
 #endif
-		/* we need to go to the next node before we replace the edge,
-		 * otherwise the current node will have been removed from the list
-		 */
-		split_node = split_node->next;
 
-		/* replace the start edge with the copy in the face being split off */
-		repdata.find = edge;
-		repdata.replace = copy_edge;
-		face_replace_edge(split_face, &repdata);
+	edge2 = find_other_sharp_edge(vert, edge, &visited_faces,
+	                              mesh->threshold, mesh->flags);
 
-#ifdef EDGESPLIT_DEBUG_2
-		printf("******************* splitting verts[0] *******************\n");
-#endif
-		success[0] = split_vert(edge->verts[0], edge, copy_edge,
-		                        split_face, mesh, threshold, flags);
-#ifdef EDGESPLIT_DEBUG_2
-		printf("******************* splitting verts[1] *******************\n");
-#endif
-		success[1] = split_vert(edge->verts[1], edge, copy_edge,
-		                        split_face, mesh, threshold, flags);
-#ifdef EDGESPLIT_DEBUG_2
-		printf("<<<<<<<<<<<<<<<<<<<<< split_edge end <<<<<<<<<<<<<<<<<<<<<\n");
-#endif
-		/* if neither split operation succeeded, remove the edge */
-		if(!success[0] && !success[1]) {
-			repdata.find = copy_edge;
-			repdata.replace = edge;
-			face_replace_edge(split_face, &repdata);
-			
-			BLI_ghash_remove(mesh->edges, (void *)copy_edge->newIndex,
-			                 NULL, smoothedge_free);
+	if(!edge2) {
+		/* didn't find a sharp or loose edge, so we've hit a dead end */
+	} else if(!edge_is_loose(edge2)) {
+		/* edge2 is not loose, so it must be sharp */
+		if(edge_is_loose(edge)) {
+			/* edge is loose, so we can split edge2 at this vert */
+			split_edge(edge2, vert, mesh);
+		} else if(edge_is_sharp(edge, mesh->flags, mesh->threshold)) {
+			/* both edges are sharp, so we can split the pair at vert */
+			split_edge(edge, vert, mesh);
+		} else {
+			/* edge is not sharp, so try to split edge2 at its other vert */
+			split_edge(edge2, other_vert(edge2, vert), mesh);
+		}
+	} else { /* edge2 is loose */
+		if(edge_is_loose(edge)) {
+			SmoothVert *vert2;
+			ReplaceData repdata;
+
+			/* can't split edge, what should we do with vert? */
+			if(linklist_subset(vert->faces, visited_faces)) {
+				/* vert has only one fan of faces attached; don't split it */
+			} else {
+				/* vert has more than one fan of faces attached; split it */
+				vert2 = smoothvert_copy(vert, mesh);
+
+				/* replace vert with its copy in visited_faces */
+				repdata.find = vert;
+				repdata.replace = vert2;
+				BLI_linklist_apply(visited_faces, face_replace_vert, &repdata);
+			}
+		} else {
+			/* edge is not loose, so it must be sharp; split it */
+			split_edge(edge, vert, mesh);
 		}
 	}
+
+	BLI_linklist_free(visited_faces, NULL);
+#ifdef EDGESPLIT_DEBUG_1
+	printf("=== END === propagate_split(edge = %4d, vert = %4d)\n",
+	       edge->newIndex, vert->newIndex);
+#endif
+}
+
+static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
+{
+	SmoothEdge *edge2;
+	SmoothVert *vert2;
+	ReplaceData repdata;
+	/* the list of faces traversed while looking for a sharp edge */
+	LinkNode *visited_faces = NULL;
+#ifdef EDGESPLIT_DEBUG_1
+	printf("=== START === split_edge(edge = %4d, vert = %4d)\n",
+	       edge->newIndex, vert->newIndex);
+#endif
+
+	edge2 = find_other_sharp_edge(vert, edge, &visited_faces,
+	                              mesh->threshold, mesh->flags);
+
+	if(!edge2) {
+		/* didn't find a sharp or loose edge, so try the other vert */
+		vert2 = other_vert(edge, vert);
+		propagate_split(edge, vert2, mesh);
+	} else if(!edge_is_loose(edge2)) {
+		/* edge2 is not loose, so it must be sharp */
+		SmoothEdge *copy_edge = smoothedge_copy(edge, mesh);
+		SmoothEdge *copy_edge2 = smoothedge_copy(edge2, mesh);
+		SmoothVert *vert2;
+
+		/* replace edge with its copy in visited_faces */
+		repdata.find = edge;
+		repdata.replace = copy_edge;
+		BLI_linklist_apply(visited_faces, face_replace_edge, &repdata);
+
+		/* replace edge2 with its copy in visited_faces */
+		repdata.find = edge2;
+		repdata.replace = copy_edge2;
+		BLI_linklist_apply(visited_faces, face_replace_edge, &repdata);
+
+		vert2 = smoothvert_copy(vert, mesh);
+
+		/* replace vert with its copy in visited_faces (must be done after
+		 * edge replacement so edges have correct vertices)
+		 */
+		repdata.find = vert;
+		repdata.replace = vert2;
+		BLI_linklist_apply(visited_faces, face_replace_vert, &repdata);
+
+		/* all copying and replacing is done; the mesh should be consistent.
+		 * now propagate the split to the vertices at either end
+		 */
+		propagate_split(copy_edge, other_vert(copy_edge, vert2), mesh);
+		propagate_split(copy_edge2, other_vert(copy_edge2, vert2), mesh);
+
+		if(smoothedge_has_vert(edge, vert))
+			propagate_split(edge, vert, mesh);
+	} else {
+		/* edge2 is loose */
+		SmoothEdge *copy_edge = smoothedge_copy(edge, mesh);
+		SmoothVert *vert2;
+
+		/* replace edge with its copy in visited_faces */
+		repdata.find = edge;
+		repdata.replace = copy_edge;
+		BLI_linklist_apply(visited_faces, face_replace_edge, &repdata);
+
+		vert2 = smoothvert_copy(vert, mesh);
+
+		/* replace vert with its copy in visited_faces (must be done after
+		 * edge replacement so edges have correct vertices)
+		 */
+		repdata.find = vert;
+		repdata.replace = vert2;
+		BLI_linklist_apply(visited_faces, face_replace_vert, &repdata);
+
+		/* copying and replacing is done; the mesh should be consistent.
+		 * now propagate the split to the vertex at the other end
+		 */
+		propagate_split(copy_edge, other_vert(copy_edge, vert2), mesh);
+
+		if(smoothedge_has_vert(edge, vert))
+			propagate_split(edge, vert, mesh);
+	}
+
+	BLI_linklist_free(visited_faces, NULL);
+#ifdef EDGESPLIT_DEBUG_1
+	printf("=== END === split_edge(edge = %4d, vert = %4d)\n",
+	       edge->newIndex, vert->newIndex);
+#endif
 }
 
 static void split_sharp_edges(SmoothMesh *mesh, float split_angle, int flags)
@@ -2052,33 +2156,18 @@ static void split_sharp_edges(SmoothMesh *mesh, float split_angle, int flags)
 	/* if normal1 dot normal2 < threshold, angle is greater, so split */
 	/* FIXME not sure if this always works */
 	/* 0.00001 added for floating-point rounding */
-	float threshold = cos((split_angle + 0.00001) * M_PI / 180.0);
+	mesh->threshold = cos((split_angle + 0.00001) * M_PI / 180.0);
+	mesh->flags = flags;
 
 	/* loop through edges, splitting sharp ones */
 	/* can't use an iterator here, because we'll be adding edges */
 	for(i = 0; i < num_edges; i++) {
 		SmoothEdge *edge = BLI_ghash_lookup(mesh->edges, (void *)i);
 
-		if(edge_is_sharp(edge, flags, threshold))
-			split_edge(edge, mesh, threshold, flags);
+		if(edge_is_sharp(edge, flags, mesh->threshold))
+			split_edge(edge, edge->verts[0], mesh);
 	}
 
-}
-
-static void split_single_vert(SmoothVert *vert, SmoothFace *face,
-                              SmoothMesh *mesh)
-{
-	SmoothVert *copy_vert;
-	ReplaceData repdata;
-
-	copy_vert = smoothvert_copy(vert);
-	copy_vert->newIndex = BLI_ghash_size(mesh->verts);
-	linklist_empty(&copy_vert->faces, NULL);
-	BLI_ghash_insert(mesh->verts, (void *)copy_vert->newIndex, copy_vert);
-
-	repdata.find = vert;
-	repdata.replace = copy_vert;
-	face_replace_vert(face, &repdata);
 }
 
 static void split_single_verts(SmoothMesh *mesh)
@@ -2120,6 +2209,9 @@ static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
 	SmoothMesh *mesh;
 	DerivedMesh *result;
 
+	if(!(emd->flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG)))
+		return dm;
+
 	mesh = smoothmesh_from_derivedmesh(dm);
 
 #ifdef EDGESPLIT_DEBUG_1
@@ -2132,7 +2224,9 @@ static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
 	printf("********** Post-edge-split **********\n");
 	smoothmesh_print(mesh);
 #endif
+#if 1
 	split_single_verts(mesh);
+#endif
 
 #ifdef EDGESPLIT_DEBUG_1
 	printf("********** Post-vert-split **********\n");
