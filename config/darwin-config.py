@@ -1,6 +1,7 @@
 LCGDIR = '#../lib/darwin-6.1-powerpc'
 LIBDIR = '${LCGDIR}'
 
+WITH_BF_VERSE = 'false'
 BF_VERSE = "#extern/verse/dist"
 BF_VERSE_LIBPATH = "${BF_BUILDDIR}/extern/verse/dist"
 BF_VERSE_INCLUDE = BF_VERSE
