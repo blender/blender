@@ -231,7 +231,7 @@ def split_mesh(verts_loc, faces, unique_materials, SPLIT_OBJECTS, SPLIT_MATERIAL
 	return [(verts_split, faces_split, unique_materials_split) for faces_split, verts_split, unique_materials_split, vert_remap in face_split_dict.itervalues()]
 
 
-def create_meshes(has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups):
+def create_meshes(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups):
 	
 	if not has_ngons:
 		CREATE_FGONS= False
@@ -430,11 +430,14 @@ def create_meshes(has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, f
 	
 	scn= Scene.GetCurrent()
 	ob= scn.objects.new(me)
+	new_objects.append(ob)
 	#ob= Object.New('Mesh')
 	#ob.link(me)
 	#scn.link(ob)
 	ob.sel= 1
-	ob.makeDisplayList()
+	# ob.makeDisplayList()
+	# me.update()
+	# print ob.getBoundBox()
 
 
 
@@ -451,7 +454,7 @@ def get_float_func(filepath):
 			elif '.' in line:
 				return float
 
-def load_obj(filepath, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS= True, CREATE_EDGES= True, SPLIT_OBJECTS= True, SPLIT_GROUPS= True, SPLIT_MATERIALS= True):
+def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS= True, CREATE_EDGES= True, SPLIT_OBJECTS= True, SPLIT_GROUPS= True, SPLIT_MATERIALS= True):
 	
 	print '\nimporting obj "%s"' % filepath
 	
@@ -611,19 +614,39 @@ def load_obj(filepath, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS= True, CREATE_ED
 	
 	# deselect all
 	for ob in Scene.GetCurrent().objects: ob.sel= False
+	new_objects= [] # put new objects here
 	
 	print '\tbuilding geometry;\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % ( len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups) ),
 	# Split the mesh by objects/materials, may 
 	for verts_loc_split, faces_split, unique_materials_split in split_mesh(verts_loc, faces, unique_materials, SPLIT_OBJECTS, SPLIT_MATERIALS):
 		# Create meshes from the data
-		create_meshes(has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups)
+		create_meshes(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups)
+	
+	axis_min= [ 1000000000]*3
+	axis_max= [-1000000000]*3
+	
+	if CLAMP_SIZE:
+		# Get all object bounds
+		for ob in new_objects:
+			for v in ob.getBoundBox():
+				for axis, value in enumerate(v):
+					if axis_min[axis] > value:	axis_min[axis]= value
+					if axis_max[axis] < value:	axis_max[axis]= value
+		
+		# Scale objects
+		max_axis= max(axis_max[0]-axis_min[0], axis_max[1]-axis_min[1], axis_max[2]-axis_min[2])
+		scale= 1.0
+		
+		while CLAMP_SIZE < max_axis * scale:
+			scale= scale/10.0
+		
+		for ob in new_objects:
+			ob.setSize(scale, scale, scale)
 	
 	time_new= sys.time()
-	print '%.4f sec' % (time_new-time_sub)
 	
+	print '%.4f sec' % (time_new-time_sub)
 	print 'finished importing: "%s" in %.4f sec.' % (filepath, (time_new-time_main))
-
-
 
 
 DEBUG= True
@@ -636,6 +659,8 @@ def load_obj_ui(filepath):
 	SPLIT_OBJECTS= Draw.Create(1)
 	SPLIT_GROUPS= Draw.Create(1)
 	SPLIT_MATERIALS= Draw.Create(1)
+	CLAMP_SIZE= Draw.Create(10.0)
+	
 	
 	# Get USER Options
 	pup_block= [\
@@ -645,6 +670,7 @@ def load_obj_ui(filepath):
 	('Split by Object', SPLIT_OBJECTS, 'Import OBJ Objects into Blender Objects'),\
 	('Split by Groups', SPLIT_GROUPS, 'Import OBJ Groups into Blender Objects'),\
 	('Split by Material', SPLIT_MATERIALS, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)'),\
+	('Clamp Scale:', CLAMP_SIZE, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)'),\
 	]
 	
 	if not Draw.PupBlock('Import OBJ...', pup_block):
@@ -653,6 +679,7 @@ def load_obj_ui(filepath):
 	Window.WaitCursor(1)
 	
 	load_obj(filepath,\
+	  CLAMP_SIZE.val,\
 	  CREATE_FGONS.val,\
 	  CREATE_SMOOTH_GROUPS.val,\
 	  CREATE_EDGES.val,\
@@ -666,6 +693,7 @@ def load_obj_ui(filepath):
 DEBUG= False
 if __name__=='__main__' and not DEBUG:
 	Window.FileSelector(load_obj_ui, 'Import a Wavefront OBJ', '*.obj')
+
 '''
 # For testing compatibility
 else:

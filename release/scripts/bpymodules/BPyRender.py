@@ -122,7 +122,7 @@ def mesh2uv(me_s, PREF_SEL_FACES_ONLY=False):
 	material_list= []
 	for me in me_s:
 		me_materials= me.materials
-		
+		FACE_SEL= Blender.Mesh.FaceFlags.SELECT
 		if PREF_SEL_FACES_ONLY:
 			me_faces= [f for f in me.faces if f.flag & FACE_SEL]
 		else:

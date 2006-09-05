@@ -7388,12 +7388,20 @@ static PyObject *M_Mesh_New( PyObject * self_unused, PyObject * args )
 				       "PyObject_New() failed" );
 
 	mesh = add_mesh(); /* doesn't return NULL now, but might someday */
-
+	
 	if( !mesh ) {
 		Py_DECREF ( obj );
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				       "FATAL: could not create mesh object" );
 	}
+	
+	/* Bound box set to null needed because a new mesh is initialized
+	with a bounding box of -1 -1 -1 -1 -1 -1
+	if its not set to null the bounding box is not re-calculated
+	when ob.getBoundBox() is called.*/
+	MEM_freeN(mesh->bb);
+	mesh->bb= NULL;
+	
 	mesh->id.us = 0;
 
 	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
