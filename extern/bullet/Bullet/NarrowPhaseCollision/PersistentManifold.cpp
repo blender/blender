@@ -91,33 +91,51 @@ void PersistentManifold::ClearUserCache(ManifoldPoint& pt)
 }
 
 
-
-
 int PersistentManifold::SortCachedPoints(const ManifoldPoint& pt) 
 {
 
 		//calculate 4 possible cases areas, and take biggest area
-
-		SimdScalar res0,res1,res2,res3;
-
+		//also need to keep 'deepest'
+		
+		int maxPenetrationIndex = -1;
+#define KEEP_DEEPEST_POINT 1
+#ifdef KEEP_DEEPEST_POINT
+		float maxPenetration = pt.GetDistance();
+		for (int i=0;i<4;i++)
+		{
+			if (m_pointCache[i].GetDistance() < maxPenetration)
+			{
+				maxPenetrationIndex = i;
+				maxPenetration = m_pointCache[i].GetDistance();
+			}
+		}
+#endif //KEEP_DEEPEST_POINT
+		
+		SimdScalar res0(0.f),res1(0.f),res2(0.f),res3(0.f);
+		if (maxPenetrationIndex != 0)
 		{
 			SimdVector3 a0 = pt.m_localPointA-m_pointCache[1].m_localPointA;
 			SimdVector3 b0 = m_pointCache[3].m_localPointA-m_pointCache[2].m_localPointA;
 			SimdVector3 cross = a0.cross(b0);
 			res0 = cross.length2();
 		}
+		if (maxPenetrationIndex != 1)
 		{
 			SimdVector3 a1 = pt.m_localPointA-m_pointCache[0].m_localPointA;
 			SimdVector3 b1 = m_pointCache[3].m_localPointA-m_pointCache[2].m_localPointA;
 			SimdVector3 cross = a1.cross(b1);
 			res1 = cross.length2();
 		}
+
+		if (maxPenetrationIndex != 2)
 		{
 			SimdVector3 a2 = pt.m_localPointA-m_pointCache[0].m_localPointA;
 			SimdVector3 b2 = m_pointCache[3].m_localPointA-m_pointCache[1].m_localPointA;
 			SimdVector3 cross = a2.cross(b2);
 			res2 = cross.length2();
 		}
+
+		if (maxPenetrationIndex != 3)
 		{
 			SimdVector3 a3 = pt.m_localPointA-m_pointCache[0].m_localPointA;
 			SimdVector3 b3 = m_pointCache[2].m_localPointA-m_pointCache[1].m_localPointA;
@@ -127,12 +145,8 @@ int PersistentManifold::SortCachedPoints(const ManifoldPoint& pt)
 
 		SimdVector4 maxvec(res0,res1,res2,res3);
 		int biggestarea = maxvec.closestAxis4();
-
 		return biggestarea;
-
-
 }
-
 
 
 int PersistentManifold::GetCacheEntry(const ManifoldPoint& newPoint) const
