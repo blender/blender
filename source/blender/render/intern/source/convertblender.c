@@ -1828,8 +1828,11 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 			if(ma->texco & TEXCO_STRESS)
 				need_stress= 1;
 			/* qdn: normalmaps, test if tangents needed, separated from shading */
-			if ((ma->mode & MA_TANGENT_V) || (ma->mode & MA_NORMAP_TANG))
+			if ((ma->mode & MA_TANGENT_V) || (ma->mode & MA_NORMAP_TANG)) {
 				need_tangent= 1;
+				if(me->tface==NULL)
+					need_orco= 1;
+			}
 			/* radio faces need autosmooth, to separate shared vertices in corners */
 			if(re->r.mode & R_RADIO)
 				if(ma->mode & MA_RADIO) 
