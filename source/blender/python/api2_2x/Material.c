@@ -355,6 +355,8 @@ static PyObject *Material_ModesDict( void )
 		PyConstant_Insert(c, "RAYMIRROR", PyInt_FromLong(MA_RAYMIRROR));
 		PyConstant_Insert(c, "ZTRA", PyInt_FromLong(MA_ZTRA));
 		PyConstant_Insert(c, "RAYTRANSP", PyInt_FromLong(MA_RAYTRANSP));
+		PyConstant_Insert(c, "TANGENT_V", PyInt_FromLong(MA_TANGENT_V));
+		PyConstant_Insert(c, "NMAP_TS", PyInt_FromLong(MA_NORMAP_TANG));
 	}
 
 	return Modes;

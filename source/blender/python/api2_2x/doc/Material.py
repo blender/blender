@@ -64,6 +64,8 @@ Example::
     - TANGENTSTR   - Uses direction of strands as normal for tangent-shading.
     - TRANSPSHADOW - Lets Material receive transparent shadows based on material color and alpha.
     - FULLOSA      - Force rendering of all OSA samples.
+    - TANGENT_V    - Use the tangent vector in V direction for shading
+    - NMAP_TS      - Tangent space normal mapping.
 
 @type Shaders: readonly dictionary
 @var Shaders: The available Material Shaders.
