@@ -623,8 +623,6 @@ void image_de_interlace(Image *ima, int odd)
 		de_interlace_ng(ima->ibuf);
 }
 
-/* important note: all calls here and calls inside can NOT use threadsafe malloc! */
-/* this entire function is mutex'ed with the same lock as for mallocs */
 void ima_ibuf_is_nul(Tex *tex, Image *ima)
 {
 	void (*de_interlacefunc)(struct ImBuf *ibuf);

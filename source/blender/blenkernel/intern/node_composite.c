@@ -31,6 +31,8 @@
 #include <string.h>
 #include <math.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
@@ -52,7 +54,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 
-/* NOTE: no imbuf calls allowed in composit, we need threadsafe malloc! */
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -88,7 +89,7 @@ typedef struct CompBuf {
 
 static CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 {
-	CompBuf *cbuf= MEM_callocT(sizeof(CompBuf), "compbuf");
+	CompBuf *cbuf= MEM_callocN(sizeof(CompBuf), "compbuf");
 	
 	cbuf->x= sizex;
 	cbuf->y= sizey;
@@ -98,13 +99,13 @@ static CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 	cbuf->type= type;
 	if(alloc) {
 		if(cbuf->type==CB_RGBA)
-			cbuf->rect= MEM_mapallocT(4*sizeof(float)*sizex*sizey, "compbuf RGBA rect");
+			cbuf->rect= MEM_mapallocN(4*sizeof(float)*sizex*sizey, "compbuf RGBA rect");
 		else if(cbuf->type==CB_VEC3)
-			cbuf->rect= MEM_mapallocT(3*sizeof(float)*sizex*sizey, "compbuf Vector3 rect");
+			cbuf->rect= MEM_mapallocN(3*sizeof(float)*sizex*sizey, "compbuf Vector3 rect");
 		else if(cbuf->type==CB_VEC2)
-			cbuf->rect= MEM_mapallocT(2*sizeof(float)*sizex*sizey, "compbuf Vector2 rect");
+			cbuf->rect= MEM_mapallocN(2*sizeof(float)*sizex*sizey, "compbuf Vector2 rect");
 		else
-			cbuf->rect= MEM_mapallocT(sizeof(float)*sizex*sizey, "compbuf Fac rect");
+			cbuf->rect= MEM_mapallocN(sizeof(float)*sizex*sizey, "compbuf Fac rect");
 		cbuf->malloc= 1;
 	}
 	cbuf->disprect.xmin= 0;
@@ -140,9 +141,9 @@ static CompBuf *pass_on_compbuf(CompBuf *cbuf)
 void free_compbuf(CompBuf *cbuf)
 {
 	if(cbuf->malloc && cbuf->rect)
-		MEM_freeT(cbuf->rect);
+		MEM_freeN(cbuf->rect);
 
-	MEM_freeT(cbuf);
+	MEM_freeN(cbuf);
 }
 
 void print_compbuf(char *str, CompBuf *cbuf)
@@ -531,31 +532,27 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 			recty= tbuf->y;
 		}
 		
-		/* full copy of imbuf, but threadsafe... */
-		if(ima->ibuf==NULL) {
-			ima->ibuf = MEM_callocT(sizeof(struct ImBuf), "ImBuf_struct");
-			ima->ibuf->depth= 32;
-			ima->ibuf->ftype= TGA;
-		}
+		if(ima->ibuf==NULL)
+			ima->ibuf= IMB_allocImBuf(rectx, recty, 32, 0, 0);
 		
 		/* cleanup of composit image */
 		if(ima->ibuf->rect) {
-			MEM_freeT(ima->ibuf->rect);
+			MEM_freeN(ima->ibuf->rect);
 			ima->ibuf->rect= NULL;
 			ima->ibuf->mall &= ~IB_rect;
 		}
 		if(ima->ibuf->zbuf_float) {
-			MEM_freeT(ima->ibuf->zbuf_float);
+			MEM_freeN(ima->ibuf->zbuf_float);
 			ima->ibuf->zbuf_float= NULL;
 			ima->ibuf->mall &= ~IB_zbuffloat;
 		}
 		if(ima->ibuf->rect_float)
-			MEM_freeT(ima->ibuf->rect_float);
+			MEM_freeN(ima->ibuf->rect_float);
 		
 		ima->ibuf->x= rectx;
 		ima->ibuf->y= recty;
 		ima->ibuf->mall |= IB_rectfloat;
-		ima->ibuf->rect_float= MEM_mallocT(4*rectx*recty*sizeof(float), "viewer rect");
+		ima->ibuf->rect_float= MEM_mallocN(4*rectx*recty*sizeof(float), "viewer rect");
 		
 		/* now we combine the input with ibuf */
 		cbuf= alloc_compbuf(rectx, recty, CB_RGBA, 0);	// no alloc
@@ -632,7 +629,7 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 				CompBuf *outbuf, *zbuf=NULL;
 				
 				if(rr->rectf) 
-					MEM_freeT(rr->rectf);
+					MEM_freeN(rr->rectf);
 				outbuf= alloc_compbuf(rr->rectx, rr->recty, CB_RGBA, 1);
 				
 				if(in[1]->data==NULL)
@@ -642,7 +639,7 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 				
 				if(in[2]->data) {
 					if(rr->rectz) 
-						MEM_freeT(rr->rectz);
+						MEM_freeN(rr->rectz);
 					zbuf= alloc_compbuf(rr->rectx, rr->recty, CB_VAL, 1);
 					composit1_pixel_processor(node, zbuf, in[2]->data, in[2]->vec, do_copy_value, CB_VAL);
 					rr->rectz= zbuf->rect;
@@ -787,10 +784,8 @@ static void animated_image(bNode *node, int cfra)
 				if(imanr < 0) imanr = 0;
 				if(imanr > (dur-1)) imanr= dur-1;
 				
-				BLI_lock_thread(LOCK_MALLOC);
 				if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
 				ima->ibuf = IMB_anim_absolute(ima->anim, imanr);
-				BLI_unlock_thread(LOCK_MALLOC);
 				
 				/* patch for textbutton with name ima (B_NAMEIMA) */
 				if(ima->ibuf) {
@@ -826,26 +821,6 @@ static void animated_image(bNode *node, int cfra)
 	}
 }
 
-static float *float_from_byte_rect(int rectx, int recty, char *rect)
-{
-	/* quick method to convert byte to floatbuf */
-	float *rect_float= MEM_mallocT(4*sizeof(float)*rectx*recty, "float rect");
-	float *tof = rect_float;
-	int i;
-	
-	for (i = rectx*recty; i > 0; i--) {
-		tof[0] = ((float)rect[0])*(1.0f/255.0f);
-		tof[1] = ((float)rect[1])*(1.0f/255.0f);
-		tof[2] = ((float)rect[2])*(1.0f/255.0f);
-		tof[3] = ((float)rect[3])*(1.0f/255.0f);
-		rect += 4; 
-		tof += 4;
-	}
-	return rect_float;
-}
-
-
-
 static CompBuf *node_composit_get_image(bNode *node, RenderData *rd)
 {
 	Image *ima;
@@ -861,19 +836,14 @@ static CompBuf *node_composit_get_image(bNode *node, RenderData *rd)
 	if(ima->ok==0) return NULL;
 	
 	if(ima->ibuf==NULL) {
-		BLI_lock_thread(LOCK_MALLOC);
 		load_image(ima, IB_rect, G.sce, rd->cfra);	/* G.sce is current .blend path */
-		BLI_unlock_thread(LOCK_MALLOC);
 		if(ima->ibuf==NULL) {
 			ima->ok= 0;
 			return NULL;
 		}
 	}
-	if(ima->ibuf->rect_float==NULL) {
-		/* can't use imbuf module, we need secure malloc */
-		ima->ibuf->rect_float= float_from_byte_rect(ima->ibuf->x, ima->ibuf->y, (char *)ima->ibuf->rect);
-		ima->ibuf->mall |= IB_rectfloat;
-	}
+	if(ima->ibuf->rect_float==NULL)
+		IMB_float_from_rect(ima->ibuf);
 	
 	if(rd->scemode & R_COMP_CROP) {
 		stackbuf= get_cropped_compbuf(&rd->disprect, ima->ibuf->rect_float, ima->ibuf->x, ima->ibuf->y, CB_RGBA);
@@ -2309,7 +2279,7 @@ static float *make_gausstab(int filtertype, int rad)
 	
 	n = 2 * rad + 1;
 	
-	gausstab = (float *) MEM_mallocT(n * sizeof(float), "gauss");
+	gausstab = (float *) MEM_mallocN(n * sizeof(float), "gauss");
 	
 	sum = 0.0f;
 	for (i = -rad; i <= rad; i++) {
@@ -2332,7 +2302,7 @@ static float *make_bloomtab(int rad)
 	
 	n = 2 * rad + 1;
 	
-	bloomtab = (float *) MEM_mallocT(n * sizeof(float), "bloom");
+	bloomtab = (float *) MEM_mallocN(n * sizeof(float), "bloom");
 	
 	for (i = -rad; i <= rad; i++) {
 		val = pow(1.0 - fabs((float)i)/((float)rad), 4.0);
@@ -2400,7 +2370,7 @@ static void blur_single_image(CompBuf *new, CompBuf *img, float scale, NodeBlurD
 	}
 	
 	/* vertical */
-	MEM_freeT(gausstab);
+	MEM_freeN(gausstab);
 	
 	rad = scale*(float)nbd->sizey;
 	if(rad>imgy/2)
@@ -2447,7 +2417,7 @@ static void blur_single_image(CompBuf *new, CompBuf *img, float scale, NodeBlurD
 	}
 	
 	free_compbuf(work);
-	MEM_freeT(gausstab);
+	MEM_freeN(gausstab);
 }
 
 /* reference has to be mapped 0-1, and equal in size */
@@ -2481,7 +2451,7 @@ static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float
 		rady= 1;
 	
 	x= MAX2(radx, rady);
-	maintabs= MEM_mallocT(x*sizeof(void *), "gauss array");
+	maintabs= MEM_mallocN(x*sizeof(void *), "gauss array");
 	for(i= 0; i<x; i++)
 		maintabs[i]= make_bloomtab(i+1);
 		
@@ -2563,8 +2533,8 @@ static void bloom_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, float
 	
 	x= MAX2(radx, rady);
 	for(i= 0; i<x; i++)
-		MEM_freeT(maintabs[i]);
-	MEM_freeT(maintabs);
+		MEM_freeN(maintabs[i]);
+	MEM_freeN(maintabs);
 	
 }
 
@@ -2641,7 +2611,7 @@ static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurDa
 	n = (2*radx+1)*(2*rady+1);
 	
 	/* create a full filter image */
-	gausstab= MEM_mallocT(sizeof(float)*n, "filter tab");
+	gausstab= MEM_mallocN(sizeof(float)*n, "filter tab");
 	dgauss= gausstab;
 	val= 0.0f;
 	for(j=-rady; j<=rady; j++) {
@@ -2701,7 +2671,7 @@ static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurDa
 		}
 	}
 	
-	MEM_freeT(gausstab);
+	MEM_freeN(gausstab);
 }
 
 
@@ -2751,7 +2721,7 @@ static void blur_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, NodeBl
 		rady= 1;
 	
 	x= MAX2(radx, rady);
-	maintabs= MEM_mallocT(x*sizeof(void *), "gauss array");
+	maintabs= MEM_mallocN(x*sizeof(void *), "gauss array");
 	for(i= 0; i<x; i++)
 		maintabs[i]= make_gausstab(nbd->filtertype, i+1);
 	
@@ -2821,8 +2791,8 @@ static void blur_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, NodeBl
 	
 	x= MAX2(radx, rady);
 	for(i= 0; i<x; i++)
-		MEM_freeT(maintabs[i]);
-	MEM_freeT(maintabs);
+		MEM_freeN(maintabs[i]);
+	MEM_freeN(maintabs);
 	
 	if(ref_use!=ref)
 		free_compbuf(ref_use);
@@ -3179,7 +3149,7 @@ static void bilinear_interpolation_rotate(CompBuf *in, float *out, float u, floa
 static void node_composit_exec_rotate(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	
-	if(out[0]->hasoutput==NULL)
+	if(out[0]->hasoutput==0)
 		return;
 	
 	if(in[0]->data) {

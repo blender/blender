@@ -117,6 +117,8 @@ volatile unsigned long mem_in_use= 0, mmap_in_use= 0;
 volatile static struct localListBase _membase;
 volatile static struct localListBase *membase = &_membase;
 static void (*error_callback)(char *) = NULL;
+static void (*thread_lock_callback)(void) = NULL;
+static void (*thread_unlock_callback)(void) = NULL;
 
 #ifdef malloc
 #undef malloc
@@ -147,6 +149,18 @@ static void print_error(const char *str, ...)
 	if (error_callback) error_callback(buf);
 }
 
+static void mem_lock_thread()
+{
+	if (thread_lock_callback)
+		thread_lock_callback();
+}
+
+static void mem_unlock_thread()
+{
+	if (thread_unlock_callback)
+		thread_unlock_callback();
+}
+
 int MEM_check_memory_integrity()
 {
 	const char* err_val = NULL;
@@ -167,6 +181,11 @@ void MEM_set_error_callback(void (*func)(char *))
 	error_callback = func;
 }
 
+void MEM_set_lock_callback(void (*lock)(void), void (*unlock)(void))
+{
+	thread_lock_callback = lock;
+	thread_unlock_callback = unlock;
+}
 
 int MEM_allocN_len(void *vmemh)
 {
@@ -222,14 +241,18 @@ void *MEM_mallocN(unsigned int len, const char *str)
 {
 	MemHead *memh;
 
+	mem_lock_thread();
+
 	len = (len + 3 ) & ~3; 	/* allocate in units of 4 */
 	
 	memh= (MemHead *)malloc(len+sizeof(MemHead)+sizeof(MemTail));
 
 	if(memh) {
 		make_memhead_header(memh, len, str);
+		mem_unlock_thread();
 		return (++memh);
 	}
+	mem_unlock_thread();
 	print_error("Malloc returns nill: len=%d in %s, total %u\n",len, str, mem_in_use);
 	return NULL;
 }
@@ -238,14 +261,18 @@ void *MEM_callocN(unsigned int len, const char *str)
 {
 	MemHead *memh;
 
+	mem_lock_thread();
+
 	len = (len + 3 ) & ~3; 	/* allocate in units of 4 */
 
 	memh= (MemHead *)calloc(len+sizeof(MemHead)+sizeof(MemTail),1);
 
 	if(memh) {
 		make_memhead_header(memh, len, str);
+		mem_unlock_thread();
 		return (++memh);
 	}
+	mem_unlock_thread();
 	print_error("Calloc returns nill: len=%d in %s, total %u\n",len, str, mem_in_use);
 	return 0;
 }
@@ -257,6 +284,8 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 	return MEM_callocN(len, str);
 #else
 	MemHead *memh;
+
+	mem_lock_thread();
 	
 	len = (len + 3 ) & ~3; 	/* allocate in units of 4 */
 	
@@ -280,13 +309,14 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 		make_memhead_header(memh, len, str);
 		memh->mmap= 1;
 		mmap_in_use += len;
+		mem_unlock_thread();
 		return (++memh);
 	}
 	else {
+		mem_unlock_thread();
 		print_error("Mapalloc returns nill, fallback to regular malloc: len=%d in %s, total %u\n",len, str, mmap_in_use);
 		return MEM_callocN(len, str);
 	}
-	return NULL;
 #endif
 }
 
@@ -294,6 +324,8 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 void MEM_printmemlist()
 {
 	MemHead *membl;
+
+	mem_lock_thread();
 
 	membl = membase->first;
 	if (membl) membl = MEMNEXT(membl);
@@ -303,6 +335,8 @@ void MEM_printmemlist()
 			membl= MEMNEXT(membl->next);
 		else break;
 	}
+
+	mem_unlock_thread();
 }
 
 short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
@@ -337,6 +371,8 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 		return(-1);
 	}
 
+	mem_lock_thread();
+
 	if ((memh->tag1 == MEMTAG1) && (memh->tag2 == MEMTAG2) && ((memh->len & 0x3) == 0)) {
 		memt = (MemTail *)(((char *) memh) + sizeof(MemHead) + memh->len);
 		if (memt->tag3 == MEMTAG3){
@@ -346,6 +382,8 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 			memt->tag3 = MEMFREE;
 			/* after tags !!! */
 			rem_memblock(memh);
+
+			mem_unlock_thread();
 			
 			return(0);
 		}
@@ -364,6 +402,8 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 
 	totblock--;
 	/* here a DUMP should happen */
+
+	mem_unlock_thread();
 
 	return(error);
 }

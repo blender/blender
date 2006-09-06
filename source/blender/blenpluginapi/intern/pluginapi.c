@@ -76,20 +76,21 @@ LIBEXPORT short freeN(void *vmemh)
 	return MEM_freeN(vmemh);
 }
 
-
+/* these are not needed anymore, mallocN/callocN/freeN is now threadsafe */
 LIBEXPORT void *mallocT(int len, char *str)
 {
-	return MEM_mallocT(len, str);
+	return MEM_mallocN(len, str);
 }
 
 LIBEXPORT void *callocT(int len, char *str)
 {
-	return MEM_callocT(len, str);
+	return MEM_callocN(len, str);
 }
 
 LIBEXPORT void freeT(void *vmemh)
 {
-	return MEM_freeT(vmemh);
+	MEM_freeN(vmemh);
+	return;
 }
 
 

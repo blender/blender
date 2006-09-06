@@ -141,7 +141,6 @@ void glaDrawPixelsSafe		(float x, float y, int img_w, int img_h, int row_w, int 
 	 */
 
 	/* only for float rects, converts to 32 bits and draws */
-	/* uses threadsafe malloc */
 void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w, float *rectf);
 
 

@@ -85,15 +85,15 @@ void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty)
 	zspan->rectx= rectx;
 	zspan->recty= recty;
 	
-	zspan->span1= MEM_mallocT(recty*sizeof(float), "zspan");
-	zspan->span2= MEM_mallocT(recty*sizeof(float), "zspan");
+	zspan->span1= MEM_mallocN(recty*sizeof(float), "zspan");
+	zspan->span2= MEM_mallocN(recty*sizeof(float), "zspan");
 }
 
 static void zbuf_free_span(ZSpan *zspan)
 {
 	if(zspan) {
-		if(zspan->span1) MEM_freeT(zspan->span1);
-		if(zspan->span2) MEM_freeT(zspan->span2);
+		if(zspan->span1) MEM_freeN(zspan->span1);
+		if(zspan->span2) MEM_freeN(zspan->span2);
 		zspan->span1= zspan->span2= NULL;
 	}
 }
@@ -259,9 +259,9 @@ static APixstr *addpsmainA(ListBase *lb)
 {
 	APixstrMain *psm;
 
-	psm= MEM_mallocT(sizeof(APixstrMain), "addpsmainA");
+	psm= MEM_mallocN(sizeof(APixstrMain), "addpsmainA");
 	BLI_addtail(lb, psm);
-	psm->ps= MEM_callocT(4096*sizeof(APixstr),"pixstr");
+	psm->ps= MEM_callocN(4096*sizeof(APixstr),"pixstr");
 
 	return psm->ps;
 }
@@ -273,8 +273,8 @@ static void freepsA(ListBase *lb)
 	for(psm= lb->first; psm; psm= psmnext) {
 		psmnext= psm->next;
 		if(psm->ps)
-			MEM_freeT(psm->ps);
-		MEM_freeT(psm);
+			MEM_freeN(psm->ps);
+		MEM_freeN(psm);
 	}
 }
 
@@ -2099,11 +2099,11 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	zspan.zofsy= 0.0f;
 	
 	/* the buffers */
-	rectz= MEM_mapallocT(sizeof(float)*xsize*ysize, "zbuf accum");
+	rectz= MEM_mapallocN(sizeof(float)*xsize*ysize, "zbuf accum");
 	zspan.rectz= (int *)rectz;
 	
-	rectmove= MEM_mapallocT(xsize*ysize, "rectmove");
-	rectdraw= MEM_mapallocT(sizeof(DrawBufPixel)*xsize*ysize, "rect draw");
+	rectmove= MEM_mapallocN(xsize*ysize, "rectmove");
+	rectdraw= MEM_mapallocN(sizeof(DrawBufPixel)*xsize*ysize, "rect draw");
 	zspan.rectp= (int *)rectdraw;
 	
 	/* debug... check if PASS_VECTOR_MAX still is in buffers */
@@ -2121,7 +2121,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 		float minspeed= (float)nbd->minspeed;
 		float minspeedsq= minspeed*minspeed;
 		
-		minvecbufrect= MEM_mapallocT(4*sizeof(float)*xsize*ysize, "minspeed buf");
+		minvecbufrect= MEM_mapallocN(4*sizeof(float)*xsize*ysize, "minspeed buf");
 		
 		dvec1= vecbufrect;
 		dvec2= minvecbufrect;
@@ -2147,7 +2147,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	}
 	
 	/* make vertex buffer with averaged speed and zvalues */
-	rectvz= MEM_mapallocT(5*sizeof(float)*(xsize+1)*(ysize+1), "vertices");
+	rectvz= MEM_mapallocN(5*sizeof(float)*(xsize+1)*(ysize+1), "vertices");
 	dvz= rectvz;
 	for(y=0; y<=ysize; y++) {
 		
@@ -2343,11 +2343,11 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 		}
 	}
 	
-	MEM_freeT(rectz);
-	MEM_freeT(rectmove);
-	MEM_freeT(rectdraw);
-	MEM_freeT(rectvz);
-	if(minvecbufrect) MEM_freeT(vecbufrect);  /* rects were swapped! */
+	MEM_freeN(rectz);
+	MEM_freeN(rectmove);
+	MEM_freeN(rectdraw);
+	MEM_freeN(rectvz);
+	if(minvecbufrect) MEM_freeN(vecbufrect);  /* rects were swapped! */
 	zbuf_free_span(&zspan);
 }
 
@@ -2415,7 +2415,7 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 	zspan.zmuly=  ((float)R.winy)/2.0;
 	
 	/* the buffers */
-	zspan.arectz= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "Arectz");
+	zspan.arectz= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "Arectz");
 	zspan.apixbuf= APixbuf;
 	zspan.apsmbase= apsmbase;
 	
@@ -2508,7 +2508,7 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 		if(R.test_break()) break;
 	}
 	
-	MEM_freeT(zspan.arectz);
+	MEM_freeN(zspan.arectz);
 	zbuf_free_span(&zspan);
 
 }
@@ -2694,7 +2694,7 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 	if(R.test_break())
 		return;
 	
-	APixbuf= MEM_callocT(pa->rectx*pa->recty*sizeof(APixstr), "APixbuf");
+	APixbuf= MEM_callocN(pa->rectx*pa->recty*sizeof(APixstr), "APixbuf");
 	
 	if(R.osa>16) {
 		printf("abufsetrow: osa too large\n");
@@ -2861,7 +2861,7 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 	/* disable scanline updating */
 	rr->renlay= NULL;
 
-	MEM_freeT(APixbuf);
+	MEM_freeN(APixbuf);
 	freepsA(&apsmbase);	
 
 }

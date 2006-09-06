@@ -97,6 +97,16 @@ typedef struct ThreadSlot {
 	int avail;
 } ThreadSlot;
 
+static void BLI_lock_malloc_thread()
+{
+	pthread_mutex_lock(&_malloc_lock);
+}
+
+static void BLI_unlock_malloc_thread()
+{
+	pthread_mutex_unlock(&_malloc_lock);
+}
+
 void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 {
 	int a;
@@ -114,6 +124,8 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 		tslot->do_thread= do_thread;
 		tslot->avail= 1;
 	}
+
+	MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
 }
 
 /* amount of available threads */
@@ -182,57 +194,19 @@ void BLI_end_threads(ListBase *threadbase)
 	}
 	BLI_freelistN(threadbase);
 	
+	MEM_set_lock_callback(NULL, NULL);
 }
 
 void BLI_lock_thread(int type)
 {
-	if(type==LOCK_MALLOC)
-		pthread_mutex_lock(&_malloc_lock);
-	else
+	if (type==LOCK_CUSTOM1)
 		pthread_mutex_lock(&_custom1_lock);
 }
 
 void BLI_unlock_thread(int type)
 {
-	if(type==LOCK_MALLOC)
-		pthread_mutex_unlock(&_malloc_lock);
-	else
+	if(type==LOCK_CUSTOM1)
 		pthread_mutex_unlock(&_custom1_lock);
 }
-
-
-/* ***************** Thread safe MEM_malloc/calloc/free ************************** */
-
-void *MEM_mallocT(int len, char *name)
-{
-	void *mem;
-	pthread_mutex_lock(&_malloc_lock);
-	mem= MEM_mallocN(len, name);
-	pthread_mutex_unlock(&_malloc_lock);
-	return mem;
-}
-void *MEM_callocT(int len, char *name)
-{
-	void *mem;
-	pthread_mutex_lock(&_malloc_lock);
-	mem= MEM_callocN(len, name);
-	pthread_mutex_unlock(&_malloc_lock);
-	return mem;
-}
-void *MEM_mapallocT(int len, char *name)
-{
-	void *mem;
-	pthread_mutex_lock(&_malloc_lock);
-	mem= MEM_mapallocN(len, name);
-	pthread_mutex_unlock(&_malloc_lock);
-	return mem;
-}
-void MEM_freeT(void *poin)
-{
-	pthread_mutex_lock(&_malloc_lock);
-	MEM_freeN(poin);
-	pthread_mutex_unlock(&_malloc_lock);
-}
-
 
 /* eof */

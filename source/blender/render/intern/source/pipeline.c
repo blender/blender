@@ -163,28 +163,28 @@ static void free_render_result(RenderResult *res)
 	while(res->layers.first) {
 		RenderLayer *rl= res->layers.first;
 		
-		if(rl->rectf) MEM_freeT(rl->rectf);
+		if(rl->rectf) MEM_freeN(rl->rectf);
 		/* acolrect is optionally allocated in shade_tile, only free here since it can be used for drawing */
-		if(rl->acolrect) MEM_freeT(rl->acolrect);
+		if(rl->acolrect) MEM_freeN(rl->acolrect);
 		
 		while(rl->passes.first) {
 			RenderPass *rpass= rl->passes.first;
-			if(rpass->rect) MEM_freeT(rpass->rect);
+			if(rpass->rect) MEM_freeN(rpass->rect);
 			BLI_remlink(&rl->passes, rpass);
-			MEM_freeT(rpass);
+			MEM_freeN(rpass);
 		}
 		BLI_remlink(&res->layers, rl);
-		MEM_freeT(rl);
+		MEM_freeN(rl);
 	}
 	
 	if(res->rect32)
-		MEM_freeT(res->rect32);
+		MEM_freeN(res->rect32);
 	if(res->rectz)
-		MEM_freeT(res->rectz);
+		MEM_freeN(res->rectz);
 	if(res->rectf)
-		MEM_freeT(res->rectf);
+		MEM_freeN(res->rectf);
 	
-	MEM_freeT(res);
+	MEM_freeN(res);
 }
 
 /* all layers except the active one get temporally pushed away */
@@ -309,7 +309,7 @@ static void render_unique_exr_name(Render *re, char *str)
 static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channels, int passtype)
 {
 	char *typestr= get_pass_name(passtype, 0);
-	RenderPass *rpass= MEM_callocT(sizeof(RenderPass), typestr);
+	RenderPass *rpass= MEM_callocN(sizeof(RenderPass), typestr);
 	int rectsize= rr->rectx*rr->recty*channels;
 	
 	BLI_addtail(&rl->passes, rpass);
@@ -327,12 +327,12 @@ static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channel
 			int x;
 			
 			/* initialize to max speed */
-			rect= rpass->rect= MEM_mapallocT(sizeof(float)*rectsize, typestr);
+			rect= rpass->rect= MEM_mapallocN(sizeof(float)*rectsize, typestr);
 			for(x= rectsize-1; x>=0; x--)
 				rect[x]= PASS_VECTOR_MAX;
 		}
 		else
-			rpass->rect= MEM_mapallocT(sizeof(float)*rectsize, typestr);
+			rpass->rect= MEM_mapallocN(sizeof(float)*rectsize, typestr);
 	}
 }
 
@@ -376,7 +376,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 	if(rectx<=0 || recty<=0)
 		return NULL;
 	
-	rr= MEM_callocT(sizeof(RenderResult), "new render result");
+	rr= MEM_callocN(sizeof(RenderResult), "new render result");
 	rr->rectx= rectx;
 	rr->recty= recty;
 	rr->renrect.xmin= 0; rr->renrect.xmax= rectx-2*crop;
@@ -399,7 +399,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 		if((re->r.scemode & R_SINGLE_LAYER) && nr!=re->r.actlay)
 			continue;
 		
-		rl= MEM_callocT(sizeof(RenderLayer), "new render layer");
+		rl= MEM_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		
 		strcpy(rl->name, srl->name);
@@ -414,7 +414,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.A");
 		}
 		else
-			rl->rectf= MEM_mapallocT(rectx*recty*sizeof(float)*4, "Combined rgba");
+			rl->rectf= MEM_mapallocN(rectx*recty*sizeof(float)*4, "Combined rgba");
 		
 		if(srl->passflag  & SCE_PASS_Z)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_Z);
@@ -438,10 +438,10 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 	}
 	/* previewrender and envmap don't do layers, so we make a default one */
 	if(rr->layers.first==NULL) {
-		rl= MEM_callocT(sizeof(RenderLayer), "new render layer");
+		rl= MEM_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		
-		rl->rectf= MEM_mapallocT(rectx*recty*sizeof(float)*4, "prev/env float rgba");
+		rl->rectf= MEM_mapallocN(rectx*recty*sizeof(float)*4, "prev/env float rgba");
 		
 		/* note, this has to be in sync with scene.c */
 		rl->lay= (1<<20) -1;
@@ -716,7 +716,7 @@ Render *RE_NewRender(const char *name)
 	if(re==NULL) {
 		
 		/* new render data struct */
-		re= MEM_callocT(sizeof(Render), "new render");
+		re= MEM_callocN(sizeof(Render), "new render");
 		BLI_addtail(&RenderList, re);
 		strncpy(re->name, name, RE_MAXNAME);
 	}
@@ -751,7 +751,7 @@ void RE_FreeRender(Render *re)
 	free_render_result(re->pushedresult);
 	
 	BLI_remlink(&RenderList, re);
-	MEM_freeT(re);
+	MEM_freeN(re);
 }
 
 /* exit blender */
@@ -1921,13 +1921,13 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 		int dofree = 0;
 		/* note; the way it gets 32 bits rects is weak... */
 		if(rres.rect32==NULL) {
-			rres.rect32= MEM_mapallocT(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
+			rres.rect32= MEM_mapallocN(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
 			dofree = 1;
 		}
 		RE_ResultGet32(re, rres.rect32);
 		mh->append_movie(scene->r.cfra, rres.rect32, rres.rectx, rres.recty);
 		if(dofree) {
-			MEM_freeT(rres.rect32);
+			MEM_freeN(rres.rect32);
 		}
 		printf("Append frame %d", scene->r.cfra);
 	} else {

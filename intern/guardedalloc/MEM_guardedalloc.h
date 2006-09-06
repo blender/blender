@@ -112,6 +112,10 @@ extern "C" {
 	 * @retval 0 for correct memory, 1 for corrupted memory. */
 	int MEM_check_memory_integrity(void);
 
+	/** Set thread locking functions for safe memory allocation from multiple
+	    threads, pass NULL pointers to disable thread locking again. */
+	void MEM_set_lock_callback(void (*lock)(void), void (*unlock)(void));
+
 #ifdef __cplusplus
 }
 #endif

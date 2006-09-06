@@ -31,10 +31,8 @@
 #ifndef BLI_THREADS_H
 #define BLI_THREADS_H 
 
-/* default lock is to protect MEM_ module calls, one custom lock available now. van be extended */
-#define LOCK_MALLOC		0
+/* one custom lock available now. can be extended */
 #define LOCK_CUSTOM1	1
-
 
 void	BLI_init_threads	(ListBase *threadbase, void *(*do_thread)(void *), int tot);
 int		BLI_available_threads(ListBase *threadbase);
@@ -45,12 +43,6 @@ void	BLI_end_threads		(ListBase *threadbase);
 
 void	BLI_lock_thread		(int type);
 void	BLI_unlock_thread	(int type);
-
-		/* threadsafe version of MEM_malloc and friends */
-void	*MEM_mallocT(int len, char *name);
-void	*MEM_callocT(int len, char *name);
-void	*MEM_mapallocT(int len, char *name);
-void	MEM_freeT(void *poin);
 
 #endif
 

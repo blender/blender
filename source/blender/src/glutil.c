@@ -297,8 +297,7 @@ void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w,
 	/* copy imgw-imgh to a temporal 32 bits rect */
 	if(img_w<1 || img_h<1) return;
 	
-	/* happens during threaded render... */
-	rc= rect32= MEM_mallocT(img_w*img_h*sizeof(int), "temp 32 bits");
+	rc= rect32= MEM_mallocN(img_w*img_h*sizeof(int), "temp 32 bits");
 	
 	for(y=0; y<img_h; y++) {
 		rf= rectf;
@@ -312,8 +311,8 @@ void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w,
 	}
 	
 	glaDrawPixelsSafe(fx, fy, img_w, img_h, img_w, GL_RGBA, GL_UNSIGNED_BYTE, rect32);
-	
-	MEM_freeT(rect32);
+
+	MEM_freeN(rect32);
 }
 
 void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int format, int type, void *rect)

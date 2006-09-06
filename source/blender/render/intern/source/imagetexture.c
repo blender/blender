@@ -48,7 +48,6 @@
 #include "DNA_texture_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_threads.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
@@ -105,9 +104,8 @@ int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
 		/* hack for icon render */
 		if(R.r.scemode &R_NO_IMAGE_LOAD)
 			return 0;
-		BLI_lock_thread(LOCK_MALLOC);
-		if(ima->ibuf==NULL) ima_ibuf_is_nul(tex, ima);
-		BLI_unlock_thread(LOCK_MALLOC);
+		if(ima->ibuf==NULL)
+			ima_ibuf_is_nul(tex, ima);
 	}
 
 	if (ima->ok) {
@@ -628,21 +626,15 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 		return retval;
 	}
 	
-	if(ima->ibuf==NULL) {
-		BLI_lock_thread(LOCK_MALLOC);
-		if(ima->ibuf==NULL) ima_ibuf_is_nul(tex, ima);
-		BLI_unlock_thread(LOCK_MALLOC);
-	}
+	if(ima->ibuf==NULL)
+		ima_ibuf_is_nul(tex, ima);
 	
 	if (ima->ok) {
 	
-		if(tex->imaflag & TEX_MIPMAP) {
-			if(ima->mipmap[0]==NULL) {
-				BLI_lock_thread(LOCK_MALLOC);
-				if(ima->mipmap[0]==NULL) makemipmap(tex, ima);
-				BLI_unlock_thread(LOCK_MALLOC);
-			}
-		}
+		if(tex->imaflag & TEX_MIPMAP)
+			if(ima->mipmap[0]==NULL)
+				if(ima->mipmap[0]==NULL)
+					makemipmap(tex, ima);
 	
 		ibuf = ima->ibuf;
 		

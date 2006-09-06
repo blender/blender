@@ -33,6 +33,8 @@
 #include <stdlib.h>
 
 /* External modules: */
+#include "MEM_guardedalloc.h"
+
 #include "MTC_matrixops.h"
 
 #include "BLI_arithb.h"
@@ -3088,10 +3090,10 @@ static PixStrMain *addpsmain(ListBase *lb)
 {
 	PixStrMain *psm;
 	
-	psm= (PixStrMain *)MEM_mallocT(sizeof(PixStrMain),"pixstrMain");
+	psm= (PixStrMain *)MEM_mallocN(sizeof(PixStrMain),"pixstrMain");
 	BLI_addtail(lb, psm);
 	
-	psm->ps= (PixStr *)MEM_mallocT(4096*sizeof(PixStr),"pixstr");
+	psm->ps= (PixStr *)MEM_mallocN(4096*sizeof(PixStr),"pixstr");
 	psm->counter= 0;
 	
 	return psm;
@@ -3104,8 +3106,8 @@ static void freeps(ListBase *lb)
 	for(psm= lb->first; psm; psm= psmnext) {
 		psmnext= psm->next;
 		if(psm->ps)
-			MEM_freeT(psm->ps);
-		MEM_freeT(psm);
+			MEM_freeN(psm->ps);
+		MEM_freeN(psm);
 	}
 	lb->first= lb->last= NULL;
 }
@@ -3189,15 +3191,15 @@ void zbufshadeDA_tile(RenderPart *pa)
 	
 	/* allocate the necessary buffers */
 				/* zbuffer inits these rects */
-	pa->rectp= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "rectp");
-	pa->rectz= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "rectz");
+	pa->rectp= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");
+	pa->rectz= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
 	
 	for(rl= rr->layers.first; rl; rl= rl->next) {
 
 		/* initialize pixelstructs and edge buffer */
 		addpsmain(&psmlist);
-		pa->rectdaps= MEM_callocT(sizeof(long)*pa->rectx*pa->recty+4, "zbufDArectd");
-		if(R.r.mode & R_EDGE) edgerect= MEM_callocT(sizeof(float)*pa->rectx*pa->recty, "rectedge");
+		pa->rectdaps= MEM_callocN(sizeof(long)*pa->rectx*pa->recty+4, "zbufDArectd");
+		if(R.r.mode & R_EDGE) edgerect= MEM_callocN(sizeof(float)*pa->rectx*pa->recty, "rectedge");
 		
 		/* always fill visibility */
 		for(pa->sample=0; pa->sample<R.osa; pa->sample++) {
@@ -3235,7 +3237,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 				int x;
 				
 				/* allocate, but not free here, for asynchronous display of this rect in main thread */
-				rl->acolrect= MEM_callocT(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
+				rl->acolrect= MEM_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
 				
 				if(rl->passflag & SCE_PASS_VECTOR)
 					if(rl->layflag & SCE_LAY_SOLID)
@@ -3266,16 +3268,16 @@ void zbufshadeDA_tile(RenderPart *pa)
 			convert_to_key_alpha(pa, rl->rectf);
 		
 		/* free stuff within loop! */
-		MEM_freeT(pa->rectdaps); pa->rectdaps= NULL;
+		MEM_freeN(pa->rectdaps); pa->rectdaps= NULL;
 		freeps(&psmlist);
 		
-		if(edgerect) MEM_freeT(edgerect);
+		if(edgerect) MEM_freeN(edgerect);
 		edgerect= NULL;
 	}
 	
 	/* free all */
-	MEM_freeT(pa->rectp); pa->rectp= NULL;
-	MEM_freeT(pa->rectz); pa->rectz= NULL;
+	MEM_freeN(pa->rectp); pa->rectp= NULL;
+	MEM_freeN(pa->rectz); pa->rectz= NULL;
 	
 	/* display active layer */
 	rr->renrect.ymin=rr->renrect.ymax= 0;
@@ -3297,14 +3299,14 @@ void zbufshade_tile(RenderPart *pa)
 	set_part_zbuf_clipflag(pa);
 	
 	/* zbuffer code clears/inits rects */
-	pa->rectp= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "rectp");
-	pa->rectz= MEM_mallocT(sizeof(int)*pa->rectx*pa->recty, "rectz");
+	pa->rectp= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");
+	pa->rectz= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
 
 	shpi.thread= pa->thread;
 	
 	for(rl= rr->layers.first; rl; rl= rl->next) {
 		
-		if(R.r.mode & R_EDGE) edgerect= MEM_callocT(sizeof(float)*pa->rectx*pa->recty, "rectedge");
+		if(R.r.mode & R_EDGE) edgerect= MEM_callocN(sizeof(float)*pa->rectx*pa->recty, "rectedge");
 		
 		/* fill shadepixel info struct */
 		shpi.lay= rl->lay;
@@ -3369,7 +3371,7 @@ void zbufshade_tile(RenderPart *pa)
 				int x;
 				
 				/* allocate, but not free here, for asynchronous display of this rect in main thread */
-				rl->acolrect= MEM_callocT(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
+				rl->acolrect= MEM_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
 				
 				if(addpassflag & SCE_PASS_VECTOR)
 					if(rl->layflag & SCE_LAY_SOLID)
@@ -3400,7 +3402,7 @@ void zbufshade_tile(RenderPart *pa)
 		if(R.r.alphamode & R_ALPHAKEY)
 			convert_to_key_alpha(pa, rl->rectf);
 		
-		if(edgerect) MEM_freeT(edgerect);
+		if(edgerect) MEM_freeN(edgerect);
 		edgerect= NULL;
 	}
 
@@ -3408,8 +3410,8 @@ void zbufshade_tile(RenderPart *pa)
 	rr->renrect.ymin=rr->renrect.ymax= 0;
 	rr->renlay= render_get_active_layer(&R, rr);
 	
-	MEM_freeT(pa->rectp); pa->rectp= NULL;
-	MEM_freeT(pa->rectz); pa->rectz= NULL;
+	MEM_freeN(pa->rectp); pa->rectp= NULL;
+	MEM_freeN(pa->rectz); pa->rectz= NULL;
 }
 
 /* ------------------------------------------------------------------------ */
