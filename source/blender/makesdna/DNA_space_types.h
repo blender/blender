@@ -526,6 +526,7 @@ typedef struct SpaceImaSel {
 #define SO_ACTIVE		4
 #define SO_SAME_TYPE	5
 #define SO_GROUPS		6
+#define SO_LIBRARIES	7
 
 /* SpaceOops->storeflag */
 #define SO_TREESTORE_CLEANUP	1

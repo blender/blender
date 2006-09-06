@@ -114,7 +114,6 @@
 #include "BPI_script.h"
 
 #define MAX_IDPUP		60	/* was 24 */
-#define MAX_LIBARRAY	100 /* was 30, warning: used it readfile.c too */
 
 /* ************* general ************************ */
 
@@ -201,6 +200,7 @@ ListBase *wich_libbase(Main *mainlib, short type)
 	return 0;
 }
 
+/* note: MAX_LIBARRAY define should match this code */
 int set_listbasepointers(Main *main, ListBase **lb)
 {
 	/* BACKWARDS! also watch order of free-ing! (mesh<->mat) */

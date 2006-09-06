@@ -399,7 +399,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	
 	te->parent= parent;
 	te->index= index;	// for data arays
-	te->name= id->name+2; // default, can be overridden by non-ID data
+	te->name= id->name+2; // default, can be overridden by Library or non-ID data
 	te->idcode= GS(id->name);
 	
 	if(type==0) {
@@ -409,6 +409,9 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		
 		/* expand specific data always */
 		switch(GS(id->name)) {
+		case ID_LI:
+			te->name= ((Library *)id)->name;
+			break;
 		case ID_SCE:
 			{
 				Scene *sce= (Scene *)id;
@@ -788,7 +791,6 @@ static void outliner_make_hierarchy(SpaceOops *soops, ListBase *lb)
 
 static void outliner_build_tree(SpaceOops *soops)
 {
-	Scene *sce;
 	Base *base;
 	Object *ob;
 	TreeElement *te, *ten;
@@ -804,8 +806,15 @@ static void outliner_build_tree(SpaceOops *soops)
 	/* clear ob id.new flags */
 	for(ob= G.main->object.first; ob; ob= ob->id.next) ob->id.newid= NULL;
 	
-	/* option 1: all scenes */
-	if(soops->outlinevis == SO_ALL_SCENES) {
+	/* options */
+	if(soops->outlinevis == SO_LIBRARIES) {
+		Library *lib;
+		for(lib= G.main->library.first; lib; lib= lib->id.next) {
+			outliner_add_element(soops, &soops->tree, lib, NULL, 0, 0);
+		}
+	}
+	else if(soops->outlinevis == SO_ALL_SCENES) {
+		Scene *sce;
 		for(sce= G.main->scene.first; sce; sce= sce->id.next) {
 			te= outliner_add_element(soops, &soops->tree, sce, NULL, 0, 0);
 			tselem= TREESTORE(te);
@@ -848,7 +857,7 @@ static void outliner_build_tree(SpaceOops *soops)
 				
 				for(go= group->gobject.first; go; go= go->next) {
 					ten= outliner_add_element(soops, &te->subtree, go->ob, te, 0, 0);
-					ten->directdata= NULL;
+					ten->directdata= NULL; /* eh, why? */
 				}
 				outliner_make_hierarchy(soops, &te->subtree);
 				/* clear id.newid, to prevent objects be inserted in wrong scenes (parent in other scene) */
@@ -2134,7 +2143,7 @@ void outliner_operation_menu(ScrArea *sa)
 {
 	SpaceOops *soops= sa->spacedata.first;
 	
-	// globals
+	// bad globals
 	scenelevel= objectlevel= idlevel= datalevel=0;
 	
 	set_operation_types(soops, &soops->tree);
@@ -2360,6 +2369,8 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				BIF_icon_draw(x, y, ICON_SCRIPT); break;
 			case ID_GR:
 				BIF_icon_draw(x, y, ICON_CIRCLE_DEHLT); break;
+			case ID_LI:
+				BIF_icon_draw(x, y, ICON_PARLIB); break;
 		}
 	}
 }
@@ -2739,6 +2750,7 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 			
 			if(tselem->type==TSE_EBONE) len = sizeof(((EditBone*) 0)->name);
 			else if (tselem->type==TSE_MODIFIER) len = sizeof(((ModifierData*) 0)->name);
+			else if(tselem->id && GS(tselem->id->name)==ID_LI) len = sizeof(((Library*) 0)->name);
 			else len= sizeof(((ID*) 0)->name)-2;
 			
 			dx= BIF_GetStringWidth(G.font, te->name, 0);

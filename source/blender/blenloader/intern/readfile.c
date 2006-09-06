@@ -384,7 +384,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist);
 
 static void add_main_to_main(Main *mainvar, Main *from)
 {
-	ListBase *lbarray[100], *fromarray[100];	// define in library.c too
+	ListBase *lbarray[MAX_LIBARRAY], *fromarray[MAX_LIBARRAY];
 	int a;
 
 	a= set_listbasepointers(mainvar, lbarray);
@@ -434,7 +434,7 @@ static void split_libdata(ListBase *lb, Main *first)
 void blo_split_main(ListBase *mainlist)
 {
 	Main *mainl= mainlist->first;
-	ListBase *lbarray[30];
+	ListBase *lbarray[MAX_LIBARRAY];
 	Library *lib;
 	int i;
 
@@ -6260,7 +6260,7 @@ static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
 
 static void expand_main(FileData *fd, Main *mainvar)
 {
-	ListBase *lbarray[30];
+	ListBase *lbarray[MAX_LIBARRAY];
 	ID *id;
 	int a, doit= 1;
 
@@ -6643,7 +6643,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 
 static int mainvar_count_libread_blocks(Main *mainvar)
 {
-	ListBase *lbarray[30];
+	ListBase *lbarray[MAX_LIBARRAY];
 	int a, tot= 0;
 
 	a= set_listbasepointers(mainvar, lbarray);
@@ -6661,7 +6661,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 {
 	Main *mainl= mainlist->first;
 	Main *mainptr;
-	ListBase *lbarray[30];
+	ListBase *lbarray[MAX_LIBARRAY];
 	int a, doit= 1;
 
 	while(doit) {
