@@ -43,6 +43,7 @@
 #include "BLI_arithb.h"
 #include "BLI_edgehash.h"
 
+#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "DNA_image_types.h"
@@ -303,8 +304,10 @@ int set_tpage(TFace *tface)
 			glDisable(GL_TEXTURE_2D);
 			return 0;
 		}
-		
 	}
+
+	if ((ima->ibuf->rect==NULL) && ima->ibuf->rect_float)
+		IMB_rect_from_float(ima->ibuf);
 
 	if(ima->tpageflag & IMA_TWINANIM) fCurtile= ima->lastframe;
 	else fCurtile= tface->tile;
@@ -442,6 +445,9 @@ void update_realtime_image(Image *ima, int x, int y, int w, int h)
 		int row_length = glaGetOneInteger(GL_UNPACK_ROW_LENGTH);
 		int skip_pixels = glaGetOneInteger(GL_UNPACK_SKIP_PIXELS);
 		int skip_rows = glaGetOneInteger(GL_UNPACK_SKIP_ROWS);
+
+		if ((ima->ibuf->rect==NULL) && ima->ibuf->rect_float)
+			IMB_rect_from_float(ima->ibuf);
 
 		glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 

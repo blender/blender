@@ -255,10 +255,12 @@ void imagepaint_undo()
 			if (imapaintundo.tiles[tile])
 				imapaint_copy_tile(ima, tile, x, y, 1);
 
+	free_realtime_image(ima); /* force OpenGL reload */
+	if(ima->ibuf->rect_float)
+		imb_freerectImBuf(ima->ibuf); /* force recreate of char rect */
+
 	allqueue(REDRAWIMAGE, 0);
 	allqueue(REDRAWVIEW3D, 0);
-
-	free_realtime_image(ima); /* force OpenGL reload */
 }
 
 void free_imagepaint()
