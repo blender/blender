@@ -1562,7 +1562,8 @@ static int texpaint_projected_verts(Object *ob, Mesh *mesh, TFace *tf, float *v1
 /* compute uv coordinates of mouse in face */
 void texpaint_pick_uv(Object *ob, Mesh *mesh, TFace *tf, short *xy, float *uv)
 {
-	float v1[2], v2[2], v3[2], v4[2], p[2], w[3];
+	float v1[2], v2[2], v3[2], v4[2], p[2], w[3], w2[3];
+	float absw, absw2;
 	int nvert;
 
 	/* compute barycentric coordinates of point in face and interpolate uv's.
@@ -1575,14 +1576,16 @@ void texpaint_pick_uv(Object *ob, Mesh *mesh, TFace *tf, short *xy, float *uv)
 
 	if (nvert == 4) {
 		texpaint_barycentric_2d(v1, v2, v4, p, w);
-		
-		if(w[0] < 0.0f) {
-			/* if w[0] is negative, co is on the other side of the v1-v3 edge,
-			   so we interpolate using the other triangle */
-			texpaint_barycentric_2d(v2, v3, v4, p, w);
+		texpaint_barycentric_2d(v2, v3, v4, p, w2);
 
-			uv[0]= tf->uv[1][0]*w[0] + tf->uv[2][0]*w[1] + tf->uv[3][0]*w[2];
-			uv[1]= tf->uv[1][1]*w[0] + tf->uv[2][1]*w[1] + tf->uv[3][1]*w[2];
+		/* the triangle with the largest absolute values is the one with the
+		   most negative weights */
+		absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
+		absw2= fabs(w2[0]) + fabs(w2[1]) + fabs(w2[2]);
+		
+		if(absw > absw2) {
+			uv[0]= tf->uv[1][0]*w2[0] + tf->uv[2][0]*w2[1] + tf->uv[3][0]*w2[2];
+			uv[1]= tf->uv[1][1]*w2[0] + tf->uv[2][1]*w2[1] + tf->uv[3][1]*w2[2];
 		}
 		else {
 			uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[3][0]*w[2];
