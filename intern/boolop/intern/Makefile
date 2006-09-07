@@ -42,7 +42,10 @@ CCFLAGS += $(LEVEL_2_CPP_WARNINGS)
 CPPFLAGS += -I../extern
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_MEMUTIL)/include
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I$(NAN_CONTAINER)/include
+CPPFLAGS += -I../../../source/blender/makesdna
+CPPFLAGS += -I../../../source/blender/blenlib
 CPPFLAGS += -Icommon
 
 
