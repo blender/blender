@@ -649,7 +649,7 @@ def main():
 	# Restore the transformation
 	for data in (terrains, cutters):
 		for t in data:
-			t.mesh.transform(t.matrix.inverted())
+			t.mesh.transform(t.matrix.copy().invert())
 	
 	Blender.Window.WaitCursor(0)
 	print 'terrains:%i cutters %i  %.2f secs taken' % (len(terrains), len(cutters), Blender.sys.time()-time)

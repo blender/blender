@@ -1045,7 +1045,7 @@ def pointInsideMesh(ob, pt):
 		else:
 			return False
 	
-	obSpacePt = pt*ob.matrixWorld.inverted()
+	obSpacePt = pt*ob.matrixWorld.copy().invert()
 	ray = Vector(0,0,-1)
 	me= ob.getData(mesh=1)
 	
