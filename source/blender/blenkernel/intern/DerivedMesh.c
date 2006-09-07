@@ -135,18 +135,16 @@ void DM_init_funcs(DerivedMesh *dm)
 void DM_init(DerivedMesh *dm,
              int numVerts, int numEdges, int numFaces)
 {
-	if(numVerts > 0) {
-		CustomData_init(&dm->vertData, DERIVEDMESH_INITIAL_LAYERS, numVerts,
-		                SUB_ELEMS_VERT);
-		CustomData_init(&dm->edgeData, DERIVEDMESH_INITIAL_LAYERS, numEdges,
-		                SUB_ELEMS_EDGE);
-		CustomData_init(&dm->faceData, DERIVEDMESH_INITIAL_LAYERS, numFaces,
-		                SUB_ELEMS_FACE);
+	CustomData_init(&dm->vertData, DERIVEDMESH_INITIAL_LAYERS, numVerts,
+	                SUB_ELEMS_VERT);
+	CustomData_init(&dm->edgeData, DERIVEDMESH_INITIAL_LAYERS, numEdges,
+	                SUB_ELEMS_EDGE);
+	CustomData_init(&dm->faceData, DERIVEDMESH_INITIAL_LAYERS, numFaces,
+	                SUB_ELEMS_FACE);
 
-		CustomData_add_layer(&dm->vertData, LAYERTYPE_ORIGINDEX, 0, NULL);
-		CustomData_add_layer(&dm->edgeData, LAYERTYPE_ORIGINDEX, 0, NULL);
-		CustomData_add_layer(&dm->faceData, LAYERTYPE_ORIGINDEX, 0, NULL);
-	}
+	CustomData_add_layer(&dm->vertData, LAYERTYPE_ORIGINDEX, 0, NULL);
+	CustomData_add_layer(&dm->edgeData, LAYERTYPE_ORIGINDEX, 0, NULL);
+	CustomData_add_layer(&dm->faceData, LAYERTYPE_ORIGINDEX, 0, NULL);
 
 	DM_init_funcs(dm);
 }
@@ -154,11 +152,9 @@ void DM_init(DerivedMesh *dm,
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
                       int numVerts, int numEdges, int numFaces)
 {
-	if(numVerts > 0) {
-		CustomData_from_template(&source->vertData, &dm->vertData, numVerts);
-		CustomData_from_template(&source->edgeData, &dm->edgeData, numEdges);
-		CustomData_from_template(&source->faceData, &dm->faceData, numFaces);
-	}
+	CustomData_from_template(&source->vertData, &dm->vertData, numVerts);
+	CustomData_from_template(&source->edgeData, &dm->edgeData, numEdges);
+	CustomData_from_template(&source->faceData, &dm->faceData, numFaces);
 
 	DM_init_funcs(dm);
 }
@@ -2834,13 +2830,17 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 			if(me->vnode) *deform_r = derivedmesh_from_versemesh(me->vnode, deformedVerts);
 			else {
 				*deform_r = CDDM_from_mesh(me);
-				if(deformedVerts)
+				if(deformedVerts) {
 					CDDM_apply_vert_coords(*deform_r, deformedVerts);
+					CDDM_calc_normals(*deform_r);
+				}
 			}
 #else
 			*deform_r = CDDM_from_mesh(me);
-			if(deformedVerts)
+			if(deformedVerts) {
 				CDDM_apply_vert_coords(*deform_r, deformedVerts);
+				CDDM_calc_normals(*deform_r);
+			}
 #endif
 		}
 	} else {
@@ -2960,16 +2960,21 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 		*final_r = dm;
 	} else {
 #ifdef WITH_VERSE
-		if(me->vnode) *final_r = derivedmesh_from_versemesh(me->vnode, deformedVerts);
+		if(me->vnode)
+			*final_r = derivedmesh_from_versemesh(me->vnode, deformedVerts);
 		else {
 			*final_r = CDDM_from_mesh(me);
-			if(deformedVerts)
+			if(deformedVerts) {
 				CDDM_apply_vert_coords(*final_r, deformedVerts);
+				CDDM_calc_normals(*final_r);
+			}
 		}
 #else
 		*final_r = CDDM_from_mesh(me);
-		if(deformedVerts)
+		if(deformedVerts) {
 			CDDM_apply_vert_coords(*final_r, deformedVerts);
+			CDDM_calc_normals(*final_r);
+		}
 #endif
 	}
 
