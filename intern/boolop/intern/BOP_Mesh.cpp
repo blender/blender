@@ -1,4 +1,7 @@
 /**
+ *
+ * $Id$
+ *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -33,8 +36,19 @@
 #include <iostream>
 #include <fstream>
 
+#include "MEM_guardedalloc.h"
+#include "BLI_blenlib.h"
 
-BOP_Mesh::BOP_Mesh() {}
+BOP_Mesh::BOP_Mesh()
+{
+#ifdef HASH
+#ifdef HASH_PRINTF_DEBUG
+	printf ("has hashing\n");
+#endif
+	hash = NULL;
+	hashsize = 0;
+#endif
+}
 
 /**
  * Destroys a mesh.
@@ -58,6 +72,15 @@ BOP_Mesh::~BOP_Mesh()
 		delete *itf;
 	}
 	m_faces.clear();
+
+#ifdef HASH
+	while( hashsize ) {
+		--hashsize;
+		BLI_freelistN( &hash[hashsize] );
+	}
+	MEM_freeN( hash );
+	hash = NULL;
+#endif
 }
 
 /**
@@ -79,9 +102,128 @@ BOP_Index BOP_Mesh::addVertex(MT_Point3 p)
  */
 BOP_Index BOP_Mesh::addEdge(BOP_Index v1, BOP_Index v2)
 {
+#ifdef HASH
+	/* prepare a new hash entry for the edge */
+	int minv;
+	EdgeEntry *h = (EdgeEntry *)MEM_callocN( sizeof( EdgeEntry ), "edgehash" );
+
+	/* store sorted, smallest vert first */
+	if( v1 < v2 ) {
+		minv = HASH(v1);
+		h->v1 = v1;
+		h->v2 = v2;
+	} else {
+		minv = HASH(v2);
+		h->v1 = v2;
+		h->v2 = v1;
+	}
+	h->index = m_edges.size();
+
+	/* if hash index larger than hash list, extend the list */
+	if( minv >= hashsize ) {
+		int newsize = (minv + 8) & ~7;
+		ListBase *nhash = (ListBase *)MEM_mallocN( 
+				newsize * sizeof( ListBase ),
+				"edgehashtable" );
+		/* copy old entries */
+		memcpy( nhash, hash, sizeof( ListBase ) * hashsize );
+		/* clear new ones */
+		while( hashsize < newsize ) {
+			nhash[hashsize].first = nhash[hashsize].last = NULL;
+			++hashsize;
+		}
+		if( hash )
+			MEM_freeN( hash );
+		hash = nhash;
+	}
+
+	/* add the entry to tail of the right hash list */
+	BLI_addtail( &hash[minv], h );
+#endif
 	m_edges.push_back(new BOP_Edge(v1,v2));
-	return (m_edges.size()-1);
+	return m_edges.size()-1;
 }
+
+#ifdef HASH
+/**
+ * replace one vertex with another in the hash list
+ * @param o old mesh vertex index
+ * @param n new mesh vertex index
+ * @param x edge's other mesh vertex index
+ */
+void BOP_Mesh::rehashVertex(BOP_Index o, BOP_Index n, BOP_Index x)
+{
+	EdgeEntry *edge;
+	int minv = HASH(o);
+	BOP_Index v1, v2;
+
+	/* figure out where and what to look for */
+	if( o < x ) {
+		minv = HASH(o);
+		v1 = o; v2 = x;
+	} else {
+		minv = HASH(x);
+		v1 = x; v2 = o;
+	}
+
+	/* if hash is valid, search for the match */
+	if( minv < hashsize ) {
+		for(edge = (EdgeEntry *)hash[minv].first;
+				edge; edge = edge->next ) {
+			if(edge->v1 == v1 && edge->v2 == v2)
+				break;
+		}
+
+		/* NULL edge == no match */
+		if(!edge) {
+#ifdef HASH_PRINTF_DEBUG
+			printf ("OOPS! didn't find edge (%d %d)\n",v1,v2);
+#endif
+			return;
+		}
+#ifdef HASH_PRINTF_DEBUG
+		printf ("found edge (%d %d)\n",v1,v2);
+#endif
+		/* remove the edge from the old hash list */
+		BLI_remlink( &hash[minv], edge );
+
+		/* decide where the new edge should go */
+		if( n < x ) {
+			minv = HASH(n);
+			v1 = n; v2 = x;
+		} else {
+			minv = HASH(x);
+			edge->v1 = x; edge->v2 = n;
+		}
+
+		/* if necessary, extend the hash list */
+		if( minv >= hashsize ) {
+#ifdef HASH_PRINTF_DEBUG
+			printf ("OOPS! new vertex too large! (%d->%d)\n",o,n);
+#endif
+			int newsize = (minv + 8) & ~7;
+			ListBase *nhash = (ListBase *)MEM_mallocN( 
+					newsize * sizeof( ListBase ),
+					"edgehashtable" );
+			memcpy( nhash, hash, sizeof( ListBase ) * hashsize );
+			while( hashsize < newsize ) {
+				nhash[hashsize].first = nhash[hashsize].last = NULL;
+				++hashsize;
+			}
+			if( hash )
+				MEM_freeN( hash );
+			hash = nhash;
+		}
+
+		/* add the entry to tail of the right hash list */
+		BLI_addtail( &hash[minv], edge );
+	} else {
+#ifdef HASH_PRINTF_DEBUG
+		printf ("OOPS! hash not large enough for (%d %d)\n",minv,hashsize);
+#endif
+	}
+}
+#endif
 
 /**
  * Adds a new face.
@@ -240,12 +382,36 @@ BOP_Edge* BOP_Mesh::getEdge(BOP_Indexs edges, BOP_Index v)
  */
 BOP_Edge* BOP_Mesh::getEdge(BOP_Index v1, BOP_Index v2)
 {
+#ifdef HASH
+	int minv;
+	EdgeEntry *edge;
+
+	/* figure out where and what to search for */
+	if( v1 < v2 ) {
+		minv = HASH(v1);
+	} else {
+		minv = HASH(v2);
+		BOP_Index tmp = v1;
+		v1 = v2;
+		v2 = tmp;
+	}
+
+	/* if hash index valid, search the list and return match if found */
+	if( minv < hashsize ) {
+		for(edge = (EdgeEntry *)hash[minv].first;
+				edge; edge = edge->next ) {
+			if(edge->v1 == v1 && edge->v2 == v2)
+				return m_edges[edge->index];
+		}
+	}
+#else
 	const BOP_IT_Edges edgesEnd = m_edges.end();
 	for(BOP_IT_Edges edge=m_edges.begin();edge!=edgesEnd;edge++) {
 		if (((*edge)->getVertex1() == v1 && (*edge)->getVertex2() == v2) ||
 			((*edge)->getVertex1() == v2 && (*edge)->getVertex2() == v1)) 
 			return *edge;
 	} 
+#endif
 	return NULL;
 }
 
@@ -258,6 +424,42 @@ BOP_Edge* BOP_Mesh::getEdge(BOP_Index v1, BOP_Index v2)
  */
 bool BOP_Mesh::getIndexEdge(BOP_Index v1, BOP_Index v2, BOP_Index &e)
 {
+#ifdef HASH
+	int minv;
+	EdgeEntry *edge;
+
+	/* figure out what and where to look */
+	if( v1 < v2 ) {
+		minv = HASH(v1);
+	} else {
+		minv = HASH(v2);
+		BOP_Index tmp = v1;
+		v1 = v2;
+		v2 = tmp;
+	}
+
+	/* if hash index is valid, look for a match */
+	if( minv < hashsize ) {
+		for(edge = (EdgeEntry *)hash[minv].first;
+				edge; edge = edge->next ) {
+			if(edge->v1 == v1 && edge->v2 == v2)
+				break;
+		}
+
+		/* edge != NULL means match */
+		if(edge) {
+#ifdef HASH_PRINTF_DEBUG
+			printf ("found edge (%d %d)\n",v1,v2);
+#endif
+		  	e = edge->index;
+			return true;
+		}
+#ifdef HASH_PRINTF_DEBUG
+		else
+			printf ("didn't find edge (%d %d)\n",v1,v2);
+#endif
+	}
+#else
 	BOP_Index pos=0;
 	const BOP_IT_Edges edgesEnd = m_edges.end();
 	for(BOP_IT_Edges edge=m_edges.begin();edge!=edgesEnd;edge++,pos++) {
@@ -267,6 +469,7 @@ bool BOP_Mesh::getIndexEdge(BOP_Index v1, BOP_Index v2, BOP_Index &e)
 		  return true;
 		}
 	} 
+#endif
 	return false;
 }
 
@@ -536,6 +739,9 @@ BOP_Index BOP_Mesh::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 		v1 = (v1==oldIndex?edge->getVertex2():v1);      
 		if ((edge2 = getEdge(newIndex,v1)) == NULL) {
 			edge->replaceVertexIndex(oldIndex,newIndex);
+#ifdef HASH
+			rehashVertex(oldIndex,newIndex,v1);
+#endif
 			newVertex->addEdge(*oldEdgeIndex);
 		}
 		else {
@@ -548,6 +754,9 @@ BOP_Index BOP_Mesh::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 			BOP_Vertex *oppositeVertex = m_vertexs[v1];
 			oppositeVertex->removeEdge(*oldEdgeIndex);
 			edge->replaceVertexIndex(oldIndex,newIndex);
+#ifdef HASH
+			rehashVertex(oldIndex,newIndex,v1);
+#endif
 		}
 	}
 	oldVertex->setTAG(BROKEN);

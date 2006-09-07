@@ -1,4 +1,14 @@
+/*
+ * TEMPORARY defines to enable hashing support
+ */
+
+#define HASH(x) ((x) >> 5)		/* each "hash" covers 32 indices */
+// #define HASH_PRINTF_DEBUG	/* uncomment to enable debug output */
+
 /**
+ *
+ * $Id$
+ *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -34,12 +44,19 @@
 #include "BOP_Vertex.h"
 #include "BOP_Edge.h"
 #include "BOP_Face.h"
+#include "DNA_listBase.h"
 
 typedef vector<BOP_Vertex *> BOP_Vertexs;
 typedef vector<BOP_Edge *> BOP_Edges;
-
 typedef vector<BOP_Vertex *>::iterator BOP_IT_Vertexs;
 typedef vector<BOP_Edge *>::iterator BOP_IT_Edges;
+
+#ifdef HASH
+typedef struct EdgeEntry {
+	struct EdgeEntry *next, *pref;
+	BOP_Index v1, v2, index;
+} EdgeEntry;
+#endif
 
 class BOP_Mesh
 {
@@ -47,7 +64,11 @@ private:
 	BOP_Vertexs m_vertexs;
 	BOP_Edges   m_edges;
 	BOP_Faces   m_faces;
-	
+#ifdef HASH
+	ListBase 	*hash;
+	int			hashsize;
+#endif
+
 	BOP_Index addEdge(BOP_Index v1, BOP_Index v2);
 	BOP_Edge *getEdge(BOP_Indexs edges, BOP_Index v2);    
 	bool containsFace(BOP_Faces *faces, BOP_Face *face);
@@ -83,6 +104,10 @@ public:
 	unsigned int getNumVertexs(BOP_TAG tag);
 	unsigned int getNumFaces(BOP_TAG tag);
 	BOP_Index replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex);
+#ifdef HASH
+	void rehashVertex(BOP_Index oldIndex, BOP_Index newIndex,
+		   	BOP_Index otherIndex);
+#endif
 	bool isClosedMesh();
 
 	// Debug functions
