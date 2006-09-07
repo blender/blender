@@ -552,6 +552,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_BRUSHCHANGE	2854
 #define B_BTEXBROWSE	2855
 #define B_BTEXDELETE	2856
+#define B_BRUSHKEEPDATA 2857
 
 /* *********************** */
 #define B_RADIOBUTS		3000

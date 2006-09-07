@@ -4084,7 +4084,7 @@ void do_fpaintbuts(unsigned short event)
 			allqueue(REDRAWIMAGE, 0);
 		}
 		break;
-	case B_KEEPDATA:
+	case B_BRUSHKEEPDATA:
 		brush_toggle_fake_user(settings->imapaint.brush);
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWIMAGE, 0);
@@ -4255,7 +4255,7 @@ static void editing_panel_mesh_paint(void)
 
 		uiBlockSetCol(block, TH_BUT_SETTING2);
 		id= (ID*)settings->imapaint.brush;
-		xco= std_libbuttons(block, 0, yco, 0, NULL, B_BRUSHBROWSE, ID_BR, 0, id, NULL, &(G.buts->menunr), 0, B_BRUSHLOCAL, B_BRUSHDELETE, 0, B_KEEPDATA);
+		xco= std_libbuttons(block, 0, yco, 0, NULL, B_BRUSHBROWSE, ID_BR, 0, id, NULL, &(G.buts->menunr), 0, B_BRUSHLOCAL, B_BRUSHDELETE, 0, B_BRUSHKEEPDATA);
 		uiBlockSetCol(block, TH_AUTO);
 
 		if(brush && !brush->id.lib) {
