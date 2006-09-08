@@ -38,6 +38,7 @@ struct Tex;
 struct Material;
 struct Base;
 struct HookModifierData;
+struct Scene;
 
 void add_object_draw(int type);
 void add_objectLamp(short type);
