@@ -233,6 +233,8 @@ class Scene:
     Unlink an Object from this Scene.
     @type object: Blender Object
     @param object: A Blender Object.
+    @rtype: boolean
+    @return: true if object was found in the scene.
     """
 
   def getScriptLinks (event):

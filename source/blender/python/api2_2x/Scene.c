@@ -50,6 +50,7 @@ struct View3D;
 #include "BIF_drawscene.h"	/* for set_scene */
 #include "BIF_space.h"		/* for copy_view3d_lock() */
 #include "BIF_screen.h"		/* curarea */
+#include "BDR_editobject.h"		/* free_and_unlink_base() */
 #include "mydevice.h"		/* for #define REDRAW */
 #include "DNA_view3d_types.h"
 /* python types */
@@ -824,10 +825,8 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 static PyObject *Scene_unlink( BPy_Scene * self, PyObject * args )
 {
 	BPy_Object *bpy_obj = NULL;
-	Object *object;
 	Scene *scene = self->scene;
 	Base *base;
-	short retval = 0;
 
 	if( !scene )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -837,27 +836,16 @@ static PyObject *Scene_unlink( BPy_Scene * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected Object as argument" );
 
-	object = bpy_obj->object;
-
 	/* is the object really in the scene? */
-	base = object_in_scene( object, scene );
+	base = object_in_scene( bpy_obj->object, scene );
 
 	if( base ) {		/* if it is, remove it */
-		/* check that there is a data block before decrementing refcount */
-		if( (ID *)object->data )
-			((ID *)object->data)->us--;
-		else if( object->type != OB_EMPTY )
-			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Object has no data!" );
-
-		BLI_remlink( &scene->base, base );
-		object->id.us--;
-		MEM_freeN( base );
-		scene->basact = 0;	/* in case the object was selected */
-		retval = 1;
+		free_and_unlink_base_from_scene( scene, base );
+		scene->basact = NULL;	/* in case the object was selected */
+		Py_RETURN_TRUE;
 	}
-
-	return Py_BuildValue( "i", PyInt_FromLong( retval ) );
+	else
+		Py_RETURN_FALSE;
 }
 
 /*-----------------------Scene.getChildren()-----------------------------*/

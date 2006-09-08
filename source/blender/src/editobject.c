@@ -233,15 +233,21 @@ void add_objectLamp(short type)
 	allqueue(REDRAWALL, 0);
 }
 
+/* remove base from a specific scene */
 /* note: now unlinks constraints as well */
+void free_and_unlink_base_from_scene(Scene *scene, Base *base)
+{
+	BLI_remlink(&scene->base, base);
+	free_libblock_us(&G.main->object, base->object);
+	MEM_freeN(base);
+}
+
+/* remove base from the current scene */
 void free_and_unlink_base(Base *base)
 {
 	if (base==BASACT)
 		BASACT= NULL;
-	
-	BLI_remlink(&G.scene->base, base);
-	free_libblock_us(&G.main->object, base->object);
-	MEM_freeN(base);
+	free_and_unlink_base_from_scene(G.scene, base);
 }
 
 void delete_obj(int ok)
