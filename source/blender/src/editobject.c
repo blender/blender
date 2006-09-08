@@ -1121,7 +1121,21 @@ void make_vertex_parent(void)
 			}
 			nu= nu->next;
 		}
+	}
+	else if(G.obedit->type==OB_LATTICE) {
 		
+		a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+		bp= editLatt->def;
+		while(a--) {
+			if(bp->f1 & SELECT) {
+				if(v1==0) v1= nr;
+				else if(v2==0) v2= nr;
+				else if(v3==0) v3= nr;
+				else break;
+			}
+			nr++;
+			bp++;
+		}
 	}
 	
 	if( !(v1 && v2==0 && v3==0) && !(v1 && v2 && v3) ) {
@@ -1200,7 +1214,7 @@ void make_parent(void)
 
 	if(G.scene->id.lib) return;
 	if(G.obedit) {
-		if ELEM3(G.obedit->type, OB_MESH, OB_CURVE, OB_SURF) make_vertex_parent();
+		if ELEM4(G.obedit->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE) make_vertex_parent();
 		else if (G.obedit->type==OB_ARMATURE) make_bone_parent();
 		return;
 	}

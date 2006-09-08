@@ -1208,30 +1208,23 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 
 static void give_parvert(Object *par, int nr, float *vec)
 {
-	EditMesh *em = G.editMesh;
-	EditVert *eve;
-/*  	extern ListBase editNurb; already in bad lev calls */
-	Nurb *nu;
-	Curve *cu;
-	BPoint *bp;
-	BezTriple *bezt;
 	int a, count;
 	
-	vec[0]=vec[1]=vec[2]= 0.0;
+	vec[0]=vec[1]=vec[2]= 0.0f;
 	
 	if(par->type==OB_MESH) {
 		if(G.obedit && (par->data==G.obedit->data)) {
+			EditMesh *em = G.editMesh;
+			EditVert *eve;
+			
 			if(nr >= G.totvert) nr= 0;
 
 			count= 0;
-			eve= em->verts.first;
-			while(eve) {
+			for(eve= em->verts.first; eve; eve= eve->next, count++) {
 				if(count==nr) {
 					memcpy(vec, eve->co, 12);
 					break;
 				}
-				eve= eve->next;
-				count++;
 			}
 		}
 		else {
@@ -1249,7 +1242,11 @@ static void give_parvert(Object *par, int nr, float *vec)
 		}
 	}
 	else if ELEM(par->type, OB_CURVE, OB_SURF) {
-
+		Nurb *nu;
+		Curve *cu;
+		BPoint *bp;
+		BezTriple *bezt;
+		
 		cu= par->data;
 		nu= cu->nurb.first;
 		if(par==G.obedit) nu= editNurb.first;
@@ -1284,7 +1281,24 @@ static void give_parvert(Object *par, int nr, float *vec)
 		}
 
 	}
-	else return;
+	else if(par->type==OB_LATTICE) {
+		Lattice *latt= par->data;
+		BPoint *bp;
+		
+		if(par==G.obedit) latt= editLatt;
+		
+		a= latt->pntsu*latt->pntsv*latt->pntsw;
+		count= 0;
+		bp= latt->def;
+		while(a--) {
+			if(count==nr) {
+				memcpy(vec, bp->vec, 12);
+				break;
+			}
+			count++;
+			bp++;
+		}
+	}
 }
 
 static void ob_parvert3(Object *ob, Object *par, float mat[][4])
@@ -1294,7 +1308,7 @@ static void ob_parvert3(Object *ob, Object *par, float mat[][4])
 	/* in local ob space */
 	Mat4One(mat);
 	
-	if ELEM3(par->type, OB_MESH, OB_SURF, OB_CURVE) {
+	if ELEM4(par->type, OB_MESH, OB_SURF, OB_CURVE, OB_LATTICE) {
 		
 		give_parvert(par, ob->par1, v1);
 		give_parvert(par, ob->par2, v2);
