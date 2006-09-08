@@ -179,6 +179,7 @@ static void curveModifier_copyData(ModifierData *md, ModifierData *target)
 	CurveModifierData *tcmd = (CurveModifierData*) target;
 
 	tcmd->object = cmd->object;
+	strncpy(tcmd->name, cmd->name, 32);
 }
 
 static int curveModifier_isDisabled(ModifierData *md)
@@ -243,6 +244,7 @@ static void latticeModifier_copyData(ModifierData *md, ModifierData *target)
 	LatticeModifierData *tlmd = (LatticeModifierData*) target;
 
 	tlmd->object = lmd->object;
+	strncpy(tlmd->name, lmd->name, 32);
 }
 
 static int latticeModifier_isDisabled(ModifierData *md)
@@ -1076,6 +1078,7 @@ static void mirrorModifier_copyData(ModifierData *md, ModifierData *target)
 	MirrorModifierData *tmmd = (MirrorModifierData*) target;
 
 	tmmd->axis = mmd->axis;
+	tmmd->flag = mmd->flag;
 	tmmd->tolerance = mmd->tolerance;
 }
 
@@ -1258,10 +1261,10 @@ static void edgesplitModifier_initData(ModifierData *md)
 static void edgesplitModifier_copyData(ModifierData *md, ModifierData *target)
 {
 	EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
-	EdgeSplitModifierData *tamd = (EdgeSplitModifierData*) target;
+	EdgeSplitModifierData *temd = (EdgeSplitModifierData*) target;
 
-	tamd->split_angle = emd->split_angle;
-	tamd->flags = emd->flags;
+	temd->split_angle = emd->split_angle;
+	temd->flags = emd->flags;
 }
 
 typedef struct SmoothMesh {
@@ -3055,6 +3058,7 @@ static void armatureModifier_copyData(ModifierData *md, ModifierData *target)
 
 	tamd->object = amd->object;
 	tamd->deformflag = amd->deformflag;
+	strncpy(tamd->defgrp_name, amd->defgrp_name, 32);
 }
 
 static int armatureModifier_isDisabled(ModifierData *md)
@@ -3134,6 +3138,7 @@ static void hookModifier_copyData(ModifierData *md, ModifierData *target)
 	thmd->totindex = hmd->totindex;
 	thmd->indexar = MEM_dupallocN(hmd->indexar);
 	memcpy(thmd->parentinv, hmd->parentinv, sizeof(hmd->parentinv));
+	strncpy(thmd->name, hmd->name, 32);
 }
 
 static void hookModifier_freeData(ModifierData *md)

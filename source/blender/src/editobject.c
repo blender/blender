@@ -2359,7 +2359,6 @@ void convertmenu(void)
 			
 			if(ob->flag & OB_DONE);
 			else if(ob->type==OB_MESH && ob->modifiers.first) { /* converting a mesh with no modifiers causes a segfault */
-				DispListMesh *dlm;
 				DerivedMesh *dm;
 				int needsfree=0;
 				
@@ -2390,8 +2389,8 @@ void convertmenu(void)
 				dm= mesh_get_derived_final(ob1, &needsfree);
 				//dm= mesh_create_derived_no_deform(ob1, NULL);	this was called original (instead of get_derived). man o man why! (ton)
 				
-				dlm= dm->convertToDispListMesh(dm, 0);
-				displistmesh_to_mesh(dlm, ob1->data);
+				DM_to_mesh(dm, ob1->data);
+
 				if(needsfree) dm->release(dm);
 				object_free_modifiers(ob1);	/* after derivedmesh calls! */
 				
