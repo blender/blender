@@ -6143,9 +6143,6 @@ static PyObject *Mesh_getVertsFromGroup( BPy_Mesh* self, PyObject * args )
 					count++;
 				}
 			}
-			if( !attr )
-				return EXPP_ReturnPyObjError( PyExc_ValueError,
-							      "specified index not in vertex group" );
 		}
 	}
 	/* only return what we need */
