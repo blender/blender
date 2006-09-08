@@ -22,7 +22,7 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True):
 		f= open(path_expand, 'w')
 		f.close()
 	except:
-		raise 'Error, could not write to path'
+		raise 'Error, could not write to path:' + path_expand
 	
 	
 	# RENDER THE FACES.
@@ -76,7 +76,7 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True):
 	render_cam_ob.LocZ= 1.0
 	render_cam_ob.LocX= 0.5
 	render_cam_ob.LocY= 0.5
-	
+	render_context.threads= True # good for dual core cpu's
 	render_context.render()
 	render_context.saveRenderedImage(path)
 	# Render.CloseRenderWindow()
