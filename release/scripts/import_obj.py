@@ -168,7 +168,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 			
 def split_mesh(verts_loc, faces, unique_materials, SPLIT_OBJECTS, SPLIT_MATERIALS):
 	if not SPLIT_OBJECTS and not SPLIT_MATERIALS:
-		return [(verts_loc, faces)]
+		return [(verts_loc, faces, unique_materials)]
 	
 	
 	# Return a key that makes the faces unique.
