@@ -2176,6 +2176,7 @@ void do_viewbuts(unsigned short event)
 			bArmature *arm;
 			bPoseChannel *pchan;
 			Bone *bone;
+			float eul[3];
 			
 			arm = get_armature(OBACT);
 			if (!arm || !ob->pose) return;
@@ -2187,10 +2188,11 @@ void do_viewbuts(unsigned short event)
 			}
 			if (!pchan) return;
 			
-			ob_eul[0]*= M_PI/180.0;
-			ob_eul[1]*= M_PI/180.0;
-			ob_eul[2]*= M_PI/180.0;
-			EulToQuat(ob_eul, pchan->quat);
+			/* make a copy to eul[3], to allow TAB on buttons to work */
+			eul[0]= M_PI*ob_eul[0]/180.0;
+			eul[1]= M_PI*ob_eul[1]/180.0;
+			eul[2]= M_PI*ob_eul[2]/180.0;
+			EulToQuat(eul, pchan->quat);
 		}
 		/* no break, pass on */
 	case B_ARMATUREPANEL2:
