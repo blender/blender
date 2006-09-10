@@ -976,7 +976,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	}
 	
 	if(st->showsyntax) {
-		if (!tmp->format) {
+		if (tmp && !tmp->format) {
 			get_format_string();
 		}
 	}
