@@ -3419,16 +3419,21 @@ void zbufshade_tile(RenderPart *pa)
 static void renderhalo_post(RenderResult *rr, float *rectf, HaloRen *har)	/* postprocess version */
 {
 	float dist, xsq, ysq, xn, yn, colf[4], *rectft, *rtf;
+	float haloxs, haloys;
 	int minx, maxx, miny, maxy, x, y;
 
-	har->miny= miny= har->ys - har->rad/R.ycor;
-	har->maxy= maxy= har->ys + har->rad/R.ycor;
-
+	/* calculate the disprect mapped coordinate for halo. note: rectx is disprect corrected */
+	haloxs= har->xs - R.disprect.xmin;
+	haloys= har->ys - R.disprect.ymin;
+	
+	har->miny= miny= haloys - har->rad/R.ycor;
+	har->maxy= maxy= haloys + har->rad/R.ycor;
+	
 	if(maxy<0);
 	else if(rr->recty<miny);
 	else {
-		minx= floor(har->xs-har->rad);
-		maxx= ceil(har->xs+har->rad);
+		minx= floor(haloxs-har->rad);
+		maxx= ceil(haloxs+har->rad);
 			
 		if(maxx<0);
 		else if(rr->rectx<minx);
@@ -3445,11 +3450,11 @@ static void renderhalo_post(RenderResult *rr, float *rectf, HaloRen *har)	/* pos
 	
 				rtf= rectft+4*minx;
 				
-				yn= (y - har->ys)*R.ycor;
+				yn= (y - haloys)*R.ycor;
 				ysq= yn*yn;
 				
 				for(x=minx; x<=maxx; x++) {
-					xn= x - har->xs;
+					xn= x - haloxs;
 					xsq= xn*xn;
 					dist= xsq+ysq;
 					if(dist<har->radsq) {
