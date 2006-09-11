@@ -5668,19 +5668,26 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 		tmpmesh = tmpobj->data;
 		tmpmesh->id.us--;
 		
-		/* copies the data */
-		tmpobj->data = copy_mesh( tmpmesh );
-		G.totmesh++;
-		tmpmesh = tmpobj->data;
-
+		if (cage) {
+			/* copies the data */
+			tmpobj->data = copy_mesh( tmpmesh );
+			G.totmesh++;
+			tmpmesh = tmpobj->data;
+		
 		/* if not getting the original caged mesh, get final derived mesh */
-		if( !cage ) {
+		} else {
+			
+			/* Make a dummy mesh, saves copying */
+			
+			tmpmesh = add_mesh(  );
+			G.totmesh++;
+			
+			/* Write the display mesh into the dummy mesh */
 			dm = mesh_create_derived_render( tmpobj );
 			dlm = dm->convertToDispListMesh( dm, 0 );
 			displistmesh_to_mesh( dlm, tmpmesh );
 			dm->release( dm );
 		}
-		
 		
 		/* take control of mesh before object is freed */
 		tmpobj->data = NULL;
@@ -5747,17 +5754,22 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 #endif
 
 	case OB_MESH:
-		self->mesh->totcol = tmpmesh->totcol;		
-		if( tmpmesh->mat ) {
-			for( i = tmpmesh->totcol; i-- > 0; ) {
-				/* are we an object material or data based? */
-				if (ob->colbits & 1<<i) {
-					self->mesh->mat[i] = ob->mat[i];
-					ob->mat[i]->id.us++;
-					tmpmesh->mat[i]->id.us--;
-				} else
-					self->mesh->mat[i] = tmpmesh->mat[i];
-				/* user count dosent need to change */
+		if (!cage) {
+			Mesh *origmesh= ob->data;
+			self->mesh->mat = MEM_dupallocN(origmesh->mat);
+			self->mesh->totcol = origmesh->totcol;		
+			if( origmesh->mat ) {
+				for( i = origmesh->totcol; i-- > 0; ) {
+					/* are we an object material or data based? */
+					if (ob->colbits & 1<<i) {
+						self->mesh->mat[i] = ob->mat[i];
+						ob->mat[i]->id.us++;
+						origmesh->mat[i]->id.us--;
+					} else {
+						origmesh->mat[i]->id.us++;
+						self->mesh->mat[i] = origmesh->mat[i];
+					}
+				}
 			}
 		}
 		break;
