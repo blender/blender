@@ -731,29 +731,24 @@ static char *get_obdata_defname(int type)
 	}
 }
 
-/* general add: to G.scene, with layer from area and default name */
-/* creates minimum required data, but without vertices etc. */
-Object *add_object(int type)
+/* more general add: creates minimum required data, but without vertices etc. */
+Object *add_only_object(int type, char *name)
 {
 	Object *ob;
-	Base *base;
-	char name[32];
 
-	strcpy(name, get_obdata_defname(type));
-	
 	ob= alloc_libblock(&G.main->object, ID_OB, name);
 	G.totobj++;
-	
+
 	/* default object vars */
 	ob->type= type;
 	/* ob->transflag= OB_QUAT; */
-	
+
 	QuatOne(ob->quat);
 	QuatOne(ob->dquat);
 
 	ob->col[0]= ob->col[1]= ob->col[2]= 0.0;
 	ob->col[3]= 1.0;
-	
+
 	ob->loc[0]= ob->loc[1]= ob->loc[2]= 0.0;
 	ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
 	ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
@@ -764,7 +759,7 @@ Object *add_object(int type)
 	if(U.flag & USER_MAT_ON_OB) ob->colbits= -1;
 	ob->empty_drawtype= OB_ARROWS;
 	ob->empty_drawsize= 1.0;
-	
+
 	if(type==OB_CAMERA || type==OB_LAMP) {
 		ob->trackflag= OB_NEGZ;
 		ob->upflag= OB_POSY;
@@ -791,15 +786,29 @@ Object *add_object(int type)
 	/* NT fluid sim defaults */
 	ob->fluidsimFlag = 0;
 	ob->fluidsimSettings = NULL;
-	
+
+	return ob;
+}
+
+/* general add: to G.scene, with layer from area and default name */
+/* creates minimum required data, but without vertices etc. */
+Object *add_object(int type)
+{
+	Object *ob;
+	Base *base;
+	char name[32];
+
+	strcpy(name, get_obdata_defname(type));
+	ob = add_only_object(type, name);
+
 	ob->data= add_obdata_from_type(type);
-	
+
 	ob->lay= G.scene->lay;
 
 	base= scene_add_base(G.scene, ob);
 	scene_select_base(G.scene, base);
 	ob->recalc |= OB_RECALC;
-	
+
 	return ob;
 }
 

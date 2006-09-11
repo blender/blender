@@ -769,6 +769,7 @@ PyObject *M_Object_New( PyObject * self_unused, PyObject * args )
 	int type;
 	char *str_type;
 	char *name = NULL;
+	Object *add_only_object(int type, char *name);
 
 	if( !PyArg_ParseTuple( args, "s|s", &str_type, &name ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -804,64 +805,13 @@ PyObject *M_Object_New( PyObject * self_unused, PyObject * args )
 	/* No name is specified, set the name to the type of the object. */
 		name = str_type;
 	}
-	object = alloc_libblock( &( G.main->object ), ID_OB, name );
+	object = add_only_object(type, name);
 
 	object->flag = 0;
-	object->type = (short)type;
-
-
-	/* transforms */
-	QuatOne( object->quat );
-	QuatOne( object->dquat );
-
-	object->col[3] = 1.0;	/* alpha */
-
-	object->size[0] = object->size[1] = object->size[2] = 1.0;
-	object->loc[0] = object->loc[1] = object->loc[2] = 0.0;
-	Mat4One( object->parentinv );
-	Mat4One( object->obmat );
-	object->dt = OB_SHADED;	/* drawtype*/
-	object->empty_drawsize= 1.0;
-	object->empty_drawtype= OB_ARROWS;
-	
-	if( U.flag & USER_MAT_ON_OB ) {
-		object->colbits = -1;
-	}
-	switch ( object->type ) {
-	case OB_CAMERA:	/* fall through. */
-	case OB_LAMP:
-		object->trackflag = OB_NEGZ;
-		object->upflag = OB_POSY;
-		break;
-	default:
-		object->trackflag = OB_POSY;
-		object->upflag = OB_POSZ;
-	}
-	object->ipoflag = OB_OFFS_OB + OB_OFFS_PARENT;
-
-	/* duplivert settings */
-	object->dupon = 1;
-	object->dupoff = 0;
-	object->dupsta = 1;
-	object->dupend = 100;
-
-	/* Gameengine defaults */
-	object->mass = 1.0;
-	object->inertia = 1.0;
-	object->formfactor = 0.4f;
-	object->damping = 0.04f;
-	object->rdamping = 0.1f;
-	object->anisotropicFriction[0] = 1.0;
-	object->anisotropicFriction[1] = 1.0;
-	object->anisotropicFriction[2] = 1.0;
-	object->gameflag = OB_PROP;
-
 	object->lay = 1;	/* Layer, by default visible*/
-	G.totobj++;
-
 	object->data = NULL;
 
-	/* user count be incremented in Object_CreatePyObject */
+	/* user count is incremented in Object_CreatePyObject */
 	object->id.us = 0;
 
 	/* Create a Python object from it. */
@@ -3092,7 +3042,11 @@ Object *GetObjectByName( char *name )
 /*****************************************************************************/
 static void Object_dealloc( BPy_Object * obj )
 {
+#if 1	/* this just adjust the ID but doesn't delete zero-user objects */
 	obj->object->id.us--;
+#else	/* this will adjust the ID and if zero delete the object */
+	free_libblock_us( &G.main->object, obj->object );
+#endif
 	PyObject_DEL( obj );
 }
 
