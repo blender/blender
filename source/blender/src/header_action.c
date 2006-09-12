@@ -87,7 +87,7 @@
 #define ACTMENU_SEL_BORDER      0
 #define ACTMENU_SEL_ALL_KEYS    1
 #define ACTMENU_SEL_ALL_CHAN    2
-#define ACTMENU_SEL_COLLUMN		3
+#define ACTMENU_SEL_COLUMN		3
 
 #define ACTMENU_KEY_DUPLICATE     0
 #define ACTMENU_KEY_DELETE        1
@@ -358,7 +358,7 @@ static void do_action_selectmenu(void *arg, int event)
 			allqueue (REDRAWIPO, 0);
 			break;
 		
-		case ACTMENU_SEL_COLLUMN:
+		case ACTMENU_SEL_COLUMN:
 			addqueue (curarea->win, KKEY, 1);
 			break;
 	}
@@ -388,9 +388,9 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_ALL_CHAN, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Select Collumn|K", 0, yco-=20, 
+					 "Select Column|K", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_SEL_COLLUMN, "");
+					 ACTMENU_SEL_COLUMN, "");
 	
 	
 	if(curarea->headertype==HEADERTOP) {
