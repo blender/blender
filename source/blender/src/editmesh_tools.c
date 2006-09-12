@@ -5884,7 +5884,7 @@ void shape_copy_select_from()
 			}
 			a++;
 		}
-		nr = pupmenu(menu);
+		nr = pupmenu_col(menu, 20);
 		MEM_freeN(menu);		
 	} else {
 		error("Object Has No Blendshapes");	
