@@ -112,7 +112,7 @@ typedef struct ImagePaintState {
 	/* texture paint only */
 	Object *ob;
 	Mesh *me;
-	TFace *tface;
+	int faceindex;
 	float uv[2];
 } ImagePaintState;
 
@@ -459,7 +459,7 @@ static void imapaint_compute_uvco(short *mval, float *uv)
 /* 3D TexturePaint */
 
 int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect);
-void texpaint_pick_uv(Object *ob, Mesh *mesh, TFace *tf, short *xy, float *mousepos);
+void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy, float *mousepos);
 
 static int texpaint_break_stroke(float *prevuv, float *fwuv, float *bkuv, float *uv)
 {
@@ -536,19 +536,17 @@ static int imapaint_do_paint(ImagePaintState *s, BrushPainter *painter, Image *i
 
 static void imapaint_do(ImagePaintState *s, BrushPainter *painter, short texpaint, short *prevmval, short *mval, double time)
 {
-	TFace *newtface = NULL;
 	Image *newimage = NULL;
 	float fwuv[2], bkuv[2], newuv[2];
-	unsigned int face_index;
+	unsigned int newfaceindex;
 	int breakstroke = 0, redraw = 0;
 
 	if (texpaint) {
 
 		/* pick face and image */
-		if (facesel_face_pick(s->me, mval, &face_index, 0)) {
-			newtface = s->me->tface + face_index;
-			newimage = (Image*)newtface->tpage;
-			texpaint_pick_uv(s->ob, s->me, newtface, mval, newuv);
+		if (facesel_face_pick(s->me, mval, &newfaceindex, 0)) {
+			newimage = (Image*)((s->me->tface+newfaceindex)->tpage);
+			texpaint_pick_uv(s->ob, s->me, newfaceindex, mval, newuv);
 		}
 		else
 			newuv[0] = newuv[1] = 0.0f;
@@ -556,8 +554,8 @@ static void imapaint_do(ImagePaintState *s, BrushPainter *painter, short texpain
 		/* see if stroke is broken, and if so finish painting in old position */
 		if (s->image) {
 			if (newimage == s->image) {
-				texpaint_pick_uv(s->ob, s->me, s->tface, mval, fwuv);
-				texpaint_pick_uv(s->ob, s->me, newtface, prevmval, bkuv);
+				texpaint_pick_uv(s->ob, s->me, s->faceindex, mval, fwuv);
+				texpaint_pick_uv(s->ob, s->me, newfaceindex, prevmval, bkuv);
 				breakstroke= texpaint_break_stroke(s->uv, fwuv, bkuv, newuv);
 			}
 			else
@@ -565,7 +563,7 @@ static void imapaint_do(ImagePaintState *s, BrushPainter *painter, short texpain
 		}
 
 		if (breakstroke) {
-			texpaint_pick_uv(s->ob, s->me, s->tface, mval, fwuv);
+			texpaint_pick_uv(s->ob, s->me, s->faceindex, mval, fwuv);
 			redraw |= imapaint_do_paint(s, painter, s->image, texpaint, fwuv, time, 1);
 			imapaint_clear_partial_redraw();
 			brush_painter_break_stroke(painter);
@@ -585,7 +583,7 @@ static void imapaint_do(ImagePaintState *s, BrushPainter *painter, short texpain
 
 		/* update state */
 		s->image = newimage;
-		s->tface = newtface;
+		s->faceindex = newfaceindex;
 		s->uv[0] = newuv[0];
 		s->uv[1] = newuv[1];
 	}
@@ -649,6 +647,8 @@ void imagepaint_paint(short mousebutton, short texpaint)
 
 	imapaint_do(&s, painter, texpaint, prevmval, mval, time);
 
+	//get_tablet_data();
+
 	/* paint loop */
 	while(get_mbut() & mousebutton) {
 		getmouseco_areawin(mval);
@@ -658,6 +658,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 			imapaint_do(&s, painter, texpaint, prevmval, mval, time);
 			prevmval[0]= mval[0];
 			prevmval[1]= mval[1];
+			//s.brush->size = MAX2(1, MIN2(200, s.brush->size*0.9));
 		}
 		else if (s.brush->flag & BRUSH_AIRBRUSH)
 			imapaint_do(&s, painter, texpaint, prevmval, mval, time);

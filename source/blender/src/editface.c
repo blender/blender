@@ -56,7 +56,9 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_brush.h"
+#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
@@ -1535,9 +1537,8 @@ static void texpaint_project(Object *ob, double *model, double *proj, GLint *vie
 	pco[1]= (float)winy;
 }
 
-static int texpaint_projected_verts(Object *ob, Mesh *mesh, TFace *tf, float *v1, float *v2, float *v3, float *v4)
+static int texpaint_projected_verts(Object *ob, MFace *mf, TFace *tf, MVert *mv, float *v1, float *v2, float *v3, float *v4)
 {
-	MFace *mf = mesh->mface + (tf - mesh->tface);
 	double model[16], proj[16];
 	GLint view[4];
 
@@ -1550,53 +1551,85 @@ static int texpaint_projected_verts(Object *ob, Mesh *mesh, TFace *tf, float *v1
 	view[0] = view[1] = 0;
 
 	/* project the verts */
-	texpaint_project(ob, model, proj, view, (mesh->mvert+mf->v1)->co, v1);
-	texpaint_project(ob, model, proj, view, (mesh->mvert+mf->v2)->co, v2);
-	texpaint_project(ob, model, proj, view, (mesh->mvert+mf->v3)->co, v3);
+	texpaint_project(ob, model, proj, view, mv[0].co, v1);
+	texpaint_project(ob, model, proj, view, mv[1].co, v2);
+	texpaint_project(ob, model, proj, view, mv[2].co, v3);
 	if(mf->v4)
-		texpaint_project(ob, model, proj, view, (mesh->mvert+mf->v4)->co, v4);
+		texpaint_project(ob, model, proj, view, mv[3].co, v4);
 
 	return (mf->v4? 4: 3);
 }
 
 /* compute uv coordinates of mouse in face */
-void texpaint_pick_uv(Object *ob, Mesh *mesh, TFace *tf, short *xy, float *uv)
+void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy, float *uv)
 {
-	float v1[2], v2[2], v3[2], v4[2], p[2], w[3], w2[3];
-	float absw, absw2;
-	int nvert;
+	float v1[2], v2[2], v3[2], v4[2], p[2], w[3];
+	float absw, minabsw;
+	int nvert, dmNeedsFree;
+	DerivedMesh *dm = mesh_get_derived_final(ob, &dmNeedsFree);
+	int *index = dm->getFaceDataArray(dm, LAYERTYPE_ORIGINDEX);
+	TFace *tface = dm->getFaceDataArray(dm, LAYERTYPE_TFACE), *tf;
+	int numfaces = dm->getNumFaces(dm), a;
+	MFace mf;
+	MVert mv[4];
 
-	/* compute barycentric coordinates of point in face and interpolate uv's.
-	   it's ok to compute the barycentric coords on the projected positions,
-	   because they are invariant under affine transform */
-	nvert= texpaint_projected_verts(ob, mesh, tf, v1, v2, v3, v4);
+	minabsw = 1e10;
+	uv[0] = uv[1] = 0.0;
 
-	p[0]= xy[0];
-	p[1]= xy[1];
+	/* test all faces in the derivedmesh with the original index of the picked face */
+	for (a = 0; a < numfaces; a++) {
+		if (index[a] == faceindex) {
+			dm->getFace(dm, a, &mf);
 
-	if (nvert == 4) {
-		texpaint_barycentric_2d(v1, v2, v4, p, w);
-		texpaint_barycentric_2d(v2, v3, v4, p, w2);
+			dm->getVert(dm, mf.v1, &mv[0]);
+			dm->getVert(dm, mf.v2, &mv[1]);
+			dm->getVert(dm, mf.v3, &mv[2]);
+			if (mf.v4)
+				dm->getVert(dm, mf.v4, &mv[3]);
 
-		/* the triangle with the largest absolute values is the one with the
-		   most negative weights */
-		absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
-		absw2= fabs(w2[0]) + fabs(w2[1]) + fabs(w2[2]);
-		
-		if(absw > absw2) {
-			uv[0]= tf->uv[1][0]*w2[0] + tf->uv[2][0]*w2[1] + tf->uv[3][0]*w2[2];
-			uv[1]= tf->uv[1][1]*w2[0] + tf->uv[2][1]*w2[1] + tf->uv[3][1]*w2[2];
-		}
-		else {
-			uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[3][0]*w[2];
-			uv[1]= tf->uv[0][1]*w[0] + tf->uv[1][1]*w[1] + tf->uv[3][1]*w[2];
+			tf= &tface[a];
+
+			/* compute barycentric coordinates of point in face and interpolate uv's.
+			   it's ok to compute the barycentric coords on the projected positions,
+			   because they are invariant under affine transform */
+			nvert= texpaint_projected_verts(ob, &mf, tf, mv, v1, v2, v3, v4);
+
+			p[0]= xy[0];
+			p[1]= xy[1];
+
+			if (nvert == 4) {
+				/* the triangle with the largest absolute values is the one with the
+				   most negative weights */
+				texpaint_barycentric_2d(v1, v2, v4, p, w);
+				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
+				if(absw < minabsw) {
+					uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[3][0]*w[2];
+					uv[1]= tf->uv[0][1]*w[0] + tf->uv[1][1]*w[1] + tf->uv[3][1]*w[2];
+					minabsw = absw;
+				}
+
+				texpaint_barycentric_2d(v2, v3, v4, p, w);
+				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
+				if (absw < minabsw) {
+					uv[0]= tf->uv[1][0]*w[0] + tf->uv[2][0]*w[1] + tf->uv[3][0]*w[2];
+					uv[1]= tf->uv[1][1]*w[0] + tf->uv[2][1]*w[1] + tf->uv[3][1]*w[2];
+					minabsw = absw;
+				}
+			}
+			else {
+				texpaint_barycentric_2d(v1, v2, v3, p, w);
+				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
+				if (absw < minabsw) {
+					uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[2][0]*w[2];
+					uv[1]= tf->uv[0][1]*w[0] + tf->uv[1][1]*w[1] + tf->uv[2][1]*w[2];
+					minabsw = absw;
+				}
+			}
 		}
 	}
-	else {
-		texpaint_barycentric_2d(v1, v2, v3, p, w);
-		uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[2][0]*w[2];
-		uv[1]= tf->uv[0][1]*w[0] + tf->uv[1][1]*w[1] + tf->uv[2][1]*w[2];
-	}
+
+	if (dmNeedsFree)
+		dm->release(dm);
 }
 
  /* Selects all faces which have the same uv-texture as the active face 

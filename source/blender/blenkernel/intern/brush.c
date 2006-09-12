@@ -472,6 +472,11 @@ struct BrushPainter {
 
 	short firsttouch;		/* first paint op */
 
+	float startsize;
+	float startalpha;
+	float startinnerradius;
+	float startspacing;
+
 	BrushPainterCache cache;
 };
 
@@ -482,6 +487,11 @@ BrushPainter *brush_painter_new(Brush *brush)
 	painter->brush= brush;
 	painter->firsttouch= 1;
 	painter->cache.lastsize= -1; /* force ibuf create in refresh */
+
+	painter->startsize = brush->size;
+	painter->startalpha = brush->alpha;
+	painter->startinnerradius = brush->innerradius;
+	painter->startspacing = brush->spacing;
 
 	return painter;
 }
@@ -510,6 +520,13 @@ void brush_painter_require_imbuf(BrushPainter *painter, short flt, short texonly
 
 void brush_painter_free(BrushPainter *painter)
 {
+	Brush *brush = painter->brush;
+
+	brush->size = painter->startsize;
+	brush->alpha = painter->startalpha;
+	brush->innerradius = painter->startinnerradius;
+	brush->spacing = painter->startspacing;
+
 	if (painter->cache.ibuf) IMB_freeImBuf(painter->cache.ibuf);
 	if (painter->cache.texibuf) IMB_freeImBuf(painter->cache.texibuf);
 	if (painter->cache.maskibuf) IMB_freeImBuf(painter->cache.maskibuf);
@@ -757,9 +774,10 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 #endif
 	else {
 		float startdistance, spacing, step, paintpos[2], dmousepos[2];
+		float brushsize = MAX2(1.0, brush->size);
 
 		/* compute brush spacing adapted to brush size */
-		spacing= brush->size*brush->spacing*0.01f;
+		spacing= brushsize*brush->spacing*0.01f;
 
 		/* setup starting distance, direction vector and accumulated distance */
 		startdistance= painter->accumdistance;
