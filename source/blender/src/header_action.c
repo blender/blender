@@ -87,6 +87,7 @@
 #define ACTMENU_SEL_BORDER      0
 #define ACTMENU_SEL_ALL_KEYS    1
 #define ACTMENU_SEL_ALL_CHAN    2
+#define ACTMENU_SEL_COLLUMN		3
 
 #define ACTMENU_KEY_DUPLICATE     0
 #define ACTMENU_KEY_DELETE        1
@@ -356,6 +357,10 @@ static void do_action_selectmenu(void *arg, int event)
 			allqueue(REDRAWNLA, 0);
 			allqueue (REDRAWIPO, 0);
 			break;
+		
+		case ACTMENU_SEL_COLLUMN:
+			addqueue (curarea->win, KKEY, 1);
+			break;
 	}
 }
 
@@ -382,7 +387,12 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 "Select/Deselect All Channels", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_ALL_CHAN, "");
-
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Select Collumn|K", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_COLLUMN, "");
+	
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}

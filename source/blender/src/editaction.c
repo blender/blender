@@ -555,6 +555,112 @@ static IpoCurve *get_nearest_meshchannel_key (float *index, short *sel)
     return firsticu;
 }
 
+/* This function makes a list of the selected keyframes
+ * in the ipo curves it has been passed
+ */
+static void make_sel_cfra_list(Ipo *ipo, ListBase *elems)
+{
+	IpoCurve *icu;
+	BezTriple *bezt;
+	int a;
+	
+	for(icu= ipo->curve.first; icu; icu= icu->next) {
+
+		bezt= icu->bezt;
+		if(bezt) {
+			a= icu->totvert;
+			while(a--) {
+				if(bezt->f2 & 1) {
+					add_to_cfra_elem(elems, bezt);
+				}
+				bezt++;
+			}
+		}
+	}
+}
+
+/* This function selects all key frames in the same column(s) as a already selected key(s)
+ * this version only works for Shape Keys, Key should be not NULL
+ */
+static void select_frames_by_sel_frameskey(Key *key)
+{
+
+	if(key->ipo) {
+		IpoCurve *icu;
+		ListBase elems= {NULL, NULL};
+		CfraElem *ce;
+		
+		/* create a list of all selected keys */
+		make_sel_cfra_list(key->ipo, &elems);
+		
+		/* loop through all of the keys and select additional keyframes
+			* based on the keys found to be selected above
+			*/
+		for(ce= elems.first; ce; ce= ce->next) {
+			for (icu = key->ipo->curve.first; icu ; icu = icu->next) {
+				BezTriple *bezt= icu->bezt;
+				if(bezt) {
+					int verts = icu->totvert;
+					while(verts--) {
+						if( ((int)ce->cfra) == ((int)bezt->vec[1][0]) ) {
+							bezt->f2 |= 1;
+						}
+						bezt++;
+					}
+				}
+			}
+		}
+
+		BLI_freelistN(&elems);
+	}
+}
+
+/* This function selects all key frames in the same column(s) as a already selected key(s)
+ * this version only works for on Action. *act should be not NULL
+ */
+static void select_frames_by_sel_framesaction(bAction *act)
+{
+	IpoCurve *icu;
+	BezTriple *bezt;
+	ListBase elems= {NULL, NULL};
+	CfraElem *ce;
+	bActionChannel *chan;
+
+	/* create a list of all selected keys */
+	for (chan=act->chanbase.first; chan; chan=chan->next){
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			if (chan->ipo)
+				make_sel_cfra_list(chan->ipo, &elems);
+		}
+	}
+
+	/* loop through all of the keys and select additional keyframes
+	 * based on the keys found to be selected above
+	 */
+	for (chan=act->chanbase.first; chan; chan=chan->next){
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			if (chan->ipo) {
+				for(ce= elems.first; ce; ce= ce->next) {
+					for (icu = chan->ipo->curve.first; icu; icu = icu->next){
+						bezt= icu->bezt;
+						if(bezt) {
+							int verts = icu->totvert;
+							while(verts--) {
+						
+								if( ((int)ce->cfra) == ((int)bezt->vec[1][0]) ) {
+									bezt->f2 |= 1;
+								}
+								bezt++;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	BLI_freelistN(&elems);
+}
+
 /* apparently within active object context */
 static void mouse_action(int selectmode)
 {
@@ -677,10 +783,10 @@ void borderselect_action(void)
 		return;
 
 	if ( (val = get_border(&rect, 3)) ){
-    if (val == LEFTMOUSE)
-      selectmode = SELECT_ADD;
-    else
-      selectmode = SELECT_SUBTRACT;
+		if (val == LEFTMOUSE)
+			selectmode = SELECT_ADD;
+		else
+			selectmode = SELECT_SUBTRACT;
 
 		mval[0]= rect.xmin;
 		mval[1]= rect.ymin+2;
@@ -2357,6 +2463,18 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						sethandles_actionchannel_keys(HD_ALIGN);
 				}
 			}
+			break;
+			
+		case KKEY:
+			if(key)
+				select_frames_by_sel_frameskey(key);
+			else if(act)
+				select_frames_by_sel_framesaction(act);
+			
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
 			break;
 			
 		case NKEY:
