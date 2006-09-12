@@ -53,6 +53,7 @@
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_ipo_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
@@ -120,6 +121,11 @@ int update_realtime_texture(TFace *tface, double time)
 	return inc;
 }
 
+/* Note: unlinking is called when me->id.us is 0, question remains how
+ * much unlinking of Library data in Mesh should be done... probably
+ * we need a more generic method, like the expand() functions in
+ * readfile.c */
+
 void unlink_mesh(Mesh *me)
 {
 	int a;
@@ -130,7 +136,12 @@ void unlink_mesh(Mesh *me)
 		if(me->mat[a]) me->mat[a]->id.us--;
 		me->mat[a]= 0;
 	}
-	if(me->key) me->key->id.us--;
+
+	if(me->key) {
+	   	me->key->id.us--;
+		if (me->key->id.us == 0 && me->key->ipo )
+			me->key->ipo->id.us--;
+	}
 	me->key= 0;
 	
 	if(me->texcomesh) me->texcomesh= 0;
