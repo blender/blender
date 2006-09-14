@@ -3900,7 +3900,8 @@ void draw_object(Base *base, int flag)
 			}
 		}
 	}
-	if(dt>=OB_WIRE ) {
+	/* draw-extra supported for boundbox drawmode too */
+	if(dt>=OB_BOUNDBOX ) {
 
 		dtx= ob->dtx;
 		if(G.obedit==ob) {
