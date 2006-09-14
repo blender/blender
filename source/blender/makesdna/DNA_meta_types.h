@@ -45,16 +45,19 @@ struct Material;
 typedef struct MetaElem {
 	struct MetaElem *next, *prev;
 
-	struct BoundBox *bb;		/* Bound Box of MetaElem */
-	int i1,j1,k1, i2,j2,k2;		/* corners of Bounding Box in lattice */
+	struct BoundBox *bb;        /* Bound Box of MetaElem */
+	int i1,j1,k1, i2,j2,k2;     /* corners of Bounding Box in lattice */
 
 	short type, flag, selcol1, selcol2;
-	float x, y, z;			/* Position of centre of MetaElem */
-	float quat[4];			/* Rotation of MetaElem */
-	float expx, expy, expz;		/* dx, dy, dz parameters */
-	float rad, rad2, s, len;
+	float x, y, z;          /* Position of center of MetaElem */
+	float quat[4];          /* Rotation of MetaElem */
+	float expx, expy, expz; /* dimension parameters, used for some types like cubes */
+	float rad;              /* radius of the meta element */
+	float rad2;             /* temp field, used only while processing */
+	float s;                /* stiffness, how much of the element to fill */
+	float len;              /* old, only used for backwards compat. use dimensions now */
 	
-	float *mat, *imat;
+	float *mat, *imat;      /* matrix and inverted matrix */
 	
 } MetaElem;
 
@@ -67,14 +70,24 @@ typedef struct MetaBall {
 	ListBase disp;
 	struct Ipo *ipo;
 
-	struct Material **mat;
+	/* material of the mother ball will define the material used of all others */
+	struct Material **mat; 
 
 	short flag, totcol;
-	int texflag;
+	int texflag; /* used to store MB_AUTOSPACE */
+	
+	/* These temporary values are only used for polygonization */
 	float loc[3];
 	float size[3];
 	float rot[3];
-	float wiresize, rendersize, thresh;
+	
+	float wiresize, rendersize; /* display and render res */
+	
+	/* bias elements to have an offset volume.
+	mother ball changes will effect other objects thresholds,
+	but these may also have their own thresh as an offset */
+	float thresh;
+	
 	
 } MetaBall;
 
@@ -93,9 +106,9 @@ typedef struct MetaBall {
 
 /* ml->type */
 #define MB_BALL		0
-#define MB_TUBEX	1
-#define MB_TUBEY	2
-#define MB_TUBEZ	3
+#define MB_TUBEX	1 /* depercated */
+#define MB_TUBEY	2 /* depercated */
+#define MB_TUBEZ	3 /* depercated */
 #define MB_TUBE		4
 #define MB_PLANE	5
 #define MB_ELIPSOID	6
@@ -107,4 +120,3 @@ typedef struct MetaBall {
 #define MB_SCALE_RAD	16
 
 #endif
-
