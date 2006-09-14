@@ -4479,7 +4479,7 @@ void editing_panels()
 		editing_panel_links(ob);
 		editing_panel_lattice_type(ob, lt);
 		editing_panel_modifiers(ob);
-//		editing_panel_shapes(ob);
+		editing_panel_shapes(ob);
 		break;
 
 	case OB_LAMP:

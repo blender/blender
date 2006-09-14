@@ -903,13 +903,28 @@ static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 	}
 }
 
-static float *get_weights_array(Object *ob, Mesh *me, char *vgroup)
+static float *get_weights_array(Object *ob, char *vgroup)
 {
 	bDeformGroup *curdef;
-	int index= 0;
+	MDeformVert *dvert= NULL;
+	int totvert= 0, index= 0;
 	
+	/* no vgroup string set? */
 	if(vgroup[0]==0) return NULL;
-	if(me->dvert==NULL) return NULL;
+	
+	/* gather dvert and totvert */
+	if(ob->type==OB_MESH) {
+		Mesh *me= ob->data;
+		dvert= me->dvert;
+		totvert= me->totvert;
+	}
+	else if(ob->type==OB_LATTICE) {
+		Lattice *lt= ob->data;
+		dvert= lt->dvert;
+		totvert= lt->pntsu*lt->pntsv*lt->pntsw;
+	}
+	
+	if(dvert==NULL) return NULL;
 	
 	/* find the group (weak loop-in-loop) */
 	for (curdef = ob->defbase.first; curdef; curdef=curdef->next, index++)
@@ -917,13 +932,12 @@ static float *get_weights_array(Object *ob, Mesh *me, char *vgroup)
 			break;
 
 	if(curdef) {
-		MDeformVert *dvert= me->dvert;
 		float *weights;
 		int i, j;
 		
-		weights= MEM_callocN(me->totvert*sizeof(float), "weights");
+		weights= MEM_callocN(totvert*sizeof(float), "weights");
 		
-		for (i=0; i < me->totvert; i++, dvert++) {
+		for (i=0; i < totvert; i++, dvert++) {
 			for(j=0; j<dvert->totweight; j++) {
 				if (dvert->dw[j].def_nr == index) {
 					weights[i]= dvert->dw[j].weight;
@@ -989,7 +1003,7 @@ static int do_mesh_key(Object *ob, Mesh *me)
 			KeyBlock *kb;
 			
 			for(kb= me->key->block.first; kb; kb= kb->next)
-				kb->weights= get_weights_array(ob, me, kb->vgroup);
+				kb->weights= get_weights_array(ob, kb->vgroup);
 
 			do_rel_key(0, me->totvert, me->totvert, (char *)me->mvert->co, me->key, 0);
 			
@@ -1164,7 +1178,7 @@ static int do_curve_key(Curve *cu)
 	return 1;
 }
 
-static int do_latt_key(Lattice *lt)
+static int do_latt_key(Object *ob, Lattice *lt)
 {
 	KeyBlock *k[4];
 	float delta, cfra, ctime, t[4];
@@ -1203,7 +1217,17 @@ static int do_latt_key(Lattice *lt)
 		ctime= bsystem_time(NULL, 0, (float)G.scene->r.cfra, 0.0);
 	
 		if(lt->key->type==KEY_RELATIVE) {
+			KeyBlock *kb;
+			
+			for(kb= lt->key->block.first; kb; kb= kb->next)
+				kb->weights= get_weights_array(ob, kb->vgroup);
+			
 			do_rel_key(0, tot, tot, (char *)lt->def->vec, lt->key, 0);
+			
+			for(kb= lt->key->block.first; kb; kb= kb->next) {
+				if(kb->weights) MEM_freeN(kb->weights);
+				kb->weights= NULL;
+			}
 		}
 		else {
 			if(calc_ipo_spec(lt->key->ipo, KEY_SPEED, &ctime)==0) {
@@ -1244,7 +1268,7 @@ int do_ob_key(Object *ob)
 		
 		if(ob->type==OB_MESH) {
 			Mesh *me= ob->data;
-			float *weights= get_weights_array(ob, me, kb->vgroup);
+			float *weights= get_weights_array(ob, kb->vgroup);
 
 			cp_key(0, me->totvert, me->totvert, (char *)me->mvert->co, key, kb, weights, 0);
 			
@@ -1252,9 +1276,12 @@ int do_ob_key(Object *ob)
 		}
 		else if(ob->type==OB_LATTICE) {
 			Lattice *lt= ob->data;
+			float *weights= get_weights_array(ob, kb->vgroup);
 			int tot= lt->pntsu*lt->pntsv*lt->pntsw;
 			
-			cp_key(0, tot, tot, (char *)lt->def->vec, key, kb, NULL, 0);
+			cp_key(0, tot, tot, (char *)lt->def->vec, key, kb, weights, 0);
+			
+			if(weights) MEM_freeN(weights);
 		}
 		else if ELEM(ob->type, OB_CURVE, OB_SURF) {
 			Curve *cu= ob->data;
@@ -1275,7 +1302,7 @@ int do_ob_key(Object *ob)
 		if(ob->type==OB_MESH) return do_mesh_key(ob, ob->data);
 		else if(ob->type==OB_CURVE) return do_curve_key( ob->data);
 		else if(ob->type==OB_SURF) return do_curve_key( ob->data);
-		else if(ob->type==OB_LATTICE) return do_latt_key( ob->data);
+		else if(ob->type==OB_LATTICE) return do_latt_key(ob, ob->data);
 	}
 	
 	return 0;
