@@ -1079,6 +1079,34 @@ static int node_composit_buts_file_output(uiBlock *block, bNodeTree *ntree, bNod
 	return 60;
 }
 
+static void node_scale_cb(void *node_v, void *unused_v)
+{
+	bNode *node= node_v;
+	bNodeSocket *nsock;
+
+	/* check the 2 inputs, and set them to reasonable values */
+	for(nsock= node->inputs.first; nsock; nsock= nsock->next) {
+		if(node->custom1==CMP_SCALE_RELATIVE)
+			nsock->ns.vec[0]= 1.0;
+		else {
+			if(nsock->next==NULL)
+				nsock->ns.vec[0]= (float)G.scene->r.ysch;
+			else
+				nsock->ns.vec[0]= (float)G.scene->r.xsch;
+		}
+	}	
+}
+
+static int node_composit_buts_scale(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		uiBut *bt= uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "Absolute",
+				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
+				  &node->custom1, 0, 0, 0, 0, "");
+		uiButSetFunc(bt, node_scale_cb, node, NULL);
+	}
+	return 20;
+}
 
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
@@ -1143,6 +1171,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_OUTPUT_FILE:
 			ntype->butfunc= node_composit_buts_file_output;
+			break;
+		case CMP_NODE_SCALE:
+			ntype->butfunc= node_composit_buts_scale;
 			break;
 		default:
 			ntype->butfunc= NULL;

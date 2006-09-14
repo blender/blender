@@ -230,8 +230,9 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_COMBRGBA		227
 #define CMP_NODE_DILATEERODE	228
 #define CMP_NODE_ROTATE			229
+#define CMP_NODE_SCALE			230
 
-/* filter types */
+/* filter types, in custom1 */
 #define CMP_FILT_SOFT		0
 #define CMP_FILT_SHARP		1
 #define CMP_FILT_LAPLACE	2
@@ -240,6 +241,9 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_FILT_KIRSCH		5
 #define CMP_FILT_SHADOW		6
 
+/* scale node type, in custom1 */
+#define CMP_SCALE_RELATIVE	0
+#define CMP_SCALE_ABSOLUTE	1
 
 /* the type definitions array */
 extern bNodeType *node_all_composit[];

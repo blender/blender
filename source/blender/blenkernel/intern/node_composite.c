@@ -3200,6 +3200,85 @@ static bNodeType cmp_node_rotate= {
 };
 
 
+/* **************** Scale  ******************** */
+
+#define CMP_SCALE_MAX	12000
+
+static bNodeSocketType cmp_node_scale_in[]= {
+	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "X",				1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, CMP_SCALE_MAX},
+	{	SOCK_VALUE, 1, "Y",				1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, CMP_SCALE_MAX},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_scale_out[]= {
+	{	SOCK_RGBA, 0, "Image",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+/* only supports RGBA nodes now */
+/* node->custom1 stores if input values are absolute or relative scale */
+static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	if(out[0]->hasoutput==0)
+		return;
+	
+	if(in[0]->data) {
+		CompBuf *stackbuf, *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
+		ImBuf *ibuf;
+		int newx, newy;
+		
+		if(node->custom1==CMP_SCALE_RELATIVE) {
+			newx= MAX2((int)(in[1]->vec[0]*cbuf->x), 1);
+			newy= MAX2((int)(in[2]->vec[0]*cbuf->y), 1);
+		}
+		else {	/* CMP_SCALE_ABSOLUTE */
+			newx= (int)in[1]->vec[0];
+			newy= (int)in[2]->vec[0];
+		}
+		newx= MIN2(newx, CMP_SCALE_MAX);
+		newy= MIN2(newy, CMP_SCALE_MAX);
+
+		ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
+		if(ibuf) {
+			ibuf->rect_float= cbuf->rect;
+			IMB_scaleImBuf(ibuf, newx, newy);
+			
+			if(ibuf->rect_float == cbuf->rect) {
+				/* no scaling happened. Note, pass_on_compbuf here crashes in cases... it is weak */
+				stackbuf= dupalloc_compbuf(cbuf);
+			}
+			else {
+				stackbuf= alloc_compbuf(newx, newy, CB_RGBA, 0);
+				stackbuf->rect= ibuf->rect_float;
+				stackbuf->malloc= 1;
+			}
+
+			ibuf->rect_float= NULL;
+			ibuf->mall &= ~IB_rectfloat;
+			IMB_freeImBuf(ibuf);
+		}
+		else {
+			stackbuf= dupalloc_compbuf(cbuf);
+			printf("Scaling to %dx%d failed\n", newx, newy);
+		}
+		
+		out[0]->data= stackbuf;
+		if(cbuf!=in[0]->data)
+			free_compbuf(cbuf);
+	}
+}
+
+static bNodeType cmp_node_scale= {
+	/* type code   */	CMP_NODE_SCALE,
+	/* name        */	"Scale",
+	/* width+range */	140, 100, 320,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_scale_in,
+	/* output sock */	cmp_node_scale_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_scale
+};
+
 /* ****************** types array for all shaders ****************** */
 
 bNodeType *node_all_composit[]= {
@@ -3233,6 +3312,7 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_zcombine,
 	&cmp_node_dilateerode,
 	&cmp_node_rotate,
+	&cmp_node_scale,
 	NULL
 };
 
