@@ -405,7 +405,7 @@ static void add_nla_databrowse_callback(unsigned short val)
 }
 
 /* Adds strip to to active Object */
-static void add_nlablock(void)
+void add_nlablock(void)
 {
 	Object *ob= OBACT;
 	short event;
