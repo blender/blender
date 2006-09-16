@@ -2061,6 +2061,15 @@ static void imagewindow_progress_display_cb(RenderResult *rr, volatile rcti *rec
 {
 	
 	if (image_area) {
+		
+		if(rect==NULL) {
+			SpaceImage *sima= image_area->spacedata.first;
+			
+			/* this enforces reading correct buffer in what_image(), renderlayers/scenes/compo/sequences... */
+			IMB_freeImBuf(sima->image->ibuf);
+			sima->image->ibuf= NULL;
+		}		
+		
 		imagewindow_progress(image_area, rr, rect);
 
 		/* no screen_swapbuffers, prevent any other window to draw */
@@ -2168,6 +2177,7 @@ static ScrArea *imagewindow_set_render_display(void)
 	else if(sima->image->id.us==0)	/* well... happens on reload, dunno yet what todo, imagewindow cannot be user when hidden*/
 		sima->image->id.us= 1;
 	
+	/* this enforces reading empty buffer in what_image(), so display is cleared */
 	IMB_freeImBuf(sima->image->ibuf);
 	sima->image->ibuf= NULL;
 	
