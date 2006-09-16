@@ -1293,6 +1293,8 @@ static void give_parvert(Object *par, int nr, float *vec)
 	else if(par->type==OB_LATTICE) {
 		Lattice *latt= par->data;
 		BPoint *bp;
+		DispList *dl = find_displist(&par->disp, DL_VERTS);
+		float *co = dl?dl->verts:NULL;
 		
 		if(par==G.obedit) latt= editLatt;
 		
@@ -1301,11 +1303,15 @@ static void give_parvert(Object *par, int nr, float *vec)
 		bp= latt->def;
 		while(a--) {
 			if(count==nr) {
-				memcpy(vec, bp->vec, 12);
+				if(co)
+					memcpy(vec, co, 3*sizeof(float));
+				else
+					memcpy(vec, bp->vec, 3*sizeof(float));
 				break;
 			}
 			count++;
-			bp++;
+			if(co) co+= 3;
+			else bp++;
 		}
 	}
 }
