@@ -642,8 +642,8 @@ static void writeBlog(void)
 				}
 				i++;
 			}
+			fclose(fp);
 		}
-		fclose(fp);
 	}
 }
 
