@@ -1076,7 +1076,7 @@ void make_vertex_parent(void)
 	BezTriple *bezt;
 	BPoint *bp;
 	Object *par, *ob;
-	int a, v1=0, v2=0, v3=0, nr=1;
+	int a, v1=0, v2=0, v3=0, v4=0, nr=1;
 	
 	/* we need 1 to 3 selected vertices */
 	
@@ -1087,6 +1087,7 @@ void make_vertex_parent(void)
 				if(v1==0) v1= nr;
 				else if(v2==0) v2= nr;
 				else if(v3==0) v3= nr;
+				else if(v4==0) v4= nr;
 				else break;
 			}
 			nr++;
@@ -1105,6 +1106,7 @@ void make_vertex_parent(void)
 						if(v1==0) v1= nr;
 						else if(v2==0) v2= nr;
 						else if(v3==0) v3= nr;
+						else if(v4==0) v4= nr;
 						else break;
 					}
 					nr++;
@@ -1119,6 +1121,7 @@ void make_vertex_parent(void)
 						if(v1==0) v1= nr;
 						else if(v2==0) v2= nr;
 						else if(v3==0) v3= nr;
+						else if(v4==0) v4= nr;
 						else break;
 					}
 					nr++;
@@ -1137,6 +1140,7 @@ void make_vertex_parent(void)
 				if(v1==0) v1= nr;
 				else if(v2==0) v2= nr;
 				else if(v3==0) v3= nr;
+				else if(v4==0) v4= nr;
 				else break;
 			}
 			nr++;
@@ -1144,7 +1148,7 @@ void make_vertex_parent(void)
 		}
 	}
 	
-	if( !(v1 && v2==0 && v3==0) && !(v1 && v2 && v3) ) {
+	if(v4 || !((v1 && v2==0 && v3==0) || (v1 && v2 && v3)) ) {
 		error("Select either 1 or 3 vertices to parent to");
 		return;
 	}
