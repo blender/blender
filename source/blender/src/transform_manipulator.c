@@ -400,9 +400,11 @@ int calc_manipulator_stats(ScrArea *sa)
 	else if(ob && (ob->flag & OB_POSEMODE)) {
 		bArmature *arm= ob->data;
 		bPoseChannel *pchan;
+		int mode;
 		
 		if((ob->lay & G.vd->lay)==0) return 0;
 		
+		mode= Trans.mode;
 		Trans.mode= TFM_ROTATION;	// mislead counting bones... bah
 		
 		/* count total, we use same method as transform will do */
@@ -422,6 +424,8 @@ int calc_manipulator_stats(ScrArea *sa)
 			Mat4MulVecfl(ob->obmat, G.scene->twmin);
 			Mat4MulVecfl(ob->obmat, G.scene->twmax);
 		}
+		/* restore, mode can be TFM_INIT */
+		Trans.mode= mode;
 	}
 	else if(G.f & (G_FACESELECT + G_VERTEXPAINT + G_TEXTUREPAINT +G_WEIGHTPAINT)) {
 		;
