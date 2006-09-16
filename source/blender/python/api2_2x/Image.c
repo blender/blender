@@ -239,7 +239,9 @@ static PyObject *M_Image_New( PyObject * self, PyObject * args)
 						"couldn't create PyObject Image_Type" ) );
 
 	/* reset usage count, since new_image() incremented it */
-	image->id.us--;
+	/* image->id.us--; */
+	/* Strange, new images have a user count of one???, otherwise it messes up */
+	
 	return Image_CreatePyObject( image );
 }
 

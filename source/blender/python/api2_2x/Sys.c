@@ -151,9 +151,9 @@ PyObject *sys_Init( void )
 	dict = PyModule_GetDict( submodule );
 
 #ifdef WIN32
-	sep = Py_BuildValue( "s", "\\" );
+	sep = PyString_FromString( "\\" );
 #else
-	sep = Py_BuildValue( "s", "/" );
+	sep = PyString_FromString( "/" );
 #endif
 
 	if( sep ) {
@@ -169,7 +169,7 @@ static PyObject *M_sys_basename( PyObject * self, PyObject * args )
 {
 	PyObject *c;
 
-	char *name, *p, basename[FILE_MAXFILE];
+	char *name, *p, basename[FILE_MAXDIR + FILE_MAXFILE];
 	char sep;
 	int n, len;
 
@@ -188,22 +188,23 @@ static PyObject *M_sys_basename( PyObject * self, PyObject * args )
 	if( p ) {
 		n = name + len - p - 1;	/* - 1 because we don't want the sep */
 
-		if( n > FILE_MAXFILE )
+		if( n > FILE_MAXDIR + FILE_MAXFILE )
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						      "path too long" );
 
 		BLI_strncpy( basename, p + 1, n + 1 );
-		return Py_BuildValue( "s", basename );
+		return PyString_FromString( basename );
+		
 	}
 
-	return Py_BuildValue( "s", name );
+	return PyString_FromString( name );
 }
 
 static PyObject *M_sys_dirname( PyObject * self, PyObject * args )
 {
 	PyObject *c;
 
-	char *name, *p, dirname[FILE_MAXDIR];
+	char *name, *p, dirname[FILE_MAXDIR + FILE_MAXFILE];
 	char sep;
 	int n;
 
@@ -220,15 +221,15 @@ static PyObject *M_sys_dirname( PyObject * self, PyObject * args )
 	if( p ) {
 		n = p - name;
 
-		if( n > FILE_MAXDIR )
+		if( n > FILE_MAXDIR + FILE_MAXFILE )
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						      "path too long" );
 
 		BLI_strncpy( dirname, name, n + 1 );
-		return Py_BuildValue( "s", dirname );
+		return PyString_FromString( dirname );
 	}
 
-	return Py_BuildValue( "s", "." );
+	return PyString_FromString( "." );
 }
 
 static PyObject *M_sys_join( PyObject * self, PyObject * args )
@@ -263,14 +264,14 @@ static PyObject *M_sys_join( PyObject * self, PyObject * args )
 
 	BLI_strncpy( filename + pathlen - 1, name, namelen );
 
-	return Py_BuildValue( "s", filename );
+	return PyString_FromString( filename );
 }
 
 static PyObject *M_sys_splitext( PyObject * self, PyObject * args )
 {
 	PyObject *c;
 
-	char *name, *dot, *p, path[FILE_MAXFILE], ext[FILE_MAXFILE];
+	char *name, *dot, *p, path[FILE_MAXDIR + FILE_MAXFILE], ext[FILE_MAXDIR + FILE_MAXFILE];
 	char sep;
 	int n, len;
 
@@ -301,7 +302,7 @@ static PyObject *M_sys_splitext( PyObject * self, PyObject * args )
 	/* loong extensions are supported -- foolish, but Python's os.path.splitext
 	 * supports them, so ... */
 	 
-	if( n >= FILE_MAXFILE || ( len - n ) >= FILE_MAXFILE )
+	if( n >= FILE_MAXDIR + FILE_MAXFILE || ( len - n ) >= FILE_MAXDIR + FILE_MAXFILE )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError, "path too long" );
 
 	BLI_strncpy( ext, dot, n + 1 );
@@ -367,9 +368,8 @@ static PyObject *M_sys_makename( PyObject * self, PyObject * args,
 }
 
 static PyObject *M_sys_time( PyObject * self )
-{
-	double t = PIL_check_seconds_timer(  );
-	return Py_BuildValue( "d", t );
+{	
+	return PyFloat_FromDouble( PIL_check_seconds_timer(  ) );
 }
 
 static PyObject *M_sys_sleep( PyObject * self, PyObject * args )
@@ -403,8 +403,8 @@ static PyObject *M_sys_exists( PyObject * self, PyObject * args )
 	else if( S_ISDIR( mode ) )
 		i = 2;
 	/* i stays as -1 if path exists but is neither a regular file nor a dir */
-
-	return Py_BuildValue( "i", i );
+	
+	return PyInt_FromLong(i);
 }
 
 static PyObject *M_sys_expandpath( PyObject * self, PyObject * args )
