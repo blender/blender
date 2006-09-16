@@ -70,6 +70,7 @@ current image frame, some images change frame if they are a sequence */
 static PyObject *M_Image_New( PyObject * self, PyObject * args );
 static PyObject *M_Image_Get( PyObject * self, PyObject * args );
 static PyObject *M_Image_GetCurrent( PyObject * self );
+static PyObject *M_Image_SetCurrent( PyObject * self, PyObject * args );
 static PyObject *M_Image_Load( PyObject * self, PyObject * args );
 
 
@@ -195,6 +196,10 @@ static char M_Image_GetCurrent_doc[] =
 	"() - return the current image, from last active the uv/image view, \
 returns None no image is in the view.\n";
 
+static char M_Image_SetCurrent_doc[] =
+	"(image) - set the image to be the current, from last active the uv/image view, \
+returns False if no image could be set.";
+
 static char M_Image_Load_doc[] =
 	"(filename) - return image from file filename as Image Object, \
 returns None if not found.\n";
@@ -206,6 +211,7 @@ struct PyMethodDef M_Image_methods[] = {
 	{"New", M_Image_New, METH_VARARGS, M_Image_New_doc},
 	{"Get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
 	{"GetCurrent", ( PyCFunction ) M_Image_GetCurrent, METH_NOARGS, M_Image_GetCurrent_doc},	
+	{"SetCurrent", ( PyCFunction ) M_Image_SetCurrent, METH_VARARGS, M_Image_SetCurrent_doc},	
 	{"get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
 	{"Load", M_Image_Load, METH_VARARGS, M_Image_Load_doc},
 	{NULL, NULL, 0, NULL}
@@ -325,6 +331,28 @@ static PyObject *M_Image_GetCurrent( PyObject * self )
 }
 
 /*****************************************************************************/
+/* Function:		M_Image_SetCurrent*/
+/* Python equivalent:	Blender.Image.SetCurrent   */
+/* Description:		Sets the active current (G.sima)	 */
+/*			This will be the image last under the mouse cursor */
+/*			None if there is no Image.			 */
+/*****************************************************************************/
+static PyObject *M_Image_SetCurrent( PyObject * self, PyObject * args )
+{
+	BPy_Image *image;
+	
+	if (!G.sima)
+		Py_RETURN_FALSE;
+	
+	if( !PyArg_ParseTuple( args, "O!", &Image_Type, &image) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected an image argument" ) );
+	
+	G.sima->image= image->image;
+	Py_RETURN_TRUE;
+}
+
+/*****************************************************************************/
 /* Function:	M_Image_Load		 */
 /* Python equivalent:	Blender.Image.Load   */
 /* Description:		Receives a string and returns the image object	 */
@@ -351,7 +379,7 @@ static PyObject *M_Image_Load( PyObject * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_IOError,
 						"couldn't load image" ) );
 
-	//reload the image buffers
+	/*reload the image buffers/*
 	free_image_buffers(img_ptr);
 	img_ptr->ibuf = IMB_loadiffname(img_ptr->name , 0);
 
@@ -1155,16 +1183,20 @@ static PyObject *Image_getAttr( BPy_Image * self, char *name )
 			attr = EXPP_incr_ret_True();
 		else
 			attr = EXPP_incr_ret_False();
-	
+	} else if( strcmp( name, "has_data" ) == 0 ) {
+		if (self->image->ibuf)
+			attr = EXPP_incr_ret_True();
+		else
+			attr = EXPP_incr_ret_False();
 	} else if( strcmp( name, "bindcode" ) == 0 )
 		attr = PyInt_FromLong( self->image->bindcode );
 	else if( strcmp( name, "users" ) == 0 )
 		attr = PyInt_FromLong( self->image->id.us );
 	else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s]",
+		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s,s]",
 				      "name", "filename", "size", "depth",
 				      "xrep", "yrep", "start", "end",
-				      "speed", "packed",
+				      "speed", "packed", "has_data"
 				      "bindcode", "users" );
 
 	if( !attr )
