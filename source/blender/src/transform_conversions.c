@@ -2112,8 +2112,8 @@ static void set_trans_object_base_flags(TransInfo *t)
 			ob->recalc |= OB_RECALC_OB;
 		}
 	}
-	/* all recalc flags get flushed */
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
+	DAG_scene_flush_update(G.scene, -1);
 	
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
