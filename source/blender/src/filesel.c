@@ -1249,7 +1249,7 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 	sfile->ofs= 0;
 	/* sfile->act is used for databrowse: double names of library objects */
 	sfile->act= -1;
-	
+
 	if(BLI_convertstringcode(name, G.sce, G.scene->r.cfra)) sfile->flag |= FILE_STRINGCODE;
 	else sfile->flag &= ~FILE_STRINGCODE;
 
@@ -1462,6 +1462,13 @@ static void filesel_execute(SpaceFile *sfile)
 	filesel_prevspace();
 
 	if(sfile->type==FILE_LOADLIB) {
+		if(sfile->flag & FILE_STRINGCODE) {
+			if (!G.relbase_valid) {
+				okee("You have to save the .blend file before using relative paths! Using absolute path instead.");
+				sfile->flag &= ~FILE_STRINGCODE;
+			}
+		}
+
 		do_library_append(sfile);
 		BIF_undo_push("Append from file");
 		allqueue(REDRAWALL, 1);

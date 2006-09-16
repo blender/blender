@@ -817,20 +817,27 @@ void BLI_makestringcode(const char *relfile, char *file)
 
 int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 {
-	int len, wasrelative;
+	int len, wasrelative, is_filepath;
 	char tmp[FILE_MAXDIR+FILE_MAXFILE];
 	char base[FILE_MAXDIR];
-	
-	wasrelative= (strncmp(path, "//", 2)==0);
+	char vol[3] = {'\0', '\0', '\0'};
+
+	BLI_strncpy(vol, path, 2);
+	wasrelative= (strncmp(vol, "//", 2)==0);
 
 #ifdef WIN32
-	if (!wasrelative && path[1] != ':') {
+	/* we are checking here if we have an absolute path that is not in the current
+	   blend file as a lib main - we are basically checking for the case that a 
+	   UNIX root '/' is passed.
+	*/
+	if (!wasrelative && (vol[1] != ':' && (vol[0] == '\0' || vol[0] == '/' || vol[0] == '\\'))) {
+		char *p = path;
 		get_default_root(tmp);
 		// get rid of the slashes at the beginning of the path
-		while (*path == '\\' || *path == '/') {
-			path++;
+		while (*p == '\\' || *p == '/') {
+			p++;
 		}
-		strcat(tmp, path);
+		strcat(tmp, p);
 	}
 	else {
 		strcpy(tmp, path);
@@ -870,7 +877,7 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 	if(len && tmp[len-1]=='#') {
 		sprintf(tmp+len-1, "%04d", framenum);
 	}
-	
+
 	strcpy(path, tmp);
 #ifdef WIN32
 	/* skip first two chars, which in case of
