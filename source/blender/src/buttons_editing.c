@@ -2775,12 +2775,12 @@ static void editing_panel_mball_tools(Object *ob, MetaBall *mb)
 		uiDefButF(block, NUM, B_RECALCMBALL, "dz:", 750,118,250,19, &lastelem->expz, 0.0, 20.0, 1, 0, "Z size for active meta");
 		uiBlockEndAlign(block);
 
-		uiDefButS(block, ROW, B_RECALCMBALL, "Ball", 753,83,60,19, &lastelem->type, 1.0, 0.0, 0, 0, "Draw active meta as Ball");
+		uiDefButS(block, ROW, B_RECALCMBALL, "Ball", 753,83,60,19, &lastelem->type, 1.0, MB_BALL, 0, 0, "Draw active meta as Ball");
 		uiBlockBeginAlign(block);
-		uiDefButS(block, ROW, B_RECALCMBALL, "Tube", 753,62,60,19, &lastelem->type, 1.0, 4.0, 0, 0, "Draw active meta as Ball");
-		uiDefButS(block, ROW, B_RECALCMBALL, "Plane", 814,62,60,19, &lastelem->type, 1.0, 5.0, 0, 0, "Draw active meta as Plane");
-		uiDefButS(block, ROW, B_RECALCMBALL, "Elipsoid", 876,62,60,19, &lastelem->type, 1.0, 6.0, 0, 0, "Draw active meta as Ellipsoid");
-		uiDefButS(block, ROW, B_RECALCMBALL, "Cube", 938,62,60,19, &lastelem->type, 1.0, 7.0, 0, 0, "Draw active meta as Cube");
+		uiDefButS(block, ROW, B_RECALCMBALL, "Tube", 753,62,60,19, &lastelem->type, 1.0, MB_TUBE, 0, 0, "Draw active meta as Ball");
+		uiDefButS(block, ROW, B_RECALCMBALL, "Plane", 814,62,60,19, &lastelem->type, 1.0, MB_PLANE, 0, 0, "Draw active meta as Plane");
+		uiDefButS(block, ROW, B_RECALCMBALL, "Elipsoid", 876,62,60,19, &lastelem->type, 1.0, MB_ELIPSOID, 0, 0, "Draw active meta as Ellipsoid");
+		uiDefButS(block, ROW, B_RECALCMBALL, "Cube", 938,62,60,19, &lastelem->type, 1.0, MB_CUBE, 0, 0, "Draw active meta as Cube");
 		uiBlockEndAlign(block);
 
 		uiBlockBeginAlign(block);

@@ -379,7 +379,7 @@ static PyObject *M_Image_Load( PyObject * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_IOError,
 						"couldn't load image" ) );
 
-	/*reload the image buffers/*
+	/*reload the image buffers*/
 	free_image_buffers(img_ptr);
 	img_ptr->ibuf = IMB_loadiffname(img_ptr->name , 0);
 

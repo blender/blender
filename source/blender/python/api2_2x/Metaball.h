@@ -41,6 +41,7 @@ extern PyTypeObject Metaball_Type;
 
 #define BPy_Metaball_Check(v) ((v)->ob_type==&Metaball_Type)
 
+
 /* Python BPy_Metaball structure definition */
 typedef struct {
 	PyObject_HEAD		/* required py macro */
@@ -58,6 +59,16 @@ typedef struct {
 	MetaElem * metaelem;
 } BPy_Metaelem;
 
+extern PyTypeObject MetaElemSeq_Type;
+
+#define BPy_MetaElemSeq_Check(v) ((v)->ob_type==&MetaElemSeq_Type)
+
+/* Python BPy_MetaElemSeq structure definition */
+typedef struct {
+	PyObject_HEAD		/* required py macro */
+	BPy_Metaball *bpymetaball; /* link to the python group so we can know if its been removed */
+	MetaElem * iter; /* so we can iterate over the objects */
+} BPy_MetaElemSeq;
 
 /*
  * prototypes
