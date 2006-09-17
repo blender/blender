@@ -2083,12 +2083,16 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			/* Grab the mapping settings for this texture */
 			switch(mtex->texco) {
 			case TEXCO_ANGMAP:
-				
-				fact= (1.0/M_PI)*acos(lo[2])/(sqrt(lo[0]*lo[0] + lo[1]*lo[1])); 
-				tempvec[0]= lo[0]*fact;
-				tempvec[1]= lo[1]*fact;
-				tempvec[2]= 0.0;
+				/* move view vector to global world space */
+				VECCOPY(tempvec, lo);
+				Mat4Mul3Vecfl(R.viewinv, tempvec);
 				co= tempvec;
+
+				/* note, this converion assumes 'sphere probes' are front view */
+				fact= (1.0f/M_PI)*acos(co[1])/(sqrt(co[0]*co[0] + co[2]*co[2])); 
+				co[0]= co[0]*fact;
+				co[1]= co[2]*fact;
+				co[2]= 0.0f;
 				break;
 			
 			case TEXCO_H_SPHEREMAP:
