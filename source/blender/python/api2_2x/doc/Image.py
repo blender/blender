@@ -65,16 +65,6 @@ def GetCurrent ():
   @return: The Current Blender Image, If there is no current image it returns None.
   """
 
-def SetCurrent (image):
-  """
-  Set the currently displayed Image from Blenders UV/Image window.
-  When multiple images are displayed, the last active UV/Image windows image is used.
-  @type image: Blender Image
-  @param image: The image to display in the image view.
-  @rtype: bool
-  @return: True if the current image could be set, if no window was available, it will be set to False.
-  """
-
 class Image:
   """
   The Image object
@@ -336,4 +326,13 @@ class Image:
     @returns: nothing
     @rtype: none
     @type mode: int
+    """
+  def SetCurrent (image):
+    """
+    Set the currently displayed Image from Blenders UV/Image window.
+    When multiple images are displayed, the last active UV/Image windows image is used.
+    @type image: Blender Image
+    @param image: The image to display in the image view.
+    @rtype: bool
+    @return: True if the current image could be set, if no window was available, return False.
     """

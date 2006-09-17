@@ -114,6 +114,8 @@ int EXPP_setIValueClamped( PyObject *value, void *param,
 		int min, int max, char type );
 int EXPP_setFloatClamped ( PyObject *value, float *param,
 			float min, float max);
+int EXPP_setVec3Clamped ( PyObject *value, float *param[3],
+			float min, float max);
 int EXPP_setIValueRange( PyObject *value, void *param,
 		int min, int max, char type );
 int EXPP_setFloatRange ( PyObject *value, float *param,

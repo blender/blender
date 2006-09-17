@@ -59,45 +59,51 @@ Example::
 
 @type Settings: readonly dictionary
 @var Settings: Constant Modifier dict used for changing modifier settings.
-	- RENDER - Used for all modifiers
-	- REALTIME - Used for all modifiers
-	- EDITMODE - Used for all modifiers
-	- ONCAGE - Used for all modifiers
+	- RENDER - Used for all modifiers (bool)
+	- REALTIME - Used for all modifiers (bool)
+	- EDITMODE - Used for all modifiers (bool)
+	- ONCAGE - Used for all modifiers (bool)
 
-	- OBJECT - Used for Armature, Lattice, Curve, Boolean and Array
-	- VERTGROUP - Used for Armature, Lattice and Curve
-	- LIMIT - Array and Mirror
-	- FLAG - Mirror and Wave
-	- COUNT - Decimator and Array
+	- OBJECT - Used for Armature, Lattice, Curve, Boolean and Array (Object)
+	- VERTGROUP - Used for Armature, Lattice and Curve (String)
+	- LIMIT - Array and Mirror (float [0.0 - 1.0])
+	- FLAG - Mirror and Wave (int)
+	- COUNT - Decimator Polycount (readonly) and Array (int)
+	- LENGTH - Build [1.0-300000.0] and Array [0.0 - 10000.0] (float)
 	
 	- TYPES - Used for Subsurf only
-	- LEVELS - Used for Subsurf only 
-	- RENDLEVELS - Used for Subsurf only
-	- OPTIMAL - Used for Subsurf only
-	- UV - Used for Subsurf only
+	- LEVELS - Used for Subsurf only (int [0 - 6])
+	- RENDLEVELS - Used for Subsurf only (int [0 - 6])
+	- OPTIMAL - Used for Subsurf only (bool)
+	- UV - Used for Subsurf only (bool)
 
+	- OBJECT_OFFSET - Used for Array only (Object)
+	- OBJECT_CURVE - Used for Array only (Curve Object)
+	- OFFSET_VEC - Used for Array only (3d Vector)
+	- SCALE_VEC - Used for Array only (3d Vector)
+	- MERGE_DIST - Used for Array only (float)
 
-	- ENVELOPES - Used for Armature only
+	- ENVELOPES - Used for Armature only (bool)
 	
-	- START - Used for Build only
-	- LENGTH - Used for Build only
-	- SEED - Used for Build only
-	- RANDOMIZE - Used for Build only
+	- START - Used for Build only (int)
+	- SEED - Used for Build only (int)
+	- RANDOMIZE - Used for Build only (bool)
 
-	- AXIS - Used for Mirror only
+	- AXIS - Used for Mirror only (int [0 - 2])
 
-	- RATIO - Used for Decimate only
+	- RATIO - Used for Decimate only (float [0.0 - 1.0])
 	
-	- STARTX - Used for Wave only
-	- STARTY - Used for Wave only
-	- HEIGHT - Used for Wave only
-	- WIDTH - Used for Wave only
-	- NARROW - Used for Wave only
-	- SPEED - Used for Wave only
-	- DAMP - Used for Wave only
-	- LIFETIME - Used for Wave only
-	- TIMEOFFS - Used for Wave only
-	- OPERATION - Used for Wave only
+	- STARTX - Used for Wave only (float [-100.0 - 100.0])
+	- STARTY - Used for Wave only (float [-100.0 - 100.0])
+	- HEIGHT - Used for Wave only (float [-2.0 - 2.0])
+	- WIDTH - Used for Wave only (float [0.0 - 5.0])
+	- NARROW - Used for Wave only (float [0.0 - 10.0])
+	- SPEED - Used for Wave only (float [-2.0 - 2.0])
+	- DAMP - Used for Wave only (float [-1000.0 - 1000.0])
+	- LIFETIME - Used for Wave only (float [-1000.0 - 1000.0])
+	- TIMEOFFS - Used for Wave only (float [-1000.0 - 1000.0])
+	
+	- OPERATION - Used for boolean only (int 0,1,2 : Intersect, Union, Difference)
 """
 
 class Modifiers:

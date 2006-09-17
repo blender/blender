@@ -45,6 +45,7 @@
 #include "mydevice.h"
 
 #include "Object.h"
+#include "Mathutils.h"
 #include "gen_utils.h"
 
 enum mod_constants {
@@ -60,6 +61,7 @@ enum mod_constants {
 	EXPP_MOD_LIMIT, /*ARRAY, MIRROR*/
 	EXPP_MOD_FLAG, /*MIRROR, WAVE*/
 	EXPP_MOD_COUNT, /*DECIMATOR, ARRAY*/
+	EXPP_MOD_LENGTH, /*BUILD, ARRAY*/
 	
 	/*SUBSURF SPESIFIC*/
 	EXPP_MOD_TYPES,
@@ -71,9 +73,15 @@ enum mod_constants {
 	/*ARMATURE SPESIFIC*/
 	EXPP_MOD_ENVELOPES,
 	
+	/*ARRAY SPESIFIC*/
+	EXPP_MOD_OBJECT_OFFSET,
+	EXPP_MOD_OBJECT_CURVE,
+	EXPP_MOD_OFFSET_VEC,
+	EXPP_MOD_SCALE_VEC,
+	EXPP_MOD_MERGE_DIST,
+	
 	/*BUILD SPESIFIC*/
 	EXPP_MOD_START,
-	EXPP_MOD_LENGTH,
 	EXPP_MOD_SEED,
 	EXPP_MOD_RANDOMIZE,
 
@@ -99,7 +107,7 @@ enum mod_constants {
 
 	/* yet to be implemented */
 	/* EXPP_MOD_HOOK_,*/
-	/* EXPP_MOD_ARRAY_, */
+	/* , */
 };
 
 /*****************************************************************************/
@@ -610,6 +618,71 @@ static int wave_setter( BPy_Modifier *self, int type, PyObject *value )
 	}
 }
 
+static PyObject *array_getter( BPy_Modifier * self, int type )
+{
+	ArrayModifierData *md = (ArrayModifierData *)(self->md);
+
+	if( type == EXPP_MOD_OBJECT_OFFSET )
+		return Object_CreatePyObject( md->offset_ob );
+	else if( type == EXPP_MOD_OBJECT_CURVE )
+		return Object_CreatePyObject( md->curve_ob );	
+	else if( type == EXPP_MOD_COUNT )
+		return PyInt_FromLong( (long)md->count );
+	else if( type == EXPP_MOD_LENGTH )
+		return PyFloat_FromDouble( md->length );
+	else if( type == EXPP_MOD_MERGE_DIST )
+		return PyFloat_FromDouble( md->merge_dist );
+	else if( type == EXPP_MOD_MERGE_DIST )
+		return PyFloat_FromDouble( md->merge_dist );
+	else if( type == EXPP_MOD_OFFSET_VEC)
+		return newVectorObject( md->offset, 3, Py_NEW );
+	else if( type == EXPP_MOD_SCALE_VEC)
+		return newVectorObject( md->scale, 3, Py_NEW );
+	
+	return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
+}
+
+static int array_setter( BPy_Modifier *self, int type, PyObject *value )
+{
+	ArrayModifierData *md = (ArrayModifierData *)(self->md);
+	switch( type ) {
+	case EXPP_MOD_OBJECT_OFFSET: {
+		Object *obj = (( BPy_Object * )value)->object;
+		if( !BPy_Object_Check( value ) )
+			return EXPP_ReturnIntError( PyExc_TypeError, 
+					"expected BPy object argument" );
+		if(obj == self->obj )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"Cannot lattice deform an object with its self" );
+		md->offset_ob = obj;
+		return 0;
+	}
+	case EXPP_MOD_OBJECT_CURVE: {
+		Object *obj = (( BPy_Object * )value)->object;
+		if( !BPy_Object_Check( value ) || obj->type != OB_CURVE )
+			return EXPP_ReturnIntError( PyExc_TypeError, 
+					"expected BPy object argument" );
+		if(obj == self->obj )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"Cannot lattice deform an object with its self" );
+		md->curve_ob = obj;
+		return 0;
+	}
+	case EXPP_MOD_COUNT:
+		return EXPP_setIValueClamped( value, &md->count, 1, 1000, 'i' );
+	case EXPP_MOD_LENGTH:
+		return EXPP_setFloatClamped( value, &md->length, 0.0, 1000.0 );
+	case EXPP_MOD_MERGE_DIST:
+		return EXPP_setFloatClamped( value, &md->merge_dist, 0.0, 1000.0 );
+	case EXPP_MOD_OFFSET_VEC:
+		return EXPP_setVec3Clamped( value, &md->offset, -10000.0, 10000.0 );
+	case EXPP_MOD_SCALE_VEC:
+		return EXPP_setVec3Clamped( value, &md->scale, -10000.0, 10000.0 );
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
+
 static PyObject *boolean_getter( BPy_Modifier * self, int type )
 {
 	BooleanModifierData *md = (BooleanModifierData *)(self->md);
@@ -693,6 +766,7 @@ static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 			case eModifierType_Hook:
 			case eModifierType_Softbody:
 			case eModifierType_Array:
+				return array_getter( self, setting );
 			case eModifierType_None:
 				Py_RETURN_NONE;
 		}
@@ -745,6 +819,8 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 			return build_setter( self, key_int, arg );
     	case eModifierType_Mirror:
 			return mirror_setter( self, key_int, arg );
+		case eModifierType_Array:
+			return array_setter( self, key_int, arg );
 		case eModifierType_Decimate:
 			return decimate_setter( self, key_int, arg );
 		case eModifierType_Wave:
@@ -753,7 +829,6 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 			return boolean_setter( self, key_int, arg );
 		case eModifierType_Hook:
 		case eModifierType_Softbody:
-		case eModifierType_Array:
 		case eModifierType_None:
 			return 0;
 	}
@@ -1156,6 +1231,8 @@ static PyObject *M_Modifier_TypeDict( void )
 				PyInt_FromLong( eModifierType_Wave ) );
 		PyConstant_Insert( d, "BOOLEAN",
 				PyInt_FromLong( eModifierType_Boolean ) );
+		PyConstant_Insert( d, "ARRAY",
+				PyInt_FromLong( eModifierType_Array ) );
 	}
 	return S;
 }
@@ -1175,7 +1252,7 @@ st='''
 	EXPP_MOD_RENDER = 0,
 	EXPP_MOD_REALTIME,
 	EXPP_MOD_EDITMODE,
-	........ and so on, copy from above
+	etc.. copy from above
 '''
 
 base= '''
@@ -1189,7 +1266,7 @@ for var in st.replace(',','').split('\n'):
 	var= var[0]
 	if (not var) or var.startswith('/'): continue
 	
-	var=var.split('_')[-1]
+	var='_'.join(var.split('_')[2:])
 	print base % (var, var),
 # END PYSCRIPT
 */
@@ -1213,6 +1290,8 @@ for var in st.replace(',','').split('\n'):
 				PyInt_FromLong( EXPP_MOD_FLAG ) );
 			PyConstant_Insert( d, "COUNT", 
 				PyInt_FromLong( EXPP_MOD_COUNT ) );
+			PyConstant_Insert( d, "LENGTH", 
+				PyInt_FromLong( EXPP_MOD_LENGTH ) );
 			PyConstant_Insert( d, "TYPES", 
 				PyInt_FromLong( EXPP_MOD_TYPES ) );
 			PyConstant_Insert( d, "LEVELS", 
@@ -1225,10 +1304,18 @@ for var in st.replace(',','').split('\n'):
 				PyInt_FromLong( EXPP_MOD_UV ) );
 			PyConstant_Insert( d, "ENVELOPES", 
 				PyInt_FromLong( EXPP_MOD_ENVELOPES ) );
+			PyConstant_Insert( d, "OBJECT_OFFSET", 
+				PyInt_FromLong( EXPP_MOD_OBJECT_OFFSET ) );
+			PyConstant_Insert( d, "OBJECT_CURVE", 
+				PyInt_FromLong( EXPP_MOD_OBJECT_CURVE ) );
+			PyConstant_Insert( d, "OFFSET_VEC", 
+				PyInt_FromLong( EXPP_MOD_OFFSET_VEC ) );
+			PyConstant_Insert( d, "SCALE_VEC", 
+				PyInt_FromLong( EXPP_MOD_SCALE_VEC ) );
+			PyConstant_Insert( d, "MERGE_DIST", 
+				PyInt_FromLong( EXPP_MOD_MERGE_DIST ) );
 			PyConstant_Insert( d, "START", 
 				PyInt_FromLong( EXPP_MOD_START ) );
-			PyConstant_Insert( d, "LENGTH", 
-				PyInt_FromLong( EXPP_MOD_LENGTH ) );
 			PyConstant_Insert( d, "SEED", 
 				PyInt_FromLong( EXPP_MOD_SEED ) );
 			PyConstant_Insert( d, "RANDOMIZE", 

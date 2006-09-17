@@ -106,6 +106,7 @@ static PyObject *Image_getMinXY( BPy_Image * self );
 static PyObject *Image_save( BPy_Image * self );
 static PyObject *Image_unpack( BPy_Image * self, PyObject * args );
 static PyObject *Image_pack( BPy_Image * self );
+static PyObject *Image_makeCurrent( BPy_Image * self );
 
 
 /*****************************************************************************/
@@ -172,7 +173,9 @@ static PyMethodDef BPy_Image_methods[] = {
 	{"unpack", ( PyCFunction ) Image_unpack, METH_VARARGS,
 	 "(int) - Unpack image. Uses the values defined in Blender.UnpackModes."},
 	{"pack", ( PyCFunction ) Image_pack, METH_NOARGS,
-	 "() Pack the image"},
+	 "() - Pack the image"},
+	{"makeCurrent", ( PyCFunction ) Image_makeCurrent, METH_NOARGS,
+	 "() - Make this the currently displayed image"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -196,10 +199,6 @@ static char M_Image_GetCurrent_doc[] =
 	"() - return the current image, from last active the uv/image view, \
 returns None no image is in the view.\n";
 
-static char M_Image_SetCurrent_doc[] =
-	"(image) - set the image to be the current, from last active the uv/image view, \
-returns False if no image could be set.";
-
 static char M_Image_Load_doc[] =
 	"(filename) - return image from file filename as Image Object, \
 returns None if not found.\n";
@@ -211,7 +210,6 @@ struct PyMethodDef M_Image_methods[] = {
 	{"New", M_Image_New, METH_VARARGS, M_Image_New_doc},
 	{"Get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
 	{"GetCurrent", ( PyCFunction ) M_Image_GetCurrent, METH_NOARGS, M_Image_GetCurrent_doc},	
-	{"SetCurrent", ( PyCFunction ) M_Image_SetCurrent, METH_VARARGS, M_Image_SetCurrent_doc},	
 	{"get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
 	{"Load", M_Image_Load, METH_VARARGS, M_Image_Load_doc},
 	{NULL, NULL, 0, NULL}
@@ -332,27 +330,6 @@ static PyObject *M_Image_GetCurrent( PyObject * self )
 	return Image_CreatePyObject( G.sima->image );
 }
 
-/*****************************************************************************/
-/* Function:		M_Image_SetCurrent*/
-/* Python equivalent:	Blender.Image.SetCurrent   */
-/* Description:		Sets the active current (G.sima)	 */
-/*			This will be the image last under the mouse cursor */
-/*			None if there is no Image.			 */
-/*****************************************************************************/
-static PyObject *M_Image_SetCurrent( PyObject * self, PyObject * args )
-{
-	BPy_Image *image;
-	
-	if (!G.sima)
-		Py_RETURN_FALSE;
-	
-	if( !PyArg_ParseTuple( args, "O!", &Image_Type, &image) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected an image argument" ) );
-	
-	G.sima->image= image->image;
-	Py_RETURN_TRUE;
-}
 
 /*****************************************************************************/
 /* Function:	M_Image_Load		 */
@@ -718,6 +695,16 @@ static PyObject *Image_pack( BPy_Image * self )
 		
 	image->packedfile = newPackedFile(image->name);
 	Py_RETURN_NONE;
+}
+
+
+static PyObject *Image_makeCurrent( BPy_Image * self )
+{
+	if (!G.sima)
+		Py_RETURN_FALSE;
+	
+	G.sima->image= self->image;
+	Py_RETURN_TRUE;
 }
 
 

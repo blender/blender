@@ -39,6 +39,8 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
+#include "Mathutils.h"
+
 #include "constant.h"
 
 //---------------------- EXPP_FloatsAreEqual -------------------------
@@ -680,6 +682,26 @@ int EXPP_setIValueClamped( PyObject *value, void *param,
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 			   "EXPP_setIValueClamped(): invalid type code" );
+	}
+}
+
+int EXPP_setVec3Clamped( PyObject *value, float *param[3],
+								float min, float max )
+{	
+	if( VectorObject_Check( value ) ) {
+		VectorObject *vect = (VectorObject *)value;
+		if( vect->size == 3 ) {
+			*param[0] = EXPP_ClampFloat( vect->vec[0], min, max );
+			*param[1] = EXPP_ClampFloat( vect->vec[1], min, max );
+			*param[2] = EXPP_ClampFloat( vect->vec[2], min, max );
+			return 0;
+		}
+	}
+	
+	if (1) {
+		char errstr[128];
+		sprintf ( errstr, "expected vector argument in [%f,%f]", min, max );
+		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 	}
 }
 
