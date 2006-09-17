@@ -351,6 +351,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\CCGSubSurf.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\cdderivedmesh.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\colortools.c">
 			</File>
 			<File
@@ -358,6 +361,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\curve.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\customdata.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\deform.c">
@@ -508,6 +514,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_brush.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_cdderivedmesh.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_colortools.h">
 			</File>
 			<File
@@ -515,6 +524,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_curve.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_customdata.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_deform.h">

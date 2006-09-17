@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\extern;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\container\include;$(NOINHERIT)"
+				AdditionalIncludeDirectories="..\..\extern;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\container\include;..\..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\makesdna;$(NOINHERIT)"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -80,7 +80,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="..\..\extern;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\container\include;$(NOINHERIT)"
+				AdditionalIncludeDirectories="..\..\extern;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\container\include;..\..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\makesdna;$(NOINHERIT)"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -137,7 +137,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="..\..\extern;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\container\include;$(NOINHERIT)"
+				AdditionalIncludeDirectories="..\..\extern;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\container\include;..\..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\makesdna;$(NOINHERIT)"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -194,7 +194,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\extern;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\container\include;$(NOINHERIT)"
+				AdditionalIncludeDirectories="..\..\extern;..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\build\msvc_7\intern\memutil\include;..\..\..\..\..\build\msvc_7\intern\container\include;..\..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\source\blender\blenlib;..\..\..\..\source\blender\makesdna;$(NOINHERIT)"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"

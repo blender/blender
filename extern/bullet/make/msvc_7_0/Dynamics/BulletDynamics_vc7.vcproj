@@ -286,34 +286,10 @@ ECHO Done
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\HingeConstraint.cpp">
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\Generic6DofConstraint.cpp">
 				</File>
 				<File
-					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\OdeConstraintSolver.cpp">
-					<FileConfiguration
-						Name="Blender Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Blender Release|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="3D Plugin Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="3D Plugin Release|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
-					</FileConfiguration>
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\HingeConstraint.cpp">
 				</File>
 				<File
 					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\Point2PointConstraint.cpp">
@@ -343,61 +319,10 @@ ECHO Done
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\SimpleConstraintSolver.cpp">
-					<FileConfiguration
-						Name="Blender Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Blender Release|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="3D Plugin Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="3D Plugin Release|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
-					</FileConfiguration>
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\SequentialImpulseConstraintSolver.cpp">
 				</File>
 				<File
 					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\Solve2LinearConstraint.cpp">
-					<FileConfiguration
-						Name="Blender Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Blender Release|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="3D Plugin Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="3D Plugin Release|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\SorLcp.cpp">
 					<FileConfiguration
 						Name="Blender Debug|Win32">
 						<Tool
@@ -440,22 +365,19 @@ ECHO Done
 					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\ContactSolverInfo.h">
 				</File>
 				<File
-					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\JacobianEntry.h">
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\Generic6DofConstraint.h">
 				</File>
 				<File
-					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\OdeConstraintSolver.h">
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\JacobianEntry.h">
 				</File>
 				<File
 					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\Point2PointConstraint.h">
 				</File>
 				<File
-					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\SimpleConstraintSolver.h">
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\SequentialImpulseConstraintSolver.h">
 				</File>
 				<File
 					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\Solve2LinearConstraint.h">
-				</File>
-				<File
-					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\SorLcp.h">
 				</File>
 				<File
 					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\TypedConstraint.h">

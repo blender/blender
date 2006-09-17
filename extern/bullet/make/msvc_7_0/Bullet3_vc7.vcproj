@@ -836,6 +836,12 @@ ECHO Done
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\..\Bullet\CollisionShapes\CompoundShape.cpp">
+				</File>
+				<File
+					RelativePath="..\..\Bullet\CollisionShapes\ConcaveShape.cpp">
+				</File>
+				<File
 					RelativePath="..\..\Bullet\CollisionShapes\ConeShape.cpp">
 					<FileConfiguration
 						Name="Blender Debug|Win32">
@@ -917,7 +923,7 @@ ECHO Done
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\Bullet\CollisionShapes\ConvexTriangleCallback.cpp">
+					RelativePath="..\..\Bullet\CollisionShapes\ConvexTriangleMeshShape.cpp">
 				</File>
 				<File
 					RelativePath="..\..\Bullet\CollisionShapes\CylinderShape.cpp">
@@ -1088,6 +1094,9 @@ ECHO Done
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\..\Bullet\CollisionShapes\StaticPlaneShape.cpp">
+				</File>
+				<File
 					RelativePath="..\..\Bullet\CollisionShapes\StridingMeshInterface.cpp">
 					<FileConfiguration
 						Name="Blender Debug|Win32">
@@ -1191,6 +1200,12 @@ ECHO Done
 					RelativePath="..\..\Bullet\CollisionShapes\CollisionShape.h">
 				</File>
 				<File
+					RelativePath="..\..\Bullet\CollisionShapes\CompoundShape.h">
+				</File>
+				<File
+					RelativePath="..\..\Bullet\CollisionShapes\ConcaveShape.h">
+				</File>
+				<File
 					RelativePath="..\..\Bullet\CollisionShapes\ConeShape.h">
 				</File>
 				<File
@@ -1200,7 +1215,7 @@ ECHO Done
 					RelativePath="..\..\Bullet\CollisionShapes\ConvexShape.h">
 				</File>
 				<File
-					RelativePath="..\..\Bullet\CollisionShapes\ConvexTriangleCallback.h">
+					RelativePath="..\..\Bullet\CollisionShapes\ConvexTriangleMeshShape.h">
 				</File>
 				<File
 					RelativePath="..\..\Bullet\CollisionShapes\CylinderShape.h">
@@ -1225,6 +1240,9 @@ ECHO Done
 				</File>
 				<File
 					RelativePath="..\..\Bullet\CollisionShapes\SphereShape.h">
+				</File>
+				<File
+					RelativePath="..\..\Bullet\CollisionShapes\StaticPlaneShape.h">
 				</File>
 				<File
 					RelativePath="..\..\Bullet\CollisionShapes\StridingMeshInterface.h">
@@ -1313,6 +1331,9 @@ ECHO Done
 					RelativePath="..\..\Bullet\BroadphaseCollision\Dispatcher.cpp">
 				</File>
 				<File
+					RelativePath="..\..\Bullet\BroadphaseCollision\OverlappingPairCache.cpp">
+				</File>
+				<File
 					RelativePath="..\..\Bullet\BroadphaseCollision\SimpleBroadphase.cpp">
 					<FileConfiguration
 						Name="Blender Debug|Win32">
@@ -1357,6 +1378,9 @@ ECHO Done
 				</File>
 				<File
 					RelativePath="..\..\Bullet\BroadphaseCollision\Dispatcher.h">
+				</File>
+				<File
+					RelativePath="..\..\Bullet\BroadphaseCollision\OverlappingPairCache.h">
 				</File>
 				<File
 					RelativePath="..\..\Bullet\BroadphaseCollision\SimpleBroadphase.h">
@@ -1453,6 +1477,9 @@ ECHO Done
 					RelativePath="..\..\Bullet\CollisionDispatch\CollisionWorld.cpp">
 				</File>
 				<File
+					RelativePath="..\..\Bullet\CollisionDispatch\CompoundCollisionAlgorithm.cpp">
+				</File>
+				<File
 					RelativePath="..\..\Bullet\CollisionDispatch\ConvexConcaveCollisionAlgorithm.cpp">
 				</File>
 				<File
@@ -1463,6 +1490,9 @@ ECHO Done
 				</File>
 				<File
 					RelativePath="..\..\Bullet\CollisionDispatch\ManifoldResult.cpp">
+				</File>
+				<File
+					RelativePath="..\..\Bullet\CollisionDispatch\SimulationIslandManager.cpp">
 				</File>
 				<File
 					RelativePath="..\..\Bullet\CollisionDispatch\UnionFind.cpp">
