@@ -1396,8 +1396,8 @@ void where_is_object_time(Object *ob, float ctime)
 		else 
 			do_all_object_actions(ob);
 		
-		/* do constraint ipos ... */
-		do_constraint_channels(&ob->constraints, &ob->constraintChannels, ctime);
+		/* do constraint ipos ..., note it needs stime */
+		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime);
 	}
 	else {
 		/* but, the drivers have to be done */
@@ -1410,8 +1410,9 @@ void where_is_object_time(Object *ob, float ctime)
 		if(ob->ipoflag & OB_OFFS_PARENT) ctime-= ob->sf;
 		
 		/* hurms, code below conflicts with depgraph... (ton) */
+		/* and even worse, it gives bad effects for NLA stride too (try ctime != par->ctime, with MBlur) */
 		pop= 0;
-		if(no_parent_ipo==0 && ctime != par->ctime) {
+		if(no_parent_ipo==0 && stime != par->ctime) {
 		
 			// only for ipo systems? 
 			pushdata(par, sizeof(Object));
@@ -1452,6 +1453,7 @@ void where_is_object_time(Object *ob, float ctime)
 		
 	}
 
+	/* constraints need ctime, not stime. it calls where_is_object_time and bsystem_time */
 	solve_constraints (ob, TARGET_OBJECT, NULL, ctime);
 
 	if(ob->scriptlink.totscript && !during_script()) {

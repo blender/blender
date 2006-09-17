@@ -1488,7 +1488,7 @@ void enter_editmode(void)
 		if(G.f & G_FACESELECT) allqueue(REDRAWIMAGE, 0);
 	}
 	if (ob->type==OB_ARMATURE){
-		arm=base->object->data;
+		arm= base->object->data;
 		if (!arm) return;
 		if (arm->id.lib){
 			error("Can't edit library data");
@@ -1497,6 +1497,9 @@ void enter_editmode(void)
 		ok=1;
 		G.obedit=ob;
 		make_editArmature();
+		/* to ensure all goes in restposition and without striding */
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC);
+
 		allqueue (REDRAWVIEW3D,0);
 	}
 	else if(ob->type==OB_FONT) {

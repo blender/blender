@@ -826,7 +826,7 @@ void Mat4BlendMat4(float out[][4], float dst[][4], float src[][4], float srcweig
 	VECCOPY (out[3], floc);
 }
 
-static void constraint_target_to_mat4 (Object *ob, const char *substring, float mat[][4], float size[3], float ctime)
+static void constraint_target_to_mat4 (Object *ob, const char *substring, float mat[][4], float size[3])
 {
 
 	/*	Case OBJECT */
@@ -857,6 +857,7 @@ static void constraint_target_to_mat4 (Object *ob, const char *substring, float 
 /* called during solve_constraints */
 /* also for make_parent, to find correct inverse of "follow path" */
 /* warning, ownerdata is void... is not Bone anymore, but PoseChannel or Object */
+/* ctime is global time, uncorrected for local bsystem_time */
 short get_constraint_target_matrix (bConstraint *con, short ownertype, void* ownerdata, float mat[][4], float size[3], float ctime)
 {
 	short valid=0;
@@ -920,7 +921,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				else {
 					float ans[4][4];
 					
-					constraint_target_to_mat4(data->tar, data->subtarget, ans, size, ctime);
+					constraint_target_to_mat4(data->tar, data->subtarget, ans, size);
 					/* extract rotation, is in global world coordinates */
 					Mat3CpyMat4(tempmat3, ans);
 				}
@@ -962,7 +963,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			bLocateLikeConstraint *data = (bLocateLikeConstraint*)con->data;
 
 			if (data->tar){
-				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
+				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid=1;
 			}
 			else
@@ -974,7 +975,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			bMinMaxConstraint *data = (bMinMaxConstraint*)con->data;
 
 			if (data->tar){
-				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
+				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid=1;
 			}
 			else
@@ -987,7 +988,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			data = (bRotateLikeConstraint*)con->data;
 
 			if (data->tar){
-				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
+				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid=1;
 			}
 			else
@@ -1002,7 +1003,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			if (data->tar){
 				/*	Update the location of the target object */
 				where_is_object_time (data->tar, ctime);	
-				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
+				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid=1;
 			}
 			else
@@ -1015,7 +1016,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			data = (bTrackToConstraint*)con->data;
 
 			if (data->tar){
-				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
+				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid=1;
 			}
 			else
@@ -1028,7 +1029,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			data = (bKinematicConstraint*)con->data;
 
 			if (data->tar){
-				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
+				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid=1;
 			}
 			else if (data->flag & CONSTRAINT_IK_AUTO) {
@@ -1055,7 +1056,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			data = (bLockTrackConstraint*)con->data;
 
 			if (data->tar){
-				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
+				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid=1;
 			}
 			else
@@ -1083,6 +1084,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
 					makeDispListCurveTypes(data->tar, 0);
 				if(cu->path && cu->path->data) {
+					
 					curvetime= bsystem_time(data->tar, data->tar->parent, (float)ctime, 0.0) - data->offset;
 
 					if(calc_ipo_spec(cu->ipo, CU_SPEED, &curvetime)==0) {
@@ -1123,7 +1125,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			data = (bStretchToConstraint*)con->data;
 
 			if (data->tar){
-				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
+				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid = 1;
 			}
 			else
