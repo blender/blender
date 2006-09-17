@@ -5591,9 +5591,9 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 	DispListMesh *dlm;
 	DerivedMesh *dm;
 	Object *tmpobj = NULL;
-	int cage = 0, i;
+	int cage = 0, render = 0, i;
 
-	if( !PyArg_ParseTuple( args, "s|i", &name, &cage ) )
+	if( !PyArg_ParseTuple( args, "s|i", &name, &cage, &render ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected string and optional integer arguments" );
 
@@ -5664,34 +5664,25 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
  		break;
  	case OB_MESH:
 		/* copies object and modifiers (but not the data) */
-		tmpobj= copy_object( ob );
-		tmpmesh = tmpobj->data;
-		tmpmesh->id.us--;
-		
 		if (cage) {
 			/* copies the data */
-			tmpobj->data = copy_mesh( tmpmesh );
-			G.totmesh++;
-			tmpmesh = tmpobj->data;
-		
+			tmpmesh = copy_mesh( ob->data );
 		/* if not getting the original caged mesh, get final derived mesh */
 		} else {
-			
 			/* Make a dummy mesh, saves copying */
 			
-			tmpmesh = add_mesh(  );
-			G.totmesh++;
-			
 			/* Write the display mesh into the dummy mesh */
-			dm = mesh_create_derived_render( tmpobj );
+			if (render)
+				dm = mesh_create_derived_render( ob );
+			else
+				dm = mesh_create_derived_view( ob );
+			
 			dlm = dm->convertToDispListMesh( dm, 0 );
+			tmpmesh = add_mesh(  );
 			displistmesh_to_mesh( dlm, tmpmesh );
 			dm->release( dm );
 		}
 		
-		/* take control of mesh before object is freed */
-		tmpobj->data = NULL;
-		free_libblock_us( &G.main->object, tmpobj );
 		break;
  	default:
  		return EXPP_ReturnPyObjError( PyExc_AttributeError,

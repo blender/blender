@@ -3345,6 +3345,15 @@ DerivedMesh *mesh_create_derived_render(Object *ob)
 	return final;
 }
 
+DerivedMesh *mesh_create_derived_view(Object *ob)
+{
+	DerivedMesh *final;
+
+	mesh_calc_modifiers(ob, NULL, NULL, &final, 0, 1, 0);
+
+	return final;
+}
+
 DerivedMesh *mesh_create_derived_no_deform(Object *ob, float (*vertCos)[3])
 {
 	DerivedMesh *final;

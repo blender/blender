@@ -65,29 +65,6 @@ This script will work with object types: Mesh, Metaballs, Text3d, Curves and Nur
 import Blender
 import BPyMesh
 
-
-def mesh_from_ob(ob):
-	'''
-	This wraps 
-	BPyMesh.getMeshFromObject
-	and NMesh.GetRawFromObject()
-	
-	Because BPyMesh.getMeshFromObject dosent do softbody meshes at the moment - a problem with Mesh
-	
-	WARNING Returns a Mesh or NMesh, should be ok- but take care
-	'''
-	if ob.isSB():
-		# NMesh for softbody
-		try:
-			return Blender.NMesh.GetRawFromObject(ob.name)
-		except:
-			return None
-	else:
-		# Mesh for no softbody
-		return BPyMesh.getMeshFromObject(ob, vgroups=False)
-
-
-
 def apply_deform():
 	scn= Blender.Scene.GetCurrent()
 	ADD= Blender.Mesh.AssignModes.ADD
@@ -143,7 +120,8 @@ def apply_deform():
 	for ob in ob_list:
 		
 		# Get the mesh data
-		new_me= mesh_from_ob(ob)
+		new_me= BPyMesh.getMeshFromObject(ob, vgroups=False)
+		
 		if not new_me:
 			continue # Object has no display list
 		

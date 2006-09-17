@@ -395,6 +395,7 @@ DerivedMesh *mesh_get_derived_deform(struct Object *ob, int *needsFree_r);
 DerivedMesh *mesh_create_derived_for_modifier(struct Object *ob, struct ModifierData *md);
 
 DerivedMesh *mesh_create_derived_render(struct Object *ob);
+DerivedMesh *mesh_create_derived_view(struct Object *ob); /* same as above but wont use render settings */
 DerivedMesh *mesh_create_derived_no_deform(struct Object *ob, float (*vertCos)[3]);
 DerivedMesh *mesh_create_derived_no_deform_render(struct Object *ob, float (*vertCos)[3]);
 

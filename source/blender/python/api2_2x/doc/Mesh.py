@@ -746,7 +746,7 @@ class Mesh:
   @type texMesh: Mesh or None
   """
 
-  def getFromObject(name,cage=0):
+  def getFromObject(name,cage=0, render=0):
     """
     Replace the mesh's existing data with the raw mesh data from a Blender
     Object.  This method supports all the geometry based objects (mesh, text,
@@ -762,6 +762,8 @@ class Mesh:
     @param name: name of the Blender object which contains the geometry data.
     @type cage: int
     @param cage: determines whether the original vertices or derived vertices
+    @type render: int
+    @param render: determines whether the render setting for modifiers will be used or not.
     (for objects with modifiers) are used.  The default is derived vertices.
     """
 
