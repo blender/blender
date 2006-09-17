@@ -48,7 +48,7 @@ Example::
 
 
             meta_type= 0 # all elemts are ball type
-            meta_shiftness= 2.0 # Volume
+            meta_stiffness= 2.0 # Volume
 
             for bone in arm.bones.values():
                     print bone
@@ -82,10 +82,10 @@ Example::
                             rad= (head_rad*w1 + tail_rad*w2) * 1.3
 
                             # Add the metaball
-                            ml= mb.elements.add() ([meta_type, loc.x, loc.y, loc.z, rad, meta_shiftness, 0, 0, 0])
+                            ml= mb.elements.add()
                             ml.co= loc
                             ml.radius= rad
-                            ml.stiffness= meta_shiftness
+                            ml.stiffness= meta_stiffness
 
 
             Window.RedrawAll()
@@ -146,6 +146,9 @@ class Metaball:
   @ivar thresh: Threshold setting for this metaball.
     Value clamped between 0.0 and 5.0.
   @type thresh: float
+  @ivar materials: List of up to 16 Materials or None types
+    Only the first material of the mother-ball used at the moment.
+  @type materials: list
   """
 
   def copy():
