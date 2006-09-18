@@ -101,9 +101,10 @@ typedef struct CBData {
 	int cur;
 } CBData;
 
+/* 32 = MAXCOLORBAND */
 typedef struct ColorBand {
 	short flag, tot, cur, ipotype;
-	CBData data[16];
+	CBData data[32];
 	
 } ColorBand;
 

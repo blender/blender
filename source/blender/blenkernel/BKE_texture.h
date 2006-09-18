@@ -44,7 +44,7 @@ struct TexMapping;
 struct EnvMap;
 
 /*  in ColorBand struct */
-#define MAXCOLORBAND 16
+#define MAXCOLORBAND 32
 
 
 void free_texture(struct Tex *t); 
