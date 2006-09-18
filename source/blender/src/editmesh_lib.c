@@ -791,14 +791,33 @@ short extrudeflag_face_indiv(short flag, float *nor)
 	for(efa= em->faces.last; efa; efa= efa->prev) {
 		if(efa->f & SELECT) {
 			v1= addvertlist(efa->v1->co);
+			if(efa->v1->totweight){
+				v1->dw = MEM_dupallocN(efa->v1->dw);
+				v1->totweight = efa->v1->totweight;
+			}
+			
 			v2= addvertlist(efa->v2->co);
+			if(efa->v2->totweight){
+				v2->dw = MEM_dupallocN(efa->v2->dw);
+				v2->totweight = efa->v2->totweight;
+			}
+		
 			v3= addvertlist(efa->v3->co);
+			if(efa->v3->totweight){
+				v3->dw = MEM_dupallocN(efa->v3->dw);
+				v3->totweight = efa->v3->totweight;
+			}
+			
 			v1->f1= v2->f1= v3->f1= 1;
 			VECCOPY(v1->no, efa->n);
 			VECCOPY(v2->no, efa->n);
 			VECCOPY(v3->no, efa->n);
 			if(efa->v4) {
 				v4= addvertlist(efa->v4->co); 
+				if(efa->v4->totweight){
+					v4->dw = MEM_dupallocN(efa->v4->dw);
+					v4->totweight = efa->v4->totweight;
+				}
 				v4->f1= 1;
 				VECCOPY(v4->no, efa->n);
 			}
@@ -870,11 +889,20 @@ short extrudeflag_edges_indiv(short flag, float *nor)
 	/* make the faces */
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if(eed->f & flag) {
-			if(eed->v1->tmp.v == NULL) 
+			if(eed->v1->tmp.v == NULL){
 				eed->v1->tmp.v = addvertlist(eed->v1->co);
-			if(eed->v2->tmp.v == NULL) 
+				if(eed->v1->totweight){
+					eed->v1->tmp.v->dw = MEM_dupallocN(eed->v1->dw);
+					eed->v1->tmp.v->totweight = eed->v1->totweight;
+				}
+			}
+			if(eed->v2->tmp.v == NULL){ 
 				eed->v2->tmp.v = addvertlist(eed->v2->co);
-			
+				if(eed->v2->totweight){
+					eed->v2->tmp.v->dw = MEM_dupallocN(eed->v2->dw);
+					eed->v2->tmp.v->totweight = eed->v2->totweight;
+				}
+			}
 			if(eed->dir==1) 
 				addfacelist(eed->v1, eed->v2, 
 							eed->v2->tmp.v, eed->v1->tmp.v, 
@@ -919,6 +947,10 @@ short extrudeflag_verts_indiv(short flag, float *nor)
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->f & flag) {
 			eve->tmp.v = addvertlist(eve->co);
+			if(eve->totweight){
+				eve->tmp.v->dw = MEM_dupallocN(eve->dw);
+				eve->tmp.v->totweight = eve->totweight;
+			}
 			addedgelist(eve, eve->tmp.v, NULL);
 		}
 		else eve->tmp.v = NULL;
@@ -1051,11 +1083,20 @@ static short extrudeflag_edge(short flag, float *nor)
 	for(eed= em->edges.last; eed; eed= eed->prev) {
 		if(eed->f & SELECT) {
 			if(eed->f2<2) {
-				if(eed->v1->tmp.v == NULL)
+				if(eed->v1->tmp.v == NULL){
 					eed->v1->tmp.v = addvertlist(eed->v1->co);
-				if(eed->v2->tmp.v == NULL)
+					if(eed->v1->totweight){
+						eed->v1->tmp.v->dw = MEM_dupallocN(eed->v1->dw);
+						eed->v1->tmp.v->totweight = eed->v1->totweight;
+					}
+				}
+				if(eed->v2->tmp.v == NULL){
 					eed->v2->tmp.v = addvertlist(eed->v2->co);
-				
+					if(eed->v2->totweight){
+						eed->v2->tmp.v->dw = MEM_dupallocN(eed->v2->dw);
+						eed->v2->tmp.v->totweight = eed->v2->totweight;
+					}
+				}	
 				/* if del_old, the preferred normal direction is exact 
 				 * opposite as for keep old faces
 				 */
@@ -1074,14 +1115,34 @@ static short extrudeflag_edge(short flag, float *nor)
 	/* step 3: make new faces from faces */
 	for(efa= em->faces.last; efa; efa= efa->prev) {
 		if(efa->f & SELECT) {
-			if (efa->v1->tmp.v == NULL) 
+			if (efa->v1->tmp.v == NULL){ 
 				efa->v1->tmp.v = addvertlist(efa->v1->co);
-			if (efa->v2->tmp.v ==NULL)
+				if(efa->v1->totweight){
+					efa->v1->tmp.v->dw = MEM_dupallocN(efa->v1->dw);
+					efa->v1->tmp.v->totweight = efa->v1->totweight;
+				}
+			}
+			if (efa->v2->tmp.v ==NULL){
 				efa->v2->tmp.v = addvertlist(efa->v2->co);
-			if (efa->v3->tmp.v ==NULL) 
+				if(efa->v2->totweight){
+					efa->v2->tmp.v->dw = MEM_dupallocN(efa->v2->dw);
+					efa->v2->tmp.v->totweight = efa->v2->totweight;
+				}
+			}
+			if (efa->v3->tmp.v ==NULL){ 
 				efa->v3->tmp.v = addvertlist(efa->v3->co);
-			if (efa->v4 && (efa->v4->tmp.v == NULL)) 
+				if(efa->v3->totweight){
+					efa->v3->tmp.v->dw = MEM_dupallocN(efa->v3->dw);
+					efa->v3->tmp.v->totweight = efa->v3->totweight;
+				}
+			}
+			if (efa->v4 && (efa->v4->tmp.v == NULL)){ 
 				efa->v4->tmp.v = addvertlist(efa->v4->co);
+				if(efa->v4->totweight){
+					efa->v4->tmp.v->dw = MEM_dupallocN(efa->v4->dw);
+					efa->v4->tmp.v->totweight = efa->v4->totweight;
+				}
+			}
 			
 			if(del_old==0) {	// keep old faces means flipping normal
 				if(efa->v4)
