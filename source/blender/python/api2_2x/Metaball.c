@@ -861,7 +861,7 @@ static PyObject *Metaelem_getQuat( BPy_Metaelem * self )
 static int Metaelem_setQuat( BPy_Metaelem * self,  QuaternionObject * value )
 {
 	int i;
-	if( !VectorObject_Check( value ) )
+	if( !QuaternionObject_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected quat argument" );
 	

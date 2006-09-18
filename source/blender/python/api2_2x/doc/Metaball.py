@@ -37,7 +37,7 @@ Example::
             # Make a metaball
             ob_mb= Object.New('Mball')
             mb= Metaball.New()
-            mb.setWiresize(res)
+            mb.wiresize= res
 
             # Link to the Scene
             ob_mb.link(mb)
