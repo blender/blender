@@ -2098,8 +2098,12 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			case TEXCO_H_SPHEREMAP:
 			case TEXCO_H_TUBEMAP:
 				if(skyflag & WO_ZENUP) {
-					if(mtex->texco==TEXCO_H_TUBEMAP) tubemap(lo[0], lo[2], lo[1], tempvec, tempvec+1);
-					else spheremap(lo[0], lo[2], lo[1], tempvec, tempvec+1);
+					/* move view vector to global world space */
+					VECCOPY(tempvec, lo);
+					Mat4Mul3Vecfl(R.viewinv, tempvec);
+					
+					if(mtex->texco==TEXCO_H_TUBEMAP) tubemap(tempvec[0], tempvec[1], tempvec[2], tempvec, tempvec+1);
+					else spheremap(tempvec[0], tempvec[1], tempvec[2], tempvec, tempvec+1);
 					/* tube/spheremap maps for outside view, not inside */
 					tempvec[0]= 1.0-tempvec[0];
 					/* only top half */
