@@ -97,10 +97,8 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=False
 				else: print '\t\tImage not found, making a place holder "%s"' % (path)
 			if placeHolder:
 				img= Blender.Image.New(stripPath(path),1,1,24)
-				
-				img.setName(path.split('/')[-1].split('\\')[-1][0:21]) #path.split('/')[-1].split('\\')[-1][0:21]
 				img.filename= path
-				return Blender.Image.New(stripPath(path),1,1,24) #blank image
+				return img #blank image
 			else:
 				return None
 			
