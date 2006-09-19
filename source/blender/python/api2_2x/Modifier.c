@@ -763,10 +763,10 @@ static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 				return wave_getter( self, setting );
 			case eModifierType_Boolean:
 				return boolean_getter( self, setting );
-			case eModifierType_Hook:
-			case eModifierType_Softbody:
 			case eModifierType_Array:
 				return array_getter( self, setting );
+			case eModifierType_Hook:
+			case eModifierType_Softbody:
 			case eModifierType_None:
 				Py_RETURN_NONE;
 		}
