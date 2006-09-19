@@ -2768,7 +2768,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 		if(facetype == 4) {
 			switch(edgecount) {
 				case 0:
-					if(beauty & B_KNIFE && beauty & B_PERCENTSUBD){
+					if(beauty & B_KNIFE && numcuts == 1){
 						/*Test for when knifing through two opposite verts but no edges*/
 						touchcount = 0;
 						if(ef->v1->f1) touchcount++;
@@ -2789,8 +2789,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 					break; 
 				
 				case 1: 
-					/*this whole damn thing is nasty. Rewrite it*/
-					if(beauty & B_KNIFE && beauty & B_PERCENTSUBD){
+					if(beauty & B_KNIFE && numcuts == 1){
 						/*Test for when knifing through an edge and one vert*/
 						touchcount = 0;
 						if(ef->v1->f1) touchcount++;

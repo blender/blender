@@ -506,7 +506,7 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 	mywinset(curarea->win);
 	
 	
-	if(cutmode == KNIFE_EXACT){ 
+	if(cutmode != KNIFE_MULTICUT){ 
 		/*redraw backbuffer if in zbuffered selection mode but not vertex selection*/
 		if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
 			oldmode = G.scene->selectmode;
@@ -554,7 +554,7 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 		
 		/*handle vsnap*/
 		vsnap = 0;
-		if(cutmode == KNIFE_EXACT){
+		if(cutmode != KNIFE_MULTICUT){
 			qual = get_qual();
 			if(qual & LR_CTRLKEY) vsnap = 1;
 		}
@@ -810,7 +810,7 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 	}
 	
 	/*check for *exact* vertex intersection first*/
-	if(mode==KNIFE_EXACT){
+	if(mode!=KNIFE_MULTICUT){
 		for (i=0; i<len; i++){
 			if (i>0){
 				x11=x12;
@@ -901,7 +901,7 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 			/* Intersect inside bounding box of edge?*/
 			if ((xi>=x2min)&&(xi<=x2max)&&(yi<=y2max)&&(yi>=y2min)){
 				/*test for vertex intersect that may be 'close enough'*/
-				if(mode==KNIFE_EXACT){
+				if(mode!=KNIFE_MULTICUT){
 					if(xi <= (x21 + threshold) && xi >= (x21 - threshold)){
 						if(yi <= (y21 + threshold) && yi >= (y21 - threshold)){
 							e->v1->f1 = 1;
