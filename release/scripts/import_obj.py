@@ -61,6 +61,7 @@ def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
 	Mainly uses comprehensiveImageLoad
 	but tries to replace '_' with ' ' for Max's exporter replaces spaces with underscores.
 	'''
+	
 	if '_' in imagepath:
 		image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
 		if image: return image
@@ -112,8 +113,8 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 	
 	# Add an MTL with the same name as the obj if no MTLs are spesified.
 	temp_mtl= stripExt(stripPath(filepath))+ '.mtl'
-	if sys.exists(temp_mtl):
-		if temp_mtl not in material_libs:
+	
+	if sys.exists(DIR + temp_mtl) and temp_mtl not in material_libs:
 			material_libs.append( temp_mtl )
 	del temp_mtl
 	
