@@ -56,8 +56,24 @@ def line_value(line_split):
 	elif length > 2:
 		return ' '.join( line_split[1:] )
 
+def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
+	'''
+	Mainly uses comprehensiveImageLoad
+	but tries to replace '_' with ' ' for Max's exporter replaces spaces with underscores.
+	'''
+	if '_' in imagepath:
+		image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
+		if image: return image
+		# Did the exporter rename the image?
+		image= BPyImage.comprehensiveImageLoad(imagepath.replace('_', ' '), DIR, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
+		if image: return image
+	
+	# Return an image, placeholder if it dosnt exist
+	image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= True, RECURSIVE= IMAGE_SEARCH)
+	return image
+	
 
-def create_materials(filepath, material_libs, unique_materials, unique_material_images):
+def create_materials(filepath, material_libs, unique_materials, unique_material_images, IMAGE_SEARCH):
 	'''Create all the used materials in this obj,
 	assign colors and images to the materials from all referenced material libs'''
 	DIR= stripFile(filepath)
@@ -71,7 +87,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 		texture.setType('Image')
 		
 		# Absolute path - c:\.. etc would work here
-		image= BPyImage.comprehensiveImageLoad(imagepath, DIR)
+		image= obj_image_load(imagepath, DIR, IMAGE_SEARCH)
 		
 		# Adds textures for materials (rendering)
 		if type == 'Kd':
@@ -454,7 +470,7 @@ def get_float_func(filepath):
 			elif '.' in line:
 				return float
 
-def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS= True, CREATE_EDGES= True, SPLIT_OBJECTS= True, SPLIT_GROUPS= True, SPLIT_MATERIALS= True):
+def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS= True, CREATE_EDGES= True, SPLIT_OBJECTS= True, SPLIT_GROUPS= True, SPLIT_MATERIALS= True, IMAGE_SEARCH=True):
 	
 	print '\nimporting obj "%s"' % filepath
 	
@@ -605,7 +621,7 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	
 	
 	print '\tloading materials and images...',
-	create_materials(filepath, material_libs, unique_materials, unique_material_images)
+	create_materials(filepath, material_libs, unique_materials, unique_material_images, IMAGE_SEARCH)
 	
 	time_new= sys.time()
 	print '%.4f sec' % (time_new-time_sub)
@@ -660,6 +676,7 @@ def load_obj_ui(filepath):
 	SPLIT_GROUPS= Draw.Create(1)
 	SPLIT_MATERIALS= Draw.Create(1)
 	CLAMP_SIZE= Draw.Create(10.0)
+	IMAGE_SEARCH= Draw.Create(1)
 	
 	
 	# Get USER Options
@@ -671,6 +688,8 @@ def load_obj_ui(filepath):
 	('Split by Groups', SPLIT_GROUPS, 'Import OBJ Groups into Blender Objects'),\
 	('Split by Material', SPLIT_MATERIALS, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)'),\
 	('Clamp Scale:', CLAMP_SIZE, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)'),\
+	'',\
+	('Image Search', IMAGE_SEARCH, 'Search subdirs for any assosiated images (Warning, may be slow)'),\
 	]
 	
 	if not Draw.PupBlock('Import OBJ...', pup_block):
@@ -686,6 +705,7 @@ def load_obj_ui(filepath):
 	  SPLIT_OBJECTS.val,\
 	  SPLIT_GROUPS.val,\
 	  SPLIT_MATERIALS.val,\
+	  IMAGE_SEARCH.val,\
 	)
 	
 	Window.WaitCursor(0)

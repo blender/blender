@@ -79,7 +79,22 @@ def addSlash(path):
 	return path + sys.sep
 
 
-def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=False):
+def comprehensiveImageLoad(imagePath, filePath, PLACE_HOLDER= True, RECURSIVE=True, VERBOSE=False):
+	'''
+	imagePath: The image filename
+		If a path precedes it, this will be searched as well.
+		
+	filePath: is the directory where the image may be located - any file at teh end will be ignored.
+	
+	PLACE_HOLDER: if True a new place holder image will be created.
+		this is usefull so later you can relink the image to its original data.
+	
+	VERBOSE: If True debug info will be printed.
+	
+	RECURSIVE: If True, directories will be recursivly searched.
+		Be carefull with this if you have files in your root directory because it may take a long time.
+	'''
+	
 	if VERBOSE: print 'img:', imagePath, 'file:', filePath
 	# When we have the file load it with this. try/except niceness.
 	def imageLoad(path):
@@ -91,11 +106,10 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=False
 			if VERBOSE: print '\t\tImage loaded "%s"' % path
 			return img
 		except:
-			#raise "Helloo"
 			if VERBOSE:
 				if sys.exists(path): print '\t\tImage failed loading "%s", mabe its not a format blender can read.' % (path)
 				else: print '\t\tImage not found, making a place holder "%s"' % (path)
-			if placeHolder:
+			if PLACE_HOLDER:
 				img= Blender.Image.New(stripPath(path),1,1,24)
 				img.filename= path
 				return img #blank image
@@ -140,7 +154,7 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=False
 	
 	
 	# os needed if we go any further.
-	if os == None:
+	if not os:
 		if VERBOSE: print '\t\tCreating a placeholder with a face path: "%s".' % imagePath
 		return imageLoad(imagePath) # Will jus treturn a placeholder.
 	
@@ -233,58 +247,53 @@ def comprehensiveImageLoad(imagePath, filePath, placeHolder= True, VERBOSE=False
 				if VERBOSE: print '\t\tImage Found "%s"' % tmpPath
 				return img
 	
-	
-	# IMAGE NOT FOUND IN ANY OF THE DIRS!, DO A RECURSIVE SEARCH.
-	if VERBOSE: print '\t\tImage Not Found in any of the dirs, doing a recusrive search'
-	for path in paths.iterkeys():
-		# Were not going to use files
-		
-		
-		#------------------
-		# finds the file starting at the root.
-		#	def findImage(findRoot, imagePath):
-		#W---------------
-		
-		# ROOT, DIRS, FILES
-		pathWalk = os.walk(path)
-		pathList = [True]
-		
-		matchList = [] # Store a list of (match, size), choose the biggest.
-		while True:
-			try:
-				pathList  = pathWalk.next()
-			except:
-				break
+	if RECURSIVE:
+		# IMAGE NOT FOUND IN ANY OF THE DIRS!, DO A RECURSIVE SEARCH.
+		if VERBOSE: print '\t\tImage Not Found in any of the dirs, doing a recusrive search'
+		for path in paths.iterkeys():
+			# Were not going to use files
 			
-			for file in pathList[2]:
-				file_lower = file.lower()
-				# FOUND A MATCH
-				if (file_lower == imageFileName_lower) or\
-				(stripExt(file_lower) == imageFileName_noext_lower and getExt(file_lower) in IMAGE_EXT):
-					name = pathList[0] + sys.sep + file
-					size = os.path.getsize(name)
-					if VERBOSE: print '\t\t\tfound:', name 
-					matchList.append( (name, size) )
-		
-		if matchList:
-			# Sort by file size
-			matchList.sort(lambda A, B: cmp(B[1], A[1]) )
 			
-			if VERBOSE: print '\t\tFound "%s"' % matchList[0][0]
+			#------------------
+			# finds the file starting at the root.
+			#	def findImage(findRoot, imagePath):
+			#W---------------
 			
-			# Loop through all we have found
-			img = None
-			for match in matchList:
-				img = imageLoad(match[0]) # 0 - first, 0 - pathname
-				if img != None:
+			# ROOT, DIRS, FILES
+			pathWalk = os.walk(path)
+			pathList = [True]
+			
+			matchList = [] # Store a list of (match, size), choose the biggest.
+			while True:
+				try:
+					pathList  = pathWalk.next()
+				except:
 					break
-			return img
+				
+				for file in pathList[2]:
+					file_lower = file.lower()
+					# FOUND A MATCH
+					if (file_lower == imageFileName_lower) or\
+					(stripExt(file_lower) == imageFileName_noext_lower and getExt(file_lower) in IMAGE_EXT):
+						name = pathList[0] + sys.sep + file
+						size = os.path.getsize(name)
+						if VERBOSE: print '\t\t\tfound:', name 
+						matchList.append( (name, size) )
+			
+			if matchList:
+				# Sort by file size
+				matchList.sort(lambda A, B: cmp(B[1], A[1]) )
+				
+				if VERBOSE: print '\t\tFound "%s"' % matchList[0][0]
+				
+				# Loop through all we have found
+				img = None
+				for match in matchList:
+					img = imageLoad(match[0]) # 0 - first, 0 - pathname
+					if img != None:
+						break
+				return img
 	
 	# No go.
 	if VERBOSE: print '\t\tImage Not Found after looking everywhere! "%s"' % imagePath
 	return imageLoad(imagePath) # Will jus treturn a placeholder.
-
-
-
-
-
