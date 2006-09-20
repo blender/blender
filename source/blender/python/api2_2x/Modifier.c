@@ -675,9 +675,9 @@ static int array_setter( BPy_Modifier *self, int type, PyObject *value )
 	case EXPP_MOD_MERGE_DIST:
 		return EXPP_setFloatClamped( value, &md->merge_dist, 0.0, 1000.0 );
 	case EXPP_MOD_OFFSET_VEC:
-		return EXPP_setVec3Clamped( value, &md->offset, -10000.0, 10000.0 );
+		return EXPP_setVec3Clamped( value, md->offset, -10000.0, 10000.0 );
 	case EXPP_MOD_SCALE_VEC:
-		return EXPP_setVec3Clamped( value, &md->scale, -10000.0, 10000.0 );
+		return EXPP_setVec3Clamped( value, md->scale, -10000.0, 10000.0 );
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}

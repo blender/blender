@@ -685,15 +685,15 @@ int EXPP_setIValueClamped( PyObject *value, void *param,
 	}
 }
 
-int EXPP_setVec3Clamped( PyObject *value, float *param[3],
+int EXPP_setVec3Clamped( PyObject *value, float *param,
 								float min, float max )
 {	
 	if( VectorObject_Check( value ) ) {
 		VectorObject *vect = (VectorObject *)value;
 		if( vect->size == 3 ) {
-			*param[0] = EXPP_ClampFloat( vect->vec[0], min, max );
-			*param[1] = EXPP_ClampFloat( vect->vec[1], min, max );
-			*param[2] = EXPP_ClampFloat( vect->vec[2], min, max );
+			param[0] = EXPP_ClampFloat( vect->vec[0], min, max );
+			param[1] = EXPP_ClampFloat( vect->vec[1], min, max );
+			param[2] = EXPP_ClampFloat( vect->vec[2], min, max );
 			return 0;
 		}
 	}
