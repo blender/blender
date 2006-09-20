@@ -1,20 +1,21 @@
 #!BPY
 
 """
-Name: 'Fix broken paths'
+Name: 'Fix Broken Paths'
 Blender: 242
 Group: 'Image'
-Tooltip: 'Finds all image paths from this blend and references the new paths'
+Tooltip: 'Search for new image paths to make relative links to'
 """
 
 __author__ = "Campbell Barton AKA Ideasman"
-__url__ = ["http://members.iinet.net.au/~cpbarton/ideasman/", "blender", "elysiun"]
+__url__ = ["blenderartist.org"]
 
 __bpydoc__ = """\
 Find image target paths
 
 This script searches for images whos
 file paths do not point to an existing image file,
+all image paths are made relative where possible.
 usefull when moving projects between computers, when absolute paths links are broken.
 """
 
@@ -47,7 +48,6 @@ try:
 except:
 	Draw.PupMenu('You need a full python install to use this script')
 	os= None
-
 
 
 #==============================================#
@@ -99,8 +99,7 @@ def findImage(findRoot, imagePath):
 		
 
 # Makes the pathe relative to the blend file path.
-def makeRelative(path):
-	blendBasePath = sys.expandpath('//')
+def makeRelative(path, blendBasePath):
 	if path.startswith(blendBasePath):
 		path = path.replace(blendBasePath, '//')
 		path = path.replace('//\\', '//')
@@ -130,6 +129,8 @@ def find_images(findRoot):
 	if findRoot != '/' and not sys.exists(findRoot[:-1]):
 		Draw.PupMenu('Directory Dosent Exist')
 	
+	blendBasePath = sys.expandpath('//')
+	
 	
 	Window.WaitCursor(1)
 	# ============ DIR DONE\
@@ -144,16 +145,23 @@ def find_images(findRoot):
 		if not sys.exists(sys.expandpath(i.filename )):	
 			newImageFile = findImage(findRoot, i.filename)
 			if newImageFile != None:
-				newImageFile = makeRelative(newImageFile)
-				print 'newpath:', newImageFile
+				newImageFile= makeRelative(newImageFile, blendBasePath)
+				print 'newpath relink:', newImageFile
 				i.filename = newImageFile
 				i.reload()
+		else:
+			# Exists
+			newImageFile= makeRelative(i.filename, blendBasePath)
+			if newImageFile!=i.filename:
+				print 'newpath relative:', newImageFile
+				i.filename = newImageFile
+			
 	
 	Window.RedrawAll()
 	Window.DrawProgressBar(1.0, '')
 	Window.WaitCursor(0)
 
-if __name__ == '__main__' and os != None:
+if __name__ == '__main__' and os:
 	Window.FileSelector(find_images, 'SEARCH ROOT DIR', sys.expandpath('//'))
 
 
