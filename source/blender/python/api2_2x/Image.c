@@ -1223,7 +1223,7 @@ static int Image_setAttr( BPy_Image * self, char *name, PyObject * value )
 
 	if( strcmp( name, "name" ) == 0 )
 		error = Image_setName( self, valtuple );
-	if( strcmp( name, "filename" ) == 0 )
+	else if( strcmp( name, "filename" ) == 0 )
 		error = Image_setFilename( self, valtuple );
 	else if( strcmp( name, "xrep" ) == 0 )
 		error = Image_setXRep( self, valtuple );
