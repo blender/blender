@@ -234,29 +234,59 @@ PyObject *g_blenderdict;
 /*****************************************************************************/
 static PyObject *Blender_Set( PyObject * self, PyObject * args )
 {
-	char *name;
+	char *name, *dir = NULL;
 	PyObject *arg;
 	int framenum;
 
-	if( !PyArg_ParseTuple( args, "sO", &name, &arg ) ) {
-		/* TODO: Do we need to generate a nice error message here? */
-		return ( NULL );
-	}
+	if( !PyArg_ParseTuple( args, "sO", &name, &arg ) )
+		return EXPP_ReturnPyObjError( PyExc_ValueError, "expected 2 args, where the first is always a string" );
 
 	if( StringEqual( name, "curframe" ) ) {
-		if( !PyArg_Parse( arg, "i", &framenum ) ) {
-			/* TODO: Do we need to generate a nice error message here? */
-			return ( NULL );
-		}
-
+		if( !PyArg_Parse( arg, "i", &framenum ) )
+			return ( NULL ); /* TODO: Do we need to generate a nice error message here? */
 		G.scene->r.cfra = (short)framenum;
-
 		update_for_newframe(  );
-	} else {
+		
+	} else if (StringEqual( name , "uscriptsdir" ) ) {
+		if ( !PyArg_Parse( arg , "s" , &dir ))
+			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string" );
+		BLI_strncpy(U.pythondir, dir, FILE_MAXDIR);
+	} else if (StringEqual( name , "yfexportdir" ) ) {
+		if ( !PyArg_Parse( arg , "s" , &dir ))
+			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string" );
+		BLI_strncpy(U.yfexportdir, dir, FILE_MAXDIR);		
+	} else if (StringEqual( name , "fontsdir" ) ) {
+		if ( !PyArg_Parse( arg , "s" , &dir ))
+			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string" );
+		BLI_strncpy(U.fontdir, dir, FILE_MAXDIR);
+	} else if (StringEqual( name , "texturesdir" ) ) {
+		if ( !PyArg_Parse( arg , "s" , &dir ))
+			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string" );
+		BLI_strncpy(U.textudir, dir, FILE_MAXDIR);
+	} else if (StringEqual( name , "texpluginsdir" ) ) {
+		if ( !PyArg_Parse( arg , "s" , &dir ))
+			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string" );
+		BLI_strncpy(U.plugtexdir, dir, FILE_MAXDIR);
+	} else if (StringEqual( name , "seqpluginsdir" ) ) {
+		if ( !PyArg_Parse( arg , "s" , &dir ))
+			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string" );
+		BLI_strncpy(U.plugseqdir, dir, FILE_MAXDIR);
+	} else if (StringEqual( name , "renderdir" ) ) {
+		if ( !PyArg_Parse( arg , "s" , &dir ))
+			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string" );
+		BLI_strncpy(U.renderdir, dir, FILE_MAXDIR);
+	} else if (StringEqual( name , "soundsdir" ) ) {
+		if ( !PyArg_Parse( arg , "s" , &dir ))
+			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string" );
+		BLI_strncpy(U.sounddir, dir, FILE_MAXDIR);
+	} else if (StringEqual( name , "tempdir" ) ) {
+		if ( !PyArg_Parse( arg , "s" , &dir ))
+			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string" );
+		BLI_strncpy(U.tempdir, dir, FILE_MAXDIR);
+	} else
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"bad request identifier" ) );
-	}
-	return ( EXPP_incr_ret( Py_None ) );
+						"value given is not a blender setting" ) );
+	Py_RETURN_NONE;
 }
 
 /*****************************************************************************/
@@ -496,8 +526,7 @@ static PyObject *Blender_Quit( PyObject * self )
 
 	exit_usiblender(  );	/* renames last autosave to quit.blend */
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /**
@@ -610,8 +639,7 @@ static PyObject *Blender_Load( PyObject * self, PyObject * args )
 		}
 	}
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Blender_Save( PyObject * self, PyObject * args )
@@ -673,8 +701,7 @@ static PyObject *Blender_Save( PyObject * self, PyObject * args )
 
 	disable_where_script( 0 );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Blender_ShowHelp(PyObject *self, PyObject *args)
@@ -721,7 +748,7 @@ static PyObject *Blender_ShowHelp(PyObject *self, PyObject *args)
 	Blender_Run(self, arglist);
 	Py_DECREF(arglist);
 
-	return EXPP_incr_ret(Py_None);
+	Py_RETURN_NONE;
 }
 
 static PyObject *Blender_Run(PyObject *self, PyObject *args)
@@ -784,7 +811,7 @@ static PyObject *Blender_Run(PyObject *self, PyObject *args)
 
 	if (!is_blender_text) free_libblock(&G.main->text, text);
 
-	return EXPP_incr_ret(Py_None);
+	Py_RETURN_NONE;
 }
 
 static PyObject * Blender_UpdateMenus( PyObject * self )
@@ -796,8 +823,7 @@ static PyObject * Blender_UpdateMenus( PyObject * self )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 			"invalid scripts dir");
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Blender_RemoveFakeuser(PyObject *self, PyObject *args)
@@ -823,8 +849,7 @@ static PyObject *Blender_RemoveFakeuser(PyObject *self, PyObject *args)
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "given object does not have a Blender ID");
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*****************************************************************************/

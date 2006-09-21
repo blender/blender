@@ -60,7 +60,15 @@ def Set (request, data):
   @type request: string
   @param request: The setting to change:
       - 'curframe': the current animation frame
-  @type data: int
+      - 'uscriptsdir': user scripts dir
+      - 'yfexportdir': yafray temp xml storage dir
+      - 'fontsdir': font dir
+      - 'texturesdir': textures dir
+      - 'seqpluginsdir': sequencer plugin dir
+      - 'renderdir': default render output dir
+      - 'soundsdir': sound dir
+      - 'tempdir': temp file storage dir
+  @type data: int or string
   @param data: The new value.
   """
 

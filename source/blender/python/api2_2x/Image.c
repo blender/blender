@@ -1036,17 +1036,17 @@ static PyObject *Image_setFilename( BPy_Image * self, PyObject * args )
 	char *name;
 	int namelen = 0;
 
-	/* max len is FILE_MAXDIR = 160 chars like done in DNA_image_types.h */
+	/* max len is FILE_MAXDIR == 160, FILE_MAXFILE == 80 chars like done in DNA_image_types.h */
 
 	if( !PyArg_ParseTuple( args, "s#", &name, &namelen ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected a string argument" ) );
 
-	if( namelen >= FILE_MAXDIR )
+	if( namelen >= FILE_MAXDIR + FILE_MAXFILE )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"string argument is limited to 160 chars at most" ) );
+						"string argument is limited to 240 chars at most" ) );
 
-	PyOS_snprintf( self->image->name, FILE_MAXDIR * sizeof( char ), "%s",
+	PyOS_snprintf( self->image->name, (FILE_MAXDIR + FILE_MAXFILE) * sizeof( char ), "%s",
 		       name );
 
 	Py_RETURN_NONE;
