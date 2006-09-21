@@ -752,8 +752,9 @@ static int unified_findnearest(EditVert **eve, EditEdge **eed, EditFace **efa)
 	return (*eve || *eed || *efa);
 }
 
-/* this as a way to compare the ares, perim  of 2 faces thay will scale to different sizes */
-#define SCALE_CMP(a,b) (fabs(a-b) <= thresh*a || (a>0 && fabs(b/a)<=thresh))
+/* this as a way to compare the ares, perim  of 2 faces thay will scale to different sizes
+ *0.5 so smaller faces arnt ALWAYS selected with a thresh of 1.0 */
+#define SCALE_CMP(a,b) ((a+a*thresh >= b) && (a-(a*thresh*0.5) <= b))
 
 /* ****************  GROUP SELECTS ************** */
 /* selects new faces/edges/verts based on the
@@ -807,7 +808,7 @@ int facegroup_select(short mode)
 	}
 	
 	for(base_efa= em->faces.first; base_efa; base_efa= base_efa->next) {
-		if (base_efa->f1) {
+		if (base_efa->f1) { /* This was one of the faces originaly selected */
 			if (mode==1) { /* same material */
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (
@@ -834,15 +835,15 @@ int facegroup_select(short mode)
 				}
 			} else if (mode==3 || mode==4) { /* same area OR same perimeter, both use the same temp var */
 				for(efa= em->faces.first; efa; efa= efa->next) {
-					if (!(efa->f & SELECT) && !efa->h) {
-						if (SCALE_CMP(base_efa->tmp.fp, efa->tmp.fp)) {
-						
-							EM_select_face(efa, 1);
-							selcount++;
-							deselcount--;
-							if (!deselcount) /*have we selected all posible faces?, if so return*/
-								return selcount;
-						}
+					if (
+						(!(efa->f & SELECT) && !efa->h) &&
+						SCALE_CMP(base_efa->tmp.fp, efa->tmp.fp)
+					) {
+						EM_select_face(efa, 1);
+						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
 					}
 				}
 			} else if (mode==5) { /* same normal */
@@ -990,7 +991,7 @@ int edgegroup_select(short mode)
 					if (
 						!(eed->f & SELECT) &&
 						!eed->h &&
-						(SCALE_CMP(base_eed->tmp.fp, eed->tmp.fp))
+						SCALE_CMP(base_eed->tmp.fp, eed->tmp.fp)
 					) {
 						EM_select_edge(eed, 1);
 						selcount++;
