@@ -5587,10 +5587,58 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 	if(main->versionfile <= 242) {
 		Scene *sce;
+		Object *ob;
 		
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if (sce->toolsettings->select_thresh == 0.0f)
 				sce->toolsettings->select_thresh= 0.01f;
+		}
+		
+		ob = main->object.first;
+
+		while (ob) {
+			ListBase *list;
+			list = &ob->constraints;
+
+			/* check for already existing MinMax (floor) constraint
+			   and update the sticky flagging */
+
+			if (list){
+				bConstraint *curcon;
+				for (curcon = list->first; curcon; curcon=curcon->next){
+					if (curcon->type == CONSTRAINT_TYPE_MINMAX){
+						bMinMaxConstraint *data = curcon->data;
+						if (data->sticky==1) {
+							data->flag|=MINMAX_STICKY;
+						} else {
+							data->flag&=~MINMAX_STICKY;
+						}
+					}
+				}
+			}
+
+			if (ob->type == OB_ARMATURE) {
+				if (ob->pose){
+					bConstraint *curcon;
+					bPoseChannel *pchan;
+					for (pchan = ob->pose->chanbase.first;
+						 pchan; pchan=pchan->next){
+						for (curcon = pchan->constraints.first;
+							 curcon; curcon=curcon->next){
+							if (curcon->type == CONSTRAINT_TYPE_MINMAX){
+								bMinMaxConstraint *data = curcon->data;
+								if (data->sticky==1) {
+									data->flag|=MINMAX_STICKY;
+								} else {
+									data->flag&=~MINMAX_STICKY;
+								}
+							}
+						}
+					}
+                }
+			}
+
+			ob = ob->id.next;
 		}
 	}
 	

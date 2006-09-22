@@ -100,6 +100,7 @@ typedef struct bMinMaxConstraint{
 	int			minmaxflag;
 	float			offset;
 	int				flag;
+	short			sticky, stuck, pad1, pad2; /* for backward compatability */
 	float			cache[3];
 	char		subtarget[32];
 } bMinMaxConstraint;
