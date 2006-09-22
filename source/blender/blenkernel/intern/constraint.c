@@ -598,8 +598,7 @@ void *new_constraint_data (short type)
 			data->minmaxflag = TRACK_Z;
 			data->offset = 0.0f;
 			data->cache[0] = data->cache[1] = data->cache[2] = 0.0f;
-			data->sticky = 0;
-			data->stuck = 0;
+			data->flag = 0;
 
 			result = data;
 
@@ -1250,38 +1249,50 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			float val1, val2;
 			int index;
 			bMinMaxConstraint *data;
+			float obmat[4][4],imat[4][4],tarmat[4][4],tmat[4][4];
 
 			data = constraint->data;
+			
+			Mat4CpyMat4(obmat,ob->obmat);
+			Mat4CpyMat4(tarmat,targetmat);
+			
+			if (data->flag&MINMAX_USEROT) {
+			/* take rotation of target into account by doing the transaction in target's localspace */
+				Mat4Invert(imat,tarmat);
+				Mat4MulMat4(tmat,obmat,imat);
+				Mat4CpyMat4(obmat,tmat);
+				Mat4One(tarmat);
+			}
 
 			switch (data->minmaxflag){
 			case TRACK_Z:
-				val1 = targetmat[3][2];
-				val2 = ob->obmat[3][2]-data->offset;
+				val1 = tarmat[3][2];
+				val2 = obmat[3][2]-data->offset;
 				index = 2;
 				break;
 			case TRACK_Y:
-				val1 = targetmat[3][1];
-				val2 = ob->obmat[3][1]-data->offset;
+				val1 = tarmat[3][1];
+				val2 = obmat[3][1]-data->offset;
 				index = 1;
 				break;
 			case TRACK_X:
-				val1 = targetmat[3][0];
-				val2 = ob->obmat[3][0]-data->offset;
+				val1 = tarmat[3][0];
+				val2 = obmat[3][0]-data->offset;
 				index = 0;
 				break;
 			case TRACK_nZ:
-				val2 = targetmat[3][2];
-				val1 = ob->obmat[3][2]-data->offset;
+				val2 = tarmat[3][2];
+				val1 = obmat[3][2]-data->offset;
 				index = 2;
 				break;
 			case TRACK_nY:
-				val2 = targetmat[3][1];
-				val1 = ob->obmat[3][1]-data->offset;
+				val2 = tarmat[3][1];
+				val1 = obmat[3][1]-data->offset;
 				index = 1;
 				break;
 			case TRACK_nX:
-				val2 = targetmat[3][0];
-				val1 = ob->obmat[3][0]-data->offset;
+				val2 = tarmat[3][0];
+				val1 = obmat[3][0]-data->offset;
 				index = 0;
 				break;
 			default:
@@ -1289,18 +1300,27 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			}
 			
 			if (val1 > val2) {
-				ob->obmat[3][index] = targetmat[3][index] + data->offset;
-				if (data->sticky==1) {
-					if (data->stuck==1) {
-						VECCOPY(ob->obmat[3], data->cache);
+				obmat[3][index] = tarmat[3][index] + data->offset;
+				if (data->flag&MINMAX_STICKY) {
+					if (data->flag&MINMAX_STUCK) {
+						VECCOPY(obmat[3], data->cache);
 					} else {
-						VECCOPY(data->cache, ob->obmat[3]);
-						data->stuck = 1;
+						VECCOPY(data->cache, obmat[3]);
+						data->flag|=MINMAX_STUCK;
 					}
 				}
+				if (data->flag&MINMAX_USEROT) {
+					/* get out of localspace */
+					Mat4MulMat4(tmat,obmat,targetmat);
+					Mat4CpyMat4(ob->obmat,tmat);
+				} else {			
+					VECCOPY(ob->obmat[3],obmat[3]);
+				}
+
 			} else {
-				data->stuck=0;
+				data->flag&=~MINMAX_STUCK;
 			}
+			
 		}
 		break;
 	case CONSTRAINT_TYPE_TRACKTO:

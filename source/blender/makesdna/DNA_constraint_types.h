@@ -99,8 +99,7 @@ typedef struct bMinMaxConstraint{
 	Object		*tar;
 	int			minmaxflag;
 	float			offset;
-	short			sticky;
-	short			stuck;
+	int				flag;
 	float			cache[3];
 	char		subtarget[32];
 } bMinMaxConstraint;
@@ -277,6 +276,11 @@ typedef struct bSizeLimitConstraint{
 #define CONSTRAINT_IK_ROT		2
 #define CONSTRAINT_IK_AUTO		4
 #define CONSTRAINT_IK_TEMP		8
+
+/* MinMax (floor) flags */
+#define MINMAX_STICKY	0x01
+#define MINMAX_STUCK	0x02
+#define MINMAX_USEROT	0x04
 
 /* transform limiting constraints -> flag  */
 #define LIMIT_XMIN 0x01

@@ -762,7 +762,7 @@ static PyObject *floor_getter( BPy_Constraint * self, int type )
 	case EXPP_CONSTR_OFFSET:
 		return PyFloat_FromDouble( (double)con->offset );
 	case EXPP_CONSTR_STICKY:
-		return PyBool_FromLong( (long)( con->sticky & SELECT ) ) ;
+		return PyBool_FromLong( (long)( con->flag & MINMAX_STICKY ) ) ;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
@@ -797,7 +797,7 @@ static int floor_setter( BPy_Constraint *self, int type, PyObject *value )
 	case EXPP_CONSTR_OFFSET:
 		return EXPP_setFloatClamped( value, &con->offset, -100.0, 100.0 );
 	case EXPP_CONSTR_STICKY:
-		return EXPP_setBitfield( value, &con->sticky, SELECT, 'h' );
+		return EXPP_setBitfield( value, &con->flag, MINMAX_STICKY, 'h' );
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}
