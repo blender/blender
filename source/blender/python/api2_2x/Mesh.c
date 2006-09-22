@@ -107,6 +107,13 @@
 #define MESH_TOOL_TRI2QUAD             7
 #define MESH_TOOL_QUAD2TRI             8
 
+static PyObject *MVertSeq_CreatePyObject( Mesh * mesh );
+static PyObject *MFaceSeq_CreatePyObject( Mesh * mesh );
+static PyObject *MEdgeSeq_CreatePyObject( Mesh * mesh );
+static PyObject *MFace_CreatePyObject( Mesh * mesh, int i );
+static PyObject *MEdge_CreatePyObject( Mesh * mesh, int i );
+
+
 /************************************************************************
  *
  * internal utilities
@@ -1694,8 +1701,15 @@ static PySequenceMethods MVertSeq_as_sequence = {
 
 static PyObject *MVertSeq_getIter( BPy_MVertSeq * self )
 {
-	self->iter = 0;
-	return EXPP_incr_ret ( (PyObject *) self );
+	if (self->iter==-1) { /* iteration for this pyobject is not yet used, just return self */
+		self->iter = 0;
+		return EXPP_incr_ret ( (PyObject *) self );
+	} else {
+		/* were alredy using this as an iterator, make a copy to loop on */
+		BPy_MVertSeq *seq = (BPy_MVertSeq *)MVertSeq_CreatePyObject(self->mesh);
+		seq->iter = 0;
+		return (PyObject *)seq;
+	}
 }
 
 /*
@@ -1704,9 +1718,11 @@ static PyObject *MVertSeq_getIter( BPy_MVertSeq * self )
 
 static PyObject *MVertSeq_nextIter( BPy_MVertSeq * self )
 {
-	if( self->iter == self->mesh->totvert )
+	if( self->iter == self->mesh->totvert ) {
+		self->iter= -1; /* allow it to be used as an iterator again without creating a new BPy_MVertSeq */
 		return EXPP_ReturnPyObjError( PyExc_StopIteration,
 				"iterator at end" );
+	}
 
 	return MVert_CreatePyObject( self->mesh, self->iter++ );
 }
@@ -2455,8 +2471,14 @@ static PyGetSetDef BPy_MEdge_getseters[] = {
 
 static PyObject *MEdge_getIter( BPy_MEdge * self )
 {
-	self->iter = 0;
-	return EXPP_incr_ret ( (PyObject *) self );
+	if (self->iter==-1) { /* not alredy used to iterator on, just use self */
+		self->iter = 0;
+		return EXPP_incr_ret ( (PyObject *) self );
+	} else { /* alredy being iterated on, return a copy */
+		BPy_MEdge *seq = (BPy_MEdge *)MEdge_CreatePyObject(self->mesh, self->index);
+		seq->iter = 0;
+		return (PyObject *)seq;
+	}
 }
 
 /*
@@ -2465,10 +2487,12 @@ static PyObject *MEdge_getIter( BPy_MEdge * self )
 
 static PyObject *MEdge_nextIter( BPy_MEdge * self )
 {
-	if( self->iter == 2 )
+	if( self->iter == 2 ) {
+		self->iter = -1;
 		return EXPP_ReturnPyObjError( PyExc_StopIteration,
 				"iterator at end" );
-
+	}
+	
 	self->iter++;
 	if( self->iter == 1 )
 		return MEdge_getV1( self );
@@ -2607,6 +2631,7 @@ static PyObject *MEdge_CreatePyObject( Mesh * mesh, int i )
 
 	obj->mesh = mesh;
 	obj->index = i;
+	obj->iter = -1;
 	return (PyObject *)obj;
 }
 
@@ -2654,8 +2679,14 @@ static PySequenceMethods MEdgeSeq_as_sequence = {
 
 static PyObject *MEdgeSeq_getIter( BPy_MEdgeSeq * self )
 {
-	self->iter = 0;
-	return EXPP_incr_ret ( (PyObject *) self );
+	if (self->iter==-1) { /* iteration for this pyobject is not yet used, just return self */
+		self->iter = 0;
+		return EXPP_incr_ret ( (PyObject *) self );
+	} else {
+		BPy_MEdgeSeq *seq = (BPy_MEdgeSeq *)MEdgeSeq_CreatePyObject(self->mesh);
+		seq->iter = 0;
+		return (PyObject *)seq;
+	}
 }
 
 /*
@@ -2664,9 +2695,11 @@ static PyObject *MEdgeSeq_getIter( BPy_MEdgeSeq * self )
 
 static PyObject *MEdgeSeq_nextIter( BPy_MEdgeSeq * self )
 {
-	if( self->iter == self->mesh->totedge )
+	if( self->iter == self->mesh->totedge ) {
+		self->iter= -1;
 		return EXPP_ReturnPyObjError( PyExc_StopIteration,
 				"iterator at end" );
+	}
 
 	return MEdge_CreatePyObject( self->mesh, self->iter++ );
 }
@@ -4335,8 +4368,14 @@ static PyGetSetDef BPy_MFace_getseters[] = {
 
 static PyObject *MFace_getIter( BPy_MFace * self )
 {
-	self->iter = 0;
-	return EXPP_incr_ret ( (PyObject *) self );
+	if (self->iter==-1) {
+		self->iter = 0;
+		return EXPP_incr_ret ( (PyObject *) self );
+	} else {
+		BPy_MFace *seq= (BPy_MFace *)MFace_CreatePyObject(self->mesh, self->index);
+		seq->iter = 0;
+		return (PyObject *) seq;
+	}
 }
 
 /*
@@ -4348,10 +4387,12 @@ static PyObject *MFace_nextIter( BPy_MFace * self )
 	struct MFace *face = &self->mesh->mface[self->index];
 	int len = self->mesh->mface[self->index].v4 ? 4 : 3;
 
-	if( self->iter == len )
+	if( self->iter == len ) {
+		self->iter = -1;
 		return EXPP_ReturnPyObjError( PyExc_StopIteration,
 				"iterator at end" );
-
+	}
+	
 	++self->iter;
 	switch ( self->iter ) {
 	case 1:
@@ -4525,6 +4566,7 @@ static PyObject *MFace_CreatePyObject( Mesh * mesh, int i )
 
 	obj->mesh = mesh;
 	obj->index = i;
+	obj->iter= -1;
 	return (PyObject *)obj;
 }
 
@@ -4571,8 +4613,14 @@ static PySequenceMethods MFaceSeq_as_sequence = {
 
 static PyObject *MFaceSeq_getIter( BPy_MFaceSeq * self )
 {
-	self->iter = 0;
-	return EXPP_incr_ret ( (PyObject *) self );
+	if (self->iter==-1) {
+		self->iter = 0;
+		return EXPP_incr_ret ( (PyObject *) self );
+	} else {
+		BPy_MFaceSeq *seq = (BPy_MFaceSeq *)MFaceSeq_CreatePyObject(self->mesh);
+		seq->iter = 0;
+		return (PyObject *)seq;
+	}
 }
 
 /*
@@ -4581,10 +4629,11 @@ static PyObject *MFaceSeq_getIter( BPy_MFaceSeq * self )
 
 static PyObject *MFaceSeq_nextIter( BPy_MFaceSeq * self )
 {
-	if( self->iter == self->mesh->totface )
+	if( self->iter == self->mesh->totface ) {
+		self->iter= -1; /* not being used in a seq */
 		return EXPP_ReturnPyObjError( PyExc_StopIteration,
 				"iterator at end" );
-
+	}
 	return MFace_CreatePyObject( self->mesh, self->iter++ );
 }
 
@@ -6568,11 +6617,25 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
  *
  ************************************************************************/
 
+static PyObject *MVertSeq_CreatePyObject( Mesh * mesh )
+{
+	
+	BPy_MVertSeq *obj = PyObject_NEW( BPy_MVertSeq, &MVertSeq_Type);
+	obj->mesh = mesh;
+	
+	/*
+	an iter of -1 means this seq has not been used as an iterator yet
+	once it is, then any other calls on getIter will return a new copy of BPy_MVertSeq
+	This means you can loop do nested loops with the same iterator without worrying about
+	the iter variable being used twice and messing up the loops.
+	*/
+	obj->iter = -1;
+	return (PyObject *)obj;
+}
+
 static PyObject *Mesh_getVerts( BPy_Mesh * self )
 {
-	BPy_MVertSeq *seq = PyObject_NEW( BPy_MVertSeq, &MVertSeq_Type);
-	seq->mesh = self->mesh;
-	return (PyObject *)seq;
+	return MVertSeq_CreatePyObject(self->mesh);
 }
 
 static int Mesh_setVerts( BPy_Mesh * self, PyObject * args )
@@ -6629,18 +6692,30 @@ static int Mesh_setVerts( BPy_Mesh * self, PyObject * args )
 	return 0;
 }
 
+static PyObject *MEdgeSeq_CreatePyObject( Mesh *mesh )
+{
+	BPy_MEdgeSeq *obj = PyObject_NEW( BPy_MEdgeSeq, &MEdgeSeq_Type);
+	obj->mesh = mesh;
+	obj->iter = -1; /* iterator not yet used */
+	return (PyObject *)obj;
+}
+
 static PyObject *Mesh_getEdges( BPy_Mesh * self )
 {
-	BPy_MEdgeSeq *seq = PyObject_NEW( BPy_MEdgeSeq, &MEdgeSeq_Type);
-	seq->mesh = self->mesh;
-	return (PyObject *)seq;
+	return MEdgeSeq_CreatePyObject(self->mesh);
+}
+
+static PyObject *MFaceSeq_CreatePyObject( Mesh * mesh )
+{
+	BPy_MFaceSeq *obj= PyObject_NEW( BPy_MFaceSeq, &MFaceSeq_Type);
+	obj->mesh = mesh;
+	obj->iter = -1; /* iterator not yet used */
+	return (PyObject *)obj;
 }
 
 static PyObject *Mesh_getFaces( BPy_Mesh * self )
 {
-	BPy_MFaceSeq *seq = PyObject_NEW( BPy_MFaceSeq, &MFaceSeq_Type);
-	seq->mesh = self->mesh;
-	return (PyObject *)seq;
+	return MFaceSeq_CreatePyObject( self->mesh );
 }
 
 static PyObject *Mesh_getMaterials( BPy_Mesh *self )

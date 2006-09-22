@@ -89,7 +89,7 @@ typedef struct {
 	PyObject_VAR_HEAD	/* required python macro   */
 	Mesh *mesh;			/* points to a Mesh */
 	int index;
-	int iter;
+	char iter;			/* char because it can only ever be between -1 and 2 */
 } BPy_MEdge;			/* a Mesh edge */
 
 typedef struct {
@@ -102,7 +102,7 @@ typedef struct {
 	PyObject_VAR_HEAD	/* required python macro   */
 	Mesh * mesh;
 	int index;
-	int iter;
+	char iter;			/* char because it can only ever be between -1 and 4 */
 } BPy_MFace;			/* a Mesh face */
 
 typedef struct {
