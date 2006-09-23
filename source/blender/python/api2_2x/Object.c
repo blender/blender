@@ -168,6 +168,7 @@ enum obj_consts {
 	EXPP_OBJ_ATTR_DUPEND,
 	EXPP_OBJ_ATTR_TIMEOFFSET,
 	EXPP_OBJ_ATTR_DRAWSIZE,
+	EXPP_OBJ_ATTR_PARENT_TYPE,
 
 	EXPP_OBJ_ATTR_PI_SURFACEDAMP,	/* these need to stay together */
 	EXPP_OBJ_ATTR_PI_RANDOMDAMP,	/* and in order */
@@ -3447,6 +3448,9 @@ static PyObject *getIntAttr( BPy_Object *self, void *type )
 	case EXPP_OBJ_ATTR_DRAWTYPE:
 		param = object->dt;
 		break;
+	case EXPP_OBJ_ATTR_PARENT_TYPE:
+		param = object->partype;
+		break;
 	case EXPP_OBJ_ATTR_DUPON:
 		param = object->dupon;
 		break;
@@ -3620,10 +3624,10 @@ static PyObject *getFloatAttr( BPy_Object *self, void *type )
 	case EXPP_OBJ_ATTR_DSIZE_X: 
 		param = object->dsize[0];
 		break;
-	case EXPP_OBJ_ATTR_DSIZE_Y: 
+	case EXPP_OBJ_ATTR_DSIZE_Y:
 		param = object->dsize[1];
 		break;
-	case EXPP_OBJ_ATTR_DSIZE_Z: 
+	case EXPP_OBJ_ATTR_DSIZE_Z:
 		param = object->dsize[2];
 		break;
 	case EXPP_OBJ_ATTR_TIMEOFFSET:
@@ -4650,6 +4654,10 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)getIntAttr, (setter)Object_setDrawType,
 	 "The object's drawing type",
 	 (void *)EXPP_OBJ_ATTR_DRAWTYPE},
+	{"parentType",
+	 (getter)getIntAttr, (setter)NULL,
+	 "The object's parent type",
+	 (void *)EXPP_OBJ_ATTR_PARENT_TYPE},
 	{"DupOn",
 	 (getter)getIntAttr, (setter)setIntAttrClamp,
 	 "DupOn setting (for DupliFrames)",
@@ -4705,10 +4713,6 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	{"sel",
 	 (getter)Object_getSelected, (setter)Object_setSelect,
 	 "The object's selection state",
-	 NULL},
-	{"parent",
-	 (getter)Object_getParent, (setter)NULL,
-	 "The object's parent object (if parented)",
 	 NULL},
 	{"parentbonename",
 	 (getter)Object_getParentBoneName, (setter)NULL,
@@ -5084,6 +5088,23 @@ static PyObject *M_Object_DrawTypesDict( void )
 	return M;
 }
 
+static PyObject *M_Object_ParentTypesDict( void )
+{
+	PyObject *M = PyConstant_New(  );
+
+	if( M ) {
+		BPy_constant *d = ( BPy_constant * ) M;
+		PyConstant_Insert( d, "OBJECT", PyInt_FromLong( PAROBJECT ) );
+		PyConstant_Insert( d, "CURVE", PyInt_FromLong( PARCURVE ) );
+		PyConstant_Insert( d, "LATTICE", PyInt_FromLong( PARKEY ) );
+		PyConstant_Insert( d, "ARMATURE", PyInt_FromLong( PARSKEL ) );
+		PyConstant_Insert( d, "VERT1", PyInt_FromLong( PARVERT1 ) );
+		PyConstant_Insert( d, "VERT3", PyInt_FromLong( PARVERT3 ) );
+		PyConstant_Insert( d, "BONE", PyInt_FromLong( PARBONE ) );
+	}
+	return M;
+}
+
 static PyObject *M_Object_PITypesDict( void )
 {
 	PyObject *M = PyConstant_New(  );
@@ -5171,6 +5192,7 @@ PyObject *Object_Init( void )
 	PyObject *module, *dict;
 	PyObject *DrawModesDict = M_Object_DrawModesDict( );
 	PyObject *DrawTypesDict = M_Object_DrawTypesDict( );
+	PyObject *ParentTypesDict = M_Object_ParentTypesDict( );
 	PyObject *ProtectDict = M_Object_ProtectDict( );
 	PyObject *PITypesDict = M_Object_PITypesDict( );
 	PyObject *RBFlagsDict = M_Object_RBFlagsDict( );
@@ -5203,6 +5225,8 @@ PyObject *Object_Init( void )
 		PyModule_AddObject( module, "DrawModes", DrawModesDict );
 	if( DrawTypesDict )
 		PyModule_AddObject( module, "DrawTypes", DrawTypesDict );
+	if( ParentTypesDict )
+		PyModule_AddObject( module, "ParentTypes", ParentTypesDict );
 	if( PITypesDict )
 		PyModule_AddObject( module, "PITypes", PITypesDict );
 	if( ProtectDict )

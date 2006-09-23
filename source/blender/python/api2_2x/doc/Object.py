@@ -54,6 +54,17 @@ Example::
       - SOLID: Draw object in solid
       - SHADED: Draw object with shaded or textured
 
+@type ParentTypes: readonly dictionary
+@var ParentTypes: Constant dict used for with L{Object.parentType} attribute.
+      - OBJECT: Object parent type.
+      - CURVE: Curve deform parent type.
+      - LATTICE: Lattice deform parent type.
+      - ARMATURE: Armature deform parent type.
+      - VERT1: 1 mesh vert parent type.
+      - VERT3: 1 mesh verts parent type.
+      - BONE: Armature bone parent type.
+      
+
 @type ProtectFlags: readonly dictionary
 @var ProtectFlags: Constant dict used for with L{Object.protectFlags} attribute.
     Values can be ORed together.  
@@ -451,6 +462,9 @@ class Object:
     @type boundingBox: list of 8 3D vectors
     @ivar drawType: The object's drawing type.
         See L{DrawTypes} constant dict for values.
+    @type drawType: int
+    @ivar parentType: The object's parent type.  Read-only.
+        See L{ParentTypes} constant dict for values.
     @type drawType: int
     @ivar axis: Enable display of active object's center and axis.
         Also see B{AXIS} bit in L{drawMode} attribute.
