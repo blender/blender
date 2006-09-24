@@ -4274,10 +4274,14 @@ static void editing_panel_mesh_paint(void)
 
 			uiBlockBeginAlign(block);
 			uiDefButF(block, COL, B_VPCOLSLI, "",					0,yco,200,19, brush->rgb, 0, 0, 0, 0, "");
-			uiDefButF(block, NUMSLI, B_NOP, "Opacity ",		0,yco-20,200,19, &brush->alpha, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-			uiDefButI(block, NUMSLI, B_NOP, "Size ",		0,yco-40,200,19, &brush->size, 1, 200, 0, 0, "The size of the brush");
-			uiDefButF(block, NUMSLI, B_NOP, "Falloff ",		0,yco-60,200,19, &brush->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
-			uiDefButF(block, NUMSLI, B_NOP, "Spacing ",0,yco-80,200,19, &brush->spacing, 1.0, 100.0, 0, 0, "Repeating paint on %% of brush diameter");
+			uiDefButF(block, NUMSLI, B_NOP, "Opacity ",		0,yco-20,180,19, &brush->alpha, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
+			uiDefButBitS(block, TOG|BIT, BRUSH_ALPHA_PRESSURE, B_NOP, "P",	180,yco-20,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+			uiDefButI(block, NUMSLI, B_NOP, "Size ",		0,yco-40,180,19, &brush->size, 1, 200, 0, 0, "The size of the brush");
+			uiDefButBitS(block, TOG|BIT, BRUSH_SIZE_PRESSURE, B_NOP, "P",	180,yco-40,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+			uiDefButF(block, NUMSLI, B_NOP, "Falloff ",		0,yco-60,180,19, &brush->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
+			uiDefButBitS(block, TOG|BIT, BRUSH_RAD_PRESSURE, B_NOP, "P",	180,yco-60,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
+			uiDefButF(block, NUMSLI, B_NOP, "Spacing ",0,yco-80,180,19, &brush->spacing, 1.0, 100.0, 0, 0, "Repeating paint on %% of brush diameter");
+		uiDefButBitS(block, TOG|BIT, BRUSH_SPACING_PRESSURE, B_NOP, "P",	180,yco-80,20,19, &brush->flag, 0, 0, 0, 0, "Enables pressure sensitivity for tablets");
 			uiBlockEndAlign(block);
 
 			yco -= 110;

@@ -64,9 +64,13 @@ typedef struct Brush {
 } Brush;
 
 /* Brush.flag */
-#define BRUSH_AIRBRUSH	1
-#define BRUSH_TORUS		2
-#define BRUSH_FIXED_TEX	4
+#define BRUSH_AIRBRUSH			1
+#define BRUSH_TORUS				2
+#define BRUSH_ALPHA_PRESSURE	4
+#define BRUSH_SIZE_PRESSURE		8
+#define BRUSH_RAD_PRESSURE		16
+#define BRUSH_SPACING_PRESSURE	32
+#define BRUSH_FIXED_TEX			64
 
 /* Brush.blend */
 #define BRUSH_BLEND_MIX 	0

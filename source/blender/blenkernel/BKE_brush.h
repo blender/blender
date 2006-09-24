@@ -69,7 +69,7 @@ BrushPainter *brush_painter_new(struct Brush *brush);
 void brush_painter_require_imbuf(BrushPainter *painter, short flt,
 	short texonly, int size);
 int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos,
-	double time, void *user);
+	double time, float pressure, void *user);
 void brush_painter_break_stroke(BrushPainter *painter);
 void brush_painter_free(BrushPainter *painter);
 

@@ -299,6 +299,13 @@ void brush_check_exists(Brush **brush)
 
 /* Brush Sampling */
 
+/*static float taylor_approx_cos(float f)
+{
+	f = f*f;
+	f = 1.0f - f/2.0f + f*f/24.0f;
+	return f;
+}*/
+
 float brush_sample_falloff(Brush *brush, float dist)
 {
 	float a, outer, inner;
@@ -310,10 +317,12 @@ float brush_sample_falloff(Brush *brush, float dist)
 		return brush->alpha;
 	}
 	else if ((dist < outer) && (inner < outer)) {
-		/* formula used by sculpt:
-		   0.5f * (cos(3*(dist - inner)/(outer - inner)) + 1); */
 		a = sqrt((dist - inner)/(outer - inner));
 		return (1 - a)*brush->alpha;
+
+		/* formula used by sculpt, with taylor approx 
+		a = 0.5f*(taylor_approx_cos(3.0f*(dist - inner)/(outer - inner)) + 1.0f);
+		return a*brush->alpha; */
 	}
 	else 
 		return 0.0f;
@@ -469,6 +478,8 @@ struct BrushPainter {
 
 	double accumtime;		/* accumulated time since last paint op (airbrush) */
 	double lasttime;		/* time of last update */
+
+	float lastpressure;
 
 	short firsttouch;		/* first paint op */
 
@@ -720,24 +731,37 @@ void brush_painter_break_stroke(BrushPainter *painter)
 	painter->firsttouch= 1;
 }
 
-int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, void *user)
+static void brush_apply_pressure(BrushPainter *painter, Brush *brush, float pressure)
+{
+	if (brush->flag & BRUSH_ALPHA_PRESSURE) 
+		brush->alpha = MAX2(0.0, painter->startalpha*pressure);
+	if (brush->flag & BRUSH_SIZE_PRESSURE)
+		brush->size = MAX2(1.0, painter->startsize*pressure);
+	if (brush->flag & BRUSH_RAD_PRESSURE)
+		brush->innerradius = MAX2(0.0, painter->startinnerradius*pressure);
+	if (brush->flag & BRUSH_SPACING_PRESSURE)
+		brush->spacing = MAX2(1.0, painter->startspacing*(1.5f-pressure));
+}
+
+int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, double time, float pressure, void *user)
 {
 	Brush *brush= painter->brush;
 	int totpaintops= 0;
+
+	if (pressure == 0.0f)
+		pressure = 1.0f;	/* zero pressure == not using tablet */
 
 	if (painter->firsttouch) {
 		/* paint exactly once on first touch */
 		painter->startpaintpos[0]= pos[0];
 		painter->startpaintpos[1]= pos[1];
 
+		brush_apply_pressure(painter, brush, pressure);
 		if (painter->cache.enabled)
 			brush_painter_refresh_cache(painter, pos);
 		totpaintops += func(user, painter->cache.ibuf, pos, pos);
 		
-		painter->lastpaintpos[0]= pos[0];
-		painter->lastpaintpos[1]= pos[1];
 		painter->lasttime= time;
-
 		painter->firsttouch= 0;
 	}
 #if 0
@@ -760,8 +784,10 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 			paintpos[0]= painter->lastmousepos[0] + dmousepos[0]*step;
 			paintpos[1]= painter->lastmousepos[1] + dmousepos[1]*step;
 
-			if (painter->cache.enabled) brush_painter_refresh_cache(painter);
-			totpaintops += func(user, painter->cache.ibuf, painter->lastpaintpos, paintpos);
+			if (painter->cache.enabled)
+				brush_painter_refresh_cache(painter);
+			totpaintops += func(user, painter->cache.ibuf,
+				painter->lastpaintpos, paintpos);
 
 			painter->lastpaintpos[0]= paintpos[0];
 			painter->lastpaintpos[1]= paintpos[1];
@@ -774,15 +800,18 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 #endif
 	else {
 		float startdistance, spacing, step, paintpos[2], dmousepos[2];
-		float brushsize = MAX2(1.0, brush->size);
+		float t, len, press;
 
-		/* compute brush spacing adapted to brush size */
-		spacing= brushsize*brush->spacing*0.01f;
+		/* compute brush spacing adapted to brush size, spacing may depend
+		   on pressure, so update it */
+		brush_apply_pressure(painter, brush, painter->lastpressure);
+		spacing= MAX2(1.0, brush->size)*brush->spacing*0.01f;
 
 		/* setup starting distance, direction vector and accumulated distance */
 		startdistance= painter->accumdistance;
 		Vec2Subf(dmousepos, pos, painter->lastmousepos);
-		painter->accumdistance += Normalise2(dmousepos);
+		len= Normalise2(dmousepos);
+		painter->accumdistance += len;
 
 		/* do paint op over unpainted distance */
 		while (painter->accumdistance >= spacing) {
@@ -790,8 +819,14 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 			paintpos[0]= painter->lastmousepos[0] + dmousepos[0]*step;
 			paintpos[1]= painter->lastmousepos[1] + dmousepos[1]*step;
 
+			t = step/len;
+			press= (1.0-t)*painter->lastpressure + t*pressure;
+			brush_apply_pressure(painter, brush, press);
+			spacing= MAX2(1.0, brush->size)*brush->spacing*0.01f;
+
 			if (painter->cache.enabled)
 				brush_painter_refresh_cache(painter, paintpos);
+
 			totpaintops +=
 				func(user, painter->cache.ibuf, painter->lastpaintpos, paintpos);
 
@@ -815,6 +850,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 				painter->accumtime -= painttime;
 
 			while (painter->accumtime >= brush->rate) {
+				brush_apply_pressure(painter, brush, pressure);
 				if (painter->cache.enabled)
 					brush_painter_refresh_cache(painter, paintpos);
 				totpaintops +=
@@ -828,6 +864,12 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 
 	painter->lastmousepos[0]= pos[0];
 	painter->lastmousepos[1]= pos[1];
+	painter->lastpressure= pressure;
+
+	brush->alpha = painter->startalpha;
+	brush->size = painter->startsize;
+	brush->innerradius = painter->startinnerradius;
+	brush->spacing = painter->startspacing;
 
 	return totpaintops;
 }

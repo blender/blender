@@ -547,6 +547,9 @@ void sample_vpaint()	/* frontbuf */
 			brush->rgb[0]= cp[0]/255.0f;
 			brush->rgb[1]= cp[1]/255.0f;
 			brush->rgb[2]= cp[2]/255.0f;
+
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWIMAGE, 0);
 		}
 	}
 
