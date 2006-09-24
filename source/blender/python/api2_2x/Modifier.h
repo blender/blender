@@ -68,6 +68,6 @@ typedef struct {
 	ModifierData *iter;
 } BPy_Modifiers;
 
-PyObject *ModSeq_CreatePyObject( Object *obj );
+PyObject *ModSeq_CreatePyObject( Object *obj, ModifierData *iter );
 
 #endif				/* EXPP_MODIFIER_H */

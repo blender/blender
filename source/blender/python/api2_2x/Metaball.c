@@ -726,14 +726,21 @@ static PyObject *Metaball_copy( BPy_Metaball * self )
 	return ( PyObject * ) pymball;
 }
 
+
+static PyObject *MetaElemSeq_CreatePyObject(PyObject *self, MetaElem *iter)
+{
+	BPy_MetaElemSeq *seq = PyObject_NEW( BPy_MetaElemSeq, &MetaElemSeq_Type);
+	seq->bpymetaball = self; Py_INCREF(self);
+	seq->iter= iter;
+	return (PyObject *)seq;
+}
+
 /*
  * Element, get an instance of the iterator.
  */
 static PyObject *Metaball_getElements( BPy_Metaball * self )
 {
-	BPy_MetaElemSeq *seq = PyObject_NEW( BPy_MetaElemSeq, &MetaElemSeq_Type);
-	seq->bpymetaball = self; Py_INCREF(self);
-	return (PyObject *)seq;
+	return MetaElemSeq_CreatePyObject(self, NULL);
 }
 
 /*
@@ -1016,8 +1023,11 @@ static PySequenceMethods MetaElemSeq_as_sequence = {
 
 static PyObject *MetaElemSeq_getIter( BPy_MetaElemSeq * self )
 {
-	self->iter = self->bpymetaball->metaball->elems.first;
-	return EXPP_incr_ret ( (PyObject *) self );
+	if (!self->iter) { /* not alredy looping on this data, */
+		self->iter = self->bpymetaball->metaball->elems.first;
+		return EXPP_incr_ret ( (PyObject *) self );
+	} else
+		return MetaElemSeq_CreatePyObject(self->bpymetaball, self->bpymetaball->metaball->elems.first);
 }
 
 /*
@@ -1027,9 +1037,11 @@ static PyObject *MetaElemSeq_getIter( BPy_MetaElemSeq * self )
 static PyObject *MetaElemSeq_nextIter( BPy_MetaElemSeq * self )
 {
 	PyObject *object;
-	if( !(self->iter) ||  !(self->bpymetaball->metaball) )
+	if( !(self->iter) ||  !(self->bpymetaball->metaball) ) {
+		self->iter= NULL;
 		return EXPP_ReturnPyObjError( PyExc_StopIteration,
 				"iterator at end" );
+	}
 	
 	object= MetaElem_CreatePyObject( self->iter ); 
 	self->iter= self->iter->next;

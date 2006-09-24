@@ -27,6 +27,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+/* TODO, accessing a modifier sequence of a deleted object will crash blender at the moment, not sure how to fix this. */
+
+
 #include "Modifier.h" /*This must come first*/
 
 #include "DNA_object_types.h"
@@ -47,6 +50,10 @@
 #include "Object.h"
 #include "Mathutils.h"
 #include "gen_utils.h"
+
+/* checks for the scene being removed */
+#define MODIFIER_DEL_CHECK_PY(bpy_modifier) if (!(bpy_modifier->md)) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "Modifier has been removed" ) )
+#define MODIFIER_DEL_CHECK_INT(bpy_modifier) if (!(bpy_modifier->md)) return ( EXPP_ReturnIntError( PyExc_RuntimeError, "Modifier has been removed" ) )
 
 enum mod_constants {
 	/*Apply to all modifiers*/
@@ -252,10 +259,7 @@ PyTypeObject Modifier_Type = {
 
 static PyObject *Modifier_getName( BPy_Modifier * self )
 {
-	if (self->md==NULL)
-		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"This modifier has been removed!" ));
-	
+	MODIFIER_DEL_CHECK_PY(self);
 	return PyString_FromString( self->md->name );
 }
 
@@ -269,9 +273,7 @@ static int Modifier_setName( BPy_Modifier * self, PyObject * attr )
 	if( !name )
 		return EXPP_ReturnIntError( PyExc_TypeError, "expected string arg" );
 
-	if (self->md==NULL)
-		return (EXPP_ReturnIntError( PyExc_RuntimeError,
-				"This modifier has been removed!" ));
+	MODIFIER_DEL_CHECK_INT(self);
 	
 	BLI_strncpy( self->md->name, name, sizeof( self->md->name ) );
 
@@ -284,9 +286,7 @@ static int Modifier_setName( BPy_Modifier * self, PyObject * attr )
 
 static PyObject *Modifier_getType( BPy_Modifier * self )
 {
-	if (self->md==NULL )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"This modifier has been removed!" );
+	MODIFIER_DEL_CHECK_PY(self);
 	
 	return PyInt_FromLong( self->md->type );
 }
@@ -729,9 +729,7 @@ static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected an int arg as stored in Blender.Modifier.Settings" );
 
-	if (self->md==NULL )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"This modifier has been removed!" );
+	MODIFIER_DEL_CHECK_PY(self);
 	
 	setting = PyInt_AsLong( key );
 	switch( setting ) {
@@ -784,9 +782,7 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected an int arg as stored in Blender.Modifier.Settings" );
 	
-	if (self->md==NULL )
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-				"This modifier has been removed!" );
+	MODIFIER_DEL_CHECK_INT(self);
 	
 	key_int = PyInt_AsLong( key );
 	
@@ -910,8 +906,12 @@ ModifierData *Modifier_FromPyObject( PyObject * pyobj )
 
 static PyObject *Modifiers_getIter( BPy_Modifiers * self )
 {
-	self->iter = (ModifierData *)self->obj->modifiers.first;
-	return EXPP_incr_ret ( (PyObject *) self );
+	if (!self->iter) {
+		self->iter = (ModifierData *)self->obj->modifiers.first;
+		return EXPP_incr_ret ( (PyObject *) self );
+	} else {
+		return ModSeq_CreatePyObject(self->obj, (ModifierData *)self->obj->modifiers.first);
+	}
 }
 
 /*
@@ -920,12 +920,13 @@ static PyObject *Modifiers_getIter( BPy_Modifiers * self )
 
 static PyObject *Modifiers_nextIter( BPy_Modifiers * self )
 {
-	ModifierData *this = self->iter;
-	if( this ) {
-		self->iter = this->next;
-		return Modifier_CreatePyObject( self->obj, this );
+	ModifierData *iter = self->iter;
+	if( iter ) {
+		self->iter = iter->next;
+		return Modifier_CreatePyObject( self->obj, iter );
 	}
-
+	
+	self->iter= NULL; /* mark as not iterating */
 	return EXPP_ReturnPyObjError( PyExc_StopIteration,
 			"iterator at end" );
 }
@@ -1195,7 +1196,7 @@ PyTypeObject Modifiers_Type = {
 /* Description: This function will create a new BPy_Modifiers from an        */
 /*              existing  ListBase structure.                                */
 /*****************************************************************************/
-PyObject *ModSeq_CreatePyObject( Object *obj )
+PyObject *ModSeq_CreatePyObject( Object *obj, ModifierData *iter )
 {
 	BPy_Modifiers *pymod;
 	pymod = ( BPy_Modifiers * ) PyObject_NEW( BPy_Modifiers, &Modifiers_Type );
@@ -1203,6 +1204,7 @@ PyObject *ModSeq_CreatePyObject( Object *obj )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
 				"couldn't create BPy_Modifiers object" );
 	pymod->obj = obj;
+	pymod->iter = iter;
 	return ( PyObject * ) pymod;
 }
 

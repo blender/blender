@@ -48,6 +48,9 @@
 #include "Object.h"
 #include "gen_utils.h"
 
+/* checks for the group being removed */
+#define GROUP_DEL_CHECK_PY(bpy_group) if (!(bpy_group->group)) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "Group has been removed" ) )
+#define GROUP_DEL_CHECK_INT(bpy_group) if (!(bpy_group->group)) return ( EXPP_ReturnIntError( PyExc_RuntimeError, "Group has been removed" ) )
 
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.		 */
@@ -56,6 +59,8 @@ static PyObject *M_Group_New( PyObject * self, PyObject * args );
 PyObject *M_Group_Get( PyObject * self, PyObject * args );
 PyObject *M_Group_Unlink( PyObject * self, PyObject * args );
 
+/* internal */
+static PyObject *GroupObSeq_CreatePyObject( BPy_Group *self, GroupObject *iter );
 
 /*****************************************************************************/
 /* Python method structure definition for Blender.Object module:	 */
@@ -86,41 +91,38 @@ static PyMethodDef BPy_Group_methods[] = {
 
 static PyObject *BPy_Group_copy( BPy_Group * self )
 {
+	BPy_Group *py_group;	/* for Group Data object wrapper in Python */
+	struct Group *bl_group;
+	GroupObject *group_ob, *group_ob_new; /* Group object, copied and added to the groups */
 	
-	if( !(self->group) ) {
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Group was deleted!" );
-	} else {
-		BPy_Group *py_group;	/* for Group Data object wrapper in Python */
-		struct Group *bl_group;
-		GroupObject *group_ob, *group_ob_new; /* Group object, copied and added to the groups */
-		
-		bl_group= add_group();
-		
-		if( bl_group )		/* now create the wrapper grp in Python */
-			py_group = ( BPy_Group * ) Group_CreatePyObject( bl_group );
-		else
-			return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-							"couldn't create Group Data in Blender" ) );
-		
-		rename_id( &bl_group->id, self->group->id.name + 2 );
-		
-		
-		/* user count be incremented in Group_CreatePyObject */
-		bl_group->id.us = 0;
-		
-		/* Now add the objects to the group */
-		group_ob= self->group->gobject.first;
-		while(group_ob) {
-			/* save time by not using */
-			group_ob_new= MEM_callocN(sizeof(GroupObject), "groupobject");
-			group_ob_new->ob= group_ob->ob;
-			BLI_addtail( &bl_group->gobject, group_ob_new);
-			group_ob= group_ob->next;
-		}
-		
-		return ( PyObject * ) py_group;
+	GROUP_DEL_CHECK_PY(self);
+	
+	bl_group= add_group();
+	
+	if( bl_group )		/* now create the wrapper grp in Python */
+		py_group = ( BPy_Group * ) Group_CreatePyObject( bl_group );
+	else
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						"couldn't create Group Data in Blender" ) );
+	
+	rename_id( &bl_group->id, self->group->id.name + 2 );
+	
+	
+	/* user count be incremented in Group_CreatePyObject */
+	bl_group->id.us = 0;
+	
+	/* Now add the objects to the group */
+	group_ob= self->group->gobject.first;
+	while(group_ob) {
+		/* save time by not using */
+		group_ob_new= MEM_callocN(sizeof(GroupObject), "groupobject");
+		group_ob_new->ob= group_ob->ob;
+		BLI_addtail( &bl_group->gobject, group_ob_new);
+		group_ob= group_ob->next;
 	}
+	
+	return ( PyObject * ) py_group;
+	
 }
 
 
@@ -131,9 +133,7 @@ static PyObject *BPy_Group_copy( BPy_Group * self )
  ************************************************************************/
 static PyObject *Group_getObjects( BPy_Group * self )
 {
-	BPy_GroupObSeq *seq = PyObject_NEW( BPy_GroupObSeq, &GroupObSeq_Type);
-	seq->bpygroup = self; Py_INCREF(self);
-	return (PyObject *)seq;
+	return GroupObSeq_CreatePyObject(self, NULL);
 }
 
 
@@ -158,6 +158,8 @@ static int Group_setObjects( BPy_Group * self, PyObject * args )
 	Object *blen_ob;
 	group= self->group;
 	
+	GROUP_DEL_CHECK_INT(self);
+	
 	if( PyList_Check( args ) ) {
 		if( EXPP_check_sequence_consistency( args, &Object_Type ) != 1)
 			return ( EXPP_ReturnIntError( PyExc_TypeError, 
@@ -170,11 +172,6 @@ static int Group_setObjects( BPy_Group * self, PyObject * args )
 			blen_ob= ((BPy_Object *)PyList_GET_ITEM( args, i ))->object;
 			add_to_group_wraper(group, blen_ob);
 		}
-	/*
-	} else if( args->ob_type == &GroupObSeq_Type ) {
-	*/
-		/* todo, handle sequences here */
-	
 	} else if (PyIter_Check(args)) {
 		PyObject *iterator = PyObject_GetIter(args);
 		PyObject *item;
@@ -224,9 +221,7 @@ static int Group_setName( BPy_Group * self, PyObject * value )
 	char *name = NULL;
 	char buf[21];
 	
-	if( !(self->group) )
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-					      "Blender Group was deleted!" );
+	GROUP_DEL_CHECK_INT(self);
 	
 	name = PyString_AsString ( value );
 	if( !name )
@@ -244,9 +239,7 @@ static int Group_setName( BPy_Group * self, PyObject * value )
 static PyObject *Group_getName( BPy_Group * self, PyObject * args )
 {
 	PyObject *attr;
-	if( !(self->group) )
-		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Group was deleted!" ) );
+	GROUP_DEL_CHECK_PY(self);
 	
 	attr = PyString_FromString( self->group->id.name + 2 );
 
@@ -488,11 +481,10 @@ PyObject *M_Group_Unlink( PyObject * self, PyObject * args )
 						"expected a group" ) );
 	
 	pygrp= (BPy_Group *)pyob;
-	group= pygrp->group;
 	
-	if( !group )
-		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Group was deleted!" ) );
+	GROUP_DEL_CHECK_PY(pygrp);
+	
+	group= pygrp->group;
 	
 	pygrp->group= NULL;
 	free_group(group);
@@ -625,6 +617,9 @@ static int Group_compare( BPy_Group * a, BPy_Group * b )
 /*****************************************************************************/
 static PyObject *Group_repr( BPy_Group * self )
 {
+	if (!self->group)
+		return PyString_FromString( "[Group - Removed]" );
+	
 	return PyString_FromFormat( "[Group \"%s\"]",
 				    self->group->id.name + 2 );
 }
@@ -639,11 +634,33 @@ static PyObject *Group_repr( BPy_Group * self )
  * create a thin GroupOb object
  */
 
-static PyObject *GroupObSeq_CreatePyObject( Group *group, int i )
+static PyObject *GroupObSeq_CreatePyObject( BPy_Group *self, GroupObject *iter )
 {
+	BPy_GroupObSeq *seq = PyObject_NEW( BPy_GroupObSeq, &GroupObSeq_Type);
+	seq->bpygroup = self; Py_INCREF(self);
+	seq->iter= iter;
+	return (PyObject *)seq;
+}
+
+
+static int GroupObSeq_len( BPy_GroupObSeq * self )
+{
+	GROUP_DEL_CHECK_INT(self->bpygroup);
+	return BLI_countlist( &( self->bpygroup->group->gobject ) );
+}
+
+/*
+ * retrive a single GroupOb from somewhere in the GroupObex list
+ */
+
+static PyObject *GroupObSeq_item( BPy_GroupObSeq * self, int i )
+{
+	Group *group= self->bpygroup->group;
 	int index=0;
 	PyObject *bpy_obj;
 	GroupObject *gob;
+	
+	GROUP_DEL_CHECK_PY(self->bpygroup);
 	
 	for (gob= group->gobject.first; gob && i!=index; gob= gob->next, index++) {}
 	
@@ -658,21 +675,7 @@ static PyObject *GroupObSeq_CreatePyObject( Group *group, int i )
 				"PyObject_New() failed" );
 
 	return (PyObject *)bpy_obj;
-}
-
-
-static int GroupObSeq_len( BPy_GroupObSeq * self )
-{
-	return BLI_countlist( &( self->bpygroup->group->gobject ) );
-}
-
-/*
- * retrive a single GroupOb from somewhere in the GroupObex list
- */
-
-static PyObject *GroupObSeq_item( BPy_GroupObSeq * self, int i )
-{
-	return GroupObSeq_CreatePyObject( self->bpygroup->group, i );
+	
 }
 
 static PySequenceMethods GroupObSeq_as_sequence = {
@@ -698,8 +701,14 @@ static PySequenceMethods GroupObSeq_as_sequence = {
 
 static PyObject *GroupObSeq_getIter( BPy_GroupObSeq * self )
 {
-	self->iter = self->bpygroup->group->gobject.first;
-	return EXPP_incr_ret ( (PyObject *) self );
+	GROUP_DEL_CHECK_PY(self->bpygroup);
+	
+	if (!self->iter) {
+		self->iter = self->bpygroup->group->gobject.first;
+		return EXPP_incr_ret ( (PyObject *) self );
+	} else {
+		return GroupObSeq_CreatePyObject(self->bpygroup->group, self->bpygroup->group->gobject.first);
+	}
 }
 
 /*
@@ -724,6 +733,9 @@ static PyObject *GroupObSeq_add( BPy_GroupObSeq * self, PyObject *args )
 	PyObject *pyobj;
 	Object *blen_ob;
 	Base *base= NULL;
+	
+	GROUP_DEL_CHECK_PY(self->bpygroup);
+	
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &pyobj ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a python object as an argument" ) );
@@ -745,9 +757,7 @@ static PyObject *GroupObSeq_remove( BPy_GroupObSeq * self, PyObject *args )
 	Object *blen_ob;
 	Base *base= NULL;
 	
-	if( !(self->bpygroup->group) )
-		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Group was deleted!" ));
+	GROUP_DEL_CHECK_PY(self->bpygroup);
 	
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &pyobj ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,

@@ -2945,7 +2945,7 @@ static PyObject *Object_getConstraints( BPy_Object * self )
 
 static PyObject *Object_getModifiers( BPy_Object * self )
 {
-	return ModSeq_CreatePyObject( self->object );
+	return ModSeq_CreatePyObject( self->object, NULL );
 }
 
 static PyObject *Object_insertShapeKey(BPy_Object * self)

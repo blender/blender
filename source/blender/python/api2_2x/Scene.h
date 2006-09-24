@@ -57,6 +57,7 @@ typedef struct {
 	PyObject_VAR_HEAD /* required python macro   */
 	BPy_Scene *bpyscene; /* link to the python scene so we can know if its been removed */
 	Base *iter; /* so we can iterate over the objects */
+	int mode; /*0:all objects, 1:selected objects, 2:user context*/
 } BPy_SceneObSeq;
 
 

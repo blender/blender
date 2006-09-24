@@ -80,6 +80,11 @@ PyObject *M_Object_Get( PyObject * self, PyObject * args ); /* from Object.c */
 #define EXPP_SCENE_FRAME_MAX 30000
 #define EXPP_SCENE_RENDER_WINRESOLUTION_MIN 4
 #define EXPP_SCENE_RENDER_WINRESOLUTION_MAX 10000
+
+/* checks for the scene being removed */
+#define SCENE_DEL_CHECK_PY(bpy_scene) if (!(bpy_scene->scene)) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "Scene has been removed" ) )
+#define SCENE_DEL_CHECK_INT(bpy_scene) if (!(bpy_scene->scene)) return ( EXPP_ReturnIntError( PyExc_RuntimeError, "Scene has been removed" ) )
+
 /*-----------------------Python API function prototypes for the Scene module--*/
 static PyObject *M_Scene_New( PyObject * self, PyObject * args,
 			      PyObject * keywords );
@@ -141,6 +146,10 @@ static int Scene_setAttr( BPy_Scene * self, char *name, PyObject * v );
 static int Scene_compare( BPy_Scene * a, BPy_Scene * b );
 static PyObject *Scene_getAttr( BPy_Scene * self, char *name );
 static PyObject *Scene_repr( BPy_Scene * self );
+
+/*object seq*/
+static PyObject *SceneObSeq_CreatePyObject( BPy_Scene *self, Base *iter, int mode);
+
 /*-----------------------BPy_Scene method def------------------------------*/
 static PyMethodDef BPy_Scene_methods[] = {
 	/* name, method, flags, doc */
@@ -270,10 +279,7 @@ static void Scene_dealloc( BPy_Scene * self )
 static PyObject *Scene_getAttr( BPy_Scene * self, char *name )
 {
 	PyObject *attr = Py_None;
-
-	if( !(self->scene) )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" );
+	SCENE_DEL_CHECK_PY(self);
 	
 	if( strcmp( name, "name" ) == 0 )
 		attr = PyString_FromString( self->scene->id.name + 2 );
@@ -306,10 +312,7 @@ static int Scene_setAttr( BPy_Scene * self, char *name, PyObject * value )
 	PyObject *valtuple;
 	PyObject *error = NULL;
 
-	if( !(self->scene) )
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" );
-	
+	SCENE_DEL_CHECK_INT(self);
 	
 /* We're playing a trick on the Python API users here.	Even if they use
  * Scene.member = val instead of Scene.setMember(val), we end up using the
@@ -361,7 +364,7 @@ static int Scene_compare( BPy_Scene * a, BPy_Scene * b )
 static PyObject *Scene_repr( BPy_Scene * self )
 {
 	if( !(self->scene) )
-		return PyString_FromString( "[Scene Unlinked]");
+		return PyString_FromString( "[Scene - Removed]");
 	else
 		return PyString_FromFormat( "[Scene \"%s\"]",
 					self->scene->id.name + 2 );
@@ -537,9 +540,7 @@ static PyObject *M_Scene_Unlink( PyObject * self, PyObject * args )
 	pyscn = (BPy_Scene *)pyobj;
 	scene = pyscn->scene;
 	
-	if (!(scene))
-		return EXPP_ReturnPyObjError( PyExc_SystemError,
-					      "scene has alredy been removed!" );
+	SCENE_DEL_CHECK_PY(pyscn);
 	
 	if( scene == G.scene )
 		return EXPP_ReturnPyObjError( PyExc_SystemError,
@@ -547,16 +548,19 @@ static PyObject *M_Scene_Unlink( PyObject * self, PyObject * args )
 
 	free_libblock( &G.main->scene, scene );
 	
-	pyscn->scene=NULL;
-	Py_INCREF( Py_None );
-	return Py_None;
+	pyscn->scene= NULL;
+	Py_RETURN_NONE;
 }
 
 /*-----------------------BPy_Scene function defintions-------------------*/
 /*-----------------------Scene.getName()---------------------------------*/
 static PyObject *Scene_getName( BPy_Scene * self )
 {
-	PyObject *attr = PyString_FromString( self->scene->id.name + 2 );
+	PyObject *attr;
+	
+	SCENE_DEL_CHECK_PY(self);
+	
+	attr= PyString_FromString( self->scene->id.name + 2 );
 
 	if( attr )
 		return attr;
@@ -570,17 +574,18 @@ static PyObject *Scene_setName( BPy_Scene * self, PyObject * args )
 {
 	char *name;
 	char buf[21];
-
+	
+	SCENE_DEL_CHECK_PY(self);
+	
 	if( !PyArg_ParseTuple( args, "s", &name ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument" ) );
-
+	
 	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
 
 	rename_id( &self->scene->id, buf );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*-----------------------Scene.getLayers()---------------------------------*/
@@ -588,7 +593,9 @@ static PyObject *Scene_getLayers( BPy_Scene * self )
 {
 	PyObject *laylist = PyList_New( 0 ), *item;
 	int layers, bit = 0, val = 0;
-
+	
+	SCENE_DEL_CHECK_PY(self);
+	
 	if( !laylist )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 			"couldn't create pylist!" ) );
@@ -612,7 +619,9 @@ static PyObject *Scene_setLayers( BPy_Scene * self, PyObject * args )
 {
 	PyObject *list = NULL, *item = NULL;
 	int layers = 0, val, i, len_list;
-
+	
+	SCENE_DEL_CHECK_PY(self);
+	
 	if( !PyArg_ParseTuple( args, "O!", &PyList_Type, &list ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 			"expected a list of integers in the range [1, 20]" ) );
@@ -654,14 +663,16 @@ static PyObject *Scene_setLayers( BPy_Scene * self, PyObject * args )
 		}
 	}
 
-	return EXPP_incr_ret(Py_None);
+	Py_RETURN_NONE;
 }
 
 /* only used by setAttr */
 static PyObject *Scene_setLayersMask(BPy_Scene *self, PyObject *args)
 {
 	int laymask = 0;
-
+	
+	SCENE_DEL_CHECK_PY(self);
+	
 	if (!PyArg_ParseTuple(args , "i", &laymask)) {
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 			"expected an integer (bitmask) as argument" );
@@ -688,7 +699,7 @@ static PyObject *Scene_setLayersMask(BPy_Scene *self, PyObject *args)
 		}
 	}
 
-	return EXPP_incr_ret(Py_None);
+	Py_RETURN_NONE;
 }
 
 /*-----------------------Scene.copy()------------------------------------*/
@@ -697,9 +708,7 @@ static PyObject *Scene_copy( BPy_Scene * self, PyObject * args )
 	short dup_objs = 1;
 	Scene *scene = self->scene;
 
-	if( !scene )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" );
+	SCENE_DEL_CHECK_PY(self);
 
 	if( !PyArg_ParseTuple( args, "|h", &dup_objs ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -712,14 +721,15 @@ static PyObject *Scene_copy( BPy_Scene * self, PyObject * args )
 static PyObject *Scene_makeCurrent( BPy_Scene * self )
 {
 	Scene *scene = self->scene;
-
-	if( scene ) {
+	
+	SCENE_DEL_CHECK_PY(self);
+	
+	if( scene && scene != G.scene) {
 		set_scene( scene );
 		scene_update_for_newframe(scene, scene->lay);
 	}
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*-----------------------Scene.update()----------------------------------*/
@@ -727,10 +737,8 @@ static PyObject *Scene_update( BPy_Scene * self, PyObject * args )
 {
 	Scene *scene = self->scene;
 	int full = 0;
-
-	if( !scene )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" );
+	
+	SCENE_DEL_CHECK_PY(self);
 
 	if( !PyArg_ParseTuple( args, "|i", &full ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -752,8 +760,7 @@ static PyObject *Scene_update( BPy_Scene * self, PyObject * args )
 					      "0: to only sort scene elements (old behavior); or\n"
 					      "1: for a full update (regroups, does ipos, keys, etc.)" );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*-----------------------Scene.link()------------------------------------*/
@@ -763,9 +770,7 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 	BPy_Object *bpy_obj;
 	Object *object = NULL;
 
-	if( !scene )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" );
+	SCENE_DEL_CHECK_PY(self);
 
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &bpy_obj ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -817,8 +822,7 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 		BLI_addhead( &scene->base, base );	/* finally, link new base to scene */
 	}
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*-----------------------Scene.unlink()----------------------------------*/
@@ -828,9 +832,7 @@ static PyObject *Scene_unlink( BPy_Scene * self, PyObject * args )
 	Scene *scene = self->scene;
 	Base *base;
 
-	if( !scene )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender scene was deleted!" );
+	SCENE_DEL_CHECK_PY(self);
 
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &bpy_obj ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -857,9 +859,7 @@ static PyObject *Scene_getChildren( BPy_Scene * self )
 	Object *object;
 	Base *base;
 
-	if( !scene )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" );
+	SCENE_DEL_CHECK_PY(self);
 
 	base = scene->base.first;
 
@@ -888,9 +888,7 @@ static PyObject *Scene_getActiveObject(BPy_Scene *self)
 	PyObject *pyob;
 	Object *ob;
 
-	if (!scene)
-		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-			"Blender Scene was deleted!");
+	SCENE_DEL_CHECK_PY(self);
 
 	ob = ((scene->basact) ? (scene->basact->object) : 0);
 
@@ -904,7 +902,7 @@ static PyObject *Scene_getActiveObject(BPy_Scene *self)
 		return pyob;
 	}
 
-	return EXPP_incr_ret(Py_None); /* no active object */
+	Py_RETURN_NONE; /* no active object */
 }
 
 /*-----------------------Scene.getCurrentCamera()------------------------*/
@@ -914,9 +912,7 @@ static PyObject *Scene_getCurrentCamera( BPy_Scene * self )
 	PyObject *pyob;
 	Scene *scene = self->scene;
 	
-	if( !scene )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" );
+	SCENE_DEL_CHECK_PY(self);
 
 	cam_obj = scene->camera;
 
@@ -928,8 +924,7 @@ static PyObject *Scene_getCurrentCamera( BPy_Scene * self )
 		return pyob;
 	}
 
-	Py_INCREF( Py_None );	/* none found */
-	return Py_None;
+	Py_RETURN_NONE;	/* none found */
 }
 
 /*-----------------------Scene.setCurrentCamera()------------------------*/
@@ -939,9 +934,7 @@ static PyObject *Scene_setCurrentCamera( BPy_Scene * self, PyObject * args )
 	BPy_Object *cam_obj;
 	Scene *scene = self->scene;
 
-	if( !scene )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" );
+	SCENE_DEL_CHECK_PY(self);
 
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &cam_obj ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -961,26 +954,19 @@ static PyObject *Scene_setCurrentCamera( BPy_Scene * self, PyObject * args )
 /* XXX copy_view3d_lock(REDRAW) prints "bad call to addqueue: 0 (18, 1)".
  * The same happens in bpython. */
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*-----------------------Scene.getRenderingContext()---------------------*/
 static PyObject *Scene_getRenderingContext( BPy_Scene * self )
 {
-	if( !self->scene )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" );
-
+	SCENE_DEL_CHECK_PY(self);
 	return RenderData_CreatePyObject( self->scene );
 }
 
 static PyObject *Scene_getRadiosityContext( BPy_Scene * self )
 {
-	if( !self->scene )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" );
-
+	SCENE_DEL_CHECK_PY(self);
 	return Radio_CreatePyObject( self->scene );
 }
 
@@ -990,9 +976,7 @@ static PyObject *Scene_addScriptLink( BPy_Scene * self, PyObject * args )
 	Scene *scene = self->scene;
 	ScriptLink *slink = NULL;
 
-	if( !scene )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" );
+	SCENE_DEL_CHECK_PY(self);
 
 	slink = &( scene )->scriptlink;
 
@@ -1005,9 +989,7 @@ static PyObject *Scene_clearScriptLinks( BPy_Scene * self, PyObject * args )
 	Scene *scene = self->scene;
 	ScriptLink *slink = NULL;
 
-	if( !scene )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" );
+	SCENE_DEL_CHECK_PY(self);
 
 	slink = &( scene )->scriptlink;
 
@@ -1021,9 +1003,7 @@ static PyObject *Scene_getScriptLinks( BPy_Scene * self, PyObject * args )
 	ScriptLink *slink = NULL;
 	PyObject *ret = NULL;
 
-	if( !scene )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" );
+	SCENE_DEL_CHECK_PY(self);
 
 	slink = &( scene )->scriptlink;
 
@@ -1037,14 +1017,11 @@ static PyObject *Scene_getScriptLinks( BPy_Scene * self, PyObject * args )
 
 static PyObject *Scene_play( BPy_Scene * self, PyObject * args )
 {
-	Scene *scene = self->scene;
 	int mode = 0, win = SPACE_VIEW3D;
 	PyObject *ret = NULL;
 	ScrArea *sa = NULL, *oldsa = curarea;
 
-	if( !scene )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" );
+	SCENE_DEL_CHECK_PY(self);
 
 	if( !PyArg_ParseTuple( args, "|ii", &mode, &win ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1098,10 +1075,7 @@ static PyObject *Scene_getTimeLine( BPy_Scene *self )
 {
 	BPy_TimeLine *tm; 
 
-	if( !(self->scene) )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender scene was deleted!" );
-
+	SCENE_DEL_CHECK_PY(self);
 	
 	tm= (BPy_TimeLine *) PyObject_NEW (BPy_TimeLine, &TimeLine_Type);
 	if (!tm)
@@ -1113,13 +1087,11 @@ static PyObject *Scene_getTimeLine( BPy_Scene *self )
 
 	return (PyObject *)tm;
 }
-
-
-static PyObject *Scene_getObjects( BPy_Scene *self ) 
+/* accessed from scn.objects */
+static PyObject *Scene_getObjects( BPy_Scene *self) 
 {
-	BPy_SceneObSeq *seq = PyObject_NEW( BPy_SceneObSeq, &SceneObSeq_Type);
-	seq->bpyscene = self; Py_INCREF(self);
-	return (PyObject *)seq;
+	SCENE_DEL_CHECK_PY(self);
+	return SceneObSeq_CreatePyObject(self, NULL, 0);
 }
 
 /************************************************************************
@@ -1131,13 +1103,83 @@ static PyObject *Scene_getObjects( BPy_Scene *self )
  * create a thin wrapper for the scenes objects
  */
 
-static PyObject *SceneObSeq_CreatePyObject( Scene *scene, int i )
+/* accessed from scn.objects.selected or scn.objects.context */
+static PyObject *SceneObSeq_getObjects( BPy_SceneObSeq *self, void *mode) 
+{
+	SCENE_DEL_CHECK_PY(self->bpyscene);
+	return SceneObSeq_CreatePyObject(self->bpyscene, NULL, (int)((long)mode));
+}
+
+
+static PyObject *SceneObSeq_CreatePyObject( BPy_Scene *self, Base *iter, int mode )
+{
+	BPy_SceneObSeq *seq = PyObject_NEW( BPy_SceneObSeq, &SceneObSeq_Type);
+	seq->bpyscene = self; Py_INCREF(self);
+	seq->iter = iter;
+	seq->mode = mode;
+	return (PyObject *)seq;
+}
+
+static int SceneObSeq_len( BPy_SceneObSeq * self )
+{
+	Scene *scene= self->bpyscene->scene;
+	SCENE_DEL_CHECK_PY(self->bpyscene);
+	
+	if (self->mode == 0) /* all obejcts */
+		return BLI_countlist( &( scene->base ) );
+	else if (self->mode == 1) { /* selected obejcts */
+		int len=0;
+		Base *base;
+		for (base= scene->base.first; base; base= base->next) {
+			if (base->flag & SELECT) {
+				len++;
+			}
+		}
+		return len;
+	} else if (self->mode == 2) { /* user context */
+		int len=0;
+		Base *base;
+		
+		if( G.vd == NULL ) /* No 3d view has been initialized yet, simply return an empty list */
+			return 0;
+		
+		for (base= scene->base.first; base; base= base->next) {
+			if ((base->flag & SELECT) && (base->lay & G.vd->lay)) {
+				len++;
+			}
+		}
+	}
+	/*should never run this */
+	return 0;
+}
+
+/*
+ * retrive a single Object from somewhere in the Object list
+ */
+
+static PyObject *SceneObSeq_item( BPy_SceneObSeq * self, int i )
 {
 	int index=0;
 	PyObject *bpy_obj;
-	Base *base;
+	Base *base= NULL;
+	Scene *scene= self->bpyscene->scene;
 	
-	for (base= scene->base.first; base&& i!=index; base= base->next, index++) {}
+	SCENE_DEL_CHECK_PY(self->bpyscene);
+	
+	/* objects */
+	if (self->mode==0)
+		for (base= scene->base.first; base && i!=index; base= base->next, index++) {}
+	/* selected */
+	else if (self->mode==1)
+		for (base= scene->base.first; base && i!=index; base= base->next)
+			if (base->flag & SELECT)
+				index++;
+	/* context */
+	else if (self->mode==2)
+		if (G.vd)
+			for (base= scene->base.first; base && i!=index; base= base->next)
+				if ((base->flag & SELECT) && (base->lay & G.vd->lay))
+					index++;
 	
 	if (!(base))
 		return EXPP_ReturnPyObjError( PyExc_IndexError,
@@ -1150,20 +1192,6 @@ static PyObject *SceneObSeq_CreatePyObject( Scene *scene, int i )
 				"PyObject_New() failed" );
 
 	return (PyObject *)bpy_obj;
-}
-
-static int SceneObSeq_len( BPy_SceneObSeq * self )
-{
-	return BLI_countlist( &( self->bpyscene->scene->base ) );
-}
-
-/*
- * retrive a single MGroupOb from somewhere in the GroupObex list
- */
-
-static PyObject *SceneObSeq_item( BPy_SceneObSeq * self, int i )
-{
-	return SceneObSeq_CreatePyObject( self->bpyscene->scene, i );
 }
 
 static PySequenceMethods SceneObSeq_as_sequence = {
@@ -1190,8 +1218,29 @@ static PySequenceMethods SceneObSeq_as_sequence = {
 
 static PyObject *SceneObSeq_getIter( BPy_SceneObSeq * self )
 {
-	self->iter = self->bpyscene->scene->base.first;
-	return EXPP_incr_ret ( (PyObject *) self );
+	/* we need to get the first base, but for selected context we may need to advance
+	to the first selected or first conext base */
+	Base *base= self->bpyscene->scene->base.first;
+	
+	SCENE_DEL_CHECK_PY(self->bpyscene);
+	
+	if (self->mode==1) /* selected */
+		while (base && !(base->flag & SELECT))
+			base= base->next;
+	else if (self->mode==2) { /* context */
+		if (!G.vd)
+			base= NULL; /* will never iterate if we have no */
+		else
+			while (base && !((base->flag & SELECT) && (base->lay & G.vd->lay)))
+				base= base->next;	
+	}
+	/* create a new iterator if were alredy using this one */
+	if (self->iter==NULL) {
+		self->iter = base;
+		return EXPP_incr_ret ( (PyObject *) self );
+	} else {
+		return SceneObSeq_CreatePyObject(self->bpyscene, base, self->mode);
+	}
 }
 
 /*
@@ -1201,23 +1250,41 @@ static PyObject *SceneObSeq_getIter( BPy_SceneObSeq * self )
 static PyObject *SceneObSeq_nextIter( BPy_SceneObSeq * self )
 {
 	PyObject *object;
-	if( !(self->iter) ||  !(self->bpyscene->scene) )
+	Base *base;
+	if( !(self->iter) ||  !(self->bpyscene->scene) ) {
+		self->iter= NULL;
 		return EXPP_ReturnPyObjError( PyExc_StopIteration,
 				"iterator at end" );
+	}
 	
 	object= Object_CreatePyObject( self->iter->object ); 
-	self->iter= self->iter->next;
+	base= self->iter->next;
+	
+	if (self->mode==1) /* selected */
+		while (base && !(base->flag & SELECT))
+			base= base->next;
+	else if (self->mode==2) { /* context */
+		if (!G.vd)
+			base= NULL; /* will never iterate if we have no */
+		else
+			while (base && !((base->flag & SELECT) && (base->lay & G.vd->lay)))
+				base= base->next;	
+	}
+	self->iter= base;
+	
 	return object;
 }
 
 
 static PyObject *SceneObSeq_add( BPy_SceneObSeq * self, PyObject *pyobj )
-{
-	if( !(self->bpyscene->scene) )
-		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" ));
+{	
+	SCENE_DEL_CHECK_PY(self->bpyscene);
 	
 	/* this shold eventually replace Scene_link */
+	if (self->mode != 0)
+		return (EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "Cannot add to objects.selection or objects.context!" ));	
+	
 	return Scene_link(self->bpyscene, pyobj);
 }
 
@@ -1232,9 +1299,11 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 	PyObject *py_data;
 	Scene *scene= self->bpyscene->scene;
 	
-	if( !(scene) )
-		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" ));
+	SCENE_DEL_CHECK_PY(self->bpyscene);
+	
+	if (self->mode != 0)
+		return (EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "Cannot add new to objects.selection or objects.context!" ));	
 	
 	if( !PyArg_ParseTuple( args, "O", &py_data ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1368,9 +1437,11 @@ static PyObject *SceneObSeq_remove( BPy_SceneObSeq * self, PyObject *args )
 	Object *blen_ob;
 	Base *base= NULL;
 	
-	if( !(self->bpyscene->scene) )
-		return (EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Blender Scene was deleted!" ));
+	SCENE_DEL_CHECK_PY(self->bpyscene);
+	
+	if (self->mode != 0)
+		return (EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "Cannot add new to objects.selection or objects.context!" ));	
 	
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &pyobj ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -1394,8 +1465,63 @@ static PyObject *SceneObSeq_remove( BPy_SceneObSeq * self, PyObject *args )
 		MEM_freeN( base );
 		self->bpyscene->scene->basact = 0;	/* in case the object was selected */
 	}
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
+
+
+PyObject *SceneObSeq_getActive(BPy_SceneObSeq *self)
+{
+	PyObject *pyob;
+	Base *base;
+	
+	SCENE_DEL_CHECK_PY(self->bpyscene);
+	
+	if (self->mode!=0)
+			return (EXPP_ReturnPyObjError( PyExc_TypeError,
+						"cannot get active from objects.selected or objects.context" ));
+	
+	base= self->bpyscene->scene->basact;
+	if (!base)
+		Py_RETURN_NONE;
+	
+	pyob = Object_CreatePyObject( base->object );
+	
+	if (!pyob)
+		return EXPP_ReturnPyObjError(PyExc_MemoryError,
+					"couldn't create new object wrapper!");
+	
+	return pyob;
+}
+
+static int SceneObSeq_setActive(BPy_SceneObSeq *self, PyObject *value)
+{
+	Base *base;
+	
+	SCENE_DEL_CHECK_INT(self->bpyscene);
+	
+	if (self->mode!=0)
+			return (EXPP_ReturnIntError( PyExc_TypeError,
+						"cannot set active from objects.selected or objects.context" ));
+	
+	if (value==Py_None) {
+		self->bpyscene->scene->basact= NULL;
+		return 0;
+	}
+	
+	if (!BPy_Object_Check(value))
+		return (EXPP_ReturnIntError( PyExc_ValueError,
+					      "Object or None types can only be assigned to active!" ));
+	
+	base = object_in_scene( ((BPy_Object *)value)->object, self->bpyscene->scene );
+	
+	if (!base)
+		return (EXPP_ReturnIntError( PyExc_ValueError,
+					"cannot assign an active object outside the scene." ));
+	
+	self->bpyscene->scene->basact= base;
+	return 0;
+}
+
 
 
 static struct PyMethodDef BPy_SceneObSeq_methods[] = {
@@ -1420,6 +1546,48 @@ static void SceneObSeq_dealloc( BPy_SceneObSeq * self )
 	PyObject_DEL( self );
 }
 
+static int SceneObSeq_compare( BPy_SceneObSeq * a, BPy_SceneObSeq * b )
+{
+	Scene *pa = a->bpyscene->scene, *pb = b->bpyscene->scene;
+	return ( pa == pb && a->mode == b->mode) ? 0 : -1;	
+}
+
+/*
+ * repr function
+ * callback functions building meaninful string to representations
+ */
+static PyObject *SceneObSeq_repr( BPy_SceneObSeq * self )
+{
+	if( !(self->bpyscene->scene) )
+		return PyString_FromFormat( "[Scene ObjectSeq Removed]" );
+	else if (self->mode==1)
+		return PyString_FromFormat( "[Scene ObjectSeq Selected \"%s\"]",
+						self->bpyscene->scene->id.name + 2 );
+	else if (self->mode==2)
+		return PyString_FromFormat( "[Scene ObjectSeq Context \"%s\"]",
+						self->bpyscene->scene->id.name + 2 );
+	
+	/*self->mode==0*/
+	return PyString_FromFormat( "[Scene ObjectSeq \"%s\"]",
+					self->bpyscene->scene->id.name + 2 );
+}
+
+static PyGetSetDef SceneObSeq_getseters[] = {
+	{"selected",
+	 (getter)SceneObSeq_getObjects, (setter)NULL,
+	 "sequence of selected objects",
+	 (void *)1},
+	{"context",
+	 (getter)SceneObSeq_getObjects, (setter)NULL,
+	 "sequence of user context objects",
+	 (void *)2},
+	{"active",
+	 (getter)SceneObSeq_getActive, (setter)SceneObSeq_setActive,
+	 "active object",
+	 NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
 /*****************************************************************************/
 /* Python SceneObSeq_Type structure definition:                               */
 /*****************************************************************************/
@@ -1437,8 +1605,8 @@ PyTypeObject SceneObSeq_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-	NULL,                       /* cmpfunc tp_compare; */
-	NULL,                       /* reprfunc tp_repr; */
+	( cmpfunc ) SceneObSeq_compare, /* cmpfunc tp_compare; */
+	( reprfunc ) SceneObSeq_repr,   /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */
 
@@ -1483,7 +1651,7 @@ PyTypeObject SceneObSeq_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_SceneObSeq_methods,       /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,                       /* struct PyGetSetDef *tp_getset; */
+	SceneObSeq_getseters,       /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
