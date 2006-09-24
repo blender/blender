@@ -707,7 +707,7 @@ static PyObject *GroupObSeq_getIter( BPy_GroupObSeq * self )
 		self->iter = self->bpygroup->group->gobject.first;
 		return EXPP_incr_ret ( (PyObject *) self );
 	} else {
-		return GroupObSeq_CreatePyObject(self->bpygroup->group, self->bpygroup->group->gobject.first);
+		return GroupObSeq_CreatePyObject(self->bpygroup, self->bpygroup->group->gobject.first);
 	}
 }
 

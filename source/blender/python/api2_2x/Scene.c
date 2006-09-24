@@ -1123,7 +1123,7 @@ static PyObject *SceneObSeq_CreatePyObject( BPy_Scene *self, Base *iter, int mod
 static int SceneObSeq_len( BPy_SceneObSeq * self )
 {
 	Scene *scene= self->bpyscene->scene;
-	SCENE_DEL_CHECK_PY(self->bpyscene);
+	SCENE_DEL_CHECK_INT(self->bpyscene);
 	
 	if (self->mode == 0) /* all obejcts */
 		return BLI_countlist( &( scene->base ) );

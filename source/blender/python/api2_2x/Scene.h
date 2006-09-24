@@ -43,13 +43,13 @@ extern PyTypeObject SceneObSeq_Type;
 #define BPy_Scene_Check(v) \
     ((v)->ob_type == &Scene_Type)
 
-//---------------------------Python BPy_Scene structure definition----------
+/*---------------------------Python BPy_Scene structure definition----------*/
 typedef struct {
 	PyObject_HEAD 
 	Scene * scene;
 } BPy_Scene;
-//---------------------------Python BPy_Scene visible prototypes-----------
-// Python Scene_Type helper functions needed by Blender (the Init function) and Object modules. 
+/*---------------------------Python BPy_Scene visible prototypes-----------*/
+/* Python Scene_Type helper functions needed by Blender (the Init function) and Object modules. */
 
 
 /* Scene object sequence, iterate on the scene object listbase*/

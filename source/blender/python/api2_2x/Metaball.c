@@ -727,7 +727,7 @@ static PyObject *Metaball_copy( BPy_Metaball * self )
 }
 
 
-static PyObject *MetaElemSeq_CreatePyObject(PyObject *self, MetaElem *iter)
+static PyObject *MetaElemSeq_CreatePyObject(BPy_Metaball *self, MetaElem *iter)
 {
 	BPy_MetaElemSeq *seq = PyObject_NEW( BPy_MetaElemSeq, &MetaElemSeq_Type);
 	seq->bpymetaball = self; Py_INCREF(self);
