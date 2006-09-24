@@ -1620,7 +1620,7 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 	Material *ma=0;
 	int v, zvlnr;
 	unsigned short clipmask;
-	short nofill=0, env=0, wire=0;
+	short nofill=0, env=0, wire=0, all_z= layflag & SCE_LAY_ALL_Z;
 
 	zbuf_alloc_span(&zspan, pa->rectx, pa->recty);
 	
@@ -1662,16 +1662,25 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 		if((v & 255)==0) vlr= R.blovl[v>>8];
 		else vlr++;
 		
-		if((vlr->flag & R_VISIBLE) && (vlr->lay & lay)) {
-			if(vlr->mat!=ma) {
-				ma= vlr->mat;
-				nofill= ma->mode & (MA_ZTRA|MA_ONLYCAST);
-				env= (ma->mode & MA_ENV);
-				wire= (ma->mode & MA_WIRE);
-				
-				if(ma->mode & MA_ZINV) zspan.zbuffunc= zbufinvulGLinv4;
-				else zspan.zbuffunc= zbufinvulGL4;
+		if((vlr->flag & R_VISIBLE)) {
+			/* three cases, visible for render, only z values and nothing */
+			if(vlr->lay & lay) {
+				if(vlr->mat!=ma) {
+					ma= vlr->mat;
+					nofill= ma->mode & (MA_ZTRA|MA_ONLYCAST);
+					env= (ma->mode & MA_ENV);
+					wire= (ma->mode & MA_WIRE);
+					
+					if(ma->mode & MA_ZINV) zspan.zbuffunc= zbufinvulGLinv4;
+					else zspan.zbuffunc= zbufinvulGL4;
+				}
 			}
+			else if(all_z) {
+				env= 1;
+				nofill= 0;
+				ma= NULL;
+			}
+			else nofill= 1;
 			
 			if(nofill==0) {
 				unsigned short partclip;
