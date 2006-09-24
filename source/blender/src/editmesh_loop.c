@@ -496,7 +496,8 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 	float *scr, mval[2], lastx=0, lasty=0;
 	
 	*len=0;
-	stolerance = (int)(G.scene->toolsettings->select_thresh * 1000);
+	stolerance = 75;
+	
 	curve=(CutCurve *)MEM_callocN(1024*sizeof(CutCurve), "MouseTrail");
 
 	if (!curve) {
@@ -788,7 +789,8 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 	float  threshold;
 	int  i;
 	
-	threshold = 0.000001; /*tolerance for vertex intersection*/
+	//threshold = 0.000001; /*tolerance for vertex intersection*/
+	threshold = G.scene->toolsettings->select_thresh / 100;
 	
 	/* Get screen coords of verts */
 	scr = BLI_ghash_lookup(gh, e->v1);
