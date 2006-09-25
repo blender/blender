@@ -338,15 +338,17 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 	
 	/* set clipping min and max */
 	if(minz < maxz) {
-		float delta= (maxz - minz)*0.02f;	/* threshold to prevent precision issues */
+		float delta= (maxz - minz);	/* threshold to prevent precision issues */
 		
+		//printf("minz %f maxz %f delta %f\n", minz, maxz, delta);
 		if(lar->bufflag & LA_SHADBUF_AUTO_START)
-			lar->shb->d= minz - delta;
+			lar->shb->d= minz - delta*0.02f;	/* 0.02 is arbitrary... needs more thinking! */
 		if(lar->bufflag & LA_SHADBUF_AUTO_END)
-			lar->shb->clipend= maxz + delta;
+			lar->shb->clipend= maxz + delta*0.1f;
 		
 		/* bias was calculated as percentage, we scale it to prevent animation issues */
-		delta= (lar->clipend-lar->clipsta)/(maxz-minz);
+		delta= (lar->clipend-lar->clipsta)/(lar->shb->clipend-lar->shb->d);
+		//printf("bias delta %f\n", delta);
 		lar->shb->bias= (int) (delta*(float)lar->shb->bias);
 	}
 }
@@ -508,10 +510,11 @@ static float readshadowbuf(ShadBuf *shb, ShadSampleBuf *shsample, int bias, int 
  		zsamp= (int) rz;
 	}
 
-	/* if(zsamp >= 0x7FFFFE00) return 1.0; */	/* no shaduw when sampling at eternal distance */
-
+	/* tricky stuff here; we use ints which can overflow easily with bias values */
+	
 	if(zsamp > zs) return 1.0; 		/* absolute no shadow */
-	else if( zsamp < zs-bias) return 0.0 ;	/* absolute in shadow */
+	else if(zs < - 0x7FFFFE00 + bias) return 1.0;	/* extreme close to clipstart */
+	else if(zsamp < zs-bias) return 0.0 ;	/* absolute in shadow */
 	else {					/* soft area */
 		
 		temp=  ( (float)(zs- zsamp) )/(float)bias;
