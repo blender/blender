@@ -21,7 +21,7 @@ LSCM Unwrapper or archimap unwrapper work well to automaticaly do this.
 
 import Blender
 import BPyRender
-# reload(BPyRender)
+reload(BPyRender)
 import BPyMessages
 Vector= Blender.Mathutils.Vector
 Create= Blender.Draw.Create
@@ -73,6 +73,12 @@ def main():
 	PREF_USE_TEXTURE= False
 	
 	def file_sel(PREF_IMAGE_PATH):
+		
+		if not (BPyMessages.Warning_SaveOver(PREF_IMAGE_PATH) and \
+		BPyMessages.Warning_SaveOver(PREF_IMAGE_PATH+'.png')):
+			return
+			
+		image=\
 		BPyRender.vcol2image(me_s,\
 		PREF_IMAGE_PATH,\
 		PREF_IMAGE_SIZE.val,\
@@ -87,6 +93,9 @@ def main():
 		PREF_USE_NORMAL,\
 		PREF_USE_TEXTURE,\
 		PREF_SEL_FACES_ONLY.val)
+		
+		if image:
+			image.makeCurrent()
 		
 		Blender.Window.RedrawAll()
 	

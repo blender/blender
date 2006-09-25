@@ -75,7 +75,12 @@ def main():
 	PREF_USE_TEXTURE= False
 	
 	def file_sel(PREF_IMAGE_PATH):
-		BPyRender.vcol2image(me_s,\
+		
+		if not (BPyMessages.Warning_SaveOver(PREF_IMAGE_PATH) and \
+		BPyMessages.Warning_SaveOver(PREF_IMAGE_PATH+'.png')):
+			return
+		
+		image = BPyRender.vcol2image(me_s,\
 		PREF_IMAGE_PATH,\
 		PREF_IMAGE_SIZE.val,\
 		PREF_IMAGE_BLEED.val,\
@@ -89,6 +94,9 @@ def main():
 		PREF_USE_NORMAL,\
 		PREF_USE_TEXTURE,\
 		PREF_SEL_FACES_ONLY.val)
+		
+		if image:
+			image.makeCurrent()
 		
 		Blender.Window.RedrawAll()
 	

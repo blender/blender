@@ -83,18 +83,17 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True):
 	#if not B.sys.exists(PREF_IMAGE_PATH_EXPAND):
 	#	raise 'Error!!!'
 	
+	scn.makeCurrent()
+	Scene.Unlink(render_scn)
 	
 	# NOW APPLY THE SAVED IMAGE TO THE FACES!
 	#print PREF_IMAGE_PATH_EXPAND
 	try:
 		target_image= Image.Load(path_expand)
+		return target_image
 	except:
 		raise 'Error: Could not render or load the image at path "%s"' % path_expand
 		return
-	
-	scn.makeCurrent()
-	Scene.Unlink(render_scn)
-
 
 
 
@@ -379,7 +378,7 @@ def vcol2image(me_s,\
 	
 	
 	
-	im= imageFromObjectsOrtho(obs, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_IMAGE_SIZE, PREF_IMAGE_SMOOTH)
+	image= imageFromObjectsOrtho(obs, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_IMAGE_SIZE, PREF_IMAGE_SMOOTH)
 	
 	# Clear from memory as best as we can
 	render_me.verts= None
@@ -395,3 +394,4 @@ def vcol2image(me_s,\
 			if not tex_unique_materials_shadeless[i]:
 				mat.mode &= ~Blender.Material.Modes.SHADELESS
 	
+	return image

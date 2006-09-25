@@ -91,7 +91,12 @@ def main():
 	
 	PREF_USE_NORMAL= True # of course we need this one 
 	def file_sel(PREF_IMAGE_PATH):
-		BPyRender.vcol2image(me_s,\
+		
+		if not (BPyMessages.Warning_SaveOver(PREF_IMAGE_PATH) and \
+		BPyMessages.Warning_SaveOver(PREF_IMAGE_PATH+'.png')):
+			return
+		
+		image = BPyRender.vcol2image(me_s,\
 		PREF_IMAGE_PATH,\
 		PREF_IMAGE_SIZE.val,\
 		PREF_IMAGE_BLEED.val,\
@@ -109,7 +114,10 @@ def main():
 		# Restore normals
 		for me in me_s:
 			me.update()
-	
+		
+		if image:
+			image.makeCurrent()
+		
 		Blender.Window.RedrawAll()
 	
 	Blender.Window.FileSelector(file_sel, 'SAVE PNG', newpath)

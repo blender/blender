@@ -327,12 +327,10 @@ class Image:
     @rtype: none
     @type mode: int
     """
-  def SetCurrent (image):
+  def makeCurrent():
     """
     Set the currently displayed Image from Blenders UV/Image window.
     When multiple images are displayed, the last active UV/Image windows image is used.
-    @type image: Blender Image
-    @param image: The image to display in the image view.
     @rtype: bool
     @return: True if the current image could be set, if no window was available, return False.
     """
