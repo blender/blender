@@ -2629,7 +2629,7 @@ static void outliner_draw_tree(SpaceOops *soops)
 	outliner_draw_selection(soops, &soops->tree, &starty);
 	
 	// grey hierarchy lines
-	BIF_ThemeColorBlend(TH_BACK, TH_TEXT, 0.5);
+	BIF_ThemeColorBlend(TH_BACK, TH_TEXT, 0.2);
 	starty= soops->v2d.tot.ymax-OL_H/2;
 	startx= 6;
 	outliner_draw_hierarchy(soops, &soops->tree, startx, &starty);
