@@ -173,7 +173,8 @@ Image *new_image(int width, int height, char *name, short uvtestgrid)
 		ImBuf *ibuf;
 		unsigned char *rect;
 		int x, y;
-		float h=0.0, hoffs=0.0, s=0.9, v=0.6, r, g, b;
+		int checkerwidth=21, dark=1;
+		float h=0.0, hoffs=0.0, hue=0.0, s=0.9, v=0.9, r, g, b;
 
 		strcpy(ima->name, "Untitled");
 
@@ -184,20 +185,51 @@ Image *new_image(int width, int height, char *name, short uvtestgrid)
 		rect= (unsigned char*)ibuf->rect;
 		
 		if (uvtestgrid) {
+			/* these two passes could be combined into one, but it's more readable and 
+			 * easy to tweak like this, speed isn't really that much of an issue in this situation... */
+
+			/* checkers */
 			for(y=0; y<ibuf->y; y++) {
-				if (y % 20 == 0) hoffs += 0.125;
-				if (y % 160 == 0) hoffs = 0.0;
+				dark = pow(-1, floor(y / checkerwidth));
 				
 				for(x=0; x<ibuf->x; x++, rect+=4) {
-					if (x % 20 == 0) h += 0.125;
-					if (x % 160 == 0) h = 0.0;
-								
-					hsv_to_rgb(fabs(h-hoffs), s, v, &r, &g, &b);
+					if (x % checkerwidth == 0) dark *= -1;
 					
-					rect[0]= (char)(r * 255.0);
-					rect[1]= (char)(g * 255.0);
-					rect[2]= (char)(b * 255.0);
-					rect[3]= 255;
+					if (dark > 0) {
+						rect[0] = rect[1] = rect[2] = 64;
+						rect[3] = 255;
+					} else {
+						rect[0] = rect[1] = rect[2] = 150;
+						rect[3] = 255;
+					}
+				}
+			}
+					
+			/* 2nd pass, coloured + */
+			rect= (unsigned char*)ibuf->rect;
+			
+			for(y=0; y<ibuf->y; y++) {
+				hoffs = 0.125 * floor(y / checkerwidth);
+				
+				for(x=0; x<ibuf->x; x++, rect+=4) {
+					h = 0.125 * floor(x / checkerwidth);
+									
+					if ((fabs((x % checkerwidth) - (checkerwidth / 2)) < 4) &&
+						(fabs((y % checkerwidth) - (checkerwidth / 2)) < 4)) {
+						
+						if ((fabs((x % checkerwidth) - (checkerwidth / 2)) < 1) ||
+							(fabs((y % checkerwidth) - (checkerwidth / 2)) < 1)) {
+						
+							hue = fmod(fabs(h-hoffs), 1.0);
+							hsv_to_rgb(hue, s, v, &r, &g, &b);
+							
+							rect[0]= (char)(r * 255.0);
+							rect[1]= (char)(g * 255.0);
+							rect[2]= (char)(b * 255.0);
+							rect[3]= 255;
+						}
+					}
+					
 				}
 			}
 		} else {	/* blank image */
