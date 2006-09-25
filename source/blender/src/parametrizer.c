@@ -2565,7 +2565,7 @@ static void p_chart_pin_positions(PChart *chart, PVert **pin1, PVert **pin2)
 		(*pin2)->uv[1] = 0.5f;
 	}
 	else {
-		int diru, dirv, dir;
+		int diru, dirv, dirx, diry;
 		float sub[3];
 
 		VecSubf(sub, (*pin1)->co, (*pin2)->co);
@@ -2573,14 +2573,20 @@ static void p_chart_pin_positions(PChart *chart, PVert **pin1, PVert **pin2)
 		sub[1] = fabs(sub[1]);
 		sub[2] = fabs(sub[2]);
 
-		if ((sub[0] > sub[1]) && (sub[0] > sub[2]))
-			dir = 0;
-		else if ((sub[1] > sub[0]) && (sub[1] > sub[2]))
-			dir = 1;
-		else
-			dir = 2;
+		if ((sub[0] > sub[1]) && (sub[0] > sub[2])) {
+			dirx = 0;
+			diry = (sub[1] > sub[2])? 1: 2;
+		}
+		else if ((sub[1] > sub[0]) && (sub[1] > sub[2])) {
+			dirx = 1;
+			diry = (sub[0] > sub[2])? 0: 2;
+		}
+		else {
+			dirx = 2;
+			diry = (sub[0] > sub[1])? 0: 1;
+		}
 
-		if (dir == 2) {
+		if (dirx == 2) {
 			diru = 1;
 			dirv = 0;
 		}
@@ -2589,10 +2595,10 @@ static void p_chart_pin_positions(PChart *chart, PVert **pin1, PVert **pin2)
 			dirv = 1;
 		}
 
-		(*pin1)->uv[diru] = (*pin1)->co[dir];
-		(*pin1)->uv[dirv] = (*pin1)->co[(dir+1)%3];
-		(*pin2)->uv[diru] = (*pin2)->co[dir];
-		(*pin2)->uv[dirv] = (*pin2)->co[(dir+1)%3];
+		(*pin1)->uv[diru] = (*pin1)->co[dirx];
+		(*pin1)->uv[dirv] = (*pin1)->co[diry];
+		(*pin2)->uv[diru] = (*pin2)->co[dirx];
+		(*pin2)->uv[dirv] = (*pin2)->co[diry];
 	}
 }
 
@@ -4131,8 +4137,8 @@ void param_lscm_solve(ParamHandle *handle)
 		if (chart->u.lscm.context) {
 			result = p_chart_lscm_solve(chart);
 
-			/*if (result)
-				p_chart_rotate_minimum_area(chart);*/
+			if (result)
+				p_chart_rotate_minimum_area(chart);
 
 			if (!result || (chart->u.lscm.pin1))
 				p_chart_lscm_end(chart);
