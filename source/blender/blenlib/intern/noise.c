@@ -946,19 +946,13 @@ float BLI_gTurbulence(float noisesize, float x, float y, float z, int oct, int h
 }
 
 
-/*************************************/
-/*  NOISE FUNCTIONS BY KEN MUSGRAVE  */
-/* Copyright 1994 F. Kenton Musgrave */
-/*************************************/
-
-/* All of these are modified to be able to use them with different noisebasis.
-   In some cases the original code seemed to contain errors, so it is not exactly
-   the same now as the orginal code (from "Texturing and Modelling: A procedural approach") */
+/*
+ * The following code is based on Ken Musgrave's explanations and sample
+ * source code in the book "Texturing and Modelling: A procedural approach"
+ */
 
 /*
  * Procedural fBm evaluated at "point"; returns value stored in "value".
- *
- * Copyright 1994 F. Kenton Musgrave
  *
  * Parameters:
  *    ``H''  is the fractal increment parameter
@@ -1024,8 +1018,6 @@ float mg_fBm(float x, float y, float z, float H, float lacunarity, float octaves
 /*
  * Procedural multifractal evaluated at "point";
  * returns value stored in "value".
- *
- * Copyright 1994 F. Kenton Musgrave
  *
  * Parameters:
  *    ``H''  determines the highest fractal dimension
@@ -1093,8 +1085,6 @@ float mg_MultiFractal(float x, float y, float z, float H, float lacunarity, floa
 /*
  * Heterogeneous procedural terrain function: stats by altitude method.
  * Evaluated at "point"; returns value stored in "value".
- *
- * Copyright 1994 F. Kenton Musgrave
  *
  * Parameters:
  *       ``H''  determines the fractal dimension of the roughest areas
@@ -1170,8 +1160,6 @@ float mg_HeteroTerrain(float x, float y, float z, float H, float lacunarity, flo
 
 /* Hybrid additive/multiplicative multifractal terrain model.
  *
- * Copyright 1994 F. Kenton Musgrave
- *
  * Some good parameter values to start with:
  *
  *      H:           0.25
@@ -1246,8 +1234,6 @@ float mg_HybridMultiFractal(float x, float y, float z, float H, float lacunarity
 
 /* Ridged multifractal terrain model.
  *
- * Copyright 1994 F. Kenton Musgrave
- *
  * Some good parameter values to start with:
  *
  *      H:           1.0
@@ -1319,8 +1305,6 @@ float mg_RidgedMultiFractal(float x, float y, float z, float H, float lacunarity
 
 /* "Variable Lacunarity Noise"
  * A distorted variety of Perlin noise.
- *
- * Copyright 1994 F. Kenton Musgrave
  */
 float mg_VLNoise(float x, float y, float z, float distortion, int nbas1, int nbas2)
 {
