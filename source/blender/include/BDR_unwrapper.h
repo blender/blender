@@ -33,8 +33,10 @@
 #ifndef BDR_UNWRAPPER_H
 #define BDR_UNWRAPPER_H
 
+struct Mesh;
+
 void set_seamtface(void); /* set TF_SEAM flags in tfaces */
-void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index);
+void select_linked_tfaces_with_seams(int mode, struct Mesh *me, unsigned int index);
 
 void unwrap_lscm(short seamcut); /* unwrap faces selected in 3d view */
 void minimize_stretch_tface_uv(void); /* optimize faces selected in uv editor */

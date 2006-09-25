@@ -181,6 +181,7 @@ Image *new_image(int width, int height, char *name, short uvtestgrid)
 		ibuf= IMB_allocImBuf(width, height, 24, IB_rect, 0);
 		strcpy(ibuf->name, "Untitled");
 		ima->ibuf= ibuf;
+		ibuf->userflags |= IB_BITMAPDIRTY;
 
 		rect= (unsigned char*)ibuf->rect;
 		

@@ -71,3 +71,12 @@ void sima_sample_color(void);
 
 #define UV_SELECT_ALL		1
 #define UV_SELECT_PINNED	2
+
+void new_image_sima(void);
+void reload_image_sima(void);
+void save_image_sima(void);
+void save_as_image_sima(void);
+void replace_image_sima(short imageselect);
+void open_image_sima(short imageselect);
+void pack_image_sima(void);
+

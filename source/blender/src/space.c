@@ -4249,10 +4249,25 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		break;
 	case NKEY:
-		if(G.qual==0) {
+		if(G.qual==LR_ALTKEY) {
+			new_image_sima();
+		}
+		else if(G.qual==0) {
 			toggle_blockhandler(sa, IMAGE_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 			scrarea_queue_winredraw(sa);
 		}
+		break;
+	case OKEY:
+		if (G.qual & LR_ALTKEY)
+			open_image_sima(G.qual & LR_CTRLKEY);
+		break;
+	case RKEY:
+		if(G.qual==LR_ALTKEY)
+			reload_image_sima();
+		break;
+	case SKEY:
+		if(G.qual & LR_ALTKEY)
+			save_image_sima();
 		break;
 	case ESCKEY:
 		if(sima->flag & SI_PREVSPACE) {

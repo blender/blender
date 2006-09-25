@@ -44,9 +44,6 @@
 
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
-#include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -54,27 +51,19 @@
 
 #include "BDR_drawmesh.h"
 #include "BDR_unwrapper.h"
+
 #include "BKE_brush.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_packedFile.h"
-#include "BKE_utildefines.h"
-#include "BKE_depsgraph.h"
 
-#include "BLI_blenlib.h"
 #include "BIF_drawimage.h"
 #include "BIF_editsima.h"
 #include "BIF_interface.h"
-#include "BIF_previewrender.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
-#include "BIF_toets.h"
-#include "BIF_toolbox.h"
 #include "BIF_transform.h"
-#include "BIF_writeimage.h"
 
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
@@ -82,147 +71,16 @@
 #include "BPY_extern.h"
 #include "BPY_menus.h"
 
-#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "BSE_trans_types.h"
 
 #include "blendef.h"
 #include "mydevice.h"
 
-static void load_space_image(char *str)	/* called from fileselect */
-{
-	Image *ima=0;
- 
-	if(G.obedit) {
-		error("Can't perfom this in editmode");
-		return;
-	}
-
-	ima= add_image(str);
-	if(ima) {
-
-		G.sima->image= ima;
-
-		free_image_buffers(ima);	/* force read again */
-		ima->ok= 1;
-		image_changed(G.sima, 0);
-
-	}
-	BIF_undo_push("Load image UV");
-	allqueue(REDRAWIMAGE, 0);
-}
-
-static void image_replace(Image *old, Image *new)
-{
-	TFace *tface;
-	Mesh *me;
-	int a, rep=0;
-
-	new->tpageflag= old->tpageflag;
-	new->twsta= old->twsta;
-	new->twend= old->twend;
-	new->xrep= old->xrep;
-	new->yrep= old->yrep;
- 
-	me= G.main->mesh.first;
-	while(me) {
-
-		if(me->tface) {
-			tface= me->tface;
-			a= me->totface;
-			while(a--) {
-				if(tface->tpage==old) {
-					tface->tpage= new;
-					rep++;
-				}
-				tface++;
-			}
-		}
-		me= me->id.next;
- 
-	}
-	if(rep) {
-		if(new->id.us==0) new->id.us= 1;
-	}
-	else error("Nothing replaced");
-}
-
-static void replace_space_image(char *str)		/* called from fileselect */
-{
-	Image *ima=0;
-
-	if(G.obedit) {
-		error("Can't perfom this in editmode");
-		return;
-	}
-
-	ima= add_image(str);
-	if(ima) {
- 
-		if(G.sima->image && G.sima->image != ima) {
-			image_replace(G.sima->image, ima);
-		}
- 
-		G.sima->image= ima;
-
-		free_image_buffers(ima);	/* force read again */
-		ima->ok= 1;
-		/* replace also assigns: */
-		image_changed(G.sima, 0);
-
-	}
-	BIF_undo_push("Replace image UV");
-	allqueue(REDRAWIMAGE, 0);
-}
-
-static void save_paint(char *name)
-{
-	Image *ima = G.sima->image;
-	int len;
-	char str[FILE_MAXDIR+FILE_MAXFILE];
-
-	if (ima  && ima->ibuf) {
-		BLI_strncpy(str, name, sizeof(str));
-
-		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
-		
-		if(G.scene->r.scemode & R_EXTENSION) 
-			BKE_add_image_extension(str, G.scene->r.imtype);
-
-		if (saveover(str)) {
-			
-			/* enforce user setting for RGB or RGBA, but skip BW */
-			if(G.scene->r.planes==32)
-				ima->ibuf->depth= 32;
-			else if(G.scene->r.planes==24)
-				ima->ibuf->depth= 24;
-			
-			waitcursor(1);
-			if (BKE_write_ibuf(ima->ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality)) {
-				BLI_strncpy(ima->name, name, sizeof(ima->name));
-				ima->ibuf->userflags &= ~IB_BITMAPDIRTY;
-				allqueue(REDRAWHEADERS, 0);
-				allqueue(REDRAWBUTSSHADING, 0);
-			} else {
-				error("Couldn't write image: %s", str);
-			}
-			
-			/* name image as how we saved it */
-			len= strlen(str);
-			while (len > 0 && str[len - 1] != '/' && str[len - 1] != '\\') len--;
-			rename_id(&ima->id, str+len);
-
-			waitcursor(0);
-		}
-	}
-}
-
 void do_image_buttons(unsigned short event)
 {
-	Image *ima;
 	ID *id, *idtest;
 	int nr;
-	char name[256];
 
 	if(curarea->win==0) return;
 
@@ -264,30 +122,8 @@ void do_image_buttons(unsigned short event)
 		BIF_undo_push("Assign image UV");
 
 		break;
-	case B_SIMAGELOAD:
-		
-		if(G.sima->image) strcpy(name, G.sima->image->name);
-		else strcpy(name, U.textudir);
-		
-		if(G.qual==LR_CTRLKEY)
-			activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_space_image);
-		else
-			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_space_image);
-		break;
-		
-	case B_SIMAGEREPLACE:
-		
-		if(G.sima->image) strcpy(name, G.sima->image->name);
-		else strcpy(name, U.textudir);
-		
-		if(G.qual==LR_CTRLKEY)
-			activate_imageselect(FILE_SPECIAL, "REPLACE IMAGE", name, replace_space_image);
-		else
-			activate_fileselect(FILE_SPECIAL, "REPLACE IMAGE", name, replace_space_image);
-		break;
 		
 	case B_SIMAGEDRAW:
-		
 		if(G.f & G_FACESELECT) {
 			make_repbind(G.sima->image);
 			image_changed(G.sima, 1);
@@ -302,19 +138,6 @@ void do_image_buttons(unsigned short event)
 		allqueue(REDRAWIMAGE, 0);
 		break;
 		
-	case B_TWINANIM:
-		ima = G.sima->image;
-		if (ima) {
-			if(ima->flag & IMA_TWINANIM) {
-				nr= ima->xrep*ima->yrep;
-				if(ima->twsta>=nr) ima->twsta= 1;
-				if(ima->twend>=nr) ima->twend= nr-1;
-				if(ima->twsta>ima->twend) ima->twsta= 1;
-				allqueue(REDRAWIMAGE, 0);
-			}
-		}
-		break;
-
 	case B_SIMAGEPAINTTOOL:
 		if(G.sima->flag & SI_DRAWTOOL)
 			/* add new brush if none exists */
@@ -322,46 +145,11 @@ void do_image_buttons(unsigned short event)
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
+
 	case B_SIMAPACKIMA:
-		ima = G.sima->image;
-		if (ima) {
-			if (ima->packedfile) {
-				if (G.fileflags & G_AUTOPACK) {
-					if (okee("Disable AutoPack ?")) {
-						G.fileflags &= ~G_AUTOPACK;
-					}
-				}
-				
-				if ((G.fileflags & G_AUTOPACK) == 0) {
-					unpackImage(ima, PF_ASK);
-				}
-			} else {
-				if (ima->ibuf && (ima->ibuf->userflags & IB_BITMAPDIRTY)) {
-					error("Can't pack painted image. Save image first.");
-				} else {
-					ima->packedfile = newPackedFile(ima->name);
-				}
-			}
-			allqueue(REDRAWBUTSSHADING, 0);
-			allqueue(REDRAWHEADERS, 0);
-		}
+		pack_image_sima();
 		break;
-	case B_SIMAGESAVE:
-		ima = G.sima->image;
-		if (ima) {
-			strcpy(name, ima->name);
-			if (ima->ibuf) {
-				char str[64];
-				save_image_filesel_str(str);
-				
-				/* so it shows extension in file window */
-				if(G.scene->r.scemode & R_EXTENSION) 
-					BKE_add_image_extension(name, G.scene->r.imtype);
-				
-				activate_fileselect(FILE_SPECIAL, str, name, save_paint);
-			}
-		}
-		break;
+		
 	case B_SIMA_USE_ALPHA:
 		G.sima->flag &= ~(SI_SHOW_ALPHA|SI_SHOW_ZBUF);
 		scrarea_queue_winredraw(curarea);
@@ -647,12 +435,12 @@ static void do_image_image_rtmappingmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* UV Co-ordinates */
-		G.sima->image->flag = BCLR(G.sima->image->flag, 4);
+		G.sima->image->flag &= ~IMA_REFLECT;
 		break;
 	case 1: /* Reflection */
-		G.sima->image->flag = BSET(G.sima->image->flag, 4);
+		G.sima->image->flag |= IMA_REFLECT;
 		break;
-		}
+	}
 
  	allqueue(REDRAWVIEW3D, 0);
 }
@@ -680,136 +468,36 @@ static uiBlock *image_image_rtmappingmenu(void *arg_unused)
 
 static void do_image_imagemenu(void *arg, int event)
 {
-	Image *ima;
-	char name[256];
-	
 	/* events >=20 are registered bpython scripts */
 	if (event >= 20) BPY_menu_do_python(PYMENU_IMAGE, event - 20);
 	
 	switch(event)
 	{
-	case 0: /* Open */
-		if(G.sima->image) strcpy(name, G.sima->image->name);
-		else strcpy(name, U.textudir);
-		if(G.qual==LR_CTRLKEY)
-			activate_imageselect(FILE_SPECIAL, "Open Image", name, load_space_image);
-		else
-			activate_fileselect(FILE_SPECIAL, "Open Image", name, load_space_image);
+	case 0:
+		open_image_sima((G.qual==LR_CTRLKEY));
 		break;
-	case 1: /* Replace */
-		if(G.sima->image) strcpy(name, G.sima->image->name);
-		else strcpy(name, U.textudir);
-		
-		if(G.qual==LR_CTRLKEY)
-			activate_imageselect(FILE_SPECIAL, "Replace Image", name, replace_space_image);
-		else
-			activate_fileselect(FILE_SPECIAL, "Replace Image", name, replace_space_image);
+	case 1:
+		replace_image_sima((G.qual==LR_CTRLKEY));
 		break;
-	case 2: /* Pack Image */
-		ima = G.sima->image;
-		if (ima) {
-			if (ima->packedfile) {
-				error("Image is already packed.");
-			} else {
-				if (ima->ibuf && (ima->ibuf->userflags & IB_BITMAPDIRTY)) {
-					error("Can't pack painted image. Save the painted image first.");
-				} else {
-					ima->packedfile = newPackedFile(ima->name);
-				}
-			}
-		}
-		BIF_undo_push("Pack image");
-		allqueue(REDRAWBUTSSHADING, 0);
-		allqueue(REDRAWHEADERS, 0);
-		break;
-	case 3: /* Unpack Image */
-		ima = G.sima->image;
-		if (ima) {
-			if (ima->packedfile) {
-				if (G.fileflags & G_AUTOPACK) {
-					if (okee("Disable AutoPack?")) {
-						G.fileflags &= ~G_AUTOPACK;
-					}
-				}
-				
-				if ((G.fileflags & G_AUTOPACK) == 0) {
-					unpackImage(ima, PF_ASK);
-				}
-			} else {
-				error("There are no packed images to unpack");
-			}
-		}
-		BIF_undo_push("Unpack image");
-		allqueue(REDRAWBUTSSHADING, 0);
-		allqueue(REDRAWHEADERS, 0);
+	case 2:
+		pack_image_sima();
 		break;
 	case 4: /* Texture Painting */
 		if(G.sima->flag & SI_DRAWTOOL) G.sima->flag &= ~SI_DRAWTOOL;
 		else G.sima->flag |= SI_DRAWTOOL;
 		break;
-	case 5: /* Save Painted Image */
-		ima = G.sima->image;
-		if (ima) {
-			strcpy(name, ima->name);
-			if (ima->ibuf) {
-				char str[64];
-				save_image_filesel_str(str);
-				
-				/* so it shows an extension in filewindow */
-				if(G.scene->r.scemode & R_EXTENSION) 
-					BKE_add_image_extension(name, G.scene->r.imtype);
-				
-				activate_fileselect(FILE_SPECIAL, str, name, save_paint);
-			}
-		}
+	case 5:
+		save_as_image_sima();
 		break;
-	case 6: /* Reload Image */
-		ima = G.sima->image;
-		if (ima) {
-			if (ima->packedfile) {
-				PackedFile *pf;
-				pf = newPackedFile(ima->name);
-				if (pf) {
-					freePackedFile(ima->packedfile);
-					ima->packedfile = pf;
-				}
-				else
-					error("Image not available. Keeping packed image.");
-			}
-			if (ima->preview) {
-				free_image_preview(ima);
-			}
-			free_image_buffers(ima);	/* force read again */
-			ima->ok= 1;
-			image_changed(G.sima, 0);
-		}
-		allqueue(REDRAWIMAGE, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		BIF_preview_changed(ID_TE);
+	case 6:
+		reload_image_sima();
 		break;
-	case 7: /* New Image */
-		{
-			static int width= 256, height= 256;
-			static short uvtestgrid=0;
-			char name[256];
-
-			strcpy(name, "Image");
-
-			add_numbut(0, TEX, "Name:", 0, 255, name, NULL);
-			add_numbut(1, NUM|INT, "Width:", 1, 5000, &width, NULL);
-			add_numbut(2, NUM|INT, "Height:", 1, 5000, &height, NULL);
-			add_numbut(3, TOG|SHO, "UV Test Grid", 0, 0, &uvtestgrid, NULL);
-			if (!do_clever_numbuts("New Image", 4, REDRAW))
-				return;
-
-			G.sima->image= new_image(width, height, name, uvtestgrid);
-			image_changed(G.sima, 0);
-
-			allqueue(REDRAWIMAGE, 0);
-			allqueue(REDRAWVIEW3D, 0);
-
-			break;
-		}
+	case 7:
+		new_image_sima();
+		break;
+	case 8:
+		save_image_sima();
+		break;
 	}
 }
 
@@ -823,18 +511,20 @@ static uiBlock *image_imagemenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_imagemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_imagemenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "New...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "New...|Alt N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|Alt O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
 	if (G.sima->image) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save As...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Replace...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reload", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reload|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save As...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 		
 		if (G.sima->image->packedfile) {
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unpack Image...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unpack Image...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 		} else {
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack Image", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 		}
@@ -1169,9 +859,10 @@ void image_buttons(void)
 {
 	uiBlock *block;
 	short xco, xmax;
-	char naam[256];
+	char naam[256], *menuname;
 	/* This should not be a static var */
 	static int headerbuttons_packdummy;
+	Image *ima= G.sima->image;
 
 	headerbuttons_packdummy = 0;
 		
@@ -1210,29 +901,36 @@ void image_buttons(void)
 		uiDefPulldownBut(block, image_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
-		xmax= GetButStringLength("Select");
-		uiDefPulldownBut(block, image_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
-        
+		if((G.f & G_FACESELECT) && !(G.sima->flag & SI_DRAWTOOL)) {
+			xmax= GetButStringLength("Select");
+			uiDefPulldownBut(block, image_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
+		}
+		
+		if (ima && ima->ibuf && (ima->ibuf->userflags & IB_BITMAPDIRTY))
+			menuname= "Image*";
+		else
+			menuname= "Image";
+		xmax= GetButStringLength(menuname);
+		uiDefPulldownBut(block, image_imagemenu, NULL, menuname, xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
-		xmax= GetButStringLength("Image");
-		uiDefPulldownBut(block, image_imagemenu, NULL, "Image", xco, -2, xmax-3, 24, "");
-		xco+= xmax;
-		
-		xmax= GetButStringLength("UVs");
-		uiDefPulldownBut(block, image_uvsmenu, NULL, "UVs", xco, -2, xmax-3, 24, "");
-		xco+= xmax;
+		if((G.f & G_FACESELECT) && !(G.sima->flag & SI_DRAWTOOL)) {
+			xmax= GetButStringLength("UVs");
+			uiDefPulldownBut(block, image_uvsmenu, NULL, "UVs", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
+		}
 	}
 	
 	/* other buttons: */
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
-	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, ID_IM, 0, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
+	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, ID_IM, 0, (ID *)ima, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
 
-	if (G.sima->image) {
+	if (ima) {
 		xco+= 8;
 	
-		if (G.sima->image->packedfile) {
+		if (ima->packedfile) {
 			headerbuttons_packdummy = 1;
 		}
 		uiDefIconButBitI(block, TOG, 1, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
@@ -1246,8 +944,8 @@ void image_buttons(void)
 		xco+= XIC;
 		uiDefIconButBitI(block, TOG, SI_SHOW_ALPHA, B_SIMA_SHOW_ALPHA, ICON_DOT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws only alpha");
 		xco+= XIC;
-		if(G.sima->image->ibuf) {
-			if(G.sima->image->ibuf->zbuf || G.sima->image->ibuf->zbuf_float) {
+		if(ima->ibuf) {
+			if(ima->ibuf->zbuf || ima->ibuf->zbuf_float) {
 				uiDefIconButBitI(block, TOG, SI_SHOW_ZBUF, B_SIMA_SHOW_ZBUF, ICON_SOLID, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws zbuffer values");
 				xco+= XIC;
 			}

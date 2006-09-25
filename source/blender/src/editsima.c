@@ -52,6 +52,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
@@ -61,26 +62,33 @@
 
 #include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
-#include "BKE_mesh.h"
 #include "BKE_displist.h"
+#include "BKE_image.h"
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_packedFile.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
-#include "BIF_screen.h"
 #include "BIF_drawimage.h"
 #include "BIF_editview.h"
-#include "BIF_space.h"
 #include "BIF_editsima.h"
+#include "BIF_mywindow.h"
+#include "BIF_previewrender.h"
+#include "BIF_screen.h"
+#include "BIF_space.h"
 #include "BIF_toolbox.h"
 #include "BIF_transform.h"
-#include "BIF_mywindow.h"
+#include "BIF_writeimage.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_edit.h"
+#include "BSE_filesel.h"
 #include "BSE_trans_types.h"
 
 #include "BDR_editobject.h"
@@ -1511,4 +1519,281 @@ void sima_sample_color(void)
 	scrarea_queue_winredraw(curarea);
 }
 
+/* Image functions */
+
+static void load_image_filesel(char *str)	/* called from fileselect */
+{
+	Image *ima=0;
+ 
+	if(G.obedit) {
+		error("Can't perfom this in editmode");
+		return;
+	}
+
+	ima= add_image(str);
+	if(ima) {
+
+		G.sima->image= ima;
+
+		free_image_buffers(ima);	/* force read again */
+		ima->ok= 1;
+		image_changed(G.sima, 0);
+
+	}
+	BIF_undo_push("Load image UV");
+	allqueue(REDRAWIMAGE, 0);
+}
+
+static void image_replace(Image *old, Image *new)
+{
+	TFace *tface;
+	Mesh *me;
+	int a, rep=0;
+
+	new->tpageflag= old->tpageflag;
+	new->twsta= old->twsta;
+	new->twend= old->twend;
+	new->xrep= old->xrep;
+	new->yrep= old->yrep;
+ 
+	me= G.main->mesh.first;
+	while(me) {
+
+		if(me->tface) {
+			tface= me->tface;
+			a= me->totface;
+			while(a--) {
+				if(tface->tpage==old) {
+					tface->tpage= new;
+					rep++;
+				}
+				tface++;
+			}
+		}
+		me= me->id.next;
+ 
+	}
+	if(rep) {
+		if(new->id.us==0) new->id.us= 1;
+	}
+	else error("Nothing replaced");
+}
+
+static void replace_image_filesel(char *str)		/* called from fileselect */
+{
+	Image *ima=0;
+
+	if(G.obedit) {
+		error("Can't perfom this in editmode");
+		return;
+	}
+
+	ima= add_image(str);
+	if(ima) {
+ 
+		if(G.sima->image && G.sima->image != ima) {
+			image_replace(G.sima->image, ima);
+		}
+ 
+		G.sima->image= ima;
+
+		free_image_buffers(ima);	/* force read again */
+		ima->ok= 1;
+		/* replace also assigns: */
+		image_changed(G.sima, 0);
+
+	}
+	BIF_undo_push("Replace image UV");
+	allqueue(REDRAWIMAGE, 0);
+}
+
+static void save_image_filesel(char *name)
+{
+	Image *ima = G.sima->image;
+	int len;
+	char str[FILE_MAXDIR+FILE_MAXFILE];
+
+	if (ima && ima->ibuf) {
+		BLI_strncpy(str, name, sizeof(str));
+
+		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+		
+		if(G.scene->r.scemode & R_EXTENSION) 
+			BKE_add_image_extension(str, G.scene->r.imtype);
+
+		if (saveover(str)) {
+			/* enforce user setting for RGB or RGBA, but skip BW */
+			if(G.scene->r.planes==32)
+				ima->ibuf->depth= 32;
+			else if(G.scene->r.planes==24)
+				ima->ibuf->depth= 24;
+			
+			waitcursor(1);
+			if (BKE_write_ibuf(ima->ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality)) {
+				BLI_strncpy(ima->name, name, sizeof(ima->name));
+				BLI_strncpy(ima->ibuf->name, str, sizeof(ima->ibuf->name));
+				ima->ibuf->userflags &= ~IB_BITMAPDIRTY;
+				allqueue(REDRAWHEADERS, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
+			} else {
+				error("Couldn't write image: %s", str);
+			}
+			
+			/* name image as how we saved it */
+			len= strlen(str);
+			while (len > 0 && str[len - 1] != '/' && str[len - 1] != '\\') len--;
+			rename_id(&ima->id, str+len);
+
+			waitcursor(0);
+		}
+	}
+}
+
+void open_image_sima(short imageselect)
+{
+	char name[FILE_MAXDIR+FILE_MAXFILE];
+
+	if(G.sima->image)
+		strcpy(name, G.sima->image->name);
+	else
+		strcpy(name, U.textudir);
+
+	if(imageselect)
+		activate_imageselect(FILE_SPECIAL, "Open Image", name, load_image_filesel);
+	else
+		activate_fileselect(FILE_SPECIAL, "Open Image", name, load_image_filesel);
+}
+
+void replace_image_sima(short imageselect)
+{
+	char name[FILE_MAXDIR+FILE_MAXFILE];
+
+	if(G.sima->image)
+		strcpy(name, G.sima->image->name);
+	else
+		strcpy(name, U.textudir);
+	
+	if(imageselect)
+		activate_imageselect(FILE_SPECIAL, "Replace Image", name, replace_image_filesel);
+	else
+		activate_fileselect(FILE_SPECIAL, "Replace Image", name, replace_image_filesel);
+}
+
+void save_as_image_sima()
+{
+	Image *ima = G.sima->image;
+	char name[FILE_MAXDIR+FILE_MAXFILE];
+
+	if (ima) {
+		strcpy(name, ima->name);
+
+		if (ima->ibuf) {
+			char str[64];
+			save_image_filesel_str(str);
+			
+			/* so it shows an extension in filewindow */
+			if(G.scene->r.scemode & R_EXTENSION) 
+				BKE_add_image_extension(name, G.scene->r.imtype);
+			
+			activate_fileselect(FILE_SPECIAL, str, name, save_image_filesel);
+		}
+	}
+}
+
+void save_image_sima()
+{
+	Image *ima = G.sima->image;
+	char name[FILE_MAXDIR+FILE_MAXFILE];
+
+	if (ima) {
+		strcpy(name, ima->name);
+
+		if (ima->ibuf) {
+			if (BLI_exists(ima->ibuf->name))
+				save_image_filesel(ima->ibuf->name);
+			else
+				save_as_image_sima();
+		}
+	}
+}
+
+void reload_image_sima()
+{
+	Image *ima = G.sima->image;
+
+	if (ima && ima->ibuf && BLI_exists(ima->ibuf->name)) {
+		if (ima->packedfile) {
+			PackedFile *pf;
+			pf = newPackedFile(ima->name);
+			if (pf) {
+				freePackedFile(ima->packedfile);
+				ima->packedfile = pf;
+			}
+			else
+				error("Image not available. Keeping packed image.");
+		}
+		if (ima->preview) {
+			free_image_preview(ima);
+		}
+		free_image_buffers(ima);	/* force read again */
+		ima->ok= 1;
+		image_changed(G.sima, 0);
+	}
+
+	allqueue(REDRAWIMAGE, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	BIF_preview_changed(ID_TE);
+}
+
+void new_image_sima()
+{
+	static int width= 256, height= 256;
+	static short uvtestgrid=0;
+	char name[256];
+
+	strcpy(name, "Image");
+
+	add_numbut(0, TEX, "Name:", 0, 255, name, NULL);
+	add_numbut(1, NUM|INT, "Width:", 1, 5000, &width, NULL);
+	add_numbut(2, NUM|INT, "Height:", 1, 5000, &height, NULL);
+	add_numbut(3, TOG|SHO, "UV Test Grid", 0, 0, &uvtestgrid, NULL);
+	if (!do_clever_numbuts("New Image", 4, REDRAW))
+		return;
+
+	G.sima->image= new_image(width, height, name, uvtestgrid);
+	image_changed(G.sima, 0);
+
+	allqueue(REDRAWIMAGE, 0);
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+void pack_image_sima()
+{
+	Image *ima = G.sima->image;
+
+	if (ima) {
+		if (ima->packedfile) {
+			if (G.fileflags & G_AUTOPACK)
+				if (okee("Disable AutoPack?"))
+					G.fileflags &= ~G_AUTOPACK;
+			
+			if ((G.fileflags & G_AUTOPACK) == 0) {
+				unpackImage(ima, PF_ASK);
+				BIF_undo_push("Unpack image");
+			}
+		}
+		else {
+			if (ima->ibuf && (ima->ibuf->userflags & IB_BITMAPDIRTY)) {
+				error("Can't pack painted image. Save the painted image first.");
+			}
+			else {
+				ima->packedfile = newPackedFile(ima->name);
+				BIF_undo_push("Pack image");
+			}
+		}
+
+		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWHEADERS, 0);
+	}
+}
 
