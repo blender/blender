@@ -5588,10 +5588,33 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 242) {
 		Scene *sce;
 		Object *ob;
+		Curve *cu;
+		Nurb *nu;
+		BezTriple *bezt;
+		BPoint *bp;
+		int a;
 		
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if (sce->toolsettings->select_thresh == 0.0f)
 				sce->toolsettings->select_thresh= 0.01f;
+		}
+		
+		/* add default radius values to old curve points */
+		for(cu= main->curve.first; cu; cu= cu->id.next) {
+			for(nu= cu->nurb.first; nu; nu= nu->next) {
+				if (nu) {
+					if(nu->bezt) {
+						for(bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++) {
+							bezt->radius= 1.0;
+						}
+					}
+					else if(nu->bp) {
+						for(bp=nu->bp, a=0; a<nu->pntsu*nu->pntsv; a++, bp++) {
+							bp->radius= 1.0;
+						}
+					}
+				}
+			}
 		}
 		
 		ob = main->object.first;
@@ -5635,7 +5658,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							}
 						}
 					}
-                }
+				}
 			}
 
 			ob = ob->id.next;
