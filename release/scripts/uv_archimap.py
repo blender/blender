@@ -136,8 +136,33 @@ dict_matrix = {}
 def pointInTri2D(v, v1, v2, v3):
 	global dict_matrix
 	
-	key = (v1.x, v1.y, v2.x, v2.y, v3.x, v3.y)
+	key = v1.x, v1.y, v2.x, v2.y, v3.x, v3.y
 	
+	# Commented because its slower to do teh bounds check, we should realy cache the bounds info for each face.
+	'''
+	# BOUNDS CHECK
+	xmin= 1000000
+	ymin= 1000000
+	
+	xmax= -1000000
+	ymax= -1000000
+	
+	for i in (0,2,4):
+		x= key[i]
+		y= key[i+1]
+		
+		if xmax<x:	xmax= x
+		if ymax<y:	ymax= y
+		if xmin>x:	xmin= x
+		if ymin>y:	ymin= y	
+	
+	x= v.x
+	y= v.y
+	
+	if x<xmin or x>xmax or y < ymin or y > ymax:
+		return False
+	# Done with bounds check
+	'''
 	try:
 		mtx = dict_matrix[key]
 		if not mtx:
@@ -203,32 +228,49 @@ def boundsEdgeLoop(edges):
 
 # Turns the islands into a list of unpordered edges (Non internal)
 # Onlt for UV's
+# only returns outline edges for intersection tests. and unique points.
 
 def island2Edge(island):
+	
 	# Vert index edges
 	edges = {}
 	
+	unique_points= {}
+	
 	for f in island:
-		for vIdx in xrange(len(f)):
-			if f.v[vIdx].index > f.v[vIdx-1].index:
-				edges[((f.uv[vIdx-1][0], f.uv[vIdx-1][1]), (f.uv[vIdx][0], f.uv[vIdx][1]))] =\
-				(Vector([f.uv[vIdx-1][0], f.uv[vIdx-1][1]]) - Vector([f.uv[vIdx][0], f.uv[vIdx][1]])).length
-			else: # 3
-				edges[((f.uv[vIdx][0], f.uv[vIdx][1]), (f.uv[vIdx-1][0], f.uv[vIdx-1][1]) )] =\
-				(Vector([f.uv[vIdx-1][0], f.uv[vIdx-1][1]]) - Vector([f.uv[vIdx][0], f.uv[vIdx][1]])).length
+		f_v= f.v
+		f_uv= f.uv
+		f_uvkey= map(tuple, f_uv)
+		
+		
+		for vIdx in xrange(len(f_v)):
+			
+			unique_points[f_uvkey[vIdx]] = f_uv[vIdx]
+			
+			
+			if f_v[vIdx].index > f_v[vIdx-1].index:
+				i1= vIdx-1;	i2= vIdx
+			else:
+				i1= vIdx;	i2= vIdx-1
+			
+			try:
+				edges[ f_uvkey[i1], f_uvkey[i2] ] *= 0 # sets eny edge with more then 1 user to 0 are not returned.
+				
+			except:
+				edges[ f_uvkey[i1], f_uvkey[i2] ] = (f_uv[i1] - f_uv[i2]).length, 
 	
 	# If 2 are the same then they will be together, but full [a,b] order is not correct.
 	
 	# Sort by length
-	length_sorted_edges = []
-	for key in edges.keys():
-		length_sorted_edges.append([key[0], key[1], edges[key]])
-	
+	length_sorted_edges = [(key[0], key[1], value) for key, value in edges.iteritems() if value != 0]
 	length_sorted_edges.sort(lambda A, B: cmp(B[2], A[2]))
+		
+	# Its okay to leave the length in there.
 	#for e in length_sorted_edges:
 	#	e.pop(2)
 	
-	return length_sorted_edges
+	# return edges and unique points
+	return length_sorted_edges, [v.__copy__().resize3D() for v in unique_points.itervalues()]
 	
 # ========================= NOT WORKING????
 # Find if a points inside an edge loop, un-orderd.
@@ -252,17 +294,6 @@ def pointInEdges(pt, edges):
 	
 	return intersectCount % 2
 """
-
-def uniqueEdgePairPoints(edges):
-	points = {}
-	pointsVec = []
-	for e in edges:
-		points[e[0]] = points[e[1]] = None
-		
-	for p in points.keys():
-		pointsVec.append( Vector([p[0], p[1], 0])  )
-	return pointsVec
-	
 
 def pointInIsland(pt, island):
 	vec1 = Vector(); vec2 = Vector(); vec3 = Vector()	
@@ -300,7 +331,7 @@ def islandIntersectUvIsland(source, target, xSourceOffset, ySourceOffset):
 	
 	# 1 test for source being totally inside target
 	for pv in source[7]:
-		p = Vector(pv)
+		p = pv.__copy__()
 		
 		p.x += xSourceOffset
 		p.y += ySourceOffset		
@@ -309,7 +340,7 @@ def islandIntersectUvIsland(source, target, xSourceOffset, ySourceOffset):
 	
 	# 2 test for a part of the target being totaly inside the source.
 	for pv in target[7]:
-		p = Vector(pv)
+		p = pv.__copy__()
 		
 		p.x -= xSourceOffset
 		p.y -= ySourceOffset
@@ -403,7 +434,7 @@ def optiRotateUvIsland(faces):
 		
 	
 	# Serialized UV coords to Vectors
-	uvVecs = [Vector(uv) for f in faces  for uv in f.uv]
+	uvVecs = [uv for f in faces  for uv in f.uv]
 	
 	# Theres a small enough number of these to hard code it
 	# rather then a loop.
@@ -463,17 +494,17 @@ def mergeUvIslands(islandList, islandListArea):
 		totFaceArea = 0
 		
 		for fIdx, f in enumerate(islandList[islandIdx]):
-			f.uv = [Vector(uv[0]-minx, uv[1]-miny) for uv in f.uv]
+			for uv in f.uv:
+				uv.x -= minx
+				uv.y -= miny
+			
 			totFaceArea += islandListArea[islandIdx][fIdx] # Use Cached area. dont recalculate.
 		
 		islandBoundsArea = w*h
 		efficiency = abs(islandBoundsArea - totFaceArea)
 		
-		# UV Edge list used for intersections
-		edges = island2Edge(islandList[islandIdx])
-		
-		
-		uniqueEdgePoints = uniqueEdgePairPoints(edges)
+		# UV Edge list used for intersections as well as unique points.
+		edges, uniqueEdgePoints = island2Edge(islandList[islandIdx])
 		
 		decoratedIslandList.append([islandList[islandIdx], totFaceArea, efficiency, islandBoundsArea, w,h, edges, uniqueEdgePoints]) 
 		
@@ -613,7 +644,10 @@ def mergeUvIslands(islandList, islandListArea):
 								targetIsland[0].extend(sourceIsland[0])
 								
 								for f in sourceIsland[0]:
-									f.uv = [Vector(uv[0]+boxLeft, uv[1]+boxBottom) for uv in f.uv]
+									for uv in f.uv:
+										uv.x += boxLeft
+										uv.y += boxBottom
+								
 								sourceIsland[0][:] = [] # Empty
 								
 
@@ -663,7 +697,7 @@ def mergeUvIslands(islandList, islandListArea):
 	while i:
 		i-=1
 		if not islandList[i]:
-			islandList.pop(i) # Can increment islands removed here.
+			del islandList[i] # Can increment islands removed here.
 	
 	
 # Takes groups of faces. assumes face groups are UV groups.
@@ -687,10 +721,9 @@ def getUvIslands(faceGroups, faceGroupsArea, me):
 		faceUsersArea = [[] for i in xrange(len(me.verts)) ]
 		# Do the first face
 		fIdx = len(faces)
-		while fIdx:
-			fIdx-=1
-			for v in faces[fIdx].v:
-				faceUsers[v.index].append(faces[fIdx])
+		for fIdx, f in enumerate(faces):
+			for v in f:
+				faceUsers[v.index].append(f)
 				faceUsersArea[v.index].append(facesArea[fIdx])
 				
 		
@@ -708,7 +741,7 @@ def getUvIslands(faceGroups, faceGroupsArea, me):
 				hasBeenUsed = 1 # Assume its been used.
 				if searchFaceIndex >= len(faces):
 					break
-				for v in faces[searchFaceIndex].v:
+				for v in faces[searchFaceIndex]:
 					if faces[searchFaceIndex] in faceUsers[v.index]:
 						# This has not yet been used, it still being used by a vert
 						hasBeenUsed = 0
@@ -724,34 +757,36 @@ def getUvIslands(faceGroups, faceGroupsArea, me):
 			
 			
 			# Before we start remove the first, search face from being used.
-			for v in newIsland[0].v:
+			for v in newIsland[0]:
+				vIdx= v.index
 				popoffset = 0
-				for fIdx in xrange(len(faceUsers[v.index])):
-					if faceUsers[v.index][fIdx - popoffset] is newIsland[0]:						
-						faceUsers[v.index].pop(fIdx - popoffset)
-						faceUsersArea[v.index].pop(fIdx - popoffset)
+				for fIdx in xrange(len(faceUsers[vIdx])):
+					if faceUsers[vIdx][fIdx - popoffset] is newIsland[0]:						
+						del faceUsers[vIdx][fIdx - popoffset]
+						del faceUsersArea[vIdx][fIdx - popoffset]
 						
 						popoffset += 1
 			
 			searchFaceIndex = 0
 			while searchFaceIndex != len(newIsland):
-				for v in newIsland[searchFaceIndex].v:
-					
+				for v in newIsland[searchFaceIndex]:
+					vIdx= v.index
 					# Loop through all faces that use this vert
-					while faceUsers[v.index]:
-						sharedFace = faceUsers[v.index][-1]
-						sharedFaceArea = faceUsersArea[v.index][-1]
+					while faceUsers[vIdx]:
+						sharedFace = faceUsers[vIdx][-1]
+						sharedFaceArea = faceUsersArea[vIdx][-1]
 						
 						newIsland.append(sharedFace)
 						newIslandArea.append(sharedFaceArea)
 						# Before we start remove the first, search face from being used.
-						for vv in sharedFace.v:
+						for vv in sharedFace:
 							#faceUsers = [f for f in faceUsers[vv.index] if f != sharedFace]
+							vvIdx= vv.index
 							fIdx = 0
-							for fIdx in xrange(len(faceUsers[vv.index])):
-								if faceUsers[vv.index][fIdx] is sharedFace:
-									faceUsers[vv.index].pop(fIdx)
-									faceUsersArea[vv.index].pop(fIdx)
+							for fIdx in xrange(len(faceUsers[vvIdx])):
+								if faceUsers[vvIdx][fIdx] is sharedFace:
+									del faceUsers[vvIdx][fIdx]
+									del faceUsersArea[vvIdx][fIdx]
 									break # Can only be used once.
 				
 				searchFaceIndex += 1
@@ -852,16 +887,20 @@ def packIslands(islandList, islandListArea):
 		if USER_MARGIN:
 			USER_MARGIN_SCALE = 1-(USER_MARGIN*2)
 			for f in islandList[islandIdx]: # Offsetting the UV's so they fit in there packed box, margin
-				f.uv = [Vector((((uv[0]+xoffset)*xfactor)*USER_MARGIN_SCALE)+USER_MARGIN, (((uv[1]+yoffset)*yfactor)*USER_MARGIN_SCALE)+USER_MARGIN) for uv in f.uv]
+				for uv in f.uv:
+					uv.x= (((uv.x+xoffset) * xfactor ) * USER_MARGIN_SCALE ) * USER_MARGIN
+					uv.y= (((uv.y+yoffset) * yfactor ) * USER_MARGIN_SCALE ) * USER_MARGIN
+				
 		else:
 			for f in islandList[islandIdx]: # Offsetting the UV's so they fit in there packed box
-				f.uv = [Vector(((uv[0]+xoffset)*xfactor), ((uv[1]+yoffset)*yfactor)) for uv in f.uv]
+				for uv in f.uv:
+					uv.x= (uv.x+xoffset) * xfactor
+					uv.y= (uv.y+yoffset) * yfactor
 			
 			
 
 def VectoMat(vec):
-	a3 = Vector(vec) # copy the vector
-	a3.normalize()
+	a3 = vec.__copy__().normalize()
 	
 	up = Vector(0,0,1)
 	if abs(DotVecs(a3, up)) == 1.0:
@@ -881,17 +920,18 @@ def main():
 	global USER_STRETCH_ASPECT
 	global USER_MARGIN
 	
+	objects= Scene.GetCurrent().objects
+	
 	# Use datanames as kesy so as not to unwrap a mesh more then once.
-	obList =  dict([(ob.getData(name_only=1), ob) for ob in Object.GetSelected() if ob.getType() == 'Mesh'])
+	obList =  dict([(ob.getData(name_only=1), ob) for ob in objects.context if ob.type == 'Mesh'])
 	
 	
 	# Face select object may not be selected.
-	scn = Scene.GetCurrent()
-	ob = scn.getActiveObject()
-	if ob and ob.sel == 0 and ob.getType() == 'Mesh':
+	ob = objects.active
+	if ob and ob.sel == 0 and ob.type == 'Mesh':
 		# Add to the list
 		obList[ob.getData(name_only=1)] = ob
-	del scn # Sone use the scene again.
+	del objects
 	
 	obList = obList.values() # turn from a dict to a list.
 	
@@ -978,7 +1018,7 @@ def main():
 		if USER_ONLY_SELECTED_FACES:
 			meshFaces = [f for f in me.faces if f.flag & SELECT_FLAG]
 		else:
-			meshFaces = [f for f in me.faces]
+			meshFaces = me.faces
 		
 		if not meshFaces:
 			continue
@@ -1000,12 +1040,13 @@ def main():
 			area = f.area
 			if area <= SMALL_NUM:
 				for uv in f.uv: # Assign Dummy UVs
-					uv.x= uv.y= 0.0
+					uv.zero()
+				
 				print 'found zero area face, removing.'
 				
 			else:
 				# Store all here
-				faceListProps.append( [f, area, f.no] )
+				faceListProps.append( (f, area, f.no) )
 		
 		del meshFaces
 		
@@ -1102,7 +1143,7 @@ def main():
 		fIdx = len(faceListProps)
 		while fIdx:
 			fIdx-=1
-			fvec = Vector(faceListProps[fIdx][2])
+			fvec = faceListProps[fIdx][2]
 			i = len(projectVecs)
 			
 			# Initialize first
@@ -1140,7 +1181,7 @@ def main():
 			
 			# Get the faces UV's from the projected vertex.
 			for f in faceProjectionGroupList[i]:
-				f.uv = [MatProj * v.co for v in f.v]
+				f.uv = [MatProj * v.co for v in f]
 		
 		
 		if USER_SHARE_SPACE:
