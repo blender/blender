@@ -1576,6 +1576,14 @@ static void do_view3d_transformmenu(void *arg, int event)
 	case 12:
 		docentre_cursor();
 		break;
+	case 13:
+		initTransform(TFM_TILT, CTX_NONE);
+		Transform();
+		break;
+	case 14:
+		initTransform(TFM_CURVE_SHRINKFATTEN, CTX_NONE);
+		Transform();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1600,9 +1608,13 @@ static uiBlock *view3d_transformmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	if (G.obedit) {
-		if (G.obedit->type == OB_MESH)
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shrink/Fatten Along Normals|Alt S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
-	}
+ 		if (G.obedit->type == OB_MESH)
+ 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shrink/Fatten Along Normals|Alt S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+		else if (G.obedit->type == OB_CURVE) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Tilt|T",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shrink/Fatten Radius|Alt S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
+		}
+ 	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "To Sphere|Ctrl Shift S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	if (G.obedit) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shear|Ctrl S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Shear|Ctrl Shift Alt S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
