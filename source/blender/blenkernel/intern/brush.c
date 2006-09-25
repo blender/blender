@@ -763,6 +763,8 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 		
 		painter->lasttime= time;
 		painter->firsttouch= 0;
+		painter->lastpaintpos[0]= pos[0];
+		painter->lastpaintpos[1]= pos[1];
 	}
 #if 0
 	else if (painter->brush->flag & BRUSH_AIRBRUSH) {
