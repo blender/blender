@@ -16,7 +16,10 @@ This script is an exporter to OBJ file format.
 
 Usage:
 
-Run this script from "File->Export" menu to export all meshes.
+Select the objects you wish to export and run this script from "File->Export" menu.
+Selecting the default options from the popup box will be good in most cases.
+All objects that can be represented as a mesh (mesh, curve, metaball, surface, text3d)
+will be exported as mesh data.
 """
 
 
@@ -46,6 +49,7 @@ Run this script from "File->Export" menu to export all meshes.
 import Blender
 from Blender import Mesh, Scene, Window, sys, Image, Draw
 import BPyMesh
+import BPyMessages
 
 # Returns a tuple - path,extension.
 # 'hello.obj' >  ('hello', '.obj')
@@ -67,9 +71,6 @@ def saneFilechars(name):
 	for ch in ' /\\~!@#$%^&*()+=[];\':",./<>?\t\r\n':
 		name = name.replace(ch, '_')
 	return name
-
-def sortPair(a,b):
-	return min(a,b), max(a,b)
 
 global MTL_DICT
 
@@ -217,7 +218,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 	file = open(filename, "w")
 	
 	# Write Header
-	file.write('# Blender v%s OBJ File: %s\n' % (Blender.Get('version'), Blender.Get('filename').split('/')[-1].split('\\')[-1] ))
+	file.write('# Blender3D v%s OBJ File: %s\n' % (Blender.Get('version'), Blender.Get('filename').split('/')[-1].split('\\')[-1] ))
 	file.write('# www.blender3d.org\n')
 
 	# Tell the obj file what material file to use.
@@ -379,7 +380,6 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 			else:
 				key = materialNames[min(f.mat,len(materialNames)-1)],  None # No image, use None instead.
 				#key = materialNames[f.mat],  None # No image, use None instead.
-				
 			
 			# CHECK FOR CONTEXT SWITCH
 			if key == contextMat:
@@ -468,20 +468,11 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 		
 		# Write edges.
 		if EXPORT_EDGES:
-			edgeUsers = {}
-			for f in faces:
-				for i in xrange(len(f_v)):
-					faceEdgeVKey = sortPair(f_v[i].index, f_v[i-1].index)
-					
-					# We dont realy need to keep count. Just that a face uses it 
-					# so dont export.
-					edgeUsers[faceEdgeVKey] = 1 
-				
+			LOOSE= Mesh.EdgeFlags.LOOSE
 			for ed in edges:
-				edgeVKey = sortPair(ed.v1.index, ed.v2.index)
-				if not edgeUsers.has_key(edgeVKey): # No users? Write the edge.
-					file.write('f %d %d\n' % (edgeVKey[0]+totverts, edgeVKey[1]+totverts))
-		
+				if ed.flag & LOOSE:
+					file.write('f %d %d\n' % (ed.v1.index+totverts, ed.v2.index+totverts))
+			
 		# Make the indicies global rather then per mesh
 		totverts += len(m.verts)
 		m.verts= None
@@ -506,9 +497,6 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 	
 
 def write_ui(filename):
-	
-	for s in Window.GetScreenInfo():
-		Window.QHandle(s['id'])
 	
 	EXPORT_APPLY_MODIFIERS = Draw.Create(1)
 	EXPORT_ROTX90 = Draw.Create(1)
@@ -552,6 +540,7 @@ def write_ui(filename):
 	if not Draw.PupBlock('Export...', pup_block):
 		return
 	
+	Window.EditMode(0)
 	Window.WaitCursor(1)
 	
 	EXPORT_APPLY_MODIFIERS = EXPORT_APPLY_MODIFIERS.val
@@ -594,7 +583,7 @@ def write_ui(filename):
 		
 		# Export an animation?
 		if EXPORT_ANIMATION:
-			scene_frames = range(context.startFrame(), context.endFrame()+1) # up to and including the end frame.
+			scene_frames = xrange(context.startFrame(), context.endFrame()+1) # up to and including the end frame.
 		else:
 			scene_frames = [orig_frame] # Dont export an animation.
 		
@@ -605,17 +594,20 @@ def write_ui(filename):
 			
 			Blender.Set('curframe', frame)
 			if EXPORT_SEL_ONLY:
-				export_objects = Blender.Object.GetSelected() # Export Context
+				export_objects = scn.objects.selected #Blender.Object.GetSelected() # Export Context
 			else:	
-				export_objects = scn.getChildren()
+				export_objects = scn.objects # scn.getChildren()
 			
-			# EXPORT THE FILE.
-			write(''.join(context_name), export_objects,\
-			EXPORT_TRI, EXPORT_EDGES, EXPORT_NORMALS,\
-			EXPORT_NORMALS_HQ, EXPORT_UV, EXPORT_MTL,\
-			EXPORT_COPY_IMAGES, EXPORT_APPLY_MODIFIERS,\
-			EXPORT_ROTX90, EXPORT_BLEN_OBS,\
-			EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT)
+			full_path= ''.join(context_name)
+			
+			if BPyMessages.Warning_SaveOver(full_path):
+				# EXPORT THE FILE.
+				write(full_path, export_objects,\
+				EXPORT_TRI, EXPORT_EDGES, EXPORT_NORMALS,\
+				EXPORT_NORMALS_HQ, EXPORT_UV, EXPORT_MTL,\
+				EXPORT_COPY_IMAGES, EXPORT_APPLY_MODIFIERS,\
+				EXPORT_ROTX90, EXPORT_BLEN_OBS,\
+				EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT)
 		
 		Blender.Set('curframe', orig_frame)
 	

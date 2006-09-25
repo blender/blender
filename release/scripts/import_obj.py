@@ -12,17 +12,19 @@ __url__= ["blender.org", "blenderartists.org"]
 __version__= "2.0"
 
 __bpydoc__= """\
-This script imports OBJ files to Blender.
+This script imports a Wavefront OBJ files to Blender.
 
 Usage:
 Run this script from "File->Import" menu and then load the desired OBJ file.
-Note, This loads mesh objects and materials only, nurbs and curves are unsupported.
+Note, This loads mesh objects and materials only, nurbs and curves are not supported.
 """
 
 from Blender import *
 import BPyMesh
 import BPyImage
 
+
+# Generic path functions
 def stripFile(path):
 	'''Return directory, where the file is'''
 	lastSlash= max(path.rfind('\\'), path.rfind('/'))
@@ -30,9 +32,8 @@ def stripFile(path):
 		path= path[:lastSlash]
 	return '%s%s' % (path, sys.sep)
 
-# Generic path functions
 def stripPath(path):
-	# Strips the slashes from the back of a string
+	'''Strips the slashes from the back of a string'''
 	return path.split('/')[-1].split('\\')[-1]
 
 def stripExt(name): # name is a string
@@ -44,8 +45,13 @@ def stripExt(name): # name is a string
 		return name
 # end path funcs
 
+
+
 def line_value(line_split):
-	'''Takes removes the first work from the line, None if theres only1 word'''
+	'''
+	Returns 1 string represneting the value for this line
+	None will be returned if theres only 1 word
+	'''
 	length= len(line_split)
 	if length == 1:
 		return None
@@ -75,8 +81,10 @@ def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
 	
 
 def create_materials(filepath, material_libs, unique_materials, unique_material_images, IMAGE_SEARCH):
-	'''Create all the used materials in this obj,
-	assign colors and images to the materials from all referenced material libs'''
+	'''
+	Create all the used materials in this obj,
+	assign colors and images to the materials from all referenced material libs
+	'''
 	DIR= stripFile(filepath)
 	
 	#==================================================================================#
@@ -184,6 +192,12 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 
 			
 def split_mesh(verts_loc, faces, unique_materials, SPLIT_OBJECTS, SPLIT_MATERIALS):
+	'''
+	Takes vert_loc and faces, and seperates into multiple sets of 
+	(verts_loc, faces, unique_materials)
+	This is done so objects do not overload the 16 material limit.
+	'''
+	
 	if not SPLIT_OBJECTS and not SPLIT_MATERIALS:
 		return [(verts_loc, faces, unique_materials)]
 	
@@ -248,8 +262,11 @@ def split_mesh(verts_loc, faces, unique_materials, SPLIT_OBJECTS, SPLIT_MATERIAL
 	return [(verts_split, faces_split, unique_materials_split) for faces_split, verts_split, unique_materials_split, vert_remap in face_split_dict.itervalues()]
 
 
-def create_meshes(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups):
-	
+def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups):
+	'''
+	Takes all the data gathered and generates a mesh, adding the new object to new_objects
+	deals with fgons, sharp edges and assigning materials
+	'''
 	if not has_ngons:
 		CREATE_FGONS= False
 	
@@ -363,10 +380,6 @@ def create_meshes(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc,
 	me.materials= materials[0:16] # make sure the list isnt too big.
 	#me.verts.extend([(0,0,0)]) # dummy vert
 	me.verts.extend(verts_loc)
-	for f in faces:
-		if len(f[0]) not in (3,4):
-			print len(f[0])
-			raise "Error"
 	
 	face_mapping= me.faces.extend([f[0] for f in faces], indexList=True)
 	
@@ -472,7 +485,12 @@ def get_float_func(filepath):
 				return float
 
 def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS= True, CREATE_EDGES= True, SPLIT_OBJECTS= True, SPLIT_GROUPS= True, SPLIT_MATERIALS= True, IMAGE_SEARCH=True):
-	
+	'''
+	Called by the user interface or another script.
+	load_obj(path) - should give acceptable results.
+	This function passes the file and sends the data off
+		to be split into objects and then converted into mesh objects
+	'''
 	print '\nimporting obj "%s"' % filepath
 	
 	time_main= sys.time()
@@ -637,7 +655,7 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	# Split the mesh by objects/materials, may 
 	for verts_loc_split, faces_split, unique_materials_split in split_mesh(verts_loc, faces, unique_materials, SPLIT_OBJECTS, SPLIT_MATERIALS):
 		# Create meshes from the data
-		create_meshes(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups)
+		create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups)
 	
 	axis_min= [ 1000000000]*3
 	axis_max= [-1000000000]*3
