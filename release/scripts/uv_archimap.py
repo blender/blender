@@ -829,7 +829,17 @@ def packIslands(islandList, islandListArea):
 	
 	while islandIdx < len(islandList):
 		minx, miny, maxx, maxy = boundsIsland(islandList[islandIdx])
+		
 		w, h = maxx-minx, maxy-miny
+		
+		if USER_ISLAND_MARGIN:
+			minx -= USER_ISLAND_MARGIN# *w
+			miny -= USER_ISLAND_MARGIN# *h
+			maxx += USER_ISLAND_MARGIN# *w
+			maxy += USER_ISLAND_MARGIN# *h
+		
+			# recalc width and height
+			w, h = maxx-minx, maxy-miny
 		
 		if w < 0.00001 or h < 0.00001:
 			del islandList[islandIdx]
@@ -919,6 +929,7 @@ def main():
 	global USER_FILL_HOLES_QUALITY
 	global USER_STRETCH_ASPECT
 	global USER_MARGIN
+	global USER_ISLAND_MARGIN
 	
 	objects= Scene.GetCurrent().objects
 	
@@ -945,6 +956,7 @@ def main():
 	USER_SHARE_SPACE = Draw.Create(1) # Only for hole filling.
 	USER_STRETCH_ASPECT = Draw.Create(1) # Only for hole filling.
 	USER_MARGIN = Draw.Create(0.0) # Only for hole filling.
+	USER_ISLAND_MARGIN = Draw.Create(0.0) # Only for hole filling.
 	USER_FILL_HOLES = Draw.Create(0)
 	USER_FILL_HOLES_QUALITY = Draw.Create(50) # Only for hole filling.
 	
@@ -956,7 +968,8 @@ def main():
 	'UV Layout',\
 	('Share Tex Space', USER_SHARE_SPACE, 'Objects Share texture space, map all objects into 1 uvmap.'),\
 	('Stretch to bounds', USER_STRETCH_ASPECT, 'Stretch the final output to texture bounds.'),\
-	('Bleed Margin:', USER_MARGIN, 0.0, 0.25, 'Margin to reduce bleed from texture tiling.'),\
+	('Edge Margin:', USER_MARGIN, 0.0, 0.25, 'Margin to reduce bleed from texture tiling.'),\
+	('UV Island Margin:', USER_ISLAND_MARGIN, 0.0, 0.25, 'Margin to reduce bleed from adjacent islands.'),\
 	'Fill in empty areas',\
 	('Fill Holes', USER_FILL_HOLES, 'Fill in empty areas reduced texture waistage (slow).'),\
 	('Fill Quality:', USER_FILL_HOLES_QUALITY, 1, 100, 'Depends on fill holes, how tightly to fill UV holes, (higher is slower)'),\
@@ -984,6 +997,7 @@ def main():
 	USER_SHARE_SPACE = USER_SHARE_SPACE.val
 	USER_STRETCH_ASPECT = USER_STRETCH_ASPECT.val
 	USER_MARGIN = USER_MARGIN.val
+	USER_ISLAND_MARGIN = USER_ISLAND_MARGIN.val * 50
 	USER_FILL_HOLES = USER_FILL_HOLES.val
 	USER_FILL_HOLES_QUALITY = USER_FILL_HOLES_QUALITY.val
 	
