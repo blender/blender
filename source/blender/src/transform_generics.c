@@ -88,6 +88,7 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
+#include "BLI_rand.h"
 
 #include "blendef.h"
 
@@ -888,6 +889,10 @@ void calculatePropRatio(TransInfo *t)
 				case PROP_SPHERE:
 					td->factor = (float)sqrt(2*dist - dist * dist);
 					break;
+				case PROP_RANDOM:
+					BLI_srand( BLI_rand() ); /* random seed */
+					td->factor = BLI_frand()*dist;
+					break;
 				default:
 					td->factor = 1;
 				}
@@ -911,6 +916,9 @@ void calculatePropRatio(TransInfo *t)
 			break;
 		case PROP_SPHERE:
 			strcpy(t->proptext, "(Sphere)");
+			break;
+		case PROP_RANDOM:
+			strcpy(t->proptext, "(Random)");
 			break;
 		default:
 			strcpy(t->proptext, "");

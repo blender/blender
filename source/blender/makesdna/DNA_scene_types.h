@@ -533,6 +533,7 @@ typedef struct Scene {
 #define PROP_SHARP             3
 #define PROP_LIN               4
 #define PROP_CONST             5
+#define PROP_RANDOM		6
 
 	/* return flag next_object function */
 #define F_START			0

@@ -2252,6 +2252,8 @@ static uiBlock *view3d_edit_propfalloffmenu(void *arg_unused)
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Sharp|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_SHARP, "");
 	if (G.scene->prop_mode==PROP_LIN) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Linear|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_LIN, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Linear|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_LIN, "");
+	if (G.scene->prop_mode==PROP_RANDOM) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Random|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_RANDOM, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Random|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_RANDOM, "");
 	if (G.scene->prop_mode==PROP_CONST) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Constant|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_CONST, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Constant|Shift O",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, PROP_CONST, "");
 		
@@ -4187,6 +4189,7 @@ static char *propfalloff_pup(void)
 	str += sprintf(str, "%s", "|Root Falloff%x2"); 
 	str += sprintf(str, "%s", "|Sharp Falloff%x3"); 
 	str += sprintf(str, "%s", "|Linear Falloff%x4");
+	str += sprintf(str, "%s", "|Random Falloff%x6");
 	str += sprintf(str, "%s", "|Constant, No Falloff%x5");
 	return string;
 }
