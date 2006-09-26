@@ -114,6 +114,8 @@ from Blender import Mesh, Scene, Object, Material, Image, Texture, Lamp, Mathuti
 from Blender.Mathutils import Vector
 import BPyImage
 
+import BPyMessages
+
 import struct
 from struct import calcsize, unpack
 
@@ -711,6 +713,10 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 		putContextMesh(contextMesh_vertls, contextMesh_facels, contextMeshMaterials)
 
 def load_3ds(filename, PREF_UI= True):
+	
+	if BPyMessages.Error_NoFile(filename):
+		return
+	
 	print '\n\nImporting "%s" "%s"' % (filename, Blender.sys.expandpath(filename))
 	
 	time1= Blender.sys.time()

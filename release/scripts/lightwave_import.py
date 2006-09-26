@@ -93,6 +93,8 @@ import BPyImage
 # Use this ngon function
 import BPyMesh
 
+import BPyMessages
+
 #python specific modules import
 try:
 	import struct, chunk, os, cStringIO
@@ -212,6 +214,9 @@ tobj=dotext(textname)
 # =============================
 def read(filename):
 	global tobj
+
+	if BPyMessages.Error_NoFile(filename):
+		return
 
 	tobj.logcon ("This is: %s" % importername)
 	tobj.logcon ("Importing file:")

@@ -39,6 +39,7 @@ as empties or armatures.
 # -------------------------------------------------------------------------- 
 
 import Blender
+import BPyMessages
 Vector= Blender.Mathutils.Vector
 Euler= Blender.Mathutils.Euler
 Matrix= Blender.Mathutils.Matrix
@@ -683,6 +684,10 @@ for f in ('/d/staggered_walk.bvh',):
 '''
 
 def load_bvh_ui(file):
+	
+	if BPyMessages.Error_NoFile(file):
+		return
+	
 	Draw= Blender.Draw
 	
 	IMPORT_SCALE = Draw.Create(0.01)

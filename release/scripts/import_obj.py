@@ -22,6 +22,7 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 from Blender import *
 import BPyMesh
 import BPyImage
+import BPyMessages
 
 
 # Generic path functions
@@ -688,6 +689,9 @@ DEBUG= True
 
 
 def load_obj_ui(filepath):
+	if BPyMessages.Error_NoFile(filepath):
+		return
+	
 	CREATE_SMOOTH_GROUPS= Draw.Create(0)
 	CREATE_FGONS= Draw.Create(1)
 	CREATE_EDGES= Draw.Create(1)
