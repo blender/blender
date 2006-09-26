@@ -2309,11 +2309,12 @@ static void object_softbodies(Object *ob)
 		else {
 			/* GENERAL STUFF */
 			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_DIFF, "Friction:",		10, 170,150,20, &sb->mediafrict, 0.0, 10.0, 10, 0, "General media friction for point movements");
+			uiDefButF(block, NUM, B_DIFF, "Friction:",		10, 170,150,20, &sb->mediafrict, 0.0, 50.0, 10, 0, "General media friction for point movements");
 			uiDefButF(block, NUM, B_DIFF, "Mass:",			160, 170,150,20, &sb->nodemass , 0.001, 50.0, 10, 0, "Point Mass, the heavier the slower");
 			uiDefButF(block, NUM, B_DIFF, "Grav:",			10,150,150,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
 			uiDefButF(block, NUM, B_DIFF, "Speed:",			160,150,150,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
-			uiDefButF(block, NUM, B_DIFF, "Error Limit:",	10,130,150,20, &sb->rklimit , 0.01, 1.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision");
+			uiDefButF(block, NUM, B_DIFF, "Error Limit:",	10,130,150,20, &sb->rklimit , 0.01, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision");
+			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Rigidity:", 160,130,150,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Strenght of Springs over 2 Edges");
 			uiBlockEndAlign(block);
 			
 			/* GOAL STUFF */
@@ -2344,7 +2345,7 @@ static void object_softbodies(Object *ob)
 			}
 
 			uiDefButF(block, NUM, B_DIFF, "G Stiff:",	10,80,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) spring stiffness");
-			uiDefButF(block, NUM, B_DIFF, "G Damp:",	160,80,150,20, &sb->goalfrict  , 0.0, 10.0, 10, 0, "Goal (vertex target position) friction");
+			uiDefButF(block, NUM, B_DIFF, "G Damp:",	160,80,150,20, &sb->goalfrict  , 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
 			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "G Min:",		10,60,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
 			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "G Max:",		160,60,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
 			uiBlockEndAlign(block);
@@ -2355,7 +2356,7 @@ static void object_softbodies(Object *ob)
 				uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Use Edges as springs");
 				uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		160,30,150,20, &ob->softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
 				uiDefButF(block, NUM, B_DIFF, "E Stiff:",	10,10,150,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness");
-				uiDefButF(block, NUM, B_DIFF, "E Damp:",	160,10,150,20, &sb->infrict, 0.0,  10.0, 10, 0, "Edge spring friction");
+				uiDefButF(block, NUM, B_DIFF, "E Damp:",	160,10,150,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
 				uiBlockEndAlign(block);
 			}
 		}

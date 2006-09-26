@@ -97,7 +97,8 @@ typedef struct SoftBody {
 	
 	SBVertex **keys;			/* array of size totpointkey */
 	int totpointkey, totkey;	/* if totpointkey != totpoint or totkey!- (efra-sfra)/interval -> free keys */
-	
+	float secondspring;
+	float pad3;		/* local==1: use local coords for baking */
 } SoftBody;
 
 /* pd->forcefield:  Effector Fields types */

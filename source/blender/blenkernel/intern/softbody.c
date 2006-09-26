@@ -537,6 +537,91 @@ static void add_mesh_quad_diag_springs(Object *ob)
 	}
 }
 
+static void add_2nd_order_roller(Object *ob,float stiffness,int *counter, int addsprings)
+{
+	/*assume we have a softbody*/
+	SoftBody *sb= ob->soft;	/* is supposed to be there */
+	BodyPoint *bp,*bpo;	
+	BodySpring *bs,*bs2,*bs3;	
+	int a,b,c,notthis,v0;
+	if (!sb->bspring){return;} /* we are 2nd order here so 1rst should have been build :) */
+	/* first run counting  second run adding */
+	/*run all body points*/
+	*counter = 0;
+	if (addsprings) bs3 = ob->soft->bspring+ob->soft->totspring;
+	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+		/*scan for neighborhood*/
+		bpo = NULL;
+		v0  = (sb->totpoint-a);
+		for(b=bp->nofsprings;b>0;b--){
+			bs = sb->bspring + bp->springs[b-1];
+			/*nasty thing here that springs have two ends
+			so here we have to make sure we examine the other */
+			if (( v0 == bs->v1) ){ 
+				bpo =sb->bpoint+bs->v2;
+				notthis = bs->v2;
+			}
+			else {
+			if (( v0 == bs->v2) ){
+				bpo =sb->bpoint+bs->v1;
+				notthis = bs->v1;
+			} 
+			else {printf("oops we should not get here -  add_2nd_order_springs");}
+			}
+            if (bpo){/* so now we have a 2nd order humpdidump */
+				for(c=bpo->nofsprings;c>0;c--){
+					bs2 = sb->bspring + bpo->springs[c-1];
+					if ((bs2->v1 != notthis)  && (bs2->v1 > v0)){
+						(*counter)++;/*hit */
+						if (addsprings){
+							bs3->v1= v0;
+							bs3->v2= bs2->v1;
+							bs3->strength= stiffness;
+							bs3++;
+						}
+					}
+					if ((bs2->v2 !=notthis)&&(bs2->v2 > v0)){
+					(*counter)++;/*hit */
+						if (addsprings){
+							bs3->v1= v0;
+							bs3->v2= bs2->v2;
+							bs3->strength= stiffness;
+							bs3++;
+						}
+
+					}
+				}
+				
+			}
+			
+		}
+		/*scan for neighborhood done*/
+	}
+}
+
+
+static void add_2nd_order_springs(Object *ob,float stiffness)
+{
+	int counter = 0;
+	BodySpring *bs_new;
+	
+	add_2nd_order_roller(ob,stiffness,&counter,0);
+	if (counter) {
+		/* printf("Added %d springs \n", counter); */
+		/* resize spring-array to hold additional springs */
+		bs_new= MEM_callocN( (ob->soft->totspring + counter )*sizeof(BodySpring), "bodyspring");
+		memcpy(bs_new,ob->soft->bspring,(ob->soft->totspring )*sizeof(BodySpring));
+		
+		if(ob->soft->bspring)
+			MEM_freeN(ob->soft->bspring); 
+		ob->soft->bspring = bs_new; 
+		
+		
+		add_2nd_order_roller(ob,stiffness,&counter,1);
+		ob->soft->totspring +=counter ;
+	}
+	
+}
 
 static void add_bp_springlist(BodyPoint *bp,int springID)
 {
@@ -1026,6 +1111,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 								forcefactor = (bs->len - actspringlen)/bs->len * iks;
 							else
 								forcefactor = actspringlen * iks;
+							forcefactor *= bs->strength; 
 							
 							Vec3PlusStVec(bp->force,-forcefactor,sd);
 							
@@ -1048,6 +1134,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 								forcefactor = (bs->len - actspringlen)/bs->len * iks;
 							else
 								forcefactor = actspringlen * iks;
+							forcefactor *= bs->strength; 
 							Vec3PlusStVec(bp->force,+forcefactor,sd);							
 						}
 					}/* loop springs */
@@ -1337,6 +1424,12 @@ static void mesh_to_softbody(Object *ob)
 			}
 
 			build_bps_springlist(ob); /* scan for springs attached to bodypoints ONCE */
+
+			/* insert *other second order* springs if desired */
+			if (sb->secondspring > 0.0000001f) {
+				add_2nd_order_springs(ob,sb->secondspring); /* exploits the the first run of build_bps_springlist(ob);*/
+				build_bps_springlist(ob); /* yes we need to do it again*/
+			}
 			springs_from_mesh(ob); /* write the 'rest'-lenght of the springs */
 		}
 	}
