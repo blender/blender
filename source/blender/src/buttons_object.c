@@ -2314,7 +2314,9 @@ static void object_softbodies(Object *ob)
 			uiDefButF(block, NUM, B_DIFF, "Grav:",			10,150,150,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
 			uiDefButF(block, NUM, B_DIFF, "Speed:",			160,150,150,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
 			uiDefButF(block, NUM, B_DIFF, "Error Limit:",	10,130,150,20, &sb->rklimit , 0.01, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision");
-			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Rigidity:", 160,130,150,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Strenght of Springs over 2 Edges");
+			if(ob->type==OB_MESH) {
+				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Rigidity:", 160,130,150,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Strenght of Springs over 2 Edges");
+			}
 			uiBlockEndAlign(block);
 			
 			/* GOAL STUFF */
