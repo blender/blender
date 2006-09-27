@@ -49,6 +49,7 @@
 
 #include "BIF_editdeform.h"
 #include "BIF_editkey.h"	/* insert_meshkey */
+#include "BIF_space.h"		/* REMAKEIPO - insert_meshkey */
 #include "BIF_editview.h"
 #include "BIF_editmesh.h"
 #include "BIF_meshtools.h"
@@ -6324,6 +6325,54 @@ static PyObject *Mesh_getVertexInfluences( BPy_Mesh * self, PyObject * args )
 	return influence_list;
 }
 
+static PyObject *Mesh_removeAllKeys( BPy_Mesh * self )
+{
+	Mesh *mesh = self->mesh;
+	
+	if( !mesh || !mesh->key )
+		Py_RETURN_FALSE;
+
+	mesh->key->id.us--;
+	mesh->key = NULL;
+	
+	Py_RETURN_TRUE;
+}
+
+
+static PyObject *Mesh_insertKey( BPy_Mesh * self, PyObject * args )
+{
+	Mesh *mesh = self->mesh;
+	int fra = -1, oldfra = -1;
+	char *type = NULL;
+	short typenum;
+	
+	if( !PyArg_ParseTuple( args, "|is", &fra, &type ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected nothing or an int and optionally a string as arguments" );
+	
+	if( !type || !strcmp( type, "relative" ) )
+		typenum = 1;
+	else if( !strcmp( type, "absolute" ) )
+		typenum = 2;
+	else
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "if given, type should be 'relative' or 'absolute'" );
+	
+	if( fra > 0 ) {
+		fra = EXPP_ClampInt( fra, 1, MAXFRAME );
+		oldfra = G.scene->r.cfra;
+		G.scene->r.cfra = fra;
+	}
+
+	insert_meshkey( mesh, typenum );
+	allspace(REMAKEIPO, 0);
+	
+	if( fra > 0 )
+		G.scene->r.cfra = oldfra;
+	
+	Py_RETURN_NONE;
+}
+
 static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 {
 	Base *base;
@@ -6584,7 +6633,11 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Get names of vertex groups"},
 	{"getVertexInfluences", (PyCFunction)Mesh_getVertexInfluences, METH_VARARGS,
 		"Get list of the influences of bones for a given mesh vertex"},
-
+	/* Shape Keys */
+	{"removeAllKeys", (PyCFunction)Mesh_removeAllKeys, METH_NOARGS,
+		"Remove all the shape keys from a mesh"},
+	{"insertKey", (PyCFunction)Mesh_insertKey, METH_VARARGS,
+		"(frame = None, type = 'relative') - inserts a Mesh key at the given frame"},
 	/* Mesh tools */
 	{"smooth", (PyCFunction)Mesh_smooth, METH_NOARGS,
 		"Flattens angle of selected faces (experimental)"},
@@ -7015,6 +7068,15 @@ static int Mesh_setMode( BPy_Mesh *self, PyObject *value )
 	return 0;
 }
 
+static PyObject *Mesh_getKey( BPy_Mesh * self )
+{
+	if( self->mesh->key )
+		return Key_CreatePyObject(self->mesh->key);
+	else
+		Py_RETURN_NONE;
+}
+
+
 static PyObject *Mesh_getActiveFace( BPy_Mesh * self )
 {
 	TFace *face;
@@ -7272,6 +7334,10 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	{"mode",
 	 (getter)Mesh_getMode, (setter)Mesh_setMode,
 	 "The mesh's mode bitfield",
+	 NULL},
+	{"key",
+	 (getter)Mesh_getKey, (setter)NULL,
+	 "The mesh's key",
 	 NULL},
 	{"faceUV",
 	 (getter)Mesh_getFlag, (setter)Mesh_setFlag,

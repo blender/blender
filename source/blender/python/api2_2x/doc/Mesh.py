@@ -961,6 +961,31 @@ class Mesh:
         and weight is a float value.
     """
 
+  def removeAllKeys():
+    """
+    Remove all mesh keys stored in this mesh.
+    @rtype: bool
+    @return: True if successful or False if the Mesh has no keys.
+    """
+
+  def insertKey(frame = None, type = 'relative'):
+    """
+    Insert a mesh key at the given frame. 
+    @type frame: int
+    @type type: string
+    @param frame: The Scene frame where the mesh key should be inserted.  If
+        None or the arg is not given, the current frame is used.
+    @param type: The mesh key type: 'relative' or 'absolute'.  This is only
+        relevant on meshes with no keys.
+    @warn: This and L{removeAllKeys} were included in this release only to
+        make accessing vertex keys possible, but may not be a proper solution
+        and may be substituted by something better later.  For example, it
+        seems that 'frame' should be kept in the range [1, 100]
+        (the curves can be manually tweaked in the Ipo Curve Editor window in
+        Blender itself later).
+    """
+
+
   def smooth():
     """
     Flattens angle of selected faces. Experimental mesh tool.
