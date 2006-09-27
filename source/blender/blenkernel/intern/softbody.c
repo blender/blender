@@ -655,6 +655,11 @@ static void build_bps_springlist(Object *ob)
 	if (sb==NULL) return; /* paranoya check */
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+		/* throw away old list */
+		if (bp->springs) {
+			MEM_freeN(bp->springs);
+			bp->springs=NULL;
+		}
 		/* scan for attached inner springs */	
 		for(b=sb->totspring, bs= sb->bspring; b>0; b--, bs++) {
 			if (( (sb->totpoint-a) == bs->v1) ){ 
