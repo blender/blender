@@ -107,6 +107,7 @@
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_sequence.h"
+#include "BSE_edit.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -478,6 +479,7 @@ void do_info_buttons(unsigned short event)
 			else sce= copy_scene(G.scene, nr-2);
 
 			set_scene(sce);
+			countall();
 		}
 		BIF_preview_changed(ID_TE);
 
@@ -514,6 +516,7 @@ void do_info_buttons(unsigned short event)
 			}
 			free_libblock(&G.main->scene, G.scene);
 			set_scene(sce);
+			countall();
 		}
 
 		break;
