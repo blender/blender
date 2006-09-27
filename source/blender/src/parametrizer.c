@@ -4137,7 +4137,7 @@ void param_lscm_solve(ParamHandle *handle)
 		if (chart->u.lscm.context) {
 			result = p_chart_lscm_solve(chart);
 
-			if (result)
+			if (result && !(chart->flag & PCHART_NOPACK))
 				p_chart_rotate_minimum_area(chart);
 
 			if (!result || (chart->u.lscm.pin1))

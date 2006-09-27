@@ -901,7 +901,7 @@ void image_buttons(void)
 		uiDefPulldownBut(block, image_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
-		if((G.f & G_FACESELECT) && !(G.sima->flag & SI_DRAWTOOL)) {
+		if((G.f & G_FACESELECT) && !(ima && (G.sima->flag & SI_DRAWTOOL))) {
 			xmax= GetButStringLength("Select");
 			uiDefPulldownBut(block, image_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
 			xco+= xmax;
@@ -915,7 +915,7 @@ void image_buttons(void)
 		uiDefPulldownBut(block, image_imagemenu, NULL, menuname, xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
-		if((G.f & G_FACESELECT) && !(G.sima->flag & SI_DRAWTOOL)) {
+		if((G.f & G_FACESELECT) && !(ima && (G.sima->flag & SI_DRAWTOOL))) {
 			xmax= GetButStringLength("UVs");
 			uiDefPulldownBut(block, image_uvsmenu, NULL, "UVs", xco, -2, xmax-3, 24, "");
 			xco+= xmax;
