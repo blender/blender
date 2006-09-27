@@ -1649,7 +1649,8 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 		glColor3fv(col);
 		
 		for(eed= em->edges.first; eed; eed= eed->next) {
-			if((eed->f & SELECT) || (G.moving && ((eed->v1->f & SELECT) || (eed->v2->f & SELECT)) )) {
+			/* draw non fgon edges, or selected edges, or edges next to selected verts while draging */
+			if((eed->h != EM_FGON) && ((eed->f & SELECT) || (G.moving && ((eed->v1->f & SELECT) || (eed->v2->f & SELECT)) ))) {
 				VECCOPY(v1, eed->v1->co);
 				VECCOPY(v2, eed->v2->co);
 				
