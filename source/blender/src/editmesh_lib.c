@@ -71,7 +71,7 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 
 #include "editmesh.h"
 
-/* ********* Selection ************ */
+/* ********* Selection History ************ */
 static int EM_check_selection(void *data)
 {
 	EditSelection *ese;
@@ -102,6 +102,20 @@ void EM_store_selection(void *data, int type)
 		ese->type = type;
 		ese->data = data;
 		BLI_addtail(&(G.editMesh->selected),ese);
+	}
+}
+
+void EM_validate_selections(void)
+{
+	EditSelection *ese, *nextese;
+	EditMesh *em = G.editMesh;
+	ese = em->selected.first;
+	while(ese){
+		nextese = ese->next;
+		if(ese->type == EDITVERT && !(((EditVert*)ese->data)->f & SELECT)) BLI_freelinkN(&(em->selected), ese);
+		else if(ese->type == EDITEDGE && !(((EditEdge*)ese->data)->f & SELECT)) BLI_freelinkN(&(em->selected), ese);
+		else if(ese->type == EDITFACE && !(((EditFace*)ese->data)->f & SELECT)) BLI_freelinkN(&(em->selected), ese);
+		ese = nextese;
 	}
 }
 

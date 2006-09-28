@@ -612,7 +612,7 @@ void countall()
 				if(efa->f & SELECT) G.totfacesel++;
 			}
 			
-			/*add code to strip editselections*/
+			EM_validate_selections();
 		}
 		else if (G.obedit->type==OB_ARMATURE){
 			for (ebo=G.edbo.first;ebo;ebo=ebo->next){
