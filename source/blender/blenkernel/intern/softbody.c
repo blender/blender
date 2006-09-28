@@ -92,6 +92,7 @@ typedef struct BodyPoint {
 	float prevpos[3], prevvec[3], prevdx[3], prevdv[3]; /* used for Heun integration */
     int nofsprings; int *springs;
 	float contactfrict;
+	float colball;
 } BodyPoint;
 
 typedef struct BodySpring {
@@ -673,6 +674,27 @@ static void build_bps_springlist(Object *ob)
 	}/*for bp*/		
 }
 
+static void calculate_collision_balls(Object *ob)
+{
+	SoftBody *sb= ob->soft;	/* is supposed to be there */
+	BodyPoint *bp;	
+	BodySpring *bs;	
+	int a,b;
+	
+	if (sb==NULL) return; /* paranoya check */
+	
+	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+		bp->colball=0;
+		for(b=bp->nofsprings;b>0;b--){
+			bs = sb->bspring + bp->springs[b-1];
+			bp->colball += bs->len;
+		}
+		if (bp->nofsprings != 0) bp->colball /= bp->nofsprings;
+		else bp->colball=0;
+		/* printf("collision ballsize %f \n",bp->colball); */
+	}/*for bp*/		
+}
+
 
 /* creates new softbody if didn't exist yet, makes new points and springs arrays */
 static void renew_softbody(Object *ob, int totpoint, int totspring)  
@@ -984,7 +1006,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 	ListBase *do_effector;
 	float iks, ks, kd, gravity, actspringlen, forcefactor, sd[3];
 	float fieldfactor = 1000.0f, windfactor  = 250.0f;   
-	int a, b, do_deflector;
+	int a, b,  do_deflector;
 	
 	/* clear forces */
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
@@ -1001,7 +1023,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 	bproot= sb->bpoint; /* need this for proper spring addressing */
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-		if(bp->goal < SOFTGOALSNAP){ /* ommit this bp when i snaps */
+		if(bp->goal < SOFTGOALSNAP){ /* ommit this bp when it snaps */
 			float auxvect[3];  
 			float velgoal[3];
 			float absvel =0, projvel= 0;
@@ -1084,7 +1106,57 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 					bp->contactfrict = 0.0f;
 				}
 				
+			} 
+			else
+			{
+					bp->contactfrict = 0.0f;
 			}
+			/* naive ball self collision */
+			if((ob->softflag & OB_SB_EDGES) && (sb->bspring)
+				&& (ob->softflag & OB_SB_SELF)){
+				int attached;
+				BodyPoint   *obp;
+				int c,b;
+				float def[3];
+				float tune2 = 0.5f;
+				float tune = 1.0f;
+				float distance;
+				float compare;
+
+				for(c=sb->totpoint, obp= sb->bpoint; c>0; c--, obp++) {
+
+					if (c < a ) continue; /* exploit force(a,b) == force(b,a) part1/2 */
+
+					compare = (obp->colball + bp->colball) * tune2;		
+					VecSubf(def, bp->pos, obp->pos);
+					distance = Normalise(def);
+					
+					
+					if (distance < compare ){
+				    /* exclude body points attached with a spring */
+						attached = 0;
+						for(b=obp->nofsprings;b>0;b--){
+							bs = sb->bspring + obp->springs[b-1];
+							if (( sb->totpoint-a == bs->v2)  || ( sb->totpoint-a == bs->v1)){
+								attached=1;
+								continue;}
+							
+						}
+						if (!attached){
+							/* would need another UI parameter defining fricton on self contact */
+							float ccfriction = 0.05;
+							float f = tune/(distance) + tune/(compare*compare)*distance - 2.0f*tune/compare ;
+							Vec3PlusStVec(bp->force,f,def);
+							if (bp->contactfrict == 0.0f) bp->contactfrict = ccfriction*compare/distance; 
+							/* exploit force(a,b) == force(b,a) part2/2 */
+							Vec3PlusStVec(obp->force,-f,def);
+							if (obp->contactfrict == 0.0f) obp->contactfrict = ccfriction*compare/distance;
+						}
+						
+					}
+				}
+			}
+			/* naive ball self collision done */
 			
 			/*other forces done*/
 			/* nice things could be done with anisotropic friction
@@ -1147,7 +1219,6 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 			}/*any edges*/
 		}/*omit on snap	*/
 	}/*loop all bp's*/
-
 	/* cleanup */
 	if(do_effector)
 		pdEndEffectors(do_effector);
@@ -1429,13 +1500,13 @@ static void mesh_to_softbody(Object *ob)
 			}
 
 			build_bps_springlist(ob); /* scan for springs attached to bodypoints ONCE */
-
 			/* insert *other second order* springs if desired */
 			if (sb->secondspring > 0.0000001f) {
 				add_2nd_order_springs(ob,sb->secondspring); /* exploits the the first run of build_bps_springlist(ob);*/
 				build_bps_springlist(ob); /* yes we need to do it again*/
 			}
 			springs_from_mesh(ob); /* write the 'rest'-lenght of the springs */
+            calculate_collision_balls(ob);
 		}
 	}
 	

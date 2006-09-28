@@ -123,6 +123,7 @@ typedef struct SoftBody {
 #define OB_SB_BAKESET	64
 #define OB_SB_BAKEDO	128
 #define OB_SB_RESET		256
+#define OB_SB_SELF		512
 
 #ifdef __cplusplus
 }

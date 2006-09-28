@@ -2355,8 +2355,9 @@ static void object_softbodies(Object *ob)
 			/* EDGE SPRING STUFF */
 			if(ob->type!=OB_SURF) {
 				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Use Edges as springs");
-				uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		160,30,150,20, &ob->softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
+				uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,30,90,20, &ob->softflag, 0, 0, 0, 0, "Use Edges as springs");
+				uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		110,30,90,20, &ob->softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
+				uiDefButBitS(block, TOG, OB_SB_SELF, B_DIFF, "Self Collision",		220,30,90,20, &ob->softflag, 0, 0, 0, 0, "Use Edges as springs");
 				uiDefButF(block, NUM, B_DIFF, "E Stiff:",	10,10,150,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness");
 				uiDefButF(block, NUM, B_DIFF, "E Damp:",	160,10,150,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
 				uiBlockEndAlign(block);
