@@ -652,11 +652,11 @@ int blenderqread(unsigned short event, short val)
 				else if(G.vd) {
 					/* also when Alt-E */
 					if(G.obedit==NULL) {
-						enter_editmode();
+						enter_editmode(EM_WAITCURSOR);
 						if(G.obedit) BIF_undo_push("Original");	// here, because all over code enter_editmode is abused
 					}
 					else
-						exit_editmode(2); // freedata, and undo
+						exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); // freedata, and undo
 				}
 				return 0;
 			}
@@ -676,7 +676,7 @@ int blenderqread(unsigned short event, short val)
 		}
 		else if(G.qual==LR_SHIFTKEY) {	// ??
 			if(G.obedit)
-				exit_editmode(2); // freedata, and undo
+				exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); // freedata, and undo
 			if(G.f & G_FACESELECT)
 				set_faceselect();
 			if(G.f & G_VERTEXPAINT)
@@ -710,11 +710,11 @@ int blenderqread(unsigned short event, short val)
 		if(G.qual==LR_ALTKEY) {
 			if(G.vd && textspace==0) {
 				if(G.obedit==0) {
-					enter_editmode();
+					enter_editmode(EM_WAITCURSOR);
 					BIF_undo_push("Original");
 				}
 				else
-					exit_editmode(2); // freedata, and undo
+					exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); // freedata, and undo
 				return 0;
 			}			
 		}

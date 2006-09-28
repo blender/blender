@@ -114,7 +114,7 @@ void enter_posemode(void)
 		return;
 	}
 
-	if (G.obedit) exit_editmode(1);
+	if (G.obedit) exit_editmode(EM_FREEDATA|EM_WAITCURSOR);
 	G.f &= ~(G_VERTEXPAINT | G_FACESELECT | G_TEXTUREPAINT | G_WEIGHTPAINT);
 }
 

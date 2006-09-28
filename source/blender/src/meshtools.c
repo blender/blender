@@ -454,8 +454,8 @@ int join_mesh(void)
 	
 	DAG_scene_sort(G.scene);	// removed objects, need to rebuild dag before editmode call
 	
-	enter_editmode();
-	exit_editmode(1);	// freedata, but no undo
+	enter_editmode(EM_WAITCURSOR);
+	exit_editmode(EM_FREEDATA|EM_WAITCURSOR);	// freedata, but no undo
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSSHADING, 0);

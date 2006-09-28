@@ -3357,8 +3357,8 @@ int join_curve(int type)
 	
 	DAG_scene_sort(G.scene);	// because we removed object(s), call before editmode!
 	
-	enter_editmode();
-	exit_editmode(1);
+	enter_editmode(EM_WAITCURSOR);
+	exit_editmode(EM_FREEDATA|EM_WAITCURSOR);
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);

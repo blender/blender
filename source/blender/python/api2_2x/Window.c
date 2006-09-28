@@ -899,14 +899,14 @@ static PyObject *M_Window_EditMode( PyObject * self, PyObject * args )
 	if( status >= 0 ) {
 		if( status ) {
 			if( !G.obedit )
-				enter_editmode(  );
+				enter_editmode(0);
 		} else if( G.obedit ) {
 			if( do_undo && U.undosteps != 0 ) {
 				if( undo_str_len > 63 )
 					undo_str[63] = '\0';	/* 64 is max */
 				undo_push_mesh( undo_str );	/* use better solution after 2.34 */
 			}
-			exit_editmode( 1 );
+			exit_editmode( EM_FREEDATA );
 		}
 	}
 

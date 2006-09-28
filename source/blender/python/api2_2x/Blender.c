@@ -609,7 +609,7 @@ static PyObject *Blender_Load( PyObject * self, PyObject * args )
 	}
 
 	if( G.obedit )
-		exit_editmode( 1 );
+		exit_editmode(EM_FREEDATA);
 
 	if (G.background) { /* background mode */
 		if (is_blend_file)

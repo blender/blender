@@ -3253,8 +3253,8 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 		EXPP_allqueue( REDRAWVIEW3D, 0 );
 
 	if (ob && G.obedit) { /* prevents a crash when a new object is created */
-		exit_editmode(1);
-		enter_editmode();
+		exit_editmode(EM_FREEDATA);
+		enter_editmode(0);
 	}
 
 	// @OK...this requires some explanation:

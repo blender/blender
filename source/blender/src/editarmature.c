@@ -384,7 +384,7 @@ int join_armature(void)
 	
 	/*	Put the active armature into editmode and join the bones from the other one*/
 
-	enter_editmode();
+	enter_editmode(EM_WAITCURSOR);
 	
 	for (base=FIRSTBASE; base; base=nextbase) {
 		nextbase = base->next;
@@ -447,7 +447,7 @@ int join_armature(void)
 	
 	DAG_scene_sort(G.scene);	// because we removed object(s)
 	
-	exit_editmode(1);
+	exit_editmode(EM_FREEDATA|EM_WAITCURSOR);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	return 1;

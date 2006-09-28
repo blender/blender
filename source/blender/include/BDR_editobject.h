@@ -56,9 +56,13 @@ void make_vertex_parent(void);
 int test_parent_loop(struct Object *par, struct Object *ob);
 void make_parent(void);
 
-void exit_editmode(int freedata);
+#define EM_WAITCURSOR	(1 << 0)
+#define EM_FREEDATA 	(1 << 1)
+#define EM_FREEUNDO 	(1 << 2)
+
+void exit_editmode(int flag);
 void check_editmode(int type);
-void enter_editmode(void);
+void enter_editmode(int wc);
 
 void docentre(int centremode);
 void docentre_new(void);

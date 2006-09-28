@@ -416,7 +416,7 @@ void txt_export_to_object(struct Text *text)
 	}
 
 	make_editText();
-	exit_editmode(1);
+	exit_editmode(EM_FREEDATA|EM_WAITCURSOR);
 
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -487,7 +487,7 @@ void txt_export_to_objects(struct Text *text)
 		cu->pos= cu->len;
 
 		make_editText();
-		exit_editmode(1);
+		exit_editmode(EM_FREEDATA|EM_WAITCURSOR);
 
 		linenum++;
 		curline = curline->next;
@@ -1188,7 +1188,7 @@ void add_primitiveFont(int dummy_argument)
 	cu->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "textbox");
 	cu->tb[0].w = cu->tb[0].h = 0.0;
 	
-	enter_editmode();
+	enter_editmode(EM_WAITCURSOR);
 
 	allqueue(REDRAWALL, 0);
 }

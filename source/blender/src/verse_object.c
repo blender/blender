@@ -384,7 +384,7 @@ void b_verse_unsubscribe(VNode *vnode)
 	if(vnode->type != V_NT_OBJECT) return;
 	
 	if(G.obedit && G.obedit->vnode == (void*)vnode)
-		exit_editmode(2);
+		exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 
 	/* create mesh data */
 	while(vlink){

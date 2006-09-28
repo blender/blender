@@ -801,7 +801,6 @@ void make_editMesh()
 		return;
 	}
 	
-	waitcursor(1);
 
 	/* initialize fastmalloc for editmesh */
 	init_editmesh_fastmalloc(G.editMesh, me->totvert, me->totedge, me->totface);
@@ -948,7 +947,6 @@ void make_editMesh()
 	
 	countall();
 	
-	waitcursor(0);
 }
 
 /* makes Mesh out of editmesh */
@@ -969,7 +967,6 @@ void load_editMesh(void)
 	int i, a, ototvert, totedge=0;
 	MDeformVert *dvert;
 
-	waitcursor(1);
 
 #ifdef WITH_VERSE
 	if(em->vnode) {
@@ -1363,7 +1360,6 @@ void load_editMesh(void)
 	}
 
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
-	waitcursor(0);
 }
 
 void remake_editMesh(void)

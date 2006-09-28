@@ -187,7 +187,7 @@ void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff 
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 
 	if ELEM3(curarea->spacetype, SPACE_VIEW3D, SPACE_BUTS, SPACE_INFO) {
-		if (G.obedit) exit_editmode(2); // freedata, and undo
+		if (G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); // freedata, and undo
 		ob= add_object(type);
 		set_active_base(BASACT);
 		base_init_from_view3d(BASACT, G.vd);
@@ -1449,7 +1449,7 @@ void make_parent(void)
 }
 
 
-void enter_editmode(void)
+void enter_editmode(int wc)
 {
 	Base *base;
 	Object *ob;
@@ -1473,6 +1473,8 @@ void enter_editmode(void)
 		error("Can't edit library data");
 		return;
 	}
+	
+	if(wc) waitcursor(1);
 	
 	if(ob->type==OB_MESH) {
 		me= get_mesh(ob);
@@ -1534,16 +1536,20 @@ void enter_editmode(void)
 		
 	}
 	else G.obedit= NULL;
-
+	
+	if(wc) waitcursor(0);
+	
 	scrarea_queue_headredraw(curarea);
 }
 
-void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do undo buffer too */
+void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo buffer too */
 {
 	Object *ob;
-
+	int freedata = flag & EM_FREEDATA, freeundo = flag & EM_FREEUNDO;
+	
 	if(G.obedit==NULL) return;
 
+	if(flag & EM_WAITCURSOR) waitcursor(1);
 	if(G.obedit->type==OB_MESH) {
 
 		/* temporal */
@@ -1614,8 +1620,10 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 
 	scrarea_queue_headredraw(curarea);
 	
-	if(G.obedit==NULL && freedata==2) 
+	if(G.obedit==NULL && flag & EM_FREEUNDO) 
 		BIF_undo_push("Editmode");
+	
+	if(flag & EM_WAITCURSOR) waitcursor(0);
 }
 
 void check_editmode(int type)
@@ -1623,7 +1631,7 @@ void check_editmode(int type)
 	
 	if (G.obedit==0 || G.obedit->type==type) return;
 
-	exit_editmode(2); // freedata, and undo
+	exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); // freedata, and undo
 }
 
 /* 0 == do centre, 1 == centre new, 2 == centre cursor */
@@ -2481,8 +2489,8 @@ void convertmenu(void)
 
 					/* texspace and normals */
 					BASACT= base;
-					enter_editmode();
-					exit_editmode(1); // freedata, but no undo
+					enter_editmode(EM_WAITCURSOR);
+					exit_editmode(EM_FREEDATA|EM_WAITCURSOR); // freedata, but no undo
 					BASACT= basact;
  				}
 			}
@@ -2525,8 +2533,8 @@ void convertmenu(void)
 						
 						/* So we can see the wireframe */
 						BASACT= basen;
-						enter_editmode();
-						exit_editmode(1); // freedata, but no undo
+						enter_editmode(EM_WAITCURSOR);
+						exit_editmode(EM_FREEDATA|EM_WAITCURSOR); // freedata, but no undo
 						BASACT= basact;
 						
 						/* If the original object is active then make this object active */
@@ -3451,9 +3459,9 @@ void apply_object()
 				
 				/* texspace and normals */
 				BASACT= base;
-				enter_editmode();
+				enter_editmode(EM_WAITCURSOR);
 				BIF_undo_push("Applied object");	// editmode undo itself
-				exit_editmode(1); // freedata, but no undo
+				exit_editmode(EM_FREEDATA|EM_WAITCURSOR); // freedata, but no undo
 				BASACT= basact;				
 				
 			}
@@ -3519,9 +3527,9 @@ void apply_object()
 				
 				/* texspace and normals */
 				BASACT= base;
-				enter_editmode();
+				enter_editmode(EM_WAITCURSOR);
 				BIF_undo_push("Applied object");	// editmode undo itself
-				exit_editmode(1); // freedata, but no undo
+				exit_editmode(EM_FREEDATA|EM_WAITCURSOR); // freedata, but no undo
 				BASACT= basact;
 			}
 		}

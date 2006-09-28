@@ -1839,7 +1839,7 @@ static PyObject *Object_join( BPy_Object * self, PyObject * args )
 
 	/* exit editmode so join can be done */
 	if( G.obedit )
-		exit_editmode( 1 );
+		exit_editmode( EM_FREEDATA );
 	
 	temp_scene = add_scene( "Scene" ); /* make the new scene */
 	temp_scene->lay= 1; /* first layer on */
