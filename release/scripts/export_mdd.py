@@ -1,10 +1,10 @@
 #!BPY
 
 """
- Name: 'Save Mesh RVKs as MDD'
+ Name: 'Save Mesh as MDD'
  Blender: 242
  Group: 'Animation'
- Tooltip: 'baked vertex animation fromo selected model.'
+ Tooltip: 'Animated mesh to MDD vertex keyframe file.'
 """
 
 __author__ = "Bill L.Nieuwendorp"
@@ -13,17 +13,10 @@ This script Exports Lightwaves MotionDesigner format.
 
 The .mdd format has become quite a popular Pipeline format<br>
 for moving animations from package to package.
+
+Be sure not to use modifiers that change the number or order of verts in the mesh
 """
-# mdd export  
-#
-# 
-#
-# Warning if the vertex order or vertex count differs from frame to frame
-# The script will fail because the resulting file would be an invalid mdd file.
-# 
-# mdd files should only be applied to the the origonating model with the origonal vert order
-#
-#Please send any fixes,updates,bugs to Slow67_at_Gmail.com
+#Please send any fixes,updates,bugs to Slow67_at_Gmail.com or cbarton_at_metavr.com
 #Bill Niewuendorp
 
 import Blender
@@ -34,18 +27,34 @@ try:
 except:
 	pack = None
 
+
+def zero_file(filepath):
+	'''
+	If a file fails, this replaces it with 1 char, better not remove it?
+	'''
+	file = open(filepath, 'w')
+	file.write('\n') # aparently macosx needs some data in a blank file?
+	file.close()
+
 def mdd_export(filepath, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 	
 	Window.EditMode(0)
 	Blender.Window.WaitCursor(1)
 	mesh_orig = ob.getData(mesh=1)
-
-	#Flip y and z matrix
+	
+	#Flip y and z
+	'''
+	mat = Mathutils.Matrix()
+	mat[2][2] = -1
+	rotmat = Mathutils.RotationMatrix(90, 4, 'x')
+	mat_flip = mat*rotmat
+	'''
+	# Above results in this matrix
 	mat_flip= Mathutils.Matrix(\
-	[1,0,0,0],\
-	[0,0,1,0],\
-	[0,-1,0,0],\
-	[0,0,0,1],\
+	[1.0, 0.0, 0.0, 0.0],\
+	[0.0, 0.0, 1.0, 0.0],\
+	[0.0, 1.0, 0.0, 0.0],\
+	[0.0, 0.0, 0.0, 1.0],\
 	)
 	
 	me_tmp = Mesh.New() # container mesh
@@ -71,6 +80,7 @@ def mdd_export(filepath, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 			Blender.Draw.PupMenu('Error%t|Number of verts has changed during animation|cannot export')
 			Blender.Window.WaitCursor(0)
 			f.close() # should we zero?
+			zero_file(filepath)
 			return
 		
 		me_tmp.transform(ob.matrixWorld * mat_flip)
