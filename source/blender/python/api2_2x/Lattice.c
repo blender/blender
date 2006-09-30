@@ -592,7 +592,7 @@ static PyObject *Lattice_getMode( BPy_Lattice * self )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "bad mode type..." );
 
-	return Py_BuildValue( "s", type );
+	return PyString_FromString( type );
 }
 
 static PyObject *Lattice_setPoint( BPy_Lattice * self, PyObject * args )
@@ -822,51 +822,51 @@ static PyObject *Lattice_getAttr( BPy_Lattice * self, char *name )
 	if( strcmp( name, "name" ) == 0 )
 		attr = PyString_FromString( self->Lattice->id.name + 2 );
 	else if( strcmp( name, "width" ) == 0 )
-		attr = Py_BuildValue( "i", self->Lattice->pntsu );
+		attr = PyInt_FromLong( self->Lattice->pntsu );
 	else if( strcmp( name, "height" ) == 0 )
-		attr = Py_BuildValue( "i", self->Lattice->pntsv );
+		attr = PyInt_FromLong( self->Lattice->pntsv );
 	else if( strcmp( name, "depth" ) == 0 )
-		attr = Py_BuildValue( "i", self->Lattice->pntsw );
+		attr = PyInt_FromLong( self->Lattice->pntsw );
 	else if( strcmp( name, "widthType" ) == 0 ) {
 		if( self->Lattice->typeu == 0 )
-			attr = Py_BuildValue( "s", "Linear" );
+			attr = PyString_FromString( "Linear" );
 		else if( self->Lattice->typeu == 1 )
-			attr = Py_BuildValue( "s", "Cardinal" );
+			attr = PyString_FromString( "Cardinal" );
 		else if( self->Lattice->typeu == 2 )
-			attr = Py_BuildValue( "s", "Bspline" );
+			attr = PyString_FromString( "Bspline" );
 		else
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 						      "bad widthType..." );
 	} else if( strcmp( name, "heightType" ) == 0 ) {
 		if( self->Lattice->typev == 0 )
-			attr = Py_BuildValue( "s", "Linear" );
+			attr = PyString_FromString( "Linear" );
 		else if( self->Lattice->typev == 1 )
-			attr = Py_BuildValue( "s", "Cardinal" );
+			attr = PyString_FromString( "Cardinal" );
 		else if( self->Lattice->typev == 2 )
-			attr = Py_BuildValue( "s", "Bspline" );
+			attr = PyString_FromString( "Bspline" );
 		else
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 						      "bad widthType..." );
 	} else if( strcmp( name, "depthType" ) == 0 ) {
 		if( self->Lattice->typew == 0 )
-			attr = Py_BuildValue( "s", "Linear" );
+			attr = PyString_FromString( "Linear" );
 		else if( self->Lattice->typew == 1 )
-			attr = Py_BuildValue( "s", "Cardinal" );
+			attr = PyString_FromString( "Cardinal" );
 		else if( self->Lattice->typew == 2 )
-			attr = Py_BuildValue( "s", "Bspline" );
+			attr = PyString_FromString( "Bspline" );
 		else
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 						      "bad widthType..." );
 	} else if( strcmp( name, "mode" ) == 0 ) {
 		if( self->Lattice->flag == 1 )
-			attr = Py_BuildValue( "s", "Grid" );
+			attr = PyString_FromString( "Grid" );
 		else if( self->Lattice->flag == 3 )
-			attr = Py_BuildValue( "s", "Outside" );
+			attr = PyString_FromString( "Outside" );
 		else
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 						      "bad mode..." );
 	} else if( strcmp( name, "latSize" ) == 0 ) {
-		attr = Py_BuildValue( "i", self->Lattice->pntsu *
+		attr = PyInt_FromLong( self->Lattice->pntsu *
 				      self->Lattice->pntsv *
 				      self->Lattice->pntsw );
 	} else if( strcmp( name, "users" ) == 0 ) {

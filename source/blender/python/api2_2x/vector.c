@@ -418,7 +418,7 @@ static PyObject *Vector_item(VectorObject * self, int i)
 		return EXPP_ReturnPyObjError(PyExc_IndexError,
 		"vector[index]: out of range\n");
 
-	return Py_BuildValue("f", self->vec[i]);
+	return PyFloat_FromDouble(self->vec[i]);
 
 }
 /*----------------------------object[]-------------------------

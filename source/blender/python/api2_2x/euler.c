@@ -315,7 +315,7 @@ static PyObject *Euler_item(EulerObject * self, int i)
 		return EXPP_ReturnPyObjError(PyExc_IndexError,
 		"euler[attribute]: array index out of range\n");
 
-	return Py_BuildValue("f", self->eul[i]);
+	return PyFloat_FromDouble(self->eul[i]);
 
 }
 //----------------------------object[]-------------------------

@@ -37,6 +37,7 @@
 #include "BKE_mball.h"
 #include "BKE_library.h"
 #include "BLI_blenlib.h"
+#include "BLI_arithb.h" /* for quat normal */
 #include "DNA_object_types.h"
 #include "Mathutils.h"
 #include "Material.h"
@@ -727,6 +728,21 @@ static PyObject *Metaball_copy( BPy_Metaball * self )
 }
 
 
+/* These are needed by Object.c */
+PyObject *Metaball_CreatePyObject( MetaBall * mball)
+{
+	BPy_Metaball *py_mball= PyObject_NEW( BPy_Metaball, &Metaball_Type );
+
+	if( !py_mball )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+				"couldn't create BPy_Metaball object" );
+
+	py_mball->metaball= mball;
+
+	return ( PyObject * ) py_mball;
+}
+
+
 static PyObject *MetaElemSeq_CreatePyObject(BPy_Metaball *self, MetaElem *iter)
 {
 	BPy_MetaElemSeq *seq = PyObject_NEW( BPy_MetaElemSeq, &MetaElemSeq_Type);
@@ -876,6 +892,9 @@ static int Metaelem_setQuat( BPy_Metaelem * self,  QuaternionObject * value )
 	
 	for (i = 0; i < 4; i++)
 		self->metaelem->quat[i]= value->quat[i];
+	
+	/* need to normalize or metaball drawing can go into an infinate loop */
+	NormalQuat(self->metaelem->quat);
 	
 	return 0;
 }

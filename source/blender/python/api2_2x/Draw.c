@@ -384,11 +384,11 @@ static PyObject *Button_getattr( PyObject * self, char *name )
 	
 	if( strcmp( name, "val" ) == 0 ) {
 		if( but->type == BINT_TYPE )
-			return Py_BuildValue( "i", but->val.asint );
+			return PyInt_FromLong( but->val.asint );
 		else if( but->type == BFLOAT_TYPE )
-			return Py_BuildValue( "f", but->val.asfloat );
+			return PyFloat_FromDouble( but->val.asfloat );
 		else if( but->type == BSTRING_TYPE )
-			return Py_BuildValue( "s", but->val.asstr );
+			return PyString_FromString( but->val.asstr );
 		else if( but->type == BVECTOR_TYPE )
 			return Py_BuildValue( "fff", but->val.asvec[0], but->val.asvec[1], but->val.asvec[2] );
 	}
@@ -1391,7 +1391,7 @@ static PyObject *Method_PupStrInput( PyObject * self, PyObject * args )
 		return Py_None;
 	}
 
-	ret = Py_BuildValue( "s", tmp );
+	ret = PyString_FromString( tmp );
 
 	if( ret )
 		return ret;

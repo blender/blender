@@ -318,8 +318,7 @@ static PyObject *Quaternion_item(QuaternionObject * self, int i)
 	if(i < 0 || i >= 4)
 		return EXPP_ReturnPyObjError(PyExc_IndexError,
 		"quaternion[attribute]: array index out of range\n");
-
-	return Py_BuildValue("f", self->quat[i]);
+	return PyFloat_FromDouble(self->quat[i]);
 
 }
 //----------------------------object[]-------------------------

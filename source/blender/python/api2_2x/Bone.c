@@ -1122,7 +1122,7 @@ static int Bone_setMatrix(BPy_Bone *self, PyObject *value, void *closure)
 //------------------------Bone.length (get)
 static PyObject *Bone_getLength(BPy_Bone *self, void *closure)
 {
-    return Py_BuildValue("f", self->bone->length);
+    return PyFloat_FromDouble(self->bone->length);
 }
 //------------------------Bone.length (set)
 static int Bone_setLength(BPy_Bone *self, PyObject *value, void *closure)

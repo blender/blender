@@ -4409,6 +4409,9 @@ static PyObject *get_obj_data( BPy_Object *self, int mesh )
 		else		/* else get as Mesh */
 			data_object = Mesh_CreatePyObject( object->data, object );
 		break;
+	case OB_MBALL:
+		data_object = Metaball_CreatePyObject( object->data );
+		break;
 	case ID_OB:
 		data_object = Object_CreatePyObject( object->data );
 		break;

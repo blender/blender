@@ -246,7 +246,7 @@ static PyObject *Buffer_item(PyObject *self, int i)
 			case GL_BYTE: return Py_BuildValue("b", buf->buf.asbyte[i]);
 			case GL_SHORT: return Py_BuildValue("h", buf->buf.asshort[i]);
 			case GL_INT: return Py_BuildValue("i", buf->buf.asint[i]);
-			case GL_FLOAT: return Py_BuildValue("f", buf->buf.asfloat[i]);
+			case GL_FLOAT: return PyFloat_FromDouble(buf->buf.asfloat[i]);
 			case GL_DOUBLE: return Py_BuildValue("d", buf->buf.asdouble[i]);
 		}
 	} else {

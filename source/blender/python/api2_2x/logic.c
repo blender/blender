@@ -542,15 +542,15 @@ static PyObject *Property_getType( BPy_Property * self )
 		type = self->type;
 
 	if( type == PROP_BOOL )
-		attr = Py_BuildValue( "s", "BOOL" );
+		attr = PyString_FromString( "BOOL" );
 	else if( type == PROP_INT )
-		attr = Py_BuildValue( "s", "INT" );
+		attr = PyString_FromString( "INT" );
 	else if( type == PROP_FLOAT )
-		attr = Py_BuildValue( "s", "FLOAT" );
+		attr = PyString_FromString( "FLOAT" );
 	else if( type == PROP_STRING )
-		attr = Py_BuildValue( "s", "STRING" );
+		attr = PyString_FromString( "STRING" );
 	else if( type == PROP_TIME )
-		attr = Py_BuildValue( "s", "TIME" );
+		attr = PyString_FromString( "TIME" );
 
 	return attr;
 }
