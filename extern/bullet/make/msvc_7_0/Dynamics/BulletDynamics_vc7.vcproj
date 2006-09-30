@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="Blender Debug|Win32"
-			OutputDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug"
-			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
@@ -25,10 +25,10 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug\$(TargetName).pch"
-				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug\"
-				ObjectFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug\"
-				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug\"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug\$(TargetName).pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug\"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="4"/>

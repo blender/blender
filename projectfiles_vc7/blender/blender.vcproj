@@ -23,7 +23,7 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\source\blender;..\..\source\blender\imbuf;..\..\source\blender\misc;..\..\source\blender\blenlib;..\..\source\blender\python;..\..\source\blender\include;..\..\source\blender\renderui;..\..\source\blender\makesdna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\renderconverter;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\kernel\gen_messaging"
-				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;GAMEBLENDER=1;USE_SUMO_SOLID;FTGL_LIBRARY_STATIC"
+				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;GAMEBLENDER=1;USE_SUMO_SOLID;FTGL_LIBRARY_STATIC;WITH_VERSE"
 				StringPooling="TRUE"
 				RuntimeLibrary="4"
 				EnableFunctionLevelLinking="TRUE"
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib BulletDynamics.lib Bullet.lib python24.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib BulletDynamics.lib Bullet.lib python24.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib verse.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\blender.exe"
 				LinkIncremental="1"
@@ -67,7 +67,7 @@ XCOPY /Y ..\..\..\lib\windows\tiff\lib\*.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\pthreads\lib\pthreadVSE2.dll ..\..\bin
 ECHO Copying language folder
 ECHO Copying python scripts
-IF NOT EXIST ..\..\bin\.blender\scripts MKDIR ..\..\bin\.blender\scripts 
+IF NOT EXIST ..\..\bin\.blender\scripts MKDIR ..\..\bin\.blender\scripts
 XCOPY /Y ..\..\release\scripts ..\..\bin\.blender\scripts /E
 ECHO Copying manuals/text
 XCOPY/Y ..\..\release\text ..\..\bin /E
@@ -105,7 +105,7 @@ ECHO Done
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\source\blender;..\..\source\blender\imbuf;..\..\source\blender\misc;..\..\source\blender\blenlib;..\..\source\blender\python;..\..\source\blender\include;..\..\source\blender\renderui;..\..\source\blender\makesdna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\renderconverter;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\kernel\gen_messaging"
-				PreprocessorDefinitions="_DEBUG;WIN32;_CONSOLE;WITH_QUICKTIME"
+				PreprocessorDefinitions="_DEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;WITH_VERSE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
@@ -123,7 +123,7 @@ ECHO Done
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386
 "
-				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib BulletDynamics.lib Bullet.lib python24_d.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib BulletDynamics.lib Bullet.lib python24_d.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib verse.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\debug\blender.exe"
 				LinkIncremental="2"
@@ -153,7 +153,7 @@ ECHO Copying language folder
 IF NOT EXIST ..\..\bin\debug\.blender MKDIR ..\..\bin\debug\.blender
 XCOPY /Y ..\..\bin\.blender ..\..\bin\debug\.blender /E
 ECHO Copying python scripts
-IF NOT EXIST ..\..\bin\debug\.blender\scripts MKDIR ..\..\bin\debug\.blender\scripts 
+IF NOT EXIST ..\..\bin\debug\.blender\scripts MKDIR ..\..\bin\debug\.blender\scripts
 XCOPY /Y ..\..\release\scripts ..\..\bin\debug\.blender\scripts /E
 ECHO Copying manuals/text
 XCOPY/Y ..\..\release\text ..\..\bin\debug /E

@@ -73,8 +73,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\elbeem\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem"
-				PreprocessorDefinitions="_DEBUG,WIN32,_LIB,WITH_FREETYPE2"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\elbeem\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_7\extern\verse\include"
+				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_FREETYPE2;WITH_VERSE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
@@ -125,8 +125,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\elbeem\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem"
-				PreprocessorDefinitions="NDEBUG,WIN32,_LIB,WITH_FREETYPE2,UNWRAPPER"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\elbeem\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_7\extern\verse\include"
+				PreprocessorDefinitions="NDEBUG;WIN32;_LIB;WITH_FREETYPE2;UNWRAPPER;WITH_VERSE"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
@@ -468,6 +468,21 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\texture.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\verse_bitmap_node.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\verse_geometry_node.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\verse_node.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\verse_object_node.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\verse_session.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\world.c">
 			</File>
 			<File
@@ -641,6 +656,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_utildefines.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_verse.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_world.h">
