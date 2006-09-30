@@ -784,8 +784,10 @@ static void animated_image(bNode *node, int cfra)
 				if(imanr < 0) imanr = 0;
 				if(imanr > (dur-1)) imanr= dur-1;
 				
+				BLI_lock_thread(LOCK_CUSTOM1);
 				if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
 				ima->ibuf = IMB_anim_absolute(ima->anim, imanr);
+				BLI_unlock_thread(LOCK_CUSTOM1);
 				
 				/* patch for textbutton with name ima (B_NAMEIMA) */
 				if(ima->ibuf) {
@@ -836,7 +838,9 @@ static CompBuf *node_composit_get_image(bNode *node, RenderData *rd)
 	if(ima->ok==0) return NULL;
 	
 	if(ima->ibuf==NULL) {
+		BLI_lock_thread(LOCK_CUSTOM1);
 		load_image(ima, IB_rect, G.sce, rd->cfra);	/* G.sce is current .blend path */
+		BLI_unlock_thread(LOCK_CUSTOM1);
 		if(ima->ibuf==NULL) {
 			ima->ok= 0;
 			return NULL;

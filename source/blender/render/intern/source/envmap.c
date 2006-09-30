@@ -33,6 +33,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_threads.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"        /* for rectcpy */
@@ -645,9 +646,11 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 		if(env->ima && env->ima->ok) {
 			if(env->ima->ibuf==NULL) {
 				printf("load ibuf\n");
-				ima_ibuf_is_nul(tex, tex->ima);
+				BLI_lock_thread(LOCK_CUSTOM1);
+				if(ima->ibuf==NULL) ima_ibuf_is_nul(tex, tex->ima);
 				if(env->ima->ok && env->ok==0)
 					envmap_split_ima(env);
+				BLI_unlock_thread(LOCK_CUSTOM1);
 			}
 		}
 	}
