@@ -316,6 +316,35 @@ static uiBlock *ipo_editmenu_snapmenu(void *arg_unused)
 	return block;
 }
 
+static void do_ipo_editmenu_mirrormenu(void *arg, int event)
+{
+	switch(event) {
+		case 1: /* mirror over current frame */
+		case 2: /* mirror over frame 0 */
+		case 3: /* mirror over horizontal axis */
+			ipo_mirror(event);
+			break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *ipo_editmenu_mirrormenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu_mirrormenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_ipo_editmenu_mirrormenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Over Current Frame|M, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Over Vertical Axis|M, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Over Horizontal Axis|M, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");	
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+} 
+
 static void do_ipo_editmenu_joinmenu(void *arg, int event)
 {
 	switch(event) {
@@ -573,6 +602,8 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 	
 	uiDefIconTextBlockBut(block, ipo_editmenu_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");	
 
+	uiDefIconTextBlockBut(block, ipo_editmenu_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, 120, 19, "");	
+	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
 	/*Look to see if any ipos are being edited, so there can be a check next to the menu option*/

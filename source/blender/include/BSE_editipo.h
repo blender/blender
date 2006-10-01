@@ -96,6 +96,8 @@ void join_ipo_menu(void);
 void join_ipo(int mode);
 void ipo_snap_menu(void);
 void ipo_snap(short event);
+void ipo_mirror_menu(void);
+void ipo_mirror(short event);
 void mouse_select_ipo(void);
 void sethandles_ipo(int code);
 void select_ipo_bezier_keys(struct Ipo *ipo, int selectmode);

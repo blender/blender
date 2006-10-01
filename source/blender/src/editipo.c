@@ -100,6 +100,7 @@
 
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
+#include "BDR_editcurve.h" 	// for bezt_compare 
 
 #include "BSE_trans_types.h"
 #include "BSE_editipo_types.h"
@@ -3071,6 +3072,91 @@ void ipo_snap(short event)
 	}
 	editipo_changed(G.sipo, 1);
 	BIF_undo_push("Snap Ipo");
+}
+
+void ipo_mirror_menu(void)
+{
+	int mode = 0;
+	mode= pupmenu("Mirror Over%t|Current Frame%x1|Vertical Axis%x2|Horizontal Axis%x3");
+	
+	if (mode == -1) return;
+	
+	ipo_mirror(mode);
+}
+
+void ipo_mirror(short mode)
+{
+	EditIpo *ei;
+	BezTriple *bezt;
+	
+	int a, b;
+	int ok, ok2;
+	float diff;
+	
+	/* what's this for? */
+	get_status_editipo();
+
+	/* get edit ipo */
+	ei= G.sipo->editipo;
+	if (!ei) return;
+	
+	/* look throught ipo curves */
+	for(b=0; b<G.sipo->totipo; b++, ei++) {
+		if (ISPOIN3(ei, flag & IPO_VISIBLE, icu, icu->bezt)) {
+		
+			ok2= 0;
+			if(G.sipo->showkey) ok2= 1;
+			else if(totipo_vert && (ei->flag & IPO_EDIT)) ok2= 2;
+			else if(totipo_vert==0 && (ei->flag & IPO_SELECT)) ok2= 3;
+			
+			if(ok2) {
+				bezt= ei->icu->bezt;
+				a= ei->icu->totvert;
+				
+				/* loop through beztriples, mirroring them */
+				while(a--) {
+					ok= 0;
+					if(totipo_vert) {
+						if(bezt->f2 & 1) ok= 1;
+					}
+					else ok= 1;
+					
+					if(ok) {
+						switch (mode) {
+							case 1: /* mirror over current frame */
+							{
+								diff= ((float)CFRA - bezt->vec[1][0]);
+								bezt->vec[1][0]= ((float)CFRA + diff);
+							}
+								break;
+							case 2: /* mirror over vertical axis (frame 0) */
+							{
+								diff= (0.0f - bezt->vec[1][0]);
+								bezt->vec[1][0]= (0.0f + diff);
+							}
+								break;
+							case 3: /* mirror over horizontal axis */
+							{
+								diff= (0.0f - bezt->vec[1][1]);
+								bezt->vec[1][1]= (0.0f + diff);
+							}
+								break;
+						}
+					}
+					
+					bezt++;
+				}
+				
+				/* sort out order and handles */
+				sort_time_ipocurve(ei->icu);
+				calchandles_ipocurve(ei->icu);
+			}
+		}
+	}
+	
+	/* cleanup and undo push */
+	editipo_changed(G.sipo, 1);
+	BIF_undo_push("Mirror Ipo");
 }
 
 /*

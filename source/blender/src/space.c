@@ -2244,6 +2244,10 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				doredraw= 1;
 			}
 			break;
+		case MKEY:
+			if((G.qual==0))
+				ipo_mirror_menu();
+			break;
 		case NKEY:
 			toggle_blockhandler(sa, IPO_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 			doredraw= 1;
