@@ -582,7 +582,7 @@ static void make_sel_cfra_list(Ipo *ipo, ListBase *elems)
 /* This function selects all key frames in the same column(s) as a already selected key(s)
  * this version only works for Shape Keys, Key should be not NULL
  */
-static void select_frames_by_sel_frameskey(Key *key)
+static void column_select_shapekeys(Key *key)
 {
 
 	if(key->ipo) {
@@ -618,19 +618,24 @@ static void select_frames_by_sel_frameskey(Key *key)
 /* This function selects all key frames in the same column(s) as a already selected key(s)
  * this version only works for on Action. *act should be not NULL
  */
-static void select_frames_by_sel_framesaction(bAction *act)
+static void column_select_actionkeys(bAction *act)
 {
 	IpoCurve *icu;
 	BezTriple *bezt;
 	ListBase elems= {NULL, NULL};
 	CfraElem *ce;
 	bActionChannel *chan;
+	bConstraintChannel *conchan;
 
 	/* create a list of all selected keys */
 	for (chan=act->chanbase.first; chan; chan=chan->next){
 		if((chan->flag & ACHAN_HIDDEN)==0) {
 			if (chan->ipo)
 				make_sel_cfra_list(chan->ipo, &elems);
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
+				if (conchan->ipo)
+					make_sel_cfra_list(conchan->ipo, &elems);
+			}
 		}
 	}
 
@@ -656,6 +661,26 @@ static void select_frames_by_sel_framesaction(bAction *act)
 					}
 				}
 			}
+
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
+				if (conchan->ipo) {
+					for(ce= elems.first; ce; ce= ce->next) {
+						for (icu = conchan->ipo->curve.first; icu; icu = icu->next){
+							bezt= icu->bezt;
+							if(bezt) {
+								int verts = icu->totvert;
+								while(verts--) {
+							
+									if( ((int)ce->cfra) == ((int)bezt->vec[1][0]) ) {
+										bezt->f2 |= 1;
+									}
+									bezt++;
+								}
+							}
+						}
+					}
+				}
+			}			
 		}
 	}
 	BLI_freelistN(&elems);
@@ -2467,9 +2492,9 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case KKEY:
 			if(key)
-				select_frames_by_sel_frameskey(key);
+				column_select_shapekeys(key);
 			else if(act)
-				select_frames_by_sel_framesaction(act);
+				column_select_actionkeys(act);
 			
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWVIEW3D, 0);
