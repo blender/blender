@@ -2215,6 +2215,15 @@ void Mat3ToEul(float tmat[][3], float *eul)
 	}
 }
 
+void Mat4ToEul(float tmat[][4], float *eul)
+{
+	float tempMat[3][3];
+
+	Mat3CpyMat4 (tempMat, tmat);
+	Mat3Ortho(tempMat);
+	Mat3ToEul(tempMat, eul);
+}
+
 void QuatToEul( float *quat, float *eul)
 {
 	float mat[3][3];

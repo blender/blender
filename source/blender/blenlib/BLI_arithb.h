@@ -155,6 +155,12 @@ Mat3ToEul(
 	float *eul
 );
 
+	void 
+Mat4ToEul(
+	float tmat[][4],
+	float *eul
+);
+
 void compatible_eul(float *eul, float *oldrot);
 
 void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot);
