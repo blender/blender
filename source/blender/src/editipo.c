@@ -3888,13 +3888,17 @@ void remake_ipo_transverts(TransVert *transmain, float *dvec, int tot)
 	}
 }
 
+#define CLAMP_OFF	0
+#define CLAMP_X		1
+#define CLAMP_Y		2
+
 void transform_ipo(int mode)
 {
 	EditIpo *ei;
 	BezTriple *bezt;
 	TransVert *transmain = NULL, *tv;
 	float xref=1.0, yref=1.0, dx, dy, dvec[2], min[3], max[3], vec[2], div, cent[2], size[2], sizefac;
-	int tot=0, a, b, firsttime=1, afbreek=0, midtog= 0, dosort, proj = 0;
+	int tot=0, a, b, firsttime=1, afbreek=0, dosort, clampAxis=CLAMP_OFF;
 	unsigned short event = 0;
 	short mval[2], val, xo, yo, xn, yn, xc, yc;
 	char str[64];
@@ -4016,8 +4020,7 @@ void transform_ipo(int mode)
 	cent[1]= (float)((min[1]+max[1])/2.0);
 
 	if(G.sipo->showkey) {
-		midtog= 1;
-		proj= 1;
+		clampAxis = CLAMP_Y;
 	}
 	
 	ipoco_to_areaco(G.v2d, cent, mval);
@@ -4047,7 +4050,7 @@ void transform_ipo(int mode)
 				div= (float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
 				dvec[1]+= (G.v2d->cur.ymax-G.v2d->cur.ymin)*(dy)/div;
 				
-				if(midtog) dvec[proj]= 0.0;
+				if(clampAxis) dvec[clampAxis-1]= 0.0;
 				
 				/* vec is reused below: remake_ipo_transverts */
 				vec[0]= dvec[0];
@@ -4063,14 +4066,20 @@ void transform_ipo(int mode)
 					if(tv->flag==0) tv->loc[1]= tv->oldloc[1]+vec[1];
 				}
 				
-				sprintf(str, "X: %.3f   Y: %.3f  ", vec[0], vec[1]);
+				if (clampAxis == CLAMP_Y)
+					sprintf(str, "X: %.3f  ", vec[0]);
+				else if (clampAxis == CLAMP_X)
+					sprintf(str, "Y: %.3f  ", vec[1]);
+				else
+					sprintf(str, "X: %.3f   Y: %.3f  ", vec[0], vec[1]);
+				
 				headerprint(str);
 			}
 			else if(mode=='s') {
 				
 				size[0]=size[1]=(float)( (sqrt( (float)((yc-mval[1])*(yc-mval[1])+(mval[0]-xc)*(mval[0]-xc)) ))/sizefac);
 				
-				if(midtog) size[proj]= 1.0;
+				if(clampAxis) size[clampAxis-1]= 1.0;
 				size[0]*= xref;
 				size[1]*= yref;
 				
@@ -4084,7 +4093,13 @@ void transform_ipo(int mode)
 					if(tv->flag==0) tv->loc[1]= size[1]*(tv->oldloc[1]-cent[1])+ cent[1];
 				}
 				
-				sprintf(str, "scaleX: %.3f   scaleY: %.3f  ", size[0], size[1]);
+				if (clampAxis == CLAMP_Y)
+					sprintf(str, "scaleX: %.3f  ", size[0]);
+				else if (clampAxis == CLAMP_X)
+					sprintf(str, "scaleY: %.3f  ", size[1]);
+				else
+					sprintf(str, "scaleX: %.3f   scaleY: %.3f  ", size[0], size[1]);
+				
 				headerprint(str);
 				
 			}
@@ -4171,18 +4186,52 @@ void transform_ipo(int mode)
 					break;
 				case MIDDLEMOUSE:
 					if(G.sipo->showkey==0) {
-						midtog= ~midtog;
-						if(midtog) {
-							if( abs(mval[0]-xn) > abs(mval[1]-yn)) proj= 1;
-							else proj= 0;
-							firsttime= 1;
+						if (clampAxis == CLAMP_OFF)
+						{
+							if( abs(mval[0]-xn) > abs(mval[1]-yn))
+								clampAxis = CLAMP_Y;
+							else
+								clampAxis = CLAMP_X;
 						}
+						else
+						{
+							clampAxis = CLAMP_OFF;
+						}
+						firsttime= 1;
 					}
 					break;
 				case XKEY:
+					/* clampAxis is the axis that will be Zeroed out, which is which we clamp
+					 * on Y when pressing X
+					 */
+					if(mode=='g') {  
+						/* grab */
+						if (clampAxis == CLAMP_Y) 
+							clampAxis = CLAMP_OFF; // Clamp Off if already on Y
+						else 
+							clampAxis = CLAMP_Y; // On otherwise
+					}
+					else {
+						/* assume to be scaling */
+						xref= -xref;  
+					}
+					firsttime= 1;
+					break;
 				case YKEY:
-					if(event==XKEY) xref= -xref;
-					else if(G.sipo->showkey==0) yref= -yref;
+					/* clampAxis is the axis that will be Zeroed out, which is which we clamp
+					 * on X when pressing Y
+					 */
+					if(mode=='g') {  
+						/* grab */
+						if (clampAxis == CLAMP_X) 
+							clampAxis = CLAMP_OFF; // Clamp Off if already on X
+						else 
+							clampAxis = CLAMP_X; // On otherwise
+					}
+					else {
+						/* assume to be scaling */
+						if (G.sipo->showkey==0) yref= -yref; 
+					}
 					firsttime= 1;
 					break;
 				case LEFTCTRLKEY:
