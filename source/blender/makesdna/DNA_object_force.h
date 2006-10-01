@@ -98,7 +98,7 @@ typedef struct SoftBody {
 	SBVertex **keys;			/* array of size totpointkey */
 	int totpointkey, totkey;	/* if totpointkey != totpoint or totkey!- (efra-sfra)/interval -> free keys */
 	float secondspring;
-	float pad3;		/* local==1: use local coords for baking */
+	float colball;		/* fixed collision ball zize if > 0 */
 } SoftBody;
 
 /* pd->forcefield:  Effector Fields types */
@@ -124,6 +124,7 @@ typedef struct SoftBody {
 #define OB_SB_BAKEDO	128
 #define OB_SB_RESET		256
 #define OB_SB_SELF		512
+#define OB_SB_COLLISIONSET 1024
 
 #ifdef __cplusplus
 }

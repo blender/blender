@@ -680,18 +680,34 @@ static void calculate_collision_balls(Object *ob)
 	BodyPoint *bp;	
 	BodySpring *bs;	
 	int a,b;
-	
+	float min,max;
+
 	if (sb==NULL) return; /* paranoya check */
-	
+
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		bp->colball=0;
+		min = 1e22f;
+		max = -1e22f;
+		/* first estimation based on attached */
 		for(b=bp->nofsprings;b>0;b--){
 			bs = sb->bspring + bp->springs[b-1];
 			bp->colball += bs->len;
+			min = MIN2(bs->len,min);
+			max = MAX2(bs->len,max);
 		}
-		if (bp->nofsprings != 0) bp->colball /= bp->nofsprings;
+
+		if (bp->nofsprings != 0) {
+			/*bp->colball /= bp->nofsprings;*/
+			bp->colball = (min + max)/2.0f;
+			if (sb->colball > 0.0f){
+				bp->colball=sb->colball;
+			}		
+			if (sb->colball == -1.0f){
+				bp->colball=max;
+			}		
+		}
 		else bp->colball=0;
-		/* printf("collision ballsize %f \n",bp->colball); */
+		printf("collision ballsize %f \n",bp->colball); 
 	}/*for bp*/		
 }
 
