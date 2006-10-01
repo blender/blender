@@ -3052,7 +3052,6 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 	/* direction vectors for 3d curve paths */
 	if(cu->flag & CU_3D) {
 		BIF_ThemeColor(TH_WIRE);
-		glBegin(GL_LINES);
 		for (bl=cu->bev.first,nu=nurb; nu && bl; bl=bl->next,nu=nu->next) {
 			BevPoint *bevp= (BevPoint *)(bl+1);		
 			int nr= bl->nr;
@@ -3060,20 +3059,29 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 			float fac;
 			
 			while (nr-->0) {
-				float ox,oy,oz;
-				fac = calc_curve_subdiv_radius(cu, nu, (bl->nr - nr));
-				ox = G.scene->editbutsize*fac*bevp->mat[0][0];
-				oy = G.scene->editbutsize*fac*bevp->mat[0][1];
-				oz = G.scene->editbutsize*fac*bevp->mat[0][2];
+				float ox,oy,oz; // Offset perpendicular to the curve
+				float dx,dy,dz; // Delta along the curve
 
-				glVertex3f(bevp->x - ox, bevp->y - oy, bevp->z - oz);
-				glVertex3f(bevp->x + ox, bevp->y + oy, bevp->z + oz);
+				fac = calc_curve_subdiv_radius(cu, nu, (bl->nr - nr)) * G.scene->editbutsize;
+				
+				ox = fac*bevp->mat[0][0];
+				oy = fac*bevp->mat[0][1];
+				oz = fac*bevp->mat[0][2];
+			
+				dx = fac*bevp->mat[2][0];
+				dy = fac*bevp->mat[2][1];
+				dz = fac*bevp->mat[2][2];
+
+				glBegin(GL_LINE_STRIP);
+				glVertex3f(bevp->x - ox - dx, bevp->y - oy - dy, bevp->z - oz - dz);
+				glVertex3f(bevp->x, bevp->y, bevp->z);
+				glVertex3f(bevp->x + ox - dx, bevp->y + oy - dy, bevp->z + oz - dz);
+				glEnd();
 				
 				bevp += skip+1;
 				nr -= skip;
 			}
 		}
-		glEnd();
 	}
 
 	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
