@@ -71,7 +71,7 @@ ECHO Done
 		<Configuration
 			Name="Blender Release|Win32"
 			OutputDirectory="..\..\..\..\..\build\msvc_7\extern\verse"
-			IntermediateDirectory="..\..\..\..\..\build\msvc_7\verse\Release"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\extern\verse"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
