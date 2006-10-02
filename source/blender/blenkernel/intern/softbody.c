@@ -707,7 +707,6 @@ static void calculate_collision_balls(Object *ob)
 			}		
 		}
 		else bp->colball=0;
-		printf("collision ballsize %f \n",bp->colball); 
 	}/*for bp*/		
 }
 

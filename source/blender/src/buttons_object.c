@@ -2264,14 +2264,14 @@ static void object_softbodies(Object *ob)
 
 	if(!modifiers_isSoftbodyEnabled(ob)) {
 		uiDefButBitS(block, TOG, OB_SB_COLLISIONSET, REDRAWBUTSOBJECT, "Collision",	90,200,70,20, &ob->softflag, 0, 0, 0, 0, "Collision Settings");
-		uiDefBut(block, LABEL, 0, "",0,0,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 0,0*/
+		uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 		if(ob->pd  && (ob->softflag & OB_SB_COLLISIONSET)){
 			/* OTHER OBJECTS COLLISION STUFF */
-			uiDefButBitS(block, TOG, 1, B_REDR, "Visible",10,40,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to softbody objects");
+			uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to softbody objects");
 			if(ob->pd->deflect) {
-				uiDefButF(block, NUM, B_DIFF, "Damping:",	160,40,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
-				uiDefButF(block, NUM, B_DIFF, "Inner:",	160,20,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
-				uiDefButF(block, NUM, B_DIFF, "Outer:",	160, 0,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
+				uiDefButF(block, NUM, B_DIFF, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
+				uiDefButF(block, NUM, B_DIFF, "Inner:",	160,30,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
+				uiDefButF(block, NUM, B_DIFF, "Outer:",	160,10,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
 			}
 		}
 	}
@@ -2285,8 +2285,9 @@ static void object_softbodies(Object *ob)
 			ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
 		}
 
+		if((ob->softflag & OB_SB_BAKESET)==0)  {
 		uiDefButBitS(block, TOG, OB_SB_COLLISIONSET, REDRAWBUTSOBJECT, "Collision",	90,200,70,20, &ob->softflag, 0, 0, 0, 0, "Collision Settings");
-
+		}
 		uiDefButBitS(block, TOG, OB_SB_BAKESET, REDRAWBUTSOBJECT, "Bake settings",	180,200,130,20, &ob->softflag, 0, 0, 0, 0, "To convert simulation into baked (cached) result");
 
 		if(sb->keys) uiSetButLock(1, "Soft Body is baked, free it first");
@@ -2317,16 +2318,16 @@ static void object_softbodies(Object *ob)
 		else {
 			if(ob->softflag & OB_SB_COLLISIONSET) {
 				/* COLLISION STUFF */
-				uiDefButBitS(block, TOG, OB_SB_SELF, B_DIFF, "Self Collision",		10,170,90,20, &ob->softflag, 0, 0, 0, 0, "enable naive vertex ball self collision");
-				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Self RT:", 110,170,170,20, &sb->colball, -10.0,  10.0, 10, 0, "Experimental Self coll ==0 off; >0 set collision ball manual; -1 use longest attached spring for ball radius");
+				uiDefButBitS(block, TOG, OB_SB_SELF, B_SOFTBODY_CHANGE, "Self Collision",		10,170,90,20, &ob->softflag, 0, 0, 0, 0, "enable naive vertex ball self collision");
+				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Ball Size:", 110,170,170,20, &sb->colball, -10.0,  10.0, 10, 0, "col. ball size ==0 auto, >0 set collision ball manual, -1 use longest attached spring for ball radius");
 				/* OTHER OBJECTS COLLISION STUFF */
-				uiDefButBitS(block, TOG, 1, B_REDR, "Visible",10,40,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to other softbody objects");
+				uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to other softbody objects");
 				if(ob->pd->deflect) {
-					uiDefButF(block, NUM, B_DIFF, "Damping:",	160,40,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
-					uiDefButF(block, NUM, B_DIFF, "Inner:",	160,20,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
-					uiDefButF(block, NUM, B_DIFF, "Outer:",	160, 0,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
+					uiDefButF(block, NUM, B_DIFF, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
+					uiDefButF(block, NUM, B_DIFF, "Inner:",	160,30,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
+					uiDefButF(block, NUM, B_DIFF, "Outer:",	160,10,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
 				}
-				uiDefBut(block, LABEL, 0, "",0,0,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 0,0*/
+				uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 
 			}
 			else {
