@@ -822,7 +822,7 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 	char base[FILE_MAXDIR];
 	char vol[3] = {'\0', '\0', '\0'};
 
-	BLI_strncpy(vol, path, 2);
+	BLI_strncpy(vol, path, 3);
 	wasrelative= (strncmp(vol, "//", 2)==0);
 
 #ifdef WIN32
