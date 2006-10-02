@@ -35,9 +35,9 @@ typedef struct {
 	real64	pos_x;
 	real64	pos_y;
 	real64	pos_z;
-	char	pos_label[16];
-	VNQuat64 rot;
-	char	rot_label[16];
+	char	position_label[16];
+	char	rotation_label[16];
+	char	scale_label[16];
 } VSNGBone;
 
 typedef struct {
@@ -136,8 +136,8 @@ void vs_g_subscribe(VSNodeGeometry *node)
 	{
 		if(node->bones[i].weight[0] != 0)
 			verse_send_g_bone_create(node->head.id, (uint16)i, node->bones[i].weight, node->bones[i].reference, node->bones[i].parent,
-						 node->bones[i].pos_x, node->bones[i].pos_y, node->bones[i].pos_z, node->bones[i].pos_label,
-						 &node->bones[i].rot, node->bones[i].rot_label);
+						 node->bones[i].pos_x, node->bones[i].pos_y, node->bones[i].pos_z, node->bones[i].position_label,
+						 node->bones[i].rotation_label, node->bones[i].scale_label);
 	}
 }
 
@@ -368,42 +368,42 @@ static void callback_send_g_layer_subscribe(void *user, VNodeID node_id, VLayerI
 		break;
 		case VN_G_LAYER_POLYGON_CORNER_UINT32 :
 			for(i = 0; i < node->poly_size; i++)
-				if(((uint32 *)node->layer[1].layer)[i * 4] != (uint32) -1 && !(((uint32 *)layer->layer)[i * 4] == layer->def.integer && ((uint32 *)layer->layer)[i * 4 + 1] == layer->def.integer && ((uint32 *)layer->layer)[i * 4 + 2] == layer->def.integer && ((uint32 *)layer->layer)[i * 4 + 3] == layer->def.integer))
+				if(((uint32 *)node->layer[1].layer)[i * 4] != (uint32) ~0u && !(((uint32 *)layer->layer)[i * 4] == layer->def.integer && ((uint32 *)layer->layer)[i * 4 + 1] == layer->def.integer && ((uint32 *)layer->layer)[i * 4 + 2] == layer->def.integer && ((uint32 *)layer->layer)[i * 4 + 3] == layer->def.integer))
 					verse_send_g_polygon_set_corner_uint32(node_id, layer_id, i, ((uint32 *)layer->layer)[i * 4], ((uint32 *)layer->layer)[i * 4 + 1], ((uint32 *)layer->layer)[i * 4 + 2], ((uint32 *)layer->layer)[i * 4 + 3]);
 		break;
 		case VN_G_LAYER_POLYGON_CORNER_REAL :
 			if(type == VN_FORMAT_REAL64)
 			{
 				for(i = 0; i < node->poly_size; i++)
-					if(((uint32 *)node->layer[1].layer)[i * 4] != (uint32) -1 && !(((real64 *)layer->layer)[i * 4] == layer->def.real && ((real64 *)layer->layer)[i * 4 + 1] == layer->def.real && ((real64 *)layer->layer)[i * 4 + 2] == layer->def.real && ((real64 *)layer->layer)[i * 4 + 3] == layer->def.real))
+					if(((uint32 *)node->layer[1].layer)[i * 4] != (uint32) ~0u && !(((real64 *)layer->layer)[i * 4] == layer->def.real && ((real64 *)layer->layer)[i * 4 + 1] == layer->def.real && ((real64 *)layer->layer)[i * 4 + 2] == layer->def.real && ((real64 *)layer->layer)[i * 4 + 3] == layer->def.real))
 						verse_send_g_polygon_set_corner_real64(node_id, layer_id, i, ((real64 *)layer->layer)[i * 4], ((real64 *)layer->layer)[i * 4 + 1], ((real64 *)layer->layer)[i * 4 + 2], ((real64 *)layer->layer)[i * 4 + 3]);
 			}else
 			{
 				for(i = 0; i < node->poly_size; i++)
-					if(((uint32 *)node->layer[1].layer)[i * 4] != (uint32) -1 && !(((real64 *)layer->layer)[i * 4] == layer->def.real && ((real64 *)layer->layer)[i * 4 + 1] == layer->def.real && ((real64 *)layer->layer)[i * 4 + 2] == layer->def.real && ((real64 *)layer->layer)[i * 4 + 3] == layer->def.real))
+					if(((uint32 *)node->layer[1].layer)[i * 4] != (uint32) ~0u && !(((real64 *)layer->layer)[i * 4] == layer->def.real && ((real64 *)layer->layer)[i * 4 + 1] == layer->def.real && ((real64 *)layer->layer)[i * 4 + 2] == layer->def.real && ((real64 *)layer->layer)[i * 4 + 3] == layer->def.real))
 						verse_send_g_polygon_set_corner_real32(node_id, layer_id, i, (float)((real64 *)layer->layer)[i * 4], (float)((real64 *)layer->layer)[i * 4 + 1], (float)((real64 *)layer->layer)[i * 4 + 2], (float)((real64 *)layer->layer)[i * 4 + 3]);
 			}
 		break;
 		case VN_G_LAYER_POLYGON_FACE_UINT8 :
 			for(i = 0; i < node->poly_size; i++)
-				if(((uint32 *)node->layer[1].layer)[i * 4] != (uint32) -1 && ((uint8 *)layer->layer)[i] != layer->def.integer)
+				if(((uint32 *)node->layer[1].layer)[i * 4] != (uint32) ~0u && ((uint8 *)layer->layer)[i] != layer->def.integer)
 					verse_send_g_polygon_set_face_uint8(node_id, layer_id, i, ((uint8 *)layer->layer)[i]);
 		break;
 		case VN_G_LAYER_POLYGON_FACE_UINT32 :
 			for(i = 0; i < node->poly_size; i++)
-				if(((uint32 *)node->layer[1].layer)[i * 4] != (uint32) -1 && ((uint32 *)layer->layer)[i] != layer->def.integer)
+				if(((uint32 *)node->layer[1].layer)[i * 4] != (uint32) ~0u && ((uint32 *)layer->layer)[i] != layer->def.integer)
 					verse_send_g_polygon_set_face_uint32(node_id, layer_id, i, ((uint32 *)layer->layer)[i]);
 		break;
 		case VN_G_LAYER_POLYGON_FACE_REAL :
 			if(type == VN_FORMAT_REAL64)
 			{
 				for(i = 0; i < node->poly_size; i++)
-					if(((uint32 *)node->layer[1].layer)[i * 4] != (uint32) -1 && ((real64 *)layer->layer)[i] != layer->def.real)
+					if(((uint32 *)node->layer[1].layer)[i * 4] != (uint32) ~0u && ((real64 *)layer->layer)[i] != layer->def.real)
 						verse_send_g_polygon_set_face_real64(node_id, layer_id, i, ((real64 *)layer->layer)[i]);
 			}else
 			{
 				for(i = 0; i < node->poly_size; i++)
-					if(((uint32 *)node->layer[1].layer)[i * 4] != (uint32) -1 && ((real64 *)layer->layer)[i] != layer->def.real)
+					if(((uint32 *)node->layer[1].layer)[i * 4] != (uint32) ~0u && ((real64 *)layer->layer)[i] != layer->def.real)
 						verse_send_g_polygon_set_face_real32(node_id, layer_id, i, (float)((real64 *)layer->layer)[i]);
 			}
 		break;
@@ -955,8 +955,8 @@ static void callback_send_g_crease_set_edge(void *user, VNodeID node_id, const c
 
 void callback_send_g_bone_create(void *user, VNodeID node_id, uint16 bone_id, const char *weight,
 				 const char *reference, uint16 parent,
-				 real64 pos_x, real64 pos_y, real64 pos_z, const char *pos_label,
-				 const VNQuat64 *rot, const char *rot_label)
+				 real64 pos_x, real64 pos_y, real64 pos_z,
+				 const char *position_label, const char *rotation_label, const char *scale_label)
 {
 	VSNodeGeometry *node;
 	unsigned int i, count;
@@ -984,15 +984,15 @@ void callback_send_g_bone_create(void *user, VNodeID node_id, uint16 bone_id, co
 	node->bones[bone_id].pos_x = pos_x;
 	node->bones[bone_id].pos_y = pos_y;
 	node->bones[bone_id].pos_z = pos_z;
-	v_strlcpy(node->bones[bone_id].pos_label, pos_label, sizeof node->bones[bone_id].pos_label);
-	node->bones[bone_id].rot = *rot;
-	v_strlcpy(node->bones[bone_id].rot_label, rot_label, sizeof node->bones[bone_id].rot_label);
+	v_strlcpy(node->bones[bone_id].position_label, position_label, sizeof node->bones[bone_id].position_label);
+	v_strlcpy(node->bones[bone_id].rotation_label, rotation_label, sizeof node->bones[bone_id].rotation_label);
+	v_strlcpy(node->bones[bone_id].scale_label,    scale_label,    sizeof node->bones[bone_id].scale_label);
 
 	count =	vs_get_subscript_count(node->head.subscribers);
 	for(i = 0; i < count; i++)
 	{
 		vs_set_subscript_session(node->head.subscribers, i);
-		verse_send_g_bone_create(node_id, bone_id, weight, reference, parent, pos_x, pos_y, pos_z, pos_label, rot, rot_label);
+		verse_send_g_bone_create(node_id, bone_id, weight, reference, parent, pos_x, pos_y, pos_z, position_label, rotation_label, scale_label);
 	}
 	vs_reset_subscript_session();
 }

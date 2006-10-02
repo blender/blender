@@ -77,7 +77,7 @@ void init_pack_and_unpack(void)
 	v_fs_add_func(81, v_unpack_b_layer_create, verse_send_b_layer_create, verse_send_b_layer_destroy);
 	v_fs_add_func(82, v_unpack_b_layer_subscribe, verse_send_b_layer_subscribe, verse_send_b_layer_unsubscribe);
 	v_fs_add_func(83, v_unpack_b_tile_set, verse_send_b_tile_set, NULL);
-	v_fs_add_func(96, v_unpack_t_set_language, verse_send_t_set_language, NULL);
+	v_fs_add_func(96, v_unpack_t_language_set, verse_send_t_language_set, NULL);
 	v_fs_add_func(97, v_unpack_t_buffer_create, verse_send_t_buffer_create, verse_send_t_buffer_destroy);
 	v_fs_add_func(98, v_unpack_t_buffer_subscribe, verse_send_t_buffer_subscribe, verse_send_t_buffer_unsubscribe);
 	v_fs_add_func(99, v_unpack_t_text_set, verse_send_t_text_set, NULL);

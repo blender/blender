@@ -34,7 +34,7 @@ void verse_send_a_buffer_create(VNodeID node_id, VBufferID buffer_id, const char
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], name, 16);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)type);
 	buffer_pos += vnp_raw_pack_real64(&buf[buffer_pos], frequency);
-	if(node_id == (uint32)(-1) || buffer_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || buffer_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -59,7 +59,7 @@ void verse_send_a_buffer_destroy(VNodeID node_id, VBufferID buffer_id)
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], NULL, 16);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)-1);
 	buffer_pos += vnp_raw_pack_real64(&buf[buffer_pos], V_REAL64_MAX);
-	if(node_id == (uint32)(-1) || buffer_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || buffer_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -124,7 +124,7 @@ void verse_send_a_buffer_subscribe(VNodeID node_id, VBufferID layer_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], layer_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], TRUE);
-	if(node_id == (uint32)(-1) || layer_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || layer_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -147,7 +147,7 @@ void verse_send_a_buffer_unsubscribe(VNodeID node_id, VBufferID layer_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], layer_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], FALSE);
-	if(node_id == (uint32)(-1) || layer_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || layer_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -208,7 +208,7 @@ void verse_send_a_block_set(VNodeID node_id, VLayerID buffer_id, uint32 block_in
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], block_index);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)type);
 	buffer_pos += vnp_pack_audio_block(&buf[buffer_pos], type, samples);
-	if(node_id == (uint32)(-1) || buffer_id == (uint16)(-1) || block_index == (uint32)(-1))
+	if(node_id == (uint32) ~0u || buffer_id == (uint16) ~0u || block_index == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 11);
 	else
 		v_cmd_buf_set_address_size(head, 11);
@@ -232,7 +232,7 @@ void verse_send_a_block_clear(VNodeID node_id, VLayerID buffer_id, uint32 block_
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], buffer_id);
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], block_index);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)-1);
-	if(node_id == (uint32)(-1) || buffer_id == (uint16)(-1) || block_index == (uint32)(-1))
+	if(node_id == (uint32) ~0u || buffer_id == (uint16) ~0u || block_index == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 11);
 	else
 		v_cmd_buf_set_address_size(head, 11);
@@ -303,7 +303,7 @@ void verse_send_a_stream_create(VNodeID node_id, VLayerID stream_id, const char 
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], stream_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], name, 16);
-	if(node_id == (uint32)(-1) || stream_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || stream_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -326,7 +326,7 @@ void verse_send_a_stream_destroy(VNodeID node_id, VLayerID stream_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], stream_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], NULL, 16);
-	if(node_id == (uint32)(-1) || stream_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || stream_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -383,7 +383,7 @@ void verse_send_a_stream_subscribe(VNodeID node_id, VLayerID stream_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], stream_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], TRUE);
-	if(node_id == (uint32)(-1) || stream_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || stream_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -406,7 +406,7 @@ void verse_send_a_stream_unsubscribe(VNodeID node_id, VLayerID stream_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], stream_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], FALSE);
-	if(node_id == (uint32)(-1) || stream_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || stream_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -469,7 +469,7 @@ void verse_send_a_stream(VNodeID node_id, VLayerID stream_id, uint32 time_s, uin
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)type);
 	buffer_pos += vnp_raw_pack_real64(&buf[buffer_pos], frequency);
 	buffer_pos += vnp_pack_audio_block(&buf[buffer_pos], type, samples);
-	if(node_id == (uint32)(-1) || stream_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || stream_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);

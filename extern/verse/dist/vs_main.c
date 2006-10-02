@@ -16,17 +16,9 @@
 #include "v_util.h"
 #include "vs_server.h"
 
-#define	MASTER_SERVER_PERIOD	(1.0  * 60.0)
-
 extern VNodeID	vs_node_create(VNodeID owner_id, unsigned int type);
 extern void	callback_send_node_destroy(void *user_data, VNodeID node_id);
 extern void	vs_reset_owner(VNodeID owner_id);
-
-static void callback_send_ping(void *user, const char *address, const char *message)
-{
-	printf("Bouncing ping '%s' back to '%s'\n", message, address);
-	verse_send_ping(address, message);
-}
 
 static void callback_send_connect(void *user, const char *name, const char *pass, const char *address, const uint8 *host_id)
 {
@@ -96,29 +88,52 @@ static void cb_sigint_handler(int sig)
 	}
 }
 
-static void master_server_update(VUtilTimer *timer, const char *master_server)
+static void callback_send_ping(void *user, const char *address, const char *message)
 {
-	if(master_server == NULL || v_timer_elapsed(timer) < MASTER_SERVER_PERIOD)
-		return;
-	verse_send_ping(master_server, "MS:ANNOUNCE");
-	v_timer_start(timer);
-	printf("MS:ANNOUNCE sent to %s\n", master_server);
+	if(strncmp(message, "DESCRIBE", 8) == 0 && message[8] == ' ')
+		vs_master_handle_describe(address, message + 9);
+}
+
+static void usage(void)
+{
+	printf("Verse server usage:\n");
+	printf(" -h\t\t\tShow this usage information.\n");
+	printf(" -ms\t\t\tRegisters the server with a master server at the address\n");
+	printf(" \t\t\tgiven with the -ms:ip= option. Off by default.\n");
+	printf(" -ms:ip=IP[:PORT]\tSet master server to register with. Implies -ms.\n");
+	printf(" \t\t\tThe default address is <%s>.\n", vs_master_get_address());
+	printf(" -ms:de=DESC\t\tSet description, sent to master server.\n");
+	printf(" -ms:ta=TAGS\t\tSet tags, sent to master server.\n");
+	printf(" -port=PORT\t\tSet port to use for incoming connections.\n");
+	printf(" -version\t\tPrint version information and exit.\n");
 }
 
 int main(int argc, char **argv)
 {
-	const char	*ms_address = NULL;
-	VUtilTimer	ms_timer;
 	uint32		i, seconds, fractions, port = VERSE_STD_CONNECT_PORT;
 
 	signal(SIGINT, cb_sigint_handler);
 
+	vs_master_set_address("master.uni-verse.org");		/* The default master address. */
+	vs_master_set_enabled(FALSE);				/* Make sure master server support is disabled. */
 	for(i = 1; i < (uint32) argc; i++)
 	{
-		if(strcmp(argv[i], "-Q") == 0)
-			ms_address = NULL;
-		else if(strncmp(argv[i], "-master=", 9) == 0)
-			ms_address = argv[i] + 9;
+		if(strcmp(argv[i], "-h") == 0)
+		{
+			usage();
+			return EXIT_SUCCESS;
+		}
+		else if(strcmp(argv[i], "-ms") == 0)
+			vs_master_set_enabled(TRUE);
+                else if(strncmp(argv[i], "-ms:ip=", 7) == 0)
+		{
+                        vs_master_set_address(argv[i] + 7);
+			vs_master_set_enabled(TRUE);
+		}
+                else if(strncmp(argv[i], "-ms:de=", 7) == 0)
+                        vs_master_set_desc(argv[i] + 7);
+                else if(strncmp(argv[i], "-ms:ta=", 7) == 0)
+			vs_master_set_tags(argv[i] + 7);
 		else if(strncmp(argv[i], "-port=", 6) == 0)
 			port = strtoul(argv[i] + 6, NULL, 0);
 		else if(strcmp(argv[i], "-version") == 0)
@@ -127,10 +142,10 @@ int main(int argc, char **argv)
 			return EXIT_SUCCESS;
 		}
 		else
-			fprintf(stderr, "Ignoring unknown argument \"%s\"\n", argv[i]);
+			fprintf(stderr, "Ignoring unknown argument \"%s\", try -h for help\n", argv[i]);
 	}
 
-	printf("Verse Server r%up%u%s by Eskil Steenberg <http://www.blender.org/modules/verse/>\n", V_RELEASE_NUMBER, V_RELEASE_PATCH, V_RELEASE_LABEL);
+	printf("Verse Server r%up%u%s by Eskil Steenberg <http://verse.blender.org/>\n", V_RELEASE_NUMBER, V_RELEASE_PATCH, V_RELEASE_LABEL);
 	verse_set_port(port);	/* The Verse standard port. */
 	printf(" Listening on port %d\n", port);
 
@@ -153,13 +168,11 @@ int main(int argc, char **argv)
 	verse_callback_set(verse_send_connect,		callback_send_connect,		NULL);
 	verse_callback_set(verse_send_connect_terminate, callback_send_connect_terminate, NULL);
 
-	v_timer_start(&ms_timer);
-	v_timer_advance(&ms_timer, MASTER_SERVER_PERIOD - 1.0);
 	while(TRUE)
 	{
 		vs_set_next_session();
 		verse_callback_update(1000000);
-		master_server_update(&ms_timer, ms_address);
+		vs_master_update();
 	}
 	return EXIT_SUCCESS;
 }

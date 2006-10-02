@@ -9,7 +9,7 @@
 
 void v_gen_text_cmd_def(void)
 {
-	v_cg_new_cmd(V_NT_TEXT,			"t_set_language", 96, VCGCT_NORMAL);
+	v_cg_new_cmd(V_NT_TEXT,			"t_language_set", 96, VCGCT_NORMAL);
 	v_cg_add_param(VCGP_NODE_ID,	"node_id");
 	v_cg_add_param(VCGP_END_ADDRESS, NULL);
 	v_cg_add_param(VCGP_LONG_NAME,	"language");

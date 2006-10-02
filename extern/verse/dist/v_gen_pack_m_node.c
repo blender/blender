@@ -137,7 +137,7 @@ void verse_send_m_fragment_create(VNodeID node_id, VNMFragmentID frag_id, VNMFra
 		buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], fragment->output.back);
 		break;
 	}
-	if(node_id == (uint32)(-1) || frag_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || frag_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -160,7 +160,7 @@ void verse_send_m_fragment_destroy(VNodeID node_id, VNMFragmentID frag_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], frag_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)-1);
-	if(node_id == (uint32)(-1) || frag_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || frag_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);

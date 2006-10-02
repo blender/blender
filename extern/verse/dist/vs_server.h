@@ -52,3 +52,11 @@ extern void			vs_t_callback_init(void);
 extern void			vs_c_callback_init(void);
 extern void			vs_a_callback_init(void);
 extern void			init_callback_node_storage(void);
+
+extern void		vs_master_set_enabled(boolean enabled);
+extern void		vs_master_set_address(const char *address);
+extern const char *	vs_master_get_address(void);
+extern void		vs_master_set_desc(const char *desc);
+extern void		vs_master_set_tags(const char *tags);
+extern void		vs_master_update(void);
+extern void		vs_master_handle_describe(const char *address, const char *message);

@@ -318,7 +318,9 @@ void verse_callback_update(unsigned int microseconds)
 			v_destroy_ordered_storage(VConData.con[VConData.current_connection].ordered_storage);
 			if(VConData.con[VConData.current_connection].expected_key != NULL)
 				free(VConData.con[VConData.current_connection].expected_key);
-			VConData.con[VConData.current_connection] = VConData.con[--VConData.con_count];
+			if(VConData.con_count - 1 != VConData.current_connection)
+				VConData.con[VConData.current_connection] = VConData.con[VConData.con_count - 1];
+			VConData.con_count--;
 			if(connection >= VConData.con_count)
 				VConData.current_connection = 0;
 			return;

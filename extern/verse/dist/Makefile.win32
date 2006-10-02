@@ -44,8 +44,8 @@ LIBVERSE_OBJ = v_gen_pack_init.obj v_gen_pack_a_node.obj v_gen_pack_b_node.obj v
 		v_pack.obj v_pack_method.obj v_prime.obj v_randgen.obj v_util.obj
 
 # The server is a simple 1:1 mapping, but in Windows nmake ... That doesn't help much. :/
-VERSE_SRC = vs_connection.c vs_main.c vs_node_audio.c vs_node_bitmap.c vs_node_curve.c vs_node_geometry.c vs_node_head.c vs_node_material.c vs_node_object.c vs_node_particle.c vs_node_storage.c vs_node_text.c
-VERSE_OBJ = vs_connection.obj vs_main.obj vs_node_audio.obj vs_node_bitmap.obj vs_node_curve.obj vs_node_geometry.obj \
+VERSE_SRC = vs_connection.c vs_main.c vs_master.c vs_node_audio.c vs_node_bitmap.c vs_node_curve.c vs_node_geometry.c vs_node_head.c vs_node_material.c vs_node_object.c vs_node_particle.c vs_node_storage.c vs_node_text.c
+VERSE_OBJ = vs_connection.obj vs_main.obj vs_master.obj vs_node_audio.obj vs_node_bitmap.obj vs_node_curve.obj vs_node_geometry.obj \
 	vs_node_head.obj vs_node_material.obj vs_node_object.obj vs_node_particle.obj vs_node_storage.obj vs_node_text.obj
 
 # -----------------------------------------------------

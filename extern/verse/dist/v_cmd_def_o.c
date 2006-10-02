@@ -299,7 +299,7 @@ void v_gen_object_cmd_def(void)
 	"\t\telse\n"
 	"\t\t\tdrag = 0.0;\n"
 	"\t\tif(func_o_transform_rot_real64 != NULL)\n"
-	"\t\t\tfunc_o_transform_rot_real64(v_fs_get_user_data(33), node_id, time_s, time_f, &trot, q[0], q[1], q[2], drag);\n"
+	"\t\t\tfunc_o_transform_rot_real64(v_fs_get_user_data(36), node_id, time_s, time_f, &trot, q[0], q[1], q[2], drag);\n"
 	"\t\treturn buffer_pos;\n"
 	"\t}\n");
 	v_cg_add_param(VCGP_REAL64,		"drag");	

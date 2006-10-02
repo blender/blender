@@ -33,7 +33,7 @@ void verse_send_c_curve_create(VNodeID node_id, VLayerID curve_id, const char *n
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], curve_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], name, 16);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], dimensions);
-	if(node_id == (uint32)(-1) || curve_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || curve_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -57,7 +57,7 @@ void verse_send_c_curve_destroy(VNodeID node_id, VLayerID curve_id)
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], curve_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], NULL, 16);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], -1);
-	if(node_id == (uint32)(-1) || curve_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || curve_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -118,7 +118,7 @@ void verse_send_c_curve_subscribe(VNodeID node_id, VLayerID curve_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], curve_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], TRUE);
-	if(node_id == (uint32)(-1) || curve_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || curve_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -141,7 +141,7 @@ void verse_send_c_curve_unsubscribe(VNodeID node_id, VLayerID curve_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], curve_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], FALSE);
-	if(node_id == (uint32)(-1) || curve_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || curve_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);

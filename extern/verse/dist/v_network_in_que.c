@@ -30,15 +30,30 @@ void v_niq_clear(VNetInQueue *queue)
 /* Set queue's last-used timestamp to "now". */
 void v_niq_timer_update(VNetInQueue *queue)
 {
-	v_n_get_current_time(&queue->seconds, NULL);
+	v_n_get_current_time(&queue->seconds, &queue->fractions);
+	queue->acc_seconds = queue->acc_fractions = 0;
 }
 
-uint32 v_niq_time_out(const VNetInQueue *queue)
+uint32 v_niq_time_out(VNetInQueue *queue)
 {
-	uint32 seconds;
-	v_n_get_current_time(&seconds, NULL);
+	uint32	fractions, f;
+
+	/* Magic code to disregard if the clock moves forward more than one second at a time.
+	 * This should help keep Verse alive on e.g. a notebook that is suspended.
+	*/
+	v_n_get_current_time(NULL, &fractions);
+	if(fractions < queue->fractions)
+		f = 0xffffffffu - queue->fractions + fractions;
+	else
+		f = fractions - queue->fractions;
+/*	printf("now=%u last=%u -> f=%u\n", fractions, queue->fractions, f);*/
+	if(queue->acc_fractions + f < queue->acc_fractions)
+		queue->acc_seconds += 1;
+	queue->acc_fractions += f;
+	queue->fractions = fractions;
+	
 /*	printf("queue at %p has seconds=%u, now=%u -> diff=%u\n", queue, queue->seconds, seconds, seconds - queue->seconds);*/
-	return seconds - queue->seconds;
+	return queue->acc_seconds;
 }
 
 VNetInPacked * v_niq_get(VNetInQueue *queue, size_t *length)

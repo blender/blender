@@ -19,7 +19,7 @@ extern "C" {
 
 /* Release information. */
 #define	V_RELEASE_NUMBER	6
-#define	V_RELEASE_PATCH		0
+#define	V_RELEASE_PATCH		1
 #define	V_RELEASE_LABEL		""
 
 typedef unsigned char	boolean;
@@ -32,8 +32,8 @@ typedef unsigned int	uint32;
 typedef float		real32;
 typedef double		real64;
 
-#define V_REAL64_MAX         1.7976931348623158e+308 /* max value */
-#define V_REAL32_MAX         3.40282347e+38F
+#define V_REAL64_MAX         1.7976931348623158e+308
+#define V_REAL32_MAX         3.402823466e+38f
 
 #if !defined TRUE
 #define TRUE  1
@@ -483,7 +483,7 @@ extern void verse_send_g_polygon_set_face_real64(VNodeID node_id, VLayerID layer
 extern void verse_send_g_polygon_set_face_real32(VNodeID node_id, VLayerID layer_id, uint32 polygon_id, real32 value);
 extern void verse_send_g_crease_set_vertex(VNodeID node_id, const char *layer, uint32 def_crease);
 extern void verse_send_g_crease_set_edge(VNodeID node_id, const char *layer, uint32 def_crease);
-extern void verse_send_g_bone_create(VNodeID node_id, uint16 bone_id, const char *weight, const char *reference, uint16 parent, real64 pos_x, real64 pos_y, real64 pos_z, const char *pos_label, const VNQuat64 *rot, const char *rot_label);
+extern void verse_send_g_bone_create(VNodeID node_id, uint16 bone_id, const char *weight, const char *reference, uint16 parent, real64 pos_x, real64 pos_y, real64 pos_z, const char *position_label, const char *rotation_label, const char *scale_label);
 extern void verse_send_g_bone_destroy(VNodeID node_id, uint16 bone_id);
 
 extern void verse_send_m_fragment_create(VNodeID node_id, VNMFragmentID frag_id, VNMFragmentType type, const VMatFrag *fragment);
@@ -496,7 +496,7 @@ extern void verse_send_b_layer_subscribe(VNodeID node_id, VLayerID layer_id, uin
 extern void verse_send_b_layer_unsubscribe(VNodeID node_id, VLayerID layer_id);
 extern void verse_send_b_tile_set(VNodeID node_id, VLayerID layer_id, uint16 tile_x, uint16 tile_y, uint16 z, VNBLayerType type, const VNBTile *tile);
 
-extern void verse_send_t_set_language(VNodeID node_id, const char *language);
+extern void verse_send_t_language_set(VNodeID node_id, const char *language);
 extern void verse_send_t_buffer_create(VNodeID node_id, VBufferID buffer_id, const char *name);
 extern void verse_send_t_buffer_destroy(VNodeID node_id, VBufferID buffer_id);
 extern void verse_send_t_buffer_subscribe(VNodeID node_id, VBufferID buffer_id);

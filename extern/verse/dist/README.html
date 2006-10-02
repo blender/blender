@@ -2,6 +2,7 @@
 <html>
 <head>
 <META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Verse README</title>
 <style type="text/css">
 
 h1.title {
@@ -58,6 +59,10 @@ Running "make" here will build the API library, "libverse.a" (and its
 header file, "verse.h"). These two will then be used to build the
 reference Verse server binary, called "verse".
 </p>
+<p>
+If you are more comfortable with <a href="http://www.scons.org/">SCons</a>, and of course have it
+installed on your system, you can type "scons" instead.
+</p>
 
 <h1>Starting the Server</h1>
 <p>
@@ -79,18 +84,39 @@ It is possible that it gets assigned to someone else, in case Verse will need to
 You can use the following command line options to control the server's operation:
 </p>
 <dl>
+ <dt>-h</dt>
+ <dd>
+  Print a help text, that shows all understood options.
+ </dd>
+ <dt>-ms</dt>
+ <dd>
+  Enables master server communications to the default, built-in address. Use the -h option to learn
+  what this address is. Please note that master server communication is <strong>disabled</strong> by default.
+ </dd>
+ <dt>-ms:ip=IP</dt>
+ <dd>
+  Sets a new address to use for master server communication. This also implies -ms, i.e. the server
+  will try to register itself with the given master server. For details on the protocol used to do
+  this, please see the <a href="http://verse.blender.org/cms/Master_Server__v2.775.0.html">spec</a>.
+ </dd>
+ <dt>-ms:de=DESC</dt>
+ <dd>
+  Sets the description to use for this server, when registering with the the master server. This is
+  only used if master server communication is actually enabled. The description is expected to be a
+  human-readable string, like <code>"A test server, run on a cable modem, and offline during local daytime"</code>
+  or something.
+ </dd>
+ <dt>-ms:ta=TAGS</dt>
+ <dd>
+  Sets the tags to use for this server, when registering with the the master server. This is only used
+  if master server communication is actually enabled. The tags consists of a comma-separated list of
+  single words. Each word must begin with a letter, and contain only letters, digits, or underscore
+  characters. For instance: <code>home,r6p1,linux,sweden,open</code>.
+ </dd>
  <dt>-port=N</dt>
  <dd>
-  Use the indicated port number, rather than the default.
- </dd>
- <dt>-master=IP</dt>
- <dd>
-  Connect to a <a href="http://verse.blender.org/cms/Master_Server.713.0.html">master server</a> at address <i>IP</i>.
- </dd>
- <dt>-Q</dt>
- <dd>
-  Don't register with a <a href="http://verse.blender.org/cms/Master_Server.713.0.html">master server</a>.
-  This is currently the default, as master server operation has not been widely used.
+  Use the indicated port number, rather than the default. Note that ports below 1024 are generally
+  off-limits to ordinary users. Running Verse on such a port is not recommended.
  </dd>
  <dt>-version</dt>
  <dd>
@@ -99,10 +125,16 @@ You can use the following command line options to control the server's operation
  </dd>
 </dl>
 <p>
-For example, here is how to start the server, with a master server of <code>master.example.org</code>,
-and a port number equal to 16333:
+For example, here is how to start the server, register it with the default master server, and run
+on port number equal to 16333:
 </p>
-<pre class="shell">~> ./server -master=master.example.org -port=16333
+<pre class="shell">~> ./server -ms -port=16333
+</pre>
+<p>
+Here is a more complicated example, that uses an explicit master server address, and also sets both
+the description and tags:
+</p>
+<pre class="shell">~> ./server -ms:ip=master.example.net -ms:de="A test server, for the documentation" -ms:ta=example,docs
 </pre>
 <p>
 Options can occur in any order, with later options overriding earlier ones, in case of conflicts.

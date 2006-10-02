@@ -609,6 +609,7 @@ static void callback_send_o_method_group_subscribe(void *user, VNodeID node_id, 
 {
 	VSNodeObject *node;
 	unsigned int i, j;
+
 	node = (VSNodeObject *)vs_get_node(node_id, V_NT_OBJECT);
 	if(node == NULL || vs_get_node(node_id, V_NT_OBJECT) == NULL)
 		return;
@@ -641,7 +642,7 @@ static void callback_send_o_method_create(void *user, VNodeID node_id, uint16 gr
 	VSNodeObject *node;
 	unsigned int i, j, count;
 	VSMethodGroup *group;
-	
+
 	node = (VSNodeObject *) vs_get_node(node_id, V_NT_OBJECT);
 	if(node == NULL || vs_get_node(node_id, V_NT_OBJECT) == NULL)
 		return;

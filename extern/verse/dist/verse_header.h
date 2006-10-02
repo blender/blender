@@ -5,7 +5,7 @@
 
 /* Release information. */
 #define	V_RELEASE_NUMBER	6
-#define	V_RELEASE_PATCH		0
+#define	V_RELEASE_PATCH		1
 #define	V_RELEASE_LABEL		""
 
 typedef unsigned char	boolean;
@@ -18,8 +18,8 @@ typedef unsigned int	uint32;
 typedef float		real32;
 typedef double		real64;
 
-#define V_REAL64_MAX         1.7976931348623158e+308 /* max value */
-#define V_REAL32_MAX         3.40282347e+38F
+#define V_REAL64_MAX         1.7976931348623158e+308
+#define V_REAL32_MAX         3.402823466e+38f
 
 #if !defined TRUE
 #define TRUE  1

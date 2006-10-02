@@ -292,7 +292,7 @@ static void callback_send_a_block_set(void *user, VNodeID node_id, VLayerID buff
 	VSNodeAudio *node;
 	unsigned int i, count;
 
-	if(type < 0 || type > VN_A_BLOCK_REAL64)	/* Protect blocksize array. */
+	if(type > VN_A_BLOCK_REAL64)	/* Protect blocksize array. */
 		return;
 
 	node = (VSNodeAudio *)vs_get_node(node_id, V_NT_AUDIO);

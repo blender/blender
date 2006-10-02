@@ -106,7 +106,7 @@ void verse_send_node_index_subscribe(uint32 mask)
 	printf("send: verse_send_node_index_subscribe(mask = %u );\n", mask);
 #endif
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], mask);
-	if(mask == (uint32)(-1))
+	if(mask == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -148,7 +148,7 @@ void verse_send_node_create(VNodeID node_id, VNodeType type, VNodeOwner owner)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)type);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)owner);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -171,7 +171,7 @@ void verse_send_node_destroy(VNodeID node_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)-1);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)-1);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -197,12 +197,12 @@ unsigned int v_unpack_node_create(const char *buf, size_t buffer_length)
 	buffer_pos += vnp_raw_unpack_uint8(&buf[buffer_pos], &enum_temp);
 	owner = (VNodeOwner)enum_temp;
 #if defined V_PRINT_RECEIVE_COMMANDS
-	if(owner == (uint8)-1 || type >= V_NT_NUM_TYPES)
+	if(owner == (uint8) ~0u || type >= V_NT_NUM_TYPES)
 		printf("receive: verse_send_node_destroy(node_id = %u ); callback = %p\n", node_id, v_fs_get_alias_user_func(10));
 	else
 		printf("receive: verse_send_node_create(node_id = %u type = %u owner = %u ); callback = %p\n", node_id, type, owner, v_fs_get_user_func(10));
 #endif
-	if(owner == (uint8)-1 || type >= V_NT_NUM_TYPES)
+	if(owner == (uint8) ~0u || type >= V_NT_NUM_TYPES)
 	{
 		void (* alias_node_destroy)(void *user_data, VNodeID node_id);
 		alias_node_destroy = v_fs_get_alias_user_func(10);
@@ -230,7 +230,7 @@ void verse_send_node_subscribe(VNodeID node_id)
 #endif
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], TRUE);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -252,7 +252,7 @@ void verse_send_node_unsubscribe(VNodeID node_id)
 #endif
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], FALSE);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -309,7 +309,7 @@ void verse_send_tag_group_create(VNodeID node_id, uint16 group_id, const char *n
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], group_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], name, 16);
-	if(node_id == (uint32)(-1) || group_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || group_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -332,7 +332,7 @@ void verse_send_tag_group_destroy(VNodeID node_id, uint16 group_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], group_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], NULL, 16);
-	if(node_id == (uint32)(-1) || group_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || group_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -389,7 +389,7 @@ void verse_send_tag_group_subscribe(VNodeID node_id, uint16 group_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], group_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], TRUE);
-	if(node_id == (uint32)(-1) || group_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || group_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -412,7 +412,7 @@ void verse_send_tag_group_unsubscribe(VNodeID node_id, uint16 group_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], group_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], FALSE);
-	if(node_id == (uint32)(-1) || group_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || group_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -529,7 +529,7 @@ void verse_send_tag_create(VNodeID node_id, uint16 group_id, uint16 tag_id, cons
 		default :
 			;
 	}
-	if(node_id == (uint32)(-1) || group_id == (uint16)(-1) || tag_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || group_id == (uint16) ~0u || tag_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 9);
 	else
 		v_cmd_buf_set_address_size(head, 9);
@@ -554,7 +554,7 @@ void verse_send_tag_destroy(VNodeID node_id, uint16 group_id, uint16 tag_id)
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], tag_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], NULL, 16);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)-1);
-	if(node_id == (uint32)(-1) || group_id == (uint16)(-1) || tag_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || group_id == (uint16) ~0u || tag_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 9);
 	else
 		v_cmd_buf_set_address_size(head, 9);
@@ -678,7 +678,7 @@ void verse_send_node_name_set(VNodeID node_id, const char *name)
 #endif
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], name, 512);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);

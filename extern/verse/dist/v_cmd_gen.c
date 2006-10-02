@@ -456,14 +456,14 @@ void v_cg_set_command_address(FILE *f, boolean alias)
 				case  VCGP_FRAGMENT_ID :
 					if(count++ != 0)
 						fprintf(f, " || ");
-					fprintf(f, "%s == (uint16)(-1)", VCGData.param_name[param[j]]);
+					fprintf(f, "%s == (uint16) ~0u", VCGData.param_name[param[j]]);
 					break;
 				case  VCGP_NODE_ID : 
 				case  VCGP_UINT32 :
 				case  VCGP_REAL32 :
 					if(count++ != 0)
 						fprintf(f, " || ");
-					fprintf(f, "%s == (uint32)(-1)", VCGData.param_name[param[j]]);
+					fprintf(f, "%s == (uint32) ~0u", VCGData.param_name[param[j]]);
 					break;
 			}
 			j++;

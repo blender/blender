@@ -382,7 +382,7 @@ void verse_send_c_key_set(VNodeID node_id, VLayerID curve_id, uint32 key_id, uin
 	for(i = 0; i < dimensions; i++)
 		buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], post_pos[i]);	
 
-	if(key_id == (uint32)(-1))
+	if(key_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 11);
 	else
 		v_cmd_buf_set_address_size(head, 11);

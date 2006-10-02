@@ -65,8 +65,9 @@ static void callback_send_m_fragment_create(void *user, VNodeID node_id, VNMFrag
 		return;
 	if(node->frag_count + 32 < frag_id)
 		frag_id = (uint16)-1;
-	if(frag_id == (uint16)-1)
-		for(frag_id = 0; frag_id < node->frag_count && node->frag[frag_id].type < VN_M_FT_OUTPUT + 1; frag_id++);
+	if(frag_id == (uint16) ~0u)
+		for(frag_id = 0; frag_id < node->frag_count && node->frag[frag_id].type < VN_M_FT_OUTPUT + 1; frag_id++)
+			;
 	if(frag_id >= node->frag_count)
 	{
 		node->frag = realloc(node->frag, (sizeof *node->frag) * (node->frag_count + 16));

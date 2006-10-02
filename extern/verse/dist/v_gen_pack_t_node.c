@@ -17,7 +17,7 @@
 #include "v_connection.h"
 #include "v_util.h"
 
-void verse_send_t_set_language(VNodeID node_id, const char *language)
+void verse_send_t_language_set(VNodeID node_id, const char *language)
 {
 	uint8 *buf;
 	unsigned int buffer_pos = 0;
@@ -27,11 +27,11 @@ void verse_send_t_set_language(VNodeID node_id, const char *language)
 
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], 96);	/* Pack the command. */
 #if defined V_PRINT_SEND_COMMANDS
-	printf("send: verse_send_t_set_language(node_id = %u language = %s );\n", node_id, language);
+	printf("send: verse_send_t_language_set(node_id = %u language = %s );\n", node_id, language);
 #endif
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], language, 512);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -39,23 +39,23 @@ void verse_send_t_set_language(VNodeID node_id, const char *language)
 	v_noq_send_buf(v_con_get_network_queue(), head);
 }
 
-unsigned int v_unpack_t_set_language(const char *buf, size_t buffer_length)
+unsigned int v_unpack_t_language_set(const char *buf, size_t buffer_length)
 {
 	unsigned int buffer_pos = 0;
-	void (* func_t_set_language)(void *user_data, VNodeID node_id, const char *language);
+	void (* func_t_language_set)(void *user_data, VNodeID node_id, const char *language);
 	VNodeID node_id;
 	char language[512];
 	
-	func_t_set_language = v_fs_get_user_func(96);
+	func_t_language_set = v_fs_get_user_func(96);
 	if(buffer_length < 4)
 		return -1;
 	buffer_pos += vnp_raw_unpack_uint32(&buf[buffer_pos], &node_id);
 	buffer_pos += vnp_raw_unpack_string(&buf[buffer_pos], language, 512, buffer_length - buffer_pos);
 #if defined V_PRINT_RECEIVE_COMMANDS
-	printf("receive: verse_send_t_set_language(node_id = %u language = %s ); callback = %p\n", node_id, language, v_fs_get_user_func(96));
+	printf("receive: verse_send_t_language_set(node_id = %u language = %s ); callback = %p\n", node_id, language, v_fs_get_user_func(96));
 #endif
-	if(func_t_set_language != NULL)
-		func_t_set_language(v_fs_get_user_data(96), node_id, language);
+	if(func_t_language_set != NULL)
+		func_t_language_set(v_fs_get_user_data(96), node_id, language);
 
 	return buffer_pos;
 }
@@ -75,7 +75,7 @@ void verse_send_t_buffer_create(VNodeID node_id, VBufferID buffer_id, const char
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], buffer_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], name, 16);
-	if(node_id == (uint32)(-1) || buffer_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || buffer_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -98,7 +98,7 @@ void verse_send_t_buffer_destroy(VNodeID node_id, VBufferID buffer_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], buffer_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], NULL, 16);
-	if(node_id == (uint32)(-1) || buffer_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || buffer_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -155,7 +155,7 @@ void verse_send_t_buffer_subscribe(VNodeID node_id, VBufferID buffer_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], buffer_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], TRUE);
-	if(node_id == (uint32)(-1) || buffer_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || buffer_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -178,7 +178,7 @@ void verse_send_t_buffer_unsubscribe(VNodeID node_id, VBufferID buffer_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], buffer_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], FALSE);
-	if(node_id == (uint32)(-1) || buffer_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || buffer_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);

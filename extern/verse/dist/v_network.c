@@ -119,26 +119,47 @@ void v_n_socket_destroy(void)
 
 boolean v_n_set_network_address(VNetworkAddress *address, const char *host_name)
 {
-	struct hostent *he;
-	char *colon = NULL;
+	struct hostent	*he;
+	char		*colon = NULL, *buf = NULL;
+	boolean		ok = FALSE;
+
 	v_n_socket_create();
 	address->port = VERSE_STD_CONNECT_TO_PORT;
+	/* If a port number is included, as indicated by a colon, we need to work a bit more. */
 	if((colon = strchr(host_name, ':')) != NULL)
 	{
-		unsigned int tp;
-		*colon = '\0';
-		if(sscanf(colon + 1, "%u", &tp) == 1)
-			address->port = tp;
+		size_t	hl = strlen(host_name);
+
+		if((buf = malloc(hl + 1)) != NULL)
+		{
+			unsigned int	tp;
+
+			strcpy(buf, host_name);
+			colon = buf + (colon - host_name);
+			*colon = '\0';
+			host_name = buf;
+			if(sscanf(colon + 1, "%u", &tp) == 1)
+			{
+				address->port = (unsigned short) tp;
+				if(address->port != tp)	/* Protect against overflow. */
+					host_name = NULL;
+			}
+			else
+				host_name = NULL;	/* Protect against parse error. */
+		}
+		else
+			return FALSE;
 	}
-	if((he = gethostbyname(host_name)) != NULL)
+	if(host_name != NULL && (he = gethostbyname(host_name)) != NULL)
 	{
 		memcpy(&address->ip, he->h_addr_list[0], he->h_length);
-		address->ip = htonl(address->ip);
-	}else
-		return FALSE;
-	if(colon != NULL)
-		*colon = ':';
-	return TRUE;
+		address->ip = ntohl(address->ip);
+		ok = TRUE;
+	}
+	if(buf != NULL)
+		free(buf);
+
+	return ok;
 }
 
 int v_n_send_data(VNetworkAddress *address, const char *data, size_t length)

@@ -49,7 +49,7 @@ void v_gen_system_cmd_def(void)
 	v_cg_add_param(VCGP_ENUM,		"type");
 	v_cg_add_param(VCGP_ENUM_NAME,	"VNodeOwner");
 	v_cg_add_param(VCGP_ENUM,		"owner");
-	v_cg_alias(FALSE, "node_destroy", "if(owner == (uint8)-1 || type >= V_NT_NUM_TYPES)", 1, NULL);
+	v_cg_alias(FALSE, "node_destroy", "if(owner == (uint8) ~0u || type >= V_NT_NUM_TYPES)", 1, NULL);
 	v_cg_end_cmd();
 
 	v_cg_new_cmd(V_NT_SYSTEM,		"node_subscribe", 11, VCGCT_NORMAL);

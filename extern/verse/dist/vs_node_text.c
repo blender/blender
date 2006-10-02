@@ -67,7 +67,7 @@ void vs_t_destroy_node(VSNodeText *node)
 void vs_t_subscribe(VSNodeText *node)
 {
 	unsigned int i;
-	verse_send_t_set_language(node->head.id, node->language);
+	verse_send_t_language_set(node->head.id, node->language);
 	for(i = 0; i < node->buffer_count; i++)
 		if(node->buffer[i].name[0] != 0)
 			verse_send_t_buffer_create(node->head.id, i, node->buffer[i].name);
@@ -81,7 +81,7 @@ void vs_t_unsubscribe(VSNodeText *node)
 			vs_remove_subscriptor(node->buffer[i].subscribers);
 }
 
-static void callback_send_t_set_language(void *user, VNodeID node_id, char *language)
+static void callback_send_t_language_set(void *user, VNodeID node_id, char *language)
 {
 	VSNodeText *node;
 	unsigned int i, count;
@@ -95,7 +95,7 @@ static void callback_send_t_set_language(void *user, VNodeID node_id, char *lang
 	for(i = 0; i < count; i++)
 	{
 		vs_set_subscript_session(node->head.subscribers, i);
-		verse_send_t_set_language(node_id, language);
+		verse_send_t_language_set(node_id, language);
 	}
 	vs_reset_subscript_session();
 
@@ -263,7 +263,7 @@ static void callback_send_t_text_set(void *user, VNodeID node_id, VBufferID buff
 
 void vs_t_callback_init(void)
 {
-	verse_callback_set(verse_send_t_set_language,		callback_send_t_set_language, NULL);
+	verse_callback_set(verse_send_t_language_set,		callback_send_t_language_set, NULL);
 	verse_callback_set(verse_send_t_buffer_create,		callback_send_t_buffer_create, NULL);
 	verse_callback_set(verse_send_t_buffer_destroy,		callback_send_t_buffer_destroy, NULL);
 	verse_callback_set(verse_send_t_buffer_subscribe,	callback_send_t_buffer_subscribe, NULL);

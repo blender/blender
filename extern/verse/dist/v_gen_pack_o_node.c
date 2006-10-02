@@ -68,7 +68,7 @@ void verse_send_o_transform_pos_real32(VNodeID node_id, uint32 time_s, uint32 ti
 		vnp_raw_pack_uint8(&buf[cmd], mask);
 	}if(FALSE)
 	buffer_pos += vnp_raw_pack_real32(&buf[buffer_pos], drag);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -174,7 +174,7 @@ void verse_send_o_transform_rot_real32(VNodeID node_id, uint32 time_s, uint32 ti
 	}
 	if(FALSE)
 	buffer_pos += vnp_raw_pack_real32(&buf[buffer_pos], drag);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -251,7 +251,7 @@ void verse_send_o_transform_scale_real32(VNodeID node_id, real32 scale_x, real32
 	buffer_pos += vnp_raw_pack_real32(&buf[buffer_pos], scale_x);
 	buffer_pos += vnp_raw_pack_real32(&buf[buffer_pos], scale_y);
 	buffer_pos += vnp_raw_pack_real32(&buf[buffer_pos], scale_z);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -335,7 +335,7 @@ void verse_send_o_transform_pos_real64(VNodeID node_id, uint32 time_s, uint32 ti
 		vnp_raw_pack_uint8(&buf[cmd], mask);
 	}if(FALSE)
 	buffer_pos += vnp_raw_pack_real64(&buf[buffer_pos], drag);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -441,7 +441,7 @@ void verse_send_o_transform_rot_real64(VNodeID node_id, uint32 time_s, uint32 ti
 	}
 	if(FALSE)
 	buffer_pos += vnp_raw_pack_real64(&buf[buffer_pos], drag);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -492,7 +492,7 @@ unsigned int v_unpack_o_transform_rot_real64(const char *buf, size_t buffer_leng
 		else
 			drag = 0.0;
 		if(func_o_transform_rot_real64 != NULL)
-			func_o_transform_rot_real64(v_fs_get_user_data(33), node_id, time_s, time_f, &trot, q[0], q[1], q[2], drag);
+			func_o_transform_rot_real64(v_fs_get_user_data(36), node_id, time_s, time_f, &trot, q[0], q[1], q[2], drag);
 		return buffer_pos;
 	}
 
@@ -518,7 +518,7 @@ void verse_send_o_transform_scale_real64(VNodeID node_id, real64 scale_x, real64
 	buffer_pos += vnp_raw_pack_real64(&buf[buffer_pos], scale_x);
 	buffer_pos += vnp_raw_pack_real64(&buf[buffer_pos], scale_y);
 	buffer_pos += vnp_raw_pack_real64(&buf[buffer_pos], scale_z);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -566,7 +566,7 @@ void verse_send_o_transform_subscribe(VNodeID node_id, VNRealFormat type)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)type);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], TRUE);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -589,7 +589,7 @@ void verse_send_o_transform_unsubscribe(VNodeID node_id, VNRealFormat type)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)type);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], FALSE);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -651,7 +651,7 @@ void verse_send_o_light_set(VNodeID node_id, real64 light_r, real64 light_g, rea
 	buffer_pos += vnp_raw_pack_real64(&buf[buffer_pos], light_r);
 	buffer_pos += vnp_raw_pack_real64(&buf[buffer_pos], light_g);
 	buffer_pos += vnp_raw_pack_real64(&buf[buffer_pos], light_b);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -702,7 +702,7 @@ void verse_send_o_link_set(VNodeID node_id, uint16 link_id, VNodeID link, const 
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], label, 16);
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], target_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], TRUE);
-	if(node_id == (uint32)(-1) || link_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || link_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -728,7 +728,7 @@ void verse_send_o_link_destroy(VNodeID node_id, uint16 link_id)
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], NULL, 16);
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], -1);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], FALSE);
-	if(node_id == (uint32)(-1) || link_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || link_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -795,7 +795,7 @@ void verse_send_o_method_group_create(VNodeID node_id, uint16 group_id, const ch
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], group_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], name, 16);
-	if(node_id == (uint32)(-1) || group_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || group_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -818,7 +818,7 @@ void verse_send_o_method_group_destroy(VNodeID node_id, uint16 group_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], group_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], NULL, 16);
-	if(node_id == (uint32)(-1) || group_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || group_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -875,7 +875,7 @@ void verse_send_o_method_group_subscribe(VNodeID node_id, uint16 group_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], group_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], TRUE);
-	if(node_id == (uint32)(-1) || group_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || group_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -898,7 +898,7 @@ void verse_send_o_method_group_unsubscribe(VNodeID node_id, uint16 group_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], group_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], FALSE);
-	if(node_id == (uint32)(-1) || group_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || group_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -974,7 +974,7 @@ void verse_send_o_method_create(VNodeID node_id, uint16 group_id, uint16 method_
 			buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], param_names[i], 1500 - buffer_pos);
 		}
 	}
-	if(node_id == (uint32)(-1) || group_id == (uint16)(-1) || method_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || group_id == (uint16) ~0u || method_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 9);
 	else
 		v_cmd_buf_set_address_size(head, 9);
@@ -999,7 +999,7 @@ void verse_send_o_method_destroy(VNodeID node_id, uint16 group_id, uint16 method
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], method_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], NULL, 512);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], -1);
-	if(node_id == (uint32)(-1) || group_id == (uint16)(-1) || method_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || group_id == (uint16) ~0u || method_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 9);
 	else
 		v_cmd_buf_set_address_size(head, 9);
@@ -1186,7 +1186,7 @@ void verse_send_o_anim_run(VNodeID node_id, uint16 link_id, uint32 time_s, uint3
 		}
 		vnp_raw_pack_uint8(&buf[cmd], mask);
 	}
-	if(node_id == (uint32)(-1) || link_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || link_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -1264,7 +1264,7 @@ void verse_send_o_hide(VNodeID node_id, uint8 hidden)
 #endif
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], hidden);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);

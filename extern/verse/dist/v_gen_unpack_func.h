@@ -48,7 +48,7 @@ extern unsigned int v_unpack_b_dimensions_set(const char *data, size_t length);
 extern unsigned int v_unpack_b_layer_create(const char *data, size_t length);
 extern unsigned int v_unpack_b_layer_subscribe(const char *data, size_t length);
 extern unsigned int v_unpack_b_tile_set(const char *data, size_t length);
-extern unsigned int v_unpack_t_set_language(const char *data, size_t length);
+extern unsigned int v_unpack_t_language_set(const char *data, size_t length);
 extern unsigned int v_unpack_t_buffer_create(const char *data, size_t length);
 extern unsigned int v_unpack_t_buffer_subscribe(const char *data, size_t length);
 extern unsigned int v_unpack_t_text_set(const char *data, size_t length);

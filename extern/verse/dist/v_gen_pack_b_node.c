@@ -33,7 +33,7 @@ void verse_send_b_dimensions_set(VNodeID node_id, uint16 width, uint16 height, u
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], width);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], height);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], depth);
-	if(node_id == (uint32)(-1))
+	if(node_id == (uint32) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 5);
 	else
 		v_cmd_buf_set_address_size(head, 5);
@@ -82,7 +82,7 @@ void verse_send_b_layer_create(VNodeID node_id, VLayerID layer_id, const char *n
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], layer_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], name, 16);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)type);
-	if(node_id == (uint32)(-1) || layer_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || layer_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -106,7 +106,7 @@ void verse_send_b_layer_destroy(VNodeID node_id, VLayerID layer_id)
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], layer_id);
 	buffer_pos += vnp_raw_pack_string(&buf[buffer_pos], NULL, 16);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], (uint8)-1);
-	if(node_id == (uint32)(-1) || layer_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || layer_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -169,7 +169,7 @@ void verse_send_b_layer_subscribe(VNodeID node_id, VLayerID layer_id, uint8 leve
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], layer_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], level);
-	if(node_id == (uint32)(-1) || layer_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || layer_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
@@ -192,7 +192,7 @@ void verse_send_b_layer_unsubscribe(VNodeID node_id, VLayerID layer_id)
 	buffer_pos += vnp_raw_pack_uint32(&buf[buffer_pos], node_id);
 	buffer_pos += vnp_raw_pack_uint16(&buf[buffer_pos], layer_id);
 	buffer_pos += vnp_raw_pack_uint8(&buf[buffer_pos], -1);
-	if(node_id == (uint32)(-1) || layer_id == (uint16)(-1))
+	if(node_id == (uint32) ~0u || layer_id == (uint16) ~0u)
 		v_cmd_buf_set_unique_address_size(head, 7);
 	else
 		v_cmd_buf_set_address_size(head, 7);
