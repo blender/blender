@@ -49,6 +49,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "verse", "..\..\verse\make\m
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "verse_server", "..\..\verse\make\msvc_7_0\verse.vcproj", "{FC752464-F413-4D4F-842D-A5D3AA0E6A3D}"
 	ProjectSection(ProjectDependencies) = postProject
+		{F9850C15-FF0A-429E-9D47-89FB433C9BD8} = {F9850C15-FF0A-429E-9D47-89FB433C9BD8}
 	EndProjectSection
 EndProject
 Global
