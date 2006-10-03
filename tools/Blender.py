@@ -283,10 +283,17 @@ def AppIt(target=None, source=None, env=None):
     import commands
     import os.path
     
+    
     a = '%s' % (target[0])
     builddir, b = os.path.split(a)
+
     bldroot = env.Dir('.').abspath
     binary = env['BINARYKIND']
+     
+    if b=='verse':
+    	print bc.OKBLUE+"no bundle for verse"+bc.ENDC 
+    	return 0
+   
     
     sourcedir = bldroot + '/source/darwin/%s.app'%binary
     sourceinfo = bldroot + "/source/darwin/%s.app/Contents/Info.plist"%binary
