@@ -116,6 +116,7 @@ if not env:
     print "Could not create a build environment"
     Exit()
 
+env.SConscriptChdir(0)
 cc = B.arguments.get('CC', None)
 cxx = B.arguments.get('CXX', None)
 if cc:

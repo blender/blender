@@ -10,6 +10,11 @@
 
 #include "v_cmd_gen.h"
 
+#if defined _WIN32
+#define chdir _chdir
+#define snprintf _snprintf
+#endif
+
 #if defined V_GENERATE_FUNC_MODE
 
 #define MAX_PARAMS_PER_CMD	32
@@ -43,8 +48,9 @@ extern void v_gen_text_cmd_def(void);
 extern void v_gen_curve_cmd_def(void);
 extern void v_gen_audio_cmd_def(void);
 
-static void v_cg_init(void)
+static int v_cg_init(const char *src_path)
 {
+    char	buf[1024];
 	int	i;
 	FILE	*f;
 
@@ -105,11 +111,21 @@ static void v_cg_init(void)
 		"#endif\n\n"
 		"#define\tVERSE_H\n\n");
 	/* Copy contents of "verse_header.h" into output "verse.h". */
-	f = fopen("verse_header.h", "r");
-	while((i = fgetc(f)) != EOF)
-		fputc(i, VCGData.verse_h);
-	fclose(f);
+	snprintf(buf, sizeof buf, "%sverse_header.h", src_path);
+	f = fopen(buf, "r");
+	if(f != NULL)
+	{
+		while((i = fgetc(f)) != EOF)
+			fputc(i, VCGData.verse_h);
+		fclose(f);
+	}
+	else
+	{
+		fprintf(stderr, "mkprot: Couldn't find \"%s\" input file\n", buf);
+        return 0;
+	}
 	fprintf(VCGData.verse_h, "\n/* Command sending functions begin. ----------------------------------------- */\n\n");
+	return 1;
 }
 
 static void v_cg_close(void)
@@ -865,8 +881,36 @@ void v_cg_end_cmd(void)
 
 int main(int argc, char *argv[])
 {
+	const char 	*src = "";
+	int				i;
+    
+    for(i = 1; argv[i] != NULL; i++)
+    {
+        if(strcmp(argv[i], "-h") == 0)
+        {
+            printf("Verse protocol generation tool.\nUsage:\n");
+            printf(" -h\t\tPrint this usage information, and exit.\n");
+            printf(" -src=PATH\tSets source path prefix to PATH. It must be possible to find\n");
+            printf("\t\tthe \"verse_header.h\" input file by appending that name to PATH.\n");
+            printf("\t\tThus, PATH must end with a proper directory separator character.\n");
+            printf(" -dst=PATH\tSets output directory, where all output files are written.\n");
+            printf("\t\tIf used, use -src to point to where \"verse_header.h\" is.\n");
+            return EXIT_SUCCESS;
+        }
+        else if(strncmp(argv[i], "-src=", 5) == 0)
+            src = argv[i] + 5;
+        else if(strncmp(argv[i], "-dst=", 5) == 0)
+        {
+            if(chdir(argv[i] + 5) != 0)
+                fprintf(stderr, "%s: Couldn't set output directory to \"%s\"\n", argv[0], argv[i]+5);
+        }
+        else
+            fprintf(stderr, "%s: Ignoring unknown uption \"%s\"\n", argv[0], argv[i]);
+    }
+    
 	printf("start\n");
-	v_cg_init();
+	if(!v_cg_init(src))
+        return EXIT_FAILURE;
 	v_gen_system_cmd_def();
 	fprintf(VCGData.verse_h, "\n");
 	v_gen_object_cmd_def();
