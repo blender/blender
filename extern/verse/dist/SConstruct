@@ -75,8 +75,6 @@ proto_env = env.Copy()
 proto_env.Append(CPPDEFINES=['V_GENERATE_FUNC_MODE'])
 mkprot_tool = proto_env.Program(target = 'mkprot', source = cmd_gen_files)
 
-print os.getcwd()
-
 mkprot_re = re.compile('v_cmd_def_([a-z]{1}).c')
 def mkprot_emitter(target = None, source = None, env = None):
 	newtargets = list()
@@ -96,11 +94,6 @@ verse_env['BUILDERS']['Protocol'] = mkprot_bld
 
 cmd_gen_deps.extend(verse_env.Protocol('do_mkprot', cmd_gen_files))
 
-
-print "XXXXXXXXXXXXXXXXX"
-for i in cmd_gen_deps:
-    print i
-print "XXXXXXXXXXXXXXXXX"
 cmd_gen_deps.pop()
 
 lib_source_files = (['v_cmd_buf.c',
@@ -147,7 +140,7 @@ verseserver_env.Append (LIBS= platform_libs)
 
 #verselib =
 verselib_env.BlenderLib(libname='verse', sources=lib_source_files, includes=["."], defines = defines, libtype=['core', 'intern'], priority = [5, 5])
-verseserver_env.BlenderProg(builddir="#"+root_build_dir, progname='verse', sources=server_source_files, libs=['verse'],
+verseserver_env.BlenderProg(builddir="#"+root_build_dir+os.sep, progname='verse', sources=server_source_files, libs=['verse'],
 libpath='#'+env['BF_BUILDDIR']+'/lib')
 
 
