@@ -295,7 +295,7 @@ PyObject *Vector_copy(VectorObject * self)
   free the py_object */
 static void Vector_dealloc(VectorObject * self)
 {
-	Py_XDECREF(self->coerced_object);
+	//Py_XDECREF(self->coerced_object);
 	/*only free py_data*/
 	if(self->data.py_data){
 		PyMem_Free(self->data.py_data);
@@ -508,43 +508,45 @@ static int Vector_ass_slice(VectorObject * self, int begin, int end,
   addition*/
 static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 {
-	int x, size;
+	int x;
 	float vec[4];
+
 	VectorObject *vec1 = NULL, *vec2 = NULL;
-	PointObject *pt = NULL;
-
-	vec1 = (VectorObject*)v1;
-	vec2 = (VectorObject*)v2;
-
-	if(!vec1->coerced_object){
-		if(vec2->coerced_object){
-			if(PointObject_Check(vec2->coerced_object)){  /*VECTOR + POINT*/
-				/*Point translation*/
-				pt = (PointObject*)vec2->coerced_object;
-				size = vec1->size;
-				if(pt->size == size){
-					for(x = 0; x < size; x++){
-						vec[x] = vec1->vec[x] + pt->coord[x];
-					}	
-				}else{
-					return EXPP_ReturnPyObjError(PyExc_AttributeError,
-						"Vector addition: arguments are the wrong size....\n");
-				}
-				return newPointObject(vec, size, Py_NEW);
-			}
-		}else{ /*VECTOR + VECTOR*/
-			if(vec1->size != vec2->size){
-				return EXPP_ReturnPyObjError(PyExc_AttributeError,
-				"Vector addition: vectors must have the same dimensions for this operation\n");
-			}
-			size = vec1->size;
-			for(x = 0; x < size; x++) {
-				vec[x] = vec1->vec[x] +	vec2->vec[x];
-			}
-			return newVectorObject(vec, size, Py_NEW);
+	
+	if VectorObject_Check(v1)
+		vec1= (VectorObject *)v1;
+	
+	if VectorObject_Check(v2)
+		vec2= (VectorObject *)v2;
+	
+	/* make sure v1 is always the vector */
+	if (vec1 && vec2 ) {
+		/*VECTOR + VECTOR*/
+		if(vec1->size != vec2->size)
+			return EXPP_ReturnPyObjError(PyExc_AttributeError,
+			"Vector addition: vectors must have the same dimensions for this operation\n");
+		
+		for(x = 0; x < vec1->size; x++) {
+			vec[x] = vec1->vec[x] +	vec2->vec[x];
 		}
+		return newVectorObject(vec, vec1->size, Py_NEW);
 	}
-
+	
+	if(PointObject_Check(v2)){  /*VECTOR + POINT*/
+		/*Point translation*/
+		PointObject *pt = (PointObject*)v2;
+		
+		if(pt->size == vec1->size){
+			for(x = 0; x < vec1->size; x++){
+				vec[x] = vec1->vec[x] + pt->coord[x];
+			}
+		}else{
+			return EXPP_ReturnPyObjError(PyExc_AttributeError,
+				"Vector addition: arguments are the wrong size....\n");
+		}
+		return newPointObject(vec, vec1->size, Py_NEW);
+	}
+	
 	return EXPP_ReturnPyObjError(PyExc_AttributeError,
 		"Vector addition: arguments not valid for this operation....\n");
 }
@@ -556,17 +558,16 @@ static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
 	float vec[4];
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 
-	vec1 = (VectorObject*)v1;
-	vec2 = (VectorObject*)v2;
-
-	if(vec1->coerced_object || vec2->coerced_object){
+	if (!VectorObject_Check(v1) || !VectorObject_Check(v2))
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 			"Vector subtraction: arguments not valid for this operation....\n");
-	}
-	if(vec1->size != vec2->size){
+	
+	vec1 = (VectorObject*)v1;
+	vec2 = (VectorObject*)v2;
+	
+	if(vec1->size != vec2->size)
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 		"Vector subtraction: vectors must have the same dimensions for this operation\n");
-	}
 
 	size = vec1->size;
 	for(x = 0; x < size; x++) {
@@ -579,77 +580,63 @@ static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
   mulplication*/
 static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 {
-	int x, size;
-	float vec[4], scalar;
-	double dot = 0.0f;
 	VectorObject *vec1 = NULL, *vec2 = NULL;
-	PyObject *f = NULL, *retObj = NULL;
-	MatrixObject *mat = NULL;
-	QuaternionObject *quat = NULL;
-
-	vec1 = (VectorObject*)v1;
-	vec2 = (VectorObject*)v2;
-
-	if(vec1->coerced_object){
-		if (PyFloat_Check(vec1->coerced_object) || 
-			PyInt_Check(vec1->coerced_object)){	/* FLOAT/INT * VECTOR */
-			f = PyNumber_Float(vec1->coerced_object);
-			if(f == NULL) { /* parsed item not a number */
-				return EXPP_ReturnPyObjError(PyExc_TypeError, 
-					"Vector multiplication: arguments not acceptable for this operation\n");
-			}
-
-			scalar = (float)PyFloat_AS_DOUBLE(f);
-			size = vec2->size;
-			for(x = 0; x < size; x++) {
-				vec[x] = vec2->vec[x] *	scalar;
-			}
-			Py_DECREF(f);
-			return newVectorObject(vec, size, Py_NEW);
+	
+	if VectorObject_Check(v1)
+		vec1= (VectorObject *)v1;
+	
+	if VectorObject_Check(v2)
+		vec2= (VectorObject *)v2;
+	
+	/* make sure v1 is always the vector */
+	if (vec1 && vec2 ) {
+		int x;
+		double dot = 0.0f;
+		
+		if(vec1->size != vec2->size)
+		return EXPP_ReturnPyObjError(PyExc_AttributeError,
+			"Vector multiplication: vectors must have the same dimensions for this operation\n");
+		
+		/*dot product*/
+		for(x = 0; x < vec1->size; x++) {
+			dot += vec1->vec[x] * vec2->vec[x];
 		}
-	}else{
-		if(vec2->coerced_object){
-			if(MatrixObject_Check(vec2->coerced_object)){ /*VECTOR * MATRIX*/
-				mat = (MatrixObject*)vec2->coerced_object;
-				return retObj = row_vector_multiplication(vec1, mat);
-			}else if (PyFloat_Check(vec2->coerced_object) || 
-				PyInt_Check(vec2->coerced_object)){	/* VECTOR * FLOAT/INT */
-				f = PyNumber_Float(vec2->coerced_object);
-				if(f == NULL) { /* parsed item not a number */
-					return EXPP_ReturnPyObjError(PyExc_TypeError, 
-						"Vector multiplication: arguments not acceptable for this operation\n");
-				}
-
-				scalar = (float)PyFloat_AS_DOUBLE(f);
-				size = vec1->size;
-				for(x = 0; x < size; x++) {
-					vec[x] = vec1->vec[x] *	scalar;
-				}
-				Py_DECREF(f);
-				return newVectorObject(vec, size, Py_NEW);
-			}else if(QuaternionObject_Check(vec2->coerced_object)){  /*VECTOR * QUATERNION*/
-				quat = (QuaternionObject*)vec2->coerced_object;
-				if(vec1->size != 3){
-					return EXPP_ReturnPyObjError(PyExc_TypeError, 
-						"Vector multiplication: only 3D vector rotations (with quats) currently supported\n");
-				}
-				return quat_rotation((PyObject*)vec1, (PyObject*)quat);
-			}
-		}else{  /*VECTOR * VECTOR*/
-			if(vec1->size != vec2->size){
-				return EXPP_ReturnPyObjError(PyExc_AttributeError,
-					"Vector multiplication: vectors must have the same dimensions for this operation\n");
-			}
-			size = vec1->size;
-			/*dot product*/
-			for(x = 0; x < size; x++) {
-				dot += vec1->vec[x] * vec2->vec[x];
-			}
-			return PyFloat_FromDouble(dot);
-		}
+		return PyFloat_FromDouble(dot);
 	}
-
-	return EXPP_ReturnPyObjError(PyExc_TypeError, 
+	
+	/*swap so vec1 is always the vector */
+	if (vec2) {
+		vec1= vec2;
+		v2= v1;
+	}
+	
+	if (PyNumber_Check(v2)) {
+		/* VEC * NUM */
+		int x;
+		float vec[4];
+		float scalar = (float)PyFloat_AsDouble( v2 );
+		
+		for(x = 0; x < vec1->size; x++) {
+			vec[x] = vec1->vec[x] *	scalar;
+		}
+		return newVectorObject(vec, vec1->size, Py_NEW);
+		
+	} else if (MatrixObject_Check(v2)) {
+		/* VEC * MATRIX */
+		if (v1==v2) /* mat*vec, we have swapped the order */
+			return column_vector_multiplication((MatrixObject*)v2, vec1);
+		else /* vec*mat */
+			return row_vector_multiplication(vec1, (MatrixObject*)v2);
+	} else if (QuaternionObject_Check(v2)) {
+		QuaternionObject *quat = (QuaternionObject*)v2;
+		if(vec1->size != 3)
+			return EXPP_ReturnPyObjError(PyExc_TypeError, 
+				"Vector multiplication: only 3D vector rotations (with quats) currently supported\n");
+		
+		return quat_rotation((PyObject*)vec1, (PyObject*)quat);
+	}
+	
+	return EXPP_ReturnPyObjError(PyExc_TypeError,
 		"Vector multiplication: arguments not acceptable for this operation\n");
 }
 
@@ -659,45 +646,29 @@ static PyObject *Vector_div(PyObject * v1, PyObject * v2)
 {
 	int x, size;
 	float vec[4], scalar;
-
-	VectorObject *vec1 = NULL, *vec2 = NULL;
-	PyObject *f = NULL;
-
+	VectorObject *vec1 = NULL;
 	
-	if(!VectorObject_Check(v1)) { /* not a vector */
+	if(!VectorObject_Check(v1)) /* not a vector */
 		return EXPP_ReturnPyObjError(PyExc_TypeError, 
 			"Vector division: Vector must be divided by a float\n");
-	}
 	
 	vec1 = (VectorObject*)v1; /* vector */
-	vec2 = (VectorObject*)v2; /* fliat/int, somehow we need to use a vector to acess it */
 	
-	f = PyNumber_Float(vec2->coerced_object); /* why do we need to go through coerced_object - Cam */
-	if(f == NULL) { /* parsed item not a number*/
+	if(!PyNumber_Check(v2)) /* parsed item not a number */
 		return EXPP_ReturnPyObjError(PyExc_TypeError, 
 			"Vector division: Vector must be divided by a float\n");
-	}
 
-	scalar = (float)PyFloat_AS_DOUBLE(f);
-	Py_DECREF(f);
+	scalar = (float)PyFloat_AsDouble(v2);
 	
-	if(scalar==0.0) { /* not a vector */
+	if(scalar==0.0) /* not a vector */
 		return EXPP_ReturnPyObjError(PyExc_ZeroDivisionError, 
 			"Vector division: divide by zero error.\n");
-	}
 	
-	if (PyFloat_Check(vec2->coerced_object) || 
-		PyInt_Check(vec2->coerced_object)){	/* VECTOR / (FLOAT or INT)*/
-		
-		size = vec1->size;
-		for(x = 0; x < size; x++) {
-			vec[x] = vec1->vec[x] /	scalar;
-		}
-		return newVectorObject(vec, size, Py_NEW);
+	size = vec1->size;
+	for(x = 0; x < size; x++) {
+		vec[x] = vec1->vec[x] /	scalar;
 	}
-	
-	return EXPP_ReturnPyObjError(PyExc_TypeError, 
-		"Vector division: arguments not acceptable for this operation\n");
+	return newVectorObject(vec, size, Py_NEW);
 }
 
 
@@ -721,20 +692,17 @@ static PyObject *Vector_neg(VectorObject *self)
  to proceed, the unknown operand must be cast to a type that python math will
  understand. (e.g. in the case above case, 2 must be cast to a vector and 
  then call vector.multiply(vector, scalar_cast_as_vector)*/
+
+
 static int Vector_coerce(PyObject ** v1, PyObject ** v2)
 {
-	if(MatrixObject_Check(*v2) || PyFloat_Check(*v2) || PyInt_Check(*v2) || 
-			QuaternionObject_Check(*v2) || PointObject_Check(*v2)) {
-		PyObject *coerced = EXPP_incr_ret(*v2);
-		*v2 = newVectorObject(NULL,3,Py_NEW);
-		((VectorObject*)*v2)->coerced_object = coerced;
-		Py_INCREF (*v1);
-		return 0;
-	}
-
-	return EXPP_ReturnIntError(PyExc_TypeError, 
-		"vector.coerce(): unknown operand - can't coerce for numeric protocols");
+	/* Just incref, each functon must raise errors for bad types */
+	Py_INCREF (*v1);
+	Py_INCREF (*v2);
+	return 0;
 }
+
+
 /*------------------------tp_doc*/
 static char VectorObject_doc[] = "This is a wrapper for vector objects.";
 /*------------------------vec_magnitude (internal)*/
@@ -839,6 +807,16 @@ static PySequenceMethods Vector_SeqMethods = {
 	(intobjargproc) Vector_ass_item,			/* sq_ass_item */
 	(intintobjargproc) Vector_ass_slice,		/* sq_ass_slice */
 };
+
+
+/* For numbers without flag bit Py_TPFLAGS_CHECKTYPES set, all
+   arguments are guaranteed to be of the object's type (modulo
+   coercion hacks -- i.e. if the type's coercion function
+   returns other types, then these are allowed as well).  Numbers that
+   have the Py_TPFLAGS_CHECKTYPES flag bit set should check *both*
+   arguments for proper type and implement the necessary conversions
+   in the slot functions themselves. */
+ 
 static PyNumberMethods Vector_NumMethods = {
 	(binaryfunc) Vector_add,					/* __add__ */
 	(binaryfunc) Vector_sub,					/* __sub__ */
@@ -863,9 +841,35 @@ static PyNumberMethods Vector_NumMethods = {
 	(unaryfunc) 0,								/* __float__ */
 	(unaryfunc) 0,								/* __oct__ */
 	(unaryfunc) 0,								/* __hex__ */
-
+	
+	//~ /* Added in release 2.0 */
+	//~ binaryfunc nb_inplace_add;
+	//~ binaryfunc nb_inplace_subtract;
+	//~ binaryfunc nb_inplace_multiply;
+	//~ binaryfunc nb_inplace_divide;
+	//~ binaryfunc nb_inplace_remainder;
+	//~ ternaryfunc nb_inplace_power;
+	//~ binaryfunc nb_inplace_lshift;
+	//~ binaryfunc nb_inplace_rshift;
+	//~ binaryfunc nb_inplace_and;
+	//~ binaryfunc nb_inplace_xor;
+	//~ binaryfunc nb_inplace_or;
+ 
+	//~ /* Added in release 2.2 */
+	//~ /* The following require the Py_TPFLAGS_HAVE_CLASS flag */
+	//~ binaryfunc nb_floor_divide;
+	//~ binaryfunc nb_true_divide;
+	//~ binaryfunc nb_inplace_floor_divide;
+	//~ binaryfunc nb_inplace_true_divide;
 };
 /*------------------PY_OBECT DEFINITION--------------------------*/
+
+/* Note
+ Py_TPFLAGS_CHECKTYPES allows us to avoid casting all types to Vector when coercing
+ but this means for eg that 
+ vec*mat and mat*vec both get sent to Vector_mul and it neesd to sort out the order
+*/
+
 PyTypeObject vector_Type = {
 	PyObject_HEAD_INIT(NULL)		/*tp_head*/
 	0,								/*tp_internal*/
@@ -887,7 +891,7 @@ PyTypeObject vector_Type = {
 	0,								/*tp_getattro*/
 	0,								/*tp_setattro*/
 	0,								/*tp_as_buffer*/
-	Py_TPFLAGS_DEFAULT,				/*tp_flags*/
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_CHECKTYPES, /*tp_flags*/
 	VectorObject_doc,				/*tp_doc*/
 	0,								/*tp_traverse*/
 	0,								/*tp_clear*/
@@ -934,7 +938,6 @@ PyObject *newVectorObject(float *vec, int size, int type)
 	if(size > 4 || size < 2)
 		return NULL;
 	self->size = size;
-	self->coerced_object = NULL;
 
 	if(type == Py_WRAP){
 		self->data.blend_data = vec;

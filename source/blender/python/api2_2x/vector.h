@@ -48,7 +48,6 @@ typedef struct {
 	float *vec;				//1D array of data (alias)
 	int size;
 	int wrapped;			//is wrapped data?
-	PyObject *coerced_object;
 } VectorObject;
 /*coerced_object is a pointer to the object that it was
 coerced from when a dummy vector needs to be created from

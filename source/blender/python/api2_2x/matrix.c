@@ -721,10 +721,12 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 		}
 	}else{
 		if(mat2->coerced_object){
-			if(VectorObject_Check(mat2->coerced_object)){ /*MATRIX * VECTOR*/
+			/* MATRIX * VECTOR   operation is now being done by vector */
+			/*if(VectorObject_Check(mat2->coerced_object)){ 
 				vec = (VectorObject*)mat2->coerced_object;
 				return column_vector_multiplication(mat1, vec);
-			}else if(PointObject_Check(mat2->coerced_object)){ /*MATRIX * POINT*/
+			}else */
+			if(PointObject_Check(mat2->coerced_object)){ /*MATRIX * POINT*/
 				pt = (PointObject*)mat2->coerced_object;
 				return column_point_multiplication(mat1, pt);
 			}else if (PyFloat_Check(mat2->coerced_object) || 
