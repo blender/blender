@@ -5605,12 +5605,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				if (nu) {
 					if(nu->bezt) {
 						for(bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++) {
-							bezt->radius= 1.0;
+							if (!bezt->radius) bezt->radius= 1.0;
 						}
 					}
 					else if(nu->bp) {
 						for(bp=nu->bp, a=0; a<nu->pntsu*nu->pntsv; a++, bp++) {
-							bp->radius= 1.0;
+							if(!bp->radius) bp->radius= 1.0;
 						}
 					}
 				}
