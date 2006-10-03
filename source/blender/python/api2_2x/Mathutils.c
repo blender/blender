@@ -117,7 +117,11 @@ PyObject *Mathutils_Init(void)
 	//seed the generator for the rand function
 	BLI_srand((unsigned int) (PIL_check_seconds_timer() *
 				      0x7FFFFFFF));
-
+	
+	/* needed for getseters */
+	if( PyType_Ready( &vector_Type ) < 0 )
+		return NULL;
+	
 	submodule = Py_InitModule3("Blender.Mathutils",
 				    M_Mathutils_methods, M_Mathutils_doc);
 	return (submodule);
@@ -197,18 +201,18 @@ PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat)
 {
 	float vecNew[4], vecCopy[4];
 	double dot = 0.0f;
-	int x, y, z = 0, size;
+	int x, y, z = 0, vec_size = vec->size;
 
-	if(mat->colSize != vec->size){
-		if(mat->rowSize == 4 && vec->size != 3){
+	if(mat->colSize != vec_size){
+		if(mat->rowSize == 4 && vec_size != 3){
 			return EXPP_ReturnPyObjError(PyExc_AttributeError, 
 				"vector * matrix: matrix column size and the vector size must be the same");
 		}else{
 			vecCopy[3] = 1.0f;
 		}
 	}
-	size = vec->size;
-	for(x = 0; x < vec->size; x++){
+	
+	for(x = 0; x < vec_size; x++){
 		vecCopy[x] = vec->vec[x];
 	}
 
@@ -220,7 +224,7 @@ PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat)
 		vecNew[z++] = (float)dot;
 		dot = 0.0f;
 	}
-	return newVectorObject(vecNew, size, Py_NEW);
+	return newVectorObject(vecNew, vec_size, Py_NEW);
 }
 //This is a helper for the point class
 PyObject *row_point_multiplication(PointObject* pt, MatrixObject * mat)
