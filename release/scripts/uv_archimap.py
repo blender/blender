@@ -298,17 +298,18 @@ def pointInEdges(pt, edges):
 def pointInIsland(pt, island):
 	vec1 = Vector(); vec2 = Vector(); vec3 = Vector()	
 	for f in island:
-		vec1.x, vec1.y = f.uv[0]
-		vec2.x, vec2.y = f.uv[1]
-		vec3.x, vec3.y = f.uv[2]
+		f_uv= f.uv
+		vec1.x, vec1.y = f_uv[0]
+		vec2.x, vec2.y = f_uv[1]
+		vec3.x, vec3.y = f_uv[2]
 
 		if pointInTri2D(pt, vec1, vec2, vec3):
 			return True
 		
 		if len(f) == 4:
-			vec1.x, vec1.y = f.uv[0]
-			vec2.x, vec2.y = f.uv[2]
-			vec3.x, vec3.y = f.uv[3]			
+			vec1.x, vec1.y = f_uv[0]
+			vec2.x, vec2.y = f_uv[2]
+			vec3.x, vec3.y = f_uv[3]			
 			if pointInTri2D(pt, vec1, vec2, vec3):
 				return True
 	return False
@@ -492,11 +493,10 @@ def mergeUvIslands(islandList, islandListArea):
 		w, h = maxx-minx, maxy-miny
 		
 		totFaceArea = 0
-		
+		offset= Vector(minx, miny)
 		for fIdx, f in enumerate(islandList[islandIdx]):
 			for uv in f.uv:
-				uv.x -= minx
-				uv.y -= miny
+				uv -= offset
 			
 			totFaceArea += islandListArea[islandIdx][fIdx] # Use Cached area. dont recalculate.
 		
@@ -642,11 +642,11 @@ def mergeUvIslands(islandList, islandListArea):
 								
 								# Move faces into new island and offset
 								targetIsland[0].extend(sourceIsland[0])
+								offset= Vector(boxLeft, boxBottom)
 								
 								for f in sourceIsland[0]:
 									for uv in f.uv:
-										uv.x += boxLeft
-										uv.y += boxBottom
+										uv+= offset
 								
 								sourceIsland[0][:] = [] # Empty
 								
@@ -665,8 +665,9 @@ def mergeUvIslands(islandList, islandListArea):
 								targetIsland[6].sort(lambda B,A: cmp(A[2], B[2] ))
 								
 								targetIsland[7].extend(sourceIsland[7])
+								offset= Vector(boxLeft, boxBottom, 0)
 								for p in sourceIsland[7]:
-									p.x += boxLeft; p.y += boxBottom
+									p+= offset
 								
 								sourceIsland[7][:] = []
 								
@@ -894,18 +895,10 @@ def packIslands(islandList, islandListArea):
 		xoffset = packedLs[islandIdx][1] - islandOffsetList[islandIdx][0]
 		yoffset = packedLs[islandIdx][2] - islandOffsetList[islandIdx][1]
 		
-		if USER_MARGIN:
-			USER_MARGIN_SCALE = 1-(USER_MARGIN*2)
-			for f in islandList[islandIdx]: # Offsetting the UV's so they fit in there packed box, margin
-				for uv in f.uv:
-					uv.x= (((uv.x+xoffset) * xfactor ) * USER_MARGIN_SCALE ) * USER_MARGIN
-					uv.y= (((uv.y+yoffset) * yfactor ) * USER_MARGIN_SCALE ) * USER_MARGIN
-				
-		else:
-			for f in islandList[islandIdx]: # Offsetting the UV's so they fit in there packed box
-				for uv in f.uv:
-					uv.x= (uv.x+xoffset) * xfactor
-					uv.y= (uv.y+yoffset) * yfactor
+		for f in islandList[islandIdx]: # Offsetting the UV's so they fit in there packed box
+			for uv in f.uv:
+				uv.x= (uv.x+xoffset) * xfactor
+				uv.y= (uv.y+yoffset) * yfactor
 			
 			
 
@@ -916,8 +909,7 @@ def VectoMat(vec):
 	if abs(DotVecs(a3, up)) == 1.0:
 		up = Vector(0,1,0)
 	
-	a1 = CrossVecs(a3, up)
-	a1.normalize()
+	a1 = CrossVecs(a3, up).normalize()
 	a2 = CrossVecs(a3, a1)
 	return Matrix([a1[0], a1[1], a1[2]], [a2[0], a2[1], a2[2]], [a3[0], a3[1], a3[2]])
 
@@ -928,7 +920,6 @@ def main():
 	global USER_FILL_HOLES
 	global USER_FILL_HOLES_QUALITY
 	global USER_STRETCH_ASPECT
-	global USER_MARGIN
 	global USER_ISLAND_MARGIN
 	
 	objects= Scene.GetCurrent().objects
@@ -955,7 +946,6 @@ def main():
 	USER_ONLY_SELECTED_FACES = Draw.Create(1)
 	USER_SHARE_SPACE = Draw.Create(1) # Only for hole filling.
 	USER_STRETCH_ASPECT = Draw.Create(1) # Only for hole filling.
-	USER_MARGIN = Draw.Create(0.0) # Only for hole filling.
 	USER_ISLAND_MARGIN = Draw.Create(0.0) # Only for hole filling.
 	USER_FILL_HOLES = Draw.Create(0)
 	USER_FILL_HOLES_QUALITY = Draw.Create(50) # Only for hole filling.
@@ -968,8 +958,7 @@ def main():
 	'UV Layout',\
 	('Share Tex Space', USER_SHARE_SPACE, 'Objects Share texture space, map all objects into 1 uvmap.'),\
 	('Stretch to bounds', USER_STRETCH_ASPECT, 'Stretch the final output to texture bounds.'),\
-	('Edge Margin:', USER_MARGIN, 0.0, 0.25, 'Margin to reduce bleed from texture tiling.'),\
-	('UV Island Margin:', USER_ISLAND_MARGIN, 0.0, 0.25, 'Margin to reduce bleed from adjacent islands.'),\
+	('Island Margin:', USER_ISLAND_MARGIN, 0.0, 0.25, 'Margin to reduce bleed from adjacent islands.'),\
 	'Fill in empty areas',\
 	('Fill Holes', USER_FILL_HOLES, 'Fill in empty areas reduced texture waistage (slow).'),\
 	('Fill Quality:', USER_FILL_HOLES_QUALITY, 1, 100, 'Depends on fill holes, how tightly to fill UV holes, (higher is slower)'),\
@@ -996,7 +985,6 @@ def main():
 	USER_ONLY_SELECTED_FACES = USER_ONLY_SELECTED_FACES.val
 	USER_SHARE_SPACE = USER_SHARE_SPACE.val
 	USER_STRETCH_ASPECT = USER_STRETCH_ASPECT.val
-	USER_MARGIN = USER_MARGIN.val
 	USER_ISLAND_MARGIN = USER_ISLAND_MARGIN.val * 50
 	USER_FILL_HOLES = USER_FILL_HOLES.val
 	USER_FILL_HOLES_QUALITY = USER_FILL_HOLES_QUALITY.val
@@ -1211,8 +1199,7 @@ def main():
 			
 		
 		
-		# Update and dont mess with edge data.
-		# OLD NMESH # me.update(0, (me.edges != []), 0)
+		# update the mesh here if we need to.
 	
 	# We want to pack all in 1 go, so pack now
 	if USER_SHARE_SPACE:
@@ -1227,12 +1214,4 @@ def main():
 	Window.RedrawAll()
 
 if __name__ == '__main__':
-	#try:
 	main()
-	'''	
-	except KeyboardInterrupt:
-		print '\nUser Canceled.'
-		Draw.PupMenu('user canceled execution, unwrap aborted.')
-		Window.DrawProgressBar(1.0, "")
-		Window.WaitCursor(0)
-	'''
