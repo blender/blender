@@ -1021,7 +1021,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 	ListBase *do_effector;
 	float iks, ks, kd, gravity, actspringlen, forcefactor, sd[3];
 	float fieldfactor = 1000.0f, windfactor  = 250.0f;   
-	int a, b,  do_deflector;
+	int a, b,  do_deflector,do_selfcollision;
 	
 	/* clear forces */
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
@@ -1033,11 +1033,54 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 	/* check! */
 	do_deflector= is_there_deflection(ob->lay);
 	do_effector= pdInitEffectors(ob,NULL);
+	do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF));
+			
 	
 	iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
 	bproot= sb->bpoint; /* need this for proper spring addressing */
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
+		/* naive ball self collision */
+		/* needs to be done if goal snaps or not */
+		if(do_selfcollision){
+			 	int attached;
+				BodyPoint   *obp;
+				int c,b;
+				float def[3];
+				float tune2 = 0.5f;
+				float tune = 1.0f;
+				float distance;
+				float compare;
+
+				for(c=sb->totpoint, obp= sb->bpoint; c>0; c--, obp++) {
+					if (c < a ) continue; /* exploit force(a,b) == force(b,a) part1/2 */
+					compare = (obp->colball + bp->colball) * tune2;		
+					VecSubf(def, bp->pos, obp->pos);
+					distance = Normalise(def);
+					if (distance < compare ){
+				    /* exclude body points attached with a spring */
+						attached = 0;
+						for(b=obp->nofsprings;b>0;b--){
+							bs = sb->bspring + obp->springs[b-1];
+							if (( sb->totpoint-a == bs->v2)  || ( sb->totpoint-a == bs->v1)){
+								attached=1;
+								continue;}
+						}
+						if (!attached){
+							/* would need another UI parameter defining fricton on self contact */
+							float ccfriction = 0.05;
+							float f = tune/(distance) + tune/(compare*compare)*distance - 2.0f*tune/compare ;
+							Vec3PlusStVec(bp->force,f,def);
+							if (bp->contactfrict == 0.0f) bp->contactfrict = ccfriction*compare/distance; 
+							/* exploit force(a,b) == force(b,a) part2/2 */
+							Vec3PlusStVec(obp->force,-f,def);
+							if (obp->contactfrict == 0.0f) obp->contactfrict = ccfriction*compare/distance;
+						}
+					}
+				}
+			}
+			/* naive ball self collision done */
+
 		if(bp->goal < SOFTGOALSNAP){ /* ommit this bp when it snaps */
 			float auxvect[3];  
 			float velgoal[3];
@@ -1126,52 +1169,6 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 			{
 					bp->contactfrict = 0.0f;
 			}
-			/* naive ball self collision */
-			if((ob->softflag & OB_SB_EDGES) && (sb->bspring)
-				&& (ob->softflag & OB_SB_SELF)){
-				int attached;
-				BodyPoint   *obp;
-				int c,b;
-				float def[3];
-				float tune2 = 0.5f;
-				float tune = 1.0f;
-				float distance;
-				float compare;
-
-				for(c=sb->totpoint, obp= sb->bpoint; c>0; c--, obp++) {
-
-					if (c < a ) continue; /* exploit force(a,b) == force(b,a) part1/2 */
-
-					compare = (obp->colball + bp->colball) * tune2;		
-					VecSubf(def, bp->pos, obp->pos);
-					distance = Normalise(def);
-					
-					
-					if (distance < compare ){
-				    /* exclude body points attached with a spring */
-						attached = 0;
-						for(b=obp->nofsprings;b>0;b--){
-							bs = sb->bspring + obp->springs[b-1];
-							if (( sb->totpoint-a == bs->v2)  || ( sb->totpoint-a == bs->v1)){
-								attached=1;
-								continue;}
-							
-						}
-						if (!attached){
-							/* would need another UI parameter defining fricton on self contact */
-							float ccfriction = 0.05;
-							float f = tune/(distance) + tune/(compare*compare)*distance - 2.0f*tune/compare ;
-							Vec3PlusStVec(bp->force,f,def);
-							if (bp->contactfrict == 0.0f) bp->contactfrict = ccfriction*compare/distance; 
-							/* exploit force(a,b) == force(b,a) part2/2 */
-							Vec3PlusStVec(obp->force,-f,def);
-							if (obp->contactfrict == 0.0f) obp->contactfrict = ccfriction*compare/distance;
-						}
-						
-					}
-				}
-			}
-			/* naive ball self collision done */
 			
 			/*other forces done*/
 			/* nice things could be done with anisotropic friction
