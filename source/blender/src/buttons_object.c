@@ -2319,7 +2319,7 @@ static void object_softbodies(Object *ob)
 			if(ob->softflag & OB_SB_COLLISIONSET) {
 				/* COLLISION STUFF */
 				uiDefButBitS(block, TOG, OB_SB_SELF, B_SOFTBODY_CHANGE, "Self Collision",		10,170,90,20, &ob->softflag, 0, 0, 0, 0, "enable naive vertex ball self collision");
-				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Ball Size:", 110,170,170,20, &sb->colball, -10.0,  10.0, 10, 0, "col. ball size ==0 auto, >0 set collision ball manual, -1 use longest attached spring for ball radius");
+				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Ball Size:", 110,170,170,20, &sb->colball, -10.0,  10.0, 10, 0, "col. ball size ==0 average spring lenght, >0 set collision ball manual, -1.0 max, -0.1 min ,-1.1 (min+max)/2");
 				/* OTHER OBJECTS COLLISION STUFF */
 				uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to other softbody objects");
 				if(ob->pd->deflect) {
