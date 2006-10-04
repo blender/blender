@@ -5867,8 +5867,8 @@ static PyObject *Mesh_transform( BPy_Mesh *self, PyObject *args )
 	if( recalc_normals ) {
 		/* loop through all the verts and transform normals by the inverse
 		 * of the transpose of the supplied matrix */
-		float invmat[4][4];
-
+		float invmat[4][4], vec[3], nx, ny, nz;
+		
 		/*
 		 * we only need to invert a 3x3 submatrix, because the 4th component of
 		 * affine vectors is 0, but Mat4Invert reports non invertible matrices
@@ -5884,11 +5884,12 @@ static PyObject *Mesh_transform( BPy_Mesh *self, PyObject *args )
 
 		mv = mesh->mvert;
 		for( i = 0; i < mesh->totvert; i++, mv++ ) {
-			float vec[3];
-			vec[0] = (float)(mv->no[0] / 32767.0);
-			vec[1] = (float)(mv->no[1] / 32767.0);
-			vec[2] = (float)(mv->no[2] / 32767.0);
-			Mat4MulVecfl( (float(*)[4])*invmat, vec );
+			nx= vec[0] = (float)(mv->no[0] / 32767.0);
+			ny= vec[1] = (float)(mv->no[1] / 32767.0);
+			nz= vec[2] = (float)(mv->no[2] / 32767.0);
+			vec[0] = nx*invmat[0][0] + ny*invmat[0][1] + nz*invmat[0][2];
+			vec[1] = nx*invmat[1][0] + ny*invmat[1][1] + nz*invmat[1][2]; 
+			vec[2] = nx*invmat[2][0] + ny*invmat[2][1] + nz*invmat[2][2];
 			Normalise( vec );
 			mv->no[0] = (short)(vec[0] * 32767.0);
 			mv->no[1] = (short)(vec[1] * 32767.0);
