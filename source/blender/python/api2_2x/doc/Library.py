@@ -80,17 +80,19 @@ def Datablocks (group):
   @param group: datablock group, see L{LinkableGroups}.
   """
 
-def Load (datablock, group, update = 1):
+def Load (datablock, group, update = 1, linked = 0):
   """
   Load the given datablock object from the current library file
   @type datablock: string
   @type group: string
   @type update: bool
+  @type linked: bool
   @param datablock: an available object name, as returned by L{Datablocks}.
   @param group: an available group name, as returned by L{LinkableGroups}.
   @param update: defines if Blender should be updated after loading this
       object.  This means linking all objects and remaking all display lists,
       so it is potentially very slow.
+  @param linked: Will keep objects linked to their source blend file, the update option or later updating will unlink the data from the original blend and make it local.
 
   @warn: If you plan to load more than one object in sequence, it is
      B{definitely recommended} to set 'update' to 0 in all calls to this

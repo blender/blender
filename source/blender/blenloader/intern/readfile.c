@@ -6548,7 +6548,7 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
  * scripts can load data from .blend files -- see Blender.Library module.*/
 
 /* append to G.scene */
-void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcode)
+void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcode, short flag)
 {
 	ListBase mainlist;
 	Main *mainl;
@@ -6563,7 +6563,7 @@ void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcod
 	/* which one do we need? */
 	mainl = blo_find_main(&mainlist, dir, G.sce);
 
-	append_named_part(fd, mainl, G.scene, name, idcode, 0);
+	append_named_part(fd, mainl, G.scene, name, idcode, flag);
 
 	/* make main consistant */
 	expand_main(fd, mainl);

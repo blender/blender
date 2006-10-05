@@ -37,6 +37,7 @@
 
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
+#include "DNA_space_types.h" /* for line linked */
 #include "BKE_library.h"	/* for all_local */
 #include "BKE_font.h"		/* for text_to_curve */
 #include "BKE_utildefines.h"
@@ -309,27 +310,29 @@ PyObject *M_Library_Load( PyObject * self, PyObject * args )
 	char *base = NULL;
 	int update = 1;
 	int blocktype = 0;
+	int linked = 0;
 
 	if( !bpy_openlib ) {
 		return EXPP_ReturnPyObjError( PyExc_IOError,
 					      "no library file: you need to open one, first." );
 	}
 
-	if( !PyArg_ParseTuple( args, "ss|i", &name, &base, &update ) ) {
+	if( !PyArg_ParseTuple( args, "ss|ii", &name, &base, &update, &linked ) ) {
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected two strings as arguments." );
 	}
 
 	blocktype = ( int ) BLO_idcode_from_name( base );
 
-	if( !blocktype ) {
+	if( !blocktype )
 		return EXPP_ReturnPyObjError( PyExc_NameError,
 					      "no such Blender datablock type" );
-	}
-
-	BLO_script_library_append( bpy_openlib, bpy_openlibname, name,
-				   blocktype );
-
+	
+	if (linked)
+		BLO_script_library_append( bpy_openlib, bpy_openlibname, name, blocktype, FILE_LINK);
+	else
+		BLO_script_library_append( bpy_openlib, bpy_openlibname, name, blocktype, 0);
+	
 	if( update ) {
 		M_Library_Update( self );
 		Py_DECREF( Py_None );	/* incref'ed by above function */
