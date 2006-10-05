@@ -813,6 +813,66 @@ static PyGetSetDef BPy_MCol_getseters[] = {
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
+
+/*----------------------------object[]---------------------------
+  sequence accessor (get)*/
+static PyObject *MCol_item(BPy_MCol * self, int i)
+{
+	unsigned char param;
+	PyObject *attr;
+	switch (i) {
+	case 0:
+		param = self->color->r;
+		break;
+	case 1:
+		param = self->color->g;
+		break;
+	case 2:
+		param = self->color->b;
+		break;
+	case 3:
+		param = self->color->a;
+		break;	
+	default:
+		return EXPP_ReturnPyObjError(PyExc_IndexError,
+			"vector[index] = x: assignment index out of range\n");
+	}
+	
+	attr = PyInt_FromLong( param );
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"PyInt_FromLong() failed");
+}
+
+/*----------------------------object[]-------------------------
+  sequence accessor (set)*/
+static int MCol_ass_item(BPy_MCol * self, int i, PyObject * value)
+{
+	unsigned char *param;
+	
+	switch (i) {
+	case 0:
+		param = (unsigned char *)&self->color->r;
+		break;
+	case 1:
+		param = (unsigned char *)&self->color->g;
+		break;
+	case 2:
+		param = (unsigned char *)&self->color->b;
+		break;
+	case 3:
+		param = (unsigned char *)&self->color->a;
+		break;	
+	default:
+		{
+			return EXPP_ReturnIntError( PyExc_RuntimeError, "Index out of range" );
+		}
+	}
+	return EXPP_setIValueClamped( value, param, 0, 255, 'b' );
+}
+
 /************************************************************************
  *
  * Python MCol_Type methods
@@ -830,6 +890,17 @@ static PyObject *MCol_repr( BPy_MCol * self )
 			(int)self->color->b, (int)self->color->g, 
 			(int)self->color->r, (int)self->color->a ); 
 }
+
+/*-----------------PROTCOL DECLARATIONS--------------------------*/
+static PySequenceMethods MCol_SeqMethods = {
+	(inquiry) NULL,						/* sq_length */
+	(binaryfunc) NULL,								/* sq_concat */
+	(intargfunc) NULL,								/* sq_repeat */
+	(intargfunc) MCol_item,					/* sq_item */
+	(intintargfunc) NULL,				/* sq_slice */
+	(intobjargproc) MCol_ass_item,			/* sq_ass_item */
+	(intintobjargproc) NULL,		/* sq_ass_slice */
+};
 
 /************************************************************************
  *
@@ -857,7 +928,7 @@ PyTypeObject MCol_Type = {
 	/* Method suites for standard classes */
 
 	NULL,                       /* PyNumberMethods *tp_as_number; */
-	NULL,	        			/* PySequenceMethods *tp_as_sequence; */
+	&MCol_SeqMethods,	        /* PySequenceMethods *tp_as_sequence; */
 	NULL,                       /* PyMappingMethods *tp_as_mapping; */
 
 	/* More standard operations (here for binary compatibility) */
