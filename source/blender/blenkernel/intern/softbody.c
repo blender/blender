@@ -1784,7 +1784,6 @@ static void curve_surf_to_softbody(Object *ob)
 	if(totspring)
 	{
 		build_bps_springlist(ob); /* link bps to springs */
-         	if (ob->softflag & OB_SB_SELF) {calculate_collision_balls(ob);}
 	}
 }
 

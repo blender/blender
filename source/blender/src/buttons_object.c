@@ -2320,7 +2320,7 @@ static void object_softbodies(Object *ob)
 		else {
 			if(ob->softflag & OB_SB_COLLISIONSET) {
 				/* SELF COLLISION STUFF */
-				if ((ob->type==OB_MESH)||(ob->type==OB_CURVE)) {
+				if ((ob->type==OB_MESH) /*may be other types will come*/) {
 				uiDefButBitS(block, TOG, OB_SB_SELF, B_SOFTBODY_CHANGE, "Self Collision",		10,170,90,20, &ob->softflag, 0, 0, 0, 0, "enable naive vertex ball self collision");
 				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Ball Size:", 110,170,170,20, &sb->colball, -10.0,  10.0, 10, 0, "col. ball size ==0 average spring lenght, >0 set collision ball manual, -1.0 max, -0.1 min ,-1.1 (min+max)/2");
 				}
