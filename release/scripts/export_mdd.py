@@ -107,8 +107,8 @@ def mdd_export_ui(filepath):
 	
 	ctx = scn.getRenderingContext()
 	orig_frame = Blender.Get('curframe')
-	PREF_STARTFRAME= Blender.Draw.Create(ctx.startFrame())
-	PREF_ENDFRAME= Blender.Draw.Create(ctx.endFrame())
+	PREF_STARTFRAME= Blender.Draw.Create(int(ctx.startFrame()))
+	PREF_ENDFRAME= Blender.Draw.Create(int(ctx.endFrame()))
 	PREF_FPS= Blender.Draw.Create(ctx.fps)
 
 	block = [\
@@ -117,12 +117,12 @@ def mdd_export_ui(filepath):
 	("FPS: ", PREF_FPS, 1, 100, "Frames per second")\
 	]
 	
+	if not Blender.Draw.PupBlock("Export MDD", block):
+		return
+	
 	PREF_STARTFRAME, PREF_ENDFRAME=\
 		min(PREF_STARTFRAME.val, PREF_ENDFRAME.val),\
 		max(PREF_STARTFRAME.val, PREF_ENDFRAME.val)
-	
-	if not Blender.Draw.PupBlock("Export MDD", block):
-		return
 	
 	print (filepath, ob_act, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS.val)
 	mdd_export(filepath, ob_act, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS.val)
