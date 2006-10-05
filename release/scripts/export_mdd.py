@@ -71,7 +71,7 @@ def mdd_export(filepath, ob, PREF_STARTFRAME, PREF_ENDFRAME, PREF_FPS):
 	f.write( pack(">%df" % (numframes-1), *[frame/PREF_FPS for frame in xrange(numframes-1)]) ) # seconds
 	
 	Blender.Set('curframe', PREF_STARTFRAME)
-	for frame in xrange(numframes+1):
+	for frame in xrange(PREF_STARTFRAME,PREF_ENDFRAME+1):#in order to start at desired frame
 		Blender.Set('curframe', frame)
 		# Blender.Window.RedrawAll() # not needed
 		me_tmp.getFromObject(ob.name)
