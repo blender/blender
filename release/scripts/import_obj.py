@@ -99,9 +99,19 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 		# Absolute path - c:\.. etc would work here
 		image= obj_image_load(imagepath, DIR, IMAGE_SEARCH)
 		
+		texture.image = image
+		
 		# Adds textures for materials (rendering)
 		if type == 'Kd':
-			blender_material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL)
+			if image.depth == 32:
+				# Image has alpha
+				blender_material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL | Texture.MapTo.ALPHA)
+				texture.setImageFlags('MipMap', 'InterPol', 'UseAlpha')
+				blender_material.mode |= Material.Modes.ZTRANSP
+				blender_material.alpha = 0.0
+			else:
+				blender_material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL)
+				
 			# adds textures to faces (Textured/Alt-Z mode)
 			# Only apply the diffuse texture to the face if the image has not been set with the inline usemat func.
 			unique_material_images[context_material_name]= image # set the texface image
@@ -116,6 +126,10 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 			blender_material.setTexture(3, texture, Texture.TexCo.UV, Texture.MapTo.NOR)		
 		elif type == 'D':
 			blender_material.setTexture(4, texture, Texture.TexCo.UV, Texture.MapTo.ALPHA)				
+			blender_material.mode |= Material.Modes.ZTRANSP
+			blender_material.alpha = 0.0
+			# Todo, unset deffuse material alpha if it has an alpha channel
+			
 		elif type == 'refl':
 			blender_material.setTexture(5, texture, Texture.TexCo.UV, Texture.MapTo.REF)		
 	
@@ -155,43 +169,41 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 				elif context_material:
 					# we need to make a material to assign properties to it.
 					line_split= line.split()
-					
-					if line.startswith('Ka'):
+					line_lower= line.lower()
+					if line_lower.startswith('ka'):
 						context_material.setMirCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
-					elif line.startswith('Kd'):
+					elif line_lower.startswith('kd'):
 						context_material.setRGBCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
-					elif line.startswith('Ks'):
+					elif line_lower.startswith('ks'):
 						context_material.setSpecCol((float(line_split[1]), float(line_split[2]), float(line_split[3])))
-					elif line.startswith('Ns'):
+					elif line_lower.startswith('ns'):
 						context_material.setHardness( int((float(line_split[1])*0.51)) )
-					elif line.startswith('Ni'): # Refraction index
+					elif line_lower.startswith('ni'): # Refraction index
 						context_material.setIOR( max(1, min(float(line_split[1]), 3))) # Between 1 and 3
-					elif line.startswith('d'):
+					elif line_lower.startswith('d') or line_lower.startswith('tr'):
 						context_material.setAlpha(float(line_split[1]))
-					elif line.startswith('Tr'):
-						context_material.setAlpha(float(line_split[1]))
-					elif line.startswith('map_Ka'):
+					elif line_lower.startswith('map_ka'):
 						img_filepath= line_value(line.split())
 						load_material_image(context_material, context_material_name, img_filepath, 'Ka')
-					elif line.startswith('map_Ks'):
+					elif line_lower.startswith('map_ks'):
 						img_filepath= line_value(line.split())
 						load_material_image(context_material, context_material_name, img_filepath, 'Ks')
-					elif line.startswith('map_Kd'):
+					elif line_lower.startswith('map_kd'):
 						img_filepath= line_value(line.split())
 						load_material_image(context_material, context_material_name, img_filepath, 'Kd')
-					elif line.startswith('map_Bump'):
+					elif line_lower.startswith('map_bump'):
 						img_filepath= line_value(line.split())
 						load_material_image(context_material, context_material_name, img_filepath, 'Bump')
-					elif line.startswith('map_D'): # Alpha map - Dissolve
+					elif line_lower.startswith('map_d') or line_lower.startswith('map_tr'): # Alpha map - Dissolve
 						img_filepath= line_value(line.split())
 						load_material_image(context_material, context_material_name, img_filepath, 'D')
 					
-					elif line.startswith('refl'): # Reflectionmap
+					elif line_lower.startswith('refl'): # Reflectionmap
 						img_filepath= line_value(line.split())
 						load_material_image(context_material, context_material_name, img_filepath, 'refl', meshDict)
 			mtl.close()
 
-			
+
 def split_mesh(verts_loc, faces, unique_materials, SPLIT_OBJECTS, SPLIT_MATERIALS):
 	'''
 	Takes vert_loc and faces, and seperates into multiple sets of 
@@ -391,6 +403,8 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 	context_material_old= -1 # avoid a dict lookup
 	mat= 0 # rare case it may be un-initialized.
 	me_faces= me.faces
+	ALPHA= Mesh.FaceTranspModes.ALPHA
+	
 	for i, face in enumerate(faces):
 		if len(face[0])==2:
 			if CREATE_EDGES:
@@ -424,6 +438,8 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 						image= unique_material_images[context_material]
 						if image: # Can be none if the material dosnt have an image.
 							blender_face.image= image
+							if image.depth == 32:
+								blender_face.transp |= ALPHA
 					
 					# BUG - Evil eekadoodle problem where faces that have vert index 0 location at 3 or 4 are shuffled.
 					if len(face_vert_loc_indicies)==4:
@@ -438,6 +454,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 					for ii, uv in enumerate(blender_face.uv):
 						uv.x, uv.y=  verts_tex[face_vert_tex_indicies[ii]]
 	del me_faces
+	del ALPHA
 	
 	# Add edge faces.
 	me_edges= me.edges
