@@ -1536,7 +1536,7 @@ static void mesh_to_softbody(Object *ob)
 				build_bps_springlist(ob); /* yes we need to do it again*/
 			}
 			springs_from_mesh(ob); /* write the 'rest'-lenght of the springs */
-            calculate_collision_balls(ob);
+           	if (ob->softflag & OB_SB_SELF) {calculate_collision_balls(ob);}
 		}
 	}
 	
@@ -1782,7 +1782,10 @@ static void curve_surf_to_softbody(Object *ob)
 	}
 	
 	if(totspring)
+	{
 		build_bps_springlist(ob); /* link bps to springs */
+         	if (ob->softflag & OB_SB_SELF) {calculate_collision_balls(ob);}
+	}
 }
 
 
