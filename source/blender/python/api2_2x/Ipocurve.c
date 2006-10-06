@@ -175,6 +175,7 @@ static PyMappingMethods IpoCurve_as_mapping = {
 /*****************************************************************************/
 /* Python IpoCurve_Type callback function prototypes:                        */
 /*****************************************************************************/
+static int IpoCurve_compare( C_IpoCurve * a, C_IpoCurve * b );
 static PyObject *IpoCurve_repr( C_IpoCurve * self );
 static void IpoCurve_dealloc( C_IpoCurve * self );
 
@@ -192,7 +193,7 @@ PyTypeObject IpoCurve_Type = {
 	0,									/* tp_print */
 	( getattrfunc ) NULL,	            /* tp_getattr */
 	( setattrfunc ) NULL,	            /* tp_setattr */
-	0,									/* tp_compare */
+	( cmpfunc ) IpoCurve_compare,		/* tp_compare */
 	( reprfunc ) IpoCurve_repr,			/* tp_repr */
 	/* Method suites for standard classes */
 
@@ -644,6 +645,15 @@ static PyObject *IpoCurve_getPoints( C_IpoCurve * self )
 static void IpoCurve_dealloc( C_IpoCurve * self )
 {
 	PyObject_DEL( self );
+}
+
+/*****************************************************************************/
+/* Function:    IpoCurve_compare                                     		 */
+/* Description: This compares 2 python types, == or != only.			     */
+/*****************************************************************************/
+static int IpoCurve_compare( C_IpoCurve * a, C_IpoCurve * b )
+{
+	return ( a->ipocurve == b->ipocurve ) ? 0 : -1;
 }
 
 /*****************************************************************************/

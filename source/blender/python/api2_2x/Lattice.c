@@ -193,6 +193,7 @@ static void Lattice_dealloc( BPy_Lattice * self );
 static int Lattice_setAttr( BPy_Lattice * self, char *name, PyObject * v );
 static PyObject *Lattice_getAttr( BPy_Lattice * self, char *name );
 static PyObject *Lattice_repr( BPy_Lattice * self );
+static int Lattice_compare( BPy_Lattice * a, BPy_Lattice * b );
 
 /*****************************************************************************/
 /* Python Lattice_Type structure definition:		*/
@@ -208,7 +209,7 @@ PyTypeObject Lattice_Type = {
 	0,			/* tp_print */
 	( getattrfunc ) Lattice_getAttr,	/* tp_getattr */
 	( setattrfunc ) Lattice_setAttr,	/* tp_setattr */
-	0,			/* tp_compare */
+	( cmpfunc ) Lattice_compare,			/* tp_compare */
 	( reprfunc ) Lattice_repr,	/* tp_repr */
 	0,			/* tp_as_number */
 	0,			/* tp_as_sequence */
@@ -926,6 +927,13 @@ static int Lattice_setAttr( BPy_Lattice * self, char *name, PyObject * value )
 
 	return 0;		// normal exit 
 }
+
+
+static int Lattice_compare( BPy_Lattice * a, BPy_Lattice * b )
+{
+	return ( a->Lattice == b->Lattice ) ? 0 : -1;
+}
+
 
 //***************************************************************************
 // Function:  Lattice_repr   

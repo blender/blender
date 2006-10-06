@@ -1081,6 +1081,7 @@ static PyGetSetDef BPy_Material_getseters[] = {
 /* Python Material_Type callback function prototypes: */
 /*****************************************************************************/
 static void Material_dealloc( BPy_Material * self );
+static int Material_compare( BPy_Material * a, BPy_Material * b);
 static PyObject *Material_repr( BPy_Material * self );
 
 /*****************************************************************************/
@@ -1100,7 +1101,7 @@ PyTypeObject Material_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-	NULL,                       /* cmpfunc tp_compare; */
+	( cmpfunc ) Material_compare,/* cmpfunc tp_compare; */
 	( reprfunc ) Material_repr, /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */
@@ -2499,6 +2500,12 @@ static PyObject *Material_copy( BPy_Material * self )
 						"couldn't create Material Data object" ) );
 
 	return ( PyObject * ) pymat;
+}
+
+/* mat_a==mat_b or mat_a!=mat_b*/
+static int Material_compare( BPy_Material * a, BPy_Material * b )
+{
+	return ( a->material == b->material) ? 0 : -1;
 }
 
 /*****************************************************************************/

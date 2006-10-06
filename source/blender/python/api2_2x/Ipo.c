@@ -228,6 +228,7 @@ static PySequenceMethods Ipo_as_sequence = {
 /*****************************************************************************/
 static void Ipo_dealloc( BPy_Ipo * self );
 //static int IpoPrint (BPy_Ipo *self, FILE *fp, int flags);
+static int Ipo_compare( BPy_Ipo * a, BPy_Ipo * b );
 static PyObject *Ipo_repr( BPy_Ipo * self );
 static PyObject *Ipo_getIter( BPy_Ipo * self );
 static PyObject *Ipo_nextIter( BPy_Ipo * self );
@@ -365,7 +366,7 @@ PyTypeObject Ipo_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-	NULL,                       /* cmpfunc tp_compare; */
+	( reprfunc ) Ipo_compare,   /* cmpfunc tp_compare; */
 	( reprfunc ) Ipo_repr,     /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */
@@ -1300,6 +1301,15 @@ static int Ipo_setChannel( BPy_Ipo * self, PyObject * value )
 static void Ipo_dealloc( BPy_Ipo * self )
 {
 	PyObject_DEL( self );
+}
+
+/*****************************************************************************/
+/* Function:    Ipo_compare			                                         */
+/* Description: This compares 2 ipo python types, == or != only.             */
+/*****************************************************************************/
+static int Ipo_compare( BPy_Ipo * a, BPy_Ipo * b )
+{
+	return ( a->ipo == b->ipo ) ? 0 : -1;
 }
 
 /*****************************************************************************/

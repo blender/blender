@@ -124,7 +124,9 @@ static PyMethodDef BPy_Action_methods[] = {
 static void Action_dealloc( BPy_Action * bone );
 static PyObject *Action_getAttr( BPy_Action * bone, char *name );
 static int Action_setAttr( BPy_Action * bone, char *name, PyObject * v );
+static int Action_compare( BPy_Action * a, BPy_Action * b );
 static PyObject *Action_repr( BPy_Action * bone );
+
 
 /*****************************************************************************/
 /* Python TypeAction structure definition:				 */
@@ -140,7 +142,7 @@ PyTypeObject Action_Type = {
 	0,			/* tp_print */
 	( getattrfunc ) Action_getAttr,	/* tp_getattr */
 	( setattrfunc ) Action_setAttr,	/* tp_setattr */
-	0,			/* tp_compare */
+	( cmpfunc ) Action_compare,		/* tp_compare */
 	( reprfunc ) Action_repr,	/* tp_repr */
 	0,			/* tp_as_number */
 	0,			/* tp_as_sequence */
@@ -494,6 +496,13 @@ static int Action_setAttr( BPy_Action * self, char *name, PyObject * value )
 	Py_DECREF( Py_None );	/* was incref'ed by the called Action_set* function */
 	return 0;		/* normal exit */
 }
+
+/*----------------------------------------------------------------------*/
+static int Action_compare( BPy_Action * a, BPy_Action * b )
+{
+	return ( a->action == b->action ) ? 0 : -1;
+}
+
 
 /*----------------------------------------------------------------------*/
 static PyObject *Action_repr( BPy_Action * self )

@@ -61,6 +61,7 @@
 
 static void Key_dealloc( PyObject * self );
 static void KeyBlock_dealloc( PyObject * self );
+static int Key_compare( BPy_Key * a, BPy_Key * b );
 static PyObject *Key_repr( BPy_Key * self );
 
 static PyObject *Key_getBlocks( PyObject * self );
@@ -138,7 +139,7 @@ PyTypeObject Key_Type = {
 	( printfunc ) 0,				/*tp_print */
 	( getattrfunc ) 0,	/*tp_getattr */
 	( setattrfunc ) 0,			 	/*tp_setattr */
-	0, 								/*tp_compare*/
+	( cmpfunc) Key_compare, 		/*tp_compare*/
 	( reprfunc ) Key_repr, 			/* tp_repr */
 	/* Method suites for standard classes */
 
@@ -304,6 +305,12 @@ PyObject *Key_CreatePyObject( Key * k )
 	BPy_Key *key = ( BPy_Key * ) new_Key( k );
 
 	return ( PyObject * ) key;
+}
+
+
+static int Key_compare( BPy_Key * a, BPy_Key * b )
+{
+	return ( a->key == b->key ) ? 0 : -1;
 }
 
 static PyObject *Key_repr( BPy_Key * self )

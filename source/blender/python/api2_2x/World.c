@@ -1033,8 +1033,7 @@ static int World_SetAttr( BPy_World * self, char *name, PyObject * value )
 
 static int World_Compare( BPy_World * a, BPy_World * b )
 {
-	World *pa = a->world, *pb = b->world;
-	return ( pa == pb ) ? 0 : -1;
+	return ( a->world == b->world ) ? 0 : -1;
 }
 
 /**

@@ -1060,13 +1060,21 @@ AttributeError:
 	return EXPP_intError(PyExc_AttributeError, "%s%s%s", 
 		sArmatureBadArgs, " __init__: ", "Expects string(name)");
 }
-//------------------------tp_richcompare
-//This method allows the object to use comparison operators
-//TODO: We need some armature comparisons
-static PyObject *Armature_richcmpr(BPy_Armature *self, PyObject *v, int op)
+
+
+/*****************************************************************************/
+/* Function:	Armature_compare						 */
+/* Description: This is a callback function for the BPy_Armature type. It	 */
+/*		compares two Armature_Type objects. Only the "==" and "!="  */
+/*		comparisons are meaninful. Returns 0 for equality and -1 if  */
+/*		they don't point to the same Blender Object struct.	 */
+/*		In Python it becomes 1 if they are equal, 0 otherwise.	 */
+/*****************************************************************************/
+static int Armature_compare( BPy_Armature * a, BPy_Armature * b )
 {
-	return EXPP_incr_ret(Py_None);
+	return ( a->armature == b->armature ) ? 0 : -1;
 }
+
 //------------------------tp_repr
 //This is the string representation of the object
 static PyObject *Armature_repr(BPy_Armature *self)
@@ -1093,7 +1101,7 @@ PyTypeObject Armature_Type = {
 	0,								//tp_print
 	0,								//tp_getattr
 	0,								//tp_setattr
-	0,								//tp_compare
+	(cmpfunc) Armature_compare,		//tp_compare
 	(reprfunc) Armature_repr,		//tp_repr
 	0,								//tp_as_number
 	0,								//tp_as_sequence
@@ -1108,7 +1116,7 @@ PyTypeObject Armature_Type = {
 	BPy_Armature_doc,				//tp_doc
 	0,								//tp_traverse
 	0,								//tp_clear
-	(richcmpfunc)Armature_richcmpr,	//tp_richcompare
+	0, 								//tp_richcompare
 	0,								//tp_weaklistoffset
 	0,								//tp_iter
 	0,								//tp_iternext

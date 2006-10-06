@@ -332,6 +332,12 @@ static void Pose_dealloc(BPy_Pose *self)
 	Pose_Type.tp_free(self);
 	return;
 }
+//------------------------tp_cmp
+//This compares 2 pose types
+static int Pose_compare(BPy_Pose *a, BPy_Pose *b )
+{
+	return ( a->pose== b->pose ) ? 0 : -1;
+}
 //------------------------tp_repr
 //This is the string representation of the object
 static PyObject *Pose_repr(BPy_Pose *self)

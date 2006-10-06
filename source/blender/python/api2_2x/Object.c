@@ -3061,8 +3061,7 @@ static void Object_dealloc( BPy_Object * obj )
 /*****************************************************************************/
 static int Object_compare( BPy_Object * a, BPy_Object * b )
 {
-	Object *pa = a->object, *pb = b->object;
-	return ( pa == pb ) ? 0 : -1;
+	return ( a->object == b->object ) ? 0 : -1;
 }
 
 /*****************************************************************************/

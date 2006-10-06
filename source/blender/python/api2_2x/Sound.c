@@ -632,8 +632,7 @@ static int Sound_setAttr( BPy_Sound * self, char *name, PyObject * value )
 /*****************************************************************************/
 static int Sound_compare( BPy_Sound * a, BPy_Sound * b )
 {
-	bSound *pa = a->sound, *pb = b->sound;
-	return ( pa == pb ) ? 0 : -1;
+	return ( a->sound == b->sound ) ? 0 : -1;
 }
 
 /*****************************************************************************/

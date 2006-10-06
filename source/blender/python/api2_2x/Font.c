@@ -435,8 +435,7 @@ static PyObject *Font_repr( BPy_Font * self )
 /*--------------- compare------------------------------------------*/
 static int Font_compare( BPy_Font * a, BPy_Font * b )
 {
-	VFont *pa = a->font, *pb = b->font;
-	return ( pa == pb ) ? 0 : -1;
+	return ( a->font == b->font ) ? 0 : -1;
 }
 
 /*--------------- Font_CreatePyObject---------------------------------*/

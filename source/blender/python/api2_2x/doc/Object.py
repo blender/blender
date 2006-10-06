@@ -465,7 +465,7 @@ class Object:
     @type drawType: int
     @ivar parentType: The object's parent type.  Read-only.
         See L{ParentTypes} constant dict for values.
-    @type drawType: int
+    @type parentType: int
     @ivar axis: Enable display of active object's center and axis.
         Also see B{AXIS} bit in L{drawMode} attribute.
     @type axis: boolean

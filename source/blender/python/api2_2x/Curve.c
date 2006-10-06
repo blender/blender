@@ -241,6 +241,7 @@ static void CurveDeAlloc( BPy_Curve * msh );
 /* static int CurvePrint (BPy_Curve *msh, FILE *fp, int flags); */
 static int CurveSetAttr( BPy_Curve * msh, char *name, PyObject * v );
 static PyObject *CurveGetAttr( BPy_Curve * msh, char *name );
+static int CurveCopmpare( BPy_Curve * a, BPy_Curve * b );
 static PyObject *CurveRepr( BPy_Curve * msh );
 
 static PySequenceMethods Curve_as_sequence = {
@@ -271,7 +272,7 @@ PyTypeObject Curve_Type = {
 	0,			/* tp_print */
 	( getattrfunc ) CurveGetAttr,	/* tp_getattr */
 	( setattrfunc ) CurveSetAttr,	/* tp_setattr */
-	0,			/* tp_compare */
+	( cmpfunc ) CurveCopmpare,		/* tp_compare */
 	( reprfunc ) CurveRepr,	/* tp_repr */
 	/* methods for standard classes */
 	0,			/* tp_as_number */
@@ -1659,6 +1660,16 @@ static int CurveSetAttr( BPy_Curve * self, char *name, PyObject * value )
 		return -1;
 	Py_DECREF( Py_None );
 	return 0;
+}
+
+
+/*****************************************************************************/
+/* Function:    CurveCopmpare		                                         */
+/* Description: This compares 2 curve python types, == or != only.			 */
+/*****************************************************************************/
+static int CurveCopmpare( BPy_Curve * a, BPy_Curve * b )
+{
+	return ( a->curve == b->curve ) ? 0 : -1;
 }
 
 

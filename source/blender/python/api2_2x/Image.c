@@ -70,7 +70,6 @@ current image frame, some images change frame if they are a sequence */
 static PyObject *M_Image_New( PyObject * self, PyObject * args );
 static PyObject *M_Image_Get( PyObject * self, PyObject * args );
 static PyObject *M_Image_GetCurrent( PyObject * self );
-static PyObject *M_Image_SetCurrent( PyObject * self, PyObject * args );
 static PyObject *M_Image_Load( PyObject * self, PyObject * args );
 
 
@@ -1261,8 +1260,7 @@ static int Image_setAttr( BPy_Image * self, char *name, PyObject * value )
 /*****************************************************************************/
 static int Image_compare( BPy_Image * a, BPy_Image * b )
 {
-	Image *pa = a->image, *pb = b->image;
-	return ( pa == pb ) ? 0 : -1;
+	return ( a->image == b->image ) ? 0 : -1;
 }
 
 /*****************************************************************************/

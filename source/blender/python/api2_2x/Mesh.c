@@ -7361,6 +7361,11 @@ static void Mesh_dealloc( BPy_Mesh * self )
 	PyObject_DEL( self );
 }
 
+static int Mesh_compare( BPy_Mesh * a, BPy_Mesh * b )
+{
+	return ( a->mesh == b->mesh ) ? 0 : -1;
+}
+
 static PyObject *Mesh_repr( BPy_Mesh * self )
 {
 	return PyString_FromFormat( "[Mesh \"%s\"]",
@@ -7472,7 +7477,7 @@ PyTypeObject Mesh_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-	NULL,                       /* cmpfunc tp_compare; */
+	( cmpfunc ) Mesh_compare,   /* cmpfunc tp_compare; */
 	( reprfunc ) Mesh_repr,     /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */

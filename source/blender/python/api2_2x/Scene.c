@@ -356,8 +356,7 @@ static int Scene_setAttr( BPy_Scene * self, char *name, PyObject * value )
 /*-----------------------compare----------------------------------------*/
 static int Scene_compare( BPy_Scene * a, BPy_Scene * b )
 {
-	Scene *pa = a->scene, *pb = b->scene;
-	return ( pa == pb ) ? 0 : -1;
+	return ( a->scene == b->scene ) ? 0 : -1;
 }
 
 /*----------------------repr--------------------------------------------*/
@@ -1548,8 +1547,7 @@ static void SceneObSeq_dealloc( BPy_SceneObSeq * self )
 
 static int SceneObSeq_compare( BPy_SceneObSeq * a, BPy_SceneObSeq * b )
 {
-	Scene *pa = a->bpyscene->scene, *pb = b->bpyscene->scene;
-	return ( pa == pb && a->mode == b->mode) ? 0 : -1;	
+	return ( a->bpyscene->scene == b->bpyscene->scene && a->mode == b->mode) ? 0 : -1;	
 }
 
 /*

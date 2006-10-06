@@ -638,8 +638,7 @@ static int Text_setAttr( BPy_Text * self, char *name, PyObject * value )
 /*****************************************************************************/
 static int Text_compare( BPy_Text * a, BPy_Text * b )
 {
-	Text *pa = a->text, *pb = b->text;
-	return ( pa == pb ) ? 0 : -1;
+	return ( a->text == b->text ) ? 0 : -1;
 }
 
 /*****************************************************************************/

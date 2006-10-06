@@ -181,6 +181,7 @@ static PyMappingMethods Constraint_as_mapping = {
 /*****************************************************************************/
 static void Constraint_dealloc( BPy_Constraint * self );
 static PyObject *Constraint_repr( BPy_Constraint * self );
+static int Constraint_compare( BPy_Constraint * a, BPy_Constraint * b );
 
 /*****************************************************************************/
 /* Python Constraint_Type structure definition:                              */
@@ -199,7 +200,7 @@ PyTypeObject Constraint_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-	NULL,                       /* cmpfunc tp_compare; */
+	( cmpfunc ) Constraint_compare, /* cmpfunc tp_compare; */
 	( reprfunc ) Constraint_repr, /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */
@@ -1274,6 +1275,16 @@ static int Constraint_setData( BPy_Constraint * self, PyObject * key,
 static void Constraint_dealloc( BPy_Constraint * self )
 {
 	PyObject_DEL( self );
+}
+
+
+/*****************************************************************************/
+/* Function:    Constraint_compare                                           */
+/* Description: This compares 2 constraint python types, == or != only.      */
+/*****************************************************************************/
+static int Constraint_compare( BPy_Constraint * a, BPy_Constraint * b )
+{
+	return ( a->con == b->con ) ? 0 : -1;
 }
 
 /*****************************************************************************/

@@ -491,8 +491,7 @@ PyObject *M_Group_Unlink( PyObject * self, PyObject * args )
 	unlink_group(group);
 	group->id.us= 0;
 	free_libblock( &G.main->group, group );
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -527,7 +526,7 @@ PyObject *Group_CreatePyObject( struct Group * grp )
 	BPy_Group *pygrp;
 
 	if( !grp )
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 
 	pygrp =
 		( BPy_Group * ) PyObject_NEW( BPy_Group, &Group_Type );
@@ -746,7 +745,7 @@ static PyObject *GroupObSeq_add( BPy_GroupObSeq * self, PyObject *args )
 	
 	add_to_group_wraper(self->bpygroup->group, blen_ob); /* this checks so as not to add the object into the group twice*/
 	
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 
@@ -776,7 +775,7 @@ static PyObject *GroupObSeq_remove( BPy_GroupObSeq * self, PyObject *args )
 		if (base)
 			base->flag &= ~OB_FROMGROUP;
 	}
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 

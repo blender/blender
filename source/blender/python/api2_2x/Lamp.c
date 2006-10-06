@@ -1431,8 +1431,7 @@ static void Lamp_dealloc( BPy_Lamp * self )
 /*****************************************************************************/
 static int Lamp_compare( BPy_Lamp * a, BPy_Lamp * b )
 {
-	Lamp *pa = a->lamp, *pb = b->lamp;
-	return ( pa == pb ) ? 0 : -1;
+	return ( a->lamp == b->lamp ) ? 0 : -1;
 }
 
 /*****************************************************************************/
