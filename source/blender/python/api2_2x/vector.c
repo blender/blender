@@ -111,18 +111,15 @@ PyObject *Vector_Normalize(VectorObject * self)
   resize the vector to x,y */
 PyObject *Vector_Resize2D(VectorObject * self)
 {
-	if(self->data.blend_data){
+	if(self->wrapped==Py_WRAP)
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
 			"vector.resize2d(): cannot resize wrapped data - only python vectors\n");
-	}
 
-	self->data.py_data = 
-		PyMem_Realloc(self->data.py_data, (sizeof(float) * 2));
-	if(self->data.py_data == NULL) {
+	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 2));
+	if(self->vec == NULL)
 		return EXPP_ReturnPyObjError(PyExc_MemoryError,
 			"vector.resize2d(): problem allocating pointer space\n\n");
-	}
-	self->vec = self->data.py_data;  /*force*/
+	
 	self->size = 2;
 	return EXPP_incr_ret((PyObject*)self);
 }
@@ -130,21 +127,18 @@ PyObject *Vector_Resize2D(VectorObject * self)
   resize the vector to x,y,z */
 PyObject *Vector_Resize3D(VectorObject * self)
 {
-	if(self->data.blend_data){
+	if (self->wrapped==Py_WRAP)
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
 			"vector.resize3d(): cannot resize wrapped data - only python vectors\n");
-	}
 
-	self->data.py_data = 
-		PyMem_Realloc(self->data.py_data, (sizeof(float) * 3));
-	if(self->data.py_data == NULL) {
+	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 3));
+	if(self->vec == NULL)
 		return EXPP_ReturnPyObjError(PyExc_MemoryError,
 			"vector.resize3d(): problem allocating pointer space\n\n");
-	}
-	self->vec = self->data.py_data;  /*force*/
-	if(self->size == 2){
-		self->data.py_data[2] = 0.0f;
-	}
+	
+	if(self->size == 2)
+		self->vec[2] = 0.0f;
+	
 	self->size = 3;
 	return EXPP_incr_ret((PyObject*)self);
 }
@@ -152,23 +146,20 @@ PyObject *Vector_Resize3D(VectorObject * self)
   resize the vector to x,y,z,w */
 PyObject *Vector_Resize4D(VectorObject * self)
 {
-	if(self->data.blend_data){
+	if(self->wrapped==Py_WRAP)
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
 			"vector.resize4d(): cannot resize wrapped data - only python vectors\n");
-	}
 
-	self->data.py_data = 
-		PyMem_Realloc(self->data.py_data, (sizeof(float) * 4));
-	if(self->data.py_data == NULL) {
+	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 4));
+	if(self->vec == NULL)
 		return EXPP_ReturnPyObjError(PyExc_MemoryError,
 			"vector.resize4d(): problem allocating pointer space\n\n");
-	}
-	self->vec = self->data.py_data;  /*force*/
+	
 	if(self->size == 2){
-		self->data.py_data[2] = 0.0f;
-		self->data.py_data[3] = 1.0f;
+		self->vec[2] = 0.0f;
+		self->vec[3] = 1.0f;
 	}else if(self->size == 3){
-		self->data.py_data[3] = 1.0f;
+		self->vec[3] = 1.0f;
 	}
 	self->size = 4;
 	return EXPP_incr_ret((PyObject*)self);
@@ -296,9 +287,9 @@ PyObject *Vector_copy(VectorObject * self)
   free the py_object */
 static void Vector_dealloc(VectorObject * self)
 {
-	/*only free py_data*/
-	if(self->data.py_data){
-		PyMem_Free(self->data.py_data);
+	/* only free non wrapped */
+	if(self->wrapped != Py_WRAP){
+		PyMem_Free(self->vec);
 	}
 	PyObject_DEL(self);
 }
@@ -1223,19 +1214,15 @@ PyObject *newVectorObject(float *vec, int size, int type)
 	int i;
 	VectorObject *self = PyObject_NEW(VectorObject, &vector_Type);
 	
-	self->data.blend_data = NULL;
-	self->data.py_data = NULL;
 	if(size > 4 || size < 2)
 		return NULL;
 	self->size = size;
 
-	if(type == Py_WRAP){
-		self->data.blend_data = vec;
-		self->vec = self->data.blend_data;
+	if(type == Py_WRAP) {
+		self->vec = vec;
 		self->wrapped = Py_WRAP;
-	}else if (type == Py_NEW){
-		self->data.py_data = PyMem_Malloc(size * sizeof(float));
-		self->vec = self->data.py_data;
+	} else if (type == Py_NEW) {
+		self->vec = PyMem_Malloc(size * sizeof(float));
 		if(!vec) { /*new empty*/
 			for(i = 0; i < size; i++){
 				self->vec[i] = 0.0f;

@@ -695,7 +695,6 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 	double dot = 0.0f;
 	MatrixObject *mat1 = NULL, *mat2 = NULL;
 	PyObject *f = NULL;
-	VectorObject *vec = NULL;
 	PointObject *pt = NULL;
 
 	mat1 = (MatrixObject*)m1;

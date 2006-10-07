@@ -1451,7 +1451,6 @@ static PyObject *Curve_getIter( BPy_Curve * self )
 
 static PyObject *Curve_iterNext( BPy_Curve * self )
 {
-	PyObject *po;		/* return value */
 	Nurb *pnurb;
 
 	if( self->iter_pointer ) {
@@ -1500,7 +1499,6 @@ static int Curve_length( PyInstanceObject * inst )
 
 PyObject *Curve_getNurb( BPy_Curve * self, int n )
 {
-	PyObject *pyo;
 	Nurb *pNurb;
 	int i;
 

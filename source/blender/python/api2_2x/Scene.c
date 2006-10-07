@@ -1292,7 +1292,7 @@ static PyObject *SceneObSeq_add( BPy_SceneObSeq * self, PyObject *pyobj )
 static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 {
 	void *data = NULL;
-	int type;
+	short type;
 	struct Object *object;
 	Base *base;
 	PyObject *py_data;
@@ -1307,10 +1307,8 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 	if( !PyArg_ParseTuple( args, "O", &py_data ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected an object as argument" );
-	
-	if( ArmatureObject_Check( py_data ) ) {
-		data = ( void * ) PyArmature_AsArmature((BPy_Armature*)py_data);
-		type = OB_ARMATURE;
+	if (py_data == Py_None) {
+		type = OB_EMPTY;
 	} else if( Camera_CheckPyObject( py_data ) ) {
 		data = ( void * ) Camera_FromPyObject( py_data );
 		type = OB_CAMERA;
@@ -1340,17 +1338,22 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 	}
 
 	/* have we set data to something good? */
-	if( !data )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"link argument type is not supported " );
-
-	object = alloc_libblock( &( G.main->object ), ID_OB, ((ID *)data)->name + 2 );
+	if( data ) {
+		((ID *)object->data)->us++;
+		object = alloc_libblock( &( G.main->object ), ID_OB, ((ID *)data)->name + 2 );
+	} else {
+		if (type != OB_EMPTY) {
+			return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					"objects.new() argument type is not supported" );
+		}
+		
+		object = alloc_libblock( &( G.main->object ), ID_OB, "Empty" );
+	}
+	
 	object->data = data;
-	((ID *)object->data)->us++;
 	
-	object->flag = 0;
-	object->type = (short)type;
-	
+	object->flag = SELECT;
+	object->type = type;
 	
 	
 	/* Object properties copied from M_Object_New */
@@ -1418,7 +1421,7 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 	base->object = object;	/* link object to the new base */
 	base->lay= object->lay = scene->lay;	/* Layer, by default visible*/
 	
-	base->flag = 0;
+	base->flag = SELECT;
 	object->id.us = 1; /* we will exist once in this scene */
 
 	BLI_addhead( &(scene->base), base );	/* finally, link new base to scene */
