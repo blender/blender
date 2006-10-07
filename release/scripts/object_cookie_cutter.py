@@ -32,8 +32,8 @@ import Blender
 import BPyMathutils
 from math import sqrt
 reload(BPyMathutils)
-lineIntersect2D= BPyMathutils.lineIntersect2D
 Vector= Blender.Mathutils.Vector
+LineIntersect2D= Blender.Geometry.LineIntersect2D
 
 # Auto class
 def auto_class(slots):
@@ -97,7 +97,7 @@ def point_in_poly2d(pt, fvco):
 	#fvco= [v.co for v in face]
 	isect=0
 	for i in xrange(len(fvco)):
-		isect+= (lineIntersect2D(pt, crazy_point, fvco[i], fvco[i-1])[0] != None)
+		isect+= (LineIntersect2D(pt, crazy_point, fvco[i], fvco[i-1]) != None)
 	
 	return isect%2 # odd number is an intersect which wouold be true (inside the face) 
 	
@@ -289,11 +289,10 @@ def terrain_cut_2d(t, c, PREF_Z_LOC):
 					if bounds_intersect(eb_t, eb_c): # face/edge bounds intersect?
 						# Now we know the 2 edges might intersect, we'll do a propper test
 						
-						xi, yi= lineIntersect2D(ed_t.v1.co, ed_t.v2.co,   ed_c.v1.co, ed_c.v2.co)					
-						if xi != None:
-							
+						x= LineIntersect2D(ed_t.v1.co, ed_t.v2.co,   ed_c.v1.co, ed_c.v2.co)					
+						if x:
 							ed_isect= edge_isect_type()
-							ed_isect.point= Vector(xi,yi,0) # fake 3d
+							ed_isect.point= x.resize3D() # fake 3d
 							
 							# Find the interpolation Z point
 							
@@ -637,9 +636,7 @@ def main():
 					if point_in_bounds(c, t.bounds):
 						isect_count= 0
 						for edv1, edv2 in edge_verts_c:
-							xi, yi= lineIntersect2D(c, crazy_point,  edv1, edv2)
-							if xi!=None:
-								isect_count+=1
+							isect_count += (LineIntersect2D(c, crazy_point,  edv1, edv2) != None)
 						
 						if isect_count%2:
 							f.sel= 1

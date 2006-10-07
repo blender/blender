@@ -43,3 +43,10 @@ def PolyFill(polylines):
 
     Blender.Redraw()
   """
+
+def LineIntersect2D(vec1, vec2, vec3, vec4):
+	"""
+	Takes 2 lines vec1, vec2 for the 2 points of the first line and vec2, vec3 for the 2 points of the second line.
+	@rtype: Vector
+	@return: a 2D Vector for the intersection or None where there is no intersection.
+	"""

@@ -24,7 +24,6 @@
 import Blender
 Vector= Blender.Mathutils.Vector
 Ang= Blender.Mathutils.AngleBetweenVecs
-LineIntersect= Blender.Mathutils.LineIntersect
 CrossVecs= Blender.Mathutils.CrossVecs
 import BPyMesh
 

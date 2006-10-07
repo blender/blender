@@ -119,6 +119,7 @@ def main():
 	# -------------------------------
 	
 	appstring = appstring.replace('%f', imageFileName)
+	print '\tediting image with command "%s"' % appstring
 	os.system(appstring)
 
 if __name__ == '__main__' and os != None:

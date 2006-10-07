@@ -42,7 +42,7 @@ selected faces, or all faces.
 # -------------------------------------------------------------------------- 
 
 
-from Blender import Object, Scene, Draw, Window, sys, Mesh
+from Blender import Object, Scene, Draw, Window, sys, Mesh, Geometry
 from Blender.Mathutils import CrossVecs, Matrix, Vector, RotationMatrix, DotVecs, TriangleArea
 
 from math import cos
@@ -262,7 +262,9 @@ def island2Edge(island):
 	# If 2 are the same then they will be together, but full [a,b] order is not correct.
 	
 	# Sort by length
-	length_sorted_edges = [(key[0], key[1], value) for key, value in edges.iteritems() if value != 0]
+	
+		
+	length_sorted_edges = [(Vector(key[0]), Vector(key[1]), value) for key, value in edges.iteritems() if value != 0]
 	length_sorted_edges.sort(lambda A, B: cmp(B[2], A[2]))
 		
 	# Its okay to leave the length in there.
@@ -316,7 +318,7 @@ def pointInIsland(pt, island):
 
 
 # box is (left,bottom, right, top)
-def islandIntersectUvIsland(source, target, xSourceOffset, ySourceOffset):
+def islandIntersectUvIsland(source, target, SourceOffset):
 	# Is 1 point in the box, inside the vertLoops
 	edgeLoopsSource = source[6] # Pretend this is offset
 	edgeLoopsTarget = target[6]
@@ -324,28 +326,20 @@ def islandIntersectUvIsland(source, target, xSourceOffset, ySourceOffset):
 	# Edge intersect test	
 	for ed in edgeLoopsSource:
 		for seg in edgeLoopsTarget:
-			xi, yi = lineIntersection2D(\
-			seg[0][0], seg[0][1], seg[1][0], seg[1][1],\
-			xSourceOffset+ed[0][0], ySourceOffset+ed[0][1], xSourceOffset+ed[1][0], ySourceOffset+ed[1][1])
-			if xi != None:
+			i = Geometry.LineIntersect2D(\
+			seg[0], seg[1], SourceOffset+ed[0], SourceOffset+ed[1])
+			if i:
 				return 1 # LINE INTERSECTION
 	
 	# 1 test for source being totally inside target
+	SourceOffset.resize3D()
 	for pv in source[7]:
-		p = pv.__copy__()
-		
-		p.x += xSourceOffset
-		p.y += ySourceOffset		
-		if pointInIsland(p, target[0]):
+		if pointInIsland(pv+SourceOffset, target[0]):
 			return 2 # SOURCE INSIDE TARGET
 	
 	# 2 test for a part of the target being totaly inside the source.
 	for pv in target[7]:
-		p = pv.__copy__()
-		
-		p.x -= xSourceOffset
-		p.y -= ySourceOffset
-		if pointInIsland(p, source[0]):
+		if pointInIsland(pv+SourceOffset, source[0]):
 			return 3 # PART OF TARGET INSIDE SOURCE.
 
 	return 0 # NO INTERSECTION
@@ -456,7 +450,6 @@ def optiRotateUvIsland(faces):
 	# Testcase different rotations and find the onfe that best fits in a square
 	for ROTMAT in RotMatStepRotation:
 		uvVecs = best2dRotation(uvVecs, ROTMAT[0], ROTMAT[1])
-	
 	
 	# Only if you want it, make faces verticle!
 	if currentArea[1] > currentArea[2]:
@@ -616,7 +609,7 @@ def mergeUvIslands(islandList, islandListArea):
 							
 							##testcount+=1
 							#print 'Testing intersect'
-							Intersect = islandIntersectUvIsland(sourceIsland, targetIsland, boxLeft, boxBottom)
+							Intersect = islandIntersectUvIsland(sourceIsland, targetIsland, Vector(boxLeft, boxBottom))
 							#print 'Done', Intersect
 							if Intersect == 1:  # Line intersect, dont bother with this any more
 								pass
@@ -655,8 +648,7 @@ def mergeUvIslands(islandList, islandListArea):
 								# targetIsland[6].extend(sourceIsland[6])
 								#while sourceIsland[6]:
 								targetIsland[6].extend( [ (\
-									 ((e[0][0]+boxLeft, e[0][1]+boxBottom),\
-									 (e[1][0]+boxLeft, e[1][1]+boxBottom), e[2])\
+									 (e[0]+offset, e[1]+offset, e[2])\
 								) for e in sourceIsland[6] ] )
 								
 								sourceIsland[6][:] = [] # Empty
