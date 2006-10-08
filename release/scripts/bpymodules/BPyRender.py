@@ -3,12 +3,16 @@ from Blender import Scene, sys, Camera, Object, Image
 from Blender.Scene import Render
 Vector= Blender.Mathutils.Vector
 
-def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True):
+def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, camera_matrix= None):
 	'''
 	Takes any number of objects and renders them on the z axis, between x:y-0 and x:y-1
 	Usefull for making images from a mesh without per pixel operations
 	- objects must be alredy placed
+	- smooth, anti alias True/False
 	- path renders to a PNG image
+	- alpha weather to render background as alpha
+	
+	returns the blender image
 	'''
 	
 	# remove an extension if its alredy there
@@ -69,13 +73,83 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True):
 	render_scn.setCurrentCamera(render_cam_ob)
 	
 	render_cam_data.type= 1 # ortho
-	render_cam_data.scale= 1.0
+	
 	
 	
 	# Position the camera
-	render_cam_ob.LocZ= 1.0
-	render_cam_ob.LocX= 0.5
-	render_cam_ob.LocY= 0.5
+	if camera_matrix:
+		render_cam_ob.setMatrix(camera_matrix)
+		# We need to take into account the matrix scaling when setting the size
+		# so we get the image bounds defined by the matrix
+		# first get the x and y factors from the matrix.
+		# To render the correct dimensions we must use the aspy and aspy to force the matrix scale to
+		# override the aspect enforced by the width and weight.
+		cent= Vector() * camera_matrix
+		xvec= Vector(1,0,0) * camera_matrix
+		yvec= Vector(0,1,0) * camera_matrix
+		# zvec= Vector(0,0,1) * camera_matrix
+		xlen = (cent-xvec).length # half height of the image
+		ylen = (cent-yvec).length # half width of the image
+		# zlen = (cent-zvec).length # dist to place the camera? - just use the loc for now.
+		
+		
+		# less then 1.0 portrate, 1.0 or more is portrate
+		asp_cam_mat= xlen/ylen # divide by zero? - possible but scripters fault.
+		asp_image_res= float(width)/height
+		#print 'asp quad', asp_cam_mat, 'asp_image', asp_image_res
+		#print 'xylen', xlen, ylen, 'w/h', width, height
+		# Setup the aspect
+		
+		if asp_cam_mat > asp_image_res:
+			# camera is wider then image res.
+			# to make the image wider, reduce the aspy
+			asp_diff= asp_image_res/asp_cam_mat
+			min_asp= int(round(asp_diff * 200))
+			#print 'X', min_asp
+			
+		elif asp_cam_mat < asp_image_res: # asp_cam_mat < asp_image_res
+			# camera is narrower then image res
+			# to make the image narrower, reduce the aspx
+			asp_diff= asp_cam_mat/asp_image_res
+			min_asp= int(round(asp_diff * 200))
+			#print 'Y', min_asp
+		else:
+			min_asp= 200
+		
+		# set the camera size
+		if xlen > ylen:
+			if asp_cam_mat > asp_image_res:
+				render_context.aspectX= 200 # get the greatest range possible
+				render_context.aspectY= min_asp # get the greatest range possible
+			else:
+				render_context.aspectY= 200 # get the greatest range possible
+				render_context.aspectX= min_asp # get the greatest range possible
+			#print "xlen bigger"
+			render_cam_data.scale= xlen * 2
+		elif xlen < ylen:# ylen is bigger
+			if asp_cam_mat > asp_image_res:
+				render_context.aspectX= 200 # get the greatest range possible
+				render_context.aspectY= min_asp # get the greatest range possible
+			else:
+				render_context.aspectY= 200 # get the greatest range possible
+				render_context.aspectX= min_asp # get the greatest range possible
+			#print "ylen bigger"
+			render_cam_data.scale= ylen *2 
+		else:
+			# asppect 1:1
+			#print 'NOLEN Bigger'
+			render_cam_data.scale= xlen * 2
+
+
+
+		#print xlen, ylen, 'xlen, ylen'
+		
+	else:
+		render_cam_data.scale= 1.0
+		render_cam_ob.LocZ= 1.0
+		render_cam_ob.LocX= 0.5
+		render_cam_ob.LocY= 0.5
+	
 	render_context.threads= True # good for dual core cpu's
 	render_context.render()
 	render_context.saveRenderedImage(path)
@@ -94,9 +168,6 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True):
 	except:
 		raise 'Error: Could not render or load the image at path "%s"' % path_expand
 		return
-
-
-
 
 
 

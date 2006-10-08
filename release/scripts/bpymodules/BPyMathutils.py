@@ -182,3 +182,29 @@ def convexHull(point_list_2d):
 	# Concatenate both halfs and return.
 	return [p[1] for ls in (upper, lower) for p in ls]
 
+
+def plane2mat(plane, normalize= False):
+	'''
+	Takes a plane and converts to a matrix
+	points between 0 and 1 are up
+	1 and 2 are right
+	assumes the plane has 90d corners
+	'''
+	cent= (plane[0]+plane[1]+plane[2]+plane[3] ) /4.0
+
+	
+	up= cent - ((plane[0]+plane[1])/2.0)
+	right= cent - ((plane[1]+plane[2])/2.0)
+	z= CrossVecs(up, right)
+	
+	if normalize:
+		up.normalize()
+		right.normalize()
+		z.normalize()
+	
+	mat= Matrix(up, right, z)
+	
+	# translate
+	mat.resize4x4()
+	tmat= Blender.Mathutils.TranslationMatrix(cent)
+	return mat * tmat

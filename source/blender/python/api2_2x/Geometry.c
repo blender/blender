@@ -175,7 +175,7 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * args )
 static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 {
 	VectorObject *line_a1, *line_a2, *line_b1, *line_b2;
-	float a1x, a1y, a2x, a2y,  b1x, b1y, b2x, b2y, xi, yi, a1,a2,b1,b2, c1,c2, det_inv, m1, m2, newvec[2];
+	float a1x, a1y, a2x, a2y,  b1x, b1y, b2x, b2y, xi, yi, a1,a2,b1,b2, newvec[2];
 	if( !PyArg_ParseTuple ( args, "O!O!O!O!",
 	  &vector_Type, &line_a1,
 	  &vector_Type, &line_a2,
