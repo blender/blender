@@ -140,8 +140,6 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, cam
 			#print 'NOLEN Bigger'
 			render_cam_data.scale= xlen * 2
 
-
-
 		#print xlen, ylen, 'xlen, ylen'
 		
 	else:
