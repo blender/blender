@@ -61,6 +61,7 @@
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h" /* used for select grouped hooks */
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -615,6 +616,43 @@ static void select_same_group(Object *ob)	/* Select objects in the same group as
 		}
 }
 
+static void select_same_hook(Object *ob)	/* Select objects in the same group as the active */
+{
+	Base *base, *base_to;
+	ModifierData *md;
+	HookModifierData *hmd;
+	int ok;
+	if (!ob)
+		return;
+	
+	for (base= FIRSTBASE; base; base= base->next) {
+		ok= 0;
+		/* check that this object has a hook modifier and is using the active object as its deformer */
+		for (md = base->object->modifiers.first; md; md=md->next) {
+			if (md->type==eModifierType_Hook) {
+				hmd= (HookModifierData*) md;
+				if (hmd->object == ob) {
+					ok= 1;
+					break;
+				}
+			}
+		}
+		if (ok) { /* this means that ob us using the active object as a hook, so select other hooks */
+			for (md = base->object->modifiers.first; md; md=md->next) {
+				if (md->type==eModifierType_Hook) {
+					hmd= (HookModifierData*) md;
+					if (hmd->object != ob) {
+						base_to= object_in_scene(hmd->object, G.scene);
+						if (base_to) {
+							base_to->flag |= SELECT;
+							base_to->object->flag |= SELECT;
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 static void select_same_parent(Object *ob)	/* Select objects woth the same parent as the active (siblings), parent can be NULL also */
 {
@@ -662,6 +700,7 @@ void select_object_grouped(short nr)
 	else if(nr==4) select_same_parent(OBACT);	
 	else if(nr==5) select_same_type(OBACT);	
 	else if(nr==7) select_same_group(OBACT);
+	else if(nr==8) select_same_hook(OBACT);
 	
 	
 	
@@ -680,13 +719,14 @@ static void select_object_grouped_menu(void)
 
 	/* make menu string */
 	
-	str= MEM_mallocN(180, "groupmenu");
+	str= MEM_mallocN(512, "groupmenu");
 	strcpy(str, "Select Grouped%t|Children%x1|"
 	            "Immediate Children%x2|Parent%x3|"
 	            "Siblings (Shared Parent)%x4|"
 	            "Objects of Same Type%x5|"
 				"Objects on Shared Layers%x6|"
-                "Objects in Same Group%x7|");
+                "Objects in Same Group%x7|"
+                "Hook Siblings (Deform Same Data)%x8|");
 
 	/* here we go */
 	
