@@ -843,8 +843,11 @@ static TBitem tb_object_select_grouped[]= {
 {	0, "Children|Shift G, 1", 	1, NULL},
 {	0, "Immediate Children|Shift G, 2", 	2, NULL},
 {	0, "Parent|Shift G, 3", 	3, NULL},
-{	0, "Objects on Shared Layers|Shift G, 4", 	4, NULL},
-{	0, "Objects in Same Group|Shift G, 5", 	5, NULL},
+{	0, "Siblings (Shared Parent)|Shift G, 4", 	4, NULL},
+{	0, "Objects of Same Type|Shift G, 5", 	5, NULL},
+{	0, "Objects on Shared Layers|Shift G, 6", 	6, NULL},
+{	0, "Objects in Same Group|Shift G, 7", 	7, NULL},
+{	0, "Object Hooks|Shift G, 8", 	8, NULL},
 {  -1, "", 			0, do_view3d_select_object_groupedmenu}};
 
 static TBitem tb_object_select[]= {
