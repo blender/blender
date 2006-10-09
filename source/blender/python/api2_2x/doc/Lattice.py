@@ -9,34 +9,38 @@ Lattice Object
 This module provides access to B{Lattice} object in Blender.
 
 Example::
-  import Blender
-  from Blender import Lattice
-  from Blender.Lattice import *
-  from Blender import Object
-  from Blender import Scene
+	import Blender
+	from Blender import Lattice, Object, Scene, Modifier
 
-  myOb = Object.New('Lattice')
-  myLat = Lattice.New()
-  myLat.setPartitions(5,5,5)
-  myLat.setKeyTypes(LINEAR, CARDINAL, BSPLINE)
-  myLat.setMode(OUTSIDE)
+	# Make new lattice data
+	ob_lattice = Object.New('Lattice')
+	lattice_data = Lattice.New()
+	lattice_data.setPartitions(5,5,5)
+	lattice_data.setKeyTypes(Lattice.LINEAR, Lattice.CARDINAL, Lattice.BSPLINE)
+	lattice_data.setMode(Lattice.OUTSIDE)
 
-  for y in range(125):
-    vec = myLat.getPoint(y)
-    co1 = vec[0] + vec[0] / 5
-    co2 = vec[1] - vec[2] * 0.3
-    co3 = vec[2] * 3
-    myLat.setPoint(y,[co1,co2,co3])
+	for y in range(125):
+		vec = lattice_data.getPoint(y)
+		co1 = vec[0] + vec[0] / 5
+		co2 = vec[1] - vec[2] * 0.3
+		co3 = vec[2] * 3
+		lattice_data.setPoint(y,[co1,co2,co3])
 
-  myOb.link(myLat)
-  mySphere = Object.Get('Sphere')
-  myOb.makeParent([mySphere])
+	# Link the data to an object
+	ob_lattice.link(lattice_data) 
 
-  myLat.applyDeform()
+	# Get an object to deform with this lattice
+	mySphere = Object.Get('Sphere')
 
-  sc = Scene.getCurrent()
-  sc.link(myOb)
-  Blender.Redraw()
+	scn = Scene.getCurrent()
+	scn.link(ob_lattice)
+
+	# Apply lattice modifier
+	mod= mySphere.modifiers.append(Modifier.Type.LATTICE)
+	mod[Modifier.Settings.OBJECT] = ob_lattice
+	mySphere.makeDisplayList()
+
+	Blender.Redraw()
 """
 
 def New (name = None):
@@ -172,24 +176,6 @@ class Lattice:
     @param position: The x,y,z coordinates that you want the point to be: [x,y,z]
     """
 
-  def applyDeform(force = False):
-    """
-    @type force: bool
-    @param force: if True, meshes are not ignored.
-    Applies the current Lattice deformation to any child objects that have this 
-    Lattice as the parent.
-    @note: simply parenting to a Lattice and redrawing the screen is enough to
-      get the deformation done, this applyDeform method is useful when the
-      script won't call a redraw, like in command line background (GUI-less)
-      mode.
-    @note: by default, this method doesn't apply deformations to meshes.  This
-      is because unlike other kinds of objects, meshes store lattice
-      deformation directly in their vertices and calling this applyDeform
-      method will apply the deformation a second time, giving double
-      deformation, which can be a feature (set force = True if you want it) or
-      much probably an undesired effect.
-    """
-
   def getKey():
     """
     Returns the L{Key.Key} object associated with this Lattice.
@@ -211,7 +197,6 @@ class Lattice:
           myLat.setPoint(y,[co1,co2,co3])
         w = (z + 1) * 10
         myLat.insertKey(w)
-      myLat.applyDeform()
 
     @type frame: int
     @param frame: the frame at which the Lattice will be set as a keyframe

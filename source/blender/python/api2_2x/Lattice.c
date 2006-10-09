@@ -97,7 +97,6 @@ static PyObject *Lattice_setMode( BPy_Lattice * self, PyObject * args );
 static PyObject *Lattice_getMode( BPy_Lattice * self );
 static PyObject *Lattice_setPoint( BPy_Lattice * self, PyObject * args );
 static PyObject *Lattice_getPoint( BPy_Lattice * self, PyObject * args );
-static PyObject *Lattice_applyDeform( BPy_Lattice * self, PyObject *args );
 static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args );
 static PyObject *Lattice_copy( BPy_Lattice * self );
 
@@ -136,14 +135,6 @@ static char Lattice_setPoint_doc[] =
 static char Lattice_getPoint_doc[] =
 	"(str) - Get the coordinates of a point on the lattice";
 
-static char Lattice_applyDeform_doc[] =
-	"(force = False) - Apply the new lattice deformation to children\n\n\
-(force = False) - if given and True, children of mesh type are not ignored.\n\
-Meshes are treated differently in Blender, deformation is stored directly in\n\
-their vertices when first redrawn (ex: with Blender.Redraw) after getting a\n\
-Lattice parent, without needing this method (except for command line bg\n\
-mode). If forced, the deformation will be applied over any previous one(s).";
-
 static char Lattice_insertKey_doc[] =
 	"(str) - Set a new key for the lattice at specified frame";
 
@@ -177,8 +168,6 @@ static PyMethodDef BPy_Lattice_methods[] = {
 	 Lattice_setPoint_doc},
 	{"getPoint", ( PyCFunction ) Lattice_getPoint, METH_VARARGS,
 	 Lattice_getPoint_doc},
-	{"applyDeform", ( PyCFunction ) Lattice_applyDeform, METH_VARARGS,
-	 Lattice_applyDeform_doc},
 	{"insertKey", ( PyCFunction ) Lattice_insertKey, METH_VARARGS,
 	 Lattice_insertKey_doc},
 	{"__copy__", ( PyCFunction ) Lattice_copy, METH_NOARGS,
@@ -222,9 +211,6 @@ PyTypeObject Lattice_Type = {
 	0,			/* tp_members */
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
-
-static int Lattice_InLatList( BPy_Lattice * self );
-static int Lattice_IsLinkedToObject( BPy_Lattice * self );
 
 
 //***************************************************************************
@@ -700,50 +686,6 @@ static PyObject *Lattice_getPoint( BPy_Lattice * self, PyObject * args )
 	return Py_BuildValue( "[f,f,f]", bp->vec[0], bp->vec[1], bp->vec[2] );
 }
 
-//This function will not do anything if there are no children
-static PyObject *Lattice_applyDeform( BPy_Lattice * self, PyObject *args )
-{
-	//Object* ob; unused
-	Base *base;
-	Object *par = NULL;
-	int forced = 0;
-
-	if( !Lattice_IsLinkedToObject( self ) )
-		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						"Lattice must be linked to an object to apply it's deformation!" ) );
-
-	if( !PyArg_ParseTuple( args, "|i", &forced ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected nothing or True or False argument" ) );
-
-	/* deform children */
-	base = FIRSTBASE;
-	while( base ) {
-		par = base->object->parent;
-		if( par != NULL ) { /* check/assign if ob has parent */
-			/* meshes have their mverts deformed, others ob types use displist,
-			 * so we're not doing meshes here (unless forced), or else they get
-			 * deformed twice, since parenting a Lattice to an object and redrawing
-			 * already applies lattice deformation. 'forced' is useful for
-			 * command line background mode, when no redraws occur and so this
-			 * method is needed.  Or for users who actually want to apply the
-			 * deformation n times. */
-			if((self->Lattice == par->data)) {
-					/* I do not know what to do with this function
-					 * at the moment given the changing modifier system.
-					 * Calling into the modifier system in the first place
-					 * isn't great... -zr 
-					 */
-				object_apply_deform(base->object);
-			}
-		}
-		base = base->next;
-	}
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
 static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args )
 {
 	Lattice *lt;
@@ -815,11 +757,7 @@ static void Lattice_dealloc( BPy_Lattice * self )
 static PyObject *Lattice_getAttr( BPy_Lattice * self, char *name )
 {
 	PyObject *attr = Py_None;
-
-	if( !self->Lattice || !Lattice_InLatList( self ) )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Lattice was already deleted!" );
-
+	
 	if( strcmp( name, "name" ) == 0 )
 		attr = PyString_FromString( self->Lattice->id.name + 2 );
 	else if( strcmp( name, "width" ) == 0 )
@@ -902,10 +840,6 @@ static int Lattice_setAttr( BPy_Lattice * self, char *name, PyObject * value )
 	PyObject *valtuple;
 	PyObject *error = NULL;
 
-	if( !self->Lattice || !Lattice_InLatList( self ) )
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-					    "Lattice was already deleted!" );
-
 	valtuple = Py_BuildValue( "(O)", value );	// the set* functions expect a tuple 
 
 	if( !valtuple )
@@ -942,44 +876,9 @@ static int Lattice_compare( BPy_Lattice * a, BPy_Lattice * b )
 //***************************************************************************
 static PyObject *Lattice_repr( BPy_Lattice * self )
 {
-	if( self->Lattice && Lattice_InLatList( self ) )
+	if( self->Lattice )
 		return PyString_FromFormat( "[Lattice \"%s\"]",
 					    self->Lattice->id.name + 2 );
 	else
 		return PyString_FromString( "[Lattice <deleted>]" );
-}
-
-//***************************************************************************
-// Function:            Internal Lattice functions      
-//***************************************************************************
-// Internal function to confirm if a Lattice wasn't unlinked from main.
-static int Lattice_InLatList( BPy_Lattice * self )
-{
-	Lattice *lat_iter = G.main->latt.first;
-
-	while( lat_iter ) {
-		if( self->Lattice == lat_iter )
-			return 1;	// ok, still linked 
-
-		lat_iter = lat_iter->id.next;
-	}
-	// uh-oh, it was already deleted 
-	self->Lattice = NULL;	// so we invalidate the pointer 
-	return 0;
-}
-
-// Internal function to confirm if a Lattice has an object it's linked to.
-static int Lattice_IsLinkedToObject( BPy_Lattice * self )
-{
-	//check to see if lattice is linked to an object
-	Object *ob = G.main->object.first;
-	while( ob ) {
-		if( ob->type == OB_LATTICE ) {
-			if( self->Lattice == ob->data ) {
-				return 1;
-			}
-		}
-		ob = ob->id.next;
-	}
-	return 0;
 }
