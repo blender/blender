@@ -677,7 +677,7 @@ static PyObject *Scene_setLayersMask(BPy_Scene *self, PyObject *args)
 			"expected an integer (bitmask) as argument" );
 	}
 
-	if (laymask <= 0 || laymask > 1048575) /* binary: 1111 1111 1111 1111 1111 */
+	if (laymask <= 0 || laymask > 2097151) /* binary: 1111 1111 1111 1111 1111 */
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 			"bitmask must have from 1 up to 20 bits set");
 

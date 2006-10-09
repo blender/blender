@@ -33,11 +33,11 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, cam
 	scn= Scene.GetCurrent()
 	render_scn= Scene.New()
 	render_scn.makeCurrent()
-	
+	render_scn.Layers |= 2097151 # all layers enabled
+	 
 	# Add objects into the current scene
 	for ob in objects:
 		render_scn.link(ob)
-		# set layers
 	
 	render_context= render_scn.getRenderingContext()
 	render_context.setRenderPath('') # so we can ignore any existing path and save to the abs path.
@@ -148,10 +148,12 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, cam
 		render_cam_ob.LocX= 0.5
 		render_cam_ob.LocY= 0.5
 	
+	Blender.Window.RedrawAll()
+	
 	render_context.threads= True # good for dual core cpu's
 	render_context.render()
 	render_context.saveRenderedImage(path)
-	# Render.CloseRenderWindow()
+	Render.CloseRenderWindow()
 	#if not B.sys.exists(PREF_IMAGE_PATH_EXPAND):
 	#	raise 'Error!!!'
 	

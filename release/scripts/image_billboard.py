@@ -31,7 +31,7 @@ import Blender as B
 import BPyMathutils
 # reload(BPyMathutils)
 import BPyRender
-# reload(BPyRender)
+reload(BPyRender)
 import boxpack2d
 # reload(boxpack2d) # for developing.
 from Blender.Scene import Render
@@ -62,9 +62,13 @@ PREF_TILE_RES= B.Draw.Create(256)
 PREF_AA = B.Draw.Create(1)
 PREF_ALPHA= B.Draw.Create(1)
 PREF_Z_OFFSET = B.Draw.Create(10.0)
+PREF_IMG_PACK= B.Draw.Create(1)
 
 
 def save_billboard(PREF_IMAGE_PATH):
+	B.Window.WaitCursor(1)
+	# remove png, add it later
+	PREF_IMAGE_PATH= PREF_IMAGE_PATH.replace('.png', '')
 	
 	ob_sel= GLOBALS['ob_sel']
 	me_ob = GLOBALS['me_ob']
@@ -77,101 +81,119 @@ def save_billboard(PREF_IMAGE_PATH):
 	# Render images for all faces
 	face_data= [] # Store faces, images etc
 	boxes2Pack= []
-	temp_images= []
 	me_data.faceUV= True
+		
 	for i, f in enumerate(me_data.faces):
 		no= f.no
 		# Offset the plane by the zoffset on the faces normal
 		plane= [v.co * me_mat for v in f]
-		plane.reverse()
+		
+		# Horizontal stacking, make sure 0,1 and 2,3 are the longest
+		if\
+		(plane[0]-plane[1]).length + (plane[2]-plane[3]).length < \
+		(plane[1]-plane[2]).length + (plane[3]-plane[0]).length:
+			plane.append(plane.pop(0))
+			rot90= True
+		else:
+			rot90= False
+		
+		
+		#plane.reverse()
 		no= B.Mathutils.QuadNormal(*plane)
 		plane= [v + no*PREF_Z_OFFSET.val for v in plane]
 		
 		cent= (plane[0]+plane[1]+plane[2]+plane[3] ) /4.0
 		camera_matrix= BPyMathutils.plane2mat(plane)
-		tmp_path= '%s.%d' % (PREF_IMAGE_PATH, i)
+		tmp_path= '%s_%d' % (PREF_IMAGE_PATH, i)
 		img= BPyRender.imageFromObjectsOrtho(ob_sel, tmp_path, PREF_TILE_RES.val, PREF_TILE_RES.val, PREF_AA.val, PREF_ALPHA.val, camera_matrix)
 		# img.reload()
 		#img.pack() # se we can keep overwriting the path
 		#img.filename= ""
-		temp_images.append(img)
 		
-		face_data.append( (f, img, plane) )
-		w= ((plane[0]-plane[1]).length + (plane[2]-plane[3]).length)/2
-		h= ((plane[1]-plane[2]).length + (plane[3]-plane[0]).length)/2
 		
-		f.mode |= B.Mesh.FaceModes.TEX
-		f.image = img
-		f.uv=Vector(1,1), Vector(1,0), Vector(0,0), Vector(0,1)
-		boxes2Pack.append( (i, w, h) )
-
+		if not PREF_IMG_PACK.val:
+			f.mode |= B.Mesh.FaceModes.TEX
+			f.image = img
+			f.uv=Vector(0,1), Vector(0,0), Vector(1,0), Vector(1,1)
+			
+			if PREF_ALPHA.val:
+				f.transp |= B.Mesh.FaceTranspModes.ALPHA
+		else:
+			w= ((plane[0]-plane[1]).length + (plane[2]-plane[3]).length)/2
+			h= ((plane[1]-plane[2]).length + (plane[3]-plane[0]).length)/2
+			
+			face_data.append( (f, img, rot90) )
+			boxes2Pack.append( (i, h, w) )
 	
-	# pack the quads into a square
-	packWidth, packHeight, packedLs = boxpack2d.boxPackIter(boxes2Pack)
-	
-	render_obs= []
-	
-	# Add geometry to the mesh
-	for i, box in enumerate(packedLs):
+	if PREF_IMG_PACK.val:
+		# pack the quads into a square
 		
-		orig_f, img, plane= face_data[i]
+		packWidth, packHeight, packedLs = boxpack2d.boxPackIter(boxes2Pack)
+		render_obs= []
 		
-		# New Mesh and Object
-		render_mat= alpha_mat(img)
+		# Add geometry to the mesh
+		for box in packedLs:
+			i= box[0]
+			
+			orig_f, img, rot90= face_data[i]
+			
+			# New Mesh and Object
+			render_mat= alpha_mat(img)
+			
+			render_me= B.Mesh.New()
+			render_ob= B.Object.New('Mesh')
+			render_me.materials= [render_mat]
+			render_ob.link(render_me)
+			
+			render_obs.append(render_ob)
+			
+			# Add verts clockwise from the bottom left.
+			_x= box[1] / packWidth
+			_y= box[2] / packHeight
+			_w= box[3] / packWidth
+			_h= box[4] / packHeight
+			
+			
+			render_me.verts.extend([\
+			Vector(_x, _y, 0),\
+			Vector(_x, _y +_h, 0),\
+			Vector(_x + _w, _y +_h, 0),\
+			Vector(_x + _w, _y, 0),\
+			])
+			
+			render_me.faces.extend(list(render_me.verts))
+			render_me.faceUV= True
+			
+			# target_face= render_me.faces[-1]
+			# TEXFACE isnt used because of the renderign engine cant to alpha's for texdface.
+			#target_face.image= img
+			#target_face.mode |= B.Mesh.FaceModes.TEX
+			
+			# Set the UV's, we need to flip them HOZ?
+			uv1, uv2, uv3, uv4= orig_f.uv
+			uv3.x= uv4.x= _x+_w
+			uv1.x= uv2.x= _x
+			
+			uv2.y= uv3.y= _y+_h
+			uv1.y= uv4.y= _y
+			
+			if rot90:
+				orig_f.uv= Vector(uv4), Vector(uv1), Vector(uv2), Vector(uv3)
+			
+		target_image= BPyRender.imageFromObjectsOrtho(render_obs, PREF_IMAGE_PATH, PREF_RES.val, PREF_RES.val, PREF_AA.val, PREF_ALPHA.val, None)
 		
-		render_me= B.Mesh.New()
-		render_me.verts.extend([Vector(0,0,0)]) # Stupid, dummy vert, preverts errors. when assigning UV's/
-		render_ob= B.Object.New('Mesh')
-		render_me.materials= [render_mat]
-		render_ob.link(render_me)
+		# Set to the 1 image.
+		for f in me_data.faces:
+			f.image= target_image
+			if PREF_ALPHA.val:
+				f.transp |= B.Mesh.FaceTranspModes.ALPHA
 		
-		render_obs.append(render_ob)
-		
-		# Add verts clockwise from the bottom left.
-		_x= box[1] / packWidth
-		_y= box[2] / packHeight
-		_w= box[3] / packWidth
-		_h= box[4] / packHeight
-		
-		render_me.verts.extend([\
-		Vector(_x, _y, 0),\
-		Vector(_x, _y +_h, 0),\
-		Vector(_x + _w, _y +_h, 0),\
-		Vector(_x + _w, _y, 0),\
-		])
-		
-		render_me.faces.extend([\
-		render_me.verts[-1],\
-		render_me.verts[-2],\
-		render_me.verts[-3],\
-		render_me.verts[-4],\
-		])
-		render_me.faceUV= True
-		
-		# target_face= render_me.faces[-1]
-		# TEXFACE isnt used because of the renderign engine cant to alpha's for texdface.
-		#target_face.image= img
-		#target_face.mode |= B.Mesh.FaceModes.TEX
-		
-		# Set the UV's, we need to flip them HOZ?
-		orig_f.uv[2].x= orig_f.uv[3].x= _x+_w
-		orig_f.uv[0].x= orig_f.uv[1].x= _x
-		
-		orig_f.uv[1].y= orig_f.uv[2].y= _y+_h
-		orig_f.uv[0].y= orig_f.uv[3].y= _y
-	
-	target_image= BPyRender.imageFromObjectsOrtho(render_obs, PREF_IMAGE_PATH, PREF_RES.val, PREF_RES.val, PREF_AA.val, PREF_ALPHA.val, None)
-	
-	# Set to the 1 image.
-	for f in me_data.faces:
-		f.image= target_image
-		if PREF_ALPHA.val:
-			f.transp |= B.Mesh.FaceTranspModes.ALPHA
-	
-	# Free the images data and remove
-	for img in temp_images:
-		os.remove(img.filename)
-		img.reload()
+		# Free the images data and remove
+		for data in face_data:
+			img= data[1]
+			os.remove(img.filename)
+			img.reload()
+	# Finish pack
 	
 	me_data.update()
 	me_ob.makeDisplayList()
@@ -182,32 +204,13 @@ def save_billboard(PREF_IMAGE_PATH):
 
 
 def main():
-	
-	
-	
-	block = [\
-	'Image Pixel Size',\
-	("Output: ", PREF_RES, 128, 2048, "Pixel width and height to render the billboard to"),\
-	("Tile: ", PREF_TILE_RES, 64, 1024, "Pixel  width and height for each tile to render to"),\
-	'Render Settings',\
-	("Oversampling", PREF_AA , "Higher quality woth extra sampling"),\
-	("Alpha Clipping", PREF_ALPHA , "Render empty areas as transparent"),\
-	("Cam ZOffset: ", PREF_Z_OFFSET, 0.1, 100, "Distance to place the camera away from the quad when rendering")\
-	]
-	
-	if not B.Draw.PupBlock("Billboard Render", block):
-		return
-	
-	B.Window.WaitCursor(1)
-	
-	
-	
 	scn= B.Scene.GetCurrent()
 	ob_sel= list(scn.objects.context)
 	
 	PREF_KEEP_ASPECT= False
 	
 	
+	# Error Checking
 	if len(ob_sel) < 2:
 		B.Draw.PupMenu("Error%t|Select 2 mesh objects")
 		return
@@ -228,12 +231,30 @@ def main():
 	
 	me_data= me_ob.getData(mesh=1)
 	
-	
 	for f in me_data.faces:
 		if len(f) != 4:
 			B.Draw.PupMenu("Error%t|Active mesh must have only quads")
 			return
 	
+	
+	
+	
+	# Get user input
+	block = [\
+	'Image Pixel Size',\
+	("Packed Size: ", PREF_RES, 128, 2048, "Pixel width and height to render the billboard to"),\
+	("Tile Size: ", PREF_TILE_RES, 64, 1024, "Pixel  width and height for each tile to render to"),\
+	'Render Settings',\
+	("Pack Final", PREF_IMG_PACK , "Pack all images into 1 image"),\
+	("Oversampling", PREF_AA , "Higher quality woth extra sampling"),\
+	("Alpha Clipping", PREF_ALPHA , "Render empty areas as transparent"),\
+	("Cam ZOffset: ", PREF_Z_OFFSET, 0.1, 100, "Distance to place the camera away from the quad when rendering")\
+	]
+	
+	if not B.Draw.PupBlock("Billboard Render", block):
+		return
+	
+	# Set globals
 	GLOBALS['ob_sel'] = ob_sel
 	GLOBALS['me_ob'] = me_ob
 	GLOBALS['me_data'] = me_data
