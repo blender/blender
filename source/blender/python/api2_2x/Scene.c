@@ -1307,6 +1307,7 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 	if( !PyArg_ParseTuple( args, "O", &py_data ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected an object as argument" );
+
 	if (py_data == Py_None) {
 		type = OB_EMPTY;
 	} else if( Camera_CheckPyObject( py_data ) ) {
@@ -1339,8 +1340,9 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 
 	/* have we set data to something good? */
 	if( data ) {
-		((ID *)object->data)->us++;
 		object = alloc_libblock( &( G.main->object ), ID_OB, ((ID *)data)->name + 2 );
+		object->data = data;
+		((ID *)data)->us++;
 	} else {
 		if (type != OB_EMPTY) {
 			return EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -1350,7 +1352,6 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 		object = alloc_libblock( &( G.main->object ), ID_OB, "Empty" );
 	}
 	
-	object->data = data;
 	
 	object->flag = SELECT;
 	object->type = type;

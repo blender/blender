@@ -7909,7 +7909,9 @@ Mesh *Mesh_FromPyObject( PyObject * pyobj, Object *obj )
 	BPy_Mesh *blen_obj;
 
 	blen_obj = ( BPy_Mesh * ) pyobj;
-	blen_obj->object = obj;
+	if (obj)
+		blen_obj->object = obj;
+
 	return blen_obj->mesh;
 
 }
