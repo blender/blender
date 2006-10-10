@@ -285,7 +285,7 @@ static PyObject *Scene_getAttr( BPy_Scene * self, char *name )
 		attr = PyString_FromString( self->scene->id.name + 2 );
 	/* accept both Layer (for compatibility with ob.Layer) and Layers */
 	else if( strncmp( name, "Layer", 5 ) == 0 )
-		attr = PyInt_FromLong( self->scene->lay );
+		attr = PyInt_FromLong( self->scene->lay & (1<<20)-1 );
 	/* Layers returns a bitmask, layers returns a list of integers */
 	else if( strcmp( name, "layers") == 0)
 		return Scene_getLayers(self);
@@ -677,7 +677,7 @@ static PyObject *Scene_setLayersMask(BPy_Scene *self, PyObject *args)
 			"expected an integer (bitmask) as argument" );
 	}
 
-	if (laymask <= 0 || laymask > 2097151) /* binary: 1111 1111 1111 1111 1111 */
+	if (laymask <= 0 || laymask > (1<<20) - 1) /* binary: 1111 1111 1111 1111 1111 */
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 			"bitmask must have from 1 up to 20 bits set");
 
