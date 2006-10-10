@@ -891,6 +891,7 @@ void tubemap(float x, float y, float z, float *u, float *v);
 void spheremap(float x, float y, float z, float *u, float *v);
 			  
 int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda);
+int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3]);
 			  
 #ifdef __cplusplus
 }

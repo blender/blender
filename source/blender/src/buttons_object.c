@@ -2323,6 +2323,12 @@ static void object_softbodies(Object *ob)
 				if ((ob->type==OB_MESH) /*may be other types will come*/) {
 				uiDefButBitS(block, TOG, OB_SB_SELF, B_SOFTBODY_CHANGE, "Self Collision",		10,170,90,20, &ob->softflag, 0, 0, 0, 0, "enable naive vertex ball self collision");
 				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Ball Size:", 110,170,170,20, &sb->colball, -10.0,  10.0, 10, 0, "col. ball size ==0 average spring lenght, >0 set collision ball manual, -1.0 max, -0.1 min ,-1.1 (min+max)/2");
+				uiDefButS(block, ROW, B_DIFF, "Man",10,150,60,20, &sb->sbc_mode, 4.0,(float)0, 0, 0, "Manual adjust");
+				uiDefButS(block, ROW, B_DIFF, "Av",70,150,60,20, &sb->sbc_mode, 4.0,(float)1, 0, 0, "Average Spring lenght * Ball Size");
+				uiDefButS(block, ROW, B_DIFF, "Min",130,150,60,20, &sb->sbc_mode, 4.0,(float)2, 0, 0, "Minimal Spring lenght * Ball Size");
+				uiDefButS(block, ROW, B_DIFF, "Max",190,150,60,20, &sb->sbc_mode, 4.0,(float)3, 0, 0, "Maximal Spring lenght * Ball Size");
+				uiDefButS(block, ROW, B_DIFF, "AvMiMa",250,150,60,20, &sb->sbc_mode, 4.0,(float)4, 0, 0, "(Min+Max)/2 * Ball Size");
+
 				}
 				/* OTHER OBJECTS COLLISION STUFF */
 				if (ob->type==OB_MESH){
@@ -2387,7 +2393,7 @@ static void object_softbodies(Object *ob)
 					uiBlockBeginAlign(block);
 					uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,30,90,20, &ob->softflag, 0, 0, 0, 0, "Use Edges as springs");
 					uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		110,30,90,20, &ob->softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
-					/* uiDefButBitS(block, TOG, OB_SB_SELF, B_DIFF, "Self Collision",		220,30,90,20, &ob->softflag, 0, 0, 0, 0, ""); */
+					uiDefButBitS(block, TOG, OB_SB_EDGECOLL, B_DIFF, "Edge Collision",		220,30,90,20, &ob->softflag, 0, 0, 0, 0, "Edge collide too"); 
 					uiDefButF(block, NUM, B_DIFF, "E Stiff:",	10,10,150,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness");
 					uiDefButF(block, NUM, B_DIFF, "E Damp:",	160,10,150,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
 					uiBlockEndAlign(block);

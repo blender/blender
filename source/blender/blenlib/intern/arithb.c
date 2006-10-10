@@ -2942,9 +2942,6 @@ void mul_v3_v3m4(float *v1, float *v2, float mat[][4])
 /* moved from effect.c
    test if the line starting at p1 ending at p2 intersects the triangle v0..v2
    return non zero if it does 
-
-   wild guess .. says did not check the math since i don't need it
-   and if (it intersects) lambda returns intersection = p1 + lambda(p1-p2)
 */
 int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda)
 {
@@ -2976,3 +2973,84 @@ int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], f
 	return 1;
 }
 
+
+/*
+find closest point to p on line through l1,l2
+and return lambda, where (0 <= lambda <= 1) when cp is in the line segement l1,l2
+*/
+float lambda_cp_line_ex(float p[3], float l1[3], float l2[3], float cp[3])
+{
+	float h[3],u[3],lambda;
+	VecSubf(u, l2, l1);
+	VecSubf(h, p, l1);
+	lambda =Inpf(u,h)/Inpf(u,u);
+	cp[0] = l1[0] + u[0] * lambda;
+	cp[1] = l1[1] + u[1] * lambda;
+	cp[2] = l1[2] + u[2] * lambda;
+	return lambda;
+}
+/* little sister we only need to know lambda */
+float lambda_cp_line(float p[3], float l1[3], float l2[3])
+{
+	float h[3],u[3];
+	VecSubf(u, l2, l1);
+	VecSubf(h, p, l1);
+	return(Inpf(u,h)/Inpf(u,u));
+}
+
+
+
+int point_in_slice(float p[3], float v1[3], float l1[3], float l2[3])
+{
+/* 
+what is a slice ?
+some maths:
+a line including l1,l2 and a point not on the line 
+define a subset of R3 delimeted by planes parallel to the line and orthogonal 
+to the (point --> line) distance vector,one plane on the line one on the point, 
+the room inside usually is rather small compared to R3 though still infinte
+useful for restricting (speeding up) searches 
+e.g. all points of triangular prism are within the intersection of 3 'slices'
+onother trivial case : cube 
+but see a 'spat' which is a deformed cube with paired parallel planes needs only 3 slices too
+*/
+float h,rp[3],cp[3],q[3];
+
+lambda_cp_line_ex(v1,l1,l2,cp);
+VecSubf(q,cp,v1);
+
+VecSubf(rp,p,v1);
+h=Inpf(q,rp)/Inpf(q,q);
+if (h < 0.0f || h > 1.0f) return 0;
+return 1;
+}
+
+/*adult sister defining the slice planes by the origin and the normal  
+NOTE |normal| may not be 1 but defining the thickness of the slice*/
+int point_in_slice_as(float p[3],float origin[3],float normal[3])
+{
+float h,rp[3];
+VecSubf(rp,p,origin);
+h=Inpf(normal,rp)/Inpf(normal,normal);
+if (h < 0.0f || h > 1.0f) return 0;
+return 1;
+}
+
+/*mama (knowing the squared lenght of the normal)*/
+int point_in_slice_m(float p[3],float origin[3],float normal[3],float lns)
+{
+float h,rp[3];
+VecSubf(rp,p,origin);
+h=Inpf(normal,rp)/lns;
+if (h < 0.0f || h > 1.0f) return 0;
+return 1;
+}
+
+
+int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3])
+{
+if(!point_in_slice(p,v1,v2,v3)) return 0;
+if(!point_in_slice(p,v2,v3,v1)) return 0;
+if(!point_in_slice(p,v3,v1,v2)) return 0;
+return 1;
+}

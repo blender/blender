@@ -82,8 +82,6 @@ variables on the UI for now
 
 #include  "BIF_editdeform.h"
 
-
-
 /* ********** soft body engine ******* */
 
 typedef struct BodyPoint {
@@ -98,7 +96,14 @@ typedef struct BodyPoint {
 typedef struct BodySpring {
 	int v1, v2;
 	float len, strength;
+	float ext_force[3]; 
+	/* ^^^^^^^^^ for collision now, 
+	but could be used for forces depending on orientations
+	such as wind --> project the lenght on the (relative) wind
+	via inner product force -> sin(<v_wind-v_spring,v1-v2>)
+	*/ 
 	short order;
+	short flag;
 } BodySpring;
 
 
@@ -107,6 +112,9 @@ typedef struct BodySpring {
    removes *unnecessary* stiffnes from ODE system
 */
 #define HEUNWARNLIMIT 1 /* 50 would be fine i think for detecting severe *stiff* stuff */
+
+
+#define BSF_INTERSECT   1 /* edge intersects collider face */
 
 
 float SoftHeunTol = 1.0f; /* humm .. this should be calculated from sb parameters and sizes */
@@ -184,9 +192,13 @@ typedef struct ccd_Mesh {
 	MFace *mface;
 	int savety;
 	ccdf_minmax *mima;
+	/* Axis Aligned Bounding Box AABB */
 	float bbmin[3];
 	float bbmax[3];
-
+	/* Max Ball */
+	float mb_center[3];
+	float mb_radius;
+    
 }ccd_Mesh;
 
 
@@ -344,6 +356,12 @@ ccd_Mesh *ccd_mesh_make(Object *ob, DispListMesh *dm)
 		pccd_M->bbmax[2] = MAX2(pccd_M->bbmax[2],v[2]+hull);
 		
 	}
+	/* now we have AABB      */
+	/* let's make the balls  */
+	pccd_M->mb_center[0] = (pccd_M->bbmin[0] + pccd_M->bbmax[0]) / 2.0f;
+	pccd_M->mb_center[1] = (pccd_M->bbmin[1] + pccd_M->bbmax[1]) / 2.0f;
+	pccd_M->mb_center[2] = (pccd_M->bbmin[2] + pccd_M->bbmax[2]) / 2.0f;
+	pccd_M->mb_radius =VecLenf(pccd_M->mb_center,pccd_M->bbmin);
 	/* alloc and copy faces*/
     pccd_M->mface = MEM_mallocN(sizeof(MFace)*pccd_M->totface,"ccd_Mesh_Faces");
 	memcpy(pccd_M->mface,dm->mface,sizeof(MFace)*pccd_M->totface);
@@ -707,24 +725,24 @@ static void calculate_collision_balls(Object *ob)
 		}
 
 		if (akku_count > 0) {
-			 bp->colball = akku/(float)akku_count;
-			 /* i don't want to taint a "short pad" member in SDNA yet
-			 so hack alternatives in that way */
-			if (sb->colball > 0.0f){
+			if (sb->sbc_mode == 0){
 				bp->colball=sb->colball;
 			}		
-			if (sb->colball == -1.0f){
-				bp->colball=max;
+			if (sb->sbc_mode == 1){
+			 bp->colball = akku/(float)akku_count*sb->colball;
+			}
+			if (sb->colball == 2){
+				bp->colball=min*sb->colball;
 			}		
-			if (sb->colball == -0.1f){
-				bp->colball=min;
+			if (sb->colball == 3){
+				bp->colball=max*sb->colball;
 			}		
-			if (sb->colball == -1.1f){
-			bp->colball = (min + max)/2.0f;
+			if (sb->colball == 4){
+			bp->colball = (min + max)/2.0f*sb->colball;
 			}		
 		}
 		else bp->colball=0;
-		/* printf("CB %f \n",bp->colball); */
+		/* printf("CB %f \n",bp->colball);  */
 	}/*for bp*/		
 }
 
@@ -838,13 +856,193 @@ static void free_softbody_intern(SoftBody *sb)
 ** since that would only valid for 'slow' moving collision targets and dito particles
 */
 
-int sb_detect_collisionCached(float opco[3], float facenormal[3], float *damp,
+/* BEGIN the spring external section*/
+
+//#if (0)
+
+int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp,						
+								   float force[3], unsigned int par_layer,struct Object *vertexowner)
+{
+	Base *base;
+	Object *ob;
+	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3], d_nvect[3], aabbmin[3],aabbmax[3];
+	float t,el;
+	int a, deflected=0;
+
+	aabbmin[0] = MIN2(edge_v1[0],edge_v2[0]);
+	aabbmin[1] = MIN2(edge_v1[1],edge_v2[1]);
+	aabbmin[2] = MIN2(edge_v1[2],edge_v2[2]);
+	aabbmax[0] = MAX2(edge_v1[0],edge_v2[0]);
+	aabbmax[1] = MAX2(edge_v1[1],edge_v2[1]);
+	aabbmax[2] = MAX2(edge_v1[2],edge_v2[2]);
+
+	el = VecLenf(edge_v1,edge_v2);
+
+	base= G.scene->base.first;
+    while (base) {
+		/*Only proceed for mesh object in same layer */
+		if(base->object->type==OB_MESH && (base->lay & par_layer)) {
+			ob= base->object;
+			if((vertexowner) && (ob == vertexowner)){ 
+				/* if vertexowner is given  we don't want to check collision with owner object */ 
+				base = base->next;
+				continue;				
+			}
+
+			/* only with deflecting set */
+			if(ob->pd && ob->pd->deflect) {
+				MFace *mface= NULL;
+				MVert *mvert= NULL;
+				ccdf_minmax *mima= NULL;
+
+				if(ob->sumohandle){
+					ccd_Mesh *ccdm=ob->sumohandle;
+					mface= ccdm->mface;
+					mvert= ccdm->mvert;
+					mima= ccdm->mima;
+					a = ccdm->totface;
+
+					if ((aabbmax[0] < ccdm->bbmin[0]) || 
+						(aabbmax[1] < ccdm->bbmin[1]) ||
+						(aabbmax[2] < ccdm->bbmin[2]) ||
+						(aabbmin[0] > ccdm->bbmax[0]) || 
+						(aabbmin[1] > ccdm->bbmax[1]) || 
+						(aabbmin[2] > ccdm->bbmax[2]) ) {
+						/* boxes dont intersect */ 
+						base = base->next;
+						continue;				
+					}					
+
+				}
+				else{
+					/*aye that should be cached*/
+					printf("missing cache error \n");
+					base = base->next;
+					continue;				
+				}
+
+
+				/* use mesh*/
+				while (a--) {
+					if (
+						(aabbmax[0] < mima->minx) || 
+						(aabbmin[0] > mima->maxx) || 
+						(aabbmax[1] < mima->miny) ||
+						(aabbmin[1] > mima->maxy) || 
+						(aabbmax[2] < mima->minz) ||
+						(aabbmin[2] > mima->maxz) 
+						) {
+						mface++;
+						mima++;
+						continue;
+					}
+
+
+					if (mvert){
+
+						VECCOPY(nv1,mvert[mface->v1].co);						
+						VECCOPY(nv2,mvert[mface->v2].co);
+						VECCOPY(nv3,mvert[mface->v3].co);
+						if (mface->v4){
+							VECCOPY(nv4,mvert[mface->v4].co);
+						}
+					}
+
+
+
+					/* switch origin to be nv2*/
+					VECSUB(edge1, nv1, nv2);
+					VECSUB(edge2, nv3, nv2);
+
+					Crossf(d_nvect, edge2, edge1);
+					Normalise(d_nvect);
+					if ( LineIntersectsTriangle(edge_v1, edge_v2, nv1, nv2, nv3, &t)){
+						float v1[3],v2[3];
+						float intrusiondepth,i1,i2;
+						VECSUB(v1, edge_v1, nv2);
+						VECSUB(v2, edge_v2, nv2);
+						i1 = Inpf(v1,d_nvect);
+						i2 = Inpf(v2,d_nvect);
+						intrusiondepth = -MIN2(i1,i2)/el;
+						Vec3PlusStVec(force,intrusiondepth,d_nvect);
+						*damp=ob->pd->pdef_sbdamp;
+						deflected = 2;
+					}
+					if (mface->v4){ /* quad */
+						/* switch origin to be nv4 */
+						VECSUB(edge1, nv3, nv4);
+						VECSUB(edge2, nv1, nv4);
+
+						Crossf(d_nvect, edge2, edge1);
+						Normalise(d_nvect);						
+						if (LineIntersectsTriangle( edge_v1, edge_v2,nv1, nv3, nv4, &t)){
+							float v1[3],v2[3];
+							float intrusiondepth,i1,i2;
+							VECSUB(v1, edge_v1, nv4);
+							VECSUB(v2, edge_v2, nv4);
+						i1 = Inpf(v1,d_nvect);
+						i2 = Inpf(v2,d_nvect);
+						intrusiondepth = -MIN2(i1,i2)/el;
+
+
+							Vec3PlusStVec(force,intrusiondepth,d_nvect);
+							*damp=ob->pd->pdef_sbdamp;
+							deflected = 2;
+						}
+					}
+					mface++;
+					mima++;					
+				}/* while a */		
+			} /* if(ob->pd && ob->pd->deflect) */
+		}/* if (base->object->type==OB_MESH && (base->lay & par_layer)) { */
+		base = base->next;
+	} /* while (base) */
+	return deflected;	
+}
+
+//#endif
+
+
+void scan_for_ext_spring_forces(Object *ob)
+{
+	SoftBody *sb = ob->soft;
+	int a;
+	float damp; /* note, damp is mute here, but might be weight painted in future */
+	float feedback[3];
+	if (sb && sb->totspring){
+		for(a=0; a<sb->totspring; a++) {
+			BodySpring *bs = &sb->bspring[a];
+			bs->ext_force[0]=bs->ext_force[1]=bs->ext_force[2]=0.0f; 
+			feedback[0]=feedback[1]=feedback[2]=0.0f;
+            bs->flag &= ~BSF_INTERSECT;
+
+			/* +++ springs colliding */
+			if (bs->order ==1){
+				if ( sb_detect_edge_collisionCached (sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos,
+					&damp,feedback,ob->lay,ob)){
+					VecAddf(bs->ext_force,bs->ext_force,feedback);
+					bs->flag |= BSF_INTERSECT;
+					
+				}
+			}
+			/* ---- springs colliding */
+
+			/* +++ springs seeing wind ... n stuff depending on their orientation*/
+			/* nothing here yet, but get the idea */
+			/* --- springs seeing wind */
+
+		}
+	}
+}
+/* END the spring external section*/
+
+int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *damp,
 						float force[3], unsigned int par_layer,struct Object *vertexowner)
 {
 	Base *base;
 	Object *ob;
-	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3], dv1[3], dv2[3],
-		facedist,n_mag,t,force_mag_norm,minx,miny,minz,maxx,maxy,maxz,
+	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3], dv1[3],
+		facedist,n_mag,force_mag_norm,minx,miny,minz,maxx,maxy,maxz,
 		innerfacethickness = -0.5f, outerfacethickness = 0.2f,
 		ee = 5.0f, ff = 0.1f, fa;
 	int a, deflected=0;
@@ -909,7 +1107,6 @@ int sb_detect_collisionCached(float opco[3], float facenormal[3], float *damp,
 				
 				/* use mesh*/
 				while (a--) {
-
 					if (
 						(opco[0] < mima->minx) || 
 						(opco[0] > mima->maxx) || 
@@ -945,10 +1142,11 @@ int sb_detect_collisionCached(float opco[3], float facenormal[3], float *damp,
 					facedist = Inpf(dv1,d_nvect);
 					
 					if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){		
-						dv2[0] = opco[0] - 2.0f*facedist*d_nvect[0];
-						dv2[1] = opco[1] - 2.0f*facedist*d_nvect[1];
-						dv2[2] = opco[2] - 2.0f*facedist*d_nvect[2];
-						if ( LineIntersectsTriangle( opco, dv2, nv1, nv2, nv3, &t)){
+//						dv2[0] = opco[0] - 2.0f*facedist*d_nvect[0];
+//						dv2[1] = opco[1] - 2.0f*facedist*d_nvect[1];
+//						dv2[2] = opco[2] - 2.0f*facedist*d_nvect[2];
+//						if ( LineIntersectsTriangle( opco, dv2, nv1, nv2, nv3, &t)){
+						if (point_in_tri_prism(opco, nv1, nv2, nv3) ){
 							force_mag_norm =(float)exp(-ee*facedist);
 							if (facedist > outerfacethickness*ff)
 								force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
@@ -968,10 +1166,11 @@ int sb_detect_collisionCached(float opco[3], float facenormal[3], float *damp,
 						facedist = Inpf(dv1,d_nvect);
 						
 						if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){
-							dv2[0] = opco[0] - 2.0f*facedist*d_nvect[0];
-							dv2[1] = opco[1] - 2.0f*facedist*d_nvect[1];
-							dv2[2] = opco[2] - 2.0f*facedist*d_nvect[2];
-							if (LineIntersectsTriangle( opco, dv2, nv1, nv3, nv4, &t)){
+//							dv2[0] = opco[0] - 2.0f*facedist*d_nvect[0];
+//							dv2[1] = opco[1] - 2.0f*facedist*d_nvect[1];
+//							dv2[2] = opco[2] - 2.0f*facedist*d_nvect[2];
+//							if (LineIntersectsTriangle( opco, dv2, nv1, nv3, nv4, &t)){
+						if (point_in_tri_prism(opco, nv1, nv3, nv4) ){
 								force_mag_norm =(float)exp(-ee*facedist);
 								if (facedist > outerfacethickness*ff)
 									force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
@@ -1004,12 +1203,11 @@ static void Vec3PlusStVec(float *v, float s, float *v1)
 
 static int sb_deflect_face(Object *ob,float *actpos, float *futurepos,float *collisionpos, float *facenormal,float *force,float *cf)
 {
-	float s_actpos[3], s_futurepos[3];
+	float s_actpos[3];
 	int deflected;
 	
 	VECCOPY(s_actpos,actpos);
-	if(futurepos) VECCOPY(s_futurepos,futurepos);
-	deflected= sb_detect_collisionCached(s_actpos, facenormal, cf, force , ob->lay, ob);
+	deflected= sb_detect_vertex_collisionCached(s_actpos, facenormal, cf, force , ob->lay, ob);
 	return(deflected);
 }
 
@@ -1039,7 +1237,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 	ListBase *do_effector;
 	float iks, ks, kd, gravity, actspringlen, forcefactor, sd[3];
 	float fieldfactor = 1000.0f, windfactor  = 250.0f;   
-	int a, b,  do_deflector,do_selfcollision;
+	int a, b,  do_deflector,do_selfcollision,do_springcollision;
 	
 	/* clear forces */
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
@@ -1052,10 +1250,14 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 	do_deflector= is_there_deflection(ob->lay);
 	do_effector= pdInitEffectors(ob,NULL);
 	do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF));
-			
+	do_springcollision=do_deflector && (ob->softflag & OB_SB_EDGES) &&(ob->softflag & OB_SB_EDGECOLL);
 	
 	iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
 	bproot= sb->bpoint; /* need this for proper spring addressing */
+	
+
+	
+	if (do_springcollision)  scan_for_ext_spring_forces(ob);
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		/* naive ball self collision */
@@ -1085,7 +1287,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 						}
 						if (!attached){
 							/* would need another UI parameter defining fricton on self contact */
-							float ccfriction = 0.05;
+							float ccfriction = 0.05f;
 							float f = tune/(distance) + tune/(compare*compare)*distance - 2.0f*tune/compare ;
 							Vec3PlusStVec(bp->force,f,def);
 							if (bp->contactfrict == 0.0f) bp->contactfrict = ccfriction*compare/distance; 
@@ -1200,6 +1402,13 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				if (sb->bspring){ /* spring list exists at all ? */
 					for(b=bp->nofsprings;b>0;b--){
 						bs = sb->bspring + bp->springs[b-1];
+						if (do_springcollision){
+							VecAddf(bp->force,bp->force,bs->ext_force);
+							if (bs->flag & BSF_INTERSECT)
+								bp->contactfrict = 0.9f; /* another ad hoc magic */
+
+						}
+
 						if (( (sb->totpoint-a) == bs->v1) ){ 
 							actspringlen= VecLenf( (bproot+bs->v2)->pos, bp->pos);
 							VecSubf(sd,(bproot+bs->v2)->pos, bp->pos);
