@@ -279,13 +279,13 @@ void post_bitmap_tile_set(VBitmapLayer *vblayer, unsigned int xs, unsigned int y
 	if(!ibuf) return;
 
 	/* select channel due to verse layer name */
-	if(strcmp(vblayer->name,"col_r")==0)
+	if(strcmp(vblayer->name,"color_r")==0)
 		channel = 0;
-	else if(strcmp(vblayer->name,"col_g")==0)
+	else if(strcmp(vblayer->name,"color_g")==0)
 		channel = 1;
-	else if(strcmp(vblayer->name, "col_b")==0)
+	else if(strcmp(vblayer->name, "color_b")==0)
 		channel = 2;
-	else if(strcmp(vblayer->name,"alpha")==0)
+	else if(strcmp(vblayer->name,"transparency")==0)
 		channel = 3;
 
 	i_rect = rect = (unsigned char*)ibuf->rect;
