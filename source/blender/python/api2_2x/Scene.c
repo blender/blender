@@ -841,8 +841,10 @@ static PyObject *Scene_unlink( BPy_Scene * self, PyObject * args )
 	base = object_in_scene( bpy_obj->object, scene );
 
 	if( base ) {		/* if it is, remove it */
+		if (scene->basact==base)
+			scene->basact= NULL;	/* in case the object was selected */
+		
 		free_and_unlink_base_from_scene( scene, base );
-		scene->basact = NULL;	/* in case the object was selected */
 		Py_RETURN_TRUE;
 	}
 	else
@@ -1420,7 +1422,7 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 
 	
 	base->object = object;	/* link object to the new base */
-	base->lay= object->lay = scene->lay;	/* Layer, by default visible*/
+	base->lay= object->lay = scene->lay & (1<<20)-1;	/* Layer, by default visible*/
 	
 	base->flag = SELECT;
 	object->id.us = 1; /* we will exist once in this scene */
@@ -1462,11 +1464,13 @@ static PyObject *SceneObSeq_remove( BPy_SceneObSeq * self, PyObject *args )
 		else if( blen_ob->type != OB_EMPTY )
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "Object has no data!" );
-
+		
+		if (self->bpyscene->scene->basact==base)
+			self->bpyscene->scene->basact= NULL;	/* in case the object was selected */
+		
 		BLI_remlink( &(self->bpyscene->scene)->base, base );
 		blen_ob->id.us--;
 		MEM_freeN( base );
-		self->bpyscene->scene->basact = 0;	/* in case the object was selected */
 	}
 	Py_RETURN_NONE;
 }
