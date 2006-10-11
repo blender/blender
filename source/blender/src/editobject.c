@@ -255,6 +255,10 @@ void delete_obj(int ok)
 	Base *base;
 	int islamp= 0;
 	
+	/* used for global delete only*/
+	Scene *scene; 
+	Base *base_other;
+	
 	if(G.obedit) return;
 	if(G.scene->id.lib) return;
 	
@@ -262,12 +266,35 @@ void delete_obj(int ok)
 	while(base) {
 		Base *nbase= base->next;
 
-		if TESTBASE(base) {
-			if(ok==0 &&  (ok=okee("Erase selected Object(s)"))==0) return;
+		if TESTBASE(base) { 
+			if(ok==0) {
+				/* Shift Del is global delete */
+				if (G.qual & LR_SHIFTKEY) {
+					if(!okee("Erase selected Object(s) Globally")) return;
+					ok= 2;
+				} else {
+					if(!okee("Erase selected Object(s)")) return;
+					ok= 1;
+				}
+			}
+			
 			if(base->object->type==OB_LAMP) islamp= 1;
 #ifdef WITH_VERSE
 			if(base->object->vnode) b_verse_delete_object(base->object);
-#endif			
+#endif
+			if (ok==2) {
+				for (scene= G.main->scene.first; scene; scene= scene->id.next) {
+					if (scene != G.scene && !(scene->id.lib)) {
+						base_other= object_in_scene( base->object, scene );
+						if (base_other) {
+							if (base_other == scene->basact) scene->basact= NULL;	/* in case the object was active */
+							free_and_unlink_base_from_scene( scene, base_other );
+						}
+					}
+				}
+			}
+			
+			/* remove from current scene only */
 			free_and_unlink_base(base);
 		}
 		

@@ -1935,7 +1935,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case XKEY:
 			case DELKEY:
-				if(G.qual==0)
+				if(G.qual==0 || G.qual==LR_SHIFTKEY)
 					delete_context_selected();
 				break;
 			case YKEY:
