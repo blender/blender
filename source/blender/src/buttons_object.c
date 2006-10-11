@@ -2320,14 +2320,18 @@ static void object_softbodies(Object *ob)
 		else {
 			if(ob->softflag & OB_SB_COLLISIONSET) {
 				/* SELF COLLISION STUFF */
-				if ((ob->type==OB_MESH) /*may be other types will come*/) {
-				uiDefButBitS(block, TOG, OB_SB_SELF, B_SOFTBODY_CHANGE, "Self Collision",		10,170,90,20, &ob->softflag, 0, 0, 0, 0, "enable naive vertex ball self collision");
-				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Ball Size:", 110,170,170,20, &sb->colball, -10.0,  10.0, 10, 0, "col. ball size ==0 average spring lenght, >0 set collision ball manual, -1.0 max, -0.1 min ,-1.1 (min+max)/2");
+				if ((ob->type==OB_MESH)||(ob->type==OB_CURVE) ) {
+            	uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, OB_SB_SELF, B_SOFTBODY_CHANGE, "Self Collision",		10,170,150,20, &ob->softflag, 0, 0, 0, 0, "enable naive vertex ball self collision");
+				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Ball Size:", 160,170,150,20, &sb->colball, -10.0,  10.0, 10, 0, "Absolute ball size or factor if not manual adjusted");
 				uiDefButS(block, ROW, B_DIFF, "Man",10,150,60,20, &sb->sbc_mode, 4.0,(float)0, 0, 0, "Manual adjust");
 				uiDefButS(block, ROW, B_DIFF, "Av",70,150,60,20, &sb->sbc_mode, 4.0,(float)1, 0, 0, "Average Spring lenght * Ball Size");
 				uiDefButS(block, ROW, B_DIFF, "Min",130,150,60,20, &sb->sbc_mode, 4.0,(float)2, 0, 0, "Minimal Spring lenght * Ball Size");
 				uiDefButS(block, ROW, B_DIFF, "Max",190,150,60,20, &sb->sbc_mode, 4.0,(float)3, 0, 0, "Maximal Spring lenght * Ball Size");
 				uiDefButS(block, ROW, B_DIFF, "AvMiMa",250,150,60,20, &sb->sbc_mode, 4.0,(float)4, 0, 0, "(Min+Max)/2 * Ball Size");
+				uiDefButF(block, NUM, B_DIFF, "B Stiff:", 10,130,150,20, &sb->ballstiff, 0.001,  100.0, 10, 0, "");
+				uiDefButF(block, NUM, B_DIFF, "B Damp:", 160,130,150,20, &sb->balldamp,  0.001,  1.0, 10, 0, "");
+				uiBlockEndAlign(block);
 
 				}
 				/* OTHER OBJECTS COLLISION STUFF */

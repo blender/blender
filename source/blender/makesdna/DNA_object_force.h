@@ -98,11 +98,14 @@ typedef struct SoftBody {
 	SBVertex **keys;			/* array of size totpointkey */
 	int totpointkey, totkey;	/* if totpointkey != totpoint or totkey!- (efra-sfra)/interval -> free keys */
 	float secondspring;
+
+	/* self collision*/
 	float colball;		/* fixed collision ball size if > 0 */
-	float coldamp;		/* cooling down collision response  */
-	float fpad1;		/* cooling down collision response  */
+	float balldamp;		/* cooling down collision response  */
+	float ballstiff;	/* pressure the ball is loaded with  */
 	short sbc_mode;
-    short pad3,pad4,pad5;
+    short pad3, /* alias vg_ballsize, weight painting collision balls not implemented yet, but easy peasy to do */
+		pad4,pad5;     /* could be vg_balldamp,vg_ballstiff :) ahh, well vg_nodemass is missing too*/
 
 } SoftBody;
 

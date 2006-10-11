@@ -195,10 +195,6 @@ typedef struct ccd_Mesh {
 	/* Axis Aligned Bounding Box AABB */
 	float bbmin[3];
 	float bbmax[3];
-	/* Max Ball */
-	float mb_center[3];
-	float mb_radius;
-    
 }ccd_Mesh;
 
 
@@ -356,12 +352,6 @@ ccd_Mesh *ccd_mesh_make(Object *ob, DispListMesh *dm)
 		pccd_M->bbmax[2] = MAX2(pccd_M->bbmax[2],v[2]+hull);
 		
 	}
-	/* now we have AABB      */
-	/* let's make the balls  */
-	pccd_M->mb_center[0] = (pccd_M->bbmin[0] + pccd_M->bbmax[0]) / 2.0f;
-	pccd_M->mb_center[1] = (pccd_M->bbmin[1] + pccd_M->bbmax[1]) / 2.0f;
-	pccd_M->mb_center[2] = (pccd_M->bbmin[2] + pccd_M->bbmax[2]) / 2.0f;
-	pccd_M->mb_radius =VecLenf(pccd_M->mb_center,pccd_M->bbmin);
 	/* alloc and copy faces*/
     pccd_M->mface = MEM_mallocN(sizeof(MFace)*pccd_M->totface,"ccd_Mesh_Faces");
 	memcpy(pccd_M->mface,dm->mface,sizeof(MFace)*pccd_M->totface);
@@ -1037,7 +1027,7 @@ void scan_for_ext_spring_forces(Object *ob)
 /* END the spring external section*/
 
 int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *damp,
-						float force[3], unsigned int par_layer,struct Object *vertexowner)
+									 float force[3], unsigned int par_layer,struct Object *vertexowner)
 {
 	Base *base;
 	Object *ob;
@@ -1046,7 +1036,7 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 		innerfacethickness = -0.5f, outerfacethickness = 0.2f,
 		ee = 5.0f, ff = 0.1f, fa;
 	int a, deflected=0;
-		
+
 	base= G.scene->base.first;
 	while (base) {
 		/*Only proceed for mesh object in same layer */
@@ -1063,7 +1053,7 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 				MFace *mface= NULL;
 				MVert *mvert= NULL;
 				ccdf_minmax *mima= NULL;
-				
+
 				if(ob->sumohandle){
 					ccd_Mesh *ccdm=ob->sumohandle;
 					mface= ccdm->mface;
@@ -1074,20 +1064,20 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 					minx =ccdm->bbmin[0]; 
 					miny =ccdm->bbmin[1]; 
 					minz =ccdm->bbmin[2];
-					
+
 					maxx =ccdm->bbmax[0]; 
 					maxy =ccdm->bbmax[1]; 
 					maxz =ccdm->bbmax[2]; 
-					
+
 					if ((opco[0] < minx) || 
 						(opco[1] < miny) ||
 						(opco[2] < minz) ||
 						(opco[0] > maxx) || 
 						(opco[1] > maxy) || 
 						(opco[2] > maxz) ) {
-						/* outside the padded boundbox --> collision object is too far away */ 
-						base = base->next;
-						continue;				
+							/* outside the padded boundbox --> collision object is too far away */ 
+							base = base->next;
+							continue;				
 					}					
 				}
 				else{
@@ -1096,7 +1086,7 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 					base = base->next;
 					continue;				
 				}
-				
+
 				/* do object level stuff */
 				/* need to have user control for that since it depends on model scale */
 				innerfacethickness =-ob->pd->pdef_sbift;
@@ -1104,7 +1094,7 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 				fa = (ff*outerfacethickness-outerfacethickness);
 				fa *= fa;
 				fa = 1.0f/fa;
-				
+
 				/* use mesh*/
 				while (a--) {
 					if (
@@ -1115,13 +1105,13 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 						(opco[2] < mima->minz) ||
 						(opco[2] > mima->maxz) 
 						) {
-						mface++;
-						mima++;
-						continue;
+							mface++;
+							mima++;
+							continue;
 					}
-					
+
 					if (mvert){
-						
+
 						VECCOPY(nv1,mvert[mface->v1].co);						
 						VECCOPY(nv2,mvert[mface->v2].co);
 						VECCOPY(nv3,mvert[mface->v3].co);
@@ -1129,23 +1119,19 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 							VECCOPY(nv4,mvert[mface->v4].co);
 						}
 					}
-					
 
-					
+
+
 					/* switch origin to be nv2*/
 					VECSUB(edge1, nv1, nv2);
 					VECSUB(edge2, nv3, nv2);
 					VECSUB(dv1,opco,nv2); /* abuse dv1 to have vertex in question at *origin* of triangle */
-					
+
 					Crossf(d_nvect, edge2, edge1);
 					n_mag = Normalise(d_nvect);
 					facedist = Inpf(dv1,d_nvect);
-					
+
 					if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){		
-//						dv2[0] = opco[0] - 2.0f*facedist*d_nvect[0];
-//						dv2[1] = opco[1] - 2.0f*facedist*d_nvect[1];
-//						dv2[2] = opco[2] - 2.0f*facedist*d_nvect[2];
-//						if ( LineIntersectsTriangle( opco, dv2, nv1, nv2, nv3, &t)){
 						if (point_in_tri_prism(opco, nv1, nv2, nv3) ){
 							force_mag_norm =(float)exp(-ee*facedist);
 							if (facedist > outerfacethickness*ff)
@@ -1160,17 +1146,13 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 						VECSUB(edge1, nv3, nv4);
 						VECSUB(edge2, nv1, nv4);
 						VECSUB(dv1,opco,nv4); /* abuse dv1 to have vertex in question at *origin* of triangle */
-						
+
 						Crossf(d_nvect, edge2, edge1);
 						n_mag = Normalise(d_nvect);
 						facedist = Inpf(dv1,d_nvect);
-						
+
 						if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){
-//							dv2[0] = opco[0] - 2.0f*facedist*d_nvect[0];
-//							dv2[1] = opco[1] - 2.0f*facedist*d_nvect[1];
-//							dv2[2] = opco[2] - 2.0f*facedist*d_nvect[2];
-//							if (LineIntersectsTriangle( opco, dv2, nv1, nv3, nv4, &t)){
-						if (point_in_tri_prism(opco, nv1, nv3, nv4) ){
+							if (point_in_tri_prism(opco, nv1, nv3, nv4) ){
 								force_mag_norm =(float)exp(-ee*facedist);
 								if (facedist > outerfacethickness*ff)
 									force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
@@ -1178,16 +1160,16 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 								*damp=ob->pd->pdef_sbdamp;
 								deflected = 2;
 							}
-							
+
 						}
 					}
 					mface++;
 					mima++;					
-                }/* while a */		
+				}/* while a */		
 				/* give it away */
-		} /* if(ob->pd && ob->pd->deflect) */
-       }/* if (base->object->type==OB_MESH && (base->lay & par_layer)) { */
-	   base = base->next;
+			} /* if(ob->pd && ob->pd->deflect) */
+		}/* if (base->object->type==OB_MESH && (base->lay & par_layer)) { */
+		base = base->next;
 	} /* while (base) */
 	return deflected;	
 }
@@ -1267,7 +1249,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				BodyPoint   *obp;
 				int c,b;
 				float def[3];
-				float tune = 1.0f;
+				float tune = sb->ballstiff;
 				float distance;
 				float compare;
 
@@ -1287,7 +1269,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 						}
 						if (!attached){
 							/* would need another UI parameter defining fricton on self contact */
-							float ccfriction = 0.05f;
+							float ccfriction = sb->balldamp;
 							float f = tune/(distance) + tune/(compare*compare)*distance - 2.0f*tune/compare ;
 							Vec3PlusStVec(bp->force,f,def);
 							if (bp->contactfrict == 0.0f) bp->contactfrict = ccfriction*compare/distance; 
@@ -1993,6 +1975,7 @@ static void curve_surf_to_softbody(Object *ob)
 	if(totspring)
 	{
 		build_bps_springlist(ob); /* link bps to springs */
+		if (ob->softflag & OB_SB_SELF) {calculate_collision_balls(ob);}
 	}
 }
 
@@ -2135,24 +2118,29 @@ SoftBody *sbNew(void)
 	
 	sb= MEM_callocN(sizeof(SoftBody), "softbody");
 	
-	sb->mediafrict= 0.5; 
-	sb->nodemass= 1.0;
-	sb->grav= 0.0; 
-	sb->physics_speed= 1.0;
-	sb->rklimit= 0.1f;
+	sb->mediafrict= 0.5f; 
+	sb->nodemass= 1.0f;
+	sb->grav= 0.0f; 
+	sb->physics_speed= 1.0f;
+	sb->rklimit= 0.5f;
 
-	sb->goalspring= 0.5; 
-	sb->goalfrict= 0.0; 
-	sb->mingoal= 0.0;  
-	sb->maxgoal= 1.0;
+	sb->goalspring= 0.5f; 
+	sb->goalfrict= 0.0f; 
+	sb->mingoal= 0.0f;  
+	sb->maxgoal= 1.0f;
 	sb->defgoal= 0.7f;
 	
-	sb->inspring= 0.5;
-	sb->infrict= 0.5; 
+	sb->inspring= 0.5f;
+	sb->infrict= 0.5f; 
 	
 	sb->interval= 10;
 	sb->sfra= G.scene->r.sfra;
 	sb->efra= G.scene->r.efra;
+
+	sb->colball  = 1.0f;
+	sb->balldamp = 0.05f;
+	sb->ballstiff= 1.0f;
+	sb->sbc_mode = 1;
 	
 	return sb;
 }
