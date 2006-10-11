@@ -33,7 +33,7 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, cam
 	scn= Scene.GetCurrent()
 	render_scn= Scene.New()
 	render_scn.makeCurrent()
-	render_scn.Layers |= 2097151 # all layers enabled
+	render_scn.Layers |= (1<<20)-1 # all layers enabled
 	 
 	# Add objects into the current scene
 	for ob in objects:

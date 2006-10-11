@@ -2904,13 +2904,21 @@ static int Object_setDupliGroup( BPy_Object * self, BPy_Group * args )
 {
 	Object *ob= self->object;
 
-	if( (PyObject *)args == Py_None )
+	if( (PyObject *)args == Py_None ) {
+		if (ob->dup_group)
+			ob->dup_group->id.us--;
+		
 		ob->dup_group = NULL;
-	else if( BPy_Group_Check( args ) )
+	} else if( BPy_Group_Check( args ) ) {
+		if (ob->dup_group)
+			ob->dup_group->id.us--;
+		
 		ob->dup_group = args->group;
-	else
+		ob->dup_group->id.us++;
+	} else {
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected a group or None" );
+	}
 	return 0;
 }
 
