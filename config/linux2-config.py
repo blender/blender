@@ -2,10 +2,7 @@ LCGDIR = '../lib/linux2'
 LIBDIR = "${LCGDIR}"
 
 WITH_BF_VERSE = 'false'
-BF_VERSE = "#extern/verse/dist"
-BF_VERSE_LIBPATH = "${BF_BUILDDIR}/extern/verse/dist"
-BF_VERSE_INCLUDE = BF_VERSE
-BF_VERSE_LIBS = "libverse"
+BF_VERSE_INCLUDE = "#extern/verse/dist"
 
 BF_PYTHON = '/usr'
 BF_PYTHON_VERSION = '2.4'

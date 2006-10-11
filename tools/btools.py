@@ -42,7 +42,7 @@ def validate_arguments(args, bc):
             'REL_CFLAGS', 'REL_CCFLAGS',
             'C_WARN', 'CC_WARN', 'LLIBS', 'PLATFORM_LINKFLAGS',
             'BF_PROFILE_FLAGS', 'LCGDIR', 'WITH_BF_VERSE', 
-            'BF_VERSE', 'BF_VERSE_LIBPATH', 'BF_VERSE_INCLUDE', 'BF_VERSE_LIB',
+            'BF_VERSE_INCLUDE',
             'VERSE_BUILD_BINARY', 'VERSE_BUILD_DIR', 'VERSE_REGEN_PROTO']
 
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
@@ -116,10 +116,7 @@ def read_opts(cfg, args):
         ('VERSE_BUILD_DIR', 'Target directory for intermediate files.', "${BF_BUILDDIR}/extern/verse"),
         ('VERSE_REGEN_PROTO', 'Whether to regenerate the protocol files', 'yes'),
         (BoolOption('WITH_BF_VERSE', 'Use VERSE if true', 'false')),
-        ('BF_VERSE',  'verse dir', '/usr/lib'),
-        ('BF_VERSE_LIBPATH', 'verse lib dir',  '/usr/lib'),
         ('BF_VERSE_INCLUDE', 'verse include dir', '/usr/include'),
-        ('BF_VERSE_LIB', 'verse libs', ''),
         ('LCGDIR', 'location of cvs lib dir'),
         ('VERSE_BUILD_BINARY', 'Build a release or debug binary.', 'release'),
         ('VERSE_BUILD_DIR', 'Target directory for intermediate files.', "${BF_BUILDDIR}/extern/verse"),
@@ -132,7 +129,7 @@ def read_opts(cfg, args):
         ('BF_PYTHON_LIB', 'Python library', ''),
         ('BF_PYTHON_LIBPATH', 'Library path', ''),
         ('BF_PYTHON_LINKFLAGS', 'Python link flags', ''),
-				('BF_NO_ELBEEM', 'Disable Fluid Sim', 'false'),
+        ('BF_NO_ELBEEM', 'Disable Fluid Sim', 'false'),
         (BoolOption('WITH_BF_OPENAL', 'Use OpenAL if true', '')),
         ('BF_OPENAL', 'base path for OpenAL', ''),
         ('BF_OPENAL_INC', 'include path for python headers', ''),

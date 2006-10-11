@@ -59,15 +59,15 @@ else:
 verse_env = env.Copy()
 
 cmd_gen_files = (['v_cmd_gen.c',
-				  'v_cmd_def_a.c',
-				  'v_cmd_def_b.c',
-				  'v_cmd_def_c.c',
-				  'v_cmd_def_g.c',
-				  'v_cmd_def_m.c',
-				  'v_cmd_def_o.c',
-				  'v_cmd_def_s.c',
-				  'v_cmd_def_t.c'
-				  ])
+                  'v_cmd_def_a.c',
+                  'v_cmd_def_b.c',
+                  'v_cmd_def_c.c',
+                  'v_cmd_def_g.c',
+                  'v_cmd_def_m.c',
+                  'v_cmd_def_o.c',
+                  'v_cmd_def_s.c',
+                  'v_cmd_def_t.c'
+                  ])
 
 cmd_gen_deps = (['v_gen_pack_init.c'])
 
@@ -77,18 +77,18 @@ mkprot_tool = proto_env.Program(target = 'mkprot', source = cmd_gen_files)
 
 mkprot_re = re.compile('v_cmd_def_([a-z]{1}).c')
 def mkprot_emitter(target = None, source = None, env = None):
-	newtargets = list()
-	for s in source:
-		p, f = os.path.split(str(s))
-		m = mkprot_re.match(f)
-		if m:
-			newtargets.append("v_gen_pack_"+m.group(1)+"_node.c")
-	newtargets.extend(['verse.h'])
-	env.Depends(newtargets, mkprot_tool)
-	return (newtargets, source)
+    newtargets = list()
+    for s in source:
+        p, f = os.path.split(str(s))
+        m = mkprot_re.match(f)
+        if m:
+            newtargets.append("v_gen_pack_"+m.group(1)+"_node.c")
+    newtargets.extend(['verse.h'])
+    env.Depends(newtargets, mkprot_tool)
+    return (newtargets, source)
 
 mkprot_bld = Builder(action = "\"" + mkprot_tool[0].abspath + "\" -src=\""+os.getcwd()+os.sep+"extern"+os.sep+"verse"+os.sep+"dist"+os.sep+os.sep+"\" -dst=\""+os.path.abspath(env['BF_BUILDDIR'])+os.sep+"extern"+os.sep+"verse"+os.sep+"dist"+os.sep+os.sep+"\"",
-			emitter = mkprot_emitter)
+            emitter = mkprot_emitter)
 
 verse_env['BUILDERS']['Protocol'] = mkprot_bld
 
@@ -97,21 +97,21 @@ cmd_gen_deps.extend(verse_env.Protocol('do_mkprot', cmd_gen_files))
 cmd_gen_deps.pop()
 
 lib_source_files = (['v_cmd_buf.c',
-					 'v_connect.c',
-					 'v_connection.c',
-					 'v_encryption.c',
-					 'v_func_storage.c',
-					 'v_man_pack_node.c',
-					 'v_network.c',
-					 'v_network_in_que.c',
-					 'v_network_out_que.c',
-					 'v_pack.c',
-					 'v_pack_method.c',
-					 'v_prime.c',
-					 'v_randgen.c',
-					 'v_util.c',
-					 'v_bignum.c'
-					 ])
+                     'v_connect.c',
+                     'v_connection.c',
+                     'v_encryption.c',
+                     'v_func_storage.c',
+                     'v_man_pack_node.c',
+                     'v_network.c',
+                     'v_network_in_que.c',
+                     'v_network_out_que.c',
+                     'v_pack.c',
+                     'v_pack_method.c',
+                     'v_prime.c',
+                     'v_randgen.c',
+                     'v_util.c',
+                     'v_bignum.c'
+                     ])
 lib_source_files.extend(cmd_gen_deps)
 
 server_source_files = (['vs_connection.c',
@@ -134,11 +134,9 @@ verselib_env.Append(CPPDEFINES = defines)
 
 verseserver_env = verse_env.Copy()
 verseserver_env.Append(CPPDEFINES = defines)
-verseserver_env.Append (LIBS=['libverse'])
 verseserver_env.Append (LIBPATH = ['.'])
 verseserver_env.Append (LIBS= platform_libs)
 
-#verselib =
 verselib_env.BlenderLib(libname='verse', sources=lib_source_files, includes=["."], defines = defines, libtype=['core', 'intern'], priority = [5, 5])
 verseserver_env.BlenderProg(builddir="#"+root_build_dir+os.sep, progname='verse', sources=server_source_files, libs=['verse'],
 libpath='#'+env['BF_BUILDDIR']+'/lib')
