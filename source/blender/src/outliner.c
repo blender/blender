@@ -1453,6 +1453,15 @@ static int tree_element_active_modifier(TreeElement *te, TreeStoreElem *tselem, 
 	return 0;
 }
 
+static int tree_element_active_constraint(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	if(set) {
+		extern_set_butspace(F7KEY, 0);
+	}
+	
+	return 0;
+}
+
 static int tree_element_active_text(SpaceOops *soops, TreeElement *te, int set)
 {
 	ScrArea *sa=NULL;
@@ -1534,6 +1543,9 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 			break;
 		case TSE_POSE_CHANNEL:
 			return tree_element_active_posechannel(te, tselem, set);
+			break;
+		case TSE_CONSTRAINT:
+			return tree_element_active_constraint(te, tselem, set);
 			break;
 	}
 	return 0;
@@ -1652,8 +1664,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 							enter_editmode(EM_WAITCURSOR);
 							extern_set_butspace(F9KEY, 0);
 						}
-					}
-					else {	// rest of types
+					} else {	// rest of types
 						tree_element_active(soops, te, 1);
 					}
 					
