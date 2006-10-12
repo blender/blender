@@ -3162,11 +3162,11 @@ void make_links_menu()
 {
 	Object *ob;
 	short event=0;
-	char str[160];
+	char str[140];
 	
 	if(!(ob=OBACT)) return;
 	
-	strcpy(str, "Make Links %t|To Scene...%x1|%l|Object Ipo%x4|Object Groups%x7");
+	strcpy(str, "Make Links %t|To Scene...%x1|%l|Object Ipo%x4");
 	
 	if(ob->type==OB_MESH)
 		strcat(str, "|Mesh Data%x2|Materials%x3");
@@ -3186,8 +3186,6 @@ void make_links_menu()
 		strcat(str, "|Lattice Data%x2");
 	else if(ob->type==OB_ARMATURE)
 		strcat(str, "|Armature Data%x2");
-	else if(ob->type==OB_EMPTY)
-		strcat(str, "|DupliGroup%x6");
 	
 	event= pupmenu(str);
 
@@ -3243,144 +3241,120 @@ void make_links(short event)
 		}
 	}
 
-	/* linking to same group requires its own loop so we can avoid
-	   looking up the active objects groups each time */
-	if(event==7) {
-		Group *group= G.main->group.first;
-		while(group) {
-			if(object_in_group(ob, group)) {
-				/* Assign groups to selected objects */
-				base= FIRSTBASE;
-				while(base) {
-					if(TESTBASE(base)) {
-						obt= base->object;
-						add_to_group(group, obt);
-						obt->flag |= OB_FROMGROUP;
-						base->flag |= OB_FROMGROUP;
-					}
-					base= base->next;
-				}
-				
-			}
-			group= group->id.next;
-		}
-		
-	} else {
-		/* All non group linking */
-		base= FIRSTBASE;
-		while(base) {
-			if(event==1 || base != BASACT) {
-				
-				obt= base->object;
+	/* All non group linking */
+	base= FIRSTBASE;
+	while(base) {
+		if(event==1 || base != BASACT) {
+			
+			obt= base->object;
 
-				if(TESTBASE(base)) {
+			if(TESTBASE(base)) {
+				
+				if(event==1) {		/* to scene */
 					
-					if(event==1) {		/* to scene */
-						
-						/* test if already linked */
-						sbase= sce->base.first;
-						while(sbase) {
-							if(sbase->object==base->object) break;
-							sbase= sbase->next;
-						}
-						if(sbase) {	/* remove */
-							base= base->next;
-							continue;
-						}
-						
-						nbase= MEM_mallocN( sizeof(Base), "newbase");
-						*nbase= *base;
-						BLI_addhead( &(sce->base), nbase);
-						id_us_plus((ID *)base->object);
+					/* test if already linked */
+					sbase= sce->base.first;
+					while(sbase) {
+						if(sbase->object==base->object) break;
+						sbase= sbase->next;
 					}
+					if(sbase) {	/* remove */
+						base= base->next;
+						continue;
+					}
+					
+					nbase= MEM_mallocN( sizeof(Base), "newbase");
+					*nbase= *base;
+					BLI_addhead( &(sce->base), nbase);
+					id_us_plus((ID *)base->object);
 				}
-				if(TESTBASELIB(base)) {
-					if(event==2 || event==5) {  /* obdata */
-						if(ob->type==obt->type) {
-							
-								id= obt->data;
-								id->us--;
-								
-								id= ob->data;
-								id_us_plus(id);
-								obt->data= id;
-								
-								/* if amount of material indices changed: */
-								test_object_materials(obt->data);
-
-								obt->recalc |= OB_RECALC_DATA;
-							}
-						}
-					else if(event==4) {  /* ob ipo */
-						if(obt->ipo) obt->ipo->id.us--;
-						obt->ipo= ob->ipo;
-						if(obt->ipo) {
-							id_us_plus((ID *)obt->ipo);
-							do_ob_ipo(obt);
-						}
-					}
-					else if(event==6) {
-						if(ob->dup_group) ob->dup_group->id.us--;
-						obt->dup_group= ob->dup_group;
-						if(obt->dup_group) {
-							id_us_plus((ID *)obt->dup_group);
-							obt->transflag |= OB_DUPLIGROUP;
-						}
-					}
-					else if(event==3) {  /* materials */
+			}
+			if(TESTBASELIB(base)) {
+				if(event==2 || event==5) {  /* obdata */
+					if(ob->type==obt->type) {
 						
-						/* only if obt has no material: make arrays */
-						/* from ob to obt! */
-						
-						obmatarar= give_matarar(ob);
-						matarar= give_matarar(obt);
-						totcolp= give_totcolp(obt);
-
-						/* if one of the two is zero: no render-able object */						
-						if( matarar && obmatarar) {
+							id= obt->data;
+							id->us--;
 							
-							/* take care of users! so first a copy of original: */
-
-							if(ob->totcol) {
-								matar1= MEM_dupallocN(ob->mat);
-								matar2= MEM_dupallocN(*obmatarar);
-							}
-							else {
-								matar1= matar2= NULL;
-							}
-							
-							/* remove links from obt */
-							for(a=0; a<obt->totcol; a++) {
-								if(obt->mat[a]) obt->mat[a]->id.us--;
-								if( (*matarar)[a]) (*matarar)[a]->id.us--;
-							}
-							
-							/* free */
-							if(obt->mat) MEM_freeN(obt->mat);
-							if(*matarar) MEM_freeN(*matarar);
-							
-							/* connect a copy */
-							obt->mat= matar1;
-							*matarar= matar2;
-							obt->totcol= ob->totcol;
-							*totcolp= ob->totcol;
-						
-							/* increase users */
-							for(a=0; a<obt->totcol; a++) {
-								if(obt->mat[a]) id_us_plus((ID *)obt->mat[a]);
-								if( (*matarar)[a]) id_us_plus((ID *)(*matarar)[a]);
-							}
-
-							obt->colbits= ob->colbits;
+							id= ob->data;
+							id_us_plus(id);
+							obt->data= id;
 							
 							/* if amount of material indices changed: */
 							test_object_materials(obt->data);
+
+							obt->recalc |= OB_RECALC_DATA;
 						}
+					}
+				else if(event==4) {  /* ob ipo */
+					if(obt->ipo) obt->ipo->id.us--;
+					obt->ipo= ob->ipo;
+					if(obt->ipo) {
+						id_us_plus((ID *)obt->ipo);
+						do_ob_ipo(obt);
+					}
+				}
+				else if(event==6) {
+					if(ob->dup_group) ob->dup_group->id.us--;
+					obt->dup_group= ob->dup_group;
+					if(obt->dup_group) {
+						id_us_plus((ID *)obt->dup_group);
+						obt->transflag |= OB_DUPLIGROUP;
+					}
+				}
+				else if(event==3) {  /* materials */
+					
+					/* only if obt has no material: make arrays */
+					/* from ob to obt! */
+					
+					obmatarar= give_matarar(ob);
+					matarar= give_matarar(obt);
+					totcolp= give_totcolp(obt);
+
+					/* if one of the two is zero: no render-able object */						
+					if( matarar && obmatarar) {
+						
+						/* take care of users! so first a copy of original: */
+
+						if(ob->totcol) {
+							matar1= MEM_dupallocN(ob->mat);
+							matar2= MEM_dupallocN(*obmatarar);
+						}
+						else {
+							matar1= matar2= NULL;
+						}
+						
+						/* remove links from obt */
+						for(a=0; a<obt->totcol; a++) {
+							if(obt->mat[a]) obt->mat[a]->id.us--;
+							if( (*matarar)[a]) (*matarar)[a]->id.us--;
+						}
+						
+						/* free */
+						if(obt->mat) MEM_freeN(obt->mat);
+						if(*matarar) MEM_freeN(*matarar);
+						
+						/* connect a copy */
+						obt->mat= matar1;
+						*matarar= matar2;
+						obt->totcol= ob->totcol;
+						*totcolp= ob->totcol;
+					
+						/* increase users */
+						for(a=0; a<obt->totcol; a++) {
+							if(obt->mat[a]) id_us_plus((ID *)obt->mat[a]);
+							if( (*matarar)[a]) id_us_plus((ID *)(*matarar)[a]);
+						}
+
+						obt->colbits= ob->colbits;
+						
+						/* if amount of material indices changed: */
+						test_object_materials(obt->data);
 					}
 				}
 			}
-			base= base->next;
 		}
+		base= base->next;
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);

@@ -741,8 +741,6 @@ static PyObject *GroupObSeq_add( BPy_GroupObSeq * self, PyObject *args )
 	
 	blen_ob = ( ( BPy_Object * ) pyobj )->object;
 	
-	base= object_in_scene(blen_ob, G.scene);
-	
 	add_to_group_wraper(self->bpygroup->group, blen_ob); /* this checks so as not to add the object into the group twice*/
 	
 	Py_RETURN_NONE;

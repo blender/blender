@@ -77,6 +77,39 @@ void add_selected_to_group(Group *group)
 	BIF_undo_push("Add to Group");
 }
 
+void add_selected_to_act_ob_groups(void)
+{
+	Object *ob= OBACT, *obt;
+	Base *base;
+	
+	if (!ob) return;
+	
+	/* linking to same group requires its own loop so we can avoid
+	   looking up the active objects groups each time */
+	Group *group= G.main->group.first;
+	while(group) {
+		if(object_in_group(ob, group)) {
+			/* Assign groups to selected objects */
+			base= FIRSTBASE;
+			while(base) {
+				if(TESTBASE(base)) {
+					obt= base->object;
+					add_to_group(group, obt);
+					obt->flag |= OB_FROMGROUP;
+					base->flag |= OB_FROMGROUP;
+				}
+				base= base->next;
+			}
+		}
+		group= group->id.next;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	DAG_scene_sort(G.scene);
+	BIF_undo_push("Add to Active Objects Group");
+}
+
+
 void rem_selected_from_group(void)
 {
 	Base *base;
@@ -110,7 +143,7 @@ void group_operation_with_menu(void)
 			break;
 	
 	if(group)
-		mode= pupmenu("Groups %t|Add to Existing Group %x3|Add to New Group %x1|Remove from All Groups %x2");
+		mode= pupmenu("Groups %t|Add to Existing Group %x3|Add to Active Objects Groups %x4|Add to New Group %x1|Remove from All Groups %x2");
 	else
 		mode= pupmenu("Groups %t|Add to New Group %x1|Remove from All Groups %x2");
 	
@@ -144,7 +177,8 @@ void group_operation(int mode)
 			else return;
 		}
 		
-		if(mode==1 || mode==3) add_selected_to_group(group);
+		if(mode==4) add_selected_to_act_ob_groups();
+		else if(mode==1 || mode==3) add_selected_to_group(group);
 		else if(mode==2) rem_selected_from_group();
 	}
 }
