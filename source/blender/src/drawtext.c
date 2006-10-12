@@ -1082,7 +1082,10 @@ void txt_write_file(Text *text)
 	
 	/* Do we need to get a filename? */
 	if (text->flags & TXT_ISMEM) {
-		activate_fileselect(FILE_SPECIAL, "SAVE TEXT FILE", G.sce, save_mem_text);
+		if (text->name)
+			activate_fileselect(FILE_SPECIAL, "SAVE TEXT FILE", text->name, save_mem_text);
+		else
+			activate_fileselect(FILE_SPECIAL, "SAVE TEXT FILE", text->id.name+2, save_mem_text);
 		return;	
 	}
 	
