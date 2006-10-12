@@ -773,6 +773,10 @@ static void do_verse_filemenu(void *arg, int event)
 			printf("Disconnecting all sessions!\n");
 			end_all_verse_sessions();
 			break;
+        case 4:
+            printf("sending get to master server\n");
+            b_verse_ms_get();
+            break;
 	}
 }
 
@@ -799,6 +803,7 @@ static uiBlock *verse_filemenu(void *unusedargs)
 		}
 		
 	}
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Get Servers", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);

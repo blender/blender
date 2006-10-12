@@ -124,6 +124,7 @@
 
 #ifdef WITH_VERSE
 extern ListBase session_list;
+extern ListBase server_list;
 #endif
 
 /* ******************** PERSISTANT DATA ***************** */
@@ -724,6 +725,16 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		te->directdata = (void*)session;
 		te->idcode = ID_VS;
 	}
+	else if(type==ID_MS) {
+		te->name = "Available Verse Servers";
+		te->idcode = ID_MS;
+	}
+	else if(type==ID_SS) {
+		struct VerseServer *server = (VerseServer *)idv;
+		te->name = server->name;
+		te->directdata = (void *)server;
+		te->idcode = ID_SS;
+	}
 	else if(type==ID_VN) {
 		struct VNode *vnode = (VNode*)idv;
 		te->name = vnode->name;
@@ -888,31 +899,44 @@ static void outliner_build_tree(SpaceOops *soops)
 		}
 		outliner_make_hierarchy(soops, &soops->tree);
 	}
+#ifdef WITH_VERSE
+	else if(soops->outlinevis == SO_VERSE_SESSION) {
+		/* add all session to the "root" of hierarchy */
+		for(session=session_list.first; session; session = session->next) {
+			struct VNode *vnode;
+			if(session->flag & VERSE_CONNECTED) {
+				te= outliner_add_element(soops, &soops->tree, session, NULL, ID_VS, 0);
+				/* add all object nodes as childreen of session */
+				for(vnode=session->nodes.lb.first; vnode; vnode=vnode->next) {
+					if(vnode->type==V_NT_OBJECT) {
+						ten= outliner_add_element(soops, &te->subtree, vnode, te, ID_VN, 0);
+						ten->directdata= vnode;
+					}
+					else if(vnode->type==V_NT_BITMAP) {
+						ten= outliner_add_element(soops, &te->subtree, vnode, te, ID_VN, 0);
+						ten->directdata= vnode;
+					}
+				}
+			}
+		}
+	}
+	else if(soops->outlinevis == SO_VERSE_MS) {
+		te= outliner_add_element(soops, &soops->tree, "MS", NULL, ID_MS, 0);
+		if(server_list.first!=NULL) {
+			struct VerseServer *server;
+			/* add one main entry to root of hierarchy */
+			for(server=server_list.first; server; server=server->next) {
+				ten= outliner_add_element(soops, &te->subtree, server, te, ID_SS, 0);
+				ten->directdata= server;
+			}
+		}
+	}
+#endif
 	else {
 		ten= outliner_add_element(soops, &soops->tree, OBACT, NULL, 0, 0);
 		if(ten) ten->directdata= BASACT;
 	}
 
-#ifdef WITH_VERSE
-	/* add all session to the "root" of hierarchy */
-	for(session=session_list.first; session; session = session->next) {
-		struct VNode *vnode;
-		if(session->flag & VERSE_CONNECTED) {
-			te= outliner_add_element(soops, &soops->tree, session, NULL, ID_VS, 0);
-			/* add all object nodes as childreen of session */
-			for(vnode=session->nodes.lb.first; vnode; vnode=vnode->next) {
-				if(vnode->type==V_NT_OBJECT) {
-					ten= outliner_add_element(soops, &te->subtree, vnode, te, ID_VN, 0);
-					ten->directdata= vnode;
-				}
-				else if(vnode->type==V_NT_BITMAP) {
-					ten= outliner_add_element(soops, &te->subtree, vnode, te, ID_VN, 0);
-					ten->directdata= vnode;
-				}
-			}
-		}
-	}
-#endif
 
 	outliner_sort(soops, &soops->tree);
 }
@@ -1643,6 +1667,30 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 								break;
 						}
 					}
+					else if(te->idcode==ID_MS) {
+							event = pupmenu("Verse Master Server %t| Refresh %x1");
+							b_verse_ms_get();
+					}
+					else if(te->idcode==ID_SS) {
+						struct VerseServer *vserver = (VerseServer*)te->directdata;
+
+						if(!(vserver->flag & VERSE_CONNECTING) && !(vserver->flag & VERSE_CONNECTED)) {
+							event = pupmenu("VerseServer %t| Connect %x1");
+						} else if((vserver->flag & VERSE_CONNECTING) && !(vserver->flag & VERSE_CONNECTED)) {
+							event = pupmenu("VerseServer %t| Connecting... %x2");
+						} else if(!(vserver->flag & VERSE_CONNECTING) && (vserver->flag & VERSE_CONNECTED)) {
+							event = pupmenu("VerseServer %t| Connected %x3");
+						}
+						switch(event) {
+							case 1:
+								b_verse_connect(vserver->ip);
+								vserver->flag |= VERSE_CONNECTING;
+								break;
+							case 2:
+							case 3:
+								break;
+						}
+					}
 				}
 				else {
 #endif
@@ -2330,6 +2378,8 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				BIF_icon_draw(x, y, ICON_WPAINT_DEHLT); break;
 #ifdef WITH_VERSE
 			case ID_VS:
+			case ID_MS:
+			case ID_SS:
 				BIF_icon_draw(x, y, ICON_VERSE); break;
 			case ID_VN:
 				BIF_icon_draw(x, y, ICON_VERSE); break;
@@ -2492,7 +2542,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		/* open/close icon, only when sublevels, except for scene */
 		if(te->subtree.first || te->idcode==ID_SCE) {
 			int icon_x;
-			if(tselem->type==0 && (te->idcode==ID_OB || te->idcode==ID_SCE))
+			if((tselem->type==0 && (te->idcode==ID_OB || te->idcode==ID_SCE)) || te->idcode==ID_VN || te->idcode==ID_VS || te->idcode==ID_MS || te->idcode==ID_SS)
 				icon_x = startx;
 			else
 				icon_x = startx+5;
@@ -2583,7 +2633,7 @@ static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, 
 		tselem= TREESTORE(te);
 		
 		/* horizontal line? */
-		if(tselem->type==0 && (te->idcode==ID_OB || te->idcode==ID_SCE)) 
+		if((tselem->type==0 && (te->idcode==ID_OB || te->idcode==ID_SCE)) || ELEM4(te->idcode,ID_VS,ID_VN,ID_MS,ID_SS))
 			glRecti(startx, *starty, startx+OL_X, *starty-1);
 			
 		*starty-= OL_H;
@@ -2596,7 +2646,7 @@ static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, 
 	te= lb->last;
 	if(te->parent || lb->first!=lb->last) {
 		tselem= TREESTORE(te);
-		if(tselem->type==0 && te->idcode==ID_OB) {
+		if((tselem->type==0 && te->idcode==ID_OB) || ELEM4(te->idcode,ID_VS,ID_VN,ID_MS,ID_SS)) {
 			
 			glRecti(startx, y1+OL_H, startx+1, y2);
 		}

@@ -3015,6 +3015,14 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		}
 
 	} else if (U.userpref == 4) { /* system & opengl */
+
+#ifdef WITH_VERSE
+		uiDefBut(block, TEX, 0, "Verse Master: ",
+			(xpos+edgsp),y3label+buth+5,mpref*2,buth,
+			U.versemaster, 1.0, 63.0, 0, 0,
+			"The Verse Master-server IP");
+#endif
+
 		uiDefBut(block, LABEL,0,"Solid OpenGL light:",
 			xpos+edgsp, y3label, mpref, buth,
 			0, 0, 0, 0, 0, "");

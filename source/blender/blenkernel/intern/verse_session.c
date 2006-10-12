@@ -34,6 +34,7 @@
 #include "DNA_mesh_types.h"	/* temp */
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_dynamiclist.h"
 #include "BLI_blenlib.h"
@@ -43,15 +44,88 @@
 #include "BKE_global.h"	
 #include "BKE_verse.h"
 
-#include "verse.h"
-
 struct ListBase session_list={NULL, NULL};
+struct ListBase server_list={NULL, NULL};
+
+static cb_ping_registered = 0;
 
 /* list of static function prototypes */
 static void cb_connect_terminate(const char *address, const char *bye);
 static void cb_connect_accept(void *user_data, uint32 avatar, void *address, void *connection, const uint8 *host_id);
 static void set_all_callbacks(void);
 static void free_verse_session_data(struct VerseSession *session);
+static void add_verse_server(VMSServer *server);
+static void check_connection_state(struct VerseServer *server);
+
+static void check_connection_state(struct VerseServer *server)
+{
+	struct VerseSession *session;
+	session = session_list.first;
+	while(session) {
+		if(strcmp(server->ip,session->address)==0) {
+			server->flag = session->flag;
+			return;
+		}
+		session = session->next;
+	}
+}
+/*
+ * add verse server to server_list. Prevents duplicate
+ * entries
+ */
+static void add_verse_server(VMSServer *server)
+{
+	struct VerseServer *iter, *niter;
+	VerseServer *newserver;
+	const char *name = verse_ms_field_value(server, "DE");
+	iter = server_list.first;
+
+	while(iter) {
+		niter = iter->next;
+		if(strcmp(iter->ip, server->ip)==0) {
+			return;
+		}
+		iter = niter;
+	}
+
+	newserver = (VerseServer *)MEM_mallocN(sizeof(VerseServer), "VerseServer");
+	newserver->ip = (char *)MEM_mallocN(sizeof(char)*(strlen(server->ip)+1), "VerseServer ip");
+	strcpy(newserver->ip, server->ip);
+
+	if(name) {
+		newserver->name = (char *)MEM_mallocN(sizeof(char)*(strlen(name)+strlen(newserver->ip)+4), "VerseServer name");
+		strcpy(newserver->name, name);
+		strcat(newserver->name, " (");
+		strcat(newserver->name, newserver->ip);
+		strcat(newserver->name, ")");
+	}
+
+	newserver->flag = 0;
+	check_connection_state(newserver);
+
+	printf("Adding new verse server: %s at %s\n", newserver->name, newserver->ip);
+
+	BLI_addtail(&server_list, newserver);
+	post_server_add();
+}
+
+/*
+ * callback function for ping
+ */
+static void cb_ping(void *user, const char *address, const char *message)
+{
+	VMSServer	**servers = verse_ms_list_parse(message);
+	if(servers != NULL)
+	{
+		int	i, j;
+
+		for(i = 0; servers[i] != NULL; i++)
+		{
+			add_verse_server(servers[i]);
+		}
+		free(servers);
+	}
+}
 
 /*
  * callback function for connection terminated
@@ -83,12 +157,21 @@ static void cb_connect_accept(
 		const uint8 *host_id)
 {
 	struct VerseSession *session = (VerseSession*)current_verse_session();
+	struct VerseServer *server = server_list.first;
 	uint32 i, mask=0;
 
 	if(!session) return;
 
 	session->flag |= VERSE_CONNECTED;
 	session->flag &= ~VERSE_CONNECTING;
+
+	while(server) {
+		if(strcmp(session->address, server->ip)==0) {
+			server->flag |= VERSE_CONNECTED;
+			server->flag &= ~VERSE_CONNECTING;
+		}
+		server = server->next;
+	}
 
 	printf("\tBlender was connected to verse server: %s\n", (char*)address);
 	printf("\tVerseSession->counter: %d\n", session->counter);
@@ -111,6 +194,7 @@ void set_verse_session_callbacks(void)
 	verse_callback_set(verse_send_connect_accept, cb_connect_accept, NULL);
 	/* connection was terminated */
 	verse_callback_set(verse_send_connect_terminate, cb_connect_terminate, NULL);
+
 }
 
 /*
@@ -150,6 +234,9 @@ void b_verse_update(void)
 			session->post_connect_update(session);
 		}
 		session = next_session;
+	}
+	if(cb_ping_registered>0) {
+			verse_callback_update(10);
 	}
 }
 
@@ -298,8 +385,27 @@ void end_verse_session(VerseSession *session, char free)
 	if(free) free_verse_session(session);
 }
 
+void free_all_servers(void)
+{
+	VerseServer *server, *nextserver;
+
+	server = server_list.first;
+
+	while(server) {
+			nextserver = server->next;
+			BLI_remlink(&server_list, server);
+			MEM_freeN(server->name);
+			MEM_freeN(server->ip);
+			MEM_freeN(server);
+			server = nextserver;
+	}
+	
+	BLI_freelistN(&server_list);
+}
+
 /*
  * end connection to all verse hosts (servers) ... free all VerseSessions
+ * free all VerseServers
  */
 void end_all_verse_sessions(void)
 {
@@ -314,6 +420,25 @@ void end_all_verse_sessions(void)
 	}
 
 	BLI_freelistN(&session_list);
+
+	free_all_servers();
+}
+
+/*
+ * do a get from ms
+ */
+void b_verse_ms_get(void)
+{
+		if(cb_ping_registered==0) {
+				/* handle ping messages (for master server) */
+				verse_callback_set(verse_send_ping, cb_ping, NULL);
+				add_screenhandler(G.curscreen, SCREEN_HANDLER_VERSE, 1);
+				cb_ping_registered++;
+		}
+		free_all_servers();
+
+		verse_ms_get_send(U.versemaster, VERSE_MS_FIELD_DESCRIPTION, NULL);
+		verse_callback_update(10);
 }
 
 /*

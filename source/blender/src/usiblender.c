@@ -352,6 +352,12 @@ static void init_userdef_file(void)
 	
 	refresh_interface_font();
 
+#ifdef WITH_VERSE
+	if(strlen(U.versemaster)<1) {
+			strcpy(U.versemaster, "master.uni-verse.org");
+	}
+#endif
+
 }
 
 #ifdef WITH_VERSE

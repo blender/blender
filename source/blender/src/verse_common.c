@@ -45,6 +45,7 @@
 #include "BIF_interface.h"
 
 extern ListBase session_list;
+extern ListBase server_list;
 
 /*
  * this function creates popup menu with all active VerseSessions
@@ -221,10 +222,26 @@ void post_node_name_set(VNode *vnode)
  */
 void post_connect_accept(VerseSession *session)
 {
+	VerseServer *server;
+	
 	G.f |= G_VERSE_CONNECTED;
 
 	session->counter = 0;
 
+	server = server_list.first;
+	while(server) {
+		if(strcmp(server->ip, session->address)==0) {
+			server->flag = session->flag;
+			break;
+		}
+		server = server->next;
+	}
+
+	allqueue(REDRAWOOPS, 0);
+}
+
+void post_server_add(void)
+{
 	allqueue(REDRAWOOPS, 0);
 }
 
@@ -233,6 +250,16 @@ void post_connect_accept(VerseSession *session)
  */
 void post_connect_terminated(VerseSession *session)
 {
+	VerseServer *server;
+	server = server_list.first;
+	while(server) {
+		if(strcmp(server->ip, session->address)==0) {
+			server->flag = 0;
+			break;
+		}
+		server = server->next;
+	}
+
 	/* if it is last session, then no other will exist ... set Global flag */
 	if((session->prev==NULL) && (session->next==NULL))
 		G.f &= ~G_VERSE_CONNECTED;

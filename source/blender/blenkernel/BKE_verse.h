@@ -34,6 +34,7 @@
 #include "BLI_dynamiclist.h"
 
 #include "verse.h"
+#include "verse_ms.h"
 
 struct VNode;
 
@@ -322,6 +323,13 @@ typedef struct VNode {
 	void (*post_node_name_set)(struct VNode *vnode);
 } VNode;
 
+typedef struct VerseServer {
+	struct VerseServer *next, *prev;
+	char *name; /* human-readable server name */
+	char *ip;   /* string containing IP/domain name of verse server and number of port */
+	short flag; /* flag: VERSE_CONNECTING, VERSE_CONNECTED */
+} VerseServer;
+
 /*
  * Verse Session: verse client can be connected to several verse servers
  * it is neccessary to store some information about each session
@@ -438,6 +446,7 @@ struct VerseSession *current_verse_session(void);
 struct VerseSession *create_verse_session(const char *name, const char *pass, const char *address, uint8 *expected_key);
 void free_verse_session(struct VerseSession *session);
 void b_verse_update(void);
+void b_vers_ms_get(void);
 void b_verse_connect(char *address);
 void end_verse_session(struct VerseSession *session, char free);
 void end_all_verse_sessions(void);

@@ -120,6 +120,7 @@ void post_node_name_set(struct VNode *vnode);
 void post_connect_accept(struct VerseSession *session);
 void post_connect_terminated(struct VerseSession *session);
 void post_connect_update(struct VerseSession *session);
+void post_server_add(void);
 
 /* verse_image.c */
 

@@ -229,6 +229,9 @@ ECHO Done
 			<File
 				RelativePath="..\..\dist\v_util.c">
 			</File>
+			<File
+				RelativePath="..\..\dist\verse_ms.c">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -267,6 +270,9 @@ ECHO Done
 				RelativePath="..\..\dist\v_util.h">
 			</File>
 		</Filter>
+			<File
+				RelativePath="..\..\dist\verse_ms.h">
+			</File>
 	</Files>
 	<Globals>
 	</Globals>

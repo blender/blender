@@ -172,6 +172,7 @@ typedef struct UserDef {
 	short obcenter_dia;
 	short rvisize;		/* rotating view icon size */
 	short rvibright;	/* rotating view icon brightness */
+	char versemaster[160];
 	short pad1;
 } UserDef;
 

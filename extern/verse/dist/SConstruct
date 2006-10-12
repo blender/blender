@@ -110,7 +110,8 @@ lib_source_files = (['v_cmd_buf.c',
                      'v_prime.c',
                      'v_randgen.c',
                      'v_util.c',
-                     'v_bignum.c'
+                     'v_bignum.c',
+                     'verse_ms.c'
                      ])
 lib_source_files.extend(cmd_gen_deps)
 
@@ -135,10 +136,11 @@ verselib_env.Append(CPPDEFINES = defines)
 verseserver_env = verse_env.Copy()
 verseserver_env.Append(CPPDEFINES = defines)
 verseserver_env.Append (LIBPATH = ['.'])
+verseserver_env.Append (LIBS= ['verse'])
 verseserver_env.Append (LIBS= platform_libs)
 
 verselib_env.BlenderLib(libname='verse', sources=lib_source_files, includes=["."], defines = defines, libtype=['core', 'intern'], priority = [5, 5])
-verseserver_env.BlenderProg(builddir="#"+root_build_dir+os.sep, progname='verse', sources=server_source_files, libs=['verse'],
+verseserver_env.BlenderProg(builddir="#"+root_build_dir+os.sep, progname='verse', sources=server_source_files, libs=[],
 libpath='#'+env['BF_BUILDDIR']+'/lib')
 
 

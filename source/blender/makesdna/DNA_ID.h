@@ -143,6 +143,8 @@ typedef struct Library {
 /*#ifdef WITH_VERSE*/
 #define ID_VS		MAKE_ID2('V', 'S')	/* fake id for VerseSession, needed for outliner */
 #define ID_VN		MAKE_ID2('V', 'N')	/* fake id for VerseNode, needed for outliner */
+#define ID_MS		MAKE_ID2('M', 'S')  /* fake id for VerseServer root entry, needed for outliner */
+#define ID_SS		MAKE_ID2('S', 'S')  /* fake id for VerseServer entry, needed for ountliner */
 /*#endif*/
 
 
