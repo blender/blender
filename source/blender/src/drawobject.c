@@ -256,6 +256,9 @@ static float cube[8][3] = {
 void drawaxes(float size, int flag, char drawtype)
 {
 	int axis;
+	float v1[3]= {0.0, 0.0, 0.0};
+	float v2[3]= {0.0, 0.0, 0.0};
+	float v3[3]= {0.0, 0.0, 0.0};
 	
 	switch(drawtype) {
 	
@@ -273,6 +276,39 @@ void drawaxes(float size, int flag, char drawtype)
 			
 			glEnd();
 		}
+		break;
+	case OB_SINGLE_ARROW:
+	
+		glBegin(GL_LINES);
+		/* in positive z direction only */
+		v1[2]= size;
+		glVertex3fv(v1);
+		glVertex3fv(v2);
+		glEnd();
+		
+		/* square pyramid */
+		glBegin(GL_TRIANGLES);
+		
+		v2[0]= size*0.035; v2[1] = size*0.035;
+		v3[0]= size*-0.035; v3[1] = size*0.035;
+		v2[2]= v3[2]= size*0.75;
+		
+		for (axis=0; axis<4; axis++) {
+			if (axis % 2 == 1) {
+				v2[0] *= -1;
+				v3[1] *= -1;
+			} else {
+				v2[1] *= -1;
+				v3[0] *= -1;
+			}
+			
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+			glVertex3fv(v3);
+			
+		}
+		glEnd();
+		
 		break;
 	case OB_ARROWS:
 	default:
