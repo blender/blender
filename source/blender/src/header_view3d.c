@@ -4642,7 +4642,7 @@ void view3d_buttons(void)
 	if(G.f & G_FACESELECT) G.vd->flag |= V3D_FACESELECT;
 	
 	uiDefIconTextButS(block, MENU, B_MODESELECT, (G.vd->modeselect),view3d_modeselect_pup() , 
-																xco,0,126,20, &(G.vd->modeselect), 0, 0, 0, 0, "Mode:");
+																xco,0,126,20, &(G.vd->modeselect), 0, 0, 0, 0, "Mode (Hotkeys: Tab, F, V, Ctrl Tab)");
 	
 	xco+= 126+8;
 	
@@ -4653,7 +4653,7 @@ void view3d_buttons(void)
 	xco+= XIC+18;
 	
 	uiBlockBeginAlign(block);
-	uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.vd->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Period) ");
+	uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.vd->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period) ");
 
 	xco+= XIC+10;
 	
@@ -4684,26 +4684,25 @@ void view3d_buttons(void)
 	
 	/* LAYERS */
 	if(G.obedit==NULL && G.vd->localview==0) {
-		
 		uiBlockBeginAlign(block);
 		for(a=0; a<5; a++)
-			uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
+			uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Num, Shift Num)");
 		for(a=0; a<5; a++)
-			uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
-			
+			uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+		
 		xco+= 5;
 		uiBlockBeginAlign(block);
 		for(a=5; a<10; a++)
-			uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
+			uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Num, Shift Num)");
 		for(a=5; a<10; a++)
-			uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
+			uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
 
 		uiBlockEndAlign(block);
 		
 		xco+= (a-2)*(XIC/2)+3;
 
 		/* LOCK */
-		uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_UNLOCKED, xco+=XIC,0,XIC,YIC, &(G.vd->scenelock), 0, 0, 0, 0, "Locks layers and used Camera to Scene");
+		uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_UNLOCKED, xco+=XIC,0,XIC,YIC, &(G.vd->scenelock), 0, 0, 0, 0, "Locks layers and used Camera to Scene (Ctrl `)");
 		xco+= XIC+10;
 
 	}
@@ -4712,7 +4711,7 @@ void view3d_buttons(void)
 	if(G.obedit && (G.obedit->type == OB_MESH || G.obedit->type == OB_CURVE || G.obedit->type == OB_SURF || G.obedit->type == OB_LATTICE)) {
 		
 		uiBlockBeginAlign(block);
-		uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_PROP_OFF, "Proportional %t|Off %x0|On %x1|Connected %x2", xco,0,XIC+10,YIC, &(G.scene->proportional), 0, 1.0, 0, 0, "Proportional Edit Falloff (Hotkey: O) ");
+		uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_PROP_OFF, "Proportional %t|Off %x0|On %x1|Connected %x2", xco,0,XIC+10,YIC, &(G.scene->proportional), 0, 1.0, 0, 0, "Proportional Edit Falloff (Hotkeys: O, Alt O) ");
 		xco+= XIC+10;
 		
 		if(G.scene->proportional) {
@@ -4725,11 +4724,11 @@ void view3d_buttons(void)
 	/* selection modus */
 	if(G.obedit && (G.obedit->type == OB_MESH)) {
 		uiBlockBeginAlign(block);
-		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
 		xco+= XIC;
-		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Edge select mode (Ctrl Tab 2)");
 		xco+= XIC;
-		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
 		xco+= XIC;
 		uiBlockEndAlign(block);
 		if(G.vd->drawtype > OB_WIRE) {
