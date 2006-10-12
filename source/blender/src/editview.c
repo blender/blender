@@ -2323,7 +2323,9 @@ void fly(void)
 		}
 	}
 	else if (persp_backup==2) {	/* camera */
-		compatible_eul(G.vd->camera->rot, rot_backup);
+		float mat3[3][3];
+		Mat3CpyMat4(mat3, G.vd->camera->obmat);
+		Mat3ToCompatibleEul(mat3, G.vd->camera->rot, rot_backup);
 	}
 	else { /* not camera */
 		/* Apply the fly mode view */
