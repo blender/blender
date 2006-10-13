@@ -76,11 +76,6 @@ struct View3D;
 
 PyObject *M_Object_Get( PyObject * self, PyObject * args ); /* from Object.c */
 
-/*----------------------------------- Python BPy_Scene defaults------------*/
-#define EXPP_SCENE_FRAME_MAX 30000
-#define EXPP_SCENE_RENDER_WINRESOLUTION_MIN 4
-#define EXPP_SCENE_RENDER_WINRESOLUTION_MAX 10000
-
 /* checks for the scene being removed */
 #define SCENE_DEL_CHECK_PY(bpy_scene) if (!(bpy_scene->scene)) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "Scene has been removed" ) )
 #define SCENE_DEL_CHECK_INT(bpy_scene) if (!(bpy_scene->scene)) return ( EXPP_ReturnIntError( PyExc_RuntimeError, "Scene has been removed" ) )

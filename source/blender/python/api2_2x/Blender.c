@@ -245,7 +245,9 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 		if( !PyArg_Parse( arg, "i", &framenum ) )
 			return ( NULL ); /* TODO: Do we need to generate a nice error message here? */
 		G.scene->r.cfra = (short)framenum;
-		update_for_newframe(  );
+		/*	update all objects, so python scripts can export all objects in a scene
+			without worrying about the view layers */
+		scene_update_for_newframe(G.scene, (1<<20) - 1);
 		
 	} else if (StringEqual( name , "uscriptsdir" ) ) {
 		if ( !PyArg_Parse( arg , "s" , &dir ))
