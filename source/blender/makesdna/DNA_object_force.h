@@ -104,7 +104,8 @@ typedef struct SoftBody {
 	float balldamp;		/* cooling down collision response  */
 	float ballstiff;	/* pressure the ball is loaded with  */
 	short sbc_mode;
-    short pad3, /* alias vg_ballsize, weight painting collision balls not implemented yet, but easy peasy to do */
+    short aeroedge,
+		/* alias vg_ballsize, weight painting collision balls not implemented yet, but easy peasy to do */
 		pad4,pad5;     /* could be vg_balldamp,vg_ballstiff :) ahh, well vg_nodemass is missing too*/
 
 } SoftBody;

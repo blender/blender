@@ -846,6 +846,14 @@ static void free_softbody_intern(SoftBody *sb)
 ** since that would only valid for 'slow' moving collision targets and dito particles
 */
 
+/* aye this belongs to arith.c */
+static void Vec3PlusStVec(float *v, float s, float *v1)
+{
+	v[0] += s*v1[0];
+	v[1] += s*v1[1];
+	v[2] += s*v1[2];
+}
+
 /* BEGIN the spring external section*/
 
 //#if (0)
@@ -996,9 +1004,12 @@ int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp
 void scan_for_ext_spring_forces(Object *ob)
 {
 	SoftBody *sb = ob->soft;
+	ListBase *do_effector;
 	int a;
 	float damp; /* note, damp is mute here, but might be weight painted in future */
 	float feedback[3];
+	do_effector= pdInitEffectors(ob,NULL);
+
 	if (sb && sb->totspring){
 		for(a=0; a<sb->totspring; a++) {
 			BodySpring *bs = &sb->bspring[a];
@@ -1014,15 +1025,41 @@ void scan_for_ext_spring_forces(Object *ob)
 					bs->flag |= BSF_INTERSECT;
 					
 				}
-			}
 			/* ---- springs colliding */
 
 			/* +++ springs seeing wind ... n stuff depending on their orientation*/
-			/* nothing here yet, but get the idea */
-			/* --- springs seeing wind */
+				if(sb->aeroedge){
+						float vel[3],sp[3],pr[3],force[3];
+						float f,windfactor  = 1.0f;   
+                /*see if we have wind*/
+	            if(do_effector) {
+				   float speed[3],pos[3];
+				   VecMidf(pos, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
+                   VecMidf(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
+				   pdDoEffectors(do_effector, pos, force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+				   VecMulf(speed,windfactor); /*oh_ole*/
+				   VecAddf(vel,vel,speed);
+				}
+				/* media in rest */
+				else{
+               VECADD(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
+				}
+			   f = Normalise(vel);
+			   f = -0.0001f*f*f*sb->aeroedge;
 
+               VECSUB(sp, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
+			   Projf(pr,vel,sp);
+			   VECSUB(vel,vel,pr);
+			   Normalise(vel);
+			   Vec3PlusStVec(bs->ext_force,f,vel);
+				}
+
+			/* --- springs seeing wind */
+			}
 		}
 	}
+	if(do_effector)
+		pdEndEffectors(do_effector);
 }
 /* END the spring external section*/
 
@@ -1175,13 +1212,6 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 }
 
 
-/* aye this belongs to arith.c */
-static void Vec3PlusStVec(float *v, float s, float *v1)
-{
-	v[0] += s*v1[0];
-	v[1] += s*v1[1];
-	v[2] += s*v1[2];
-}
 
 static int sb_deflect_face(Object *ob,float *actpos, float *futurepos,float *collisionpos, float *facenormal,float *force,float *cf)
 {
@@ -1248,7 +1278,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 			 	int attached;
 				BodyPoint   *obp;
 				int c,b;
-				float def[3];
+				float velcenter[3],dvel[3],def[3];
 				float tune = sb->ballstiff;
 				float distance;
 				float compare;
@@ -1271,11 +1301,29 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 							/* would need another UI parameter defining fricton on self contact */
 							float ccfriction = sb->balldamp;
 							float f = tune/(distance) + tune/(compare*compare)*distance - 2.0f*tune/compare ;
-							Vec3PlusStVec(bp->force,f,def);
-							if (bp->contactfrict == 0.0f) bp->contactfrict = ccfriction*compare/distance; 
+
+					VecMidf(velcenter, bp->vec, obp->vec);
+					VecSubf(dvel,velcenter,bp->vec);
+					VecMulf(dvel,sb->nodemass);
+
+					Vec3PlusStVec(bp->force,ccfriction,dvel);
+					Vec3PlusStVec(bp->force,f*(1.0f-ccfriction),def);
 							/* exploit force(a,b) == force(b,a) part2/2 */
-							Vec3PlusStVec(obp->force,-f,def);
-							if (obp->contactfrict == 0.0f) obp->contactfrict = ccfriction*compare/distance;
+					
+					VecSubf(dvel,velcenter,obp->vec);
+					VecMulf(dvel,sb->nodemass);
+
+					Vec3PlusStVec(obp->force,ccfriction,dvel);
+					Vec3PlusStVec(obp->force,-f*(1.0f-ccfriction),def);
+
+
+
+
+							//Vec3PlusStVec(bp->force,f,def);
+							//if (bp->contactfrict == 0.0f) bp->contactfrict = ccfriction*compare/distance; 
+							/* exploit force(a,b) == force(b,a) part2/2 */
+							//Vec3PlusStVec(obp->force,-f,def);
+							//if (obp->contactfrict == 0.0f) obp->contactfrict = ccfriction*compare/distance;
 						}
 					}
 				}
