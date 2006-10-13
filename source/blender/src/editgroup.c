@@ -81,12 +81,14 @@ void add_selected_to_act_ob_groups(void)
 {
 	Object *ob= OBACT, *obt;
 	Base *base;
+	Group *group;
 	
 	if (!ob) return;
 	
 	/* linking to same group requires its own loop so we can avoid
 	   looking up the active objects groups each time */
-	Group *group= G.main->group.first;
+
+	group= G.main->group.first;
 	while(group) {
 		if(object_in_group(ob, group)) {
 			/* Assign groups to selected objects */
