@@ -2513,6 +2513,14 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 					col[3]= 100;
 					glColor4ubv(col);
 				}
+
+				if(ob->vnode) {
+					if (active==0) active=2;
+					if (ob==OBACT)
+						glColor4ub(0,255,0,100);
+					else
+						glColor4ub(0,128,0,100);
+				}
 			}
 			else if(G.obedit && G.obedit->data==tselem->id) {
 				glColor4ub(255, 255, 255, 100);
@@ -2526,6 +2534,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 			}
 		} else if (tselem->type==ID_SS) {
 #ifdef WITH_VERSE
+			/* draw colored circle behind verse server icon */
 			struct VerseServer *server = (VerseServer *)te->directdata;
 			if(server->flag & VERSE_CONNECTING) {
 				glColor4ub(255,128,64,100);
@@ -2533,6 +2542,29 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 			} else if(server->flag & VERSE_CONNECTED) {
 				glColor4ub(0,128,0,100);
 				active = 2;
+			}
+#endif
+		}
+		else if (tselem->type==ID_VN) {
+#ifdef WITH_VERSE
+			struct VNode *vnode = (VNode *)te->directdata;
+			if(vnode->type==V_NT_OBJECT) {
+				if(((VObjectData*)vnode->data)->object) {
+					glColor4ub(0,128,0,100);
+					active = 2;
+				}
+			}
+			else if(vnode->type==V_NT_GEOMETRY) {
+				if(((VGeomData*)vnode->data)->mesh || ((VGeomData*)vnode->data)->editmesh) {
+					glColor4ub(0,128,0,100);
+					active = 2;
+				}
+			}
+			if(vnode->type==V_NT_BITMAP) {
+				if(((VBitmapData*)vnode->data)->image) {
+					glColor4ub(0,128,0,100);
+					active = 2;
+				}
 			}
 #endif
 		}
