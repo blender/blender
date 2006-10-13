@@ -311,7 +311,11 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 		
 		elif not face_vert_tex_indicies: # images that are -1 are lines, a bit obscure but works.
 			if CREATE_EDGES:
-				edges.extend( (face_vert_loc_indicies[i], face_vert_loc_indicies[i+1]) for i in xrange(len_face_vert_loc_indicies-1) )
+				try: # python 2.4+
+					edges.extend( (face_vert_loc_indicies[i], face_vert_loc_indicies[i+1]) for i in xrange(len_face_vert_loc_indicies-1) )
+				except: # python 2.3
+					edges.extend( [(face_vert_loc_indicies[i], face_vert_loc_indicies[i+1]) for i in xrange(len_face_vert_loc_indicies-1)] )
+					
 				faces.pop(f_idx)
 		else:
 			
