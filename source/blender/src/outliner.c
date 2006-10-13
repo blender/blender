@@ -2524,6 +2524,15 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 					active= 2;
 				}
 			}
+		} else if (tselem->type==ID_SS) {
+			struct VerseServer *server = (VerseServer *)te->directdata;
+			if(server->flag & VERSE_CONNECTING) {
+				glColor4ub(255,128,64,100);
+				active = 2;
+			} else if(server->flag & VERSE_CONNECTED) {
+				glColor4ub(0,128,0,100);
+				active = 2;
+			}
 		}
 		else {
 			if( tree_element_type_active(soops, te, tselem, 0) ) active= 2;
@@ -2542,7 +2551,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		/* open/close icon, only when sublevels, except for scene */
 		if(te->subtree.first || te->idcode==ID_SCE) {
 			int icon_x;
-			if((tselem->type==0 && (te->idcode==ID_OB || te->idcode==ID_SCE)) || te->idcode==ID_VN || te->idcode==ID_VS || te->idcode==ID_MS || te->idcode==ID_SS)
+			if((tselem->type==0 && ELEM(te->idcode, ID_OB, ID_SCE)) || ELEM4(te->idcode,ID_VN,ID_VS, ID_MS, ID_SS))
 				icon_x = startx;
 			else
 				icon_x = startx+5;
@@ -2586,10 +2595,24 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		}
 #endif
 		
-		/* closed item, we draw the icons, not when it's a scene though */
+		/* closed item, we draw the icons, not when it's a scene, or master-server list though */
 		if(tselem->flag & TSE_CLOSED) {
 			if(te->subtree.first) {
 				if(tselem->type==0 && te->idcode==ID_SCE);
+				else if(tselem->type==ID_MS) {
+					char server_buf[50];
+					int nr_servers = 0;
+					struct VerseServer *server = server_list.first;
+					while (server) {
+						nr_servers++;
+						server = server->next;
+					}
+					sprintf(server_buf, "(%d server%s", nr_servers, nr_servers==1?")":"s)");
+					glRasterPos2i(startx+offsx-10, *starty+5);
+					BIF_RasterPos(startx+offsx-10, *starty+5);
+					BIF_DrawString(G.font, server_buf, 0);
+					offsx+= OL_X + BIF_GetStringWidth(G.font, server_buf, 0);
+				}
 				else {
 					int tempx= startx+offsx;
 					// divider

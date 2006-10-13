@@ -361,6 +361,8 @@ VerseSession *create_verse_session(
 	session->post_connect_terminated = post_connect_terminated;
 	session->post_connect_update = post_connect_update;
 
+	post_server_add();
+
 	return session;
 }
 
