@@ -2525,6 +2525,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 				}
 			}
 		} else if (tselem->type==ID_SS) {
+#ifdef WITH_VERSE
 			struct VerseServer *server = (VerseServer *)te->directdata;
 			if(server->flag & VERSE_CONNECTING) {
 				glColor4ub(255,128,64,100);
@@ -2533,6 +2534,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 				glColor4ub(0,128,0,100);
 				active = 2;
 			}
+#endif
 		}
 		else {
 			if( tree_element_type_active(soops, te, tselem, 0) ) active= 2;
@@ -2599,6 +2601,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		if(tselem->flag & TSE_CLOSED) {
 			if(te->subtree.first) {
 				if(tselem->type==0 && te->idcode==ID_SCE);
+#ifdef WITH_VERSE
 				else if(tselem->type==ID_MS) {
 					char server_buf[50];
 					int nr_servers = 0;
@@ -2613,6 +2616,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 					BIF_DrawString(G.font, server_buf, 0);
 					offsx+= OL_X + BIF_GetStringWidth(G.font, server_buf, 0);
 				}
+#endif
 				else {
 					int tempx= startx+offsx;
 					// divider
