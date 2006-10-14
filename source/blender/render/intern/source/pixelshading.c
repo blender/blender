@@ -343,17 +343,17 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 	}
 
 	if(har->starpoints) {
-		float ster, hoek;
+		float ster, angle;
 		/* rotation */
-		hoek= atan2(yn, xn);
-		hoek*= (1.0+0.25*har->starpoints);
+		angle= atan2(yn, xn);
+		angle*= (1.0+0.25*har->starpoints);
 		
-		co= cos(hoek);
-		si= sin(hoek);
+		co= cos(angle);
+		si= sin(angle);
 		
-		hoek= (co*xn+si*yn)*(co*yn-si*xn);
+		angle= (co*xn+si*yn)*(co*yn-si*xn);
 		
-		ster= fabs(hoek);
+		ster= fabs(angle);
 		if(ster>1.0) {
 			ster= (har->rad)/(ster);
 			

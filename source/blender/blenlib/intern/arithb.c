@@ -1185,7 +1185,7 @@ void Mat3ToQuat( float wmat[][3], float *q)		/* from Sig.Proc.85 pag 253 */
 
 void Mat3ToQuat_is_ok( float wmat[][3], float *q)
 {
-	float mat[3][3], matr[3][3], matn[3][3], q1[4], q2[4], hoek, si, co, nor[3];
+	float mat[3][3], matr[3][3], matn[3][3], q1[4], q2[4], angle, si, co, nor[3];
 
 	/* work on a copy */
 	Mat3CpyMat3(mat, wmat);
@@ -1199,10 +1199,10 @@ void Mat3ToQuat_is_ok( float wmat[][3], float *q)
 	Normalise(nor);
 	
 	co= mat[2][2];
-	hoek= 0.5f*saacos(co);
+	angle= 0.5f*saacos(co);
 	
-	co= (float)cos(hoek);
-	si= (float)sin(hoek);
+	co= (float)cos(angle);
+	si= (float)sin(angle);
 	q1[0]= co;
 	q1[1]= -nor[0]*si;		/* negative here, but why? */
 	q1[2]= -nor[1]*si;
@@ -1214,10 +1214,10 @@ void Mat3ToQuat_is_ok( float wmat[][3], float *q)
 	Mat3MulVecfl(matn, mat[0]);
 	
 	/* and align x-axes */
-	hoek= (float)(0.5*atan2(mat[0][1], mat[0][0]));
+	angle= (float)(0.5*atan2(mat[0][1], mat[0][0]));
 	
-	co= (float)cos(hoek);
-	si= (float)sin(hoek);
+	co= (float)cos(angle);
+	si= (float)sin(angle);
 	q2[0]= co;
 	q2[1]= 0.0f;
 	q2[2]= 0.0f;
@@ -1261,7 +1261,7 @@ void NormalQuat(float *q)
 float *vectoquat( float *vec, short axis, short upflag)
 {
 	static float q1[4];
-	float q2[4], nor[3], *fp, mat[3][3], hoek, si, co, x2, y2, z2, len1;
+	float q2[4], nor[3], *fp, mat[3][3], angle, si, co, x2, y2, z2, len1;
 	
 	/* first rotate to axis */
 	if(axis>2) {	
@@ -1319,9 +1319,9 @@ float *vectoquat( float *vec, short axis, short upflag)
 
 	Normalise(nor);
 	
-	hoek= 0.5f*saacos(co);
-	si= (float)sin(hoek);
-	q1[0]= (float)cos(hoek);
+	angle= 0.5f*saacos(co);
+	si= (float)sin(angle);
+	q1[0]= (float)cos(angle);
 	q1[1]= nor[0]*si;
 	q1[2]= nor[1]*si;
 	q1[3]= nor[2]*si;
@@ -1331,20 +1331,20 @@ float *vectoquat( float *vec, short axis, short upflag)
 
 		fp= mat[2];
 		if(axis==0) {
-			if(upflag==1) hoek= (float)(0.5*atan2(fp[2], fp[1]));
-			else hoek= (float)(-0.5*atan2(fp[1], fp[2]));
+			if(upflag==1) angle= (float)(0.5*atan2(fp[2], fp[1]));
+			else angle= (float)(-0.5*atan2(fp[1], fp[2]));
 		}
 		else if(axis==1) {
-			if(upflag==0) hoek= (float)(-0.5*atan2(fp[2], fp[0]));
-			else hoek= (float)(0.5*atan2(fp[0], fp[2]));
+			if(upflag==0) angle= (float)(-0.5*atan2(fp[2], fp[0]));
+			else angle= (float)(0.5*atan2(fp[0], fp[2]));
 		}
 		else {
-			if(upflag==0) hoek= (float)(0.5*atan2(-fp[1], -fp[0]));
-			else hoek= (float)(-0.5*atan2(-fp[0], -fp[1]));
+			if(upflag==0) angle= (float)(0.5*atan2(-fp[1], -fp[0]));
+			else angle= (float)(-0.5*atan2(-fp[0], -fp[1]));
 		}
 				
-		co= (float)cos(hoek);
-		si= (float)(sin(hoek)/len1);
+		co= (float)cos(angle);
+		si= (float)(sin(angle)/len1);
 		q2[0]= co;
 		q2[1]= x2*si;
 		q2[2]= y2*si;
@@ -2473,7 +2473,7 @@ void Mat4ToSize( float mat[][4], float *size)
 void triatoquat( float *v1,  float *v2,  float *v3, float *quat)
 {
 	/* imaginary x-axis, y-axis triangle is being rotated */
-	float vec[3], q1[4], q2[4], n[3], si, co, hoek, mat[3][3], imat[3][3];
+	float vec[3], q1[4], q2[4], n[3], si, co, angle, mat[3][3], imat[3][3];
 	
 	/* move z-axis to face-normal */
 	CalcNormFloat(v1, v2, v3, vec);
@@ -2485,9 +2485,9 @@ void triatoquat( float *v1,  float *v2,  float *v3, float *quat)
 	
 	if(n[0]==0.0 && n[1]==0.0) n[0]= 1.0;
 	
-	hoek= -0.5f*saacos(vec[2]);
-	co= (float)cos(hoek);
-	si= (float)sin(hoek);
+	angle= -0.5f*saacos(vec[2]);
+	co= (float)cos(angle);
+	si= (float)sin(angle);
 	q1[0]= co;
 	q1[1]= n[0]*si;
 	q1[2]= n[1]*si;
@@ -2503,9 +2503,9 @@ void triatoquat( float *v1,  float *v2,  float *v3, float *quat)
 	vec[2]= 0.0;
 	Normalise(vec);
 
-	hoek= (float)(0.5*atan2(vec[1], vec[0]));
-	co= (float)cos(hoek);
-	si= (float)sin(hoek);
+	angle= (float)(0.5*atan2(vec[1], vec[0]));
+	co= (float)cos(angle);
+	si= (float)sin(angle);
 	q2[0]= co;
 	q2[1]= 0.0f;
 	q2[2]= 0.0f;

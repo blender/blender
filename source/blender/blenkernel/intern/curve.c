@@ -1097,7 +1097,7 @@ void makebevelcurve(Object *ob, ListBase *disp)
 {
 	DispList *dl, *dlnew;
 	Curve *bevcu, *cu;
-	float *fp, facx, facy, hoek, dhoek;
+	float *fp, facx, facy, angle, dangle;
 	int nr, a;
 
 	cu= ob->data;
@@ -1174,14 +1174,14 @@ void makebevelcurve(Object *ob, ListBase *disp)
 
 		/* a circle */
 		fp= dl->verts;
-		dhoek= (2.0f*M_PI/(nr));
-		hoek= -(nr-1)*dhoek;
+		dangle= (2.0f*M_PI/(nr));
+		angle= -(nr-1)*dangle;
 		
 		for(a=0; a<nr; a++) {
 			fp[0]= 0.0;
-			fp[1]= (float)(cos(hoek)*(cu->ext2));
-			fp[2]= (float)(sin(hoek)*(cu->ext2)) - cu->ext1;
-			hoek+= dhoek;
+			fp[1]= (float)(cos(angle)*(cu->ext2));
+			fp[2]= (float)(sin(angle)*(cu->ext2)) - cu->ext1;
+			angle+= dangle;
 			fp+= 3;
 		}
 	}
@@ -1204,14 +1204,14 @@ void makebevelcurve(Object *ob, ListBase *disp)
 
 		/* half a circle */
 		fp= dl->verts;
-		dhoek= (0.5*M_PI/(dnr-1));
-		hoek= -(nr-1)*dhoek;
+		dangle= (0.5*M_PI/(dnr-1));
+		angle= -(nr-1)*dangle;
 		
 		for(a=0; a<nr; a++) {
 			fp[0]= 0.0;
-			fp[1]= (float)(cos(hoek)*(cu->ext2));
-			fp[2]= (float)(sin(hoek)*(cu->ext2)) - cu->ext1;
-			hoek+= dhoek;
+			fp[1]= (float)(cos(angle)*(cu->ext2));
+			fp[2]= (float)(sin(angle)*(cu->ext2)) - cu->ext1;
+			angle+= dangle;
 			fp+= 3;
 		}
 		
@@ -1260,14 +1260,14 @@ void makebevelcurve(Object *ob, ListBase *disp)
 		
 		/* half a circle */
 		fp= dl->verts;
-		hoek= 0.0;
-		dhoek= (0.5*M_PI/(dnr-1));
+		angle= 0.0;
+		dangle= (0.5*M_PI/(dnr-1));
 		
 		for(a=0; a<nr; a++) {
 			fp[0]= 0.0;
-			fp[1]= (float)(cos(hoek)*(cu->ext2));
-			fp[2]= (float)(sin(hoek)*(cu->ext2)) + cu->ext1;
-			hoek+= dhoek;
+			fp[1]= (float)(cos(angle)*(cu->ext2));
+			fp[2]= (float)(sin(angle)*(cu->ext2)) + cu->ext1;
+			angle+= dangle;
 			fp+= 3;
 		}
 	}

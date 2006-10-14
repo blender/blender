@@ -529,7 +529,7 @@ static void drawshadbuflimits(Lamp *la, float mat[][4])
 static void spotvolume(float *lvec, float *vvec, float inp)
 {
 	/* camera is at 0,0,0 */
-	float temp[3],plane[3],mat1[3][3],mat2[3][3],mat3[3][3],mat4[3][3],q[4],co,si,hoek;
+	float temp[3],plane[3],mat1[3][3],mat2[3][3],mat3[3][3],mat4[3][3],q[4],co,si,angle;
 
 	Normalise(lvec);
 	Normalise(vvec);				/* is this the correct vector ? */
@@ -552,8 +552,8 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	q[3] = 0 ;
 	Normalise(&q[1]);
 
-	hoek = saacos(plane[2])/2.0;
-	co = cos(hoek);
+	angle = saacos(plane[2])/2.0;
+	co = cos(angle);
 	si = sqrt(1-co*co);
 
 	q[0] =  co;

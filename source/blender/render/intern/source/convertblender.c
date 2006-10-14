@@ -2196,7 +2196,7 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 	Lamp *la= ob->data;
 	LampRen *lar;
 	GroupObject *go;
-	float mat[4][4], hoek, xn, yn;
+	float mat[4][4], angle, xn, yn;
 	int c;
 
 	/* prevent only shadow from rendering light */
@@ -2345,9 +2345,9 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 			MTC_Mat3MulVecfl(lar->imat, lar->sh_invcampos);
 
 			/* z factor, for a normalized volume */
-			hoek= saacos(lar->spotsi);
+			angle= saacos(lar->spotsi);
 			xn= lar->spotsi;
-			yn= sin(hoek);
+			yn= sin(angle);
 			lar->sh_zfac= yn/xn;
 			/* pre-scale */
 			lar->sh_invcampos[2]*= lar->sh_zfac;
