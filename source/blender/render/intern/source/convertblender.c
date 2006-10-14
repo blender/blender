@@ -1242,7 +1242,7 @@ static void static_particle_strand(Render *re, Object *ob, Material *ma, float *
 		flag= R_SMOOTH;
 	
 	/* only 1 pixel wide strands filled in as quads now, otherwise zbuf errors */
-	if(width==1.0f)
+	if(ma->strand_sta==1.0f)
 		flag |= R_STRAND;
 	
 	/* first two vertices */
@@ -2221,6 +2221,7 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 	lar->samp = la->samp;
 	lar->buffers= la->buffers;
 	if(lar->buffers==0) lar->buffers= 1;
+	lar->buftype= la->buftype;
 	lar->filtertype= la->filtertype;
 	lar->soft = la->soft;
 	lar->shadhalostep = la->shadhalostep;
@@ -2327,7 +2328,7 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 		lar->spottexfac= 1.0/(xn);
 
 		if(lar->mode & LA_ONLYSHADOW) {
-			if((lar->mode & (LA_SHAD|LA_SHAD_RAY))==0) lar->mode -= LA_ONLYSHADOW;
+			if((lar->mode & (LA_SHAD_BUF|LA_SHAD_RAY))==0) lar->mode -= LA_ONLYSHADOW;
 		}
 
 	}
@@ -2369,7 +2370,7 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 	/* yafray: shadowbuffers and jitter only needed for internal render */
 	if (re->r.renderer==R_INTERN) {
 		if(re->r.mode & R_SHADOW) {
-			if (la->type==LA_SPOT && (lar->mode & LA_SHAD) ) {
+			if (la->type==LA_SPOT && (lar->mode & LA_SHAD_BUF) ) {
 				/* Per lamp, one shadow buffer is made. */
 				lar->bufflag= la->bufflag;
 				Mat4CpyMat4(mat, ob->obmat);
@@ -3383,6 +3384,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 			
 			if(re->test_break()) break;
 			if(lar->shb) {
+				/* if type is irregular, this only sets the perspective matrix and autoclips */
 				makeshadowbuf(re, lar);
 			}
 		}

@@ -1960,7 +1960,7 @@ void do_lampbuts(unsigned short event)
 		break;
 	case B_SHADRAY:
 		la= G.buts->lockpoin; 
-		la->mode &= ~LA_SHAD;
+		la->mode &= ~LA_SHAD_BUF;
 		/* yafray: 'softlight' uses it's own shadbuf. flag.
 		   Must be cleared here too when switching from ray shadow */
 		la->mode &= ~LA_YF_SOFT;
@@ -2146,8 +2146,11 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, LA_SHAD_RAY, B_SHADRAY,"Ray Shadow",10,180,80,19,&la->mode, 0, 0, 0, 0, "Use ray tracing for shadow");
-	if(la->type==LA_SPOT) 
-		uiDefButBitS(block, TOG, LA_SHAD, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets spotlight produce shadows using shadow buffer");
+	if(la->type==LA_SPOT) {
+		uiDefButBitS(block, TOG, LA_SHAD_BUF, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets spotlight produce shadows using shadow buffer");
+		if(la->mode & LA_SHAD_BUF)
+			uiDefButC(block, MENU, B_REDR, "Classical %x0|Irregular %x1", 10,140,80,19,&la->buftype, 0, 0, 0, 0, "Buffer type, Irregular buffer produces sharp shadow always, but doesn't support ZTransp shadow receiving");
+	}
 	uiBlockEndAlign(block);
 	
 	uiDefButBitS(block, TOG, LA_ONLYSHADOW, B_NOP,"OnlyShadow",		10,110,80,19,&la->mode, 0, 0, 0, 0, "Causes light to cast shadows only without illuminating objects");
@@ -2165,30 +2168,35 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	
 		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"HaloInt ",			100,135,200,19,&la->haint, 0.0, 5.0, 0, 0, "Sets the intensity of the spotlight halo");
 		
-		if(la->mode & LA_SHAD) {
-			uiBlockBeginAlign(block);
-			uiDefButS(block, NUM,B_SBUFF,"ShadowBufferSize:", 100,110,200,19,	&la->bufsize,512,10240, 0, 0, "Sets the size of the shadow buffer to nearest multiple of 16");
-			uiDefButS(block, ROW,B_NOP,	"Box",				100,90,65,19, &la->filtertype, 0.0, LA_SHADBUF_BOX, 0, 0, "Apply Box filter for shadowbuffer");
-			uiDefButS(block, ROW,B_NOP,	"Tent",				165,90,65,19, &la->filtertype, 0.0, LA_SHADBUF_TENT, 0, 0, "Apply Tent filter for shadowbuffer");
-			uiDefButS(block, ROW,B_NOP,	"Gauss",			230,90,70,19, &la->filtertype, 0.0, LA_SHADBUF_GAUSS, 0, 0, "Apply Gauss filter for shadowbuffer");
+		if(la->mode & LA_SHAD_BUF) {
+			if(la->buftype==LA_SHADBUF_REGULAR) {
+				uiBlockBeginAlign(block);
+				uiDefButS(block, NUM,B_SBUFF,"ShadowBufferSize:", 100,110,200,19,	&la->bufsize,512,10240, 0, 0, "Sets the size of the shadow buffer to nearest multiple of 16");
+				uiDefButS(block, ROW,B_NOP,	"Box",				100,90,65,19, &la->filtertype, 0.0, LA_SHADBUF_BOX, 0, 0, "Apply Box filter for shadowbuffer");
+				uiDefButS(block, ROW,B_NOP,	"Tent",				165,90,65,19, &la->filtertype, 0.0, LA_SHADBUF_TENT, 0, 0, "Apply Tent filter for shadowbuffer");
+				uiDefButS(block, ROW,B_NOP,	"Gauss",			230,90,70,19, &la->filtertype, 0.0, LA_SHADBUF_GAUSS, 0, 0, "Apply Gauss filter for shadowbuffer");
+				
+	//			uiDefButS(block, ROW,B_NOP,"SubSamples: 1",		100,90,140,19, &la->buffers, 1.0, 1.0, 0, 0, "Amount of lampbuffer subsamples, a value of larger than 1 halves the shadowbuffer size");
+	//			uiDefButS(block, ROW,B_NOP,"4",					240,90,30,19, &la->buffers, 1.0, 4.0, 0, 0, "Amount of lampbuffer subsamples, this halves the actual shadowbuffer size");
+	//			uiDefButS(block, ROW,B_NOP,"9",					270,90,30,19, &la->buffers, 1.0, 9.0, 0, 0, "Amount of lampbuffer subsamples, this halves the shadowbuffer size");
 			
-//			uiDefButS(block, ROW,B_NOP,"SubSamples: 1",		100,90,140,19, &la->buffers, 1.0, 1.0, 0, 0, "Amount of lampbuffer subsamples, a value of larger than 1 halves the shadowbuffer size");
-//			uiDefButS(block, ROW,B_NOP,"4",					240,90,30,19, &la->buffers, 1.0, 4.0, 0, 0, "Amount of lampbuffer subsamples, this halves the actual shadowbuffer size");
-//			uiDefButS(block, ROW,B_NOP,"9",					270,90,30,19, &la->buffers, 1.0, 9.0, 0, 0, "Amount of lampbuffer subsamples, this halves the shadowbuffer size");
-		
-			uiBlockBeginAlign(block);
-			uiDefButS(block, NUM,B_LAMPREDRAW,"Samples:",	100,60,100,19,	&la->samp,1.0,16.0, 0, 0, "Sets the number of shadow map samples");
-			uiDefButS(block, NUM,B_NOP,"Halo step:",		200,60,100,19,	&la->shadhalostep, 0.0, 12.0, 0, 0, "Sets the volumetric halo sampling frequency");
-			uiDefButF(block, NUM,B_LAMPREDRAW,"Bias:",		100,40,100,19,	&la->bias, 0.01, 5.0, 1, 0, "Sets the shadow map sampling bias");
-			uiDefButF(block, NUM,B_LAMPREDRAW,"Soft:",		200,40,100,19,	&la->soft,1.0,100.0, 100, 0, "Sets the size of the shadow sample area");
+				uiBlockBeginAlign(block);
+				uiDefButS(block, NUM,B_LAMPREDRAW,"Samples:",	100,60,100,19,	&la->samp,1.0,16.0, 0, 0, "Sets the number of shadow map samples");
+				uiDefButS(block, NUM,B_NOP,"Halo step:",		200,60,100,19,	&la->shadhalostep, 0.0, 12.0, 0, 0, "Sets the volumetric halo sampling frequency");
+				uiDefButF(block, NUM,B_LAMPREDRAW,"Bias:",		100,40,100,19,	&la->bias, 0.01, 5.0, 1, 0, "Sets the shadow map sampling bias");
+				uiDefButF(block, NUM,B_LAMPREDRAW,"Soft:",		200,40,100,19,	&la->soft,1.0,100.0, 100, 0, "Sets the size of the shadow sample area");
+			}
+			else {	/* LA_SHADBUF_IRREGULAR */
+				uiDefButF(block, NUM,B_LAMPREDRAW,"Bias:",		100,40,100,19,	&la->bias, 0.01, 5.0, 1, 0, "Sets the shadow map sampling bias");
+			}
 			
 			uiBlockBeginAlign(block);
-			uiDefIconButBitS(block, TOG, LA_SHADBUF_AUTO_START, B_REDR, ICON_AUTO,	10, 10, 25, 19, &la->bufflag, 0.0, 0.0, 0, 0, "Automatic calculation of clipping-start, based on visible vertices");
+			uiDefIconButBitC(block, TOG, LA_SHADBUF_AUTO_START, B_REDR, ICON_AUTO,	10, 10, 25, 19, &la->bufflag, 0.0, 0.0, 0, 0, "Automatic calculation of clipping-start, based on visible vertices");
 			if(la->bufflag & LA_SHADBUF_AUTO_START)
 				uiDefBut(block, LABEL, B_NOP, "ClipSta: Auto",	35,10,115,19,	NULL, 0, 0, 0, 0, "");
 			else
 				uiDefButF(block, NUM,REDRAWVIEW3D,"ClipSta:",	35,10,115,19,	&la->clipsta, 0.1*grid,1000.0*grid, 10, 0, "Sets the shadow map clip start: objects closer will not generate shadows");
-			uiDefIconButBitS(block, TOG, LA_SHADBUF_AUTO_END, B_REDR, ICON_AUTO,	160, 10, 25, 19, &la->bufflag, 0.0, 0.0, 0, 0, "Automatic calculation of clipping-end, based on visible vertices");
+			uiDefIconButBitC(block, TOG, LA_SHADBUF_AUTO_END, B_REDR, ICON_AUTO,	160, 10, 25, 19, &la->bufflag, 0.0, 0.0, 0, 0, "Automatic calculation of clipping-end, based on visible vertices");
 			if(la->bufflag & LA_SHADBUF_AUTO_END)
 				uiDefBut(block, LABEL,B_NOP, "ClipEnd: Auto",	185,10,115,19,	NULL, 0, 0, 0, 0, "");
 			else
@@ -3140,8 +3148,10 @@ static void material_panel_material(Material *ma)
 			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_MAT_VCOL_PAINT, "VCol Paint",	82,166,74,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
 			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,166,74,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
 			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	230,166,73,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
-			uiDefButBitI(block, TOG, MA_NOMIST, B_NOP,	"No Mist",	8,146,146,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
-			uiDefButBitI(block, TOG, MA_ENV, B_MATPRV,	"Env",			158,146,145,20, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through (only for solid faces)");
+			
+			uiDefButBitI(block, TOG, MA_NOMIST, B_NOP,	"No Mist",		8,146,74,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
+			uiDefButBitI(block, TOG, MA_ENV, B_MATPRV,	"Env",			82,146,74,20, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through (only for solid faces)");
+			uiDefButF(block, NUM, B_NOP, "Shad A ",					156,146,147,19, &ma->shad_alpha, 0.001, 1.0f, 100, 0, "Shadow casting alpha, only in use for Irregular Shadowbuffer");
 		}
 		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);

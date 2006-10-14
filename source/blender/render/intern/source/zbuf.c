@@ -37,6 +37,7 @@
 #include <limits.h>
 #include <string.h>
 
+#include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 #include "BLI_jitter.h"
@@ -59,11 +60,12 @@
 
 /* local includes */
 #include "gammaCorrectionTables.h"
+#include "pixelblending.h"
 #include "render_types.h"
 #include "renderpipeline.h"
 #include "renderdatabase.h"
 #include "rendercore.h"
-#include "pixelblending.h"
+#include "shadbuf.h"
 
 /* own includes */
 #include "zbuf.h"
@@ -89,7 +91,7 @@ void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty)
 	zspan->span2= MEM_mallocN(recty*sizeof(float), "zspan");
 }
 
-static void zbuf_free_span(ZSpan *zspan)
+void zbuf_free_span(ZSpan *zspan)
 {
 	if(zspan) {
 		if(zspan->span1) MEM_freeN(zspan->span1);
@@ -292,7 +294,7 @@ static APixstr *addpsA(ZSpan *zspan)
 	return zspan->curpstr;
 }
 
-static void zbufinvulAc4(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3, float *v4)
+static void zbuffillAc4(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3, float *v4)
 {
 	APixstr *ap, *apofs, *apn;
 	double zxd, zyd, zy0, zverg;
@@ -966,7 +968,7 @@ void zbufclipwire(ZSpan *zspan, int zvlnr, VlakRen *vlr)
  * @param v2 [4 floats, world coordinates] second vertex
  * @param v3 [4 floats, world coordinates] third vertex
  */
-static void zbufinvulGLinv4(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3, float *v4) 
+static void zbuffillGLinv4(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3, float *v4) 
 {
 	double zxd, zyd, zy0, zverg;
 	float x0,y0,z0;
@@ -1069,7 +1071,7 @@ static void zbufinvulGLinv4(ZSpan *zspan, int zvlnr, float *v1, float *v2, float
 
 /* uses spanbuffers */
 
-static void zbufinvulGL4(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3, float *v4)
+static void zbuffillGL4(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3, float *v4)
 {
 	double zxd, zyd, zy0, zverg;
 	float x0,y0,z0;
@@ -1181,7 +1183,7 @@ static void zbufinvulGL4(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v
  * @param v3 [4 floats, world coordinates] third vertex
  */
 
-static void zbufinvulGL_onlyZ(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3, float *v4) 
+static void zbuffillGL_onlyZ(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3, float *v4) 
 {
 	double zxd, zyd, zy0, zverg;
 	float x0,y0,z0;
@@ -1530,7 +1532,7 @@ void zbufclip(ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, int c1, 
 	zspan->zbuffunc(zspan, zvlnr, vez,vez+4,vez+8, NULL);
 }
 
-static void zbufclip4(ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, float *f4, int c1, int c2, int c3, int c4)
+void zbufclip4(ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, float *f4, int c1, int c2, int c3, int c4)
 {
 	float vez[16];
 	
@@ -1651,7 +1653,7 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 	fillrect(pa->rectz, pa->rectx, pa->recty, 0x7FFFFFFF);
 	
 	/* filling methods */
-	zspan.zbuffunc= zbufinvulGL4;
+	zspan.zbuffunc= zbuffillGL4;
 	zspan.zbuflinefunc= zbufline;
 
 	/* part clipflag, threaded */
@@ -1671,8 +1673,8 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 					env= (ma->mode & MA_ENV);
 					wire= (ma->mode & MA_WIRE);
 					
-					if(ma->mode & MA_ZINV) zspan.zbuffunc= zbufinvulGLinv4;
-					else zspan.zbuffunc= zbufinvulGL4;
+					if(ma->mode & MA_ZINV) zspan.zbuffunc= zbuffillGLinv4;
+					else zspan.zbuffunc= zbuffillGL4;
 				}
 			}
 			else if(all_z) {
@@ -1774,7 +1776,7 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem, Re
 	fillrect(zspan.rectp, vw->rectx, vw->recty, 0xFFFFFF);
 	
 	/* filling methods */
-	zspan.zbuffunc= zbufinvulGL4;
+	zspan.zbuffunc= zbuffillGL4;
 	
 	if(rg_elem) {	/* radio tool */
 		RNode **re, *rn;
@@ -1862,7 +1864,7 @@ void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size, float jitx, 
 	
 	/* filling methods */
 	zspan.zbuflinefunc= zbufline_onlyZ;
-	zspan.zbuffunc= zbufinvulGL_onlyZ;
+	zspan.zbuffunc= zbuffillGL_onlyZ;
 				
 	for(a=0; a<re->totvlak; a++) {
 
@@ -2429,7 +2431,7 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 	zspan.apsmbase= apsmbase;
 	
 	/* filling methods */
-	zspan.zbuffunc= zbufinvulAc4;
+	zspan.zbuffunc= zbuffillAc4;
 	zspan.zbuflinefunc= zbuflineAc;
 	
 	/* part clipflag, 4 threads */
@@ -2732,6 +2734,10 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 	aprect= APixbuf;
 	rdrect= pa->rectdaps;
 	
+	/* irregular shadowb buffer creation */
+	if(R.r.mode & R_SHADOW)
+		ISB_create(pa, APixbuf);
+	
 	/* filtered render, for now we assume only 1 filter size */
 	if(pa->crop) {
 		crop= 1;
@@ -2756,7 +2762,7 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 		
 		for(x=pa->disprect.xmin+crop; x<pa->disprect.xmax-crop; x++, ap++, pass+=4, od++) {
 			
-			if(ap->p[0]==NULL) {
+			if(ap->p[0]==0) {
 				if(addpassflag & SCE_PASS_VECTOR) 
 					add_transp_speed(rl, od, NULL, 0.0f, rdrect);
 			}
@@ -2872,6 +2878,9 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 
 	MEM_freeN(APixbuf);
 	freepsA(&apsmbase);	
+
+	if(R.r.mode & R_SHADOW)
+		ISB_free(pa);
 
 }
 

@@ -569,7 +569,7 @@ void *add_lamp(void)
 	la->spotsize= 45.0;
 	la->spotblend= 0.15;
 	la->att2= 1.0;
-	la->mode= LA_SHAD;
+	la->mode= LA_SHAD_BUF;
 	la->bufsize= 512;
 	la->clipsta= 0.5;
 	la->clipend= 40.0;

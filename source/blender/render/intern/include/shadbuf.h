@@ -61,6 +61,50 @@ float testshadowbuf(struct ShadBuf *shb, float *rco, float *dxco, float *dyco, f
  */
 float shadow_halo(LampRen *lar, float *p1, float *p2);
 
+/**
+ * Irregular shadowbuffer
+ */
+
+struct MemArena;
+struct APixstr;
+
+void ISB_create(RenderPart *pa, struct APixstr *apixbuf);
+void ISB_free(RenderPart *pa);
+float ISB_getshadow(ShadeInput *shi, ShadBuf *shb);
+
+/* data structures have to be accessible both in camview(x, y) as in lampview(x, y) */
+/* since they're created per tile rendered, speed goes over memory requirements */
+
+
+/* buffer samples, allocated in camera buffer and pointed to in lampbuffer nodes */
+typedef struct ISBSample {
+	float zco[3];			/* coordinate in lampview projection */
+	short *shadfac;			/* initialized zero = full lighted */
+	int facenr;				/* index in faces list */	
+} ISBSample;
+
+/* transparent version of buffer sample */
+typedef struct ISBSampleA {
+	float zco[3];				/* coordinate in lampview projection */
+	short *shadfac;				/* NULL = full lighted */
+	int facenr;					/* index in faces list */	
+	struct ISBSampleA *next;	/* in end, we want the first items to align with ISBSample */
+} ISBSampleA;
+
+/* used for transparent storage only */
+typedef struct ISBShadfacA {
+	struct ISBShadfacA *next;
+	int facenr;
+	float shadfac;
+} ISBShadfacA;
+
+/* What needs to be stored to evaluate shadow, for each thread in ShadBuf */
+typedef struct ISBData {
+	short *shadfacs;				/* simple storage for solid only */
+	ISBShadfacA **shadfaca;
+	struct MemArena *memarena;
+	int minx, miny, rectx, recty;	/* copy from part disprect */
+} ISBData;
 
 #endif /* SHADBUF_EXT_H */
 

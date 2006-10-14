@@ -5589,6 +5589,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *sce;
 		Object *ob;
 		Curve *cu;
+		Material *ma;
 		Nurb *nu;
 		BezTriple *bezt;
 		BPoint *bp;
@@ -5617,9 +5618,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 		
-		ob = main->object.first;
-
-		while (ob) {
+		for(ob = main->object.first; ob; ob= ob->id.next) {
 			ListBase *list;
 			list = &ob->constraints;
 
@@ -5660,8 +5659,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
-
-			ob = ob->id.next;
+		}
+		
+		for(ma = main->mat.first; ma; ma= ma->id.next) {
+			if(ma->shad_alpha==0.0f)
+				ma->shad_alpha= 1.0f;
 		}
 	}
 	

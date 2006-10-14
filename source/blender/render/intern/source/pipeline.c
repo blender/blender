@@ -1120,7 +1120,8 @@ static void threaded_tile_processor(Render *re)
 		IMB_exrtile_begin_write(rr->exrhandle, str, rr->rectx, rr->recty, rr->rectx/re->xparts, rr->recty/re->yparts);
 	}
 	
-	if(re->r.mode & R_THREADS) maxthreads= 2;
+	if(re->r.mode & R_THREADS) 
+		maxthreads= RE_MAXTHREAD;	/* should become button value too */
 	else maxthreads= 1;
 	
 	BLI_init_threads(&threads, do_part_thread, maxthreads);

@@ -77,7 +77,9 @@ typedef struct Material {
 	short flarec, starc, linec, ringc;
 	float hasize, flaresize, subsize, flareboost;
 	float strand_sta, strand_end, strand_ease;
+	
 	float sbias;			/* shadow bias */
+	float shad_alpha, padf;	/* in use for irregular shadowbuffer */
 	
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, use_nodes;

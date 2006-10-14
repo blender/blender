@@ -106,6 +106,7 @@ typedef struct ShadeInput
 	short osatex, puno;
 	int mask;
 	int depth;			/* 1 or larger on raytrace shading */
+	int facenr;
 	unsigned int lay;
 } ShadeInput;
 

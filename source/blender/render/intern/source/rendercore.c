@@ -412,7 +412,7 @@ static void renderspothalo(ShadeInput *shi, float *col, float alpha)
 
 
 
-/* also used in zbuf.c */
+/* also used in zbuf.c and shadbuf.c */
 int count_mask(unsigned short mask)
 {
 	if(R.samples)
@@ -1453,7 +1453,10 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 				if(lar->type==LA_HEMI);	// no shadow
 				else {
 					if(lar->shb) {
-						shadfac[3] = testshadowbuf(lar->shb, shi->co, shi->dxco, shi->dyco, inp);
+						if(lar->buftype==LA_SHADBUF_IRREGULAR)
+							shadfac[3]= ISB_getshadow(shi, lar->shb);
+						else
+							shadfac[3] = testshadowbuf(lar->shb, shi->co, shi->dxco, shi->dyco, inp);
 					}
 					else if(lar->mode & LA_SHAD_RAY) {
 						ray_shadow(shi, lar, shadfac);
@@ -2410,9 +2413,9 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 	ShadeInput shi;
 	VlakRen *vlr=NULL;
 	
-	/* currently in use for dithering (soft shadow) node preview */
-	shi.xs= (int)(x+0.5f);
-	shi.ys= (int)(y+0.5f);
+	/* currently in use for dithering (soft shadow), node preview, irregular shad */
+	shi.xs= (int)(x);
+	shi.ys= (int)(y);
 
 	shi.thread= shpi->thread;
 	shi.do_preview= R.r.scemode & R_NODE_PREVIEW;
@@ -2430,7 +2433,8 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 		VertRen *v1;
 		float alpha, fac, zcor;
 		
-		vlr= RE_findOrAddVlak(&R, (facenr-1) & RE_QUAD_MASK);
+		shi.facenr= (facenr-1) & RE_QUAD_MASK;
+		vlr= RE_findOrAddVlak(&R, shi.facenr);
 		
 		shi.vlr= vlr;
 		shi.mat= vlr->mat;
@@ -2959,6 +2963,10 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 	
 	if(R.test_break()) return; 
 	
+	/* irregular shadowb buffer creation */
+	if(R.r.mode & R_SHADOW)
+		ISB_create(pa, NULL);
+	
 	/* we set per pixel a fixed seed, for random AO and shadow samples */
 	seed= pa->rectx*pa->disprect.ymin;
 
@@ -3081,6 +3089,9 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 			rectf[2] = invGammaCorrect(rectf[2]);
 		}
 	}
+	
+	if(R.r.mode & R_SHADOW)
+		ISB_free(pa);
 }
 
 /* ************* pixel struct ******** */
@@ -3319,7 +3330,8 @@ void zbufshade_tile(RenderPart *pa)
 		
 		zbuffer_solid(pa, rl->lay, rl->layflag);
 		
-		if(!R.test_break()) {
+		if(!R.test_break()) {	/* NOTE: this if() is not consistant */
+			
 			/* edges only for solid part, ztransp doesn't support it yet anti-aliased */
 			if(rl->layflag & SCE_LAY_EDGE) 
 				if(R.r.mode & R_EDGE)
@@ -3333,6 +3345,10 @@ void zbufshade_tile(RenderPart *pa)
 				float *fcol= rl->rectf;
 				int x, y, *rp= pa->rectp, *rz= pa->rectz, offs=0;
 				
+				/* irregular shadowb buffer creation */
+				if(R.r.mode & R_SHADOW)
+					ISB_create(pa, NULL);
+				
 				for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++, rr->renrect.ymax++) {
 					for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, rp++, fcol+=4, offs++) {
 						shadepixel_sky(&shpi, (float)x, (float)y, *rz, *rp, 0);
@@ -3345,6 +3361,9 @@ void zbufshade_tile(RenderPart *pa)
 					if(y&1)
 						if(R.test_break()) break; 
 				}
+				
+				if(R.r.mode & R_SHADOW)
+					ISB_free(pa);
 			}
 			else if(rl->layflag & SCE_LAY_SKY) {
 				sky_tile(pa, rl->rectf);

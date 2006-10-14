@@ -647,7 +647,7 @@ static void drawlamp(Object *ob)
 	/* draw dashed outer circle if shadow is on. remember some lamps can't have certain shadows! */
 	if (la->type!=LA_HEMI) {
 		if ((la->mode & LA_SHAD_RAY) ||
-			((la->mode & LA_SHAD) && (la->type==LA_SPOT)) )
+			((la->mode & LA_SHAD_BUF) && (la->type==LA_SPOT)) )
 		{
 			drawcircball(GL_LINE_LOOP, vec, circrad + 3.0f*pixsize, imat);
 		}
@@ -821,7 +821,7 @@ static void drawlamp(Object *ob)
 
 	setlinestyle(0);
 	
-	if(la->type==LA_SPOT && (la->mode & LA_SHAD) ) {
+	if(la->type==LA_SPOT && (la->mode & LA_SHAD_BUF) ) {
 		drawshadbuflimits(la, ob->obmat);
 	}
 	

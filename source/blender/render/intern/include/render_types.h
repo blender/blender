@@ -49,7 +49,7 @@ struct GHash;
 #define TABLEINITSIZE 1024
 #define LAMPINITSIZE 256
 		/* hardcoded maximum now, for optimize tables */
-#define MAX_THREADS		2
+#define RE_MAXTHREAD	2
 
 typedef struct SampleTables
 {
@@ -188,6 +188,8 @@ struct Render
 
 /* ------------------------------------------------------------------------- */
 
+struct ISBData;
+
 typedef struct ShadSampleBuf {
 	struct ShadSampleBuf *next, *prev;
 	long *zbuf;
@@ -195,6 +197,7 @@ typedef struct ShadSampleBuf {
 } ShadSampleBuf;
 
 typedef struct ShadBuf {
+	/* regular shadowbuffer */
 	short samp, shadhalostep, totbuf;
 	float persmat[4][4];
 	float viewmat[4][4];
@@ -204,6 +207,9 @@ typedef struct ShadBuf {
 	int co[3];
 	int size, bias;
 	ListBase buffers;
+	
+	/* irregular shadowbufer, result stored per thread */
+	struct ISBData *isb_result[RE_MAXTHREAD];
 } ShadBuf;
 
 /* ------------------------------------------------------------------------- */
@@ -304,8 +310,10 @@ typedef struct LampRen
 	short samp;
 	/** Softness factor for shadow */
 	float soft;
-	/** amount of subsample buffers */
+	/** amount of subsample buffers and type of filter for sampling */
 	short buffers, filtertype;
+	/** shadow buffer type (regular, irregular) */
+	short buftype;
 	/** autoclip */
 	short bufflag;
 	/** shadow plus halo: detail level */
@@ -339,7 +347,7 @@ typedef struct LampRen
 	short YF_glowtype;
 	
 	/* ray optim */
-	VlakRen *vlr_last[MAX_THREADS];
+	VlakRen *vlr_last[RE_MAXTHREAD];
 	
 	struct MTex *mtex[MAX_MTEX];
 } LampRen;

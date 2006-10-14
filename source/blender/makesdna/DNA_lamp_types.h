@@ -58,7 +58,8 @@ typedef struct Lamp {
 	
 	float clipsta, clipend, shadspotsize;
 	float bias, soft;
-	short bufsize, samp, buffers, filtertype, bufflag;
+	short bufsize, samp, buffers, filtertype;
+	char bufflag, buftype;
 	
 	short ray_samp, ray_sampy, ray_sampz, ray_samp_type;
 	short area_shape;
@@ -93,7 +94,7 @@ typedef struct Lamp {
 #define LA_YF_PHOTON	5
 
 /* mode */
-#define LA_SHAD			1
+#define LA_SHAD_BUF		1
 #define LA_HALO			2
 #define LA_LAYER		4
 #define LA_QUAD			8
@@ -110,6 +111,10 @@ typedef struct Lamp {
 /* yafray: lamp shadowbuffer flag, softlight */
 /* Since it is used with LOCAL lamp, can't use LA_SHAD */
 #define LA_YF_SOFT		16384
+
+/* buftype, no flag */
+#define LA_SHADBUF_REGULAR		0
+#define LA_SHADBUF_IRREGULAR	1
 
 /* bufflag, auto clipping */
 #define LA_SHADBUF_AUTO_START	1
