@@ -2329,11 +2329,10 @@ static void object_softbodies(Object *ob)
 				uiDefButS(block, ROW, B_DIFF, "Min",130,150,60,20, &sb->sbc_mode, 4.0,(float)2, 0, 0, "Minimal Spring lenght * Ball Size");
 				uiDefButS(block, ROW, B_DIFF, "Max",190,150,60,20, &sb->sbc_mode, 4.0,(float)3, 0, 0, "Maximal Spring lenght * Ball Size");
 				uiDefButS(block, ROW, B_DIFF, "AvMiMa",250,150,60,20, &sb->sbc_mode, 4.0,(float)4, 0, 0, "(Min+Max)/2 * Ball Size");
-				uiDefButF(block, NUM, B_DIFF, "B Stiff:", 10,130,150,20, &sb->ballstiff, 0.001,  100.0, 10, 0, "");
-				uiDefButF(block, NUM, B_DIFF, "B Damp:", 160,130,150,20, &sb->balldamp,  0.001,  1.0, 10, 0, "");
-				uiDefButS(block, NUM, B_DIFF, "Aero:", 160,110,150,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "");
+				uiDefButF(block, NUM, B_DIFF, "B Stiff:", 10,130,150,20, &sb->ballstiff, 0.001,  100.0, 10, 0, "Ball inflating presure");
+				uiDefButF(block, NUM, B_DIFF, "B Damp:", 160,130,150,20, &sb->balldamp,  0.001,  1.0, 10, 0, "Blending to inelastic collision");
 				uiBlockEndAlign(block);
-
+				uiDefButS(block, NUM, B_DIFF, "Aero:", 10,100,150,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
 				}
 				/* OTHER OBJECTS COLLISION STUFF */
 				if (ob->type==OB_MESH){

@@ -96,12 +96,7 @@ typedef struct BodyPoint {
 typedef struct BodySpring {
 	int v1, v2;
 	float len, strength;
-	float ext_force[3]; 
-	/* ^^^^^^^^^ for collision now, 
-	but could be used for forces depending on orientations
-	such as wind --> project the lenght on the (relative) wind
-	via inner product force -> sin(<v_wind-v_spring,v1-v2>)
-	*/ 
+	float ext_force[3]; /* edges colliding and sailing */
 	short order;
 	short flag;
 } BodySpring;
@@ -169,7 +164,7 @@ static float sb_time_scale(Object *ob)
 /*+++ collider caching and dicing +++*/
 
 /********************
-for each target object/face the ortho bounding box (OBB) is stored
+for each target object/face the axis aligned bounding box (AABB) is stored
 faces paralell to global axes 
 so only simple "value" in [min,max] ckecks are used
 float operations still
@@ -443,12 +438,6 @@ void ccd_build_deflector_cache(Object *vertexowner)
 		if(base->object->type==OB_MESH && (base->lay & vertexowner->lay)) {
 			ob= base->object;
 			if((vertexowner) && (ob == vertexowner)){ 
-                /* duuh thats myself! */ 
-                /* anyhow to do some clever caching with o frozen version */ 
-				/* 
-			    if(ob->pd && ob->pd->deflect) {
-                ob->sumohandle=ccd_mesh_make_self(ob);
-				} no self intersection test yet*/
 				/* if vertexowner is given  we don't want to check collision with owner object */ 
 				base = base->next;
 				continue;				
@@ -558,7 +547,6 @@ static void add_2nd_order_roller(Object *ob,float stiffness,int *counter, int ad
 	int a,b,c,notthis,v0;
 	if (!sb->bspring){return;} /* we are 2nd order here so 1rst should have been build :) */
 	/* first run counting  second run adding */
-	/*run all body points*/
 	*counter = 0;
 	if (addsprings) bs3 = ob->soft->bspring+ob->soft->totspring;
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
@@ -619,9 +607,8 @@ static void add_2nd_order_springs(Object *ob,float stiffness)
 	int counter = 0;
 	BodySpring *bs_new;
 	
-	add_2nd_order_roller(ob,stiffness,&counter,0);
+	add_2nd_order_roller(ob,stiffness,&counter,0); /* counting */
 	if (counter) {
-		/* printf("Added %d springs \n", counter); */
 		/* resize spring-array to hold additional springs */
 		bs_new= MEM_callocN( (ob->soft->totspring + counter )*sizeof(BodySpring), "bodyspring");
 		memcpy(bs_new,ob->soft->bspring,(ob->soft->totspring )*sizeof(BodySpring));
@@ -630,11 +617,9 @@ static void add_2nd_order_springs(Object *ob,float stiffness)
 			MEM_freeN(ob->soft->bspring); 
 		ob->soft->bspring = bs_new; 
 		
-		
-		add_2nd_order_roller(ob,stiffness,&counter,1);
+		add_2nd_order_roller(ob,stiffness,&counter,1); /* adding */
 		ob->soft->totspring +=counter ;
 	}
-	
 }
 
 static void add_bp_springlist(BodyPoint *bp,int springID)
@@ -683,7 +668,6 @@ static void build_bps_springlist(Object *ob)
 				add_bp_springlist(bp,sb->totspring -b);
 			}
 		}/*for springs*/
-		/* if (bp->nofsprings) printf(" node %d has %d spring links\n",a,bp->nofsprings);*/
 	}/*for bp*/		
 }
 
@@ -732,7 +716,6 @@ static void calculate_collision_balls(Object *ob)
 			}		
 		}
 		else bp->colball=0;
-		/* printf("CB %f \n",bp->colball);  */
 	}/*for bp*/		
 }
 
@@ -771,6 +754,8 @@ static void renew_softbody(Object *ob, int totpoint, int totspring)
 			bp->nofsprings= 0;
 			bp->springs= NULL;
 			bp->contactfrict = 0.0f;
+			bp->colball = 0.0f;
+
 		}
 	}
 }
@@ -854,9 +839,7 @@ static void Vec3PlusStVec(float *v, float s, float *v1)
 	v[2] += s*v1[2];
 }
 
-/* BEGIN the spring external section*/
-
-//#if (0)
+/* +++ the spring external section*/
 
 int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp,						
 								   float force[3], unsigned int par_layer,struct Object *vertexowner)
@@ -946,8 +929,6 @@ int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp
 						}
 					}
 
-
-
 					/* switch origin to be nv2*/
 					VECSUB(edge1, nv1, nv2);
 					VECSUB(edge2, nv3, nv2);
@@ -998,8 +979,6 @@ int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp
 	return deflected;	
 }
 
-//#endif
-
 
 void scan_for_ext_spring_forces(Object *ob)
 {
@@ -1015,53 +994,57 @@ void scan_for_ext_spring_forces(Object *ob)
 			BodySpring *bs = &sb->bspring[a];
 			bs->ext_force[0]=bs->ext_force[1]=bs->ext_force[2]=0.0f; 
 			feedback[0]=feedback[1]=feedback[2]=0.0f;
-            bs->flag &= ~BSF_INTERSECT;
+			bs->flag &= ~BSF_INTERSECT;
 
-			/* +++ springs colliding */
 			if (bs->order ==1){
-				if ( sb_detect_edge_collisionCached (sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos,
-					&damp,feedback,ob->lay,ob)){
-					VecAddf(bs->ext_force,bs->ext_force,feedback);
-					bs->flag |= BSF_INTERSECT;
-					
-				}
-			/* ---- springs colliding */
+				/* +++ springs colliding */
+				if (ob->softflag & OB_SB_EDGECOLL){
+					if ( sb_detect_edge_collisionCached (sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos,
+						&damp,feedback,ob->lay,ob)){
+							VecAddf(bs->ext_force,bs->ext_force,feedback);
+							bs->flag |= BSF_INTERSECT;
 
-			/* +++ springs seeing wind ... n stuff depending on their orientation*/
+					}
+				}
+				/* ---- springs colliding */
+
+				/* +++ springs seeing wind ... n stuff depending on their orientation*/
+				/* note we don't use sb->mediafrict but use sb->aeroedge for magnitude of effect*/ 
 				if(sb->aeroedge){
-						float vel[3],sp[3],pr[3],force[3];
-						float f,windfactor  = 1.0f;   
-                /*see if we have wind*/
-	            if(do_effector) {
-				   float speed[3],pos[3];
-				   VecMidf(pos, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
-                   VecMidf(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
-				   pdDoEffectors(do_effector, pos, force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
-				   VecMulf(speed,windfactor); /*oh_ole*/
-				   VecAddf(vel,vel,speed);
-				}
-				/* media in rest */
-				else{
-               VECADD(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
-				}
-			   f = Normalise(vel);
-			   f = -0.0001f*f*f*sb->aeroedge;
+					float vel[3],sp[3],pr[3],force[3];
+					float f,windfactor  = 1.0f;   
+					/*see if we have wind*/
+					if(do_effector) {
+						float speed[3],pos[3];
+						VecMidf(pos, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
+						VecMidf(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
+						pdDoEffectors(do_effector, pos, force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+						VecMulf(speed,windfactor); 
+						VecAddf(vel,vel,speed);
+					}
+					/* media in rest */
+					else{
+						VECADD(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
+					}
+					f = Normalise(vel);
+					f = -0.0001f*f*f*sb->aeroedge;
+					/* todo add a nice angle dependant function */
+					/* look up one at bergman scheafer */
 
-               VECSUB(sp, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
-			   Projf(pr,vel,sp);
-			   VECSUB(vel,vel,pr);
-			   Normalise(vel);
-			   Vec3PlusStVec(bs->ext_force,f,vel);
+					VECSUB(sp, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
+					Projf(pr,vel,sp);
+					VECSUB(vel,vel,pr);
+					Normalise(vel);
+					Vec3PlusStVec(bs->ext_force,f,vel);
 				}
-
-			/* --- springs seeing wind */
+				/* --- springs seeing wind */
 			}
 		}
 	}
 	if(do_effector)
 		pdEndEffectors(do_effector);
 }
-/* END the spring external section*/
+/* --- the spring external section*/
 
 int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *damp,
 									 float force[3], unsigned int par_layer,struct Object *vertexowner)
@@ -1157,8 +1140,6 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 						}
 					}
 
-
-
 					/* switch origin to be nv2*/
 					VECSUB(edge1, nv1, nv2);
 					VECSUB(edge2, nv3, nv2);
@@ -1203,7 +1184,6 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 					mface++;
 					mima++;					
 				}/* while a */		
-				/* give it away */
 			} /* if(ob->pd && ob->pd->deflect) */
 		}/* if (base->object->type==OB_MESH && (base->lay & par_layer)) { */
 		base = base->next;
@@ -1249,7 +1229,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 	ListBase *do_effector;
 	float iks, ks, kd, gravity, actspringlen, forcefactor, sd[3];
 	float fieldfactor = 1000.0f, windfactor  = 250.0f;   
-	int a, b,  do_deflector,do_selfcollision,do_springcollision;
+	int a, b,  do_deflector,do_selfcollision,do_springcollision,do_aero;
 	
 	/* clear forces */
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
@@ -1258,18 +1238,19 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 	
 	gravity = sb->grav * sb_grav_force_scale(ob);	
 	
-	/* check! */
+	/* check conditions for various options */
 	do_deflector= is_there_deflection(ob->lay);
 	do_effector= pdInitEffectors(ob,NULL);
 	do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF));
 	do_springcollision=do_deflector && (ob->softflag & OB_SB_EDGES) &&(ob->softflag & OB_SB_EDGECOLL);
+	do_aero=((sb->aeroedge)&& (ob->softflag & OB_SB_EDGES));
 	
 	iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
 	bproot= sb->bpoint; /* need this for proper spring addressing */
 	
 
 	
-	if (do_springcollision)  scan_for_ext_spring_forces(ob);
+	if (do_springcollision || do_aero)  scan_for_ext_spring_forces(ob);
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		/* naive ball self collision */
@@ -1284,12 +1265,12 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				float compare;
 
 				for(c=sb->totpoint, obp= sb->bpoint; c>0; c--, obp++) {
-					if (c < a ) continue; /* exploit force(a,b) == force(b,a) part1/2 */
+					if (c < a ) continue; /* exploit force(a,b) == -force(b,a) part1/2 */
 					compare = (obp->colball + bp->colball);		
 					VecSubf(def, bp->pos, obp->pos);
 					distance = Normalise(def);
 					if (distance < compare ){
-				    /* exclude body points attached with a spring */
+						/* exclude body points attached with a spring */
 						attached = 0;
 						for(b=obp->nofsprings;b>0;b--){
 							bs = sb->bspring + obp->springs[b-1];
@@ -1298,37 +1279,26 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 								continue;}
 						}
 						if (!attached){
-							/* would need another UI parameter defining fricton on self contact */
-							float ccfriction = sb->balldamp;
 							float f = tune/(distance) + tune/(compare*compare)*distance - 2.0f*tune/compare ;
 
-					VecMidf(velcenter, bp->vec, obp->vec);
-					VecSubf(dvel,velcenter,bp->vec);
-					VecMulf(dvel,sb->nodemass);
+							VecMidf(velcenter, bp->vec, obp->vec);
+							VecSubf(dvel,velcenter,bp->vec);
+							VecMulf(dvel,sb->nodemass);
 
-					Vec3PlusStVec(bp->force,ccfriction,dvel);
-					Vec3PlusStVec(bp->force,f*(1.0f-ccfriction),def);
-							/* exploit force(a,b) == force(b,a) part2/2 */
-					
-					VecSubf(dvel,velcenter,obp->vec);
-					VecMulf(dvel,sb->nodemass);
+							Vec3PlusStVec(bp->force,sb->balldamp,dvel);
+							Vec3PlusStVec(bp->force,f*(1.0f-sb->balldamp),def);
+							/* exploit force(a,b) == -force(b,a) part2/2 */
+							VecSubf(dvel,velcenter,obp->vec);
+							VecMulf(dvel,sb->nodemass);
 
-					Vec3PlusStVec(obp->force,ccfriction,dvel);
-					Vec3PlusStVec(obp->force,-f*(1.0f-ccfriction),def);
+							Vec3PlusStVec(obp->force,sb->balldamp,dvel);
+							Vec3PlusStVec(obp->force,-f*(1.0f-sb->balldamp),def);
 
-
-
-
-							//Vec3PlusStVec(bp->force,f,def);
-							//if (bp->contactfrict == 0.0f) bp->contactfrict = ccfriction*compare/distance; 
-							/* exploit force(a,b) == force(b,a) part2/2 */
-							//Vec3PlusStVec(obp->force,-f,def);
-							//if (obp->contactfrict == 0.0f) obp->contactfrict = ccfriction*compare/distance;
 						}
 					}
 				}
-			}
-			/* naive ball self collision done */
+		}
+		/* naive ball self collision done */
 
 		if(bp->goal < SOFTGOALSNAP){ /* ommit this bp when it snaps */
 			float auxvect[3];  
@@ -1372,13 +1342,11 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				
 				pdDoEffectors(do_effector, bp->pos, force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 				
-				/* note: now we have wind as motion of media, so we can do anisotropic stuff here, */
-				/* if we had vertex normals here(BM) */
 				/* apply forcefield*/
 				VecMulf(force,fieldfactor* eval_sb_fric_force_scale); 
 				VECADD(bp->force, bp->force, force);
 				
-				/* friction in moving media */	
+				/* BP friction in moving media */	
 				kd= sb->mediafrict* eval_sb_fric_force_scale;  
 				bp->force[0] -= kd * (bp->vec[0] + windfactor*speed[0]/eval_sb_fric_force_scale);
 				bp->force[1] -= kd * (bp->vec[1] + windfactor*speed[1]/eval_sb_fric_force_scale);
@@ -1387,7 +1355,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				
 			}
 			else {
-				/* friction in media (not) moving*/
+				/* BP friction in media (not) moving*/
 				kd= sb->mediafrict* sb_fric_force_scale(ob);  
 				/* assume it to be proportional to actual velocity */
 				bp->force[0]-= bp->vec[0]*kd;
@@ -1396,11 +1364,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				/* friction in media done */
 			}
 			
-			/*other forces*/
-			/* this is the place where other forces can be added
-			yes, constraints and collision stuff should go here too (read baraff papers on that!)
-			*/
-			/* moving collision targets */
+			/* +++cached collision targets */
 			if(do_deflector) {
 				float defforce[3] = {0.0f,0.0f,0.0f}, collisionpos[3],facenormal[3], cf = 1.0f;
 				kd = 1.0f;
@@ -1412,27 +1376,19 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				else{ 
 					bp->contactfrict = 0.0f;
 				}
-				
 			} 
 			else
 			{
 					bp->contactfrict = 0.0f;
 			}
+			/* ---cached collision targets */
 			
-			/*other forces done*/
-			/* nice things could be done with anisotropic friction
-			like wind/air resistance in normal direction
-			--> having a piece of cloth sailing down 
-			but this needs to have a *valid* vertex normal
-			*valid* means to be calulated on time axis
-			hrms .. may be a rough one could be used as well .. let's see 
-			*/
-			
+			/* +++springs */
 			if(ob->softflag & OB_SB_EDGES) {
 				if (sb->bspring){ /* spring list exists at all ? */
 					for(b=bp->nofsprings;b>0;b--){
 						bs = sb->bspring + bp->springs[b-1];
-						if (do_springcollision){
+						if (do_springcollision || do_aero){
 							VecAddf(bp->force,bp->force,bs->ext_force);
 							if (bs->flag & BSF_INTERSECT)
 								bp->contactfrict = 0.9f; /* another ad hoc magic */
@@ -1485,12 +1441,12 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 					}/* loop springs */
 				}/* existing spring list */ 
 			}/*any edges*/
+			/* ---springs */
 		}/*omit on snap	*/
 	}/*loop all bp's*/
-	/* cleanup */
-	if(do_effector)
-		pdEndEffectors(do_effector);
 
+	/* cleanup */
+	if(do_effector) pdEndEffectors(do_effector);
 }
 
 
@@ -1563,7 +1519,8 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				maxerr = MAX2(maxerr,ABS(dx[0] - bp->prevdx[0]));
 				maxerr = MAX2(maxerr,ABS(dx[1] - bp->prevdx[1]));
 				maxerr = MAX2(maxerr,ABS(dx[2] - bp->prevdx[2]));
-/* kind of hack .. while inside collision target .. make movement more *viscous* */
+/* weak point:  not knowing anything about targets dynamics we assume it to be resting */
+/* while inside collision target .. make movement more *viscous* */
 				if (bp->contactfrict > 0.0f){
 					bp->vec[0] *= (1.0f - bp->contactfrict);
 					bp->vec[1] *= (1.0f - bp->contactfrict);
