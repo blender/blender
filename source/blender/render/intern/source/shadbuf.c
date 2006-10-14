@@ -1256,7 +1256,7 @@ static void isb_bsp_face_inside(ISBBranch *bspn, BSPFace *face)
 			ISBSample *samp= bspn->samples[a];
 			
 			if(samp->facenr!=face->facenr && samp->shadfac) {
-				if(face->box.zmax < samp->zco[2]) {
+				if(face->box.zmin < samp->zco[2]) {
 					if(BLI_in_rctf((rctf *)&face->box, samp->zco[0], samp->zco[1])) {
 						int inshadow= 0;
 						
