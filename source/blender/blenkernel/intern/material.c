@@ -137,6 +137,7 @@ void init_material(Material *ma)
 	ma->fresnel_mir_i= 1.25;
 	ma->tx_limit= 100.0;
 	ma->tx_falloff= 1.0;
+	ma->shad_alpha= 1.0f;
 	
 	ma->rampfac_col= 1.0;
 	ma->rampfac_spec= 1.0;
