@@ -54,6 +54,7 @@
  */
 static BlendHandle *bpy_openlib = NULL;	/* ptr to the open .blend file */
 static char *bpy_openlibname = NULL;	/* its pathname */
+static int bpy_relative= 0;
 
 /**
  * Function prototypes for the Library submodule.
@@ -141,9 +142,12 @@ PyObject *M_Library_Open( PyObject * self, PyObject * args )
 {
 	char *fname = NULL;
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
-
+	char fname1[FILE_MAXDIR+FILE_MAXFILE];
+	
 	int len = 0;
 
+	bpy_relative= 0; /* assume non relative each time we load */
+	
 	if( !PyArg_ParseTuple( args, "s", &fname ) ) {
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a .blend filename" );
@@ -153,21 +157,30 @@ PyObject *M_Library_Open( PyObject * self, PyObject * args )
 		M_Library_Close( self );
 		Py_DECREF( Py_None );	/* incref'ed by above function */
 	}
-
+	
+	/* copy the name to make it absolute so BLO_blendhandle_from_file dosnt complain */
+	BLI_strncpy(fname1, fname, sizeof(fname1)); 
+	BLI_convertstringcode(fname1, G.sce, 0); /* make absolute */
+	
    	/* G.sce = last file loaded, save for UI and restore after opening file */
 	BLI_strncpy(filename, G.sce, sizeof(filename));
-	bpy_openlib = BLO_blendhandle_from_file( fname );
+	bpy_openlib = BLO_blendhandle_from_file( fname1 );
 	BLI_strncpy(G.sce, filename, sizeof(filename)); 
-
+	
+	
 	if( !bpy_openlib )
 		return Py_BuildValue( "i", 0 );
-
-	len = strlen( fname ) + 1;	/* +1 for terminating '\0' */
+	
+	/* "//someblend.blend" enables relative paths */
+	if (sizeof(fname) > 2 && fname[0] == '/' && fname[1] == '/')
+		bpy_relative= 1; /* global that makes the library relative on loading */ 
+	
+	len = strlen( fname1 ) + 1;	/* +1 for terminating '\0' */
 
 	bpy_openlibname = MEM_mallocN( len, "bpy_openlibname" );
 
 	if( bpy_openlibname )
-		PyOS_snprintf( bpy_openlibname, len, "%s", fname );
+		PyOS_snprintf( bpy_openlibname, len, "%s", fname1 );
 
 	return Py_BuildValue( "i", 1 );
 }
@@ -336,6 +349,24 @@ PyObject *M_Library_Load( PyObject * self, PyObject * args )
 	if( update ) {
 		M_Library_Update( self );
 		Py_DECREF( Py_None );	/* incref'ed by above function */
+	}
+	
+	if( bpy_relative ) {
+		/* and now find the latest append lib file */
+		Library *lib = G.main->library.first;
+		while( lib ) {
+			if( strcmp( bpy_openlibname, lib->name ) == 0 ) {
+				
+				/* use the full path, this could have been read by other library even */
+				BLI_strncpy(lib->name, lib->filename, sizeof(lib->name));
+		
+				/* uses current .blend file as reference */
+				BLI_makestringcode(G.sce, lib->name);
+				break;
+			}
+			lib = lib->id.next;
+		}
+		
 	}
 
 	Py_INCREF( Py_None );
