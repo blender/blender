@@ -123,6 +123,9 @@ class Material:
   @ivar alpha:  Alpha (translucency) component of the material.
   Value is clamped to the range [0.0,1.0].
   @type alpha:  float
+  @ivar shadAlpha:  Shadow Alpha for irregular shadow buffer.
+  Value is clamped to the range [0.0,1.0].
+  @type shadAlpha:  float
   @ivar amb:  Amount of global ambient color material receives.
   Value is clamped to the range [0.0,1.0].
   @type amb:  float

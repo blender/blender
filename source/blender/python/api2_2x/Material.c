@@ -482,6 +482,7 @@ static int Material_setAmb( BPy_Material * self, PyObject * value );
 static int Material_setEmit( BPy_Material * self, PyObject * value );
 static int Material_setSpecTransp( BPy_Material * self, PyObject * value );
 static int Material_setAlpha( BPy_Material * self, PyObject * value );
+static int Material_setShadAlpha( BPy_Material * self, PyObject * value );
 static int Material_setRef( BPy_Material * self, PyObject * value );
 static int Material_setSpec( BPy_Material * self, PyObject * value );
 static int Material_setZOffset( BPy_Material * self, PyObject * value );
@@ -545,6 +546,7 @@ static PyObject *Material_getMirCol( BPy_Material * self );
 static PyObject *Material_getAmb( BPy_Material * self );
 static PyObject *Material_getEmit( BPy_Material * self );
 static PyObject *Material_getAlpha( BPy_Material * self );
+static PyObject *Material_getShadAlpha( BPy_Material * self );
 static PyObject *Material_getRef( BPy_Material * self );
 static PyObject *Material_getSpec( BPy_Material * self );
 static PyObject *Material_getSpecTransp( BPy_Material * self );
@@ -840,6 +842,10 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	{"alpha",
 	 (getter)Material_getAlpha, (setter)Material_setAlpha,
 	 "Alpha setting ",
+	 NULL},
+	{"shadAlpha",
+	 (getter)Material_getShadAlpha, (setter)Material_setShadAlpha,
+	 "Shadow Alpha setting",
 	 NULL},
 	{"amb",
 	 (getter)Material_getAmb, (setter)Material_setAmb,
@@ -1473,6 +1479,18 @@ static PyObject *Material_getAlpha( BPy_Material * self )
 				      "couldn't get Material.alpha attribute" );
 }
 
+static PyObject *Material_getShadAlpha( BPy_Material * self )
+{
+	PyObject *attr =
+		PyFloat_FromDouble( ( double ) self->material->shad_alpha );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't get Material.shad_alpha attribute" );
+}
+
 static PyObject *Material_getRef( BPy_Material * self )
 {
 	PyObject *attr = PyFloat_FromDouble( ( double ) self->material->ref );
@@ -2098,6 +2116,13 @@ static int Material_setSpecTransp( BPy_Material * self, PyObject * value )
 static int Material_setAlpha( BPy_Material * self, PyObject * value )
 {
 	return EXPP_setFloatClamped ( value, &self->material->alpha,
+								EXPP_MAT_ALPHA_MIN,
+								EXPP_MAT_ALPHA_MAX );
+}
+
+static int Material_setShadAlpha( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->shad_alpha,
 								EXPP_MAT_ALPHA_MIN,
 								EXPP_MAT_ALPHA_MAX );
 }
