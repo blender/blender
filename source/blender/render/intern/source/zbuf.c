@@ -682,7 +682,7 @@ static void zbufline(ZSpan *zspan, int zvlnr, float *vec1, float *vec2)
 
 static void zbufline_onlyZ(ZSpan *zspan, int zvlnr, float *vec1, float *vec2)
 {
-	int *rectz;
+	int *rectz, *rectz1= NULL;
 	int start, end, x, y, oldx, oldy, ofs;
 	int dz, vergz, maxtest= 0;
 	float dx, dy;
@@ -716,6 +716,8 @@ static void zbufline_onlyZ(ZSpan *zspan, int zvlnr, float *vec1, float *vec2)
 		if(vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
 		
 		rectz= zspan->rectz + oldy*zspan->rectx+ start;
+		if(zspan->rectz1)
+			rectz1= zspan->rectz1 + oldy*zspan->rectx+ start;
 		
 		if(dy<0) ofs= -zspan->rectx;
 		else ofs= zspan->rectx;
@@ -726,18 +728,24 @@ static void zbufline_onlyZ(ZSpan *zspan, int zvlnr, float *vec1, float *vec2)
 			if(y!=oldy) {
 				oldy= y;
 				rectz+= ofs;
+				if(rectz1) rectz1+= ofs;
 			}
 			
 			if(x>=0 && y>=0 && y<zspan->recty) {
-				if(vergz<*rectz) {
+				if(vergz < *rectz) {
+					if(rectz1) *rectz1= *rectz;
 					*rectz= vergz;
 				}
+				else if(rectz1 && vergz < *rectz1)
+					*rectz1= vergz;
 			}
 			
 			v1[1]+= dy;
 			
 			if(maxtest && (vergz > 0x7FFFFFF0 - dz)) vergz= 0x7FFFFFF0;
 			else vergz+= dz;
+			
+			if(rectz1) rectz1++;
 		}
 	}
 	else {
@@ -765,6 +773,8 @@ static void zbufline_onlyZ(ZSpan *zspan, int zvlnr, float *vec1, float *vec2)
 		if(vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
 		
 		rectz= zspan->rectz + start*zspan->rectx+ oldx;
+		if(zspan->rectz1)
+			rectz1= zspan->rectz1 + start*zspan->rectx+ oldx;
 		
 		if(dx<0) ofs= -1;
 		else ofs= 1;
@@ -775,17 +785,24 @@ static void zbufline_onlyZ(ZSpan *zspan, int zvlnr, float *vec1, float *vec2)
 			if(x!=oldx) {
 				oldx= x;
 				rectz+= ofs;
+				if(rectz1) rectz1+= ofs;
 			}
 			
 			if(x>=0 && y>=0 && x<zspan->rectx) {
-				if(vergz<*rectz) {
+				if(vergz < *rectz) {
+					if(rectz1) *rectz1= *rectz;
 					*rectz= vergz;
 				}
+				else if(rectz1 && vergz < *rectz1)
+					*rectz1= vergz;
 			}
 			
 			v1[0]+= dx;
 			if(maxtest && (vergz > 0x7FFFFFF0 - dz)) vergz= 0x7FFFFFF0;
 			else vergz+= dz;
+			
+			if(rectz1)
+				rectz1+=zspan->rectx;
 		}
 	}
 }
@@ -1183,14 +1200,15 @@ static void zbuffillGL4(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3
  * @param v3 [4 floats, world coordinates] third vertex
  */
 
+/* now: filling two Z values, the closest and 2nd closest */
 static void zbuffillGL_onlyZ(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3, float *v4) 
 {
 	double zxd, zyd, zy0, zverg;
 	float x0,y0,z0;
 	float x1,y1,z1,x2,y2,z2,xx1;
 	float *span1, *span2;
-	int *rz, x, y;
-	int sn1, sn2, rectx, *rectzofs, my0, my2;
+	int *rz, *rz1, x, y;
+	int sn1, sn2, rectx, *rectzofs, *rectzofs1= NULL, my0, my2;
 	
 	/* init */
 	zbuf_init_span(zspan);
@@ -1237,6 +1255,8 @@ static void zbuffillGL_onlyZ(ZSpan *zspan, int zvlnr, float *v1, float *v2, floa
 	/* start-offset in rect */
 	rectx= zspan->rectx;
 	rectzofs= (zspan->rectz+rectx*my2);
+	if(zspan->rectz1)
+		rectzofs1= (zspan->rectz1+rectx*my2);
 	
 	/* correct span */
 	sn1= (my0 + my2)/2;
@@ -1261,20 +1281,30 @@ static void zbuffillGL_onlyZ(ZSpan *zspan, int zvlnr, float *v1, float *v2, floa
 		if(sn2>=sn1) {
 			zverg= (double)sn1*zxd + zy0;
 			rz= rectzofs+sn1;
+			rz1= rectzofs1+sn1;
 			x= sn2-sn1;
 			
 			while(x>=0) {
-				if( (int)zverg < *rz) {
-					*rz= (int)zverg;
+				int zvergi= (int)zverg;
+				/* option: maintain two depth values, closest and 2nd closest */
+				if(zvergi < *rz) {
+					if(rectzofs1) *rz1= *rz;
+					*rz= zvergi;
 				}
+				else if(rectzofs1 && zvergi < *rz1)
+					*rz1= zvergi;
+
 				zverg+= zxd;
+				
 				rz++; 
+				rz1++;
 				x--;
 			}
 		}
 		
 		zy0-=zyd;
 		rectzofs-= rectx;
+		if(rectzofs1) rectzofs1-= rectx;
 	}
 }
 
@@ -1309,6 +1339,7 @@ static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a
 		v13= v1[3];
 	}
 	else {
+		/* XXXXX EVIL! this is a R global, whilst this function can be called for shadow, before R was set */
 		dw= R.clipcrop*(v2[3]-v1[3]);
 		v13= R.clipcrop*v1[3];
 	}	
@@ -1425,7 +1456,7 @@ void zbufclip(ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, int c1, 
 {
 	float *vlzp[32][3], labda[3][2];
 	float vez[400], *trias[40];
-
+	
 	if(c1 | c2 | c3) {	/* not in middle */
 		if(c1 & c2 & c3) {	/* completely out */
 			return;
@@ -1445,6 +1476,7 @@ void zbufclip(ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, int c1, 
 				clipflag[1]= ( (c1 & 3) | (c2 & 3) | (c3 & 3) );
 				clipflag[2]= ( (c1 & 12) | (c2 & 12) | (c3 & 12) );
 			}
+			else clipflag[1]=clipflag[2]= 0;
 			
 			for(b=0;b<3;b++) {
 				
@@ -1454,7 +1486,7 @@ void zbufclip(ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, int c1, 
 					
 					for(v=0; v<clvlo; v++) {
 					
-						if(vlzp[v][0]!=0) {	/* face is still there */
+						if(vlzp[v][0]!=NULL) {	/* face is still there */
 							b2= b3 =0;	/* clip flags */
 
 							if(b==0) arg= 2;
@@ -1466,13 +1498,14 @@ void zbufclip(ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, int c1, 
 							clippyra(labda[2], vlzp[v][2],vlzp[v][0], &b2,&b3, arg);
 
 							if(b2==0 && b3==1) {
-								/* completely 'in' */;
+								/* completely 'in', but we copy because of last for() loop in this section */;
 								vlzp[clvl][0]= vlzp[v][0];
 								vlzp[clvl][1]= vlzp[v][1];
 								vlzp[clvl][2]= vlzp[v][2];
+								vlzp[v][0]= NULL;
 								clvl++;
 							} else if(b3==0) {
-								vlzp[v][0]=0;
+								vlzp[v][0]= NULL;
 								/* completely 'out' */;
 							} else {
 								b1=0;
@@ -1492,7 +1525,7 @@ void zbufclip(ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, int c1, 
 									}
 								}
 								
-								vlzp[v][0]=0;
+								vlzp[v][0]= NULL;
 								if(b1>2) {
 									for(b3=3; b3<=b1; b3++) {
 										vlzp[clvl][0]= trias[0];
@@ -1861,11 +1894,15 @@ void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size, float jitx, 
 	/* the buffers */
 	zspan.rectz= rectz;
 	fillrect(rectz, size, size, 0x7FFFFFFE);
+	if(lar->buftype==LA_SHADBUF_HALFWAY) {
+		zspan.rectz1= MEM_mallocN(size*size*sizeof(int), "seconday z buffer");
+		fillrect(zspan.rectz1, size, size, 0x7FFFFFFE);
+	}
 	
 	/* filling methods */
 	zspan.zbuflinefunc= zbufline_onlyZ;
 	zspan.zbuffunc= zbuffillGL_onlyZ;
-				
+
 	for(a=0; a<re->totvlak; a++) {
 
 		if((a & 255)==0) vlr= re->blovl[a>>8];
@@ -1889,6 +1926,15 @@ void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size, float jitx, 
 			}
 		}
 	}
+	
+	/* merge buffers */
+	if(lar->buftype==LA_SHADBUF_HALFWAY) {
+		for(a=size*size -1; a>=0; a--)
+			rectz[a]= (rectz[a]>>1) + (zspan.rectz1[a]>>1);
+		
+		MEM_freeN(zspan.rectz1);
+	}
+	
 	zbuf_free_span(&zspan);
 }
 

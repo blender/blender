@@ -2148,8 +2148,15 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	uiDefButBitS(block, TOG, LA_SHAD_RAY, B_SHADRAY,"Ray Shadow",10,180,80,19,&la->mode, 0, 0, 0, 0, "Use ray tracing for shadow");
 	if(la->type==LA_SPOT) {
 		uiDefButBitS(block, TOG, LA_SHAD_BUF, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets spotlight produce shadows using shadow buffer");
-		if(la->mode & LA_SHAD_BUF)
-			uiDefButC(block, MENU, B_REDR, "Classical %x0|Irregular %x1", 10,140,80,19,&la->buftype, 0, 0, 0, 0, "Buffer type, Irregular buffer produces sharp shadow always, but doesn't support ZTransp shadow receiving");
+		if(la->mode & LA_SHAD_BUF) {
+			char *tip= "Regular buffer type";
+			if(la->buftype==LA_SHADBUF_IRREGULAR)
+				tip= "Irregular buffer produces sharp shadow always, but it doesn't show up for raytracing";
+			else if(la->buftype==LA_SHADBUF_HALFWAY)
+				tip= "Regular buffer, averaginng the closest and 2nd closest Z value for reducing biasing";
+			
+			uiDefButC(block, MENU, B_REDR, "Classical %x0|Classic-Halfway %x2|Irregular %x1", 10,140,80,19,&la->buftype, 0, 0, 0, 0, tip);
+		}
 	}
 	uiBlockEndAlign(block);
 	
@@ -2169,12 +2176,12 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"HaloInt ",			100,135,200,19,&la->haint, 0.0, 5.0, 0, 0, "Sets the intensity of the spotlight halo");
 		
 		if(la->mode & LA_SHAD_BUF) {
-			if(la->buftype==LA_SHADBUF_REGULAR) {
+			if(ELEM(la->buftype, LA_SHADBUF_REGULAR, LA_SHADBUF_HALFWAY)) {
 				uiBlockBeginAlign(block);
 				uiDefButS(block, NUM,B_SBUFF,"ShadowBufferSize:", 100,110,200,19,	&la->bufsize,512,10240, 0, 0, "Sets the size of the shadow buffer to nearest multiple of 16");
-				uiDefButS(block, ROW,B_NOP,	"Box",				100,90,65,19, &la->filtertype, 0.0, LA_SHADBUF_BOX, 0, 0, "Apply Box filter for shadowbuffer");
-				uiDefButS(block, ROW,B_NOP,	"Tent",				165,90,65,19, &la->filtertype, 0.0, LA_SHADBUF_TENT, 0, 0, "Apply Tent filter for shadowbuffer");
-				uiDefButS(block, ROW,B_NOP,	"Gauss",			230,90,70,19, &la->filtertype, 0.0, LA_SHADBUF_GAUSS, 0, 0, "Apply Gauss filter for shadowbuffer");
+				uiDefButS(block, ROW,B_NOP,	"Box",				100,90,65,19, &la->filtertype, 0.0, LA_SHADBUF_BOX, 0, 0, "Apply Box filter for shadowbuffer samples");
+				uiDefButS(block, ROW,B_NOP,	"Tent",				165,90,65,19, &la->filtertype, 0.0, LA_SHADBUF_TENT, 0, 0, "Apply Tent filter for shadowbuffer samples");
+				uiDefButS(block, ROW,B_NOP,	"Gauss",			230,90,70,19, &la->filtertype, 0.0, LA_SHADBUF_GAUSS, 0, 0, "Apply Gauss filter for shadowbuffer samples");
 				
 	//			uiDefButS(block, ROW,B_NOP,"SubSamples: 1",		100,90,140,19, &la->buffers, 1.0, 1.0, 0, 0, "Amount of lampbuffer subsamples, a value of larger than 1 halves the shadowbuffer size");
 	//			uiDefButS(block, ROW,B_NOP,"4",					240,90,30,19, &la->buffers, 1.0, 4.0, 0, 0, "Amount of lampbuffer subsamples, this halves the actual shadowbuffer size");
@@ -2183,7 +2190,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 				uiBlockBeginAlign(block);
 				uiDefButS(block, NUM,B_LAMPREDRAW,"Samples:",	100,60,100,19,	&la->samp,1.0,16.0, 0, 0, "Sets the number of shadow map samples");
 				uiDefButS(block, NUM,B_NOP,"Halo step:",		200,60,100,19,	&la->shadhalostep, 0.0, 12.0, 0, 0, "Sets the volumetric halo sampling frequency");
-				uiDefButF(block, NUM,B_LAMPREDRAW,"Bias:",		100,40,100,19,	&la->bias, 0.01, 5.0, 1, 0, "Sets the shadow map sampling bias");
+				uiDefButF(block, NUM,B_LAMPREDRAW,"Bias:",		100,40,100,19,	&la->bias, 0.001, 5.0, 1, 0, "Sets the shadow map sampling bias");
 				uiDefButF(block, NUM,B_LAMPREDRAW,"Soft:",		200,40,100,19,	&la->soft,1.0,100.0, 100, 0, "Sets the size of the shadow sample area");
 			}
 			else {	/* LA_SHADBUF_IRREGULAR */

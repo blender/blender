@@ -2155,10 +2155,14 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	shb->d= lar->clipsta;
 	shb->clipend= lar->clipend;
 	
-	/* bias is percentage, made 2x karger because of correction for angle of incidence */
+	/* bias is percentage, made 2x larger because of correction for angle of incidence */
 	/* when a ray is closer to parallel of a face, bias value is increased during render */
 	shb->bias= (0.02*lar->bias)*0x7FFFFFFF;
 	shb->bias= shb->bias*(100/re->r.size);
+	
+	/* halfway method (average of first and 2nd z) reduces bias issues */
+	if(lar->buftype==LA_SHADBUF_HALFWAY)
+		shb->bias= 0.1f*shb->bias;
 	
 }
 
@@ -2227,6 +2231,7 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 	lar->shadhalostep = la->shadhalostep;
 	lar->clipsta = la->clipsta;
 	lar->clipend = la->clipend;
+	
 	lar->bias = la->bias;
 
 	lar->type= la->type;

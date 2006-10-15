@@ -478,15 +478,15 @@ void RE_SetCamera(Render *re, Object *camera)
 		clipend= cam->clipend;
 	}
 	else if(camera->type==OB_LAMP) {
-		/* fac= cos( PI*((float)(256- la->spsi))/512.0 ); */
-
-		/* phi= acos(fac); */
-		/* lens= 16.0*fac/sin(phi); */
-		lens= re->lens;
+		Lamp *la= camera->data;
+		float fac= cos( M_PI*la->spotsize/360.0 );
+		float phi= acos(fac);
+		
+		lens= 16.0*fac/sin(phi);
 		if(lens==0.0f)
 			lens= 35.0;
-		clipsta= 0.1;
-		clipend= 1000.0;
+		clipsta= la->clipsta;
+		clipend= la->clipend;
 	}
 	else {	/* envmap exception... */
 		lens= re->lens;

@@ -369,6 +369,9 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	float wsize, *jitbuf, twozero[2]= {0.0f, 0.0f}, angle, temp;
 	int *rectz, samples;
 	
+	/* XXXX EVIL! this global is used in clippyra(), zbuf.c */
+	R.clipcrop= 1.0f;
+	
 	if(lar->bufflag & (LA_SHADBUF_AUTO_START|LA_SHADBUF_AUTO_END))
 		shadowbuf_autoclip(re, lar);
 	
@@ -386,8 +389,8 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	
 	i_window(-wsize, wsize, -wsize, wsize, shb->d, shb->clipend, shb->winmat);
 	MTC_Mat4MulMat4(shb->persmat, shb->viewmat, shb->winmat);
-	
-	if(lar->buftype==LA_SHADBUF_REGULAR) {
+
+	if(ELEM(lar->buftype, LA_SHADBUF_REGULAR, LA_SHADBUF_HALFWAY)) {
 		/* jitter, weights */
 		shb->jit= give_jitter_tab(shb->samp);
 		make_jitter_weight_tab(shb, lar->filtertype);

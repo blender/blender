@@ -77,6 +77,7 @@ typedef struct ZSpan {
 	float zmulx, zmuly, zofsx, zofsy;		/* transform from hoco to zbuf co */
 	
 	int *rectz, *arectz;					/* zbuffers, arectz is for transparant */
+	int *rectz1;							/* seconday z buffer for shadowbuffer (2nd closest z) */
 	int *rectp;								/* polygon index buffer */
 	APixstr *apixbuf, *curpstr;				/* apixbuf for transparent */
 	struct ListBase *apsmbase;

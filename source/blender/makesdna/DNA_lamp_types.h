@@ -115,6 +115,7 @@ typedef struct Lamp {
 /* buftype, no flag */
 #define LA_SHADBUF_REGULAR		0
 #define LA_SHADBUF_IRREGULAR	1
+#define LA_SHADBUF_HALFWAY		2
 
 /* bufflag, auto clipping */
 #define LA_SHADBUF_AUTO_START	1
