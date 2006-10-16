@@ -255,6 +255,7 @@ void post_connect_terminated(VerseSession *session)
 	while(server) {
 		if(strcmp(server->ip, session->address)==0) {
 			server->flag = 0;
+			server->session=NULL;
 			break;
 		}
 		server = server->next;

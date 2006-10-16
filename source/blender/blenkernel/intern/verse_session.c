@@ -169,11 +169,13 @@ static void cb_connect_accept(
 		if(strcmp(session->address, server->ip)==0) {
 			server->flag |= VERSE_CONNECTED;
 			server->flag &= ~VERSE_CONNECTING;
+			server->session = session;
+			break;
 		}
 		server = server->next;
 	}
 
-	printf("\tBlender was connected to verse server: %s\n", (char*)address);
+	printf("\tBlender is connected to verse server: %s\n", (char*)address);
 	printf("\tVerseSession->counter: %d\n", session->counter);
 
 	session->avatar = avatar;
@@ -369,7 +371,7 @@ VerseSession *create_verse_session(
 /*
  * end verse session and free all session data
  */
-void end_verse_session(VerseSession *session, char free)
+void end_verse_session(VerseSession *session)
 {
 	/* send terminate command to verse server */
 	verse_send_connect_terminate(session->address, "blender: bye bye");
@@ -381,10 +383,8 @@ void end_verse_session(VerseSession *session, char free)
 	session->flag &= ~VERSE_CONNECTED;
 	/* do post connect operations */
 	session->post_connect_terminated(session);
-	/* free session data */
-	free_verse_session_data(session);
 	/* free structure of verse session */
-	if(free) free_verse_session(session);
+	free_verse_session(session);
 }
 
 void free_all_servers(void)
@@ -394,12 +394,12 @@ void free_all_servers(void)
 	server = server_list.first;
 
 	while(server) {
-			nextserver = server->next;
-			BLI_remlink(&server_list, server);
-			MEM_freeN(server->name);
-			MEM_freeN(server->ip);
-			MEM_freeN(server);
-			server = nextserver;
+		nextserver = server->next;
+		BLI_remlink(&server_list, server);
+		MEM_freeN(server->name);
+		MEM_freeN(server->ip);
+		MEM_freeN(server);
+		server = nextserver;
 	}
 	
 	BLI_freelistN(&server_list);
@@ -411,14 +411,15 @@ void free_all_servers(void)
  */
 void end_all_verse_sessions(void)
 {
-	VerseSession *session;
+	VerseSession *session,*nextsession;
 
 	session = session_list.first;
 
 	while(session) {
-		end_verse_session(session, 0);
+		nextsession= session->next;
+		end_verse_session(session);
 		/* end next session */
-		session = session->next;
+		session = nextsession;
 	}
 
 	BLI_freelistN(&session_list);
@@ -431,16 +432,16 @@ void end_all_verse_sessions(void)
  */
 void b_verse_ms_get(void)
 {
-		if(cb_ping_registered==0) {
-				/* handle ping messages (for master server) */
-				verse_callback_set(verse_send_ping, cb_ping, NULL);
-				add_screenhandler(G.curscreen, SCREEN_HANDLER_VERSE, 1);
-				cb_ping_registered++;
-		}
-		free_all_servers();
+	if(cb_ping_registered==0) {
+		/* handle ping messages (for master server) */
+		verse_callback_set(verse_send_ping, cb_ping, NULL);
+		add_screenhandler(G.curscreen, SCREEN_HANDLER_VERSE, 1);
+		cb_ping_registered++;
+	}
+	free_all_servers();
 
-		verse_ms_get_send(U.versemaster, VERSE_MS_FIELD_DESCRIPTION, NULL);
-		verse_callback_update(10);
+	verse_ms_get_send(U.versemaster, VERSE_MS_FIELD_DESCRIPTION, NULL);
+	verse_callback_update(10);
 }
 
 /*

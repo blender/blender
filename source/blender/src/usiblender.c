@@ -853,6 +853,9 @@ void exit_usiblender(void)
 		tf= tf->next;
 	}
 	BLI_freelistN(&G.ttfdata);
+#ifdef WITH_VERSE
+	end_all_verse_sessions();
+#endif
 	free_openrecent();
 
 	freeAllRad();
@@ -900,9 +903,6 @@ void exit_usiblender(void)
 	sound_exit_audio();
 	if(G.listener) MEM_freeN(G.listener);
 
-#ifdef WITH_VERSE
-	end_all_verse_sessions();
-#endif
 
 	libtiff_exit();
 

@@ -323,12 +323,6 @@ typedef struct VNode {
 	void (*post_node_name_set)(struct VNode *vnode);
 } VNode;
 
-typedef struct VerseServer {
-	struct VerseServer *next, *prev;
-	char *name; /* human-readable server name */
-	char *ip;   /* string containing IP/domain name of verse server and number of port */
-	short flag; /* flag: VERSE_CONNECTING, VERSE_CONNECTED */
-} VerseServer;
 
 /*
  * Verse Session: verse client can be connected to several verse servers
@@ -353,6 +347,13 @@ typedef struct VerseSession {
 	void (*post_connect_update)(struct VerseSession *session);
 } VerseSession;
 
+typedef struct VerseServer {
+	struct VerseServer *next, *prev;
+	char *name;			/* human-readable server name */
+	char *ip;			/* string containing IP/domain name of verse server and number of port */
+	short flag;			/* flag: VERSE_CONNECTING, VERSE_CONNECTED */
+	struct VerseSession *session;	/* pointer to related session */
+} VerseServer;
 /*
  * list of post callback functions
  */
@@ -448,7 +449,7 @@ void free_verse_session(struct VerseSession *session);
 void b_verse_update(void);
 void b_vers_ms_get(void);
 void b_verse_connect(char *address);
-void end_verse_session(struct VerseSession *session, char free);
+void end_verse_session(struct VerseSession *session);
 void end_all_verse_sessions(void);
 
 /* functions from verse_node.c */

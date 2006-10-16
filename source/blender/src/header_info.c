@@ -766,7 +766,7 @@ static void do_verse_filemenu(void *arg, int event)
 			session = session_menu();
 			if(session) {
 				printf("Disconnecting session: %s!\n", session->address);
-				end_verse_session(session, 1);
+				end_verse_session(session);
 			}
 			break;
 		case 3:

@@ -1632,7 +1632,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 						}
 						switch(event) {
 							case 1:
-								end_verse_session(session, 1);
+								end_verse_session(session);
 								break;
 							case 2:
 								vnode = session->nodes.lb.first;
@@ -1677,9 +1677,9 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 						if(!(vserver->flag & VERSE_CONNECTING) && !(vserver->flag & VERSE_CONNECTED)) {
 							event = pupmenu("VerseServer %t| Connect %x1");
 						} else if((vserver->flag & VERSE_CONNECTING) && !(vserver->flag & VERSE_CONNECTED)) {
-							event = pupmenu("VerseServer %t| Connecting... %x2");
+							event = pupmenu("VerseServer %t| Connecting %x2");
 						} else if(!(vserver->flag & VERSE_CONNECTING) && (vserver->flag & VERSE_CONNECTED)) {
-							event = pupmenu("VerseServer %t| Connected %x3");
+							event = pupmenu("VerseServer %t| Disconnect %x3");
 						}
 						switch(event) {
 							case 1:
@@ -1687,7 +1687,9 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 								vserver->flag |= VERSE_CONNECTING;
 								break;
 							case 2:
+								break;
 							case 3:
+								end_verse_session(vserver->session);
 								break;
 						}
 					}
