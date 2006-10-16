@@ -245,7 +245,13 @@ Mesh *copy_mesh(Mesh *me)
 		men->dvert = MEM_mallocN (sizeof (MDeformVert)*me->totvert, "MDeformVert");
 		copy_dverts(men->dvert, me->dvert, me->totvert);
 	}
-
+	if (me->tface){
+		/* ensure indirect linked data becomes lib-extern */
+		TFace *tface= me->tface;
+		for(a=0; a<me->totface; a++, tface++)
+			if(tface->tpage)
+				id_lib_extern(tface->tpage);
+	}
 	men->mcol= MEM_dupallocN(me->mcol);
 	men->msticky= MEM_dupallocN(me->msticky);
 
