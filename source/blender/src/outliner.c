@@ -2514,6 +2514,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 					glColor4ubv(col);
 				}
 
+#ifdef WITH_VERSE
 				if(ob->vnode) {
 					if (active==0) active=2;
 					if (ob==OBACT)
@@ -2521,6 +2522,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 					else
 						glColor4ub(0,128,0,100);
 				}
+#endif
 			}
 			else if(G.obedit && G.obedit->data==tselem->id) {
 				glColor4ub(255, 255, 255, 100);
