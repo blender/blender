@@ -8,7 +8,7 @@
 #
 
 CC	?= gcc
-CFLAGS	?= "-I$(shell pwd)" -Wall -Wextra -Wpointer-arith -Wno-unused-parameter -ansi -g # -pg -O2 -finline-functions
+CFLAGS	?= "-I$(shell pwd)" -Wall -Wpointer-arith -Wno-unused-parameter -ansi -g # -pg -O2 -finline-functions
 LDFLAGS	?= # -pg
 
 AR	?= ar

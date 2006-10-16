@@ -254,10 +254,10 @@ boolean v_con_network_listen(void)
 			fprintf(stderr, __FILE__ ": Unhandled packet--dropping\n");
 			if(VConData.con_count > 0)
 			{
-				fprintf(stderr, __FILE__ ": State: current=%u count=%u stage=%d id=%u\n",
-				       VConData.current_connection,
-				       VConData.con_count,
-				       VConData.con[VConData.current_connection].connect_stage,
+				fprintf(stderr, __FILE__ ": State: connections=%u, current=%u (stage %u), packet_id=%u\n",
+					VConData.con_count,
+					VConData.current_connection,
+					(VConData.current_connection < VConData.con_count) ? VConData.con[VConData.current_connection].connect_stage : 0,
 					packet_id);
 			}
 		}
