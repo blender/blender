@@ -2246,12 +2246,72 @@ static void object_softbodies__enable(void *ob_v, void *arg2)
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
+static void object_softbodies_II(Object *ob)
+{
+	uiBlock *block;
+	static int val;
+	//uiBut *but;
+	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_II", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Soft Body II", "Physics", 650, 0, 318, 204)==0) return;
+
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+
+	val = modifiers_isSoftbodyEnabled(ob);
+	if(!val) {
+		uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
+		uiBlockBeginAlign(block);
+		uiDefBut(block, LABEL, 0, "Object is not a softbody",10,190,300,20, NULL, 0.0, 0, 0, 0, ""); 
+		uiDefBut(block, LABEL, 0, "However it can deflect a softbody",10,170,300,20, NULL, 0.0, 0, 0, 0, ""); 
+		/* OTHER OBJECTS COLLISION STUFF */
+		if (ob->type==OB_MESH){
+			uiBlockBeginAlign(block);
+			uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to softbody objects");
+			if(ob->pd->deflect) {
+				uiDefButF(block, NUM, B_DIFF, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
+				uiDefButF(block, NUM, B_DIFF, "Inner:",	160,30,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
+				uiDefButF(block, NUM, B_DIFF, "Outer:",	160,10,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
+			}
+		}
+		uiBlockEndAlign(block);
+	}
+	else{
+		SoftBody *sb= ob->soft;
+		/* SELF COLLISION STUFF */
+		if ((ob->type==OB_MESH)||(ob->type==OB_CURVE) ) {
+			uiBlockBeginAlign(block);
+			uiDefButBitS(block, TOG, OB_SB_SELF, B_SOFTBODY_CHANGE, "Self Collision",		10,170,150,20, &ob->softflag, 0, 0, 0, 0, "enable naive vertex ball self collision");
+			if(ob->softflag & OB_SB_SELF){
+			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Ball Size:", 160,170,150,20, &sb->colball, -10.0,  10.0, 10, 0, "Absolute ball size or factor if not manual adjusted");
+			uiDefButS(block, ROW, B_DIFF, "Man",10,150,60,20, &sb->sbc_mode, 4.0,(float)0, 0, 0, "Manual adjust");
+			uiDefButS(block, ROW, B_DIFF, "Av",70,150,60,20, &sb->sbc_mode, 4.0,(float)1, 0, 0, "Average Spring lenght * Ball Size");
+			uiDefButS(block, ROW, B_DIFF, "Min",130,150,60,20, &sb->sbc_mode, 4.0,(float)2, 0, 0, "Minimal Spring lenght * Ball Size");
+			uiDefButS(block, ROW, B_DIFF, "Max",190,150,60,20, &sb->sbc_mode, 4.0,(float)3, 0, 0, "Maximal Spring lenght * Ball Size");
+			uiDefButS(block, ROW, B_DIFF, "AvMiMa",250,150,60,20, &sb->sbc_mode, 4.0,(float)4, 0, 0, "(Min+Max)/2 * Ball Size");
+			uiDefButF(block, NUM, B_DIFF, "B Stiff:", 10,130,150,20, &sb->ballstiff, 0.001,  100.0, 10, 0, "Ball inflating presure");
+			uiDefButF(block, NUM, B_DIFF, "B Damp:", 160,130,150,20, &sb->balldamp,  0.001,  1.0, 10, 0, "Blending to inelastic collision");
+			}
+			uiBlockEndAlign(block);
+			uiDefButS(block, NUM, B_DIFF, "Aero:", 10,100,150,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
+		}
+		/* OTHER OBJECTS COLLISION STUFF */
+		if (ob->type==OB_MESH){
+			uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to other softbody objects");
+			if(ob->pd->deflect) {
+				uiDefButF(block, NUM, B_DIFF, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
+				uiDefButF(block, NUM, B_DIFF, "Inner:",	160,30,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
+				uiDefButF(block, NUM, B_DIFF, "Outer:",	160,10,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
+			}
+		}
+		uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
+	}
+		uiBlockEndAlign(block);
+}
+
 static void object_softbodies(Object *ob)
 {
 	uiBlock *block;
 	static int val;
 	uiBut *but;
-
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Soft Body", "Physics", 640, 0, 318, 204)==0) return;
 
@@ -2262,22 +2322,7 @@ static void object_softbodies(Object *ob)
 	uiButSetFunc(but, object_softbodies__enable, ob, NULL);
 	uiDefBut(block, LABEL, 0, "",	160, 200,150,20, NULL, 0.0, 0.0, 0, 0, "");	// alignment reason
 
-	if(!modifiers_isSoftbodyEnabled(ob)) {
-		uiDefButBitS(block, TOG, OB_SB_COLLISIONSET, REDRAWBUTSOBJECT, "Collision",	90,200,70,20, &ob->softflag, 0, 0, 0, 0, "Collision Settings");
-		uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
-		if(ob->pd  && (ob->softflag & OB_SB_COLLISIONSET)){
-			/* OTHER OBJECTS COLLISION STUFF */
-			if (ob->type==OB_MESH){
-				uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to softbody objects");
-				if(ob->pd->deflect) {
-					uiDefButF(block, NUM, B_DIFF, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
-					uiDefButF(block, NUM, B_DIFF, "Inner:",	160,30,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
-					uiDefButF(block, NUM, B_DIFF, "Outer:",	160,10,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
-				}
-			}
-		}
-	}
-	else {
+	if(modifiers_isSoftbodyEnabled(ob)){
 		SoftBody *sb= ob->soft;
 		int defCount;
 		char *menustr;
@@ -2287,9 +2332,6 @@ static void object_softbodies(Object *ob)
 			ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
 		}
 
-		if((ob->softflag & OB_SB_BAKESET)==0)  {
-		uiDefButBitS(block, TOG, OB_SB_COLLISIONSET, REDRAWBUTSOBJECT, "Collision",	90,200,70,20, &ob->softflag, 0, 0, 0, 0, "Collision Settings");
-		}
 		uiDefButBitS(block, TOG, OB_SB_BAKESET, REDRAWBUTSOBJECT, "Bake settings",	180,200,130,20, &ob->softflag, 0, 0, 0, 0, "To convert simulation into baked (cached) result");
 
 		if(sb->keys) uiSetButLock(1, "Soft Body is baked, free it first");
@@ -2318,95 +2360,64 @@ static void object_softbodies(Object *ob)
 
 		}
 		else {
-			if(ob->softflag & OB_SB_COLLISIONSET) {
-				/* SELF COLLISION STUFF */
-				if ((ob->type==OB_MESH)||(ob->type==OB_CURVE) ) {
-            	uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, OB_SB_SELF, B_SOFTBODY_CHANGE, "Self Collision",		10,170,150,20, &ob->softflag, 0, 0, 0, 0, "enable naive vertex ball self collision");
-				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Ball Size:", 160,170,150,20, &sb->colball, -10.0,  10.0, 10, 0, "Absolute ball size or factor if not manual adjusted");
-				uiDefButS(block, ROW, B_DIFF, "Man",10,150,60,20, &sb->sbc_mode, 4.0,(float)0, 0, 0, "Manual adjust");
-				uiDefButS(block, ROW, B_DIFF, "Av",70,150,60,20, &sb->sbc_mode, 4.0,(float)1, 0, 0, "Average Spring lenght * Ball Size");
-				uiDefButS(block, ROW, B_DIFF, "Min",130,150,60,20, &sb->sbc_mode, 4.0,(float)2, 0, 0, "Minimal Spring lenght * Ball Size");
-				uiDefButS(block, ROW, B_DIFF, "Max",190,150,60,20, &sb->sbc_mode, 4.0,(float)3, 0, 0, "Maximal Spring lenght * Ball Size");
-				uiDefButS(block, ROW, B_DIFF, "AvMiMa",250,150,60,20, &sb->sbc_mode, 4.0,(float)4, 0, 0, "(Min+Max)/2 * Ball Size");
-				uiDefButF(block, NUM, B_DIFF, "B Stiff:", 10,130,150,20, &sb->ballstiff, 0.001,  100.0, 10, 0, "Ball inflating presure");
-				uiDefButF(block, NUM, B_DIFF, "B Damp:", 160,130,150,20, &sb->balldamp,  0.001,  1.0, 10, 0, "Blending to inelastic collision");
-				uiBlockEndAlign(block);
-				uiDefButS(block, NUM, B_DIFF, "Aero:", 10,100,150,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
-				}
-				/* OTHER OBJECTS COLLISION STUFF */
-				if (ob->type==OB_MESH){
-					uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to other softbody objects");
-					if(ob->pd->deflect) {
-						uiDefButF(block, NUM, B_DIFF, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
-						uiDefButF(block, NUM, B_DIFF, "Inner:",	160,30,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
-						uiDefButF(block, NUM, B_DIFF, "Outer:",	160,10,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
-					}
-				}
-				uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
+			/* GENERAL STUFF */
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_DIFF, "Friction:",		10, 170,150,20, &sb->mediafrict, 0.0, 50.0, 10, 0, "General media friction for point movements");
+			uiDefButF(block, NUM, B_DIFF, "Mass:",			160, 170,150,20, &sb->nodemass , 0.001, 50.0, 10, 0, "Point Mass, the heavier the slower");
+			uiDefButF(block, NUM, B_DIFF, "Grav:",			10,150,150,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
+			uiDefButF(block, NUM, B_DIFF, "Speed:",			160,150,150,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
+			uiDefButF(block, NUM, B_DIFF, "Error Limit:",	10,130,150,20, &sb->rklimit , 0.01, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision");
+			if(ob->type==OB_MESH) {
+				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Rigidity:", 160,130,150,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Strenght of Springs over 2 Edges");
+			}
+			uiBlockEndAlign(block);
 
+			/* GOAL STUFF */
+			uiBlockBeginAlign(block);
+			uiDefButBitS(block, TOG, OB_SB_GOAL, B_SOFTBODY_CHANGE, "Use Goal",	10,100,130,20, &ob->softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+
+			if(ob->type==OB_MESH) {
+				menustr= get_vertexgroup_menustr(ob);
+				defCount=BLI_countlist(&ob->defbase);
+				if(defCount==0) sb->vertgroup= 0;
+				uiDefButS(block, MENU, B_SOFTBODY_CHANGE, menustr,	140,100,20,20, &sb->vertgroup, 0, defCount, 0, 0, "Browses available vertex groups");
+				MEM_freeN (menustr);
+
+				if(sb->vertgroup) {
+					bDeformGroup *defGroup = BLI_findlink(&ob->defbase, sb->vertgroup-1);
+					if(defGroup)
+						uiDefBut(block, BUT, B_DIFF, defGroup->name,	160,100,130,20, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
+					else
+						uiDefBut(block, BUT, B_DIFF, "(no group)",	160,100,130,20, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
+					uiDefIconBut(block, BUT, B_SOFTBODY_DEL_VG, ICON_X, 290,100,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
+				}
+				else
+					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",	160,100,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
 			}
 			else {
-				/* GENERAL STUFF */
+				uiDefButS(block, TOG, B_SOFTBODY_CHANGE, "W",			140,100,20,20, &sb->vertgroup, 0, 1, 0, 0, "Use control point weight values");
+				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",	160,100,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+			}
+
+			uiDefButF(block, NUM, B_DIFF, "G Stiff:",	10,80,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) spring stiffness");
+			uiDefButF(block, NUM, B_DIFF, "G Damp:",	160,80,150,20, &sb->goalfrict  , 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
+			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "G Min:",		10,60,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
+			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "G Max:",		160,60,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
+			uiBlockEndAlign(block);
+
+			/* EDGE SPRING STUFF */
+			if(ob->type!=OB_SURF) {
 				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_DIFF, "Friction:",		10, 170,150,20, &sb->mediafrict, 0.0, 50.0, 10, 0, "General media friction for point movements");
-				uiDefButF(block, NUM, B_DIFF, "Mass:",			160, 170,150,20, &sb->nodemass , 0.001, 50.0, 10, 0, "Point Mass, the heavier the slower");
-				uiDefButF(block, NUM, B_DIFF, "Grav:",			10,150,150,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
-				uiDefButF(block, NUM, B_DIFF, "Speed:",			160,150,150,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
-				uiDefButF(block, NUM, B_DIFF, "Error Limit:",	10,130,150,20, &sb->rklimit , 0.01, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision");
-				if(ob->type==OB_MESH) {
-					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Rigidity:", 160,130,150,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Strenght of Springs over 2 Edges");
-				}
+				uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,30,90,20, &ob->softflag, 0, 0, 0, 0, "Use Edges as springs");
+				uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		110,30,90,20, &ob->softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
+				uiDefButBitS(block, TOG, OB_SB_EDGECOLL, B_DIFF, "Edge Collision",		220,30,90,20, &ob->softflag, 0, 0, 0, 0, "Edge collide too"); 
+				uiDefButF(block, NUM, B_DIFF, "E Stiff:",	10,10,150,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness");
+				uiDefButF(block, NUM, B_DIFF, "E Damp:",	160,10,150,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
 				uiBlockEndAlign(block);
-
-				/* GOAL STUFF */
-				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, OB_SB_GOAL, B_SOFTBODY_CHANGE, "Use Goal",	10,100,130,20, &ob->softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
-
-				if(ob->type==OB_MESH) {
-					menustr= get_vertexgroup_menustr(ob);
-					defCount=BLI_countlist(&ob->defbase);
-					if(defCount==0) sb->vertgroup= 0;
-					uiDefButS(block, MENU, B_SOFTBODY_CHANGE, menustr,	140,100,20,20, &sb->vertgroup, 0, defCount, 0, 0, "Browses available vertex groups");
-					MEM_freeN (menustr);
-
-					if(sb->vertgroup) {
-						bDeformGroup *defGroup = BLI_findlink(&ob->defbase, sb->vertgroup-1);
-						if(defGroup)
-							uiDefBut(block, BUT, B_DIFF, defGroup->name,	160,100,130,20, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
-						else
-							uiDefBut(block, BUT, B_DIFF, "(no group)",	160,100,130,20, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
-						uiDefIconBut(block, BUT, B_SOFTBODY_DEL_VG, ICON_X, 290,100,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
-					}
-					else
-						uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",	160,100,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
-				}
-				else {
-					uiDefButS(block, TOG, B_SOFTBODY_CHANGE, "W",			140,100,20,20, &sb->vertgroup, 0, 1, 0, 0, "Use control point weight values");
-					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",	160,100,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
-				}
-
-				uiDefButF(block, NUM, B_DIFF, "G Stiff:",	10,80,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) spring stiffness");
-				uiDefButF(block, NUM, B_DIFF, "G Damp:",	160,80,150,20, &sb->goalfrict  , 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
-				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "G Min:",		10,60,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
-				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "G Max:",		160,60,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
-				uiBlockEndAlign(block);
-
-				/* EDGE SPRING STUFF */
-				if(ob->type!=OB_SURF) {
-					uiBlockBeginAlign(block);
-					uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,30,90,20, &ob->softflag, 0, 0, 0, 0, "Use Edges as springs");
-					uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		110,30,90,20, &ob->softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
-					uiDefButBitS(block, TOG, OB_SB_EDGECOLL, B_DIFF, "Edge Collision",		220,30,90,20, &ob->softflag, 0, 0, 0, 0, "Edge collide too"); 
-					uiDefButF(block, NUM, B_DIFF, "E Stiff:",	10,10,150,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness");
-					uiDefButF(block, NUM, B_DIFF, "E Damp:",	160,10,150,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
-					uiBlockEndAlign(block);
-				}
 			}
 		}
 	}
 	uiBlockEndAlign(block);
-
 }
 
 static void object_panel_particles_motion(Object *ob)
@@ -2873,6 +2884,7 @@ void physics_panels()
 		object_panel_particles(ob);
 		object_panel_particles_motion(ob);
 		object_softbodies(ob);
+		object_softbodies_II(ob);
 		object_panel_fluidsim(ob);
 	}
 }

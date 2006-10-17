@@ -2142,7 +2142,7 @@ SoftBody *sbNew(void)
 	sb->sfra= G.scene->r.sfra;
 	sb->efra= G.scene->r.efra;
 
-	sb->colball  = 1.0f;
+	sb->colball  = 0.5f;
 	sb->balldamp = 0.05f;
 	sb->ballstiff= 1.0f;
 	sb->sbc_mode = 1;
@@ -2296,14 +2296,18 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 		
 		if (TRUE) {	/*  */
 			/* special case of 2nd order Runge-Kutta type AKA Heun */
+			float forcetimemax = 0.25f;
+			float forcetimemin = 0.001f;
 			float timedone =0.0; /* how far did we get without violating error condition */
 								 /* loops = counter for emergency brake
 								 * we don't want to lock up the system if physics fail
 			*/
+
 			int loops =0 ; 
 			SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */
 			
-			forcetime = dtime; /* hope for integrating in one step */
+			//forcetime = dtime; /* hope for integrating in one step */
+			forcetime =forcetimemax; /* hope for integrating in one step */
 			while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) )
 			{
 				/* set goals in time */ 
@@ -2327,6 +2331,7 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 						newtime = forcetime;
 					}
 					timedone += forcetime;
+					newtime=MIN2(forcetimemax,MAX2(forcetime,forcetimemin));
 					if (forcetime > 0.0)
 						forcetime = MIN2(dtime - timedone,newtime);
 					else 
@@ -2338,7 +2343,7 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 			interpolate_exciter(ob, 2, 2);
 			softbody_apply_goalsnap(ob);
 
-			if(G.f & G_DEBUG) {
+			if(G.f & G_DEBUG){
 				if (loops > HEUNWARNLIMIT) /* monitor high loop counts say 1000 after testing */
 					printf("%d heun integration loops/frame \n",loops);
 			}
