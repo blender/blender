@@ -3360,102 +3360,525 @@ void beauty_fill(void)
 }
 
 
-/* ******************** FLIP EDGE ************************************* */
+/* ******************** BEGIN TRIANGLE TO QUAD ************************************* */
 
+/*move these macros to a header file along with notes on how they should be used*/
+#define FILL_FACEVERTS(face, arr) { arr[0] = face->v1; arr[1] = face->v2; arr[2] = face->v3; arr[3] = face->v4; arr[4] = NULL;}
+#define FILL_FACEEDGES(face, arr) { arr[0] = face->e1; arr[1] = face->e2; arr[2] = face->e3; arr[3] = face->e4; arr[4] = NULL;}
 
-#define FACE_MARKCLEAR(f) (f->f1 = 1)
+typedef struct FacePairL{
+	EditFace *face1, *face2;
+	EditVert *f1free, *f2free;
+	float measure; 
+} FacePairL;
+
+static int fplcmp(const void *v1, const void *v2)
+{
+	const FacePairL *fpl1=(*((EditEdge**)v1))->tmp.p, *fpl2=(*((EditEdge**)v2))->tmp.p;
+	
+	if( fpl1->measure > fpl2->measure) return 1;
+	else if( fpl1->measure < fpl2->measure) return -1;
+	
+	return 0;
+}
+
+static float isfaceCoLin(float fake[4][3]){
+	
+	float edgeVec1[3], edgeVec2[3], edgeVec3[3], edgeVec4[3], diff;
+	
+	VecSubf(edgeVec1, fake[0], fake[1]);
+	VecSubf(edgeVec2, fake[1], fake[2]);
+	VecSubf(edgeVec3, fake[2], fake[3]);
+	VecSubf(edgeVec4, fake[3], fake[0]);
+	
+	diff = 0.0;
+	
+	diff = (
+		fabs(VecAngle2(edgeVec1, edgeVec2) - 90) +
+		fabs(VecAngle2(edgeVec2, edgeVec3) - 90) + 
+		fabs(VecAngle2(edgeVec3, edgeVec4) - 90) + 
+		fabs(VecAngle2(edgeVec4, edgeVec1) - 90)) / 360;
+	if(!diff) return 0.0; //what? this makes no sense
+	
+	return diff;
+}
+
+static float isfaceNoDiff(float fake[4][3])
+{
+	float noA1[3], noA2[3], noB1[3], noB2[3], normalADiff, normalBDiff;
+	
+	CalcNormFloat(fake[0], fake[1], fake[2], noA1);
+	CalcNormFloat(fake[0], fake[2], fake[3], noA2);
+	
+	if(noA1[0] == noA2[0] && noA1[1] == noA2[1] && noA1[2] == noA2[2]) normalADiff = 0.0;
+	else{
+		normalADiff = VecAngle2(noA1, noA2);
+		//if(!normalADiff) normalADiff = 179; not sure about this bit
+	}
+	
+	CalcNormFloat(fake[1], fake[2], fake[3], noB1);
+	CalcNormFloat(fake[3], fake[0], fake[1], noB2);
+	
+	if(noB1[0] == noB2[0] && noB1[1] == noB2[1] && noB1[2] == noB2[2]) normalBDiff = 0.0;
+	else{
+		normalBDiff = VecAngle2(noB1, noB2);
+		//if(!normalBDiff) normalBDiff = 179; not sure about this bit
+	}
+	return (normalADiff/360) + (normalBDiff/360);
+}
+
+static float isfaceConcave(float fake[4][3])
+{
+	float minarea, maxarea, areaA, areaB;
+	
+	areaA = AreaT3Dfl(fake[0], fake[1], fake[2]) + AreaT3Dfl(fake[0], fake[2], fake[3]);
+	areaB = AreaT3Dfl(fake[1], fake[2], fake[3]) + AreaT3Dfl(fake[3], fake[0], fake[1]);
+	
+	if(areaA <= areaB) minarea = areaA;
+	else if(areaB < areaA) minarea = areaB;
+	
+	if(areaA >= areaB) maxarea = areaA;
+	else if(areaB > areaA) maxarea = areaB;
+	
+	if(!maxarea) return 1;
+	else return 1 - (minarea / maxarea);
+}
+
+static int measureFacePair(EditEdge *eed, float limit)
+{
+	EditVert *faceVerts[5];
+	FacePairL *fp = eed->tmp.p;
+	EditFace *face1 = fp->face1, *face2 = fp->face2;
+	float fake[4][3];
+	int v1free, v2free;
+	
+	FILL_FACEVERTS(face2, faceVerts);
+	
+	face1->v1->f1 = 0;
+	face1->v2->f1 = 1;
+	face1->v3->f1 = 2;
+	
+	face2->v1->f1 = 0;
+	face2->v2->f1 = 1;
+	face2->v3->f1 = 2;
+
+	v1free = fp->f1free->f1;
+	v2free = fp->f2free->f1;
+
+	/*v1 is only one that dosn't vary*/
+	VECCOPY(fake[0], face1->v1->co);
+	VECCOPY(fake[1], face1->v2->co);
+	VECCOPY(fake[2], face1->v3->co);
+	switch(v1free){
+		case 0:
+			/*move fake[2] to fake[3]*/
+			VECCOPY(fake[3], fake[2]);
+			/*copy v2free to fake[2]*/
+			VECCOPY(fake[2], faceVerts[v2free]->co);
+			break;
+		case 1:
+			/*copy v2free to fake[3]*/
+			VECCOPY(fake[3], faceVerts[v2free]->co);
+			break;
+		case 2:
+			/*copy fake[2] to fake[3], then fake[1] to fake[2]*/
+			VECCOPY(fake[3], fake[2]);
+			VECCOPY(fake[2], fake[1]);
+			/*copy v2free to fake[1]*/
+			VECCOPY(fake[1], faceVerts[v2free]->co);
+			break;
+	}
+	
+	fp->measure+= isfaceNoDiff(fake)/3;
+	if(fp->measure > limit) return 0;
+	fp->measure+= isfaceCoLin(fake)/3;
+	if(fp->measure > limit) return 0;
+	fp->measure+= isfaceConcave(fake)/3;
+	if(fp->measure > limit) return 0;
+	
+	return 1; 
+}
+
+static int compare2(float v1[2], float v2[2], float limit)
+{
+	if( v1[0] + limit > v2[0] && v1[0] - limit < v2[0] &&
+		v1[1] + limit > v2[1] && v1[1] - limit < v2[1])
+				return 1;
+	return 0;
+}
+
+static int compare3(unsigned int RGB1, unsigned int RGB2, unsigned int limit)
+{
+	char v1[3], v2[3];
+	memcpy(v1, &RGB1, 4);
+	memcpy(v2, &RGB2, 4);
+	
+	if( v1[1] + limit > v2[1] && v1[1] - limit < v2[1] &&
+		v1[2] + limit > v2[2] && v1[2] - limit < v2[2] &&
+		v1[3] + limit > v2[3] && v1[3] - limit < v2[3])
+			return 1;
+	return 0;
+}
+
+#define UV_LIMIT 0.005
+static int compareFaceUV(EditFace *f1, EditFace *f2)
+{
+	EditVert **faceVert1, **faceVert2, *faceVerts1[5], *faceVerts2[5];
+	int i1, i2;
+	
+	if(f1->tf.tpage == NULL && f2->tf.tpage == NULL)
+		return 1;
+	else if(f1->tf.tpage != f2->tf.tpage)
+		return 0;
+
+	FILL_FACEVERTS(f1, faceVerts1);
+	FILL_FACEVERTS(f2, faceVerts2);
+	
+	faceVert1 = faceVerts1;
+	i1 = 0;
+	while(*faceVert1){
+		faceVert2 = faceVerts2;
+		i2 = 0;
+		while(*faceVert2){
+			if( *faceVert1 == *faceVert2){
+				if(!compare2(f1->tf.uv[i1], f2->tf.uv[i2], UV_LIMIT))
+					return 0;
+			}
+			i2++;
+			faceVert2++;
+		}
+		i1++;
+		faceVert1++;
+	}
+	return 1;
+}
+
+#define COL_LIMIT 3
+static int compareFaceCol(EditFace *f1, EditFace *f2)
+{
+	EditVert **faceVert1, **faceVert2, *faceVerts1[5], *faceVerts2[5];
+	int i1, i2;
+	
+	FILL_FACEVERTS(f1, faceVerts1);
+	FILL_FACEVERTS(f2, faceVerts2);
+	
+	faceVert1 = faceVerts1;
+	i1 = 0;
+	while(*faceVert1){
+		faceVert2 = faceVerts2;
+		i2 = 0;
+		while(*faceVert2){
+			if( *faceVert1 == *faceVert2){
+				if(!compare3(f1->tf.col[i1], f2->tf.col[i2], COL_LIMIT))
+					return 0;
+			}
+			i2++;
+			faceVert2++;
+		}
+		i1++;
+		faceVert1++;
+	}
+	return 1;
+}
+
+static void meshJoinFaces(EditEdge *joined)
+{
+	FacePairL *fpl = joined->tmp.p;
+	EditFace *face1, *face2, *efa;
+	EditVert *v1free, *v2free;
+	int i;
+	
+	
+	face1 = fpl->face1;
+	face2 = fpl->face2;
+	v1free = fpl->f1free;
+	v2free = fpl->f2free;
+	
+
+	
+	face1->v1->f1 = 0;
+	face1->v2->f1 = 1;
+	face1->v3->f1 = 2;
+	
+	face2->v1->f1 = 0;
+	face2->v2->f1 = 1;
+	face2->v3->f1 = 2;
+	
+	
+	switch(v1free->f1){
+		case 0:
+			i = 2;
+			break;
+		case 1:
+			i = 3;
+			break;
+		case 2:
+			i = 1;
+			break;
+	}
+
+	switch(i){
+		case 2:
+			/*this is really lazy...*/
+			efa = addfacelist(face1->v1, face1->v2, v2free, face1->v3, face1, NULL);
+			efa->tf.uv[0][0] = face1->tf.uv[0][0];
+			efa->tf.uv[0][1] = face1->tf.uv[0][1];
+			efa->tf.col[0] = face1->tf.col[0];
+			
+			efa->tf.uv[1][0] = face1->tf.uv[1][0];
+			efa->tf.uv[1][1] = face1->tf.uv[1][1];
+			efa->tf.col[1] = face1->tf.col[1];
+			
+			efa->tf.uv[2][0] = face2->tf.uv[v2free->f1][0];
+			efa->tf.uv[2][1] = face2->tf.uv[v2free->f1][1];
+			efa->tf.col[2] = face2->tf.col[v2free->f1];
+			
+			efa->tf.uv[3][0] = face1->tf.uv[2][0];
+			efa->tf.uv[3][1] = face1->tf.uv[2][1];
+			efa->tf.col[3] = face1->tf.col[2];
+			break;
+		case 3:
+			efa = addfacelist(face1->v1, face1->v2, face1->v3, v2free, face1, NULL);
+			efa->tf.uv[0][0] = face1->tf.uv[0][0];
+			efa->tf.uv[0][1] = face1->tf.uv[0][1];
+			efa->tf.col[0] = face1->tf.col[0];
+			
+			efa->tf.uv[1][0] = face1->tf.uv[1][0];
+			efa->tf.uv[1][1] = face1->tf.uv[1][1];
+			efa->tf.col[1] = face1->tf.col[1];
+			
+			efa->tf.uv[2][0] = face1->tf.uv[2][0];
+			efa->tf.uv[2][1] = face1->tf.uv[2][1];
+			efa->tf.col[2] = face1->tf.col[2];
+			
+			efa->tf.uv[3][0] = face2->tf.uv[v2free->f1][0];
+			efa->tf.uv[3][1] = face2->tf.uv[v2free->f1][1];
+			efa->tf.col[3] = face1->tf.col[v2free->f1];
+			break;
+		case 1:
+			efa = addfacelist(face1->v1, v2free, face1->v2, face1->v3, face1, NULL);
+			efa->tf.uv[0][0] = face1->tf.uv[0][0];
+			efa->tf.uv[0][1] = face1->tf.uv[0][1];
+			efa->tf.col[0] = face1->tf.col[0];
+			
+			efa->tf.uv[1][0] = face2->tf.uv[v2free->f1][0];
+			efa->tf.uv[1][1] = face2->tf.uv[v2free->f1][1];
+			efa->tf.col[1] = face2->tf.col[v2free->f1];
+			
+			efa->tf.uv[2][0] = face1->tf.uv[1][0];
+			efa->tf.uv[2][1] = face1->tf.uv[1][1];
+			efa->tf.col[2] = face1->tf.col[1];
+			
+			efa->tf.uv[3][0] = face1->tf.uv[2][0];
+			efa->tf.uv[3][1] = face1->tf.uv[2][1];
+			efa->tf.col[3] = face1->tf.col[2];
+			break;
+	}
+	
+	EM_select_face(efa,1);
+	/*flag for removal*/
+	joined->f1 = 1;
+	face1->f1 = 1;
+	face2->f1 = 1;
+}
 
 void join_triangles(void)
 {
-	EditMesh *em = G.editMesh;
-	EditVert *v1, *v2, *v3, *v4;
-	EditFace *efa, *w;
-	EVPTuple *efaar;
-	EVPtr *efaa;
-	EditEdge *eed, *nexted;
-	int totedge, ok;
-	float *uv[4];
-	unsigned int col[4];
-
-	EM_selectmode_flush();	// makes sure in selectmode 'face' the edges of selected faces are selected too 
+	EditMesh *em=G.editMesh;
+	EditFace *efa;
+	EditEdge *eed, **faceEdge, *faceEdges[5], **edsortblock, **edb;
+	EditVert **faceVert1, *faceVerts1[5], **faceVert2, *faceVerts2[5];
+	float limit = 25;
+	int i, paircount, joincount, totFacePairLs, respectvcol = 1, respectuv = 1, match, matchar[3];
+	FacePairL *fpl1;
 	
-	totedge = count_selected_edges(em->edges.first);
-	if(totedge==0) return;
-
-	efaar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "jointris");
-
-	ok = collect_quadedges(efaar, em->edges.first, em->faces.first);
-	if (G.f & G_DEBUG) {
-		printf("Edges selected: %d\n", ok);
-	}	
-
-	eed= em->edges.first;
-	while(eed) {
-		nexted= eed->next;
+	waitcursor(1);
 		
-		if(eed->f2==2) {  /* points to 2 faces */
-			
-			efaa= (EVPtr *) eed->tmp.p;
-			
-			/* don't do it if flagged */
-
-			ok= 1;
-			efa= efaa[0];
-			if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1) ok= 0;
-			efa= efaa[1];
-			if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1) ok= 0;
-			
-			if(ok) {
-				/* test convex */
-				givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, uv, col);
-
-/*
-		4-----3		4-----3
-		|\	|		|	 |
-		| \ 1 |		|	 |
-		|  \  |  ->	|	 |	
-		| 0 \ |		|	 | 
-		|	\|		|	 |
-		1-----2		1-----2
-*/
-				/* make new faces */
-				if(v1 && v2 && v3 && v4) {
-					if( convex(v1->co, v2->co, v3->co, v4->co) ) {
-						if(exist_face(v1, v2, v3, v4)==0) {
-							w = addfacelist(v1, v2, v3, v4, efaa[0], NULL); /* seam edge may get broken */
-							w->f= efaa[0]->f;	/* copy selection flag */
-							untag_edges(w);
-
-							UVCOPY(w->tf.uv[0], uv[0]);
-							UVCOPY(w->tf.uv[1], uv[1]);
-							UVCOPY(w->tf.uv[2], uv[2]);
-							UVCOPY(w->tf.uv[3], uv[3]);
-
-							memcpy(w->tf.col, col, sizeof(w->tf.col));
+	for(efa=em->faces.first; efa; efa=efa->next){
+		efa->f1 = 0;
+		efa->tmp.v = NULL;
+	}
+	for(eed=em->edges.first; eed; eed=eed->next){ 
+		eed->f1 = 0;
+		eed->f2 = 0;
+		eed->tmp.p = NULL;
+	}
+	
+	/*store number of faces coincident on each edge*/
+	for(efa=em->faces.first; efa; efa=efa->next){
+		efa->e1->f1++;
+		efa->e2->f1++;
+		efa->e3->f1++;
+		if(efa->e4) 
+			efa->e4->f1++;
+	}
+	
+	/*mark faces we are interested in*/
+	for(efa=em->faces.first; efa; efa=efa->next){
+		if(efa->f&SELECT && (!efa->v4) && (!efa->h)) efa->f1 = 1;
+	}
+	
+	/*allocate FacePairL structs for each edge*/
+	totFacePairLs = 0;
+	for(efa=em->faces.first; efa; efa=efa->next){
+		if(efa->f1){
+			FILL_FACEEDGES(efa,faceEdges);
+			faceEdge = faceEdges;
+			while(*faceEdge){
+				if( (*faceEdge)->f1 == 2 && (*faceEdge)->tmp.p == NULL){
+					(*faceEdge)->tmp.p = MEM_callocN(sizeof(FacePairL), "Tri2Quad FacePair");
+					totFacePairLs++;
+				}
+			faceEdge++;
+			}
+		}
+	}
+	
+	/*populate FacePairL structs*/
+	for(efa=em->faces.first; efa; efa=efa->next){
+		if(efa->f1){
+			FILL_FACEEDGES(efa,faceEdges);
+			faceEdge = faceEdges;
+			i=0;
+			while(*faceEdge){
+				if( (*faceEdge)->tmp.p){
+					fpl1 = (*faceEdge)->tmp.p;
+					/*get rid of duplicated code!*/
+					if(fpl1->face1){
+						/*do fpl1->face2*/
+						fpl1->face2 = efa;
+						switch(i)
+						{
+							case 0:
+								fpl1->f2free = efa->v3;
+								break;
+							case 1:
+								fpl1->f2free = efa->v1;
+								break;
+							case 2:
+								fpl1->f2free  = efa->v2;
+								break;
 						}
-						/* tag as to-be-removed */
-						FACE_MARKCLEAR(efaa[0]);
-						FACE_MARKCLEAR(efaa[1]);
-						eed->f1 = 1; 
-					} /* endif test convex */
+					}
+					else{
+						/*do fpl1->face1*/
+						fpl1->face1 = efa;
+						switch(i)
+						{
+							case 0:
+								fpl1->f1free = efa->v3;
+								break;
+							case 1:
+								fpl1->f1free = efa->v1;
+								break;
+							case 2:
+								fpl1->f1free = efa->v2;
+						}
+						
+					}
+				}
+			faceEdge++;
+			i++;
+			}
+		}
+	}
+	
+	paircount = 0;
+	/*Test FacePairLs for inclusion of the associated edge in sort array */
+	for(eed=em->edges.first; eed; eed=eed->next){
+		EditFace *f1, *f2;
+		EditVert *f1free, *f2free;
+		
+		if(eed->tmp.p){
+			f1 = ((FacePairL*)(eed->tmp.p))->face1;
+			f1free = ((FacePairL*)(eed->tmp.p))->f1free;
+			f2 = ((FacePairL*)(eed->tmp.p))->face2;
+			f2free = ((FacePairL*)(eed->tmp.p))->f2free;
+			
+			/*test for two editfaces with same vertices but different order. Should never happen but does sometimes!*/
+			FILL_FACEVERTS(f1,faceVerts1);
+			FILL_FACEVERTS(f2,faceVerts2);
+			faceVert1 = faceVerts1;
+			i = 0;
+			while(*faceVert1){
+				match = 0;
+				faceVert2 = faceVerts2;
+				while(*faceVert2){
+					if(*faceVert2 == *faceVert1){
+						match = 1;
+						break;
+					}
+					else faceVert2++;
+				}
+				
+				matchar[i] = match;
+				faceVert1++;
+				i++;
+			}
+			
+			if(!(matchar[0] == 1 && matchar[1] == 1 && matchar[2] == 1)){
+				if(f1 && f2){
+					/*do tests to disqualify potential face pairs from the sort.*/
+					if(f1->mat_nr != f2->mat_nr); /*do nothing*/
+					else if(eed->sharp); /*do nothing*/
+					else if(respectuv && !compareFaceUV(f1, f2) ); /*do nothing*/
+					else if(respectvcol && !compareFaceCol(f1, f2) ); /*do nothing*/
+					else{
+						eed->f2 = measureFacePair(eed, (float)limit);
+						if(eed->f2) paircount += 1;
+					}
 				}
 			}
 		}
-		eed= nexted;
+	}
+	
+	edsortblock = edb = MEM_callocN(sizeof(EditEdge*) * paircount, "Face Pairs quicksort Array");
+	for(eed = em->edges.first; eed; eed=eed->next){
+		if(eed->f2){
+			*edb = eed;
+			edb++;
+		}
+	}
+	
+	//eed->f1 and efa->f1 used by free_taggeed_edge/facelist
+	for(eed = em->edges.first; eed; eed=eed->next) eed->f1 = 0; 
+	for(efa = em->faces.first; efa; efa=efa->next) efa->f1 = 0;
+	/*quicksort according to FacePairL->measure*/
+	qsort(edsortblock, paircount, sizeof(EditEdge*), fplcmp);
+	
+	joincount = 0;
+	for(edb=edsortblock, i=0; i < paircount; edb++, i++){ 
+		fpl1 = (*edb)->tmp.p;
+		if( !(fpl1->face1->f1) && !(fpl1->face2->f1) ){
+			joincount++;
+			meshJoinFaces(*edb);
+		}
+	}
+	
+	if(joincount) notice("Created %i new quads /n", joincount);
+	else notice("nothing done");
+	
+	free_tagged_facelist(em->faces.first);
+	MEM_freeN(edsortblock);
+	for(eed=em->edges.first; eed; eed=eed->next){ 
+		if(eed->tmp.p) MEM_freeN(eed->tmp.p);
 	}
 	free_tagged_edgelist(em->edges.first);
-	free_tagged_facelist(em->faces.first);
-
-	MEM_freeN(efaar);
 	
+	EM_selectmode_flush();
+	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-#ifdef WITH_VERSE
+	#ifdef WITH_VERSE
 	if(G.editMesh->vnode)
 		sync_all_versefaces_with_editfaces((VNode*)G.editMesh->vnode);
-#endif
+	#endif
 	BIF_undo_push("Convert Triangles to Quads");
+	waitcursor(0);
 }
+/* ******************** END TRIANGLE TO QUAD ************************************* */
+
+#define FACE_MARKCLEAR(f) (f->f1 = 1)
 
 /* quick hack, basically a copy of beauty_fill */
 void edge_flip(void)
