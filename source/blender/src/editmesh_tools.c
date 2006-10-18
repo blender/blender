@@ -3363,8 +3363,8 @@ void beauty_fill(void)
 /* ******************** BEGIN TRIANGLE TO QUAD ************************************* */
 
 /*move these macros to a header file along with notes on how they should be used*/
-#define FILL_FACEVERTS(face, arr) { arr[0] = face->v1; arr[1] = face->v2; arr[2] = face->v3; arr[3] = face->v4; arr[4] = NULL;}
-#define FILL_FACEEDGES(face, arr) { arr[0] = face->e1; arr[1] = face->e2; arr[2] = face->e3; arr[3] = face->e4; arr[4] = NULL;}
+#define FILL_FACEVERTS(face, arr) { if(face){ arr[0] = face->v1; arr[1] = face->v2; arr[2] = face->v3; arr[3] = face->v4; arr[4] = NULL;}}
+#define FILL_FACEEDGES(face, arr) { if(face){arr[0] = face->e1; arr[1] = face->e2; arr[2] = face->e3; arr[3] = face->e4; arr[4] = NULL;}}
 
 typedef struct FacePairL{
 	EditFace *face1, *face2;
@@ -3398,7 +3398,7 @@ static float isfaceCoLin(float fake[4][3]){
 		fabs(VecAngle2(edgeVec2, edgeVec3) - 90) + 
 		fabs(VecAngle2(edgeVec3, edgeVec4) - 90) + 
 		fabs(VecAngle2(edgeVec4, edgeVec1) - 90)) / 360;
-	if(!diff) return 0.0; //what? this makes no sense
+	if(!diff) return 0.0;
 	
 	return diff;
 }
@@ -3413,7 +3413,7 @@ static float isfaceNoDiff(float fake[4][3])
 	if(noA1[0] == noA2[0] && noA1[1] == noA2[1] && noA1[2] == noA2[2]) normalADiff = 0.0;
 	else{
 		normalADiff = VecAngle2(noA1, noA2);
-		//if(!normalADiff) normalADiff = 179; not sure about this bit
+		//if(!normalADiff) normalADiff = 179;
 	}
 	
 	CalcNormFloat(fake[1], fake[2], fake[3], noB1);
@@ -3422,7 +3422,7 @@ static float isfaceNoDiff(float fake[4][3])
 	if(noB1[0] == noB2[0] && noB1[1] == noB2[1] && noB1[2] == noB2[2]) normalBDiff = 0.0;
 	else{
 		normalBDiff = VecAngle2(noB1, noB2);
-		//if(!normalBDiff) normalBDiff = 179; not sure about this bit
+		//if(!normalBDiff) normalBDiff = 179;
 	}
 	return (normalADiff/360) + (normalBDiff/360);
 }
@@ -3588,13 +3588,10 @@ static void meshJoinFaces(EditEdge *joined)
 	EditVert *v1free, *v2free;
 	int i;
 	
-	
 	face1 = fpl->face1;
 	face2 = fpl->face2;
 	v1free = fpl->f1free;
 	v2free = fpl->f2free;
-	
-
 	
 	face1->v1->f1 = 0;
 	face1->v2->f1 = 1;
@@ -3604,8 +3601,7 @@ static void meshJoinFaces(EditEdge *joined)
 	face2->v2->f1 = 1;
 	face2->v3->f1 = 2;
 	
-	
-	switch(v1free->f1){
+switch(v1free->f1){
 		case 0:
 			i = 2;
 			break;
@@ -3794,30 +3790,29 @@ void join_triangles(void)
 			f1free = ((FacePairL*)(eed->tmp.p))->f1free;
 			f2 = ((FacePairL*)(eed->tmp.p))->face2;
 			f2free = ((FacePairL*)(eed->tmp.p))->f2free;
-			
-			/*test for two editfaces with same vertices but different order. Should never happen but does sometimes!*/
-			FILL_FACEVERTS(f1,faceVerts1);
-			FILL_FACEVERTS(f2,faceVerts2);
-			faceVert1 = faceVerts1;
-			i = 0;
-			while(*faceVert1){
-				match = 0;
-				faceVert2 = faceVerts2;
-				while(*faceVert2){
-					if(*faceVert2 == *faceVert1){
-						match = 1;
-						break;
+			if(f1 && f2){
+				/*test for two editfaces with same vertices but different order. Should never happen but does sometimes!*/
+				FILL_FACEVERTS(f1,faceVerts1);
+				FILL_FACEVERTS(f2,faceVerts2);
+				faceVert1 = faceVerts1;
+				i = 0;
+				while(*faceVert1){
+					match = 0;
+					faceVert2 = faceVerts2;
+					while(*faceVert2){
+						if(*faceVert2 == *faceVert1){
+							match = 1;
+							break;
+						}
+						else faceVert2++;
 					}
-					else faceVert2++;
-				}
 				
-				matchar[i] = match;
-				faceVert1++;
-				i++;
-			}
+					matchar[i] = match;
+					faceVert1++;
+					i++;
+				}
 			
-			if(!(matchar[0] == 1 && matchar[1] == 1 && matchar[2] == 1)){
-				if(f1 && f2){
+				if(!(matchar[0] == 1 && matchar[1] == 1 && matchar[2] == 1)){
 					/*do tests to disqualify potential face pairs from the sort.*/
 					if(f1->mat_nr != f2->mat_nr); /*do nothing*/
 					else if(eed->sharp); /*do nothing*/
