@@ -20,10 +20,10 @@ SConscript(['SoundSystem/SConscript',
 # perhaps get rid of intern/csg?
 NEW_CSG='false'
 
-if env['BF_NO_ELBEEM'] == 'false':
-	SConscript(['elbeem/SConscript'])
+if env['BF_NO_ELBEEM'] == 0:
+    SConscript(['elbeem/SConscript'])
 
 if NEW_CSG=='false':
-	SConscript(['bsp/SConscript'])
+    SConscript(['bsp/SConscript'])
 else:
-	SConscript(['csg/SConscript'])
+    SConscript(['csg/SConscript'])

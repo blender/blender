@@ -15,8 +15,10 @@ SConscript(['avi/SConscript',
             'radiosity/SConscript',
             'readblenfile/SConscript',
             'render/SConscript',
-            'src/SConscript',
-            'yafray/SConscript'])
+            'src/SConscript'])
+
+if env['WITH_BF_YAFRAY'] == 1:
+    SConscript(['yafray/SConscript'])
 
 if env['WITH_BF_INTERNATIONAL'] == 1:
     SConscript (['ftfont/SConscript'])

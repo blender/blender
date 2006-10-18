@@ -63,8 +63,11 @@
 
 #include "BSE_sequence.h"  /* <----------------- bad!!! */
 
+#ifndef DISABLE_YAFRAY
 /* yafray: include for yafray export/render */
 #include "YafRay_Api.h"
+
+#endif /* disable yafray */
 
 /* internal */
 #include "render_types.h"
@@ -1675,7 +1678,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 	re->display_draw(re->result, NULL);
 }
 
-
+#ifndef DISABLE_YAFRAY
 /* yafray: main yafray render/export call */
 static void yafrayRender(Render *re)
 {
@@ -1734,6 +1737,8 @@ static void yafrayRender(Render *re)
 	RE_Database_Free(re);
 }
 
+#endif /* disable yafray */
+
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -1753,10 +1758,14 @@ static void do_render_all_options(Render *re)
 		
 	}
 	else {
+#ifndef DISABLE_YAFRAY
 		if(re->r.renderer==R_YAFRAY)
 			yafrayRender(re);
 		else
 			do_render_composite_fields_blur_3d(re);
+#else
+		do_render_composite_fields_blur_3d(re);
+#endif
 	}
 	
 	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;

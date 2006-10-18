@@ -101,6 +101,8 @@
 #include "texture.h"
 #include "zbuf.h"
 
+#ifndef DISABLE_YAFRAY /* disable yafray */
+
 #include "YafRay_Api.h"
 
 /* yafray: Identity transform 'hack' removed, exporter now transforms vertices back to world.
@@ -109,6 +111,8 @@
  * only the matrix is stored for all others, in yafray these objects are instances of the original.
  * The main changes are in RE_rotateBlenderScene().
  */
+
+#endif /* disable yafray */
 
 /* ------------------------------------------------------------------------- */
 /* Local functions                                                           */
@@ -2294,6 +2298,7 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 	}
 	else lar->ray_totsamp= 0;
 	
+#ifndef DISABLE_YAFRAY
 	/* yafray: photonlight and other params */
 	if (re->r.renderer==R_YAFRAY) {
 		lar->YF_numphotons = la->YF_numphotons;
@@ -2307,6 +2312,7 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 		lar->YF_glowofs = la->YF_glowofs;
 		lar->YF_glowtype = la->YF_glowtype;
 	}
+#endif /* disable yafray */
 
 	lar->spotsi= la->spotsize;
 	if(lar->mode & LA_HALO) {
@@ -3258,6 +3264,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		
 		/* OB_DONE means the object itself got duplicated, so was already converted */
 		if (ob->flag & OB_DONE) {
+#ifndef DISABLE_YAFRAY
 			/* yafray: for some reason this part was removed, but yafray really needs it...
 			   Dupliverts objects are treated as instances of an original 'sourceobject',
 			   which needs to be included in the renderlist here.
@@ -3270,11 +3277,13 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 				init_render_object(re, ob, NULL, 0, 0);
 				ob->flag |= OB_DONE;
 			}
+#endif /* disable yafray */
 		}
 		else if( (base->lay & lay) || (ob->type==OB_LAMP && (base->lay & re->scene->lay)) ) {
 			if(ob->transflag & OB_DUPLI) {
 				
 				/* exception: mballs! */
+#ifndef DISABLE_YAFRAY
 				/* yafray: except for mballs, include at least one copy of a dupliframe object in the renderlist. */
 				if (re->r.renderer==R_YAFRAY) {
 					if ((ob->type!=OB_MBALL) && ((ob->transflag & OB_DUPLIFRAMES)!=0)) {
@@ -3282,6 +3291,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 						init_render_object(re, ob, NULL, 0, 0);
 					}
 				}
+#endif /* disable yafray */
 				/* before make duplis, update particle for current frame */
 				if(ob->transflag & OB_DUPLIVERTS) {
 					PartEff *paf= give_parteff(ob);
@@ -3303,6 +3313,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 						Mat4CpyMat4(obd->obmat, dob->mat);
 						
 						if(obd->type!=OB_MBALL) {
+#ifndef DISABLE_YAFRAY
 							/* yafray: special case handling of duplivert/dupligroup objects.
 							   Only one copy included in renderlist(see above), all others treated as instance of that.
 							   So only need to store name and matrix. Exception are lamps. lattices, armatures and camera's */
@@ -3321,6 +3332,9 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 								else init_render_object(re, obd, ob, dob->index, 0);
 							}
 							else init_render_object(re, obd, ob, dob->index, 0);
+#else
+							init_render_object(re, obd, ob, dob->index, 0);
+#endif /* disable yafray */
 						}
 						
 						if(re->test_break()) break;
@@ -3329,6 +3343,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 				}
 			}
 			else {
+#ifndef DISABLE_YAFRAY
 				/* yafray: linked data objects treated similarly to dupliverts,
 				   If object not known yet (not in renderlist), include in the renderlist,
 				   otherwise treat as instance of it, so only name and matrix are stored 
@@ -3350,6 +3365,9 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 						init_render_object(re, ob, NULL, 0, 0);
 				}
 				else init_render_object(re, ob, NULL, 0, 0);
+#else
+				init_render_object(re, ob, NULL, 0, 0);
+#endif /* disable yafray */
 			}
 
 		}

@@ -6,9 +6,14 @@ sources = env.Glob('intern/source/*.c')
 
 incs = 'intern/include #/intern/guardedalloc ../blenlib ../makesdna'
 incs += ' extern/include ../blenkernel ../radiosity/extern/include ../imbuf'
-incs += ' ../quicktime ../include ../../kernel/gen_messaging ../yafray'
+incs += ' ../quicktime ../include ../../kernel/gen_messaging'
 
 defs = []
+
+if env['WITH_BF_YAFRAY'] == 1:
+    incs += ' ../yafray'
+else:
+    defs.append('DISABLE_YAFRAY')
 
 if env['WITH_BF_QUICKTIME'] == 1:
     defs.append('WITH_QUICKTIME')

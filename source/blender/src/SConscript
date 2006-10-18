@@ -20,6 +20,9 @@ incs += ' ' + env['BF_OPENGL_INC']
 
 defs = []
 
+if env['WITH_BF_YAFRAY'] == 0:
+    defs.append('DISABLE_YAFRAY')
+
 if env['WITH_BF_INTERNATIONAL'] == 1:
     incs += ' ../ftfont'
     defs.append('INTERNATIONAL')
@@ -37,8 +40,8 @@ if env['WITH_BF_FFMPEG'] == 1:
     incs += ' ' + env['BF_FFMPEG_INC']
 
 if env['WITH_BF_VERSE']:
-	defs.append('WITH_VERSE')
-	incs += ' ' + env['BF_VERSE_INCLUDE']
+    defs.append('WITH_VERSE')
+    incs += ' ' + env['BF_VERSE_INCLUDE']
 
 # TODO buildinfo
 if env['BF_BUILDINFO'] == 1:

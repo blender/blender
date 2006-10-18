@@ -4,6 +4,8 @@ LIBDIR = '${LCGDIR}'
 WITH_BF_VERSE = 'false'
 BF_VERSE_INCLUDE = "#extern/verse/dist"
 
+WITH_BF_YAFRAY = 'true'
+
 BF_PYTHON = LIBDIR + '/python'
 BF_PYTHON_VERSION = '2.4'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'

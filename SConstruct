@@ -92,10 +92,10 @@ quickie = B.arguments.get('BF_QUICK', None)
 quickdebug = B.arguments.get('BF_QUICKDEBUG', None)
 
 if quickdebug:
-	B.quickdebug=string.split(quickdebug, ',')
+    B.quickdebug=string.split(quickdebug, ',')
 else:
-	B.quickdebug=[]
-		
+    B.quickdebug=[]
+
 if quickie:
     B.quickie=string.split(quickie,',')
 else:
@@ -120,9 +120,9 @@ env.SConscriptChdir(0)
 cc = B.arguments.get('CC', None)
 cxx = B.arguments.get('CXX', None)
 if cc:
-	env['CC'] = cc
+    env['CC'] = cc
 if cxx:
-	env['CXX'] = cxx
+    env['CXX'] = cxx
 
 if env['CC'] in ['cl', 'cl.exe'] and sys.platform=='win32':
     platform = 'win32-vc'
@@ -161,15 +161,15 @@ opts = btools.read_opts(optfiles, B.arguments)
 opts.Update(env)
 
 # disable elbeem (fluidsim) compilation?
-if env['BF_NO_ELBEEM'] == 'true':
-	env['CPPFLAGS'].append('-DDISABLE_ELBEEM')
-	env['CXXFLAGS'].append('-DDISABLE_ELBEEM')
-	env['CCFLAGS'].append('-DDISABLE_ELBEEM')
+if env['BF_NO_ELBEEM'] == 1:
+    env['CPPFLAGS'].append('-DDISABLE_ELBEEM')
+    env['CXXFLAGS'].append('-DDISABLE_ELBEEM')
+    env['CCFLAGS'].append('-DDISABLE_ELBEEM')
 
 #check for additional debug libnames
 
 if env.has_key('BF_DEBUG_LIBS'):
-	B.quickdebug += env['BF_DEBUG_LIBS']
+    B.quickdebug += env['BF_DEBUG_LIBS']
 
 printdebug = B.arguments.get('BF_LISTDEBUG', 0)
 
@@ -181,8 +181,8 @@ if env['OURPLATFORM'] == 'linux2' :
         #include "AL/alut.h"
         int main(int argc, char **argv)
         {
-	        alutGetMajorVersion();
-	        return 0;
+            alutGetMajorVersion();
+            return 0;
         }
         """
 
