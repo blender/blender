@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_dynamiclist.h"
 #include "BLI_blenlib.h"
@@ -616,10 +617,7 @@ static void cb_node_create(
 				vnode->data = create_object_data();
 				/* set up avatar's name */
 				if(node_id == session->avatar) {
-					char *client_name;
-					client_name = verse_client_name();
-					verse_send_node_name_set(node_id, client_name);
-					MEM_freeN(client_name);
+					verse_send_node_name_set(node_id, U.verseuser);
 				}
 				else if(session->flag & VERSE_AUTOSUBSCRIBE) {
 					/* subscribe to changes of object node transformations */

@@ -356,6 +356,9 @@ static void init_userdef_file(void)
 	if(strlen(U.versemaster)<1) {
 			strcpy(U.versemaster, "master.uni-verse.org");
 	}
+	if(strlen(U.verseuser)<1) {
+			strcpy(U.verseuser, verse_client_name());
+	}
 #endif
 
 }

@@ -3021,6 +3021,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp),y3label+buth+5,mpref*2,buth,
 			U.versemaster, 1.0, 63.0, 0, 0,
 			"The Verse Master-server IP");
+		uiDefBut(block, TEX, 0, "Verse Username: ",
+			(xpos+edgsp)+mpref*2+10,y3label+buth+5,mpref*2,buth,
+			U.verseuser, 1.0, 63.0, 0, 0,
+			"The Verse user name");
 #endif
 
 		uiDefBut(block, LABEL,0,"Solid OpenGL light:",

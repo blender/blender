@@ -166,13 +166,14 @@ typedef struct UserDef {
 	struct SolidLight light[3];
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
 	int textimeout, texcollectrate;
-        int memcachelimit;
-        short frameserverport;
+	int memcachelimit;
+	short frameserverport;
 	short pad;
 	short obcenter_dia;
 	short rvisize;		/* rotating view icon size */
 	short rvibright;	/* rotating view icon brightness */
 	char versemaster[160];
+	char verseuser[160];
 	short pad1;
 } UserDef;
 
