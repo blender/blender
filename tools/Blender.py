@@ -291,8 +291,8 @@ def AppIt(target=None, source=None, env=None):
     binary = env['BINARYKIND']
      
     if b=='verse':
-    	print bc.OKBLUE+"no bundle for verse"+bc.ENDC 
-    	return 0
+        print bc.OKBLUE+"no bundle for verse"+bc.ENDC 
+        return 0
    
     
     sourcedir = bldroot + '/source/darwin/%s.app'%binary
@@ -330,6 +330,27 @@ def AppIt(target=None, source=None, env=None):
 
 #### END ACTION STUFF #########
 
+def bsc(env, target, source):
+    
+    bd = os.path.dirname(target[0].abspath)
+    bscfile = '\"'+target[0].abspath+'\"'
+    bscpathcollect = '\"'+bd + os.sep + '*.sbr\"'
+    bscpathtmp = '\"'+bd + os.sep + 'bscmake.tmp\"'
+
+    os.system('dir /b/s '+bscpathcollect+' >'+bscpathtmp)
+
+    myfile = open(bscpathtmp[1:-1], 'r')
+    lines = myfile.readlines()
+    myfile.close()
+
+    newfile = open(bscpathtmp[1:-1], 'w')
+    for l in lines:
+        newfile.write('\"'+l[:-1]+'\"\n')
+    newfile.close()
+                
+    os.system('bscmake /nologo /n /o'+bscfile+' @'+bscpathtmp)
+    os.system('del '+bscpathtmp)
+
 class BlenderEnvironment(SConsEnvironment):
 
     def BlenderRes(self=None, libname=None, source=None, libtype=['core'], priority=[100]):
@@ -339,7 +360,7 @@ class BlenderEnvironment(SConsEnvironment):
             Exit()
         if self['OURPLATFORM'] not in ('win32-vc','win32-mingw','linuxcross'):
             print bc.FAIL+'BlenderRes is for windows only!'+bc.END
-            Exit()
+            self.Exit()
         
         print bc.HEADER+'Configuring resource '+bc.ENDC+bc.OKGREEN+libname+bc.ENDC
         lenv = self.Copy()
@@ -385,6 +406,8 @@ class BlenderEnvironment(SConsEnvironment):
         lenv = self.Copy()
         if lenv['OURPLATFORM'] in ['win32-vc', 'cygwin']:
             lenv.Append(LINKFLAGS = Split(lenv['PLATFORM_LINKFLAGS']))
+            if lenv['BF_DEBUG']:
+                lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb'])
         if  lenv['OURPLATFORM']=='linux2':
             lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
             lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
@@ -404,6 +427,10 @@ class BlenderEnvironment(SConsEnvironment):
              lenv.Append(LIBS = lenv['BF_QUICKTIME_LIB'])
              lenv.Append(LIBPATH = lenv['BF_QUICKTIME_LIBPATH'])
         prog = lenv.Program(target=builddir+'bin/'+progname, source=sources)
+        if lenv['BF_DEBUG'] and lenv['OURPLATFORM']=='win32-vc':
+            f = lenv.File(progname + '.bsc', builddir)
+            brs = lenv.Command(f, prog, [bsc])
+            SConsEnvironment.Default(self, brs)
         SConsEnvironment.Default(self, prog)
         program_list.append(prog)
         if  lenv['OURPLATFORM']=='darwin':
