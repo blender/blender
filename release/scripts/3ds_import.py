@@ -8,7 +8,7 @@ Tooltip: 'Import from 3DS file format (.3ds)'
 
 __author__= ['Bob Holcomb', 'Richard L?rk?ng', 'Damien McGinnes', 'Campbell Barton']
 __url__= ('blender', 'elysiun', 'http://www.gametutorials.com')
-__version__= '0.98'
+__version__= '0.99'
 __bpydoc__= '''\
 
 3ds Importer
@@ -17,6 +17,9 @@ This script imports a 3ds file and the materials into Blender for editing.
 
 Loader is based on 3ds loader from www.gametutorials.com (Thanks DigiBen).
 
+
+0.99 by Bob Holcomb<br>
+- added support for floating point color values that previously broke on import.
 
 0.98 by Campbell Barton<br>
 - import faces and verts to lists instead of a mesh, convert to a mesh later
@@ -174,7 +177,10 @@ MAT_SPECULAR_MAP=	long('0xA204',16)	# This is a header for a new specular map
 MAT_OPACITY_MAP	=	long('0xA210',16)	# This is a header for a new opacity map
 MAT_REFLECTION_MAP=	long('0xA220',16)	# This is a header for a new reflection map
 MAT_BUMP_MAP	=	long('0xA230',16)	# This is a header for a new bump map
-MAT_MAP_FILENAME =      long('0xA300',16);      # This holds the file name of the texture
+MAT_MAP_FILENAME =      long('0xA300',16)      # This holds the file name of the texture
+
+MAT_FLOAT_COLOR = long ('0x0010', 16) #color defined as 3 floats
+MAT_24BIT_COLOR	= long ('0x0011', 16) #color defined as 3 bytes
 
 #>------ sub defines of OBJECT
 OBJECT_MESH  =      long('0x4100',16);      # This lets us know that we are reading a new object
@@ -457,28 +463,48 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 		elif (new_chunk.ID==MAT_AMBIENT):
 			#print 'elif (new_chunk.ID==MAT_AMBIENT):'
 			read_chunk(file, temp_chunk)
-			temp_data=file.read(calcsize('3B'))
-			temp_chunk.bytes_read+= 3
-			contextMaterial.mirCol= [float(col)/255 for col in unpack('<3B', temp_data)] # data [0,1,2] == rgb
+			if (temp_chunk.ID==MAT_FLOAT_COLOR):
+				temp_data=file.read(calcsize('3f'))
+				temp_chunk.bytes_read+=12
+				contextMaterial.mirCol=[float(col) for col in unpack('<3f', temp_data)]
+			elif (temp_chunk.ID==MAT_24BIT_COLOR):
+				temp_data=file.read(calcsize('3B'))
+				temp_chunk.bytes_read+= 3
+				contextMaterial.mirCol= [float(col)/255 for col in unpack('<3B', temp_data)] # data [0,1,2] == rgb
+			else:
+				skip_to_end(file, temp_chunk)
 			new_chunk.bytes_read+= temp_chunk.bytes_read
 
 		elif (new_chunk.ID==MAT_DIFFUSE):
 			#print 'elif (new_chunk.ID==MAT_DIFFUSE):'
 			read_chunk(file, temp_chunk)
-			temp_data=file.read(calcsize('3B'))
-			temp_chunk.bytes_read+= 3
-			contextMaterial.rgbCol= [float(col)/255 for col in unpack('<3B', temp_data)] # data [0,1,2] == rgb
+			if (temp_chunk.ID==MAT_FLOAT_COLOR):
+				temp_data=file.read(calcsize('3f'))
+				temp_chunk.bytes_read+=12
+				contextMaterial.rgbCol=[float(col) for col in unpack('<3f', temp_data)]
+			elif (temp_chunk.ID==MAT_24BIT_COLOR):
+				temp_data=file.read(calcsize('3B'))
+				temp_chunk.bytes_read+= 3
+				contextMaterial.rgbCol= [float(col)/255 for col in unpack('<3B', temp_data)] # data [0,1,2] == rgb
+			else:
+				skip_to_end(file, temp_chunk)
 			new_chunk.bytes_read+= temp_chunk.bytes_read
 
 		elif (new_chunk.ID==MAT_SPECULAR):
 			#print 'elif (new_chunk.ID==MAT_SPECULAR):'
 			read_chunk(file, temp_chunk)
-			temp_data= file.read(calcsize('3B'))
-			temp_chunk.bytes_read+= 3
-			
-			contextMaterial.specCol= [float(col)/255 for col in unpack('<3B', temp_data)] # data [0,1,2] == rgb
+			if (temp_chunk.ID==MAT_FLOAT_COLOR):
+				temp_data=file.read(calcsize('3f'))
+				temp_chunk.bytes_read+=12
+				contextMaterial.mirCol=[float(col) for col in unpack('<3f', temp_data)]
+			elif (temp_chunk.ID==MAT_24BIT_COLOR):
+				temp_data=file.read(calcsize('3B'))
+				temp_chunk.bytes_read+= 3
+				contextMaterial.mirCol= [float(col)/255 for col in unpack('<3B', temp_data)] # data [0,1,2] == rgb
+			else:
+				skip_to_end(file, temp_chunk)
 			new_chunk.bytes_read+= temp_chunk.bytes_read
-
+			
 		elif (new_chunk.ID==MAT_TEXTURE_MAP):
 			#print 'elif (new_chunk.ID==MAT_TEXTURE_MAP):'
 			new_texture= Blender.Texture.New('Diffuse')
@@ -866,4 +892,3 @@ else:
 			load_3ds(_3ds, False)
 
 	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
-
