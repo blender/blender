@@ -448,10 +448,10 @@ void ccd_build_deflector_cache(Object *vertexowner)
 				DerivedMesh *dm= NULL;
 				int dmNeedsFree;	
 				
-				if(1) { /* so maybe someone wants overkill to collide with subsurfed */
-					dm = mesh_get_derived_deform(ob, &dmNeedsFree);
-				} else {
+				if(ob->softflag & OB_SB_COLLFINAL) { /* so maybe someone wants overkill to collide with subsurfed */
 					dm = mesh_get_derived_final(ob, &dmNeedsFree);
+				} else {
+					dm = mesh_get_derived_deform(ob, &dmNeedsFree);
 				}
 				if(dm){
 					DispListMesh *disp_mesh= NULL;

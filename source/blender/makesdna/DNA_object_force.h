@@ -135,6 +135,7 @@ typedef struct SoftBody {
 #define OB_SB_SELF		512
 #define OB_SB_COLLISIONSET 1024
 #define OB_SB_EDGECOLL     2048
+#define OB_SB_COLLFINAL    4096
 
 #ifdef __cplusplus
 }

@@ -2268,6 +2268,7 @@ static void object_softbodies_II(Object *ob)
 			uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to softbody objects");
 			if(ob->pd->deflect) {
 				uiDefButF(block, NUM, B_DIFF, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
+			    uiDefButBitS(block, TOG,OB_SB_COLLFINAL , B_DIFF, "Ev.M.Stack",10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Pick collision object from modifier stack");
 				uiDefButF(block, NUM, B_DIFF, "Inner:",	160,30,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
 				uiDefButF(block, NUM, B_DIFF, "Outer:",	160,10,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
 			}
@@ -2298,6 +2299,7 @@ static void object_softbodies_II(Object *ob)
 			uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to other softbody objects");
 			if(ob->pd->deflect) {
 				uiDefButF(block, NUM, B_DIFF, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
+			    uiDefButBitS(block, TOG,OB_SB_COLLFINAL , B_DIFF, "Ev.M.Stack",10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Pick collision object from modifier stack");
 				uiDefButF(block, NUM, B_DIFF, "Inner:",	160,30,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
 				uiDefButF(block, NUM, B_DIFF, "Outer:",	160,10,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
 			}
