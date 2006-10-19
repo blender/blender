@@ -156,6 +156,7 @@
 #include "BSE_editipo_types.h"
 
 #include "BDR_vpaint.h"
+#include "BDR_editface.h"
 #include "BDR_editmball.h"
 #include "BDR_editobject.h"
 #include "BDR_drawobject.h"
@@ -187,7 +188,7 @@ void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff 
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 
 	if ELEM3(curarea->spacetype, SPACE_VIEW3D, SPACE_BUTS, SPACE_INFO) {
-		if (G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); // freedata, and undo
+		if (G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
 		ob= add_object(type);
 		set_active_base(BASACT);
 		base_init_from_view3d(BASACT, G.vd);
@@ -401,7 +402,7 @@ static int return_editlattice_indexar(int *tot, int **indexar, float *cent)
 	BPoint *bp;
 	int *index, nr, totvert=0, a;
 	
-	// count
+	/* count */
 	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 	bp= editLatt->def;
 	while(a--) {
@@ -441,7 +442,7 @@ static void select_editlattice_hook(HookModifierData *hmd)
 	BPoint *bp;
 	int index=0, nr=0, a;
 	
-	// count
+	/* count */
 	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 	bp= editLatt->def;
 	while(a--) {
@@ -625,7 +626,7 @@ void add_hook(void)
 	
 	/* preconditions */
 
-	if(mode==2) { // selected object
+	if(mode==2) { /* selected object */
 		Base *base= FIRSTBASE;
 		while(base) {
 			if TESTBASELIB(base) {
@@ -645,7 +646,7 @@ void add_hook(void)
 		int maxlen=0, a, nr;
 		char *cp;
 		
-		// make pupmenu with hooks
+		/* make pupmenu with hooks */
 		for(md=G.obedit->modifiers.first; md; md= md->next) {
 			if (md->type==eModifierType_Hook) 
 				maxlen+=32;
@@ -728,7 +729,7 @@ void add_hook(void)
 				BLI_insertlinkbefore(&G.obedit->modifiers, md, hmd);
 				sprintf(hmd->modifier.name, "Hook-%s", ob->id.name+2);
 			}
-			else if (hmd->indexar) MEM_freeN(hmd->indexar); // reassign, hook was set
+			else if (hmd->indexar) MEM_freeN(hmd->indexar); /* reassign, hook was set */
 
 			hmd->object= ob;
 			hmd->indexar= indexar;
@@ -750,15 +751,15 @@ void add_hook(void)
 			}
 		}
 	}
-	else if(mode==3) { // remove
+	else if(mode==3) { /* remove */
 		BLI_remlink(&G.obedit->modifiers, md);
 		modifier_free(md);
 	}
-	else if(mode==5) { // select
+	else if(mode==5) { /* select */
 		hook_select(hmd);
 	}
-	else if(mode==6) { // clear offset
-		where_is_object(ob);	// ob is hook->parent
+	else if(mode==6) { /* clear offset */
+		where_is_object(ob);	/* ob is hook->parent */
 
 		Mat4Invert(ob->imat, ob->obmat);
 		/* this call goes from right to left... */
@@ -990,7 +991,7 @@ void clear_object(char mode)
 			ob= base->object;
 			
 			if(ob->flag & OB_POSEMODE) {
-				// no test if we got armature; could be in future...
+				/* no test if we got armature; could be in future... */
 				clear_armature(ob, mode);
 			}
 			else if((G.f & G_WEIGHTPAINT)==0) {
@@ -1228,7 +1229,7 @@ void make_vertex_parent(void)
 	allqueue(REDRAWVIEW3D, 0);
 	
 	DAG_scene_sort(G.scene);
-	// BIF_undo_push(str); not, conflicts with editmode undo...
+	/* BIF_undo_push(str); not, conflicts with editmode undo... */
 }
 
 int test_parent_loop(Object *par, Object *ob)
@@ -1289,7 +1290,7 @@ void make_parent(void)
 			mode= PAROBJECT;
 			if((cu->flag & CU_PATH)==0) {
 				cu->flag |= CU_PATH|CU_FOLLOW;
-				makeDispListCurveTypes(par, 0);  // force creation of path data
+				makeDispListCurveTypes(par, 0);  /* force creation of path data */
 			}
 			else cu->flag |= CU_FOLLOW;
 		}
@@ -1658,7 +1659,7 @@ void check_editmode(int type)
 	
 	if (G.obedit==0 || G.obedit->type==type) return;
 
-	exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); // freedata, and undo
+	exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
 }
 
 /* 0 == do centre, 1 == centre new, 2 == centre cursor */
@@ -1670,8 +1671,8 @@ void docentre(int centremode)
 	Object *ob;
 	Mesh *me, *tme;
 	Curve *cu;
-//	BezTriple *bezt;
-//	BPoint *bp;
+/*	BezTriple *bezt;
+	BPoint *bp; */
 	Nurb *nu, *nu1;
 	EditVert *eve;
 	float cent[3], centn[3], min[3], max[3], omat[3][3];
@@ -2000,8 +2001,8 @@ void split_font()
 		adduplicate(1, U.dupflag);
 		cu= OBACT->data;
 		cu->sepchar = i+1;
-		text_to_curve(OBACT, 0);	// pass 1: only one letter, adapt position
-		text_to_curve(OBACT, 0);	// pass 2: remake
+		text_to_curve(OBACT, 0);	/* pass 1: only one letter, adapt position */
+		text_to_curve(OBACT, 0);	/* pass 2: remake */
 		freedisplist(&OBACT->disp);
 		makeDispListCurveTypes(OBACT, 0);
 		
@@ -2035,7 +2036,7 @@ void special_editmenu(void)
 			
 			if(me==0 || me->tface==0) return;
 			
-			nr= pupmenu("Specials%t|Set     Tex%x1|         Shared%x2|         Light%x3|         Invisible%x4|         Collision%x5|Clr     Tex%x6|         Shared%x7|         Light%x8|         Invisible%x9|         Collision%x10");
+			nr= pupmenu("Specials%t|Set     Tex%x1|         Shared%x2|         Light%x3|         Invisible%x4|         Collision%x5|         TwoSide%x6|Clr     Tex%x7|         Shared%x8|         Light%x9|         Invisible%x10|         Collision%x11|         TwoSide%x12");
 	
 			for(a=me->totface, tface= me->tface; a>0; a--, tface++) {
 				if(tface->flag & SELECT) {
@@ -2051,17 +2052,21 @@ void special_editmenu(void)
 					case 5:
 						tface->mode |= TF_DYNAMIC; break;
 					case 6:
+						tface->mode |= TF_TWOSIDE; break;
+					case 7:
 						tface->mode &= ~TF_TEX;
 						tface->tpage= 0;
 						break;
-					case 7:
-						tface->mode &= ~TF_SHAREDCOL; break;
 					case 8:
-						tface->mode &= ~TF_LIGHT; break;
+						tface->mode &= ~TF_SHAREDCOL; break;
 					case 9:
-						tface->mode &= ~TF_INVISIBLE; break;
+						tface->mode &= ~TF_LIGHT; break;
 					case 10:
+						tface->mode &= ~TF_INVISIBLE; break;
+					case 11:
 						tface->mode &= ~TF_DYNAMIC; break;
+					case 12:
+						tface->mode &= ~TF_TWOSIDE; break;
 					}
 				}
 			}
@@ -2103,20 +2108,20 @@ void special_editmenu(void)
 		else {
 			Base *base, *base_select= NULL;
 			
-			// Get the active object mesh.
+			/* Get the active object mesh. */
 			Mesh *me= get_mesh(ob);
 
-			// Booleans, if the active object is a mesh...
+			/* Booleans, if the active object is a mesh... */
 			if (me && ob->id.lib==NULL) {
 				
-				// Bring up a little menu with the boolean operation choices on.
+				/* Bring up a little menu with the boolean operation choices on. */
 				nr= pupmenu("Boolean Tools%t|Intersect%x1|Union%x2|Difference%x3|Add Intersect Modifier%x4|Add Union Modifier%x5|Add Difference Modifier%x6");
 
 				if (nr > 0) {
-					// user has made a choice of a menu element.
-					// All of the boolean functions require 2 mesh objects 
-					// we search through the object list to find the other 
-					// selected item and make sure it is distinct and a mesh.
+					/* user has made a choice of a menu element.
+					   All of the boolean functions require 2 mesh objects 
+					   we search through the object list to find the other 
+					   selected item and make sure it is distinct and a mesh. */
 
 					for(base= FIRSTBASE; base; base= base->next) {
 						if TESTBASELIB(base) {
@@ -2200,7 +2205,7 @@ void special_editmenu(void)
 			break;
 			
 		case 12:	/* smooth */
-			//if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
+			/* if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return; */
 			fac= 1.0f;
 			if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
 				fac= 0.292f*fac;
@@ -2449,7 +2454,7 @@ void convertmenu(void)
 
 				/* make new mesh data from the original copy */
 				dm= mesh_get_derived_final(ob1, &needsfree);
-				//dm= mesh_create_derived_no_deform(ob1, NULL);	this was called original (instead of get_derived). man o man why! (ton)
+				/* dm= mesh_create_derived_no_deform(ob1, NULL);	this was called original (instead of get_derived). man o man why! (ton) */
 				
 				DM_to_mesh(dm, ob1->data);
 
@@ -2510,14 +2515,14 @@ void convertmenu(void)
 					cu= ob->data;
 					
 					dl= cu->disp.first;
-					if(dl==0) makeDispListCurveTypes(ob, 0);		// force creation
+					if(dl==0) makeDispListCurveTypes(ob, 0);		/* force creation */
 
 					nurbs_to_mesh(ob); /* also does users */
 
 					/* texspace and normals */
 					BASACT= base;
 					enter_editmode(EM_WAITCURSOR);
-					exit_editmode(EM_FREEDATA|EM_WAITCURSOR); // freedata, but no undo
+					exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 					BASACT= basact;
  				}
 			}
@@ -2561,7 +2566,7 @@ void convertmenu(void)
 						/* So we can see the wireframe */
 						BASACT= basen;
 						enter_editmode(EM_WAITCURSOR);
-						exit_editmode(EM_FREEDATA|EM_WAITCURSOR); // freedata, but no undo
+						exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 						BASACT= basact;
 						
 						/* If the original object is active then make this object active */
@@ -2808,50 +2813,6 @@ static void copymenu_modifiers(Object *ob)
 	BIF_undo_push("Copy modifiers");
 }
 
-void copy_attr_menu()
-{
-	Object *ob;
-	short event;
-	char str[512];
-
-	/* If you change this menu, don't forget to update the menu in header_view3d.c
-	 * view3d_edit_object_copyattrmenu() and in toolbox.c
-	 */
-	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Drawtype%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|%l");
-
-	if(!(ob=OBACT)) return;
-	
-	strcat (str, "|Object Constraints%x22");
-	strcat (str, "|NLA Strips%x26");
-	
-	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) {
-		strcat(str, "|Texture Space%x17");
-	}	
-	
-	if(ob->type == OB_FONT) strcat(str, "|Font Settings%x18|Bevel Settings%x19");
-	if(ob->type == OB_CURVE) strcat(str, "|Bevel Settings%x19|UV Orco%x28");
-	
-	if((ob->type == OB_FONT) || (ob->type == OB_CURVE)) {
-			strcat(str, "|Curve Resolution%x25");
-	}
-
-	if(ob->type==OB_MESH){
-		strcat(str, "|Subdiv%x21|AutoSmooth%x27");
-	}
-
-	if( give_parteff(ob) ) strcat(str, "|Particle Settings%x20");
-
-	if(ob->soft) strcat(str, "|Soft Body Settings%x23");
-	
-	if(ob->type==OB_MESH || ob->type==OB_CURVE){
-		strcat(str, "|Modifiers ...%x24");
-	}
-
-	event= pupmenu(str);
-	if(event<= 0) return;
-	
-	copy_attr(event);
-}
 
 void copy_attr(short event)
 {
@@ -2984,7 +2945,7 @@ void copy_attr(short event)
 						cu1->vfontbi= cu->vfontbi;
 						id_us_plus((ID *)cu1->vfontbi);						
 
-						text_to_curve(base->object, 0);		// needed?
+						text_to_curve(base->object, 0);		/* needed? */
 
 						
 						strcpy(cu1->family, cu->family);
@@ -3136,6 +3097,97 @@ void copy_attr(short event)
 	
 	BIF_undo_push("Copy Attributes");
 }
+
+void copy_attr_tface(short event)
+{
+	/* Face Select Mode */
+	Object *ob= OBACT;
+	Mesh *me= get_mesh(ob);
+	TFace *tface;
+	TFace *activetf= get_active_tface();
+	int a;
+	
+	if(activetf==NULL) return;
+	
+	for(a=me->totface, tface= me->tface; a>0; a--, tface++) {
+		if(tface->flag & SELECT) {
+			switch(event) {
+			case 1:
+				tface->tpage = activetf->tpage;
+				tface->tile= activetf->tile;
+				tface->mode = activetf->mode & TF_TEX;
+				break;
+			case 2:
+				memcpy(tface->uv, activetf->uv, sizeof(tface->uv)); break;
+			case 3:
+				memcpy(tface->col, activetf->col, sizeof(tface->col)); break;
+			case 4:
+				tface->mode = activetf->mode; break;
+			case 5:
+				tface->transp= activetf->transp; break;
+			}
+		}
+	}
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	BIF_undo_push("Copy texture face");
+}
+
+void copy_attr_menu()
+{
+	Object *ob;
+	short event;
+	
+	if(!(ob=OBACT)) return;
+	
+	if(G.f & G_FACESELECT) {
+		event= pupmenu("Copy Active Texface%t|Image%x1|UV Coords%x2|Color%x3|Mode%x4|Transp%x5");
+		copy_attr_tface(event);
+	
+	} else { /* Object Mode */
+		
+		/* If you change this menu, don't forget to update the menu in header_view3d.c
+		 * view3d_edit_object_copyattrmenu() and in toolbox.c
+		 */
+		
+		char str[512];
+		
+		strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Drawtype%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|%l");
+		
+		strcat (str, "|Object Constraints%x22");
+		strcat (str, "|NLA Strips%x26");
+		
+		if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) {
+			strcat(str, "|Texture Space%x17");
+		}	
+		
+		if(ob->type == OB_FONT) strcat(str, "|Font Settings%x18|Bevel Settings%x19");
+		if(ob->type == OB_CURVE) strcat(str, "|Bevel Settings%x19|UV Orco%x28");
+		
+		if((ob->type == OB_FONT) || (ob->type == OB_CURVE)) {
+				strcat(str, "|Curve Resolution%x25");
+		}
+
+		if(ob->type==OB_MESH){
+			strcat(str, "|Subdiv%x21|AutoSmooth%x27");
+		}
+
+		if( give_parteff(ob) ) strcat(str, "|Particle Settings%x20");
+
+		if(ob->soft) strcat(str, "|Soft Body Settings%x23");
+		
+		if(ob->type==OB_MESH || ob->type==OB_CURVE){
+			strcat(str, "|Modifiers ...%x24");
+		}
+
+		event= pupmenu(str);
+		if(event<= 0) return;
+		
+		copy_attr(event);
+	}
+}
+
 
 void link_to_scene(unsigned short nr)
 {	
@@ -3370,7 +3422,7 @@ void make_duplilist_real()
 {
 	Base *base, *basen;
 	Object *ob;
-//	extern ListBase duplilist;
+/*	extern ListBase duplilist; */
 	
 	if(okee("Make dupli objects real")==0) return;
 	
@@ -3486,8 +3538,8 @@ void apply_object()
 				/* texspace and normals */
 				BASACT= base;
 				enter_editmode(EM_WAITCURSOR);
-				BIF_undo_push("Applied object");	// editmode undo itself
-				exit_editmode(EM_FREEDATA|EM_WAITCURSOR); // freedata, but no undo
+				BIF_undo_push("Applied object");	/* editmode undo itself */
+				exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 				BASACT= basact;				
 				
 			}
@@ -3554,8 +3606,8 @@ void apply_object()
 				/* texspace and normals */
 				BASACT= base;
 				enter_editmode(EM_WAITCURSOR);
-				BIF_undo_push("Applied object");	// editmode undo itself
-				exit_editmode(EM_FREEDATA|EM_WAITCURSOR); // freedata, but no undo
+				BIF_undo_push("Applied object");	/* editmode undo itself */
+				exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 				BASACT= basact;
 			}
 		}
@@ -4236,7 +4288,7 @@ void make_local(int mode)
 	if(G.scene->id.lib) return;
 	
 	if(mode==3) {
-		all_local(NULL);	// NULL is all libs
+		all_local(NULL);	/* NULL is all libs */
 		allqueue(REDRAWALL, 0);
 		return;
 	}
@@ -4407,7 +4459,7 @@ void adduplicate(int mode, int dupflag)
 		
 			ob= base->object;
 			if(ob->flag & OB_POSEMODE) {
-				; // nothing?
+				; /* nothing? */
 			}
 			else {
 				obn= copy_object(ob);
