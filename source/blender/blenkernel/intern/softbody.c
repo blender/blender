@@ -1012,10 +1012,11 @@ void scan_for_ext_spring_forces(Object *ob)
 				/* note we don't use sb->mediafrict but use sb->aeroedge for magnitude of effect*/ 
 				if(sb->aeroedge){
 					float vel[3],sp[3],pr[3],force[3];
-					float f,windfactor  = 1.0f;   
+					float f,windfactor  = 250.0f;   
 					/*see if we have wind*/
 					if(do_effector) {
-						float speed[3],pos[3];
+						float speed[3]={0.0f,0.0f,0.0f};
+						float pos[3];
 						VecMidf(pos, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
 						VecMidf(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
 						pdDoEffectors(do_effector, pos, force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
