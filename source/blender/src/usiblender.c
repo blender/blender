@@ -357,7 +357,9 @@ static void init_userdef_file(void)
 			strcpy(U.versemaster, "master.uni-verse.org");
 	}
 	if(strlen(U.verseuser)<1) {
-			strcpy(U.verseuser, verse_client_name());
+			char *name = verse_client_name();
+			strcpy(U.verseuser, name);
+			MEM_freeN(name);
 	}
 #endif
 
