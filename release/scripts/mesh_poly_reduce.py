@@ -67,6 +67,7 @@ def main():
 	PREF_DO_UV= Draw.Create(1)
 	PREF_DO_VCOL= Draw.Create(1)
 	PREF_DO_WEIGHTS= Draw.Create(1)
+	PREF_OTHER_SEL_OBS= Draw.Create(0)
 	
 	pup_block = [\
 	('Poly Reduce:', PREF_REDUX, 0.05, 0.95, 'Scale the meshes poly count by this value.'),\
@@ -83,6 +84,9 @@ def main():
 	('Vert Colors', PREF_DO_VCOL, 'Interpolate Vertex Colors'),\
 	('Vert Weights', PREF_DO_WEIGHTS, 'Interpolate Vertex Weights'),\
 	('Remove Doubles', PREF_REM_DOUBLES, 'Remove doubles before reducing to avoid boundry tearing.'),\
+	'',\
+	('Other Selected Obs', PREF_OTHER_SEL_OBS, 'reduce other selected objects.'),\
+	
 	]
 	
 	if not Draw.PupBlock("X Mirror mesh tool", pup_block):
@@ -107,7 +111,7 @@ def main():
 	PREF_DO_UV= PREF_DO_UV.val
 	PREF_DO_VCOL= PREF_DO_VCOL.val
 	PREF_DO_WEIGHTS= PREF_DO_WEIGHTS.val
-	
+	PREF_OTHER_SEL_OBS= PREF_OTHER_SEL_OBS.val
 	
 	
 	t= sys.time()
@@ -115,8 +119,15 @@ def main():
 	is_editmode = Window.EditMode() # Exit Editmode.
 	if is_editmode: Window.EditMode(0)
 	Window.WaitCursor(1)	
-	
+	print 'reducing:', act_ob.name, act_ob.getData(1)
 	BPyMesh.redux(act_ob, PREF_REDUX, PREF_BOUNDRY_WEIGHT, PREF_REM_DOUBLES, PREF_FACE_AREA_WEIGHT, PREF_FACE_TRIANGULATE, PREF_DO_UV, PREF_DO_VCOL, PREF_DO_WEIGHTS, VGROUP_INF_REDUX, VGROUP_INF_WEIGHT)
+	
+	if PREF_OTHER_SEL_OBS:
+		for ob in scn.objects.context:
+			if ob.type == 'Mesh' and ob != act_ob:
+				print 'reducing:', ob.name, ob.getData(1)
+				BPyMesh.redux(ob, PREF_REDUX, PREF_BOUNDRY_WEIGHT, PREF_REM_DOUBLES, PREF_FACE_AREA_WEIGHT, PREF_FACE_TRIANGULATE, PREF_DO_UV, PREF_DO_VCOL, PREF_DO_WEIGHTS, VGROUP_INF_REDUX, VGROUP_INF_WEIGHT)
+				Window.RedrawAll()
 	
 	if is_editmode: Window.EditMode(1)
 	Window.WaitCursor(0)
