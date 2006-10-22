@@ -1238,10 +1238,19 @@ void do_global_buttons(unsigned short event)
 		break;
 
 	case B_IMAGEDELETE:
-		G.sima->image= NULL;
-		image_changed(G.sima, 0);
-		BIF_undo_push("Unlink Image");
-		allqueue(REDRAWIMAGE, 0);
+		
+		if(G.sima->image && BLI_streq(G.sima->image->id.name+2, "Render Result")==0) {
+			/* Run on non render images, unlink normally */
+			G.sima->image= NULL;
+			image_changed(G.sima, 0);
+			BIF_undo_push("Unlink Image");
+			allqueue(REDRAWIMAGE, 0);
+		} else {
+			/* Run if G.sima is render, remove the render and display the meshes image if it exists */
+			G.sima->image= NULL;
+			what_image(G.sima);
+			allqueue(REDRAWIMAGE, 0);
+		}
 		break;
 	
 	case B_AUTOMATNAME:
