@@ -5868,6 +5868,7 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 	case OB_MESH:
 		if (!cage) {
 			Mesh *origmesh= ob->data;
+			self->mesh->flag= origmesh->flag;
 			self->mesh->mat = MEM_dupallocN(origmesh->mat);
 			self->mesh->totcol = origmesh->totcol;		
 			if( origmesh->mat ) {
