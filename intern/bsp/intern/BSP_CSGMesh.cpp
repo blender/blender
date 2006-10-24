@@ -30,10 +30,6 @@
  */
 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "BSP_CSGMesh.h"
 #include "MT_assert.h"
 #include "CTR_TaggedSetOps.h"
@@ -78,23 +74,39 @@ NewCopy(
 
 	if (m_edges != NULL) {
                 mesh->m_edges = new vector<BSP_MEdge>(*m_edges);
-		if (mesh->m_edges == NULL) return NULL;
+		if (mesh->m_edges == NULL) {
+			delete mesh;
+			return NULL;
+		}
 	}
 	if (m_verts != NULL) {
                 mesh->m_verts = new vector<BSP_MVertex>(*m_verts);
-		if (mesh->m_verts == NULL) return NULL;
+		if (mesh->m_verts == NULL) {
+			if (m_edges != NULL) free(mesh->m_edges);
+			delete mesh;
+			return NULL;
+		}
 	}
 	if (m_faces != NULL) {
                 mesh->m_faces = new vector<BSP_MFace>(*m_faces);
-		if (mesh->m_faces == NULL) return NULL;
+		if (mesh->m_faces == NULL) {
+			delete mesh;
+			return NULL;
+		}
 	}
 	if (m_fv_data != NULL) {
                 mesh->m_fv_data = new BSP_CSGUserData(*m_fv_data);
-		if (mesh->m_fv_data == NULL) return NULL;
+		if (mesh->m_fv_data == NULL) {
+			delete mesh;
+			return NULL;
+		}
 	}
 	if (m_face_data != NULL) {
                 mesh->m_face_data = new BSP_CSGUserData(*m_face_data);
-		if (mesh->m_face_data == NULL) return NULL;
+		if (mesh->m_face_data == NULL) {
+			delete mesh;
+			return NULL;
+		}
 	}
 
 	return mesh;
@@ -888,6 +900,4 @@ CountTriangles(
 
 	return sum;
 }
-
-
 
