@@ -1713,9 +1713,12 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 			else if(all_z) {
 				env= 1;
 				nofill= 0;
-				ma= NULL;
+				ma= NULL; 
 			}
-			else nofill= 1;
+			else {
+				nofill= 1;
+				ma= NULL;	/* otherwise nofill can hang */
+			}
 			
 			if(nofill==0) {
 				unsigned short partclip;
