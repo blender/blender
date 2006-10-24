@@ -2153,7 +2153,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 			if(la->buftype==LA_SHADBUF_IRREGULAR)
 				tip= "Irregular buffer produces sharp shadow always, but it doesn't show up for raytracing";
 			else if(la->buftype==LA_SHADBUF_HALFWAY)
-				tip= "Regular buffer, averaginng the closest and 2nd closest Z value for reducing biasing";
+				tip= "Regular buffer, averaging the closest and 2nd closest Z value for reducing biasing";
 			
 			uiDefButC(block, MENU, B_REDR, "Classical %x0|Classic-Halfway %x2|Irregular %x1", 10,140,80,19,&la->buftype, 0, 0, 0, 0, tip);
 		}

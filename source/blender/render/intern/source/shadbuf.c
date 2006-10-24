@@ -1609,6 +1609,7 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 	
 	/* branches are added using memarena (32k branches) */
 	memarena = BLI_memarena_new(0x8000 * sizeof(ISBBranch));
+	BLI_memarena_use_calloc(memarena);
 	
 	/* samplebuf is in camera view space (pixels) */
 	for(sample=0; sample<(R.osa?R.osa:1); sample++)
@@ -1803,6 +1804,7 @@ static void isb_make_buffer_transp(RenderPart *pa, APixstr *apixbuf, LampRen *la
 	
 	/* branches are added using memarena (32k branches) */
 	memarena = BLI_memarena_new(0x8000 * sizeof(ISBBranch));
+	BLI_memarena_use_calloc(memarena);
 	
 	/* samplebuf is in camera view space (pixels) */
 	for(sample=0; sample<(R.osa?R.osa:1); sample++)

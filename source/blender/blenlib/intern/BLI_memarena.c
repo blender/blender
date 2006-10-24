@@ -47,6 +47,8 @@ struct MemArena {
 	unsigned char *curbuf;
 	int bufsize, cursize;
 	
+	int use_calloc;	
+	
 	LinkNode *bufs;
 };
 
@@ -56,8 +58,13 @@ MemArena *BLI_memarena_new(int bufsize) {
 	
 	return ma;
 }
+
+void BLI_memarena_use_calloc(MemArena *ma) {
+	ma->use_calloc= 1;
+}
+
 void BLI_memarena_free(MemArena *ma) {
-	BLI_linklist_free(ma->bufs, (void(*)(void*)) free);
+	BLI_linklist_free(ma->bufs, (void(*)(void*)) MEM_freeN);
 	MEM_freeN(ma);
 }
 
@@ -73,7 +80,10 @@ void *BLI_memarena_alloc(MemArena *ma, int size) {
 	
 	if (size>ma->cursize) {
 		ma->cursize= (size>ma->bufsize)?size:ma->bufsize;
-		ma->curbuf= malloc(ma->cursize);
+		if(ma->use_calloc)
+			ma->curbuf= MEM_callocN(ma->cursize, "memarena calloc");
+		else
+			ma->curbuf= MEM_mallocN(ma->cursize, "memarena malloc");
 		
 		BLI_linklist_prepend(&ma->bufs, ma->curbuf);
 	}
