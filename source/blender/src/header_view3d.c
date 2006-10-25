@@ -2152,6 +2152,9 @@ static void do_view3d_edit_objectmenu(void *arg, int event)
 		if(session) b_verse_push_object(session, ob);
 		break;
 #endif
+	case 17: /* Transform snap to grid */
+		G.vd->flag2 ^= V3D_TRANSFORM_SNAP;
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2176,6 +2179,12 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 		}
 	}
 #endif
+
+	if (G.vd->flag2 & V3D_TRANSFORM_SNAP)
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Transform Snap",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+	else
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Transform Snap",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+	
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
@@ -2712,6 +2721,9 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 		if(session) b_verse_push_object(session, G.obedit);
 		break;
 #endif
+	case 17: /* Transform snap to grid */
+		G.vd->flag2 ^= V3D_TRANSFORM_SNAP;
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2739,6 +2751,11 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
+	if (G.vd->flag2 & V3D_TRANSFORM_SNAP)
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Transform Snap",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+	else
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Transform Snap",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, 120, 19, "");

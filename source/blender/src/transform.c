@@ -699,6 +699,7 @@ static void transformEvent(unsigned short event, short val) {
 			break;
 		}
 		Trans.redraw |= handleNumInput(&(Trans.num), event);
+		Trans.redraw |= handleSnapping(&Trans, event);
 		arrows_move_cursor(event);
 	}
 	else {
@@ -2053,6 +2054,8 @@ void initTranslation(TransInfo *t)
 		t->snap[0] = 0.0f;
 		t->snap[1] = t->snap[2] = 1.0f;
 	}
+	
+	initSnapping(t);
 }
 
 static void headerTranslation(TransInfo *t, float vec[3], char *str) {
@@ -2152,14 +2155,16 @@ int Translation(TransInfo *t, short mval[2])
 		float pvec[3] = {0.0f, 0.0f, 0.0f};
 		t->con.applyVec(t, NULL, t->vec, tvec, pvec);
 		VECCOPY(t->vec, tvec);
+		applySnapping(t, t->vec);
 		headerTranslation(t, pvec, str);
 	}
 	else {
 		snapGrid(t, t->vec);
 		applyNumInput(&t->num, t->vec);
+		applySnapping(t, t->vec);
 		headerTranslation(t, t->vec, str);
 	}
-
+	
 	applyTranslation(t, t->vec);
 
 	/* evil hack - redo translation if cliiping needeed */
@@ -2169,8 +2174,10 @@ int Translation(TransInfo *t, short mval[2])
 	recalcData(t);
 
 	headerprint(str);
-
+	
 	viewRedrawForce(t);
+
+	drawSnapping(t);
 
 	return 1;
 }

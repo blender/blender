@@ -59,6 +59,13 @@ typedef struct NumInput {
 		Negative	: number is negative
 */
 
+typedef struct TransSnap {
+	int  status;
+	float snapPoint[3];
+	void (*applySnap)(struct TransInfo *, float *);
+	void (*calcSnap)(struct TransInfo *, float *);
+} TransSnap;
+
 typedef struct TransCon {
     char  text[50];      /* Description of the Constraint for header_print                            */
     float mtx[3][3];     /* Matrix of the Constraint space                                            */
@@ -147,6 +154,7 @@ typedef struct TransInfo {
 	TransDataExtension *ext;	/* transformed data extension (array)   */
 	TransData2D *data2d;		/* transformed data for 2d (array)      */
     TransCon    con;            /* transformed constraint               */
+    TransSnap	tsnap;
     NumInput    num;            /* numerical input                      */
     char        redraw;         /* redraw flag                          */
 	float		propsize;		/* proportional circle radius           */
@@ -331,6 +339,23 @@ void postSelectConstraint(TransInfo *t);
 
 void setNearestAxis(TransInfo *t);
 
+/*********************** Snapping ********************************/
+
+typedef enum {
+	NO_GEARS 	= 0,
+	BIG_GEARS	= 1,
+	SMALL_GEARS	= 2
+} GearsType;
+
+void snapGrid(TransInfo *t, float *val);
+void snapGridAction(TransInfo *t, float *val, GearsType action);
+
+void initSnapping(struct TransInfo *t);
+void applySnapping(TransInfo *t, float *vec);
+void resetSnapping(TransInfo *t);
+int  handleSnapping(TransInfo *t, int event);
+void drawSnapping(TransInfo *t);
+
 /*********************** Generics ********************************/
 
 void initTrans(TransInfo *t);
@@ -355,8 +380,6 @@ void calculateCenterMedian(TransInfo *t);
 void calculateCenterCursor(TransInfo *t);
 
 void calculatePropRatio(TransInfo *t);
-
-void snapGrid(TransInfo *t, float *val);
 
 void getViewVector(float coord[3], float vec[3]);
 

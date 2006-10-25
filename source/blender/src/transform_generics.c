@@ -480,6 +480,7 @@ void initTrans (TransInfo *t)
 		t->around = V3D_CENTRE;
 
 	setTransformViewMatrices(t);
+	resetSnapping(t);
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
@@ -530,65 +531,6 @@ void postTrans (TransInfo *t)
 		if (G.sima->flag & SI_LIVE_UNWRAP)
 			unwrap_lscm_live_end(t->state == TRANS_CANCEL);
 	}
-}
-
-static void apply_grid3(TransInfo *t, float *val, int max_index, float fac1, float fac2, float fac3)
-{
-	/* fac1 is for 'nothing', fac2 for CTRL, fac3 for SHIFT */
-	int invert;
-	int ctrl;
-	int i;
-	float asp= 1.0f;
-
-	if(t->mode==TFM_ROTATION || t->mode==TFM_WARP || t->mode==TFM_TILT || t->mode==TFM_TRACKBALL)
-		invert = U.flag & USER_AUTOROTGRID;
-	else if(t->mode==TFM_RESIZE || t->mode==TFM_SHEAR || t->mode==TFM_BONESIZE || t->mode==TFM_SHRINKFATTEN || t->mode==TFM_CURVE_SHRINKFATTEN)
-		invert = U.flag & USER_AUTOSIZEGRID;
-	else
-		invert = U.flag & USER_AUTOGRABGRID;
-	
-	for (i=0; i<=max_index; i++) {
-
-		/* evil hack - snapping needs to be adapted for image aspect ratio */
-		if((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
-			float aspx, aspy;
-			transform_aspect_ratio_tface_uv(&aspx, &aspy);
-			if(i==0) asp= aspx;
-			else asp= aspy;
-		}
-
-		if(invert) {
-			if(G.qual & LR_CTRLKEY) ctrl= 0;
-			else ctrl= 1;
-		}
-		else ctrl= (G.qual & LR_CTRLKEY);
-
-		if(ctrl && (G.qual & LR_SHIFTKEY)) {
-			if(fac3!= 0.0) {
-				for (i=0; i<=max_index; i++) {
-					val[i]= fac3*asp*(float)floor(val[i]/(fac3*asp) +.5);
-				}
-			}
-		}
-		else if(ctrl) {
-			if(fac2!= 0.0) {
-				for (i=0; i<=max_index; i++) {
-					val[i]= fac2*asp*(float)floor(val[i]/(fac2*asp) +.5);
-				}
-			}
-		}
-		else {
-			if(fac1!= 0.0) {
-				for (i=0; i<=max_index; i++) {
-					val[i]= fac1*asp*(float)floor(val[i]/(fac1*asp) +.5);
-				}
-			}
-		}
-	}
-}
-
-void snapGrid(TransInfo *t, float *val) {
-	apply_grid3(t, val, t->idx_max, t->snap[0], t->snap[1], t->snap[2]);
 }
 
 void applyTransObjects(TransInfo *t)
