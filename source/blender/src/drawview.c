@@ -518,6 +518,7 @@ static void drawgrid(void)
 	float wx, wy, x, y, fw, fx, fy, dx;
 	float vec4[4];
 	char col[3], col2[3];
+	short sublines = G.vd->gridsubdiv;
 	
 	vec4[0]=vec4[1]=vec4[2]=0.0; 
 	vec4[3]= 1.0;
@@ -550,16 +551,16 @@ static void drawgrid(void)
 	persp(PERSP_WIN);
 	
 	if(dx<6.0) {
-		G.vd->gridview*= 10.0;
-		dx*= 10.0;
+		G.vd->gridview*= sublines;
+		dx*= sublines;
 		
 		if(dx<6.0) {	
-			G.vd->gridview*= 10.0;
-			dx*= 10.0;
+			G.vd->gridview*= sublines;
+			dx*= sublines;
 			
 			if(dx<6.0) {
-				G.vd->gridview*= 10.0;
-				dx*=10;
+				G.vd->gridview*= sublines;
+				dx*=sublines;
 				if(dx<6.0);
 				else {
 					BIF_ThemeColor(TH_GRID);
@@ -571,7 +572,7 @@ static void drawgrid(void)
 				drawgrid_draw(wx, wy, x, y, dx);
 			
 				BIF_ThemeColor(TH_GRID);
-				drawgrid_draw(wx, wy, x, y, 10*dx);
+				drawgrid_draw(wx, wy, x, y, sublines*dx);
 			}
 		}
 		else {	// start blending out (6 < dx < 60)
@@ -579,16 +580,16 @@ static void drawgrid(void)
 			drawgrid_draw(wx, wy, x, y, dx);
 			
 			BIF_ThemeColor(TH_GRID);
-			drawgrid_draw(wx, wy, x, y, 10*dx);
+			drawgrid_draw(wx, wy, x, y, sublines*dx);
 		}
 	}
 	else {
 		if(dx>60.0) {		// start blending in
-			G.vd->gridview/= 10.0;
-			dx/= 10.0;			
+			G.vd->gridview/= sublines;
+			dx/= sublines;			
 			if(dx>60.0) {		// start blending in
-				G.vd->gridview/= 10.0;
-				dx/= 10.0;
+				G.vd->gridview/= sublines;
+				dx/= sublines;
 				if(dx>60.0) {
 					BIF_ThemeColor(TH_GRID);
 					drawgrid_draw(wx, wy, x, y, dx);
@@ -597,21 +598,21 @@ static void drawgrid(void)
 					BIF_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
 					drawgrid_draw(wx, wy, x, y, dx);
 					BIF_ThemeColor(TH_GRID);
-					drawgrid_draw(wx, wy, x, y, dx*10);
+					drawgrid_draw(wx, wy, x, y, dx*sublines);
 				}
 			}
 			else {
 				BIF_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
 				drawgrid_draw(wx, wy, x, y, dx);
 				BIF_ThemeColor(TH_GRID);				
-				drawgrid_draw(wx, wy, x, y, dx*10);
+				drawgrid_draw(wx, wy, x, y, dx*sublines);
 			}
 		}
 		else {
 			BIF_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
 			drawgrid_draw(wx, wy, x, y, dx);
 			BIF_ThemeColor(TH_GRID);
-			drawgrid_draw(wx, wy, x, y, dx*10);
+			drawgrid_draw(wx, wy, x, y, dx*sublines);
 		}
 	}
 
@@ -637,6 +638,7 @@ static void drawgrid(void)
 	glDepthMask(1);		// enable write in zbuffer
 	persp(PERSP_VIEW);
 }
+
 
 
 static void drawfloor(void)
@@ -2437,8 +2439,11 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	}
 
 	uiDefBut(block, LABEL, 1, "Grid:",					10, 220, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, REDRAWVIEW3D, "Spacing:",		10, 200, 140, 19, &vd->grid, 0.001, 100.0, 10, 0, "Set the distance between grid lines");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "Lines:",		10, 176, 140, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of grid lines");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "Lines:",		10, 180, 140, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of grid lines");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "Divisions:",		10, 160, 140, 19, &vd->gridsubdiv, 0.0, 100.0, 100, 0, "Set the number of grid lines");
+	uiBlockEndAlign(block);
 
 	uiDefBut(block, LABEL, 1, "3D Display:",							160, 220, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefButBitS(block, TOG, V3D_SHOW_FLOOR, REDRAWVIEW3D, "Grid Floor",160, 200, 150, 19, &vd->gridflag, 0, 0, 0, 0, "Show the grid floor in free camera mode");
@@ -2446,12 +2451,12 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	uiDefButBitS(block, TOG, V3D_SHOW_Y, REDRAWVIEW3D, "Y Axis",		212, 176, 48, 19, &vd->gridflag, 0, 0, 0, 0, "Show the Y Axis line");
 	uiDefButBitS(block, TOG, V3D_SHOW_Z, REDRAWVIEW3D, "Z Axis",		262, 176, 48, 19, &vd->gridflag, 0, 0, 0, 0, "Show the Z Axis line");
 
-	uiDefBut(block, LABEL, 1, "View Camera:",			10, 150, 140, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, LABEL, 1, "View Camera:",			10, 140, 140, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Lens:",		10, 130, 140, 19, &vd->lens, 10.0, 120.0, 100, 0, "The lens angle in perspective view");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Lens:",		10, 120, 140, 19, &vd->lens, 10.0, 120.0, 100, 0, "The lens angle in perspective view");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip Start:",	10, 106, 140, 19, &vd->near, vd->grid/10.0, 100.0, 10, 0, "Set the beginning of the range in which 3D objects are displayed (perspective view)");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip End:",	10, 86, 140, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set the end of the range in which 3D objects are displayed (perspective view)");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip Start:",	10, 96, 140, 19, &vd->near, vd->grid/10.0, 100.0, 10, 0, "Set the beginning of the range in which 3D objects are displayed (perspective view)");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip End:",	10, 76, 140, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set the end of the range in which 3D objects are displayed (perspective view)");
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, LABEL, 1, "3D Cursor:",				160, 150, 140, 19, NULL, 0.0, 0.0, 0, 0, "");

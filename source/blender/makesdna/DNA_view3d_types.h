@@ -130,7 +130,9 @@ typedef struct View3D {
 
 	short flag, flag2;
 	
-	short pad2[3];
+	short gridsubdiv;	// Number of subdivisions in the grid between each highlighted grid line
+	
+	short pad2[2];
 
 } View3D;
 

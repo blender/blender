@@ -5587,6 +5587,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 	if(main->versionfile <= 242) {
 		Scene *sce;
+		bScreen *sc;
 		Object *ob;
 		Curve *cu;
 		Material *ma;
@@ -5594,6 +5595,25 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		BezTriple *bezt;
 		BPoint *bp;
 		int a;
+
+		sc= main->screen.first;
+		while(sc) {
+			ScrArea *sa;
+			sa= sc->areabase.first;
+			while(sa) {
+				SpaceLink *sl;
+
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_VIEW3D) {
+						View3D *v3d= (View3D*) sl;
+						if (v3d->gridsubdiv == 0)
+							v3d->gridsubdiv = 10;
+					}
+				}
+				sa = sa->next;
+			}
+			sc = sc->id.next;
+		}
 		
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if (sce->toolsettings->select_thresh == 0.0f)
