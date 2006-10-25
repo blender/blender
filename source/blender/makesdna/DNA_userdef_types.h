@@ -35,6 +35,8 @@
 #ifndef DNA_USERDEF_TYPES_H
 #define DNA_USERDEF_TYPES_H
 
+#include "DNA_listBase.h"
+
 /* themes; defines in BIF_resource.h */
 
 // global, button colors
@@ -267,4 +269,3 @@ extern UserDef U; /* from usiblender.c !!!! */
 
 
 #endif
-
