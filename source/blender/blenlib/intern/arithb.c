@@ -3054,3 +3054,33 @@ if(!point_in_slice(p,v2,v3,v1)) return 0;
 if(!point_in_slice(p,v3,v1,v2)) return 0;
 return 1;
 }
+
+/********************************************************/
+
+/* make a 4x4 matrix out of 3 transform components */
+void LocEulSizeToMat4(float mat[][4], float loc[3], float eul[3], float size[3])
+{
+	float tmat[3][3];
+	
+	/* make base matrix */
+	EulToMat3(eul, tmat);
+
+	/* make new matrix */
+	Mat4One(mat);
+	
+	mat[0][0] = tmat[0][0] * size[0];
+	mat[0][1] = tmat[0][1] * size[1];
+	mat[0][2] = tmat[0][2] * size[2];
+	
+	mat[1][0] = tmat[1][0] * size[0];
+	mat[1][1] = tmat[1][1] * size[1];
+	mat[1][2] = tmat[1][2] * size[2];
+	
+	mat[2][0] = tmat[2][0] * size[0];
+	mat[2][1] = tmat[2][1] * size[1];
+	mat[2][2] = tmat[2][2] * size[2];
+	
+	mat[3][0] = loc[0];
+	mat[3][1] = loc[1];
+	mat[3][2] = loc[2];
+}

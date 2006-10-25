@@ -887,6 +887,8 @@ Normalise2(
 	float *n
 );
 
+void LocEulSizeToMat4(float mat[][4], float loc[3], float eul[3], float size[3]);
+
 void tubemap(float x, float y, float z, float *u, float *v);
 void spheremap(float x, float y, float z, float *u, float *v);
 			  
