@@ -1,12 +1,10 @@
 #!BPY
-
 """
 Name: 'Batch Object Name Edit'
 Blender: 240
 Group: 'Object'
 Tooltip: 'Apply the chosen rule to rename all selected objects at once.'
 """
-
 __author__ = "Campbell Barton"
 __url__ = ("blender", "elysiun")
 __version__ = "1.0"
@@ -18,12 +16,9 @@ in the current names, truncate their beginnings or endings or prepend / append
 strings to them.
 
 Usage:
-
 Select the objects to be renamed and run this script from the Object->Scripts
 menu of the 3d View.
 """
-
-
 # $Id$
 #
 # --------------------------------------------------------------------------
@@ -47,7 +42,6 @@ menu of the 3d View.
 #
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
-
 from Blender import *
 
 global renameCount
@@ -56,7 +50,6 @@ renameCount = 0
 def setDataNameWrapper(ob, newname):
 	if ob.getData(name_only=1) == newname:
 		return False
-	type= ob.getType()
 	
 	data= ob.getData(mesh=1)
 	
@@ -74,7 +67,6 @@ def main():
 		for ob in Object.GetSelected():
 			if ob.name == ob.getData(name_only=1):
 				return # Alredy the same name, dont bother.
-				
 			
 			data = ob.getData(mesh=1) # use mesh so we dont have to update the nmesh.
 			if data:
@@ -129,8 +121,8 @@ def main():
 				ob.name = newname
 				renameCount+=1
 		return RENAME_LINKED.val
-			
-	
+
+
 	def prefix():
 		global renameCount
 		PREFIX_STRING = Draw.Create('')
@@ -152,7 +144,7 @@ def main():
 			ob.name = PREFIX_STRING + ob.name
 			renameCount+=1 # we knows these are different.
 		return RENAME_LINKED.val
-		
+
 	def suffix():
 		global renameCount
 		SUFFIX_STRING = Draw.Create('')
@@ -173,8 +165,8 @@ def main():
 		for ob in Object.GetSelected():
 			ob.name =  ob.name + SUFFIX_STRING
 			renameCount+=1 # we knows these are different.
-		return RENAME_LINKED.val
-	
+		return RENAME_LINKED.val	
+
 	def truncate_start():
 		global renameCount
 		TRUNCATE_START = Draw.Create(0)
@@ -198,7 +190,6 @@ def main():
 		
 		return RENAME_LINKED.val
 
-	
 	def truncate_end():
 		global renameCount
 		TRUNCATE_END = Draw.Create(0)
@@ -232,23 +223,32 @@ def main():
 				ob.name = newname
 				renameCount+=1
 		return 0
+	
+	def renameObjectFromDupGroup():
+		global renameCount
+		Window.WaitCursor(1)
 		
+		for ob in Object.GetSelected():
+			group= ob.DupGroup
+			if group != None:
+				newname= group.name
+				if newname != ob.name:
+					ob.name = newname
+					renameCount+=1
+		return 0
 		
 	def renameLinkedDataFromObject():
 		global renameCount
 		Window.WaitCursor(1)
-
+		
 		for ob in Object.GetSelected():
 			if setDataNameWrapper(ob, ob.name):
 				renameCount+=1
 		return 0
 	
-	
-	name = "Selected Object Names%t|New Name|Replace Text|Add Prefix|Add Suffix|Truncate Start|Truncate End|Rename Objects to Data Names|Rename Data to Object Names"
+	name = "Selected Object Names%t|New Name|Replace Text|Add Prefix|Add Suffix|Truncate Start|Truncate End|Rename Objects to Data Names|Rename Objects to DupGroup Names|Rename Data to Object Names"
 	result = Draw.PupMenu(name)
-	
 	renLinked = 0 # Rename linked data to the object name?
-	
 	if result == -1:
 		return
 	elif result == 1: renLinked= new()
@@ -258,7 +258,8 @@ def main():
 	elif result == 5: renLinked= truncate_start()
 	elif result == 6: renLinked= truncate_end()
 	elif result == 7: renameObjectFromLinkedData()
-	elif result == 8: renameLinkedDataFromObject()
+	elif result == 8: renameObjectFromDupGroup()
+	elif result == 9: renameLinkedDataFromObject()
 	
 	if renLinked:
 		renameLinkedDataFromObject()
