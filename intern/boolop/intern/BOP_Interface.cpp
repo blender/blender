@@ -533,6 +533,8 @@ BSP_CSGMesh* BOP_exportMesh(BOP_Mesh*                  mesh,
 {
 	BSP_CSGMesh* outputMesh = BOP_newEmptyMesh(props);
 
+	if (outputMesh == NULL) return NULL;
+
 	// User data handlers
 	BSP_CSGUserData* outputFaceVtxData = &(outputMesh->FaceVertexData());
 	BSP_CSGUserData* outputFaceData    = &(outputMesh->FaceData());
