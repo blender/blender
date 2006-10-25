@@ -1144,6 +1144,7 @@ static int SceneObSeq_len( BPy_SceneObSeq * self )
 				len++;
 			}
 		}
+		return len;
 	}
 	/*should never run this */
 	return 0;
