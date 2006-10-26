@@ -129,8 +129,8 @@ void send_verse_object_position(VNode *vnode)
  */
 void send_verse_object_rotation(VNode *vnode)
 {
-	float quat[4];
-/*	float bvec[3], vvec[3];*/
+/*	float quat[4];
+	float bvec[3], vvec[3];*/
 	VNQuat32 rot;
 
 	rot.x = ((VObjectData*)vnode->data)->rot[0];
@@ -359,6 +359,11 @@ static void cb_o_transform_pos_real32(
 		vec[0] = pos[0];
 		vec[1] = pos[1];
 		vec[2] = pos[2];
+	}
+	else {
+		vec[0] = 0.0f;
+		vec[1] = 0.0f;
+		vec[2] = 0.0f;
 	}
 
 	if(speed) {

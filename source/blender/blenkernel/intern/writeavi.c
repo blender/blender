@@ -191,7 +191,7 @@ void append_avi(int frame, int *pixels, int rectx, int recty)
 	/* note that libavi free's the buffer... stupid interface - zr */
 	rectot= MEM_mallocN(rectx*recty*sizeof(int), "rectot");
 	rt1= rectot;
-	rt2= pixels + (recty-1)*rectx;
+	rt2= (unsigned int*)pixels + (recty-1)*rectx;
 	/* flip y and convert to abgr */
 	for (y=0; y < recty; y++, rt1+= rectx, rt2-= rectx) {
 		memcpy (rt1, rt2, rectx*sizeof(int));

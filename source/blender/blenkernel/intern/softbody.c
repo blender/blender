@@ -543,8 +543,8 @@ static void add_2nd_order_roller(Object *ob,float stiffness,int *counter, int ad
 	/*assume we have a softbody*/
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint *bp,*bpo;	
-	BodySpring *bs,*bs2,*bs3;	
-	int a,b,c,notthis,v0;
+	BodySpring *bs,*bs2,*bs3= NULL;
+	int a,b,c,notthis= 0,v0;
 	if (!sb->bspring){return;} /* we are 2nd order here so 1rst should have been build :) */
 	/* first run counting  second run adding */
 	*counter = 0;

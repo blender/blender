@@ -47,7 +47,7 @@
 struct ListBase session_list={NULL, NULL};
 struct ListBase server_list={NULL, NULL};
 
-static cb_ping_registered = 0;
+static int cb_ping_registered = 0;
 
 /* list of static function prototypes */
 static void cb_connect_terminate(const char *address, const char *bye);
@@ -117,12 +117,11 @@ static void cb_ping(void *user, const char *address, const char *message)
 	VMSServer	**servers = verse_ms_list_parse(message);
 	if(servers != NULL)
 	{
-		int	i, j;
+		int	i;
 
 		for(i = 0; servers[i] != NULL; i++)
-		{
 			add_verse_server(servers[i]);
-		}
+
 		free(servers);
 	}
 }
@@ -449,7 +448,7 @@ void b_verse_ms_get(void)
  */
 void b_verse_connect(char *address)
 {
-	VerseSession *session;
+	VerseSession *session = NULL;
 
 	/* if no session was created before, then set up all callbacks */
 	if((session_list.first==NULL) && (session_list.last==NULL))

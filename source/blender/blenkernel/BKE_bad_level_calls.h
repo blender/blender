@@ -154,5 +154,50 @@ struct DispListMesh *NewBooleanMeshDLM(struct Object *ob, struct Object *ob_sele
 struct DerivedMesh *NewBooleanDerivedMesh(struct Object *ob,
                                 struct Object *ob_select, int int_op_type);
 
+/* verse_*.c */
+struct VerseVert;
+struct VerseFace;
+struct VerseSession;
+struct VNode;
+struct VTag;
+struct VTagGroup;
+struct VBitmapLayer;
+struct VLink;
+struct VLayer;
+struct Mesh;
+
+void post_vertex_create(struct VerseVert *vvert);
+void post_vertex_set_xyz(struct VerseVert *vvert);
+void post_vertex_delete(struct VerseVert *vvert);
+void post_vertex_free_constraint(struct VerseVert *vvert);
+void post_polygon_create(struct VerseFace *vface);
+void post_polygon_set_corner(struct VerseFace *vface);
+void post_polygon_delete(struct VerseFace *vface);
+void post_polygon_free_constraint(struct VerseFace *vface);
+void post_polygon_set_uint8(struct VerseFace *vface);
+void post_node_create(struct VNode *vnode);
+void post_node_destroy(struct VNode *vnode);
+void post_node_name_set(struct VNode *vnode);
+void post_tag_change(struct VTag *vtag);
+void post_taggroup_create(struct VTagGroup *vtaggroup);
+char *verse_client_name(void);
+void post_transform(struct VNode *vnode);
+void post_object_free_constraint(struct VNode *vnode);
+void post_link_set(struct VLink *vlink);
+void post_link_destroy(struct VLink *vlink);
+void post_connect_accept(struct VerseSession *session);
+void post_connect_terminated(struct VerseSession *session);
+void post_connect_update(struct VerseSession *session);
+void add_screenhandler(struct bScreen *sc, short eventcode, short val);
+void post_bitmap_dimension_set(struct VNode *vnode);
+void post_bitmap_layer_create(struct VBitmapLayer *vblayer);
+void post_bitmap_layer_destroy(struct VBitmapLayer *vblayer);
+void post_bitmap_tile_set(struct VBitmapLayer *vblayer, unsigned int xs, unsigned int ys);
+void create_meshdata_from_geom_node(struct Mesh *me, struct VNode *vnode);
+void post_geometry_free_constraint(struct VNode *vnode);
+void post_layer_create(struct VLayer *vlayer);
+void post_layer_destroy(struct VLayer *vlayer);
+void post_server_add(void);
+
 #endif
 

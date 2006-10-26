@@ -222,8 +222,7 @@ void bglEnd(void) {}
 
 /* booleanops.c */
 struct DispListMesh *NewBooleanMeshDLM(struct Object *ob, struct Object *ob_select, int int_op_type) { return 0; }
-struct DerivedMesh *NewBooleanDerivedMesh(struct Object *ob,
-                                struct Object *ob_select, int int_op_type) {}
+struct DerivedMesh *NewBooleanDerivedMesh(struct Object *ob, struct Object *ob_select, int int_op_type) { return 0; }
 
 // bobj read/write debug messages
 void elbeemDebugOut(char *msg) {}
@@ -232,7 +231,6 @@ void fluidsimSettingsCopy(struct FluidsimSettings* sb) {}
 
 /*new render funcs */
 int     externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta) { return 0; }
-int		multitex(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres) {return 0;}
 struct Render *RE_GetRender(const char *name) {return (struct Render *)NULL;}
 struct RenderResult *RE_GetResult(Render *re) {return (struct RenderResult *)NULL;}
 float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype) {return NULL;}
@@ -253,7 +251,7 @@ int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, Te
 	return 1969;
 }
 
-/* verse*/
+/* verse */
 
 void post_vertex_create(struct VerseVert *vvert) {}
 void post_vertex_set_xyz(struct VerseVert *vvert) {}
@@ -268,7 +266,7 @@ void post_node_create(struct VNode *vnode) {}
 void post_node_destroy(struct VNode *vnode) {}
 void post_node_name_set(struct VNode *vnode) {}
 void post_tag_change(struct VTag *vtag) {}
-void post_taggroup_create(struct VTag *vtag) {}
+void post_taggroup_create(struct VTagGroup *vtaggroup) {}
 char *verse_client_name(void) { return NULL; }
 void post_transform(struct VNode *vnode) {}
 void post_object_free_constraint(struct VNode *vnode) {}
@@ -281,7 +279,7 @@ void add_screenhandler(struct bScreen *sc, short eventcode, short val) {}
 void post_bitmap_dimension_set(struct VNode *vnode) {}
 void post_bitmap_layer_create(struct VBitmapLayer *vblayer) {}
 void post_bitmap_layer_destroy(struct VBitmapLayer *vblayer) {}
-void post_bitmap_tile_set(struct VBitmapLayer *vblayer) {}
+void post_bitmap_tile_set(struct VBitmapLayer *vblayer, unsigned int xs, unsigned int ys) {}
 void create_meshdata_from_geom_node(struct Mesh *me, struct VNode *vnode) {}
 void post_geometry_free_constraint(struct VNode *vnode) {}
 void post_layer_create(struct VLayer *vlayer) {}

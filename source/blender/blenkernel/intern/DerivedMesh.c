@@ -1079,6 +1079,35 @@ static void emDM_drawMappedEdgesInterp(DerivedMesh *dm, int (*setDrawOptions)(vo
 		glEnd();
 	}
 }
+
+static void emDM_drawUVEdges(DerivedMesh *dm)
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditFace *efa;
+
+	glBegin(GL_LINES);
+	for(efa= emdm->em->faces.first; efa; efa= efa->next) {
+		if(!(efa->tf.flag&TF_HIDE)) {
+			glVertex2fv(efa->tf.uv[0]);
+			glVertex2fv(efa->tf.uv[1]);
+
+			glVertex2fv(efa->tf.uv[1]);
+			glVertex2fv(efa->tf.uv[2]);
+
+			if (!efa->v4) {
+				glVertex2fv(efa->tf.uv[2]);
+				glVertex2fv(efa->tf.uv[0]);
+			} else {
+				glVertex2fv(efa->tf.uv[2]);
+				glVertex2fv(efa->tf.uv[3]);
+				glVertex2fv(efa->tf.uv[3]);
+				glVertex2fv(efa->tf.uv[0]);
+			}
+		}
+	}
+	glEnd();
+}
+
 static void emDM__calcFaceCent(EditFace *efa, float cent[3], float (*vertexCos)[3])
 {
 	if (vertexCos) {
@@ -1449,6 +1478,7 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 	emdm->dm.drawMappedEdges = emDM_drawMappedEdges;
 	emdm->dm.drawMappedEdgesInterp = emDM_drawMappedEdgesInterp;
 	emdm->dm.drawMappedFaces = emDM_drawMappedFaces;
+	emdm->dm.drawUVEdges = emDM_drawUVEdges;
 
 	emdm->dm.release = emDM_release;
 	
@@ -1798,7 +1828,7 @@ static void ssDM_drawFacesTex_common(DerivedMesh *dm, int (*drawParams)(TFace *t
 	for (a=0; a<dlm->totface; a++, index++) {
 		MFace *mf= &mface[a];
 		TFace *tf = tface?&tface[a]:NULL;
-		int flag;
+		int flag = 0;
 		unsigned char *cp= NULL;
 		
 		if (drawParams) {

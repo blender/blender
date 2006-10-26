@@ -701,6 +701,7 @@ static void cb_node_create(
 				vnode->data = (void*)create_bitmap_data();
 			}
 		default:
+			vnode = NULL;
 			break;
 	}
 

@@ -3249,7 +3249,7 @@ static void hookModifier_deformVerts(
 		Mesh *me = ob->data;
 		int index = 0;
 		int use_dverts;
-		int maxVerts;
+		int maxVerts = 0;
 		
 		/* find the group (weak loop-in-loop) */
 		for(curdef = ob->defbase.first; curdef; curdef = curdef->next, index++)

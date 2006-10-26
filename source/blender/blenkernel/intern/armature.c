@@ -753,6 +753,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 		if(use_dverts || armature_def_nr >= 0) {
 			if(dm) dvert = dm->getVertData(dm, i, LAYERTYPE_MDEFORMVERT);
 			else if(i < target_totvert) dvert = dverts + i;
+			else dvert = NULL;
 		} else
 			dvert = NULL;
 

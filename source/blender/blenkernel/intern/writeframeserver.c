@@ -256,9 +256,9 @@ int frameserver_loop()
 	fd_set readfds;
 	struct timeval tv;
 	struct sockaddr_in      addr;
-	int len;
+	int len, rval;
+	unsigned int socklen;
 	char buf[4096];
-	int rval;
 
 	if (connsock != -1) {
 		closesocket(connsock);
@@ -280,9 +280,9 @@ int frameserver_loop()
 		return -1;
 	}
 
-	len = sizeof(addr);
+	socklen = sizeof(addr);
 
-	if ((connsock = accept(sock, (struct sockaddr *)&addr, &len)) < 0) {
+	if ((connsock = accept(sock, (struct sockaddr *)&addr, &socklen)) < 0) {
 		return -1;
 	}
 
@@ -350,7 +350,7 @@ static void serve_ppm(int *pixels, int rectx, int recty)
 			target += 3;
 			src += 4;
 		}
-		safe_write(row, 3 * rectx); 
+		safe_write((char*)row, 3 * rectx); 
 	}
 	free(row);
 	closesocket(connsock);

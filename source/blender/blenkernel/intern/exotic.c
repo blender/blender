@@ -134,7 +134,7 @@ static int is_stl(char *str);
 static int is_stl_ascii(char *str)
 {	
 	FILE *fpSTL;
-	unsigned char buffer[1000];
+	char buffer[1000];
 	int  numread, i;
 
 	fpSTL = fopen(str, "rb");

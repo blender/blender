@@ -696,7 +696,7 @@ static int pdDoDeflection(RNG *rng, float opco[3], float npco[3], float opno[3],
 	MFace *mface, *deflection_face = NULL;
 	float *v1, *v2, *v3, *v4, *vcache=NULL;
 	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3];
-	float dv1[3], dv2[3], dv3[3];
+	float dv1[3] = {0}, dv2[3] = {0}, dv3[3] = {0};
 	float vect_to_int[3], refl_vel[3];
 	float d_intersect_co[3], d_intersect_vect[3], d_nvect[3], d_i_co_above[3];
 	float forcec[3];
@@ -709,7 +709,7 @@ static int pdDoDeflection(RNG *rng, float opco[3], float npco[3], float opno[3],
 	float perm_val, rdamp_val;
 	int a, deflected=0, deflected_now=0;
 	float t,t2, min_t;
-	float mat[3][3], obloc[3];
+	float mat[3][3], obloc[3] = {0};
 	int cur_frame;
 	float time_before, time_after;
 	float force_mag_norm;

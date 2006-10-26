@@ -986,7 +986,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	med = CustomData_get_layer(&edgeData, LAYERTYPE_MEDGE);
 	for(i = 0; !BLI_edgehashIterator_isDone(ehi);
 	    BLI_edgehashIterator_step(ehi), ++i, ++med) {
-		BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
+		BLI_edgehashIterator_getKey(ehi, (int*)&med->v1, (int*)&med->v2);
 
 		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
 	}

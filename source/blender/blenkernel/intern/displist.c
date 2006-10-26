@@ -605,9 +605,9 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 
 		for (j=0; j<nverts; j++) {
 			MVert *mv= &dlm->mvert[vidx[j]];
-			unsigned char *col1= &col1base[j*4];
-			unsigned char *col2= col2base?&col2base[j*4]:NULL;
-			unsigned char *mcol= mcolbase?&mcolbase[j*4]:NULL;
+			char *col1= (char*)&col1base[j*4];
+			char *col2= (char*)(col2base?&col2base[j*4]:NULL);
+			char *mcol= (char*)(mcolbase?&mcolbase[j*4]:NULL);
 			float *vn = (mf->flag & ME_SMOOTH)?&vnors[3*vidx[j]]:n1;
 
 			VECCOPY(vec, mv->co);
@@ -1610,7 +1610,7 @@ void displistmesh_add_edges(DispListMesh *dlm)
 	for (i=0; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
 		MEdge *med = &dlm->medge[i++];
 
-		BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
+		BLI_edgehashIterator_getKey(ehi, (int*)&med->v1, (int*)&med->v2);
 
 		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
 	}

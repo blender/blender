@@ -68,7 +68,6 @@ static void change_layer_dimension(
 {
 	struct VNode *vnode = vblayer->vnode;
 	unsigned int t_width = ((VBitmapData*)(vnode->data))->t_width;
-	unsigned int t_height = ((VBitmapData*)(vnode->data))->t_height;
 	unsigned int width = ((VBitmapData*)(vnode->data))->width;
 	unsigned int height = ((VBitmapData*)(vnode->data))->height;
 	unsigned int x, y, i, j;
@@ -137,6 +136,9 @@ static void *alloc_verse_bitmap_layer_data(VBitmapLayer *vblayer)
 			break;
 		case VN_B_LAYER_REAL64:
 			data = (void*)MEM_mallocN(sizeof(double)*size, "VBLayer data float32");
+			break;
+		default:
+			data = NULL;
 			break;
 	}
 

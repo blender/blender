@@ -35,8 +35,10 @@
 
 struct Object;
 
+struct EditMesh;
 struct EditVert;
 struct EditFace;
+struct Mesh;
 struct MVert;
 struct Mface;
 

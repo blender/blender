@@ -394,7 +394,7 @@ Material *give_current_material(Object *ob, int act)
 	Material ***matarar, *ma;
 	
 	if(ob==NULL) return 0;
-	if(ob->totcol==NULL) return 0;
+	if(ob->totcol==0) return 0;
 	
 	if(act>ob->totcol) act= ob->totcol;
 	else if(act<=0) act= 1;
