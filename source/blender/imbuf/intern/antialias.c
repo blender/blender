@@ -113,6 +113,9 @@ static ListBase * scanimage(struct ImBuf * ibuf, int dir)
 			col2 = rect[0];
 			if (compare(col1, col2)) {
 				edge = NEW(Edge);
+
+				if (edge == NULL) return(0);
+
 				edge->position = x;
 				edge->col1 = col1;
 				edge->col2 = col2;
@@ -312,6 +315,7 @@ void IMB_antialias(struct ImBuf * ibuf)
 	
 	if (ibuf == 0) return;
 	cbuf = IMB_dupImBuf(ibuf);
+	if (cbuf == 0) return;
 	
 	anti_a = (anti_mask >> 24) & 0xff;
 	anti_b = (anti_mask >> 16) & 0xff;
@@ -359,10 +363,12 @@ static void _intel_scale(struct ImBuf * ibuf, ListBase * listarray, int dir)
 		return;
 	}
 	
+	if (tbuf == NULL) return;
+
 	imb_freerectImBuf(ibuf);
+
 	ibuf->rect = tbuf->rect;
 	ibuf->mall |= IB_rect;
-	
 	
 	ibuf->x = tbuf->x;
 	ibuf->y = tbuf->y;
