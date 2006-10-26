@@ -49,6 +49,7 @@ static void blend_color_mix(char *cp, char *cp1, char *cp2, int fac)
 	   are not equivalent (>>8 is /256), and the former results in rounding
 	   errors that can turn colors black fast after repeated blending */
 	int mfac= 255-fac;
+
 	cp[0]= (mfac*cp1[0]+fac*cp2[0])/255;
 	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
 	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
@@ -116,7 +117,7 @@ static void blend_color_darken(char *cp, char *cp1, char *cp2, int fac)
 
 unsigned int IMB_blend_color(unsigned int src1, unsigned int src2, int fac, IMB_BlendMode mode)
 {
-	unsigned int dst;
+	unsigned int dst, temp;
 	char *cp, *cp1, *cp2;
 
 	if (fac==0)
@@ -142,6 +143,9 @@ unsigned int IMB_blend_color(unsigned int src1, unsigned int src2, int fac, IMB_
 		default:
 			return src1;
 	}
+
+	temp= (cp1[3] + fac*cp2[3]/255);
+	cp[3]= (temp > 255)? 255: temp;
 
 	return dst;
 }
@@ -217,6 +221,7 @@ void IMB_blend_color_float(float *dst, float *src1, float *src2, float fac, IMB_
 		dst[0]= src1[0];
 		dst[1]= src1[1];
 		dst[2]= src1[2];
+		dst[3]= src1[3];
 		return;
 	}
 
@@ -238,6 +243,9 @@ void IMB_blend_color_float(float *dst, float *src1, float *src2, float fac, IMB_
 			dst[1]= src1[1];
 			dst[2]= src1[2];
 	}
+
+	dst[3]= (src1[3] + fac*src2[3]);
+	if (dst[3] > 1.0f) dst[3] = 1.0f;
 }
 
 /* clipping */
