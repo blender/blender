@@ -1047,6 +1047,9 @@ static int node_composit_buts_file_output(uiBlock *block, bNodeTree *ntree, bNod
 {
 	if(block) {
 		NodeImageFile *nif= node->storage;
+		short x= (short)butr->xmin;
+		short y= (short)butr->ymin;
+		short w= (short)butr->xmax-butr->xmin;
 		char str[320];
 		
 		node_imagetype_string(str);
@@ -1054,29 +1057,38 @@ static int node_composit_buts_file_output(uiBlock *block, bNodeTree *ntree, bNod
 		uiBlockBeginAlign(block);
 		
 		uiDefBut(block, TEX, B_NOP, "",
-				  butr->xmin, butr->ymin+40.0f, butr->xmax-butr->xmin, 20, 
+				  x, y+60, w, 20, 
 				  nif->name, 0.0f, 240.0f, 0, 0, "");
 		
 		uiDefButS(block, MENU, B_NOP, str,
-				  butr->xmin, butr->ymin+20.0f, butr->xmax-butr->xmin, 20, 
+				  x, y+40, w, 20, 
 				  &nif->imtype, 0.0f, 1.0f, 0, 0, "");
 		
 		if(nif->imtype==R_OPENEXR) {
 			uiDefButBitS(block, TOG, R_OPENEXR_HALF, B_NOP, "Half",	
-						butr->xmin, butr->ymin, (butr->xmax-butr->xmin)/2, 20, 
+						x, y+20, w/2, 20, 
 						&nif->subimtype, 0, 0, 0, 0, "");
 
 			uiDefButS(block, MENU,B_NOP, "Codec %t|None %x0|Pxr24 (lossy) %x1|ZIP (lossless) %x2|PIZ (lossless) %x3|RLE (lossless) %x4",  
-						butr->xmin+(butr->xmax-butr->xmin)/2, butr->ymin, (butr->xmax-butr->xmin)/2, 20, 
+						x+w/2, y+20, w/2, 20, 
 						&nif->codec, 0, 0, 0, 0, "");
 		}
 		else {
 			uiDefButS(block, NUM, B_NOP, "Quality: ",
-				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
+				  x, y+20, w, 20, 
 				  &nif->quality, 10.0f, 100.0f, 10, 0, "");
 		}
+		
+		/* start frame, end frame */
+		uiDefButI(block, NUM, B_NODE_EXEC+node->nr, "SFra: ", 
+				  x, y, w/2, 20, 
+				  &nif->sfra, 1, MAXFRAMEF, 10, 0, "");
+		uiDefButI(block, NUM, B_NODE_EXEC+node->nr, "EFra: ", 
+				  x+w/2, y, w/2, 20, 
+				  &nif->efra, 1, MAXFRAMEF, 10, 0, "");
+		
 	}
-	return 60;
+	return 80;
 }
 
 static void node_scale_cb(void *node_v, void *unused_v)

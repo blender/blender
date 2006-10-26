@@ -687,26 +687,31 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 	if(in[0]->data) {
 		RenderData *rd= data;
 		NodeImageFile *nif= node->storage;
-		CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
-		ImBuf *ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
-		char string[256];
-		
-		ibuf->rect_float= cbuf->rect;
-		ibuf->dither= rd->dither_intensity;
-		
-		BKE_makepicstring(string, nif->name, rd->cfra, nif->imtype);
-		
-		if(0 == BKE_write_ibuf(ibuf, string, nif->imtype, nif->subimtype, nif->imtype==R_OPENEXR?nif->codec:nif->quality))
-			printf("Cannot save Node File Output to %s\n", string);
-		else
-			printf("Saved: %s\n", string);
-		
-		IMB_freeImBuf(ibuf);	
-		
-		generate_preview(node, cbuf);
-		
-		if(in[0]->data != cbuf) 
-			free_compbuf(cbuf);
+		if(nif->sfra!=nif->efra && (rd->cfra<nif->sfra || rd->cfra>nif->efra)) {
+			return;	/* BAIL OUT RETURN */
+		}
+		else {
+			CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
+			ImBuf *ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
+			char string[256];
+			
+			ibuf->rect_float= cbuf->rect;
+			ibuf->dither= rd->dither_intensity;
+			
+			BKE_makepicstring(string, nif->name, rd->cfra, nif->imtype);
+			
+			if(0 == BKE_write_ibuf(ibuf, string, nif->imtype, nif->subimtype, nif->imtype==R_OPENEXR?nif->codec:nif->quality))
+				printf("Cannot save Node File Output to %s\n", string);
+			else
+				printf("Saved: %s\n", string);
+			
+			IMB_freeImBuf(ibuf);	
+			
+			generate_preview(node, cbuf);
+			
+			if(in[0]->data != cbuf) 
+				free_compbuf(cbuf);
+		}
 	}
 }
 

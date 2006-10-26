@@ -671,7 +671,6 @@ static void icon_copy_rect(ImBuf *ibuf, RenderInfo *ri)
 static void icon_from_image(Image *img, RenderInfo *ri)
 {
 	unsigned int pr_size = ri->pr_rectx*ri->pr_recty*sizeof(unsigned int);
-	short image_loaded = 0;
 
 	/* img->ok is zero when Image cannot load */
 	if (img==NULL || img->ok==0)
@@ -684,27 +683,23 @@ static void icon_from_image(Image *img, RenderInfo *ri)
 	
 	/* we only load image if there's no preview saved already ... 
 		always loading and reducing images is too expensive */
+	/* new rule: never read images, so icons get created while user works, 
+	    not always on first use of a menu */
 	if(!img->preview) {
 		if(img->ibuf==NULL || img->ibuf->rect==NULL) {				
-			load_image(img, IB_rect, G.sce, G.scene->r.cfra);
-			if(img->ok==0)
-				return;
-			image_loaded = 1;
+			return;
 		}
 		icon_copy_rect(img->ibuf, ri);
 		
 		/* now copy the created preview to the DNA struct to be saved in file */
 		img->preview = MEM_callocN(sizeof(PreviewImage), "img_prv");
 		if (img->preview) {
+			printf("created image prv\n");
 			img->preview->w = ri->pr_rectx;
 			img->preview->h = ri->pr_recty;
 			img->preview->rect = MEM_callocN(pr_size, "prv_rect");
 			memcpy(img->preview->rect, ri->rect, pr_size);
 		}
-
-		/* if we only loaded image for preview, we don't want to keep it in memory -
-		   important for huge image files */
-		if (image_loaded) free_image_buffers(img);
 	}
 	else {
 		unsigned int img_prv_size = img->preview->w*img->preview->h*sizeof(unsigned int);

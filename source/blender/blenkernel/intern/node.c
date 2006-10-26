@@ -804,6 +804,8 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 			nif->imtype= G.scene->r.imtype;
 			nif->subimtype= G.scene->r.subimtype;
 			nif->quality= G.scene->r.quality;
+			nif->sfra= G.scene->r.sfra;
+			nif->efra= G.scene->r.efra;
 		}
 	}
 	
@@ -1438,6 +1440,9 @@ void NodeTagChanged(bNodeTree *ntree, bNode *node)
 
 void NodeTagIDChanged(bNodeTree *ntree, ID *id)
 {
+	if(id==NULL)
+		return;
+	
 	if(ntree->type==NTREE_COMPOSIT) {
 		bNode *node;
 		
@@ -1874,7 +1879,7 @@ static void *exec_composite_node(void *node_v)
 	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
 	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
 	bNode *node= node_v;
-	ThreadData *thd= (ThreadData *)node->new_node;
+	ThreadData *thd= (ThreadData *)node->new_node; /* abuse */
 	
 	node_get_stack(node, thd->stack, nsin, nsout);
 	

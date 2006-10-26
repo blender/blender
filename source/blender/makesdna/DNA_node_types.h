@@ -199,6 +199,7 @@ typedef struct NodeHueSat {
 typedef struct NodeImageFile {
 	char name[256];
 	short imtype, subimtype, quality, codec;
+	int sfra, efra;
 } NodeImageFile;
 
 #endif
