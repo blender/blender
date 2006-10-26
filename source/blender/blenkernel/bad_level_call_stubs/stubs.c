@@ -286,3 +286,5 @@ void create_meshdata_from_geom_node(struct Mesh *me, struct VNode *vnode) {}
 void post_geometry_free_constraint(struct VNode *vnode) {}
 void post_layer_create(struct VLayer *vlayer) {}
 void post_layer_destroy(struct VLayer *vlayer) {}
+void post_server_add(void) {}
+
