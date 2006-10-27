@@ -2187,13 +2187,27 @@ static void ui_draw_but_CURVE(uiBut *but)
 		curvemapping_changed(cumap, 0);	/* 0 = no remove doubles */
 	cmp= cuma->table;
 	
-	glVertex2f(but->x1, but->y1 + zoomy*(cmp[0].y-offsy));	/* first point */
+	/* first point */
+	if((cuma->flag & CUMA_EXTEND_EXTRAPOLATE)==0)
+		glVertex2f(but->x1, but->y1 + zoomy*(cmp[0].y-offsy));
+	else {
+		fx= but->x1 + zoomx*(cmp[0].x-offsx + cuma->ext_in[0]);
+		fy= but->y1 + zoomy*(cmp[0].y-offsy + cuma->ext_in[1]);
+		glVertex2f(fx, fy);
+	}
 	for(a=0; a<=CM_TABLE; a++) {
 		fx= but->x1 + zoomx*(cmp[a].x-offsx);
 		fy= but->y1 + zoomy*(cmp[a].y-offsy);
 		glVertex2f(fx, fy);
 	}
-	glVertex2f(but->x2, but->y1 + zoomy*(cmp[CM_TABLE].y-offsy));	/* last point */
+	/* last point */
+	if((cuma->flag & CUMA_EXTEND_EXTRAPOLATE)==0)
+		glVertex2f(but->x2, but->y1 + zoomy*(cmp[CM_TABLE].y-offsy));	
+	else {
+		fx= but->x1 + zoomx*(cmp[CM_TABLE].x-offsx - cuma->ext_out[0]);
+		fy= but->y1 + zoomy*(cmp[CM_TABLE].y-offsy - cuma->ext_out[1]);
+		glVertex2f(fx, fy);
+	}
 	glEnd();
 
 	/* the points, use aspect to make them visible on edges */

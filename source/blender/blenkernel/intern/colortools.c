@@ -73,6 +73,7 @@ CurveMapping *curvemapping_add(int tot, float minx, float miny, float maxx, floa
 	cumap->bwmul[0]= cumap->bwmul[1]= cumap->bwmul[2]= 1.0f;
 	
 	for(a=0; a<tot; a++) {
+		cumap->cm[a].flag= CUMA_EXTEND_EXTRAPOLATE;
 		cumap->cm[a].totpoint= 2;
 		cumap->cm[a].curve= MEM_callocN(2*sizeof(CurveMapPoint), "curve points");
 		
@@ -278,6 +279,37 @@ static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *nex
 	}
 }
 
+/* in X, out Y. 
+   X is presumed to be outside first or last */
+static float curvemap_calc_extend(CurveMap *cuma, float x, float *first, float *last)
+{
+	if(x <= first[0]) {
+		if((cuma->flag & CUMA_EXTEND_EXTRAPOLATE)==0) {
+			/* no extrapolate */
+			return first[1];
+		}
+		else {
+			if(cuma->ext_in[0]==0.0f)
+				return first[1] + cuma->ext_in[1]*10000.0f;
+			else
+				return first[1] + cuma->ext_in[1]*(x - first[0])/cuma->ext_in[0];
+		}
+	}
+	else if(x >= last[0]) {
+		if((cuma->flag & CUMA_EXTEND_EXTRAPOLATE)==0) {
+			/* no extrapolate */
+			return last[1];
+		}
+		else {
+			if(cuma->ext_out[0]==0.0f)
+				return last[1] - cuma->ext_out[1]*10000.0f;
+			else
+				return last[1] + cuma->ext_out[1]*(x - last[0])/cuma->ext_out[0];
+		}
+	}
+	return 0.0f;
+}
+
 /* only creates a table for a single channel in CurveMapping */
 static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 {
@@ -333,6 +365,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 			if(nlen>FLT_EPSILON) {
 				VecMulf(vec, hlen/nlen);
 				VecAddf(bezt[0].vec[2], vec, bezt[0].vec[1]);
+				VecSubf(bezt[0].vec[0], bezt[0].vec[1], vec);
 			}
 		}
 		a= cuma->totpoint-1;
@@ -349,6 +382,7 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 			if(nlen>FLT_EPSILON) {
 				VecMulf(vec, hlen/nlen);
 				VecAddf(bezt[a].vec[0], vec, bezt[a].vec[1]);
+				VecSubf(bezt[a].vec[2], bezt[a].vec[1], vec);
 			}
 		}
 	}	
@@ -364,8 +398,23 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 		forward_diff_bezier(bezt[a].vec[1][1], bezt[a].vec[2][1], bezt[a+1].vec[0][1], bezt[a+1].vec[1][1], fp+1, CM_RESOL-1, 2);
 	}
 	
-	MEM_freeN(bezt);
+	/* store first and last handle for extrapolation, unit length */
+	cuma->ext_in[0]= bezt[0].vec[0][0] - bezt[0].vec[1][0];
+	cuma->ext_in[1]= bezt[0].vec[0][1] - bezt[0].vec[1][1];
+	range= sqrt(cuma->ext_in[0]*cuma->ext_in[0] + cuma->ext_in[1]*cuma->ext_in[1]);
+	cuma->ext_in[0]/= range;
+	cuma->ext_in[1]/= range;
 	
+	a= cuma->totpoint-1;
+	cuma->ext_out[0]= bezt[a].vec[1][0] - bezt[a].vec[2][0];
+	cuma->ext_out[1]= bezt[a].vec[1][1] - bezt[a].vec[2][1];
+	range= sqrt(cuma->ext_out[0]*cuma->ext_out[0] + cuma->ext_out[1]*cuma->ext_out[1]);
+	cuma->ext_out[0]/= range;
+	cuma->ext_out[1]/= range;
+	
+	/* cleanup */
+	MEM_freeN(bezt);
+
 	range= CM_TABLEDIV*(cuma->maxtable - cuma->mintable);
 	cuma->range= 1.0f/range;
 	
@@ -373,10 +422,8 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 	fp= allpoints;
 	lastpoint= allpoints + 2*(totpoint-1);
 	cmp= MEM_callocN((CM_TABLE+1)*sizeof(CurveMapPoint), "dist table");
-	cmp[0].x= cuma->mintable;
-	cmp[0].y= allpoints[1];
 	
-	for(a=1; a<CM_TABLE; a++) {
+	for(a=0; a<=CM_TABLE; a++) {
 		curf= cuma->mintable + range*(float)a;
 		cmp[a].x= curf;
 		
@@ -384,8 +431,8 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 		while(curf >= fp[0] && fp!=lastpoint) {
 			fp+=2;
 		}
-		if(curf >= fp[0] && fp==lastpoint)
-			cmp[a].y= fp[1];
+		if(fp==allpoints || (curf >= fp[0] && fp==lastpoint))
+			cmp[a].y= curvemap_calc_extend(cuma, curf, allpoints, lastpoint);
 		else {
 			float fac1= fp[0] - fp[-2];
 			float fac2= fp[0] - curf;
@@ -396,8 +443,6 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 			cmp[a].y= fac1*fp[-1] + (1.0f-fac1)*fp[1];
 		}
 	}
-	cmp[CM_TABLE].x= cuma->maxtable;
-	cmp[CM_TABLE].y= allpoints[2*totpoint-1];
 	
 	MEM_freeN(allpoints);
 	cuma->table= cmp;
@@ -518,11 +563,16 @@ float curvemap_evaluateF(CurveMap *cuma, float value)
 	/* index in table */
 	fi= (value-cuma->mintable)*cuma->range;
 	i= (int)fi;
-	if(i<0) return cuma->table[0].y;
-	if(i>=CM_TABLE) return cuma->table[CM_TABLE].y;
 	
-	fi= fi-(float)i;
-	return (1.0f-fi)*cuma->table[i].y + (fi)*cuma->table[i+1].y; 
+	if(fi<0.0f || fi>cuma->range)
+		return curvemap_calc_extend(cuma, value, &cuma->table[0].x, &cuma->table[CM_TABLE].x);
+	else {
+		if(i<0) return cuma->table[0].y;
+		if(i>=CM_TABLE) return cuma->table[CM_TABLE].y;
+		
+		fi= fi-(float)i;
+		return (1.0f-fi)*cuma->table[i].y + (fi)*cuma->table[i+1].y; 
+	}
 }
 
 /* works with curve 'cur' */

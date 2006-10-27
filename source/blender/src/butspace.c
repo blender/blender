@@ -403,6 +403,14 @@ static void curvemap_tools_dofunc(void *cumap_v, int event)
 			curvemap_sethandle(cuma, 0);
 			curvemapping_changed(cumap, 0);
 			break;
+		case 4: /* extend horiz */
+			cuma->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+			curvemapping_changed(cumap, 0);
+			break;
+		case 5: /* extend extrapolate */
+			cuma->flag |= CUMA_EXTEND_EXTRAPOLATE;
+			curvemapping_changed(cumap, 0);
+			break;
 	}
 	addqueue(curarea->win, REDRAW, 1);
 }
@@ -418,6 +426,8 @@ static uiBlock *curvemap_tools_func(void *cumap_v)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset View",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Auto Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Horizontal",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extend Extrapolated",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Curve",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);

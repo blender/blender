@@ -53,10 +53,14 @@ typedef struct CurveMap {
 	
 	float range;					/* quick multiply value for reading table */
 	float mintable, maxtable;		/* the x-axis range for the table */
+	float ext_in[2], ext_out[2];	/* for extrapolated curves, the direction vector */
 	CurveMapPoint *curve;			/* actual curve */
 	CurveMapPoint *table;			/* display and evaluate table */
 	CurveMapPoint *premultable;		/* for RGB curves, premulled table */
 } CurveMap;
+
+/* cuma->flag */
+#define CUMA_EXTEND_EXTRAPOLATE	1
 
 typedef struct CurveMapping {
 	int flag, cur;					/* cur; for buttons, to show active curve */
@@ -68,7 +72,7 @@ typedef struct CurveMapping {
 	float bwmul[3], padf;			/* black/white point multiply value, for speed */
 } CurveMapping;
 
-/* cumap->flag */
+/* cumapping->flag */
 #define CUMA_DO_CLIP			1
 #define CUMA_PREMULLED			2
 
