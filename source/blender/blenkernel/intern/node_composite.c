@@ -124,6 +124,7 @@ static CompBuf *dupalloc_compbuf(CompBuf *cbuf)
 	return dupbuf;
 }
 
+#if 0
 static CompBuf *pass_on_compbuf(CompBuf *cbuf)
 {
 	CompBuf *dupbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 0);
@@ -137,6 +138,7 @@ static CompBuf *pass_on_compbuf(CompBuf *cbuf)
 	
 	return dupbuf;
 }
+#endif
 
 void free_compbuf(CompBuf *cbuf)
 {
@@ -2829,8 +2831,8 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 	else {
 		
 		if(in[1]->vec[0]<=0.001f) {	/* time node inputs can be a tiny value */
-			/* pass on image */
-			new= pass_on_compbuf(img);
+			/* was pass_on image */
+			new= dupalloc_compbuf(img);
 		}
 		else {
 			NodeBlurData *nbd= node->storage;
@@ -2956,12 +2958,11 @@ static void node_composit_exec_translate(void *data, bNode *node, bNodeStack **i
 {
 	if(in[0]->data) {
 		CompBuf *cbuf= in[0]->data;
-		CompBuf *stackbuf= pass_on_compbuf(cbuf); // no alloc
+		CompBuf *stackbuf= dupalloc_compbuf(cbuf); // no alloc, was pass_on
 	
 		stackbuf->xof= (int)floor(in[1]->vec[0]);
 		stackbuf->yof= (int)floor(in[2]->vec[0]);
 		
-		stackbuf->rect= cbuf->rect;
 		out[0]->data= stackbuf;
 	}
 }
