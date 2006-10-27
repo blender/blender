@@ -2173,7 +2173,7 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 		Object *ob = NULL;
 		if (base) ob= base->object;
 
-		if((ob->type == OB_MESH) && (!ob->vnode)) {
+		if(ob && (ob->type == OB_MESH) && (!ob->vnode)) {
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Share at Verse Server", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
 			uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		}
