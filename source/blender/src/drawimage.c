@@ -388,40 +388,60 @@ void draw_tfaces(void)
 	float pointsize= BIF_GetThemeValuef(TH_VERTEX_SIZE);
  	
 	if(G.f & G_FACESELECT) {
-		me= get_mesh((G.scene->basact) ? (G.scene->basact->object) : 0);
+		me= get_mesh(OBACT);
+
 		if(me && me->tface) {
 			calc_image_view(G.sima, 'f');	/* float */
 			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 			glLoadIdentity();
 			
 			/* draw shadow mesh */
-			if((G.sima->flag & SI_DRAWSHADOW) && !(G.obedit==OBACT)){
+			if ((G.sima->flag & SI_DRAWSHADOW) && !(G.obedit==OBACT)) {
+				DerivedMesh *dm;
 				int dmNeedsFree;
-				DerivedMesh *dm = mesh_get_derived_final(OBACT, &dmNeedsFree);
+
+				/* draw final mesh with modifiers applied */
+				dm = mesh_get_derived_final(OBACT, &dmNeedsFree);
 
 				glColor3ub(112, 112, 112);
 				if (dm->drawUVEdges) dm->drawUVEdges(dm);
 
 				if (dmNeedsFree) dm->release(dm);
 			}
-			else if(G.sima->flag & SI_DRAWSHADOW){		
-				tface= me->tface;
-				mface= me->mface;
-				a= me->totface;			
-				while(a--) {
-					if(!(tface->flag & TF_HIDE)) {
-						glColor3ub(112, 112, 112);
-						glBegin(GL_LINE_LOOP);
-						glVertex2fv(tface->uv[0]);
-						glVertex2fv(tface->uv[1]);
-						glVertex2fv(tface->uv[2]);
-						if(mface->v4) glVertex2fv(tface->uv[3]);
-						glEnd();
-					} 
-					tface++;
-					mface++;					
+			else if((G.sima->flag & SI_DRAWTOOL) || (G.obedit==OBACT)) {
+				/* draw mesh without modifiers applied */
+
+				if (G.obedit) {
+					DerivedMesh *dm = editmesh_get_derived_base();
+
+					glColor3ub(112, 112, 112);
+					dm->drawUVEdges(dm);
+
+					dm->release(dm);
+				}
+				else {
+					tface= me->tface;
+					mface= me->mface;
+					a= me->totface;			
+
+					glColor3ub(112, 112, 112);
+					while(a--) {
+						if(!(tface->flag & TF_HIDE) && (tface->flag & TF_SELECT)) {
+							glBegin(GL_LINE_LOOP);
+							glVertex2fv(tface->uv[0]);
+							glVertex2fv(tface->uv[1]);
+							glVertex2fv(tface->uv[2]);
+							if(mface->v4) glVertex2fv(tface->uv[3]);
+							glEnd();
+						} 
+						tface++;
+						mface++;					
+					}
 				}
 			}
+
+			if((G.sima->flag & SI_DRAWTOOL) || (G.obedit==OBACT))
+				return; /* only draw shadow mesh */
 			
 			/* draw transparent faces */
 			if(G.f & G_DRAWFACES) {
@@ -605,9 +625,11 @@ void draw_tfaces(void)
 				mface++;
 			}
 			bglEnd();
+
+			glPointSize(1.0);
 		}
 	}
-	glPointSize(1.0);
+	
 }
 
 static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty, short endx, short endy)
