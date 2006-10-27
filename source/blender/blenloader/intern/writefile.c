@@ -202,6 +202,9 @@ static WriteData *writedata_new(int file)
 		/* XXX, see note about this in readfile.c, remove
 		 * once we have an xp lock - zr
 		 */
+
+	if (wd == NULL) return NULL;
+
 	wd->sdna= dna_sdna_from_data(DNAstr, DNAlen, 0);
 
 	wd->file= file;
@@ -213,6 +216,7 @@ static WriteData *writedata_new(int file)
 
 static void writedata_do_write(WriteData *wd, void *mem, int memlen)
 {
+	if ((wd == NULL) || wd->error || (mem == NULL) || memlen < 1) return;
 	if (wd->error) return;
 
 	/* memory based save */
@@ -287,6 +291,8 @@ static void mywrite( WriteData *wd, void *adr, int len)
 static WriteData *bgnwrite(int file, MemFile *compare, MemFile *current, int write_flags)
 {
 	WriteData *wd= writedata_new(file);
+
+	if (wd == NULL) return NULL;
 
 	wd->compare= compare;
 	wd->current= current;
@@ -727,8 +733,10 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 {
 	ModifierData *md;
 
+	if (modbase == NULL) return;
 	for (md=modbase->first; md; md= md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		if (mti == NULL) return;
 
 		writestruct(wd, DATA, mti->structName, 1, md);
 
@@ -1828,6 +1836,12 @@ static char *get_runtime_path(char *exename) {
 		return NULL;
 	} else {
 		char *path= MEM_mallocN(strlen(installpath)+strlen(PATHSEPERATOR)+strlen(exename)+1, "runtimepath");
+
+		if (path == NULL) {
+			MEM_freeN(installpath);
+			return NULL;
+		}
+
 		strcpy(path, installpath);
 		strcat(path, PATHSEPERATOR);
 		strcat(path, exename);
