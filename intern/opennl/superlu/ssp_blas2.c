@@ -119,7 +119,10 @@ sp_strsv(char *uplo, char *trans, char *diag, SuperMatrix *L,
 	
 	if ( lsame_(uplo, "L") ) {
 	    /* Form x := inv(L)*x */
-    	    if ( L->nrow == 0 ) return 0; /* Quick return */
+    	    if ( L->nrow == 0 ) {
+			SUPERLU_FREE(work);
+			return 0; /* Quick return */
+		}
 	    
 	    for (k = 0; k <= Lstore->nsuper; k++) {
 		fsupc = L_FST_SUPC(k);
