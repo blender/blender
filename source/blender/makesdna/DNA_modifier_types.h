@@ -75,7 +75,17 @@ typedef struct CurveModifierData {
 
 	struct Object *object;
 	char name[32];			/* optional vertexgroup name */
+	short defaxis;			/* axis along which curve deforms */
+	char pad[6];
 } CurveModifierData;
+
+/* CurveModifierData->defaxis */
+#define MOD_CURVE_POSX	1
+#define MOD_CURVE_POSY	2
+#define MOD_CURVE_POSZ	3
+#define MOD_CURVE_NEGX	4
+#define MOD_CURVE_NEGY	5
+#define MOD_CURVE_NEGZ	6
 
 typedef struct BuildModifierData {
 	ModifierData modifier;

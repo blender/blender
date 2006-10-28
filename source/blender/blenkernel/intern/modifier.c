@@ -173,11 +173,19 @@ static int noneModifier_isDisabled(ModifierData *md)
 
 /* Curve */
 
+static void curveModifier_initData(ModifierData *md)
+{
+	CurveModifierData *cmd = (CurveModifierData*) md;
+
+	cmd->defaxis = MOD_CURVE_POSX;
+}
+
 static void curveModifier_copyData(ModifierData *md, ModifierData *target)
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
 	CurveModifierData *tcmd = (CurveModifierData*) target;
 
+	tcmd->defaxis = cmd->defaxis;
 	tcmd->object = cmd->object;
 	strncpy(tcmd->name, cmd->name, 32);
 }
@@ -220,7 +228,7 @@ static void curveModifier_deformVerts(
 	CurveModifierData *cmd = (CurveModifierData*) md;
 
 	curve_deform_verts(cmd->object, ob, derivedData, vertexCos, numVerts,
-	                   cmd->name);
+	                   cmd->name, cmd->defaxis);
 }
 
 static void curveModifier_deformVertsEM(
@@ -3418,6 +3426,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsCVs
 		             | eModifierTypeFlag_SupportsEditmode;
+		mti->initData = curveModifier_initData;
 		mti->copyData = curveModifier_copyData;
 		mti->isDisabled = curveModifier_isDisabled;
 		mti->foreachObjectLink = curveModifier_foreachObjectLink;

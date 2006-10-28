@@ -514,14 +514,14 @@ static void calc_curve_deform(Object *par, float *co, short axis, CurveDeform *c
 	float fac, loc[4], dir[3], *quat, q[4], mat[3][3], cent[3];
 	short upflag, index;
 	
-	if(axis==OB_POSX || axis==OB_NEGX) {
+	if(axis==MOD_CURVE_POSX || axis==MOD_CURVE_NEGX) {
 		upflag= OB_POSZ;
 		cent[0]= 0.0;
 		cent[1]= co[1];
 		cent[2]= co[2];
 		index= 0;
 	}
-	else if(axis==OB_POSY || axis==OB_NEGY) {
+	else if(axis==MOD_CURVE_POSY || axis==MOD_CURVE_NEGY) {
 		upflag= OB_POSZ;
 		cent[0]= co[0];
 		cent[1]= 0.0;
@@ -548,7 +548,7 @@ static void calc_curve_deform(Object *par, float *co, short axis, CurveDeform *c
 	
 	if( where_on_path_deform(par, fac, loc, dir)) {	/* returns OK */
 
-		quat= vectoquat(dir, axis, upflag);
+		quat= vectoquat(dir, axis-1, upflag);	/* -1 for compatibility with old track defines */
 		
 		/* the tilt */
 		if(loc[3]!=0.0) {
@@ -572,7 +572,7 @@ static void calc_curve_deform(Object *par, float *co, short axis, CurveDeform *c
 
 }
 
-void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3], int numVerts, char *vgroup)
+void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3], int numVerts, char *vgroup, short defaxis)
 {
 	Curve *cu = cuOb->data;
 	int a, flag = cu->flag;
@@ -633,7 +633,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 				for(j = 0; j < dvert->totweight; j++) {
 					if(dvert->dw[j].def_nr == index) {
 						VECCOPY(vec, vertexCos[a]);
-						calc_curve_deform(cuOb, vec, target->trackflag, &cd);
+						calc_curve_deform(cuOb, vec, defaxis, &cd);
 						VecLerpf(vertexCos[a], vertexCos[a], vec,
 						         dvert->dw[j].weight);
 						Mat4MulVecfl(cd.objectspace, vertexCos[a]);
@@ -651,7 +651,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 		}
 
 		for(a = 0; a < numVerts; a++) {
-			calc_curve_deform(cuOb, vertexCos[a], target->trackflag, &cd);
+			calc_curve_deform(cuOb, vertexCos[a], defaxis, &cd);
 			Mat4MulVecfl(cd.objectspace, vertexCos[a]);
 		}
 	}

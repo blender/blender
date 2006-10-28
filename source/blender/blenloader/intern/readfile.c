@@ -5639,6 +5639,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		
 		for(ob = main->object.first; ob; ob= ob->id.next) {
+			ModifierData *md;
 			ListBase *list;
 			list = &ob->constraints;
 
@@ -5679,12 +5680,24 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
+			
+			/* copy old object level track settings to curve modifers */
+			for (md=ob->modifiers.first; md; md=md->next) {
+				if (md->type==eModifierType_Curve) {
+					CurveModifierData *cmd = (CurveModifierData*) md;
+
+					if (cmd->defaxis == 0) cmd->defaxis = ob->trackflag+1;
+				}
+			}
+			
 		}
 		
 		for(ma = main->mat.first; ma; ma= ma->id.next) {
 			if(ma->shad_alpha==0.0f)
 				ma->shad_alpha= 1.0f;
 		}
+		
+
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

@@ -1232,7 +1232,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	int isVirtual = md->mode&eModifierMode_Virtual;
 	int x = *xco, y = *yco, color = md->error?TH_REDALERT:TH_BUT_NEUTRAL;
 	int editing = (G.obedit==ob);
-    short height=26, width = 295, buttonWidth = width-120-10;
+	short height=26, width = 295, buttonWidth = width-120-10;
 	char str[128];
 
 	/* rounded header */
@@ -1319,7 +1319,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Lattice) {
 			height = 48;
 		} else if (md->type==eModifierType_Curve) {
-			height = 48;
+			height = 72;
 		} else if (md->type==eModifierType_Build) {
 			height = 86;
 		} else if (md->type==eModifierType_Mirror) {
@@ -1398,6 +1398,13 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefIDPoinBut(block, modifier_testCurveObj, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &cmd->object, "Curve object to deform with");
 			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth,19, &cmd->name, 0.0, 31.0, 0, 0, "Vertex Group name");
 			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+			
+			uiDefButS(block, ROW,B_MODIFIER_RECALC,"X",		lx, (cy-=19), 19,19, &cmd->defaxis, 12.0, MOD_CURVE_POSX, 0, 0, "The axis that the curve deforms along");
+			uiDefButS(block, ROW,B_MODIFIER_RECALC,"Y",		(lx+buttonWidth/6), cy, 19,19, &cmd->defaxis, 12.0, MOD_CURVE_POSY, 0, 0, "The axis that the curve deforms along");
+			uiDefButS(block, ROW,B_MODIFIER_RECALC,"Z",		(lx+2*buttonWidth/6), cy, 19,19, &cmd->defaxis, 12.0, MOD_CURVE_POSZ, 0, 0, "The axis that the curve deforms along");
+			uiDefButS(block, ROW,B_MODIFIER_RECALC,"-X",		(lx+3*buttonWidth/6), cy, 24,19, &cmd->defaxis, 12.0, MOD_CURVE_NEGX, 0, 0, "The axis that the curve deforms along");
+			uiDefButS(block, ROW,B_MODIFIER_RECALC,"-Y",		(lx+4*buttonWidth/6), cy, 24,19, &cmd->defaxis, 12.0, MOD_CURVE_NEGY, 0, 0, "The axis that the curve deforms along");
+			uiDefButS(block, ROW,B_MODIFIER_RECALC,"-Z",		(lx+buttonWidth-buttonWidth/6), cy, 24,19, &cmd->defaxis, 12.0, MOD_CURVE_NEGZ, 0, 0, "The axis that the curve deforms along");
 		} else if (md->type==eModifierType_Build) {
 			BuildModifierData *bmd = (BuildModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Start:", lx, (cy-=19), buttonWidth,19, &bmd->start, 1.0, MAXFRAMEF, 100, 0, "Specify the start frame of the effect");
