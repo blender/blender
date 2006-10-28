@@ -2275,19 +2275,22 @@ void ui_set_embossfunc(uiBut *but, int drawtype)
 	else {
 		int theme= BIF_GetThemeValue(TH_BUT_DRAWTYPE);
 		
-		// and the themes
-		if(theme==1) {
+		switch(theme) {
+		
+		case TH_ROUNDED:
+			but->embossfunc= ui_draw_round;
+			break;
+		case TH_OLDSKOOL:
+			but->embossfunc= ui_draw_oldskool;
+			break;
+		case TH_MINIMAL:
+			but->embossfunc= ui_draw_minimal;
+			break;
+		case TH_SHADED:
+		default:
 			but->embossfunc= ui_draw_default;
 			but->sliderfunc= ui_default_slider;
-		}
-		else if(theme==2) {
-			but->embossfunc= ui_draw_round;
-		}
-		else if(theme==3) {
-			but->embossfunc= ui_draw_oldskool;
-		}
-		else {
-			but->embossfunc= ui_draw_minimal;
+			break;
 		}
 	}
 	

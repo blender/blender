@@ -358,7 +358,7 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tui.menu_hilite, 0x7F,0x7F,0x7F, 255);
 	SETCOL(btheme->tui.menu_text, 	0, 0, 0, 255);
 	SETCOL(btheme->tui.menu_text_hi, 255, 255, 255, 255);
-	btheme->tui.but_drawtype= 1;
+	btheme->tui.but_drawtype= TH_SHADED;
 	
 	/* space view3d */
 	SETCOL(btheme->tv3d.back, 	115, 115, 115, 255);

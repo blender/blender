@@ -478,6 +478,11 @@ enum {
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 
+/* theme drawtypes */
+#define TH_MINIMAL  0
+#define TH_SHADED   1
+#define TH_ROUNDED  2
+#define TH_OLDSKOOL 3
 
 /* specific defines per space should have higher define values */
 
