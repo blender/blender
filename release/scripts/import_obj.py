@@ -200,7 +200,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 					
 					elif line_lower.startswith('refl'): # Reflectionmap
 						img_filepath= line_value(line.split())
-						load_material_image(context_material, context_material_name, img_filepath, 'refl', meshDict)
+						load_material_image(context_material, context_material_name, img_filepath, 'refl')
 			mtl.close()
 
 
