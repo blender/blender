@@ -143,7 +143,7 @@ typedef struct {
 	int active;
 	short storespare, showspare;
 	
-	int mbut[3];
+	int mbut[5];
 	int lmouse[2];
 	
 	unsigned int flags;
@@ -174,7 +174,7 @@ static RenderWin *renderwin_alloc(Window *win)
 	rw->render_text_spare= MEM_callocN(RW_MAXTEXT, "rendertext spare");
 
 	rw->lmouse[0]= rw->lmouse[1]= 0;
-	rw->mbut[0]= rw->mbut[1]= rw->mbut[2]= 0;
+	rw->mbut[0]= rw->mbut[1]= rw->mbut[2]= rw->mbut[3] = rw->mbut[4] = 0;
 
 	return rw;
 }
@@ -398,7 +398,24 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 	if (set_back_mainwindow) mainwindow_make_active();	
 }
 
+
 /* ------ interactivity calls for RenderWin ------------- */
+static void renderwin_zoom(RenderWin *rw, int ZoomIn) {
+	if (ZoomIn) {
+		if (rw->zoom>0.26) {
+			if(rw->zoom>1.0 && rw->zoom<2.0) rw->zoom= 1.0;
+			else rw->zoom*= 0.5;
+		}
+	} else {
+		if (rw->zoom<15.9) {
+			if(rw->zoom>0.5 && rw->zoom<1.0) rw->zoom= 1.0;
+			else rw->zoom*= 2.0;
+		}
+	}
+	if (rw->zoom>1.0) rw->flags |= RW_FLAGS_OLDZOOM;
+	if (rw->zoom==1.0) rw->flags &= ~RW_FLAGS_OLDZOOM;
+	renderwin_queue_redraw(rw);
+}
 
 static void renderwin_mouse_moved(RenderWin *rw)
 {
@@ -469,8 +486,13 @@ static void renderwin_mousebut_changed(RenderWin *rw)
 		rw->pan_mouse_start[1]= rw->lmouse[1];
 		rw->pan_ofs_start[0]= rw->zoomofs[0];
 		rw->pan_ofs_start[1]= rw->zoomofs[1];
-	} 
-	else {
+	} else if (rw->mbut[3]) {
+		renderwin_zoom(rw, 0);
+		rw->mbut[3]=0;
+	} else if (rw->mbut[4]) {
+		renderwin_zoom(rw, 1);
+		rw->mbut[4]=0;
+	} else {
 		if (rw->flags & RW_FLAGS_PANNING) {
 			rw->flags &= ~RW_FLAGS_PANNING;
 			renderwin_queue_redraw(rw);
@@ -517,6 +539,11 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 		rw->lmouse[evt==MOUSEY]= val;
 		renderwin_mouse_moved(rw);
 	} 
+	else if (ELEM(evt, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
+		int which=(evt==WHEELUPMOUSE?3:4); 
+		rw->mbut[which]=val;
+		renderwin_mousebut_changed(rw);
+	}
 	else if (ELEM3(evt, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE)) {
 		int which= (evt==LEFTMOUSE)?0:(evt==MIDDLEMOUSE)?1:2;
 		rw->mbut[which]= val;
@@ -552,19 +579,11 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 				renderwin_mouse_moved(rw);
 			}
 		} 
-		else if (evt==PADPLUSKEY) {
-			if (rw->zoom<15.9) {
-				if(rw->zoom>0.5 && rw->zoom<1.0) rw->zoom= 1.0;
-				else rw->zoom*= 2.0;
-				renderwin_queue_redraw(rw);
-			}
+		else if (ELEM(evt,PADPLUSKEY,PAGEUPKEY))  {
+			renderwin_zoom(rw, 0);
 		} 
-		else if (evt==PADMINUS) {
-			if (rw->zoom>0.26) {
-				if(rw->zoom>1.0 && rw->zoom<2.0) rw->zoom= 1.0;
-				else rw->zoom*= 0.5;
-				renderwin_queue_redraw(rw);
-			}
+		else if (ELEM(evt,PADMINUS,PAGEDOWNKEY)) {
+			renderwin_zoom(rw, 1);
 		} 
 		else if (evt==PADENTER || evt==HOMEKEY) {
 			if (rw->flags&RW_FLAGS_OLDZOOM) {
