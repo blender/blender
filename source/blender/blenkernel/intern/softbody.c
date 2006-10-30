@@ -1269,6 +1269,8 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 					if (c < a ) continue; /* exploit force(a,b) == -force(b,a) part1/2 */
 					compare = (obp->colball + bp->colball);		
 					VecSubf(def, bp->pos, obp->pos);
+					/* booster */
+					if ( (ABS(def[0]) > compare) || (ABS(def[1]) > compare) || (ABS(def[2]) > compare) ) continue;
 					distance = Normalise(def);
 					if (distance < compare ){
 						/* exclude body points attached with a spring */
