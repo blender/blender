@@ -569,7 +569,7 @@ static void cb_node_create(
 		VNodeID owner_id)
 {
 	struct VerseSession *session = (VerseSession*)current_verse_session();
-	struct VNode *vnode;
+	struct VNode *vnode = NULL;
 	
 	if(!session) return;
 
@@ -700,12 +700,13 @@ static void cb_node_create(
 				/* create bitmap data */
 				vnode->data = (void*)create_bitmap_data();
 			}
+			break;
 		default:
 			vnode = NULL;
 			break;
 	}
 
-	vnode->post_node_create(vnode);
+	if(vnode) vnode->post_node_create(vnode);
 }
 
 /*
