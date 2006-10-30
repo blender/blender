@@ -1036,6 +1036,7 @@ static int event_to_efftype(int event)
 	if(event==10) return SEQ_PLUGIN;
 	if(event==13) return SEQ_WIPE;
 	if(event==14) return SEQ_GLOW;
+	if(event==15) return SEQ_TRANSFORM;
 	return 0;
 }
 
@@ -1075,8 +1076,16 @@ static int add_seq_effect(int type)
 		}
 		seq= seq->next;
 	}
+	
+	/* make sequence selection a little bit more intuitive 
+	   for 3 strips: the last-strip should be sequence3 */
+	if (seq3 != 0 && seq2 != 0) {
+		seq2 = seq3;
+		seq3 = last_seq;
+	}
 
-	if(type==10 || type==13 || type==14) {	/* plugin: minimal 1 select */
+
+	if(type==10 || type==13 || type==14 || type==15) {	/* plugin: minimal 1 select */
 		if(seq2==0)  {
 			error("Need at least one selected sequence strip");
 			return 0;
@@ -1214,6 +1223,9 @@ void add_sequence(int type)
 		case SEQ_GLOW:
 			event = 14;
 			break;
+		case SEQ_TRANSFORM:
+			event = 15;
+			break;
 		default:
 			event = 0;
 			break;
@@ -1241,7 +1253,8 @@ void add_sequence(int type)
 			       "|Alpha Under%x8"
 			       "|Alpha Over Drop%x9"
 			       "|Wipe%x13"
-			       "|Glow%x14");
+			       "|Glow%x14"
+			       "|Transforms%x15");
 	}
 
 	if(event<1) return;
@@ -1295,6 +1308,8 @@ void add_sequence(int type)
 				seq->len= sce->r.efra - sce->r.sfra + 1;
 
 				seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+				strncpy(seq->name + 2, sce->id.name + 2, 
+					sizeof(seq->name) - 2);
 				strip->len= seq->len;
 				strip->us= 1;
 				if(seq->len>0) strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
@@ -1317,6 +1332,7 @@ void add_sequence(int type)
 	case 10:
 	case 13:
 	case 14:
+	case 15:
 
 		if(last_seq==0) error("Need at least one active sequence strip");
 		else if(event==10) {
@@ -1360,7 +1376,8 @@ void change_sequence(void)
 				"|Alpha Under%x8"
 				"|Alpha Over Drop%x9"
 				"|Wipe%x13"
-				"|Glow%x14");
+				"|Glow%x14"
+				"|Transform%x15");
 		if(event > 0) {
 			if(event==1) {
 				SWAP(Sequence *,last_seq->seq1,last_seq->seq2);

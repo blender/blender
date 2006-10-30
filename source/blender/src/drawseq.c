@@ -116,6 +116,7 @@ static char *give_seqname(Sequence *seq)
 	else if(seq->type==SEQ_OVERDROP) return "Over Drop";
 	else if(seq->type==SEQ_WIPE) return "Wipe";
 	else if(seq->type==SEQ_GLOW) return "Glow";
+	else if(seq->type==SEQ_TRANSFORM) return "Transform";
 	else if(seq->type==SEQ_PLUGIN) {
 		if(!(seq->flag & SEQ_EFFECT_NOT_LOADED) &&
 		   seq->plugin && seq->plugin->doit) return seq->plugin->pname;
@@ -178,6 +179,7 @@ static void get_seq_color3ubv(Sequence *seq, char *col)
 		break;
 		
 	/* effects */
+	case SEQ_TRANSFORM:
 	case SEQ_ADD:
 	case SEQ_SUB:
 	case SEQ_MUL:
@@ -198,7 +200,8 @@ static void get_seq_color3ubv(Sequence *seq, char *col)
 		if (seq->type == SEQ_ALPHAUNDER)	hsv[0]+= 0.20;
 		if (seq->type == SEQ_OVERDROP)	hsv[0]+= 0.24;
 		if (seq->type == SEQ_GLOW)		hsv[0]+= 0.28;
-		
+		if (seq->type == SEQ_TRANSFORM)		hsv[0]+= 0.36;
+
 		if(hsv[0]>1.0) hsv[0]-=1.0; else if(hsv[0]<0.0) hsv[0]+= 1.0;
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
 		col[0] = (char)(rgb[0]*255); col[1] = (char)(rgb[1]*255); col[2] = (char)(rgb[2]*255); 
@@ -1149,13 +1152,29 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		else if(last_seq->type==SEQ_GLOW){
 			GlowVars *glow = (GlowVars *)last_seq->effectdata;
 
-			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Threshold:", 	10,70,150,19, &glow->fMini, 0.0, 1.0, 0, 0, "Trigger Intensity");
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Clamp:",			10,50,150,19, &glow->fClamp, 0.0, 1.0, 0, 0, "Brightness limit of intensity");
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Boost factor:", 	10,30,150,19, &glow->fBoost, 0.0, 10.0, 0, 0, "Brightness multiplier");
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Blur distance:", 	10,10,150,19, &glow->dDist, 0.5, 20.0, 0, 0, "Radius of glow effect");
 			uiDefButI(block, NUM, B_NOP, "Quality:", 10,-5,150,19, &glow->dQuality, 1.0, 5.0, 0, 0, "Accuracy of the blur effect");
 			uiDefButI(block, TOG, B_NOP, "Only boost", 10,-25,150,19, &glow->bNoComp, 0.0, 0.0, 0, 0, "Show the glow buffer only");
+		}
+		else if(last_seq->type==SEQ_TRANSFORM){
+			TransformVars *transform = (TransformVars *)last_seq->effectdata;
+
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "xScale Start:", 	10,70,150,19, &transform->ScalexIni, 0.0, 10.0, 0, 0, "X Scale Start");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "xScale End:", 	160,70,150,19, &transform->ScalexFin, 0.0, 10.0, 0, 0, "X Scale End");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "yScale Start:",	10,50,150,19, &transform->ScaleyIni, 0.0, 10.0, 0, 0, "Y Scale Start");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "yScale End:", 	160,50,150,19, &transform->ScaleyFin, 0.0, 10.0, 0, 0, "Y Scale End");
+			
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,30,150,19, &transform->xIni, -1000.0, 1000.0, 0, 0, "X Position Start");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,30,150,19, &transform->xFin, -1000.0, 1000.0, 0, 0, "X Position End");
+
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y Start:", 	10,10,150,19, &transform->yIni, -1000.0, 1000.0, 0, 0, "Y Position Start");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y End:", 	160,10,150,19, &transform->yFin, -1000.0, 1000.0, 0, 0, "Y Position End");
+
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "rot Start:",10,-10,150,19, &transform->rotIni, 0.0, 360.0, 0, 0, "Rotation Start");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "rot End:",160,-10,150,19, &transform->rotFin, 0.0, 360.0, 0, 0, "Rotation End");
 		}
 		uiBlockEndAlign(block);
 	}

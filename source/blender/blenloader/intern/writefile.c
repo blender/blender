@@ -1234,6 +1234,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 							case SEQ_GLOW:
 								writestruct(wd, DATA, "GlowVars", 1, seq->effectdata);
 								break;
+							case SEQ_TRANSFORM:
+								writestruct(wd, DATA, "TransformVars", 1, seq->effectdata);
+								break;
 						}
 					}
 

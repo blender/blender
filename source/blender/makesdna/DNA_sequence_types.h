@@ -160,6 +160,18 @@ typedef struct GlowVars {
 	int	bNoComp;	/*	SHOW/HIDE glow buffer */
 } GlowVars;
 
+typedef struct TransformVars {
+	float ScalexIni;
+	float ScaleyIni;
+	float ScalexFin;
+	float ScaleyFin;
+	float xIni;
+	float xFin;
+	float yIni;
+	float yFin;
+	float rotIni;
+	float rotFin;
+} TransformVars;
 
 /* ***************** SEQUENCE ****************** */
 
@@ -195,6 +207,7 @@ typedef struct GlowVars {
 #define SEQ_PLUGIN		24
 #define SEQ_WIPE		25
 #define SEQ_GLOW		26
+#define SEQ_TRANSFORM		27
 
 #endif
 
