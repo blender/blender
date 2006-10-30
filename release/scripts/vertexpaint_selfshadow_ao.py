@@ -80,7 +80,8 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PRE
 	
 	# average vert_tone_list into vert_tonef
 	for i, tones in enumerate(vert_tone):
-		vert_tone[i] = vert_tone[i] / vert_tone_count[i]
+		if vert_tone_count[i]:
+			vert_tone[i] = vert_tone[i] / vert_tone_count[i]
 
 
 	# BLUR TONE
