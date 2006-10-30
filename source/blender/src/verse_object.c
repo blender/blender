@@ -381,44 +381,48 @@ void b_verse_unsubscribe(VNode *vnode)
 	struct VLink *vlink = ((VObjectData*)vnode->data)->links.lb.first;
 	struct Object *ob = (Object*)((VObjectData*)vnode->data)->object;
 	
-	if(vnode->type != V_NT_OBJECT) return;
-	
-	if(G.obedit && G.obedit->vnode == (void*)vnode)
-		exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+	if(vnode->type==V_NT_OBJECT) {
+		/* exit edit mode */
+		if(G.obedit && G.obedit->vnode == (void*)vnode)
+			exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 
-	/* create mesh data */
-	while(vlink){
-		if(vlink->target->type == V_NT_GEOMETRY) {
-			struct Mesh *me;
-			me = ((VGeomData*)vlink->target->data)->mesh;
-			create_meshdata_from_geom_node(me, vlink->target);
-			break;
+		/* when some geometry node is child of this object node, then create mesh data */
+		while(vlink){
+			if(vlink->target->type == V_NT_GEOMETRY) {
+				struct Mesh *me;
+				me = ((VGeomData*)vlink->target->data)->mesh;
+				create_meshdata_from_geom_node(me, vlink->target);
+				break;
+			}
+			vlink = vlink->next;
 		}
-		vlink = vlink->next;
+
+		/* unsubscribe from object transformation and clear bindings between
+		 * verse object node and object */
+		unsubscribe_from_obj_node(vnode);
+
+		/* when geometry node was shared with more object nodes, then make
+		 * data single user */
+		if(ob->type == OB_MESH) {
+			struct ID *id = ob->data;
+			if(id && id->us>1 && id->lib==0) {
+				ob->recalc= OB_RECALC_DATA;
+				ob->data = copy_mesh(ob->data);
+				id->us--;
+				id->newid= ob->data;
+			}
+		}
+		
+		/* reinitialize object derived mesh */
+		makeDispListMesh(ob);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	}
+	else if(vnode->type==V_NT_BITMAP) {
+		/* fake ... it isn't impelemented yet ... poke jiri, when needed */
+		unsubscribe_from_bitmap_node(vnode);
 	}
 
-	/* unsubscribe from object transformation and clear bindings between
-	 * verse object node and object */
-	unsubscribe_from_obj_node(vnode);
-
-	/* when geometry node was shared with more object nodes, then make
-	 * data single user */
-	if(ob->type == OB_MESH) {
-		struct ID *id = ob->data;
-		if(id && id->us>1 && id->lib==0) {
-			ob->recalc= OB_RECALC_DATA;
-			ob->data = copy_mesh(ob->data);
-			id->us--;
-			id->newid= ob->data;
-		}
-	}
-	
-	/* reinitialize object derived mesh */
-	makeDispListMesh(ob);
-
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 1);
-	
 }
 
 /*

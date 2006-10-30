@@ -1656,15 +1656,25 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 					}
 					else if(te->idcode==ID_VN) {
 						struct VNode *vnode = (VNode*)te->directdata;
-						event = pupmenu("VerseNode %t| Subscribe %x1| Unsubscribe %x2");
-						switch(event) {
-							case 1:
-								b_verse_pop_node(vnode);
-								break;
-							case 2:
-								/* Global */
-								b_verse_unsubscribe(vnode);
-								break;
+						if (vnode->type==V_NT_OBJECT || vnode->type==V_NT_BITMAP) {
+							char subscribed = 0;
+							if((vnode->type==V_NT_OBJECT) && (((VObjectData*)vnode->data)->object!=NULL))
+								subscribed = 1;
+							if((vnode->type==V_NT_BITMAP) && (((VBitmapData*)vnode->data)->image!=NULL))
+								subscribed = 1;
+							if(subscribed==1)
+								event = pupmenu("VerseNode %t| Unsubscribe %x2");
+							else
+								event = pupmenu("VerseNode %t| Subscribe %x1");
+							switch(event) {
+								case 1:
+									b_verse_pop_node(vnode);
+									break;
+								case 2:
+									/* Global */
+									b_verse_unsubscribe(vnode);
+									break;
+							}
 						}
 					}
 					else if(te->idcode==ID_MS) {
