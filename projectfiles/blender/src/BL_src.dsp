@@ -613,6 +613,10 @@ SOURCE=..\..\..\source\blender\src\transform_numinput.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\transform_snap.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\unwrapper.c
 # End Source File
 # Begin Source File
