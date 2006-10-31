@@ -929,7 +929,7 @@ static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip
 static void cyclic_offs_bone(Object *ob, bPose *pose, bActionStrip *strip, float time)
 {
 	
-	if(time > 1.0f) {
+	if(time >= 1.0f) {
 		bActionChannel *achan= get_action_channel(strip->act, strip->offs_bone);
 
 		if(achan && achan->ipo) {
