@@ -974,6 +974,7 @@ void clear_object(char mode)
 	Base *base;
 	Object *ob;
 	float *v1, *v3, mat[3][3];
+	int armature_clear= 0;
 	char *str=NULL;
 	
 	if(G.obedit) return;
@@ -991,8 +992,8 @@ void clear_object(char mode)
 			ob= base->object;
 			
 			if(ob->flag & OB_POSEMODE) {
-				/* no test if we got armature; could be in future... */
 				clear_armature(ob, mode);
+				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
 			}
 			else if((G.f & G_WEIGHTPAINT)==0) {
 				
@@ -1057,7 +1058,8 @@ void clear_object(char mode)
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+	if(armature_clear==0) /* in this case flush was done */
+		DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	BIF_undo_push(str);
 }
 
