@@ -49,11 +49,12 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btAxisSweep3.h"
 
 
-///Math library
+///Math library & Utils
 #include "LinearMath/btQuaternion.h"
 #include "LinearMath/btTransform.h"
-
-
+#include "LinearMath/btDefaultMotionState.h"
+#include "LinearMath/btQuickprof.h"
+#include "LinearMath/btIDebugDraw.h"
 
 #endif //BULLET_COLLISION_COMMON_H
 

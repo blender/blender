@@ -18,7 +18,7 @@ subject to the following restrictions:
 #include "LinearMath/btTransform.h"
 #include <assert.h>
 
-float						gContactBreakingTreshold = 0.02f;
+float						gContactBreakingThreshold = 0.02f;
 ContactDestroyedCallback	gContactDestroyedCallback = 0;
 
 
@@ -151,7 +151,7 @@ int btPersistentManifold::sortCachedPoints(const btManifoldPoint& pt)
 
 int btPersistentManifold::getCacheEntry(const btManifoldPoint& newPoint) const
 {
-	btScalar shortestDist =  getContactBreakingTreshold() * getContactBreakingTreshold();
+	btScalar shortestDist =  getContactBreakingThreshold() * getContactBreakingThreshold();
 	int size = getNumContacts();
 	int nearestPoint = -1;
 	for( int i = 0; i < size; i++ )
@@ -193,9 +193,9 @@ void btPersistentManifold::AddManifoldPoint(const btManifoldPoint& newPoint)
 	replaceContactPoint(newPoint,insertIndex);
 }
 
-float	btPersistentManifold::getContactBreakingTreshold() const
+float	btPersistentManifold::getContactBreakingThreshold() const
 {
-	return gContactBreakingTreshold;
+	return gContactBreakingThreshold;
 }
 
 void btPersistentManifold::refreshContactPoints(const btTransform& trA,const btTransform& trB)
@@ -229,7 +229,7 @@ void btPersistentManifold::refreshContactPoints(const btTransform& trA,const btT
 			projectedPoint = manifoldPoint.m_positionWorldOnA - manifoldPoint.m_normalWorldOnB * manifoldPoint.m_distance1;
 			projectedDifference = manifoldPoint.m_positionWorldOnB - projectedPoint;
 			distance2d = projectedDifference.dot(projectedDifference);
-			if (distance2d  > getContactBreakingTreshold()*getContactBreakingTreshold() )
+			if (distance2d  > getContactBreakingThreshold()*getContactBreakingThreshold() )
 			{
 				removeContactPoint(i);
 			}

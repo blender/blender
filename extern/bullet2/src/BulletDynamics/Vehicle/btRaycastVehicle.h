@@ -13,11 +13,11 @@
 
 #include "BulletDynamics/Dynamics/btRigidBody.h"
 #include "BulletDynamics/ConstraintSolver/btTypedConstraint.h"
-
+#include "btVehicleRaycaster.h"
+class btDynamicsWorld;
 
 #include "btWheelInfo.h"
 
-struct	btVehicleRaycaster;
 class btVehicleTuning;
 
 ///rayCast vehicle, very special constraint that turn a rigidbody into a vehicle.
@@ -93,7 +93,7 @@ public:
 	btWheelInfo&	addWheel( const btVector3& connectionPointCS0, const btVector3& wheelDirectionCS0,const btVector3& wheelAxleCS,btScalar suspensionRestLength,btScalar wheelRadius,const btVehicleTuning& tuning, bool isFrontWheel);
 
 	inline int		getNumWheels() const {
-		return m_wheelInfo.size();
+		return int (m_wheelInfo.size());
 	}
 	
 	std::vector<btWheelInfo>	m_wheelInfo;
@@ -162,6 +162,20 @@ public:
 
 
 };
+
+class btDefaultVehicleRaycaster : public btVehicleRaycaster
+{
+	btDynamicsWorld*	m_dynamicsWorld;
+public:
+	btDefaultVehicleRaycaster(btDynamicsWorld* world)
+		:m_dynamicsWorld(world)
+	{
+	}
+
+	virtual void* castRay(const btVector3& from,const btVector3& to, btVehicleRaycasterResult& result);
+
+};
+
 
 #endif //RAYCASTVEHICLE_H
 

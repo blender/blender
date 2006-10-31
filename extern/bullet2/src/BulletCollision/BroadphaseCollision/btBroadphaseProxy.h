@@ -103,6 +103,10 @@ struct btBroadphaseProxy
 	{
 		return (proxyType == COMPOUND_SHAPE_PROXYTYPE);
 	}
+	static inline bool isInfinite(int proxyType)
+	{
+		return (proxyType == STATIC_PLANE_PROXYTYPE);
+	}
 	
 };
 

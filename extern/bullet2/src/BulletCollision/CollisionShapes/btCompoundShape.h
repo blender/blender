@@ -46,7 +46,7 @@ public:
 
 	int		getNumChildShapes() const
 	{
-		return m_childShapes.size();
+		return int (m_childShapes.size());
 	}
 
 	btCollisionShape* getChildShape(int index)

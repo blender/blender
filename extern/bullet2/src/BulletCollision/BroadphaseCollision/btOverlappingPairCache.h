@@ -66,7 +66,7 @@ class	btOverlappingPairCache : public btBroadphaseInterface
 
 	inline bool needsBroadphaseCollision(btBroadphaseProxy* proxy0,btBroadphaseProxy* proxy1) const
 	{
-		bool collides = proxy0->m_collisionFilterGroup & proxy1->m_collisionFilterMask;
+		bool collides = (proxy0->m_collisionFilterGroup & proxy1->m_collisionFilterMask) != 0;
 		collides = collides && (proxy1->m_collisionFilterGroup & proxy0->m_collisionFilterMask);
 		
 		return collides;

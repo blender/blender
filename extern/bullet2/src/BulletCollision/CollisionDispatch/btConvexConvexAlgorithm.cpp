@@ -165,14 +165,14 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 	//TODO: if (dispatchInfo.m_useContinuous)
 	m_gjkPairDetector.setMinkowskiA(min0);
 	m_gjkPairDetector.setMinkowskiB(min1);
-	input.m_maximumDistanceSquared = min0->getMargin() + min1->getMargin() + m_manifoldPtr->getContactBreakingTreshold();
+	input.m_maximumDistanceSquared = min0->getMargin() + min1->getMargin() + m_manifoldPtr->getContactBreakingThreshold();
 	input.m_maximumDistanceSquared*= input.m_maximumDistanceSquared;
 	
 //	input.m_maximumDistanceSquared = 1e30f;
 	
 	input.m_transformA = body0->m_worldTransform;
 	input.m_transformB = body1->m_worldTransform;
-    
+	
 	resultOut->setPersistentManifold(m_manifoldPtr);
 	m_gjkPairDetector.getClosestPoints(input,*resultOut,dispatchInfo.m_debugDraw);
 
@@ -183,17 +183,17 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 bool disableCcd = false;
 float	btConvexConvexAlgorithm::calculateTimeOfImpact(btCollisionObject* col0,btCollisionObject* col1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
-	///Rather then checking ALL pairs, only calculate TOI when motion exceeds treshold
+	///Rather then checking ALL pairs, only calculate TOI when motion exceeds threshold
     
-	///Linear motion for one of objects needs to exceed m_ccdSquareMotionTreshold
+	///Linear motion for one of objects needs to exceed m_ccdSquareMotionThreshold
 	///col0->m_worldTransform,
 	float resultFraction = 1.f;
 
 
 	float squareMot0 = (col0->m_interpolationWorldTransform.getOrigin() - col0->m_worldTransform.getOrigin()).length2();
     
-	if (squareMot0 < col0->m_ccdSquareMotionTreshold &&
-		squareMot0 < col0->m_ccdSquareMotionTreshold)
+	if (squareMot0 < col0->m_ccdSquareMotionThreshold &&
+		squareMot0 < col0->m_ccdSquareMotionThreshold)
 		return resultFraction;
 
 

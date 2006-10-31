@@ -65,7 +65,7 @@ class btDispatcher
 public:
 	virtual ~btDispatcher() ;
 
-	virtual btCollisionAlgorithm* findAlgorithm(btCollisionObject* body0,btCollisionObject* body1) = 0;
+	virtual btCollisionAlgorithm* findAlgorithm(btCollisionObject* body0,btCollisionObject* body1,btPersistentManifold* sharedManifold=0) = 0;
 
 	//
 	// asume dispatchers to have unique id's in the range [0..max dispacher]

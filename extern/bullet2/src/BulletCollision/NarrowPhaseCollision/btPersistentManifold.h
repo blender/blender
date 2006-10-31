@@ -23,8 +23,8 @@ subject to the following restrictions:
 
 struct btCollisionResult;
 
-///contact breaking and merging treshold
-extern float gContactBreakingTreshold;
+///contact breaking and merging threshold
+extern float gContactBreakingThreshold;
 
 typedef bool (*ContactDestroyedCallback)(void* userPersistentData);
 extern ContactDestroyedCallback	gContactDestroyedCallback;
@@ -97,7 +97,7 @@ public:
 	}
 
 	/// todo: get this margin from the current physics / collision environment
-	float	getContactBreakingTreshold() const;
+	float	getContactBreakingThreshold() const;
 	
 	int getCacheEntry(const btManifoldPoint& newPoint) const;
 
@@ -124,7 +124,7 @@ public:
 
 	bool validContactDistance(const btManifoldPoint& pt) const
 	{
-		return pt.m_distance1 <= getContactBreakingTreshold();
+		return pt.m_distance1 <= getContactBreakingThreshold();
 	}
 	/// calculated new worldspace coordinates and depth, and reject points that exceed the collision margin
 	void	refreshContactPoints(  const btTransform& trA,const btTransform& trB);

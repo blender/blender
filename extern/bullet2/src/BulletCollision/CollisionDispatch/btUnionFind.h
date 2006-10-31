@@ -45,7 +45,7 @@ class btUnionFind
 
 	  inline int	getNumElements() const
 	  {
-		  return m_elements.size();
+		  return int(m_elements.size());
 	  }
 	  inline bool  isRoot(int x) const
 	  {

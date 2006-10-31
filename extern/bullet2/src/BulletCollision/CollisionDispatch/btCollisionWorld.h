@@ -205,7 +205,7 @@ public:
 
 	int	getNumCollisionObjects() const
 	{
-		return m_collisionObjects.size();
+		return int(m_collisionObjects.size());
 	}
 
 	/// rayTest performs a raycast on all objects in the btCollisionWorld, and calls the resultCallback

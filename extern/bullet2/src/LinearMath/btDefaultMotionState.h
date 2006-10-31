@@ -9,7 +9,7 @@ struct	btDefaultMotionState : public btMotionState
 	btTransform m_startWorldTrans;
 	void*		m_userPointer;
 
-	btDefaultMotionState(const btTransform& startTrans,const btTransform& centerOfMassOffset = btTransform::getIdentity())
+	btDefaultMotionState(const btTransform& startTrans = btTransform::getIdentity(),const btTransform& centerOfMassOffset = btTransform::getIdentity())
 		: m_graphicsWorldTrans(startTrans),
 		m_centerOfMassOffset(centerOfMassOffset),
 		m_startWorldTrans(startTrans),

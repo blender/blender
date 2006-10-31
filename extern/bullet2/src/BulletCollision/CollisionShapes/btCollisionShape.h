@@ -66,6 +66,12 @@ public:
 		return btBroadphaseProxy::isCompound(getShapeType());
 	}
 
+	///isInfinite is used to catch simulation error (aabb check)
+	inline bool isInfinite() const
+	{
+		return btBroadphaseProxy::isInfinite(getShapeType());
+	}
+
 	virtual void	setLocalScaling(const btVector3& scaling) =0;
 	virtual const btVector3& getLocalScaling() const =0;
 

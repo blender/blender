@@ -56,7 +56,7 @@ class btCollisionDispatcher : public btDispatcher
 	btCollisionAlgorithmCreateFunc*	m_swappedCompoundCreateFunc;
 	btCollisionAlgorithmCreateFunc*   m_emptyCreateFunc;
 
-	btCollisionAlgorithm* internalFindAlgorithm(btCollisionObject* body0,btCollisionObject* body1);
+	btCollisionAlgorithm* internalFindAlgorithm(btCollisionObject* body0,btCollisionObject* body1,btPersistentManifold* sharedManifold = 0);
 
 public:
 
@@ -78,7 +78,7 @@ public:
 
 	int	getNumManifolds() const
 	{ 
-		return m_manifoldsPtr.size();
+		return int( m_manifoldsPtr.size());
 	}
 
 	btPersistentManifold**	getInternalManifoldPointer()
@@ -114,7 +114,7 @@ public:
 	virtual void clearManifold(btPersistentManifold* manifold);
 
 			
-	btCollisionAlgorithm* findAlgorithm(btCollisionObject* body0,btCollisionObject* body1);
+	btCollisionAlgorithm* findAlgorithm(btCollisionObject* body0,btCollisionObject* body1,btPersistentManifold* sharedManifold = 0);
 		
 	virtual bool	needsCollision(btCollisionObject* body0,btCollisionObject* body1);
 	

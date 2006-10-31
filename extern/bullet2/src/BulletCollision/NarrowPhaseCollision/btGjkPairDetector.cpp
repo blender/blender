@@ -36,11 +36,7 @@ m_penetrationDepthSolver(penetrationDepthSolver),
 m_simplexSolver(simplexSolver),
 m_minkowskiA(objectA),
 m_minkowskiB(objectB),
-m_ignoreMargin(false),
-m_partId0(-1),
-m_index0(-1),
-m_partId1(-1),
-m_index1(-1)
+m_ignoreMargin(false)
 {
 }
 
@@ -60,7 +56,8 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 		marginB = 0.f;
 	}
 
-int curIter = 0;
+	int curIter = 0;
+	int gGjkMaxIter = 1000;//this is to catch invalid input, perhaps check for #NaN?
 
 	bool isValid = false;
 	bool checkSimplex = false;
@@ -131,6 +128,25 @@ int curIter = 0;
 				checkSimplex = true;
 				break;
 			}
+
+			  //degeneracy, this is typically due to invalid/uninitialized worldtransforms for a btCollisionObject   
+              if (curIter++ > gGjkMaxIter)   
+              {   
+                      #if defined(DEBUG) || defined (_DEBUG)   
+                              printf("btGjkPairDetector maxIter exceeded:%i\n",curIter);   
+                              printf("sepAxis=(%f,%f,%f), squaredDistance = %f, shapeTypeA=%i,shapeTypeB=%i\n",   
+                              m_cachedSeparatingAxis.getX(),   
+                              m_cachedSeparatingAxis.getY(),   
+                              m_cachedSeparatingAxis.getZ(),   
+                              squaredDistance,   
+                              m_minkowskiA->getShapeType(),   
+                              m_minkowskiB->getShapeType());   
+                      #endif   
+                      break;   
+
+              } 
+
+
 			bool check = (!m_simplexSolver->fullSimplex());
 			//bool check = (!m_simplexSolver->fullSimplex() && squaredDistance > SIMD_EPSILON * m_simplexSolver->maxVertex());
 
@@ -200,7 +216,6 @@ int curIter = 0;
 		//spu_printf("distance\n");
 #endif //__CELLOS_LV2__
 
-		output.setShapeIdentifiers(m_partId0,m_index0,m_partId1,m_index1);
 
 		output.addContactPoint(
 			normalInB,

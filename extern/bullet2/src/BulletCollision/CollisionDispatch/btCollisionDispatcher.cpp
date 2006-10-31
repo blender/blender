@@ -142,13 +142,14 @@ void btCollisionDispatcher::releaseManifold(btPersistentManifold* manifold)
 
 	
 
-btCollisionAlgorithm* btCollisionDispatcher::findAlgorithm(btCollisionObject* body0,btCollisionObject* body1)
+btCollisionAlgorithm* btCollisionDispatcher::findAlgorithm(btCollisionObject* body0,btCollisionObject* body1,btPersistentManifold* sharedManifold)
 {
 #define USE_DISPATCH_REGISTRY_ARRAY 1
 #ifdef USE_DISPATCH_REGISTRY_ARRAY
 	
 	btCollisionAlgorithmConstructionInfo ci;
 	ci.m_dispatcher = this;
+	ci.m_manifold = sharedManifold;
 	btCollisionAlgorithm* algo = m_doubleDispatch[body0->m_collisionShape->getShapeType()][body1->m_collisionShape->getShapeType()]
 	->CreateCollisionAlgorithm(ci,body0,body1);
 #else
@@ -193,7 +194,7 @@ btCollisionAlgorithmCreateFunc* btCollisionDispatcher::internalFindCreateFunc(in
 
 
 
-btCollisionAlgorithm* btCollisionDispatcher::internalFindAlgorithm(btCollisionObject* body0,btCollisionObject* body1)
+btCollisionAlgorithm* btCollisionDispatcher::internalFindAlgorithm(btCollisionObject* body0,btCollisionObject* body1,btPersistentManifold* sharedManifold)
 {
 	m_count++;
 	
@@ -202,7 +203,7 @@ btCollisionAlgorithm* btCollisionDispatcher::internalFindAlgorithm(btCollisionOb
 	
 	if (body0->m_collisionShape->isConvex() && body1->m_collisionShape->isConvex() )
 	{
-		return new btConvexConvexAlgorithm(0,ci,body0,body1);
+		return new btConvexConvexAlgorithm(sharedManifold,ci,body0,body1);
 	}
 
 	if (body0->m_collisionShape->isConvex() && body1->m_collisionShape->isConcave())

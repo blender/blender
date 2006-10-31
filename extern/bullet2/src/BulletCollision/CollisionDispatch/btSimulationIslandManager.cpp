@@ -1,4 +1,6 @@
 
+
+#include "LinearMath/btScalar.h"
 #include "btSimulationIslandManager.h"
 #include "BulletCollision/BroadphaseCollision/btDispatcher.h"
 #include "BulletCollision/NarrowPhaseCollision/btPersistentManifold.h"
@@ -51,7 +53,7 @@ void btSimulationIslandManager::findUnions(btDispatcher* dispatcher)
 void	btSimulationIslandManager::updateActivationState(btCollisionWorld* colWorld,btDispatcher* dispatcher)
 {
 	
-	initUnionFind(colWorld->getCollisionObjectArray().size());
+	initUnionFind( int (colWorld->getCollisionObjectArray().size()));
 	
 	// put the index into m_controllers into m_tag	
 	{
@@ -253,7 +255,7 @@ void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,
 		}
 	}
 
-	int numManifolds = islandmanifold.size();
+	int numManifolds = int (islandmanifold.size());
 
 	// Sort manifolds, based on islands
 	// Sort the vector using predicate and std::sort

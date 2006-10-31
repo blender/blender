@@ -127,15 +127,15 @@ void	btDiscreteDynamicsWorld::synchronizeMotionStates()
 			switch(colObj->GetActivationState())
 			{
 			case  ACTIVE_TAG:
-				color = btVector3(255.f,255.f,255.f);
+				color = btVector3(255.f,255.f,255.f); break;
 			case ISLAND_SLEEPING:
-				color =  btVector3(0.f,255.f,0.f);
+				color =  btVector3(0.f,255.f,0.f);break;
 			case WANTS_DEACTIVATION:
-				color = btVector3(0.f,255.f,255.f);
+				color = btVector3(0.f,255.f,255.f);break;
 			case DISABLE_DEACTIVATION:
-				color = btVector3(255.f,0.f,0.f);
+				color = btVector3(255.f,0.f,0.f);break;
 			case DISABLE_SIMULATION:
-				color = btVector3(255.f,255.f,0.f);
+				color = btVector3(255.f,255.f,0.f);break;
 			default:
 				{
 					color = btVector3(255.f,0.f,0.f);
@@ -150,7 +150,8 @@ void	btDiscreteDynamicsWorld::synchronizeMotionStates()
 			if (body->GetActivationState() != ISLAND_SLEEPING)
 			{
 				btTransform interpolatedTransform;
-				btTransformUtil::integrateTransform(body->m_interpolationWorldTransform,body->getLinearVelocity(),body->getAngularVelocity(),m_localTime,interpolatedTransform);
+				btTransformUtil::integrateTransform(body->m_interpolationWorldTransform,
+					body->m_interpolationLinearVelocity,body->m_interpolationAngularVelocity,m_localTime,interpolatedTransform);
 				body->getMotionState()->setWorldTransform(interpolatedTransform);
 			}
 		}
@@ -390,7 +391,7 @@ void	btDiscreteDynamicsWorld::solveNoncontactConstraints(btContactSolverInfo& so
 	BEGIN_PROFILE("solveNoncontactConstraints");
 
 	int i;
-	int numConstraints = m_constraints.size();
+	int numConstraints = int(m_constraints.size());
 
 	///constraint preparation: building jacobians
 	for (i=0;i< numConstraints ; i++ )
@@ -424,7 +425,7 @@ void	btDiscreteDynamicsWorld::calculateSimulationIslands()
 
 	{
 		int i;
-		int numConstraints = m_constraints.size();
+		int numConstraints = int(m_constraints.size());
 		for (i=0;i< numConstraints ; i++ )
 		{
 			btTypedConstraint* constraint = m_constraints[i];
@@ -502,7 +503,30 @@ void	btDiscreteDynamicsWorld::updateAabbs()
 				btPoint3 minAabb,maxAabb;
 				colObj->m_collisionShape->getAabb(colObj->m_worldTransform, minAabb,maxAabb);
 				btSimpleBroadphase* bp = (btSimpleBroadphase*)m_broadphasePairCache;
-				bp->setAabb(body->m_broadphaseHandle,minAabb,maxAabb);
+
+				//moving objects should be moderately sized, probably something wrong if not
+				if ( colObj->isStaticObject() || ((maxAabb-minAabb).length2() < 1e12f))
+				{
+					bp->setAabb(body->m_broadphaseHandle,minAabb,maxAabb);
+				} else
+				{
+					//something went wrong, investigate
+					//this assert is unwanted in 3D modelers (danger of loosing work)
+					assert(0);
+					body->SetActivationState(DISABLE_SIMULATION);
+					
+					static bool reportMe = true;
+					if (reportMe)
+					{
+						reportMe = false;
+						printf("Overflow in AABB, object removed from simulation \n");
+						printf("If you can reproduce this, please email bugs@continuousphysics.com\n");
+						printf("Please include above information, your Platform, version of OS.\n");
+						printf("Thanks.\n");
+					}
+
+
+				}
 				if (m_debugDrawer && (m_debugDrawer->getDebugMode() & btIDebugDraw::DBG_DrawAabb))
 				{
 					DrawAabb(m_debugDrawer,minAabb,maxAabb,colorvec);
@@ -670,10 +694,10 @@ void btDiscreteDynamicsWorld::debugDrawObject(const btTransform& worldTransform,
 				float radius = coneShape->getRadius();//+coneShape->getMargin();
 				float height = coneShape->getHeight();//+coneShape->getMargin();
 				btVector3 start = worldTransform.getOrigin();
-				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * btVector3(0,0,0.5*height),start+worldTransform.getBasis() * btVector3(radius,0,-0.5*height),color);
-				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * btVector3(0,0,0.5*height),start+worldTransform.getBasis() * btVector3(-radius,0,-0.5*height),color);
-				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * btVector3(0,0,0.5*height),start+worldTransform.getBasis() * btVector3(0,radius,-0.5*height),color);
-				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * btVector3(0,0,0.5*height),start+worldTransform.getBasis() * btVector3(0,-radius,-0.5*height),color);
+				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * btVector3(0.f,0.f,0.5f*height),start+worldTransform.getBasis() * btVector3(radius,0.f,-0.5f*height),color);
+				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * btVector3(0.f,0.f,0.5f*height),start+worldTransform.getBasis() * btVector3(-radius,0.f,-0.5f*height),color);
+				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * btVector3(0.f,0.f,0.5f*height),start+worldTransform.getBasis() * btVector3(0.f,radius,-0.5f*height),color);
+				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * btVector3(0.f,0.f,0.5f*height),start+worldTransform.getBasis() * btVector3(0.f,-radius,-0.5f*height),color);
 				break;
 
 			}

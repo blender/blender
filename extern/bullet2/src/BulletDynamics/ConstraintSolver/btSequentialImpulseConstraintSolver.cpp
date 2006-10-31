@@ -74,8 +74,6 @@ float btSequentialImpulseConstraintSolver::solveGroup(btPersistentManifold** man
 		for (j=0;j<numManifolds;j++)
 		{
 			int k=j;
-			//interleaving the preparation with solving impacts the behaviour a lot, todo: find out why
-
 			prepareConstraints(manifoldPtr[k],info,debugDrawer);
 			solve(manifoldPtr[k],info,0,debugDrawer);
 		}
@@ -232,6 +230,7 @@ void	btSequentialImpulseConstraintSolver::prepareConstraints(btPersistentManifol
 					cpd->m_penetration = 0.f;
 				} 				
 				
+				
 
 				float relaxation = info.m_damping;
 				cpd->m_appliedImpulse *= relaxation;
@@ -265,6 +264,36 @@ void	btSequentialImpulseConstraintSolver::prepareConstraints(btPersistentManifol
 					cp.m_frictionWorldTangential1*cp.m_accumulatedTangentImpulse1+
 	#endif //NO_FRICTION_WARMSTART
 					cp.m_normalWorldOnB*cpd->m_appliedImpulse;
+
+
+
+				///
+				{
+				btVector3 torqueAxis0 = rel_pos1.cross(cp.m_normalWorldOnB);
+				cpd->m_angularComponentA = body0->getInvInertiaTensorWorld()*torqueAxis0;
+				btVector3 torqueAxis1 = rel_pos2.cross(cp.m_normalWorldOnB);		
+				cpd->m_angularComponentB = body1->getInvInertiaTensorWorld()*torqueAxis1;
+				}
+				{
+					btVector3 ftorqueAxis0 = rel_pos1.cross(cpd->m_frictionWorldTangential0);
+					cpd->m_frictionAngularComponent0A = body0->getInvInertiaTensorWorld()*ftorqueAxis0;
+				}
+				{
+					btVector3 ftorqueAxis1 = rel_pos1.cross(cpd->m_frictionWorldTangential1);
+					cpd->m_frictionAngularComponent1A = body0->getInvInertiaTensorWorld()*ftorqueAxis1;
+				}
+				{
+					btVector3 ftorqueAxis0 = rel_pos2.cross(cpd->m_frictionWorldTangential0);
+					cpd->m_frictionAngularComponent0B = body1->getInvInertiaTensorWorld()*ftorqueAxis0;
+				}
+				{
+					btVector3 ftorqueAxis1 = rel_pos2.cross(cpd->m_frictionWorldTangential1);
+					cpd->m_frictionAngularComponent1B = body1->getInvInertiaTensorWorld()*ftorqueAxis1;
+				}
+				
+				///
+
+
 
 				//apply previous frames impulse on both bodies
 				body0->applyImpulse(totalImpulse, rel_pos1);

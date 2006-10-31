@@ -24,8 +24,8 @@ float gLinearAirDamping = 1.f;
 float	gDeactivationTime = 2.f;
 bool	gDisableDeactivation = false;
 
-float gLinearSleepingTreshold = 0.8f;
-float gAngularSleepingTreshold = 1.0f;
+float gLinearSleepingThreshold = 0.8f;
+float gAngularSleepingThreshold = 1.0f;
 static int uniqueId = 0;
 
 btRigidBody::btRigidBody(float mass, btMotionState* motionState, btCollisionShape* collisionShape, const btVector3& localInertia,btScalar linearDamping,btScalar angularDamping,btScalar friction,btScalar restitution)
@@ -45,7 +45,9 @@ btRigidBody::btRigidBody(float mass, btMotionState* motionState, btCollisionShap
 	motionState->getWorldTransform(m_worldTransform);
 
 	m_interpolationWorldTransform = m_worldTransform;
-
+	m_interpolationLinearVelocity.setValue(0,0,0);
+	m_interpolationAngularVelocity.setValue(0,0,0);
+	
 	//moved to btCollisionObject
 	m_friction = friction;
 	m_restitution = restitution;
@@ -79,6 +81,8 @@ btRigidBody::btRigidBody( float mass,const btTransform& worldTransform,btCollisi
 	
 	m_worldTransform = worldTransform;
 	m_interpolationWorldTransform = m_worldTransform;
+	m_interpolationLinearVelocity.setValue(0,0,0);
+	m_interpolationAngularVelocity.setValue(0,0,0);
 
 	//moved to btCollisionObject
 	m_friction = friction;
@@ -96,12 +100,32 @@ btRigidBody::btRigidBody( float mass,const btTransform& worldTransform,btCollisi
 
 }
 
+#define EXPERIMENTAL_JITTER_REMOVAL 1
+#ifdef EXPERIMENTAL_JITTER_REMOVAL
+//Bullet 2.20b has experimental code to reduce jitter just before objects fall asleep/deactivate
+//doesn't work very well yet (value 0 only reduces performance a bit, no difference in functionality)
+float gClippedAngvelThresholdSqr = 0.f;
+float	gClippedLinearThresholdSqr = 0.f;
+#endif //EXPERIMENTAL_JITTER_REMOVAL
 
-
-
-
-void btRigidBody::predictIntegratedTransform(btScalar timeStep,btTransform& predictedTransform) const
+void btRigidBody::predictIntegratedTransform(btScalar timeStep,btTransform& predictedTransform) 
 {
+
+#ifdef EXPERIMENTAL_JITTER_REMOVAL
+	//clip to avoid jitter
+	if (m_angularVelocity.length2() < gClippedAngvelThresholdSqr)
+	{
+		m_angularVelocity.setValue(0,0,0);
+		printf("clipped!\n");
+	}
+	
+	if (m_linearVelocity.length2() < gClippedLinearThresholdSqr)
+	{
+		m_linearVelocity.setValue(0,0,0);
+		printf("clipped!\n");
+	}
+#endif //EXPERIMENTAL_JITTER_REMOVAL
+
 	btTransformUtil::integrateTransform(m_worldTransform,m_linearVelocity,m_angularVelocity,timeStep,predictedTransform);
 }
 
@@ -114,7 +138,10 @@ void			btRigidBody::saveKinematicState(btScalar timeStep)
 		if (getMotionState())
 			getMotionState()->getWorldTransform(m_worldTransform);
 		btVector3 linVel,angVel;
+		
 		btTransformUtil::calculateVelocity(m_interpolationWorldTransform,m_worldTransform,timeStep,m_linearVelocity,m_angularVelocity);
+		m_interpolationLinearVelocity = m_linearVelocity;
+		m_interpolationAngularVelocity = m_angularVelocity;
 		m_interpolationWorldTransform = m_worldTransform;
 		//printf("angular = %f %f %f\n",m_angularVelocity.getX(),m_angularVelocity.getY(),m_angularVelocity.getZ());
 	}
@@ -257,6 +284,8 @@ btQuaternion btRigidBody::getOrientation() const
 void btRigidBody::setCenterOfMassTransform(const btTransform& xform)
 {
 	m_interpolationWorldTransform = m_worldTransform;
+	m_interpolationLinearVelocity = getLinearVelocity();
+	m_interpolationAngularVelocity = getAngularVelocity();
 	m_worldTransform = xform;
 	updateInertiaTensor();
 }

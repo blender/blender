@@ -18,6 +18,7 @@ subject to the following restrictions:
 
 #include "BulletCollision/CollisionDispatch/btCollisionWorld.h"
 class btTypedConstraint;
+class btRaycastVehicle;
 
 ///btDynamicsWorld is the baseclass for several dynamics implementation, basic, discrete, parallel, and continuous
 class btDynamicsWorld : public btCollisionWorld
@@ -46,6 +47,11 @@ class btDynamicsWorld : public btCollisionWorld
 		virtual void	addConstraint(btTypedConstraint* constraint) {};
 
 		virtual void	removeConstraint(btTypedConstraint* constraint) {};
+
+		virtual void	addVehicle(btRaycastVehicle* vehicle) {};
+
+		virtual void	removeVehicle(btRaycastVehicle* vehicle) {};
+
 
 		virtual void	setDebugDrawer(btIDebugDraw*	debugDrawer) = 0;
 

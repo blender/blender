@@ -17,7 +17,7 @@ subject to the following restrictions:
 #define SIMD_TRANSFORM_UTIL_H
 
 #include "LinearMath/btTransform.h"
-#define ANGULAR_MOTION_TRESHOLD 0.5f*SIMD_HALF_PI
+#define ANGULAR_MOTION_THRESHOLD 0.5f*SIMD_HALF_PI
 
 
 
@@ -82,9 +82,9 @@ public:
 		btVector3 axis;
 		btScalar	fAngle = angvel.length(); 
 		//limit the angular motion
-		if (fAngle*timeStep > ANGULAR_MOTION_TRESHOLD)
+		if (fAngle*timeStep > ANGULAR_MOTION_THRESHOLD)
 		{
-			fAngle = ANGULAR_MOTION_TRESHOLD / timeStep;
+			fAngle = ANGULAR_MOTION_THRESHOLD / timeStep;
 		}
 
 		if ( fAngle < 0.001f )

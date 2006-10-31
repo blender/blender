@@ -21,11 +21,14 @@ class btDispatcher;
 class btManifoldResult;
 struct btCollisionObject;
 struct btDispatcherInfo;
+class	btPersistentManifold;
+
 
 struct btCollisionAlgorithmConstructionInfo
 {
 	btCollisionAlgorithmConstructionInfo()
-		:m_dispatcher(0)
+		:m_dispatcher(0),
+		m_manifold(0)
 	{
 	}
 	btCollisionAlgorithmConstructionInfo(btDispatcher* dispatcher,int temp)
@@ -34,6 +37,7 @@ struct btCollisionAlgorithmConstructionInfo
 	}
 
 	btDispatcher*	m_dispatcher;
+	btPersistentManifold*	m_manifold;
 
 	int	getDispatcherId();
 

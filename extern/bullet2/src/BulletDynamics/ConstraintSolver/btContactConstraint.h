@@ -72,6 +72,15 @@ struct btConstraintPersistentData
 			float	m_penetration;
 			btVector3	m_frictionWorldTangential0;
 			btVector3	m_frictionWorldTangential1;
+
+			btVector3	m_frictionAngularComponent0A;
+			btVector3	m_frictionAngularComponent0B;
+			btVector3	m_frictionAngularComponent1A;
+			btVector3	m_frictionAngularComponent1B;
+
+			//some data doesn't need to be persistent over frames: todo: clean/reuse this
+			btVector3	m_angularComponentA;
+			btVector3	m_angularComponentB;
 		
 			ContactSolverFunc	m_contactSolverFunc;
 			ContactSolverFunc	m_frictionSolverFunc;

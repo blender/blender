@@ -13,62 +13,47 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef CONVEX_CONVEX_ALGORITHM_H
-#define CONVEX_CONVEX_ALGORITHM_H
+#ifndef SPHERE_TRIANGLE_COLLISION_ALGORITHM_H
+#define SPHERE_TRIANGLE_COLLISION_ALGORITHM_H
 
 #include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
-#include "BulletCollision/NarrowPhaseCollision/btGjkPairDetector.h"
-#include "BulletCollision/NarrowPhaseCollision/btPersistentManifold.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
-#include "BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.h"
-#include "btCollisionCreateFunc.h"
+#include "BulletCollision/CollisionDispatch/btCollisionCreateFunc.h"
+class btPersistentManifold;
 
-class btConvexPenetrationDepthSolver;
-
-///ConvexConvexAlgorithm collision algorithm implements time of impact, convex closest points and penetration depth calculations.
-class btConvexConvexAlgorithm : public btCollisionAlgorithm
+/// btSphereSphereCollisionAlgorithm  provides sphere-sphere collision detection.
+/// Other features are frame-coherency (persistent data) and collision response.
+/// Also provides the most basic sample for custom/user btCollisionAlgorithm
+class btSphereTriangleCollisionAlgorithm : public btCollisionAlgorithm
 {
-	//ConvexPenetrationDepthSolver*	m_penetrationDepthSolver;
-	btVoronoiSimplexSolver	m_simplexSolver;
-	btGjkPairDetector m_gjkPairDetector;
-	bool	m_useEpa;
-public:
-
 	bool	m_ownManifold;
 	btPersistentManifold*	m_manifoldPtr;
-	bool			m_lowLevelOfDetail;
-
-	void	checkPenetrationDepthSolver();
-
+	bool	m_swapped;
 	
-
 public:
+	btSphereTriangleCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* body0,btCollisionObject* body1,bool swapped);
 
-	btConvexConvexAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* body0,btCollisionObject* body1);
-
-	virtual ~btConvexConvexAlgorithm();
+	btSphereTriangleCollisionAlgorithm(const btCollisionAlgorithmConstructionInfo& ci)
+		: btCollisionAlgorithm(ci) {}
 
 	virtual void processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
 	virtual float calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
-	void	setLowLevelOfDetail(bool useLowLevel);
-
-
-	const btPersistentManifold*	getManifold()
-	{
-		return m_manifoldPtr;
-	}
+	
+	virtual ~btSphereTriangleCollisionAlgorithm();
 
 	struct CreateFunc :public 	btCollisionAlgorithmCreateFunc
 	{
+		
 		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
 		{
-			return new btConvexConvexAlgorithm(ci.m_manifold,ci,body0,body1);
+			
+				return new btSphereTriangleCollisionAlgorithm(ci.m_manifold,ci,body0,body1,m_swapped);
 		}
 	};
 
-
 };
 
-#endif //CONVEX_CONVEX_ALGORITHM_H
+#endif //SPHERE_TRIANGLE_COLLISION_ALGORITHM_H
+

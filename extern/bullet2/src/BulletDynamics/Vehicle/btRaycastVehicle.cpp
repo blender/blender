@@ -9,11 +9,12 @@
  * It is provided "as is" without express or implied warranty.
 */
 
+#include "LinearMath/btVector3.h"
 #include "btRaycastVehicle.h"
 #include "BulletDynamics/ConstraintSolver/btSolve2LinearConstraint.h"
 #include "BulletDynamics/ConstraintSolver/btJacobianEntry.h"
 #include "LinearMath/btQuaternion.h"
-#include "LinearMath/btVector3.h"
+#include "BulletDynamics/Dynamics/btDynamicsWorld.h"
 #include "btVehicleRaycaster.h"
 #include "btWheelInfo.h"
 
@@ -141,8 +142,12 @@ void	btRaycastVehicle::updateWheelTransformsWS(btWheelInfo& wheel )
 {
 	wheel.m_raycastInfo.m_isInContact = false;
 
-	const btTransform& chassisTrans = getRigidBody()->getCenterOfMassTransform();
-
+	btTransform chassisTrans;
+	if (getRigidBody()->getMotionState())
+		getRigidBody()->getMotionState()->getWorldTransform(chassisTrans);
+	else
+		chassisTrans = getRigidBody()->getCenterOfMassTransform();
+	
 	wheel.m_raycastInfo.m_hardPointWS = chassisTrans( wheel.m_chassisConnectionPointCS );
 	wheel.m_raycastInfo.m_wheelDirectionWS = chassisTrans.getBasis() *  wheel.m_wheelDirectionCS ;
 	wheel.m_raycastInfo.m_wheelAxleWS = chassisTrans.getBasis() * wheel.m_wheelAxleCS;
@@ -165,6 +170,8 @@ btScalar btRaycastVehicle::rayCast(btWheelInfo& wheel)
 	btScalar param = 0.f;
 	
 	btVehicleRaycaster::btVehicleRaycasterResult	rayResults;
+
+	assert(m_vehicleRaycaster);
 
 	void* object = m_vehicleRaycaster->castRay(source,target,rayResults);
 
@@ -592,4 +599,29 @@ void	btRaycastVehicle::updateFriction(btScalar	timeStep)
 		delete [] axle;
 		delete[]forwardImpulse;
 		delete[] sideImpulse;
+}
+
+
+void* btDefaultVehicleRaycaster::castRay(const btVector3& from,const btVector3& to, btVehicleRaycasterResult& result)
+{
+//	RayResultCallback& resultCallback;
+
+	btCollisionWorld::ClosestRayResultCallback rayCallback(from,to);
+
+	m_dynamicsWorld->rayTest(from, to, rayCallback);
+
+	if (rayCallback.HasHit())
+	{
+		
+		btRigidBody* body = btRigidBody::upcast(rayCallback.m_collisionObject);
+		if (body)
+		{
+			result.m_hitPointInWorld = rayCallback.m_hitPointWorld;
+			result.m_hitNormalInWorld = rayCallback.m_hitNormalWorld;
+			result.m_hitNormalInWorld.normalize();
+			result.m_distFraction = rayCallback.m_closestHitFraction;
+			return body;
+		}
+	}
+	return 0;
 }

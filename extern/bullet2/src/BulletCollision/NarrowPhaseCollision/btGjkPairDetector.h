@@ -43,12 +43,6 @@ class btGjkPairDetector : public btDiscreteCollisionDetectorInterface
 
 public:
 
-	//experimental feature information, per triangle, per convex etc.
-	//'material combiner' / contact added callback
-	int	m_partId0;
-	int	m_index0;
-	int	m_partId1;
-	int	m_index1;
 
 	btGjkPairDetector(btConvexShape* objectA,btConvexShape* objectB,btSimplexSolverInterface* simplexSolver,btConvexPenetrationDepthSolver*	penetrationDepthSolver);
 	virtual ~btGjkPairDetector() {};

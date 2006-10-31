@@ -17,7 +17,6 @@ subject to the following restrictions:
 #include "btConvexConcaveCollisionAlgorithm.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
 #include "BulletCollision/CollisionShapes/btMultiSphereShape.h"
-#include "btConvexConvexAlgorithm.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
 #include "BulletCollision/CollisionShapes/btConcaveShape.h"
 #include "BulletCollision/CollisionDispatch/btManifoldResult.h"
@@ -115,10 +114,16 @@ void btConvexTriangleCallback::processTriangle(btVector3* triangle,int partId, i
 		btCollisionShape* tmpShape = ob->m_collisionShape;
 		ob->m_collisionShape = &tm;
 		
+
+		btCollisionAlgorithm* colAlgo = ci.m_dispatcher->findAlgorithm(m_convexBody,m_triBody,m_manifoldPtr);
 		///this should use the btDispatcher, so the actual registered algorithm is used
-		btConvexConvexAlgorithm cvxcvxalgo(m_manifoldPtr,ci,m_convexBody,m_triBody);
-		cvxcvxalgo.setShapeIdentifiers(-1,-1,partId,triangleIndex);
-		cvxcvxalgo.processCollision(m_convexBody,m_triBody,*m_dispatchInfoPtr,m_resultOut);
+		//		btConvexConvexAlgorithm cvxcvxalgo(m_manifoldPtr,ci,m_convexBody,m_triBody);
+
+		m_resultOut->setShapeIdentifiers(-1,-1,partId,triangleIndex);
+	//	cvxcvxalgo.setShapeIdentifiers(-1,-1,partId,triangleIndex);
+//		cvxcvxalgo.processCollision(m_convexBody,m_triBody,*m_dispatchInfoPtr,m_resultOut);
+		colAlgo->processCollision(m_convexBody,m_triBody,*m_dispatchInfoPtr,m_resultOut);
+		delete colAlgo;
 		ob->m_collisionShape = tmpShape;
 
 	}
@@ -200,10 +205,10 @@ float btConvexConcaveCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject
 
 	//quick approximation using raycast, todo: hook up to the continuous collision detection (one of the btConvexCast)
 
-	//only perform CCD above a certain treshold, this prevents blocking on the long run
+	//only perform CCD above a certain threshold, this prevents blocking on the long run
 	//because object in a blocked ccd state (hitfraction<1) get their linear velocity halved each frame...
 	float squareMot0 = (convexbody->m_interpolationWorldTransform.getOrigin() - convexbody->m_worldTransform.getOrigin()).length2();
-	if (squareMot0 < convexbody->m_ccdSquareMotionTreshold)
+	if (squareMot0 < convexbody->m_ccdSquareMotionThreshold)
 	{
 		return 1.f;
 	}

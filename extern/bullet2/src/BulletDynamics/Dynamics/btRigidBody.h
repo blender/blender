@@ -34,8 +34,8 @@ extern bool gUseEpa;
 
 extern float gDeactivationTime;
 extern bool gDisableDeactivation;
-extern float gLinearSleepingTreshold;
-extern float gAngularSleepingTreshold;
+extern float gLinearSleepingThreshold;
+extern float gAngularSleepingThreshold;
 
 
 /// btRigidBody class for btRigidBody Dynamics
@@ -79,7 +79,7 @@ public:
 	}
 	
 	/// continuous collision detection needs prediction
-	void			predictIntegratedTransform(btScalar step, btTransform& predictedTransform) const;
+	void			predictIntegratedTransform(btScalar step, btTransform& predictedTransform) ;
 	
 	void			saveKinematicState(btScalar step);
 	
@@ -156,6 +156,16 @@ public:
 		{
 			applyCentralImpulse(impulse);
 			applyTorqueImpulse(rel_pos.cross(impulse));
+		}
+	}
+
+	//Optimization for the iterative solver: avoid calculating constant terms involving inertia, normal, relative position
+	inline void internalApplyImpulse(const btVector3& linearComponent, const btVector3& angularComponent,float impulseMagnitude)
+	{
+		if (m_inverseMass != 0.f)
+		{
+			m_linearVelocity += linearComponent*impulseMagnitude;
+			m_angularVelocity += angularComponent*impulseMagnitude;
 		}
 	}
 	
@@ -240,8 +250,8 @@ public:
 		if ( (GetActivationState() == ISLAND_SLEEPING) || (GetActivationState() == DISABLE_DEACTIVATION))
 			return;
 
-		if ((getLinearVelocity().length2() < gLinearSleepingTreshold*gLinearSleepingTreshold) &&
-			(getAngularVelocity().length2() < gAngularSleepingTreshold*gAngularSleepingTreshold))
+		if ((getLinearVelocity().length2() < gLinearSleepingThreshold*gLinearSleepingThreshold) &&
+			(getAngularVelocity().length2() < gAngularSleepingThreshold*gAngularSleepingThreshold))
 		{
 			m_deactivationTime += timeStep;
 		} else
