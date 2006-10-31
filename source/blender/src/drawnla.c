@@ -41,6 +41,7 @@
 #include "BMF_Api.h"
 
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 
 #include "DNA_view3d_types.h"
@@ -183,7 +184,13 @@ static void draw_nla_channels(void)
 						BIF_icon_draw(x+16, y-8, ICON_DOT);
 						glDisable(GL_BLEND);
 					}
+					if(strip->modifiers.first) {
+						glEnable(GL_BLEND);
+						BIF_icon_draw(x+34, y-8, ICON_MODIFIER);
+						glDisable(GL_BLEND);
+					}
 				}
+				
 				y-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
 			}
 		}
@@ -398,6 +405,11 @@ static void draw_nla_strips_keys(SpaceNla *snla)
 
 #define B_NLA_PANEL		121
 #define B_NLA_LOCK		122
+#define B_NLA_MOD_ADD	123
+#define B_NLA_MOD_NEXT	124
+#define B_NLA_MOD_PREV	125
+#define B_NLA_MOD_DEL	126
+#define B_NLA_MOD_DEPS	127
 
 /* For now just returns the first selected strip */
 bActionStrip *get_active_nlastrip(Object **obpp)
@@ -442,19 +454,73 @@ void do_nlabuts(unsigned short event)
 		allqueue (REDRAWACTION, 0);
 		allqueue (REDRAWVIEW3D, 0);
 		break;
+		
+	case B_NLA_MOD_ADD:
+		{
+			bActionModifier *amod= MEM_callocN(sizeof(bActionModifier), "bActionModifier");
+			
+			BLI_addtail(&strip->modifiers, amod);
+			strip->curmod= BLI_countlist(&strip->modifiers)-1;
+			allqueue (REDRAWNLA, 0);
+		}
+		break;
+	case B_NLA_MOD_DEL:
+		if(strip->modifiers.first) {
+			bActionModifier *amod= BLI_findlink(&strip->modifiers, strip->curmod);
+			BLI_remlink(&strip->modifiers, amod);
+			MEM_freeN(amod);
+			if(strip->curmod) strip->curmod--;
+			allqueue (REDRAWNLA, 0);
+		}
+		break;
+	case B_NLA_MOD_NEXT:
+		if(strip->curmod < BLI_countlist(&strip->modifiers)-1)
+			strip->curmod++;
+		allqueue (REDRAWNLA, 0);
+		break;
+	case B_NLA_MOD_PREV:
+		if(strip->curmod > 0)
+			strip->curmod--;
+		allqueue (REDRAWNLA, 0);
+		break;
+	case B_NLA_MOD_DEPS:
+		DAG_scene_sort(G.scene);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
+		break;
 	}
 }
+
+static char *make_modifier_menu(ListBase *lb)
+{
+	bActionModifier *amod;
+	int index= 1;
+	char *str, item[64], *types[3]={"Deform", "Noise", "Oomph"};
+	
+	for (amod = lb->first; amod; amod=amod->next, index++);
+	str= MEM_mallocN(index*64, "key string");
+	str[0]= 0;
+	
+	index= 0;
+	for (amod = lb->first; amod; amod=amod->next, index++) {
+		sprintf (item,  "|%s %s%%x%d", types[amod->type], amod->channel, index);
+		strcat(str, item);
+	}
+	
+	return str;
+}
+
 
 static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 {
 	Object *ob;
 	bActionStrip *strip;
 	uiBlock *block;
+	uiBut *but;
 
 	block= uiNewBlock(&curarea->uiblocks, "nla_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(NLA_HANDLER_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "Transform Properties", "NLA", 10, 230, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Transform Properties", "NLA", 10, 230, 318, 224)==0) return;
 
 	/* Determine if an nla strip has been selected */
 	strip = get_active_nlastrip(&ob);
@@ -488,26 +554,61 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_NLA_PANEL, "Repeat:", 	160,100,150,19, &strip->repeat, 0.001, 1000.0f, 100, 0, "Number of times the action should repeat");
-	uiDefButBitS(block, TOG, ACTSTRIP_HOLDLASTFRAME, B_NLA_PANEL, "Hold",	160,80,75,19, &strip->flag, 0, 0, 0, 0, "Toggles whether to continue displaying the last frame past the end of the strip");
-	uiDefButS(block, TOG, B_NLA_PANEL, "Add",								235,80,75,19, &strip->mode, 0, 0, 0, 0, "Toggles additive blending mode");
+	but= uiDefButC(block, TEX, B_NLA_PANEL, "OffsBone:", 160,80,150,19, strip->offs_bone, 0, 31.0f, 0, 0, "Name of Bone that defines offset for repeat");
+	uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
+	uiDefButBitS(block, TOG, ACTSTRIP_HOLDLASTFRAME, B_NLA_PANEL, "Hold",	160,60,75,19, &strip->flag, 0, 0, 0, 0, "Toggles whether to continue displaying the last frame past the end of the strip");
+	uiDefButS(block, TOG, B_NLA_PANEL, "Add",								235,60,75,19, &strip->mode, 0, 0, 0, 0, "Toggles additive blending mode");
 	uiBlockEndAlign(block);
 	
-	uiDefButBitS(block, TOG, ACTSTRIP_USESTRIDE, B_NLA_PANEL, "Stride Path",	10, 50,140,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride");
+	uiDefButBitS(block, TOG, ACTSTRIP_USESTRIDE, B_NLA_PANEL, "Stride Path",	10, 30,140,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride");
+	
 	if(ob->dup_group)
-		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_NLA_PANEL, "Target:",	160,50, 150, 19, &strip->object, "Target Object in this group"); 
+		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_NLA_PANEL, "Target:",	160,30, 150, 19, &strip->object, "Target Object in this group"); 
 	
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, OB_DISABLE_PATH, B_NLA_PANEL, "Disable",			10,20,60,19, &ob->ipoflag, 0, 0, 0, 0, "Disable path temporally, for editing cycles");
-	
-	uiDefButF(block, NUM, B_NLA_PANEL, "Offs:",			70,20,120,19, &strip->actoffs, -500, 500.0, 100, 0, "Action offset in frames to tweak cycle of the action within the stride");
-	uiDefButF(block, NUM, B_NLA_PANEL, "Stri:",			190,20,120,19, &strip->stridelen, 0.0001, 1000.0, 100, 0, "Distance covered by one complete cycle of the action specified in the Action Range");
-	
-	uiDefButS(block, ROW, B_NLA_PANEL, "X",				10, 0, 33, 19, &strip->stride_axis, 1, 0, 0, 0, "Dominant axis for Stride Bone");
-	uiDefButS(block, ROW, B_NLA_PANEL, "Y",				43, 0, 33, 19, &strip->stride_axis, 1, 1, 0, 0, "Dominant axis for Stride Bone");
-	uiDefButS(block, ROW, B_NLA_PANEL, "Z",				76, 0, 34, 19, &strip->stride_axis, 1, 2, 0, 0, "Dominant axis for Stride Bone");
-	
-	uiDefBut(block, TEX, B_NLA_PANEL, "Stride Bone:",	110, 0, 200, 19, strip->stridechannel, 1, 31, 0, 0, "Name of Bone used for stride");
-
+	if(strip->flag & ACTSTRIP_USESTRIDE) {
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, OB_DISABLE_PATH, B_NLA_PANEL, "Disable",	10,0,60,19, &ob->ipoflag, 0, 0, 0, 0, "Disable path temporally, for editing cycles");
+		
+		uiDefButF(block, NUM, B_NLA_PANEL, "Offs:",			70,0,120,19, &strip->actoffs, -500, 500.0, 100, 0, "Action offset in frames to tweak cycle of the action within the stride");
+		uiDefButF(block, NUM, B_NLA_PANEL, "Stri:",			190,0,120,19, &strip->stridelen, 0.0001, 1000.0, 100, 0, "Distance covered by one complete cycle of the action specified in the Action Range");
+		
+		uiDefButS(block, ROW, B_NLA_PANEL, "X",				10, -20, 33, 19, &strip->stride_axis, 1, 0, 0, 0, "Dominant axis for Stride Bone");
+		uiDefButS(block, ROW, B_NLA_PANEL, "Y",				43, -20, 33, 19, &strip->stride_axis, 1, 1, 0, 0, "Dominant axis for Stride Bone");
+		uiDefButS(block, ROW, B_NLA_PANEL, "Z",				76, -20, 34, 19, &strip->stride_axis, 1, 2, 0, 0, "Dominant axis for Stride Bone");
+		
+		but= uiDefBut(block, TEX, B_NLA_PANEL, "Stride Bone:",	110, -20, 200, 19, strip->stridechannel, 1, 31, 0, 0, "Name of Bone used for stride");
+		uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
+	}
+	else {	/* modifiers */
+		bActionModifier *amod= BLI_findlink(&strip->modifiers, strip->curmod);
+		
+		uiBlockBeginAlign(block);
+		uiDefBut(block, BUT, B_NLA_MOD_ADD, "Add Modifier",				10,0,140,19, NULL, 0, 0, 0, 0, "");
+		if(amod) {
+			char *strp= make_modifier_menu(&strip->modifiers);
+			
+			uiDefIconBut(block, BUT, B_NLA_MOD_NEXT, ICON_TRIA_LEFT,	150,0,20,19, NULL, 0, 0, 0, 0, "Previous Modifier");
+			uiDefButS(block, MENU, B_NLA_PANEL, strp,					170,0,20,19, &strip->curmod, 0, 0, 0, 0, "Browse modifier");
+			MEM_freeN(strp);
+			uiDefIconBut(block, BUT, B_NLA_MOD_PREV, ICON_TRIA_RIGHT,	190,0,20,19, NULL, 0, 0, 0, 0, "Next Modifier");
+			uiDefButS(block, MENU, B_REDR, "Deform %x0|Noise %x1|Oomph %x2",	210,0,80,19, &amod->type, 0, 0, 0, 0, "Modifier type");
+			uiDefIconBut(block, BUT, B_NLA_MOD_DEL, ICON_X,				290,0,20,19, NULL, 0, 0, 0, 0, "Delete Modifier");
+			
+			if(amod->type==ACTSTRIP_MOD_DEFORM) {
+				but= uiDefBut(block, TEX, B_NLA_PANEL, "Chan:",				10, -20, 130, 19, amod->channel, 1, 31, 0, 0, "Name of channel used for modifier");
+				uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
+				uiDefButS(block, MENU, B_REDR, "All%x0|XY%x3|XZ%x2|YZ%x1",	140,-20,40,19, &amod->no_rot_axis, 0, 0, 0, 0, "Enable rotation axes (local for curve)");
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_NLA_MOD_DEPS, "Ob:",	180,-20, 130, 19, &amod->ob, "Curve Object"); 
+			}
+			else
+				uiDefBut(block, LABEL, B_NOP, "Ack! Not implemented.",	10, -20, 150, 19, NULL, 0, 0, 0, 0, "");
+				
+		}
+		else { /* for panel aligning */
+			uiBlockEndAlign(block);
+			uiDefBut(block, LABEL, B_NOP, " ",				10, -20, 150, 19, NULL, 0, 0, 0, 0, "");
+		}
+	}
 }
 
 static void nla_blockhandlers(ScrArea *sa)

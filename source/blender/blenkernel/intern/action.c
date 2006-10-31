@@ -57,6 +57,7 @@
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
+#include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -386,6 +387,68 @@ bActionChannel *verify_action_channel(bAction *act, const char *name)
 	return chan;
 }
 
+/* ************** time ****************** */
+
+static bActionStrip *get_active_strip(Object *ob)
+{
+	bActionStrip *strip;
+	
+	if(ob->action==NULL)
+		return NULL;
+	
+	for (strip=ob->nlastrips.first; strip; strip=strip->next)
+		if(strip->flag & ACTSTRIP_ACTIVE)
+			break;
+	
+	if(strip && strip->act==ob->action)
+		return strip;
+	return NULL;
+}
+
+/* non clipped mapping of strip */
+static float get_actionstrip_frame(bActionStrip *strip, float cframe, int invert)
+{
+	float length, actlength, repeat;
+	
+	if (strip->flag & ACTSTRIP_USESTRIDE)
+		repeat= 1.0f;
+	else
+		repeat= strip->repeat;
+	
+	length = strip->end-strip->start;
+	if(length==0.0f)
+		length= 1.0f;
+	actlength = strip->actend-strip->actstart;
+	
+	
+	
+	if(invert)
+		return length*(cframe - strip->actstart)/(repeat*actlength) + strip->start;
+	else
+		return repeat*actlength*(cframe - strip->start)/length + strip->actstart;
+}
+
+/* if the conditions match, it converts current time to strip time */
+float get_action_frame(Object *ob, float cframe)
+{
+	bActionStrip *strip= get_active_strip(ob);
+	
+	if(strip)
+		return get_actionstrip_frame(strip, cframe, 0);
+	return cframe;
+}
+
+/* inverted, strip time to current time */
+float get_action_frame_inv(Object *ob, float cframe)
+{
+	bActionStrip *strip= get_active_strip(ob);
+	
+	if(strip)
+		return get_actionstrip_frame(strip, cframe, 1);
+	return cframe;
+}
+
+
 /* ************************ Blending with NLA *************** */
 
 static void blend_pose_strides(bPose *dst, bPose *src, float srcweight, short mode)
@@ -405,6 +468,87 @@ static void blend_pose_strides(bPose *dst, bPose *src, float srcweight, short mo
 	
 	VecLerpf(dst->stride_offset, dst->stride_offset, src->stride_offset, srcweight);
 }
+
+
+/* 
+
+bone matching diagram, strips A and B
+
+                 .------------------------.
+                 |         A              |
+                 '------------------------'
+				 .          .             b2
+                 .          .-------------v----------.
+                 .      	|         B   .          |
+                 .          '------------------------'
+                 .          .             .
+                 .          .             .
+offset:          .    0     .    A-B      .  A-b2+B     
+                 .          .             .
+
+*/
+
+
+static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, float srcweight, short mode)
+{
+	/* matching offset bones */
+	/* take dst offset, and put src on on that location */
+	
+	if(strip->offs_bone[0]==0)
+		return;
+	
+	/* are we also blending with matching bones? */
+	if(strip->prev && strip->start>=strip->prev->start) {
+		bPoseChannel *dpchan= get_pose_channel(dst, strip->offs_bone);
+		if(dpchan) {
+			bPoseChannel *spchan= get_pose_channel(src, strip->offs_bone);
+			if(spchan) {
+				float vec[3];
+				
+				/* dst->ctime has the internal strip->prev action time */
+				/* map this time to nla time */
+				
+				float ctime= get_actionstrip_frame(strip, src->ctime, 1);
+				
+				if( ctime > strip->prev->end) {
+					bActionChannel *achan;
+					
+					/* add src to dest, minus the position of src on strip->prev->end */
+					
+					ctime= get_actionstrip_frame(strip, strip->prev->end, 0);
+					
+					achan= get_action_channel(strip->act, strip->offs_bone);
+					if(achan && achan->ipo) {
+						bPoseChannel pchan;
+						/* Evaluates and sets the internal ipo value */
+						calc_ipo(achan->ipo, ctime);
+						/* This call also sets the pchan flags */
+						execute_action_ipo(achan, &pchan);
+						
+						/* store offset that moves src to location of pchan */
+						VecSubf(vec, dpchan->loc, pchan.loc);
+						
+						Mat4Mul3Vecfl(dpchan->bone->arm_mat, vec);
+					}
+				}
+				else {
+					/* store offset that moves src to location of dst */
+					
+					VecSubf(vec, dpchan->loc, spchan->loc);
+					Mat4Mul3Vecfl(dpchan->bone->arm_mat, vec);
+				}
+				
+				/* if blending, we only add with factor scrweight */
+				VecMulf(vec, srcweight);
+				
+				VecAddf(dst->cyclic_offset, dst->cyclic_offset, vec);
+			}
+		}
+	}
+	
+	VecAddf(dst->cyclic_offset, dst->cyclic_offset, src->cyclic_offset);
+}
+
 
 /* Only allowed for Poses with identical channels */
 void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
@@ -457,6 +601,9 @@ void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
 			dcon->enforce= dcon->enforce*(1.0f-srcweight) + scon->enforce*srcweight;
 		}
 	}
+	
+	/* this pose is now in src time */
+	dst->ctime= src->ctime;
 }
 
 
@@ -545,6 +692,8 @@ void extract_pose_from_action(bPose *pose, bAction *act, float ctime)
 			do_constraint_channels(&pchan->constraints, &achan->constraintChannels, ctime);
 		}
 	}
+	
+	pose->ctime= ctime;	/* used for cyclic offset matching */
 }
 
 /* for do_all_pose_actions, clears the pose */
@@ -556,17 +705,16 @@ static void rest_pose(bPose *pose)
 	if (!pose)
 		return;
 	
-	pose->stride_offset[0]= 0.0f;
-	pose->stride_offset[1]= 0.0f;
-	pose->stride_offset[2]= 0.0f;
+	memset(pose->stride_offset, 0, sizeof(pose->stride_offset));
+	memset(pose->cyclic_offset, 0, sizeof(pose->cyclic_offset));
 	
-	for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
-		for (i=0; i<3; i++){
-			pchan->loc[i]=0.0;
-			pchan->quat[i+1]=0.0;
-			pchan->size[i]=1.0;
+	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next){
+		for (i=0; i<3; i++) {
+			pchan->loc[i]= 0.0f;
+			pchan->quat[i+1]= 0.0f;
+			pchan->size[i]= 1.0f;
 		}
-		pchan->quat[0]=1.0;
+		pchan->quat[0]= 1.0f;
 		
 		pchan->flag &= ~(POSE_LOC|POSE_ROT|POSE_SIZE);
 	}
@@ -685,69 +833,7 @@ static void execute_ipochannels(ListBase *lb)
 	}
 }
 
-
-/* ************** time ****************** */
-
-static bActionStrip *get_active_strip(Object *ob)
-{
-	bActionStrip *strip;
-	
-	if(ob->action==NULL)
-		return NULL;
-	
-	for (strip=ob->nlastrips.first; strip; strip=strip->next)
-		if(strip->flag & ACTSTRIP_ACTIVE)
-			break;
-	
-	if(strip && strip->act==ob->action)
-		return strip;
-	return NULL;
-}
-
-/* non clipped mapping of strip */
-static float get_actionstrip_frame(bActionStrip *strip, float cframe, int invert)
-{
-	float length, actlength, repeat;
-	
-	if (strip->flag & ACTSTRIP_USESTRIDE)
-		repeat= 1.0f;
-	else
-		repeat= strip->repeat;
-	
-	length = strip->end-strip->start;
-	if(length==0.0f)
-		length= 1.0f;
-	actlength = strip->actend-strip->actstart;
-
-	
-	
-	if(invert)
-		return length*(cframe - strip->actstart)/(repeat*actlength) + strip->start;
-	else
-		return repeat*actlength*(cframe - strip->start)/length + strip->actstart;
-}
-
-/* if the conditions match, it converts current time to strip time */
-float get_action_frame(Object *ob, float cframe)
-{
-	bActionStrip *strip= get_active_strip(ob);
-	
-	if(strip)
-		return get_actionstrip_frame(strip, cframe, 0);
-	return cframe;
-}
-
-/* inverted, strip time to current time */
-float get_action_frame_inv(Object *ob, float cframe)
-{
-	bActionStrip *strip= get_active_strip(ob);
-	
-	if(strip)
-		return get_actionstrip_frame(strip, cframe, 1);
-	return cframe;
-}
-
-
+/* nla timing */
 
 /* this now only used for repeating cycles, to enable fields and blur. */
 /* the whole time control in blender needs serious thinking... */
@@ -840,6 +926,54 @@ static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip
 	return 0.0f;
 }
 
+static void cyclic_offs_bone(Object *ob, bPose *pose, bActionStrip *strip, float time)
+{
+	
+	if(time > 1.0f) {
+		bActionChannel *achan= get_action_channel(strip->act, strip->offs_bone);
+
+		if(achan && achan->ipo) {
+			IpoCurve *icu= NULL;
+			Bone *bone;
+			float min[3]={0.0f, 0.0f, 0.0f}, max[3]={0.0f, 0.0f, 0.0f};
+			int index=0, foundvert= 0;
+			
+			/* calculate the min/max */
+			for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
+				if(icu->totvert>1) {
+					
+					if(icu->adrcode==AC_LOC_X)
+						index= 0;
+					else if(icu->adrcode==AC_LOC_Y)
+						index= 1;
+					else if(icu->adrcode==AC_LOC_Z)
+						index= 2;
+					else
+						continue;
+				
+					foundvert= 1;
+					min[index]= icu->bezt[0].vec[1][1];
+					max[index]= icu->bezt[icu->totvert-1].vec[1][1];
+				}
+			}
+			if(foundvert) {
+				/* bring it into armature space */
+				VecSubf(min, max, min);
+				bone= get_named_bone(ob->data, strip->offs_bone);	/* weak */
+				Mat4Mul3Vecfl(bone->arm_mat, min);
+				
+				/* dominant motion, cyclic_offset was cleared in rest_pose */
+				if( fabs(min[0]) >= fabs(min[1]) && fabs(min[0]) >= fabs(min[2]))
+					pose->cyclic_offset[0]= time*min[0];
+				else if( fabs(min[1]) >= fabs(min[0]) && fabs(min[1]) >= fabs(min[2]))
+					pose->cyclic_offset[1]= time*min[1];
+				else
+					pose->cyclic_offset[2]= time*min[2];
+			}
+		}
+	}
+}
+
 /* simple case for now; only the curve path with constraint value > 0.5 */
 /* blending we might do later... */
 static Object *get_parent_path(Object *ob)
@@ -917,7 +1051,7 @@ static void do_nla(Object *ob, int blocktype)
 			actlength = strip->actend-strip->actstart;
 			striptime = (scene_cfra-(strip->start)) / length;
 			stripframe = (scene_cfra-(strip->start)) ;
-			
+
 			if (striptime>=0.0){
 				
 				if(blocktype==ID_AR) 
@@ -982,25 +1116,32 @@ static void do_nla(Object *ob, int blocktype)
 						
 						/* Mod to repeat */
 						if(strip->repeat!=1.0f) {
-							striptime*= strip->repeat;
-							striptime = (float)fmod (striptime, 1.0f + 0.1f/length);
+							float cycle= striptime*strip->repeat;
+							
+							striptime = (float)fmod (cycle, 1.0f + 0.1f/length);
+							cycle-= striptime;
+							
+							if(blocktype==ID_AR)
+								cyclic_offs_bone(ob, tpose, strip, cycle);
 						}
 
 						frametime = (striptime * actlength) + strip->actstart;
 						frametime= nla_time(frametime, (float)strip->repeat);
 							
-						if(blocktype==ID_AR)
+						if(blocktype==ID_AR) {
 							extract_pose_from_action (tpose, strip->act, frametime);
+						}
 						else if(blocktype==ID_OB) {
 							extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
 							if(key)
 								extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
-						}						
+						}
+						
 						doit=1;
 					}
 				}
 				/* Handle extend */
-				else{
+				else {
 					if (strip->flag & ACTSTRIP_HOLDLASTFRAME){
 						/* we want the strip to hold on the exact fraction of the repeat value */
 						
@@ -1015,6 +1156,13 @@ static void do_nla(Object *ob, int blocktype)
 							if(key)
 								extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
 						}
+						
+						/* handle cycle hold */
+						if(strip->repeat!=1.0f) {
+							if(blocktype==ID_AR)
+								cyclic_offs_bone(ob, tpose, strip, strip->repeat-1.0f);
+						}
+						
 						doit=1;
 					}
 				}
@@ -1033,6 +1181,9 @@ static void do_nla(Object *ob, int blocktype)
 						blendfac = 1;
 					
 					if(blocktype==ID_AR) {/* Blend this pose with the accumulated pose */
+						/* offset bone, for matching cycles */
+						blend_pose_offset_bone (strip, ob->pose, tpose, blendfac, strip->mode);
+						
 						blend_poses (ob->pose, tpose, blendfac, strip->mode);
 						if(dostride)
 							blend_pose_strides (ob->pose, tpose, blendfac, strip->mode);
@@ -1061,7 +1212,6 @@ static void do_nla(Object *ob, int blocktype)
 	}
 	if(chanbase.first)
 		BLI_freelistN(&chanbase);
-	
 }
 
 void do_all_pose_actions(Object *ob)

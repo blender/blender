@@ -1390,11 +1390,14 @@ static void direct_link_scriptlink(FileData *fd, ScriptLink *slink)
 static void lib_link_nlastrips(FileData *fd, ID *id, ListBase *striplist)
 {
 	bActionStrip *strip;
-
+	bActionModifier *amod;
+	
 	for (strip=striplist->first; strip; strip=strip->next){
 		strip->object = newlibadr(fd, id->lib, strip->object);
 		strip->act = newlibadr_us(fd, id->lib, strip->act);
 		strip->ipo = newlibadr(fd, id->lib, strip->ipo);
+		for(amod= strip->modifiers.first; amod; amod= amod->next)
+			amod->ob= newlibadr(fd, id->lib, amod->ob);
 	}
 }
 
@@ -2502,6 +2505,16 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 	}
 }
 
+static void direct_link_nlastrips(FileData *fd, ListBase *strips)
+{
+	bActionStrip *strip;
+	
+	link_list(fd, strips);
+	
+	for(strip= strips->first; strip; strip= strip->next)
+		link_list(fd, &strip->modifiers);
+}
+
 static void direct_link_object(FileData *fd, Object *ob)
 {
 	PartEff *paf;
@@ -2520,7 +2533,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	direct_link_pose(fd, ob->pose);
 
 	link_list(fd, &ob->defbase);
-	link_list(fd, &ob->nlastrips);
+	direct_link_nlastrips(fd, &ob->nlastrips);
 	link_list(fd, &ob->constraintChannels);
 
 	direct_link_scriptlink(fd, &ob->scriptlink);

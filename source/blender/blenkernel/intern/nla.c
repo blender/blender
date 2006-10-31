@@ -74,6 +74,11 @@ void copy_actionstrip (bActionStrip **dst, bActionStrip **src){
 
 	if (dstrip->ipo)
 		dstrip->ipo->id.us++;
+	
+	if (dstrip->modifiers.first) {
+		duplicatelist (&dstrip->modifiers, &sstrip->modifiers);
+	}
+	
 }
 
 void copy_nlastrips (ListBase *dst, ListBase *src)
@@ -93,6 +98,11 @@ void copy_nlastrips (ListBase *dst, ListBase *src)
 			strip->act->id.us++;
 		if (strip->ipo)
 			strip->ipo->id.us++;
+		if (strip->modifiers.first) {
+			ListBase listb;
+			duplicatelist (&listb, &strip->modifiers);
+			strip->modifiers= listb;
+		}
 	}
 }
 
@@ -139,7 +149,7 @@ bActionStrip *convert_action_to_strip (Object *ob)
 }
 
 
-
+/* not strip itself! */
 void free_actionstrip(bActionStrip* strip)
 {
 	if (!strip)
@@ -153,6 +163,10 @@ void free_actionstrip(bActionStrip* strip)
 		strip->ipo->id.us--;
 		strip->ipo = NULL;
 	}
+	if (strip->modifiers.first) {
+		BLI_freelistN(&strip->modifiers);
+	}
+	
 }
 
 void free_nlastrips (ListBase *nlalist)

@@ -389,7 +389,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 		}
 	}
 	
-	/* driver dependencies */
+	/* driver dependencies, nla modifiers */
 	if(ob->ipo) 
 		dag_add_driver_relation(ob->ipo, dag, node, 0);
 	
@@ -416,6 +416,15 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 				for (chan = strip->act->chanbase.first; chan; chan=chan->next)
 					if(chan->ipo)
 						dag_add_driver_relation(chan->ipo, dag, node, 1);
+			if(strip->modifiers.first) {
+				bActionModifier *amod;
+				for(amod= strip->modifiers.first; amod; amod= amod->next) {
+					if(amod->ob) {
+						node2 = dag_get_node(dag, amod->ob);
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+					}
+				}
+			}
 		}
 	}
 	if (ob->modifiers.first) {

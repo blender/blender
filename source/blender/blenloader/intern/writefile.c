@@ -632,9 +632,14 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 static void write_nlastrips(WriteData *wd, ListBase *nlabase)
 {
 	bActionStrip *strip;
-
+	bActionModifier *amod;
+	
 	for (strip=nlabase->first; strip; strip=strip->next)
 		writestruct(wd, DATA, "bActionStrip", 1, strip);
+	for (strip=nlabase->first; strip; strip=strip->next) {
+		for(amod= strip->modifiers.first; amod; amod= amod->next)
+			writestruct(wd, DATA, "bActionModifier", 1, amod);
+	}
 }
 
 static void write_constraints(WriteData *wd, ListBase *conlist)

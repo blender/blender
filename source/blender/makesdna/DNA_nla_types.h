@@ -33,14 +33,33 @@
 #ifndef DNA_NLA_TYPES_H
 #define DNA_NLA_TYPES_H
 
+#include "DNA_listBase.h"
+
 struct bAction;
 struct Ipo;
 struct Object;
 
+/* simple uniform modifier structure, assumed it can hold all type info */
+typedef struct bActionModifier {
+	struct bActionModifier *next, *prev;
+	short type, flag;
+	char channel[32];
+	
+	/* path deform modifier */
+	short pad, no_rot_axis;
+	struct Object *ob;
+	
+} bActionModifier;
+
+#define ACTSTRIP_MOD_DEFORM		0
+#define ACTSTRIP_MOD_NOISE		1
+#define ACTSTRIP_MOD_OOMPH		2
+
 typedef struct bActionStrip {
 	struct bActionStrip *next, *prev;
 	short	flag, mode;
-	short	stride_axis, pad;	/* axis 0=x, 1=y, 2=z */
+	short	stride_axis;		/* axis 0=x, 1=y, 2=z */
+	short   curmod;				/* current modifier for buttons */
 
 	struct	Ipo *ipo;			/* Blending ipo */
 	struct	bAction *act;		/* The action referenced by this strip */
@@ -54,6 +73,10 @@ typedef struct bActionStrip {
 	float	blendin, blendout;
 	
 	char	stridechannel[32];	/* Instead of stridelen, it uses an action channel */
+	char	offs_bone[32];		/* if repeat, use this bone/channel for defining offset */
+	
+	struct ListBase modifiers;	/* modifier stack */
+	
 } bActionStrip;
 
 #define ACTSTRIPMODE_BLEND		0

@@ -54,6 +54,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_action.h"
+#include "BKE_blender.h"
 #include "BKE_depsgraph.h"
 #include "BKE_group.h"
 #include "BKE_global.h"
@@ -1647,7 +1648,11 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			  break;
 				
 			case CKEY:
-				convert_nla(mval);
+				if(G.qual==LR_CTRLKEY) {
+					if(okee("Copy Modifiers"))
+						copy_action_modifiers();
+				}
+				else convert_nla(mval);
 				break;
 				
 			case DKEY:
@@ -1848,3 +1853,36 @@ void bake_all_to_action(void)
 		}
 	}
 }
+
+void copy_action_modifiers(void)
+{
+	bActionStrip *strip, *actstrip;
+	Object *ob= OBACT;
+	
+	if(ob==NULL)
+		return;
+	
+	/* active strip */
+	for (actstrip=ob->nlastrips.first; actstrip; actstrip=actstrip->next)
+		if(actstrip->flag & ACTSTRIP_ACTIVE)
+			break;
+	if(actstrip==NULL)
+		return;
+	
+	/* copy to selected items */
+	for (strip=ob->nlastrips.first; strip; strip=strip->next){
+		if (strip->flag & ACTSTRIP_SELECT) {
+			if(strip!=actstrip) {
+				if (strip->modifiers.first)
+					BLI_freelistN(&strip->modifiers);
+				if (actstrip->modifiers.first)
+					duplicatelist (&strip->modifiers, &actstrip->modifiers);
+			}
+		}
+	}
+	
+	BIF_undo_push("Copy Action Modifiers");
+	allqueue(REDRAWNLA, 0);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers());
+}
+

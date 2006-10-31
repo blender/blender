@@ -54,6 +54,7 @@ void reset_action_strips(int val);
 void synchronize_action_strips(void);
 void snap_action_strips(void);
 void add_nlablock(void);
+void copy_action_modifiers(void);
 
 /* Baking */
 void bake_all_to_action(void);

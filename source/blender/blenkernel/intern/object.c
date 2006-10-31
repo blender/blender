@@ -333,6 +333,13 @@ void unlink_object(Object *ob)
 			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
 				if(strip->object==ob)
 					strip->object= NULL;
+				
+				if(strip->modifiers.first) {
+					bActionModifier *amod;
+					for(amod= strip->modifiers.first; amod; amod= amod->next)
+						if(amod->ob==ob)
+							amod->ob= NULL;
+				}
 			}
 		}
 		obt= obt->id.next;

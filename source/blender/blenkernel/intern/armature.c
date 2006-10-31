@@ -43,6 +43,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
@@ -58,6 +59,7 @@
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_object.h"
@@ -1592,6 +1594,35 @@ static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
 	}
 }
 
+static void do_strip_modifiers(Object *armob, Bone *bone, bPoseChannel *pchan)
+{
+	bActionModifier *amod;
+	bActionStrip *strip;
+	float scene_cfra= G.scene->r.cfra;
+
+	for (strip=armob->nlastrips.first; strip; strip=strip->next) {
+		if(scene_cfra>=strip->start && scene_cfra<=strip->end) {
+			
+			for(amod= strip->modifiers.first; amod; amod= amod->next) {
+				if(amod->type==ACTSTRIP_MOD_DEFORM) {
+					/* validate first */
+					if(amod->ob && amod->ob->type==OB_CURVE && amod->channel[0]) {
+						
+						if( strcmp(pchan->name, amod->channel)==0 ) {
+							float mat4[4][4], mat3[3][3];
+							
+							curve_deform_vector(amod->ob, armob, bone->arm_mat[3], pchan->pose_mat[3], mat3, amod->no_rot_axis);
+							Mat4CpyMat4(mat4, pchan->pose_mat);
+							Mat4MulMat34(pchan->pose_mat, mat3, mat4);
+							
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 
 /* The main armature solver, does all constraints excluding IK */
 /* pchan is validated, as having bone and parent pointer */
@@ -1657,9 +1688,13 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 		else 
 			Mat4MulSerie(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
 	}
-	else 
+	else {
 		Mat4MulMat4(pchan->pose_mat, pchan->chan_mat, bone->arm_mat);
+		/* only rootbones get the cyclic offset */
+		VecAddf(pchan->pose_mat[3], pchan->pose_mat[3], ob->pose->cyclic_offset);
+	}
 	
+	do_strip_modifiers(ob, bone, pchan);
 	
 	/* Do constraints */
 	if(pchan->constraints.first) {

@@ -53,7 +53,12 @@ void calc_latt_deform(float *co, float weight);
 void end_latt_deform(void);
 int object_deform_mball(struct Object *ob);
 void outside_lattice(struct Lattice *lt);
-void curve_deform_verts(struct Object *cuOb, struct Object *target, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts, char *vgroup, short defaxis);
+void curve_deform_verts(struct Object *cuOb, struct Object *target, 
+						struct DerivedMesh *dm, float (*vertexCos)[3], 
+						int numVerts, char *vgroup, short defaxis);
+void curve_deform_vector(struct Object *cuOb, struct Object *target, 
+						 float *orco, float *vec, float mat[][3], int no_rot_axis);
+
 void lattice_deform_verts(struct Object *laOb, struct Object *target,
                           struct DerivedMesh *dm, float (*vertexCos)[3],
                           int numVerts, char *vgroup);

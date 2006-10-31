@@ -83,7 +83,9 @@ typedef struct bPoseChannel {
 typedef struct bPose{
 	ListBase			chanbase;
 	int flag;
-	float stride_offset[3];
+	float ctime;				/* local action time of this pose */
+	float stride_offset[3];		/* applied to object */
+	float cyclic_offset[3];		/* result of match and cycles, applied in where_is_pose() */
 } bPose;
 
 typedef struct bActionChannel {
