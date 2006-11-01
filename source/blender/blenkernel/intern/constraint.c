@@ -1149,7 +1149,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 	
 	if (!constraint || !ob)
 		return;
-	return;
+
 	Mat4One (M_identity);
 	
 	switch (constraint->type){
