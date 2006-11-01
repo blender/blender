@@ -167,7 +167,7 @@ Image *new_image(int width, int height, char *name, short uvtestgrid)
 	Image *ima;
 			
 	ima = alloc_libblock(&G.main->image, ID_IM, name);
-
+	
 	if (ima)
 	{
 		ImBuf *ibuf;
@@ -243,6 +243,7 @@ Image *new_image(int width, int height, char *name, short uvtestgrid)
 		}
 
 		ima->ok= 1;
+		ima->xrep= ima->yrep= 1;
 	}
 
 	return ima;
@@ -421,7 +422,8 @@ int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quali
 	int ok;
 	
 	if(imtype==0);
-	else if(imtype== R_IRIS) ibuf->ftype= IMAGIC;
+	else if(imtype== R_IRIS) 
+		ibuf->ftype= IMAGIC;
 	else if ((imtype==R_RADHDR)) {
 		ibuf->ftype= RADHDR;
 	}
