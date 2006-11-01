@@ -139,7 +139,7 @@ verseserver_env.Append (LIBPATH = ['.'])
 verseserver_env.Append (LIBS= ['verse'])
 verseserver_env.Append (LIBS= platform_libs)
 
-verselib_env.BlenderLib(libname='verse', sources=lib_source_files, includes=["."], defines = defines, libtype=['core', 'intern'], priority = [5, 5])
+verselib_env.BlenderLib(libname='verse', sources=lib_source_files, includes=["."], defines = defines, libtype=['core', 'intern', 'player'], priority = [5, 5, 100])
 verseserver_env.BlenderProg(builddir="#"+root_build_dir+os.sep, progname='verse', sources=server_source_files, libs=[],
 libpath='#'+env['BF_BUILDDIR']+'/lib')
 
