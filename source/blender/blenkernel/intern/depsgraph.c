@@ -650,6 +650,14 @@ void free_forest(DagForest *Dag)
 			itA = itA->next;
 			MEM_freeN(tempA);			
 		}
+		
+		itA = itN->parent;	
+		while (itA) {
+			tempA = itA;
+			itA = itA->next;
+			MEM_freeN(tempA);			
+		}
+		
 		tempN = itN;
 		itN = itN->next;
 		MEM_freeN(tempN);
@@ -757,6 +765,27 @@ void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel
 	itA->count = 1;
 	itA->next = fob1->child;
 	fob1->child = itA;
+}
+
+static void dag_add_parent_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel) 
+{
+	DagAdjList *itA = fob2->parent;
+	
+	while (itA) { /* search if relation exist already */
+		if (itA->node == fob1) {
+			itA->type |= rel;
+			itA->count += 1;
+			return;
+		}
+		itA = itA->next;
+	}
+	/* create new relation and insert at head. MALLOC alert! */
+	itA = MEM_mallocN(sizeof(DagAdjList),"DAG adj list");
+	itA->node = fob1;
+	itA->type = rel;
+	itA->count = 1;
+	itA->next = fob2->parent;
+	fob2->parent = itA;
 }
 
 
@@ -1925,6 +1954,50 @@ void DAG_object_update_flags(Scene *sce, Object *ob, unsigned int lay)
 
 /* ******************* DAG FOR ARMATURE POSE ***************** */
 
+static int node_recurs_level(DagNode *node, int level)
+{
+	DagAdjList *itA;
+	
+	node->color= DAG_BLACK;	/* done */
+	level++;
+	
+	for(itA= node->parent; itA; itA= itA->next) {
+		if(itA->node->color==DAG_WHITE)
+			itA->node->ancestor_count= node_recurs_level(itA->node, level);
+	}
+	
+	return level;
+}
+
+static void pose_check_cycle(DagForest *dag)
+{
+	DagNode *node;
+	DagAdjList *itA;
+
+	/* tag nodes unchecked */
+	for(node = dag->DagNode.first; node; node= node->next)
+		node->color= DAG_WHITE;
+	
+	for(node = dag->DagNode.first; node; node= node->next) {
+		if(node->color==DAG_WHITE) {
+			node->ancestor_count= node_recurs_level(node, 0);
+		}
+	}
+	
+	/* check relations, and print errors */
+	for(node = dag->DagNode.first; node; node= node->next) {
+		for(itA= node->parent; itA; itA= itA->next) {
+			if(itA->node->ancestor_count > node->ancestor_count) {
+				bPoseChannel *pchan= (bPoseChannel *)node->ob;
+				bPoseChannel *parchan= (bPoseChannel *)itA->node->ob;
+				
+				if(pchan && parchan) 
+					printf("Cycle in %s to %s\n", pchan->name, parchan->name);
+			}
+		}
+	}
+}
+
 /* we assume its an armature with pose */
 void DAG_pose_sort(Object *ob)
 {
@@ -1954,6 +2027,7 @@ void DAG_pose_sort(Object *ob)
 		if(pchan->parent) {
 			node2 = dag_get_node(dag, pchan->parent);
 			dag_add_relation(dag, node2, node, 0);
+			dag_add_parent_relation(dag, node2, node, 0);
 			addtoroot = 0;
 		}
 		for (con = pchan->constraints.first; con; con=con->next){
@@ -1966,6 +2040,7 @@ void DAG_pose_sort(Object *ob)
 					if(target) {
 						node2= dag_get_node(dag, target);
 						dag_add_relation(dag, node2, node, 0);
+						dag_add_parent_relation(dag, node2, node, 0);
 						
 						if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
 							bKinematicConstraint *data = (bKinematicConstraint*)con->data;
@@ -1982,6 +2057,7 @@ void DAG_pose_sort(Object *ob)
 							while (parchan){
 								node3= dag_get_node(dag, parchan);
 								dag_add_relation(dag, node2, node3, 0);
+								dag_add_parent_relation(dag, node2, node3, 0);
 								
 								segcount++;
 								if(segcount==data->rootbone || segcount>255) break; // 255 is weak
@@ -1992,10 +2068,14 @@ void DAG_pose_sort(Object *ob)
 				}
 			}
 		}
-		if (addtoroot == 1 )
+		if (addtoroot == 1 ) {
 			dag_add_relation(dag, rootnode, node, 0);
+			dag_add_parent_relation(dag, rootnode, node, 0);
+		}
 	}
 
+	pose_check_cycle(dag);
+	
 	/* now we try to sort... */
 	tempbase.first= tempbase.last= NULL;
 

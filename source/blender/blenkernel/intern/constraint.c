@@ -1000,8 +1000,6 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			data = (bSizeLikeConstraint*)con->data;
 
 			if (data->tar){
-				/*	Update the location of the target object */
-				where_is_object_time (data->tar, ctime);	
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid=1;
 			}
@@ -1151,7 +1149,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 	
 	if (!constraint || !ob)
 		return;
-	
+	return;
 	Mat4One (M_identity);
 	
 	switch (constraint->type){
@@ -1380,7 +1378,6 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 
 
 			data=(bLockTrackConstraint*)constraint->data;			
-			
 
 			if (data->tar){
 	

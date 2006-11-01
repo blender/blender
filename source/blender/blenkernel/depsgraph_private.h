@@ -73,6 +73,7 @@ typedef struct DagNode
 	int DFS_dvtm;		// DFS discovery time
 	int DFS_fntm;		// DFS Finishing time
 	struct DagAdjList *child;
+	struct DagAdjList *parent;
 	struct DagNode *next;
 } DagNode;
 
