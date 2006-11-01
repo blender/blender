@@ -1992,7 +1992,8 @@ static void pose_check_cycle(DagForest *dag)
 				bPoseChannel *parchan= (bPoseChannel *)itA->node->ob;
 				
 				if(pchan && parchan) 
-					printf("Cycle in %s to %s\n", pchan->name, parchan->name);
+					if(pchan->parent!=parchan)
+						printf("Cycle in %s to %s\n", pchan->name, parchan->name);
 			}
 		}
 	}
