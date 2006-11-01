@@ -1695,8 +1695,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else
 							make_parent();
 					}
+					
 					else if(G.qual==LR_ALTKEY && G.obedit->type==OB_ARMATURE)
 						clear_bone_parent();
+					else if((G.qual==0) && (G.obedit->type==OB_ARMATURE)) 
+						select_bone_parent();
 					else if((G.qual==0) && G.obedit->type==OB_MESH)
 						separatemenu();
 					else if ((G.qual==0) && ELEM(G.obedit->type, OB_CURVE, OB_SURF))
@@ -1720,6 +1723,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if(G.qual==LR_ALTKEY)
 					clear_parent();
+				else if((G.qual==0) && (OBACT) && (OBACT->type==OB_ARMATURE) && (OBACT->flag & OB_POSEMODE))
+					select_bone_parent();
 				else if((G.qual==0)) {
                 	start_game();
 				}

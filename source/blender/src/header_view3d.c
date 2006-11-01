@@ -1140,11 +1140,14 @@ static void do_view3d_select_armaturemenu(void *arg, int event)
 /*	extern void borderselect(void);*/
 
 	switch(event) {
-			case 0: /* border select */
+		case 0: /* border select */
 			borderselect();
 			break;
 		case 2: /* Select/Deselect all */
 			deselectall_armature(1);
+			break;
+		case 3: /* Select Parent(s) */	
+			select_bone_parent();
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1163,6 +1166,8 @@ static uiBlock *view3d_select_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Parent(s)|P",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -1190,6 +1195,9 @@ static void do_view3d_select_pose_armaturemenu(void *arg, int event)
 	case 3:
 		pose_select_constraint_target();
 		break;
+	case 4:
+		select_bone_parent();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1208,6 +1216,7 @@ static uiBlock *view3d_select_pose_armaturemenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Constraint Target|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Parent(s)|P",					0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

@@ -555,6 +555,87 @@ static void *get_nearest_bone (short findunsel)
 	return NULL;
 }
 
+/* used by posemode and editmode */
+void select_bone_parent (void)
+{
+	Object *ob;
+	bArmature *arm;	
+	
+	/* get data */
+	if (G.obedit)
+		ob= G.obedit;
+	else if (OBACT)
+		ob= OBACT;
+	else
+		return;
+	arm= (bArmature *)ob->data;
+	
+	/* determine which mode armature is in */
+	if ((!G.obedit) && (ob->flag & OB_POSEMODE)) {
+		/* deal with pose channels */
+		/* channels are sorted on dependency, so the loop below won't result in a flood-select */
+		bPoseChannel *pchan=NULL;
+		
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			/* check if bone in original selection */
+			if (pchan->bone->flag & BONE_SELECTED) {
+				bPoseChannel *chanpar= pchan->parent;
+				
+				/* check if any parent */
+				if ((chanpar) && ((chanpar->bone->flag & BONE_SELECTED)==0)) {
+					chanpar->bone->flag |= BONE_SELECTED;
+					select_actionchannel_by_name (ob->action, pchan->name, 1);
+				}
+			}
+		}
+	}
+	else if (G.obedit) {
+		/* deal with editbones */
+		EditBone *curbone, *parbone, *parpar;
+		
+		/* prevent floods */
+		for (curbone= G.edbo.first; curbone; curbone= curbone->next)
+			curbone->temp= NULL;
+		
+		for (curbone= G.edbo.first; curbone; curbone= curbone->next) {
+			/* check if bone selected */
+			if ((curbone->flag & BONE_SELECTED) && curbone->temp==NULL) {
+				parbone= curbone->parent;
+				
+				/* check if any parent */
+				if ((parbone) && ((parbone->flag & BONE_SELECTED)==0)) {
+					/* select the parent bone */
+					parbone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+					
+					/* check if parent has parent */
+					parpar= parbone->parent;
+					
+					if ((parpar) && (parbone->flag & BONE_CONNECTED)) {
+						parpar->flag |= BONE_TIPSEL;
+					}
+					/* tag this bone to not flood selection */
+					parbone->temp= parbone;
+				}
+			}
+		}
+		
+		/* to be sure... */
+		for (curbone= G.edbo.first; curbone; curbone= curbone->next)
+			curbone->temp= NULL;
+		
+	}
+	
+	/* undo + redraw pushes */
+	countall(); // flushes selection!
+
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWOOPS, 0);
+	
+	BIF_undo_push("Select Parent");
+}
+
 
 /* **************** END PoseMode & EditMode *************************** */
 /* **************** Posemode stuff ********************** */
