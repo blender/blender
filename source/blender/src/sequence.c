@@ -931,7 +931,8 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 					se->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat, 0);
 					memcpy(se->ibuf->rect_float, rres.rectf, 4*sizeof(float)*rres.rectx*rres.recty);
 					if(rres.rectz) {
-						/* not yet */
+						addzbuffloatImBuf(se->ibuf);
+						memcpy(se->ibuf->zbuf_float, rres.rectz, sizeof(float)*rres.rectx*rres.recty);
 					}
 				}
 					   

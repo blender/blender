@@ -1071,7 +1071,6 @@ static char *imagetype_pup(void)
 			"Jpeg",           R_JPEG90,
 			"HamX",           R_HAMX,
 			"Iris",           R_IRIS,
-			"Iris + Zbuffer", R_IRIZ,
 			"Radiance HDR",   R_RADHDR,
 			"Cineon",		  R_CINEON,
 			"DPX",			  R_DPX
@@ -1097,7 +1096,6 @@ static char *imagetype_pup(void)
 			"Jpeg",           R_JPEG90,
 			"HamX",           R_HAMX,
 			"Iris",           R_IRIS,
-			"Iris + Zbuffer", R_IRIZ,
 			"Radiance HDR",   R_RADHDR,
 			"Cineon",		  R_CINEON,
 			"DPX",			  R_DPX
