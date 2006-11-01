@@ -346,13 +346,22 @@ static void draw_nla_strips_keys(SpaceNla *snla)
 				glEnd();
 			}
 			
-			/* Draw border */
-			glEnable (GL_BLEND);
-			
-			glBegin(GL_LINE_STRIP);
-			glColor4f(1, 1, 1, 0.7); 
 			gla2DDrawTranslatePt(di, strip->start, y, &stripstart, &channel_y);
 			gla2DDrawTranslatePt(di, strip->end, y, &stripend, &channel_y);
+			
+			/* muted strip */
+			if(strip->flag & ACTSTRIP_MUTE) {
+				glColor3f(1, 0, 0); 
+				glBegin(GL_LINES);
+				glVertex2f(stripstart, channel_y-NLACHANNELHEIGHT/2+3);
+				glVertex2f(stripend, channel_y+NLACHANNELHEIGHT/2-3);
+				glEnd();
+			}
+			
+			/* Draw border */
+			glEnable (GL_BLEND);
+			glBegin(GL_LINE_STRIP);
+			glColor4f(1, 1, 1, 0.7); 
 			
 			glVertex2f(stripstart, channel_y-NLACHANNELHEIGHT/2+3);
 			glVertex2f(stripstart, channel_y+NLACHANNELHEIGHT/2-3);
@@ -549,9 +558,10 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	}
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_NLA_PANEL, "Blendin:", 	10,100,145,19, &strip->blendin, 0.0, strip->end-strip->start, 100, 0, "Number of frames of ease-in");
-	uiDefButF(block, NUM, B_NLA_PANEL, "Blendout:", 10,80,145,19, &strip->blendout, 0.0, strip->end-strip->start, 100, 0, "Number of frames of ease-out");
-
+	uiDefButF(block, NUM, B_NLA_PANEL, "Blendin:",				10,100,145,19, &strip->blendin, 0.0, strip->end-strip->start, 100, 0, "Number of frames of ease-in");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Blendout:",				10,80,145,19, &strip->blendout, 0.0, strip->end-strip->start, 100, 0, "Number of frames of ease-out");
+	uiDefButBitS(block, TOG, ACTSTRIP_MUTE, B_NLA_PANEL, "Mute", 10,60,145,19, &strip->flag, 0, 0, 0, 0, "Toggles whether the strip contributes to the NLA solution");
+	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_NLA_PANEL, "Repeat:", 	160,100,150,19, &strip->repeat, 0.001, 1000.0f, 100, 0, "Number of times the action should repeat");
 	but= uiDefButC(block, TEX, B_NLA_PANEL, "OffsBone:", 160,80,150,19, strip->offs_bone, 0, 31.0f, 0, 0, "Name of Bone that defines offset for repeat");

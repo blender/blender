@@ -1044,7 +1044,7 @@ static void do_nla(Object *ob, int blocktype)
 	for (strip=ob->nlastrips.first; strip; strip=strip->next){
 		doit=dostride= 0;
 		
-		if (strip->act){	/* so theres an action */
+		if (strip->act && !(strip->flag & ACTSTRIP_MUTE)) {	/* so theres an action */
 			
 			/* Determine if the current frame is within the strip's range */
 			length = strip->end-strip->start;

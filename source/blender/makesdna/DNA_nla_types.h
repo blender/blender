@@ -89,6 +89,8 @@ typedef struct bActionStrip {
 #define ACTSTRIP_HOLDLASTFRAME	0x08
 #define ACTSTRIP_ACTIVE			0x10
 #define ACTSTRIP_LOCK_ACTION	0x20
+#define ACTSTRIP_MUTE			0x40
+#define ACTSTRIP_REVERSE		0x80
 
 
 #endif
