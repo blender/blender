@@ -95,6 +95,8 @@ typedef struct bArmature {
 #define		ARM_DONT_USE    0x080
 #define		ARM_MIRROR_EDIT	0x100
 #define		ARM_AUTO_IK		0x200
+			/* made option negative, for backwards compat */
+#define		ARM_NO_CUSTOM	0x400
 
 /* armature->drawtype */
 #define		ARM_OCTA		0

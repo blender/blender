@@ -1378,7 +1378,7 @@ static void draw_pose_channels(Base *base, int dt)
 					if(bone->parent && (bone->parent->flag & BONE_HIDDEN_P))
 						flag &= ~BONE_CONNECTED;
 					
-					if(pchan->custom)
+					if(pchan->custom && !(arm->flag & ARM_NO_CUSTOM))
 						draw_custom_bone(pchan->custom, OB_SOLID, arm->flag, flag, index, bone->length);
 					else if(arm->drawtype==ARM_LINE)
 						;	/* nothing in solid */
@@ -1465,7 +1465,7 @@ static void draw_pose_channels(Base *base, int dt)
 					if(pchan->flag & POSE_STRIDE)
 						constflag |= PCHAN_HAS_STRIDE;
 
-					if(pchan->custom) {
+					if(pchan->custom && !(arm->flag & ARM_NO_CUSTOM)) {
 						if(dt<OB_SOLID)
 							draw_custom_bone(pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
 					}
