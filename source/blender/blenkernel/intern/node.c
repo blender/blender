@@ -214,7 +214,8 @@ void ntreeVerifyTypes(bNodeTree *ntree)
 {
 	bNode *node;
 	
-	if((ntree->init & NTREE_TYPE_INIT)==0)
+	/* commented out, in linux a 2nd initialize on a Scene ntree from a lib crashes... */
+/*	if((ntree->init & NTREE_TYPE_INIT)==0) */
 		ntreeInitTypes(ntree);
 	
 	/* check inputs and outputs, and remove or insert them */
