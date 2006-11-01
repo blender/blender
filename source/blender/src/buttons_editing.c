@@ -3560,6 +3560,7 @@ void do_meshbuts(unsigned short event)
 		count= removedoublesflag(1, G.scene->toolsettings->doublimit);
 		notice("Removed: %d", count);
 		if (count) { /* only undo and redraw if an action is taken */
+			countall ();
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 			BIF_undo_push("Rem Doubles");
