@@ -24,6 +24,9 @@ import BPyMesh
 import BPyImage
 import BPyMessages
 
+try:		import os
+except:		os= False
+
 
 # Generic path functions
 def stripFile(path):
@@ -709,7 +712,7 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 DEBUG= True
 
 
-def load_obj_ui(filepath):
+def load_obj_ui(filepath, BATCH_LOAD= False):
 	if BPyMessages.Error_NoFile(filepath):
 		return
 	
@@ -736,27 +739,64 @@ def load_obj_ui(filepath):
 	('Image Search', IMAGE_SEARCH, 'Search subdirs for any assosiated images (Warning, may be slow)'),\
 	]
 	
+	
 	if not Draw.PupBlock('Import OBJ...', pup_block):
 		return
 	
 	Window.WaitCursor(1)
 	
-	load_obj(filepath,\
-	  CLAMP_SIZE.val,\
-	  CREATE_FGONS.val,\
-	  CREATE_SMOOTH_GROUPS.val,\
-	  CREATE_EDGES.val,\
-	  SPLIT_OBJECTS.val,\
-	  SPLIT_GROUPS.val,\
-	  SPLIT_MATERIALS.val,\
-	  IMAGE_SEARCH.val,\
-	)
+	if BATCH_LOAD: # load the dir
+		try:
+			files= [ f for f in os.listdir(filepath) if f.lower().endswith('.obj') ]
+		except:
+			Draw.PupMenu('Error%t|Could not open path ' + filepath)
+			return
+		
+		if not files:
+			Draw.PupMenu('Error%t|No files at path ' + filepath)
+			return
+		
+		for f in files:
+			scn= Scene.New( stripExt(f) )
+			scn.makeCurrent()
+			
+			load_obj(sys.join(filepath, f),\
+			  CLAMP_SIZE.val,\
+			  CREATE_FGONS.val,\
+			  CREATE_SMOOTH_GROUPS.val,\
+			  CREATE_EDGES.val,\
+			  SPLIT_OBJECTS.val,\
+			  SPLIT_GROUPS.val,\
+			  SPLIT_MATERIALS.val,\
+			  IMAGE_SEARCH.val,\
+			)
+	
+	else: # Normal load
+		load_obj(filepath,\
+		  CLAMP_SIZE.val,\
+		  CREATE_FGONS.val,\
+		  CREATE_SMOOTH_GROUPS.val,\
+		  CREATE_EDGES.val,\
+		  SPLIT_OBJECTS.val,\
+		  SPLIT_GROUPS.val,\
+		  SPLIT_MATERIALS.val,\
+		  IMAGE_SEARCH.val,\
+		)
 	
 	Window.WaitCursor(0)
 
+
+def load_obj_ui_batch(file):
+	load_obj_ui(file, True)
+
 DEBUG= False
+
 if __name__=='__main__' and not DEBUG:
-	Window.FileSelector(load_obj_ui, 'Import a Wavefront OBJ', '*.obj')
+	if os and Window.GetKeyQualifiers() & Window.Qual.SHIFT:
+		Window.FileSelector(load_obj_ui_batch, 'Import OBJ Dir', '')
+	else:
+		Window.FileSelector(load_obj_ui, 'Import a Wavefront OBJ', '*.obj')
+
 
 '''
 # For testing compatibility
