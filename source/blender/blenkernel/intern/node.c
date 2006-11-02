@@ -47,6 +47,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_rand.h"
 #include "BLI_threads.h"
 
 #include "PIL_time.h"
@@ -2058,6 +2059,9 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	/* setup callerdata for thread callback */
 	thdata.rd= rd;
 	thdata.stack= ntree->stack;
+	
+	/* fixed seed, for example noise texture */
+	BLI_srand(rd->cfra);
 	
 	/* sets need_exec tags in nodes */
 	totnode= setExecutableNodes(ntree, &thdata);
