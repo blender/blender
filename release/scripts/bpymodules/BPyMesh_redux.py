@@ -25,6 +25,7 @@ import Blender
 Vector= Blender.Mathutils.Vector
 Ang= Blender.Mathutils.AngleBetweenVecs
 CrossVecs= Blender.Mathutils.CrossVecs
+MidpointVecs= Blender.Mathutils.MidpointVecs
 import BPyMesh
 
 # If python version is less than 2.4, try to get set stuff from module
@@ -189,7 +190,7 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 				w2/=wscale
 			
 			length= self.length
-			between= (v1co+v2co) * 0.5
+			between= MidpointVecs(v1co, v2co)
 			
 			# Collapse
 			# new_location = between # Replace tricky code below. this code predicts the best collapse location.
@@ -202,8 +203,8 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 			cv2= CrossVecs(v2no, CrossVecs(v2no, v2co-v1co))
 			
 			# Scale to be less then the edge lengths.
-			cv1.normalize()
-			cv2.normalize()
+			cv2.length = cv1.length = 1
+			
 			cv1 = cv1 * (length* 0.4)
 			cv2 = cv2 * (length* 0.4)
 			
