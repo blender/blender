@@ -10,7 +10,7 @@ sources = env.Glob('intern/*.cpp')
 
 pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_Window']
 
-if window_system == 'linux2':
+if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd6'):
     for f in pf:
         sources.remove('intern' + os.sep + f + 'Win32.cpp')
         sources.remove('intern' + os.sep + f + 'Carbon.cpp')
@@ -22,14 +22,6 @@ elif window_system == 'darwin':
     for f in pf:
         sources.remove('intern' + os.sep + f + 'Win32.cpp')
         sources.remove('intern' + os.sep + f + 'X11.cpp')
-elif window_system == 'openbsd3':
-    for f in pf:
-        sources.remove('intern' + os.sep + f + 'Win32.cpp')
-        sources.remove('intern' + os.sep + f + 'Carbon.cpp')
-elif window_system == 'sunos5':
-    for f in pf:
-        sources.remove('intern' + os.sep + f + 'Win32.cpp')
-        sources.remove('intern' + os.sep + f + 'Carbon.cpp')
 else:
     print "Unknown window system specified."
     Exit()
