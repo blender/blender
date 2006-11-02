@@ -107,9 +107,7 @@ static PyObject *BPy_Group_copy( BPy_Group * self )
 	
 	rename_id( &bl_group->id, self->group->id.name + 2 );
 	
-	
-	/* user count be incremented in Group_CreatePyObject */
-	bl_group->id.us = 0;
+	bl_group->id.us = 1;
 	
 	/* Now add the objects to the group */
 	group_ob= self->group->gobject.first;
@@ -392,8 +390,7 @@ PyObject *M_Group_New( PyObject * self, PyObject * args )
 		rename_id( &bl_group->id, buf );
 	}
 	
-	/* user count be incremented in Group_CreatePyObject */
-	bl_group->id.us = 0;
+	bl_group->id.us = 1;
 	
 	return ( PyObject * ) py_group;
 }
