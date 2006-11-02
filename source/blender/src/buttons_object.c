@@ -300,18 +300,22 @@ static void del_constraint_func (void *ob_v, void *con_v)
 	allqueue(REDRAWIPO, 0); 
 }
 
-static void verify_constraint_name_func (void *ob_v, void *con_v)
+static void verify_constraint_name_func (void *con_v, void *name_v)
 {
-	ListBase *conlist;
+	Object *ob= OBACT;
 	bConstraint *con= con_v;
+	char oldname[32];	
 	
 	if (!con)
 		return;
 	
-	conlist = get_active_constraints(ob_v);
-	unique_constraint_name (con, conlist);
-	constraint_active_func(ob_v, con);
-
+	/* put on the stack */
+	BLI_strncpy(oldname, (char *)name_v, 32);
+	
+	rename_constraint(ob, con, oldname);
+	
+	constraint_active_func(ob, con);
+	allqueue(REDRAWACTION, 0); 
 }
 
 void get_constraint_typestring (char *str, void *con_v)
@@ -585,7 +589,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, *xco+10, *yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 		
 		but = uiDefBut(block, TEX, B_CONSTRAINT_TEST, "", *xco+120, *yco, 85, 18, con->name, 0.0, 29.0, 0.0, 0.0, "Constraint name"); 
-		uiButSetFunc(but, verify_constraint_name_func, ob, con);
+		uiButSetFunc(but, verify_constraint_name_func, con, NULL);
 	}	
 	else{
 		uiBlockSetEmboss(block, UI_EMBOSSN);

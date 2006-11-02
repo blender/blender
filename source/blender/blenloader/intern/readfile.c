@@ -1292,7 +1292,7 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	bNodeSocket *sock;
 	bNodeLink *link;
 	
-	ntree->init= 0;		/* to set callbacks */
+	ntree->init= 0;		/* to set callbacks and force setting types */
 	ntree->owntype= NULL;
 	ntree->timecursor= NULL;
 	
