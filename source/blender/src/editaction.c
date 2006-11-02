@@ -296,7 +296,8 @@ static void remake_meshaction_ipos(Ipo *ipo)
 
 static void meshkey_do_redraw(Key *key)
 {
-	remake_meshaction_ipos(key->ipo);
+	if(key->ipo)
+		remake_meshaction_ipos(key->ipo);
 
 	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 	

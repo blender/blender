@@ -634,6 +634,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		break;
 	case B_DELKEY:
 		delete_key(OBACT);
+		allqueue(REDRAWACTION, 0);
 		break;
 		
 		
