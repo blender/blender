@@ -1024,7 +1024,7 @@ static char *imagetype_pup(void)
 	char formatstring[1024];
 	char appendstring[1024];
 
-	strcpy(formatstring, "Save image as: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
+	strcpy(formatstring, "Save image as: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
 
 #ifdef __sgi
 	strcat(formatstring, "|%s %%x%d");	// add space for Movie
@@ -1865,6 +1865,7 @@ void render_panels()
        }
 #endif
 
+#ifndef DISABLE_YAFRAY
 	/* yafray: GI & Global panel, only available when yafray enabled for rendering */
 	if (G.scene->r.renderer==R_YAFRAY) {
 		if (G.scene->r.YF_gamma==0.0) G.scene->r.YF_gamma=1.0;
@@ -1877,6 +1878,7 @@ void render_panels()
 		render_panel_yafrayGlobal();
 		render_panel_yafrayGI();
 	}
+#endif
 
 }
 
