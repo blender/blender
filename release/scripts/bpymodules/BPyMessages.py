@@ -10,9 +10,24 @@ def Error_NoMeshUvActive():
 
 # File I/O messages
 def Error_NoFile(path):
-	'''True if file missing, False if files there'''
+	'''True if file missing, False if files there
+	
+	Use simply by doing...
+	if Error_NoFile(path): return
+	'''
 	if not sys.exists(sys.expandpath(path)):
 		Draw.PupMenu("Error%t|Can't open file: " + path)
+		return True
+	return False
+
+def Error_NoDir(path):
+	'''True if dirs missing, False if dirs there
+	
+	Use simply by doing...
+	if Error_NoDir(path): return
+	'''
+	if not sys.exists(sys.expandpath(path)):
+		Draw.PupMenu("Error%t|Path does not exist: " + path)
 		return True
 	return False
 

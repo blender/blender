@@ -7,7 +7,7 @@ Group: 'Import'
 Tooltip: 'Load a Wavefront OBJ File, Shift: batch import all dir.'
 """
 
-__author__= "Campbell Barton"
+__author__= "Campbell Barton", "Jiri Hnidek"
 __url__= ["blender.org", "blenderartists.org"]
 __version__= "2.0"
 
