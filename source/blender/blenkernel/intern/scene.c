@@ -383,11 +383,14 @@ int next_object(int val, Base **base, Object **ob)
 			else {
 				if(fase!=F_DUPLI) {
 					if( (*base)->object->transflag & OB_DUPLI) {
-						
-						duplilist= object_duplilist(G.scene, (*base)->object);
-						
-						dupob= duplilist->first;
-						
+						/* groups cannot be duplicated for mballs yet, 
+						this enters eternal loop because of 
+						makeDispListMBall getting called inside of group_duplilist */
+						if((*base)->object->dup_group == NULL) {
+							duplilist= object_duplilist(G.scene, (*base)->object);
+							
+							dupob= duplilist->first;
+						}
 					}
 				}
 				/* handle dupli's */
