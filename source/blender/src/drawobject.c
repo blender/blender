@@ -1958,7 +1958,7 @@ static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmoot
 	return 1;
 }
 
-static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, int dt)
+static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, int dt, int flag)
 {
 	Object *ob= base->object;
 	Mesh *me = ob->data;
@@ -2098,18 +2098,23 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 	/* set default draw color back for wire or for draw-extra later on */
 	if (dt!=OB_WIRE) {
 		if(base->flag & SELECT) {
-			
 			if(ob==OBACT && ob->flag & OB_FROMGROUP) 
 				BIF_ThemeColor(TH_GROUP_ACTIVE);
 			else if(ob->flag & OB_FROMGROUP) 
 				BIF_ThemeColorShade(TH_GROUP_ACTIVE, -16);
-			else
+			else if(flag!=DRAW_CONSTCOLOR)
 				BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+			else
+				glColor3ub(80,80,80);
 		} else {
 			if (ob->flag & OB_FROMGROUP) 
 				BIF_ThemeColor(TH_GROUP);
-			else
-				BIF_ThemeColor(TH_WIRE);
+			else {
+				if(ob->dtx & OB_DRAWWIRE && flag==DRAW_CONSTCOLOR)
+					glColor3ub(80,80,80);
+				else
+					BIF_ThemeColor(TH_WIRE);
+			}
 		}
 	}
 	if (draw_wire) {
@@ -2137,7 +2142,7 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 }
 
 /* returns 1 if nothing was drawn, for detecting to draw an object center */
-static int draw_mesh_object(Base *base, int dt)
+static int draw_mesh_object(Base *base, int dt, int flag)
 {
 	Object *ob= base->object;
 	Mesh *me= ob->data;
@@ -2175,7 +2180,7 @@ static int draw_mesh_object(Base *base, int dt)
 			DerivedMesh *realDM = mesh_get_derived_final(ob, &realDMneedsFree);
 
 			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob, (base->flag & OB_FROMDUPLI)==0);
-			if(baseDM && realDM) draw_mesh_fancy(base, baseDM, realDM, dt);
+			if(baseDM && realDM) draw_mesh_fancy(base, baseDM, realDM, dt, flag);
 			
 			if(me->totvert==0) retval= 1;
 			
@@ -3713,8 +3718,13 @@ static void drawWireExtra(Object *ob)
 	else {
 		if(ob->flag & OB_FROMGROUP)
 			BIF_ThemeColor(TH_GROUP);
-		else
-			BIF_ThemeColor(TH_WIRE);
+		else {
+			if(ob->dtx & OB_DRAWWIRE) {
+				glColor3ub(80,80,80);
+			} else {
+				BIF_ThemeColor(TH_WIRE);
+			}
+		}
 	}
 	
 	bglPolygonOffset(1.0);
@@ -3971,8 +3981,8 @@ void draw_object(Base *base, int flag)
 	switch( ob->type) {
 	case OB_MESH:
 		if (!(base->flag&OB_RADIO)) {
-			empty_object= draw_mesh_object(base, dt);
-			dtx &= ~OB_DRAWWIRE; // mesh draws wire itself
+			empty_object= draw_mesh_object(base, dt, flag);
+			if(flag!=DRAW_CONSTCOLOR) dtx &= ~OB_DRAWWIRE; // mesh draws wire itself
 
 			if(G.obedit!=ob && warning_recursive==0) {
 				PartEff *paf = give_parteff(ob);
