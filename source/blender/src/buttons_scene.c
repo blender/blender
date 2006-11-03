@@ -1374,9 +1374,9 @@ static void render_panel_ffmpeg_video(void)
        xcol2 = 1002;
 
        yofs = 54;
-       uiDefBut(block, LABEL, 0, "Format", xcol1, yofs+88, 
+       uiDefBut(block, LABEL, B_DIFF, "Format", xcol1, yofs+88, 
 		110, 20, 0, 0, 0, 0, 0, "");
-       uiDefBut(block, LABEL, 0, "Preset", xcol2, yofs+88, 
+       uiDefBut(block, LABEL, B_DIFF, "Preset", xcol2, yofs+88, 
 		110, 20, 0, 0, 0, 0, 0, "");
        uiDefButI(block, MENU, B_DIFF, ffmpeg_format_pup(), 
 		 xcol1, yofs+66, 110, 20, &G.scene->r.ffcodecdata.type, 
@@ -1424,7 +1424,7 @@ static void render_panel_ffmpeg_video(void)
 	   || G.scene->r.ffcodecdata.type == FFMPEG_MOV) {
                uiDefBut(block, LABEL, 0, "Codec", 
 			xcol1, yofs-44, 110, 20, 0, 0, 0, 0, 0, "");
-               uiDefButI(block, MENU,B_NOP, ffmpeg_codec_pup(), 
+               uiDefButI(block, MENU,B_REDR, ffmpeg_codec_pup(), 
 			 xcol1, yofs-66, 110, 20, 
 			 &G.scene->r.ffcodecdata.codec, 
 			 0,0,0,0, "FFMpeg codec to use");
