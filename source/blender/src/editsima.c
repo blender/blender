@@ -1763,6 +1763,8 @@ void new_image_sima()
 	G.sima->image= new_image(width, height, name, uvtestgrid);
 	image_changed(G.sima, 0);
 
+	BIF_undo_push("Add image");
+
 	allqueue(REDRAWIMAGE, 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
