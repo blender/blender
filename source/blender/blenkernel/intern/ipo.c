@@ -454,8 +454,8 @@ void calchandles_ipocurve(IpoCurve *icu)
 
 	a= icu->totvert;
 	
-	/* IPO_CONST or IPO_LIN, dont have handels */
-	if(a<2 || icu->ipo==IPO_LIN || icu->ipo==IPO_CONST) return;
+	/* IPO_CONST doesn't have handles */
+	if(a<2 || icu->ipo==IPO_CONST) return;
 	
 	bezt= icu->bezt;
 	prev= 0;
