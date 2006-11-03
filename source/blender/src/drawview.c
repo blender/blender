@@ -898,8 +898,8 @@ void calc_viewborder(struct View3D *v3d, rctf *viewborder_r)
 	viewborder_r->xmax= viewborder_r->xmin + size[0];
 	viewborder_r->ymax= viewborder_r->ymin + size[1];
 	
-	dx= v3d->area->winx*G.vd->camdx;
-	dy= v3d->area->winy*G.vd->camdy;
+	dx= v3d->area->winx*G.vd->camdx*zoomfac*2.0f;
+	dy= v3d->area->winy*G.vd->camdy*zoomfac*2.0f;
 	
 	/* apply offset */
 	viewborder_r->xmin-= dx;

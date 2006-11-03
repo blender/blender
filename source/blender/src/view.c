@@ -835,6 +835,7 @@ int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, 
 		orth= 1;
 	}
 	else {
+		/* fac for zoom, also used for camdx */
 		if(G.vd->persp==2) {
 			fac= (1.41421+( (float)G.vd->camzoom )/50.0);
 			fac*= fac;
@@ -869,8 +870,8 @@ int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, 
 		}
 		/* cam view offset */
 		if(cam) {
-			float dx= G.vd->camdx*(x2-x1);
-			float dy= G.vd->camdy*(y2-y1);
+			float dx= 0.5*fac*G.vd->camdx*(x2-x1);
+			float dy= 0.5*fac*G.vd->camdy*(y2-y1);
 			x1+= dx;
 			x2+= dx;
 			y1+= dy;
