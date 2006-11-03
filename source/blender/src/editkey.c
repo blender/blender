@@ -640,11 +640,11 @@ void delete_key(Object *ob)
 		}
 		
 		if(key->ipo) {
+			
 			for(icu= key->ipo->curve.first; icu; icu= icu->next) {
 				if(icu->adrcode==ob->shapenr-1) {
 					BLI_remlink(&key->ipo->curve, icu);
-					if(icu->bezt) MEM_freeN(icu->bezt);
-					MEM_freeN(icu);
+					free_ipo_curve(icu);
 					break;
 				}
 			}
