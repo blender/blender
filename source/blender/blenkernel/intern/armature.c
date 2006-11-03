@@ -1603,6 +1603,10 @@ static void do_strip_modifiers(Object *armob, Bone *bone, bPoseChannel *pchan)
 	for (strip=armob->nlastrips.first; strip; strip=strip->next) {
 		if(scene_cfra>=strip->start && scene_cfra<=strip->end) {
 			
+			/* temporal solution to prevent 2 strips accumulating */
+			if(scene_cfra==strip->end && strip->next && strip->next->start==scene_cfra)
+				continue;
+			
 			for(amod= strip->modifiers.first; amod; amod= amod->next) {
 				if(amod->type==ACTSTRIP_MOD_DEFORM) {
 					/* validate first */
