@@ -2209,8 +2209,10 @@ static int drawDispListwire(ListBase *dlbase)
 
 	if(dlbase==NULL) return 1;
 
-	dl= dlbase->first;
-	while(dl) {
+	for(dl= dlbase->first; dl; dl= dl->next) {
+		if(dl->parts==0 || dl->nr==0)
+			continue;
+		
 		data= dl->verts;
 	
 		switch(dl->type) {
@@ -2302,7 +2304,6 @@ static int drawDispListwire(ListBase *dlbase)
 			}
 			break;
 		}
-		dl= dl->next;
 	}
 	return 0;
 }
