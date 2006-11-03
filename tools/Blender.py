@@ -427,7 +427,7 @@ class BlenderEnvironment(SConsEnvironment):
              lenv.Append(LIBS = lenv['BF_QUICKTIME_LIB'])
              lenv.Append(LIBPATH = lenv['BF_QUICKTIME_LIBPATH'])
         prog = lenv.Program(target=builddir+'bin/'+progname, source=sources)
-        if lenv['BF_DEBUG'] and lenv['OURPLATFORM']=='win32-vc':
+        if lenv['BF_DEBUG'] and lenv['OURPLATFORM']=='win32-vc' and lenv['BF_BSC']:
             f = lenv.File(progname + '.bsc', builddir)
             brs = lenv.Command(f, prog, [bsc])
             SConsEnvironment.Default(self, brs)

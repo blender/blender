@@ -48,7 +48,8 @@ def validate_arguments(args, bc):
 
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
             'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
-            'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE', 'BF_DEBUG', 'BF_DEBUG_FLAGS',
+            'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE',
+            'BF_DEBUG_FLAGS', 'BF_BSC',
             'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', "BF_QUICKDEBUG", "BF_LISTDEBUG", 'LCGDIR']
 
     all_list = opts_list + arg_list
@@ -275,6 +276,8 @@ def read_opts(cfg, args):
 
         (BoolOption('BF_DEBUG', 'Add debug flags if true', 'false')),
         ('BF_DEBUG_FLAGS', 'Debug flags', ''),
+
+        (BoolOption('BF_BSC', 'Create .bsc files (msvc only)', 'true')),
         
         ('BF_BUILDDIR', 'Build dir', ''),
         ('BF_INSTALLDIR', 'Installation dir', ''),
