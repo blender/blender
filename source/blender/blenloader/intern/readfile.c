@@ -6634,13 +6634,11 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 {
 	FileData *fd= (FileData*) sfile->libfiledata;
 	Main *mainl;
+	Library *curlib;
 	Base *centerbase;
 	Object *ob;
-	float *curs,centerloc[3],vec[3],min[3],max[3];
-	int a, totsel=0,count=0;
+	int a, totsel=0;
 	
-	INIT_MINMAX(min, max);
-
 	/* are there files selected? */
 	for(a=0; a<sfile->totfile; a++) {
 		if(sfile->filelist[a].flags & ACTIVE) {
@@ -6677,6 +6675,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	/* which one do we need? */
 	mainl = blo_find_main(&fd->mainlist, dir, G.sce);
 	mainl->versionfile= fd->fileversion;	// needed for do_version
+	curlib= mainl->curlib;
 	
 	if(totsel==0) {
 		append_named_part(fd, mainl, G.scene, sfile->file, idcode, sfile->flag);
@@ -6712,7 +6711,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 
 	/* give a base to loose objects. If group append, do it for objects too */
 	if(idcode==ID_GR)
-		give_base_to_objects(G.scene, &(G.main->object), (sfile->flag & FILE_LINK)?NULL:mainl->curlib);
+		give_base_to_objects(G.scene, &(G.main->object), (sfile->flag & FILE_LINK)?NULL:curlib);
 	else
 		give_base_to_objects(G.scene, &(G.main->object), NULL);
 	
@@ -6726,32 +6725,40 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 		sfile->libfiledata= 0;
 	}	
 	
-	if(sfile->flag & FILE_ATCURSOR) {
-		centerbase= (G.scene->base.first);
-		while(centerbase) {
-			if(((centerbase)->flag & SELECT)) {
-				VECCOPY(vec, centerbase->object->loc);
-				DO_MINMAX(vec, min, max);
-				count++;
-			}
-			centerbase= centerbase->next;
-		}
-		if(count) {
-			centerloc[0]= (min[0]+max[0])/2;
-			centerloc[1]= (min[1]+max[1])/2;
-			centerloc[2]= (min[2]+max[2])/2;
-			curs = G.scene->cursor;
-			VECSUB(centerloc,curs,centerloc);
-		
+	/* when not linking (appending)... */
+	if((sfile->flag & FILE_LINK)==0) {
+		if(sfile->flag & FILE_ATCURSOR) {
+			float *curs, centerloc[3], vec[3], min[3], max[3];
+			int count= 0;
+			
+			INIT_MINMAX(min, max);
+			
 			centerbase= (G.scene->base.first);
 			while(centerbase) {
-				if( ((centerbase)->flag & SELECT)) {
-					ob= centerbase->object;
-					ob->loc[0] += centerloc[0];
-					ob->loc[1] += centerloc[1];
-					ob->loc[2] += centerloc[2];
+				if(centerbase->object->id.lib==curlib && centerbase->object->parent==NULL) {
+					VECCOPY(vec, centerbase->object->loc);
+					DO_MINMAX(vec, min, max);
+					count++;
 				}
 				centerbase= centerbase->next;
+			}
+			if(count) {
+				centerloc[0]= (min[0]+max[0])/2;
+				centerloc[1]= (min[1]+max[1])/2;
+				centerloc[2]= (min[2]+max[2])/2;
+				curs = G.scene->cursor;
+				VECSUB(centerloc,curs,centerloc);
+			
+				centerbase= (G.scene->base.first);
+				while(centerbase) {
+					if(centerbase->object->id.lib==curlib && centerbase->object->parent==NULL) {
+						ob= centerbase->object;
+						ob->loc[0] += centerloc[0];
+						ob->loc[1] += centerloc[1];
+						ob->loc[2] += centerloc[2];
+					}
+					centerbase= centerbase->next;
+				}
 			}
 		}
 	}
