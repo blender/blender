@@ -3803,7 +3803,7 @@ void draw_object(Base *base, int flag)
 			return;
 		}
 	}
-	
+
 	/* draw keys? */
 	if(base==(G.scene->basact) || (base->flag & (SELECT+BA_WAS_SEL))) {
 		if(flag==0 && warning_recursive==0 && ob!=G.obedit) {
@@ -3813,19 +3813,19 @@ void draw_object(Base *base, int flag)
 				float temp[7][3];
 
 				warning_recursive= 1;
-				
+
 				elems.first= elems.last= 0;
 				make_cfra_list(ob->ipo, &elems);
-		
+
 				cfraont= (G.scene->r.cfra);
 				drawtype= G.vd->drawtype;
 				if(drawtype>OB_WIRE) G.vd->drawtype= OB_WIRE;
 				sel= base->flag;
 				memcpy(temp, &ob->loc, 7*3*sizeof(float));
-				
+
 				ipoflag= ob->ipoflag;
 				ob->ipoflag &= ~OB_OFFS_OB;
-				
+
 				set_no_parent_ipo(1);
 				disable_speed_curve(1);
 
@@ -3834,23 +3834,23 @@ void draw_object(Base *base, int flag)
 					while(ce) {
 						if(!ce->sel) {
 							(G.scene->r.cfra)= ce->cfra/G.scene->r.framelen;
-						
+
 							base->flag= 0;
-						
+
 							where_is_object_time(ob, (G.scene->r.cfra));
 							draw_object(base, 0);
 						}
 						ce= ce->next;
 					}
 				}
-				
+
 				ce= elems.first;
 				while(ce) {
 					if(ce->sel) {
 						(G.scene->r.cfra)= ce->cfra/G.scene->r.framelen;
-						
+
 						base->flag= SELECT;
-						
+
 						where_is_object_time(ob, (G.scene->r.cfra));
 						draw_object(base, 0);
 					}
@@ -3859,24 +3859,24 @@ void draw_object(Base *base, int flag)
 
 				set_no_parent_ipo(0);
 				disable_speed_curve(0);
-				
+
 				base->flag= sel;
 				ob->ipoflag= ipoflag;
-				
+
 				/* restore icu->curval */
 				(G.scene->r.cfra)= cfraont;
-				
+
 				memcpy(&ob->loc, temp, 7*3*sizeof(float));
 				where_is_object(ob);
 				G.vd->drawtype= drawtype;
-				
+
 				BLI_freelistN(&elems);
 
 				warning_recursive= 0;
 			}
 		}
 	}
-	
+
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
 	/* if( ((int)ob->ctime) != F_(G.scene->r.cfra)) where_is_object(ob); */
 
@@ -3885,10 +3885,10 @@ void draw_object(Base *base, int flag)
 	/* which wire color */
 	if((flag & DRAW_CONSTCOLOR) == 0) {
 		project_short(ob->obmat[3], &base->sx);
-		
+
 		if((G.moving & G_TRANSFORM_OBJ) && (base->flag & (SELECT+BA_WAS_SEL))) BIF_ThemeColor(TH_TRANSFORM);
 		else {
-		
+
 			if(ob->type==OB_LAMP) BIF_ThemeColor(TH_LAMP);
 			else BIF_ThemeColor(TH_WIRE);
 
@@ -3898,7 +3898,7 @@ void draw_object(Base *base, int flag)
 			else {
 				if(base->flag & (SELECT+BA_WAS_SEL)) BIF_ThemeColor(TH_SELECT);
 			}
-			
+
 			// no theme yet
 			if(ob->id.lib) {
 				if(base->flag & (SELECT+BA_WAS_SEL)) colindex = 4;
@@ -3921,26 +3921,26 @@ void draw_object(Base *base, int flag)
 			}
 
 		}	
-		
+
 		if(colindex) {
 			col= colortab[colindex];
 			cpack(col);
 		}
 	}
-	
+
 	/* maximum drawtype */
 	dt= MIN2(G.vd->drawtype, ob->dt);
 	if(G.vd->zbuf==0 && dt>OB_WIRE) dt= OB_WIRE;
 	dtx= 0;
-	
+
 	/* faceselect exception: also draw solid when dt==wire, except in editmode */
 	if(ob==OBACT && (G.f & (G_FACESELECT+G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT))) {
 		if(ob->type==OB_MESH) {
-			
+
 			if(ob==G.obedit);
 			else {
 				dt= OB_SHADED;
-		
+
 				glClearDepth(1.0); glClear(GL_DEPTH_BUFFER_BIT);
 				glEnable(GL_DEPTH_TEST);
 				if(dt<OB_SOLID) zbufoff= 1;
@@ -3963,13 +3963,13 @@ void draw_object(Base *base, int flag)
 			// the only 2 extra drawtypes alowed in editmode
 			dtx= dtx & (OB_DRAWWIRE|OB_TEXSPACE);
 		}
-		
+
 		if(G.f & G_DRAW_EXT) {
 			if(ob->type==OB_EMPTY || ob->type==OB_CAMERA || ob->type==OB_LAMP) dt= OB_WIRE;
 		}
 	}
-	
-		/* draw outline for selected solid objects, mesh does itself */
+
+	/* draw outline for selected solid objects, mesh does itself */
 	if((G.vd->flag & V3D_SELECT_OUTLINE) && ob->type!=OB_MESH) {
 		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=G.obedit) {
 			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(flag&DRAW_PICKING)) {
@@ -3979,157 +3979,157 @@ void draw_object(Base *base, int flag)
 	}
 
 	switch( ob->type) {
-	case OB_MESH:
-		if (!(base->flag&OB_RADIO)) {
-			empty_object= draw_mesh_object(base, dt, flag);
-			if(flag!=DRAW_CONSTCOLOR) dtx &= ~OB_DRAWWIRE; // mesh draws wire itself
+		case OB_MESH:
+			if (!(base->flag&OB_RADIO)) {
+				empty_object= draw_mesh_object(base, dt, flag);
+				if(flag!=DRAW_CONSTCOLOR) dtx &= ~OB_DRAWWIRE; // mesh draws wire itself
 
-			if(G.obedit!=ob && warning_recursive==0) {
-				PartEff *paf = give_parteff(ob);
+				if(G.obedit!=ob && warning_recursive==0) {
+					PartEff *paf = give_parteff(ob);
 
-				if(paf) {
-					if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
-					if(paf->flag & PAF_STATIC) draw_static_particle_system(ob, paf, dt);
-					else if((flag & DRAW_PICKING) == 0) draw_particle_system(base, paf);	// selection errors happen to easy
-					if(col) cpack(col);
+					if(paf) {
+						if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
+						if(paf->flag & PAF_STATIC) draw_static_particle_system(ob, paf, dt);
+						else if((flag & DRAW_PICKING) == 0) draw_particle_system(base, paf);	// selection errors happen to easy
+						if(col) cpack(col);
+					}
 				}
 			}
-		}
 
-		break;
-	case OB_FONT:
-		cu= ob->data;
-		if (cu->disp.first==NULL) makeDispListCurveTypes(ob, 0);
-		if(ob==G.obedit) {
-			tekentextcurs();
+			break;
+		case OB_FONT:
+			cu= ob->data;
+			if (cu->disp.first==NULL) makeDispListCurveTypes(ob, 0);
+			if(ob==G.obedit) {
+				tekentextcurs();
 
-			if (cu->flag & CU_FAST) {
-				cpack(0xFFFFFF);
-				set_inverted_drawing(1);
-				drawDispList(base, OB_WIRE);
-				set_inverted_drawing(0);
-			} else {
-				drawDispList(base, dt);
+				if (cu->flag & CU_FAST) {
+					cpack(0xFFFFFF);
+					set_inverted_drawing(1);
+					drawDispList(base, OB_WIRE);
+					set_inverted_drawing(0);
+				} else {
+					drawDispList(base, dt);
+				}
+
+				if (cu->linewidth != 0.0) {
+					cpack(0xff44ff);
+					BIF_ThemeColor(TH_WIRE);
+					VECCOPY(vec1, ob->orig);
+					VECCOPY(vec2, ob->orig);
+					vec1[0] += cu->linewidth;
+					vec2[0] += cu->linewidth;
+					vec1[1] += cu->linedist * cu->fsize;
+					vec2[1] -= cu->lines * cu->linedist * cu->fsize;
+					setlinestyle(3);
+					glBegin(GL_LINE_STRIP); 
+					glVertex2fv(vec1); 
+					glVertex2fv(vec2); 
+					glEnd();
+					setlinestyle(0);
+				}
+
+				setlinestyle(3);
+				for (i=0; i<cu->totbox; i++) {
+					if (cu->tb[i].w != 0.0) {
+						if (i == (cu->actbox-1))
+							BIF_ThemeColor(TH_ACTIVE);
+						else
+							BIF_ThemeColor(TH_WIRE);
+						vec1[0] = cu->tb[i].x;
+						vec1[1] = cu->tb[i].y + cu->linedist*cu->fsize;
+						vec1[2] = 0.001;
+						glBegin(GL_LINE_STRIP);
+						glVertex3fv(vec1);
+						vec1[0] += cu->tb[i].w;
+						glVertex3fv(vec1);
+						vec1[1] -= (cu->tb[i].h + cu->linedist*cu->fsize);
+						glVertex3fv(vec1);
+						vec1[0] -= cu->tb[i].w;
+						glVertex3fv(vec1);
+						vec1[1] += cu->tb[i].h + cu->linedist*cu->fsize;
+						glVertex3fv(vec1);
+						glEnd();
+					}
+				}
+				setlinestyle(0);
+
+
+				if (getselection(&selstart, &selend) && selboxes) {
+					float selboxw;
+
+					cpack(0xffffff);
+					set_inverted_drawing(1);	    	
+					for (i=0; i<(selend-selstart+1); i++) {
+						SelBox *sb = &(selboxes[i]);
+
+						if (i<(selend-selstart)) {
+							if (selboxes[i+1].y == sb->y)
+								selboxw= selboxes[i+1].x - sb->x;
+							else
+								selboxw= sb->w;
+						}
+						else {
+							selboxw= sb->w;
+						}
+						glBegin(GL_QUADS);
+						glVertex3f(sb->x, sb->y, 0.001);
+						glVertex3f(sb->x+selboxw, sb->y, 0.001);	    			
+						glVertex3f(sb->x+selboxw, sb->y+sb->h, 0.001);
+						glVertex3f(sb->x, sb->y+sb->h, 0.001);
+						glEnd();
+					}
+					set_inverted_drawing(0);	    		
+				}
 			}
+			else if(dt==OB_BOUNDBOX) 
+				draw_bounding_volume(ob);
+			else if(boundbox_clip(ob->obmat, cu->bb)) 
+				empty_object= drawDispList(base, dt);
 
-			if (cu->linewidth != 0.0) {
-				cpack(0xff44ff);
-				BIF_ThemeColor(TH_WIRE);
-				VECCOPY(vec1, ob->orig);
-				VECCOPY(vec2, ob->orig);
-				vec1[0] += cu->linewidth;
-				vec2[0] += cu->linewidth;
-				vec1[1] += cu->linedist * cu->fsize;
-				vec2[1] -= cu->lines * cu->linedist * cu->fsize;
-	    		setlinestyle(3);
-	    		glBegin(GL_LINE_STRIP); 
-	   			glVertex2fv(vec1); 
-	   			glVertex2fv(vec2); 
-	    		glEnd();
-	    		setlinestyle(0);
-	    	}
-	    	
-	    	setlinestyle(3);
-	    	for (i=0; i<cu->totbox; i++) {
-	    		if (cu->tb[i].w != 0.0) {
-		    		if (i == (cu->actbox-1))
-		    			BIF_ThemeColor(TH_ACTIVE);
-		    		else
-		    			BIF_ThemeColor(TH_WIRE);
-		    		vec1[0] = cu->tb[i].x;
-		    		vec1[1] = cu->tb[i].y + cu->linedist*cu->fsize;
-		    		vec1[2] = 0.001;
-		    		glBegin(GL_LINE_STRIP);
-		    		glVertex3fv(vec1);
-		    		vec1[0] += cu->tb[i].w;
-		    		glVertex3fv(vec1);
-		    		vec1[1] -= (cu->tb[i].h + cu->linedist*cu->fsize);
-		    		glVertex3fv(vec1);
-		    		vec1[0] -= cu->tb[i].w;
-		    		glVertex3fv(vec1);
-		    		vec1[1] += cu->tb[i].h + cu->linedist*cu->fsize;
-		    		glVertex3fv(vec1);
-		    		glEnd();
-		    	}
-	    	}
-	    	setlinestyle(0);
-	    	
+			break;
+		case OB_CURVE:
+		case OB_SURF:
+			cu= ob->data;
+			/* still needed for curves hidden in other layers. depgraph doesnt handle that yet */
+			if (cu->disp.first==NULL) makeDispListCurveTypes(ob, 0);
 
-	    	if (getselection(&selstart, &selend) && selboxes) {
-				float selboxw;
-				
-		    	cpack(0xffffff);
-		    	set_inverted_drawing(1);	    	
-	    		for (i=0; i<(selend-selstart+1); i++) {
-	    			SelBox *sb = &(selboxes[i]);
-					
-	    			if (i<(selend-selstart)) {
-	    				if (selboxes[i+1].y == sb->y)
-	    					selboxw= selboxes[i+1].x - sb->x;
-	    				else
-	    					selboxw= sb->w;
-	    			}
-    				else {
-    					selboxw= sb->w;
-    				}
-	    			glBegin(GL_QUADS);
-	    			glVertex3f(sb->x, sb->y, 0.001);
-	    			glVertex3f(sb->x+selboxw, sb->y, 0.001);	    			
-	    			glVertex3f(sb->x+selboxw, sb->y+sb->h, 0.001);
-	    			glVertex3f(sb->x, sb->y+sb->h, 0.001);
-	    			glEnd();
-	    		}
-		    	set_inverted_drawing(0);	    		
-	    	}
-		}
-		else if(dt==OB_BOUNDBOX) 
-			draw_bounding_volume(ob);
-		else if(boundbox_clip(ob->obmat, cu->bb)) 
-			empty_object= drawDispList(base, dt);
-			
-		break;
-	case OB_CURVE:
-	case OB_SURF:
-		cu= ob->data;
-		/* still needed for curves hidden in other layers. depgraph doesnt handle that yet */
-		if (cu->disp.first==NULL) makeDispListCurveTypes(ob, 0);
-		
-		if(ob==G.obedit) {
-			drawnurb(base, editNurb.first, dt);
-		}
-		else if(dt==OB_BOUNDBOX) 
-			draw_bounding_volume(ob);
-		else if(boundbox_clip(ob->obmat, cu->bb)) 
-			empty_object= drawDispList(base, dt);
-		
-		break;
-	case OB_MBALL:
-		if(ob==G.obedit) 
-			drawmball(base, dt);
-		else if(dt==OB_BOUNDBOX) 
-			draw_bounding_volume(ob);
-		else 
-			empty_object= drawmball(base, dt);
-		break;
-	case OB_EMPTY:
-		drawaxes(ob->empty_drawsize, flag, ob->empty_drawtype);
-		break;
-	case OB_LAMP:
-		drawlamp(ob);
-		if(dtx || (base->flag & SELECT)) mymultmatrix(ob->obmat);
-		break;
-	case OB_CAMERA:
-		drawcamera(ob, flag);
-		break;
-	case OB_LATTICE:
-		drawlattice(ob);
-		break;
-	case OB_ARMATURE:
-		if(dt>OB_WIRE) set_gl_material(0);	// we use defmaterial
-		empty_object= draw_armature(base, dt);
-		break;
-	default:
-		drawaxes(1.0, flag, OB_ARROWS);
+			if(ob==G.obedit) {
+				drawnurb(base, editNurb.first, dt);
+			}
+			else if(dt==OB_BOUNDBOX) 
+				draw_bounding_volume(ob);
+			else if(boundbox_clip(ob->obmat, cu->bb)) 
+				empty_object= drawDispList(base, dt);
+
+			break;
+		case OB_MBALL:
+			if(ob==G.obedit) 
+				drawmball(base, dt);
+			else if(dt==OB_BOUNDBOX) 
+				draw_bounding_volume(ob);
+			else 
+				empty_object= drawmball(base, dt);
+			break;
+		case OB_EMPTY:
+			drawaxes(ob->empty_drawsize, flag, ob->empty_drawtype);
+			break;
+		case OB_LAMP:
+			drawlamp(ob);
+			if(dtx || (base->flag & SELECT)) mymultmatrix(ob->obmat);
+			break;
+		case OB_CAMERA:
+			drawcamera(ob, flag);
+			break;
+		case OB_LATTICE:
+			drawlattice(ob);
+			break;
+		case OB_ARMATURE:
+			if(dt>OB_WIRE) set_gl_material(0);	// we use defmaterial
+			empty_object= draw_armature(base, dt);
+			break;
+		default:
+			drawaxes(1.0, flag, OB_ARROWS);
 	}
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(ob);
 
@@ -4147,7 +4147,7 @@ void draw_object(Base *base, int flag)
 			/* but, we also dont draw names for sets or duplicators */
 			if(flag == 0) {
 				glRasterPos3f(0.0,  0.0,  0.0);
-				
+
 				BMF_DrawString(G.font, " ");
 				BMF_DrawString(G.font, ob->id.name+2);
 			}
@@ -4155,15 +4155,15 @@ void draw_object(Base *base, int flag)
 		if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);
 		if((dtx & OB_DRAWWIRE) && dt>=OB_SOLID) drawWireExtra(ob);
 	}
-	
+
 	if(dt<OB_SHADED) {
 		if((ob->gameflag & OB_ACTOR) && (ob->gameflag & OB_DYNAMIC)) {
 			float tmat[4][4], imat[4][4], vec[3];
-			
+
 			vec[0]= vec[1]= vec[2]= 0.0;
 			mygetmatrix(tmat);
 			Mat4Invert(imat, tmat);
-			
+
 			setlinestyle(2);
 			drawcircball(GL_LINE_LOOP, vec, ob->inertia, imat);
 			setlinestyle(0);
@@ -4177,18 +4177,18 @@ void draw_object(Base *base, int flag)
 	if(warning_recursive) return;
 	if(base->flag & (OB_FROMDUPLI|OB_RADIO)) return;
 	if(G.f & G_SIMULATION) return;
-	
+
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
 	if(ob!=OBACT || (G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
 		int do_draw_center= -1;	/* defines below are zero or positive... */
-		
+
 		if((G.scene->basact)==base) 
 			do_draw_center= ACTIVE;
 		else if(base->flag & SELECT) 
 			do_draw_center= SELECT;
 		else if(empty_object || (G.vd->flag & V3D_DRAW_CENTERS)) 
 			do_draw_center= DESELECT;
-		
+
 		if(do_draw_center != -1) {
 			if(flag & DRAW_PICKING) {
 				/* draw a single point for opengl selection */
@@ -4224,21 +4224,21 @@ void draw_object(Base *base, int flag)
 			glEnd();
 			setlinestyle(0);
 		}
-		
+
 		/* Drawing the constraint lines */
 		list = &ob->constraints;
 		if (list){
 			/*
-			extern void make_axis_color(char *col, char *col2, char axis);	// drawview.c
-			 */
+		 extern void make_axis_color(char *col, char *col2, char axis);	// drawview.c
+		 */
 			bConstraint *curcon;
 			float size[3], tmat[4][4];
 			char col[4], col2[4];
-			
+
 			BIF_GetThemeColor3ubv(TH_GRID, col);
 			make_axis_color(col, col2, 'z');
 			glColor3ubv(col2);
-			
+
 			for (curcon = list->first; curcon; curcon=curcon->next){
 				if ((curcon->flag & CONSTRAINT_EXPAND)&&(curcon->type!=CONSTRAINT_TYPE_NULL)&&(constraint_has_target(curcon))){
 					get_constraint_target_matrix(curcon, TARGET_OBJECT, NULL, tmat, size, bsystem_time(ob, 0, (float)(G.scene->r.cfra), ob->sf));
