@@ -302,6 +302,9 @@ void remove_vert_def_nr (Object *ob, int def_nr, int vertnum)
 			dvert = lt->dvert + vertnum;
 	}
 	
+	if(dvert==NULL)
+		return;
+	
 	/* for all of the deform weights in the
 	 * deform vert
 	 */
