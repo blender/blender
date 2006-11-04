@@ -140,7 +140,7 @@ char* BOP_Material::getOriginalFaceVertexMaterial(int originalFaceVertex)
 		if (m_originalFaceVertices[i]==originalFaceVertex) b = true;
 		else i++;
 	}
-	return b ? getFaceVertexMaterial(i) : NULL;
+	return b ? getFaceVertexMaterial(i) : m_faceVertexMaterial; /* ton: NULL return crashes... */
 }
 
 /**
