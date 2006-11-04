@@ -2738,9 +2738,10 @@ static void copymenu_logicbricks(Object *ob)
 
 static void copymenu_modifiers(Object *ob)
 {
-	char str[512];
-	int i, event;
 	Base *base;
+	int i, event;
+	char str[512];
+	char *errorstr= NULL;
 
 	strcpy(str, "Copy Modifiers %t");
 
@@ -2804,10 +2805,14 @@ static void copymenu_modifiers(Object *ob)
 						}
 					}
 				}
+				else
+					errorstr= "Did not copy modifiers to other Object types";
 			}
 		}
 	}
-				
+	
+	if(errorstr) notice(errorstr);
+	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	DAG_scene_sort(G.scene);
@@ -3179,7 +3184,7 @@ void copy_attr_menu()
 
 		if(ob->soft) strcat(str, "|Soft Body Settings%x23");
 		
-		if(ob->type==OB_MESH || ob->type==OB_CURVE){
+		if(ob->type==OB_MESH || ob->type==OB_CURVE || ob->type==OB_LATTICE || ob->type==OB_SURF){
 			strcat(str, "|Modifiers ...%x24");
 		}
 
