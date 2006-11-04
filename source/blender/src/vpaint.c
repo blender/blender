@@ -352,7 +352,9 @@ void clear_vpaint_selectedfaces()
 			tf[i].col[3] = paintcol;
 		}
 	}
+	
 	BIF_undo_push("Clear vertex colors");
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
 }
 
