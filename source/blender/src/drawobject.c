@@ -2060,10 +2060,10 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 				glDisable(GL_LIGHTING);
 			}
 			else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mcol) {
-				dm->drawMappedFaces(dm, NULL, NULL, 1);
+				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1);
 			}
 			else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->tface) {
-				dm->drawMappedFaces(dm, NULL, NULL, 1);
+				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1);
 			}
 			else do_draw= 1;
 		}
