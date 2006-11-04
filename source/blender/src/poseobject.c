@@ -215,7 +215,7 @@ void pose_calculate_path(Object *ob)
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
 			if(arm->layer & pchan->bone->layer) {
-				pchan->pathlen= EFRA-SFRA;
+				pchan->pathlen= EFRA-SFRA+1;
 				if(pchan->path)
 					MEM_freeN(pchan->path);
 				pchan->path= MEM_callocN(3*pchan->pathlen*sizeof(float), "pchan path");
@@ -224,7 +224,7 @@ void pose_calculate_path(Object *ob)
 	}
 	
 	cfra= CFRA;
-	for(CFRA=SFRA; CFRA<EFRA; CFRA++) {
+	for(CFRA=SFRA; CFRA<=EFRA; CFRA++) {
 		
 		/* do all updates */
 		for(base= FIRSTBASE; base; base= base->next) {

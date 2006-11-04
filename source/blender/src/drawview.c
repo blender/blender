@@ -1705,7 +1705,6 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		median[4]= ve_median[4]-median[4];
 		
 		if(ob->type==OB_MESH) {
-			float diffac= 1.0;
 			
 			eve= em->verts.first;
 			while(eve) {
@@ -1715,28 +1714,15 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 				eve= eve->next;
 			}
 			
-			/* calculate the differences to squeeze a range smaller when values are close to 1 or 0 */
-			/* this way you can edit a median value which is applied on clipped values :) */
-			if(totedge>1) {
-				float max= 0.0;
-				for(eed= em->edges.first; eed; eed= eed->next) {
-					if(eed->f & SELECT) {
-						if(max < ABS(eed->crease-ve_median[3])) max= ABS(eed->crease-ve_median[3]);
-					}
-				}
-				if(max>0.0) {
-					if(ve_median[3]> 0.5) diffac= (1.0-ve_median[3])/max;
-					else diffac= (ve_median[3])/max;
-					if(diffac>1.0) diffac= 1.0;
-				}
-			}
-			
 			for(eed= em->edges.first; eed; eed= eed->next) {
 				if(eed->f & SELECT) {
-					eed->crease+= median[3];
-					eed->crease= ve_median[3] + diffac*(eed->crease-ve_median[3]);
-					
-					CLAMP(eed->crease, 0.0, 1.0);
+					/* ensure the median can be set to zero or one */
+					if(ve_median[3]==0.0f) eed->crease= 0.0f;
+					else if(ve_median[3]==1.0f) eed->crease= 1.0f;
+					else {
+						eed->crease+= median[3];
+						CLAMP(eed->crease, 0.0, 1.0);
+					}
 				}
 			}
 			
