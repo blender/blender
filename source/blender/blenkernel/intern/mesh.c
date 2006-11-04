@@ -240,7 +240,8 @@ Mesh *copy_mesh(Mesh *me)
 	men->mface= MEM_dupallocN(me->mface);
 	men->tface= MEM_dupallocN(me->tface);
 	men->dface= NULL;
-
+	men->mselect= NULL;
+	
 	if (me->dvert){
 		men->dvert = MEM_mallocN (sizeof (MDeformVert)*me->totvert, "MDeformVert");
 		copy_dverts(men->dvert, me->dvert, me->totvert);
