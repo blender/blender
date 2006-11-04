@@ -2514,7 +2514,8 @@ static void displaceModifier_deformVerts(
 	DerivedMesh *dm;
 
 	if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_mesh(ob->data);
+	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data);
+	else return;
 
 	CDDM_apply_vert_coords(dm, vertexCos);
 	CDDM_calc_normals(dm);
@@ -3502,8 +3503,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 
 		mti = INIT_TYPE(Displace);
 		mti->type = eModifierTypeType_OnlyDeform;
-		mti->flags = eModifierTypeFlag_AcceptsCVs
-		             | eModifierTypeFlag_SupportsEditmode;
+		mti->flags = eModifierTypeFlag_SupportsEditmode;
 		mti->initData = displaceModifier_initData;
 		mti->copyData = displaceModifier_copyData;
 		mti->foreachObjectLink = displaceModifier_foreachObjectLink;
