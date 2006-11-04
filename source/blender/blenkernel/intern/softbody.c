@@ -2334,7 +2334,7 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 						newtime = forcetime;
 					}
 					timedone += forcetime;
-					newtime=MIN2(forcetimemax,MAX2(forcetime,forcetimemin));
+					newtime=MIN2(forcetimemax,MAX2(newtime,forcetimemin));
 					if (forcetime > 0.0)
 						forcetime = MIN2(dtime - timedone,newtime);
 					else 
