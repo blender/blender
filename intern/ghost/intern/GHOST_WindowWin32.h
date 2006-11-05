@@ -45,6 +45,17 @@
 #include <windows.h>
 
 
+#include <wintab.h>
+#define PACKETDATA	(PK_BUTTONS | PK_NORMAL_PRESSURE | PK_CURSOR)
+#define PACKETMODE	PK_BUTTONS
+#include <pktdef.h>
+
+// typedefs for WinTab functions to allow dynamic loading
+typedef UINT (API * GHOST_WIN32_WTInfo) ( UINT, UINT, LPVOID );
+typedef HCTX (API * GHOST_WIN32_WTOpen) (HWND, LPLOGCONTEXTA, BOOL);
+typedef BOOL (API * GHOST_WIN32_WTClose) (HCTX);
+typedef BOOL (API * GHOST_WIN32_WTPacket) (HCTX, UINT, LPVOID);
+
 /**
  * GHOST window on M$ Windows OSs.
  * @author	Maarten Gribnau
@@ -217,7 +228,11 @@ public:
 	void loadCursor(bool visible, GHOST_TStandardCursor cursorShape) const;
 
 	const GHOST_TabletData* GetTabletData()
-	{ return NULL; }
+	{ return m_tabletData; }
+
+	void processWin32TabletInitEvent();
+	void processWin32TabletEvent(WPARAM wParam, LPARAM lParam);
+
 protected:
 	/**
 	 * Tries to install a rendering context in this window.
@@ -278,6 +293,17 @@ protected:
 
 	static LPCSTR s_windowClassName;
 	static const int s_maxTitleLength;
+
+	/** WinTab dll handle */
+	HMODULE m_wintab;
+
+	/** Tablet data for GHOST */
+	GHOST_TabletData* m_tabletData;
+
+	/** Stores the Tablet context if detected Tablet features using WinTab.dll */
+	HCTX m_tablet;
+	LONG m_maxPressure;
+
 };
 
 #endif // _GHOST_WINDOW_WIN32_H_

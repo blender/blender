@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_7\intern\string\include"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\lib\windows\wintab\INCLUDE"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -78,7 +78,7 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_7\intern\string\include"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\lib\windows\wintab\INCLUDE"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"

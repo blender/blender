@@ -99,7 +99,11 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_hGlRc(0),
 	m_hasMouseCaptured(false),
 	m_nPressedButtons(0),
-	m_customCursor(0)
+	m_customCursor(0),
+	m_tabletData(NULL),
+	m_tablet(0),
+	m_wintab(NULL),
+	m_maxPressure(0)
 {
 	if (state != GHOST_kWindowStateFullScreen) {
 			/* Convert client size into window size */
@@ -159,11 +163,67 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 		// Force an initial paint of the window
 		::UpdateWindow(m_hWnd);
 	}
+
+	m_wintab = ::LoadLibrary("Wintab32.dll");
+	if (m_wintab) {
+		GHOST_WIN32_WTInfo fpWTInfo = ( GHOST_WIN32_WTInfo ) ::GetProcAddress( m_wintab, "WTInfoA" );
+		GHOST_WIN32_WTOpen fpWTOpen = ( GHOST_WIN32_WTOpen ) ::GetProcAddress( m_wintab, "WTOpenA" );
+
+		// let's see if we can initialize tablet here
+		/* check if WinTab available. */
+		if (fpWTInfo && fpWTInfo(0, 0, NULL)) {
+			// Now init the tablet
+			LOGCONTEXT lc;
+			AXIS TabletX, TabletY, Pressure; /* The maximum tablet size */
+
+			// Open a Wintab context
+
+			// Get default context information
+			fpWTInfo( WTI_DEFCONTEXT, 0, &lc );
+
+			// Open the context
+			lc.lcPktData = PACKETDATA;
+			lc.lcPktMode = PACKETMODE;
+			lc.lcOptions |= CXO_MESSAGES | CXO_SYSTEM;
+
+			/* Set the entire tablet as active */
+			fpWTInfo(WTI_DEVICES,DVC_X,&TabletX);
+			fpWTInfo(WTI_DEVICES,DVC_Y,&TabletY);
+			BOOL pressureSupport = fpWTInfo (WTI_DEVICES, DVC_NPRESSURE, &Pressure);
+			if (pressureSupport)
+				m_maxPressure = Pressure.axMax;
+			else
+				m_maxPressure = 0;
+		
+			lc.lcInOrgX = 0;
+			lc.lcInOrgY = 0;
+			lc.lcInExtX = TabletX.axMax;
+			lc.lcInExtY = TabletY.axMax;		
+
+			if (fpWTOpen) {
+				m_tablet = fpWTOpen( m_hWnd, &lc, TRUE );
+				if (m_tablet) {
+					m_tabletData = new GHOST_TabletData();
+					m_tabletData->Active = 0;
+				}
+			}
+		}
+	}
 }
 
 
 GHOST_WindowWin32::~GHOST_WindowWin32()
 {
+	if (m_wintab) {
+		GHOST_WIN32_WTClose fpWTClose = ( GHOST_WIN32_WTClose ) ::GetProcAddress( m_wintab, "WTClose" );
+		if (fpWTClose) {
+			if (m_tablet) 
+				fpWTClose(m_tablet);
+			if (m_tabletData)
+				delete m_tabletData;
+				m_tabletData = NULL;
+		}
+	}
 	if (m_customCursor) {
 		DestroyCursor(m_customCursor);
 		m_customCursor = NULL;
@@ -562,6 +622,61 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorShape(GHOST_TStandardCursor cur
 	}
 
 	return GHOST_kSuccess;
+}
+void GHOST_WindowWin32::processWin32TabletInitEvent()
+{
+	if (m_wintab) {
+		GHOST_WIN32_WTInfo fpWTInfo = ( GHOST_WIN32_WTInfo ) ::GetProcAddress( m_wintab, "WTInfoA" );
+		
+		// let's see if we can initialize tablet here
+		/* check if WinTab available. */
+		if (fpWTInfo) {
+			AXIS TabletX, TabletY, Pressure; /* The maximum tablet size */
+
+			BOOL pressureSupport = fpWTInfo (WTI_DEVICES, DVC_NPRESSURE, &Pressure);
+			if (pressureSupport)
+				m_maxPressure = Pressure.axMax;
+			else
+				m_maxPressure = 0;
+			m_tabletData->Active = 0;
+		}
+	}
+}
+
+void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
+{
+	PACKET pkt;
+	if (m_wintab) {
+		GHOST_WIN32_WTPacket fpWTPacket = ( GHOST_WIN32_WTPacket ) ::GetProcAddress( m_wintab, "WTPacket" );
+		if (fpWTPacket) {
+			if (fpWTPacket((HCTX)lParam, wParam, &pkt)) {				
+				if (m_tabletData) {
+					switch (pkt.pkCursor) {
+						case 0: /* first device */
+						case 3: /* second device */
+							m_tabletData->Active = 0; /* puck - not yet supported */
+							break;
+						case 1:
+						case 4:
+							m_tabletData->Active = 1; /* stylus */
+							break;
+						case 2:
+						case 5:
+							m_tabletData->Active = 2; /* eraser */
+							break;
+					}
+					if (m_maxPressure > 0) {
+						m_tabletData->Pressure = (float)pkt.pkNormalPressure / (float)m_maxPressure;
+					} else {
+						m_tabletData->Pressure = 1.0f;
+					}
+					// tilt data not yet supported
+					m_tabletData->Xtilt = 0;
+					m_tabletData->Ytilt = 0;
+				}
+			}
+		}
+	}
 }
 
 /** Reverse the bits in a GHOST_TUns8 */

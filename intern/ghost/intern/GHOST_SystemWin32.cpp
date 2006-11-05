@@ -627,7 +627,16 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * a dead key that is pressed while holding down the alt key. 
 					 */
 					break;
-
+				////////////////////////////////////////////////////////////////////////
+				// Tablet events, processed
+				////////////////////////////////////////////////////////////////////////
+				case WT_PACKET:
+					((GHOST_WindowWin32*)window)->processWin32TabletEvent(wParam, lParam);
+					break;
+				case WT_CSRCHANGE:
+				case WT_PROXIMITY:
+					((GHOST_WindowWin32*)window)->processWin32TabletInitEvent();
+					break;
 				////////////////////////////////////////////////////////////////////////
 				// Mouse events, processed
 				////////////////////////////////////////////////////////////////////////

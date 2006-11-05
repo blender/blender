@@ -274,6 +274,7 @@ protected:
 	bool m_seperateLeftRight;
 	/** Stores the initialization state of the member m_leftRightDistinguishable. */
 	bool m_seperateLeftRightInitialized;
+	
 };
 
 inline void GHOST_SystemWin32::retrieveModifierKeys(GHOST_ModifierKeys& keys) const
