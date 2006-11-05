@@ -458,7 +458,8 @@ int movetolayer_short_buts(short *lay)
 
 /* ********************** CLEVER_NUMBUTS ******************** */
 
-#define MAXNUMBUTS	24
+#define MAXNUMBUTS	120
+#define MAXNUMBUTROWS	5
 
 VarStruct numbuts[MAXNUMBUTS];
 void *numbpoin[MAXNUMBUTS];
@@ -489,7 +490,7 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	ListBase listb= {NULL, NULL};
 	uiBlock *block;
 	VarStruct *varstr;
-	int a, sizex, sizey, x1, y2;
+	int a, sizex, sizey, x1, y2, width, colunms=1, xi=0, yi=0;
 	short mval[2], event;
 	
 	/* Clear all events so tooltips work, this is not ideal and
@@ -508,24 +509,27 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	}
 	/* Done clearing events */
 	
-	
 	if(tot<=0 || tot>MAXNUMBUTS) return 0;
-
+	
+	/* if we have too many buttons then have more then 1 column */
+	colunms= (int)ceil((double)tot / (double)MAXNUMBUTROWS);
+	
 	getmouseco_sc(mval);
 
 	/* size */
-	sizex= 235;
-	sizey= 30+20*(tot+1);
+	sizex= 175;
+	sizey= 30+20*(MIN2(MAXNUMBUTROWS, tot)+1);
+	width= (sizex*colunms)+60;
 	
 	/* center */
-	if(mval[0]<sizex/2) mval[0]=sizex/2;
+	if(mval[0]<width/2) mval[0]=width/2;
 	if(mval[1]<sizey/2) mval[1]=sizey/2;
-	if(mval[0]>G.curscreen->sizex -sizex/2) mval[0]= G.curscreen->sizex -sizex/2;
+	if(mval[0]>G.curscreen->sizex -width/2) mval[0]= G.curscreen->sizex -width/2;
 	if(mval[1]>G.curscreen->sizey -sizey/2) mval[1]= G.curscreen->sizey -sizey/2;
 
 	mywinset(G.curscreen->mainwin);
 	
-	x1= mval[0]-sizex/2; 
+	x1= mval[0]-width/2; 
 	y2= mval[1]+sizey/2;
 	
 	block= uiNewBlock(&listb, "numbuts", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
@@ -536,7 +540,7 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	
 	BIF_ThemeColor(TH_MENU_TEXT); /* makes text readable on dark theme */
 	
-	uiDefBut(block, LABEL, 0, name,	(short)(x1+15), (short)(y2-35), (short)(sizex-60), 19, 0, 1.0, 0.0, 0, 0, ""); 
+	uiDefBut(block, LABEL, 0, name,	(short)(x1+15), (short)(y2-35), (short)(width-60), 19, 0, 1.0, 0.0, 0, 0, ""); 
 	
 	/*
 	if(name[0]=='A' && name[7]=='O') {
@@ -549,24 +553,30 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	for(a=0; a<tot; a++, varstr++) {
 		
 		if(varstr->type==TEX) {
-			uiDefBut(block, TEX, 0,	varstr->name,(short)(x1+15),(short)(y2-55-20*a),(short)(sizex-60), 19, numbpoin[a], varstr->min, varstr->max, 0, 0, varstr->tip);
+			uiDefBut(block, TEX, 0,	varstr->name,(short)((x1+15) + (sizex*xi)),(short)(y2-55- 20*yi),(short)(sizex), 19, numbpoin[a], varstr->min, varstr->max, 0, 0, varstr->tip);
 		}
 		else  {
-			
 			if(varstr->type==LABEL) /* dont include the label when rounding the buttons */
 				uiBlockEndAlign(block);
 			
-			uiDefBut(block, varstr->type, 0, varstr->name,(short)(x1+15),(short)(y2-55-20*a), (short)(sizex-60), 19, &(numbdata[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
+			uiDefBut(block, varstr->type, 0, varstr->name,(short)((x1+15) + (sizex*xi)),(short)(y2-55-20*yi), (short)(sizex), 19, &(numbdata[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
 			
 			if(varstr->type==LABEL)
 				uiBlockBeginAlign(block);
 		}
-
 		
+		/* move to the next column */
+		yi++;
+		if (yi>=MAXNUMBUTROWS) {
+			yi=0;
+			xi++;
+			uiBlockEndAlign(block);
+			uiBlockBeginAlign(block);
+		}
 	}
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, BUT, 4000, "OK", (short)(x1+sizex-40),(short)(y2-35-20*a), 25, (short)(sizey-50), 0, 0, 0, 0, 0, "OK: Assign Values");
+	uiDefBut(block, BUT, 4000, "OK", (short)(x1+width-40),(short)(y2-35-20*MIN2(MAXNUMBUTROWS,a)), 25, (short)(sizey-50), 0, 0, 0, 0, 0, "OK: Assign Values");
 	
 	uiBoundsBlock(block, 5);
 
