@@ -18,6 +18,10 @@
 #include <ieeefp.h>
 #endif
 
+// just use default rounding for platforms where its not available
+#ifndef round
+#define round(x) (x)
+#endif
 
 /******************************************************************************
  * Constructor
@@ -124,9 +128,6 @@ IsoSurface::~IsoSurface( void )
 
 
 
-//static inline getSubdivData(IsoSurface* iso,int ai,aj,ak, si,sj) {
-	//int srci = 
-//}
 
 
 /******************************************************************************
@@ -634,7 +635,7 @@ void IsoSurface::triangulate( void )
 	float smoSubdfac = 1.;
 	if(mSubdivs>0) {
 		//smoSubdfac = 1./(float)(mSubdivs);
-		smoSubdfac = powf(0.55,(float)mSubdivs); // slightly stronger
+		smoSubdfac = pow(0.55,(float)mSubdivs); // slightly stronger
 	}
 	if(mSmoothSurface>0. || mSmoothNormals>0.) debMsgStd("IsoSurface::triangulate",DM_MSG,"Smoothing...",10);
 	if(mSmoothSurface>0.0) { 
