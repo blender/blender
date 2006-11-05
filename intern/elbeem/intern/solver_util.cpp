@@ -16,6 +16,9 @@
 #include "simulation_object.h"
 
 #include <zlib.h>
+#ifndef sqrtf
+#define sqrtf sqrt
+#endif
 
 /******************************************************************************
  * helper functions
@@ -892,7 +895,6 @@ void LbmFsgrSolver::advanceParticles() {
 								v *= 1./sqrtf(vlensqr)*0.166;
 							}
 							// compute cell velocity
-							LbmFloat cellVelSqr = 0.;
 							LbmFloat *tcel = RACPNT(level, oi,oj,ok, workSet);
 							LbmFloat velUx=0., velUy=0., velUz=0.;
 							FORDF0 { 
@@ -901,7 +903,8 @@ void LbmFsgrSolver::advanceParticles() {
 								velUz  += (this->dfDvecZ[l]*RAC(tcel,l)); 
 							}
 							// add impulse
-							/*cellVelSqr = velUx*velUx+ velUy*velUy+ velUz*velUz;
+							/*
+							LbmFloat cellVelSqr = velUx*velUx+ velUy*velUy+ velUz*velUz;
 							//errMsg("PTIMPULSE"," new v"<<v<<" cvs"<<cellVelSqr<<"="<<sqrt(cellVelSqr));
 							if(cellVelSqr< 0.166*0.166) {
 								FORDF1 { 
