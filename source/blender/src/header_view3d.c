@@ -185,7 +185,8 @@ void do_layer_buttons(short event)
 	scrarea_queue_headredraw(curarea);
 	
 	if(curarea->spacetype==SPACE_OOPS) allqueue(REDRAWVIEW3D, 1); /* 1==also do headwin */
-	if(G.vd->drawtype == OB_SHADED) reshadeall_displist();	
+	if(G.vd->drawtype == OB_SHADED) reshadeall_displist();
+	allqueue(REDRAWNLA, 0);	
 }
 
 static void do_view3d_view_cameracontrolsmenu(void *arg, int event)
@@ -4484,6 +4485,7 @@ void do_view3d_buttons(short event)
 			DAG_scene_update_flags(G.scene, G.vd->lay);	/* tags all that moves and flushes */
 
 			allqueue(REDRAWOOPS, 0);
+			allqueue(REDRAWNLA, 0);	
 		}
 		break;
 	}

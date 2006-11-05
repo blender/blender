@@ -245,35 +245,36 @@ static void draw_nla_strips_keys(SpaceNla *snla)
 		bActionStrip *strip;
 		int frame1_x, channel_y;
 		
-		if (nla_filter(base)) {
+		if (nla_filter(base)==0)
+			continue;
 			
-			/* Draw the field */
-			glEnable (GL_BLEND);
-			if (TESTBASE_SAFE(base))
-				glColor4ub (col1[0], col1[1], col1[2], 0x22);
-			else
-				glColor4ub (col2[0], col2[1], col2[2], 0x22);
-			
-			gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
-			glRectf(0,  channel_y-NLACHANNELHEIGHT/2,  frame1_x,  channel_y+NLACHANNELHEIGHT/2);
-			
-			
-			if (TESTBASE_SAFE(base))
-				glColor4ub (col1[0], col1[1], col1[2], 0x44);
-			else
-				glColor4ub (col2[0], col2[1], col2[2], 0x44);
-			glRectf(frame1_x,  channel_y-NLACHANNELHEIGHT/2,   G.v2d->hor.xmax,  channel_y+NLACHANNELHEIGHT/2);
-			
-			glDisable (GL_BLEND);
-			
-			/* Draw the ipo keys */
-			draw_object_channel(di, ob, 0, y);
-			
-			y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
-		}
+		/* Draw the field */
+		glEnable (GL_BLEND);
+		if (TESTBASE_SAFE(base))
+			glColor4ub (col1[0], col1[1], col1[2], 0x22);
+		else
+			glColor4ub (col2[0], col2[1], col2[2], 0x22);
+		
+		gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
+		glRectf(0,  channel_y-NLACHANNELHEIGHT/2,  frame1_x,  channel_y+NLACHANNELHEIGHT/2);
+		
+		
+		if (TESTBASE_SAFE(base))
+			glColor4ub (col1[0], col1[1], col1[2], 0x44);
+		else
+			glColor4ub (col2[0], col2[1], col2[2], 0x44);
+		glRectf(frame1_x,  channel_y-NLACHANNELHEIGHT/2,   G.v2d->hor.xmax,  channel_y+NLACHANNELHEIGHT/2);
+		
+		glDisable (GL_BLEND);
+		
+		/* Draw the ipo keys */
+		draw_object_channel(di, ob, 0, y);
+		
+		y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
+		
 				
 		/* Draw the action strip */
-		if (ob->action){
+		if (ob->action) {
 			
 			/* Draw the field */
 			glEnable (GL_BLEND);
@@ -733,16 +734,17 @@ int nla_filter (Base *base)
 {
 	Object *ob = base->object;
 	
-	if(ob->action || ob->nlastrips.first) 
-		return 1;
+	if(base->lay & G.scene->lay) {
+		if(ob->action || ob->nlastrips.first) 
+			return 1;
 
-	/* should become option */
-	if (ob->ipo)
-		return 1;
+		/* should become option */
+		if (ob->ipo)
+			return 1;
 
-	if (ob->constraintChannels.first)
-		return 1;
-
+		if (ob->constraintChannels.first)
+			return 1;
+	}
 	return 0;
 }
 
