@@ -1767,7 +1767,7 @@ void hide_mesh(int swap)
 		}
 	
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->e1->h || efa->e2->h || efa->e3->h || (efa->e4 && efa->e4->h)) {
+			if(efa->e1->h & 1 || efa->e2->h & 1 || efa->e3->h & 1 || (efa->e4 && efa->e4->h & 1)) {
 				efa->h= 1;
 				efa->f &= ~SELECT;
 			}
@@ -1783,7 +1783,7 @@ void hide_mesh(int swap)
 		}
 
 		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->e1->h || efa->e2->h || efa->e3->h || (efa->e4 && efa->e4->h)) {
+			if(efa->e1->h & 1 || efa->e2->h & 1 || efa->e3->h & 1 || (efa->e4 && efa->e4->h & 1)) {
 				efa->h= 1;
 				efa->f &= ~SELECT;
 			}
