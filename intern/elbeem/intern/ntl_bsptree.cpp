@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Tree container for fast triangle intersects
  *

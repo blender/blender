@@ -917,6 +917,7 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 	if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&
 		 (ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN)&&
 	   (ob->fluidsimSettings->meshSurface) &&
+		 (1) && (!give_parteff(ob)) && // doesnt work together with particle systems!
 		 (me->totvert == ((Mesh *)(ob->fluidsimSettings->meshSurface))->totvert) ) {
 		// dont recompute for fluidsim mesh, use from readBobjgz
 		// TODO? check for modifiers!?
@@ -2816,7 +2817,8 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	 * domain objects
 	 */
 	if((G.obedit!=ob) && !needMapping) {
-		if (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) {
+		if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&
+		   (1) && (!give_parteff(ob)) ) { // doesnt work together with particle systems!
 			if(ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
 				loadFluidsimMesh(ob,useRenderParams);
 				fluidsimMeshUsed = 1;

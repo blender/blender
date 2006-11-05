@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Base class for geometry shaders and objects
  *
@@ -31,6 +31,7 @@ class ntlGeometryClass
 			mObjectId(-1), mpAttrs( NULL ), mGeoInitId(-1) 
 		{ 
 				mpAttrs = new AttributeList("objAttrs"); 
+				mpSwsAttrs = new AttributeList("swsAttrs"); 
 		};
 
 		//! Default destructor
@@ -57,6 +58,10 @@ class ntlGeometryClass
 		inline void setAttributeList(AttributeList *set) { mpAttrs=set; }
 		/*! Returns the attribute list pointer */
 		inline AttributeList *getAttributeList() { return mpAttrs; }
+
+		/*! Get/Sets the attribute list pointer */
+		inline void setSwsAttributeList(AttributeList *set) { mpSwsAttrs=set; }
+		inline AttributeList *getSwsAttributeList() { return mpSwsAttrs; }
 
 		/*! for easy GUI detection get start of axis aligned bounding box, return NULL of no BB */
 		virtual inline ntlVec3Gfx *getBBStart() { return NULL; }
@@ -93,6 +98,8 @@ class ntlGeometryClass
 
 		/*! configuration attributes */
 		AttributeList *mpAttrs;
+		/*! sws configuration attributes */
+		AttributeList *mpSwsAttrs;
 
 		/* fluid init data */
 		/*! id of fluid init (is used in solver initialization), additional data stored only for objects */

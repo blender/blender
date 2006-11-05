@@ -3,7 +3,7 @@
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
  * All code distributed as part of El'Beem is covered by the version 2 of the 
  * GNU General Public License. See the file COPYING for details.
- * Copyright 2003-2005 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Main program functions
  */
@@ -64,10 +64,11 @@ void elbeemResetSettings(elbeemSimulationSettings *set) {
 	set->channelSizeGravity=0;
 	set->channelGravity=NULL; 
 
-	set->obstacleType= FLUIDSIM_OBSTACLE_NOSLIP;
-	set->obstaclePartslip= 0.;
+	set->domainobsType= FLUIDSIM_OBSTACLE_NOSLIP;
+	set->domainobsPartslip= 0.;
 	set->generateVertexVectors = 0;
 	set->surfaceSmoothing = 1.;
+	set->surfaceSubdivs = 1;
 
 	set->farFieldSize = 0.;
 	set->runsimCallback = NULL;
@@ -83,6 +84,7 @@ extern "C"
 int elbeemInit() {
 	setElbeemState( SIMWORLD_INITIALIZING );
 	setElbeemErrorString("[none]");
+	resetGlobalColorSetting();
 
 	elbeemCheckDebugEnv();
 	debMsgStd("performElbeemSimulation",DM_NOTIFY,"El'Beem Simulation Init Start as Plugin, debugLevel:"<<gDebugLevel<<" ...\n", 2);
@@ -150,6 +152,7 @@ void elbeemResetMesh(elbeemMesh *mesh) {
 
 	mesh->obstacleType= FLUIDSIM_OBSTACLE_NOSLIP;
 	mesh->obstaclePartslip= 0.;
+	mesh->obstacleImpactFactor= 1.;
 
 	mesh->volumeInitType= OB_VOLUMEINIT_VOLUME;
 
@@ -193,6 +196,7 @@ int elbeemAddMesh(elbeemMesh *mesh) {
 	obj->setGeoInitIntersect(true);
 	obj->setGeoInitType(initType);
 	obj->setGeoPartSlipValue(mesh->obstaclePartslip);
+	obj->setGeoImpactFactor(mesh->obstacleImpactFactor);
 	if((mesh->volumeInitType<VOLUMEINIT_VOLUME)||(mesh->volumeInitType>VOLUMEINIT_BOTH)) mesh->volumeInitType = VOLUMEINIT_VOLUME;
 	obj->setVolumeInit(mesh->volumeInitType);
 	// use channel instead, obj->setInitialVelocity( ntlVec3Gfx(mesh->iniVelocity[0], mesh->iniVelocity[1], mesh->iniVelocity[2]) );

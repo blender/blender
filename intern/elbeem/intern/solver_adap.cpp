@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004,2005 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Adaptivity functions
  *
@@ -925,6 +925,11 @@ void LbmFsgrSolver::interpolateCellFromCoarse(int lev, int i, int j,int k, int d
 
 
 
+// required globals
+extern bool glob_mpactive;
+extern int glob_mpnum, glob_mpindex;
+#define MPTADAP_INTERV 4
+
 /*****************************************************************************/
 /*! change the  size of the LBM time step */
 /*****************************************************************************/
@@ -934,7 +939,7 @@ void LbmFsgrSolver::adaptTimestep() {
 
 	bool rescale = false;  // do any rescale at all?
 	LbmFloat scaleFac = -1.0; // timestep scaling
-	if(this->mPanic) return;
+	if(mPanic) return;
 
 	LbmFloat levOldOmega[FSGR_MAXNOOFLEVELS];
 	LbmFloat levOldStepsize[FSGR_MAXNOOFLEVELS];
@@ -942,62 +947,71 @@ void LbmFsgrSolver::adaptTimestep() {
 		levOldOmega[lev] = mLevel[lev].omega;
 		levOldStepsize[lev] = mLevel[lev].timestep;
 	}
-	//if(mTimeSwitchCounts>0){ errMsg("DEB CSKIP",""); return; } // DEBUG
 
 	const LbmFloat reduceFac = 0.8;          // modify time step by 20%, TODO? do multiple times for large changes?
 	LbmFloat diffPercent = 0.05; // dont scale if less than 5%
-	LbmFloat allowMax = this->mpParam->getTadapMaxSpeed();  // maximum allowed velocity
-	LbmFloat nextmax = this->mpParam->getSimulationMaxSpeed() + norm(mLevel[mMaxRefine].gravity);
+	LbmFloat allowMax = mpParam->getTadapMaxSpeed();  // maximum allowed velocity
+	LbmFloat nextmax = mpParam->getSimulationMaxSpeed() + norm(mLevel[mMaxRefine].gravity);
 
-	//newdt = this->mpParam->getTimestep() * (allowMax/nextmax);
-	LbmFloat newdt = this->mpParam->getTimestep(); // newtr
+	// sync nextmax
+#if LBM_INCLUDE_TESTSOLVERS==1
+	if(glob_mpactive) {
+		if(mLevel[mMaxRefine].lsteps % MPTADAP_INTERV != MPTADAP_INTERV-1) {
+			debMsgStd("LbmFsgrSolver::TAdp",DM_MSG, "mpact:"<<glob_mpactive<<","<<glob_mpindex<<"/"<<glob_mpnum<<" step:"<<mLevel[mMaxRefine].lsteps<<" skipping tadap...",8);
+			return;
+		}
+		nextmax = mrInitTadap(nextmax);
+	}
+#endif // LBM_INCLUDE_TESTSOLVERS==1
+
+	LbmFloat newdt = mpParam->getTimestep(); // newtr
 	if(nextmax > allowMax/reduceFac) {
 		mTimeMaxvelStepCnt++; }
 	else { mTimeMaxvelStepCnt=0; }
 	
 	// emergency, or 10 steps with high vel
 	if((mTimeMaxvelStepCnt>5) || (nextmax> (1.0/3.0)) || (mForceTimeStepReduce) ) {
-	//if(nextmax > allowMax/reduceFac) {
-		newdt = this->mpParam->getTimestep() * reduceFac;
+		newdt = mpParam->getTimestep() * reduceFac;
 	} else {
 		if(nextmax<allowMax*reduceFac) {
-			newdt = this->mpParam->getTimestep() / reduceFac;
+			newdt = mpParam->getTimestep() / reduceFac;
 		}
 	} // newtr
-	//errMsg("LbmFsgrSolver::adaptTimestep","nextmax="<<nextmax<<" allowMax="<<allowMax<<" fac="<<reduceFac<<" simmaxv="<< this->mpParam->getSimulationMaxSpeed() );
+	//errMsg("LbmFsgrSolver::adaptTimestep","nextmax="<<nextmax<<" allowMax="<<allowMax<<" fac="<<reduceFac<<" simmaxv="<< mpParam->getSimulationMaxSpeed() );
 
 	bool minCutoff = false;
 	LbmFloat desireddt = newdt;
-	if(newdt>this->mpParam->getMaxTimestep()){ newdt = this->mpParam->getMaxTimestep(); }
-	if(newdt<this->mpParam->getMinTimestep()){ 
-		newdt = this->mpParam->getMinTimestep(); 
+	if(newdt>mpParam->getMaxTimestep()){ newdt = mpParam->getMaxTimestep(); }
+	if(newdt<mpParam->getMinTimestep()){ 
+		newdt = mpParam->getMinTimestep(); 
 		if(nextmax>allowMax/reduceFac){	minCutoff=true; } // only if really large vels...
 	}
 
-	LbmFloat dtdiff = fabs(newdt - this->mpParam->getTimestep());
-	if(!this->mSilent) {
+	LbmFloat dtdiff = fabs(newdt - mpParam->getTimestep());
+	if(!mSilent) {
 		debMsgStd("LbmFsgrSolver::TAdp",DM_MSG, "new"<<newdt
-			<<" max"<<this->mpParam->getMaxTimestep()<<" min"<<this->mpParam->getMinTimestep()<<" diff"<<dtdiff
-			<<" simt:"<<mSimulationTime<<" minsteps:"<<(mSimulationTime/mMaxTimestep)<<" maxsteps:"<<(mSimulationTime/mMinTimestep) , 10); }
+			<<" max"<<mpParam->getMaxTimestep()<<" min"<<mpParam->getMinTimestep()<<" diff"<<dtdiff
+			<<" simt:"<<mSimulationTime<<" minsteps:"<<(mSimulationTime/mMaxTimestep)<<" maxsteps:"<<(mSimulationTime/mMinTimestep)<<
+			" olddt"<<levOldStepsize[mMaxRefine]<<" redlock"<<mTimestepReduceLock 
+		 	, 10); }
 
 	// in range, and more than X% change?
-	//if( newdt <  this->mpParam->getTimestep() ) // DEBUG
+	//if( newdt <  mpParam->getTimestep() ) // DEBUG
 	LbmFloat rhoAvg = mCurrentMass/mCurrentVolume;
-	if( (newdt<=this->mpParam->getMaxTimestep()) && (newdt>=this->mpParam->getMinTimestep()) 
-			&& (dtdiff>(this->mpParam->getTimestep()*diffPercent)) ) {
+	if( (newdt<=mpParam->getMaxTimestep()) && (newdt>=mpParam->getMinTimestep()) 
+			&& (dtdiff>(mpParam->getTimestep()*diffPercent)) ) {
 		if((newdt>levOldStepsize[mMaxRefine])&&(mTimestepReduceLock)) {
 			// wait some more...
 			//debMsgNnl("LbmFsgrSolver::TAdp",DM_NOTIFY," Delayed... "<<mTimestepReduceLock<<" ",10);
 			debMsgDirect("D");
 		} else {
-			this->mpParam->setDesiredTimestep( newdt );
+			mpParam->setDesiredTimestep( newdt );
 			rescale = true;
-			if(!this->mSilent) {
+			if(!mSilent) {
 				debMsgStd("LbmFsgrSolver::TAdp",DM_NOTIFY,"\n\n\n\n",10);
-				debMsgStd("LbmFsgrSolver::TAdp",DM_NOTIFY,"Timestep change: new="<<newdt<<" old="<<this->mpParam->getTimestep()
-						<<" maxSpeed:"<<this->mpParam->getSimulationMaxSpeed()<<" next:"<<nextmax<<" step:"<<this->mStepCnt, 10 );
-				debMsgStd("LbmFsgrSolver::TAdp",DM_NOTIFY,"Timestep change: "<<
-						"rhoAvg="<<rhoAvg<<" cMass="<<mCurrentMass<<" cVol="<<mCurrentVolume,10);
+				debMsgStd("LbmFsgrSolver::TAdp",DM_NOTIFY,"Timestep changing: new="<<newdt<<" old="<<mpParam->getTimestep()
+						<<" maxSpeed:"<<mpParam->getSimulationMaxSpeed()<<" next:"<<nextmax<<" step:"<<mStepCnt, 10 );
+				//debMsgStd("LbmFsgrSolver::TAdp",DM_NOTIFY,"Timestep changing: "<< "rhoAvg="<<rhoAvg<<" cMass="<<mCurrentMass<<" cVol="<<mCurrentVolume,10);
 			}
 		} // really change dt
 	}
@@ -1009,17 +1023,17 @@ void LbmFsgrSolver::adaptTimestep() {
 	/*const int tadtogInter = 100;
 	const double tadtogSwitch = 0.66;
 	errMsg("TIMESWITCHTOGGLETEST","warning enabled "<< tadtogSwitch<<","<<tadtogSwitch<<" !!!!!!!!!!!!!!!!!!!");
-	if( ((this->mStepCnt% tadtogInter)== (tadtogInter/4*1)-1) ||
-	    ((this->mStepCnt% tadtogInter)== (tadtogInter/4*2)-1) ){
+	if( ((mStepCnt% tadtogInter)== (tadtogInter/4*1)-1) ||
+	    ((mStepCnt% tadtogInter)== (tadtogInter/4*2)-1) ){
 		rescale = true; minCutoff = false;
-		newdt = tadtogSwitch * this->mpParam->getTimestep();
-		this->mpParam->setDesiredTimestep( newdt );
+		newdt = tadtogSwitch * mpParam->getTimestep();
+		mpParam->setDesiredTimestep( newdt );
 	} else 
-	if( ((this->mStepCnt% tadtogInter)== (tadtogInter/4*3)-1) ||
-	    ((this->mStepCnt% tadtogInter)== (tadtogInter/4*4)-1) ){
+	if( ((mStepCnt% tadtogInter)== (tadtogInter/4*3)-1) ||
+	    ((mStepCnt% tadtogInter)== (tadtogInter/4*4)-1) ){
 		rescale = true; minCutoff = false;
-		newdt = this->mpParam->getTimestep()/tadtogSwitch ;
-		this->mpParam->setDesiredTimestep( newdt );
+		newdt = mpParam->getTimestep()/tadtogSwitch ;
+		mpParam->setDesiredTimestep( newdt );
 	} else {
 		rescale = false; minCutoff = false;
 	}
@@ -1027,23 +1041,25 @@ void LbmFsgrSolver::adaptTimestep() {
 
 	// test mass rescale
 
-	scaleFac = newdt/this->mpParam->getTimestep();
+	scaleFac = newdt/mpParam->getTimestep();
 	if(rescale) {
 		// perform acutal rescaling...
 		mTimeMaxvelStepCnt=0; 
 		mForceTimeStepReduce = false;
 
 		// FIXME - approximate by averaging, take gravity direction here?
-		mTimestepReduceLock = 4*(mLevel[mMaxRefine].lSizey+mLevel[mMaxRefine].lSizez+mLevel[mMaxRefine].lSizex)/3;
+		//mTimestepReduceLock = 4*(mLevel[mMaxRefine].lSizey+mLevel[mMaxRefine].lSizez+mLevel[mMaxRefine].lSizex)/3;
+		// use z as gravity direction
+		mTimestepReduceLock = 4*mLevel[mMaxRefine].lSizez;
 
 		mTimeSwitchCounts++;
-		this->mpParam->calculateAllMissingValues( mSimulationTime, this->mSilent );
+		mpParam->calculateAllMissingValues( mSimulationTime, mSilent );
 		recalculateObjectSpeeds();
 		// calc omega, force for all levels
 		mLastOmega=1e10; mLastGravity=1e10;
 		initLevelOmegas();
-		if(this->mpParam->getTimestep()<mMinTimestep) mMinTimestep = this->mpParam->getTimestep();
-		if(this->mpParam->getTimestep()>mMaxTimestep) mMaxTimestep = this->mpParam->getTimestep();
+		if(mpParam->getTimestep()<mMinTimestep) mMinTimestep = mpParam->getTimestep();
+		if(mpParam->getTimestep()>mMaxTimestep) mMaxTimestep = mpParam->getTimestep();
 
 		// this might be called during init, before we have any particles
 		if(mpParticles) { mpParticles->adaptPartTimestep(scaleFac); }
@@ -1058,8 +1074,8 @@ void LbmFsgrSolver::adaptTimestep() {
 			LbmFloat newSteptime = mLevel[lev].timestep;
 			LbmFloat dfScaleFac = (newSteptime/1.0)/(levOldStepsize[lev]/levOldOmega[lev]);
 
-			if(!this->mSilent) {
-				debMsgStd("LbmFsgrSolver::TAdp",DM_NOTIFY,"Level: "<<lev<<" Timestep change: "<<
+			if(!mSilent) {
+				debMsgStd("LbmFsgrSolver::TAdp",DM_NOTIFY,"Level: "<<lev<<" Timestep chlevel: "<<
 						" scaleFac="<<dfScaleFac<<" newDt="<<newSteptime<<" newOmega="<<mLevel[lev].omega,10);
 			}
 			if(lev!=mMaxRefine) coarseCalculateFluxareas(lev);
@@ -1079,7 +1095,7 @@ void LbmFsgrSolver::adaptTimestep() {
 							// init empty zero vel  interface cell...
 							initVelocityCell(lev, i,j,k, CFInter, 1.0, 0.01, LbmVec(0.) );
 						} else {// */
-							for(int l=0; l<this->cDfNum; l++) {
+							for(int l=0; l<cDfNum; l++) {
 								QCELL(lev, i, j, k, workSet, l) = QCELL(lev, i, j, k, workSet, l)* scaleFac; 
 							}
 						//} //  ok
@@ -1102,12 +1118,12 @@ void LbmFsgrSolver::adaptTimestep() {
 					LbmVec velOld;
 					LbmFloat rho, ux,uy,uz;
 					rho=0.0; ux =  uy = uz = 0.0;
-					for(int l=0; l<this->cDfNum; l++) {
+					for(int l=0; l<cDfNum; l++) {
 						LbmFloat m = QCELL(lev, i, j, k, workSet, l); 
 						rho += m;
-						ux  += (this->dfDvecX[l]*m);
-						uy  += (this->dfDvecY[l]*m); 
-						uz  += (this->dfDvecZ[l]*m); 
+						ux  += (dfDvecX[l]*m);
+						uy  += (dfDvecY[l]*m); 
+						uz  += (dfDvecZ[l]*m); 
 					} 
 					rhoOld = rho;
 					velOld = LbmVec(ux,uy,uz);
@@ -1118,21 +1134,21 @@ void LbmFsgrSolver::adaptTimestep() {
 					LbmFloat df[LBM_DFNUM];
 					LbmFloat feqOld[LBM_DFNUM];
 					LbmFloat feqNew[LBM_DFNUM];
-					for(int l=0; l<this->cDfNum; l++) {
-						feqOld[l] = this->getCollideEq(l,rhoOld, velOld[0],velOld[1],velOld[2] );
-						feqNew[l] = this->getCollideEq(l,rhoNew, velNew[0],velNew[1],velNew[2] );
+					for(int l=0; l<cDfNum; l++) {
+						feqOld[l] = getCollideEq(l,rhoOld, velOld[0],velOld[1],velOld[2] );
+						feqNew[l] = getCollideEq(l,rhoNew, velNew[0],velNew[1],velNew[2] );
 						df[l] = QCELL(lev, i,j,k,workSet, l);
 					}
-					const LbmFloat Qo = this->getLesNoneqTensorCoeff(df,feqOld);
-					const LbmFloat oldOmega = this->getLesOmega(levOldOmega[lev], mLevel[lev].lcsmago,Qo);
-					const LbmFloat newOmega = this->getLesOmega(mLevel[lev].omega,mLevel[lev].lcsmago,Qo);
+					const LbmFloat Qo = getLesNoneqTensorCoeff(df,feqOld);
+					const LbmFloat oldOmega = getLesOmega(levOldOmega[lev], mLevel[lev].lcsmago,Qo);
+					const LbmFloat newOmega = getLesOmega(mLevel[lev].omega,mLevel[lev].lcsmago,Qo);
 					//newOmega = mLevel[lev].omega; // FIXME debug test
 
 					//LbmFloat dfScaleFac = (newSteptime/1.0)/(levOldStepsize[lev]/levOldOmega[lev]);
 					const LbmFloat dfScale = (newSteptime/newOmega)/(levOldStepsize[lev]/oldOmega);
 					//dfScale = dfScaleFac/newOmega;
 					
-					for(int l=0; l<this->cDfNum; l++) {
+					for(int l=0; l<cDfNum; l++) {
 						// org scaling
 						//df = eqOld + (df-eqOld)*dfScale; df *= (eqNew/eqOld); // non-eq. scaling, important
 						// new scaling
@@ -1176,22 +1192,22 @@ void LbmFsgrSolver::adaptTimestep() {
 
 		} // lev
 
-		if(!this->mSilent) {
-			debMsgStd("LbmFsgrSolver::step",DM_MSG,"REINIT DONE "<<this->mStepCnt<<
+		if(!mSilent) {
+			debMsgStd("LbmFsgrSolver::step",DM_MSG,"REINIT DONE "<<mStepCnt<<
 					" no"<<mTimeSwitchCounts<<" maxdt"<<mMaxTimestep<<
 					" mindt"<<mMinTimestep<<" currdt"<<mLevel[mMaxRefine].timestep, 10);
 			debMsgStd("LbmFsgrSolver::step",DM_MSG,"REINIT DONE  masst:"<<massTNew<<","<<massTOld<<" org:"<<mCurrentMass<<"; "<<
 					" volt:"<<volTNew<<","<<volTOld<<" org:"<<mCurrentVolume, 10);
 		} else {
-			debMsgStd("\nLbmOptSolver::step",DM_MSG,"Timestep change by "<< (newdt/levOldStepsize[mMaxRefine]) <<" newDt:"<<newdt
-					<<", oldDt:"<<levOldStepsize[mMaxRefine]<<" newOmega:"<<this->mOmega<<" gStar:"<<this->mpParam->getCurrentGStar() , 10);
+			debMsgStd("\nLbmOptSolver::step",DM_MSG,"Timestep changed by "<< (newdt/levOldStepsize[mMaxRefine]) <<" newDt:"<<newdt
+					<<", oldDt:"<<levOldStepsize[mMaxRefine]<<" newOmega:"<<mOmega<<" gStar:"<<mpParam->getCurrentGStar()<<", step:"<<mStepCnt , 10);
 		}
 	} // rescale?
 	//NEWDEBCHECK("tt2");
 	
 	//errMsg("adaptTimestep","Warning - brute force rescale off!"); minCutoff = false; // DEBUG
 	if(minCutoff) {
-		errMsg("adaptTimestep","Warning - performing Brute-Force rescale... (sim:"<<this->mName<<" step:"<<this->mStepCnt<<" newdt="<<desireddt<<" mindt="<<this->mpParam->getMinTimestep()<<") " );
+		errMsg("adaptTimestep","Warning - performing Brute-Force rescale... (sim:"<<mName<<" step:"<<mStepCnt<<" newdt="<<desireddt<<" mindt="<<mpParam->getMinTimestep()<<") " );
 		//brute force resacle all the time?
 
 		for(int lev=mMaxRefine; lev>=0 ; lev--) {
@@ -1220,12 +1236,12 @@ void LbmFsgrSolver::adaptTimestep() {
 			// collide on current set
 			LbmFloat rho, ux,uy,uz;
 			rho=0.0; ux =  uy = uz = 0.0;
-			for(int l=0; l<this->cDfNum; l++) {
+			for(int l=0; l<cDfNum; l++) {
 				LbmFloat m = QCELL(lev, i, j, k, workSet, l); 
 				rho += m;
-				ux  += (this->dfDvecX[l]*m);
-				uy  += (this->dfDvecY[l]*m); 
-				uz  += (this->dfDvecZ[l]*m); 
+				ux  += (dfDvecX[l]*m);
+				uy  += (dfDvecY[l]*m); 
+				uz  += (dfDvecZ[l]*m); 
 			} 
 #ifndef WIN32
 			if (!finite(rho)) {
@@ -1242,8 +1258,8 @@ void LbmFsgrSolver::adaptTimestep() {
 				ux *= cfac;
 				uy *= cfac;
 				uz *= cfac;
-				for(int l=0; l<this->cDfNum; l++) {
-					QCELL(lev, i, j, k, workSet, l) = this->getCollideEq(l, rho, ux,uy,uz); }
+				for(int l=0; l<cDfNum; l++) {
+					QCELL(lev, i, j, k, workSet, l) = getCollideEq(l, rho, ux,uy,uz); }
 				rescs++;
 				debMsgDirect("B");
 			}

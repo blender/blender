@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * a geometry object
  * all other geometry objects are derived from this one
@@ -16,6 +16,8 @@
 // for FGI
 #include "elbeem.h"
 
+#define TRI_UVOFFSET (1./4.)
+//#define TRI_UVOFFSET (1./3.)
 
 
 /*****************************************************************************/
@@ -29,6 +31,7 @@ ntlGeometryObject::ntlGeometryObject() :
 	mInitialVelocity(0.0), mcInitialVelocity(0.0), mLocalCoordInivel(false),
 	mGeoInitIntersect(false),
 	mGeoPartSlipValue(0.0),
+	mcGeoImpactFactor(1.),
 	mVolumeInit(VOLUMEINIT_VOLUME),
 	mInitialPos(0.),
 	mcTrans(0.), mcRot(0.), mcScale(1.),
@@ -62,6 +65,7 @@ bool ntlGeometryObject::checkIsAnimated() {
 	    || (mcRot.accessValues().size()>1) 
 	    || (mcScale.accessValues().size()>1) 
 	    || (mcGeoActive.accessValues().size()>1) 
+			// mcGeoImpactFactor only needed when moving
 	    || (mcInitialVelocity.accessValues().size()>1) 
 		) {
 		mIsAnimated = true;
@@ -71,6 +75,7 @@ bool ntlGeometryObject::checkIsAnimated() {
 	if(mGeoInitType==FGI_FLUID) {
 		mIsAnimated=false;
 	}
+	//errMsg("ntlGeometryObject::checkIsAnimated","obj="<<getName()<<" debug: trans:"<<mcTrans.accessValues().size()<<" rot:"<<mcRot.accessValues().size()<<" scale:"<<mcScale.accessValues().size()<<" active:"<<mcGeoActive.accessValues().size()<<" inivel:"<<mcInitialVelocity.accessValues().size()<<". isani?"<<mIsAnimated ); // DEBUG
 	return mIsAnimated;
 }
 
@@ -139,6 +144,13 @@ void ntlGeometryObject::initialize(ntlRenderGlobals *glob)
 	mVolumeInit     = mpAttrs->readInt("geoinit_volumeinit", mVolumeInit,"ntlGeometryObject", "mVolumeInit", false);
 	if((mVolumeInit<VOLUMEINIT_VOLUME)||(mVolumeInit>VOLUMEINIT_BOTH)) mVolumeInit = VOLUMEINIT_VOLUME;
 
+	// moving obs correction factor
+	float impactfactor=1.;
+	impactfactor = (float)mpAttrs->readFloat("impactfactor", impactfactor,"ntlGeometryObject", "impactfactor", false);
+	if(getAttributeList()->exists("impactfactor") || (!mcGeoImpactFactor.isInited()) ) {
+		mcGeoImpactFactor = mpAttrs->readChannelSinglePrecFloat("impactfactor");
+	}
+
 	// override cfg types
 	mVisible = mpAttrs->readBool("visible", mVisible,"ntlGeometryObject", "mVisible", false);
 	mReceiveShadows = mpAttrs->readBool("recv_shad", mReceiveShadows,"ntlGeometryObject", "mReceiveShadows", false);
@@ -162,12 +174,12 @@ void ntlGeometryObject::initialize(ntlRenderGlobals *glob)
 	}
 
 	float geoactive=1.;
-	geoactive = mpAttrs->readFloat("geoactive", geoactive,"ntlGeometryObject", "geoactive", false);
+	geoactive = (float)mpAttrs->readFloat("geoactive", geoactive,"ntlGeometryObject", "geoactive", false);
 	if(getAttributeList()->exists("geoactive") || (!mcGeoActive.isInited()) ) {
-		mcGeoActive = mpAttrs->readChannelFloat("geoactive");
+		mcGeoActive = mpAttrs->readChannelSinglePrecFloat("geoactive");
 	}
 	// always use channel
-	if(!mcGeoActive.isInited()) { mcGeoActive = AnimChannel<double>(geoactive); }
+	if(!mcGeoActive.isInited()) { mcGeoActive = AnimChannel<float>(geoactive); }
 
 	checkIsAnimated();
 
@@ -309,12 +321,12 @@ void ntlGeometryObject::sceneAddTriangleNoVert(int *trips,
 		(dst) = AnimChannel< ntlVec3Gfx >(vals,time); 
 
 #define ADD_CHANNEL_FLOAT(dst,nvals,val) \
-		valsd.clear(); time.clear(); elbeemSimplifyChannelFloat(val,&nvals); \
+		valsfloat.clear(); time.clear(); elbeemSimplifyChannelFloat(val,&nvals); \
 		for(int i=0; i<(nvals); i++) { \
-			valsd.push_back( (val)[i*2+0] ); \
+			valsfloat.push_back( (val)[i*2+0] ); \
 			time.push_back( (val)[i*2+1] ); \
 		} \
-		(dst) = AnimChannel< double >(valsd,time); 
+		(dst) = AnimChannel< float >(valsfloat,time); 
 
 void ntlGeometryObject::initChannels(
 		int nTrans, float *trans, int nRot, float *rot, int nScale, float *scale,
@@ -324,7 +336,7 @@ void ntlGeometryObject::initChannels(
 	if(debugInitc) { debMsgStd("ntlGeometryObject::initChannels",DM_MSG,"nt:"<<nTrans<<" nr:"<<nRot<<" ns:"<<nScale, 10); 
 	                 debMsgStd("ntlGeometryObject::initChannels",DM_MSG,"na:"<<nAct<<" niv:"<<nIvel<<" ", 10); }
 	vector<ntlVec3Gfx> vals;
-	vector<double> valsd;
+	vector<float>  valsfloat;
 	vector<double> time;
 	if((trans)&&(nTrans>0)) {  ADD_CHANNEL_VEC(mcTrans, nTrans, trans); }
 	if((rot)&&(nRot>0)) {      ADD_CHANNEL_VEC(mcRot, nRot, rot); }
@@ -383,7 +395,7 @@ void ntlGeometryObject::applyTransformation(double t, vector<ntlVec3Gfx> *verts,
 		ntlMat4Gfx rotMat;
 		rotMat.initRotationXYZ(rot[0],rot[1],rot[2]);
 		pos += mInitialPos;
-		//errMsg("ntlGeometryObject::applyTransformation","obj="<<getName()<<" t"<<pos<<" r"<<rot<<" s"<<scale);
+		errMsg("ntlGeometryObject::applyTransformation","obj="<<getName()<<" t"<<pos<<" r"<<rot<<" s"<<scale);
 		for(int i=vstart; i<vend; i++) {
 			(*verts)[i] *= scale;
 			(*verts)[i] = rotMat * (*verts)[i];
@@ -397,7 +409,7 @@ void ntlGeometryObject::applyTransformation(double t, vector<ntlVec3Gfx> *verts,
 		}
 	} else {
 		// not animated, cached points were already returned
-		//errMsg ("ntlGeometryObject::applyTransformation","Object "<<getName()<<" used cached points ");
+		errMsg ("ntlGeometryObject::applyTransformation","Object "<<getName()<<" used cached points ");
 	}
 }
 
@@ -473,8 +485,8 @@ void ntlGeometryObject::initMovingPoints(double time, gfxReal featureSize) {
 			if(divs1+divs2 > 0) {
 				for(int u=0; u<=divs1; u++) {
 					for(int v=0; v<=divs2; v++) {
-						const gfxReal uf = (gfxReal)(u+0.25) / (gfxReal)(divs1+0.0);
-						const gfxReal vf = (gfxReal)(v+0.25) / (gfxReal)(divs2+0.0);
+						const gfxReal uf = (gfxReal)(u+TRI_UVOFFSET) / (gfxReal)(divs1+0.0);
+						const gfxReal vf = (gfxReal)(v+TRI_UVOFFSET) / (gfxReal)(divs2+0.0);
 						if(uf+vf>1.0) continue;
 						countp+=2;
 					}
@@ -500,7 +512,7 @@ void ntlGeometryObject::initMovingPoints(double time, gfxReal featureSize) {
 		}
 		mMovPoints.push_back(p);
 		mMovNormals.push_back(n);
-		//errMsg("ntlGeometryObject::initMovingPoints","std"<<i<<" p"<<p<<" n"<<n<<" ");
+		if(debugMoinit) errMsg("ntlGeometryObject::initMovingPoints","std"<<i<<" p"<<p<<" n"<<n<<" ");
 	}
 	// init points & refine...
 	for(size_t i=0; i<triangles.size(); i++) {
@@ -515,12 +527,12 @@ void ntlGeometryObject::initMovingPoints(double time, gfxReal featureSize) {
 		if(discardInflowBack) { 
 			if(dot(mInitialVelocity,trinorm)<0.0) continue;
 		}
-		//errMsg("ntlGeometryObject::initMovingPoints","Tri1 "<<vertices[trips[0]]<<","<<vertices[trips[1]]<<","<<vertices[trips[2]]<<" "<<divs1<<","<<divs2 );
+		if(debugMoinit) errMsg("ntlGeometryObject::initMovingPoints","Tri1 "<<vertices[trips[0]]<<","<<vertices[trips[1]]<<","<<vertices[trips[2]]<<" "<<divs1<<","<<divs2 );
 		if(divs1+divs2 > 0) {
 			for(int u=0; u<=divs1; u++) {
 				for(int v=0; v<=divs2; v++) {
-					const gfxReal uf = (gfxReal)(u+0.25) / (gfxReal)(divs1+0.0);
-					const gfxReal vf = (gfxReal)(v+0.25) / (gfxReal)(divs2+0.0);
+					const gfxReal uf = (gfxReal)(u+TRI_UVOFFSET) / (gfxReal)(divs1+0.0);
+					const gfxReal vf = (gfxReal)(v+TRI_UVOFFSET) / (gfxReal)(divs2+0.0);
 					if(uf+vf>1.0) continue;
 					ntlVec3Gfx p = 
 						vertices[ trips[0] ] * (1.0-uf-vf)+
@@ -653,8 +665,8 @@ void ntlGeometryObject::initMovingPointsAnim(
 			//errMsg("ntlGeometryObject::initMovingPointsAnim","Tri1 "<<srcvertices[srctrips[0]]<<","<<srcvertices[srctrips[1]]<<","<<srcvertices[srctrips[2]]<<" "<<divs1<<","<<divs2 );
 			for(int u=0; u<=divs1; u++) {
 				for(int v=0; v<=divs2; v++) {
-					const gfxReal uf = (gfxReal)(u+0.25) / (gfxReal)(divs1+0.0);
-					const gfxReal vf = (gfxReal)(v+0.25) / (gfxReal)(divs2+0.0);
+					const gfxReal uf = (gfxReal)(u+TRI_UVOFFSET) / (gfxReal)(divs1+0.0);
+					const gfxReal vf = (gfxReal)(v+TRI_UVOFFSET) / (gfxReal)(divs2+0.0);
 					if(uf+vf>1.0) continue;
 					ntlVec3Gfx srcp = 
 						srcvertices[ srctrips[0] ] * (1.0-uf-vf)+
@@ -722,7 +734,7 @@ ntlVec3Gfx ntlGeometryObject::calculateMaxVel(double t1, double t2) {
 	applyTransformation(t2,&verts2,NULL, 0,verts2.size(), true);
 
 	vel = (verts2[0]-verts1[0]); // /(t2-t1);
-	errMsg("ntlGeometryObject::calculateMaxVel","t1="<<t1<<" t2="<<t2<<" p1="<<verts1[0]<<" p2="<<verts2[0]<<" v="<<vel);
+	//errMsg("ntlGeometryObject::calculateMaxVel","t1="<<t1<<" t2="<<t2<<" p1="<<verts1[0]<<" p2="<<verts2[0]<<" v="<<vel);
 	return vel;
 }
 
@@ -758,7 +770,6 @@ ntlVec3Gfx ntlGeometryObject::getTranslation(double t) {
 }
 /*! get active flag time t*/
 float ntlGeometryObject::getGeoActive(double t) {
-	//float act = mcGeoActive.getConstant(t);
 	float act = mcGeoActive.get(t); // if <= 0.0 -> off
 	return act;
 }

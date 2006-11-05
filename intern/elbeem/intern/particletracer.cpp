@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Particle Viewer/Tracer
  *
@@ -128,11 +128,13 @@ void ParticleTracer::adaptPartTimestep(float factor) {
 /******************************************************************************
  * add a particle at this position
  *****************************************************************************/
-void ParticleTracer::addParticle(float x, float y, float z)
-{
+void ParticleTracer::addParticle(float x, float y, float z) {
 	ntlVec3Gfx p(x,y,z);
 	ParticleObject part( p );
 	mParts.push_back( part );
+}
+void ParticleTracer::addFullParticle(ParticleObject &np) {
+	mParts.push_back( np );
 }
 
 
@@ -150,6 +152,9 @@ void ParticleTracer::cleanup() {
 	}
 }
 		
+extern bool glob_mpactive;
+extern int glob_mpindex,glob_mpnum;
+
 /******************************************************************************
  *! dump particles if desired 
  *****************************************************************************/
@@ -161,8 +166,13 @@ void ParticleTracer::notifyOfDump(int dumptype, int frameNr,char *frameNrStr,str
 			(mDumpParts>0)) {
 		// dump to binary file
 		std::ostringstream boutfilename("");
-		boutfilename << outfilename <<"_particles_" << frameNrStr<< ".gz";
+		boutfilename << outfilename <<"_particles_" << frameNrStr;
+		if(glob_mpactive) {
+			if(glob_mpindex>0) { boutfilename << "mp"<<glob_mpindex; }
+		}
+		boutfilename << ".gz";
 		debMsgStd("ParticleTracer::notifyOfDump",DM_MSG,"B-Dumping: "<< this->getName() <<", particles:"<<mParts.size()<<" "<< " to "<<boutfilename.str()<<" #"<<frameNr , 7);
+		//debMsgStd("ParticleTracer::notifyOfDump",DM_MSG,"B-Dumping: partgeodeb sim:"<<mSimStart<<","<<mSimEnd<<" geosize:"<<mStart<<","<<mEnd,2 );
 
 		// output to zipped file
 		gzFile gzf;
@@ -211,7 +221,9 @@ void ParticleTracer::notifyOfDump(int dumptype, int frameNr,char *frameNrStr,str
 
 void ParticleTracer::checkDumpTextPositions(double simtime) {
 	// dfor partial & full dump
-	errMsg("ParticleTracer::checkDumpTextPositions","t="<<simtime<<" last:"<<mDumpTextLastTime<<" inter:"<<mDumpTextInterval);
+	if(mDumpTextInterval>0.) {
+		debMsgStd("ParticleTracer::checkDumpTextPositions",DM_MSG,"t="<<simtime<<" last:"<<mDumpTextLastTime<<" inter:"<<mDumpTextInterval,7);
+	}
 
 	if((mDumpTextInterval>0.) && (simtime>mDumpTextLastTime+mDumpTextInterval)) {
 		// dump to binary file

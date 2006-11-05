@@ -2,7 +2,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Basic matrix utility include file
  *
@@ -83,6 +83,9 @@ public:
 	inline void initScaling(Scalar x, Scalar y, Scalar z);
 	//! from 16 value array (init id if all 0)
 	inline void initArrayCheck(Scalar *array);
+
+	//! decompose matrix
+	void decompose(ntlVector3Dim<Scalar> &trans,ntlVector3Dim<Scalar> &scale,ntlVector3Dim<Scalar> &rot,ntlVector3Dim<Scalar> &shear);
 
 	//! public to avoid [][] operators
   Scalar value[4][4];  //< Storage of vector values
@@ -695,6 +698,82 @@ ntlMatrix4x4<Scalar>::initArrayCheck(Scalar *array)
 	if(allZero) this->initId();
 }
 
+//! decompose matrix
+template<class Scalar>
+void 
+ntlMatrix4x4<Scalar>::decompose(ntlVector3Dim<Scalar> &trans,ntlVector3Dim<Scalar> &scale,ntlVector3Dim<Scalar> &rot,ntlVector3Dim<Scalar> &shear) {
+	ntlVec3Gfx row[3],temp;
+
+	for(int i = 0; i < 3; i++) {
+		trans[i] = this->value[3][i];
+	}
+
+	for(int i = 0; i < 3; i++) {
+		row[i][0] = this->value[i][0];
+		row[i][1] = this->value[i][1];
+		row[i][2] = this->value[i][2];
+	}
+
+	scale[0] = norm(row[0]);
+	normalize (row[0]);
+
+	shear[0] = dot(row[0], row[1]);
+	row[1][0] = row[1][0] - shear[0]*row[0][0];
+	row[1][1] = row[1][1] - shear[0]*row[0][1];
+	row[1][2] = row[1][2] - shear[0]*row[0][2];
+
+	scale[1] = norm(row[1]);
+	normalize (row[1]);
+
+	if(scale[1] != 0.0)
+		shear[0] /= scale[1];
+
+	shear[1] = dot(row[0], row[2]);
+	row[2][0] = row[2][0] - shear[1]*row[0][0];
+	row[2][1] = row[2][1] - shear[1]*row[0][1];
+	row[2][2] = row[2][2] - shear[1]*row[0][2];
+
+	shear[2] = dot(row[1], row[2]);
+	row[2][0] = row[2][0] - shear[2]*row[1][0];
+	row[2][1] = row[2][1] - shear[2]*row[1][1];
+	row[2][2] = row[2][2] - shear[2]*row[1][2];
+
+	scale[2] = norm(row[2]);
+	normalize (row[2]);
+
+	if(scale[2] != 0.0) {
+		shear[1] /= scale[2];
+		shear[2] /= scale[2];
+	}
+
+	temp = cross(row[1], row[2]);
+	if(dot(row[0], temp) < 0.0) {
+		for(int i = 0; i < 3; i++) {
+			scale[i]  *= -1.0;
+			row[i][0] *= -1.0;
+			row[i][1] *= -1.0;
+			row[i][2] *= -1.0;
+		}
+	}
+
+	if(row[0][2] < -1.0) row[0][2] = -1.0;
+	if(row[0][2] > +1.0) row[0][2] = +1.0;
+
+	rot[1] = asin(-row[0][2]);
+
+	if(fabs(cos(rot[1])) > VECTOR_EPSILON) {
+		rot[0] = atan2 (row[1][2], row[2][2]);
+		rot[2] = atan2 (row[0][1], row[0][0]);
+	}
+	else {
+		rot[0] = atan2 (row[1][0], row[1][1]);
+		rot[2] = 0.0;
+	}
+
+	rot[0] = (180.0/M_PI)*rot[0];
+	rot[1] = (180.0/M_PI)*rot[1];
+	rot[2] = (180.0/M_PI)*rot[2];
+} 
 
 #define NTL_MATRICES_H
 #endif

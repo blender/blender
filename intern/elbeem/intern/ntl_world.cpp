@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Main renderer class
  *
@@ -421,6 +421,7 @@ int ntlWorld::advanceSims(int framenum)
 	//gstate = getGlobalBakeState();
 	//if(gstate<0) { allPanic = true; done = true; } // this means abort... cause panic
 //#endif // ELBEEM_BLENDER==1
+	myTime_t advsstart = getTime();
 
 	// step all the sims, and check for panic
 	debMsgStd("ntlWorld::advanceSims",DM_MSG, " sims "<<mpSims->size()<<" t"<<targetTime<<" done:"<<done<<" panic:"<<allPanic<<" gstate:"<<gstate, 10); // debug // timedebug
@@ -452,6 +453,9 @@ int ntlWorld::advanceSims(int framenum)
 		setStopRenderVisualization( true );
 		return 1;
 	}
+
+	myTime_t advsend = getTime();
+	debMsgStd("ntlWorld::advanceSims",DM_MSG,"Overall steps so far took:"<< getTimeString(advsend-advsstart)<<" for sim time "<<targetTime, 4);
 
 	// finish step
 	for(size_t i=0;i<mpSims->size();i++) {
@@ -496,6 +500,8 @@ void ntlWorld::singleStepSims(double targetTime) {
 
 
 
+extern bool glob_mpactive;
+extern int glob_mpindex;
 
 /******************************************************************************
  * Render the current scene
@@ -511,11 +517,19 @@ int ntlWorld::renderScene( void )
   myTime_t rendStart,rendEnd;            		// measure user rendering time 
   glob = mpGlob;
 
+	// deactivate for all with index!=0 
+	if((glob_mpactive)&&(glob_mpindex>0)) return(0);
+
 	/* check if picture already exists... */
 	if(!glob->getSingleFrameMode() ) {
 		snprintf(nrStr, 5, "%04d", glob->getAniCount() );
-		//outfilename << glob->getOutFilename() <<"_" << nrStr << ".ppm";
-		outfn_conv  << glob->getOutFilename() <<"_" << nrStr << ".png";
+
+		if(glob_mpactive) {
+			outfn_conv  << glob->getOutFilename() <<"_"<<glob_mpindex<<"_" << nrStr << ".png"; /// DEBUG!
+		} else {
+			// ORG
+			outfn_conv  << glob->getOutFilename() <<"_" << nrStr << ".png";
+		}
 		
 		//if((mpGlob->getDisplayMode() == DM_RAY)&&(mpGlob->getFrameSkip())) {
 		if(mpGlob->getFrameSkip()) {
@@ -823,11 +837,7 @@ int ntlWorld::renderScene( void )
 		}
 
 		for(int i = 0; i < h; i++) rows[i] = &screenbuf[ (h - i - 1)*rowbytes ];
-#ifndef NOPNG
 		writePng(outfn_conv.str().c_str(), rows, w, h);
-#else // NOPNG
-		debMsgStd("ntlWorld::renderScene",DM_NOTIFY, "No PNG linked, no picture...", 1);
-#endif // NOPNG
 	}
 
 
@@ -838,7 +848,7 @@ int ntlWorld::renderScene( void )
 	timeEnd = getTime();
 
 	char resout[1024];
-	snprintf(resout,1024, "NTL Done %s, frame %d/%d (%s scene, %s raytracing, %s total, %d shades, %d i.s.'s)!\n", 
+	snprintf(resout,1024, "NTL Done %s, frame %d/%d (took %s scene, %s raytracing, %s total, %d shades, %d i.s.'s)!\n", 
 				 outfn_conv.str().c_str(), (glob->getAniCount()), (glob->getAniFrames()+1),
 				 getTimeString(totalStart-timeStart).c_str(), getTimeString(rendEnd-rendStart).c_str(), getTimeString(timeEnd-timeStart).c_str(),
 				 glob->getCounterShades(),

@@ -30,6 +30,7 @@
 #define PERFORM_USQRMAXCHECK USQRMAXCHECK(usqr,ux,uy,uz, mMaxVlen, mMxvx,mMxvy,mMxvz);
 #define LIST_EMPTY(x) mListEmpty.push_back( x );
 #define LIST_FULL(x)  mListFull.push_back( x );
+#define FSGR_ADDPART(x)  mpParticles->addFullParticle( x );
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #define  GRID_REGION_START()  \
@@ -90,6 +91,9 @@
 	int i=0; \
 	ADVANCE_POINTERS(2*gridLoopBound); \
 	} /* j */ \
+	/* COMPRESSGRIDS!=1 */ \
+	/* int i=0;  */ \
+	/* ADVANCE_POINTERS(mLevel[lev].lSizex*2);  */ \
 	} /* all cell loop k,j,i */ \
 	if(doReduce) { } /* dummy remove warning */ \
 	} /* main_region */ \

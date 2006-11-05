@@ -1,12 +1,11 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Replaces std. raytracer, and only dumps time dep. objects to disc
  *
  *****************************************************************************/
-
 
 #include <fstream>
 #include <sys/types.h>
@@ -44,6 +43,10 @@ ntlBlenderDumper::~ntlBlenderDumper()
 	debMsgStd("ntlBlenderDumper",DM_NOTIFY, "ntlBlenderDumper done", 10);
 }
 
+// required globals
+extern bool glob_mpactive;
+extern int glob_mpnum, glob_mpindex;
+
 /******************************************************************************
  * Only dump time dep. objects to file
  *****************************************************************************/
@@ -52,7 +55,8 @@ int ntlBlenderDumper::renderScene( void )
 	char nrStr[5];								/* nr conversion */
   ntlRenderGlobals *glob = mpGlob;
   ntlScene *scene = mpGlob->getSimScene();
-	bool debugOut = true;
+	bool debugOut = false;
+	bool debugRender = false;
 #if ELBEEM_PLUGIN==1
 	debugOut = false;
 #endif // ELBEEM_PLUGIN==1
@@ -63,8 +67,6 @@ int ntlBlenderDumper::renderScene( void )
 
 	if(debugOut) debMsgStd("ntlBlenderDumper::renderScene",DM_NOTIFY,"Dumping geometry data", 1);
   long startTime = getTime();
-
-	/* check if picture already exists... */
 	snprintf(nrStr, 5, "%04d", glob->getAniCount() );
 
   // local scene vars
@@ -72,7 +74,7 @@ int ntlBlenderDumper::renderScene( void )
   vector<ntlVec3Gfx>  Vertices;
   vector<ntlVec3Gfx>  VertNormals;
 
-	/* init geometry array, first all standard objects */
+	// check geo objects
 	int idCnt = 0;          // give IDs to objects
 	for (vector<ntlGeometryClass*>::iterator iter = scene->getGeoClasses()->begin();
 			iter != scene->getGeoClasses()->end(); iter++) {
@@ -80,8 +82,7 @@ int ntlBlenderDumper::renderScene( void )
 		int tid = (*iter)->getTypeId();
 
 		if(tid & GEOCLASSTID_OBJECT) {
-			// normal geom. objects dont change... -> ignore
-			//if(buildInfo) debMsgStd("ntlBlenderDumper::BuildScene",DM_MSG,"added GeoObj "<<geoobj->getName(), 8 );
+			// normal geom. objects -> ignore
 		}
 		if(tid & GEOCLASSTID_SHADER) {
 			ntlGeometryShader *geoshad = (ntlGeometryShader*)(*iter); //dynamic_cast<ntlGeometryShader*>(*iter);
@@ -105,6 +106,11 @@ int ntlBlenderDumper::renderScene( void )
 					isPreview = true;
 				}
 				if(!doDump) continue;
+
+				// dont quit, some objects need notifyOfDump call
+				if((glob_mpactive) && (glob_mpindex>0)) {
+					continue; //return 0;
+				}
 				
 				// only dump geo shader objects
 				Triangles.clear();
@@ -112,8 +118,12 @@ int ntlBlenderDumper::renderScene( void )
 				VertNormals.clear();
 				(*siter)->initialize( mpGlob );
 				(*siter)->getTriangles(this->mSimulationTime, &Triangles, &Vertices, &VertNormals, idCnt);
-
 				idCnt ++;
+				
+				// WARNING - this is dirty, but simobjs are the only geoshaders right now
+				SimulationObject *sim = (SimulationObject *)geoshad;
+				LbmSolverInterface *lbm = sim->getSolver();
+
 
 				// always dump mesh, even empty ones...
 
@@ -127,9 +137,6 @@ int ntlBlenderDumper::renderScene( void )
 				gzFile gzf;
 
 				// output velocities if desired
-				// WARNING - this is dirty, but simobjs are the only geoshaders right now
-				SimulationObject *sim = (SimulationObject *)geoshad;
-				LbmSolverInterface *lbm = sim->getSolver();
 				if((!isPreview) && (lbm->getDumpVelocities())) {
 					std::ostringstream bvelfilename;
 					bvelfilename << boutfilename.str();
@@ -155,24 +162,38 @@ int ntlBlenderDumper::renderScene( void )
 
 				// compress all bobj's 
 				boutfilename << ".bobj.gz";
-				//if(isPreview) { } else { }
 				gzf = gzopen(boutfilename.str().c_str(), "wb1"); // wb9 is slow for large meshes!
 				if (!gzf) {
 					errMsg("ntlBlenderDumper::renderScene","Unable to open output '"<<boutfilename<<"' ");
 					return 1; }
-				
-				//! current transform matrix
+
+				// dont transform velocity output, this is handled in blender
+				// current transform matrix
 				ntlMatrix4x4<gfxReal> *trafo;
 				trafo = lbm->getDomainTrafo();
 				if(trafo) {
-					//trafo->initArrayCheck(ettings->surfaceTrafo);
-					//errMsg("ntlBlenderDumper","mpTrafo : "<<(*mpTrafo) );
 					// transform into source space
 					for(size_t i=0; i<Vertices.size(); i++) {
 						Vertices[i] = (*trafo) * Vertices[i];
 					}
 				}
+				// rotate vertnormals
+				ntlMatrix4x4<gfxReal> rottrafo;
+				rottrafo.initId();
+				if(lbm->getDomainTrafo()) {
+					// dont modifiy original!
+					rottrafo = *lbm->getDomainTrafo();
+					ntlVec3Gfx rTrans,rScale,rRot,rShear;
+					rottrafo.decompose(rTrans,rScale,rRot,rShear);
+					rottrafo.initRotationXYZ(rRot[0],rRot[1],rRot[2]);
+					// only rotate here...
+					for(size_t i=0; i<Vertices.size(); i++) {
+						VertNormals[i] = rottrafo * VertNormals[i];
+						normalize(VertNormals[i]); // remove scaling etc.
+					}
+				}
 
+				
 				// write to file
 				int numVerts;
 				if(sizeof(numVerts)!=4) { errMsg("ntlBlenderDumper::renderScene","Invalid int size"); return 1; }
@@ -215,18 +236,20 @@ int ntlBlenderDumper::renderScene( void )
 	if(numGMs>0) {
 		if(debugOut) debMsgStd("ntlBlenderDumper::renderScene",DM_MSG,"Objects dumped: "<<numGMs, 10);
 	} else {
-		errFatal("ntlBlenderDumper::renderScene","No objects to dump! Aborting...",SIMWORLD_INITERROR);
-		return 1;
+		if((glob_mpactive) && (glob_mpindex>0)) {
+			// ok, nothing to do anyway...
+		} else {
+			errFatal("ntlBlenderDumper::renderScene","No objects to dump! Aborting...",SIMWORLD_INITERROR);
+			return 1;
+		}
 	}
 
-	/* next frame */
-	//glob->setAniCount( glob->getAniCount() +1 );
+	// debug timing
 	long stopTime = getTime();
 	debMsgStd("ntlBlenderDumper::renderScene",DM_MSG,"Scene #"<<nrStr<<" dump time: "<< getTimeString(stopTime-startTime) <<" ", 10);
 
 	// still render for preview...
-debugOut = false; // DEBUG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	if(debugOut) {
+	if(debugRender) {
 		debMsgStd("ntlBlenderDumper::renderScene",DM_NOTIFY,"Performing preliminary render", 1);
 		ntlWorld::renderScene(); }
 	else {

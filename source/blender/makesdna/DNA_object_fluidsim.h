@@ -109,6 +109,9 @@ typedef struct FluidsimSettings {
 	float generateParticles;
 	/* smooth fluid surface? */
 	float surfaceSmoothing;
+	/* number of surface subdivisions*/
+	int surfaceSubdivs;
+	int unusedDNADummy;
 
 	/* particle display - size scaling, and alpha influence */
 	float particleInfSize, particleInfAlpha;

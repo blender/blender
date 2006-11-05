@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Global C style utility funcions
  *
@@ -28,6 +28,7 @@
 #include <png.h>
 #endif
 #endif // NOPNG
+#include <zlib.h>
 
 // global debug level
 #ifdef DEBUG 
@@ -64,14 +65,26 @@ char* getElbeemErrorString(void) { return gElbeemErrorString; }
 myTime_t globalIntervalTime = 0;
 //! color output setting for messages (0==off, else on)
 #ifdef WIN32
-int globalColorSetting = 0;
+// switch off first call
+#define DEF_globalColorSetting -1 
 #else // WIN32
-int globalColorSetting = 1;
+// linux etc., on by default
+#define DEF_globalColorSetting 1 
 #endif // WIN32
+int globalColorSetting = DEF_globalColorSetting; // linux etc., on by default
 int globalFirstEnvCheck = 0;
+void resetGlobalColorSetting() { globalColorSetting = DEF_globalColorSetting; }
 
 // global string for formatting vector output, TODO test!?
 char *globVecFormatStr = "V[%f,%f,%f]";
+
+
+// global mp on/off switch
+bool glob_mpactive = false; 
+// global access to mpi index, for debugging (e.g. in utilities.cpp)
+int glob_mpnum = -1;
+int glob_mpindex = -1;
+int glob_mppn = -1;
 
 
 //-----------------------------------------------------------------------------
@@ -126,7 +139,7 @@ int writePng(const char *fileName, unsigned char **rowsp, int w, int h)
 
 	//FILE *fp = fopen(fileName, "wb");
 	FILE *fp = NULL;
-	char *doing = "open for writing";
+	string doing = "open for writing";
 	if (!(fp = fopen(fileName, "wb"))) goto fail;
 
 	if(!png_ptr) {
@@ -160,6 +173,40 @@ fail:
 	errMsg("writePng","Write_png: could not "<<doing<<" !");
 	if(fp) fclose( fp );
 	if(png_ptr || info_ptr) png_destroy_write_struct(&png_ptr, &info_ptr);
+	return -1;
+}
+#else // NOPNG
+// fallback - write ppm
+int writePng(const char *fileName, unsigned char **rowsp, int w, int h)
+{
+	gzFile gzf;
+	string filentemp(fileName);
+	// remove suffix
+	if((filentemp.length()>4) && (filentemp[filentemp.length()-4]=='.')) {
+		filentemp[filentemp.length()-4] = '\0';
+	}
+	std::ostringstream filennew;
+	filennew << filentemp.c_str();
+	filennew << ".ppm.gz";
+
+	gzf = gzopen(filennew.str().c_str(), "wb9");
+	if(!gzf) goto fail;
+
+	gzprintf(gzf,"P6\n%d %d\n255\n",w,h);
+	// output binary pixels
+	for(int j=0;j<h;j++) {
+		for(int i=0;i<h;i++) {
+			// remove alpha values
+			gzwrite(gzf,&rowsp[j][i*4],3);
+		}
+	}
+
+	gzclose( gzf );
+	errMsg("writePng/ppm","Write_png/ppm: wrote to "<<filennew.str()<<".");
+	return 0;
+
+fail:	
+	errMsg("writePng/ppm","Write_png/ppm: could not write to "<<filennew.str()<<" !");
 	return -1;
 }
 #endif // NOPNG
@@ -243,7 +290,21 @@ static string col_purple ( "\033[0;35m");
 static string col_bright_purple ( "\033[1;35m");
 static string col_neutral ( "\033[0m");
 static string col_std = col_bright_gray;
+
+std::ostringstream globOutstr;
+bool               globOutstrForce=false;
+#define DM_NONE      100
+void messageOutputForce(string from) {
+	bool org = globOutstrForce;
+	globOutstrForce = true;
+	messageOutputFunc(from, DM_NONE, "\n", 0);
+	globOutstrForce = org;
+}
+
 void messageOutputFunc(string from, int id, string msg, myTime_t interval) {
+	// fast skip
+	if((id!=DM_FATAL)&&(gDebugLevel<=0)) return;
+
 	if(interval>0) {
 		myTime_t currTime = getTime();
 		if((currTime - globalIntervalTime)>interval) {
@@ -254,14 +315,16 @@ void messageOutputFunc(string from, int id, string msg, myTime_t interval) {
 	}
 
 	// colors off?
-	if((globalColorSetting==0) || (id==DM_FATAL) ){
+	if( (globalColorSetting == -1) || // off for e.g. win32 
+		  ((globalColorSetting==1) && ((id==DM_FATAL)||( getenv("ELBEEM_NOCOLOROUT") )) )
+		) {
 		// only reset once
 		col_std = col_black = col_dark_gray = col_bright_gray =  
 		col_red =  col_bright_red =  col_green =  
 		col_bright_green =  col_bright_yellow =  
 		col_yellow =  col_cyan =  col_bright_cyan =  
 		col_purple =  col_bright_purple =  col_neutral =  "";
-		globalColorSetting=1;
+		globalColorSetting = 0;
 	}
 
 	std::ostringstream sout;
@@ -288,6 +351,9 @@ void messageOutputFunc(string from, int id, string msg, myTime_t interval) {
 			case DM_FATAL:
 				sout << col_red << " fatal("<<gElbeemState<<"):" << col_red;
 				break;
+			case DM_NONE:
+				// only internal debugging msgs
+				break;
 			default:
 				// this shouldnt happen...
 				sout << col_red << " --- messageOutputFunc error: invalid id ("<<id<<") --- aborting... \n\n" << col_std;
@@ -303,19 +369,61 @@ void messageOutputFunc(string from, int id, string msg, myTime_t interval) {
 		sout << "\n"; // add newline for output
 	}
 
-#ifdef WIN32
-	// debug level is >0 anyway, so write to file...
-	// TODO generate some reasonable path?
-	FILE *logf = fopen("elbeem_debug_log.txt","a+");
-	// dont complain anymore here...
-	if(logf) {
-		fprintf(logf, "%s",sout.str().c_str() );
-		fclose(logf);
+	// determine output - file==1/stdout==0 / globstr==2
+	char filen[256];
+	strcpy(filen,"debug_unini.txt");
+	int fileout = false;
+#if ELBEEM_MPI==1
+	std::ostringstream mpin;
+	if(glob_mpindex>=0) {
+		mpin << "elbeem_log_"<< glob_mpindex <<".txt";
+	} else {
+		mpin << "elbeem_log_ini.txt";
 	}
-#else // WIN32
-	fprintf(stdout, "%s",sout.str().c_str() );
-	if(id!=DM_DIRECT) fflush(stdout); 
+	fileout = 1;
+	strncpy(filen, mpin.str().c_str(),255); filen[255]='\0';
+#else
+	strncpy(filen, "elbeem_debug_log.txt",255);
+#endif
+
+#ifdef WIN32
+	// windows causes trouble with direct output
+	fileout = 1;
 #endif // WIN32
+
+#if PARALLEL==1
+	fileout = 2;// buffer out, switch off again...
+	if(globOutstrForce) fileout=1;
+#endif
+	if(getenv("ELBEEM_FORCESTDOUT")) {
+		fileout = 0;// always direct out
+	}
+	//fprintf(stdout,"out deb %d, %d, '%s',l%d \n",globOutstrForce,fileout, filen, globOutstr.str().size() );
+
+#if PARALLEL==1
+#pragma omp critical 
+#endif // PARALLEL==1
+	{
+	if(fileout==1) {
+		// debug level is >0 anyway, so write to file...
+		FILE *logf = fopen(filen,"a+");
+		// dont complain anymore here...
+		if(logf) {
+			if(globOutstrForce) {
+				fprintf(logf, "%s",globOutstr.str().c_str() );
+				globOutstr.str(""); // reset
+			}
+			fprintf(logf, "%s",sout.str().c_str() );
+			fclose(logf);
+		}
+	} else if(fileout==2) {
+			globOutstr << sout.str();
+	} else {
+		// normal stdout output
+		fprintf(stdout, "%s",sout.str().c_str() );
+		if(id!=DM_DIRECT) fflush(stdout); 
+	}
+	} // omp crit
 }
 
 // helper functions from external program using elbeem lib (e.g. Blender)
@@ -323,14 +431,19 @@ void messageOutputFunc(string from, int id, string msg, myTime_t interval) {
 extern "C" 
 void elbeemCheckDebugEnv(void) {
 	const char *strEnvName = "BLENDER_ELBEEMDEBUG";
+	const char *strEnvName2 = "ELBEEM_DEBUGLEVEL";
 	if(globalFirstEnvCheck) return;
 
 	if(getenv(strEnvName)) {
 		gDebugLevel = atoi(getenv(strEnvName));
-		if(gDebugLevel< 0) gDebugLevel =  0;
-		if(gDebugLevel>10) gDebugLevel =  0; // only use valid values
 		if(gDebugLevel>0) debMsgStd("performElbeemSimulation",DM_NOTIFY,"Using envvar '"<<strEnvName<<"'='"<<getenv(strEnvName)<<"', debugLevel set to: "<<gDebugLevel<<"\n", 1);
 	}
+	if(getenv(strEnvName2)) {
+		gDebugLevel = atoi(getenv(strEnvName2));
+		if(gDebugLevel>0) debMsgStd("performElbeemSimulation",DM_NOTIFY,"Using envvar '"<<strEnvName2<<"'='"<<getenv(strEnvName2)<<"', debugLevel set to: "<<gDebugLevel<<"\n", 1);
+	}
+	if(gDebugLevel< 0) gDebugLevel =  0;
+	if(gDebugLevel>10) gDebugLevel =  0; // only use valid values
 	globalFirstEnvCheck = 1;
 }
 
@@ -367,7 +480,8 @@ double elbeemEstimateMemreq(int res,
 
 	double memreq = -1.0;
 	string memreqStr("");	
-	calculateMemreqEstimate(resx,resy,resz, refine, &memreq, &memreqStr );
+	// ignore farfield for now...
+	calculateMemreqEstimate(resx,resy,resz, refine, 0., &memreq, &memreqStr );
 
 	if(retstr) { 
 		// copy at max. 32 characters

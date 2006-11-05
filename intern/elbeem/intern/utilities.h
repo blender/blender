@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Global C style utility funcions
  *
@@ -115,6 +115,8 @@ string getTimeString(myTime_t usecs);
 //! helper to check if a bounding box was specified in the right way
 bool checkBoundingBox(ntlVec3Gfx s, ntlVec3Gfx e, string checker);
 
+//! reset color output for elbeem init
+void resetGlobalColorSetting();
 
 
 /*! print some vector from 3 values e.g. for ux,uy,uz */
@@ -144,10 +146,8 @@ bool checkBoundingBox(ntlVec3Gfx s, ntlVec3Gfx e, string checker);
 	PRINT_VEC( (mpV[(t).getPoints()[2]][0]),(mpV[(t).getPoints()[2]][1]),(mpV[(t).getPoints()[2]][2]) )<<" } "
 
 
-#ifndef NOPNG
 // write png image
 int writePng(const char *fileName, unsigned char **rowsp, int w, int h);
-#endif // NOPNG
 
 /* some useful templated functions 
  * may require some operators for the classes

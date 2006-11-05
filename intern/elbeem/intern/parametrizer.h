@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Parameter calculator for the LBM Solver class
  *
@@ -104,7 +104,7 @@ class Parametrizer {
 		/*! get start time of animation */
 		int calculateAniStart( void );
 		/*! get extent of the domain = (1,1,1) if parametrizer not used, (x,y,z) [m] otherwise */
-		ParamVec calculateExtent( void );
+		//ParamVec calculateExtent( void );
 		/*! get (scaled) surface tension */
 		ParamFloat calculateSurfaceTension( void );
 		/*! get time step size for lbm (equals mTimeFactor) */
@@ -271,7 +271,7 @@ class Parametrizer {
 		ParamFloat mAniStart;
 
 		/*! extent of the domain in meters */
-		ParamVec mExtent;
+		//ParamVec mExtent;
 
 		/*! fluid density [kg/m^3], default 1.0 g/cm^3 */
 		ParamFloat mDensity;

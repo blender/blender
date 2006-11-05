@@ -3,7 +3,7 @@
  * El'Beem - the visual lattice boltzmann freesurface simulator
  * All code distributed as part of El'Beem is covered by the version 2 of the 
  * GNU General Public License. See the file COPYING for details.
- * Copyright 2003-2005 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Combined 2D/3D Lattice Boltzmann relaxation macros
  *
@@ -378,6 +378,15 @@
 	} \
 	} else { \
 	m[l] = QCELL_NBINV(lev, i, j, k, SRCS(lev), l,l); \
+	if(RFLAG(lev, i,j,k, mLevel[lev].setCurr)&CFFluid) { \
+	if(!(nbf&(CFFluid|CFInter)) ) { \
+	int ni=i+this->dfVecX[this->dfInv[l]], nj=j+this->dfVecY[this->dfInv[l]], nk=k+this->dfVecZ[this->dfInv[l]]; \
+	errMsg("STREAMCHECK"," Invalid nbflag, streamed DF l"<<l<<" value:"<<m[l]<<" at "<<PRINT_IJK<<" from "<< \
+	PRINT_VEC(ni,nj,nk) <<" l"<<(l)<< \
+	" nfc"<< RFLAG(lev, ni,nj,nk, mLevel[lev].setCurr)<<" nfo"<< RFLAG(lev, ni,nj,nk, mLevel[lev].setOther)  ); \
+	 \
+	 \
+	} } \
 	STREAMCHECK(4, i+this->dfVecX[this->dfInv[l]], j+this->dfVecY[this->dfInv[l]],k+this->dfVecZ[this->dfInv[l]], l); \
 	} \
 	} \
@@ -1198,5 +1207,7 @@ inline void LbmFsgrSolver::collideArrays(
 	muy = uy;
 	muz = uz;
 	outrho = rho;
+
+	lev=i=j=k; // debug, remove warnings
 };
 

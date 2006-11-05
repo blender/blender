@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Basic interface for all simulation modules
  *
@@ -102,6 +102,7 @@ void SimulationObject::copyElbeemSettings(elbeemSimulationSettings *settings) {
 /******************************************************************************
  * simluation interface: initialize simulation using the given configuration file 
  *****************************************************************************/
+extern int glob_mpnum;
 int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 {
 	if(! isSimworldOk() ) return 1;
@@ -129,6 +130,8 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	}
 	debMsgStd("SimulationObject::initialized",DM_MSG,"IdStr:"<<mpLbm->getIdString() <<" LBM solver! ", 2);
 
+	mpParts = new ParticleTracer();
+
 	// for non-param simulations
 	mpLbm->setParametrizer( mpParam );
 	mpParam->setAttrList( getAttributeList() );
@@ -136,8 +139,8 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	mpParam->parseAttrList();
 
 	mpLbm->setAttrList( getAttributeList() );
+	mpLbm->setSwsAttrList( getSwsAttributeList() );
 	mpLbm->parseAttrList();
-	mpParts = new ParticleTracer();
 	mpParts->parseAttrList( getAttributeList() );
 
 	if(! isSimworldOk() ) return 3;
@@ -163,6 +166,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 		if(mpElbeemSettings->outputPath) this->mOutFilename = string(mpElbeemSettings->outputPath);
 		mpLbm->initDomainTrafo( mpElbeemSettings->surfaceTrafo );
 		mpLbm->setSmoothing(1.0 * mpElbeemSettings->surfaceSmoothing, 1.0 * mpElbeemSettings->surfaceSmoothing);
+		mpLbm->setIsoSubdivs(mpElbeemSettings->surfaceSubdivs);
 		mpLbm->setSizeX(mpElbeemSettings->resolutionxyz);
 		mpLbm->setSizeY(mpElbeemSettings->resolutionxyz);
 		mpLbm->setSizeZ(mpElbeemSettings->resolutionxyz);
@@ -173,14 +177,14 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 		mpParts->setNumInitialParticles(mpElbeemSettings->numTracerParticles);
 
 		string dinitType = string("no");
-		if     (mpElbeemSettings->obstacleType==FLUIDSIM_OBSTACLE_PARTSLIP) dinitType = string("part"); 
-		else if(mpElbeemSettings->obstacleType==FLUIDSIM_OBSTACLE_FREESLIP) dinitType = string("free"); 
-		else /*if(mpElbeemSettings->obstacleType==FLUIDSIM_OBSTACLE_NOSLIP)*/ dinitType = string("no"); 
+		if     (mpElbeemSettings->domainobsType==FLUIDSIM_OBSTACLE_PARTSLIP) dinitType = string("part"); 
+		else if(mpElbeemSettings->domainobsType==FLUIDSIM_OBSTACLE_FREESLIP) dinitType = string("free"); 
+		else /*if(mpElbeemSettings->domainobsType==FLUIDSIM_OBSTACLE_NOSLIP)*/ dinitType = string("no"); 
 		mpLbm->setDomainBound(dinitType);
-		mpLbm->setDomainPartSlip(mpElbeemSettings->obstaclePartslip);
+		mpLbm->setDomainPartSlip(mpElbeemSettings->domainobsPartslip);
 		mpLbm->setDumpVelocities(mpElbeemSettings->generateVertexVectors);
 		mpLbm->setFarFieldSize(mpElbeemSettings->farFieldSize);
-		debMsgStd("SimulationObject::initialize",DM_MSG,"Added domain bound: "<<dinitType<<" ps="<<mpElbeemSettings->obstaclePartslip<<" vv"<<mpElbeemSettings->generateVertexVectors<<","<<mpLbm->getDumpVelocities(), 9 );
+		debMsgStd("SimulationObject::initialize",DM_MSG,"Added domain bound: "<<dinitType<<" ps="<<mpElbeemSettings->domainobsPartslip<<" vv"<<mpElbeemSettings->generateVertexVectors<<","<<mpLbm->getDumpVelocities(), 9 );
 
 		debMsgStd("SimulationObject::initialize",DM_MSG,"Set ElbeemSettings values "<<mpLbm->getGenerateParticles(),10);
 	}
@@ -193,63 +197,68 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	if(checkCallerStatus(FLUIDSIM_CBSTATUS_STEP, 0)) { errMsg("SimulationObject::initialize","initializeSolverPostin status"); mPanic=true; return 15; } 
 
 	// print cell type stats
-	const int jmax = sizeof(CellFlagType)*8;
-	int totalCells = 0;
-	int flagCount[jmax];
-	for(int j=0; j<jmax ; j++) flagCount[j] = 0;
-	int diffInits = 0;
-	LbmSolverInterface::CellIdentifier cid = mpLbm->getFirstCell();
-	for(; mpLbm->noEndCell( cid );
-	      mpLbm->advanceCell( cid ) ) {
-		int flag = mpLbm->getCellFlag(cid,0);
-		int flag2 = mpLbm->getCellFlag(cid,1);
-		if(flag != flag2) {
-			diffInits++;
+	bool printStats = true;
+	if(glob_mpnum>0) printStats=false; // skip in this case
+	if(printStats) {
+		const int jmax = sizeof(CellFlagType)*8;
+		int totalCells = 0;
+		int flagCount[jmax];
+		for(int j=0; j<jmax ; j++) flagCount[j] = 0;
+		int diffInits = 0;
+		LbmSolverInterface::CellIdentifier cid = mpLbm->getFirstCell();
+		for(; mpLbm->noEndCell( cid );
+					mpLbm->advanceCell( cid ) ) {
+			int flag = mpLbm->getCellFlag(cid,0);
+			int flag2 = mpLbm->getCellFlag(cid,1);
+			if(flag != flag2) {
+				diffInits++;
+			}
+			for(int j=0; j<jmax ; j++) {
+				if( flag&(1<<j) ) flagCount[j]++;
+			}
+			totalCells++;
 		}
-		for(int j=0; j<jmax ; j++) {
-			if( flag&(1<<j) ) flagCount[j]++;
-		}
-		totalCells++;
-	}
-	mpLbm->deleteCellIterator( &cid );
+		mpLbm->deleteCellIterator( &cid );
 
-	char charNl = '\n';
-	debugOutNnl("SimulationObject::initializeLbmSimulation celltype stats: " <<charNl, 5);
-	debugOutNnl("no. of cells = "<<totalCells<<", "<<charNl ,5);
-	for(int j=0; j<jmax ; j++) {
-		std::ostringstream out;
-		if(flagCount[j]>0) {
-			out<<"\t" << flagCount[j] <<" x "<< convertCellFlagType2String( (CellFlagType)(1<<j) ) <<", " << charNl;
+		char charNl = '\n';
+		debugOutNnl("SimulationObject::initializeLbmSimulation celltype stats: " <<charNl, 5);
+		debugOutNnl("no. of cells = "<<totalCells<<", "<<charNl ,5);
+		for(int j=0; j<jmax ; j++) {
+			std::ostringstream out;
+			if(flagCount[j]>0) {
+				out<<"\t" << flagCount[j] <<" x "<< convertCellFlagType2String( (CellFlagType)(1<<j) ) <<", " << charNl;
+				debugOutNnl(out.str(), 5);
+			}
+		}
+		// compute dist. of empty/bnd - fluid - if
+		// cfEmpty   = (1<<0), cfBnd  = (1<< 2), cfFluid   = (1<<10), cfInter   = (1<<11),
+		if(1){
+			std::ostringstream out;
+			out.precision(2); out.width(4);
+			int totNum = flagCount[1]+flagCount[2]+flagCount[7]+flagCount[8];
+			double ebFrac = (double)(flagCount[1]+flagCount[2]) / totNum;
+			double flFrac = (double)(flagCount[7]) / totNum;
+			double ifFrac = (double)(flagCount[8]) / totNum;
+			//???
+			out<<"\tFractions: [empty/bnd - fluid - interface - ext. if]  =  [" << ebFrac<<" - " << flFrac<<" - " << ifFrac<<"] "<< charNl;
+
+			if(diffInits > 0) {
+				debMsgStd("SimulationObject::initializeLbmSimulation",DM_MSG,"celltype Warning: Diffinits="<<diffInits<<"!" , 5);
+			}
 			debugOutNnl(out.str(), 5);
 		}
-	}
-	// compute dist. of empty/bnd - fluid - if
-	// cfEmpty   = (1<<0), cfBnd  = (1<< 2), cfFluid   = (1<<10), cfInter   = (1<<11),
-	if(1){
-		std::ostringstream out;
-		out.precision(2); out.width(4);
-		int totNum = flagCount[1]+flagCount[2]+flagCount[7]+flagCount[8];
-		double ebFrac = (double)(flagCount[1]+flagCount[2]) / totNum;
-		double flFrac = (double)(flagCount[7]) / totNum;
-		double ifFrac = (double)(flagCount[8]) / totNum;
-		//???
-		out<<"\tFractions: [empty/bnd - fluid - interface - ext. if]  =  [" << ebFrac<<" - " << flFrac<<" - " << ifFrac<<"] "<< charNl;
-
-		if(diffInits > 0) {
-			debMsgStd("SimulationObject::initializeLbmSimulation",DM_MSG,"celltype Warning: Diffinits="<<diffInits<<"!" , 5);
-		}
-		debugOutNnl(out.str(), 5);
-	}
+	} // cellstats
 
 	// might be modified by mpLbm
-	mpParts->setStart( mGeoStart );
-	mpParts->setEnd( mGeoEnd );
+	//mpParts->setStart( mGeoStart );?  mpParts->setEnd( mGeoEnd );?
+	mpParts->setStart( mpLbm->getGeoStart() );
+	mpParts->setEnd(   mpLbm->getGeoEnd()   );
 	mpParts->setCastShadows( false );
 	mpParts->setReceiveShadows( false );
 	mpParts->searchMaterial( glob->getMaterials() );
 
 	// this has to be inited here - before, the values might be unknown
-	ntlGeometryObject *surf = mpLbm->getSurfaceGeoObj();
+	IsoSurface *surf = mpLbm->getSurfaceGeoObj();
 	if(surf) {
 		surf->setName( "final" ); // final surface mesh 
 		// warning - this might cause overwriting effects for multiple sims and geom dump...

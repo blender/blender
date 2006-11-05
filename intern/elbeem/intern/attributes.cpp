@@ -1,23 +1,16 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
- * configuration attribute storage class and attribute class
+ * DEPRECATED - replaced by elbeem API, only channels are still used
  *
  *****************************************************************************/
 
 #include "attributes.h"
 #include "ntl_matrices.h"
 #include "elbeem.h"
-#include <sstream>
 
-
-//! output attribute values? on=1/off=0
-#define DEBUG_ATTRIBUTES 0
-
-//! output channel values? on=1/off=0
-#define DEBUG_CHANNELS 0
 
 
 /******************************************************************************
@@ -25,266 +18,27 @@
  *****************************************************************************/
 
 bool Attribute::initChannel(int elemSize) {
-	if(!mIsChannel) return true;
-	if(mChannelInited==elemSize) {
-		// already inited... ok
-		return true;
-	} else {
-		// sanity check
-		if(mChannelInited>0) {
-			errMsg("Attribute::initChannel","Duplicate channel init!? ("<<mChannelInited<<" vs "<<elemSize<<")...");
-			return false;
-		}
-	}
-	
-	if((mValue.size() % (elemSize+1)) !=  0) {
-		errMsg("Attribute::initChannel","Invalid # elements in Attribute...");
-		return false;
-	}
-	
-	int numElems = mValue.size()/(elemSize+1);
-	vector<string> newvalue;
-	for(int i=0; i<numElems; i++) {
-	//errMsg("ATTR"," i"<<i<<" "<<mName); // debug
-
-		vector<string> elem(elemSize);
-		for(int j=0; j<elemSize; j++) {
-		//errMsg("ATTR"," j"<<j<<" "<<mValue[i*(elemSize+1)+j]  ); // debug
-			elem[j] = mValue[i*(elemSize+1)+j];
-		}
-		mChannel.push_back(elem);
-		// use first value as default
-		if(i==0) newvalue = elem;
-		
-		double t = 0.0; // similar to getAsFloat
-		const char *str = mValue[i*(elemSize+1)+elemSize].c_str();
-		char *endptr;
-		t = strtod(str, &endptr);
-		if((str!=endptr) && (*endptr != '\0')) return false;
-		mTimes.push_back(t);
-		//errMsg("ATTR"," t"<<t<<" "); // debug
-	}
-	for(int i=0; i<numElems-1; i++) {
-		if(mTimes[i]>mTimes[i+1]) {
-			errMsg("Attribute::initChannel","Invalid time at entry "<<i<<" setting to "<<mTimes[i]);
-			mTimes[i+1] = mTimes[i];
-		}
-	}
-
-	// dont change until done with parsing, and everythings ok
-	mValue = newvalue;
-
-	mChannelInited = elemSize;
-	if(DEBUG_CHANNELS) print();
-	return true;
+	return false;
 }
-
-// get value as string 
-string Attribute::getAsString(bool debug)
-{
-	if(mIsChannel && (!debug)) {
-		errMsg("Attribute::getAsString", "Attribute \"" << mName << "\" used as string is a channel! Not allowed...");
-		print();
-		return string("");
-	}
-	if(mValue.size()!=1) {
-		// for directories etc. , this might be valid! cutoff "..." first
-		string comp = getCompleteString();
-		if(comp.size()<2) return string("");
-		return comp.substr(1, comp.size()-2);
-	}
-	return mValue[0];
+string Attribute::getAsString(bool debug) {
+	return string("");
 }
-
-// get value as integer value
-int Attribute::getAsInt()
-{
-	bool success = true;
-	int ret = 0;
-
-	if(!initChannel(1)) success=false; 
-	if(success) {
-		if(mValue.size()!=1) success = false;
-		else {
-			const char *str = mValue[0].c_str();
-			char *endptr;
-			ret = strtol(str, &endptr, 10);
-			if( (str==endptr) ||
-					((str!=endptr) && (*endptr != '\0')) )success = false;
-		}
-	}
-
-	if(!success) {
-		errMsg("Attribute::getAsInt", "Attribute \"" << mName << "\" used as int has invalid value '"<< getCompleteString() <<"' ");
-		errMsg("Attribute::getAsInt", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
-		errMsg("Attribute::getAsInt", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
-#if ELBEEM_PLUGIN!=1
-		setElbeemState( -4 ); // parse error
-#endif
-		return 0;
-	}
-	return ret;
+int Attribute::getAsInt() {
+	return 0;
 }
-
-
-// get value as integer value
-bool Attribute::getAsBool() 
-{
-	int val = getAsInt();
-	if(val==0) return false;
-	else 			 return true;
+bool Attribute::getAsBool() {
+	return false;
 }
-
-
-// get value as double value
-double Attribute::getAsFloat()
-{
-	bool success = true;
-	double ret = 0.0;
-
-	if(!initChannel(1)) success=false; 
-	if(success) {
-		if(mValue.size()!=1) success = false;
-		else {
-			const char *str = mValue[0].c_str();
-			char *endptr;
-			ret = strtod(str, &endptr);
-			if((str!=endptr) && (*endptr != '\0')) success = false;
-		}
-	}
-
-	if(!success) {
-		print();
-		errMsg("Attribute::getAsFloat", "Attribute \"" << mName << "\" used as double has invalid value '"<< getCompleteString() <<"' ");
-		errMsg("Attribute::getAsFloat", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
-		errMsg("Attribute::getAsFloat", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
-#if ELBEEM_PLUGIN!=1
-		setElbeemState( -4 ); // parse error
-#endif
-		return 0.0;
-	}
-	return ret;
+double Attribute::getAsFloat() {
+	return 0.;
 }
-
-// get value as 3d vector 
-ntlVec3d Attribute::getAsVec3d()
-{
-	bool success = true;
-	ntlVec3d ret(0.0);
-
-	if(!initChannel(3)) success=false; 
-	if(success) {
-		if(mValue.size()==1) {
-			const char *str = mValue[0].c_str();
-			char *endptr;
-			double rval = strtod(str, &endptr);
-			if( (str==endptr) ||
-					((str!=endptr) && (*endptr != '\0')) )success = false;
-			if(success) ret = ntlVec3d( rval );
-		} else if(mValue.size()==3) {
-			char *endptr;
-			const char *str = NULL;
-
-			str = mValue[0].c_str();
-			double rval1 = strtod(str, &endptr);
-			if( (str==endptr) ||
-					((str!=endptr) && (*endptr != '\0')) )success = false;
-
-			str = mValue[1].c_str();
-			double rval2 = strtod(str, &endptr);
-			if( (str==endptr) ||
-					((str!=endptr) && (*endptr != '\0')) )success = false;
-
-			str = mValue[2].c_str();
-			double rval3 = strtod(str, &endptr);
-			if( (str==endptr) ||
-					((str!=endptr) && (*endptr != '\0')) )success = false;
-
-			if(success) ret = ntlVec3d( rval1, rval2, rval3 );
-		} else {
-			success = false;
-		}
-	}
-
-	if(!success) {
-		errMsg("Attribute::getAsVec3d", "Attribute \"" << mName << "\" used as Vec3d has invalid value '"<< getCompleteString() <<"' ");
-		errMsg("Attribute::getAsVec3d", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
-		errMsg("Attribute::getAsVec3d", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
-#if ELBEEM_PLUGIN!=1
-		setElbeemState( -4 ); // parse error
-#endif
-		return ntlVec3d(0.0);
-	}
-	return ret;
+ntlVec3d Attribute::getAsVec3d() {
+	return ntlVec3d(0.);
 }
-		
-// get value as 4x4 matrix 
-void Attribute::getAsMat4Gfx(ntlMat4Gfx *mat)
-{
-	bool success = true;
-	ntlMat4Gfx ret(0.0);
-	char *endptr;
-
-	if(mValue.size()==1) {
-		const char *str = mValue[0].c_str();
-		double rval = strtod(str, &endptr);
-		if( (str==endptr) ||
-				((str!=endptr) && (*endptr != '\0')) )success = false;
-		if(success) {
-			ret = ntlMat4Gfx( 0.0 );
-			ret.value[0][0] = rval;
-			ret.value[1][1] = rval;
-			ret.value[2][2] = rval;
-			ret.value[3][3] = 1.0;
-		}
-	} else if(mValue.size()==9) {
-		// 3x3
-		for(int i=0; i<3;i++) {
-			for(int j=0; j<3;j++) {
-				const char *str = mValue[i*3+j].c_str();
-				ret.value[i][j] = strtod(str, &endptr);
-				if( (str==endptr) ||
-						((str!=endptr) && (*endptr != '\0')) ) success = false;
-			}
-		}
-	} else if(mValue.size()==16) {
-		// 4x4
-		for(int i=0; i<4;i++) {
-			for(int j=0; j<4;j++) {
-				const char *str = mValue[i*4+j].c_str();
-				ret.value[i][j] = strtod(str, &endptr);
-				if( (str==endptr) ||
-						((str!=endptr) && (*endptr != '\0')) ) success = false;
-			}
-		}
-
-	} else {
-		success = false;
-	}
-
-	if(!success) {
-		errMsg("Attribute::getAsMat4Gfx", "Attribute \"" << mName << "\" used as Mat4x4 has invalid value '"<< getCompleteString() <<"' ");
-		errMsg("Attribute::getAsMat4Gfx", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
-		errMsg("Attribute::getAsMat4Gfx", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
-#if ELBEEM_PLUGIN!=1
-		setElbeemState( -4 ); // parse error
-#endif
-		*mat = ntlMat4Gfx(0.0);
-		return;
-	}
-	*mat = ret;
+void Attribute::getAsMat4Gfx(ntlMat4Gfx *mat) {
 }
-		
-
-// get the concatenated string of all value string
-string Attribute::getCompleteString()
-{
-	string ret;
-	for(size_t i=0;i<mValue.size();i++) {
-		ret += mValue[i];
-		if(i<mValue.size()-1) ret += " ";
-	}
-	return ret;
+string Attribute::getCompleteString() {
+	return string("");
 }
 
 
@@ -292,266 +46,80 @@ string Attribute::getCompleteString()
  * channel returns
  *****************************************************************************/
 
-//! get channel as double value
 AnimChannel<double> Attribute::getChannelFloat() {
-	vector<double> timeVec;
-	vector<double> valVec;
-	
-	if((!initChannel(1)) || (!mIsChannel)) {
-		timeVec.push_back( 0.0 );
-		valVec.push_back( getAsFloat() );
-	} else {
-	for(size_t i=0; i<mChannel.size(); i++) {
-		mValue = mChannel[i];
-		double val = getAsFloat();
-		timeVec.push_back( mTimes[i] );
-		valVec.push_back( val );
-	}}
-
-	return AnimChannel<double>(valVec,timeVec);
+	return AnimChannel<double>();
 }
-
-//! get channel as integer value
 AnimChannel<int> Attribute::getChannelInt() { 
-	vector<double> timeVec;
-	vector<int> valVec;
-	
-	if((!initChannel(1)) || (!mIsChannel)) {
-		timeVec.push_back( 0.0 );
-		valVec.push_back( getAsInt() );
-	} else {
-	for(size_t i=0; i<mChannel.size(); i++) {
-		mValue = mChannel[i];
-		int val = getAsInt();
-		timeVec.push_back( mTimes[i] );
-		valVec.push_back( val );
-	}}
-
-	return AnimChannel<int>(valVec,timeVec);
+	return AnimChannel<int>();
 }
-
-//! get channel as integer value
 AnimChannel<ntlVec3d> Attribute::getChannelVec3d() { 
-	vector<double> timeVec;
-	vector<ntlVec3d> valVec;
-	
-	if((!initChannel(3)) || (!mIsChannel)) {
-		timeVec.push_back( 0.0 );
-		valVec.push_back( getAsVec3d() );
-	} else {
-	for(size_t i=0; i<mChannel.size(); i++) {
-		mValue = mChannel[i];
-		ntlVec3d val = getAsVec3d();
-		timeVec.push_back( mTimes[i] );
-		valVec.push_back( val );
-	}}
-
-	return AnimChannel<ntlVec3d>(valVec,timeVec);
+	return AnimChannel<ntlVec3d>();
 }
-
-//! get channel as float vector set
 AnimChannel<ntlSetVec3f> 
 Attribute::getChannelSetVec3f() {
-	vector<double> timeVec;
-	ntlSetVec3f setv;
-	vector< ntlSetVec3f > valVec;
-	
-	if((!initChannel(3)) || (!mIsChannel)) {
-		timeVec.push_back( 0.0 );
-		setv.mVerts.push_back( vec2F( getAsVec3d() ) );
-		valVec.push_back( setv );
-	} else {
-		for(size_t i=0; i<mChannel.size(); i++) {
-			mValue = mChannel[i];
-			ntlVec3f val = vec2F( getAsVec3d() );
-			timeVec.push_back( mTimes[i] );
-			setv.mVerts.push_back( val );
-		}
-		valVec.push_back( setv );
-		valVec.push_back( setv );
-	}
-
-	return AnimChannel<ntlSetVec3f>(valVec,timeVec);
+	return AnimChannel<ntlSetVec3f>();
 }
 
 /******************************************************************************
  * check if there were unknown params
  *****************************************************************************/
-bool AttributeList::checkUnusedParams()
-{
-	bool found = false;
-	for(map<string, Attribute*>::iterator i=mAttrs.begin();
-			i != mAttrs.end(); i++) {
-		if((*i).second) {
-			if(!(*i).second->getUsed()) {
-				errMsg("AttributeList::checkUnusedParams", "List "<<mName<<" has unknown parameter '"<<(*i).first<<"' = '"<< mAttrs[(*i).first]->getAsString(true) <<"' ");
-				found = true;
-			}
-		}
-	}
-	return found;
+bool AttributeList::checkUnusedParams() {
+	return false;
 }
-//! set all params to used, for invisible objects
 void AttributeList::setAllUsed() {
-	for(map<string, Attribute*>::iterator i=mAttrs.begin();
-			i != mAttrs.end(); i++) {
-		if((*i).second) {
-			(*i).second->setUsed(true);
-		}
-	}
 }
 
 /******************************************************************************
  * Attribute list read functions
  *****************************************************************************/
 int AttributeList::readInt(string name, int defaultValue, string source,string target, bool needed) {
-	if(!exists(name)) {
-		if(needed) { errFatal("AttributeList::readInt","Required attribute '"<<name<<"' for "<< source <<"  not set! ", SIMWORLD_INITERROR); }
-		return defaultValue;
-	} 
-	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Var '"<< target <<"' set to '"<< find(name)->getCompleteString() <<"' as type int " , 3); }
-	find(name)->setUsed(true);
-	return find(name)->getAsInt(); 
+	return defaultValue;
 }
 bool AttributeList::readBool(string name, bool defaultValue, string source,string target, bool needed) {
-	if(!exists(name)) {
-		if(needed) { errFatal("AttributeList::readBool","Required attribute '"<<name<<"' for "<< source <<"  not set! ", SIMWORLD_INITERROR); }
-		return defaultValue;
-	} 
-	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Var '"<< target <<"' set to '"<< find(name)->getCompleteString() <<"' as type int " , 3); }
-	find(name)->setUsed(true);
-	return find(name)->getAsBool(); 
+	return defaultValue;
 }
 double AttributeList::readFloat(string name, double defaultValue, string source,string target, bool needed) {
-	if(!exists(name)) {
-		if(needed) { errFatal("AttributeList::readFloat","Required attribute '"<<name<<"' for "<< source <<"  not set! ", SIMWORLD_INITERROR); }
-		return defaultValue;
-	} 
-	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Var '"<< target <<"' set to '"<< find(name)->getCompleteString() <<"' as type int " , 3); }
-	find(name)->setUsed(true);
-	return find(name)->getAsFloat(); 
+	return defaultValue;
 }
 string AttributeList::readString(string name, string defaultValue, string source,string target, bool needed) {
-	if(!exists(name)) {
-		if(needed) { errFatal("AttributeList::readInt","Required attribute '"<<name<<"' for "<< source <<"  not set! ", SIMWORLD_INITERROR); }
-		return defaultValue;
-	} 
-	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Var '"<< target <<"' set to '"<< find(name)->getCompleteString() <<"' as type int " , 3); }
-	find(name)->setUsed(true);
-	return find(name)->getAsString(false); 
+	return defaultValue;
 }
 ntlVec3d AttributeList::readVec3d(string name, ntlVec3d defaultValue, string source,string target, bool needed) {
-	if(!exists(name)) {
-		if(needed) { errFatal("AttributeList::readInt","Required attribute '"<<name<<"' for "<< source <<"  not set! ", SIMWORLD_INITERROR); }
-		return defaultValue;
-	} 
-	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Var '"<< target <<"' set to '"<< find(name)->getCompleteString() <<"' as type int " , 3); }
-	find(name)->setUsed(true);
-	return find(name)->getAsVec3d(); 
+	return defaultValue;
 }
 
 void AttributeList::readMat4Gfx(string name, ntlMat4Gfx defaultValue, string source,string target, bool needed, ntlMat4Gfx *mat) {
-	if(!exists(name)) {
-		if(needed) { errFatal("AttributeList::readInt","Required attribute '"<<name<<"' for "<< source <<"  not set! ", SIMWORLD_INITERROR); }
-	 	*mat = defaultValue;
-		return;
-	} 
-	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Var '"<< target <<"' set to '"<< find(name)->getCompleteString() <<"' as type int " , 3); }
-	find(name)->setUsed(true);
-	find(name)->getAsMat4Gfx( mat ); 
-	return;
 }
 
 // set that a parameter can be given, and will be ignored...
 bool AttributeList::ignoreParameter(string name, string source) {
-	if(!exists(name)) return false;
-	find(name)->setUsed(true);
-	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Param '"<< name <<"' set but ignored... " , 3); }
-	return true;
+	return false;
 }
 		
 // read channels
 AnimChannel<int> AttributeList::readChannelInt(string name, int defaultValue, string source, string target, bool needed) {
-	if(!exists(name)) { 
-		if(needed) { errFatal("AttributeList::readChannelInt","Required channel '"<<name<<"' for "<<target<<" from "<< source <<"  not set! ", SIMWORLD_INITERROR); }
-		return AnimChannel<int>(defaultValue); } 
-	AnimChannel<int> ret = find(name)->getChannelInt(); 
-	find(name)->setUsed(true);
-	channelSimplifyi(ret);
-	return ret;
+	return AnimChannel<int>(defaultValue);
 }
 AnimChannel<double> AttributeList::readChannelFloat(string name, double defaultValue, string source, string target, bool needed ) {
-	if(!exists(name)) {
-		if(needed) { errFatal("AttributeList::readChannelFloat","Required channel '"<<name<<"' for "<<target<<" from "<< source <<"  not set! ", SIMWORLD_INITERROR); }
-	 	return AnimChannel<double>(defaultValue); } 
-	AnimChannel<double> ret = find(name)->getChannelFloat(); 
-	find(name)->setUsed(true);
-	channelSimplifyd(ret);
-	return ret;
+	return AnimChannel<double>(defaultValue);
 }
 AnimChannel<ntlVec3d> AttributeList::readChannelVec3d(string name, ntlVec3d defaultValue, string source, string target, bool needed ) {
-	if(!exists(name)) { 
-		if(needed) { errFatal("AttributeList::readChannelVec3d","Required channel '"<<name<<"' for "<<target<<" from "<< source <<"  not set! ", SIMWORLD_INITERROR); }
-		return AnimChannel<ntlVec3d>(defaultValue); } 
-	AnimChannel<ntlVec3d> ret = find(name)->getChannelVec3d(); 
-	find(name)->setUsed(true);
-	channelSimplifyVd(ret);
-	return ret;
+	return AnimChannel<ntlVec3d>(defaultValue);
 }
 AnimChannel<ntlSetVec3f> AttributeList::readChannelSetVec3f(string name, ntlSetVec3f defaultValue, string source, string target, bool needed) {
-	if(!exists(name)) { 
-		if(needed) { errFatal("AttributeList::readChannelSetVec3f","Required channel '"<<name<<"' for "<<target<<" from "<< source <<"  not set! ", SIMWORLD_INITERROR); }
-		return AnimChannel<ntlSetVec3f>(defaultValue); } 
-	AnimChannel<ntlSetVec3f> ret = find(name)->getChannelSetVec3f(); 
-	find(name)->setUsed(true);
-	//channelSimplifyVf(ret);
-	return ret;
+	return AnimChannel<ntlSetVec3f>(defaultValue);
 }
 AnimChannel<float> AttributeList::readChannelSinglePrecFloat(string name, float defaultValue, string source, string target, bool needed ) {
-	if(!exists(name)) { 
-		if(needed) { errFatal("AttributeList::readChannelSinglePrecFloat","Required channel '"<<name<<"' for "<<target<<" from "<< source <<"  not set! ", SIMWORLD_INITERROR); }
-		return AnimChannel<float>(defaultValue); } 
-	AnimChannel<double> convert = find(name)->getChannelFloat(); 
-	find(name)->setUsed(true);
-	channelSimplifyd(convert);
-	// convert to float vals
-	vector<float> vals;
-	for(size_t i=0; i<convert.accessValues().size(); i++) {
-		vals.push_back( (float)(convert.accessValues()[i]) );
-	}
-	vector<double> times = convert.accessTimes();
-	AnimChannel<float> ret(vals, times);
-	return ret;
+	return AnimChannel<float>(defaultValue);
 }
 AnimChannel<ntlVec3f> AttributeList::readChannelVec3f(string name, ntlVec3f defaultValue, string source, string target, bool needed) {
-	if(!exists(name)) { 
-		if(needed) { errFatal("AttributeList::readChannelVec3f","Required channel '"<<name<<"' for "<<target<<" from "<< source <<"  not set! ", SIMWORLD_INITERROR); }
-		return AnimChannel<ntlVec3f>(defaultValue); } 
-
-	AnimChannel<ntlVec3d> convert = find(name)->getChannelVec3d(); 
-	// convert to float
-	vector<ntlVec3f> vals;
-	for(size_t i=0; i<convert.accessValues().size(); i++) {
-		vals.push_back( vec2F(convert.accessValues()[i]) );
-	}
-	vector<double> times = convert.accessTimes();
-	AnimChannel<ntlVec3f> ret(vals, times);
-	find(name)->setUsed(true);
-	channelSimplifyVf(ret);
-	return ret;
+	return AnimChannel<ntlVec3f>(defaultValue);
 }
 
 /******************************************************************************
  * destructor
  *****************************************************************************/
 AttributeList::~AttributeList() { 
-	for(map<string, Attribute*>::iterator i=mAttrs.begin();
-			i != mAttrs.end(); i++) {
-		if((*i).second) {
-			delete (*i).second;
-			(*i).second = NULL;
-		}
-	}
 };
 
 
@@ -560,56 +128,18 @@ AttributeList::~AttributeList() {
  *****************************************************************************/
 
 //! debug function, prints value 
-void Attribute::print()
-{
-	std::ostringstream ostr;
-	ostr << "ATTR "<< mName <<"= ";
-	for(size_t i=0;i<mValue.size();i++) {
-		ostr <<"'"<< mValue[i]<<"' ";
-	}
-	if(mIsChannel) {
-		ostr << " CHANNEL: ";
-		if(mChannelInited>0) {
-		for(size_t i=0;i<mChannel.size();i++) {
-			for(size_t j=0;j<mChannel[i].size();j++) {
-				ostr <<"'"<< mChannel[i][j]<<"' ";
-			}
-			ostr << "@"<<mTimes[i]<<"; ";
-		}
-		} else {
-			ostr <<" -nyi- ";
-		}			
-	}
-	ostr <<" (at line "<<mLine<<") "; //<< std::endl;
-	debugOut( ostr.str(), 10);
+void Attribute::print() {
 }
 		
 //! debug function, prints all attribs 
-void AttributeList::print()
-{
-	debugOut("Attribute "<<mName<<" values:", 10);
-	for(map<string, Attribute*>::iterator i=mAttrs.begin();
-			i != mAttrs.end(); i++) {
-		if((*i).second) {
-			(*i).second->print();
-		}
-	}
+void AttributeList::print() {
 }
 
 
 /******************************************************************************
  * import attributes from other attribute list
  *****************************************************************************/
-void AttributeList::import(AttributeList *oal)
-{
-	for(map<string, Attribute*>::iterator i=oal->mAttrs.begin();
-			i !=oal->mAttrs.end(); i++) {
-		// FIXME - check freeing of copyied attributes
-		if((*i).second) {
-			Attribute *newAttr = new Attribute( *(*i).second );
-			mAttrs[ (*i).first ] = newAttr;
-		}
-	}
+void AttributeList::import(AttributeList *oal) {
 }
 
 
@@ -672,7 +202,6 @@ static bool channelSimplifyScalarT(AnimChannel<SCALAR> &channel) {
 	int   size = channel.getSize();
 	if(size<=1) return false;
 	float *nchannel = new float[2*size];
-	if(DEBUG_CHANNELS) errMsg("channelSimplifyf","S" << channel.printChannel() );
 	// convert to array
 	for(size_t i=0; i<channel.accessValues().size(); i++) {
 		nchannel[i*2 + 0] = (float)channel.accessValues()[i];
@@ -687,7 +216,6 @@ static bool channelSimplifyScalarT(AnimChannel<SCALAR> &channel) {
 			times.push_back( (double)(nchannel[i*2 + 1]) );
 		}
 		channel = AnimChannel<SCALAR>(vals, times);
-		if(DEBUG_CHANNELS) errMsg("channelSimplifyf","C" << channel.printChannel() );
 	}
 	delete [] nchannel;
 	return ret;
@@ -700,7 +228,6 @@ static bool channelSimplifyVecT(AnimChannel<VEC> &channel) {
 	int   size = channel.getSize();
 	if(size<=1) return false;
 	float *nchannel = new float[4*size];
-	if(DEBUG_CHANNELS) errMsg("channelSimplifyf","S" << channel.printChannel() );
 	// convert to array
 	for(size_t i=0; i<channel.accessValues().size(); i++) {
 		nchannel[i*4 + 0] = (float)channel.accessValues()[i][0];
@@ -717,7 +244,6 @@ static bool channelSimplifyVecT(AnimChannel<VEC> &channel) {
 			times.push_back( (double)(nchannel[i*4 + 3]) );
 		}
 		channel = AnimChannel<VEC>(vals, times);
-		if(DEBUG_CHANNELS) errMsg("channelSimplifyf","C" << channel.printChannel() );
 	}
 	delete [] nchannel;
 	return ret;
@@ -742,13 +268,7 @@ string AnimChannel<Scalar>::printChannel() {
 	return ostr.str();
 } // */
 
-//! debug function, prints to stdout if DEBUG_CHANNELS flag is enabled, used in constructors
-template<class Scalar>
-void AnimChannel<Scalar>::debugPrintChannel() {
-	if(DEBUG_CHANNELS) { errMsg("channelCons"," : " << this->printChannel() ); }
-}
-
-
+// is now in header file: debugPrintChannel() 
 // hack to force instantiation
 void __forceAnimChannelInstantiation() {
 	AnimChannel< float > tmp1;

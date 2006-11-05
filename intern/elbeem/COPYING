@@ -1,7 +1,5 @@
- All code distributed as part of El'Bemm is covered by the following 
- version of the GNU General Public License, expcept for excerpts of 
- the trimesh2 package in src/isosurface.cpp (see COPYING_trimesh2 
- for details).
+ All code distributed as part of El'Beem is covered by the following 
+ version of the GNU General Public License. 
  
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License

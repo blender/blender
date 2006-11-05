@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Particle Viewer/Tracer
  *
@@ -37,12 +37,14 @@ class ParticleObject
 	public:
   	//! Standard constructor
   	inline ParticleObject(ntlVec3Gfx mp) :
-			mPos(mp),mVel(0.0), mSize(1.0), mStatus(0),mLifeTime(0) { mId = ParticleObjectIdCnt++; };
+			mPos(mp),mVel(0.0), mSize(1.0), mStatus(0),mLifeTime(0),mpNext(NULL) 
+				{ mId = ParticleObjectIdCnt++; };
   	//! Copy constructor
   	inline ParticleObject(const ParticleObject &a) :
 			mPos(a.mPos), mVel(a.mVel), mSize(a.mSize), 
 			mStatus(a.mStatus),
-			mLifeTime(a.mLifeTime) { mId = ParticleObjectIdCnt++; };
+			mLifeTime(a.mLifeTime), mpNext(NULL) 
+				{ mId = ParticleObjectIdCnt++; };
   	//! Destructor
   	inline ~ParticleObject() { /* empty */ };
 
@@ -69,6 +71,10 @@ class ParticleObject
 		//! get/set size value
 		inline gfxReal getSize() { return mSize; }
 		inline void setSize(gfxReal set) { mSize=set; }
+
+		//! get/set next pointer
+		inline ParticleObject* getNext() { return mpNext; }
+		inline void setNext(ParticleObject* set) { mpNext=set; }
 
 		//! get whole flags
 		inline int getFlags() const { return mStatus; }
@@ -101,6 +107,10 @@ class ParticleObject
 		
 		inline int getId() const { return mId; }
 
+		static inline float getMass(float size) { 
+			return 4.0/3.0 * M_PI* (size)*(size)*(size); // mass: 4/3 pi r^3 rho
+		}
+
 	protected:
 
 		/*! only for debugging */
@@ -115,6 +125,9 @@ class ParticleObject
 		int mStatus;
 		/*! count survived time steps */
 		float mLifeTime;
+
+		/* for list constructions */
+		ParticleObject *mpNext;
 };
 
 
@@ -130,6 +143,8 @@ class ParticleTracer :
 
 		//! add a particle at this position
 		void addParticle(float x, float y, float z);
+		//! add/copy a particle from inited struct 
+		void addFullParticle(ParticleObject &np);
 
 		//! draw the particle array
 		void draw();

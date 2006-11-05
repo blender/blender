@@ -1685,11 +1685,11 @@ void build_particle_system(Object *ob)
 	if(paf->keys) MEM_freeN(paf->keys);	/* free as early as possible, for returns */
 	paf->keys= NULL;
 	
-	printf("build particles\n");
+	//printf("build particles\n");
 	
-	/* fluid sim particle import handling, actual loading */
+	/* fluid sim particle import handling, actual loading of particles from file */
 	#ifndef DISABLE_ELBEEM
-	if( (1) && (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
+	if( (1) && (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&  // broken, disabled for now!
 	    (ob->fluidsimSettings) && 
 		  (ob->fluidsimSettings->type == OB_FLUIDSIM_PARTICLE)) {
 		char *suffix  = "fluidsurface_particles_#";
@@ -1702,7 +1702,7 @@ void build_particle_system(Object *ob)
 		float vel[3];
 
 		if(ob==G.obedit) { // off...
-			paf->totpart = 1;
+			paf->totpart = 0; // 1 or 0?
 			return;
 		}
 
@@ -1715,8 +1715,10 @@ void build_particle_system(Object *ob)
 		gzf = gzopen(filename, "rb");
 		if (!gzf) {
 			snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
+fprintf(stderr,"readFsPartData::error - Unable to open file for reading '%s' \n", filename);  // DEBUG!
 			//elbeemDebugOut(debugStrBuffer);
-			paf->totpart = 1;
+			//fprintf(stderr,"NO PARTOP!\n");
+			paf->totpart = 0;
 			return;
 		}
 
@@ -1753,7 +1755,7 @@ void build_particle_system(Object *ob)
 				// convert range of  1.0-10.0 to shorts 1000-10000)
 				shsize = (short)(convertSize*1000.0);
 				pa->rt = shsize;
-				//if(a<200) fprintf(stderr,"SREAD %f %d %d \n",convertSize,shsize,pa->rt);
+				//if(a<200) fprintf(stderr,"SREAD, %d/%d: %f %d %d \n",a,totpart, convertSize,shsize,pa->rt);
 
 				for(j=0; j<3; j++) {
 					float wrf;

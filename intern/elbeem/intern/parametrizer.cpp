@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Parameter calculator for the LBM Solver class
  *
@@ -57,7 +57,7 @@ Parametrizer::Parametrizer( void ) :
 	mcAniFrameTime(0.0001),
 	mTimeStepScale(1.0),
 	mAniStart(0.0),
-	mExtent(1.0, 1.0, 1.0), //mSurfaceTension( 0.0 ),
+	//mExtent(1.0, 1.0, 1.0), //mSurfaceTension( 0.0 ),
 	mDensity(1000.0), mGStar(0.0001), mFluidVolumeHeight(0.0),
 	mSimulationMaxSpeed(0.0),
 	mTadapMaxOmega(2.0), mTadapMaxSpeed(0.1), mTadapLevels(1),
@@ -184,6 +184,7 @@ ParamFloat Parametrizer::calculateCellSize(void)
 	int maxsize = mSizex; // get max size
 	if(mSizey>maxsize) maxsize = mSizey;
 	if(mSizez>maxsize) maxsize = mSizez;
+	maxsize = mSizez; // take along gravity dir for now!
 	ParamFloat cellSize = 1.0 / (ParamFloat)maxsize;
 	return cellSize;
 }
@@ -252,9 +253,9 @@ int Parametrizer::calculateNoOfSteps( ParamFloat timelen ) {
 }
 
 /*! get extent of the domain = (1,1,1) if parametrizer not used, (x,y,z) [m] otherwise */
-ParamVec Parametrizer::calculateExtent( void ) { 
-	return mExtent; 
-}
+//ParamVec Parametrizer::calculateExtent( void ) { 
+	//return mExtent; 
+//}
 
 /*! get (scaled) surface tension */
 //ParamFloat Parametrizer::calculateSurfaceTension( void ) { return mSurfaceTension; }
@@ -313,6 +314,7 @@ bool Parametrizer::calculateAllMissingValues( double time, bool silent )
 	int maxsize = mSizex; // get max size
 	if(mSizey>maxsize) maxsize = mSizey;
 	if(mSizez>maxsize) maxsize = mSizez;
+	maxsize = mSizez; // take along gravity dir for now!
 	mCellSize = ( mDomainSize * calculateCellSize() ); // sets mCellSize
 	if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," max domain resolution="<<(maxsize)<<" cells , cellsize="<<mCellSize ,10);
 
@@ -424,8 +426,8 @@ errMsg("Warning","Used z-dir for gstar!");
 			if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," gravity force = "<<PRINT_NTLVEC(mcGravity.get(time))<<", scaled with "<<forceFactor<<" to "<<calculateGravity(time),1);
 		}
 		
-		mExtent = ParamVec( mCellSize*mSizex, mCellSize*mSizey, mCellSize*mSizez );
-		if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," domain extent = "<<PRINT_NTLVEC(mExtent)<<"m , gs:"<<PRINT_VEC(mSizex,mSizey,mSizez)<<" cs:"<<mCellSize,1);
+		//mExtent = ParamVec( mCellSize*mSizex, mCellSize*mSizey, mCellSize*mSizez );
+		//if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," domain extent = "<<PRINT_NTLVEC(mExtent)<<"m , gs:"<<PRINT_VEC(mSizex,mSizey,mSizez)<<" cs:"<<mCellSize,1);
 		
 		if(!checkSeenValues(PARAM_ANIFRAMETIME)) {
 			errFatal("Parametrizer::calculateAllMissingValues"," Warning no ani frame time given!", SIMWORLD_INITERROR);

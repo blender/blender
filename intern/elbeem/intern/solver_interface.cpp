@@ -3,7 +3,7 @@
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
  * All code distributed as part of El'Beem is covered by the version 2 of the 
  * GNU General Public License. See the file COPYING for details.
- * Copyright 2003-2005 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Combined 2D/3D Lattice Boltzmann Interface Class
  * contains stuff to be statically compiled
@@ -35,7 +35,7 @@ LbmSolverInterface::LbmSolverInterface() :
 	mBoundarySouth( (CellFlagType)(CFBnd) ),mBoundaryTop(  (CellFlagType)(CFBnd) ),mBoundaryBottom( (CellFlagType)(CFBnd) ),
   mInitDone( false ),
   mInitDensityGradient( false ),
-	mpAttrs( NULL ), mpParam( NULL ), mpParticles(NULL),
+	mpSifAttrs( NULL ), mpSifSwsAttrs(NULL), mpParam( NULL ), mpParticles(NULL),
 	mNumParticlesLost(0), 
 	mNumInvalidDfs(0), mNumFilledCells(0), mNumEmptiedCells(0), mNumUsedCells(0), mMLSUPS(0),
 	mDebugVelScale( 0.01 ), mNodeInfoString("+"),
@@ -50,17 +50,34 @@ LbmSolverInterface::LbmSolverInterface() :
 	mRefinementDesired(0),
 	mOutputSurfacePreview(0), mPreviewFactor(0.25),
 	mSmoothSurface(1.0), mSmoothNormals(1.0),
-	mPartGenProb(0.),
+	mIsoSubdivs(1), mPartGenProb(0.),
 	mDumpVelocities(false),
 	mMarkedCells(), mMarkedCellIndex(0),
 	mDomainBound("noslip"), mDomainPartSlipValue(0.1),
-	mTForceStrength(0.0), mFarFieldSize(0.), mCppfStage(0)
+	mFarFieldSize(0.), 
+	mPartDropMassSub(0.1),  // good default
+	mPartUsePhysModel(false),
+	mTForceStrength(0.0), 
+	mCppfStage(0),
+	mDumpRawText(false),
+	mDumpRawBinary(false),
+	mDumpRawBinaryZip(true)
 {
 #if ELBEEM_PLUGIN==1
-	if(gDebugLevel<=1) mSilent = true;
+	if(gDebugLevel<=1) setSilent(true);
 #endif
 	mpSimTrafo = new ntlMat4Gfx(0.0); 
 	mpSimTrafo->initId();
+
+	if(getenv("ELBEEM_RAWDEBUGDUMP")) { 
+		debMsgStd("LbmSolverInterface",DM_MSG,"Using env var ELBEEM_RAWDEBUGDUMP, mDumpRawText on",2);
+		mDumpRawText = true;
+	}
+
+	if(getenv("ELBEEM_BINDEBUGDUMP")) { 
+		debMsgStd("LbmSolverInterface",DM_MSG,"Using env var ELBEEM_RAWDEBUGDUMP, mDumpRawText on",2);
+		mDumpRawBinary = true;
+	}
 }
 
 LbmSolverInterface::~LbmSolverInterface() 
@@ -79,8 +96,8 @@ void initGridSizes(int &sizex, int &sizey, int &sizez,
 		int mMaxRefine, bool parallel) 
 {
 	// fix size inits to force cubic cells and mult4 level dimensions
-	const int debugGridsizeInit = 0;
-  if(debugGridsizeInit) debMsgStd("initGridSizes",DM_MSG,"Called - size X:"<<sizex<<" Y:"<<sizey<<" Z:"<<sizez<<" " ,10);
+	const int debugGridsizeInit = 1;
+  if(debugGridsizeInit) debMsgStd("initGridSizes",DM_MSG,"Called - size X:"<<sizex<<" Y:"<<sizey<<" Z:"<<sizez<<" "<<geoStart<<","<<geoEnd ,10);
 
 	int maxGridSize = sizex; // get max size
 	if(sizey>maxGridSize) maxGridSize = sizey;
@@ -102,16 +119,19 @@ void initGridSizes(int &sizex, int &sizey, int &sizez,
 	for(int i=0; i<maskBits; i++) { sizeMask |= (1<<i); }
 
 	// at least size 4 on coarsest level
-	int minSize = 2<<(maskBits+2);
+	int minSize = 4<<mMaxRefine; //(maskBits+2);
 	if(sizex<minSize) sizex = minSize;
 	if(sizey<minSize) sizey = minSize;
 	if(sizez<minSize) sizez = minSize;
 	
 	sizeMask = ~sizeMask;
-  if(debugGridsizeInit) debMsgStd("initGridSizes",DM_MSG,"Size X:"<<sizex<<" Y:"<<sizey<<" Z:"<<sizez<<" m"<<convertFlags2String(sizeMask) ,10);
+  if(debugGridsizeInit) debMsgStd("initGridSizes",DM_MSG,"Size X:"<<sizex<<" Y:"<<sizey<<" Z:"<<sizez<<" m"<<convertFlags2String(sizeMask)<<", maskBits:"<<maskBits<<",minSize:"<<minSize ,10);
 	sizex &= sizeMask;
 	sizey &= sizeMask;
 	sizez &= sizeMask;
+	// debug
+	int nextinc = (~sizeMask)+1;
+  debMsgStd("initGridSizes",DM_MSG,"MPTeffMLtest, curr size:"<<PRINT_VEC(sizex,sizey,sizez)<<", next size:"<<PRINT_VEC(sizex+nextinc,sizey+nextinc,sizez+nextinc) ,10);
 
 	// force geom size to match rounded/modified grid sizes
 	geoEnd[0] = geoStart[0] + cellSize*(LbmFloat)sizex;
@@ -119,10 +139,11 @@ void initGridSizes(int &sizex, int &sizey, int &sizez,
 	geoEnd[2] = geoStart[2] + cellSize*(LbmFloat)sizez;
 }
 
-void calculateMemreqEstimate( int resx,int resy,int resz, int refine,
+void calculateMemreqEstimate( int resx,int resy,int resz, 
+		int refine, float farfield,
 		double *reqret, string *reqstr) {
 	// debug estimation?
-	const bool debugMemEst = false;
+	const bool debugMemEst = true;
 	// COMPRESSGRIDS define is not available here, make sure it matches
 	const bool useGridComp = true;
 	// make sure we can handle bid numbers here... all double
@@ -153,9 +174,16 @@ void calculateMemreqEstimate( int resx,int resy,int resz, int refine,
 		if(debugMemEst) debMsgStd("calculateMemreqEstimate",DM_MSG,"refine "<<i<<", mc:"<<memCnt, 10);
 	}
 
-	// isosurface memory
-	memCnt += (double)( (3*sizeof(int)+sizeof(float)) * ((resx+2)*(resy+2)*(resz+2)) );
+	// isosurface memory, use orig res values
+	if(farfield>0.) {
+		memCnt += (double)( (3*sizeof(int)+sizeof(float)) * ((resx+2)*(resy+2)*(resz+2)) );
+	} else {
+		// ignore 3 int slices...
+		memCnt += (double)( (              sizeof(float)) * ((resx+2)*(resy+2)*(resz+2)) );
+	}
 	if(debugMemEst) debMsgStd("calculateMemreqEstimate",DM_MSG,"iso, mc:"<<memCnt, 10);
+
+	// cpdata init check missing...
 
 	double memd = memCnt;
 	char *sizeStr = "";
@@ -187,7 +215,7 @@ void LbmSolverInterface::initDomainTrafo(float *mat) {
 /*******************************************************************************/
 /*! parse a boundary flag string */
 CellFlagType LbmSolverInterface::readBoundaryFlagInt(string name, int defaultValue, string source,string target, bool needed) {
-	string val  = mpAttrs->readString(name, "", source, target, needed);
+	string val  = mpSifAttrs->readString(name, "", source, target, needed);
 	if(!strcmp(val.c_str(),"")) {
 		// no value given...
 		return CFEmpty;
@@ -212,12 +240,11 @@ CellFlagType LbmSolverInterface::readBoundaryFlagInt(string name, int defaultVal
 /*******************************************************************************/
 /*! parse standard attributes */
 void LbmSolverInterface::parseStdAttrList() {
-	if(!mpAttrs) {
-		errFatal("LbmSolverInterface::parseAttrList","mpAttrs pointer not initialized!",SIMWORLD_INITERROR);
+	if(!mpSifAttrs) {
+		errFatal("LbmSolverInterface::parseAttrList","mpSifAttrs pointer not initialized!",SIMWORLD_INITERROR);
 		return; }
 
 	// st currently unused
-	//mSurfaceTension  = mpAttrs->readFloat("d_surfacetension",  mSurfaceTension, "LbmSolverInterface", "mSurfaceTension", false);
 	mBoundaryEast  = readBoundaryFlagInt("boundary_east",  mBoundaryEast, "LbmSolverInterface", "mBoundaryEast", false);
 	mBoundaryWest  = readBoundaryFlagInt("boundary_west",  mBoundaryWest, "LbmSolverInterface", "mBoundaryWest", false);
 	mBoundaryNorth = readBoundaryFlagInt("boundary_north", mBoundaryNorth,"LbmSolverInterface", "mBoundaryNorth", false);
@@ -225,10 +252,10 @@ void LbmSolverInterface::parseStdAttrList() {
 	mBoundaryTop   = readBoundaryFlagInt("boundary_top",   mBoundaryTop,"LbmSolverInterface", "mBoundaryTop", false);
 	mBoundaryBottom= readBoundaryFlagInt("boundary_bottom", mBoundaryBottom,"LbmSolverInterface", "mBoundaryBottom", false);
 
-	mpAttrs->readMat4Gfx("domain_trafo" , (*mpSimTrafo), "ntlBlenderDumper","mpSimTrafo", false, mpSimTrafo ); 
+	mpSifAttrs->readMat4Gfx("domain_trafo" , (*mpSimTrafo), "ntlBlenderDumper","mpSimTrafo", false, mpSimTrafo ); 
 
 	LbmVec sizeVec(mSizex,mSizey,mSizez);
-	sizeVec = vec2L( mpAttrs->readVec3d("size",  vec2P(sizeVec), "LbmSolverInterface", "sizeVec", false) );
+	sizeVec = vec2L( mpSifAttrs->readVec3d("size",  vec2P(sizeVec), "LbmSolverInterface", "sizeVec", false) );
 	mSizex = (int)sizeVec[0]; 
 	mSizey = (int)sizeVec[1]; 
 	mSizez = (int)sizeVec[2];
@@ -236,13 +263,13 @@ void LbmSolverInterface::parseStdAttrList() {
 	// test solvers might not have mpPara, though
 	if(mpParam) mpParam->setSize(mSizex, mSizey, mSizez ); 
 
-	mInitDensityGradient = mpAttrs->readBool("initdensitygradient", mInitDensityGradient,"LbmSolverInterface", "mInitDensityGradient", false);
-	mIsoValue = mpAttrs->readFloat("isovalue", mIsoValue, "LbmOptSolver","mIsoValue", false );
+	mInitDensityGradient = mpSifAttrs->readBool("initdensitygradient", mInitDensityGradient,"LbmSolverInterface", "mInitDensityGradient", false);
+	mIsoValue = mpSifAttrs->readFloat("isovalue", mIsoValue, "LbmOptSolver","mIsoValue", false );
 
-	mDebugVelScale = mpAttrs->readFloat("debugvelscale", mDebugVelScale,"LbmSolverInterface", "mDebugVelScale", false);
-	mNodeInfoString = mpAttrs->readString("nodeinfo", mNodeInfoString, "SimulationLbm","mNodeInfoString", false );
+	mDebugVelScale = mpSifAttrs->readFloat("debugvelscale", mDebugVelScale,"LbmSolverInterface", "mDebugVelScale", false);
+	mNodeInfoString = mpSifAttrs->readString("nodeinfo", mNodeInfoString, "SimulationLbm","mNodeInfoString", false );
 
-	mDumpVelocities = mpAttrs->readBool("dump_velocities", mDumpVelocities, "SimulationLbm","mDumpVelocities", false );
+	mDumpVelocities = mpSifAttrs->readBool("dump_velocities", mDumpVelocities, "SimulationLbm","mDumpVelocities", false );
 	if(getenv("ELBEEM_DUMPVELOCITIES")) {
 		int get = atoi(getenv("ELBEEM_DUMPVELOCITIES"));
 		if((get==0)||(get==1)) {
@@ -252,14 +279,18 @@ void LbmSolverInterface::parseStdAttrList() {
 	}
 	
 	// new test vars
-	mTForceStrength = 0.; // set from test solver mpAttrs->readFloat("tforcestrength", mTForceStrength,"LbmSolverInterface", "mTForceStrength", false);
-	mFarFieldSize = mpAttrs->readFloat("farfieldsize", mFarFieldSize,"LbmSolverInterface", "mFarFieldSize", false);
+	// mTForceStrength set from test solver 
+	mFarFieldSize = mpSifAttrs->readFloat("farfieldsize", mFarFieldSize,"LbmSolverInterface", "mFarFieldSize", false);
 	// old compat
-	float sizeScale = mpAttrs->readFloat("test_scale", 0.,"LbmTestdata", "mSizeScale", false);
+	float sizeScale = mpSifAttrs->readFloat("test_scale", 0.,"LbmTestdata", "mSizeScale", false);
 	if((mFarFieldSize<=0.)&&(sizeScale>0.)) { mFarFieldSize=sizeScale; errMsg("LbmTestdata","Warning - using mSizeScale..."); }
 
-	mCppfStage = mpAttrs->readInt("cppfstage", mCppfStage,"LbmSolverInterface", "mCppfStage", false);
-	mPartGenProb = mpAttrs->readFloat("partgenprob", mPartGenProb,"LbmFsgrSolver", "mPartGenProb", false);
+	mPartDropMassSub = mpSifAttrs->readFloat("part_dropmass", mPartDropMassSub,"LbmSolverInterface", "mPartDropMassSub", false);
+
+	mCppfStage = mpSifAttrs->readInt("cppfstage", mCppfStage,"LbmSolverInterface", "mCppfStage", false);
+	mPartGenProb = mpSifAttrs->readFloat("partgenprob", mPartGenProb,"LbmFsgrSolver", "mPartGenProb", false);
+	mPartUsePhysModel = mpSifAttrs->readBool("partusephysmodel", mPartUsePhysModel,"LbmFsgrSolver", "mPartUsePhysModel", false);
+	mIsoSubdivs = mpSifAttrs->readInt("isosubdivs", mIsoSubdivs,"LbmFsgrSolver", "mIsoSubdivs", false);
 }
 
 
@@ -278,9 +309,10 @@ void LbmSolverInterface::initGeoTree() {
 	mGiObjSecondDist.resize( mpGiObjects->size() );
 	for(size_t i=0; i<mpGiObjects->size(); i++) { 
 		if((*mpGiObjects)[i]->getGeoInitIntersect()) mAccurateGeoinit=true;
-		debMsgStd("LbmSolverInterface::initGeoTree",DM_MSG,"id:"<<mLbmInitId<<" obj:"<< (*mpGiObjects)[i]->getName() <<" gid:"<<(*mpGiObjects)[i]->getGeoInitId(), 9 );
+		//debMsgStd("LbmSolverInterface::initGeoTree",DM_MSG,"id:"<<mLbmInitId<<" obj:"<< (*mpGiObjects)[i]->getName() <<" gid:"<<(*mpGiObjects)[i]->getGeoInitId(), 9 );
 	}
 	debMsgStd("LbmSolverInterface::initGeoTree",DM_MSG,"Accurate geo init: "<<mAccurateGeoinit, 9)
+	debMsgStd("LbmSolverInterface::initGeoTree",DM_MSG,"Objects: "<<mpGiObjects->size() ,10);
 
 	if(mpGiTree != NULL) delete mpGiTree;
 	char treeFlag = (1<<(this->mLbmInitId+4));
@@ -307,15 +339,22 @@ int globGeoInitDebug = 0;
 int globGICPIProblems = 0;
 /*****************************************************************************/
 /*! check for a certain flag type at position org */
-bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int &OId, gfxReal &distance) {
+bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int &OId, gfxReal &distance, int shootDir) {
 	// shift ve ctors to avoid rounding errors
 	org += ntlVec3Gfx(0.0001);
-	ntlVec3Gfx dir = ntlVec3Gfx(1.0, 0.0, 0.0);
 	OId = -1;
+
+	// select shooting direction
+	ntlVec3Gfx dir = ntlVec3Gfx(1., 0., 0.);
+	if(shootDir==1) dir = ntlVec3Gfx(0., 1., 0.);
+	else if(shootDir==2) dir = ntlVec3Gfx(0., 0., 1.);
+	else if(shootDir==-2) dir = ntlVec3Gfx(0., 0., -1.);
+	else if(shootDir==-1) dir = ntlVec3Gfx(0., -1., 0.);
+	
 	ntlRay ray(org, dir, 0, 1.0, mpGlob);
-	//int insCnt = 0;
 	bool done = false;
 	bool inside = false;
+
 	vector<int> giObjFirstHistSide;
 	giObjFirstHistSide.resize( mpGiObjects->size() );
 	for(size_t i=0; i<mGiObjInside.size(); i++) { 
@@ -335,7 +374,8 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int 
 			ntlTriangle *triIns = NULL;
 			distance = -1.0;
 			ntlVec3Gfx normal(0.0);
-			mpGiTree->intersectX(ray,distance,normal, triIns, flags, true);
+			if(shootDir==0) mpGiTree->intersectX(ray,distance,normal, triIns, flags, true);
+			else            mpGiTree->intersect(ray,distance,normal, triIns, flags, true);
 			if(triIns) {
 				ntlVec3Gfx norg = ray.getOrigin() + ray.getDirection()*distance;
 				LbmFloat orientation = dot(normal, dir);
@@ -408,7 +448,8 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int 
 		ntlTriangle *triIns = NULL;
 		distance = -1.0;
 		ntlVec3Gfx normal(0.0);
-		mpGiTree->intersectX(ray,distance,normal, triIns, flags, true);
+		if(shootDir==0) mpGiTree->intersectX(ray,distance,normal, triIns, flags, true);
+		else            mpGiTree->intersect(ray,distance,normal, triIns, flags, true);
 		if(triIns) {
 			// check outside intersect
 			LbmFloat orientation = dot(normal, dir);

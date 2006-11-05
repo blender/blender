@@ -199,6 +199,7 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	fss->bbSize[2] = 1.0;
 	fluidsimGetAxisAlignedBB(srcob->data, srcob->obmat, fss->bbStart, fss->bbSize, &fss->meshBB);
 	
+	// todo - reuse default init from elbeem!
 	fss->typeFlags = 0;
 	fss->domainNovecgen = 0;
 	fss->volumeInitType = 1; // volume
@@ -207,6 +208,7 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	fss->generateTracers = 0;
 	fss->generateParticles = 0.0;
 	fss->surfaceSmoothing = 1.0;
+	fss->surfaceSubdivs = 1.0;
 	fss->particleInfSize = 0.0;
 	fss->particleInfAlpha = 0.0;
 
@@ -915,6 +917,7 @@ void fluidsimBake(struct Object *ob)
 		fsset.generateParticles = domainSettings->generateParticles; 
 		fsset.numTracerParticles = domainSettings->generateTracers; 
 		fsset.surfaceSmoothing = domainSettings->surfaceSmoothing; 
+		fsset.surfaceSubdivs = domainSettings->surfaceSubdivs; 
 		fsset.farFieldSize = domainSettings->farFieldSize; 
 		strcpy( fsset.outputPath, targetFile);
 
@@ -929,10 +932,10 @@ void fluidsimBake(struct Object *ob)
 		fsset.runsimCallback = &runSimulationCallback;
 		fsset.runsimUserData = &fsset;
 
-		if(     (domainSettings->typeFlags&OB_FSBND_NOSLIP))   fsset.obstacleType = FLUIDSIM_OBSTACLE_NOSLIP;
-		else if((domainSettings->typeFlags&OB_FSBND_PARTSLIP)) fsset.obstacleType = FLUIDSIM_OBSTACLE_PARTSLIP;
-		else if((domainSettings->typeFlags&OB_FSBND_FREESLIP)) fsset.obstacleType = FLUIDSIM_OBSTACLE_FREESLIP;
-		fsset.obstaclePartslip = domainSettings->partSlipValue;
+		if(     (domainSettings->typeFlags&OB_FSBND_NOSLIP))   fsset.domainobsType = FLUIDSIM_OBSTACLE_NOSLIP;
+		else if((domainSettings->typeFlags&OB_FSBND_PARTSLIP)) fsset.domainobsType = FLUIDSIM_OBSTACLE_PARTSLIP;
+		else if((domainSettings->typeFlags&OB_FSBND_FREESLIP)) fsset.domainobsType = FLUIDSIM_OBSTACLE_FREESLIP;
+		fsset.domainobsPartslip = domainSettings->partSlipValue;
 		fsset.generateVertexVectors = (domainSettings->domainNovecgen==0);
 
 		// init blender trafo matrix
@@ -962,7 +965,7 @@ void fluidsimBake(struct Object *ob)
 				int *tris=NULL;
 				int numVerts=0, numTris=0;
 				int o = channelObjCount;
-				int	deform = (obit->fluidsimSettings->domainNovecgen);
+				int	deform = (obit->fluidsimSettings->domainNovecgen); // misused value
 				elbeemMesh fsmesh;
 				elbeemResetMesh( &fsmesh );
 				fsmesh.type = obit->fluidsimSettings->type;;
@@ -996,6 +999,7 @@ void fluidsimBake(struct Object *ob)
 				else if((obit->fluidsimSettings->typeFlags&OB_FSBND_FREESLIP)) fsmesh.obstacleType = FLUIDSIM_OBSTACLE_FREESLIP;
 				fsmesh.obstaclePartslip = obit->fluidsimSettings->partSlipValue;
 				fsmesh.volumeInitType = obit->fluidsimSettings->volumeInitType;
+				fsmesh.obstacleImpactFactor = obit->fluidsimSettings->surfaceSmoothing; // misused value
 
 				// animated meshes
 				if(deform) {
@@ -1093,287 +1097,7 @@ void fluidsimBake(struct Object *ob)
 	// --------------------------------------------------------------------------------------------
 	else
 	{ // write config file to be run with command line simulator
-		fileCfg = fopen(targetFile, "w");
-		if(!fileCfg) {
-			snprintf(debugStrBuffer,256,"fluidsimBake::error - Unable to open file for writing '%s'\n", targetFile); 
-			elbeemDebugOut(debugStrBuffer);
-		
-			pupmenu("Fluidsim Bake Error%t|Unable to output files... Aborted%x0");
-			FS_FREE_CHANNELS;
-			return;
-		}
-		//ADD_CREATEDFILE(targetFile);
-
-		fprintf(fileCfg, "# Blender ElBeem File , Source %s , Frame %d, to %s \n\n\n", G.sce, -1, targetFile );
-		// file open -> valid settings -> store
-		strncpy(domainSettings->surfdataPath, newSurfdataPath, FILE_MAXDIR);
-
-		/* output simulation  settings */
-		{
-			char *dtype[3] = { "no", "part", "free" };
-			float pslip = domainSettings->partSlipValue; int bi=0;
-			char *simString = "\n"
-			"attribute \"simulation1\" { \n" 
-			"  solver = \"fsgr\"; \n"  "\n" 
-			"  p_domainsize  = " "%f"   /* realsize */ "; \n" 
-			"  p_anistart    = " "%f"   /* aniStart*/ "; \n" 
-			"  p_normgstar = %f; \n"    /* use gstar param? */
-			"  maxrefine = " "%d"       /* maxRefine*/ ";  \n" 
-			"  size = " "%d"            /* gridSize*/ ";  \n" 
-			"  surfacepreview = " "%d"  /* previewSize*/ "; \n" 
-			"  dump_velocities = " "%d"  /* vector dump */ "; \n" 
-			"  smoothsurface = %f;  \n"  /* smoothing */
-			"  domain_trafo = %f %f %f %f   " /* remove blender object trafo */
-									  "   %f %f %f %f   "
-									  "   %f %f %f %f   "
-			              "   %f %f %f %f ;\n"
-			"  smoothnormals = %f;  \n"
-			"  geoinitid = 1;  \n"  "\n" 
-			"  isovalue =  0.4900; \n" 
-			"  isoweightmethod = 1; \n"  "\n" ;
-
-			fprintf(fileCfg, simString,
-					(double)domainSettings->realsize, (double)domainSettings->animStart, (double)domainSettings->gstar,
-					gridlevels, (int)domainSettings->resolutionxyz, (int)domainSettings->previewresxyz ,
-		      (int)(domainSettings->domainNovecgen==0), domainSettings->surfaceSmoothing,
-					invDomMat[0][0],invDomMat[1][0],invDomMat[2][0],invDomMat[3][0], 
-					invDomMat[0][1],invDomMat[1][1],invDomMat[2][1],invDomMat[3][1], 
-					invDomMat[0][2],invDomMat[1][2],invDomMat[2][2],invDomMat[3][2], 
-					invDomMat[0][3],invDomMat[1][3],invDomMat[2][3],invDomMat[3][3] 
-					);
-
-			if((domainSettings->typeFlags&OB_FSBND_NOSLIP)) bi=0;
-			else if((domainSettings->typeFlags&OB_FSBND_PARTSLIP)) bi=1;
-			else if((domainSettings->typeFlags&OB_FSBND_FREESLIP)) bi=2;
-			fprintf(fileCfg, "  domainbound = %s; domainpartslip=%f; \n", dtype[bi], pslip); 
-
-			fprintf(fileCfg,"  # org aniframetime: %f \n", aniFrameTime); 
-			fluidsimPrintChannel(fileCfg, channelDomainTime,allchannelSize,"p_aniframetime",CHANNEL_FLOAT);
-			fluidsimPrintChannel(fileCfg, channelDomainViscosity,allchannelSize,"p_viscosity",CHANNEL_FLOAT);
-			fluidsimPrintChannel(fileCfg, channelDomainGravity,  allchannelSize,"p_gravity",CHANNEL_VEC);
-
-			fprintf(fileCfg, "  partgenprob = %f; \n", domainSettings->generateParticles); // debug test
-			fprintf(fileCfg, "  particles = %d; \n", domainSettings->generateTracers); // debug test
-			fprintf(fileCfg,  "\n} \n" );
-		}
-
-
-		fprintf(fileCfg, "raytracing {\n");
-
-		/* output picture settings for preview renders */
-		{
-			char *rayString = "\n" 
-				"  anistart=     0; \n" 
-				"  aniframes=    " "%d" /*1 frameEnd-frameStart+0*/ "; #cfgset \n" 
-				"  frameSkip=    false; \n" 
-				"  filename=     \"" "%s" /* rayPicFilename*/  "\"; #cfgset \n" 
-				"  aspect      1.0; \n" 
-				"  resolution  " "%d %d" /*2,3 blendResx,blendResy*/ "; #cfgset \n" 
-				"  antialias       1; \n" 
-				"  ambientlight    (1, 1, 1); \n" 
-				"  maxRayDepth       6; \n" 
-				"  treeMaxDepth     25; \n"
-				"  treeMaxTriangles  8; \n" 
-				"  background  (0.08,  0.08, 0.20); \n" 
-				"  eyepoint= (" "%f %f %f"/*4,5,6 eyep*/ "); #cfgset  \n" 
-				"  lookat= (" "%f %f %f"/*7,8,9 lookatp*/ "); #cfgset  \n" 
-				"  upvec= (0 0 1);  \n" 
-				"  fovy=  " "%f" /*blendFov*/ "; #cfgset \n" 
-				//"  blenderattr= \"btrafoattr\"; \n"
-				"\n\n";
-
-			char *lightString = "\n" 
-				"  light { \n" 
-				"    type= omni; \n" 
-				"    active=     1; \n" 
-				"    color=      (1.0,  1.0,  1.0); \n" 
-				"    position=   (" "%f %f %f"/*1,2,3 eyep*/ "); #cfgset \n" 
-				"    castShadows= 1; \n"  
-				"  } \n\n" ;
-
-			struct Object *cam = G.scene->camera;
-			float  eyex=2.0, eyey=2.0, eyez=2.0;
-			int    resx = 200, resy=200;
-			float  lookatx=0.0, lookaty=0.0, lookatz=0.0;
-			float  fov = 45.0;
-
-			strcpy(targetFile, targetDir);
-			strcat(targetFile, suffixSurface);
-			resx = G.scene->r.xsch;
-			resy = G.scene->r.ysch;
-			if((cam) && (cam->type == OB_CAMERA)) {
-				Camera *camdata= G.scene->camera->data;
-				double lens = camdata->lens;
-				double imgRatio = (double)resx/(double)resy;
-				fov = 360.0 * atan(16.0*imgRatio/lens) / M_PI;
-				//R.near= camdata->clipsta; R.far= camdata->clipend;
-
-				eyex = cam->loc[0];
-				eyey = cam->loc[1];
-				eyez = cam->loc[2];
-				// TODO - place lookat in middle of domain?
-			}
-
-			fprintf(fileCfg, rayString,
-					(noFrames+0), targetFile, resx,resy,
-					eyex, eyey, eyez ,
-					lookatx, lookaty, lookatz,
-					fov
-					);
-			fprintf(fileCfg, lightString, 
-					eyex, eyey, eyez );
-		}
-
-
-		/* output fluid domain */
-		{
-			char * domainString = "\n" 
-				"  geometry { \n" 
-				"    type= fluidlbm; \n" 
-				"    name = \""   "%s" /*name*/   "\"; #cfgset \n" 
-				"    visible=  1; \n" 
-				"    attributes=  \"simulation1\"; \n" 
-				//"    define { material_surf  = \"fluidblue\"; } \n" 
-				"    start= " "%f %f %f" /*bbstart*/ "; #cfgset \n" 
-				"    end  = " "%f %f %f" /*bbend  */ "; #cfgset \n" 
-				"  } \n" 
-				"\n";
-			fprintf(fileCfg, domainString,
-				fsDomain->id.name, 
-				bbStart[0],           bbStart[1],           bbStart[2],
-				bbStart[0]+bbSize[0], bbStart[1]+bbSize[1], bbStart[2]+bbSize[2]
-			);
-		}
-
-			
-		/* setup geometry */
-		{
-			char *objectStringStart = 
-				"  geometry { \n" 
-				"    type= objmodel; \n" 
-				"    name = \""   "%s" /* name */   "\"; #cfgset \n" 
-				"    visible=  1; \n" // DEBUG , also obs invisible?
-				"    define { \n" ;
-			char *outflowString = 
-				"      geoinittype= \"" "%s" /* type */  "\"; #cfgset \n" 
-				"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n" ;
-			char *obstacleString = 
-				"      geoinittype= \"" "%s" /* type */  "\"; #cfgset \n" 
-				"      geoinit_partslip = \"" "%f" /* partslip */  "\"; #cfgset \n" 
-				"      geoinit_volumeinit = \"" "%d" /* volumeinit */  "\"; #cfgset \n" 
-				"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n" ;
-			char *fluidString = 
-				"      geoinittype= \"" "%s" /* type */  "\"; \n" 
-				"      geoinit_volumeinit = \"" "%d" /* volumeinit */  "\"; #cfgset \n" 
-				"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n" ;
-			char *inflowString = 
-				"      geoinittype= \"" "%s" /* type */  "\"; \n" 
-				"      geoinit_localinivel = "   "%d" /* local coords */  "; #cfgset \n" 
-				"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n"  ;
-			char *objectStringEnd = 
-				"      geoinit_intersect = 1; \n"  /* always use accurate init here */
-				"      geoinitid= 1; \n" 
-				"    } \n" 
-				"  } \n" 
-				"\n" ;
-			char fnameObjdat[FILE_MAXFILE];
-					
-			channelObjCount = 0;
-			for(obit= G.main->object.first; obit; obit= obit->id.next) {
-				if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
-						(obit->type==OB_MESH) &&  // if has to match 3 places! // CHECKMATCH
-						(obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN) &&
-						(obit->fluidsimSettings->type != OB_FLUIDSIM_PARTICLE)
-					) {
-					int deform = (obit->fluidsimSettings->domainNovecgen);
-
-					fluidsimGetGeometryObjFilename(obit, fnameObjdat);
-					strcpy(targetFile, targetDir);
-					strcat(targetFile, fnameObjdat);
-					fprintf(fileCfg, objectStringStart, obit->id.name ); // abs path
-					// object type params
-					if(obit->fluidsimSettings->type == OB_FLUIDSIM_FLUID) {
-						fprintf(fileCfg, fluidString, "fluid", 
-								(int)obit->fluidsimSettings->volumeInitType, targetFile );
-					}
-					if(obit->fluidsimSettings->type == OB_FLUIDSIM_INFLOW) {
-				 		int locc = ((obit->fluidsimSettings->typeFlags&OB_FSINFLOW_LOCALCOORD)?1:0);
-						fprintf(fileCfg, inflowString, "inflow" ,locc 
-								, targetFile );
-					}
-					if(obit->fluidsimSettings->type == OB_FLUIDSIM_OBSTACLE) {
-						char *btype[3] = { "bnd_no", "bnd_part", "bnd_free" };
-						float pslip = obit->fluidsimSettings->partSlipValue; int bi=0;
-				 		if((obit->fluidsimSettings->typeFlags&OB_FSBND_NOSLIP)) bi=0;
-						else if((obit->fluidsimSettings->typeFlags&OB_FSBND_PARTSLIP)) bi=1;
-						else if((obit->fluidsimSettings->typeFlags&OB_FSBND_FREESLIP)) bi=2;
-						fprintf(fileCfg, obstacleString, btype[bi], pslip, 
-								(int)obit->fluidsimSettings->volumeInitType, targetFile); // abs path
-					}
-					if(obit->fluidsimSettings->type == OB_FLUIDSIM_OUTFLOW) {
-						fprintf(fileCfg, outflowString, "outflow" , targetFile); // abs path
-					}
-
-					if(!deform) {
-						fluidsimPrintChannel(fileCfg, channelObjMove[channelObjCount][0],allchannelSize, "translation", CHANNEL_VEC);
-						fluidsimPrintChannel(fileCfg, channelObjMove[channelObjCount][1],allchannelSize, "rotation"   , CHANNEL_VEC);
-						fluidsimPrintChannel(fileCfg, channelObjMove[channelObjCount][2],allchannelSize, "scale"      , CHANNEL_VEC);
-					}
-					fluidsimPrintChannel(fileCfg, channelObjActive[channelObjCount] ,allchannelSize, "geoactive"  , CHANNEL_FLOAT);
-					if( (obit->fluidsimSettings->type == OB_FLUIDSIM_FLUID) ||
-							(obit->fluidsimSettings->type == OB_FLUIDSIM_INFLOW) ) {
-						fluidsimPrintChannel(fileCfg, channelObjInivel[channelObjCount],allchannelSize,"initial_velocity" ,CHANNEL_VEC);
-					} 
-					channelObjCount++;
-
-					fprintf(fileCfg, objectStringEnd ); // abs path
-
-					// check shape key animation
-					//fprintf(stderr,"\n%d %d\n\n",(int)obit->parent,obit->partype); // DEBUG
-					if(deform) {
-						int frame;
-						// use global  coordinates for deforming/parented objects
-						writeBobjgz(targetFile, obit, 1,0,0.);
-						//for(int frame=0; frame<=G.scene->r.efra; frame++) {
-						for(frame=0; frame<=allchannelSize; frame++) {
-							G.scene->r.cfra = frame;
-							scene_update_for_newframe(G.scene, G.scene->lay);
-							writeBobjgz(targetFile, obit, 1,1, timeAtFrame[frame] ); // only append!
-
-							//if(shapekey) snprintf(debugStrBuffer,256,"Shape frames: %d/%d, shapeKeys:%d",frame,allchannelSize,BLI_countlist(&shapekey->block));
-							//else snprintf(debugStrBuffer,256,"Deform frames: %d/%d",frame,allchannelSize);
-							//elbeemDebugOut(debugStrBuffer);
-						}
-						G.scene->r.cfra = startFrame;
-						scene_update_for_newframe(G.scene, G.scene->lay);
-					} else {
-						// use normal trafos & non animated mesh
-						writeBobjgz(targetFile, obit, 0,0,0.);
-					}
-
-				}
-			}
-		}
-		
-		/* fluid material */
-		fprintf(fileCfg, 
-			"  material { \n"
-			"    type= phong; \n"
-			"    name=          \"fluidblue\"; \n"
-			"    diffuse=       0.3 0.5 0.9; \n"
-			"    ambient=       0.1 0.1 0.1; \n"
-			"    specular=      0.2  10.0; \n"
-			"  } \n" );
-
-		fprintf(fileCfg, "} // end raytracing\n");
-		fclose(fileCfg);
-
-		strcpy(targetFile, targetDir);
-		strcat(targetFile, suffixConfig);
-		snprintf(debugStrBuffer,256,"fluidsimBake::msg: Wrote %s\n", targetFile); 
-		elbeemDebugOut(debugStrBuffer);
-
-		pupmenu("Fluidsim Bake Message%t|Config files exported successfully!%x0");
+		pupmenu("Fluidsim Bake Message%t|Config file export not supported.%x0");
 	} // config file export done!
 
 	// --------------------------------------------------------------------------------------------

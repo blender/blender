@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Marching Cubes "displayer"
  *
@@ -17,6 +17,8 @@
 
 /* access some 3d array */
 #define ISOLEVEL_INDEX(ii,ij,ik) ((mSizex*mSizey*(ik))+(mSizex*(ij))+((ii)))
+
+class ParticleTracer;
 
 /* struct for a small cube in the scalar field */
 typedef struct {
@@ -53,6 +55,19 @@ class IsoSurface :
 		/*! triangulate the scalar field given by pointer*/
 		void triangulate( void );
 
+		/*! set particle pointer */
+		void setParticles(ParticleTracer *pnt,float psize){ mpIsoParts = pnt; mPartSize=psize; };
+		/*! set # of subdivisions, this has to be done before init! */
+		void setSubdivs(int s) { 
+			if(mInitDone) errFatal("IsoSurface::setSubdivs","Changing subdivs after init!", SIMWORLD_INITERROR);
+			if(s<1) s=1; if(s>10) s=10;
+			mSubdivs = s; }
+		int  getSubdivs() { return mSubdivs;}
+		/*! set full edge settings, this has to be done before init! */
+		void setUseFulledgeArrays(bool set) { 
+			if(mInitDone) errFatal("IsoSurface::setUseFulledgeArrays","Changing usefulledge after init!", SIMWORLD_INITERROR);
+			mUseFullEdgeArrays = set;}
+
 	protected:
 
 		/* variables ... */
@@ -69,10 +84,13 @@ class IsoSurface :
 		//! Store all the triangles vertices 
 		vector<IsoLevelVertex> mPoints;
 
+		//! use full arrays? (not for farfield)
+		bool mUseFullEdgeArrays;
 		//! Store indices of calculated points along the cubie edges 
 		int *mpEdgeVerticesX;
 		int *mpEdgeVerticesY;
 		int *mpEdgeVerticesZ;
+		int mEdgeArSize;
 
 
 		//! vector for all the triangles (stored as 3 indices) 
@@ -100,6 +118,12 @@ class IsoSurface :
 		int mCutoff;
 		//! cutoff heigh values
 		int *mCutArray;
+		//! particle pointer 
+		ParticleTracer *mpIsoParts;
+		//! particle size
+		float mPartSize;
+		//! no of subdivisions
+		int mSubdivs;
 		
 		//! trimesh vars
 		vector<int> flags;
@@ -186,6 +210,7 @@ class IsoSurface :
 		void setSmoothRad(float radi1, float radi2, ntlVec3Gfx mscc);
 		void smoothSurface(float val, bool smoothNorm);
 		void smoothNormals(float val);
+		void computeNormals();
 
 	protected:
 

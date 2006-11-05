@@ -3,7 +3,7 @@
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
  * All code distributed as part of El'Beem is covered by the version 2 of the 
  * GNU General Public License. See the file COPYING for details.
- * Copyright 2003-2005 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Header for Combined 2D/3D Lattice Boltzmann Interface Class
  * 
@@ -33,6 +33,7 @@
 #include "attributes.h"
 #include "isosurface.h"
 class ParticleTracer;
+class ParticleObject;
 
 // use which fp-precision for LBM? 1=float, 2=double
 #ifdef PRECISION_LBM_SINGLE
@@ -135,12 +136,13 @@ typedef int BubbleId;
 #define CFInvalid             (CellFlagType)(1<<31)
 
 // use 32bit flag types
-#ifdef __x86_64__
- typedef int cfINT32;
-#else
- typedef long cfINT32;
-#endif // defined (_IA64)  
-#define CellFlagType cfINT32
+//#ifdef __x86_64__
+ //typedef int cfINT32;
+//#else
+ //typedef long cfINT32;
+//#endif // defined (_IA64)  
+//#define CellFlagType cfINT32
+#define CellFlagType int
 #define CellFlagTypeSize 4
 
 
@@ -261,7 +263,7 @@ class LbmSolverInterface
 		virtual int initParticles() = 0;
 		virtual void advanceParticles() = 0;
 		/*! get surface object (NULL if no surface) */
-		ntlGeometryObject* getSurfaceGeoObj() { return mpIso; }
+		IsoSurface* getSurfaceGeoObj() { return mpIso; }
 
 		/*! debug object display */
 		virtual vector<ntlGeometryObject*> getDebugObjects() { vector<ntlGeometryObject*> empty(0); return empty; }
@@ -276,7 +278,7 @@ class LbmSolverInterface
 		/*! destroy tree etc. when geometry init done */
 		void freeGeoTree();
 		/*! check for a certain flag type at position org (needed for e.g. quadtree refinement) */
-		bool geoInitCheckPointInside(ntlVec3Gfx org, int flags, int &OId, gfxReal &distance);
+		bool geoInitCheckPointInside(ntlVec3Gfx org, int flags, int &OId, gfxReal &distance,int shootDir=0);
 		bool geoInitCheckPointInside(ntlVec3Gfx org, ntlVec3Gfx dir, int flags, int &OId, gfxReal &distance, 
 				const gfxReal halfCellsize, bool &thinHit, bool recurse);
 		/*! set render globals, for scene/tree access */
@@ -306,9 +308,12 @@ class LbmSolverInterface
 		bool getAllfluid()         { return mAllfluid; }
 
 		/*! set attr list pointer */
-		void setAttrList(AttributeList *set) { mpAttrs = set; }
+		void setAttrList(AttributeList *set) { mpSifAttrs = set; }
 		/*! Returns the attribute list pointer */
-		inline AttributeList *getAttributeList() { return mpAttrs; }
+		inline AttributeList *getAttributeList() { return mpSifAttrs; }
+		/*! set sws attr list pointer */
+		void setSwsAttrList(AttributeList *set) { mpSifSwsAttrs = set; }
+		inline AttributeList *getSwsAttributeList() { return mpSifSwsAttrs; }
 
 		/*! set parametrizer pointer */
 		inline void setParametrizer(Parametrizer *set) { mpParam = set; }
@@ -353,6 +358,8 @@ class LbmSolverInterface
 
 		//! set amount of surface/normal smoothing
 		inline void setSmoothing(float setss,float setns){ mSmoothSurface=setss; mSmoothNormals=setns; }
+		//! set amount of iso subdivisions
+		inline void setIsoSubdivs(int s){ mIsoSubdivs=s; }
 		//! set desired refinement
 		inline void setPreviewSize(int set){ mOutputSurfacePreview = set; }
 		//! set desired refinement
@@ -378,6 +385,13 @@ class LbmSolverInterface
 		//! set/get cp stage
 		inline void setCpStage(int set)	{ mCppfStage = set; }
 		inline int getCpStage() const	{ return mCppfStage; }
+		//! set/get dump modes
+		inline void setDumpRawText(bool set)	{ mDumpRawText = set; }
+		inline bool getDumpRawText() const	{ return mDumpRawText; }
+		inline void setDumpRawBinary(bool set)	{ mDumpRawBinary = set; }
+		inline bool getDumpRawBinary() const	{ return mDumpRawBinary; }
+		inline void setDumpRawBinaryZip(bool set)	{ mDumpRawBinaryZip = set; }
+		inline bool getDumpRawBinaryZip() const	{ return mDumpRawBinaryZip; }
 
 		// cell iterator interface
 		
@@ -468,8 +482,9 @@ class LbmSolverInterface
 		/*! init density gradient? */
 		bool mInitDensityGradient;
 
-		/*! pointer to the attribute list */
-		AttributeList *mpAttrs;
+		/*! pointer to the attribute list, only pointer to obj attrs */
+		AttributeList *mpSifAttrs;
+		AttributeList *mpSifSwsAttrs;
 
 		/*! get parameters from this parametrize in finishInit */
 		Parametrizer *mpParam;
@@ -534,9 +549,11 @@ class LbmSolverInterface
 		int mOutputSurfacePreview;
 		LbmFloat mPreviewFactor;
 
-		/* enable surface and normals smoothing? */
+		/*! enable surface and normals smoothing? */
 		float mSmoothSurface;
 		float mSmoothNormals;
+		/*! isosurface subdivisions */
+		int mIsoSubdivs;
 
 		//! particle generation probability
 		LbmFloat mPartGenProb;
@@ -553,14 +570,22 @@ class LbmSolverInterface
 		//! part slip value for domain
 		LbmFloat mDomainPartSlipValue;
 
+		// size of far field area
+		LbmFloat mFarFieldSize;
+		// amount of drop mass to subtract
+		LbmFloat mPartDropMassSub;
+		// use physical drop model for particles?
+		bool mPartUsePhysModel;
+
 		//! test vars
 		// strength of applied force
 		LbmFloat mTForceStrength;
-		// 
-		LbmFloat mFarFieldSize;
-		// 
 		int mCppfStage;
 
+		//! dumping modes
+		bool mDumpRawText;
+		bool mDumpRawBinary;
+		bool mDumpRawBinaryZip;
 };
 
 
@@ -569,7 +594,7 @@ void initGridSizes(int &mSizex, int &mSizey, int &mSizez,
 		ntlVec3Gfx &mvGeoStart, ntlVec3Gfx &mvGeoEnd, 
 		int mMaxRefine, bool parallel);
 void calculateMemreqEstimate(int resx,int resy,int resz, int refine,
-		double *reqret, string *reqstr);
+		float farfieldsize, double *reqret, string *reqstr);
 
 //! helper function to convert flag to string (for debuggin)
 string convertCellFlagType2String( CellFlagType flag );

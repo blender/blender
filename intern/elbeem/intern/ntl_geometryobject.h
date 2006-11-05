@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
- * Copyright 2003,2004 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * a geometry object
  * all other geometry objects are derived from this one
@@ -81,6 +81,10 @@ class ntlGeometryObject : public ntlGeometryClass
 		/*! Set/get the part slip value*/
 		inline float getGeoPartSlipValue() const { return mGeoPartSlipValue; }
 		inline void setGeoPartSlipValue(float set) { mGeoPartSlipValue=set; }
+
+		/*! Set/get the impact corr factor channel */
+		inline float getGeoImpactFactor(double t) { return mcGeoImpactFactor.get(t); }
+		inline void setGeoImpactFactor(float set) { mcGeoImpactFactor = AnimChannel<float>(set); }
 
 		/*! Set/get the part slip value*/
 		inline int getVolumeInit() const { return mVolumeInit; }
@@ -170,6 +174,8 @@ class ntlGeometryObject : public ntlGeometryClass
 		bool mGeoInitIntersect;
 		/*! part slip bc value */
 		float mGeoPartSlipValue;
+		/*! obstacle impact correction factor */
+		AnimChannel<float> mcGeoImpactFactor;
 		/*! only init as thin object, dont fill? */
 		int mVolumeInit;
 
@@ -195,7 +201,7 @@ class ntlGeometryObject : public ntlGeometryClass
 		int mMaxMovPnt;
 
 		/*! animated channels for in/outflow on/off */
-		AnimChannel<double> mcGeoActive;
+		AnimChannel<float> mcGeoActive;
 
 	public:
 

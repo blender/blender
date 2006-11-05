@@ -3,7 +3,7 @@
  * El'Beem - the visual lattice boltzmann freesurface simulator
  * All code distributed as part of El'Beem is covered by the version 2 of the 
  * GNU General Public License. See the file COPYING for details.
- * Copyright 2003-2005 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * Combined 2D/3D Lattice Boltzmann standard solver classes
  *
@@ -259,13 +259,17 @@ class LbmFsgrSolver :
 		LBM_INLINED void initVelocityCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass, LbmVec vel);
 		LBM_INLINED void changeFlag(int level, int xx,int yy,int zz,int set,CellFlagType newflag);
 		LBM_INLINED void forceChangeFlag(int level, int xx,int yy,int zz,int set,CellFlagType newflag);
+		LBM_INLINED void initInterfaceVars(int level, int i,int j,int k,int workSet, bool initMass);
 		//! interpolate velocity and density at a given position
 		void interpolateCellValues(int level,int ei,int ej,int ek,int workSet, LbmFloat &retrho, LbmFloat &retux, LbmFloat &retuy, LbmFloat &retuz);
 
 		/*! perform a single LBM step */
 		void stepMain();
+		//! advance fine grid
 		void fineAdvance();
+		//! advance coarse grid
 		void coarseAdvance(int lev);
+		//! update flux area values on coarse grids
 		void coarseCalculateFluxareas(int lev);
 		// adaptively coarsen grid
 		bool adaptGrid(int lev);
@@ -278,6 +282,11 @@ class LbmFsgrSolver :
 		virtual int initParticles();
 		/*! move all particles */
 		virtual void advanceParticles();
+		/*! move a particle at a boundary */
+		void handleObstacleParticle(ParticleObject *p);
+		/*! check whether to add particle 
+		bool checkAddParticle();
+		void performAddParticle();*/
 
 
 		/*! debug object display (used e.g. for preview surface) */
@@ -294,9 +303,6 @@ class LbmFsgrSolver :
 		//! for raytracing, preprocess
 		void prepareVisualization( void );
 
-		/*! type for cells */
-		//typedef typename this->LbmCell LbmCell;
-		
 	protected:
 
 		//! internal quick print function (for debugging) 
@@ -316,6 +322,11 @@ class LbmFsgrSolver :
 		void reinitFlags( int workSet );
 		//! mass dist weights
 		LbmFloat getMassdWeight(bool dirForw, int i,int j,int k,int workSet, int l);
+		//! compute surface normals: fluid, fluid more accurate, and for obstacles
+		void computeFluidSurfaceNormal(LbmFloat *cell, CellFlagType *cellflag,    LbmFloat *snret);
+		void computeFluidSurfaceNormalAcc(LbmFloat *cell, CellFlagType *cellflag, LbmFloat *snret);
+		void computeObstacleSurfaceNormal(LbmFloat *cell, CellFlagType *cellflag, LbmFloat *snret);
+		void computeObstacleSurfaceNormalAcc(int i,int j,int k, LbmFloat *snret);
 		//! add point to mListNewInter list
 		LBM_INLINED void addToNewInterList( int ni, int nj, int nk );	
 		//! cell is interpolated from coarse level (inited into set, source sets are determined by t)
@@ -327,6 +338,8 @@ class LbmFsgrSolver :
 		LBM_INLINED int getForZMin1();
 		LBM_INLINED int getForZMaxBnd(int lev);
 		LBM_INLINED int getForZMax1(int lev);
+		LBM_INLINED bool checkDomainBounds(int lev,int i,int j,int k);
+		LBM_INLINED bool checkDomainBoundsPos(int lev,LbmVec pos);
 
 		// touch grid and flags once
 		void preinitGrids();
@@ -361,8 +374,6 @@ class LbmFsgrSolver :
 		LbmFloat mFVArea;
 		bool mUpdateFVHeight;
 
-		//! require some geo setup from the viz?
-		//int mGfxGeoSetup;
 		//! force quit for gfx
 		LbmFloat mGfxEndTime;
 		//! smoother surface initialization?
@@ -500,10 +511,21 @@ class LbmFsgrSolver :
 		void handleCpdata();
 		void cpDebugDisplay(int dispset);
 
-		void testXchng(); 
+		int mMpNum,mMpIndex;
+		int mOrgSizeX;
+		LbmFloat mOrgStartX;
+		LbmFloat mOrgEndX;
+		void mrSetup();
+		void mrExchange(); 
+		void mrIsoExchange(); 
+		LbmFloat mrInitTadap(LbmFloat max); 
+		void gcFillBuffer(  LbmGridConnector *gc, int *retSizeCnt, const int *bdfs);
+		void gcUnpackBuffer(LbmGridConnector *gc, int *retSizeCnt, const int *bdfs);
 	public:
 		// needed for testdata
 		void find3dHeight(int i,int j, LbmFloat prev, LbmFloat &ret, LbmFloat *retux, LbmFloat *retuy, LbmFloat *retuz);
+		// mptest
+		int getMpIndex() { return mMpIndex; };
 #		endif // LBM_INCLUDE_TESTSOLVERS==1
 
 		// former LbmModelLBGK  functions
@@ -615,7 +637,7 @@ class LbmFsgrSolver :
 		STCON LbmFloat dfLength[ 19 ];
 
 		/*! equilibrium distribution functions, precalculated = getCollideEq(i, 0,0,0,0) */
-		static LbmFloat dfEquil[ 19 ];
+		static LbmFloat dfEquil[ dTotalNum ];
 
 		/*! arrays for les model coefficients */
 		static LbmFloat lesCoeffDiag[ (3-1)*(3-1) ][ 27 ];
@@ -701,7 +723,7 @@ class LbmFsgrSolver :
 		STCON LbmFloat dfLength[ 9 ];
 
 		/* equilibrium distribution functions, precalculated = getCollideEq(i, 0,0,0,0) */
-		static LbmFloat dfEquil[ 9 ];
+		static LbmFloat dfEquil[ dTotalNum ];
 
 		/*! arrays for les model coefficients */
 		static LbmFloat lesCoeffDiag[ (2-1)*(2-1) ][ 9 ];
@@ -784,7 +806,8 @@ class LbmFsgrSolver :
 
 // general defines -----------------------------------------------------------------------------------------------
 
-#define TESTFLAG(flag, compflag) ((flag & compflag)==compflag)
+// replace TESTFLAG
+#define FLAGISEXACT(flag, compflag)  ((flag & compflag)==compflag)
 
 #if LBMDIM==2
 #define dC 0
@@ -943,6 +966,41 @@ int LbmFsgrSolver::getForZMax1(int lev)   {
 	return mLevel[lev].lSizez -1;
 }
 
+bool LbmFsgrSolver::checkDomainBounds(int lev,int i,int j,int k) { 
+	if(i<0) return false;
+	if(j<0) return false;
+	if(k<0) return false;
+	if(i>mLevel[lev].lSizex-1) return false;
+	if(j>mLevel[lev].lSizey-1) return false;
+	if(k>mLevel[lev].lSizez-1) return false;
+	return true;
+}
+bool LbmFsgrSolver::checkDomainBoundsPos(int lev,LbmVec pos) { 
+	const int i= (int)pos[0]; 
+	if(i<0) return false;
+	if(i>mLevel[lev].lSizex-1) return false;
+	const int j= (int)pos[1]; 
+	if(j<0) return false;
+	if(j>mLevel[lev].lSizey-1) return false;
+	const int k= (int)pos[2];
+	if(k<0) return false;
+	if(k>mLevel[lev].lSizez-1) return false;
+	return true;
+}
+
+void LbmFsgrSolver::initInterfaceVars(int level, int i,int j,int k,int workSet, bool initMass) {
+	LbmFloat *ccel = &QCELL(level ,i,j,k, workSet,0);
+	LbmFloat nrho = 0.0;
+	FORDF0 { nrho += RAC(ccel,l); }
+	if(initMass) {
+		RAC(ccel,dMass) = nrho;
+  	RAC(ccel, dFfrac) = 1.;
+	} else {
+		// preinited, e.g. from reinitFlags
+		RAC(ccel, dFfrac) = RAC(ccel, dMass)/nrho;
+		RAC(ccel, dFlux) = FLUX_INIT;
+	}
+}
 
 
 #endif

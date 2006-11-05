@@ -3,7 +3,7 @@
  * El'Beem - Free Surface Fluid Simulation with the Lattice Boltzmann Method
  * All code distributed as part of El'Beem is covered by the version 2 of the 
  * GNU General Public License. See the file COPYING for details.
- * Copyright 2003-2005 Nils Thuerey
+ * Copyright 2003-2006 Nils Thuerey
  *
  * API header
  */
@@ -72,13 +72,14 @@ typedef struct elbeemSimulationSettings {
 	float *channelGravity;  // vector
 
 	/* boundary types and settings for domain walls */
-	short obstacleType;
-	float obstaclePartslip;
+	short domainobsType;
+	float domainobsPartslip;
 	/* generate speed vectors for vertices (e.g. for image based motion blur)*/
 	short generateVertexVectors;
 	/* strength of surface smoothing */
 	float surfaceSmoothing;
-	// TODO add surf gen flags
+	/* no. of surface subdivisions */
+	int   surfaceSubdivs;
 
 	/* global transformation to apply to fluidsim mesh */
 	float surfaceTrafo[4*4];
@@ -147,6 +148,8 @@ typedef struct elbeemMesh {
 	/* boundary types and settings */
 	short obstacleType;
 	float obstaclePartslip;
+	/* amount of force transfer from fluid to obj, 0=off, 1=normal */
+	float obstacleImpactFactor;
 	/* init volume, shell or both? use OB_VOLUMEINIT_xxx defines above */
 	short volumeInitType;
 
@@ -229,6 +232,9 @@ double elbeemEstimateMemreq(int res,
 #define FGI_NO_BND		  (1<<(FGI_FLAGSTART+ 5))
 #define FGI_MBNDINFLOW	(1<<(FGI_FLAGSTART+ 6))
 #define FGI_MBNDOUTFLOW	(1<<(FGI_FLAGSTART+ 7))
+
+// all boundary types at once
+#define FGI_ALLBOUNDS ( FGI_BNDNO | FGI_BNDFREE | FGI_BNDPART | FGI_MBNDINFLOW | FGI_MBNDOUTFLOW )
 
 
 #endif // ELBEEM_API_H
