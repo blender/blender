@@ -1715,9 +1715,7 @@ void build_particle_system(Object *ob)
 		gzf = gzopen(filename, "rb");
 		if (!gzf) {
 			snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
-fprintf(stderr,"readFsPartData::error - Unable to open file for reading '%s' \n", filename);  // DEBUG!
 			//elbeemDebugOut(debugStrBuffer);
-			//fprintf(stderr,"NO PARTOP!\n");
 			paf->totpart = 0;
 			return;
 		}
@@ -1755,7 +1753,6 @@ fprintf(stderr,"readFsPartData::error - Unable to open file for reading '%s' \n"
 				// convert range of  1.0-10.0 to shorts 1000-10000)
 				shsize = (short)(convertSize*1000.0);
 				pa->rt = shsize;
-				//if(a<200) fprintf(stderr,"SREAD, %d/%d: %f %d %d \n",a,totpart, convertSize,shsize,pa->rt);
 
 				for(j=0; j<3; j++) {
 					float wrf;
