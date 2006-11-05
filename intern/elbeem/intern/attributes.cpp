@@ -275,10 +275,12 @@ void __forceAnimChannelInstantiation() {
 	AnimChannel< double > tmp2;
 	AnimChannel< string > tmp3;
 	AnimChannel< ntlVector3Dim<float> > tmp4;
+	AnimChannel< ntlVector3Dim<double> > tmp5;
 	tmp1.debugPrintChannel();
 	tmp2.debugPrintChannel();
 	tmp3.debugPrintChannel();
 	tmp4.debugPrintChannel();
+	tmp5.debugPrintChannel();
 }
 
 

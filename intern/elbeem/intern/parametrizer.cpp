@@ -10,7 +10,7 @@
 #include <sstream>
 #include "parametrizer.h"
 
-// debug output flag
+// debug output flag, has to be off for win32 for some reason...
 #define DEBUG_PARAMCHANNELS 0
 
 /*! param seen debug string array */
@@ -149,7 +149,9 @@ void Parametrizer::parseAttrList()
  *****************************************************************************/
 void Parametrizer::setFrameNum(int frame) {
 	mFrameNum = frame;
-	if(DEBUG_PARAMCHANNELS) errMsg("DEBUG_PARAMCHANNELS","setFrameNum frame-num="<<mFrameNum);
+#if DEBUG_PARAMCHANNELS>0
+	errMsg("DEBUG_PARAMCHANNELS","setFrameNum frame-num="<<mFrameNum);
+#endif // DEBUG_PARAMCHANNELS>0
 }
 /*! get time of an animation frame (renderer)  */
 // also used by: mpParam->getCurrentAniFrameTime() , e.g. for velocity dump
@@ -161,7 +163,9 @@ ParamFloat Parametrizer::getAniFrameTime( int frame )   {
 		errMsg("Parametrizer::setFrameNum","Invalid frame time:"<<anift<<" at frame "<<frame<<", resetting to "<<resetv);
 		anift = resetv; 
 	}
+#if DEBUG_PARAMCHANNELS>0
 	if((0)|| (DEBUG_PARAMCHANNELS)) errMsg("DEBUG_PARAMCHANNELS","getAniFrameTime frame="<<frame<<", frametime="<<anift<<" ");
+#endif // DEBUG_PARAMCHANNELS>0
 	return anift; 
 }
 
@@ -198,7 +202,9 @@ ParamFloat Parametrizer::calculateCellSize(void)
 ParamFloat Parametrizer::calculateOmega( double time ) { 
 	ParamFloat viscStar = calculateLatticeViscosity(time);
 	ParamFloat relaxTime = (6.0 * viscStar + 1) * 0.5;
-	if(DEBUG_PARAMCHANNELS) errMsg("DEBUG_PARAMCHANNELS","calculateOmega viscStar="<<viscStar<<" relaxtime="<<relaxTime);
+#if DEBUG_PARAMCHANNELS>0
+	errMsg("DEBUG_PARAMCHANNELS","calculateOmega viscStar="<<viscStar<<" relaxtime="<<relaxTime);
+#endif // DEBUG_PARAMCHANNELS>0
 	return (1.0/relaxTime); 
 }
 
@@ -207,7 +213,9 @@ ParamVec Parametrizer::calculateGravity( double time ) {
 	ParamVec grav = mcGravity.get(time);
 	ParamFloat forceFactor = (mTimestep *mTimestep)/mCellSize;
 	ParamVec latticeGravity = grav * forceFactor;
-	if(DEBUG_PARAMCHANNELS) errMsg("DEBUG_PARAMCHANNELS","calculateGravity grav="<<grav<<" ff"<<forceFactor<<" lattGrav="<<latticeGravity);
+#if DEBUG_PARAMCHANNELS>0
+	errMsg("DEBUG_PARAMCHANNELS","calculateGravity grav="<<grav<<" ff"<<forceFactor<<" lattGrav="<<latticeGravity);
+#endif // DEBUG_PARAMCHANNELS>0
 	return latticeGravity; 
 }
 
@@ -219,7 +227,9 @@ ParamFloat Parametrizer::calculateLatticeViscosity( double time ) {
 		errMsg("Parametrizer::calculateLatticeViscosity"," Missing arguments!");
 	}
 	ParamFloat viscStar = mcViscosity.get(time) * mTimestep / (mCellSize*mCellSize);
-	if(DEBUG_PARAMCHANNELS) errMsg("DEBUG_PARAMCHANNELS","calculateLatticeViscosity viscStar="<<viscStar);
+#if DEBUG_PARAMCHANNELS>0
+	errMsg("DEBUG_PARAMCHANNELS","calculateLatticeViscosity viscStar="<<viscStar);
+#endif // DEBUG_PARAMCHANNELS>0
 	return viscStar; 
 }
 
@@ -475,41 +485,55 @@ errMsg("Warning","Used z-dir for gstar!");
 void Parametrizer::setViscosity(ParamFloat set) { 
 	mcViscosity = AnimChannel<ParamFloat>(set); 
 	seenThis( PARAM_VISCOSITY ); 
-	if(DEBUG_PARAMCHANNELS) { errMsg("DebugChannels","Parametrizer::mcViscosity set = "<< mcViscosity.printChannel() ); }
+#if DEBUG_PARAMCHANNELS>0
+	{ errMsg("DebugChannels","Parametrizer::mcViscosity set = "<< mcViscosity.printChannel() ); }
+#endif // DEBUG_PARAMCHANNELS>0
 }
 void Parametrizer::initViscosityChannel(vector<ParamFloat> val, vector<double> time) { 
 	mcViscosity = AnimChannel<ParamFloat>(val,time); 
 	seenThis( PARAM_VISCOSITY ); 
-	if(DEBUG_PARAMCHANNELS) { errMsg("DebugChannels","Parametrizer::mcViscosity initc = "<< mcViscosity.printChannel() ); }
+#if DEBUG_PARAMCHANNELS>0
+	{ errMsg("DebugChannels","Parametrizer::mcViscosity initc = "<< mcViscosity.printChannel() ); }
+#endif // DEBUG_PARAMCHANNELS>0
 }
 
 /*! set the external force */
 void Parametrizer::setGravity(ParamFloat setx, ParamFloat sety, ParamFloat setz) { 
 	mcGravity = AnimChannel<ParamVec>(ParamVec(setx,sety,setz)); 
 	seenThis( PARAM_GRAVITY ); 
-	if(DEBUG_PARAMCHANNELS) { errMsg("DebugChannels","Parametrizer::mcGravity set = "<< mcGravity.printChannel() ); }
+#if DEBUG_PARAMCHANNELS>0
+	{ errMsg("DebugChannels","Parametrizer::mcGravity set = "<< mcGravity.printChannel() ); }
+#endif // DEBUG_PARAMCHANNELS>0
 }
 void Parametrizer::setGravity(ParamVec set) { 
 	mcGravity = AnimChannel<ParamVec>(set); 
 	seenThis( PARAM_GRAVITY ); 
-	if(DEBUG_PARAMCHANNELS) { errMsg("DebugChannels","Parametrizer::mcGravity set = "<< mcGravity.printChannel() ); }
+#if DEBUG_PARAMCHANNELS>0
+	{ errMsg("DebugChannels","Parametrizer::mcGravity set = "<< mcGravity.printChannel() ); }
+#endif // DEBUG_PARAMCHANNELS>0
 }
 void Parametrizer::initGravityChannel(vector<ParamVec> val, vector<double> time) { 
 	mcGravity = AnimChannel<ParamVec>(val,time); 
 	seenThis( PARAM_GRAVITY ); 
-	if(DEBUG_PARAMCHANNELS) { errMsg("DebugChannels","Parametrizer::mcGravity initc = "<< mcGravity.printChannel() ); }
+#if DEBUG_PARAMCHANNELS>0
+	{ errMsg("DebugChannels","Parametrizer::mcGravity initc = "<< mcGravity.printChannel() ); }
+#endif // DEBUG_PARAMCHANNELS>0
 }
 
 /*! set time of an animation frame (renderer)  */
 void Parametrizer::setAniFrameTimeChannel(ParamFloat set) { 
 	mcAniFrameTime = AnimChannel<ParamFloat>(set); 
 	seenThis( PARAM_ANIFRAMETIME ); 
-	if(DEBUG_PARAMCHANNELS) { errMsg("DebugChannels","Parametrizer::mcAniFrameTime set = "<< mcAniFrameTime.printChannel() ); }
+#if DEBUG_PARAMCHANNELS>0
+	{ errMsg("DebugChannels","Parametrizer::mcAniFrameTime set = "<< mcAniFrameTime.printChannel() ); }
+#endif // DEBUG_PARAMCHANNELS>0
 }
 void Parametrizer::initAniFrameTimeChannel(vector<ParamFloat> val, vector<double> time) { 
 	mcAniFrameTime = AnimChannel<ParamFloat>(val,time); 
 	seenThis( PARAM_ANIFRAMETIME ); 
-	if(DEBUG_PARAMCHANNELS) { errMsg("DebugChannels","Parametrizer::mcAniFrameTime initc = "<< mcAniFrameTime.printChannel() ); }
+#if DEBUG_PARAMCHANNELS>0
+	{ errMsg("DebugChannels","Parametrizer::mcAniFrameTime initc = "<< mcAniFrameTime.printChannel() ); }
+#endif // DEBUG_PARAMCHANNELS>0
 }
 
 // OLD interface stuff

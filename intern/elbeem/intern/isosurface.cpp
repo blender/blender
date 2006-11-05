@@ -635,7 +635,7 @@ void IsoSurface::triangulate( void )
 	float smoSubdfac = 1.;
 	if(mSubdivs>0) {
 		//smoSubdfac = 1./(float)(mSubdivs);
-		smoSubdfac = pow(0.55,(float)mSubdivs); // slightly stronger
+		smoSubdfac = pow(0.55,(double)mSubdivs); // slightly stronger
 	}
 	if(mSmoothSurface>0. || mSmoothNormals>0.) debMsgStd("IsoSurface::triangulate",DM_MSG,"Smoothing...",10);
 	if(mSmoothSurface>0.0) { 

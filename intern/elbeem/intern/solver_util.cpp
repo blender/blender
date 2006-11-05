@@ -892,7 +892,7 @@ void LbmFsgrSolver::advanceParticles() {
 							// check speed, perhaps normalize
 							gfxReal vlensqr = normNoSqrt(v);
 							if(vlensqr > 0.166*0.166) {
-								v *= 1./sqrtf(vlensqr)*0.166;
+								v *= 1./sqrtf((float)vlensqr)*0.166;
 							}
 							// compute cell velocity
 							LbmFloat *tcel = RACPNT(level, oi,oj,ok, workSet);
