@@ -1118,9 +1118,9 @@ static void initialize_posetree(struct Object *ob, bPoseChannel *pchan_tip)
 		/* make new tree */
 		tree= MEM_callocN(sizeof(PoseTree), "posetree");
 
-		tree->tolerance= data->tolerance;
 		tree->iterations= data->iterations;
 		tree->totchannel= segcount;
+		tree->stretch = (data->flag & CONSTRAINT_IK_STRETCH);
 		
 		tree->pchan= MEM_callocN(segcount*sizeof(void*), "ik tree pchan");
 		tree->parent= MEM_callocN(segcount*sizeof(int), "ik tree parent");
@@ -1134,8 +1134,8 @@ static void initialize_posetree(struct Object *ob, bPoseChannel *pchan_tip)
 		BLI_addtail(&pchan_root->iktree, tree);
 	}
 	else {
-		tree->tolerance= MIN2(tree->tolerance, data->tolerance);
 		tree->iterations= MAX2(data->iterations, tree->iterations);
+		tree->stretch= tree->stretch && !(data->flag & CONSTRAINT_IK_STRETCH);
 
 		/* skip common pose channels and add remaining*/
 		size= MIN2(segcount, tree->totchannel);
@@ -1216,7 +1216,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		if((pchan->ikflag & BONE_IK_NO_ZDOF) == 0)
 			flag |= IK_ZDOF;
 
-		if(pchan->ikstretch > 0.0) {
+		if(tree->stretch && (pchan->ikstretch > 0.0)) {
 			flag |= IK_TRANS_YDOF;
 			hasstretch = 1;
 		}
@@ -1281,7 +1281,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		IK_SetStiffness(seg, IK_Y, pchan->stiffness[1]);
 		IK_SetStiffness(seg, IK_Z, pchan->stiffness[2]);
 
-		if(pchan->ikstretch > 0.0) {
+		if(tree->stretch && (pchan->ikstretch > 0.0)) {
 			float ikstretch = pchan->ikstretch*pchan->ikstretch;
 			IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0-ikstretch, 0.99));
 			IK_SetLimit(seg, IK_TRANS_Y, 0.001, 1e10);
@@ -1352,7 +1352,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	}
 
 	/* solve */
-	IK_Solve(solver, tree->tolerance, tree->iterations);
+	IK_Solve(solver, 0.0f, tree->iterations);
 	IK_FreeSolver(solver);
 
 	/* gather basis changes */
@@ -1370,7 +1370,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 			pchan= tree->pchan[a];
 			parentstretch= (tree->parent[a] >= 0)? ikstretch[tree->parent[a]]: 1.0;
 
-			if(pchan->ikstretch > 0.0) {
+			if(tree->stretch && (pchan->ikstretch > 0.0)) {
 				float trans[3], length;
 
 				IK_GetTranslationChange(iktree[a], trans);

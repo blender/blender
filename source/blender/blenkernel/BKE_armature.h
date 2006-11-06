@@ -63,8 +63,8 @@ typedef struct PoseTree
 	int		*parent;				/* and their parents */
 	int		totchannel;				/* number of pose channels */
 	float	(*basis_change)[3][3]; 	/* basis change result from solver */
-	float	tolerance;				/* tolerance from the constraint */
 	int		iterations;				/* iterations from the constraint */
+	int     stretch;				/* disable stretching */
 } PoseTree;
 
 /*	Core armature functionality */

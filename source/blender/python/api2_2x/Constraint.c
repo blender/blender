@@ -67,7 +67,7 @@ enum constraint_constants {
 	EXPP_CONSTR_MINZ = TRACK_nZ,
 
 	EXPP_CONSTR_TARGET = 100,
-	EXPP_CONSTR_TOLERANCE,
+	EXPP_CONSTR_STRETCH,
 	EXPP_CONSTR_ITERATIONS,
 	EXPP_CONSTR_BONE,
 	EXPP_CONSTR_CHAINLEN,
@@ -390,8 +390,8 @@ static PyObject *kinematic_getter( BPy_Constraint * self, int type )
 		return Object_CreatePyObject( con->tar );
 	case EXPP_CONSTR_BONE:
 		return PyString_FromString( con->subtarget );
-	case EXPP_CONSTR_TOLERANCE:
-		return PyFloat_FromDouble( (double)con->tolerance );
+	case EXPP_CONSTR_STRETCH:
+		return PyBool_FromLong( (long)( con->flag & CONSTRAINT_IK_STRETCH ) ) ;
 	case EXPP_CONSTR_ITERATIONS:
 		return PyInt_FromLong( (long)con->iterations );
 	case EXPP_CONSTR_CHAINLEN:
@@ -432,8 +432,8 @@ static int kinematic_setter( BPy_Constraint *self, int type, PyObject *value )
 
 		return 0;
 		}
-	case EXPP_CONSTR_TOLERANCE:
-		return EXPP_setFloatClamped( value, &con->tolerance, 0.0001, 1.0 );
+	case EXPP_CONSTR_STRETCH:
+		return EXPP_setBitfield( value, &con->flag, CONSTRAINT_IK_STRETCH, 'h' );
 	case EXPP_CONSTR_ITERATIONS:
 		return EXPP_setIValueClamped( value, &con->iterations, 1, 10000, 'h' );
 	case EXPP_CONSTR_CHAINLEN:
@@ -1829,8 +1829,8 @@ static PyObject *M_Constraint_SettingsDict( void )
 
 		PyConstant_Insert( d, "TARGET",
 				PyInt_FromLong( EXPP_CONSTR_TARGET ) );
-		PyConstant_Insert( d, "TOLERANCE", 
-				PyInt_FromLong( EXPP_CONSTR_TOLERANCE ) );
+		PyConstant_Insert( d, "STRETCH", 
+				PyInt_FromLong( EXPP_CONSTR_STRETCH ) );
 		PyConstant_Insert( d, "ITERATIONS", 
 				PyInt_FromLong( EXPP_CONSTR_ITERATIONS ) );
 		PyConstant_Insert( d, "BONE", 

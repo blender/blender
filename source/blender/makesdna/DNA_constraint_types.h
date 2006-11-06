@@ -62,16 +62,15 @@ typedef struct bConstraint{
 /* Single-target subobject constraints */
 typedef struct bKinematicConstraint{
 	Object		*tar;
-	float		tolerance;		/* Acceptable distance from target */
 	short		iterations;		/* Maximum number of iterations to try */
 	short		flag;			/* Like CONSTRAINT_IK_TIP */
-	int			rootbone, pad;	/* index to rootbone, if zero go all the way to mother bone */
+	int			rootbone;	/* index to rootbone, if zero go all the way to mother bone */
 	char		subtarget[32];	/* String to specify sub-object target */
 
 	float		weight;			/* Weight of goal in IK tree */
 	float		orientweight;	/* Amount of rotation a target applies on chain */
 	float		grabtarget[3];	/* for target-less IK */
-	float		pad2;
+	int			pad;
 } bKinematicConstraint;
 
 typedef struct bTrackToConstraint{
@@ -277,6 +276,8 @@ typedef struct bSizeLimitConstraint{
 #define CONSTRAINT_IK_ROT		2
 #define CONSTRAINT_IK_AUTO		4
 #define CONSTRAINT_IK_TEMP		8
+#define CONSTRAINT_IK_STRETCH	16
+#define CONSTRAINT_IK_POS		32
 
 /* MinMax (floor) flags */
 #define MINMAX_STICKY	0x01

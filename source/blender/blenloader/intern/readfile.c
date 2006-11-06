@@ -5764,6 +5764,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 									data->flag&=~MINMAX_STICKY;
 								}
 							}
+							else if (curcon->type == CONSTRAINT_TYPE_KINEMATIC){
+								bKinematicConstraint *data = curcon->data;
+								if (!(data->flag & CONSTRAINT_IK_POS)) {
+									data->flag |= CONSTRAINT_IK_POS;
+									data->flag |= CONSTRAINT_IK_STRETCH;
+								}
+							}
 						}
 					}
 				}

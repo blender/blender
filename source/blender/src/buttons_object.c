@@ -757,7 +757,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			{
 				bKinematicConstraint *data = con->data;
 				
-				height = 108;
+				height = 111;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -776,14 +776,17 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					strcpy (data->subtarget, "");
 	
 				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tip", *xco, *yco-64, 142, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tip als last element in Chain");
-				uiDefButI(block, NUM, B_CONSTRAINT_TEST, "ChainLen:", *xco+142, *yco-64,143,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tip", *xco, *yco-64, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tip als last element in Chain");
+				uiDefButI(block, NUM, B_CONSTRAINT_TEST, "ChainLen:", *xco, *yco-84,137,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
 				
 				uiBlockBeginAlign(block);
-				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "PosW ", *xco, *yco-86, 142, 19, &data->weight, 0.01, 1.0, 2, 2, "For Tree-IK: weight of position control for this target");
-				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "RotW ", *xco+142, *yco-86, 143, 19, &data->orientweight, 0.01, 1.0, 2, 2, "For Tree-IK: Weight of orientation control for this target");
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Tolerance:", *xco, *yco-106, 142, 19, &data->tolerance, 0.0001f, 1.0, 0, 0, "Maximum distance to target after solving"); 
-				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Iterations:", *xco+142, *yco-106, 143, 19, &data->iterations, 1, 10000, 0, 0, "Maximum number of solving iterations"); 
+				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "PosW ", *xco+147, *yco-64, 137, 19, &data->weight, 0.01, 1.0, 2, 2, "For Tree-IK: weight of position control for this target");
+				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "RotW ", *xco+147, *yco-84, 137, 19, &data->orientweight, 0.01, 1.0, 2, 2, "For Tree-IK: Weight of orientation control for this target");
+
+				uiBlockBeginAlign(block);
+				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Iterations:", *xco, *yco-109, 137, 19, &data->iterations, 1, 10000, 0, 0, "Maximum number of solving iterations"); 
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_STRETCH, B_CONSTRAINT_TEST, "Stretch", *xco+147, *yco-109,137,19, &data->flag, 0, 0, 0, 0, "Enable IK stretching");
 				
 			}
 			break;
