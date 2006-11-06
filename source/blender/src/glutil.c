@@ -137,6 +137,20 @@ void sdrawXORline4(int nr, int x0, int y0, int x1, int y1)
 	set_inverted_drawing(0);
 }
 
+void fdrawXORellipse(float xofs, float yofs, float hw, float hh)
+{
+	if(hw==0) return;
+
+	set_inverted_drawing(1);
+
+	glPushMatrix();
+	glTranslatef(xofs, yofs, 0.0);
+	glScalef(1,hh/hw,1);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, hw, 20);
+	glPopMatrix();
+
+	set_inverted_drawing(0);
+}
 void fdrawXORcirc(float xofs, float yofs, float rad)
 {
 	set_inverted_drawing(1);

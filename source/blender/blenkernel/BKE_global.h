@@ -63,7 +63,6 @@ struct bSoundListener;
 struct BMF_Font;
 struct EditMesh;
 
-
 typedef struct Global {
 
 	/* active pointers */
@@ -189,6 +188,8 @@ typedef struct Global {
 #define G_VERSE_CONNECTED  (1 << 26)
 #define G_DRAW_VERSE_DEBUG (1 << 27)
 /*#endif*/
+
+#define G_SCULPTMODE    (1 << 28)
 
 /* G.fileflags */
 

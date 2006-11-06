@@ -84,6 +84,7 @@
 #include "BIF_interface.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
+#include "BIF_retopo.h"
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
@@ -605,6 +606,8 @@ void free_editMesh(EditMesh *em)
 	mesh_octree_table(NULL, NULL, 'e');
 	
 	G.totvert= G.totface= 0;
+
+	if(em->retopo_paint_data) retopo_free_paint_data(em->retopo_paint_data);
 }
 
 /* on G.editMesh */
@@ -1806,6 +1809,8 @@ typedef struct UndoMesh {
 	TFace *tfaces;
 	int totvert, totedge, totface,totsel;
 	short selectmode;
+	RetopoPaintData *retopo_paint_data;
+	char retopo_mode;
 } UndoMesh;
 
 
@@ -1826,6 +1831,7 @@ static void free_undoMesh(void *umv)
 	if(um->faces) MEM_freeN(um->faces);
 	if(um->tfaces) MEM_freeN(um->tfaces);
 	if(um->selected) MEM_freeN(um->selected);
+	if(um->retopo_paint_data) retopo_free_paint_data(um->retopo_paint_data);
 	MEM_freeN(um);
 }
 
@@ -1922,6 +1928,9 @@ static void *editMesh_to_undoMesh(void)
 		else if(ese->type == EDITEDGE) a = esec->index = ((EditEdge*)ese->data)->tmp.l; 
 		else if(ese->type == EDITFACE) a = esec->index = ((EditFace*)ese->data)->tmp.l;
 	}
+
+	um->retopo_paint_data= retopo_paint_data_copy(em->retopo_paint_data);
+	um->retopo_mode= em->retopo_mode;
 	
 	return um;
 }
@@ -2028,6 +2037,9 @@ static void undoMesh_to_editMesh(void *umv)
 		EM_free_index_arrays();
 	}
 
+	retopo_free_paint();
+	em->retopo_paint_data= retopo_paint_data_copy(um->retopo_paint_data);
+	em->retopo_mode= um->retopo_mode;
 }
 
 

@@ -55,6 +55,8 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_ipo_types.h"
 
+#include "BDR_sculptmode.h"
+
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
@@ -79,6 +81,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_arithb.h"
+
+#include "multires.h"
 
 
 
@@ -153,6 +157,14 @@ void free_mesh(Mesh *me)
 {
 	unlink_mesh(me);
 
+	if(me->pv) {
+		if(me->pv->vert_map) MEM_freeN(me->pv->vert_map);
+		if(me->pv->edge_map) MEM_freeN(me->pv->edge_map);
+		if(me->pv->old_faces) MEM_freeN(me->pv->old_faces);
+		if(me->pv->old_edges) MEM_freeN(me->pv->old_edges);
+		MEM_freeN(me->pv);
+	}
+
 	if(me->mvert) MEM_freeN(me->mvert);
 	if(me->medge) MEM_freeN(me->medge);
 	if(me->mface) MEM_freeN(me->mface);
@@ -166,6 +178,8 @@ void free_mesh(Mesh *me)
 	
 	if(me->bb) MEM_freeN(me->bb);
 	if(me->mselect) MEM_freeN(me->mselect);
+
+	if(me->mr) multires_free(me);
 }
 
 void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)

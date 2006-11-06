@@ -229,6 +229,7 @@ typedef struct IpoCurve {
 #define CU_STRETCH		128
 #define CU_OFFS_PATHDIST	256
 #define CU_FAST			512 /* Font: no filling inside editmode */
+#define CU_RETOPO               1024
 
 /* spacemode */
 #define CU_LEFT			0

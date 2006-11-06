@@ -81,6 +81,7 @@
 #include "BIF_mywindow.h"
 #include "BIF_interface.h"
 #include "BIF_transform.h"
+#include "BIF_retopo.h"
 
 #include "BSE_view.h"	/* For persp... */
 #include "BSE_edit.h"
@@ -2709,6 +2710,8 @@ void addvert_Nurb(int mode)
 			}
 		}
 	}
+
+	retopo_do_all(0,0);
 
 	test2DNurb(nu);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);

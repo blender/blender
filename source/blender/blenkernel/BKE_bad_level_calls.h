@@ -199,5 +199,14 @@ void post_layer_create(struct VLayer *vlayer);
 void post_layer_destroy(struct VLayer *vlayer);
 void post_server_add(void);
 
+/* multires.c */
+struct MultiresLevel;
+void multires_free(struct Mesh *me);
+void multires_set_level(void *ob, void *me_v);
+void multires_calc_level_maps(struct MultiresLevel *lvl);
+/* sculptmode.c */
+void sculptmode_free_vertexusers(struct Scene *sce);
+void sculptmode_init(struct Scene *sce);
+
 #endif
 

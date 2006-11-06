@@ -56,6 +56,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_scriptlink_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_action.h"			
@@ -75,6 +76,9 @@
 #include "BKE_scene.h"
 #include "BKE_world.h"
 #include "BKE_utildefines.h"
+
+#include "BIF_previewrender.h"
+#include "BDR_sculptmode.h"
 
 #include "BPY_extern.h"
 #include "BLI_arithb.h"
@@ -162,6 +166,8 @@ void free_scene(Scene *sce)
 		ntreeFreeTree(sce->nodetree);
 		MEM_freeN(sce->nodetree);
 	}
+
+	sculptmode_free_all(sce);
 }
 
 Scene *add_scene(char *name)
@@ -232,9 +238,11 @@ Scene *add_scene(char *name)
 	strcpy(sce->r.backbuf, "//backbuf");
 	strcpy(sce->r.pic, U.renderdir);
 	strcpy(sce->r.ftype, "//ftype");
-	
+
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
 	sce->r.osa= 8;
+
+	sculptmode_init(sce);
 	
 	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
 	scene_add_render_layer(sce);

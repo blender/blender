@@ -138,6 +138,7 @@
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
+#include "BIF_retopo.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
@@ -156,6 +157,7 @@
 #include "BSE_editipo_types.h"
 
 #include "BDR_vpaint.h"
+#include "BDR_sculptmode.h"
 #include "BDR_editface.h"
 #include "BDR_editmball.h"
 #include "BDR_editobject.h"
@@ -262,6 +264,8 @@ void delete_obj(int ok)
 	
 	if(G.obedit) return;
 	if(G.scene->id.lib) return;
+
+	if(G.f & G_SCULPTMODE) set_sculptmode();
 	
 	base= FIRSTBASE;
 	while(base) {
@@ -1507,12 +1511,15 @@ void enter_editmode(int wc)
 	if(wc) waitcursor(1);
 	
 	if(ob->type==OB_MESH) {
+		if(G.f & G_SCULPTMODE) set_sculpt_object(NULL);
+
 		me= get_mesh(ob);
 		if( me==0 ) return;
 		if(me->id.lib) {
 			error("Can't edit library data");
 			return;
 		}
+		if(me->pv) sculptmode_pmv_off(me);
 		ok= 1;
 		G.obedit= ob;
 		make_editMesh();
@@ -1585,6 +1592,8 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 		/* temporal */
 		countall();
 
+		retopo_end_okee();
+
 		if(G.totvert>MESH_MAX_VERTS) {
 			error("Too many vertices");
 			return;
@@ -1635,6 +1644,9 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 	}
 	/* also flush ob recalc, doesn't take much overhead, but used for particles */
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
+
+	if(G.f & G_SCULPTMODE)
+		set_sculpt_object(ob);
 
 	if(freedata) {
 		setcursor_space(SPACE_VIEW3D, CURSOR_STD);

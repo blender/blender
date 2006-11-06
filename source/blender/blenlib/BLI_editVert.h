@@ -41,6 +41,7 @@
 #include "DNA_mesh_types.h"
 
 struct DerivedMesh;
+struct RetopoPaintData;
 
 /* note; changing this also might affect the undo copy in editmesh.c */
 typedef struct EditVert
@@ -162,6 +163,9 @@ typedef struct EditMesh
 		 * to derived final, care should be taken on release.
 		 */
 	struct DerivedMesh *derivedCage, *derivedFinal;
+
+	char retopo_mode; /* 0=OFF, 1=ON, 2=PAINT */
+	struct RetopoPaintData *retopo_paint_data;
 
 #ifdef WITH_VERSE
 	void *vnode;

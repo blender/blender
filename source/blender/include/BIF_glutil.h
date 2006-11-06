@@ -43,6 +43,7 @@ struct rctf;
 void sdrawXORline(int x0, int y0, int x1, int y1);
 void sdrawXORline4(int nr, int x0, int y0, int x1, int y1);
 
+void fdrawXORellipse(float xofs, float yofs, float hw, float hh);
 void fdrawXORcirc(float xofs, float yofs, float rad);
 
 	/**

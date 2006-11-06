@@ -92,6 +92,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "envmap.h"
+#include "multires.h"
 #include "render_types.h"
 #include "rendercore.h"
 #include "renderdatabase.h"
@@ -1784,7 +1785,7 @@ static void use_mesh_edge_lookup(Render *re, Mesh *me, DispListMesh *dlm, MEdge 
 
 static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts)
 {
-	Mesh *me;
+	Mesh *me, *me_store= NULL;
 	MVert *mvert = NULL;
 	MFace *mface;
 	VlakRen *vlr; //, *vlr1;
@@ -1801,7 +1802,7 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 	int end, do_autosmooth=0, totvert = 0, dm_needsfree;
 	int useFluidmeshNormals= 0; // NT fluidsim, use smoothed normals?
 	int use_original_normals= 0;
-	
+
 	me= ob->data;
 
 	paf = give_parteff(ob);
@@ -1853,9 +1854,49 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 	
 	if(!only_verts)
 		if(need_orco) orco = get_object_orco(re, ob);
-	
+
+	/* If multires is enabled, a copy is made of the mesh
+	   to allow multires to be applied with modifiers. */
+	if(me->mr) {
+		me_store= me;
+
+		{
+			Mesh *men= MEM_callocN(sizeof(Mesh),"mrm render mesh");
+			men->totvert= me->totvert;
+			men->totedge= me->totedge;
+			men->totface= me->totface;
+			men->mvert= MEM_dupallocN(me->mvert);
+			men->medge= MEM_dupallocN(me->medge);
+			men->mface= MEM_dupallocN(me->mface);
+			if(me->mr) {
+				MultiresLevel *lvl, *nlvl;
+				men->mr= MEM_dupallocN(me->mr);
+				men->mr->levels.first= men->mr->levels.last= NULL;
+				for(lvl= me->mr->levels.first; lvl; lvl= lvl->next) {
+					nlvl= MEM_dupallocN(lvl);
+					BLI_addtail(&men->mr->levels,nlvl);
+					nlvl->verts= MEM_dupallocN(lvl->verts);
+					nlvl->faces= MEM_dupallocN(lvl->faces);
+					nlvl->edges= MEM_dupallocN(lvl->edges);
+					multires_calc_level_maps(nlvl);
+				}
+			}
+
+			me= men;
+
+		}
+		ob->data= me;
+	}
+
 	dm = mesh_create_derived_render(ob);
 	dm_needsfree= 1;
+
+	/* (Multires) Now switch the meshes back around */
+	if(me->mr) {
+		ob->data= me_store;
+		me_store= me;
+		me= ob->data;
+	}
 	
 	if(dm==NULL) return;	/* in case duplicated object fails? */
 
@@ -1864,7 +1905,7 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 	   (ob->fluidsimSettings->meshSurface) ) {
 		useFluidmeshNormals = 1;
 	}
-	
+
 	dlm = dm->convertToDispListMesh(dm, 1);
 
 	mvert= dlm->mvert;
@@ -2111,9 +2152,13 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 		if(need_stress)
 			calc_edge_stress(re, me, totverto, totvlako);
 	}
-	
+
 	if(dlm) displistmesh_free(dlm);
 	if(dm_needsfree) dm->release(dm);
+	if(me_store) {
+		free_mesh(me_store);
+		MEM_freeN(me_store);
+	}
 }
 
 /* ------------------------------------------------------------------------- */

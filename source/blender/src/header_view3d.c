@@ -75,6 +75,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_editVert.h"
 
 #include "BSE_edit.h"
 #include "BSE_editipo.h"
@@ -86,6 +87,7 @@
 #include "BDR_editface.h"
 #include "BDR_editmball.h"
 #include "BDR_editobject.h"
+#include "BDR_sculptmode.h"
 #include "BDR_imagepaint.h"
 #include "BDR_vpaint.h"
 
@@ -105,6 +107,7 @@
 #include "BIF_poseobject.h"
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"
+#include "BIF_retopo.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toets.h"
@@ -135,6 +138,7 @@
 
 #define V3D_OBJECTMODE_SEL			ICON_OBJECT
 #define V3D_EDITMODE_SEL			ICON_EDITMODE_HLT
+#define V3D_SCULPTMODE_SEL			ICON_SCULPTMODE_HLT
 #define V3D_FACESELECTMODE_SEL		ICON_FACESEL_HLT
 #define V3D_VERTEXPAINTMODE_SEL		ICON_VPAINT_HLT
 #define V3D_TEXTUREPAINTMODE_SEL	ICON_TPAINT_HLT
@@ -2165,6 +2169,9 @@ static void do_view3d_edit_objectmenu(void *arg, int event)
 	case 17: /* Transform snap to grid */
 		G.vd->flag2 ^= V3D_TRANSFORM_SNAP;
 		break;
+	case 18:
+		add_blockhandler(curarea, VIEW3D_HANDLER_MULTIRES, 0);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2197,6 +2204,7 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Multires Properties",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 18, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_object_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
 
@@ -2731,6 +2739,9 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 		if(session) b_verse_push_object(session, G.obedit);
 		break;
 #endif
+	case 14:
+		add_blockhandler(curarea, VIEW3D_HANDLER_MULTIRES, 0);
+		break;
 	case 17: /* Transform snap to grid */
 		G.vd->flag2 ^= V3D_TRANSFORM_SNAP;
 		break;
@@ -2767,6 +2778,7 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Transform Snap",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Multires Properties...",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
@@ -3764,7 +3776,6 @@ static void do_view3d_vpaintmenu(void *arg, int event)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-
 static uiBlock *view3d_vpaintmenu(void *arg_unused)
 {
 	uiBlock *block;
@@ -3889,6 +3900,41 @@ static uiBlock *view3d_wpaintmenu(void *arg_unused)
 	return block;
 }
 
+void do_view3d_sculptmenu(void *arg, int event)
+{
+	short avg= G.scene->sculptdata.averaging;
+	switch(event) {
+	case 0: /* Set sculptdata.averaging */
+		if(button(&avg,1,10,"Averaging:")==0) return;
+		G.scene->sculptdata.averaging= avg;
+		break;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+uiBlock *view3d_sculptmenu(void *arg_unused_so_why_have_it/*?*/)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth= 120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "view3d_sculptmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_view3d_sculptmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mouse averaging", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
 
 static void do_view3d_facesel_propertiesmenu(void *arg, int event)
 {
@@ -4172,7 +4218,8 @@ static char *view3d_modeselect_pup(void)
 	}
 
 	if (ob->type == OB_MESH) {
-	
+
+		str += sprintf(str, formatstr, "Sculpt Mode", V3D_SCULPTMODE_SEL, ICON_SCULPTMODE_HLT);
 		str += sprintf(str, formatstr, "UV Face Select", V3D_FACESELECTMODE_SEL, ICON_FACESEL_HLT);
 		str += sprintf(str, formatstr, "Vertex Paint", V3D_VERTEXPAINTMODE_SEL, ICON_VPAINT_HLT);
 		str += sprintf(str, formatstr, "Texture Paint", V3D_TEXTUREPAINTMODE_SEL, ICON_TPAINT_HLT);
@@ -4316,6 +4363,7 @@ void do_view3d_buttons(short event)
 		if (G.vd->modeselect == V3D_OBJECTMODE_SEL) {
 			
 			G.vd->flag &= ~V3D_MODE;
+			if(G.f & G_SCULPTMODE) set_sculptmode(); /* Switch off sculptmode */
 			if(G.f & G_VERTEXPAINT) set_vpaint(); /* Switch off vertex paint */
 			if(G.f & G_TEXTUREPAINT) set_texturepaint(); /* Switch off tex paint */
 			if(G.f & G_WEIGHTPAINT) set_wpaint();		/* Switch off weight paint */
@@ -4326,12 +4374,25 @@ void do_view3d_buttons(short event)
 		else if (G.vd->modeselect == V3D_EDITMODE_SEL) {
 			if(!G.obedit) {
 				G.vd->flag &= ~V3D_MODE;
+				if(G.f & G_SCULPTMODE) set_sculptmode(); /* Switch off sculptmode */
 				if(G.f & G_VERTEXPAINT) set_vpaint(); /* Switch off vertex paint */
 				if(G.f & G_TEXTUREPAINT) set_texturepaint(); /* Switch off tex paint */
 				if(G.f & G_WEIGHTPAINT) set_wpaint();		/* Switch off weight paint */
 					
 				enter_editmode(EM_WAITCURSOR);
 				BIF_undo_push("Original");	/* here, because all over code enter_editmode is abused */
+			}
+		} 
+		else if (G.vd->modeselect == V3D_SCULPTMODE_SEL) {
+			if (!(G.f & G_SCULPTMODE)) {
+				G.vd->flag &= ~V3D_MODE;
+				if(G.f & G_FACESELECT) set_faceselect(); /* Switch off face select */
+				if(G.f & G_VERTEXPAINT) set_vpaint(); /* Switch off vertex paint */
+				if(G.f & G_TEXTUREPAINT) set_texturepaint(); /* Switch off tex paint */
+				if(G.f & G_WEIGHTPAINT) set_wpaint();		/* Switch off weight paint */
+				if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
+					
+				set_sculptmode();
 			}
 		} 
 		else if (G.vd->modeselect == V3D_FACESELECTMODE_SEL) {
@@ -4343,6 +4404,7 @@ void do_view3d_buttons(short event)
 				if(G.f & G_TEXTUREPAINT) set_texturepaint(); /* Switch off tex paint */
 			} else {
 				G.vd->flag &= ~V3D_MODE;
+				if(G.f & G_SCULPTMODE) set_sculptmode(); /* Switch off sculptmode */
 				if(G.f & G_VERTEXPAINT) set_vpaint(); /* Switch off vertex paint */
 				if(G.f & G_TEXTUREPAINT) set_texturepaint(); /* Switch off tex paint */
 				if(G.f & G_WEIGHTPAINT) set_wpaint();		/* Switch off weight paint */
@@ -4354,6 +4416,7 @@ void do_view3d_buttons(short event)
 		else if (G.vd->modeselect == V3D_VERTEXPAINTMODE_SEL) {
 			if (!(G.f & G_VERTEXPAINT)) {
 				G.vd->flag &= ~V3D_MODE;
+				if(G.f & G_SCULPTMODE) set_sculptmode(); /* Switch off sculptmode */
 				if(G.f & G_TEXTUREPAINT) set_texturepaint(); /* Switch off tex paint */
 				if(G.f & G_WEIGHTPAINT) set_wpaint();		/* Switch off weight paint */
 				if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
@@ -4364,6 +4427,7 @@ void do_view3d_buttons(short event)
 		else if (G.vd->modeselect == V3D_TEXTUREPAINTMODE_SEL) {
 			if (!(G.f & G_TEXTUREPAINT)) {
 				G.vd->flag &= ~V3D_MODE;
+				if(G.f & G_SCULPTMODE) set_sculptmode(); /* Switch off sculptmode */
 				if(G.f & G_VERTEXPAINT) set_vpaint(); /* Switch off vertex paint */
 				if(G.f & G_WEIGHTPAINT) set_wpaint();		/* Switch off weight paint */
 				if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
@@ -4374,6 +4438,7 @@ void do_view3d_buttons(short event)
 		else if (G.vd->modeselect == V3D_WEIGHTPAINTMODE_SEL) {
 			if (!(G.f & G_WEIGHTPAINT) && (ob && ob->type == OB_MESH) ) {
 				G.vd->flag &= ~V3D_MODE;
+				if(G.f & G_SCULPTMODE) set_sculptmode(); /* Switch off sculptmode */
 				if(G.f & G_VERTEXPAINT) set_vpaint(); /* Switch off vertex paint */
 				if(G.f & G_TEXTUREPAINT) set_texturepaint(); /* Switch off tex paint */
 				if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
@@ -4590,6 +4655,11 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 		uiDefPulldownBut(block, view3d_tpaintmenu, NULL, "Paint", xco,-2, xmax-3, 24, "");
 		xco+= xmax;
 	}
+	else if( G.f & G_SCULPTMODE) {
+		xmax= GetButStringLength("Sculpt");
+		uiDefPulldownBut(block, view3d_sculptmenu, NULL, "Sculpt", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
+	}
 	else if (G.f & G_FACESELECT) {
 		if (ob && ob->type == OB_MESH) {
 			xmax= GetButStringLength("Face");
@@ -4654,6 +4724,7 @@ void view3d_buttons(void)
 	
 	if (G.obedit) G.vd->modeselect = V3D_EDITMODE_SEL;
 	else if(ob && (ob->flag & OB_POSEMODE)) G.vd->modeselect = V3D_POSEMODE_SEL;
+	else if (G.f & G_SCULPTMODE)  G.vd->modeselect = V3D_SCULPTMODE_SEL;
 	else if (G.f & G_WEIGHTPAINT) G.vd->modeselect = V3D_WEIGHTPAINTMODE_SEL;
 	else if (G.f & G_VERTEXPAINT) G.vd->modeselect = V3D_VERTEXPAINTMODE_SEL;
 	else if (G.f & G_TEXTUREPAINT) G.vd->modeselect = V3D_TEXTUREPAINTMODE_SEL;
@@ -4679,123 +4750,152 @@ void view3d_buttons(void)
 
 	/* around */
 	xco+= XIC+18;
-	
+
+	/* Show wireframe for sculptmode */
+	if(!G.obedit && G.f & G_SCULPTMODE && ob) {
+ 		uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire", xco,0,30,20, &ob->dtx, 0,0,0,0, "Adds the active object's wireframe over solid drawing");
+ 		xco+= 35;
+ 		uiDefButC(block, TOG, B_NOP, "PvRot", xco,0,40,20,&G.vd->pivot_last, 0,0,0,0, "Rotate around the center of the last brush action");
+ 		xco+= 40;
+ 	}
+
 	uiBlockBeginAlign(block);
-	uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.vd->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period) ");
 
-	xco+= XIC+10;
-	
-	uiDefIconButBitS(block, TOG, V3D_ALIGN, B_AROUND, ICON_ALIGN,
-				xco,0,XIC,YIC,
-				&G.vd->flag, 0, 0, 0, 0, "Move object centers only");	
-	uiBlockEndAlign(block);
-	
-	xco+= XIC+8;
+	if(retopo_mesh_paint_check()) {
+ 		RetopoPaintData *rpd= get_retopo_paint_data();
+ 		if(rpd) {
+ 			uiDefButC(block,ROW,B_NOP,"Pen",xco,0,40,20,&rpd->mode,6.0,RETOPO_PEN,0,0,"");
+ 			xco+=40;
+ 			uiDefButC(block,ROW,B_NOP,"Line",xco,0,40,20,&rpd->mode,6.0,RETOPO_LINE,0,0,"");
+ 			xco+=40;
+ 			uiDefButC(block,ROW,B_NOP,"Ellipse",xco,0,60,20,&rpd->mode,6.0,RETOPO_ELLIPSE,0,0,"");
+ 			xco+=65;
+			
+ 			uiBlockBeginAlign(block);
+ 			uiDefButC(block,NUM,B_NOP,"LineDiv",xco,0,80,20,&rpd->line_div,1,50,0,0,"How much to subdivide each line made with the Line tool");
+ 			xco+=80;
+ 			uiDefButC(block,NUM,B_NOP,"EllDiv",xco,0,80,20,&rpd->ellipse_div,3,50,0,0,"How much to subdivide each ellipse made with the Ellipse tool");
+ 			xco+=85;
+ 			
+ 			uiBlockEndAlign(block);
+ 		}
+ 	} else {
+		uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.vd->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period) ");
 
-	/* Transform widget / manipulators */
-	uiBlockBeginAlign(block);
-	uiDefIconButBitS(block, TOG, V3D_USE_MANIPULATOR, B_REDR, ICON_MANIPUL,xco,0,XIC,YIC, &G.vd->twflag, 0, 0, 0, 0, "Use 3d transform manipulator (Ctrl Space)");	
-	xco+= XIC;
-	
-	if(G.vd->twflag & V3D_USE_MANIPULATOR) {
-		uiDefIconButBitS(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode (Ctrl Alt G)");
-		xco+= XIC;
-		uiDefIconButBitS(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Rotate manipulator mode (Ctrl Alt R)");
-		xco+= XIC;
-		uiDefIconButBitS(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode (Ctrl Alt S)");
-		xco+= XIC;
-	}
-	uiDefButS(block, MENU, B_NOP, "Orientation%t|Global%x0|Local%x1|Normal%x2|View%x3",xco,0,70,YIC, &G.vd->twmode, 0, 0, 0, 0, "Transform Orientation (Alt Space)");
-	xco+= 70;
-	uiBlockEndAlign(block);
-	xco+= 8;
-	
-	/* LAYERS */
-	if(G.obedit==NULL && G.vd->localview==0) {
-		uiBlockBeginAlign(block);
-		for(a=0; a<5; a++)
-			uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Num, Shift Num)");
-		for(a=0; a<5; a++)
-			uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-		
-		xco+= 5;
-		uiBlockBeginAlign(block);
-		for(a=5; a<10; a++)
-			uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Num, Shift Num)");
-		for(a=5; a<10; a++)
-			uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
-
-		uiBlockEndAlign(block);
-		
-		xco+= (a-2)*(XIC/2)+3;
-
-		/* LOCK */
-		uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_UNLOCKED, xco+=XIC,0,XIC,YIC, &(G.vd->scenelock), 0, 0, 0, 0, "Locks layers and used Camera to Scene (Ctrl `)");
 		xco+= XIC+10;
-
-	}
 	
-	/* proportional falloff */
-	if(G.obedit && (G.obedit->type == OB_MESH || G.obedit->type == OB_CURVE || G.obedit->type == OB_SURF || G.obedit->type == OB_LATTICE)) {
-		
-		uiBlockBeginAlign(block);
-		uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_PROP_OFF, "Proportional %t|Off %x0|On %x1|Connected %x2", xco,0,XIC+10,YIC, &(G.scene->proportional), 0, 1.0, 0, 0, "Proportional Edit Falloff (Hotkeys: O, Alt O) ");
-		xco+= XIC+10;
-		
-		if(G.scene->proportional) {
-			uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SMOOTHCURVE, propfalloff_pup(), xco,0,XIC+10,YIC, &(G.scene->prop_mode), 0.0, 0.0, 0, 0, "Proportional Edit Falloff (Hotkey: Shift O) ");
-			xco+= XIC+10;
-		}
-		xco+= 10;
-	}
-
-	/* selection modus */
-	if(G.obedit && (G.obedit->type == OB_MESH)) {
-		uiBlockBeginAlign(block);
-		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
-		xco+= XIC;
-		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Edge select mode (Ctrl Tab 2)");
-		xco+= XIC;
-		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
-		xco+= XIC;
+		uiDefIconButBitS(block, TOG, V3D_ALIGN, B_AROUND, ICON_ALIGN,
+				 xco,0,XIC,YIC,
+				 &G.vd->flag, 0, 0, 0, 0, "Move object centers only");	
 		uiBlockEndAlign(block);
-		if(G.vd->drawtype > OB_WIRE) {
-			uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,0,XIC,YIC, &G.vd->flag, 1.0, 0.0, 0, 0, "Limit selection to visible (clipped with depth buffer)");
+	
+		xco+= XIC+8;
+
+		/* Transform widget / manipulators */
+		uiBlockBeginAlign(block);
+		uiDefIconButBitS(block, TOG, V3D_USE_MANIPULATOR, B_REDR, ICON_MANIPUL,xco,0,XIC,YIC, &G.vd->twflag, 0, 0, 0, 0, "Use 3d transform manipulator (Ctrl Space)");	
+		xco+= XIC;
+	
+		if(G.vd->twflag & V3D_USE_MANIPULATOR) {
+			uiDefIconButBitS(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode (Ctrl Alt G)");
+			xco+= XIC;
+			uiDefIconButBitS(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Rotate manipulator mode (Ctrl Alt R)");
+			xco+= XIC;
+			uiDefIconButBitS(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode (Ctrl Alt S)");
 			xco+= XIC;
 		}
-		xco+= 20;
-	}
-
-	uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE_DEHLT, xco,0,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (hold CTRL for anim)");
-	
-	if (ob && (ob->flag & OB_POSEMODE)) {
-		xco+= XIC/2;
-		uiBlockBeginAlign(block);
-		if(curarea->headertype==HEADERTOP) {
-			uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYUP, 
-						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
-						 "Copies the current pose to the buffer");
-			uiSetButLock(ob->id.lib!=0, "Can't edit library data");
-			uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEUP,	
-						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
-						 "Pastes the pose from the buffer");
-			uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPUP,
-						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
-						 "Pastes the mirrored pose from the buffer");
-		}
-		else {
-			uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYDOWN,
-						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
-						 "Copies the current pose to the buffer");
-			uiSetButLock(ob->id.lib!=0, "Can't edit library data");
-			uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEDOWN,
-						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
-						 "Pastes the pose from the buffer");
-			uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPDOWN, 
-						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
-						 "Pastes the mirrored pose from the buffer");
-		}
+		uiDefButS(block, MENU, B_NOP, "Orientation%t|Global%x0|Local%x1|Normal%x2|View%x3",xco,0,70,YIC, &G.vd->twmode, 0, 0, 0, 0, "Transform Orientation (Alt Space)");
+		xco+= 70;
 		uiBlockEndAlign(block);
+		xco+= 8;
+	
+		/* LAYERS */
+		if(G.obedit==NULL && G.vd->localview==0) {
+			uiBlockBeginAlign(block);
+			for(a=0; a<5; a++)
+				uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Num, Shift Num)");
+			for(a=0; a<5; a++)
+				uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+		
+			xco+= 5;
+			uiBlockBeginAlign(block);
+			for(a=5; a<10; a++)
+				uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Num, Shift Num)");
+			for(a=5; a<10; a++)
+				uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility (Alt Num, Alt Shift Num)");
+
+			uiBlockEndAlign(block);
+		
+			xco+= (a-2)*(XIC/2)+3;
+
+			/* LOCK */
+			uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_UNLOCKED, xco+=XIC,0,XIC,YIC, &(G.vd->scenelock), 0, 0, 0, 0, "Locks layers and used Camera to Scene (Ctrl `)");
+			xco+= XIC+10;
+
+		}
+	
+		/* proportional falloff */
+		if(G.obedit && (G.obedit->type == OB_MESH || G.obedit->type == OB_CURVE || G.obedit->type == OB_SURF || G.obedit->type == OB_LATTICE)) {
+		
+			uiBlockBeginAlign(block);
+			uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_PROP_OFF, "Proportional %t|Off %x0|On %x1|Connected %x2", xco,0,XIC+10,YIC, &(G.scene->proportional), 0, 1.0, 0, 0, "Proportional Edit Falloff (Hotkeys: O, Alt O) ");
+			xco+= XIC+10;
+		
+			if(G.scene->proportional) {
+				uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_SMOOTHCURVE, propfalloff_pup(), xco,0,XIC+10,YIC, &(G.scene->prop_mode), 0.0, 0.0, 0, 0, "Proportional Edit Falloff (Hotkey: Shift O) ");
+				xco+= XIC+10;
+			}
+			xco+= 10;
+		}
+
+		/* selection modus */
+		if(G.obedit && (G.obedit->type == OB_MESH)) {
+			uiBlockBeginAlign(block);
+			uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode (Ctrl Tab 1)");
+			xco+= XIC;
+			uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Edge select mode (Ctrl Tab 2)");
+			xco+= XIC;
+			uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode (Ctrl Tab 3)");
+			xco+= XIC;
+			uiBlockEndAlign(block);
+			if(G.vd->drawtype > OB_WIRE) {
+				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,0,XIC,YIC, &G.vd->flag, 1.0, 0.0, 0, 0, "Limit selection to visible (clipped with depth buffer)");
+				xco+= XIC;
+			}
+			xco+= 20;
+		}
+
+		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE_DEHLT, xco,0,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (hold CTRL for anim)");
+	
+		if (ob && (ob->flag & OB_POSEMODE)) {
+			xco+= XIC/2;
+			uiBlockBeginAlign(block);
+			if(curarea->headertype==HEADERTOP) {
+				uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYUP, 
+					     xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
+					     "Copies the current pose to the buffer");
+				uiSetButLock(ob->id.lib!=0, "Can't edit library data");
+				uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEUP,	
+					     xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
+					     "Pastes the pose from the buffer");
+				uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPUP,
+					     xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
+					     "Pastes the mirrored pose from the buffer");
+			}
+			else {
+				uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYDOWN,
+					     xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
+					     "Copies the current pose to the buffer");
+				uiSetButLock(ob->id.lib!=0, "Can't edit library data");
+				uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEDOWN,
+					     xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
+					     "Pastes the pose from the buffer");
+				uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPDOWN, 
+					     xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
+					     "Pastes the mirrored pose from the buffer");
+			}
+			uiBlockEndAlign(block);
+		}
 	}
 
 	/* Always do this last */

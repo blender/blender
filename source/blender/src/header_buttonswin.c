@@ -323,10 +323,17 @@ void buttons_active_id(ID **id, ID **idfrom)
 				}
 			}
 			else if(G.buts->texfrom==3) {
-				Brush *brush= G.scene->toolsettings->imapaint.brush;
-				if (brush) {
-					mtex= brush->mtex[brush->texact];
-					if(mtex) *id= (ID*)mtex->tex;
+				if(G.f & G_SCULPTMODE) {
+					if(G.scene->sculptdata.texact != -1) {
+						mtex= G.scene->sculptdata.mtex[G.scene->sculptdata.texact];
+						if(mtex) *id= (ID*)mtex->tex;
+					}
+				} else {
+					Brush *brush= G.scene->toolsettings->imapaint.brush;
+					if (brush) {
+						mtex= brush->mtex[brush->texact];
+						if(mtex) *id= (ID*)mtex->tex;
+					}
 				}
 			}
 		}

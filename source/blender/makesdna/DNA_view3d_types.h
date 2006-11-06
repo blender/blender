@@ -34,6 +34,7 @@
 #ifndef DNA_VIEW3D_TYPES_H
 #define DNA_VIEW3D_TYPES_H
 
+struct ViewDepths;
 struct Object;
 struct Image;
 struct Tex;
@@ -41,6 +42,7 @@ struct SpaceLink;
 struct Base;
 struct BoundBox;
 struct RenderInfo;
+struct RetopoViewData;
 
 /* This is needed to not let VC choke on near and far... old
  * proprietary MS extensions... */
@@ -95,6 +97,8 @@ typedef struct View3D {
 	struct BGpic *bgpic;
 	struct View3D *localvd;
 	struct RenderInfo *ri;
+	struct RetopoViewData *retopo_view_data;
+	struct ViewDepths *depths;
 	
 	/**
 	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,
@@ -104,7 +108,7 @@ typedef struct View3D {
 	int lay, layact;
 	short scenelock, around, camzoom;
 	
-	short pad1;
+	char pivot_last, pad1; /* pivot_last is for rotating around the last edited element */
 	
 	float lens, grid, gridview, pixsize, near, far;
 	float camdx, camdy;		/* camera view offsets, 1.0 = viewplane moves entire width/height */

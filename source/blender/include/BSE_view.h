@@ -39,6 +39,14 @@ struct BoundBox;
 struct View3D;
 struct ScrArea;
 
+typedef struct ViewDepths {
+	unsigned short w, h;
+	float *depths;
+	double depth_range[2];
+
+	char damaged;
+} ViewDepths;
+
 #define PERSP_WIN	0
 #define PERSP_VIEW	1
 #define PERSP_STORE	2

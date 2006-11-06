@@ -176,6 +176,7 @@ static int choose_cursor(ScrArea *sa)
 		else if(G.f & G_VERTEXPAINT) return CURSOR_VPAINT;
 		else if(G.f & G_WEIGHTPAINT) return CURSOR_VPAINT;
 		else if(G.f & G_FACESELECT) return CURSOR_FACESEL;
+		else if(G.f & G_SCULPTMODE) return CURSOR_EDIT;
 		else return CURSOR_STD;
 	}
 	else if (sa->spacetype==SPACE_TEXT) {

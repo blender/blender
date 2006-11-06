@@ -109,6 +109,7 @@
 #include "BIF_poseobject.h"
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"
+#include "BIF_retopo.h"
 #include "BIF_screen.h"
 #include "BIF_scrarea.h"
 #include "BIF_space.h"
@@ -147,6 +148,7 @@
 #include "BDR_editcurve.h"
 #include "BDR_editface.h"
 #include "BDR_editobject.h"
+#include "BDR_sculptmode.h"
 #include "BDR_vpaint.h"
 #include "BDR_unwrapper.h"
 
@@ -162,6 +164,7 @@
 #include "RE_render_ext.h"		// make_sticky
 
 #include "butspace.h" // own module
+#include "multires.h"
 
 static float editbutweight=1.0;
 float editbutvweight=1;
@@ -669,6 +672,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 static void editing_panel_mesh_type(Object *ob, Mesh *me)
 {
 	uiBlock *block;
+	uiBut *but;
 	float val;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_type", UI_EMBOSS, UI_HELV, curarea->win);
@@ -678,8 +682,32 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiDefButBitS(block, TOG, ME_AUTOSMOOTH, REDRAWVIEW3D, "Auto Smooth",10,180,154,19, &me->flag, 0, 0, 0, 0, "Treats all set-smoothed faces with angles less than Degr: as 'smooth' during render");
 	uiDefButS(block, NUM, B_DIFF, "Degr:",				10,160,154,19, &me->smoothresh, 1, 80, 0, 0, "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
 
+	/* Retopo */
+	if(G.obedit) {
+		uiBlockBeginAlign(block);
+		but= uiDefButBitC(block,TOG,1,B_NOP, "Retopo", 10,130,154,19, &G.editMesh->retopo_mode, 0,0,0,0, "Turn on the re-topology tool");
+		uiButSetFunc(but,retopo_toggle,ob,me);
+		if(G.editMesh->retopo_mode) {
+			but= uiDefButBitC(block,TOG,2,B_NOP,"Paint", 10,110,50,19, &G.editMesh->retopo_mode,0,0,0,0, "");
+			uiButSetFunc(but,retopo_paint_toggle,ob,me);
+			but= uiDefBut(block,BUT,B_NOP,"Retopo All", 60,110,104,19, 0,0,0,0,0, "Apply the re-topology tool to all selected vertices");
+			uiButSetFunc(but,retopo_do_all,ob,me);
+		}
+	}
+
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_AUTO);
+
+	val= me->mr ? 1.0 : 0.0;
+	uiDefBut(block, LABEL, 0, "Multires",10,70,70,20,0,val,0,0,0,"");
+	if(me->mr) {
+		but= uiDefBut(block,BUT,B_NOP,"Delete", 80,70,84,19,0,0,0,0,0,"");
+		uiButSetFunc(but,multires_delete,ob,me);
+	}
+	else {
+		but= uiDefBut(block,BUT,B_NOP,"Make", 80,70,84,19,0,0,0,0,0,"");
+		uiButSetFunc(but,multires_make,ob,me);
+	}
 
 	if(me->mcol) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "VertCol", 				10,50,70,20, 0, val, 0, 0, 0, "");
@@ -1111,6 +1139,9 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 
 		BIF_undo_push("Apply modifier");
 	}
+
+	if (G.f & G_SCULPTMODE)
+		set_sculpt_object(OBACT);
 }
 
 static void modifiers_copyModifier(void *ob_v, void *md_v)
@@ -2525,6 +2556,17 @@ static void editing_panel_curve_tools1(Object *ob, Curve *cu)
 	uiBlockEndAlign(block);
 
 	uiDefButF(block, NUM,	REDRAWVIEW3D, "NSize:",	400, 40, 150, 19, &G.scene->editbutsize, 0.001, 1.0, 10, 0, "Normal size for drawing");
+
+	if(G.obedit) {
+		uiBut *but;
+		uiBlockBeginAlign(block);
+		but= uiDefButBitS(block,TOG,CU_RETOPO,B_NOP, "Retopo", 560,180,100,19, &cu->flag, 0,0,0,0, "Turn on the re-topology tool");
+		uiButSetFunc(but,retopo_toggle,0,0);
+		if(cu->flag & CU_RETOPO) {
+			but= uiDefBut(block,BUT,B_NOP,"Retopo All", 560,160,100,19, 0,0,0,0,0, "Apply the re-topology tool to all selected vertices");
+			uiButSetFunc(but,retopo_do_all,0,0);
+		}
+	}
 }
 
 /* only for bevel or taper */
@@ -3921,11 +3963,166 @@ static void editing_panel_links(Object *ob)
 	uiDefBut(block, BUT,B_MATASS,	"Assign",	292,47,162,26, 0, 0, 0, 0, 0, "In EditMode, assigns the active index to selected faces");
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_SETSMOOTH,"Set Smooth",	291,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'smooth' rendering of selected faces");
-	uiDefBut(block, BUT,B_SETSOLID,	"Set Solid",	373,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'solid' rendering of selected faces");
+	if(!(G.f & G_SCULPTMODE) || ((G.f & G_SCULPTMODE) && G.obedit))
+	{
+		
+		uiDefBut(block, BUT,B_SETSMOOTH,"Set Smooth",	291,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'smooth' rendering of selected faces");
+		uiDefBut(block, BUT,B_SETSOLID,	"Set Solid",	373,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'solid' rendering of selected faces");
+		
+	}
 	uiBlockEndAlign(block);
 
 
+}
+
+void editing_panel_sculpting_tools()
+{
+	uiBlock *block= uiNewBlock(&curarea->uiblocks, "editing_panel_sculpting_tools", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Sculpting Tools", "Editing", 300, 0, 318, 204)==0) return;
+
+	sculptmode_draw_interface_tools(block,0,200);
+}
+
+void editing_panel_sculpting_textures()
+{
+	uiBlock *block= uiNewBlock(&curarea->uiblocks, "editing_panel_sculpting_textures", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Brush Textures", "Editing", 300, 0, 318, 204)==0) return;
+
+	sculptmode_draw_interface_textures(block,0,200);
+}
+
+void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned short cy)
+{
+	SculptData *sd;
+	uiBut *but;
+
+	if(!G.scene) return;
+	sd= &G.scene->sculptdata;
+
+	uiBlockBeginAlign(block);
+
+	uiDefBut(block,LABEL,B_NOP,"Brush",cx,cy,90,19,NULL,0,0,0,0,"");
+	cy-= 20;
+	uiBlockBeginAlign(block);
+	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Draw",cx,cy,67,19,&sd->brush_type,14.0,DRAW_BRUSH,0,0,"Draw lines on the model");
+	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Smooth",cx+67,cy,67,19,&sd->brush_type,14.0,SMOOTH_BRUSH,0,0,"Interactively smooth areas of the model");
+	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Pinch",cx+134,cy,66,19,&sd->brush_type,14.0,PINCH_BRUSH,0,0,"Interactively pinch areas of the model");
+	cy-= 20;
+	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Inflate",cx,cy,67,19,&sd->brush_type,14,INFLATE_BRUSH,0,0,"Push vertices along the direction of their normals");
+	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Grab", cx+67,cy,67,19,&sd->brush_type,14,GRAB_BRUSH,0,0,"Grabs a group of vertices and moves them with the mouse");
+	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Layer", cx+134,cy,66,19,&sd->brush_type,14, LAYER_BRUSH,0,0,"Adds a layer of depth");
+	cy-= 25;
+
+	uiBlockBeginAlign(block);
+	uiDefBut(block,LABEL,B_NOP,"Shape",cx,cy,90,19,NULL,0,0,0,0,"");
+	cy-= 20;
+	uiBlockBeginAlign(block);
+	if(sd->brush_type!=SMOOTH_BRUSH && sd->brush_type!=GRAB_BRUSH) {
+		uiDefButC(block,ROW,B_NOP,"Add",cx,cy,67,19,&sculptmode_brush()->dir,15.0,1.0,0, 0,"Add depth to model [Shift]");
+		uiDefButC(block,ROW,B_NOP,"Sub",cx+67,cy,67,19,&sculptmode_brush()->dir,15.0,2.0,0, 0,"Subtract depth from model [Shift]");
+	}
+	if(sd->brush_type!=GRAB_BRUSH)
+		uiDefButC(block,TOG,B_NOP,"Airbrush",cx+134,cy,66,19,&sculptmode_brush()->airbrush,0,0,0,0,"Brush makes changes without waiting for the mouse to move");
+	cy-= 20;
+	but= uiDefButS(block,NUMSLI,B_NOP,"Size: ",cx,cy,200,19,&sculptmode_brush()->size,1.0,200.0,0,0,"Set brush radius in pixels");
+	cy-= 20;
+	uiDefButC(block,NUMSLI,B_NOP,"Strength: ",cx,cy,200,19,&sculptmode_brush()->strength,1.0,100.0,0,0,"Set brush strength");
+	cy-= 25;
+
+	uiBlockBeginAlign(block);
+	uiDefBut( block,LABEL,B_NOP,"Symmetry",cx,cy,90,19,NULL,0,0,0,0,"");
+	cy-= 20;
+	uiBlockBeginAlign(block);
+	uiDefButS(block,TOG,B_NOP,"X",cx,cy,67,19,&sd->symm_x,0,0,0,0,"Mirror brush across X axis");
+	uiDefButS(block,TOG,B_NOP,"Y",cx+67,cy,67,19,&sd->symm_y,0,0,0,0,"Mirror brush across Y axis");
+	uiDefButS(block,TOG,B_NOP,"Z",cx+134,cy,66,19,&sd->symm_z,0,0,0,0,"Mirror brush across Z axis");
+	
+	uiBlockEndAlign(block);
+
+	cx+= 210;
+}
+
+void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsigned short cy)
+{
+	SculptData *sd= &G.scene->sculptdata;
+	MTex *mtex;
+	int i;
+	int orig_y= cy;
+	char *strp;
+	uiBut *but;
+
+	uiBlockBeginAlign(block);
+	uiDefBut(block,LABEL,B_NOP,"Texture",cx,cy,200,20,0,0,0,0,0,"");
+	cy-= 20;
+
+	/* TEX CHANNELS */
+	uiBlockSetCol(block, TH_BUT_NEUTRAL);
+	for(i=-1; i<8; i++) {
+		char str[64];
+		int loos;
+		mtex= sd->mtex[i];
+
+		if(i==-1)
+			strcpy(str, "Default");
+		else {
+			if(mtex && mtex->tex) splitIDname(mtex->tex->id.name+2, str, &loos);
+			else strcpy(str, "");
+		}
+		str[10]= 0;
+		uiDefButS(block, ROW, REDRAWBUTSEDIT, str,cx, cy, 80, 20, &sd->texact, 3.0, (float)i, 0, 0, "Texture channel");
+		cy-= 18;
+	}
+
+	cy= orig_y-20;
+	cx+= 85;
+	mtex= sd->mtex[sd->texact];
+
+	if(sd->texact != -1) {
+		ID *id= NULL;
+		uiBlockBeginAlign(block);
+		
+		if(mtex && mtex->tex) id= &mtex->tex->id;
+		IDnames_to_pupstring(&strp, NULL, "ADD NEW %x 32767", &G.main->tex, id, &G.buts->texnr);
+
+		if(mtex && mtex->tex) {		
+			uiDefBut(block, TEX, B_IDNAME, "TE:",cx,cy,115,19, mtex->tex->id.name+2, 0.0, 18.0, 0, 0, "Texture name");
+			cy-= 20;
+			
+			uiDefButS(block,MENU,B_SCULPT_TEXBROWSE, strp, cx,cy,20,19, &G.buts->texnr, 0,0,0,0, "Selects an existing texture or creates new");
+			uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, cx+21,cy,21,20, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
+
+			but= uiDefBut(block, BUT, B_NOP, "Clear",cx+43, cy, 72, 20, 0, 0, 0, 0, 0, "Erases link to texture");
+			uiButSetFunc(but,sculptmode_rem_tex,0,0);
+			cy-= 20;
+
+			uiDefButC(block,ROW,B_NOP, "Drag", cx,   cy,39,19, &sd->texrept, 18,SCULPTREPT_DRAG,0,0,"Move the texture with the brush");
+			uiDefButC(block,ROW,B_NOP, "Tile", cx+39,cy,39,19, &sd->texrept, 18,SCULPTREPT_TILE,0,0,"Treat the texture as a tiled image extending across the screen");
+			uiDefButC(block,ROW,B_NOP, "3D",   cx+78,cy,37,19, &sd->texrept, 18,SCULPTREPT_3D,  0,0,"Use vertex coords as texture coordinates");
+			cy-= 20;
+
+			uiDefButF(block,NUM,B_NOP, "X",    cx,   cy,39,19, &sd->texsize[0],-20,20,10,0,"Scaling factor for texture's X axis");
+			uiDefButF(block,NUM,B_NOP, "Y",    cx+39,cy,38,19, &sd->texsize[1],-20,20,10,0,"Scaling factor for texture's Y axis");
+			uiDefButF(block,NUM,B_NOP, "Z",    cx+78,cy,38,19, &sd->texsize[2],-20,20,10,0,"Scaling factor for texture's Z axis");
+			cy-= 20;
+			
+			uiDefButC(block,TOG,B_NOP, "Fade", cx,cy,50,19, &sd->texfade, 0,0,0,0,"Smooth the edges of the texture");
+			uiDefButS(block,NUM,B_NOP, "Space", cx+50,cy,65,19, &sd->spacing, 0,500,20,0,"Non-zero inserts N pixels between dots");
+			
+			cy+= 40;
+		}
+		else {
+		       uiDefButS(block,TOG,B_SCULPT_TEXBROWSE, "Add New" ,cx, cy, 115, 19, &G.buts->texnr,-1,32767,0,0, "Adds a new texture");
+		       uiDefButS(block,MENU,B_SCULPT_TEXBROWSE, strp, cx,cy-20,20,19, &G.buts->texnr, 0,0,0,0, "Selects an existing texture or creates new");
+		}
+
+		MEM_freeN(strp);
+	}
+	else {
+		uiBlockBeginAlign(block);
+		uiDefButS(block,NUM,B_NOP, "Space", cx+50,cy,65,19, &sd->spacing, 0,500,20,0,"Non-zero inserts N pixels between dots");
+	}
+	
+	uiBlockEndAlign(block);
 }
 
 /* *************************** FACE/PAINT *************************** */
@@ -3937,8 +4134,12 @@ void do_fpaintbuts(unsigned short event)
 	bDeformGroup *defGroup;
 	TFace *activetf, *tf;
 	int a;
+	SculptData *sd= &G.scene->sculptdata;
+	ID *id, *idtest;
 	extern VPaint Gwp;         /* from vpaint */
 	ToolSettings *settings= G.scene->toolsettings;
+	int nr= 1;
+	MTex *mtex;
 
 	ob= OBACT;
 	if(ob==NULL) return;
@@ -4073,6 +4274,68 @@ void do_fpaintbuts(unsigned short event)
 			allqueue(REDRAWVIEW3D, 0);
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		}
+		break;
+	case B_SCULPT_TEXBROWSE:
+		sd= &G.scene->sculptdata;
+
+		if(G.buts->texnr== -2) {
+			id= NULL;
+			if(sd) {
+				mtex= sd->mtex[sd->texact];
+				if(mtex) id= &mtex->tex->id;
+			}
+
+			activate_databrowse((ID *)id, ID_TE, 0, B_SCULPT_TEXBROWSE, &G.buts->texnr, do_global_buttons);
+			return;
+		}
+		if(G.buts->texnr < 0) break;
+
+		if(G.buts->pin) {
+			
+		}
+		else if(sd && sd->texact == -1) {
+			error("No texture channel selected");
+			allqueue(REDRAWBUTSSHADING, 0);
+		}
+		else if(sd && sd->texact != -1) {
+			id= NULL;
+			
+			mtex= sd->mtex[sd->texact];
+			if(mtex) id= &mtex->tex->id;
+
+			idtest= G.main->tex.first;
+			while(idtest) {
+				if(nr==G.buts->texnr) {
+					break;
+				}
+				nr++;
+				idtest= idtest->next;
+			}
+			if(idtest==0) { /* new tex */
+				if(id)	idtest= (ID *)copy_texture((Tex *)id);
+				else idtest= (ID *)add_texture("Tex");
+				idtest->us--;
+			}
+			if(idtest!=id && sd) {
+				
+				if(sd->mtex[sd->texact]==0) {
+					sd->mtex[sd->texact]= add_mtex();
+					sd->mtex[sd->texact]->texco= TEXCO_VIEW;
+				}
+				sd->mtex[sd->texact]->tex= (Tex *)idtest;
+				id_us_plus(idtest);
+				if(id) id->us--;
+				
+				BIF_undo_push("Texture browse");
+				allqueue(REDRAWBUTSEDIT, 0);
+				allqueue(REDRAWBUTSSHADING, 0);
+				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWOOPS, 0);
+				BIF_preview_changed(ID_TE);
+			}
+		}
+		break;
+
 	case B_BRUSHBROWSE:
 		if(G.buts->menunr==-2) {
 			activate_databrowse((ID*)settings->imapaint.brush, ID_BR, 0, B_BRUSHBROWSE, &G.buts->menunr, do_global_buttons);
@@ -4413,6 +4676,64 @@ static void editing_panel_mesh_uvautocalculation(void)
 	uiBlockEndAlign(block);
 }
 
+void editing_panel_mesh_multires()
+{
+	uiBlock *block;
+	Object *ob= OBACT;
+	Mesh *me= get_mesh(ob);
+
+	if(!me->mr) return;
+
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_multires", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Multires", "Editing", 500, 0, 220, 204)==0) return;
+
+	multires_draw_interface(block,100,0);
+}
+
+void multires_draw_interface(uiBlock *block, unsigned short cx, unsigned short cy)
+{
+	uiBut *but;
+	Object *ob= OBACT;
+	Mesh *me= get_mesh(ob);
+
+	uiBlockBeginAlign(block);
+	but= uiDefBut(block,BUT,B_NOP,"Add Level", cx,cy,200,19,0,0,0,0,0,"Add a new level of subdivision at the end of the chain");
+	uiButSetFunc(but,multires_add_level,ob,me);
+	cy-= 20;
+
+	if(me->mr->level_count>1) {
+		but= uiDefButC(block,NUM,B_NOP,"Level: ",cx,cy,200,19,&me->mr->newlvl,1.0,me->mr->level_count,0,0,"");
+		uiButSetFunc(but,multires_set_level,ob,me);
+		cy-= 20;
+
+		but= uiDefBut(block,BUT,B_NOP,"Del Lower", cx,cy,100,19,0,0,0,0,0,"Remove all levels of subdivision below the current one");
+		uiButSetFunc(but,multires_del_lower,ob,me);
+		but= uiDefBut(block,BUT,B_NOP,"Del Higher", cx+100,cy,100,19,0,0,0,0,0,"Remove all levels of subdivision above the current one");
+		uiButSetFunc(but,multires_del_higher,ob,me);
+		cy-= 20;
+
+		but= uiDefButC(block,NUM,B_NOP,"Edges: ",cx,cy,200,19,&me->mr->edgelvl,1.0,me->mr->level_count,0,0,"Set level of edges to display");
+		uiButSetFunc(but,multires_edge_level_update,ob,me);
+		cy-= 20;
+
+		uiBlockBeginAlign(block);
+		cy-= 5;
+		uiDefBut(block,LABEL,B_NOP,"Rendering",cx,cy,100,19,0,0,0,0,0,"");
+		cy-= 20;
+
+		uiDefButC(block,NUM,B_NOP,"Pin: ",cx,cy,200,19,&me->mr->pinlvl,1.0,me->mr->level_count,0,0,"Set level to apply modifiers to during render");
+		cy-= 20;
+
+		uiDefButC(block,NUM,B_NOP,"Render: ",cx,cy,200,19,&me->mr->renderlvl,1.0,me->mr->level_count,0,0,"Set level to render");
+		cy-= 20;
+
+		//but= uiDefBut(block,BUT,B_NOP,"Displacement Map", cx,cy,200,19,0,0,0,0,0,"");
+		//uiButSetFunc(but,multires_disp_map,me,0);
+	}
+
+	uiBlockEndAlign(block);
+}
+
 /* this is a mode context sensitive system */
 
 void editing_panels()
@@ -4435,11 +4756,17 @@ void editing_panels()
 		editing_panel_modifiers(ob);
 		editing_panel_shapes(ob);
 		/* modes */
+		if(get_mesh(ob)->mr)
+			editing_panel_mesh_multires();
 		if(G.obedit) {
 			editing_panel_mesh_tools(ob, ob->data);
 			editing_panel_mesh_tools1(ob, ob->data);
 		}
-		else {
+		else if(G.f & G_SCULPTMODE) {
+			editing_panel_sculpting_tools();
+			uiNewPanelTabbed("Sculpting Tools", "Editing");
+			editing_panel_sculpting_textures();
+		} else {
 			if(G.f & G_FACESELECT) {
 				editing_panel_mesh_texface();
 				editing_panel_mesh_uvautocalculation();

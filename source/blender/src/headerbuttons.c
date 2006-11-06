@@ -1291,6 +1291,16 @@ void do_global_buttons(unsigned short event)
 			allqueue(REDRAWOOPS, 0);
 			allqueue(REDRAWIMAGE, 0);
 		}
+		else if(G.buts->mainb==CONTEXT_EDITING) {
+			SculptData *sd= &G.scene->sculptdata;
+			if(sd && sd->texact != -1) {
+				if(sd->mtex[sd->texact]) autotexname(sd->mtex[sd->texact]);
+
+				BIF_undo_push("Auto name");
+				allqueue(REDRAWBUTSEDIT, 0);
+				allqueue(REDRAWOOPS, 0);
+			}
+		}
 		break;
 
 	case B_RESETAUTOSAVE:

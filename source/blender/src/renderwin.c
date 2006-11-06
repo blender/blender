@@ -88,6 +88,7 @@
 #include "BIF_toolbox.h"
 #include "BIF_writeimage.h"
 
+#include "BDR_sculptmode.h"
 #include "BDR_editobject.h"
 #include "BPY_extern.h" /* for BPY_do_all_scripts */
 
@@ -1058,6 +1059,7 @@ static void do_render(int anim)
 	Render *re= RE_NewRender(G.scene->id.name);
 	unsigned int lay= G.scene->lay;
 	int scemode= G.scene->r.scemode;
+	int sculptmode= G.f & G_SCULPTMODE;
 	
 	/* UGLY! we set this flag to prevent renderwindow queue to execute another render */
 	/* is reset in RE_BlenderFrame */
@@ -1072,6 +1074,8 @@ static void do_render(int anim)
 	
 	if(G.obedit)
 		exit_editmode(0);	/* 0 = no free data */
+
+	if(sculptmode) set_sculptmode();
 
 	/* allow localview render for objects with lights in normal layers */
 	if(curarea->spacetype==SPACE_VIEW3D) {
@@ -1104,6 +1108,8 @@ static void do_render(int anim)
 //		}
 		
 	scene_update_for_newframe(G.scene, G.scene->lay);	// no redraw needed, this restores to view as we left it
+
+	if(sculptmode) set_sculptmode();
 	
 	waitcursor(0);
 }

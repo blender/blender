@@ -49,6 +49,7 @@ struct Scene;
 struct Image;
 struct Group;
 struct bNodeTree;
+struct PropsetData;
 
 typedef struct Base {
 	struct Base *next, *prev;
@@ -357,6 +358,74 @@ typedef struct ToolSettings {
 	
 } ToolSettings;
 
+/* Used by all brushes to store their properties, which can be directly set
+   by the interface code. Note that not all properties are actually used by
+   all the brushes. */
+typedef struct BrushData
+{
+	short size;
+	char strength, dir; /* Not used for smooth brush */
+	char airbrush;
+	char pad[7];
+} BrushData;
+	
+struct RenderInfo;
+struct SculptUndo;
+typedef struct SculptData
+{
+	/* Cache of the OpenGL matrices */
+	double modelviewmat[16];
+	double projectionmat[16];
+	int viewport[4];
+
+	/* Pointers to all of sculptmodes's textures */
+	struct MTex *mtex[10];
+
+	struct Object *active_ob;
+
+	/* An array of lists; array is sized as
+	   large as the number of verts in the mesh,
+	   the list for each vert contains the index
+	   for all the faces that use that vertex */
+	struct ListBase *vertex_users;
+
+	/* Used to cache the render of the active texture */
+	struct RenderInfo *texrndr;
+
+	struct PropsetData *propset_data;
+
+	struct ListBase undo;
+	struct SculptUndo *undo_cur;
+
+	/* For rotating around a pivot point */
+	vec3f pivot;
+
+	/* Settings for each brush */
+	BrushData drawbrush, smoothbrush, pinchbrush, inflatebrush, grabbrush, layerbrush;
+
+	/* Number of nodes in vertex_users */
+	int vertex_users_size;
+
+	short brush_type;
+
+	/* Symmetry is separate from the other BrushData because the same
+	   settings are always used for all brush types */
+	short symm_x, symm_y, symm_z;
+
+	/* For the Brush Shape */
+	float texsize[3];
+	short texact, texnr;
+	short spacing;
+	char texrept;
+	char texfade;
+
+	char averaging, propset, pad[2];
+} SculptData;
+
+#define SCULPTREPT_DRAG 1
+#define SCULPTREPT_TILE 2
+#define SCULPTREPT_3D   3
+
 typedef struct Scene {
 	ID id;
 	struct Object *camera;
@@ -405,6 +474,9 @@ typedef struct Scene {
 	struct  DagForest *theDag;
 	short dagisvalid, dagflags;
 	short pad4, recalc;				/* recalc = counterpart of ob->recalc */
+
+	/* Sculptmode data */
+	struct SculptData sculptdata;
 } Scene;
 
 
@@ -548,6 +620,14 @@ typedef struct Scene {
 
 #define FFMPEG_MULTIPLEX_AUDIO  1
 #define FFMPEG_AUTOSPLIT_OUTPUT 2
+
+/* SculptData brushtype */
+#define DRAW_BRUSH 1
+#define SMOOTH_BRUSH 2
+#define PINCH_BRUSH 3
+#define INFLATE_BRUSH 4
+#define GRAB_BRUSH 5
+#define LAYER_BRUSH 6
 
 /* toolsettings->imagepaint_flag */
 #define IMAGEPAINT_DRAWING				1

@@ -58,6 +58,7 @@
 #include "BIF_editmesh.h"
 #include "BIF_editsima.h"
 #include "BIF_meshtools.h"
+#include "BIF_retopo.h"
 
 #ifdef WITH_VERSE
 #include "BIF_verse.h"
@@ -224,6 +225,8 @@ void recalcData(TransInfo *t)
 			
 			if(G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR)
 				editmesh_apply_to_mirror(t);
+
+			retopo_do_all(0,G.obedit->data);
 			
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			
@@ -238,6 +241,8 @@ void recalcData(TransInfo *t)
 				testhandlesNurb(nu); /* test for bezier too */
 				nu= nu->next;
 			}
+
+			retopo_do_all(NULL,NULL);
 		}
 		else if(G.obedit->type==OB_ARMATURE){   /* no recalc flag, does pose */
 			bArmature *arm= G.obedit->data;

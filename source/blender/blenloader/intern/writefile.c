@@ -1007,6 +1007,7 @@ static void write_dverts(WriteData *wd, int count, MDeformVert *dvlist)
 static void write_meshs(WriteData *wd, ListBase *idbase)
 {
 	Mesh *mesh;
+	MultiresLevel *lvl;
 
 	mesh= idbase->first;
 	while(mesh) {
@@ -1029,7 +1030,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
 
-			writestruct(wd, DATA, "MVert", mesh->totvert, mesh->mvert);
+			writestruct(wd, DATA, "MVert", mesh->pv?mesh->pv->totvert:mesh->totvert, mesh->mvert);
 			writestruct(wd, DATA, "MEdge", mesh->totedge, mesh->medge);
 			writestruct(wd, DATA, "MFace", mesh->totface, mesh->mface);
 			writestruct(wd, DATA, "TFace", mesh->totface, mesh->tface);
@@ -1038,6 +1039,26 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 			write_dverts(wd, mesh->totvert, mesh->dvert);
 
+			/* Multires data */
+			writestruct(wd, DATA, "Multires", 1, mesh->mr);
+			if(mesh->mr) {
+				for(lvl= mesh->mr->levels.first; lvl; lvl= lvl->next) {
+					writestruct(wd, DATA, "MultiresLevel", 1, lvl);
+					writestruct(wd, DATA, "MVert", lvl->totvert, lvl->verts);
+					writestruct(wd, DATA, "MultiresFace", lvl->totface, lvl->faces);
+					writestruct(wd, DATA, "MultiresEdge", lvl->totedge, lvl->edges);
+					writestruct(wd, DATA, "MultiresTexColFace", lvl->totface, lvl->texcolfaces);
+				}
+			}
+
+			/* PMV data */
+			if(mesh->pv) {
+				writestruct(wd, DATA, "PartialVisibility", 1, mesh->pv);
+				writedata(wd, DATA, sizeof(unsigned int)*mesh->pv->totvert, mesh->pv->vert_map);
+				writedata(wd, DATA, sizeof(int)*mesh->pv->totedge, mesh->pv->edge_map);
+				writestruct(wd, DATA, "MFace", mesh->pv->totface, mesh->pv->old_faces);
+				writestruct(wd, DATA, "MEdge", mesh->pv->totedge, mesh->pv->old_edges);
+			}
 		}
 		mesh= mesh->id.next;
 	}
@@ -1199,6 +1220,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	Strip *strip;
 	TimeMarker *marker;
 	SceneRenderLayer *srl;
+	int a;
 	
 	sce= scebase->first;
 	while(sce) {
@@ -1214,7 +1236,10 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 		writestruct(wd, DATA, "Radio", 1, sce->radio);
 		writestruct(wd, DATA, "ToolSettings", 1, sce->toolsettings);
-		
+
+		for(a=0; a<MAX_MTEX; ++a)
+			writestruct(wd, DATA, "MTex", 1, sce->sculptdata.mtex[a]);
+
 		ed= sce->ed;
 		if(ed) {
 			writestruct(wd, DATA, "Editing", 1, ed);

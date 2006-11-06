@@ -52,6 +52,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_gsqueue.h"
 #include "BLI_linklist.h"
 
 #include "DNA_action_types.h"
@@ -61,6 +62,7 @@
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h" /* used for select grouped hooks */
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -81,6 +83,7 @@
 #include "BKE_group.h"
 #include "BKE_ipo.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
@@ -115,6 +118,7 @@
 #include "BIF_poseobject.h"
 #include "BIF_outliner.h"
 #include "BIF_resources.h"
+#include "BIF_retopo.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toets.h"
@@ -140,6 +144,7 @@
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
 #include "BDR_imagepaint.h"
+#include "BDR_sculptmode.h"
 #include "BDR_unwrapper.h"
 
 #include "BLO_readfile.h" /* for BLO_blendhandle_close */
@@ -152,6 +157,7 @@
 #include "mydevice.h"
 #include "blendef.h"
 #include "datatoc.h"
+#include "multires.h"
 
 #include "BIF_transform.h"
 
@@ -776,6 +782,8 @@ void BIF_undo_push(char *str)
 		else if (G.obedit->type==OB_ARMATURE)
 			undo_push_armature(str);
 	}
+	else if(G.f & G_SCULPTMODE) {
+	}
 	else {
 		if(U.uiflag & USER_GLOBALUNDO) 
 			BKE_write_undo(str);
@@ -795,11 +803,16 @@ void BIF_undo(void)
 			vpaint_undo();
 		else if(G.f & G_TEXTUREPAINT)
 			imagepaint_undo();
+		else if(G.f & G_SCULPTMODE)
+			sculptmode_undo();
 		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL))
 			imagepaint_undo();
 		else {
 			/* now also in faceselect mode */
 			if(U.uiflag & USER_GLOBALUNDO) {
+				if(G.f & G_SCULPTMODE)
+					set_sculpt_object(NULL);
+
 				BKE_undo_step(1);
 				sound_initialize_sounds();
 			}
@@ -820,6 +833,8 @@ void BIF_redo(void)
 			vpaint_undo();
 		else if(G.f & G_TEXTUREPAINT)
 			imagepaint_undo();
+		else if(G.f & G_SCULPTMODE)
+			sculptmode_redo();
 		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL))
 			imagepaint_undo();
 		else {
@@ -844,6 +859,8 @@ void BIF_undo_menu(void)
 			;
 		else if(G.f & G_VERTEXPAINT)
 			;
+		else if(G.f & G_SCULPTMODE)
+			sculptmode_undo_menu();
 		else {
 			if(U.uiflag & USER_GLOBALUNDO) {
 				char *menu= BKE_undo_menu_string();
@@ -874,7 +891,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(val) {
 
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
-		if(event==MOUSEY || event==MOUSEX) return;
+
+		//if(event==MOUSEY || event==MOUSEX) return;
 		
 		if(event==UI_BUT_EVENT) do_butspace(val); /* temporal, view3d deserves own queue? */
 		
@@ -885,6 +903,23 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if (U.flag & USER_LMOUSESELECT) {
 			if (event==LEFTMOUSE) event = RIGHTMOUSE;
 			else if (event==RIGHTMOUSE) event = LEFTMOUSE;
+		}
+
+		if(!G.obedit && (G.f & G_SCULPTMODE)) {
+			if(G.scene->sculptdata.propset==1) {
+				sculptmode_propset(event);
+				return;
+			}
+			else if(event!=LEFTMOUSE && event!=MIDDLEMOUSE && (event==MOUSEY || event==MOUSEX)) {
+				if(!bwin_qtest(sa->win))
+					allqueue(REDRAWVIEW3D, 0);
+			}
+		}
+
+		/* Handle retopo painting */
+		if(retopo_mesh_paint_check()) {
+			if(!retopo_paint(event))
+				return;
 		}
 
 		/* run any view3d event handler script links */
@@ -1031,10 +1066,16 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			 * based on user preference USER_LMOUSESELECT
 			 */
 			case LEFTMOUSE: 
-				if ((G.obedit) || !(G.f&(G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
+				if ((G.obedit) || !(G.f&(G_SCULPTMODE|G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
 					mouse_cursor();
 				}
-				else if (G.f & G_WEIGHTPAINT){
+				else if (G.f & G_SCULPTMODE) {
+					if(G.qual==LR_SHIFTKEY+LR_CTRLKEY)
+						sculptmode_pmv(0);
+					else if(!G.scene->sculptdata.propset)
+						sculpt();
+				}
+				else if (G.f & G_WEIGHTPAINT) {
 					weight_paint();
 				}
 				else if (G.f & G_VERTEXPAINT) {
@@ -1086,6 +1127,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					face_select();
 				else if( G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))
 					sample_vpaint();
+				else if((G.f & G_SCULPTMODE) && G.qual==LR_SHIFTKEY+LR_CTRLKEY)
+					sculptmode_pmv(1);
 				else
 					mouse_select();	/* does poses too */
 				break;
@@ -1149,7 +1192,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				doredraw= 1;
 				break;
-			
+
 			case ONEKEY:
 				if(G.qual==LR_CTRLKEY) {
 					if(ob && ob->type == OB_MESH) {
@@ -1345,11 +1388,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					imagestodisplist();
 				}
 				else if((G.qual==0)){
-					pupval= pupmenu("Draw mode%t|BoundBox %x1|Wire %x2|OpenGL Solid %x3|Shaded Solid %x4|Textured Solid %x5");
-					if(pupval>0) {
-						G.vd->drawtype= pupval;
-						doredraw= 1;
-					
+					if(G.f & G_SCULPTMODE)
+						G.scene->sculptdata.propset= 1;
+					else {
+						pupval= pupmenu("Draw mode%t|BoundBox %x1|Wire %x2|OpenGL Solid %x3|Shaded Solid %x4|Textured Solid %x5");
+						if(pupval>0) {
+							G.vd->drawtype= pupval;
+							doredraw= 1;
+						}
 					}
 				}
 				
@@ -1500,6 +1546,15 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if(G.f & G_FACESELECT)
 					hide_tface();
+				else if(G.f & G_SCULPTMODE) {
+					if(G.qual==LR_ALTKEY) {
+						waitcursor(1);
+						sculptmode_pmv_off(get_mesh(ob));
+						BIF_undo_push("Partial mesh hide");
+						allqueue(REDRAWVIEW3D,0);
+						waitcursor(0);
+					}
+				}
 				else if(ob && (ob->flag & OB_POSEMODE)) {
 					if (G.qual==0)
 						hide_selected_pose_bones();
@@ -2024,19 +2079,33 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			
 			case PAGEUPKEY:
-				if(G.qual==LR_CTRLKEY)
-					movekey_obipo(1);
-				else if((G.qual==0))
-					nextkey_obipo(1);	/* in editipo.c */
+				if(G.f & G_SCULPTMODE) {
+					if(ob && ob->type == OB_MESH && ((Mesh*)ob->data)->mr) {
+						((Mesh*)ob->data)->mr->newlvl= ((Mesh*)ob->data)->mr->current+1;
+						multires_set_level(ob,ob->data);
+					}
+				} else {
+					if(G.qual==LR_CTRLKEY)
+						movekey_obipo(1);
+					else if((G.qual==0))
+						nextkey_obipo(1);	/* in editipo.c */
+				}
 				break;
 
 			case PAGEDOWNKEY:
-				if(G.qual==LR_CTRLKEY)
-					movekey_obipo(-1);
-				else if((G.qual==0))
-					nextkey_obipo(-1);
+				if(G.f & G_SCULPTMODE) {
+					if(ob && ob->type == OB_MESH && ((Mesh*)ob->data)->mr) {
+						((Mesh*)ob->data)->mr->newlvl= ((Mesh*)ob->data)->mr->current-1;
+						multires_set_level(ob,ob->data);
+					}
+				} else {
+					if(G.qual==LR_CTRLKEY)
+						movekey_obipo(-1);
+					else if((G.qual==0))
+						nextkey_obipo(-1);
+				}
 				break;
-				
+
 			case PAD0: case PAD1: case PAD2: case PAD3: case PAD4:
 			case PAD5: case PAD6: case PAD7: case PAD8: case PAD9:
 			case PADENTER:
@@ -2111,6 +2180,8 @@ static void initview3d(ScrArea *sa)
 	vd->gridflag |= V3D_SHOW_Y;
 	vd->gridflag |= V3D_SHOW_FLOOR;
 	vd->gridflag &= ~V3D_SHOW_Z;
+
+	vd->depths= NULL;
 }
 
 
@@ -3154,7 +3225,6 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButBitI(block, TOG, USER_HIDE_DOT, 0, "Hide dot file/datablock",
 			(xpos+edgsp+(4*mpref)+(4*midsp)),y1,mpref,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Hide files/datablocks that start with a dot(.*)");
-
 
 		uiDefBut(block, LABEL,0,"OpenGL:",
 			(xpos+edgsp+(5*midsp)+(5*mpref)),y5label,mpref,buth,
@@ -4947,6 +5017,12 @@ void freespacelist(ScrArea *sa)
 			}
 			if(vd->localvd) MEM_freeN(vd->localvd);
 			if(vd->clipbb) MEM_freeN(vd->clipbb);
+			if(vd->depths) {
+				if(vd->depths->depths) MEM_freeN(vd->depths->depths);
+				MEM_freeN(vd->depths);
+				vd->depths= NULL;
+			}
+			retopo_free_view_data(vd);
 			if(G.vd==vd) G.vd= NULL;
 			if(vd->ri) { 
 				BIF_view3d_previewrender_free(vd);
@@ -5005,6 +5081,7 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 		}
 		else if(sl->spacetype==SPACE_VIEW3D) {
 			BIF_view3d_previewrender_free((View3D *)sl);
+			((View3D*)sl)->depths= NULL;
 		}
 		else if(sl->spacetype==SPACE_OOPS) {
 			SpaceOops *so= (SpaceOops *)sl;

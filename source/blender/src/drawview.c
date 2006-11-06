@@ -110,6 +110,7 @@
 #include "BIF_poseobject.h"
 #include "BIF_previewrender.h"
 #include "BIF_resources.h"
+#include "BIF_retopo.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 
@@ -121,6 +122,7 @@
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
 #include "BDR_vpaint.h"
+#include "BDR_sculptmode.h"
 
 #include "BSE_drawview.h"
 #include "BSE_filesel.h"
@@ -141,6 +143,8 @@
 #include "BIF_transform.h"
 
 #include "RE_pipeline.h"	// make_stars
+
+#include "multires.h"
 
 /* Modules used */
 #include "radio.h"
@@ -1192,6 +1196,9 @@ ImBuf *read_backbuf(short xmin, short ymin, short xmax, short ymax)
 		dr++;
 	}
 	
+	ibuf->ftype= PNG;
+	IMB_saveiff(ibuf, "/tmp/rt.png", IB_rect);
+	
 	/* put clipped result back, if needed */
 	if(xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax) 
 		return ibuf;
@@ -2217,8 +2224,12 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 /* (ton) can't use the rename trick for paint... panel names and settings are stored in the files and
    used to find previous locations when re-open. This causes flipping */
 
-	if(uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204)==0) return;
-	
+	if((G.f & G_SCULPTMODE) && !G.obedit) {
+		if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 425, 234)) return;
+	} else {
+		if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204)) return;
+	}
+
 	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
 	
 	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
@@ -2260,7 +2271,10 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 			/* 'f' is for floating panel */
 			uiBlockPickerButtons(block, rgb, hsv, old, hexcol, 'f', REDRAWBUTSEDIT);
 	}
-	else {
+	else if(G.f & G_SCULPTMODE) {
+		sculptmode_draw_interface_tools(block,10,150);
+		sculptmode_draw_interface_textures(block,220,150);
+	} else {
 		BoundBox *bb = NULL;
 
 		uiBlockBeginAlign(block);
@@ -2316,6 +2330,32 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 			uiBlockEndAlign(block);
 		}
 	}
+	uiClearButLock();
+}
+
+static void view3d_panel_multires(short cntrl) 	// VIEW3D_HANDLER_MULTIRES
+{
+	uiBlock *block;
+	uiBut *but;
+	Object *ob= OBACT;
+	
+	if(!ob || ob->type!=OB_MESH) return;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_multires", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(VIEW3D_HANDLER_MULTIRES);  // for close and esc
+
+	if(!uiNewPanel(curarea, block, "Multires Properties", "View3d", 10, 230, 220, 200)) return;
+
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
+	if(get_mesh(ob)->mr)
+		multires_draw_interface(block, 5,100);
+	else {
+		but= uiDefBut(block,BUT,B_NOP,"Make Multires", 5,100,120,19,0,0,0,0,0,"Adds multires data to mesh");
+		uiButSetFunc(but,multires_make,ob,get_mesh(ob));
+	}
+
 	uiClearButLock();
 }
 
@@ -2516,6 +2556,9 @@ static void view3d_blockhandlers(ScrArea *sa)
 		case VIEW3D_HANDLER_PREVIEW:
 			view3d_panel_preview(sa, v3d->blockhandler[a+1]);
 			break;
+		case VIEW3D_HANDLER_MULTIRES:
+			view3d_panel_multires(v3d->blockhandler[a+1]);
+			break;
 			
 		}
 		/* clear action value for event */
@@ -2634,6 +2677,35 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 	
 	free_object_duplilist(lb);	/* does restore */
 				
+}
+
+void view3d_update_depths(View3D *v3d)
+{
+	/* Create storage for, and, if necessary, copy depth buffer */
+	if(!v3d->depths) v3d->depths= MEM_callocN(sizeof(ViewDepths),"ViewDepths");
+	if(v3d->depths) {
+		ViewDepths *d= v3d->depths;
+		if(d->w != v3d->area->winx ||
+		   d->h != v3d->area->winy) {
+			d->w= v3d->area->winx;
+			d->h= v3d->area->winy;
+			if(d->depths)
+				MEM_freeN(d->depths);
+			d->depths= MEM_mallocN(sizeof(float)*d->w*d->h,"View depths");
+			d->damaged= 1;
+		}
+		
+		if(d->damaged) {
+			glReadBuffer(GL_FRONT);
+			glReadPixels(v3d->area->winrct.xmin,v3d->area->winrct.ymin,d->w,d->h,
+				     GL_DEPTH_COMPONENT,GL_FLOAT, d->depths);
+			glReadBuffer(GL_BACK);
+			
+			glGetDoublev(GL_DEPTH_RANGE,d->depth_range);
+			
+			d->damaged= 0;
+		}
+	}
 }
 
 void drawview3dspace(ScrArea *sa, void *spacedata)
@@ -2764,6 +2836,10 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			}
 		}
 	}
+
+	if(retopo_mesh_check() || retopo_curve_check())
+		view3d_update_depths(v3d);
+
 	/* draw selected and editmode */
 	for(base= G.scene->base.first; base; base= base->next) {
 		if(v3d->lay & base->lay) {
@@ -2771,6 +2847,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				draw_object(base, 0);
 		}
 	}
+
+	if(!(retopo_mesh_check() || retopo_curve_check()) && (G.f & G_SCULPTMODE))
+		view3d_update_depths(v3d);
 
 	if(G.moving) {
 		BIF_drawConstraint();
@@ -2794,7 +2873,47 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	}
 
 	persp(PERSP_WIN);  // set ortho
-	
+
+	/* Draw Sculpt Mode brush */
+	if(!G.obedit && (G.f & G_SCULPTMODE)) {
+		PropsetData *pd = G.scene->sculptdata.propset_data;
+		const short r= sculptmode_brush()->size;
+		if(pd) {
+			/* Draw brush with texture */
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			glBindTexture(GL_TEXTURE_2D, pd->tex);
+
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+			glEnable(GL_TEXTURE_2D);
+			glBegin(GL_QUADS);
+			glColor4f(0,0,0,1);
+			glTexCoord2f(0,0);
+			glVertex2f(pd->origloc[0]-r, pd->origloc[1]-r);
+			glTexCoord2f(1,0);
+			glVertex2f(pd->origloc[0]+r, pd->origloc[1]-r);
+			glTexCoord2f(1,1);
+			glVertex2f(pd->origloc[0]+r, pd->origloc[1]+r);
+			glTexCoord2f(0,1);
+			glVertex2f(pd->origloc[0]-r, pd->origloc[1]+r);
+			glEnd();
+			glDisable(GL_TEXTURE_2D);
+
+			if(pd->origsize != r)
+				fdrawXORcirc(pd->origloc[0], pd->origloc[1], pd->origsize);
+			fdrawXORcirc(pd->origloc[0], pd->origloc[1], r);
+		} else {
+			short c[2];
+			getmouseco_areawin(c);
+			fdrawXORcirc((float)c[0], (float)c[1], r);
+		}
+	}
+	retopo_draw_paint_lines();
+
 	if(v3d->persp>1) drawviewborder();
 	if(v3d->flag2 & V3D_FLYMODE) drawviewborder_flymode();
 	if(!(G.f & G_PLAYANIM)) drawcursor(v3d);
@@ -2841,7 +2960,6 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			!during_script()) {
 		BPY_do_pyscript((ID *)G.scene, SCRIPT_REDRAW);
 	}
-
 }
 
 

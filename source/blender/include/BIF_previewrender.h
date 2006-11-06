@@ -30,6 +30,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#ifndef BIF_PREVIEWRENDER_H
+#define BIF_PREVIEWRENDER_H
+
 #include "DNA_vec_types.h"
 
 struct View3D;
@@ -87,3 +90,5 @@ void	BIF_view3d_previewdraw	(struct ScrArea *sa, struct uiBlock *block);
 void	BIF_view3d_previewrender_free(struct View3D *v3d);
 void	BIF_view3d_previewrender_clear(struct ScrArea *sa);
 void	BIF_view3d_previewrender_signal(struct ScrArea *sa, short signal);
+
+#endif

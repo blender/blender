@@ -72,6 +72,7 @@ extern void add_primitiveMesh(int type);
 extern void adduplicate_mesh(void);
 extern void add_click_mesh(void);
 extern void addedgeface_mesh(void);
+void addfaces_from_edgenet();
 
 /* ******************* editmesh_lib.c */
 

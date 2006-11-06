@@ -258,7 +258,6 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_DISABLE_SOUND		2
 #define USER_DISABLE_MIPMAP		4
 
-
 /* vrml flag */
 
 #define USER_VRML_LAYERS		1

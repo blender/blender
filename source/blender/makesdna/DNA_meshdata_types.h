@@ -75,6 +75,66 @@ typedef struct MSelect {
 	int index;
 	int type;
 } MSelect;
+
+/* Multiresolution modeling */
+typedef struct MultiresCol {
+	float a, r, g, b, u, v;
+} MultiresCol;
+typedef struct MultiresFace {
+	unsigned int v[4];
+       	unsigned int mid;
+	unsigned int childrenstart;
+	char flag, pad[3];
+} MultiresFace;
+typedef struct MultiresEdge {
+	unsigned int v[2];
+	unsigned int mid;
+} MultiresEdge;
+
+typedef struct MultiresTexColFace {
+	/* vertex colors and texfaces */
+	void *tex_page;
+	MultiresCol col[4];
+	short tex_mode, tex_tile, tex_unwrap;
+	char tex_flag, tex_transp;
+} MultiresTexColFace;
+
+typedef struct MultiresMapNode {
+	struct MultiresMapNode *next, *prev;
+	int Index, pad;
+} MultiresMapNode;
+
+typedef struct MultiresLevel {
+	struct MultiresLevel *next, *prev;
+
+	MVert *verts;
+	MultiresFace *faces;
+	MultiresTexColFace *texcolfaces;
+	MultiresEdge *edges;
+	ListBase *vert_edge_map;
+	ListBase *vert_face_map;
+
+	unsigned int totvert, totface, totedge, pad;
+} MultiresLevel;
+
+typedef struct Multires {
+	ListBase levels;
+	unsigned char level_count, current, newlvl, edgelvl, pinlvl, renderlvl;
+	unsigned char use_col, use_tex;
+
+	/* Vertex groups are stored only for the level 1 mesh, for all other
+	 * levels it's calculated when multires_level_to_mesh() is called */
+	MDeformVert *dverts;
+} Multires;
+
+typedef struct PartialVisibility {
+	unsigned int *vert_map; /* vert_map[Old Index]= New Index */
+	int *edge_map; /* edge_map[Old Index]= New Index, -1= hidden */
+	MFace *old_faces;
+	MEdge *old_edges;
+	unsigned int totface, totedge, totvert, pad;
+} PartialVisibility;
+
 /* mvert->flag (1=SELECT) */
 #define ME_SPHERETEST	2
 #define ME_SPHERETEMP	4

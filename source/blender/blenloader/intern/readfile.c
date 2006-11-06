@@ -105,6 +105,8 @@
 #include "BLI_arithb.h"
 #include "BLI_storage_types.h" // for relname flags
 
+#include "BDR_sculptmode.h"
+
 #include "BKE_bad_level_calls.h" // for reopen_text build_seqar (from WHILE_SEQ) set_rects_butspace check_imasel_copy
 
 #include "BKE_action.h"
@@ -135,6 +137,8 @@
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
 #include "BLO_readblenfile.h" // streaming read pipe, for BLO_readblenfile BLO_readblenfilememory
+
+#include "multires.h"
 
 #include "readfile.h"
 
@@ -2249,6 +2253,31 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->oc= 0;
 	mesh->dface= NULL;
 	mesh->mselect= NULL;
+
+	/* Multires data */
+	mesh->mr= newdataadr(fd, mesh->mr);
+	if(mesh->mr) {
+		MultiresLevel *lvl;
+		link_list(fd, &mesh->mr->levels);
+		for(lvl= mesh->mr->levels.first; lvl; lvl= lvl->next) {
+			lvl->verts= newdataadr(fd, lvl->verts);
+			lvl->faces= newdataadr(fd, lvl->faces);
+			lvl->edges= newdataadr(fd, lvl->edges);
+			lvl->texcolfaces= newdataadr(fd, lvl->texcolfaces);
+
+			/* Recalculating the maps is faster than reading them from the file */
+			multires_calc_level_maps(lvl);
+		}
+	}
+
+	/* PMV */
+	mesh->pv= newdataadr(fd, mesh->pv);
+	if(mesh->pv) {
+		mesh->pv->vert_map= newdataadr(fd, mesh->pv->vert_map);
+		mesh->pv->edge_map= newdataadr(fd, mesh->pv->edge_map);
+		mesh->pv->old_faces= newdataadr(fd, mesh->pv->old_faces);
+		mesh->pv->old_edges= newdataadr(fd, mesh->pv->old_edges);
+	}
 	
 	if (mesh->tface) {
 		TFace *tfaces= mesh->tface;
@@ -2699,7 +2728,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 	Base *base, *next;
 	Editing *ed;
 	Sequence *seq;
-
+	int a;
+	
 	sce= main->scene.first;
 	while(sce) {
 		if(sce->id.flag & LIB_NEEDLINK) {
@@ -2710,6 +2740,13 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->ima= newlibadr_us(fd, sce->id.lib, sce->ima);
 			sce->toolsettings->imapaint.brush=
 				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
+
+			/* Sculptdata textures */
+			for(a=0; a<MAX_MTEX; ++a) {
+				MTex *mtex= sce->sculptdata.mtex[a];
+				if(mtex)
+					mtex->tex= newlibadr_us(fd, sce->id.lib, mtex->tex);
+			}
 
 			base= sce->base.first;
 			while(base) {
@@ -2792,7 +2829,18 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->radio= newdataadr(fd, sce->radio);
 	
 	sce->toolsettings= newdataadr(fd, sce->toolsettings);
-	
+
+	/* SculptData */
+	sce->sculptdata.active_ob= NULL;
+	sce->sculptdata.vertex_users= NULL;
+	sce->sculptdata.texrndr= NULL;
+	sce->sculptdata.propset= 0;
+	sce->sculptdata.undo_cur= NULL;
+	sce->sculptdata.undo.first= sce->sculptdata.undo.last= NULL;
+	/* SculptData textures */
+	for(a=0; a<MAX_MTEX; ++a)
+		sce->sculptdata.mtex[a]= newdataadr(fd,sce->sculptdata.mtex[a]);
+
 	if(sce->ed) {
 		ed= sce->ed= newdataadr(fd, sce->ed);
 
@@ -3030,6 +3078,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						if(v3d->localvd) {
 							v3d->localvd->camera= newlibadr(fd, sc->id.lib, v3d->localvd->camera);
 						}
+						v3d->depths= NULL;
 						v3d->ri= NULL;
 					}
 					else if(sl->spacetype==SPACE_IPO) {
@@ -3352,6 +3401,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				v3d->localvd= newdataadr(fd, v3d->localvd);
 				v3d->afterdraw.first= v3d->afterdraw.last= NULL;
 				v3d->clipbb= newdataadr(fd, v3d->clipbb);
+				v3d->retopo_view_data= NULL;
 			}
 			else if (sl->spacetype==SPACE_OOPS) {
 				SpaceOops *soops= (SpaceOops*) sl;

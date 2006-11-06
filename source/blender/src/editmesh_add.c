@@ -590,6 +590,53 @@ static void fix_new_face(EditFace *eface)
 	}
 }
 
+void addfaces_from_edgenet()
+{
+	EditVert *eve1, *eve2, *eve3, *eve4;
+	EditMesh *em= G.editMesh;
+	
+	for(eve1= em->verts.first; eve1; eve1= eve1->next) {
+		for(eve2= em->verts.first; (eve1->f & 1) && eve2; eve2= eve2->next) {
+			if(findedgelist(eve1,eve2)) {
+				for(eve3= em->verts.first; eve3; eve3= eve3->next) {
+					if((eve2!=eve3 && findedgelist(eve1,eve3))) {
+						EditEdge *sh_edge= NULL;
+						EditVert *sh_vert= NULL;
+						
+						sh_edge= findedgelist(eve2,eve3);
+						
+						if(sh_edge) { /* Add a triangle */
+							if(!exist_face_overlaps(eve1,eve2,eve3,NULL))
+								fix_new_face(addfacelist(eve1,eve2,eve3,NULL,NULL,NULL));
+						}
+						else { /* Check for a shared vertex */
+							for(eve4= em->verts.first; eve4; eve4= eve4->next) {
+								if(eve4!=eve1 && eve4!=eve2 && eve4!=eve3 &&
+								   !findedgelist(eve1,eve4) && findedgelist(eve2,eve4) &&
+								   findedgelist(eve3,eve4)) {
+									sh_vert= eve4;
+									break;
+								}
+							}
+							
+							if(sh_vert) {
+								if(sh_vert) {
+									if(!exist_face_overlaps(eve1,eve2,eve4,eve3))
+										fix_new_face(addfacelist(eve1,eve2,eve4,eve3,NULL,NULL));
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	countall();
+
+	EM_select_flush();
+}
+
 void addedgeface_mesh(void)
 {
 	EditMesh *em = G.editMesh;

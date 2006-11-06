@@ -79,6 +79,7 @@
 #include "BIF_poseobject.h"
 #include "BIF_previewrender.h"
 #include "BIF_renderwin.h"
+#include "BIF_retopo.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toets.h"
@@ -86,6 +87,7 @@
 #include "BIF_usiblender.h"
 #include "BIF_writeimage.h"
 
+#include "BDR_sculptmode.h"
 #include "BDR_vpaint.h"
 #include "BDR_editobject.h"
 #include "BDR_editface.h"
@@ -334,6 +336,11 @@ void persptoetsen(unsigned short event)
 
 		if(G.vd->persp<2) perspo= G.vd->persp;
 	}
+
+	if(G.vd->depths) G.vd->depths->damaged= 1;
+	retopo_queue_updates(G.vd);
+	if(retopo_mesh_paint_check() && G.vd->retopo_view_data)
+		retopo_paint_view_update(G.vd);
 	
 	if(preview3d_event) 
 		BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
@@ -670,6 +677,8 @@ int blenderqread(unsigned short event, short val)
 				}
 				else if(ob->type==OB_MESH) {
 					if(ob==G.obedit) EM_selectmode_menu();
+					else if(G.f & G_SCULPTMODE)
+						sculptmode_selectbrush_menu();
 					else set_wpaint();
 				}
 			}

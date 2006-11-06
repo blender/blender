@@ -71,6 +71,7 @@
 #include "BIF_space.h"
 #include "BIF_mywindow.h"
 #include "BIF_previewrender.h"
+#include "BIF_retopo.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
 
@@ -559,7 +560,18 @@ void viewmove(int mode)
 
 	/* cumultime(0); */
 
-	if (ob && (U.uiflag & USER_ORBIT_SELECTION)) {
+	if(!G.obedit && (G.f & G_SCULPTMODE) && ob && G.vd->pivot_last) {
+		use_sel= 1;
+		VecCopyf(ofs, G.vd->ofs);
+
+		VecCopyf(obofs,&G.scene->sculptdata.pivot.x);
+		Mat4MulVecfl(ob->obmat, obofs);
+		obofs[0]= -obofs[0];
+		obofs[1]= -obofs[1];
+		obofs[2]= -obofs[2];
+	}
+	//else if (G.obedit==NULL && ob && !(ob->flag & OB_POSEMODE) && U.uiflag & USER_ORBIT_SELECTION) {
+	else if (ob && (U.uiflag & USER_ORBIT_SELECTION)) {
 		use_sel = 1;
 		VECCOPY(ofs, G.vd->ofs);
 
@@ -761,6 +773,12 @@ void viewmove(int mode)
 			if(G.f & G_PLAYANIM) inner_play_anim_loop(0, 0);
 			if(G.f & G_SIMULATION) break;
 
+			/* If in retopo paint mode, update lines */
+			if(retopo_mesh_paint_check() && G.vd->retopo_view_data) {
+				G.vd->retopo_view_data->queue_matrix_update= 1;
+				retopo_paint_view_update(G.vd);
+			}
+
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
 		}
@@ -776,6 +794,10 @@ void viewmove(int mode)
 		/* this in the end, otherwise get_mbut does not work on a PC... */
 		if( !(get_mbut() & (L_MOUSE|M_MOUSE))) break;
 	}
+
+	if(G.vd->depths) G.vd->depths->damaged= 1;
+	retopo_queue_updates(G.vd);
+	allqueue(REDRAWVIEW3D, 0);
 
 	if(preview3d_event) 
 		BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);

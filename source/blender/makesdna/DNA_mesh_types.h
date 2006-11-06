@@ -47,6 +47,8 @@ struct MCol;
 struct MSticky;
 struct Mesh;
 struct OcInfo;
+struct Multires;
+struct PartialVisibility;
 
 typedef struct TFace {
 
@@ -99,6 +101,8 @@ typedef struct Mesh {
 	short totcol;
 	short subsurftype; 
 
+	struct Multires *mr;		/* Multiresolution modeling data */
+	struct PartialVisibility *pv;
 /*ifdef WITH_VERSE*/
 	/* not written in file, pointer at geometry VerseNode */
 	void *vnode;

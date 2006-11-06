@@ -78,6 +78,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "multires.h"
+
 // headers for fluidsim bobj meshes
 #include <stdlib.h>
 #include "LBM_fluidsim.h"
@@ -3370,8 +3372,31 @@ DerivedMesh *mesh_get_derived_deform(Object *ob, int *needsFree_r)
 DerivedMesh *mesh_create_derived_render(Object *ob)
 {
 	DerivedMesh *final;
+	Mesh *m= get_mesh(ob);
+	unsigned i;
+
+	/* Goto the pin level for multires */
+	if(m->mr) {
+		m->mr->newlvl= m->mr->pinlvl;
+		multires_set_level(ob,m);
+	}
 
 	mesh_calc_modifiers(ob, NULL, NULL, &final, 1, 1, 0);
+
+	/* Propagate the changes to render level - fails if mesh topology changed */
+	if(m->mr) {
+		if(final->getNumVerts(final) == m->totvert &&
+		   final->getNumFaces(final) == m->totface) {
+			for(i=0; i<m->totvert; ++i)
+				memcpy(&m->mvert[i], CustomData_get(&final->vertData, i, LAYERTYPE_MVERT), sizeof(MVert));
+
+			final->release(final);
+			
+			m->mr->newlvl= m->mr->renderlvl;
+			multires_set_level(ob,m);
+			final= getMeshDerivedMesh(m,ob,NULL);
+		}
+	}	
 
 	return final;
 }

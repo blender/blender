@@ -104,12 +104,14 @@
 #include "BIF_glutil.h"
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
+#include "BIF_retopo.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
+#include "BDR_sculptmode.h"
 #include "BDR_vpaint.h"
 
 #include "BSE_drawview.h"
@@ -139,7 +141,7 @@ static void draw_bounding_volume(Object *ob);
 static float matbuf[MAXMATBUF][2][4];
 static int totmat_gl= 0;
 
-static int set_gl_material(int nr)
+int set_gl_material(int nr)
 {
 	static int last_gl_matnr= -1;
 	static int last_ret_val= 1;
@@ -170,7 +172,7 @@ static int set_gl_material(int nr)
 }
 
 /* returns 1: when there's alpha needed to be drawn in a 2nd pass */
-static int init_gl_materials(Object *ob, int check_alpha)
+int init_gl_materials(Object *ob, int check_alpha)
 {
 	extern Material defmaterial;	// render module abuse...
 	Material *ma;
@@ -1900,6 +1902,8 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 	draw_em_fancy_edges(cageDM);
 
 	if(ob==G.obedit) {
+		retopo_matrix_update(G.vd);
+
 		draw_em_fancy_verts(em, cageDM);
 
 		if(G.f & G_DRAWNORMALS) {
@@ -2170,6 +2174,9 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 
 		if (cageNeedsFree) cageDM->release(cageDM);
 		if (finalNeedsFree) finalDM->release(finalDM);
+	}
+	else if(!G.obedit && G.scene->sculptdata.active_ob == ob) {
+		sculptmode_draw_mesh(NULL);
 	}
 	else {
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
@@ -3069,6 +3076,8 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 	Nurb *nu;
 	BevList *bl;
 
+	retopo_matrix_update(G.vd);
+
 	/* DispList */
 	BIF_ThemeColor(TH_WIRE);
 	drawDispList(base, dt);
@@ -3956,6 +3965,7 @@ void draw_object(Base *base, int flag)
 			}
 		}
 	}
+	
 	/* draw-extra supported for boundbox drawmode too */
 	if(dt>=OB_BOUNDBOX ) {
 
