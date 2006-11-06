@@ -104,6 +104,7 @@ endif
 
     export WITH_OPENEXR ?= true
     ifeq ($(OS),windows)
+	export NAN_WINTAB ?= $(LCGDIR)/wintab
       ifeq ($(FREE_WINDOWS), true)
         export NAN_PTHREADS ?= $(LCGDIR)/pthreads
         export NAN_OPENEXR ?= $(LCGDIR)/gcc/openexr

@@ -47,6 +47,7 @@ ifeq ($(OS),$(findstring $(OS), "darwin"))
 endif
 
 ifeq ($(OS),$(findstring $(OS), "windows"))
+    CPPFLAGS += -I$(NAN_WINTAB)/include
     CCSRCS += $(wildcard *Win32.cpp)
 endif
 
