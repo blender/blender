@@ -17,8 +17,10 @@
 
 #include "math.h"
 #include "plugin.h"
+#include "util.h"
 #include <stdio.h>
 
+#define alpha_epsilon 0.0001f
 char name[]= "Gamma Correction";
 
 VarStruct varstr[]= {
@@ -61,7 +63,7 @@ float cfra;
 
 void plugin_seq_doit(Cast *, float, float, int, int, ImBuf *, ImBuf *, ImBuf *, ImBuf *);
 
-int plugin_seq_getversion(void) { return B_PLUGIN_VERSION;}
+int plugin_seq_getversion(void) { return 4; /* float images are supported */}
 void plugin_but_changed(int but) {}
 void plugin_init() {}
 
@@ -97,35 +99,84 @@ static void make_gamma_table(float setup, float gain, float gamma,
 
 }
 
+
 void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width, 
 	int height, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *out, ImBuf *use) {
-	unsigned char *dest, *src1, *src2;
-	int x, y, c;
-	unsigned char gamma_table_m[256];
-	unsigned char gamma_table_r[256];
-	unsigned char gamma_table_g[256];
-	unsigned char gamma_table_b[256];
-	
-	if (!ibuf1) return;
+	if (!out->rect_float)
+	{
+		unsigned char *dest, *src1, *src2;
+		int x, y, c;
+		unsigned char gamma_table_m[256];
+		unsigned char gamma_table_r[256];
+		unsigned char gamma_table_g[256];
+		unsigned char gamma_table_b[256];
+		
+		if (!ibuf1) return;
 
-	dest= (unsigned char *) out->rect;
-	src1= (unsigned char *) ibuf1->rect;
+		dest= (char *) out->rect;
+		src1= (char *) ibuf1->rect;
 
-	make_gamma_table(cast->setup_m, cast->gain_m, cast->gamma_m,
-			 gamma_table_m);
-	make_gamma_table(cast->setup_r, cast->gain_r, cast->gamma_r,
-			 gamma_table_r);
-	make_gamma_table(cast->setup_g, cast->gain_g, cast->gamma_g,
-			 gamma_table_g);
-	make_gamma_table(cast->setup_b, cast->gain_b, cast->gamma_b,
-			 gamma_table_b);
+		make_gamma_table(cast->setup_m, cast->gain_m, cast->gamma_m,
+				 gamma_table_m);
+		make_gamma_table(cast->setup_r, cast->gain_r, cast->gamma_r,
+				 gamma_table_r);
+		make_gamma_table(cast->setup_g, cast->gain_g, cast->gamma_g,
+				 gamma_table_g);
+		make_gamma_table(cast->setup_b, cast->gain_b, cast->gamma_b,
+				 gamma_table_b);
 
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			*dest++ = gamma_table_r[gamma_table_m[*src1++]];
-			*dest++ = gamma_table_g[gamma_table_m[*src1++]];
-			*dest++ = gamma_table_b[gamma_table_m[*src1++]];
-			dest++; src1++;
+		for (y = 0; y < height; y++) {
+			for (x = 0; x < width; x++) {
+				*dest++ = gamma_table_r[gamma_table_m[*src1++]];
+				*dest++ = gamma_table_g[gamma_table_m[*src1++]];
+				*dest++ = gamma_table_b[gamma_table_m[*src1++]];
+				dest++; src1++;
+			}
+		}
+	}
+	else
+	{
+		float *i=ibuf1->rect_float;
+		float *o=out->rect_float;
+		unsigned int size=width*height;
+		unsigned int k;
+		float val_r[3]={cast->setup_r,cast->gain_r,cast->gamma_r};
+		float val_g[3]={cast->setup_g,cast->gain_g,cast->gamma_g};
+		float val_b[3]={cast->setup_b,cast->gain_b,cast->gamma_b};
+		float *vals[3]={val_r,val_g,val_b};
+		for (k=0;k<size;++k)
+		{
+			if (cast->gamma_m!=1.f || cast->setup_m!=0.f || cast->gain_m!=1.f)
+			{
+				float alpha=CLAMP(i[3],0.f,1.f);
+				if (alpha>alpha_epsilon) {
+					int l;
+					for (l=0;l<3;++l)
+					{
+						float *val=vals[l];
+						o[l]=i[l]/alpha;
+						o[l]=pow((o[l]+cast->setup_m)*cast->gain_m,cast->gamma_m);
+						if (val[2]!=1.f || val[0]!=0.f || val[1]!=1.f)
+						{
+							o[l]=pow((o[l]+val[0])*val[1],val[2]);
+						}
+						o[l]*=alpha;
+						o[l]=CLAMP(o[l],0.f,1.f);
+					}
+				} else {
+					o[0]=o[1]=o[2]=0.0;
+				}
+				o[3]=1.0;
+			}
+			else
+			{
+				int l;
+				for (l=0;l<3;++l)
+					o[l]=CLAMP(i[l],0.f,1.f);
+				o[3]=1.0;
+			}
+			i+=4;
+			o+=4;
 		}
 	}
 }
