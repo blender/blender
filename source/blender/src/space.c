@@ -2116,6 +2116,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if ( (G.qual==LR_CTRLKEY)
 					 && (G.obedit) && (G.obedit->type==OB_MESH) )
 					select_less();
+				else if ( (G.qual==LR_CTRLKEY)
+					 && (G.obedit) && (G.obedit->type==OB_CURVE) )
+					select_less_nurb();
+				/*
+				else if ( (G.qual==LR_CTRLKEY)
+					 && (G.obedit) && (G.obedit->type==OB_SURF) )
+					select_less_nurb(); 
+				*/
 				else {
 					persptoetsen(event);
 					doredraw= 1;
@@ -2126,6 +2134,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if ( (G.qual==LR_CTRLKEY)
 					 && (G.obedit) && (G.obedit->type==OB_MESH) )
 					select_more();
+				else if ( (G.qual==LR_CTRLKEY)
+					 && (G.obedit) && (G.obedit->type==OB_CURVE) )
+					select_more_nurb();
+				/*
+				else if ( (G.qual==LR_CTRLKEY)
+					 && (G.obedit) && (G.obedit->type==OB_SURF) )
+					select_more_nurb();
+				*/
 				else {
 					persptoetsen(event);
 					doredraw= 1;

@@ -873,7 +873,7 @@ void do_view3d_select_meshmenu(void *arg, int event)
 		case 8: /* select less */
 			select_less();
 			break;
-		case 9: /* select less */
+		case 9: /* select non-manifold */
 			select_non_manifold();
 			break;
 		case 11: /* select triangles */
@@ -885,10 +885,10 @@ void do_view3d_select_meshmenu(void *arg, int event)
 		case 13: /* select non-triangles/quads */
 			select_faces_by_numverts(5);
 			break;
-		case 14: /* select less */
+		case 14: /* select sharp edges */
 			select_sharp_edges();
 			break;
-		case 15: /* select less */
+		case 15: /* select linked flat faces */
 			select_linked_flat_faces();
 			break;
 
@@ -1018,6 +1018,24 @@ void do_view3d_select_curvemenu(void *arg, int event)
 		case 5: /* select row (nurb) */
 			selectrow_nurb();
 			break;
+		case 7: /* select/deselect first */
+			selectends_nurb(1);
+			break;
+		case 8: /* select/deselect last */ 
+			selectends_nurb(0);
+			break;
+		case 9: /* select more */
+			select_more_nurb();
+			break;
+		case 10: /* select less */
+			select_less_nurb();
+			break;
+		case 11: /* select next */
+			select_next_nurb();
+			break;
+		case 12: /* select previous */
+			select_prev_nurb();
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1043,6 +1061,19 @@ static uiBlock *view3d_select_curvemenu(void *arg_unused)
 		
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Control Point Row|Shift R",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	}
+	else {
+		uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect First",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect Last",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Next",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Previous",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
+	}
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "More|Ctrl NumPad +",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Less|Ctrl NumPad -",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+	
 	/* commented out because it seems to only like the LKEY method - based on mouse pointer position :( */
 	/*uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Connected Control Points|Ctrl L",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");*/
 		

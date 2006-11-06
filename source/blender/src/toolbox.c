@@ -916,6 +916,14 @@ static TBitem tb_curve_select[]= {
 {	0, "(De)select All|A", 	2, NULL},
 {	0, "Inverse", 			3, NULL},
 {	0, "Row|Shift R", 			5, NULL},
+{	0, "SEPR",				0, NULL},
+{	0, "(De)select First",	7, NULL},
+{	0, "(De)select Last", 	8, NULL},
+{	0, "Select Next",		11, NULL},
+{	0, "Select Previous", 	12, NULL},
+{	0, "SEPR",				0, NULL},
+{	0, "More|Ctrl NumPad +",	9, NULL},
+{	0, "Less|Ctrl NumPad -",	10, NULL},
 {  -1, "", 				0, do_view3d_select_curvemenu}};
 
 static TBitem tb__select[]= {
