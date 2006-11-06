@@ -455,7 +455,7 @@ void RE_SetCamera(Render *re, Object *camera)
 	Camera *cam=NULL;
 	rctf viewplane;
 	float pixsize, clipsta, clipend;
-	float lens;
+	float lens, shiftx=0.0, shifty=0.0, winside;
 	
 	/* question mark */
 	re->ycor= ( (float)re->r.yasp)/( (float)re->r.xasp);
@@ -473,6 +473,8 @@ void RE_SetCamera(Render *re, Object *camera)
 			execute_ipo(&cam->id, cam->ipo);
 		}
 		lens= cam->lens;
+		shiftx=cam->shiftx;
+		shifty=cam->shifty;
 
 		clipsta= cam->clipsta;
 		clipend= cam->clipend;
@@ -524,10 +526,11 @@ void RE_SetCamera(Render *re, Object *camera)
 	}
 	
 	/* viewplane fully centered, zbuffer fills in jittered between -.5 and +.5 */
-	viewplane.xmin= -0.5f*(float)re->winx; 
-	viewplane.ymin= -0.5f*re->ycor*(float)re->winy; 
-	viewplane.xmax=  0.5f*(float)re->winx; 
-	viewplane.ymax=  0.5f*re->ycor*(float)re->winy; 
+	winside= MAX2(re->winx, re->winy);
+	viewplane.xmin= -0.5f*(float)re->winx + shiftx*winside; 
+	viewplane.ymin= -0.5f*re->ycor*(float)re->winy + shifty*winside;
+	viewplane.xmax=  0.5f*(float)re->winx + shiftx*winside; 
+	viewplane.ymax=  0.5f*re->ycor*(float)re->winy + shifty*winside; 
 
 	if(re->flag & R_SEC_FIELD) {
 		if(re->r.mode & R_ODDFIELD) {

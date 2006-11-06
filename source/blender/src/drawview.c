@@ -910,6 +910,18 @@ void calc_viewborder(struct View3D *v3d, rctf *viewborder_r)
 	viewborder_r->ymin-= dy;
 	viewborder_r->xmax-= dx;
 	viewborder_r->ymax-= dy;
+	
+	if(v3d->camera && v3d->camera->type==OB_CAMERA) {
+		Camera *cam= v3d->camera->data;
+		float w = viewborder_r->xmax - viewborder_r->xmin;
+		float h = viewborder_r->ymax - viewborder_r->ymin;
+		float side = MAX2(w, h);
+
+		viewborder_r->xmin+= cam->shiftx*side;
+		viewborder_r->xmax+= cam->shiftx*side;
+		viewborder_r->ymin+= cam->shifty*side;
+		viewborder_r->ymax+= cam->shifty*side;
+	}
 }
 
 void view3d_set_1_to_1_viewborder(View3D *v3d)

@@ -2673,50 +2673,61 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_camera_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Camera", "Editing", 320, 0, 318, 204)==0) return;
 
+	uiDefBut(block, LABEL, 10, "Lens:", 10, 180, 150, 20, 0, 0.0, 0.0, 0, 0, "");
+	
 if(cam->type==CAM_ORTHO) {
 		uiDefButF(block, NUM,REDRAWVIEW3D, "Scale:",
-				  0, 145, 150, 20, &cam->ortho_scale, 0.01, 1000.0, 50, 0, "Specify the ortho scaling of the used camera");
+				  10, 160, 150, 20, &cam->ortho_scale, 0.01, 1000.0, 50, 0, "Specify the ortho scaling of the used camera");
 	} else {
 		uiDefButF(block, NUM,REDRAWVIEW3D, "Lens:",
-				  0, 145, 150, 20, &cam->lens, 1.0, 250.0, 100, 0, "Specify the lens of the camera");
+				  10, 160, 150, 20, &cam->lens, 1.0, 250.0, 100, 0, "Specify the lens of the camera");
 	}
 	
 	uiDefButS(block, TOG, REDRAWVIEW3D, "Orthographic",
-			  0, 120, 150, 20, &cam->type, 0, 0, 0, 0, "Render orthogonally");
+			  10, 135, 150, 20, &cam->type, 0, 0, 0, 0, "Render orthogonally");
 	
-	uiDefBut(block, LABEL, 0, "Clipping:", 0, 90, 150, 20, 0, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Clipping:", 10, 110, 150, 20, 0, 0.0, 0.0, 0, 0, "");
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,REDRAWVIEW3D, "Start:",
-			  0, 70, 150, 20, &cam->clipsta, 0.001*grid, 100.0*grid, 10, 0, "Specify the startvalue of the the field of view");
+			  10, 90, 150, 20, &cam->clipsta, 0.001*grid, 100.0*grid, 10, 0, "Specify the startvalue of the the field of view");
 	uiDefButF(block, NUM,REDRAWVIEW3D, "End:",
-			  0, 50, 150, 20, &cam->clipend, 1.0, 5000.0*grid, 100, 0, "Specify the endvalue of the the field of view");
+			  10, 70, 150, 20, &cam->clipend, 1.0, 5000.0*grid, 100, 0, "Specify the endvalue of the the field of view");
 	uiBlockEndAlign(block);
 			
 	uiDefButF(block, NUM,REDRAWVIEW3D, "Size:",
-			  0, 25, 150, 20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "The size that the camera is displayed in the 3D View (different to the object's scale)");
+			  170, 25, 150, 20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "The size that the camera is displayed in the 3D View (different to the object's scale)");
+
+	uiDefBut(block, LABEL, 0, "Shift:", 10, 45, 150, 20, 0, 0.0, 0.0, 0, 0, "");
+				  
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM,REDRAWVIEW3D, "X:",
+		10, 25, 75, 20, &cam->shiftx, -2.0, 2.0, 1, 2, "Horizontally shifts the camera view, without changing the perspective");
+	uiDefButF(block, NUM,REDRAWVIEW3D, "Y:",
+		85, 25, 75, 20, &cam->shifty, -2.0, 2.0, 1, 2, "Vertically shifts the camera view, without changing the perspective");
+	uiBlockEndAlign(block);
 	
-	uiDefBut(block, LABEL, 0, "Show:", 160, 155, 150, 20, 0, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Show:", 170, 180, 150, 20, 0, 0.0, 0.0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|0, REDRAWVIEW3D, "Limits",
-			  160, 135, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw the field of view");
+			  170, 160, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw the field of view");
 	uiDefButS(block, TOG|BIT|1, REDRAWVIEW3D, "Mist",
-			  160, 115, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a line that indicates the mist area");
+			  170, 140, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a line that indicates the mist area");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|4, REDRAWVIEW3D, "Name",
-			  160, 90, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw the active camera's name in camera view");
+			  170, 115, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw the active camera's name in camera view");
 		uiDefButS(block, TOG|BIT|3, REDRAWVIEW3D, "Title Safe",
-			  160, 70, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a the title safe zone in camera view");
+			  170, 95, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a the title safe zone in camera view");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);	
 	uiDefButS(block, TOG|BIT|2, REDRAWVIEW3D, "Passepartout",
-			  160, 45, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a darkened passepartout over the off-screen area in camera view");
+			  170, 70, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a darkened passepartout over the off-screen area in camera view");
 	uiDefButF(block, NUMSLI, REDRAWVIEW3D, "Alpha: ",
-			160, 25, 150, 20, &cam->passepartalpha, 0.0, 1.0, 0, 0, "The opacity (darkness) of the passepartout");
+			170, 50, 150, 20, &cam->passepartalpha, 0.0, 1.0, 0, 0, "The opacity (darkness) of the passepartout");
 	uiBlockEndAlign(block);
 
 

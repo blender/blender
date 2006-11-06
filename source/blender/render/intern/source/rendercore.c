@@ -821,11 +821,11 @@ static float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_p
 
 	nv= n[0]*v[0]+n[1]*v[1]+n[2]*v[2]; /* Dot product between surface normal and view vector */
 	if(tangent) nv= sasqrt(1.0f - nv*nv);
-	if(nv<=0.0) nv= 0.01;				/* hrms... */
+	if(nv<=0.01) nv= 0.01;				/* hrms... */
 
 	nl= n[0]*l[0]+n[1]*l[1]+n[2]*l[2]; /* Dot product between surface normal and light vector */
 	if(tangent) nl= sasqrt(1.0f - nl*nl);
-	if(nl<=0.0) {
+	if(nl<=0.01) {
 		return 0.0;
 	}
 
