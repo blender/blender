@@ -554,7 +554,8 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int flags)
 					mem += 3;
 					break;
 				case 2:
-					col = (mem[1] << 8) + mem[0];
+					cp[1] = mem[1];
+					cp[0] = mem[0];
 					mem += 2;
 					break;
 				case 1:
