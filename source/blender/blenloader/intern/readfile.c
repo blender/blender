@@ -132,8 +132,8 @@
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 
-#include "BIF_butspace.h" // for do_versions, patching event codes
-#include "BIF_previewrender.h" // for struct RenderInfo
+#include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
+#include "BIF_previewrender.h" // bedlelvel, for struct RenderInfo
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
 #include "BLO_readblenfile.h" // streaming read pipe, for BLO_readblenfile BLO_readblenfilememory
@@ -3143,6 +3143,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						}
 						so->lockpoin= NULL;
 						so->tree.first= so->tree.last= NULL;
+						so->search_tse.id= newlibadr(fd, NULL, so->search_tse.id);
 						
 						if(so->treestore) {
 							tselem= so->treestore->data;
@@ -3302,14 +3303,15 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 				else if(sl->spacetype==SPACE_OOPS) {
 					SpaceOops *so= (SpaceOops *)sl;
 					Oops *oops;
-					
 					int a;
+					
 					oops= so->oops.first;
 					while(oops) {
 						oops->id= restore_pointer_by_name(newmain, (ID *)oops->id, 0);
 						oops= oops->next;
 					}
 					so->lockpoin= NULL;
+					so->search_tse.id= restore_pointer_by_name(newmain, so->search_tse.id, 0);
 					
 					if(so->treestore) {
 						TreeStore *ts= so->treestore;

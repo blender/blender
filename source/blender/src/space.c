@@ -4495,6 +4495,19 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			else
 				outliner_toggle_visible(sa);
 			break;
+		case FKEY: 
+			{
+				/* search */
+				int search_flags=0, again=0;
+				
+				/* CTRL=case sensitive, SHIFT=find again, ALT=complete */
+				if (G.qual & LR_CTRLKEY) search_flags |= 1;
+				if (G.qual & LR_ALTKEY) search_flags |= 8;
+				if (G.qual & LR_SHIFTKEY) again = 1;
+				
+				outliner_find_panel(sa, again, search_flags);				
+			}
+			break;
 		case WKEY:
 			outliner_operation_menu(sa);
 			break;
@@ -5045,7 +5058,8 @@ void freespacelist(ScrArea *sa)
 			}
 		}
 		else if(sl->spacetype==SPACE_OOPS) {
-			free_oopspace((SpaceOops *)sl);
+			SpaceOops *so= (SpaceOops *) sl;
+			free_oopspace(so);
 		}
 		else if(sl->spacetype==SPACE_IMASEL) {
 			free_imasel((SpaceImaSel *)sl);

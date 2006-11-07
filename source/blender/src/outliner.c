@@ -127,6 +127,7 @@ extern ListBase session_list;
 extern ListBase server_list;
 #endif
 
+
 /* ******************** PERSISTANT DATA ***************** */
 
 static void outliner_storage_cleanup(SpaceOops *soops)
@@ -229,7 +230,7 @@ void outliner_free_tree(ListBase *lb)
 	
 	while(lb->first) {
 		TreeElement *te= lb->first;
-
+		
 		outliner_free_tree(&te->subtree);
 		BLI_remlink(lb, te);
 		MEM_freeN(te);
@@ -440,8 +441,9 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					
 					tenla->name= "Pose";
 					
-					if(ob!=G.obedit) {	// channels undefined in editmode, but we want the 'tenla' pose icon itself
-						int a= 0;
+					if(ob!=G.obedit && (ob->flag & OB_POSEMODE)) {	// channels undefined in editmode, but we want the 'tenla' pose icon itself
+						int a= 0, const_index= 1000;	/* ensure unique id for bone constraints */
+						
 						for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, a++) {
 							ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_POSE_CHANNEL, a);
 							ten->name= pchan->name;
@@ -453,12 +455,11 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 								bConstraint *con;
 								TreeElement *ten1;
 								TreeElement *tenla1= outliner_add_element(soops, &ten->subtree, ob, ten, TSE_CONSTRAINT_BASE, 0);
-								int a= 0;
 								char *str;
 								
 								tenla1->name= "Constraints";
-								for(con= pchan->constraints.first; con; con= con->next, a++) {
-									ten1= outliner_add_element(soops, &tenla1->subtree, ob, tenla1, TSE_CONSTRAINT, a);
+								for(con= pchan->constraints.first; con; con= con->next, const_index++) {
+									ten1= outliner_add_element(soops, &tenla1->subtree, ob, tenla1, TSE_CONSTRAINT, const_index);
 									target= get_constraint_target(con, &str);
 									if(str && str[0]) ten1->name= str;
 									else if(target) ten1->name= target->id.name+2;
@@ -479,6 +480,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 									BLI_remlink(&tenla->subtree, ten);
 									par= (TreeElement *)pchan->parent->prev;
 									BLI_addtail(&par->subtree, ten);
+									ten->parent= par;
 								}
 							}
 							ten= nten;
@@ -704,14 +706,20 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 							BLI_remlink(&te->subtree, ten);
 							par= ebone->parent->temp;
 							BLI_addtail(&par->subtree, ten);
+							ten->parent= par;
 						}
 						ten= nten;
 					}
 				}
 				else {
-					Bone *curBone;
-					for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
-						outliner_add_bone(soops, &te->subtree, id, curBone, te, &a);
+					/* do not extend Armature when we have posemode */
+					tselem= TREESTORE(te->parent);
+					if( GS(tselem->id->name)==ID_OB && ((Object *)tselem->id)->flag & OB_POSEMODE);
+					else {
+						Bone *curBone;
+						for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
+							outliner_add_bone(soops, &te->subtree, id, curBone, te, &a);
+						}
 					}
 				}
 			}
@@ -1030,6 +1038,46 @@ static void outliner_openclose_level(SpaceOops *soops, ListBase *lb, int curleve
 		outliner_openclose_level(soops, &te->subtree, curlevel+1, level, open);
 	}
 }
+
+/* return 1 when levels were opened */
+static int outliner_open_back(SpaceOops *soops, TreeElement *te)
+{
+	TreeStoreElem *tselem;
+	int retval= 0;
+	
+	for (te= te->parent; te; te= te->parent) {
+		tselem= TREESTORE(te);
+		if (tselem->flag & TSE_CLOSED) { 
+			tselem->flag &= ~TSE_CLOSED;
+			retval= 1;
+		}
+	}
+	return retval;
+}
+
+static void outliner_open_reveal(SpaceOops *soops, ListBase *lb, TreeElement *teFind, int *found)
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	for (te= lb->first; te; te= te->next) {
+		/* check if this tree-element was the one we're seeking */
+		if (te == teFind) {
+			*found= 1;
+			return;
+		}
+		
+		/* try to see if sub-tree contains it then */
+		outliner_open_reveal(soops, &te->subtree, teFind, found);
+		if (*found) {
+			tselem= TREESTORE(te);
+			if (tselem->flag & TSE_CLOSED) 
+				tselem->flag &= ~TSE_CLOSED;
+			return;
+		}
+	}
+}
+
 
 void outliner_one_level(struct ScrArea *sa, int add)
 {
@@ -1767,6 +1815,36 @@ void outliner_mouse_event(ScrArea *sa, short event)
 		outliner_select(sa);
 
 }
+/* recursive helper for function below */
+static void outliner_set_coordinates_element(SpaceOops *soops, TreeElement *te, int startx, int *starty)
+{
+	TreeStoreElem *tselem= TREESTORE(te);
+	
+	/* store coord and continue, we need coordinates for elements outside view too */
+	te->xs= startx;
+	te->ys= *starty;
+	*starty-= OL_H;
+	
+	if((tselem->flag & TSE_CLOSED)==0) {
+		TreeElement *ten;
+		for(ten= te->subtree.first; ten; ten= ten->next) {
+			outliner_set_coordinates_element(soops, ten, startx+OL_X, starty);
+		}
+	}
+	
+}
+
+/* to retrieve coordinates with redrawing the entire tree */
+static void outliner_set_coordinates(SpaceOops *soops)
+{
+	TreeElement *te;
+	int starty= soops->v2d.tot.ymax-OL_H;
+	int startx= 0;
+	
+	for(te= soops->tree.first; te; te= te->next) {
+		outliner_set_coordinates_element(soops, te, startx, &starty);
+	}
+}
 
 static TreeElement *outliner_find_id(SpaceOops *soops, ListBase *lb, ID *id)
 {
@@ -1801,6 +1879,158 @@ void outliner_show_active(struct ScrArea *sa)
 		so->v2d.cur.ymax= ytop;
 		so->v2d.cur.ymin= ytop-(so->v2d.mask.ymax-so->v2d.mask.ymin);
 		scrarea_queue_redraw(sa);
+	}
+}
+
+void outliner_show_selected(struct ScrArea *sa)
+{
+	SpaceOops *so= sa->spacedata.first;
+	TreeElement *te;
+	int ytop;
+	
+	te= outliner_find_id(so, &so->tree, (ID *)OBACT);
+	if(te) {
+		/* make te->ys center of view */
+		ytop= te->ys + (so->v2d.mask.ymax-so->v2d.mask.ymin)/2;
+		if(ytop>0) ytop= 0;
+		so->v2d.cur.ymax= ytop;
+		so->v2d.cur.ymin= ytop-(so->v2d.mask.ymax-so->v2d.mask.ymin);
+		scrarea_queue_redraw(sa);
+	}
+}
+
+
+/* find next element that has this name */
+static TreeElement *outliner_find_named(SpaceOops *soops, ListBase *lb, char *name, int flags, TreeElement *prev, int *prevFound)
+{
+	TreeElement *te, *tes;
+	
+	for (te= lb->first; te; te= te->next) {
+		int found;
+		
+		/* determine if match */
+		if(flags==OL_FIND)
+			found= strcasestr(te->name, name)!=NULL;
+		else if(flags==OL_FIND_CASE)
+			found= strstr(te->name, name)!=NULL;
+		else if(flags==OL_FIND_COMPLETE)
+			found= strcasecmp(te->name, name)==0;
+		else
+			found= strcmp(te->name, name)==0;
+		
+		if(found) {
+			/* name is right, but is element the previous one? */
+			if (prev) {
+				if ((te != prev) && (*prevFound)) 
+					return te;
+				if (te == prev) {
+					*prevFound = 1;
+				}
+			}
+			else
+				return te;
+		}
+		
+		tes= outliner_find_named(soops, &te->subtree, name, flags, prev, prevFound);
+		if(tes) return tes;
+	}
+
+	/* nothing valid found */
+	return NULL;
+}
+
+/* tse is not in the treestore, we use its contents to find a match */
+static TreeElement *outliner_find_tse(SpaceOops *soops, TreeStoreElem *tse)
+{
+	TreeStore *ts= soops->treestore;
+	TreeStoreElem *tselem;
+	int a;
+	
+	if(tse->id==NULL) return NULL;
+	
+	/* check if 'tse' is in treestore */
+	tselem= ts->data;
+	for(a=0; a<ts->usedelem; a++, tselem++) {
+		if(tselem->id==tse->id) {
+			if((tse->type==0 && tselem->type==0) || (tselem->type==tse->type && tselem->nr==tse->nr)) {
+				break;
+			}
+		}
+	}
+	if(tselem) 
+		return outliner_find_tree_element(&soops->tree, a);
+	
+	return NULL;
+}
+
+
+/* Called to find an item based on name.
+ */
+void outliner_find_panel(struct ScrArea *sa, int again, int flags) 
+{
+	SpaceOops *soops= sa->spacedata.first;
+	TreeElement *te= NULL;
+	TreeElement *last_find;
+	TreeStoreElem *tselem;
+	int ytop, prevFound=0;
+	char name[33];
+	
+	/* get last found tree-element based on stored search_tse */
+	last_find= outliner_find_tse(soops, &soops->search_tse);
+	
+	/* determine which type of search to do */
+	if (again && last_find) {
+		/* no popup panel - previous + user wanted to search for next after previous */		
+		BLI_strncpy(name, soops->search_string, 33);
+		flags= soops->search_flags;
+		
+		/* try to find matching element */
+		te= outliner_find_named(soops, &soops->tree, name, flags, last_find, &prevFound);
+		if (te==NULL) {
+			/* no more matches after previous, start from beginning again */
+			prevFound= 1;
+			te= outliner_find_named(soops, &soops->tree, name, flags, last_find, &prevFound);
+		}
+	}
+	else {
+		/* pop up panel - no previous, or user didn't want search after previous */
+		strcpy(name, "");
+		if (sbutton(name, 0, sizeof(name)-1, "Find: ") && name[0]) {
+			te= outliner_find_named(soops, &soops->tree, name, flags, NULL, &prevFound);
+		}
+		else return; /* XXX RETURN! XXX */
+	}
+
+	/* do selection and reveil */
+	if (te) {
+		tselem= TREESTORE(te);
+		if (tselem) {
+			/* expand branches so that it will be visible, we need to get correct coordinates */
+			if( outliner_open_back(soops, te))
+				outliner_set_coordinates(soops);
+			
+			/* deselect all visible, and select found element */
+			outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 0);
+			tselem->flag |= TSE_SELECTED;
+			
+			/* make te->ys center of view */
+			ytop= te->ys + (soops->v2d.mask.ymax-soops->v2d.mask.ymin)/2;
+			if(ytop>0) ytop= 0;
+			soops->v2d.cur.ymax= ytop;
+			soops->v2d.cur.ymin= ytop-(soops->v2d.mask.ymax-soops->v2d.mask.ymin);
+			
+			/* store selection */
+			soops->search_tse= *tselem;
+			
+			BLI_strncpy(soops->search_string, name, 33);
+			soops->search_flags= flags;
+			
+			/* redraw */
+			scrarea_queue_redraw(sa);
+		}
+	}
+	else {
+		if (name) error("Not found: %s", name);
 	}
 }
 
@@ -2678,7 +2908,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 			}
 		}
 	}	
-	/* store coord and continue */
+	/* store coord and continue, we need coordinates for elements outside view too */
 	te->xs= startx;
 	te->ys= *starty;
 	te->xend= startx+offsx;
@@ -2774,8 +3004,8 @@ static void outliner_draw_tree(SpaceOops *soops)
 	for(te= soops->tree.first; te; te= te->next) {
 		outliner_draw_tree_element(soops, te, startx, &starty);
 	}
-	
 }
+
 
 static void outliner_back(SpaceOops *soops)
 {
@@ -2881,6 +3111,7 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
 		if(tselem->flag & TSE_TEXTBUT) {
+			if(tselem->type == TSE_POSE_BASE) continue; // prevent crash when trying to rename 'pose' entry of armature
 			
 			if(tselem->type==TSE_EBONE) len = sizeof(((EditBone*) 0)->name);
 			else if (tselem->type==TSE_MODIFIER) len = sizeof(((ModifierData*) 0)->name);

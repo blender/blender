@@ -38,7 +38,7 @@ struct TreeStoreElem;
 typedef struct TreeElement {
 	struct TreeElement *next, *prev, *parent;
 	ListBase subtree;
-	float xs, ys;		// doe selection
+	float xs, ys;		// do selection
 	int store_index;	// offset in tree store
 	short flag, index;	// flag for non-saved stuff, index for data arrays
 	short idcode;		// from TreeStore id
@@ -72,6 +72,12 @@ typedef struct TreeElement {
 #define TSE_VERSE_GEOM_NODE	17
 /*#endif*/
 
+/* outliner search flags */
+#define OL_FIND					0
+#define OL_FIND_CASE			1
+#define OL_FIND_COMPLETE		2
+#define OL_FIND_COMPLETE_CASE	3
+
 /* button events */
 #define OL_NAMEBUTTON		1
 
@@ -86,6 +92,7 @@ extern void outliner_select(struct ScrArea *sa);
 extern void outliner_toggle_selected(struct ScrArea *sa);
 extern void outliner_operation_menu(struct ScrArea *sa);
 extern void outliner_page_up_down(struct ScrArea *sa, int up);
+extern void outliner_find_panel(struct ScrArea *sa, int again, int flags);
 
 #endif
 

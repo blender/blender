@@ -36,6 +36,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
+#include "DNA_oops_types.h"	/* for TreeStoreElem */
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
 
@@ -47,7 +48,6 @@ struct ImBuf;
 struct Image;
 struct SpaceIpo;
 struct BlendHandle;
-struct TreeStore;
 struct RenderInfo;
 struct bNodeTree;
 struct uiBlock;
@@ -206,6 +206,12 @@ typedef struct SpaceOops {
 	
 	ListBase tree;
 	struct TreeStore *treestore;
+	
+	/* search stuff */
+	char search_string[32];
+	struct TreeStoreElem search_tse;
+	int search_flags, pad;
+	
 	short type, outlinevis, storeflag;
 	short deps_flags;
 	

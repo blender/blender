@@ -43,7 +43,7 @@ struct ID;
 
 typedef struct TreeStoreElem {
 	short type, nr, flag, used;
-	ID *id;
+	struct ID *id;
 } TreeStoreElem;
 
 typedef struct TreeStore {
@@ -65,7 +65,7 @@ typedef struct Oops {
 typedef struct OopsLink {
 	struct OopsLink *next, *prev;
 	short type, flag;
-	ID **idfrom;
+	struct ID **idfrom;
 	Oops *to, *from;	/* from is for temp */
 	float xof, yof;
 	char name[12];

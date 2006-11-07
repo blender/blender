@@ -306,11 +306,12 @@ short sbutton(char *var, float min, float max, char *str)
 	x1=mval[0]-150; 
 	y1=mval[1]-20; 
 	
-	uiDefButC(block, TEX, 0, str,	x1+5,y1+10,125,20, var,(float)min,(float)max, 0, 0, "");
+	uiDefButC(block, TEX, 2, str,	x1+5,y1+10,125,20, var,(float)min,(float)max, 0, 0, "");
 	uiDefBut(block, BUT, 1, "OK",	x1+136,y1+10,25,20, NULL, 0, 0, 0, 0, "");
 
 	uiBoundsBlock(block, 5);
-
+	
+	mainqenter_ext(BUT_ACTIVATE, 2, 0);	/* note, button id '2' is asking for errors some day! */
 	ret= uiDoBlocks(&listb, 0);
 
 	if(ret==UI_RETURN_OK) return 1;

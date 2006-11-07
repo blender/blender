@@ -348,7 +348,67 @@ static uiBlock *oops_blockmenu(void *arg_unused)
 	return block;
 }
 
+static void do_oops_searchmenu(void *arg, int event)
+{	
+	int search_flags = OL_FIND, again = 0;
+	
+	switch(event)
+	{
+	case 0: /* plain new find */	
+		search_flags = OL_FIND;
+		break;
+	case 1: /* case sensitive */
+		search_flags = OL_FIND_CASE;
+		break;
+	case 2: /* full search */
+		search_flags = OL_FIND_COMPLETE;
+		break;
+	case 3: /* full case sensitive */
+		search_flags = OL_FIND_COMPLETE_CASE;
+		break;
+	case 4: /* again */
+		again = 1;
+		break;
+	default: /* nothing valid */
+		return;
+	}
+	
+	/* run search */
+	outliner_find_panel(curarea, again, search_flags);
+}
 
+static uiBlock *oops_searchmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "oops_searchmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_oops_searchmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find|F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find (Case Sensitive)|Ctrl F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Complete|Alt F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Complete (Case Sensitive)|Ctrl Alt F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Again|Shift F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
 
 void oops_buttons(void)
 {	
@@ -404,6 +464,11 @@ void oops_buttons(void)
 			uiDefPulldownBut(block, oops_blockmenu, NULL, "Block", xco, -2, xmax-3, 24, "");
 			xco+= xmax;
 			
+		}
+		else {
+			xmax= GetButStringLength("Search");
+			uiDefPulldownBut(block, oops_searchmenu, NULL, "Search", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
 		}
 	}
 
