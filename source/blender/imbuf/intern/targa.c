@@ -604,7 +604,9 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int flags)
 		rect = ibuf->rect;
 		for (size = ibuf->x * ibuf->y; size > 0; --size, ++rect){
 			col = *rect;
-			uchar *cp = (uchar*)rect, *mem = (uchar*)&col;
+			cp = (uchar*)rect; 
+			mem = (uchar*)&col;
+
 			cp[3] = ((mem[1] << 1) & 0xf8);
 			cp[2] = ((mem[0] & 0xe0) >> 2) + ((mem[1] & 0x03) << 6);
 			cp[1] = ((mem[0] << 3) & 0xf8);
