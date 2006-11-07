@@ -67,7 +67,7 @@ void push_image_to_verse_server(VerseSession *session, Image *image)
 	if(!(session->flag & VERSE_CONNECTED)) return;
 
 	/* create "my" new object VerseNode */
-	vnode= create_verse_node(session->vsession, -1 , V_NT_BITMAP, VN_OWNER_MINE);
+	vnode= create_verse_node(session, -1 , V_NT_BITMAP, VN_OWNER_MINE);
 	/* create object data */
 	vnode->data = create_bitmap_data();
 
