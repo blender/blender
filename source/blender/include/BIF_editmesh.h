@@ -63,6 +63,7 @@ extern void undo_push_mesh(char *name);
 extern void separatemenu(void);
 extern void separate_mesh(void);
 extern void separate_mesh_loose(void);
+extern void separate_material(void);
 
 /* ******************* editmesh_add.c */
 extern void make_prim(int type, float imat[3][3], short tot, short seg,

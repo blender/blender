@@ -1382,7 +1382,7 @@ void separatemenu(void)
 
 	if(G.editMesh->verts.first==NULL) return;
 	   
-	event = pupmenu("Separate %t|Selected%x1|All Loose Parts%x2");
+	event = pupmenu("Separate %t|Selected%x1|All Loose Parts%x2|By Material%x3");
 	
 	if (event==0) return;
 	waitcursor(1);
@@ -1394,10 +1394,43 @@ void separatemenu(void)
 	case 2:	    	    	    
 		separate_mesh_loose();	    	    
 		break;
+	case 3:
+		separate_material();
+		break;
 	}
 	waitcursor(0);
 }
 
+void separate_material(void)
+{
+	EditMesh *em = G.editMesh;
+	unsigned char curr_mat;
+	Mesh *me;
+	
+	me= get_mesh(G.obedit);
+	if(me->key) {
+		error("Can't separate with vertex keys");
+		return;
+	}
+
+	if(G.obedit && em) {
+		if(G.obedit->type == OB_MESH) {
+			for (curr_mat = 1; curr_mat < G.obedit->totcol; ++curr_mat) {
+				/* clear selection, we're going to use that to select material group */
+				EM_clear_flag_all(SELECT);
+				/* select the material */
+				editmesh_select_by_material(curr_mat);
+				/* and now separate */
+				separate_mesh();
+			}
+		}
+	}
+	
+	countall();
+	allqueue(REDRAWVIEW3D, 0);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+
+}
 
 void separate_mesh(void)
 {
