@@ -1294,7 +1294,7 @@ void do_global_buttons(unsigned short event)
 		else if(G.buts->mainb==CONTEXT_EDITING) {
 			SculptData *sd= &G.scene->sculptdata;
 			if(sd && sd->texact != -1) {
-				if(sd->mtex[sd->texact]) autotexname(sd->mtex[sd->texact]);
+				if(sd->mtex[sd->texact]) autotexname(sd->mtex[sd->texact]->tex);
 
 				BIF_undo_push("Auto name");
 				allqueue(REDRAWBUTSEDIT, 0);

@@ -313,6 +313,7 @@ void fluidsimGetGeometryObjFilename(struct Object *ob, char *dst) { //, char *sr
 
 // simplify channels before printing
 // for API this is done anyway upon init
+#if 0
 static void fluidsimPrintChannel(FILE *file, float *channel, int paramsize, char *str, int entries) 
 { 
 	int i,j; 
@@ -338,7 +339,7 @@ static void fluidsimPrintChannel(FILE *file, float *channel, int paramsize, char
 
 	fprintf(file,  "      ; \n" ); 
 }
-
+#endif
 
 static void fluidsimInitChannel(float **setchannel, int size, float *time, 
 		int *icuIds, float *defaults, Ipo* ipo, int entries) {
@@ -422,7 +423,7 @@ int			globalBakeState = 0; // 0 everything ok, -1 abort simulation, -2 sim error
 int			globalBakeFrame = 0;
 
 // run simulation in seperate thread
-int fluidsimSimulateThread(void) { // *ptr) {
+static int fluidsimSimulateThread(void *unused) { // *ptr) {
 	//char* fnameCfgPath = (char*)(ptr);
 	int ret=0;
 	

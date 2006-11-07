@@ -400,7 +400,7 @@ void init_sculptmatrices()
 
 	glGetDoublev(GL_MODELVIEW_MATRIX, G.scene->sculptdata.modelviewmat);
 	glGetDoublev(GL_PROJECTION_MATRIX, G.scene->sculptdata.projectionmat);
-	glGetIntegerv(GL_VIEWPORT, G.scene->sculptdata.viewport);
+	glGetIntegerv(GL_VIEWPORT, (GLint *)G.scene->sculptdata.viewport);
 	/* Set up viewport so that gluUnProject will give correct values */
 	G.scene->sculptdata.viewport[0] = 0;
 	G.scene->sculptdata.viewport[1] = 0;
@@ -439,7 +439,7 @@ vec3f unproject(const short x, const short y, const float z)
 
         gluUnProject(x,y,z, G.scene->sculptdata.modelviewmat,
 		     G.scene->sculptdata.projectionmat,
-		     G.scene->sculptdata.viewport, &ux, &uy, &uz );
+		     (GLint *)G.scene->sculptdata.viewport, &ux, &uy, &uz );
 	p.x= ux;
 	p.y= uy;
 	p.z= uz;
@@ -452,7 +452,7 @@ void project(const float v[3], short p[2])
 
 	gluProject(v[0],v[1],v[2], G.scene->sculptdata.modelviewmat,
 		   G.scene->sculptdata.projectionmat,
-		   G.scene->sculptdata.viewport, &ux, &uy, &uz);
+		   (GLint *)G.scene->sculptdata.viewport, &ux, &uy, &uz);
 	p[0]= ux;
 	p[1]= uy;
 }
@@ -1087,7 +1087,7 @@ void sculptmode_propset(unsigned short event)
 			pd->origstrength= sculptmode_brush()->strength;
 
 			/* Prepare texture */
-			glGenTextures(1, &pd->tex);
+			glGenTextures(1, (GLint *)&pd->tex);
 			glBindTexture(GL_TEXTURE_2D, pd->tex);
 
 			if(G.scene->sculptdata.texrept!=SCULPTREPT_3D)

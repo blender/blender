@@ -1583,7 +1583,7 @@ void enter_editmode(int wc)
 void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo buffer too */
 {
 	Object *ob;
-	int freedata = flag & EM_FREEDATA, freeundo = flag & EM_FREEUNDO;
+	int freedata = flag & EM_FREEDATA;
 	
 	if(G.obedit==NULL) return;
 
@@ -1663,7 +1663,7 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 
 	scrarea_queue_headredraw(curarea);
 	
-	if(G.obedit==NULL && flag & EM_FREEUNDO) 
+	if(G.obedit==NULL && (flag & EM_FREEUNDO)) 
 		BIF_undo_push("Editmode");
 	
 	if(flag & EM_WAITCURSOR) waitcursor(0);

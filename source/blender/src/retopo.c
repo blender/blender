@@ -421,7 +421,7 @@ void retopo_paint_view_update(struct View3D *v3d)
 			for(p= l->points.first; p; p= p->next) {
 				gluProject(p->co[0],p->co[1],p->co[2], v3d->retopo_view_data->modelviewmat,
 					   v3d->retopo_view_data->projectionmat,
-					   v3d->retopo_view_data->viewport, &ux, &uy, &uz);
+					   (GLint *)v3d->retopo_view_data->viewport, &ux, &uy, &uz);
 				p->loc.x= ux;
 				p->loc.y= uy;
 			}
@@ -701,7 +701,7 @@ void retopo_do_2d(View3D *v3d, short proj[2], float *v, char adj)
 				/* Find the depth of (0,0,0); */
 				gluProject(0,0,0,v3d->retopo_view_data->modelviewmat,
 					   v3d->retopo_view_data->projectionmat,
-					   v3d->retopo_view_data->viewport,&px,&py,&pz);
+					   (GLint *)v3d->retopo_view_data->viewport,&px,&py,&pz);
 				depth= pz;
 			}
 			else return;
@@ -710,7 +710,7 @@ void retopo_do_2d(View3D *v3d, short proj[2], float *v, char adj)
 		/* Find 3D location with new depth (unproject) */
 		gluUnProject(proj[0],proj[1],depth,v3d->retopo_view_data->modelviewmat,
 			     v3d->retopo_view_data->projectionmat,
-			     v3d->retopo_view_data->viewport,&px,&py,&pz);
+			     (GLint *)v3d->retopo_view_data->viewport,&px,&py,&pz);
 		
 		v[0]= px;
 		v[1]= py;
@@ -725,7 +725,7 @@ void retopo_do_vert(View3D *v3d, float *v)
 
 	/* Find 2D location (project) */
 	gluProject(v[0],v[1],v[2],v3d->retopo_view_data->modelviewmat,v3d->retopo_view_data->projectionmat,
-		   v3d->retopo_view_data->viewport,&px,&py,&pz);
+		   (GLint *)v3d->retopo_view_data->viewport,&px,&py,&pz);
 	proj[0]= px;
 	proj[1]= py;
 	
@@ -799,7 +799,7 @@ void retopo_matrix_update(View3D *v3d)
 		if(rvd && rvd->queue_matrix_update) {
 			glGetDoublev(GL_MODELVIEW_MATRIX, rvd->modelviewmat);
 			glGetDoublev(GL_PROJECTION_MATRIX, rvd->projectionmat);
-			glGetIntegerv(GL_VIEWPORT, rvd->viewport);
+			glGetIntegerv(GL_VIEWPORT, (GLint *)rvd->viewport);
 			rvd->viewport[0]= rvd->viewport[1]= 0;
 
 			rvd->queue_matrix_update= 0;
