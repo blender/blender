@@ -28,5 +28,5 @@ else:
 
 incs = '. ../string ' + env['BF_OPENGL_INC']
 if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross'):
-	incs = '../../../../lib/windows/wintab/INCLUDE ' + incs
+	incs = '#../lib/windows/wintab/INCLUDE ' + incs
 env.BlenderLib ('bf_ghost', sources, Split(incs), [], libtype=['core','player'], priority = [25,15] ) 
