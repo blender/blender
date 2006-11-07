@@ -497,6 +497,10 @@ SOURCE=..\..\..\source\blender\src\meshtools.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\multires.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\mywindow.c
 # End Source File
 # Begin Source File
@@ -541,11 +545,19 @@ SOURCE=..\..\..\source\blender\src\resources.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\retopo.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\scrarea.c
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\src\screendump.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\sculptmode.c
 # End Source File
 # Begin Source File
 
@@ -674,6 +686,10 @@ SOURCE=..\..\..\source\blender\include\BDR_editmball.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\include\BDR_editobject.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BDR_sculptmode.h
 # End Source File
 # Begin Source File
 
@@ -853,6 +869,10 @@ SOURCE=..\..\..\source\blender\include\BIF_resources.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\include\BIF_retopo.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\include\BIF_scrarea.h
 # End Source File
 # Begin Source File
@@ -994,6 +1014,10 @@ SOURCE=..\..\..\source\blender\include\butspace.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\include\editmesh.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\multires.h
 # End Source File
 # Begin Source File
 
