@@ -2200,9 +2200,6 @@ static void do_view3d_edit_objectmenu(void *arg, int event)
 	case 17: /* Transform snap to grid */
 		G.vd->flag2 ^= V3D_TRANSFORM_SNAP;
 		break;
-	case 18:
-		add_blockhandler(curarea, VIEW3D_HANDLER_MULTIRES, 0);
-		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2235,7 +2232,6 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 	
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Multires Properties",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 18, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_object_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
 
@@ -2770,9 +2766,6 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 		if(session) b_verse_push_object(session, G.obedit);
 		break;
 #endif
-	case 14:
-		add_blockhandler(curarea, VIEW3D_HANDLER_MULTIRES, 0);
-		break;
 	case 17: /* Transform snap to grid */
 		G.vd->flag2 ^= V3D_TRANSFORM_SNAP;
 		break;
@@ -2809,7 +2802,6 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Transform Snap",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Multires Properties...",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
@@ -4781,14 +4773,6 @@ void view3d_buttons(void)
 
 	/* around */
 	xco+= XIC+18;
-
-	/* Show wireframe for sculptmode */
-	if(!G.obedit && G.f & G_SCULPTMODE && ob) {
- 		uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire", xco,0,30,20, &ob->dtx, 0,0,0,0, "Adds the active object's wireframe over solid drawing");
- 		xco+= 35;
- 		uiDefButC(block, TOG, B_NOP, "PvRot", xco,0,40,20,&G.vd->pivot_last, 0,0,0,0, "Rotate around the center of the last brush action");
- 		xco+= 40;
- 	}
 
 	uiBlockBeginAlign(block);
 

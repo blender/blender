@@ -698,17 +698,6 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_AUTO);
 
-	val= me->mr ? 1.0 : 0.0;
-	uiDefBut(block, LABEL, 0, "Multires",10,70,70,20,0,val,0,0,0,"");
-	if(me->mr) {
-		but= uiDefBut(block,BUT,B_NOP,"Delete", 80,70,84,19,0,0,0,0,0,"");
-		uiButSetFunc(but,multires_delete,ob,me);
-	}
-	else {
-		but= uiDefBut(block,BUT,B_NOP,"Make", 80,70,84,19,0,0,0,0,0,"");
-		uiButSetFunc(but,multires_make,ob,me);
-	}
-
 	if(me->mcol) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "VertCol", 				10,50,70,20, 0, val, 0, 0, 0, "");
 	if(me->mcol==NULL) {
@@ -3989,7 +3978,7 @@ static void editing_panel_links(Object *ob)
 void editing_panel_sculpting_tools()
 {
 	uiBlock *block= uiNewBlock(&curarea->uiblocks, "editing_panel_sculpting_tools", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Sculpting Tools", "Editing", 300, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Sculpt", "Editing", 300, 0, 318, 204)==0) return;
 
 	sculptmode_draw_interface_tools(block,0,200);
 }
@@ -3997,7 +3986,7 @@ void editing_panel_sculpting_tools()
 void editing_panel_sculpting_textures()
 {
 	uiBlock *block= uiNewBlock(&curarea->uiblocks, "editing_panel_sculpting_textures", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Brush Textures", "Editing", 300, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Brush", "Editing", 300, 0, 318, 204)==0) return;
 
 	sculptmode_draw_interface_textures(block,0,200);
 }
@@ -4009,12 +3998,16 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 
 	if(!G.scene) return;
 	sd= &G.scene->sculptdata;
-
+	
 	uiBlockBeginAlign(block);
 
 	uiDefBut(block,LABEL,B_NOP,"Brush",cx,cy,90,19,NULL,0,0,0,0,"");
 	cy-= 20;
+
 	uiBlockBeginAlign(block);
+	uiDefButC(block, TOG, B_NOP, "PvRot", cx+206,cy,50,20, &G.vd->pivot_last, 0,0,0,0, "Rotate around the center of the last brush action");
+	
+	uiBlockBeginAlign(block);	
 	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Draw",cx,cy,67,19,&sd->brush_type,14.0,DRAW_BRUSH,0,0,"Draw lines on the model");
 	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Smooth",cx+67,cy,67,19,&sd->brush_type,14.0,SMOOTH_BRUSH,0,0,"Interactively smooth areas of the model");
 	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Pinch",cx+134,cy,66,19,&sd->brush_type,14.0,PINCH_BRUSH,0,0,"Interactively pinch areas of the model");
@@ -4690,56 +4683,53 @@ static void editing_panel_mesh_uvautocalculation(void)
 void editing_panel_mesh_multires()
 {
 	uiBlock *block;
-	Object *ob= OBACT;
-	Mesh *me= get_mesh(ob);
-
-	if(!me->mr) return;
-
-	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_multires", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Multires", "Editing", 500, 0, 220, 204)==0) return;
-
-	multires_draw_interface(block,100,0);
-}
-
-void multires_draw_interface(uiBlock *block, unsigned short cx, unsigned short cy)
-{
 	uiBut *but;
 	Object *ob= OBACT;
 	Mesh *me= get_mesh(ob);
+	int cx= 100, cy= 0;
+	
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_multires", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Multires", "Editing", 500, 0, 318, 204)==0) return;
 
-	uiBlockBeginAlign(block);
-	but= uiDefBut(block,BUT,B_NOP,"Add Level", cx,cy,200,19,0,0,0,0,0,"Add a new level of subdivision at the end of the chain");
-	uiButSetFunc(but,multires_add_level,ob,me);
-	cy-= 20;
-
-	if(me->mr->level_count>1) {
-		but= uiDefButC(block,NUM,B_NOP,"Level: ",cx,cy,200,19,&me->mr->newlvl,1.0,me->mr->level_count,0,0,"");
-		uiButSetFunc(but,multires_set_level,ob,me);
-		cy-= 20;
-
-		but= uiDefBut(block,BUT,B_NOP,"Del Lower", cx,cy,100,19,0,0,0,0,0,"Remove all levels of subdivision below the current one");
-		uiButSetFunc(but,multires_del_lower,ob,me);
-		but= uiDefBut(block,BUT,B_NOP,"Del Higher", cx+100,cy,100,19,0,0,0,0,0,"Remove all levels of subdivision above the current one");
-		uiButSetFunc(but,multires_del_higher,ob,me);
-		cy-= 20;
-
-		but= uiDefButC(block,NUM,B_NOP,"Edges: ",cx,cy,200,19,&me->mr->edgelvl,1.0,me->mr->level_count,0,0,"Set level of edges to display");
-		uiButSetFunc(but,multires_edge_level_update,ob,me);
-		cy-= 20;
+	if(!me->mr) {
+		but= uiDefBut(block,BUT,B_NOP,"Add Multires", cx,cy,120,19,0,0,0,0,0,"");
+		uiButSetFunc(but,multires_make,ob,me);
+	} else {
+		but= uiDefBut(block,BUT,B_NOP,"Delete Multires", cx,cy,120,19,0,0,0,0,0,"");
+		uiButSetFunc(but,multires_delete,ob,me);
+		cy-= 24;
 
 		uiBlockBeginAlign(block);
-		cy-= 5;
-		uiDefBut(block,LABEL,B_NOP,"Rendering",cx,cy,100,19,0,0,0,0,0,"");
+		but= uiDefBut(block,BUT,B_NOP,"Add Level", cx,cy,200,19,0,0,0,0,0,"Add a new level of subdivision at the end of the chain");
+		uiButSetFunc(but,multires_add_level,ob,me);
 		cy-= 20;
 
-		uiDefButC(block,NUM,B_NOP,"Pin: ",cx,cy,200,19,&me->mr->pinlvl,1.0,me->mr->level_count,0,0,"Set level to apply modifiers to during render");
-		cy-= 20;
+		if(me->mr->level_count>1) {
+			but= uiDefButC(block,NUM,B_NOP,"Level: ",cx,cy,200,19,&me->mr->newlvl,1.0,me->mr->level_count,0,0,"");
+			uiButSetFunc(but,multires_set_level,ob,me);
+			cy-= 20;
 
-		uiDefButC(block,NUM,B_NOP,"Render: ",cx,cy,200,19,&me->mr->renderlvl,1.0,me->mr->level_count,0,0,"Set level to render");
-		cy-= 20;
+			but= uiDefBut(block,BUT,B_NOP,"Del Lower", cx,cy,100,19,0,0,0,0,0,"Remove all levels of subdivision below the current one");
+			uiButSetFunc(but,multires_del_lower,ob,me);
+			but= uiDefBut(block,BUT,B_NOP,"Del Higher", cx+100,cy,100,19,0,0,0,0,0,"Remove all levels of subdivision above the current one");
+			uiButSetFunc(but,multires_del_higher,ob,me);
+			cy-= 20;
 
-		//but= uiDefBut(block,BUT,B_NOP,"Displacement Map", cx,cy,200,19,0,0,0,0,0,"");
-		//uiButSetFunc(but,multires_disp_map,me,0);
+			but= uiDefButC(block,NUM,B_NOP,"Edges: ",cx,cy,200,19,&me->mr->edgelvl,1.0,me->mr->level_count,0,0,"Set level of edges to display");
+			uiButSetFunc(but,multires_edge_level_update,ob,me);
+			cy-= 20;
+
+			uiBlockBeginAlign(block);
+			cy-= 5;
+			uiDefBut(block,LABEL,B_NOP,"Rendering",cx,cy,100,19,0,0,0,0,0,"");
+			cy-= 20;
+
+			uiDefButC(block,NUM,B_NOP,"Pin: ",cx,cy,200,19,&me->mr->pinlvl,1.0,me->mr->level_count,0,0,"Set level to apply modifiers to during render");
+			cy-= 20;
+
+			uiDefButC(block,NUM,B_NOP,"Render: ",cx,cy,200,19,&me->mr->renderlvl,1.0,me->mr->level_count,0,0,"Set level to render");
+			cy-= 20;
+		}
 	}
 
 	uiBlockEndAlign(block);
@@ -4766,16 +4756,16 @@ void editing_panels()
 		editing_panel_mesh_type(ob, ob->data);
 		editing_panel_modifiers(ob);
 		editing_panel_shapes(ob);
+		editing_panel_mesh_multires();
 		/* modes */
-		if(get_mesh(ob)->mr)
-			editing_panel_mesh_multires();
 		if(G.obedit) {
 			editing_panel_mesh_tools(ob, ob->data);
 			editing_panel_mesh_tools1(ob, ob->data);
 		}
 		else if(G.f & G_SCULPTMODE) {
+			uiNewPanelTabbed("Multires", "Editing");
 			editing_panel_sculpting_tools();
-			uiNewPanelTabbed("Sculpting Tools", "Editing");
+			uiNewPanelTabbed("Multires", "Editing");
 			editing_panel_sculpting_textures();
 		} else {
 			if(G.f & G_FACESELECT) {

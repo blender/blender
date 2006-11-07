@@ -2345,32 +2345,6 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	uiClearButLock();
 }
 
-static void view3d_panel_multires(short cntrl) 	// VIEW3D_HANDLER_MULTIRES
-{
-	uiBlock *block;
-	uiBut *but;
-	Object *ob= OBACT;
-	
-	if(!ob || ob->type!=OB_MESH) return;
-
-	block= uiNewBlock(&curarea->uiblocks, "view3d_panel_multires", UI_EMBOSS, UI_HELV, curarea->win);
-	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
-	uiSetPanelHandler(VIEW3D_HANDLER_MULTIRES);  // for close and esc
-
-	if(!uiNewPanel(curarea, block, "Multires Properties", "View3d", 10, 230, 220, 200)) return;
-
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
-	
-	if(get_mesh(ob)->mr)
-		multires_draw_interface(block, 5,100);
-	else {
-		but= uiDefBut(block,BUT,B_NOP,"Make Multires", 5,100,120,19,0,0,0,0,0,"Adds multires data to mesh");
-		uiButSetFunc(but,multires_make,ob,get_mesh(ob));
-	}
-
-	uiClearButLock();
-}
-
 static void view3d_panel_background(short cntrl)	// VIEW3D_HANDLER_BACKGROUND
 {
 	uiBlock *block;
@@ -2573,11 +2547,7 @@ static void view3d_blockhandlers(ScrArea *sa)
 			break;
 		case VIEW3D_HANDLER_PREVIEW:
 			view3d_panel_preview(sa, v3d->blockhandler[a+1]);
-			break;
-		case VIEW3D_HANDLER_MULTIRES:
-			view3d_panel_multires(v3d->blockhandler[a+1]);
-			break;
-			
+			break;			
 		}
 		/* clear action value for event */
 		v3d->blockhandler[a+1]= 0;
