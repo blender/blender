@@ -61,6 +61,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -987,7 +988,21 @@ void setviewmatrixview3d()
 		
 		QuatToMat4(G.vd->viewquat, G.vd->viewmat);
 		if(G.vd->persp==1) G.vd->viewmat[3][2]-= G.vd->dist;
-		i_translate(G.vd->ofs[0], G.vd->ofs[1], G.vd->ofs[2], G.vd->viewmat);
+		if(G.vd->ob_centre) {
+			Object *ob= G.vd->ob_centre;
+			float vec[3];
+			
+			VECCOPY(vec, ob->obmat[3]);
+			if(ob->type==OB_ARMATURE && G.vd->ob_centre_bone[0]) {
+				bPoseChannel *pchan= get_pose_channel(ob->pose, G.vd->ob_centre_bone);
+				if(pchan) {
+					VECCOPY(vec, pchan->pose_mat[3]);
+					Mat4MulVecfl(ob->obmat, vec);
+				}
+			}
+			i_translate(-vec[0], -vec[1], -vec[2], G.vd->viewmat);
+		}
+		else i_translate(G.vd->ofs[0], G.vd->ofs[1], G.vd->ofs[2], G.vd->viewmat);
 	}
 }
 

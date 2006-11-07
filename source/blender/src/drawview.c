@@ -2470,7 +2470,7 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	if(uiNewPanel(curarea, block, "View Properties", "View3d", 340, 30, 318, 254)==0) return;
 
 	/* to force height */
-	uiNewPanelHeight(block, 254);
+	uiNewPanelHeight(block, 264);
 
 	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
 		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw
@@ -2508,10 +2508,16 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 
 	uiDefBut(block, LABEL, 1, "Display:",				10, 50, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
+	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, V3D_SELECT_OUTLINE, REDRAWVIEW3D, "Outline Selected", 10, 30, 140, 19, &vd->flag, 0, 0, 0, 0, "Highlight selected objects with an outline, in Solid, Shaded or Textured viewport shading modes");
-	uiDefButBitS(block, TOG, V3D_DRAW_CENTERS, REDRAWVIEW3D, "All Object Centers", 160, 30, 150, 19, &vd->flag, 0, 0, 0, 0, "Draw the center points on all objects");
+	uiDefButBitS(block, TOG, V3D_DRAW_CENTERS, REDRAWVIEW3D, "All Object Centers", 10, 10, 140, 19, &vd->flag, 0, 0, 0, 0, "Draw the center points on all objects");
+	uiDefButBitS(block, TOGN, V3D_HIDE_HELPLINES, REDRAWVIEW3D, "Relationship Lines", 10, -10, 140, 19, &vd->flag, 0, 0, 0, 0, "Draw dashed lines indicating Parent, Constraint, or Hook relationships");
+	uiBlockEndAlign(block);
 
-	uiDefButBitS(block, TOGN, V3D_HIDE_HELPLINES, REDRAWVIEW3D, "Relationship Lines", 10, 6, 140, 19, &vd->flag, 0, 0, 0, 0, "Draw dashed lines indicating Parent, Constraint, or Hook relationships");
+	uiDefBut(block, LABEL, 1, "View Locking:",				160, 50, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "Object:", 160, 30, 140, 19, &vd->ob_centre, "Lock view to centre always on this Object"); 
+	uiDefBut(block, TEX, REDRAWVIEW3D, "Bone:",						160, 10, 140, 19, vd->ob_centre_bone, 1, 31, 0, 0, "If view locked to Object, use this Bone to lock to view to");
 
 }
 

@@ -93,12 +93,14 @@ typedef struct View3D {
 	short persp;
 	short view;
 
-	struct Object *camera;
+	struct Object *camera, *ob_centre;
 	struct BGpic *bgpic;
 	struct View3D *localvd;
 	struct RenderInfo *ri;
 	struct RetopoViewData *retopo_view_data;
 	struct ViewDepths *depths;
+	
+	char ob_centre_bone[32];		/* optional string for armature bone to define centre */
 	
 	/**
 	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,

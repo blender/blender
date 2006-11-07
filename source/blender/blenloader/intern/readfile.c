@@ -3069,6 +3069,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						View3D *v3d= (View3D*) sl;
 
 						v3d->camera= newlibadr(fd, sc->id.lib, v3d->camera);
+						v3d->ob_centre= newlibadr(fd, sc->id.lib, v3d->ob_centre);
 
 						if(v3d->bgpic) {
 							v3d->bgpic->ima= newlibadr_us(fd, sc->id.lib, v3d->bgpic->ima);
@@ -3222,6 +3223,7 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 					v3d->camera= restore_pointer_by_name(newmain, (ID *)v3d->camera, 1);
 					if(v3d->camera==NULL)
 						v3d->camera= sc->scene->camera;
+					v3d->ob_centre= restore_pointer_by_name(newmain, (ID *)v3d->ob_centre, 1);
 					
 					if(v3d->bgpic) {
 						v3d->bgpic->ima= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->ima, 1);
