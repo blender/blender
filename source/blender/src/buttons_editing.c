@@ -4544,7 +4544,7 @@ static void editing_panel_mesh_paint(void)
 		if(brush && !brush->id.lib) {
 			butw= 320-(xco+10);
 
-			uiDefButS(block, MENU, B_NOP, "Mix %x0|Add %x1|Subtract %x2|Multiply %x3|Lighten %x4|Darken %x5", xco+10,yco,butw,19, &brush->blend, 0, 0, 0, 0, "Blending method for applying brushes");
+			uiDefButS(block, MENU, B_NOP, "Mix %x0|Add %x1|Subtract %x2|Multiply %x3|Lighten %x4|Darken %x5|Erase Alpha %x6|Add Alpha %x7", xco+10,yco,butw,19, &brush->blend, 0, 0, 0, 0, "Blending method for applying brushes");
 
 			uiDefButBitS(block, TOG|BIT, BRUSH_TORUS, B_BRUSHCHANGE, "Wrap",	xco+10,yco-25,butw,19, &brush->flag, 0, 0, 0, 0, "Enables torus wrapping");
 

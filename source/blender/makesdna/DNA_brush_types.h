@@ -73,12 +73,14 @@ typedef struct Brush {
 #define BRUSH_FIXED_TEX			64
 
 /* Brush.blend */
-#define BRUSH_BLEND_MIX 	0
-#define BRUSH_BLEND_ADD 	1
-#define BRUSH_BLEND_SUB 	2
-#define BRUSH_BLEND_MUL 	3
-#define BRUSH_BLEND_LIGHTEN 4
-#define BRUSH_BLEND_DARKEN	5
+#define BRUSH_BLEND_MIX 		0
+#define BRUSH_BLEND_ADD 		1
+#define BRUSH_BLEND_SUB 		2
+#define BRUSH_BLEND_MUL 		3
+#define BRUSH_BLEND_LIGHTEN		4
+#define BRUSH_BLEND_DARKEN		5
+#define BRUSH_BLEND_ERASE_ALPHA	6
+#define BRUSH_BLEND_ADD_ALPHA	7
 
 #define PAINT_TOOL_DRAW		0
 #define PAINT_TOOL_SOFTEN	1

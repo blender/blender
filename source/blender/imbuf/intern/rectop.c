@@ -117,7 +117,8 @@ static void blend_color_darken(char *cp, char *cp1, char *cp2, int fac)
 
 unsigned int IMB_blend_color(unsigned int src1, unsigned int src2, int fac, IMB_BlendMode mode)
 {
-	unsigned int dst, temp;
+	unsigned int dst;
+	int temp;
 	char *cp, *cp1, *cp2;
 
 	if (fac==0)
@@ -141,11 +142,19 @@ unsigned int IMB_blend_color(unsigned int src1, unsigned int src2, int fac, IMB_
 		case IMB_BLEND_DARKEN:
 			blend_color_darken(cp, cp1, cp2, fac); break;
 		default:
-			return src1;
+			cp[0]= cp1[0];
+			cp[1]= cp1[1];
+			cp[2]= cp1[2];
 	}
 
-	temp= (cp1[3] + fac*cp2[3]/255);
-	cp[3]= (temp > 255)? 255: temp;
+	if (mode == IMB_BLEND_ERASE_ALPHA) {
+		temp= (cp1[3] - fac*cp2[3]/255);
+		cp[3]= (temp < 0)? 0: temp;
+	}
+	else { /* this does ADD_ALPHA also */
+		temp= (cp1[3] + fac*cp2[3]/255);
+		cp[3]= (temp > 255)? 255: temp;
+	}
 
 	return dst;
 }
@@ -244,8 +253,14 @@ void IMB_blend_color_float(float *dst, float *src1, float *src2, float fac, IMB_
 			dst[2]= src1[2];
 	}
 
-	dst[3]= (src1[3] + fac*src2[3]);
-	if (dst[3] > 1.0f) dst[3] = 1.0f;
+	if (mode == IMB_BLEND_ERASE_ALPHA) {
+		dst[3]= (src1[3] - fac*src2[3]);
+		if (dst[3] < 0.0f) dst[3] = 0.0f;
+	}
+	else { /* this does ADD_ALPHA also */
+		dst[3]= (src1[3] + fac*src2[3]);
+		if (dst[3] > 1.0f) dst[3] = 1.0f;
+	}
 }
 
 /* clipping */

@@ -103,7 +103,7 @@
 
 typedef struct ImagePaintState {
 	Brush *brush;
-	short tool;
+	short tool, blend;
 	Image *image;
 	ImBuf *canvas;
 	ImBuf *clonecanvas;
@@ -409,7 +409,7 @@ static int imapaint_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *p
 	ImagePaintState *s= ((ImagePaintState*)state);
 	ImBuf *clonebuf= NULL;
 	short torus= s->brush->flag & BRUSH_TORUS;
-	short blend= s->brush->blend;
+	short blend= s->blend;
 	float *offset= s->brush->clone.offset;
 	float liftpos[2];
 	int bpos[2], blastpos[2], bliftpos[2];
@@ -518,7 +518,7 @@ static void imapaint_canvas_free(ImagePaintState *s)
 		imb_freerectfloatImBuf(s->clonecanvas);
 }
 
-static int imapaint_do_paint(ImagePaintState *s, BrushPainter *painter, Image *image, short texpaint, float *uv, double time, int update, float pressure)
+static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, Image *image, short texpaint, float *uv, double time, int update, float pressure)
 {
 	float pos[2];
 
@@ -535,7 +535,7 @@ static int imapaint_do_paint(ImagePaintState *s, BrushPainter *painter, Image *i
 	else return 0;
 }
 
-static void imapaint_do(ImagePaintState *s, BrushPainter *painter, short texpaint, short *prevmval, short *mval, double time, float pressure)
+static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, short texpaint, short *prevmval, short *mval, double time, float pressure)
 {
 	Image *newimage = NULL;
 	float fwuv[2], bkuv[2], newuv[2];
@@ -565,7 +565,7 @@ static void imapaint_do(ImagePaintState *s, BrushPainter *painter, short texpain
 
 		if (breakstroke) {
 			texpaint_pick_uv(s->ob, s->me, s->faceindex, mval, fwuv);
-			redraw |= imapaint_do_paint(s, painter, s->image, texpaint, fwuv,
+			redraw |= imapaint_paint_sub_stroke(s, painter, s->image, texpaint, fwuv,
 				time, 1, pressure);
 			imapaint_clear_partial_redraw();
 			brush_painter_break_stroke(painter);
@@ -579,9 +579,9 @@ static void imapaint_do(ImagePaintState *s, BrushPainter *painter, short texpain
 		/* paint in new image */
 		if (newimage) {
 			if (breakstroke)
-				redraw|= imapaint_do_paint(s, painter, newimage, texpaint,
+				redraw|= imapaint_paint_sub_stroke(s, painter, newimage, texpaint,
 					bkuv, time, 0, pressure);
-			redraw|= imapaint_do_paint(s, painter, newimage, texpaint, newuv,
+			redraw|= imapaint_paint_sub_stroke(s, painter, newimage, texpaint, newuv,
 				time, 1, pressure);
 		}
 
@@ -593,7 +593,7 @@ static void imapaint_do(ImagePaintState *s, BrushPainter *painter, short texpain
 	}
 	else {
 		imapaint_compute_uvco(mval, newuv);
-		redraw |= imapaint_do_paint(s, painter, s->image, texpaint, newuv,
+		redraw |= imapaint_paint_sub_stroke(s, painter, s->image, texpaint, newuv,
 			time, 1, pressure);
 	}
 
@@ -613,15 +613,16 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	float pressure;
 	const GHOST_TabletData *td;
 
+	if(!settings->imapaint.brush)
+		return;
+
 	/* initialize state */
 	memset(&s, 0, sizeof(s));
-	s.brush= settings->imapaint.brush;
-	s.tool= settings->imapaint.tool;
+	s.brush = settings->imapaint.brush;
+	s.tool = settings->imapaint.tool;
 	if(texpaint && (s.tool == PAINT_TOOL_CLONE))
 		s.tool = PAINT_TOOL_DRAW;
-
-	if(!s.brush)
-		return;
+	s.blend = s.brush->blend;
 
 	if(texpaint) {
 		s.ob = OBACT;
@@ -653,8 +654,9 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	time= PIL_check_seconds_timer();
 	prevmval[0]= mval[0];
 	prevmval[1]= mval[1];
+	s.blend = (td->Active == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
 
-	imapaint_do(&s, painter, texpaint, prevmval, mval, time, pressure);
+	imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
 
 	/* paint loop */
 	do {
@@ -662,16 +664,17 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		if(td) {
 			td= get_tablet_data();
 			pressure= (td)? td->Pressure: 1.0f;
+			s.blend = (td->Active == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
 		}
 		time= PIL_check_seconds_timer();
 
 		if((mval[0] != prevmval[0]) || (mval[1] != prevmval[1])) {
-			imapaint_do(&s, painter, texpaint, prevmval, mval, time, pressure);
+			imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
 			prevmval[0]= mval[0];
 			prevmval[1]= mval[1];
 		}
 		else if (s.brush->flag & BRUSH_AIRBRUSH)
-			imapaint_do(&s, painter, texpaint, prevmval, mval, time, pressure);
+			imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
 		else
 			BIF_wait_for_statechange();
 
