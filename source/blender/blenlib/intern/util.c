@@ -1382,6 +1382,28 @@ char* BLI_getbundle(void) {
 }
 #endif
 
+/* strcasestr not available in MSVC */
+char *BLI_strcasestr(const char *s, const char *find)
+{
+    register char c, sc;
+    register size_t len;
+	
+    if ((c = *find++) != 0) {
+		c= tolower(c);
+		len = strlen(find);
+		do {
+			do {
+				if ((sc = *s++) == 0)
+					return (NULL);
+				sc= tolower(sc);
+			} while (sc != c);
+		} while (BLI_strncasecmp(s, find, len) != 0);
+		s--;
+    }
+    return ((char *) s);
+}
+
+
 int BLI_strcasecmp(const char *s1, const char *s2) {
 	int i;
 

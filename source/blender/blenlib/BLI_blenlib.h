@@ -349,6 +349,7 @@ void BLI_setErrorCallBack(void (*f)(char*));
  */
 void BLI_setInterruptCallBack(int (*f)(void));
 
+char *BLI_strcasestr(const char *s, const char *find);
 int BLI_strcasecmp(const char *s1, const char *s2);
 int BLI_strncasecmp(const char *s1, const char *s2, int n);
 void BLI_timestr(double time, char *str);

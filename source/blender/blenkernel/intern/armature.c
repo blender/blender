@@ -243,25 +243,6 @@ Bone *get_named_bone (bArmature *arm, const char *name)
 	return bone;
 }
 
-static char *strcasestr_(register char *s, register char *find)
-{
-    register char c, sc;
-    register size_t len;
-	
-    if ((c = *find++) != 0) {
-		c= tolower(c);
-		len = strlen(find);
-		do {
-			do {
-				if ((sc = *s++) == 0)
-					return (NULL);
-				sc= tolower(sc);
-			} while (sc != c);
-		} while (BLI_strncasecmp(s, find, len) != 0);
-		s--;
-    }
-    return ((char *) s);
-}
 
 #define IS_SEPARATOR(a)	(a=='.' || a==' ' || a=='-' || a=='_')
 
@@ -340,7 +321,7 @@ void bone_flip_name (char *name, int strip_number)
 	}
 	else if(len > 5) {
 		/* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
-		index = strcasestr_(prefix, "right");
+		index = BLI_strcasestr(prefix, "right");
 		if (index==prefix || index==prefix+len-5) {
 			if(index[0]=='r') 
 				strcpy (replace, "left");
@@ -354,7 +335,7 @@ void bone_flip_name (char *name, int strip_number)
 			strcpy (suffix, index+5);
 		}
 		else {
-			index = strcasestr_(prefix, "left");
+			index = BLI_strcasestr(prefix, "left");
 			if (index==prefix || index==prefix+len-4) {
 				if(index[0]=='l') 
 					strcpy (replace, "right");

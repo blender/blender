@@ -1910,11 +1910,11 @@ static TreeElement *outliner_find_named(SpaceOops *soops, ListBase *lb, char *na
 		
 		/* determine if match */
 		if(flags==OL_FIND)
-			found= strcasestr(te->name, name)!=NULL;
+			found= BLI_strcasestr(te->name, name)!=NULL;
 		else if(flags==OL_FIND_CASE)
 			found= strstr(te->name, name)!=NULL;
 		else if(flags==OL_FIND_COMPLETE)
-			found= strcasecmp(te->name, name)==0;
+			found= BLI_strcasecmp(te->name, name)==0;
 		else
 			found= strcmp(te->name, name)==0;
 		
