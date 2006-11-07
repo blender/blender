@@ -428,6 +428,9 @@
 				RelativePath="..\..\..\source\blender\src\meshtools.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\multires.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\mywindow.c">
 			</File>
 			<File
@@ -461,10 +464,16 @@
 				RelativePath="..\..\..\source\blender\src\resources.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\retopo.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\scrarea.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\screendump.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\sculptmode.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\seqaudio.c">
@@ -577,6 +586,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BDR_imagepaint.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\include\BDR_sculptmode.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BDR_unwrapper.h">
@@ -714,6 +726,9 @@
 				RelativePath="..\..\..\source\blender\include\BIF_resources.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\include\BIF_retopo.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\include\BIF_scrarea.h">
 			</File>
 			<File
@@ -823,6 +838,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\interface.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\include\multires.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\mydevice.h">
