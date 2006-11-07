@@ -175,7 +175,6 @@ typedef struct Global {
 #define G_DRAWCREASES	(1 << 19)
 #define G_DRAWSEAMS     (1 << 20)
 #define G_HIDDENEDGES   (1 << 21)
-#define G_DRAWSHARP 		(1 << 28) /* draw edges with the sharp flag */
 
 /* Measurement info Drawing */
 #define G_DRAW_EDGELEN  (1 << 22) 
@@ -189,7 +188,8 @@ typedef struct Global {
 #define G_DRAW_VERSE_DEBUG (1 << 27)
 /*#endif*/
 
-#define G_SCULPTMODE    (1 << 28)
+#define G_DRAWSHARP     (1 << 28) /* draw edges with the sharp flag */
+#define G_SCULPTMODE    (1 << 29)
 
 /* G.fileflags */
 
