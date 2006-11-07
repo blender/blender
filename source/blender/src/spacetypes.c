@@ -39,6 +39,7 @@
 #include "BLI_blenlib.h"
 
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_mywindow.h"

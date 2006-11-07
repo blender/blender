@@ -35,6 +35,7 @@
 
 #include <Python.h>
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
 typedef struct {

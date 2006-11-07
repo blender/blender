@@ -52,6 +52,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h" 
 

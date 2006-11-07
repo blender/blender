@@ -164,31 +164,5 @@ typedef struct ScrArea {
 #define SCREEN_HANDLER_PYTHON   2
 #define SCREEN_HANDLER_VERSE	3
 
-/* dunno who thought this below is nice code, but be warned, the values are written in
-   a file, and cannot be switched or altered. enum here is out of focus (ton) */
-enum {
-	SPACE_EMPTY,
-	SPACE_VIEW3D,
-	SPACE_IPO,
-	SPACE_OOPS,
-	SPACE_BUTS,
-	SPACE_FILE,
-	SPACE_IMAGE,		
-	SPACE_INFO,
-	SPACE_SEQ,
-	SPACE_TEXT,
-	SPACE_IMASEL,
-	SPACE_SOUND,
-	SPACE_ACTION,
-	SPACE_NLA,
-	SPACE_SCRIPT,
-	SPACE_TIME,
-	SPACE_NODE
-/*	SPACE_LOGIC	*/
-};
-
-/* Adding a new space type?  Change SPACEICONMAX in BSE_headerbuttons.h */
-/* -- should rather handle this with the above enum... */
-
 #endif
 

@@ -493,6 +493,7 @@ typedef struct SpaceImaSel {
 #define ST_SCROLL_SELECT        0x0001 // scrollable
 #define ST_CLEAR_NAMESPACE      0x0010 // clear namespace after script
                                        // execution (see BPY_main.c)
+
 /* SpaceOops->type */
 #define SO_OOPS			0
 #define SO_OUTLINER		1
@@ -589,5 +590,28 @@ typedef struct SpaceImaSel {
 
 /* sseq->flag */
 #define SEQ_DRAWFRAMES  1
+
+/* space types, moved from DNA_screen_types.h */
+enum {
+	SPACE_EMPTY,
+	SPACE_VIEW3D,
+	SPACE_IPO,
+	SPACE_OOPS,
+	SPACE_BUTS,
+	SPACE_FILE,
+	SPACE_IMAGE,		
+	SPACE_INFO,
+	SPACE_SEQ,
+	SPACE_TEXT,
+	SPACE_IMASEL,
+	SPACE_SOUND,
+	SPACE_ACTION,
+	SPACE_NLA,
+	SPACE_SCRIPT,
+	SPACE_TIME,
+	SPACE_NODE,
+	SPACEICONMAX = SPACE_NODE
+/*	SPACE_LOGIC	*/
+};
 
 #endif

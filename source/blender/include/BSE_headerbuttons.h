@@ -40,7 +40,6 @@ struct SpaceIpo;
 struct Ipo;
 
 /* these used to be in blender/src/headerbuttons.c: */
-#define SPACEICONMAX  16 /* See release/datafiles/blenderbuttons */
 #define XIC 20
 #define YIC 20
 

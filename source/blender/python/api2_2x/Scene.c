@@ -37,7 +37,8 @@ struct View3D;
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "MEM_guardedalloc.h"	/* for MEM_callocN */
-#include "DNA_screen_types.h"	/* SPACE_VIEW3D, SPACE_SEQ */
+#include "DNA_space_types.h"	/* SPACE_VIEW3D, SPACE_SEQ */
+#include "DNA_screen_types.h"
 #include "DNA_userdef_types.h" /* U.userdefs */
 #include "DNA_object_types.h" /* SceneObSeq_new */
 #include "BKE_depsgraph.h"
