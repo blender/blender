@@ -408,7 +408,8 @@ static void decodetarga(struct ImBuf *ibuf, unsigned char *mem, int psize)
 				}
 			} else{
 				if (psize & 1){
-					col = (mem[0] << 8) + mem[1];
+					cp[0] = mem[0];
+					cp[1] = mem[1];
 					mem += 2;
 				} else{
 					col = *mem++;
@@ -445,7 +446,8 @@ static void decodetarga(struct ImBuf *ibuf, unsigned char *mem, int psize)
 						}
 					} else{
 						if (psize & 1){
-							col = (mem[0] << 8) + mem[1];
+							cp[0] = mem[0];
+							cp[1] = mem[1];
 							mem += 2;
 						} else{
 							col = *mem++;
@@ -496,7 +498,8 @@ static void ldtarga(struct ImBuf * ibuf,unsigned char * mem, int psize)
 			}
 		} else{
 			if (psize & 1){
-				col = (mem[1] << 8) + mem[0];
+				cp[0] = mem[0];
+				cp[1] = mem[1];
 				mem += 2;
 			} else{
 				col = *mem++;
@@ -599,11 +602,16 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int flags)
 	
 	if (tga.pixsize == 16 && ibuf->cmap == 0){
 		rect = ibuf->rect;
-		for (size = ibuf->x * ibuf->y; size > 0; size --){
+		for (size = ibuf->x * ibuf->y; size > 0; --size, ++rect){
 			col = *rect;
-			col = ((col & 0x1f) << 19) +  ((col & 0x3e0) << 6) + ((col & 0x7c00) >> 7) ;
-			col += (col & 0xe0e0e0) >> 5;
-			*rect++ = col + 0xff000000;
+			uchar *cp = (uchar*)rect, *mem = (uchar*)&col;
+			cp[3] = ((mem[1] << 1) & 0xf8);
+			cp[2] = ((mem[0] & 0xe0) >> 2) + ((mem[1] & 0x03) << 6);
+			cp[1] = ((mem[0] << 3) & 0xf8);
+			cp[1] += cp[1] >> 5;
+			cp[2] += cp[2] >> 5;
+			cp[3] += cp[3] >> 5;
+			cp[0] = 0xff;
 		}
 		ibuf->depth = 24;
 	}
