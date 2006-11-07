@@ -555,16 +555,33 @@ void sethandles_ipo_keys(Ipo *ipo, int code)
 	}
 }
 
-static int snap_bezier(BezTriple *bezt)
+static int snap_bezier_nearest(BezTriple *bezt)
 {
 	if(bezt->f2 & SELECT)
 		bezt->vec[1][0]= (float)(floor(bezt->vec[1][0]+0.5));
 	return 0;
 }
 
-void snap_ipo_keys(Ipo *ipo)
+static int snap_bezier_cframe(BezTriple *bezt)
 {
-	ipo_keys_bezier_loop(ipo, snap_bezier, calchandles_ipocurve);
+	if(bezt->f2 & SELECT)
+		bezt->vec[1][0]= (float)CFRA;
+	return 0;
+}
+
+void snap_ipo_keys(Ipo *ipo, short snaptype)
+{
+	switch (snaptype) {
+		case 1: /* snap to nearest */
+			ipo_keys_bezier_loop(ipo, snap_bezier_nearest, calchandles_ipocurve);
+			break;
+		case 2: /* snap to current frame */
+			ipo_keys_bezier_loop(ipo, snap_bezier_cframe, calchandles_ipocurve);
+			break;
+		default: /* just in case */
+			ipo_keys_bezier_loop(ipo, snap_bezier_nearest, calchandles_ipocurve);
+			break;
+	}
 }
 
 static void ipo_curves_auto_horiz(void)

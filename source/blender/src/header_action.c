@@ -778,7 +778,7 @@ static void do_action_keymenu(void *arg, int event)
 			bake_action_with_client (G.saction->action, OBACT, 0.01);
 			break;
 		case ACTMENU_KEY_SNAP:
-			set_snap_actionchannels();
+			snap_keys_to_frame();
 			break;
 	}
 }

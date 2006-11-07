@@ -1997,41 +1997,91 @@ void set_extendtype_actionchannels(int extendtype)
 	allqueue(REDRAWNLA, 0);
 }
 
-void set_snap_actionchannels(void) 
+static void set_snap_actionchannels(bAction *act, short snaptype) 
 {
-	
-	bAction *act; 
+	/* snapping function for action channels*/
 	bActionChannel *chan;
 	bConstraintChannel *conchan;
-	
-	/* Get the selected action, exit if none are selected 
-		*/
-	act = G.saction->action;
-	if (!act)
-		return;
 	
 	/* Loop through the channels */
 	for (chan = act->chanbase.first; chan; chan=chan->next){
 		if((chan->flag & ACHAN_HIDDEN)==0) {
 			if (chan->ipo) {
-				snap_ipo_keys(chan->ipo);
+				snap_ipo_keys(chan->ipo, snaptype);
 			}
 			/* constraint channels */
 			for (conchan=chan->constraintChannels.first; conchan; conchan= conchan->next) {
 				if (conchan->ipo) {
-					snap_ipo_keys(conchan->ipo);
+					snap_ipo_keys(conchan->ipo, snaptype);
 				}
 			}						
 		}
 	}
+}
+
+static void set_snap_meshchannels(Key *key, short snaptype) 
+{
+	/* snapping function for mesh channels */
+	if(key->ipo) {
+		snap_ipo_keys(key->ipo, snaptype);
+	}
+}
+
+
+void snap_keys_to_frame() 
+{
+	/* This function is the generic entry-point for snapping keyframes
+	 * to a frame(s). It passes the work off to sub-functions for the 
+	 * different types in the action editor.
+	 */
+	 
+	SpaceAction *saction;
+	bAction *act;
+	Key *key;
+	short event;
+
+	/* get data */
+	saction= curarea->spacedata.first;
+	if (!saction) return;
+	act = saction->action;
+	key = get_action_mesh_key();
 	
-	/* Clean up and redraw stuff */
-	remake_action_ipos (act);
-	BIF_undo_push("Snap Ipo Action channel");
-	allspace(REMAKEIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWNLA, 0);
+	/* find the type of snapping to do */
+	event = pupmenu("Snap Frames To%t|Nearest Frame%x1|Current Frame%x2");
+	
+	/* handle events */
+	switch (event) {
+		case 1: /* snap to nearest frame */
+			if (act) 
+				set_snap_actionchannels(act, event);
+			else
+				set_snap_meshchannels(key, event);
+			
+			/* Clean up and redraw stuff */
+			remake_action_ipos (act);
+			BIF_undo_push("Snap To Nearest Frame");
+			allspace(REMAKEIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWNLA, 0);
+			
+			break;
+		case 2: /* snap to current frame */
+			if (act) 
+				set_snap_actionchannels(act, event);
+			else
+				set_snap_meshchannels(key, event);
+			
+			/* Clean up and redraw stuff */
+			remake_action_ipos (act);
+			BIF_undo_push("Snap To Current Frame");
+			allspace(REMAKEIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWNLA, 0);
+			
+			break;
+	}
 }
 
 
@@ -2517,8 +2567,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case SKEY: 
 			if (mval[0]>=ACTWIDTH) {
 				if(G.qual & LR_SHIFTKEY) {
-					if(okee("Snap to frame"))
-						set_snap_actionchannels();
+					snap_keys_to_frame();
 				}
 				else {
 					if (key)
