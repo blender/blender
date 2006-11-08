@@ -36,21 +36,17 @@
 #include "MT_Vector3.h"
 #include "MT_Plane3.h"
 
-class BSP_MeshFragment;
-
 #include <vector>
 
 typedef CTR_TaggedIndex<24,0x00ffffff> BSP_VertexInd;
 typedef CTR_TaggedIndex<24,0x00ffffff> BSP_EdgeInd;
 typedef CTR_TaggedIndex<24,0x00ffffff> BSP_FaceInd;
 typedef CTR_TaggedIndex<24,0x00ffffff> BSP_FragInd;
-typedef CTR_TaggedIndex<24,0x00ffffff> BSP_UserFVInd;
 
 
 typedef std::vector<BSP_VertexInd> BSP_VertexList;
 typedef std::vector<BSP_EdgeInd> BSP_EdgeList;
 typedef std::vector<BSP_FaceInd> BSP_FaceList;
-typedef std::vector<BSP_UserFVInd> BSP_UserFVDataList;
 
 /** 
  * Enum representing classification of primitives 
@@ -227,13 +223,6 @@ public :
 
 	BSP_VertexList m_verts;
 
-	// This is a list of face vertex data indices.
-	// Each vertex index in the list has an equivalent
-	// index into an array of face vertex data. This data
-	// is stored externally - the mesh does not know about it's
-	// contents.
-
-	BSP_UserFVDataList m_fv_data;
 	// We also store the plane equation of this
 	// face. Generating on the fly during tree
 	// construction can lead to a lot of numerical errors.
@@ -242,6 +231,7 @@ public :
 	MT_Plane3 m_plane;
 
 	int m_open_tag;
+	unsigned int m_orig_face;
 
 	BSP_MFace(
 	);

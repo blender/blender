@@ -33,7 +33,6 @@
 #include "BSP_CSGMesh.h"
 #include "MT_assert.h"
 #include "CTR_TaggedSetOps.h"
-#include "BSP_MeshFragment.h"
 #include "MT_Plane3.h"
 #include "BSP_CSGException.h"
 
@@ -50,8 +49,6 @@ BSP_CSGMesh(
 	m_verts     = NULL;
 	m_faces     = NULL;
 	m_edges     = NULL;
-	m_fv_data   = NULL;
-	m_face_data = NULL;
 }
 
 	BSP_CSGMesh *
@@ -94,20 +91,6 @@ NewCopy(
 			return NULL;
 		}
 	}
-	if (m_fv_data != NULL) {
-                mesh->m_fv_data = new BSP_CSGUserData(*m_fv_data);
-		if (mesh->m_fv_data == NULL) {
-			delete mesh;
-			return NULL;
-		}
-	}
-	if (m_face_data != NULL) {
-                mesh->m_face_data = new BSP_CSGUserData(*m_face_data);
-		if (mesh->m_face_data == NULL) {
-			delete mesh;
-			return NULL;
-		}
-	}
 
 	return mesh;
 }
@@ -145,23 +128,6 @@ SetVertices(
 	return true;
 }
 
-	void
-BSP_CSGMesh::
-SetFaceVertexData(
-	BSP_CSGUserData *fv_data
-){
-	m_fv_data = fv_data;
-}
-
-	void
-BSP_CSGMesh::
-SetFaceData(
-	BSP_CSGUserData *f_data
-) {
-	m_face_data = f_data;
-}
-
-
 		void
 BSP_CSGMesh::
 AddPolygon(
@@ -188,51 +154,6 @@ AddPolygon(
 	face.m_plane = face_plane;
 };
 
-	void
-BSP_CSGMesh::
-AddPolygon(
-	const int * verts,
-	const int * fv_indices,
-	int num_verts
-){
-	// This creates a new polygon on the end of the face list.
-	AddPolygon(verts,num_verts);
-
-	BSP_MFace & face = m_faces->back();
-	// now we just fill in the fv indices
-
-	if (fv_indices) {
-		insert_iterator<vector<BSP_UserFVInd> > insert_point(face.m_fv_data,face.m_fv_data.end());
-		copy(fv_indices,fv_indices + num_verts,insert_point);
-	} else {
-		face.m_fv_data.insert(face.m_fv_data.end(),num_verts,BSP_UserFVInd::Empty());
-	}
-}
-
-
-	void
-BSP_CSGMesh::
-AddSubTriangle(
-	const BSP_MFace &iface,
-	const int * index_info
-){
-	// This creates a new polygon on the end of the face list.
-
-	m_faces->push_back(BSP_MFace());			
-	BSP_MFace & face = m_faces->back();
-
-	face.m_verts.push_back(iface.m_verts[index_info[0]]);
-	face.m_verts.push_back(iface.m_verts[index_info[1]]);
-	face.m_verts.push_back(iface.m_verts[index_info[2]]);
-
-	face.m_fv_data.push_back(iface.m_fv_data[index_info[0]]);
-	face.m_fv_data.push_back(iface.m_fv_data[index_info[1]]);
-	face.m_fv_data.push_back(iface.m_fv_data[index_info[2]]);
-
-	face.m_plane = iface.m_plane;
-}
-
-	
 // assumes that the face already has a plane equation
 	void
 BSP_CSGMesh::
@@ -420,29 +341,12 @@ EdgeSet(
         return *m_edges;
 }
 
-	BSP_CSGUserData &
-BSP_CSGMesh::
-FaceVertexData(
-) const {
-        return *m_fv_data;
-}
-
-	BSP_CSGUserData &
-BSP_CSGMesh::
-FaceData(
-) const {
-        return *m_face_data;
-}
-
-
 BSP_CSGMesh::
 ~BSP_CSGMesh(
 ){
 	if ( m_verts != NULL ) delete m_verts;
 	if ( m_faces != NULL ) delete m_faces;
 	if ( m_edges != NULL ) delete m_edges;
-	if ( m_fv_data != NULL ) delete m_fv_data;
-	if ( m_face_data != NULL ) delete m_face_data;
 }
 
 // local geometry queries.
@@ -599,158 +503,6 @@ VertexFaces(
 		faces[*f_it].SetSelectTag(false);
 	}
 }
-
-	void
-BSP_CSGMesh::
-InsertVertexIntoFace(
-	BSP_MFace & face,
-	const BSP_VertexInd & v1,
-	const BSP_VertexInd & v2,
-	const BSP_VertexInd & vi,
-	CSG_InterpolateUserFaceVertexDataFunc fv_split_func,
-	MT_Scalar epsilon
-){
-	// We assume that the face vertex data indices
-	// are consistent with the vertex inidex data.
-
-	// look for v1
-	vector<BSP_VertexInd>::iterator result = 
-		find(face.m_verts.begin(),face.m_verts.end(),v1);
-	
-	MT_assert(result != face.m_verts.end());
-	
-        BSP_CSGUserData & fv_data = *m_fv_data;
-
-	// now we have to check on either side of the result for the 
-	// other vertex
-	
-	vector<BSP_VertexInd>::iterator prev = result - 1;
-	if (prev < face.m_verts.begin()) {	
-		prev = face.m_verts.end() -1;
-	}
-	if (*prev == v2) {
-
-		// so result <=> v2 and prev <=> v1
-
-		// create space for new face vertex data
-		
-		int vf_i = fv_data.Size();
-		fv_data.IncSize();
-
-		int vf_i2 = prev - face.m_verts.begin();
-		int vf_i1 = result - face.m_verts.begin();
-
-		(*fv_split_func)(
-			fv_data[int(face.m_fv_data[vf_i1])],
-			fv_data[int(face.m_fv_data[vf_i2])],
-			fv_data[vf_i],
-			epsilon
-		);
-	
-		// insert vertex data index.
-		face.m_fv_data.insert(face.m_fv_data.begin() + vf_i1,vf_i);
-		face.m_verts.insert(result,vi);
-
-		return;
-	}
-
-	vector<BSP_VertexInd>::iterator next = result + 1;
-	if (next >= face.m_verts.end()) {	
-		next = face.m_verts.begin();
-	}
-	if (*next == v2) {
-
-		// so result <=> v1 and next <=> v2
-
-		int vf_i = fv_data.Size();
-		fv_data.IncSize();
-
-		int vf_i2 = int(next - face.m_verts.begin());
-		int vf_i1 = int(result - face.m_verts.begin());
-
-		(*fv_split_func)(
-			fv_data[int(face.m_fv_data[vf_i1])],
-			fv_data[int(face.m_fv_data[vf_i2])],
-			fv_data[vf_i],
-			epsilon
-		);
-
-		// insert vertex data index.
-		face.m_fv_data.insert(face.m_fv_data.begin() + vf_i2,vf_i);
-		face.m_verts.insert(next,vi);
-
-		return;
-	}
-
-	// if we get here we are in trouble.
-	MT_assert(false);
-	BSP_CSGException e(e_mesh_error);
-	throw(e);
-}
-
-	void
-BSP_CSGMesh::
-SetBBox(
-	const MT_Vector3 & min,
-	const MT_Vector3 & max
-){
-	m_bbox_min = min;
-	m_bbox_max = max;
-}
-
-
-	void
-BSP_CSGMesh::
-BBox(
-	MT_Vector3 &min,
-	MT_Vector3 &max
-) const {
-	min = m_bbox_min;
-	max = m_bbox_max;
-}
-
-
-// Update the BBox
-//////////////////
-
-	void
-BSP_CSGMesh::
-UpdateBBox(
-){
-	// TODO
-};
-
-	void
-BSP_CSGMesh::
-SC_Classification(
-	BSP_FaceInd f,
-	const MT_Plane3& plane
-){
-	const BSP_MFace & face = FaceSet()[f];
-
-	vector<BSP_VertexInd>::const_iterator f_verts_it = face.m_verts.begin();
-	vector<BSP_VertexInd>::const_iterator f_verts_end = face.m_verts.end();
-
-	for (;f_verts_it != f_verts_end; ++f_verts_it) {
-
-		const BSP_MVertex & vert = VertexSet()[*f_verts_it];
-
-		MT_Scalar dist = plane.signedDistance(
-			vert.m_pos
-		);
-
-		if (fabs(dist) <= BSP_SPLIT_EPSILON ){
-			MT_assert(BSP_Classification(vert.OpenTag()) == e_classified_on);
-		} else
-		if (dist > BSP_SPLIT_EPSILON) {
-			MT_assert(BSP_Classification(vert.OpenTag()) == e_classified_out);
-		} else 
-		if (dist < BSP_SPLIT_EPSILON) {
-			MT_assert(BSP_Classification(vert.OpenTag()) == e_classified_in);
-		}
-	}
-}
-
 
 	bool
 BSP_CSGMesh::

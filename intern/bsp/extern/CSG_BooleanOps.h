@@ -62,9 +62,7 @@ extern "C" {
 typedef struct  {
   int vertex_index[4];
   int vertex_number;
-
-  void *user_face_vertex_data[4];
-  void *user_face_data;
+  int orig_face;
 } CSG_IFace;
 
 /**
@@ -80,22 +78,6 @@ typedef struct  {
  * The actual useful data contained in a group of faces is
  * described by the following struct
  */
-
-/**
- * Descibes the data stored in a mesh available through the 
- * CSG_IFace interface.
- * user_data_size is the number of bytes of user_data associated with each CSG_IFace
- * user_face_vertex_data size is the number of bytes of user data associated with
- * every face vertex tuple.
- * . 
- */
-
-typedef struct CSG_MeshPropertyDescriptor{
-	unsigned int user_face_vertex_data_size;
-	unsigned int user_data_size;
-} CSG_MeshPropertyDescriptor;
-
-
 
 /**
  * @section Iterator abstraction.
@@ -180,22 +162,6 @@ typedef struct CSG_VertexIteratorDescriptor {
  *		// deal with low memory exception
  *  }
  *
- *  // Describe each mesh operand to the module.
- *  // NOTE: example properties!
- *  CSG_MeshPropertyDescriptor propA,propB;
- *  propA.user_data_size = 0;
- *  propA.user_face_vertex_data = 0;
- *  propB.user_face_vertex_data = 0;
- *  propB.user_data_size = 0;
- *
- *  // Get the output properties of the mesh.
- *  CSG_MeshPropertyDescriptor output_properties;
- *  output_properties = CSG_DescibeOperands(
- *    operation,
- *    propA,
- *    propB
- *  );
- * 
  *  // Report to the user if they will loose any data!
  *  ...
  * 
@@ -304,40 +270,6 @@ CSG_NewBooleanFunction(
 );
 
 /**
- * Describe the operands of a boolean function to the module.
- * The description takes the form of a pair of CSG_MeshPropertyDescriptors
- * one for each input mesh. The operands do not have to have the same 
- * properties, for example operandA may have vertex colours but operandB none.
- * In this case the CSG module will choose the lowest common denominator in
- * mesh properies. The function returns a description of 
- * the output mesh. You can use this to warn the user that certain properties
- * will be lost. Of course it also describes what fields in the output mesh
- * will contain valid data.
- */
-	CSG_MeshPropertyDescriptor
-CSG_DescibeOperands(
-	CSG_BooleanOperation * operation,
-	CSG_MeshPropertyDescriptor operandA_desciption,
-	CSG_MeshPropertyDescriptor operandB_desciption
-);
-
-/**
- * The user data is handled by the BSP modules through
- * the following function which is called whenever the 
- * module needs new face vertex properties (when a face is split).
- * d1,d2 are pointers to existing vertex face data. dnew is 
- * a pointer to an allocated but unfilled area of user data of
- * size user_face_vertex_data_size in the CSG_MeshPropertyDescriptor
- * returned by a call to the above function. Epsilon is the relative 
- * distance (between [0,1]) of the new vertex and the vertex associated
- * with d1. Use epsilon to interpolate the face vertex data in d1 and d2
- * and fill  dnew
- */
-
-typedef int (*CSG_InterpolateUserFaceVertexDataFunc)(void *d1, void * d2, void *dnew, float epsilon);
-
-
-/**
  * Attempt to perform a boolean operation between the 2 objects of the 
  * desired type. This may fail due to an internal error or lack of memory.
  * In this case 0 is returned, otehrwise 1 is returned indicating success.
@@ -359,8 +291,7 @@ CSG_PerformBooleanOperation(
 	CSG_FaceIteratorDescriptor obAFaces,
 	CSG_VertexIteratorDescriptor obAVertices,
 	CSG_FaceIteratorDescriptor obBFaces,
-	CSG_VertexIteratorDescriptor obBVertices,
-	CSG_InterpolateUserFaceVertexDataFunc interp_func
+	CSG_VertexIteratorDescriptor obBVertices
 );
 
 /**

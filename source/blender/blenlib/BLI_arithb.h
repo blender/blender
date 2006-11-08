@@ -512,6 +512,11 @@ VecCompare(
 	float *v2, 
 	float limit
 );
+	int
+VecEqual(
+	float *v1,
+	float *v2
+);
 	float 
 Sqrt3f(
 	float f
@@ -629,6 +634,13 @@ VecRotToMat3(
 extern short IsectLL2Df(float *v1, float *v2, float *v3, float *v4);
 extern short IsectLL2Ds(short *v1, short *v2, short *v3, short *v4);
 
+/* interpolation weights of point in a triangle or quad, v4 may be NULL */
+	void
+InterpWeightsQ3Dfl(
+	float *v1, float *v2, float *v3, float *v4,
+	float *co,
+	float *w
+);
 
 	float *
 vectoquat(

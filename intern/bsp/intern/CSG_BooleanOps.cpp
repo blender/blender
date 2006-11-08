@@ -39,9 +39,6 @@
 
 #include "../extern/CSG_BooleanOps.h"
 #include "BSP_CSGMesh_CFIterator.h"
-#include "BSP_CSGMeshBuilder.h"
-#include "BSP_CSGHelper.h"
-#include "BSP_CSGUserData.h"
 #include "MEM_RefCountPtr.h"
 
 #include "../../boolop/extern/BOP_Interface.h"
@@ -52,9 +49,6 @@ using namespace std;
 
 struct BSP_MeshInfo {
 	BSP_CSGMesh *output_mesh;
-	CSG_MeshPropertyDescriptor obA_descriptor;
-	CSG_MeshPropertyDescriptor obB_descriptor;
-	CSG_MeshPropertyDescriptor output_descriptor;
 };
 
 using namespace std;
@@ -74,45 +68,17 @@ CSG_NewBooleanFunction(
 	return output;
 }
 	
-	CSG_MeshPropertyDescriptor
-CSG_DescibeOperands(
-	CSG_BooleanOperation * operation,
-	CSG_MeshPropertyDescriptor operandA_desciption,
-	CSG_MeshPropertyDescriptor operandB_desciption
-){
-	BSP_MeshInfo * mesh_info = static_cast<BSP_MeshInfo *>(operation->CSG_info);
-
-	mesh_info->obA_descriptor = operandA_desciption;
-	mesh_info->obB_descriptor = operandB_desciption;
-
-	if (
-		(operandA_desciption.user_data_size == operandB_desciption.user_data_size) &&
-		(operandA_desciption.user_face_vertex_data_size == operandB_desciption.user_face_vertex_data_size)
-	) {
-		// Then both operands have the same sets of data we can cope with this!
-		mesh_info->output_descriptor.user_data_size = operandA_desciption.user_data_size;
-		mesh_info->output_descriptor.user_face_vertex_data_size = operandA_desciption.user_face_vertex_data_size;
-	} else {
-		// There maybe some common subset of data we can seperate out but for now we just use the 
-		// default 
-		mesh_info->output_descriptor.user_data_size = 0;
-		mesh_info->output_descriptor.user_face_vertex_data_size = 0;
-	}
-	return mesh_info->output_descriptor;
-}
-
 /**
  * Compute the boolean operation, UNION, INTERSECION or DIFFERENCE
  */
 	int
 CSG_PerformBooleanOperation(
-	CSG_BooleanOperation                 *operation,
-	CSG_OperationType                     op_type,
-	CSG_FaceIteratorDescriptor            obAFaces,
-	CSG_VertexIteratorDescriptor          obAVertices,
-	CSG_FaceIteratorDescriptor            obBFaces,
-	CSG_VertexIteratorDescriptor          obBVertices,
-	CSG_InterpolateUserFaceVertexDataFunc interp_func
+	CSG_BooleanOperation			*operation,
+	CSG_OperationType				op_type,
+	CSG_FaceIteratorDescriptor		obAFaces,
+	CSG_VertexIteratorDescriptor	obAVertices,
+	CSG_FaceIteratorDescriptor		obBFaces,
+	CSG_VertexIteratorDescriptor	obBVertices
 ){
 	if (operation == NULL) return 0;
 	BSP_MeshInfo * mesh_info = static_cast<BSP_MeshInfo *>(operation->CSG_info);
@@ -140,15 +106,8 @@ CSG_PerformBooleanOperation(
 	BoolOpState boolOpResult;
 	try {
 	boolOpResult = BOP_performBooleanOperation( boolType,
-				     mesh_info->output_descriptor,
 				     (BSP_CSGMesh**) &(mesh_info->output_mesh),
-					 mesh_info->obB_descriptor,
-					 obBFaces,
-					 obBVertices,
-					 mesh_info->obA_descriptor,
-				     obAFaces,
-				     obAVertices,
-				     interp_func );
+					 obAFaces, obAVertices, obBFaces, obBVertices);
 	}
 	catch(...) {
 		return 0;
@@ -221,3 +180,4 @@ CSG_FreeBooleanOperation(
 		delete(operation);
 	}
 }
+

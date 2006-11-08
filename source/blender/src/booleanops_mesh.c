@@ -99,10 +99,6 @@ MakeCSGMeshFromBlenderBase(
 	output->m_descriptor.user_face_vertex_data_size = 0;
 	output->m_descriptor.user_data_size = sizeof(FaceData);
 
-	if (me->tface) {
-		output->m_descriptor.user_face_vertex_data_size = sizeof(FaceVertexData);
-	}
-
 	output->base = base;
 	
 	BuildMeshDescriptors(
@@ -129,10 +125,6 @@ CSG_LoadBlenderMesh(
 		
 	output->m_descriptor.user_face_vertex_data_size = 0;
 	output->m_descriptor.user_data_size = sizeof(FaceData);
-
-	if (me->tface) {
-		output->m_descriptor.user_face_vertex_data_size = sizeof(FaceVertexData);
-	}
 
 	output->base = NULL;
 	

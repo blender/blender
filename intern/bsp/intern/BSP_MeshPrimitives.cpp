@@ -243,7 +243,8 @@ SetOpenTag(
 BSP_MFace::
 BSP_MFace(
 ):
-	m_open_tag(-1)
+	m_open_tag(-1),
+	m_orig_face(0)
 {
 	// nothing to do
 }
@@ -259,11 +260,6 @@ Invert(
 	reverse(
 		m_verts.begin(),
 		m_verts.end()
-	);
-
-	reverse(
-		m_fv_data.begin(),
-		m_fv_data.end()
 	);
 
 	// invert the normal

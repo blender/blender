@@ -1834,6 +1834,11 @@ int VecCompare( float *v1, float *v2, float limit)
 	return 0;
 }
 
+int VecEqual(float *v1, float *v2)
+{
+	return ((v1[0]==v2[0]) && (v1[1]==v2[1]) && (v1[2]==v2[2]));
+}
+
 void CalcNormShort( short *v1, short *v2, short *v3, float *n) /* is also cross product */
 {
 	float n1[3],n2[3];
@@ -2109,6 +2114,85 @@ void MinMax3(float *min, float *max, float *vec)
 	if(max[1]<vec[1]) max[1]= vec[1];
 	if(max[2]<vec[2]) max[2]= vec[2];
 }
+
+static void BarycentricWeights(float *v1, float *v2, float *v3, float *co, float *n, float *w)
+{
+	float t00, t01, t10, t11, det, detinv, xn, yn, zn;
+	short i, j;
+
+	/* find best projection of face XY, XZ or YZ: barycentric weights of
+	   the 2d projected coords are the same and faster to compute */
+	xn= fabs(n[0]);
+	yn= fabs(n[1]);
+	zn= fabs(n[2]);
+	if(zn>=xn && zn>=yn) {i= 0; j= 1;}
+	else if(yn>=xn && yn>=zn) {i= 0; j= 2;}
+	else {i= 1; j= 2;} 
+
+	/* compute determinant */
+	t00= v3[i]-v1[i]; t01= v3[j]-v1[j];
+	t10= v3[i]-v2[i]; t11= v3[j]-v2[j];
+
+	det= t00*t11 - t10*t01;
+
+	if(det == 0.0f) {
+		/* zero area triangle */
+		w[0]= w[1]= w[2]= 1.0f/3.0f;
+		return;
+	}
+
+	/* compute weights */
+	detinv= 1.0/det;
+
+	w[0]= ((co[j]-v3[j])*t10 - (co[i]-v3[i])*t11)*detinv;
+	w[1]= ((co[i]-v3[i])*t01 - (co[j]-v3[j])*t00)*detinv; 
+	w[2]= 1.0f - w[0] - w[1];
+}
+
+void InterpWeightsQ3Dfl(float *v1, float *v2, float *v3, float *v4, float *co, float *w)
+{
+	w[0]= w[1]= w[2]= w[3]= 0.0f;
+
+	/* first check for exact match */
+	if(VecEqual(co, v1))
+		w[0]= 1.0f;
+	else if(VecEqual(co, v2))
+		w[1]= 1.0f;
+	else if(VecEqual(co, v3))
+		w[2]= 1.0f;
+	else if(v4 && VecEqual(co, v4))
+		w[3]= 1.0f;
+	else {
+		/* otherwise compute barycentric interpolation weights */
+		float n1[3], n2[3], n[3];
+
+		VecSubf(n1, v1, v3);
+		if (v4) {
+			VecSubf(n2, v2, v4);
+		}
+		else {
+			VecSubf(n2, v2, v3);
+		}
+		Crossf(n, n1, n2);
+
+		/* OpenGL seems to split this way, so we do too */
+		if (v4) {
+			BarycentricWeights(v1, v2, v4, co, n, w);
+
+			if(w[0] < 0.0f) {
+				/* if w[1] is negative, co is on the other side of the v1-v3 edge,
+				   so we interpolate using the other triangle */
+				w[0]= 0.0f;
+				BarycentricWeights(v2, v3, v4, co, n, w+1);
+			}
+			else {
+				SWAP(float, w[2], w[3]);
+			}
+		}
+		else
+			BarycentricWeights(v1, v2, v3, co, n, w);
+	}
+} 
 
 /* ************ EULER *************** */
 

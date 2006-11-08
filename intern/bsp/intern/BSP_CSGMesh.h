@@ -36,12 +36,10 @@
 #include "MEM_SmartPtr.h"
 #include "MEM_RefCountPtr.h"
 #include "MEM_NonCopyable.h"
-#include "BSP_CSGUserData.h"
 #include "../extern/CSG_BooleanOps.h"
 
 
 class MT_Plane3;
-class BSP_MeshFragment;
 
 class BSP_CSGMesh : 
 	public MEM_NonCopyable, 
@@ -61,33 +59,10 @@ public :
 	);
 
 		void
-	SetFaceVertexData(
-		BSP_CSGUserData *fv_data
-	);
-
-		void
-	SetFaceData(
-		BSP_CSGUserData *f_data
-	);
-
-		void
 	AddPolygon(
 		const int * verts,
 		int num_verts
 	);	
-
-		void
-	AddPolygon(
-		const int * verts,
-		const int * fv_indices,
-		int num_verts
-	);
-
-		void
-	AddSubTriangle(
-		const BSP_MFace &iface,
-		const int * index_info
-	); 
 
 	// assumes that the face already has a plane equation
 		void
@@ -140,14 +115,6 @@ public :
 
 		std::vector<BSP_MEdge> &
 	EdgeSet(
-	) const;
-
-		BSP_CSGUserData &
-	FaceVertexData(
-	) const;
-
-		BSP_CSGUserData &
-	FaceData(
 	) const;
 
 	~BSP_CSGMesh(
@@ -213,29 +180,6 @@ public :
 	) const;
 
 
-	// Bounding box methods
-	///////////////////////
-
-		void
-	SetBBox(
-		const MT_Vector3 & min,
-		const MT_Vector3 & max
-	);
-
-		void
-	BBox(
-		MT_Vector3 &min,
-		MT_Vector3 &max
-	) const ;
-
-	// Update the BBox
-	//////////////////
-
-		void
-	UpdateBBox(
-	);
-
-	
 	/**
 	 * Sanity checkers
 	 */
@@ -245,16 +189,6 @@ public :
 		bool
 	SC_Face(
 		BSP_FaceInd f
-	);
-
-	/**
-	 * Make sure the polygons vertex classification is correct
-	 */
-
-		void
-	SC_Classification(
-		BSP_FaceInd f,
-		const MT_Plane3&plane
 	);
 
 	/**
@@ -285,23 +219,6 @@ public :
 	CountTriangles(
 	) const;
 
-	/** 
-	 * Insert a vertex index into a polygon
-	 * and call the external splitting function to 
-	 * generate a new face vertex property.
-	 */
-
-		void
-	InsertVertexIntoFace(
-		BSP_MFace & face,
-		const BSP_VertexInd & v1,
-		const BSP_VertexInd & v2,
-		const BSP_VertexInd & vi,
-		CSG_InterpolateUserFaceVertexDataFunc fv_split_func,
-		MT_Scalar epsilon
-	);
-
-
 private :
 	
 		void
@@ -322,18 +239,6 @@ private :
 	std::vector<BSP_MFace>   *m_faces;
 	std::vector<BSP_MEdge>   *m_edges;
 
-	// The face_vertex user data associated with this mesh
-
-	BSP_CSGUserData *m_fv_data;
-
-	// The face user data associated with this mesh - 
-	// This is a buffer that maps directly to the face buffer.
-	// An index into the faces is alos an index into m_face_data 
-	// for that face
-
-	BSP_CSGUserData *m_face_data;
-
-	
 	MT_Vector3 m_bbox_min;
 	MT_Vector3 m_bbox_max;
 

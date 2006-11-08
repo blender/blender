@@ -78,7 +78,7 @@ private:
 	bool testFace(BOP_Face *face);
 
 public:
-	BOP_Mesh ();
+	BOP_Mesh();
 	~BOP_Mesh();
 	
 	BOP_Index addVertex(MT_Point3 point);

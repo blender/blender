@@ -1386,161 +1386,50 @@ static void flipvertarray(EditVert** arr, short size)
 	}
 }
 
-static int VecEqual(float *a, float *b)
-{
-	if( a[0] == b[0] && 
-	   (a[1] == b[1] && 
-		a[2] == b[2])) {
-		return 1;
-	}
-	else {
-		return 0;
-	}
-}
-
-static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
+void interp_uv_vcol(float *v1, float *v2, float *v3, float *v4, float *co, TFace *tf, TFace *outtf, int j)
 { 
-	EditVert *v1,*v2,*v3,*v4;
-	float xn, yn, zn;
-	float t00, t01, t10, t11;
-	float detsh, u, v, l;
-	int fac;
-	short i, j;
-	char *cp0, *cp1, *cp2;
-	char *hold;
-	
-	//First Check for exact match between co and efa verts
-	if(VecEqual(co,efa->v1->co)) {
-		uv[0] = efa->tf.uv[0][0];
-		uv[1] = efa->tf.uv[0][1];
-		
-		hold = (char*)&efa->tf.col[0];
-		col[0]= hold[0];
-		col[1]= hold[1];
-		col[2]= hold[2];
-		col[3]= hold[3];
-		return;	  
-	} else if(VecEqual(co,efa->v2->co)) {
-		uv[0] = efa->tf.uv[1][0];
-		uv[1] = efa->tf.uv[1][1];
-		
-		hold = (char*)&efa->tf.col[1];
-		col[0]= hold[0];
-		col[1]= hold[1];
-		col[2]= hold[2];
-		col[3]= hold[3]; 
-		return;	   
-	} else if(VecEqual(co,efa->v3->co)) {
-		uv[0] = efa->tf.uv[2][0];
-		uv[1] = efa->tf.uv[2][1];
-		
-		hold = (char*)&efa->tf.col[2];
-		col[0]= hold[0];
-		col[1]= hold[1];
-		col[2]= hold[2];
-		col[3]= hold[3];	
-		return;   
-	} else if(efa->v4 && VecEqual(co,efa->v4->co)) {
-		uv[0] = efa->tf.uv[3][0];
-		uv[1] = efa->tf.uv[3][1];
-		
-		hold = (char*)&efa->tf.col[3];
-		col[0]= hold[0];
-		col[1]= hold[1];
-		col[2]= hold[2];
-		col[3]= hold[3];   
-		return;	 
-	}	
-	
-	/* define best projection of face XY, XZ or YZ */
-	xn= fabs(efa->n[0]);
-	yn= fabs(efa->n[1]);
-	zn= fabs(efa->n[2]);
-	if(zn>=xn && zn>=yn) {i= 0; j= 1;}
-	else if(yn>=xn && yn>=zn) {i= 0; j= 2;}
-	else {i= 1; j= 2;} 
-	
-	/* calculate u and v */
-	v1= efa->v1;
-	v2= efa->v2;
-	v3= efa->v3;
-		
-	t00= v3->co[i]-v1->co[i]; t01= v3->co[j]-v1->co[j];
-	t10= v3->co[i]-v2->co[i]; t11= v3->co[j]-v2->co[j];
-		
-	detsh= 1.0/(t00*t11-t10*t01);	/* potential danger */
-	t00*= detsh; t01*=detsh;
-	t10*=detsh; t11*=detsh;
-		
-	u= (co[i]-v3->co[i])*t11-(co[j]-v3->co[j])*t10;
-	v= (co[j]-v3->co[j])*t00-(co[i]-v3->co[i])*t01; 
-	
-	/* btw; u and v range from -1 to 0 */
-		
-	/* interpolate */
-	l= 1.0+u+v;
-		/* outside triangle? */
-		/* printf("l: %f u %f v %f\n",l,u,v); */
-	
-	if(efa->v4 && (v>0.001f)) {	/* only check for positive v is OK, that's the diagonal */
-		/* printf("outside\n"); */
-		/* do it all over, but now with vertex 2 replaced with 4 */
-		
-		/* calculate u and v */
-		v1= efa->v1;
-		v4= efa->v4;
-		v3= efa->v3;
-				
-		t00= v3->co[i]-v1->co[i]; t01= v3->co[j]-v1->co[j];
-		t10= v3->co[i]-v4->co[i]; t11= v3->co[j]-v4->co[j];
-				
-		detsh= 1.0/(t00*t11-t10*t01);	/* potential danger */
-		t00*= detsh; t01*=detsh;
-		t10*=detsh; t11*=detsh;
-				
-		u= (co[i]-v3->co[i])*t11-(co[j]-v3->co[j])*t10;
-		v= (co[j]-v3->co[j])*t00-(co[i]-v3->co[i])*t01; 
-		
-		/* btw; u and v range from -1 to 0 */
-				
-		/* interpolate */
-		l= 1.0+u+v;
-		uv[0] = (l*efa->tf.uv[2][0] - u*efa->tf.uv[0][0] - v*efa->tf.uv[3][0]);
-		uv[1] = (l*efa->tf.uv[2][1] - u*efa->tf.uv[0][1] - v*efa->tf.uv[3][1]);
+	char *cp0, *cp1, *cp2, *cp3, *col;
+	float *uv, w[4];
+	int i, fac;
 
-		cp0= (char*)&(efa->tf.col[0]);
-		cp1= (char*)&(efa->tf.col[3]);
-		cp2= (char*)&(efa->tf.col[2]);
-		
-		for(i=0; i<4; i++) {
-			fac= (int)(l*cp2[i] - u*cp0[i] - v*cp1[i]);
-			col[i]= CLAMPIS(fac, 0, 255);
-		}			  
-	} else {	 
-	//	printf("inside\n");	 
-		//new = l*vertex3_val - u*vertex1_val - v*vertex2_val;
-		uv[0] = (l*efa->tf.uv[2][0] - u*efa->tf.uv[0][0] - v*efa->tf.uv[1][0]);
-		uv[1] = (l*efa->tf.uv[2][1] - u*efa->tf.uv[0][1] - v*efa->tf.uv[1][1]);
+	col = (char*)&outtf->col[j];
+	uv = (float*)outtf->uv[j];
 
-		cp0= (char*)&(efa->tf.col[0]);
-		cp1= (char*)&(efa->tf.col[1]);
-		cp2= (char*)&(efa->tf.col[2]);
-		
-		for(i=0; i<4; i++) {
-			fac= (int)(l*cp2[i] - u*cp0[i] - v*cp1[i]);
-			col[i]= CLAMPIS(fac, 0, 255);
-		}					   
+	InterpWeightsQ3Dfl(v1, v2, v3, v4, co, w);
+
+	uv[0]= w[0]*tf->uv[0][0] + w[1]*tf->uv[1][0] + w[2]*tf->uv[2][0];
+	uv[1]= w[0]*tf->uv[0][1] + w[1]*tf->uv[1][1] + w[2]*tf->uv[2][1];
+
+	if (v4) {
+		uv[0] += w[3]*tf->uv[3][0];
+		uv[1] += w[3]*tf->uv[3][1];
+	}
+
+	cp0= (char*)&(tf->col[0]);
+	cp1= (char*)&(tf->col[1]);
+	cp2= (char*)&(tf->col[2]);
+	cp3= (char*)&(tf->col[3]);
+
+	for(i=0; i < 4; i++) {
+		if (v4)
+			fac= (int)(w[0]*cp0[i] + w[1]*cp1[i] + w[2]*cp2[i] + w[3]*cp3[i]);
+		else
+			fac= (int)(w[0]*cp0[i] + w[1]*cp1[i] + w[2]*cp2[i]);
+
+		col[i]= CLAMPIS(fac, 0, 255);
 	}
 } 
 
-static void facecopy(EditFace *source,EditFace *target)
+static void facecopy(EditFace *source, EditFace *target)
 {
+	float *v1 = source->v1->co, *v2 = source->v2->co, *v3 = source->v3->co;
+	float *v4 = source->v4? source->v4->co: NULL;
 
-	set_uv_vcol(source,target->v1->co,target->tf.uv[0],(char*)&target->tf.col[0]);
-	set_uv_vcol(source,target->v2->co,target->tf.uv[1],(char*)&target->tf.col[1]);
-	set_uv_vcol(source,target->v3->co,target->tf.uv[2],(char*)&target->tf.col[2]);
-	if(target->v4)
-		set_uv_vcol(source,target->v4->co,target->tf.uv[3],(char*)&target->tf.col[3]);
+	interp_uv_vcol(v1, v2, v3, v4, target->v1->co, &source->tf, &target->tf, 0);
+	interp_uv_vcol(v1, v2, v3, v4, target->v2->co, &source->tf, &target->tf, 1);
+	interp_uv_vcol(v1, v2, v3, v4, target->v3->co, &source->tf, &target->tf, 2);
+	if (target->v4)
+		interp_uv_vcol(v1, v2, v3, v4, target->v4->co, &source->tf, &target->tf, 3);
 
 	target->mat_nr	 = source->mat_nr;
 	target->tf.flag	= source->tf.flag&~TF_ACTIVE;
@@ -5253,7 +5142,7 @@ void bevel_menu()
 			glDrawBuffer(GL_BACK);
 		}
 		while(qtest()) {
-			unsigned short val=0;			
+			short val=0;			
 			event= extern_qread(&val);	// extern_qread stores important events for the mainloop to handle 
 
 			/* val==0 on key-release event */
@@ -5767,7 +5656,7 @@ int EdgeSlide(short immediate, float imperc)
 		}
 		if(!immediate) {
 			while(qtest()) {
-				unsigned short val=0;		   	
+				short val=0;		   	
 				event= extern_qread(&val);	// extern_qread stores important events for the mainloop to handle 
 					
 				/* val==0 on key-release event */
@@ -6232,7 +6121,7 @@ void shape_copy_from_lerp(KeyBlock* thisBlock, KeyBlock* fromBlock)
 		}
 
 		while(qtest()) {
-			unsigned short val=0;			
+			short val=0;			
 			event= extern_qread(&val);	
 			if(val){
 				if(ELEM3(event, PADENTER, LEFTMOUSE, RETKEY)){

@@ -36,18 +36,11 @@
 typedef enum EnumBoolOpState {BOP_OK, BOP_NO_SOLID, BOP_ERROR} BoolOpState;
 typedef enum EnumBoolOpType {BOP_INTERSECTION=e_csg_intersection, BOP_UNION=e_csg_union, BOP_DIFFERENCE=e_csg_difference} BoolOpType;
 
-// extern interpolator.
-typedef int (*CSG_InterpolateUserFaceVertexDataFunc)(void *d1, void * d2, void *dnew, float epsilon);
-
 BoolOpState BOP_performBooleanOperation(BoolOpType                   opType,
-					CSG_MeshPropertyDescriptor   outputProps,
 					BSP_CSGMesh**                outputMesh,
-					CSG_MeshPropertyDescriptor   obAProps,
 					CSG_FaceIteratorDescriptor   obAFaces,
 					CSG_VertexIteratorDescriptor obAVertices,
-					CSG_MeshPropertyDescriptor   obBProps,
 					CSG_FaceIteratorDescriptor   obBFaces,
-					CSG_VertexIteratorDescriptor obBVertices,
-					CSG_InterpolateUserFaceVertexDataFunc interpFunc);
+					CSG_VertexIteratorDescriptor obBVertices);
 
 #endif

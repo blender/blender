@@ -46,7 +46,7 @@ struct BSP_CSGMesh_VertexIt {
 };
 
 
-static
+inline
 	void
 BSP_CSGMesh_VertexIt_Destruct(
 	CSG_VertexIteratorDescriptor * iterator
@@ -61,7 +61,7 @@ BSP_CSGMesh_VertexIt_Destruct(
 };
 
 
-static
+inline
 	int
 BSP_CSGMesh_VertexIt_Done(
 	CSG_IteratorPtr it
@@ -76,7 +76,7 @@ BSP_CSGMesh_VertexIt_Done(
 	return 1;
 };
 
-static
+inline
 	void
 BSP_CSGMesh_VertexIt_Fill(
 	CSG_IteratorPtr it,
@@ -88,7 +88,7 @@ BSP_CSGMesh_VertexIt_Fill(
 	vertex_it->pos->m_pos.getValue(vert->position);
 };
 
-static
+inline
 	void
 BSP_CSGMesh_VertexIt_Step(
 	CSG_IteratorPtr it
@@ -99,7 +99,7 @@ BSP_CSGMesh_VertexIt_Step(
 	++(vertex_it->pos);
 };
 
-static
+inline
 	void
 BSP_CSGMesh_VertexIt_Reset(
 	CSG_IteratorPtr it
@@ -109,7 +109,7 @@ BSP_CSGMesh_VertexIt_Reset(
 	vertex_it->pos = &vertex_it->mesh->VertexSet()[0];
 };	
 
-static
+inline
 	void
 BSP_CSGMeshVertexIt_Construct(
 	BSP_CSGMesh *mesh,
@@ -141,7 +141,7 @@ struct BSP_CSGMesh_FaceIt {
 };
 
 
-static
+inline
 	void
 BSP_CSGMesh_FaceIt_Destruct(
 	CSG_FaceIteratorDescriptor *iterator
@@ -156,7 +156,7 @@ BSP_CSGMesh_FaceIt_Destruct(
 };
 
 
-static
+inline
 	int
 BSP_CSGMesh_FaceIt_Done(
 	CSG_IteratorPtr it
@@ -168,15 +168,14 @@ BSP_CSGMesh_FaceIt_Done(
 	/* also check that vector is not empty */
 	if (face_it->mesh->FaceSet().size() && 
 			face_it->pos <= &(*(face_it->mesh->FaceSet().end() -1))) {
-		if (face_it->face_triangle + 3 <= face_it->pos->m_verts.size()) {
-
+		if (face_it->face_triangle + 3 <= (int)face_it->pos->m_verts.size()) {
 			return 0;
 		}
 	}
 	return 1;
 };
 
-static
+inline
 	void
 BSP_CSGMesh_FaceIt_Fill(
 	CSG_IteratorPtr it,
@@ -193,31 +192,8 @@ BSP_CSGMesh_FaceIt_Fill(
 		face->vertex_index[2] = int(face_it->pos->m_verts[2]);
 		face->vertex_index[3] = int(face_it->pos->m_verts[3]);
 
-		// Copy the user face data across - this does nothing
-		// if there was no mesh user data.
+		face->orig_face = face_it->pos->m_orig_face;
 
-		// time to change the iterator type to an integer...
-		face_it->mesh->FaceData().Copy(
-				face->user_face_data,
-				int(face_it->pos - &face_it->mesh->FaceSet()[0]));
-	
-		// Copy face vertex data across...
-		face_it->mesh->FaceVertexData().Copy(
-				face->user_face_vertex_data[0],
-				face_it->pos->m_fv_data[0]);
-
-		face_it->mesh->FaceVertexData().Copy(
-				face->user_face_vertex_data[1],
-				face_it->pos->m_fv_data[1]);
-
-		face_it->mesh->FaceVertexData().Copy(
-				face->user_face_vertex_data[2],
-				face_it->pos->m_fv_data[2]);
-
-		face_it->mesh->FaceVertexData().Copy(
-				face->user_face_vertex_data[3],
-				face_it->pos->m_fv_data[3]);
-		
 		face->vertex_number = 4;
 	}
 	else {
@@ -226,33 +202,13 @@ BSP_CSGMesh_FaceIt_Fill(
 		face->vertex_index[1] = int(face_it->pos->m_verts[1]);
 		face->vertex_index[2] = int(face_it->pos->m_verts[2]);
 
-		// Copy the user face data across - this does nothing
-		// if there was no mesh user data.
-
-		// time to change the iterator type to an integer...
-		face_it->mesh->FaceData().Copy(
-				face->user_face_data,
-				int(face_it->pos - &face_it->mesh->FaceSet()[0]));
-	
-		// Copy face vertex data across...
-
-		face_it->mesh->FaceVertexData().Copy(
-				face->user_face_vertex_data[0],
-				face_it->pos->m_fv_data[0]);
-
-		face_it->mesh->FaceVertexData().Copy(
-				face->user_face_vertex_data[1],
-				face_it->pos->m_fv_data[1]);
-
-		face_it->mesh->FaceVertexData().Copy(
-				face->user_face_vertex_data[2],
-				face_it->pos->m_fv_data[2]);
+		face->orig_face = face_it->pos->m_orig_face;
 
 		face->vertex_number = 3;
 	}
 };
 
-static
+inline
 	void
 BSP_CSGMesh_FaceIt_Step(
 	CSG_IteratorPtr it
@@ -274,7 +230,7 @@ BSP_CSGMesh_FaceIt_Step(
 	}
 };
 
-static
+inline
 	void
 BSP_CSGMesh_FaceIt_Reset(
 	CSG_IteratorPtr it
@@ -285,7 +241,7 @@ BSP_CSGMesh_FaceIt_Reset(
 	f_it->face_triangle = 0;
 };
 
-static
+inline
 	void
 BSP_CSGMesh_FaceIt_Construct(
 	BSP_CSGMesh * mesh,

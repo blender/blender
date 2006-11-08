@@ -533,7 +533,8 @@ float *mesh_create_orco(Object *ob)
 	return make_orco_mesh_internal(ob, 0);
 }
 
-	/* rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0. */
+/* rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.
+   this is necessary to make the if(mface->v4) check for quads work */
 #define UVSWAP(t, s) { SWAP(float, t[0], s[0]); SWAP(float, t[1], s[1]); }
 void test_index_face(MFace *mface, MCol *mc, TFace *tface, int nr)
 {

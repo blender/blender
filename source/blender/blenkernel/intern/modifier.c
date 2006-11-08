@@ -3375,7 +3375,7 @@ static DerivedMesh *booleanModifier_applyModifier(
 	/* we do a quick sanity check */
 	if(((Mesh *)ob->data)->totface > 3
 	   && bmd->object && ((Mesh *)bmd->object->data)->totface > 3) {
-		DerivedMesh *result = NewBooleanDerivedMesh(bmd->object, ob,
+		DerivedMesh *result = NewBooleanDerivedMesh(ob, bmd->object,
 		                                            1 + bmd->operation);
 
 		/* if new mesh returned, return it; otherwise there was
