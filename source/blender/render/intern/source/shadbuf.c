@@ -553,6 +553,10 @@ float testshadowbuf(ShadBuf *shb, float *rco, float *dxco, float *dyco, float in
 	int xs, ys, zs, bias, *rz;
 	short a, num;
 	
+	/* crash preventer */
+	if(shb->buffers.first==NULL)
+		return 1.0f;
+	
 	if(inp <= 0.0f) return 0.0f;
 
 	/* rotate renderco en osaco */

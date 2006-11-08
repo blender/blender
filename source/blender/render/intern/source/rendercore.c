@@ -1762,7 +1762,10 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 								i= 1.0f;
 							else {
 								if(lar->shb) {
-									i = testshadowbuf(lar->shb, shi->co, shi->dxco, shi->dyco, inp);
+									if(lar->buftype==LA_SHADBUF_IRREGULAR)
+										i= ISB_getshadow(shi, lar->shb);
+									else
+										i = testshadowbuf(lar->shb, shi->co, shi->dxco, shi->dyco, inp);
 								}
 								else {
 									float shad[4];
