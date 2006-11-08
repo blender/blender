@@ -2549,10 +2549,10 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	}
 	else if(th_curcol==TH_BUT_DRAWTYPE) {
 		uiBlockBeginAlign(block);
-		uiDefButC(block, ROW, B_UPDATE_THEME, "Minimal",	465,y3,100,20,  col, 2.0, 0.0, 0, 0, "");
-		uiDefButC(block, ROW, B_UPDATE_THEME, "Shaded",	565,y3,100,20,  col, 2.0, 1.0, 0, 0, "");
-		uiDefButC(block, ROW, B_UPDATE_THEME, "Rounded",	465,y2,100,20,  col, 2.0, 2.0, 0, 0, "");
-		uiDefButC(block, ROW, B_UPDATE_THEME, "OldSkool",	565,y2,100,20,  col, 2.0, 3.0, 0, 0, "");
+		uiDefButC(block, ROW, B_UPDATE_THEME, "Minimal", 465,y3,100,20,  col, 2.0, (float) TH_MINIMAL, 0, 0, "");
+		uiDefButC(block, ROW, B_UPDATE_THEME, "Shaded",	565,y3,100,20,  col, 2.0, (float) TH_SHADED, 0, 0, "");
+		uiDefButC(block, ROW, B_UPDATE_THEME, "Rounded", 465,y2,100,20,  col, 2.0, (float) TH_ROUNDED, 0, 0, "");
+		uiDefButC(block, ROW, B_UPDATE_THEME, "OldSkool", 565,y2,100,20,  col, 2.0, (float) TH_OLDSKOOL, 0, 0, "");
 		uiBlockEndAlign(block);
 	}
 	else {
