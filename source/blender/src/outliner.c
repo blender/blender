@@ -2439,6 +2439,16 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 	}
 }
 
+void outliner_del(ScrArea *sa)
+{
+	SpaceOops *soops= sa->spacedata.first;
+	outliner_do_object_operation(soops, &soops->tree, object_delete_cb);
+	DAG_scene_sort(G.scene);
+	countall();	
+	BIF_undo_push("Delete Objects");
+	allqueue(REDRAWALL, 0);	
+}
+
 
 void outliner_operation_menu(ScrArea *sa)
 {
@@ -3187,5 +3197,3 @@ void draw_outliner(ScrArea *sa, SpaceOops *soops)
 	
 	/* drawoopsspace handles sliders */
 }
-
-

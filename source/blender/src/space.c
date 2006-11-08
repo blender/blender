@@ -4508,6 +4508,10 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				outliner_find_panel(sa, again, search_flags);				
 			}
 			break;
+		case XKEY:
+		case DELKEY:
+			outliner_del(sa);
+			break;
 		case WKEY:
 			outliner_operation_menu(sa);
 			break;

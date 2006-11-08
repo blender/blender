@@ -90,6 +90,7 @@ extern void outliner_show_hierarchy(struct ScrArea *sa);
 extern void outliner_one_level(struct ScrArea *sa, int add);
 extern void outliner_select(struct ScrArea *sa);
 extern void outliner_toggle_selected(struct ScrArea *sa);
+extern void outliner_del(struct ScrArea *sa);
 extern void outliner_operation_menu(struct ScrArea *sa);
 extern void outliner_page_up_down(struct ScrArea *sa, int up);
 extern void outliner_find_panel(struct ScrArea *sa, int again, int flags);
