@@ -277,7 +277,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 
 /* ****************** DUPLICATOR ************** */
 
-static void new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay, int index)
+static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay, int index)
 {
 	DupliObject *dob= MEM_mallocN(sizeof(DupliObject), "dupliobject");
 	
@@ -297,15 +297,19 @@ static void new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay, 
 			Mat4CpyMat4(paf->imat, ob->imat);
 		}
 	}
+	return dob;
 }
 
-static void group_duplilist(ListBase *lb, Object *ob)
+static void group_duplilist(ListBase *lb, Object *ob, int level)
 {
 	DupliObject *dob;
 	GroupObject *go;
 	float mat[4][4];
 	
 	if(ob->dup_group==NULL) return;
+	
+	/* simple preventing of too deep nested groups */
+	if(level>4) return;
 	
 	/* handles animated groups, and */
 	/* we need to check update for objects that are not in scene... */
@@ -314,13 +318,14 @@ static void group_duplilist(ListBase *lb, Object *ob)
 	for(go= ob->dup_group->gobject.first; go; go= go->next) {
 		if(go->ob!=ob) {
 			Mat4MulMat4(mat, go->ob->obmat, ob->obmat);
-			new_dupli_object(lb, go->ob, mat, ob->lay, 0);
+			dob= new_dupli_object(lb, go->ob, mat, ob->lay, 0);
+			if(go->ob->dup_group) {
+				Mat4CpyMat4(dob->ob->obmat, dob->mat);
+				group_duplilist(lb, go->ob, level+1);
+				Mat4CpyMat4(dob->ob->obmat, dob->omat);
+			}
 		}
 	}
-	
-	/* make copy already, because in group dupli's deform displists can be makde, requiring parent matrices */
-	for(dob= lb->first; dob; dob= dob->next)
-		Mat4CpyMat4(dob->ob->obmat, dob->mat);
 }
 
 static void frames_duplilist(ListBase *lb, Object *ob)
@@ -675,8 +680,15 @@ ListBase *object_duplilist(Scene *sce, Object *ob)
 		}
 		else if(ob->transflag & OB_DUPLIFRAMES) 
 			frames_duplilist(&duplilist, ob);
-		else if(ob->transflag & OB_DUPLIGROUP)
-			group_duplilist(&duplilist, ob);
+		else if(ob->transflag & OB_DUPLIGROUP) {
+			DupliObject *dob;
+			
+			group_duplilist(&duplilist, ob, 0); /* now recursive */
+			
+			/* make copy already, because in group dupli's deform displists can be makde, requiring parent matrices */
+			for(dob= duplilist.first; dob; dob= dob->next)
+				Mat4CpyMat4(dob->ob->obmat, dob->mat);
+		}
 		
 	}
 	
