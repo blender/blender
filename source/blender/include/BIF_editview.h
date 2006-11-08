@@ -53,7 +53,7 @@ void	mouse_select(void);
 void	set_active_base(struct Base *base);
 void	set_active_object(struct Object *ob);
 void	set_render_border(void);
-
+void	view3d_border_zoom(void);
 void	view3d_edit_clipping(struct View3D *v3d);
 
 #endif

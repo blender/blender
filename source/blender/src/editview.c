@@ -1985,8 +1985,6 @@ void set_render_border(void)
 {
 	rcti rect;
 	short val;
-
-	if(G.vd->persp!=2) return;
 	
 	val= get_border(&rect, 3);
 	if(val) {
@@ -2011,6 +2009,40 @@ void set_render_border(void)
 	}
 }
 
+void view3d_border_zoom(void)
+{
+	/* Zooms in on a border drawn by the user */
+	rcti rect;
+	short val;
+	float dvec[3], vb[2], xscale, yscale, scale;
+	
+	/* doesn't work fine for perspective */
+	if(G.vd->persp==1)
+		return;
+	
+	val = get_border(&rect, 3); //box select input
+	if(val)
+	{
+		/* find the current window width and height */
+		vb[0] = G.vd->area->winx;
+		vb[1] = G.vd->area->winy;
+		
+		/* convert the drawn rectangle into 3d space */
+		initgrabz(-G.vd->ofs[0], -G.vd->ofs[1], -G.vd->ofs[2]);
+		window_to_3d(dvec, (rect.xmin+rect.xmax-vb[0])/2, (rect.ymin+rect.ymax-vb[1])/2);
+		
+		/* center the view to the center of the rectangle */
+		VecSubf(G.vd->ofs, G.vd->ofs, dvec);
+		
+		/* work out the ratios, so that everything selected fits when we zoom */
+		xscale = ((rect.xmax-rect.xmin)/vb[0]);
+		yscale = ((rect.ymax-rect.ymin)/vb[1]);
+		scale = (xscale >= yscale)?xscale:yscale;
+		
+		/* zoom in as required, or as far as we can go */
+		G.vd->dist = ((G.vd->dist*scale) >= 0.001*G.vd->grid)? G.vd->dist*scale:0.001*G.vd->grid;
+	}
+}
 
 void fly(void)
 {

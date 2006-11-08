@@ -1321,7 +1321,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.qual==LR_ALTKEY)
 					view3d_edit_clipping(v3d);
 				else if(G.qual==LR_SHIFTKEY)
-					set_render_border();
+				{
+					if(G.vd->persp==2)
+						set_render_border();
+					else
+						view3d_border_zoom();
+				}
 				else if(G.qual==LR_CTRLKEY) {
 					if(okee("Bake all selected")) {
 						extern void softbody_bake(Object *ob);
