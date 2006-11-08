@@ -307,7 +307,7 @@ void persptoetsen(unsigned short event)
 		else if(G.vd->persp<2) {
 			if(event==PAD4 || event==PAD6) {
 				/* z-axis */
-				phi= (float)(M_PI/24.0);
+				phi= (float)(M_PI/360.0)*U.pad_rot_angle;
 				if(event==PAD6) phi= -phi;
 				si= (float)sin(phi);
 				q1[0]= (float)cos(phi);
@@ -322,7 +322,7 @@ void persptoetsen(unsigned short event)
 				VECCOPY(q1+1, G.vd->viewinv[0]);
 				
 				Normalise(q1+1);
-				phi= (float)(M_PI/24.0);
+				phi= (float)(M_PI/360.0)*U.pad_rot_angle;
 				if(event==PAD2) phi= -phi;
 				si= (float)sin(phi);
 				q1[0]= (float)cos(phi);

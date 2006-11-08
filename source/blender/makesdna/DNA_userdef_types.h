@@ -170,13 +170,13 @@ typedef struct UserDef {
 	int textimeout, texcollectrate;
 	int memcachelimit;
 	short frameserverport;
-	short pad;
+	short pad_rot_angle;	/*control the rotation step of the view when PAD2,PAD4,PAD6&PAD8 is use*/
 	short obcenter_dia;
-	short rvisize;		/* rotating view icon size */
-	short rvibright;	/* rotating view icon brightness */
+	short rvisize;			/* rotating view icon size */
+	short rvibright;		/* rotating view icon brightness */
 	char versemaster[160];
 	char verseuser[160];
-	short pad1;
+	short pad;
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */

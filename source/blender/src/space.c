@@ -2840,7 +2840,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&U.rvibright, 0, 10, 0, 0,
 			"The brightness of the icon");
 		uiBlockEndAlign(block);
-		
+
+        uiDefButS(block, NUM, B_DRAWINFO, "Rotation Angle:",
+			(xpos+edgsp+(3*mpref)+(4*midsp)),y1,(mpref),buth,
+			&U.pad_rot_angle, 0, 90, 0, 0,
+			"The rotation step for numerical pad keys (2 4 6 8)");
 
 		uiDefBut(block, LABEL,0,"Select with:",
 			(xpos+(2*edgsp)+(3*mpref)+(3*midsp)),y6label,mpref,buth,

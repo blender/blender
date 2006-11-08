@@ -186,6 +186,8 @@ static void init_userdef_file(void)
 		U.tw_size= 20;			// percentage of window size
 		U.tw_handlesize= 16;	// percentage of widget radius
 	}
+	if(U.pad_rot_angle==0)
+		U.pad_rot_angle= 15;
 	
 	if (G.main->versionfile <= 191) {
 		strcpy(U.plugtexdir, U.textudir);
