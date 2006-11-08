@@ -44,6 +44,7 @@
 #include "BLI_arithb.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_ipo_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -61,6 +62,7 @@
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -563,6 +565,13 @@ static float *calc_curve_deform(Object *par, float *co, short axis, CurveDeform 
 			fac= (cd->dloc[index])/(cu->path->totdist) + (co[index]-cd->dmin[index])/(cu->path->totdist);
 	}
 	
+	/* we want the ipo to work on the default 100 frame range, because there's no  
+	   actual time involved in path position */
+	if(cu->ipo) {
+		fac*= 100.0f;
+		if(calc_ipo_spec(cu->ipo, CU_SPEED, &fac)==0)
+			fac/= 100.0;
+	}
 	
 	if( where_on_path_deform(par, fac, loc, dir)) {	/* returns OK */
 		float q[4], mat[3][3];

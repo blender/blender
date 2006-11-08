@@ -3144,6 +3144,37 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST); 
 }
 
+/* draw points on curve speed handles */
+static void curve_draw_speed(Object *ob)
+{
+	Curve *cu= ob->data;
+	IpoCurve *icu;
+	BezTriple *bezt;
+	float loc[4], dir[3];
+	int a;
+	
+	if(cu->ipo==NULL)
+		return;
+	
+	icu= cu->ipo->curve.first; 
+	if(icu==NULL || icu->totvert<2)
+		return;
+	
+	glPointSize( BIF_GetThemeValuef(TH_VERTEX_SIZE) );
+	bglBegin(GL_POINTS);
+
+	for(a=0, bezt= icu->bezt; a<icu->totvert; a++, bezt++) {
+		if( where_on_path(ob, bezt->vec[1][1], loc, dir)) {
+			BIF_ThemeColor((bezt->f2 & SELECT) && ob==OBACT?TH_VERTEX_SELECT:TH_VERTEX);
+			bglVertex3fv(loc);
+		}
+	}
+
+	glPointSize(1.0);
+	bglEnd();
+}
+
+
 static void tekentextcurs(void)
 {
 	cpack(0);
@@ -4110,9 +4141,12 @@ void draw_object(Base *base, int flag)
 			}
 			else if(dt==OB_BOUNDBOX) 
 				draw_bounding_volume(ob);
-			else if(boundbox_clip(ob->obmat, cu->bb)) 
+			else if(boundbox_clip(ob->obmat, cu->bb)) {
 				empty_object= drawDispList(base, dt);
-
+				
+				if(cu->path)
+					curve_draw_speed(ob);
+			}			
 			break;
 		case OB_MBALL:
 			if(ob==G.obedit) 

@@ -4467,6 +4467,7 @@ void adduplicate(int mode, int dupflag)
 	ID *id;
 	Ipo *ipo;
 	bConstraintChannel *chan;
+	bActionStrip *strip;
 	int a, didit;
 	
 	if(G.scene->id.lib) return;
@@ -4679,6 +4680,11 @@ void adduplicate(int mode, int dupflag)
 			ID_NEW(base->object->parent);
 			ID_NEW(base->object->track);
 			
+			for(strip= base->object->nlastrips.first; strip; strip= strip->next) {
+				bActionModifier *amod;
+				for(amod= strip->modifiers.first; amod; amod= amod->next)
+					ID_NEW(amod->ob);
+			}
 		}
 		base= base->next;
 	}

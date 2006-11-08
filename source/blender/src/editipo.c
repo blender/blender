@@ -1519,6 +1519,9 @@ void mouse_select_ipo(void)
 		ob= OBACT;
 		if(ob && (ob->ipoflag & OB_DRAWKEY)) allqueue(REDRAWVIEW3D, 0);
 	}
+	/* points inside of curve are drawn selected too */
+	if(G.sipo->blocktype==ID_CU)
+		allqueue(REDRAWVIEW3D, 0);
 	
 	getmouseco_areawin(mval);
 	xo= mval[0]; 
