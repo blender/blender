@@ -3684,7 +3684,7 @@ void join_triangles(void)
 	EditFace *efa;
 	EditEdge *eed, **faceEdge, *faceEdges[5], **edsortblock, **edb;
 	EditVert **faceVert1, *faceVerts1[5], **faceVert2, *faceVerts2[5];
-	float limit = 25;
+	float limit = G.scene->toolsettings->select_thresh * 10;
 	int i, paircount, joincount, totFacePairLs, respectvcol = 1, respectuv = 1, match, matchar[3];
 	FacePairL *fpl1;
 	
@@ -3849,9 +3849,6 @@ void join_triangles(void)
 			meshJoinFaces(*edb);
 		}
 	}
-	
-	if(joincount) notice("Created %i new quads /n", joincount);
-	else notice("nothing done");
 	
 	free_tagged_facelist(em->faces.first);
 	MEM_freeN(edsortblock);
