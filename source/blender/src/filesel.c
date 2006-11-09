@@ -92,6 +92,7 @@
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_resources.h"
+#include "BIF_language.h"
 
 #include "BLO_readfile.h"
 
@@ -107,6 +108,10 @@
 #include "nla.h"
 
 #include "BIF_fsmenu.h"  /* include ourselves */
+
+#if defined WITH_ICONV
+	#include "iconv.h"
+#endif
 
 #if defined WIN32 || defined __BeOS
 int fnmatch(const char *pattern, const char *string, int flags)
@@ -139,6 +144,7 @@ static void library_to_filelist(SpaceFile *sfile);
 static void filesel_select_objects(struct SpaceFile *sfile);
 static void active_file_object(struct SpaceFile *sfile);
 static int groupname_to_code(char *group);
+static void string_to_utf8(char *original, char *utf_8);
 
 extern void countall(void);
 
@@ -881,6 +887,7 @@ static void print_line(SpaceFile *sfile, struct direntry *files, int x, int y)
 {
 	int boxcol=0;
 	char *s;
+	char utf_8[512];
 
 	boxcol= files->flags & (HILITE + ACTIVE);
 
@@ -924,7 +931,12 @@ static void print_line(SpaceFile *sfile, struct direntry *files, int x, int y)
 	s = files->string;
 	if(s) {
 		glRasterPos2i(x,  y);
+#ifdef WITH_ICONV
+		string_to_utf8(files->relname, utf_8);
+		BIF_DrawString(G.font, utf_8, (U.transopts & USER_TR_MENUS));
+#else
 		BMF_DrawString(G.font, files->relname);
+#endif
 		
 		x += sfile->maxnamelen + 100;
 
@@ -1087,6 +1099,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	short mval[2];
 	char name[20];
 	char *menu;
+	char utf_8[512];
 
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 
@@ -1157,6 +1170,29 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	
 	sa->win_swap= WIN_BACK_OK;
 }
+
+#ifdef WITH_ICONV
+static void string_to_utf8(char *original, char *utf_8) {
+	size_t inbytesleft=strlen(original);
+	size_t outbytesleft=512;
+	size_t rv=0;
+	iconv_t cd;
+       
+	cd=iconv_open("UTF-8", "gb2312");
+	if (cd == (iconv_t)(-1)) {
+		printf("iconv_open Error");
+		*utf_8='\0';
+		return ;
+	}
+	rv=iconv(cd, &original, &inbytesleft, &utf_8, &outbytesleft);
+	if (rv == (size_t) -1) {
+		printf("iconv Error\n");
+		return ;
+	}
+	*utf_8 = '\0';
+	iconv_close(cd);
+}
+#endif
 
 static void do_filescroll(SpaceFile *sfile)
 {

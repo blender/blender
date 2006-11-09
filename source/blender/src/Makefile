@@ -110,6 +110,11 @@ ifeq ($(WITH_QUICKTIME),true)
 	CPPFLAGS += -DWITH_QUICKTIME
 endif
 
+ifeq ($(WITH_ICONV), true)
+	CPPFLAGS += -DWITH_ICONV
+	CPPFLAGS += $(NAN_ICONV_INC)
+endif
+
 ifeq ($(WITH_FFMPEG),true)
         CPPFLAGS += -DWITH_FFMPEG
         CPPFLAGS += $(NAN_FFMPEGCFLAGS)

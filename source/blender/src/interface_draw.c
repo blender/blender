@@ -1565,7 +1565,7 @@ static void ui_draw_text_icon(uiBut *but)
 			if(but->type==LABEL && but->min!=0.0) BIF_ThemeColor(TH_BUT_TEXT_HI);
 		
 			ui_rasterpos_safe(x, (but->y1+but->y2- 9.0)/2.0, but->aspect);
-			if(but->type==TEX || but->type==IDPOIN) transopts= 0;	// no translation, of course!
+			if(but->type==IDPOIN) transopts= 0;	// no translation, of course!
 			else transopts= (U.transopts & USER_TR_BUTTONS);
 			BIF_DrawString(but->font, but->drawstr+but->ofs, transopts);
 

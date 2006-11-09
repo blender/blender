@@ -107,6 +107,12 @@ WITH_BF_QUICKTIME = 'false' # -DWITH_QUICKTIME
 BF_QUICKTIME = '/usr/local'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/include'
 
+WITH_BF_ICONV = 'true'
+BF_ICONV = "/usr"
+BF_ICONV_INC = '${BF_ICONV}/include'
+BF_ICONV_LIB = 'iconv'
+BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
+
 # enable ffmpeg  support
 WITH_BF_FFMPEG = 'false'  # -DWITH_FFMPEG
 BF_FFMPEG = '/usr/local'

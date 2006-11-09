@@ -118,7 +118,7 @@ ifeq ($(OS),openbsd)
 endif
 
 ifeq ($(OS),solaris)
-    LLIBS = -lGLU -lGL -lXmu -lXext -lX11 -lc -lm -ldl -lsocket -lnsl
+    LLIBS = -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldl -lsocket -lnsl
     DYNLDFLAGS = -shared $(LDFLAGS)
 endif
 
@@ -153,6 +153,10 @@ endif
 
 ifneq ($(OS), irix)
    LLIBS += $(NAN_SDLLIBS)
+endif
+
+ifeq ($(WITH_ICONV),true)
+   LLIBS += $(NAN_ICONV_LIBS)
 endif
 
 ifeq ($(WITH_FFMPEG),true)
