@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /Ob2 /I "../../../../../lib/windows/memutil/include" /I "../.." /I "../../../../../lib/windows/moto/include" /I "../../../../../lib/windows/container/include" /I"..\..\..\container" /I"..\..\..\moto\include" /I"..\..\..\memutil" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /Ob2 /I "../../../../../lib/windows/memutil/include" /I "../.." /I "../../../../../lib/windows/moto/include" /I "../../../../../lib/windows/container/include" /I "..\..\..\container" /I "..\..\..\moto\include" /I "..\..\..\memutil" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x413 /d "NDEBUG"
 # ADD RSC /l 0x413 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -70,7 +70,7 @@ PostBuild_Cmds=ECHO Copying header files	XCOPY /Y ..\..\extern\*.h ..\..\..\..\.
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../../../../../lib/windows/memutil" /I "../.." /I "../../../../../lib/windows/moto/include" /I "../../../../../lib/windows/container/include" /I "../../../../../lib/windows/memutil/include" /I"..\..\..\container" /I"..\..\..\moto\include" /I"..\..\..\memutil" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../../../../../lib/windows/memutil" /I "../.." /I "../../../../../lib/windows/moto/include" /I "../../../../../lib/windows/container/include" /I "../../../../../lib/windows/memutil/include" /I "..\..\..\container" /I "..\..\..\moto\include" /I "..\..\..\memutil" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /FD /GZ /c
 # ADD BASE RSC /l 0x413 /d "_DEBUG"
 # ADD RSC /l 0x413 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -99,14 +99,6 @@ SOURCE=..\..\intern\BSP_CSGException.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\intern\BSP_CSGHelper.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_CSGHelper.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\intern\BSP_CSGISplitter.h
 # End Source File
 # Begin Source File
@@ -123,75 +115,11 @@ SOURCE=..\..\intern\BSP_CSGMesh_CFIterator.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\intern\BSP_CSGMeshBuilder.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_CSGMeshBuilder.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_CSGMeshSplitter.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_CSGMeshSplitter.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_CSGNCMeshSplitter.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_CSGNCMeshSplitter.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_CSGUserData.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_CSGUserData.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_FragNode.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_FragNode.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_FragTree.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_FragTree.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_MeshFragment.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_MeshFragment.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\intern\BSP_MeshPrimitives.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\intern\BSP_MeshPrimitives.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_Triangulate.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BSP_Triangulate.h
 # End Source File
 # Begin Source File
 

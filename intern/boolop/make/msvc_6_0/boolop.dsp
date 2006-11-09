@@ -119,14 +119,6 @@ SOURCE=..\..\intern\BOP_Interface.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\intern\BOP_Material.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BOP_MaterialContainer.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\intern\BOP_MathUtils.cpp
 # End Source File
 # Begin Source File
@@ -192,14 +184,6 @@ SOURCE=..\..\intern\BOP_Face2Face.h
 # Begin Source File
 
 SOURCE=..\..\intern\BOP_Indexs.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BOP_Material.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\BOP_MaterialContainer.h
 # End Source File
 # Begin Source File
 
