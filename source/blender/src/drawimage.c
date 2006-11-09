@@ -1308,6 +1308,7 @@ static void image_panel_preview(ScrArea *sa, short cntrl)	// IMAGE_HANDLER_PREVI
 	
 	if(is_preview_allowed(sa)==0) {
 		rem_blockhandler(sa, IMAGE_HANDLER_PREVIEW);
+		G.scene->r.scemode &= ~R_COMP_CROP;	/* quite weak */
 		return;
 	}
 	
