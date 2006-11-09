@@ -251,15 +251,6 @@ ECHO Done
 				RelativePath="..\..\intern\BSP_CSGException.h">
 			</File>
 			<File
-				RelativePath="..\..\intern\BSP_CSGHelper.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_CSGHelper.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_CSGISplitter.h">
-			</File>
-			<File
 				RelativePath="..\..\intern\BSP_CSGMesh.cpp">
 			</File>
 			<File
@@ -269,58 +260,10 @@ ECHO Done
 				RelativePath="..\..\intern\BSP_CSGMesh_CFIterator.h">
 			</File>
 			<File
-				RelativePath="..\..\intern\BSP_CSGMeshBuilder.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_CSGMeshBuilder.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_CSGMeshSplitter.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_CSGMeshSplitter.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_CSGNCMeshSplitter.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_CSGNCMeshSplitter.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_CSGUserData.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_CSGUserData.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_FragNode.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_FragNode.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_FragTree.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_FragTree.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_MeshFragment.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_MeshFragment.h">
-			</File>
-			<File
 				RelativePath="..\..\intern\BSP_MeshPrimitives.cpp">
 			</File>
 			<File
 				RelativePath="..\..\intern\BSP_MeshPrimitives.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_Triangulate.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\BSP_Triangulate.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\CSG_BooleanOps.cpp">

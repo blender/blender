@@ -273,12 +273,6 @@ ECHO Done
 					RelativePath="..\..\intern\BOP_Interface.cpp">
 				</File>
 				<File
-					RelativePath="..\..\intern\BOP_Material.cpp">
-				</File>
-				<File
-					RelativePath="..\..\intern\BOP_MaterialContainer.cpp">
-				</File>
-				<File
 					RelativePath="..\..\intern\BOP_MathUtils.cpp">
 				</File>
 				<File
@@ -329,12 +323,6 @@ ECHO Done
 				</File>
 				<File
 					RelativePath="..\..\intern\BOP_Indexs.h">
-				</File>
-				<File
-					RelativePath="..\..\intern\BOP_Material.h">
-				</File>
-				<File
-					RelativePath="..\..\intern\BOP_MaterialContainer.h">
 				</File>
 				<File
 					RelativePath="..\..\intern\BOP_MathUtils.h">
