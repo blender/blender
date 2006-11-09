@@ -323,11 +323,9 @@ typedef struct ToolSettings {
 	short cornertype;
 	short editbutflag;
 	/* Extrude Tools */
-	short degr; 
+	float degr; 
 	short step;
 	short turn; 
-
-	short pad1;
 	
 	float extr_offs; 
 	float doublimit;
@@ -643,4 +641,3 @@ typedef struct Scene {
 #endif
 
 #endif
-

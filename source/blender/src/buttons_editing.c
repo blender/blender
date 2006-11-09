@@ -3697,12 +3697,12 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	uiDefBut(block, BUT,B_SCREW,"Screw",			10,75,100,24, 0, 0, 0, 0, 0, "Activates the screw tool");  // Bish - This could use some more definition
 	uiDefBut(block, BUT,B_SPIN, "Spin",				110,75,100,24, 0, 0, 0, 0, 0, "Extrudes the selected vertices in a circle around the cursor in the indicated viewport");
 	uiDefBut(block, BUT,B_SPINDUP,"Spin Dup",		210,75,115,24, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a circle around the cursor in the indicated viewport");
-
-	uiDefButS(block, NUM, B_DIFF, "Degr:",			10,55,100,19, &G.scene->toolsettings->degr,10.0,360.0, 0, 0, "Specifies the number of degrees 'Spin' revolves");
+	
+	uiDefButF(block, NUM, B_DIFF, "Degr:",			10,55,100,19, &G.scene->toolsettings->degr,-360.0,360.0, 1000, 0, "Specifies the number of degrees 'Spin' revolves");
 	uiDefButS(block, NUM, B_DIFF, "Steps:",			110,55,100,19, &G.scene->toolsettings->step,1.0,180.0, 0, 0, "Specifies the total number of 'Spin' slices");
 	uiDefButS(block, NUM, B_DIFF, "Turns:",			210,55,115,19, &G.scene->toolsettings->turn,1.0,360.0, 0, 0, "Specifies the number of revolutions the screw turns");
 	uiDefButBitS(block, TOG, B_KEEPORIG, B_DIFF, "Keep Original",10,35,200,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Keeps a copy of the original vertices and faces after executing tools");
-	uiDefButBitS(block, TOG, B_CLOCKWISE, B_DIFF, "Clockwise",	210,35,115,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Specifies the direction for 'Screw' and 'Spin'");
+	uiDefButBitS(block, TOG, B_CLOCKWISE, B_DIFF, "Clockwise",	210,35,115,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Specifies the direction for 'Screw'");
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_EXTREP, "Extrude Dup",	10,10,150,19, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a straight line away from the current viewport");

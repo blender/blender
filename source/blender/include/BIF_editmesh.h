@@ -197,7 +197,7 @@ extern void esubdivideflag(int flag, float rad, int beauty, int numcuts, int sel
 extern void extrude_mesh(void);
 extern void split_mesh(void);
 extern void extrude_repeat_mesh(int steps, float offs);
-extern void spin_mesh(int steps,int degr,float *dvec, int mode);
+extern void spin_mesh(int steps,float degr,float *dvec, int mode);
 extern void screw_mesh(int steps,int turns);
 extern void delete_mesh(void);
 extern void beauty_fill(void);
@@ -228,4 +228,3 @@ void pathselect(void);
 void loop_to_region(void);
 void region_to_loop(void);
 #endif
-
