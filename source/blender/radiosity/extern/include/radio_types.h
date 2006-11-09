@@ -42,6 +42,7 @@
 #include "DNA_material_types.h" 
 
 struct Render;
+struct TFace;
 
 #define DTWIRE		0
 #define DTGOUR		2
@@ -87,28 +88,14 @@ typedef struct RNode {					/* length: 104 */
 	float totrad[3], area;
 	
 	unsigned int col;
-	float uv[4][2];		/* when you change this: also do function set_correct_uv in editmesh.c, and there are more locations that use the size of this part */
-	struct TFace *tface;
+	unsigned int orig;					/* index in face elem data */
 } RNode;
-
-
-typedef struct Elem {					/* length: 44 */
-	struct RPatch *par;
-
-	short type;							/* type: 4==QUAD, 3==TRIA */
-	short f;							/* bit 0: patch, bit 1: shootelement */
-	float *v1, *v2, *v3, *v4;
-	float totrad[3], area;
-	
-	unsigned int col;
-} Elem;
 
 
 typedef struct Face {					/* length: 52 */
 	float *v1, *v2, *v3, *v4;
 	unsigned int col, matindex;
-	float uv[4][2];		/* when you change this: also do function set_correct_uv in editmesh.c, and there are more locations that use the size of this part */
-	struct TFace *tface;
+	unsigned int orig;					/* index in face elem data */
 } Face;
 
 /* rp->f1 */
@@ -168,6 +155,9 @@ typedef struct {
 	/* to preserve materials as used before, max 16 */
 	Material *matar[MAXMAT];
 	int totmat;
+
+	struct RNode **mfdatanodes; /* nodes associated with the mfdata */
+	struct TFace *tface;
 	
 		/* this part is a copy of struct Radio */
 	short hemires, maxiter;

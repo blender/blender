@@ -60,17 +60,18 @@
 #include "DNA_object_types.h"
 #include "DNA_radio_types.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
-#include "BKE_material.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_screen.h"		/* waitcursor */
 #include "BIF_editview.h"	/* deselectall */
 
 #include "BDR_editobject.h"	/* delete_obj */
+#include "BDR_editface.h"	/* default_tface */
 
 #include "radio.h"
 
@@ -172,18 +173,7 @@ Face *addface()
 
 }
 
-#define HALFUV(uv, uv1, uv2) {uv[0] = 0.5 * (uv1[0] + uv2[0]); uv[1] = 0.5 * (uv1[1] + uv2[1]);}
-#define COPYUV(dst, src) {dst[0] = src[0]; dst[1] = src[1];}
-
-void dofaceuv(Face *face, float uvs[8][2], short flag1, short flag2, short flag3, short flag4)
-{
-	COPYUV(face->uv[0], uvs[flag1]);
-	COPYUV(face->uv[1], uvs[flag2]);
-	COPYUV(face->uv[2], uvs[flag3]);
-	COPYUV(face->uv[3], uvs[flag4]);
-}
-
-Face * makeface(float *v1, float *v2, float *v3, float *v4, RNode *rn, short hasUV)
+Face * makeface(float *v1, float *v2, float *v3, float *v4, RNode *rn)
 {
 	Face *face;
 	
@@ -194,10 +184,7 @@ Face * makeface(float *v1, float *v2, float *v3, float *v4, RNode *rn, short has
 	face->v4= v4;
 	face->col= rn->col;
 	face->matindex= rn->par->matindex;
-	face->tface = rn->tface;
-
-	if (hasUV)
-		memcpy(face->uv, rn->uv, sizeof(float) * 4 * 2);
+	face->orig= rn->orig;
 
 	return face;
 }
@@ -205,207 +192,90 @@ Face * makeface(float *v1, float *v2, float *v3, float *v4, RNode *rn, short has
 void anchorQuadface(RNode *rn, float *v1, float *v2, float *v3, float *v4, int flag)
 {
 	Face *face;
-	float uvs[8][2];
-
-	memcpy(uvs, rn->uv, sizeof(float) * 4 * 2);
-	HALFUV(uvs[4], rn->uv[0], rn->uv[1]);
-	HALFUV(uvs[5], rn->uv[1], rn->uv[2]);
-	HALFUV(uvs[6], rn->uv[2], rn->uv[3]);
-	HALFUV(uvs[7], rn->uv[3], rn->uv[0]);
 
 	switch(flag) {
 		case 1:
-			face = makeface(rn->v1, v1, rn->v4, NULL, rn, 0);
-			dofaceuv(face, uvs, 0, 4, 3, 0);
-
-			face = makeface(v1, rn->v3, rn->v4, NULL, rn, 0);
-			dofaceuv(face, uvs, 4, 2, 3, 0);
-			
-			face = makeface(v1, rn->v2, rn->v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 4, 1, 2, 0);
-
+			face = makeface(rn->v1, v1, rn->v4, NULL, rn);
+			face = makeface(v1, rn->v3, rn->v4, NULL, rn);
+			face = makeface(v1, rn->v2, rn->v3, NULL, rn);
 			break;
 		case 2:
-			face = makeface(rn->v2, v2, rn->v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 1, 5, 0, 0);
-
-			face = makeface(v2, rn->v4, rn->v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 5, 3, 0, 0);
-
-			face = makeface(v2, rn->v3, rn->v4, NULL, rn, 0);
-			dofaceuv(face, uvs, 5, 2, 3, 0);
-
+			face = makeface(rn->v2, v2, rn->v1, NULL, rn);
+			face = makeface(v2, rn->v4, rn->v1, NULL, rn);
+			face = makeface(v2, rn->v3, rn->v4, NULL, rn);
 			break;
 		case 4:
-			face = makeface(rn->v3, v3, rn->v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 2, 6, 1, 0);
-
-			face = makeface(v3, rn->v1, rn->v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 6, 0, 1, 0);
-
-			face = makeface(v3, rn->v4, rn->v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 6, 3, 0, 0);
-
+			face = makeface(rn->v3, v3, rn->v2, NULL, rn);
+			face = makeface(v3, rn->v1, rn->v2, NULL, rn);
+			face = makeface(v3, rn->v4, rn->v1, NULL, rn);
 			break;
 		case 8:
-			face = makeface(rn->v4, v4, rn->v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 3, 7, 2, 0);
-
-			face = makeface(v4, rn->v2, rn->v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 7, 1, 2, 0);
-
-			face = makeface(v4, rn->v1, rn->v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 7, 0, 1, 0);
-
+			face = makeface(rn->v4, v4, rn->v3, NULL, rn);
+			face = makeface(v4, rn->v2, rn->v3, NULL, rn);
+			face = makeface(v4, rn->v1, rn->v2, NULL, rn);
 			break;
-			
 		case 3:
-			face = makeface(rn->v1, v1, rn->v4, NULL, rn, 0);
-			dofaceuv(face, uvs, 0, 4, 3, 0);
-
-			face = makeface(v1, v2, rn->v4, NULL, rn, 0);
-			dofaceuv(face, uvs, 4, 5, 3, 0);
-
-			face = makeface(v1, rn->v2, v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 4, 1, 5, 0);
-
-			face = makeface(v2, rn->v3, rn->v4, NULL, rn, 0);
-			dofaceuv(face, uvs, 5, 2, 3, 0);
-
+			face = makeface(rn->v1, v1, rn->v4, NULL, rn);
+			face = makeface(v1, v2, rn->v4, NULL, rn);
+			face = makeface(v1, rn->v2, v2, NULL, rn);
+			face = makeface(v2, rn->v3, rn->v4, NULL, rn);
 			break;
 		case 6:
-			face = makeface(rn->v2, v2, rn->v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 1, 5, 0, 0);
-
-			face = makeface(v2, v3, rn->v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 5, 6, 0, 0);
-
-			face = makeface(v2, rn->v3, v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 5, 2, 6, 0);
-
-			face = makeface(v3, rn->v4, rn->v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 6, 3, 0, 0);
-
+			face = makeface(rn->v2, v2, rn->v1, NULL, rn);
+			face = makeface(v2, v3, rn->v1, NULL, rn);
+			face = makeface(v2, rn->v3, v3, NULL, rn);
+			face = makeface(v3, rn->v4, rn->v1, NULL, rn);
 			break;
 		case 12:
-			face = makeface(rn->v3, v3, rn->v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 2, 6, 1, 0);
-
-			face = makeface(v3, v4, rn->v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 6, 7, 1, 0);
-
-			face = makeface(v3, rn->v4, v4, NULL, rn, 0);
-			dofaceuv(face, uvs, 6, 3, 7, 0);
-
-			face = makeface(v4, rn->v1, rn->v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 7, 0, 1, 0);
-
+			face = makeface(rn->v3, v3, rn->v2, NULL, rn);
+			face = makeface(v3, v4, rn->v2, NULL, rn);
+			face = makeface(v3, rn->v4, v4, NULL, rn);
+			face = makeface(v4, rn->v1, rn->v2, NULL, rn);
 			break;
 		case 9:
-			face = makeface(rn->v4, v4, rn->v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 3, 7, 2, 0);
-
-			face = makeface(v4, v1, rn->v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 7, 4, 2, 0);
-
-			face = makeface(v4, rn->v1, v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 7, 0, 4, 0);
-
-			face = makeface(v1, rn->v2, rn->v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 4, 1, 2, 0);
-
+			face = makeface(rn->v4, v4, rn->v3, NULL, rn);
+			face = makeface(v4, v1, rn->v3, NULL, rn);
+			face = makeface(v4, rn->v1, v1, NULL, rn);
+			face = makeface(v1, rn->v2, rn->v3, NULL, rn);
 			break;
-			
 		case 5:
-			face = makeface(rn->v1, v1, v3, rn->v4, rn, 0);
-			dofaceuv(face, uvs, 0, 4, 6, 3);
-
-			face = makeface(v1, rn->v2, rn->v3, v3, rn, 0);
-			dofaceuv(face, uvs, 4, 1, 2, 6);
-
+			face = makeface(rn->v1, v1, v3, rn->v4, rn);
+			face = makeface(v1, rn->v2, rn->v3, v3, rn);
 			break;
 		case 10:
-			face = makeface(rn->v1, rn->v2, v2, v4, rn, 0);
-			dofaceuv(face, uvs, 0, 1, 5, 7);
-
-			face = makeface(v4, v2, rn->v3, rn->v4, rn, 0);
-			dofaceuv(face, uvs, 7, 5, 2, 3);
-
+			face = makeface(rn->v1, rn->v2, v2, v4, rn);
+			face = makeface(v4, v2, rn->v3, rn->v4, rn);
 			break;
-			
 		case 7:
-			face = makeface(rn->v1, v1, v3, rn->v4, rn, 0);
-			dofaceuv(face, uvs, 0, 4, 6, 3);
-
-			face = makeface(v1, v2, v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 4, 5, 6, 0);
-
-			face = makeface(v1, rn->v2, v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 4, 1, 5, 0);
-
-			face = makeface(v2, rn->v3, v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 5, 2, 6, 0);
-
+			face = makeface(rn->v1, v1, v3, rn->v4, rn);
+			face = makeface(v1, v2, v3, NULL, rn);
+			face = makeface(v1, rn->v2, v2, NULL, rn);
+			face = makeface(v2, rn->v3, v3, NULL, rn);
 			break;
 		case 14:
-			face = makeface(rn->v2, v2, v4, rn->v1, rn, 0);
-			dofaceuv(face, uvs, 1, 5, 7, 0);
-
-			face = makeface(v2, v3, v4, NULL, rn, 0);
-			dofaceuv(face, uvs, 5, 6, 7, 0);
-
-			face = makeface(v2, rn->v3, v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 5, 2, 6, 0);
-
-			face = makeface(v3, rn->v4, v4, NULL, rn, 0);
-			dofaceuv(face, uvs, 6, 3, 7, 0);
-
+			face = makeface(rn->v2, v2, v4, rn->v1, rn);
+			face = makeface(v2, v3, v4, NULL, rn);
+			face = makeface(v2, rn->v3, v3, NULL, rn);
+			face = makeface(v3, rn->v4, v4, NULL, rn);
 			break;
 		case 13:
-			face = makeface(rn->v3, v3, v1, rn->v2, rn, 0);
-			dofaceuv(face, uvs, 2, 6, 4, 1);
-
-			face = makeface(v3, v4, v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 6, 7, 4, 0);
-
-			face = makeface(v3, rn->v4, v4, NULL, rn, 0);
-			dofaceuv(face, uvs, 6, 3, 7, 0);
-
-			face = makeface(v4, rn->v1, v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 7, 0, 4, 0);
-
+			face = makeface(rn->v3, v3, v1, rn->v2, rn);
+			face = makeface(v3, v4, v1, NULL, rn);
+			face = makeface(v3, rn->v4, v4, NULL, rn);
+			face = makeface(v4, rn->v1, v1, NULL, rn);
 			break;
 		case 11:
-			face = makeface(rn->v4, v4, v2, rn->v3, rn, 0);
-			dofaceuv(face, uvs, 3, 7, 5, 2);
-
-			face = makeface(v4, v1, v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 7, 4, 5, 0);
-
-			face = makeface(v4, rn->v1, v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 7, 0, 4, 0);
-
-			face = makeface(v1, rn->v2, v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 4, 1, 5, 0);
-
+			face = makeface(rn->v4, v4, v2, rn->v3, rn);
+			face = makeface(v4, v1, v2, NULL, rn);
+			face = makeface(v4, rn->v1, v1, NULL, rn);
+			face = makeface(v1, rn->v2, v2, NULL, rn);
 			break;
-		
 		case 15:
-			face = makeface(v1, v2, v3, v4, rn, 0);
-			dofaceuv(face, uvs, 4, 5, 6, 7);
-
-			face = makeface(v1, rn->v2, v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 4, 1, 5, 0);
-
-			face = makeface(v2, rn->v3, v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 5, 2, 6, 0);
-
-			face = makeface(v3, rn->v4, v4, NULL, rn, 0);
-			dofaceuv(face, uvs, 6, 3, 7, 0);
-
-			face = makeface(v4, rn->v1, v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 7, 0, 4, 0);
-
+			face = makeface(v1, v2, v3, v4, rn);
+			face = makeface(v1, rn->v2, v2, NULL, rn);
+			face = makeface(v2, rn->v3, v3, NULL, rn);
+			face = makeface(v3, rn->v4, v4, NULL, rn);
+			face = makeface(v4, rn->v1, v1, NULL, rn);
 			break;
 	}
 }
@@ -413,86 +283,41 @@ void anchorQuadface(RNode *rn, float *v1, float *v2, float *v3, float *v4, int f
 void anchorTriface(RNode *rn, float *v1, float *v2, float *v3, int flag)
 {
 	Face *face;
-	float uvs[8][2];
-
-	memcpy(uvs, rn->uv, sizeof(float) * 4 * 2);
-	HALFUV(uvs[4], rn->uv[0], rn->uv[1]);
-	HALFUV(uvs[5], rn->uv[1], rn->uv[2]);
-	HALFUV(uvs[6], rn->uv[2], rn->uv[0]);
 
 	switch(flag) {
 		case 1:
-			face = makeface(rn->v1, v1, rn->v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 0, 4, 2, 0);
-
-			face = makeface(v1, rn->v2, rn->v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 4, 1, 2, 0);
-
+			face = makeface(rn->v1, v1, rn->v3, NULL, rn);
+			face = makeface(v1, rn->v2, rn->v3, NULL, rn);
 			break;
 		case 2:
-			face = makeface(rn->v2, v2, rn->v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 1, 5, 0, 0);
-
-			face = makeface(v2, rn->v3, rn->v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 5, 2, 0, 0);
-
+			face = makeface(rn->v2, v2, rn->v1, NULL, rn);
+			face = makeface(v2, rn->v3, rn->v1, NULL, rn);
 			break;
 		case 4:
-			face = makeface(rn->v3, v3, rn->v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 2, 6, 1, 0);
-
-			face = makeface(v3, rn->v1, rn->v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 6, 0, 1, 0);
-
+			face = makeface(rn->v3, v3, rn->v2, NULL, rn);
+			face = makeface(v3, rn->v1, rn->v2, NULL, rn);
 			break;
-			
 		case 3:
-			face = makeface(rn->v1, v2, rn->v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 0, 5, 2, 0);
-
-			face = makeface(rn->v1, v1, v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 0, 4, 5, 0);
-
-			face = makeface(v1, rn->v2, v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 4, 1, 5, 0);
-
+			face = makeface(rn->v1, v2, rn->v3, NULL, rn);
+			face = makeface(rn->v1, v1, v2, NULL, rn);
+			face = makeface(v1, rn->v2, v2, NULL, rn);
 			break;
 		case 6:
-			face = makeface(rn->v2, v3, rn->v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 1, 6, 0, 0);
-
-			face = makeface(rn->v2, v2, v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 1, 5, 6, 0);
-
-			face = makeface(v2, rn->v3, v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 5, 2, 6, 0);
-
+			face = makeface(rn->v2, v3, rn->v1, NULL, rn);
+			face = makeface(rn->v2, v2, v3, NULL, rn);
+			face = makeface(v2, rn->v3, v3, NULL, rn);
 			break;
 		case 5:
-			face = makeface(rn->v3, v1, rn->v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 2, 4, 1, 0);
-
-			face = makeface(rn->v3, v3, v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 2, 6, 4, 0);
-
-			face = makeface(v3, rn->v1, v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 6, 0, 4, 0);
-
+			face = makeface(rn->v3, v1, rn->v2, NULL, rn);
+			face = makeface(rn->v3, v3, v1, NULL, rn);
+			face = makeface(v3, rn->v1, v1, NULL, rn);
 			break;
 			
 		case 7:
-			face = makeface(v1, v2, v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 4, 5, 6, 0);
-
-			face = makeface(rn->v1, v1, v3, NULL, rn, 0);
-			dofaceuv(face, uvs, 0, 4, 6, 0);
-
-			face = makeface(rn->v2, v2, v1, NULL, rn, 0);
-			dofaceuv(face, uvs, 1, 5, 4, 0);
-
-			face = makeface(rn->v3, v3, v2, NULL, rn, 0);
-			dofaceuv(face, uvs, 2, 6, 5, 0);
-
+			face = makeface(v1, v2, v3, NULL, rn);
+			face = makeface(rn->v1, v1, v3, NULL, rn);
+			face = makeface(rn->v2, v2, v1, NULL, rn);
+			face = makeface(rn->v3, v3, v2, NULL, rn);
 			break;
 	}	
 }
@@ -602,7 +427,7 @@ void make_face_tab()	/* takes care of anchoring */
 		/* using flag and vertexpointers now Faces can be made */
 		
 		if(flag==0) {
-			makeface(rn->v1, rn->v2, rn->v3, rn->v4, rn, 1);
+			makeface(rn->v1, rn->v2, rn->v3, rn->v4, rn);
 		}
 		else if(rn->type==4) anchorQuadface(rn, v1, v2, v3, v4, flag);
 		else anchorTriface(rn, v1, v2, v3, flag);
@@ -859,7 +684,22 @@ void removeEqualNodes(short limit)
 	waitcursor(0);
 }
 
-#define BLSIZE	32000
+static void rad_interp_uv(float *v1, float *v2, float *v3, float *v4, float *co, TFace *tf, TFace *outtf, int j)
+{ 
+	float *uv, w[4];
+
+	uv = (float*)outtf->uv[j];
+
+	InterpWeightsQ3Dfl(v1, v2, v3, v4, co, w);
+
+	uv[0]= w[0]*tf->uv[0][0] + w[1]*tf->uv[1][0] + w[2]*tf->uv[2][0];
+	uv[1]= w[0]*tf->uv[0][1] + w[1]*tf->uv[1][1] + w[2]*tf->uv[2][1];
+
+	if (v4) {
+		uv[0] += w[3]*tf->uv[3][0];
+		uv[1] += w[3]*tf->uv[3][1];
+	}
+} 
 
 void rad_addmesh(void)
 {
@@ -867,174 +707,161 @@ void rad_addmesh(void)
 	Object *ob;
 	Mesh *me;
 	MVert *mvert;
-	MFace *mface;
-	TFace *tface;
+	MFace *mf;
+	TFace *tf;
 	Material *ma=0;
-	unsigned int *md, *coldata, *cd;
-	float **fpp, **poindata;
+	float **vco, **vertexco;
 	float cent[3], min[3], max[3];
-	int a, vcount, vlnr, startf, endf;
+	int a, nvert, i;
 	
-	if(RG.totface==0) return;
+	if(RG.totface==0)
+		return;
 	
-	if(RG.totmat==MAXMAT) notice("warning: cannot assign more than 16 materials to 1 mesh");
+	if(RG.totmat==MAXMAT)
+		notice("warning: cannot assign more than 16 materials to 1 mesh");
 	
-	/* make sure there's alpha in the color, to distinguish */
-	for(a=0; a<RG.totface; a++) {
+	/* create the mesh */
+	ob= add_object(OB_MESH);
+	
+	me= ob->data;
+	me->totvert= 0;
+	me->totface= RG.totface;
+	me->flag= 0;
+	me->mface= MEM_callocN(me->totface*sizeof(MFace), "mface");
+	me->tface= MEM_callocN(me->totface*sizeof(TFace), "tface");
+
+	/* create materials and set vertex color flag */
+	for(a=0; a<RG.totmat; a++) {
+		assign_material(ob, RG.matar[a], a+1);
+		ma= RG.matar[a];
+		if(ma) ma->mode |= MA_VERTEXCOL;
+	}
+
+	/* load Face vertex colors into TFace, with alpha added */
+	tf= me->tface;
+	for(a=0; a<me->totface; a++, tf++) {
 		RAD_NEXTFACE(a);
-		*((unsigned int *)face->v1+3) |= 0x1000000; 
-		*((unsigned int *)face->v2+3) |= 0x1000000;
-		*((unsigned int *)face->v3+3) |= 0x1000000;
-		if(face->v4) {
-			*((unsigned int *)face->v4+3) |= 0x1000000;
+
+        if (RG.tface)
+			*tf= RG.tface[face->orig];
+		else
+			default_tface(tf);
+
+		tf->col[0]= *((unsigned int*)face->v1+3) | 0x1000000;
+		tf->col[1]= *((unsigned int*)face->v2+3) | 0x1000000;
+		tf->col[2]= *((unsigned int*)face->v3+3) | 0x1000000;
+		if(face->v4)
+			tf->col[3]= *((unsigned int*)face->v4+3) | 0x1000000;
+	}
+
+	/* clear Face vertex color memory for vertex index assignment */
+	for(a=0; a<me->totface; a++) {
+		RAD_NEXTFACE(a);
+
+		*((unsigned int*)face->v1+3)= ~0;
+		*((unsigned int*)face->v2+3)= ~0;
+		*((unsigned int*)face->v3+3)= ~0;
+		if(face->v4)
+			*((unsigned int*)face->v4+3)= ~0;
+	}
+
+	/* create faces and create array with pointers to vertex coords */
+	vco= vertexco= MEM_mallocN(sizeof(float *)*4*RG.totface, "radiovertexco");
+	mf= me->mface;
+
+	for(a=0; a<me->totface; a++, mf++) {
+		RAD_NEXTFACE(a);
+		nvert= (face->v4)? 4: 3;
+
+		for(i=0; i<nvert; i++) {
+			unsigned int *col= ((unsigned int**)&face->v1)[i] + 3;
+
+			if (*col == ~0) {
+				/* vertex has no index yet, so assign one */
+				*col= me->totvert;
+				*vco= ((float**)&face->v1)[i];
+				me->totvert++;
+				vco++;
+			}
+
+			((unsigned int*)&mf->v1)[i] = *col;
 		}
 	}
-	
-	/* we write in blocks of BLSIZE vertices max */
-	coldata= MEM_mallocN(4*BLSIZE, "writefaces");
-	poindata= MEM_mallocN(sizeof(void *)*BLSIZE, "writefaces1");
-	
-	vlnr= 0; 
-	endf= 0;
-	while(endf<RG.totface) {
-		
-		cd= coldata;
-		fpp= poindata;
-		startf= endf;
-		vcount= 0;
-	
-		face= RG.facebase[(startf-1)>>10]+((startf-1) & 1023);
-		for(vlnr=startf; vlnr<RG.totface; vlnr++) {
-			RAD_NEXTFACE(vlnr);
 
-			if( *((unsigned int *)face->v1+3) & 0x1000000 ) { /* is a color */
-				*cd= *((unsigned int *)face->v1+3);
-				*((unsigned int *)face->v1+3) = vcount;
-				*fpp= face->v1;
-				fpp++; vcount++; cd++;
-			}
-			if( *((unsigned int *)face->v2+3) & 0x1000000 ) {
-				*cd= *((unsigned int *)face->v2+3);
-				*((unsigned int *)face->v2+3) = vcount;
-				*fpp= face->v2;
-				fpp++; vcount++; cd++;
-			}
-			if( *((unsigned int *)face->v3+3) & 0x1000000 ) {
-				*cd= *((unsigned int *)face->v3+3);
-				*((unsigned int *)face->v3+3) = vcount;
-				*fpp= face->v3;
-				fpp++; vcount++; cd++;
-			}
-			if(face->v4 && ( *((unsigned int *)face->v4+3) & 0x1000000 ) ) {
-				*cd= *((unsigned int *)face->v4+3);
-				*((unsigned int *)face->v4+3) = vcount;
-				*fpp= face->v4;
-				fpp++; vcount++; cd++;
-			}
-
-			if(vcount>=BLSIZE-4) {
-				vlnr++;
-				break;
-			}
-		}
-
-		/* we now make the Mesh */
-		endf= vlnr;
-
-		ob= add_object(OB_MESH);
-		
-		me= ob->data;
-		me->totvert= vcount;
-		me->totface= endf-startf;
-		me->flag= 0;
-		me->mvert= MEM_callocN(me->totvert*sizeof(MVert), "mverts");
-		//me->mcol= MEM_callocN(4*me->totface*sizeof(MCol), "mverts");
-		me->mface= MEM_callocN(me->totface*sizeof(MFace), "mface");
-		me->tface= MEM_callocN(me->totface*sizeof(TFace), "tface");
-
-		/* materials, and set VCOL flag */
-		for(a=0; a<RG.totmat; a++) {
-			assign_material(ob, RG.matar[a], a+1);
-			ma= RG.matar[a];
-			if(ma) ma->mode |= MA_VERTEXCOL;
-		}
-
-		/* verts */
-		mvert= me->mvert;
-		fpp= poindata;
-		for(a=0; a<me->totvert; a++, mvert++, fpp++) {
-			VECCOPY(mvert->co, *fpp);
-		}
-
-		/* faces, mcol and uv */
-		mface= me->mface;
-		tface = me->tface;
-		md= (unsigned int *)me->mcol;
-
-		face= RG.facebase[(startf-1)>>10]+((startf-1) & 1023);
-		for(a=startf; a<endf; a++, md+=4, mface++, tface++) {
-			RAD_NEXTFACE(a);
-			mface->v1= *((unsigned int *)face->v1+3);
-			mface->v2= *((unsigned int *)face->v2+3);
-			mface->v3= *((unsigned int *)face->v3+3);
-			if(face->v4) mface->v4= *((unsigned int *)face->v4+3);
-			test_index_face(mface, NULL, NULL, face->v4 ? 4 : 3);
-			mface->mat_nr= face->matindex;
-
-			if (face->tface) {
-				memcpy(tface, face->tface, sizeof(TFace));
-			}
-
-			memcpy(tface->uv, face->uv, sizeof(float) * 4 * 2);
-			tface->col[0]= coldata[mface->v1];
-			tface->col[1]= coldata[mface->v2];
-			tface->col[2]= coldata[mface->v3];
-			tface->col[3]= coldata[mface->v4];
-		}
-		
-		/* boundbox and centrenew */
-		
-		INIT_MINMAX(min, max);
-
-		mvert= me->mvert;
-		for(a=0; a<me->totvert; a++, mvert++) {
-			DO_MINMAX(mvert->co, min, max);
-		}
-
-		cent[0]= (min[0]+max[0])/2.0f;
-		cent[1]= (min[1]+max[1])/2.0f;
-		cent[2]= (min[2]+max[2])/2.0f;
-
-		mvert= me->mvert;
-		for(a=0; a<me->totvert; a++, mvert++) {
-			VecSubf(mvert->co, mvert->co, cent);
-		}
-		
-		VECCOPY(ob->loc, cent);
-		
-		/* restore colors */
-		face= RG.facebase[(startf-1)>>10]+((startf-1) & 1023);
-		for(a=startf; a<endf; a++) {
-			RAD_NEXTFACE(a);
-
-			cd= ((unsigned int *)face->v1+3);
-			if( *cd < 0x1000000 ) *cd= coldata[*cd];
-			cd= ((unsigned int *)face->v2+3);
-			if( *cd < 0x1000000 ) *cd= coldata[*cd];
-			cd= ((unsigned int *)face->v3+3);
-			if( *cd < 0x1000000 ) *cd= coldata[*cd];
-			if(face->v4) {
-				cd= ((unsigned int *)face->v4+3);
-				if( *cd < 0x1000000 ) *cd= coldata[*cd];
-			}
-		}
-		/* by default, meshes need edge list */
-		make_edges(me, 0);	
+	/* create vertices */
+	mvert= me->mvert= MEM_callocN(me->totvert*sizeof(MVert), "mverts");
+	for(vco=vertexco, a=0; a<me->totvert; a++, mvert++, vco++) {
+		VECCOPY(mvert->co, *vco);
 	}
-		
-	MEM_freeN(coldata);
-	MEM_freeN(poindata);
+
+	MEM_freeN(vertexco);
 	
+	/* assign face data */
+	mf= me->mface;
+	tf= me->tface;
+
+	for(a=0; a<me->totface; a++, mf++, tf++) {
+		TFace *origtf;
+		RNode *orignode;
+		float *subco;
+
+		RAD_NEXTFACE(a);
+		nvert= (face->v4)? 4: 3;
+
+		/* copy */
+		mf->mat_nr= face->matindex;
+
+		/* UV interpolation */
+		if (RG.tface) {
+			origtf= &RG.tface[face->orig];
+
+			orignode= RG.mfdatanodes[face->orig];
+
+			for(i=0; i<nvert; i++) {
+				subco= (me->mvert + ((unsigned int*)&mf->v1)[i])->co;
+
+				rad_interp_uv(orignode->v1, orignode->v2, orignode->v3,
+							  orignode->v4, subco, origtf, tf, i);
+			}
+		}
+	}
+
+	/* restore vertex colors, and test_index */
+	mf= me->mface;
+	tf= me->tface;
+	for(a=0; a<me->totface; a++, mf++, tf++) {
+		RAD_NEXTFACE(a);
+
+		*((unsigned int*)face->v1+3)= tf->col[0];
+		*((unsigned int*)face->v2+3)= tf->col[1];
+		*((unsigned int*)face->v3+3)= tf->col[2];
+		if(face->v4)
+			*((unsigned int*)face->v4+3)= tf->col[3];
+
+		test_index_face(mf, NULL, tf, face->v4? 4: 3);
+	}
+
+	/* boundbox and centre new */
+	INIT_MINMAX(min, max);
+
+	mvert= me->mvert;
+	for(a=0; a<me->totvert; a++, mvert++) {
+		DO_MINMAX(mvert->co, min, max);
+	}
+
+	cent[0]= (min[0]+max[0])/2.0f;
+	cent[1]= (min[1]+max[1])/2.0f;
+	cent[2]= (min[2]+max[2])/2.0f;
+
+	mvert= me->mvert;
+	for(a=0; a<me->totvert; a++, mvert++) {
+		VecSubf(mvert->co, mvert->co, cent);
+	}
+	
+	VECCOPY(ob->loc, cent);
+
+	/* create edges */
+	make_edges(me, 0);
 }
 
 void rad_replacemesh(void)

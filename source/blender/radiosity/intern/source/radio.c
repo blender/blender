@@ -143,6 +143,15 @@ void freeAllRad()
 		MEM_freeN(RG.facebase);
 		RG.facebase= 0;
 	}
+
+	if(RG.mfdatanodes) {
+		MEM_freeN(RG.mfdatanodes);
+		RG.mfdatanodes= NULL;
+		if(RG.tface) {
+			MEM_freeN(RG.tface);
+			RG.tface= NULL;
+		}
+	}
 	RG.totelem= RG.totpatch= RG.totvert= RG.totface= RG.totlamp= RG.totmat= 0;	
 }
 
