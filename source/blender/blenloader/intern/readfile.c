@@ -6240,21 +6240,6 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 				expand_doit(fd, mainvar, data->tar);
 				break;
 			}
-		case CONSTRAINT_TYPE_LOCLIMIT:
-			{
-				bLocLimitConstraint *data = (bLocLimitConstraint*)curcon->data;
-				break;
-			}
-		case CONSTRAINT_TYPE_ROTLIMIT:
-			{
-				bRotLimitConstraint *data = (bRotLimitConstraint*)curcon->data;
-				break;
-			}
-		case CONSTRAINT_TYPE_SIZELIMIT:
-			{
-				bSizeLimitConstraint *data = (bSizeLimitConstraint*)curcon->data;
-				break;
-			}
 		case CONSTRAINT_TYPE_NULL:
 			break;
 		default:

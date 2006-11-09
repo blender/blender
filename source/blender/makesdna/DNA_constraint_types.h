@@ -229,7 +229,7 @@ typedef struct bSizeLimitConstraint{
 /* bConstraintChannel.flag */
 #define CONSTRAINT_CHANNEL_SELECT	0x01
 
-/* bRotateLikeConstraint.flag */
+/* bRotateLikeConstraint.flag */
 #define ROTLIKE_X		0x01
 #define ROTLIKE_Y		0x02
 #define ROTLIKE_Z		0x04
