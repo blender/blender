@@ -3502,7 +3502,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->applyModifierEM = edgesplitModifier_applyModifierEM;
 
 		mti = INIT_TYPE(Displace);
-		mti->type = eModifierTypeType_OnlyDeform;
+		mti->type = eModifierTypeFlag_AcceptsMesh|eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_SupportsEditmode;
 		mti->initData = displaceModifier_initData;
 		mti->copyData = displaceModifier_copyData;
