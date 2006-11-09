@@ -47,6 +47,10 @@ struct SeqEffectHandle {
 	void (*init)(struct Sequence *seq);
 	void (*init_plugin)(struct Sequence * seq, const char * fname);
 
+	/* number of input strips needed 
+	   (called directly after construction) */
+	int (*num_inputs)();
+
         /* load is called first time after readblenfile in
            get_sequence_effect automatically */
 	void (*load)(struct Sequence *seq);
@@ -57,7 +61,10 @@ struct SeqEffectHandle {
 	/* destruct */
 	void (*free)(struct Sequence *seq);
 
-	/* returns: 0: no early out, 1: out = ibuf1, 2: out = ibuf2 */
+	/* returns: -1: no input needed,
+	             0: no early out, 
+		     1: out = ibuf1, 
+		     2: out = ibuf2 */
 	int (*early_out)(struct Sequence *seq,
 			 float facf0, float facf1); 
 
@@ -78,6 +85,7 @@ struct SeqEffectHandle {
 };
 
 struct SeqEffectHandle get_sequence_effect(struct Sequence * seq);
+int get_sequence_effect_num_inputs(int seq_type);
 
 #endif
 

@@ -194,6 +194,12 @@ void boundbox_seq(void)
 
 }
 
+int sequence_is_free_transformable(Sequence * seq)
+{
+	return seq->type < SEQ_EFFECT
+		|| (get_sequence_effect_num_inputs(seq->type) == 0);
+}
+
 Sequence *find_nearest_seq(int *hand)
 {
 	Sequence *seq;
@@ -228,7 +234,7 @@ Sequence *find_nearest_seq(int *hand)
 			if( ((seq->startdisp < seq->enddisp) && (seq->startdisp<=x && seq->enddisp>=x)) ||
 				((seq->startdisp > seq->enddisp) && (seq->startdisp>=x && seq->enddisp<=x)) )
 			{
-				if(seq->type < SEQ_EFFECT) {
+				if(sequence_is_free_transformable(seq)) {
 					if( handsize+seq->startdisp >=x )
 						*hand= 1;
 					else if( -handsize+seq->enddisp <=x )
@@ -1039,6 +1045,7 @@ static int event_to_efftype(int event)
 	if(event==13) return SEQ_WIPE;
 	if(event==14) return SEQ_GLOW;
 	if(event==15) return SEQ_TRANSFORM;
+	if(event==16) return SEQ_COLOR;
 	return 0;
 }
 
@@ -1047,6 +1054,11 @@ static int can_insert_seq_between(Sequence *seq1,
 {
        Editing *ed= G.scene->ed;
        Sequence *seq;
+
+       if (seq1 == 0 || seq2 == 0 || seq3 == 0) {
+	       return 0;
+       }
+
        /* see if inserting inbetween would create a cycle */
        if(seq_is_predecessor(seq1, seq2) || seq_is_predecessor(seq2, seq1) ||
           seq_is_predecessor(seq2, seq3) || seq_is_predecessor(seq3, seq2) ||
@@ -1101,17 +1113,18 @@ static int seq_effect_find_selected(Editing *ed, Sequence *activeseq, int type, 
 	}
 	
 
-	if(type==SEQ_PLUGIN || type==SEQ_WIPE || 
-	   type==SEQ_GLOW || type==SEQ_TRANSFORM) {
-	  /* plugin: minimal 1 select */
+	switch(get_sequence_effect_num_inputs(type)) {
+	case 0:
+		seq1 = seq2 = seq3 = 0;
+		break;
+	case 1:
 		if(seq2==0)  {
 			error("Need at least one selected sequence strip");
 			return 0;
 		}
 		if(seq1==0) seq1= seq2;
 		if(seq3==0) seq3= seq2;
-	}
-	else {
+	case 2:
 		if(seq1==0 || seq2==0) {
 			error("Need 2 selected sequence strips");
 			return 0;
@@ -1203,6 +1216,13 @@ static int add_seq_effect(int type, char *str)
 	newseq->seq3= seq3;
 
 	sh.init(newseq);
+
+	if (!seq1) {
+		newseq->len= 1;
+		newseq->startstill= 25;
+		newseq->endstill= 24;
+	}
+
 	calc_sequence(newseq);
 
 	newseq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
@@ -1212,7 +1232,7 @@ static int add_seq_effect(int type, char *str)
 		strip->stripdata= MEM_callocN(newseq->len*sizeof(StripElem), "stripelem");
 
 	/* initialize plugin */
-	if(type==10) {
+	if(newseq->type == SEQ_PLUGIN) {
 		sh.init_plugin(newseq, str);
 
 		if(newseq->plugin==0) {
@@ -1224,8 +1244,11 @@ static int add_seq_effect(int type, char *str)
 	}
 
 	/* set find a free spot to but the strip */
-	newseq->machine= MAX3(newseq->seq1->machine, newseq->seq2->machine,
-		newseq->seq3->machine);
+	if (newseq->seq1) {
+		newseq->machine= MAX3(newseq->seq1->machine, 
+				      newseq->seq2->machine,
+				      newseq->seq3->machine);
+	}
 	if(test_overlap_seq(newseq)) shuffle_seq(newseq);
 
 	/* set inbetween relation */
@@ -1235,8 +1258,11 @@ static int add_seq_effect(int type, char *str)
 	update_changed_seq_and_deps(newseq, 1, 1);
 
 	/* push undo and go into grab mode */
-	if(type == 10) BIF_undo_push("Add plugin strip Sequencer");
-	else BIF_undo_push("Add effect strip Sequencer");
+	if(newseq->type == SEQ_PLUGIN) {
+		BIF_undo_push("Add plugin strip Sequencer");
+	} else {
+		BIF_undo_push("Add effect strip Sequencer");
+	}
 
 	transform_seq('g', 0);
 
@@ -1316,6 +1342,9 @@ void add_sequence(int type)
 		case SEQ_TRANSFORM:
 			event = 15;
 			break;
+		case SEQ_COLOR:
+			event = 16;
+			break;
 		default:
 			event = 0;
 			break;
@@ -1344,7 +1373,8 @@ void add_sequence(int type)
 			       "|Alpha Over Drop%x9"
 			       "|Wipe%x13"
 			       "|Glow%x14"
-			       "|Transforms%x15");
+			       "|Transforms%x15"
+			       "|Color Generator%x16");
 	}
 
 	if(event<1) return;
@@ -1423,8 +1453,9 @@ void add_sequence(int type)
 	case 13:
 	case 14:
 	case 15:
-
-		if(get_last_seq()==0)
+	case 16:
+		if(get_last_seq()==0 && 
+		   get_sequence_effect_num_inputs( event_to_efftype(event))> 0)
 			error("Need at least one active sequence strip");
 		else if(event==10)
 			activate_fileselect(FILE_SPECIAL, "Select Plugin", U.plugseqdir, load_plugin_seq);
@@ -1467,7 +1498,8 @@ void change_sequence(void)
 				"|Alpha Over Drop%x9"
 				"|Wipe%x13"
 				"|Glow%x14"
-				"|Transform%x15");
+				"|Transform%x15"
+				"|Color Generator%x16");
 		if(event > 0) {
 			if(event==1) {
 				SWAP(Sequence *,last_seq->seq1,last_seq->seq2);
@@ -1486,13 +1518,22 @@ void change_sequence(void)
 				/* free previous effect and init new effect */
 				struct SeqEffectHandle sh;
 
-				sh = get_sequence_effect(last_seq);
-				sh.free(last_seq);
-
-				last_seq->type = event_to_efftype(event);
-
-				sh = get_sequence_effect(last_seq);
-				sh.init(last_seq);
+				if (get_sequence_effect_num_inputs(
+					    last_seq->type)
+				    < get_sequence_effect_num_inputs(
+					    event_to_efftype(event))) {
+					error("New effect needs more "
+					      "input strips!");
+				} else {
+					sh = get_sequence_effect(last_seq);
+					sh.free(last_seq);
+					
+					last_seq->type 
+						= event_to_efftype(event);
+					
+					sh = get_sequence_effect(last_seq);
+					sh.init(last_seq);
+				}
 			}
 
 			update_changed_seq_and_deps(last_seq, 0, 1);
@@ -1783,33 +1824,30 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
 			}
 			else {
-				if(seq->seq1->newseq) {
+				seqn= MEM_dupallocN(seq);
+				seq->newseq= seqn;
+				BLI_addtail(new, seqn);
 
-					seqn= MEM_dupallocN(seq);
-					seq->newseq= seqn;
-					BLI_addtail(new, seqn);
+				if(seq->seq1 && seq->seq1->newseq) seqn->seq1= seq->seq1->newseq;
+				if(seq->seq2 && seq->seq2->newseq) seqn->seq2= seq->seq2->newseq;
+				if(seq->seq3 && seq->seq3->newseq) seqn->seq3= seq->seq3->newseq;
 
-					seqn->seq1= seq->seq1->newseq;
-					if(seq->seq2 && seq->seq2->newseq) seqn->seq2= seq->seq2->newseq;
-					if(seq->seq3 && seq->seq3->newseq) seqn->seq3= seq->seq3->newseq;
+				if(seqn->ipo) seqn->ipo->id.us++;
 
-					if(seqn->ipo) seqn->ipo->id.us++;
-
-					if (seq->type & SEQ_EFFECT) {
-						struct SeqEffectHandle sh;
-						sh = get_sequence_effect(seq);
-						if(sh.copy)
-							sh.copy(seq, seqn);
-					}
-
-					seqn->strip= MEM_dupallocN(seq->strip);
-
-					if(seq->len>0) seq->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-
-					seq->flag &= SEQ_DESEL;
-
-					seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
+				if (seq->type & SEQ_EFFECT) {
+					struct SeqEffectHandle sh;
+					sh = get_sequence_effect(seq);
+					if(sh.copy)
+						sh.copy(seq, seqn);
 				}
+
+				seqn->strip= MEM_dupallocN(seq->strip);
+
+				if(seq->len>0) seq->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+
+				seq->flag &= SEQ_DESEL;
+				
+				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
 			}
 
 		}
@@ -2274,7 +2312,7 @@ void transform_seq(int mode, int context)
 							}
 						}
 						if( (seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0 ) {
-							if(seq->type<SEQ_EFFECT) seq->start= ts->start+ ix;
+							if(sequence_is_free_transformable(seq)) seq->start= ts->start+ ix;
 
 							if(seq->depth==0) seq->machine= ts->machine+ iy;
 
@@ -2306,9 +2344,9 @@ void transform_seq(int mode, int context)
 					}
 				}
 				else if(seq->type & SEQ_EFFECT) {
-					if(seq->seq1->flag & SELECT) calc_sequence(seq);
-					else if(seq->seq2->flag & SELECT) calc_sequence(seq);
-					else if(seq->seq3->flag & SELECT) calc_sequence(seq);
+					if(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(seq);
+					else if(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
+					else if(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
 				}
 			}
 			END_SEQ;
@@ -2361,9 +2399,9 @@ void transform_seq(int mode, int context)
 
 				ts++;
 			} else if(seq->type & SEQ_EFFECT) {
-				if(seq->seq1->flag & SELECT) calc_sequence(seq);
-				else if(seq->seq2->flag & SELECT) calc_sequence(seq);
-				else if(seq->seq3->flag & SELECT) calc_sequence(seq);
+				if(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(seq);
+				else if(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
+				else if(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
 			}
 
 		}
@@ -2551,7 +2589,7 @@ void seq_snap(short event)
 	/* also check metas */
 	WHILE_SEQ(ed->seqbasep) {
 		if(seq->flag & SELECT) {
-			if(seq->type<SEQ_EFFECT) seq->start= CFRA-seq->startofs+seq->startstill;
+			if(sequence_is_free_transformable(seq)) seq->start= CFRA-seq->startofs+seq->startstill;
 			calc_sequence(seq);
 		}
 	}

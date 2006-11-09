@@ -199,6 +199,14 @@ static void init_plugin(Sequence * seq, const char * fname)
 	seq->plugin= (PluginSeq *)add_plugin_seq(fname, seq->name+2);
 }
 
+/* 
+ * FIXME: should query plugin! Could be generator, that needs zero inputs...
+ */
+static int num_inputs_plugin()
+{
+	return 1;
+}
+
 static void load_plugin(Sequence * seq)
 {
 	if (seq) {
@@ -1756,6 +1764,11 @@ static void init_wipe_effect(Sequence *seq)
 	seq->effectdata = MEM_callocN(sizeof(struct WipeVars), "wipevars");
 }
 
+static int num_inputs_wipe()
+{
+	return 1;
+}
+
 static void free_wipe_effect(Sequence *seq)
 {
 	if(seq->effectdata)MEM_freeN(seq->effectdata);
@@ -1891,7 +1904,7 @@ static void do_wipe_effect(Sequence * seq,int cfra,
 	}
 }
 /* **********************************************************************
-   transform
+   TRANSFORM
    ********************************************************************** */
 static void init_transform_effect(Sequence *seq)
 {
@@ -1914,6 +1927,11 @@ static void init_transform_effect(Sequence *seq)
 	scale->rotIni=0;
 	scale->rotFin=0;
 	
+}
+
+static int num_inputs_transform()
+{
+	return 1;
 }
 
 static void free_transform_effect(Sequence *seq)
@@ -2632,6 +2650,11 @@ static void init_glow_effect(Sequence *seq)
 	glow->bNoComp = 0;
 }
 
+static int num_inputs_glow()
+{
+	return 1;
+}
+
 static void free_glow_effect(Sequence *seq)
 {
 	if(seq->effectdata)MEM_freeN(seq->effectdata);
@@ -2691,6 +2714,78 @@ static void do_glow_effect(Sequence * seq,int cfra,
 }
 
 /* **********************************************************************
+   SOLID COLOR
+   ********************************************************************** */
+
+static void init_solid_color(Sequence *seq)
+{
+	SolidColorVars *cv;
+	
+	if(seq->effectdata)MEM_freeN(seq->effectdata);
+	seq->effectdata = MEM_callocN(sizeof(struct SolidColorVars), "solidcolor");
+	
+	cv = (SolidColorVars *)seq->effectdata;
+	cv->col[0] = cv->col[1] = cv->col[2] = 0.5;
+}
+
+static int num_inputs_color()
+{
+	return 0;
+}
+
+static void free_solid_color(Sequence *seq)
+{
+	if(seq->effectdata)MEM_freeN(seq->effectdata);
+	seq->effectdata = 0;
+}
+
+static void copy_solid_color(Sequence *dst, Sequence *src)
+{
+	dst->effectdata = MEM_dupallocN(src->effectdata);
+}
+
+static int early_out_color(struct Sequence *seq,
+			   float facf0, float facf1)
+{
+	return -1;
+}
+
+static void do_solid_color(Sequence * seq,int cfra,
+			   float facf0, float facf1, int x, int y, 
+			   struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+			   struct ImBuf *ibuf3, struct ImBuf *out)
+{
+	SolidColorVars *cv = (SolidColorVars *)seq->effectdata;
+
+	unsigned char *rect;
+	float *rect_float;
+
+	if (out->rect) {
+		rect = (unsigned char *)out->rect;
+		
+		for(y=0; y<out->y; y++) {	
+			for(x=0; x<out->x; x++, rect+=4) {
+				rect[0]= (char)(cv->col[0]*255);
+				rect[1]= (char)(cv->col[1]*255);
+				rect[2]= (char)(cv->col[2]*255);
+				rect[3]= 255;
+			}	
+		}
+	} else if (out->rect_float) {
+		rect_float = out->rect_float;
+		
+		for(y=0; y<out->y; y++) {	
+			for(x=0; x<out->x; x++, rect_float+=4) {
+				rect_float[0]= cv->col[0];
+				rect_float[1]= cv->col[1];
+				rect_float[2]= cv->col[2];
+				rect_float[3]= 1.0;
+			}
+		}
+	}
+}
+
+/* **********************************************************************
    sequence effect factory
    ********************************************************************** */
 
@@ -2713,6 +2808,11 @@ static void init_plugin_noop(struct Sequence *seq, const char * fname)
 static void free_noop(struct Sequence *seq)
 {
 
+}
+
+static int num_inputs_default()
+{
+	return 2;
 }
 
 static int early_out_noop(struct Sequence *seq,
@@ -2769,13 +2869,14 @@ static void do_overdrop_effect(struct Sequence * seq, int cfra,
 			    ibuf1, ibuf2, ibuf3, out);
 }
 
-struct SeqEffectHandle get_sequence_effect(Sequence * seq)
+static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 {
 	struct SeqEffectHandle rval;
-	int sequence_type = seq->type;
+	int sequence_type = seq_type;
 
 	rval.init = init_noop;
 	rval.init_plugin = init_plugin_noop;
+	rval.num_inputs = num_inputs_default;
 	rval.load = load_noop;
 	rval.free = free_noop;
 	rval.early_out = early_out_noop;
@@ -2822,6 +2923,7 @@ struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 		break;
 	case SEQ_WIPE:
 		rval.init = init_wipe_effect;
+		rval.num_inputs = num_inputs_wipe;
 		rval.free = free_wipe_effect;
 		rval.copy = copy_wipe_effect;
 		rval.early_out = early_out_fade;
@@ -2830,18 +2932,30 @@ struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 		break;
 	case SEQ_GLOW:
 		rval.init = init_glow_effect;
+		rval.num_inputs = num_inputs_glow;
 		rval.free = free_glow_effect;
 		rval.copy = copy_glow_effect;
 		rval.execute = do_glow_effect;
 		break;
 	case SEQ_TRANSFORM:
 		rval.init = init_transform_effect;
+		rval.num_inputs = num_inputs_transform;
 		rval.free = free_transform_effect;
 		rval.copy = copy_transform_effect;
 		rval.execute = do_transform_effect;
 		break;
+	case SEQ_COLOR:
+		rval.init = init_solid_color;
+		rval.num_inputs = num_inputs_color;
+		rval.early_out = early_out_color;
+		rval.free = free_solid_color;
+		rval.copy = copy_solid_color;
+		rval.execute = do_solid_color;
+		break;
+
 	case SEQ_PLUGIN:
 		rval.init_plugin = init_plugin;
+		rval.num_inputs = num_inputs_plugin;
 		rval.load = load_plugin;
 		rval.free = free_plugin;
 		rval.copy = copy_plugin;
@@ -2851,10 +2965,25 @@ struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 		break;
 	}
 
+	return rval;
+}
+
+
+struct SeqEffectHandle get_sequence_effect(Sequence * seq)
+{
+	struct SeqEffectHandle rval = get_sequence_effect_impl(seq->type);
+
 	if (seq->flag & SEQ_EFFECT_NOT_LOADED) {
 		rval.load(seq);
 		seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
 	}
 
 	return rval;
+}
+
+int get_sequence_effect_num_inputs(int seq_type)
+{
+	struct SeqEffectHandle rval = get_sequence_effect_impl(seq_type);
+
+	return rval.num_inputs();
 }

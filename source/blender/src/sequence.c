@@ -229,9 +229,25 @@ void calc_sequence(Sequence *seq)
 		// seq->start= seq->startdisp= MAX2(seq->seq1->startdisp, seq->seq2->startdisp);
 		// seq->enddisp= MIN2(seq->seq1->enddisp, seq->seq2->enddisp);
 
-		seq->start= seq->startdisp= MAX3(seq->seq1->startdisp, seq->seq2->startdisp, seq->seq3->startdisp);
-		seq->enddisp= MIN3(seq->seq1->enddisp, seq->seq2->enddisp, seq->seq3->enddisp);
-		seq->len= seq->enddisp - seq->startdisp;
+		if (seq->seq1) {
+			seq->start= seq->startdisp= MAX3(seq->seq1->startdisp, seq->seq2->startdisp, seq->seq3->startdisp);
+			seq->enddisp= MIN3(seq->seq1->enddisp, seq->seq2->enddisp, seq->seq3->enddisp);
+			seq->len= seq->enddisp - seq->startdisp;
+		} else {
+			if(seq->startofs && seq->startstill) seq->startstill= 0;
+			if(seq->endofs && seq->endstill) seq->endstill= 0;
+
+			seq->startdisp= seq->start + seq->startofs - seq->startstill;
+			seq->enddisp= seq->start+seq->len - seq->endofs + seq->endstill;
+
+			seq->handsize= 10.0;	/* 10 frames */
+			if( seq->enddisp-seq->startdisp < 20 ) {
+				seq->handsize= (float)(0.5*(seq->enddisp-seq->startdisp));
+			}
+			else if(seq->enddisp-seq->startdisp > 250) {
+				seq->handsize= (float)((seq->enddisp-seq->startdisp)/25);
+			}
+		}
 
 		if(seq->strip && seq->len!=seq->strip->len) {
 			new_stripdata(seq);
@@ -414,24 +430,10 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 	StripElem *se1, *se2, *se3;
 	float fac, facf;
 	int x, y;
+	int early_out;
 	struct SeqEffectHandle sh = get_sequence_effect(seq);
 
-	if(!sh.execute || se->se1==0 || se->se2==0 || se->se3==0) {
-		make_black_ibuf(se->ibuf);
-		return;
-	}
-
-	/* if metastrip: other se's */
-	if(se->se1->ok==2) se1= se->se1->se1;
-	else se1= se->se1;
-
-	if(se->se2->ok==2) se2= se->se2->se1;
-	else se2= se->se2;
-
-	if(se->se3->ok==2) se3= se->se3->se1;
-	else se3= se->se3;
-
-	if(se1==0 || se2==0 || se3==0) {
+	if (!sh.execute) { /* effect not supported in this version... */
 		make_black_ibuf(se->ibuf);
 		return;
 	}
@@ -444,9 +446,37 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 		sh.get_default_fac(seq, cfra, &fac, &facf);
 	}
 
-	if( G.scene->r.mode & R_FIELDS ); else facf= fac;
+	if( !(G.scene->r.mode & R_FIELDS) ) facf = fac;
 
-	switch (sh.early_out(seq, fac, facf)) {
+	early_out = sh.early_out(seq, fac, facf);
+
+	if (early_out == -1) { /* no input needed */
+		sh.execute(seq, cfra, fac, facf, se->ibuf->x, se->ibuf->y, 
+			   0, 0, 0, se->ibuf);
+		return;
+	}
+
+	if(se->se1==0 || se->se2==0 || se->se3==0) {
+		make_black_ibuf(se->ibuf);
+		return;
+	}
+	
+	/* if metastrip: other se's */
+	if(se->se1->ok==2) se1= se->se1->se1;
+	else se1= se->se1;
+	
+	if(se->se2->ok==2) se2= se->se2->se1;
+	else se2= se->se2;
+	
+	if(se->se3->ok==2) se3= se->se3->se1;
+	else se3= se->se3;
+	
+	if(se1==0 || se2==0 || se3==0) {
+		make_black_ibuf(se->ibuf);
+		return;
+	}
+
+	switch (early_out) {
 	case 0:
 		break;
 	case 1:
@@ -719,6 +749,9 @@ static void do_effect_depend(int cfra, Sequence * seq, StripElem *se)
 	if( G.scene->r.mode & R_FIELDS ); else facf= fac;
 	
 	switch (sh.early_out(seq, fac, facf)) {
+	case -1:
+		/* no input needed */
+		break;
 	case 0:
 		do_build_seq_depend(seq->seq1, cfra);
 		do_build_seq_depend(seq->seq2, cfra);
@@ -731,7 +764,9 @@ static void do_effect_depend(int cfra, Sequence * seq, StripElem *se)
 		break;
 	}
 
-	do_build_seq_depend(seq->seq3, cfra);
+	if (seq->seq3) {
+		do_build_seq_depend(seq->seq3, cfra);
+	}
 }
 
 static void do_build_seq_depend(Sequence * seq, int cfra)
@@ -786,17 +821,17 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 			/* should the effect be recalculated? */
 			
 			if(se->ibuf==0 
-			   || (se->se1 != seq->seq1->curelem) 
-			   || (se->se2 != seq->seq2->curelem) 
-			   || (se->se3 != seq->seq3->curelem)) {
-				se->se1= seq->seq1->curelem;
-				se->se2= seq->seq2->curelem;
-				se->se3= seq->seq3->curelem;
+			   || (seq->seq1 && se->se1 != seq->seq1->curelem) 
+			   || (seq->seq2 && se->se2 != seq->seq2->curelem) 
+			   || (seq->seq3 && se->se3 != seq->seq3->curelem)) {
+				if (seq->seq1) se->se1= seq->seq1->curelem;
+				if (seq->seq2) se->se2= seq->seq2->curelem;
+				if (seq->seq3) se->se3= seq->seq3->curelem;
 				
 				if(se->ibuf==NULL) {
 					/* if one of two first inputs are rectfloat, output is float too */
-  					if((se->se1->ibuf && se->se1->ibuf->rect_float) ||
-					   (se->se2->ibuf && se->se2->ibuf->rect_float))
+  					if((se->se1 && se->se1->ibuf && se->se1->ibuf->rect_float) ||
+					   (se->se2 && se->se2->ibuf && se->se2->ibuf->rect_float))
 						se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rectfloat, 0);
 					else
 						se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rect, 0);

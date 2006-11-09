@@ -173,6 +173,12 @@ typedef struct TransformVars {
 	float rotFin;
 } TransformVars;
 
+typedef struct SolidColorVars {
+	float col[3];
+	float pad;
+} SolidColorVars;
+
+
 /* ***************** SEQUENCE ****************** */
 
 /* seq->flag */
@@ -209,6 +215,8 @@ typedef struct TransformVars {
 #define SEQ_WIPE		25
 #define SEQ_GLOW		26
 #define SEQ_TRANSFORM		27
+#define SEQ_COLOR               28
+
 
 #endif
 

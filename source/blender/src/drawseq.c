@@ -117,6 +117,7 @@ static char *give_seqname(Sequence *seq)
 	else if(seq->type==SEQ_WIPE) return "Wipe";
 	else if(seq->type==SEQ_GLOW) return "Glow";
 	else if(seq->type==SEQ_TRANSFORM) return "Transform";
+	else if(seq->type==SEQ_COLOR) return "Color";
 	else if(seq->type==SEQ_PLUGIN) {
 		if(!(seq->flag & SEQ_EFFECT_NOT_LOADED) &&
 		   seq->plugin && seq->plugin->doit) return seq->plugin->pname;
@@ -140,7 +141,8 @@ static void get_seq_color3ubv(Sequence *seq, char *col)
 {
 	char blendcol[3];
 	float hsv[3], rgb[3];
-	
+	SolidColorVars *colvars = (SolidColorVars *)seq->effectdata;
+
 	switch(seq->type) {
 	case SEQ_IMAGE:
 		BIF_GetThemeColor3ubv(TH_SEQ_IMAGE, col);
@@ -206,7 +208,15 @@ static void get_seq_color3ubv(Sequence *seq, char *col)
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
 		col[0] = (char)(rgb[0]*255); col[1] = (char)(rgb[1]*255); col[2] = (char)(rgb[2]*255); 
 		break;
-		
+	case SEQ_COLOR:
+		if (colvars->col) {
+			col[0]= (char)(colvars->col[0]*255);
+			col[1]= (char)(colvars->col[1]*255);
+			col[2]= (char)(colvars->col[2]*255);
+		} else {
+			col[0] = col[1] = col[2] = 128;
+		}
+		break;
 	case SEQ_PLUGIN:
 		BIF_GetThemeColor3ubv(TH_SEQ_PLUGIN, col);
 		break;
@@ -404,7 +414,8 @@ static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, short direction)
 	}
 	
 	/* draw! */
-	if(seq->type < SEQ_EFFECT) {
+	if(seq->type < SEQ_EFFECT || 
+	   get_sequence_effect_num_inputs(seq->type) == 0) {
 		glEnable( GL_BLEND );
 		
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -582,8 +593,10 @@ static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2)
 
 			if(seq->seq3!=seq->seq2 && seq->seq1!=seq->seq3)
 				sprintf(str, "%d | %s: %d>%d (use %d)%s", seq->len, give_seqname(seq), seq->seq1->machine, seq->seq2->machine, seq->seq3->machine, can_float ? "" : " No float, upgrade plugin!");
-			else
+			else if (seq->seq1 && seq->seq2)
 				sprintf(str, "%d | %s: %d>%d%s", seq->len, give_seqname(seq), seq->seq1->machine, seq->seq2->machine, can_float ? "" : " No float, upgrade plugin!");
+			else 
+				sprintf(str, "%d | %s", seq->len, give_seqname(seq));
 		}
 		else if (seq->type == SEQ_RAM_SOUND) {
 			sprintf(str, "%d | %s", seq->len, seq->strip->stripdata->name);
@@ -1173,6 +1186,9 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "rot Start:",10,-10,150,19, &transform->rotIni, 0.0, 360.0, 0, 0, "Rotation Start");
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "rot End:",160,-10,150,19, &transform->rotFin, 0.0, 360.0, 0, 0, "Rotation End");
+		} else if(last_seq->type==SEQ_COLOR) {
+			SolidColorVars *colvars = (SolidColorVars *)last_seq->effectdata;
+			uiDefButF(block, COL, SEQ_BUT_RELOAD, "",10,90,150,19, colvars->col, 0, 0, 0, 0, "");
 		}
 		uiBlockEndAlign(block);
 	}
