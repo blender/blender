@@ -109,7 +109,6 @@ void free_strip(Strip *strip)
 
 void new_stripdata(Sequence *seq)
 {
-
 	if(seq->strip) {
 		if(seq->strip->stripdata) free_stripdata(seq->strip->len, seq->strip->stripdata);
 		seq->strip->stripdata= 0;
@@ -133,7 +132,7 @@ void free_sequence(Sequence *seq)
 		sh.free(seq);
 	}
 
-	if(seq==last_seq) set_last_seq_to_null();
+	if(seq==last_seq) set_last_seq(NULL);
 
 	MEM_freeN(seq);
 }
@@ -200,6 +199,8 @@ void free_editing(Editing *ed)
 	}
 
 	MEM_freeN(ed);
+
+	clear_last_seq();
 }
 
 void calc_sequence(Sequence *seq)
@@ -348,7 +349,7 @@ void clear_scene_in_allseqs(Scene *sce)
 
 void make_black_ibuf(ImBuf *ibuf)
 {
-	int *rect;
+	unsigned int *rect;
 	float *rect_float;
 	int tot;
 
@@ -415,7 +416,7 @@ void do_effect(int cfra, Sequence *seq, StripElem *se)
 	int x, y;
 	struct SeqEffectHandle sh = get_sequence_effect(seq);
 
-	if(se->se1==0 || se->se2==0 || se->se3==0) {
+	if(!sh.execute || se->se1==0 || se->se2==0 || se->se3==0) {
 		make_black_ibuf(se->ibuf);
 		return;
 	}
@@ -563,7 +564,7 @@ int evaluate_seq_frame(int cfra)
 
 }
 
-static Sequence * get_shown_seq_from_metastrip(Sequence * seqm, int cfra)
+Sequence *get_shown_seq_from_metastrip(Sequence * seqm, int cfra)
 {
 	Sequence *seq, *seqim, *seqeff;
 	Sequence *seq_arr[MAXSEQ+1];
@@ -657,10 +658,8 @@ static void do_seq_unref_cfra(ListBase *seqbase, int cfra)
 				else do_seq_unref_cfra(&seq->seqbase, cfra);
 			}
 
-			if (seq->curelem && seq->curelem->ibuf 
-			   && seq->curelem->isneeded) {
+			if (seq->curelem && seq->curelem->ibuf && seq->curelem->isneeded)
 				IMB_cache_limiter_unref(seq->curelem->ibuf);
-			}
 		}
 		seq= seq->next;
 	}
@@ -737,9 +736,7 @@ static void do_effect_depend(int cfra, Sequence * seq, StripElem *se)
 
 static void do_build_seq_depend(Sequence * seq, int cfra)
 {
-	StripElem *se;
-
-	se=seq->curelem= give_stripelem(seq, cfra);
+	StripElem *se = seq->curelem;
 
 	if(se && !se->isneeded) {
 		se->isneeded = 1;
@@ -762,10 +759,8 @@ static void do_build_seq_depend(Sequence * seq, int cfra)
 
 static void do_build_seq_ibuf(Sequence * seq, int cfra)
 {
-	StripElem *se;
+	StripElem *se = seq->curelem;
 	char name[FILE_MAXDIR+FILE_MAXFILE];
-
-	se=seq->curelem= give_stripelem(seq, cfra);
 
 	if(se && se->isneeded) {
 		if(seq->type == SEQ_META) {
@@ -788,7 +783,7 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 				}
 			}
 			
-			/* does the effect should be recalculated? */
+			/* should the effect be recalculated? */
 			
 			if(se->ibuf==0 
 			   || (se->se1 != seq->seq1->curelem) 
@@ -800,12 +795,13 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 				
 				if(se->ibuf==NULL) {
 					/* if one of two first inputs are rectfloat, output is float too */
-					if((se->se1->ibuf && se->se1->ibuf->rect_float) ||
+  					if((se->se1->ibuf && se->se1->ibuf->rect_float) ||
 					   (se->se2->ibuf && se->se2->ibuf->rect_float))
 						se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rectfloat, 0);
 					else
 						se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rect, 0);
 				}
+
 				do_effect(cfra, seq, se);
 			}
 			
@@ -981,34 +977,38 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 	}
 }
 
+static void do_set_seq_curelem(ListBase *seqbase, int cfra)
+{
+	Sequence *seq;
+
+	for(seq=seqbase->first; seq; seq=seq->next) {
+		seq->curelem= give_stripelem(seq, cfra);
+
+		if (seq->curelem) {
+			seq->curelem->isneeded= 0; /* nobody is needed a priori */
+
+			if (seq->seqbase.first)
+				do_set_seq_curelem(&seq->seqbase, cfra);
+		}
+	}
+}
+
 static void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 {
 	Sequence *seq;
-	StripElem *se;
 
 	if(seqar==NULL) return;
 	
 	seq= seqbase->first;
 	while(seq) {
-
-		/* set at zero because free_imbuf_seq... */
-		seq->curelem= 0;
-
 		if ((seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) && (seq->ipo)
 		    && (seq->startdisp <= cfra+2) && (seq->enddisp > cfra)) {
 			do_seq_ipo(seq);
 		}
 
-		if(seq->startdisp <=cfra && seq->enddisp > cfra) {
+		if(seq->curelem) {
 			**seqar= seq;
 			(*seqar)++;
-
-			/* nobody is needed a priori */
-			se = seq->curelem= give_stripelem(seq, cfra);
-	
-			if (se) {
-				se->isneeded = 0;
-			}
 		}
 
 		seq= seq->next;
@@ -1021,10 +1021,6 @@ static void do_build_seq_ibufs(ListBase *seqbase, int cfra)
 
 	seq= seqbase->first;
 	while(seq) {
-
-		/* set at zero because free_imbuf_seq... */
-		seq->curelem= 0;
-
 		if ((seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) && (seq->ipo)
 		    && (seq->startdisp <= cfra+2)  && (seq->enddisp > cfra)) {
 			do_seq_ipo(seq);
@@ -1052,7 +1048,8 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chanshown)
 	Sequence *seq, *seqfirst=0;/*  , *effirst=0; */
 	Editing *ed;
 	StripElem *se;
-	int seqnr, totseq;
+	int seqnr, totseq, count;
+	ListBase *seqbasep;
 
 	/* we make recursively a 'stack' of sequences, these are
 	 * sorted nicely as well.
@@ -1063,7 +1060,16 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chanshown)
 	totseq= 0;
 	ed= G.scene->ed;
 	if(ed==0) return 0;
-	do_seq_count_cfra(ed->seqbasep, &totseq, cfra);
+
+	count = BLI_countlist(&ed->metastack);
+	if((chanshown < 0) && (count > 0)) {
+		count = MAX2(count + chanshown, 0);
+		seqbasep= ((MetaStack*)BLI_findlink(&ed->metastack, count))->oldbasep;
+	}
+	else
+		seqbasep= ed->seqbasep;
+
+	do_seq_count_cfra(seqbasep, &totseq, cfra);
 
 	if(totseq==0) return 0;
 
@@ -1073,8 +1079,11 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chanshown)
 	/* tseqar is needed because in do_build_... the pointer changes */
 	seqar= tseqar= MEM_callocN(sizeof(void *)*totseq, "seqar");
 
+	/* set curelem pointers to stripelem */
+	do_set_seq_curelem(seqbasep, cfra);
+
 	/* this call creates the sequence order array */
-	do_build_seqar_cfra(ed->seqbasep, &seqar, cfra);
+	do_build_seqar_cfra(seqbasep, &seqar, cfra);
 
 	seqar= tseqar;
 
@@ -1083,7 +1092,7 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chanshown)
 
 		se= seq->curelem;
 		if((seq->type != SEQ_RAM_SOUND && seq->type != SEQ_HD_SOUND) 
-			&& (se) && (chanshown == 0 || seq->machine == chanshown)) {
+			&& (se) && (chanshown <= 0 || seq->machine == chanshown)) {
 			if(seq->type==SEQ_META) {
 
 				/* bottom strip! */
@@ -1120,9 +1129,9 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chanshown)
 
 	if (seqfirst) {
 		do_build_seq_depend(seqfirst, cfra);
-		do_build_seq_ibufs(ed->seqbasep, cfra);
-		do_seq_unref_cfra(ed->seqbasep, cfra);
-		do_seq_test_unref_cfra(ed->seqbasep, cfra);
+		do_build_seq_ibufs(seqbasep, cfra);
+		do_seq_unref_cfra(seqbasep, cfra);
+		do_seq_test_unref_cfra(seqbasep, cfra);
 	}
 
 	if(!seqfirst) return 0;
@@ -1131,73 +1140,45 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chanshown)
 
 }
 
-void free_imbuf_effect_spec(int cfra)
+/* Functions to free imbuf and anim data on changes */
+
+static void free_imbuf_strip_elem(StripElem *se)
 {
-	Sequence *seq;
-	StripElem *se;
-	Editing *ed;
-	int a;
-
-	ed= G.scene->ed;
-	if(ed==0) return;
-
-	WHILE_SEQ(&ed->seqbase) {
-
-		if(seq->strip) {
-
-			if(seq->type & SEQ_EFFECT) {
-				se= seq->strip->stripdata;
-				for(a=0; a<seq->len; a++, se++) {
-					if(se==seq->curelem && se->ibuf) {
-						IMB_freeImBuf(se->ibuf);
-						se->ibuf= 0;
-						se->ok= 1;
-						se->se1= se->se2= se->se3= 0;
-					}
-				}
-			}
-		}
+	if (se->ibuf) {
+		if (se->ok != 2)
+			IMB_freeImBuf(se->ibuf);
+		se->ibuf= 0;
+		se->ok= 1;
+		se->se1= se->se2= se->se3= 0;
 	}
-	END_SEQ
+}
+
+static void free_anim_seq(Sequence *seq)
+{
+	if(seq->anim) {
+		IMB_free_anim(seq->anim);
+		seq->anim = 0;
+	}
 }
 
 void free_imbuf_seq_except(int cfra)
 {
+	Editing *ed= G.scene->ed;
 	Sequence *seq;
 	StripElem *se;
-	Editing *ed;
 	int a;
 
-	ed= G.scene->ed;
 	if(ed==0) return;
 
 	WHILE_SEQ(&ed->seqbase) {
-
 		if(seq->strip) {
+			for(a=0, se= seq->strip->stripdata; a<seq->len; a++, se++)
+				if(se!=seq->curelem)
+					free_imbuf_strip_elem(se);
 
-			if( seq->type==SEQ_META ) {
-				;
-			}
-			else {
-				se= seq->strip->stripdata;
-				for(a=0; a<seq->len; a++, se++) {
-					if(se!=seq->curelem && se->ibuf) {
-						IMB_freeImBuf(se->ibuf);
-						se->ibuf= 0;
-						se->ok= 1;
-						se->se1= se->se2= se->se3= 0;
-					}
-				}
-			}
-
-			if(seq->type==SEQ_MOVIE) {
-				if(seq->startdisp > cfra || seq->enddisp < cfra) {
-					if(seq->anim) {
-						IMB_free_anim(seq->anim);
-						seq->anim = 0;
-					}
-				}
-			}
+			if(seq->type==SEQ_MOVIE)
+				if(seq->startdisp > cfra || seq->enddisp < cfra)
+					free_anim_seq(seq);
 		}
 	}
 	END_SEQ
@@ -1205,42 +1186,93 @@ void free_imbuf_seq_except(int cfra)
 
 void free_imbuf_seq()
 {
+	Editing *ed= G.scene->ed;
 	Sequence *seq;
 	StripElem *se;
-	Editing *ed;
 	int a;
 
-	ed= G.scene->ed;
 	if(ed==0) return;
 
 	WHILE_SEQ(&ed->seqbase) {
-
 		if(seq->strip) {
+			for(a=0, se= seq->strip->stripdata; a<seq->len; a++, se++)
+				free_imbuf_strip_elem(se);
 
-			if( seq->type==SEQ_META ) {
-				;
-			}
-			else {
-				se= seq->strip->stripdata;
-				for(a=0; a<seq->len; a++, se++) {
-					if(se->ibuf) {
-						IMB_freeImBuf(se->ibuf);
-						se->ibuf= 0;
-						se->ok= 1;
-						se->se1= se->se2= se->se3= 0;
-					}
-				}
-			}
-
-			if(seq->type==SEQ_MOVIE) {
-				if(seq->anim) {
-					IMB_free_anim(seq->anim);
-					seq->anim = 0;
-				}
-			}
+			if(seq->type==SEQ_MOVIE)
+				free_anim_seq(seq);
 		}
 	}
 	END_SEQ
+}
+
+void free_imbuf_seq_with_ipo(struct Ipo *ipo)
+{
+	/* force update of all sequences with this ipo, on ipo changes */
+	Editing *ed= G.scene->ed;
+	Sequence *seq;
+
+	if(ed==0) return;
+
+	WHILE_SEQ(&ed->seqbase) {
+		if(seq->ipo == ipo)
+			update_changed_seq_and_deps(seq, 0, 1);
+	}
+	END_SEQ
+}
+
+static int update_changed_seq_recurs(Sequence *seq, Sequence *changed_seq, int len_change, int ibuf_change)
+{
+	Sequence *subseq;
+	int a, free_imbuf = 0;
+	StripElem *se;
+
+	/* recurs downwards to see if this seq depends on the changed seq */
+
+	if(seq == NULL)
+		return 0;
+
+	if(seq == changed_seq)
+		free_imbuf = 1;
+	
+	for(subseq=seq->seqbase.first; subseq; subseq=subseq->next)
+		if(update_changed_seq_recurs(subseq, changed_seq, len_change, ibuf_change))
+			free_imbuf = 1;
+	
+	if(seq->seq1)
+		if(update_changed_seq_recurs(seq->seq1, changed_seq, len_change, ibuf_change))
+			free_imbuf = 1;
+	if(seq->seq2 && (seq->seq2 != seq->seq1))
+		if(update_changed_seq_recurs(seq->seq2, changed_seq, len_change, ibuf_change))
+			free_imbuf = 1;
+	if(seq->seq3 && (seq->seq3 != seq->seq1) && (seq->seq3 != seq->seq2))
+		if(update_changed_seq_recurs(seq->seq3, changed_seq, len_change, ibuf_change))
+			free_imbuf = 1;
+	
+	if(free_imbuf) {
+		if(ibuf_change) {
+			for(a=0, se= seq->strip->stripdata; a<seq->len; a++, se++)
+				free_imbuf_strip_elem(se);
+		
+			if(seq->type==SEQ_MOVIE)
+				free_anim_seq(seq);
+		}
+
+		if(len_change)
+			calc_sequence(seq);
+	}
+	
+	return free_imbuf;
+}
+
+void update_changed_seq_and_deps(Sequence *changed_seq, int len_change, int ibuf_change)
+{
+	Editing *ed= G.scene->ed;
+	Sequence *seq;
+
+	if (!ed) return;
+
+	for (seq=ed->seqbase.first; seq; seq=seq->next)
+		update_changed_seq_recurs(seq, changed_seq, len_change, ibuf_change);
 }
 
 /* bad levell call... */

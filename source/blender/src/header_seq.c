@@ -51,6 +51,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
+#include "BLI_blenlib.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BIF_drawseq.h"
@@ -373,6 +374,9 @@ static void do_seq_editmenu(void *arg, int event)
 	case 13: /* Cut at Current Frame */
 		seq_cut(CFRA);
 		break;
+	case 14:
+		reassign_inputs_seq_effect();
+		break;
 	}
 }
 
@@ -405,7 +409,10 @@ static uiBlock *seq_editmenu(void *arg_unused)
 	if (last_seq != NULL && last_seq->type != SEQ_MOVIE) {
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-		if(last_seq->type >= SEQ_EFFECT) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Change Effect...|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+		if(last_seq->type >= SEQ_EFFECT) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Change Effect...|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reassing Inputs|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
+		}
 		else if(last_seq->type == SEQ_IMAGE) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Change Image...|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 		else uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Change Scene...|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	}
@@ -545,9 +552,14 @@ void seq_buttons()
 	
 	/* CHANNEL shown in 3D preview */
 	if(sseq->mainb) {
+		int minchan = 0;
+
+		if (G.scene->ed && ((Editing*)G.scene->ed)->metastack.first)
+			minchan = -BLI_countlist(&((Editing*)G.scene->ed)->metastack);
+
 		uiDefButS(block, NUM, B_REDR, "Chan:",
 		xco, 0, 3.5 * XIC,YIC,
-		&sseq->chanshown, 0, MAXSEQ, 0, 0,
+		&sseq->chanshown, minchan, MAXSEQ, 0, 0,
 		"The channel number shown in the image preview. 0 is the result of all strips combined.");
 		
 		xco+= 8 + XIC*3.5;

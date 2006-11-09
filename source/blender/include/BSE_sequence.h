@@ -55,6 +55,7 @@ void free_editing(struct Editing *ed);
 void calc_sequence(struct Sequence *seq);
 void sort_seq(void);
 void clear_scene_in_allseqs(struct Scene *sce);
+struct Sequence *get_shown_seq_from_metastrip(struct Sequence *seqm, int cfra);
 
 void make_black_ibuf(struct ImBuf *ibuf);
 void multibuf(struct ImBuf *ibuf, float fmul);
@@ -65,9 +66,11 @@ void set_meta_stripdata(struct Sequence *seqm);
 struct ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chansel); 
 /* chansel: render this channel. Default=0 (renders end result)*/
 
-void free_imbuf_effect_spec(int cfra);
 void free_imbuf_seq_except(int cfra);
+void free_imbuf_seq_with_ipo(struct Ipo * ipo);
 void free_imbuf_seq(void);
+
+void update_changed_seq_and_deps(struct Sequence *seq, int len_change, int ibuf_change);
 
 /* still bad level call... */
 struct RenderResult;

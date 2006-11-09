@@ -95,7 +95,8 @@
 #include "blendef.h"
 #include "mydevice.h"
 
-static Sequence *last_seq=0;
+static Sequence *_last_seq=0;
+static int _last_seq_init=0;
 
 #ifdef WIN32
 char last_imagename[FILE_MAXDIR+FILE_MAXFILE]= "c:\\";
@@ -110,20 +111,41 @@ char last_sounddir[FILE_MAXDIR+FILE_MAXFILE]= "";
 static int test_overlap_seq(Sequence *);
 static void shuffle_seq(Sequence *);
 
-Sequence * get_last_seq()
+Sequence *get_last_seq()
 {
-	return last_seq;
+	if(!_last_seq_init) {
+		Editing *ed;
+		Sequence *seq;
+
+		ed= G.scene->ed;
+		if(!ed) return NULL;
+
+		for(seq= ed->seqbasep->first; seq; seq=seq->next)
+			if(seq->flag & SELECT)
+				_last_seq= seq;
+
+		_last_seq_init = 1;
+	}
+
+	return _last_seq;
 }
 
-/* fixme: only needed by free_sequence... */
-void set_last_seq_to_null()
+void set_last_seq(Sequence *seq)
 {
-	last_seq = 0;
+	_last_seq = seq;
+	_last_seq_init = 1;
+}
+
+void clear_last_seq()
+{
+	_last_seq = NULL;
+	_last_seq_init = 0;
 }
 
 static void change_plugin_seq(char *str)	/* called from fileselect */
 {
 	struct SeqEffectHandle sh;
+	Sequence *last_seq= get_last_seq();
 
 	if(last_seq && last_seq->type != SEQ_PLUGIN) return;
 
@@ -248,34 +270,6 @@ void update_seq_ipo_rect(Sequence * seq)
 	seq->ipo->cur.xmax= end;
 }
 
-void clear_seq_belonging_to_ipo(struct Ipo * ipo)
-{
-	/* from (example) ipo: when it is changed, also do effects with same ipo */
-	Sequence *seq;
-	Editing *ed;
-	StripElem *se;
-	int a;
-
-	ed= G.scene->ed;
-	if(ed==0) return;
-
-	WHILE_SEQ(&ed->seqbase) {
-		if(seq->ipo == ipo) {
-			a= seq->len;
-			se= seq->strip->stripdata;
-			if(se) {
-				while(a--) {
-					if(se->ibuf && se->ok != 2) IMB_freeImBuf(se->ibuf);
-					se->ibuf= 0;
-					se->ok= 1;
-					se++;
-				}
-			}
-		}
-	}
-	END_SEQ
-}
-
 static int test_overlap_seq(Sequence *test)
 {
 	Sequence *seq;
@@ -343,6 +337,22 @@ static void shuffle_seq(Sequence *test)
 		test->machine++;
 		calc_sequence(test);
 	}
+}
+
+static int seq_is_parent(Sequence *par, Sequence *seq)
+{
+	return ((par->seq1 == seq) || (par->seq2 == seq) || (par->seq3 == seq));
+}
+
+static int seq_is_predecessor(Sequence *pred, Sequence *seq)
+{
+	if(pred == seq) return 0;
+	else if(seq_is_parent(pred, seq)) return 1;
+	else if(pred->seq1 && seq_is_predecessor(pred->seq1, seq)) return 1;
+	else if(pred->seq2 && seq_is_predecessor(pred->seq2, seq)) return 1;
+	else if(pred->seq3 && seq_is_predecessor(pred->seq3, seq)) return 1;
+
+	return 0;
 }
 
 static void deselect_all_seq(void)
@@ -414,7 +424,7 @@ void mouse_select_seq(void)
 	if(!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
 
 	if(seq) {
-		last_seq= seq;
+		set_last_seq(seq);
 
 		if ((seq->type == SEQ_IMAGE) || (seq->type == SEQ_MOVIE)) {
 			if(seq->strip) {
@@ -450,7 +460,7 @@ void mouse_select_seq(void)
 
 	force_draw(0);
 
-	if(last_seq) allqueue(REDRAWIPO, 0);
+	if(get_last_seq()) allqueue(REDRAWIPO, 0);
 	BIF_undo_push("Select Sequencer");
 
 	std_rmouse_transform(transform_seq);
@@ -466,7 +476,7 @@ static Sequence *alloc_sequence(int cfra, int machine)
 	seq= MEM_callocN( sizeof(Sequence), "addseq");
 	BLI_addtail(ed->seqbasep, seq);
 
-	last_seq= seq;
+	set_last_seq(seq);
 
 	*( (short *)seq->name )= ID_SEQ;
 	seq->name[2]= 0;
@@ -939,6 +949,7 @@ static void reload_sound_strip(char *name)
 	Editing *ed;
 	Sequence *seq, *seqact;
 	SpaceFile *sfile;
+	Sequence *last_seq= get_last_seq();
 
 	ed= G.scene->ed;
 
@@ -981,6 +992,7 @@ static void reload_image_strip(char *name)
 	Editing *ed;
 	Sequence *seq, *seqact;
 	SpaceFile *sfile;
+	Sequence *last_seq= get_last_seq();
 
 	ed= G.scene->ed;
 
@@ -1006,17 +1018,7 @@ static void reload_image_strip(char *name)
 		free_sequence(seq);
 		BLI_remlink(ed->seqbasep, seq);
 
-		seq= ed->seqbasep->first;
-		while(seq) {
-			if(seq->type & SEQ_EFFECT) {
-				/* new_stripdata is clear */
-				if(seq->seq1==seqact || seq->seq2==seqact || seq->seq3==seqact) {
-					calc_sequence(seq);
-					new_stripdata(seq);
-				}
-			}
-			seq= seq->next;
-		}
+		update_changed_seq_and_deps(seqact, 1, 1);
 	}
 	waitcursor(0);
 
@@ -1040,24 +1042,37 @@ static int event_to_efftype(int event)
 	return 0;
 }
 
-static int add_seq_effect(int type)
+static int can_insert_seq_between(Sequence *seq1, 
+				  Sequence *seq2, Sequence *seq3)
 {
-	Editing *ed;
-	Sequence *seq, *seq1, *seq2, *seq3;
-	Strip *strip;
-	float x, y;
-	int cfra, machine;
-	short mval[2];
-	struct SeqEffectHandle sh;
+       Editing *ed= G.scene->ed;
+       Sequence *seq;
+       /* see if inserting inbetween would create a cycle */
+       if(seq_is_predecessor(seq1, seq2) || seq_is_predecessor(seq2, seq1) ||
+          seq_is_predecessor(seq2, seq3) || seq_is_predecessor(seq3, seq2) ||
+          seq_is_predecessor(seq3, seq1) || seq_is_predecessor(seq1, seq3))
+               return 0;
 
-	if(G.scene->ed==0) return 0;
-	ed= G.scene->ed;
+       /* see if there is a parent that we can insert inbetween */
+       for(seq=ed->seqbasep->first; seq; seq=seq->next)
+               if((seq != seq1) && (seq != seq2) && (seq != seq3))
+                       if(seq_is_parent(seq, seq1) || 
+			  seq_is_parent(seq, seq2) ||
+                          seq_is_parent(seq, seq3))
+                               return 1;
 
-	/* apart from last_seq there have to be 2 selected sequences */
-	seq1= seq3= 0;
-	seq2= last_seq;		/* last_seq changes with alloc_seq! */
-	seq= ed->seqbasep->first;
-	while(seq) {
+       return 0;
+}
+
+
+static int seq_effect_find_selected(Editing *ed, Sequence *activeseq, int type, Sequence **selseq1, Sequence **selseq2, Sequence **selseq3)
+{
+	Sequence *seq1= 0, *seq2= 0, *seq3= 0, *seq;
+	
+	if (!activeseq)
+		seq2= get_last_seq();
+
+	for(seq=ed->seqbasep->first; seq; seq=seq->next) {
 		if(seq->flag & SELECT) {
 			if (seq->type == SEQ_RAM_SOUND
 			    || seq->type == SEQ_HD_SOUND) { 
@@ -1065,27 +1080,30 @@ static int add_seq_effect(int type)
 				      "audio sequence strips");
 				return 0;
 			}
-			if(seq != seq2) {
-				if(seq1==0) seq1= seq;
-				else if(seq3==0) seq3= seq;
-				else {
-					seq1= 0;
-					break;
-				}
+			if((seq != activeseq) && (seq != seq2)) {
+                                if(seq2==0) seq2= seq;
+                                else if(seq1==0) seq1= seq;
+                                else if(seq3==0) seq3= seq;
+                                else {
+                                       error("Can't apply effect to more than 3 sequence strips");
+                                       return 0;
+                                }
 			}
 		}
-		seq= seq->next;
 	}
-	
-	/* make sequence selection a little bit more intuitive 
+       
+	/* make sequence selection a little bit more intuitive
 	   for 3 strips: the last-strip should be sequence3 */
 	if (seq3 != 0 && seq2 != 0) {
+		Sequence *tmp = seq2;
 		seq2 = seq3;
-		seq3 = last_seq;
+		seq3 = tmp;
 	}
+	
 
-
-	if(type==10 || type==13 || type==14 || type==15) {	/* plugin: minimal 1 select */
+	if(type==SEQ_PLUGIN || type==SEQ_WIPE || 
+	   type==SEQ_GLOW || type==SEQ_TRANSFORM) {
+	  /* plugin: minimal 1 select */
 		if(seq2==0)  {
 			error("Need at least one selected sequence strip");
 			return 0;
@@ -1101,6 +1119,71 @@ static int add_seq_effect(int type)
 		if(seq3==0) seq3= seq2;
 	}
 
+	*selseq1= seq1;
+	*selseq2= seq2;
+	*selseq3= seq3;
+
+	return 1;
+}
+
+static void insert_seq_between(Sequence *newseq, Sequence *seq1, Sequence *seq2, Sequence *seq3)
+{
+       Editing *ed= G.scene->ed;
+       Sequence *seq, *firstseq = NULL;
+       Sequence *oldseq[3];
+       int i;
+
+       oldseq[0]= seq1;
+       oldseq[1]= seq2;
+       oldseq[2]= seq3;
+
+       for(seq=ed->seqbasep->first; seq; seq=seq->next) {
+               if((seq != seq1) && (seq != seq2) && (seq != seq3)) {
+                       /* set pointers to new children */
+                       for(i=0; i < 3; i++) {
+                               if(seq_is_parent(seq, oldseq[i]) && (seq != newseq)) {
+                                       if(seq->seq1 == oldseq[i]) seq->seq1= newseq;
+                                       if(seq->seq2 == oldseq[i]) seq->seq2= newseq;
+                                       if(seq->seq3 == oldseq[i]) seq->seq3= newseq;
+                                       if(!firstseq) firstseq= seq;
+                               }
+                       }
+               }
+       }
+
+       /* reinsert sequence in the list before the first sequence depending on it,
+          this is needed for the strips to be evaluated in correct order */
+       if(firstseq) {
+               BLI_remlink(ed->seqbasep, newseq);
+               BLI_insertlinkbefore(ed->seqbasep, firstseq, newseq);
+       }
+}
+
+
+static int add_seq_effect(int type, char *str)
+{
+	Editing *ed;
+	Sequence *newseq, *seq1, *seq2, *seq3;
+	Strip *strip;
+	float x, y;
+	int cfra, machine;
+	short mval[2];
+	struct SeqEffectHandle sh;
+	int mode, insertbetween= 0;
+
+	if(G.scene->ed==0) return 0;
+	ed= G.scene->ed;
+
+	if(!seq_effect_find_selected(ed, NULL, event_to_efftype(type), &seq1, &seq2, &seq3))
+		return 0;
+
+	 if (can_insert_seq_between(seq1, seq2, seq3)) {
+		force_draw(0); /* to make sure popup is not drawn over file select */
+		mode= pupmenu("Insert Between %x1|Insert After %x2");
+		if(mode == 1)
+			insertbetween= 1;
+	}
+
 	deselect_all_seq();
 
 	/* where will it be (cfra is not realy needed) */
@@ -1109,53 +1192,60 @@ static int add_seq_effect(int type)
 	cfra= (int)(x+0.5);
 	machine= (int)(y+0.5);
 
-	seq= alloc_sequence(cfra, machine);
+	/* allocate and initialize */
+	newseq= alloc_sequence(cfra, machine);
+	newseq->type= event_to_efftype(type);
 
-	seq->type= event_to_efftype(type);
+	sh = get_sequence_effect(newseq);
 
-	sh = get_sequence_effect(seq);
+	newseq->seq1= seq1;
+	newseq->seq2= seq2;
+	newseq->seq3= seq3;
 
-	seq->seq1= seq1;
-	seq->seq2= seq2;
-	seq->seq3= seq3;
+	sh.init(newseq);
+	calc_sequence(newseq);
 
-	sh.init(seq);
-
-	calc_sequence(seq);
-
-	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-	strip->len= seq->len;
+	newseq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
+	strip->len= newseq->len;
 	strip->us= 1;
-	if(seq->len>0) strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+	if(newseq->len>0)
+		strip->stripdata= MEM_callocN(newseq->len*sizeof(StripElem), "stripelem");
 
-	BIF_undo_push("Add effect strip Sequencer");
+	/* initialize plugin */
+	if(type==10) {
+		sh.init_plugin(newseq, str);
+
+		if(newseq->plugin==0) {
+			BLI_remlink(ed->seqbasep, newseq);
+			free_sequence(newseq);
+			set_last_seq(NULL);
+			return 0;
+		}
+	}
+
+	/* set find a free spot to but the strip */
+	newseq->machine= MAX3(newseq->seq1->machine, newseq->seq2->machine,
+		newseq->seq3->machine);
+	if(test_overlap_seq(newseq)) shuffle_seq(newseq);
+
+	/* set inbetween relation */
+	if(insertbetween)
+		insert_seq_between(newseq, seq1, seq2, seq3);
+
+	update_changed_seq_and_deps(newseq, 1, 1);
+
+	/* push undo and go into grab mode */
+	if(type == 10) BIF_undo_push("Add plugin strip Sequencer");
+	else BIF_undo_push("Add effect strip Sequencer");
+
+	transform_seq('g', 0);
 
 	return 1;
 }
 
 static void load_plugin_seq(char *str)		/* called from fileselect */
 {
-	Editing *ed;
-	struct SeqEffectHandle sh;
-
-	add_seq_effect(10);		/* this sets last_seq */
-
-	sh = get_sequence_effect(last_seq);
-	sh.init_plugin(last_seq, str);
-
-	if(last_seq->plugin==0) {
-		ed= G.scene->ed;
-		BLI_remlink(ed->seqbasep, last_seq);
-		free_sequence(last_seq);
-		last_seq= 0;
-	}
-	else {
-		last_seq->machine= MAX3(last_seq->seq1->machine, last_seq->seq2->machine, last_seq->seq3->machine);
-		if( test_overlap_seq(last_seq) ) shuffle_seq(last_seq);
-
-		BIF_undo_push("Add plugin strip Sequencer");
-		transform_seq('g', 0);
-	}
+	add_seq_effect(10, str);
 }
 
 void add_sequence(int type)
@@ -1334,13 +1424,12 @@ void add_sequence(int type)
 	case 14:
 	case 15:
 
-		if(last_seq==0) error("Need at least one active sequence strip");
-		else if(event==10) {
+		if(get_last_seq()==0)
+			error("Need at least one active sequence strip");
+		else if(event==10)
 			activate_fileselect(FILE_SPECIAL, "Select Plugin", U.plugseqdir, load_plugin_seq);
-		}
-		else {
-			if( add_seq_effect(event) ) transform_seq('g', 0);
-		}
+		else
+			add_seq_effect(event, NULL);
 
 		break;
 	case 103:
@@ -1356,6 +1445,7 @@ void add_sequence(int type)
 
 void change_sequence(void)
 {
+	Sequence *last_seq= get_last_seq();
 	Scene *sce;
 	short event;
 
@@ -1404,7 +1494,8 @@ void change_sequence(void)
 				sh = get_sequence_effect(last_seq);
 				sh.init(last_seq);
 			}
-			new_stripdata(last_seq);
+
+			update_changed_seq_and_deps(last_seq, 0, 1);
 			allqueue(REDRAWSEQ, 0);
 			BIF_undo_push("Change effect Sequencer");
 		}
@@ -1428,8 +1519,7 @@ void change_sequence(void)
 
 			last_seq->len= sce->r.efra - sce->r.sfra + 1;
 			last_seq->sfra= sce->r.sfra;
-			new_stripdata(last_seq);
-			calc_sequence(last_seq);
+			update_changed_seq_and_deps(last_seq, 1, 1);
 
 			allqueue(REDRAWSEQ, 0);
 		}
@@ -1437,37 +1527,87 @@ void change_sequence(void)
 
 }
 
-static int is_a_sequence(Sequence *test)
+void reassign_inputs_seq_effect()
 {
-	Sequence *seq;
-	Editing *ed;
+	Editing *ed= G.scene->ed;
+	Sequence *seq1, *seq2, *seq3, *last_seq = get_last_seq();
 
-	ed= G.scene->ed;
-	if(ed==0 || test==0) return 0;
+	if(last_seq==0 || !(last_seq->type & SEQ_EFFECT)) return;
+	if(ed==0) return;
 
-	seq= ed->seqbasep->first;
-	while(seq) {
-		if(seq==test) return 1;
-		seq= seq->next;
+	if(!seq_effect_find_selected(ed, last_seq, last_seq->type, &seq1, &seq2, &seq3))
+		return;
+
+	/* see reassigning would create a cycle */
+	if(seq_is_predecessor(seq1, last_seq) || seq_is_predecessor(seq2, last_seq) ||
+	   seq_is_predecessor(seq3, last_seq)) {
+		error("Can't reassign inputs: no cycles allowed");
+	   	return;
 	}
+	
+	last_seq->seq1 = seq1;
+	last_seq->seq2 = seq2;
+	last_seq->seq3 = seq3;
 
-	return 0;
+	update_changed_seq_and_deps(last_seq, 1, 1);
+
+	allqueue(REDRAWSEQ, 0);
 }
 
-static void recurs_del_seq(ListBase *lb)
+static Sequence *del_seq_find_replace_recurs(Sequence *seq)
+{
+	Sequence *seq1, *seq2, *seq3;
+
+	/* try to find a replacement input sequence, and flag for later deletion if
+	   no replacement can be found */
+
+	if(!seq)
+		return NULL;
+	else if(!(seq->type & SEQ_EFFECT))
+		return ((seq->flag & SELECT)? NULL: seq);
+	else if(!(seq->flag & SELECT)) {
+		/* try to find replacement for effect inputs */
+		seq1= del_seq_find_replace_recurs(seq->seq1);
+		seq2= del_seq_find_replace_recurs(seq->seq2);
+		seq3= del_seq_find_replace_recurs(seq->seq3);
+
+		if(seq1==seq->seq1 && seq2==seq->seq2 && seq3==seq->seq3);
+		else if(seq1 || seq2 || seq3) {
+			seq->seq1= (seq1)? seq1: (seq2)? seq2: seq3;
+			seq->seq2= (seq2)? seq2: (seq1)? seq1: seq3;
+			seq->seq3= (seq3)? seq3: (seq1)? seq1: seq2;
+
+			update_changed_seq_and_deps(seq, 1, 1);
+		}
+		else
+			seq->flag |= SELECT; /* mark for delete */
+	}
+
+	if (seq->flag & SELECT) {
+		if((seq1 = del_seq_find_replace_recurs(seq->seq1))) return seq1;
+		if((seq2 = del_seq_find_replace_recurs(seq->seq2))) return seq2;
+		if((seq3 = del_seq_find_replace_recurs(seq->seq3))) return seq3;
+		else return NULL;
+	}
+	else
+		return seq;
+}
+
+static void recurs_del_seq_flag(ListBase *lb, short flag, short deleteall)
 {
 	Sequence *seq, *seqn;
+	Sequence *last_seq = get_last_seq();
 
 	seq= lb->first;
 	while(seq) {
 		seqn= seq->next;
-		if(seq->flag & SELECT) {
+		if((seq->flag & flag) || deleteall) {
 			if(seq->type==SEQ_RAM_SOUND && seq->sound) 
 				seq->sound->id.us--;
 
 			BLI_remlink(lb, seq);
-			if(seq==last_seq) last_seq= 0;
-			if(seq->type==SEQ_META) recurs_del_seq(&seq->seqbase);
+			if(seq==last_seq) set_last_seq(0);
+			if(seq->type==SEQ_META) recurs_del_seq_flag(&seq->seqbase, flag, 1);
 			if(seq->ipo) seq->ipo->id.us--;
 			free_sequence(seq);
 		}
@@ -1477,38 +1617,27 @@ static void recurs_del_seq(ListBase *lb)
 
 void del_seq(void)
 {
-	Sequence *seq, *seqn;
+	Sequence *seq;
 	MetaStack *ms;
 	Editing *ed;
-	int doit;
 
 	if(okee("Erase selected")==0) return;
 
 	ed= G.scene->ed;
 	if(ed==0) return;
 
-	recurs_del_seq(ed->seqbasep);
+	/* free imbufs of all dependent strips */
+	for(seq=ed->seqbasep->first; seq; seq=seq->next)
+		if(seq->flag & SELECT)
+			update_changed_seq_and_deps(seq, 1, 0);
 
-	/* test effects */
-	doit= 1;
-	while(doit) {
-		doit= 0;
-		seq= ed->seqbasep->first;
-		while(seq) {
-			seqn= seq->next;
-			if(seq->type & SEQ_EFFECT) {
-				if(    is_a_sequence(seq->seq1)==0 
-				    || is_a_sequence(seq->seq2)==0 
-				    || is_a_sequence(seq->seq3)==0 ) {
-					BLI_remlink(ed->seqbasep, seq);
-					if(seq==last_seq) last_seq= 0;
-					free_sequence(seq);
-					doit= 1;
-				}
-			}
-			seq= seqn;
-		}
-	}
+	/* for effects, try to find a replacement input */
+	for(seq=ed->seqbasep->first; seq; seq=seq->next)
+		if((seq->type & SEQ_EFFECT) && !(seq->flag & SELECT))
+			del_seq_find_replace_recurs(seq);
+
+	/* delete all selected strips */
+	recurs_del_seq_flag(ed->seqbasep, SELECT, 0);
 
 	/* updates lengths etc */
 	seq= ed->seqbasep->first;
@@ -1528,8 +1657,6 @@ void del_seq(void)
 	BIF_undo_push("Delete from Sequencer");
 	allqueue(REDRAWSEQ, 0);
 }
-
-
 
 static void recurs_dupli_seq(ListBase *old, ListBase *new)
 {
@@ -1889,11 +2016,19 @@ void make_meta(void)
 	allqueue(REDRAWSEQ, 0);
 }
 
+static int seq_depends_on_meta(Sequence *seq, Sequence *seqm)
+{
+	if (seq == seqm) return 1;
+	else if (seq->seq1 && seq_depends_on_meta(seq->seq1, seqm)) return 1;
+	else if (seq->seq2 && seq_depends_on_meta(seq->seq2, seqm)) return 1;
+	else if (seq->seq3 && seq_depends_on_meta(seq->seq3, seqm)) return 1;
+	else return 0;
+}
+
 void un_meta(void)
 {
 	Editing *ed;
-	Sequence *seq, *seqn;
-	int doit;
+	Sequence *seq, *last_seq = get_last_seq();
 
 	ed= G.scene->ed;
 	if(ed==0) return;
@@ -1910,27 +2045,12 @@ void un_meta(void)
 	BLI_remlink(ed->seqbasep, last_seq);
 	free_sequence(last_seq);
 
-	/* test effects */
-	doit= 1;
-	while(doit) {
-		doit= 0;
-		seq= ed->seqbasep->first;
-		while(seq) {
-			seqn= seq->next;
-			if(seq->type & SEQ_EFFECT) {
-				if(    is_a_sequence(seq->seq1)==0 
-				    || is_a_sequence(seq->seq2)==0 
-				    || is_a_sequence(seq->seq3)==0 ) {
-					BLI_remlink(ed->seqbasep, seq);
-					if(seq==last_seq) last_seq= 0;
-					free_sequence(seq);
-					doit= 1;
-				}
-			}
-			seq= seqn;
-		}
-	}
+	/* emtpy meta strip, delete all effects depending on it */
+	for(seq=ed->seqbasep->first; seq; seq=seq->next)
+		if((seq->type & SEQ_EFFECT) && seq_depends_on_meta(seq, last_seq))
+			seq->flag |= SEQ_FLAG_DELETE;
 
+	recurs_del_seq_flag(ed->seqbasep, SEQ_FLAG_DELETE, 0);
 
 	/* test for effects and overlap */
 	WHILE_SEQ(ed->seqbasep) {
@@ -1942,6 +2062,8 @@ void un_meta(void)
 		}
 	}
 	END_SEQ;
+
+	sort_seq();
 
 	BIF_undo_push("Un-make Meta Sequencer");
 	allqueue(REDRAWSEQ, 0);
@@ -1974,10 +2096,10 @@ void exit_meta(void)
 		seq= seq->next;
 	}
 
-	last_seq= ms->parseq;
+	set_last_seq(ms->parseq);
 
-	last_seq->flag= SELECT;
-	recurs_sel_seq(last_seq);
+	ms->parseq->flag= SELECT;
+	recurs_sel_seq(ms->parseq);
 
 	MEM_freeN(ms);
 	allqueue(REDRAWSEQ, 0);
@@ -1990,6 +2112,7 @@ void enter_meta(void)
 {
 	MetaStack *ms;
 	Editing *ed;
+	Sequence *last_seq= get_last_seq();
 
 	ed= G.scene->ed;
 	if(ed==0) return;
@@ -2006,7 +2129,7 @@ void enter_meta(void)
 
 	ed->seqbasep= &last_seq->seqbase;
 
-	last_seq= 0;
+	set_last_seq(NULL);
 	allqueue(REDRAWSEQ, 0);
 	BIF_undo_push("Enter meta strip Sequence");
 }
@@ -2273,73 +2396,6 @@ void transform_seq(int mode, int context)
 
 	BIF_undo_push("Transform Sequencer");
 	allqueue(REDRAWSEQ, 0);
-}
-
-
-void clever_numbuts_seq(void)
-{
-	PluginSeq *pis;
-	StripElem *se;
-	VarStruct *varstr;
-	int a;
-
-	if(last_seq==0) return;
-	if(last_seq->type==SEQ_PLUGIN) {
-		pis= last_seq->plugin;
-		if(pis->vars==0) return;
-
-		varstr= pis->varstr;
-		if(varstr) {
-			for(a=0; a<pis->vars; a++, varstr++) {
-				add_numbut(a, varstr->type, varstr->name, varstr->min, varstr->max, &(pis->data[a]), varstr->tip);
-			}
-
-			if( do_clever_numbuts(pis->pname, pis->vars, REDRAW) ) {
-				new_stripdata(last_seq);
-				free_imbuf_effect_spec(CFRA);
-				allqueue(REDRAWSEQ, 0);
-			}
-		}
-	}
-	else if(last_seq->type==SEQ_MOVIE) {
-
-		if(last_seq->mul==0.0) last_seq->mul= 1.0;
-
-		add_numbut(0, TEX, "Name:", 0.0, 21.0, last_seq->name+2, 0);
-		add_numbut(1, TOG|SHO|BIT|4, "FilterY", 0.0, 1.0, &last_seq->flag, 0);
-		/* warning: only a single bit-button possible: we work at copied data! */
-		add_numbut(2, NUM|FLO, "Mul", 0.01, 5.0, &last_seq->mul, 0);
-
-		if( do_clever_numbuts("Movie", 3, REDRAW) ) {
-			se= last_seq->curelem;
-
-			if(se && se->ibuf ) {
-				IMB_freeImBuf(se->ibuf);
-				se->ibuf= 0;
-			}
-			allqueue(REDRAWSEQ, 0);
-		}
-	}
-	else if(last_seq->type==SEQ_RAM_SOUND || last_seq->type==SEQ_HD_SOUND) {
-
-		add_numbut(0, TEX, "Name:", 0.0, 21.0, last_seq->name+2, 0);
-		add_numbut(1, NUM|FLO, "Gain (dB):", -96.0, 6.0, &last_seq->level, 0);
-		add_numbut(2, NUM|FLO, "Pan:", -1.0, 1.0, &last_seq->pan, 0);
-		add_numbut(3, TOG|SHO|BIT|5, "Mute", 0.0, 1.0, &last_seq->flag, 0);
-
-		if( do_clever_numbuts("Audio", 4, REDRAW) ) {
-			se= last_seq->curelem;
-			allqueue(REDRAWSEQ, 0);
-		}
-	}
-	else if(last_seq->type==SEQ_META) {
-
-		add_numbut(0, TEX, "Name:", 0.0, 21.0, last_seq->name+2, 0);
-
-		if( do_clever_numbuts("Meta", 1, REDRAW) ) {
-			allqueue(REDRAWSEQ, 0);
-		}
-	}
 }
 
 void seq_cut(int cutframe)

@@ -40,11 +40,10 @@ void				add_sequence(int type);
 void				borderselect_seq(void);
 void				boundbox_seq(void);
 void				change_sequence(void);
-void                    update_seq_ipo_rect(struct Sequence * seq);
-struct Sequence*                get_last_seq();
-void                            set_last_seq_to_null();
-void				clear_seq_belonging_to_ipo(struct Ipo * ipo);
-void				clever_numbuts_seq(void);
+void				update_seq_ipo_rect(struct Sequence * seq);
+struct Sequence*	get_last_seq();
+void				set_last_seq(struct Sequence * seq);
+void				clear_last_seq();
 void				del_seq(void);
 void				enter_meta(void);
 void				exit_meta(void);
@@ -61,6 +60,7 @@ void				touch_seq_files(void);
 void				transform_seq(int mode, int context);
 void				un_meta(void);
 void				seq_cut(int cutframe);
+void				reassign_inputs_seq_effect(void);
 
 /* drawseq.c */
 void do_seqbuttons(short);

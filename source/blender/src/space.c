@@ -3964,6 +3964,9 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				scrarea_queue_winredraw(curarea);
 			}
 			break;
+		case RKEY:
+			reassign_inputs_seq_effect();
+			break;
 		case SKEY:
 			if((G.qual==LR_SHIFTKEY))
 				seq_snap_menu();

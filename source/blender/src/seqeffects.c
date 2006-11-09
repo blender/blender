@@ -34,27 +34,26 @@
 
 #include "MEM_guardedalloc.h"
 #include "PIL_dynlib.h"
-#include "BKE_plugin_types.h"
-
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 
 #include "DNA_sequence_types.h"
-#include "BSE_seqeffects.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
-#include "DNA_sequence_types.h"
+#include "BIF_interface.h"
+#include "BIF_toolbox.h"
 
-#include "BKE_utildefines.h"
+#include "BSE_seqeffects.h"
+#include "BSE_sequence.h"
+
 #include "BKE_global.h"
 #include "BKE_ipo.h"
+#include "BKE_plugin_types.h"
 #include "BKE_texture.h"
-#include "BIF_toolbox.h"
-#include "BIF_interface.h"
+#include "BKE_utildefines.h"
 
-#include "BSE_sequence.h"
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
 
 #include "RE_pipeline.h"		// talks to entire render API
 
@@ -2690,7 +2689,6 @@ static void do_glow_effect(Sequence * seq,int cfra,
 				    (char*) out->rect);
 	}
 }
-
 
 /* **********************************************************************
    sequence effect factory

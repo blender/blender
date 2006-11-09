@@ -176,15 +176,16 @@ typedef struct TransformVars {
 /* ***************** SEQUENCE ****************** */
 
 /* seq->flag */
-#define SEQ_LEFTSEL		2
-#define SEQ_RIGHTSEL	4
-#define SEQ_OVERLAP		8
-#define SEQ_FILTERY		16
-#define SEQ_MUTE		32
-#define SEQ_MAKE_PREMUL	64
-#define SEQ_REVERSE_FRAMES	128
-#define SEQ_IPO_FRAME_LOCKED    256
-#define SEQ_EFFECT_NOT_LOADED   512
+#define SEQ_LEFTSEL				2
+#define SEQ_RIGHTSEL			4
+#define SEQ_OVERLAP				8
+#define SEQ_FILTERY				16
+#define SEQ_MUTE				32
+#define SEQ_MAKE_PREMUL			64
+#define SEQ_REVERSE_FRAMES		128
+#define SEQ_IPO_FRAME_LOCKED	256
+#define SEQ_EFFECT_NOT_LOADED	512
+#define SEQ_FLAG_DELETE			1024
 
 /* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0

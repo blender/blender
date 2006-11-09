@@ -110,6 +110,7 @@
 #include "BSE_drawview.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_node.h"
+#include "BSE_sequence.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -325,7 +326,7 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
 		}
-		else if(si->blocktype==ID_SEQ) clear_seq_belonging_to_ipo(si->ipo);
+		else if(si->blocktype==ID_SEQ) free_imbuf_seq_with_ipo(si->ipo);
 		else if(si->blocktype==ID_PO) {
 			Object *ob= OBACT;
 			if(ob && ob->pose) {

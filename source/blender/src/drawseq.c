@@ -671,6 +671,7 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 {
 	float x1, x2, y1, y2;
 	char col[3];
+	Sequence *last_seq = get_last_seq();
 
 	/* body */
 	if(seq->startstill) x1= seq->start;
@@ -703,6 +704,7 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 			col[0]= 255; col[1]= col[2]= 40;
 		} else BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 120);
 	}
+	else if (seq == last_seq) BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 120);
 	else if (seq->flag & SELECT) BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -150);
 	else BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -60);
 
@@ -1004,16 +1006,12 @@ void do_seqbuttons(short val)
 
 	switch(val) {
 	case SEQ_BUT_PLUGIN:
-		new_stripdata(last_seq);
-		free_imbuf_effect_spec(CFRA);
+	case SEQ_BUT_EFFECT:
+		update_changed_seq_and_deps(last_seq, 0, 1);
 		break;
 
 	case SEQ_BUT_RELOAD:
 		free_imbuf_seq();	// frees all
-		break;
-	case SEQ_BUT_EFFECT:
-		new_stripdata(last_seq);
-		calc_sequence(last_seq);
 		break;
 	}
 
