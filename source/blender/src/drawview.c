@@ -1866,7 +1866,7 @@ static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCY, REDRAWVIEW3D, ICON_UNLOCKED,	10,120,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
 	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocY:",	30, 120, 120, 19, pchan->loc+1, -lim, lim, 100, 3, "");
 	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCZ, REDRAWVIEW3D, ICON_UNLOCKED,	10,100,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "locZ:",	30, 100, 120, 19, pchan->loc+2, -lim, lim, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocZ:",	30, 100, 120, 19, pchan->loc+2, -lim, lim, 100, 3, "");
 
 	uiBlockBeginAlign(block);
 	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, REDRAWVIEW3D, ICON_UNLOCKED,	10,70,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
