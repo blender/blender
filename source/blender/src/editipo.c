@@ -1986,6 +1986,113 @@ static void *get_context_ipo_poin(ID *id, int blocktype, char *actname, IpoCurve
 
 }
 
+#define KEYNEEDED_DONTADD	0
+#define	KEYNEEDED_JUSTADD	1
+#define KEYNEEDED_DELPREV	2
+
+static int new_key_needed(IpoCurve *icu, float cFrame, float nValue) 
+{
+	/* This function determines whether a new keyframe is needed */
+	/* Cases where keyframes should not be added:
+	 *	1. Keyframe to be added bewteen two keyframes with similar values
+	 *	2. Keyframe to be added between two keyframes with similar times
+	 *	3. Keyframe lies at point that intersects the linear line between two keyframes
+	 *	4. Curve without keyframes, and current value for curve is default
+	 */
+	
+	BezTriple *bezt=NULL, *prev=NULL;
+	int totCount, i;
+	float valsDiff, oldVal;
+	float thresh;
+	
+	
+	/* safety checking */
+	if (!icu) return KEYNEEDED_JUSTADD;
+	totCount= icu->totvert;
+	if (totCount==0) return KEYNEEDED_JUSTADD;
+	
+	/* get threshold */
+	thresh= 0.000001f; // for now
+	
+	/* loop through checking if any are the same */
+	bezt= icu->bezt;
+	for (i=0; i<totCount; i++) {
+		float prevPosi=0.0f, prevVal=0.0f;
+		float beztPosi=0.0f, beztVal=0.0f;
+			
+		beztPosi= bezt->vec[1][0];
+		beztVal= bezt->vec[1][1];
+			
+		if (prev) {
+			/* there is previous */
+			float timePN, timePC, timeCN; 
+			float valPN, valPC, valCN;
+		
+			/* get previous time+value*/
+			prevPosi= prev->vec[1][0];
+			prevVal= prev->vec[1][1];
+			
+			/* precalculate several differences */
+			timePN= sqrt((prevPosi-cFrame)*(prevPosi-cFrame));
+			timePC= sqrt((prevPosi-beztPosi)*(prevPosi-beztPosi));
+			timeCN= sqrt((beztPosi-cFrame)*(beztPosi-cFrame));
+			valPN= sqrt((prevVal-nValue)*(prevVal-nValue));
+			valPC= sqrt((prevVal-beztVal)*(prevVal-beztVal));
+			valCN= sqrt((beztVal-nValue)*(beztVal-nValue));
+			
+			
+			/* keyframe to be added at point where there are already two similar points? */
+			if ((timePN<=thresh) && (timePC<=thresh) && (timeCN<=thresh))
+				return KEYNEEDED_DONTADD;
+				
+			/* keyframe to be added between 2 similar keyframes? */
+			if ((valPN<=thresh) && (valPC<=thresh) && (valCN<=thresh)) 
+				return KEYNEEDED_DONTADD;
+				
+			/* keyframe lies on line between prev+current points? */
+			if ((prevPosi <= cFrame) && (cFrame <= beztPosi)) {
+				float realVal, valDiff;
+				
+				/* get real value at that point */
+				realVal= eval_icu(icu, cFrame);
+				
+				/* compare whether it's the same as proposed */
+				valDiff= sqrt((realVal-nValue)*(realVal-nValue));
+				if (valDiff <= thresh)
+					return KEYNEEDED_DONTADD;
+			}
+		}
+		else {
+			/* no previous, but is insert frame before frame of this bezt */
+			if (cFrame < beztPosi) 
+				/* position already past frame to add at */
+				return KEYNEEDED_JUSTADD;
+			if ((cFrame-beztPosi) <= thresh) 
+				/* only ok if not same position */
+				return ((nValue-beztVal) > thresh); 
+		}
+		
+		/* continue. frame to do not yet passed (or other conditions not met) */
+		prev= bezt;
+		if (i < (totCount-1))
+			bezt++;
+		else
+			break;
+	}
+	
+	/* frame comes after end of curve (no points after) 
+	 * 	now, check whether the new value equals the old one or not 
+	 */
+	bezt= (icu->bezt + (icu->totvert - 1));
+	oldVal= bezt->vec[1][1];
+	valsDiff= sqrt((nValue-oldVal)*(nValue-oldVal));
+	
+	if (valsDiff <= thresh)
+		return KEYNEEDED_DELPREV;
+	else
+		return KEYNEEDED_JUSTADD;
+}
+
 void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcode)
 {
 	IpoCurve *icu;
@@ -2018,6 +2125,54 @@ void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcod
 			}
 			
 			insert_vert_ipo(icu, cfra, curval);
+		}
+	}
+}
+
+/* This function is a 'smarter' version of the insert key code.
+ * It uses an auxilliary function to check whether a keyframe is really needed */
+void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, int adrcode)
+{
+	IpoCurve *icu;
+	Object *ob;
+	void *poin= NULL;
+	float curval, cfra;
+	int vartype;
+	int insert_mode;
+	
+	icu= verify_ipocurve(id, blocktype, actname, constname, adrcode);
+	
+	if(icu) {
+		
+		poin= get_context_ipo_poin(id, blocktype, actname, icu, &vartype);
+		
+		if(poin) {
+			curval= read_ipo_poin(poin, vartype);
+			
+			cfra= frame_to_float(CFRA);
+			
+			/* if action is mapped in NLA, it returns a correction */
+			if(actname && actname[0] && GS(id->name)==ID_OB)
+				cfra= get_action_frame((Object *)id, cfra);
+			
+			if( GS(id->name)==ID_OB ) {
+				ob= (Object *)id;
+				if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+					/* actually frametofloat calc again! */
+					cfra-= ob->sf*G.scene->r.framelen;
+				}
+			}
+			
+			/* check whether this curve really need a new keyframe */
+			insert_mode= new_key_needed(icu, cfra, curval);
+			
+			/* insert new keyframe at current frame */
+			if (insert_mode) 
+				insert_vert_ipo(icu, cfra, curval);
+			
+			/* delete keyframe before newly added */
+			if (insert_mode == KEYNEEDED_DELPREV)
+				delete_icu_key(icu, icu->totvert-2); 
 		}
 	}
 }
@@ -2517,7 +2672,7 @@ void common_insertkey(void)
 		ob= OBACT;
 
 		if (ob && (ob->flag & OB_POSEMODE)) {
-			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Scale%x2|LocRot%x3|LocRotScale%x4|Avail%x9|VisualLoc%x11|VisualRot%x12|VisualLocRot%x13");
+			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Scale%x2|LocRot%x3|LocRotScale%x4|Avail%x9|Needed%x15|VisualLoc%x11|VisualRot%x12|VisualLocRot%x13");
 		}
 		else {
 			base= FIRSTBASE;
@@ -2526,7 +2681,7 @@ void common_insertkey(void)
 				base= base->next;
 			}
 			if(base==NULL) return;
-			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Scale%x2|LocRot%x3|LocRotScale%x4|Layer%x5|Avail%x9|VisualLoc%x11|VisualRot%x12|VisualLocRot%x13");
+			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Scale%x2|LocRot%x3|LocRotScale%x4|Layer%x5|Avail%x9|Needed%x15|VisualLoc%x11|VisualRot%x12|VisualLocRot%x13");
 		}
 
 		if(ob) {
@@ -2603,6 +2758,18 @@ void common_insertkey(void)
  						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, localQuat[2]);
  						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, localQuat[2]);
  					}
+					if (event==15 && ob->action) {
+						bActionChannel *achan;
+
+						for (achan = ob->action->chanbase.first; achan; achan=achan->next){
+							if (achan->ipo && !strcmp (achan->name, pchan->name)){
+								for (icu = achan->ipo->curve.first; icu; icu=icu->next){
+									insertkey_smarter(id, ID_PO, achan->name, NULL, icu->adrcode);
+								}
+								break;
+							}
+						}
+					}	
 				}
 			}
 			if(ob->action)
@@ -2628,7 +2795,15 @@ void common_insertkey(void)
 						icu= base->object->ipo->curve.first;
 						while(icu) {
 							icu->flag &= ~IPO_SELECT;
-							if(event==9) insertkey(id, ID_OB, actname, NULL, icu->adrcode);
+							
+							switch (event) {
+								case 9: 
+									insertkey(id, ID_OB, actname, NULL, icu->adrcode);
+									break;
+								case 15:
+									insertkey_smarter(id, ID_OB, actname, NULL, icu->adrcode);
+									break;
+							}
 							icu= icu->next;
 						}
 					}
@@ -2846,6 +3021,148 @@ void remove_doubles_ipo(void)
 
 	}
 	deselectall_editipo();
+}
+
+
+void clean_ipo(Ipo *ipo, short mode) 
+{
+	/* fixme: this should probably work on editipo's as well... - aligorith*/
+	IpoCurve *icu;
+	int ok;
+	
+	if (G.scene->toolsettings->clean_thresh==0) 
+		G.scene->toolsettings->clean_thresh= 0.1f;
+	ok= fbutton(&G.scene->toolsettings->clean_thresh, 
+				0.0000001f, 1.0, 0.001, 0.1,
+				"Clean Threshold");
+	if (!ok) return;
+	
+	for (icu= ipo->curve.first; icu; icu= icu->next) {
+		switch (mode) {
+			case 1: /* only selected curves get affected */
+				if ((icu->flag & IPO_SELECT)||(icu->flag & IPO_ACTIVE)) {
+					clean_ipo_curve(icu);
+				}
+				break;
+			default: /* any curve gets affected */
+				clean_ipo_curve(icu);
+				break;
+		}
+	}
+	
+	BIF_undo_push("Clean IPO");
+	allqueue(REMAKEIPO, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+}
+
+void clean_ipo_curve(IpoCurve *icu)
+{
+	BezTriple *bezt=NULL, *beztn=NULL;
+	BezTriple *newb, *newbs, *newbz;
+	int totCount, newCount, i;
+	float thresh;
+	
+	/* check if any points  */
+	if (!icu) return;
+	totCount= icu->totvert;
+	newCount= 1;
+	if (totCount<=1) return;
+	
+	/* get threshold for match-testing */
+	if ((G.scene) && (G.scene->toolsettings))
+		thresh= G.scene->toolsettings->clean_thresh;
+	else 
+		thresh= 0.1f;
+	
+	/* pointers to points */
+	newb = newbs = MEM_mallocN(sizeof(BezTriple)*totCount, "NewBeztriples");
+	bezt= icu->bezt;
+	*newb= *bezt;
+	bezt++;
+	if (totCount > 2) beztn= (bezt + 1); 
+	
+	/* loop through beztriples, comparing them */
+	for (i=0; i<totCount; i++) {
+		float timeAB, valAB, valAC;
+		short hasC, hasD;
+			
+		/* precalculate the differences in values */
+		timeAB= fabs(bezt->vec[1][0] - newb->vec[1][0]);
+		valAB= fabs(bezt->vec[1][1] - newb->vec[1][1]);
+		if (beztn!=NULL) {
+			valAC= fabs(beztn->vec[1][1] - newb->vec[1][1]);
+			hasC= 1;
+		}
+		else {
+			valAC= 0.0f;
+			hasC= 0;
+		}
+		hasD= ((i+2) < totCount)?1:0;
+			
+		/* determine what to do with bezt */
+		if ((timeAB <= thresh) && (valAB <= thresh)) {
+			/* same time and value - set bezt to beztn */
+			if (hasC) 
+				bezt++;
+			else
+				break;
+			if (hasD)
+				beztn++;
+			else
+				beztn= NULL;
+		}
+		else if ((valAB <= thresh) && (hasC) && (valAC <= thresh)) {
+			/* three consecutive values - set bezt to beztn */
+			if (hasC) 
+				bezt++;
+			else
+				break;
+			if (hasD)
+				beztn++;
+			else
+				beztn= NULL;
+		}
+		else if (hasC) {
+			/* fine to add */
+			newb++;
+			*newb= *bezt;
+			newCount++;
+			
+			if (hasC)
+				bezt++;
+			else
+				break;
+			if (hasD)
+				beztn++;
+			else
+				beztn= NULL;
+		}	
+		else {
+			/* no more */
+			break;
+		}
+	}
+
+	/* make better sized list */
+	newbz= MEM_mallocN(sizeof(BezTriple)*newCount, "BezTriples");
+	for (i=0; i<newCount; i++) {
+		BezTriple *atar, *bsrc;
+		atar= (newbz + i);
+		bsrc= (newbs + i);
+		*atar= *bsrc;
+	}
+	
+	/* free and assign new */
+	MEM_freeN(icu->bezt);
+	MEM_freeN(newbs);
+	icu->bezt= newbz;
+	icu->totvert= newCount;
+	
+	/* fix up handles and make sure points are in order */
+	sort_time_ipocurve(icu);
+	calchandles_ipocurve(icu);
 }
 
 void join_ipo_menu(void)
@@ -4668,6 +4985,26 @@ void remake_object_ipos(Object *ob)
 		sort_time_ipocurve(icu);
 		testhandles_ipocurve(icu);
 	}
+}
+
+/* Only delete the nominated keyframe from provided ipo-curve. 
+ * Not recommended to be used many times successively. For that
+ * there is delete_ipo_keys(). */
+void delete_icu_key(IpoCurve *icu, int index)
+{
+	/* firstly check that index is valid */
+	if (index < 0) 
+		index *= -1;
+	if (index >= icu->totvert)
+		return;
+	if (!icu) return;
+	
+	/*	Delete this key */
+	memcpy (&icu->bezt[index], &icu->bezt[index+1], sizeof (BezTriple)*(icu->totvert-index-1));
+	icu->totvert--;
+	
+	/* recalc handles */
+	calchandles_ipocurve(icu);
 }
 
 void delete_ipo_keys(Ipo *ipo)

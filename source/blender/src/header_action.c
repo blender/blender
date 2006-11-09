@@ -93,6 +93,7 @@
 #define ACTMENU_KEY_DELETE        1
 #define ACTMENU_KEY_BAKE          2
 #define ACTMENU_KEY_SNAP          3
+#define ACTMENU_KEY_CLEAN		  4
 
 #define ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_UP		0
 #define ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_DOWN	1
@@ -780,6 +781,12 @@ static void do_action_keymenu(void *arg, int event)
 		case ACTMENU_KEY_SNAP:
 			snap_keys_to_frame();
 			break;
+		case ACTMENU_KEY_CLEAN:
+			if (key) 
+				clean_shapekeys(key);
+			else if (act) 
+				clean_actionchannels(act);
+			break;
 	}
 }
 
@@ -815,6 +822,11 @@ static uiBlock *action_keymenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Clean Action|O", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_CLEAN, "");
+			 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Bake Action to Ipo Keys", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 

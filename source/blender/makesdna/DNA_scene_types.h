@@ -356,6 +356,10 @@ typedef struct ToolSettings {
 	/* Image Paint */
 	struct ImagePaintSettings imapaint;
 	
+	/* IPO-Editor */
+	float clean_thresh;
+	float pad3;
+	
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set

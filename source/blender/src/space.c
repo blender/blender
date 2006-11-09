@@ -2373,6 +2373,9 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			toggle_blockhandler(sa, IPO_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 			doredraw= 1;
 			break;
+		case OKEY: 
+			clean_ipo(sipo->ipo, 1);
+			break;
 		case RKEY:
 			if((G.qual==0))
 				ipo_record();

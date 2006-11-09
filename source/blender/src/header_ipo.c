@@ -579,6 +579,12 @@ static void do_ipo_editmenu(void *arg, int event)
 	case 7:
 		sethandles_ipo(HD_AUTO_ANIM);
 		break;
+	case 8: /* clean ipo */
+	{
+		SpaceIpo *sipo= curarea->spacedata.first;
+		clean_ipo(sipo->ipo, 1);
+	}
+		break;
 	}
 }
 
@@ -634,6 +640,7 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Record Mouse Movement|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clean IPO Curves|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, ipo_editmenu_joinmenu, NULL, ICON_RIGHTARROW_THIN, "Join", 0, yco-=20, 120, 19, "");	
 

@@ -664,6 +664,7 @@ static void column_select_actionkeys(bAction *act)
 				}
 			}
 
+
 			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
 				if (conchan->ipo) {
 					for(ce= elems.first; ce; ce= ce->next) {
@@ -682,7 +683,7 @@ static void column_select_actionkeys(bAction *act)
 						}
 					}
 				}
-			}			
+			}		
 		}
 	}
 	BLI_freelistN(&elems);
@@ -1816,6 +1817,86 @@ static void delete_actionchannels (void)
 
 }
 
+void clean_shapekeys(Key *key)
+{
+	int ok;
+
+	/* don't proceed if user refuses */
+	if (!key) return;
+	if (G.scene->toolsettings->clean_thresh==0) 
+		G.scene->toolsettings->clean_thresh= 0.1f;
+	ok= fbutton(&G.scene->toolsettings->clean_thresh, 
+				0.0000001f, 1.0, 0.001, 0.1,
+				"Clean Threshold");
+	if (!ok) return;
+	
+	/* viable option? */
+	if (key->ipo) {
+		IpoCurve *icu;
+		
+		for (icu= key->ipo->curve.first; icu; icu=icu->next)
+			clean_ipo_curve(icu);
+			
+		/* admin and redraw stuff */
+		BIF_undo_push("Clean Action");
+		allqueue(REMAKEIPO, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+	}
+}
+
+void clean_actionchannels(bAction *act) 
+{
+	bActionChannel *chan;
+	bConstraintChannel *conchan;
+	
+	Ipo *ipo;
+	IpoCurve *icu;
+	
+	int ok;
+	
+	
+	/* don't proceed any further if no action or user refuses */
+	if (!act) return;
+	if (G.scene->toolsettings->clean_thresh==0) 
+		G.scene->toolsettings->clean_thresh= 0.1f;
+	ok= fbutton(&G.scene->toolsettings->clean_thresh, 
+				0.0000001f, 1.0, 0.001, 0.1,
+				"Clean Threshold");
+	if (!ok) return;
+	
+	/* clean selected channels only */
+	for (chan= act->chanbase.first; chan; chan= chan->next) {
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			/* clean if action channel if selected */
+			if (chan->flag & ACHAN_SELECTED) {
+				ipo= chan->ipo;
+				if (ipo) {
+					for (icu= ipo->curve.first; icu; icu= icu->next) 
+						clean_ipo_curve(icu);
+				}
+			}
+			
+			/* clean action channel's constraint channels */
+			for (conchan= chan->constraintChannels.first; conchan; conchan=conchan->next) {
+				ipo= conchan->ipo;
+				if (ipo) {
+					for (icu= ipo->curve.first; icu; icu= icu->next) 
+						clean_ipo_curve(icu);
+				}
+			}
+		}
+	}
+	
+	/* admin and redraws */
+	BIF_undo_push("Clean Action");
+	allqueue(REMAKEIPO, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+}
+
 void sethandles_meshchannel_keys(int code, Key *key)
 {
 	
@@ -2562,6 +2643,13 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				//add_blockhandler(curarea, ACTION_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 				//scrarea_queue_winredraw(curarea);
 			}
+			break;
+			
+		case OKEY:
+			if(key)
+				clean_shapekeys(key);
+			else if(act)
+				clean_actionchannels(act);
 			break;
 			
 		case SKEY: 
