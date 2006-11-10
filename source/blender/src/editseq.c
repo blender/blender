@@ -2008,17 +2008,21 @@ void make_meta(void)
 	while(seq) {
 		if(seq->flag & SELECT) {
 			if(seq->type & SEQ_EFFECT) {
-				if((seq->seq1 && seq->seq1->flag & SELECT)==0) tot= 0;
-				if((seq->seq2 && seq->seq2->flag & SELECT)==0) tot= 0;
-				if((seq->seq3 && seq->seq3->flag & SELECT)==0) tot= 0;
+				if(seq->seq1 && 
+				   (seq->seq1->flag & SELECT)==0) tot= 0;
+				if(seq->seq2 &&
+				   (seq->seq2->flag & SELECT)==0) tot= 0;
+				if(seq->seq3 &&
+				   (seq->seq3->flag & SELECT)==0) tot= 0;
 			}
 		}
 		else if(seq->type & SEQ_EFFECT) {
-			/* crash */
-		
-			if(seq->seq1 && seq->seq1->flag & SELECT) tot= 0;
-			if(seq->seq2 && seq->seq2->flag & SELECT) tot= 0;
-			if(seq->seq3 && seq->seq3->flag & SELECT) tot= 0;
+			if(seq->seq1 &&
+			   (seq->seq1->flag & SELECT)) tot= 0;
+			if(seq->seq2 &&
+			   (seq->seq2->flag & SELECT)) tot= 0;
+			if(seq->seq3 &&
+			   (seq->seq3->flag & SELECT)) tot= 0;
 		}
 		if(tot==0) break;
 		seq= seq->next;
