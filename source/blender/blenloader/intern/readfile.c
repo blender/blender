@@ -983,6 +983,8 @@ void blo_freefiledata(FileData *fd)
 			oldnewmap_free(fd->datamap);
 		if (fd->globmap)
 			oldnewmap_free(fd->globmap);
+		if (fd->imamap)
+			oldnewmap_free(fd->imamap);
 		if (fd->libmap && !(fd->flags & FD_FLAGS_NOT_MY_LIBMAP))
 			oldnewmap_free(fd->libmap);
 
@@ -1008,6 +1010,14 @@ static void *newglobadr(FileData *fd, void *adr)		/* direct datablocks with glob
 {
 	return oldnewmap_lookup_and_inc(fd->globmap, adr);
 }
+
+static void *newimaadr(FileData *fd, void *adr)		/* used to restore image data after undo */
+{
+	if(fd->imamap && adr)
+		return oldnewmap_lookup_and_inc(fd->imamap, adr);
+	return NULL;
+}
+
 
 static void *newlibadr(FileData *fd, void *lib, void *adr)		/* only lib data */
 {
@@ -1052,6 +1062,42 @@ static void change_idid_adr(ListBase *mainlist, FileData *basefd, void *old, voi
 		
 		if(fd) {
 			change_idid_adr_fd(fd, old, new);
+		}
+	}
+}
+
+/* assumed; G.main still exists */
+void blo_make_image_pointer_map(FileData *fd)
+{
+	Image *ima= G.main->image.first;
+	
+	fd->imamap= oldnewmap_new();
+	
+	for(;ima; ima= ima->id.next) {
+		if(ima->ibuf)
+			oldnewmap_insert(fd->imamap, ima->ibuf, ima->ibuf, 0);
+	}
+}
+
+/* set G.main image ibufs to zero if it has been restored */
+void blo_end_image_pointer_map(FileData *fd)
+{
+	OldNew *entry= fd->imamap->entries;
+	Image *ima= G.main->image.first;
+	int i;
+	
+	/* used entries were restored, so we put them to zero */
+	for (i=0; i<fd->imamap->nentries; i++, entry++) {
+	 	if (entry->nr>0)
+			entry->newp= NULL;
+	}
+	
+	for(;ima; ima= ima->id.next) {
+		if(ima->ibuf) {
+			ima->ibuf= newimaadr(fd, ima->ibuf);
+			/* this mirrors direct_link_image */
+			if(ima->ibuf==NULL)
+				ima->bindcode= 0;
 		}
 	}
 }
@@ -1977,12 +2023,16 @@ static void lib_link_image(FileData *fd, Main *main)
 
 static void direct_link_image(FileData *fd, Image *ima)
 {
-	ima->ibuf= NULL;
-	ima->anim= NULL;
+	/* for undo system, pointers could be restored */
+	ima->ibuf= newimaadr(fd, ima->ibuf);
+	/* if restored, we keep the binded opengl index */
+	if(ima->ibuf==NULL)
+		ima->bindcode= 0;
+	
 	memset(ima->mipmap, 0, sizeof(ima->mipmap));
-	ima->repbind= 0;
-	ima->bindcode= 0;
-
+	ima->anim= NULL;
+	ima->repbind= NULL;
+	
 	ima->packedfile = direct_link_packedfile(fd, ima->packedfile);
 	ima->preview = direct_link_preview_image(fd, ima->preview);
 	ima->ok= 1;

@@ -474,7 +474,7 @@ void free_realtime_image(Image *ima)
 		glDeleteTextures(ima->totbind, (GLuint *)ima->repbind);
 	
 		MEM_freeN(ima->repbind);
-		ima->repbind= 0;
+		ima->repbind= NULL;
 	}
 }
 

@@ -73,6 +73,7 @@ typedef struct FileData {
 	struct OldNewMap *datamap;
 	struct OldNewMap *globmap;
 	struct OldNewMap *libmap;
+	struct OldNewMap *imamap;
 	
 	ListBase mainlist;
 	
@@ -108,8 +109,10 @@ FileData *blo_openblenderfile( char *name, BlendReadError *error_r);
 FileData *blo_openblendermemory( void *buffer, int buffersize, BlendReadError *error_r);
 FileData *blo_openblendermemfile(struct MemFile *memfile, BlendReadError *error_r);
 
-void blo_freefiledata( FileData *fd);
+void blo_make_image_pointer_map(FileData *fd);
+void blo_end_image_pointer_map(FileData *fd);
 
+void blo_freefiledata( FileData *fd);
 
 BHead *blo_firstbhead(FileData *fd);
 BHead *blo_nextbhead(FileData *fd, BHead *thisblock);
