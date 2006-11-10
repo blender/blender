@@ -1982,7 +1982,7 @@ void make_meta(void)
 	Sequence *seq, *seqm, *next;
 	Editing *ed;
 	int tot;
-
+	
 	ed= G.scene->ed;
 	if(ed==0) return;
 
@@ -2008,15 +2008,17 @@ void make_meta(void)
 	while(seq) {
 		if(seq->flag & SELECT) {
 			if(seq->type & SEQ_EFFECT) {
-				if((seq->seq1->flag & SELECT)==0) tot= 0;
-				if((seq->seq2->flag & SELECT)==0) tot= 0;
-				if((seq->seq3->flag & SELECT)==0) tot= 0;
+				if((seq->seq1 && seq->seq1->flag & SELECT)==0) tot= 0;
+				if((seq->seq2 && seq->seq2->flag & SELECT)==0) tot= 0;
+				if((seq->seq3 && seq->seq3->flag & SELECT)==0) tot= 0;
 			}
 		}
 		else if(seq->type & SEQ_EFFECT) {
-			if(seq->seq1->flag & SELECT) tot= 0;
-			if(seq->seq2->flag & SELECT) tot= 0;
-			if(seq->seq3->flag & SELECT) tot= 0;
+			/* crash */
+		
+			if(seq->seq1 && seq->seq1->flag & SELECT) tot= 0;
+			if(seq->seq2 && seq->seq2->flag & SELECT) tot= 0;
+			if(seq->seq3 && seq->seq3->flag & SELECT) tot= 0;
 		}
 		if(tot==0) break;
 		seq= seq->next;
@@ -2047,7 +2049,6 @@ void make_meta(void)
 	seqm->strip->len= seqm->len;
 	seqm->strip->us= 1;
 	if(seqm->len) seqm->strip->stripdata= MEM_callocN(seqm->len*sizeof(StripElem), "metastripdata");
-
 	set_meta_stripdata(seqm);
 
 	BIF_undo_push("Make Meta Sequencer");
