@@ -1799,6 +1799,9 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem, Re
 	/* needed for projectvert */
 	MTC_Mat4MulMat4(winmat, vw->viewmat, vw->winmat);
 
+	/* for clipping... bad stuff actually */
+	R.clipcrop= 1.0f;
+	
 	zbuf_alloc_span(&zspan, vw->rectx, vw->recty);
 	zspan.zmulx=  ((float)vw->rectx)/2.0;
 	zspan.zmuly=  ((float)vw->recty)/2.0;
