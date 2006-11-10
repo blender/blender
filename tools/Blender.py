@@ -147,7 +147,7 @@ def setup_syslibs(lenv):
         syslibs += Split(lenv['BF_GETTEXT_LIB'])
     if lenv['WITH_BF_OPENAL']:
        syslibs += Split(lenv['BF_OPENAL_LIB'])
-    if lenv['OURPLATFORM']=='win32vc':
+    if lenv['WITH_BF_ICONV']:
         syslibs += Split(lenv['BF_ICONV_LIB'])
     if lenv['WITH_BF_OPENEXR']:
         syslibs += Split(lenv['BF_OPENEXR_LIB'])

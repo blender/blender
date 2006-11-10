@@ -368,6 +368,8 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
         dllsources += ['${LCGDIR}/pthreads/lib/pthreadGC2.dll']
     else:
         dllsources += ['${LCGDIR}/pthreads/lib/pthreadVC2.dll']
+    if env['WITH_BF_ICONV']:
+        dllsources += ['${LCGDIR}/iconv/lib/iconv.dll']
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
     allinstall += windlls
 
