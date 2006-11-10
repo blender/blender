@@ -236,7 +236,59 @@ def dictWeightFlipGroups(dict_weight, groupNames, createNewGroups):
 		new_wdict[flipname]= weight
 	
 	return new_wdict, groupNames
+
+
+def mesh2linkedFaces(me):
+	'''
+	Splits the mesh into connected parts,
+	these parts are returned as lists of faces.
+	used for seperating cubes from other mesh elements in the 1 mesh
+	'''
 	
+	# Build vert face connectivity
+	vert_faces= [[] for i in xrange(len(me.verts))]
+	for f in me.faces:
+		for v in f:
+			vert_faces[v.index].append(f)
+	
+	# sort faces into connectivity groups
+	face_groups= [[f] for f in me.faces]
+	face_mapping = range(len(me.faces)) # map old, new face location
+	
+	# Now clump faces iterativly
+	ok= True
+	while ok:
+		ok= False
+		
+		for i, f in enumerate(me.faces):
+			mapped_index= face_mapping[f.index]
+			mapped_group= face_groups[mapped_index]
+			
+			for v in f:
+				for nxt_f in vert_faces[v.index]:
+					if nxt_f != f:
+						nxt_mapped_index= face_mapping[nxt_f.index]
+						
+						# We are not a part of the same group
+						if mapped_index != nxt_mapped_index:
+							
+							ok= True
+							
+							# Assign mapping to this group so they all map to this group
+							for grp_f in face_groups[nxt_mapped_index]:
+								face_mapping[grp_f.index] = mapped_index
+							
+							# Move faces into this group
+							mapped_group.extend(face_groups[nxt_mapped_index])
+							
+							# remove reference to the list
+							face_groups[nxt_mapped_index]= None 
+						
+						
+	# return all face groups that are not null
+	# this is all the faces that are connected in their own lists.
+	return [fg for fg in face_groups if fg]
+
 
 def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=True, scn=None):
 	'''

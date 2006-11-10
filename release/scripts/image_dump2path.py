@@ -49,7 +49,7 @@ def makeUnique(path):
 	
 	i= 1
 	while sys.exists(path):
-		path = '%s_%.3d.%s' % (orig_path_noext, i, ext)
+		path = '%s_%.3d%s' % (orig_path_noext, i, ext)
 		i+= 1
 	
 	return path
@@ -72,6 +72,7 @@ def main():
 			continue
 		
 		if not sys.exists(filename):
+			#continue # ignore missing images.
 			image_missing.append(name)
 		
 		
