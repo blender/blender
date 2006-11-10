@@ -654,7 +654,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	time= PIL_check_seconds_timer();
 	prevmval[0]= mval[0];
 	prevmval[1]= mval[1];
-	s.blend = (td->Active == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
+	s.blend = (td && td->Active == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
 
 	imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
 
@@ -664,7 +664,7 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		if(td) {
 			td= get_tablet_data();
 			pressure= (td)? td->Pressure: 1.0f;
-			s.blend = (td->Active == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
+			s.blend = (td && td->Active == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
 		}
 		time= PIL_check_seconds_timer();
 
