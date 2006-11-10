@@ -84,7 +84,8 @@ typedef struct SoftBody {
 	float maxgoal;
 	float defgoal;		/* default goal for vertices without vgroup */
 	short vertgroup;	/* index starting at 1 */
-	short pad1;
+  
+	short fuzzyness;      /* */
 	
 	/* springs */
 	float inspring;		/* softbody inner springs */
@@ -93,7 +94,7 @@ typedef struct SoftBody {
 	/* baking */
 	int sfra, efra;
 	int interval;
-	short local, pad2;		/* local==1: use local coords for baking */
+	short local, solverflags;		/* local==1: use local coords for baking */
 	
 	SBVertex **keys;			/* array of size totpointkey */
 	int totpointkey, totkey;	/* if totpointkey != totpoint or totkey!- (efra-sfra)/interval -> free keys */
@@ -105,8 +106,13 @@ typedef struct SoftBody {
 	float ballstiff;	/* pressure the ball is loaded with  */
 	short sbc_mode;
     short aeroedge,
-		/* alias vg_ballsize, weight painting collision balls not implemented yet, but easy peasy to do */
-		pad4,pad5;     /* could be vg_balldamp,vg_ballstiff :) ahh, well vg_nodemass is missing too*/
+		minloops,
+		maxloops,
+		choke,
+		pad3,pad4,pad5
+		;   
+
+	struct SBScratch *scratch;	/* scratch pad/cache on live time not saved in file */
 
 } SoftBody;
 
@@ -133,9 +139,11 @@ typedef struct SoftBody {
 #define OB_SB_BAKEDO	128
 #define OB_SB_RESET		256
 #define OB_SB_SELF		512
-#define OB_SB_COLLISIONSET 1024
-#define OB_SB_EDGECOLL     2048
-#define OB_SB_COLLFINAL    4096
+#define OB_SB_FACECOLL  1024
+#define OB_SB_EDGECOLL  2048
+#define OB_SB_COLLFINAL 4096
+
+#define SBSO_MONITOR    1 
 
 #ifdef __cplusplus
 }
