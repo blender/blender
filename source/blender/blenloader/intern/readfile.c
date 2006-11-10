@@ -2835,8 +2835,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->sculptdata.vertex_users= NULL;
 	sce->sculptdata.texrndr= NULL;
 	sce->sculptdata.propset= 0;
-	sce->sculptdata.undo_cur= NULL;
-	sce->sculptdata.undo.first= sce->sculptdata.undo.last= NULL;
+	sce->sculptdata.undo= NULL;
 	/* SculptData textures */
 	for(a=0; a<MAX_MTEX; ++a)
 		sce->sculptdata.mtex[a]= newdataadr(fd,sce->sculptdata.mtex[a]);

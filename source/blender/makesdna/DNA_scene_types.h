@@ -396,8 +396,7 @@ typedef struct SculptData
 
 	struct PropsetData *propset_data;
 
-	struct ListBase undo;
-	struct SculptUndo *undo_cur;
+	struct SculptUndo *undo;
 
 	/* For rotating around a pivot point */
 	vec3f pivot;

@@ -49,7 +49,7 @@ void sculptmode_init(struct Scene *);
 void sculptmode_free_all(struct Scene *);
 
 /* Undo */
-void sculptmode_undo_push(char *str);
+void sculptmode_undo_push(char *str, int verts, int pmv, int fe);
 void sculptmode_undo();
 void sculptmode_redo();
 void sculptmode_undo_menu();
