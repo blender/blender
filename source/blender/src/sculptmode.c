@@ -1482,15 +1482,15 @@ void sculpt()
 				G.scene->sculptdata.pivot= unproject(mouse[0],mouse[1],e.grabdata->depth);
 				do_symmetrical_brush_actions(vertexcosnos,&e,&damaged_verts,&damaged_rects);
 			}
+			
+			if(modifier_calculations)
+				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 
 			if(modifier_calculations || sd->brush_type == GRAB_BRUSH) {
 				calc_damaged_verts(&damaged_verts,e.grabdata);
 
 				scrarea_do_windraw(curarea);
-				persp(PERSP_WIN);
-				fdrawXORcirc((float)mouse[0],(float)mouse[1],sculptmode_brush()->size);
 				screen_swapbuffers();
-				backdrawview3d(0);
 			} else {
 				calc_damaged_verts(&damaged_verts,e.grabdata);
 
