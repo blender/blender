@@ -1552,6 +1552,26 @@ static int viewpixel_to_lampbuf(ShadBuf *shb, VlakRen *vlr, float x, float y, fl
 	return 1;
 }
 
+/* storage of shadow results, solid osa and transp case */
+static void isb_add_shadfac(ISBShadfacA **isbsapp, MemArena *mem, int facenr, short shadfac, short samples)
+{
+	ISBShadfacA *new;
+	float shadfacf;
+	
+	/* in osa case, the samples were filled in with factor 1.0/R.osa. if fewer samples we have to correct */
+	if(R.osa)
+		shadfacf= ((float)shadfac*R.osa)/(4096.0*samples);
+	else
+		shadfacf= ((float)shadfac)/(4096.0);
+	
+	new= BLI_memarena_alloc(mem, sizeof(ISBShadfacA));
+	new->facenr= facenr & ~RE_QUAD_OFFS;
+	new->shadfac= shadfacf;
+	if(*isbsapp)
+		new->next= (*isbsapp);
+	
+	*isbsapp= new;
+}
 
 /* adding samples, solid case */
 static int isb_add_samples(RenderPart *pa, ISBBranch *root, MemArena *memarena, ISBSample **samplebuf)
@@ -1619,8 +1639,9 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 	for(sample=0; sample<(R.osa?R.osa:1); sample++)
 		samplebuf[sample]= MEM_callocN(sizeof(ISBSample)*pa->rectx*pa->recty, "isb samplebuf");
 	
-	/* end result, ISBSamples point to this */
-	isbdata->shadfacs= MEM_callocN(pa->rectx*pa->recty*sizeof(short), "isb shadfacs");
+	/* for end result, ISBSamples point to this in non OSA case, otherwise to pixstruct->shadfac */
+	if(R.osa==0)
+		isbdata->shadfacs= MEM_callocN(pa->rectx*pa->recty*sizeof(short), "isb shadfacs");
 	
 	/* setup bsp root */
 	memset(&root, 0, sizeof(ISBBranch));
@@ -1655,7 +1676,8 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 							/* convert image plane pixel location to lamp buffer space */
 							if(viewpixel_to_lampbuf(shb, vlr, xs + R.jit[sample][0], ys + R.jit[sample][1], samp->zco)) {
 								samp->facenr= ps->facenr & ~RE_QUAD_OFFS;
-								samp->shadfac= isbdata->shadfacs + sindex;
+								ps->shadfac= 0;
+								samp->shadfac= &ps->shadfac;
 								bound_rectf((rctf *)&root.box, samp->zco);
 							}
 						}
@@ -1694,11 +1716,32 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 			/* go over all faces and fill in shadow values */
 			
 			isb_bsp_fillfaces(&R, lar, &root);	/* shb->persmat should have been calculated */
+			
+			/* copy shadow samples to persistant buffer, reduce memory overhead */
+			if(R.osa) {
+				ISBShadfacA **isbsa= isbdata->shadfaca= MEM_callocN(pa->rectx*pa->recty*sizeof(void *), "isb shadfacs");
+				
+				isbdata->memarena = BLI_memarena_new(0x8000 * sizeof(ISBSampleA));
+				
+				for(rd= pa->rectdaps, x=pa->rectx*pa->recty; x>0; x--, rd++, isbsa++) {
+					
+					if(*rd) {
+						PixStr *ps= (PixStr *)(*rd);
+						while(ps) {
+							if(ps->shadfac)
+								isb_add_shadfac(isbsa, isbdata->memarena, ps->facenr, ps->shadfac, count_mask(ps->mask));
+							ps= ps->next;
+						}
+					}
+				}
+			}
 		}
 	}
 	else {
-		MEM_freeN(isbdata->shadfacs);
-		isbdata->shadfacs= NULL;
+		if(isbdata->shadfacs) {
+			MEM_freeN(isbdata->shadfacs);
+			isbdata->shadfacs= NULL;
+		}
 	}
 
 	/* free BSP */
@@ -1764,26 +1807,6 @@ static int isb_add_samples_transp(RenderPart *pa, ISBBranch *root, MemArena *mem
 	return bsp_err;
 }
 
-/* storage of shadow results, transparent case */
-static void isb_add_shadfac_transp(ISBShadfacA **isbsapp, MemArena *mem, int facenr, short shadfac, short samples)
-{
-	ISBShadfacA *new;
-	float shadfacf;
-	
-	/* in osa case, the samples were filled in with factor 1.0/R.osa. if fewer samples we have to correct */
-	if(R.osa)
-		shadfacf= ((float)shadfac*R.osa)/(4096.0*samples);
-	else
-		shadfacf= ((float)shadfac)/(4096.0);
-		
-	new= BLI_memarena_alloc(mem, sizeof(ISBShadfacA));
-	new->facenr= facenr & ~RE_QUAD_OFFS;
-	new->shadfac= shadfacf;
-	if(*isbsapp)
-		new->next= (*isbsapp);
-	
-	*isbsapp= new;
-}
 
 /* Ztransp version */
 /* lar->shb, pa->rectz and pa->rectp should exist */
@@ -1905,9 +1928,9 @@ static void isb_make_buffer_transp(RenderPart *pa, APixstr *apixbuf, LampRen *la
 						for(a=0; a<4; a++) {
 							if(apn->p[a] && apn->shadfac[a]) {
 								if(R.osa)
-									isb_add_shadfac_transp(isbsa, isbdata->memarena, apn->p[a], apn->shadfac[a], count_mask(apn->mask[a]));
+									isb_add_shadfac(isbsa, isbdata->memarena, apn->p[a], apn->shadfac[a], count_mask(apn->mask[a]));
 								else
-									isb_add_shadfac_transp(isbsa, isbdata->memarena, apn->p[a], apn->shadfac[a], 0);
+									isb_add_shadfac(isbsa, isbdata->memarena, apn->p[a], apn->shadfac[a], 0);
 							}
 						}
 					}

@@ -61,7 +61,8 @@ typedef struct PixStr
 {
 	struct PixStr *next;
 	int facenr, z;
-	unsigned short mask, amount;
+	unsigned short mask;
+	short shadfac;
 } PixStr;
 
 typedef struct PixStrMain
