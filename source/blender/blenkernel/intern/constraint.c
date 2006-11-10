@@ -1181,43 +1181,29 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 	case CONSTRAINT_TYPE_ROTLIKE:
 		{
 			bRotateLikeConstraint *data;
-			float	tmat[3][3];
+			float	loc[3];
+			float	eul[3], obeul[3];
 			float	size[3];
 			
 			data = constraint->data;
 			
 			/* old files stuff only... version patch is too much code! */
 			if(data->flag==0) data->flag = ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z;
-
+			
+			VECCOPY(loc, ob->obmat[3]);
 			Mat4ToSize(ob->obmat, size);
 			
-			Mat3CpyMat4 (tmat, targetmat);
-			Mat3Ortho(tmat);
+			Mat4ToEul(targetmat, eul);
+			Mat4ToEul(ob->obmat, obeul);
 			
 			if(data->flag != (ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z)) {
-				float obeul[3], eul[3], obmat[3][3];
-				
-				Mat3ToEul(tmat, eul);
-				Mat3CpyMat4(obmat, ob->obmat);
-				Mat3ToEul(obmat, obeul);
 				if(!(data->flag & ROTLIKE_X)) eul[0]= obeul[0];
 				if(!(data->flag & ROTLIKE_Y)) eul[1]= obeul[1];
 				if(!(data->flag & ROTLIKE_Z)) eul[2]= obeul[2];
 				compatible_eul(eul, obeul);
-				EulToMat3(eul, tmat);
 			}
 
-			ob->obmat[0][0] = tmat[0][0]*size[0];
-			ob->obmat[0][1] = tmat[0][1]*size[1];
-			ob->obmat[0][2] = tmat[0][2]*size[2];
-
-			ob->obmat[1][0] = tmat[1][0]*size[0];
-			ob->obmat[1][1] = tmat[1][1]*size[1];
-			ob->obmat[1][2] = tmat[1][2]*size[2];
-
-			ob->obmat[2][0] = tmat[2][0]*size[0];
-			ob->obmat[2][1] = tmat[2][1]*size[1];
-			ob->obmat[2][2] = tmat[2][2]*size[2];
+			LocEulSizeToMat4(ob->obmat, loc, eul, size);
 		}
 		break;
  	case CONSTRAINT_TYPE_SIZELIKE:
@@ -1909,17 +1895,16 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 	case CONSTRAINT_TYPE_ROTLIMIT:
 		{
 			bRotLimitConstraint *data;
-			float tmat[3][3];
+			float loc[3];
 			float eul[3];
 			float size[3];
 			
 			data = constraint->data;
 			
+			VECCOPY(loc, ob->obmat[3]);
 			Mat4ToSize(ob->obmat, size);
 			
-			Mat3CpyMat4(tmat, ob->obmat);
-			Mat3Ortho(tmat); 
-			Mat3ToEul(tmat, eul);
+			Mat4ToEul(ob->obmat, eul);
 			
 			/* eulers: radians to degrees! */
 			eul[0] = (eul[0] / M_PI * 180);
@@ -1954,19 +1939,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			eul[1] = (eul[1] / 180 * M_PI);
 			eul[2] = (eul[2] / 180 * M_PI);
 			
-			EulToMat3(eul, tmat);
-			
-			ob->obmat[0][0] = tmat[0][0]*size[0];
-			ob->obmat[0][1] = tmat[0][1]*size[1];
-			ob->obmat[0][2] = tmat[0][2]*size[2];
-
-			ob->obmat[1][0] = tmat[1][0]*size[0];
-			ob->obmat[1][1] = tmat[1][1]*size[1];
-			ob->obmat[1][2] = tmat[1][2]*size[2];
-
-			ob->obmat[2][0] = tmat[2][0]*size[0];
-			ob->obmat[2][1] = tmat[2][1]*size[1];
-			ob->obmat[2][2] = tmat[2][2]*size[2];
+			LocEulSizeToMat4(ob->obmat, loc, eul, size);
 		}
 		break;
 	case CONSTRAINT_TYPE_SIZELIMIT:
