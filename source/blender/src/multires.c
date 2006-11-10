@@ -534,11 +534,8 @@ void multires_make(void *ob, void *me_v)
 
 	/* Load dverts */
 	if(me->dvert) {
-		me->mr->dverts= MEM_dupallocN(me->dvert);
-		for(i=0; i<me->totvert; ++i) {
-			if(me->mr->dverts[i].dw)
-				me->mr->dverts[i].dw= MEM_dupallocN(me->mr->dverts[i].dw);
-		}
+		me->mr->dverts= MEM_mallocN(sizeof(MDeformVert)*me->totvert, "MDeformVert");
+		copy_dverts(me->mr->dverts, me->dvert, me->totvert);
 	}
 
 	multires_load_cols(me);
@@ -566,16 +563,10 @@ void multires_delete(void *ob, void *me_v)
 void multires_free(Mesh *me)
 {
 	if(me->mr) {
-		int i;
-
 		MultiresLevel* lvl= me->mr->levels.first;
 
 		/* Free the first-level data */
-		if(me->mr->dverts) {
-			for(i=0; lvl && i<lvl->totvert; ++i)
-				if(me->mr->dverts[i].dw) MEM_freeN(me->mr->dverts[i].dw);
-			MEM_freeN(me->mr->dverts);
-		}
+		free_dverts(me->mr->dverts, lvl->totvert);
 
 		while(lvl) {
 			multires_free_level(lvl);			
@@ -903,14 +894,8 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 	if(me->mvert) MEM_freeN(me->mvert);
 	if(me->mface) MEM_freeN(me->mface);
 	if(me->medge) MEM_freeN(me->medge);
-	if(me->dvert) {
-		for(i=0; i<me->totvert; ++i) {
-			if(me->dvert[i].dw)
-				MEM_freeN(me->dvert[i].dw);
-		}
-		MEM_freeN(me->dvert);
-	}
-
+	free_dverts(me->dvert, me->totvert);
+	
 	me->totvert= lvl->totvert;
 	me->totface= lvl->totface;
 	me->totedge= lvl->totedge;
@@ -936,11 +921,8 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 
 	/* Vertex groups */
 	if(me->mr->dverts && lvl==me->mr->levels.first) {
-		me->dvert= MEM_dupallocN(me->mr->dverts);
-		for(i=0; i<lvl->totvert; ++i) {
-			if(me->dvert[i].dw)
-				me->dvert[i].dw= MEM_dupallocN(me->dvert[i].dw);
-		}
+		me->dvert= MEM_mallocN(sizeof(MDeformVert)*me->totvert, "MDeformVert");
+		copy_dverts(me->dvert, me->mr->dverts, lvl->totvert);
 	} else if(me->mr->dverts) {
 		MultiresLevel *dlvl, *lvl1= me->mr->levels.first;
 		MDeformVert **lvl_dverts;
@@ -1130,16 +1112,11 @@ void multires_update_levels(Mesh *me)
 
 	/* Update special first-level data */
 	if(cr_lvl==me->mr->levels.first) {
-		if(me->mr->dverts) { /* First free the old dverts */
-			MEM_freeN(me->mr->dverts);
-			for(i=0; i<cr_lvl->totvert; ++i)
-				if(me->mr->dverts[i].dw) MEM_freeN(me->mr->dverts[i].dw);
-		}
-		
+		/* Update deformverts */
+		free_dverts(me->mr->dverts, cr_lvl->totvert);
 		if(me->dvert) {
-			me->mr->dverts= MEM_dupallocN(me->dvert);
-			for(i=0; i<cr_lvl->totvert; ++i)
-				if(me->mr->dverts[i].dw) me->mr->dverts[i].dw= MEM_dupallocN(me->mr->dverts[i].dw);
+			me->mr->dverts= MEM_mallocN(sizeof(MDeformVert)*me->totvert, "MDeformVert");
+			copy_dverts(me->mr->dverts, me->dvert, me->totvert);
 		}
 	}
 
