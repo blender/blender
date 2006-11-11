@@ -71,6 +71,7 @@ typedef struct TreeElement {
 #define TSE_VERSE_OBJ_NODE	16
 #define TSE_VERSE_GEOM_NODE	17
 /*#endif*/
+#define TSE_PROXY			18
 
 /* outliner search flags */
 #define OL_FIND					0

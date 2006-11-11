@@ -55,6 +55,8 @@ void free_object(struct Object *ob);
 void object_free_display(struct Object *ob);
 void object_free_modifiers(struct Object *ob);
 
+void object_make_proxy(struct Object *ob, struct Object *target);
+
 void unlink_object(struct Object *ob);
 int exist_object(struct Object *obtest);
 void *add_camera(void);

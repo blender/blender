@@ -710,6 +710,7 @@ static void write_pose(WriteData *wd, bPose *pose)
 	// Write channels
 	for (chan=pose->chanbase.first; chan; chan=chan->next) {
 		write_constraints(wd, &chan->constraints);
+		chan->selectflag= chan->bone->flag & (BONE_SELECTED|BONE_ACTIVE); // gets restored on read, for library armatures
 		writestruct(wd, DATA, "bPoseChannel", 1, chan);
 	}
 

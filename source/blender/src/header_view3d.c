@@ -59,6 +59,7 @@
 #include "DNA_text_types.h" /* for space handlers */
 #include "DNA_texture_types.h"
 
+#include "BKE_action.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
@@ -3521,6 +3522,8 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 
 static void do_view3d_pose_armature_transformmenu(void *arg, int event)
 {
+	Object *ob= OBACT;
+	
 	switch(event) {
 	case 0: /*	clear origin */
 		clear_object('o');
@@ -3534,6 +3537,11 @@ static void do_view3d_pose_armature_transformmenu(void *arg, int event)
 	case 3: /* clear location */
 		clear_object('g');
 		break;
+	case 4: /* clear pose */
+		rest_pose(ob->pose);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		BIF_undo_push("Clear Pose");
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3546,6 +3554,8 @@ static uiBlock *view3d_pose_armature_transformmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_pose_armature_transformmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_pose_armature_transformmenu, NULL);
 	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Pose|W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Location|Alt G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Rotation|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Scale|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");

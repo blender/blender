@@ -55,6 +55,7 @@ void set_slowparent(void);
 void make_vertex_parent(void);
 int test_parent_loop(struct Object *par, struct Object *ob);
 void make_parent(void);
+void make_proxy(void);
 
 #define EM_WAITCURSOR	(1 << 0)
 #define EM_FREEDATA 	(1 << 1)

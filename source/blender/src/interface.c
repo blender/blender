@@ -1419,6 +1419,7 @@ static void ui_is_but_sel(uiBut *but)
 		case TOG:
 		case TOGR:
 		case TOG3:
+		case BUT_TOGDUAL:
 		case ICONTOG:
 			if(value!=but->min) push= 1;
 			break;
@@ -1501,11 +1502,19 @@ static int ui_do_but_KEYEVT(uiBut *but)
 	return (event!=0);
 }
 
-static int ui_do_but_TOG(uiBlock *block, uiBut *but)
+static int ui_do_but_TOG(uiBlock *block, uiBut *but, int qual)
 {
 	uiBut *bt;
 	double value;
 	int w, lvalue, push;
+	
+	/* local hack... */
+	if(but->type==BUT_TOGDUAL && qual) {
+		if(but->pointype==SHO)
+			but->poin += 2;
+		else if(but->pointype==INT)
+			but->poin += 4;
+	}
 	
 	value= ui_get_but_val(but);
 	lvalue= (int)value;
@@ -1534,6 +1543,7 @@ static int ui_do_but_TOG(uiBlock *block, uiBut *but)
 				if(lvalue==0) lvalue= 1<<(but->bitnr);
 			}
 		}
+		
 		ui_set_but_val(but, (double)lvalue);
 		if(but->type==ICONTOG) ui_check_but(but);
 		// no frontbuffer draw for this one
@@ -1549,6 +1559,14 @@ static int ui_do_but_TOG(uiBlock *block, uiBut *but)
 		if(but->type==ICONTOG) ui_check_but(but);		
 		// no frontbuffer draw for this one
 		if((but->flag & UI_NO_HILITE)==0) ui_draw_but(but);
+	}
+	
+	/* end local hack... */
+	if(but->type==BUT_TOGDUAL && qual) {
+		if(but->pointype==SHO)
+			but->poin -= 2;
+		else if(but->pointype==INT)
+			but->poin -= 2;
 	}
 	
 	/* no while loop...this button is used for viewmove */
@@ -3817,8 +3835,9 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 	case TOGR: 
 	case ICONTOG: 
 	case TOGN:
+	case BUT_TOGDUAL:
 		if(uevent->val) {
-			retval= ui_do_but_TOG(block, but);
+			retval= ui_do_but_TOG(block, but, uevent->qual);
 		}
 		break;
 		
@@ -5483,6 +5502,7 @@ static int ui_auto_themecol(uiBut *but)
 	case TOG3:
 	case TOGR:
 	case TOGN:
+	case BUT_TOGDUAL:
 		return TH_BUT_SETTING;
 	case SLI:
 	case NUM:

@@ -466,6 +466,11 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 		dag_add_relation(dag,node2,node,DAG_RL_OB_OB);
 		addtoroot = 0;
 	}
+	if (ob->id.lib==NULL && ob->proxy) {
+		node2 = dag_get_node(dag, ob->proxy);
+		dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA|DAG_RL_OB_OB);
+		/* inverted relation, so addtoroot shouldn't be set to zero */
+	}
 	
 	if (ob->transflag & OB_DUPLI) {
 		if((ob->transflag & OB_DUPLIGROUP) && ob->dup_group) {
@@ -588,6 +593,8 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 		ob= base->object;
 		
 		build_dag_object(dag, scenenode, ob, mask);
+		if(ob->proxy)
+			build_dag_object(dag, scenenode, ob->proxy, mask);
 		
 		/* handled in next loop */
 		if(ob->dup_group) 

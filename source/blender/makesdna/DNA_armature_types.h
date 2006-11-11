@@ -76,8 +76,10 @@ typedef struct bArmature {
 	ListBase	chainbase;
 	int			flag;
 	int			drawtype;			
-	short		deformflag, layer;
+	short		deformflag, pad1;
+	short		layer, layer_protected;		/* for buttons to work, both variables in this order together */
 	short		ghostep, ghostsize;
+	int			pad2;
 }bArmature;
 
 /* armature->flag */

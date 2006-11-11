@@ -964,6 +964,50 @@ void where_is_armature (bArmature *arm)
 	}
 }
 
+/* if bone layer is protected, copy the data from proxy->pose */
+static void pose_proxy_synchronize(Object *ob, Object *proxy, int layer_protected)
+{
+	bPose *pose= ob->pose, *proxypose= proxy->pose;
+	bPoseChannel *pchan, *pchanp, pchanw;
+	bConstraint *con;
+	char *str;
+	
+	if(proxypose==NULL) return;
+	
+	/* clear all transformation values from library */
+	rest_pose(proxypose);
+	
+	pchan= pose->chanbase.first;
+	pchanp= proxypose->chanbase.first;
+	for(; pchan && pchanp; pchan= pchan->next, pchanp= pchanp->next) {
+		if(pchan->bone->layer & layer_protected) {
+			
+			/* copy posechannel to temp, but restore important pointers */
+			pchanw= *pchanp;
+			pchanw.prev= pchan->prev;
+			pchanw.next= pchan->next;
+			pchanw.parent= pchan->parent;
+			pchanw.child= pchan->child;
+			pchanw.path= NULL;
+			
+			/* constraints, set target ob pointer to own object */
+			copy_constraints(&pchanw.constraints, &pchanp->constraints);
+
+			for(con= pchanw.constraints.first; con; con= con->next) {
+				if(proxy==get_constraint_target(con, &str))
+					set_constraint_target(con, ob, NULL);
+			}
+			
+			/* free stuff from current channel */
+			if(pchan->path) MEM_freeN(pchan->path);
+			free_constraints(&pchan->constraints);
+			
+			/* the final copy */
+			*pchan= pchanw;
+		}
+	}
+}
+
 static int rebuild_pose_bone(bPose *pose, Bone *bone, bPoseChannel *parchan, int counter)
 {
 	bPoseChannel *pchan = verify_pose_channel (pose, bone->name);   // verify checks and/or adds
@@ -983,7 +1027,7 @@ static int rebuild_pose_bone(bPose *pose, Bone *bone, bPoseChannel *parchan, int
 	return counter;
 }
 
-/* only after leave editmode, duplicating, but also for validating older files */
+/* only after leave editmode, duplicating, validating older files, library syncing */
 /* NOTE: pose->flag is set for it */
 void armature_rebuild_pose(Object *ob, bArmature *arm)
 {
@@ -1018,6 +1062,10 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 		}
 	}
 //	printf("rebuild pose %s, %d bones\n", ob->id.name, counter);
+	
+	/* synchronize protected layers with proxy */
+	if(ob->id.lib==NULL && ob->proxy)
+		pose_proxy_synchronize(ob, ob->proxy, arm->layer_protected);
 	
 	update_pose_constraint_flags(ob->pose); // for IK detection for example
 	

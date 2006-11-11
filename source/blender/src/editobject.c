@@ -1239,6 +1239,44 @@ void make_vertex_parent(void)
 	/* BIF_undo_push(str); not, conflicts with editmode undo... */
 }
 
+/* adds empty object to become local replacement data of a library-linked object */
+void make_proxy(void)
+{
+	Object *ob= OBACT;
+	
+	if(G.scene->id.lib) return;
+	if(ob==NULL) return;
+	
+	if(ob->id.lib==NULL) {
+		error("Can not make proxy for non-linked object");
+	}
+	else if(okee("Make Proxy Object")) {
+		Object *newob;
+		Base *newbase, *oldbase= BASACT;
+		char name[32];
+		
+		newob= add_object(OB_EMPTY);
+		strcpy(name, ob->id.name+2);
+		strcat(name, "_proxy");
+		rename_id(&newob->id, name);
+		
+		/* set layers OK */
+		newbase= BASACT;	/* add_object sets active... */
+		newbase->lay= oldbase->lay;
+		newob->lay= newbase->lay;
+		
+		/* remove base, leave user count of object, it gets linked in object_make_proxy */
+		BLI_remlink(&G.scene->base, oldbase);
+		MEM_freeN(oldbase);
+		
+		object_make_proxy(newob, ob);
+		
+		DAG_scene_sort(G.scene);
+		allqueue(REDRAWALL, 0);
+		BIF_undo_push("Make Proxy Object");
+	}
+}
+
 int test_parent_loop(Object *par, Object *ob)
 {
 	/* test if 'ob' is a parent somewhere in par's parents */

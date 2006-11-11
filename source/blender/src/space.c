@@ -1783,6 +1783,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if(G.qual==LR_ALTKEY)
 					clear_parent();
+				else if(G.qual==(LR_ALTKEY|LR_CTRLKEY))
+					make_proxy();
 				else if((G.qual==0) && (OBACT) && (OBACT->type==OB_ARMATURE) && (OBACT->flag & OB_POSEMODE))
 					select_bone_parent();
 				else if((G.qual==0)) {

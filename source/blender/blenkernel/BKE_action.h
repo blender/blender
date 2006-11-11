@@ -139,6 +139,11 @@ struct bAction *bake_obIPO_to_action(struct Object *ob);
 void blend_poses(struct bPose *dst, struct bPose *src, float srcweight, short mode);
 void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
 
+/* for proxy */
+void copy_pose_result(struct bPose *to, struct bPose *from);
+/* clear all transforms */
+void rest_pose(struct bPose *pose);
+
 /* map global time (frame nr) to strip converted time, doesn't clip */
 float get_action_frame(struct Object *ob, float cframe);
 /* map strip time to global time (frame nr)  */

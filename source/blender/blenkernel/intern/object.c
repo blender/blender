@@ -111,7 +111,7 @@
 #include "BPY_extern.h"
 
 /* Local function protos */
-static void solve_parenting (Object *ob, Object *par, float slowmat[][4], int simul);
+static void solve_parenting (Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul);
 
 float originmat[3][3];	/* after where_is_object(), can be used in other functions (bad!) */
 Object workob;
@@ -269,7 +269,11 @@ void unlink_object(Object *ob)
 	/* check all objects: parents en bevels and fields */
 	obt= G.main->object.first;
 	while(obt) {
-		if(obt->id.lib==NULL) {
+		if(obt->id.lib) {
+			if(obt->proxy==ob)
+				obt->proxy= NULL;
+		}
+		else  {
 			
 			if(obt->parent==ob) {
 				obt->parent= NULL;
@@ -859,6 +863,23 @@ SoftBody *copy_softbody(SoftBody *sb)
 	return sbn;
 }
 
+static void copy_object_pose(Object *obn, Object *ob)
+{
+	bPoseChannel *chan;
+	
+	copy_pose(&obn->pose, ob->pose, 1);
+
+	for (chan = obn->pose->chanbase.first; chan; chan=chan->next){
+		bConstraint *con;
+		char *str;
+		chan->flag &= ~(POSE_LOC|POSE_ROT|POSE_SIZE);
+		for(con= chan->constraints.first; con; con= con->next) {
+			if(ob==get_constraint_target(con, &str))
+				set_constraint_target(con, obn, NULL);
+		}
+	}
+}
+
 Object *copy_object(Object *ob)
 {
 	Object *obn;
@@ -872,7 +893,8 @@ Object *copy_object(Object *ob)
 	}
 	
 	if(ob->bb) obn->bb= MEM_dupallocN(ob->bb);
-	obn->path= 0;
+	obn->path= NULL;
+	obn->proxy= NULL;
 	obn->flag &= ~OB_FROMGROUP;
 	
 	copy_effects(&obn->effect, &ob->effect);
@@ -894,7 +916,7 @@ Object *copy_object(Object *ob)
 	copy_actuators(&obn->actuators, &ob->actuators);
 	
 	if(ob->pose) {
-		copy_pose(&obn->pose, ob->pose, 1);
+		copy_object_pose(obn, ob);
 		/* backwards compat... non-armatures can get poses in older files? */
 		if(ob->type==OB_ARMATURE)
 			armature_rebuild_pose(obn, obn->data);
@@ -968,9 +990,11 @@ void make_local_object(Object *ob)
 	    * - mixed: make copy
 	    */
 	
-	if(ob->id.lib==0) return;
+	if(ob->id.lib==NULL) return;
+	if(ob->proxy) return;
+	
 	if(ob->id.us==1) {
-		ob->id.lib= 0;
+		ob->id.lib= NULL;
 		ob->id.flag= LIB_LOCAL;
 		new_id(0, (ID *)ob, 0);
 
@@ -1019,6 +1043,48 @@ void make_local_object(Object *ob)
 	
 	expand_local_object(ob);
 }
+
+/* *************** PROXY **************** */
+
+/* proxy rule: lib_object->proxy == the one we borrow from, set temporally while object_update */
+/*             local_object->proxy == pointer to library object, saved in files and read */
+
+void object_make_proxy(Object *ob, Object *target)
+{
+	/* paranoia checks */
+	if(ob->id.lib || target->id.lib==NULL) {
+		printf("cannot make proxy\n");
+		return;
+	}
+	
+	ob->proxy= target;
+	target->proxy= ob;
+	
+	ob->recalc= target->recalc= OB_RECALC;
+	
+	/* copy transform */
+	VECCOPY(ob->loc, target->loc);
+	VECCOPY(ob->rot, target->rot);
+	VECCOPY(ob->size, target->size);
+	
+	ob->parent= target->parent;	/* libdata */
+	Mat4CpyMat4(ob->parentinv, target->parentinv);
+	ob->ipo= target->ipo;		/* libdata */
+	
+	/* skip constraints, constraintchannels, nla? */
+	
+	ob->type= target->type;
+	ob->data= target->data;
+	id_us_plus((ID *)ob->data);		/* ensures lib data becomes LIB_EXTERN */
+	
+	/* type conversions */
+	if(target->type == OB_ARMATURE) {
+		copy_object_pose(ob, target);	/* data copy, object pointers in constraints */
+		rest_pose(ob->pose);			/* clear all transforms in channels */
+		armature_rebuild_pose(ob, ob->data);	/* set all internal links */
+	}
+}
+
 
 /* *************** CALC ****************** */
 
@@ -1380,7 +1446,6 @@ int during_scriptlink(void) {
 
 void where_is_object_time(Object *ob, float ctime)
 {
-	Object *par;
 	float *fp1, *fp2, slowmat[4][4] = MAT4_UNITY;
 	float stime, fac1, fac2, vec[3];
 	int a;
@@ -1395,6 +1460,7 @@ void where_is_object_time(Object *ob, float ctime)
 	/* this is needed to be able to grab objects with ipos, otherwise it always freezes them */
 	stime= bsystem_time(ob, 0, ctime, 0.0);
 	if(stime != ob->ctime) {
+		
 		ob->ctime= stime;
 		
 		if(ob->ipo) {
@@ -1413,8 +1479,8 @@ void where_is_object_time(Object *ob, float ctime)
 	}
 	
 	if(ob->parent) {
-		par= ob->parent;
-
+		Object *par= ob->parent;
+		
 		if(ob->ipoflag & OB_OFFS_PARENT) ctime-= ob->sf;
 		
 		/* hurms, code below conflicts with depgraph... (ton) */
@@ -1426,10 +1492,11 @@ void where_is_object_time(Object *ob, float ctime)
 			pushdata(par, sizeof(Object));
 			pop= 1;
 			
-			where_is_object_time(par, ctime);
+			if(par->id.lib && par->proxy);	// was a copied matrix, no where_is! bad...
+			else where_is_object_time(par, ctime);
 		}
 		
-		solve_parenting(ob, par, slowmat, 0);
+		solve_parenting(ob, par, ob->obmat, slowmat, 0);
 
 		if(pop) {
 			poplast(par);
@@ -1474,17 +1541,17 @@ void where_is_object_time(Object *ob, float ctime)
 	else ob->transflag &= ~OB_NEG_SCALE;
 }
 
-static void solve_parenting (Object *ob, Object *par, float slowmat[][4], int simul)
+static void solve_parenting (Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul)
 {
 	float totmat[4][4];
 	float tmat[4][4];
-	float obmat[4][4];
+	float locmat[4][4];
 	float vec[3];
 	int ok;
 
-	object_to_mat4(ob, obmat);
+	object_to_mat4(ob, locmat);
 	
-	if(ob->partype & PARSLOW) Mat4CpyMat4(slowmat, ob->obmat);
+	if(ob->partype & PARSLOW) Mat4CpyMat4(slowmat, obmat);
 	
 
 	switch(ob->partype & PARTYPE) {
@@ -1533,10 +1600,10 @@ static void solve_parenting (Object *ob, Object *par, float slowmat[][4], int si
 	// total 
 	Mat4MulSerie(tmat, totmat, ob->parentinv,         
 		NULL, NULL, NULL, NULL, NULL, NULL);
-	Mat4MulSerie(ob->obmat, tmat, obmat,         
+	Mat4MulSerie(obmat, tmat, locmat,         
 		NULL, NULL, NULL, NULL, NULL, NULL);
 	
-	if (simul){
+	if (simul) {
 
 	}
 	else{
@@ -1609,7 +1676,7 @@ for a lamp that is the child of another object */
 	if(ob->parent) {
 		par= ob->parent;
 		
-		solve_parenting(ob, par, slowmat, 1);
+		solve_parenting(ob, par, ob->obmat, slowmat, 1);
 
 		if(ob->partype & PARSLOW) {
 
@@ -1883,17 +1950,26 @@ void minmax_object(Object *ob, float *min, float *max)
 	}
 }
 
+/* proxy rule: lib_object->proxy == the one we borrow from, set on read */
+/*             local_object->proxy == pointer to library object, saved in files and read */
+
+
 /* the main object update call, for object matrix, constraints, keys and displist (modifiers) */
 /* requires flags to be set! */
 void object_handle_update(Object *ob)
 {
 	if(ob->recalc & OB_RECALC) {
 		
-		if(ob->recalc & OB_RECALC_OB) where_is_object(ob);
+		if(ob->recalc & OB_RECALC_OB) {
+			if(ob->id.lib && ob->proxy)
+				Mat4CpyMat4(ob->obmat, ob->proxy->obmat);
+			else
+				where_is_object(ob);
+		}
 		
 		if(ob->recalc & OB_RECALC_DATA) {
 			
-//			printf("recalcdata %s\n", ob->id.name+2);
+			// printf("recalcdata %s\n", ob->id.name+2);
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
@@ -1909,14 +1985,22 @@ void object_handle_update(Object *ob)
 				lattice_calc_modifiers(ob);
 			}
 			else if(ob->type==OB_ARMATURE) {
-				/* this actually only happens for reading old files... */
+				/* this happens for reading old files and to match library armatures with poses */
 				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
 					armature_rebuild_pose(ob, ob->data);
-				do_all_pose_actions(ob);
-				where_is_pose(ob);
+				
+				if(ob->id.lib && ob->proxy)
+					copy_pose_result(ob->pose, ob->proxy->pose);
+				else {
+					do_all_pose_actions(ob);
+					where_is_pose(ob);
+				}
 			}
 		}
 	
+		if(ob->id.lib==NULL && ob->proxy)
+			object_handle_update(ob->proxy);
+		
 		ob->recalc &= ~OB_RECALC;
 	}
 }

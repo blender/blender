@@ -432,6 +432,9 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			{
 				Object *ob= (Object *)id;
 				
+				if(ob->proxy && ob->id.lib==NULL)
+					outliner_add_element(soops, &te->subtree, ob->proxy, te, TSE_PROXY, 0);
+				
 				outliner_add_element(soops, &te->subtree, ob->data, te, 0, 0);
 				
 				if(ob->pose) {
@@ -566,7 +569,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				
 				if(ob->dup_group)
 					outliner_add_element(soops, &te->subtree, ob->dup_group, te, 0, 0);
-				
+
 				if(ob->nlastrips.first) {
 					bActionStrip *strip;
 					TreeElement *ten;
@@ -2628,6 +2631,8 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				BIF_icon_draw(x, y, ICON_ARMATURE_DEHLT); break;
 			case TSE_POSE_CHANNEL:
 				BIF_icon_draw(x, y, ICON_WPAINT_DEHLT); break;
+			case TSE_PROXY:
+				BIF_icon_draw(x, y, ICON_GHOST); break;
 #ifdef WITH_VERSE
 			case ID_VS:
 			case ID_MS:

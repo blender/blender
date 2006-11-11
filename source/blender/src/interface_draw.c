@@ -1507,6 +1507,18 @@ static void ui_draw_text_icon(uiBut *but)
 				}
 			}
 		}
+		
+		if(but->type==BUT_TOGDUAL) {
+			int dualset= 0;
+			if(but->pointype==SHO)
+				dualset= BTST( *(((short *)but->poin)+1), but->bitnr);
+			else if(but->pointype==INT)
+				dualset= BTST( *(((int *)but->poin)+1), but->bitnr);
+			if(dualset) {
+				ui_draw_icon(but, ICON_DOT);
+			}
+		}
+		
 		if(but->drawstr[0]!=0) {
 			int transopts;
 			int tog3= 0;

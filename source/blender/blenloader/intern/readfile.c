@@ -1589,18 +1589,29 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 {
 	bPoseChannel *pchan;
 	bArmature *arm= ob->data;
-	int rebuild= 0;
+	int rebuild;
+	
 	if (!pose || !arm)
 		return;
+	/* always rebuild to match lib changes */
+	rebuild= (ob->id.lib==NULL && arm->id.lib);
 
 	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
 		lib_link_constraints(fd, (ID *)ob, &pchan->constraints);
-		// hurms... loop in a loop, but yah... later... (ton)
+		
+		/* hurms... loop in a loop, but yah... later... (ton) */
 		pchan->bone= get_named_bone(arm, pchan->name);
+		
 		pchan->custom= newlibadr(fd, arm->id.lib, pchan->custom);
 		if(pchan->bone==NULL)
 			rebuild= 1;
+		else if(ob->id.lib==NULL && arm->id.lib) {
+			/* local pose selection copied to armature, bit hackish */
+			pchan->bone->flag &= ~(BONE_SELECTED|BONE_ACTIVE);
+			pchan->bone->flag |= pchan->selectflag;
+		}
 	}
+	
 	if(rebuild) {
 		ob->recalc= OB_RECALC;
 		pose->flag |= POSE_RECALC;
@@ -2407,7 +2418,19 @@ static void lib_link_object(FileData *fd, Main *main)
 			ob->ipo= newlibadr_us(fd, ob->id.lib, ob->ipo);
 			ob->action = newlibadr_us(fd, ob->id.lib, ob->action);
 			ob->dup_group= newlibadr_us(fd, ob->id.lib, ob->dup_group);
-			
+			if(ob->id.lib) {
+				/* no proxy in library data, is default local data */
+				ob->proxy= NULL; ob->proxy_group= NULL;
+			}
+			else {
+				ob->proxy= newlibadr_us(fd, ob->id.lib, ob->proxy);
+				if(ob->proxy) {
+					ob->proxy->proxy= ob;
+					/* force proxy updates after load/undo, a bit weak */
+					ob->recalc= ob->proxy->recalc= OB_RECALC;
+				}
+				ob->proxy_group= newlibadr_us(fd, ob->id.lib, ob->proxy_group);
+			}			
 			poin= ob->data;
 			ob->data= newlibadr_us(fd, ob->id.lib, ob->data);
 			   

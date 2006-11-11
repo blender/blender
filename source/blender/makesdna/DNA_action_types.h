@@ -49,8 +49,8 @@ typedef struct bPoseChannel {
 	short				flag;		/* dynamic, for detecting transform changes */
 	short				constflag;  /* for quick detecting which constraints affect this channel */
 	short				ikflag;		/* settings for IK bones */
-	short                           pad1;
-	int				pathlen;	/* for drawing paths, the amount of frames */
+	short               selectflag;	/* copy of bone flag, so you can work with library armatures */
+	int				    pathlen;	/* for drawing paths, the amount of frames */
 	short				protectflag;/* protect channels from being transformed */
 	short				pad2;
 	

@@ -163,6 +163,7 @@ struct ScrArea;
 #define BUT_COLORBAND (30<<9)
 #define BUT_NORMAL (31<<9)
 #define BUT_CURVE (32<<9)
+#define BUT_TOGDUAL (33<<9)
 
 #define BUTTYPE	(63<<9)
 

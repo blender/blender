@@ -696,8 +696,8 @@ void extract_pose_from_action(bPose *pose, bAction *act, float ctime)
 	pose->ctime= ctime;	/* used for cyclic offset matching */
 }
 
-/* for do_all_pose_actions, clears the pose */
-static void rest_pose(bPose *pose)
+/* for do_all_pose_actions, clears the pose. Now also exported for proxy and tools */
+void rest_pose(bPose *pose)
 {
 	bPoseChannel *pchan;
 	int i;
@@ -717,6 +717,27 @@ static void rest_pose(bPose *pose)
 		pchan->quat[0]= 1.0f;
 		
 		pchan->flag &= ~(POSE_LOC|POSE_ROT|POSE_SIZE);
+	}
+}
+
+/* both poses should be in sync */
+void copy_pose_result(bPose *to, bPose *from)
+{
+	bPoseChannel *pchanto, *pchanfrom;
+	
+	if(to==NULL || from==NULL) {
+		printf("pose result copy error\n"); // debug temp
+		return;
+	}
+
+	pchanto= to->chanbase.first;
+	pchanfrom= from->chanbase.first;
+	for(; pchanto && pchanfrom; pchanto= pchanto->next, pchanfrom= pchanfrom->next) {
+		Mat4CpyMat4(pchanto->pose_mat, pchanfrom->pose_mat);
+		Mat4CpyMat4(pchanto->chan_mat, pchanfrom->chan_mat);
+		VECCOPY(pchanto->pose_head, pchanfrom->pose_head);
+		VECCOPY(pchanto->pose_tail, pchanfrom->pose_tail);
+		pchanto->flag= pchanfrom->flag;
 	}
 }
 

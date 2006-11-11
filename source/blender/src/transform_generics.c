@@ -322,21 +322,23 @@ void recalcData(TransInfo *t)
 	}
 	else {
 		for(base= FIRSTBASE; base; base= base->next) {
+			Object *ob= base->object;
+			
 			/* this flag is from depgraph, was stored in nitialize phase, handled in drawview.c */
 			if(base->flag & BA_HAS_RECALC_OB)
-				base->object->recalc |= OB_RECALC_OB;
+				ob->recalc |= OB_RECALC_OB;
 			if(base->flag & BA_HAS_RECALC_DATA)
-				base->object->recalc |= OB_RECALC_DATA;
+				ob->recalc |= OB_RECALC_DATA;
 			
 			/* thanks to ob->ctime usage, ipos are not called in where_is_object,
 			   unless we edit ipokeys */
 			if(base->flag & BA_DO_IPO) {
-				if(base->object->ipo) {
+				if(ob->ipo) {
 					IpoCurve *icu;
 					
-					base->object->ctime= -1234567.0;
+					ob->ctime= -1234567.0;
 					
-					icu= base->object->ipo->curve.first;
+					icu= ob->ipo->curve.first;
 					while(icu) {
 						calchandles_ipocurve(icu);
 						icu= icu->next;
@@ -345,10 +347,14 @@ void recalcData(TransInfo *t)
 			}
 			
 			/* softbody exception */
-			if(modifiers_isSoftbodyEnabled(base->object)) {
-				if(base->object->recalc & OB_RECALC_DATA)
-					base->object->softflag |= OB_SB_REDO;
+			if(modifiers_isSoftbodyEnabled(ob)) {
+				if(ob->recalc & OB_RECALC_DATA)
+					ob->softflag |= OB_SB_REDO;
 			}
+			
+			/* proxy exception */
+			if(ob->proxy)
+				ob->proxy->recalc |= ob->recalc;
 		} 
 	}
 
