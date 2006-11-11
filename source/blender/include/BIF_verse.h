@@ -83,7 +83,7 @@ struct VNode *create_geom_vnode_data_from_mesh(struct VerseSession *session, str
 void destroy_unused_geometry(struct VNode *vnode);
 void destroy_binding_between_versemesh_and_editmesh(struct VNode *vnode);
 
-void destroy_verse_mesh(struct VNode *vnode);
+void destroy_versemesh(struct VNode *vnode);
 
 void unsubscribe_from_geom_node(struct VNode *vnode);
 

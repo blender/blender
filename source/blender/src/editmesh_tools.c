@@ -66,6 +66,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BLI_heap.h"
 
 #include "BKE_depsgraph.h"
+#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
@@ -163,41 +164,16 @@ void convert_to_triface(int direction)
 				fac= VecLenf(efa->v1->co, efa->v3->co) - VecLenf(efa->v2->co, efa->v4->co);
 				/* this makes sure exact squares get split different in both cases */
 				if( (direction==0 && fac<FLT_EPSILON) || (direction && fac>0.0f) ) {
-					
-					efan= addfacelist(efa->v1, efa->v2, efa->v3, 0, efa, NULL);
+					efan= EM_face_from_faces(efa, NULL, 0, 1, 2, -1);
 					if(efa->f & SELECT) EM_select_face(efan, 1);
-					efan= addfacelist(efa->v1, efa->v3, efa->v4, 0, efa, NULL);
+					efan= EM_face_from_faces(efa, NULL, 0, 2, 3, -1);
 					if(efa->f & SELECT) EM_select_face(efan, 1);
-
-					efan->tf.uv[1][0]= efan->tf.uv[2][0];
-					efan->tf.uv[1][1]= efan->tf.uv[2][1];
-					efan->tf.uv[2][0]= efan->tf.uv[3][0];
-					efan->tf.uv[2][1]= efan->tf.uv[3][1];
-					
-					efan->tf.col[1]= efan->tf.col[2];
-					efan->tf.col[2]= efan->tf.col[3];
 				}
 				else {
-					efan= addfacelist(efa->v1, efa->v2, efa->v4, 0, efa, NULL);
+					efan= EM_face_from_faces(efa, NULL, 0, 1, 3, -1);
 					if(efa->f & SELECT) EM_select_face(efan, 1);
-					
-					efan->tf.uv[2][0]= efan->tf.uv[3][0];
-					efan->tf.uv[2][1]= efan->tf.uv[3][1];
-					efan->tf.col[2]= efan->tf.col[3];
-					
-					efan= addfacelist(efa->v2, efa->v3, efa->v4, 0, efa, NULL);
+					efan= EM_face_from_faces(efa, NULL, 1, 2, 3, -1);
 					if(efa->f & SELECT) EM_select_face(efan, 1);
-					
-					efan->tf.uv[0][0]= efan->tf.uv[1][0];
-					efan->tf.uv[0][1]= efan->tf.uv[1][1];
-					efan->tf.uv[1][0]= efan->tf.uv[2][0];
-					efan->tf.uv[1][1]= efan->tf.uv[2][1];
-					efan->tf.uv[2][0]= efan->tf.uv[3][0];
-					efan->tf.uv[2][1]= efan->tf.uv[3][1];
-					
-					efan->tf.col[0]= efan->tf.col[1];
-					efan->tf.col[1]= efan->tf.col[2];
-					efan->tf.col[2]= efan->tf.col[3];
 				}
 				
 				BLI_remlink(&em->faces, efa);
@@ -216,7 +192,6 @@ void convert_to_triface(int direction)
 	BIF_undo_push("Convert Quads to Triangles");
 	
 }
-
 
 int removedoublesflag(short flag, float limit)		/* return amount */
 {
@@ -395,15 +370,11 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 				if(efa->v4) {
 					if(test==1 || test==2) {
 						efa->v2= efa->v3;
-						efa->tf.uv[1][0] = efa->tf.uv[2][0];
-						efa->tf.uv[1][1] = efa->tf.uv[2][1];
-						efa->tf.col[1] = efa->tf.col[2];
-						
 						efa->v3= efa->v4;
-						efa->tf.uv[2][0] = efa->tf.uv[3][0];
-						efa->tf.uv[2][1] = efa->tf.uv[3][1];
-						efa->tf.col[2] = efa->tf.col[3];
 						efa->v4= 0;
+
+						EM_interp_from_faces(efa, NULL, efa, 0, 2, 3, 3);
+
 						test= 0;
 					}
 					else if(test==8 || test==16) {
@@ -1424,21 +1395,21 @@ static void facecopy(EditFace *source, EditFace *target)
 {
 	float *v1 = source->v1->co, *v2 = source->v2->co, *v3 = source->v3->co;
 	float *v4 = source->v4? source->v4->co: NULL;
+	float w[4][4];
 
-	interp_uv_vcol(v1, v2, v3, v4, target->v1->co, &source->tf, &target->tf, 0);
-	interp_uv_vcol(v1, v2, v3, v4, target->v2->co, &source->tf, &target->tf, 1);
-	interp_uv_vcol(v1, v2, v3, v4, target->v3->co, &source->tf, &target->tf, 2);
+	CustomData_em_copy_data(&G.editMesh->fdata, source->data, &target->data);
+
+	target->mat_nr = source->mat_nr;
+	target->flag   = source->flag;	
+
+	InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v1->co, w[0]);
+	InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v2->co, w[1]);
+	InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v3->co, w[2]);
 	if (target->v4)
-		interp_uv_vcol(v1, v2, v3, v4, target->v4->co, &source->tf, &target->tf, 3);
-
-	target->mat_nr	 = source->mat_nr;
-	target->tf.flag	= source->tf.flag&~TF_ACTIVE;
-	target->tf.transp  = source->tf.transp;
-	target->tf.mode	= source->tf.mode;
-	target->tf.tile	= source->tf.tile;
-	target->tf.unwrap  = source->tf.unwrap;
-	target->tf.tpage   = source->tf.tpage;
-	target->flag	   = source->flag;	
+		InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v4->co, w[3]);
+	
+	CustomData_em_interp(&G.editMesh->fdata, &source->data, NULL,
+	                     (float*)w, 1, target->data);
 }
 
 static void fill_quad_single(EditFace *efa, struct GHash *gh, int numcuts, int seltype)
@@ -1972,7 +1943,7 @@ static void fill_tri_double(EditFace *efa, struct GHash *gh, int numcuts)
 
 static void fill_quad_triple(EditFace *efa, struct GHash *gh, int numcuts)
 {
-	EditEdge *cedge[3];
+	EditEdge *cedge[3]={0};
 	EditVert *v[4], **verts[3];
 	EditFace *hold;
 	short start=0, start2=0, start3=0, vertsize, i, repeats;
@@ -2924,99 +2895,47 @@ static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
 #define VTEST(face, num, other) \
 	(face->v##num != other->v1 && face->v##num != other->v2 && face->v##num != other->v3) 
 
-static void givequadverts(EditFace *efa, EditFace *efa1, EditVert **v1, EditVert **v2, EditVert **v3, EditVert **v4, float **uv, unsigned int *col)
+static void givequadverts(EditFace *efa, EditFace *efa1, EditVert **v1, EditVert **v2, EditVert **v3, EditVert **v4, int *vindex)
 {
 	if VTEST(efa, 1, efa1) {
-	//if(efa->v1!=efa1->v1 && efa->v1!=efa1->v2 && efa->v1!=efa1->v3) {
 		*v1= efa->v1;
 		*v2= efa->v2;
-		uv[0] = efa->tf.uv[0];
-		uv[1] = efa->tf.uv[1];
-		col[0] = efa->tf.col[0];
-		col[1] = efa->tf.col[1];
+		vindex[0]= 0;
+		vindex[1]= 1;
 	}
 	else if VTEST(efa, 2, efa1) {
-	//else if(efa->v2!=efa1->v1 && efa->v2!=efa1->v2 && efa->v2!=efa1->v3) {
 		*v1= efa->v2;
 		*v2= efa->v3;
-		uv[0] = efa->tf.uv[1];
-		uv[1] = efa->tf.uv[2];
-		col[0] = efa->tf.col[1];
-		col[1] = efa->tf.col[2];
+		vindex[0]= 1;
+		vindex[1]= 2;
 	}
 	else if VTEST(efa, 3, efa1) {
-	// else if(efa->v3!=efa1->v1 && efa->v3!=efa1->v2 && efa->v3!=efa1->v3) {
 		*v1= efa->v3;
 		*v2= efa->v1;
-		uv[0] = efa->tf.uv[2];
-		uv[1] = efa->tf.uv[0];
-		col[0] = efa->tf.col[2];
-		col[1] = efa->tf.col[0];
+		vindex[0]= 2;
+		vindex[1]= 0;
 	}
 	
 	if VTEST(efa1, 1, efa) {
-	// if(efa1->v1!=efa->v1 && efa1->v1!=efa->v2 && efa1->v1!=efa->v3) {
 		*v3= efa1->v1;
-		uv[2] = efa1->tf.uv[0];
-		col[2] = efa1->tf.col[0];
-
 		*v4= efa1->v2;
-		uv[3] = efa1->tf.uv[1];
-		col[3] = efa1->tf.col[1];
-/*
-if(efa1->v2== *v2) {
-			*v4= efa1->v3;
-			uv[3] = efa1->tf.uv[2];
-		} else {
-			*v4= efa1->v2;
-			uv[3] = efa1->tf.uv[1];
-		}	
-		*/
+		vindex[2]= 0;
+		vindex[3]= 1;
 	}
 	else if VTEST(efa1, 2, efa) {
-	// else if(efa1->v2!=efa->v1 && efa1->v2!=efa->v2 && efa1->v2!=efa->v3) {
 		*v3= efa1->v2;
-		uv[2] = efa1->tf.uv[1];
-		col[2] = efa1->tf.col[1];
-
 		*v4= efa1->v3;
-		uv[3] = efa1->tf.uv[2];
-		col[3] = efa1->tf.col[2];
-/*
-if(efa1->v3== *v2) {
-			*v4= efa1->v1;
-			uv[3] = efa1->tf.uv[0];
-		} else {	
-			*v4= efa1->v3;
-			uv[3] = efa1->tf.uv[2];
-		}	
-		*/
+		vindex[2]= 1;
+		vindex[3]= 2;
 	}
 	else if VTEST(efa1, 3, efa) {
-	// else if(efa1->v3!=efa->v1 && efa1->v3!=efa->v2 && efa1->v3!=efa->v3) {
 		*v3= efa1->v3;
-		uv[2] = efa1->tf.uv[2];
-		col[2] = efa1->tf.col[2];
-
 		*v4= efa1->v1;
-		uv[3] = efa1->tf.uv[0];
-		col[3] = efa1->tf.col[0];
-/*
-if(efa1->v1== *v2) {
-			*v4= efa1->v2;
-			uv[3] = efa1->tf.uv[3];
-		} else {	
-			*v4= efa1->v1;
-			uv[3] = efa1->tf.uv[0];
-		}	
-		*/
+		vindex[2]= 2;
+		vindex[3]= 0;
 	}
-	else {
+	else
 		*v3= *v4= NULL;
-		
-		return;
-	}
-	
 }
 
 /* Helper functions for edge/quad edit features*/
@@ -3071,10 +2990,8 @@ void beauty_fill(void)
 	// void **efaar, **efaa;
 	EVPTuple *efaar;
 	EVPtr *efaa;
-	float *uv[4];
-	unsigned int col[4];
 	float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
-	int totedge, ok, notbeauty=8, onedone;
+	int totedge, ok, notbeauty=8, onedone, vindex[4];
 
 	/* - all selected edges with two faces
 		* - find the faces: store them in edges (using datablock)
@@ -3121,7 +3038,7 @@ void beauty_fill(void)
 				
 				if(ok) {
 					/* test convex */
-					givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, uv, col);
+					givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, vindex);
 					if(v1 && v2 && v3 && v4) {
 						if( convex(v1->co, v2->co, v3->co, v4->co) ) {
 
@@ -3174,22 +3091,14 @@ void beauty_fill(void)
 									efa= efaa[1];
 									efa->f1= 1;
 
-									w= addfacelist(v1, v2, v3, 0, efa, NULL);
-									w->f |= SELECT;
-									
-									UVCOPY(w->tf.uv[0], uv[0]);
-									UVCOPY(w->tf.uv[1], uv[1]);
-									UVCOPY(w->tf.uv[2], uv[2]);
-
-									w->tf.col[0] = col[0]; w->tf.col[1] = col[1]; w->tf.col[2] = col[2];
-									w= addfacelist(v1, v3, v4, 0, efa, NULL);
+									w= EM_face_from_faces(efaa[0], efaa[1],
+										vindex[0], vindex[1], 4+vindex[2], -1);
 									w->f |= SELECT;
 
-									UVCOPY(w->tf.uv[0], uv[0]);
-									UVCOPY(w->tf.uv[1], uv[2]);
-									UVCOPY(w->tf.uv[2], uv[3]);
 
-									w->tf.col[0] = col[0]; w->tf.col[1] = col[2]; w->tf.col[2] = col[3];
+									w= EM_face_from_faces(efaa[0], efaa[1],
+										vindex[0], 4+vindex[2], 4+vindex[3], -1);
+									w->f |= SELECT;
 
 									onedone= 1;
 								}
@@ -3202,19 +3111,15 @@ void beauty_fill(void)
 									efa= efaa[1];
 									efa->f1= 1;
 
-									w= addfacelist(v2, v3, v4, 0, efa, NULL);
+
+									w= EM_face_from_faces(efaa[0], efaa[1],
+										vindex[1], 4+vindex[2], 4+vindex[3], -1);
 									w->f |= SELECT;
 
-									UVCOPY(w->tf.uv[0], uv[1]);
-									UVCOPY(w->tf.uv[1], uv[3]);
-									UVCOPY(w->tf.uv[2], uv[4]);
 
-									w= addfacelist(v1, v2, v4, 0, efa, NULL);
+									w= EM_face_from_faces(efaa[0], efaa[1],
+										vindex[0], 4+vindex[1], 4+vindex[3], -1);
 									w->f |= SELECT;
-
-									UVCOPY(w->tf.uv[0], uv[0]);
-									UVCOPY(w->tf.uv[1], uv[1]);
-									UVCOPY(w->tf.uv[2], uv[3]);
 
 									onedone= 1;
 								}
@@ -3414,10 +3319,15 @@ static int compareFaceUV(EditFace *f1, EditFace *f2)
 {
 	EditVert **faceVert1, **faceVert2, *faceVerts1[5], *faceVerts2[5];
 	int i1, i2;
+	TFace *tf1, *tf2;
+
+	tf1 = CustomData_em_get(&G.editMesh->fdata, f1->data, LAYERTYPE_TFACE);
+	tf2 = CustomData_em_get(&G.editMesh->fdata, f2->data, LAYERTYPE_TFACE);
 	
-	if(f1->tf.tpage == NULL && f2->tf.tpage == NULL)
+	if(tf1 == NULL || tf2 == NULL) return 1;
+	else if(tf1->tpage == NULL && tf2->tpage == NULL)
 		return 1;
-	else if(f1->tf.tpage != f2->tf.tpage)
+	else if(tf1->tpage != tf2->tpage)
 		return 0;
 
 	FILL_FACEVERTS(f1, faceVerts1);
@@ -3430,7 +3340,7 @@ static int compareFaceUV(EditFace *f1, EditFace *f2)
 		i2 = 0;
 		while(*faceVert2){
 			if( *faceVert1 == *faceVert2){
-				if(!compare2(f1->tf.uv[i1], f2->tf.uv[i2], UV_LIMIT))
+				if(!compare2(tf1->uv[i1], tf2->uv[i2], UV_LIMIT))
 					return 0;
 			}
 			i2++;
@@ -3447,6 +3357,18 @@ static int compareFaceCol(EditFace *f1, EditFace *f2)
 {
 	EditVert **faceVert1, **faceVert2, *faceVerts1[5], *faceVerts2[5];
 	int i1, i2;
+	TFace *tf1, *tf2;
+	unsigned int *col1, *col2;
+
+	tf1 = CustomData_em_get(&G.editMesh->fdata, f1->data, LAYERTYPE_TFACE);
+	tf2 = CustomData_em_get(&G.editMesh->fdata, f2->data, LAYERTYPE_TFACE);
+
+	if(tf1) col1 = tf1->col;
+	else col1 = CustomData_em_get(&G.editMesh->fdata, f1->data, LAYERTYPE_MCOL);
+	if(tf2) col2 = tf2->col;
+	else col2 = CustomData_em_get(&G.editMesh->fdata, f2->data, LAYERTYPE_MCOL);
+
+	if(!col1 || !col2) return 1;
 	
 	FILL_FACEVERTS(f1, faceVerts1);
 	FILL_FACEVERTS(f2, faceVerts2);
@@ -3458,7 +3380,7 @@ static int compareFaceCol(EditFace *f1, EditFace *f2)
 		i2 = 0;
 		while(*faceVert2){
 			if( *faceVert1 == *faceVert2){
-				if(!compare3(f1->tf.col[i1], f2->tf.col[i2], COL_LIMIT))
+				if(!compare3(col1[i1], col2[i2], COL_LIMIT))
 					return 0;
 			}
 			i2++;
@@ -3475,7 +3397,6 @@ static void meshJoinFaces(EditEdge *joined)
 	FacePairL *fpl = joined->tmp.p;
 	EditFace *face1, *face2, *efa;
 	EditVert *v1free, *v2free;
-	int i;
 	
 	face1 = fpl->face1;
 	face2 = fpl->face2;
@@ -3490,75 +3411,12 @@ static void meshJoinFaces(EditEdge *joined)
 	face2->v2->f1 = 1;
 	face2->v3->f1 = 2;
 	
-switch(v1free->f1){
-		case 0:
-			i = 2;
-			break;
-		case 1:
-			i = 3;
-			break;
-		case 2:
-			i = 1;
-			break;
-	}
-
-	switch(i){
-		case 2:
-			/*this is really lazy...*/
-			efa = addfacelist(face1->v1, face1->v2, v2free, face1->v3, face1, NULL);
-			efa->tf.uv[0][0] = face1->tf.uv[0][0];
-			efa->tf.uv[0][1] = face1->tf.uv[0][1];
-			efa->tf.col[0] = face1->tf.col[0];
-			
-			efa->tf.uv[1][0] = face1->tf.uv[1][0];
-			efa->tf.uv[1][1] = face1->tf.uv[1][1];
-			efa->tf.col[1] = face1->tf.col[1];
-			
-			efa->tf.uv[2][0] = face2->tf.uv[v2free->f1][0];
-			efa->tf.uv[2][1] = face2->tf.uv[v2free->f1][1];
-			efa->tf.col[2] = face2->tf.col[v2free->f1];
-			
-			efa->tf.uv[3][0] = face1->tf.uv[2][0];
-			efa->tf.uv[3][1] = face1->tf.uv[2][1];
-			efa->tf.col[3] = face1->tf.col[2];
-			break;
-		case 3:
-			efa = addfacelist(face1->v1, face1->v2, face1->v3, v2free, face1, NULL);
-			efa->tf.uv[0][0] = face1->tf.uv[0][0];
-			efa->tf.uv[0][1] = face1->tf.uv[0][1];
-			efa->tf.col[0] = face1->tf.col[0];
-			
-			efa->tf.uv[1][0] = face1->tf.uv[1][0];
-			efa->tf.uv[1][1] = face1->tf.uv[1][1];
-			efa->tf.col[1] = face1->tf.col[1];
-			
-			efa->tf.uv[2][0] = face1->tf.uv[2][0];
-			efa->tf.uv[2][1] = face1->tf.uv[2][1];
-			efa->tf.col[2] = face1->tf.col[2];
-			
-			efa->tf.uv[3][0] = face2->tf.uv[v2free->f1][0];
-			efa->tf.uv[3][1] = face2->tf.uv[v2free->f1][1];
-			efa->tf.col[3] = face1->tf.col[v2free->f1];
-			break;
-		case 1:
-			efa = addfacelist(face1->v1, v2free, face1->v2, face1->v3, face1, NULL);
-			efa->tf.uv[0][0] = face1->tf.uv[0][0];
-			efa->tf.uv[0][1] = face1->tf.uv[0][1];
-			efa->tf.col[0] = face1->tf.col[0];
-			
-			efa->tf.uv[1][0] = face2->tf.uv[v2free->f1][0];
-			efa->tf.uv[1][1] = face2->tf.uv[v2free->f1][1];
-			efa->tf.col[1] = face2->tf.col[v2free->f1];
-			
-			efa->tf.uv[2][0] = face1->tf.uv[1][0];
-			efa->tf.uv[2][1] = face1->tf.uv[1][1];
-			efa->tf.col[2] = face1->tf.col[1];
-			
-			efa->tf.uv[3][0] = face1->tf.uv[2][0];
-			efa->tf.uv[3][1] = face1->tf.uv[2][1];
-			efa->tf.col[3] = face1->tf.col[2];
-			break;
-	}
+	if(v1free->f1 == 0)
+		efa= EM_face_from_faces(face1, face2, 0, 1, 4+v2free->f1, 2);
+	else if(v1free->f1 == 1)
+		efa= EM_face_from_faces(face1, face2, 0, 1, 2, 4+v2free->f1);
+	else /* if(v1free->f1 == 2) */
+		efa= EM_face_from_faces(face1, face2, 0, 4+v2free->f1, 1, 2);
 	
 	EM_select_face(efa,1);
 	/*flag for removal*/
@@ -3771,11 +3629,7 @@ void edge_flip(void)
 	//void **efaar, **efaa;
 	EVPTuple *efaar;
 	EVPtr *efaa;
-
-	float *uv[4];
-	unsigned int col[4];
-
-	int totedge, ok;
+	int totedge, ok, vindex[4];
 	
 	/* - all selected edges with two faces
 	 * - find the faces: store them in edges (using datablock)
@@ -3812,7 +3666,7 @@ void edge_flip(void)
 			
 			if(ok) {
 				/* test convex */
-				givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, uv, col);
+				givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, vindex);
 
 /*
 		4-----3		4-----3
@@ -3827,27 +3681,19 @@ void edge_flip(void)
 				if (v1 && v2 && v3) {
 					if( convex(v1->co, v2->co, v3->co, v4->co) ) {
 						if(exist_face(v1, v2, v3, v4)==0) {
-							w = addfacelist(v1, v2, v3, 0, efaa[1], NULL); /* outch this may break seams */ 
+							/* outch this may break seams */ 
+							w= EM_face_from_faces(efaa[0], efaa[1], vindex[0],
+								vindex[1], 4+vindex[2], -1);
+
 							EM_select_face(w, 1);
 							untag_edges(w);
 
-							UVCOPY(w->tf.uv[0], uv[0]);
-							UVCOPY(w->tf.uv[1], uv[1]);
-							UVCOPY(w->tf.uv[2], uv[2]);
+							/* outch this may break seams */
+							w= EM_face_from_faces(efaa[0], efaa[1], vindex[0],
+								4+vindex[2], 4+vindex[3], -1);
 
-							w->tf.col[0] = col[0]; w->tf.col[1] = col[1]; w->tf.col[2] = col[2]; 
-							
-							w = addfacelist(v1, v3, v4, 0, efaa[1], NULL); /* outch this may break seams */
 							EM_select_face(w, 1);
 							untag_edges(w);
-
-							UVCOPY(w->tf.uv[0], uv[0]);
-							UVCOPY(w->tf.uv[1], uv[2]);
-							UVCOPY(w->tf.uv[2], uv[3]);
-
-							w->tf.col[0] = col[0]; w->tf.col[1] = col[2]; w->tf.col[2] = col[3]; 
-							
-							/* erase old faces and edge */
 						}
 						/* tag as to-be-removed */
 						FACE_MARKCLEAR(efaa[1]);
@@ -3880,326 +3726,153 @@ void edge_flip(void)
 static void edge_rotate(EditEdge *eed,int dir)
 {
 	EditMesh *em = G.editMesh;
+	EditVert **verts[2];
 	EditFace *face[2], *efa, *newFace[2];
-	EditVert *faces[2][4],*v1,*v2,*v3,*v4,*vtemp;
-	EditEdge *srchedge = NULL;
-	short facecount=0, p1=0,p2=0,p3=0,p4=0,fac1=4,fac2=4,i,j,numhidden;
-	EditEdge **hiddenedges;
+	EditEdge **edges[2], **hiddenedges, *srchedge;
+	int facecount, p1, p2, p3, p4, fac1, fac2, i, j;
+	int numhidden, numshared, p[2][4];
 	
 	/* check to make sure that the edge is only part of 2 faces */
+	facecount = 0;
 	for(efa = em->faces.first;efa;efa = efa->next) {
 		if((efa->e1 == eed || efa->e2 == eed) || (efa->e3 == eed || efa->e4 == eed)) {
-			if(facecount == 2) {
+			if(facecount >= 2) {
+				/* more than two faces with this edge */
 				return;
 			}
-			if(facecount < 2)
+			else {
 				face[facecount] = efa;
-			facecount++;
+				facecount++;
+			}
 		}
 	}
  
-	if(facecount < 2) {
+	if(facecount < 2)
 		return;
-	}
 
 	/* how many edges does each face have */
- 	if(face[0]->e4 == NULL)
-		fac1=3;
-	else
-		fac1=4;
-	if(face[1]->e4 == NULL)
-		fac2=3;
-	else
-		fac2=4;
+ 	if(face[0]->e4) fac1= 4;
+	else fac1= 3;
+
+	if(face[1]->e4) fac2= 4;
+	else fac2= 3;
 	
-	/*store the face info in a handy array */			
-	faces[0][0] =  face[0]->v1;
-	faces[0][1] =  face[0]->v2;
-	faces[0][2] =  face[0]->v3;
-	if(face[0]->e4 != NULL)
-		faces[0][3] =  face[0]->v4;
-	else
-		faces[0][3] = NULL;
-			
-	faces[1][0] =  face[1]->v1;
-	faces[1][1] =  face[1]->v2;
-	faces[1][2] =  face[1]->v3;
-	if(face[1]->e4 != NULL)
-		faces[1][3] =  face[1]->v4;
-	else
-		faces[1][3] = NULL;
-	
+	/* make a handy array for verts and edges */
+	verts[0]= &face[0]->v1;
+	edges[0]= &face[0]->e1;
+	verts[1]= &face[1]->v1;
+	edges[1]= &face[1]->e1;
 
 	/* we don't want to rotate edges between faces that share more than one edge */
-	
-	j=0;
-	if(face[0]->e1 == face[1]->e1 ||
-	   face[0]->e1 == face[1]->e2 ||
-	   face[0]->e1 == face[1]->e3 ||
-	   ((face[1]->e4) && face[0]->e1 == face[1]->e4) )
-	   j++;
-	   
-	if(face[0]->e2 == face[1]->e1 ||
-	   face[0]->e2 == face[1]->e2 ||
-	   face[0]->e2 == face[1]->e3 ||
-	   ((face[1]->e4) && face[0]->e2 == face[1]->e4) )
-	   j++;
-	   
-	if(face[0]->e3 == face[1]->e1 ||
-	   face[0]->e3 == face[1]->e2 ||
-	   face[0]->e3 == face[1]->e3 ||
-	   ((face[1]->e4) && face[0]->e3 == face[1]->e4) )
-	   j++;	   
+	numshared= 0;
+	for(i=0; i<fac1; i++)
+		for(j=0; j<fac2; j++)
+			if (edges[0][i] == edges[1][j])
+				numshared++;
 
-	if(face[0]->e4) {
-		if(face[0]->e4 == face[1]->e1 ||
-		   face[0]->e4 == face[1]->e2 ||
-		   face[0]->e4 == face[1]->e3 ||
-		   ((face[1]->e4) && face[0]->e4 == face[1]->e4) )
-			   j++;	
-	 }	   	   
-	if(j > 1) {
+	if(numshared > 1)
 		return;
-	}
 	
-	/* Coplaner Faces Only Please */
-	if(Inpf(face[0]->n,face[1]->n) <= 0.000001) {	
+	/* coplaner faces only please */
+	if(Inpf(face[0]->n,face[1]->n) <= 0.000001)
 		return;
+	
+	/* we want to construct an array of vertex indicis in both faces, starting at
+	   the last vertex of the edge being rotated.
+	   - first we find the two vertices that lie on the rotating edge
+	   - then we make sure they are ordered according to the face vertex order
+	   - and then we construct the array */
+	p1= p2= p3= p4= 0;
+
+	for(i=0; i<4; i++) {
+		if(eed->v1 == verts[0][i]) p1 = i;
+		if(eed->v2 == verts[0][i]) p2 = i;
+		if(eed->v1 == verts[1][i]) p3 = i;
+		if(eed->v2 == verts[1][i]) p4 = i;
 	}
 	
-	/*get the edges verts */
-	v1 = eed->v1;
-	v2 = eed->v2;
-	v3 = eed->v1;
-	v4 = eed->v2;
-
-	/*figure out where the edges verts lie one the 2 faces */
-	for(i=0;i<4;i++) {
-		if(v1 == faces[0][i])
-			p1 = i;
-		if(v2 == faces[0][i])
-			p2 = i;
-		if(v1 == faces[1][i])
-			p3 = i;
-		if(v2 == faces[1][i])
-			p4 = i;
-	}
+	if((p1+1)%fac1 == p2)
+		SWAP(int, p1, p2);
+	if((p3+1)%fac2 == p4)
+		SWAP(int, p3, p4);
 	
-	/*make sure the verts are in the correct order */
-	if((p1+1)%fac1 == p2) {
-		vtemp = v2;
-		v2 = v1;
-		v1 = vtemp;
-		
-		i = p1;
-		p1 = p2;
-		p2 = i;
+	for (i = 0; i < 4; i++) {
+		p[0][i]= (p1 + i)%fac1;
+		p[1][i]= (p3 + i)%fac2;
 	}
-	if((p3+1)%fac2 == p4) {
-		vtemp = v4;
-		v4 = v3;
-		v3 = vtemp;
-		
-		i = p3;
-		p3 = p4;
-		p4 = i;	
-	}	
 
-
-	/* Create an Array of the Edges who have h set prior to rotate */
+	/* create an Array of the Edges who have h set prior to rotate */
 	numhidden = 0;
-	for(srchedge = em->edges.first;srchedge;srchedge = srchedge->next) {
-		if(srchedge->h && (srchedge->v1->f & SELECT || srchedge->v2->f & SELECT)) {
+	for(srchedge = em->edges.first;srchedge;srchedge = srchedge->next)
+		if(srchedge->h && ((srchedge->v1->f & SELECT) || (srchedge->v2->f & SELECT)))
 			numhidden++;
-		}
-	}
-	hiddenedges = MEM_mallocN(sizeof(EditVert*)*numhidden+1,"Hidden Vert Scratch Array for Rotate Edges");
+
+	hiddenedges = MEM_mallocN(sizeof(EditVert*)*numhidden+1, "RotateEdgeHiddenVerts");
 	if(!hiddenedges) {
         error("Malloc Was not happy!");
         return;   
     }
+
     numhidden = 0;
-	for(srchedge = em->edges.first;srchedge;srchedge = srchedge->next) {
-		if(srchedge->h && (srchedge->v1->f & SELECT || srchedge->v2->f & SELECT)) {
-			hiddenedges[numhidden] = srchedge;
-			numhidden++;
-		}
-	}	
-							
-	/* create the 2 new faces */   								
+	for(srchedge=em->edges.first; srchedge; srchedge=srchedge->next)
+		if(srchedge->h && (srchedge->v1->f & SELECT || srchedge->v2->f & SELECT))
+			hiddenedges[numhidden++] = srchedge;
+
+	/* create the 2 new faces */
 	if(fac1 == 3 && fac2 == 3) {
-		/*No need of reverse setup*/
-		newFace[0] = addfacelist(faces[0][(p1+1 )%3],faces[0][(p1+2 )%3],faces[1][(p3+1 )%3],NULL,NULL,NULL);
-		newFace[1] = addfacelist(faces[1][(p3+1 )%3],faces[1][(p3+2 )%3],faces[0][(p1+1 )%3],NULL,NULL,NULL);
-	
-		newFace[0]->tf.col[0] = face[0]->tf.col[(p1+1 )%3];
-		newFace[0]->tf.col[1] = face[0]->tf.col[(p1+2 )%3];
-		newFace[0]->tf.col[2] = face[1]->tf.col[(p3+1 )%3];
-		newFace[1]->tf.col[0] = face[1]->tf.col[(p3+1 )%3];
-		newFace[1]->tf.col[1] = face[1]->tf.col[(p3+2 )%3];
-		newFace[1]->tf.col[2] =	face[0]->tf.col[(p1+1 )%3];
-	
-		UVCOPY(newFace[0]->tf.uv[0],face[0]->tf.uv[(p1+1 )%3]);
-		UVCOPY(newFace[0]->tf.uv[1],face[0]->tf.uv[(p1+2 )%3]);	
-		UVCOPY(newFace[0]->tf.uv[2],face[1]->tf.uv[(p3+1 )%3]);
-		UVCOPY(newFace[1]->tf.uv[0],face[1]->tf.uv[(p3+1 )%3]);
-		UVCOPY(newFace[1]->tf.uv[1],face[1]->tf.uv[(p3+2 )%3]);
-		UVCOPY(newFace[1]->tf.uv[2],face[0]->tf.uv[(p1+1 )%3]);
+		/* no need of reverse setup */
+
+		newFace[0]= EM_face_from_faces(face[0], face[1], p[0][1], p[0][2], 4+p[1][1], -1);
+		newFace[1]= EM_face_from_faces(face[1], face[0], p[1][1], p[1][2], 4+p[0][1], -1);
 	}
 	else if(fac1 == 4 && fac2 == 3) {
 		if(dir == 1) {
-			newFace[0] = addfacelist(faces[0][(p1+1 )%4],faces[0][(p1+2 )%4],faces[0][(p1+3 )%4],faces[1][(p3+1 )%3],NULL,NULL);
-			newFace[1] = addfacelist(faces[1][(p3+1 )%3],faces[1][(p3+2 )%3],faces[0][(p1+1 )%4],NULL,NULL,NULL);
-	
-			newFace[0]->tf.col[0] = face[0]->tf.col[(p1+1 )%4];
-			newFace[0]->tf.col[1] = face[0]->tf.col[(p1+2 )%4];
-			newFace[0]->tf.col[2] = face[0]->tf.col[(p1+3 )%4];
-			newFace[0]->tf.col[3] = face[1]->tf.col[(p3+1 )%3];
-			newFace[1]->tf.col[0] = face[1]->tf.col[(p3+1 )%3];
-			newFace[1]->tf.col[1] = face[1]->tf.col[(p3+2 )%3];
-			newFace[1]->tf.col[2] =	face[0]->tf.col[(p1+1 )%4];
-	
-			UVCOPY(newFace[0]->tf.uv[0],face[0]->tf.uv[(p1+1 )%4]);
-			UVCOPY(newFace[0]->tf.uv[1],face[0]->tf.uv[(p1+2 )%4]);	
-			UVCOPY(newFace[0]->tf.uv[2],face[0]->tf.uv[(p1+3 )%4]);		
-			UVCOPY(newFace[0]->tf.uv[3],face[1]->tf.uv[(p3+1 )%3]);
-			UVCOPY(newFace[1]->tf.uv[0],face[1]->tf.uv[(p3+1 )%3]);
-			UVCOPY(newFace[1]->tf.uv[1],face[1]->tf.uv[(p3+2 )%3]);
-			UVCOPY(newFace[1]->tf.uv[2],face[0]->tf.uv[(p1+1 )%4]);	
+			newFace[0]= EM_face_from_faces(face[0], face[1], p[0][1], p[0][2], p[0][3], 4+p[1][1]);
+			newFace[1]= EM_face_from_faces(face[1], face[0], p[1][1], p[1][2], 4+p[0][1], -1);
 		} else if (dir == 2) {
-			newFace[0] = addfacelist(faces[0][(p1+2 )%4],faces[1][(p3+1)%3],faces[0][(p1)%4],faces[0][(p1+1 )%4],NULL,NULL);
-			newFace[1] = addfacelist(faces[0][(p1+2 )%4],faces[1][(p3)%3],faces[1][(p3+1 )%3],NULL,NULL,NULL);
-
-			newFace[0]->tf.col[0] = face[0]->tf.col[(p1+2)%4];
-			newFace[0]->tf.col[1] = face[1]->tf.col[(p3+1)%3];
-			newFace[0]->tf.col[2] = face[0]->tf.col[(p1  )%4];
-			newFace[0]->tf.col[3] = face[0]->tf.col[(p1+1)%4];
-			newFace[1]->tf.col[0] = face[0]->tf.col[(p1+2)%4];
-			newFace[1]->tf.col[1] = face[1]->tf.col[(p3  )%3];
-			newFace[1]->tf.col[2] =	face[1]->tf.col[(p3+1)%3];
-	
-			UVCOPY(newFace[0]->tf.uv[0],face[0]->tf.uv[(p1+2)%4]);
-			UVCOPY(newFace[0]->tf.uv[1],face[1]->tf.uv[(p3+1)%3]);	
-			UVCOPY(newFace[0]->tf.uv[2],face[0]->tf.uv[(p1  )%4]);		
-			UVCOPY(newFace[0]->tf.uv[3],face[0]->tf.uv[(p1+1)%4]);
-			UVCOPY(newFace[1]->tf.uv[0],face[0]->tf.uv[(p1+2)%4]);
-			UVCOPY(newFace[1]->tf.uv[1],face[1]->tf.uv[(p3  )%3]);
-			UVCOPY(newFace[1]->tf.uv[2],face[1]->tf.uv[(p3+1)%3]);	
+			newFace[0]= EM_face_from_faces(face[0], face[1], p[0][2], 4+p[1][1], p[0][0], p[0][1]);
+			newFace[1]= EM_face_from_faces(face[1], face[0], 4+p[0][2], p[1][0], p[1][1], -1);
 			
-			faces[0][(p1+2)%fac1]->f |= SELECT;
-			faces[1][(p3+1)%fac2]->f |= SELECT;		
+			verts[0][p[0][2]]->f |= SELECT;
+			verts[1][p[1][1]]->f |= SELECT;		
 		}
 	}
-
 	else if(fac1 == 3 && fac2 == 4) {
 		if(dir == 1) {
-			newFace[0] = addfacelist(faces[0][(p1+1 )%3],faces[0][(p1+2 )%3],faces[1][(p3+1 )%4],NULL,NULL,NULL);
-			newFace[1] = addfacelist(faces[1][(p3+1 )%4],faces[1][(p3+2 )%4],faces[1][(p3+3 )%4],faces[0][(p1+1 )%3],NULL,NULL);
-	
-			newFace[0]->tf.col[0] = face[0]->tf.col[(p1+1 )%3];
-			newFace[0]->tf.col[1] = face[0]->tf.col[(p1+2 )%3];
-			newFace[0]->tf.col[2] = face[1]->tf.col[(p3+1 )%4];
-			newFace[1]->tf.col[0] = face[1]->tf.col[(p3+1 )%4];
-			newFace[1]->tf.col[1] = face[1]->tf.col[(p3+2 )%4];
-			newFace[1]->tf.col[2] = face[1]->tf.col[(p3+3 )%4];		
-			newFace[1]->tf.col[3] =	face[0]->tf.col[(p1+1 )%3];
-	
-			UVCOPY(newFace[0]->tf.uv[0],face[0]->tf.uv[(p1+1 )%3]);
-			UVCOPY(newFace[0]->tf.uv[1],face[0]->tf.uv[(p1+2 )%3]);	
-			UVCOPY(newFace[0]->tf.uv[2],face[1]->tf.uv[(p3+1 )%4]);
-			UVCOPY(newFace[1]->tf.uv[0],face[1]->tf.uv[(p3+1 )%4]);
-			UVCOPY(newFace[1]->tf.uv[1],face[1]->tf.uv[(p3+2 )%4]);
-			UVCOPY(newFace[1]->tf.uv[2],face[1]->tf.uv[(p3+3 )%4]);
-			UVCOPY(newFace[1]->tf.uv[3],face[0]->tf.uv[(p1+1 )%3]);
+			newFace[0]= EM_face_from_faces(face[0], face[1], p[0][1], p[0][2], 4+p[1][1], -1);
+			newFace[1]= EM_face_from_faces(face[1], face[0], p[1][1], p[1][2], p[1][3], 4+p[0][1]);
 		} else if (dir == 2) {
-			newFace[0] = addfacelist(faces[0][(p1)%3],faces[0][(p1+1 )%3],faces[1][(p3+2 )%4],NULL,NULL,NULL);
-			newFace[1] = addfacelist(faces[1][(p3+1 )%4],faces[1][(p3+2 )%4],faces[0][(p1+1 )%3],faces[0][(p1+2 )%3],NULL,NULL);
-	
-			newFace[0]->tf.col[0] = face[0]->tf.col[(p1 )%3];
-			newFace[0]->tf.col[1] = face[0]->tf.col[(p1+1 )%3];
-			newFace[0]->tf.col[2] = face[1]->tf.col[(p3+2 )%4];
-			newFace[1]->tf.col[0] = face[1]->tf.col[(p3+1 )%4];
-			newFace[1]->tf.col[1] = face[1]->tf.col[(p3+2 )%4];
-			newFace[1]->tf.col[2] = face[0]->tf.col[(p1+1 )%3];		
-			newFace[1]->tf.col[3] =	face[0]->tf.col[(p1+2 )%3];
-	
-			UVCOPY(newFace[0]->tf.uv[0],face[0]->tf.uv[(p1 )%3]);
-			UVCOPY(newFace[0]->tf.uv[1],face[0]->tf.uv[(p1+1 )%3]);	
-			UVCOPY(newFace[0]->tf.uv[2],face[1]->tf.uv[(p3+2 )%4]);
-			UVCOPY(newFace[1]->tf.uv[0],face[1]->tf.uv[(p3+1 )%4]);
-			UVCOPY(newFace[1]->tf.uv[1],face[1]->tf.uv[(p3+2 )%4]);
-			UVCOPY(newFace[1]->tf.uv[2],face[0]->tf.uv[(p1+1 )%3]);
-			UVCOPY(newFace[1]->tf.uv[3],face[0]->tf.uv[(p1+2 )%3]);	
+			newFace[0]= EM_face_from_faces(face[0], face[1], p[0][0], p[0][1], 4+p[1][2], -1);
+			newFace[1]= EM_face_from_faces(face[1], face[0], p[1][1], p[1][2], 4+p[0][1], 4+p[0][2]);
 			
-			faces[0][(p1+1)%fac1]->f |= SELECT;
-			faces[1][(p3+2)%fac2]->f |= SELECT;	
+			verts[0][p[0][1]]->f |= SELECT;
+			verts[1][p[1][2]]->f |= SELECT;	
 		}
 	
 	}
-	
 	else if(fac1 == 4 && fac2 == 4) {
 		if(dir == 1) {
-			newFace[0] = addfacelist(faces[0][(p1+1 )%4],faces[0][(p1+2 )%4],faces[0][(p1+3 )%4],faces[1][(p3+1 )%4],NULL,NULL);
-			newFace[1] = addfacelist(faces[1][(p3+1 )%4],faces[1][(p3+2 )%4],faces[1][(p3+3 )%4],faces[0][(p1+1 )%4],NULL,NULL);
-	
-			newFace[0]->tf.col[0] = face[0]->tf.col[(p1+1 )%4];
-			newFace[0]->tf.col[1] = face[0]->tf.col[(p1+2 )%4];
-			newFace[0]->tf.col[2] = face[0]->tf.col[(p1+3 )%4];
-			newFace[0]->tf.col[3] = face[1]->tf.col[(p3+1 )%4];
-			newFace[1]->tf.col[0] = face[1]->tf.col[(p3+1 )%4];
-			newFace[1]->tf.col[1] = face[1]->tf.col[(p3+2 )%4];
-			newFace[1]->tf.col[2] = face[1]->tf.col[(p3+3 )%4];		
-			newFace[1]->tf.col[3] =	face[0]->tf.col[(p1+1 )%4];
-									
-			UVCOPY(newFace[0]->tf.uv[0],face[0]->tf.uv[(p1+1 )%4]);
-			UVCOPY(newFace[0]->tf.uv[1],face[0]->tf.uv[(p1+2 )%4]);	
-			UVCOPY(newFace[0]->tf.uv[2],face[0]->tf.uv[(p1+3 )%4]);		
-			UVCOPY(newFace[0]->tf.uv[3],face[1]->tf.uv[(p3+1 )%4]);
-			UVCOPY(newFace[1]->tf.uv[0],face[1]->tf.uv[(p3+1 )%4]);
-			UVCOPY(newFace[1]->tf.uv[1],face[1]->tf.uv[(p3+2 )%4]);
-			UVCOPY(newFace[1]->tf.uv[2],face[1]->tf.uv[(p3+3 )%4]);
-			UVCOPY(newFace[1]->tf.uv[3],face[0]->tf.uv[(p1+1 )%4]);		
+			newFace[0]= EM_face_from_faces(face[0], face[1], p[0][1], p[0][2], p[0][3], 4+p[1][1]);
+			newFace[1]= EM_face_from_faces(face[1], face[0], p[1][1], p[1][2], p[1][3], 4+p[0][1]);
 		} else if (dir == 2) {
-			newFace[0] = addfacelist(faces[0][(p1+2 )%4],faces[0][(p1+3 )%4],faces[1][(p3+1 )%4],faces[1][(p3+2 )%4],NULL,NULL);
-			newFace[1] = addfacelist(faces[1][(p3+2 )%4],faces[1][(p3+3 )%4],faces[0][(p1+1 )%4],faces[0][(p1+2 )%4],NULL,NULL);
-	
-			newFace[0]->tf.col[0] = face[0]->tf.col[(p1+2 )%4];
-			newFace[0]->tf.col[1] = face[0]->tf.col[(p1+3 )%4];
-			newFace[0]->tf.col[2] = face[1]->tf.col[(p3+1 )%4];
-			newFace[0]->tf.col[3] = face[1]->tf.col[(p3+2 )%4];
-			newFace[1]->tf.col[0] = face[1]->tf.col[(p3+2 )%4];
-			newFace[1]->tf.col[1] = face[1]->tf.col[(p3+3 )%4];
-			newFace[1]->tf.col[2] = face[0]->tf.col[(p1+1 )%4];		
-			newFace[1]->tf.col[3] =	face[0]->tf.col[(p1+2 )%4];
-									
-			UVCOPY(newFace[0]->tf.uv[0],face[0]->tf.uv[(p1+2 )%4]);
-			UVCOPY(newFace[0]->tf.uv[1],face[0]->tf.uv[(p1+3 )%4]);	
-			UVCOPY(newFace[0]->tf.uv[2],face[1]->tf.uv[(p3+1 )%4]);		
-			UVCOPY(newFace[0]->tf.uv[3],face[1]->tf.uv[(p3+2 )%4]);
-			UVCOPY(newFace[1]->tf.uv[0],face[1]->tf.uv[(p3+2 )%4]);
-			UVCOPY(newFace[1]->tf.uv[1],face[1]->tf.uv[(p3+3 )%4]);
-			UVCOPY(newFace[1]->tf.uv[2],face[0]->tf.uv[(p1+1 )%4]);
-			UVCOPY(newFace[1]->tf.uv[3],face[0]->tf.uv[(p1+2 )%4]);		
+			newFace[0]= EM_face_from_faces(face[0], face[1], p[0][2], p[0][3], 4+p[1][1], 4+p[1][2]);
+			newFace[1]= EM_face_from_faces(face[1], face[0], p[1][2], p[1][3], 4+p[0][1], 4+p[0][2]);
 			
-			faces[0][(p1+2)%fac1]->f |= SELECT;
-			faces[1][(p3+2)%fac2]->f |= SELECT;	
+			verts[0][p[0][2]]->f |= SELECT;
+			verts[1][p[1][2]]->f |= SELECT;	
 		}
-		
-
 	}		
-	else{
-		/*This should never happen*/
-		return;
-	}
+	else
+		return; /* This should never happen */
 
-	if(dir == 1) {
-		faces[0][(p1+1)%fac1]->f |= SELECT;
-		faces[1][(p3+1)%fac2]->f |= SELECT;
+	if(dir == 1 || (fac1 == 3 && fac2 == 3)) {
+		verts[0][p[0][1]]->f |= SELECT;
+		verts[1][p[1][1]]->f |= SELECT;
 	}
 	
-	/*Copy old edge's flags to new center edge*/
+	/* copy old edge's flags to new center edge*/
 	for(srchedge=em->edges.first;srchedge;srchedge=srchedge->next) {
-		if(srchedge->v1->f & SELECT &&srchedge->v2->f & SELECT  ) {
+		if((srchedge->v1->f & SELECT) && (srchedge->v2->f & SELECT)) {
 			srchedge->f = eed->f;
 			srchedge->h = eed->h;
 			srchedge->dir = eed->dir;
@@ -4208,63 +3881,15 @@ static void edge_rotate(EditEdge *eed,int dir)
 		}
 	}
 	
-	
-	/* copy flags and material */
-	
-	newFace[0]->mat_nr	 = face[0]->mat_nr;
-	newFace[0]->tf.flag	= face[0]->tf.flag;
-	newFace[0]->tf.transp  = face[0]->tf.transp;
-	newFace[0]->tf.mode	= face[0]->tf.mode;
-	newFace[0]->tf.tile	= face[0]->tf.tile;
-	newFace[0]->tf.unwrap  = face[0]->tf.unwrap;
-	newFace[0]->tf.tpage   = face[0]->tf.tpage;
-	newFace[0]->flag	   = face[0]->flag;
-
-	newFace[1]->mat_nr	 = face[1]->mat_nr;
-	newFace[1]->tf.flag	= face[1]->tf.flag;
-	newFace[1]->tf.transp  = face[1]->tf.transp;
-	newFace[1]->tf.mode	= face[1]->tf.mode;
-	newFace[1]->tf.tile	= face[1]->tf.tile;
-	newFace[1]->tf.unwrap  = face[1]->tf.unwrap;
-	newFace[1]->tf.tpage   = face[1]->tf.tpage;
-	newFace[1]->flag	   = face[1]->flag;
-	
-	/* Resetting Hidden Flag */
-	for(numhidden--;numhidden>=0;numhidden--) {
-		hiddenedges[numhidden]->h = 1;
-		   
-	}
+	/* resetting hidden flag */
+	for(numhidden--; numhidden>=0; numhidden--)
+		hiddenedges[numhidden]->h= 1;
 	
 	/* check for orhphan edges */
-	for(srchedge=em->edges.first;srchedge;srchedge = srchedge->next) {
-		srchedge->f1 = -1;   
-	}
+	for(srchedge=em->edges.first; srchedge; srchedge=srchedge->next)
+		srchedge->f1= -1;   
 	
-	/*for(efa = em->faces.first;efa;efa = efa->next) {
-		if(efa->h == 0) {
-			efa->e1->f1 = 1;   
-			efa->e2->f1 = 1;   
-			efa->e3->f1 = 1;   
-			if(efa->e4) {
-				efa->e4->f1 = 1;   
-			}
-		}
-		if(efa->h == 1) {
-			if(efa->e1->f1 == -1) {
-				efa->e1->f1 = 0; 
-			}  
-			if(efa->e2->f1 == -1) {
-				efa->e2->f1 = 0; 
-			} 
-						if(efa->e1->f1 == -1) {
-				efa->e1->f1 = 0; 
-			}	
-			if(efa->e4) {
-				efa->e4->f1 = 1;   
-			}
-		}		
-	}
-	 A Little Cleanup */
+	/* cleanup */
 	MEM_freeN(hiddenedges);
 	
 	/* get rid of the old edge and faces*/
@@ -4274,8 +3899,7 @@ static void edge_rotate(EditEdge *eed,int dir)
 	free_editface(face[0]);	
 	BLI_remlink(&em->faces, face[1]);
 	free_editface(face[1]);		
-	return;																																																														
-}						
+}
 
 /* only accepts 1 selected edge, or 2 selected faces */
 void edge_rotate_selected(int dir)
@@ -6355,14 +5979,15 @@ static void append_weldedUV(EditFace *efa, EditVert *eve, int tfindex, ListBase 
 	wUV *curwvert, *newwvert;
 	wUVNode *newnode;
 	int found;
+	TFace *tf = CustomData_em_get(&G.editMesh->fdata, efa->data, LAYERTYPE_TFACE);
 	
 	found = 0;
 	
 	for(curwvert=uvverts->first; curwvert; curwvert=curwvert->next){
-		if(curwvert->eve == eve && curwvert->u == efa->tf.uv[tfindex][0] && curwvert->v == efa->tf.uv[tfindex][1]){
+		if(curwvert->eve == eve && curwvert->u == tf->uv[tfindex][0] && curwvert->v == tf->uv[tfindex][1]){
 			newnode = MEM_callocN(sizeof(wUVNode), "Welded UV Vert Node");
-			newnode->u = &(efa->tf.uv[tfindex][0]);
-			newnode->v = &(efa->tf.uv[tfindex][1]);
+			newnode->u = &(tf->uv[tfindex][0]);
+			newnode->v = &(tf->uv[tfindex][1]);
 			BLI_addtail(&(curwvert->nodes), newnode);
 			found = 1;
 			break;
@@ -6371,8 +5996,8 @@ static void append_weldedUV(EditFace *efa, EditVert *eve, int tfindex, ListBase 
 	
 	if(!found){
 		newnode = MEM_callocN(sizeof(wUVNode), "Welded UV Vert Node");
-		newnode->u = &(efa->tf.uv[tfindex][0]);
-		newnode->v = &(efa->tf.uv[tfindex][1]);
+		newnode->u = &(tf->uv[tfindex][0]);
+		newnode->v = &(tf->uv[tfindex][1]);
 		
 		newwvert = MEM_callocN(sizeof(wUV), "Welded UV Vert");
 		newwvert->u = *(newnode->u);
@@ -6400,21 +6025,22 @@ static void append_weldedUVEdge(EditFace *efa, EditEdge *eed, ListBase *uvedges)
 {
 	wUVEdge *curwedge, *newwedge;
 	int v1tfindex, v2tfindex, found;
+	TFace *tf = CustomData_em_get(&G.editMesh->fdata, efa->data, LAYERTYPE_TFACE);
 	
 	found = 0;
 	
 	if(eed->v1 == efa->v1) v1tfindex = 0;
 	else if(eed->v1 == efa->v2) v1tfindex = 1;
 	else if(eed->v1 == efa->v3) v1tfindex = 2;
-	else if(eed->v1 == efa->v4) v1tfindex = 3;
+	else /* if(eed->v1 == efa->v4) */ v1tfindex = 3;
 			
 	if(eed->v2 == efa->v1) v2tfindex = 0;
 	else if(eed->v2 == efa->v2) v2tfindex = 1;
 	else if(eed->v2 == efa->v3) v2tfindex = 2;
-	else if(eed->v2 == efa->v4) v2tfindex = 3;
+	else /* if(eed->v2 == efa->v4) */ v2tfindex = 3;
 
 	for(curwedge=uvedges->first; curwedge; curwedge=curwedge->next){
-			if(curwedge->eed == eed && curwedge->v1uv[0] == efa->tf.uv[v1tfindex][0] && curwedge->v1uv[1] == efa->tf.uv[v1tfindex][1] && curwedge->v2uv[0] == efa->tf.uv[v2tfindex][0] && curwedge->v2uv[1] == efa->tf.uv[v2tfindex][1]){
+			if(curwedge->eed == eed && curwedge->v1uv[0] == tf->uv[v1tfindex][0] && curwedge->v1uv[1] == tf->uv[v1tfindex][1] && curwedge->v2uv[0] == tf->uv[v2tfindex][0] && curwedge->v2uv[1] == tf->uv[v2tfindex][1]){
 				found = 1;
 				break; //do nothing, we don't need another welded uv edge
 			}
@@ -6422,10 +6048,10 @@ static void append_weldedUVEdge(EditFace *efa, EditEdge *eed, ListBase *uvedges)
 	
 	if(!found){
 		newwedge = MEM_callocN(sizeof(wUVEdge), "Welded UV Edge");
-		newwedge->v1uv[0] = efa->tf.uv[v1tfindex][0];
-		newwedge->v1uv[1] = efa->tf.uv[v1tfindex][1];
-		newwedge->v2uv[0] = efa->tf.uv[v2tfindex][0];
-		newwedge->v2uv[1] = efa->tf.uv[v2tfindex][1];
+		newwedge->v1uv[0] = tf->uv[v1tfindex][0];
+		newwedge->v1uv[1] = tf->uv[v1tfindex][1];
+		newwedge->v2uv[0] = tf->uv[v2tfindex][0];
+		newwedge->v2uv[1] = tf->uv[v2tfindex][1];
 		newwedge->eed = eed;
 		
 		BLI_addtail(uvedges, newwedge);
@@ -6434,7 +6060,6 @@ static void append_weldedUVEdge(EditFace *efa, EditEdge *eed, ListBase *uvedges)
 
 static void build_weldedUVEdges(ListBase *uvedges, ListBase *uvverts)
 {
-	
 	wUV *curwvert;
 	wUVEdge *curwedge;
 	EditFace *efa;
@@ -6480,6 +6105,9 @@ static void collapse_edgeuvs(void)
 	Collection *wuvecollection, *newcollection;
 	int curtag, balanced, collectionfound, vcount;
 	float avg[2];
+
+	if (!CustomData_has_layer(&G.editMesh->fdata, LAYERTYPE_TFACE))
+		return;
 	
 	uvverts.first = uvverts.last = uvedges.first = uvedges.last = allcollections.first = allcollections.last = NULL;
 	
@@ -6576,62 +6204,64 @@ static void collapse_edgeuvs(void)
 static void collapseuvs(void)
 {
 	EditFace *efa;
+	TFace *tf;
 	int uvcount;
 	float uvav[2];
+
+	if (!CustomData_has_layer(&G.editMesh->fdata, LAYERTYPE_TFACE))
+		return;
 	
 	uvcount = 0;
 	uvav[0] = 0;
 	uvav[1] = 0;
 	
 	for(efa = G.editMesh->faces.first; efa; efa=efa->next){
+		tf = CustomData_em_get(&G.editMesh->fdata, efa->data, LAYERTYPE_TFACE);
+
 		if(efa->v1->f1){
-			uvav[0] += efa->tf.uv[0][0];
-			uvav[1] += efa->tf.uv[0][1];
+			uvav[0] += tf->uv[0][0];
+			uvav[1] += tf->uv[0][1];
 			uvcount += 1;
 		}
 		if(efa->v2->f1){
-			uvav[0] += efa->tf.uv[1][0];		
-			uvav[1] += efa->tf.uv[1][1];
+			uvav[0] += tf->uv[1][0];		
+			uvav[1] += tf->uv[1][1];
 			uvcount += 1;
 		}
 		if(efa->v3->f1){
-			uvav[0] += efa->tf.uv[2][0];
-			uvav[1] += efa->tf.uv[2][1];
+			uvav[0] += tf->uv[2][0];
+			uvav[1] += tf->uv[2][1];
 			uvcount += 1;
 		}
-		if(efa->v4){
-			if(efa->v4->f1){
-				uvav[0] += efa->tf.uv[3][0];
-				uvav[1] += efa->tf.uv[3][1];
-				uvcount += 1;
-			}
+		if(efa->v4 && efa->v4->f1){
+			uvav[0] += tf->uv[3][0];
+			uvav[1] += tf->uv[3][1];
+			uvcount += 1;
 		}
 	}
 	
-	
-	
-	if(uvav[0] && uvav[1]){
+	if(uvcount > 0) {
 		uvav[0] /= uvcount; 
 		uvav[1] /= uvcount;
 	
 		for(efa = G.editMesh->faces.first; efa; efa=efa->next){
+			tf = CustomData_em_get(&G.editMesh->fdata, efa->data, LAYERTYPE_TFACE);
+
 			if(efa->v1->f1){
-				efa->tf.uv[0][0] = uvav[0];
-				efa->tf.uv[0][1] = uvav[1];
+				tf->uv[0][0] = uvav[0];
+				tf->uv[0][1] = uvav[1];
 			}
 			if(efa->v2->f1){
-				efa->tf.uv[1][0] = uvav[0];		
-				efa->tf.uv[1][1] = uvav[1];
+				tf->uv[1][0] = uvav[0];		
+				tf->uv[1][1] = uvav[1];
 			}
 			if(efa->v3->f1){
-				efa->tf.uv[2][0] = uvav[0];
-				efa->tf.uv[2][1] = uvav[1];
+				tf->uv[2][0] = uvav[0];
+				tf->uv[2][1] = uvav[1];
 			}
-			if(efa->v4){
-				if(efa->v4->f1){
-					efa->tf.uv[3][0] = uvav[0];
-					efa->tf.uv[3][1] = uvav[1];
-				}
+			if(efa->v4 && efa->v4->f1){
+				tf->uv[3][0] = uvav[0];
+				tf->uv[3][1] = uvav[1];
 			}
 		}
 	}
@@ -6646,10 +6276,8 @@ int collapseEdges(void)
 	CollectedEdge *curredge;
 	Collection *edgecollection;
 	
-	
 	int totedges, groupcount, mergecount,vcount;
 	float avgcount[3];
-	
 	
 	allcollections.first = 0;
 	allcollections.last = 0;
@@ -6686,15 +6314,17 @@ int collapseEdges(void)
 			VECCOPY(((EditEdge*)curredge->eed)->v2->co,avgcount);
 		}
 		
-		/*uv collapse*/
-		for(eve=G.editMesh->verts.first; eve; eve=eve->next) eve->f1 = 0;
-		for(eed=G.editMesh->edges.first; eed; eed=eed->next) eed->f1 = 0;
-		for(curredge = edgecollection->collectionbase.first; curredge; curredge = curredge->next){
-			curredge->eed->v1->f1 = 1;
-			curredge->eed->v2->f1 = 1;
-			curredge->eed->f1 = 1;
+		if (CustomData_has_layer(&G.editMesh->fdata, LAYERTYPE_TFACE)) {
+			/*uv collapse*/
+			for(eve=G.editMesh->verts.first; eve; eve=eve->next) eve->f1 = 0;
+			for(eed=G.editMesh->edges.first; eed; eed=eed->next) eed->f1 = 0;
+			for(curredge = edgecollection->collectionbase.first; curredge; curredge = curredge->next){
+				curredge->eed->v1->f1 = 1;
+				curredge->eed->v2->f1 = 1;
+				curredge->eed->f1 = 1;
+			}
+			collapse_edgeuvs();
 		}
-		collapse_edgeuvs();
 		
 	}
 	freecollections(&allcollections);
@@ -6727,7 +6357,7 @@ int merge_firstlast(int first, int uvmerge)
 		}
 	}
 	
-	if(uvmerge){
+	if(uvmerge && CustomData_has_layer(&G.editMesh->fdata, LAYERTYPE_TFACE)){
 		
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next) eve->f1 = 0;
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next){
@@ -6748,7 +6378,7 @@ int merge_target(int target, int uvmerge)
 	if(target) snap_sel_to_curs();
 	else snap_to_center();
 	
-	if(uvmerge){
+	if(uvmerge && CustomData_has_layer(&G.editMesh->fdata, LAYERTYPE_TFACE)){
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next) eve->f1 = 0;
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next){
 				if(eve->f&SELECT) eve->f1 = 1;
@@ -7109,7 +6739,6 @@ void loop_to_region(void)
 				if(efa->f1 == testflag){
 					if(efa->f&SELECT) EM_select_face(efa, 0);
 					else EM_select_face(efa,1);
-					
 				}
 			}
 		}

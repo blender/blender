@@ -57,6 +57,7 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 
+#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_utildefines.h"
@@ -708,6 +709,44 @@ void EM_hide_reset(void)
 		
 }
 
+void EM_interp_from_faces(EditFace *efa1, EditFace *efa2, EditFace *efan, int i1, int i2, int i3, int i4)
+{
+	EditMesh *em= G.editMesh;
+	float w[2][4][4];
+	void *src[2];
+	int count = (efa2)? 2: 1;
+
+	/* set weights for copying from corners directly to other corners */
+	memset(w, 0, sizeof(w));
+
+	w[i1/4][0][i1%4]= 1.0f;
+	w[i2/4][1][i2%4]= 1.0f;
+	w[i3/4][2][i3%4]= 1.0f;
+	if (i4 != -1)
+		w[i4/4][3][i4%4]= 1.0f;
+
+	src[0]= efa1->data;
+	src[1]= (efa2)? efa2->data: NULL;
+
+	CustomData_em_interp(&em->fdata, src, NULL, (float*)w, count, efan->data);
+}
+
+EditFace *EM_face_from_faces(EditFace *efa1, EditFace *efa2, int i1, int i2, int i3, int i4)
+{
+	EditFace *efan;
+	EditVert **v[2];
+	
+	v[0]= &efa1->v1;
+	v[1]= (efa2)? &efa2->v1: NULL;
+
+	efan= addfacelist(v[i1/4][i1%4], v[i2/4][i2%4], v[i3/4][i3%4],
+		(i4 == -1)? 0: v[i4/4][i4%4], efa1, NULL);
+
+	if (efa1->data)
+		EM_interp_from_faces(efa1, efa2, efan, i1, i2, i3, i4);
+	
+	return efan;
+}
 
 /* ********  EXTRUDE ********* */
 
@@ -1442,8 +1481,8 @@ short extrudeflag_vert(short flag, float *nor)
 			if(eed->tmp.f) {
 				efa = eed->tmp.f;
 				efa2->mat_nr= efa->mat_nr;
-				efa2->tf= efa->tf;
 				efa2->flag= efa->flag;
+				CustomData_em_copy_data(&em->fdata, &efa->data, &efa2->data);
 			}
 			
 			/* Needs smarter adaption of existing creases.
@@ -1761,18 +1800,15 @@ void flipface(EditFace *efa)
 		SWAP(EditVert *, efa->v2, efa->v4);
 		SWAP(EditEdge *, efa->e1, efa->e4);
 		SWAP(EditEdge *, efa->e2, efa->e3);
-		SWAP(unsigned int, efa->tf.col[1], efa->tf.col[3]);
-		SWAP(float, efa->tf.uv[1][0], efa->tf.uv[3][0]);
-		SWAP(float, efa->tf.uv[1][1], efa->tf.uv[3][1]);
+		EM_interp_from_faces(efa, NULL, efa, 0, 3, 2, 1);
 	}
 	else {
 		SWAP(EditVert *, efa->v2, efa->v3);
 		SWAP(EditEdge *, efa->e1, efa->e3);
-		SWAP(unsigned int, efa->tf.col[1], efa->tf.col[2]);
 		efa->e2->dir= 1-efa->e2->dir;
-		SWAP(float, efa->tf.uv[1][0], efa->tf.uv[2][0]);
-		SWAP(float, efa->tf.uv[1][1], efa->tf.uv[2][1]);
+		EM_interp_from_faces(efa, NULL, efa, 0, 2, 1, 3);
 	}
+
 	if(efa->v4) CalcNormFloat4(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co, efa->n);
 	else CalcNormFloat(efa->v1->co, efa->v2->co, efa->v3->co, efa->n);
 }

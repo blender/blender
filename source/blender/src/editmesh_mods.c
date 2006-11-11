@@ -62,6 +62,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BKE_displist.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"
@@ -824,13 +825,26 @@ int facegroup_select(short mode)
 					}
 				}
 			} else if (mode==2) { /* same image */
+				TFace *tf, *base_tf;
+
+				base_tf = (TFace*)CustomData_em_get(&em->fdata, base_efa->data,
+				                                    LAYERTYPE_TFACE);
+
+				if(!base_tf)
+					return selcount;
+
 				for(efa= em->faces.first; efa; efa= efa->next) {
-					if (!(efa->f & SELECT) && !efa->h && base_efa->tf.tpage == efa->tf.tpage) {
-						EM_select_face(efa, 1);
-						selcount++;
-						deselcount--;
-						if (!deselcount) /*have we selected all posible faces?, if so return*/
-							return selcount;
+					if (!(efa->f & SELECT) && !efa->h) {
+						tf = (TFace*)CustomData_em_get(&em->fdata, efa->data,
+						                               LAYERTYPE_TFACE);
+
+						if(base_tf->tpage == tf->tpage) {
+							EM_select_face(efa, 1);
+							selcount++;
+							deselcount--;
+							if (!deselcount) /*have we selected all posible faces?, if so return*/
+								return selcount;
+						}
 					}
 				}
 			} else if (mode==3 || mode==4) { /* same area OR same perimeter, both use the same temp var */
@@ -2888,17 +2902,6 @@ static int tface_is_selected(TFace *tf)
 	return (!(tf->flag & TF_HIDE) && (tf->flag & TF_SELECT));
 }
 
-static int faceselect_nfaces_selected(Mesh *me)
-{
-	int i, count= 0;
-
-	for (i=0; i<me->totface; i++)
-		if (tface_is_selected(&me->tface[i]))
-			count++;
-
-	return count;
-}
-
 	/* XXX, code for both these functions should be abstract,
 	 * then unified, then written for other things (like objects,
 	 * which would use same as vertices method), then added
@@ -2906,38 +2909,39 @@ static int faceselect_nfaces_selected(Mesh *me)
 	 */
 void faceselect_align_view_to_selected(View3D *v3d, Mesh *me, int axis)
 {
-	if (!faceselect_nfaces_selected(me)) {
-		error("No faces selected.");
-	} else {
-		float norm[3];
-		int i;
+	float norm[3];
+	int i, totselected = 0;
 
-		norm[0]= norm[1]= norm[2]= 0.0;
-		for (i=0; i<me->totface; i++) {
-			MFace *mf= ((MFace*) me->mface) + i;
-			TFace *tf= ((TFace*) me->tface) + i;
-	
-			if (tface_is_selected(tf)) {
-				float *v1, *v2, *v3, fno[3];
+	norm[0]= norm[1]= norm[2]= 0.0;
+	for (i=0; i<me->totface; i++) {
+		MFace *mf= ((MFace*) me->mface) + i;
+		TFace *tf= ((TFace*) me->tface) + i;
 
-				v1= me->mvert[mf->v1].co;
-				v2= me->mvert[mf->v2].co;
-				v3= me->mvert[mf->v3].co;
-				if (mf->v4) {
-					float *v4= me->mvert[mf->v4].co;
-					CalcNormFloat4(v1, v2, v3, v4, fno);
-				} else {
-					CalcNormFloat(v1, v2, v3, fno);
-				}
+		if (tface_is_selected(tf)) {
+			float *v1, *v2, *v3, fno[3];
 
-				norm[0]+= fno[0];
-				norm[1]+= fno[1];
-				norm[2]+= fno[2];
+			v1= me->mvert[mf->v1].co;
+			v2= me->mvert[mf->v2].co;
+			v3= me->mvert[mf->v3].co;
+			if (mf->v4) {
+				float *v4= me->mvert[mf->v4].co;
+				CalcNormFloat4(v1, v2, v3, v4, fno);
+			} else {
+				CalcNormFloat(v1, v2, v3, fno);
 			}
-		}
 
-		view3d_align_axis_to_vector(v3d, axis, norm);
+			norm[0]+= fno[0];
+			norm[1]+= fno[1];
+			norm[2]+= fno[2];
+
+			totselected++;
+		}
 	}
+
+	if (totselected == 0)
+		error("No faces selected.");
+	else
+		view3d_align_axis_to_vector(v3d, axis, norm);
 }
 
 void editmesh_align_view_to_selected(View3D *v3d, int axis)

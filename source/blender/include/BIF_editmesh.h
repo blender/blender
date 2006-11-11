@@ -104,6 +104,11 @@ extern int faceselectedAND(struct EditFace *efa, int flag);
 extern void recalc_editnormals(void);
 extern void flip_editnormals(void);
 
+extern struct EditFace *EM_face_from_faces(struct EditFace *efa1,
+	struct EditFace *efa2, int i1, int i2, int i3, int i4);
+extern void EM_interp_from_faces(struct EditFace *efa1, struct EditFace *efa2,
+	struct EditFace *efan, int i1, int i2, int i3, int i4);
+
 /* ******************* editmesh_mods.c */
 
 extern void EM_init_index_arrays(int forVert, int forEdge, int forFace);

@@ -38,6 +38,7 @@
 #ifndef BLI_EDITVERT_H
 #define BLI_EDITVERT_H
 
+#include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
 
 struct DerivedMesh;
@@ -125,7 +126,6 @@ typedef struct EditFace
 		float			fp;
 	} tmp;
 	float n[3], cent[3];
-	struct TFace tf;	/* a copy of original tface. */
 	unsigned char mat_nr, flag;
 	unsigned char f, f1, h;
 	unsigned char fast;			/* only 0 or 1, for editmesh_fastmalloc */
@@ -133,6 +133,7 @@ typedef struct EditFace
 /*#ifdef WITH_VERSE*/
 	void *vface;
 /*#endif*/
+	void *data;		/* custom face data */
 } EditFace;
 
 
@@ -166,6 +167,8 @@ typedef struct EditMesh
 
 	char retopo_mode; /* 0=OFF, 1=ON, 2=PAINT */
 	struct RetopoPaintData *retopo_paint_data;
+
+	CustomData fdata;
 
 #ifdef WITH_VERSE
 	void *vnode;

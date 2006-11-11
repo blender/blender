@@ -59,6 +59,7 @@
 
 #include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
@@ -154,9 +155,9 @@ void DM_init(DerivedMesh *dm,
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
                       int numVerts, int numEdges, int numFaces)
 {
-	CustomData_from_template(&source->vertData, &dm->vertData, numVerts);
-	CustomData_from_template(&source->edgeData, &dm->edgeData, numEdges);
-	CustomData_from_template(&source->faceData, &dm->faceData, numFaces);
+	CustomData_from_template(&source->vertData, &dm->vertData, 0, numVerts);
+	CustomData_from_template(&source->edgeData, &dm->edgeData, 0, numEdges);
+	CustomData_from_template(&source->faceData, &dm->faceData, 0, numFaces);
 
 	DM_init_funcs(dm);
 }
@@ -335,7 +336,7 @@ void DM_interp_edge_data(DerivedMesh *source, DerivedMesh *dest,
                          int count, int dest_index)
 {
 	CustomData_interp(&source->edgeData, &dest->edgeData, src_indices,
-	                  weights, (float *)vert_weights, count, dest_index);
+	                  weights, (float*)vert_weights, count, dest_index);
 }
 
 void DM_interp_face_data(DerivedMesh *source, DerivedMesh *dest,
@@ -344,7 +345,7 @@ void DM_interp_face_data(DerivedMesh *source, DerivedMesh *dest,
                          int count, int dest_index)
 {
 	CustomData_interp(&source->faceData, &dest->faceData, src_indices,
-	                  weights, (float *)vert_weights, count, dest_index);
+	                  weights, (float*)vert_weights, count, dest_index);
 }
 
 typedef struct {
@@ -1087,24 +1088,27 @@ static void emDM_drawUVEdges(DerivedMesh *dm)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
+	TFace *tf;
 
 	glBegin(GL_LINES);
 	for(efa= emdm->em->faces.first; efa; efa= efa->next) {
-		if(!(efa->tf.flag&TF_HIDE)) {
-			glVertex2fv(efa->tf.uv[0]);
-			glVertex2fv(efa->tf.uv[1]);
+		tf = CustomData_em_get(&emdm->em->fdata, efa->data, LAYERTYPE_TFACE);
 
-			glVertex2fv(efa->tf.uv[1]);
-			glVertex2fv(efa->tf.uv[2]);
+		if(tf && !(tf->flag&TF_HIDE)) {
+			glVertex2fv(tf->uv[0]);
+			glVertex2fv(tf->uv[1]);
+
+			glVertex2fv(tf->uv[1]);
+			glVertex2fv(tf->uv[2]);
 
 			if (!efa->v4) {
-				glVertex2fv(efa->tf.uv[2]);
-				glVertex2fv(efa->tf.uv[0]);
+				glVertex2fv(tf->uv[2]);
+				glVertex2fv(tf->uv[0]);
 			} else {
-				glVertex2fv(efa->tf.uv[2]);
-				glVertex2fv(efa->tf.uv[3]);
-				glVertex2fv(efa->tf.uv[3]);
-				glVertex2fv(efa->tf.uv[0]);
+				glVertex2fv(tf->uv[2]);
+				glVertex2fv(tf->uv[3]);
+				glVertex2fv(tf->uv[3]);
+				glVertex2fv(tf->uv[0]);
 			}
 		}
 	}

@@ -37,6 +37,7 @@
 #include "BIF_gl.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_mesh.h"
@@ -751,13 +752,11 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 	MEdge *medge = CDDM_get_edges(dm);
 	MFace *mface = CDDM_get_faces(dm);
 	int *index;
+	TFace *tf;
 
-	/* this maps from vert pointer to vert index */
-	GHash *vertHash = BLI_ghash_new(BLI_ghashutil_ptrhash,
-	                                BLI_ghashutil_ptrcmp);
-
+	/* set eve->hash to vert index */
 	for(i = 0, eve = em->verts.first; eve; eve = eve->next, ++i)
-		BLI_ghash_insert(vertHash, eve, (void *)i);
+		eve->hash = i;
 
 	if(me->msticky)
 		CustomData_add_layer(&dm->vertData, LAYERTYPE_MDEFORMVERT, 0, NULL);
@@ -807,8 +806,8 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 	    i++, eed = eed->next, index++) {
 		MEdge *med = &medge[i];
 
-		med->v1 = (int) BLI_ghash_lookup(vertHash, eed->v1);
-		med->v2 = (int) BLI_ghash_lookup(vertHash, eed->v2);
+		med->v1 = eed->v1->hash;
+		med->v2 = eed->v2->hash;
 		med->crease = (unsigned char) (eed->crease * 255.0f);
 		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
 		
@@ -824,21 +823,20 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 	    i++, efa = efa->next, index++) {
 		MFace *mf = &mface[i];
 
-		mf->v1 = (int) BLI_ghash_lookup(vertHash, efa->v1);
-		mf->v2 = (int) BLI_ghash_lookup(vertHash, efa->v2);
-		mf->v3 = (int) BLI_ghash_lookup(vertHash, efa->v3);
-		mf->v4 = efa->v4 ? (int)BLI_ghash_lookup(vertHash, efa->v4) : 0;
+		mf->v1 = efa->v1->hash;
+		mf->v2 = efa->v2->hash;
+		mf->v3 = efa->v3->hash;
+		mf->v4 = efa->v4 ? efa->v4->hash : 0;
 		mf->mat_nr = efa->mat_nr;
 		mf->flag = efa->flag;
 		test_index_face(mf, NULL, NULL, efa->v4?4:3);
 
 		*index = i;
 
-		if(me->tface)
-			DM_set_face_data(dm, i, LAYERTYPE_TFACE, &efa->tf);
+		tf = CustomData_em_get(&em->fdata, efa->data, LAYERTYPE_TFACE);
+		if(tf)
+			DM_set_face_data(dm, i, LAYERTYPE_TFACE, tf);
 	}
-
-	BLI_ghash_free(vertHash, NULL, NULL);
 
 	return dm;
 }
@@ -976,7 +974,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 		}
 	}
 
-	CustomData_from_template(&dm->edgeData, &edgeData, BLI_edgehash_size(eh));
+	CustomData_from_template(&dm->edgeData, &edgeData, 0, BLI_edgehash_size(eh));
 
 	if(!CustomData_get_layer(&edgeData, LAYERTYPE_MEDGE))
 		CustomData_add_layer(&edgeData, LAYERTYPE_MEDGE,

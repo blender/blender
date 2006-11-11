@@ -45,6 +45,7 @@
 
 #include "BKE_bad_level_calls.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_customdata.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"

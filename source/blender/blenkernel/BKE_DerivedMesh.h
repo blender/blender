@@ -45,7 +45,7 @@
  *    conversion to DLM.
  */
 
-#include "BKE_customdata.h"
+#include "DNA_customdata_types.h"
 
 struct MVert;
 struct MEdge;
