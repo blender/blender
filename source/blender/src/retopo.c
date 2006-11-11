@@ -290,7 +290,7 @@ void retopo_paint_apply()
 		for(i=0; i<hitcount; ++i) {
 			RetopoPaintPoint *intersection= BLI_findlink(&rpd->intersections,i);
 			retopo_do_2d(G.vd,&intersection->loc.x, hitco, 1);
-			intersection->eve= addvertlist(hitco);
+			intersection->eve= addvertlist(hitco, NULL);
 			intersection->eve->f= SELECT;
 		}
 		

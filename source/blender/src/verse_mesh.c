@@ -684,7 +684,7 @@ void post_vertex_create(VerseVert *vvert)
 		 * vertexes, because addvertlist() sends new vertex to verse
 		 * server if em->vnode isn't NULL */
 		em->vnode = NULL;
-		eve = addvertlist(vvert->co);
+		eve = addvertlist(vvert->co, NULL);
 		em->vnode = (void*)geom_vnode;
 
 		eve->vvert = (void*)vvert;
@@ -1557,11 +1557,11 @@ void create_edit_mesh_from_geom_node(VNode *vnode)
 
 	/* create all EditVerts */
 	while(vvert) {
-		eve = addvertlist(vvert->co);
+		eve = addvertlist(vvert->co, NULL);
 
 		eve->f = 0;
 		eve->h = 0;
-		eve->dw = NULL;
+		eve->data = NULL;
 		eve->keyindex = keyindex;
 		eve->vvert = (void*)vvert;
 

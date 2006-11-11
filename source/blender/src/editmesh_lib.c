@@ -709,26 +709,44 @@ void EM_hide_reset(void)
 		
 }
 
-void EM_interp_from_faces(EditFace *efa1, EditFace *efa2, EditFace *efan, int i1, int i2, int i3, int i4)
+void EM_data_interp_from_verts(EditVert *v1, EditVert *v2, EditVert *eve, float fac)
+{
+	EditMesh *em= G.editMesh;
+	void *src[2];
+	float w[2];
+
+	if (v1->data && v2->data) {
+		src[0]= v1->data;
+		src[1]= v2->data;
+		w[0] = 1.0f-fac;
+		w[1] = fac;
+
+		CustomData_em_interp(&em->vdata, src, w, NULL, 2, eve->data);
+	}
+}
+
+void EM_data_interp_from_faces(EditFace *efa1, EditFace *efa2, EditFace *efan, int i1, int i2, int i3, int i4)
 {
 	EditMesh *em= G.editMesh;
 	float w[2][4][4];
 	void *src[2];
 	int count = (efa2)? 2: 1;
 
-	/* set weights for copying from corners directly to other corners */
-	memset(w, 0, sizeof(w));
+	if (efa1->data) {
+		/* set weights for copying from corners directly to other corners */
+		memset(w, 0, sizeof(w));
 
-	w[i1/4][0][i1%4]= 1.0f;
-	w[i2/4][1][i2%4]= 1.0f;
-	w[i3/4][2][i3%4]= 1.0f;
-	if (i4 != -1)
-		w[i4/4][3][i4%4]= 1.0f;
+		w[i1/4][0][i1%4]= 1.0f;
+		w[i2/4][1][i2%4]= 1.0f;
+		w[i3/4][2][i3%4]= 1.0f;
+		if (i4 != -1)
+			w[i4/4][3][i4%4]= 1.0f;
 
-	src[0]= efa1->data;
-	src[1]= (efa2)? efa2->data: NULL;
+		src[0]= efa1->data;
+		src[1]= (efa2)? efa2->data: NULL;
 
-	CustomData_em_interp(&em->fdata, src, NULL, (float*)w, count, efan->data);
+		CustomData_em_interp(&em->fdata, src, NULL, (float*)w, count, efan->data);
+	}
 }
 
 EditFace *EM_face_from_faces(EditFace *efa1, EditFace *efa2, int i1, int i2, int i3, int i4)
@@ -742,10 +760,64 @@ EditFace *EM_face_from_faces(EditFace *efa1, EditFace *efa2, int i1, int i2, int
 	efan= addfacelist(v[i1/4][i1%4], v[i2/4][i2%4], v[i3/4][i3%4],
 		(i4 == -1)? 0: v[i4/4][i4%4], efa1, NULL);
 
-	if (efa1->data)
-		EM_interp_from_faces(efa1, efa2, efan, i1, i2, i3, i4);
+	EM_data_interp_from_faces(efa1, efa2, efan, i1, i2, i3, i4);
 	
 	return efan;
+}
+
+static void update_data_blocks(CustomData *olddata, CustomData *data)
+{
+	EditMesh *em= G.editMesh;
+	EditFace *efa;
+	EditVert *eve;
+	void *block;
+
+	if (data == &G.editMesh->vdata) {
+		for(eve= em->verts.first; eve; eve= eve->next) {
+			block = NULL;
+			CustomData_em_copy_data(olddata, data, eve->data, &block);
+			CustomData_em_free_block(olddata, &eve->data);
+			eve->data= block;
+		}
+	}
+	else if (data == &G.editMesh->fdata) {
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			block = NULL;
+			CustomData_em_copy_data(olddata, data, efa->data, &block);
+			CustomData_em_free_block(olddata, &efa->data);
+			efa->data= block;
+		}
+	}
+}
+
+void EM_add_data_layer(CustomData *data, int type)
+{
+	CustomData olddata;
+
+	if (CustomData_has_layer(data, type))
+		return;
+
+	olddata= *data;
+	olddata.layers= MEM_dupallocN(olddata.layers);
+	CustomData_add_layer(data, type, 0, NULL);
+
+	update_data_blocks(&olddata, data);
+	MEM_freeN(olddata.layers);
+}
+
+void EM_free_data_layer(CustomData *data, int type)
+{
+	CustomData olddata;
+
+	if (!CustomData_has_layer(data, type))
+		return;
+
+	olddata= *data;
+	olddata.layers= MEM_dupallocN(olddata.layers);
+	CustomData_free_layer(data, type);
+
+	update_data_blocks(&olddata, data);
+	MEM_freeN(olddata.layers);
 }
 
 /* ********  EXTRUDE ********* */
@@ -843,34 +915,16 @@ short extrudeflag_face_indiv(short flag, float *nor)
 	/* step 2: make new faces from faces */
 	for(efa= em->faces.last; efa; efa= efa->prev) {
 		if(efa->f & SELECT) {
-			v1= addvertlist(efa->v1->co);
-			if(efa->v1->totweight){
-				v1->dw = MEM_dupallocN(efa->v1->dw);
-				v1->totweight = efa->v1->totweight;
-			}
-			
-			v2= addvertlist(efa->v2->co);
-			if(efa->v2->totweight){
-				v2->dw = MEM_dupallocN(efa->v2->dw);
-				v2->totweight = efa->v2->totweight;
-			}
-		
-			v3= addvertlist(efa->v3->co);
-			if(efa->v3->totweight){
-				v3->dw = MEM_dupallocN(efa->v3->dw);
-				v3->totweight = efa->v3->totweight;
-			}
+			v1= addvertlist(efa->v1->co, efa->v1);
+			v2= addvertlist(efa->v2->co, efa->v2);
+			v3= addvertlist(efa->v3->co, efa->v3);
 			
 			v1->f1= v2->f1= v3->f1= 1;
 			VECCOPY(v1->no, efa->n);
 			VECCOPY(v2->no, efa->n);
 			VECCOPY(v3->no, efa->n);
 			if(efa->v4) {
-				v4= addvertlist(efa->v4->co); 
-				if(efa->v4->totweight){
-					v4->dw = MEM_dupallocN(efa->v4->dw);
-					v4->totweight = efa->v4->totweight;
-				}
+				v4= addvertlist(efa->v4->co, efa->v4); 
 				v4->f1= 1;
 				VECCOPY(v4->no, efa->n);
 			}
@@ -942,20 +996,11 @@ short extrudeflag_edges_indiv(short flag, float *nor)
 	/* make the faces */
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if(eed->f & flag) {
-			if(eed->v1->tmp.v == NULL){
-				eed->v1->tmp.v = addvertlist(eed->v1->co);
-				if(eed->v1->totweight){
-					eed->v1->tmp.v->dw = MEM_dupallocN(eed->v1->dw);
-					eed->v1->tmp.v->totweight = eed->v1->totweight;
-				}
-			}
-			if(eed->v2->tmp.v == NULL){ 
-				eed->v2->tmp.v = addvertlist(eed->v2->co);
-				if(eed->v2->totweight){
-					eed->v2->tmp.v->dw = MEM_dupallocN(eed->v2->dw);
-					eed->v2->tmp.v->totweight = eed->v2->totweight;
-				}
-			}
+			if(eed->v1->tmp.v == NULL)
+				eed->v1->tmp.v = addvertlist(eed->v1->co, eed->v1);
+			if(eed->v2->tmp.v == NULL)
+				eed->v2->tmp.v = addvertlist(eed->v2->co, eed->v2);
+
 			if(eed->dir==1) 
 				addfacelist(eed->v1, eed->v2, 
 							eed->v2->tmp.v, eed->v1->tmp.v, 
@@ -999,11 +1044,7 @@ short extrudeflag_verts_indiv(short flag, float *nor)
 	/* make the edges */
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->f & flag) {
-			eve->tmp.v = addvertlist(eve->co);
-			if(eve->totweight){
-				eve->tmp.v->dw = MEM_dupallocN(eve->dw);
-				eve->tmp.v->totweight = eve->totweight;
-			}
+			eve->tmp.v = addvertlist(eve->co, eve);
 			addedgelist(eve, eve->tmp.v, NULL);
 		}
 		else eve->tmp.v = NULL;
@@ -1136,20 +1177,11 @@ static short extrudeflag_edge(short flag, float *nor)
 	for(eed= em->edges.last; eed; eed= eed->prev) {
 		if(eed->f & SELECT) {
 			if(eed->f2<2) {
-				if(eed->v1->tmp.v == NULL){
-					eed->v1->tmp.v = addvertlist(eed->v1->co);
-					if(eed->v1->totweight){
-						eed->v1->tmp.v->dw = MEM_dupallocN(eed->v1->dw);
-						eed->v1->tmp.v->totweight = eed->v1->totweight;
-					}
-				}
-				if(eed->v2->tmp.v == NULL){
-					eed->v2->tmp.v = addvertlist(eed->v2->co);
-					if(eed->v2->totweight){
-						eed->v2->tmp.v->dw = MEM_dupallocN(eed->v2->dw);
-						eed->v2->tmp.v->totweight = eed->v2->totweight;
-					}
-				}	
+				if(eed->v1->tmp.v == NULL)
+					eed->v1->tmp.v = addvertlist(eed->v1->co, eed->v1);
+				if(eed->v2->tmp.v == NULL)
+					eed->v2->tmp.v = addvertlist(eed->v2->co, eed->v2);
+
 				/* if del_old, the preferred normal direction is exact 
 				 * opposite as for keep old faces
 				 */
@@ -1168,34 +1200,14 @@ static short extrudeflag_edge(short flag, float *nor)
 	/* step 3: make new faces from faces */
 	for(efa= em->faces.last; efa; efa= efa->prev) {
 		if(efa->f & SELECT) {
-			if (efa->v1->tmp.v == NULL){ 
-				efa->v1->tmp.v = addvertlist(efa->v1->co);
-				if(efa->v1->totweight){
-					efa->v1->tmp.v->dw = MEM_dupallocN(efa->v1->dw);
-					efa->v1->tmp.v->totweight = efa->v1->totweight;
-				}
-			}
-			if (efa->v2->tmp.v ==NULL){
-				efa->v2->tmp.v = addvertlist(efa->v2->co);
-				if(efa->v2->totweight){
-					efa->v2->tmp.v->dw = MEM_dupallocN(efa->v2->dw);
-					efa->v2->tmp.v->totweight = efa->v2->totweight;
-				}
-			}
-			if (efa->v3->tmp.v ==NULL){ 
-				efa->v3->tmp.v = addvertlist(efa->v3->co);
-				if(efa->v3->totweight){
-					efa->v3->tmp.v->dw = MEM_dupallocN(efa->v3->dw);
-					efa->v3->tmp.v->totweight = efa->v3->totweight;
-				}
-			}
-			if (efa->v4 && (efa->v4->tmp.v == NULL)){ 
-				efa->v4->tmp.v = addvertlist(efa->v4->co);
-				if(efa->v4->totweight){
-					efa->v4->tmp.v->dw = MEM_dupallocN(efa->v4->dw);
-					efa->v4->tmp.v->totweight = efa->v4->totweight;
-				}
-			}
+			if (efa->v1->tmp.v == NULL)
+				efa->v1->tmp.v = addvertlist(efa->v1->co, efa->v1);
+			if (efa->v2->tmp.v ==NULL)
+				efa->v2->tmp.v = addvertlist(efa->v2->co, efa->v2);
+			if (efa->v3->tmp.v ==NULL)
+				efa->v3->tmp.v = addvertlist(efa->v3->co, efa->v3);
+			if (efa->v4 && (efa->v4->tmp.v == NULL))
+				efa->v4->tmp.v = addvertlist(efa->v4->co, efa->v4);
 			
 			if(del_old==0) {	// keep old faces means flipping normal
 				if(efa->v4)
@@ -1425,7 +1437,7 @@ short extrudeflag_vert(short flag, float *nor)
 		eve->f &= ~128;  /* clear, for later test for loose verts */
 		if(eve->f & flag) {
 			sel= 1;
-			v1= addvertlist(0);
+			v1= addvertlist(0, NULL);
 			
 			VECCOPY(v1->co, eve->co);
 			v1->f= eve->f;
@@ -1482,7 +1494,7 @@ short extrudeflag_vert(short flag, float *nor)
 				efa = eed->tmp.f;
 				efa2->mat_nr= efa->mat_nr;
 				efa2->flag= efa->flag;
-				CustomData_em_copy_data(&em->fdata, &efa->data, &efa2->data);
+				CustomData_em_copy_data(&em->fdata, &em->fdata, &efa->data, &efa2->data);
 			}
 			
 			/* Needs smarter adaption of existing creases.
@@ -1621,22 +1633,14 @@ void translateflag(short flag, float *vec)
 /* helper call for below */
 static EditVert *adduplicate_vertex(EditVert *eve, int flag)
 {
-	EditVert *v1= addvertlist(eve->co);
+	/* FIXME: copy deformation weight from eve ok here? */
+	EditVert *v1= addvertlist(eve->co, eve);
 	
 	v1->f= eve->f;
 	eve->f-= flag;
 	eve->f|= 128;
 	
 	eve->tmp.v = v1;
-	
-	/* FIXME: Copy deformation weight ? */
-	v1->totweight = eve->totweight;
-	if (eve->totweight){
-		v1->dw = MEM_mallocN (eve->totweight * sizeof(MDeformWeight), "deformWeight");
-		memcpy (v1->dw, eve->dw, eve->totweight * sizeof(MDeformWeight));
-	}
-	else
-		v1->dw=NULL;
 	
 	return v1;
 }
@@ -1800,13 +1804,13 @@ void flipface(EditFace *efa)
 		SWAP(EditVert *, efa->v2, efa->v4);
 		SWAP(EditEdge *, efa->e1, efa->e4);
 		SWAP(EditEdge *, efa->e2, efa->e3);
-		EM_interp_from_faces(efa, NULL, efa, 0, 3, 2, 1);
+		EM_data_interp_from_faces(efa, NULL, efa, 0, 3, 2, 1);
 	}
 	else {
 		SWAP(EditVert *, efa->v2, efa->v3);
 		SWAP(EditEdge *, efa->e1, efa->e3);
 		efa->e2->dir= 1-efa->e2->dir;
-		EM_interp_from_faces(efa, NULL, efa, 0, 2, 1, 3);
+		EM_data_interp_from_faces(efa, NULL, efa, 0, 2, 1, 3);
 	}
 
 	if(efa->v4) CalcNormFloat4(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co, efa->n);

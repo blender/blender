@@ -203,8 +203,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	xvertsort *sortblock, *sb, *sb1;
 	struct facesort *vlsortblock, *vsb, *vsb1;
 	float dist;
-	int a, b, test, amount, currweight, doubweight, targetweight;
-	MDeformWeight *newdw;
+	int a, b, test, amount;
 
 	/* flag 128 is cleared, count */
 	eve= em->verts.first;
@@ -263,50 +262,9 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	}
 	MEM_freeN(sortblock);
 
-	
-	for(eve = em->verts.first; eve; eve=eve->next){
-		
-		if(eve->f & flag) {
-			if(eve->f & 128) {
-			
-				v1 = eve->tmp.v;
-				
-								
-				if(v1->dw && eve->dw){
-					for(doubweight=0; doubweight < eve->totweight; doubweight++){
-						targetweight = -1;
-						for(currweight = 0; currweight < v1->totweight; currweight++){
-							if(v1->dw[currweight].def_nr == eve->dw[doubweight].def_nr){
-								targetweight = currweight;
-								break;
-							}
-						}
-						
-						if(targetweight != -1){		/*average*/
-							v1->dw[targetweight].weight = (v1->dw[targetweight].weight + eve->dw[doubweight].weight) / 2;
-						}
-						else{	/*append*/
-							newdw = MEM_callocN(sizeof(MDeformWeight)*(v1->totweight+1), "MDeformWeight Append");
-							memcpy(newdw, v1->dw, sizeof(MDeformWeight)*v1->totweight);
-							MEM_freeN(v1->dw);
-							
-							v1->dw= newdw;
-							v1->dw[v1->totweight].weight = eve->dw[doubweight].weight;
-							v1->dw[v1->totweight].def_nr = eve->dw[doubweight].def_nr;
-							v1->totweight++;
-						}	
-					}
-				}
-				else if(eve->dw){	/*just straight copy vert weights*/
-					
-					newdw = MEM_mallocN(sizeof(MDeformWeight) * (eve->totweight), "MDeformWeight Copy");
-					memcpy(newdw, eve->dw, sizeof(MDeformWeight)*eve->totweight);
-					v1->dw= newdw;
-					
-				}
-			}
-		}
-	}
+	for(eve = em->verts.first; eve; eve=eve->next)
+		if((eve->f & flag) && (eve->f & 128))
+			EM_data_interp_from_verts(eve, eve->tmp.v, eve->tmp.v, 0.5f);
 
 	/* test edges and insert again */
 	eed= em->edges.first;
@@ -373,7 +331,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 						efa->v3= efa->v4;
 						efa->v4= 0;
 
-						EM_interp_from_faces(efa, NULL, efa, 0, 2, 3, 3);
+						EM_data_interp_from_faces(efa, NULL, efa, 0, 2, 3, 3);
 
 						test= 0;
 					}
@@ -1208,59 +1166,6 @@ void fill_mesh(void)
 /*used by faceloop cut to select only edges valid for edge slide*/
 #define DOUBLEOPFILL 16
 
-/* Mostly mirrored from editdeform.c, here only used for the function below */
-/* Only to be used to add new weights in eve, the value of weight has been premultiplied with subdiv factor, so is added only */
-static void subdiv_add_defweight (EditVert *eve, int defgroup, float weight)
-{
-	MDeformWeight *newdw;
-	int	i;
-	
-	if (defgroup<0)
-		return;
-	
-	for (i=0; i<eve->totweight; i++) {
-		if (eve->dw[i].def_nr == defgroup) {
-			eve->dw[i].weight += weight;
-			return;
-		}
-	}
-	
-	newdw = MEM_callocN (sizeof(MDeformWeight)*(eve->totweight+1), "subdiv deformWeight");
-	if (eve->dw) {
-		memcpy (newdw, eve->dw, sizeof(MDeformWeight)*eve->totweight);
-		MEM_freeN (eve->dw);
-	}
-	eve->dw= newdw;
-	
-	eve->dw[eve->totweight].weight= weight;
-	eve->dw[eve->totweight].def_nr= defgroup;
-	
-	eve->totweight++;
-	
-}
-
-
-/* the new vertex *eve will get vertex groups as defined in eed, based on fac subdivide */
-static void subdivide_edge_vgroups(EditEdge *eed, EditVert *eve, float fac)
-{
-	EditVert *v1= eed->v1, *v2= eed->v2;
-	int i;
-	
-	/* let's first check of there are groups */
-	if(v1->totweight==0 && v2->totweight==0)
-		return;
-	
-	/* now add the weights of v1 into the new vertex */
-	for (i=0; i<v1->totweight; i++) {
-		subdiv_add_defweight(eve, v1->dw[i].def_nr, v1->dw[i].weight*(1.0f-fac));
-	}
-	
-	/* now add the weights of v2 into the new vertex */
-	for (i=0; i<v2->totweight; i++) {
-		subdiv_add_defweight(eve, v2->dw[i].def_nr, v2->dw[i].weight*fac);
-	}
-}
-
 /* calculates offset for co, based on fractal, sphere or smooth settings  */
 static void alter_co(float *co, EditEdge *edge, float rad, int beauty, float perc)
 {
@@ -1331,10 +1236,10 @@ static EditVert *subdivide_edge_addvert(EditEdge *edge, float rad, int beauty, f
 	/* offset for smooth or sphere or fractal */
 	alter_co(co, edge, rad, beauty, percent);
 	
-	ev = addvertlist(co);
+	ev = addvertlist(co, NULL);
 	
-	/* vgroups */
-	subdivide_edge_vgroups(edge, ev, percent);
+	/* vert data (vgroups, ..) */
+	EM_data_interp_from_verts(edge->v1, edge->v2, ev, percent);
 	
 	/* normal */
 	ev->no[0] = (edge->v2->no[0]-edge->v1->no[0])*percent + edge->v1->no[0];
@@ -1393,11 +1298,12 @@ void interp_uv_vcol(float *v1, float *v2, float *v3, float *v4, float *co, TFace
 
 static void facecopy(EditFace *source, EditFace *target)
 {
+	EditMesh *em= G.editMesh;
 	float *v1 = source->v1->co, *v2 = source->v2->co, *v3 = source->v3->co;
 	float *v4 = source->v4? source->v4->co: NULL;
 	float w[4][4];
 
-	CustomData_em_copy_data(&G.editMesh->fdata, source->data, &target->data);
+	CustomData_em_copy_data(&em->fdata, &em->fdata, source->data, &target->data);
 
 	target->mat_nr = source->mat_nr;
 	target->flag   = source->flag;	
@@ -1408,8 +1314,7 @@ static void facecopy(EditFace *source, EditFace *target)
 	if (target->v4)
 		InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v4->co, w[3]);
 	
-	CustomData_em_interp(&G.editMesh->fdata, &source->data, NULL,
-	                     (float*)w, 1, target->data);
+	CustomData_em_interp(&em->fdata, &source->data, NULL, (float*)w, 1, target->data);
 }
 
 static void fill_quad_single(EditFace *efa, struct GHash *gh, int numcuts, int seltype)
@@ -1831,11 +1736,13 @@ static void fill_quad_double_adj_inner(EditFace *efa, struct GHash *gh, int numc
 	inner = MEM_mallocN(sizeof(EditVert*)*numcuts,"New inner verts");
 	
 	for(i=0;i<numcuts;i++) {
-			co[0] = (verts[0][numcuts-i]->co[0] + verts[1][i+1]->co[0] ) / 2 ;
-			co[1] = (verts[0][numcuts-i]->co[1] + verts[1][i+1]->co[1] ) / 2 ;
-			co[2] = (verts[0][numcuts-i]->co[2] + verts[1][i+1]->co[2] ) / 2 ;
-			inner[i] = addvertlist(co);
-			inner[i]->f2 |= EDGEINNER;
+		co[0] = (verts[0][numcuts-i]->co[0] + verts[1][i+1]->co[0] ) / 2 ;
+		co[1] = (verts[0][numcuts-i]->co[1] + verts[1][i+1]->co[1] ) / 2 ;
+		co[2] = (verts[0][numcuts-i]->co[2] + verts[1][i+1]->co[2] ) / 2 ;
+		inner[i] = addvertlist(co, NULL);
+		inner[i]->f2 |= EDGEINNER;
+
+		EM_data_interp_from_verts(verts[0][numcuts-i], verts[1][i+1], inner[i], 0.5f);
 	}
 	
 	// Add Corner Quad
@@ -4299,55 +4206,22 @@ static void bevel_mesh(float bsize, int allfaces)
 	while (efa) {
 		if (efa->f1 & 1) {
 			efa->f1-= 1;
-			v1= addvertlist(efa->v1->co);
+			v1= addvertlist(efa->v1->co, efa->v1);
 			v1->f= efa->v1->f & ~128;
    			efa->v1->tmp.v = v1;
-#ifdef __NLA
-   			v1->totweight = efa->v1->totweight;
-   			if (efa->v1->totweight) {
-   				v1->dw = MEM_mallocN (efa->v1->totweight * sizeof(MDeformWeight), "deformWeight");
-   				memcpy (v1->dw, efa->v1->dw, efa->v1->totweight * sizeof(MDeformWeight));
-   			}
-   			else
-   				v1->dw=NULL;
-#endif
-			v1= addvertlist(efa->v2->co);
+
+			v1= addvertlist(efa->v2->co, efa->v2);
 			v1->f= efa->v2->f & ~128;
    			efa->v2->tmp.v = v1;
-#ifdef __NLA
-   			v1->totweight = efa->v2->totweight;
-   			if (efa->v2->totweight) {
-   				v1->dw = MEM_mallocN (efa->v2->totweight * sizeof(MDeformWeight), "deformWeight");
-   				memcpy (v1->dw, efa->v2->dw, efa->v2->totweight * sizeof(MDeformWeight));
-   			}
-   			else
-   				v1->dw=NULL;
-#endif
-			v1= addvertlist(efa->v3->co);
+
+			v1= addvertlist(efa->v3->co, efa->v3);
 			v1->f= efa->v3->f & ~128;
    			efa->v3->tmp.v = v1;
-#ifdef __NLA
-   			v1->totweight = efa->v3->totweight;
-   			if (efa->v3->totweight) {
-   				v1->dw = MEM_mallocN (efa->v3->totweight * sizeof(MDeformWeight), "deformWeight");
-   				memcpy (v1->dw, efa->v3->dw, efa->v3->totweight * sizeof(MDeformWeight));
-   			}
-   			else
-   				v1->dw=NULL;
-#endif
+
 			if (efa->v4) {
-				v1= addvertlist(efa->v4->co);
+				v1= addvertlist(efa->v4->co, efa->v4);
 				v1->f= efa->v4->f & ~128;
 	   			efa->v4->tmp.v = v1;
-#ifdef __NLA
-	   			v1->totweight = efa->v4->totweight;
-	   			if (efa->v4->totweight) {
-	   				v1->dw = MEM_mallocN (efa->v4->totweight * sizeof(MDeformWeight), "deformWeight");
-	   				memcpy (v1->dw, efa->v4->dw, efa->v4->totweight * sizeof(MDeformWeight));
-	   			}
-	   			else
-	   				v1->dw=NULL;
-#endif
 			}
 
 			/* Needs better adaption of creases? */
@@ -4595,7 +4469,7 @@ static void bevel_mesh(float bsize, int allfaces)
 					cent[0]= (min[0]+max[0])/2;
 					cent[1]= (min[1]+max[1])/2;
 					cent[2]= (min[2]+max[2])/2;
-					eve2= addvertlist(cent);
+					eve2= addvertlist(cent, NULL);
 					eve2->f |= 1;
 					eed= em->edges.first;
 					while (eed) {
@@ -5494,7 +5368,7 @@ void mesh_rip(void)
 	for(eve = em->verts.last; eve; eve= eve->prev) {
 		eve->tmp.v = NULL;
 		if(eve->f & SELECT) {
-			eve->tmp.v = addvertlist(eve->co);
+			eve->tmp.v = addvertlist(eve->co, eve);
 			eve->f &= ~SELECT;
 			eve->tmp.v->f |= SELECT;
 		}

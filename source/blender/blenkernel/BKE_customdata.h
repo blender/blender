@@ -72,12 +72,16 @@ void CustomData_free(struct CustomData *data);
  * (flag & LAYERFLAG_NOFREE) is true
  * grows the number of layers in data if data->maxLayers has been reached
  * returns 1 on success, 0 on failure
+ *
+ * in editmode, use EM_add_data_layer instead of this function
  */
 int CustomData_add_layer(struct CustomData *data, int type, int flag,
                          void *layer);
 
 /* frees the first data layer with the give type.
  * returns 1 on succes, 0 if no layer with the given type is found
+ *
+ * in editmode, use EM_free_data_layer instead of this function
  */
 int CustomData_free_layer(struct CustomData *data, int type);
 
@@ -98,7 +102,8 @@ int CustomData_has_layer(const struct CustomData *data, int type);
 int CustomData_copy_data(const struct CustomData *source,
                          struct CustomData *dest, int source_index,
                          int dest_index, int count);
-int CustomData_em_copy_data(struct CustomData *data, void *src_block,
+int CustomData_em_copy_data(const struct CustomData *source,
+                            struct CustomData *dest, void *src_block,
                             void **dest_block);
 
 /* frees data in a CustomData object

@@ -43,6 +43,7 @@ struct Mesh;
 struct bDeformGroup;
 struct View3D;
 struct EditSelection;
+struct CustomData;
 
 // edge and face flag both
 #define EM_FGON		2
@@ -104,10 +105,15 @@ extern int faceselectedAND(struct EditFace *efa, int flag);
 extern void recalc_editnormals(void);
 extern void flip_editnormals(void);
 
+extern void EM_data_interp_from_verts(struct EditVert *v1,
+	struct EditVert *v2, struct EditVert *eve, float fac);
 extern struct EditFace *EM_face_from_faces(struct EditFace *efa1,
 	struct EditFace *efa2, int i1, int i2, int i3, int i4);
-extern void EM_interp_from_faces(struct EditFace *efa1, struct EditFace *efa2,
-	struct EditFace *efan, int i1, int i2, int i3, int i4);
+extern void EM_data_interp_from_faces(struct EditFace *efa1,
+	struct EditFace *efa2, struct EditFace *efan, int i1, int i2, int i3, int i4);
+
+void EM_add_data_layer(struct CustomData *data, int type);
+void EM_free_data_layer(struct CustomData *data, int type);
 
 /* ******************* editmesh_mods.c */
 

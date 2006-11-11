@@ -134,7 +134,7 @@ static void *(*callocvert)(size_t, size_t) = calloc;
 static void *(*callocedge)(size_t, size_t) = calloc;
 static void *(*callocface)(size_t, size_t) = calloc;
 
-EditVert *addvertlist(float *vec)
+EditVert *addvertlist(float *vec, EditVert *example)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
@@ -156,6 +156,11 @@ EditVert *addvertlist(float *vec)
 	createVerseVert(eve);
 #endif
 
+	if(example)
+		CustomData_em_copy_data(&em->vdata, &em->vdata, example->data, &eve->data);
+	else
+		CustomData_em_set_default(&em->vdata, &eve->data);
+
 	return eve;
 }
 
@@ -172,11 +177,10 @@ void free_editvert (EditVert *eve)
 	}
 #endif
 
-	if(eve->dw) MEM_freeN(eve->dw);
 	EM_remove_selection(eve, EDITVERT);
-	if(eve->fast==0){ 
+	CustomData_em_free_block(&G.editMesh->vdata, &eve->data);
+	if(eve->fast==0)
 		free(eve);
-	}
 }
 
 
@@ -411,7 +415,7 @@ EditFace *addfacelist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 	if(example) {
 		efa->mat_nr= example->mat_nr;
 		efa->flag= example->flag;
-		CustomData_em_copy_data(&em->fdata, example->data, &efa->data);
+		CustomData_em_copy_data(&em->fdata, &em->fdata, example->data, &efa->data);
 	}
 	else {
 		if (G.obedit && G.obedit->actcol)
@@ -554,6 +558,7 @@ void free_editMesh(EditMesh *em)
 	if(em->faces.first) free_facelist(&em->faces);
 	if(em->selected.first) BLI_freelistN(&(em->selected));
 
+	CustomData_free(&em->vdata);
 	CustomData_free(&em->fdata);
 
 	if(em->derivedFinal) {
@@ -784,7 +789,7 @@ void make_editMesh()
 	EditFace *efa;
 	EditEdge *eed;
 	EditSelection *ese;
-	CustomData mfdata;
+	CustomData mvdata, mfdata;
 	int tot, a, eekadoodle= 0;
 
 #ifdef WITH_VERSE
@@ -817,11 +822,16 @@ void make_editMesh()
 	}
 
 	/* make editverts */
+	CustomData_init(&mvdata, 0, me->totvert, SUB_ELEMS_VERT);
+	if(me->dvert)
+		CustomData_add_layer(&mvdata, LAYERTYPE_MDEFORMVERT, LAYERFLAG_NOFREE, me->dvert);
+	CustomData_from_template(&mvdata, &em->vdata, 0, 0);
+	
 	mvert= me->mvert;
 
 	evlist= (EditVert **)MEM_mallocN(tot*sizeof(void *),"evlist");
 	for(a=0; a<tot; a++, mvert++) {
-		eve= addvertlist(mvert->co);
+		eve= addvertlist(mvert->co, NULL);
 		evlist[a]= eve;
 		
 		// face select sets selection in next loop
@@ -839,15 +849,10 @@ void make_editMesh()
 		 */
 		eve->keyindex = a;
 
-		if (me->dvert){
-			eve->totweight = me->dvert[a].totweight;
-			if (me->dvert[a].dw){
-				eve->dw = MEM_callocN (sizeof(MDeformWeight) * me->dvert[a].totweight, "deformWeight");
-				memcpy (eve->dw, me->dvert[a].dw, sizeof(MDeformWeight) * me->dvert[a].totweight);
-			}
-		}
-
+		CustomData_to_em_block(&mvdata, &em->vdata, a, &eve->data);
 	}
+
+	CustomData_free(&mvdata);
 
 	if(actkey && actkey->totelem!=me->totvert);
 	else {
@@ -972,8 +977,7 @@ void load_editMesh(void)
 	EditSelection *ese;
 	float *fp, *newkey, *oldkey, nor[3];
 	int i, a, ototvert, totedge=0;
-	MDeformVert *dvert;
-	CustomData mfdata;
+	CustomData mvdata, mfdata;
 
 #ifdef WITH_VERSE
 	if(em->vnode) {
@@ -1010,13 +1014,19 @@ void load_editMesh(void)
 	if(G.totface==0) mface= NULL;
 	else mface= MEM_callocN(G.totface*sizeof(MFace), "loadeditMesh face");
 
-	/* are we adding dverts? */
-	if (G.totvert==0) dvert= NULL;
-	else if(G.obedit->defbase.first==NULL) dvert= NULL;
-	else dvert = MEM_callocN(G.totvert*sizeof(MDeformVert), "loadeditMesh3");
-
-	if (me->dvert) free_dverts(me->dvert, me->totvert);
-	me->dvert=dvert;
+	/* free vertex and face data */
+	if (me->dvert) {
+		free_dverts(me->dvert, me->totvert);
+		me->dvert= NULL;
+	}
+	if(me->tface) {
+		MEM_freeN(me->tface);
+		me->tface = NULL;
+	}
+	if(me->mcol) {
+		MEM_freeN(me->mcol);
+		me->mcol = NULL;
+	}
 
 	/* lets save the old verts just in case we are actually working on
 	 * a key ... we now do processing of the keys at the end */
@@ -1036,15 +1046,8 @@ void load_editMesh(void)
 	me->mface= mface;
 	me->totface= G.totface;
 
-	/* face data */
-	if(me->tface) {
-		MEM_freeN(me->tface);
-		me->tface = NULL;
-	}
-	if(me->mcol) {
-		MEM_freeN(me->mcol);
-		me->mcol = NULL;
-	}
+	/* vertex and face data */
+	CustomData_from_template(&em->vdata, &mvdata, LAYERFLAG_NOFREE, me->totvert);
 	CustomData_from_template(&em->fdata, &mfdata, LAYERFLAG_NOFREE, me->totface);
 
 	/* the vertices, use ->tmp.l as counter */
@@ -1060,16 +1063,9 @@ void load_editMesh(void)
 		VecMulf(nor, 32767.0);
 		VECCOPY(mvert->no, nor);
 
-		/* note: it used to remove me->dvert when it was not in use, cancelled that... annoying when you have a fresh vgroup */
-		if (dvert){
-			dvert->totweight=eve->totweight;
-			if (eve->dw){
-				dvert->dw = MEM_callocN (sizeof(MDeformWeight)*eve->totweight,
-										 "deformWeight");
-				memcpy (dvert->dw, eve->dw, 
-						sizeof(MDeformWeight)*eve->totweight);
-			}
-		}
+		/* note: it used to remove me->dvert when it was not in use, cancelled
+		   that... annoying when you have a fresh vgroup */
+		CustomData_from_em_block(&em->vdata, &mvdata, eve->data, a);
 
 		eve->tmp.l = a++;  /* counter */
 			
@@ -1086,8 +1082,11 @@ void load_editMesh(void)
 #endif			
 		eve= eve->next;
 		mvert++;
-		if(dvert) dvert++;
 	}
+
+	/* from CustomData to dvert in Mesh */
+	me->dvert = CustomData_get(&mvdata, 0, LAYERTYPE_MDEFORMVERT);
+	CustomData_free(&mvdata);
 
 	/* the edges */
 	a= 0;
@@ -1180,14 +1179,14 @@ void load_editMesh(void)
 
 	/* sync hide and select flags with faceselect mode */
 	if(G.f & G_FACESELECT) {
-		if(me->tface && (me->totface > 0)) {
+		if(CustomData_has_layer(&mfdata, LAYERTYPE_TFACE) && (me->totface > 0)) {
 			efa= em->faces.first;
-			for(a=0, efa=em->faces.first; efa; a++, efa++) {
+			for(a=0, efa=em->faces.first; efa; a++, efa=efa->next) {
 				tf = CustomData_get(&mfdata, a, LAYERTYPE_TFACE);
 
 				if(efa->h) tf->flag |= TF_HIDE;
 				else tf->flag &= ~TF_HIDE;
-				if(efa->f & SELECT)  tf->flag |= TF_SELECT;
+				if(efa->f & SELECT) tf->flag |= TF_SELECT;
 				else tf->flag &= ~TF_SELECT;
 			}
 		}
@@ -1196,7 +1195,6 @@ void load_editMesh(void)
 	/* from CustomData to tface and mcol in Mesh */
 	me->tface = CustomData_get(&mfdata, 0, LAYERTYPE_TFACE);
 	me->mcol = CustomData_get(&mfdata, 0, LAYERTYPE_MCOL);
-
 	CustomData_free(&mfdata);
 
 	/* patch hook indices */
@@ -1566,6 +1564,7 @@ void separate_mesh(void)
 	emcopy.alledges= NULL;
 	emcopy.allfaces= NULL;
 	emcopy.derivedFinal= emcopy.derivedCage= NULL;
+	memset(&emcopy.vdata, 0, sizeof(emcopy.vdata));
 	memset(&emcopy.fdata, 0, sizeof(emcopy.fdata));
 	free_editMesh(&emcopy);
 	
@@ -1760,6 +1759,7 @@ void separate_mesh_loose(void)
 			emcopy.alledges= NULL;
 			emcopy.allfaces= NULL;
 			emcopy.derivedFinal= emcopy.derivedCage= NULL;
+			memset(&emcopy.vdata, 0, sizeof(emcopy.vdata));
 			memset(&emcopy.fdata, 0, sizeof(emcopy.fdata));
 			free_editMesh(&emcopy);
 			
@@ -1801,8 +1801,6 @@ typedef struct EditVertC
 	float no[3];
 	float co[3];
 	unsigned char f, h;
-	short totweight;
-	struct MDeformWeight *dw;
 	int keyindex;
 } EditVertC;
 
@@ -1835,7 +1833,7 @@ typedef struct UndoMesh {
 	short selectmode;
 	RetopoPaintData *retopo_paint_data;
 	char retopo_mode;
-	CustomData fdata;
+	CustomData vdata, fdata;
 } UndoMesh;
 
 /* for callbacks */
@@ -1843,18 +1841,13 @@ typedef struct UndoMesh {
 static void free_undoMesh(void *umv)
 {
 	UndoMesh *um= umv;
-	EditVertC *evec;
-	int a;
-	
-	for(a=0, evec= um->verts; a<um->totvert; a++, evec++) {
-		if(evec->dw) MEM_freeN(evec->dw);
-	}
 	
 	if(um->verts) MEM_freeN(um->verts);
 	if(um->edges) MEM_freeN(um->edges);
 	if(um->faces) MEM_freeN(um->faces);
 	if(um->selected) MEM_freeN(um->selected);
 	if(um->retopo_paint_data) retopo_free_paint_data(um->retopo_paint_data);
+	CustomData_free(&um->vdata);
 	CustomData_free(&um->fdata);
 	MEM_freeN(um);
 }
@@ -1888,6 +1881,7 @@ static void *editMesh_to_undoMesh(void)
 	if(um->totface) efac= um->faces= MEM_callocN(um->totface*sizeof(EditFaceC), "allfacesC");
 	if(um->totsel) esec= um->selected= MEM_callocN(um->totsel*sizeof(EditSelectionC), "allselections");
 
+	if(um->totvert) CustomData_from_template(&em->vdata, &um->vdata, 0, um->totvert);
 	if(um->totface) CustomData_from_template(&em->fdata, &um->fdata, 0, um->totface);
 	
 	/* now copy vertices */
@@ -1899,9 +1893,9 @@ static void *editMesh_to_undoMesh(void)
 		evec->f= eve->f;
 		evec->h= eve->h;
 		evec->keyindex= eve->keyindex;
-		evec->totweight= eve->totweight;
-		evec->dw= MEM_dupallocN(eve->dw);
 		eve->tmp.l = a; /*store index*/
+
+		CustomData_from_em_block(&em->vdata, &um->vdata, eve->data, a);
 	}
 	
 	/* copy edges */
@@ -1988,17 +1982,20 @@ static void undoMesh_to_editMesh(void *umv)
 #endif
 
 	/* now copy vertices */
+	CustomData_free(&em->vdata);
+	CustomData_from_template(&um->vdata, &em->vdata, 0, 0);
+
 	if(um->totvert) evar= MEM_mallocN(um->totvert*sizeof(EditVert *), "vertex ar");
 	for(a=0, evec= um->verts; a<um->totvert; a++, evec++) {
-		eve= addvertlist(evec->co);
+		eve= addvertlist(evec->co, NULL);
 		evar[a]= eve;
 
 		VECCOPY(eve->no, evec->no);
 		eve->f= evec->f;
 		eve->h= evec->h;
-		eve->totweight= evec->totweight;
 		eve->keyindex= evec->keyindex;
-		eve->dw= MEM_dupallocN(evec->dw);
+
+		CustomData_to_em_block(&um->vdata, &em->vdata, a, &eve->data);
 	}
 
 	/* copy edges */

@@ -95,6 +95,7 @@
 #include "BKE_anim.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
+#include "BKE_customdata.h"
 #include "BKE_blender.h"
 #include "BKE_booleanops.h"
 #include "BKE_curve.h"
@@ -360,19 +361,24 @@ static int return_editmesh_indexar(int *tot, int **indexar, float *cent)
 static int return_editmesh_vgroup(char *name, float *cent)
 {
 	EditMesh *em = G.editMesh;
+	MDeformVert *dvert;
 	EditVert *eve;
 	int i, totvert=0;
 	
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
-	if (G.obedit->actdef) {
+	if(G.obedit->actdef) {
 		
 		/* find the vertices */
 		for(eve= em->verts.first; eve; eve= eve->next) {
-			for (i=0; i<eve->totweight; i++){
-				if(eve->dw[i].def_nr == (G.obedit->actdef-1)) {
-					totvert++;
-					VecAddf(cent, cent, eve->co);
+			dvert= CustomData_em_get(&em->vdata, eve->data, LAYERTYPE_MDEFORMVERT);
+
+			if(dvert) {
+				for(i=0; i<dvert->totweight; i++){
+					if(dvert->dw[i].def_nr == (G.obedit->actdef-1)) {
+						totvert++;
+						VecAddf(cent, cent, eve->co);
+					}
 				}
 			}
 		}

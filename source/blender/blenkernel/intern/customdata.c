@@ -161,12 +161,17 @@ static void layerInterp_mdeformvert(void **sources, float *weights,
 
 	/* now we know how many unique deform weights there are, so realloc */
 	if(dvert->dw) MEM_freeN(dvert->dw);
-	dvert->dw = MEM_callocN(sizeof(*dvert->dw) * totweight,
-	                        "layerInterp_mdeformvert dvert->dw");
-	dvert->totweight = totweight;
 
-	for(i = 0, node = dest_dw; node; node = node->next, ++i)
-		dvert->dw[i] = *((MDeformWeight *)node->link);
+	if(totweight) {
+		dvert->dw = MEM_callocN(sizeof(*dvert->dw) * totweight,
+		                        "layerInterp_mdeformvert dvert->dw");
+		dvert->totweight = totweight;
+
+		for(i = 0, node = dest_dw; node; node = node->next, ++i)
+			dvert->dw[i] = *((MDeformWeight *)node->link);
+	}
+	else
+		memset(dvert, 0, sizeof(*dvert));
 
 	BLI_linklist_free(dest_dw, linklist_free_simple);
 }
@@ -694,12 +699,34 @@ void CustomData_set_num_elems(CustomData *data, int numElems)
 
 /* EditMesh functions */
 
+void CustomData_em_free_block(CustomData *data, void **block)
+{
+    const LayerTypeInfo *typeInfo;
+    int i;
+
+	if(!*block) return;
+
+    for(i = 0; i < data->numLayers; ++i) {
+        if(!(data->layers[i].flag & LAYERFLAG_NOFREE)) {
+            typeInfo = layerType_getInfo(data->layers[i].type);
+
+            if(typeInfo->free) {
+				int offset = data->layers[i].offset;
+                typeInfo->free((char*)*block + offset, 1, typeInfo->size);
+			}
+        }
+    }
+
+	MEM_freeN(*block);
+	*block = NULL;
+}
+
 static void CustomData_em_alloc_block(CustomData *data, void **block)
 {
 	/* TODO: optimize free/alloc */
 
 	if (*block)
-		MEM_freeN(*block);
+		CustomData_em_free_block(data, block);
 
 	if (data->totSize > 0)
 		*block = MEM_callocN(data->totSize, "CustomData EM block");
@@ -707,34 +734,48 @@ static void CustomData_em_alloc_block(CustomData *data, void **block)
 		*block = NULL;
 }
 
-void CustomData_em_free_block(CustomData *data, void **block)
-{
-	if (*block) {
-		MEM_freeN(*block);
-		*block = NULL;
-	}
-}
-
-int CustomData_em_copy_data(CustomData *data, void *src_block, void **dest_block)
+int CustomData_em_copy_data(const CustomData *source, CustomData *dest,
+                            void *src_block, void **dest_block)
 {
 	const LayerTypeInfo *type_info;
-	int i;
+	int dest_i, src_i;
 
 	if (!*dest_block)
-		CustomData_em_alloc_block(data, dest_block);
+		CustomData_em_alloc_block(dest, dest_block);
 	
 	/* copies a layer at a time */
-	for(i = 0; i < data->numLayers; ++i) {
-		int offset = data->layers[i].offset;
-		char *src_data = (char*)src_block + offset;
-		char *dest_data = (char*)*dest_block + offset;
+	dest_i = 0;
+	for(src_i = 0; src_i < source->numLayers; ++src_i) {
+		if(source->layers[src_i].flag & LAYERFLAG_NOCOPY) continue;
 
-		type_info = layerType_getInfo(data->layers[i].type);
+		/* find the first dest layer with type >= the source type
+		 * (this should work because layers are ordered by type)
+		 */
+		while(dest_i < dest->numLayers
+		      && dest->layers[dest_i].type < source->layers[src_i].type)
+			++dest_i;
 
-		if(type_info->copy)
-			type_info->copy(src_data, dest_data, 1, type_info->size);
-		else
-			memcpy(dest_data, src_data, type_info->size);
+		/* if there are no more dest layers, we're done */
+		if(dest_i >= dest->numLayers) return 1;
+
+		/* if we found a matching layer, copy the data */
+		if(dest->layers[dest_i].type == source->layers[src_i].type) {
+			char *src_data = (char*)src_block + source->layers[src_i].offset;
+			char *dest_data = (char*)*dest_block + dest->layers[dest_i].offset;
+
+			type_info = layerType_getInfo(source->layers[src_i].type);
+
+			if(type_info->copy)
+				type_info->copy(src_data, dest_data, 1, type_info->size);
+			else
+				memcpy(dest_data, src_data, type_info->size);
+
+			/* if there are multiple source & dest layers of the same type,
+			 * we don't want to copy all source layers to the same dest, so
+			 * increment dest_i
+			 */
+			++dest_i;
+		}
 	}
 
 	return 1;

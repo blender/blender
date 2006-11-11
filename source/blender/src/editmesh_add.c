@@ -228,7 +228,7 @@ void add_click_mesh(void)
 		float mat[3][3],imat[3][3];
 		float *curs= give_cursor();
 		
-		eve= addvertlist(0);
+		eve= addvertlist(0, NULL);
 
 		Mat3CpyMat4(mat, G.obedit->obmat);
 		Mat3Inv(imat, mat);
@@ -837,7 +837,7 @@ void make_prim(int type, float imat[3][3], short tot, short seg,
 			vec[1]= cent[1]- dia;
 			vec[2]= cent[2];
 			Mat3MulVecfl(imat,vec);
-			eve= addvertlist(vec);
+			eve= addvertlist(vec, NULL);
 			eve->f= 1+2+4;
 			if (a) {
 				addedgelist(eve->prev, eve, NULL);
@@ -869,7 +869,7 @@ void make_prim(int type, float imat[3][3], short tot, short seg,
 			vec[0]= dia*sin(phi);
 			vec[1]= 0.0;
 			vec[2]= dia*cos(phi);
-			eve= addvertlist(vec);
+			eve= addvertlist(vec, NULL);
 			eve->f= 1+2+4;
 			if(a==0) v1= eve;
 			else addedgelist(eve->prev, eve, NULL);
@@ -916,7 +916,7 @@ void make_prim(int type, float imat[3][3], short tot, short seg,
 				vec[0]= dia*icovert[a][0];
 				vec[1]= dia*icovert[a][1];
 				vec[2]= dia*icovert[a][2];
-				eva[a]= addvertlist(vec);
+				eva[a]= addvertlist(vec, NULL);
 				eva[a]->f= 1+2;
 			}
 			for(a=0;a<20;a++) {
@@ -962,9 +962,9 @@ void make_prim(int type, float imat[3][3], short tot, short seg,
 			for (i=0; i<monkeynv; i++) {
 				float v[3];
 				v[0]= (monkeyv[i][0]+127)/128.0, v[1]= monkeyv[i][1]/128.0, v[2]= monkeyv[i][2]/128.0;
-				tv[i]= addvertlist(v);
+				tv[i]= addvertlist(v, NULL);
 				tv[i]->f |= SELECT;
-				tv[monkeynv+i]= (fabs(v[0]= -v[0])<0.001)?tv[i]:addvertlist(v);
+				tv[monkeynv+i]= (fabs(v[0]= -v[0])<0.001)?tv[i]:addvertlist(v, NULL);
 				tv[monkeynv+i]->f |= SELECT;
 			}
 			for (i=0; i<monkeynf; i++) {
@@ -997,7 +997,7 @@ void make_prim(int type, float imat[3][3], short tot, short seg,
 				vec[2]= cent[2]+d;
 				
 				Mat3MulVecfl(imat, vec);
-				eve= addvertlist(vec);
+				eve= addvertlist(vec, NULL);
 				eve->f= SELECT;
 				if(a==0) {
 					if(b==0) v1= eve;
@@ -1012,12 +1012,12 @@ void make_prim(int type, float imat[3][3], short tot, short seg,
 			VECCOPY(vec,cent);
 			vec[2]-= -d;
 			Mat3MulVecfl(imat,vec);
-			vdown= addvertlist(vec);
+			vdown= addvertlist(vec, NULL);
 			if(ext || type==7) {
 				VECCOPY(vec,cent);
 				vec[2]-= d;
 				Mat3MulVecfl(imat,vec);
-				vtop= addvertlist(vec);
+				vtop= addvertlist(vec, NULL);
 			}
 		} else {
 			vdown= v1;

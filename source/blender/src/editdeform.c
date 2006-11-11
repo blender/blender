@@ -45,6 +45,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
+#include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
 #include "BKE_deform.h"
@@ -70,6 +71,7 @@ void sel_verts_defgroup (int select)
 	EditVert *eve;
 	Object *ob;
 	int i;
+	MDeformVert *dvert;
 
 	ob= G.obedit;
 
@@ -79,9 +81,11 @@ void sel_verts_defgroup (int select)
 	switch (ob->type){
 	case OB_MESH:
 		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
-			if (eve->totweight){
-				for (i=0; i<eve->totweight; i++){
-					if (eve->dw[i].def_nr == (ob->actdef-1)){
+			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, LAYERTYPE_MDEFORMVERT);
+
+			if (dvert && dvert->totweight){
+				for (i=0; i<dvert->totweight; i++){
+					if (dvert->dw[i].def_nr == (ob->actdef-1)){
 						if (select) eve->f |= SELECT;
 						else eve->f &= ~SELECT;
 						
@@ -98,9 +102,10 @@ void sel_verts_defgroup (int select)
 	case OB_LATTICE:
 		if(editLatt->dvert) {
 			BPoint *bp;
-			MDeformVert *dvert= editLatt->dvert;
 			int a, tot;
 			
+			dvert= editLatt->dvert;
+
 			tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 			for(a=0, bp= editLatt->def; a<tot; a++, bp++, dvert++) {
 				for (i=0; i<dvert->totweight; i++){
@@ -215,12 +220,15 @@ void del_defgroup (Object *ob)
 	if(ob->type==OB_MESH) {
 		EditMesh *em = G.editMesh;
 		EditVert *eve;
+		MDeformVert *dvert;
 		
 		for (eve=em->verts.first; eve; eve=eve->next){
-			for (i=0; i<eve->totweight; i++){
-				if (eve->dw[i].def_nr > (ob->actdef-1))
-					eve->dw[i].def_nr--;
-			}
+			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, LAYERTYPE_MDEFORMVERT);
+
+			if (dvert)
+				for (i=0; i<dvert->totweight; i++)
+					if (dvert->dw[i].def_nr > (ob->actdef-1))
+						dvert->dw[i].def_nr--;
 		}
 	}
 	else {
@@ -482,6 +490,7 @@ void assign_verts_defgroup (void)
 	EditVert *eve;
 	bDeformGroup *dg, *eg;
 	MDeformWeight *newdw;
+	MDeformVert *dvert;
 	int	i, done;
 
 	ob= G.obedit;
@@ -497,35 +506,40 @@ void assign_verts_defgroup (void)
 
 	switch (ob->type){
 	case OB_MESH:
+		if (!CustomData_has_layer(&G.editMesh->vdata, LAYERTYPE_MDEFORMVERT))
+			EM_add_data_layer(&G.editMesh->vdata, LAYERTYPE_MDEFORMVERT);
+
 		/* Go through the list of editverts and assign them */
 		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
-			if (eve->f & 1){
+			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, LAYERTYPE_MDEFORMVERT);
+
+			if (dvert && (eve->f & 1)){
 				done=0;
 				/* See if this vert already has a reference to this group */
 				/*		If so: Change its weight */
 				done=0;
-				for (i=0; i<eve->totweight; i++){
-					eg = BLI_findlink (&ob->defbase, eve->dw[i].def_nr);
+				for (i=0; i<dvert->totweight; i++){
+					eg = BLI_findlink (&ob->defbase, dvert->dw[i].def_nr);
 					/* Find the actual group */
 					if (eg==dg){
-						eve->dw[i].weight=editbutvweight;
+						dvert->dw[i].weight=editbutvweight;
 						done=1;
 						break;
 					}
 			 	}
 				/*		If not: Add the group and set its weight */
 				if (!done){
-					newdw = MEM_callocN (sizeof(MDeformWeight)*(eve->totweight+1), "deformWeight");
-					if (eve->dw){
-						memcpy (newdw, eve->dw, sizeof(MDeformWeight)*eve->totweight);
-						MEM_freeN (eve->dw);
+					newdw = MEM_callocN (sizeof(MDeformWeight)*(dvert->totweight+1), "deformWeight");
+					if (dvert->dw){
+						memcpy (newdw, dvert->dw, sizeof(MDeformWeight)*dvert->totweight);
+						MEM_freeN (dvert->dw);
 					}
-					eve->dw=newdw;
+					dvert->dw=newdw;
 
-					eve->dw[eve->totweight].weight= editbutvweight;
-					eve->dw[eve->totweight].def_nr= ob->actdef-1;
+					dvert->dw[dvert->totweight].weight= editbutvweight;
+					dvert->dw[dvert->totweight].def_nr= ob->actdef-1;
 
-					eve->totweight++;
+					dvert->totweight++;
 
 				}
 			}
@@ -585,6 +599,7 @@ void remove_verts_defgroup (int allverts)
 {
 	Object *ob;
 	EditVert *eve;
+	MDeformVert *dvert;
 	MDeformWeight *newdw;
 	bDeformGroup *dg, *eg;
 	int	i;
@@ -603,25 +618,27 @@ void remove_verts_defgroup (int allverts)
 	switch (ob->type){
 	case OB_MESH:
 		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
-			if (eve->dw && ((eve->f & 1) || allverts)){
-				for (i=0; i<eve->totweight; i++){
+			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, LAYERTYPE_MDEFORMVERT);
+
+			if (dvert && dvert->dw && ((eve->f & 1) || allverts)){
+				for (i=0; i<dvert->totweight; i++){
 					/* Find group */
-					eg = BLI_findlink (&ob->defbase, eve->dw[i].def_nr);
+					eg = BLI_findlink (&ob->defbase, dvert->dw[i].def_nr);
 					if (eg == dg){
-						eve->totweight--;
-						if (eve->totweight){
-							newdw = MEM_mallocN (sizeof(MDeformWeight)*(eve->totweight), "deformWeight");
+						dvert->totweight--;
+						if (dvert->totweight){
+							newdw = MEM_mallocN (sizeof(MDeformWeight)*(dvert->totweight), "deformWeight");
 							
-							if (eve->dw){
-								memcpy (newdw, eve->dw, sizeof(MDeformWeight)*i);
-								memcpy (newdw+i, eve->dw+i+1, sizeof(MDeformWeight)*(eve->totweight-i));
-								MEM_freeN (eve->dw);
+							if (dvert->dw){
+								memcpy (newdw, dvert->dw, sizeof(MDeformWeight)*i);
+								memcpy (newdw+i, dvert->dw+i+1, sizeof(MDeformWeight)*(dvert->totweight-i));
+								MEM_freeN (dvert->dw);
 							}
-							eve->dw=newdw;
+							dvert->dw=newdw;
 						}
 						else{
-							MEM_freeN (eve->dw);
-							eve->dw=NULL;
+							MEM_freeN (dvert->dw);
+							dvert->dw=NULL;
 						}
 					}
 				}

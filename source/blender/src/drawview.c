@@ -81,6 +81,7 @@
 #include "BKE_anim.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
+#include "BKE_customdata.h"
 #include "BKE_displist.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
@@ -1536,6 +1537,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	EditMesh *em = G.editMesh;
 	EditVert *eve, *evedef=NULL;
 	EditEdge *eed;
+	MDeformVert *dvert;
 	float median[5];
 	int tot, totw, totweight, totedge;
 	char defstr[320];
@@ -1562,28 +1564,30 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			}
 			eed= eed->next;
 		}
+
 		/* check for defgroups */
-		if(tot==1 && evedef->totweight) {
+		dvert= CustomData_em_get(&em->vdata, evedef->data, LAYERTYPE_MDEFORMVERT);
+		if(tot==1 && dvert->totweight) {
 			bDeformGroup *dg;
 			int i, max=1, init=1;
 			char str[32];
 			
-			for (i=0; i<evedef->totweight; i++){
-				dg = BLI_findlink (&ob->defbase, evedef->dw[i].def_nr);
+			for (i=0; i<dvert->totweight; i++){
+				dg = BLI_findlink (&ob->defbase, dvert->dw[i].def_nr);
 				if(dg) {
-					max+= sprintf(str, "%s %%x%d|", dg->name, evedef->dw[i].def_nr); 
+					max+= sprintf(str, "%s %%x%d|", dg->name, dvert->dw[i].def_nr); 
 					if(max<320) strcat(defstr, str);
 				}
 				else printf("oh no!\n");
-				if(curdef==evedef->dw[i].def_nr) {
+				if(curdef==dvert->dw[i].def_nr) {
 					init= 0;
-					defweightp= &evedef->dw[i].weight;
+					defweightp= &dvert->dw[i].weight;
 				}
 			}
 			
 			if(init) {	// needs new initialized 
-				curdef= evedef->dw[0].def_nr;
-				defweightp= &evedef->dw[0].weight;
+				curdef= dvert->dw[0].def_nr;
+				defweightp= &dvert->dw[0].weight;
 			}
 		}
 	}

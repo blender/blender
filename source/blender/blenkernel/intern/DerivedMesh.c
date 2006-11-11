@@ -1459,7 +1459,6 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
                                            float (*vertexCos)[3])
 {
 	EditMeshDerivedMesh *emdm = MEM_callocN(sizeof(*emdm), "emdm");
-	Mesh *me = ob->data;
 
 	DM_init(&emdm->dm, BLI_countlist(&em->verts),
 	                 BLI_countlist(&em->edges), BLI_countlist(&em->faces));
@@ -1492,16 +1491,15 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 	emdm->em = em;
 	emdm->vertexCos = vertexCos;
 
-	if(me->dvert) {
+	if(CustomData_has_layer(&em->vdata, LAYERTYPE_MDEFORMVERT)) {
 		EditVert *eve;
 		int i;
+
 		DM_add_vert_layer(&emdm->dm, LAYERTYPE_MDEFORMVERT, 0, NULL);
 
-		for(eve = em->verts.first, i = 0; eve; eve = eve->next, ++i) {
-			if(eve->keyindex != -1)
-				DM_set_vert_data(&emdm->dm, i, LAYERTYPE_MDEFORMVERT,
-				                 &me->dvert[eve->keyindex]);
-		}
+		for(eve = em->verts.first, i = 0; eve; eve = eve->next, ++i)
+			DM_set_vert_data(&emdm->dm, i, LAYERTYPE_MDEFORMVERT,
+			                 CustomData_em_get(&em->vdata, eve->data, LAYERTYPE_MDEFORMVERT));
 	}
 
 	if(vertexCos) {

@@ -53,7 +53,7 @@ extern void free_facelist(ListBase *lb);
 
 extern void remedge(EditEdge *eed);
 
-extern struct EditVert *addvertlist(float *vec);
+extern struct EditVert *addvertlist(float *vec, struct EditVert *example);
 extern struct EditEdge *addedgelist(struct EditVert *v1, struct EditVert *v2, struct EditEdge *example);
 extern struct EditFace *addfacelist(struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example, struct EditFace *exampleEdges);
 extern struct EditEdge *findedgelist(struct EditVert *v1, struct EditVert *v2);

@@ -747,24 +747,25 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
-	int i;
 	MVert *mvert = CDDM_get_verts(dm);
 	MEdge *medge = CDDM_get_edges(dm);
 	MFace *mface = CDDM_get_faces(dm);
+	int i, hassticky = 0, hasdvert = 0, hastface = 0, hasmcol = 0;
 	int *index;
-	TFace *tf;
 
 	/* set eve->hash to vert index */
 	for(i = 0, eve = em->verts.first; eve; eve = eve->next, ++i)
 		eve->hash = i;
 
-	if(me->msticky)
-		CustomData_add_layer(&dm->vertData, LAYERTYPE_MDEFORMVERT, 0, NULL);
-	if(me->dvert)
-		CustomData_add_layer(&dm->vertData, LAYERTYPE_MDEFORMVERT, 0, NULL);
-
-	if(me->tface)
-		CustomData_add_layer(&dm->faceData, LAYERTYPE_TFACE, 0, NULL);
+	/* check for availability of layers */
+	if(CustomData_has_layer(&em->vdata, LAYERTYPE_MSTICKY))
+		hassticky= CustomData_add_layer(&dm->vertData, LAYERTYPE_MSTICKY, 0, NULL);
+	if(CustomData_has_layer(&em->vdata, LAYERTYPE_MDEFORMVERT))
+		hasdvert= CustomData_add_layer(&dm->vertData, LAYERTYPE_MDEFORMVERT, 0, NULL);
+	if(CustomData_has_layer(&em->vdata, LAYERTYPE_TFACE))
+		hastface= CustomData_add_layer(&dm->vertData, LAYERTYPE_TFACE, 0, NULL);
+	if(CustomData_has_layer(&em->vdata, LAYERTYPE_MCOL))
+		hasmcol= CustomData_add_layer(&dm->vertData, LAYERTYPE_MCOL, 0, NULL);
 
 	/* Need to be able to mark loose edges */
 	for(eed = em->edges.first; eed; eed = eed->next) {
@@ -793,12 +794,12 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 
 		*index = i;
 
-		if(me->msticky && eve->keyindex != -1)
+		if(hassticky)
 			DM_set_vert_data(dm, i, LAYERTYPE_MSTICKY,
-			                 &me->msticky[eve->keyindex]);
-		if(me->dvert && eve->keyindex != -1)
+				CustomData_em_get(&em->vdata, eve->data, LAYERTYPE_MSTICKY));
+		if(hasdvert)
 			DM_set_vert_data(dm, i, LAYERTYPE_MDEFORMVERT,
-			                 &me->dvert[eve->keyindex]);
+				CustomData_em_get(&em->vdata, eve->data, LAYERTYPE_MDEFORMVERT));
 	}
 
 	index = dm->getEdgeDataArray(dm, LAYERTYPE_ORIGINDEX);
@@ -833,9 +834,12 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 
 		*index = i;
 
-		tf = CustomData_em_get(&em->fdata, efa->data, LAYERTYPE_TFACE);
-		if(tf)
-			DM_set_face_data(dm, i, LAYERTYPE_TFACE, tf);
+		if(hastface)
+			DM_set_face_data(dm, i, LAYERTYPE_TFACE,
+				CustomData_em_get(&em->fdata, efa->data, LAYERTYPE_TFACE));
+		if(hasmcol)
+			DM_set_face_data(dm, i, LAYERTYPE_MCOL,
+				CustomData_em_get(&em->fdata, efa->data, LAYERTYPE_MCOL));
 	}
 
 	return dm;

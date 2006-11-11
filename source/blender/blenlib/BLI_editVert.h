@@ -68,13 +68,13 @@ typedef struct EditVert
 	f1 and f2 can be used for temp data, clear them first*/
 	unsigned char f, h, f1, f2; 
 	short fast;	/* only 0 or 1, for editmesh_fastmalloc, do not store temp data here! */
-	short	totweight; /* __NLA total number of vertex weights for this vertex */
 	int hash;
-	struct MDeformWeight *dw;	/* __NLA a pointer to an array of defirm weights */
 	int keyindex; /* original index #, for restoring  key information */
 /*#ifdef WITH_VERSE*/
 	void *vvert;
 /*#endif*/
+
+	void *data;		/* custom vertex data */
 } EditVert;
 
 struct EditEdge;
@@ -168,7 +168,7 @@ typedef struct EditMesh
 	char retopo_mode; /* 0=OFF, 1=ON, 2=PAINT */
 	struct RetopoPaintData *retopo_paint_data;
 
-	CustomData fdata;
+	CustomData vdata, fdata;
 
 #ifdef WITH_VERSE
 	void *vnode;

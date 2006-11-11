@@ -3532,9 +3532,14 @@ void do_meshbuts(unsigned short event)
 			break;
 		
 		case B_MAKEVERTCOL:
-			make_vertexcol();
+			if(G.obedit)
+				EM_add_data_layer(&G.editMesh->fdata, LAYERTYPE_MCOL);
+			else
+				make_vertexcol();
 			break;
 		case B_DELVERTCOL:
+			if(G.obedit)
+				EM_free_data_layer(&G.editMesh->fdata, LAYERTYPE_MCOL);
 			if(me->mcol) MEM_freeN(me->mcol);
 			me->mcol= NULL;
 			G.f &= ~G_VERTEXPAINT;
@@ -3544,11 +3549,16 @@ void do_meshbuts(unsigned short event)
 			break;
 
 		case B_MAKE_TFACES:
-			make_tfaces(me);
+			if(G.obedit)
+				EM_add_data_layer(&G.editMesh->fdata, LAYERTYPE_TFACE);
+			else
+				make_tfaces(me);
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
 
 		case B_DEL_TFACES:
+			if(G.obedit)
+				EM_free_data_layer(&G.editMesh->fdata, LAYERTYPE_TFACE);
 			if(me->tface) MEM_freeN(me->tface);
 			me->tface= 0;
 			G.f &= ~G_FACESELECT;

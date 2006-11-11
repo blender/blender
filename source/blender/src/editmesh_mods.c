@@ -1167,20 +1167,26 @@ int vertgroup_select(short mode)
 							return selcount;
 					}
 				}
-			} else if (mode==3 && base_eve->totweight != 0) { /* vertex groups */
-				short i,j; /*weight index*/
+			} else if (mode==3) { /* vertex groups */
+				MDeformVert *dvert, *base_dvert;
+				short i, j; /* weight index */
+
+				base_dvert= CustomData_em_get(&em->vdata, base_eve->data,
+					LAYERTYPE_MDEFORMVERT);
+
+				if (!base_dvert || base_dvert->totweight == 0)
+					return selcount;
 				
 				for(eve= em->verts.first; eve; eve= eve->next) {
-					if (
-						!(eve->f & SELECT) &&
-						!eve->h &&
-						eve->totweight
-					) {
+					dvert= CustomData_em_get(&em->vdata, eve->data,
+						LAYERTYPE_MDEFORMVERT);
+
+					if (dvert && !(eve->f & SELECT) && !eve->h && dvert->totweight) {
 						/* do the extra check for selection in the following if, so were not
 						checking verts that may be alredy selected */
-						for (i=0; base_eve->totweight >i && !(eve->f & SELECT); i++) { 
-							for (j=0; eve->totweight >j; j++) {
-								if (base_eve->dw[i].def_nr==eve->dw[j].def_nr) {
+						for (i=0; base_dvert->totweight >i && !(eve->f & SELECT); i++) { 
+							for (j=0; dvert->totweight >j; j++) {
+								if (base_dvert->dw[i].def_nr==dvert->dw[j].def_nr) {
 									eve->f |= SELECT;
 									selcount++;
 									deselcount--;
