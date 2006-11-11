@@ -753,7 +753,7 @@ void *CustomData_em_get(const CustomData *data, void *block, int type)
 
 void CustomData_em_set(CustomData *data, void *block, int type, void *source)
 {
-	void *dest = CustomData_em_get(data, index, type);
+	void *dest = CustomData_em_get(data, block, type);
 	const LayerTypeInfo *type_info = layerType_getInfo(type);
 
 	if(!dest) return;
