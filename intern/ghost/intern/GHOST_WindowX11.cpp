@@ -235,7 +235,7 @@ void GHOST_WindowX11::initXInputDevices()
 			old_handler = XSetErrorHandler(ApplicationErrorHandler) ;
 
 			for(int i=0; i<device_count; ++i) {
-				if(!strcmp(device_info[i].name, "stylus")) {
+				if(!strcasecmp(device_info[i].name, "stylus")) {
 					m_xtablet.StylusID= device_info[i].id;
 					m_xtablet.StylusDevice = XOpenDevice(m_display, m_xtablet.StylusID);
 
@@ -260,7 +260,7 @@ void GHOST_WindowX11::initXInputDevices()
  						m_xtablet.StylusID= 0;
 					}
 				}
-				if(!strcmp(device_info[i].name, "eraser")) {
+				if(!strcasecmp(device_info[i].name, "eraser")) {
 					m_xtablet.EraserID= device_info[i].id;
 					m_xtablet.EraserDevice = XOpenDevice(m_display, m_xtablet.EraserID);
 					if (m_xtablet.EraserDevice == NULL) m_xtablet.EraserID= 0;
