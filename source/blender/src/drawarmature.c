@@ -1898,23 +1898,25 @@ int draw_armature(Base *base, int dt)
 		/*	Draw Pose */
 		if(ob->pose && ob->pose->chanbase.first) {
 			/* drawing posemode selection indices or colors only in these cases */
-			if(G.f & G_PICKSEL) {
-				if(ob->flag & OB_POSEMODE) arm->flag |= ARM_POSEMODE;
-			}
-			else if(ob->flag & OB_POSEMODE) {
-	
-				if(arm->ghostep) {
-					draw_ghost_poses(base);
+			if(!(base->flag & OB_FROMDUPLI)) {
+				if(G.f & G_PICKSEL) {
+					if(ob->flag & OB_POSEMODE) 
+						arm->flag |= ARM_POSEMODE;
 				}
-				
-				if(ob==OBACT) 
-					arm->flag |= ARM_POSEMODE;
-				else if(G.f & G_WEIGHTPAINT)
-					arm->flag |= ARM_POSEMODE;
-				
-				draw_pose_paths(ob);
-			}	
-			
+				else if(ob->flag & OB_POSEMODE) {
+		
+					if(arm->ghostep) {
+						draw_ghost_poses(base);
+					}
+					
+					if(ob==OBACT) 
+						arm->flag |= ARM_POSEMODE;
+					else if(G.f & G_WEIGHTPAINT)
+						arm->flag |= ARM_POSEMODE;
+					
+					draw_pose_paths(ob);
+				}	
+			}			
 			draw_pose_channels(base, dt);
 			arm->flag &= ~ARM_POSEMODE; 
 			
