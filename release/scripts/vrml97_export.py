@@ -134,13 +134,11 @@ class VRML2Export:
 			self.verbose = 0
 			
 		# decimals for material color values     0.000 - 1.000
-		self.cp=3
+		self.cp=7
 		# decimals for vertex coordinate values  0.000 - n.000
-		self.vp=3
+		self.vp=7
 		# decimals for texture coordinate values 0.000 - 1.000
-		self.tp=3
-		
-		self.it=3
+		self.tp=7
 		
 		#--- class private don't touch ---
 		self.texNames={}   # dictionary of textureNames
@@ -1044,21 +1042,14 @@ class VRML2Export:
 				   axis[0], axis[1], axis[2], angle)
 
 		self.writeIndented("DEF OB_%s Transform {\n" % (obname), 1)
-		self.writeIndented("translation %s %s %s\n" % \
-						   (round(v.x,3), \
-							round(v.y,3), \
-							round(v.z,3)))
+		self.writeIndented("translation %f %f %f\n" % \
+						   (v.x, v.y, v.z) )
 
-		self.writeIndented("rotation %s %s %s %s\n" % \
-						   (round(axis[0],3), \
-							round(axis[1],3), \
-							round(axis[2],3), \
-							round(angle,3)))
+		self.writeIndented("rotation %f %f %f %f\n" % \
+						   (axis[0],axis[1],axis[2],angle) )
 		
-		self.writeIndented("scale %s %s %s\n" % \
-						   (round(sizeX,3), \
-							round(sizeY,3), \
-							round(sizeZ,3)))
+		self.writeIndented("scale %f %f %f\n" % \
+						   (sizeX, sizeY, sizeZ) )
 
 		self.writeIndented("children [\n", 1)
 
