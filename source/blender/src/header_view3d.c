@@ -162,12 +162,12 @@ void do_layer_buttons(short event)
 		G.vd->scenelock= !G.vd->scenelock;
 		do_view3d_buttons(B_SCENELOCK);
 	} else if (event==-1) {
-		if(G.vd->lay== (2<<20)-1) {
+		if(G.vd->lay== (1<<20)-1) {
 			if(G.qual & LR_SHIFTKEY) G.vd->lay= oldlay;
 		}
 		else {
 			oldlay= G.vd->lay;
-			G.vd->lay= (2<<20)-1;
+			G.vd->lay= (1<<20)-1;
 		}
 		
 		if(G.vd->scenelock) handle_view3d_lock();
