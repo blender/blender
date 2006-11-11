@@ -1262,6 +1262,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 						case SEQ_COLOR:
 							writestruct(wd, DATA, "SolidColorVars", 1, seq->effectdata);
 							break;
+						case SEQ_SPEED:
+							writestruct(wd, DATA, "SpeedControlVars", 1, seq->effectdata);
+							break;
 						case SEQ_WIPE:
 							writestruct(wd, DATA, "WipeVars", 1, seq->effectdata);
 							break;

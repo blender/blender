@@ -743,6 +743,8 @@ void do_cross_effect_float(float facf0, float facf1, int x, int y,
 	}
 }
 
+/* carefull: also used by speed effect! */
+
 static void do_cross_effect(Sequence * seq,int cfra,
 			    float facf0, float facf1, int x, int y, 
 			    struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -2786,6 +2788,154 @@ static void do_solid_color(Sequence * seq,int cfra,
 }
 
 /* **********************************************************************
+   SPEED
+   ********************************************************************** */
+static void init_speed_effect(Sequence *seq)
+{
+	SpeedControlVars * v;
+
+	if(seq->effectdata) MEM_freeN(seq->effectdata);
+	seq->effectdata = MEM_callocN(sizeof(struct SpeedControlVars), 
+				      "speedcontrolvars");
+
+	v = (SpeedControlVars *)seq->effectdata;
+	v->globalSpeed = 1.0;
+	v->frameMap = 0;
+	v->flags = SEQ_SPEED_COMPRESS_IPO_Y;
+	v->length = 0;
+}
+
+static void load_speed_effect(Sequence * seq)
+{
+	SpeedControlVars * v = (SpeedControlVars *)seq->effectdata;
+
+	v->frameMap = 0;
+	v->length = 0;
+}
+
+static int num_inputs_speed()
+{
+	return 1;
+}
+
+static void free_speed_effect(Sequence *seq)
+{
+	SpeedControlVars * v = (SpeedControlVars *)seq->effectdata;
+	if(v->frameMap) MEM_freeN(v->frameMap);
+	if(seq->effectdata) MEM_freeN(seq->effectdata);
+	seq->effectdata = 0;
+}
+
+static void copy_speed_effect(Sequence *dst, Sequence *src)
+{
+	dst->effectdata = MEM_dupallocN(src->effectdata);
+}
+
+static int early_out_speed(struct Sequence *seq,
+			  float facf0, float facf1)
+{
+	return 1;
+}
+
+void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
+{
+	float facf0 = seq->facf0;
+	float ctime, div;
+	int cfra;
+	SpeedControlVars * v = (SpeedControlVars *)seq->effectdata;
+
+	/* if not already done, load / initialize data */
+	get_sequence_effect(seq);
+
+	if (!(force || seq->len != v->length || !v->frameMap)) {
+		return;
+	}
+
+	if (!v->frameMap || v->length != seq->len) {
+		if (v->frameMap) MEM_freeN(v->frameMap);
+
+		v->length = seq->len;
+
+		v->frameMap = MEM_callocN(sizeof(float) * v->length, 
+					  "speedcontrol frameMap");
+	}
+	if ((v->flags & SEQ_SPEED_INTEGRATE) != 0) {
+		float cursor = 0;
+
+		for (cfra = 0; cfra < v->length; cfra++) {
+			if(seq->ipo) {
+				if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
+					ctime = frame_to_float(seq->startdisp
+							       + cfra);
+					div = 1.0;
+				} else {
+					ctime= frame_to_float(cfra);
+					div= v->length / 100.0f;
+					if(div==0.0) return;
+				}
+		
+				calc_ipo(seq->ipo, ctime/div);
+				execute_ipo((ID *)seq, seq->ipo);
+			} else {
+				seq->facf0 = 1.0;
+			}
+			seq->facf0 *= v->globalSpeed;
+
+			cursor += seq->facf0;
+
+			if (cursor >= v->length) {
+				v->frameMap[cfra] = v->length - 1;
+			} else {
+				v->frameMap[cfra] = cursor;
+			}
+		}
+	} else {
+		for (cfra = 0; cfra < v->length; cfra++) {
+			if(seq->ipo) {
+				if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
+					ctime = frame_to_float(seq->startdisp
+							       + cfra);
+					div = 1.0;
+				} else {
+					ctime= frame_to_float(cfra);
+					div= v->length / 100.0f;
+					if(div==0.0) return;
+				}
+		
+				calc_ipo(seq->ipo, ctime/div);
+				execute_ipo((ID *)seq, seq->ipo);
+			}
+			
+			if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
+				seq->facf0 *= v->length;
+			}
+			if (!seq->ipo) {
+				seq->facf0 = cfra;
+			}
+			seq->facf0 *= v->globalSpeed;
+			if (seq->facf0 >= v->length) {
+				seq->facf0 = v->length - 1;
+			}
+			v->frameMap[cfra] = seq->facf0;
+		}
+	}
+	seq->facf0 = facf0;
+}
+
+/*
+  simply reuse do_cross_effect for blending...
+
+static void do_speed_effect(Sequence * seq,int cfra,
+			   float facf0, float facf1, int x, int y, 
+			   struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
+			   struct ImBuf *ibuf3, struct ImBuf *out)
+{
+
+}
+*/
+
+
+/* **********************************************************************
    sequence effect factory
    ********************************************************************** */
 
@@ -2944,6 +3094,15 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 		rval.copy = copy_transform_effect;
 		rval.execute = do_transform_effect;
 		break;
+	case SEQ_SPEED:
+		rval.init = init_speed_effect;
+		rval.num_inputs = num_inputs_speed;
+		rval.load = load_speed_effect;
+		rval.free = free_speed_effect;
+		rval.copy = copy_speed_effect;
+		rval.execute = do_cross_effect;
+		rval.early_out = early_out_speed;
+		break;
 	case SEQ_COLOR:
 		rval.init = init_solid_color;
 		rval.num_inputs = num_inputs_color;
@@ -2952,7 +3111,6 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 		rval.copy = copy_solid_color;
 		rval.execute = do_solid_color;
 		break;
-
 	case SEQ_PLUGIN:
 		rval.init_plugin = init_plugin;
 		rval.num_inputs = num_inputs_plugin;
@@ -2973,7 +3131,7 @@ struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 {
 	struct SeqEffectHandle rval = get_sequence_effect_impl(seq->type);
 
-	if (seq->flag & SEQ_EFFECT_NOT_LOADED) {
+	if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
 		rval.load(seq);
 		seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
 	}

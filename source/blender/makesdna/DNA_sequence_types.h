@@ -49,8 +49,7 @@ typedef struct StripElem {
 	struct ImBuf *ibuf;
 	struct StripElem *se1, *se2, *se3;
 	short ok;
-	unsigned char isneeded;
-	unsigned char pad;
+	short pad;
 	int nr;
 } StripElem;
 
@@ -178,6 +177,18 @@ typedef struct SolidColorVars {
 	float pad;
 } SolidColorVars;
 
+typedef struct SpeedControlVars {
+	float * frameMap;
+	float globalSpeed;
+	int flags;
+	int length;
+	int pad;
+} SpeedControlVars;
+
+/* SpeedControlVars->flags */
+#define SEQ_SPEED_INTEGRATE      1
+#define SEQ_SPEED_BLEND          2
+#define SEQ_SPEED_COMPRESS_IPO_Y 4
 
 /* ***************** SEQUENCE ****************** */
 
@@ -216,6 +227,7 @@ typedef struct SolidColorVars {
 #define SEQ_GLOW		26
 #define SEQ_TRANSFORM		27
 #define SEQ_COLOR               28
+#define SEQ_SPEED               29
 
 
 #endif

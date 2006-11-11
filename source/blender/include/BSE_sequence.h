@@ -48,18 +48,12 @@ void free_stripdata(int len, struct StripElem *se);
 void free_strip(struct Strip *strip);
 void new_stripdata(struct Sequence *seq);
 void free_sequence(struct Sequence *seq);
-void do_seq_count(struct ListBase *seqbase, int *totseq);
-void do_build_seqar(struct ListBase *seqbase, struct Sequence ***seqar, int depth);
 void build_seqar(struct ListBase *seqbase, struct Sequence  ***seqar, int *totseq);
 void free_editing(struct Editing *ed);
 void calc_sequence(struct Sequence *seq);
 void sort_seq(void);
 void clear_scene_in_allseqs(struct Scene *sce);
-struct Sequence *get_shown_seq_from_metastrip(struct Sequence *seqm, int cfra);
 
-void make_black_ibuf(struct ImBuf *ibuf);
-void multibuf(struct ImBuf *ibuf, float fmul);
-void do_effect(int cfra, struct Sequence *seq, struct StripElem *se);
 int evaluate_seq_frame(int cfra);
 struct StripElem *give_stripelem(struct Sequence *seq, int cfra);
 void set_meta_stripdata(struct Sequence *seqm);

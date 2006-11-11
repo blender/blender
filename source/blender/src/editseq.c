@@ -1046,6 +1046,7 @@ static int event_to_efftype(int event)
 	if(event==14) return SEQ_GLOW;
 	if(event==15) return SEQ_TRANSFORM;
 	if(event==16) return SEQ_COLOR;
+	if(event==17) return SEQ_SPEED;
 	return 0;
 }
 
@@ -1345,6 +1346,9 @@ void add_sequence(int type)
 		case SEQ_COLOR:
 			event = 16;
 			break;
+		case SEQ_SPEED:
+			event = 17;
+			break;
 		default:
 			event = 0;
 			break;
@@ -1374,7 +1378,8 @@ void add_sequence(int type)
 			       "|Wipe%x13"
 			       "|Glow%x14"
 			       "|Transforms%x15"
-			       "|Color Generator%x16");
+			       "|Color Generator%x16"
+			       "|Speed Control%x17");
 	}
 
 	if(event<1) return;
@@ -1454,6 +1459,7 @@ void add_sequence(int type)
 	case 14:
 	case 15:
 	case 16:
+	case 17:
 		if(get_last_seq()==0 && 
 		   get_sequence_effect_num_inputs( event_to_efftype(event))> 0)
 			error("Need at least one active sequence strip");
@@ -1499,7 +1505,8 @@ void change_sequence(void)
 				"|Wipe%x13"
 				"|Glow%x14"
 				"|Transform%x15"
-				"|Color Generator%x16");
+				"|Color Generator%x16"
+				"|Speed Control%x17");
 		if(event > 0) {
 			if(event==1) {
 				SWAP(Sequence *,last_seq->seq1,last_seq->seq2);

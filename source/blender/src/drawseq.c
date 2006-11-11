@@ -118,6 +118,7 @@ static char *give_seqname(Sequence *seq)
 	else if(seq->type==SEQ_GLOW) return "Glow";
 	else if(seq->type==SEQ_TRANSFORM) return "Transform";
 	else if(seq->type==SEQ_COLOR) return "Color";
+	else if(seq->type==SEQ_SPEED) return "Speed";
 	else if(seq->type==SEQ_PLUGIN) {
 		if(!(seq->flag & SEQ_EFFECT_NOT_LOADED) &&
 		   seq->plugin && seq->plugin->doit) return seq->plugin->pname;
@@ -182,6 +183,7 @@ static void get_seq_color3ubv(Sequence *seq, char *col)
 		
 	/* effects */
 	case SEQ_TRANSFORM:
+	case SEQ_SPEED:
 	case SEQ_ADD:
 	case SEQ_SUB:
 	case SEQ_MUL:
@@ -1189,7 +1191,37 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		} else if(last_seq->type==SEQ_COLOR) {
 			SolidColorVars *colvars = (SolidColorVars *)last_seq->effectdata;
 			uiDefButF(block, COL, SEQ_BUT_RELOAD, "",10,90,150,19, colvars->col, 0, 0, 0, 0, "");
+		} else if(last_seq->type==SEQ_SPEED){
+			SpeedControlVars *sp = 
+				(SpeedControlVars *)last_seq->effectdata;
+
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Global Speed:", 	10,70,150,19, &sp->globalSpeed, 0.0, 100.0, 0, 0, "Global Speed");
+
+			uiDefButBitI(block, TOG, SEQ_SPEED_INTEGRATE,
+				     SEQ_BUT_EFFECT, 
+				     "IPO is velocity",
+				     10,50,150,19, &sp->flags, 
+				     0.0, 1.0, 0, 0, 
+				     "Interpret the IPO value as a "
+				     "velocity instead of a frame number");
+
+			uiDefButBitI(block, TOG, SEQ_SPEED_BLEND,
+				     SEQ_BUT_EFFECT, 
+				     "Enable frame blending",
+				     10,30,150,19, &sp->flags, 
+				     0.0, 1.0, 0, 0, 
+				     "Blend two frames into the "
+				     "target for a smoother result");
+
+			uiDefButBitI(block, TOG, SEQ_SPEED_COMPRESS_IPO_Y,
+				     SEQ_BUT_EFFECT, 
+				     "IPO value runs from [0..1]",
+				     10,10,150,19, &sp->flags, 
+				     0.0, 1.0, 0, 0, 
+				     "Scale IPO value to get the "
+				     "target frame number.");
 		}
+
 		uiBlockEndAlign(block);
 	}
 }
