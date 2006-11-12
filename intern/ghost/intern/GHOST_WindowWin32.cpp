@@ -46,6 +46,11 @@
 #include <GL/gl.h>
 #include <math.h>
 
+// MSVC6 still doesn't define M_PI
+#ifndef M_PI
+#define M_PI 3.1415926536
+#endif
+
 LPCSTR GHOST_WindowWin32::s_windowClassName = "GHOST_WindowClass";
 const int GHOST_WindowWin32::s_maxTitleLength = 128;
 HGLRC GHOST_WindowWin32::s_firsthGLRc = NULL;
