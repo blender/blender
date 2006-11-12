@@ -55,11 +55,18 @@ typedef enum
 	GHOST_kSuccess
 } GHOST_TSuccess;
 
+/* Xtilt and Ytilt represent how much the pen is tilted away from 
+ * vertically upright in either the X or Y direction, with X and Y the
+ * axes of the tablet surface.
+ * In other words, Xtilt and Ytilt are components of a vector created by projecting
+ * the pen's angle in 3D space vertically downwards on to the XY plane
+ * --Matt
+ */
 typedef struct GHOST_TabletData {
 	char Active; /* 0=None, 1=Stylus, 2=Eraser */
-	float Pressure;
-	float Xtilt;
-	float Ytilt;
+	float Pressure;	/* range 0.0 (not touching) to 1.0 (full pressure) */
+	float Xtilt;	/* range 0.0 (upright) to 1.0 (tilted fully against the tablet surface) */
+	float Ytilt;	/* as above */
 } GHOST_TabletData;
 
 
