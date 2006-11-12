@@ -1903,7 +1903,8 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case RIGHTMOUSE: 
-			node_mouse_select(snode, event);
+			if(!node_mouse_select(snode, event)) 
+				toolbox_n();
 
 			break;
 		case MIDDLEMOUSE:
