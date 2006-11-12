@@ -860,6 +860,7 @@ SoftBody *copy_softbody(SoftBody *sb)
 	sbn->keys= NULL;
 	sbn->totkey= sbn->totpointkey= 0;
 	
+	sbn->scratch= NULL;
 	return sbn;
 }
 
