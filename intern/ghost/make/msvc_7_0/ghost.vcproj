@@ -79,7 +79,7 @@ ECHO Done
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\..\lib\windows\wintab\INCLUDE"
-				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB,_USE_MATH_DEFINES"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
