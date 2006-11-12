@@ -188,6 +188,48 @@ float *RE_vertren_get_winspeed(Render *re, VertRen *ver, int verify)
 	return winspeed + (ver->index & 255)*RE_WINSPEED_ELEMS;
 }
 
+VertRen *RE_vertren_copy(Render *re, VertRen *ver)
+{
+	VertRen *v1= RE_findOrAddVert(re, re->totvert++);
+	float *fp1, *fp2;
+	int index= v1->index;
+	
+	*v1= *ver;
+	v1->index= index;
+	
+	fp1= RE_vertren_get_sticky(re, ver, 0);
+	if(fp1) {
+		fp2= RE_vertren_get_sticky(re, v1, 1);
+		memcpy(fp2, fp1, RE_STICKY_ELEMS*sizeof(float));
+	}
+	fp1= RE_vertren_get_stress(re, ver, 0);
+	if(fp1) {
+		fp2= RE_vertren_get_stress(re, v1, 1);
+		memcpy(fp2, fp1, RE_STRESS_ELEMS*sizeof(float));
+	}
+	fp1= RE_vertren_get_rad(re, ver, 0);
+	if(fp1) {
+		fp2= RE_vertren_get_rad(re, v1, 1);
+		memcpy(fp2, fp1, RE_RAD_ELEMS*sizeof(float));
+	}
+	fp1= RE_vertren_get_strand(re, ver, 0);
+	if(fp1) {
+		fp2= RE_vertren_get_strand(re, v1, 1);
+		memcpy(fp2, fp1, RE_STRAND_ELEMS*sizeof(float));
+	}
+	fp1= RE_vertren_get_tangent(re, ver, 0);
+	if(fp1) {
+		fp2= RE_vertren_get_tangent(re, v1, 1);
+		memcpy(fp2, fp1, RE_TANGENT_ELEMS*sizeof(float));
+	}
+	fp1= RE_vertren_get_winspeed(re, ver, 0);
+	if(fp1) {
+		fp2= RE_vertren_get_winspeed(re, v1, 1);
+		memcpy(fp2, fp1, RE_WINSPEED_ELEMS*sizeof(float));
+	}
+	return v1;
+}
+
 VertRen *RE_findOrAddVert(Render *re, int nr)
 {
 	VertTableNode *temp;

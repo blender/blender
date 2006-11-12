@@ -309,15 +309,6 @@ u	|     |  F1 |  F2 |
 
 /* ------------------------------------------------------------------------- */
 
-static VertRen *duplicate_vertren(Render *re, VertRen *ver)
-{
-	VertRen *v1= RE_findOrAddVert(re, re->totvert++);
-	int index= v1->index;
-	*v1= *ver;
-	v1->index= index;
-	return v1;
-}
-
 static void split_v_renderfaces(Render *re, int startvlak, int startvert, int usize, int vsize, int uIndex, int cyclu, int cyclv)
 {
 	int vLen = vsize-1+(!!cyclv);
@@ -325,7 +316,7 @@ static void split_v_renderfaces(Render *re, int startvlak, int startvert, int us
 
 	for (v=0; v<vLen; v++) {
 		VlakRen *vlr = RE_findOrAddVlak(re, startvlak + vLen*uIndex + v);
-		VertRen *vert = duplicate_vertren(re, vlr->v2);
+		VertRen *vert = RE_vertren_copy(re, vlr->v2);
 
 		if (cyclv) {
 			vlr->v2 = vert;
@@ -346,7 +337,7 @@ static void split_v_renderfaces(Render *re, int startvlak, int startvert, int us
 			}
 
 			if (v==0) {
-				vlr->v1 = duplicate_vertren(re, vlr->v1);
+				vlr->v1 = RE_vertren_copy(re, vlr->v1);
 			} 
 		}
 	}
@@ -903,7 +894,7 @@ static void autosmooth(Render *re, float mat[][4], int startvert, int startvlak,
 						v1= as_findvertex(vlr, ver, asv, thresh);
 						if(v1==NULL) {
 							/* make a new vertex */
-							v1= duplicate_vertren(re, ver);
+							v1= RE_vertren_copy(re, ver);
 						}
 						asf->nver[b]= v1;
 						if(vlr->v1==ver) vlr->v1= v1;
