@@ -86,7 +86,7 @@ public:
 	btDiscreteDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver=0);
 
 	///this btDiscreteDynamicsWorld will create and own dispatcher, pairCache and constraintSolver, and deletes it in the destructor.
-	btDiscreteDynamicsWorld();
+	btDiscreteDynamicsWorld(btConstraintSolver* constraintSolver = 0);
 		
 	virtual ~btDiscreteDynamicsWorld();
 
@@ -136,6 +136,7 @@ public:
 
 	void	debugDrawObject(const btTransform& worldTransform, const btCollisionShape* shape, const btVector3& color);
 
+	virtual void	setConstraintSolver(btConstraintSolver* solver);
 
 };
 

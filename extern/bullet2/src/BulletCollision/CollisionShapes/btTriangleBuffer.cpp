@@ -13,32 +13,29 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef COLLISION_CREATE_FUNC
-#define COLLISION_CREATE_FUNC
+#include "btTriangleBuffer.h"
 
-#include <vector>
 
-typedef std::vector<class btCollisionObject*> btCollisionObjectArray;
-class btCollisionAlgorithm;
-class btCollisionObject;
+///example usage of this class:
+//			btTriangleBuffer	triBuf;
+//			concaveShape->processAllTriangles(&triBuf,aabbMin, aabbMax);
+//			for (int i=0;i<triBuf.getNumTriangles();i++)
+//			{
+//				const btTriangle& tri = triBuf.getTriangle(i);
+//				//do something useful here with the triangle
+//			}
 
-struct btCollisionAlgorithmConstructionInfo;
 
-///Used by the btCollisionDispatcher to register and create instances for btCollisionAlgorithm
-struct btCollisionAlgorithmCreateFunc
+
+
+void btTriangleBuffer::processTriangle(btVector3* triangle,int partId,int  triangleIndex)
 {
-	bool m_swapped;
-	
-	btCollisionAlgorithmCreateFunc()
-		:m_swapped(false)
-	{
-	}
-	virtual ~btCollisionAlgorithmCreateFunc(){};
-
-	virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
-	{
-		return 0;
-	}
-};
-#endif //COLLISION_CREATE_FUNC
-
+		btTriangle	tri;
+		tri.m_vertex0 = triangle[0];
+		tri.m_vertex1 = triangle[1];
+		tri.m_vertex2 = triangle[2];
+		tri.m_partId = partId;
+		tri.m_triangleIndex = triangleIndex;
+			
+		m_triangleBuffer.push_back(tri);
+}

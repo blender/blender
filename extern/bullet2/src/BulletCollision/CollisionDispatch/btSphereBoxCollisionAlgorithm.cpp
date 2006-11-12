@@ -57,11 +57,11 @@ void btSphereBoxCollisionAlgorithm::processCollision (btCollisionObject* body0,b
 	btCollisionObject* boxObj = m_isSwapped? body0 : body1;
 
 
-	btSphereShape* sphere0 = (btSphereShape*)sphereObj ->m_collisionShape;
+	btSphereShape* sphere0 = (btSphereShape*)sphereObj->getCollisionShape();
 
 	btVector3 normalOnSurfaceB;
 	btVector3 pOnBox,pOnSphere;
-	btVector3 sphereCenter = sphereObj->m_worldTransform.getOrigin();
+	btVector3 sphereCenter = sphereObj->getWorldTransform().getOrigin();
 	btScalar radius = sphere0->getRadius();
 	
 	float dist = getSphereDistance(boxObj,pOnBox,pOnSphere,sphereCenter,radius);
@@ -93,14 +93,14 @@ btScalar btSphereBoxCollisionAlgorithm::getSphereDistance(btCollisionObject* box
 
 	btScalar margins;
 	btVector3 bounds[2];
-	btBoxShape* boxShape= (btBoxShape*)boxObj->m_collisionShape;
+	btBoxShape* boxShape= (btBoxShape*)boxObj->getCollisionShape();
 	
 	bounds[0] = -boxShape->getHalfExtents();
 	bounds[1] = boxShape->getHalfExtents();
 
 	margins = boxShape->getMargin();//also add sphereShape margin?
 
-	const btTransform&	m44T = boxObj->m_worldTransform;
+	const btTransform&	m44T = boxObj->getWorldTransform();
 
 	btVector3	boundsVec[2];
 	btScalar	fPenetration;
@@ -209,7 +209,7 @@ btScalar btSphereBoxCollisionAlgorithm::getSpherePenetration( btCollisionObject*
 	n[4].setValue(  0.0f,  1.0f,  0.0f );
 	n[5].setValue(  0.0f,  0.0f,  1.0f );
 
-	const btTransform&	m44T = boxObj->m_worldTransform;
+	const btTransform&	m44T = boxObj->getWorldTransform();
 
 	// convert  point in local space
 	prel = m44T.invXform( sphereCenter);

@@ -31,9 +31,7 @@ class btMultiSphereShape : public btConvexShape
 	btVector3	m_inertiaHalfExtents;
 
 	int m_numSpheres;
-	float m_minRadius;
-
-
+	
 
 
 

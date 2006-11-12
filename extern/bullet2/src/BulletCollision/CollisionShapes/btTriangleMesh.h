@@ -46,6 +46,15 @@ class btTriangleMesh : public btStridingMeshInterface
 			m_triangles.push_back(tri);
 		}
 
+		int getNumTriangles() const
+		{
+			return m_triangles.size();
+		}
+
+		const btMyTriangle&	getTriangle(int index) const
+		{
+			return m_triangles[index];
+		}
 
 //StridingMeshInterface interface implementation
 

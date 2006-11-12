@@ -164,7 +164,8 @@ float resolveSingleFriction(
 	float combinedFriction = cpd->m_friction;
 	
 	btScalar limit = cpd->m_appliedImpulse * combinedFriction;
-	//if (contactPoint.m_appliedImpulse>0.f)
+	
+	if (cpd->m_appliedImpulse>0.f)
 	//friction
 	{
 		//apply friction in the 2 tangential directions
@@ -182,11 +183,12 @@ float resolveSingleFriction(
 
 			// calculate j that moves us to zero relative velocity
 			j1 = -vrel * cpd->m_jacDiagABInvTangent0;
-			float total = cpd->m_accumulatedTangentImpulse0 + j1;
-			GEN_set_min(total, limit);
-			GEN_set_max(total, -limit);
-			j1 = total - cpd->m_accumulatedTangentImpulse0;
-			cpd->m_accumulatedTangentImpulse0 = total;
+			float oldTangentImpulse = cpd->m_accumulatedTangentImpulse0;
+			cpd->m_accumulatedTangentImpulse0 = oldTangentImpulse + j1;
+			GEN_set_min(cpd->m_accumulatedTangentImpulse0, limit);
+			GEN_set_max(cpd->m_accumulatedTangentImpulse0, -limit);
+			j1 = cpd->m_accumulatedTangentImpulse0 - oldTangentImpulse;
+
 		}
 		{
 			// 2nd tangent
@@ -195,11 +197,11 @@ float resolveSingleFriction(
 			
 			// calculate j that moves us to zero relative velocity
 			j2 = -vrel * cpd->m_jacDiagABInvTangent1;
-			float total = cpd->m_accumulatedTangentImpulse1 + j2;
-			GEN_set_min(total, limit);
-			GEN_set_max(total, -limit);
-			j2 = total - cpd->m_accumulatedTangentImpulse1;
-			cpd->m_accumulatedTangentImpulse1 = total;
+			float oldTangentImpulse = cpd->m_accumulatedTangentImpulse1;
+			cpd->m_accumulatedTangentImpulse1 = oldTangentImpulse + j2;
+			GEN_set_min(cpd->m_accumulatedTangentImpulse1, limit);
+			GEN_set_max(cpd->m_accumulatedTangentImpulse1, -limit);
+			j2 = cpd->m_accumulatedTangentImpulse1 - oldTangentImpulse;
 		}
 
 #ifdef USE_INTERNAL_APPLY_IMPULSE
@@ -396,3 +398,4 @@ float resolveSingleFrictionEmpty(
 {
 	return 0.f;
 };
+

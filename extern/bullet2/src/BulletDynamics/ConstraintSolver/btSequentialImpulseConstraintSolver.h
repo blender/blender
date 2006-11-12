@@ -29,8 +29,9 @@ class btIDebugDraw;
 /// Applies impulses for combined restitution and penetration recovery and to simulate friction
 class btSequentialImpulseConstraintSolver : public btConstraintSolver
 {
-	float solve(btPersistentManifold* manifold, const btContactSolverInfo& info,int iter,btIDebugDraw* debugDrawer);
-	float solveFriction(btPersistentManifold* manifoldPtr, const btContactSolverInfo& info,int iter,btIDebugDraw* debugDrawer);
+
+	float solve(btRigidBody* body0,btRigidBody* body1, btManifoldPoint& cp, const btContactSolverInfo& info,int iter,btIDebugDraw* debugDrawer);
+	float solveFriction(btRigidBody* body0,btRigidBody* body1, btManifoldPoint& cp, const btContactSolverInfo& info,int iter,btIDebugDraw* debugDrawer);
 	void  prepareConstraints(btPersistentManifold* manifoldPtr, const btContactSolverInfo& info,btIDebugDraw* debugDrawer);
 
 	ContactSolverFunc m_contactDispatch[MAX_CONTACT_SOLVER_TYPES][MAX_CONTACT_SOLVER_TYPES];

@@ -42,6 +42,7 @@ ADD_LIBRARY(LibBulletCollision
 				CollisionShapes/btStaticPlaneShape.cpp
 				CollisionShapes/btStridingMeshInterface.cpp
 				CollisionShapes/btTriangleCallback.cpp
+				CollisionShapes/btTriangleBuffer.cpp
 				CollisionShapes/btTriangleIndexVertexArray.cpp
 				CollisionShapes/btTriangleMesh.cpp
 				CollisionShapes/btTriangleMeshShape.cpp

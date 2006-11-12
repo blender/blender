@@ -101,6 +101,7 @@ protected:
 	virtual bool	processOverlap(btBroadphasePair& pair)
 	{
 		assert(0);
+		return false;
 	}
 };
 

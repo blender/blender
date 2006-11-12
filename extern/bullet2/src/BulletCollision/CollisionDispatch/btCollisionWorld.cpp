@@ -40,6 +40,7 @@ m_ownsBroadphasePairCache(false)
 {
 }
 
+
 btCollisionWorld::btCollisionWorld()
 : m_dispatcher1(new	btCollisionDispatcher()),
 m_broadphasePairCache(new btSimpleBroadphase()),
@@ -60,7 +61,7 @@ btCollisionWorld::~btCollisionWorld()
 	{
 		btCollisionObject* collisionObject= (*i);
 		
-		btBroadphaseProxy* bp = collisionObject->m_broadphaseHandle;
+		btBroadphaseProxy* bp = collisionObject->getBroadphaseHandle();
 		if (bp)
 		{
 			//
@@ -98,21 +99,22 @@ void	btCollisionWorld::addCollisionObject(btCollisionObject* collisionObject,sho
 		m_collisionObjects.push_back(collisionObject);
 
 		//calculate new AABB
-		btTransform trans = collisionObject->m_worldTransform;
+		btTransform trans = collisionObject->getWorldTransform();
 
 		btVector3	minAabb;
 		btVector3	maxAabb;
-		collisionObject->m_collisionShape->getAabb(trans,minAabb,maxAabb);
+		collisionObject->getCollisionShape()->getAabb(trans,minAabb,maxAabb);
 
-		int type = collisionObject->m_collisionShape->getShapeType();
-		collisionObject->m_broadphaseHandle = getBroadphase()->createProxy(
+		int type = collisionObject->getCollisionShape()->getShapeType();
+		collisionObject->setBroadphaseHandle( getBroadphase()->createProxy(
 			minAabb,
 			maxAabb,
 			type,
 			collisionObject,
 			collisionFilterGroup,
 			collisionFilterMask
-			);
+			))	;
+
 		
 
 
@@ -132,8 +134,8 @@ void	btCollisionWorld::performDiscreteCollisionDetection()
 	btVector3 aabbMin,aabbMax;
 	for (size_t i=0;i<m_collisionObjects.size();i++)
 	{
-		m_collisionObjects[i]->m_collisionShape->getAabb(m_collisionObjects[i]->m_worldTransform,aabbMin,aabbMax);
-		m_broadphasePairCache->setAabb(m_collisionObjects[i]->m_broadphaseHandle,aabbMin,aabbMax);
+		m_collisionObjects[i]->getCollisionShape()->getAabb(m_collisionObjects[i]->getWorldTransform(),aabbMin,aabbMax);
+		m_broadphasePairCache->setAabb(m_collisionObjects[i]->getBroadphaseHandle(),aabbMin,aabbMax);
 	}
 
 	m_broadphasePairCache->refreshOverlappingPairs();
@@ -155,7 +157,7 @@ void	btCollisionWorld::removeCollisionObject(btCollisionObject* collisionObject)
 	
 	{
 		
-		btBroadphaseProxy* bp = collisionObject->m_broadphaseHandle;
+		btBroadphaseProxy* bp = collisionObject->getBroadphaseHandle();
 		if (bp)
 		{
 			//
@@ -163,7 +165,7 @@ void	btCollisionWorld::removeCollisionObject(btCollisionObject* collisionObject)
 			//
 			getBroadphase()->cleanProxyFromPairs(bp);
 			getBroadphase()->destroyProxy(bp);
-			collisionObject->m_broadphaseHandle = 0;
+			collisionObject->setBroadphaseHandle(0);
 		}
 	}
 
@@ -318,15 +320,7 @@ void	btCollisionWorld::rayTest(const btVector3& rayFromWorld, const btVector3& r
 	
 	rayToTrans.setOrigin(rayToWorld);
 
-	//do culling based on aabb (rayFrom/rayTo)
-	btVector3 rayAabbMin = rayFromWorld;
-	btVector3 rayAabbMax = rayFromWorld;
-	rayAabbMin.setMin(rayToWorld);
-	rayAabbMax.setMax(rayToWorld);
-
-
-	/// brute force go over all objects. Once there is a broadphase, use that, or
-	/// add a raycast against aabb first.
+	/// go over all objects, and if the ray intersects their aabb, do a ray-shape query using convexCaster (CCD)
 	
 	std::vector<btCollisionObject*>::iterator iter;
 	
@@ -338,16 +332,16 @@ void	btCollisionWorld::rayTest(const btVector3& rayFromWorld, const btVector3& r
 
 		//RigidcollisionObject* collisionObject = ctrl->GetRigidcollisionObject();
 		btVector3 collisionObjectAabbMin,collisionObjectAabbMax;
-		collisionObject->m_collisionShape->getAabb(collisionObject->m_worldTransform,collisionObjectAabbMin,collisionObjectAabbMax);
+		collisionObject->getCollisionShape()->getAabb(collisionObject->getWorldTransform(),collisionObjectAabbMin,collisionObjectAabbMax);
 
-		//check aabb overlap
-
-		if (TestAabbAgainstAabb2(rayAabbMin,rayAabbMax,collisionObjectAabbMin,collisionObjectAabbMax))
+		float hitLambda = 1.f; //could use resultCallback.m_closestHitFraction, but needs testing
+		btVector3 hitNormal;
+		if (btRayAabb(rayFromWorld,rayToWorld,collisionObjectAabbMin,collisionObjectAabbMax,hitLambda,hitNormal))
 		{
 			rayTestSingle(rayFromTrans,rayToTrans,
 				collisionObject,
-					 collisionObject->m_collisionShape,
-					  collisionObject->m_worldTransform,
+					 collisionObject->getCollisionShape(),
+					  collisionObject->getWorldTransform(),
 					  resultCallback);
 			
 		}

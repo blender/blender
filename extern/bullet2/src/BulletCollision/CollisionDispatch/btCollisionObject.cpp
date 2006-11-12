@@ -30,22 +30,22 @@ btCollisionObject::btCollisionObject()
 }
 
 
-void btCollisionObject::SetActivationState(int newState) 
+void btCollisionObject::setActivationState(int newState) 
 { 
 	if ( (m_activationState1 != DISABLE_DEACTIVATION) && (m_activationState1 != DISABLE_SIMULATION))
 		m_activationState1 = newState;
 }
 
-void btCollisionObject::ForceActivationState(int newState)
+void btCollisionObject::forceActivationState(int newState)
 {
 	m_activationState1 = newState;
 }
 
 void btCollisionObject::activate()
 {
-	if (!(m_collisionFlags & (CF_STATIC_OBJECT|CF_KINEMATIC_OJBECT)))
+	if (!(m_collisionFlags & (CF_STATIC_OBJECT|CF_KINEMATIC_OBJECT)))
 	{
-		SetActivationState(ACTIVE_TAG);
+		setActivationState(ACTIVE_TAG);
 		m_deactivationTime = 0.f;
 	}
 }

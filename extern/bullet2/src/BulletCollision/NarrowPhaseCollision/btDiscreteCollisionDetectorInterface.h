@@ -14,8 +14,8 @@ subject to the following restrictions:
 */
 
 
-#ifndef DISCRETE_COLLISION_DETECTOR_INTERFACE_H
-#define DISCRETE_COLLISION_DETECTOR_INTERFACE_H
+#ifndef DISCRETE_COLLISION_DETECTOR1_INTERFACE_H
+#define DISCRETE_COLLISION_DETECTOR1_INTERFACE_H
 #include "LinearMath/btTransform.h"
 #include "LinearMath/btVector3.h"
 
@@ -84,4 +84,4 @@ struct btStorageResult : public btDiscreteCollisionDetectorInterface::Result
 		}
 };
 
-#endif //DISCRETE_COLLISION_DETECTOR_INTERFACE_H
+#endif //DISCRETE_COLLISION_DETECTOR_INTERFACE1_H

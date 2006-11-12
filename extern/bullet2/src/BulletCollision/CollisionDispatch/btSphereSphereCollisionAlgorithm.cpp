@@ -44,10 +44,10 @@ void btSphereSphereCollisionAlgorithm::processCollision (btCollisionObject* col0
 	if (!m_manifoldPtr)
 		return;
 
-	btSphereShape* sphere0 = (btSphereShape*)col0->m_collisionShape;
-	btSphereShape* sphere1 = (btSphereShape*)col1->m_collisionShape;
+	btSphereShape* sphere0 = (btSphereShape*)col0->getCollisionShape();
+	btSphereShape* sphere1 = (btSphereShape*)col1->getCollisionShape();
 
-	btVector3 diff = col0->m_worldTransform.getOrigin()-  col1->m_worldTransform.getOrigin();
+	btVector3 diff = col0->getWorldTransform().getOrigin()-  col1->getWorldTransform().getOrigin();
 	float len = diff.length();
 	btScalar radius0 = sphere0->getRadius();
 	btScalar radius1 = sphere1->getRadius();
@@ -61,9 +61,9 @@ void btSphereSphereCollisionAlgorithm::processCollision (btCollisionObject* col0
 
 	btVector3 normalOnSurfaceB = diff / len;
 	///point on A (worldspace)
-	btVector3 pos0 = col0->m_worldTransform.getOrigin() - radius0 * normalOnSurfaceB;
+	btVector3 pos0 = col0->getWorldTransform().getOrigin() - radius0 * normalOnSurfaceB;
 	///point on B (worldspace)
-	btVector3 pos1 = col1->m_worldTransform.getOrigin() + radius1* normalOnSurfaceB;
+	btVector3 pos1 = col1->getWorldTransform().getOrigin() + radius1* normalOnSurfaceB;
 
 	/// report a contact. internally this will be kept persistent, and contact reduction is done
 	resultOut->setPersistentManifold(m_manifoldPtr);

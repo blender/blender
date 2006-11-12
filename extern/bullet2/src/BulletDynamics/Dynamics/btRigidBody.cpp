@@ -42,7 +42,13 @@ btRigidBody::btRigidBody(float mass, btMotionState* motionState, btCollisionShap
 	m_frictionSolverType(0)
 {
 
-	motionState->getWorldTransform(m_worldTransform);
+	if (motionState)
+	{
+		motionState->getWorldTransform(m_worldTransform);
+	} else
+	{
+		m_worldTransform = btTransform::getIdentity();
+	}
 
 	m_interpolationWorldTransform = m_worldTransform;
 	m_interpolationLinearVelocity.setValue(0,0,0);
@@ -64,7 +70,7 @@ btRigidBody::btRigidBody(float mass, btMotionState* motionState, btCollisionShap
 
 }
 
-
+#ifdef OBSOLETE_MOTIONSTATE_LESS
 btRigidBody::btRigidBody( float mass,const btTransform& worldTransform,btCollisionShape* collisionShape,const btVector3& localInertia,btScalar linearDamping,btScalar angularDamping,btScalar friction,btScalar restitution)
 : 
 	m_gravity(0.0f, 0.0f, 0.0f),
@@ -100,30 +106,34 @@ btRigidBody::btRigidBody( float mass,const btTransform& worldTransform,btCollisi
 
 }
 
+#endif //OBSOLETE_MOTIONSTATE_LESS
+
+
 #define EXPERIMENTAL_JITTER_REMOVAL 1
 #ifdef EXPERIMENTAL_JITTER_REMOVAL
-//Bullet 2.20b has experimental code to reduce jitter just before objects fall asleep/deactivate
-//doesn't work very well yet (value 0 only reduces performance a bit, no difference in functionality)
-float gClippedAngvelThresholdSqr = 0.f;
-float	gClippedLinearThresholdSqr = 0.f;
+//Bullet 2.20b has experimental damping code to reduce jitter just before objects fall asleep/deactivate
+//doesn't work very well yet (value 0 disabled this damping)
+//note there this influences deactivation thresholds!
+float gClippedAngvelThresholdSqr = 0.01f;
+float	gClippedLinearThresholdSqr = 0.01f;
+float	gJitterVelocityDampingFactor = 1.f;
 #endif //EXPERIMENTAL_JITTER_REMOVAL
 
 void btRigidBody::predictIntegratedTransform(btScalar timeStep,btTransform& predictedTransform) 
 {
 
 #ifdef EXPERIMENTAL_JITTER_REMOVAL
-	//clip to avoid jitter
-	if (m_angularVelocity.length2() < gClippedAngvelThresholdSqr)
+	//if (wantsSleeping())
 	{
-		m_angularVelocity.setValue(0,0,0);
-		printf("clipped!\n");
+		//clip to avoid jitter
+		if ((m_angularVelocity.length2() < gClippedAngvelThresholdSqr) &&
+			(m_linearVelocity.length2() < gClippedLinearThresholdSqr))
+		{
+			m_angularVelocity *= gJitterVelocityDampingFactor;
+			m_linearVelocity *= gJitterVelocityDampingFactor;
+		}
 	}
 	
-	if (m_linearVelocity.length2() < gClippedLinearThresholdSqr)
-	{
-		m_linearVelocity.setValue(0,0,0);
-		printf("clipped!\n");
-	}
 #endif //EXPERIMENTAL_JITTER_REMOVAL
 
 	btTransformUtil::integrateTransform(m_worldTransform,m_linearVelocity,m_angularVelocity,timeStep,predictedTransform);

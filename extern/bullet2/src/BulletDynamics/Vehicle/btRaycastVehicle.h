@@ -68,9 +68,8 @@ public:
 	virtual ~btRaycastVehicle() ;
 
 		
-
-
-
+	const btTransform& getChassisWorldTransform() const;
+	
 	btScalar rayCast(btWheelInfo& wheel);
 
 	virtual void updateVehicle(btScalar step);
@@ -86,7 +85,7 @@ public:
 
 	const btTransform&	getWheelTransformWS( int wheelIndex ) const;
 
-	void	updateWheelTransform( int wheelIndex );
+	void	updateWheelTransform( int wheelIndex, bool interpolatedTransform = true );
 	
 	void	setRaycastWheelInfo( int wheelIndex , bool isInContact, const btVector3& hitPoint, const btVector3& hitNormal,btScalar depth);
 
@@ -103,7 +102,7 @@ public:
 
 	btWheelInfo&	getWheelInfo(int index);
 
-	void	updateWheelTransformsWS(btWheelInfo& wheel );
+	void	updateWheelTransformsWS(btWheelInfo& wheel , bool interpolatedTransform = true);
 
 	
 	void setBrake(float brake,int wheelIndex);

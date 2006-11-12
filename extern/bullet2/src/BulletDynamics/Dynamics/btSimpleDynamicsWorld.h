@@ -77,6 +77,8 @@ public:
 
 	void	synchronizeMotionStates();
 
+	virtual void	setConstraintSolver(btConstraintSolver* solver);
+
 };
 
 #endif //BT_SIMPLE_DYNAMICS_WORLD_H

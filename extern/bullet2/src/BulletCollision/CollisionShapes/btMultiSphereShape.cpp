@@ -20,17 +20,17 @@ subject to the following restrictions:
 btMultiSphereShape::btMultiSphereShape (const btVector3& inertiaHalfExtents,const btVector3* positions,const btScalar* radi,int numSpheres)
 :m_inertiaHalfExtents(inertiaHalfExtents)
 {
-	m_minRadius = 1e30f;
+	float startMargin = 1e30f;
 
 	m_numSpheres = numSpheres;
 	for (int i=0;i<m_numSpheres;i++)
 	{
 		m_localPositions[i] = positions[i];
 		m_radi[i] = radi[i];
-		if (radi[i] < m_minRadius)
-			m_minRadius = radi[i];
+		if (radi[i] < startMargin)
+			startMargin = radi[i];
 	}
-	setMargin(m_minRadius);
+	setMargin(startMargin);
 
 }
 
@@ -64,7 +64,7 @@ btMultiSphereShape::btMultiSphereShape (const btVector3& inertiaHalfExtents,cons
 
 	for (i=0;i<m_numSpheres;i++)
 	{
-		vtx = (*pos) +vec*((*rad)-m_minRadius);
+		vtx = (*pos) +vec*m_localScaling*(*rad) - vec * getMargin();
 		pos++;
 		rad++;
 		newDot = vec.dot(vtx);
@@ -96,7 +96,7 @@ btMultiSphereShape::btMultiSphereShape (const btVector3& inertiaHalfExtents,cons
 
 		for (int i=0;i<m_numSpheres;i++)
 		{
-			vtx = (*pos) +vec*((*rad)-m_minRadius);
+			vtx = (*pos) +vec*m_localScaling*(*rad) - vec * getMargin();
 			pos++;
 			rad++;
 			newDot = vec.dot(vtx);

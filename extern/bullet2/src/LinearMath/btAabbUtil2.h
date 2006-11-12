@@ -18,6 +18,8 @@ subject to the following restrictions:
 #define AABB_UTIL2
 
 #include "LinearMath/btVector3.h"
+#include "LinearMath/btSimdMinMax.h"
+
 
 #define btMin(a,b) ((a < b ? a : b))
 #define btMax(a,b) ((a > b ? a : b))
@@ -52,6 +54,74 @@ SIMD_FORCE_INLINE bool TestTriangleAgainstAabb2(const btVector3 *vertices,
 	if (btMax(btMax(p1[1], p2[1]), p3[1]) < aabbMin[1]) return false;
 	return true;
 }
+
+
+SIMD_FORCE_INLINE int	btOutcode(const btVector3& p,const btVector3& halfExtent) 
+{
+	return (p.getX()  < -halfExtent.getX() ? 0x01 : 0x0) |    
+		   (p.getX() >  halfExtent.getX() ? 0x08 : 0x0) |
+		   (p.getY() < -halfExtent.getY() ? 0x02 : 0x0) |    
+		   (p.getY() >  halfExtent.getY() ? 0x10 : 0x0) |
+		   (p.getZ() < -halfExtent.getZ() ? 0x4 : 0x0) |    
+		   (p.getZ() >  halfExtent.getZ() ? 0x20 : 0x0);
+}
+
+
+SIMD_FORCE_INLINE bool btRayAabb(const btVector3& rayFrom, 
+								 const btVector3& rayTo, 
+								 const btVector3& aabbMin, 
+								 const btVector3& aabbMax,
+					  btScalar& param, btVector3& normal) 
+{
+	btVector3 aabbHalfExtent = (aabbMax-aabbMin)* 0.5f;
+	btVector3 aabbCenter = (aabbMax+aabbMin)* 0.5f;
+	btVector3	source = rayFrom - aabbCenter;
+	btVector3	target = rayTo - aabbCenter;
+	int	sourceOutcode = btOutcode(source,aabbHalfExtent);
+	int targetOutcode = btOutcode(target,aabbHalfExtent);
+	if ((sourceOutcode & targetOutcode) == 0x0)
+	{
+		btScalar lambda_enter = btScalar(0.0);
+		btScalar lambda_exit  = param;
+		btVector3 r = target - source;
+		int i;
+		btScalar	normSign = 1;
+		btVector3	hitNormal(0,0,0);
+		int bit=1;
+
+		for (int j=0;j<2;j++)
+		{
+			for (i = 0; i != 3; ++i)
+			{
+				if (sourceOutcode & bit)
+				{
+					btScalar lambda = (-source[i] - aabbHalfExtent[i]*normSign) / r[i];
+					if (lambda_enter <= lambda)
+					{
+						lambda_enter = lambda;
+						hitNormal.setValue(0,0,0);
+						hitNormal[i] = normSign;
+					}
+				}
+				else if (targetOutcode & bit) 
+				{
+					btScalar lambda = (-source[i] - aabbHalfExtent[i]*normSign) / r[i];
+					btSetMin(lambda_exit, lambda);
+				}
+				bit<<=1;
+			}
+			normSign = -1.f;
+		}
+		if (lambda_enter <= lambda_exit)
+		{
+			param = lambda_enter;
+			normal = hitNormal;
+			return true;
+		}
+	}
+	return false;
+}
+
 
 #endif
 

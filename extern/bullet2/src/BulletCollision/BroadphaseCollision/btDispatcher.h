@@ -19,7 +19,7 @@ subject to the following restrictions:
 class btCollisionAlgorithm;
 struct btBroadphaseProxy;
 class btRigidBody;
-struct	btCollisionObject;
+class	btCollisionObject;
 class btOverlappingPairCache;
 
 enum btCollisionDispatcherId
@@ -42,7 +42,8 @@ struct btDispatcherInfo
 		m_timeOfImpact(1.f),
 		m_useContinuous(false),
 		m_debugDraw(0),
-		m_enableSatConvex(false)
+		m_enableSatConvex(false),
+		m_enableSPU(false)
 	{
 
 	}
@@ -53,6 +54,7 @@ struct btDispatcherInfo
 	bool	m_useContinuous;
 	class btIDebugDraw*	m_debugDraw;
 	bool	m_enableSatConvex;
+	bool	m_enableSPU;
 	
 };
 

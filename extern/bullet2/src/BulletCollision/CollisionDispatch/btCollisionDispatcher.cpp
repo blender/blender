@@ -14,6 +14,7 @@ subject to the following restrictions:
 */
 
 
+
 #include "btCollisionDispatcher.h"
 
 
@@ -34,8 +35,8 @@ int gNumManifold = 0;
 	
 btCollisionDispatcher::btCollisionDispatcher(bool noDefaultAlgorithms)
 :m_useIslands(true),
-m_count(0),
 m_convexConvexCreateFunc(0),
+m_count(0),
 m_convexConcaveCreateFunc(0),
 m_swappedConvexConcaveCreateFunc(0),
 m_compoundCreateFunc(0),
@@ -54,7 +55,7 @@ m_emptyCreateFunc(0)
 	}
 }
 
-	
+
 btCollisionDispatcher::btCollisionDispatcher (): 
 	m_useIslands(true),
 		m_count(0)
@@ -150,7 +151,7 @@ btCollisionAlgorithm* btCollisionDispatcher::findAlgorithm(btCollisionObject* bo
 	btCollisionAlgorithmConstructionInfo ci;
 	ci.m_dispatcher = this;
 	ci.m_manifold = sharedManifold;
-	btCollisionAlgorithm* algo = m_doubleDispatch[body0->m_collisionShape->getShapeType()][body1->m_collisionShape->getShapeType()]
+	btCollisionAlgorithm* algo = m_doubleDispatch[body0->getCollisionShape()->getShapeType()][body1->getCollisionShape()->getShapeType()]
 	->CreateCollisionAlgorithm(ci,body0,body1);
 #else
 	btCollisionAlgorithm* algo = internalFindAlgorithm(body0,body1);
@@ -201,27 +202,27 @@ btCollisionAlgorithm* btCollisionDispatcher::internalFindAlgorithm(btCollisionOb
 	btCollisionAlgorithmConstructionInfo ci;
 	ci.m_dispatcher = this;
 	
-	if (body0->m_collisionShape->isConvex() && body1->m_collisionShape->isConvex() )
+	if (body0->getCollisionShape()->isConvex() && body1->getCollisionShape()->isConvex() )
 	{
 		return new btConvexConvexAlgorithm(sharedManifold,ci,body0,body1);
 	}
 
-	if (body0->m_collisionShape->isConvex() && body1->m_collisionShape->isConcave())
+	if (body0->getCollisionShape()->isConvex() && body1->getCollisionShape()->isConcave())
 	{
 		return new btConvexConcaveCollisionAlgorithm(ci,body0,body1,false);
 	}
 
-	if (body1->m_collisionShape->isConvex() && body0->m_collisionShape->isConcave())
+	if (body1->getCollisionShape()->isConvex() && body0->getCollisionShape()->isConcave())
 	{
 		return new btConvexConcaveCollisionAlgorithm(ci,body0,body1,true);
 	}
 
-	if (body0->m_collisionShape->isCompound())
+	if (body0->getCollisionShape()->isCompound())
 	{
 		return new btCompoundCollisionAlgorithm(ci,body0,body1,false);
 	} else
 	{
-		if (body1->m_collisionShape->isCompound())
+		if (body1->getCollisionShape()->isCompound())
 		{
 			return new btCompoundCollisionAlgorithm(ci,body0,body1,true);
 		}
@@ -257,7 +258,7 @@ bool	btCollisionDispatcher::needsCollision(btCollisionObject* body0,btCollisionO
 		printf("warning btCollisionDispatcher::needsCollision: static-static collision!\n");
 	}
 		
-	if ((!body0->IsActive()) && (!body1->IsActive()))
+	if ((!body0->isActive()) && (!body1->isActive()))
 		needsCollision = false;
 	
 	return needsCollision ;

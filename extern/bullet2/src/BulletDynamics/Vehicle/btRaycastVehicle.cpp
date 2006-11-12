@@ -11,6 +11,7 @@
 
 #include "LinearMath/btVector3.h"
 #include "btRaycastVehicle.h"
+
 #include "BulletDynamics/ConstraintSolver/btSolve2LinearConstraint.h"
 #include "BulletDynamics/ConstraintSolver/btJacobianEntry.h"
 #include "LinearMath/btQuaternion.h"
@@ -23,7 +24,7 @@
 
 
 
-static btRigidBody s_fixedObject( 0,btTransform(btQuaternion(0,0,0,1)),0);
+static btRigidBody s_fixedObject( 0,0,0);
 
 btRaycastVehicle::btRaycastVehicle(const btVehicleTuning& tuning,btRigidBody* chassis,	btVehicleRaycaster* raycaster )
 :m_vehicleRaycaster(raycaster),
@@ -75,8 +76,8 @@ btWheelInfo&	btRaycastVehicle::addWheel( const btVector3& connectionPointCS, con
 	
 	btWheelInfo& wheel = m_wheelInfo[getNumWheels()-1];
 	
-	updateWheelTransformsWS( wheel );
-	updateWheelTransform(getNumWheels()-1);
+	updateWheelTransformsWS( wheel , false );
+	updateWheelTransform(getNumWheels()-1,false);
 	return wheel;
 }
 
@@ -91,15 +92,18 @@ const btTransform&	btRaycastVehicle::getWheelTransformWS( int wheelIndex ) const
 
 }
 
-void	btRaycastVehicle::updateWheelTransform( int wheelIndex )
+void	btRaycastVehicle::updateWheelTransform( int wheelIndex , bool interpolatedTransform)
 {
 	
 	btWheelInfo& wheel = m_wheelInfo[ wheelIndex ];
-	updateWheelTransformsWS(wheel);
+	updateWheelTransformsWS(wheel,interpolatedTransform);
 	btVector3 up = -wheel.m_raycastInfo.m_wheelDirectionWS;
 	const btVector3& right = wheel.m_raycastInfo.m_wheelAxleWS;
 	btVector3 fwd = up.cross(right);
 	fwd = fwd.normalize();
+//	up = right.cross(fwd);
+//	up.normalize();
+
 	//rotate around steering over de wheelAxleWS
 	float steering = wheel.m_steering;
 	
@@ -138,16 +142,16 @@ void btRaycastVehicle::resetSuspension()
 	}
 }
 
-void	btRaycastVehicle::updateWheelTransformsWS(btWheelInfo& wheel )
+void	btRaycastVehicle::updateWheelTransformsWS(btWheelInfo& wheel , bool interpolatedTransform)
 {
 	wheel.m_raycastInfo.m_isInContact = false;
 
-	btTransform chassisTrans;
-	if (getRigidBody()->getMotionState())
+	btTransform chassisTrans = getChassisWorldTransform();
+	if (interpolatedTransform && (getRigidBody()->getMotionState()))
+	{
 		getRigidBody()->getMotionState()->getWorldTransform(chassisTrans);
-	else
-		chassisTrans = getRigidBody()->getCenterOfMassTransform();
-	
+	}
+
 	wheel.m_raycastInfo.m_hardPointWS = chassisTrans( wheel.m_chassisConnectionPointCS );
 	wheel.m_raycastInfo.m_wheelDirectionWS = chassisTrans.getBasis() *  wheel.m_wheelDirectionCS ;
 	wheel.m_raycastInfo.m_wheelAxleWS = chassisTrans.getBasis() * wheel.m_wheelAxleCS;
@@ -155,7 +159,7 @@ void	btRaycastVehicle::updateWheelTransformsWS(btWheelInfo& wheel )
 
 btScalar btRaycastVehicle::rayCast(btWheelInfo& wheel)
 {
-	updateWheelTransformsWS( wheel );
+	updateWheelTransformsWS( wheel,false);
 
 	
 	btScalar depth = -1;
@@ -239,12 +243,35 @@ btScalar btRaycastVehicle::rayCast(btWheelInfo& wheel)
 }
 
 
+const btTransform& btRaycastVehicle::getChassisWorldTransform() const
+{
+	/*if (getRigidBody()->getMotionState())
+	{
+		btTransform chassisWorldTrans;
+		getRigidBody()->getMotionState()->getWorldTransform(chassisWorldTrans);
+		return chassisWorldTrans;
+	}
+	*/
+
+	
+	return getRigidBody()->getCenterOfMassTransform();
+}
+
+
 void btRaycastVehicle::updateVehicle( btScalar step )
 {
+	{
+		for (int i=0;i<getNumWheels();i++)
+		{
+			updateWheelTransform(i,false);
+		}
+	}
+
 
 	m_currentVehicleSpeedKmHour = 3.6f * getRigidBody()->getLinearVelocity().length();
 	
-	const btTransform& chassisTrans = getRigidBody()->getCenterOfMassTransform();
+	const btTransform& chassisTrans = getChassisWorldTransform();
+
 	btVector3 forwardW (
 		chassisTrans.getBasis()[0][m_indexForwardAxis],
 		chassisTrans.getBasis()[1][m_indexForwardAxis],
@@ -304,10 +331,12 @@ void btRaycastVehicle::updateVehicle( btScalar step )
 
 		if (wheel.m_raycastInfo.m_isInContact)
 		{
+			const btTransform&	chassisWorldTransform = getChassisWorldTransform();
+
 			btVector3 fwd (
-				getRigidBody()->getCenterOfMassTransform().getBasis()[0][m_indexForwardAxis],
-				getRigidBody()->getCenterOfMassTransform().getBasis()[1][m_indexForwardAxis],
-				getRigidBody()->getCenterOfMassTransform().getBasis()[2][m_indexForwardAxis]);
+				chassisWorldTransform.getBasis()[0][m_indexForwardAxis],
+				chassisWorldTransform.getBasis()[1][m_indexForwardAxis],
+				chassisWorldTransform.getBasis()[2][m_indexForwardAxis]);
 
 			btScalar proj = fwd.dot(wheel.m_raycastInfo.m_contactNormalWS);
 			fwd -= wheel.m_raycastInfo.m_contactNormalWS * proj;

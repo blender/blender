@@ -88,13 +88,13 @@ SIMD_FORCE_INLINE btScalar btPow(btScalar x,btScalar y) { return powf(x,y); }
 #endif
 
 
-const btScalar  SIMD_2_PI         = 6.283185307179586232f;
-const btScalar  SIMD_PI           = SIMD_2_PI * btScalar(0.5f);
-const btScalar  SIMD_HALF_PI		 = SIMD_2_PI * btScalar(0.25f);
-const btScalar  SIMD_RADS_PER_DEG = SIMD_2_PI / btScalar(360.0f);
-const btScalar  SIMD_DEGS_PER_RAD = btScalar(360.0f) / SIMD_2_PI;
-const btScalar  SIMD_EPSILON      = FLT_EPSILON;
-const btScalar  SIMD_INFINITY     = FLT_MAX;
+#define SIMD_2_PI         6.283185307179586232f
+#define SIMD_PI           (SIMD_2_PI * btScalar(0.5f))
+#define SIMD_HALF_PI      (SIMD_2_PI * btScalar(0.25f))
+#define SIMD_RADS_PER_DEG (SIMD_2_PI / btScalar(360.0f))
+#define SIMD_DEGS_PER_RAD  (btScalar(360.0f) / SIMD_2_PI)
+#define SIMD_EPSILON      FLT_EPSILON
+#define SIMD_INFINITY     FLT_MAX
 
 SIMD_FORCE_INLINE bool      btFuzzyZero(btScalar x) { return btFabs(x) < SIMD_EPSILON; }
 
@@ -114,13 +114,14 @@ SIMD_FORCE_INLINE btScalar btAtan(btScalar x) { return atanf(x); }
 SIMD_FORCE_INLINE btScalar btAtan2(btScalar x, btScalar y) { return atan2f(x, y); }
 */
 
-SIMD_FORCE_INLINE int       btSign(btScalar x) {
-    return x < 0.0f ? -1 : x > 0.0f ? 1 : 0;
+SIMD_FORCE_INLINE int       btIsNegative(btScalar x) {
+    return x < 0.0f ? 1 : 0;
 }
 
 SIMD_FORCE_INLINE btScalar btRadians(btScalar x) { return x * SIMD_RADS_PER_DEG; }
 SIMD_FORCE_INLINE btScalar btDegrees(btScalar x) { return x * SIMD_DEGS_PER_RAD; }
 
+#define BT_DECLARE_HANDLE(name) typedef struct name##__ { int unused; } *name
 
 
 #endif //SIMD___SCALAR_H

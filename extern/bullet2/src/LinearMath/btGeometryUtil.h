@@ -13,29 +13,27 @@ subject to the following restrictions:
 */
 
 
+#ifndef BT_GEOMETRY_UTIL_H
+#define BT_GEOMETRY_UTIL_H
+#include <vector>
+#include "btVector3.h"
 
-#ifndef SIMD_MINMAX_H
-#define SIMD_MINMAX_H
-#include "LinearMath/btScalar.h"
+class btGeometryUtil
+{
+	public:
+	
+	
+		static void	getPlaneEquationsFromVertices(std::vector<btVector3>& vertices, std::vector<btVector3>& planeEquationsOut );
 
-template <class T>
-SIMD_FORCE_INLINE const T& btMin(const T& a, const T& b) {
-  return b < a ? b : a;
-}
+		static void	getVerticesFromPlaneEquations(const std::vector<btVector3>& planeEquations , std::vector<btVector3>& verticesOut );
+	
+		static bool	isInside(const std::vector<btVector3>& vertices, const btVector3& planeNormal, float	margin);
+		
+		static bool	isPointInsidePlanes(const std::vector<btVector3>& planeEquations, const btVector3& point, float	margin);
 
-template <class T>
-SIMD_FORCE_INLINE const T& btMax(const T& a, const T& b) {
-  return  a < b ? b : a;
-}
+		static bool	areVerticesBehindPlane(const btVector3& planeNormal, const std::vector<btVector3>& vertices, float	margin);
 
-template <class T>
-SIMD_FORCE_INLINE void btSetMin(T& a, const T& b) {
-    if (a > b) a = b;
-}
+};
 
-template <class T>
-SIMD_FORCE_INLINE void btSetMax(T& a, const T& b) {
-    if (a < b) a = b;
-}
 
-#endif
+#endif //BT_GEOMETRY_UTIL_H

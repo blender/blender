@@ -48,8 +48,8 @@ void btSphereTriangleCollisionAlgorithm::processCollision (btCollisionObject* co
 	if (!m_manifoldPtr)
 		return;
 
-	btSphereShape* sphere = (btSphereShape*)col0->m_collisionShape;
-	btTriangleShape* triangle = (btTriangleShape*)col1->m_collisionShape;
+	btSphereShape* sphere = (btSphereShape*)col0->getCollisionShape();
+	btTriangleShape* triangle = (btTriangleShape*)col1->getCollisionShape();
 	
 	/// report a contact. internally this will be kept persistent, and contact reduction is done
 	resultOut->setPersistentManifold(m_manifoldPtr);
@@ -57,8 +57,8 @@ void btSphereTriangleCollisionAlgorithm::processCollision (btCollisionObject* co
 	
 	btDiscreteCollisionDetectorInterface::ClosestPointInput input;
 	input.m_maximumDistanceSquared = 1e30f;//todo: tighter bounds
-	input.m_transformA = col0->m_worldTransform;
-	input.m_transformB = col1->m_worldTransform;
+	input.m_transformA = col0->getWorldTransform();
+	input.m_transformB = col1->getWorldTransform();
 
 	detector.getClosestPoints(input,*resultOut,dispatchInfo.m_debugDraw);
 

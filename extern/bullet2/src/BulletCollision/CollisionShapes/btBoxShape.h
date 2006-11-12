@@ -255,6 +255,37 @@ public:
 		return "Box";
 	}
 
+	virtual int		getNumPreferredPenetrationDirections() const
+	{
+		return 6;
+	}
+	
+	virtual void	getPreferredPenetrationDirection(int index, btVector3& penetrationVector) const
+	{
+		switch (index)
+		{
+		case 0:
+			penetrationVector.setValue(1.f,0.f,0.f);
+			break;
+		case 1:
+			penetrationVector.setValue(-1.f,0.f,0.f);
+			break;
+		case 2:
+			penetrationVector.setValue(0.f,1.f,0.f);
+			break;
+		case 3:
+			penetrationVector.setValue(0.f,-1.f,0.f);
+			break;
+		case 4:
+			penetrationVector.setValue(0.f,0.f,1.f);
+			break;
+		case 5:
+			penetrationVector.setValue(0.f,0.f,-1.f);
+			break;
+		default:
+			assert(0);
+		}
+	}
 
 };
 

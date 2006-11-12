@@ -19,7 +19,7 @@ subject to the following restrictions:
 struct btBroadphaseProxy;
 class btDispatcher;
 class btManifoldResult;
-struct btCollisionObject;
+class btCollisionObject;
 struct btDispatcherInfo;
 class	btPersistentManifold;
 

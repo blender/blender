@@ -13,32 +13,48 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef COLLISION_CREATE_FUNC
-#define COLLISION_CREATE_FUNC
+#ifndef BT_TRIANGLE_BUFFER_H
+#define BT_TRIANGLE_BUFFER_H
 
+#include "btTriangleCallback.h"
 #include <vector>
 
-typedef std::vector<class btCollisionObject*> btCollisionObjectArray;
-class btCollisionAlgorithm;
-class btCollisionObject;
-
-struct btCollisionAlgorithmConstructionInfo;
-
-///Used by the btCollisionDispatcher to register and create instances for btCollisionAlgorithm
-struct btCollisionAlgorithmCreateFunc
+struct	btTriangle
 {
-	bool m_swapped;
-	
-	btCollisionAlgorithmCreateFunc()
-		:m_swapped(false)
-	{
-	}
-	virtual ~btCollisionAlgorithmCreateFunc(){};
-
-	virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
-	{
-		return 0;
-	}
+	btVector3	m_vertex0;
+	btVector3	m_vertex1;
+	btVector3	m_vertex2;
+	int	m_partId;
+	int	m_triangleIndex;
 };
-#endif //COLLISION_CREATE_FUNC
 
+///btTriangleBuffer can be useful to collect and store overlapping triangles between AABB and concave objects that support 'processAllTriangles'
+class btTriangleBuffer : public btTriangleCallback
+{
+
+	std::vector<btTriangle>	m_triangleBuffer;
+	
+public:
+
+
+	virtual void processTriangle(btVector3* triangle, int partId, int triangleIndex);
+	
+	int	getNumTriangles() const
+	{
+		return int(m_triangleBuffer.size());
+	}
+	
+	const btTriangle&	getTriangle(int index) const
+	{
+		return m_triangleBuffer[index];
+	}
+
+	void	clearBuffer()
+	{
+		m_triangleBuffer.clear();
+	}
+	
+};
+
+
+#endif //BT_TRIANGLE_BUFFER_H

@@ -48,8 +48,8 @@ btManifoldResult::btManifoldResult(btCollisionObject* body0,btCollisionObject* b
 		m_body0(body0),
 		m_body1(body1)
 {
-	m_rootTransA = body0->m_worldTransform;
-	m_rootTransB = body1->m_worldTransform;
+	m_rootTransA = body0->getWorldTransform();
+	m_rootTransB = body1->getWorldTransform();
 }
 
 
@@ -81,8 +81,8 @@ void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const b
 	//User can override friction and/or restitution
 	if (gContactAddedCallback &&
 		//and if either of the two bodies requires custom material
-		 ((m_body0->m_collisionFlags & btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK) ||
-		   (m_body1->m_collisionFlags & btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK)))
+		 ((m_body0->getCollisionFlags() & btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK) ||
+		   (m_body1->getCollisionFlags() & btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK)))
 	{
 		//experimental feature info, for per-triangle material etc.
 		btCollisionObject* obj0 = isSwapped? m_body1 : m_body0;

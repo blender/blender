@@ -21,6 +21,7 @@ subject to the following restrictions:
 static const btScalar kSign[] = { 1.0f, -1.0f, 1.0f };
 static const int kAxisA[] = { 1, 0, 0 };
 static const int kAxisB[] = { 2, 2, 1 };
+#define GENERIC_D6_DISABLE_WARMSTARTING 1
 
 btGeneric6DofConstraint::btGeneric6DofConstraint()
 {
@@ -47,7 +48,7 @@ btGeneric6DofConstraint::btGeneric6DofConstraint(btRigidBody& rbA, btRigidBody& 
 
 void btGeneric6DofConstraint::buildJacobian()
 {
-	btVector3	normal(0,0,0);
+	btVector3	localNormalInA(0,0,0);
 
 	const btVector3& pivotInA = m_frameInA.getOrigin();
 	const btVector3& pivotInB = m_frameInB.getOrigin();
@@ -64,7 +65,9 @@ void btGeneric6DofConstraint::buildJacobian()
 	{
 		if (isLimited(i))
 		{
-			normal[i] = 1;
+			localNormalInA[i] = 1;
+			btVector3 normalWorld = m_rbA.getCenterOfMassTransform().getBasis() * localNormalInA;
+
 			
 			// Create linear atom
 			new (&m_jacLinear[i]) btJacobianEntry(
@@ -72,19 +75,24 @@ void btGeneric6DofConstraint::buildJacobian()
 				m_rbB.getCenterOfMassTransform().getBasis().transpose(),
 				m_rbA.getCenterOfMassTransform()*pivotInA - m_rbA.getCenterOfMassPosition(),
 				m_rbB.getCenterOfMassTransform()*pivotInB - m_rbB.getCenterOfMassPosition(),
-				normal,
+				normalWorld,
 				m_rbA.getInvInertiaDiagLocal(),
 				m_rbA.getInvMass(),
 				m_rbB.getInvInertiaDiagLocal(),
 				m_rbB.getInvMass());
 
+			//optionally disable warmstarting
+#ifdef GENERIC_D6_DISABLE_WARMSTARTING
+			m_accumulatedImpulse[i] = 0.f;
+#endif //GENERIC_D6_DISABLE_WARMSTARTING
+
 			// Apply accumulated impulse
-			btVector3 impulse_vector = m_accumulatedImpulse[i] * normal;
+			btVector3 impulse_vector = m_accumulatedImpulse[i] * normalWorld;
 
 			m_rbA.applyImpulse( impulse_vector, rel_pos1);
 			m_rbB.applyImpulse(-impulse_vector, rel_pos2);
 
-			normal[i] = 0;
+			localNormalInA[i] = 0;
 		}
 	}
 
@@ -106,6 +114,10 @@ void btGeneric6DofConstraint::buildJacobian()
 				m_rbA.getInvInertiaDiagLocal(),
 				m_rbB.getInvInertiaDiagLocal());
 
+#ifdef GENERIC_D6_DISABLE_WARMSTARTING
+			m_accumulatedImpulse[i + 3] = 0.f;
+#endif //GENERIC_D6_DISABLE_WARMSTARTING
+
 			// Apply accumulated impulse
 			btVector3 impulse_vector = m_accumulatedImpulse[i + 3] * axis;
 
@@ -114,6 +126,52 @@ void btGeneric6DofConstraint::buildJacobian()
 		}
 	}
 }
+
+float getMatrixElem(const btMatrix3x3& mat,int index)
+{
+	int row = index%3;
+	int col = index / 3;
+	return mat[row][col];
+}
+
+///MatrixToEulerXYZ from http://www.geometrictools.com/LibFoundation/Mathematics/Wm4Matrix3.inl.html
+bool	MatrixToEulerXYZ(const btMatrix3x3& mat,btVector3& xyz)
+{
+    // rot =  cy*cz          -cy*sz           sy
+    //        cz*sx*sy+cx*sz  cx*cz-sx*sy*sz -cy*sx
+    //       -cx*cz*sy+sx*sz  cz*sx+cx*sy*sz  cx*cy
+
+///	0..8
+
+	 if (getMatrixElem(mat,2) < 1.0f)
+    {
+        if (getMatrixElem(mat,2) > -1.0f)
+        {
+            xyz[0] = btAtan2(-getMatrixElem(mat,5),getMatrixElem(mat,8));
+            xyz[1] = btAsin(getMatrixElem(mat,2));
+            xyz[2] = btAtan2(-getMatrixElem(mat,1),getMatrixElem(mat,0));
+            return true;
+        }
+        else
+        {
+            // WARNING.  Not unique.  XA - ZA = -atan2(r10,r11)
+            xyz[0] = -btAtan2(getMatrixElem(mat,3),getMatrixElem(mat,4));
+            xyz[1] = -SIMD_HALF_PI;
+            xyz[2] = 0.0f;
+            return false;
+        }
+    }
+    else
+    {
+        // WARNING.  Not unique.  XAngle + ZAngle = atan2(r10,r11)
+        xyz[0] = btAtan2(getMatrixElem(mat,3),getMatrixElem(mat,4));
+        xyz[1] = SIMD_HALF_PI;
+        xyz[2] = 0.0;
+        return false;
+    }
+	 return false;
+}
+
 
 void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 {
@@ -126,7 +184,7 @@ void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 	btVector3 rel_pos1 = pivotAInW - m_rbA.getCenterOfMassPosition(); 
 	btVector3 rel_pos2 = pivotBInW - m_rbB.getCenterOfMassPosition();
 	
-	btVector3 normal(0,0,0);
+	btVector3 localNormalInA(0,0,0);
 	int i;
 
 	// linear
@@ -137,8 +195,10 @@ void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 			btVector3 angvelA = m_rbA.getCenterOfMassTransform().getBasis().transpose() * m_rbA.getAngularVelocity();
 			btVector3 angvelB = m_rbB.getCenterOfMassTransform().getBasis().transpose() * m_rbB.getAngularVelocity();
 		
+			localNormalInA.setValue(0,0,0);
+			localNormalInA[i] = 1;
+			btVector3 normalWorld = m_rbA.getCenterOfMassTransform().getBasis() * localNormalInA;
 
-			normal[i] = 1;
 			btScalar jacDiagABInv = 1.f / m_jacLinear[i].getDiagonal();
 
 			//velocity error (first order error)
@@ -146,18 +206,58 @@ void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 																	m_rbB.getLinearVelocity(),angvelB);
 		
 			//positional error (zeroth order error)
-			btScalar depth = -(pivotAInW - pivotBInW).dot(normal); 
-			
-			btScalar impulse = (tau*depth/timeStep - damping*rel_vel) * jacDiagABInv;
-			m_accumulatedImpulse[i] += impulse;
+			btScalar depth = -(pivotAInW - pivotBInW).dot(normalWorld); 
+			btScalar	lo = -1e30f;
+			btScalar	hi = 1e30f;
+		
+			//handle the limits
+			if (m_lowerLimit[i] < m_upperLimit[i])
+			{
+				{
+					if (depth > m_upperLimit[i])
+					{
+						depth -= m_upperLimit[i];
+						lo = 0.f;
+					
+					} else
+					{
+						if (depth < m_lowerLimit[i])
+						{
+							depth -= m_lowerLimit[i];
+							hi = 0.f;
+						} else
+						{
+							continue;
+						}
+					}
+				}
+			}
 
-			btVector3 impulse_vector = normal * impulse;
+			btScalar normalImpulse= (tau*depth/timeStep - damping*rel_vel) * jacDiagABInv;
+			float oldNormalImpulse = m_accumulatedImpulse[i];
+			float sum = oldNormalImpulse + normalImpulse;
+			m_accumulatedImpulse[i] = sum > hi ? 0.f : sum < lo ? 0.f : sum;
+			normalImpulse = m_accumulatedImpulse[i] - oldNormalImpulse;
+
+			btVector3 impulse_vector = normalWorld * normalImpulse;
 			m_rbA.applyImpulse( impulse_vector, rel_pos1);
 			m_rbB.applyImpulse(-impulse_vector, rel_pos2);
 			
-			normal[i] = 0;
+			localNormalInA[i] = 0;
 		}
 	}
+
+	btVector3	axis;
+	btScalar	angle;
+	btTransform	frameAWorld = m_rbA.getCenterOfMassTransform() * m_frameInA;
+	btTransform	frameBWorld = m_rbB.getCenterOfMassTransform() * m_frameInB;
+
+	btTransformUtil::calculateDiffAxisAngle(frameAWorld,frameBWorld,axis,angle);
+	btQuaternion diff(axis,angle);
+	btMatrix3x3 diffMat (diff);
+	btVector3 xyz;
+	///this is not perfect, we can first check which axis are limited, and choose a more appropriate order
+	MatrixToEulerXYZ(diffMat,xyz);
 
 	// angular
 	for (i=0;i<3;i++)
@@ -179,13 +279,46 @@ void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 
 			btScalar rel_pos = kSign[i] * axisA.dot(axisB);
 
+			btScalar	lo = -1e30f;
+			btScalar	hi = 1e30f;
+		
+			//handle the twist limit
+			if (m_lowerLimit[i+3] < m_upperLimit[i+3])
+			{
+				//clamp the values
+				btScalar loLimit =  m_upperLimit[i+3] > -3.1415 ? m_lowerLimit[i+3] : -1e30f;
+				btScalar hiLimit = m_upperLimit[i+3] < 3.1415 ? m_upperLimit[i+3] : 1e30f;
+
+				float projAngle  = -2.*xyz[i];
+				
+				if (projAngle < loLimit)
+				{
+					hi = 0.f;
+					rel_pos = (loLimit - projAngle);
+				} else
+				{
+					if (projAngle > hiLimit)
+					{
+						lo = 0.f;
+						rel_pos = (hiLimit - projAngle);
+					} else
+					{
+						continue;
+					}
+				}
+			}
+		
 			//impulse
-			btScalar impulse = -(tau*rel_pos/timeStep + damping*rel_vel) * jacDiagABInv;
-			m_accumulatedImpulse[i + 3] += impulse;
+			
+			btScalar normalImpulse= -(tau*rel_pos/timeStep + damping*rel_vel) * jacDiagABInv;
+			float oldNormalImpulse = m_accumulatedImpulse[i+3];
+			float sum = oldNormalImpulse + normalImpulse;
+			m_accumulatedImpulse[i+3] = sum > hi ? 0.f : sum < lo ? 0.f : sum;
+			normalImpulse = m_accumulatedImpulse[i+3] - oldNormalImpulse;
 			
 			// Dirk: Not needed - we could actually project onto Jacobian entry here (same as above)
 			btVector3 axis = kSign[i] * axisA.cross(axisB);
-			btVector3 impulse_vector = axis * impulse;
+			btVector3 impulse_vector = axis * normalImpulse;
 
 			m_rbA.applyTorqueImpulse( impulse_vector);
 			m_rbB.applyTorqueImpulse(-impulse_vector);

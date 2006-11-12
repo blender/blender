@@ -26,7 +26,7 @@ subject to the following restrictions:
 
 //todo: get rid of this btConvexCastResult thing!
 struct btConvexCastResult;
-
+#define MAX_PREFERRED_PENETRATION_DIRECTIONS 10
 
 /// btConvexShape is an abstract shape interface.
 /// The explicit part provides plane-equations, the implicit part provides GetClosestPoint interface.
@@ -83,6 +83,17 @@ public:
 	{
 		return m_collisionMargin;
 	}
+
+	virtual int		getNumPreferredPenetrationDirections() const
+	{
+		return 0;
+	}
+	
+	virtual void	getPreferredPenetrationDirection(int index, btVector3& penetrationVector) const
+	{
+		assert(0);
+	}
+
 
 
 };

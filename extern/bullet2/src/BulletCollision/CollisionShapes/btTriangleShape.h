@@ -157,6 +157,18 @@ public:
 			return "Triangle";
 		}
 
+		virtual int		getNumPreferredPenetrationDirections() const
+		{
+			return 2;
+		}
+		
+		virtual void	getPreferredPenetrationDirection(int index, btVector3& penetrationVector) const
+		{
+			calcNormal(penetrationVector);
+			if (index)
+				penetrationVector *= -1.f;
+		}
+
 
 };
 

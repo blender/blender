@@ -17,10 +17,12 @@ subject to the following restrictions:
 #ifndef MANIFOLD_RESULT_H
 #define MANIFOLD_RESULT_H
 
-#include "BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h"
-struct btCollisionObject;
+class btCollisionObject;
 class btPersistentManifold;
 class btManifoldPoint;
+
+#include "BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h"
+
 #include "LinearMath/btTransform.h"
 
 typedef bool (*ContactAddedCallback)(btManifoldPoint& cp,	const btCollisionObject* colObj0,int partId0,int index0,const btCollisionObject* colObj1,int partId1,int index1);

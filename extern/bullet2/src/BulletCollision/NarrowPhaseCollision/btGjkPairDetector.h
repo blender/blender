@@ -43,6 +43,12 @@ class btGjkPairDetector : public btDiscreteCollisionDetectorInterface
 
 public:
 
+	//some debugging to fix degeneracy problems
+	int			m_lastUsedMethod;
+	int			m_curIter;
+	int			m_degenerateSimplex;
+	int			m_catchDegeneracies;
+
 
 	btGjkPairDetector(btConvexShape* objectA,btConvexShape* objectB,btSimplexSolverInterface* simplexSolver,btConvexPenetrationDepthSolver*	penetrationDepthSolver);
 	virtual ~btGjkPairDetector() {};
@@ -68,10 +74,12 @@ public:
 		m_penetrationDepthSolver = penetrationDepthSolver;
 	}
 
+	///don't use setIgnoreMargin, it's for Bullet's internal use
 	void	setIgnoreMargin(bool ignoreMargin)
 	{
 		m_ignoreMargin = ignoreMargin;
 	}
+
 
 };
 

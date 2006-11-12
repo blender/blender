@@ -34,8 +34,11 @@ class	btCollisionShape;
 /// btCollisionObject can be used to manage collision detection objects. 
 /// btCollisionObject maintains all information that is needed for a collision detection: Shape, Transform and AABB proxy.
 /// They can be added to the btCollisionWorld.
-struct	btCollisionObject
+class	btCollisionObject
 {
+
+protected:
+
 	btTransform	m_worldTransform;
 	btBroadphaseProxy*	m_broadphaseHandle;
 	btCollisionShape*		m_collisionShape;
@@ -48,15 +51,6 @@ struct	btCollisionObject
 	btVector3	m_interpolationLinearVelocity;
 	btVector3	m_interpolationAngularVelocity;
 
-
-	enum CollisionFlags
-	{
-		CF_STATIC_OBJECT= 1,
-		CF_KINEMATIC_OJBECT= 2,
-		CF_NO_CONTACT_RESPONSE = 4,
-		CF_CUSTOM_MATERIAL_CALLBACK = 8,//this allows per-triangle material (friction/restitution)
-	};
-
 	int				m_collisionFlags;
 
 	int				m_islandTag1;
@@ -66,7 +60,7 @@ struct	btCollisionObject
 	btScalar		m_friction;
 	btScalar		m_restitution;
 
-	///users can point to their objects, m_userPointer is not used by Bullet
+	///users can point to their objects, m_userPointer is not used by Bullet, see setUserPointer/getUserPointer
 	void*			m_userObjectPointer;
 
 	///m_internalOwner is reserved to point to Bullet's btRigidBody. Don't use this, use m_userObjectPointer instead.
@@ -81,10 +75,21 @@ struct	btCollisionObject
 	/// Don't do continuous collision detection if square motion (in one step) is less then m_ccdSquareMotionThreshold
 	float			m_ccdSquareMotionThreshold;
 
+public:
+
+	enum CollisionFlags
+	{
+		CF_STATIC_OBJECT= 1,
+		CF_KINEMATIC_OBJECT= 2,
+		CF_NO_CONTACT_RESPONSE = 4,
+		CF_CUSTOM_MATERIAL_CALLBACK = 8,//this allows per-triangle material (friction/restitution)
+	};
+
+
 	inline bool mergesSimulationIslands() const
 	{
 		///static objects, kinematic and object without contact response don't merge islands
-		return  ((m_collisionFlags & (CF_STATIC_OBJECT | CF_KINEMATIC_OJBECT | CF_NO_CONTACT_RESPONSE) )==0);
+		return  ((m_collisionFlags & (CF_STATIC_OBJECT | CF_KINEMATIC_OBJECT | CF_NO_CONTACT_RESPONSE) )==0);
 	}
 
 
@@ -94,12 +99,12 @@ struct	btCollisionObject
 
 	inline bool		isKinematicObject() const
 	{
-		return (m_collisionFlags & CF_KINEMATIC_OJBECT) != 0;
+		return (m_collisionFlags & CF_KINEMATIC_OBJECT) != 0;
 	}
 
 	inline bool		isStaticOrKinematicObject() const
 	{
-		return (m_collisionFlags & (CF_KINEMATIC_OJBECT | CF_STATIC_OBJECT)) != 0 ;
+		return (m_collisionFlags & (CF_KINEMATIC_OBJECT | CF_STATIC_OBJECT)) != 0 ;
 	}
 
 	inline bool		hasContactResponse() const {
@@ -107,27 +112,47 @@ struct	btCollisionObject
 	}
 
 	
-
-
 	btCollisionObject();
 
 
-	void	SetCollisionShape(btCollisionShape* collisionShape)
+	void	setCollisionShape(btCollisionShape* collisionShape)
 	{
 		m_collisionShape = collisionShape;
 	}
 
-	int	GetActivationState() const { return m_activationState1;}
-	
-	void SetActivationState(int newState);
+	const btCollisionShape*	getCollisionShape() const
+	{
+		return m_collisionShape;
+	}
 
-	void ForceActivationState(int newState);
+	btCollisionShape*	getCollisionShape()
+	{
+		return m_collisionShape;
+	}
+
+	
+
+
+	int	getActivationState() const { return m_activationState1;}
+	
+	void setActivationState(int newState);
+
+	void	setDeactivationTime(float time)
+	{
+		m_deactivationTime = time;
+	}
+	float	getDeactivationTime() const
+	{
+		return m_deactivationTime;
+	}
+
+	void forceActivationState(int newState);
 
 	void	activate();
 
-	inline bool IsActive() const
+	inline bool isActive() const
 	{
-		return ((GetActivationState() != ISLAND_SLEEPING) && (GetActivationState() != DISABLE_SIMULATION));
+		return ((getActivationState() != ISLAND_SLEEPING) && (getActivationState() != DISABLE_SIMULATION));
 	}
 
 		void	setRestitution(float rest)
@@ -147,6 +172,141 @@ struct	btCollisionObject
 		return m_friction;
 	}
 
+	///reserved for Bullet internal usage
+	void*	getInternalOwner()
+	{
+		return m_internalOwner;
+	}
+
+	const void*	getInternalOwner() const
+	{
+		return m_internalOwner;
+	}
+
+	btTransform&	getWorldTransform()
+	{
+		return m_worldTransform;
+	}
+
+	const btTransform&	getWorldTransform() const
+	{
+		return m_worldTransform;
+	}
+
+	void	setWorldTransform(const btTransform& worldTrans)
+	{
+		m_worldTransform = worldTrans;
+	}
+
+
+	btBroadphaseProxy*	getBroadphaseHandle()
+	{
+		return m_broadphaseHandle;
+	}
+
+	const btBroadphaseProxy*	getBroadphaseHandle() const
+	{
+		return m_broadphaseHandle;
+	}
+
+	void	setBroadphaseHandle(btBroadphaseProxy* handle)
+	{
+		m_broadphaseHandle = handle;
+	}
+
+
+	const btTransform&	getInterpolationWorldTransform() const
+	{
+		return m_interpolationWorldTransform;
+	}
+
+	btTransform&	getInterpolationWorldTransform()
+	{
+		return m_interpolationWorldTransform;
+	}
+
+	void	setInterpolationWorldTransform(const btTransform&	trans)
+	{
+		m_interpolationWorldTransform = trans;
+	}
+
+
+	const btVector3&	getInterpolationLinearVelocity() const
+	{
+		return m_interpolationLinearVelocity;
+	}
+
+	const btVector3&	getInterpolationAngularVelocity() const
+	{
+		return m_interpolationAngularVelocity;
+	}
+
+	const int getIslandTag() const
+	{
+		return	m_islandTag1;
+	}
+
+	void	setIslandTag(int tag)
+	{
+		m_islandTag1 = tag;
+	}
+
+	const float			getHitFraction() const
+	{
+		return m_hitFraction; 
+	}
+
+	void	setHitFraction(float hitFraction)
+	{
+		m_hitFraction = hitFraction;
+	}
+
+	
+	const int	getCollisionFlags() const
+	{
+		return m_collisionFlags;
+	}
+
+	void	setCollisionFlags(int flags)
+	{
+		m_collisionFlags = flags;
+	}
+	
+	///Swept sphere radius (0.0 by default), see btConvexConvexAlgorithm::
+	float			getCcdSweptSphereRadius() const
+	{
+		return m_ccdSweptSphereRadius;
+	}
+
+	///Swept sphere radius (0.0 by default), see btConvexConvexAlgorithm::
+	void	setCcdSweptSphereRadius(float radius)
+	{
+		m_ccdSweptSphereRadius = radius;
+	}
+
+	float 	getCcdSquareMotionThreshold() const
+	{
+		return m_ccdSquareMotionThreshold;
+	}
+
+
+	/// Don't do continuous collision detection if square motion (in one step) is less then m_ccdSquareMotionThreshold
+	void	setCcdSquareMotionThreshold(float ccdSquareMotionThreshold)
+	{
+		m_ccdSquareMotionThreshold = ccdSquareMotionThreshold;
+	}
+
+	///users can point to their objects, userPointer is not used by Bullet
+	void*	getUserPointer() const
+	{
+		return m_userObjectPointer;
+	}
+	
+	///users can point to their objects, userPointer is not used by Bullet
+	void	setUserPointer(void* userPointer)
+	{
+		m_userObjectPointer = userPointer;
+	}
 
 };
 

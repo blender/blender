@@ -56,9 +56,10 @@ subject to the following restrictions:
 
 #include <algorithm>
 
-btDiscreteDynamicsWorld::btDiscreteDynamicsWorld()
+
+btDiscreteDynamicsWorld::btDiscreteDynamicsWorld(btConstraintSolver* constraintSolver)
 :btDynamicsWorld(),
-m_constraintSolver(new btSequentialImpulseConstraintSolver),
+m_constraintSolver(constraintSolver? constraintSolver: new btSequentialImpulseConstraintSolver),
 m_debugDrawer(0),
 m_gravity(0,-10,0),
 m_localTime(1.f/60.f),
@@ -66,9 +67,9 @@ m_profileTimings(0)
 {
 	m_islandManager = new btSimulationIslandManager();
 	m_ownsIslandManager = true;
-	m_ownsConstraintSolver = true;
-
+	m_ownsConstraintSolver = (constraintSolver==0);
 }
+
 
 btDiscreteDynamicsWorld::btDiscreteDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver)
 :btDynamicsWorld(dispatcher,pairCache),
@@ -103,7 +104,7 @@ void	btDiscreteDynamicsWorld::saveKinematicState(float timeStep)
 		if (body)
 		{
 				btTransform predictedTrans;
-				if (body->GetActivationState() != ISLAND_SLEEPING)
+				if (body->getActivationState() != ISLAND_SLEEPING)
 				{
 					if (body->isKinematicObject())
 					{
@@ -117,42 +118,82 @@ void	btDiscreteDynamicsWorld::saveKinematicState(float timeStep)
 
 void	btDiscreteDynamicsWorld::synchronizeMotionStates()
 {
-	//todo: iterate over awake simulation islands!
-	for (unsigned int i=0;i<m_collisionObjects.size();i++)
+	//debug vehicle wheels
+	
+	
 	{
-		btCollisionObject* colObj = m_collisionObjects[i];
-		if (getDebugDrawer() && getDebugDrawer()->getDebugMode() & btIDebugDraw::DBG_DrawWireframe)
+		//todo: iterate over awake simulation islands!
+		for (unsigned int i=0;i<m_collisionObjects.size();i++)
 		{
-			btVector3 color(255.f,255.f,255.f);
-			switch(colObj->GetActivationState())
+			btCollisionObject* colObj = m_collisionObjects[i];
+			if (getDebugDrawer() && getDebugDrawer()->getDebugMode() & btIDebugDraw::DBG_DrawWireframe)
 			{
-			case  ACTIVE_TAG:
-				color = btVector3(255.f,255.f,255.f); break;
-			case ISLAND_SLEEPING:
-				color =  btVector3(0.f,255.f,0.f);break;
-			case WANTS_DEACTIVATION:
-				color = btVector3(0.f,255.f,255.f);break;
-			case DISABLE_DEACTIVATION:
-				color = btVector3(255.f,0.f,0.f);break;
-			case DISABLE_SIMULATION:
-				color = btVector3(255.f,255.f,0.f);break;
-			default:
+				btVector3 color(255.f,255.f,255.f);
+				switch(colObj->getActivationState())
 				{
-					color = btVector3(255.f,0.f,0.f);
-				}
-			};
+				case  ACTIVE_TAG:
+					color = btVector3(255.f,255.f,255.f); break;
+				case ISLAND_SLEEPING:
+					color =  btVector3(0.f,255.f,0.f);break;
+				case WANTS_DEACTIVATION:
+					color = btVector3(0.f,255.f,255.f);break;
+				case DISABLE_DEACTIVATION:
+					color = btVector3(255.f,0.f,0.f);break;
+				case DISABLE_SIMULATION:
+					color = btVector3(255.f,255.f,0.f);break;
+				default:
+					{
+						color = btVector3(255.f,0.f,0.f);
+					}
+				};
 
-			debugDrawObject(colObj->m_worldTransform,colObj->m_collisionShape,color);
-		}
-		btRigidBody* body = btRigidBody::upcast(colObj);
-		if (body && body->getMotionState() && !body->isStaticOrKinematicObject())
-		{
-			if (body->GetActivationState() != ISLAND_SLEEPING)
+				debugDrawObject(colObj->getWorldTransform(),colObj->getCollisionShape(),color);
+			}
+			btRigidBody* body = btRigidBody::upcast(colObj);
+			if (body && body->getMotionState() && !body->isStaticOrKinematicObject())
 			{
-				btTransform interpolatedTransform;
-				btTransformUtil::integrateTransform(body->m_interpolationWorldTransform,
-					body->m_interpolationLinearVelocity,body->m_interpolationAngularVelocity,m_localTime,interpolatedTransform);
-				body->getMotionState()->setWorldTransform(interpolatedTransform);
+				if (body->getActivationState() != ISLAND_SLEEPING)
+				{
+					btTransform interpolatedTransform;
+					btTransformUtil::integrateTransform(body->getInterpolationWorldTransform(),
+						body->getInterpolationLinearVelocity(),body->getInterpolationAngularVelocity(),m_localTime,interpolatedTransform);
+					body->getMotionState()->setWorldTransform(interpolatedTransform);
+				}
+			}
+		}
+	}
+
+	if (getDebugDrawer() && getDebugDrawer()->getDebugMode() & btIDebugDraw::DBG_DrawWireframe)
+	{
+		for (unsigned int i=0;i<this->m_vehicles.size();i++)
+		{
+			for (int v=0;v<m_vehicles[i]->getNumWheels();v++)
+			{
+				btVector3 wheelColor(0,255,255);
+				if (m_vehicles[i]->getWheelInfo(v).m_raycastInfo.m_isInContact)
+				{
+					wheelColor.setValue(0,0,255);
+				} else
+				{
+					wheelColor.setValue(255,0,255);
+				}
+
+				//synchronize the wheels with the (interpolated) chassis worldtransform
+				m_vehicles[i]->updateWheelTransform(v,true);
+					
+				btVector3 wheelPosWS = m_vehicles[i]->getWheelInfo(v).m_worldTransform.getOrigin();
+
+				btVector3 axle = btVector3(	
+					m_vehicles[i]->getWheelInfo(v).m_worldTransform.getBasis()[0][m_vehicles[i]->getRightAxis()],
+					m_vehicles[i]->getWheelInfo(v).m_worldTransform.getBasis()[1][m_vehicles[i]->getRightAxis()],
+					m_vehicles[i]->getWheelInfo(v).m_worldTransform.getBasis()[2][m_vehicles[i]->getRightAxis()]);
+
+
+				//m_vehicles[i]->getWheelInfo(v).m_raycastInfo.m_wheelAxleWS
+				//debug wheels (cylinders)
+				m_debugDrawer->drawLine(wheelPosWS,wheelPosWS+axle,wheelColor);
+				m_debugDrawer->drawLine(wheelPosWS,m_vehicles[i]->getWheelInfo(v).m_raycastInfo.m_contactPointWS,wheelColor);
+
 			}
 		}
 	}
@@ -178,8 +219,15 @@ int	btDiscreteDynamicsWorld::stepSimulation( float timeStep,int maxSubSteps, flo
 		//variable timestep
 		fixedTimeStep = timeStep;
 		m_localTime = timeStep;
-		numSimulationSubSteps = 1;
-		maxSubSteps = 1;
+		if (btFuzzyZero(timeStep))
+		{
+			numSimulationSubSteps = 0;
+			maxSubSteps = 0;
+		} else
+		{
+			numSimulationSubSteps = 1;
+			maxSubSteps = 1;
+		}
 	}
 
 	//process some debugging flags
@@ -187,7 +235,7 @@ int	btDiscreteDynamicsWorld::stepSimulation( float timeStep,int maxSubSteps, flo
 	{
 		gDisableDeactivation = (getDebugDrawer()->getDebugMode() & btIDebugDraw::DBG_NoDeactivation) != 0;
 	}
-	if (!btFuzzyZero(timeStep) && numSimulationSubSteps)
+	if (numSimulationSubSteps)
 	{
 
 		saveKinematicState(fixedTimeStep);
@@ -198,6 +246,7 @@ int	btDiscreteDynamicsWorld::stepSimulation( float timeStep,int maxSubSteps, flo
 		for (int i=0;i<clampedSimulationSteps;i++)
 		{
 			internalSingleStepSimulation(fixedTimeStep);
+			synchronizeMotionStates();
 		}
 
 	} 
@@ -226,20 +275,23 @@ void	btDiscreteDynamicsWorld::internalSingleStepSimulation(float timeStep)
 	btContactSolverInfo infoGlobal;
 	infoGlobal.m_timeStep = timeStep;
 	
+
+
 	///solve non-contact constraints
 	solveNoncontactConstraints(infoGlobal);
 	
 	///solve contact constraints
 	solveContactConstraints(infoGlobal);
 
-	///update vehicle simulation
-	updateVehicles(timeStep);
-	
 	///CallbackTriggers();
 
 	///integrate transforms
 	integrateTransforms(timeStep);
-		
+
+	///update vehicle simulation
+	updateVehicles(timeStep);
+
+
 	updateActivationState( timeStep );
 
 	
@@ -268,12 +320,19 @@ void	btDiscreteDynamicsWorld::removeRigidBody(btRigidBody* body)
 
 void	btDiscreteDynamicsWorld::addRigidBody(btRigidBody* body)
 {
-	body->setGravity(m_gravity);
-	bool isDynamic = !(body->isStaticObject() || body->isKinematicObject());
-	short collisionFilterGroup = isDynamic? btBroadphaseProxy::DefaultFilter : btBroadphaseProxy::StaticFilter;
-	short collisionFilterMask = isDynamic? 	btBroadphaseProxy::AllFilter : 	btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter;
+	if (!body->isStaticOrKinematicObject())
+	{
+		body->setGravity(m_gravity);
+	}
 
-	addCollisionObject(body,collisionFilterGroup,collisionFilterMask);
+	if (body->getCollisionShape())
+	{
+		bool isDynamic = !(body->isStaticObject() || body->isKinematicObject());
+		short collisionFilterGroup = isDynamic? btBroadphaseProxy::DefaultFilter : btBroadphaseProxy::StaticFilter;
+		short collisionFilterMask = isDynamic? 	btBroadphaseProxy::AllFilter : 	btBroadphaseProxy::AllFilter ^ btBroadphaseProxy::StaticFilter;
+
+		addCollisionObject(body,collisionFilterGroup,collisionFilterMask);
+	}
 }
 
 
@@ -303,12 +362,12 @@ void	btDiscreteDynamicsWorld::updateActivationState(float timeStep)
 
 			if (body->wantsSleeping())
 			{
-				if (body->GetActivationState() == ACTIVE_TAG)
-					body->SetActivationState( WANTS_DEACTIVATION );
+				if (body->getActivationState() == ACTIVE_TAG)
+					body->setActivationState( WANTS_DEACTIVATION );
 			} else
 			{
-				if (body->GetActivationState() != DISABLE_DEACTIVATION)
-					body->SetActivationState( ACTIVE_TAG );
+				if (body->getActivationState() != DISABLE_DEACTIVATION)
+					body->setActivationState( ACTIVE_TAG );
 			}
 		}
 	}
@@ -436,11 +495,11 @@ void	btDiscreteDynamicsWorld::calculateSimulationIslands()
 			if (((colObj0) && ((colObj0)->mergesSimulationIslands())) &&
 				((colObj1) && ((colObj1)->mergesSimulationIslands())))
 			{
-				if (colObj0->IsActive() || colObj1->IsActive())
+				if (colObj0->isActive() || colObj1->isActive())
 				{
 
-					getSimulationIslandManager()->getUnionFind().unite((colObj0)->m_islandTag1,
-						(colObj1)->m_islandTag1);
+					getSimulationIslandManager()->getUnionFind().unite((colObj0)->getIslandTag(),
+						(colObj1)->getIslandTag());
 				}
 			}
 		}
@@ -501,19 +560,19 @@ void	btDiscreteDynamicsWorld::updateAabbs()
 		//	if (body->IsActive() && (!body->IsStatic()))
 			{
 				btPoint3 minAabb,maxAabb;
-				colObj->m_collisionShape->getAabb(colObj->m_worldTransform, minAabb,maxAabb);
+				colObj->getCollisionShape()->getAabb(colObj->getWorldTransform(), minAabb,maxAabb);
 				btSimpleBroadphase* bp = (btSimpleBroadphase*)m_broadphasePairCache;
 
 				//moving objects should be moderately sized, probably something wrong if not
 				if ( colObj->isStaticObject() || ((maxAabb-minAabb).length2() < 1e12f))
 				{
-					bp->setAabb(body->m_broadphaseHandle,minAabb,maxAabb);
+					bp->setAabb(body->getBroadphaseHandle(),minAabb,maxAabb);
 				} else
 				{
 					//something went wrong, investigate
 					//this assert is unwanted in 3D modelers (danger of loosing work)
 					assert(0);
-					body->SetActivationState(DISABLE_SIMULATION);
+					body->setActivationState(DISABLE_SIMULATION);
 					
 					static bool reportMe = true;
 					if (reportMe)
@@ -548,7 +607,7 @@ void	btDiscreteDynamicsWorld::integrateTransforms(float timeStep)
 		btRigidBody* body = btRigidBody::upcast(colObj);
 		if (body)
 		{
-			if (body->IsActive() && (!body->isStaticOrKinematicObject()))
+			if (body->isActive() && (!body->isStaticOrKinematicObject()))
 			{
 				body->predictIntegratedTransform(timeStep, predictedTrans);
 				body->proceedToTransform( predictedTrans);
@@ -571,11 +630,11 @@ void	btDiscreteDynamicsWorld::predictUnconstraintMotion(float timeStep)
 		{
 			if (!body->isStaticOrKinematicObject())
 			{
-				if (body->IsActive())
+				if (body->isActive())
 				{
 					body->applyForces( timeStep);
 					body->integrateVelocities( timeStep);
-					body->predictIntegratedTransform(timeStep,body->m_interpolationWorldTransform);
+					body->predictIntegratedTransform(timeStep,body->getInterpolationWorldTransform());
 				}
 			}
 		}
@@ -768,3 +827,14 @@ void btDiscreteDynamicsWorld::debugDrawObject(const btTransform& worldTransform,
 		}
 	}
 }
+
+void	btDiscreteDynamicsWorld::setConstraintSolver(btConstraintSolver* solver)
+{
+	if (m_ownsConstraintSolver)
+	{
+		delete m_constraintSolver;
+	}
+	m_ownsConstraintSolver = false;
+	m_constraintSolver = solver;
+}
+

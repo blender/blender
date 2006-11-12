@@ -108,7 +108,16 @@ public:
 	static void	calculateVelocity(const btTransform& transform0,const btTransform& transform1,btScalar timeStep,btVector3& linVel,btVector3& angVel)
 	{
 		linVel = (transform1.getOrigin() - transform0.getOrigin()) / timeStep;
-#ifdef USE_QUATERNION_DIFF
+		btVector3 axis;
+		btScalar  angle;
+		calculateDiffAxisAngle(transform0,transform1,axis,angle);
+		angVel = axis * angle / timeStep;
+	}
+
+	static void calculateDiffAxisAngle(const btTransform& transform0,const btTransform& transform1,btVector3& axis,btScalar& angle)
+	{
+	
+	#ifdef USE_QUATERNION_DIFF
 		btQuaternion orn0 = transform0.getRotation();
 		btQuaternion orn1a = transform1.getRotation();
 		btQuaternion orn1 = orn0.farthest(orn1a);
@@ -118,9 +127,7 @@ public:
 		btQuaternion dorn;
 		dmat.getRotation(dorn);
 #endif//USE_QUATERNION_DIFF
-
-		btVector3 axis;
-		btScalar  angle;
+	
 		angle = dorn.getAngle();
 		axis = btVector3(dorn.x(),dorn.y(),dorn.z());
 		axis[3] = 0.f;
@@ -130,12 +137,7 @@ public:
 			axis = btVector3(1.f,0.f,0.f);
 		else
 			axis /= btSqrt(len);
-
-		
-		angVel = axis * angle / timeStep;
-
 	}
-
 
 };
 

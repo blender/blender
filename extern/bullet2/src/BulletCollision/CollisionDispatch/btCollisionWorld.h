@@ -194,7 +194,7 @@ public:
 			
 			m_closestHitFraction = rayResult.m_hitFraction;
 			m_collisionObject = rayResult.m_collisionObject;
-			m_hitNormalWorld = m_collisionObject->m_worldTransform.getBasis()*rayResult.m_hitNormalLocal;
+			m_hitNormalWorld = m_collisionObject->getWorldTransform().getBasis()*rayResult.m_hitNormalLocal;
 			m_hitPointWorld.setInterpolate3(m_rayFromWorld,m_rayToWorld,rayResult.m_hitFraction);
 			return rayResult.m_hitFraction;
 		}

@@ -114,12 +114,12 @@ void	btSimpleDynamicsWorld::updateAabbs()
 		btRigidBody* body = btRigidBody::upcast(colObj);
 		if (body)
 		{
-			if (body->IsActive() && (!body->isStaticObject()))
+			if (body->isActive() && (!body->isStaticObject()))
 			{
 				btPoint3 minAabb,maxAabb;
-				colObj->m_collisionShape->getAabb(colObj->m_worldTransform, minAabb,maxAabb);
+				colObj->getCollisionShape()->getAabb(colObj->getWorldTransform(), minAabb,maxAabb);
 				btBroadphaseInterface* bp = getBroadphase();
-				bp->setAabb(body->m_broadphaseHandle,minAabb,maxAabb);
+				bp->setAabb(body->getBroadphaseHandle(),minAabb,maxAabb);
 			}
 		}
 	}
@@ -134,7 +134,7 @@ void	btSimpleDynamicsWorld::integrateTransforms(float timeStep)
 		btRigidBody* body = btRigidBody::upcast(colObj);
 		if (body)
 		{
-			if (body->IsActive() && (!body->isStaticObject()))
+			if (body->isActive() && (!body->isStaticObject()))
 			{
 				body->predictIntegratedTransform(timeStep, predictedTrans);
 				body->proceedToTransform( predictedTrans);
@@ -155,11 +155,11 @@ void	btSimpleDynamicsWorld::predictUnconstraintMotion(float timeStep)
 		{
 			if (!body->isStaticObject())
 			{
-				if (body->IsActive())
+				if (body->isActive())
 				{
 					body->applyForces( timeStep);
 					body->integrateVelocities( timeStep);
-					body->predictIntegratedTransform(timeStep,body->m_interpolationWorldTransform);
+					body->predictIntegratedTransform(timeStep,body->getInterpolationWorldTransform());
 				}
 			}
 		}
@@ -176,11 +176,22 @@ void	btSimpleDynamicsWorld::synchronizeMotionStates()
 		btRigidBody* body = btRigidBody::upcast(colObj);
 		if (body && body->getMotionState())
 		{
-			if (body->GetActivationState() != ISLAND_SLEEPING)
+			if (body->getActivationState() != ISLAND_SLEEPING)
 			{
-				body->getMotionState()->setWorldTransform(body->m_worldTransform);
+				body->getMotionState()->setWorldTransform(body->getWorldTransform());
 			}
 		}
 	}
 
+}
+
+
+void	btSimpleDynamicsWorld::setConstraintSolver(btConstraintSolver* solver)
+{
+	if (m_ownsConstraintSolver)
+	{
+		delete m_constraintSolver;
+	}
+	m_ownsConstraintSolver = false;
+	m_constraintSolver = solver;
 }

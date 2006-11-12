@@ -62,7 +62,11 @@ class btRigidBody  : public btCollisionObject
 
 public:
 
+#ifdef OBSOLETE_MOTIONSTATE_LESS
+	//not supported, please use btMotionState
 	btRigidBody(float mass, const btTransform& worldTransform, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0),btScalar linearDamping=0.f,btScalar angularDamping=0.f,btScalar friction=0.5f,btScalar restitution=0.f);
+#endif //OBSOLETE_MOTIONSTATE_LESS
+
 	btRigidBody(float mass, btMotionState* motionState, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0),btScalar linearDamping=0.f,btScalar angularDamping=0.f,btScalar friction=0.5f,btScalar restitution=0.f);
 
 	void			proceedToTransform(const btTransform& newTrans); 
@@ -71,11 +75,11 @@ public:
 	///but a rigidbody is derived from btCollisionObject, so we can safely perform an upcast
 	static const btRigidBody*	upcast(const btCollisionObject* colObj)
 	{
-		return (const btRigidBody*)colObj->m_internalOwner;
+		return (const btRigidBody*)colObj->getInternalOwner();
 	}
 	static btRigidBody*	upcast(btCollisionObject* colObj)
 	{
-		return (btRigidBody*)colObj->m_internalOwner;
+		return (btRigidBody*)colObj->getInternalOwner();
 	}
 	
 	/// continuous collision detection needs prediction
@@ -247,7 +251,7 @@ public:
 
 	inline void	updateDeactivation(float timeStep)
 	{
-		if ( (GetActivationState() == ISLAND_SLEEPING) || (GetActivationState() == DISABLE_DEACTIVATION))
+		if ( (getActivationState() == ISLAND_SLEEPING) || (getActivationState() == DISABLE_DEACTIVATION))
 			return;
 
 		if ((getLinearVelocity().length2() < gLinearSleepingThreshold*gLinearSleepingThreshold) &&
@@ -257,7 +261,7 @@ public:
 		} else
 		{
 			m_deactivationTime=0.f;
-			SetActivationState(0);
+			setActivationState(0);
 		}
 
 	}
@@ -265,14 +269,14 @@ public:
 	inline bool	wantsSleeping()
 	{
 
-		if (GetActivationState() == DISABLE_DEACTIVATION)
+		if (getActivationState() == DISABLE_DEACTIVATION)
 			return false;
 
 		//disable deactivation
 		if (gDisableDeactivation || (gDeactivationTime == 0.f))
 			return false;
 
-		if ( (GetActivationState() == ISLAND_SLEEPING) || (GetActivationState() == WANTS_DEACTIVATION))
+		if ( (getActivationState() == ISLAND_SLEEPING) || (getActivationState() == WANTS_DEACTIVATION))
 			return true;
 
 		if (m_deactivationTime> gDeactivationTime)
@@ -309,6 +313,8 @@ public:
 	void	setMotionState(btMotionState* motionState)
 	{
 		m_optionalMotionState = motionState;
+		if (m_optionalMotionState)
+			motionState->getWorldTransform(m_worldTransform);
 	}
 
 	//for experimental overriding of friction/contact solver func
