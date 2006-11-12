@@ -819,7 +819,7 @@ static int set_draw_settings_cached(int clearcache, int textured, TFace *texface
 	}
 
 	if (texface) {
-		lit = lit && (texface->mode&TF_LIGHT);
+		lit = lit && (lit==-1 || texface->mode&TF_LIGHT);
 		textured = textured && (texface->mode&TF_TEX);
 		doublesided = texface->mode&TF_TWOSIDE;
 	} else {
@@ -878,6 +878,7 @@ static Object *g_draw_tface_mesh_ob = NULL;
 static int g_draw_tface_mesh_islight = 0;
 static int g_draw_tface_mesh_istex = 0;
 static unsigned char g_draw_tface_mesh_obcol[4];
+
 static int draw_tface__set_draw(TFace *tface, int matnr)
 {
 	if (tface && ((tface->flag&TF_HIDE) || (tface->mode&TF_INVISIBLE))) return 0;
@@ -897,6 +898,7 @@ static int draw_tface__set_draw(TFace *tface, int matnr)
 		return 1; /* Set color from tface */
 	}
 }
+
 static int draw_tface_mapped__set_draw(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
@@ -911,7 +913,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 {
 	unsigned char obcol[4];
 	int a;
-	short islight, istex;
+	short istex, solidtex=0;
 	DerivedMesh *dm;
 	int dmNeedsFree;
 	
@@ -921,7 +923,13 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 
 	glShadeModel(GL_SMOOTH);
 
-	islight= set_gl_light(ob);
+	/* option to draw solid texture with default lights */
+	if(dt>OB_WIRE && G.vd->drawtype==OB_SOLID) {
+		solidtex= 1;
+		g_draw_tface_mesh_islight= -1;
+	}
+	else
+		g_draw_tface_mesh_islight= set_gl_light(ob);
 	
 	obcol[0]= CLAMPIS(ob->col[0]*255, 0, 255);
 	obcol[1]= CLAMPIS(ob->col[1]*255, 0, 255);
@@ -934,16 +942,15 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	else glFrontFace(GL_CCW);
 	
 	glCullFace(GL_BACK); glEnable(GL_CULL_FACE);
-	if(G.vd->drawtype==OB_TEXTURE) istex= 1;
+	if(solidtex || G.vd->drawtype==OB_TEXTURE) istex= 1;
 	else istex= 0;
 
 	g_draw_tface_mesh_ob = ob;
-	g_draw_tface_mesh_islight = islight;
 	g_draw_tface_mesh_istex = istex;
 	memcpy(g_draw_tface_mesh_obcol, obcol, sizeof(obcol));
 	set_draw_settings_cached(1, 0, 0, 0, 0, 0, 0);
 
-	if(dt > OB_SOLID) {
+	if(dt > OB_SOLID || g_draw_tface_mesh_islight==-1) {
 		TFace *tface= me->tface;
 		MFace *mface= me->mface;
 		bProperty *prop = get_property(ob, "Text");
