@@ -202,6 +202,10 @@ SOURCE=..\..\..\source\blender\makesdna\DNA_curve_types.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\makesdna\DNA_customdata_types.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\makesdna\DNA_documentation.h
 # End Source File
 # Begin Source File
