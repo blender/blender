@@ -457,6 +457,9 @@ DNA_makesdna.exe dna.c
 				RelativePath="..\..\..\source\blender\makesdna\DNA_curve_types.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_customdata_types.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_documentation.h">
 			</File>
 			<File
