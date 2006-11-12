@@ -504,7 +504,7 @@ void RE_SetCamera(Render *re, Object *camera)
 	}
 
 	/* ortho only with camera available */
-	if(re->r.mode & R_ORTHO) {
+	if(cam && (re->r.mode & R_ORTHO)) {
 		if( (re->r.xasp*re->winx) >= (re->r.yasp*re->winy) ) {
 			re->viewfac= re->winx;
 		}
