@@ -1537,7 +1537,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	EditMesh *em = G.editMesh;
 	EditVert *eve, *evedef=NULL;
 	EditEdge *eed;
-	MDeformVert *dvert;
+	MDeformVert *dvert=NULL;
 	float median[5];
 	int tot, totw, totweight, totedge;
 	char defstr[320];
@@ -1566,8 +1566,9 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		}
 
 		/* check for defgroups */
-		dvert= CustomData_em_get(&em->vdata, evedef->data, LAYERTYPE_MDEFORMVERT);
-		if(tot==1 && dvert->totweight) {
+		if(evedef)
+			dvert= CustomData_em_get(&em->vdata, evedef->data, LAYERTYPE_MDEFORMVERT);
+		if(tot==1 && dvert && dvert->totweight) {
 			bDeformGroup *dg;
 			int i, max=1, init=1;
 			char str[32];
