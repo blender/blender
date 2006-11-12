@@ -1509,7 +1509,7 @@ static int ui_do_but_TOG(uiBlock *block, uiBut *but, int qual)
 	int w, lvalue, push;
 	
 	/* local hack... */
-	if(but->type==BUT_TOGDUAL && qual) {
+	if(but->type==BUT_TOGDUAL && qual==LR_CTRLKEY) {
 		if(but->pointype==SHO)
 			but->poin += 2;
 		else if(but->pointype==INT)
