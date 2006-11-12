@@ -450,9 +450,9 @@ void pose_copy_menu(void)
 	
 	i= BLI_countlist(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
 	if (i<25)
-		nr= pupmenu("Copy Pose Attributes %t|Location%x1|Rotation%x2|Size%x3|Constraints (All)%x4|Constraints...%x5");
+		nr= pupmenu("Copy Pose Attributes %t|Location%x1|Rotation%x2|Size%x3|Constraints (All)%x4|Constraints...%x5|Transform Locks%x6|IK Limits%x7|Bone Shape%x8");
 	else
-		nr= pupmenu("Copy Pose Attributes %t|Location%x1|Rotation%x2|Size%x3|Constraints (All)%x4");
+		nr= pupmenu("Copy Pose Attributes %t|Location%x1|Rotation%x2|Size%x3|Constraints (All)%x4|Transform Locks%x6|IK Limits%x7|Bone Shape%x8");
 	
 	if(nr==-1) return;
 	if(nr!=5)  {
@@ -461,19 +461,38 @@ void pose_copy_menu(void)
 				(pchan->bone->flag & BONE_SELECTED) &&
 				(pchan!=pchanact)
 			) {
-				if(nr==1) {
-					VECCOPY(pchan->loc, pchanact->loc);
-				}
-				else if(nr==2) {
-					QUATCOPY(pchan->quat, pchanact->quat);
-				}
-				else if(nr==3) {
-					VECCOPY(pchan->size, pchanact->size);
-				}
-				else if(nr==4) {
-					free_constraints(&pchan->constraints);
-					copy_constraints(&pchan->constraints, &pchanact->constraints);
-					pchan->constflag = pchanact->constflag;
+				switch (nr) {
+					case 1:
+						VECCOPY(pchan->loc, pchanact->loc);
+						break;
+					case 2:
+						QUATCOPY(pchan->quat, pchanact->quat);
+						break;
+					case 3:
+						VECCOPY(pchan->size, pchanact->size);
+						break;
+					case 4:
+					{
+						free_constraints(&pchan->constraints);
+						copy_constraints(&pchan->constraints, &pchanact->constraints);
+						pchan->constflag = pchanact->constflag;
+					}
+						break;
+					case 6:
+						pchan->protectflag = pchanact->protectflag;
+						break;
+					case 7:
+					{
+						pchan->ikflag = pchanact->ikflag;
+						VECCOPY(pchan->limitmin, pchanact->limitmin);
+						VECCOPY(pchan->limitmax, pchanact->limitmax);
+						VECCOPY(pchan->stiffness, pchanact->stiffness);
+						pchan->ikstretch= pchanact->ikstretch;
+					}
+						break;
+					case 8:
+						pchan->custom = pchanact->custom;
+						break;
 				}
 			}
 		}
