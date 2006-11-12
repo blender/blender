@@ -2689,10 +2689,8 @@ void view3d_update_depths(View3D *v3d)
 		}
 		
 		if(d->damaged) {
-			glReadBuffer(GL_FRONT);
 			glReadPixels(v3d->area->winrct.xmin,v3d->area->winrct.ymin,d->w,d->h,
 				     GL_DEPTH_COMPONENT,GL_FLOAT, d->depths);
-			glReadBuffer(GL_BACK);
 			
 			glGetDoublev(GL_DEPTH_RANGE,d->depth_range);
 			

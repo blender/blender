@@ -547,9 +547,7 @@ float get_depth(short x, short y)
 	x+= curarea->winrct.xmin;
 	y+= curarea->winrct.ymin;
 	
-	glReadBuffer(GL_FRONT);
 	glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-	glReadBuffer(GL_BACK);
 
 	return depth;
 }
