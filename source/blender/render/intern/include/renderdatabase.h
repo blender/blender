@@ -74,6 +74,8 @@ float *RE_vertren_get_strand(struct Render *re, struct VertRen *ver, int verify)
 float *RE_vertren_get_tangent(struct Render *re, struct VertRen *ver, int verify);
 float *RE_vertren_get_winspeed(struct Render *re, struct VertRen *ver, int verify);
 
+VertRen *RE_vertren_copy(struct Render *re, struct VertRen *ver);
+
 /* haloren->type: flags */
 #define HA_ONLYSKY		1
 #define HA_VECT			2
