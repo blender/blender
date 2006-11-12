@@ -44,6 +44,7 @@
 #include <string.h>
 #include "GHOST_WindowWin32.h"
 #include <GL/gl.h>
+#include <math.h>
 
 LPCSTR GHOST_WindowWin32::s_windowClassName = "GHOST_WindowClass";
 const int GHOST_WindowWin32::s_maxTitleLength = 128;
@@ -174,7 +175,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 		if (fpWTInfo && fpWTInfo(0, 0, NULL)) {
 			// Now init the tablet
 			LOGCONTEXT lc;
-			AXIS TabletX, TabletY, Pressure; /* The maximum tablet size */
+			AXIS TabletX, TabletY, Pressure, Orientation[3]; /* The maximum tablet size, pressure and orientation (tilt) */
 
 			// Open a Wintab context
 
@@ -189,16 +190,32 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			/* Set the entire tablet as active */
 			fpWTInfo(WTI_DEVICES,DVC_X,&TabletX);
 			fpWTInfo(WTI_DEVICES,DVC_Y,&TabletY);
+
+			/* get the max pressure, to divide into a float */
 			BOOL pressureSupport = fpWTInfo (WTI_DEVICES, DVC_NPRESSURE, &Pressure);
 			if (pressureSupport)
 				m_maxPressure = Pressure.axMax;
 			else
 				m_maxPressure = 0;
-		
+
+			/* get the max tilt axes, to divide into floats */
+			BOOL tiltSupport = fpWTInfo (WTI_DEVICES, DVC_ORIENTATION, &Orientation);
+			if (tiltSupport) {
+				/* does the tablet support azimuth ([0]) and altitude ([1]) */
+				if (Orientation[0].axResolution && Orientation[1].axResolution) {
+					/* all this assumes the minimum is 0 */
+					m_maxAzimuth = Orientation[0].axMax;
+					m_maxAltitude = Orientation[1].axMax;
+				}
+				else {  /* no so dont do tilt stuff */
+					m_maxAzimuth = m_maxAltitude = 0;
+				}
+			}
+
 			lc.lcInOrgX = 0;
 			lc.lcInOrgY = 0;
 			lc.lcInExtX = TabletX.axMax;
-			lc.lcInExtY = TabletY.axMax;		
+			lc.lcInExtY = TabletY.axMax;
 
 			if (fpWTOpen) {
 				m_tablet = fpWTOpen( m_hWnd, &lc, TRUE );
@@ -631,13 +648,26 @@ void GHOST_WindowWin32::processWin32TabletInitEvent()
 		// let's see if we can initialize tablet here
 		/* check if WinTab available. */
 		if (fpWTInfo) {
-			AXIS TabletX, TabletY, Pressure; /* The maximum tablet size */
+			AXIS Pressure, Orientation[3]; /* The maximum tablet size */
 
 			BOOL pressureSupport = fpWTInfo (WTI_DEVICES, DVC_NPRESSURE, &Pressure);
 			if (pressureSupport)
 				m_maxPressure = Pressure.axMax;
 			else
 				m_maxPressure = 0;
+			
+			BOOL tiltSupport = fpWTInfo (WTI_DEVICES, DVC_ORIENTATION, &Orientation);
+			if (tiltSupport) {
+				/* does the tablet support azimuth ([0]) and altitude ([1]) */
+				if (Orientation[0].axResolution && Orientation[1].axResolution) {
+					m_maxAzimuth = Orientation[0].axMax;
+					m_maxAltitude = Orientation[1].axMax;
+				}
+				else {  /* no so dont do tilt stuff */
+					m_maxAzimuth = m_maxAltitude = 0;
+				}
+			}
+
 			m_tabletData->Active = 0;
 		}
 	}
@@ -649,7 +679,7 @@ void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
 	if (m_wintab) {
 		GHOST_WIN32_WTPacket fpWTPacket = ( GHOST_WIN32_WTPacket ) ::GetProcAddress( m_wintab, "WTPacket" );
 		if (fpWTPacket) {
-			if (fpWTPacket((HCTX)lParam, wParam, &pkt)) {				
+			if (fpWTPacket((HCTX)lParam, wParam, &pkt)) {
 				if (m_tabletData) {
 					switch (pkt.pkCursor) {
 						case 0: /* first device */
@@ -670,9 +700,43 @@ void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
 					} else {
 						m_tabletData->Pressure = 1.0f;
 					}
-					// tilt data not yet supported
-					m_tabletData->Xtilt = 0;
-					m_tabletData->Ytilt = 0;
+
+					if ((m_maxAzimuth > 0) && (m_maxAltitude > 0)) {
+						ORIENTATION ort = pkt.pkOrientation;
+						float vecLen;
+						float altRad, azmRad;	/* in radians */
+
+						/*
+						from the wintab spec:
+						orAzimuth	Specifies the clockwise rotation of the
+						cursor about the z axis through a full circular range.
+
+						orAltitude	Specifies the angle with the x-y plane
+						through a signed, semicircular range.  Positive values
+						specify an angle upward toward the positive z axis;
+						negative values specify an angle downward toward the negative z axis.
+
+						wintab.h defines .orAltitude as a UINT but documents .orAltitude
+						as positive for upward angles and negative for downward angles.
+						WACOM uses negative altitude values to show that the pen is inverted;
+						therefore we cast .orAltitude as an (int) and then use the absolute value.
+						*/
+						
+						/* convert raw fixed point data to radians */
+						altRad = (fabs((float)ort.orAltitude)/(float)m_maxAltitude) * M_PI/2.0;
+						azmRad = ((float)ort.orAzimuth/(float)m_maxAzimuth) * M_PI*2.0;
+
+						/* find length of the stylus' projected vector on the XY plane */
+						vecLen = cos(altRad);
+
+						/* from there calculate X and Y components based on azimuth */
+						m_tabletData->Xtilt = sin(azmRad) * vecLen;
+						m_tabletData->Ytilt = sin(M_PI/2.0 - azmRad) * vecLen;
+
+					} else {
+						m_tabletData->Xtilt = 0.0f;
+						m_tabletData->Ytilt = 0.0f;
+					}
 				}
 			}
 		}

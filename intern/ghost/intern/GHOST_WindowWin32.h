@@ -46,7 +46,7 @@
 
 
 #include <wintab.h>
-#define PACKETDATA	(PK_BUTTONS | PK_NORMAL_PRESSURE | PK_CURSOR)
+#define PACKETDATA	(PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR)
 #define PACKETMODE	PK_BUTTONS
 #include <pktdef.h>
 
@@ -303,6 +303,7 @@ protected:
 	/** Stores the Tablet context if detected Tablet features using WinTab.dll */
 	HCTX m_tablet;
 	LONG m_maxPressure;
+	LONG m_maxAzimuth, m_maxAltitude;
 
 };
 
