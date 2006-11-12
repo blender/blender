@@ -2424,6 +2424,20 @@ void special_editmenu(void)
 	
 }
 
+static void curvetomesh(Object *ob) 
+{
+	Curve *cu;
+	DispList *dl;
+	
+	ob->flag |= OB_DONE;
+	cu= ob->data;
+	
+	dl= cu->disp.first;
+	if(dl==0) makeDispListCurveTypes(ob, 0);		/* force creation */
+
+	nurbs_to_mesh(ob); /* also does users */
+}
+
 void convertmenu(void)
 {
 	Base *base, *basen, *basact, *basedel=NULL;
@@ -2432,7 +2446,6 @@ void convertmenu(void)
 	Nurb *nu;
 	MetaBall *mb;
 	Mesh *me;
-	DispList *dl;
 	int ok=0, nr = 0, a;
 	
 	if(G.scene->id.lib) return;
@@ -2445,7 +2458,7 @@ void convertmenu(void)
 	basact= BASACT;	/* will be restored */
 		
 	if(obact->type==OB_FONT) {
-		nr= pupmenu("Convert Font to%t|Curve%x1|Curve (Single filling group)%x2");
+		nr= pupmenu("Convert Font to%t|Curve%x1|Curve (Single filling group)%x2|Mesh%x3");
 		if(nr>0) ok= 1;
 	}
 	else if(obact->type==OB_MBALL) {
@@ -2559,30 +2572,20 @@ void convertmenu(void)
 						ob1= ob1->id.next;
 					}
 				}
-				if (nr==2) {
+				if (nr==2 || nr==3) {
 					nu= cu->nurb.first;
 					while(nu) {
 						nu->charidx= 0;
 						nu= nu->next;
 					}					
 				}
+				if (nr==3) {
+					curvetomesh(ob);
+				}
 			}
 			else if ELEM(ob->type, OB_CURVE, OB_SURF) {
 				if(nr==1) {
-
-					ob->flag |= OB_DONE;
-					cu= ob->data;
-					
-					dl= cu->disp.first;
-					if(dl==0) makeDispListCurveTypes(ob, 0);		/* force creation */
-
-					nurbs_to_mesh(ob); /* also does users */
-
-					/* texspace and normals */
-					BASACT= base;
-					enter_editmode(EM_WAITCURSOR);
-					exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
-					BASACT= basact;
+					curvetomesh(ob);
  				}
 			}
 			else if(ob->type==OB_MBALL) {
@@ -2624,9 +2627,6 @@ void convertmenu(void)
 						
 						/* So we can see the wireframe */
 						BASACT= basen;
-						enter_editmode(EM_WAITCURSOR);
-						exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
-						BASACT= basact;
 						
 						/* If the original object is active then make this object active */
 						if (ob == obact) {
@@ -2643,6 +2643,12 @@ void convertmenu(void)
 			free_and_unlink_base(basedel);	
 		basedel = NULL;				
 	}
+	
+	/* texspace and normals */
+	if(!basen) BASACT= base;
+	enter_editmode(EM_WAITCURSOR);
+	exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
+	BASACT= basact;
 
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
