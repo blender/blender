@@ -746,7 +746,7 @@ class Mesh:
   @type texMesh: Mesh or None
   """
 
-  def getFromObject(name,cage=0, render=0):
+  def getFromObject(object, cage=0, render=0):
     """
     Replace the mesh's existing data with the raw mesh data from a Blender
     Object.  This method supports all the geometry based objects (mesh, text,
@@ -758,8 +758,8 @@ class Mesh:
     be multiplied by the object's 4x4 transform matrix (see L{transform}).
     @note: The objects materials will not be copied into the existing mesh,
     however the face material indices will match the material list of the original data.
-    @type name: string
-    @param name: name of the Blender object which contains the geometry data.
+    @type name: blender object or string
+    @param name: The Blender object or its name, which contains the geometry data.
     @type cage: int
     @param cage: determines whether the original vertices or derived vertices
     @type render: int

@@ -315,7 +315,7 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 	tempob= None
 	if apply_modifiers or type != 'Mesh':
 		try:
-			mesh.getFromObject(ob.name)
+			mesh.getFromObject(ob)
 		except:
 			return None
 	
@@ -327,7 +327,7 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 		tempob= Blender.Object.New('Mesh')
 		tempob.shareFrom(ob)
 		scn.link(tempob)
-		mesh.getFromObject(tempob.name)
+		mesh.getFromObject(tempob)
 		scn.unlink(tempob)
 	
 	if type == 'Mesh':

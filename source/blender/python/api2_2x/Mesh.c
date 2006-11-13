@@ -5704,7 +5704,8 @@ static PyObject *Mesh_findEdges( PyObject * self, PyObject *args )
 
 static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 {
-	Object *ob;
+	Object *ob = NULL;
+	PyObject *object_arg;
 	char *name;
 	ID tmpid;
 	Mesh *tmpmesh;
@@ -5714,16 +5715,25 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 	Object *tmpobj = NULL;
 	int cage = 0, render = 0, i;
 
-	if( !PyArg_ParseTuple( args, "s|i", &name, &cage, &render ) )
+	if( !PyArg_ParseTuple( args, "O|i", &object_arg, &cage, &render ) ) {
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected string and optional integer arguments" );
-
+				"expected object or string and optional integer arguments" );
+	}
+	
+	if ( PyString_Check( object_arg ) ) {
+		name = PyString_AsString ( object_arg );
+		ob = ( Object * ) GetIdFromList( &( G.main->object ), name );
+	} else if ( Object_CheckPyObject(object_arg) ) {
+		ob = (( BPy_Object * ) object_arg)->object;
+	} else {
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected object or string and optional integer arguments" );
+	}
+	
 	if( cage != 0 && cage != 1 )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"cage value must be 0 or 1" );
 
-	/* find the specified object */
-	ob = ( Object * ) GetIdFromList( &( G.main->object ), name );
 	if( !ob )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError, name );
 
