@@ -5706,7 +5706,6 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 {
 	Object *ob = NULL;
 	PyObject *object_arg;
-	char *name;
 	ID tmpid;
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL;
@@ -5721,8 +5720,11 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 	}
 	
 	if ( PyString_Check( object_arg ) ) {
+		char *name;
 		name = PyString_AsString ( object_arg );
 		ob = ( Object * ) GetIdFromList( &( G.main->object ), name );
+		if( !ob )
+			return EXPP_ReturnPyObjError( PyExc_AttributeError, name );
 	} else if ( Object_CheckPyObject(object_arg) ) {
 		ob = (( BPy_Object * ) object_arg)->object;
 	} else {
@@ -5734,8 +5736,7 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"cage value must be 0 or 1" );
 
-	if( !ob )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError, name );
+	
 
 	/* perform the mesh extraction based on type */
  	switch (ob->type) {

@@ -758,8 +758,8 @@ class Mesh:
     be multiplied by the object's 4x4 transform matrix (see L{transform}).
     @note: The objects materials will not be copied into the existing mesh,
     however the face material indices will match the material list of the original data.
-    @type name: blender object or string
-    @param name: The Blender object or its name, which contains the geometry data.
+    @type object: blender object or string
+    @param object: The Blender object or its name, which contains the geometry data.
     @type cage: int
     @param cage: determines whether the original vertices or derived vertices
     @type render: int
