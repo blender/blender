@@ -2192,7 +2192,7 @@ void calchandlesNurb(Nurb *nu) /* first, if needed, set handle flags */
 	BezTriple *bezt, *prev, *next;
 	short a;
 
-	if((nu->type & 7)!=1) return;
+	if((nu->type & 7)!=CU_BEZIER) return;
 	if(nu->pntsu<2) return;
 	
 	a= nu->pntsu;

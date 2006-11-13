@@ -1280,6 +1280,15 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
 
 PyObject *Curve_update( BPy_Curve * self )
 {
+	Nurb *nu = self->curve->nurb.first;
+
+	/* recalculate handles for each curve: calchandlesNurb() will make
+	 * sure curves are bezier first */
+	while( nu ) {
+		calchandlesNurb ( nu );
+		nu = nu->next;
+	}
+
 	Object_updateDag( (void*) self->curve );
 
 	Py_RETURN_NONE;
