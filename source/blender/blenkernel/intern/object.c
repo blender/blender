@@ -266,86 +266,84 @@ void unlink_object(Object *ob)
 	unlink_controllers(&ob->controllers);
 	unlink_actuators(&ob->actuators);
 	
-	/* check all objects: parents en bevels and fields */
+	/* check all objects: parents en bevels and fields, also from libraries */
 	obt= G.main->object.first;
 	while(obt) {
-		if(obt->id.lib) {
+		if(obt->id.lib)
 			if(obt->proxy==ob)
 				obt->proxy= NULL;
+		
+		if(obt->parent==ob) {
+			obt->parent= NULL;
+			obt->recalc |= OB_RECALC;
 		}
-		else  {
-			
-			if(obt->parent==ob) {
-				obt->parent= NULL;
+		
+		if(obt->track==ob) {
+			obt->track= NULL;
+			obt->recalc |= OB_RECALC_OB;
+		}
+		
+		modifiers_foreachObjectLink(obt, unlink_object__unlinkModifierLinks, ob);
+		
+		if ELEM(obt->type, OB_CURVE, OB_FONT) {
+			cu= obt->data;
+			if(cu->bevobj==ob) {
+				cu->bevobj= NULL;
 				obt->recalc |= OB_RECALC;
 			}
-			
-			if(obt->track==ob) {
-				obt->track= NULL;
-				obt->recalc |= OB_RECALC_OB;
+			if(cu->taperobj==ob) {
+				cu->taperobj= NULL;
+				obt->recalc |= OB_RECALC;
 			}
-			
-			modifiers_foreachObjectLink(obt, unlink_object__unlinkModifierLinks, ob);
-			
-			if ELEM(obt->type, OB_CURVE, OB_FONT) {
-				cu= obt->data;
-				if(cu->bevobj==ob) {
-					cu->bevobj= NULL;
-					obt->recalc |= OB_RECALC;
-				}
-				if(cu->taperobj==ob) {
-					cu->taperobj= NULL;
-					obt->recalc |= OB_RECALC;
-				}
-				if(cu->textoncurve==ob) {
-					cu->textoncurve= NULL;
-					obt->recalc |= OB_RECALC;
-				}
-			}
-			else if(obt->type==OB_ARMATURE && obt->pose) {
-				bPoseChannel *pchan;
-				for(pchan= obt->pose->chanbase.first; pchan; pchan= pchan->next) {
-					for (con = pchan->constraints.first; con; con=con->next) {
-						if(ob==get_constraint_target(con, &str)) {
-							set_constraint_target(con, NULL, NULL);
-							obt->recalc |= OB_RECALC_DATA;
-						}
-					}
-					if(pchan->custom==ob)
-						pchan->custom= NULL;
-				}
-			}
-			
-			sca_remove_ob_poin(obt, ob);
-			
-			for (con = obt->constraints.first; con; con=con->next) {
-				if(ob==get_constraint_target(con, &str)) {
-					set_constraint_target(con, NULL, NULL);
-					obt->recalc |= OB_RECALC_OB;
-				}
-			}
-			
-			/* object is deflector or field */
-			if(ob->pd) {
-				if(give_parteff(obt))
-					obt->recalc |= OB_RECALC_DATA;
-				else if(obt->soft)
-					obt->recalc |= OB_RECALC_DATA;
-			}
-			
-			/* strips */
-			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
-				if(strip->object==ob)
-					strip->object= NULL;
-				
-				if(strip->modifiers.first) {
-					bActionModifier *amod;
-					for(amod= strip->modifiers.first; amod; amod= amod->next)
-						if(amod->ob==ob)
-							amod->ob= NULL;
-				}
+			if(cu->textoncurve==ob) {
+				cu->textoncurve= NULL;
+				obt->recalc |= OB_RECALC;
 			}
 		}
+		else if(obt->type==OB_ARMATURE && obt->pose) {
+			bPoseChannel *pchan;
+			for(pchan= obt->pose->chanbase.first; pchan; pchan= pchan->next) {
+				for (con = pchan->constraints.first; con; con=con->next) {
+					if(ob==get_constraint_target(con, &str)) {
+						set_constraint_target(con, NULL, NULL);
+						obt->recalc |= OB_RECALC_DATA;
+					}
+				}
+				if(pchan->custom==ob)
+					pchan->custom= NULL;
+			}
+		}
+		
+		sca_remove_ob_poin(obt, ob);
+		
+		for (con = obt->constraints.first; con; con=con->next) {
+			if(ob==get_constraint_target(con, &str)) {
+				set_constraint_target(con, NULL, NULL);
+				obt->recalc |= OB_RECALC_OB;
+			}
+		}
+		
+		/* object is deflector or field */
+		if(ob->pd) {
+			if(give_parteff(obt))
+				obt->recalc |= OB_RECALC_DATA;
+			else if(obt->soft)
+				obt->recalc |= OB_RECALC_DATA;
+		}
+		
+		/* strips */
+		for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+			if(strip->object==ob)
+				strip->object= NULL;
+			
+			if(strip->modifiers.first) {
+				bActionModifier *amod;
+				for(amod= strip->modifiers.first; amod; amod= amod->next)
+					if(amod->ob==ob)
+						amod->ob= NULL;
+			}
+		}
+
 		obt= obt->id.next;
 	}
 	
