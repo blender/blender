@@ -160,7 +160,8 @@ static void fogcolor(float *colf, float *rco, float *view)
 }
 #endif
 
-float mistfactor(float zcor, float *co)	/* dist en height, return alpha */
+/* zcor is distance, co the 3d coordinate in eye space, return alpha */
+float mistfactor(float zcor, float *co)	
 {
 	float fac, hi;
 	
@@ -2676,16 +2677,27 @@ void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int fac
 
 		if(shr->alpha!=1.0 || alpha!=1.0) {
 			if(shi.mat->mode & MA_RAYTRANSP) {
-				fac= alpha;	
+				
 				shr->combined[3]= shr->alpha;
+				if(alpha!=1.0) {
+					/* sky is already included in tracing, no useful alpha here, so we blend in shaded color with sky */
+					float col[4], malpha;
+					
+					shadeSkyPixelFloat(col, shi.co, shi.view, NULL);
+					malpha= 1.0f-alpha;
+					shr->combined[0]= alpha*shr->combined[0] + malpha*col[0];
+					shr->combined[1]= alpha*shr->combined[1] + malpha*col[1];
+					shr->combined[2]= alpha*shr->combined[2] + malpha*col[2];
+				}
 			}
 			else {
 				fac= alpha*(shr->alpha);
 				shr->combined[3]= fac;
-			}			
-			shr->combined[0]*= fac;
-			shr->combined[1]*= fac;
-			shr->combined[2]*= fac;
+			
+				shr->combined[0]*= fac;
+				shr->combined[1]*= fac;
+				shr->combined[2]*= fac;
+			}
 		}
 		else shr->combined[3]= 1.0;
 	}
