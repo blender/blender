@@ -390,6 +390,9 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 	sd->undo->cur= newcur;
 	
 	set_sculpt_object(ob);
+	
+	if(modifiers_getVirtualModifierList(ob))
+		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 
 	allqueue(REDRAWVIEW3D, 0);
 }
