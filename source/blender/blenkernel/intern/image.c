@@ -590,7 +590,7 @@ void load_image(Image * ima, int flags, char *relabase, int framenum)
 		if (ima->ibuf) {
 			detectBitmapFont(ima->ibuf);
 			/* preview is NULL when it has never been used as an icon before */
-			if(ima->preview==NULL)
+			if(G.background==0 && ima->preview==NULL)
 				BKE_icon_changed(BKE_icon_getid(&ima->id));
 
 		}
