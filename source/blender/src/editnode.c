@@ -195,8 +195,10 @@ static void load_node_image(char *str)	/* called from fileselect */
 			node->id->us--;
 		
 		node->id= &ima->id;
-		ima->id.us++;
+		id_us_plus(node->id);
 
+		BLI_strncpy(node->name, node->id->name+2, 21);
+				   
 		free_image_buffers(ima);	/* force read again */
 		ima->ok= 1;
 		

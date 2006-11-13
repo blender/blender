@@ -1397,6 +1397,11 @@ void ntreeSolveOrder(bNodeTree *ntree)
 		if(node->typeinfo->nclass==NODE_CLASS_OUTPUT) {
 			bNode *tnode;
 			int output= 0;
+			
+			/* we need a check for which output node should be tagged like this, below an exception */
+			if(node->type==CMP_NODE_OUTPUT_FILE)
+			   continue;
+			   
 			/* there is more types having output class, each one is checked */
 			for(tnode= ntree->nodes.first; tnode; tnode= tnode->next) {
 				if(tnode->typeinfo->nclass==NODE_CLASS_OUTPUT) {
