@@ -3159,7 +3159,6 @@ int play_anim(int mode)
 	int cfraont;
 	unsigned short event=0;
 	short val;
-	SpaceSeq *sseq = curarea->spacedata.first;
 
 	/* patch for very very old scenes */
 	if(SFRA==0) SFRA= 1;
