@@ -3118,11 +3118,16 @@ void inner_play_anim_loop(int init, int mode)
 		if(sa==oldsa) {
 			scrarea_do_windraw(sa);
 		}
-		else if(curmode & 1) { /* catch modes 1 and 3 */
+		else if(curmode & 1) { /* all view3d and seq spaces */
 			if ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_SEQ) {
 				scrarea_do_windraw(sa);
 			}
 		}
+		else if(curmode & 4) { /* all seq spaces */
+			if (sa->spacetype == SPACE_SEQ) {
+				scrarea_do_windraw(sa);
+			}
+		}		
 		
 		sa= sa->next;	
 	}
@@ -3143,17 +3148,18 @@ void inner_play_anim_loop(int init, int mode)
 	}
 }
 
-/* play_anim: 'mode' defines where to play and if repeat is on:
- * - 0: current area
- * - 1: all view3d and seq areas
- * - 2: current area, no replay
- * - 3: all view3d and seq areas, no replay */
+/* play_anim: 'mode' defines where to play and if repeat is on (now bitfield):
+ * - mode & 1 : All view3d and seq areas
+ * - mode & 2 : No replay 
+ * - mode & 4 : All seq areas
+ */
 int play_anim(int mode)
 {
 	ScrArea *sa, *oldsa;
 	int cfraont;
 	unsigned short event=0;
 	short val;
+	SpaceSeq *sseq = curarea->spacedata.first;
 
 	/* patch for very very old scenes */
 	if(SFRA==0) SFRA= 1;
@@ -3170,6 +3176,11 @@ int play_anim(int mode)
 	oldsa= curarea;
 
 	audiostream_start( CFRA );
+	
+	if (curarea && curarea->spacetype == SPACE_SEQ) {
+		SpaceSeq *sseq = curarea->spacedata.first;
+		if (sseq->mainb == 0) mode |= 4;
+	}
 	
 	inner_play_anim_loop(1, mode);	/* 1==init */
 	
@@ -3206,7 +3217,7 @@ int play_anim(int mode)
 		inner_play_anim_loop(0, 0);
 		screen_swapbuffers();
 				
-		if((mode > 1) && CFRA==EFRA) break; /* no replay */	
+		if((mode & 2) && CFRA==EFRA) break; /* no replay */	
 	}
 
 	if(event==SPACEKEY);
@@ -3219,7 +3230,7 @@ int play_anim(int mode)
 	/* restore all areas */
 	sa= G.curscreen->areabase.first;
 	while(sa) {
-		if( (mode && sa->spacetype==SPACE_VIEW3D) || sa==curarea) addqueue(sa->win, REDRAW, 1);
+		if( ((mode & 1) && sa->spacetype==SPACE_VIEW3D) || sa==curarea) addqueue(sa->win, REDRAW, 1);
 		sa= sa->next;	
 	}
 	
