@@ -3098,45 +3098,45 @@ e.g. all points of triangular prism are within the intersection of 3 'slices'
 onother trivial case : cube 
 but see a 'spat' which is a deformed cube with paired parallel planes needs only 3 slices too
 */
-float h,rp[3],cp[3],q[3];
+	float h,rp[3],cp[3],q[3];
 
-lambda_cp_line_ex(v1,l1,l2,cp);
-VecSubf(q,cp,v1);
+	lambda_cp_line_ex(v1,l1,l2,cp);
+	VecSubf(q,cp,v1);
 
-VecSubf(rp,p,v1);
-h=Inpf(q,rp)/Inpf(q,q);
-if (h < 0.0f || h > 1.0f) return 0;
-return 1;
+	VecSubf(rp,p,v1);
+	h=Inpf(q,rp)/Inpf(q,q);
+	if (h < 0.0f || h > 1.0f) return 0;
+	return 1;
 }
 
 /*adult sister defining the slice planes by the origin and the normal  
 NOTE |normal| may not be 1 but defining the thickness of the slice*/
 int point_in_slice_as(float p[3],float origin[3],float normal[3])
 {
-float h,rp[3];
-VecSubf(rp,p,origin);
-h=Inpf(normal,rp)/Inpf(normal,normal);
-if (h < 0.0f || h > 1.0f) return 0;
-return 1;
+	float h,rp[3];
+	VecSubf(rp,p,origin);
+	h=Inpf(normal,rp)/Inpf(normal,normal);
+	if (h < 0.0f || h > 1.0f) return 0;
+	return 1;
 }
 
 /*mama (knowing the squared lenght of the normal)*/
 int point_in_slice_m(float p[3],float origin[3],float normal[3],float lns)
 {
-float h,rp[3];
-VecSubf(rp,p,origin);
-h=Inpf(normal,rp)/lns;
-if (h < 0.0f || h > 1.0f) return 0;
-return 1;
+	float h,rp[3];
+	VecSubf(rp,p,origin);
+	h=Inpf(normal,rp)/lns;
+	if (h < 0.0f || h > 1.0f) return 0;
+	return 1;
 }
 
 
 int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3])
 {
-if(!point_in_slice(p,v1,v2,v3)) return 0;
-if(!point_in_slice(p,v2,v3,v1)) return 0;
-if(!point_in_slice(p,v3,v1,v2)) return 0;
-return 1;
+	if(!point_in_slice(p,v1,v2,v3)) return 0;
+	if(!point_in_slice(p,v2,v3,v1)) return 0;
+	if(!point_in_slice(p,v3,v1,v2)) return 0;
+	return 1;
 }
 
 /********************************************************/
