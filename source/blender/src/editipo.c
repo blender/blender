@@ -3166,6 +3166,141 @@ void clean_ipo_curve(IpoCurve *icu)
 	calchandles_ipocurve(icu);
 }
 
+static void smooth_bezt_handles(BezTriple *prev, BezTriple *me, BezTriple *next)
+{
+	/* Smoothes (i.e. aligns) handles on the beztriple called me! 
+	 *
+	 * The code here has been adapted from the "Smooth Ipo"
+	 * python script (author unknown).
+	 */
+	
+	float ptA[2], ptB[2], ptC[2];
+	float tdx, udx;
+	float tdy, udy;
+	float tx, ux;
+	float max_udy, max_tdy;
+	float slopu, slopt;
+	float medianSlope, slope;
+	float simpleudy, simpletdy;
+	float ty, uy;
+	
+	/* get center-points of beztriples */
+	ptA[0]= prev->vec[1][0];
+	ptA[1]= prev->vec[1][1];
+	ptB[0]= me->vec[1][0];
+	ptB[1]= me->vec[1][1];
+	if (next != NULL) {
+		ptC[0]= next->vec[1][0];
+		ptC[1]= next->vec[1][1];
+	}
+	else {
+		ptC[0]= ptB[0] + 1.0f;
+		ptC[1]= ptB[1];
+	}
+	
+	/* varios factors (are all of these needed?) */
+	tdx= (ptA[0]-ptB[0]) / 3.0f;
+	udx= (ptC[0]-ptB[0]) / 3.0f;
+	tx= ptB[0] + tdx;
+	ux= ptB[0] + udx;
+	max_udy= ptC[1] - ptB[1];
+	max_tdy= ptA[1] - ptB[1];
+	
+	/* compute slopes */
+	if ((ptC[0]-ptB[0])==0.0) 
+		slopu= 0.0f;
+	else
+		slopu= (ptC[1]-ptB[1]) / (ptC[0]-ptB[0]);
+	if ((ptA[0]-ptB[0])==0.0)
+		slopt= 0.0f;
+	else
+		slopt= (ptA[1]-ptB[1]) / (ptA[0]-ptB[0]);
+	if ((slopu*slopt) < 0) {
+		udy= 0;
+		tdy= 0;
+	}
+	else {
+		/* compute median slope */
+		medianSlope= (slopu+slopt) / 2.0;
+		simpleudy= medianSlope * udx;
+		simpletdy= medianSlope * tdx;
+		
+		if ((simpleudy < max_udy) && (simpletdy < max_tdy)) {
+			udy= simpleudy;
+			tdy= simpletdy;
+		}
+		else {
+			/* use smallest slope */
+			slope = (slopu < slopt)?slopu:slopt;
+			slope = slope * ((slopu < 0)?-1:1);
+			udy= slope*udx;
+			tdy= slope*tdx;
+		}
+	}
+	
+	/* calculate any remaining values  */
+	ty= ptB[1] + tdy;
+	uy= ptB[1] + udy;
+	
+	/* set new values of the handles of of beztriple being acted on */
+	me->vec[0][0]= tx;
+	me->vec[0][1]= ty;
+	me->vec[1][0]= ptB[0];
+	me->vec[1][1]= ptB[1];
+	me->vec[2][0]= ux;
+	me->vec[2][1]= uy;
+	me->vec[0][2] = me->vec[1][2] = me->vec[2][2] = 0.0f;
+}
+
+void smooth_ipo(void)
+{
+	EditIpo *ei;
+	short ok;
+	int b;
+	
+	get_status_editipo();
+
+	ei= G.sipo->editipo;
+	for(b=0; b<G.sipo->totipo; b++, ei++) {
+		if (ISPOIN3(ei, flag & IPO_VISIBLE, icu, icu->bezt)) {
+		
+			ok= 0;
+			if(G.sipo->showkey) ok= 1;
+			else if(totipo_vert && (ei->flag & IPO_EDIT)) ok= 2;
+			else if(totipo_vert==0 && (ei->flag & IPO_SELECT)) ok= 3;
+			
+			if(ok) {
+				IpoCurve *icu= ei->icu;
+				
+				/* check if enough points */
+				if (icu->totvert <= 3) {
+					BezTriple *prev, *me, *next;
+					int i;
+					
+					for (i=1; i < icu->totvert; i++) {
+						/* try to get next point */
+						prev = (icu->bezt + (i - 1));
+						me = (icu->bezt + i);
+						if (i < (icu->totvert - 1))
+							next = (icu->bezt + (i + 1));
+						else
+							next = NULL;
+							
+						/* smooth handles of current beztriple (me) */
+						smooth_bezt_handles(prev, me, next);
+					}
+				}
+			
+				/* recalc handles */
+				calchandles_ipocurve(icu);
+			}
+		}
+	}
+	
+	editipo_changed(G.sipo, 1);
+	BIF_undo_push("Smooth IPO");
+}
+
 void join_ipo_menu(void)
 {
 	int mode = 0;

@@ -585,6 +585,9 @@ static void do_ipo_editmenu(void *arg, int event)
 		clean_ipo(sipo->ipo, 1);
 	}
 		break;
+	case 9: /* smooth ipo */
+		smooth_ipo();
+		break;
 	}
 }
 
@@ -641,6 +644,7 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Record Mouse Movement|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clean IPO Curves|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Smooth IPO Curves|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, ipo_editmenu_joinmenu, NULL, ICON_RIGHTARROW_THIN, "Join", 0, yco-=20, 120, 19, "");	
 
@@ -707,7 +711,11 @@ static void do_ipo_viewmenu(void *arg, int event)
 		G.v2d->flag ^= V2D_VIEWLOCK;
 		if(G.v2d->flag & V2D_VIEWLOCK)
 			view2d_do_locks(curarea, 0);
-		break;			
+		break;	
+	case 10: /* center view to current frame */
+		center_currframe();
+		scrarea_queue_winredraw(curarea);
+		break;
 	}
 }
 
