@@ -31,7 +31,7 @@ def validate_arguments(args, bc):
             'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
             'WITH_BF_ODE', 'BF_ODE', 'BF_ODE_INC', 'BF_ODE_LIB',
             'WITH_BF_GAMEENGINE', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
-            'BF_SOLID', 'BF_SOLID_INC',
+            'BF_SOLID', 'BF_SOLID_INC', 'BF_WINTAB', 'BF_WINTAB_INC',
             'WITH_BF_YAFRAY',
             'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
@@ -215,6 +215,8 @@ def read_opts(cfg, args):
         
         ('BF_SOLID', 'Solid base dir', '#/extern/solid'),
         ('BF_SOLID_INC', 'Solid include path', ''),
+        ('BF_WINTAB', 'WinTab base dir', ''),
+        ('BF_WINTAB_INC', 'WinTab include dir', ''),
 ##
 ##WITH_BF_NSPR = 'true'
 ##BF_NSPR = $(LCGDIR)/nspr

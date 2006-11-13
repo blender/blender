@@ -91,6 +91,9 @@ BF_SOLID = '#extern/solid'
 BF_SOLID_INC = '${BF_SOLID}'
 BF_SOLID_LIB = 'extern_solid'
 
+BF_WINTAB = LIBDIR + '/wintab'
+BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
+
 WITH_BF_YAFRAY = 'true'
 
 #WITH_BF_NSPR = 'true'
