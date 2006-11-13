@@ -755,7 +755,7 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 
 	/* set eve->hash to vert index */
 	for(i = 0, eve = em->verts.first; eve; eve = eve->next, ++i)
-		eve->hash = i;
+		eve->tmp.l = i;
 
 	/* check for availability of layers */
 	if(CustomData_has_layer(&em->vdata, LAYERTYPE_MSTICKY))
@@ -807,8 +807,8 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 	    i++, eed = eed->next, index++) {
 		MEdge *med = &medge[i];
 
-		med->v1 = eed->v1->hash;
-		med->v2 = eed->v2->hash;
+		med->v1 = eed->v1->tmp.l;
+		med->v2 = eed->v2->tmp.l;
 		med->crease = (unsigned char) (eed->crease * 255.0f);
 		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
 		
@@ -824,10 +824,10 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 	    i++, efa = efa->next, index++) {
 		MFace *mf = &mface[i];
 
-		mf->v1 = efa->v1->hash;
-		mf->v2 = efa->v2->hash;
-		mf->v3 = efa->v3->hash;
-		mf->v4 = efa->v4 ? efa->v4->hash : 0;
+		mf->v1 = efa->v1->tmp.l;
+		mf->v2 = efa->v2->tmp.l;
+		mf->v3 = efa->v3->tmp.l;
+		mf->v4 = efa->v4 ? efa->v4->tmp.l : 0;
 		mf->mat_nr = efa->mat_nr;
 		mf->flag = efa->flag;
 		test_index_face(mf, NULL, NULL, efa->v4?4:3);
