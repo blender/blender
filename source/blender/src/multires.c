@@ -566,7 +566,8 @@ void multires_free(Mesh *me)
 		MultiresLevel* lvl= me->mr->levels.first;
 
 		/* Free the first-level data */
-		free_dverts(me->mr->dverts, lvl->totvert);
+		if(lvl)
+			free_dverts(me->mr->dverts, lvl->totvert);
 
 		while(lvl) {
 			multires_free_level(lvl);			
