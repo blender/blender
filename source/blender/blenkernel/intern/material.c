@@ -142,6 +142,7 @@ void init_material(Material *ma)
 	ma->rampfac_col= 1.0;
 	ma->rampfac_spec= 1.0;
 	ma->pr_lamp= 3;			/* two lamps, is bits */
+	ma->pr_type= MA_SPHERE;
 
 	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_RAYBIAS|MA_TANGENT_STR;
 }
