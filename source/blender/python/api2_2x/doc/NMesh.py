@@ -4,8 +4,7 @@
 The Blender.NMesh submodule.
 
 B{New}:
- - edges class (L{NMEdge}) and nmesh methods (L{NMesh.NMesh.addEdge},
-L{NMesh.NMesh.addEdgesData}, etc.);
+ - edges class (L{NMEdge}) and nmesh methods (L{NMesh.NMesh.addEdge}, etc.);
  - new optional arguments to L{NMesh.NMesh.update};
  - L{NMesh.NMesh.transform};
  - L{GetNames};
@@ -351,7 +350,7 @@ class NMesh:
   @ivar verts: The list of NMesh vertices (NMVerts).
   @ivar users: The number of Objects using (linked to) this mesh.
   @ivar faces: The list of NMesh faces (NMFaces).
-  @ivar edges: None if mesh has no edge data, else a list of L{NMEdge} edges. Use L{addEdgesData} to create edge data if it do not exist.
+  @ivar edges: A list of L{NMEdge} edges.
   @ivar mode:  The mode flags for this mesh.  See L{setMode}.
   @ivar subDivLevels: The [display, rendering] subdivision levels in [1, 6].
   @ivar maxSmoothAngle: The max angle for auto smoothing.  See L{setMode}.
@@ -413,11 +412,6 @@ class NMesh:
     @param face: the face to add to the mesh.
     """
 
-  def addEdgesData():
-    """
-    If edge data does not exist for the mesh (ie L{edges}==None), then create them.
-    """
-    
   def addMaterial(material):
     """
     Add a new material to this NMesh's list of materials.  This method is the
