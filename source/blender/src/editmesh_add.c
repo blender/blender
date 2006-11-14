@@ -241,6 +241,8 @@ void add_click_mesh(void)
 		eve->f= SELECT;
 	}
 	
+	retopo_do_all(NULL, NULL);
+	
 	countall();
 
 #ifdef WITH_VERSE
