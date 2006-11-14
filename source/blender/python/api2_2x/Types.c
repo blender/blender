@@ -46,9 +46,11 @@ extern PyTypeObject Effect_Type, Font_Type;
 extern PyTypeObject Image_Type, Ipo_Type, IpoCurve_Type;
 extern PyTypeObject Lamp_Type, Lattice_Type;
 extern PyTypeObject Material_Type, Metaball_Type, MTex_Type;
-extern PyTypeObject NMFace_Type, NMVert_Type, NMCol_Type, NMesh_Type;
+extern PyTypeObject NMFace_Type, NMEdge_Type, NMVert_Type, NMCol_Type,
+	   NMesh_Type;
 extern PyTypeObject MFace_Type, MVert_Type, PVert_Type, MEdge_Type, MCol_Type,
 	   Mesh_Type;
+
 extern PyTypeObject Object_Type;
 extern PyTypeObject Group_Type;
 extern PyTypeObject Particle_Type;
@@ -60,6 +62,9 @@ extern PyTypeObject buffer_Type, constant_Type, euler_Type;
 extern PyTypeObject matrix_Type, quaternion_Type, rgbTuple_Type, vector_Type;
 extern PyTypeObject point_Type;
 extern PyTypeObject Modifier_Type, Modifiers_Type;
+extern PyTypeObject EditBone_Type;
+extern PyTypeObject ThemeSpace_Type;
+extern PyTypeObject ThemeUI_Type;
 
 char M_Types_doc[] = "The Blender Types module\n\n\
 This module is a dictionary of all Blender Python types";
@@ -97,6 +102,7 @@ void types_InitAll( void )
 	MTex_Type.ob_type = &PyType_Type;
 	NMCol_Type.ob_type = &PyType_Type;
 	NMFace_Type.ob_type = &PyType_Type;
+	NMEdge_Type.ob_type = &PyType_Type;
 	NMVert_Type.ob_type = &PyType_Type;
 	NMesh_Type.ob_type = &PyType_Type;
 	MFace_Type.ob_type = &PyType_Type;
@@ -125,7 +131,9 @@ void types_InitAll( void )
 	point_Type.ob_type = &PyType_Type;
 	PyType_Ready( &Modifier_Type );
 	PyType_Ready( &Modifiers_Type );
-
+	PyType_Ready( &EditBone_Type );
+	PyType_Ready( &ThemeSpace_Type );
+	PyType_Ready( &ThemeUI_Type );
 }
 
 /*****************************************************************************/
@@ -234,6 +242,12 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &Modifier_Type );
 	PyDict_SetItemString( dict, "ModifiersType",
 			      ( PyObject * ) &Modifiers_Type );
+	PyDict_SetItemString( dict, "EditBoneType",
+			      ( PyObject * ) &EditBone_Type);
+	PyDict_SetItemString( dict, "ThemeSpaceType",
+			      ( PyObject * ) &ThemeSpace_Type);
+	PyDict_SetItemString( dict, "ThemeUI_Type",
+			      ( PyObject * ) &ThemeUI_Type);
 
 	return submodule;
 }
