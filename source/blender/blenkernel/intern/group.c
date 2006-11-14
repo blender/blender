@@ -110,6 +110,7 @@ Group *add_group()
 	Group *group;
 	
 	group = alloc_libblock(&G.main->group, ID_GR, "Group");
+	group->layer= (1<<20)-1;
 	return group;
 }
 

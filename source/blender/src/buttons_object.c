@@ -1747,8 +1747,9 @@ static void object_panel_object(Object *ob)
 	uiBlock *block;
 	uiBut *but;
 	Group *group;
-	int a=0, xco;
-	
+	int a, xco, yco=0;
+	short dx= 33, dy= 30;
+
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_object", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Object and Links", "Object", 0, 0, 318, 204)==0) return;
 	
@@ -1765,23 +1766,42 @@ static void object_panel_object(Object *ob)
 	uiDefBlockBut(block, add_groupmenu, NULL, "Add to Group", 10,150,150,20, "Add Object to a new Group");
 
 	/* all groups */
-	uiBlockBeginAlign(block);
 	for(group= G.main->group.first; group; group= group->id.next) {
 		if(object_in_group(ob, group)) {
 			xco= 160;
 			
-			but = uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-a, 150, 20, group->id.name+2, 0.0, 19.0, 0, 0, "Displays Group name. Click to change.");
+			uiBlockBeginAlign(block);
+			but = uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 150, 20, group->id.name+2, 0.0, 19.0, 0, 0, "Displays Group name. Click to change.");
 			uiButSetFunc(but, test_idbutton_cb, group->id.name, NULL);
 			
 			if(group->id.lib) {
-				but= uiDefIconBut(block, BUT, B_NOP, ICON_PARLIB, 160, 120-a, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Make Group local");
+				but= uiDefIconBut(block, BUT, B_NOP, ICON_PARLIB, 160, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Make Group local");
 				uiButSetFunc(but, group_local, group, NULL);
 				xco= 180;
 			}
-			but = uiDefIconBut(block, BUT, B_NOP, VICON_X, xco, 120-a, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove Group membership");
+			but = uiDefIconBut(block, BUT, B_NOP, VICON_X, xco, 120-yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove Group membership");
 			uiButSetFunc(but, group_ob_rem, group, ob);
 			
-			a+= 20;
+			yco+= 20;
+			xco= 10;
+			
+			/* layers */
+			uiBlockBeginAlign(block);
+			for(a=0; a<5; a++)
+				uiDefButBitI(block, TOG, 1<<a, B_REDR+a, "",	(short)(xco+a*(dx/2)), 120-yco, (short)(dx/2), (short)(dy/2), &(group->layer), 0, 0, 0, 0, "");
+			for(a=0; a<5; a++)
+				uiDefButBitI(block, TOG, 1<<(a+10), B_REDR+a+10, "",	(short)(xco+a*(dx/2)), 105-yco, (short)(dx/2), (short)(dy/2), &(group->layer), 0, 0, 0, 0, "");
+			
+			xco+= 7;
+			uiBlockBeginAlign(block);
+			for(a=5; a<10; a++)
+				uiDefButBitI(block, TOG, 1<<a, B_REDR+a, "",	(short)(xco+a*(dx/2)), 120-yco, (short)(dx/2), (short)(dy/2), &(group->layer), 0, 0, 0, 0, "");
+			for(a=5; a<10; a++)
+				uiDefButBitI(block, TOG, 1<<(a+10), B_REDR+a+10, "",	(short)(xco+a*(dx/2)), 105-yco, (short)(dx/2), (short)(dy/2), &(group->layer), 0, 0, 0, 0, "");
+			
+			uiBlockEndAlign(block);
+			
+			yco+= 40;
 		}
 	}
 }

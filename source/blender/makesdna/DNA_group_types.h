@@ -52,7 +52,8 @@ typedef struct Group {
 	ID id;
 	
 	ListBase gobject;	/* GroupObject */
-	
+	unsigned int layer;
+	int pad;
 } Group;
 
 

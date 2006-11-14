@@ -5757,6 +5757,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		Curve *cu;
 		Material *ma;
+		Group *group;
 		Nurb *nu;
 		BezTriple *bezt;
 		BPoint *bp;
@@ -5869,6 +5870,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(ma->shad_alpha==0.0f)
 				ma->shad_alpha= 1.0f;
 		}
+		
+		for(group= main->group.first; group; group= group->id.next)
+			if(group->layer==0)
+			   group->layer= (1<<20)-1;
 		
 		/* History fix (python?), shape key adrcode numbers have to be sorted */
 		sort_shape_fix(main);

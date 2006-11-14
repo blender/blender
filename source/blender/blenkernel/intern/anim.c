@@ -303,20 +303,22 @@ static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], i
 static void group_duplilist(ListBase *lb, Object *ob, int level)
 {
 	DupliObject *dob;
+	Group *group;
 	GroupObject *go;
 	float mat[4][4];
 	
 	if(ob->dup_group==NULL) return;
+	group= ob->dup_group;
 	
 	/* simple preventing of too deep nested groups */
 	if(level>4) return;
 	
 	/* handles animated groups, and */
 	/* we need to check update for objects that are not in scene... */
-	group_handle_recalc_and_update(ob, ob->dup_group);
+	group_handle_recalc_and_update(ob, group);
 	
-	for(go= ob->dup_group->gobject.first; go; go= go->next) {
-		if(go->ob!=ob) {
+	for(go= group->gobject.first; go; go= go->next) {
+		if(go->ob!=ob && (go->ob->lay & group->layer)) {
 			Mat4MulMat4(mat, go->ob->obmat, ob->obmat);
 			dob= new_dupli_object(lb, go->ob, mat, ob->lay, 0);
 			if(go->ob->dup_group) {
