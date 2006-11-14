@@ -1195,27 +1195,21 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 			case ONEKEY:
 				if(G.qual==LR_CTRLKEY) {
-					if(ob && ob->type == OB_MESH) {
-						flip_subdivison(ob, 1);
-					}
+					flip_subdivison(1);
 				}
 				else do_layer_buttons(0); 
 				break;
 				
 			case TWOKEY:
 				if(G.qual==LR_CTRLKEY) {
-					if(ob && ob->type == OB_MESH) {
-						flip_subdivison(ob, 2);
-					}
+					flip_subdivison(2);
 				}
 				else do_layer_buttons(1); 
 				break;
 				
 			case THREEKEY:
 				if(G.qual==LR_CTRLKEY) {
-					if(ob && ob->type == OB_MESH) {
-						flip_subdivison(ob, 3);
-					}
+					flip_subdivison(3);
 				}
 				else if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
 					if ( (G.obedit) && (G.obedit->type==OB_MESH) )
@@ -1226,9 +1220,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 			case FOURKEY:
 				if(G.qual==LR_CTRLKEY) {
-					if(ob && ob->type == OB_MESH) {
-						flip_subdivison(ob, 4);
-					}
+					flip_subdivison(4);
 				}
 				else if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
 					if ( (G.obedit) && (G.obedit->type==OB_MESH) )
@@ -1736,9 +1728,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 				else if((G.qual==LR_SHIFTKEY)) {
-					if(ob && ob->type == OB_MESH) {
-						flip_subdivison(ob, -1);
-					}
+					flip_subdivison(-1);
 				}
 				else if(G.qual==LR_ALTKEY) {
 					if(okee("Clear origin")) {

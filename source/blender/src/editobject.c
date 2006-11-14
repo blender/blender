@@ -2711,16 +2711,25 @@ void convertmenu(void)
 
 	/* Change subdivision properties of mesh object ob, if
 	 * level==-1 then toggle subsurf, else set to level.
+     * *set allows to toggle multiple selections
 	 */
-void flip_subdivison(Object *ob, int level)
+static void object_flip_subdivison(Object *ob, int *set, int level)
 {
-	ModifierData *md = modifiers_findByType(ob, eModifierType_Subsurf);
+	ModifierData *md;
 
+	if(ob->type!=OB_MESH)
+		return;
+	
+	md = modifiers_findByType(ob, eModifierType_Subsurf);
+	
 	if (md) {
 		SubsurfModifierData *smd = (SubsurfModifierData*) md;
 
 		if (level == -1) {
-			if (smd->modifier.mode&(eModifierMode_Render|eModifierMode_Realtime)) {
+			if(*set == -1) 
+				*set= smd->modifier.mode&(eModifierMode_Render|eModifierMode_Realtime);
+										  
+			if (*set) {
 				smd->modifier.mode &= ~(eModifierMode_Render|eModifierMode_Realtime);
 			} else {
 				smd->modifier.mode |= (eModifierMode_Render|eModifierMode_Realtime);
@@ -2728,7 +2737,8 @@ void flip_subdivison(Object *ob, int level)
 		} else {
 			smd->levels = level;
 		}
-	} else {
+	} 
+	else if(*set != 0) {
 		SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
 
 		BLI_addtail(&ob->modifiers, smd);
@@ -2736,14 +2746,39 @@ void flip_subdivison(Object *ob, int level)
 		if (level!=-1) {
 			smd->levels = level;
 		}
+		
+		if(*set == -1)
+			*set= 1;
 	}
+	ob->recalc |= OB_RECALC_DATA;
+}
 
+/* Change subdivision properties of mesh object ob, if
+* level==-1 then toggle subsurf, else set to level.
+*/
+
+void flip_subdivison(int level)
+{
+	Base *base;
+	int set= -1;
+	
+	for(base= G.scene->base.first; base; base= base->next) {
+		if(TESTBASE(base)) {
+			object_flip_subdivison(base->object, &set, level);
+			if(base->object->dup_group) {
+				GroupObject *go;
+				for(go= base->object->dup_group->gobject.first; go; go= go->next)
+					object_flip_subdivison(go->ob, &set, level);
+			}
+		}
+	}
+	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	
 	BIF_undo_push("Switch subsurf on/off");
 }

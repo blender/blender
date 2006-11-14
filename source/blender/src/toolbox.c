@@ -1077,7 +1077,7 @@ static void tb_do_mesh(void *arg, int event){
 	case 2: G.f ^= G_DRAWEDGES; break;
 	case 3: G.f ^= G_DRAWFACES; break;
 	case 4: G.f ^= G_DRAWNORMALS; break;
-	case 5: flip_subdivison(OBACT, -1); break;
+	case 5: flip_subdivison(-1); break;
 	}
 	addqueue(curarea->win, REDRAW, 1);
 }
