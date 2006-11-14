@@ -6341,6 +6341,7 @@ static void expand_pose(FileData *fd, Main *mainvar, bPose *pose)
 
 	for (chan = pose->chanbase.first; chan; chan=chan->next) {
 		expand_constraints(fd, mainvar, &chan->constraints);
+		expand_doit(fd, mainvar, chan->custom);
 	}
 }
 
