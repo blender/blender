@@ -51,10 +51,4 @@ if env['WITH_BF_VERSE']:
 if env['BF_BUILDINFO'] == 1:
     defs.append('NAN_BUILDINFO')
 
-if env['OURPLATFORM'] == 'win32-mingw':
-    s1 = sources[:len(sources)/2]
-    s2 = sources[len(sources)/2:len(sources)]
-    env.BlenderLib ( libname = 'src1', sources = s1, includes = Split(incs), defines = defs, libtype=['core', 'intern'], priority = [5, 25] )
-    env.BlenderLib ( libname = 'src2', sources = s2, includes = Split(incs), defines = defs, libtype=['core', 'intern'], priority = [6, 26] )
-else:
-    env.BlenderLib ( libname = 'src', sources = sources, includes = Split(incs), defines = defs, libtype=['core', 'intern'], priority = [5, 25] )
+env.BlenderLib ( libname = 'src', sources = sources, includes = Split(incs), defines = defs, libtype=['core', 'intern'], priority = [5, 25] )
