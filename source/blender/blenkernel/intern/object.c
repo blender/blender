@@ -893,7 +893,6 @@ Object *copy_object(Object *ob)
 	
 	if(ob->bb) obn->bb= MEM_dupallocN(ob->bb);
 	obn->path= NULL;
-	obn->proxy= NULL;
 	obn->flag &= ~OB_FROMGROUP;
 	
 	copy_effects(&obn->effect, &ob->effect);
@@ -1047,8 +1046,9 @@ void make_local_object(Object *ob)
 
 /* proxy rule: lib_object->proxy == the one we borrow from, set temporally while object_update */
 /*             local_object->proxy == pointer to library object, saved in files and read */
+/*             local_object->proxy_group == pointer to group dupli-object, saved in files and read */
 
-void object_make_proxy(Object *ob, Object *target)
+void object_make_proxy(Object *ob, Object *target, Object *gob)
 {
 	/* paranoia checks */
 	if(ob->id.lib || target->id.lib==NULL) {
@@ -1057,14 +1057,22 @@ void object_make_proxy(Object *ob, Object *target)
 	}
 	
 	ob->proxy= target;
-	target->proxy= ob;
+	ob->proxy_group= gob;
+	id_lib_extern(&target->id);
 	
 	ob->recalc= target->recalc= OB_RECALC;
 	
 	/* copy transform */
-	VECCOPY(ob->loc, target->loc);
-	VECCOPY(ob->rot, target->rot);
-	VECCOPY(ob->size, target->size);
+	if(gob) {
+		VECCOPY(ob->loc, gob->loc);
+		VECCOPY(ob->rot, gob->rot);
+		VECCOPY(ob->size, gob->size);
+	}
+	else {
+		VECCOPY(ob->loc, target->loc);
+		VECCOPY(ob->rot, target->rot);
+		VECCOPY(ob->size, target->size);
+	}
 	
 	ob->parent= target->parent;	/* libdata */
 	Mat4CpyMat4(ob->parentinv, target->parentinv);
@@ -1649,7 +1657,6 @@ void solve_tracking (Object *ob, float targetmat[][4])
 
 void where_is_object(Object *ob)
 {
-	
 	where_is_object_time(ob, (float)G.scene->r.cfra);
 }
 
@@ -1949,9 +1956,10 @@ void minmax_object(Object *ob, float *min, float *max)
 	}
 }
 
-/* proxy rule: lib_object->proxy == the one we borrow from, set on read */
+/* proxy rule: lib_object->proxy == the one we borrow from, only set temporal and cleared here */
 /*             local_object->proxy == pointer to library object, saved in files and read */
 
+/* function below is polluted with proxy exceptions, cleanup will follow! */
 
 /* the main object update call, for object matrix, constraints, keys and displist (modifiers) */
 /* requires flags to be set! */
@@ -1960,8 +1968,14 @@ void object_handle_update(Object *ob)
 	if(ob->recalc & OB_RECALC) {
 		
 		if(ob->recalc & OB_RECALC_OB) {
-			if(ob->id.lib && ob->proxy)
-				Mat4CpyMat4(ob->obmat, ob->proxy->obmat);
+			if(OB_COPY_PROXY(ob)) {
+				if(ob->proxy->proxy_group) {/* transform proxy into group space */
+					Mat4Invert(ob->proxy->proxy_group->imat, ob->proxy->proxy_group->obmat);
+					Mat4MulMat4(ob->obmat, ob->proxy->obmat, ob->proxy->proxy_group->imat);
+				}
+				else
+					Mat4CpyMat4(ob->obmat, ob->proxy->obmat);
+			}
 			else
 				where_is_object(ob);
 		}
@@ -1988,7 +2002,7 @@ void object_handle_update(Object *ob)
 				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
 					armature_rebuild_pose(ob, ob->data);
 				
-				if(ob->id.lib && ob->proxy)
+				if(OB_COPY_PROXY(ob))
 					copy_pose_result(ob->pose, ob->proxy->pose);
 				else {
 					do_all_pose_actions(ob);
@@ -1997,10 +2011,20 @@ void object_handle_update(Object *ob)
 			}
 		}
 	
-		if(ob->id.lib==NULL && ob->proxy)
+		/* the no-group proxy case, we call update */
+		if(OB_DO_PROXY(ob)) {
+			/* set pointer in library proxy target, for copying, but restore it */
+			ob->proxy->proxy= ob;
 			object_handle_update(ob->proxy);
-		
+		}
+	
 		ob->recalc &= ~OB_RECALC;
+	}
+
+	/* the case when this is a group proxy, object_update is called in group.c */
+	if(OB_IS_PROXY(ob)) {
+		ob->proxy->proxy= ob;
+		//printf("set proxy pointer for later group stuff %s\n", ob->id.name);
 	}
 }
 

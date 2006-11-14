@@ -183,7 +183,7 @@ void group_tag_recalc(Group *group)
 	
 	for(go= group->gobject.first; go; go= go->next) {
 		if(go->ob) 
-			go->ob->recalc= OB_RECALC;
+			go->ob->recalc= go->recalc;
 	}
 }
 

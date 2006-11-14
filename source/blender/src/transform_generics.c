@@ -72,6 +72,7 @@
 #include "BKE_displist.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
@@ -355,6 +356,8 @@ void recalcData(TransInfo *t)
 			/* proxy exception */
 			if(ob->proxy)
 				ob->proxy->recalc |= ob->recalc;
+			if(ob->proxy_group)
+				group_tag_recalc(ob->proxy_group->dup_group);
 		} 
 	}
 

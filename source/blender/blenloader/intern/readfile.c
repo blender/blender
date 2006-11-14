@@ -2425,11 +2425,12 @@ static void lib_link_object(FileData *fd, Main *main)
 			else {
 				ob->proxy= newlibadr_us(fd, ob->id.lib, ob->proxy);
 				if(ob->proxy) {
+					/* this triggers object_update to always use a copy */
 					ob->proxy->proxy= ob;
 					/* force proxy updates after load/undo, a bit weak */
 					ob->recalc= ob->proxy->recalc= OB_RECALC;
 				}
-				ob->proxy_group= newlibadr_us(fd, ob->id.lib, ob->proxy_group);
+				ob->proxy_group= newlibadr(fd, ob->id.lib, ob->proxy_group);
 			}			
 			poin= ob->data;
 			ob->data= newlibadr_us(fd, ob->id.lib, ob->data);

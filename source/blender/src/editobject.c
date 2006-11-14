@@ -1245,24 +1245,71 @@ void make_vertex_parent(void)
 	/* BIF_undo_push(str); not, conflicts with editmode undo... */
 }
 
+static Object *group_objects_menu(Group *group)
+{
+	GroupObject *go;
+	int len= 0;
+	short a, nr;
+	char *str;
+		
+	for(go= group->gobject.first; go; go= go->next) {
+		if(go->ob)
+			len++;
+	}
+	if(len==0) return NULL;
+	
+	str= MEM_callocN(40+32*len, "menu");
+	
+	strcpy(str, "Select a Group Object %t");
+	a= strlen(str);
+	for(nr=1, go= group->gobject.first; go; go= go->next, nr++) {
+		a+= sprintf(str+a, "|%s %%x%d", go->ob->id.name+2, nr);
+	}
+	
+	a= pupmenu_col(str, 20);
+	MEM_freeN(str);
+	if(a>0) {
+		go= BLI_findlink(&group->gobject, a-1);
+		return go->ob;
+	}
+	return NULL;
+}
+
+
 /* adds empty object to become local replacement data of a library-linked object */
 void make_proxy(void)
 {
 	Object *ob= OBACT;
+	Object *gob= NULL;
 	
 	if(G.scene->id.lib) return;
 	if(ob==NULL) return;
 	
-	if(ob->id.lib==NULL) {
-		error("Can not make proxy for non-linked object");
+	
+	if(ob->dup_group && ob->dup_group->id.lib) {
+		gob= ob;
+		/* gives menu with list of objects in group */
+		ob= group_objects_menu(ob->dup_group);
 	}
-	else if(okee("Make Proxy Object")) {
+	else if(ob->id.lib) {
+		if(okee("Make Proxy Object")==0)
+		return;
+	}
+	else {
+		error("Can only make proxy for a referenced object or group");
+		return;
+	}
+	
+	if(ob) {
 		Object *newob;
 		Base *newbase, *oldbase= BASACT;
 		char name[32];
 		
 		newob= add_object(OB_EMPTY);
-		strcpy(name, ob->id.name+2);
+		if(gob)
+			strcpy(name, gob->id.name+2);
+		else
+			strcpy(name, ob->id.name+2);
 		strcat(name, "_proxy");
 		rename_id(&newob->id, name);
 		
@@ -1272,12 +1319,14 @@ void make_proxy(void)
 		newob->lay= newbase->lay;
 		
 		/* remove base, leave user count of object, it gets linked in object_make_proxy */
-		BLI_remlink(&G.scene->base, oldbase);
-		MEM_freeN(oldbase);
-		
-		object_make_proxy(newob, ob);
+		if(gob==NULL) {
+			BLI_remlink(&G.scene->base, oldbase);
+			MEM_freeN(oldbase);
+		}		
+		object_make_proxy(newob, ob, gob);
 		
 		DAG_scene_sort(G.scene);
+		DAG_object_flush_update(G.scene, newob, OB_RECALC);
 		allqueue(REDRAWALL, 0);
 		BIF_undo_push("Make Proxy Object");
 	}
@@ -4718,19 +4767,21 @@ void adduplicate(int mode, int dupflag)
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASELIB(base) {
-			relink_constraints(&base->object->constraints);
-			if (base->object->pose){
+			ob= base->object;
+			relink_constraints(&ob->constraints);
+			if (ob->pose){
 				bPoseChannel *chan;
-				for (chan = base->object->pose->chanbase.first; chan; chan=chan->next){
+				for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
 					relink_constraints(&chan->constraints);
 				}
 			}
-			modifiers_foreachIDLink(base->object,
-			                        adduplicate__forwardModifierLinks, NULL);
-			ID_NEW(base->object->parent);
-			ID_NEW(base->object->track);
+			modifiers_foreachIDLink(ob, adduplicate__forwardModifierLinks, NULL);
+			ID_NEW(ob->parent);
+			ID_NEW(ob->track);
+			ID_NEW(ob->proxy);
+			ID_NEW(ob->proxy_group);
 			
-			for(strip= base->object->nlastrips.first; strip; strip= strip->next) {
+			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
 				bActionModifier *amod;
 				for(amod= strip->modifiers.first; amod; amod= amod->next)
 					ID_NEW(amod->ob);

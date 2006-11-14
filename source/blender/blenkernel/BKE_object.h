@@ -38,12 +38,23 @@
 extern "C" {
 #endif
 
+/* defines now, might become functions */
+
+/* proxy rule: lib_object->proxy == the one we borrow from, only set temporal and cleared here */
+/*             local_object->proxy == pointer to library object, saved in files and read */
+	
+#define OB_COPY_PROXY(a)	a->id.lib && a->proxy
+#define OB_IS_PROXY(a)		a->id.lib==NULL && a->proxy
+#define OB_DO_PROXY(a)		a->id.lib==NULL && a->proxy && a->proxy_group==NULL
+	
+
 struct Base;
 struct Object;
 struct Camera;
 struct BoundBox;
 struct View3D;
 struct SoftBody;
+struct Group;
 
 void clear_workob(void);
 void copy_baseflags(void);
@@ -55,7 +66,7 @@ void free_object(struct Object *ob);
 void object_free_display(struct Object *ob);
 void object_free_modifiers(struct Object *ob);
 
-void object_make_proxy(struct Object *ob, struct Object *target);
+void object_make_proxy(struct Object *ob, struct Object *target, struct Object *gob);
 
 void unlink_object(struct Object *ob);
 int exist_object(struct Object *obtest);

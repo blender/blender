@@ -86,8 +86,7 @@ typedef struct Object {
 	int par1, par2, par3;	/* can be vertexnrs */
 	char parsubstr[32];	/* String describing subobject info */
 	void *pardata;
-	struct Object *parent, *track, *proxy;
-	struct Group *proxy_group;
+	struct Object *parent, *track, *proxy, *proxy_group;
 	struct Ipo *ipo;
 	struct Path *path;
 	struct BoundBox *bb;
