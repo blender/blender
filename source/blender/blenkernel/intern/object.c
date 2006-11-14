@@ -269,9 +269,10 @@ void unlink_object(Object *ob)
 	/* check all objects: parents en bevels and fields, also from libraries */
 	obt= G.main->object.first;
 	while(obt) {
-		if(obt->id.lib)
-			if(obt->proxy==ob)
-				obt->proxy= NULL;
+		if(obt->proxy==ob)
+			obt->proxy= NULL;
+		if(obt->proxy_group==ob)
+			obt->proxy_group= NULL;
 		
 		if(obt->parent==ob) {
 			obt->parent= NULL;
