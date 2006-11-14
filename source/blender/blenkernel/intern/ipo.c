@@ -753,6 +753,8 @@ static float eval_driver(IpoDriver *driver, float ipotime)
 		Object *ob= driver->ob;
 
 		if(ob==NULL) return 0.0f;
+		if(ob->id.lib && ob->proxy)
+			ob= ob->proxy;
 		
 		if(driver->blocktype==ID_OB) {
 			/* depsgraph failure; ob ipos are calculated in where_is_object, this might get called too late */
