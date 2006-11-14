@@ -279,7 +279,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 
 static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay, int index)
 {
-	DupliObject *dob= MEM_mallocN(sizeof(DupliObject), "dupliobject");
+	DupliObject *dob= MEM_callocN(sizeof(DupliObject), "dupliobject");
 	
 	BLI_addtail(lb, dob);
 	dob->ob= ob;
@@ -318,9 +318,11 @@ static void group_duplilist(ListBase *lb, Object *ob, int level)
 	group_handle_recalc_and_update(ob, group);
 	
 	for(go= group->gobject.first; go; go= go->next) {
-		if(go->ob!=ob && (go->ob->lay & group->layer)) {
+		/* note, if you check on layer here, render goes wrong... it still deforms verts and uses parent imat */
+		if(go->ob!=ob) {
 			Mat4MulMat4(mat, go->ob->obmat, ob->obmat);
 			dob= new_dupli_object(lb, go->ob, mat, ob->lay, 0);
+			dob->no_draw= (dob->origlay & group->layer)==0;
 			if(go->ob->dup_group) {
 				Mat4CpyMat4(dob->ob->obmat, dob->mat);
 				group_duplilist(lb, go->ob, level+1);

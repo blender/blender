@@ -1788,16 +1788,16 @@ static void object_panel_object(Object *ob)
 			/* layers */
 			uiBlockBeginAlign(block);
 			for(a=0; a<5; a++)
-				uiDefButBitI(block, TOG, 1<<a, B_REDR+a, "",	(short)(xco+a*(dx/2)), 120-yco, (short)(dx/2), (short)(dy/2), &(group->layer), 0, 0, 0, 0, "");
+				uiDefButBitI(block, TOG, 1<<a, REDRAWVIEW3D, "",	(short)(xco+a*(dx/2)), 120-yco, (short)(dx/2), (short)(dy/2), &(group->layer), 0, 0, 0, 0, "");
 			for(a=0; a<5; a++)
-				uiDefButBitI(block, TOG, 1<<(a+10), B_REDR+a+10, "",	(short)(xco+a*(dx/2)), 105-yco, (short)(dx/2), (short)(dy/2), &(group->layer), 0, 0, 0, 0, "");
+				uiDefButBitI(block, TOG, 1<<(a+10), REDRAWVIEW3D, "",	(short)(xco+a*(dx/2)), 105-yco, (short)(dx/2), (short)(dy/2), &(group->layer), 0, 0, 0, 0, "");
 			
 			xco+= 7;
 			uiBlockBeginAlign(block);
 			for(a=5; a<10; a++)
-				uiDefButBitI(block, TOG, 1<<a, B_REDR+a, "",	(short)(xco+a*(dx/2)), 120-yco, (short)(dx/2), (short)(dy/2), &(group->layer), 0, 0, 0, 0, "");
+				uiDefButBitI(block, TOG, 1<<a, REDRAWVIEW3D, "",	(short)(xco+a*(dx/2)), 120-yco, (short)(dx/2), (short)(dy/2), &(group->layer), 0, 0, 0, 0, "");
 			for(a=5; a<10; a++)
-				uiDefButBitI(block, TOG, 1<<(a+10), B_REDR+a+10, "",	(short)(xco+a*(dx/2)), 105-yco, (short)(dx/2), (short)(dy/2), &(group->layer), 0, 0, 0, 0, "");
+				uiDefButBitI(block, TOG, 1<<(a+10), REDRAWVIEW3D, "",	(short)(xco+a*(dx/2)), 105-yco, (short)(dx/2), (short)(dy/2), &(group->layer), 0, 0, 0, 0, "");
 			
 			uiBlockEndAlign(block);
 			

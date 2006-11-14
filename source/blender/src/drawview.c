@@ -2645,25 +2645,28 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 	lb= object_duplilist(G.scene, base->object);
 
 	for(dob= lb->first; dob; dob= dob->next) {
-		tbase.object= dob->ob;
-		
-		Mat4CpyMat4(dob->ob->obmat, dob->mat);
-		
-		/* extra service: draw the duplicator in drawtype of parent */
-		dt= tbase.object->dt; tbase.object->dt= base->object->dt;
-		dtx= tbase.object->dtx; tbase.object->dtx= base->object->dtx;
-		
-		/* negative scale flag has to propagate */
-		transflag= tbase.object->transflag;
-		if(base->object->transflag & OB_NEG_SCALE)
-			tbase.object->transflag ^= OB_NEG_SCALE;
-		
-		BIF_ThemeColorBlend(color, TH_BACK, 0.5);
-		draw_object(&tbase, DRAW_CONSTCOLOR);
-		
-		tbase.object->dt= dt;
-		tbase.object->dtx= dtx;
-		tbase.object->transflag= transflag;
+		if(dob->no_draw);
+		else {
+			tbase.object= dob->ob;
+			
+			Mat4CpyMat4(dob->ob->obmat, dob->mat);
+			
+			/* extra service: draw the duplicator in drawtype of parent */
+			dt= tbase.object->dt; tbase.object->dt= base->object->dt;
+			dtx= tbase.object->dtx; tbase.object->dtx= base->object->dtx;
+			
+			/* negative scale flag has to propagate */
+			transflag= tbase.object->transflag;
+			if(base->object->transflag & OB_NEG_SCALE)
+				tbase.object->transflag ^= OB_NEG_SCALE;
+			
+			BIF_ThemeColorBlend(color, TH_BACK, 0.5);
+			draw_object(&tbase, DRAW_CONSTCOLOR);
+			
+			tbase.object->dt= dt;
+			tbase.object->dtx= dtx;
+			tbase.object->transflag= transflag;
+		}
 	}
 	
 	/* Transp afterdraw disabled, afterdraw only stores base pointers, and duplis can be same obj */
