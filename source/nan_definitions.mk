@@ -58,6 +58,7 @@ all debug::
     export LCGDIR = $(NAN_LIBDIR)/$(CONFIG_GUESS)
     # Object Config_Guess DIRectory
     export OCGDIR = $(NAN_OBJDIR)/$(CONFIG_GUESS)
+
     export NAN_MOTO ?= $(LCGDIR)/moto
 ifeq ($(FREE_WINDOWS), true)
     export NAN_SOLID ?= $(LCGDIR)/gcc/solid
@@ -103,6 +104,8 @@ endif
     endif
 
     export WITH_OPENEXR ?= true
+
+
     ifeq ($(OS),windows)
 	export NAN_WINTAB ?= $(LCGDIR)/wintab
       ifeq ($(FREE_WINDOWS), true)
@@ -250,6 +253,8 @@ endif
 
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
+    export FREEDESKTOP ?= true
+
     export NAN_PYTHON ?= /usr/local
     export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
@@ -336,6 +341,8 @@ endif
 
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
+    export FREEDESKTOP ?= true
+
     export NAN_PYTHON ?= /usr
       ifeq ($(CPU),ia64)
     export NAN_PYTHON_VERSION ?= 2.2
@@ -392,6 +399,8 @@ endif
 
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
+    export FREEDESKTOP ?= true
+
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)

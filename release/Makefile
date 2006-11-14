@@ -37,6 +37,7 @@ BLENDNAME=blender-$(VERSION)-$(CONFIG_GUESS)$(TYPE)
 export DISTDIR=$(NAN_OBJDIR)/$(BLENDNAME)
 export CONFDIR=$(DISTDIR)/.blender
 
+
 release: all
 
 all:
@@ -90,6 +91,18 @@ install: package
 	@cp text/blender.html $(DISTDIR)
 	@cp text/*.txt $(DISTDIR)
 	@cp text/*.pdf $(DISTDIR)
+    ifeq ($(FREEDESKTOP), true)
+	@#echo "****> Install freedesktop icons"
+	@mkdir $(DISTDIR)/icons
+	@mkdir $(DISTDIR)/icons/16x16
+	@cp freedesktop/icons/16x16/blender.png $(DISTDIR)/icons/16x16
+	@mkdir $(DISTDIR)/icons/22x22
+	@cp freedesktop/icons/22x22/blender.png $(DISTDIR)/icons/22x22
+	@mkdir $(DISTDIR)/icons/32x32
+	@cp freedesktop/icons/32x32/blender.png $(DISTDIR)/icons/32x32
+	@mkdir $(DISTDIR)/icons/scalable
+	@cp freedesktop/icons/scalable/blender.svg $(DISTDIR)/icons/scalable
+    endif
 	@echo "----> Make Config dir .blender"
 	@mkdir -p $(CONFDIR)
 	@# possible overruling .txt text documents
