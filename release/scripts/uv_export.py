@@ -2,20 +2,20 @@
 
 """
 Name: 'Save UV Face Layout...'
-Blender: 232
+Blender: 242
 Group: 'UV'
-Tooltip: 'Export the UV face layout of the selected object to a .TGA file'
+Tooltip: 'Export the UV face layout of the selected object to a .TGA or .SVG file'
 """ 
 
 __author__ = "Martin 'theeth' Poirier"
 __url__ = ("http://www.blender.org", "http://www.elysiun.com")
-__version__ = "1.4"
+__version__ = "2.1"
 
 __bpydoc__ = """\
 This script exports the UV face layout of the selected mesh object to
-a TGA image file.  Then you can, for example, paint details in this image using
-an external 2d paint program of your choice and bring it back to be used as a
-texture for the mesh.
+a TGA image file or a SVG vector file.  Then you can, for example, paint details
+in this image using an external 2d paint program of your choice and bring it back
+to be used as a texture for the mesh.
 
 Usage:
 
@@ -29,6 +29,7 @@ Notes:<br>
 	 Jean-Michel Soler (jms) wrote TGA functions used by this script.<br>
 	 Zaz added the default path code and Selected Face option.<br>
 	 Macouno fixed a rounding error in the step calculations<br>
+	 Jarod added the SVG file export<br>
 """
 
 
@@ -79,10 +80,19 @@ Notes:<br>
 #	 Version 1.4 Updates by Macouno from Elysiun.com
 # Fixed rounding error that can cause breaks in lines.
 # --------------------------
-#  Version 2.0
+#	 Version 2.0
 # New interface using PupBlock and FileSelector
 # Save/Load config to Registry
 # Edit in external program
+# --------------------------
+#	 Version 2.1 Updates by Jarod from blenderartists.org
+# New exportformat SVG
+# simple memory optimations, 	two third less memory usage
+# tga filewriting speed improvements, 3times faster now
+# --------------------------
+#	Version 2.2
+# Cleanup code
+# Filename handling enhancement and bug fixes
 # --------------------------
 
 FullPython = False
@@ -108,6 +118,8 @@ def ExportConfig():
 	conf["ALLFACES"] = bAllFaces.val
 	conf["EDIT"] = bEdit.val
 	conf["EXTERNALEDITOR"] = bEditPath.val
+	conf["UVFORMATSVG"] = bSVG.val
+	conf["SVGFILL"] = bSVGFill.val
 	
 	Blender.Registry.SetKey("UVEXPORT", conf, True)
 
@@ -127,16 +139,41 @@ def ImportConfig():
 		bAllFaces.val = conf["ALLFACES"]
 		bEdit.val = conf["EDIT"]
 		editor = conf["EXTERNALEDITOR"]
+		bSVG.val = conf["UVFORMATSVG"]
+		bSVGFill.val = conf["SVGFILL"]
 		if editor:
 			bEditPath.val = editor
 	except KeyError:
+		# If one of the key is not in the dict, don't worry, it'll use the defaults
 		pass
 			
 	
+def PrintConfig():
+	print
+	print         "Imagesize: %ipx" % bSize.val
+	print         "Wiresize : %ipx" % bWSize.val
+	
+	if bWrap.val:
+		print "Wrap     : yes"
+	else:
+		print "Wrap     : no"
+		
+	if bAllFaces.val:
+		print "AllFaces : yes"
+	else:
+		print "AllFaces : no"
+		
+	if bSVG.val:
+		print "Format   : *.svg"
+	else:
+		print "Format   : *.tga"
 
-def Export(f):
+
+def ExportCallback(f):
 	obj = Blender.Scene.getCurrent().getActiveObject()
-
+	
+	time1= Blender.sys.time()
+	
 	if not obj:
 		Blender.Draw.PupMenu("ERROR%t|No Active Object!")
 		return
@@ -149,13 +186,36 @@ def Export(f):
 	if not mesh.hasFaceUV():
 		Blender.Draw.PupMenu("ERROR%t|No UV coordinates!")
 		return
+
+	# just for information...
+	PrintConfig()
 	
+	# taking care of filename
 	if bObFile.val:
-		name = f + obj.name + ".tga"
+		name = AddExtension(f, obj.name)
 	else:
-		name = f + ".tga"
+		name = AddExtension(f, None)
 		
-	UV_Export(mesh, bSize.val, bWSize.val, bWrap.val, bAllFaces.val, name)
+	
+	print "Target   :", name
+	print
+	
+	UVFaces = ExtractUVFaces(mesh, bAllFaces.val)
+	
+	if not bSVG.val:
+		print "TGA export is running..."
+		UV_Export_TGA(UVFaces, bSize.val, bWSize.val, bWrap.val, name)
+	else:
+		print "SVG export is running..."
+		if bSVGFill.val:
+			SVGFillColor="#F2DAF2"
+		else:
+			SVGFillColor="none"
+		
+		UV_Export_SVG(UVFaces, bSize.val, bWSize.val, bWrap.val, name, obj.name, SVGFillColor)
+	
+	print
+	print "     ...finished exporting in %.4f sec." % (Blender.sys.time()-time1)
 	
 	if FullPython and bEdit.val and bEditPath.val:
 		filepath = os.path.realpath(name)
@@ -163,61 +223,111 @@ def Export(f):
 		os.spawnl(os.P_NOWAIT, bEditPath.val, "", filepath)
 	
 
-def Buffer(height=16, width=16, profondeur=3,rvb=255 ):  
+def GetExtension():
+	if bSVG.val:
+		ext = "svg"
+	else:
+		ext = "tga"
+	
+	return ext
+	
+def AddExtension(filename, object_name):
+	ext = "." + GetExtension()
+	
+	hasExtension = (ext in filename or ext.upper() in filename)
+	
+	if object_name and hasExtension:
+		filename = filename.replace(ext, "")
+		hasExtension = False
+		
+	if object_name:
+		filename += "_" + object_name
+		
+	if not hasExtension:
+		filename += ext
+		
+	return filename
+	
+def GetDefaultFilename():
+	filename = Blender.Get("filename")
+	
+	filename = filename.replace(".blend", "")
+	filename += "." + GetExtension()
+	
+	return filename
+
+def ExtractUVFaces(mesh, allface):
+	FaceList = []
+	
+	if allface:
+		faces = mesh.faces
+	else:
+		faces = mesh.getSelectedFaces()
+
+	for f in faces:
+		FaceList.append(f.uv)
+	
+	return FaceList
+
+
+def Buffer(height=16, width=16, profondeur=1,rvb=255 ):  
 	"""  
 	reserve l'espace memoire necessaire  
 	"""  
 	p=[rvb]  
-	b=p*height*width*profondeur  
-	return b  
+	myb=height*width*profondeur
+	print"Memory  : %ikB" % (myb/1024)
+	b=p*myb
+	return b
 
 def write_tgafile(loc2,bitmap,width,height,profondeur):  
-	f=open(loc2,'wb')  
+	
+	f=open(loc2,'wb')
 
-	Origine_en_haut_a_gauche=32  
-	Origine_en_bas_a_gauche=0  
+	Origine_en_haut_a_gauche=32
+	Origine_en_bas_a_gauche=0
 
-	Data_Type_2=2  
-	RVB=profondeur*8  
-	RVBA=32  
-	entete0=[]  
-	for t in range(18):  
-	  entete0.append(chr(0))  
+	Data_Type_2=2
+	RVB=profondeur*8
+	RVBA=32
+	entete0=[]
+	for t in range(18):
+	  entete0.append(chr(0))
 
-	entete0[2]=chr(Data_Type_2)  
-	entete0[13]=chr(width/256)  
-	entete0[12]=chr(width % 256)  
-	entete0[15]=chr(height/256)  
-	entete0[14]=chr(height % 256)  
-	entete0[16]=chr(RVB)  
-	entete0[17]=chr(Origine_en_bas_a_gauche)  
+	entete0[2]=chr(Data_Type_2)
+	entete0[13]=chr(width/256)
+	entete0[12]=chr(width % 256)
+	entete0[15]=chr(height/256)
+	entete0[14]=chr(height % 256)
+	entete0[16]=chr(RVB)
+	entete0[17]=chr(Origine_en_bas_a_gauche)
 
-	#Origine_en_haut_a_gauche  
-
-	for t in entete0:  
-	  f.write(t)  
-
-	for t in bitmap:  
-	  f.write(chr(t))  
-	f.close()  
-
-def UV_Export(mesh, size, wsize, wrap, allface, file):
-	vList = []
-	faces = []
-
+	# Origine_en_haut_a_gauche
+	print"  ...writing tga..."
+	for t in entete0:
+	  f.write(t)
+	
+	redpx=chr(0) + chr(0) + chr(255)
+	blackpx=chr(0) + chr(0) + chr(0)
+	whitepx=chr(255) + chr(255) + chr(255)
+	
+	for t in bitmap:
+		if t==255:
+			f.write(whitepx)
+		elif t==0:
+			f.write(blackpx)
+		else:
+			f.write(redpx)
+		
+	f.close()
+	
+	
+def UV_Export_TGA(vList, size, wsize, wrap, file):
 	minx = 0
 	miny = 0
 	scale = 1.0
 	
 	step = 0
-
-	if allface:
-		faces = mesh.faces
-	else:
-		faces = mesh.getSelectedFaces ()
-
-	for f in faces:
-		vList.append(f.uv)
 
 	img = Buffer(size+1,size+1)
 
@@ -245,7 +355,7 @@ def UV_Export(mesh, size, wsize, wrap, allface, file):
 	for f in vList:
 		fnum = fnum + 1
 		if not fnum % 100:
-			print "Face " + str (fnum) + " of " + str (fcnt)
+			print "%i of %i Faces completed" % (fnum, fcnt)
 			
 		for index in range(len(f)):
 			co1 = f[index]
@@ -267,17 +377,13 @@ def UV_Export(mesh, size, wsize, wrap, allface, file):
 						x = int ((x - minx) * scale)
 						y = int ((y - miny) * scale)
 						
-					co = x * 3 + y * 3 * size;
+					co = x * 1 + y * 1 * size;
 					
 					img[co] = 0
-					img[co+1] = 0
-					img[co+2] = 0
 					if wsize > 1:
 						for x in range(-1*wsize + 1,wsize):
 							for y in range(-1*wsize,wsize):
-								img[co + 3 * x + y * 3 * size] = 0
-								img[co + 3 * x + y * 3 * size +1] = 0
-								img[co + 3 * x + y * 3 * size +2] = 0
+								img[co + 1 * x + y * 1 * size] = 0
 	
 		for v in f:
 			x = int(v[0] * size)
@@ -290,24 +396,59 @@ def UV_Export(mesh, size, wsize, wrap, allface, file):
 				x = int ((x - minx) * scale)
 				y = int ((y - miny) * scale)
 
-			co = x * 3 + y * 3 * size
-			img[co] = 0
-			img[co+1] = 0
-			img[co+2] = 255 				
+			co = x * 1 + y * 1 * size
+			img[co] = 1
 	
 	
 	write_tgafile(file,img,size,size,3)
+
+def UV_Export_SVG(vList, size, wsize, wrap, file, objname, facesfillcolor):
+	fl=open(file,'wb')	
+	fl.write('<?xml version="1.0"?>\r\n<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\r\n')
+	fl.write('<svg width="' + str(size) + 'px" height="' + str(size) + 'px" viewBox="0 0 ' + str(size) + ' ' + str(size) + '" xmlns="http://www.w3.org/2000/svg" version="1.1">\r\n')
+	fl.write('<desc>UV-Map from Object: ' + str(objname) +'. Exported from Blender3D with UV Exportscript</desc>\r\n')
+	fl.write('<rect x="0" y="0" width="' + str(size) + '" height="' + str(size) + '" fill="none" stroke="blue" stroke-width="' + str(wsize) + 'px" />\r\n')
+	fl.write('<g style="fill:' + str(facesfillcolor) + '; stroke:black; stroke-width:' + str(wsize) + 'px;">\r\n')
+
+	fnum = 0
+	fcnt = len (vList)
+	fnumv = (long) (fcnt/10)
 	
-def SetEditorAndExport(f):
+	for f in vList:
+		fnum = fnum + 1
+
+		if fnum == fnumv:
+			print ".",
+			fnumv = fnumv + ((long) (fcnt/10))
+			
+		fl.write('<polygon points="')
+		for index in range(len(f)):
+			co = f[index]
+			fl.write("%.3f,%.3f " % (co[0]*size, size-co[1]*size))
+		fl.write('" />\r\n')
+		
+	print "%i Faces completed." % fnum
+	fl.write('</g>\r\n')
+	fl.write('</svg>')
+	fl.close()
+	
+def SetEditorAndExportCallback(f):
 	global bEditPath
 	bEditPath.val = f
 	
 	ExportConfig()
 	
-	Blender.Window.FileSelector(Export, "Save UV Image")
+	Export()
+	
+def Export():
+	Blender.Window.FileSelector(ExportCallback, "Save UV (%s)" % GetExtension(), GetDefaultFilename())
+	
+def SetEditorAndExport():
+	Blender.Window.FileSelector(SetEditorAndExportCallback, "Select Editor")
 	
 # ###################################### MAIN SCRIPT BODY ###############################
 
+# Create user values and fill with defaults
 bSize = Blender.Draw.Create(512)
 bWSize = Blender.Draw.Create(1)
 bObFile = Blender.Draw.Create(1)
@@ -315,16 +456,22 @@ bWrap = Blender.Draw.Create(1)
 bAllFaces = Blender.Draw.Create(1)
 bEdit = Blender.Draw.Create(0)
 bEditPath = Blender.Draw.Create("")
+bSVG = Blender.Draw.Create(0)
+bSVGFill = Blender.Draw.Create(1)
 
+# Import saved configurations
 ImportConfig()
+
 
 Block = []
 
-Block.append(("Size: ", bSize, 64, 8192, "Size of the exported image"))
-Block.append(("Wire: ", bWSize, 1, 5, "Size of the wire of the faces"))
+Block.append(("Size: ", bSize, 64, 16384, "Size of the exported image"))
+Block.append(("Wire: ", bWSize, 1, 9, "Size of the wire of the faces"))
 Block.append(("Wrap", bWrap, "Wrap to image size, scale otherwise"))
 Block.append(("All Faces", bAllFaces, "Export all or only selected faces"))
-Block.append(("Ob", bObFile, "Use object name in filename"))
+Block.append(("Object", bObFile, "Use object name in filename"))
+Block.append(("SVG", bSVG, "save as *.svg instead of *.tga"))
+Block.append(("Fill SVG faces", bSVGFill, "SVG faces will be filled, none filled otherwise"))
 
 if FullPython:
 	Block.append(("Edit", bEdit, "Edit resulting file in an external program"))
@@ -334,8 +481,8 @@ retval = Blender.Draw.PupBlock("UV Image Export", Block)
 
 if retval:
 	ExportConfig()
-	
+		
 	if bEdit.val and not bEditPath.val:
-		Blender.Window.FileSelector(SetEditorAndExport, "Select Editor")
+		SetEditorAndExport()
 	else:
-		Blender.Window.FileSelector(Export, "Save UV Image")
+		Export()
