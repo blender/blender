@@ -94,6 +94,8 @@ extern EditVert *findnearestvert(int *dist, short sel);
 
 /* ******************* editmesh_tools.c */
 
+/* multires.c */
+int multires_test();
 
 #endif
 

@@ -70,6 +70,7 @@
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
+#include "BIF_retopo.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
@@ -649,6 +650,7 @@ void addedgeface_mesh(void)
 	short amount=0;
 
 	if( (G.vd->lay & G.obedit->lay)==0 ) return;
+	if(multires_test()) return;
 
 	/* how many selected ? */
 	if(G.scene->selectmode & SCE_SELECT_EDGE) {

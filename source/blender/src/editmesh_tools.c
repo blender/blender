@@ -155,6 +155,8 @@ void convert_to_triface(int direction)
 	EditFace *efa, *efan, *next;
 	float fac;
 	
+	if(multires_test()) return;
+	
 	efa= em->faces.last;
 	while(efa) {
 		next= efa->prev;
@@ -204,6 +206,8 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	struct facesort *vlsortblock, *vsb, *vsb1;
 	float dist;
 	int a, b, test, amount;
+	
+	if(multires_test()) return 0;
 
 	/* flag 128 is cleared, count */
 	eve= em->verts.first;
@@ -477,6 +481,8 @@ void xsortvert_flag(int flag)
 	ListBase tbase;
 	int i, amount = BLI_countlist(&em->verts);
 	
+	if(multires_test()) return;
+	
 	sortblock = MEM_callocN(sizeof(xvertsort)*amount,"xsort");
 	for (i=0,eve=em->verts.first; eve; i++,eve=eve->next)
 		if(eve->f & flag)
@@ -517,6 +523,8 @@ void hashvert_flag(int flag)
 	struct xvertsort *sortblock, *sb, onth, *newsort;
 	ListBase tbase;
 	int amount, a, b;
+	
+	if(multires_test()) return;
 	
 	/* count */
 	eve= em->verts.first;
@@ -579,6 +587,7 @@ void extrude_mesh(void)
 	short nr, transmode= 0;
 
 	TEST_EDITMESH
+	if(multires_test()) return;
 	
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		if(G.totvertsel==0) nr= 0;
@@ -653,6 +662,7 @@ void split_mesh(void)
 {
 
 	TEST_EDITMESH
+	if(multires_test()) return;
 
 	if(okee(" Split ")==0) return;
 
@@ -685,6 +695,7 @@ void extrude_repeat_mesh(int steps, float offs)
 	short a;
 
 	TEST_EDITMESH
+	if(multires_test()) return;
 	
 	/* dvec */
 	dvec[0]= G.vd->persinv[2][0];
@@ -727,6 +738,7 @@ void spin_mesh(int steps, float degr, float *dvec, int mode)
 	short a,ok;
 
 	TEST_EDITMESH
+	if(multires_test()) return;
 	
 	/* imat and centre and size */
 	Mat3CpyMat4(bmat, G.obedit->obmat);
@@ -810,6 +822,7 @@ void screw_mesh(int steps, int turns)
 	float dvec[3], nor[3],deg=(-360);
 
 	TEST_EDITMESH
+	if(multires_test()) return;
 
 	/* first condition: we need frontview! */
 	if(G.vd->view!=1) {
@@ -930,6 +943,7 @@ void delete_mesh(void)
 	char *str="Erase";
 
 	TEST_EDITMESH
+	if(multires_test()) return;
 	
 	event= pupmenu("Erase %t|Vertices%x10|Edges%x1|Faces%x2|All%x3|Edges & Faces%x4|Only Faces%x5|Edge Loop%x6");
 	if(event<1) return;
@@ -1076,6 +1090,7 @@ void fill_mesh(void)
 	short ok;
 
 	if(G.obedit==0 || (G.obedit->type!=OB_MESH)) return;
+	if(multires_test()) return;
 
 	waitcursor(1);
 
@@ -2394,6 +2409,8 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	float length[4], v1mat[3], v2mat[3], v3mat[3], v4mat[3];
 	int i, j, edgecount, touchcount, facetype,hold;
 	
+	if(multires_test()) return;
+	
 	//Set faces f1 to 0 cause we need it later
 	for(ef=em->faces.first;ef;ef = ef->next) {
 		ef->f1 = 0;
@@ -2899,6 +2916,8 @@ void beauty_fill(void)
 	EVPtr *efaa;
 	float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
 	int totedge, ok, notbeauty=8, onedone, vindex[4];
+	
+	if(multires_test()) return;
 
 	/* - all selected edges with two faces
 		* - find the faces: store them in edges (using datablock)
@@ -3341,6 +3360,8 @@ void join_triangles(void)
 	float limit = G.scene->toolsettings->select_thresh * 10;
 	int i, paircount, joincount, totFacePairLs, respectvcol = 1, respectuv = 1, match, matchar[3];
 	FacePairL *fpl1;
+	
+	if(multires_test()) return;
 	
 	waitcursor(1);
 		
@@ -4174,6 +4195,8 @@ static void bevel_mesh(float bsize, int allfaces)
 	float cent[3], min[3], max[3];
 	int a, b, c;
 	float limit= 0.001f;
+	
+	if(multires_test()) return;
 
 	waitcursor(1);
 
@@ -6158,6 +6181,8 @@ int collapseEdges(void)
 	
 	mergecount = 0;
 	
+	if(multires_test()) return 0;
+	
 	build_edgecollection(&allcollections);
 	groupcount = BLI_countlist(&allcollections);
 	
@@ -6214,6 +6239,9 @@ int merge_firstlast(int first, int uvmerge)
 {
 	EditVert *eve,*mergevert;
 	EditSelection *ese;
+	
+	if(multires_test()) return 0;
+	
 	/* do sanity check in mergemenu in edit.c ?*/
 	if(first == 0){ 
 		ese = G.editMesh->selected.last;
@@ -6248,6 +6276,8 @@ int merge_firstlast(int first, int uvmerge)
 int merge_target(int target, int uvmerge)
 {
 	EditVert *eve;
+	
+	if(multires_test()) return 0;
 	
 	if(target) snap_sel_to_curs();
 	else snap_to_center();

@@ -40,6 +40,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
 #include "BKE_depsgraph.h"
@@ -48,21 +49,39 @@
 
 #include "BIF_screen.h"
 #include "BIF_space.h"
+#include "BIF_toolbox.h"
 
 #include "BDR_editobject.h"
 #include "BDR_sculptmode.h"
+
+#include "BLI_editVert.h"
 
 #include "BSE_edit.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "blendef.h"
+#include "editmesh.h"
 #include "multires.h"
 #include "mydevice.h"
 #include "parametrizer.h"
 
 #include <math.h>
 #include <string.h>
+
+/* editmesh.h */
+int multires_test()
+{
+	Mesh *me= get_mesh(
+		OBACT);
+	if(me && me->mr) {
+		error("Unable to complete action with multires enabled.");
+		return 1;
+	}
+	return 0;
+}
+
 
 void Vec3fAvg3(float *out, float *v1, float *v2, float *v3)
 {
