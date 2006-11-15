@@ -3348,6 +3348,10 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 						
 						Mat4CpyMat4(obd->obmat, dob->mat);
 						
+						/* group duplis need to set ob matrices correct, for deform. so no_draw is part handled */
+						if(dob->no_draw)
+							continue;
+						
 						if(obd->type!=OB_MBALL) {
 #ifndef DISABLE_YAFRAY
 							/* yafray: special case handling of duplivert/dupligroup objects.
