@@ -1260,7 +1260,7 @@ static Object *group_objects_menu(Group *group)
 	
 	str= MEM_callocN(40+32*len, "menu");
 	
-	strcpy(str, "Select a Group Object %t");
+	strcpy(str, "Make Proxy for: %t");
 	a= strlen(str);
 	for(nr=1, go= group->gobject.first; go; go= go->next, nr++) {
 		a+= sprintf(str+a, "|%s %%x%d", go->ob->id.name+2, nr);

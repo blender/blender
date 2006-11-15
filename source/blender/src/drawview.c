@@ -1233,13 +1233,13 @@ ImBuf *read_backbuf(short xmin, short ymin, short xmax, short ymax)
 }
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
-unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int min, unsigned int max, short *dist)
+unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int min, unsigned int max, int *dist)
 {
 	struct ImBuf *buf;
 	unsigned int *bufmin, *bufmax, *tbuf;
 	int minx, miny;
 	int a, b, rc, nr, amount, dirvec[4][2];
-	short distance=0;
+	int distance=0;
 	unsigned int index = 0;
 	
 	amount= (size-1)/2;

@@ -352,14 +352,14 @@ static void findnearestvert__doClosest(void *userData, EditVert *eve, int x, int
 		}
 	}
 }
-EditVert *findnearestvert(short *dist, short sel)
+EditVert *findnearestvert(int *dist, short sel)
 {
 	short mval[2];
 
 	getmouseco_areawin(mval);
 		
 	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
-		short distance;
+		int distance;
 		unsigned int index = sample_backbuf_rect(mval, 50, em_wireoffs, 0xFFFFFF, &distance);
 		EditVert *eve = BLI_findlink(&G.editMesh->verts, index-1);
 
@@ -421,9 +421,9 @@ static float labda_PdistVL2Dfl( float *v1, float *v2, float *v3)
 /* note; uses G.vd, so needs active 3d window */
 static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index)
 {
-	struct { float mval[2]; short dist; EditEdge *closest; } *data = userData;
+	struct { float mval[2]; int dist; EditEdge *closest; } *data = userData;
 	float v1[2], v2[2];
-	short distance;
+	int distance;
 		
 	v1[0] = x0;
 	v1[1] = y0;
@@ -454,14 +454,14 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 		}
 	}
 }
-EditEdge *findnearestedge(short *dist)
+EditEdge *findnearestedge(int *dist)
 {
 	short mval[2];
 		
 	getmouseco_areawin(mval);
 
 	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
-		short distance;
+		int distance;
 		unsigned int index = sample_backbuf_rect(mval, 50, em_solidoffs, em_wireoffs, &distance);
 		EditEdge *eed = BLI_findlink(&G.editMesh->edges, index-1);
 
@@ -473,7 +473,7 @@ EditEdge *findnearestedge(short *dist)
 		}
 	}
 	else {
-		struct { float mval[2]; short dist; EditEdge *closest; } data;
+		struct { float mval[2]; int dist; EditEdge *closest; } data;
 
 		data.mval[0] = mval[0];
 		data.mval[1] = mval[1];
@@ -489,10 +489,10 @@ EditEdge *findnearestedge(short *dist)
 
 static void findnearestface__getDistance(void *userData, EditFace *efa, int x, int y, int index)
 {
-	struct { short mval[2], dist; EditFace *toFace; } *data = userData;
+	struct { short mval[2]; int dist; EditFace *toFace; } *data = userData;
 
 	if (efa==data->toFace) {
-		short temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
+		int temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
 
 		if (temp<data->dist)
 			data->dist = temp;
@@ -500,7 +500,7 @@ static void findnearestface__getDistance(void *userData, EditFace *efa, int x, i
 }
 static void findnearestface__doClosest(void *userData, EditFace *efa, int x, int y, int index)
 {
-	struct { short mval[2], pass, dist; int lastIndex, closestIndex; EditFace *closest; } *data = userData;
+	struct { short mval[2], pass; int dist, lastIndex, closestIndex; EditFace *closest; } *data = userData;
 
 	if (data->pass==0) {
 		if (index<=data->lastIndex)
@@ -511,7 +511,7 @@ static void findnearestface__doClosest(void *userData, EditFace *efa, int x, int
 	}
 
 	if (data->dist>3) {
-		short temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
+		int temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
 
 		if (temp<data->dist) {
 			data->dist = temp;
@@ -520,7 +520,7 @@ static void findnearestface__doClosest(void *userData, EditFace *efa, int x, int
 		}
 	}
 }
-static EditFace *findnearestface(short *dist)
+static EditFace *findnearestface(int *dist)
 {
 	short mval[2];
 
@@ -531,7 +531,7 @@ static EditFace *findnearestface(short *dist)
 		EditFace *efa = BLI_findlink(&G.editMesh->faces, index-1);
 
 		if (efa) {
-			struct { short mval[2], dist; EditFace *toFace; } data;
+			struct { short mval[2]; int dist; EditFace *toFace; } data;
 
 			data.mval[0] = mval[0];
 			data.mval[1] = mval[1];
@@ -549,7 +549,7 @@ static EditFace *findnearestface(short *dist)
 		return NULL;
 	}
 	else {
-		struct { short mval[2], pass, dist; int lastIndex, closestIndex; EditFace *closest; } data;
+		struct { short mval[2], pass; int dist, lastIndex, closestIndex; EditFace *closest; } data;
 		static int lastSelectedIndex=0;
 		static EditFace *lastSelected=NULL;
 
@@ -727,7 +727,7 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 */
 static int unified_findnearest(EditVert **eve, EditEdge **eed, EditFace **efa) 
 {
-	short dist= 75;
+	int dist= 75;
 	
 	*eve= NULL;
 	*eed= NULL;
@@ -1535,7 +1535,7 @@ static void mouse_mesh_loop(void)
 {
 	EditEdge *eed;
 	int select;
-	short dist= 50;
+	int dist= 50;
 	
 	eed= findnearestedge(&dist);
 	if(eed) {

@@ -135,7 +135,7 @@ int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect)
 	if (rect) {
 		/* sample rect to increase changes of selecting, so that when clicking
 		   on an edge in the backbuf, we can still select a face */
-		short dist;
+		int dist;
 		*index = sample_backbuf_rect(mval, 3, 1, me->totface+1, &dist);
 	}
 	else
@@ -153,7 +153,7 @@ int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect)
 /* returns 0 if not found, otherwise 1 */
 static int facesel_edge_pick(Mesh *me, short *mval, unsigned int *index)
 {
-	short dist;
+	int dist;
 	unsigned int min = me->totface + 1;
 	unsigned int max = me->totface + me->totedge + 1;
 

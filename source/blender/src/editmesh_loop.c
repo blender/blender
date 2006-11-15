@@ -222,12 +222,12 @@ void CutEdgeloop(int numcuts)
 {
 	EditMesh *em = G.editMesh;
 	EditEdge *nearest=NULL, *eed;
-	int keys = 0, holdnum=0, selectmode;
-	short mvalo[2] = {0,0}, mval[2];
-	short event,val,choosing=1,cancel=0,dist,cuthalf = 0,smooth=0;
-	char msg[128];
-	short hasHidden = 0;
 	float fac;
+	int keys = 0, holdnum=0, selectmode, dist;
+	short mvalo[2] = {0,0}, mval[2];
+	short event, val, choosing=1, cancel=0, cuthalf = 0, smooth=0;
+	short hasHidden = 0;
+	char msg[128];
 	
 	selectmode = G.scene->selectmode;
 		
@@ -487,16 +487,15 @@ typedef struct CutCurve {
 static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash *gh)
 {
 	CutCurve *curve,*temp;
+	EditVert *snapvert;
+	float *scr, mval[2], lastx=0, lasty=0;
 	int i=0, j, blocks=1, lasti=0;
+	int dist, tolerance;
 	short event, val, qual, vsnap=0, ldown=0, restart=0, rubberband=0;
 	short mval1[2], lockaxis=0, lockx=0, locky=0, oldmode; 
 	
-	EditVert *snapvert;
-	short sdist, stolerance;
-	float *scr, mval[2], lastx=0, lasty=0;
-	
 	*len=0;
-	stolerance = 75;
+	tolerance = 75;
 	
 	curve=(CutCurve *)MEM_callocN(1024*sizeof(CutCurve), "MouseTrail");
 
@@ -562,12 +561,12 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 		
 		if(vsnap){ 
 			persp(PERSP_VIEW);
-			sdist = stolerance;
-			snapvert = findnearestvert(&sdist, SELECT);
+			dist = tolerance;
+			snapvert = findnearestvert(&dist, SELECT);
 			glColor3ub(255, 0, 255);
 			glDrawBuffer(GL_FRONT);
 			persp(PERSP_WIN);
-			if(snapvert && (sdist < stolerance)){
+			if(snapvert && (dist < tolerance)){
 				scr = BLI_ghash_lookup(gh, snapvert);
 				mval[0] = scr[0];
 				mval[1] = scr[1];

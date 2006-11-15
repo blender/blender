@@ -89,8 +89,8 @@ extern void translateflag(short flag, float *vec);
 extern int convex(float *v1, float *v2, float *v3, float *v4);
 
 /* ******************* editmesh_mods.c */
-extern EditEdge *findnearestedge(short *dist);
-extern EditVert *findnearestvert(short *dist, short sel);
+extern EditEdge *findnearestedge(int *dist);
+extern EditVert *findnearestvert(int *dist, short sel);
 
 /* ******************* editmesh_tools.c */
 
