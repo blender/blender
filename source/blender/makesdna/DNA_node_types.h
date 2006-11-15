@@ -202,5 +202,11 @@ typedef struct NodeImageFile {
 	int sfra, efra;
 } NodeImageFile;
 
+typedef struct NodeChroma {
+	float t1,t2,t3;
+	float fsize,fstrength,falpha;
+	float key[4];
+} NodeChroma;
+
 #endif
 

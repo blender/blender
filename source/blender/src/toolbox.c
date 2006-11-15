@@ -1548,6 +1548,7 @@ static TBitem tb_node_addsh[]= {
 #define TB_CMP_OP_FILTER	4
 #define TB_CMP_CONVERTORS	5
 #define TB_CMP_GROUPS		6
+#define TB_CMP_MATTE		7
 
 static TBitem tb_node_addcomp[]= {
 	{	0, "Input",		1, NULL},
@@ -1557,6 +1558,7 @@ static TBitem tb_node_addcomp[]= {
 	{	0, "Filters",		5, NULL},
 	{	0, "Convertors",	6, NULL},
 	{	0, "Groups",		7, NULL},
+	{  0, "Mattes",      8, NULL},
 	{  -1, "", 			0, NULL}};
 
 /* do_node_addmenu() in header_node.c, prototype in BSE_headerbuttons.h */
@@ -1758,7 +1760,7 @@ void toolbox_n(void)
 	TBitem *menu1=NULL, *menu2=NULL, *menu3=NULL; 
 	TBitem *menu4=NULL, *menu5=NULL, *menu6=NULL;
 	TBitem *menu7=NULL, *groupmenu= NULL;
-	TBitem *node_add_gen= NULL, *node_add_group= NULL, *node_add_out= NULL, *node_add_in= NULL;
+	TBitem *node_add_gen= NULL, *node_add_group= NULL,*node_add_matte=NULL, *node_add_out= NULL, *node_add_in= NULL;
 	TBitem *node_add_op_col= NULL, *node_add_op_filt= NULL, *node_add_op_vec= NULL, *node_add_con= NULL;
 	int dx=0;
 	short event, mval[2], tot=0;
@@ -1940,6 +1942,7 @@ void toolbox_n(void)
 			node_add_op_vec= node_add_sublevel(&menu1[TB_CMP_OP_VECTOR].poin, snode->nodetree, NODE_CLASS_OP_VECTOR);
 			node_add_con= node_add_sublevel(&menu1[TB_CMP_CONVERTORS].poin, snode->nodetree, NODE_CLASS_CONVERTOR);
 			node_add_group= node_add_sublevel(&menu1[TB_CMP_GROUPS].poin, snode->nodetree, NODE_CLASS_GROUP);
+			node_add_matte= node_add_sublevel(&menu1[TB_CMP_MATTE].poin,snode->nodetree, NODE_CLASS_MATTE);
 		}
 		
 		dx= 96;
@@ -2040,6 +2043,7 @@ void toolbox_n(void)
 	if(node_add_con) MEM_freeN(node_add_con);
 	if(node_add_gen) MEM_freeN(node_add_gen);
 	if(node_add_group) MEM_freeN(node_add_group);
+	if(node_add_matte) MEM_freeN(node_add_matte);
 	
 	mywinset(curarea->win);
 }

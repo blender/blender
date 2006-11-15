@@ -2721,6 +2721,62 @@ void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 	}
 }
 
+void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv)
+{
+	float y, u, v;
+	y= 0.299*r + 0.587*g + 0.114*b;
+	u=-0.147*r - 0.289*g + 0.436*b;
+	v= 0.615*r - 0.515*g - 0.100*b;
+	
+	*ly=y;
+	*lu=u;
+	*lv=v;
+}
+
+void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb)
+{
+	float r, g, b;
+	r=y+1.140*v;
+	g=y-0.394*u - 0.581*v;
+	b=y+2.032*u;
+	
+	*lr=r;
+	*lg=g;
+	*lb=b;
+}
+
+void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr)
+{
+	float sr,sg, sb;
+	float y, cr, cb;
+	
+	sr=255.0*r;
+	sg=255.0*g;
+	sb=255.0*b;
+	
+	
+	y=(0.257*sr)+(0.504*sg)+(0.098*sb)+16.0;
+	cb=(-0.148*sr)-(0.291*sg)+(0.439*sb)+128.0;
+	cr=(0.439*sr)-(0.368*sg)-(0.071*sb)+128.0;
+	
+	*ly=y;
+	*lcb=cb;
+	*lcr=cr;
+}
+
+void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb)
+{
+	float r,g,b;
+	
+	r=1.164*(y-16)+1.596*(cr-128);
+	g=1.164*(y-16)-0.813*(cr-128)-0.392*(cb-128);
+	b=1.164*(y-16)+2.017*(cb-128);
+	
+	*lr=r/255.0;
+	*lg=g/255.0;
+	*lb=b/255.0;
+}
+
 void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
 {
 	unsigned int ri, gi, bi;
@@ -3015,7 +3071,7 @@ void mul_v3_v3m4(float *v1, float *v2, float mat[][4])
 {
 	float x, y;
 	
-	x= v2[0];	// work with a copy, v1 can be same as v2
+	x= v2[0];	/* work with a copy, v1 can be same as v2 */
 	y= v2[1];
 	v1[0]= x*mat[0][0] + y*mat[1][0] + mat[2][0]*v2[2] + mat[3][0];
 	v1[1]= x*mat[0][1] + y*mat[1][1] + mat[2][1]*v2[2] + mat[3][1];

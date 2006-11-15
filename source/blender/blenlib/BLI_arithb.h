@@ -684,8 +684,37 @@ hsv_to_rgb(
 	float *g, float *b
 );
 
-void hex_to_rgb(char *hexcol, float *r, float *g, float *b);
+	void 
+hex_to_rgb(
+	char *hexcol, 
+	float *r, 
+	float *g, 
+	float *b
+);
 
+	void 
+rgb_to_yuv(
+	float r, float g, float b, 
+	float *ly, float *lu, float *lv
+);
+
+	void 
+yuv_to_rgb(
+	float y, float u, float v, 
+	float *lr, float *lg, float *lb
+);
+
+	void 
+ycc_to_rgb(
+	float y, float cb, float cr, 
+	float *lr, float *lg, float *lb
+);
+
+	void 
+rgb_to_ycc(
+	float r, float g, float b, 
+	float *ly, float *lcb, float *lcr
+);
 	void 
 rgb_to_hsv(
 	float r, float g, float b, 

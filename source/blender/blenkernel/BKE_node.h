@@ -88,6 +88,7 @@ typedef struct bNodeType {
 #define NODE_CLASS_GROUP		6
 #define NODE_CLASS_FILE			7
 #define NODE_CLASS_CONVERTOR	8
+#define NODE_CLASS_MATTE	9
 
 /* ************** GENERIC API, TREES *************** */
 
@@ -229,10 +230,23 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_ZCOMBINE		226
 #define CMP_NODE_COMBRGBA		227
 #define CMP_NODE_DILATEERODE	228
+
+#define CMP_NODE_SEPYCCA		231
+#define CMP_NODE_COMBYCCA		232
+#define CMP_NODE_SEPYUVA		233
+#define CMP_NODE_COMBYUVA		234
+#define CMP_NODE_DIFF_MATTE		235
+#define CMP_NODE_COLOR_SPILL	236
+#define CMP_NODE_CHROMA			237
+#define CMP_NODE_LUMA			238
+
+/* filter types */
+
 #define CMP_NODE_ROTATE			229
 #define CMP_NODE_SCALE			230
 
 /* filter types, in custom1 */
+
 #define CMP_FILT_SOFT		0
 #define CMP_FILT_SHARP		1
 #define CMP_FILT_LAPLACE	2

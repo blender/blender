@@ -809,6 +809,45 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 			nif->sfra= G.scene->r.sfra;
 			nif->efra= G.scene->r.efra;
 		}
+		else if(type==CMP_NODE_DIFF_MATTE){
+			NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
+			node->storage= c;
+			c->t1= 0.01f;
+			c->t2= 0.01f;
+			c->t3= 0.01f;
+			c->fsize= 0.0f;
+			c->fstrength= 0.0f;
+			node->custom1= 1; /* RGB */
+		}
+		else if(type==CMP_NODE_COLOR_SPILL){
+			NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
+			node->storage=c;
+			c->t1= 0.0f;
+			c->t2= 0.0f;
+			c->t3= 0.0f;
+			c->fsize= 0.0f;
+			c->fstrength= 0.0f;
+			node->custom1= 1; /* red channel */
+		}
+		else if(type==CMP_NODE_CHROMA){
+			NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
+			node->storage= c;
+			c->t1= 0.0f;
+			c->t2= 0.0f;
+			c->t3= 0.0f;
+			c->fsize= 0.0f;
+			c->fstrength= 0.0f;
+			node->custom1= 1; /* green */
+		}
+		else if(type==CMP_NODE_LUMA){
+			NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
+			node->storage= c;
+			c->t1= 0.6f;
+			c->t2= 0.5f;
+			c->t3= 0.0f;
+			c->fsize= 0.0f;
+			c->fstrength= 0.0f;
+		}
 	}
 	
 	return node;

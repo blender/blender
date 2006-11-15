@@ -557,7 +557,7 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		ima->ibuf->rect_float= MEM_mallocN(4*rectx*recty*sizeof(float), "viewer rect");
 		
 		/* now we combine the input with ibuf */
-		cbuf= alloc_compbuf(rectx, recty, CB_RGBA, 0);	// no alloc
+		cbuf= alloc_compbuf(rectx, recty, CB_RGBA, 0);	/* no alloc*/
 		cbuf->rect= ima->ibuf->rect_float;
 		
 		/* when no alpha, we can simply copy */
@@ -3107,6 +3107,813 @@ static bNodeType cmp_node_dilateerode= {
 	/* execfunc    */	node_composit_exec_dilateerode
 };
 
+
+/* **************** SEPARATE YUVA ******************** */
+static bNodeSocketType cmp_node_sepyuva_in[]= {
+	{  SOCK_RGBA, 1, "Image",        0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{  -1, 0, ""   }
+};
+static bNodeSocketType cmp_node_sepyuva_out[]= {
+	{  SOCK_VALUE, 0, "Y",        0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{  SOCK_VALUE, 0, "U",        0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{  SOCK_VALUE, 0, "V",        0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{  SOCK_VALUE, 0, "A",        0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{  -1, 0, ""   }
+};
+
+static void do_sepyuva(bNode *node, float *out, float *in)
+{
+	float y, u, v;
+	
+	rgb_to_yuv(in[0], in[1], in[2], &y, &u, &v);
+	
+	out[0]= y;
+	out[1]= u;
+	out[2]= v;
+	out[3]= in[3];
+}
+
+static void node_composit_exec_sepyuva(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order out: bw channels */
+	/* stack order in: col */
+	
+	/* input no image? then only color operation */
+	if(in[0]->data==NULL) {
+		float y, u, v;
+	
+		rgb_to_yuv(in[0]->vec[0], in[0]->vec[1], in[0]->vec[2], &y, &u, &v);
+	
+		out[0]->vec[0] = y;
+		out[1]->vec[0] = u;
+		out[2]->vec[0] = v;
+		out[3]->vec[0] = in[0]->vec[3];
+	}
+	else if ((out[0]->hasoutput) || (out[1]->hasoutput) || (out[2]->hasoutput) || (out[3]->hasoutput)) {
+		/* make output size of input image */
+		CompBuf *cbuf= in[0]->data;
+	
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+	
+		/* convert the RGB stackbuf to an YUV representation */
+		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_sepyuva, CB_RGBA);
+	
+		/* separate each of those channels */
+		if(out[0]->hasoutput)
+			out[0]->data= valbuf_from_rgbabuf(stackbuf, CHAN_R);
+		if(out[1]->hasoutput)
+			out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_G);
+		if(out[2]->hasoutput)
+			out[2]->data= valbuf_from_rgbabuf(stackbuf, CHAN_B);
+		if(out[3]->hasoutput)
+			out[3]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
+	
+		free_compbuf(stackbuf);
+	}
+}
+
+static bNodeType cmp_node_sepyuva= {
+	/* type code   */ CMP_NODE_SEPYUVA,
+	/* name        */ "Separate YUVA",
+	/* width+range */ 80, 40, 140,
+	/* class+opts  */ NODE_CLASS_CONVERTOR, 0,
+	/* input sock  */ cmp_node_sepyuva_in,
+	/* output sock */ cmp_node_sepyuva_out,
+	/* storage     */ "",
+	/* execfunc    */ node_composit_exec_sepyuva
+};
+
+/* **************** SEPARATE YCCA ******************** */
+static bNodeSocketType cmp_node_sepycca_in[]= {
+	{  SOCK_RGBA, 1, "Image",        0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{  -1, 0, ""   }
+};
+static bNodeSocketType cmp_node_sepycca_out[]= {
+	{  SOCK_VALUE, 0, "Y",        0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{  SOCK_VALUE, 0, "Cb",       0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{  SOCK_VALUE, 0, "Cr",       0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{  SOCK_VALUE, 0, "A",        0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{  -1, 0, ""   }
+};
+
+static void do_sepycca(bNode *node, float *out, float *in)
+{
+	float y, cb, cr;
+	
+	rgb_to_ycc(in[0], in[1], in[2], &y, &cb, &cr);
+	
+	/*divided by 255 to normalize for viewing in */
+	out[0]= y/255.0;
+	out[1]= cb/255.0;
+	out[2]= cr/255.0;
+	out[3]= in[3];
+}
+
+static void node_composit_exec_sepycca(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* input no image? then only color operation */
+	if(in[0]->data==NULL) {
+		float y, cb, cr;
+	
+		rgb_to_ycc(in[0]->vec[0], in[0]->vec[1], in[0]->vec[2], &y, &cb, &cr);
+	
+		/*divided by 255 to normalize for viewing in */
+		out[0]->vec[0] = y/255.0;
+		out[1]->vec[0] = cb/255.0;
+		out[2]->vec[0] = cr/255.0;
+		out[3]->vec[0] = in[0]->vec[3];
+	}
+	else if ((out[0]->hasoutput) || (out[1]->hasoutput) || (out[2]->hasoutput) || (out[3]->hasoutput)) {
+		/* make output size of input image */
+		CompBuf *cbuf= in[0]->data;
+	
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+	
+		/* convert the RGB stackbuf to an HSV representation */
+		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_sepycca, CB_RGBA);
+	
+		/* separate each of those channels */
+		if(out[0]->hasoutput)
+			out[0]->data= valbuf_from_rgbabuf(stackbuf, CHAN_R);
+		if(out[1]->hasoutput)
+			out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_G);
+		if(out[2]->hasoutput)
+			out[2]->data= valbuf_from_rgbabuf(stackbuf, CHAN_B);
+		if(out[3]->hasoutput)
+			out[3]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
+	
+		free_compbuf(stackbuf);
+	}
+}
+
+static bNodeType cmp_node_sepycca= {
+	/* type code   */ CMP_NODE_SEPYCCA,
+	/* name        */ "Separate YCbCrA",
+	/* width+range */ 80, 40, 140,
+	/* class+opts  */ NODE_CLASS_CONVERTOR, 0,
+	/* input sock  */ cmp_node_sepycca_in,
+	/* output sock */ cmp_node_sepycca_out,
+	/* storage     */ "",
+	/* execfunc    */ node_composit_exec_sepycca
+};
+
+
+/* ******************* channel Difference Matte ********************************* */
+static bNodeSocketType cmp_node_diff_matte_in[]={
+	{SOCK_RGBA,1,"Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{SOCK_RGBA,1,"Key Color", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{-1,0,""}
+};
+
+static bNodeSocketType cmp_node_diff_matte_out[]={
+	{SOCK_RGBA,0,"Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{SOCK_VALUE,0,"Matte",0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{-1,0,""}
+};
+
+static void do_rgba_to_yuva(bNode *node, float *out, float *in)
+{
+	rgb_to_yuv(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+			out[3]=in[3];
+}
+
+static void do_rgba_to_hsva(bNode *node, float *out, float *in)
+{
+	rgb_to_hsv(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+			out[3]=in[3];
+}
+
+static void do_rgba_to_ycca(bNode *node, float *out, float *in)
+{
+	rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+			out[3]=in[3];
+}
+
+static void do_yuva_to_rgba(bNode *node, float *out, float *in)
+{
+	yuv_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+			out[3]=in[3];
+}
+
+static void do_hsva_to_rgba(bNode *node, float *out, float *in)
+{
+	hsv_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+			out[3]=in[3];
+}
+
+static void do_ycca_to_rgba(bNode *node, float *out, float *in)
+{
+	ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+			out[3]=in[3];
+}
+
+/* note, keyvals is passed on from caller as stack array */
+/* might have been nicer as temp struct though... */
+static void do_diff_matte(bNode *node, float *colorbuf, float *inbuf, float *keyvals)
+{
+	NodeChroma *c= (NodeChroma *)node->storage;
+	float *keymin= keyvals;
+	float *keymax= keyvals+3;
+	float *key=    keyvals+6;
+	float tolerance= keyvals[9];
+	float distance, alpha;
+	
+	/*process the pixel if it is close to the key or already transparent*/
+	if(((colorbuf[0]>keymin[0] && colorbuf[0]<keymax[0]) &&
+		(colorbuf[1]>keymin[1] && colorbuf[1]<keymax[1]) &&
+		(colorbuf[2]>keymin[2] && colorbuf[2]<keymax[2])) || inbuf[3]<1.0f) {
+		
+		/*true distance from key*/
+		distance= sqrt((colorbuf[0]-key[0])*(colorbuf[0]-key[0])+
+					  (colorbuf[1]-key[1])*(colorbuf[1]-key[1])+
+					  (colorbuf[2]-key[2])*(colorbuf[2]-key[2]));
+		
+		/*is it less transparent than the prevous pixel*/
+		alpha= distance/tolerance;
+		if(alpha > inbuf[3]) alpha= inbuf[3];
+		if(alpha > c->fstrength) alpha= 0.0f;
+		
+		/*clamp*/
+		if (alpha>1.0f) alpha=1.0f;
+		if (alpha<0.0f) alpha=0.0f;
+		
+		/*premultiplied picture*/
+		colorbuf[3]= alpha;
+	}
+	else {
+		/*foreground object*/
+		colorbuf[3]= inbuf[3];
+	}
+}
+
+static void node_composit_exec_diff_matte(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/*
+	Losely based on the Sequencer chroma key plug-in, but enhanced to work in other color spaces and
+	uses a differnt difference function (suggested in forums of vfxtalk.com).
+	*/
+	CompBuf *outbuf;
+	CompBuf *colorbuf;
+	CompBuf *inbuf;
+	NodeChroma *c;
+	float keyvals[10];
+	float *keymin= keyvals;
+	float *keymax= keyvals+3;
+	float *key=    keyvals+6;
+	float *tolerance= keyvals+9;
+	float t[3];
+	
+	/*is anything connected?*/
+	if(out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
+	/*must have an image imput*/
+	if(in[0]->data==NULL) return;
+	
+	inbuf=in[0]->data;
+	if(inbuf->type!=CB_RGBA) return;
+	
+	c=node->storage;
+	colorbuf=dupalloc_compbuf(inbuf);
+	outbuf=alloc_compbuf(inbuf->x,inbuf->y,CB_RGBA,1);
+	
+	/*use the input color*/
+	key[0]= in[1]->vec[0];
+	key[1]= in[1]->vec[1];
+	key[2]= in[1]->vec[2];
+	
+	/*get the tolerances from the UI*/
+	t[0]=c->t1;
+	t[1]=c->t2;
+	t[2]=c->t3;
+	
+	/*convert to colorspace*/
+	switch(node->custom1) {
+		case 1: /*RGB*/
+				break;
+		case 2: /*HSV*/
+		/*convert the key (in place)*/
+			rgb_to_hsv(key[0], key[1], key[2], &key[0], &key[1], &key[2]);
+			composit1_pixel_processor(node, colorbuf, inbuf, in[1]->vec, do_rgba_to_hsva, CB_RGBA);
+			break;
+		case 3: /*YUV*/
+			rgb_to_yuv(key[0], key[1], key[2], &key[0], &key[1], &key[2]);
+			composit1_pixel_processor(node, colorbuf, inbuf, in[1]->vec, do_rgba_to_yuva, CB_RGBA);
+			break;
+		case 4: /*YCC*/
+			rgb_to_ycc(key[0], key[1], key[2], &key[0], &key[1], &key[2]);
+			composit1_pixel_processor(node, colorbuf, inbuf, in[1]->vec, do_rgba_to_ycca, CB_RGBA);
+			/*account for ycc is on a 0..255 scale*/
+			t[0]= c->t1*255.0;
+			t[1]= c->t2*255.0;
+			t[2]= c->t3*255.0;
+			break;
+		default:
+				break;
+	}
+	
+	/*find min/max tolerances*/
+	keymin[0]= key[0]-t[0];
+	keymin[1]= key[1]-t[1];
+	keymin[2]= key[2]-t[2];
+	keymax[0]= key[0]+t[0];
+	keymax[1]= key[1]+t[1];
+	keymax[2]= key[2]+t[2];
+	
+	/*tolerance*/
+	*tolerance= sqrt((t[0])*(t[0])+
+					(t[1])*(t[1])+
+					(t[2])*(t[2]));
+	
+	/* note, processor gets a keyvals array passed on as buffer constant */
+	composit2_pixel_processor(node, colorbuf, inbuf, in[0]->vec, NULL, keyvals, do_diff_matte, CB_RGBA, CB_VAL);
+	
+	/*convert back to RGB colorspace*/
+	switch(node->custom1) {
+		case 1: /*RGB*/
+			composit1_pixel_processor(node, outbuf, colorbuf, in[1]->vec, do_copy_rgba, CB_RGBA);
+			break;
+		case 2: /*HSV*/
+			composit1_pixel_processor(node, outbuf, colorbuf, in[1]->vec, do_hsva_to_rgba, CB_RGBA);
+			break;
+		case 3: /*YUV*/
+			composit1_pixel_processor(node, outbuf, colorbuf, in[1]->vec, do_yuva_to_rgba, CB_RGBA);
+			break;
+		case 4: /*YCC*/
+			composit1_pixel_processor(node, outbuf, colorbuf, in[1]->vec, do_ycca_to_rgba, CB_RGBA);
+			break;
+		default:
+			break;
+	}
+	
+	free_compbuf(colorbuf);
+	
+	out[0]->data=outbuf;
+	out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
+	generate_preview(node, outbuf);
+}
+
+static bNodeType cmp_node_diff_matte={
+	/* type code   */       CMP_NODE_DIFF_MATTE,
+	/* name        */       "Channel Difference Matte",
+	/* width+range */       200, 80, 250,
+	/* class+opts  */       NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
+	/* input sock  */       cmp_node_diff_matte_in,
+	/* output sock */       cmp_node_diff_matte_out,
+	/* storage     */       "NodeChroma",
+	/* execfunc    */       node_composit_exec_diff_matte
+};
+
+
+/* ******************* Color Spill Supression ********************************* */
+static bNodeSocketType cmp_node_color_spill_in[]={
+	{SOCK_RGBA,1,"Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{-1,0,""}
+};
+
+static bNodeSocketType cmp_node_color_spill_out[]={
+	{SOCK_RGBA,0,"Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{-1,0,""}
+};
+
+static void do_reduce_red(bNode *node, float* out, float *in)
+{
+	NodeChroma *c;
+	c=node->storage;
+	
+	if(in[0] > in[1] && in[0] > in[2]) {
+		out[0]=((in[1]+in[2])/2)*(1-c->t1);
+	}
+}
+
+static void do_reduce_green(bNode *node, float* out, float *in)
+{
+	NodeChroma *c;
+	c=node->storage;
+	
+	if(in[1] > in[0] && in[1] > in[2]) {
+		out[1]=((in[0]+in[2])/2)*(1-c->t1);
+	}
+}
+
+static void do_reduce_blue(bNode *node, float* out, float *in)
+{
+	NodeChroma *c;
+	c=node->storage;
+	
+	if(in[2] > in[1] && in[2] > in[1]) {
+		out[2]=((in[1]+in[0])/2)*(1-c->t1);
+	}
+}
+
+static void node_composit_exec_color_spill(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/*
+	Originally based on the information from the book "The Art and Science of Digital Composition" and 
+	discussions from vfxtalk.com.*/
+	CompBuf *cbuf;
+	CompBuf *rgbbuf;
+	
+	if(out[0]->hasoutput==0 || in[0]->hasinput==0) return;
+	if(in[0]->data==NULL) return;
+	
+	cbuf=in[0]->data;
+	/*is it an RGBA image?*/
+	if(cbuf->type==CB_RGBA) {
+		
+		rgbbuf=dupalloc_compbuf(cbuf);
+		switch(node->custom1)
+		{
+		case 1:  /*red spill*/
+			{
+				composit1_pixel_processor(node, rgbbuf, cbuf, in[1]->vec, do_reduce_red, CB_RGBA);
+				break;
+			}
+		case 2: /*green spill*/
+			{
+				composit1_pixel_processor(node, rgbbuf, cbuf, in[1]->vec, do_reduce_green, CB_RGBA);
+				break;
+			}
+		case 3: /*blue spill*/
+			{
+				composit1_pixel_processor(node, rgbbuf, cbuf, in[1]->vec, do_reduce_blue, CB_RGBA);
+				break;
+			}
+		default:
+			break;
+		}
+	
+		out[0]->data=rgbbuf;
+	}
+	else {
+		return;
+	}
+}
+
+static bNodeType cmp_node_color_spill={
+	/* type code   */       CMP_NODE_COLOR_SPILL,
+	/* name        */       "Color Spill",
+	/* width+range */       140, 80, 200,
+	/* class+opts  */       NODE_CLASS_MATTE, NODE_OPTIONS,
+	/* input sock  */       cmp_node_color_spill_in,
+	/* output sock */       cmp_node_color_spill_out,
+	/* storage     */       "NodeChroma",
+	/* execfunc    */       node_composit_exec_color_spill
+};
+
+/* ******************* Chroma Key ********************************************************** */
+static bNodeSocketType cmp_node_chroma_in[]={
+	{SOCK_RGBA,1,"Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{SOCK_RGBA,1,"Key Color", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{-1,0,""}
+};
+
+static bNodeSocketType cmp_node_chroma_out[]={
+	{SOCK_RGBA,0,"Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{SOCK_VALUE,0,"Matte",0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{-1,0,""}
+};
+
+static void do_rgba_to_ycca_normalized(bNode *node, float *out, float *in)
+{
+	rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+	out[0]=(out[0])/255;
+	out[1]=(out[1])/256;
+	out[2]=(out[2])/256;
+	out[3]=in[3];
+}
+
+static void do_normalized_ycca_to_rgba(bNode *node, float *out, float *in)
+{
+	in[0]=in[0]*255;  
+	in[1]=in[1]*256;
+	in[2]=in[2]*256;
+	ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+	out[3]=in[3];
+}
+
+static void do_chroma_key(bNode *node, float *out, float *in)
+{
+	/* Algorithm of my own design-Bob Holcomb */
+
+	/* alpha value is written to in[3] because it is done "in place" so that the value gets copied to the rgbbuffer in
+		the second pixel processor opertation */
+	NodeChroma *c;
+	float x, z, alpha;
+	
+	c=node->storage;
+	
+	switch(node->custom1)
+	{
+		case 1:  /*green*/
+		{
+			x=(atanf((c->t1*in[1])-(c->t1*c->t2))+1)/2;
+			z=(atanf((c->t3*in[2])-(c->t3*c->fsize))+1)/2;
+			break;
+		}
+		case 2:  /*blue*/
+		{
+			x=(atanf((c->t1*in[1])-(c->t1*c->t2))+1)/2;
+			z=(atanf((c->t3*in[2])-(c->t3*c->fsize))+1)/2;
+			x=1-x;
+			break;
+		}
+		default:
+			break;
+	}
+	
+	/*is chroma values (added) less than strenght?*/
+	if((x+z) < c->fstrength) {
+		alpha=ABS(c->key[0]-in[0]);  /*differnce in luminence*/
+		if(alpha > c->falpha) alpha=0;
+		in[3]=alpha;
+	}
+	else {
+		in[3]=1.0;
+	}
+}
+
+static void node_composit_exec_chroma(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	CompBuf *rgbbuf,*inbuf;
+	CompBuf *chromabuf;
+	NodeChroma *c;
+	
+	if(out[0]->hasoutput==0 || in[0]->hasinput==0) return;
+	if(in[0]->data==NULL) return;
+	
+	inbuf= in[0]->data;
+	if(inbuf->type!=CB_RGBA) return;
+	
+	rgbbuf= dupalloc_compbuf(inbuf);
+	chromabuf= dupalloc_compbuf(rgbbuf);
+	
+	c=node->storage;
+	c->key[0]= in[1]->vec[0];
+	c->key[1]= in[1]->vec[1];
+	c->key[2]= in[1]->vec[2];
+	
+	/*convert rgbbuf to normalized chroma space*/
+	composit1_pixel_processor(node, chromabuf, inbuf, in[1]->vec, do_rgba_to_ycca_normalized, CB_RGBA);
+	
+	/*per pixel chroma key*/
+	composit1_pixel_processor(node, rgbbuf, chromabuf, in[1]->vec, do_chroma_key, CB_RGBA);
+	
+	/*convert back*/
+	composit1_pixel_processor(node, rgbbuf, chromabuf, in[1]->vec, do_normalized_ycca_to_rgba, CB_RGBA);
+	
+	/*cleanup */
+	free_compbuf(chromabuf);
+	
+	out[0]->data= rgbbuf;
+	if(out[1]->hasoutput)
+		out[1]->data= valbuf_from_rgbabuf(rgbbuf, CHAN_A);
+	
+	generate_preview(node, rgbbuf);
+};
+
+static bNodeType cmp_node_chroma={
+	/* type code   */       CMP_NODE_CHROMA,
+	/* name        */       "Chroma Key",
+	/* width+range */       200, 80, 300,
+	/* class+opts  */       NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
+	/* input sock  */       cmp_node_chroma_in,
+	/* output sock */       cmp_node_chroma_out,
+	/* storage     */       "NodeChroma",
+	/* execfunc    */       node_composit_exec_chroma
+};
+
+/* ******************* Luminence Key ********************************************************** */
+static bNodeSocketType cmp_node_luma_in[]={
+	{SOCK_RGBA,1,"Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{SOCK_RGBA,1,"Key Color", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{-1,0,""}
+};
+
+static bNodeSocketType cmp_node_luma_out[]={
+	{SOCK_RGBA,0,"Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{SOCK_VALUE,0,"Matte",0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{-1,0,""}
+};
+
+static void do_luma_key(bNode *node, float *out, float *in)
+{
+	/* Algorithm from Video Demistified */
+
+	/* alpha value is written to in[3] because it is done in place for the conversion back to rgb space in 
+		second pixel processor */
+	
+	NodeChroma *c;
+
+	c=node->storage;
+
+	if(in[0] > c->t1) { /*Luminence is greater than high, then foreground */
+		in[3]=1.0;
+	}
+	else if(in[0] <c->t2) {/*Luminence is less than low, then background */
+		in[3]=0.0;
+	}
+	
+	else { /*key value from mix*/
+		/*keep div by 0 from happening */
+		if(c->t1==c->t2) {
+			c->t1+=0.0001;
+		}
+	
+		/*mix*/
+		in[3]=(in[0]-c->t2)/(c->t1-c->t2);
+	}
+}
+
+static void node_composit_exec_luma(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	CompBuf *rgbbuf,*inbuf;
+	CompBuf *chromabuf;
+	
+	if(out[0]->hasoutput==0 || in[0]->hasinput==0) return;
+	if(in[0]->data==NULL) return;
+	
+	inbuf= in[0]->data;
+	if(inbuf->type!=CB_RGBA) return;
+	
+	rgbbuf= dupalloc_compbuf(inbuf);
+	chromabuf= dupalloc_compbuf(rgbbuf);
+	
+	/*convert rgbbuf to normalized chroma space*/
+	composit1_pixel_processor(node, chromabuf, inbuf, in[1]->vec, do_rgba_to_ycca_normalized, CB_RGBA);
+	
+	/*per pixel chroma key*/
+	composit1_pixel_processor(node, rgbbuf, chromabuf, in[1]->vec, do_luma_key, CB_RGBA);
+	
+	/*convert back*/
+	composit1_pixel_processor(node, rgbbuf, chromabuf, in[1]->vec, do_normalized_ycca_to_rgba, CB_RGBA);
+	
+	/*cleanup */
+	free_compbuf(chromabuf);
+	
+	out[0]->data= rgbbuf;
+	if(out[1]->hasoutput)
+		out[1]->data= valbuf_from_rgbabuf(rgbbuf, CHAN_A);
+	
+	generate_preview(node, rgbbuf);
+}
+
+static bNodeType cmp_node_luma={
+	/* type code   */       CMP_NODE_LUMA,
+	/* name        */       "Luminance Key",
+	/* width+range */       200, 80, 300,
+	/* class+opts  */       NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
+	/* input sock  */       cmp_node_luma_in,
+	/* output sock */       cmp_node_luma_out,
+	/* storage     */       "NodeChroma",
+	/* execfunc    */       node_composit_exec_luma
+};
+
+
+
+/* **************** COMBINE YCCA ******************** */
+static bNodeSocketType cmp_node_combycca_in[]= {
+	{	SOCK_VALUE, 1, "Y",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Cb",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Cr",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "A",			1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_combycca_out[]= {
+	{	SOCK_RGBA, 0, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void do_comb_ycca(bNode *node, float *out, float *in1, float *in2, float *in3, float *in4)
+{
+	float r,g,b;
+	float y, cb, cr;
+
+	/*need to un-normalize the data*/
+	y=in1[0]*255;
+	cb=in2[0]*255;
+	cr=in3[0]*255;
+
+	ycc_to_rgb(y,cb,cr, &r, &g, &b);
+	
+	out[0] = r;
+	out[1] = g;
+	out[2] = b;
+	out[3] = in4[0];
+}
+
+static void node_composit_exec_combycca(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order out: 1 ycca channels */
+	/* stack order in: 4 value channels */
+	
+	/* input no image? then only color operation */
+	if((in[0]->data==NULL) && (in[1]->data==NULL) && (in[2]->data==NULL) && (in[3]->data==NULL)) {
+		out[0]->vec[0] = in[0]->vec[0];
+		out[0]->vec[1] = in[1]->vec[0];
+		out[0]->vec[2] = in[2]->vec[0];
+		out[0]->vec[3] = in[3]->vec[0];
+	}
+	else {
+		/* make output size of first available input image */
+		CompBuf *cbuf;
+		CompBuf *stackbuf;
+
+		/* allocate a CompBuf the size of the first available input */
+		if (in[0]->data) cbuf = in[0]->data;
+		else if (in[1]->data) cbuf = in[1]->data;
+		else if (in[2]->data) cbuf = in[2]->data;
+		else cbuf = in[3]->data;
+		
+		stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		
+		composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, 
+								  in[2]->data, in[2]->vec, in[3]->data, in[3]->vec, 
+								  do_comb_ycca, CB_VAL, CB_VAL, CB_VAL, CB_VAL);
+
+		out[0]->data= stackbuf;
+	}	
+}
+
+static bNodeType cmp_node_combycca= {
+	/* type code   */	CMP_NODE_COMBYCCA,
+	/* name        */	"Combine YCbCrA",
+	/* width+range */	80, 40, 140,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_combycca_in,
+	/* output sock */	cmp_node_combycca_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_combycca
+};
+
+
+/* **************** COMBINE YUVA ******************** */
+static bNodeSocketType cmp_node_combyuva_in[]= {
+	{	SOCK_VALUE, 1, "Y",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "U",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "V",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "A",			1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_combyuva_out[]= {
+	{	SOCK_RGBA, 0, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void do_comb_yuva(bNode *node, float *out, float *in1, float *in2, float *in3, float *in4)
+{
+	float r,g,b;
+	yuv_to_rgb(in1[0], in2[0], in3[0], &r, &g, &b);
+	
+	out[0] = r;
+	out[1] = g;
+	out[2] = b;
+	out[3] = in4[0];
+}
+
+static void node_composit_exec_combyuva(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order out: 1 rgba channels */
+	/* stack order in: 4 value channels */
+	
+	/* input no image? then only color operation */
+	if((in[0]->data==NULL) && (in[1]->data==NULL) && (in[2]->data==NULL) && (in[3]->data==NULL)) {
+		out[0]->vec[0] = in[0]->vec[0];
+		out[0]->vec[1] = in[1]->vec[0];
+		out[0]->vec[2] = in[2]->vec[0];
+		out[0]->vec[3] = in[3]->vec[0];
+	}
+	else {
+		/* make output size of first available input image */
+		CompBuf *cbuf;
+		CompBuf *stackbuf;
+
+		/* allocate a CompBuf the size of the first available input */
+		if (in[0]->data) cbuf = in[0]->data;
+		else if (in[1]->data) cbuf = in[1]->data;
+		else if (in[2]->data) cbuf = in[2]->data;
+		else cbuf = in[3]->data;
+		
+		stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		
+		composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, 
+								  in[2]->data, in[2]->vec, in[3]->data, in[3]->vec, 
+								  do_comb_yuva, CB_VAL, CB_VAL, CB_VAL, CB_VAL);
+
+		out[0]->data= stackbuf;
+	}	
+}
+
+static bNodeType cmp_node_combyuva= {
+	/* type code   */	CMP_NODE_COMBYUVA,
+	/* name        */	"Combine YUVA",
+	/* width+range */	80, 40, 140,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_combyuva_in,
+	/* output sock */	cmp_node_combyuva_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_combyuva
+};
+
+
 /* **************** Rotate  ******************** */
 
 static bNodeSocketType cmp_node_rotate_in[]= {
@@ -3195,7 +4002,6 @@ static void node_composit_exec_rotate(void *data, bNode *node, bNodeStack **in, 
 				bilinear_interpolation_rotate(cbuf, ofp, u, v);
 			}
 		}
-		
 		out[0]->data= stackbuf;
 		if(cbuf!=in[0]->data)
 			free_compbuf(cbuf);
@@ -3293,6 +4099,7 @@ static bNodeType cmp_node_scale= {
 	/* execfunc    */	node_composit_exec_scale
 };
 
+
 /* ****************** types array for all shaders ****************** */
 
 bNodeType *node_all_composit[]= {
@@ -3325,8 +4132,16 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_translate,
 	&cmp_node_zcombine,
 	&cmp_node_dilateerode,
+	&cmp_node_sepyuva,
+	&cmp_node_combyuva,
+	&cmp_node_sepycca,
+	&cmp_node_combycca,
+	&cmp_node_diff_matte,
+	&cmp_node_color_spill,
+	&cmp_node_chroma,
 	&cmp_node_rotate,
 	&cmp_node_scale,
+	&cmp_node_luma,
 	NULL
 };
 
