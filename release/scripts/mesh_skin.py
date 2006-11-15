@@ -76,7 +76,7 @@ class edge:
 		self.removed = 0	# Have we been culled from the eloop
 		self.match = None	# The other edge were making a face with
 		
-		self.cent= (co1+co2)*0.5
+		self.cent= Mathutils.MidpointVecs(co1, co2)
 		self.angle= 0.0
 
 class edgeLoop:
@@ -248,10 +248,13 @@ def getSelectedEdges(me, ob):
 				return i1, i2
 		
 		# value is [edge, face_sel_user_in]
+		'''
 		try: # Python 2.4 only
 			edge_dict=  dict((ed_key(ed), [ed, 0]) for ed in me.edges)
 		except:
-			edge_dict=  dict([(ed_key(ed), [ed, 0]) for ed in me.edges])
+		'''
+		# Cant try 2.4 syntax because python 2.3 will complain still
+		edge_dict=  dict([(ed_key(ed), [ed, 0]) for ed in me.edges])
 		
 		for f in me.faces:
 			if f.sel:
@@ -374,7 +377,7 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 				ed_dir= e1.cent-e2.cent
 				a_diff= AngleBetweenVecs(DIR, ed_dir)/18 # 0 t0 18
 				
-				totEloopDist += (diff * (1+a_diff)) / loopDist
+				totEloopDist += (diff * (1+a_diff)) / (1+loopDist)
 				
 				# Premeture break if where no better off
 				if totEloopDist > bestEloopDist:
