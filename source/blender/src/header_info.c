@@ -320,7 +320,7 @@ Scene *copy_scene(Scene *sce, int level)
 	obase= sce->base.first;
 	base= scen->base.first;
 	while(base) {
-		base->object->id.us++;
+		id_us_plus(&base->object->id);
 		if(obase==sce->basact) scen->basact= base;
 
 		obase= obase->next;
@@ -340,7 +340,7 @@ Scene *copy_scene(Scene *sce, int level)
 	/* level 2 */
 	if(level>=2) {
 		if(scen->world) {
-			scen->world->id.us--;
+			id_us_plus(&scen->world->id);
 			scen->world= copy_world(scen->world);
 		}
 		single_obdata_users(0);
