@@ -1197,7 +1197,7 @@ void load_editMesh(void)
 	me->mcol = CustomData_get(&mfdata, 0, LAYERTYPE_MCOL);
 	CustomData_free(&mfdata);
 
-	/* patch hook indices */
+	/* patch hook indices and vertex parents */
 	{
 		Object *ob;
 		ModifierData *md;
@@ -1205,6 +1205,31 @@ void load_editMesh(void)
 		int i,j;
 
 		for (ob=G.main->object.first; ob; ob=ob->id.next) {
+			if (ob->parent==G.obedit && ELEM(ob->partype, PARVERT1,PARVERT3)) {
+				
+				/* duplicate code from below, make it function later...? */
+				if (!vertMap) {
+					vertMap = MEM_callocN(sizeof(*vertMap)*ototvert, "vertMap");
+					
+					for (eve=em->verts.first; eve; eve=eve->next) {
+						if (eve->keyindex!=-1)
+							vertMap[eve->keyindex] = eve;
+					}
+				}
+				if(ob->par1 < ototvert) {
+					eve = vertMap[ob->par1];
+					if(eve) ob->par1= eve->tmp.l;
+				}
+				if(ob->par2 < ototvert) {
+					eve = vertMap[ob->par2];
+					if(eve) ob->par2= eve->tmp.l;
+				}
+				if(ob->par3 < ototvert) {
+					eve = vertMap[ob->par3];
+					if(eve) ob->par3= eve->tmp.l;
+				}
+				
+			}
 			if (ob->data==me) {
 				for (md=ob->modifiers.first; md; md=md->next) {
 					if (md->type==eModifierType_Hook) {

@@ -1308,11 +1308,8 @@ static void give_parvert(Object *par, int nr, float *vec)
 			EditMesh *em = G.editMesh;
 			EditVert *eve;
 			
-			if(nr >= G.totvert) nr= 0;
-
-			count= 0;
-			for(eve= em->verts.first; eve; eve= eve->next, count++) {
-				if(count==nr) {
+			for(eve= em->verts.first; eve; eve= eve->next) {
+				if(eve->keyindex==nr) {
 					memcpy(vec, eve->co, 12);
 					break;
 				}
