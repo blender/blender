@@ -3572,58 +3572,6 @@ void make_links(short event)
 	BIF_undo_push("Create links");
 }
 
-void make_duplilist_real()
-{
-	Base *base, *basen;
-	Object *ob;
-/*	extern ListBase duplilist; */
-	
-	if(okee("Make dupli objects real")==0) return;
-	
-	base= FIRSTBASE;
-	while(base) {
-		if TESTBASELIB(base) {
-
-			if(base->object->transflag & OB_DUPLI) {
-				ListBase *lb= object_duplilist(G.scene, base->object);
-				DupliObject *dob;
-
-				for(dob= lb->first; dob; dob= dob->next) {
-					ob= copy_object(dob->ob);
-					/* font duplis can have a totcol without material, we get them from parent
-					 * should be implemented better...
-					 */
-					if(ob->mat==NULL) ob->totcol= 0;
-					
-					basen= MEM_dupallocN(base);
-					basen->flag &= ~OB_FROMDUPLI;
-					BLI_addhead(&G.scene->base, basen);	/* addhead: othwise eternal loop */
-					basen->object= ob;
-					ob->ipo= NULL;		/* make sure apply works */
-					ob->parent= ob->track= NULL;
-					ob->disp.first= ob->disp.last= NULL;
-					ob->transflag &= ~OB_DUPLI;	
-					
-					Mat4CpyMat4(ob->obmat, dob->mat);
-					apply_obmat(ob);
-				}
-				
-				free_object_duplilist(lb);
-				
-				base->object->transflag &= ~OB_DUPLI;	
-			}
-		}
-		base= base->next;
-	}
-	
-	DAG_scene_sort(G.scene);
-	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWOOPS, 0);
-	
-	BIF_undo_push("Make duplicates real");
-}
-
 void apply_object()
 {
 	Base *base, *basact;
@@ -4574,11 +4522,117 @@ void make_local(int mode)
 	BIF_undo_push("Make local");
 }
 
-static void adduplicate__forwardModifierLinks(void *userData, Object *ob,
+static void copy_object__forwardModifierLinks(void *userData, Object *ob,
                                               ID **idpoin)
 {
 	/* this is copied from ID_NEW; it might be better to have a macro */
 	if(*idpoin && (*idpoin)->newid) *idpoin = (*idpoin)->newid;
+}
+
+
+/* after copying objects, copied data should get new pointers */
+static void copy_object_set_idnew(int dupflag)
+{
+	Base *base;
+	Object *ob;
+	Material *ma, *mao;
+	ID *id;
+	Ipo *ipo;
+	bActionStrip *strip;
+	int a;
+	
+	/* check object pointers */
+	for(base= FIRSTBASE; base; base= base->next) {
+		if TESTBASELIB(base) {
+			ob= base->object;
+			relink_constraints(&ob->constraints);
+			if (ob->pose){
+				bPoseChannel *chan;
+				for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
+					relink_constraints(&chan->constraints);
+				}
+			}
+			modifiers_foreachIDLink(ob, copy_object__forwardModifierLinks, NULL);
+			ID_NEW(ob->parent);
+			ID_NEW(ob->track);
+			ID_NEW(ob->proxy);
+			ID_NEW(ob->proxy_group);
+			
+			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+				bActionModifier *amod;
+				for(amod= strip->modifiers.first; amod; amod= amod->next)
+					ID_NEW(amod->ob);
+			}
+		}
+	}
+	
+	/* materials */
+	if( dupflag & USER_DUP_MAT) {
+		mao= G.main->mat.first;
+		while(mao) {
+			if(mao->id.newid) {
+				
+				ma= (Material *)mao->id.newid;
+				
+				if(dupflag & USER_DUP_TEX) {
+					for(a=0; a<MAX_MTEX; a++) {
+						if(ma->mtex[a]) {
+							id= (ID *)ma->mtex[a]->tex;
+							if(id) {
+								ID_NEW_US(ma->mtex[a]->tex)
+								else ma->mtex[a]->tex= copy_texture(ma->mtex[a]->tex);
+								id->us--;
+							}
+						}
+					}
+				}
+				id= (ID *)ma->ipo;
+				if(id) {
+					ID_NEW_US(ma->ipo)
+					else ma->ipo= copy_ipo(ma->ipo);
+					id->us--;
+				}
+			}
+			mao= mao->id.next;
+		}
+	}
+	
+	/* lamps */
+	if( dupflag & USER_DUP_IPO) {
+		Lamp *la= G.main->lamp.first;
+		while(la) {
+			if(la->id.newid) {
+				Lamp *lan= (Lamp *)la->id.newid;
+				id= (ID *)lan->ipo;
+				if(id) {
+					ID_NEW_US(lan->ipo)
+					else lan->ipo= copy_ipo(lan->ipo);
+					id->us--;
+				}
+			}
+			la= la->id.next;
+		}
+	}
+	
+	/* ipos */
+	ipo= G.main->ipo.first;
+	while(ipo) {
+		if(ipo->id.lib==NULL && ipo->id.newid) {
+			Ipo *ipon= (Ipo *)ipo->id.newid;
+			IpoCurve *icu;
+			for(icu= ipon->curve.first; icu; icu= icu->next) {
+				if(icu->driver) {
+					ID_NEW(icu->driver->ob);
+				}
+			}
+		}
+		ipo= ipo->id.next;
+	}
+	
+	set_sca_new_poins();
+	
+	clear_id_newpoins();
+
 }
 
 /* This function duplicated the current visible selection, its used by Duplicate and Linked Duplicate
@@ -4596,12 +4650,9 @@ dupflag: a flag made from constants declared in DNA_userdef_types.h
 void adduplicate(int mode, int dupflag)
 {
 	Base *base, *basen;
+	Material ***matarar;
 	Object *ob, *obn;
-	Material ***matarar, *ma, *mao;
 	ID *id;
-	Ipo *ipo;
-	bConstraintChannel *chan;
-	bActionStrip *strip;
 	int a, didit;
 	
 	if(G.scene->id.lib) return;
@@ -4640,7 +4691,9 @@ void adduplicate(int mode, int dupflag)
 				/* duplicates using userflags */
 				
 				if(dupflag & USER_DUP_IPO) {
+					bConstraintChannel *chan;
 					id= (ID *)obn->ipo;
+					
 					if(id) {
 						ID_NEW_US( obn->ipo)
 						else obn->ipo= copy_ipo(obn->ipo);
@@ -4797,105 +4850,12 @@ void adduplicate(int mode, int dupflag)
 		}
 		base= base->next;
 	}
-	
-	/* check object pointers */
-	base= FIRSTBASE;
-	while(base) {
-		if TESTBASELIB(base) {
-			ob= base->object;
-			relink_constraints(&ob->constraints);
-			if (ob->pose){
-				bPoseChannel *chan;
-				for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
-					relink_constraints(&chan->constraints);
-				}
-			}
-			modifiers_foreachIDLink(ob, adduplicate__forwardModifierLinks, NULL);
-			ID_NEW(ob->parent);
-			ID_NEW(ob->track);
-			ID_NEW(ob->proxy);
-			ID_NEW(ob->proxy_group);
-			
-			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
-				bActionModifier *amod;
-				for(amod= strip->modifiers.first; amod; amod= amod->next)
-					ID_NEW(amod->ob);
-			}
-		}
-		base= base->next;
-	}
-	
-	/* materials */
-	if( dupflag & USER_DUP_MAT) {
-		mao= G.main->mat.first;
-		while(mao) {
-			if(mao->id.newid) {
-				
-				ma= (Material *)mao->id.newid;
-				
-				if(dupflag & USER_DUP_TEX) {
-					for(a=0; a<MAX_MTEX; a++) {
-						if(ma->mtex[a]) {
-							id= (ID *)ma->mtex[a]->tex;
-							if(id) {
-								ID_NEW_US(ma->mtex[a]->tex)
-								else ma->mtex[a]->tex= copy_texture(ma->mtex[a]->tex);
-								id->us--;
-							}
-						}
-					}
-				}
-				id= (ID *)ma->ipo;
-				if(id) {
-					ID_NEW_US(ma->ipo)
-					else ma->ipo= copy_ipo(ma->ipo);
-					id->us--;
-				}
-			}
-			mao= mao->id.next;
-		}
-	}
 
-	/* lamps */
-	if( dupflag & USER_DUP_IPO) {
-		Lamp *la= G.main->lamp.first;
-		while(la) {
-			if(la->id.newid) {
-				Lamp *lan= (Lamp *)la->id.newid;
-				id= (ID *)lan->ipo;
-				if(id) {
-					ID_NEW_US(lan->ipo)
-					else lan->ipo= copy_ipo(lan->ipo);
-					id->us--;
-				}
-			}
-			la= la->id.next;
-		}
-	}
-
-/* ipos */
-	ipo= G.main->ipo.first;
-	while(ipo) {
-		if(ipo->id.lib==NULL && ipo->id.newid) {
-			Ipo *ipon= (Ipo *)ipo->id.newid;
-			IpoCurve *icu;
-			for(icu= ipon->curve.first; icu; icu= icu->next) {
-				if(icu->driver) {
-					ID_NEW(icu->driver->ob);
-				}
-			}
-		}
-		ipo= ipo->id.next;
-	}
-
-
+	copy_object_set_idnew(dupflag);
 
 	DAG_scene_sort(G.scene);
 	DAG_scene_flush_update(G.scene, screen_view3d_layers());
-	set_sca_new_poins();
 
-	clear_id_newpoins();
-	
 	countall();
 	if(mode==0) {
 		BIF_TransformSetUndo("Add Duplicate");
@@ -4908,6 +4868,60 @@ void adduplicate(int mode, int dupflag)
 		allqueue(REDRAWACTION, 0);	/* also oops */
 		allqueue(REDRAWIPO, 0);	/* also oops */
 	}
+}
+
+void make_duplilist_real()
+{
+	Base *base, *basen;
+	Object *ob;
+	/*	extern ListBase duplilist; */
+	
+	if(okee("Make dupli objects real")==0) return;
+	
+	base= FIRSTBASE;
+	while(base) {
+		if TESTBASELIB(base) {
+			
+			if(base->object->transflag & OB_DUPLI) {
+				ListBase *lb= object_duplilist(G.scene, base->object);
+				DupliObject *dob;
+				
+				for(dob= lb->first; dob; dob= dob->next) {
+					ob= copy_object(dob->ob);
+					/* font duplis can have a totcol without material, we get them from parent
+					* should be implemented better...
+					*/
+					if(ob->mat==NULL) ob->totcol= 0;
+					
+					basen= MEM_dupallocN(base);
+					basen->flag &= ~OB_FROMDUPLI;
+					BLI_addhead(&G.scene->base, basen);	/* addhead: othwise eternal loop */
+					basen->object= ob;
+					ob->ipo= NULL;		/* make sure apply works */
+					ob->parent= ob->track= NULL;
+					ob->disp.first= ob->disp.last= NULL;
+					ob->transflag &= ~OB_DUPLI;	
+					
+					Mat4CpyMat4(ob->obmat, dob->mat);
+					apply_obmat(ob);
+				}
+				
+				copy_object_set_idnew(0);
+				
+				free_object_duplilist(lb);
+				
+				base->object->transflag &= ~OB_DUPLI;	
+			}
+		}
+		base= base->next;
+	}
+	
+	DAG_scene_sort(G.scene);
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWOOPS, 0);
+	
+	BIF_undo_push("Make duplicates real");
 }
 
 void selectlinks_menu(void)
