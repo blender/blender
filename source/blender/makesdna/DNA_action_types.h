@@ -100,7 +100,8 @@ typedef struct bActionChannel {
 
 typedef struct bAction {
 	ID				id;
-	ListBase		chanbase;	/* Channels in this action */
+	ListBase		chanbase;	/* Action Channels in this action */
+	ListBase		markers;	/* Markers specific to this action */
 } bAction;
 
 typedef struct SpaceAction {
@@ -114,7 +115,7 @@ typedef struct SpaceAction {
 	View2D v2d;	
 	bAction		*action;
 	int	flag;
-	short pin, actnr, lock, pad;
+	short pin, actnr, lock, markert;
 	float timeslide;
 } SpaceAction;
 
@@ -125,7 +126,13 @@ typedef struct SpaceAction {
 #define ACHAN_MOVED     0x80000000
 
 /* SpaceAction flag */
-#define SACTION_MOVING	1
+#define SACTION_MOVING		1	/* during transform */
+#define SACTION_SLIDERS		2	/* show sliders (if relevant) - limited to shape keys for now */
+
+/* SpaceAction Marker Type */
+#define SACTION_NOMARKERS 	0	/* no markers */
+#define SACTION_SCMARKERS	1	/* markers for current scene */
+#define SACTION_ACMARKERS	2	/* markers from current action */
 
 /* Pose->flag */
 #define POSE_RECALC		1

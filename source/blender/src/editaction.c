@@ -135,101 +135,6 @@ static void select_poseelement_by_name (char *name, int select)
 	}
 }
 
-bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
-{
-	bArmature		*arm;
-	bAction			*result=NULL;
-	bActionChannel *achan;
-	bAction			*temp;
-	bPoseChannel	*pchan;
-	ID				*id;
-	float			actstart, actend;
-	int				oldframe;
-	int				curframe;
-	char			newname[64];
-
-	if (!act)
-		return NULL;
-	
-	arm = get_armature(armob);
-
-	if (G.obedit){
-		error ("Actions can't be baked in Edit Mode");
-		return NULL;
-	}
-
-	if (!arm || armob->pose==NULL){
-		error ("Select an armature before baking");
-		return NULL;
-	}
-	
-	/* Get a new action */
-	result = add_empty_action(ID_PO);
-	id= (ID *)armob;
-
-	/* Assign the new action a unique name */
-	sprintf (newname, "%s.BAKED", act->id.name+2);
-	rename_id(&result->id, newname);
-
-	calc_action_range(act, &actstart, &actend, 1);
-
-	oldframe = G.scene->r.cfra;
-
-	temp = armob->action;
-	armob->action = result;
-	
-	for (curframe=1; curframe<ceil(actend+1.0f); curframe++){
-
-		/* Apply the old action */
-		
-		G.scene->r.cfra = curframe;
-
-		/* Apply the object ipo */
-		extract_pose_from_action(armob->pose, act, curframe);
-
-		where_is_pose(armob);
-		
-		/* For each channel: set quats and locs if channel is a bone */
-		for (pchan=armob->pose->chanbase.first; pchan; pchan=pchan->next){
-
-			/* Apply to keys */
-			insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
-			insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-			insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
-			insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-			insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-			insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-			insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-			insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-			insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-			insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
-		}
-	}
-
-
-	/* Make another pass to ensure all keyframes are set to linear interpolation mode */
-	for (achan = result->chanbase.first; achan; achan=achan->next){
-		IpoCurve* icu;
-		if(achan->ipo) {
-			for (icu = achan->ipo->curve.first; icu; icu=icu->next){
-				icu->ipo= IPO_LIN;
-			}
-		}
-	}
-
-	notice ("Made a new action named \"%s\"", newname);
-	G.scene->r.cfra = oldframe;
-	armob->action = temp;
-		
-	/* restore */
-	extract_pose_from_action(armob->pose, act, G.scene->r.cfra);
-	where_is_pose(armob);
-	
-	allqueue(REDRAWACTION, 1);
-	
-	return result;
-}
-
 /* apparently within active object context */
 /* called extern, like on bone selection */
 void select_actionchannel_by_name (bAction *act, char *name, int select)
@@ -697,16 +602,20 @@ static void mouse_action(int selectmode)
 	float	selx;
 	bActionChannel *chan;
 	bConstraintChannel *conchan;
+	TimeMarker *marker;
+	ListBase *markers;
 	short	mval[2];
 
 	act=G.saction->action;
 	if (!act)
 		return;
+	markers= get_saction_markers(G.saction);
 
 	getmouseco_areawin (mval);
 
 	chan=get_nearest_actionchannel_key(&selx, &sel, &conchan);
-
+	marker=find_nearest_saction_marker(markers);
+	
 	if (chan){
 		if (selectmode == SELECT_REPLACE) {
 			selectmode = SELECT_ADD;
@@ -734,6 +643,20 @@ static void mouse_action(int selectmode)
 		allqueue(REDRAWOOPS, 0);
 		allqueue(REDRAWBUTSALL, 0);
 	}
+	else if (marker != NULL) {
+		/* not channel, so maybe marker */		
+		if (selectmode == SELECT_REPLACE) {
+			selectmode = SELECT_ADD;
+			
+			deselect_saction_markers(markers, 0);
+			marker->flag |= SELECT;
+		}
+		
+		std_rmouse_transform(transform_saction_markers);
+		
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWTIME, 0);
+	}
 }
 
 static void mouse_mesh_action(int selectmode, Key *key)
@@ -743,6 +666,8 @@ static void mouse_mesh_action(int selectmode, Key *key)
 	 */
 
     IpoCurve *icu;
+	TimeMarker *marker;
+	ListBase *markers;
     short  sel;
     float  selx;
     short  mval[2];
@@ -754,6 +679,9 @@ static void mouse_mesh_action(int selectmode, Key *key)
      * data, etc)
      */
 
+	markers= get_saction_markers(G.saction);
+	marker= find_nearest_saction_marker(markers);
+	 
 	/* get the click location, and the cooresponding
 	 * ipo curve and selection time value
 	 */
@@ -803,12 +731,15 @@ void borderselect_action(void)
 	bActionChannel *chan;
 	bConstraintChannel *conchan;
 	bAction	*act;
+	ListBase *markers;
 	float	ymin, ymax;
 
 	act=G.saction->action;
 
 	if (!act)
 		return;
+		
+	markers = get_saction_markers(G.saction);
 
 	if ( (val = get_border(&rect, 3)) ){
 		if (val == LEFTMOUSE)
@@ -822,7 +753,7 @@ void borderselect_action(void)
 		mval[0]= rect.xmax;
 		mval[1]= rect.ymax-2;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
-		
+			
 		/* if action is mapped in NLA, it returns a correction */
 		if(G.saction->pin==0 && OBACT) {
 			rectf.xmin= get_action_frame(OBACT, rectf.xmin);
@@ -854,31 +785,46 @@ void borderselect_action(void)
 				}
 			}
 		}	
+		
+		/* do markers first */
+		if (markers != NULL)
+			borderselect_saction_markers(markers, rectf.xmin, rectf.xmax, selectmode);
+		
+		
 		BIF_undo_push("Border Select Action");
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWIPO, 0);
+		if (markers != NULL) allqueue(REDRAWTIME, 0);
 	}
 }
 
 void borderselect_mesh(Key *key)
 { 
+	ListBase *markers;
 	rcti     rect;
 	int      val, adrcodemax, adrcodemin;
 	short	 mval[2];
 	float	 xmin, xmax;
+	int 	 selectmode;
 	int      (*select_function)(BezTriple *);
 	IpoCurve *icu;
 
+	markers = get_saction_markers(G.saction);
+		
 	if ( (val = get_border(&rect, 3)) ){
 		/* set the selection function based on what
 		 * mouse button had been used in the border
 		 * select
 		 */
-		if (val == LEFTMOUSE)
+		if (val == LEFTMOUSE) {
+			selectmode = SELECT_ADD;
 			select_function = select_bezier_add;
-		else
+		}
+		else {
+			selectmode = SELECT_SUBTRACT;
 			select_function = select_bezier_subtract;
+		}
 
 		/* get the minimum and maximum adrcode numbers
 		 * for the IpoCurves (this is the number that
@@ -909,11 +855,17 @@ void borderselect_mesh(Key *key)
 				}
 			}
 		}
+		
+		/* do markers too if any */
+		if (markers != NULL) 
+			borderselect_saction_markers(markers, xmin, xmax, selectmode);
+		
 		/* redraw stuff */
 		BIF_undo_push("Border select Action Key");
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWIPO, 0);
+		if (markers != NULL) allqueue(REDRAWTIME, 0);
 	}
 }
 
@@ -2453,6 +2405,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	extern void do_actionbuts(unsigned short event); // drawaction.c
 	SpaceAction *saction;
 	bAction	*act;
+	ListBase *markers;
 	Key *key;
 	float dx,dy;
 	int doredraw= 0;
@@ -2467,6 +2420,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	saction= curarea->spacedata.first;
 	if (!saction)
 		return;
+		
+	markers = get_saction_markers(saction);
 
 	act=saction->action;
 	if(val) {
@@ -2633,6 +2588,27 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
+			break;
+			
+		case MKEY:
+			/* marker operations */
+			if (G.qual == 0)
+				add_saction_marker(markers, CFRA);
+			else if (G.qual == LR_ALTKEY) {
+				if( okee("Erase selected markers")==0 ) 
+					break;
+				remove_saction_markers(markers);
+			}
+			else if (G.qual == LR_CTRLKEY)
+				rename_saction_markers(markers);
+			else if (G.qual == LR_SHIFTKEY)
+				transform_saction_markers('g', 0);
+			else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+				duplicate_saction_markers(markers);
+			else 
+				break;
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWTIME, 0);
 			break;
 			
 		case NKEY:
@@ -2890,7 +2866,256 @@ int get_nearest_key_num(Key *key, short *mval, float *x) {
     return (num + 1);
 }
 
+/* ************************************* Action Editor Markers ************************************* */
 
+/* returns the current active markers */
+ListBase *get_saction_markers (SpaceAction *saction)
+{
+	ListBase *markers;
+	
+	if (saction->markert == SACTION_SCMARKERS) 
+		markers = &(G.scene->markers);
+	else if ((saction->markert == SACTION_ACMARKERS) && (saction->action != NULL))
+		markers = &(saction->action->markers);
+	else
+		markers = NULL;
+		
+	return markers;
+}
+
+/* add a TimeMarker - code basically taken from edittime.c */
+void add_saction_marker (ListBase *markers, int frame)
+{
+	TimeMarker *marker;
+	
+	/* two markers can't be at the same place */
+	for(marker= markers->first; marker; marker= marker->next)
+		if(marker->frame == frame) return;
+	/* deselect all */
+	for(marker= markers->first; marker; marker= marker->next)
+		marker->flag &= ~SELECT;
+		
+	marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
+	marker->flag= SELECT;
+	marker->frame= frame;
+	BLI_addtail(markers, marker);
+	
+	BIF_undo_push("Add Marker");
+}
+
+/* remove a TimeMarker - code basically taken from edittime.c */
+void remove_saction_markers(ListBase *markers)
+{
+	TimeMarker *marker;
+	
+	for(marker= markers->first; marker; marker= marker->next) {
+		if(marker->flag & SELECT){
+			BLI_freelinkN(markers, marker);
+		}
+	}
+	
+	BIF_undo_push("Remove Marker");
+}
+
+/* rename a TimeMarker - code basically taken from edittime.c */
+void rename_saction_markers(ListBase *markers)
+{
+	TimeMarker *marker;
+	char name[64];
+	
+	for(marker= markers->first; marker; marker= marker->next) {
+		if(marker->flag & SELECT) {
+			sprintf(name, marker->name);
+			if (sbutton(name, 0, sizeof(name)-1, "Name: "))
+				BLI_strncpy(marker->name, name, sizeof(marker->name));
+			break;
+		}
+	}
+	
+	BIF_undo_push("Rename Marker");
+}
+
+/* duplicate selected TimeMarkers - code basically taken from edittime.c */
+void duplicate_saction_markers(ListBase *markers)
+{
+	TimeMarker *marker, *newmarker;
+
+	/* go through the list of markers, duplicate selected markers and add duplicated copies
+	 * to the begining of the list (unselect original markers) */
+	for(marker= markers->first; marker; marker= marker->next) {
+		if(marker->flag & SELECT){
+			/* unselect selected marker */
+			marker->flag &= ~SELECT;
+			/* create and set up new marker */
+			newmarker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
+			newmarker->flag= SELECT;
+			newmarker->frame= marker->frame;
+			BLI_strncpy(newmarker->name, marker->name, sizeof(marker->name));
+			/* new marker is added to the begining of list */
+			BLI_addhead(markers, newmarker);
+		}
+	}
+	
+	transform_saction_markers('g', 0);
+}
+
+void transform_saction_markers(int mode, int smode)	// mode and smode unused here, for callback
+{
+	SpaceAction *saction= curarea->spacedata.first;
+	TimeMarker *marker, *selmarker=NULL;
+	ListBase *markers;
+	float dx, fac;
+	int a, ret_val= 0, totmark=0, *oldframe, offs, firsttime=1;
+	unsigned short event;
+	short val, pmval[2], mval[2], mvalo[2];
+	char str[32];
+	
+	markers= get_saction_markers(saction);
+	if (markers == NULL) return;
+	
+	for(marker= markers->first; marker; marker= marker->next) {
+		if(marker->flag & SELECT) totmark++;
+	}
+	if(totmark==0) return;
+	
+	oldframe= MEM_mallocN(totmark*sizeof(int), "marker array");
+	for(a=0, marker= markers->first; marker; marker= marker->next) {
+		if(marker->flag & SELECT) {
+			oldframe[a]= marker->frame;
+			selmarker= marker;	// used for hederprint
+			a++;
+		}
+	}
+	
+	dx= G.v2d->mask.xmax-G.v2d->mask.xmin;
+	dx= (G.v2d->cur.xmax-G.v2d->cur.xmin)/dx;
+	
+	getmouseco_areawin(pmval);
+	mvalo[0]= pmval[0];
+	
+	while(ret_val == 0) {
+		
+		getmouseco_areawin(mval);
+		
+		if (mval[0] != mvalo[0] || firsttime) {
+			mvalo[0]= mval[0];
+			firsttime= 0;
+			
+			fac= (((float)(mval[0] - pmval[0]))*dx);
+			
+			apply_keyb_grid(&fac, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
+			offs= (int)fac;
+			
+			for(a=0, marker= markers->first; marker; marker= marker->next) {
+				if(marker->flag & SELECT) {
+					marker->frame= oldframe[a] + offs;
+					a++;
+				}
+			}
+			
+			if(totmark==1) 	// we print current marker value
+				sprintf(str, "Marker %.2f offset %.2f", (double)(selmarker->frame), (double)(offs));
+			else 
+				sprintf(str, "Marker offset %.2f ", (double)(offs));
+			
+			headerprint(str);
+			
+			force_draw(0);	// areas identical to this, 0 = no header
+		}
+		else PIL_sleep_ms(10);	// idle
+		
+		/* emptying queue and reading events */
+		while( qtest() ) {
+			event= extern_qread(&val);
+			
+			if(val) {
+				if(event==ESCKEY || event==RIGHTMOUSE) ret_val= 2;
+				else if(event==LEFTMOUSE || event==RETKEY || event==SPACEKEY) ret_val= 1;
+			}
+		}
+	}
+	
+	/* restore? */
+	if(ret_val==2) {
+		for(a=0, marker= markers->first; marker; marker= marker->next) {
+			if(marker->flag & SELECT) {
+				marker->frame= oldframe[a];
+				a++;
+			}
+		}
+	}
+	else {
+		BIF_undo_push("Move Markers");
+	}
+	MEM_freeN(oldframe);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWTIME, 0);
+}
+
+TimeMarker *find_nearest_saction_marker(ListBase *markers)
+{
+	TimeMarker *marker;
+	float xmin, xmax;
+	rctf	rectf;
+	short mval[2];
+	
+	getmouseco_areawin (mval);
+
+	mval[0]-=7;
+	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
+	mval[0]+=14;
+	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
+	
+	xmin= rectf.xmin;
+	xmax= rectf.xmax;
+	
+	for(marker= markers->first; marker; marker= marker->next) {
+		if ((marker->frame > xmin) && (marker->frame <= xmax)) {
+			return marker;
+		}
+	}
+	
+	return NULL;
+}
+
+/* select/deselect all TimeMarkers */
+void deselect_saction_markers(ListBase *markers, int test)
+{
+	TimeMarker *marker;
+	
+	for (marker = markers->first; marker; marker= marker->next) {
+			if (test) {
+				if ((marker->flag & SELECT)==0)
+					marker->flag |= SELECT;
+			}
+			else {
+				if (marker->flag & SELECT)
+					marker->flag &= ~SELECT;
+			}
+	}
+}
+
+void borderselect_saction_markers(ListBase *markers, float xmin, float xmax, int selectmode)
+{
+	TimeMarker *marker;
+	
+	for(marker= markers->first; marker; marker= marker->next) {
+		if ((marker->frame > xmin) && (marker->frame <= xmax)) {
+			switch (selectmode) {
+				case SELECT_ADD:
+					if ((marker->flag & SELECT) == 0) 
+						marker->flag |= SELECT;
+					break;
+				case SELECT_SUBTRACT:
+					if (marker->flag & SELECT) 
+						marker->flag &= ~SELECT;
+					break;
+			}
+		}
+	}
+}
+
+/* ************************************* Action Channel Ordering *********************************** */
 
 void top_sel_action()
 {
@@ -3051,6 +3276,9 @@ void bottom_sel_action()
 	allqueue(REDRAWNLA, 0);
 }
 
+/* ********************************* BAKING STUFF ********************************** */
+/* NOTE: these functions should probably be moved to their own file sometime - Aligorith */
+
 void world2bonespace(float boneSpaceMat[][4], float worldSpace[][4], float restPos[][4], float armPos[][4])
 {
 	float imatarm[4][4], imatbone[4][4], tmat[4][4], t2mat[4][4];
@@ -3060,6 +3288,101 @@ void world2bonespace(float boneSpaceMat[][4], float worldSpace[][4], float restP
 	Mat4MulMat4(tmat, imatarm, worldSpace);
 	Mat4MulMat4(t2mat, tmat, imatbone);
 	Mat4MulMat4(boneSpaceMat, restPos, t2mat);
+}
+
+bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
+{
+	bArmature		*arm;
+	bAction			*result=NULL;
+	bActionChannel *achan;
+	bAction			*temp;
+	bPoseChannel	*pchan;
+	ID				*id;
+	float			actstart, actend;
+	int				oldframe;
+	int				curframe;
+	char			newname[64];
+
+	if (!act)
+		return NULL;
+	
+	arm = get_armature(armob);
+
+	if (G.obedit){
+		error ("Actions can't be baked in Edit Mode");
+		return NULL;
+	}
+
+	if (!arm || armob->pose==NULL){
+		error ("Select an armature before baking");
+		return NULL;
+	}
+	
+	/* Get a new action */
+	result = add_empty_action(ID_PO);
+	id= (ID *)armob;
+
+	/* Assign the new action a unique name */
+	sprintf (newname, "%s.BAKED", act->id.name+2);
+	rename_id(&result->id, newname);
+
+	calc_action_range(act, &actstart, &actend, 1);
+
+	oldframe = G.scene->r.cfra;
+
+	temp = armob->action;
+	armob->action = result;
+	
+	for (curframe=1; curframe<ceil(actend+1.0f); curframe++){
+
+		/* Apply the old action */
+		
+		G.scene->r.cfra = curframe;
+
+		/* Apply the object ipo */
+		extract_pose_from_action(armob->pose, act, curframe);
+
+		where_is_pose(armob);
+		
+		/* For each channel: set quats and locs if channel is a bone */
+		for (pchan=armob->pose->chanbase.first; pchan; pchan=pchan->next){
+
+			/* Apply to keys */
+			insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+		}
+	}
+
+
+	/* Make another pass to ensure all keyframes are set to linear interpolation mode */
+	for (achan = result->chanbase.first; achan; achan=achan->next){
+		IpoCurve* icu;
+		if(achan->ipo) {
+			for (icu = achan->ipo->curve.first; icu; icu=icu->next){
+				icu->ipo= IPO_LIN;
+			}
+		}
+	}
+
+	notice ("Made a new action named \"%s\"", newname);
+	G.scene->r.cfra = oldframe;
+	armob->action = temp;
+		
+	/* restore */
+	extract_pose_from_action(armob->pose, act, G.scene->r.cfra);
+	where_is_pose(armob);
+	
+	allqueue(REDRAWACTION, 1);
+	
+	return result;
 }
 
 

@@ -452,6 +452,7 @@ void timeline_grab(int mode, int smode)	// mode and smode unused here, for callb
 	}
 	MEM_freeN(oldframe);
 	allqueue(REDRAWTIME, 0);
+	allqueue(REDRAWACTION, 0);
 }
 
 /* copy of this is actually in editscreen.c, but event based */
@@ -642,6 +643,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			else
 				add_timeline_marker(CFRA);
 			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWACTION, 0);
 			break;
 		case SKEY: /* set start frame */
 			G.scene->r.sfra = CFRA;
@@ -662,6 +664,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 			remove_timeline_marker();
 			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWACTION, 0);
 			break;
 		}
 	}

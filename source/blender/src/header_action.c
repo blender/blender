@@ -83,6 +83,7 @@
 #define ACTMENU_VIEW_ALL        4
 #define ACTMENU_VIEW_MAXIMIZE   5
 #define ACTMENU_VIEW_LOCK		6
+#define ACTMENU_VIEW_SLIDERS	7
 
 #define ACTMENU_SEL_BORDER      0
 #define ACTMENU_SEL_ALL_KEYS    1
@@ -117,6 +118,12 @@
 #define ACTMENU_KEY_EXTEND_EXTRAPOLATION 1
 #define ACTMENU_KEY_EXTEND_CYCLIC 2
 #define ACTMENU_KEY_EXTEND_CYCLICEXTRAPOLATION 3
+
+#define ACTMENU_MARKERS_ADD 0
+#define ACTMENU_MARKERS_DUPLICATE 1
+#define ACTMENU_MARKERS_DELETE 2
+#define ACTMENU_MARKERS_NAME 3
+#define ACTMENU_MARKERS_MOVE 4
 
 void do_action_buttons(unsigned short event)
 {
@@ -234,6 +241,9 @@ static void do_action_viewmenu(void *arg, int event)
 			if(G.v2d->flag & V2D_VIEWLOCK)
 				view2d_do_locks(curarea, 0);
 			break;
+		case ACTMENU_VIEW_SLIDERS:	 /* Show sliders (when applicable) */
+			G.saction->flag ^= SACTION_SLIDERS;
+			break;
 		case ACTMENU_VIEW_MAXIMIZE: /* Maximize Window */
 			/* using event B_FULL */
 			break;
@@ -262,6 +272,14 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 "Update Automatically|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_AUTOUPDATE, "");
+		
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_SLIDERS)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Show Sliders|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_SLIDERS, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -866,6 +884,80 @@ static uiBlock *action_keymenu(void *arg_unused)
 	return block;
 }
 
+static void do_action_markermenu(void *arg, int event)
+{	
+	SpaceAction *saction;
+	ListBase *lb = NULL;
+	
+	saction= curarea->spacedata.first;
+	if (!saction)
+		return;
+
+	/* get set of markers */
+	lb= get_saction_markers(saction);
+	if (lb == NULL) 
+		return;
+	
+	switch(event)
+	{
+		case ACTMENU_MARKERS_ADD:
+			add_saction_marker(lb, CFRA);
+			break;
+		case ACTMENU_MARKERS_DUPLICATE:
+			duplicate_saction_markers(lb);
+			break;
+		case ACTMENU_MARKERS_DELETE:
+			remove_saction_markers(lb);
+			break;
+		case ACTMENU_MARKERS_NAME:
+			rename_saction_markers(lb);
+			break;
+		case ACTMENU_MARKERS_MOVE:
+			transform_saction_markers('g', 0);
+			break;
+	}
+	
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWTIME, 0);
+}
+
+static uiBlock *action_markermenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_markermenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_action_markermenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Marker|M", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_ADD, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate Marker(s)|Ctrl Shift M", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_DUPLICATE, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker(s)|Alt M", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_DELETE, "");
+					 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "(Re)Name Marker(s)|Ctrl M", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_NAME, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker(s)|Shift M", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_MOVE, "");
+	
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
+
 void action_buttons(void)
 {
 	uiBlock *block;
@@ -942,6 +1034,11 @@ void action_buttons(void)
 		uiDefPulldownBut(block, action_keymenu, NULL, 
 					  "Key", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
+		
+		xmax= GetButStringLength("Marker");
+		uiDefPulldownBut(block, action_markermenu, NULL, 
+					  "Marker", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
@@ -955,6 +1052,29 @@ void action_buttons(void)
 						from, &(G.saction->actnr), B_ACTALONE, 
 						B_ACTLOCAL, B_ACTIONDELETE, 0, 0);	
 
+	
+	/* Draw marker set selection box */
+	xco+= 8;
+	
+	if (G.saction->action != NULL) {
+		uiDefButS(block, MENU, B_REDR, 
+				"Markers%t|None%x0|Scene%x1|Action%x2",	 
+				xco, 0, 80, 20,  &(G.saction->markert), 0, 0, 0, 0, 
+				"What set of markers to display.");
+	}
+	else {
+		if (G.saction->markert == SACTION_ACMARKERS) 
+			G.saction->markert = SACTION_NOMARKERS;
+		
+		uiDefButS(block, MENU, B_REDR, 
+				"Markers%t|None%x0|Scene%x1",	 
+				xco, 0, 80, 20,  &(G.saction->markert), 0, 0, 0, 0, 
+				"What set of markers to display.");
+	}
+	
+	xco+=80;
+	
+	
 	/* Draw action baker */
 	xco+= 8;
 	
