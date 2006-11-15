@@ -1529,7 +1529,8 @@ static void socket_circle_draw(float x, float y, float size, int type, int selec
 /* not a callback */
 static void node_draw_preview(bNodePreview *preview, rctf *prv)
 {
-	float scale= (prv->xmax-prv->xmin)/((float)preview->xsize);
+	float xscale= (prv->xmax-prv->xmin)/((float)preview->xsize);
+	float yscale= (prv->ymax-prv->ymin)/((float)preview->ysize);
 	float centx= prv->xmin + 0.5*(prv->xmax-prv->xmin);
 	float centy= prv->ymin + 0.5*(prv->ymax-prv->ymin);
 	
@@ -1552,7 +1553,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 	glVertex2f(centx, centy);
 	glEnd();
 	
-	glPixelZoom(scale, scale);
+	glPixelZoom(xscale, yscale);
 	glEnable(GL_BLEND);
 	glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );	/* premul graphics */
 	
@@ -1648,7 +1649,18 @@ static void node_update(bNode *node)
 			
 			dy-= NODE_DYS/2;
 			node->prvr.ymax= dy;
-			node->prvr.ymin= dy - aspect*(node->width-NODE_DY);
+			
+			if(aspect <= 1.0f)
+				node->prvr.ymin= dy - aspect*(node->width-NODE_DY);
+			else {
+				float dx= (node->width - NODE_DYS) - (node->width- NODE_DYS)/aspect;	/* width correction of image */
+				
+				node->prvr.ymin= dy - (node->width-NODE_DY);
+				
+				node->prvr.xmin+= 0.5*dx;
+				node->prvr.xmax-= 0.5*dx;
+			}
+			
 			dy= node->prvr.ymin - NODE_DYS/2;
 		}
 		else {
