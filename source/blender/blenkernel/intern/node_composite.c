@@ -2982,6 +2982,74 @@ static bNodeType cmp_node_translate= {
 	/* execfunc    */	node_composit_exec_translate
 };
 
+/* **************** Flip  ******************** */
+static bNodeSocketType cmp_node_flip_in[]= {
+	{	SOCK_RGBA, 1, "Image",		    0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeSocketType cmp_node_flip_out[]= {
+	{	SOCK_RGBA, 0, "Image",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void node_composit_exec_flip(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	if(in[0]->data) {
+		CompBuf *cbuf= in[0]->data;
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 1);	/* note, this returns zero'd image */
+		int i, src_pix, src_width,src_height,srcydelt,outydelt, x, y;
+		float *srcfp, *outfp;
+		
+		src_pix= cbuf->type;
+		src_width= cbuf->x;
+		src_height= cbuf->y;
+		srcfp= cbuf->rect;
+		outfp= stackbuf->rect;
+		srcydelt= src_width*src_pix;
+		outydelt= srcydelt;
+		
+		if(node->custom1){		/*set up output pointer for y flip*/
+			outfp+= (src_height-1)*outydelt;
+			outydelt= -outydelt;
+		}
+
+		for(y=0; y<src_height; y++){
+			if(node->custom1 == 1){	/* no x flip so just copy line*/
+				memcpy(outfp, srcfp, sizeof(float) * src_pix * src_width);
+				srcfp+=srcydelt;
+			}
+			else{
+				outfp+=(src_width-1)*src_pix;
+				for(x=0;x<src_width;x++){
+					for(i=0; i<src_pix; i++){
+						outfp[i]=srcfp[i];
+					}
+					outfp-=src_pix;
+					srcfp+=src_pix;
+				}
+				outfp+=src_pix;
+			}
+			outfp+=outydelt;
+		}
+
+		out[0]->data= stackbuf;
+		if(cbuf!=in[0]->data)
+			free_compbuf(cbuf);
+	}
+}
+
+static bNodeType cmp_node_flip= {
+	/* type code   */	CMP_NODE_FLIP,
+	/* name        */	"Flip",
+	/* width+range */	140, 100, 320,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_flip_in,
+	/* output sock */	cmp_node_flip_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_flip
+};
+
 /* **************** Dilate/Erode ******************** */
 
 static bNodeSocketType cmp_node_dilateerode_in[]= {
@@ -4130,6 +4198,7 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_setalpha,
 	&cmp_node_texture,
 	&cmp_node_translate,
+	&cmp_node_flip,
 	&cmp_node_zcombine,
 	&cmp_node_dilateerode,
 	&cmp_node_sepyuva,
@@ -4192,5 +4261,3 @@ void ntreeCompositTagGenerators(bNodeTree *ntree)
 			NodeTagChanged(ntree, node);
 	}
 }
-
-

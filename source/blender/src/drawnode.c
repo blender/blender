@@ -941,6 +941,20 @@ static int node_composit_buts_filter(uiBlock *block, bNodeTree *ntree, bNode *no
 	return 20;
 }
 
+static int node_composit_buts_flip(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr) 
+{
+	if(block) {
+		uiBut *bt;
+		
+		/* flip x\y */
+		bt=uiDefButS(block, MENU, B_NODE_EXEC+node->nr, "Flip X %x0|Flip Y %x1|Flip X & Y %x2",
+					 butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
+					 &node->custom1, 0, 0, 0, 0, "");
+		uiButSetFunc(bt, node_but_title_cb, node, bt);
+	}
+	return 20;	
+}
+
 static int node_composit_buts_map_value(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
@@ -1277,6 +1291,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_RGB:
 			ntype->butfunc= node_buts_rgb;
+			break;
+		case CMP_NODE_FLIP:
+			ntype->butfunc= node_composit_buts_flip;
 			break;
 		case CMP_NODE_MIX_RGB:
 			ntype->butfunc= node_buts_mix_rgb;
