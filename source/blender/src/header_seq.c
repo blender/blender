@@ -263,7 +263,6 @@ static uiBlock *seq_addmenu_effectmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Wipe", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Glow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Transform", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Transform", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Color Generator", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 12, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Speed Control", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 13, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
