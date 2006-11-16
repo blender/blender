@@ -955,6 +955,7 @@ static void do_build_seq_recursively_impl(Sequence * seq, int cfra)
 	se = seq->curelem = give_stripelem(seq, cfra);
 
 	if(se) {
+		int unref_meta = FALSE;
 		if(seq->seqbase.first) {
 			Sequence * seqmshown= get_shown_seq_from_metastrip(seq, cfra);
 			if (seqmshown) {
@@ -963,6 +964,8 @@ static void do_build_seq_recursively_impl(Sequence * seq, int cfra)
 				else if(cfra> seq->start+seq->len-1) 
 					do_build_seq_recursively(seqmshown, seq->start + seq->len-1);
 				else do_build_seq_recursively(seqmshown, cfra);
+
+				unref_meta = TRUE;
 			}
 		}
 
@@ -970,6 +973,10 @@ static void do_build_seq_recursively_impl(Sequence * seq, int cfra)
 			do_effect_seq_recursively(cfra, seq, se);
 		} else {
 			do_build_seq_ibuf(seq, cfra);
+		}
+
+		if(unref_meta && seq->curelem->ibuf) {
+			IMB_cache_limiter_unref(seq->curelem->ibuf);
 		}
 	}
 }
@@ -1141,8 +1148,9 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chanshown)
 		return 0;
 	}
 
-	if(seqfirst->curelem->ibuf)
+	if (seqfirst->curelem->ibuf) {
 		IMB_cache_limiter_unref(seqfirst->curelem->ibuf);
+	}
 
 	return seqfirst->curelem->ibuf;
 
