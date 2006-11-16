@@ -253,6 +253,43 @@ static PyObject *Group_getUsers( BPy_Group * self )
 	return PyInt_FromLong( self->group->id.us );
 }
 
+
+
+
+
+
+
+
+/*****************************************************************************/
+/* Python BPy_Group methods:                                                  */
+/*****************************************************************************/
+static int Group_setLayers( BPy_Group * self, PyObject * value )
+{
+	unsigned int laymask = 0;
+	
+	GROUP_DEL_CHECK_INT(self);
+	
+	if( !PyInt_CheckExact( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+			"expected an integer (bitmask) as argument" );
+	
+	laymask = ( unsigned int )PyInt_AS_LONG( value );
+	
+	if( laymask <= 0 )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+					      "layer value cannot be zero or below" );
+	
+	self->group->layer= laymask & ((1<<20) - 1);
+	
+	return 0;
+}
+
+static PyObject *Group_getLayers( BPy_Group * self )
+{
+	return PyInt_FromLong( self->group->layer );
+}
+
+
 /*****************************************************************************/
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
@@ -263,6 +300,10 @@ static PyGetSetDef BPy_Group_getseters[] = {
 	 NULL},
 	{"users",
 	 (getter)Group_getUsers, (setter)NULL,
+	 "Number of group users",
+	 NULL},
+	{"layers",
+	 (getter)Group_getLayers, (setter)Group_setLayers,
 	 "Number of group users",
 	 NULL},
 	{"objects",
@@ -728,7 +769,6 @@ static PyObject *GroupObSeq_add( BPy_GroupObSeq * self, PyObject *args )
 {
 	PyObject *pyobj;
 	Object *blen_ob;
-	Base *base= NULL;
 	
 	GROUP_DEL_CHECK_PY(self->bpygroup);
 	

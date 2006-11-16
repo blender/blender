@@ -92,6 +92,7 @@ class Group:
     This object gives access to Groups in Blender.
   @ivar name: The name of this Group object.
   @ivar users: Number of users this group has (read only)
+  @ivar layers: Layer mask for this group.
   @ivar objects: Objects that this group uses.
   This is an iterator with list like access so use list(gp.objects) if you need to use a list. (where gp is a group object).
   The groups objects can be set by assigning a list or iterator of objects to the groups objects.
