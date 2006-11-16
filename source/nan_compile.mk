@@ -255,7 +255,7 @@ include nan_warn.mk
 
 default: all
 
-$(DIR)/$(DEBUG_DIR)%.o: %.c
+$(DIR)/$(DEBUG_DIR)%.o: %.c makedir
     ifdef NAN_DEPEND
 	@set -e; $(CC) -M $(CPPFLAGS) $< 2>/dev/null \
 		| sed 's@\($*\)\.o[ :]*@$(DIR)/$(DEBUG_DIR)\1.o : @g' \
@@ -269,7 +269,7 @@ $(DIR)/$(DEBUG_DIR)%.o: %.c
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
     endif
 
-$(DIR)/$(DEBUG_DIR)%.o: %.cpp
+$(DIR)/$(DEBUG_DIR)%.o: %.cpp makedir
     ifdef NAN_DEPEND
 	@set -e; $(CCC) -M $(CPPFLAGS) $< 2>/dev/null \
 		| sed 's@\($*\)\.o[ :]*@$(DIR)/$(DEBUG_DIR)\1.o : @g' \
@@ -283,21 +283,21 @@ $(DIR)/$(DEBUG_DIR)%.o: %.cpp
 	$(CCC) -c $(CCFLAGS) $(CPPFLAGS) $< -o $@
     endif
 
-$(DIR)/$(DEBUG_DIR)%.res: %.rc
+$(DIR)/$(DEBUG_DIR)%.res: %.rc makedir
 ifeq ($(FREE_WINDOWS),true)
 	windres $< -O coff -o $@
 else
 	$(SRCHOME)/tools/cygwin/cl_wrapper.pl - rc /fo$@ $<
 endif
 
-$(DIR)/$(DEBUG_DIR)%.class: %.java
+$(DIR)/$(DEBUG_DIR)%.class: %.java makedir
     ifdef JARS
 	$(JAVAC) -verbose -g -deprecation -sourcepath . -classpath "$(JARS)" -d $(DIR)/$(DEBUG_DIR) $<
     else
 	$(JAVAC) -verbose -g -deprecation -d $(DIR)/$(DEBUG_DIR) $<
     endif
 
-$(DIR)/$(DEBUG_DIR)%.h: $(DIR)/$(DEBUG_DIR)%.class
+$(DIR)/$(DEBUG_DIR)%.h: $(DIR)/$(DEBUG_DIR)%.class makedir
 	$(JAVAH) -classpath $(DIR)/$(DEBUG_DIR) -d $(DIR)/$(DEBUG_DIR) -jni $*
 
 %.h:
