@@ -643,13 +643,17 @@ static void mouse_action(int selectmode)
 		allqueue(REDRAWOOPS, 0);
 		allqueue(REDRAWBUTSALL, 0);
 	}
-	else if (marker != NULL) {
+	else if (marker) {
 		/* not channel, so maybe marker */		
-		if (selectmode == SELECT_REPLACE) {
-			selectmode = SELECT_ADD;
-			
+		if (selectmode == SELECT_REPLACE) {			
 			deselect_saction_markers(markers, 0, 0);
 			marker->flag |= SELECT;
+		}
+		else if (selectmode == SELECT_INVERT) {
+			if (marker->flag & SELECT)
+				marker->flag &= ~SELECT;
+			else
+				marker->flag |= SELECT;
 		}
 		else if (selectmode == SELECT_ADD) 
 			marker->flag |= SELECT;
@@ -724,6 +728,28 @@ static void mouse_mesh_action(int selectmode, Key *key)
         allqueue(REDRAWNLA, 0);
 
     }
+	else if (marker) {
+		/* not channel, so maybe marker */		
+		if (selectmode == SELECT_REPLACE) {			
+			deselect_saction_markers(markers, 0, 0);
+			marker->flag |= SELECT;
+		}
+		else if (selectmode == SELECT_INVERT) {
+			if (marker->flag & SELECT)
+				marker->flag &= ~SELECT;
+			else
+				marker->flag |= SELECT;
+		}
+		else if (selectmode == SELECT_ADD) 
+			marker->flag |= SELECT;
+		else if (selectmode == SELECT_SUBTRACT)
+			marker->flag &= ~SELECT;
+		
+		std_rmouse_transform(transform_saction_markers);
+		
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWTIME, 0);
+	}
 }
 
 void borderselect_action(void)
