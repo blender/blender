@@ -609,6 +609,99 @@ static bNodeType cmp_node_viewer= {
 	
 };
 
+/* **************** SPLIT VIEWER ******************** */
+static bNodeSocketType cmp_node_splitviewer_in[]= {
+	{	SOCK_RGBA, 1, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void do_copy_split_rgba(bNode *node, float *out, float *in1, float *in2, float *fac)
+{
+	if(*fac==0.0f) {
+		QUATCOPY(out, in1);
+	}
+	else {
+		QUATCOPY(out, in2);
+	}
+}
+
+static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* image assigned to output */
+	/* stack order input sockets: image image */
+	
+	if(in[0]->data==NULL || in[1]->data==NULL)
+		return;
+	
+	if(node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
+		Image *ima= (Image *)node->id;
+		CompBuf *cbuf, *buf1, *buf2, *mask;
+		int x, y;
+		
+		buf1= typecheck_compbuf(in[0]->data, CB_RGBA);
+		buf2= typecheck_compbuf(in[1]->data, CB_RGBA);
+		
+		if(ima->ibuf==NULL)
+			ima->ibuf= IMB_allocImBuf(buf1->x, buf1->y, 32, 0, 0);
+		
+		/* cleanup of viewer image */
+		if(ima->ibuf->rect) {
+			MEM_freeN(ima->ibuf->rect);
+			ima->ibuf->rect= NULL;
+			ima->ibuf->mall &= ~IB_rect;
+		}
+		if(ima->ibuf->zbuf_float) {
+			MEM_freeN(ima->ibuf->zbuf_float);
+			ima->ibuf->zbuf_float= NULL;
+			ima->ibuf->mall &= ~IB_zbuffloat;
+		}
+		if(ima->ibuf->rect_float)
+			MEM_freeN(ima->ibuf->rect_float);
+		
+		ima->ibuf->x= buf1->x;
+		ima->ibuf->y= buf1->y;
+		ima->ibuf->mall |= IB_rectfloat;
+		ima->ibuf->rect_float= MEM_mallocN(4*buf1->x*buf1->y*sizeof(float), "viewer rect");
+		
+		/* output buf */
+		cbuf= alloc_compbuf(buf1->x, buf1->y, CB_RGBA, 0);	/* no alloc*/
+		cbuf->rect= ima->ibuf->rect_float;
+		
+		/* mask buf */
+		mask= alloc_compbuf(buf1->x, buf1->y, CB_VAL, 1);
+		for(y=0; y<buf1->y; y++) {
+			float *fac= mask->rect + y*buf1->x;
+			for(x=buf1->x/2; x>0; x--, fac++)
+				*fac= 1.0f;
+		}
+		
+		composit3_pixel_processor(node, cbuf, buf1, in[0]->vec, buf2, in[1]->vec, mask, NULL, do_copy_split_rgba, CB_RGBA, CB_RGBA, CB_VAL);
+		
+		generate_preview(node, cbuf);
+		free_compbuf(cbuf);
+		free_compbuf(mask);
+		
+		if(in[0]->data != buf1) 
+			free_compbuf(buf1);
+		if(in[1]->data != buf2) 
+			free_compbuf(buf2);
+	}
+}
+
+static bNodeType cmp_node_splitviewer= {
+	/* type code   */	CMP_NODE_SPLITVIEWER,
+	/* name        */	"SplitViewer",
+	/* width+range */	80, 60, 200,
+	/* class+opts  */	NODE_CLASS_OUTPUT, NODE_PREVIEW,
+	/* input sock  */	cmp_node_splitviewer_in,
+	/* output sock */	NULL,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_splitviewer
+	
+};
+
+
 /* **************** COMPOSITE ******************** */
 static bNodeSocketType cmp_node_composite_in[]= {
 	{	SOCK_RGBA, 1, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
@@ -4210,6 +4303,7 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_rotate,
 	&cmp_node_scale,
 	&cmp_node_luma,
+	&cmp_node_splitviewer,
 	NULL
 };
 

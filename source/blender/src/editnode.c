@@ -429,12 +429,12 @@ static void node_set_active(SpaceNode *snode, bNode *node)
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			/* make active viewer, currently only 1 supported... */
-			if(node->type==CMP_NODE_VIEWER) {
+			if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 				bNode *tnode;
 				int was_output= node->flag & NODE_DO_OUTPUT;
 
 				for(tnode= snode->edittree->nodes.first; tnode; tnode= tnode->next)
-					if(tnode->type==CMP_NODE_VIEWER)
+					if( ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
 						tnode->flag &= ~NODE_DO_OUTPUT;
 				
 				node->flag |= NODE_DO_OUTPUT;

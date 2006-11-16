@@ -1974,7 +1974,7 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 		/* test the inputs */
 		for(a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
 			/* skip viewer nodes in bg render or group edit */
-			if(node->type==CMP_NODE_VIEWER && (G.background || group_edit))
+			if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER) && (G.background || group_edit))
 				node->need_exec= 0;
 			/* is sock in use? */
 			else if(sock->link) {
