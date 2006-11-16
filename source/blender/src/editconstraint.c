@@ -619,6 +619,12 @@ void add_constraint(int only_IK)
 		pchanact= get_active_posechannel(ob);
 		if(pchanact==NULL) return;
 	
+		/* check protection */
+		if(OB_IS_PROXY(ob) && (pchanact->bone->layer & arm->layer_protected)) {
+			error("Bone is Proxy protected");
+			return;
+		}
+		
 		/* find selected bone */
 		for(pchansel= ob->pose->chanbase.first; pchansel; pchansel= pchansel->next) {
 			if(pchansel!=pchanact)

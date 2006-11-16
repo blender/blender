@@ -171,6 +171,33 @@ bPoseChannel *get_active_posechannel (Object *ob)
 	return NULL;
 }
 
+/* if a selected or active bone is protected, throw error and return 1 */
+/* only_selected==1 : the active bone is allowed to be protected */
+static int pose_has_protected_selected(Object *ob, int only_selected)
+{
+	
+	/* check protection */
+	if(OB_IS_PROXY(ob)) {
+		bPoseChannel *pchan;
+		bArmature *arm= ob->data;
+		
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if(pchan->bone && (pchan->bone->layer & arm->layer)) {
+				if(pchan->bone->layer & arm->layer_protected) {
+					if(only_selected && (pchan->bone->flag & BONE_ACTIVE));
+					else if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) 
+					   break;
+				}
+			}
+		}
+		if(pchan) {
+			error("Cannot change Proxy protected bones");
+			return 1;
+		}
+	}
+	return 0;
+}
+
 /* only for real IK, not for auto-IK */
 int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 {
@@ -367,6 +394,9 @@ void pose_clear_IK(void)
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
+	if(pose_has_protected_selected(ob, 0))
+		return;
+	
 	if(okee("Remove IK constraint(s)")==0) return;
 
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -404,6 +434,9 @@ void pose_clear_constraints(void)
 	/* paranoia checks */
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
+	
+	if(pose_has_protected_selected(ob, 0))
+		return;
 	
 	if(okee("Remove Constraints")==0) return;
 	
@@ -446,6 +479,10 @@ void pose_copy_menu(void)
 	}
 	
 	if(pchan==NULL) return;
+	
+	if(pose_has_protected_selected(ob, 1))
+		return;
+
 	pchanact= pchan;
 	
 	i= BLI_countlist(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
@@ -794,6 +831,9 @@ void pose_flip_names(void)
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
+	if(pose_has_protected_selected(ob, 0))
+		return;
+	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if(arm->layer & pchan->bone->layer) {
 			if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
@@ -875,6 +915,9 @@ void pose_movetolayer(void)
 	
 	if(ob->flag & OB_POSEMODE) {
 		bPoseChannel *pchan;
+		
+		if(pose_has_protected_selected(ob, 0))
+			return;
 		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			if(arm->layer & pchan->bone->layer) {

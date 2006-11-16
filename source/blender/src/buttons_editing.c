@@ -3303,17 +3303,35 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 
 }
 
+/* sets warning popup for buttons, and returns 1 for protected proxy posechannels */
+static int ob_arm_bone_pchan_lock(Object *ob, bArmature *arm, Bone *bone, bPoseChannel *pchan)
+{
+	/* ob lib case is already set globally */
+	if(ob->id.lib)
+		return 0;
+	if(arm->id.lib) {
+		if(pchan==NULL)
+			uiSetButLock(1, "Can't edit library data");
+		else if(ob->proxy && bone->layer & arm->layer_protected) {
+			uiSetButLock(1, "Can't edit protected proxy channel");
+			return 1;
+		}
+		else
+			uiClearButLock();
+	}
+	return 0;
+}
+
 static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 {
 	uiBlock		*block;
 	uiBut		*but;
 	bPoseChannel *pchan;
 	Bone		*curBone;
-	int			by=180, a;
+	int			by, a;
 	int			index, zerodof, zerolimit;
 	
 	/* Draw the bone name block */
-	
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_pose_bones", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Armature Bones", "Editing", 640, 0, 318, 204)==0) return;
 	
@@ -3321,12 +3339,16 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 	/* so first we make it default height */
 	uiNewPanelHeight(block, 204);
 	
-	uiDefBut(block, LABEL, 0, "Selected Bones", 0,by,158,18, 0, 0, 0, 0, 0, "Only show in Armature Editmode/Posemode");
-	by-=20;
+	uiDefBut(block, LABEL, 0, "Selected Bones", 0,180,158,18, 0, 0, 0, 0, 0, "Only show in Armature Editmode/Posemode");
+	by= 160;
+	
 	for (pchan=ob->pose->chanbase.first, index=0; pchan; pchan=pchan->next, index++){
 		curBone= pchan->bone;
 		if ((curBone->flag & BONE_SELECTED) && (curBone->layer & arm->layer)) {
-
+			
+			if(ob_arm_bone_pchan_lock(ob, arm, curBone, pchan))
+				uiDefBut(block, LABEL, 0, "Proxy Locked", 160, 180,150,18, NULL, 1, 0, 0, 0, "");
+			
 			/*	Bone naming button */
 			uiBlockBeginAlign(block);
 			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:",		-10,by,117,19, curBone->name, 0, 24, 0, 0, "Change the bone name");
@@ -3347,7 +3369,9 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge", -10,by-38,80,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
 			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	70, by-38, 80, 19, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
 			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", 150,by-38,80,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
+			ob_arm_bone_pchan_lock(ob, arm, curBone, pchan);
 			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "OB:",	230,by-38,100,19, &pchan->custom, "Object that defines custom draw type for this Bone");
+			ob_arm_bone_pchan_lock(ob, arm, curBone, NULL);
 			
 			/* layers */
 			uiBlockBeginAlign(block);
@@ -3366,6 +3390,8 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			
 			by-= 20;
 			
+			ob_arm_bone_pchan_lock(ob, arm, curBone, pchan);
+
 			/* DOFs only for IK chains */
 			zerodof = 1;
 			zerolimit = 1;
