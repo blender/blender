@@ -2616,7 +2616,10 @@ static void object_panel_particles(Object *ob)
 	uiDefButBitS(block, TOG, PAF_UNBORN, B_DIFF, "Unborn",210,110,50,20, &paf->flag, 0, 0, 0, 0, "Make particles appear before they are emitted");
 	uiDefButBitS(block, TOG, PAF_DIED, B_DIFF, "Died",	260,110,50,20, &paf->flag, 0, 0, 0, 0, "Make particles appear after they have died");
 	uiDefButS(block, TOG, REDRAWVIEW3D, "Vect",			160,90,75,20, &paf->stype, 0, 0, 0, 0, "Give the particles a direction and rotation");
-	uiDefButF(block, NUM, B_DIFF,		"Size:",		235,90,75,20, &paf->vectsize, 0.0, 1.0, 10, 1, "The amount the Vect option influences halo size");	
+	if(paf->flag & PAF_STATIC) 
+		uiDefButF(block, NUM, B_CALCEFFECT,	 "Max:",	235,90,75,20, &paf->maxlen, 0.0, 100.0, 10, 1, "The maximum length of a particle strand (zero is no limit)");
+	else
+		uiDefButF(block, NUM, B_CALCEFFECT,	 "Size:",	235,90,75,20, &paf->vectsize, 0.0, 1.0, 10, 1, "The amount the Vect option influences halo size");	
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, LABEL, 0, "Children:",				160,70,75,20, NULL, 0.0, 0, 0, 0, "");

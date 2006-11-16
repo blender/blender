@@ -1017,7 +1017,7 @@ static void make_particle_keys(RNG *rng, Object *ob, int depth, int nr, PartEff 
 {
 	Particle *pa, *opa = NULL;
 	float damp, deltalife, life;
-	float cur_time;
+	float cur_time, maxspeed= paf->maxlen/(float)paf->totkey;
 	float opco[3], opno[3], npco[3], npno[3], new_force[3], new_speed[3];
 	int b, rt1, rt2, deflected, deflection, finish_defs, def_count;
 	int last_ob, last_fc, same_fc;
@@ -1100,6 +1100,13 @@ static void make_particle_keys(RNG *rng, Object *ob, int depth, int nr, PartEff 
 		pa->no[1]= deltalife * (new_speed[1] + new_force[1]);
 		pa->no[2]= deltalife * (new_speed[2] + new_force[2]);
 		
+		/* speed limitor */
+		if((paf->flag & PAF_STATIC) && maxspeed!=0.0f) {
+			float len= VecLength(pa->no);
+			if(len > maxspeed)
+				VecMulf(pa->no, maxspeed/len);
+		}
+			
 		/* new location */
 		pa->co[0]= opa->co[0] + pa->no[0];
 		pa->co[1]= opa->co[1] + pa->no[1];
