@@ -306,8 +306,9 @@ extern void uiMatchPanel_view2d(struct ScrArea *sa);
 
 extern void uiDrawBlocksPanels(struct ScrArea *sa, int re_align);
 extern void uiNewPanelHeight(struct uiBlock *block, int sizey);
-void uiPanelPush(uiBlock *block);
-void uiPanelPop(uiBlock *block);
+extern void uiNewPanelTitle(struct uiBlock *block, char *str);
+extern void uiPanelPush(struct uiBlock *block);
+extern void uiPanelPop(struct uiBlock *block);
 extern uiBlock *uiFindOpenPanelBlockName(ListBase *lb, char *name);
 extern int uiAlignPanelStep(struct ScrArea *sa, float fac);
 extern void uiPanelControl(int);

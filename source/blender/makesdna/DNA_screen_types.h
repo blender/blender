@@ -83,6 +83,7 @@ typedef unsigned short dna_ushort_fix;
 typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	struct Panel *next, *prev;
 	char panelname[64], tabname[64];	/* defined as UI_MAX_NAME_STR */
+	char drawname[64];					/* panelname is identifier for restoring location */
 	short ofsx, ofsy, sizex, sizey;
 	short flag, active;					/* active= used currently by a uiBlock */
 	short control;

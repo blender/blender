@@ -525,6 +525,7 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 	block->handler= pnl_handler;
 	pa->active= 1;
 	pa->control= pnl_control;
+	pa->drawname[0]= 0;
 	
 	/* global control over this feature; UI_PNL_TO_MOUSE only called for hotkey panels */
 	if(U.uiflag & USER_PANELPINNED);
@@ -574,6 +575,12 @@ void uiNewPanelHeight(uiBlock *block, int sizey)
 		block->panel->ofsy+= (block->panel->sizey - sizey);
 		block->panel->sizey= sizey;
 	}
+}
+
+void uiNewPanelTitle(uiBlock *block, char *str)
+{
+	if(block->panel)
+		BLI_strncpy(block->panel->drawname, str, UI_MAX_NAME_STR);
 }
 
 static int panel_has_tabs(Panel *panel)
@@ -851,6 +858,7 @@ static void ui_draw_panel_header(uiBlock *block)
 	Panel *pa, *panel= block->panel;
 	float width;
 	int a, nr= 1, pnl_icons;
+	char *panelname= panel->drawname[0]?panel->drawname:panel->panelname;
 	char *str;
 	
 	/* count */
@@ -875,7 +883,7 @@ static void ui_draw_panel_header(uiBlock *block)
 		/* draw text label */
 		BIF_ThemeColor(TH_TEXT_HI);
 		ui_rasterpos_safe(4.0f+block->minx+pnl_icons, block->maxy+5.0f, block->aspect);
-		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & USER_TR_BUTTONS));
+		BIF_DrawString(block->curfont, panelname, (U.transopts & USER_TR_BUTTONS));
 		return;
 	}
 	
@@ -888,6 +896,8 @@ static void ui_draw_panel_header(uiBlock *block)
 	width= (panel->sizex - 3 - pnl_icons - PNL_ICON)/nr;
 	pa= curarea->panels.first;
 	while(pa) {
+		panelname= pa->drawname[0]?pa->drawname:pa->panelname;
+		
 		if(pa->active==0);
 		else if(pa==panel) {
 			/* active tab */
@@ -900,7 +910,7 @@ static void ui_draw_panel_header(uiBlock *block)
 			/* draw the active text label */
 			BIF_ThemeColor(TH_TEXT);
 			ui_rasterpos_safe(16+pnl_icons+a*width, panel->sizey+4, block->aspect);
-			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
+			str= ui_block_cut_str(block, panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & USER_TR_BUTTONS));
 
 			a++;
@@ -914,7 +924,7 @@ static void ui_draw_panel_header(uiBlock *block)
 			/* draw an inactive tab label */
 			BIF_ThemeColorShade(TH_TEXT_HI, -40);
 			ui_rasterpos_safe(16+pnl_icons+a*width, panel->sizey+4, block->aspect);
-			str= ui_block_cut_str(block, pa->panelname, (short)(width-10));
+			str= ui_block_cut_str(block, panelname, (short)(width-10));
 			BIF_DrawString(block->curfont, str, (U.transopts & USER_TR_BUTTONS));
 				
 			a++;
@@ -959,6 +969,7 @@ void ui_draw_panel(uiBlock *block)
 {
 	Panel *panel= block->panel;
 	int ofsx;
+	char *panelname= panel->drawname[0]?panel->drawname:panel->panelname;
 	
 	if(panel->paneltab) return;
 
@@ -976,7 +987,7 @@ void ui_draw_panel(uiBlock *block)
 		if(panel->control & UI_PNL_CLOSE) ofsx+= PNL_ICON;
 		BIF_ThemeColor(TH_TEXT_HI);
 		ui_rasterpos_safe(4+block->minx+ofsx, block->maxy+5, block->aspect);
-		BIF_DrawString(block->curfont, panel->panelname, (U.transopts & USER_TR_BUTTONS));
+		BIF_DrawString(block->curfont, panelname, (U.transopts & USER_TR_BUTTONS));
 
 		/*  border */
 		if(panel->flag & PNL_SELECT) {
@@ -1009,10 +1020,10 @@ void ui_draw_panel(uiBlock *block)
 		/* title, only the initial character for now */
 		BIF_ThemeColor(TH_TEXT_HI);
 		str[1]= 0;
-		end= strlen(panel->panelname);
+		end= strlen(panelname);
 		ofs= 20;
 		for(a=0; a<end; a++) {
-			str[0]= panel->panelname[a];
+			str[0]= panelname[a];
 			if( isupper(str[0]) ) {
 				ui_rasterpos_safe(block->minx+5, block->maxy-ofs, block->aspect);
 				BIF_DrawString(block->curfont, str, 0);

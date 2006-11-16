@@ -2284,11 +2284,17 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		if(G.f & G_VERTEXPAINT) rgb= &Gvp.r;
 		else if(settings->imapaint.brush) rgb= settings->imapaint.brush->rgb;
 		
+		uiNewPanelTitle(block, "Paint Properties");
 		if (rgb)
 			/* 'f' is for floating panel */
 			uiBlockPickerButtons(block, rgb, hsv, old, hexcol, 'f', REDRAWBUTSEDIT);
 	}
+	else if(G.f & G_WEIGHTPAINT) {
+		uiNewPanelTitle(block, "Weight Paint Properties");
+		weight_paint_buttons(block);
+	}
 	else if(G.f & G_SCULPTMODE) {
+		uiNewPanelTitle(block, "Sculpt Properties");
 		sculptmode_draw_interface_tools(block,10,150);
 		sculptmode_draw_interface_textures(block,220,150);
 	} else {

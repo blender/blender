@@ -4449,6 +4449,62 @@ void do_fpaintbuts(unsigned short event)
 
 /* -------------------- MODE: vpaint  ------------------- */
 
+void weight_paint_buttons(uiBlock *block)
+{
+	extern VPaint Gwp;         /* from vpaint */
+	Object *ob;
+	ob= OBACT;
+	
+	if(ob==NULL) return;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, REDRAWVIEW3D, "Weight:",10,160,225,19, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
+	
+	uiDefBut(block, BUT, B_WEIGHT0_0 , "0",			 10,140,45,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT, B_WEIGHT1_4 , "1/4",		 55,140,45,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT, B_WEIGHT1_2 , "1/2",		 100,140,45,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT, B_WEIGHT3_4 , "3/4",		 145,140,45,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT, B_WEIGHT1_0 , "1",			 190,140,45,19, 0, 0, 0, 0, 0, "");
+	
+	uiDefButF(block, NUMSLI, B_NOP, "Opacity ",		10,120,225,19, &Gwp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
+	
+	uiDefBut(block, BUT, B_OPA1_8 , "1/8",		10,100,45,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT, B_OPA1_4 , "1/4",		55,100,45,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT, B_OPA1_2 , "1/2",		100,100,45,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT, B_OPA3_4 , "3/4",		145,100,45,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT, B_OPA1_0 , "1",		190,100,45,19, 0, 0, 0, 0, 0, "");
+	
+	uiDefButF(block, NUMSLI, B_NOP, "Size ",	10,80,225,19, &Gwp.size, 2.0, 64.0, 0, 0, "The size of the brush");
+	
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW, B_DIFF, "Mix",		250,160,60,17, &Gwp.mode, 1.0, 0.0, 0, 0, "Mix the vertex colors");
+	uiDefButS(block, ROW, B_DIFF, "Add",		250,142,60,17, &Gwp.mode, 1.0, 1.0, 0, 0, "Add the vertex colors");
+	uiDefButS(block, ROW, B_DIFF, "Sub",		250,124,60,17, &Gwp.mode, 1.0, 2.0, 0, 0, "Subtract from the vertex color");
+	uiDefButS(block, ROW, B_DIFF, "Mul",		250,106,60,17, &Gwp.mode, 1.0, 3.0, 0, 0, "Multiply the vertex color");
+	uiDefButS(block, ROW, B_DIFF, "Filter",		250, 88,60,17, &Gwp.mode, 1.0, 4.0, 0, 0, "Mix the colors with an alpha factor");
+	uiDefButS(block, ROW, B_DIFF, "Lighter",	250, 70,60,17, &Gwp.mode, 1.0, 5.0, 0, 0, "Paint over darker areas only");
+	uiDefButS(block, ROW, B_DIFF, "Darker",		250, 52,60,17, &Gwp.mode, 1.0, 6.0, 0, 0, "Paint over lighter areas only");
+	uiBlockEndAlign(block);
+	
+	uiDefButBitS(block, TOG, VP_SPRAY, 0, "Spray",	160,55,75,19, &Gwp.flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse");
+	
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, VP_AREA, 0, "All Faces", 	10,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Paint on all faces inside brush (otherwise only on face under mouse cursor)");
+	uiDefButBitS(block, TOG, VP_SOFT, 0, "Vertex Dist", 85,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Use distances to vertices (instead of all vertices of face)");
+	uiDefButBitS(block, TOGN, VP_HARD, 0, "Soft",		160,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Use a soft brush");
+	uiDefButBitS(block, TOG, VP_NORMALS, 0, "Normals", 	235,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Applies the vertex normal before painting");
+	
+	if(ob){
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, VP_ONLYVGROUP, 0, "Vgroup",		10,0,75,19, &Gwp.flag, 0, 0, 0, 0, "Only paint on verteces in the selected vertex group.");
+		uiDefButBitS(block, TOG, VP_MIRROR_X, REDRAWVIEW3D, "X-Mirror",	85,0,75,19, &Gwp.flag, 0, 0, 0, 0, "Mirrored Paint, applying on mirrored Weight Group name");
+		uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",	160,0,75,19, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
+		uiDefBut(block, BUT, B_CLR_WPAINT, "Clear",					235,0,75,19, NULL, 0, 0, 0, 0, "Removes reference to this deform group from all vertices");
+		uiBlockEndAlign(block);
+		
+	}
+}
+
 static void editing_panel_mesh_paint(void)
 {
 	uiBlock *block;
@@ -4458,58 +4514,7 @@ static void editing_panel_mesh_paint(void)
 	
 	
 	if(G.f & G_WEIGHTPAINT) {
-		extern VPaint Gwp;         /* from vpaint */
-		Object *ob;
- 	    ob= OBACT;
-		
-		if(ob==NULL) return;
-
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, REDRAWVIEW3D, "Weight:",10,160,225,19, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
-		
-		uiDefBut(block, BUT, B_WEIGHT0_0 , "0",			 10,140,45,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_WEIGHT1_4 , "1/4",		 55,140,45,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_WEIGHT1_2 , "1/2",		 100,140,45,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_WEIGHT3_4 , "3/4",		 145,140,45,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_WEIGHT1_0 , "1",			 190,140,45,19, 0, 0, 0, 0, 0, "");
-		
-		uiDefButF(block, NUMSLI, B_NOP, "Opacity ",		10,120,225,19, &Gwp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-		
-		uiDefBut(block, BUT, B_OPA1_8 , "1/8",		10,100,45,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_OPA1_4 , "1/4",		55,100,45,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_OPA1_2 , "1/2",		100,100,45,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_OPA3_4 , "3/4",		145,100,45,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_OPA1_0 , "1",		190,100,45,19, 0, 0, 0, 0, 0, "");
-		
-		uiDefButF(block, NUMSLI, B_NOP, "Size ",	10,80,225,19, &Gwp.size, 2.0, 64.0, 0, 0, "The size of the brush");
-
-		uiBlockBeginAlign(block);
-		uiDefButS(block, ROW, B_DIFF, "Mix",		250,160,60,17, &Gwp.mode, 1.0, 0.0, 0, 0, "Mix the vertex colors");
-		uiDefButS(block, ROW, B_DIFF, "Add",		250,142,60,17, &Gwp.mode, 1.0, 1.0, 0, 0, "Add the vertex colors");
-		uiDefButS(block, ROW, B_DIFF, "Sub",		250,124,60,17, &Gwp.mode, 1.0, 2.0, 0, 0, "Subtract from the vertex color");
-		uiDefButS(block, ROW, B_DIFF, "Mul",		250,106,60,17, &Gwp.mode, 1.0, 3.0, 0, 0, "Multiply the vertex color");
-		uiDefButS(block, ROW, B_DIFF, "Filter",		250, 88,60,17, &Gwp.mode, 1.0, 4.0, 0, 0, "Mix the colors with an alpha factor");
-		uiDefButS(block, ROW, B_DIFF, "Lighter",	250, 70,60,17, &Gwp.mode, 1.0, 5.0, 0, 0, "Paint over darker areas only");
-		uiDefButS(block, ROW, B_DIFF, "Darker",		250, 52,60,17, &Gwp.mode, 1.0, 6.0, 0, 0, "Paint over lighter areas only");
-		uiBlockEndAlign(block);
-		
-		uiDefButBitS(block, TOG, VP_SPRAY, 0, "Spray",	160,55,75,19, &Gwp.flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse");
-		
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, VP_AREA, 0, "All Faces", 	10,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Paint on all faces inside brush (otherwise only on face under mouse cursor)");
-		uiDefButBitS(block, TOG, VP_SOFT, 0, "Vertex Dist", 85,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Use distances to vertices (instead of all vertices of face)");
-		uiDefButBitS(block, TOGN, VP_HARD, 0, "Soft",		160,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Use a soft brush");
-		uiDefButBitS(block, TOG, VP_NORMALS, 0, "Normals", 	235,30,75,19, &Gwp.flag, 0, 0, 0, 0, "Applies the vertex normal before painting");
-		
-		if(ob){
-			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, VP_ONLYVGROUP, 0, "Vgroup",		10,0,75,19, &Gwp.flag, 0, 0, 0, 0, "Only paint on verteces in the selected vertex group.");
-			uiDefButBitS(block, TOG, VP_MIRROR_X, REDRAWVIEW3D, "X-Mirror",	85,0,75,19, &Gwp.flag, 0, 0, 0, 0, "Mirrored Paint, applying on mirrored Weight Group name");
-			uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",	160,0,75,19, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
-			uiDefBut(block, BUT, B_CLR_WPAINT, "Clear",					235,0,75,19, NULL, 0, 0, 0, 0, "Removes reference to this deform group from all vertices");
- 			uiBlockEndAlign(block);
-			
-		}
+		weight_paint_buttons(block);
 	}
 	else if(G.f & G_VERTEXPAINT) {
 		extern VPaint Gvp;         /* from vpaint */

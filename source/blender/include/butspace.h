@@ -99,6 +99,7 @@ extern void do_fpaintbuts(unsigned short event);
 extern void do_cambuts(unsigned short event);
 extern void do_armbuts(unsigned short event);
 extern void do_uvcalculationbuts(unsigned short event);
+extern void weight_paint_buttons(struct uiBlock *);
 
 extern char *get_vertexgroup_menustr(struct Object *ob);	// used in object buttons
 
