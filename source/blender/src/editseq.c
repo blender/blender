@@ -1050,34 +1050,6 @@ static int event_to_efftype(int event)
 	return 0;
 }
 
-static int can_insert_seq_between(Sequence *seq1, 
-				  Sequence *seq2, Sequence *seq3)
-{
-       Editing *ed= G.scene->ed;
-       Sequence *seq;
-
-       if (seq1 == 0 || seq2 == 0 || seq3 == 0) {
-	       return 0;
-       }
-
-       /* see if inserting inbetween would create a cycle */
-       if(seq_is_predecessor(seq1, seq2) || seq_is_predecessor(seq2, seq1) ||
-          seq_is_predecessor(seq2, seq3) || seq_is_predecessor(seq3, seq2) ||
-          seq_is_predecessor(seq3, seq1) || seq_is_predecessor(seq1, seq3))
-               return 0;
-
-       /* see if there is a parent that we can insert inbetween */
-       for(seq=ed->seqbasep->first; seq; seq=seq->next)
-               if((seq != seq1) && (seq != seq2) && (seq != seq3))
-                       if(seq_is_parent(seq, seq1) || 
-			  seq_is_parent(seq, seq2) ||
-                          seq_is_parent(seq, seq3))
-                               return 1;
-
-       return 0;
-}
-
-
 static int seq_effect_find_selected(Editing *ed, Sequence *activeseq, int type, Sequence **selseq1, Sequence **selseq2, Sequence **selseq3)
 {
 	Sequence *seq1= 0, *seq2= 0, *seq3= 0, *seq;
@@ -1140,40 +1112,6 @@ static int seq_effect_find_selected(Editing *ed, Sequence *activeseq, int type, 
 	return 1;
 }
 
-static void insert_seq_between(Sequence *newseq, Sequence *seq1, Sequence *seq2, Sequence *seq3)
-{
-       Editing *ed= G.scene->ed;
-       Sequence *seq, *firstseq = NULL;
-       Sequence *oldseq[3];
-       int i;
-
-       oldseq[0]= seq1;
-       oldseq[1]= seq2;
-       oldseq[2]= seq3;
-
-       for(seq=ed->seqbasep->first; seq; seq=seq->next) {
-               if((seq != seq1) && (seq != seq2) && (seq != seq3)) {
-                       /* set pointers to new children */
-                       for(i=0; i < 3; i++) {
-                               if(seq_is_parent(seq, oldseq[i]) && (seq != newseq)) {
-                                       if(seq->seq1 == oldseq[i]) seq->seq1= newseq;
-                                       if(seq->seq2 == oldseq[i]) seq->seq2= newseq;
-                                       if(seq->seq3 == oldseq[i]) seq->seq3= newseq;
-                                       if(!firstseq) firstseq= seq;
-                               }
-                       }
-               }
-       }
-
-       /* reinsert sequence in the list before the first sequence depending on it,
-          this is needed for the strips to be evaluated in correct order */
-       if(firstseq) {
-               BLI_remlink(ed->seqbasep, newseq);
-               BLI_insertlinkbefore(ed->seqbasep, firstseq, newseq);
-       }
-}
-
-
 static int add_seq_effect(int type, char *str)
 {
 	Editing *ed;
@@ -1183,20 +1121,13 @@ static int add_seq_effect(int type, char *str)
 	int cfra, machine;
 	short mval[2];
 	struct SeqEffectHandle sh;
-	int mode, insertbetween= 0;
+	int mode;
 
 	if(G.scene->ed==0) return 0;
 	ed= G.scene->ed;
 
 	if(!seq_effect_find_selected(ed, NULL, event_to_efftype(type), &seq1, &seq2, &seq3))
 		return 0;
-
-	 if (can_insert_seq_between(seq1, seq2, seq3)) {
-		force_draw(0); /* to make sure popup is not drawn over file select */
-		mode= pupmenu("Insert Between %x1|Insert After %x2");
-		if(mode == 1)
-			insertbetween= 1;
-	}
 
 	deselect_all_seq();
 
@@ -1251,10 +1182,6 @@ static int add_seq_effect(int type, char *str)
 				      newseq->seq3->machine);
 	}
 	if(test_overlap_seq(newseq)) shuffle_seq(newseq);
-
-	/* set inbetween relation */
-	if(insertbetween)
-		insert_seq_between(newseq, seq1, seq2, seq3);
 
 	update_changed_seq_and_deps(newseq, 1, 1);
 
