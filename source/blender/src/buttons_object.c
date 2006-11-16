@@ -2338,9 +2338,10 @@ static void object_softbodies_II(Object *ob)
 
 			uiBlockEndAlign(block);
 			/*SOLVER SETTINGS*/
-			uiDefButF(block, NUM, B_DIFF, "Error Limit:",	10,100,150,20, &sb->rklimit , 0.01, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
+			uiDefButF(block, NUM, B_DIFF, "Error Lim:",	10,100,130,20, &sb->rklimit , 0.001, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
+			uiDefButBitS(block, TOG, SBSO_OLDERR, B_DIFF,"O", 140,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Old Error Calculation");
 			uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 160,100,130,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
-			uiDefButS(block, TOG, SBSO_MONITOR, "M", 290,100,20,20, &sb->solverflags,  0,  0.0, 10, 0, "Turn on SB diagnose console prints (Maaammmaa!)");
+			uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 290,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
 			uiDefButS(block, NUM, B_DIFF, "MinS:", 10,80,100,20, &sb->minloops,  0.00,  30000.0, 10, 0, "Minimal # solver steps/frame ");
 			uiDefButS(block, NUM, B_DIFF, "MaxS:", 110,80,100,20, &sb->maxloops,  0.00,  30000.0, 10, 0, "Maximal # solver steps/frame ");
 			uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
@@ -2414,9 +2415,16 @@ static void object_softbodies(Object *ob)
 		}
 		else {
 			/* GENERAL STUFF */
+			static char str[128];
+			if (sb->totpoint){
+			sprintf(str, "Vertex Mass; Object mass %f [k]",sb->nodemass*sb->totpoint/1000.0f);
+			}
+			else{
+			sprintf(str, "Vertex Mass");
+			}
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_DIFF, "Friction:", 10, 170,150,20, &sb->mediafrict, 0.0, 50.0, 10, 0, "General media friction for point movements");
-			uiDefButF(block, NUM, B_DIFF, "Mass:",	   160, 170,150,20, &sb->nodemass , 0.001, 50.0, 10, 0, "Point Mass, the heavier the slower");
+			uiDefButF(block, NUM, B_DIFF, "Mass:",	   160, 170,150,20, &sb->nodemass , 0.001, 50000.0, 10, 0, str);
 			uiDefButF(block, NUM, B_DIFF, "Grav:",	   10,150,150,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
 			uiDefButF(block, NUM, B_DIFF, "Speed:",	   160,150,150,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
 			uiBlockEndAlign(block);

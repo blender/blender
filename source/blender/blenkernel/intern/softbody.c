@@ -2154,6 +2154,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 			
 			/* gravitation */
 			bp->force[2]-= gravity*sb->nodemass; /* individual mass of node here */
+
 			
 			/* particle field & vortex */
 			if(do_effector) {
@@ -2306,8 +2307,8 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
     aabbmax[0]=aabbmax[1]=aabbmax[2] = -1e20f;
 
 	/* claim a minimum mass for vertex */
-	if (sb->nodemass > 0.09999f) timeovermass = forcetime/sb->nodemass;
-	else timeovermass = forcetime/0.09999f;
+	if (sb->nodemass > 0.009999f) timeovermass = forcetime/sb->nodemass;
+	else timeovermass = forcetime/0.009999f;
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		if(bp->goal < SOFTGOALSNAP){
@@ -2391,7 +2392,10 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	}
 	
 	if (err){ /* so step size will be controlled by biggest difference in slope */
+		if (sb->solverflags & SBSO_OLDERR)
 		*err = MAX2(maxerrpos,maxerrvel);
+		else
+		*err = maxerrpos;
 		//printf("EP %f EV %f \n",maxerrpos,maxerrvel);
 		if (fuzzy){
 			*err /= sb->fuzzyness;
@@ -3024,9 +3028,9 @@ SoftBody *sbNew(void)
 	
 	sb->mediafrict= 0.5f; 
 	sb->nodemass= 1.0f;
-	sb->grav= 0.0f; 
+	sb->grav= 9.8f; 
 	sb->physics_speed= 1.0f;
-	sb->rklimit= 0.5f;
+	sb->rklimit= 0.1f;
 
 	sb->goalspring= 0.5f; 
 	sb->goalfrict= 0.0f; 
@@ -3041,8 +3045,8 @@ SoftBody *sbNew(void)
 	sb->sfra= G.scene->r.sfra;
 	sb->efra= G.scene->r.efra;
 
-	sb->colball  = 0.5f;
-	sb->balldamp = 0.05f;
+	sb->colball  = 0.49f;
+	sb->balldamp = 0.50f;
 	sb->ballstiff= 1.0f;
 	sb->sbc_mode = 1;
 	sb_new_scratch(sb);
@@ -3308,7 +3312,7 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 			}
 			if(sb->solverflags & SBSO_MONITOR ){
 				sct=PIL_check_seconds_timer();
-				if (sct-sst > 0.5f) printf("solver time %f  \r",sct-sst);
+				if (sct-sst > 0.5f) printf(" solver time %f %s \r",sct-sst,ob->id.name);
 			}
 	}
 

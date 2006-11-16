@@ -144,6 +144,7 @@ typedef struct SoftBody {
 #define OB_SB_COLLFINAL 4096
 
 #define SBSO_MONITOR    1 
+#define SBSO_OLDERR     2 
 
 #ifdef __cplusplus
 }
