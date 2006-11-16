@@ -2636,23 +2636,25 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case MKEY:
 			/* marker operations */
-			if (G.qual == 0)
-				add_saction_marker(markers, CFRA);
-			else if (G.qual == LR_ALTKEY) {
-				if( okee("Erase selected markers")==0 ) 
+			if (markers != NULL) {
+				if (G.qual == 0)
+					add_saction_marker(markers, CFRA);
+				else if (G.qual == LR_ALTKEY) {
+					if( okee("Erase selected markers")==0 ) 
+						break;
+					remove_saction_markers(markers);
+				}
+				else if (G.qual == LR_CTRLKEY)
+					rename_saction_markers(markers);
+				else if (G.qual == LR_SHIFTKEY)
+					transform_saction_markers('g', 0);
+				else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+					duplicate_saction_markers(markers);
+				else 
 					break;
-				remove_saction_markers(markers);
+				allqueue(REDRAWACTION, 0);
+				allqueue(REDRAWTIME, 0);
 			}
-			else if (G.qual == LR_CTRLKEY)
-				rename_saction_markers(markers);
-			else if (G.qual == LR_SHIFTKEY)
-				transform_saction_markers('g', 0);
-			else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
-				duplicate_saction_markers(markers);
-			else 
-				break;
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWTIME, 0);
 			break;
 			
 		case NKEY:
@@ -2710,30 +2712,30 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		case PAGEUPKEY:
 			if (key) {
-				/* to do */
+				/* only jump to markers possible (key channels can't be moved yet) */
+				nextprev_saction_markers(markers, 1);
 			}
 			else {
-				if(G.qual & LR_SHIFTKEY) {
+				if(G.qual & LR_SHIFTKEY)
 					top_sel_action();
-				}
-				else
-				{
+				else if (G.qual & LR_CTRLKEY)
 					up_sel_action();
-				}
-				
+				else
+					nextprev_saction_markers(markers, 1);
 			}
 			break;
 		case PAGEDOWNKEY:
 			if (key) {
-				/* to do */
+				/* only jump to markers possible (key channels can't be moved yet) */
+				nextprev_saction_markers(markers, -1);
 			}
 			else {
-				if(G.qual & LR_SHIFTKEY) {
+				if(G.qual & LR_SHIFTKEY)
 					bottom_sel_action();
-				}
+				else if (G.qual & LR_CTRLKEY) 
+					down_sel_action();
 				else
-				down_sel_action();
-				
+					nextprev_saction_markers(markers, -1);
 			}
 			break;
 		case DELKEY:
@@ -2955,6 +2957,9 @@ void remove_saction_markers(ListBase *markers)
 {
 	TimeMarker *marker;
 	
+	if (markers == NULL)
+		return;
+	
 	for(marker= markers->first; marker; marker= marker->next) {
 		if(marker->flag & SELECT){
 			BLI_freelinkN(markers, marker);
@@ -2969,6 +2974,9 @@ void rename_saction_markers(ListBase *markers)
 {
 	TimeMarker *marker;
 	char name[64];
+	
+	if (markers == NULL)
+		return;
 	
 	for(marker= markers->first; marker; marker= marker->next) {
 		if(marker->flag & SELECT) {
@@ -3131,10 +3139,50 @@ TimeMarker *find_nearest_saction_marker(ListBase *markers)
 	return NULL;
 }
 
+/* select next/previous marker */
+void nextprev_saction_markers(ListBase *markers, short dir)
+{
+	TimeMarker *marker, *cur=NULL, *first, *last;
+	int mindist= MAXFRAME, dist;
+	
+	if (markers == NULL)
+		return;
+	
+	first= last= markers->first; 
+	for(marker= markers->first; marker; marker= marker->next) {
+		/* find closest to current frame first */
+		dist= (marker->frame/G.scene->r.framelen) - CFRA;
+		if(dir==1 && dist>0 && dist<mindist) {
+			mindist= dist;
+			cur= marker;
+		}
+		else if(dir==-1 && dist<0 && -dist<mindist) {
+			mindist= -dist;
+			cur= marker;
+		}
+		/* find first/last */
+		if(marker->frame > last->frame) last= marker;
+		if(marker->frame < first->frame) first= marker;
+	}
+	
+	if(cur==NULL) {
+		if(dir==1) cur= first;
+		else cur= last;
+	}
+	if(cur) {
+		CFRA= cur->frame/G.scene->r.framelen;
+		update_for_newframe();
+		allqueue(REDRAWALL, 0);
+	}
+}
+
 /* select/deselect all TimeMarkers */
-void deselect_saction_markers(ListBase *markers, int test, int sel)
+void deselect_saction_markers(ListBase *markers, short test, short sel)
 {
 	TimeMarker *marker;
+	
+	if (markers == NULL)
+		return;
 	
 	/* check if need to find out whether to how to select markers */
 	if (test) {
@@ -3179,6 +3227,9 @@ void borderselect_saction_markers(ListBase *markers, float xmin, float xmax, int
 {
 	TimeMarker *marker;
 	
+	if (markers == NULL)
+		return;
+	
 	for(marker= markers->first; marker; marker= marker->next) {
 		if ((marker->frame > xmin) && (marker->frame <= xmax)) {
 			switch (selectmode) {
@@ -3193,6 +3244,28 @@ void borderselect_saction_markers(ListBase *markers, float xmin, float xmax, int
 			}
 		}
 	}
+}
+
+void get_minmax_saction_markers(ListBase *markers, float *first, float *last)
+{
+	TimeMarker *marker;
+	float min, max;
+	
+	if (!markers)
+		return;
+		
+	min= ((TimeMarker *)markers->first)->frame;
+	max= ((TimeMarker *)markers->last)->frame;
+	
+	for (marker= markers->first; marker; marker= marker->next) {
+		if (marker->frame < min)
+			min= marker->frame;
+		else if (marker->frame > max)
+			max= marker->frame;
+	}
+	
+	*first= min;
+	*last= max;
 }
 
 /* ************************************* Action Channel Ordering *********************************** */

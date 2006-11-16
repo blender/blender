@@ -439,8 +439,8 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 "Select Keys Column|K", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_COLUMN, "");
-					
-	/*
+	
+/*	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Select Keys At Markers|CTRL K", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
@@ -450,7 +450,7 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 "Select Keys Between Markers|SHIFT K", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_MARKERS_KEYSBETWEEN, "");
-	*/
+*/
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -774,11 +774,11 @@ static uiBlock *action_keymenu_chanposmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_action_keymenu_chanposmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Move Up|Page Up", 0, yco-=20, 
+					 "Move Up|Ctrl Page Up", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_UP, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Move Down|Page Down", 0, yco-=20, 
+					 "Move Down|Ctrl Page Down", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_DOWN, "");
 	
@@ -927,30 +927,30 @@ static uiBlock *action_keymenu(void *arg_unused)
 static void do_action_markermenu(void *arg, int event)
 {	
 	SpaceAction *saction;
-	ListBase *lb = NULL;
+	ListBase *markers = NULL;
 	
 	saction= curarea->spacedata.first;
 	if (!saction)
 		return;
 
 	/* get set of markers */
-	lb= get_saction_markers(saction);
-	if (lb == NULL) 
+	markers= get_saction_markers(saction);
+	if (markers == NULL) 
 		return;
 	
 	switch(event)
 	{
 		case ACTMENU_MARKERS_ADD:
-			add_saction_marker(lb, CFRA);
+			add_saction_marker(markers, CFRA);
 			break;
 		case ACTMENU_MARKERS_DUPLICATE:
-			duplicate_saction_markers(lb);
+			duplicate_saction_markers(markers);
 			break;
 		case ACTMENU_MARKERS_DELETE:
-			remove_saction_markers(lb);
+			remove_saction_markers(markers);
 			break;
 		case ACTMENU_MARKERS_NAME:
-			rename_saction_markers(lb);
+			rename_saction_markers(markers);
 			break;
 		case ACTMENU_MARKERS_MOVE:
 			transform_saction_markers('g', 0);
@@ -1075,7 +1075,8 @@ void action_buttons(void)
 					  "Key", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
-		if (G.saction->markert != SACTION_NOMARKERS) {
+		if ((G.saction->markert != SACTION_NOMARKERS) &&
+			(G.saction->action != NULL)) {
 			xmax= GetButStringLength("Marker");
 			uiDefPulldownBut(block, action_markermenu, NULL, 
 						  "Marker", xco, -2, xmax-3, 24, "");
