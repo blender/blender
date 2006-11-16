@@ -2888,6 +2888,9 @@ void add_saction_marker (ListBase *markers, int frame)
 {
 	TimeMarker *marker;
 	
+	if (markers == NULL)
+		return;
+	
 	/* two markers can't be at the same place */
 	for(marker= markers->first; marker; marker= marker->next)
 		if(marker->frame == frame) return;
@@ -2940,6 +2943,9 @@ void duplicate_saction_markers(ListBase *markers)
 {
 	TimeMarker *marker, *newmarker;
 
+	if (markers == NULL)
+		return;
+	
 	/* go through the list of markers, duplicate selected markers and add duplicated copies
 	 * to the begining of the list (unselect original markers) */
 	for(marker= markers->first; marker; marker= marker->next) {

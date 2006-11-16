@@ -249,6 +249,8 @@ static void draw_marker(TimeMarker *marker)
 	glVertex2fv(vec);
 	glEnd();
 	
+	glLineWidth(1.0);
+	
 	
 	/* 5 px to offset icon to align properly, space / pixels corrects for zoom */
 	if(marker->flag & SELECT)
