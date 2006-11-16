@@ -85,11 +85,13 @@
 #define ACTMENU_VIEW_LOCK		6
 #define ACTMENU_VIEW_SLIDERS	7
 
-#define ACTMENU_SEL_BORDER      0
-#define ACTMENU_SEL_ALL_KEYS    1
-#define ACTMENU_SEL_ALL_CHAN    2
-#define ACTMENU_SEL_COLUMN		3
-#define ACTMENU_SEL_ALL_MARKERS	4
+#define ACTMENU_SEL_BORDER      		0
+#define ACTMENU_SEL_ALL_KEYS    		1
+#define ACTMENU_SEL_ALL_CHAN    		2
+#define ACTMENU_SEL_COLUMN				3
+#define ACTMENU_SEL_ALL_MARKERS			4
+#define ACTMENU_SEL_MARKERS_KEYSBETWEEN 5
+#define ACTMENU_SEL_MARKERS_KEYSCOLUMN	6
 
 #define ACTMENU_KEY_DUPLICATE     0
 #define ACTMENU_KEY_DELETE        1
@@ -379,10 +381,6 @@ static void do_action_selectmenu(void *arg, int event)
 			allqueue(REDRAWNLA, 0);
 			allqueue (REDRAWIPO, 0);
 			break;
-		
-		case ACTMENU_SEL_COLUMN:
-			addqueue (curarea->win, KKEY, 1);
-			break;
 			
 		case ACTMENU_SEL_ALL_MARKERS: /* select/deselect all markers */
 			if (markers != NULL) {
@@ -390,6 +388,16 @@ static void do_action_selectmenu(void *arg, int event)
 				allqueue(REDRAWACTION, 0);
 				allqueue(REDRAWTIME, 0);
 			}
+			break;
+			
+		case ACTMENU_SEL_COLUMN: /* select column */
+			addqueue (curarea->win, KKEY, 1);
+			break;
+			
+		case ACTMENU_SEL_MARKERS_KEYSBETWEEN: /* keys between 2 extreme selected markers */
+			break;
+			
+		case ACTMENU_SEL_MARKERS_KEYSCOLUMN: /* keys on same frame as marker(s) */
 			break;
 	}
 }
@@ -428,10 +436,21 @@ static uiBlock *action_selectmenu(void *arg_unused)
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 			 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Select Column|K", 0, yco-=20, 
+					 "Select Keys Column|K", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_COLUMN, "");
-	
+					
+	/*
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Select Keys At Markers|CTRL K", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_MARKERS_KEYSCOLUMN, "");
+					
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Select Keys Between Markers|SHIFT K", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_MARKERS_KEYSBETWEEN, "");
+	*/
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

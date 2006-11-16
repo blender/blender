@@ -84,14 +84,16 @@ void clean_actionchannels(struct bAction *act);
 
 /* Marker Operations */
 struct ListBase *get_saction_markers(struct SpaceAction *saction);
+struct TimeMarker *find_nearest_saction_marker(struct ListBase *markers);
 void add_saction_marker(struct ListBase *markers, int frame);
 void duplicate_saction_markers(struct ListBase *markers);
 void remove_saction_markers(struct ListBase *markers);
 void rename_saction_markers(struct ListBase *markers);
 void transform_saction_markers(int mode, int smode);
-void deselect_saction_markers(struct ListBase *markers, int test, int selectmode);
+void deselect_saction_markers(struct ListBase *markers, int test, int sel);
 void borderselect_saction_markers(struct ListBase *markers, float xmin, float xmax, int selectmode);
-struct TimeMarker *find_nearest_saction_marker(struct ListBase *markers);
+void selectkeyscolumns_saction_markers(struct ListBase *markers);
+void selectkeysbetween_saction_markers(struct ListBase *markers);
 
 /* channel/strip operations */
 void up_sel_action(void);

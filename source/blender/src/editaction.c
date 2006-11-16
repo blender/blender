@@ -3109,6 +3109,9 @@ TimeMarker *find_nearest_saction_marker(ListBase *markers)
 	rctf	rectf;
 	short mval[2];
 	
+	if (markers == NULL)
+		return NULL;
+	
 	getmouseco_areawin (mval);
 
 	mval[0]-=7;
@@ -3137,10 +3140,10 @@ void deselect_saction_markers(ListBase *markers, int test, int sel)
 	if (test) {
 		/* dependant on existing selection */
 		/* determine if select all or deselect all */
-		sel = 0;
+		sel = 1;
 		for (marker= markers->first; marker; marker= marker->next) {
-			if ((marker->flag & SELECT)==0) {
-				sel = 1;
+			if (marker->flag & SELECT) {
+				sel = 0;
 				break;
 			}
 		}
