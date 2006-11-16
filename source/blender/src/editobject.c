@@ -2713,7 +2713,7 @@ void convertmenu(void)
 	 * level==-1 then toggle subsurf, else set to level.
      * *set allows to toggle multiple selections
 	 */
-static void object_flip_subdivison(Object *ob, int *set, int level)
+static void object_flip_subdivison(Object *ob, int *set, int level, int mode)
 {
 	ModifierData *md;
 
@@ -2727,12 +2727,12 @@ static void object_flip_subdivison(Object *ob, int *set, int level)
 
 		if (level == -1) {
 			if(*set == -1) 
-				*set= smd->modifier.mode&(eModifierMode_Render|eModifierMode_Realtime);
+				*set= smd->modifier.mode&(mode);
 										  
 			if (*set) {
-				smd->modifier.mode &= ~(eModifierMode_Render|eModifierMode_Realtime);
+				smd->modifier.mode &= ~(mode);
 			} else {
-				smd->modifier.mode |= (eModifierMode_Render|eModifierMode_Realtime);
+				smd->modifier.mode |= (mode);
 			}
 		} else {
 			smd->levels = level;
@@ -2761,14 +2761,20 @@ void flip_subdivison(int level)
 {
 	Base *base;
 	int set= -1;
+	int mode;
+	
+	if(G.qual & LR_ALTKEY)
+		mode= eModifierMode_Realtime;
+	else
+		mode= eModifierMode_Render|eModifierMode_Realtime;
 	
 	for(base= G.scene->base.first; base; base= base->next) {
 		if(TESTBASE(base)) {
-			object_flip_subdivison(base->object, &set, level);
+			object_flip_subdivison(base->object, &set, level, mode);
 			if(base->object->dup_group) {
 				GroupObject *go;
 				for(go= base->object->dup_group->gobject.first; go; go= go->next)
-					object_flip_subdivison(go->ob, &set, level);
+					object_flip_subdivison(go->ob, &set, level, mode);
 			}
 		}
 	}

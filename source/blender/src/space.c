@@ -1727,7 +1727,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						allqueue(REDRAWHEADERS, 0);
 					}
 				}
-				else if((G.qual==LR_SHIFTKEY)) {
+				else if((G.qual==LR_SHIFTKEY || G.qual==(LR_ALTKEY|LR_SHIFTKEY))) {
 					flip_subdivison(-1);
 				}
 				else if(G.qual==LR_ALTKEY) {
