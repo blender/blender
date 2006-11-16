@@ -1441,7 +1441,7 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 	
 	for(a=0; a<resolu; a++, fac+= dfac) {
 		
-		set_four_ipo(fac, t, KEY_BSPLINE);
+		set_four_ipo(fac, t, KEY_LINEAR);
 		
 		data_a[a]= t[0]*pprev->alfa + t[1]*prevbezt->alfa + t[2]*bezt->alfa + t[3]*next->alfa;
 	}
@@ -1593,6 +1593,7 @@ void makeBevelList(Object *ob)
 					bevp->x= prevbezt->vec[1][0];
 					bevp->y= prevbezt->vec[1][1];
 					bevp->z= prevbezt->vec[1][2];
+					bevp->alfa= prevbezt->alfa;
 					bl->nr++;
 				}
 	

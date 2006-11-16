@@ -1064,7 +1064,7 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 //	printf("rebuild pose %s, %d bones\n", ob->id.name, counter);
 	
 	/* synchronize protected layers with proxy */
-	if(ob->id.lib==NULL && ob->proxy)
+	if(OB_IS_PROXY(ob))
 		pose_proxy_synchronize(ob, ob->proxy, arm->layer_protected);
 	
 	update_pose_constraint_flags(ob->pose); // for IK detection for example
