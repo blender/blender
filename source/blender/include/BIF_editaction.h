@@ -89,10 +89,9 @@ void duplicate_saction_markers(struct ListBase *markers);
 void remove_saction_markers(struct ListBase *markers);
 void rename_saction_markers(struct ListBase *markers);
 void transform_saction_markers(int mode, int smode);
-void deselect_saction_markers(struct ListBase *markers, int test);
+void deselect_saction_markers(struct ListBase *markers, int test, int selectmode);
 void borderselect_saction_markers(struct ListBase *markers, float xmin, float xmax, int selectmode);
 struct TimeMarker *find_nearest_saction_marker(struct ListBase *markers);
-
 
 /* channel/strip operations */
 void up_sel_action(void);
@@ -112,7 +111,6 @@ void set_extendtype_actionchannels(int extendtype);
 /* Select */
 void borderselect_mesh(struct Key *key);
 void borderselect_action(void);
-void borderselect_markers(struct ListBase *markers);
 void deselect_actionchannel_keys(struct bAction *act, int test);
 void deselect_actionchannels (struct bAction *act, int test);
 void deselect_meshchannel_keys (struct Key *key, int test);

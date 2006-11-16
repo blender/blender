@@ -648,9 +648,13 @@ static void mouse_action(int selectmode)
 		if (selectmode == SELECT_REPLACE) {
 			selectmode = SELECT_ADD;
 			
-			deselect_saction_markers(markers, 0);
+			deselect_saction_markers(markers, 0, 0);
 			marker->flag |= SELECT;
 		}
+		else if (selectmode == SELECT_ADD) 
+			marker->flag |= SELECT;
+		else if (selectmode == SELECT_SUBTRACT)
+			marker->flag &= ~SELECT;
 		
 		std_rmouse_transform(transform_saction_markers);
 		
@@ -2457,26 +2461,40 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if (mval[0]<ACTWIDTH){
 					/* to do ??? */
 				}
-				else{
-					deselect_meshchannel_keys(key, 1);
-					allqueue (REDRAWACTION, 0);
-					allqueue(REDRAWNLA, 0);
-					allqueue (REDRAWIPO, 0);
+				else {
+					if (G.qual == LR_CTRLKEY) {
+						deselect_saction_markers(markers, 1, 0);
+						allqueue(REDRAWACTION, 0);
+						allqueue(REDRAWTIME, 0);
+					}
+					else {
+						deselect_meshchannel_keys(key, 1);
+						allqueue (REDRAWACTION, 0);
+						allqueue(REDRAWNLA, 0);
+						allqueue (REDRAWIPO, 0);
+					}
 				}
 			}
 			else {
-				if (mval[0]<NAMEWIDTH){
+				if (mval[0]<NAMEWIDTH) {
 					deselect_actionchannels (act, 1);
 					allqueue (REDRAWVIEW3D, 0);
 					allqueue (REDRAWACTION, 0);
 					allqueue(REDRAWNLA, 0);
 					allqueue (REDRAWIPO, 0);
 				}
-				else if (mval[0]>ACTWIDTH){
-					deselect_actionchannel_keys (act, 1);
-					allqueue (REDRAWACTION, 0);
-					allqueue(REDRAWNLA, 0);
-					allqueue (REDRAWIPO, 0);
+				else if (mval[0]>ACTWIDTH) {
+					if (G.qual == LR_CTRLKEY) {
+						deselect_saction_markers(markers, 1, 0);
+						allqueue(REDRAWACTION, 0);
+						allqueue(REDRAWTIME, 0);
+					}
+					else {
+						deselect_actionchannel_keys (act, 1);
+						allqueue (REDRAWACTION, 0);
+						allqueue(REDRAWNLA, 0);
+						allqueue (REDRAWIPO, 0);
+					}
 				}
 			}
 			break;
@@ -2773,7 +2791,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				
 				/* Clicking in the main area of the action window
-				 * selects keys
+				 * selects keys and markers
 				 */
 				else {
 					if (key) {
@@ -3085,19 +3103,46 @@ TimeMarker *find_nearest_saction_marker(ListBase *markers)
 }
 
 /* select/deselect all TimeMarkers */
-void deselect_saction_markers(ListBase *markers, int test)
+void deselect_saction_markers(ListBase *markers, int test, int sel)
 {
 	TimeMarker *marker;
 	
-	for (marker = markers->first; marker; marker= marker->next) {
-			if (test) {
-				if ((marker->flag & SELECT)==0)
+	/* check if need to find out whether to how to select markers */
+	if (test) {
+		/* dependant on existing selection */
+		/* determine if select all or deselect all */
+		sel = 0;
+		for (marker= markers->first; marker; marker= marker->next) {
+			if ((marker->flag & SELECT)==0) {
+				sel = 1;
+				break;
+			}
+		}
+		
+		/* do selection */
+		for (marker= markers->first; marker; marker= marker->next) {
+			if (sel) {
+				if ((marker->flag & SELECT)==0) 
 					marker->flag |= SELECT;
 			}
 			else {
 				if (marker->flag & SELECT)
 					marker->flag &= ~SELECT;
 			}
+		}
+	}
+	else {
+		/* not dependant on existing selection */
+		for (marker= markers->first; marker; marker= marker->next) {
+				if (sel) {
+					if ((marker->flag & SELECT)==0)
+						marker->flag |= SELECT;
+				}
+				else {
+					if (marker->flag & SELECT)
+						marker->flag &= ~SELECT;
+				}
+		}
 	}
 }
 

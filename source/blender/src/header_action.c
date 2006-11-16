@@ -89,6 +89,7 @@
 #define ACTMENU_SEL_ALL_KEYS    1
 #define ACTMENU_SEL_ALL_CHAN    2
 #define ACTMENU_SEL_COLUMN		3
+#define ACTMENU_SEL_ALL_MARKERS	4
 
 #define ACTMENU_KEY_DUPLICATE     0
 #define ACTMENU_KEY_DELETE        1
@@ -335,6 +336,7 @@ static void do_action_selectmenu(void *arg, int event)
 	SpaceAction *saction;
 	bAction	*act;
 	Key *key;
+	ListBase *markers;
 	
 	saction = curarea->spacedata.first;
 	if (!saction)
@@ -342,6 +344,7 @@ static void do_action_selectmenu(void *arg, int event)
 
 	act = saction->action;
 	key = get_action_mesh_key();
+	markers = get_saction_markers(saction);
 	
 	switch(event)
 	{
@@ -380,6 +383,14 @@ static void do_action_selectmenu(void *arg, int event)
 		case ACTMENU_SEL_COLUMN:
 			addqueue (curarea->win, KKEY, 1);
 			break;
+			
+		case ACTMENU_SEL_ALL_MARKERS: /* select/deselect all markers */
+			if (markers != NULL) {
+				deselect_saction_markers(markers, 1, 0);
+				allqueue(REDRAWACTION, 0);
+				allqueue(REDRAWTIME, 0);
+			}
+			break;
 	}
 }
 
@@ -396,16 +407,26 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 "Border Select|B", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_BORDER, "");
+					 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+			 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Select/Deselect All Keys|A", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_ALL_KEYS, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Select/Deselect All Markers|Ctrl A", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_ALL_MARKERS, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Select/Deselect All Channels", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_ALL_CHAN, "");
+					 
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+			 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Select Column|K", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
@@ -1035,10 +1056,12 @@ void action_buttons(void)
 					  "Key", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
-		xmax= GetButStringLength("Marker");
-		uiDefPulldownBut(block, action_markermenu, NULL, 
-					  "Marker", xco, -2, xmax-3, 24, "");
-		xco+= xmax;
+		if (G.saction->markert != SACTION_NOMARKERS) {
+			xmax= GetButStringLength("Marker");
+			uiDefPulldownBut(block, action_markermenu, NULL, 
+						  "Marker", xco, -2, xmax-3, 24, "");
+			xco+= xmax;
+		}
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
