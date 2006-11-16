@@ -1141,7 +1141,8 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chanshown)
 		return 0;
 	}
 
-	IMB_cache_limiter_unref(seqfirst->curelem->ibuf);
+	if(seqfirst->curelem->ibuf)
+		IMB_cache_limiter_unref(seqfirst->curelem->ibuf);
 
 	return seqfirst->curelem->ibuf;
 
