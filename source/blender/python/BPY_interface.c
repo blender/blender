@@ -116,8 +116,6 @@ PyObject *blender_import( PyObject * self, PyObject * args );
 void BPY_Err_Handle( char *script_name );
 PyObject *traceback_getFilename( PyObject * tb );
 
-void BPY_free_screen_spacehandlers(struct bScreen *sc);
-
 /****************************************************************************
 * Description: This function will start the interpreter and load all modules
 * as well as search for a python installation.
@@ -1648,21 +1646,17 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 void BPY_free_scriptlink( struct ScriptLink *slink )
 {
 	if( slink->totscript ) {
-		if( slink->flag )
+		if( slink->flag ) {
 			MEM_freeN( slink->flag );
-		if( slink->scripts )
+			slink->flag= NULL;
+		}
+		if( slink->scripts ) {
 			MEM_freeN( slink->scripts );
+			slink->scripts= NULL;
+		}
 	}
 
 	return;
-}
-
-void BPY_free_screen_spacehandlers(struct bScreen *sc)
-{
-	ScrArea *sa;
-
-	for (sa = sc->areabase.first; sa; sa = sa->next)
-		BPY_free_scriptlink(&sa->scriptlink);
 }
 
 static int CheckAllSpaceHandlers(Text *text)

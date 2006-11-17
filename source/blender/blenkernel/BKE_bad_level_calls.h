@@ -66,7 +66,6 @@ struct Object;
 void BPY_do_pyscript (struct ID *id, short int event);
 void BPY_clear_script (struct Script *script);
 void BPY_free_compiled_text (struct Text *text);
-void BPY_free_screen_spacehandlers (struct bScreen *sc);
 /* pydrivers */
 struct Object **BPY_pydriver_get_objects(struct IpoDriver *driver);
 float BPY_pydriver_eval(struct IpoDriver *driver);

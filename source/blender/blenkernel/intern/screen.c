@@ -51,7 +51,6 @@ void free_screen(bScreen *sc)
 {
 	unlink_screen(sc);
 
-	BPY_free_screen_spacehandlers(sc);
 	BLI_freelistN(&sc->vertbase);
 	BLI_freelistN(&sc->edgebase);
 	BLI_freelistN(&sc->areabase);

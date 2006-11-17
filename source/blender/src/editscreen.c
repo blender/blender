@@ -1836,8 +1836,10 @@ static void del_area(ScrArea *sa)
 	uiFreeBlocks(&sa->uiblocks);
 	uiFreePanels(&sa->panels);
 	
-	if(sa==curarea) curarea= 0;
-	if(sa==g_activearea) g_activearea= 0;
+	BPY_free_scriptlink(&sa->scriptlink);
+	
+	if(sa==curarea) curarea= NULL;
+	if(sa==g_activearea) g_activearea= NULL;
 }
 
 /* sa2 to sa1 */
