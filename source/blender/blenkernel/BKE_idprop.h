@@ -48,7 +48,22 @@ void IDP_LinkID(struct IDProperty *prop, ID *id);
 void IDP_UnlinkID(struct IDProperty *prop);
 
 /*-------- Group Functions -------*/
-void IDP_AddToGroup(struct IDProperty *group, struct IDProperty *prop);
+/*
+This function has a sanity check to make sure ID properties with the same name don't
+get added to the group.
+
+The sanity check just means the property is not added to the group if another property
+exists with the same name; the client code using ID properties then needs to detect this 
+(the function that adds new properties to groups, IDP_AddToGroup, returns 0 if a property can't
+be added to the group, and 1 if it can) and free the property.
+
+Currently the code to free ID properties is designesd to leave the actual struct
+you pass it un-freed, this is needed for how the system works.  This means
+to free an ID property, you first call IDP_FreeProperty then MEM_freeN the
+struct.  In the future this will just be IDP_FreeProperty and the code will
+be reorganized to work properly.
+*/
+int IDP_AddToGroup(struct IDProperty *group, struct IDProperty *prop);
 void IDP_RemFromGroup(struct IDProperty *group, struct IDProperty *prop);
 IDProperty *IDP_GetPropertyFromGroup(struct IDProperty *prop, char *name);
 

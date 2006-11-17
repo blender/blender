@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define BSTR_EQ(a, b)	(*(a) == *(b) && !strcmp(a, b))
+
 /* IDPropertyTemplate is a union in DNA_ID.h */
 static char idp_size_table[] = {
 	0, /*strings don't have fixed sizes :)*/
@@ -135,10 +137,19 @@ void IDP_UnlinkID(IDProperty *prop)
 }
 
 /*-------- Group Functions -------*/
-void IDP_AddToGroup(IDProperty *group, IDProperty *prop)
+/*returns 0 if an id property with the same name exists and it failed,
+  or 1 if it succeeded in adding to the group.*/
+int IDP_AddToGroup(IDProperty *group, IDProperty *prop)
 {
+	IDProperty *loop;
+	for (loop=group->data.group.first; loop; loop=loop->next) {
+		if (BSTR_EQ(loop->name, prop->name)) return 0;
+	}
+
 	group->len++;
 	BLI_addtail(&group->data.group, prop);
+
+	return 1;
 }
 
 void IDP_RemFromGroup(IDProperty *group, IDProperty *prop)

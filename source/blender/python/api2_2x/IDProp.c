@@ -264,7 +264,11 @@ char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObje
 		Py_XDECREF(vals);
 	}
 	
-	IDP_AddToGroup(group, prop);
+	if (!IDP_AddToGroup(group, prop)) {
+		IDP_FreeProperty(prop);
+		MEM_freeN(prop);
+		return "property name already exists in group";
+	}
 	return NULL;
 }
 
@@ -848,7 +852,10 @@ PyObject *BPy_IDGroup_NewProperty(BPy_IDProperty *self, PyObject *args)
 				"invalid id property type");
 	}
 
-	IDP_AddToGroup(self->prop, prop);
+	if (!IDP_AddToGroup(self->prop, prop)) {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"property name already exists in group");
+	}
 	pyprop = BPy_Wrap_IDProperty(self->id, prop);
 	//Py_XINCREF(pyprop);
 	return pyprop;
