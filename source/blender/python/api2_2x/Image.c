@@ -37,6 +37,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_image.h"
+#include "BKE_idprop.h"
 #include "BIF_drawimage.h"
 #include "BLI_blenlib.h"
 #include "DNA_space_types.h"	/* FILE_MAXDIR = 160 */

@@ -45,6 +45,7 @@ struct View3D;
 #include "BKE_library.h"
 #include "BKE_scene.h"
 #include "BKE_font.h"
+#include "BKE_idprop.h"
 #include "BLI_blenlib.h" /* only for SceneObSeq_new */
 #include "BSE_drawview.h"	/* for play_anim */
 #include "BSE_headerbuttons.h"	/* for copy_scene */
@@ -286,7 +287,7 @@ static PyObject *Scene_getAttr( BPy_Scene * self, char *name )
 
 	/* accept both Layer (for compatibility with ob.Layer) and Layers */
 	else if( strncmp( name, "Layer", 5 ) == 0 )
-		attr = PyInt_FromLong( self->scene->lay & (1<<20)-1 );
+		attr = PyInt_FromLong( self->scene->lay & ((1<<20)-1) );
 	/* Layers returns a bitmask, layers returns a list of integers */
 	else if( strcmp( name, "layers") == 0)
 		return Scene_getLayers(self);
@@ -1296,7 +1297,7 @@ static PyObject *SceneObSeq_add( BPy_SceneObSeq * self, PyObject *pyobj )
 static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 {
 	void *data = NULL;
-	short type;
+	short type = OB_EMPTY;
 	struct Object *object;
 	Base *base;
 	PyObject *py_data;
@@ -1424,7 +1425,7 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 
 	
 	base->object = object;	/* link object to the new base */
-	base->lay= object->lay = scene->lay & (1<<20)-1;	/* Layer, by default visible*/
+	base->lay= object->lay = scene->lay & ((1<<20)-1);	/* Layer, by default visible*/
 	
 	base->flag = SELECT;
 	object->id.us = 1; /* we will exist once in this scene */

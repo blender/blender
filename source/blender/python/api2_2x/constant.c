@@ -113,33 +113,7 @@ static int constantAssSubscript(BPy_constant *self, PyObject *who, PyObject *car
 {
 	return 0; /* no user assignments allowed */
 }
-//------------------------tp_getattr
-static PyObject *constant_getAttr(BPy_constant * self, char *name)
-{
-	if(self->dict) {
-		PyObject *v;
-
-		if(!strcmp(name, "__members__"))
-			return PyDict_Keys(self->dict);
-
-		if(!strcmp(name, "__methods__")) {
-			PyObject *value = PyString_FromString ( name );
-			v = PyObject_GenericGetAttr( (PyObject *)self, value );
-			Py_DECREF( value);
-			return v;
-		}
-
-		v = PyDict_GetItemString(self->dict, name);
-		if(v) {
-			return EXPP_incr_ret(v); /* was a borrowed ref */
-		}
-		return (EXPP_ReturnPyObjError(PyExc_AttributeError,
-						"attribute not found"));
-	}
-	return (EXPP_ReturnPyObjError(PyExc_RuntimeError,
-					"constant object lacks a dictionary"));
-}
-
+//------------------------tp_getattro
 static PyObject *constant_getAttro(BPy_constant * self, PyObject *value)
 {
 	if(self->dict) {
@@ -212,8 +186,7 @@ PyTypeObject constant_Type = {
 	0,								//tp_itemsize
 	(destructor)constant_dealloc,	//tp_dealloc
 	0,								//tp_print
-	// (getattrfunc)constant_getAttr,	//tp_getattr
-	0,		//tp_getattr
+	0,								//tp_getattr
 	0,								//tp_setattr
 	0,								//tp_compare
 	(reprfunc) constant_repr,		//tp_repr

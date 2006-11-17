@@ -3155,10 +3155,10 @@ static float isfaceConcave(float fake[4][3])
 	areaB = AreaT3Dfl(fake[1], fake[2], fake[3]) + AreaT3Dfl(fake[3], fake[0], fake[1]);
 	
 	if(areaA <= areaB) minarea = areaA;
-	else if(areaB < areaA) minarea = areaB;
+	else minarea = areaB;
 	
 	if(areaA >= areaB) maxarea = areaA;
-	else if(areaB > areaA) maxarea = areaB;
+	else maxarea = areaB;
 	
 	if(!maxarea) return 1;
 	else return 1 - (minarea / maxarea);

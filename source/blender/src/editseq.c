@@ -1121,7 +1121,6 @@ static int add_seq_effect(int type, char *str)
 	int cfra, machine;
 	short mval[2];
 	struct SeqEffectHandle sh;
-	int mode;
 
 	if(G.scene->ed==0) return 0;
 	ed= G.scene->ed;

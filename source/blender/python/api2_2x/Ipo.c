@@ -366,7 +366,7 @@ PyTypeObject Ipo_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-	( reprfunc ) Ipo_compare,   /* cmpfunc tp_compare; */
+	( cmpfunc ) Ipo_compare,   /* cmpfunc tp_compare; */
 	( reprfunc ) Ipo_repr,     /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */

@@ -645,7 +645,6 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 		
 	} else if (MatrixObject_Check(v2)) {
 		float vecCopy[4];
-		double dot;
 		int x,y, size= vec->size;
 		MatrixObject *mat= (MatrixObject*)v2;
 			
@@ -664,11 +663,11 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 		
 		/*muliplication*/
 		for(x = 0, i = 0; x < mat->colSize; x++) {
+			double dot = 0.0f;
 			for(y = 0; y < mat->rowSize; y++) {
 				dot += mat->matrix[y][x] * vecCopy[y];
 			}
 			vec->vec[i++] = (float)dot;
-			dot = 0.0f;
 		}
 		Py_INCREF( v1 );
 		return v1;
