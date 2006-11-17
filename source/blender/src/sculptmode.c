@@ -1222,7 +1222,7 @@ void sculptmode_propset(unsigned short event)
 			for(i=0; i<tsz; ++i)
 				for(j=0; j<tsz; ++j)
 					d[i*tsz+j]= simple_strength(sqrt(pow(i-tsz/2,2)+pow(j-tsz/2,2)),tsz/2);
-			if(G.scene->sculptdata.texrndr) {
+			if(G.scene->sculptdata.texact != -1 && G.scene->sculptdata.texrndr) {
 				for(i=0; i<tsz; ++i)
 					for(j=0; j<tsz; ++j) {
 						const int col= G.scene->sculptdata.texrndr->rect[i*tsz+j];
