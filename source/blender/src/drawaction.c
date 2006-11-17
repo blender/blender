@@ -79,9 +79,10 @@
 #include "BDR_drawaction.h"
 #include "BDR_editcurve.h"
 
-#include "BSE_view.h"
 #include "BSE_drawnla.h"
 #include "BSE_drawipo.h"
+#include "BSE_time.h"
+#include "BSE_view.h"
 
 /* 'old' stuff": defines and types, and own include -------------------- */
 
