@@ -1,9 +1,9 @@
 /**
  * blenlib/DNA_ID.h (mar-2001 nzc)
  *
- * ID and Library types, which are fundamental for sdna, 
+ * ID and Library types, which are fundamental for sdna,
  *
- * $Id$ 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -36,21 +36,70 @@
 #ifndef DNA_ID_H
 #define DNA_ID_H
 
+#include "DNA_listBase.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* There's a nasty circular dependency here.... void* to the rescue! I
- * really wonder why this is needed. */
-
 struct Library;
 struct FileData;
+struct ID;
+
+typedef struct IDPropertyData {
+	void *pointer;
+	ListBase group;
+	int val, pad;
+} IDPropertyData;
+
+typedef struct IDProperty {
+	struct IDProperty *next, *prev;
+	char name[32];
+	char type, subtype;
+	short flag;
+	IDPropertyData data;
+	int len; /* array length, also (this is important!) string length + 1.
+	            the idea is to be able to reuse array realloc functions on strings.*/
+	/*totallen is total length of allocated array/string, including a buffer.
+	  Note that the buffering is mild; the code comes from python's list implementation.*/
+	int totallen; /*strings and arrays are both buffered, though the buffer isn't
+	                saved.  at least it won't be when I write that code. :)*/
+	int saved; /*saved is used to indicate if this struct has been saved yet.
+	             seemed like a good idea as a pad var was needed anyway :)*/
+} IDProperty;
+
+#define MAX_IDPROP_NAME	32
+#define DEFAULT_ALLOC_FOR_NULL_STRINGS	64
+
+/*->type*/
+#define IDP_STRING	0
+#define IDP_INT		1
+#define IDP_FLOAT	2
+#define IDP_VECTOR	3
+#define IDP_MATRIX	4
+#define IDP_ARRAY	5
+#define IDP_GROUP	6
+#define IDP_ID		7
+
+/*special types for vector, matrices and arrays
+ these arn't quite completely implemented, and
+ may be removed.*/
+#define IDP_MATRIX4X4	9
+#define IDP_MATRIX3X3	10
+#define IDP_VECTOR2D	11
+#define IDP_VECTOR3D	12
+#define IDP_VECTOR4D	13
+#define IDP_FILE	14
+/*add any future new id property types here.*/
 
 /* watch it: Sequence has identical beginning. */
 /**
  * ID is the first thing included in all serializable types. It
  * provides a common handle to place all data in double-linked lists.
  * */
+
+/* There's a nasty circular dependency here.... void* to the rescue! I
+ * really wonder why this is needed. */
 typedef struct ID {
 	void *next, *prev;
 	struct ID *newid;
@@ -63,6 +112,7 @@ typedef struct ID {
 	 */
 	short flag;
 	int icon_id;
+	IDProperty *properties;
 } ID;
 
 /**

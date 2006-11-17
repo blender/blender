@@ -66,6 +66,7 @@ struct rctf;
 #include "BKE_scene.h"
 #include "BKE_nla.h"
 #include "BKE_material.h"
+#include "BKE_idprop.h"
 
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
@@ -114,6 +115,7 @@ struct rctf;
 #include "gen_utils.h"
 #include "EXPP_interface.h"
 #include "BIF_editkey.h"
+#include "IDProp.h"
 
 /* Defines for insertIpoKey */
 
@@ -326,6 +328,7 @@ struct PyMethodDef M_Object_methods[] = {
 static int setupSB(Object* ob); /*Make sure Softbody Pointer is initialized */
 static int setupPI(Object* ob);
 
+static PyObject *Object_GetProperties(BPy_Object * self);
 static PyObject *Object_buildParts( BPy_Object * self );
 static PyObject *Object_clearIpo( BPy_Object * self );
 static PyObject *Object_clrParent( BPy_Object * self, PyObject * args );
@@ -750,6 +753,8 @@ works only if self and the object specified are of the same type."},
 	 "() - Insert a Shape Key in the current object"},
 	{"__copy__", ( PyCFunction ) Object_copy, METH_NOARGS,
 	 "() - Return a copy of this object."},
+	{"getProperties", ( PyCFunction ) Object_GetProperties, METH_NOARGS,
+	 "() return a reference to the ID properties associated with this object."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -981,6 +986,12 @@ static PyObject *M_Object_Duplicate( PyObject * self_unused,
 /*****************************************************************************/
 /* Python BPy_Object methods:					*/
 /*****************************************************************************/
+
+static PyObject *Object_GetProperties(BPy_Object * self)
+{
+	return BPy_Wrap_IDProperty((ID*)self->object, IDP_GetProperties((ID*)self->object, 1));
+	
+}
 
 static PyObject *Object_buildParts( BPy_Object * self )
 {
@@ -4983,7 +4994,8 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getType, (setter)NULL, 
 	 "String describing Object type",
 	 NULL},
-
+	{"properties", (getter)Object_GetProperties, (setter)NULL,
+	"Get the ID properties associated with this object"},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 

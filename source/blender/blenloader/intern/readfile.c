@@ -131,6 +131,7 @@
 #include "BKE_softbody.h"	// sbNew()
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
+#include "BKE_idprop.h"
 
 #include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
 #include "BIF_previewrender.h" // bedlelvel, for struct RenderInfo
@@ -1233,8 +1234,86 @@ static void test_pointer_array(FileData *fd, void **mat)
 	}
 }
 
-/* ************ READ Brush *************** */
+/* ************ READ ID Properties *************** */
 
+void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, void *fd);
+void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, void *fd);
+
+void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
+{
+	/*since we didn't save the extra string buffer, set totallen to len.*/
+	prop->totallen = prop->len;
+	prop->data.pointer = newdataadr(fd, prop->data.pointer);
+
+	if (switch_endian) {
+		int i;
+		if (prop->subtype == IDP_INT) {
+			for (i=0; i<prop->len; i++) {
+				if (sizeof(int) == 4) {
+					SWITCH_INT(((int*)prop->data.pointer)[i]);
+				} else if (sizeof(int) == 8) {
+					SWITCH_LONGINT(((int*)prop->data.pointer)[i])
+				}
+			}
+		} else if (prop->subtype == IDP_FLOAT) {
+			int i;
+			for (i=0; i<prop->len; i++) {
+				SWITCH_INT(((int*)prop->data.pointer)[i]);
+			}
+		} else printf("Unkown ID property array type! could not do endian switching!!\n");
+	}
+}
+
+void IDP_DirectLinkString(IDProperty *prop, int switch_endian, void *fd)
+{
+	/*since we didn't save the extra string buffer, set totallen to len.*/
+	prop->totallen = prop->len;
+	prop->data.pointer = newdataadr(fd, prop->data.pointer);
+}
+
+void IDP_DirectLinkGroup(IDProperty *prop, int switch_endian, void *fd)
+{
+	ListBase *lb = &prop->data.group;
+	IDProperty *loop;
+
+	link_list(fd, lb);
+
+	/*Link child id properties now*/
+	for (loop=prop->data.group.first; loop; loop=loop->next) {
+		IDP_DirectLinkProperty(loop, switch_endian, fd);
+	}
+}
+
+void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, void *fd)
+{
+	/*we pack floats and ints in an int, this may cause problems where sizeof(int) != sizeof(float)*/
+	if (sizeof(void*) == 8  && switch_endian != 0 && BLO_test_64bits(fd)) {
+		if (prop->type == IDP_FLOAT && sizeof(int) == 8) {
+			/*un-longint switch it (as DNA saw a long int here) then int switch it*/
+			SWITCH_LONGINT(prop->data.val);
+			SWITCH_INT(prop->data.val);
+		}
+	}
+
+	switch (prop->type) {
+		case IDP_GROUP:
+			IDP_DirectLinkGroup(prop, switch_endian, fd);
+			break;
+		case IDP_STRING:
+			IDP_DirectLinkString(prop, switch_endian, fd);
+			break;
+		case IDP_ARRAY:
+			IDP_DirectLinkArray(prop, switch_endian, fd);
+			break;
+	}
+}
+
+/*stub function*/
+void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, void *fd)
+{
+}
+
+/* ************ READ Brush *************** */
 /* library brush linking after fileread */
 static void lib_link_brush(FileData *fd, Main *main)
 {
@@ -2198,6 +2277,11 @@ static void lib_link_material(FileData *fd, Main *main)
 	ma= main->mat.first;
 	while(ma) {
 		if(ma->id.flag & LIB_NEEDLINK) {
+			/*Link ID Properties -- and copy this comment EXACTLY for easy finding
+			of library blocks that implement this.*/
+			/*set head id properties type to IDP_GROUP; calloc kindly initilizes
+			  all other needed values :) */
+			if (ma->id.properties) IDP_LibLinkProperty(ma->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 
 			ma->ipo= newlibadr_us(fd, ma->id.lib, ma->ipo);
 			ma->group= newlibadr_us(fd, ma->id.lib, ma->group);
@@ -2226,6 +2310,11 @@ static void direct_link_material(FileData *fd, Material *ma)
 
 	for(a=0; a<MAX_MTEX; a++) {
 		ma->mtex[a]= newdataadr(fd, ma->mtex[a]);
+	}
+
+	if (ma->id.properties) {
+		ma->id.properties = newdataadr(fd, ma->id.properties);
+		IDP_DirectLinkProperty(ma->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 	}
 
 	ma->ramp_col= newdataadr(fd, ma->ramp_col);
@@ -2412,6 +2501,7 @@ static void lib_link_object(FileData *fd, Main *main)
 	ob= main->object.first;
 	while(ob) {
 		if(ob->id.flag & LIB_NEEDLINK) {
+			if (ob->id.properties) IDP_LibLinkProperty(ob->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 
 			ob->parent= newlibadr(fd, ob->id.lib, ob->parent);
 			ob->track= newlibadr(fd, ob->id.lib, ob->track);
@@ -2635,6 +2725,11 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->pose= newdataadr(fd, ob->pose);
 	direct_link_pose(fd, ob->pose);
 
+	if (ob->id.properties) {
+		ob->id.properties = newdataadr(fd, ob->id.properties);
+		IDP_DirectLinkProperty(ob->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+	}
+
 	link_list(fd, &ob->defbase);
 	direct_link_nlastrips(fd, &ob->nlastrips);
 	link_list(fd, &ob->constraintChannels);
@@ -2706,6 +2801,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		sb->bpoint= NULL;	// init pointers so it gets rebuilt nicely
 		sb->bspring= NULL;
 		sb->scratch= NULL;
+
 		
 		sb->keys= newdataadr(fd, sb->keys);
 		test_pointer_array(fd, (void **)&sb->keys);

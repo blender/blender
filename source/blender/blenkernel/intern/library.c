@@ -110,6 +110,7 @@
 #include "BKE_node.h"
 #include "BKE_effect.h"
 #include "BKE_brush.h"
+#include "BKE_idprop.h"
 
 #include "BPI_script.h"
 
@@ -490,6 +491,10 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 	}
 
+	if (id->properties) {
+		IDP_FreeProperty(id->properties);
+		MEM_freeN(id->properties);
+	}
 	BLI_remlink(lb, id);
 	MEM_freeN(id);
 

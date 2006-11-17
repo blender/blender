@@ -164,6 +164,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "BKE_sound.h" /* ... and for samples */
 #include "BKE_utildefines.h" // for defines
 #include "BKE_modifier.h"
+#include "BKE_idprop.h"
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
 #include "BIF_verse.h"
@@ -376,6 +377,54 @@ static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not
 }
 
 /* *************** writing some direct data structs used in more code parts **************** */
+/*These functions are used by blender's .blend system for file saving/loading.*/
+void IDP_WriteProperty_OnlyData(IDProperty *prop, void *wd);
+void IDP_WriteProperty(IDProperty *prop, void *wd);
+
+void IDP_WriteArray(IDProperty *prop, void *wd)
+{
+	/*REMEMBER to set totalen to len in the linking code!!*/
+	if (prop->data.pointer) {
+		writedata(wd, DATA, MEM_allocN_len(prop->data.pointer), prop->data.pointer);
+	}
+}
+
+void IDP_WriteString(IDProperty *prop, void *wd)
+{
+	/*REMEMBER to set totalen to len in the linking code!!*/
+	writedata(wd, DATA, prop->len+1, prop->data.pointer);
+}
+
+void IDP_WriteGroup(IDProperty *prop, void *wd)
+{
+	IDProperty *loop;
+
+	for (loop=prop->data.group.first; loop; loop=loop->next) {
+		IDP_WriteProperty(loop, wd);
+	}
+}
+
+/* Functions to read/write ID Properties */
+void IDP_WriteProperty_OnlyData(IDProperty *prop, void *wd)
+{
+	switch (prop->type) {
+		case IDP_GROUP:
+			IDP_WriteGroup(prop, wd);
+			break;
+		case IDP_STRING:
+			IDP_WriteString(prop, wd);
+			break;
+		case IDP_ARRAY:
+			IDP_WriteArray(prop, wd);
+			break;
+	}
+}
+
+void IDP_WriteProperty(IDProperty *prop, void *wd)
+{
+	writestruct(wd, DATA, "IDProperty", 1, prop);
+	IDP_WriteProperty_OnlyData(prop, wd);
+}
 
 static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
 {
@@ -405,7 +454,7 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 				write_curvemapping(wd, node->storage);
 			else if(ntree->type==NTREE_COMPOSIT && (node->type==CMP_NODE_TIME || node->type==CMP_NODE_CURVE_VEC || node->type==CMP_NODE_CURVE_RGB))
 				write_curvemapping(wd, node->storage);
-			else
+			else 
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 		}
 		for(sock= node->inputs.first; sock; sock= sock->next)
@@ -772,6 +821,12 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 #ifdef WITH_VERSE
 			if(vnode) ob->vnode = (void*)vnode;
 #endif
+
+			/*Write ID Properties -- and copy this comment EXACTLY for easy finding
+			  of library blocks that implement this.*/
+			/*manually set head group property to IDP_GROUP, just in case it hadn't been
+			  set yet :) */
+			if (ob->id.properties) IDP_WriteProperty(ob->id.properties, wd);
 
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*ob->totcol, ob->mat);
@@ -1147,6 +1202,12 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 		if(ma->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_MA, "Material", 1, ma);
+			
+			/*Write ID Properties -- and copy this comment EXACTLY for easy finding
+			  of library blocks that implement this.*/
+			/*manually set head group property to IDP_GROUP, just in case it hadn't been
+			  set yet :) */
+			if (ma->id.properties) IDP_WriteProperty(ma->id.properties, wd);
 
 			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a]) writestruct(wd, DATA, "MTex", 1, ma->mtex[a]);
@@ -1424,7 +1485,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					
 					writestruct(wd, DATA, "SpaceImage", 1, sl);
 					if(sima->cumap)
-						write_curvemapping(wd, sima->cumap);
+						write_curvemapping(wd, sima->cumap);					
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
 					writestruct(wd, DATA, "SpaceImaSel", 1, sl);

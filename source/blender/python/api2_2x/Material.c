@@ -41,6 +41,7 @@
 #include "BKE_library.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
+#include "BKE_idprop.h"
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 #include "BSE_editipo.h"
@@ -52,6 +53,7 @@
 #include "Ipo.h"
 #include "Group.h"
 #include "gen_utils.h"
+#include "IDProp.h"
 
 /*****************************************************************************/
 /* Python BPy_Material defaults: */
@@ -602,6 +604,7 @@ static PyObject *Material_clearScriptLinks(BPy_Material *self, PyObject *args);
 
 static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args );
 static PyObject *Material_copy( BPy_Material * self );
+static PyObject *Material_getProperties( BPy_Material * self );
 
 
 /*****************************************************************************/
@@ -609,6 +612,8 @@ static PyObject *Material_copy( BPy_Material * self );
 /*****************************************************************************/
 static PyMethodDef BPy_Material_methods[] = {
 	/* name, method, flags, doc */
+	{"getProperties", ( PyCFunction) Material_getProperties, METH_NOARGS, 
+	"() Return Material's ID Properties"},
 	{"getName", ( PyCFunction ) Material_getName, METH_NOARGS,
 	 "() - Return Material's name"},
 	{"getIpo", ( PyCFunction ) Material_getIpo, METH_NOARGS,
@@ -1080,6 +1085,8 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	 (getter)Material_getUsers, (setter)NULL,
 	 "Number of material users",
 	 NULL},
+	 {"properties", (getter) Material_getProperties, (setter)NULL,
+	 "Get material's ID properties"},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -1279,6 +1286,12 @@ Material *GetMaterialByName( char *name )
 /*****************************************************************************/
 /* Python BPy_Material methods:		 */
 /*****************************************************************************/
+
+static PyObject *Material_getProperties( BPy_Material * self )
+{
+	/*sanity check, we set parent property type to Group here*/
+	return BPy_Wrap_IDProperty((ID*)self->material, IDP_GetProperties((ID*)self->material, 1));
+}
 
 static PyObject *Material_getIpo( BPy_Material * self )
 {
