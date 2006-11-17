@@ -173,6 +173,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Group.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\IDProp.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\Image.c
 # End Source File
 # Begin Source File

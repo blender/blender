@@ -390,6 +390,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\group.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\idprop.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\icons.c">
 			</File>
 			<File

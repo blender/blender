@@ -159,6 +159,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Group.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\IDProp.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Image.c">
 			</File>
 			<File

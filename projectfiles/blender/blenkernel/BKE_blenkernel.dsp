@@ -149,6 +149,10 @@ SOURCE=..\..\..\source\blender\blenkernel\intern\action.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\blenkernel\intern\idprop.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\blenkernel\intern\anim.c
 # End Source File
 # Begin Source File
