@@ -81,6 +81,7 @@
 #include "Image.h"
 #include "Material.h"
 #include "Mathutils.h"
+#include "IDProp.h"
 #include "meshPrimitive.h"
 #include "constant.h"
 #include "gen_utils.h"
@@ -7384,10 +7385,19 @@ static PyObject *Mesh_repr( BPy_Mesh * self )
 				    self->mesh->id.name + 2 );
 }
 
+static PyObject *Mesh_getProperties( BPy_Mesh * self )
+{
+	/*sanity check, we set parent property type to Group here*/
+	return BPy_Wrap_IDProperty( (ID*)self->mesh, IDP_GetProperties((ID*)self->mesh, 1) );
+}
+
 /*****************************************************************************/
 /* Python Mesh_Type attributes get/set structure:                           */
 /*****************************************************************************/
 static PyGetSetDef BPy_Mesh_getseters[] = {
+	{"properties", 
+	 (getter)Mesh_getProperties, NULL,
+	"get the ID properties associated with this mesh"},
 	{"verts",
 	 (getter)Mesh_getVerts, (setter)Mesh_setVerts,
 	 "The mesh's vertices (MVert)",

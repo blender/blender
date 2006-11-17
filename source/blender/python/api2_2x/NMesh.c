@@ -73,6 +73,7 @@
 #include "Object.h"
 #include "Key.h"
 #include "Mathutils.h"
+#include "IDProp.h"
 #include "constant.h"
 #include "gen_utils.h"
 
@@ -1717,6 +1718,9 @@ static PyObject *NMesh_getattr( PyObject * self, char *name )
 
 	if( strcmp( name, "name" ) == 0 )
 		return EXPP_incr_ret( me->name );
+
+	else if ( strcmp( name, "properties" ) == 0 )
+		return BPy_Wrap_IDProperty( (ID*)me->mesh, IDP_GetProperties((ID*)me->mesh, 1) );
 
 	else if( strcmp( name, "mode" ) == 0 )
 		return PyInt_FromLong( me->mode );

@@ -64,13 +64,6 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 	prop->totallen = newsize;
 }
 
-/*does NOT unlink anything!*/
-/*Ok, the way things work, Groups and List Arrays free the ID Property structs of their children.
-
-  This is because all ID Property freeing functions free only direct data (not the ID Property
-  struct itself), but for Groups and List Arrays their child properties *are* considered
-  direct data.
-*/
  void IDP_FreeArray(IDProperty *prop)
 {
 	if (prop->data.pointer)
@@ -194,9 +187,9 @@ void IDP_FreeIterBeforeEnd(void *vself)
 	MEM_freeN(vself);
 }
 
-/*Ok, the way things work, Groups and List Arrays free the ID Property structs of their children.
+/*Ok, the way things work, Groups free the ID Property structs of their children.
   This is because all ID Property freeing functions free only direct data (not the ID Property
-  struct itself), but for Groups and List Arrays their child properties *are* considered
+  struct itself), but for Groups the child properties *are* considered
   direct data.*/
 void IDP_FreeGroup(IDProperty *prop)
 {

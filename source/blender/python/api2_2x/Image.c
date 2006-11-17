@@ -47,6 +47,7 @@
 #include "DNA_packedFile_types.h"
 #include "BKE_icons.h"
 #include "IMB_imbuf.h"
+#include "IDProp.h"
 
 /* used so we can get G.scene->r.cfra for getting the
 current image frame, some images change frame if they are a sequence */
@@ -1150,6 +1151,8 @@ static PyObject *Image_getAttr( BPy_Image * self, char *name )
 
 	if( strcmp( name, "name" ) == 0 )
 		attr = PyString_FromString( self->image->id.name + 2 );
+	else if ( strcmp( name, "properties" ) == 0 )
+		return BPy_Wrap_IDProperty( (ID*)self->image, IDP_GetProperties((ID*)self->image, 1) );
 	else if( strcmp( name, "filename" ) == 0 )
 		attr = PyString_FromString( self->image->name );
 	else if( strcmp( name, "size" ) == 0 )

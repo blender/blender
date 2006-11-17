@@ -2104,6 +2104,7 @@ static void lib_link_image(FileData *fd, Main *main)
 	ima= main->image.first;
 	while (ima) {
 		if(ima->id.flag & LIB_NEEDLINK) {
+			if (ima->id.properties) IDP_LibLinkProperty(ima->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 
 			ima->id.flag -= LIB_NEEDLINK;
 		}
@@ -2279,8 +2280,6 @@ static void lib_link_material(FileData *fd, Main *main)
 		if(ma->id.flag & LIB_NEEDLINK) {
 			/*Link ID Properties -- and copy this comment EXACTLY for easy finding
 			of library blocks that implement this.*/
-			/*set head id properties type to IDP_GROUP; calloc kindly initilizes
-			  all other needed values :) */
 			if (ma->id.properties) IDP_LibLinkProperty(ma->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 
 			ma->ipo= newlibadr_us(fd, ma->id.lib, ma->ipo);
@@ -2312,11 +2311,6 @@ static void direct_link_material(FileData *fd, Material *ma)
 		ma->mtex[a]= newdataadr(fd, ma->mtex[a]);
 	}
 
-	if (ma->id.properties) {
-		ma->id.properties = newdataadr(fd, ma->id.properties);
-		IDP_DirectLinkProperty(ma->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-	}
-
 	ma->ramp_col= newdataadr(fd, ma->ramp_col);
 	ma->ramp_spec= newdataadr(fd, ma->ramp_spec);
 	
@@ -2337,6 +2331,10 @@ static void lib_link_mesh(FileData *fd, Main *main)
 	while(me) {
 		if(me->id.flag & LIB_NEEDLINK) {
 			int i;
+
+			/*Link ID Properties -- and copy this comment EXACTLY for easy finding
+			of library blocks that implement this.*/
+			if (me->id.properties) IDP_LibLinkProperty(me->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 
 			/* this check added for python created meshes */
 			if(me->mat) {
@@ -2725,11 +2723,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->pose= newdataadr(fd, ob->pose);
 	direct_link_pose(fd, ob->pose);
 
-	if (ob->id.properties) {
-		ob->id.properties = newdataadr(fd, ob->id.properties);
-		IDP_DirectLinkProperty(ob->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-	}
-
 	link_list(fd, &ob->defbase);
 	direct_link_nlastrips(fd, &ob->nlastrips);
 	link_list(fd, &ob->constraintChannels);
@@ -2904,7 +2897,10 @@ static void lib_link_scene(FileData *fd, Main *main)
 	sce= main->scene.first;
 	while(sce) {
 		if(sce->id.flag & LIB_NEEDLINK) {
-			
+			/*Link ID Properties -- and copy this comment EXACTLY for easy finding
+			of library blocks that implement this.*/
+			if (sce->id.properties) IDP_LibLinkProperty(sce->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+
 			sce->camera= newlibadr(fd, sce->id.lib, sce->camera);
 			sce->world= newlibadr_us(fd, sce->id.lib, sce->world);
 			sce->set= newlibadr(fd, sce->id.lib, sce->set);
@@ -2992,7 +2988,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->dagisvalid = 0;
 	/* set users to one by default, not in lib-link, this will increase it for compo nodes */
 	sce->id.us= 1;
-	
+
 	link_list(fd, &(sce->base));
 
 	sce->basact= newdataadr(fd, sce->basact);
@@ -3904,6 +3900,12 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 		case ID_BR:
 			direct_link_brush(fd, (Brush*)id);
 			break;
+	}
+	
+	/*link direct data of ID properties*/
+	if (id->properties) {
+		id->properties = newdataadr(fd, id->properties);
+		IDP_DirectLinkProperty(id->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 	}
 
 	oldnewmap_free_unused(fd->datamap);

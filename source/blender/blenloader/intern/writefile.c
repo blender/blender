@@ -824,8 +824,6 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 
 			/*Write ID Properties -- and copy this comment EXACTLY for easy finding
 			  of library blocks that implement this.*/
-			/*manually set head group property to IDP_GROUP, just in case it hadn't been
-			  set yet :) */
 			if (ob->id.properties) IDP_WriteProperty(ob->id.properties, wd);
 
 			/* direct data */
@@ -875,6 +873,7 @@ static void write_vfonts(WriteData *wd, ListBase *idbase)
 		if(vf->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_VF, "VFont", 1, vf);
+			if (vf->id.properties) IDP_WriteProperty(vf->id.properties, wd);
 
 			/* direct data */
 
@@ -899,6 +898,7 @@ static void write_ipos(WriteData *wd, ListBase *idbase)
 		if(ipo->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_IP, "Ipo", 1, ipo);
+			if (ipo->id.properties) IDP_WriteProperty(ipo->id.properties, wd);
 
 			/* direct data */
 			icu= ipo->curve.first;
@@ -933,6 +933,7 @@ static void write_keys(WriteData *wd, ListBase *idbase)
 		if(key->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_KE, "Key", 1, key);
+			if (key->id.properties) IDP_WriteProperty(key->id.properties, wd);
 
 			/* direct data */
 			kb= key->block.first;
@@ -958,6 +959,7 @@ static void write_cameras(WriteData *wd, ListBase *idbase)
 		if(cam->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_CA, "Camera", 1, cam);
+			if (cam->id.properties) IDP_WriteProperty(cam->id.properties, wd);
 
 			/* direct data */
 			write_scriptlink(wd, &cam->scriptlink);
@@ -977,6 +979,7 @@ static void write_mballs(WriteData *wd, ListBase *idbase)
 		if(mb->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_MB, "MetaBall", 1, mb);
+			if (mb->id.properties) IDP_WriteProperty(mb->id.properties, wd);
 
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*mb->totcol, mb->mat);
@@ -1011,6 +1014,7 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*cu->totcol, cu->mat);
+			if (cu->id.properties) IDP_WriteProperty(cu->id.properties, wd);
 
 			if(cu->vfont) {
 				writedata(wd, DATA, amount_of_chars(cu->str)+1, cu->str);
@@ -1084,6 +1088,8 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 #endif
 
 			/* direct data */
+			if (mesh->id.properties) IDP_WriteProperty(mesh->id.properties, wd);
+
 			writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
 
 			writestruct(wd, DATA, "MVert", mesh->pv?mesh->pv->totvert:mesh->totvert, mesh->mvert);
@@ -1129,7 +1135,8 @@ static void write_lattices(WriteData *wd, ListBase *idbase)
 		if(lt->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_LT, "Lattice", 1, lt);
-			
+			if (lt->id.properties) IDP_WriteProperty(lt->id.properties, wd);
+
 			/* direct data */
 			writestruct(wd, DATA, "BPoint", lt->pntsu*lt->pntsv*lt->pntsw, lt->def);
 			
@@ -1151,6 +1158,7 @@ static void write_images(WriteData *wd, ListBase *idbase)
 		if(ima->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_IM, "Image", 1, ima);
+			if (ima->id.properties) IDP_WriteProperty(ima->id.properties, wd);
 
 			if (ima->packedfile) {
 				pf = ima->packedfile;
@@ -1179,6 +1187,7 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 		if(tex->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_TE, "Tex", 1, tex);
+			if (tex->id.properties) IDP_WriteProperty(tex->id.properties, wd);
 
 			/* direct data */
 			if(tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
@@ -1238,6 +1247,7 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 		if(wrld->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_WO, "World", 1, wrld);
+			if (wrld->id.properties) IDP_WriteProperty(wrld->id.properties, wd);
 
 			for(a=0; a<MAX_MTEX; a++) {
 				if(wrld->mtex[a]) writestruct(wd, DATA, "MTex", 1, wrld->mtex[a]);
@@ -1259,6 +1269,7 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 		if(la->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_LA, "Lamp", 1, la);
+			if (la->id.properties) IDP_WriteProperty(la->id.properties, wd);
 
 			/* direct data */
 			for(a=0; a<MAX_MTEX; a++) {
@@ -1288,6 +1299,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	while(sce) {
 		/* write LibData */
 		writestruct(wd, ID_SCE, "Scene", 1, sce);
+		if (sce->id.properties) IDP_WriteProperty(sce->id.properties, wd);
 
 		/* direct data */
 		base= sce->base.first;
@@ -1399,6 +1411,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 	while(sc) {
 		/* write LibData */
 		writestruct(wd, ID_SCR, "Screen", 1, sc);
+		if (sc->id.properties) IDP_WriteProperty(sc->id.properties, wd);
 
 		/* direct data */
 		sv= sc->vertbase.first;
@@ -1593,6 +1606,7 @@ static void write_armatures(WriteData *wd, ListBase *idbase)
 	while (arm) {
 		if (arm->id.us>0 || wd->current) {
 			writestruct(wd, ID_AR, "bArmature", 1, arm);
+			if (arm->id.properties) IDP_WriteProperty(arm->id.properties, wd);
 
 			/* Direct data */
 			bone= arm->bonebase.first;
@@ -1617,6 +1631,7 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 	for(act=idbase->first; act; act= act->id.next) {
 		if (act->id.us>0 || wd->current) {
 			writestruct(wd, ID_AC, "bAction", 1, act);
+			if (act->id.properties) IDP_WriteProperty(act->id.properties, wd);
 
 			for (chan=act->chanbase.first; chan; chan=chan->next) {
 				writestruct(wd, DATA, "bActionChannel", 1, chan);
@@ -1642,6 +1657,7 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 		/* write LibData */
 		writestruct(wd, ID_TXT, "Text", 1, text);
 		if(text->name) writedata(wd, DATA, strlen(text->name)+1, text->name);
+		if (text->id.properties) IDP_WriteProperty(text->id.properties, wd);
 
 		if(!(text->flags & TXT_ISEXT)) {
 			/* now write the text data, in two steps for optimization in the readfunction */
@@ -1695,6 +1711,7 @@ static void write_sounds(WriteData *wd, ListBase *idbase)
 
 			/* write LibData */
 			writestruct(wd, ID_SO, "bSound", 1, sound);
+			if (sound->id.properties) IDP_WriteProperty(sound->id.properties, wd);
 
 			if (sound->newpackedfile) {
 				pf = sound->newpackedfile;
@@ -1722,6 +1739,7 @@ static void write_groups(WriteData *wd, ListBase *idbase)
 		if(group->id.us>0 || wd->current) {
 			/* write LibData */
 			writestruct(wd, ID_GR, "Group", 1, group);
+			if (group->id.properties) IDP_WriteProperty(group->id.properties, wd);
 
 			go= group->gobject.first;
 			while(go) {
@@ -1740,6 +1758,7 @@ static void write_nodetrees(WriteData *wd, ListBase *idbase)
 		if (ntree->id.us>0 || wd->current) {
 			writestruct(wd, ID_NT, "bNodeTree", 1, ntree);
 			write_nodetree(wd, ntree);
+			if (ntree->id.properties) IDP_WriteProperty(ntree->id.properties, wd);
 		}
 	}
 }
@@ -1752,6 +1771,7 @@ static void write_brushes(WriteData *wd, ListBase *idbase)
 	for(brush=idbase->first; brush; brush= brush->id.next) {
 		if(brush->id.us>0 || wd->current) {
 			writestruct(wd, ID_BR, "Brush", 1, brush);
+			if (brush->id.properties) IDP_WriteProperty(brush->id.properties, wd);
 			for(a=0; a<MAX_MTEX; a++)
 				if(brush->mtex[a])
 					writestruct(wd, DATA, "MTex", 1, brush->mtex[a]);
