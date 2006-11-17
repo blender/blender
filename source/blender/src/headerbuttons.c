@@ -164,6 +164,7 @@
 #include "BDR_editobject.h"
 #include "BDR_editcurve.h"
 #include "BDR_editmball.h"
+#include "BDR_sculptmode.h"
 
 #include "BPY_extern.h"
 #include "BPY_menus.h"
@@ -804,7 +805,10 @@ void do_global_buttons(unsigned short event)
 			}
 			else {	/* from brush */
 				br= G.scene->toolsettings->imapaint.brush;
-				if(br) {
+				if(G.f & G_SCULPTMODE) {
+					sculptmode_rem_tex(NULL, NULL);
+					allqueue(REDRAWBUTSSHADING, 0);
+				} else if(br) {
 					mtex= br->mtex[ br->texact ];
 					if(mtex) {
 						if(mtex->tex) mtex->tex->id.us--;

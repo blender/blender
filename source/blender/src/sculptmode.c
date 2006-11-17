@@ -505,8 +505,9 @@ void sculptmode_rem_tex(void *junk0,void *junk1)
 {
 	MTex *mtex= G.scene->sculptdata.mtex[G.scene->sculptdata.texact];
 	if(mtex) {
-		mtex->tex->id.us--;
-		G.scene->sculptdata.mtex[G.scene->sculptdata.texact]= 0;
+		if(mtex->tex) mtex->tex->id.us--;
+		MEM_freeN(mtex);
+		G.scene->sculptdata.mtex[G.scene->sculptdata.texact]= NULL;
 		BIF_undo_push("Unlink brush texture");
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWOOPS, 0);
