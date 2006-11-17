@@ -28,8 +28,12 @@
 # Contributor(s): Jiri Hnidek
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
+LIBNAME = verse
+SOURCEDIR = extern/$(LIBNAME)
+DIR = $(OCGDIR)/$(SOURCEDIR)
+DIRS = dist
 
-include nan_definitions.mk
+include nan_subdirs.mk
 
 DISTDIR = dist
 CP = ../../intern/tools/cpifdiff.sh
@@ -38,23 +42,15 @@ ifeq ($(OS),windows)
     EXT = .exe
 endif
 
-all:
-	$(MAKE) -C $(DISTDIR)
-
-# fake debug target
-debug:
-
-install: all
+install: all debug
 	@[ -d $(NAN_VERSE) ] || mkdir -p $(NAN_VERSE)
 	@[ -d $(NAN_VERSE)/include ] || mkdir -p $(NAN_VERSE)/include
 	@[ -d $(NAN_VERSE)/lib ] || mkdir -p $(NAN_VERSE)/lib
 	@[ -d $(OCGDIR)/bin ] || mkdir -p $(OCGDIR)/bin
 	@$(CP) $(DISTDIR)/*.h $(NAN_VERSE)/include
-	@$(CP) $(DISTDIR)/libverse.a $(NAN_VERSE)/lib
-	@$(CP) $(DISTDIR)/verse$(EXT) $(OCGDIR)/bin
+	@$(CP) $(DIR)/libverse.a $(NAN_VERSE)/lib
 ifeq ($(OS),darwin)
 	ranlib $(NAN_VERSE)/lib/libverse.a
 endif
-
-clean:
-	$(MAKE) -C $(DISTDIR) clean
+	$(CC) $(LDFLAGS) -o $(DIR)/verse$(EXT) $(DIR)/libverse.a $(LIBS) $(SLIBS) $(LLIBS) $(DADD) $(LOPTS)
+	@$(CP) $(DIR)/verse$(EXT) $(OCGDIR)/bin
