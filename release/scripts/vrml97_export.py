@@ -541,7 +541,7 @@ class VRML2Export:
 			if (self.verbose == 1):
 				print "  Using Mesh %s (Blender mesh: %s)\n" % \
 					  (meshName, me.name)
-				return
+			return
 		self.meshNames[meshName]=1
 
 		if (self.verbose == 1):
@@ -654,8 +654,12 @@ class VRML2Export:
 		if (matnum != -1):
 			mater = me.materials[matnum]
 			self.writeMaterial(mater, self.cleanStr(mater.name,''))
-		if image != None:
-			self.writeImageTexture(image.name)
+			if (mater.mode & Blender.Material.Modes['TEXFACE']):
+				if image != None:
+					self.writeImageTexture(image.name)
+		else:
+			if image != None:
+				self.writeImageTexture(image.name)
 
 		self.writeIndented("}\n", -1)
 
