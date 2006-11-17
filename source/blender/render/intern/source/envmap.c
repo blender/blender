@@ -647,7 +647,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			if(env->ima->ibuf==NULL) {
 				printf("load ibuf\n");
 				BLI_lock_thread(LOCK_CUSTOM1);
-				if(ima->ibuf==NULL) ima_ibuf_is_nul(tex, tex->ima);
+				if(env->ima->ibuf==NULL) ima_ibuf_is_nul(tex, env->ima);
 				if(env->ima->ok && env->ok==0)
 					envmap_split_ima(env);
 				BLI_unlock_thread(LOCK_CUSTOM1);
