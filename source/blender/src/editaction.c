@@ -2919,12 +2919,12 @@ ListBase *get_saction_markers (SpaceAction *saction)
 {
 	ListBase *markers;
 	
-	if (saction->markert == SACTION_SCMARKERS) 
+//	if (saction->markert == SACTION_SCMARKERS) 
 		markers = &(G.scene->markers);
-	else if ((saction->markert == SACTION_ACMARKERS) && (saction->action != NULL))
-		markers = &(saction->action->markers);
-	else
-		markers = NULL;
+//	else if ((saction->markert == SACTION_ACMARKERS) && (saction->action != NULL))
+//		markers = &(saction->action->markers);
+//	else
+//		markers = NULL;
 		
 	return markers;
 }
@@ -3121,7 +3121,11 @@ TimeMarker *find_nearest_saction_marker(ListBase *markers)
 		return NULL;
 	
 	getmouseco_areawin (mval);
-
+	
+	/* first clip selection in Y */
+	if(mval[1] > 30)
+		return NULL;
+	
 	mval[0]-=7;
 	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
 	mval[0]+=14;

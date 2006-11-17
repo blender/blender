@@ -33,6 +33,7 @@
 #ifndef BSE_TIME_H
 #define BSE_TIME_H
 
+struct SpaceAction;
 
 /* ******** Markers ********* */
 void add_timeline_marker(int frame);
@@ -44,6 +45,7 @@ void timeline_frame_to_center(void);
 void nextprev_timeline_key(short dir);
 void nextprev_timeline_marker(short dir);
 void timeline_grab(int mode, int smode);
+void draw_markers_action(struct SpaceAction *sact);
 
 #endif
 

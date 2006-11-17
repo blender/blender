@@ -179,6 +179,36 @@ static void draw_markers_time( void )
 	}
 }
 
+void draw_markers_action(SpaceAction *sact)
+{
+	TimeMarker *marker;
+	float yspace, ypixels;
+	
+	/* move ortho view to align with slider in bottom */
+	glTranslatef(0.0f, sact->v2d.cur.ymin, 0.0f);
+	
+	/* bad hacks in drawing markers... inverse correct that as well */
+	yspace= sact->v2d.cur.ymax - sact->v2d.cur.ymin;
+	ypixels= sact->v2d.mask.ymax - sact->v2d.mask.ymin;
+	glTranslatef(0.0f, -11.0*yspace/ypixels, 0.0f);
+		
+	/* unselected markers are drawn at the first time */
+	for(marker= G.scene->markers.first; marker; marker= marker->next) {
+		if(!(marker->flag & SELECT)) draw_marker(marker);
+	}
+	
+	/* selected markers are drawn later ... selected markers have to cover unselected
+		* markers laying at the same position as selected markers */
+	for(marker= G.scene->markers.first; marker; marker= marker->next) {
+		if(marker->flag & SELECT) draw_marker(marker);
+	}
+
+	glTranslatef(0.0f, -sact->v2d.cur.ymin, 0.0f);
+	glTranslatef(0.0f, 11.0*yspace/ypixels, 0.0f);
+
+}
+
+
 static void draw_sfra_efra()
 {
 	BIF_ThemeColorShade(TH_BACK, -25);

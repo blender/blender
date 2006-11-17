@@ -1095,29 +1095,7 @@ void action_buttons(void)
 						from, &(G.saction->actnr), B_ACTALONE, 
 						B_ACTLOCAL, B_ACTIONDELETE, 0, 0);	
 
-	
-	/* Draw marker set selection box */
-	xco+= 8;
-	
-	if (G.saction->action != NULL) {
-		uiDefButS(block, MENU, B_REDR, 
-				"Markers%t|None%x0|Scene%x1|Action%x2",	 
-				xco, 0, 80, 20,  &(G.saction->markert), 0, 0, 0, 0, 
-				"What set of markers to display.");
-	}
-	else {
-		if (G.saction->markert == SACTION_ACMARKERS) 
-			G.saction->markert = SACTION_NOMARKERS;
 		
-		uiDefButS(block, MENU, B_REDR, 
-				"Markers%t|None%x0|Scene%x1",	 
-				xco, 0, 80, 20,  &(G.saction->markert), 0, 0, 0, 0, 
-				"What set of markers to display.");
-	}
-	
-	xco+=80;
-	
-	
 	/* Draw action baker */
 	xco+= 8;
 	
