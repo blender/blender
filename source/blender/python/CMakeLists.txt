@@ -49,5 +49,9 @@ IF(WITH_OPENEXR)
   ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
+IF(WITH_FFMPEG)
+  ADD_DEFINITIONS(-DWITH_FFMPEG)
+ENDIF(WITH_FFMPEG)
+
 BLENDERLIB_NOLIST(blender_python "${SRC}" "${INC}")
 #env.BlenderLib ( libname='blender_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype=['core','game2'], priority = [60,115] )

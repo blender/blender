@@ -20,8 +20,12 @@
 #include <string.h>
 #include <stdio.h>
 
+#if defined(_WIN32) && defined(_DEBUG) && !defined(__MINGW32__) && !defined(__CYGWIN__)
 #include <stdint.h>
+#endif
+
 #include <stdlib.h>
+
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/rational.h>
@@ -31,6 +35,10 @@
 #else
 #define FFMPEG_CODEC_IS_POINTER 1
 #define FFMPEG_CODEC_TIME_BASE  1
+#endif
+
+#if defined(WIN32) && (!(defined snprintf))
+#define snprintf _snprintf
 #endif
 
 #include "BKE_writeffmpeg.h"
@@ -471,7 +479,7 @@ static AVStream* alloc_audio_stream(int codec_id, AVFormatContext* of)
 }
 /* essential functions -- start, append, end */
 
-static void start_ffmpeg_impl(RenderData *rd, int rectx, int recty)
+void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 {
 	/* Handle to the output file */
 	AVFormatContext* of;
