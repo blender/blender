@@ -1241,26 +1241,16 @@ void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, void *fd);
 
 void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, void *fd)
 {
-	/*since we didn't save the extra string buffer, set totallen to len.*/
+	int i;
+
+	/*since we didn't save the extra buffer, set totallen to len.*/
 	prop->totallen = prop->len;
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 
 	if (switch_endian) {
-		int i;
-		if (prop->subtype == IDP_INT) {
-			for (i=0; i<prop->len; i++) {
-				if (sizeof(int) == 4) {
-					SWITCH_INT(((int*)prop->data.pointer)[i]);
-				} else if (sizeof(int) == 8) {
-					SWITCH_LONGINT(((int*)prop->data.pointer)[i])
-				}
-			}
-		} else if (prop->subtype == IDP_FLOAT) {
-			int i;
-			for (i=0; i<prop->len; i++) {
-				SWITCH_INT(((int*)prop->data.pointer)[i]);
-			}
-		} else printf("Unkown ID property array type! could not do endian switching!!\n");
+		for (i=0; i<prop->len; i++) {
+			SWITCH_INT(((int*)prop->data.pointer)[i]);
+		}
 	}
 }
 
@@ -1286,15 +1276,6 @@ void IDP_DirectLinkGroup(IDProperty *prop, int switch_endian, void *fd)
 
 void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, void *fd)
 {
-	/*we pack floats and ints in an int, this may cause problems where sizeof(int) != sizeof(float)*/
-	if (sizeof(void*) == 8  && switch_endian != 0 && BLO_test_64bits(fd)) {
-		if (prop->type == IDP_FLOAT && sizeof(int) == 8) {
-			/*un-longint switch it (as DNA saw a long int here) then int switch it*/
-			SWITCH_LONGINT(prop->data.val);
-			SWITCH_INT(prop->data.val);
-		}
-	}
-
 	switch (prop->type) {
 		case IDP_GROUP:
 			IDP_DirectLinkGroup(prop, switch_endian, fd);
