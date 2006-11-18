@@ -36,8 +36,9 @@ ADD_EXECUTABLE(makesdna ${SRC} ${INC_FILES})
 
 ADD_CUSTOM_COMMAND(TARGET makesdna
   POST_BUILD
-  COMMAND makesdna ${CMAKE_SOURCE_DIR}/source/blender/makesdna/intern/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
+  COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna ${CMAKE_SOURCE_DIR}/source/blender/makesdna/intern/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
   DEPENDS ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}
 )
+#  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}
+
 MESSAGE(STATUS "Configuring makesdna")
