@@ -771,6 +771,7 @@ static bNodeType cmp_node_composite= {
 /* **************** OUTPUT FILE ******************** */
 static bNodeSocketType cmp_node_output_file_in[]= {
 	{	SOCK_RGBA, 1, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Z",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -792,6 +793,13 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 			
 			ibuf->rect_float= cbuf->rect;
 			ibuf->dither= rd->dither_intensity;
+			if(in[1]->data) {
+				CompBuf *zbuf= in[1]->data;
+				if(zbuf->type==CB_VAL && zbuf->x==cbuf->x && zbuf->y==cbuf->y) {
+					nif->subimtype|= R_OPENEXR_ZBUF;
+					ibuf->zbuf_float= zbuf->rect;
+				}
+			}
 			
 			BKE_makepicstring(string, nif->name, rd->cfra, nif->imtype);
 			
