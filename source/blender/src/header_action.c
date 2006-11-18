@@ -1075,13 +1075,13 @@ void action_buttons(void)
 					  "Key", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
-		if ((G.saction->markert != SACTION_NOMARKERS) &&
-			(G.saction->action != NULL)) {
+		//if ((G.saction->markert != SACTION_NOMARKERS) &&
+		//	(G.saction->action != NULL)) {
 			xmax= GetButStringLength("Marker");
 			uiDefPulldownBut(block, action_markermenu, NULL, 
 						  "Marker", xco, -2, xmax-3, 24, "");
 			xco+= xmax;
-		}
+		//}
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
