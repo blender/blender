@@ -71,7 +71,6 @@ IF(UNIX)
     bf_soundsystem 
     bf_ghost 
     bf_string 
-    blender_img 
     blender_render 
     blender_radiosity 
     blender_ONL 
