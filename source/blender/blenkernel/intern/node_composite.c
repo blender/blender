@@ -71,7 +71,9 @@ typedef struct CompBuf {
 	int xof, yof;		/* relative to center of target image */
 	
 	void (*rect_procedural)(struct CompBuf *, float *, float, float);
-	bNode *node;
+	bNode *node;		/* only in use for procedural bufs */
+	
+	struct CompBuf *next, *prev;	/* for pass-on, works nicer than reference counting */
 } CompBuf;
 
 /* defines also used for pixel size */
@@ -121,27 +123,52 @@ static CompBuf *dupalloc_compbuf(CompBuf *cbuf)
 	CompBuf *dupbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 1);
 	if(dupbuf)
 		memcpy(dupbuf->rect, cbuf->rect, cbuf->type*sizeof(float)*cbuf->x*cbuf->y);
+	
+	dupbuf->xof= cbuf->xof;
+	dupbuf->yof= cbuf->yof;
+	
 	return dupbuf;
 }
 
-#if 0
+/* instead of reference counting, we create a list */
 static CompBuf *pass_on_compbuf(CompBuf *cbuf)
 {
 	CompBuf *dupbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 0);
-	dupbuf->rect= cbuf->rect;
+	CompBuf *lastbuf;
 	
-	/* this is hacky solution to make sure outputs get the real compbuf (so freeing goes OK) */
-	if(cbuf->malloc) {
-		cbuf->malloc= 0;
-		dupbuf->malloc= 1;
-	}
+	dupbuf->rect= cbuf->rect;
+	dupbuf->xof= cbuf->xof;
+	dupbuf->yof= cbuf->yof;
+	dupbuf->malloc= 0;
+	
+	/* get last buffer in list, and append dupbuf */
+	for(lastbuf= dupbuf; lastbuf; lastbuf= lastbuf->next)
+		if(lastbuf->next==NULL)
+			break;
+	lastbuf->next= dupbuf;
+	dupbuf->prev= lastbuf;
 	
 	return dupbuf;
 }
-#endif
+
 
 void free_compbuf(CompBuf *cbuf)
 {
+	/* check referencing, then remove from list and set malloc tag */
+	if(cbuf->prev || cbuf->next) {
+		if(cbuf->prev)
+			cbuf->prev->next= cbuf->next;
+		if(cbuf->next)
+			cbuf->next->prev= cbuf->prev;
+		if(cbuf->malloc) {
+			if(cbuf->prev)
+				cbuf->prev->malloc= 1;
+			else
+				cbuf->next->malloc= 1;
+			cbuf->malloc= 0;
+		}
+	}
+	
 	if(cbuf->malloc && cbuf->rect)
 		MEM_freeN(cbuf->rect);
 
@@ -2936,8 +2963,7 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 	else {
 		
 		if(in[1]->vec[0]<=0.001f) {	/* time node inputs can be a tiny value */
-			/* was pass_on image */
-			new= dupalloc_compbuf(img);
+			new= pass_on_compbuf(img);
 		}
 		else {
 			NodeBlurData *nbd= node->storage;
@@ -3063,10 +3089,10 @@ static void node_composit_exec_translate(void *data, bNode *node, bNodeStack **i
 {
 	if(in[0]->data) {
 		CompBuf *cbuf= in[0]->data;
-		CompBuf *stackbuf= dupalloc_compbuf(cbuf); // no alloc, was pass_on
+		CompBuf *stackbuf= pass_on_compbuf(cbuf);
 	
-		stackbuf->xof= (int)floor(in[1]->vec[0]);
-		stackbuf->yof= (int)floor(in[2]->vec[0]);
+		stackbuf->xof+= (int)floor(in[1]->vec[0]);
+		stackbuf->yof+= (int)floor(in[2]->vec[0]);
 		
 		out[0]->data= stackbuf;
 	}
@@ -4170,9 +4196,18 @@ static void node_composit_exec_rotate(void *data, bNode *node, bNodeStack **in, 
 				bilinear_interpolation_rotate(cbuf, ofp, u, v);
 			}
 		}
+		/* rotate offset vector too, but why negative rad, ehh?? Has to be replaced with [3][3] matrix once (ton) */
+		s= sin(-rad);
+		c= cos(-rad);
+		centx= (float)cbuf->xof; centy= (float)cbuf->yof;
+		stackbuf->xof= (int)( c*centx + s*centy);
+		stackbuf->yof= (int)(-s*centx + c*centy);
+		
+		/* pass on output and free */
 		out[0]->data= stackbuf;
 		if(cbuf!=in[0]->data)
 			free_compbuf(cbuf);
+		
 	}
 }
 
@@ -4232,8 +4267,8 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 			IMB_scaleImBuf(ibuf, newx, newy);
 			
 			if(ibuf->rect_float == cbuf->rect) {
-				/* no scaling happened. Note, pass_on_compbuf here crashes in cases... it is weak */
-				stackbuf= dupalloc_compbuf(cbuf);
+				/* no scaling happened. */
+				stackbuf= pass_on_compbuf(cbuf);
 			}
 			else {
 				stackbuf= alloc_compbuf(newx, newy, CB_RGBA, 0);
@@ -4244,6 +4279,10 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 			ibuf->rect_float= NULL;
 			ibuf->mall &= ~IB_rectfloat;
 			IMB_freeImBuf(ibuf);
+			
+			/* also do the translation vector */
+			stackbuf->xof = (int)(((float)newx/(float)cbuf->x) * (float)cbuf->xof);
+			stackbuf->yof = (int)(((float)newy/(float)cbuf->y) * (float)cbuf->yof);
 		}
 		else {
 			stackbuf= dupalloc_compbuf(cbuf);
