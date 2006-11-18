@@ -29,7 +29,7 @@
 
 SETUP_LIBDIRS()
 
-FILE(APPEND ../source/blender/makesdna/intern/dna.c "")
+FILE(APPEND ../blender/makesdna/intern/dna.c "")
 
 INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../blender/blenlib
