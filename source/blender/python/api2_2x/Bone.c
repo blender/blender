@@ -69,7 +69,7 @@ static double boneRoll_ToArmatureSpace(struct Bone *bone)
 	Mat3Inv(imat, postmat);					
 	Mat3MulMat3(difmat, imat, premat);	
 
-	roll = atan(difmat[2][0] / difmat[2][2]); 
+	roll = atan2(difmat[2][0], difmat[2][2]); 
 	if (difmat[0][0] < 0.0){
 		roll += M_PI;
 	}

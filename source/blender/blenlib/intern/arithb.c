@@ -82,6 +82,13 @@ float saacos(float fac)
 	else return (float)acos(fac);
 }
 
+float saasin(float fac)
+{
+	if(fac<= -1.0f) return (float)-M_PI/2.0f;
+	else if(fac>=1.0f) return (float)M_PI/2.0f;
+	else return (float)asin(fac);
+}
+
 float sasqrt(float fac)
 {
 	if(fac<=0.0) return 0.0;
@@ -2382,7 +2389,7 @@ void VecRotToQuat( float *vec, float phi, float *quat)
 /* Return the angle in degrees between vecs 1-2 and 2-3 in degrees
    If v1 is a shoulder, v2 is the elbow and v3 is the hand,
    this would return the angle at the elbow */
-float VecAngle3( float *v1, float *v2, float *v3)
+float VecAngle3(float *v1, float *v2, float *v3)
 {
 	float vec1[3], vec2[3];
 
@@ -2390,20 +2397,36 @@ float VecAngle3( float *v1, float *v2, float *v3)
 	VecSubf(vec2, v2, v3);
 	Normalise(vec1);
 	Normalise(vec2);
-	return saacos(vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]) * 180.0/M_PI;
+
+	return NormalizedVecAngle2(vec1, vec2) * 180.0/M_PI;
 }
 
 /* Return the shortest angle in degrees between the 2 vectors */
-float VecAngle2( float *v1, float *v2)
+float VecAngle2(float *v1, float *v2)
 {
 	float vec1[3], vec2[3];
+
 	VecCopyf(vec1, v1);
 	VecCopyf(vec2, v2);
 	Normalise(vec1);
 	Normalise(vec2);
-	return saacos(vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]) * 180.0/M_PI;
+
+	return NormalizedVecAngle2(vec1, vec2)* 180.0/M_PI;
 }
 
+float NormalizedVecAngle2(float *v1, float *v2)
+{
+	/* this is the same as acos(Inpf(v1, v2)), but more accurate */
+	if (Inpf(v1, v2) < 0.0f) {
+		v2[0]= -v2[0];
+		v2[1]= -v2[1];
+		v2[2]= -v2[2];
+
+		return (float)M_PI - 2.0f*saasin(VecLenf(v2, v1)/2.0f);
+	}
+	else
+		return 2.0f*saasin(VecLenf(v2, v1)/2.0);
+}
 
 void euler_rot(float *beul, float ang, char axis)
 {

@@ -150,11 +150,11 @@ void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 		vec_roll_to_mat3(delta, 0.0, postmat);
 		
 		Mat3CpyMat4(premat, curBone->arm_mat);
-		
+
 		Mat3Inv(imat, postmat);
 		Mat3MulMat3(difmat, imat, premat);
 		
-		eBone->roll = atan(difmat[2][0]/difmat[2][2]);
+		eBone->roll = atan2(difmat[2][0], difmat[2][2]);
 		if (difmat[0][0]<0.0) eBone->roll +=M_PI;
 		
 		/* rest of stuff copy */
@@ -214,10 +214,9 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 			printmatrix4 ("premat", premat);
 			printmatrix4 ("postmat", postmat);
 			printmatrix4 ("difmat", difmat);
-			printf ("Roll = %f\n",  (-atan(difmat[2][0]/difmat[2][2]) * (180.0/M_PI)));
+			printf ("Roll = %f\n",  (-atan2(difmat[2][0], difmat[2][2]) * (180.0/M_PI)));
 #endif
-			curBone->roll = -atan(difmat[2][0]/difmat[2][2]);
-			
+			curBone->roll = -atan2(difmat[2][0], difmat[2][2]);
 			if (difmat[0][0]<0.0) curBone->roll +=M_PI;
 			
 			/* and set restposition again */
@@ -430,8 +429,8 @@ int join_armature(void)
 						Mat4Invert (imat, premat);
 						Mat4MulMat4 (difmat, postmat, imat);
 						
-						curbone->roll -=atan(difmat[2][0]/difmat[2][2]);
-						
+						curbone->roll -=atan2(difmat[2][0], difmat[2][2]);
+
 						if (difmat[0][0]<0)
 							curbone->roll +=M_PI;
 						
@@ -1130,8 +1129,7 @@ void auto_align_armature(void)
 				Mat3Inv(imat, targetmat);
 				Mat3MulMat3(diffmat, imat, curmat);
 				
-				ebone->roll = atan(diffmat[2][0]/diffmat[2][2]);
-				
+				ebone->roll = atan2(diffmat[2][0], diffmat[2][2]);
 			}
 		}
 	}

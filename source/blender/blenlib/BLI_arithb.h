@@ -537,6 +537,10 @@ saacos(
 	float fac
 );
 	float 
+saasin(
+	float fac
+);
+	float 
 sasqrt(
 	float fac
 );
@@ -659,6 +663,11 @@ VecAngle3(
 	float
 VecAngle2(
 	float *v1, 
+	float *v2
+);
+	float
+NormalizedVecAngle2(
+	float *v1,
 	float *v2
 );
 
