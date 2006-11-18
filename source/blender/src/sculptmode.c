@@ -1190,71 +1190,134 @@ void sculptmode_set_strength(const int delta)
 	sculptmode_brush()->strength= val;
 }
 
-void sculptmode_propset(unsigned short event)
+void sculptmode_propset_calctex()
 {
-	PropsetData *pd= NULL;
-	short mouse[2];
-	short tmp[2];
-	const int tsz = 128;
-
-	/* Initialize */
-	if(!G.scene->sculptdata.propset_data) {
-		if(G.scene->sculptdata.propset==1) {
-			float *d= MEM_mallocN(sizeof(float)*tsz*tsz, "Brush preview");
-			int i,j;
-
-
-			G.scene->sculptdata.propset_data= MEM_callocN(sizeof(PropsetData),"PropsetSize");
-			pd= G.scene->sculptdata.propset_data;
-			getmouseco_areawin(mouse);
-			pd->origloc[0]= mouse[0];
-			pd->origloc[1]= mouse[1];
-			pd->origsize= sculptmode_brush()->size;
-			pd->origstrength= sculptmode_brush()->strength;
-
-			/* Prepare texture */
-			glGenTextures(1, (GLint *)&pd->tex);
-			glBindTexture(GL_TEXTURE_2D, pd->tex);
-
+	PropsetData *pd= G.scene->sculptdata.propset;
+	if(pd) {
+		int i, j;
+		const int tsz = 128;
+		float *d;
+		if(!pd->texdata) {
+			pd->texdata= MEM_mallocN(sizeof(float)*tsz*tsz, "Brush preview");
 			if(G.scene->sculptdata.texrept!=SCULPTREPT_3D)
 				sculptmode_update_tex();
-
 			for(i=0; i<tsz; ++i)
 				for(j=0; j<tsz; ++j)
-					d[i*tsz+j]= simple_strength(sqrt(pow(i-tsz/2,2)+pow(j-tsz/2,2)),tsz/2);
+					pd->texdata[i*tsz+j]= simple_strength(sqrt(pow(i-tsz/2,2)+pow(j-tsz/2,2)),tsz/2);
 			if(G.scene->sculptdata.texact != -1 && G.scene->sculptdata.texrndr) {
 				for(i=0; i<tsz; ++i)
 					for(j=0; j<tsz; ++j) {
 						const int col= G.scene->sculptdata.texrndr->rect[i*tsz+j];
-						d[i*tsz+j]*= (((char*)&col)[0]+((char*)&col)[1]+((char*)&col)[2])/3.0f/255.0f;
+						pd->texdata[i*tsz+j]*= (((char*)&col)[0]+((char*)&col)[1]+((char*)&col)[2])/3.0f/255.0f;
 					}
 			}
-
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, tsz, tsz, 0, GL_ALPHA, GL_FLOAT, d);
-			MEM_freeN(d);
 		}
+		
+		/* Adjust alpha with brush strength */
+		d= MEM_dupallocN(pd->texdata);
+		for(i=0; i<tsz; ++i)
+			for(j=0; j<tsz; ++j)
+				d[i*tsz+j]*= sculptmode_brush()->strength/200.0f+0.5f;
+		
+			
+		if(!pd->tex)
+			glGenTextures(1, (GLint *)&pd->tex);
+		glBindTexture(GL_TEXTURE_2D, pd->tex);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, tsz, tsz, 0, GL_ALPHA, GL_FLOAT, d);
+		MEM_freeN(d);
+	}
+}
+
+void sculptmode_propset_end(int cancel)
+{
+	PropsetData *pd= G.scene->sculptdata.propset;
+	if(pd) {
+		if(cancel) {
+			sculptmode_brush()->size= pd->origsize;
+			sculptmode_brush()->strength= pd->origstrength;
+		} else {	
+			if(pd->mode != PropsetSize)
+				sculptmode_brush()->size= pd->origsize;
+			if(pd->mode != PropsetStrength)
+				sculptmode_brush()->strength= pd->origstrength;
+		}
+		glDeleteTextures(1, &pd->tex);
+		MEM_freeN(pd->texdata);
+		MEM_freeN(pd);
+		G.scene->sculptdata.propset= NULL;
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+	}
+}
+
+void sculptmode_propset_init(unsigned short key)
+{
+	PropsetData *pd= G.scene->sculptdata.propset;
+	
+	if(!pd) {
+		short mouse[2];
+		
+		pd= MEM_callocN(sizeof(PropsetData),"PropsetSize");
+		G.scene->sculptdata.propset= pd;
+		
+		getmouseco_areawin(mouse);
+		pd->origloc[0]= mouse[0];
+		pd->origloc[1]= mouse[1];
+		
+		pd->origsize= sculptmode_brush()->size;
+		pd->origstrength= sculptmode_brush()->strength;
+		
+		sculptmode_propset_calctex();
 	}
 
-	pd= G.scene->sculptdata.propset_data;
+	switch(key) {
+	case DKEY:
+		if(pd->mode == PropsetNone)
+			pd->mode= PropsetSize;
+		else if(pd->mode == PropsetSize)
+			pd->mode= PropsetStrength;
+		else
+			sculptmode_propset_end(1);
+	}
+}
+
+void sculptmode_propset(unsigned short event)
+{
+	PropsetData *pd= G.scene->sculptdata.propset;
+	short mouse[2];
+	short tmp[2];
+	float dist;
 
 	switch(event) {
+	case DKEY:
+		sculptmode_propset_init(DKEY);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
 	case MOUSEX:
 	case MOUSEY:
 		getmouseco_areawin(mouse);
 		tmp[0]= pd->origloc[0]-mouse[0];
 		tmp[1]= pd->origloc[1]-mouse[1];
-		sculptmode_brush()->size= sqrt(tmp[0]*tmp[0]+tmp[1]*tmp[1]);
-		if(sculptmode_brush()->size>200) sculptmode_brush()->size= 200;
+		dist= sqrt(tmp[0]*tmp[0]+tmp[1]*tmp[1]);
+		if(pd->mode == PropsetSize) {
+			sculptmode_brush()->size= dist;
+			if(sculptmode_brush()->size>200) sculptmode_brush()->size= 200;
+		} else if(pd->mode == PropsetStrength) {
+			float fin= (200.0f - dist) * 0.5f;
+			sculptmode_brush()->strength= fin>=0 ? fin : 0;
+			sculptmode_propset_calctex();
+		}
 		allqueue(REDRAWVIEW3D, 0);
 		break;
-	case WHEELUPMOUSE:
+	/*case WHEELUPMOUSE:
 		sculptmode_set_strength(5);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case WHEELDOWNMOUSE:
 		sculptmode_set_strength(-5);
 		allqueue(REDRAWVIEW3D, 0);
-		break;
+		break;*/
 	case ESCKEY:
 	case RIGHTMOUSE:
 		sculptmode_brush()->size= pd->origsize;
@@ -1263,12 +1326,7 @@ void sculptmode_propset(unsigned short event)
 		while(get_mbut()==L_MOUSE);
 	case RETKEY:
 	case PADENTER:
-		//glDeleteTextures(1, &pd->tex);
-		G.scene->sculptdata.propset= 0;
-		MEM_freeN(pd);
-		G.scene->sculptdata.propset_data= NULL;
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWBUTSEDIT, 0);
+		sculptmode_propset_end(0);
 		break;
 	default:
 		break;

@@ -2876,9 +2876,19 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 	/* Draw Sculpt Mode brush */
 	if(!G.obedit && (G.f & G_SCULPTMODE)) {
-		PropsetData *pd = G.scene->sculptdata.propset_data;
-		const short r= sculptmode_brush()->size;
+		PropsetData *pd = G.scene->sculptdata.propset;
+		short r1, r2, r3;
 		if(pd) {
+			if(pd->mode == PropsetSize) {
+				r1= sculptmode_brush()->size;
+				r2= pd->origsize;
+				r3= r1;
+			} else if(pd->mode == PropsetStrength) {
+				r1= 200 - sculptmode_brush()->strength * 2;
+				r2= 200;
+				r3= 200;
+			}
+		
 			/* Draw brush with texture */
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -2893,23 +2903,23 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			glBegin(GL_QUADS);
 			glColor4f(0,0,0,1);
 			glTexCoord2f(0,0);
-			glVertex2f(pd->origloc[0]-r, pd->origloc[1]-r);
+			glVertex2f(pd->origloc[0]-r3, pd->origloc[1]-r3);
 			glTexCoord2f(1,0);
-			glVertex2f(pd->origloc[0]+r, pd->origloc[1]-r);
+			glVertex2f(pd->origloc[0]+r3, pd->origloc[1]-r3);
 			glTexCoord2f(1,1);
-			glVertex2f(pd->origloc[0]+r, pd->origloc[1]+r);
+			glVertex2f(pd->origloc[0]+r3, pd->origloc[1]+r3);
 			glTexCoord2f(0,1);
-			glVertex2f(pd->origloc[0]-r, pd->origloc[1]+r);
+			glVertex2f(pd->origloc[0]-r3, pd->origloc[1]+r3);
 			glEnd();
 			glDisable(GL_TEXTURE_2D);
 
-			if(pd->origsize != r)
-				fdrawXORcirc(pd->origloc[0], pd->origloc[1], pd->origsize);
-			fdrawXORcirc(pd->origloc[0], pd->origloc[1], r);
+			if(r1 != r2)
+				fdrawXORcirc(pd->origloc[0], pd->origloc[1], r1);
+			fdrawXORcirc(pd->origloc[0], pd->origloc[1], r2);
 		} else {
 			short c[2];
 			getmouseco_areawin(c);
-			fdrawXORcirc((float)c[0], (float)c[1], r);
+			fdrawXORcirc((float)c[0], (float)c[1], sculptmode_brush()->size);
 		}
 	}
 	retopo_draw_paint_lines();

@@ -37,11 +37,19 @@ struct Object;
 struct Scene;
 struct ScrArea;
 
+typedef enum PropsetMode {
+	PropsetNone = 0,
+	PropsetSize,
+	PropsetStrength
+} PropsetMode;
 typedef struct PropsetData {
+	PropsetMode mode;
+	unsigned int tex;
 	short origloc[2];
+	float *texdata;
+	
 	short origsize;
 	char origstrength;
-	unsigned int tex;
 } PropsetData;
 
 /* Memory */
@@ -58,6 +66,7 @@ void sculptmode_undo_menu();
 void sculptmode_draw_interface_tools(struct uiBlock *block,unsigned short cx, unsigned short cy);
 void sculptmode_draw_interface_textures(struct uiBlock *block,unsigned short cx, unsigned short cy);
 void sculptmode_rem_tex(void*,void*);
+void sculptmode_propset_init(unsigned short key);
 void sculptmode_propset(const unsigned short event);
 void sculptmode_selectbrush_menu();
 void sculptmode_draw_mesh();

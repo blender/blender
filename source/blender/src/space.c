@@ -906,7 +906,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 
 		if(!G.obedit && (G.f & G_SCULPTMODE)) {
-			if(G.scene->sculptdata.propset==1) {
+			if(G.scene->sculptdata.propset) {
 				sculptmode_propset(event);
 				return;
 			}
@@ -1386,7 +1386,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if((G.qual==0)){
 					if(G.f & G_SCULPTMODE)
-						G.scene->sculptdata.propset= 1;
+						sculptmode_propset_init(DKEY);
 					else {
 						pupval= pupmenu("Draw mode%t|BoundBox %x1|Wire %x2|OpenGL Solid %x3|Shaded Solid %x4|Textured Solid %x5");
 						if(pupval>0) {

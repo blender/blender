@@ -49,7 +49,6 @@ struct Scene;
 struct Image;
 struct Group;
 struct bNodeTree;
-struct PropsetData;
 
 typedef struct Base {
 	struct Base *next, *prev;
@@ -370,7 +369,8 @@ typedef struct BrushData
 	char airbrush;
 	char pad[7];
 } BrushData;
-	
+
+struct PropsetData;
 struct RenderInfo;
 struct SculptUndo;
 typedef struct SculptData
@@ -394,7 +394,7 @@ typedef struct SculptData
 	/* Used to cache the render of the active texture */
 	struct RenderInfo *texrndr;
 
-	struct PropsetData *propset_data;
+	struct PropsetData *propset;
 
 	struct SculptUndo *undo;
 
@@ -420,7 +420,7 @@ typedef struct SculptData
 	char texrept;
 	char texfade;
 
-	char averaging, propset, pad[2];
+	char averaging, pad[3];
 } SculptData;
 
 #define SCULPTREPT_DRAG 1
