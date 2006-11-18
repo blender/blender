@@ -1071,6 +1071,7 @@ static void change_idid_adr(ListBase *mainlist, FileData *basefd, void *old, voi
 void blo_make_image_pointer_map(FileData *fd)
 {
 	Image *ima= G.main->image.first;
+	Scene *sce= G.main->scene.first;
 	
 	fd->imamap= oldnewmap_new();
 	
@@ -1078,13 +1079,22 @@ void blo_make_image_pointer_map(FileData *fd)
 		if(ima->ibuf)
 			oldnewmap_insert(fd->imamap, ima->ibuf, ima->ibuf, 0);
 	}
+	for(; sce; sce= sce->id.next) {
+		if(sce->nodetree) {
+			bNode *node;
+			for(node= sce->nodetree->nodes.first; node; node= node->next)
+				oldnewmap_insert(fd->imamap, node->preview, node->preview, 0);
+		}
+	}
 }
 
 /* set G.main image ibufs to zero if it has been restored */
+/* this works because freeing G.main only happens after this call */
 void blo_end_image_pointer_map(FileData *fd)
 {
 	OldNew *entry= fd->imamap->entries;
 	Image *ima= G.main->image.first;
+	Scene *sce= G.main->scene.first;
 	int i;
 	
 	/* used entries were restored, so we put them to zero */
@@ -1099,6 +1109,13 @@ void blo_end_image_pointer_map(FileData *fd)
 			/* this mirrors direct_link_image */
 			if(ima->ibuf==NULL)
 				ima->bindcode= 0;
+		}
+	}
+	for(; sce; sce= sce->id.next) {
+		if(sce->nodetree) {
+			bNode *node;
+			for(node= sce->nodetree->nodes.first; node; node= node->next)
+				node->preview= newimaadr(fd, node->preview);
 		}
 	}
 }
@@ -1425,7 +1442,7 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	
 	/* and we connect the rest */
 	for(node= ntree->nodes.first; node; node= node->next) {
-		node->preview= NULL;
+		node->preview= newimaadr(fd, node->preview);
 		node->lasty= 0;
 		for(sock= node->inputs.first; sock; sock= sock->next)
 			sock->link= newdataadr(fd, sock->link);
