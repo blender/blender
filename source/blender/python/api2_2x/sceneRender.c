@@ -514,14 +514,14 @@ PyObject *RenderData_Play( BPy_RenderData * self )
 	}
 	if( BLI_exist( file ) ) {
 		calc_renderwin_rectangle(640, 480, G.winpos, pos, size);
-		sprintf( str, "%s -a -p %d %d \"%s\"", bprogname, pos[0],
+		sprintf( str, "\"%s\" -a -p %d %d \"%s\"", bprogname, pos[0],
 			 pos[1], file );
 		system( str );
 	} else {
 		BKE_makepicstring( file, G.scene->r.pic, self->renderContext->sfra, G.scene->r.imtype);
 		if( BLI_exist( file ) ) {
 			calc_renderwin_rectangle(640, 480, G.winpos, pos, size);
-			sprintf( str, "%s -a -p %d %d \"%s\"", bprogname,
+			sprintf( str, "\"%s\" -a -p %d %d \"%s\"", bprogname,
 				 pos[0], pos[1], file );
 			system( str );
 		} else

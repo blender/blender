@@ -2105,7 +2105,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if(G.qual & LR_SHIFTKEY) {
 				extern char bprogname[];	/* usiblender.c */
 			
-				sprintf(str, "%s -a \"%s%s\"", bprogname, sfile->dir, sfile->file);
+				sprintf(str, "\"%s\" -a \"%s%s\"", bprogname, sfile->dir, sfile->file);
 				system(str);
 			}
 			else 

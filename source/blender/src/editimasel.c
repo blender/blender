@@ -341,7 +341,7 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if(G.qual & LR_SHIFTKEY) {
 			extern char bprogname[];	/* usiblender.c */
 			
-			sprintf(name, "%s -a \"%s%s\"", bprogname, simasel->dir, simasel->file);
+			sprintf(name, "\"%s\" -a \"%s%s\"", bprogname, simasel->dir, simasel->file);
 			system(name);
 		}
 		if(G.qual & LR_CTRLKEY) {

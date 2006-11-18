@@ -483,7 +483,7 @@ static void run_playanim(char *file)
 	calc_renderwin_rectangle((G.scene->r.xsch*G.scene->r.size)/100, 
 							 (G.scene->r.ysch*G.scene->r.size)/100, G.winpos, pos, size);
 
-	sprintf(str, "%s -a -p %d %d \"%s\"", bprogname, pos[0], pos[1], file);
+	sprintf(str, "\"%s\" -a -p %d %d \"%s\"", bprogname, pos[0], pos[1], file);
 	system(str);
 }
 
