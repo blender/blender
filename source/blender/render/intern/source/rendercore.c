@@ -3718,7 +3718,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	
 	/* no face normal flip */
 	VECCOPY(shi->facenor, vlr->n);
-	shi->puno= vlr->puno;
+	shi->puno= 0;
 
 	if(bs->quad) 
 		shade_input_set_coords(shi, -u, -v, 0, 3, 4);
@@ -3742,7 +3742,12 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 			shr.diff[0]= shi->vn[0]/2.0f + 0.5f;
 			shr.diff[1]= 0.5f - shi->vn[1]/2.0f;
 			shr.diff[2]= shi->vn[2]/2.0f + 0.5f;
-		}		
+		}
+		else if(bs->type==RE_BAKE_TEXTURE) {
+			shr.diff[0]= shi->r;
+			shr.diff[1]= shi->g;
+			shr.diff[2]= shi->b;
+		}
 	}
 	
 	if(bs->rect) {
@@ -3860,6 +3865,7 @@ void RE_bake_shade_all_selected(Render *re, int type)
 			ima->id.newid= NULL;
 			
 			IMB_filter_extend(ima->ibuf);
+			IMB_filter_extend(ima->ibuf);	/* 2nd pixel extra */
 			ima->ibuf->userflags |= IB_BITMAPDIRTY;
 			free_realtime_image(ima); /* force OpenGL reload */
 		}

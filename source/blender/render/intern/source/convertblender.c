@@ -532,7 +532,10 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 			VertRen *v4= vlr->v4;
 			float n1[3], n2[3], n3[3], n4[3];
 			float fac1, fac2, fac3, fac4=0.0f;
-
+			
+			if(re->flag & R_GLOB_NOPUNOFLIP)
+				vlr->flag |= R_NOPUNOFLIP;
+			
 			VecSubf(n1, v2->co, v1->co);
 			Normalise(n1);
 			VecSubf(n2, v3->co, v2->co);
@@ -666,6 +669,9 @@ static void calc_fluidsimnormals(Render *re, int startvert, int startvlak, int d
 			float n1[3], n2[3], n3[3], n4[3];
 			float fac1, fac2, fac3, fac4=0.0f;
 
+			if(re->flag & R_GLOB_NOPUNOFLIP)
+				vlr->flag |= R_NOPUNOFLIP;
+			
 			VecSubf(n1, v2->co, v1->co);
 			Normalise(n1);
 			VecSubf(n2, v3->co, v2->co);
@@ -3897,7 +3903,8 @@ void RE_DataBase_ApplyWindow(Render *re)
    RE_BAKE_LIGHT:  for shaded view, only add lamps
    RE_BAKE_ALL:    for baking, all lamps and objects
    RE_BAKE_NORMALS:for baking, no lamps and only selected objects
-   RE_BAKE_AO: for baking, no lamps, but all objects
+   RE_BAKE_AO:     for baking, no lamps, but all objects
+   RE_BAKE_TEXTURE:for baking, no lamps, only selected objects
 */
 void RE_Database_Baking(Render *re, Scene *scene, int type)
 {
@@ -3913,8 +3920,9 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 	/* renderdata setup and exceptions */
 	re->r= scene->r;
 	re->r.mode &= ~R_OSA;
+	re->flag |= R_GLOB_NOPUNOFLIP;
 	
-	if( ELEM(type, RE_BAKE_LIGHT, RE_BAKE_NORMALS) ) {
+	if( ELEM3(type, RE_BAKE_LIGHT, RE_BAKE_NORMALS, RE_BAKE_TEXTURE) ) {
 		re->r.mode &= ~R_SHADOW;
 		re->r.mode &= ~R_RAYTRACE;
 	}
@@ -3970,11 +3978,11 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 		if(ob->flag & OB_DONE);
 		else if( (base->lay & lay) || ((base->lay & re->scene->lay)) ) {
 			if(ob->type==OB_LAMP) {
-				if(type!=RE_BAKE_NORMALS && type!=RE_BAKE_AO)
+				if( ELEM(type, RE_BAKE_LIGHT, RE_BAKE_ALL) )
 					init_render_object(re, ob, NULL, 0, 0);
 			}
 			else if(type!=RE_BAKE_LIGHT) {
-				if(type!=RE_BAKE_NORMALS || (ob->flag & SELECT))
+				if( !ELEM(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE) || (ob->flag & SELECT))
 					init_render_object(re, ob, NULL, 0, 0);
 			}
 		}

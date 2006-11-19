@@ -192,6 +192,7 @@ void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, 
 #define RE_BAKE_ALL		1
 #define RE_BAKE_AO		2
 #define RE_BAKE_NORMALS	3
+#define RE_BAKE_TEXTURE	4
 void RE_Database_Baking(struct Render *re, struct Scene *scene, int type);
 
 void RE_DataBase_GetView(struct Render *re, float mat[][4]);

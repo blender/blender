@@ -865,18 +865,19 @@ void objects_bake_render(void)
 {
 	short event;
 	
-	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3");
+	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4");
 	if(event>0) {
 		Render *re= RE_NewRender("_Bake View_");
 		
 		if(event==1) event= RE_BAKE_ALL;
 		else if(event==2) event= RE_BAKE_AO;
-		else event= RE_BAKE_NORMALS;
+		else if(event==3) event= RE_BAKE_NORMALS;
+		else event= RE_BAKE_TEXTURE;
 		
 		if(event==RE_BAKE_AO) {
 			if((G.scene->r.mode & R_RAYTRACE)==0 || G.scene->world==NULL
 			   || (G.scene->world->mode & WO_AMB_OCC)==0) {
-				error("No AO set up");
+				error("No ray-trace or AO set up");
 				return;
 			}
 		}
