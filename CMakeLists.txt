@@ -38,14 +38,14 @@ SET(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/lib)
 
 #-----------------------------------------------------------------------------
 # Set default config options
-OPTION(WITH_PLAYER		"Build Player"						ON)
+OPTION(WITH_PLAYER		"Build Player"						OFF)
 OPTION(WITH_GAMEENGINE		"Enable Game Engine"					ON)
 OPTION(WITH_BULLET		"Enable Bullet (Physics Engine)"			ON)
 OPTION(WITH_INTERNATIONAL	"Enable I18N   (International fonts and text)"		ON)
-OPTION(WITH_VERSE		"Enable Verse  (http://verse.blender.org)"		ON)
+OPTION(WITH_VERSE		"Enable Verse  (http://verse.blender.org)"		OFF)
 OPTION(WITH_ELBEEM		"Enable Elbeem (Fluid Simulation)"			ON)
-OPTION(WITH_QUICKTIME		"Enable Quicktime Support"				ON)
-OPTION(WITH_OPENEXR		"Enable OpenEXR Support (http://www.openexr.com)"	ON)
+OPTION(WITH_QUICKTIME		"Enable Quicktime Support"				OFF)
+OPTION(WITH_OPENEXR		"Enable OpenEXR Support (http://www.openexr.com)"	OFF)
 OPTION(WITH_FFMPEG		"Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)"	OFF)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
