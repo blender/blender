@@ -414,13 +414,14 @@ typedef struct SculptData
 	short symm_x, symm_y, symm_z;
 
 	/* For the Brush Shape */
-	float texsize[3];
+	short texscale;
 	short texact, texnr;
 	short spacing;
+	char pad[2];
 	char texrept;
 	char texfade;
 
-	char averaging, pad[3];
+	char averaging, pad2[3];
 } SculptData;
 
 #define SCULPTREPT_DRAG 1

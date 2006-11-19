@@ -172,7 +172,7 @@ void sculptmode_init(Scene *sce)
 	sd->texact= -1;
 	sd->texfade= 1;
 	sd->averaging= 1;
-	sd->texsize[0]= sd->texsize[1]= sd->texsize[2]= 1;
+	sd->texscale= 100;
 	sd->texrept= SCULPTREPT_DRAG;
 }
 
@@ -276,11 +276,12 @@ void sculptmode_undo_push(char *str, int verts, int fe, int pv)
 {
 	int cnt= 7;
 	SculptUndo *su= G.scene->sculptdata.undo;
-	SculptUndoStep *n= MEM_callocN(sizeof(SculptUndoStep), "SculptUndo"), *sus, *chop;
+	SculptUndoStep *n= MEM_callocN(sizeof(SculptUndoStep), "SculptUndo"), *sus, *chop, *path;
 	Mesh *me= get_mesh(G.scene->sculptdata.active_ob);
 
 	/* Chop off undo data after cur */
-	for(sus= su->steps.last; sus && sus != su->cur; sus= sus->prev) {
+	for(sus= su->steps.last; sus && sus != su->cur; sus= path) {
+		path= sus->prev;
 		sculptmode_undo_free_link(sus);
 		BLI_freelinkN(&su->steps, sus);
 	}
@@ -311,7 +312,8 @@ void sculptmode_undo_push(char *str, int verts, int fe, int pv)
 		/* Make sure that non-vert data isn't lost */
 		sculptmode_undo_pull_chopped(chop);
 	
-		for(sus= su->steps.first; sus && sus != chop; sus= sus->next) {
+		for(sus= su->steps.first; sus && sus != chop; sus= path) {
+			path= sus->next;
 			sculptmode_undo_free_link(sus);
 			BLI_freelinkN(&su->steps, sus);
 		}
@@ -394,6 +396,7 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 	if(modifiers_getVirtualModifierList(ob))
 		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 
+	if(G.vd->depths) G.vd->depths->damaged= 1;
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -810,15 +813,16 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 		avg= 1;
 	else if(G.scene->sculptdata.texrept==SCULPTREPT_3D) {
 		float jnk;
+		const float factor= 0.01;
 		MTex mtex;
 		memset(&mtex,0,sizeof(MTex));
 		mtex.tex= G.scene->sculptdata.mtex[G.scene->sculptdata.texact]->tex;
 		mtex.projx= 1;
 		mtex.projy= 2;
 		mtex.projz= 3;
-		mtex.size[0]= G.scene->sculptdata.texsize[0];
-		mtex.size[1]= G.scene->sculptdata.texsize[1];
-		mtex.size[2]= G.scene->sculptdata.texsize[2];
+		mtex.size[0]= G.scene->sculptdata.texscale * factor;
+		mtex.size[1]= G.scene->sculptdata.texscale * factor;
+		mtex.size[2]= G.scene->sculptdata.texscale * factor;
 		
 		externtex(&mtex,point,&avg,&jnk,&jnk,&jnk,&jnk);
 	} else {
@@ -871,10 +875,12 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 		py= magn * sin(theta) + cx;
 
 		if(G.scene->sculptdata.texrept==SCULPTREPT_TILE) {
+			const float scale= G.scene->sculptdata.texscale;
 			px+= e->mouse[0];
 			py+= e->mouse[1];
-			p= ri->rect + (py%ri->pr_recty) * ri->pr_rectx + (px%ri->pr_rectx);
-			p= ri->rect + (projverts[vindex].co[1]%ri->pr_recty) * ri->pr_rectx + (projverts[vindex].co[0]%ri->pr_rectx);
+			px%= (int)scale;
+			py%= (int)scale;
+			p= ri->rect + (int)(ri->pr_recty*py/scale) * ri->pr_rectx + (int)(ri->pr_rectx*px/scale);
 		}
 		else p= ri->rect + py * ri->pr_rectx + px;
 		
@@ -1436,6 +1442,18 @@ void sculptmode_draw_mesh(ListBase *damaged_rects) {
 	glDisable(GL_DEPTH_TEST);
 }
 
+void sculptmode_correct_state()
+{
+	if(get_mesh(G.scene->sculptdata.active_ob) != get_mesh(OBACT))
+		set_sculpt_object(OBACT);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	
+	if(!G.scene->sculptdata.vertex_users) calc_vertex_users();
+	if(!G.scene->sculptdata.undo) sculptmode_undo_init();
+}
+
 void sculpt()
 {
 	Object *ob= 0;
@@ -1473,6 +1491,7 @@ void sculpt()
 
 	/* Make sure sculptdata has been init'd properly */
 	if(!G.scene->sculptdata.vertex_users) calc_vertex_users();
+	if(!G.scene->sculptdata.undo) sculptmode_undo_init();
 	
 	/* Init texture
 	   FIXME: Shouldn't be doing this every time! */
@@ -1928,6 +1947,8 @@ void sculptmode_pmv(int mode)
 {
 	Object *ob= OBACT;
 	rcti hb_2d= sculptmode_pmv_box(); /* Get 2D hide box */
+	
+	sculptmode_correct_state();
 
 	waitcursor(1);
 

@@ -4140,9 +4140,7 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 			uiDefButC(block,ROW,B_NOP, "3D",   cx+78,cy,37,19, &sd->texrept, 18,SCULPTREPT_3D,  0,0,"Use vertex coords as texture coordinates");
 			cy-= 20;
 
-			uiDefButF(block,NUM,B_NOP, "X",    cx,   cy,39,19, &sd->texsize[0],-20,20,10,0,"Scaling factor for texture's X axis");
-			uiDefButF(block,NUM,B_NOP, "Y",    cx+39,cy,38,19, &sd->texsize[1],-20,20,10,0,"Scaling factor for texture's Y axis");
-			uiDefButF(block,NUM,B_NOP, "Z",    cx+78,cy,38,19, &sd->texsize[2],-20,20,10,0,"Scaling factor for texture's Z axis");
+			uiDefButS(block,NUM,B_NOP, "Scale", cx,cy,115,19, &sd->texscale,1,1000,0,0,"Scaling factor for texture axis");
 			cy-= 20;
 			
 			uiDefButC(block,TOG,B_NOP, "Fade", cx,cy,50,19, &sd->texfade, 0,0,0,0,"Smooth the edges of the texture");
