@@ -283,7 +283,7 @@ static PyObject *Scene_getAttr( BPy_Scene * self, char *name )
 		attr = PyString_FromString( self->scene->id.name + 2 );
 
 	else if ( strcmp( name, "properties" ) == 0 )
-		return BPy_Wrap_IDProperty( (ID*)self->scene, IDP_GetProperties((ID*)self->scene, 1) );
+		return BPy_Wrap_IDProperty( (ID*)self->scene, IDP_GetProperties((ID*)self->scene, 1), NULL );
 
 	/* accept both Layer (for compatibility with ob.Layer) and Layers */
 	else if( strncmp( name, "Layer", 5 ) == 0 )

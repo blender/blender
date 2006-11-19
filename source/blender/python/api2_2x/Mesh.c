@@ -69,6 +69,7 @@
 #include "BSE_edit.h"		/* for countall(); */
 #include "BKE_curve.h"		/* for copy_curve(); */
 #include "BKE_modifier.h"	/* for modifier_new(), modifier_copyData(); */
+#include "BKE_idprop.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -85,6 +86,7 @@
 #include "meshPrimitive.h"
 #include "constant.h"
 #include "gen_utils.h"
+
 
 /* EXPP Mesh defines */
 
@@ -7388,7 +7390,7 @@ static PyObject *Mesh_repr( BPy_Mesh * self )
 static PyObject *Mesh_getProperties( BPy_Mesh * self )
 {
 	/*sanity check, we set parent property type to Group here*/
-	return BPy_Wrap_IDProperty( (ID*)self->mesh, IDP_GetProperties((ID*)self->mesh, 1) );
+	return BPy_Wrap_IDProperty( (ID*)self->mesh, IDP_GetProperties((ID*)self->mesh, 1), NULL );
 }
 
 /*****************************************************************************/

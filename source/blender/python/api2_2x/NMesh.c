@@ -64,6 +64,7 @@
 #include "BKE_mball.h"
 #include "BKE_utildefines.h"
 #include "BKE_depsgraph.h"
+#include "BKE_idprop.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -1720,7 +1721,7 @@ static PyObject *NMesh_getattr( PyObject * self, char *name )
 		return EXPP_incr_ret( me->name );
 
 	else if ( strcmp( name, "properties" ) == 0 )
-		return BPy_Wrap_IDProperty( (ID*)me->mesh, IDP_GetProperties((ID*)me->mesh, 1) );
+		return BPy_Wrap_IDProperty( (ID*)me->mesh, IDP_GetProperties((ID*)me->mesh, 1), NULL );
 
 	else if( strcmp( name, "mode" ) == 0 )
 		return PyInt_FromLong( me->mode );

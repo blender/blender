@@ -10,7 +10,7 @@
 #define BSTR_EQ(a, b)	(*(a) == *(b) && !strcmp(a, b))
 
 /*** Function to wrap ID properties ***/
-PyObject *BPy_Wrap_IDProperty(ID *id, IDProperty *prop);
+PyObject *BPy_Wrap_IDProperty(ID *id, IDProperty *prop, IDProperty *parent);
 
 extern PyTypeObject IDArray_Type;
 
@@ -179,7 +179,7 @@ PyObject *BPy_IDProperty_Map_GetItem(BPy_IDProperty *self, PyObject *item)
 	
 	st = PyString_AsString(item);
 	for (loop=self->prop->data.group.first; loop; loop=loop->next) {
-		if (BSTR_EQ(loop->name, st)) return BPy_Wrap_IDProperty(self->id, loop);
+		if (BSTR_EQ(loop->name, st)) return BPy_Wrap_IDProperty(self->id, loop, self->prop);
 	}
 	return EXPP_ReturnPyObjError( PyExc_KeyError,
 		"key not in subgroup dict");
@@ -355,10 +355,11 @@ PyTypeObject IDProperty_Type = {
 };
 
 /*********** Main wrapping function *******/
-PyObject *BPy_Wrap_IDProperty(ID *id, IDProperty *prop)
+PyObject *BPy_Wrap_IDProperty(ID *id, IDProperty *prop, IDProperty *parent)
 {
 	BPy_IDProperty *wrap = PyObject_New(BPy_IDProperty, &IDProperty_Type);
 	wrap->prop = prop;
+	wrap->parent = parent;
 	wrap->id = id;
 	wrap->data_wrap = NULL;
 	//wrap->destroy = 0;
@@ -587,7 +588,7 @@ PyObject *BPy_Group_Iter_Next(BPy_IDGroup_Iter *self)
 	if (self->cur) {
 		cur = self->cur;
 		self->cur = self->cur->next;
-		return BPy_Wrap_IDProperty(self->group->id, cur);
+		return BPy_Wrap_IDProperty(self->group->id, cur, self->group->prop);
 	} else {
 		return EXPP_ReturnPyObjError( PyExc_StopIteration,
 				"iterator at end" );
@@ -853,10 +854,12 @@ PyObject *BPy_IDGroup_NewProperty(BPy_IDProperty *self, PyObject *args)
 	}
 
 	if (!IDP_AddToGroup(self->prop, prop)) {
+		IDP_FreeProperty(prop);
+		MEM_freeN(prop);
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"property name already exists in group");
 	}
-	pyprop = BPy_Wrap_IDProperty(self->id, prop);
+	pyprop = BPy_Wrap_IDProperty(self->id, prop, self->prop);
 	//Py_XINCREF(pyprop);
 	return pyprop;
 }
@@ -919,7 +922,7 @@ PyObject *BPy_IDGroup_GetItem(BPy_IDProperty *self, int index)
 	int i;
 
 	for (prop=self->prop->data.group.first, i=0; prop; prop=prop->next, i++) {
-		if (i == index) return BPy_Wrap_IDProperty(self->id, prop);
+		if (i == index) return BPy_Wrap_IDProperty(self->id, prop, self->prop);
 	}
 
 	return EXPP_ReturnPyObjError( PyExc_IndexError,

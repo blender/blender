@@ -1290,7 +1290,7 @@ Material *GetMaterialByName( char *name )
 static PyObject *Material_getProperties( BPy_Material * self )
 {
 	/*sanity check, we set parent property type to Group here*/
-	return BPy_Wrap_IDProperty((ID*)self->material, IDP_GetProperties((ID*)self->material, 1));
+	return BPy_Wrap_IDProperty( (ID*)self->material, IDP_GetProperties((ID*)self->material, 1), NULL );
 }
 
 static PyObject *Material_getIpo( BPy_Material * self )

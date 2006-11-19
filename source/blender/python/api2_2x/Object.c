@@ -67,6 +67,7 @@ struct rctf;
 #include "BKE_nla.h"
 #include "BKE_material.h"
 #include "BKE_idprop.h"
+#include "BKE_idprop.h"
 
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
@@ -989,7 +990,7 @@ static PyObject *M_Object_Duplicate( PyObject * self_unused,
 
 static PyObject *Object_GetProperties(BPy_Object * self)
 {
-	return BPy_Wrap_IDProperty((ID*)self->object, IDP_GetProperties((ID*)self->object, 1));
+	return BPy_Wrap_IDProperty( (ID*)self->object, IDP_GetProperties((ID*)self->object, 1), NULL );
 	
 }
 

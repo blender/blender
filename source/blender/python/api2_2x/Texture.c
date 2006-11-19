@@ -33,17 +33,22 @@
 
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_idprop.h"
 #include "BKE_library.h"
-#include "BLI_blenlib.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+
+#include "BLI_blenlib.h"
+
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
+
 #include "MTex.h"
 #include "Image.h"
 #include "Ipo.h"
+#include "IDProp.h"
 #include "constant.h"
 #include "blendef.h"
 #include "gen_utils.h"
@@ -397,6 +402,7 @@ GETFUNC( clearIpo );
 GETFUNC( oldgetSType );
 GETFUNC( oldgetType );
 
+GETFUNC(getProperties);
 GETFUNC( clearIpo );
 GETFUNC( getAnimFrames );
 GETFUNC( getAnimLength );
@@ -539,6 +545,9 @@ static PyMethodDef BPy_Texture_methods[] = {
 /* Python Texture_Type attributes get/set structure:                         */
 /*****************************************************************************/
 static PyGetSetDef BPy_Texture_getseters[] = {
+	{"properties",
+	 (getter)Texture_getProperties, NULL,
+	 "Get this texture's ID Properties"},
 	{"animFrames",
 	 (getter)Texture_getAnimFrames, (setter)Texture_setAnimFrames,
 	 "Number of frames of a movie to use",
@@ -1323,6 +1332,12 @@ int Texture_CheckPyObject( PyObject * pyobj )
 /*****************************************************************************/
 /* Python BPy_Texture methods:                                               */
 /*****************************************************************************/
+
+static PyObject *Texture_getProperties( BPy_Texture * self )
+{
+	/*sanity check, we set parent property type to Group here*/
+	return BPy_Wrap_IDProperty( (ID*)self->texture, IDP_GetProperties((ID*)self->texture, 1), NULL );
+}
 
 static PyObject *Texture_getExtend( BPy_Texture * self )
 {

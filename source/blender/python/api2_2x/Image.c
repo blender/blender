@@ -1153,7 +1153,7 @@ static PyObject *Image_getAttr( BPy_Image * self, char *name )
 	if( strcmp( name, "name" ) == 0 )
 		attr = PyString_FromString( self->image->id.name + 2 );
 	else if ( strcmp( name, "properties" ) == 0 )
-		return BPy_Wrap_IDProperty( (ID*)self->image, IDP_GetProperties((ID*)self->image, 1) );
+		return BPy_Wrap_IDProperty( (ID*)self->image, IDP_GetProperties((ID*)self->image, 1), NULL );
 	else if( strcmp( name, "filename" ) == 0 )
 		attr = PyString_FromString( self->image->name );
 	else if( strcmp( name, "size" ) == 0 )

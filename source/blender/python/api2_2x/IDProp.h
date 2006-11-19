@@ -7,7 +7,7 @@ struct BPy_IDGroup_Iter;
 typedef struct BPy_IDProperty {
 	PyObject_VAR_HEAD
 	struct ID *id;
-	struct IDProperty *prop;
+	struct IDProperty *prop, *parent;
 	PyObject *data_wrap;
 } BPy_IDProperty;
 
@@ -23,4 +23,4 @@ typedef struct BPy_IDGroup_Iter {
 	struct IDProperty *cur;
 } BPy_IDGroup_Iter;
 
-PyObject *BPy_Wrap_IDProperty(struct ID *id, struct IDProperty *prop);
+PyObject *BPy_Wrap_IDProperty(struct ID *id, struct IDProperty *prop, struct IDProperty *parent);
