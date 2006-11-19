@@ -185,27 +185,72 @@ void make_local_key(Key *key)
 	make_local_ipo(key->ipo);
 }
 
+/*
+ * Sort shape keys and Ipo curves after a change.  This assumes that at most
+ * one key was moved, which is a valid assumption for the places it's
+ * currently being called.
+ */
 
 void sort_keys(Key *key)
 {
 	KeyBlock *kb;
-	int doit=1;
-	
-	while(doit) {
-		doit= 0;
-		
-		for(kb= key->block.first; kb; kb= kb->next) {
-			if(kb->next) {
-				if(kb->pos > kb->next->pos) {
-					BLI_remlink(&key->block, kb);
-					
-					BLI_insertlink(&key->block, kb->next, kb);
-					
-					doit= 1;
+	short i, adrcode;
+	IpoCurve *icu = NULL;
+	KeyBlock *kb2;
+
+	/* locate the key which is out of position */ 
+	for( kb= key->block.first; kb; kb= kb->next )
+		if( kb->next && kb->pos > kb->next->pos )
+			break;
+
+	/* if we find a key, move it */
+	if( kb ) {
+		kb = kb->next; /* next key is the out-of-order one */
+		BLI_remlink(&key->block, kb);
+
+		/* find the right location and insert before */
+		for( kb2=key->block.first; kb2; kb2= kb2->next ) {
+			if( kb2->pos > kb->pos ) {
+				BLI_insertlink(&key->block, kb2->prev, kb);
+				break;
+			}
+		}
+
+		/* if more than one Ipo curve, see if this key had a curve */
+
+		if(key->ipo && key->ipo->curve.first != key->ipo->curve.last ) {
+			for(icu= key->ipo->curve.first; icu; icu= icu->next) {
+				/* if we find the curve, remove it and reinsert in the 
+				 right place */
+				if(icu->adrcode==kb->adrcode) {
+					IpoCurve *icu2;
+					BLI_remlink(&key->ipo->curve, icu);
+					for(icu2= key->ipo->curve.first; icu2; icu2= icu2->next) {
+						if(icu2->adrcode >= kb2->adrcode) {
+							BLI_insertlink(&key->ipo->curve, icu2->prev, icu);
+							break;
+						}
+					}
 					break;
 				}
 			}
-		}	
+		}
+
+		/* kb points at the moved key, icu at the moved ipo (if it exists).
+		 * go back now and renumber adrcodes */
+
+		/* first new code */
+		adrcode = kb2->adrcode;
+		for( i = kb->adrcode - adrcode; i >= 0; --i, ++adrcode ) {
+			/* if the next ipo curve matches the current key, renumber it */
+			if(icu && icu->adrcode == kb->adrcode ) {
+				icu->adrcode = adrcode;
+				icu = icu->next;
+			}
+			/* renumber the shape key */
+			kb->adrcode = adrcode;
+			kb = kb->next;
+		}
 	}
 
 	/* new rule; first key is refkey, this to match drawing channels... */
