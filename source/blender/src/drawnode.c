@@ -1094,7 +1094,7 @@ static int node_composit_buts_color_spill(uiBlock *block, bNodeTree *ntree, bNod
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Enhance: ", 
 				butr->xmin, butr->ymin+20.0, butr->xmax-butr->xmin, 20,
-				&c->t1, 0.0f, 0.5f, 100, 2, "");
+				&c->t1, 0.0f, 0.5f, 100, 2, "Adjusts how much selected channel is affected by color spill algorithm");
 		uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "R",
 				butr->xmin,butr->ymin,dx,20,
 				&node->custom1,1,1, 0, 0, "Red Spill Suppression");
@@ -1119,33 +1119,33 @@ static int node_composit_buts_chroma_matte(uiBlock *block, bNodeTree *ntree, bNo
 
 		uiDefButS(block, ROW, B_NODE_EXEC+node->nr,"Green",
 				butr->xmin,butr->ymin+80,dx,20,
-				&node->custom1,1,1, 0, 0, "Green Background");
+				&node->custom1,1,1, 0, 0, "Select if using a green background");
 		uiDefButS(block, ROW, B_NODE_EXEC+node->nr,"Blue",
 				butr->xmin+dx,butr->ymin+80,dx,20,
-				&node->custom1,1,2, 0, 0, "Blue Background");
+				&node->custom1,1,2, 0, 0, "Select if using a blue background");
 
-		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Cb Slope ",
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Cb Slope ",
 			butr->xmin, butr->ymin+60, dx, 20,
-			&c->t1, 0.0f, 20.0f, 100, 0, " ");
+			&c->t1, 0.0f, 20.0f, 100, 0, "Adjusts the weight a pixel's value has in determining if it is a key color");
 
-		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Cr slope ",
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Cr slope ",
 			butr->xmin+dx, butr->ymin+60, dx, 20,
-			&c->t3, 0.0f, 20.0f, 100, 0, " ");
+			&c->t3, 0.0f, 20.0f, 100, 0, "Adjusts the weight a pixel's value has in determining if it is a key color");
 
-		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Cb Pos ",
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Cb Pos ",
 			butr->xmin, butr->ymin+40, dx, 20,
-			&c->t2, 0.0f, 1.0f, 100, 0, " ");
+			&c->t2, 0.0f, 1.0f, 100, 0, "Pixel values less than this setting are considered a key color");
 
-		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Cr pos ",
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Cr pos ",
 			butr->xmin+dx, butr->ymin+40, dx, 20,
-			&c->fsize, 0.0f, 1.0f, 100, 0, " ");
+			&c->fsize, 0.0f, 1.0f, 100, 0, "Pixel values less than this setting are considered a key color");
 
-		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Threshold ",
-			butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
-			&c->fstrength, 0.0f, 0.25f, 100, 0, " ");
 		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Alpha Threshold ",
+			butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
+			&c->fstrength, 0.0f, 0.25f, 100, 0, "Key colored pixels below this setting are considered transparent");
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Detail Threshold ",
 			butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
-			&c->falpha, 0.0f, 1.0f, 100, 0, " ");
+			&c->falpha, 0.0f, 1.0f, 100, 0, "Keyed pixels below this setting are not processed for detail alpha adjustment");
 	}
 	return 100;
 }
@@ -1157,10 +1157,10 @@ static int node_composit_buts_luma_matte(uiBlock *block, bNodeTree *ntree, bNode
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "High ", 
 				butr->xmin, butr->ymin+20.0, butr->xmax-butr->xmin, 20,
-				&c->t1, 0.0f, 1.0f, 100, 0, "");
+				&c->t1, 0.0f, 1.0f, 100, 0, "Luminance values higher than this setting are 100% opaque");
 		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Low ", 
 				butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
-				&c->t2, 0.0f, 1.0f, 100, 0, "");
+				&c->t2, 0.0f, 1.0f, 100, 0, "Luminance values lower than this setting are 100% keyed");
 		uiBlockEndAlign(block);
 
 		/*keep t2 (low) less than t1 (high) */

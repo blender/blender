@@ -1558,8 +1558,8 @@ static TBitem tb_node_addcomp[]= {
 	{	0, "Filters",		5, NULL},
 	{	0, "Convertors",	6, NULL},
 	{	0, "Groups",		7, NULL},
-	{  0, "Mattes",      8, NULL},
-	{  -1, "", 			0, NULL}};
+	{ 	0, "Mattes",		8, NULL},
+	{  	-1, "", 		0, NULL}};
 
 /* do_node_addmenu() in header_node.c, prototype in BSE_headerbuttons.h */
 

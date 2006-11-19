@@ -3647,7 +3647,7 @@ static void node_composit_exec_diff_matte(void *data, bNode *node, bNodeStack **
 
 static bNodeType cmp_node_diff_matte={
 	/* type code   */       CMP_NODE_DIFF_MATTE,
-	/* name        */       "Channel Difference Matte",
+	/* name        */       "Difference Key",
 	/* width+range */       200, 80, 250,
 	/* class+opts  */       NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
 	/* input sock  */       cmp_node_diff_matte_in,
@@ -3756,7 +3756,6 @@ static bNodeType cmp_node_color_spill={
 /* ******************* Chroma Key ********************************************************** */
 static bNodeSocketType cmp_node_chroma_in[]={
 	{SOCK_RGBA,1,"Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{SOCK_RGBA,1,"Key Color", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{-1,0,""}
 };
 
@@ -3788,8 +3787,6 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 {
 	/* Algorithm of my own design-Bob Holcomb */
 
-	/* alpha value is written to in[3] because it is done "in place" so that the value gets copied to the rgbbuffer in
-		the second pixel processor opertation */
 	NodeChroma *c;
 	float x, z, alpha;
 	
@@ -3814,14 +3811,18 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 			break;
 	}
 	
-	/*is chroma values (added) less than strenght?*/
+	/*clamp to zero so that negative values don' affect the other channels input */
+	if(x<0.0) x=0.0;
+	if(z<0.0) z=0.0;
+
+	/*if chroma values (addes are less than strength then it is a key value */
 	if((x+z) < c->fstrength) {
-		alpha=ABS(c->key[0]-in[0]);  /*differnce in luminence*/
-		if(alpha > c->falpha) alpha=0;
-		in[3]=alpha;
-	}
-	else {
-		in[3]=1.0;
+		alpha=(x+z);
+		alpha=in[0]+alpha; /*add in the luminence for detail */
+		if(alpha > c->falpha) alpha=0;  /* if below the threshold */
+		if(alpha < in[3]) { /* is it less than the previous alpha */
+			out[3]=alpha;
+		}
 	}
 }
 
@@ -3841,18 +3842,15 @@ static void node_composit_exec_chroma(void *data, bNode *node, bNodeStack **in, 
 	chromabuf= dupalloc_compbuf(rgbbuf);
 	
 	c=node->storage;
-	c->key[0]= in[1]->vec[0];
-	c->key[1]= in[1]->vec[1];
-	c->key[2]= in[1]->vec[2];
 	
 	/*convert rgbbuf to normalized chroma space*/
-	composit1_pixel_processor(node, chromabuf, inbuf, in[1]->vec, do_rgba_to_ycca_normalized, CB_RGBA);
+	composit1_pixel_processor(node, chromabuf, inbuf, in[0]->vec, do_rgba_to_ycca_normalized, CB_RGBA);
 	
 	/*per pixel chroma key*/
-	composit1_pixel_processor(node, rgbbuf, chromabuf, in[1]->vec, do_chroma_key, CB_RGBA);
+	composit1_pixel_processor(node, chromabuf, chromabuf, in[0]->vec, do_chroma_key, CB_RGBA);
 	
 	/*convert back*/
-	composit1_pixel_processor(node, rgbbuf, chromabuf, in[1]->vec, do_normalized_ycca_to_rgba, CB_RGBA);
+	composit1_pixel_processor(node, rgbbuf, chromabuf, in[0]->vec, do_normalized_ycca_to_rgba, CB_RGBA);
 	
 	/*cleanup */
 	free_compbuf(chromabuf);
@@ -3878,7 +3876,6 @@ static bNodeType cmp_node_chroma={
 /* ******************* Luminence Key ********************************************************** */
 static bNodeSocketType cmp_node_luma_in[]={
 	{SOCK_RGBA,1,"Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{SOCK_RGBA,1,"Key Color", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{-1,0,""}
 };
 
@@ -3892,18 +3889,16 @@ static void do_luma_key(bNode *node, float *out, float *in)
 {
 	/* Algorithm from Video Demistified */
 
-	/* alpha value is written to in[3] because it is done in place for the conversion back to rgb space in 
-		second pixel processor */
-	
 	NodeChroma *c;
+	float alpha; 
 
 	c=node->storage;
 
 	if(in[0] > c->t1) { /*Luminence is greater than high, then foreground */
-		in[3]=1.0;
+		out[3]=in[3]; /* or whatever it was prior */
 	}
 	else if(in[0] <c->t2) {/*Luminence is less than low, then background */
-		in[3]=0.0;
+		out[3]=0.0;
 	}
 	
 	else { /*key value from mix*/
@@ -3913,7 +3908,11 @@ static void do_luma_key(bNode *node, float *out, float *in)
 		}
 	
 		/*mix*/
-		in[3]=(in[0]-c->t2)/(c->t1-c->t2);
+		alpha=(in[0]-c->t2)/(c->t1-c->t2);
+		if(alpha < in[3]) /*if less thatn previous value */
+		{
+			out[3]=alpha;
+		}
 	}
 }
 
@@ -3932,13 +3931,13 @@ static void node_composit_exec_luma(void *data, bNode *node, bNodeStack **in, bN
 	chromabuf= dupalloc_compbuf(rgbbuf);
 	
 	/*convert rgbbuf to normalized chroma space*/
-	composit1_pixel_processor(node, chromabuf, inbuf, in[1]->vec, do_rgba_to_ycca_normalized, CB_RGBA);
+	composit1_pixel_processor(node, chromabuf, inbuf, in[0]->vec, do_rgba_to_ycca_normalized, CB_RGBA);
 	
-	/*per pixel chroma key*/
-	composit1_pixel_processor(node, rgbbuf, chromabuf, in[1]->vec, do_luma_key, CB_RGBA);
+	/*per pixel luma  key*/
+	composit1_pixel_processor(node, chromabuf, chromabuf, in[0]->vec, do_luma_key, CB_RGBA);
 	
 	/*convert back*/
-	composit1_pixel_processor(node, rgbbuf, chromabuf, in[1]->vec, do_normalized_ycca_to_rgba, CB_RGBA);
+	composit1_pixel_processor(node, rgbbuf, chromabuf, in[0]->vec, do_normalized_ycca_to_rgba, CB_RGBA);
 	
 	/*cleanup */
 	free_compbuf(chromabuf);
