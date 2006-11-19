@@ -1328,6 +1328,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						fluidsimBake(NULL);
 					}
 				}
+				else if(G.qual== (LR_ALTKEY|LR_CTRLKEY))
+					objects_bake_render();
 				else if(G.qual==0)
 					borderselect();
 				break;

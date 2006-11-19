@@ -132,27 +132,27 @@ void IMB_filtery(struct ImBuf *ibuf)
 {
 	unsigned char *point;
 	float *pointf;
-	int x, y, skip, do_float = 0;
+	int x, y, skip;
 
 	point = (unsigned char *)ibuf->rect;
 	pointf = ibuf->rect_float;
-
-	if (ibuf->rect_float != NULL) do_float = 1;
 
 	x = ibuf->x;
 	y = ibuf->y;
 	skip = x<<2;
 
 	for (;x>0;x--){
-		if (ibuf->depth > 24) filtcolum(point,y,skip);
-		point++;
-		filtcolum(point,y,skip);
-		point++;
-		filtcolum(point,y,skip);
-		point++;
-		filtcolum(point,y,skip);
-		point++;
-		if (do_float) {
+		if (point) {
+			if (ibuf->depth > 24) filtcolum(point,y,skip);
+			point++;
+			filtcolum(point,y,skip);
+			point++;
+			filtcolum(point,y,skip);
+			point++;
+			filtcolum(point,y,skip);
+			point++;
+		}
+		if (pointf) {
 			if (ibuf->depth > 24) filtcolumf(pointf,y,skip);
 			pointf++;
 			filtcolumf(pointf,y,skip);
@@ -170,27 +170,27 @@ void imb_filterx(struct ImBuf *ibuf)
 {
 	unsigned char *point;
 	float *pointf;
-	int x, y, skip, do_float =0;
+	int x, y, skip;
 
 	point = (unsigned char *)ibuf->rect;
 	pointf = ibuf->rect_float;
-
-	if (ibuf->rect_float != NULL) do_float = 1;
 
 	x = ibuf->x;
 	y = ibuf->y;
 	skip = (x<<2) - 3;
 
 	for (;y>0;y--){
-		if (ibuf->depth > 24) filtrow(point,x);
-		point++;
-		filtrow(point,x);
-		point++;
-		filtrow(point,x);
-		point++;
-		filtrow(point,x);
-		point+=skip;
-		if (do_float) {
+		if (point) {
+			if (ibuf->depth > 24) filtrow(point,x);
+			point++;
+			filtrow(point,x);
+			point++;
+			filtrow(point,x);
+			point++;
+			filtrow(point,x);
+			point+=skip;
+		}
+		if (pointf) {
 			if (ibuf->depth > 24) filtrowf(pointf,x);
 			pointf++;
 			filtrowf(pointf,x);
@@ -239,3 +239,66 @@ void IMB_filter(struct ImBuf *ibuf)
 	IMB_filtery(ibuf);
 	imb_filterx(ibuf);
 }
+
+#define EXTEND_PIXEL(a, w)	if((a)[3]) {r+= w*(a)[0]; g+= w*(a)[1]; b+= w*(a)[2]; tot+=w;}
+
+/* if alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 255 */
+void IMB_filter_extend(struct ImBuf *ibuf)
+{
+	register char *row1, *row2, *row3;
+	register char *cp;
+	int rowlen, x, y;
+	
+	rowlen= ibuf->x;
+	
+	if(ibuf->rect) {
+		int *temprect;
+		
+		/* make a copy, to prevent flooding */
+		temprect= MEM_dupallocN(ibuf->rect);
+		
+		for(y=1; y<=ibuf->y; y++) {
+			/* setup rows */
+			row1= (char *)(temprect + (y-2)*rowlen);
+			row2= row1 + 4*rowlen;
+			row3= row2 + 4*rowlen;
+			if(y==1)
+				row1= row2;
+			else if(y==ibuf->y)
+				row3= row2;
+			
+			cp= (char *)(ibuf->rect + (y-1)*rowlen);
+			
+			for(x=0; x<rowlen; x++) {
+				if(cp[3]==0) {
+					int tot= 0, r=0, g=0, b=0;
+					
+					EXTEND_PIXEL(row1, 1);
+					EXTEND_PIXEL(row2, 2);
+					EXTEND_PIXEL(row3, 1);
+					EXTEND_PIXEL(row1+4, 2);
+					EXTEND_PIXEL(row3+4, 2);
+					if(x!=rowlen-1) {
+						EXTEND_PIXEL(row1+8, 1);
+						EXTEND_PIXEL(row2+8, 2);
+						EXTEND_PIXEL(row3+8, 1);
+					}					
+					if(tot) {
+						cp[0]= r/tot;
+						cp[1]= g/tot;
+						cp[2]= b/tot;
+						cp[3]= 255;
+					}
+				}
+				cp+=4; 
+				
+				if(x!=0) {
+					row1+=4; row2+=4; row3+=4;
+				}
+			}
+		}
+		
+		MEM_freeN(temprect);
+	}
+}
+

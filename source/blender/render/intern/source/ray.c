@@ -667,6 +667,10 @@ static int intersection2(VlakRen *vlr, float r0, float r1, float r2, float rx1, 
 	float m0, m1, m2, divdet, det, det1;
 	float u1, v, u2;
 
+	/* happens for baking with non existing face */
+	if(vlr->v1==NULL)
+		return 1;
+	
 	v1= vlr->v1; 
 	v2= vlr->v2; 
 	if(vlr->v4) {

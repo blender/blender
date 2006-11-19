@@ -68,6 +68,7 @@
 #include "BIF_interface.h"
 #include "BIF_language.h"
 #include "BIF_mainqueue.h"
+#include "BIF_meshtools.h"
 #include "BIF_previewrender.h"
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"
@@ -1672,6 +1673,9 @@ static void do_info_rendermenu(void *arg, int event)
 	case 7:
 		extern_set_butspace(F10KEY, 0);
 		break;
+	case 8:
+		objects_bake_render();
+		break;
 	}
 	allqueue(REDRAWINFO, 0);
 }
@@ -1688,6 +1692,7 @@ static uiBlock *info_rendermenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Render Current Frame|F12",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Render Animation|Ctrl F12",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bake-Render Meshes|ALT+Ctrl B",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 

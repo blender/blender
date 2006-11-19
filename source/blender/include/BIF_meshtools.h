@@ -42,6 +42,7 @@ extern void fasterdraw(void);
 extern void slowerdraw(void);
 
 extern void sort_faces(void);
+extern void objects_bake_render(void);
 
 extern long mesh_octree_table(struct Object *ob, float *co, char mode);
 extern int mesh_get_x_mirror_vert(struct Object *ob, int index);

@@ -3892,17 +3892,38 @@ void RE_DataBase_ApplyWindow(Render *re)
 	project_renderdata(re, projectverto, 0, 0);
 }
 
-/* setup for shaded view, so only lamps and materials are initialized */
-void RE_Database_Shaded(Render *re, Scene *scene)
+/* setup for shaded view or bake, so only lamps and materials are initialized */
+/* type:
+   RE_BAKE_LIGHT:  for shaded view, only add lamps
+   RE_BAKE_ALL:    for baking, all lamps and objects
+   RE_BAKE_NORMALS:for baking, no lamps and only selected objects
+   RE_BAKE_AO: for baking, no lamps, but all objects
+*/
+void RE_Database_Baking(Render *re, Scene *scene, int type)
 {
 	Base *base;
 	Object *ob;
 	Scene *sce;
+	GroupObject *go;
 	float mat[4][4];
 	unsigned int lay;
 	
 	re->scene= scene;
 	
+	/* renderdata setup and exceptions */
+	re->r= scene->r;
+	re->r.mode &= ~R_OSA;
+	
+	if( ELEM(type, RE_BAKE_LIGHT, RE_BAKE_NORMALS) ) {
+		re->r.mode &= ~R_SHADOW;
+		re->r.mode &= ~R_RAYTRACE;
+	}
+	
+	/* setup render stuff */
+	if(type!=RE_BAKE_LIGHT)
+		re->memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	
+	re->totvlak=re->totvert=re->totlamp=re->tothalo= 0;
 	re->lights.first= re->lights.last= NULL;
 
 	/* in localview, lamps are using normal layers, objects only local bits */
@@ -3920,9 +3941,18 @@ void RE_Database_Shaded(Render *re, Scene *scene)
 		RE_SetView(re, mat);
 	}
 	
-	/* initializes global */
+	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
+	if( (re->wrld.mode & WO_AMB_OCC) && (re->r.mode & R_RAYTRACE) ) {
+		re->wrld.aosphere= MEM_mallocN(2*3*re->wrld.aosamp*re->wrld.aosamp*sizeof(float), "AO sphere");
+		/* we make twice the amount of samples, because only a hemisphere is used */
+		init_ao_sphere(re->wrld.aosphere, 2*re->wrld.aosamp*re->wrld.aosamp, 16);
+	}
+	
+	/* still bad... doing all */
+	init_render_textures(re);
+	init_render_materials(re->osa, &re->wrld.ambr);
 	set_node_shader_lamp_loop(shade_material_loop);
-
+	
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
 		/* imat objects has to be done here, since displace can have texture using Object map-input */
@@ -3938,13 +3968,46 @@ void RE_Database_Shaded(Render *re, Scene *scene)
 		
 		/* OB_DONE means the object itself got duplicated, so was already converted */
 		if(ob->flag & OB_DONE);
-		else if(ob->type==OB_LAMP) {
-			if( (base->lay & lay) || ((base->lay & re->scene->lay)) ) {
-				init_render_object(re, ob, NULL, 0, 0);
+		else if( (base->lay & lay) || ((base->lay & re->scene->lay)) ) {
+			if(ob->type==OB_LAMP) {
+				if(type!=RE_BAKE_NORMALS && type!=RE_BAKE_AO)
+					init_render_object(re, ob, NULL, 0, 0);
+			}
+			else if(type!=RE_BAKE_LIGHT) {
+				if(type!=RE_BAKE_NORMALS || (ob->flag & SELECT))
+					init_render_object(re, ob, NULL, 0, 0);
 			}
 		}
 	}
-	set_material_lightgroups(re);	
+	set_material_lightgroups(re);
+	
+	check_non_flat_quads(re);
+	/* don't call set_normalflags(), no flipping */
+	
+	if(type!=RE_BAKE_LIGHT) {
+		if(re->r.mode & R_SHADOW) {
+			/* SHADOW BUFFER */
+			for(go=re->lights.first; go; go= go->next) {
+				LampRen *lar= go->lampren;
+				
+				if(re->test_break()) break;
+				if(lar->shb) {
+					/* if type is irregular, this only sets the perspective matrix and autoclips */
+					/* but, that's not supported for bake... */
+					makeshadowbuf(re, lar);
+				}
+			}
+		}
+	}
+
+	if(type!=RE_BAKE_LIGHT) {
+		/* octree */
+		if(!re->test_break()) {
+			if(re->r.mode & R_RAYTRACE) {
+				makeoctree(re);
+			}
+		}
+	}
 }
 
 void RE_DataBase_GetView(Render *re, float mat[][4])

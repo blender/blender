@@ -60,6 +60,7 @@ void sort_faces(void);
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -75,6 +76,7 @@ void sort_faces(void);
 
 #include "BIF_editmesh.h"
 #include "BIF_graphics.h"
+#include "BIF_interface.h"
 #include "BIF_mywindow.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -90,6 +92,9 @@ void sort_faces(void);
 #include "blendef.h"
 
 #include "BIF_meshtools.h" /* include ourself for prototypes */
+
+#include "RE_pipeline.h"
+#include "RE_shader_ext.h"
 
 
 /* * ********************** no editmode!!! *********** */
@@ -851,4 +856,46 @@ EditVert *editmesh_get_x_mirror_vert(Object *ob, float *co)
 		return (EditVert *)(poinval);
 	return NULL;
 }
+
+
+/* ****************** render BAKING ********************** */
+
+/* all selected meshes with UV maps are rendered for current scene visibility */
+void objects_bake_render(void)
+{
+	short event;
+	
+	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3");
+	if(event>0) {
+		Render *re= RE_NewRender("_Bake View_");
+		
+		if(event==1) event= RE_BAKE_ALL;
+		else if(event==2) event= RE_BAKE_AO;
+		else event= RE_BAKE_NORMALS;
+		
+		if(event==RE_BAKE_AO) {
+			if((G.scene->r.mode & R_RAYTRACE)==0 || G.scene->world==NULL
+			   || (G.scene->world->mode & WO_AMB_OCC)==0) {
+				error("No AO set up");
+				return;
+			}
+		}
+		
+		waitcursor(1);
+		RE_timecursor_cb(re, set_timecursor);
+		RE_test_break_cb(re, blender_test_break);
+		G.afbreek= 0;	/* blender_test_break uses this global */
+		
+		RE_Database_Baking(re, G.scene, event);
+		
+		RE_bake_shade_all_selected(re, event);
+		
+		RE_Database_Free(re);
+		waitcursor(0);
+		
+		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWVIEW3D, 0);
+	}
+}
+
 

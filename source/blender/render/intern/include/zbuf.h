@@ -95,6 +95,9 @@ typedef struct ZSpan {
 void zbufclip4(struct ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, float *f4, int c1, int c2, int c3, int c4);
 void zbuf_free_span(struct ZSpan *zspan);
 
+/* to rendercore.c */
+void zspan_scanconvert(struct ZSpan *zpan, void *handle, float *v1, float *v2, float *v3, void (*func)(void *, int, int, float, float) );
+
 /* exported to edge render... */
 void zbufclip(struct ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3);
 void zbuf_alloc_span(struct ZSpan *zspan, int rectx, int recty);

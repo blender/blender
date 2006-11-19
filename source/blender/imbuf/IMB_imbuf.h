@@ -314,6 +314,7 @@ void IMB_antialias(struct ImBuf * ibuf);
  */
 void IMB_filter(struct ImBuf *ibuf);
 void IMB_filterN(struct ImBuf *out, struct ImBuf *in);
+void IMB_filter_extend(struct ImBuf *ibuf);
 
 /**
  *

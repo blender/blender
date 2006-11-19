@@ -56,8 +56,12 @@
 
 #include "BKE_global.h"
 #include "BKE_material.h"
+#include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_texture.h"
+
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
 
 /* local include */
 #include "renderpipeline.h"
@@ -1934,6 +1938,28 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 
 }
 
+static void vlr_set_uv_indices(VlakRen *vlr, int *i1, int *i2, int *i3)
+{
+	/* to prevent storing new tfaces or vcols, we check a split runtime */
+	/* 		4---3		4---3 */
+	/*		|\ 1|	or  |1 /| */
+	/*		|0\ |		|/ 0| */
+	/*		1---2		1---2 	0 = orig face, 1 = new face */
+	
+	/* Update vert nums to point to correct verts of original face */
+	if(vlr->flag & R_DIVIDE_24) {  
+		if(vlr->flag & R_FACE_SPLIT) {
+			(*i1)++; (*i2)++; (*i3)++;
+		}
+		else {
+			(*i3)++;
+		}
+	}
+	else if(vlr->flag & R_FACE_SPLIT) {
+		(*i2)++; (*i3)++; 
+	}
+}
+
 /* this function sets all coords for render (shared with raytracer) */
 /* warning; exception for ortho render is here, can be done better! */
 void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, int i3)
@@ -2202,24 +2228,8 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 		if((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)))  {
 			int j1=i1, j2=i2, j3=i3;
 			
-			/* to prevent storing new tfaces or vcols, we check a split runtime */
-			/* 		4---3		4---3 */
-			/*		|\ 1|	or  |1 /| */
-			/*		|0\ |		|/ 0| */
-			/*		1---2		1---2 	0 = orig face, 1 = new face */
-			
-			/* Update vert nums to point to correct verts of original face */
-			if(vlr->flag & R_DIVIDE_24) {  
-				if(vlr->flag & R_FACE_SPLIT) {
-					j1++; j2++; j3++;
-				}
-				else {
-					j3++;
-				}
-			}
-			else if(vlr->flag & R_FACE_SPLIT) {
-				j2++; j3++; 
-			}
+			/* uv and vcols are not copied on split, so set them according vlr divide flag */
+			vlr_set_uv_indices(vlr, &j1, &j2, &j3);
 			
 			if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP)) {
 				
@@ -3653,5 +3663,206 @@ void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr)
 		shade_material_loop(shi, shr);
 	}
 }
+/* ************************* bake ************************ */
 
+#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 
+typedef struct BakeShade {
+	ShadeInput shi;
+	VlakRen *vlr;
+	
+	int rectx, recty, quad, type;
+	unsigned int *rect;
+	float *rect_float;
+} BakeShade;
+
+static void do_bake_shade(void *handle, int x, int y, float u, float v)
+{
+	BakeShade *bs= handle;
+	ShadeInput *shi= &bs->shi;
+	ShadeResult shr;
+	VlakRen *vlr= bs->vlr;
+	float l, *v1, *v2, *v3;
+	
+	shi->xs= x;
+	shi->ys= y;
+	
+	/* setup render coordinates, it's a copy of shade_ray mostly, but different.
+		like for shadepixel, useful to restructure once. */
+	if(bs->quad) {
+		v1= vlr->v1->co;
+		v2= vlr->v3->co;
+		v3= vlr->v4->co;
+	}
+	else {
+		v1= vlr->v1->co;
+		v2= vlr->v2->co;
+		v3= vlr->v3->co;
+	}
+	
+	/* renderco */
+	l= 1.0-u-v;
+	
+	shi->co[0]= l*v3[0]+u*v1[0]+v*v2[0];
+	shi->co[1]= l*v3[1]+u*v1[1]+v*v2[1];
+	shi->co[2]= l*v3[2]+u*v1[2]+v*v2[2];
+	
+	/* set up view vector */
+	VECCOPY(shi->view, shi->co);
+	Normalise(shi->view);
+	
+	shi->vlr= vlr;
+	shi->mat= vlr->mat;
+	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
+	shi->har= shi->mat->har;
+	
+	/* no face normal flip */
+	VECCOPY(shi->facenor, vlr->n);
+	shi->puno= vlr->puno;
+
+	if(bs->quad) 
+		shade_input_set_coords(shi, -u, -v, 0, 3, 4);
+	else
+		shade_input_set_coords(shi, -u, -v, 0, 1, 2);
+	
+	if(bs->type==RE_BAKE_AO) {
+		shr.ao[0]= shr.ao[1]= shr.ao[2]= 0.0f;
+		ambient_occlusion(shi, &shr);
+		VECCOPY(shr.diff, shr.ao);
+	}
+	else {
+		if(shi->mat->nodetree && shi->mat->use_nodes) {
+			ntreeShaderExecTree(shi->mat->nodetree, shi, &shr);
+			shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
+		}
+		else
+			shade_material_loop(shi, &shr);
+		
+		if(bs->type==RE_BAKE_NORMALS) {
+			shr.diff[0]= shi->vn[0]/2.0f + 0.5f;
+			shr.diff[1]= 0.5f - shi->vn[1]/2.0f;
+			shr.diff[2]= shi->vn[2]/2.0f + 0.5f;
+		}		
+	}
+	
+	if(bs->rect) {
+		char *col= (char *)(bs->rect + bs->rectx*y + x);
+		col[0]= FTOCHAR(shr.diff[0]);
+		col[1]= FTOCHAR(shr.diff[1]);
+		col[2]= FTOCHAR(shr.diff[2]);
+		col[3]= 255;
+	}
+	else {
+		float *col= bs->rect_float + 4*(bs->rectx*y + x);
+		VECCOPY(col, shr.diff);
+		col[3]= 1.0f;
+	}
+}
+
+/* already have tested for tface and ima */
+static void shade_tface(BakeShade *bs, VlakRen *vlr)
+{
+	TFace *tface= vlr->tface;
+	Image *ima= tface->tpage;
+	ZSpan *zspan= (ZSpan *)ima->id.newid;
+	float vec[4][2];
+	int a, i1, i2, i3;
+	
+	if(ima->ibuf==NULL)
+		return;
+	
+	/* signal we find this image for the first time */
+	if(zspan==NULL) {
+		if(ima->ibuf->rect==NULL && ima->ibuf->rect_float==NULL)
+			return;
+		/* we either fill in float or char, this ensures things go fine */
+		if(ima->ibuf->rect_float)
+			imb_freerectImBuf(ima->ibuf);
+		
+		zspan= MEM_mallocN(sizeof(ZSpan), "zspan for bake");
+		zbuf_alloc_span(zspan, ima->ibuf->x, ima->ibuf->y);
+		ima->id.newid= (ID *)zspan;
+		
+		memset(vec, 0, sizeof(vec));
+		IMB_rectfill(ima->ibuf, vec[0]);
+	}
+	
+	bs->vlr= vlr;
+	bs->rectx= ima->ibuf->x;
+	bs->recty= ima->ibuf->y;
+	bs->rect= ima->ibuf->rect;
+	bs->rect_float= ima->ibuf->rect_float;
+	bs->quad= 0;
+	
+	/* get pixel level vertex coordinates */
+	for(a=0; a<4; a++) {
+		vec[a][0]= tface->uv[a][0]*(float)bs->rectx - 0.5f;
+		vec[a][1]= tface->uv[a][1]*(float)bs->recty - 0.5f;
+	}
+	
+	/* UV indices have to be corrected for possible quad->tria splits */
+	i1= 0; i2= 1; i3= 2;
+	vlr_set_uv_indices(vlr, &i1, &i2, &i3);
+	zspan_scanconvert(zspan, bs, vec[i1], vec[i2], vec[i3], do_bake_shade);
+	
+	if(vlr->v4) {
+		bs->quad= 1;
+		zspan_scanconvert(zspan, bs, vec[0], vec[2], vec[3], do_bake_shade);
+	}
+}
+
+/* using object selection tags, the faces with UV maps get baked */
+/* render should have been setup */
+void RE_bake_shade_all_selected(Render *re, int type)
+{
+	BakeShade handle;
+	Image *ima;
+	VlakRen *vlr= NULL;
+	int v, vdone=0;
+	
+	/* initialize render global */
+	R= *re;
+	
+	/* set defaults in handle */
+	memset(&handle, 0, sizeof(BakeShade));
+	handle.shi.lay= re->scene->lay;
+	handle.type= type;
+	
+	/* baker abuses newid for zspans */
+	for(ima= G.main->image.first; ima; ima= ima->id.next)
+		ima->id.newid= NULL;
+	
+	for(v=0; v<R.totvlak; v++) {
+		if((v & 255)==0)
+			vlr= R.blovl[v>>8];
+		else vlr++;
+		
+		if(vlr->ob->flag & SELECT) {
+			if(vlr->tface && vlr->tface->tpage) {
+				shade_tface(&handle, vlr);
+				vdone++;
+				
+				if((vdone & 1023)==1)
+					R.timecursor(vdone>>10);
+				
+				if(R.test_break()) break; 
+			}
+		}
+	}
+	
+	/* free zspans, filter images */
+	for(ima= G.main->image.first; ima; ima= ima->id.next) {
+		if(ima->id.newid) {
+			extern void free_realtime_image(Image *ima);	/* bad level call */
+			
+			zbuf_free_span((ZSpan *)ima->id.newid);
+			MEM_freeN(ima->id.newid);
+			ima->id.newid= NULL;
+			
+			IMB_filter_extend(ima->ibuf);
+			ima->ibuf->userflags |= IB_BITMAPDIRTY;
+			free_realtime_image(ima); /* force OpenGL reload */
+		}
+	}
+	
+}

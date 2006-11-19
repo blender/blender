@@ -377,7 +377,7 @@ static Render *fastshade_get_render(void)
 	if(re==NULL) {
 		re= RE_NewRender("_Shade View_");
 	
-		RE_Database_Shaded(re, G.scene);
+		RE_Database_Baking(re, G.scene, 0);	/* 0= no faces */
 	}
 	return re;
 }
@@ -393,7 +393,7 @@ void fastshade_free_render(void)
 	}
 }
 
-static void fastshade(float *co, float *nor, float *orco, Material *ma, char *col1, char *col2, char *vertcol)
+static void fastshade(float *co, float *nor, float *orco, float *uv, Material *ma, char *col1, char *col2, char *vertcol)
 {
 	ShadeResult shr;
 	int a;
@@ -409,6 +409,7 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 	shi.vn[1]= -nor[1];
 	shi.vn[2]= -nor[2];
 	VECCOPY(shi.vno, shi.vn);
+	VECCOPY(shi.facenor, shi.vn);
 	
 	if(ma->texco) {
 		VECCOPY(shi.lo, orco);
@@ -423,7 +424,13 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 			VECCOPY(shi.sticky, shi.lo);
 		}
 		if(ma->texco & TEXCO_UV) {
-			VECCOPY(shi.uv, shi.lo);
+			if(uv) {
+				shi.uv[0]= 2.0f*uv[0]-1.0f;
+				shi.uv[1]= 2.0f*uv[1]-1.0f;
+			}
+			else {
+				VECCOPY(shi.uv, shi.lo);
+			}
 		}
 		if(ma->texco & TEXCO_OBJECT) {
 			VECCOPY(shi.co, shi.lo);
@@ -567,11 +574,12 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 
 	for (i=0; i<dlm->totface; i++) {
 		MFace *mf= &dlm->mface[i];
+		TFace *tface= dlm->tface?&dlm->tface[i]:NULL;
+		Material *ma= give_current_material(ob, mf->mat_nr+1);
 		int j, vidx[4], nverts= mf->v4?4:3;
 		unsigned char *col1base= (unsigned char*) &col1[i*4];
 		unsigned char *col2base= (unsigned char*) (col2?&col2[i*4]:NULL);
 		unsigned char *mcolbase;
-		Material *ma= give_current_material(ob, mf->mat_nr+1);
 		float nor[3], n1[3];
 		
 		if(ma==NULL) ma= &defmaterial;
@@ -609,10 +617,14 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 			char *col2= (char*)(col2base?&col2base[j*4]:NULL);
 			char *mcol= (char*)(mcolbase?&mcolbase[j*4]:NULL);
 			float *vn = (mf->flag & ME_SMOOTH)?&vnors[3*vidx[j]]:n1;
-
+			float *uv= tface?tface->uv[j]:NULL;
+			
 			VECCOPY(vec, mv->co);
 			Mat4MulVecfl(mat, vec);
-			fastshade(vec, vn, orco?&orco[vidx[j]*3]:mv->co, ma, col1, col2, mcol);
+			vec[0]+= 0.001*vn[0];
+			vec[1]+= 0.001*vn[1];
+			vec[2]+= 0.001*vn[2];
+			fastshade(vec, vn, orco?&orco[vidx[j]*3]:mv->co, uv, ma, col1, col2, mcol);
 		}
 	} 
 	MEM_freeN(vnors);
@@ -705,7 +717,7 @@ void shadeDispList(Base *base)
 							VECCOPY(vec, fp);
 							Mat4MulVecfl(mat, vec);
 							
-							fastshade(vec, n1, fp, ma, (char *)col1, 0, 0);
+							fastshade(vec, n1, fp, NULL, ma, (char *)col1, NULL, NULL);
 							
 							fp+= 3; col1++;
 						}
@@ -726,7 +738,7 @@ void shadeDispList(Base *base)
 							n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
 							Normalise(n1);
 				
-							fastshade(vec, n1, fp, ma, (char *)col1, 0, 0);
+							fastshade(vec, n1, fp, NULL, ma, (char *)col1, NULL, NULL);
 							
 							fp+= 3; nor+= 3; col1++;
 						}
@@ -764,7 +776,7 @@ void shadeDispList(Base *base)
 							n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
 							Normalise(n1);
 						
-							fastshade(vec, n1, fp, ma, (char *)col1, 0, 0);
+							fastshade(vec, n1, fp, NULL, ma, (char *)col1, NULL, NULL);
 							
 							fp+= 3; col1++; nor+= 3;
 						}

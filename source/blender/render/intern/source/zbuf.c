@@ -1308,6 +1308,96 @@ static void zbuffillGL_onlyZ(ZSpan *zspan, int zvlnr, float *v1, float *v2, floa
 	}
 }
 
+/* 2d scanconvert for tria, calls func for each x,y coordinate and gives UV barycentrics */
+/* zspan should be initialized, has rect size and span buffers */
+
+void zspan_scanconvert(ZSpan *zspan, void *handle, float *v1, float *v2, float *v3, void (*func)(void *, int, int, float, float) )
+{
+	float x0, y0, x1, y1, x2, y2, z0, z1, z2;
+	float u, v, uxd, uyd, vxd, vyd, uy0, vy0, xx1;
+	float *span1, *span2;
+	int x, y, sn1, sn2, rectx= zspan->rectx, my0, my2;
+	
+	/* init */
+	zbuf_init_span(zspan);
+	
+	/* set spans */
+	zbuf_add_to_span(zspan, v1, v2);
+	zbuf_add_to_span(zspan, v2, v3);
+	zbuf_add_to_span(zspan, v3, v1);
+	
+	/* clipped */
+	if(zspan->minp2==NULL || zspan->maxp2==NULL) return;
+	
+	if(zspan->miny1 < zspan->miny2) my0= zspan->miny2; else my0= zspan->miny1;
+	if(zspan->maxy1 > zspan->maxy2) my2= zspan->maxy2; else my2= zspan->maxy1;
+	
+	//	printf("my %d %d\n", my0, my2);
+	if(my2<my0) return;
+	
+	/* ZBUF DX DY, in floats still */
+	x1= v1[0]- v2[0];
+	x2= v2[0]- v3[0];
+	y1= v1[1]- v2[1];
+	y2= v2[1]- v3[1];
+	
+	z1= 1.0f; // (u1 - u2)
+	z2= 0.0f; // (u2 - u3)
+	
+	x0= y1*z2-z1*y2;
+	y0= z1*x2-x1*z2;
+	z0= x1*y2-y1*x2;
+	
+	if(z0==0.0f) return;
+	
+	xx1= (x0*v1[0] + y0*v1[1])/z0 + 1.0f;	
+	uxd= -(double)x0/(double)z0;
+	uyd= -(double)y0/(double)z0;
+	uy0= ((double)my2)*uyd + (double)xx1;
+
+	z1= -1.0f; // (v1 - v2)
+	z2= 1.0f;  // (v2 - v3)
+	
+	x0= y1*z2-z1*y2;
+	y0= z1*x2-x1*z2;
+	
+	xx1= (x0*v1[0] + y0*v1[1])/z0;
+	vxd= -(double)x0/(double)z0;
+	vyd= -(double)y0/(double)z0;
+	vy0= ((double)my2)*vyd + (double)xx1;
+	
+	/* correct span */
+	sn1= (my0 + my2)/2;
+	if(zspan->span1[sn1] < zspan->span2[sn1]) {
+		span1= zspan->span1+my2;
+		span2= zspan->span2+my2;
+	}
+	else {
+		span1= zspan->span2+my2;
+		span2= zspan->span1+my2;
+	}
+	
+	for(y=my2; y>=my0; y--, span1--, span2--) {
+		
+		sn1= floor(*span1);
+		sn2= floor(*span2);
+		sn1++; 
+		
+		if(sn2>=rectx) sn2= rectx-1;
+		if(sn1<0) sn1= 0;
+		
+		u= (double)sn1*uxd + uy0;
+		v= (double)sn1*vxd + vy0;
+		
+		for(x= sn1; x<=sn2; x++, u+=uxd, v+=vxd)
+			func(handle, x, y, u, v);
+		
+		uy0 -= uyd;
+		vy0 -= vyd;
+	}
+}
+
+
 
 /**
  * (clip pyramid)
