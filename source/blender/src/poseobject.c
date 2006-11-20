@@ -752,11 +752,10 @@ void pose_adds_vgroups(Object *meshobj)
 	bPoseChannel *pchan;
 	Bone *bone;
 	bDeformGroup *dg, *curdef;
-	int DMneedsFree;
 	
 	if(poseobj==NULL || (poseobj->flag & OB_POSEMODE)==0) return;
 	
-	dm = mesh_get_derived_final(meshobj, &DMneedsFree);
+	dm = mesh_get_derived_final(meshobj);
 	
 	map.meshobj= meshobj;
 	
@@ -808,7 +807,7 @@ void pose_adds_vgroups(Object *meshobj)
 		}
 	}
 	
-	if (DMneedsFree) dm->release(dm);
+	dm->release(dm);
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);

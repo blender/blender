@@ -798,11 +798,11 @@ void EM_add_data_layer(CustomData *data, int type)
 		return;
 
 	olddata= *data;
-	olddata.layers= MEM_dupallocN(olddata.layers);
-	CustomData_add_layer(data, type, 0, NULL);
+	olddata.layers= (olddata.layers)? MEM_dupallocN(olddata.layers): NULL;
+	CustomData_add_layer(data, type, 0, NULL, 0);
 
 	update_data_blocks(&olddata, data);
-	MEM_freeN(olddata.layers);
+	if (olddata.layers) MEM_freeN(olddata.layers);
 }
 
 void EM_free_data_layer(CustomData *data, int type)
@@ -813,11 +813,11 @@ void EM_free_data_layer(CustomData *data, int type)
 		return;
 
 	olddata= *data;
-	olddata.layers= MEM_dupallocN(olddata.layers);
-	CustomData_free_layer(data, type);
+	olddata.layers= (olddata.layers)? MEM_dupallocN(olddata.layers): NULL;
+	CustomData_free_layer(data, type, 0);
 
 	update_data_blocks(&olddata, data);
-	MEM_freeN(olddata.layers);
+	if (olddata.layers) MEM_freeN(olddata.layers);
 }
 
 /* ********  EXTRUDE ********* */

@@ -64,6 +64,7 @@
 #include "DNA_ipo_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_space_types.h"
@@ -1709,13 +1710,13 @@ static void replace_image(ID *oldblock, ID *newblock) {
 	}
 
 	for (me= G.main->mesh.first; me; me= me->id.next) {
-		TFace *tfaces= me->tface;
+		MTFace *tfaces= me->mtface;
 
 		if (tfaces) {
 			int i;
 
 			for (i=0; i<me->totface; i++) {
-				TFace *tf= &tfaces[i];
+				MTFace *tf= &tfaces[i];
 
 				if (tf->tpage == oldima) {
 						/* not change_id_link, tpage's aren't owners :(

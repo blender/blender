@@ -33,13 +33,14 @@
 #ifndef BDR_EDITFACE_H
 #define BDR_EDITFACE_H
 
-struct TFace;
+struct MTFace;
 struct Mesh;
+struct MCol;
 
-struct TFace *get_active_tface(void);
+struct MTFace *get_active_tface(struct MCol **mcol);
 void calculate_uv_map(unsigned short mapmode);
 void default_uv(float uv[][2], float size);
-void default_tface(struct TFace *tface);
+void default_tface(struct MTFace *tface);
 void make_tfaces(struct Mesh *me);
 void reveal_tface(void);
 void hide_tface(void);

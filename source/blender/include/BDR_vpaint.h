@@ -38,7 +38,7 @@ struct MDeformVert;	/* __NLA */
 unsigned int vpaint_get_current_col(void);
 unsigned int rgba_to_mcol(float r, float g, float b, float a);
 void do_shared_vertexcol(struct Mesh *me);
-void make_vertexcol(void);
+void make_vertexcol(int shade);
 void copy_vpaint_undo(unsigned int *mcol, int tot);
 void vpaint_undo(void);
 void clear_vpaint(void);

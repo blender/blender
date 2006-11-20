@@ -1079,7 +1079,7 @@ void yafrayPluginRender_t::writeMaterialsAndModulators()
 
 }
 
-void yafrayPluginRender_t::genUVcoords(vector<yafray::GFLOAT> &uvcoords, VlakRen *vlr, TFace* uvc, bool comple)
+void yafrayPluginRender_t::genUVcoords(vector<yafray::GFLOAT> &uvcoords, VlakRen *vlr, MTFace* uvc, bool comple)
 {
 	if (uvc) 
 	{
@@ -1148,7 +1148,7 @@ void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,ve
 	string fmatname(fmat->id.name);
 	// use name in imgtex_shader list if 'TexFace' enabled for this face material
 	if (fmat->mode & MA_FACETEXTURE) {
-		TFace* tface = vlr->tface;
+		MTFace* tface = vlr->tface;
 		if (tface) {
 			Image* fimg = (Image*)tface->tpage;
 			if (fimg) fmatname = imgtex_shader[fmatname + string(fimg->id.name)];
@@ -1168,7 +1168,7 @@ void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,ve
 		shaders.push_back(fmatname);
 		faceshader.push_back(shaders.size()-1);
 	}
-	TFace* uvc = vlr->tface;	// possible uvcoords (v upside down)
+	MTFace* uvc = vlr->tface;	// possible uvcoords (v upside down)
 	int idx1, idx2, idx3;
 
 	idx1 = vert_idx.find(vlr->v1)->second;
@@ -1193,7 +1193,7 @@ void yafrayPluginRender_t::genCompleFace(vector<int> &faces,/*vector<string> &sh
 	bool EXPORT_VCOL = ((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0);
 
 	faceshader.push_back(faceshader.back());
-	TFace* uvc = vlr->tface;	// possible uvcoords (v upside down)
+	MTFace* uvc = vlr->tface;	// possible uvcoords (v upside down)
 	int idx1, idx2, idx3;
 	idx1 = vert_idx.find(vlr->v3)->second;
 	idx2 = vert_idx.find(vlr->v4)->second;

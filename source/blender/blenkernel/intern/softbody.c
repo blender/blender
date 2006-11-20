@@ -71,7 +71,6 @@ variables on the UI for now
 #include "BLI_arithb.h"
 #include "BLI_ghash.h"
 #include "BKE_curve.h"
-#include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -218,7 +217,7 @@ typedef struct ccd_Mesh {
 
 
 
-ccd_Mesh *ccd_mesh_make(Object *ob, DispListMesh *dm)
+ccd_Mesh *ccd_mesh_make(Object *ob, DerivedMesh *dm)
 {
     ccd_Mesh *pccd_M = NULL;
 	ccdf_minmax *mima =NULL;
@@ -228,11 +227,11 @@ ccd_Mesh *ccd_mesh_make(Object *ob, DispListMesh *dm)
 	
 	/* first some paranoia checks */
 	if (!dm) return NULL;
-	if ((!dm->totface) || (!dm->totvert)) return NULL;
+	if (!dm->getNumVerts(dm) || !dm->getNumFaces(dm)) return NULL;
 	
 	pccd_M = MEM_mallocN(sizeof(ccd_Mesh),"ccd_Mesh");
-	pccd_M->totvert = dm->totvert;
-	pccd_M->totface = dm->totface;
+	pccd_M->totvert = dm->getNumVerts(dm);
+	pccd_M->totface = dm->getNumVerts(dm);
 	pccd_M->savety  = CCD_SAVETY;
 	pccd_M->bbmin[0]=pccd_M->bbmin[1]=pccd_M->bbmin[2]=1e30f;
 	pccd_M->bbmax[0]=pccd_M->bbmax[1]=pccd_M->bbmax[2]=-1e30f;
@@ -243,8 +242,7 @@ ccd_Mesh *ccd_mesh_make(Object *ob, DispListMesh *dm)
 	hull = MAX2(ob->pd->pdef_sbift,ob->pd->pdef_sboft);
 	
 	/* alloc and copy verts*/
-    pccd_M->mvert = MEM_mallocN(sizeof(MVert)*pccd_M->totvert,"ccd_Mesh_Vert");
-	memcpy(pccd_M->mvert,dm->mvert,sizeof(MVert)*pccd_M->totvert);
+	pccd_M->mvert = dm->dupVertArray(dm);
     /* ah yeah, put the verices to global coords once */ 	
 	/* and determine the ortho BB on the fly */ 
 	for(i=0; i < pccd_M->totvert; i++){
@@ -262,8 +260,7 @@ ccd_Mesh *ccd_mesh_make(Object *ob, DispListMesh *dm)
 		
 	}
 	/* alloc and copy faces*/
-    pccd_M->mface = MEM_mallocN(sizeof(MFace)*pccd_M->totface,"ccd_Mesh_Faces");
-	memcpy(pccd_M->mface,dm->mface,sizeof(MFace)*pccd_M->totface);
+    pccd_M->mface = dm->dupFaceArray(dm);
 	
 	/* OBBs for idea1 */
     pccd_M->mima = MEM_mallocN(sizeof(ccdf_minmax)*pccd_M->totface,"ccd_Mesh_Faces_mima");
@@ -317,7 +314,7 @@ ccd_Mesh *ccd_mesh_make(Object *ob, DispListMesh *dm)
 	}
 	return pccd_M;
 }
-void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M, DispListMesh *dm)
+void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M, DerivedMesh *dm)
 {
  	ccdf_minmax *mima =NULL;
 	MFace *mface=NULL;
@@ -326,10 +323,10 @@ void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M, DispListMesh *dm)
 	
 	/* first some paranoia checks */
 	if (!dm) return ;
-	if ((!dm->totface) || (!dm->totvert)) return ;
+	if (!dm->getNumVerts(dm) || !dm->getNumFaces(dm)) return ;
 
-	if ((pccd_M->totvert != dm->totvert) ||
-		(pccd_M->totface != dm->totface)) return;
+	if ((pccd_M->totvert != dm->getNumVerts(dm)) ||
+		(pccd_M->totface != dm->getNumFaces(dm))) return;
 
 	pccd_M->bbmin[0]=pccd_M->bbmin[1]=pccd_M->bbmin[2]=1e30f;
 	pccd_M->bbmax[0]=pccd_M->bbmax[1]=pccd_M->bbmax[2]=-1e30f;
@@ -342,8 +339,7 @@ void ccd_mesh_update(Object *ob,ccd_Mesh *pccd_M, DispListMesh *dm)
 	if(pccd_M->mprevvert) MEM_freeN(pccd_M->mprevvert);
     pccd_M->mprevvert = pccd_M->mvert;
 	/* alloc and copy verts*/
-    pccd_M->mvert = MEM_mallocN(sizeof(MVert)*pccd_M->totvert,"ccd_Mesh_Vert");
-	memcpy(pccd_M->mvert,dm->mvert,sizeof(MVert)*pccd_M->totvert);
+    pccd_M->mvert = dm->dupVertArray(dm);
     /* ah yeah, put the verices to global coords once */ 	
 	/* and determine the ortho BB on the fly */ 
 	for(i=0; i < pccd_M->totvert; i++){
@@ -489,27 +485,19 @@ void ccd_build_deflector_hache(Object *vertexowner,GHash *hash)
 			/*+++ only with deflecting set */
 			if(ob->pd && ob->pd->deflect && BLI_ghash_lookup(hash, ob) == 0) {
 				DerivedMesh *dm= NULL;
-				int dmNeedsFree;	
 				
 				if(ob->softflag & OB_SB_COLLFINAL) { /* so maybe someone wants overkill to collide with subsurfed */
-					dm = mesh_get_derived_final(ob, &dmNeedsFree);
+					dm = mesh_get_derived_final(ob);
 				} else {
-					dm = mesh_get_derived_deform(ob, &dmNeedsFree);
+					dm = mesh_get_derived_deform(ob);
 				}
+
 				if(dm){
-					DispListMesh *disp_mesh= NULL;
-					ccd_Mesh *ccdmesh = NULL;
-					disp_mesh = dm->convertToDispListMesh(dm, 0);
-					ccdmesh=ccd_mesh_make(ob,disp_mesh);
-					BLI_ghash_insert(hash, ob,ccdmesh);
+					ccd_Mesh *ccdmesh = ccd_mesh_make(ob, dm);
+					BLI_ghash_insert(hash, ob, ccdmesh);
 
 					/* we did copy & modify all we need so give 'em away again */
-					if (disp_mesh) {
-						displistmesh_free(disp_mesh);
-					}
-					if (dm) {
-						if (dmNeedsFree) dm->release(dm);
-					} 
+					dm->release(dm);
 					
 				}
 			}/*--- only with deflecting set */
@@ -539,29 +527,19 @@ void ccd_update_deflector_hache(Object *vertexowner,GHash *hash)
 			/*+++ only with deflecting set */
 			if(ob->pd && ob->pd->deflect) {
 				DerivedMesh *dm= NULL;
-				int dmNeedsFree;	
 				
 				if(ob->softflag & OB_SB_COLLFINAL) { /* so maybe someone wants overkill to collide with subsurfed */
-					dm = mesh_get_derived_final(ob, &dmNeedsFree);
+					dm = mesh_get_derived_final(ob);
 				} else {
-					dm = mesh_get_derived_deform(ob, &dmNeedsFree);
+					dm = mesh_get_derived_deform(ob);
 				}
 				if(dm){
-					DispListMesh *disp_mesh= NULL;
 					ccd_Mesh *ccdmesh = BLI_ghash_lookup(hash,ob);
-					if (ccdmesh){
-					disp_mesh = dm->convertToDispListMesh(dm, 0);
-					ccd_mesh_update(ob,ccdmesh,disp_mesh);
-					}
+					if (ccdmesh)
+						ccd_mesh_update(ob,ccdmesh,dm);
 
 					/* we did copy & modify all we need so give 'em away again */
-					if (disp_mesh) {
-						displistmesh_free(disp_mesh);
-					}
-					if (dm) {
-						if (dmNeedsFree) dm->release(dm);
-					} 
-					
+					dm->release(dm);
 				}
 			}/*--- only with deflecting set */
 

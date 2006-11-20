@@ -14,7 +14,7 @@
 #include "MT_Vector3.h"
 #include "MT_Vector4.h"
 
-struct TFace;
+struct MTFace;
 class KX_Scene;
 
 class KX_BlenderMaterial :  public PyObjectPlus, public RAS_IPolyMaterial
@@ -61,7 +61,8 @@ public:
 	)const;
 
 
-	TFace* GetTFace(void) const;
+	MTFace* GetMTFace(void) const;
+	unsigned int* GetMCol(void) const;
 
 	// for ipos
 	void UpdateIPO(

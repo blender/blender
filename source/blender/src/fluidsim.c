@@ -60,6 +60,7 @@
 #include "BLI_arithb.h"
 #include "MTC_matrixops.h"
 
+#include "BKE_customdata.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
@@ -217,54 +218,52 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 }
 
 /* duplicate struct, analogous to free */
+static Mesh *fluidsimCopyMesh(Mesh *me)
+{
+	Mesh *dup = MEM_dupallocN(me);
+
+	CustomData_copy(&me->vdata, &dup->vdata, CD_MASK_MESH, CD_DUPLICATE, me->totvert);
+	CustomData_copy(&me->vdata, &dup->vdata, CD_MASK_MESH, CD_DUPLICATE, me->totvert);
+	CustomData_copy(&me->vdata, &dup->vdata, CD_MASK_MESH, CD_DUPLICATE, me->totvert);
+
+	return dup;
+}
+
 FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *fss)
 {
 	FluidsimSettings *dupfss;
-	Mesh *dupFsMesh = NULL;
 
 	if(!fss) return NULL;
 	dupfss = MEM_dupallocN(fss);
 
-	dupFsMesh = fss->meshSurface;
-	if(dupFsMesh) {
-		dupfss->meshSurface = MEM_dupallocN(dupFsMesh);
-		if(dupFsMesh->mvert) dupfss->meshSurface->mvert = MEM_dupallocN(dupFsMesh->mvert);
-		if(dupFsMesh->medge) dupfss->meshSurface->medge = MEM_dupallocN(dupFsMesh->medge);
-		if(dupFsMesh->mface) dupfss->meshSurface->mface = MEM_dupallocN(dupFsMesh->mface);
-	}
-
-	dupFsMesh = fss->meshBB;
-	if(dupFsMesh) {
-		dupfss->meshBB = MEM_dupallocN(dupFsMesh);
-		if(dupFsMesh->mvert) dupfss->meshBB->mvert = MEM_dupallocN(dupFsMesh->mvert);
-		if(dupFsMesh->medge) dupfss->meshBB->medge = MEM_dupallocN(dupFsMesh->medge);
-		if(dupFsMesh->mface) dupfss->meshBB->mface = MEM_dupallocN(dupFsMesh->mface);
-	}
+	if(fss->meshSurface)
+		dupfss->meshSurface = fluidsimCopyMesh(fss->meshSurface);
+	if(fss->meshBB)
+		dupfss->meshBB = fluidsimCopyMesh(fss->meshBB);
 
 	if(fss->meshSurfNormals) dupfss->meshSurfNormals = MEM_dupallocN(fss->meshSurfNormals);
 
 	return dupfss;
 }
 
-
 /* free struct */
+static void fluidsimFreeMesh(Mesh *me)
+{
+	CustomData_free(&me->vdata, me->totvert);
+	CustomData_free(&me->edata, me->totedge);
+	CustomData_free(&me->fdata, me->totface);
+
+	MEM_freeN(me);
+}
+
 void fluidsimSettingsFree(FluidsimSettings *fss)
 {
-	Mesh *freeFsMesh = fss->meshSurface;
-	if(freeFsMesh) {
-		if(freeFsMesh->mvert){ MEM_freeN(freeFsMesh->mvert); freeFsMesh->mvert=NULL; }
-		if(freeFsMesh->medge){ MEM_freeN(freeFsMesh->medge); freeFsMesh->medge=NULL; }
-		if(freeFsMesh->mface){ MEM_freeN(freeFsMesh->mface); freeFsMesh->mface=NULL; }
-		MEM_freeN(freeFsMesh);
+	if(fss->meshSurface) {
+		fluidsimFreeMesh(fss->meshSurface);
 		fss->meshSurface = NULL;
 	}
-
-	freeFsMesh = fss->meshBB;
-	if(freeFsMesh) { // same as before...
-		if(freeFsMesh->mvert){ MEM_freeN(freeFsMesh->mvert); freeFsMesh->mvert=NULL; }
-		if(freeFsMesh->medge){ MEM_freeN(freeFsMesh->medge); freeFsMesh->medge=NULL; }
-		if(freeFsMesh->mface){ MEM_freeN(freeFsMesh->mface); freeFsMesh->mface=NULL; }
-		MEM_freeN(freeFsMesh);
+	if(fss->meshBB) {
+		fluidsimFreeMesh(fss->meshBB);
 		fss->meshBB = NULL;
 	}
 

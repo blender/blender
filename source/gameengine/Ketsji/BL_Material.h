@@ -8,7 +8,7 @@
 struct MTex;
 struct Material;
 struct Image;
-struct TFace;
+struct MTFace;
 struct MTex;
 struct Material;
 struct EnvMap;
@@ -37,9 +37,6 @@ public:
 class BL_Material
 {
 private:
-	unsigned int rgb[4];
-	MT_Point2 uv[4];
-	
 	int num_users;
 	bool share;
 
@@ -76,9 +73,12 @@ public:
 
 
 	Material*			material;
-	TFace*				tface;
+	MTFace*				tface;
 	Image*				img[MAXTEX];
 	EnvMap*				cubemap[MAXTEX];
+
+	unsigned int rgb[4];
+	MT_Point2 uv[4];
 	
 	void SetConversionRGB(unsigned int *rgb);
 	void GetConversionRGB(unsigned int *rgb);

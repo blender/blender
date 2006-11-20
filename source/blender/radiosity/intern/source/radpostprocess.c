@@ -60,6 +60,7 @@
 #include "DNA_object_types.h"
 #include "DNA_radio_types.h"
 
+#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -71,7 +72,6 @@
 #include "BIF_editview.h"	/* deselectall */
 
 #include "BDR_editobject.h"	/* delete_obj */
-#include "BDR_editface.h"	/* default_tface */
 
 #include "radio.h"
 
@@ -684,23 +684,6 @@ void removeEqualNodes(short limit)
 	waitcursor(0);
 }
 
-static void rad_interp_uv(float *v1, float *v2, float *v3, float *v4, float *co, TFace *tf, TFace *outtf, int j)
-{ 
-	float *uv, w[4];
-
-	uv = (float*)outtf->uv[j];
-
-	InterpWeightsQ3Dfl(v1, v2, v3, v4, co, w);
-
-	uv[0]= w[0]*tf->uv[0][0] + w[1]*tf->uv[1][0] + w[2]*tf->uv[2][0];
-	uv[1]= w[0]*tf->uv[0][1] + w[1]*tf->uv[1][1] + w[2]*tf->uv[2][1];
-
-	if (v4) {
-		uv[0] += w[3]*tf->uv[3][0];
-		uv[1] += w[3]*tf->uv[3][1];
-	}
-} 
-
 void rad_addmesh(void)
 {
 	Face *face = NULL;
@@ -708,11 +691,11 @@ void rad_addmesh(void)
 	Mesh *me;
 	MVert *mvert;
 	MFace *mf;
-	TFace *tf;
 	Material *ma=0;
 	float **vco, **vertexco;
 	float cent[3], min[3], max[3];
 	int a, nvert, i;
+	unsigned int *mcol;
 	
 	if(RG.totface==0)
 		return;
@@ -727,8 +710,11 @@ void rad_addmesh(void)
 	me->totvert= 0;
 	me->totface= RG.totface;
 	me->flag= 0;
-	me->mface= MEM_callocN(me->totface*sizeof(MFace), "mface");
-	me->tface= MEM_callocN(me->totface*sizeof(TFace), "tface");
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0, NULL, me->totface);
+	me->mcol= CustomData_add_layer(&me->fdata, CD_MCOL, 0, NULL, me->totface);
+
+	CustomData_merge(RG.mfdata, &me->fdata, CD_MASK_MESH, CD_CALLOC, me->totface);
+	mesh_update_customdata_pointers(me);
 
 	/* create materials and set vertex color flag */
 	for(a=0; a<RG.totmat; a++) {
@@ -737,21 +723,18 @@ void rad_addmesh(void)
 		if(ma) ma->mode |= MA_VERTEXCOL;
 	}
 
-	/* load Face vertex colors into TFace, with alpha added */
-	tf= me->tface;
-	for(a=0; a<me->totface; a++, tf++) {
+	/* copy face data, load Face vertex colors into mcol, with alpha added */
+	mcol= (unsigned int*)me->mcol;
+	for(a=0; a<me->totface; a++, mcol+=4) {
 		RAD_NEXTFACE(a);
 
-        if (RG.tface)
-			*tf= RG.tface[face->orig];
-		else
-			default_tface(tf);
+		CustomData_copy_data(RG.mfdata, &me->fdata, face->orig, a, 1);
 
-		tf->col[0]= *((unsigned int*)face->v1+3) | 0x1000000;
-		tf->col[1]= *((unsigned int*)face->v2+3) | 0x1000000;
-		tf->col[2]= *((unsigned int*)face->v3+3) | 0x1000000;
+		mcol[0]= *((unsigned int*)face->v1+3) | 0x1000000;
+		mcol[1]= *((unsigned int*)face->v2+3) | 0x1000000;
+		mcol[2]= *((unsigned int*)face->v3+3) | 0x1000000;
 		if(face->v4)
-			tf->col[3]= *((unsigned int*)face->v4+3) | 0x1000000;
+			mcol[3]= *((unsigned int*)face->v4+3) | 0x1000000;
 	}
 
 	/* clear Face vertex color memory for vertex index assignment */
@@ -789,7 +772,8 @@ void rad_addmesh(void)
 	}
 
 	/* create vertices */
-	mvert= me->mvert= MEM_callocN(me->totvert*sizeof(MVert), "mverts");
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, NULL, me->totvert);
+	mvert= me->mvert;
 	for(vco=vertexco, a=0; a<me->totvert; a++, mvert++, vco++) {
 		VECCOPY(mvert->co, *vco);
 	}
@@ -798,11 +782,10 @@ void rad_addmesh(void)
 	
 	/* assign face data */
 	mf= me->mface;
-	tf= me->tface;
 
-	for(a=0; a<me->totface; a++, mf++, tf++) {
-		TFace *origtf;
+	for(a=0; a<me->totface; a++, mf++ ) {
 		RNode *orignode;
+		float w[4][4];
 		float *subco;
 
 		RAD_NEXTFACE(a);
@@ -811,34 +794,31 @@ void rad_addmesh(void)
 		/* copy */
 		mf->mat_nr= face->matindex;
 
-		/* UV interpolation */
-		if (RG.tface) {
-			origtf= &RG.tface[face->orig];
+		orignode= RG.mfdatanodes[face->orig];
 
-			orignode= RG.mfdatanodes[face->orig];
+		for(i=0; i<nvert; i++) {
+			subco= (me->mvert + ((unsigned int*)&mf->v1)[i])->co;
 
-			for(i=0; i<nvert; i++) {
-				subco= (me->mvert + ((unsigned int*)&mf->v1)[i])->co;
-
-				rad_interp_uv(orignode->v1, orignode->v2, orignode->v3,
-							  orignode->v4, subco, origtf, tf, i);
-			}
+			InterpWeightsQ3Dfl(orignode->v1, orignode->v2, orignode->v3,
+				orignode->v4, subco, w[i]);
 		}
+
+		CustomData_interp(RG.mfdata, &me->fdata, &face->orig, NULL, (float*)w, 1, a);
 	}
 
 	/* restore vertex colors, and test_index */
 	mf= me->mface;
-	tf= me->tface;
-	for(a=0; a<me->totface; a++, mf++, tf++) {
+	mcol= (unsigned int*)me->mcol;
+	for(a=0; a<me->totface; a++, mf++, mcol+=4) {
 		RAD_NEXTFACE(a);
 
-		*((unsigned int*)face->v1+3)= tf->col[0];
-		*((unsigned int*)face->v2+3)= tf->col[1];
-		*((unsigned int*)face->v3+3)= tf->col[2];
+		*((unsigned int*)face->v1+3)= mcol[0];
+		*((unsigned int*)face->v2+3)= mcol[1];
+		*((unsigned int*)face->v3+3)= mcol[2];
 		if(face->v4)
-			*((unsigned int*)face->v4+3)= tf->col[3];
+			*((unsigned int*)face->v4+3)= mcol[3];
 
-		test_index_face(mf, NULL, tf, face->v4? 4: 3);
+		test_index_face(mf, &me->fdata, a, face->v4? 4: 3);
 	}
 
 	/* boundbox and centre new */

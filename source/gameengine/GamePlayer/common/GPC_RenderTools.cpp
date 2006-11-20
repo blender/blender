@@ -254,17 +254,20 @@ void GPC_RenderTools::RenderText(
 	STR_String mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
 	
 	const unsigned int flag = polymat->GetFlag();
-	struct TFace* tface = 0;
+	struct MTFace* tface = 0;
+	unsigned int* col = 0;
 
 	if(flag & RAS_BLENDERMAT) {
 		KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(polymat);
-		tface = bl_mat->GetTFace();
+		tface = bl_mat->GetMTFace();
+		col = bl_mat->GetMCol();
 	} else {
 		KX_PolygonMaterial* blenderpoly = static_cast<KX_PolygonMaterial*>(polymat);
-		tface = blenderpoly->GetTFace();
+		tface = blenderpoly->GetMTFace();
+		col = blenderpoly->GetMCol();
 	}
 		
-	BL_RenderText(mode, mytext, mytext.Length(), tface, v1, v2, v3, v4);
+	BL_RenderText(mode, mytext, mytext.Length(), tface, col, v1, v2, v3, v4);
 }
 
 
@@ -276,7 +279,8 @@ void GPC_RenderTools::BL_RenderText(
 	int mode,
 	const char* textstr,
 	int textlen,
-	struct TFace* tface,
+	struct MTFace* tface,
+	unsigned int* col,
 	float v1[3],float v2[3],float v3[3],float v4[3])
 {
 	struct Image* ima;
@@ -298,6 +302,8 @@ void GPC_RenderTools::BL_RenderText(
 				characters = 0;
 			}
 
+			if(!col) glColor3f(1.0f, 1.0f, 1.0f);
+
 			glPushMatrix();
 			for (index = 0; index < characters; index++) {
 				// lets calculate offset stuff
@@ -313,24 +319,24 @@ void GPC_RenderTools::BL_RenderText(
 				// glTexCoord2f((tface->uv[0][0] - centerx) * sizex + transx, (tface->uv[0][1] - centery) * sizey + transy);
 				glTexCoord2f((tface->uv[0][0] - centerx) * sizex + transx, (tface->uv[0][1] - centery) * sizey + transy);
 
-				BL_spack(tface->col[0]);
+				if(col) BL_spack(col[0]);
 				// glVertex3fv(v1);
 				glVertex3f(sizex * v1[0] + movex, sizey * v1[1] + movey, v1[2]);
 				
 				glTexCoord2f((tface->uv[1][0] - centerx) * sizex + transx, (tface->uv[1][1] - centery) * sizey + transy);
-				BL_spack(tface->col[1]);
+				if(col) BL_spack(col[1]);
 				// glVertex3fv(v2);
 				glVertex3f(sizex * v2[0] + movex, sizey * v2[1] + movey, v2[2]);
 	
 				glTexCoord2f((tface->uv[2][0] - centerx) * sizex + transx, (tface->uv[2][1] - centery) * sizey + transy);
-				BL_spack(tface->col[2]);
+				if(col) BL_spack(col[2]);
 				// glVertex3fv(v3);
 				glVertex3f(sizex * v3[0] + movex, sizey * v3[1] + movey, v3[2]);
 	
 				if(v4) {
 					// glTexCoord2f((tface->uv[3][0] - centerx) * sizex + transx, 1.0 - (1.0 - tface->uv[3][1]) * sizey - transy);
 					glTexCoord2f((tface->uv[3][0] - centerx) * sizex + transx, (tface->uv[3][1] - centery) * sizey + transy);
-					BL_spack(tface->col[3]);
+					if(col) BL_spack(col[3]);
 					// glVertex3fv(v4);
 					glVertex3f(sizex * v4[0] + movex, sizey * v4[1] + movey, v4[2]);
 				}

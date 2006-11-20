@@ -115,11 +115,11 @@ static void my_make_repbind(Image *ima)
 	}
 }
 
-extern "C" int set_tpage(TFace *tface);
+extern "C" int set_tpage(MTFace *tface);
 
-int set_tpage(TFace *tface)
+int set_tpage(MTFace *tface)
 {	
-	static TFace *lasttface= 0;
+	static MTFace *lasttface= 0;
 	Image *ima;
 	unsigned int *rect, *bind;
 	int tpx, tpy, tilemode, tileXRep,tileYRep;
@@ -368,7 +368,7 @@ GPC_PolygonMaterial::GPC_PolygonMaterial(const STR_String& texname, bool ba, con
 			int tile, int tileXrep, int tileYrep, int mode, bool transparant, bool zsort,
 			int lightlayer, bool bIsTriangle, void* clientobject, void* tpage) :
 			RAS_IPolyMaterial(texname, ba, matname, tile, tileXrep, tileYrep, mode,
-			transparant, zsort, lightlayer, bIsTriangle, clientobject), m_tface((struct TFace*)tpage)
+			transparant, zsort, lightlayer, bIsTriangle, clientobject), m_tface((struct MTFace*)tpage)
 {
 	// clear local caching info
 	my_set_tpage(0);
@@ -392,7 +392,7 @@ void GPC_PolygonMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& caching
 
 		if ((m_drawingmode & 4)&& (rasty->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED) )
 		{
-			update_realtime_texture((struct TFace*) m_tface, rasty->GetTime());
+			update_realtime_texture((struct MTFace*) m_tface, rasty->GetTime());
 			my_set_tpage(m_tface);
 			rasty->EnableTextures(true);
 		} else

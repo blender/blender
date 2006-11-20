@@ -371,7 +371,7 @@ static int return_editmesh_vgroup(char *name, float *cent)
 		
 		/* find the vertices */
 		for(eve= em->verts.first; eve; eve= eve->next) {
-			dvert= CustomData_em_get(&em->vdata, eve->data, LAYERTYPE_MDEFORMVERT);
+			dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 
 			if(dvert) {
 				for(i=0; i<dvert->totweight; i++){
@@ -2139,14 +2139,14 @@ void special_editmenu(void)
 		}
 		else if(G.f & G_FACESELECT) {
 			Mesh *me= get_mesh(ob);
-			TFace *tface;
+			MTFace *tface;
 			int a;
 			
-			if(me==0 || me->tface==0) return;
+			if(me==0 || me->mtface==0) return;
 			
 			nr= pupmenu("Specials%t|Set     Tex%x1|         Shared%x2|         Light%x3|         Invisible%x4|         Collision%x5|         TwoSide%x6|Clr     Tex%x7|         Shared%x8|         Light%x9|         Invisible%x10|         Collision%x11|         TwoSide%x12");
 	
-			for(a=me->totface, tface= me->tface; a>0; a--, tface++) {
+			for(a=me->totface, tface= me->mtface; a>0; a--, tface++) {
 				if(tface->flag & SELECT) {
 					switch(nr) {
 					case 1:
@@ -2186,17 +2186,14 @@ void special_editmenu(void)
 		else if(G.f & G_VERTEXPAINT) {
 			Mesh *me= get_mesh(ob);
 			
-			if(me==0 || (me->mcol==NULL && me->tface==NULL) ) return;
+			if(me==0 || (me->mcol==NULL && me->mtface==NULL) ) return;
 			
 			nr= pupmenu("Specials%t|Shared VertexCol%x1");
 			if(nr==1) {
 				
-				if(me->tface) tface_to_mcol(me);
-				
 				copy_vpaint_undo( (unsigned int *)me->mcol, me->totface);
 				do_shared_vertexcol(me);
 				
-				if(me->tface) mcol_to_tface(me, 1);
 				BIF_undo_push("Shared VertexCol");
 
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
@@ -2489,7 +2486,7 @@ static void curvetomesh(Object *ob)
 
 void convertmenu(void)
 {
-	Base *base, *basen, *basact, *basedel=NULL;
+	Base *base, *basen=NULL, *basact, *basedel=NULL;
 	Object *obact, *ob, *ob1;
 	Curve *cu;
 	Nurb *nu;
@@ -2548,7 +2545,6 @@ void convertmenu(void)
 			if(ob->flag & OB_DONE);
 			else if(ob->type==OB_MESH && ob->modifiers.first) { /* converting a mesh with no modifiers causes a segfault */
 				DerivedMesh *dm;
-				int needsfree=0;
 				
 				basedel = base;
 
@@ -2574,12 +2570,12 @@ void convertmenu(void)
 				G.totmesh++;
 
 				/* make new mesh data from the original copy */
-				dm= mesh_get_derived_final(ob1, &needsfree);
+				dm= mesh_get_derived_final(ob1);
 				/* dm= mesh_create_derived_no_deform(ob1, NULL);	this was called original (instead of get_derived). man o man why! (ton) */
 				
 				DM_to_mesh(dm, ob1->data);
 
-				if(needsfree) dm->release(dm);
+				dm->release(dm);
 				object_free_modifiers(ob1);	/* after derivedmesh calls! */
 				
 				/* If the original object is active then make this object active */
@@ -3263,13 +3259,15 @@ void copy_attr_tface(short event)
 	/* Face Select Mode */
 	Object *ob= OBACT;
 	Mesh *me= get_mesh(ob);
-	TFace *tface;
-	TFace *activetf= get_active_tface();
+	MTFace *tface;
+	MCol *activemcol;
+	MTFace *activetf= get_active_tface(&activemcol);
 	int a;
 	
 	if(activetf==NULL) return;
 	
-	for(a=me->totface, tface= me->tface; a>0; a--, tface++) {
+	tface= me->mtface;
+	for(a=0; a<me->totface; a++, tface++) {
 		if(tface->flag & SELECT) {
 			switch(event) {
 			case 1:
@@ -3280,7 +3278,8 @@ void copy_attr_tface(short event)
 			case 2:
 				memcpy(tface->uv, activetf->uv, sizeof(tface->uv)); break;
 			case 3:
-				memcpy(tface->col, activetf->col, sizeof(tface->col)); break;
+				if(activemcol)
+					memcpy(&me->mcol[a], activemcol, sizeof(MCol)*3); break;
 			case 4:
 				tface->mode = activetf->mode; break;
 			case 5:

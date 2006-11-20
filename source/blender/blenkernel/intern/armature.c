@@ -699,7 +699,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 			}
 			/* if we have a DerivedMesh, only use dverts if it has them */
 			if(dm)
-				if(dm->getVertData(dm, 0, LAYERTYPE_MDEFORMVERT))
+				if(dm->getVertData(dm, 0, CD_MDEFORMVERT))
 					use_dverts = 1;
 				else use_dverts = 0;
 			else if(dverts) use_dverts = 1;
@@ -734,7 +734,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 		Mat4MulVecfl(premat, co);
 		
 		if(use_dverts || armature_def_nr >= 0) {
-			if(dm) dvert = dm->getVertData(dm, i, LAYERTYPE_MDEFORMVERT);
+			if(dm) dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
 			else if(i < target_totvert) dvert = dverts + i;
 			else dvert = NULL;
 		} else

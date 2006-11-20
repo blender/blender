@@ -34,7 +34,7 @@
 #define BDR_DRAWMESH_H
 
 struct Image;
-struct TFace;
+struct MTFace;
 struct Object;
 struct Mesh;
 struct EdgeHash;
@@ -75,7 +75,7 @@ void update_realtime_image(struct Image *ima, int x, int y, int w, int h);
 void free_realtime_image(struct Image *ima);
 void free_all_realtime_images(void);
 void make_repbind(struct Image *ima);
-int set_tpage(struct TFace *tface);
+int set_tpage(struct MTFace *tface);
 void draw_tface_mesh(struct Object *ob, struct Mesh *me, int dt);
 struct EdgeHash *get_tface_mesh_marked_edge_info(struct Mesh *me);
 void init_realtime_GL(void); 

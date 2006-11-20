@@ -64,6 +64,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
@@ -154,7 +155,7 @@ void do_shared_vertexcol(Mesh *me)
 	/* if no mcol: do not do */
 	/* if tface: only the involved faces, otherwise all */
 	MFace *mface;
-	TFace *tface;
+	MTFace *tface;
 	int a;
 	short *scolmain, *scol;
 	char *mcol;
@@ -163,7 +164,7 @@ void do_shared_vertexcol(Mesh *me)
 	
 	scolmain= MEM_callocN(4*sizeof(short)*me->totvert, "colmain");
 	
-	tface= me->tface;
+	tface= me->mtface;
 	mface= me->mface;
 	mcol= (char *)me->mcol;
 	for(a=me->totface; a>0; a--, mface++, mcol+=16) {
@@ -193,7 +194,7 @@ void do_shared_vertexcol(Mesh *me)
 		scol+= 4;
 	}
 	
-	tface= me->tface;
+	tface= me->mtface;
 	mface= me->mface;
 	mcol= (char *)me->mcol;
 	for(a=me->totface; a>0; a--, mface++, mcol+=16) {
@@ -215,16 +216,11 @@ void do_shared_vertexcol(Mesh *me)
 	MEM_freeN(scolmain);
 }
 
-void make_vertexcol()	/* single ob */
+void make_vertexcol(int shade)	/* single ob */
 {
 	Object *ob;
 	Mesh *me;
 
-	/*
-	 * Always copies from shadedisplist to mcol.
-	 * When there are tfaces, it copies the colors and frees mcol
-	 */
-	
 	if(G.obedit) {
 		error("Unable to perform function in Edit Mode");
 		return;
@@ -235,17 +231,20 @@ void make_vertexcol()	/* single ob */
 	me= get_mesh(ob);
 	if(me==0) return;
 
-	if(me->mcol) MEM_freeN(me->mcol);
-	shadeMeshMCol(ob, me);
-	
-	if(me->tface) mcol_to_tface(me, 1);
-	
+	/* copies from shadedisplist to mcol */
+	if(me->mcol == NULL)
+		me->mcol = CustomData_add_layer(&me->fdata, CD_MCOL, 0, NULL, me->totface);
+
+	if(shade)
+		shadeMeshMCol(ob, me);
+	else
+		memset(me->mcol, 255, sizeof(MCol)*me->totface);
+
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
-
 
 void copy_vpaint_undo(unsigned int *mcol, int tot)
 {
@@ -272,11 +271,8 @@ void vpaint_undo()
 
 	ob= OBACT;
 	me= get_mesh(ob);
-	if(me==0 || me->totface==0) return;
+	if(me==0 || me->mcol==0 || me->totface==0) return;
 
-	if(me->tface) tface_to_mcol(me);
-	else if(me->mcol==0) return;
-	
 	a= MIN2(me->totface, totvpaintundo);
 	from= vpaintundobuf;
 	to= (unsigned int *)me->mcol;
@@ -290,7 +286,6 @@ void vpaint_undo()
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
 	allqueue(REDRAWVIEW3D, 0);
-	if(me->tface) mcol_to_tface(me, 1);
 }
 
 void clear_vpaint()
@@ -306,10 +301,7 @@ void clear_vpaint()
 	me= get_mesh(ob);
 	if(!ob || ob->id.lib) return;
 
-	if(me==0 || me->totface==0) return;
-
-	if(me->tface) tface_to_mcol(me);
-	if(me->mcol==0) return;
+	if(me==0 || me->mcol==0 || me->totface==0) return;
 
 	paintcol= vpaint_get_current_col();
 
@@ -324,33 +316,33 @@ void clear_vpaint()
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
 	allqueue(REDRAWVIEW3D, 0);
-	if(me->tface) mcol_to_tface(me, 1);
 }
 
 void clear_vpaint_selectedfaces()
 {
 	Mesh *me;
-	TFace *tf;
+	MTFace *tf;
 	Object *ob;
-	unsigned int paintcol;
+	unsigned int paintcol, *mcol;
 	int i;
 
 	ob= OBACT;
-
 	me= get_mesh(ob);
-	tf = me->tface;
-	if (!tf) return; /* should not happen, but you never know */
+	if(me==0 || me->mtface==0 || me->totface==0) return;
 
-	if(me==0 || me->totface==0) return;
+	if(!me->mcol)
+		make_vertexcol(0);
 
 	paintcol= vpaint_get_current_col();
 
-	for (i = 0; i < me->totface; i++) {
-		if (tf[i].flag & TF_SELECT) {
-			tf[i].col[0] = paintcol;
-			tf[i].col[1] = paintcol;
-			tf[i].col[2] = paintcol;
-			tf[i].col[3] = paintcol;
+	tf = me->mtface;
+	mcol = (unsigned int*)me->mcol;
+	for (i = 0; i < me->totface; i++, tf++, mcol+=4) {
+		if (tf->flag & TF_SELECT) {
+			mcol[0] = paintcol;
+			mcol[1] = paintcol;
+			mcol[2] = paintcol;
+			mcol[3] = paintcol;
 		}
 	}
 	
@@ -366,7 +358,7 @@ void clear_wpaint_selectedfaces()
 	extern float editbutvweight;
 	float paintweight= editbutvweight;
 	Mesh *me;
-	TFace *tface;
+	MTFace *tface;
 	MFace *mface;
 	Object *ob;
 	int index, vgroup;
@@ -377,10 +369,10 @@ void clear_wpaint_selectedfaces()
 	
 	ob= OBACT;
 	me= ob->data;
-	if(me==0 || me->totface==0 || me->dvert==0 || !me->tface) return;
+	if(me==0 || me->totface==0 || me->dvert==0 || !me->mtface) return;
 	
 	if(indexar==NULL) init_vertexpaint();
-	for(index=0, tface=me->tface; index<me->totface; index++, tface++) {
+	for(index=0, tface=me->mtface; index<me->totface; index++, tface++) {
 		if((tface->flag & TF_SELECT)==0)
 			indexar[index]= 0;
 		else
@@ -480,10 +472,7 @@ void vpaint_dogamma()
 
 	ob= OBACT;
 	me= get_mesh(ob);
-	if(me==0 || me->totface==0) return;
-
-	if(me->tface) tface_to_mcol(me);
-	else if(me->mcol==0) return;
+	if(me==0 || me->mcol==0 || me->totface==0) return;
 
 	copy_vpaint_undo((unsigned int *)me->mcol, me->totface);
 
@@ -511,8 +500,6 @@ void vpaint_dogamma()
 		cp+= 4;
 	}
 	allqueue(REDRAWVIEW3D, 0);
-	
-	if(me->tface) mcol_to_tface(me, 1);
 }
 
 /* used for both 3d view and image window */
@@ -874,7 +861,6 @@ void wpaint_undo (void)
 {
 	Object *ob= OBACT;
 	Mesh	*me;
-	MDeformVert *swapbuf;
 
 	me = get_mesh(ob);
 	if (!me) return;
@@ -888,19 +874,9 @@ void wpaint_undo (void)
 	if (totwpaintundo != me->totvert)
 		return;
 
-	swapbuf= me->dvert;
-
-	/* copy undobuf to mesh */
-	me->dvert= MEM_mallocN(sizeof(MDeformVert)*me->totvert, "deformVert");
-	copy_dverts(me->dvert, wpaintundobuf, totwpaintundo);
-	
-	/* copy previous mesh to undo */
-	free_dverts(wpaintundobuf, me->totvert);
-	wpaintundobuf= MEM_mallocN(sizeof(MDeformVert)*me->totvert, "wpaintundo");
-	copy_dverts(wpaintundobuf, swapbuf, totwpaintundo);
-	
-	/* now free previous mesh dverts */
-	free_dverts(swapbuf, me->totvert);
+	/* simply swap pointers, and update the pointer in CustomData too */
+	SWAP(MDeformVert*, me->dvert, wpaintundobuf);
+	CustomData_set_layer(&me->vdata, CD_MDEFORMVERT, me->dvert);
 
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	DAG_object_flush_update(G.scene, modifiers_isDeformedByArmature(ob), OB_RECALC_DATA);
@@ -1074,9 +1050,8 @@ static void sample_wpaint(int mode)
 			MDeformWeight *dw;
 			extern float editbutvweight;
 			float w1, w2, w3, w4, co[3], fac;
-			int needsFree;
 			
-			dm = mesh_get_derived_final(ob, &needsFree);
+			dm = mesh_get_derived_final(ob);
 			if(dm->getVertCo==NULL) {
 				notice("Not supported yet");
 			}
@@ -1120,9 +1095,8 @@ static void sample_wpaint(int mode)
 						if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
 					}
 				}
-				if (needsFree)
-					dm->release(dm);
 			}
+			dm->release(dm);
 		}		
 		
 	}
@@ -1169,7 +1143,7 @@ void weight_paint(void)
 	Object *ob; 
 	Mesh *me;
 	MFace *mface;
-	TFace *tface;
+	MTFace *tface;
 	float mat[4][4], imat[4][4], paintweight, *vertexcosnos;
 	int index, totindex, alpha, totw;
 	int vgroup_mirror= -1;
@@ -1240,7 +1214,6 @@ void weight_paint(void)
 	
 	getmouseco_areawin(mvalo);
 	
-	if(me->tface) tface_to_mcol(me);
 	copy_vpaint_undo( (unsigned int *)me->mcol, me->totface);
 	copy_wpaint_undo(me->dvert, me->totvert);
 	
@@ -1307,11 +1280,11 @@ void weight_paint(void)
 				}
 			}
 
-			if((G.f & G_FACESELECT) && me->tface) {
+			if((G.f & G_FACESELECT) && me->mtface) {
 				for(index=0; index<totindex; index++) {
 					if(indexar[index] && indexar[index]<=me->totface) {
 					
-						tface= ((TFace *)me->tface) + (indexar[index]-1);
+						tface= ((MTFace *)me->mtface) + (indexar[index]-1);
 					
 						if((tface->flag & TF_SELECT)==0) {
 							indexar[index]= 0;
@@ -1426,10 +1399,6 @@ void weight_paint(void)
 		}
 	}
 	
-	if(me->tface) {
-		MEM_freeN(me->mcol);
-		me->mcol= 0;
-	}
 	if(vertexcosnos)
 		MEM_freeN(vertexcosnos);
 	
@@ -1445,7 +1414,7 @@ void vertex_paint()
 	Object *ob;
 	Mesh *me;
 	MFace *mface;
-	TFace *tface;
+	MTFace *tface;
 	float mat[4][4], imat[4][4], *vertexcosnos;
 	unsigned int paintcol=0, *mcol, *mcolorig, fcol1, fcol2;
 	int index, alpha, totindex;
@@ -1463,9 +1432,9 @@ void vertex_paint()
 	if(me==NULL || me->totface==0) return;
 	if(ob->lay & G.vd->lay); else error("Active object is not in this layer");
 	
-	if(me->tface==NULL && me->mcol==NULL) make_vertexcol();
+	if(me->mtface==NULL && me->mcol==NULL) make_vertexcol(1);
 
-	if(me->tface==NULL && me->mcol==NULL) return;
+	if(me->mtface==NULL && me->mcol==NULL) return;
 	
 	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
 	vertexcosnos= mesh_get_mapped_verts_nors(ob);
@@ -1485,7 +1454,6 @@ void vertex_paint()
 	
 	getmouseco_areawin(mvalo);
 	
-	if(me->tface) tface_to_mcol(me);
 	copy_vpaint_undo( (unsigned int *)me->mcol, me->totface);
 	
 	getmouseco_areawin(mval);
@@ -1526,15 +1494,13 @@ void vertex_paint()
 					}					
 				}
 			}
-			if((G.f & G_FACESELECT) && me->tface) {
+			if((G.f & G_FACESELECT) && me->mtface) {
 				for(index=0; index<totindex; index++) {
 					if(indexar[index] && indexar[index]<=me->totface) {
+						tface= ((MTFace *)me->mtface) + (indexar[index]-1);
 					
-						tface= ((TFace *)me->tface) + (indexar[index]-1);
-					
-						if((tface->flag & TF_SELECT)==0) {
+						if((tface->flag & TF_SELECT)==0)
 							indexar[index]= 0;
-						}
 					}					
 				}
 			}
@@ -1578,9 +1544,6 @@ void vertex_paint()
 			MTC_Mat4SwapMat4(G.vd->persmat, mat);
 			
 			do_shared_vertexcol(me);
-			if(me->tface) {
-				mcol_to_tface(me, 0);
-			}
 	
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			scrarea_do_windraw(curarea);
@@ -1600,10 +1563,6 @@ void vertex_paint()
 		else BIF_wait_for_statechange();
 	}
 	
-	if(me->tface) {
-		MEM_freeN(me->mcol);
-		me->mcol= 0;
-	}
 	if(vertexcosnos)
 		MEM_freeN(vertexcosnos);
 
@@ -1688,7 +1647,7 @@ void set_vpaint(void)		/* toggle */
 		return;
 	}
 	
-	if(me && me->tface==NULL && me->mcol==NULL) make_vertexcol();
+	if(me && me->mcol==NULL) make_vertexcol(1);
 	
 	if(G.f & G_VERTEXPAINT){
 		G.f &= ~G_VERTEXPAINT;

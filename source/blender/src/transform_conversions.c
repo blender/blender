@@ -1473,7 +1473,6 @@ static float *get_crazy_mapped_editverts(void)
 	DerivedMesh *dm;
 	ModifierData *md;
 	float *vertexcos;
-	int needsFree;
 	int i;
 	
 	for( i = 0, md=G.obedit->modifiers.first; md; ++i, md=md->next ) {
@@ -1485,16 +1484,16 @@ static float *get_crazy_mapped_editverts(void)
 		/* this call disables subsurf and enables the underlying modifier to deform, apparently */
 		modifiers_setOnCage(G.obedit, md);
 		/* make it all over */
-		makeDispListMesh(G.obedit);
+		makeDerivedMesh(G.obedit);
 	}
 	
 	/* now get the cage */
-	dm= editmesh_get_derived_cage(&needsFree);
+	dm= editmesh_get_derived_cage();
 
 	vertexcos= MEM_mallocN(3*sizeof(float)*G.totvert, "vertexcos map");
 	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, vertexcos);
 	
-	if (needsFree) dm->release(dm);
+	dm->release(dm);
 	
 	if(md) {
 		/* set back the flag, no new cage needs to be built, transform does it */
@@ -1776,8 +1775,8 @@ static void createTransUVs(TransInfo *t)
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
 	Mesh *me;
-	TFace *tf;
 	MFace *mf;
+	MTFace *tf;
 	int a, count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
 	
@@ -1785,7 +1784,7 @@ static void createTransUVs(TransInfo *t)
 	me= get_mesh(OBACT);
 
 	/* count */
-	tf= me->tface;
+	tf= me->mtface;
 	mf= me->mface;
 	for(a=me->totface; a>0; a--, tf++, mf++) {
 		if(mf->v3 && tf->flag & TF_SELECT) {
@@ -1812,7 +1811,7 @@ static void createTransUVs(TransInfo *t)
 
 	td= t->data;
 	td2d= t->data2d;
-	tf= me->tface;
+	tf= me->mtface;
 	mf= me->mface;
 	for(a=me->totface; a>0; a--, tf++, mf++) {
 		if(mf->v3 && tf->flag & TF_SELECT) {

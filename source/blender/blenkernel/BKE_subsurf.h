@@ -37,9 +37,6 @@ struct DerivedMesh;
 struct EditMesh;
 struct SubsurfModifierData;
 
-struct DerivedMesh *subsurf_make_derived_from_editmesh(struct EditMesh *em, struct SubsurfModifierData *smd, float (*vertexCos)[3]);
-struct DerivedMesh *subsurf_make_derived_from_dlm_em(struct DispListMesh *dlm, struct SubsurfModifierData *smd, float (*vertCos)[3]);
-struct DerivedMesh *subsurf_make_derived_from_mesh(struct Mesh *me, struct DispListMesh *dlm, struct SubsurfModifierData *smd, int useRenderParams, float (*vertCos)[3], int isFinalCalc);
 struct DerivedMesh *subsurf_make_derived_from_derived(
                         struct DerivedMesh *dm,
                         struct SubsurfModifierData *smd,

@@ -106,11 +106,12 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_action_types.h"
 #include "DNA_actuator_types.h"
 #include "DNA_brush_types.h"
-#include "DNA_controller_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_color_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_controller_types.h"
+#include "DNA_curve_types.h"
+#include "DNA_customdata_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
 #include "DNA_image_types.h"
@@ -1064,6 +1065,31 @@ static void write_dverts(WriteData *wd, int count, MDeformVert *dvlist)
 	}
 }
 
+static void write_customdata(WriteData *wd, int count, CustomData *data)
+{
+	int i;
+
+	writestruct(wd, DATA, "CustomDataLayer", data->maxlayer, data->layers);
+
+	for (i=0; i<data->totlayer; i++) {
+		CustomDataLayer *layer= &data->layers[i];
+		char *structname;
+		int structnum;
+
+		if (layer->type == CD_MDEFORMVERT) {
+			/* layer types that allocate own memory need special handling */
+			write_dverts(wd, count, layer->data);
+		}
+		else {
+			CustomData_file_write_info(layer->type, &structname, &structnum);
+			if (structnum)
+				writestruct(wd, DATA, structname, structnum*count, layer->data);
+			else
+				printf("error: this CustomDataLayer must not be written to file\n");
+		}
+	}
+}
+
 static void write_meshs(WriteData *wd, ListBase *idbase)
 {
 	Mesh *mesh;
@@ -1092,14 +1118,9 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 			writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
 
-			writestruct(wd, DATA, "MVert", mesh->pv?mesh->pv->totvert:mesh->totvert, mesh->mvert);
-			writestruct(wd, DATA, "MEdge", mesh->totedge, mesh->medge);
-			writestruct(wd, DATA, "MFace", mesh->totface, mesh->mface);
-			writestruct(wd, DATA, "TFace", mesh->totface, mesh->tface);
-			writestruct(wd, DATA, "MCol", 4*mesh->totface, mesh->mcol);
-			writestruct(wd, DATA, "MSticky", mesh->totvert, mesh->msticky);
-
-			write_dverts(wd, mesh->totvert, mesh->dvert);
+			write_customdata(wd, mesh->pv?mesh->pv->totvert:mesh->totvert, &mesh->vdata);
+			write_customdata(wd, mesh->totedge, &mesh->edata);
+			write_customdata(wd, mesh->totface, &mesh->fdata);
 
 			/* Multires data */
 			writestruct(wd, DATA, "Multires", 1, mesh->mr);
@@ -2024,7 +2045,7 @@ void BLO_write_runtime(char *file, char *exename) {
 
 	// remove existing file / bundle
 	//printf("Delete file %s\n", file);
-	BLI_delete(file, NULL, TRUE);
+	BLI_delete(file, 0, TRUE);
 
 	if (!recursive_copy_runtime(file, exename, &cause))
 		goto cleanup;

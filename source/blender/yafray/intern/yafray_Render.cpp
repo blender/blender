@@ -134,7 +134,7 @@ bool yafrayRender_t::getAllMatTexObs()
 				renderobs[vlr->ob->id.name] = vlr->ob;
 				all_objects[vlr->ob].push_back(vlr);
 				if (vlr->tface) {
-					Image* fc_img = (Image*)vlr->tface->tpage;
+					Image* fc_img = vlr->tface->tpage;
 					if (fc_img) {
 						Material* fmat = vlr->mat;
 						// only save if TexFace enabled

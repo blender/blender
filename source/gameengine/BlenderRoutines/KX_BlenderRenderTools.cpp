@@ -256,17 +256,20 @@ void	KX_BlenderRenderTools::RenderText(int mode,RAS_IPolyMaterial* polymat,float
 	STR_String mytext = ((CValue*)m_clientobject)->GetPropertyText("Text");
 	
 	const unsigned int flag = polymat->GetFlag();
-	struct TFace* tface = 0;
+	struct MTFace* tface = 0;
+	unsigned int *col = 0;
 
 	if(flag & RAS_BLENDERMAT) {
 		KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(polymat);
-		tface = bl_mat->GetTFace();
+		tface = bl_mat->GetMTFace();
+		col = bl_mat->GetMCol();
 	} else {
 		KX_PolygonMaterial* blenderpoly = static_cast<KX_PolygonMaterial*>(polymat);
-		tface = blenderpoly->GetTFace();
+		tface = blenderpoly->GetMTFace();
+		col = blenderpoly->GetMCol();
 	}
 	
-	BL_RenderText( mode,mytext,mytext.Length(),tface,v1,v2,v3,v4);
+	BL_RenderText( mode,mytext,mytext.Length(),tface,col,v1,v2,v3,v4);
 	
 }
 
@@ -445,7 +448,7 @@ RAS_IPolyMaterial* KX_BlenderRenderTools::CreateBlenderPolyMaterial(
 
 		texname,
 		ba,matname,tile,tilexrep,tileyrep,mode,transparant,zsort, lightlayer
-		,bIsTriangle,clientobject,(struct TFace*)tface);*/
+		,bIsTriangle,clientobject,(struct MTFace*)tface);*/
 	return NULL;
 }
 

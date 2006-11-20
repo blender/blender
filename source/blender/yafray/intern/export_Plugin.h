@@ -48,7 +48,7 @@ class yafrayPluginRender_t : public yafrayRender_t
 		virtual bool initExport();
 		virtual bool finishExport();
 
-		void genUVcoords(std::vector<yafray::GFLOAT> &uvcoords,VlakRen *vlr,TFace* uvc, bool comple=false);
+		void genUVcoords(std::vector<yafray::GFLOAT> &uvcoords,VlakRen *vlr,MTFace* uvc, bool comple=false);
 		void genVcol(std::vector<yafray::CFLOAT> &vcol, VlakRen *vlr, bool comple=false);
 		void genFace(std::vector<int> &faces,std::vector<std::string> &shaders,std::vector<int> &faceshader,
 				std::vector<yafray::GFLOAT> &uvcoords,std::vector<yafray::CFLOAT> &vcol,

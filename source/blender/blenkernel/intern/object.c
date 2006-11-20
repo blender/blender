@@ -170,10 +170,12 @@ void object_free_modifiers(Object *ob)
 void object_free_display(Object *ob)
 {
 	if(ob->derivedDeform) {
+		ob->derivedDeform->needsFree = 1;
 		ob->derivedDeform->release(ob->derivedDeform);
 		ob->derivedDeform= NULL;
 	}
 	if(ob->derivedFinal) {
+		ob->derivedFinal->needsFree = 1;
 		ob->derivedFinal->release(ob->derivedFinal);
 		ob->derivedFinal= NULL;
 	}
@@ -1984,7 +1986,7 @@ void object_handle_update(Object *ob)
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
-				makeDispListMesh(ob);
+				makeDerivedMesh(ob);
 			}
 			else if(ob->type==OB_MBALL) {
 				makeDispListMBall(ob);

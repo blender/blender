@@ -623,7 +623,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 	 */
 	if(target && target->type==OB_MESH) {
 		/* if there's derived data without deformverts, don't use vgroups */
-		if(dm && !dm->getVertData(dm, 0, LAYERTYPE_MDEFORMVERT))
+		if(dm && !dm->getVertData(dm, 0, CD_MDEFORMVERT))
 			use_vgroups = 0;
 		else
 			use_vgroups = 1;
@@ -649,7 +649,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 			INIT_MINMAX(cd.dmin, cd.dmax);
 
 			for(a = 0; a < numVerts; a++, dvert++) {
-				if(dm) dvert = dm->getVertData(dm, a, LAYERTYPE_MDEFORMVERT);
+				if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
 
 				for(j = 0; j < dvert->totweight; j++) {
 					if(dvert->dw[j].def_nr == index) {
@@ -662,7 +662,7 @@ void curve_deform_verts(Object *cuOb, Object *target, DerivedMesh *dm, float (*v
 
 			dvert = me->dvert;
 			for(a = 0; a < numVerts; a++, dvert++) {
-				if(dm) dvert = dm->getVertData(dm, a, LAYERTYPE_MDEFORMVERT);
+				if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
 
 				for(j = 0; j < dvert->totweight; j++) {
 					if(dvert->dw[j].def_nr == index) {
@@ -736,7 +736,7 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 	 */
 	if(target && target->type==OB_MESH) {
 		/* if there's derived data without deformverts, don't use vgroups */
-		if(dm && !dm->getVertData(dm, 0, LAYERTYPE_MDEFORMVERT))
+		if(dm && !dm->getVertData(dm, 0, CD_MDEFORMVERT))
 			use_vgroups = 0;
 		else
 			use_vgroups = 1;
@@ -758,7 +758,7 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 			int j;
 			
 			for(a = 0; a < numVerts; a++, dvert++) {
-				if(dm) dvert = dm->getVertData(dm, a, LAYERTYPE_MDEFORMVERT);
+				if(dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
 				for(j = 0; j < dvert->totweight; j++) {
 					if (dvert->dw[j].def_nr == index) {
 						calc_latt_deform(vertexCos[a], dvert->dw[j].weight);

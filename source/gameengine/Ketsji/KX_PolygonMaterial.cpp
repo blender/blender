@@ -45,7 +45,7 @@ extern "C" {
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_image_types.h"
-#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -67,7 +67,8 @@ KX_PolygonMaterial::KX_PolygonMaterial(const STR_String &texname,
 											   int lightlayer,
 											   bool bIsTriangle,
 											   void* clientobject,
-											   struct TFace* tface,
+											   struct MTFace* tface,
+											   unsigned int* mcol,
 											   PyTypeObject *T)
 		: PyObjectPlus(T),
 		  RAS_IPolyMaterial(texname,
@@ -82,6 +83,7 @@ KX_PolygonMaterial::KX_PolygonMaterial(const STR_String &texname,
 							bIsTriangle,
 							clientobject),
 		m_tface(tface),
+		m_mcol(mcol),
 		m_material(material),
 		m_pymaterial(0),
 		m_pass(0)
@@ -146,7 +148,7 @@ void KX_PolygonMaterial::DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& c
 
 		if ((m_drawingmode & 4)&& (rasty->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED))
 		{
-			update_realtime_texture((struct TFace*) m_tface, rasty->GetTime());
+			update_realtime_texture((struct MTFace*) m_tface, rasty->GetTime());
 			set_tpage(m_tface);
 			rasty->EnableTextures(true);
 		}
@@ -228,7 +230,7 @@ PyObject* KX_PolygonMaterial::_getattr(const STR_String& attr)
 		
 	if (attr == "gl_texture")
 	{
-		Image *ima = (Image*) m_tface->tpage;
+		Image *ima = m_tface->tpage;
 		int bind = 0;
 		if (ima)
 			bind = ima->bindcode;
@@ -383,7 +385,7 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, updateTexture, "updateTexture(tface, rast
 	PyObject *pyrasty, *pytface;
 	if (PyArg_ParseTuple(args, "O!O!", &PyCObject_Type, &pytface, &PyCObject_Type, &pyrasty))
 	{
-		TFace *tface = (TFace*) PyCObject_AsVoidPtr(pytface);
+		MTFace *tface = (MTFace*) PyCObject_AsVoidPtr(pytface);
 		RAS_IRasterizer *rasty = (RAS_IRasterizer*) PyCObject_AsVoidPtr(pyrasty);
 		update_realtime_texture(tface, rasty->GetTime());
 		Py_Return;
@@ -397,7 +399,7 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setTexture, "setTexture(tface)")
 	PyObject *pytface;
 	if (PyArg_ParseTuple(args, "O!", &PyCObject_Type, &pytface))
 	{
-		TFace *tface = (TFace*) PyCObject_AsVoidPtr(pytface);
+		MTFace *tface = (MTFace*) PyCObject_AsVoidPtr(pytface);
 		set_tpage(tface);
 		Py_Return;
 	}

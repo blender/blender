@@ -559,7 +559,7 @@ static void align_view_to_selected(View3D *v3d)
 			if (obact && obact->type==OB_MESH) {
 				Mesh *me= obact->data;
 
-				if (me->tface) {
+				if (me->mtface) {
 					faceselect_align_view_to_selected(v3d, me, axis);
 					addqueue(v3d->area->win, REDRAW, 1);
 				}

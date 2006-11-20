@@ -3767,7 +3767,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 /* already have tested for tface and ima */
 static void shade_tface(BakeShade *bs, VlakRen *vlr)
 {
-	TFace *tface= vlr->tface;
+	MTFace *tface= vlr->tface;
 	Image *ima= tface->tpage;
 	ZSpan *zspan= (ZSpan *)ima->id.newid;
 	float vec[4][2];

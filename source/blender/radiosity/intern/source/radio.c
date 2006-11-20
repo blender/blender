@@ -87,6 +87,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 
@@ -144,13 +145,13 @@ void freeAllRad()
 		RG.facebase= 0;
 	}
 
-	if(RG.mfdatanodes) {
+	if(RG.mfdata) {
+		CustomData_free(RG.mfdata, RG.mfdatatot);
+		MEM_freeN(RG.mfdata);
 		MEM_freeN(RG.mfdatanodes);
 		RG.mfdatanodes= NULL;
-		if(RG.tface) {
-			MEM_freeN(RG.tface);
-			RG.tface= NULL;
-		}
+		RG.mfdata= NULL;
+		RG.mfdatatot= 0;
 	}
 	RG.totelem= RG.totpatch= RG.totvert= RG.totface= RG.totlamp= RG.totmat= 0;	
 }

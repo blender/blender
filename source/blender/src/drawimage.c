@@ -241,7 +241,7 @@ void calc_image_view(SpaceImage *sima, char mode)
 /* check for facelesect, and set active image */
 void what_image(SpaceImage *sima)
 {
-	TFace *activetf;
+	MTFace *activetf;
 	Mesh *me;
 		
 	if(sima->mode==SI_TEXTURE) {
@@ -268,9 +268,9 @@ void what_image(SpaceImage *sima)
 			
 			sima->image= NULL;
 			me= get_mesh(OBACT);
-			activetf = get_active_tface();
+			activetf = get_active_tface(NULL);
 			
-			if(me && me->tface && activetf && activetf->mode & TF_TEX) {
+			if(me && me->mtface && activetf && activetf->mode & TF_TEX) {
 				sima->image= activetf->tpage;
 				
 				if(sima->flag & SI_EDITTILE);
@@ -290,7 +290,7 @@ void what_image(SpaceImage *sima)
 /* called to assign images to UV faces */
 void image_changed(SpaceImage *sima, int dotile)
 {
-	TFace *tface;
+	MTFace *tface;
 	Mesh *me;
 	int a;
 
@@ -310,9 +310,9 @@ void image_changed(SpaceImage *sima, int dotile)
 			}
 			
 			me= get_mesh(OBACT);
-			if(me && me->tface) {
+			if(me && me->mtface) {
 				
-				tface= me->tface;
+				tface= me->mtface;
 				a= me->totface;
 				while(a--) {
 					if(tface->flag & TF_SELECT) {
@@ -380,7 +380,7 @@ void uvco_to_areaco_noclip(float *vec, int *mval)
 
 void draw_tfaces(void)
 {
-	TFace *tface,*activetface = NULL;
+	MTFace *tface,*activetface = NULL;
 	MFace *mface,*activemface = NULL;
 	Mesh *me;
 	int a;
@@ -390,7 +390,7 @@ void draw_tfaces(void)
 	if(G.f & G_FACESELECT) {
 		me= get_mesh(OBACT);
 
-		if(me && me->tface) {
+		if(me && me->mtface) {
 			calc_image_view(G.sima, 'f');	/* float */
 			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 			glLoadIdentity();
@@ -398,15 +398,14 @@ void draw_tfaces(void)
 			/* draw shadow mesh */
 			if ((G.sima->flag & SI_DRAWSHADOW) && !(G.obedit==OBACT)) {
 				DerivedMesh *dm;
-				int dmNeedsFree;
 
 				/* draw final mesh with modifiers applied */
-				dm = mesh_get_derived_final(OBACT, &dmNeedsFree);
+				dm = mesh_get_derived_final(OBACT);
 
 				glColor3ub(112, 112, 112);
 				if (dm->drawUVEdges) dm->drawUVEdges(dm);
 
-				if (dmNeedsFree) dm->release(dm);
+				dm->release(dm);
 			}
 			else if((G.sima->flag & SI_DRAWTOOL) || (G.obedit==OBACT)) {
 				/* draw mesh without modifiers applied */
@@ -420,7 +419,7 @@ void draw_tfaces(void)
 					dm->release(dm);
 				}
 				else {
-					tface= me->tface;
+					tface= me->mtface;
 					mface= me->mface;
 					a= me->totface;			
 
@@ -449,7 +448,7 @@ void draw_tfaces(void)
 				BIF_GetThemeColor4ubv(TH_FACE_SELECT, col2);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glEnable(GL_BLEND);
-				tface= me->tface;
+				tface= me->mtface;
 				mface= me->mface;
 				a= me->totface;			
 				while(a--) {
@@ -474,7 +473,7 @@ void draw_tfaces(void)
 			}
 
 
-			tface= me->tface;
+			tface= me->mtface;
 			mface= me->mface;
 			a= me->totface;
 			while(a--) {
@@ -561,7 +560,7 @@ void draw_tfaces(void)
  			glPointSize(pointsize);
 
 			bglBegin(GL_POINTS);
-			tface= me->tface;
+			tface= me->mtface;
 			mface= me->mface;
 			a= me->totface;
 			while(a--) {
@@ -585,7 +584,7 @@ void draw_tfaces(void)
 			cpack(0xFF);
 
 			bglBegin(GL_POINTS);
-			tface= me->tface;
+			tface= me->mtface;
 			mface= me->mface;
 			a= me->totface;
 			while(a--) {
@@ -608,7 +607,7 @@ void draw_tfaces(void)
  	        glPointSize(pointsize);
 
 			bglBegin(GL_POINTS);
-			tface= me->tface;
+			tface= me->mtface;
 			mface= me->mface;
 			a= me->totface;
 			while(a--) {
@@ -762,7 +761,7 @@ static void image_editvertex_buts(uiBlock *block)
 	
 	for (i=0; i<me->totface; i++) {
 		MFace *mf= &((MFace*) me->mface)[i];
-		TFace *tf= &((TFace*) me->tface)[i];
+		MTFace *tf= &((MTFace*) me->mtface)[i];
 		
 		if (!(tf->flag & TF_SELECT))
 			continue;
@@ -834,7 +833,7 @@ static void image_editvertex_buts(uiBlock *block)
 
 		for (i=0; i<me->totface; i++) {
 			MFace *mf= &((MFace*) me->mface)[i];
-			TFace *tf= &((TFace*) me->tface)[i];
+			MTFace *tf= &((MTFace*) me->mtface)[i];
 		
 			if (!(tf->flag & TF_SELECT))
 				continue;

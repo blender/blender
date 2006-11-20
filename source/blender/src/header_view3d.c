@@ -302,7 +302,7 @@ static void do_view3d_view_alignviewmenu(void *arg, int event)
 			if (obact && obact->type==OB_MESH) {
 				Mesh *me= obact->data;
 
-				if (me->tface) {
+				if (me->mtface) {
 					faceselect_align_view_to_selected(v3d, me, event);
 					addqueue(v3d->area->win, REDRAW, 1);
 				}
@@ -3971,7 +3971,7 @@ uiBlock *view3d_sculptmenu(void *arg_unused_so_why_have_it/*?*/)
 
 static void do_view3d_facesel_propertiesmenu(void *arg, int event)
 {
-	TFace *tf = get_active_tface();
+	MTFace *tf = get_active_tface(NULL);
 
 	if (tf) {
 		switch(event) {
@@ -4028,7 +4028,7 @@ static void do_view3d_facesel_propertiesmenu(void *arg, int event)
 
 static uiBlock *view3d_facesel_propertiesmenu(void *arg_unused)
 {
-	TFace *tf = get_active_tface();
+	MTFace *tf = get_active_tface(NULL);
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
@@ -4129,7 +4129,8 @@ static void do_view3d_faceselmenu(void *arg, int event)
 	/* code copied from buttons.c :(	
 		would be nice if it was split up into functions */
 	Mesh *me;
-	TFace *tf, *activetf;
+	MTFace *tf, *activetf;
+	MCol *activemcol;
 	int a;
 	
 	switch(event) {
@@ -4137,10 +4138,10 @@ static void do_view3d_faceselmenu(void *arg, int event)
 	case 1: /* copy UVs */
 	case 2: /* copy vertex colors */
 		me= get_mesh(OBACT);
-		activetf = get_active_tface();
+		activetf = get_active_tface(&activemcol);
 
 		if (me && activetf) {
-			for (a=0, tf=me->tface; a < me->totface; a++, tf++) {
+			for (a=0, tf=me->mtface; a < me->totface; a++, tf++) {
 				if(tf!=activetf && (tf->flag & TF_SELECT)) {
 					if(event==0) {
 						tf->mode= activetf->mode;
@@ -4153,8 +4154,9 @@ static void do_view3d_faceselmenu(void *arg, int event)
 						if(activetf->mode & TF_TILES) tf->mode |= TF_TILES;
 						else tf->mode &= ~TF_TILES;
 						
-					} else if(event==2)
-						memcpy(tf->col, activetf->col, sizeof(tf->col));
+					}
+					else if(event==2 && activemcol)
+						memcpy(&me->mcol[a], activemcol, sizeof(MCol)*4);
 				}
 			}
 

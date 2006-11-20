@@ -47,7 +47,7 @@ struct IpoCurve;
 struct Ipo;
 struct IpoKey;
 struct Mesh;
-struct TFace;
+struct MTFace;
 struct Object;
 struct TransOb;
 struct TransVert;

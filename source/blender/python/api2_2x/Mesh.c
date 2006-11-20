@@ -54,13 +54,14 @@
 #include "BIF_editmesh.h"
 #include "BIF_meshtools.h"
 
+#include "BKE_customdata.h"
 #include "BKE_deform.h"
+#include "BKE_displist.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
-#include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
 #include "BKE_mball.h"
@@ -264,64 +265,6 @@ static void mesh_update( Mesh * mesh )
 	Object_updateDag( (void *) mesh );
 }
 
-static void delete_dverts( Mesh *mesh, unsigned int *vert_table, int to_delete )
-{
-	unsigned int *tmpvert;
-	int i;
-	char state;
-	MDeformVert *newvert, *srcvert, *dstvert;
-	int count;
-
-	newvert = (MDeformVert *)MEM_mallocN(
-			sizeof( MDeformVert )*( mesh->totvert-to_delete ), "MDeformVerts" );
-
-	/*
-	 * do "smart compaction" of the table; find and copy groups of vertices
-	 * which are not being deleted
-	 */
-
-	dstvert = newvert;
-	srcvert = mesh->dvert;
-	tmpvert = vert_table;
-	count = 0;
-	state = 1;
-	for( i = 0; i < mesh->totvert; ++i, ++tmpvert ) {
-		switch( state ) {
-		case 0:		/* skipping verts */
-			if( *tmpvert == UINT_MAX )
-				++count;
-			else {
-				srcvert = mesh->dvert + i;
-				count = 1;
-				state = 1;
-			}
-			break;
-		case 1:		/* gathering verts */
-			if( *tmpvert != UINT_MAX ) {
-				++count;
-			} else {
-				if( count ) {
-					memcpy( dstvert, srcvert, sizeof( MDeformVert ) * count );
-					dstvert += count;
-				}
-				count = 1;
-				state = 0;
-			}
-		}
-		if( !state && mesh->dvert[i].dw )
-			MEM_freeN( mesh->dvert[i].dw );
-	}
-
-	/* if we were gathering verts at the end of the loop, copy those */
-	if( state && count )
-		memcpy( dstvert, srcvert, sizeof( MDeformVert ) * count );
-
-	/* delete old vertex list, install the new one */
-
-	MEM_freeN( mesh->dvert );
-	mesh->dvert = newvert;
-}
-
 /*
  * delete vertices from mesh, then delete edges/keys/faces which used those
  * vertices
@@ -359,34 +302,19 @@ static void delete_verts( Mesh *mesh, unsigned int *vert_table, int to_delete )
 	 */
 
 	unsigned int *tmpvert;
-	int i;
-	char state;
-	MVert *newvert, *srcvert, *dstvert;
-	int count;
-	MSticky *newsticky = NULL, *srcsticky, *dststicky;
+	CustomData vdata;
+	int i, count, state, dstindex, totvert;
 
-	/* is there are deformed verts also, delete them first */
-	if( mesh->dvert )
-		delete_dverts( mesh, vert_table, to_delete );
-
-	newvert = (MVert *)MEM_mallocN(
-			sizeof( MVert )*( mesh->totvert-to_delete ), "MVerts" );
-
-	/* is there are UV verts, track them too */
-	if( mesh->msticky )
-	newsticky = (MSticky *)MEM_mallocN(
-			sizeof( MSticky )*( mesh->totvert-to_delete ), "MStickies" );
+	totvert = mesh->totvert - to_delete;
+	CustomData_copy( &mesh->vdata, &vdata, CD_MASK_MESH, CD_CALLOC, totvert );
 
 	/*
 	 * do "smart compaction" of the table; find and copy groups of vertices
 	 * which are not being deleted
 	 */
 
-	dstvert = newvert;
-	srcvert = mesh->mvert;
+	dstindex = 0;
 	tmpvert = vert_table;
-	dststicky = newsticky;
-	srcsticky = mesh->msticky;
 	count = 0;
 	state = 1;
 	for( i = 0; i < mesh->totvert; ++i, ++tmpvert ) {
@@ -395,8 +323,6 @@ static void delete_verts( Mesh *mesh, unsigned int *vert_table, int to_delete )
 			if( *tmpvert == UINT_MAX ) {
 				++count;
 			} else {
-				srcvert = mesh->mvert + i;
-				srcsticky = mesh->msticky + i;
 				count = 1;
 				state = 1;
 			}
@@ -406,13 +332,9 @@ static void delete_verts( Mesh *mesh, unsigned int *vert_table, int to_delete )
 				++count;
 			} else {
 				if( count ) {
-					memcpy( dstvert, srcvert, sizeof( MVert ) * count );
-					dstvert += count;
-					if( newsticky ) {
-						memcpy( dststicky, srcsticky, sizeof( MSticky )
-								* count );
-						dststicky += count;
-					}
+					CustomData_copy_data( &mesh->vdata, &vdata, i,
+						dstindex, count );
+					dstindex += count;
 				}
 				count = 1;
 				state = 0;
@@ -421,21 +343,14 @@ static void delete_verts( Mesh *mesh, unsigned int *vert_table, int to_delete )
 	}
 
 	/* if we were gathering verts at the end of the loop, copy those */
-	if( state && count ) {
-		memcpy( dstvert, srcvert, sizeof( MVert ) * count );
-		if( newsticky )
-			memcpy( dststicky, srcsticky, sizeof( MSticky ) * count );
-	}
+	if( state && count )
+		CustomData_copy_data( &mesh->vdata, &vdata, i, dstindex, count );
 
 	/* delete old vertex list, install the new one, update vertex count */
-
-	MEM_freeN( mesh->mvert );
-	mesh->mvert = newvert;
-	if( newsticky ) {
-		MEM_freeN( mesh->msticky );
-		mesh->msticky = newsticky;
-	}
-	mesh->totvert -= to_delete;
+	CustomData_free( &mesh->vdata, mesh->totvert );
+	mesh->vdata = vdata;
+	mesh->totvert = totvert;
+	mesh_update_customdata_pointers( mesh );
 }
 
 static void delete_edges( Mesh *mesh, unsigned int *vert_table, int to_delete )
@@ -456,21 +371,20 @@ static void delete_edges( Mesh *mesh, unsigned int *vert_table, int to_delete )
 
 	/* if there are edges to delete, handle it */
 	if( to_delete ) {
-		MEdge *newedge, *srcedge, *dstedge;
-		int count, state;
-
+		CustomData edata;
+		int count, state, dstindex, totedge;
+		
 	/* allocate new edge list and populate */
-		newedge = (MEdge *)MEM_mallocN(
-				sizeof( MEdge )*( mesh->totedge-to_delete ), "MEdges" );
+		totedge = mesh->totedge - to_delete;
+		CustomData_copy( &mesh->edata, &edata, CD_MASK_MESH, CD_CALLOC, totedge);
 
 	/*
 	 * do "smart compaction" of the edges; find and copy groups of edges
 	 * which are not being deleted
 	 */
 
-		dstedge = newedge;
-		srcedge = mesh->medge;
-		tmpedge = srcedge;
+		dstindex = 0;
+		tmpedge = mesh->medge;
 		count = 0;
 		state = 1;
 		for( i = 0; i < mesh->totedge; ++i, ++tmpedge ) {
@@ -479,7 +393,6 @@ static void delete_edges( Mesh *mesh, unsigned int *vert_table, int to_delete )
 				if( tmpedge->v1 == UINT_MAX ) {
 					++count;
 				} else {
-					srcedge = tmpedge;
 					count = 1;
 					state = 1;
 				}
@@ -489,8 +402,9 @@ static void delete_edges( Mesh *mesh, unsigned int *vert_table, int to_delete )
 					++count;
 				} else {
 					if( count ) {
-						memcpy( dstedge, srcedge, sizeof( MEdge ) * count );
-						dstedge += count;
+						CustomData_copy_data( &mesh->edata, &edata, i,
+							dstindex, count );
+						dstindex += count;
 					}
 					count = 1;
 					state = 0;
@@ -501,12 +415,13 @@ static void delete_edges( Mesh *mesh, unsigned int *vert_table, int to_delete )
 
 	/* copy any pending good edges */
 		if( state && count )
-			memcpy( dstedge, srcedge, sizeof( MEdge ) * count );
+			CustomData_copy_data( &mesh->edata, &edata, i, dstindex, count );
 
-	/* delete old vertex list, install the new one, update vertex count */
-		MEM_freeN( mesh->medge );
-		mesh->medge = newedge;
-		mesh->totedge -= to_delete;
+	/* delete old edge list, install the new one, update vertex count */
+		CustomData_free( &mesh->edata, mesh->totedge );
+		mesh->edata = edata;
+		mesh->totedge = totedge;
+		mesh_update_customdata_pointers( mesh );
 	}
 
 	/* if vertices were deleted, update edge's vertices */
@@ -519,85 +434,26 @@ static void delete_edges( Mesh *mesh, unsigned int *vert_table, int to_delete )
 	}
 }
 
-/*
- * Since all faces must have 3 or 4 verts, we can't have v3 or v4 be zero.
- * If that happens during the deletion, we have to shuffle the vertices
- * around; otherwise it can cause an Eeekadoodle or worse.  If there are
- * texture faces as well, they have to be shuffled as well.
- *
- * (code borrowed from test_index_face() in mesh.c, but since we know the
- * faces already have correct number of vertices, this is a little faster)
- */
-
-static void eeek_fix( MFace *mface, TFace *tface, int len4 )
-{
-	/* if 4 verts, then neither v3 nor v4 can be zero */
-	if( len4 ) {
-		if( !mface->v3 || !mface->v4 ) {
-			SWAP( int, mface->v1, mface->v3 );
-			SWAP( int, mface->v2, mface->v4 );
-			if( tface ) {
-				SWAP( float, tface->uv[0][0], tface->uv[2][0] );
-				SWAP( float, tface->uv[0][1], tface->uv[2][1] );
-				SWAP( float, tface->uv[1][0], tface->uv[3][0] );
-				SWAP( float, tface->uv[1][1], tface->uv[3][1] );
-				SWAP( unsigned int, tface->col[0], tface->col[2] );
-				SWAP( unsigned int, tface->col[1], tface->col[3] );
-			}
-		}
-	} else if( !mface->v3 ) {
-	/* if 2 verts, then just v3 cannot be zero (v4 MUST be zero) */
-		SWAP( int, mface->v1, mface->v2 );
-		SWAP( int, mface->v2, mface->v3 );
-		if( tface ) {
-			SWAP( float, tface->uv[0][0], tface->uv[1][0] );
-			SWAP( float, tface->uv[0][1], tface->uv[1][1] );
-			SWAP( float, tface->uv[2][0], tface->uv[1][0] );
-			SWAP( float, tface->uv[2][1], tface->uv[1][1] );
-			SWAP( unsigned int, tface->col[0], tface->col[1] );
-			SWAP( unsigned int, tface->col[1], tface->col[2] );
-		}
-	}
-}
-
 static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 {
 	int i;
 	MFace *tmpface;
-	TFace *tmptface;
-	MCol *tmpmcol;
 
 		/* if there are faces to delete, handle it */
 	if( to_delete ) {
-		MFace *newface, *srcface, *dstface;
-		TFace *newtface = NULL, *srctface, *dsttface;
-		MCol *newmcol = NULL, *srcmcol, *dstmcol;
-		char state;
-		int count;
-
-		newface = (MFace *)MEM_mallocN( ( mesh->totface-to_delete )
-				* sizeof( MFace ), "MFace" );
-		if( mesh->tface )
-			newtface = (TFace *)MEM_mallocN( ( mesh->totface-to_delete )
-					* sizeof( TFace ), "TFace" );
-		else if( mesh->mcol )
-			newmcol = (MCol *)MEM_mallocN( ( mesh->totface-to_delete )
-					* 4 * sizeof( MCol ), "MCol" );
+		CustomData fdata;
+		int count, state, dstindex, totface;
+		
+		totface = mesh->totface - to_delete;
+		CustomData_copy( &mesh->fdata, &fdata, CD_MASK_MESH, CD_CALLOC, totface );
 
 		/*
 		 * do "smart compaction" of the faces; find and copy groups of faces
 		 * which are not being deleted
 		 */
 
-		dstface = newface;
-		srcface = mesh->mface;
-		tmpface = srcface;
-		dsttface = newtface;
-		srctface = mesh->tface;
-		tmptface = srctface;
-		dstmcol = newmcol;
-		srcmcol = mesh->mcol;
-		tmpmcol = srcmcol;
+		dstindex = 0;
+		tmpface = mesh->mface;
 
 		count = 0;
 		state = 1;
@@ -607,9 +463,6 @@ static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 				if( tmpface->v1 == UINT_MAX ) {
 					++count;
 				} else {
-					srcface = tmpface;
-					srctface = tmptface;
-					srcmcol = tmpmcol;
 					count = 1;
 					state = 1;
 				}
@@ -619,55 +472,34 @@ static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 					++count;
 				} else {
 					if( count ) {
-						memcpy( dstface, srcface, sizeof( MFace ) * count );
-						dstface += count;
-						if( newtface ) {
-							memcpy( dsttface, srctface, sizeof( TFace )
-									* count );
-							dsttface += count;
-						} else if( newmcol ) {
-							memcpy( dstmcol, srcmcol, sizeof( MCol )
-									* 4 * count );
-							dstmcol += count;
-						}
+						CustomData_copy_data( &mesh->fdata, &fdata, i,
+							dstindex, count );
+						dstindex += count;
 					}
 					count = 1;
 					state = 0;
 				}
 			}
 			++tmpface; 
-			++tmptface; 
-			++tmpmcol; 
 		}
 
 	/* if we were gathering faces at the end of the loop, copy those */
-		if ( state && count ) {
-			memcpy( dstface, srcface, sizeof( MFace ) * count );
-			if( newtface )
-				memcpy( dsttface, srctface, sizeof( TFace ) * count );
-			else if( newmcol )
-				memcpy( dstmcol, srcmcol, sizeof( MCol ) * 4 * count );
-		}
+		if ( state && count )
+			CustomData_copy_data( &mesh->fdata, &fdata, i, dstindex, count );
 
 	/* delete old face list, install the new one, update face count */
 
-		MEM_freeN( mesh->mface );
-		mesh->mface = newface;
-		mesh->totface -= to_delete;
-		if( newtface ) {
-			MEM_freeN( mesh->tface );
-			mesh->tface = newtface;
-		} else if( newmcol ) {
-			MEM_freeN( mesh->mcol );
-			mesh->mcol = newmcol;
-		}
+		CustomData_free( &mesh->fdata, mesh->totface );
+		mesh->fdata = fdata;
+		mesh->totface = totface;
+		mesh_update_customdata_pointers( mesh );
 	}
 
 	/* if vertices were deleted, update face's vertices */
 	if( vert_table ) {
 		tmpface = mesh->mface;
-		tmptface = mesh->tface;
-		for( i = mesh->totface; i--; ) {
+
+		for( i = 0; i<mesh->totface; ++i, ++tmpface ) {
 			int len4 = tmpface->v4;
 			tmpface->v1 = vert_table[tmpface->v1];
 			tmpface->v2 = vert_table[tmpface->v2];
@@ -677,11 +509,7 @@ static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 			else
 				tmpface->v4 = 0;
 
-			eeek_fix( tmpface, tmptface, len4 );
-
-			++tmpface;
-			if( mesh->tface )
-				++tmptface;
+			test_index_face( tmpface, &mesh->fdata, i, len4? 4: 3);
 		}
 	}
 }
@@ -1815,6 +1643,7 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 	PyObject *tmp;
 	MVert *newvert, *tmpvert;
 	Mesh *mesh = self->mesh;
+	CustomData vdata;
 	/* make sure we get a sequence of tuples of something */
 
 	switch( PySequence_Size( args ) ) {
@@ -1858,8 +1687,16 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 		Py_RETURN_NONE;
 	}
 
+	/* create custom vertex data arrays and copy existing vertices into it */
+
 	newlen = mesh->totvert + len;
-	newvert = MEM_callocN( sizeof( MVert )*newlen, "MVerts" );
+	CustomData_copy( &mesh->vdata, &vdata, CD_MASK_MESH, CD_DUPLICATE, newlen );
+	CustomData_set_default( &vdata, mesh->totvert, len );
+
+	if ( !CustomData_has_layer( &vdata, CD_MVERT ) )
+		CustomData_add_layer( &vdata, CD_MVERT, 0, NULL, newlen );
+
+	newvert = CustomData_get_layer( &vdata, CD_MVERT );
 
 	/* scan the input list and insert the new vertices */
 
@@ -1869,7 +1706,7 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 		tmp = PySequence_GetItem( args, i );
 		if( VectorObject_Check( tmp ) ) {
 			if( ((VectorObject *)tmp)->size != 3 ) {
-				MEM_freeN( newvert );
+				CustomData_free( &vdata, newlen );
 				Py_DECREF ( tmp );
 				Py_DECREF ( args );
 				return EXPP_ReturnPyObjError( PyExc_ValueError,
@@ -1893,14 +1730,14 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 				}
 
 			if( !ok ) {
-				MEM_freeN( newvert );
+				CustomData_free( &vdata, newlen );
 				Py_DECREF ( args );
 				Py_DECREF ( tmp );
 				return EXPP_ReturnPyObjError( PyExc_ValueError,
 					"expected sequence triplet of floats" );
 			}
 		} else {
-			MEM_freeN( newvert );
+			CustomData_free( &vdata, newlen );
 			Py_DECREF ( args );
 			Py_DECREF ( tmp );
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
@@ -1917,31 +1754,9 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 		++tmpvert;
 	}
 
-	/*
-	 * if we got here we've added all the new verts, so just copy the old
-	 * verts over and we're done
-	 */
-
-	if( mesh->mvert ) {
-		memcpy( newvert, mesh->mvert, mesh->totvert*sizeof(MVert) );
-		MEM_freeN( mesh->mvert );
-	}
-	mesh->mvert = newvert;
-
-	/*
-	 * if there are UV vertives, have to fix those
-	 */
-
-	if( mesh->msticky ) {
-		MSticky *tmpsticky;
-
-		tmpsticky = MEM_mallocN( newlen*sizeof( MSticky ), "sticky" );
-		memset( tmpsticky +mesh->totvert, 255,
-				(newlen-mesh->totvert)*sizeof( MSticky ) );
-		memcpy( tmpsticky, mesh->msticky, mesh->totvert*sizeof( MSticky ) );
-		MEM_freeN( mesh->msticky );
-		mesh->msticky = tmpsticky;
-	}
+	CustomData_free( &mesh->vdata, mesh->totvert );
+	mesh->vdata = vdata;
+	mesh_update_customdata_pointers( mesh );
 
 	/*
 	 * if there are keys, have to fix those lists up
@@ -1974,18 +1789,6 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 			currkey->totelem = newlen;
 			currkey = currkey->next;
 		}
-	}
-
-	/*
-	 * if there are vertex groups, also have to fix them
-	 */
-
-	if( mesh->dvert ) {
-		MDeformVert *newdvert;
-		newdvert = MEM_callocN( sizeof(MDeformVert)*newlen , "mesh defVert" );
-		memcpy( newdvert, mesh->dvert, sizeof(MDeformVert)*mesh->totvert );
-		MEM_freeN( mesh->dvert );
-		mesh->dvert = newdvert;
 	}
 
 	/* set final vertex list size */
@@ -3052,17 +2855,20 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 
 	/* if any new edges are left, add to list */
 	if( good_edges ) {
-		int totedge = mesh->totedge+good_edges;	/* new edge count */
+		CustomData edata;
+		int totedge = mesh->totedge+good_edges;
 
-	/* allocate new edge list */
-		tmpedge = MEM_callocN(totedge*sizeof(MEdge), "Mesh_addEdges");
+	/* create custom edge data arrays and copy existing edges into it */
+		CustomData_copy( &mesh->edata, &edata, CD_MASK_MESH, CD_DUPLICATE, totedge );
+		CustomData_set_default( &edata, mesh->totedge, good_edges );
 
-	/* if we're appending, copy the old edge list and delete it */
-		if( mesh->medge ) {
-			memcpy( tmpedge, mesh->medge, mesh->totedge*sizeof(MEdge));
-			MEM_freeN( mesh->medge );
-		}
-		mesh->medge = tmpedge;		/* point to the new edge list */
+		if ( !CustomData_has_layer( &edata, CD_MEDGE ) )
+			CustomData_add_layer( &edata, CD_MEDGE, 0, NULL, totedge );
+
+	/* replace old with new data */
+		CustomData_free( &mesh->edata, mesh->totedge );
+		mesh->edata = edata;
+		mesh_update_customdata_pointers( mesh );
 
 	/* resort edges into original order */
 		qsort( newpair, new_edge_count, sizeof(SrchEdges), medge_index_comp );
@@ -3872,15 +3678,15 @@ static int MFace_setSelect( BPy_MFace * self, PyObject * value,
 
 static PyObject *MFace_getImage( BPy_MFace *self )
 {
-	TFace *face;
-	if( !self->mesh->tface )
+	MTFace *face;
+	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
 
 	if( !MFace_get_pointer( self ) )
 		return NULL;
 
-	face = &self->mesh->tface[self->index];
+	face = &self->mesh->mtface[self->index];
 
 	if( face->tpage )
 		return Image_CreatePyObject( face->tpage );
@@ -3894,12 +3700,12 @@ static PyObject *MFace_getImage( BPy_MFace *self )
 
 static int MFace_setImage( BPy_MFace *self, PyObject *value )
 {
-	TFace *face;
+	MTFace *face;
 
 	if( !MFace_get_pointer( self ) )
 		return -1;
 
-	if( !self->mesh->tface )
+	if( !self->mesh->mtface )
 #if 0
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
@@ -3907,7 +3713,7 @@ static int MFace_setImage( BPy_MFace *self, PyObject *value )
 		make_tfaces( self->mesh );
 #endif
 
-	face = &self->mesh->tface[self->index];
+	face = &self->mesh->mtface[self->index];
     if( value == Py_None )
         face->tpage = NULL;		/* should memory be freed? */
     else {
@@ -3930,14 +3736,14 @@ static int MFace_setImage( BPy_MFace *self, PyObject *value )
 
 static PyObject *MFace_getFlag( BPy_MFace *self )
 {
-	if( !self->mesh->tface )
+	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
 
 	if( !MFace_get_pointer( self ) )
 		return NULL;
 
-	return PyInt_FromLong( (long) ( self->mesh->tface[self->index].flag
+	return PyInt_FromLong( (long) ( self->mesh->mtface[self->index].flag
 			& MFACE_FLAG_BITMASK ) );
 }
 
@@ -3949,7 +3755,7 @@ static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 {
 	int param;
 
-	if( !self->mesh->tface )
+	if( !self->mesh->mtface )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
 
@@ -3972,8 +3778,8 @@ static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 						"invalid bit(s) set in mask" );
 
 	/* merge active setting with other new params */
-	param |= (self->mesh->tface[self->index].flag & TF_ACTIVE);
-	self->mesh->tface[self->index].flag = (char)param;
+	param |= (self->mesh->mtface[self->index].flag & TF_ACTIVE);
+	self->mesh->mtface[self->index].flag = (char)param;
 
 	return 0;
 }
@@ -3986,14 +3792,14 @@ static PyObject *MFace_getMode( BPy_MFace *self )
 {
 	PyObject *attr;
 
-	if( !self->mesh->tface )
+	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
 
 	if( !MFace_get_pointer( self ) )
 		return NULL;
 
-	attr = PyInt_FromLong( self->mesh->tface[self->index].mode );
+	attr = PyInt_FromLong( self->mesh->mtface[self->index].mode );
 
 	if( attr )
 		return attr;
@@ -4023,7 +3829,7 @@ static int MFace_setMode( BPy_MFace *self, PyObject *value )
 				| TF_SHADOW
 				| TF_BMFONT;
 
-	if( !self->mesh->tface )
+	if( !self->mesh->mtface )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
 
@@ -4050,7 +3856,7 @@ static int MFace_setMode( BPy_MFace *self, PyObject *value )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 						"HALO and BILLBOARD cannot be enabled simultaneously" );
 
-	self->mesh->tface[self->index].mode = (short)param;
+	self->mesh->mtface[self->index].mode = (short)param;
 
 	return 0;
 }
@@ -4062,14 +3868,14 @@ static int MFace_setMode( BPy_MFace *self, PyObject *value )
 static PyObject *MFace_getTransp( BPy_MFace *self )
 {
 	PyObject *attr;
-	if( !self->mesh->tface )
+	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
 
 	if( !MFace_get_pointer( self ) )
 		return NULL;
 
-	attr = PyInt_FromLong( self->mesh->tface[self->index].transp );
+	attr = PyInt_FromLong( self->mesh->mtface[self->index].transp );
 
 	if( attr )
 		return attr;
@@ -4084,7 +3890,7 @@ static PyObject *MFace_getTransp( BPy_MFace *self )
 
 static int MFace_setTransp( BPy_MFace *self, PyObject *value )
 {
-	if( !self->mesh->tface )
+	if( !self->mesh->mtface )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
 
@@ -4092,7 +3898,7 @@ static int MFace_setTransp( BPy_MFace *self, PyObject *value )
 		return -1;
 
 	return EXPP_setIValueRange( value,
-			&self->mesh->tface[self->index].transp, TF_SOLID, TF_SUB, 'b' );
+			&self->mesh->mtface[self->index].transp, TF_SOLID, TF_SUB, 'b' );
 }
 
 /*
@@ -4101,18 +3907,18 @@ static int MFace_setTransp( BPy_MFace *self, PyObject *value )
 
 static PyObject *MFace_getUV( BPy_MFace * self )
 {
-	TFace *face;
+	MTFace *face;
 	PyObject *attr;
 	int length, i;
 
-	if( !self->mesh->tface )
+	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
 
 	if( !MFace_get_pointer( self ) )
 		return NULL;
 
-	face = &self->mesh->tface[self->index];
+	face = &self->mesh->mtface[self->index];
 	length = self->mesh->mface[self->index].v4 ? 4 : 3;
 	attr = PyTuple_New( length );
 
@@ -4136,7 +3942,7 @@ static PyObject *MFace_getUV( BPy_MFace * self )
 
 static int MFace_setUV( BPy_MFace * self, PyObject * value )
 {
-	TFace *face;
+	MTFace *face;
 	int length, i;
 
 	if( !MFace_get_pointer( self ) )
@@ -4152,7 +3958,7 @@ static int MFace_setUV( BPy_MFace * self, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					    "size of vertex and UV sequences differ" );
 
-	if( !self->mesh->tface )
+	if( !self->mesh->mtface )
 #if 0
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
@@ -4160,7 +3966,7 @@ static int MFace_setUV( BPy_MFace * self, PyObject * value )
 		make_tfaces( self->mesh );
 #endif
 
-	face = &self->mesh->tface[self->index];
+	face = &self->mesh->mtface[self->index];
 	for( i=0; i<length; ++i ) {
 		VectorObject *vector = (VectorObject *)PySequence_ITEM( value, i );
 		face->uv[i][0] = vector->vec[0];
@@ -4176,18 +3982,18 @@ static int MFace_setUV( BPy_MFace * self, PyObject * value )
 
 static PyObject *MFace_getUVSel( BPy_MFace * self )
 {
-	TFace *face;
+	MTFace *face;
 	PyObject *attr;
 	int length, i, mask;
 
-	if( !self->mesh->tface )
+	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
 
 	if( !MFace_get_pointer( self ) )
 		return NULL;
 
-	face = &self->mesh->tface[self->index];
+	face = &self->mesh->mtface[self->index];
 	length = self->mesh->mface[self->index].v4 ? 4 : 3;
 	attr = PyTuple_New( length );
 
@@ -4216,7 +4022,7 @@ static PyObject *MFace_getUVSel( BPy_MFace * self )
 
 static int MFace_setUVSel( BPy_MFace * self, PyObject * value )
 {
-	TFace *face;
+	MTFace *face;
 	int length, i, mask;
 
 	if( !MFace_get_pointer( self ) )
@@ -4231,7 +4037,7 @@ static int MFace_setUVSel( BPy_MFace * self, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					    "size of vertex and UV lists differ" );
 
-	if( !self->mesh->tface )
+	if( !self->mesh->mtface )
 #if 0
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
@@ -4240,7 +4046,7 @@ static int MFace_setUVSel( BPy_MFace * self, PyObject * value )
 #endif
 
 	/* set coord select state, one bit at a time */
-	face = &self->mesh->tface[self->index];
+	face = &self->mesh->mtface[self->index];
 	mask = TF_SEL1;
 	for( i=0; i<length; ++i, mask <<= 1 ) {
 		PyObject *tmp = PySequence_GetItem( value, i ); /* adds a reference, remove below */
@@ -4259,7 +4065,7 @@ static int MFace_setUVSel( BPy_MFace * self, PyObject * value )
 }
 
 /*
- * get a face's vertex colors. note that if mesh->tfaces is defined, then 
+ * get a face's vertex colors. note that if mesh->mtfaces is defined, then 
  * it takes precedent over mesh->mcol
  */
 
@@ -4271,17 +4077,14 @@ static PyObject *MFace_getCol( BPy_MFace * self )
 
 	/* if there's no mesh color vectors or texture faces, nothing to do */
 
-	if( !self->mesh->mcol && !self->mesh->tface )
+	if( !self->mesh->mcol )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no vertex colors" );
 
 	if( !MFace_get_pointer( self ) )
 		return NULL;
 
-	if( self->mesh->tface )
-		mcol = (MCol *) self->mesh->tface[self->index].col;
-	else
-		mcol = &self->mesh->mcol[self->index*4];
+	mcol = &self->mesh->mcol[self->index*4];
 
 	length = self->mesh->mface[self->index].v4 ? 4 : 3;
 	attr = PyTuple_New( length );
@@ -4311,17 +4114,14 @@ static int MFace_setCol( BPy_MFace * self, PyObject *value )
 
 	/* if there's no mesh color vectors or texture faces, nothing to do */
 
-	if( !self->mesh->mcol && !self->mesh->tface )
+	if( !self->mesh->mcol )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no vertex colors" );
 
 	if( !MFace_get_pointer( self ) )
 		return -1;
 
-	if( self->mesh->tface )
-		mcol = (MCol *) self->mesh->tface[self->index].col;
-	else
-		mcol = &self->mesh->mcol[self->index*4];
+	mcol = &self->mesh->mcol[self->index*4];
 
 	length = self->mesh->mface[self->index].v4 ? 4 : 3;
 
@@ -4875,7 +4675,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 		 * go through some contortions to guarantee the third and fourth
 		 * vertices are not index 0
 		 */
-		eeek_fix( &tmpface, NULL, nverts==4 );
+		test_index_face( &tmpface, NULL, 0, nverts );
 		vert[0] = tmpface.v1;
 		vert[1] = tmpface.v2;
 		vert[2] = tmpface.v3;
@@ -5000,46 +4800,23 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 	/* if any new faces are left, add to list */
 	if( good_faces || return_list ) {
 		int totface = mesh->totface+good_faces;	/* new face count */
+		CustomData fdata;
 
-	/* if mesh has tfaces, reallocate them first */
-		if( mesh->tface ) {
-			TFace *tmptface;
+		CustomData_copy( &mesh->fdata, &fdata, CD_MASK_MESH, CD_DUPLICATE, totface );
+		CustomData_set_default( &fdata, mesh->totface, good_faces );
 
-			tmptface = MEM_callocN(totface*sizeof(TFace), "Mesh_addFaces");
-			memcpy( tmptface, mesh->tface, mesh->totface*sizeof(TFace));
-			MEM_freeN( mesh->tface );
-			mesh->tface = tmptface;
-			
-			/* make new faces tex faces have default tex values */
-			tmptface= mesh->tface + mesh->totface;
-			for( i = good_faces; i-- ; ) {
-				default_tface(tmptface);
-				tmptface++;
-			}
-			
-		} else if( mesh->mcol ) {
-			MCol *tmpmcol;
+		if ( !CustomData_has_layer( &fdata, CD_MFACE ) )
+			CustomData_add_layer( &fdata, CD_MFACE, 0, NULL, totface );
 
-			tmpmcol = MEM_callocN(totface*4*sizeof(MCol), "Mesh_addFaces");
-			memcpy( tmpmcol, mesh->mcol, mesh->totface*4*sizeof(MCol));
-			MEM_freeN( mesh->mcol );
-			mesh->mcol = tmpmcol;
-		}
+		CustomData_free( &mesh->fdata, mesh->totface );
+		mesh->fdata = fdata;
+		mesh_update_customdata_pointers( mesh );
 
 	/* sort the faces back into their original input list order */
 		if( !ignore_dups )
 			qsort( newpair, new_face_count, sizeof(SrchFaces),
 					mface_index_comp );
 
-	/* allocate new face list */
-		tmpface = MEM_callocN(totface*sizeof(MFace), "Mesh_addFaces");
-
-	/* if we're appending, copy the old face list and delete it */
-		if( mesh->mface ) {
-			memcpy( tmpface, mesh->mface, mesh->totface*sizeof(MFace));
-			MEM_freeN( mesh->mface );
-		}
-		mesh->mface = tmpface;		/* point to the new face list */
 
 	/* point to the first face we're going to add */
 		tmpface = &mesh->mface[mesh->totface];
@@ -5473,7 +5250,7 @@ static PyObject *Mesh_vertexShade( BPy_Mesh * self )
 				base->object->data == self->mesh ) {
 			base->flag |= SELECT;
 			set_active_base( base );
-			make_vertexcol();
+			make_vertexcol(1);
 			countall();
 			return EXPP_incr_ret( Py_None );
 		}
@@ -5712,7 +5489,6 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 	ID tmpid;
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL;
-	DispListMesh *dlm;
 	DerivedMesh *dm;
 	Object *tmpobj = NULL;
 	int cage = 0, render = 0, i;
@@ -5782,20 +5558,6 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 		tmpmesh = add_mesh();
 		mball_to_mesh( &ob->disp, tmpmesh );
 
-		/*
-		 * mball_to_mesh doesn't create edges, which confuses Blender in
-		 * object mode.  So this hack is necessary to quickly calculate the
-		 * edges from the face list.
-		 */
-
-		dlm = MEM_callocN( sizeof(DispListMesh), "tmp displist");
-		dlm->totface = tmpmesh->totface;
-		dlm->mface = tmpmesh->mface;
-		displistmesh_add_edges( dlm );
-		tmpmesh->totedge = dlm->totedge;
-		tmpmesh->medge = dlm->medge;
-		MEM_freeN( dlm );
-
  		break;
  	case OB_MESH:
 		/* copies object and modifiers (but not the data) */
@@ -5812,9 +5574,8 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 			else
 				dm = mesh_create_derived_view( ob );
 			
-			dlm = dm->convertToDispListMesh( dm, 0 );
 			tmpmesh = add_mesh(  );
-			displistmesh_to_mesh( dlm, tmpmesh );
+			DM_to_mesh( dm, tmpmesh );
 			dm->release( dm );
 		}
 		
@@ -6789,7 +6550,7 @@ static int Mesh_setVerts( BPy_Mesh * self, PyObject * args )
 		Mesh *me = self->mesh;
 		free_mesh( me );
         me->mvert = NULL; me->medge = NULL; me->mface = NULL;
-		me->tface = NULL; me->dvert = NULL; me->mcol = NULL;
+		me->mtface = NULL; me->dvert = NULL; me->mcol = NULL;
 		me->msticky = NULL; me->mat = NULL; me->bb = NULL;
 		me->totvert = me->totedge = me->totface = me->totcol = 0;
 		mesh_update( me );
@@ -7034,7 +6795,7 @@ static PyObject *Mesh_getFlag( BPy_Mesh * self, void *type )
 
 	switch( (long)type ) {
 	case MESH_HASFACEUV:
-		attr = self->mesh->tface ? EXPP_incr_ret_True() :
+		attr = self->mesh->mtface ? EXPP_incr_ret_True() :
 			EXPP_incr_ret_False();
 		break;
 	case MESH_HASMCOL:
@@ -7068,16 +6829,15 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 				"expected int argument in range [0,1]" );
 
 	/* sticky is independent of faceUV and vertUV */
-	/* faceUV (tface) has priority over vertUV (mcol) */
 
 	switch( (long)type ) {
 	case MESH_HASFACEUV:
 		if( !param ) {
-			if( mesh->tface ) {
-				MEM_freeN( mesh->tface );
-				mesh->tface = NULL;
+			if( mesh->mtface ) {
+				CustomData_free_layer( &mesh->fdata, CD_MTFACE, mesh->totface );
+				mesh->mtface = NULL;
 			}
-		} else if( !mesh->tface ) {
+		} else if( !mesh->mtface ) {
 			if( !mesh->totface )
 				return EXPP_ReturnIntError( PyExc_RuntimeError,
 					"mesh has no faces" );
@@ -7087,29 +6847,27 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 	case MESH_HASMCOL:
 		if( !param ) {
 			if( mesh->mcol ) {
-				MEM_freeN( mesh->mcol );
+				CustomData_free_layer( &mesh->fdata, CD_MCOL, mesh->totface );
 				mesh->mcol = NULL;
 			}
 		} else if( !mesh->mcol ) {
 				/* TODO: mesh_create_shadedColors */
-			mesh->mcol = MEM_callocN( sizeof(unsigned int)*mesh->totface*4,
-						"mcol" );
+			mesh->mcol = CustomData_add_layer( &mesh->fdata, CD_MCOL, 0, NULL,
+				mesh->totface );
 			for( i = 0; i < mesh->totface*4; i++ )
 				mesh->mcol[i].a = 255;
-			if( mesh->tface )
-				mcol_to_tface( mesh, 1 );
 		}
 		return 0;
 	case MESH_HASVERTUV:
 		if( !param ) {
 			if( mesh->msticky ) {
-				MEM_freeN( mesh->msticky );
+				CustomData_free_layer( &mesh->vdata, CD_MSTICKY, mesh->totvert );
 				mesh->msticky = NULL;
 			}
 		} else {
 			if( !mesh->msticky ) {
-				mesh->msticky= MEM_mallocN( mesh->totvert*sizeof( MSticky ),
-						"sticky" );
+				mesh->msticky = CustomData_add_layer( &mesh->vdata, CD_MSTICKY,
+					0, NULL, mesh->totvert );
 				memset( mesh->msticky, 255, mesh->totvert*sizeof( MSticky ) );
 				/* TODO: rework RE_make_sticky() so we can calculate */
 			}
@@ -7166,14 +6924,14 @@ static PyObject *Mesh_getKey( BPy_Mesh * self )
 
 static PyObject *Mesh_getActiveFace( BPy_Mesh * self )
 {
-	TFace *face;
+	MTFace *face;
 	int i, totface;
 
-	if( !self->mesh->tface )
+	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
 
-	face = self->mesh->tface;
+	face = self->mesh->mtface;
 	totface = self->mesh->totface;
 
 	for( i = 0; i < totface; ++face, ++i )
@@ -7192,12 +6950,12 @@ static PyObject *Mesh_getActiveFace( BPy_Mesh * self )
 
 static int Mesh_setActiveFace( BPy_Mesh * self, PyObject * value )
 {
-	TFace *face;
+	MTFace *face;
 	int param;
 
 	/* if no texture faces, error */
 
-	if( !self->mesh->tface )
+	if( !self->mesh->mtface )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
 
@@ -7214,7 +6972,7 @@ static int Mesh_setActiveFace( BPy_Mesh * self, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"face index out of range" );
 
-	face = self->mesh->tface;
+	face = self->mesh->mtface;
 
 	/* if requested face isn't already active, then inactivate all
 	 * faces and activate the requested one */
@@ -7223,7 +6981,7 @@ static int Mesh_setActiveFace( BPy_Mesh * self, PyObject * value )
 		int i;
 		for( i = self->mesh->totface; i > 0; ++face, --i )
 			face->flag &= ~TF_ACTIVE;
-		self->mesh->tface[param].flag |= TF_ACTIVE;
+		self->mesh->mtface[param].flag |= TF_ACTIVE;
 	}
 	return 0;
 }

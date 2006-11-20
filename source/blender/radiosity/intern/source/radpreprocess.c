@@ -57,6 +57,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -309,13 +310,13 @@ void rad_collect_meshes()
 	Mesh *me;
 	MVert *mvert;
 	MFace *mface;
-	TFace *tf, *tface;
+	MTFace *tf, *tface;
 	Material *ma = NULL, *noma= NULL;
 	RPatch *rp;
 	RNode *rn;
 	VeNoCo *vnc, **nodevert;
 	float *vd, *v1, *v2, *v3, *v4 = NULL;
-	int a, b, offs, index, mfdatatot, hastface = 0;
+	int a, b, offs, index, mfdatatot;
 	
 	if (G.vd==NULL) {
 		printf("Error, trying to collect radiosity meshes with no 3d view\n");
@@ -402,8 +403,6 @@ void rad_collect_meshes()
 				}
 
 				mfdatatot += me->totface;
-				if (me->tface)
-					hastface= 1;
 			}
 		}
 		base= base->next;
@@ -417,9 +416,9 @@ void rad_collect_meshes()
 	RG.size[2]= (RG.max[2]- RG.min[2]);
 	RG.maxsize= MAX3(RG.size[0],RG.size[1],RG.size[2]);
 
+	RG.mfdata= MEM_callocN(sizeof(CustomData), "radiomfdata");
 	RG.mfdatanodes= MEM_mallocN(sizeof(RNode*)*mfdatatot, "radiomfdatanodes");
-	if (hastface)
-		RG.tface= MEM_mallocN(sizeof(TFace)*mfdatatot, "radiotface");
+	RG.mfdatatot= mfdatatot;
 
 	/* make patches */
 
@@ -435,10 +434,13 @@ void rad_collect_meshes()
 				ob= base->object;
 				me= ob->data;
 				mface= me->mface;
-				tface= me->tface;
+				tface= me->mtface;
 				
 				index= -1;
 
+				CustomData_merge(&me->fdata, RG.mfdata, CD_MASK_DERIVEDMESH,
+					CD_DEFAULT, mfdatatot);
+				
 				for(a=0; a<me->totface; a++, mface++) {
 					tf= tface? tface+a: NULL;
 					
@@ -523,13 +525,8 @@ void rad_collect_meshes()
 					rn->orig= RG.totelem;
 					RG.mfdatanodes[RG.totelem]= rn;
 
-					if (RG.tface) {
-						if (tf)
-							RG.tface[RG.totelem]= *tf;
-						else
-							default_tface(&RG.tface[RG.totelem]);
-					}
-						
+					CustomData_copy_data(&me->fdata, RG.mfdata, a, RG.totelem, 1);
+					
 					RG.totelem++;
 					RG.totpatch++;
 				}

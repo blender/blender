@@ -1136,8 +1136,7 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, int clipVerts)
 {
 	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
-	int dmNeedsFree;
-	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
+	DerivedMesh *dm = editmesh_get_derived_cage();
 
 	data.func = func;
 	data.userData = userData;
@@ -1149,9 +1148,7 @@ void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, i
 	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
 	EM_free_index_arrays();
 
-	if (dmNeedsFree) {
-		dm->release(dm);
-	}
+	dm->release(dm);
 }
 
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
@@ -1181,8 +1178,7 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
 {
 	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
-	int dmNeedsFree;
-	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
+	DerivedMesh *dm = editmesh_get_derived_cage();
 
 	data.func = func;
 	data.userData = userData;
@@ -1194,9 +1190,7 @@ void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, 
 	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
 	EM_free_index_arrays();
 
-	if (dmNeedsFree) {
-		dm->release(dm);
-	}
+	dm->release(dm);
 }
 
 static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *cent, float *no)
@@ -1214,8 +1208,7 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *ce
 void mesh_foreachScreenFace(void (*func)(void *userData, EditFace *efa, int x, int y, int index), void *userData)
 {
 	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; float pmat[4][4], vmat[4][4]; } data;
-	int dmNeedsFree;
-	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
+	DerivedMesh *dm = editmesh_get_derived_cage();
 
 	data.func = func;
 	data.userData = userData;
@@ -1226,9 +1219,7 @@ void mesh_foreachScreenFace(void (*func)(void *userData, EditFace *efa, int x, i
 	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
 	EM_free_index_arrays();
 
-	if (dmNeedsFree) {
-		dm->release(dm);
-	}
+	dm->release(dm);
 }
 
 void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y), void *userData)
@@ -1591,7 +1582,7 @@ static void draw_em_fancy_edges(DerivedMesh *cageDM)
  * draw some debug info about verse mesh (vertex indexes,
  * face indexes, status of )
  */
-static draw_verse_debug(Object *ob, EditMesh *em)
+static void draw_verse_debug(Object *ob, EditMesh *em)
 {
 	struct EditVert *eve=NULL;
 	struct EditFace *efa=NULL;
@@ -2066,7 +2057,7 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 			else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mcol) {
 				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1);
 			}
-			else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->tface) {
+			else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mtface) {
 				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1);
 			}
 			else do_draw= 1;
@@ -2158,22 +2149,19 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 	}
 	
 	if(ob==G.obedit || drawlinked) {
-		int cageNeedsFree, finalNeedsFree;
 		DerivedMesh *finalDM, *cageDM;
 		
-		if (G.obedit!=ob) {
+		if (G.obedit!=ob)
 			finalDM = cageDM = editmesh_get_derived_base();
-			cageNeedsFree = 0;
-			finalNeedsFree = 1;
-		} else {
-			cageDM = editmesh_get_derived_cage_and_final(&finalDM, &cageNeedsFree, &finalNeedsFree);
-		}
+		else
+			cageDM = editmesh_get_derived_cage_and_final(&finalDM);
 
 		if(dt>OB_WIRE) init_gl_materials(ob, 0);	// no transp in editmode, the fancy draw over goes bad then
 		draw_em_fancy(ob, G.editMesh, cageDM, finalDM, dt);
 
-		if (cageNeedsFree) cageDM->release(cageDM);
-		if (finalNeedsFree) finalDM->release(finalDM);
+		if (cageDM != finalDM)
+			cageDM->release(cageDM);
+		finalDM->release(finalDM);
 	}
 	else if(!G.obedit && G.scene->sculptdata.active_ob == ob && !modifiers_getVirtualModifierList(ob)) {
 		sculptmode_draw_mesh(NULL);
@@ -2182,17 +2170,16 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
 		
 		if(me->totface<=4 || boundbox_clip(ob->obmat, me->bb)) {
-			int baseDMneedsFree, realDMneedsFree;
-			DerivedMesh *baseDM = mesh_get_derived_deform(ob, &baseDMneedsFree);
-			DerivedMesh *realDM = mesh_get_derived_final(ob, &realDMneedsFree);
+			DerivedMesh *baseDM = mesh_get_derived_deform(ob);
+			DerivedMesh *realDM = mesh_get_derived_final(ob);
 
 			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob, (base->flag & OB_FROMDUPLI)==0);
 			if(baseDM && realDM) draw_mesh_fancy(base, baseDM, realDM, dt, flag);
 			
 			if(me->totvert==0) retval= 1;
 			
-			if (baseDMneedsFree) baseDM->release(baseDM);
-			if (realDMneedsFree) realDM->release(realDM);
+			baseDM->release(baseDM);
+			realDM->release(realDM);
 		}
 	}
 	
@@ -4428,7 +4415,7 @@ static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmoot
 {
 	Mesh *me = userData;
 
-	if (!me->tface || !(me->tface[index].flag&TF_HIDE)) {
+	if (!me->mtface || !(me->mtface[index].flag&TF_HIDE)) {
 		set_framebuffer_index_color(index+1);
 		return 1;
 	} else {
@@ -4451,8 +4438,7 @@ static int bbs_mesh_wire__setDrawOpts(void *userData, int index)
 
 static void bbs_mesh_solid(Object *ob)
 {
-	int dmNeedsFree;
-	DerivedMesh *dm = mesh_get_derived_final(ob, &dmNeedsFree);
+	DerivedMesh *dm = mesh_get_derived_final(ob);
 	Mesh *me = (Mesh*)ob->data;
 	
 	glColor3ub(0, 0, 0);
@@ -4460,7 +4446,7 @@ static void bbs_mesh_solid(Object *ob)
 
 	/* draw edges for seam marking in faceselect mode, but not when painting,
 	   so that painting doesn't get interrupted on an edge */
-	if ((G.f & G_FACESELECT) && !(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) && me->tface) {
+	if ((G.f & G_FACESELECT) && !(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) && me->mtface) {
 		struct { Mesh *me; EdgeHash *eh; int offset; } userData;
 
 		userData.me = me;
@@ -4474,8 +4460,7 @@ static void bbs_mesh_solid(Object *ob)
 		BLI_edgehash_free(userData.eh, NULL);
 	}
 
-	if (dmNeedsFree)
-		dm->release(dm);
+	dm->release(dm);
 }
 
 void draw_object_backbufsel(Object *ob)
@@ -4489,8 +4474,7 @@ void draw_object_backbufsel(Object *ob)
 	switch( ob->type) {
 	case OB_MESH:
 		if(ob==G.obedit) {
-			int dmNeedsFree;
-			DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
+			DerivedMesh *dm = editmesh_get_derived_cage();
 
 			EM_init_index_arrays(1, 1, 1);
 
@@ -4507,9 +4491,7 @@ void draw_object_backbufsel(Object *ob)
 			
 			bglPolygonOffset(0.0);
 
-			if (dmNeedsFree) {
-				dm->release(dm);
-			}
+			dm->release(dm);
 
 			EM_free_index_arrays();
 		}
@@ -4531,14 +4513,13 @@ void draw_object_backbufsel(Object *ob)
 void draw_object_instance(Object *ob, int dt, int outline)
 {
 	DerivedMesh *dm=NULL, *edm=NULL;
-	int needsfree= 1;
 	
 	if(ob==NULL || ob->type!=OB_MESH) return;
 	
 	if(G.obedit && ob->data==G.obedit->data)
 		edm= editmesh_get_derived_base();
 	else 
-		dm = mesh_get_derived_final(ob, &needsfree);
+		dm = mesh_get_derived_final(ob);
 
 	if(dt<=OB_WIRE) {
 		if(dm)
@@ -4571,6 +4552,6 @@ void draw_object_instance(Object *ob, int dt, int outline)
 	}
 
 	if(edm) edm->release(edm);
-	if(dm && needsfree) dm->release(dm);
+	if(dm) dm->release(dm);
 }
 

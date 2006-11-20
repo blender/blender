@@ -625,8 +625,7 @@ static void draw_dm_mapped_face_center(DerivedMesh *dm, EditFace *efa)
 
 static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 {
-	int dmNeedsFree;
-	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
+	DerivedMesh *dm = editmesh_get_derived_cage();
 
 	glDrawBuffer(GL_FRONT);
 
@@ -714,9 +713,7 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 	/* signal that frontbuf differs from back */
 	curarea->win_swap= WIN_FRONT_OK;
 
-	if (dmNeedsFree) {
-		dm->release(dm);
-	}
+	dm->release(dm);
 }
 
 
@@ -825,18 +822,18 @@ int facegroup_select(short mode)
 					}
 				}
 			} else if (mode==2) { /* same image */
-				TFace *tf, *base_tf;
+				MTFace *tf, *base_tf;
 
-				base_tf = (TFace*)CustomData_em_get(&em->fdata, base_efa->data,
-				                                    LAYERTYPE_TFACE);
+				base_tf = (MTFace*)CustomData_em_get(&em->fdata, base_efa->data,
+				                                     CD_MTFACE);
 
 				if(!base_tf)
 					return selcount;
 
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (!(efa->f & SELECT) && !efa->h) {
-						tf = (TFace*)CustomData_em_get(&em->fdata, efa->data,
-						                               LAYERTYPE_TFACE);
+						tf = (MTFace*)CustomData_em_get(&em->fdata, efa->data,
+						                                CD_MTFACE);
 
 						if(base_tf->tpage == tf->tpage) {
 							EM_select_face(efa, 1);
@@ -1172,14 +1169,14 @@ int vertgroup_select(short mode)
 				short i, j; /* weight index */
 
 				base_dvert= CustomData_em_get(&em->vdata, base_eve->data,
-					LAYERTYPE_MDEFORMVERT);
+					CD_MDEFORMVERT);
 
 				if (!base_dvert || base_dvert->totweight == 0)
 					return selcount;
 				
 				for(eve= em->verts.first; eve; eve= eve->next) {
 					dvert= CustomData_em_get(&em->vdata, eve->data,
-						LAYERTYPE_MDEFORMVERT);
+						CD_MDEFORMVERT);
 
 					if (dvert && !(eve->f & SELECT) && !eve->h && dvert->totweight) {
 						/* do the extra check for selection in the following if, so were not
@@ -2903,7 +2900,7 @@ static void editmesh_calc_selvert_center(float cent_r[3])
 	}
 }
 
-static int tface_is_selected(TFace *tf)
+static int tface_is_selected(MTFace *tf)
 {
 	return (!(tf->flag & TF_HIDE) && (tf->flag & TF_SELECT));
 }
@@ -2921,7 +2918,7 @@ void faceselect_align_view_to_selected(View3D *v3d, Mesh *me, int axis)
 	norm[0]= norm[1]= norm[2]= 0.0;
 	for (i=0; i<me->totface; i++) {
 		MFace *mf= ((MFace*) me->mface) + i;
-		TFace *tf= ((TFace*) me->tface) + i;
+		MTFace *tf= ((MTFace*) me->mtface) + i;
 
 		if (tface_is_selected(tf)) {
 			float *v1, *v2, *v3, fno[3];

@@ -403,7 +403,6 @@ static void vertex_duplilist(ListBase *lb, Scene *sce, Object *par)
 	Base *base;
 	float vec[3], no[3], pmat[4][4];
 	int lay, totvert, a;
-	int dmNeedsFree;
 	DerivedMesh *dm;
 	
 	Mat4CpyMat4(pmat, par->obmat);
@@ -411,9 +410,9 @@ static void vertex_duplilist(ListBase *lb, Scene *sce, Object *par)
 	lay= G.scene->lay;
 	
 	if(par==G.obedit)
-		dm= editmesh_get_derived_cage(&dmNeedsFree);
+		dm= editmesh_get_derived_cage();
 	else
-		dm = mesh_get_derived_deform(par, &dmNeedsFree);
+		dm = mesh_get_derived_deform(par);
 	
 	totvert = dm->getNumVerts(dm);
 
@@ -455,8 +454,7 @@ static void vertex_duplilist(ListBase *lb, Scene *sce, Object *par)
 		base= base->next;
 	}
 
-	if (dmNeedsFree)
-		dm->release(dm);
+	dm->release(dm);
 }
 
 static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *paf)

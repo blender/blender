@@ -34,9 +34,9 @@
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
+#include "DNA_customdata_types.h"
 
 struct DerivedMesh;
-struct DispListMesh;
 struct Ipo;
 struct Key;
 struct Material;
@@ -50,17 +50,6 @@ struct OcInfo;
 struct Multires;
 struct PartialVisibility;
 
-typedef struct TFace {
-
-	/* this one gets interpreted as a image in texture.c  */
-	void *tpage;
-
-	float uv[4][2];		/* when you change this: also do function set_correct_uv in editmesh.c, and there are more locations that use the size of this part */
-	unsigned int col[4];
-	char flag, transp;
-	short mode, tile, unwrap;
-} TFace;
-
 typedef struct Mesh {
 	ID id;
 
@@ -73,8 +62,8 @@ typedef struct Mesh {
 	struct Material **mat;
 
 	struct MFace *mface;
-	struct TFace *tface;
-	void *dface;
+	struct MTFace *mtface;
+	struct TFace *tface;	/* depecrated, use mtface */
 	struct MVert *mvert;
 	struct MEdge *medge;
 	struct MDeformVert *dvert;	/* __NLA */
@@ -85,6 +74,8 @@ typedef struct Mesh {
 	
 	struct OcInfo *oc;		/* not written in file */
 	void *sumohandle;
+
+	struct CustomData vdata, edata, fdata;
 
 	int totvert, totedge, totface, totselect, pad2;
 	int texflag;
@@ -109,7 +100,14 @@ typedef struct Mesh {
 /*#endif*/
 } Mesh;
 
-
+/* deprecated by MTFace, only here for file reading */
+typedef struct TFace {
+	void *tpage;
+	float uv[4][2];
+	unsigned int col[4];
+	char flag, transp;
+	short mode, tile, unwrap;
+} TFace;
 
 /* **************** MESH ********************* */
 
@@ -130,48 +128,6 @@ typedef struct Mesh {
 /* Subsurf Type */
 #define ME_CC_SUBSURF 		0
 #define ME_SIMPLE_SUBSURF 	1
-
-#define TF_DYNAMIC		1
-/* #define TF_INVISIBLE	2 */
-#define TF_TEX			4
-#define TF_SHAREDVERT	8
-#define TF_LIGHT		16
-
-#define TF_SHAREDCOL	64
-#define TF_TILES		128
-#define TF_BILLBOARD	256
-#define TF_TWOSIDE		512
-#define TF_INVISIBLE	1024
-
-#define TF_OBCOL		2048
-#define TF_BILLBOARD2		4096	/* with Z axis constraint */
-#define TF_SHADOW		8192
-#define TF_BMFONT		16384
-
-/* tface->flag: 1=select 2=active*/
-#define TF_SELECT	1
-#define TF_ACTIVE	2
-#define TF_SEL1		4
-#define TF_SEL2		8
-#define TF_SEL3		16
-#define TF_SEL4		32
-#define TF_HIDE		64
-
-/* tface->transp */
-#define TF_SOLID	0
-#define TF_ADD		1
-#define TF_ALPHA	2
-#define TF_SUB		3
-
-/* tface->unwrap */
-#define TF_DEPRECATED1	1
-#define TF_DEPRECATED2	2
-#define TF_DEPRECATED3	4
-#define TF_DEPRECATED4	8
-#define TF_PIN1		    16
-#define TF_PIN2		    32
-#define TF_PIN3	   		64
-#define TF_PIN4	    	128
 
 #define MESH_MAX_VERTS 2000000000L
 

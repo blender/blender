@@ -179,10 +179,10 @@ void clear_realtime_image_cache()
 }
 
 /* REMEMBER!  Changes here must go into my_set_tpage() as well */
-int set_tpage(TFace *tface)
+int set_tpage(MTFace *tface)
 {	
 	static int alphamode= -1;
-	static TFace *lasttface= 0;
+	static MTFace *lasttface= 0;
 	Image *ima;
 	unsigned int *rect=NULL, *bind;
 	int tpx=0, tpy=0, tilemode, tileXRep,tileYRep;
@@ -557,7 +557,7 @@ EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
 
 	for (i=0; i<me->totface; i++) {
 		MFace *mf = &me->mface[i];
-		TFace *tf = &me->tface[i];
+		MTFace *tf = &me->mtface[i];
 		
 		if (mf->v3) {
 			if (!(tf->flag&TF_HIDE)) {
@@ -657,8 +657,8 @@ static int draw_tfaces3D__drawFaceOpts(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
 
-	if (me->tface) {
-		TFace *tface = &me->tface[index];
+	if (me->mtface) {
+		MTFace *tface = &me->mtface[index];
 		if (!(tface->flag&TF_HIDE) && (tface->flag&TF_SELECT))
 			return 2; /* Don't set color */
 		else
@@ -800,19 +800,19 @@ static Material *give_current_material_or_def(Object *ob, int matnr)
 	return ma?ma:&defmaterial;
 }
 
-static int set_draw_settings_cached(int clearcache, int textured, TFace *texface, int lit, Object *litob, int litmatnr, int doublesided)
+static int set_draw_settings_cached(int clearcache, int textured, MTFace *texface, int lit, Object *litob, int litmatnr, int doublesided)
 {
 	static int c_textured;
 	static int c_lit;
 	static int c_doublesided;
-	static TFace *c_texface;
+	static MTFace *c_texface;
 	static Object *c_litob;
 	static int c_litmatnr;
 	static int c_badtex;
 
 	if (clearcache) {
 		c_textured= c_lit= c_doublesided= -1;
-		c_texface= (TFace*) -1;
+		c_texface= (MTFace*) -1;
 		c_litob= (Object*) -1;
 		c_litmatnr= -1;
 		c_badtex= 0;
@@ -879,7 +879,7 @@ static int g_draw_tface_mesh_islight = 0;
 static int g_draw_tface_mesh_istex = 0;
 static unsigned char g_draw_tface_mesh_obcol[4];
 
-static int draw_tface__set_draw(TFace *tface, int matnr)
+static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
 {
 	if (tface && ((tface->flag&TF_HIDE) || (tface->mode&TF_INVISIBLE))) return 0;
 
@@ -889,23 +889,24 @@ static int draw_tface__set_draw(TFace *tface, int matnr)
 	} else if (tface && tface->mode&TF_OBCOL) {
 		glColor3ubv(g_draw_tface_mesh_obcol);
 		return 2; /* Don't set color */
-	} else if (!tface) {
+	} else if (!mcol) {
 		Material *ma= give_current_material(g_draw_tface_mesh_ob, matnr+1);
 		if(ma) glColor3f(ma->r, ma->g, ma->b);
-		else glColor3f(0.5, 0.5, 0.5);
-		return 1; /* Set color from mcol if available */
+		else glColor3f(1.0, 1.0, 1.0);
+		return 2; /* Don't set color */
 	} else {
-		return 1; /* Set color from tface */
+		return 1; /* Set color from mcol */
 	}
 }
 
 static int draw_tface_mapped__set_draw(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
-	TFace *tface = (me->tface)? &me->tface[index]: NULL;
+	MTFace *tface = (me->mtface)? &me->mtface[index]: NULL;
+	MCol *mcol = (me->mcol)? &me->mcol[index]: NULL;
 	int matnr = me->mface[index].mat_nr;
 
-	return draw_tface__set_draw(tface, matnr);
+	return draw_tface__set_draw(tface, mcol, matnr);
 }
 
 void draw_tface_mesh(Object *ob, Mesh *me, int dt)
@@ -915,11 +916,10 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	int a;
 	short istex, solidtex=0;
 	DerivedMesh *dm;
-	int dmNeedsFree;
 	
 	if(me==NULL) return;
 
-	dm = mesh_get_derived_final(ob, &dmNeedsFree);
+	dm = mesh_get_derived_final(ob);
 
 	glShadeModel(GL_SMOOTH);
 
@@ -951,7 +951,8 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	set_draw_settings_cached(1, 0, 0, 0, 0, 0, 0);
 
 	if(dt > OB_SOLID || g_draw_tface_mesh_islight==-1) {
-		TFace *tface= me->tface;
+		MTFace *tface= me->mtface;
+		MCol *mcol= me->mcol;
 		MFace *mface= me->mface;
 		bProperty *prop = get_property(ob, "Text");
 		int editing= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
@@ -962,9 +963,9 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 			/* verse-blender doesn't support uv mapping of textures yet */
 			dm->drawFacesTex(dm, NULL);
 		}
-		else if(ob==OBACT && (G.f & G_FACESELECT) && me && me->tface)
+		else if(ob==OBACT && (G.f & G_FACESELECT) && me && me->mtface)
 #else
-		if(ob==OBACT && (G.f & G_FACESELECT) && me && me->tface)
+		if(ob==OBACT && (G.f & G_FACESELECT) && me && me->mtface)
 #endif
 			dm->drawMappedFacesTex(dm, draw_tface_mapped__set_draw, (void*)me);
 		else
@@ -974,11 +975,11 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		totface = me->totface;
 
 		if (!editing && prop && tface) {
-			int dmNeedsFree;
-			DerivedMesh *dm = mesh_get_derived_deform(ob, &dmNeedsFree);
+			DerivedMesh *ddm = mesh_get_derived_deform(ob);
 
 			tface+= start;
-			for (a=start; a<totface; a++, tface++) {
+			mcol+= start*4;
+			for (a=start; a<totface; a++, tface++, mcol+=4) {
 				MFace *mf= &mface[a];
 				int mode= tface->mode;
 				int matnr= mf->mat_nr;
@@ -995,10 +996,10 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 					if (badtex)
 						continue;
 
-					dm->getVertCo(dm, mf->v1, v1);
-					dm->getVertCo(dm, mf->v2, v2);
-					dm->getVertCo(dm, mf->v3, v3);
-					if (mf->v4) dm->getVertCo(dm, mf->v4, v4);
+					ddm->getVertCo(ddm, mf->v1, v1);
+					ddm->getVertCo(ddm, mf->v2, v2);
+					ddm->getVertCo(ddm, mf->v3, v3);
+					if (mf->v4) ddm->getVertCo(ddm, mf->v4, v4);
 
 					// The BM_FONT handling code is duplicated in the gameengine
 					// Search for 'Frank van Beek' ;-)
@@ -1035,7 +1036,8 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 						movex+= curpos;
 
 						if (tface->mode & TF_OBCOL) glColor3ubv(obcol);
-						else cp= (char *)&(tface->col[0]);
+						else if (mcol) cp= (char *)mcol;
+						else glColor3ub(255, 255, 255);
 
 						glTexCoord2f((tface->uv[0][0] - centerx) * sizex + transx, (tface->uv[0][1] - centery) * sizey + transy);
 						if (cp) glColor3ub(cp[3], cp[2], cp[1]);
@@ -1061,7 +1063,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 				}
 			}
 
-			if (dmNeedsFree) dm->release(dm);
+			ddm->release(ddm);
 		}
 
 		/* switch off textures */
@@ -1070,7 +1072,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);
 	
-	if(ob==OBACT && (G.f & G_FACESELECT) && me && me->tface) {
+	if(ob==OBACT && (G.f & G_FACESELECT) && me && me->mtface) {
 		draw_tfaces3D(ob, me, dm);
 	}
 	
@@ -1090,7 +1092,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	
 	glFrontFace(GL_CCW);
 
-	if(dt > OB_SOLID && !(ob==OBACT && (G.f & G_FACESELECT) && me && me->tface)) {
+	if(dt > OB_SOLID && !(ob==OBACT && (G.f & G_FACESELECT) && me && me->mtface)) {
 		if(ob->flag & SELECT) {
 			BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
 		} else {
@@ -1098,6 +1100,8 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		}
 		dm->drawLooseEdges(dm);
 	}
+
+	dm->release(dm);
 }
 
 void init_realtime_GL(void)

@@ -1567,7 +1567,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 
 		/* check for defgroups */
 		if(evedef)
-			dvert= CustomData_em_get(&em->vdata, evedef->data, LAYERTYPE_MDEFORMVERT);
+			dvert= CustomData_em_get(&em->vdata, evedef->data, CD_MDEFORMVERT);
 		if(tot==1 && dvert && dvert->totweight) {
 			bDeformGroup *dg;
 			int i, max=1, init=1;

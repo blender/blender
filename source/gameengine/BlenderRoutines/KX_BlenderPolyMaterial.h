@@ -35,14 +35,14 @@
 #include "RAS_MaterialBucket.h"
 #include "RAS_IRasterizer.h"
 
-struct TFace;
-extern "C" int set_tpage(TFace* tface);		/* Worst hack ever */
+struct MTFace;
+extern "C" int set_tpage(MTFace* tface);		/* Worst hack ever */
 
 #if 0
 class KX_BlenderPolyMaterial : public RAS_IPolyMaterial
 {
 	/** Blender texture face structure. */
-	TFace* m_tface;
+	MTFace* m_tface;
 
 public:
 	
@@ -58,7 +58,7 @@ public:
 		int lightlayer,
 		bool bIsTriangle,
 		void* clientobject,
-		struct TFace* tface);	
+		struct MTFace* tface);	
 	
 	/**
 	 * Returns the caching information for this material,
@@ -80,20 +80,20 @@ public:
 	 * Returns the Blender texture face structure that is used for this material.
 	 * @return The material's texture face.
 	 */
-	TFace* GetTFace(void) const;
+	MTFace* GetMTFace(void) const;
 protected:
 private:
 };
 
 
-inline TFace* KX_BlenderPolyMaterial::GetTFace(void) const
+inline MTFace* KX_BlenderPolyMaterial::GetMTFace(void) const
 {
 	return m_tface;
 }
 
 inline RAS_IPolyMaterial::TCachingInfo KX_BlenderPolyMaterial::GetCachingInfo(void) const
 {
-	return GetTFace();
+	return GetMTFace();
 }
 
 #endif

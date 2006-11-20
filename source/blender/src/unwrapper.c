@@ -82,7 +82,7 @@ static void hash_add_face(EdgeHash *ehash, MFace *mf)
 
 void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 {
-	TFace *tf;
+	MTFace *tf;
 	MFace *mf;
 	int a, doit=1, mark=0;
 	char *linkflag;
@@ -105,7 +105,7 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 	}
 	else {
 		/* fill array by selection */
-		tf= me->tface;
+		tf= me->mtface;
 		mf= me->mface;
 		for(a=0; a<me->totface; a++, tf++, mf++) {
 			if(tf->flag & TF_HIDE);
@@ -120,7 +120,7 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 		doit= 0;
 		
 		/* expand selection */
-		tf= me->tface;
+		tf= me->mtface;
 		mf= me->mface;
 		for(a=0; a<me->totface; a++, tf++, mf++) {
 			if(tf->flag & TF_HIDE)
@@ -161,24 +161,24 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 	BLI_edgehash_free(seamhash, NULL);
 
 	if(mode==0 || mode==2) {
-		for(a=0, tf=me->tface; a<me->totface; a++, tf++)
+		for(a=0, tf=me->mtface; a<me->totface; a++, tf++)
 			if(linkflag[a])
 				tf->flag |= TF_SELECT;
 			else
 				tf->flag &= ~TF_SELECT;
 	}
 	else if(mode==1) {
-		for(a=0, tf=me->tface; a<me->totface; a++, tf++)
+		for(a=0, tf=me->mtface; a<me->totface; a++, tf++)
 			if(linkflag[a] && (tf->flag & TF_SELECT))
 				break;
 
 		if (a<me->totface) {
-			for(a=0, tf=me->tface; a<me->totface; a++, tf++)
+			for(a=0, tf=me->mtface; a<me->totface; a++, tf++)
 				if(linkflag[a])
 					tf->flag &= ~TF_SELECT;
 		}
 		else {
-			for(a=0, tf=me->tface; a<me->totface; a++, tf++)
+			for(a=0, tf=me->mtface; a<me->totface; a++, tf++)
 				if(linkflag[a])
 					tf->flag |= TF_SELECT;
 		}
@@ -195,7 +195,7 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 ParamHandle *construct_param_handle(Mesh *me, short implicit, short fill, short sel)
 {
 	int a;
-	TFace *tf;
+	MTFace *tf;
 	MFace *mf;
 	MVert *mv;
 	MEdge *medge;
@@ -205,7 +205,7 @@ ParamHandle *construct_param_handle(Mesh *me, short implicit, short fill, short 
 	
 	mv= me->mvert;
 	mf= me->mface;
-	tf= me->tface;
+	tf= me->mtface;
 	for (a=0; a<me->totface; a++, mf++, tf++) {
 		ParamKey key, vkeys[4];
 		ParamBool pin[4], select[4];
@@ -282,7 +282,7 @@ void unwrap_lscm(short seamcut)
 	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
 	
 	me= get_mesh(OBACT);
-	if(me==0 || me->tface==0) return;
+	if(me==0 || me->mtface==0) return;
 
 	handle = construct_param_handle(me, 0, fillholes, seamcut == 0);
 
@@ -315,7 +315,7 @@ void minimize_stretch_tface_uv(void)
 	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
 	
 	me = get_mesh(OBACT);
-	if(me==0 || me->tface==0) return;
+	if(me==0 || me->mtface==0) return;
 
 	handle = construct_param_handle(me, 1, fillholes, 1);
 
@@ -409,7 +409,7 @@ void unwrap_lscm_live_begin(void)
 	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
 
 	me= get_mesh(OBACT);
-	if(me==0 || me->tface==0) return;
+	if(me==0 || me->mtface==0) return;
 
 	liveHandle = construct_param_handle(me, 0, fillholes, 1);
 

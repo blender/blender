@@ -65,6 +65,7 @@
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_curve.h"
+#include "BKE_customdata.h"
 #include "BKE_constraint.h"
 #include "BKE_displist.h"
 #include "BKE_deform.h"
@@ -431,7 +432,7 @@ static void calc_edge_stress(Render *re, Mesh *me, int startvert, int startvlak)
 /* gets tangent from tface or orco */
 static void calc_tangent_vector(Render *re, VlakRen *vlr)
 {
-	TFace *tface= vlr->tface;
+	MTFace *tface= vlr->tface;
 	VertRen *v1=vlr->v1, *v2=vlr->v2, *v3=vlr->v3, *v4=vlr->v4;
 	float tang[3], tangv[3], ct[3], e1[3], e2[3], *tav;
 	float *uv1, *uv2, *uv3, *uv4;
@@ -1627,13 +1628,13 @@ static void init_render_mball(Render *re, Object *ob)
 struct edgesort {
 	int v1, v2;
 	int has_mcol;
-	TFace *tface;
+	MTFace *tface;
 	float uv1[2], uv2[2];
 	unsigned int mcol1, mcol2;
 };
 
 /* edges have to be added with lowest index first for sorting */
-static void to_edgesort(struct edgesort *ed, int i1, int i2, int v1, int v2, unsigned int *mcol, TFace *tface)
+static void to_edgesort(struct edgesort *ed, int i1, int i2, int v1, int v2, unsigned int *mcol, MTFace *tface)
 {
 	if(v1<v2) {
 		ed->v1= v1; ed->v2= v2;
@@ -1649,9 +1650,6 @@ static void to_edgesort(struct edgesort *ed, int i1, int i2, int v1, int v2, uns
 		ed->uv1[1]= tface->uv[i1][1];
 		ed->uv2[0]= tface->uv[i2][0];
 		ed->uv2[1]= tface->uv[i2][1];
-		
-		ed->mcol1= tface->col[i1];
-		ed->mcol2= tface->col[i2];
 	}	
 	ed->has_mcol= mcol!=NULL;
 	if(mcol) {
@@ -1672,29 +1670,18 @@ static int vergedgesort(const void *v1, const void *v2)
 	return 0;
 }
 
-static struct edgesort *make_mesh_edge_lookup(Mesh *me, DispListMesh *dlm, int *totedgesort)
+static struct edgesort *make_mesh_edge_lookup(DerivedMesh *dm, int *totedgesort)
 {
 	MFace *mf, *mface;
-	TFace *tface=NULL;
+	MTFace *tface=NULL;
 	struct edgesort *edsort, *ed;
 	unsigned int *mcol=NULL;
 	int a, totedge=0, totface;
 	
-	if (dlm) {
-		mface= dlm->mface;
-		totface= dlm->totface;
-		if (dlm->tface) 
-			tface= dlm->tface;
-		else if (dlm->mcol)
-			mcol= (unsigned int *)dlm->mcol;
-	} else {
-		mface= me->mface;
-		totface= me->totface;
-		if (me->tface) 
-			tface= me->tface;
-		else if (me->mcol)
-			mcol= (unsigned int *)me->mcol;
-	}
+	mface= dm->getFaceArray(dm);
+	totface= dm->getNumFaces(dm);
+	tface= dm->getFaceDataArray(dm, CD_MTFACE);
+	mcol= dm->getFaceDataArray(dm, CD_MCOL);
 	
 	if(mcol==NULL && tface==NULL) return NULL;
 	
@@ -1707,7 +1694,7 @@ static struct edgesort *make_mesh_edge_lookup(Mesh *me, DispListMesh *dlm, int *
 	
 	ed= edsort= MEM_callocN(totedge*sizeof(struct edgesort), "edgesort");
 	
-	for(a= me->totface, mf= mface; a>0; a--, mf++) {
+	for(a= totface, mf= mface; a>0; a--, mf++) {
 		if(mface->v4 || mface->v3) {
 			to_edgesort(ed++, 0, 1, mf->v1, mf->v2, mcol, tface);
 			to_edgesort(ed++, 1, 2, mf->v2, mf->v3, mcol, tface);
@@ -1729,7 +1716,7 @@ static struct edgesort *make_mesh_edge_lookup(Mesh *me, DispListMesh *dlm, int *
 	return edsort;
 }
 
-static void use_mesh_edge_lookup(Render *re, Mesh *me, DispListMesh *dlm, MEdge *medge, VlakRen *vlr, struct edgesort *edgetable, int totedge)
+static void use_mesh_edge_lookup(Render *re, MEdge *medge, VlakRen *vlr, struct edgesort *edgetable, int totedge)
 {
 	struct edgesort ed, *edp;
 	
@@ -1744,20 +1731,8 @@ static void use_mesh_edge_lookup(Render *re, Mesh *me, DispListMesh *dlm, MEdge 
 	if(edp) {
 		/* since edges have different index ordering, we have to duplicate mcol and tface */
 		if(edp->tface) {
-			vlr->tface= BLI_memarena_alloc(re->memArena, sizeof(TFace));
-			vlr->vcol= vlr->tface->col;
-			memcpy(vlr->tface, edp->tface, sizeof(TFace));
-			
-			if(edp->v1==medge->v1) {
-				vlr->vcol[0]= edp->mcol1;
-				vlr->vcol[1]= edp->mcol2;
-			}
-			else {
-				vlr->vcol[0]= edp->mcol2;
-				vlr->vcol[1]= edp->mcol1;
-			}
-			vlr->vcol[2]= vlr->vcol[1];
-			vlr->vcol[3]= vlr->vcol[1];
+			vlr->tface= BLI_memarena_alloc(re->memArena, sizeof(MTFace));
+			memcpy(vlr->tface, edp->tface, sizeof(MTFace));
 			
 			if(edp->v1==medge->v1) {
 				memcpy(vlr->tface->uv[0], edp->uv1, 2*sizeof(float));
@@ -1770,7 +1745,7 @@ static void use_mesh_edge_lookup(Render *re, Mesh *me, DispListMesh *dlm, MEdge 
 			memcpy(vlr->tface->uv[2], vlr->tface->uv[1], 2*sizeof(float));
 			memcpy(vlr->tface->uv[3], vlr->tface->uv[1], 2*sizeof(float));
 		} 
-		else if(edp->has_mcol) {
+		if(edp->has_mcol) {
 			vlr->vcol= BLI_memarena_alloc(re->memArena, sizeof(MCol)*4);
 			vlr->vcol[0]= edp->mcol1;
 			vlr->vcol[1]= edp->mcol2;
@@ -1790,13 +1765,12 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 	Material *ma;
 	MSticky *ms = NULL;
 	PartEff *paf;
-	DispListMesh *dlm = NULL;
 	DerivedMesh *dm;
 	unsigned int *vertcol;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *orco=0;
 	int a, a1, ok, need_orco=0, need_stress=0, need_tangent=0, totvlako, totverto, vertofs;
-	int end, do_autosmooth=0, totvert = 0, dm_needsfree;
+	int end, do_autosmooth=0, totvert = 0;
 	int useFluidmeshNormals= 0; // NT fluidsim, use smoothed normals?
 	int use_original_normals= 0;
 
@@ -1832,7 +1806,7 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 			/* qdn: normalmaps, test if tangents needed, separated from shading */
 			if ((ma->mode & MA_TANGENT_V) || (ma->mode & MA_NORMAP_TANG)) {
 				need_tangent= 1;
-				if(me->tface==NULL)
+				if(me->mtface==NULL)
 					need_orco= 1;
 			}
 			/* radio faces need autosmooth, to separate shared vertices in corners */
@@ -1886,7 +1860,6 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 	}
 
 	dm = mesh_create_derived_render(ob);
-	dm_needsfree= 1;
 
 	/* (Multires) Now switch the meshes back around */
 	if(me->mr) {
@@ -1903,13 +1876,11 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 		useFluidmeshNormals = 1;
 	}
 
-	dlm = dm->convertToDispListMesh(dm, 1);
-
-	mvert= dlm->mvert;
-	totvert= dlm->totvert;
+	mvert= dm->getVertArray(dm);
+	totvert= dm->getNumVerts(dm);
 
 	/* attempt to autsmooth on original mesh, only without subsurf */
-	if(do_autosmooth && me->totvert==totvert && me->totface==dlm->totface)
+	if(do_autosmooth && me->totvert==totvert && me->totface==dm->getNumFaces(dm))
 		use_original_normals= 1;
 	
 	ms = (totvert==me->totvert)?me->msticky:NULL;
@@ -1973,35 +1944,17 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 				
 				/* if wire material, and we got edges, don't do the faces */
 				if(ma->mode & MA_WIRE) {
-					end= dlm?dlm->totedge:me->totedge;
+					end= dm->getNumEdges(dm);
 					if(end) ok= 0;
 				}
 
 				if(ok) {
-					TFace *tface= NULL;
+					MTFace *tface= NULL;
 
-					end= dlm?dlm->totface:me->totface;
-					if (dlm) {
-						mface= dlm->mface;
-						if (dlm->tface) {
-							tface= dlm->tface;
-							vertcol= NULL;
-						} else if (dlm->mcol) {
-							vertcol= (unsigned int *)dlm->mcol;
-						} else {
-							vertcol= NULL;
-						}
-					} else {
-						mface= me->mface;
-						if (me->tface) {
-							tface= me->tface;
-							vertcol= NULL;
-						} else if (me->mcol) {
-							vertcol= (unsigned int *)me->mcol;
-						} else {
-							vertcol= NULL;
-						}
-					}
+					end= dm->getNumFaces(dm);
+					mface= dm->getFaceArray(dm);
+					tface= dm->getFaceDataArray(dm, CD_MTFACE);
+					vertcol= dm->getFaceDataArray(dm, CD_MCOL);
 
 					for(a=0; a<end; a++) {
 						int v1, v2, v3, v4, flag;
@@ -2050,24 +2003,13 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 
 							if(len==0) re->totvlak--;
 							else {
-								if(dlm) {
-									if(tface) {
-										vlr->tface= BLI_memarena_alloc(re->memArena, sizeof(TFace));
-										vlr->vcol= vlr->tface->col;
-										memcpy(vlr->tface, tface, sizeof(TFace));
-									} 
-									else if (vertcol) {
-										vlr->vcol= BLI_memarena_alloc(re->memArena, sizeof(int)*4);
-										memcpy(vlr->vcol, vertcol+4*a, sizeof(int)*4);
-									}
-								} else {
-									if(tface) {
-										vlr->vcol= tface->col;
-										vlr->tface= tface;
-									} 
-									else if (vertcol) {
-										vlr->vcol= vertcol+4*a;
-									}
+								if(tface) {
+									vlr->tface= BLI_memarena_alloc(re->memArena, sizeof(MTFace));
+									memcpy(vlr->tface, tface, sizeof(MTFace));
+								} 
+								if (vertcol) {
+									vlr->vcol= BLI_memarena_alloc(re->memArena, sizeof(int)*4);
+									memcpy(vlr->vcol, vertcol+4*a, sizeof(int)*4);
 								}
 							}
 						}
@@ -2079,18 +2021,18 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 			}
 			
 			/* exception... we do edges for wire mode. potential conflict when faces exist... */
-			end= dlm?dlm->totedge:me->totedge;
-			mvert= dlm?dlm->mvert:me->mvert;
+			end= dm->getNumEdges(dm);
+			mvert= dm->getVertArray(dm);
 			ma= give_render_material(re, ob, 1);
 			if(end && (ma->mode & MA_WIRE)) {
 				MEdge *medge;
 				struct edgesort *edgetable;
 				int totedge;
 				
-				medge= dlm?dlm->medge:me->medge;
+				medge= dm->getEdgeArray(dm);
 				
 				/* we want edges to have UV and vcol too... */
-				edgetable= make_mesh_edge_lookup(me, dlm, &totedge);
+				edgetable= make_mesh_edge_lookup(dm, &totedge);
 				
 				for(a1=0; a1<end; a1++, medge++) {
 					if (medge->flag&ME_EDGERENDER) {
@@ -2105,7 +2047,7 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 						vlr->v4= NULL;
 						
 						if(edgetable) {
-							use_mesh_edge_lookup(re, me, dlm, medge, vlr, edgetable, totedge);
+							use_mesh_edge_lookup(re, medge, vlr, edgetable, totedge);
 						}
 						
 						xn= -(v0->no[0]+v1->no[0]);
@@ -2150,8 +2092,7 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 			calc_edge_stress(re, me, totverto, totvlako);
 	}
 
-	if(dlm) displistmesh_free(dlm);
-	if(dm_needsfree) dm->release(dm);
+	dm->release(dm);
 	if(me_store) {
 		free_mesh(me_store);
 		MEM_freeN(me_store);
@@ -4073,8 +4014,9 @@ void RE_make_sticky(void)
 				
 				me= ob->data;
 				mvert= me->mvert;
-				if(me->msticky) MEM_freeN(me->msticky);
-				me->msticky= MEM_mallocN(me->totvert*sizeof(MSticky), "sticky");
+				if(me->msticky)
+					CustomData_free_layer(&me->vdata, CD_MSTICKY, me->totvert);
+				me->msticky= CustomData_add_layer(&me->vdata, CD_MSTICKY, 0, NULL, me->totvert);
 				
 				where_is_object(ob);
 				Mat4MulMat4(mat, ob->obmat, re->viewmat);

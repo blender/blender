@@ -227,7 +227,6 @@ static void GetRGB(short type,
 	MFace* mface,
 	MCol* mmcol,
 	Material *mat,
-	TFace *tface,
 	unsigned int &c0, 
 	unsigned int &c1, 
 	unsigned int &c2, 
@@ -236,7 +235,7 @@ static void GetRGB(short type,
 	unsigned int colour = 0xFFFFFFFFL;
 	switch(type)
 	{
-		case 0:	// vertex colors?
+		case 0:	// vertex colors
 		{
 			if(mmcol) {
 				c0 = KX_Mcol2uint_new(mmcol[0]);
@@ -244,7 +243,6 @@ static void GetRGB(short type,
 				c2 = KX_Mcol2uint_new(mmcol[2]);
 				if (mface->v4)
 					c3 = KX_Mcol2uint_new(mmcol[3]);
-				mmcol += 4;
 			}else // backup white
 			{
 				c0 = KX_rgbaint2uint_new(colour);
@@ -276,26 +274,7 @@ static void GetRGB(short type,
 				c3 = KX_rgbaint2uint_new(colour);
 		} break;
 		
-		case 2: // vertex colors
-		{
-			if(tface ) {
-				c0 = KX_rgbaint2uint_new(tface->col[0]);
-				c1 = KX_rgbaint2uint_new(tface->col[1]);
-				c2 = KX_rgbaint2uint_new(tface->col[2]);
-			
-				if (mface->v4) {
-					c3 = KX_rgbaint2uint_new(tface->col[3]);
-				}
-			}else {
-				c0 = KX_rgbaint2uint_new(colour);
-				c1 = KX_rgbaint2uint_new(colour);
-				c2 = KX_rgbaint2uint_new(colour);	
-				if (mface->v4)
-					c3 = KX_rgbaint2uint_new( colour );
-			}
-		} break;
-		
-		case 3: // white
+		default: // white
 		{
 			c0 = KX_rgbaint2uint_new(colour);
 			c1 = KX_rgbaint2uint_new(colour);
@@ -307,20 +286,18 @@ static void GetRGB(short type,
 }
 
 // ------------------------------------
-BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* mface, MCol* mmcol, int lightlayer, Object* blenderobj )
+BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, MTFace* tface,  MFace* mface, MCol* mmcol, int lightlayer, Object* blenderobj )
 {
 	//this needs some type of manager
 	BL_Material *material = new BL_Material();
 
 	int numchan =	-1;
 	bool validmat	= (mat!=0);
-	bool validface	= (mesh->tface && tface);
+	bool validface	= (mesh->mtface && tface);
 	
 	short type = 0;
 	if( validmat )
 		type = 1; // material color 
-	else if(mesh->tface && tface)
-		type = 2; // vertex colors
 	
 	material->IdMode = DEFAULT_BLENDER;
 
@@ -328,8 +305,8 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 	if(validmat) {
 
 		// use vertex colors by explicitly setting
-		if(mat->mode &MA_VERTEXCOLP) 
-			type = 2;
+		if(mat->mode &MA_VERTEXCOLP)
+			type = 0;
 
 		// use lighting?
 		material->ras_mode |= ( mat->mode & MA_SHLESS )?0:USE_LIGHT;
@@ -593,7 +570,7 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, TFace* tface,  MFace* 
 		material->tile		= 0;
 	}
 	unsigned int rgb[4];
-	GetRGB(type,mface,mmcol,mat,tface,rgb[0],rgb[1],rgb[2], rgb[3]);
+	GetRGB(type,mface,mmcol,mat,rgb[0],rgb[1],rgb[2], rgb[3]);
 	material->SetConversionRGB(rgb);
 	material->SetConversionUV(uv);
 
@@ -632,7 +609,7 @@ static void BL_ComputeTriTangentSpace(const MT_Vector3 &v1, const MT_Vector3 &v2
 static MT_Vector4*  BL_ComputeMeshTangentSpace(Mesh* mesh)
 {
 	MFace* mface = static_cast<MFace*>(mesh->mface);
-	TFace* tface = static_cast<TFace*>(mesh->tface);
+	MTFace* tface = static_cast<MTFace*>(mesh->mtface);
 
 	MT_Vector3 *tan1 = new MT_Vector3[mesh->totvert];
 	MT_Vector3 *tan2 = new MT_Vector3[mesh->totvert];
@@ -696,7 +673,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	int lightlayer = blenderobj->lay;
 	
 	MFace* mface = static_cast<MFace*>(mesh->mface);
-	TFace* tface = static_cast<TFace*>(mesh->tface);
+	MTFace* tface = static_cast<MTFace*>(mesh->mtface);
 	MCol* mmcol = mesh->mcol;
 	MT_assert(mface || mesh->totface == 0);
 	
@@ -808,10 +785,10 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				{
 					ma = give_current_material(blenderobj, 1);
 
-					Image* bima = ((mesh->tface && tface) ? (Image*) tface->tpage : NULL);
+					Image* bima = ((mesh->mtface && tface) ? (Image*) tface->tpage : NULL);
 		
 					STR_String imastr = 
-						((mesh->tface && tface) ? 
+						((mesh->mtface && tface) ? 
 						(bima? (bima)->id.name : "" ) : "" );
 			
 					char transp=0;
@@ -825,7 +802,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				
 					}
 
-					if (mesh->tface && tface)
+					if (mesh->mtface && tface)
 					{
 						// Use texface colors if available
 						//TF_DYNAMIC means the polygon is a collision face
@@ -839,76 +816,59 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 						uv0 = MT_Point2(tface->uv[0]);
 						uv1 = MT_Point2(tface->uv[1]);
 						uv2 = MT_Point2(tface->uv[2]);
-						rgb0 = KX_rgbaint2uint_new(tface->col[0]);
-						rgb1 = KX_rgbaint2uint_new(tface->col[1]);
-						rgb2 = KX_rgbaint2uint_new(tface->col[2]);
 		
 						if (mface->v4)
-						{
 							uv3 = MT_Point2(tface->uv[3]);
-							rgb3 = KX_rgbaint2uint_new(tface->col[3]);
-						} 
 					} 
+					if (mmcol)
+					{
+						// Use vertex colours
+						rgb0 = KX_Mcol2uint_new(mmcol[0]);
+						rgb1 = KX_Mcol2uint_new(mmcol[1]);
+						rgb2 = KX_Mcol2uint_new(mmcol[2]);
+						
+						if (mface->v4)
+							rgb3 = KX_Mcol2uint_new(mmcol[3]);
+					}
 					else
 					{
-						//
-						if (mmcol)
+						// If there are no vertex colors OR texfaces,
+						// Initialize face to white and set COLLSION true and everything else FALSE
+						unsigned int colour = 0xFFFFFFFFL;
+						mode = default_face_mode;	
+						transp = TF_SOLID;
+						tile = 0;
+						if (ma)
 						{
-							// Use vertex colours
-							rgb0 = KX_Mcol2uint_new(mmcol[0]);
-							rgb1 = KX_Mcol2uint_new(mmcol[1]);
-							rgb2 = KX_Mcol2uint_new(mmcol[2]);
-							
-							
-							if (mface->v4)
+							// If we have a material, take the default colour from the material.
+							union
 							{
-								rgb3 = KX_Mcol2uint_new(mmcol[3]);
-								
-							}
+								unsigned char cp[4];
+								unsigned int integer;
+							} col_converter;
+							
+							col_converter.cp[3] = (unsigned char) (ma->r*255.0);
+							col_converter.cp[2] = (unsigned char) (ma->g*255.0);
+							col_converter.cp[1] = (unsigned char) (ma->b*255.0);
+							col_converter.cp[0] = (unsigned char) (ma->alpha*255.0);
+							
+							colour = col_converter.integer;
+						}
 						
-							mmcol += 4;
-						}
-						else
-						{
-							// If there are no vertex colors OR texfaces,
-							// Initialize face to white and set COLLSION true and everything else FALSE
-							unsigned int colour = 0xFFFFFFFFL;
-							mode = default_face_mode;	
-							transp = TF_SOLID;
-							tile = 0;
-							if (ma)
-							{
-								// If we have a material, take the default colour from the material.
-								union
-								{
-									unsigned char cp[4];
-									unsigned int integer;
-								} col_converter;
-								
-								col_converter.cp[3] = (unsigned char) (ma->r*255.0);
-								col_converter.cp[2] = (unsigned char) (ma->g*255.0);
-								col_converter.cp[1] = (unsigned char) (ma->b*255.0);
-								col_converter.cp[0] = (unsigned char) (ma->alpha*255.0);
-								
-								colour = col_converter.integer;
-							}
-							
-							rgb0 = KX_rgbaint2uint_new(colour);
-							rgb1 = KX_rgbaint2uint_new(colour);
-							rgb2 = KX_rgbaint2uint_new(colour);	
-							
-							if (mface->v4)
-								rgb3 = KX_rgbaint2uint_new(colour);
-						}
+						rgb0 = KX_rgbaint2uint_new(colour);
+						rgb1 = KX_rgbaint2uint_new(colour);
+						rgb2 = KX_rgbaint2uint_new(colour);	
+						
+						if (mface->v4)
+							rgb3 = KX_rgbaint2uint_new(colour);
 					}
-						
 					
 					bool istriangle = (mface->v4==0);
 					bool zsort = ma?(ma->mode & MA_ZTRA) != 0:false;
 					
 					polymat = new KX_PolygonMaterial(imastr, ma,
 						tile, tilexrep, tileyrep, 
-						mode, transp, zsort, lightlayer, istriangle, blenderobj, tface);
+						mode, transp, zsort, lightlayer, istriangle, blenderobj, tface, (unsigned int*)mmcol);
 		
 					if (ma)
 					{
@@ -985,6 +945,8 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		}
 		if (tface) 
 			tface++;
+		if (mmcol)
+			mmcol+=4;
 	}
 	meshobj->UpdateMaterialList();
 

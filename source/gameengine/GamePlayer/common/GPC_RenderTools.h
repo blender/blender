@@ -157,7 +157,8 @@ protected:
 		int mode,
 		const char* textstr,
 		int textlen,
-		struct TFace* tface,
+		struct MTFace* tface,
+		unsigned int* col,
 		float v1[3],float v2[3],float v3[3],float v4[3]);
 	void BL_spack(unsigned int ucol)
 	{

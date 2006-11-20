@@ -37,7 +37,7 @@
 #include "RAS_MaterialBucket.h"
 #include "RAS_IRasterizer.h"
 
-struct TFace;
+struct MTFace;
 struct Material;
 struct MTex;
 
@@ -52,7 +52,8 @@ class KX_PolygonMaterial : public PyObjectPlus, public RAS_IPolyMaterial
 	Py_Header;
 private:
 	/** Blender texture face structure. */
-	TFace*			m_tface;
+	MTFace*			m_tface;
+	unsigned int*	m_mcol;
 	Material*		m_material;
 	
 	PyObject*		m_pymaterial;
@@ -71,7 +72,8 @@ public:
 		int lightlayer,
 		bool bIsTriangle,
 		void* clientobject,
-		struct TFace* tface,
+		struct MTFace* tface,
+		unsigned int* mcol,
 		PyTypeObject *T = &Type);
 	virtual ~KX_PolygonMaterial();
 	
@@ -99,9 +101,14 @@ public:
 	 * Returns the Blender texture face structure that is used for this material.
 	 * @return The material's texture face.
 	 */
-	TFace* GetTFace(void) const
+	MTFace* GetMTFace(void) const
 	{
 		return m_tface;
+	}
+
+	unsigned int* GetMCol(void) const
+	{
+		return m_mcol;
 	}
 	
 	

@@ -1230,7 +1230,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	string matname(face0mat->id.name);
 	// use name in imgtex_shader list if 'TexFace' enabled for this material
 	if (face0mat->mode & MA_FACETEXTURE) {
-		TFace* tface = face0->tface;
+		MTFace* tface = face0->tface;
 		if (tface) {
 			Image* fimg = (Image*)tface->tpage;
 			if (fimg) matname = imgtex_shader[string(face0mat->id.name) + string(fimg->id.name)];
@@ -1412,7 +1412,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		string fmatname(fmat->id.name);
 		// use name in imgtex_shader list if 'TexFace' enabled for this face material
 		if (fmat->mode & MA_FACETEXTURE) {
-			TFace* tface = vlr->tface;
+			MTFace* tface = vlr->tface;
 			if (tface) {
 				Image* fimg = (Image*)tface->tpage;
 				if (fimg) fmatname = imgtex_shader[fmatname + string(fimg->id.name)];
@@ -1437,7 +1437,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		}
 		else if (vlr->flag & R_FACE_SPLIT) { ui2++;  ui3++; }
 
-		TFace* uvc = vlr->tface;	// possible uvcoords (v upside down)
+		MTFace* uvc = vlr->tface;	// possible uvcoords (v upside down)
 		if (uvc) {
 			ostr << " u_a=\"" << uvc->uv[ui1][0] << "\" v_a=\"" << 1-uvc->uv[ui1][1] << "\""
 			     << " u_b=\"" << uvc->uv[ui2][0] << "\" v_b=\"" << 1-uvc->uv[ui2][1] << "\""

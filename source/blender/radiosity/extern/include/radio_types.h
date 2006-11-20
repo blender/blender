@@ -42,7 +42,7 @@
 #include "DNA_material_types.h" 
 
 struct Render;
-struct TFace;
+struct CustomData;
 
 #define DTWIRE		0
 #define DTGOUR		2
@@ -88,14 +88,14 @@ typedef struct RNode {					/* length: 104 */
 	float totrad[3], area;
 	
 	unsigned int col;
-	unsigned int orig;					/* index in face elem data */
+	int orig;							/* index in custom face data */
 } RNode;
 
 
 typedef struct Face {					/* length: 52 */
 	float *v1, *v2, *v3, *v4;
 	unsigned int col, matindex;
-	unsigned int orig;					/* index in face elem data */
+	int orig;							/* index in custom face data */
 } Face;
 
 /* rp->f1 */
@@ -156,8 +156,10 @@ typedef struct {
 	Material *matar[MAXMAT];
 	int totmat;
 
-	struct RNode **mfdatanodes; /* nodes associated with the mfdata */
-	struct TFace *tface;
+	/* for preserving face data */
+	int mfdatatot;
+	struct CustomData *mfdata;
+	struct RNode **mfdatanodes;
 	
 		/* this part is a copy of struct Radio */
 	short hemires, maxiter;

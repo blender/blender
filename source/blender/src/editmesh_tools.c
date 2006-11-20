@@ -1277,40 +1277,6 @@ static void flipvertarray(EditVert** arr, short size)
 	}
 }
 
-void interp_uv_vcol(float *v1, float *v2, float *v3, float *v4, float *co, TFace *tf, TFace *outtf, int j)
-{ 
-	char *cp0, *cp1, *cp2, *cp3, *col;
-	float *uv, w[4];
-	int i, fac;
-
-	col = (char*)&outtf->col[j];
-	uv = (float*)outtf->uv[j];
-
-	InterpWeightsQ3Dfl(v1, v2, v3, v4, co, w);
-
-	uv[0]= w[0]*tf->uv[0][0] + w[1]*tf->uv[1][0] + w[2]*tf->uv[2][0];
-	uv[1]= w[0]*tf->uv[0][1] + w[1]*tf->uv[1][1] + w[2]*tf->uv[2][1];
-
-	if (v4) {
-		uv[0] += w[3]*tf->uv[3][0];
-		uv[1] += w[3]*tf->uv[3][1];
-	}
-
-	cp0= (char*)&(tf->col[0]);
-	cp1= (char*)&(tf->col[1]);
-	cp2= (char*)&(tf->col[2]);
-	cp3= (char*)&(tf->col[3]);
-
-	for(i=0; i < 4; i++) {
-		if (v4)
-			fac= (int)(w[0]*cp0[i] + w[1]*cp1[i] + w[2]*cp2[i] + w[3]*cp3[i]);
-		else
-			fac= (int)(w[0]*cp0[i] + w[1]*cp1[i] + w[2]*cp2[i]);
-
-		col[i]= CLAMPIS(fac, 0, 255);
-	}
-} 
-
 static void facecopy(EditFace *source, EditFace *target)
 {
 	EditMesh *em= G.editMesh;
@@ -3245,10 +3211,10 @@ static int compareFaceUV(EditFace *f1, EditFace *f2)
 {
 	EditVert **faceVert1, **faceVert2, *faceVerts1[5], *faceVerts2[5];
 	int i1, i2;
-	TFace *tf1, *tf2;
+	MTFace *tf1, *tf2;
 
-	tf1 = CustomData_em_get(&G.editMesh->fdata, f1->data, LAYERTYPE_TFACE);
-	tf2 = CustomData_em_get(&G.editMesh->fdata, f2->data, LAYERTYPE_TFACE);
+	tf1 = CustomData_em_get(&G.editMesh->fdata, f1->data, CD_MTFACE);
+	tf2 = CustomData_em_get(&G.editMesh->fdata, f2->data, CD_MTFACE);
 	
 	if(tf1 == NULL || tf2 == NULL) return 1;
 	else if(tf1->tpage == NULL && tf2->tpage == NULL)
@@ -3283,16 +3249,10 @@ static int compareFaceCol(EditFace *f1, EditFace *f2)
 {
 	EditVert **faceVert1, **faceVert2, *faceVerts1[5], *faceVerts2[5];
 	int i1, i2;
-	TFace *tf1, *tf2;
 	unsigned int *col1, *col2;
 
-	tf1 = CustomData_em_get(&G.editMesh->fdata, f1->data, LAYERTYPE_TFACE);
-	tf2 = CustomData_em_get(&G.editMesh->fdata, f2->data, LAYERTYPE_TFACE);
-
-	if(tf1) col1 = tf1->col;
-	else col1 = CustomData_em_get(&G.editMesh->fdata, f1->data, LAYERTYPE_MCOL);
-	if(tf2) col2 = tf2->col;
-	else col2 = CustomData_em_get(&G.editMesh->fdata, f2->data, LAYERTYPE_MCOL);
+	col1 = CustomData_em_get(&G.editMesh->fdata, f1->data, CD_MCOL);
+	col2 = CustomData_em_get(&G.editMesh->fdata, f2->data, CD_MCOL);
 
 	if(!col1 || !col2) return 1;
 	
@@ -5876,7 +5836,7 @@ static void append_weldedUV(EditFace *efa, EditVert *eve, int tfindex, ListBase 
 	wUV *curwvert, *newwvert;
 	wUVNode *newnode;
 	int found;
-	TFace *tf = CustomData_em_get(&G.editMesh->fdata, efa->data, LAYERTYPE_TFACE);
+	MTFace *tf = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
 	
 	found = 0;
 	
@@ -5922,7 +5882,7 @@ static void append_weldedUVEdge(EditFace *efa, EditEdge *eed, ListBase *uvedges)
 {
 	wUVEdge *curwedge, *newwedge;
 	int v1tfindex, v2tfindex, found;
-	TFace *tf = CustomData_em_get(&G.editMesh->fdata, efa->data, LAYERTYPE_TFACE);
+	MTFace *tf = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
 	
 	found = 0;
 	
@@ -6003,7 +5963,7 @@ static void collapse_edgeuvs(void)
 	int curtag, balanced, collectionfound, vcount;
 	float avg[2];
 
-	if (!CustomData_has_layer(&G.editMesh->fdata, LAYERTYPE_TFACE))
+	if (!CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE))
 		return;
 	
 	uvverts.first = uvverts.last = uvedges.first = uvedges.last = allcollections.first = allcollections.last = NULL;
@@ -6101,11 +6061,11 @@ static void collapse_edgeuvs(void)
 static void collapseuvs(void)
 {
 	EditFace *efa;
-	TFace *tf;
+	MTFace *tf;
 	int uvcount;
 	float uvav[2];
 
-	if (!CustomData_has_layer(&G.editMesh->fdata, LAYERTYPE_TFACE))
+	if (!CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE))
 		return;
 	
 	uvcount = 0;
@@ -6113,7 +6073,7 @@ static void collapseuvs(void)
 	uvav[1] = 0;
 	
 	for(efa = G.editMesh->faces.first; efa; efa=efa->next){
-		tf = CustomData_em_get(&G.editMesh->fdata, efa->data, LAYERTYPE_TFACE);
+		tf = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
 
 		if(efa->v1->f1){
 			uvav[0] += tf->uv[0][0];
@@ -6142,7 +6102,7 @@ static void collapseuvs(void)
 		uvav[1] /= uvcount;
 	
 		for(efa = G.editMesh->faces.first; efa; efa=efa->next){
-			tf = CustomData_em_get(&G.editMesh->fdata, efa->data, LAYERTYPE_TFACE);
+			tf = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
 
 			if(efa->v1->f1){
 				tf->uv[0][0] = uvav[0];
@@ -6213,7 +6173,7 @@ int collapseEdges(void)
 			VECCOPY(((EditEdge*)curredge->eed)->v2->co,avgcount);
 		}
 		
-		if (CustomData_has_layer(&G.editMesh->fdata, LAYERTYPE_TFACE)) {
+		if (CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE)) {
 			/*uv collapse*/
 			for(eve=G.editMesh->verts.first; eve; eve=eve->next) eve->f1 = 0;
 			for(eed=G.editMesh->edges.first; eed; eed=eed->next) eed->f1 = 0;
@@ -6259,7 +6219,7 @@ int merge_firstlast(int first, int uvmerge)
 		}
 	}
 	
-	if(uvmerge && CustomData_has_layer(&G.editMesh->fdata, LAYERTYPE_TFACE)){
+	if(uvmerge && CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE)){
 		
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next) eve->f1 = 0;
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next){
@@ -6282,7 +6242,7 @@ int merge_target(int target, int uvmerge)
 	if(target) snap_sel_to_curs();
 	else snap_to_center();
 	
-	if(uvmerge && CustomData_has_layer(&G.editMesh->fdata, LAYERTYPE_TFACE)){
+	if(uvmerge && CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE)){
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next) eve->f1 = 0;
 		for(eve=G.editMesh->verts.first; eve; eve=eve->next){
 				if(eve->f&SELECT) eve->f1 = 1;

@@ -149,7 +149,7 @@ extern void reveal_mesh(void);
 
 extern void vertices_to_sphere(void);
 
-	/** Aligns the selected TFace's of @a me to the @a v3d,
+	/** Aligns the selected MTFace's of @a me to the @a v3d,
 	 * using the given axis (0-2). Can give a user error.
 	 */
 extern void faceselect_align_view_to_selected(struct View3D *v3d, struct Mesh *me, int axis);

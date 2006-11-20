@@ -44,26 +44,32 @@ typedef struct CustomDataLayer {
  * (vertices, edges or faces). The custom data is organised into a series of
  * layers, each with a data type (e.g. TFace, MDeformVert, etc.). */
 typedef struct CustomData {
-	CustomDataLayer *layers;  /* data layer descriptors, ordered by type */
-	int numLayers;            /* current number of layers */
-	int maxLayers;            /* maximum number of layers */
-	int numElems;             /* current number of elements */
-	int maxElems;             /* maximum number of elements */
-	int subElems;             /* number of sub-elements layers can have */
-	int totSize;              /* in editmode, total size of all data layers */
+	CustomDataLayer *layers;  /* CustomDataLayers, ordered by type */
+	int totlayer, maxlayer;   /* number of layers, size of layers array */
+	int totsize, pad;         /* in editmode, total size of all data layers */
 } CustomData;
 
-/* custom data types */
-#define LAYERTYPE_MVERT			0
-#define LAYERTYPE_MSTICKY		1
-#define LAYERTYPE_MDEFORMVERT	2
-#define LAYERTYPE_MEDGE			3
-#define LAYERTYPE_MFACE			4
-#define LAYERTYPE_TFACE			5
-#define LAYERTYPE_MCOL			6
-#define LAYERTYPE_ORIGINDEX		7
-#define LAYERTYPE_NORMAL		8
-#define LAYERTYPE_FLAGS			9
-#define LAYERTYPE_NUMTYPES		10
+/* CustomData.type */
+#define CD_MVERT		0
+#define CD_MSTICKY		1
+#define CD_MDEFORMVERT	2
+#define CD_MEDGE		3
+#define CD_MFACE		4
+#define CD_MTFACE		5
+#define CD_MCOL			6
+#define CD_ORIGINDEX	7
+#define CD_NORMAL		8
+#define CD_FLAGS		9
+#define CD_NUMTYPES		10
+
+/* CustomData.flag */
+
+/* indicates layer should not be copied by CustomData_from_template or
+ * CustomData_copy_data */
+#define CD_FLAG_NOCOPY    (1<<0)
+/* indicates layer should not be freed (for layers backed by external data) */
+#define CD_FLAG_NOFREE    (1<<1)
+/* indicates the layer is only temporary, also implies no copy */
+#define CD_FLAG_TEMPORARY ((1<<2)|CD_FLAG_NOCOPY)
 
 #endif

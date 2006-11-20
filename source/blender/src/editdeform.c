@@ -81,7 +81,7 @@ void sel_verts_defgroup (int select)
 	switch (ob->type){
 	case OB_MESH:
 		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
-			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, LAYERTYPE_MDEFORMVERT);
+			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, CD_MDEFORMVERT);
 
 			if (dvert && dvert->totweight){
 				for (i=0; i<dvert->totweight; i++){
@@ -223,7 +223,7 @@ void del_defgroup (Object *ob)
 		MDeformVert *dvert;
 		
 		for (eve=em->verts.first; eve; eve=eve->next){
-			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, LAYERTYPE_MDEFORMVERT);
+			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, CD_MDEFORMVERT);
 
 			if (dvert)
 				for (i=0; i<dvert->totweight; i++)
@@ -267,7 +267,7 @@ void create_dverts(ID *id)
 
 	if( GS(id->name)==ID_ME) {
 		Mesh *me= (Mesh *)id;
-		me->dvert= MEM_callocN(sizeof(MDeformVert)*me->totvert, "deformVert");
+		me->dvert= CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, 0, NULL, me->totvert);
 	}
 	else if( GS(id->name)==ID_LT) {
 		Lattice *lt= (Lattice *)id;
@@ -506,12 +506,12 @@ void assign_verts_defgroup (void)
 
 	switch (ob->type){
 	case OB_MESH:
-		if (!CustomData_has_layer(&G.editMesh->vdata, LAYERTYPE_MDEFORMVERT))
-			EM_add_data_layer(&G.editMesh->vdata, LAYERTYPE_MDEFORMVERT);
+		if (!CustomData_has_layer(&G.editMesh->vdata, CD_MDEFORMVERT))
+			EM_add_data_layer(&G.editMesh->vdata, CD_MDEFORMVERT);
 
 		/* Go through the list of editverts and assign them */
 		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
-			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, LAYERTYPE_MDEFORMVERT);
+			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, CD_MDEFORMVERT);
 
 			if (dvert && (eve->f & 1)){
 				done=0;
@@ -618,7 +618,7 @@ void remove_verts_defgroup (int allverts)
 	switch (ob->type){
 	case OB_MESH:
 		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
-			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, LAYERTYPE_MDEFORMVERT);
+			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, CD_MDEFORMVERT);
 
 			if (dvert && dvert->dw && ((eve->f & 1) || allverts)){
 				for (i=0; i<dvert->totweight; i++){

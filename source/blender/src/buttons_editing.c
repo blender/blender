@@ -78,6 +78,7 @@
 #include "BKE_blender.h"
 #include "BKE_brush.h"
 #include "BKE_curve.h"
+#include "BKE_customdata.h"
 #include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -705,9 +706,9 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	}
 	else uiDefBut(block, BUT, B_DELVERTCOL, "Delete", 	80,50,84,19, 0, 0, 0, 0, 0, "Deletes vertex colors on active Mesh");
 
-	if(me->tface) val= 1.0; else val= 0.0;
+	if(me->mtface) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "TexFace", 				10,30,70,20, 0, val, 0, 0, 0, "");
-	if(me->tface==NULL) {
+	if(me->mtface==NULL) {
 		uiDefBut(block, BUT, B_MAKE_TFACES, "Make",		80,30,84,19, 0, 0, 0, 0, 0, "Enables the active Mesh's faces for UV coordinate mapping");
 	}
 	else uiDefBut(block, BUT, B_DEL_TFACES, "Delete", 	80,30,84,19, 0, 0, 0, 0, 0, "Deletes UV coordinates for active Mesh's faces");
@@ -3547,9 +3548,10 @@ void do_meshbuts(unsigned short event)
 		
 		switch(event) {
 		case B_DELSTICKY:
-
-			if(me->msticky) MEM_freeN(me->msticky);
-			me->msticky= NULL;
+			if(me->msticky) {
+				CustomData_free_layer(&me->vdata, CD_MSTICKY, me->totvert);
+				me->msticky= NULL;
+			}
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
 		case B_MAKESTICKY:
@@ -3559,35 +3561,44 @@ void do_meshbuts(unsigned short event)
 		
 		case B_MAKEVERTCOL:
 			if(G.obedit)
-				EM_add_data_layer(&G.editMesh->fdata, LAYERTYPE_MCOL);
+				EM_add_data_layer(&G.editMesh->fdata, CD_MCOL);
 			else
-				make_vertexcol();
+				make_vertexcol(1);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			break;
 		case B_DELVERTCOL:
-			if(G.obedit)
-				EM_free_data_layer(&G.editMesh->fdata, LAYERTYPE_MCOL);
-			if(me->mcol) MEM_freeN(me->mcol);
-			me->mcol= NULL;
+			if(G.obedit) {
+				EM_free_data_layer(&G.editMesh->fdata, CD_MCOL);
+			}
+			else {
+				CustomData_free_layer(&me->fdata, CD_MCOL, me->totface);
+				me->mcol= NULL;
+			}
 			G.f &= ~G_VERTEXPAINT;
-			freedisplist(&(ob->disp));
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
 			break;
 
 		case B_MAKE_TFACES:
 			if(G.obedit)
-				EM_add_data_layer(&G.editMesh->fdata, LAYERTYPE_TFACE);
+				EM_add_data_layer(&G.editMesh->fdata, CD_MTFACE);
 			else
 				make_tfaces(me);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
 
 		case B_DEL_TFACES:
-			if(G.obedit)
-				EM_free_data_layer(&G.editMesh->fdata, LAYERTYPE_TFACE);
-			if(me->tface) MEM_freeN(me->tface);
-			me->tface= 0;
+			if(G.obedit) {
+				EM_free_data_layer(&G.editMesh->fdata, CD_MTFACE);
+			}
+			else {
+				CustomData_free_layer(&me->fdata, CD_MTFACE, me->totface);
+				me->mtface= NULL;
+			}
 			G.f &= ~G_FACESELECT;
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWIMAGE, 0);
@@ -4170,7 +4181,8 @@ void do_fpaintbuts(unsigned short event)
 	Mesh *me;
 	Object *ob;
 	bDeformGroup *defGroup;
-	TFace *activetf, *tf;
+	MTFace *activetf, *tf;
+	MCol *activemcol;
 	int a;
 	SculptData *sd= &G.scene->sculptdata;
 	ID *id, *idtest;
@@ -4191,11 +4203,11 @@ void do_fpaintbuts(unsigned short event)
 	case B_COPY_TF_UV:
 	case B_COPY_TF_COL:
 	case B_COPY_TF_TEX:
-		me = get_mesh(OBACT);
-		activetf = get_active_tface();
+		me= get_mesh(OBACT);
+		activetf= get_active_tface(&activemcol);
 
 		if(me && activetf) {
-			for (a=0, tf=me->tface; a < me->totface; a++, tf++) {
+			for (a=0, tf=me->mtface; a < me->totface; a++, tf++) {
 				if(tf!=activetf && (tf->flag & TF_SELECT)) {
 					if(event==B_COPY_TF_MODE) {
 						tf->mode= activetf->mode;
@@ -4217,8 +4229,8 @@ void do_fpaintbuts(unsigned short event)
 						if(activetf->mode & TF_TILES) tf->mode |= TF_TILES;
 						else tf->mode &= ~TF_TILES;
 					}
-					else if(event==B_COPY_TF_COL)
-						memcpy(tf->col, activetf->col, sizeof(tf->col));
+					else if(event==B_COPY_TF_COL && activemcol)
+						memcpy(&me->mcol[a], activemcol, sizeof(MCol)*4);
 				}
 			}
 
@@ -4246,7 +4258,7 @@ void do_fpaintbuts(unsigned short event)
 		break;
 
 	case B_TFACE_HALO:
-		activetf = get_active_tface();
+		activetf = get_active_tface(NULL);
 		if(activetf) {
 			activetf->mode &= ~TF_BILLBOARD2;
 			allqueue(REDRAWBUTSEDIT, 0);
@@ -4254,7 +4266,7 @@ void do_fpaintbuts(unsigned short event)
 		break;
 
 	case B_TFACE_BILLB:
-		activetf = get_active_tface();
+		activetf = get_active_tface(NULL);
 		if(activetf) {
 			activetf->mode &= ~TF_BILLBOARD;
 			allqueue(REDRAWBUTSEDIT, 0);
@@ -4614,12 +4626,12 @@ static void editing_panel_mesh_texface(void)
 {
 	extern VPaint Gvp;         /* from vpaint */
 	uiBlock *block;
-	TFace *tf;
+	MTFace *tf;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_texface", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Texture face", "Editing", 960, 0, 318, 204)==0) return;
 
-	tf = get_active_tface();
+	tf = get_active_tface(NULL);
 	if(tf) {
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, TF_TEX, B_REDR_3D_IMA, "Tex",	600,160,60,19, &tf->mode, 0, 0, 0, 0, "Render face with texture");

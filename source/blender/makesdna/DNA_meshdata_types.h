@@ -33,6 +33,7 @@
 #define DNA_MESHDATA_TYPES_H
 
 struct Bone;
+struct Image;
 
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
@@ -75,6 +76,13 @@ typedef struct MSelect {
 	int index;
 	int type;
 } MSelect;
+
+typedef struct MTFace {
+	float uv[4][2];
+	struct Image *tpage;
+	char flag, transp;
+	short mode, tile, unwrap;
+} MTFace;
 
 /* Multiresolution modeling */
 typedef struct MultiresCol {
@@ -171,9 +179,52 @@ typedef struct PartialVisibility {
 #define ME_SMOOTH			1
 #define ME_FACE_SEL			2
 						/* flag ME_HIDE==16 is used here too */ 
-
-#endif
 /* mselect->type */
 #define ME_VSEl	0
 #define ME_ESEl 1
 #define ME_FSEL 2
+
+/* mtface->flag */
+#define TF_SELECT	1
+#define TF_ACTIVE	2
+#define TF_SEL1		4
+#define TF_SEL2		8
+#define TF_SEL3		16
+#define TF_SEL4		32
+#define TF_HIDE		64
+
+/* mtface->mode */
+#define TF_DYNAMIC		1
+#define TF_DEPRECATED	2
+#define TF_TEX			4
+#define TF_SHAREDVERT	8
+#define TF_LIGHT		16
+
+#define TF_SHAREDCOL	64
+#define TF_TILES		128
+#define TF_BILLBOARD	256
+#define TF_TWOSIDE		512
+#define TF_INVISIBLE	1024
+
+#define TF_OBCOL		2048
+#define TF_BILLBOARD2	4096	/* with Z axis constraint */
+#define TF_SHADOW		8192
+#define TF_BMFONT		16384
+
+/* mtface->transp */
+#define TF_SOLID	0
+#define TF_ADD		1
+#define TF_ALPHA	2
+#define TF_SUB		3
+
+/* mtface->unwrap */
+#define TF_DEPRECATED1	1
+#define TF_DEPRECATED2	2
+#define TF_DEPRECATED3	4
+#define TF_DEPRECATED4	8
+#define TF_PIN1		    16
+#define TF_PIN2		    32
+#define TF_PIN3	   		64
+#define TF_PIN4	    	128
+
+#endif

@@ -244,7 +244,7 @@ struct halosort {
 
 /* ------------------------------------------------------------------------- */
 struct Material;
-struct TFace;
+struct MTFace;
 
 typedef struct RadFace {
 	float unshot[3], totrad[3];
@@ -258,7 +258,7 @@ typedef struct VlakRen
 	unsigned int lay;
 	float n[3];
 	struct Material *mat;
-	struct TFace *tface;
+	struct MTFace *tface;
 	unsigned int *vcol;
 	char snproj, puno;
 	char flag, ec;

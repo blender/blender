@@ -48,7 +48,7 @@ KX_BlenderPolyMaterial::KX_BlenderPolyMaterial(const STR_String &texname,
 											   int lightlayer,
 											   bool bIsTriangle,
 											   void* clientobject,
-											   struct TFace* tface)
+											   struct MTFace* tface)
 		: RAS_IPolyMaterial(texname,
 							false,
 							matname,
@@ -79,7 +79,7 @@ void KX_BlenderPolyMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& cach
 
 		if ((m_drawingmode & 4)&& (rasty->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED))
 		{
-			update_realtime_texture((struct TFace*) m_tface, rasty->GetTime());
+			update_realtime_texture((struct MTFace*) m_tface, rasty->GetTime());
 			set_tpage(m_tface);
 			rasty->EnableTextures(true);
 		}

@@ -44,7 +44,7 @@ extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
 #include "DNA_image_types.h"
-#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "BKE_mesh.h"
 // ------------------------------------
 using namespace bgl;
@@ -118,11 +118,17 @@ KX_BlenderMaterial::~KX_BlenderMaterial()
 }
 
 
-TFace* KX_BlenderMaterial::GetTFace(void) const 
+MTFace* KX_BlenderMaterial::GetMTFace(void) const 
 {
 	// fonts on polys
 	MT_assert(mMaterial->tface);
 	return mMaterial->tface;
+}
+
+unsigned int* KX_BlenderMaterial::GetMCol(void) const 
+{
+	// fonts on polys
+	return mMaterial->rgb;
 }
 
 void KX_BlenderMaterial::OnConstruction()

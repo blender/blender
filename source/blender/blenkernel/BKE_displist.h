@@ -35,6 +35,8 @@
 #ifndef BKE_DISPLIST_H
 #define BKE_DISPLIST_H
 
+#include "DNA_customdata_types.h"
+
 /* dl->type */
 #define DL_POLY                 0
 #define DL_SEGM                 1
@@ -82,30 +84,6 @@ struct ListBase;
 struct Material;
 struct Bone;
 struct Mesh;
-struct TFace;
-struct EditMesh;
-struct EditEdge;
-struct EditFace;
-
-typedef struct DispListMesh DispListMesh;
-struct DispListMesh {
-	int totvert, totedge, totface;
-	struct MVert *mvert;
-	struct MEdge *medge;
-	struct MCol *mcol;
-	struct MFace *mface;
-	struct TFace *tface;
-	float *nors; // facenormals
-
-	int dontFreeVerts, dontFreeNors, dontFreeOther;
-};
-
-void displistmesh_free(DispListMesh *dlm);
-
-void displistmesh_to_mesh(DispListMesh *dlm, struct Mesh *me);
-
-DispListMesh *displistmesh_copy(DispListMesh *odlm);
-DispListMesh *displistmesh_copyShared(DispListMesh *odlm);
 
 /*
  * All the different DispList.type's use the
@@ -141,7 +119,7 @@ extern void addnormalsDispList(struct Object *ob, struct ListBase *lb);
 extern void count_displist(struct ListBase *lb, int *totvert, int *totface);
 extern void freedisplist(struct ListBase *lb);
 extern int displist_has_faces(struct ListBase *lb);
-extern void makeDispListMesh(struct Object *ob);
+extern void makeDerivedMesh(struct Object *ob);
 extern void makeDispListSurf(struct Object *ob, struct ListBase *dispbase, int forRender);
 extern void makeDispListCurveTypes(struct Object *ob, int forOrco);
 extern void makeDispListMBall(struct Object *ob);
@@ -153,9 +131,6 @@ void reshadeall_displist(void);
 void filldisplist(struct ListBase *dispbase, struct ListBase *to);
 
 void fastshade_free_render(void);
-
-
-void displistmesh_add_edges(DispListMesh *dlm);
 
 #endif
 

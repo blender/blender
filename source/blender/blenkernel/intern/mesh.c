@@ -57,6 +57,7 @@
 
 #include "BDR_sculptmode.h"
 
+#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
@@ -84,9 +85,7 @@
 
 #include "multires.h"
 
-
-
-int update_realtime_texture(TFace *tface, double time)
+int update_realtime_texture(MTFace *tface, double time)
 {
 	Image *ima;
 	int	inc = 0;
@@ -123,6 +122,19 @@ int update_realtime_texture(TFace *tface, double time)
 		ima->lastframe = newframe;
 	}
 	return inc;
+}
+
+void mesh_update_customdata_pointers(Mesh *me)
+{
+	me->mvert = CustomData_get_layer(&me->vdata, CD_MVERT);
+	me->dvert = CustomData_get_layer(&me->vdata, CD_MDEFORMVERT);
+	me->msticky = CustomData_get_layer(&me->vdata, CD_MSTICKY);
+
+	me->medge = CustomData_get_layer(&me->edata, CD_MEDGE);
+
+	me->mface = CustomData_get_layer(&me->fdata, CD_MFACE);
+	me->mcol = CustomData_get_layer(&me->fdata, CD_MCOL);
+	me->mtface = CustomData_get_layer(&me->fdata, CD_MTFACE);
 }
 
 /* Note: unlinking is called when me->id.us is 0, question remains how
@@ -165,14 +177,9 @@ void free_mesh(Mesh *me)
 		MEM_freeN(me->pv);
 	}
 
-	if(me->mvert) MEM_freeN(me->mvert);
-	if(me->medge) MEM_freeN(me->medge);
-	if(me->mface) MEM_freeN(me->mface);
-	
-	if(me->tface) MEM_freeN(me->tface);
-	if(me->dvert) free_dverts(me->dvert, me->totvert);
-	if(me->mcol) MEM_freeN(me->mcol);
-	if(me->msticky) MEM_freeN(me->msticky);
+	CustomData_free(&me->vdata, me->totvert);
+	CustomData_free(&me->edata, me->totedge);
+	CustomData_free(&me->fdata, me->totface);
 
 	if(me->mat) MEM_freeN(me->mat);
 	
@@ -200,6 +207,7 @@ void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
 	}
 
 }
+
 void free_dverts(MDeformVert *dvert, int totvert)
 {
 	/* Instead of freeing the verts directly,
@@ -249,26 +257,20 @@ Mesh *copy_mesh(Mesh *me)
 	}
 	id_us_plus((ID *)men->texcomesh);
 
-	men->mvert= MEM_dupallocN(me->mvert);
-	men->medge= MEM_dupallocN(me->medge);
-	men->mface= MEM_dupallocN(me->mface);
-	men->tface= MEM_dupallocN(me->tface);
-	men->dface= NULL;
-	men->mselect= NULL;
-	
-	if (me->dvert){
-		men->dvert = MEM_mallocN (sizeof (MDeformVert)*me->totvert, "MDeformVert");
-		copy_dverts(men->dvert, me->dvert, me->totvert);
-	}
-	if (me->tface){
+	CustomData_copy(&me->vdata, &men->vdata, CD_MASK_MESH, CD_DUPLICATE, men->totvert);
+	CustomData_copy(&me->edata, &men->edata, CD_MASK_MESH, CD_DUPLICATE, men->totedge);
+	CustomData_copy(&me->fdata, &men->fdata, CD_MASK_MESH, CD_DUPLICATE, men->totface);
+	mesh_update_customdata_pointers(men);
+
+	if (me->mtface){
 		/* ensure indirect linked data becomes lib-extern */
-		TFace *tface= me->tface;
+		MTFace *tface= me->mtface;
 		for(a=0; a<me->totface; a++, tface++)
 			if(tface->tpage)
-				id_lib_extern(tface->tpage);
+				id_lib_extern((ID*)tface->tpage);
 	}
-	men->mcol= MEM_dupallocN(me->mcol);
-	men->msticky= MEM_dupallocN(me->msticky);
+
+	men->mselect= NULL;
 
 	men->bb= MEM_dupallocN(men->bb);
 	
@@ -284,14 +286,14 @@ Mesh *copy_mesh(Mesh *me)
 
 void make_local_tface(Mesh *me)
 {
-	TFace *tface;
+	MTFace *tface;
 	Image *ima;
 	int a;
 	
-	if(me->tface==0) return;
+	if(me->mtface==0) return;
 	
 	a= me->totface;
-	tface= me->tface;
+	tface= me->mtface;
 	while(a--) {
 		
 		/* special case: ima always local immediately */
@@ -325,7 +327,7 @@ void make_local_mesh(Mesh *me)
 		me->id.flag= LIB_LOCAL;
 		new_id(0, (ID *)me, 0);
 		
-		if(me->tface) make_local_tface(me);
+		if(me->mtface) make_local_tface(me);
 		
 		return;
 	}
@@ -344,7 +346,7 @@ void make_local_mesh(Mesh *me)
 		me->id.flag= LIB_LOCAL;
 		new_id(0, (ID *)me, 0);
 		
-		if(me->tface) make_local_tface(me);
+		if(me->mtface) make_local_tface(me);
 		
 	}
 	else if(local && lib) {
@@ -535,11 +537,9 @@ float *mesh_create_orco(Object *ob)
 
 /* rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.
    this is necessary to make the if(mface->v4) check for quads work */
-#define UVSWAP(t, s) { SWAP(float, t[0], s[0]); SWAP(float, t[1], s[1]); }
-void test_index_face(MFace *mface, MCol *mc, TFace *tface, int nr)
+void test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 {
 	/* first test if the face is legal */
-
 	if(mface->v3 && mface->v3==mface->v4) {
 		mface->v4= 0;
 		nr--;
@@ -559,39 +559,22 @@ void test_index_face(MFace *mface, MCol *mc, TFace *tface, int nr)
 	/* prevent a zero at wrong index location */
 	if(nr==3) {
 		if(mface->v3==0) {
+			static int corner_indices[4] = {1, 2, 0, 3};
+
 			SWAP(int, mface->v1, mface->v2);
 			SWAP(int, mface->v2, mface->v3);
 
-			if (tface) {
-				UVSWAP(tface->uv[0], tface->uv[1]);
-				UVSWAP(tface->uv[1], tface->uv[2]);
-				SWAP(unsigned int, tface->col[0], tface->col[1]);
-				SWAP(unsigned int, tface->col[1], tface->col[2]);
-			}
-
-			if (mc) {
-				SWAP(MCol, mc[0], mc[1]);
-				SWAP(MCol, mc[1], mc[2]);
-			}
+			CustomData_swap(fdata, mfindex, corner_indices);
 		}
 	}
 	else if(nr==4) {
 		if(mface->v3==0 || mface->v4==0) {
+			static int corner_indices[4] = {2, 3, 0, 1};
+
 			SWAP(int, mface->v1, mface->v3);
 			SWAP(int, mface->v2, mface->v4);
 
-
-			if (tface) {
-				UVSWAP(tface->uv[0], tface->uv[2]);
-				UVSWAP(tface->uv[1], tface->uv[3]);
-				SWAP(unsigned int, tface->col[0], tface->col[2]);
-				SWAP(unsigned int, tface->col[1], tface->col[3]);
-			}
-
-			if (mc) {
-				SWAP(MCol, mc[0], mc[2]);
-				SWAP(MCol, mc[1], mc[3]);
-			}
+			CustomData_swap(fdata, mfindex, corner_indices);
 		}
 	}
 }
@@ -652,7 +635,6 @@ static int vergedgesort(const void *v1, const void *v2)
 	return 0;
 }
 
-
 void make_edges(Mesh *me, int old)
 {
 	MFace *mface;
@@ -669,7 +651,7 @@ void make_edges(Mesh *me, int old)
 	}
 	
 	if(totedge==0) {
-			/* flag that mesh has edges */
+		/* flag that mesh has edges */
 		me->medge = MEM_callocN(0, "make mesh edges");
 		me->totedge = 0;
 		return;
@@ -699,7 +681,8 @@ void make_edges(Mesh *me, int old)
 	}
 	final++;
 	
-	medge= me->medge= MEM_callocN(final*sizeof(MEdge), "make mesh edges");
+
+	medge= me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, 0, NULL, final);
 	me->totedge= final;
 	
 	for(a=totedge, ed=edsort; a>1; a--, ed++) {
@@ -736,8 +719,8 @@ void mesh_strip_loose_faces(Mesh *me)
 		if (me->mface[a].v3) {
 			if (a!=b) {
 				memcpy(&me->mface[b],&me->mface[a],sizeof(me->mface[b]));
-				if (me->tface) memcpy(&me->tface[b],&me->tface[a],sizeof(me->tface[b]));
-				if (me->mcol) memcpy(&me->mcol[b*4],&me->mcol[a*4],sizeof(me->mcol[b])*4);
+				CustomData_copy_data(&me->fdata, &me->fdata, a, b, 1);
+				CustomData_free_elem(&me->fdata, a, 1);
 			}
 			b++;
 		}
@@ -762,7 +745,11 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 		me->totvert= dl->nr;
 		me->totface= dl->parts;
 		
-		me->mvert=mvert= MEM_callocN(dl->nr*sizeof(MVert), "mverts");
+		mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, NULL, dl->nr);
+		mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0, NULL, dl->parts);
+		me->mvert= mvert;
+		me->mface= mface;
+
 		a= dl->nr;
 		nors= dl->nors;
 		verts= dl->verts;
@@ -776,7 +763,6 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 			verts+= 3;
 		}
 		
-		me->mface=mface= MEM_callocN(dl->parts*sizeof(MFace), "mface");
 		a= dl->parts;
 		index= dl->index;
 		while(a--) {
@@ -789,6 +775,8 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 			mface++;
 			index+= 4;
 		}
+
+		make_edges(me, 0);	// all edges
 	}	
 }
 
@@ -845,8 +833,10 @@ void nurbs_to_mesh(Object *ob)
 	cu->mat= 0;
 	cu->totcol= 0;
 
-	mvert=me->mvert= MEM_callocN(me->totvert*sizeof(MVert), "cumesh1");
-	mface=me->mface= MEM_callocN(me->totface*sizeof(MFace), "cumesh2");
+	mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, NULL, me->totvert);
+	mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0, NULL, me->totface);
+	me->mvert= mvert;
+	me->mface= mface;
 
 	/* verts and faces */
 	vertcount= 0;
@@ -916,7 +906,7 @@ void nurbs_to_mesh(Object *ob)
 				mface->v2= startvert+index[1];
 				mface->v3= startvert+index[2];
 				mface->v4= 0;
-				test_index_face(mface, NULL, NULL, 3);
+				test_index_face(mface, NULL, 0, 3);
 				
 				mface++;
 				index+= 3;
@@ -964,7 +954,7 @@ void nurbs_to_mesh(Object *ob)
 					mface->v3= p4;
 					mface->v4= p2;
 					mface->mat_nr= (unsigned char)dl->col;
-					test_index_face(mface, NULL, NULL, 4);
+					test_index_face(mface, NULL, 0, 4);
 					mface++;
 
 					p4= p3; 
@@ -980,7 +970,7 @@ void nurbs_to_mesh(Object *ob)
 	}
 
 	make_edges(me, 0);	// all edges
-	mesh_strip_loose_faces(me);
+	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 
 	if(ob->data) {
 		free_libblock(&G.main->curve, ob->data);
@@ -1000,49 +990,6 @@ void nurbs_to_mesh(Object *ob)
 		ob1= ob1->id.next;
 	}
 
-}
-
-MCol *tface_to_mcol_p(TFace *tface, int totface)
-{
-	unsigned int *mcol, *mcoldata;
-	int a;
-	
-	mcol= mcoldata= MEM_mallocN(4*sizeof(int)*totface, "nepmcol");
-	
-	a= totface;
-	while(a--) {
-		memcpy(mcol, tface->col, 16);
-		mcol+= 4;
-		tface++;
-	}
-
-	return (MCol*) mcoldata;
-}
-
-void tface_to_mcol(Mesh *me)
-{
-	me->mcol = tface_to_mcol_p(me->tface, me->totface);
-}
-
-void mcol_to_tface(Mesh *me, int freedata)
-{
-	TFace *tface;
-	unsigned int *mcol;
-	int a;
-	
-	a= me->totface;
-	tface= me->tface;
-	mcol= (unsigned int *)me->mcol;
-	while(a--) {
-		memcpy(tface->col, mcol, 16);
-		mcol+= 4;
-		tface++;
-	}
-	
-	if(freedata) {
-		MEM_freeN(me->mcol);
-		me->mcol= 0;
-	}
 }
 
 void mesh_delete_material_index(Mesh *me, int index) {
@@ -1077,7 +1024,7 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 	float (*tnorms)[3]= MEM_callocN(numVerts*sizeof(*tnorms), "tnorms");
 	float *fnors= MEM_mallocN(sizeof(*fnors)*3*numFaces, "meshnormals");
 	int i;
-	
+
 	for (i=0; i<numFaces; i++) {
 		MFace *mf= &mfaces[i];
 		float *f_no= &fnors[i*3];
@@ -1160,12 +1107,12 @@ struct UvVertMap {
 	struct UvMapVert *buf;
 };
 
-UvVertMap *make_uv_vert_map(struct MFace *mface, struct TFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit)
+UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit)
 {
 	UvVertMap *vmap;
 	UvMapVert *buf;
 	MFace *mf;
-	TFace *tf;
+	MTFace *tf;
 	unsigned int a;
 	int	i, totuv, nverts;
 

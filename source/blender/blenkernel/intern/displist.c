@@ -86,96 +86,13 @@
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 #include "BKE_modifier.h"
+#include "BKE_customdata.h"
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 
 
 static void boundbox_displist(Object *ob);
-
-void displistmesh_free(DispListMesh *dlm) 
-{
-	// also check on mvert and mface, can be NULL after decimator (ton)
-	if (!dlm->dontFreeVerts && dlm->mvert) MEM_freeN(dlm->mvert);
-	if (!dlm->dontFreeNors && dlm->nors) MEM_freeN(dlm->nors);
-	if (!dlm->dontFreeOther) {
-		if (dlm->medge) MEM_freeN(dlm->medge);
-		if (dlm->mface) MEM_freeN(dlm->mface);
-		if (dlm->mcol) MEM_freeN(dlm->mcol);
-		if (dlm->tface) MEM_freeN(dlm->tface);
-	}
-	MEM_freeN(dlm);
-}
-
-DispListMesh *displistmesh_copy(DispListMesh *odlm) 
-{
-	DispListMesh *ndlm= MEM_dupallocN(odlm);
-	ndlm->mvert= MEM_dupallocN(odlm->mvert);
-	if (odlm->medge) ndlm->medge= MEM_dupallocN(odlm->medge);
-	ndlm->mface= MEM_dupallocN(odlm->mface);
-	if (odlm->nors) ndlm->nors = MEM_dupallocN(odlm->nors);
-	if (odlm->mcol) ndlm->mcol= MEM_dupallocN(odlm->mcol);
-	if (odlm->tface) ndlm->tface= MEM_dupallocN(odlm->tface);
-
-	return ndlm;
-}
-
-DispListMesh *displistmesh_copyShared(DispListMesh *odlm) 
-{
-	DispListMesh *ndlm= MEM_dupallocN(odlm);
-	ndlm->dontFreeNors = ndlm->dontFreeOther = ndlm->dontFreeVerts = 1;
-	
-	return ndlm;
-}
-
-void displistmesh_to_mesh(DispListMesh *dlm, Mesh *me) 
-{
-		/* We assume, rather courageously, that any
-		 * shared data came from the mesh itself and so
-		 * we can ignore the dlm->dontFreeOther flag.
-		 */
-
-	if (me->mvert && dlm->mvert!=me->mvert) MEM_freeN(me->mvert);
-	if (me->mface && dlm->mface!=me->mface) MEM_freeN(me->mface);
-	if (me->tface && dlm->tface!=me->tface) MEM_freeN(me->tface);
-	if (me->mcol && dlm->mcol!=me->mcol) MEM_freeN(me->mcol);
-	if (me->medge && dlm->medge!=me->medge) MEM_freeN(me->medge);
-
-	me->tface = NULL;
-	me->mcol = NULL;
-	me->medge = NULL;
-
-	if (dlm->totvert!=me->totvert) {
-		if (me->msticky) MEM_freeN(me->msticky);
-		me->msticky = NULL;
-
-		if (me->dvert) free_dverts(me->dvert, me->totvert);
-		me->dvert = NULL;
-
-		if(me->key) me->key->id.us--;
-		me->key = NULL;
-	}
-
-	me->totface= dlm->totface;
-	me->totvert= dlm->totvert;
-	me->totedge= 0;
-
-	me->mvert= dlm->mvert;
-	me->mface= dlm->mface;
-	if (dlm->tface)
-		me->tface= dlm->tface;
-	if (dlm->mcol)
-		me->mcol= dlm->mcol;
-
-	if(dlm->medge) {
-		me->totedge= dlm->totedge;
-		me->medge= dlm->medge;
-	}
-
-	if (dlm->nors && !dlm->dontFreeNors) MEM_freeN(dlm->nors);
-
-	MEM_freeN(dlm);
-}
 
 void free_disp_elem(DispList *dl)
 {
@@ -524,42 +441,50 @@ static void end_fastshade_for_ob(Object *ob)
 static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, unsigned int **col1_r, unsigned int **col2_r)
 {
 	Mesh *me= ob->data;
-	int dmNeedsFree;
 	DerivedMesh *dm;
-	DispListMesh *dlm;
+	MCol *mcol;
+	MVert *mvert;
+	MFace *mface;
+	MTFace *mtface;
 	unsigned int *col1, *col2;
-	float *orco, *vnors, imat[3][3], mat[4][4], vec[3];
-	int a, i, need_orco;
+	float *orco, *vnors, *nors, imat[3][3], mat[4][4], vec[3];
+	int a, i, need_orco, totface, totvert;
 
 	init_fastshade_for_ob(re, ob, &need_orco, mat, imat);
 
-	if (need_orco) {
-		orco = mesh_create_orco(ob);
-	} else {
-		orco = NULL;
-	}
+	orco = (need_orco)? mesh_create_orco(ob): NULL;
+
+	if (onlyForMesh)
+		dm = mesh_get_derived_deform(ob);
+	else
+		dm = mesh_get_derived_final(ob);
+	
+	mvert = dm->getVertArray(dm);
+	mface = dm->getFaceArray(dm);
+	mcol = dm->getFaceDataArray(dm, CD_MCOL);
+	mtface = dm->getFaceDataArray(dm, CD_MTFACE);
+	nors = dm->getFaceDataArray(dm, CD_NORMAL);
+	totvert = dm->getNumVerts(dm);
+	totface = dm->getNumFaces(dm);
 
 	if (onlyForMesh) {
-		dm = mesh_get_derived_deform(ob, &dmNeedsFree);
-	} else {
-		dm = mesh_get_derived_final(ob, &dmNeedsFree);
-	}
-	dlm= dm->convertToDispListMesh(dm, 1);
-
-	col1 = MEM_mallocN(sizeof(*col1)*dlm->totface*4, "col1");
-	if (col2_r && (me->flag & ME_TWOSIDED)) {
-		col2 = MEM_mallocN(sizeof(*col2)*dlm->totface*4, "col1");
-	} else {
+		col1 = *col1_r;
 		col2 = NULL;
+	} else {
+		*col1_r = col1 = MEM_mallocN(sizeof(*col1)*totface*4, "col1");
+
+		if (col2_r && (me->flag & ME_TWOSIDED))
+			col2 = MEM_mallocN(sizeof(*col2)*totface*4, "col1");
+		else
+			col2 = NULL;
+		
+		if (col2_r) *col2_r = col2;
 	}
-	
-	*col1_r = col1;
-	if (col2_r) *col2_r = col2;
 
 		/* vertexnormals */
-	vnors= MEM_mallocN(dlm->totvert*3*sizeof(float), "vnors disp");
-	for (a=0; a<dlm->totvert; a++) {
-		MVert *mv = &dlm->mvert[a];
+	vnors= MEM_mallocN(totvert*3*sizeof(float), "vnors disp");
+	for (a=0; a<totvert; a++) {
+		MVert *mv = &mvert[a];
 		float *vn= &vnors[a*3];
 		float xn= mv->no[0]; 
 		float yn= mv->no[1]; 
@@ -572,9 +497,9 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 		Normalise(vn);
 	}		
 
-	for (i=0; i<dlm->totface; i++) {
-		MFace *mf= &dlm->mface[i];
-		TFace *tface= dlm->tface?&dlm->tface[i]:NULL;
+	for (i=0; i<totface; i++) {
+		MFace *mf= &mface[i];
+		MTFace *tface= (mtface)? &mtface[i]: NULL;
 		Material *ma= give_current_material(ob, mf->mat_nr+1);
 		int j, vidx[4], nverts= mf->v4?4:3;
 		unsigned char *col1base= (unsigned char*) &col1[i*4];
@@ -584,26 +509,20 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 		
 		if(ma==NULL) ma= &defmaterial;
 		
-		if (dlm->tface) {
-			mcolbase = (unsigned char*) dlm->tface[i].col;
-		} else if (dlm->mcol) {
-			mcolbase = (unsigned char*) &dlm->mcol[i*4];
-		} else {
-			mcolbase = NULL;
-		}
+		mcolbase = (mcol)? (unsigned char*)&mcol[i*4]: NULL;
 
 		vidx[0]= mf->v1;
 		vidx[1]= mf->v2;
 		vidx[2]= mf->v3;
 		vidx[3]= mf->v4;
 
-		if (dlm->nors) {
-			VECCOPY(nor, &dlm->nors[i*3]);
+		if (nors) {
+			VECCOPY(nor, &nors[i*3]);
 		} else {
 			if (mf->v4)
-				CalcNormFloat4(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, dlm->mvert[mf->v4].co, nor);
+				CalcNormFloat4(mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co, mvert[mf->v4].co, nor);
 			else
-				CalcNormFloat(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, nor);
+				CalcNormFloat(mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co, nor);
 		}
 
 		n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
@@ -612,7 +531,7 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 		Normalise(n1);
 
 		for (j=0; j<nverts; j++) {
-			MVert *mv= &dlm->mvert[vidx[j]];
+			MVert *mv= &mvert[vidx[j]];
 			char *col1= (char*)&col1base[j*4];
 			char *col2= (char*)(col2base?&col2base[j*4]:NULL);
 			char *mcol= (char*)(mcolbase?&mcolbase[j*4]:NULL);
@@ -628,13 +547,11 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 		}
 	} 
 	MEM_freeN(vnors);
-	displistmesh_free(dlm);
 
-	if (orco) {
+	if (orco)
 		MEM_freeN(orco);
-	}
 
-	if (dmNeedsFree) dm->release(dm);
+	dm->release(dm);
 
 	end_fastshade_for_ob(ob);
 }
@@ -642,7 +559,7 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 void shadeMeshMCol(Object *ob, Mesh *me)
 {
 	Render *re= fastshade_get_render();
-	mesh_create_shadedColors(re, ob, 1, (unsigned int**)&me->mcol, NULL);
+	mesh_create_shadedColors(re, ob, 1, (unsigned int **)&me->mcol, NULL);
 }
 
 /* has base pointer, to check for layer */
@@ -1591,43 +1508,3 @@ static void boundbox_displist(Object *ob)
 	}
 }
 
-void displistmesh_add_edges(DispListMesh *dlm)
-{
-	EdgeHash *eh = BLI_edgehash_new();
-	EdgeHashIterator *ehi;
-	int i;
-
-	for (i=0; i<dlm->totface; i++) {
-		MFace *mf = &dlm->mface[i];
-
-		if (!BLI_edgehash_haskey(eh, mf->v1, mf->v2))
-			BLI_edgehash_insert(eh, mf->v1, mf->v2, NULL);
-		if (!BLI_edgehash_haskey(eh, mf->v2, mf->v3))
-			BLI_edgehash_insert(eh, mf->v2, mf->v3, NULL);
-		
-		if (mf->v4) {
-			if (!BLI_edgehash_haskey(eh, mf->v3, mf->v4))
-				BLI_edgehash_insert(eh, mf->v3, mf->v4, NULL);
-			if (!BLI_edgehash_haskey(eh, mf->v4, mf->v1))
-				BLI_edgehash_insert(eh, mf->v4, mf->v1, NULL);
-		} else {
-			if (!BLI_edgehash_haskey(eh, mf->v3, mf->v1))
-				BLI_edgehash_insert(eh, mf->v3, mf->v1, NULL);
-		}
-	}
-
-	dlm->totedge = BLI_edgehash_size(eh);
-	dlm->medge = MEM_callocN(dlm->totedge*sizeof(*dlm->medge), "medge");
-
-	ehi = BLI_edgehashIterator_new(eh);
-	for (i=0; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
-		MEdge *med = &dlm->medge[i++];
-
-		BLI_edgehashIterator_getKey(ehi, (int*)&med->v1, (int*)&med->v2);
-
-		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
-	}
-	BLI_edgehashIterator_free(ehi);
-
-	BLI_edgehash_free(eh, NULL);
-}

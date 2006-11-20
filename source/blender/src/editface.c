@@ -124,7 +124,7 @@
 /* returns 0 if not found, otherwise 1 */
 int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect)
 {
-	if (!me || !me->tface || me->totface==0)
+	if (!me || !me->mtface || me->totface==0)
 		return 0;
 
 	if (G.vd->flag & V3D_NEEDBACKBUFDRAW) {
@@ -179,7 +179,7 @@ static void uv_calc_center_vector(float *result, Object *ob, Mesh *me)
 {
 	float min[3], max[3], *cursx;
 	int a;
-	TFace *tface;
+	MTFace *tface;
 	MFace *mface;
 
 	switch (G.vd->around) 
@@ -188,7 +188,7 @@ static void uv_calc_center_vector(float *result, Object *ob, Mesh *me)
 		min[0]= min[1]= min[2]= 1e20f;
 		max[0]= max[1]= max[2]= -1e20f; 
 
-		tface= me->tface;
+		tface= me->mtface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
 			if(tface->flag & TF_SELECT) {
@@ -341,7 +341,7 @@ static void uv_calc_shift_project(float *target, float *shift, float rotmat[][4]
 void calculate_uv_map(unsigned short mapmode)
 {
 	Mesh *me;
-	TFace *tface;
+	MTFace *tface;
 	MFace *mface;
 	Object *ob;
 	float dx, dy, rotatematrix[4][4], radius= 1.0, min[3], cent[3], max[3];
@@ -359,7 +359,7 @@ void calculate_uv_map(unsigned short mapmode)
 	}
 
 	me= get_mesh(ob=OBACT);
-	if(me==0 || me->tface==0) return;
+	if(me==0 || me->mtface==0) return;
 	if(me->totface==0) return;
 	
 	switch(mapmode) {
@@ -379,7 +379,7 @@ void calculate_uv_map(unsigned short mapmode)
 		uv_calc_center_vector(cent, ob, me);
 		uv_calc_map_matrix(rotatematrix, ob, upangledeg, sideangledeg, 1.0f);
 			
-		tface= me->tface;
+		tface= me->mtface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
 			if(tface->flag & TF_SELECT) {
@@ -395,7 +395,7 @@ void calculate_uv_map(unsigned short mapmode)
 		dx= (max[0]-min[0]);
 		dy= (max[1]-min[1]);
 
-		tface= me->tface;
+		tface= me->mtface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
 			if(tface->flag & TF_SELECT) {
@@ -412,7 +412,7 @@ void calculate_uv_map(unsigned short mapmode)
 		cent[0] = cent[1] = cent[2] = 0.0; 
 		Mat4CpyMat4(rotatematrix,ob->obmat);
 
-		tface= me->tface;
+		tface= me->mtface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
 			if(tface->flag & TF_SELECT) {
@@ -435,7 +435,7 @@ void calculate_uv_map(unsigned short mapmode)
 		case B_UVAUTO_STD2: fac = 0.5; break;
 		}
 
-		tface= me->tface;
+		tface= me->mtface;
 		for(a=0; a<me->totface; a++, tface++)
 			if(tface->flag & TF_SELECT) 
 				default_uv(tface->uv, fac);
@@ -453,7 +453,7 @@ void calculate_uv_map(unsigned short mapmode)
 		else 
 			uv_calc_map_matrix(rotatematrix,ob,upangledeg,sideangledeg,radius);
 
-		tface= me->tface;
+		tface= me->mtface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
 			if(tface->flag & TF_SELECT) {
@@ -491,7 +491,7 @@ void calculate_uv_map(unsigned short mapmode)
 		MVert *mv= me->mvert;
 		float cubesize = G.scene->toolsettings->uvcalc_cubesize;
 
-		tface= me->tface;
+		tface= me->mtface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
 			if(tface->flag & TF_SELECT) {
@@ -536,7 +536,7 @@ void calculate_uv_map(unsigned short mapmode)
 
 	/* clipping and wrapping */
 	if(G.sima && G.sima->flag & SI_CLIP_UV) {
-		tface= me->tface;
+		tface= me->mtface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
 			if(!(tface->flag & TF_SELECT)) continue;
@@ -569,31 +569,41 @@ void calculate_uv_map(unsigned short mapmode)
 	allqueue(REDRAWIMAGE, 0);
 }
 
-TFace *get_active_tface()
+MTFace *get_active_tface(MCol **mcol)
 {
 	Mesh *me;
-	TFace *tf;
+	MTFace *tf;
 	int a;
 	
 	if(OBACT==NULL || OBACT->type!=OB_MESH)
 		return NULL;
 	
 	me= get_mesh(OBACT);
-	if(me==0 || me->tface==0)
+	if(me==0 || me->mtface==0)
 		return NULL;
 	
-	for(a=0, tf=me->tface; a < me->totface; a++, tf++)
-		if(tf->flag & TF_ACTIVE)
+	for(a=0, tf=me->mtface; a < me->totface; a++, tf++) {
+		if(tf->flag & TF_ACTIVE) {
+			if(mcol) *mcol = (me->mcol)? &me->mcol[a]: NULL;
 			return tf;
+		}
+	}
 
-	for(a=0, tf=me->tface; a < me->totface; a++, tf++)
-		if(tf->flag & TF_SELECT)
+	for(a=0, tf=me->mtface; a < me->totface; a++, tf++) {
+		if(tf->flag & TF_SELECT) {
+			if(mcol) *mcol = (me->mcol)? &me->mcol[a]: NULL;
 			return tf;
+		}
+	}
 
-	for(a=0, tf=me->tface; a < me->totface; a++, tf++)
-		if((tf->flag & TF_HIDE)==0)
+	for(a=0, tf=me->mtface; a < me->totface; a++, tf++) {
+		if((tf->flag & TF_HIDE)==0) {
+			if(mcol) *mcol = (me->mcol)? &me->mcol[a]: NULL;
 			return tf;
-	
+		}
+	}
+
+	if(mcol) *mcol = NULL;
 	return NULL;
 }
 
@@ -616,15 +626,11 @@ void default_uv(float uv[][2], float size)
 	
 	uv[3][0]= size;
 	uv[3][1]= size+dy;
-	
-	
 }
 
-void default_tface(TFace *tface)
+void default_tface(MTFace *tface)
 {
 	default_uv(tface->uv, 1.0);
-
-	tface->col[0]= tface->col[1]= tface->col[2]= tface->col[3]= vpaint_get_current_col();
 
 	tface->mode= TF_TEX;
 	tface->mode= 0;
@@ -635,32 +641,30 @@ void default_tface(TFace *tface)
 
 void make_tfaces(Mesh *me) 
 {
-	TFace *tface;
+	MTFace *tf;
 	int a;
-	
-	a= me->totface;
-	if(a==0) return;
-	tface= me->tface= MEM_callocN(a*sizeof(TFace), "tface");
-	while(a--) {
-		default_tface(tface);
-		tface++;
-	}
-	if(me->mcol) {
-		mcol_to_tface(me, 1);
-	}
+
+	if(me->mtface)
+		return;
+
+	me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, 0, 0, me->totface);
+
+	tf= me->mtface;
+	for (a=0; a<me->totface; a++, tf++)
+		default_tface(tf);
 }
 
 
 void reveal_tface()
 {
 	Mesh *me;
-	TFace *tface;
+	MTFace *tface;
 	int a;
 	
 	me= get_mesh(OBACT);
-	if(me==0 || me->tface==0 || me->totface==0) return;
+	if(me==0 || me->mtface==0 || me->totface==0) return;
 	
-	tface= me->tface;
+	tface= me->mtface;
 	a= me->totface;
 	while(a--) {
 		if(tface->flag & TF_HIDE) {
@@ -678,18 +682,18 @@ void reveal_tface()
 void hide_tface()
 {
 	Mesh *me;
-	TFace *tface;
+	MTFace *tface;
 	int a;
 	
 	me= get_mesh(OBACT);
-	if(me==0 || me->tface==0 || me->totface==0) return;
+	if(me==0 || me->mtface==0 || me->totface==0) return;
 	
 	if(G.qual & LR_ALTKEY) {
 		reveal_tface();
 		return;
 	}
 	
-	tface= me->tface;
+	tface= me->mtface;
 	a= me->totface;
 	while(a--) {
 		if(tface->flag & TF_HIDE);
@@ -720,7 +724,7 @@ void select_linked_tfaces(int mode)
 
 	ob = OBACT;
 	me = get_mesh(ob);
-	if(me==0 || me->tface==0 || me->totface==0) return;
+	if(me==0 || me->mtface==0 || me->totface==0) return;
 
 	if (mode==0 || mode==1) {
 		if (!(ob->lay & G.vd->lay))
@@ -736,13 +740,13 @@ void select_linked_tfaces(int mode)
 void deselectall_tface()
 {
 	Mesh *me;
-	TFace *tface;
+	MTFace *tface;
 	int a, sel;
 		
 	me= get_mesh(OBACT);
-	if(me==0 || me->tface==0) return;
+	if(me==0 || me->mtface==0) return;
 	
-	tface= me->tface;
+	tface= me->mtface;
 	a= me->totface;
 	sel= 0;
 	while(a--) {
@@ -751,7 +755,7 @@ void deselectall_tface()
 		tface++;
 	}
 	
-	tface= me->tface;
+	tface= me->mtface;
 	a= me->totface;
 	while(a--) {
 		if(tface->flag & TF_HIDE);
@@ -770,13 +774,13 @@ void deselectall_tface()
 void selectswap_tface(void)
 {
 	Mesh *me;
-	TFace *tface;
+	MTFace *tface;
 	int a;
 		
 	me= get_mesh(OBACT);
-	if(me==0 || me->tface==0) return;
+	if(me==0 || me->mtface==0) return;
 	
-	tface= me->tface;
+	tface= me->mtface;
 	a= me->totface;
 	while(a--) {
 		if(tface->flag & TF_HIDE);
@@ -795,133 +799,143 @@ void selectswap_tface(void)
 void rotate_uv_tface()
 {
 	Mesh *me;
-	TFace *tface;
-	MFace *mface;
+	MFace *mf;
+	MCol *mcol;
+	MTFace *tf;
 	short mode;
 	int a;
 	
 	me= get_mesh(OBACT);
-	if(me==0 || me->tface==0) return;
+	if(me==0 || me->mtface==0) return;
 	
 	mode= pupmenu("Rotate %t|UV Co-ordinates %x1|Vertex Colors %x2");
-	
-	if(mode<1) return;
-	
-	tface= me->tface;
-	mface= me->mface;
-	a= me->totface;
-	while(a--) {
-		if(tface->flag & TF_SELECT) {
-			if(mode==1) {
-				float u1= tface->uv[0][0];
-				float v1= tface->uv[0][1];
+
+	if (mode == 1 && me->mtface) {
+		tf= me->mtface;
+		mf= me->mface;
+		for(a=0; a<me->totface; a++, tf++, mf++) {
+			if(tf->flag & TF_SELECT) {
+				float u1= tf->uv[0][0];
+				float v1= tf->uv[0][1];
 				
-				tface->uv[0][0]= tface->uv[1][0];
-				tface->uv[0][1]= tface->uv[1][1];
+				tf->uv[0][0]= tf->uv[1][0];
+				tf->uv[0][1]= tf->uv[1][1];
 	
-				tface->uv[1][0]= tface->uv[2][0];
-				tface->uv[1][1]= tface->uv[2][1];
+				tf->uv[1][0]= tf->uv[2][0];
+				tf->uv[1][1]= tf->uv[2][1];
 	
-				if(mface->v4) {
-					tface->uv[2][0]= tface->uv[3][0];
-					tface->uv[2][1]= tface->uv[3][1];
+				if(mf->v4) {
+					tf->uv[2][0]= tf->uv[3][0];
+					tf->uv[2][1]= tf->uv[3][1];
 				
-					tface->uv[3][0]= u1;
-					tface->uv[3][1]= v1;
+					tf->uv[3][0]= u1;
+					tf->uv[3][1]= v1;
 				}
 				else {
-					tface->uv[2][0]= u1;
-					tface->uv[2][1]= v1;
-				}
-			}
-			else if(mode==2) {
-				unsigned int tcol= tface->col[0];
-				
-				tface->col[0]= tface->col[1];
-				tface->col[1]= tface->col[2];
-	
-				if(mface->v4) {
-					tface->col[2]= tface->col[3];
-					tface->col[3]= tcol;
-				}
-				else {
-					tface->col[2]= tcol;
+					tf->uv[2][0]= u1;
+					tf->uv[2][1]= v1;
 				}
 			}
 		}
-		tface++;
-		mface++;
-	}
-	
-	BIF_undo_push("Rotate UV face");
 
-	object_uvs_changed(OBACT);
+		BIF_undo_push("Rotate UV face");
+		object_uvs_changed(OBACT);
+	}
+	else if (mode == 2 && me->mcol) {
+		tf= me->mtface;
+		mcol= me->mcol;
+		mf= me->mface;
+		for(a=0; a<me->totface; a++, tf++, mf++, mcol+=4) {
+			if(tf->flag & TF_SELECT) {
+				MCol tmpcol= mcol[0];
+				
+				mcol[0]= mcol[1];
+				mcol[1]= mcol[2];
+	
+				if(mf->v4) {
+					mcol[2]= mcol[3];
+					mcol[3]= tmpcol;
+				}
+				else
+					mcol[2]= tmpcol;
+			}
+		}
+
+		BIF_undo_push("Rotate color face");
+		object_uvs_changed(OBACT);
+	}
 }
 
 void mirror_uv_tface()
 {
 	Mesh *me;
-	TFace *tface;
-	MFace *mface;
+	MFace *mf;
+	MTFace *tf;
+	MCol *mcol;
 	short mode;
 	int a;
 	
 	me= get_mesh(OBACT);
-	if(me==0 || me->tface==0) return;
+	if(me==0 || me->mtface==0) return;
 	
 	mode= pupmenu("Mirror %t|UV Co-ordinates %x1|Vertex Colors %x2");
 	
-	if(mode<1) return;
-	
-	tface= me->tface;
-	mface= me->mface;
-	a= me->totface;
-	while(a--) {
-		if(tface->flag & TF_SELECT) {
-			if(mode==1) {
-				float u1= tface->uv[0][0];
-				float v1= tface->uv[0][1];
-				if(mface->v4) {
-					tface->uv[0][0]= tface->uv[3][0];
-					tface->uv[0][1]= tface->uv[3][1];
-				
-					tface->uv[3][0]= u1;
-					tface->uv[3][1]= v1;
+	if (mode==1 && me->mtface) {
+		mf= me->mface;
+		tf= me->mtface;
 
-					u1= tface->uv[1][0];
-					v1= tface->uv[1][1];
-
-					tface->uv[1][0]= tface->uv[2][0];
-					tface->uv[1][1]= tface->uv[2][1];
+		for (a=0; a<me->totface; a++, tf++, mf++) {
+			if(tf->flag & TF_SELECT) {
+				float u1= tf->uv[0][0];
+				float v1= tf->uv[0][1];
+				if(mf->v4) {
+					tf->uv[0][0]= tf->uv[3][0];
+					tf->uv[0][1]= tf->uv[3][1];
 				
-					tface->uv[2][0]= u1;
-					tface->uv[2][1]= v1;
+					tf->uv[3][0]= u1;
+					tf->uv[3][1]= v1;
+
+					u1= tf->uv[1][0];
+					v1= tf->uv[1][1];
+
+					tf->uv[1][0]= tf->uv[2][0];
+					tf->uv[1][1]= tf->uv[2][1];
+				
+					tf->uv[2][0]= u1;
+					tf->uv[2][1]= v1;
 				}
 				else {
-					tface->uv[0][0]= tface->uv[2][0];
-					tface->uv[0][1]= tface->uv[2][1];
-					tface->uv[2][0]= u1;
-					tface->uv[2][1]= v1;
-				}
-			}
-			else if(mode==2) {
-				unsigned int tcol= tface->col[0];
-				if(mface->v4) {
-					tface->col[0]= tface->col[3];
-					tface->col[3]= tcol;
-
-					tcol = tface->col[1];
-					tface->col[1]= tface->col[2];
-					tface->col[2]= tcol;
-				}
-				else {
-					tface->col[0]= tface->col[2];
-					tface->col[2]= tcol;
+					tf->uv[0][0]= tf->uv[2][0];
+					tf->uv[0][1]= tf->uv[2][1];
+					tf->uv[2][0]= u1;
+					tf->uv[2][1]= v1;
 				}
 			}
 		}
-		tface++;
-		mface++;
+	}
+	else if(mode==2 && me->mcol) {
+		mf= me->mface;
+		tf= me->mtface;
+		mcol= me->mcol;
+
+		for (a=0; a<me->totface; a++, tf++, mf++, mcol+=4) {
+			if(tf->flag & TF_SELECT) {
+				MCol tmpcol= mcol[0];
+
+				if(mf->v4) {
+					mcol[0]= mcol[3];
+					mcol[3]= tmpcol;
+
+					tmpcol = mcol[1];
+					mcol[1]= mcol[2];
+					mcol[2]= tmpcol;
+				}
+				else {
+					mcol[0]= mcol[2];
+					mcol[2]= tmpcol;
+				}
+			}
+		}
 	}
 	
 	BIF_undo_push("Mirror UV face");
@@ -934,7 +948,7 @@ void minmax_tface(float *min, float *max)
 	Object *ob;
 	Mesh *me;
 	MFace *mf;
-	TFace *tf;
+	MTFace *tf;
 	MVert *mv;
 	int a;
 	float vec[3], bmat[3][3];
@@ -942,13 +956,13 @@ void minmax_tface(float *min, float *max)
 	ob = OBACT;
 	if (ob==0) return;
 	me= get_mesh(ob);
-	if(me==0 || me->tface==0) return;
+	if(me==0 || me->mtface==0) return;
 	
 	Mat3CpyMat4(bmat, ob->obmat);
 
 	mv= me->mvert;
 	mf= me->mface;
-	tf= me->tface;
+	tf= me->mtface;
 	for (a=me->totface; a>0; a--, mf++, tf++) {
 		if (tf->flag & TF_HIDE || !(tf->flag & TF_SELECT))
 			continue;
@@ -1027,13 +1041,13 @@ static int seam_shortest_path(Mesh *me, int source, int target)
 	float *cost;
 	MEdge *med;
 	int a, *nedges, *edges, *prevedge, mednum = -1, nedgeswap = 0;
-	TFace *tf;
+	MTFace *tf;
 	MFace *mf;
 
 	/* mark hidden edges as done, so we don't use them */
 	ehash = BLI_edgehash_new();
 
-	for (a=0, mf=me->mface, tf=me->tface; a<me->totface; a++, tf++, mf++) {
+	for (a=0, mf=me->mface, tf=me->mtface; a<me->totface; a++, tf++, mf++) {
 		if (!(tf->flag & TF_HIDE)) {
 			BLI_edgehash_insert(ehash, mf->v1, mf->v2, NULL);
 			BLI_edgehash_insert(ehash, mf->v2, mf->v3, NULL);
@@ -1190,13 +1204,13 @@ void seam_edgehash_insert_face(EdgeHash *ehash, MFace *mf)
 void seam_mark_clear_tface(short mode)
 {
 	Mesh *me;
-	TFace *tf;
+	MTFace *tf;
 	MFace *mf;
 	MEdge *med;
 	int a;
 	
 	me= get_mesh(OBACT);
-	if(me==0 || me->tface==0 || me->totface==0) return;
+	if(me==0 || me->mtface==0 || me->totface==0) return;
 
 	if (mode == 0)
 		mode = pupmenu("Seams%t|Mark Border Seam %x1|Clear Seam %x2");
@@ -1207,7 +1221,7 @@ void seam_mark_clear_tface(short mode)
 	if (mode == 2) {
 		EdgeHash *ehash = BLI_edgehash_new();
 
-		for (a=0, mf=me->mface, tf=me->tface; a<me->totface; a++, tf++, mf++)
+		for (a=0, mf=me->mface, tf=me->mtface; a<me->totface; a++, tf++, mf++)
 			if (!(tf->flag & TF_HIDE) && (tf->flag & TF_SELECT))
 				seam_edgehash_insert_face(ehash, mf);
 
@@ -1222,7 +1236,7 @@ void seam_mark_clear_tface(short mode)
 		EdgeHash *ehash1 = BLI_edgehash_new();
 		EdgeHash *ehash2 = BLI_edgehash_new();
 
-		for (a=0, mf=me->mface, tf=me->tface; a<me->totface; a++, tf++, mf++) {
+		for (a=0, mf=me->mface, tf=me->mtface; a<me->totface; a++, tf++, mf++) {
 			if ((tf->flag & TF_HIDE) || !(tf->flag & TF_SELECT))
 				seam_edgehash_insert_face(ehash1, mf);
 			else
@@ -1251,7 +1265,7 @@ void face_select()
 {
 	Object *ob;
 	Mesh *me;
-	TFace *tface, *tsel;
+	MTFace *tface, *tsel;
 	MFace *msel;
 	short mval[2];
 	unsigned int a, index;
@@ -1271,13 +1285,13 @@ void face_select()
 
 	if (!facesel_face_pick(me, mval, &index, 1)) return;
 	
-	tsel= (((TFace*)me->tface)+index);
+	tsel= (((MTFace*)me->mtface)+index);
 	msel= (((MFace*)me->mface)+index);
 
 	if (tsel->flag & TF_HIDE) return;
 	
 	/* clear flags */
-	tface = me->tface;
+	tface = me->mtface;
 	a = me->totface;
 	while (a--) {
 		if (G.qual & LR_SHIFTKEY)
@@ -1307,7 +1321,7 @@ void face_select()
 void face_borderselect()
 {
 	Mesh *me;
-	TFace *tface;
+	MTFace *tface;
 	rcti rect;
 	struct ImBuf *ibuf;
 	unsigned int *rt;
@@ -1315,7 +1329,7 @@ void face_borderselect()
 	char *selar;
 	
 	me= get_mesh(OBACT);
-	if(me==0 || me->tface==0) return;
+	if(me==0 || me->mtface==0) return;
 	if(me->totface==0) return;
 	
 	val= get_border(&rect, 3);
@@ -1347,7 +1361,7 @@ void face_borderselect()
 			rt++;
 		}
 		
-		tface= me->tface;
+		tface= me->mtface;
 		for(a=1; a<=me->totface; a++, tface++) {
 			if(selar[a]) {
 				if(tface->flag & TF_HIDE);
@@ -1454,7 +1468,7 @@ void set_faceselect()	/* toggle */
 	}
 	else if (me && (ob->lay & G.vd->lay)) {
 		G.f |= G_FACESELECT;
-		if(me->tface==NULL)
+		if(me->mtface==NULL)
 			make_tfaces(me);
 
 		setcursor_space(SPACE_VIEW3D, CURSOR_FACESEL);
@@ -1537,7 +1551,7 @@ static void texpaint_project(Object *ob, double *model, double *proj, GLint *vie
 	pco[1]= (float)winy;
 }
 
-static int texpaint_projected_verts(Object *ob, MFace *mf, TFace *tf, MVert *mv, float *v1, float *v2, float *v3, float *v4)
+static int texpaint_projected_verts(Object *ob, MFace *mf, MTFace *tf, MVert *mv, float *v1, float *v2, float *v3, float *v4)
 {
 	double model[16], proj[16];
 	GLint view[4];
@@ -1565,10 +1579,10 @@ void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy,
 {
 	float v1[2], v2[2], v3[2], v4[2], p[2], w[3];
 	float absw, minabsw;
-	int nvert, dmNeedsFree;
-	DerivedMesh *dm = mesh_get_derived_final(ob, &dmNeedsFree);
-	int *index = dm->getFaceDataArray(dm, LAYERTYPE_ORIGINDEX);
-	TFace *tface = dm->getFaceDataArray(dm, LAYERTYPE_TFACE), *tf;
+	int nvert;
+	DerivedMesh *dm = mesh_get_derived_final(ob);
+	int *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
+	MTFace *tface = dm->getFaceDataArray(dm, CD_MTFACE), *tf;
 	int numfaces = dm->getNumFaces(dm), a;
 	MFace mf;
 	MVert mv[4];
@@ -1628,8 +1642,7 @@ void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy,
 		}
 	}
 
-	if (dmNeedsFree)
-		dm->release(dm);
+	dm->release(dm);
 }
 
  /* Selects all faces which have the same uv-texture as the active face 
@@ -1642,7 +1655,7 @@ void get_same_uv(void)
 {
 	Object *ob;
 	Mesh *me;
-	TFace *tface;	
+	MTFace *tface;	
 	short a, foundtex=0;
 	Image *ima;
 	char uvname[160];
@@ -1656,7 +1669,7 @@ void get_same_uv(void)
 	
 		
 	/* Search for the active face with a UV-Texture */
-	tface = me->tface;
+	tface = me->mtface;
 	a = me->totface;
 	while (a--) {		
 		if(tface->flag & TF_ACTIVE){			
@@ -1676,7 +1689,7 @@ void get_same_uv(void)
 	}
 
 	/* select everything with the same texture */
-	tface = me->tface;
+	tface = me->mtface;
 	a = me->totface;
 	while (a--) {		
 		ima=tface->tpage;

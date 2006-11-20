@@ -41,11 +41,12 @@
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
 
-#include "BKE_global.h"
-#include "BKE_verse.h"
-#include "BKE_mesh.h"
+#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"
+#include "BKE_mesh.h"
 #include "BKE_utildefines.h"
+#include "BKE_verse.h"
 
 #include "BIF_verse.h"
 #include "BIF_editmesh.h"
@@ -1414,34 +1415,11 @@ void create_meshdata_from_geom_node(Mesh *me, VNode *vnode)
 	vert_vlayer = find_verse_layer_type((VGeomData*)vnode->data, VERTEX_LAYER);
 	face_vlayer = find_verse_layer_type((VGeomData*)vnode->data, POLYGON_LAYER);
 
-	if(me->mvert) {
-		MEM_freeN(me->mvert);
-		me->mvert = NULL;
-	}
-	if(me->mface) {
-		MEM_freeN(me->mface);
-		me->mface = NULL;
-	}
-	if(me->tface) {
-		MEM_freeN(me->tface);
-		me->tface = NULL;
-	}
-	if(me->medge) {
-		MEM_freeN(me->medge);
-		me->medge = NULL;
-	}
-	if(me->dvert) {
-		MEM_freeN(me->dvert);
-		me->dvert = NULL;
-	}
-	if(me->mcol) {
-		MEM_freeN(me->mcol);
-		me->mcol = NULL;
-	}
-	if(me->msticky) {
-		MEM_freeN(me->msticky);
-		me->msticky = NULL;
-	}
+	CustomData_free(&me->vdata, me->totvert);
+	CustomData_free(&me->edata, me->totedge);
+	CustomData_free(&me->fdata, me->totface);
+	mesh_update_customdata_pointers(me);
+
 	if(me->mselect) {
 		MEM_freeN(me->mselect);
 		me->mselect = NULL;
@@ -1451,8 +1429,8 @@ void create_meshdata_from_geom_node(Mesh *me, VNode *vnode)
 	me->totface = face_vlayer->dl.da.count;
 	me->totselect = 0;
 
-	mvert = me->mvert = (MVert*)MEM_mallocN(sizeof(MVert)*me->totvert, "mesh_from_verse vert");
-	mface = me->mface = (MFace*)MEM_mallocN(sizeof(MFace)*me->totface, "mesh_from_verse face");
+	mvert = me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, 0, NULL, me->totvert);
+	mface = me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, 0, NULL, me->totface);
 
 	index = 0;
 	vvert = vert_vlayer->dl.lb.first;
@@ -1495,7 +1473,7 @@ void create_meshdata_from_geom_node(Mesh *me, VNode *vnode)
 		mface->edcode = 0;
 
 		/* index 0 isn't allowed at location 3 or 4 */
-		test_index_face(mface, NULL, NULL, vface->vvert3?4:3);
+		test_index_face(mface, NULL, 0, vface->vvert3?4:3);
 /*		printf("\t mface: %d, %d, %d, %d\n", mface->v1, mface->v2, mface->v3, mface->v4);*/
 		
 		vface = vface->next;
@@ -1506,7 +1484,7 @@ void create_meshdata_from_geom_node(Mesh *me, VNode *vnode)
 
 	if(me->totedge) {
 		EdgeHashIterator *i;
-		MEdge *medge = me->medge = (MEdge *)MEM_mallocN(sizeof(MEdge)*me->totedge, "mesh_from_verse edge");
+		MEdge *medge = me->medge = CustomData_add_layer(&me->edata, CD_MEDGE, 0, NULL, me->totedge);
 
 		for(i = BLI_edgehashIterator_new(edges); !BLI_edgehashIterator_isDone(i); BLI_edgehashIterator_step(i), ++medge) {
 			BLI_edgehashIterator_getKey(i, (int*)&medge->v1, (int*)&medge->v2);

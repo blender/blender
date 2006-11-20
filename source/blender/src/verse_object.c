@@ -414,7 +414,7 @@ void b_verse_unsubscribe(VNode *vnode)
 		}
 		
 		/* reinitialize object derived mesh */
-		makeDispListMesh(ob);
+		makeDerivedMesh(ob);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	}
 	else if(vnode->type==V_NT_BITMAP) {
@@ -445,7 +445,7 @@ void post_link_set(VLink *vlink)
 			me = (Mesh*)((VGeomData*)target->data)->mesh;
 		if(ob && me && ob->data!=me)  {
 			ob->data = me;
-			makeDispListMesh(ob);
+			makeDerivedMesh(ob);
 		}
 	}
 
@@ -573,11 +573,13 @@ void post_object_free_constraint(VNode *vnode)
 		struct Object *ob = (Object*)((VObjectData*)vnode->data)->object;
 		if(ob) {
 			if(ob->derivedFinal) {
-				((DerivedMesh*)ob->derivedFinal)->release((DerivedMesh*)ob->derivedFinal);
+				ob->derivedFinal->needsFree = 1;
+				ob->derivedFinal->release((DerivedMesh*)ob->derivedFinal);
 				ob->derivedFinal = NULL;
 			}
 			if(ob->derivedDeform) {
-				((DerivedMesh*)ob->derivedDeform)->release((DerivedMesh*)ob->derivedDeform);
+				ob->derivedDeform->needsFree = 1;
+				ob->derivedDeform->release((DerivedMesh*)ob->derivedDeform);
 				ob->derivedDeform = NULL;
 			}
 		}

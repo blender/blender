@@ -66,6 +66,7 @@ void sort_faces(void);
 #include "BLI_arithb.h"
 
 #include "BKE_depsgraph.h"
+#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -99,27 +100,6 @@ void sort_faces(void);
 
 /* * ********************** no editmode!!! *********** */
 
-
-/** tests whether selected mesh objects have tfaces */
-static int testSelected_TfaceMesh(void)
-{
-	Base *base;
-	Mesh *me;
-
-	base = FIRSTBASE;
-	while (base) {
-		if TESTBASE(base) {
-			if(base->object->type==OB_MESH) {
-				me= base->object->data;
-				if (me->tface) 
-					return 1;
-			}		
-		}			
-		base= base->next;
-	}	
-	return 0;
-}	
-
 /* join selected meshes into the active mesh, context sensitive
 return 0 if no join is made (error) and 1 of the join is done */
 int join_mesh(void)
@@ -131,14 +111,13 @@ int join_mesh(void)
 	MVert *mvert, *mvertmain;
 	MEdge *medge = NULL, *medgemain;
 	MFace *mface = NULL, *mfacemain;
-	TFace *tface = NULL, *tfacemain;
-	unsigned int *mcol=NULL, *mcolmain;
 	float imat[4][4], cmat[4][4];
 	int a, b, totcol, totedge=0, totvert=0, totface=0, ok=0, vertofs, map[MAXMAT];
-	int	i, j, index, haskey=0, hasdefgroup=0;
+	int	i, j, index, haskey=0, edgeofs, faceofs;
 	bDeformGroup *dg, *odg;
-	MDeformVert *dvert, *dvertmain;
-	
+	MDeformVert *dvert;
+	CustomData vdata, edata, fdata;
+
 	if(G.obedit) return 0;
 	
 	ob= OBACT;
@@ -225,8 +204,6 @@ int join_mesh(void)
 
 				// Join this object's vertex groups to the base one's
 				for (dg=base->object->defbase.first; dg; dg=dg->next){
-					hasdefgroup= 1;
-					
 					/* See if this group exists in the object */
 					for (odg=ob->defbase.first; odg; odg=odg->next){
 						if (!strcmp(odg->name, dg->name)){
@@ -266,32 +243,22 @@ int join_mesh(void)
 	}
 
 	me= ob->data;
-	mvert= mvertmain= MEM_mallocN(totvert*sizeof(MVert), "joinmesh vert");
 
-	if(totedge) medge= medgemain= MEM_callocN(totedge*sizeof(MEdge), "joinmesh edge");
-	else medgemain= NULL;
+	memset(&vdata, 0, sizeof(vdata));
+	memset(&edata, 0, sizeof(edata));
+	memset(&fdata, 0, sizeof(fdata));
 	
-	if (totface) mface= mfacemain= MEM_mallocN(totface*sizeof(MFace), "joinmesh face");
-	else mfacemain= NULL;
+	mvertmain= mvert= CustomData_add_layer(&vdata, CD_MVERT, 0, NULL, totvert);
+	medgemain= medge= CustomData_add_layer(&edata, CD_MEDGE, 0, NULL, totedge);
+	mfacemain= mface= CustomData_add_layer(&fdata, CD_MFACE, 0, NULL, totface);
 
-	if(me->mcol) mcol= mcolmain= MEM_callocN(totface*4*sizeof(int), "joinmesh mcol");
-	else mcolmain= NULL;
 
-	/* if active object doesn't have Tfaces, but one in the selection does,
-	   make TFaces for active, so we don't lose texture information in the
-	   join process */
-	if(me->tface || testSelected_TfaceMesh()) tface= tfacemain= MEM_callocN(totface*4*sizeof(TFace), "joinmesh4");
-	else tfacemain= NULL;
-
-	if(me->dvert || hasdefgroup)
-		dvert= dvertmain= MEM_callocN(totvert*sizeof(MDeformVert), "joinmesh5");
-	else dvert=dvertmain= NULL;
-
-	vertofs= 0;
-	
 	/* inverse transorm all selected meshes in this object */
 	Mat4Invert(imat, ob->obmat);
 	
+	vertofs= 0;
+	edgeofs= 0;
+	faceofs= 0;
 	base= FIRSTBASE;
 	while(base) {
 		nextb= base->next;
@@ -301,13 +268,13 @@ int join_mesh(void)
 				me= base->object->data;
 				
 				if(me->totvert) {
+					CustomData_merge(&me->fdata, &fdata, CD_MASK_MESH, CD_DEFAULT, totface);
+					CustomData_copy_data(&me->vdata, &vdata, 0, vertofs, me->totvert);
 					
-					memcpy(mvert, me->mvert, me->totvert*sizeof(MVert));
-					
-					copy_dverts(dvert, me->dvert, me->totvert);
+					dvert= CustomData_get(&vdata, vertofs, CD_MDEFORMVERT);
 
 					/* NEW VERSION */
-					if (dvertmain){
+					if (dvert){
 						for (i=0; i<me->totvert; i++){
 							for (j=0; j<dvert[i].totweight; j++){
 								//	Find the old vertex group
@@ -323,7 +290,6 @@ int join_mesh(void)
 								}
 							}
 						}
-						dvert+=me->totvert;
 					}
 
 					if(base->object != ob) {
@@ -337,11 +303,6 @@ int join_mesh(void)
 						}
 					}
 					else mvert+= me->totvert;
-					
-					if(mcolmain) {
-						if(me->mcol) memcpy(mcol, me->mcol, me->totface*4*4);
-						mcol+= 4*me->totface;
-					}
 				}
 				if(me->totface) {
 				
@@ -359,50 +320,37 @@ int join_mesh(void)
 						}
 					}
 
-					memcpy(mface, me->mface, me->totface*sizeof(MFace));
-					
-					a= me->totface;
-					while(a--) {
+					CustomData_merge(&me->fdata, &fdata, CD_MASK_MESH, CD_DEFAULT, totface);
+					CustomData_copy_data(&me->fdata, &fdata, 0, vertofs, me->totface);
+
+					for(a=0; a<me->totface; a++, mface++) {
 						mface->v1+= vertofs;
 						mface->v2+= vertofs;
 						mface->v3+= vertofs;
 						if(mface->v4) mface->v4+= vertofs;
 						
 						mface->mat_nr= map[(int)mface->mat_nr];
-						
-						mface++;
 					}
-					
-					if(tfacemain) {
-						if(me->tface) {
-							memcpy(tface, me->tface, me->totface*sizeof(TFace));
-							tface+= me->totface;
-						}
-						else {
-							for(a=0; a<me->totface; a++, tface++) {
-								default_tface(tface);
-							}
-						}
-					}
-					
+
+					faceofs += me->totface;
 				}
 				
 				if(me->totedge) {
-					memcpy(medge, me->medge, me->totedge*sizeof(MEdge));
-					
-					a= me->totedge;
-					while(a--) {
+					CustomData_merge(&me->edata, &edata, CD_MASK_MESH, CD_DEFAULT, totedge);
+					CustomData_copy_data(&me->edata, &edata, 0, vertofs, me->totedge);
+
+					for(a=0; a<me->totedge; a++, medge++) {
 						medge->v1+= vertofs;
 						medge->v2+= vertofs;
-						medge++;
 					}
+
+					edgeofs += me->totedge;
 				}
 				
-				vertofs+= me->totvert;
+				vertofs += me->totvert;
 				
-				if(base->object!=ob) {
+				if(base->object!=ob)
 					free_and_unlink_base(base);
-				}
 			}
 		}
 		base= nextb;
@@ -410,27 +358,19 @@ int join_mesh(void)
 	
 	me= ob->data;
 	
-	if(me->mvert) MEM_freeN(me->mvert);
-	me->mvert= mvertmain;
+	CustomData_free(&me->vdata, me->totvert);
+	CustomData_free(&me->edata, me->totedge);
+	CustomData_free(&me->fdata, me->totface);
 
-	if(me->medge) MEM_freeN(me->medge);
-	me->medge= medgemain;
-
-	if(me->mface) MEM_freeN(me->mface);
-	me->mface= mfacemain;
-
-	if(me->dvert) free_dverts(me->dvert, me->totvert);
-	me->dvert = dvertmain;
-
-	if(me->mcol) MEM_freeN(me->mcol);
-	me->mcol= (MCol *)mcolmain;
-	
-	if(me->tface) MEM_freeN(me->tface);
-	me->tface= tfacemain;
-	
 	me->totvert= totvert;
 	me->totedge= totedge;
 	me->totface= totface;
+	
+	me->vdata= vdata;
+	me->edata= edata;
+	me->fdata= fdata;
+
+	mesh_update_customdata_pointers(me);
 	
 	/* old material array */
 	for(a=1; a<=ob->totcol; a++) {
@@ -586,7 +526,7 @@ void sort_faces(void)
 {
 	Object *ob= OBACT;
 	Mesh *me;
-	
+	CustomDataLayer *layer;
 	int i, *index;
 	
 	if(ob==0) return;
@@ -606,13 +546,13 @@ void sort_faces(void)
 	mfacebase = me->mface;
 
 /* sort index list instead of faces itself 
-   and apply this permutation to the face list plus
-   to the texture faces */
+   and apply this permutation to all face layers */
 	qsort(index, me->totface, sizeof(int), verg_mface);
 
-	permutate(mfacebase, me->totface, sizeof(MFace), index);
-	if (me->tface) 
-		permutate(me->tface, me->totface, sizeof(TFace), index);
+	for(i = 0; i < me->fdata.totlayer; i++) {
+		layer = &me->fdata.layers[i];
+		permutate(layer->data, me->totface, CustomData_sizeof(layer->type), index);
+	}
 
 	MEM_freeN(index);
 

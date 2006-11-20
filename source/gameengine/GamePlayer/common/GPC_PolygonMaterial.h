@@ -43,7 +43,7 @@ namespace GPC_PolygonMaterial
 #if 0
 class GPC_PolygonMaterial : public RAS_IPolyMaterial
 {
-	struct TFace* m_tface;
+	struct MTFace* m_tface;
 
 public:
 	GPC_PolygonMaterial(const STR_String& texname, bool ba, const STR_String& matname,
@@ -72,20 +72,20 @@ public:
 	 * Returns the Blender texture face structure that is used for this material.
 	 * @return The material's texture face.
 	 */
-	TFace* GetTFace(void) const;
+	MTFace* GetMTFace(void) const;
 
 	static void SetMipMappingEnabled(bool enabled = false);
 };
 
 
-inline TFace* GPC_PolygonMaterial::GetTFace(void) const
+inline MTFace* GPC_PolygonMaterial::GetMTFace(void) const
 {
 	return m_tface;
 }
 
 inline GPC_PolygonMaterial::TCachingInfo GPC_PolygonMaterial::GetCachingInfo(void) const
 {
-	return GetTFace();
+	return GetMTFace();
 }
 #endif
 #endif  // __GPC_POLYGONMATERIAL_H

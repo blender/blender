@@ -120,6 +120,7 @@
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_curve.h"
+#include "BKE_customdata.h"
 
 #include "BPY_extern.h"
 
@@ -297,10 +298,12 @@ static void read_stl_mesh_binary(char *str)
 
 			ob= add_object(OB_MESH);
 			me= ob->data;
-			me->mvert = vertdata;
-			me->mface = facedata;
-			me->totface = totface;
 			me->totvert = totvert;
+			me->totface = totface;
+			me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, 0,
+			                                 vertdata, totvert);
+			me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, 0,
+			                                 facedata, totface);
 
 			mesh_add_normals_flags(me);
 			make_edges(me, 0);
@@ -438,10 +441,13 @@ static void read_stl_mesh_ascii(char *str)
 	/* OK, lets create our mesh */
 	ob = add_object(OB_MESH);
 	me = ob->data;
-	me->mvert = MEM_callocN(totvert*sizeof(MVert), "mverts");
-	me->mface = MEM_callocN(totface*sizeof(MFace), "mface");
+
 	me->totface = totface;
 	me->totvert = totvert;
+	me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, 0,
+	                                 NULL, totvert);
+	me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, 0,
+	                                 NULL, totface);
 
 	/* Copy vert coords and create topology */
 	mvert = me->mvert;
@@ -557,8 +563,10 @@ static void read_videoscape_mesh(char *str)
 	me->totvert= verts;
 	me->totface= totedge+tottria+totquad;
 	
-	me->mvert= MEM_callocN(me->totvert*sizeof(MVert), "mverts");
-	if(me->totface) me->mface= MEM_callocN(me->totface*sizeof(MFace), "mface");
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0,
+	                                NULL, me->totvert);
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0,
+	                                NULL, me->totface);
 	
 	/* colors */
 	if(totcol) {
@@ -639,7 +647,7 @@ static void read_videoscape_mesh(char *str)
 					mface->v4= MIN2(nr, me->totvert-1);
 				}
 				
-				test_index_face(mface, NULL, NULL, poly);
+				test_index_face(mface, NULL, 0, poly);
 				
 				mface++;
 			}
@@ -761,8 +769,11 @@ static void read_radiogour(char *str)
 	me->totvert= verts;
 	me->totface= totedge+tottria+totquad;
 	me->flag= 0;
-	me->mvert= MEM_callocN(me->totvert*sizeof(MVert), "mverts");
-	if(me->totface) me->mface= MEM_callocN(me->totface*sizeof(MFace), "mface");
+
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0,
+	                                NULL, me->totvert);
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0,
+	                                NULL, me->totface);
 	
 	/* verts */
 	
@@ -808,7 +819,7 @@ static void read_radiogour(char *str)
 					mface->v4= MIN2(nr, me->totvert-1);
 				}
 				
-				test_index_face(mface, NULL, NULL, poly);
+				test_index_face(mface, NULL, 0, poly);
 				
 				mface++;
 			}
@@ -2054,10 +2065,12 @@ static void displist_to_mesh(DispList *dlfirst)
 
 	printf("Import: %d vertices %d faces\n", totvert, totface);
 	
-	if(totvert) me->mvert= MEM_callocN(totvert*sizeof(MVert), "mvert");
-	if(totface) me->mface= MEM_callocN(totface*sizeof(MFace), "mface");
 	me->totvert= totvert;
 	me->totface= totface;
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0,
+	                                NULL, me->totvert);
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0,
+	                                NULL, me->totface);
 	maxvertidx= totvert-1;
 	
 	mvert= me->mvert;
@@ -2099,7 +2112,7 @@ static void displist_to_mesh(DispList *dlfirst)
 					mface->v4= p3;
 					
 					mface->mat_nr= colnr;
-					test_index_face(mface, NULL, NULL, 4);
+					test_index_face(mface, NULL, 0, 4);
 					
 					mface++;
 					
@@ -2132,7 +2145,7 @@ static void displist_to_mesh(DispList *dlfirst)
 						mface->v2= startve+a*dl->nr+1;
 						mface->v3= startve+a*dl->nr+2;
 						mface->mat_nr= colnr;
-						test_index_face(mface, NULL, NULL, 3);
+						test_index_face(mface, NULL, 0, 3);
 						mface++;
 					}
 					else {
@@ -2141,7 +2154,7 @@ static void displist_to_mesh(DispList *dlfirst)
 						mface->v3= startve+a*dl->nr+2;
 						mface->v4= startve+a*dl->nr+3;
 						mface->mat_nr= colnr;
-						test_index_face(mface, NULL, NULL, 4);
+						test_index_face(mface, NULL, 0, 4);
 						mface++;
 					}
 				}
@@ -2196,7 +2209,7 @@ static void displist_to_mesh(DispList *dlfirst)
 				if (mface->v2>maxvertidx) mface->v2= maxvertidx;
 				if (mface->v3>maxvertidx) mface->v3= maxvertidx;
 
-				test_index_face(mface, NULL, NULL, 3);
+				test_index_face(mface, NULL, 0, 3);
 				mface++;
 				idata+= 3;
 			}
@@ -2435,40 +2448,42 @@ int BKE_read_exotic(char *name)
 
 char videosc_dir[160]= {0, 0};
 
-#define WRITEVERT(verts, ind) {           \
-  VECCOPY(vert, verts[(ind)].co);         \
-  Mat4MulVecfl(ob->obmat, vert);          \
-  if (G.order==B_ENDIAN) {                \
-    SWITCH_INT(vert[0]);                \
-    SWITCH_INT(vert[1]);                \
-    SWITCH_INT(vert[2]);                \
-  }                                       \
-  fwrite(vert, sizeof(float), 3, fpSTL);  \
-}
-
-static int write_displistmesh_stl(FILE *fpSTL, Object *ob, DispListMesh *dlm)
+static void write_vert_stl(Object *ob, MVert *verts, int index, FILE *fpSTL)
 {
-
-	MFace *mface;
-	int  i, numfacets = 0;
-	float zero[3] = {0.0f, 0.0f, 0.0f};
 	float vert[3];
 
-	for (i=0; i<dlm->totface; i++) {
-		mface = &dlm->mface[i];
+	VECCOPY(vert, verts[(index)].co);
+	Mat4MulVecfl(ob->obmat, vert);
 
+	if (G.order==B_ENDIAN) {
+		SWITCH_INT(vert[0]);
+		SWITCH_INT(vert[1]);
+		SWITCH_INT(vert[2]);
+	}
+
+	fwrite(vert, sizeof(float), 3, fpSTL);
+}
+
+static int write_derivedmesh_stl(FILE *fpSTL, Object *ob, DerivedMesh *dm)
+{
+	MVert *mvert = dm->getVertArray(dm);
+	MFace *mface = dm->getFaceArray(dm);
+	int i, numfacets = 0, totface = dm->getNumFaces(dm);;
+	float zero[3] = {0.0f, 0.0f, 0.0f};
+
+	for (i=0; i<totface; i++, mface++) {
 		fwrite(zero, sizeof(float), 3, fpSTL);
-		WRITEVERT(dlm->mvert, mface->v1);
-		WRITEVERT(dlm->mvert, mface->v2);
-		WRITEVERT(dlm->mvert, mface->v3);
+		write_vert_stl(ob, mvert, mface->v1, fpSTL);
+		write_vert_stl(ob, mvert, mface->v2, fpSTL);
+		write_vert_stl(ob, mvert, mface->v3, fpSTL);
 		fprintf(fpSTL, "  ");
 		numfacets++;
 
 		if(mface->v4) { /* quad = 2 tri's */
 			fwrite(zero, sizeof(float), 3, fpSTL);
-			WRITEVERT(dlm->mvert, mface->v1);
-			WRITEVERT(dlm->mvert, mface->v3);
-			WRITEVERT(dlm->mvert, mface->v4);
+			write_vert_stl(ob, mvert, mface->v1, fpSTL);
+			write_vert_stl(ob, mvert, mface->v3, fpSTL);
+			write_vert_stl(ob, mvert, mface->v4, fpSTL);
 			fprintf(fpSTL, "  ");
 			numfacets++;
 		}
@@ -2480,14 +2495,11 @@ static int write_displistmesh_stl(FILE *fpSTL, Object *ob, DispListMesh *dlm)
 static int write_object_stl(FILE *fpSTL, Object *ob, Mesh *me)
 {
 	int  numfacets = 0;
-	int dmNeedsFree;
-	DerivedMesh *dm = mesh_get_derived_final(ob, &dmNeedsFree);
-	DispListMesh *dlm = dm->convertToDispListMesh(dm, 1);
+	DerivedMesh *dm = mesh_get_derived_final(ob);
 
-	numfacets += write_displistmesh_stl(fpSTL, ob, dlm);
+	numfacets += write_derivedmesh_stl(fpSTL, ob, dm);
 
-	displistmesh_free(dlm);
-	if (dmNeedsFree) dm->release(dm);
+	dm->release(dm);
 
 	return numfacets;
 }
@@ -2637,8 +2649,7 @@ static void write_videoscape_mesh(Object *ob, char *str)
 		}
 	}
 	else {
-		int needsFree;
-		DerivedMesh *dm = mesh_get_derived_deform(ob, &needsFree);
+		DerivedMesh *dm = mesh_get_derived_deform(ob);
 		
 		me= ob->data;
 		
@@ -2659,8 +2670,7 @@ static void write_videoscape_mesh(Object *ob, char *str)
 			}
 		}
 
-		if (needsFree)
-			dm->release(dm);
+		dm->release(dm);
 	}
 	
 	fclose(fp);
@@ -2798,7 +2808,7 @@ static void write_mesh_vrml(FILE *fp, Mesh *me)
 	Material *ma;
 	MVert *mvert;
 	MFace *mface;
-	TFace *tface;
+	MTFace *tface;
 	Image *ima;
 	int a, b, totcol, texind;
 	char str[32];
@@ -2808,8 +2818,8 @@ static void write_mesh_vrml(FILE *fp, Mesh *me)
 	fprintf(fp, "\tDEF %s\n", str);
 	fprintf(fp, "\tSeparator {\n");
 	
-	if(me->tface) {
-		ima= ((TFace *)me->tface)->tpage;
+	if(me->mtface) {
+		ima= ((MTFace *)me->mtface)->tpage;
 		if(ima) {
 			fprintf(fp, "\t\tTexture2 {\n");
 			fprintf(fp, "\t\t\tfilename %s\n", ima->name);
@@ -2817,7 +2827,6 @@ static void write_mesh_vrml(FILE *fp, Mesh *me)
 			fprintf(fp, "\t\t\twrapT REPEAT \n");
 			fprintf(fp, "\t\t}\n");
 		}
-		tface_to_mcol(me);
 	}
 	
 	if(me->mcol) {
@@ -2874,13 +2883,13 @@ static void write_mesh_vrml(FILE *fp, Mesh *me)
 			}
 		}
 		
-		if(me->tface) {
+		if(me->mtface) {
 			fprintf(fp, "\t\tTextureCoordinate2 {\n");
 			fprintf(fp, "\t\t\tpoint [\n");
 	
 			a= me->totface;
 			mface= me->mface;
-			tface= me->tface;
+			tface= me->mtface;
 			while(a--) {
 				if(mface->mat_nr==b) {
 					fprintf(fp, "\t\t\t\t %f %f,\n", tface->uv[0][0], tface->uv[0][1]); 
@@ -2909,7 +2918,7 @@ static void write_mesh_vrml(FILE *fp, Mesh *me)
 		}
 		fprintf(fp, "\t\t\t]\n");
 
-		if(me->tface) {
+		if(me->mtface) {
 			fprintf(fp, "\t\t\ttextureCoordIndex [\n");
 	
 			a= me->totface;
@@ -2933,12 +2942,6 @@ static void write_mesh_vrml(FILE *fp, Mesh *me)
 	}
 	
 	fprintf(fp, "\t}\n");
-	
-	if(me->tface) {
-		MEM_freeN(me->mcol);
-		me->mcol= 0;
-	}
-
 }
 
 static void write_camera_vrml(FILE *fp, Object *ob)
@@ -3637,8 +3640,8 @@ static void dxf_get_mesh(Mesh** m, Object** o, int noob)
 	}
 	me->totvert=0;
 	me->totface=0;
-	me->mvert=NULL;
-	me->mface=NULL;
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, NULL, 0);
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0, NULL, 0);
 }
 
 static void dxf_read_point(int noob) {	
@@ -3673,7 +3676,8 @@ static void dxf_read_point(int noob) {
 	dxf_get_mesh(&me, &ob, noob);
 	me->totvert= 1;
 	me->mvert= MEM_callocN(me->totvert*sizeof(MVert), "mverts");
-					
+	CustomData_set_layer(&me->vdata, CD_MVERT, me->mvert);
+	
 	dxf_add_mat (ob, me, color, layname);					
 
 	mvert= me->mvert;
@@ -3772,14 +3776,14 @@ static void dxf_read_line(int noob) {
 		memcpy(vtmp, me->mvert, (me->totvert-2)*sizeof(MVert));
 		MEM_freeN(me->mvert);
 	}
-	me->mvert= vtmp;
+	me->mvert= CustomData_set_layer(&me->vdata, CD_MVERT, vtmp);
 	vtmp=NULL;
 
 	if(me->mface) {
 		memcpy(ftmp, me->mface, (me->totface-1)*sizeof(MFace));
 		MEM_freeN(me->mface);
 	}
-	me->mface= ftmp;
+	me->mface= CustomData_set_layer(&me->fdata, CD_MFACE, ftmp);
 	ftmp=NULL;
 	
 	mvert= &me->mvert[(me->totvert-2)];
@@ -3972,6 +3976,9 @@ static void dxf_read_ellipse(int noob)
 	me->mvert = (MVert*) MEM_callocN(me->totvert*sizeof(MVert), "mverts");
 	me->mface = (MFace*) MEM_callocN(me->totface*sizeof(MVert), "mface");
 
+	CustomData_set_layer(&me->vdata, CD_MVERT, me->mvert);
+	CustomData_set_layer(&me->fdata, CD_MFACE, me->mface);
+
 	printf("vertex and face buffers allocated\n");
 
 	for(v = 0; v <= tot; v++) {
@@ -4095,6 +4102,9 @@ static void dxf_read_arc(int noob)
 	
 	me->mvert = (MVert*) MEM_callocN(me->totvert*sizeof(MVert), "mverts");
 	me->mface = (MFace*) MEM_callocN(me->totface*sizeof(MVert), "mface");
+
+	CustomData_set_layer(&me->vdata, CD_MVERT, me->mvert);
+	CustomData_set_layer(&me->fdata, CD_MFACE, me->mface);
 
 	for(v = 0; v <= tot; v++) { 
 
@@ -4236,7 +4246,7 @@ static void dxf_read_polyline(int noob) {
 				memcpy (vtmp, me->mvert, (me->totvert-1)*sizeof(MVert));
 				MEM_freeN(me->mvert);
 			}
-			me->mvert= vtmp;
+			me->mvert= CustomData_set_layer(&me->vdata, CD_MVERT, vtmp);
 			vtmp= NULL;
 			
 			mvert= &me->mvert[me->totvert-1];
@@ -4258,7 +4268,7 @@ static void dxf_read_polyline(int noob) {
 				memcpy(ftmp, me->mface, oldtotface*sizeof(MFace));
 				MEM_freeN(me->mface);
 			}
-			me->mface= ftmp;
+			me->mface= CustomData_set_layer(&me->fdata, CD_MFACE, ftmp);
 			ftmp=NULL;
 
 			mface= me->mface;
@@ -4348,7 +4358,7 @@ static void dxf_read_polyline(int noob) {
 					memcpy(vtmp, me->mvert, (me->totvert-1)*sizeof(MVert));
 					MEM_freeN(me->mvert);
 				}
-				me->mvert= vtmp;
+				me->mvert= CustomData_set_layer(&me->vdata, CD_MVERT, vtmp);
 				vtmp=NULL;
 				
 				mvert= &me->mvert[(me->totvert-1)];
@@ -4373,7 +4383,7 @@ static void dxf_read_polyline(int noob) {
 					memcpy(ftmp, me->mface, (me->totface-1)*sizeof(MFace));
 					MEM_freeN(me->mface);
 				}
-				me->mface= ftmp;
+				me->mface= CustomData_set_layer(&me->fdata, CD_MFACE, ftmp);
 				ftmp=NULL;			
 				
 				mface= &(((MFace*)me->mface)[me->totface-1]);
@@ -4383,9 +4393,9 @@ static void dxf_read_polyline(int noob) {
 	
 				if(vids[3] && vids[3]!=vids[0]) {
 					mface->v4= vids[3]-1;
-					test_index_face(mface, NULL, NULL, 4);
+					test_index_face(mface, NULL, 0, 4);
 				}
-				else test_index_face(mface, NULL, NULL, 3);
+				else test_index_face(mface, NULL, 0, 3);
 	
 				mface->mat_nr= 0;
 	
@@ -4458,8 +4468,12 @@ static void dxf_read_lwpolyline(int noob) {
 
 	me->totvert += nverts;
 	me->totface += nverts;
+
 	me->mvert = (MVert*) MEM_callocN(me->totvert*sizeof(MVert), "mverts");
 	me->mface = (MFace*) MEM_callocN(me->totface*sizeof(MVert), "mface");
+
+	CustomData_set_layer(&me->vdata, CD_MVERT, me->mvert);
+	CustomData_set_layer(&me->fdata, CD_MFACE, me->mface);
 
 	for (v = 0; v < nverts; v++) {
 		read_group(id,val);
@@ -4668,14 +4682,14 @@ static void dxf_read_3dface(int noob)
 		memcpy(vtmp, me->mvert, (me->totvert-nverts)*sizeof(MVert));
 		MEM_freeN(me->mvert);
 	}
-	me->mvert= vtmp;
+	me->mvert= CustomData_set_layer(&me->vdata, CD_MVERT, vtmp);
 	vtmp=NULL;
 
 	if(me->mface) {
 		memcpy(ftmp, me->mface, (me->totface-1)*sizeof(MFace));
 		MEM_freeN(me->mface);
 	}
-	me->mface= ftmp;
+	me->mface= CustomData_set_layer(&me->fdata, CD_MFACE, ftmp);
 	ftmp=NULL;
 	
 	mvert= &me->mvert[(me->totvert-nverts)];
@@ -4705,7 +4719,7 @@ static void dxf_read_3dface(int noob)
 
 	mface->mat_nr= 0;
 
-	test_index_face(mface, NULL, NULL, nverts);
+	test_index_face(mface, NULL, 0, nverts);
 
 	hasbumped=1;
 }

@@ -53,6 +53,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -340,8 +341,9 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 
 	/* Verts */
 	if(newcur->verts) {
-		MEM_freeN(me->mvert);
+		CustomData_free_layer(&me->vdata, CD_MVERT, me->totvert);
 		me->mvert= MEM_dupallocN(newcur->verts);
+		CustomData_add_layer(&me->vdata, CD_MVERT, 0, me->mvert, newcur->totvert);
 	}
 	
 	/* Check if faces/edges have been modified between oldcur and newcur */
@@ -363,10 +365,14 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 	if(do_fe)
 		for(sus= newcur; sus; sus= sus->prev) {
 			if(sus->edges || sus->faces) {
-				MEM_freeN(me->mface);
-				MEM_freeN(me->medge);
+				CustomData_free_layer(&me->edata, CD_MEDGE, me->totedge);
+				CustomData_free_layer(&me->fdata, CD_MFACE, me->totface);
+
 				me->medge= MEM_dupallocN(sus->edges);
 				me->mface= MEM_dupallocN(sus->faces);
+				CustomData_add_layer(&me->edata, CD_MEDGE, 0, me->medge, sus->totedge);
+				CustomData_add_layer(&me->fdata, CD_MFACE, 0, me->mface, sus->totface);
+
 				me->totvert= sus->totvert;
 				me->totedge= sus->totedge;
 				me->totface= sus->totface;
@@ -1705,7 +1711,7 @@ void sculptmode_revert_pmv(Mesh *me)
 {
 	if(me->pv) {
 		unsigned i;
-		MVert *nve;
+		MVert *nve, *old_verts;
 		Object *ob= G.scene->sculptdata.active_ob;
 
 		/* Temporarily exit sculptmode */
@@ -1713,21 +1719,25 @@ void sculptmode_revert_pmv(Mesh *me)
 
 		/* Reorder vertices */
 		nve= me->mvert;
-		me->mvert= MEM_mallocN(sizeof(MVert)*me->pv->totvert,"PMV revert verts");
-		me->totvert= me->pv->totvert;
-		for(i=0; i<me->totvert; ++i)
-			me->mvert[i]= nve[me->pv->vert_map[i]];
-		MEM_freeN(nve);
+		old_verts = MEM_mallocN(sizeof(MVert)*me->pv->totvert,"PMV revert verts");
+		for(i=0; i<me->pv->totvert; ++i)
+			old_verts[i]= nve[me->pv->vert_map[i]];
 
-		/* Restore edges and faces */
-		MEM_freeN(me->mface);
-		MEM_freeN(me->medge);
-		me->totface= me->pv->totface;
+		/* Restore verts, edges and faces */
+		CustomData_free_layer(&me->vdata, CD_MVERT, me->totvert);
+		CustomData_free_layer(&me->edata, CD_MEDGE, me->totedge);
+		CustomData_free_layer(&me->fdata, CD_MFACE, me->totface);
+
+		me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, old_verts, me->pv->totvert);
+		me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, 0, me->pv->old_edges, me->pv->totedge);
+		me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0, me->pv->old_faces, me->pv->totface);
+
+		me->totvert= me->pv->totvert;
 		me->totedge= me->pv->totedge;
-		me->mface= me->pv->old_faces;
-		me->medge= me->pv->old_edges;
-		me->pv->old_faces= NULL;
+		me->totface= me->pv->totface;
+
 		me->pv->old_edges= NULL;
+		me->pv->old_faces= NULL;
 
 		/* Free maps */
 		MEM_freeN(me->pv->edge_map);
@@ -1851,8 +1861,8 @@ void sculptmode_do_pmv(Object *ob, rcti *hb_2d, int mode)
 			++ndx_show;
 		}
 	}
-	MEM_freeN(me->mvert);
-	me->mvert= nve;
+	CustomData_free_layer(&me->vdata, CD_MVERT, me->pv->totvert);
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, nve, me->totvert);
 
 	/* Create new face array */
 	me->pv->old_faces= me->mface;
@@ -1879,11 +1889,12 @@ void sculptmode_do_pmv(Object *ob, rcti *hb_2d, int mode)
 			cr_f->v2= me->pv->vert_map[pr_f->v2];
 			cr_f->v3= me->pv->vert_map[pr_f->v3];
 			cr_f->v4= pr_f->v4 ? me->pv->vert_map[pr_f->v4] : 0;
-			test_index_face(cr_f,NULL,NULL,pr_f->v4?4:3);
+			test_index_face(cr_f,NULL,0,pr_f->v4?4:3);
 			++face_ndx_show;
 		}
 	}
 	me->totface= face_cnt_show;
+	CustomData_set_layer(&me->fdata, CD_MFACE, me->mface);
 
 	/* Create new edge array */
 	me->pv->old_edges= me->medge;
@@ -1903,6 +1914,7 @@ void sculptmode_do_pmv(Object *ob, rcti *hb_2d, int mode)
 		else me->pv->edge_map[i]= -1;
 	}
 	me->totedge= edge_cnt_show;
+	CustomData_set_layer(&me->edata, CD_MEDGE, me->medge);
 	
 	set_sculpt_object(ob);
 

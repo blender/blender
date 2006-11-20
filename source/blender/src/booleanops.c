@@ -35,6 +35,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_arithb.h"
+#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 
 #include "DNA_material_types.h"
@@ -47,6 +49,7 @@
 
 #include "BKE_booleanops.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
@@ -61,13 +64,6 @@
 #include "BDR_editface.h"
 
 #include <math.h>
-
-// TODO check to see how many of these includes are necessary
-
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BLI_linklist.h"
-#include "BLI_memarena.h"
 
 /**
  * Here's the vertex iterator structure used to walk through
@@ -286,22 +282,16 @@ static Object *AddNewBlenderMesh(Base *base)
 	return ob_new;
 }
 
-/* editmode function, will be replaced soon once custom face data arrives */
-void interp_uv_vcol(float *v1, float *v2, float *v3, float *v4, float *co,
-	TFace *tf, TFace *outtf, int j);
-
-static void ConvertCSGTFace(
+static void InterpCSGFace(
 	DerivedMesh *dm, Mesh *orig_me, int index, int orig_index, int nr,
-	TFace *tface, TFace *orig_tface, float mapmat[][4])
+	float mapmat[][4])
 {
-	float obco[3], *co[4], *orig_co[4];
+	float obco[3], *co[4], *orig_co[4], w[4][4];
 	MFace *mface, *orig_mface;
 	int j;
 
 	mface = CDDM_get_face(dm, index);
 	orig_mface = orig_me->mface + orig_index;
-
-	*tface = *orig_tface;
 
 	// get the vertex coordinates from the original mesh
 	orig_co[0] = (orig_me->mvert + orig_mface->v1)->co;
@@ -322,9 +312,10 @@ static void ConvertCSGTFace(
 		else
 			VecCopyf(obco, co[j]);
 
-		interp_uv_vcol(orig_co[0], orig_co[1], orig_co[2], orig_co[3], obco,
-			orig_tface, tface, j);
+		InterpWeightsQ3Dfl(orig_co[0], orig_co[1], orig_co[2], orig_co[3], obco, w[j]);
 	}
+
+	CustomData_interp(&orig_me->fdata, &dm->faceData, &orig_index, NULL, (float*)w, 1, index);
 }
 
 /* Iterate over the CSG Output Descriptors and create a new DerivedMesh
@@ -348,14 +339,10 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	// create a new DerivedMesh
 	dm = CDDM_new(vertex_it->num_elements, 0, face_it->num_elements);
 
-	// add tface layers
-	if (me1->mcol)
-		mcol_to_tface(me1, 1);
-	if (me2->mcol)
-		mcol_to_tface(me2, 1);
-	
-	if (me1->tface || me2->tface)
-		DM_add_face_layer(dm, LAYERTYPE_TFACE, 0, NULL);
+	CustomData_merge(&me1->fdata, &dm->faceData, CD_MASK_DERIVEDMESH, CD_DEFAULT,
+	                 face_it->num_elements); 
+	CustomData_merge(&me2->fdata, &dm->faceData, CD_MASK_DERIVEDMESH, CD_DEFAULT,
+	                 face_it->num_elements); 
 
 	// step through the vertex iterators:
 	for (i = 0; !vertex_it->Done(vertex_it->it); i++) {
@@ -383,8 +370,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 		Object *orig_ob;
 		Material *orig_mat;
 		CSG_IFace csgface;
-		MFace *mface, *orig_mface;
-		TFace *tface, *orig_tface;
+		MFace *mface;
 		int orig_index, mat_nr;
 
 		// retrieve a csg face from the boolean module
@@ -395,8 +381,9 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 		orig_me = (csgface.orig_face < me1->totface)? me1: me2;
 		orig_ob = (orig_me == me1)? ob1: ob2;
 		orig_index = (orig_me == me1)? csgface.orig_face: csgface.orig_face - me1->totface;
-		orig_mface = orig_me->mface + orig_index;
-		orig_mat= give_current_material(orig_ob, orig_mface->mat_nr+1);
+
+		// copy all face layers, including mface
+		CustomData_copy_data(&orig_me->fdata, &dm->faceData, orig_index, i, 1);
 
 		// set mface
 		mface = CDDM_get_face(dm, i);
@@ -404,9 +391,10 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 		mface->v2 = csgface.vertex_index[1];
 		mface->v3 = csgface.vertex_index[2];
 		mface->v4 = (csgface.vertex_number == 4)? csgface.vertex_index[3]: 0;
-		mface->flag = orig_mface->flag;
 
 		// set material, based on lookup in hash table
+		orig_mat= give_current_material(orig_ob, mface->mat_nr+1);
+
 		if (mat && orig_mat) {
 			if (!BLI_ghash_haskey(material_hash, orig_mat)) {
 				mat[*totmat] = orig_mat;
@@ -419,24 +407,10 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 		else
 			mface->mat_nr = 0;
 
-		// set tface
-		if (me1->tface || me2->tface) {
-			tface = DM_get_face_data(dm, i, LAYERTYPE_TFACE);;
+		InterpCSGFace(dm, orig_me, i, orig_index, csgface.vertex_number,
+		              (orig_me == me2)? mapmat: NULL);
 
-			if (orig_me->tface) {
-				orig_tface = orig_me->tface + orig_index;
-
-				ConvertCSGTFace(dm, orig_me, i, orig_index,
-					csgface.vertex_number, tface, orig_tface,
-					(orig_me == me2)? mapmat: NULL);
-			}
-			else
-				default_tface(tface);
-		}
-		else
-			tface = NULL;
-
-		test_index_face(mface, NULL, tface, csgface.vertex_number);
+		test_index_face(mface, &dm->faceData, i, csgface.vertex_number);
 	}
 
 	if (material_hash)

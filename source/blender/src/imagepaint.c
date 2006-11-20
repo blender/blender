@@ -546,7 +546,7 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 
 		/* pick face and image */
 		if (facesel_face_pick(s->me, mval, &newfaceindex, 0)) {
-			newimage = (Image*)((s->me->tface+newfaceindex)->tpage);
+			newimage = (Image*)((s->me->mtface+newfaceindex)->tpage);
 			texpaint_pick_uv(s->ob, s->me, newfaceindex, mval, newuv);
 		}
 		else

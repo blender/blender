@@ -50,12 +50,12 @@
 struct MVert;
 struct MEdge;
 struct MFace;
-struct TFace;
+struct MTFace;
 struct Object;
 struct Mesh;
 struct EditMesh;
-struct DispListMesh;
 struct ModifierData;
+struct MCol;
 
 /* number of sub-elements each mesh element has (for interpolation) */
 #define SUB_ELEMS_VERT 0
@@ -64,8 +64,10 @@ struct ModifierData;
 
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
-	/* custom data for verts, edges & faces */
+	/* Private DerivedMesh data, only for internal DerivedMesh use */
 	CustomData vertData, edgeData, faceData;
+	int numVertData, numEdgeData, numFaceData;
+	int needsFree; /* checked on ->release, is set to 0 for cached results */
 
 	/* Misc. Queries */
 
@@ -77,18 +79,29 @@ struct DerivedMesh {
 	int (*getNumEdges)(DerivedMesh *dm);
 
 	/* copy a single vert/edge/face from the derived mesh into
-	 * *{vert/edge/face}_r
+	 * *{vert/edge/face}_r. note that the current implementation
+	 * of this function can be quite slow, iterating over all
+	 * elements (editmesh, verse mesh)
 	 */
 	void (*getVert)(DerivedMesh *dm, int index, struct MVert *vert_r);
 	void (*getEdge)(DerivedMesh *dm, int index, struct MEdge *edge_r);
 	void (*getFace)(DerivedMesh *dm, int index, struct MFace *face_r);
 
+	/* return a pointer to the entire array of verts/edges/face from the
+	 * derived mesh. if such an array does not exist yet, it will be created,
+	 * and freed on the next ->release(). consider using getVert/Edge/Face if
+	 * you are only interested in a few verts/edges/faces.
+	 */
+	struct MVert *(*getVertArray)(DerivedMesh *dm);
+	struct MEdge *(*getEdgeArray)(DerivedMesh *dm);
+	struct MFace *(*getFaceArray)(DerivedMesh *dm);
+
 	/* copy all verts/edges/faces from the derived mesh into
 	 * *{vert/edge/face}_r (must point to a buffer large enough)
 	 */
-	void (*getVertArray)(DerivedMesh *dm, struct MVert *vert_r);
-	void (*getEdgeArray)(DerivedMesh *dm, struct MEdge *edge_r);
-	void (*getFaceArray)(DerivedMesh *dm, struct MFace *face_r);
+	void (*copyVertArray)(DerivedMesh *dm, struct MVert *vert_r);
+	void (*copyEdgeArray)(DerivedMesh *dm, struct MEdge *edge_r);
+	void (*copyFaceArray)(DerivedMesh *dm, struct MFace *face_r);
 
 	/* return a copy of all verts/edges/faces from the derived mesh
 	 * it is the caller's responsibility to free the returned pointer
@@ -141,16 +154,6 @@ struct DerivedMesh {
 	                                void (*func)(void *userData, int index,
 	                                             float *cent, float *no),
 	                                void *userData);
-
-	/* Convert to new DispListMesh, should be free'd by caller.
-	 *
-	 * If allowShared is true then the caller is committing to not free'ng
-	 * the DerivedMesh before free'ng the DispListMesh, which means that
-	 * certain fields of the returned DispListMesh can safely be share with
-	 * the DerivedMesh's internal data.
-	 */
-	struct DispListMesh* (*convertToDispListMesh)(DerivedMesh *dm,
-	                                              int allowShared);
 
 	/* Iterate over all vertex points, calling DO_MINMAX with given args.
 	 *
@@ -205,11 +208,12 @@ struct DerivedMesh {
 	void (*drawFacesColored)(DerivedMesh *dm, int useTwoSided,
 	                         unsigned char *col1, unsigned char *col2);
 
-	/* Draw all faces using TFace 
+	/* Draw all faces using MTFace 
 	 *  o Drawing options too complicated to enumerate, look at code.
 	 */
 	void (*drawFacesTex)(DerivedMesh *dm,
-	                     int (*setDrawOptions)(struct TFace *tface, int matnr));
+	                     int (*setDrawOptions)(struct MTFace *tface,
+	                     struct MCol *mcol, int matnr));
 
 	/* Draw mapped faces (no color, or texture)
 	 *  o Only if !setDrawOptions or
@@ -229,7 +233,7 @@ struct DerivedMesh {
 	                                              int *drawSmooth_r),
 	                        void *userData, int useColors);
 
-	/* Draw mapped faces using TFace 
+	/* Draw mapped faces using MTFace 
 	 *  o Drawing options too complicated to enumerate, look at code.
 	 */
 	void (*drawMappedFacesTex)(DerivedMesh *dm,
@@ -260,6 +264,8 @@ struct DerivedMesh {
 	                                                           float t),
 	                              void *userData);
 
+	/* Release reference to the DerivedMesh. This function decides internally
+	 * if the DerivedMesh will be freed, or cached for later use. */
 	void (*release)(DerivedMesh *dm);
 };
 
@@ -281,8 +287,9 @@ void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
                       int numVerts, int numEdges, int numFaces);
 
 /* utility function to release a DerivedMesh's layers
+ * returns 1 if DerivedMesh has to be released by the backend, 0 otherwise
  */
-void DM_release(DerivedMesh *dm);
+int DM_release(DerivedMesh *dm);
 
 /* utility function to convert a DerivedMesh to a Mesh
  */
@@ -381,16 +388,16 @@ void DM_interp_face_data(struct DerivedMesh *source, struct DerivedMesh *dest,
                          float *weights, FaceVertWeight *vert_weights,
                          int count, int dest_index);
 
-    /* Simple function to get me->totvert amount of vertices/normals,
-       correctly deformed and subsurfered. Needed especially when vertexgroups are involved.
-       In use now by vertex/weigt paint and particles */
+void DM_swap_face_data(struct DerivedMesh *dm, int index, int *corner_indices);
+
+/* Simple function to get me->totvert amount of vertices/normals,
+   correctly deformed and subsurfered. Needed especially when vertexgroups are involved.
+   In use now by vertex/weigt paint and particles */
 float *mesh_get_mapped_verts_nors(struct Object *ob);
 
-	/* Internal function, just temporarily exposed */
-DerivedMesh *derivedmesh_from_displistmesh(struct DispListMesh *dlm, float (*vertexCos)[3]);
-
-DerivedMesh *mesh_get_derived_final(struct Object *ob, int *needsFree_r);
-DerivedMesh *mesh_get_derived_deform(struct Object *ob, int *needsFree_r);
+	/* */
+DerivedMesh *mesh_get_derived_final(struct Object *ob);
+DerivedMesh *mesh_get_derived_deform(struct Object *ob);
 
 DerivedMesh *mesh_create_derived_for_modifier(struct Object *ob, struct ModifierData *md);
 
@@ -400,8 +407,8 @@ DerivedMesh *mesh_create_derived_no_deform(struct Object *ob, float (*vertCos)[3
 DerivedMesh *mesh_create_derived_no_deform_render(struct Object *ob, float (*vertCos)[3]);
 
 DerivedMesh *editmesh_get_derived_base(void);
-DerivedMesh *editmesh_get_derived_cage(int *needsFree_r);
-DerivedMesh *editmesh_get_derived_cage_and_final(DerivedMesh **final_r, int *cageNeedsFree_r, int *finalNeedsFree_r);
+DerivedMesh *editmesh_get_derived_cage(void);
+DerivedMesh *editmesh_get_derived_cage_and_final(DerivedMesh **final_r);
 
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);
 

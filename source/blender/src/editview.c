@@ -52,6 +52,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -162,7 +163,7 @@ void EM_backbuf_checkAndSelectFaces(EditMesh *em, int select)
 
 void EM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
 {
-	TFace *tface = me->tface;
+	MTFace *tface = me->mtface;
 	int a;
 
 	if (tface) {
@@ -538,7 +539,7 @@ static void do_lasso_select_facemode(short mcords[][2], short moves, short selec
 	rcti rect;
 	
 	me= get_mesh(OBACT);
-	if(me==NULL || me->tface==NULL) return;
+	if(me==NULL || me->mtface==NULL) return;
 	if(me->totface==0) return;
 	
 	em_vertoffs= me->totface+1;	/* max index array */

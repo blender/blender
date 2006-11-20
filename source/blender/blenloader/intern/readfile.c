@@ -64,6 +64,7 @@
 #include "DNA_controller_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_customdata_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_fileglobal_types.h"
 #include "DNA_group_types.h"
@@ -113,6 +114,7 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
+#include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_effect.h" // for give_parteff
@@ -2346,17 +2348,16 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			me->key= newlibadr_us(fd, me->id.lib, me->key);
 			me->texcomesh= newlibadr_us(fd, me->id.lib, me->texcomesh);
 
-			if(me->tface) {
-				TFace *tfaces= me->tface;
+			for (i=0; i<me->fdata.totlayer; i++) {
+				CustomDataLayer *layer = &me->fdata.layers[i];
 
-				for (i=0; i<me->totface; i++) {
-					TFace *tf= &tfaces[i];
+				if (layer->type == CD_MTFACE) {
+					MTFace *tf = layer->data;
 
-					tf->tpage= newlibadr(fd, me->id.lib, tf->tpage);
-					if(tf->tpage) {
-						Image *ima= tf->tpage;
-						if(ima->id.us==0)
-							ima->id.us= 1;
+					for (i=0; i<me->totface; i++, tf++) {
+						tf->tpage= newlibadr(fd, me->id.lib, tf->tpage);
+						if(tf->tpage && tf->tpage->id.us==0)
+							tf->tpage->id.us= 1;
 					}
 				}
 			}
@@ -2380,6 +2381,27 @@ static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
 	}
 }
 
+static void direct_link_customdata(FileData *fd, CustomData *data, int count)
+{
+	int i = 0, removed;
+
+	data->layers= newdataadr(fd, data->layers);
+
+	while (i < data->totlayer) {
+		CustomDataLayer *layer = &data->layers[i];
+
+		if (layer->type < CD_NUMTYPES) {
+			layer->data = newdataadr(fd, layer->data);
+			i++;
+		}
+		else {
+			/* delete layer with unknown type */
+			layer->data = NULL;
+			CustomData_free_layer(data, layer->type, 0);
+		}
+	}
+}
+
 static void direct_link_mesh(FileData *fd, Mesh *mesh)
 {
 	mesh->mat= newdataadr(fd, mesh->mat);
@@ -2389,15 +2411,21 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->medge= newdataadr(fd, mesh->medge);
 	mesh->mface= newdataadr(fd, mesh->mface);
 	mesh->tface= newdataadr(fd, mesh->tface);
+	mesh->mtface= newdataadr(fd, mesh->mtface);
 	mesh->mcol= newdataadr(fd, mesh->mcol);
 	mesh->msticky= newdataadr(fd, mesh->msticky);
-
 	mesh->dvert= newdataadr(fd, mesh->dvert);
+
+	/* normally direct_link_dverts should be called in direct_link_customdata,
+	   but for backwards compat in do_versions to work we do it here */
 	direct_link_dverts(fd, mesh->totvert, mesh->dvert);
+
+	direct_link_customdata(fd, &mesh->vdata, mesh->totvert);
+	direct_link_customdata(fd, &mesh->edata, mesh->totedge);
+	direct_link_customdata(fd, &mesh->fdata, mesh->totface);
 
 	mesh->bb= NULL;
 	mesh->oc= 0;
-	mesh->dface= NULL;
 	mesh->mselect= NULL;
 
 	/* Multires data */
@@ -2425,19 +2453,15 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		mesh->pv->old_edges= newdataadr(fd, mesh->pv->old_edges);
 	}
 	
-	if (mesh->tface) {
-		TFace *tfaces= mesh->tface;
+	if((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
+		TFace *tf= mesh->tface;
 		int i;
 
-		for (i=0; i<mesh->totface; i++) {
-			TFace *tf= &tfaces[i];
-
-			if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-				SWITCH_INT(tf->col[0]);
-				SWITCH_INT(tf->col[1]);
-				SWITCH_INT(tf->col[2]);
-				SWITCH_INT(tf->col[3]);
-			}
+		for (i=0; i<mesh->totface; i++, tf++) {
+			SWITCH_INT(tf->col[0]);
+			SWITCH_INT(tf->col[1]);
+			SWITCH_INT(tf->col[2]);
+			SWITCH_INT(tf->col[3]);
 		}
 	}
 }
@@ -4048,6 +4072,57 @@ static void sort_shape_fix(Main *main)
 	}
 }
 
+static void customdata_version_242(Mesh *me)
+{
+	MTFace *mtf;
+	MCol *mcol;
+	TFace *tf;
+	int a;
+
+	if (!me->vdata.totlayer) {
+		CustomData_add_layer(&me->vdata, CD_MVERT, 0, me->mvert, me->totvert);
+
+		if (me->msticky)
+			CustomData_add_layer(&me->vdata, CD_MSTICKY, 0, me->msticky, me->totvert);
+		if (me->dvert)
+			CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, 0, me->dvert, me->totvert);
+	}
+
+	if (!me->edata.totlayer)
+		CustomData_add_layer(&me->edata, CD_MEDGE, 0, me->medge, me->totedge);
+	
+	if (!me->fdata.totlayer) {
+		CustomData_add_layer(&me->fdata, CD_MFACE, 0, me->mface, me->totface);
+
+		if (me->mcol || me->tface)
+			me->mcol= CustomData_add_layer(&me->fdata, CD_MCOL, 0, me->mcol, me->totface);
+
+		if (me->tface) {
+			me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, 0, NULL, me->totface);
+
+			mtf= me->mtface;
+			mcol= me->mcol;
+			tf= me->tface;
+
+			for (a=0; a < me->totface; a++, mtf++, tf++, mcol+=4) {
+				memcpy(mcol, tf->col, sizeof(tf->col));
+				memcpy(mtf->uv, tf->uv, sizeof(tf->uv));
+
+				mtf->flag= tf->flag;
+				mtf->unwrap= tf->unwrap;
+				mtf->mode= tf->mode;
+				mtf->tile= tf->tile;
+				mtf->tpage= tf->tpage;
+				mtf->transp= tf->transp;
+			}
+
+			MEM_freeN(me->tface);
+			me->tface= NULL;
+		}
+	}
+
+	mesh_update_customdata_pointers(me);
+}
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
@@ -5853,6 +5928,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		Curve *cu;
 		Material *ma;
+		Mesh *me;
 		Group *group;
 		Nurb *nu;
 		BezTriple *bezt;
@@ -5966,6 +6042,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(ma->shad_alpha==0.0f)
 				ma->shad_alpha= 1.0f;
 		}
+
+		for(me=main->mesh.first; me; me=me->id.next)
+			customdata_version_242(me);
 		
 		for(group= main->group.first; group; group= group->id.next)
 			if(group->layer==0)
@@ -5974,7 +6053,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* History fix (python?), shape key adrcode numbers have to be sorted */
 		sort_shape_fix(main);
 	}
-	
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
@@ -6322,8 +6401,9 @@ static void expand_curve(FileData *fd, Main *mainvar, Curve *cu)
 
 static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 {
-	int a;
-	TFace *tface;
+	CustomDataLayer *layer;
+	TFace *tf;
+	int a, i;
 	
 	for(a=0; a<me->totcol; a++) {
 		expand_doit(fd, mainvar, me->mat[a]);
@@ -6332,13 +6412,12 @@ static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 	expand_doit(fd, mainvar, me->key);
 	expand_doit(fd, mainvar, me->texcomesh);
 
-	if(me->tface) {
-		tface= me->tface;
-		a= me->totface;
-		while(a--) {
-			if(tface->tpage) expand_doit(fd, mainvar, tface->tpage);
-			tface++;
-		}
+	for(a=0; a<me->fdata.totlayer; a++) {
+		layer= &me->fdata.layers[a];
+
+		for(i=0, tf=layer->data; i<me->totface; i++, tf++)
+			if(tf->tpage)
+				expand_doit(fd, mainvar, tf->tpage);
 	}
 }
 
