@@ -2846,6 +2846,7 @@ static void waveModifier_initData(ModifierData *md)
 		
 	wmd->flag |= (WAV_X+WAV_Y+WAV_CYCL);
 	
+	wmd->objectcenter = NULL;
 	wmd->height= 0.5f;
 	wmd->width= 1.5f;
 	wmd->speed= 0.5f;
@@ -2869,11 +2870,35 @@ static void waveModifier_copyData(ModifierData *md, ModifierData *target)
 	twmd->starty = wmd->starty;
 	twmd->timeoffs = wmd->timeoffs;
 	twmd->width = wmd->width;
+	twmd->objectcenter = wmd->objectcenter;
 }
 
 static int waveModifier_dependsOnTime(ModifierData *md)
 {
 	return 1;
+}
+
+static void waveModifier_foreachObjectLink(
+                ModifierData *md, Object *ob,
+                void (*walk)(void *userData, Object *ob, Object **obpoin),
+                void *userData)
+{
+	WaveModifierData *wmd = (WaveModifierData*) md;
+
+	walk(userData, ob, &wmd->objectcenter);
+}
+
+static void waveModifier_updateDepgraph(
+                ModifierData *md, DagForest *forest, Object *ob,
+                DagNode *obNode)
+{
+	WaveModifierData *wmd = (WaveModifierData*) md;
+
+	if(wmd->objectcenter) {
+		DagNode *curNode = dag_get_node(forest, wmd->objectcenter);
+
+		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA);
+	}
 }
 
 static void waveModifier_deformVerts(
@@ -2885,6 +2910,16 @@ static void waveModifier_deformVerts(
 	float minfac =
 	  (float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
 	float lifefac = wmd->height;
+
+	if(wmd->objectcenter){
+		float mat[4][4];
+		/* get the control object's location in local coordinates */
+		Mat4Invert(ob->imat, ob->obmat);
+		Mat4MulMat4(mat, wmd->objectcenter->obmat, ob->imat);
+
+		wmd->startx = mat[3][0];
+		wmd->starty = mat[3][1];
+	}
 
 	if(wmd->damp == 0) wmd->damp = 10.0f;
 
@@ -3432,6 +3467,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->initData = waveModifier_initData;
 		mti->copyData = waveModifier_copyData;
 		mti->dependsOnTime = waveModifier_dependsOnTime;
+		mti->foreachObjectLink = waveModifier_foreachObjectLink;
+		mti->updateDepgraph = waveModifier_updateDepgraph;
 		mti->deformVerts = waveModifier_deformVerts;
 		mti->deformVertsEM = waveModifier_deformVertsEM;
 

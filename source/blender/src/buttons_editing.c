@@ -1359,7 +1359,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Decimate) {
 			height = 48;
 		} else if (md->type==eModifierType_Wave) {
-			height = 200;
+			height = 248;
 		} else if (md->type==eModifierType_Armature) {
 			height = 67;
 		} else if (md->type==eModifierType_Hook) {
@@ -1541,6 +1541,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Sta x:",		lx,(cy-=19),113,19, &wmd->startx, -100.0, 100.0, 100, 0, "Starting position for the X axis");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Sta y:",		lx+115,cy,105,19, &wmd->starty, -100.0, 100.0, 100, 0, "Starting position for the Y axis");
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MODIFIER_RECALC, "Ob: ", lx, (cy-=19), 220,19, &wmd->objectcenter, "Object to use as Starting Position (leave blank to disable)");
+            cy -= 19;
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Speed:",	lx,(cy-=19),220,19, &wmd->speed, -2.0, 2.0, 0, 0, "Specify the wave speed");
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Heigth:",	lx,(cy-=19),220,19, &wmd->height, -2.0, 2.0, 0, 0, "Specify the amplitude of the wave");

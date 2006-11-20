@@ -222,6 +222,8 @@ typedef struct DecimateModifierData {
 typedef struct WaveModifierData {
 	ModifierData modifier;
 
+	struct Object *objectcenter;
+
 	short flag, pad;
 
 	float startx, starty, height, width;
