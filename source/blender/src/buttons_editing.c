@@ -1480,8 +1480,9 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			          lx, (cy -= 19), buttonWidth, 19, &dmd->strength,
 			          -1000, 1000, 10, 10,
 			          "Strength of displacement");
-			sprintf(str, "Direction%%t|Normal%%x%d|Z%%x%d|Y%%x%d|X%%x%d",
-			        MOD_DISP_DIR_NOR,
+			sprintf(str, "Direction%%t|Normal%%x%d|RGB -> XYZ%%x%d|"
+			        "Z%%x%d|Y%%x%d|X%%x%d",
+			        MOD_DISP_DIR_NOR, MOD_DISP_DIR_RGB_XYZ,
 			        MOD_DISP_DIR_Z, MOD_DISP_DIR_Y, MOD_DISP_DIR_X);
 			uiDefButI(block, MENU, B_MODIFIER_RECALC, str,
 			          lx, (cy -= 19), buttonWidth, 19, &dmd->direction,

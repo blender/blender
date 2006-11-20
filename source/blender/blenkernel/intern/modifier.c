@@ -2332,11 +2332,14 @@ static void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
 	                           NULL, 1, texres);
 
 	/* if the texture gave an RGB value, we assume it didn't give a valid
-	 * intensity, so calculate one (formula from do_material_tex)
+	 * intensity, so calculate one (formula from do_material_tex).
+	 * if the texture didn't give an RGB value, copy the intensity across
 	 */
 	if(result_type & TEX_RGB)
 		texres->tin = (0.35 * texres->tr + 0.45 * texres->tg
 		               + 0.2 * texres->tb);
+	else
+		texres->tr = texres->tg = texres->tb = texres->tin;
 }
 
 /* dm must be a CDDerivedMesh */
@@ -2374,7 +2377,7 @@ static void displaceModifier_do(
 
 	for(i = 0; i < numVerts; ++i) {
 		TexResult texres;
-		float delta = 0;
+		float delta = 0, strength = dmd->strength;
 		MDeformWeight *def_weight = NULL;
 
 		if(dvert) {
@@ -2393,20 +2396,26 @@ static void displaceModifier_do(
 
 		delta = texres.tin - dmd->midlevel;
 
-		if(def_weight) delta *= def_weight->weight;
+		if(def_weight) strength *= def_weight->weight;
+
+		delta *= strength;
 
 		switch(dmd->direction) {
 		case MOD_DISP_DIR_X:
-			vertexCos[i][0] += delta * dmd->strength;
+			vertexCos[i][0] += delta;
 			break;
 		case MOD_DISP_DIR_Y:
-			vertexCos[i][1] += delta * dmd->strength;
+			vertexCos[i][1] += delta;
 			break;
 		case MOD_DISP_DIR_Z:
-			vertexCos[i][2] += delta * dmd->strength;
+			vertexCos[i][2] += delta;
+			break;
+		case MOD_DISP_DIR_RGB_XYZ:
+			vertexCos[i][0] += (texres.tr - dmd->midlevel) * strength;
+			vertexCos[i][1] += (texres.tg - dmd->midlevel) * strength;
+			vertexCos[i][2] += (texres.tb - dmd->midlevel) * strength;
 			break;
 		case MOD_DISP_DIR_NOR:
-			delta *= dmd->strength;
 			vertexCos[i][0] += delta * mvert[i].no[0] / 32767.0f;
 			vertexCos[i][1] += delta * mvert[i].no[1] / 32767.0f;
 			vertexCos[i][2] += delta * mvert[i].no[2] / 32767.0f;
