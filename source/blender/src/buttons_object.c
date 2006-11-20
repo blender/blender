@@ -1384,11 +1384,12 @@ void softbody_bake(Object *ob)
 	SoftBody *sb;
 	ScrArea *sa;
 	float frameleno= G.scene->r.framelen;
-	int cfrao= CFRA, sfra=100000, efra=0;
-	unsigned short event=0;
-	short val;
+	int cfrao= CFRA, sfra=100000, efra=0, didbreak =0;
+	
 	
 	G.scene->r.framelen= 1.0;		// baking has to be in uncorrected time
+	sbSetInterruptCallBack(blender_test_break); // make softbody module ESC aware
+	G.afbreek=0; // init global break system
 	
 	if(ob) {
 		sb= ob->soft;
@@ -1427,16 +1428,14 @@ void softbody_bake(Object *ob)
 			}
 		}
 		screen_swapbuffers();
-		
-		while(qtest()) {
-			
-			event= extern_qread(&val);
-			if(event==ESCKEY) break;
+		//blender_test_break() has a granularity of 10 ms, who cares .. baking the unit cube is kinda boring
+		if (blender_test_break()){ 
+			didbreak = 1;
+			break;
 		}
-		if(event==ESCKEY) break;
+
 	}
-	
-	if(event==ESCKEY) {
+	if(didbreak) {
 		if(ob) 
 			sbObjectToSoftbody(ob);	// free bake
 		else {
@@ -1452,6 +1451,8 @@ void softbody_bake(Object *ob)
 	
 	/* restore */
 	waitcursor(0);
+	sbSetInterruptCallBack(NULL); // softbody module won't ESC
+	G.afbreek=0; // reset global break system
 	
 	if(ob) 
 		ob->softflag &= ~OB_SB_BAKEDO;

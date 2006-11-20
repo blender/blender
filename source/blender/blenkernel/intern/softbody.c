@@ -82,6 +82,11 @@ variables on the UI for now
 #include  "BIF_editdeform.h"
 #include  "BIF_graphics.h"
 #include  "PIL_time.h"
+
+/* callbacks for errors and interrupts and some goo */
+static int (*SB_localInterruptCallBack)(void) = NULL;
+
+
 /* ********** soft body engine ******* */
 
 
@@ -3060,6 +3065,13 @@ static int object_has_edges(Object *ob)
 	}
 }
 
+/* SB global visible functions */ 
+void sbSetInterruptCallBack(int (*f)(void))
+{
+	SB_localInterruptCallBack = f;
+}
+
+
 /* simulates one step. framenr is in frames */
 void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts)
 {
@@ -3271,6 +3283,8 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 						sct=PIL_check_seconds_timer();
 						if (sct-sst > 0.5f) printf("%3.0f%% \r",100.0f*timedone);
 					}
+					if (SB_localInterruptCallBack && SB_localInterruptCallBack()) break;
+
 				}
 				/* move snapped to final position */
 				interpolate_exciter(ob, 2, 2);

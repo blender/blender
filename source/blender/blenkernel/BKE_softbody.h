@@ -49,5 +49,10 @@ extern void				sbObjectStep(struct Object *ob, float framnr, float (*vertexCos)[
 /* makes totally fresh start situation, resets time */
 extern void				sbObjectToSoftbody(struct Object *ob);
 
+/* links the softbody module to a 'test for Interrupt' function */
+/* pass NULL to unlink again */
+extern void             sbSetInterruptCallBack(int (*f)(void));
+
+
 #endif
 
