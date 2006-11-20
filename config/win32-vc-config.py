@@ -4,6 +4,13 @@ LIBDIR = '${LCGDIR}'
 WITH_BF_VERSE = 'false'
 BF_VERSE_INCLUDE = "#extern/verse/dist"
 
+# enable ffmpeg  support
+WITH_BF_FFMPEG = 'false'  # -DWITH_FFMPEG
+BF_FFMPEG = LIBDIR +'/ffmpeg'
+BF_FFMPEG_INC = '${BF_FFMPEG}/include'
+BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
+BF_FFMPEG_LIB = 'avformat-51.lib avcodec-51.lib avutil-49.lib postproc-51.lib'
+
 BF_PYTHON = LIBDIR + '/python'
 BF_PYTHON_VERSION = '2.4'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
@@ -140,7 +147,7 @@ CCFLAGS = ['/nologo', '/Og', '/Ot', '/Ob1', '/Op', '/G6','/EHsc', '/J', '/W3', '
 
 BF_DEBUG_FLAGS = ['/Zi', '/FR${TARGET.base}.sbr']
 
-CPPFLAGS = ['-DWIN32','-D_CONSOLE', '-D_LIB', '-DUSE_OPENAL', '-DFTGL_LIBRARY_STATIC']
+CPPFLAGS = ['-DWIN32','-D_CONSOLE', '-D_LIB', '-DUSE_OPENAL', '-DFTGL_LIBRARY_STATIC', '-D_CRT_SECURE_NO_DEPRECATE']
 REL_CFLAGS = ['-O2', '-DNDEBUG']
 REL_CCFLAGS = ['-O2', '-DNDEBUG']
 C_WARN = []
