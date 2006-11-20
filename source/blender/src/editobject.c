@@ -2191,7 +2191,6 @@ void special_editmenu(void)
 			nr= pupmenu("Specials%t|Shared VertexCol%x1");
 			if(nr==1) {
 				
-				copy_vpaint_undo( (unsigned int *)me->mcol, me->totface);
 				do_shared_vertexcol(me);
 				
 				BIF_undo_push("Shared VertexCol");
@@ -2204,9 +2203,8 @@ void special_editmenu(void)
 			if(par && (par->flag & OB_POSEMODE)) {
 				nr= pupmenu("Specials%t|Apply Bone Envelopes to VertexGroups %x1");
 				if(nr==1) {
-					Mesh *me= ob->data;
-					if(me->dvert) copy_wpaint_undo(me->dvert, me->totvert);
 					pose_adds_vgroups(ob);
+					BIF_undo_push("Apply Bone Envelopes to VertexGroups");
 				}
 			}
 		}

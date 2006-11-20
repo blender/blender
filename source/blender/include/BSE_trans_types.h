@@ -34,10 +34,7 @@
 #define BSE_TRANS_TYPES_H
 
 struct Object;
-/*  struct EditFace; */
-/*  struct EditEdge; */
-/*  struct EditVert; */
-/*  struct ListBase; */
+struct MDeformVert;
 
 typedef struct TransOb {
 	float *loc;
@@ -80,9 +77,12 @@ typedef struct TransVert {
 
 typedef struct VPaint {
 	float r, g, b, a;
-	float size;		/* van brush */
+	float size;			/* of brush */
 	float gamma, mul;
 	short mode, flag;
+	int tot, pad;						/* allocation size of prev buffers */
+	unsigned int *vpaint_prev;			/* previous mesh colors */
+	struct MDeformVert *wpaint_prev;	/* previous vertex weights */
 } VPaint;
 
 #endif /* BSE_TRANS_TYPES_H */

@@ -107,15 +107,22 @@
 
 #define MAXINDEX	512000
 
-VPaint Gvp= {1.0, 1.0, 1.0, 0.2, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT+VP_SPRAY};
-VPaint Gwp= {1.0, 1.0, 1.0, 0.2, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT};
-float vpimat[3][3];
-unsigned int *vpaintundobuf= NULL;
-int totvpaintundo;
-int *indexar= NULL;
+VPaint Gvp= {1.0, 1.0, 1.0, 0.2, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT+VP_SPRAY, NULL};
+VPaint Gwp= {1.0, 1.0, 1.0, 0.2, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT, NULL};
 
-int totwpaintundo;
-MDeformVert *wpaintundobuf=NULL;
+static int *get_indexarray(void)
+{
+	return MEM_mallocN(sizeof(int)*MAXINDEX + 2, "vertexpaint");
+}
+
+void free_vertexpaint()
+{
+	
+	if(Gvp.vpaint_prev) MEM_freeN(Gvp.vpaint_prev);
+	Gvp.vpaint_prev= NULL;
+	
+	mesh_octree_table(NULL, NULL, 'e');
+}
 
 /* in contradiction to cpack drawing colors, the MCOL colors (vpaint colors) are per byte! 
    so not endian sensitive. Mcol = ABGR!!! so be cautious with cpack calls */
@@ -145,9 +152,9 @@ unsigned int rgba_to_mcol(float r, float g, float b, float a)
 	
 }
 
-unsigned int vpaint_get_current_col(void)
+static unsigned int vpaint_get_current_col(VPaint *vp)
 {
-	return rgba_to_mcol(Gvp.r, Gvp.g, Gvp.b, 1.0);
+	return rgba_to_mcol(vp->r, vp->g, vp->b, 1.0f);
 }
 
 void do_shared_vertexcol(Mesh *me)
@@ -246,46 +253,19 @@ void make_vertexcol(int shade)	/* single ob */
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-void copy_vpaint_undo(unsigned int *mcol, int tot)
+static void copy_vpaint_prev(VPaint *vp, unsigned int *mcol, int tot)
 {
-	if(vpaintundobuf) MEM_freeN(vpaintundobuf);
-	vpaintundobuf= 0;
-	totvpaintundo= tot;	/* because of return, it is used by weightpaint */
-	
-	if(mcol==0 || tot==0) return;
-	
-	vpaintundobuf= MEM_mallocN(4*sizeof(int)*tot, "vpaintundobuf");
-	memcpy(vpaintundobuf, mcol, 4*sizeof(int)*tot);
-	
-}
-
-void vpaint_undo()
-{
-	Mesh *me;
-	Object *ob;
-	unsigned int temp, *from, *to;
-	int a;
-	
-	if((G.f & G_VERTEXPAINT)==0) return;
-	if(vpaintundobuf==0) return;
-
-	ob= OBACT;
-	me= get_mesh(ob);
-	if(me==0 || me->mcol==0 || me->totface==0) return;
-
-	a= MIN2(me->totface, totvpaintundo);
-	from= vpaintundobuf;
-	to= (unsigned int *)me->mcol;
-	a*= 4;
-	while(a--) {
-		temp= *to;
-		*to= *from;
-		*from= temp;
-		to++; from++;
+	if(vp->vpaint_prev) {
+		MEM_freeN(vp->vpaint_prev);
+		vp->vpaint_prev= NULL;
 	}
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	vp->tot= tot;	
 	
-	allqueue(REDRAWVIEW3D, 0);
+	if(mcol==NULL || tot==0) return;
+	
+	vp->vpaint_prev= MEM_mallocN(4*sizeof(int)*tot, "vpaint_prev");
+	memcpy(vp->vpaint_prev, mcol, 4*sizeof(int)*tot);
+	
 }
 
 void clear_vpaint()
@@ -303,10 +283,9 @@ void clear_vpaint()
 
 	if(me==0 || me->mcol==0 || me->totface==0) return;
 
-	paintcol= vpaint_get_current_col();
+	paintcol= vpaint_get_current_col(&Gvp);
 
 	to= (unsigned int *)me->mcol;
-	copy_vpaint_undo(to, me->totface);
 	a= 4*me->totface;
 	while(a--) {
 		*to= paintcol;
@@ -333,7 +312,7 @@ void clear_vpaint_selectedfaces()
 	if(!me->mcol)
 		make_vertexcol(0);
 
-	paintcol= vpaint_get_current_col();
+	paintcol= vpaint_get_current_col(&Gvp);
 
 	tf = me->mtface;
 	mcol = (unsigned int*)me->mcol;
@@ -361,8 +340,9 @@ void clear_wpaint_selectedfaces()
 	MTFace *tface;
 	MFace *mface;
 	Object *ob;
-	int index, vgroup;
 	MDeformWeight *dw, *uw;
+	int *indexar;
+	int index, vgroup;
 	unsigned int faceverts[5]={0,0,0,0,0};
 	unsigned char i;
 	int vgroup_mirror= -1;
@@ -371,7 +351,7 @@ void clear_wpaint_selectedfaces()
 	me= ob->data;
 	if(me==0 || me->totface==0 || me->dvert==0 || !me->mtface) return;
 	
-	if(indexar==NULL) init_vertexpaint();
+	indexar= get_indexarray();
 	for(index=0, tface=me->mtface; index<me->totface; index++, tface++) {
 		if((tface->flag & TF_SELECT)==0)
 			indexar[index]= 0;
@@ -379,7 +359,6 @@ void clear_wpaint_selectedfaces()
 			indexar[index]= index+1;
 	}
 	
-	copy_wpaint_undo(me->dvert, me->totvert);
 	vgroup= ob->actdef-1;
 	
 	/* directly copied from weight_paint, should probaby split into a seperate function */
@@ -422,7 +401,7 @@ void clear_wpaint_selectedfaces()
 				if(!((me->dvert+faceverts[i])->flag)) {
 					dw= verify_defweight(me->dvert+faceverts[i], vgroup);
 					if(dw) {
-						uw= verify_defweight(wpaintundobuf+faceverts[i], vgroup);
+						uw= verify_defweight(Gwp.wpaint_prev+faceverts[i], vgroup);
 						uw->weight= dw->weight; /* set the undio weight */
 						dw->weight= paintweight;
 						
@@ -432,10 +411,10 @@ void clear_wpaint_selectedfaces()
 								/* copy, not paint again */
 								if(vgroup_mirror != -1) {
 									dw= verify_defweight(me->dvert+j, vgroup_mirror);
-									uw= verify_defweight(wpaintundobuf+j, vgroup_mirror);
+									uw= verify_defweight(Gwp.wpaint_prev+j, vgroup_mirror);
 								} else {
 									dw= verify_defweight(me->dvert+j, vgroup);
-									uw= verify_defweight(wpaintundobuf+j, vgroup);
+									uw= verify_defweight(Gwp.wpaint_prev+j, vgroup);
 								}
 								uw->weight= dw->weight; /* set the undo weight */
 								dw->weight= paintweight;
@@ -454,6 +433,8 @@ void clear_wpaint_selectedfaces()
 		index++;
 	}
 	
+	MEM_freeN(indexar);
+
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	BIF_undo_push("Set vertex weight");
 	allqueue(REDRAWVIEW3D, 0);
@@ -473,8 +454,6 @@ void vpaint_dogamma()
 	ob= OBACT;
 	me= get_mesh(ob);
 	if(me==0 || me->mcol==0 || me->totface==0) return;
-
-	copy_vpaint_undo((unsigned int *)me->mcol, me->totface);
 
 	igam= 1.0/Gvp.gamma;
 	for(a=0; a<256; a++) {
@@ -546,28 +525,6 @@ void sample_vpaint()	/* frontbuf */
 	allqueue(REDRAWBUTSEDIT, 0);
 	addqueue(curarea->win, REDRAW, 1); /* needed for when panel is open... */
 }
-
-void init_vertexpaint()
-{
-	
-	indexar= MEM_mallocN(sizeof(int)*MAXINDEX + 2, "vertexpaint");
-}
-
-
-void free_vertexpaint()
-{
-	
-	if(indexar) MEM_freeN(indexar);
-	indexar= NULL;
-	if(vpaintundobuf) MEM_freeN(vpaintundobuf);
-	vpaintundobuf= NULL;
-	if(wpaintundobuf) 
-		free_dverts(wpaintundobuf, totwpaintundo);
-	wpaintundobuf= NULL;
-	
-	mesh_octree_table(NULL, NULL, 'e');
-}
-
 
 static unsigned int mcol_blend(unsigned int col1, unsigned int col2, int fac)
 {
@@ -759,13 +716,13 @@ static void vpaint_blend( unsigned int *col, unsigned int *colorig, unsigned int
 }
 
 
-static int sample_backbuf_area(int x, int y, float size)
+static int sample_backbuf_area(VPaint *vp, int *indexar, int x, int y, float size)
 {
 	unsigned int *rt;
 	struct ImBuf *ibuf;
 	int x1, y1, x2, y2, a, tot=0, index;
 	
-	if(totvpaintundo>=MAXINDEX) return 0;
+	if(vp->tot>=MAXINDEX) return 0;
 	
 	if(size>64.0) size= 64.0;
 	
@@ -795,20 +752,20 @@ static int sample_backbuf_area(int x, int y, float size)
 	size= (y2-y1)*(x2-x1);
 	if(size<=0) return 0;
 
-	memset(indexar, 0, sizeof(int)*totvpaintundo+2);	/* plus 2! first element is total */
+	memset(indexar, 0, sizeof(int)*vp->tot+2);	/* plus 2! first element is total */
 	
 	while(size--) {
 			
 		if(*rt) {
 			index= framebuffer_to_index(*rt);
-			if(index>0 && index<=totvpaintundo)
+			if(index>0 && index<=vp->tot)
 				indexar[index] = 1;
 		}
 	
 		rt++;
 	}
 	
-	for(a=1; a<=totvpaintundo; a++) {
+	for(a=1; a<=vp->tot; a++) {
 		if(indexar[a]) indexar[tot++]= a;
 	}
 
@@ -817,7 +774,7 @@ static int sample_backbuf_area(int x, int y, float size)
 	return tot;
 }
 
-static int calc_vp_alpha_dl(VPaint *vp, float *vert_nor, short *mval)
+static int calc_vp_alpha_dl(VPaint *vp, float vpimat[][3], float *vert_nor, short *mval)
 {
 	float fac, dx, dy;
 	int alpha;
@@ -856,42 +813,19 @@ static int calc_vp_alpha_dl(VPaint *vp, float *vert_nor, short *mval)
 	return alpha;
 }
 
-
-void wpaint_undo (void)
+void copy_wpaint_prev (VPaint *vp, MDeformVert *dverts, int dcount)
 {
-	Object *ob= OBACT;
-	Mesh	*me;
-
-	me = get_mesh(ob);
-	if (!me) return;
-
-	if (!wpaintundobuf)
-		return;
-
-	if (!me->dvert)
-		return;
-
-	if (totwpaintundo != me->totvert)
-		return;
-
-	/* simply swap pointers, and update the pointer in CustomData too */
-	SWAP(MDeformVert*, me->dvert, wpaintundobuf);
-	CustomData_set_layer(&me->vdata, CD_MDEFORMVERT, me->dvert);
-
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-	DAG_object_flush_update(G.scene, modifiers_isDeformedByArmature(ob), OB_RECALC_DATA);
-	scrarea_do_windraw(curarea);
+	if (vp->wpaint_prev) {
+		free_dverts(vp->wpaint_prev, vp->tot);
+		vp->wpaint_prev= NULL;
+	}
 	
-}
-
-void copy_wpaint_undo (MDeformVert *dverts, int dcount)
-{
-	if (wpaintundobuf)
-		free_dverts(wpaintundobuf, totwpaintundo);
-
-	wpaintundobuf = MEM_mallocN (sizeof(MDeformVert)*dcount, "wpaintundo");
-	totwpaintundo = dcount;
-	copy_dverts (wpaintundobuf, dverts, dcount);
+	if(dverts && dcount) {
+		
+		vp->wpaint_prev = MEM_mallocN (sizeof(MDeformVert)*dcount, "wpaint prev");
+		vp->tot = dcount;
+		copy_dverts (vp->wpaint_prev, dverts, dcount);
+	}
 }
 
 static void wpaint_blend(MDeformWeight *dw, MDeformWeight *uw, float alpha, float paintval)
@@ -1112,11 +1046,11 @@ static void do_weight_paint_vertex(Object *ob, int index, int alpha, float paint
 	
 	if(Gwp.flag & VP_ONLYVGROUP) {
 		dw= get_defweight(me->dvert+index, vgroup);
-		uw= get_defweight(wpaintundobuf+index, vgroup);
+		uw= get_defweight(Gwp.wpaint_prev+index, vgroup);
 	}
 	else {
 		dw= verify_defweight(me->dvert+index, vgroup);
-		uw= verify_defweight(wpaintundobuf+index, vgroup);
+		uw= verify_defweight(Gwp.wpaint_prev+index, vgroup);
 	}
 	if(dw==NULL || uw==NULL)
 		return;
@@ -1145,14 +1079,13 @@ void weight_paint(void)
 	MFace *mface;
 	MTFace *tface;
 	float mat[4][4], imat[4][4], paintweight, *vertexcosnos;
-	int index, totindex, alpha, totw;
+	float vpimat[3][3];
+	int *indexar, index, totindex, alpha, totw;
 	int vgroup_mirror= -1;
 	short mval[2], mvalo[2], firsttime=1, mousebut;
 
 	if((G.f & G_WEIGHTPAINT)==0) return;
 	if(G.obedit) return;
-	
-	if(indexar==NULL) init_vertexpaint();
 	
 	ob= OBACT;
 	if(!ob || ob->id.lib) return;
@@ -1173,9 +1106,12 @@ void weight_paint(void)
 		return;
 	}
 	
-	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
+	/* ALLOCATIONS! no return after this line */
+		/* painting on subsurfs should give correct points too, this returns me->totvert amount */
 	vertexcosnos= mesh_get_mapped_verts_nors(ob);
-	
+	indexar= get_indexarray();
+	copy_wpaint_prev(&Gwp, me->dvert, me->totvert);
+
 	/* this happens on a Bone select, when no vgroup existed yet */
 	if(ob->actdef<=0) {
 		Object *modob;
@@ -1213,9 +1149,6 @@ void weight_paint(void)
 	myloadmatrix(G.vd->viewmat);
 	
 	getmouseco_areawin(mvalo);
-	
-	copy_vpaint_undo( (unsigned int *)me->mcol, me->totface);
-	copy_wpaint_undo(me->dvert, me->totvert);
 	
 	getmouseco_areawin(mval);
 	mvalo[0]= mval[0];
@@ -1257,7 +1190,7 @@ void weight_paint(void)
 			
 			/* which faces are involved */
 			if(Gwp.flag & VP_AREA) {
-				totindex= sample_backbuf_area(mval[0], mval[1], Gwp.size);
+				totindex= sample_backbuf_area(&Gwp, indexar, mval[0], mval[1], Gwp.size);
 			}
 			else {
 				indexar[0]= sample_backbuf(mval[0], mval[1]);
@@ -1339,7 +1272,7 @@ void weight_paint(void)
 					mface= me->mface + (indexar[index]-1);
 					
 					if((me->dvert+mface->v1)->flag) {
-						alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v1, mval);
+						alpha= calc_vp_alpha_dl(&Gwp, vpimat, vertexcosnos+6*mface->v1, mval);
 						if(alpha) {
 							do_weight_paint_vertex(ob, mface->v1, alpha, paintweight, vgroup_mirror);
 						}
@@ -1347,7 +1280,7 @@ void weight_paint(void)
 					}
 					
 					if((me->dvert+mface->v2)->flag) {
-						alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v2, mval);
+						alpha= calc_vp_alpha_dl(&Gwp, vpimat, vertexcosnos+6*mface->v2, mval);
 						if(alpha) {
 							do_weight_paint_vertex(ob, mface->v2, alpha, paintweight, vgroup_mirror);
 						}
@@ -1355,7 +1288,7 @@ void weight_paint(void)
 					}
 					
 					if((me->dvert+mface->v3)->flag) {
-						alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v3, mval);
+						alpha= calc_vp_alpha_dl(&Gwp, vpimat, vertexcosnos+6*mface->v3, mval);
 						if(alpha) {
 							do_weight_paint_vertex(ob, mface->v3, alpha, paintweight, vgroup_mirror);
 						}
@@ -1364,7 +1297,7 @@ void weight_paint(void)
 					
 					if((me->dvert+mface->v4)->flag) {
 						if(mface->v4) {
-							alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v4, mval);
+							alpha= calc_vp_alpha_dl(&Gwp, vpimat, vertexcosnos+6*mface->v4, mval);
 							if(alpha) {
 								do_weight_paint_vertex(ob, mface->v4, alpha, paintweight, vgroup_mirror);
 							}
@@ -1401,11 +1334,14 @@ void weight_paint(void)
 	
 	if(vertexcosnos)
 		MEM_freeN(vertexcosnos);
-	
+	MEM_freeN(indexar);
+	copy_wpaint_prev(&Gwp, NULL, 0);
+
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	/* this flag is event for softbody to refresh weightpaint values */
 	if(ob->soft) ob->softflag |= OB_SB_REDO;
 	
+	BIF_undo_push("Weight Paint");
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1416,14 +1352,13 @@ void vertex_paint()
 	MFace *mface;
 	MTFace *tface;
 	float mat[4][4], imat[4][4], *vertexcosnos;
+	float vpimat[3][3];
 	unsigned int paintcol=0, *mcol, *mcolorig, fcol1, fcol2;
-	int index, alpha, totindex;
+	int *indexar, index, alpha, totindex;
 	short mval[2], mvalo[2], firsttime=1, mousebut;
 	
 	if((G.f & G_VERTEXPAINT)==0) return;
 	if(G.obedit) return;
-	
-	if(indexar==NULL) init_vertexpaint();
 	
 	ob= OBACT;
 	if(!ob || ob->id.lib) return;
@@ -1436,9 +1371,14 @@ void vertex_paint()
 
 	if(me->mtface==NULL && me->mcol==NULL) return;
 	
-	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
-	vertexcosnos= mesh_get_mapped_verts_nors(ob);
+	/* ALLOCATIONS! No return after his line */
 	
+				/* painting on subsurfs should give correct points too, this returns me->totvert amount */
+	vertexcosnos= mesh_get_mapped_verts_nors(ob);
+	indexar= get_indexarray();
+	copy_vpaint_prev(&Gvp, (unsigned int *)me->mcol, me->totface);
+	
+	/* opengl/matrix stuff */
 	persp(PERSP_VIEW);
 	/* imat for normals */
 	Mat4MulMat4(mat, ob->obmat, G.vd->viewmat);
@@ -1450,11 +1390,9 @@ void vertex_paint()
 	mygetsingmatrix(mat);
 	myloadmatrix(G.vd->viewmat);
 	
-	paintcol= vpaint_get_current_col();
+	paintcol= vpaint_get_current_col(&Gvp);
 	
 	getmouseco_areawin(mvalo);
-	
-	copy_vpaint_undo( (unsigned int *)me->mcol, me->totface);
 	
 	getmouseco_areawin(mval);
 	mvalo[0]= mval[0];
@@ -1472,7 +1410,7 @@ void vertex_paint()
 
 			/* which faces are involved */
 			if(Gvp.flag & VP_AREA) {
-				totindex= sample_backbuf_area(mval[0], mval[1], Gvp.size);
+				totindex= sample_backbuf_area(&Gvp, indexar, mval[0], mval[1], Gvp.size);
 			}
 			else {
 				indexar[0]= sample_backbuf(mval[0], mval[1]);
@@ -1511,7 +1449,7 @@ void vertex_paint()
 				
 					mface= ((MFace *)me->mface) + (indexar[index]-1);
 					mcol=	  ( (unsigned int *)me->mcol) + 4*(indexar[index]-1);
-					mcolorig= ( (unsigned int *)vpaintundobuf) + 4*(indexar[index]-1);
+					mcolorig= ( (unsigned int *)Gvp.vpaint_prev) + 4*(indexar[index]-1);
 
 					if(Gvp.mode==VP_FILT) {
 						fcol1= mcol_blend( mcol[0], mcol[1], 128);
@@ -1525,17 +1463,17 @@ void vertex_paint()
 						
 					}
 					
-					alpha= calc_vp_alpha_dl(&Gvp, vertexcosnos+6*mface->v1, mval);
+					alpha= calc_vp_alpha_dl(&Gvp, vpimat, vertexcosnos+6*mface->v1, mval);
 					if(alpha) vpaint_blend( mcol, mcolorig, paintcol, alpha);
 					
-					alpha= calc_vp_alpha_dl(&Gvp, vertexcosnos+6*mface->v2, mval);
+					alpha= calc_vp_alpha_dl(&Gvp, vpimat, vertexcosnos+6*mface->v2, mval);
 					if(alpha) vpaint_blend( mcol+1, mcolorig+1, paintcol, alpha);
 	
-					alpha= calc_vp_alpha_dl(&Gvp, vertexcosnos+6*mface->v3, mval);
+					alpha= calc_vp_alpha_dl(&Gvp, vpimat, vertexcosnos+6*mface->v3, mval);
 					if(alpha) vpaint_blend( mcol+2, mcolorig+2, paintcol, alpha);
 
 					if(mface->v4) {
-						alpha= calc_vp_alpha_dl(&Gvp, vertexcosnos+6*mface->v4, mval);
+						alpha= calc_vp_alpha_dl(&Gvp, vpimat, vertexcosnos+6*mface->v4, mval);
 						if(alpha) vpaint_blend( mcol+3, mcolorig+3, paintcol, alpha);
 					}
 				}
@@ -1565,7 +1503,13 @@ void vertex_paint()
 	
 	if(vertexcosnos)
 		MEM_freeN(vertexcosnos);
+	MEM_freeN(indexar);
+	
+	/* frees prev buffer */
+	copy_vpaint_prev(&Gvp, NULL, 0);
 
+	BIF_undo_push("Vertex Paint");
+	
 	allqueue(REDRAWVIEW3D, 0);
 }
 

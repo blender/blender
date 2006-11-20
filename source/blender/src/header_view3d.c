@@ -3798,7 +3798,7 @@ static void do_view3d_vpaintmenu(void *arg, int event)
 	
 	switch(event) {
 	case 0: /* undo vertex painting */
-		vpaint_undo();
+		BIF_undo();
 		break;
 	case 1: /* set vertex colors/weight */
 		if(G.f & G_FACESELECT)
@@ -3888,7 +3888,7 @@ static void do_view3d_wpaintmenu(void *arg, int event)
 	
 	switch(event) {
 	case 0: /* undo weight painting */
-		wpaint_undo();
+		BIF_undo();
 		break;
 	case 1: /* set vertex colors/weight */
 		clear_wpaint_selectedfaces();

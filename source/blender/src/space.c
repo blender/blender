@@ -797,11 +797,7 @@ void BIF_undo(void)
 			undo_editmode_step(1);
 	}
 	else {
-		if(G.f & G_WEIGHTPAINT)
-			wpaint_undo();
-		else if(G.f & G_VERTEXPAINT)
-			vpaint_undo();
-		else if(G.f & G_TEXTUREPAINT)
+		if(G.f & G_TEXTUREPAINT)
 			imagepaint_undo();
 		else if(G.f & G_SCULPTMODE)
 			sculptmode_undo();
@@ -827,11 +823,7 @@ void BIF_redo(void)
 			undo_editmode_step(-1);
 	}
 	else {
-		if(G.f & G_WEIGHTPAINT)
-			wpaint_undo();
-		else if(G.f & G_VERTEXPAINT)
-			vpaint_undo();
-		else if(G.f & G_TEXTUREPAINT)
+		if(G.f & G_TEXTUREPAINT)
 			imagepaint_undo();
 		else if(G.f & G_SCULPTMODE)
 			sculptmode_redo();
@@ -855,11 +847,7 @@ void BIF_undo_menu(void)
 		allqueue(REDRAWALL, 0);
 	}
 	else {
-		if(G.f & G_WEIGHTPAINT)
-			;
-		else if(G.f & G_VERTEXPAINT)
-			;
-		else if(G.f & G_SCULPTMODE)
+		if(G.f & G_SCULPTMODE)
 			sculptmode_undo_menu();
 		else {
 			if(U.uiflag & USER_GLOBALUNDO) {
@@ -1933,9 +1921,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if((G.qual==0)) {
 					if(G.f & G_WEIGHTPAINT)
-						wpaint_undo();
+						BIF_undo();
 					else if(G.f & G_VERTEXPAINT)
-						vpaint_undo();
+						BIF_undo();
 					else if(G.f & G_TEXTUREPAINT)
 						imagepaint_undo();
 					else if (G.f & G_FACESELECT)
