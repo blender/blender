@@ -609,18 +609,9 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		generate_preview(node, cbuf);
 		free_compbuf(cbuf);
 
-	}	/* lets make only previews when not done yet, so activating doesnt update */
-	else if(in[0]->data && node->preview && node->preview->rect==NULL) {
-		CompBuf *cbuf, *inbuf= in[0]->data;
-		
-		if(inbuf->type!=CB_RGBA) {
-			cbuf= alloc_compbuf(inbuf->x, inbuf->y, CB_RGBA, 1);
-			composit1_pixel_processor(node, cbuf, inbuf, in[0]->vec, do_copy_rgba, CB_RGBA);
-			generate_preview(node, cbuf);
-			free_compbuf(cbuf);
-		}
-		else
-			generate_preview(node, inbuf);
+	}
+	else if(in[0]->data) {
+		generate_preview(node, in[0]->data);
 	}
 }
 

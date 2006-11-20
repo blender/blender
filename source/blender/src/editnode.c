@@ -531,7 +531,6 @@ void node_ungroup(SpaceNode *snode)
 	else {
 		if(nodeGroupUnGroup(snode->edittree, gnode)) {
 			
-			ntreeSolveOrder(snode->edittree);
 			BIF_undo_push("Deselect all nodes");
 			allqueue(REDRAWNODE, 0);
 		}

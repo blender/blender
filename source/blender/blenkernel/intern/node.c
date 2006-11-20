@@ -511,6 +511,17 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 		}
 	}
 	
+	/* initialize variables of unused input sockets */
+	for(node= ngroup->nodes.first; node; node= node->next) {
+		for(sock= node->inputs.first; sock; sock= sock->next) {
+			if(sock->intern==0) {
+				bNodeSocket *nsock= groupnode_find_tosock(gnode, sock->own_index);
+				if(nsock) {
+					QUATCOPY(nsock->ns.vec, sock->ns.vec);
+				}
+			}
+		}
+	}
 	return gnode;
 }
 
@@ -715,6 +726,10 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 	
 	nodeFreeNode(ntree, gnode);
 	
+	/* solve order goes fine, but the level tags not... doing it twice works for now. solve this once */
+	ntreeSolveOrder(ntree);
+	ntreeSolveOrder(ntree);
+
 	return 1;
 }
 
