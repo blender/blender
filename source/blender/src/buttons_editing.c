@@ -1347,7 +1347,9 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Mirror) {
 			height = 48;
 		} else if (md->type==eModifierType_EdgeSplit) {
+			EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
 			height = 48;
+			if(emd->flags & MOD_EDGESPLIT_FROMANGLE) height += 19;
 		} else if (md->type==eModifierType_Displace) {
 			DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 			height = 124;
@@ -1441,21 +1443,23 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButS(block, ROW, B_MODIFIER_RECALC, "Z",	lx+40, cy, 20,19, &mmd->axis, 1, 2, 0, 0, "Specify the axis to mirror about");
 			uiDefButBitS(block, TOG, MOD_MIR_CLIPPING, B_MODIFIER_RECALC, "Do Clipping",	lx+60, cy, buttonWidth-60,19, &mmd->flag, 1, 2, 0, 0, "Prevents during Transform vertices to go through Mirror");
 		} else if (md->type==eModifierType_EdgeSplit) {
-			EdgeSplitModifierData *amd = (EdgeSplitModifierData*) md;
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Split Angle:",
-			          lx, (cy -= 19), buttonWidth, 19, &amd->split_angle,
-			          0.0, 180.0, 100, 2,
-			          "Angle above which to split edges");
+			EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
 			uiDefButBitI(block, TOG, MOD_EDGESPLIT_FROMANGLE,
-			             B_MODIFIER_RECALC, "From Angle",
-			             lx, (cy-=19), buttonWidth/2, 19,
-			             &amd->flags, 0, 0, 0, 0,
-			             "Get edge sharpness from angle");
+			             B_MODIFIER_RECALC, "From Edge Angle",
+			             lx, (cy -= 19), buttonWidth, 19,
+			             &emd->flags, 0, 0, 0, 0,
+			             "Split edges with high angle between faces");
+			if(emd->flags & MOD_EDGESPLIT_FROMANGLE) {
+				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Split Angle:",
+				          lx, (cy -= 19), buttonWidth, 19, &emd->split_angle,
+				          0.0, 180.0, 100, 2,
+				          "Angle above which to split edges");
+			}
 			uiDefButBitI(block, TOG, MOD_EDGESPLIT_FROMFLAG,
-			             B_MODIFIER_RECALC, "From Flag",
-			             lx + buttonWidth/2, cy, (buttonWidth + 1)/2, 19,
-			             &amd->flags, 0, 0, 0, 0,
-			             "Get edge sharpness from flag");
+			             B_MODIFIER_RECALC, "From Marked As Sharp",
+			             lx, (cy -= 19), buttonWidth, 19,
+			             &emd->flags, 0, 0, 0, 0,
+			             "Split edges that are marked as sharp");
 		} else if (md->type==eModifierType_Displace) {
 			DisplaceModifierData *dmd = (DisplaceModifierData*) md;
 			but = uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",
