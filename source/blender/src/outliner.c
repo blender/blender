@@ -3098,8 +3098,24 @@ static void outliner_draw_restrictcols(SpaceOops *soops)
 		(short)soops->v2d.cur.ymin);
 }
 
-static void restrictbutton_cb(void *poin, void *poin2)
+static void restrictbutton_view_cb(void *poin, void *poin2)
 {
+	Base *base;
+	Object *ob = (Object *)poin;
+	
+	/* deselect objects that are invisible */
+	if (ob->restrictflag & OB_RESTRICT_VIEW) {
+	
+		/* Ouch! There is no backwards pointer from Object to Base, 
+		 * so have to do loop to find it. */
+		for(base= FIRSTBASE; base; base= base->next) {
+			if(base->object==ob) {
+				base->flag &= ~SELECT;
+				base->object->flag= base->flag;
+			}
+		}
+	}
+
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3122,6 +3138,12 @@ static void restrictbutton_sel_cb(void *poin, void *poin2)
 		}
 	}
 
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static void restrictbutton_rend_cb(void *poin, void *poin2)
+{
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3245,7 +3267,7 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
 						(int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_VIEWX+SCROLLB), te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
-				uiButSetFunc(bt, restrictbutton_cb, NULL, NULL);
+				uiButSetFunc(bt, restrictbutton_view_cb, NULL, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
 				
 				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_SELECT, REDRAWALL, ICON_RESTRICT_SELECT_OFF, 
@@ -3257,7 +3279,7 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 				if (! (ELEM4(ob->type, OB_CAMERA, OB_LATTICE, OB_ARMATURE, OB_EMPTY))) {
 					bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, REDRAWALL, ICON_RESTRICT_RENDER_OFF, 
 							(int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_RENDERX+SCROLLB), te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow renderability");
-					uiButSetFunc(bt, restrictbutton_cb, NULL, NULL);
+					uiButSetFunc(bt, restrictbutton_rend_cb, NULL, NULL);
 					uiButSetFlag(bt, UI_NO_HILITE);
 				}
 				
