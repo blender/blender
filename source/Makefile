@@ -349,6 +349,10 @@ ifeq ($(OS),linux)
     BINTARGETS = blenderdynamic
     BINTARGETS += blenderplayer
   endif
+  ifeq ($(CPU),x86_64)
+    BINTARGETS = blenderdynamic
+    BINTARGETS += blenderplayer
+  endif
   ifeq ($(CPU),i386)
     BINTARGETS = blenderdynamic
     BINTARGETS += blenderplayer
