@@ -3245,6 +3245,9 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
 		
+		/* if the object has been restricted from rendering in the outliner, ignore it */
+		if (ob->restrictflag & OB_RESTRICT_RENDER) continue;
+		
 		/* OB_DONE means the object itself got duplicated, so was already converted */
 		if (ob->flag & OB_DONE) {
 #ifndef DISABLE_YAFRAY

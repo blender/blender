@@ -193,7 +193,9 @@ typedef struct Object {
 	struct Group *dup_group;	/* object duplicator for group */
 	
 	short fluidsimFlag;			/* NT toggle fluidsim participation on/off */
-	short pad3;
+	
+	short restrictflag;			/* for restricting view, select, render etc. accessible in outliner */
+
 	short shapenr, shapeflag;	/* current shape key for menu or pinned, flag for pinning */
 	float smoothresh;			/* smoothresh is phong interpolation ray_shadow correction in render */
 	int pad4;
@@ -333,6 +335,8 @@ extern Object workob;
 #define OB_BOUND_POLYH		4
 #define OB_BOUND_POLYT		5
 
+/* **************** BASE ********************* */
+
 /* also needed for base!!!!! or rather, thy interfere....*/
 /* base->flag and ob->flag */
 #define BA_WAS_SEL			2
@@ -342,6 +346,11 @@ extern Object workob;
 #define BA_DO_IPO			32
 
 #define BA_FROMSET			128
+
+/* an initial attempt as making selection more specific! */
+#define BA_DESELECT	0
+#define BA_SELECT		1
+
 
 #define OB_FROMDUPLI		512
 #define OB_DONE				1024
@@ -392,6 +401,11 @@ extern Object workob;
 #define OB_ADDCONT		512
 #define OB_ADDACT		1024
 #define OB_SHOWCONT		2048
+
+/* ob->restrictflag */
+#define OB_RESTRICT_VIEW	1
+#define OB_RESTRICT_SELECT	2
+#define OB_RESTRICT_RENDER	4
 
 /* ob->shapeflag */
 #define OB_SHAPE_LOCK		1

@@ -135,6 +135,7 @@ void do_oops_buttons(short event)
 
 static void do_oops_viewmenu(void *arg, int event)
 {
+	SpaceOops *soops= curarea->spacedata.first;
 
 	switch(event) {
 	case 0: /* Shuffle Selected Blocks */
@@ -153,14 +154,11 @@ static void do_oops_viewmenu(void *arg, int event)
 		/* using event B_FULL */
 		break;
 	case 5: /* show outliner */
-		{
-			SpaceOops *soops= curarea->spacedata.first;
-			if(soops->type==SO_OOPS || soops->type==SO_DEPSGRAPH) soops->type= SO_OUTLINER;
-			else soops->type= SO_OOPS;
-			init_v2d_oops(curarea, soops);
-			test_view2d(G.v2d, curarea->winx, curarea->winy);
-			scrarea_queue_winredraw(curarea);
-		}
+		if(soops->type==SO_OOPS || soops->type==SO_DEPSGRAPH) soops->type= SO_OUTLINER;
+		else soops->type= SO_OOPS;
+		init_v2d_oops(curarea, soops);
+		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		scrarea_queue_winredraw(curarea);
 		break;
 	case 6:
 		outliner_toggle_visible(curarea);
@@ -193,6 +191,10 @@ static void do_oops_viewmenu(void *arg, int event)
 		}
 		break;
 #endif
+	case 12:
+		if (soops->flag & SO_HIDE_RESTRICTCOLS) soops->flag &= ~SO_HIDE_RESTRICTCOLS;
+		else soops->flag |= SO_HIDE_RESTRICTCOLS;
+		break;
 	}
 }			
 
@@ -229,13 +231,20 @@ static uiBlock *oops_viewmenu(void *arg_unused)
 	else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Oops Schematic", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 		
-		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
 		
+		if (soops->flag & SO_HIDE_RESTRICTCOLS)
+			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Restriction Columns", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
+		else
+			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Restriction Columns", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
+
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Expand One Level|NumPad +", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Collapse One Level|NumPad -", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-		
-		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
 
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");  
+			
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show/Hide All", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hierarchy|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Active|NumPad .", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");

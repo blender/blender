@@ -55,6 +55,7 @@ void b_verse_pop_node(struct VNode *vnode);
 void b_verse_unsubscribe(VNode *vnode);
 void b_verse_push_object(struct VerseSession *session, struct Object *ob);
 void b_verse_delete_object(struct Object *ob);
+void b_verse_ms_get(void);
 
 void post_transform(struct VNode *vnode);
 void post_link_set(struct VLink *vlink);

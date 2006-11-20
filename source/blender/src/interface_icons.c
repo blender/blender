@@ -94,6 +94,13 @@
 #define ICON_RENDERSIZE 32	
 #define ICON_MIPMAPS 8
 
+#define ICON_GRID_COLS		25
+#define ICON_GRID_ROWS		12
+
+#define ICON_GRID_MARGIN	5
+#define ICON_GRID_W		15
+#define ICON_GRID_H		16
+
 typedef struct DrawInfo {
 	int w;
 	int h;
@@ -457,29 +464,33 @@ static void clear_transp_rect_soft(unsigned char *transp, unsigned char *rect, i
 }
 #endif
 
-static void clear_transp_rect(unsigned char *transp, unsigned char *rect, int w, int h, int rowstride)
+static void clear_icon_grid_margins(unsigned char *rect, int w, int h)
 {
-	int x,y;
+	int x, y;
+	int xoffs=ICON_GRID_W+ICON_GRID_MARGIN;
+	int yoffs=ICON_GRID_H+ICON_GRID_MARGIN;
+
 	for (y=0; y<h; y++) {
-		unsigned char *row= &rect[y*rowstride];
+		unsigned char *row= &rect[y*w*4];
+
 		for (x=0; x<w; x++) {
 			unsigned char *pxl= &row[x*4];
-			if (*((unsigned int*) pxl)==*((unsigned int*) transp)) {
-				pxl[3]= 0;
-			}
+
+			if ((x % xoffs < ICON_GRID_MARGIN-2) || (x % xoffs > ICON_GRID_W+2))
+				pxl[3] = 0;	//alpha channel == x+3
+			else if ((y % yoffs < ICON_GRID_MARGIN-2) || (y % yoffs > ICON_GRID_H+2))
+				pxl[3] = 0;
 		}
 	}
 }
 
 static void prepare_internal_icons(ImBuf *bbuf)
 {
-	int rowstride= bbuf->x*4;
+
 	char *back= (char *)bbuf->rect;
-	unsigned char transp[4];
 	
-	/* this sets blueish outside of icon to zero alpha */
-	QUATCOPY(transp, back);
-	clear_transp_rect(transp, back, bbuf->x, bbuf->y, rowstride);
+	/* this sets the icon grid margin area outside of icon to zero alpha */
+	clear_icon_grid_margins(back, bbuf->x, bbuf->y);
 	
 	/* hack! */
 #if 0	
@@ -507,9 +518,11 @@ static void init_internal_icons()
 
 	prepare_internal_icons(bbuf);
 
-	for (y=0; y<12; y++) {
-		for (x=0; x<21; x++) {
-			def_internal_icon(bbuf, BIFICONID_FIRST + y*21 + x, x*20+3, y*21+3);
+	for (y=0; y<ICON_GRID_ROWS; y++) {
+		for (x=0; x<ICON_GRID_COLS; x++) {
+			def_internal_icon(bbuf, BIFICONID_FIRST + y*ICON_GRID_COLS + x,
+				x*(ICON_GRID_W+ICON_GRID_MARGIN)+3,
+				y*(ICON_GRID_H+ICON_GRID_MARGIN)+3);
 		}
 	}
 

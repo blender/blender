@@ -109,6 +109,7 @@
 #include "BDR_editobject.h"
 #include "BSE_drawipo.h"
 #include "BSE_edit.h"
+#include "BSE_view.h"
 
 #include "PIL_time.h" 
 
@@ -118,6 +119,12 @@
 #define OL_H	19
 #define OL_X	18
 
+#define OL_TOG_RESTRICT_VIEWX	54
+#define OL_TOG_RESTRICT_SELECTX	36
+#define OL_TOG_RESTRICT_RENDERX	18
+
+#define OL_TOGW				OL_TOG_RESTRICT_VIEWX
+
 #define TS_CHUNK	128
 
 #define TREESTORE(a) ((a)?soops->treestore->data+(a)->store_index:NULL)
@@ -126,6 +133,10 @@
 extern ListBase session_list;
 extern ListBase server_list;
 #endif
+
+
+/* ******************** PROTOTYPES ***************** */
+static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int startx, int *starty);
 
 
 /* ******************** PERSISTANT DATA ***************** */
@@ -1626,6 +1637,86 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 	return 0;
 }
 
+static void verse_operation_menu(TreeElement *te)
+{
+#ifdef WITH_VERSE
+	short event=0;
+	if(te->idcode==ID_VS) {
+		struct VerseSession *session = (VerseSession*)te->directdata;
+		struct VNode *vnode;
+		if(!(session->flag & VERSE_AUTOSUBSCRIBE)) {
+			event = pupmenu("VerseSession %t| End Session %x1| Subscribe to All Nodes %x2| Start Autosubscribe %x3");
+		}
+		else {
+			event = pupmenu("VerseSession %t| End Session %x1| Subscribe to All Nodes %x2| Stop Autosubscribe %x4");
+		}
+		switch(event) {
+			case 1:
+				end_verse_session(session);
+				break;
+			case 2:
+				vnode = session->nodes.lb.first;
+				while(vnode) {
+					b_verse_pop_node(vnode);
+					vnode = vnode->next;
+				}
+				break;
+			case 3:
+				vnode = session->nodes.lb.first;
+				while(vnode) {
+					b_verse_pop_node(vnode);
+					vnode = vnode->next;
+				}
+				session->flag |= VERSE_AUTOSUBSCRIBE;
+				break;
+			case 4:
+				session->flag &= ~VERSE_AUTOSUBSCRIBE;
+				break;
+		}
+	}
+	else if(te->idcode==ID_VN) {
+		struct VNode *vnode = (VNode*)te->directdata;
+		event = pupmenu("VerseNode %t| Subscribe %x1| Unsubscribe %x2");
+		switch(event) {
+			case 1:
+				b_verse_pop_node(vnode);
+				break;
+			case 2:
+				/* Global */
+				b_verse_unsubscribe(vnode);
+				break;
+		}
+	}
+	else if(te->idcode==ID_MS) {
+			event = pupmenu("Verse Master Server %t| Refresh %x1");
+			b_verse_ms_get();
+	}
+	else if(te->idcode==ID_SS) {
+		struct VerseServer *vserver = (VerseServer*)te->directdata;
+
+		if(!(vserver->flag & VERSE_CONNECTING) && !(vserver->flag & VERSE_CONNECTED)) {
+			event = pupmenu("VerseServer %t| Connect %x1");
+		} else if((vserver->flag & VERSE_CONNECTING) && !(vserver->flag & VERSE_CONNECTED)) {
+			event = pupmenu("VerseServer %t| Connecting %x2");
+		} else if(!(vserver->flag & VERSE_CONNECTING) && (vserver->flag & VERSE_CONNECTED)) {
+			event = pupmenu("VerseServer %t| Disconnect %x3");
+		}
+		switch(event) {
+			case 1:
+				b_verse_connect(vserver->ip);
+				vserver->flag |= VERSE_CONNECTING;
+				break;
+			case 2:
+				break;
+			case 3:
+				end_verse_session(vserver->session);
+				break;
+		}
+	}
+#endif
+
+}
+
 
 static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short event, float *mval)
 {
@@ -1659,105 +1750,18 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 		else if(mval[0]>te->xs && mval[0]<te->xend) {
 			
 			/* activate a name button? */
-			if(G.qual & LR_CTRLKEY) {
-				if(ELEM5(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE)) 
-					error("Cannot edit builtin name");
-				else if(tselem->id->lib)
-					error("Cannot edit Library Data");
-				else {
-					tselem->flag |= TSE_TEXTBUT;
-				}
-			}
-			else {
-#ifdef WITH_VERSE
-				if(event==RIGHTMOUSE) {
-					short event;
-					if(te->idcode==ID_VS) {
-						struct VerseSession *session = (VerseSession*)te->directdata;
-						struct VNode *vnode;
-						if(!(session->flag & VERSE_AUTOSUBSCRIBE)) {
-							event = pupmenu("VerseSession %t| End Session %x1| Subscribe to All Nodes %x2| Start Autosubscribe %x3");
-						}
-						else {
-							event = pupmenu("VerseSession %t| End Session %x1| Subscribe to All Nodes %x2| Stop Autosubscribe %x4");
-						}
-						switch(event) {
-							case 1:
-								end_verse_session(session);
-								break;
-							case 2:
-								vnode = session->nodes.lb.first;
-								while(vnode) {
-									b_verse_pop_node(vnode);
-									vnode = vnode->next;
-								}
-								break;
-							case 3:
-								vnode = session->nodes.lb.first;
-								while(vnode) {
-									b_verse_pop_node(vnode);
-									vnode = vnode->next;
-								}
-								session->flag |= VERSE_AUTOSUBSCRIBE;
-								break;
-							case 4:
-								session->flag &= ~VERSE_AUTOSUBSCRIBE;
-								break;
-						}
-					}
-					else if(te->idcode==ID_VN) {
-						struct VNode *vnode = (VNode*)te->directdata;
-						if (vnode->type==V_NT_OBJECT || vnode->type==V_NT_BITMAP) {
-							char subscribed = 0;
-							if((vnode->type==V_NT_OBJECT) && (((VObjectData*)vnode->data)->object!=NULL))
-								subscribed = 1;
-							if((vnode->type==V_NT_BITMAP) && (((VBitmapData*)vnode->data)->image!=NULL))
-								subscribed = 1;
-							if(subscribed==1)
-								event = pupmenu("VerseNode %t| Unsubscribe %x2");
-							else
-								event = pupmenu("VerseNode %t| Subscribe %x1");
-							switch(event) {
-								case 1:
-									b_verse_pop_node(vnode);
-									break;
-								case 2:
-									/* Global */
-									b_verse_unsubscribe(vnode);
-									break;
-							}
-						}
-					}
-					else if(te->idcode==ID_MS) {
-							event = pupmenu("Verse Master Server %t| Refresh %x1");
-							b_verse_ms_get();
-					}
-					else if(te->idcode==ID_SS) {
-						struct VerseServer *vserver = (VerseServer*)te->directdata;
-
-						if(!(vserver->flag & VERSE_CONNECTING) && !(vserver->flag & VERSE_CONNECTED)) {
-							event = pupmenu("VerseServer %t| Connect %x1");
-						} else if((vserver->flag & VERSE_CONNECTING) && !(vserver->flag & VERSE_CONNECTED)) {
-							event = pupmenu("VerseServer %t| Connecting %x2");
-						} else if(!(vserver->flag & VERSE_CONNECTING) && (vserver->flag & VERSE_CONNECTED)) {
-							event = pupmenu("VerseServer %t| Disconnect %x3");
-						}
-						switch(event) {
-							case 1:
-								b_verse_connect(vserver->ip);
-								vserver->flag |= VERSE_CONNECTING;
-								break;
-							case 2:
-								break;
-							case 3:
-								end_verse_session(vserver->session);
-								break;
-						}
+			if(event==LEFTMOUSE) {
+			
+				if (G.qual & LR_CTRLKEY) {
+					if(ELEM5(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE)) 
+						error("Cannot edit builtin name");
+					else if(tselem->id->lib)
+						error("Cannot edit Library Data");
+					else {
+						tselem->flag |= TSE_TEXTBUT;
 					}
 				}
-				else {
-#endif
-
+				
 				/* always makes active object */
 				tree_element_active_object(soops, te);
 				
@@ -1781,9 +1785,26 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 					
 				}
 				else tree_element_type_active(soops, te, tselem, 1);
+			}
+			else if(event==RIGHTMOUSE) {
 #ifdef WITH_VERSE
-				}
+				if(ELEM4(te->idcode, ID_VS, ID_VN, ID_MS, ID_SS))
+					verse_operation_menu(te);
+				else
 #endif
+				/* select object that's clicked on and popup context menu */
+				if (!(tselem->flag & TSE_SELECTED)) {
+				
+					if ( outliner_has_one_flag(soops, &soops->tree, TSE_SELECTED, 1) )
+						outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 0);
+				
+					tselem->flag |= TSE_SELECTED;
+					/* redraw, same as outliner_select function */
+					scrarea_do_windraw(soops->area);
+					screen_swapbuffers();
+				}
+				
+				outliner_operation_menu(soops->area);
 			}
 			return 1;
 		}
@@ -2127,7 +2148,9 @@ void outliner_select(struct ScrArea *sa )
 		getmouseco_areawin(mval);
 		areamouseco_to_ipoco(&so->v2d, mval, fmval, fmval+1);
 		y2= fmval[1];
+		
 		if(yo!=mval[1]) {
+			/* select the 'ouliner row' */
 			do_outliner_select(so, &so->tree, y1, y2, &selecting);
 			yo= mval[1];
 			scrarea_do_windraw(sa);
@@ -2467,7 +2490,7 @@ void outliner_operation_menu(ScrArea *sa)
 		//else pupmenu("Scene Operations%t|Delete");
 	}
 	else if(objectlevel) {
-		short event= pupmenu("Object Operations%t|Select%x1|Deselect%x2|Delete%x4|Make Local%x5");
+		short event= pupmenu("Select%x1|Deselect%x2|Delete%x4|Make Local%x5");
 		if(event>0) {
 			char *str="";
 			
@@ -2501,7 +2524,7 @@ void outliner_operation_menu(ScrArea *sa)
 	else if(idlevel) {
 		if(idlevel==-1 || datalevel) error("Mixed selection");
 		else {
-			short event= pupmenu("Data Operations%t|Unlink %x1|Make Local %x2");
+			short event= pupmenu("Unlink %x1|Make Local %x2");
 			
 			if(event==1) {
 				switch(idlevel) {
@@ -2744,7 +2767,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 	tselem= TREESTORE(te);
 
 	if(*starty >= soops->v2d.cur.ymin && *starty<= soops->v2d.cur.ymax) {
-		
+	
 		glEnable(GL_BLEND);
 
 		/* colors for active/selected data */
@@ -2929,12 +2952,12 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 	te->xend= startx+offsx;
 		
 	*starty-= OL_H;
-	
+
 	if((tselem->flag & TSE_CLOSED)==0) {
 		for(ten= te->subtree.first; ten; ten= ten->next) {
 			outliner_draw_tree_element(soops, ten, startx+OL_X, starty);
 		}
-	}
+	}	
 }
 
 static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, int *starty)
@@ -2988,6 +3011,7 @@ static void outliner_draw_selection(SpaceOops *soops, ListBase *lb, int *starty)
 	}
 }
 
+
 static void outliner_draw_tree(SpaceOops *soops)
 {
 	TreeElement *te;
@@ -3034,6 +3058,72 @@ static void outliner_back(SpaceOops *soops)
 		glRecti(0, ystart, (int)soops->v2d.mask.xmax, ystart+OL_H);
 		ystart-= 2*OL_H;
 	}
+}
+
+static void outliner_draw_restrictcols(SpaceOops *soops)
+{
+	int ystart;
+	
+	/* background underneath */
+	BIF_ThemeColor(TH_BACK);
+	glRecti((int)soops->v2d.mask.xmax-(OL_TOGW+SCROLLB), soops->v2d.cur.ymin, (int)soops->v2d.mask.xmax, soops->v2d.tot.ymax);
+	
+	BIF_ThemeColorShade(TH_BACK, 6);
+	ystart= soops->v2d.tot.ymax;
+	ystart= OL_H*(ystart/(OL_H));
+	
+	while(ystart > soops->v2d.cur.ymin) {
+		glRecti((int)soops->v2d.mask.xmax-(OL_TOGW+SCROLLB), ystart, (int)soops->v2d.mask.xmax, ystart+OL_H);
+		ystart-= 2*OL_H;
+	}
+	
+	BIF_ThemeColorShadeAlpha(TH_BACK, -15, -200);
+
+	/* view */
+	sdrawline((short)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_VIEWX+SCROLLB),
+		(short)soops->v2d.tot.ymax,
+		(short)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_VIEWX+SCROLLB),
+		(short)soops->v2d.cur.ymin);
+
+	/* render */
+	sdrawline((short)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_SELECTX+SCROLLB),
+		(short)soops->v2d.tot.ymax,
+		(short)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_SELECTX+SCROLLB),
+		(short)soops->v2d.cur.ymin);
+
+	/* render */
+	sdrawline((short)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_RENDERX+SCROLLB),
+		(short)soops->v2d.tot.ymax,
+		(short)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_RENDERX+SCROLLB),
+		(short)soops->v2d.cur.ymin);
+}
+
+static void restrictbutton_cb(void *poin, void *poin2)
+{
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static void restrictbutton_sel_cb(void *poin, void *poin2)
+{
+	Base *base;
+	Object *ob = (Object *)poin;
+	
+	/* if select restriction has just been turned on */
+	if (ob->restrictflag & OB_RESTRICT_SELECT) {
+	
+		/* Ouch! There is no backwards pointer from Object to Base, 
+		 * so have to do loop to find it. */
+		for(base= FIRSTBASE; base; base= base->next) {
+			if(base->object==ob) {
+				base->flag &= ~SELECT;
+				base->object->flag= base->flag;
+			}
+		}
+	}
+
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 static void namebutton_cb(void *tep, void *oldnamep)
@@ -3121,6 +3211,7 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 	uiBut *bt;
 	TreeElement *te;
 	TreeStoreElem *tselem;
+	Object *ob;
 	int dx, len;
 	
 	for(te= lb->first; te; te= te->next) {
@@ -3145,8 +3236,37 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 			/* otherwise keeps open on ESC */
 			tselem->flag &= ~TSE_TEXTBUT;
 		}
-		else 
-			if((tselem->flag & TSE_CLOSED)==0) outliner_buttons(block, soops, &te->subtree);
+		
+		if (!(soops->flag & SO_HIDE_RESTRICTCOLS)) {
+			if(tselem->type==0 && te->idcode==ID_OB) {
+				/* only objects have toggle-able flags */
+				ob = (Object *)tselem->id;
+
+				uiBlockSetEmboss(block, UI_EMBOSSN);
+				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
+						(int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_VIEWX+SCROLLB), te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				uiButSetFunc(bt, restrictbutton_cb, NULL, NULL);
+				uiButSetFlag(bt, UI_NO_HILITE);
+				
+				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_SELECT, REDRAWALL, ICON_RESTRICT_SELECT_OFF, 
+						(int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_SELECTX+SCROLLB), te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+				uiButSetFunc(bt, restrictbutton_sel_cb, ob, NULL);
+				uiButSetFlag(bt, UI_NO_HILITE);
+				
+				/* don't show 'renderable' icons for objects that don't render anyway */
+				if (! (ELEM4(ob->type, OB_CAMERA, OB_LATTICE, OB_ARMATURE, OB_EMPTY))) {
+					bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, REDRAWALL, ICON_RESTRICT_RENDER_OFF, 
+							(int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_RENDERX+SCROLLB), te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow renderability");
+					uiButSetFunc(bt, restrictbutton_cb, NULL, NULL);
+					uiButSetFlag(bt, UI_NO_HILITE);
+				}
+				
+				uiBlockSetEmboss(block, UI_EMBOSS);
+			
+			}
+		}
+		
+		if((tselem->flag & TSE_CLOSED)==0) outliner_buttons(block, soops, &te->subtree);
 	}
 }
 
@@ -3189,6 +3309,8 @@ void draw_outliner(ScrArea *sa, SpaceOops *soops)
 	/* draw outliner stuff */
 	outliner_back(soops);
 	outliner_draw_tree(soops);
+	if (!(soops->flag & SO_HIDE_RESTRICTCOLS))
+		outliner_draw_restrictcols(soops);
 
 	/* restore viewport */
 	mywinset(sa->win);

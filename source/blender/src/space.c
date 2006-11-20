@@ -4485,20 +4485,13 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(soops->type==SO_OUTLINER) {
 		switch(event) {
 		case LEFTMOUSE:
+		case RIGHTMOUSE:
 			outliner_mouse_event(sa, event);			
 			break;
 		case MIDDLEMOUSE:
 		case WHEELUPMOUSE:
 		case WHEELDOWNMOUSE:
 			view2dmove(event);	/* in drawipo.c */
-			break;
-		case RIGHTMOUSE:
-#ifdef WITH_VERSE
-			/* evil hack due to verse */
-			outliner_mouse_event(sa, event);
-#else
-			outliner_operation_menu(sa);
-#endif
 			break;
 			
 		case AKEY:

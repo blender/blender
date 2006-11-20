@@ -207,7 +207,7 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 	glEnable(GL_BLEND);
 
 	/* calculate blend color */
-	if ELEM4(but->type, ICONTOG, TOG, ROW, TOGN) {
+	if ELEM3(but->type, TOG, ROW, TOGN) {
 		if(but->flag & UI_SELECT);
 		else if(but->flag & UI_ACTIVE);
 		else blend= -60;

@@ -3823,6 +3823,8 @@ void draw_object(Base *base, int flag)
 
 	ob= base->object;
 
+	if (ob->restrictflag & OB_RESTRICT_VIEW) return;
+
 	/* xray delay? */
 	if((flag & DRAW_PICKING)==0 && (base->flag & OB_FROMDUPLI)==0) {
 		/* xray and transp are set when it is drawing the 2nd/3rd pass */

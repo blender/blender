@@ -192,6 +192,22 @@ void arrows_move_cursor(unsigned short event)
 	}
 }
 
+/* simple API for object selection, rather than just using the flag
+ * this takes into account the 'restrict selection in 3d view' flag.
+ * deselect works always, the restriction just prevents selection */
+void select_base_v3d(Base *base, short mode)
+{
+	if (base) {
+		if (mode==BA_SELECT) {
+			if (!(base->object->restrictflag & OB_RESTRICT_SELECT))
+				if (mode==BA_SELECT) base->flag |= SELECT;
+		}
+		else if (mode==BA_DESELECT) {
+			base->flag &= ~SELECT;
+		}
+	}
+}
+
 /* *********************** GESTURE AND LASSO ******************* */
 
 /* helper also for borderselect */
@@ -339,8 +355,8 @@ static void do_lasso_select_objects(short mcords[][2], short moves, short select
 			project_short(base->object->obmat[3], &base->sx);
 			if(lasso_inside(mcords, moves, base->sx, base->sy)) {
 				
-				if(select) base->flag |= SELECT;
-				else base->flag &= ~SELECT;
+				if(select) select_base_v3d(base, BA_SELECT);
+				else select_base_v3d(base, BA_DESELECT);
 				base->object->flag= base->flag;
 			}
 			if(base->object->flag & OB_POSEMODE) {
@@ -903,8 +919,10 @@ void deselectall(void)	/* is toggle */
 	base= FIRSTBASE;
 	while(base) {
 		if(base->lay & G.vd->lay) {
-			if(a) base->flag &= ~SELECT;
-			else base->flag |= SELECT;
+			if(a) 
+				select_base_v3d(base, BA_DESELECT);
+			else 
+				select_base_v3d(base, BA_SELECT);
 			base->object->flag= base->flag;
 		}
 		base= base->next;
@@ -925,8 +943,10 @@ void selectswap(void)
 
 	for(base= FIRSTBASE; base; base= base->next) {
 		if(base->lay & G.vd->lay) {
-			if TESTBASE(base) base->flag &= ~SELECT;
-			else base->flag |= SELECT;
+			if TESTBASE(base)
+				select_base_v3d(base, BA_DESELECT);
+			else
+				select_base_v3d(base, BA_SELECT);
 			base->object->flag= base->flag;
 		}
 	}
@@ -948,7 +968,7 @@ void selectall_type(short obtype)
 	base= FIRSTBASE;
 	while(base) {
 		if((base->lay & G.vd->lay) && (base->object->type == obtype)) {
-			base->flag |= SELECT;
+			select_base_v3d(base, BA_SELECT);
 			base->object->flag= base->flag;
 		}
 		base= base->next;
@@ -969,7 +989,7 @@ void selectall_layer(unsigned int layernum)
 	base= FIRSTBASE;
 	while(base) {
 		if (base->lay == (1<< (layernum -1))) {
-			base->flag |= SELECT;
+			select_base_v3d(base, BA_SELECT);
 			base->object->flag= base->flag;
 		}
 		base= base->next;
@@ -991,7 +1011,7 @@ static void deselectall_except(Base *b)   /* deselect all except b */
 	while(base) {
 		if (base->flag & SELECT) {
 			if(b!=base) {
-				base->flag &= ~SELECT;
+				select_base_v3d(base, BA_DESELECT);
 				base->object->flag= base->flag;
 			}
 		}
@@ -1105,16 +1125,19 @@ static void select_all_from_groups(Base *basact)
 		if(object_in_group(basact->object, group)) {
 			for(go= group->gobject.first; go; go= go->next) {
 				if(deselect) go->ob->flag &= ~SELECT;
-				else go->ob->flag |= SELECT;
+				else {
+					if (!(go->ob->restrictflag & OB_RESTRICT_SELECT))
+						go->ob->flag |= SELECT;
+				}
 			}
 		}
 	}
 	/* sync bases */
 	for(basact= G.scene->base.first; basact; basact= basact->next) {
 		if(basact->object->flag & SELECT)
-			basact->flag |= SELECT;
+			select_base_v3d(basact, BA_SELECT);
 		else
-			basact->flag &= ~SELECT;
+			select_base_v3d(basact, BA_DESELECT);
 	}
 }
 
@@ -1381,15 +1404,17 @@ void mouse_select(void)
 		if(G.obedit) {
 			/* only do select */
 			deselectall_except(basact);
-			basact->flag |= SELECT;
+			select_base_v3d(basact, BA_SELECT);
 		}
-		else {
+		/* also prevent making it active on mouse selection */
+		else if (!(basact->object->restrictflag & OB_RESTRICT_SELECT)) {
+
 			oldbasact= BASACT;
 			BASACT= basact;
 			
 			if((G.qual & LR_SHIFTKEY)==0) {
 				deselectall_except(basact);
-				basact->flag |= SELECT;
+				select_base_v3d(basact, BA_SELECT);
 			}
 			else if(G.qual==(LR_SHIFTKEY|LR_ALTKEY)) {
 				select_all_from_groups(basact);
@@ -1397,16 +1422,16 @@ void mouse_select(void)
 			else {
 				if(basact->flag & SELECT) {
 					if(basact==oldbasact)
-						basact->flag &= ~SELECT;
+						select_base_v3d(basact, BA_DESELECT);
 				}
-				else basact->flag |= SELECT;
+				else select_base_v3d(basact, BA_SELECT);
 			}
 
 			/* copy */
 			basact->object->flag= basact->flag;
 			
 			if(oldbasact != basact) {
-				set_active_base(basact);
+					set_active_base(basact);
 			}
 
 			/* for visual speed, only in wire mode */
@@ -1771,9 +1796,9 @@ void borderselect(void)
 						}
 						else {
 							if (selecting)
-								base->flag |= SELECT;
+								select_base_v3d(base, BA_SELECT);
 							else
-								base->flag &= ~SELECT;
+								select_base_v3d(base, BA_DESELECT);
 
 							base->object->flag= base->flag;
 						}

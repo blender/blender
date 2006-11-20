@@ -508,6 +508,7 @@ typedef struct SpaceImaSel {
 /* SpaceOops->flag */
 #define SO_TESTBLOCKS	1
 #define SO_NEWSELECTED	2
+#define SO_HIDE_RESTRICTCOLS		4
 
 /* SpaceOops->visiflag */
 #define OOPS_SCE	1
