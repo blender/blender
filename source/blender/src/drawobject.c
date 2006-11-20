@@ -90,6 +90,7 @@
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_anim.h"			//for the where_on_path function
 #ifdef WITH_VERSE
@@ -2122,12 +2123,7 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
 
-		/* I need advise on this from Daniel... without this code it does it nicer */
-//		if (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT)) {
-//			baseDM->drawEdges(baseDM, dt==OB_WIRE);
-//		} else {
-			dm->drawEdges(dm, (dt==OB_WIRE || totface==0));
-//		}
+		dm->drawEdges(dm, (dt==OB_WIRE || totface==0));
 
 		if (dt!=OB_WIRE) {
 			glDepthMask(1);
@@ -2198,10 +2194,13 @@ static int index3_nors_incr= 1;
 static int drawDispListwire(ListBase *dlbase)
 {
 	DispList *dl;
-	int parts, nr, ofs, *index;
+	int parts, nr;
 	float *data;
 
 	if(dlbase==NULL) return 1;
+	
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
 
 	for(dl= dlbase->first; dl; dl= dl->next) {
 		if(dl->parts==0 || dl->nr==0)
@@ -2211,47 +2210,38 @@ static int drawDispListwire(ListBase *dlbase)
 	
 		switch(dl->type) {
 		case DL_SEGM:
-			parts= dl->parts;
-			while(parts--) {
-				nr= dl->nr;
-				glBegin(GL_LINE_STRIP);
-				while(nr--) {
-					glVertex3fv(data);
-					data+=3;
-				}
-				glEnd();
-			}
+			
+			glVertexPointer(3, GL_FLOAT, 0, data);
+			
+			for(parts=0; parts<dl->parts; parts++)
+				glDrawArrays(GL_LINE_STRIP, parts*dl->nr, dl->nr);
+				
 			break;
 		case DL_POLY:
-			parts= dl->parts;
-			while(parts--) {
-				nr= dl->nr;
-				glBegin(GL_LINE_LOOP);
-				while(nr--) {
-					glVertex3fv(data);
-					data+=3;
-				}
-				glEnd();
-			}
+			
+			glVertexPointer(3, GL_FLOAT, 0, data);
+			
+			for(parts=0; parts<dl->parts; parts++)
+				glDrawArrays(GL_LINE_LOOP, parts*dl->nr, dl->nr);
+			
 			break;
 		case DL_SURF:
-			parts= dl->parts;
-			while(parts--) {
-				nr= dl->nr;
-				if(dl->flag & DL_CYCL_U) glBegin(GL_LINE_LOOP);
-				else glBegin(GL_LINE_STRIP);
-
-				while(nr--) {
-					glVertex3fv(data);
-					data+=3;
-				}
-				glEnd();
+			
+			glVertexPointer(3, GL_FLOAT, 0, data);
+			
+			for(parts=0; parts<dl->parts; parts++) {
+				if(dl->flag & DL_CYCL_U) 
+					glDrawArrays(GL_LINE_LOOP, parts*dl->nr, dl->nr);
+				else
+					glDrawArrays(GL_LINE_STRIP, parts*dl->nr, dl->nr);
 			}
-			ofs= 3*dl->nr;
-			nr= dl->nr;
-			while(nr--) {
+			
+			for(nr=0; nr<dl->nr; nr++) {
+				int ofs= 3*dl->nr;
+				
 				data= (  dl->verts )+3*nr;
 				parts= dl->parts;
+
 				if(dl->flag & DL_CYCL_V) glBegin(GL_LINE_LOOP);
 				else glBegin(GL_LINE_STRIP);
 				
@@ -2260,54 +2250,43 @@ static int drawDispListwire(ListBase *dlbase)
 					data+=ofs;
 				}
 				glEnd();
+				
+				/* (ton) this code crashes for me when resolv is 86 or higher... no clue */
+//				glVertexPointer(3, GL_FLOAT, sizeof(float)*3*dl->nr, data + 3*nr);
+//				if(dl->flag & DL_CYCL_V) 
+//					glDrawArrays(GL_LINE_LOOP, 0, dl->parts);
+//				else
+//					glDrawArrays(GL_LINE_STRIP, 0, dl->parts);
 			}
 			break;
 			
 		case DL_INDEX3:
 			if(draw_index_wire) {
-				parts= dl->parts;
-				data= dl->verts;
-				index= dl->index;
-				while(parts--) {
-
-					glBegin(GL_LINE_LOOP);
-						glVertex3fv(data+3*index[0]);
-						glVertex3fv(data+3*index[1]);
-						glVertex3fv(data+3*index[2]);
-					glEnd();
-					index+= 3;
-				}
+				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
+				glDrawElements(GL_TRIANGLES, 3*dl->parts, GL_UNSIGNED_INT, dl->index);
 			}
 			break;
 			
 		case DL_INDEX4:
 			if(draw_index_wire) {
-				parts= dl->parts;
-				data= dl->verts;
-				index= dl->index;
-				while(parts--) {
-
-					glBegin(GL_LINE_LOOP);
-						glVertex3fv(data+3*index[0]);
-						glVertex3fv(data+3*index[1]);
-						glVertex3fv(data+3*index[2]);
-						if(index[3]) glVertex3fv(data+3*index[3]);
-					glEnd();
-					index+= 4;
-				}
+				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
+				glDrawElements(GL_QUADS, 4*dl->parts, GL_UNSIGNED_INT, dl->index);
 			}
 			break;
 		}
 	}
+	
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); 
+	
 	return 0;
 }
 
 static void drawDispListsolid(ListBase *lb, Object *ob)
 {
 	DispList *dl;
-	int nr, parts, ofs, p1, p2, p3, p4, a, b, *index;
-	float *data, *v1, *v2, *v3, *v4, curcol[4];
-	float *ndata, *n1, *n2, *n3, *n4;
+	float *data, curcol[4];
+	float *ndata;
 	
 	if(lb==NULL) return;
 	
@@ -2333,16 +2312,10 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 			if(ob->type==OB_SURF) {
 				glDisable(GL_LIGHTING);
 				glColor3fv(curcol);
-				parts= dl->parts;
-				while(parts--) {
-					nr= dl->nr;
-					glBegin(GL_LINE_STRIP);
-					while(nr--) {
-						glVertex3fv(data);
-						data+=3;
-					}
-					glEnd();
-				}
+				
+				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
+				glDrawArrays(GL_LINE_STRIP, 0, dl->parts);
+
 				glEnable(GL_LIGHTING);
 			}
 			break;
@@ -2350,123 +2323,56 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 			if(ob->type==OB_SURF) {
 				BIF_ThemeColor(TH_WIRE);
 				glDisable(GL_LIGHTING);
-				parts= dl->parts;
-				while(parts--) {
-					nr= dl->nr;
-					glBegin(GL_LINE_LOOP);
-					while(nr--) {
-						glVertex3fv(data);
-						data+=3;
-					}
-					glEnd();
-				}
+				
+				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
+				glDrawArrays(GL_LINE_LOOP, 0, dl->parts);
+				
 				glEnable(GL_LIGHTING);
 				break;
 			}
 		case DL_SURF:
-
-			set_gl_material(dl->col+1);
 			
-			if(dl->rt & CU_SMOOTH) glShadeModel(GL_SMOOTH);
-			else glShadeModel(GL_FLAT);
-
-			for(a=0; a<dl->parts; a++) {
+			if(dl->index) {
+				set_gl_material(dl->col+1);
 				
-				DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+				if(dl->rt & CU_SMOOTH) glShadeModel(GL_SMOOTH);
+				else glShadeModel(GL_FLAT);
 				
-				v1= data+ 3*p1; 
-				v2= data+ 3*p2;
-				v3= data+ 3*p3; 
-				v4= data+ 3*p4;
-				n1= ndata+ 3*p1; 
-				n2= ndata+ 3*p2;
-				n3= ndata+ 3*p3; 
-				n4= ndata+ 3*p4;
-				
-				glBegin(GL_QUAD_STRIP);
-				
-				glNormal3fv(n2); glVertex3fv(v2);
-				glNormal3fv(n4); glVertex3fv(v4);
-
-				for(; b<dl->nr; b++) {
-					
-					glNormal3fv(n1); glVertex3fv(v1);
-					glNormal3fv(n3); glVertex3fv(v3);
-
-					v2= v1; v1+= 3;
-					v4= v3; v3+= 3;
-					n2= n1; n1+= 3;
-					n4= n3; n3+= 3;
-				}
-				
-				
-				glEnd();
-			}
+				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
+				glNormalPointer(GL_FLOAT, 0, dl->nors);
+				glDrawElements(GL_QUADS, 4*dl->totindex, GL_UNSIGNED_INT, dl->index);
+			}			
 			break;
 
 		case DL_INDEX3:
 		
-			parts= dl->parts;
-			data= dl->verts;
-			ndata= dl->nors;
-			index= dl->index;
-
 			set_gl_material(dl->col+1);
-							
+			
+			glVertexPointer(3, GL_FLOAT, 0, dl->verts);
+			
 			/* voor polys only one normal needed */
 			if(index3_nors_incr==0) {
-				while(parts--) {
-
-					glBegin(GL_TRIANGLES);
-						glNormal3fv(ndata);
-						glVertex3fv(data+3*index[0]);
-						glVertex3fv(data+3*index[1]);
-						glVertex3fv(data+3*index[2]);
-					glEnd();
-					index+= 3;
-				}
+				glDisableClientState(GL_NORMAL_ARRAY);
+				glNormal3fv(ndata);
 			}
-			else {
-				while(parts--) {
+			else
+				glNormalPointer(GL_FLOAT, 0, dl->nors);
+			
+			glDrawElements(GL_TRIANGLES, 3*dl->parts, GL_UNSIGNED_INT, dl->index);
+			
+			if(index3_nors_incr==0)
+				glEnableClientState(GL_NORMAL_ARRAY);
 
-					glBegin(GL_TRIANGLES);
-						ofs= 3*index[0];
-						glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
-						ofs= 3*index[1];
-						glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
-						ofs= 3*index[2];
-						glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
-					glEnd();
-					index+= 3;
-				}
-			}
 			break;
 
 		case DL_INDEX4:
 
-			parts= dl->parts;
-			data= dl->verts;
-			ndata= dl->nors;
-			index= dl->index;
-
 			set_gl_material(dl->col+1);
-		
-			while(parts--) {
-
-				glBegin(index[3]?GL_QUADS:GL_TRIANGLES);
-					ofs= 3*index[0];
-					glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
-					ofs= 3*index[1];
-					glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
-					ofs= 3*index[2];
-					glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
-					if(index[3]) {
-						ofs= 3*index[3];
-						glNormal3fv(ndata+ofs); glVertex3fv(data+ofs);
-					}
-				glEnd();
-				index+= 4;
-			}
+			
+			glVertexPointer(3, GL_FLOAT, 0, dl->verts);
+			glNormalPointer(GL_FLOAT, 0, dl->nors);
+			glDrawElements(GL_QUADS, 4*dl->parts, GL_UNSIGNED_INT, dl->index);
+			
 			break;
 		}
 		dl= dl->next;
@@ -2480,124 +2386,52 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 static void drawDispListshaded(ListBase *lb, Object *ob)
 {
 	DispList *dl, *dlob;
-	int parts, p1, p2, p3, p4, a, b, *index;
-	float *data, *v1, *v2, *v3, *v4;
-	unsigned int *cdata, *c1, *c2, *c3, *c4;
-	char *cp;
+	unsigned int *cdata;
 
-	if(lb==0) return;
+	if(lb==NULL) return;
 
 	glShadeModel(GL_SMOOTH);
-
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+	
 	dl= lb->first;
 	dlob= ob->disp.first;
 	while(dl && dlob) {
 		
 		cdata= dlob->col1;
-		data= dl->verts;
-		if(cdata==0) break;
+		if(cdata==NULL) break;
 		
 		switch(dl->type) {
 		case DL_SURF:
-
-			for(a=0; a<dl->parts; a++) {
-
-				DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
-
-				v1= data+ 3*p1; 
-				v2= data+ 3*p2;
-				v3= data+ 3*p3; 
-				v4= data+ 3*p4;
-				c1= cdata+ p1; 
-				c2= cdata+ p2;
-				c3= cdata+ p3; 
-				c4= cdata+ p4;
-
-				for(; b<dl->nr; b++) {
-
-					glBegin(GL_QUADS);
-						cp= (char *)c1;
-						glColor3ub(cp[3], cp[2], cp[1]);
-						glVertex3fv(v1);
-						cp= (char *)c2;
-						glColor3ub(cp[3], cp[2], cp[1]);
-						glVertex3fv(v2);
-						cp= (char *)c4;
-						glColor3ub(cp[3], cp[2], cp[1]);
-						glVertex3fv(v4);
-						cp= (char *)c3;
-						glColor3ub(cp[3], cp[2], cp[1]);
-						glVertex3fv(v3);
-					glEnd();
-
-					v2= v1; v1+= 3;
-					v4= v3; v3+= 3;
-					c2= c1; c1++;
-					c4= c3; c3++;
-				}
-			}
+			if(dl->index) {
+				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
+				glColorPointer(4, GL_UNSIGNED_BYTE, 0, cdata);
+				glDrawElements(GL_QUADS, 4*dl->totindex, GL_UNSIGNED_INT, dl->index);
+			}			
 			break;
 
 		case DL_INDEX3:
 			
-			parts= dl->parts;
-			index= dl->index;
-			
-			while(parts--) {
-
-				glBegin(GL_TRIANGLES);
-					cp= (char *)(cdata+index[0]);
-					glColor3ub(cp[3], cp[2], cp[1]);					
-					glVertex3fv(data+3*index[0]);
-
-					cp= (char *)(cdata+index[1]);
-					glColor3ub(cp[3], cp[2], cp[1]);					
-					glVertex3fv(data+3*index[1]);
-
-					cp= (char *)(cdata+index[2]);
-					glColor3ub(cp[3], cp[2], cp[1]);					
-					glVertex3fv(data+3*index[2]);
-				glEnd();
-				index+= 3;
-			}
+			glVertexPointer(3, GL_FLOAT, 0, dl->verts);
+			glColorPointer(4, GL_UNSIGNED_BYTE, 0, cdata);
+			glDrawElements(GL_TRIANGLES, 3*dl->parts, GL_UNSIGNED_INT, dl->index);
 			break;
 
 		case DL_INDEX4:
-		
-			parts= dl->parts;
-			index= dl->index;
-			while(parts--) {
-
-				glBegin(index[3]?GL_QUADS:GL_TRIANGLES);
-					cp= (char *)(cdata+index[0]);
-					glColor3ub(cp[3], cp[2], cp[1]);					
-					glVertex3fv(data+3*index[0]);
-
-					cp= (char *)(cdata+index[1]);
-					glColor3ub(cp[3], cp[2], cp[1]);					
-					glVertex3fv(data+3*index[1]);
-
-					cp= (char *)(cdata+index[2]);
-					glColor3ub(cp[3], cp[2], cp[1]);					
-					glVertex3fv(data+3*index[2]);
-					
-					if(index[3]) {
-					
-						cp= (char *)(cdata+index[3]);
-						glColor3ub(cp[3], cp[2], cp[1]);	
-						glVertex3fv(data+3*index[3]);
-					}
-				glEnd();
-				index+= 4;
-			}
-			break;
 			
+			glVertexPointer(3, GL_FLOAT, 0, dl->verts);
+			glColorPointer(4, GL_UNSIGNED_BYTE, 0, cdata);
+			glDrawElements(GL_QUADS, 4*dl->parts, GL_UNSIGNED_INT, dl->index);
+			break;
 		}
+		
 		dl= dl->next;
 		dlob= dlob->next;
 	}
 	
 	glShadeModel(GL_FLAT);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
 }
 
 /* returns 1 when nothing was drawn */
@@ -2744,7 +2578,9 @@ static void draw_particle_system(Base *base, PartEff *paf)
 	ctime= bsystem_time(ob, 0, (float)(G.scene->r.cfra), ptime);
 
 	glPointSize(1.0);
-	if(paf->stype!=PAF_VECT) glBegin(GL_POINTS);
+	
+	if(paf->stype==PAF_VECT) glBegin(GL_LINES);
+	else glBegin(GL_POINTS);
 
 	totpart= (paf->disp*paf->totpart)/100;
 	for(a=0; a<totpart; a++, pa+=paf->totkey) {
@@ -2756,23 +2592,18 @@ static void draw_particle_system(Base *base, PartEff *paf)
 					where_is_particle(paf, pa, ctime, vec);
 					where_is_particle(paf, pa, ctime+1.0, vec1);
 		
-
-					glBegin(GL_LINE_STRIP);
-						glVertex3fv(vec);
-						glVertex3fv(vec1);
-					glEnd();
-					
+					glVertex3fv(vec);
+					glVertex3fv(vec1);
 				}
 				else {
 					where_is_particle(paf, pa, ctime, vec);
 					
 					glVertex3fv(vec);
-						
 				}
 			}
 		}
 	}
-	if(paf->stype!=PAF_VECT) glEnd();
+	glEnd();
 	
 	myloadmatrix(G.vd->viewmat);
 	mymultmatrix(ob->obmat);	// bring back local matrix for dtx
@@ -2863,6 +2694,9 @@ static void tekenhandlesN(Nurb *nu, short sel)
 	int a;
 
 	if(nu->hide) return;
+	
+	glBegin(GL_LINES); 
+	
 	if( (nu->type & 7)==1) {
 		if(sel) col= nurbcol+4;
 		else col= nurbcol;
@@ -2873,41 +2707,34 @@ static void tekenhandlesN(Nurb *nu, short sel)
 			if(bezt->hide==0) {
 				if( (bezt->f2 & 1)==sel) {
 					fp= bezt->vec[0];
+					
 					cpack(col[bezt->h1]);
-
-					glBegin(GL_LINE_STRIP); 
 					glVertex3fv(fp);
 					glVertex3fv(fp+3); 
-					glEnd();
-					cpack(col[bezt->h2]);
 
-					glBegin(GL_LINE_STRIP); 
+					cpack(col[bezt->h2]);
 					glVertex3fv(fp+3); 
 					glVertex3fv(fp+6); 
-					glEnd();
 				}
 				else if( (bezt->f1 & 1)==sel) {
 					fp= bezt->vec[0];
+					
 					cpack(col[bezt->h1]);
-
-					glBegin(GL_LINE_STRIP); 
 					glVertex3fv(fp); 
 					glVertex3fv(fp+3); 
-					glEnd();
 				}
 				else if( (bezt->f3 & 1)==sel) {
 					fp= bezt->vec[1];
+					
 					cpack(col[bezt->h2]);
-
-					glBegin(GL_LINE_STRIP); 
 					glVertex3fv(fp); 
 					glVertex3fv(fp+3); 
-					glEnd();
 				}
 			}
 			bezt++;
 		}
 	}
+	glEnd();
 }
 
 static void tekenvertsN(Nurb *nu, short sel)
@@ -2970,15 +2797,13 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 				bp= nu->bp;
 				for(b=0; b<nu->pntsv; b++) {
 					if(nu->flagu & 1) glBegin(GL_LINE_LOOP);
-
 					else glBegin(GL_LINE_STRIP);
 
 					for(a=0; a<nu->pntsu; a++, bp++) {
 						glVertex3fv(bp->vec);
 					}
 
-					if(nu->flagu & 1) glEnd();
-					else glEnd();
+					glEnd();
 				}
 				break;
 			case CU_NURBS:
@@ -3715,7 +3540,9 @@ static void drawSolidSelect(Base *base)
 	if(ELEM3(ob->type, OB_FONT,OB_CURVE, OB_SURF)) {
 		Curve *cu = ob->data;
 		if (displist_has_faces(&cu->disp) && boundbox_clip(ob->obmat, cu->bb)) {
+			draw_index_wire= 0;
 			drawDispListwire(&cu->disp);
+			draw_index_wire= 1;
 		}
 	} else if (ob->type==OB_MBALL) {
 		if((base->flag & OB_FROMDUPLI)==0) 

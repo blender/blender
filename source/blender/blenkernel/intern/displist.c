@@ -196,14 +196,14 @@ void addnormalsDispList(Object *ob, ListBase *lb)
 	
 	while(dl) {
 		if(dl->type==DL_INDEX3) {
-			if(dl->nors==0) {
+			if(dl->nors==NULL) {
 				dl->nors= MEM_callocN(sizeof(float)*3, "dlnors");
 				if(dl->verts[2]<0.0) dl->nors[2]= -1.0;
 				else dl->nors[2]= 1.0;
 			}
 		}
 		else if(dl->type==DL_SURF) {
-			if(dl->nors==0) {
+			if(dl->nors==NULL) {
 				dl->nors= MEM_callocN(sizeof(float)*3*dl->nr*dl->parts, "dlnors");
 				
 				vdata= dl->verts;
@@ -276,7 +276,7 @@ void count_displist(ListBase *lb, int *totvert, int *totface)
 }
 
 
-/* ***************************** shade displist ******************** */
+/* ***************************** shade displist. note colors now are in rgb(a) order ******************** */
 
 /* create default shade input... save cpu cycles with ugly global */
 static ShadeInput shi;
@@ -369,11 +369,11 @@ static void fastshade(float *co, float *nor, float *orco, float *uv, Material *m
 	VECADD(shr.combined, shr.diff, shr.spec);
 	
 	a= 256.0f*(shr.combined[0]);
-	col1[3]= CLAMPIS(a, 0, 255);
+	col1[0]= CLAMPIS(a, 0, 255);
 	a= 256.0f*(shr.combined[1]);
-	col1[2]= CLAMPIS(a, 0, 255);
-	a= 256.0f*(shr.combined[2]);
 	col1[1]= CLAMPIS(a, 0, 255);
+	a= 256.0f*(shr.combined[2]);
+	col1[2]= CLAMPIS(a, 0, 255);
 	
 	if(col2) {
 		shi.vn[0]= -shi.vn[0];
@@ -386,11 +386,11 @@ static void fastshade(float *co, float *nor, float *orco, float *uv, Material *m
 		VECADD(shr.combined, shr.diff, shr.spec);
 		
 		a= 256.0f*(shr.combined[0]);
-		col2[3]= CLAMPIS(a, 0, 255);
+		col2[0]= CLAMPIS(a, 0, 255);
 		a= 256.0f*(shr.combined[1]);
-		col2[2]= CLAMPIS(a, 0, 255);
-		a= 256.0f*(shr.combined[2]);
 		col2[1]= CLAMPIS(a, 0, 255);
+		a= 256.0f*(shr.combined[2]);
+		col2[2]= CLAMPIS(a, 0, 255);
 	}
 }
 
@@ -558,8 +558,17 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 
 void shadeMeshMCol(Object *ob, Mesh *me)
 {
+	int a;
+	char *cp;
+	
 	Render *re= fastshade_get_render();
 	mesh_create_shadedColors(re, ob, 1, (unsigned int **)&me->mcol, NULL);
+	
+	/* swap bytes */
+	for(cp= (char *)me->mcol, a= 4*me->totface; a>0; a--, cp+=4) {
+		SWAP(char, cp[0], cp[3]);
+		SWAP(char, cp[1], cp[2]);
+	}
 }
 
 /* has base pointer, to check for layer */
@@ -1226,6 +1235,35 @@ void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *dispbase, i
 	}
 }
 
+static void displist_surf_indices(DispList *dl)
+{
+	int a, b, p1, p2, p3, p4;
+	int *index;
+	
+	dl->totindex= 0;
+	
+	index=dl->index= MEM_mallocN( 4*sizeof(int)*(dl->parts+1)*(dl->nr+1), "index array nurbs");
+	
+	for(a=0; a<dl->parts; a++) {
+		
+		DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+		
+		for(; b<dl->nr; b++, index+=4) {	
+			index[0]= p1;
+			index[1]= p2;
+			index[2]= p4;
+			index[3]= p3;
+			
+			dl->totindex++;
+			
+			p2= p1; p1++;
+			p4= p3; p3++;
+
+		}
+	}
+	
+}
+
 void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 {
 	ListBase *nubase;
@@ -1288,6 +1326,9 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 				if(nu->flagu & CU_CYCLIC) dl->flag|= DL_CYCL_V;
 
 				makeNurbfaces(nu, data, 0);
+				
+				/* gl array drawing: using indices */
+				displist_surf_indices(dl);
 			}
 		}
 	}
@@ -1440,6 +1481,9 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 								}
 							}
 						}
+						
+						/* gl array drawing: using indices */
+						displist_surf_indices(dl);
 					}
 				}
 

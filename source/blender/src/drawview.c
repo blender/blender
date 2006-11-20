@@ -277,6 +277,10 @@ void init_gl_stuff(void)
 	glDisable(GL_TEXTURE_1D);
 	glDisable(GL_TEXTURE_2D);
 
+	/* default on, disable/enable should be local per function */
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	
 	glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
 	glPixelTransferi(GL_RED_SCALE, 1);
 	glPixelTransferi(GL_RED_BIAS, 0);

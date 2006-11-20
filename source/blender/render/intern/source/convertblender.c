@@ -1599,7 +1599,7 @@ static void init_render_mball(Render *re, Object *ob)
 		vlr->lay= ob->lay;
 
 		/* mball -too bad- always has triangles, because quads can be non-planar */
-		if(index[3]) {
+		if(index[3] && index[3]!=index[2]) {
 			vlr1= RE_findOrAddVlak(re, re->totvlak++);
 			*vlr1= *vlr;
 			vlr1->v2= vlr1->v3;

@@ -85,28 +85,18 @@ struct Material;
 struct Bone;
 struct Mesh;
 
-/*
- * All the different DispList.type's use the
- * data in the displist structure in fairly
- * different ways which can be rather confusing, 
- * the best thing to do would be to make a structure
- * for each displaylist type that has the fields
- * needed w/ proper names, and then make the actual
- * DispList structure a typed union.
- *   - zr
- */
 
-/* needs splitting! */
+/* used for curves, nurbs, mball, importing */
 typedef struct DispList {
     struct DispList *next, *prev;
     short type, flag;
     int parts, nr;
-    short col, rt;              /* rt wordt gebruikt door initrenderNurbs */
+    short col, rt;              /* rt used by initrenderNurbs */
 	float *verts, *nors;
 	int *index;
 	unsigned int *col1, *col2;
 	int charidx;
-	int pad;
+	int totindex;				/* indexed array drawing surfaces */
 
 	unsigned int *bevelSplitFlag;
 } DispList;

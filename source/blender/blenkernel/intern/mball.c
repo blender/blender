@@ -571,7 +571,7 @@ float metaball(float x, float y, float z)
 
 /* ******************************************** */
 
-int *indices=0;
+int *indices=NULL;
 int totindex, curindex;
 
 
@@ -593,25 +593,15 @@ void accum_mballfaces(int i1, int i2, int i3, int i4)
 	
 	cur= indices+4*curindex;
 
-	/* prevent zero codes for faces indices */
-	if(i3==0) {
-		if(i4) {
-			i3= i4;
-			i4= i1;
-			i1= i2;
-			i2= 0;
-		}
-		else {
-			i3= i2;
-			i2= i1;
-			i1= 0;
-		}
-	}
+	/* diplists now support array drawing, we treat trias as fake quad */
 	
 	cur[0]= i1;
 	cur[1]= i2;
 	cur[2]= i3;
-	cur[3]= i4;
+	if(i4==0)
+		cur[3]= i3;
+	else 
+		cur[3]= i4;
 	
 	curindex++;
 
