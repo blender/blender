@@ -4995,7 +4995,7 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getType, (setter)NULL, 
 	 "String describing Object type",
 	 NULL},
-	{"properties", (getter)Object_GetProperties, (setter)NULL,
+	{"idproperties", (getter)Object_GetProperties, (setter)NULL,
 	"Get the ID properties associated with this object"},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };

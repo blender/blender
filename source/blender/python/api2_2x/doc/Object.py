@@ -232,6 +232,7 @@ def Duplicate (mesh=0, surface=0, curve=0, text=0, metaball=0, armature=0, lamp=
     Blender.Redraw()
   """
 
+from IDProp import IDProperty, IDGroup, IDArray
 class Object:
   """
   The Object object
@@ -245,6 +246,10 @@ class Object:
     To get these values in worldspace (taking into account vertex parents, constraints etc)
     pass the argument 'worldspace' to these functions.
 
+    @ivar idproperties: Returns an L{IDProperty<IDProperty>} reference of type L{IDGroup<IDGroup>} to 
+    this object's ID Properties.  Note that dict access is available for groups on the parent 
+    L{IDProperty<IDProperty>} object, but for everything else you need to get the L{IDGroup<IDGroup>}
+    object from the L{IDProperty<IDProperty>}'s data member.
     @ivar LocX: The X location coordinate of the object.
     @type LocX: float
     @ivar LocY: The Y location coordinate of the object.
@@ -841,8 +846,6 @@ class Object:
     """
     Returns the type of the object in 'Armature', 'Camera', 'Curve', 'Lamp', 'Lattice',
     'Mball', 'Mesh', 'Surf', 'Empty', 'Wave' (deprecated) or 'unknown' in exceptional cases.
-    @return: The type of object.
-    @rtype: String
 
     I{B{Example:}}
 
@@ -861,6 +864,9 @@ class Object:
                 obj.RotZ = 3.141592 - obj.RotZ
 
         Blender.Redraw()
+    
+    @return: The type of object.
+    @rtype: String
     """
 
   def insertIpoKey(keytype):

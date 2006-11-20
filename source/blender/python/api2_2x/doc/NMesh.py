@@ -337,12 +337,17 @@ class NMFace:
     @param vertex: An NMVert object.
     """
 
+from IDProp import IDProperty, IDGroup, IDArray
 class NMesh:
   """
   The NMesh Data object
   =====================
     This object gives access to mesh data in Blender.  We refer to mesh as the
     object in Blender and NMesh as its Python counterpart.
+  @ivar properties: Returns an L{IDProperty<IDProperty>} reference of type L{IDGroup<IDGroup>} to 
+  this mesh's ID Properties.  Note that dict access is available for groups on the parent 
+  L{IDProperty<IDProperty>} object, but for everything else you need to get the L{IDGroup<IDGroup>}
+  object from the L{IDProperty<IDProperty>}'s data member.
   @ivar name: The NMesh name.  It's common to use this field to store extra
      data about the mesh (to be exported to another program, for example).
   @ivar materials: The list of materials used by this NMesh.  See

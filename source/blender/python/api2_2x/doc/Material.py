@@ -1,3 +1,5 @@
+from IDProp import IDProperty, IDGroup, IDArray
+
 # Blender.Material module and the Material PyObject
 
 """
@@ -105,6 +107,10 @@ class Material:
   The Material object
   ===================
    This object gives access to Materials in Blender.
+  @ivar properties: Returns an L{IDProperty<IDProperty>} reference of type L{IDGroup<IDGroup>} to 
+  this material's ID Properties.  Note that dict access is available for groups on the parent 
+  L{IDProperty<IDProperty>} object, but for everything else you need to get the L{IDGroup<IDGroup>}
+  object from the L{IDProperty<IDProperty>}'s data member.
   @ivar B:  Diffuse color (L{rgbCol}) blue component.
   Value is clamped to the range [0.0,1.0].
   @type B:  float

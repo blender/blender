@@ -73,12 +73,17 @@ def Unlink(scene):
   @type scene: Blender Scene
   @param scene: The Scene to be unlinked.
   """
-
+  
+from IDProp import IDProperty, IDGroup, IDArray
 class Scene:
   """
   The Scene object
   ================
-    This object gives access to Scene data in Blender.
+   This object gives access to Scene data in Blender.
+  @ivar properties: Returns an L{IDProperty<IDProperty>} reference of type L{IDGroup<IDGroup>} to 
+  this scene's ID Properties.  Note that dict access is available for groups on the parent 
+  L{IDProperty<IDProperty>} object, but for everything else you need to get the L{IDGroup<IDGroup>}
+  object from the L{IDProperty<IDProperty>}'s data member.
   @type name: string
   @ivar name: The Scene name.
   @type Layers: integer (bitmask)
