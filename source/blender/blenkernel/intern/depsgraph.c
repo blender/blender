@@ -484,7 +484,25 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 			}
 		}
 	}
-	
+    
+	/* softbody collision  */
+	if((ob->type==OB_MESH) || (ob->type==OB_CURVE) || (ob->type==OB_LATTICE)) {
+		Base *base;
+		if(modifiers_isSoftbodyEnabled(ob)){
+			// would be nice to have a list of colliders here
+			// so for now walk all objects in scene check 'same layer rule'
+			for(base = G.scene->base.first; base; base= base->next) {
+				if( (base->lay & ob->lay) && base->object->pd) {
+					Object *ob1= base->object;
+					if((ob1->pd->deflect) && (ob1 != ob))  {
+						node2 = dag_get_node(dag, ob1);					
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);						
+					}
+				}
+			}
+		}
+	}
+		
 	if (ob->type==OB_MBALL) {
 		Object *mom= find_basis_mball(ob);
 		if(mom!=ob) {
