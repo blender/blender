@@ -688,10 +688,10 @@ DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 	for(index = 0; index < totedge; index++) {
 		CCGEdge *e = edgeMap2[index];
 		unsigned int flags = 0;
+		int edgeIdx = (int)ccgSubSurf_getEdgeEdgeHandle(ss, e);
 
 		if(!ccgSubSurf_getEdgeNumFaces(ss, e)) flags |= ME_LOOSEEDGE;
 
-		int edgeIdx = (int)ccgSubSurf_getEdgeEdgeHandle(ss, e);
 
 		if(edgeIdx != -1 && dm) {
 			MEdge origMed;
