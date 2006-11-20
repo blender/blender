@@ -530,14 +530,25 @@ void sculptmode_rem_tex(void *junk0,void *junk1)
 
 void init_sculptmatrices()
 {
-	glPushMatrix();
+	const double badvalue= 1.0e-6;
 
 	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
 	glMultMatrixf(OBACT->obmat);
 
 	glGetDoublev(GL_MODELVIEW_MATRIX, G.scene->sculptdata.modelviewmat);
 	glGetDoublev(GL_PROJECTION_MATRIX, G.scene->sculptdata.projectionmat);
 	glGetIntegerv(GL_VIEWPORT, (GLint *)G.scene->sculptdata.viewport);
+	
+	/* Very strange code here - it seems that certain bad values in the
+	   modelview matrix can cause gluUnProject to give bad results. */
+	if(G.scene->sculptdata.modelviewmat[0] < badvalue &&
+	   G.scene->sculptdata.modelviewmat[0] > -badvalue)
+		G.scene->sculptdata.modelviewmat[0]= 0;
+	if(G.scene->sculptdata.modelviewmat[5] < badvalue &&
+	   G.scene->sculptdata.modelviewmat[5] > -badvalue)
+		G.scene->sculptdata.modelviewmat[5]= 0;
+	
 	/* Set up viewport so that gluUnProject will give correct values */
 	G.scene->sculptdata.viewport[0] = 0;
 	G.scene->sculptdata.viewport[1] = 0;
