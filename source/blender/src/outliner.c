@@ -3267,7 +3267,7 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
 						(int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_VIEWX+SCROLLB), te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
-				uiButSetFunc(bt, restrictbutton_view_cb, NULL, NULL);
+				uiButSetFunc(bt, restrictbutton_view_cb, ob, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
 				
 				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_SELECT, REDRAWALL, ICON_RESTRICT_SELECT_OFF, 
