@@ -231,7 +231,7 @@ ccd_Mesh *ccd_mesh_make(Object *ob, DerivedMesh *dm)
 	
 	pccd_M = MEM_mallocN(sizeof(ccd_Mesh),"ccd_Mesh");
 	pccd_M->totvert = dm->getNumVerts(dm);
-	pccd_M->totface = dm->getNumVerts(dm);
+	pccd_M->totface = dm->getNumFaces(dm);
 	pccd_M->savety  = CCD_SAVETY;
 	pccd_M->bbmin[0]=pccd_M->bbmin[1]=pccd_M->bbmin[2]=1e30f;
 	pccd_M->bbmax[0]=pccd_M->bbmax[1]=pccd_M->bbmax[2]=-1e30f;
