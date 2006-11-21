@@ -67,9 +67,7 @@ SET(INC
   ../../../source/gameengine/Network/LoopBackNetwork
   ../../../source/blender/misc
   ../../../source/blender/blenloader
-  ../../../extern/bullet/LinearMath
-  ../../../extern/bullet/BulletDynamics
-  ../../../extern/bullet/Bullet
+  ../../../extern/bullet2/src
   ../../../extern/solid
   ${PYTHON_INC}
 )

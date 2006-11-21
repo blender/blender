@@ -32,9 +32,7 @@ SET(SRC CcdPhysicsEnvironment.cpp CcdPhysicsController.cpp)
 SET(INC
   .
   ../common
-  ../../../../extern/bullet/LinearMath
-  ../../../../extern/bullet/BulletDynamics
-  ../../../../extern/bullet/Bullet
+  ../../../../extern/bullet2/src
 )
 
 BLENDERLIB(bf_bullet "${SRC}" "${INC}")
