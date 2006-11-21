@@ -226,44 +226,46 @@ void	btHingeConstraint::solveConstraint(btScalar	timeStep)
 		}
 	}
 
-	///solve angular part
-
-	// get axes in world space
-	btVector3 axisA = getRigidBodyA().getCenterOfMassTransform().getBasis() * m_axisInA;
-	btVector3 axisB = getRigidBodyB().getCenterOfMassTransform().getBasis() * m_axisInB;
-
-	const btVector3& angVelA = getRigidBodyA().getAngularVelocity();
-	const btVector3& angVelB = getRigidBodyB().getAngularVelocity();
-	btVector3 angA = angVelA - axisA * axisA.dot(angVelA);
-	btVector3 angB = angVelB - axisB * axisB.dot(angVelB);
-	btVector3 velrel = angA-angB;
-
-	//solve angular velocity correction
-	float relaxation = 1.f;
-	float len = velrel.length();
-	if (len > 0.00001f)
+	if (!m_angularOnly)
 	{
-		btVector3 normal = velrel.normalized();
-		float denom = getRigidBodyA().computeAngularImpulseDenominator(normal) +
-			getRigidBodyB().computeAngularImpulseDenominator(normal);
-		// scale for mass and relaxation
-		velrel *= (1.f/denom) * 0.9;
+		///solve angular part
+
+		// get axes in world space
+		btVector3 axisA = getRigidBodyA().getCenterOfMassTransform().getBasis() * m_axisInA;
+		btVector3 axisB = getRigidBodyB().getCenterOfMassTransform().getBasis() * m_axisInB;
+
+		const btVector3& angVelA = getRigidBodyA().getAngularVelocity();
+		const btVector3& angVelB = getRigidBodyB().getAngularVelocity();
+		btVector3 angA = angVelA - axisA * axisA.dot(angVelA);
+		btVector3 angB = angVelB - axisB * axisB.dot(angVelB);
+		btVector3 velrel = angA-angB;
+
+		//solve angular velocity correction
+		float relaxation = 1.f;
+		float len = velrel.length();
+		if (len > 0.00001f)
+		{
+			btVector3 normal = velrel.normalized();
+			float denom = getRigidBodyA().computeAngularImpulseDenominator(normal) +
+				getRigidBodyB().computeAngularImpulseDenominator(normal);
+			// scale for mass and relaxation
+			velrel *= (1.f/denom) * 0.9;
+		}
+
+		//solve angular positional correction
+		btVector3 angularError = -axisA.cross(axisB) *(1.f/timeStep);
+		float len2 = angularError.length();
+		if (len2>0.00001f)
+		{
+			btVector3 normal2 = angularError.normalized();
+			float denom2 = getRigidBodyA().computeAngularImpulseDenominator(normal2) +
+					getRigidBodyB().computeAngularImpulseDenominator(normal2);
+			angularError *= (1.f/denom2) * relaxation;
+		}
+
+		m_rbA.applyTorqueImpulse(-velrel+angularError);
+		m_rbB.applyTorqueImpulse(velrel-angularError);
 	}
-
-	//solve angular positional correction
-	btVector3 angularError = -axisA.cross(axisB) *(1.f/timeStep);
-	float len2 = angularError.length();
-	if (len2>0.00001f)
-	{
-		btVector3 normal2 = angularError.normalized();
-		float denom2 = getRigidBodyA().computeAngularImpulseDenominator(normal2) +
-				getRigidBodyB().computeAngularImpulseDenominator(normal2);
-		angularError *= (1.f/denom2) * relaxation;
-	}
-
-	m_rbA.applyTorqueImpulse(-velrel+angularError);
-	m_rbB.applyTorqueImpulse(velrel-angularError);
-
 #endif
 
 }
