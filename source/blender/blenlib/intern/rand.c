@@ -171,6 +171,9 @@ void BLI_thread_srandom(int thread, unsigned int seed)
 {
 	extern unsigned char hash[];	// noise.c
 	
+	if(thread >= MAX_RNG_THREADS)
+		thread= 0;
+	
 	rng_seed(&rng_tab[thread], seed + hash[seed & 255]);
 	seed= rng_getInt(&rng_tab[thread]);
 	rng_seed(&rng_tab[thread], seed + hash[seed & 255]);

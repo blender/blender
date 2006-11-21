@@ -2237,12 +2237,13 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 {
 	ZSpan zspan;
 	DrawBufPixel *rectdraw, *dr;
-	float jit[16][2];
+	static float jit[16][2];
 	float v1[3], v2[3], v3[3], v4[3], fx, fy;
 	float *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz1, *dz2, *rectz, *minvecbufrect= NULL;
 	float maxspeedsq= (float)nbd->maxspeed*nbd->maxspeed;
 	int y, x, step, maxspeed=nbd->maxspeed, samples= nbd->samples;
 	int tsktsk= 0;
+	static int firsttime= 1;
 	char *rectmove, *dm;
 	
 	zbuf_alloc_span(&zspan, xsize, ysize);
@@ -2420,8 +2421,11 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	
 	antialias_tagbuf(xsize, ysize, rectmove);
 	
-	BLI_initjit(jit[0], 16);
-	
+	/* has to become static, the init-jit calls a random-seed, screwing up texture noise node */
+	if(firsttime) {
+		firsttime= 0;
+		BLI_initjit(jit[0], 16);
+	}
 	
 	/* accumulate */
 	samples/= 2;

@@ -3026,7 +3026,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 		od= offs;
 		
 		for(x=pa->disprect.xmin+crop; x<pa->disprect.xmax-crop; x++, rd++, rf+=4, od++) {
-			BLI_thread_srandom(pa->thread, seed+x);
+			BLI_thread_srandom(pa->thread, seed++);
 			
 			ps= (PixStr *)(*rd);
 			mask= 0;
@@ -3098,7 +3098,6 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 		rectf+= 4*pa->rectx;
 		rectdaps+= pa->rectx;
 		offs+= pa->rectx;
-		seed+= pa->rectx;
 		
 		if(y&1) if(R.test_break()) break; 
 	}
@@ -3368,7 +3367,10 @@ void zbufshade_tile(RenderPart *pa)
 			
 			if(rl->layflag & SCE_LAY_SOLID) {
 				float *fcol= rl->rectf;
-				int x, y, *rp= pa->rectp, *rz= pa->rectz, offs=0;
+				int x, y, *rp= pa->rectp, *rz= pa->rectz, offs=0, seed;
+				
+				/* we set per pixel a fixed seed, for random AO and shadow samples */
+				seed= pa->rectx*pa->disprect.ymin;
 				
 				/* irregular shadowb buffer creation */
 				if(R.r.mode & R_SHADOW)
@@ -3376,6 +3378,8 @@ void zbufshade_tile(RenderPart *pa)
 				
 				for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++, rr->renrect.ymax++) {
 					for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, rp++, fcol+=4, offs++) {
+						BLI_thread_srandom(pa->thread, seed++);
+						
 						shadepixel_sky(&shpi, (float)x, (float)y, *rz, *rp, 0);
 						QUATCOPY(fcol, shpi.shr.combined);
 						

@@ -1640,7 +1640,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 	bNodeTree *ntree= re->scene->nodetree;
 	
 	/* INIT seeding, compositor can use random texture */
-	BLI_srand(re->r.cfra);
+	BLI_srandom(re->r.cfra);
 	
 	if(composite_needs_render(re->scene)) {
 		/* save memory... free all cached images */

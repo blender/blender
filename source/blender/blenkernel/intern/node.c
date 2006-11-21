@@ -2120,8 +2120,8 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	thdata.stack= ntree->stack;
 	
 	/* fixed seed, for example noise texture */
-	BLI_srand(rd->cfra);
-	
+	BLI_srandom(rd->cfra);
+
 	/* sets need_exec tags in nodes */
 	totnode= setExecutableNodes(ntree, &thdata);
 	
