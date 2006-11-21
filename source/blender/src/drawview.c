@@ -2647,6 +2647,8 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 	short transflag;
 	char dt, dtx;
 	
+	if (base->object->restrictflag & OB_RESTRICT_VIEW) return;
+	
 	/* debug */
 	if(base->object->dup_group && base->object->dup_group->id.us<1)
 		color= TH_REDALERT;

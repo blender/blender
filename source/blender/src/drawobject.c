@@ -3650,7 +3650,14 @@ void draw_object(Base *base, int flag)
 
 	ob= base->object;
 
-	if (!(G.obedit) && (ob->restrictflag & OB_RESTRICT_VIEW)) return;
+	if (!(G.obedit)) {
+		/*
+		 * Always draw dupli objects here, restriction of those is governed by the flag of their duplicator
+		 * object, in drawview.c, draw_dupli_objects()
+		 */
+		if ((ob->restrictflag & OB_RESTRICT_VIEW) && !(base->flag & OB_FROMDUPLI)) 
+			return;
+	}
 
 	/* xray delay? */
 	if((flag & DRAW_PICKING)==0 && (base->flag & OB_FROMDUPLI)==0) {
