@@ -14,32 +14,28 @@ subject to the following restrictions:
 */
 
 #include "CcdPhysicsController.h"
+#include "btBulletDynamicsCommon.h"
 
-#include "Dynamics/RigidBody.h"
 #include "PHY_IMotionState.h"
-#include "BroadphaseCollision/BroadphaseProxy.h"
-#include "BroadphaseCollision/BroadphaseInterface.h"
-#include "CollisionShapes/ConvexShape.h"
 #include "CcdPhysicsEnvironment.h"
-#include "SimdTransformUtil.h"
 
-#include "CollisionShapes/SphereShape.h"
-#include "CollisionShapes/ConeShape.h"
 
 class BP_Proxy;
 
-///todo: fill all the empty CcdPhysicsController methods, hook them up to the RigidBody class
+///todo: fill all the empty CcdPhysicsController methods, hook them up to the btRigidBody class
 
 //'temporarily' global variables
-float	gDeactivationTime = 2.f;
-bool	gDisableDeactivation = false;
+//float	gDeactivationTime = 2.f;
+//bool	gDisableDeactivation = false;
+extern float gDeactivationTime;
+extern bool gDisableDeactivation;
+
 
 float gLinearSleepingTreshold = 0.8f;
 float gAngularSleepingTreshold = 1.0f;
 
-#include "Dynamics/MassProps.h"
 
-SimdVector3 startVel(0,0,0);//-10000);
+btVector3 startVel(0,0,0);//-10000);
 CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 :m_cci(ci)
 {
@@ -47,7 +43,7 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	m_newClientInfo = 0;
 	
 	m_MotionState = ci.m_MotionState;
-
+	m_bulletMotionState = 0;
 	
 	
 	CreateRigidbody();
@@ -61,51 +57,85 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 
 }
 
-SimdTransform	CcdPhysicsController::GetTransformFromMotionState(PHY_IMotionState* motionState)
+btTransform	CcdPhysicsController::GetTransformFromMotionState(PHY_IMotionState* motionState)
 {
-	SimdTransform trans;
+	btTransform trans;
 	float tmp[3];
 	motionState->getWorldPosition(tmp[0],tmp[1],tmp[2]);
-	trans.setOrigin(SimdVector3(tmp[0],tmp[1],tmp[2]));
+	trans.setOrigin(btVector3(tmp[0],tmp[1],tmp[2]));
 
-	SimdQuaternion orn;
+	btQuaternion orn;
 	motionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
 	trans.setRotation(orn);
 	return trans;
 
 }
 
+class	BlenderBulletMotionState : public btMotionState
+{
+	PHY_IMotionState*	m_blenderMotionState;
+
+public:
+
+	BlenderBulletMotionState(PHY_IMotionState* bms)
+		:m_blenderMotionState(bms)
+	{
+
+	}
+
+	virtual void	getWorldTransform(btTransform& worldTrans ) const
+	{
+		float pos[3];
+		float quatOrn[4];
+
+		m_blenderMotionState->getWorldPosition(pos[0],pos[1],pos[2]);
+		m_blenderMotionState->getWorldOrientation(quatOrn[0],quatOrn[1],quatOrn[2],quatOrn[3]);
+		worldTrans.setOrigin(btVector3(pos[0],pos[1],pos[2]));
+		worldTrans.setBasis(btMatrix3x3(btQuaternion(quatOrn[0],quatOrn[1],quatOrn[2],quatOrn[3])));
+	}
+
+	virtual void	setWorldTransform(const btTransform& worldTrans)
+	{
+		m_blenderMotionState->setWorldPosition(worldTrans.getOrigin().getX(),worldTrans.getOrigin().getY(),worldTrans.getOrigin().getZ());
+		btQuaternion rotQuat = worldTrans.getRotation();
+		m_blenderMotionState->setWorldOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
+
+	}
+
+};
+
 void CcdPhysicsController::CreateRigidbody()
 {
 
-	SimdTransform trans = GetTransformFromMotionState(m_cci.m_MotionState);
+	btTransform trans = GetTransformFromMotionState(m_cci.m_MotionState);
 
-	MassProps mp(m_cci.m_mass, m_cci.m_localInertiaTensor);
+	m_bulletMotionState = new BlenderBulletMotionState(m_cci.m_MotionState);
 
-	m_body = new RigidBody(mp,0,0,m_cci.m_friction,m_cci.m_restitution);
-	m_body->m_collisionShape = m_cci.m_collisionShape;
+	m_body = new btRigidBody(m_cci.m_mass,m_bulletMotionState,m_cci.m_collisionShape,m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor,m_cci.m_friction,m_cci.m_restitution);
 	
 
 	//
 	// init the rigidbody properly
 	//
 	
-	m_body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
 	//setMassProps this also sets collisionFlags
-	m_body->m_collisionFlags = m_cci.m_collisionFlags;
+	//convert collision flags!
+//	m_body->m_collisionFlags = m_cci.m_collisionFlags;
 	
 	m_body->setGravity( m_cci.m_gravity);
 	m_body->setDamping(m_cci.m_linearDamping, m_cci.m_angularDamping);
-	m_body->setCenterOfMassTransform( trans );
-
 
 }
 
 CcdPhysicsController::~CcdPhysicsController()
 {
 	//will be reference counted, due to sharing
-	m_cci.m_physicsEnv->removeCcdPhysicsController(this);
+	if (m_cci.m_physicsEnv)
+		m_cci.m_physicsEnv->removeCcdPhysicsController(this);
+
 	delete m_MotionState;
+	if (m_bulletMotionState)
+		delete m_bulletMotionState;
 	delete m_body;
 }
 
@@ -116,29 +146,29 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 {
 	//sync non-static to motionstate, and static from motionstate (todo: add kinematic etc.)
 
-	if (!m_body->IsStatic())
+	if (!m_body->isStaticObject())
 	{
-		const SimdVector3& worldPos = m_body->getCenterOfMassPosition();
+		const btVector3& worldPos = m_body->getCenterOfMassPosition();
 		m_MotionState->setWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
 		
-		const SimdQuaternion& worldquat = m_body->getOrientation();
+		const btQuaternion& worldquat = m_body->getOrientation();
 		m_MotionState->setWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
 
 		m_MotionState->calculateWorldTransformations();
 
 		float scale[3];
 		m_MotionState->getWorldScaling(scale[0],scale[1],scale[2]);
-		SimdVector3 scaling(scale[0],scale[1],scale[2]);
+		btVector3 scaling(scale[0],scale[1],scale[2]);
 		GetCollisionShape()->setLocalScaling(scaling);
 	} else
 	{
-		SimdVector3 worldPos;
-		SimdQuaternion worldquat;
+		btVector3 worldPos;
+		btQuaternion worldquat;
 
 		m_MotionState->getWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
 		m_MotionState->getWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
-		SimdTransform oldTrans = m_body->getCenterOfMassTransform();
-		SimdTransform newTrans(worldquat,worldPos);
+		btTransform oldTrans = m_body->getCenterOfMassTransform();
+		btTransform newTrans(worldquat,worldPos);
 				
 		m_body->setCenterOfMassTransform(newTrans);
 		//need to keep track of previous position for friction effects...
@@ -147,7 +177,7 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 
 		float scale[3];
 		m_MotionState->getWorldScaling(scale[0],scale[1],scale[2]);
-		SimdVector3 scaling(scale[0],scale[1],scale[2]);
+		btVector3 scaling(scale[0],scale[1],scale[2]);
 		GetCollisionShape()->setLocalScaling(scaling);
 	}
 	return true;
@@ -217,8 +247,8 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 	{
 		m_body->activate();
 
-		SimdVector3 dloc(dlocX,dlocY,dlocZ);
-		SimdTransform xform = m_body->getCenterOfMassTransform();
+		btVector3 dloc(dlocX,dlocY,dlocZ);
+		btTransform xform = m_body->getCenterOfMassTransform();
 
 		if (local)
 		{
@@ -237,15 +267,15 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 	{
 		m_body->activate();
 
-		SimdMatrix3x3 drotmat(	rotval[0],rotval[1],rotval[2],
+		btMatrix3x3 drotmat(	rotval[0],rotval[1],rotval[2],
 								rotval[4],rotval[5],rotval[6],
 								rotval[8],rotval[9],rotval[10]);
 
 
-		SimdMatrix3x3 currentOrn;
+		btMatrix3x3 currentOrn;
 		GetWorldOrientation(currentOrn);
 
-		SimdTransform xform = m_body->getCenterOfMassTransform();
+		btTransform xform = m_body->getCenterOfMassTransform();
 
 		xform.setBasis(xform.getBasis()*(local ? 
 		drotmat : (currentOrn.inverse() * drotmat * currentOrn)));
@@ -255,17 +285,17 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 
 }
 
-void CcdPhysicsController::GetWorldOrientation(SimdMatrix3x3& mat)
+void CcdPhysicsController::GetWorldOrientation(btMatrix3x3& mat)
 {
 	float orn[4];
 	m_MotionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
-	SimdQuaternion quat(orn[0],orn[1],orn[2],orn[3]);
+	btQuaternion quat(orn[0],orn[1],orn[2],orn[3]);
 	mat.setRotation(quat);
 }
 
 void		CcdPhysicsController::getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal)
 {
-	SimdQuaternion q = m_body->getCenterOfMassTransform().getRotation();
+	btQuaternion q = m_body->getCenterOfMassTransform().getRotation();
 	quatImag0 = q[0];
 	quatImag1 = q[1];
 	quatImag2 = q[2];
@@ -274,9 +304,9 @@ void		CcdPhysicsController::getOrientation(float &quatImag0,float &quatImag1,flo
 void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal)
 {
 	m_body->activate();
-
-	SimdTransform xform  = m_body->getCenterOfMassTransform();
-	xform.setRotation(SimdQuaternion(quatImag0,quatImag1,quatImag2,quatReal));
+	m_MotionState->setWorldOrientation(quatImag0,quatImag1,quatImag2,quatReal);
+	btTransform xform  = m_body->getCenterOfMassTransform();
+	xform.setRotation(btQuaternion(quatImag0,quatImag1,quatImag2,quatReal));
 	m_body->setCenterOfMassTransform(xform);
 
 }
@@ -284,9 +314,9 @@ void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float
 void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 {
 	m_body->activate();
-
-	SimdTransform xform  = m_body->getCenterOfMassTransform();
-	xform.setOrigin(SimdVector3(posX,posY,posZ));
+	m_MotionState->setWorldPosition(posX,posY,posZ);
+	btTransform xform  = m_body->getCenterOfMassTransform();
+	xform.setOrigin(btVector3(posX,posY,posZ));
 	m_body->setCenterOfMassTransform(xform);
 
 }
@@ -296,7 +326,7 @@ void		CcdPhysicsController::resolveCombinedVelocities(float linvelX,float linvel
 
 void 		CcdPhysicsController::getPosition(PHY__Vector3&	pos) const
 {
-	const SimdTransform& xform = m_body->getCenterOfMassTransform();
+	const btTransform& xform = m_body->getCenterOfMassTransform();
 	pos[0] = xform.getOrigin().x();
 	pos[1] = xform.getOrigin().y();
 	pos[2] = xform.getOrigin().z();
@@ -304,16 +334,16 @@ void 		CcdPhysicsController::getPosition(PHY__Vector3&	pos) const
 
 void		CcdPhysicsController::setScaling(float scaleX,float scaleY,float scaleZ)
 {
-	if (!SimdFuzzyZero(m_cci.m_scaling.x()-scaleX) ||
-		!SimdFuzzyZero(m_cci.m_scaling.y()-scaleY) ||
-		!SimdFuzzyZero(m_cci.m_scaling.z()-scaleZ))
+	if (!btFuzzyZero(m_cci.m_scaling.x()-scaleX) ||
+		!btFuzzyZero(m_cci.m_scaling.y()-scaleY) ||
+		!btFuzzyZero(m_cci.m_scaling.z()-scaleZ))
 	{
-		m_cci.m_scaling = SimdVector3(scaleX,scaleY,scaleZ);
+		m_cci.m_scaling = btVector3(scaleX,scaleY,scaleZ);
 
-		if (m_body && m_body->GetCollisionShape())
+		if (m_body && m_body->getCollisionShape())
 		{
-			m_body->GetCollisionShape()->setLocalScaling(m_cci.m_scaling);
-			m_body->GetCollisionShape()->CalculateLocalInertia(m_cci.m_mass, m_cci.m_localInertiaTensor);
+			m_body->getCollisionShape()->setLocalScaling(m_cci.m_scaling);
+			m_body->getCollisionShape()->calculateLocalInertia(m_cci.m_mass, m_cci.m_localInertiaTensor);
 			m_body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
 		}
 	}
@@ -322,8 +352,8 @@ void		CcdPhysicsController::setScaling(float scaleX,float scaleY,float scaleZ)
 		// physics methods
 void		CcdPhysicsController::ApplyTorque(float torqueX,float torqueY,float torqueZ,bool local)
 {
-	SimdVector3 torque(torqueX,torqueY,torqueZ);
-	SimdTransform xform = m_body->getCenterOfMassTransform();
+	btVector3 torque(torqueX,torqueY,torqueZ);
+	btTransform xform = m_body->getCenterOfMassTransform();
 	if (local)
 	{
 		torque	= xform.getBasis()*torque;
@@ -333,8 +363,8 @@ void		CcdPhysicsController::ApplyTorque(float torqueX,float torqueY,float torque
 
 void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bool local)
 {
-	SimdVector3 force(forceX,forceY,forceZ);
-	SimdTransform xform = m_body->getCenterOfMassTransform();
+	btVector3 force(forceX,forceY,forceZ);
+	btTransform xform = m_body->getCenterOfMassTransform();
 	if (local)
 	{
 		force	= xform.getBasis()*force;
@@ -343,14 +373,14 @@ void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bo
 }
 void		CcdPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,float ang_velZ,bool local)
 {
-	SimdVector3 angvel(ang_velX,ang_velY,ang_velZ);
+	btVector3 angvel(ang_velX,ang_velY,ang_velZ);
 	if (angvel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
 		m_body->activate();
 	}
 
 	{
-		SimdTransform xform = m_body->getCenterOfMassTransform();
+		btTransform xform = m_body->getCenterOfMassTransform();
 		if (local)
 		{
 			angvel	= xform.getBasis()*angvel;
@@ -363,14 +393,14 @@ void		CcdPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,flo
 void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,float lin_velZ,bool local)
 {
 
-	SimdVector3 linVel(lin_velX,lin_velY,lin_velZ);
+	btVector3 linVel(lin_velX,lin_velY,lin_velZ);
 	if (linVel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
 		m_body->activate();
 	}
 	
 	{
-		SimdTransform xform = m_body->getCenterOfMassTransform();
+		btTransform xform = m_body->getCenterOfMassTransform();
 		if (local)
 		{
 			linVel	= xform.getBasis()*linVel;
@@ -380,13 +410,13 @@ void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,floa
 }
 void		CcdPhysicsController::applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ)
 {
-	SimdVector3 impulse(impulseX,impulseY,impulseZ);
+	btVector3 impulse(impulseX,impulseY,impulseZ);
 
 	if (impulse.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
 		m_body->activate();
 		
-		SimdVector3 pos(attachX,attachY,attachZ);
+		btVector3 pos(attachX,attachY,attachZ);
 
 		m_body->activate();
 
@@ -400,7 +430,7 @@ void		CcdPhysicsController::SetActive(bool active)
 		// reading out information from physics
 void		CcdPhysicsController::GetLinearVelocity(float& linvX,float& linvY,float& linvZ)
 {
-	const SimdVector3& linvel = this->m_body->getLinearVelocity();
+	const btVector3& linvel = this->m_body->getLinearVelocity();
 	linvX = linvel.x();
 	linvY = linvel.y();
 	linvZ = linvel.z();
@@ -409,7 +439,7 @@ void		CcdPhysicsController::GetLinearVelocity(float& linvX,float& linvY,float& l
 
 void		CcdPhysicsController::GetAngularVelocity(float& angVelX,float& angVelY,float& angVelZ)
 {
-	const SimdVector3& angvel= m_body->getAngularVelocity();
+	const btVector3& angvel= m_body->getAngularVelocity();
 	angVelX = angvel.x();
 	angVelY = angvel.y();
 	angVelZ = angvel.z();
@@ -417,9 +447,9 @@ void		CcdPhysicsController::GetAngularVelocity(float& angVelX,float& angVelY,flo
 
 void		CcdPhysicsController::GetVelocity(const float posX,const float posY,const float posZ,float& linvX,float& linvY,float& linvZ)
 {
-	SimdVector3 pos(posX,posY,posZ);
-	SimdVector3 rel_pos = pos-m_body->getCenterOfMassPosition();
-	SimdVector3 linvel = m_body->getVelocityInLocalPoint(rel_pos);
+	btVector3 pos(posX,posY,posZ);
+	btVector3 rel_pos = pos-m_body->getCenterOfMassPosition();
+	btVector3 linvel = m_body->getVelocityInLocalPoint(rel_pos);
 	linvX = linvel.x();
 	linvY = linvel.y();
 	linvZ = linvel.z();
@@ -434,7 +464,7 @@ void		CcdPhysicsController::setRigidBody(bool rigid)
 	if (!rigid)
 	{
 		//fake it for now
-		SimdVector3 inertia = m_body->getInvInertiaDiagLocal();
+		btVector3 inertia = m_body->getInvInertiaDiagLocal();
 		inertia[1] = 0.f;
 		m_body->setInvInertiaDiagLocal(inertia);
 		m_body->updateInertiaTensor();
@@ -454,62 +484,36 @@ void		CcdPhysicsController::setNewClientInfo(void* clientinfo)
 
 void	CcdPhysicsController::UpdateDeactivation(float timeStep)
 {
-	if ( (m_body->GetActivationState() == ISLAND_SLEEPING) || (m_body->GetActivationState() == DISABLE_DEACTIVATION))
-		return;
-
-	if ((m_body->getLinearVelocity().length2() < gLinearSleepingTreshold*gLinearSleepingTreshold) &&
-		(m_body->getAngularVelocity().length2() < gAngularSleepingTreshold*gAngularSleepingTreshold))
-	{
-		m_body->m_deactivationTime += timeStep;
-	} else
-	{
-		m_body->m_deactivationTime=0.f;
-		m_body->SetActivationState(0);
-	}
-
+	m_body->updateDeactivation( timeStep);
 }
 
 bool CcdPhysicsController::wantsSleeping()
 {
 
-	if (m_body->GetActivationState() == DISABLE_DEACTIVATION)
-		return false;
-
-	//disable deactivation
-	if (gDisableDeactivation || (gDeactivationTime == 0.f))
-		return false;
-
-	if ( (m_body->GetActivationState() == ISLAND_SLEEPING) || (m_body->GetActivationState() == WANTS_DEACTIVATION))
-		return true;
-
-	if (m_body->m_deactivationTime> gDeactivationTime)
-	{
-		return true;
-	}
-	return false;
+	return m_body->wantsSleeping();
 }
 
 PHY_IPhysicsController*	CcdPhysicsController::GetReplica()
 {
 	//very experimental, shape sharing is not implemented yet.
-	//just support SphereShape/ConeShape for now
+	//just support btSphereShape/ConeShape for now
 
 	CcdConstructionInfo cinfo = m_cci;
 	if (cinfo.m_collisionShape)
 	{
-		switch (cinfo.m_collisionShape->GetShapeType())
+		switch (cinfo.m_collisionShape->getShapeType())
 		{
 		case SPHERE_SHAPE_PROXYTYPE:
 			{
-				SphereShape* orgShape = (SphereShape*)cinfo.m_collisionShape;
-				cinfo.m_collisionShape = new SphereShape(*orgShape);
+				btSphereShape* orgShape = (btSphereShape*)cinfo.m_collisionShape;
+				cinfo.m_collisionShape = new btSphereShape(*orgShape);
 				break;
 			}
 
 			case CONE_SHAPE_PROXYTYPE:
 			{
-				ConeShape* orgShape = (ConeShape*)cinfo.m_collisionShape;
-				cinfo.m_collisionShape = new ConeShape(*orgShape);
+				btConeShape* orgShape = (btConeShape*)cinfo.m_collisionShape;
+				cinfo.m_collisionShape = new btConeShape(*orgShape);
 				break;
 			}
 
@@ -568,13 +572,13 @@ void	DefaultMotionState::getWorldOrientation(float& quatIma0,float& quatIma1,flo
 		
 void	DefaultMotionState::setWorldPosition(float posX,float posY,float posZ)
 {
-	SimdPoint3 pos(posX,posY,posZ);
+	btPoint3 pos(posX,posY,posZ);
 	m_worldTransform.setOrigin( pos );
 }
 
 void	DefaultMotionState::setWorldOrientation(float quatIma0,float quatIma1,float quatIma2,float quatReal)
 {
-	SimdQuaternion orn(quatIma0,quatIma1,quatIma2,quatReal);
+	btQuaternion orn(quatIma0,quatIma1,quatIma2,quatReal);
 	m_worldTransform.setRotation( orn );
 }
 		

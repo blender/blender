@@ -50,6 +50,7 @@ public:
 	
 	virtual	void	SetRollInfluence(float rollInfluence,int wheelIndex) = 0;
 
+	virtual void	SetCoordinateSystem(int rightIndex,int upIndex,int forwardIndex) =0;
 
 };
 

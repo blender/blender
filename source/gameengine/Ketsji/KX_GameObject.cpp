@@ -992,7 +992,7 @@ PyObject* KX_GameObject::PySetCollisionMargin(PyObject* self,
 	{
 		if (m_pPhysicsController1)
 		{
-			m_pPhysicsController1->SetMargin(collisionMargin);
+			m_pPhysicsController1->setMargin(collisionMargin);
 			Py_Return;
 		}
 

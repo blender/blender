@@ -202,10 +202,10 @@ static struct Scene *GetSceneForName2(struct Main *maggie, const STR_String& sce
 
 #ifdef USE_BULLET
 
-#include "IDebugDraw.h"
+#include "LinearMath/btIDebugDraw.h"
 
 
-struct	BlenderDebugDraw : public IDebugDraw
+struct	BlenderDebugDraw : public btIDebugDraw
 {
 	BlenderDebugDraw () :
 		m_debugMode(0) 
@@ -214,7 +214,7 @@ struct	BlenderDebugDraw : public IDebugDraw
 	
 	int m_debugMode;
 
-	virtual void	DrawLine(const SimdVector3& from,const SimdVector3& to,const SimdVector3& color)
+	virtual void	drawLine(const btVector3& from,const btVector3& to,const btVector3& color)
 	{
 		if (m_debugMode >0)
 		{
@@ -226,16 +226,16 @@ struct	BlenderDebugDraw : public IDebugDraw
 		}
 	}
 	
-	virtual void	DrawContactPoint(const SimdVector3& PointOnB,const SimdVector3& normalOnB,float distance,int lifeTime,const SimdVector3& color)
+	virtual void	drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,float distance,int lifeTime,const btVector3& color)
 	{
 		//not yet
 	}
 
-	virtual void	SetDebugMode(int debugMode)
+	virtual void	setDebugMode(int debugMode)
 	{
 		m_debugMode = debugMode;
 	}
-	virtual int		GetDebugMode() const
+	virtual int		getDebugMode() const
 	{
 		return m_debugMode;
 	}

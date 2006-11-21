@@ -19,41 +19,42 @@ subject to the following restrictions:
 #include "PHY_IPhysicsEnvironment.h"
 #include <vector>
 class CcdPhysicsController;
-#include "SimdVector3.h"
-#include "SimdTransform.h"
+#include "LinearMath/btVector3.h"
+#include "LinearMath/btTransform.h"
 
 
 
 
-class TypedConstraint;
-class SimulationIslandManager;
-class CollisionDispatcher;
-class Dispatcher;
-//#include "BroadphaseInterface.h"
+class btTypedConstraint;
+class btSimulationIslandManager;
+class btCollisionDispatcher;
+class btDispatcher;
+//#include "btBroadphaseInterface.h"
 
 //switch on/off new vehicle support
 #define NEW_BULLET_VEHICLE_SUPPORT 1
 
-#include "ConstraintSolver/ContactSolverInfo.h"
+#include "BulletDynamics/ConstraintSolver/btContactSolverInfo.h"
 
 class WrapperVehicle;
-class PersistentManifold;
-class BroadphaseInterface;
-class OverlappingPairCache;
-class IDebugDraw;
+class btPersistentManifold;
+class btBroadphaseInterface;
+class btOverlappingPairCache;
+class btIDebugDraw;
+class PHY_IVehicle;
 
-/// CcdPhysicsEnvironment is experimental mainloop for physics simulation using optional continuous collision detection.
+/// CcdPhysicsEnvironment is an experimental mainloop for physics simulation using optional continuous collision detection.
 /// Physics Environment takes care of stepping the simulation and is a container for physics entities.
 /// It stores rigidbodies,constraints, materials etc.
 /// A derived class may be able to 'construct' entities by loading and/or converting
 class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 {
-	SimdVector3 m_gravity;
+	btVector3 m_gravity;
 	
 	
 
 protected:
-	IDebugDraw*	m_debugDrawer;
+	btIDebugDraw*	m_debugDrawer;
 	//solver iterations
 	int	m_numIterations;
 	
@@ -66,12 +67,11 @@ protected:
 	int	m_profileTimings;
 	bool m_enableSatCollisionDetection;
 
-	ContactSolverInfo	m_solverInfo;
+	btContactSolverInfo	m_solverInfo;
 	
-	SimulationIslandManager*	m_islandManager;
 
 	public:
-		CcdPhysicsEnvironment(Dispatcher* dispatcher=0, OverlappingPairCache* pairCache=0);
+		CcdPhysicsEnvironment(btDispatcher* dispatcher=0, btOverlappingPairCache* pairCache=0);
 
 		virtual		~CcdPhysicsEnvironment();
 
@@ -81,7 +81,7 @@ protected:
 
 		/// Perform an integration step of duration 'timeStep'.
 
-		virtual void setDebugDrawer(IDebugDraw* debugDrawer)
+		virtual void setDebugDrawer(btIDebugDraw* debugDrawer)
 		{
 			m_debugDrawer = debugDrawer;
 		}
@@ -107,7 +107,7 @@ protected:
 		virtual void		endFrame() {};
 		/// Perform an integration step of duration 'timeStep'.
 		virtual	bool		proceedDeltaTime(double curTime,float timeStep);
-		virtual bool		proceedDeltaTimeOneStep(float timeStep);
+//		virtual bool		proceedDeltaTimeOneStep(float timeStep);
 
 		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep){};
 		//returns 0.f if no fixed timestep is used
@@ -126,19 +126,19 @@ protected:
 		//Following the COLLADA physics specification for constraints
 		virtual int			createUniversalD6Constraint(
 		class PHY_IPhysicsController* ctrlRef,class PHY_IPhysicsController* ctrlOther,
-			SimdTransform& localAttachmentFrameRef,
-			SimdTransform& localAttachmentOther,
-			const SimdVector3& linearMinLimits,
-			const SimdVector3& linearMaxLimits,
-			const SimdVector3& angularMinLimits,
-			const SimdVector3& angularMaxLimits
+			btTransform& localAttachmentFrameRef,
+			btTransform& localAttachmentOther,
+			const btVector3& linearMinLimits,
+			const btVector3& linearMaxLimits,
+			const btVector3& angularMinLimits,
+			const btVector3& angularMaxLimits
 			);
 
 
 	    virtual void		removeConstraint(int	constraintid);
 
-		
 		virtual float		getAppliedImpulse(int	constraintid);
+
 
 		virtual void	CallbackTriggers();
 
@@ -153,7 +153,7 @@ protected:
 		}
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 
-		TypedConstraint*	getConstraintById(int constraintId);
+		btTypedConstraint*	getConstraintById(int constraintId);
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 										float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ);
@@ -182,7 +182,7 @@ protected:
 
 		void	removeCcdPhysicsController(CcdPhysicsController* ctrl);
 
-		BroadphaseInterface*	GetBroadphase();
+		btBroadphaseInterface*	getBroadphase();
 
 		
 		
@@ -198,40 +198,21 @@ protected:
 			m_enableSatCollisionDetection = enableSat;
 		}
 
-		void	UpdateAabbs(float	timeStep);
-
+	
 		int	GetNumControllers();
 
 		CcdPhysicsController* GetPhysicsController( int index);
 
 		
 
-		const PersistentManifold*	GetManifold(int index) const;
+		const btPersistentManifold*	GetManifold(int index) const;
 
-		std::vector<TypedConstraint*> m_constraints;
-
+	
 		void	SyncMotionStates(float timeStep);
 
 		
-		class CollisionWorld*	GetCollisionWorld()
-		{
-			return m_collisionWorld;
-		}
-
-		const class CollisionWorld*	GetCollisionWorld() const
-		{
-			return m_collisionWorld;
-		}
-
-		SimulationIslandManager*	GetSimulationIslandManager()
-		{
-			return m_islandManager;
-		}
-
-		const SimulationIslandManager*	GetSimulationIslandManager() const 
-		{
-			return m_islandManager;
-		}
+	
+		class btConstraintSolver*	GetConstraintSolver();
 
 	protected:
 		
@@ -247,9 +228,9 @@ protected:
 		
 		std::vector<WrapperVehicle*>	m_wrapperVehicles;
 
-		class CollisionWorld*	m_collisionWorld;
+		class	btDynamicsWorld*	m_dynamicsWorld;
 		
-		class ConstraintSolver*	m_solver;
+		class btConstraintSolver*	m_solver;
 
 		bool	m_scalingPropagated;
 

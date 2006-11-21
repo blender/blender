@@ -164,7 +164,7 @@ gameobj->SetPhysicsController(this,gameobj->IsDynamic());
 GetSumoObject()->setClientObject(gameobj->getClientInfo());
 }
 
-void	KX_SumoPhysicsController::SetMargin(float collisionMargin)
+void	KX_SumoPhysicsController::setMargin(float collisionMargin)
 {
 	SumoPhysicsController::SetMargin(collisionMargin);
 }

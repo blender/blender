@@ -21,23 +21,16 @@ subject to the following restrictions:
 
 ///	PHY_IPhysicsController is the abstract simplified Interface to a physical object.
 ///	It contains the IMotionState and IDeformableMesh Interfaces.
-#include "SimdVector3.h"
-#include "SimdScalar.h"	
-#include "SimdMatrix3x3.h"
-#include "SimdTransform.h"
-#include "Dynamics/RigidBody.h"
+#include "btBulletDynamicsCommon.h"
 
 #include "PHY_IMotionState.h"
-
-#include "BroadphaseCollision/BroadphaseProxy.h" //for CollisionShape access
-class CollisionShape;
 
 extern float gDeactivationTime;
 extern float gLinearSleepingTreshold;
 extern float gAngularSleepingTreshold;
 extern bool gDisableDeactivation;
 class CcdPhysicsEnvironment;
-
+class btMotionState;
 
 
 
@@ -46,7 +39,7 @@ struct CcdConstructionInfo
 
 	///CollisionFilterGroups provides some optional usage of basic collision filtering
 	///this is done during broadphase, so very early in the pipeline
-	///more advanced collision filtering should be done in CollisionDispatcher::NeedsCollision
+	///more advanced collision filtering should be done in btCollisionDispatcher::NeedsCollision
 	enum CollisionFilterGroups
 	{
 	        DefaultFilter = 1,
@@ -74,46 +67,47 @@ struct CcdConstructionInfo
 	{
 	}
 
-	SimdVector3	m_localInertiaTensor;
-	SimdVector3	m_gravity;
-	SimdVector3	m_scaling;
-	SimdScalar	m_mass;
-	SimdScalar	m_restitution;
-	SimdScalar	m_friction;
-	SimdScalar	m_linearDamping;
-	SimdScalar	m_angularDamping;
+	btVector3	m_localInertiaTensor;
+	btVector3	m_gravity;
+	btVector3	m_scaling;
+	btScalar	m_mass;
+	btScalar	m_restitution;
+	btScalar	m_friction;
+	btScalar	m_linearDamping;
+	btScalar	m_angularDamping;
 	int			m_collisionFlags;
 
 	///optional use of collision group/mask:
 	///only collision with object goups that match the collision mask.
 	///this is very basic early out. advanced collision filtering should be
-	///done in the CollisionDispatcher::NeedsCollision and NeedsResponse
+	///done in the btCollisionDispatcher::NeedsCollision and NeedsResponse
 	///both values default to 1
 	short int	m_collisionFilterGroup;
 	short int	m_collisionFilterMask;
 
 
-	CollisionShape*			m_collisionShape;
+	btCollisionShape*			m_collisionShape;
 	class	PHY_IMotionState*			m_MotionState;
-
+	
 	CcdPhysicsEnvironment*	m_physicsEnv; //needed for self-replication
 	float	m_inertiaFactor;//tweak the inertia (hooked up to Blender 'formfactor'
 };
 
 
-class RigidBody;
+class btRigidBody;
 
 ///CcdPhysicsController is a physics object that supports continuous collision detection and time of impact based physics resolution.
 class CcdPhysicsController : public PHY_IPhysicsController	
 {
-	RigidBody* m_body;
+	btRigidBody* m_body;
 	class	PHY_IMotionState*			m_MotionState;
-	
+	btMotionState* 	m_bulletMotionState;
+
 
 	void*		m_newClientInfo;
 
 	CcdConstructionInfo	m_cci;//needed for replication
-	void GetWorldOrientation(SimdMatrix3x3& mat);
+	void GetWorldOrientation(btMatrix3x3& mat);
 
 	void CreateRigidbody();
 
@@ -127,10 +121,10 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		virtual ~CcdPhysicsController();
 
 
-		RigidBody* GetRigidBody() { return m_body;}
+		btRigidBody* GetRigidBody() { return m_body;}
 
-		CollisionShape*	GetCollisionShape() { 
-			return m_body->GetCollisionShape();
+		btCollisionShape*	GetCollisionShape() { 
+			return m_body->getCollisionShape();
 		}
 		////////////////////////////////////
 		// PHY_IPhysicsController interface
@@ -206,9 +200,9 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 		void	UpdateDeactivation(float timeStep);
 
-		static SimdTransform	GetTransformFromMotionState(PHY_IMotionState* motionState);
+		static btTransform	GetTransformFromMotionState(PHY_IMotionState* motionState);
 
-		void	SetAabb(const SimdVector3& aabbMin,const SimdVector3& aabbMax);
+		void	setAabb(const btVector3& aabbMin,const btVector3& aabbMax);
 
 
 		class	PHY_IMotionState*			GetMotionState()
@@ -227,7 +221,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 
 
-///DefaultMotionState implements standard motionstate, using SimdTransform
+///DefaultMotionState implements standard motionstate, using btTransform
 class	DefaultMotionState : public PHY_IMotionState
 
 {
@@ -245,8 +239,8 @@ class	DefaultMotionState : public PHY_IMotionState
 		
 		virtual	void	calculateWorldTransformations();
 		
-		SimdTransform	m_worldTransform;
-		SimdVector3		m_localScaling;
+		btTransform	m_worldTransform;
+		btVector3		m_localScaling;
 
 };
 

@@ -5,8 +5,7 @@
 
 #include "KX_BulletPhysicsController.h"
 
-#include "Dynamics/RigidBody.h"
-
+#include "btBulletDynamicsCommon.h"
 #include "SG_Spatial.h"
 
 #include "KX_GameObject.h"
@@ -59,7 +58,7 @@ void	KX_BulletPhysicsController::SetObject (SG_IObject* object)
 
 }
 
-void	KX_BulletPhysicsController::SetMargin (float collisionMargin)
+void	KX_BulletPhysicsController::setMargin (float collisionMargin)
 {
 	CcdPhysicsController::SetMargin(collisionMargin);
 }
@@ -144,12 +143,12 @@ void	KX_BulletPhysicsController::setRigidBody(bool rigid)
 
 void	KX_BulletPhysicsController::SuspendDynamics()
 {
-	GetRigidBody()->SetActivationState(DISABLE_SIMULATION);
+	GetRigidBody()->setActivationState(DISABLE_SIMULATION);
 
 }
 void	KX_BulletPhysicsController::RestoreDynamics()
 {
-	GetRigidBody()->ForceActivationState(ACTIVE_TAG);
+	GetRigidBody()->forceActivationState(ACTIVE_TAG);
 }
 
 SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
