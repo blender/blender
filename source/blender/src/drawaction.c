@@ -99,7 +99,6 @@ static BezTriple **icu_to_keylist(IpoCurve *icu, int flags, int *totvert);
 void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, int flags, float ypos);
 
 /* implementation ------------------------------------------------------ */
-extern short showsliders; /* editaction .c */
 extern short ACTWIDTH;
 
 static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
@@ -139,24 +138,24 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 
-	if (!showsliders) {
+	if (!(G.saction->flag & SACTION_SLIDERS)) {
 		ACTWIDTH = NAMEWIDTH;
-		but=uiDefIconButS(block, TOG, B_REDR, 
+		but=uiDefIconButBitI(block, TOG, SACTION_SLIDERS, B_REDR, 
 					  ICON_DISCLOSURE_TRI_RIGHT,
 					  NAMEWIDTH - XIC - 5, y + CHANNELHEIGHT,
 					  XIC,YIC-2,
-					  &(showsliders), 0, 0, 0, 0, 
+					  &(G.saction->flag), 0, 0, 0, 0, 
 					  "Show action window sliders");
 		// no hilite, the winmatrix is not correct later on...
 		uiButSetFlag(but, UI_NO_HILITE);
 
 	}
 	else {
-		but= uiDefIconButS(block, TOG, B_REDR, 
+		but= uiDefIconButBitI(block, TOG, SACTION_SLIDERS, B_REDR, 
 					  ICON_DISCLOSURE_TRI_DOWN,
 					  NAMEWIDTH - XIC - 5, y + CHANNELHEIGHT,
 					  XIC,YIC-2,
-					  &(showsliders), 0, 0, 0, 0, 
+					  &(G.saction->flag), 0, 0, 0, 0, 
 					  "Hide action window sliders");
 		// no hilite, the winmatrix is not correct later on...
 		uiButSetFlag(but, UI_NO_HILITE);
@@ -636,7 +635,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	 * is set to an appropriate value based on whether sliders
 	 * are showing of not
 	 */
-	if (key && showsliders) ACTWIDTH = NAMEWIDTH + SLIDERWIDTH;
+	if (key && (G.saction->flag & SACTION_SLIDERS)) ACTWIDTH = NAMEWIDTH + SLIDERWIDTH;
 	else ACTWIDTH = NAMEWIDTH;
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;

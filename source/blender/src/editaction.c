@@ -105,8 +105,6 @@ void down_sel_action();
 static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
 
 /* Implementation */
-
-short showsliders = 0;
 short ACTWIDTH = NAMEWIDTH;
 
 /* messy call... */
