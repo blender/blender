@@ -2323,6 +2323,18 @@ static void direct_link_material(FileData *fd, Material *ma)
 
 /* ************ READ MESH ***************** */
 
+static void lib_link_mtface(FileData *fd, Mesh *me, MTFace *mtface, int totface)
+{
+	MTFace *tf= mtface;
+	int i;
+
+	for (i=0; i<totface; i++, tf++) {
+		tf->tpage= newlibadr(fd, me->id.lib, tf->tpage);
+		if(tf->tpage && tf->tpage->id.us==0)
+			tf->tpage->id.us= 1;
+	}
+}
+
 static void lib_link_mesh(FileData *fd, Main *main)
 {
 	Mesh *me;
@@ -2348,18 +2360,11 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			me->key= newlibadr_us(fd, me->id.lib, me->key);
 			me->texcomesh= newlibadr_us(fd, me->id.lib, me->texcomesh);
 
-			for (i=0; i<me->fdata.totlayer; i++) {
+			for(i=0; i<me->fdata.totlayer; i++) {
 				CustomDataLayer *layer = &me->fdata.layers[i];
 
-				if (layer->type == CD_MTFACE) {
-					MTFace *tf = layer->data;
-
-					for (i=0; i<me->totface; i++, tf++) {
-						tf->tpage= newlibadr(fd, me->id.lib, tf->tpage);
-						if(tf->tpage && tf->tpage->id.us==0)
-							tf->tpage->id.us= 1;
-					}
-				}
+				if(layer->type == CD_MTFACE)
+					lib_link_mtface(fd, me, layer->data, me->totface);
 			}
 			me->id.flag -= LIB_NEEDLINK;
 		}
@@ -6407,6 +6412,7 @@ static void expand_curve(FileData *fd, Main *mainvar, Curve *cu)
 static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 {
 	CustomDataLayer *layer;
+	MTFace *mtf;
 	TFace *tf;
 	int a, i;
 	
@@ -6417,12 +6423,22 @@ static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 	expand_doit(fd, mainvar, me->key);
 	expand_doit(fd, mainvar, me->texcomesh);
 
+	if(me->tface) {
+		tf= me->tface;
+		for(i=0; i<me->totface; i++, tf++)
+			if(tf->tpage)
+				expand_doit(fd, mainvar, tf->tpage);
+	}
+
 	for(a=0; a<me->fdata.totlayer; a++) {
 		layer= &me->fdata.layers[a];
 
-		for(i=0, tf=layer->data; i<me->totface; i++, tf++)
-			if(tf->tpage)
-				expand_doit(fd, mainvar, tf->tpage);
+		if(layer->type == CD_MTFACE) {
+			mtf= (MTFace*)layer->data;
+			for(i=0; i<me->totface; i++, mtf++)
+				if(mtf->tpage)
+					expand_doit(fd, mainvar, mtf->tpage);
+		}
 	}
 }
 
