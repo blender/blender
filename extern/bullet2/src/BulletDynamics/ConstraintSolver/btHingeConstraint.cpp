@@ -200,6 +200,7 @@ void	btHingeConstraint::solveConstraint(btScalar	timeStep)
 	btScalar damping = 1.f;
 
 //linear part
+	if (!m_angularOnly)
 	{
 		for (int i=0;i<3;i++)
 		{		
@@ -226,7 +227,7 @@ void	btHingeConstraint::solveConstraint(btScalar	timeStep)
 		}
 	}
 
-	if (!m_angularOnly)
+	
 	{
 		///solve angular part
 
