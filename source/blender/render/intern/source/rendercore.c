@@ -90,7 +90,7 @@ extern struct Render R;
 void calc_view_vector(float *view, float x, float y)
 {
 
-	view[2]= -R.clipsta;
+	view[2]= -ABS(R.clipsta);
 	
 	if(R.r.mode & R_ORTHO) {
 		view[0]= view[1]= 0.0f;
