@@ -195,6 +195,67 @@ void do_layer_buttons(short event)
 	allqueue(REDRAWNLA, 0);	
 }
 
+static void do_view3d_view_camerasmenu(void *arg, int event)
+{
+	Base *base;
+	int i=1;
+	
+	if (event == 1) {
+		/* Set Active Object as Active Camera */
+		/* ugly hack alert */
+		G.qual |= LR_CTRLKEY;
+		persptoetsen(PAD0);
+		G.qual &= ~LR_CTRLKEY;
+	} else {
+		for( base = FIRSTBASE; base; base = base->next ) {
+			if (base->object->type == OB_CAMERA) {
+				i++;
+				
+				if (event==i) {
+					G.vd->camera= base->object;
+					handle_view3d_lock();
+					
+					G.vd->persp= 2;
+					G.vd->view= 0;
+				}
+			}
+		}
+	}
+	
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_view_camerasmenu(void *arg_unused)
+{
+	Base *base;
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+	int i=1;
+	char camname[48];
+	
+	block= uiNewBlock(&curarea->uiblocks, "view3d_view_camerasmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_view_camerasmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Active Object as Active Camera|Ctrl NumPad 0",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 140, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	for( base = FIRSTBASE; base; base = base->next ) {
+		if (base->object->type == OB_CAMERA) {
+			i++;
+			
+			strcpy(camname, base->object->id.name+2);
+			if (base->object == G.scene->camera) strcat(camname, " (Active)");
+			
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, camname,	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,  i, "");
+		}
+	}
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
+	return block;
+}
+
 static void do_view3d_view_cameracontrolsmenu(void *arg, int event)
 {
 	switch(event) {
@@ -536,6 +597,8 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Front|NumPad 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	if (G.vd->viewbut == 3) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Side|NumPad 3",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Side|NumPad 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	
+	uiDefIconTextBlockBut(block, view3d_view_camerasmenu, NULL, ICON_RIGHTARROW_THIN, "Cameras", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
