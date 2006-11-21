@@ -91,5 +91,5 @@ collision_src = ["BulletCollision/BroadphaseCollision/btAxisSweep3.cpp",
 incs = '. BulletCollision BulletDynamics LinearMath'
 
 env.BlenderLib ( libname = 'extern_bullet2linmath', sources=linearmath_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[20, 170], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2dynamics', sources=bulletdyn_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[20, 170], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2dynamics', sources=bulletdyn_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[19, 170], compileflags=cflags )
 env.BlenderLib ( libname = 'extern_bullet2collision', sources=collision_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[20, 170], compileflags=cflags )
