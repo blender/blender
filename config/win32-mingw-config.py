@@ -83,8 +83,8 @@ BF_ODE_INC = BF_ODE + '/include'
 BF_ODE_LIB = BF_ODE + '/lib/libode.a'
 
 WITH_BF_BULLET = 'true'
-BF_BULLET = '#extern/bullet'
-BF_BULLET_INC = '${BF_BULLET}/LinearMath ${BF_BULLET}/BulletDynamics ${BF_BULLET}/Bullet'
+BF_BULLET = '#extern/bullet2/src'
+BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
 
 BF_SOLID = '#extern/solid'
