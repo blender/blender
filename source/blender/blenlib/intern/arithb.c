@@ -2418,11 +2418,13 @@ float NormalizedVecAngle2(float *v1, float *v2)
 {
 	/* this is the same as acos(Inpf(v1, v2)), but more accurate */
 	if (Inpf(v1, v2) < 0.0f) {
-		v2[0]= -v2[0];
-		v2[1]= -v2[1];
-		v2[2]= -v2[2];
+		float vec[3];
+		
+		vec[0]= -v2[0];
+		vec[1]= -v2[1];
+		vec[2]= -v2[2];
 
-		return (float)M_PI - 2.0f*saasin(VecLenf(v2, v1)/2.0f);
+		return (float)M_PI - 2.0f*saasin(VecLenf(vec, v1)/2.0f);
 	}
 	else
 		return 2.0f*saasin(VecLenf(v2, v1)/2.0);

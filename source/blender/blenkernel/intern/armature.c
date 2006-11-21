@@ -841,7 +841,8 @@ void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[]
   *************************************************************************** */
 /*  Computes vector and roll based on a rotation. "mat" must
      contain only a rotation, and no scaling. */ 
-void mat3_to_vec_roll(float mat[][3], float *vec, float *roll) {
+void mat3_to_vec_roll(float mat[][3], float *vec, float *roll) 
+{
      if (vec)
          VecCopyf(vec, mat[1]);
 
@@ -873,8 +874,8 @@ void vec_roll_to_mat3(float *vec, float roll, float mat[][3])
 	if (Inpf(axis,axis) > 0.0000000000001) {
 		/* if nor is *not* a multiple of target ... */
 		Normalise (axis);
-		theta=(float) acos (Inpf (target,nor));
-		// theta= NormalizedVecAngle2(target, nor);
+		
+		theta= NormalizedVecAngle2(target, nor);
 		
 		/*	Make Bone matrix*/
 		VecRotToMat3(axis, theta, bMatrix);
