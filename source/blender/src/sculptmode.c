@@ -198,6 +198,8 @@ void sculptmode_free_vertexusers(struct Scene *sce)
 
 typedef struct SculptUndoStep {
 	struct SculptUndoStep *next, *prev;
+	
+	SculptUndoType type;
 	char *str;
 
 	MVert *verts;
@@ -206,7 +208,6 @@ typedef struct SculptUndoStep {
 	MFace *faces;
 	int totvert, totedge, totface;
 	
-	int pv_stored;
 	PartialVisibility *pv;
 } SculptUndoStep;
 typedef struct SculptUndo {
@@ -214,10 +215,39 @@ typedef struct SculptUndo {
 	SculptUndoStep *cur;
 } SculptUndo;
 
+void sculptmode_undo_debug_print_type(SculptUndoType t)
+{
+	if(t & SUNDO_VERT) printf("VERT,");
+	if(t & SUNDO_TOPO) printf("TOPO,");
+	if(t & SUNDO_PVIS) printf("PVIS,");
+}
+
+void sculptmode_undo_push_debug_print()
+{
+	SculptUndo *su= G.scene->sculptdata.undo;
+	
+	if(su) {
+		int i;
+		SculptUndoStep *sus;
+		
+		for(i=1, sus= su->steps.first; sus; ++i, sus= sus->next) {
+			printf("%d(%p): ",i,sus);
+			if(sus == su->cur) printf("A");
+			else printf("-");
+			printf(" type(");
+			sculptmode_undo_debug_print_type(sus->type);
+			printf(") v(%p) f/e/vc/fc/ec(%p,%p,%d,%d,%d) pv(%p) name(%s)\n",sus->verts,sus->faces,sus->edges,sus->totvert,sus->totface,sus->totedge,sus->pv,sus->str);
+		}
+	}
+	else
+		printf("No undo data");
+	printf("\n");
+}
+
 void sculptmode_undo_init()
 {
 	G.scene->sculptdata.undo= MEM_callocN(sizeof(SculptUndo), "Sculpt Undo");
-	sculptmode_undo_push("Original", 1, 1, 1);
+	sculptmode_undo_push("Original", SUNDO_VERT|SUNDO_TOPO|SUNDO_PVIS);
 }
 
 void sculptmode_undo_free_link(SculptUndoStep *sus)
@@ -228,21 +258,16 @@ void sculptmode_undo_free_link(SculptUndoStep *sus)
 		MEM_freeN(sus->edges);
 	if(sus->faces)
 		MEM_freeN(sus->faces);
-	if(sus->pv) {
-		MEM_freeN(sus->pv->vert_map);
-		MEM_freeN(sus->pv->edge_map);
-		MEM_freeN(sus->pv->old_faces);
-		MEM_freeN(sus->pv->old_edges);
-		MEM_freeN(sus->pv);
-	}
+	if(sus->pv)
+		sculptmode_pmv_free(sus->pv);
 }
 
 void sculptmode_undo_pull_chopped(SculptUndoStep *sus)
 {
 	SculptUndoStep *f;
 	
-	for(f= sus; f && !(sus->edges || sus->faces); f= f->prev)
-		if(f->edges || f->faces) {
+	for(f= sus; f && !(sus->type & SUNDO_TOPO); f= f->prev)
+		if(f->type & SUNDO_TOPO) {
 			sus->edges= f->edges;
 			f->edges= NULL;
 			sus->faces= f->faces;
@@ -250,14 +275,15 @@ void sculptmode_undo_pull_chopped(SculptUndoStep *sus)
 			sus->totvert= f->totvert;
 			sus->totedge= f->totedge;
 			sus->totface= f->totface;
+			sus->type |= SUNDO_TOPO;
 			break;
 		}
 	
-	for(f= sus; f && !sus->pv_stored; f= f->prev)
-		if(f->pv_stored) {
+	for(f= sus; f && !(sus->type & SUNDO_PVIS); f= f->prev)
+		if(f->type & SUNDO_PVIS) {
 			sus->pv= f->pv;
 			f->pv= NULL;
-			sus->pv_stored= 1;
+			sus->type |= SUNDO_PVIS;
 			break;
 		}
 }
@@ -272,8 +298,7 @@ void sculptmode_undo_free(Scene *sce)
 	MEM_freeN(sce->sculptdata.undo);
 }
 
-PartialVisibility *sculptmode_copy_pmv(PartialVisibility *);
-void sculptmode_undo_push(char *str, int verts, int fe, int pv)
+void sculptmode_undo_push(char *str, SculptUndoType type)
 {
 	int cnt= 7;
 	SculptUndo *su= G.scene->sculptdata.undo;
@@ -288,18 +313,18 @@ void sculptmode_undo_push(char *str, int verts, int fe, int pv)
 	}
 
 	/* Initialize undo data */
+	n->type= type;
 	n->str= str;
-	if(verts)
+	if(type & SUNDO_VERT)
 		n->verts= MEM_dupallocN(me->mvert);
-	if(fe) {
+	if(type & SUNDO_TOPO) {
 		n->edges= MEM_dupallocN(me->medge);
 		n->faces= MEM_dupallocN(me->mface);
 		n->totvert= me->totvert;
 		n->totedge= me->totedge;
 		n->totface= me->totface;
 	}
-	if(pv) {
-		n->pv_stored= 1;
+	if(type & SUNDO_PVIS) {
 		if(me->pv)
 			n->pv= sculptmode_copy_pmv(me->pv);
 	}
@@ -329,7 +354,8 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 	Mesh *me= get_mesh(sd->active_ob);
 	SculptUndoStep *oldcur= sd->undo->cur, *sus;
 	Object *ob= sd->active_ob;
-	int forward= 0, do_fe, do_pv;
+	int forward= 0;
+	SculptUndoType type= SUNDO_VERT;
 	
 	/* No update if undo step hasn't changed */
 	if(newcur == oldcur) return;
@@ -347,24 +373,23 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 	}
 	
 	/* Check if faces/edges have been modified between oldcur and newcur */
-	do_fe= 0;
 	for(sus= forward?oldcur->next:newcur->next;
 	    sus && sus != (forward?newcur->next:oldcur->next); sus= sus->next)
-		if(sus->edges || sus->faces) {
-			do_fe= 1;
+		if(sus->type & SUNDO_TOPO) {
+			type |= SUNDO_TOPO;
 			break;
 		}
-	do_pv= 0;
+		
 	for(sus= forward?oldcur->next:newcur->next;
 	    sus && sus != (forward?newcur->next:oldcur->next); sus= sus->next)
-		if(sus->pv_stored) {
-			do_pv= 1;
+		if(sus->type & SUNDO_PVIS) {
+			type |= SUNDO_PVIS;
 			break;
 		}
 	
-	if(do_fe)
+	if(type & SUNDO_TOPO)
 		for(sus= newcur; sus; sus= sus->prev) {
-			if(sus->edges || sus->faces) {
+			if(sus->type & SUNDO_TOPO) {
 				CustomData_free_layer(&me->edata, CD_MEDGE, me->totedge);
 				CustomData_free_layer(&me->fdata, CD_MFACE, me->totface);
 
@@ -380,21 +405,17 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 			}
 		}
 	
-	if(do_pv)
+	if(type & SUNDO_PVIS)
 		for(sus= newcur; sus; sus= sus->prev)
-			if(sus->pv_stored) {
-				if(me->pv) {
-					MEM_freeN(me->pv->vert_map);
-					MEM_freeN(me->pv->edge_map);
-					MEM_freeN(me->pv->old_faces);
-					MEM_freeN(me->pv->old_edges);
-					MEM_freeN(me->pv);
-				}
+			if(sus->type & SUNDO_PVIS) {
+				if(me->pv)
+					sculptmode_pmv_free(me->pv);
 				me->pv= NULL;
-				if(newcur->pv)
-					me->pv= sculptmode_copy_pmv(newcur->pv);
+				if(sus->pv)
+					me->pv= sculptmode_copy_pmv(sus->pv);
+				break;
 			}
-	
+
 	sd->undo->cur= newcur;
 	
 	set_sculpt_object(ob);
@@ -1656,19 +1677,19 @@ void sculpt()
 
 	switch(G.scene->sculptdata.brush_type) {
 	case DRAW_BRUSH:
-		sculptmode_undo_push("Draw Brush", 1,0,0); break;
+		sculptmode_undo_push("Draw Brush", SUNDO_VERT); break;
 	case SMOOTH_BRUSH:
-		sculptmode_undo_push("Smooth Brush", 1,0,0); break;
+		sculptmode_undo_push("Smooth Brush", SUNDO_VERT); break;
 	case PINCH_BRUSH:
-		sculptmode_undo_push("Pinch Brush", 1,0,0); break;
+		sculptmode_undo_push("Pinch Brush", SUNDO_VERT); break;
 	case INFLATE_BRUSH:
-		sculptmode_undo_push("Inflate Brush", 1,0,0); break;
+		sculptmode_undo_push("Inflate Brush", SUNDO_VERT); break;
 	case GRAB_BRUSH:
-		sculptmode_undo_push("Grab Brush", 1,0,0); break;
+		sculptmode_undo_push("Grab Brush", SUNDO_VERT); break;
 	case LAYER_BRUSH:
-		sculptmode_undo_push("Layer Brush", 1,0,0); break;
+		sculptmode_undo_push("Layer Brush", SUNDO_VERT); break;
 	default:
-		sculptmode_undo_push("Sculpting", 1,0,0); break;
+		sculptmode_undo_push("Sculpting", SUNDO_VERT); break;
 	}
 
 	if(G.vd->depths) G.vd->depths->damaged= 1;
@@ -1716,6 +1737,15 @@ PartialVisibility *sculptmode_copy_pmv(PartialVisibility *pmv)
 	n->old_edges= MEM_dupallocN(pmv->old_edges);
 	n->old_faces= MEM_dupallocN(pmv->old_faces);
 	return n;
+}
+
+void sculptmode_pmv_free(PartialVisibility *pv)
+{
+	MEM_freeN(pv->vert_map);
+	MEM_freeN(pv->edge_map);
+	MEM_freeN(pv->old_faces);
+	MEM_freeN(pv->old_edges);
+	MEM_freeN(pv);
 }
 
 void sculptmode_revert_pmv(Mesh *me)
@@ -1984,7 +2014,7 @@ void sculptmode_pmv(int mode)
 
 	scrarea_do_windraw(curarea);
 
-	sculptmode_undo_push("Partial mesh hide", 1, 1, 1);
+	sculptmode_undo_push("Partial mesh hide", SUNDO_VERT|SUNDO_TOPO|SUNDO_PVIS);
 
 	waitcursor(0);
 }

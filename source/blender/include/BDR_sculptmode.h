@@ -34,6 +34,7 @@ struct uiBlock;
 struct BrushData;
 struct Mesh;
 struct Object;
+struct PartialVisibility;
 struct Scene;
 struct ScrArea;
 
@@ -57,7 +58,12 @@ void sculptmode_init(struct Scene *);
 void sculptmode_free_all(struct Scene *);
 
 /* Undo */
-void sculptmode_undo_push(char *str, int verts, int pmv, int fe);
+typedef enum SculptUndoType {
+	SUNDO_VERT= 1, /* Vertex locations modified */
+	SUNDO_TOPO= 2, /* Any face/edge change, different # of verts, etc. */
+	SUNDO_PVIS= 4  /* Mesh.pv changed */
+} SculptUndoType;
+void sculptmode_undo_push(char *str, SculptUndoType type);
 void sculptmode_undo();
 void sculptmode_redo();
 void sculptmode_undo_menu();
@@ -79,6 +85,8 @@ void set_sculpt_object(struct Object *ob);
 void set_sculptmode();
 
 /* Partial Mesh Visibility */
+struct PartialVisibility *sculptmode_copy_pmv(struct PartialVisibility *);
+void sculptmode_pmv_free(struct PartialVisibility *);
 void sculptmode_revert_pmv(struct Mesh *me);
 void sculptmode_pmv_off(struct Mesh *me);
 void sculptmode_pmv(int mode);
