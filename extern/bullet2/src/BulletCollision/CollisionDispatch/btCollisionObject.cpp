@@ -41,9 +41,9 @@ void btCollisionObject::forceActivationState(int newState)
 	m_activationState1 = newState;
 }
 
-void btCollisionObject::activate()
+void btCollisionObject::activate(bool forceActivation)
 {
-	if (!(m_collisionFlags & (CF_STATIC_OBJECT|CF_KINEMATIC_OBJECT)))
+	if (forceActivation || !(m_collisionFlags & (CF_STATIC_OBJECT|CF_KINEMATIC_OBJECT)))
 	{
 		setActivationState(ACTIVE_TAG);
 		m_deactivationTime = 0.f;

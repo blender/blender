@@ -176,7 +176,8 @@ void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,
 				}
 			}
 		}
-		
+			
+
 		if (allSleeping)
 		{
 			int idx;
@@ -239,14 +240,15 @@ void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,
 		 if (((colObj0) && colObj0->getActivationState() != ISLAND_SLEEPING) ||
 			((colObj1) && colObj1->getActivationState() != ISLAND_SLEEPING))
 		{
+		
 			//kinematic objects don't merge islands, but wake up all connected objects
-			if (colObj0->isKinematicObject() && colObj0->getActivationState() != ISLAND_SLEEPING)
+			if (colObj0->isStaticOrKinematicObject() && colObj0->getActivationState() != ISLAND_SLEEPING)
 			{
-				colObj1->setActivationState(ACTIVE_TAG);
+				colObj1->activate();
 			}
-			if (colObj1->isKinematicObject() && colObj1->getActivationState() != ISLAND_SLEEPING)
+			if (colObj1->isStaticOrKinematicObject() && colObj1->getActivationState() != ISLAND_SLEEPING)
 			{
-				colObj0->setActivationState(ACTIVE_TAG);
+				colObj0->activate();
 			}
 
 			//filtering for response

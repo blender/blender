@@ -368,8 +368,14 @@ void	btDiscreteDynamicsWorld::updateActivationState(float timeStep)
 
 			if (body->wantsSleeping())
 			{
-				if (body->getActivationState() == ACTIVE_TAG)
-					body->setActivationState( WANTS_DEACTIVATION );
+				if (body->isStaticOrKinematicObject())
+				{
+					body->setActivationState(ISLAND_SLEEPING);
+				} else
+				{
+					if (body->getActivationState() == ACTIVE_TAG)
+						body->setActivationState( WANTS_DEACTIVATION );
+				}
 			} else
 			{
 				if (body->getActivationState() != DISABLE_DEACTIVATION)

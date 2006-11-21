@@ -148,7 +148,7 @@ public:
 
 	void forceActivationState(int newState);
 
-	void	activate();
+	void	activate(bool forceActivation = false);
 
 	inline bool isActive() const
 	{
