@@ -60,7 +60,7 @@ BF_FTGL = '#extern/bFTGL'
 BF_FTGL_INC = '${BF_FTGL}/include'
 BF_FTGL_LIB = 'extern_ftgl'
 
-WITH_BF_GAMEENGINE='true'
+WITH_BF_GAMEENGINE='false'
 
 WITH_BF_ODE = 'false'
 BF_ODE = LIBDIR + '/ode'

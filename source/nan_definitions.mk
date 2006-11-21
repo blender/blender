@@ -34,6 +34,9 @@
 
 sinclude ../user-def.mk
 
+#game engine temporarily disabled: need to upgrade to Bullet 2.x
+export NAN_NO_KETSJI=true
+ 
 ifndef CONFIG_GUESS
   ifeq (debug, $(findstring debug, $(MAKECMDGOALS)))
     ifeq (all, $(findstring all, $(MAKECMDGOALS)))
