@@ -27,6 +27,18 @@ m_height(height)
 	m_sinAngle = (m_radius / sqrt(m_radius * m_radius + m_height * m_height));
 }
 
+btConeShapeZ::btConeShapeZ (btScalar radius,btScalar height):
+btConeShape(radius,height)
+{
+	setConeUpIndex(2);
+}
+
+btConeShapeX::btConeShapeX (btScalar radius,btScalar height):
+btConeShape(radius,height)
+{
+	setConeUpIndex(0);
+}
+
 ///choose upAxis index
 void	btConeShape::setConeUpIndex(int upIndex)
 {
