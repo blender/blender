@@ -371,20 +371,20 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
     if env['WITH_BF_ICONV']:
         dllsources += ['${LCGDIR}/iconv/lib/iconv.dll']
     if env['WITH_BF_FFMPEG']:
-		dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-51.dll',
-						'${LCGDIR}/ffmpeg/lib/avformat-51.dll',
-						'${LCGDIR}/ffmpeg/lib/avutil-49.dll',
-						'${LCGDIR}/ffmpeg/lib/libdts.dll',
-						'${LCGDIR}/ffmpeg/lib/libfaac.dll',
-						'${LCGDIR}/ffmpeg/lib/libfaad.dll',
-						'${LCGDIR}/ffmpeg/lib/libgsm.dll',
-						'${LCGDIR}/ffmpeg/lib/libmp3lame-0.dll',
-						'${LCGDIR}/ffmpeg/lib/libogg-0.dll',
-						'${LCGDIR}/ffmpeg/lib/libvorbis-0.dll',
-						'${LCGDIR}/ffmpeg/lib/libvorbisenc-2.dll',
-						'${LCGDIR}/ffmpeg/lib/libx264-54.dll',
-						'${LCGDIR}/ffmpeg/lib/postproc-51.dll',
-						'${LCGDIR}/ffmpeg/lib/xvidcore.dll']
+        dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-51.dll',
+                        '${LCGDIR}/ffmpeg/lib/avformat-51.dll',
+                        '${LCGDIR}/ffmpeg/lib/avutil-49.dll',
+                        '${LCGDIR}/ffmpeg/lib/libdts.dll',
+                        '${LCGDIR}/ffmpeg/lib/libfaac.dll',
+                        '${LCGDIR}/ffmpeg/lib/libfaad.dll',
+                        '${LCGDIR}/ffmpeg/lib/libgsm.dll',
+                        '${LCGDIR}/ffmpeg/lib/libmp3lame-0.dll',
+                        '${LCGDIR}/ffmpeg/lib/libogg-0.dll',
+                        '${LCGDIR}/ffmpeg/lib/libvorbis-0.dll',
+                        '${LCGDIR}/ffmpeg/lib/libvorbisenc-2.dll',
+                        '${LCGDIR}/ffmpeg/lib/libx264-54.dll',
+                        '${LCGDIR}/ffmpeg/lib/postproc-51.dll',
+                        '${LCGDIR}/ffmpeg/lib/xvidcore.dll']
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
     allinstall += windlls
 
