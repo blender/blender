@@ -373,10 +373,10 @@ void calculate_uv_map(unsigned short mapmode)
 		case B_UVAUTO_BOUNDS8: fac = 0.125; break;
 		}
 
-		min[0]= min[1]= 1.0;
-		max[0]= max[1]= 0.0;
+		min[0]= min[1]= 10000000.0;
+		max[0]= max[1]= -10000000.0;
 
-		uv_calc_center_vector(cent, ob, me);
+		cent[0] = cent[1] = cent[2] = 0.0; 
 		uv_calc_map_matrix(rotatematrix, ob, upangledeg, sideangledeg, 1.0f);
 			
 		tface= me->mtface;
