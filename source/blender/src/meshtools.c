@@ -268,7 +268,7 @@ int join_mesh(void)
 				me= base->object->data;
 				
 				if(me->totvert) {
-					CustomData_merge(&me->fdata, &fdata, CD_MASK_MESH, CD_DEFAULT, totface);
+					CustomData_merge(&me->vdata, &vdata, CD_MASK_MESH, CD_DEFAULT, totvert);
 					CustomData_copy_data(&me->vdata, &vdata, 0, vertofs, me->totvert);
 					
 					dvert= CustomData_get(&vdata, vertofs, CD_MDEFORMVERT);
@@ -321,7 +321,7 @@ int join_mesh(void)
 					}
 
 					CustomData_merge(&me->fdata, &fdata, CD_MASK_MESH, CD_DEFAULT, totface);
-					CustomData_copy_data(&me->fdata, &fdata, 0, vertofs, me->totface);
+					CustomData_copy_data(&me->fdata, &fdata, 0, faceofs, me->totface);
 
 					for(a=0; a<me->totface; a++, mface++) {
 						mface->v1+= vertofs;
@@ -337,7 +337,7 @@ int join_mesh(void)
 				
 				if(me->totedge) {
 					CustomData_merge(&me->edata, &edata, CD_MASK_MESH, CD_DEFAULT, totedge);
-					CustomData_copy_data(&me->edata, &edata, 0, vertofs, me->totedge);
+					CustomData_copy_data(&me->edata, &edata, 0, edgeofs, me->totedge);
 
 					for(a=0; a<me->totedge; a++, medge++) {
 						medge->v1+= vertofs;
