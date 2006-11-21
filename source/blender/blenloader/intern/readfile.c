@@ -4121,6 +4121,11 @@ static void customdata_version_242(Mesh *me)
 		}
 	}
 
+	if (me->tface) {
+		MEM_freeN(me->tface);
+		me->tface= NULL;
+	}
+
 	mesh_update_customdata_pointers(me);
 }
 

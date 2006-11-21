@@ -1090,6 +1090,37 @@ static void write_customdata(WriteData *wd, int count, CustomData *data)
 	}
 }
 
+static void write_oldstyle_tface_242(WriteData *wd, Mesh *me)
+{
+	MTFace *mtf;
+	MCol *mcol;
+	TFace *tf;
+	int a;
+
+	mtf= me->mtface;
+	mcol= me->mcol;
+	tf= me->tface;
+
+	for (a=0; a < me->totface; a++, mtf++, tf++) {
+		if (me->mcol) {
+			memcpy(tf->col, mcol, sizeof(tf->col));
+			mcol+=4;
+		}
+		else
+			memset(tf->col, 255, sizeof(tf->col));
+		memcpy(tf->uv, mtf->uv, sizeof(tf->uv));
+
+		tf->flag= mtf->flag;
+		tf->unwrap= mtf->unwrap;
+		tf->mode= mtf->mode;
+		tf->tile= mtf->tile;
+		tf->tpage= mtf->tpage;
+		tf->transp= mtf->transp;
+	}
+
+	writestruct(wd, DATA, "TFace", me->totface, me->tface);
+}
+
 static void write_meshs(WriteData *wd, ListBase *idbase)
 {
 	Mesh *mesh;
@@ -1108,6 +1139,10 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				mesh->vnode = NULL;
 			}
 #endif
+			/* temporary upward compatibility until 2.43 release */
+			if(mesh->mtface)
+				mesh->tface= MEM_callocN(sizeof(TFace)*mesh->totface, "Oldstyle TFace");
+
 			writestruct(wd, ID_ME, "Mesh", 1, mesh);
 #ifdef WITH_VERSE
 			if(vnode) mesh->vnode = (void*)vnode;
@@ -1121,6 +1156,13 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 			write_customdata(wd, mesh->pv?mesh->pv->totvert:mesh->totvert, &mesh->vdata);
 			write_customdata(wd, mesh->totedge, &mesh->edata);
 			write_customdata(wd, mesh->totface, &mesh->fdata);
+
+			/* temporary upward compatibility until 2.43 release */
+			if(mesh->mtface) {
+				write_oldstyle_tface_242(wd, mesh);
+				MEM_freeN(mesh->tface);
+				mesh->tface = NULL;
+			}
 
 			/* Multires data */
 			writestruct(wd, DATA, "Multires", 1, mesh->mr);
