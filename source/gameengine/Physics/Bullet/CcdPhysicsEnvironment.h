@@ -81,10 +81,7 @@ protected:
 
 		/// Perform an integration step of duration 'timeStep'.
 
-		virtual void setDebugDrawer(btIDebugDraw* debugDrawer)
-		{
-			m_debugDrawer = debugDrawer;
-		}
+		virtual void setDebugDrawer(btIDebugDraw* debugDrawer);
 
 		virtual void		setNumIterations(int numIter);
 		virtual void		setNumTimeSubSteps(int numTimeSubSteps)

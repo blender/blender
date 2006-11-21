@@ -889,12 +889,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	CcdConstructionInfo ci;
 	class PHY_IMotionState* motionstate = new KX_MotionState(gameobj->GetSGNode());
 
-	if (objprop->m_ghost)
-	{
-		
-		ci.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE;
 	
-	}
 
 	if (!objprop->m_dyna)
 	{
@@ -973,7 +968,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 				halfExtents /= 2.f;
 
-				bm = new btConeShape(objprop->m_boundobject.c.m_radius,objprop->m_boundobject.c.m_height);
+				bm = new btConeShapeZ(objprop->m_boundobject.c.m_radius,objprop->m_boundobject.c.m_height);
 				bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
 
 			break;
@@ -1078,10 +1073,15 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 	gameobj->SetPhysicsController(physicscontroller,isbulletdyna);
 	physicscontroller->setNewClientInfo(gameobj->getClientInfo());		
+	btRigidBody* rbody = physicscontroller->GetRigidBody();
 
 	if (objprop->m_disableSleeping)
-		physicscontroller->GetRigidBody()->setActivationState(DISABLE_DEACTIVATION);
+		rbody->setActivationState(DISABLE_DEACTIVATION);
 	
+	if (objprop->m_ghost)
+	{
+		rbody->setCollisionFlags(rbody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+	}
 	if (objprop->m_dyna && !objprop->m_angular_rigidbody)
 	{
 		/*

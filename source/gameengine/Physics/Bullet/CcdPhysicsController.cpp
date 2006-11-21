@@ -165,7 +165,7 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 		btVector3 worldPos;
 		btQuaternion worldquat;
 
-		m_MotionState->getWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
+/*		m_MotionState->getWorldPosition(worldPos[0],worldPos[1],worldPos[2]);
 		m_MotionState->getWorldOrientation(worldquat[0],worldquat[1],worldquat[2],worldquat[3]);
 		btTransform oldTrans = m_body->getCenterOfMassTransform();
 		btTransform newTrans(worldquat,worldPos);
@@ -174,7 +174,7 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 		//need to keep track of previous position for friction effects...
 		
 		m_MotionState->calculateWorldTransformations();
-
+*/
 		float scale[3];
 		m_MotionState->getWorldScaling(scale[0],scale[1],scale[2]);
 		btVector3 scaling(scale[0],scale[1],scale[2]);
@@ -245,7 +245,12 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 {
 	if (m_body)
 	{
-		m_body->activate();
+		m_body->activate(true);
+		if (m_body->isStaticObject())
+		{
+			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+		}
+
 
 		btVector3 dloc(dlocX,dlocY,dlocZ);
 		btTransform xform = m_body->getCenterOfMassTransform();
@@ -265,7 +270,11 @@ void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
 {
 	if (m_body )
 	{
-		m_body->activate();
+		m_body->activate(true);
+		if (m_body->isStaticObject())
+		{
+			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+		}
 
 		btMatrix3x3 drotmat(	rotval[0],rotval[1],rotval[2],
 								rotval[4],rotval[5],rotval[6],
@@ -303,7 +312,12 @@ void		CcdPhysicsController::getOrientation(float &quatImag0,float &quatImag1,flo
 }
 void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal)
 {
-	m_body->activate();
+	m_body->activate(true);
+	if (m_body->isStaticObject())
+	{
+		m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+	}
+
 	m_MotionState->setWorldOrientation(quatImag0,quatImag1,quatImag2,quatReal);
 	btTransform xform  = m_body->getCenterOfMassTransform();
 	xform.setRotation(btQuaternion(quatImag0,quatImag1,quatImag2,quatReal));
@@ -313,7 +327,11 @@ void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float
 
 void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 {
-	m_body->activate();
+	m_body->activate(true);
+	if (m_body->isStaticObject())
+	{
+		m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+	}
 	m_MotionState->setWorldPosition(posX,posY,posZ);
 	btTransform xform  = m_body->getCenterOfMassTransform();
 	xform.setOrigin(btVector3(posX,posY,posZ));
@@ -376,7 +394,7 @@ void		CcdPhysicsController::SetAngularVelocity(float ang_velX,float ang_velY,flo
 	btVector3 angvel(ang_velX,ang_velY,ang_velZ);
 	if (angvel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
-		m_body->activate();
+		m_body->activate(true);
 	}
 
 	{
@@ -396,7 +414,7 @@ void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,floa
 	btVector3 linVel(lin_velX,lin_velY,lin_velZ);
 	if (linVel.length2() > (SIMD_EPSILON*SIMD_EPSILON))
 	{
-		m_body->activate();
+		m_body->activate(true);
 	}
 	
 	{

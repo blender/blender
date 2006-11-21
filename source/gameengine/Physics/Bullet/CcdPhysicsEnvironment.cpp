@@ -251,6 +251,12 @@ public:
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 
 
+void CcdPhysicsEnvironment::setDebugDrawer(btIDebugDraw* debugDrawer)
+{
+	if (debugDrawer && m_dynamicsWorld)
+		m_dynamicsWorld->setDebugDrawer(debugDrawer);
+	m_debugDrawer = debugDrawer;
+}
 
 static void DrawAabb(btIDebugDraw* debugDrawer,const btVector3& from,const btVector3& to,const btVector3& color)
 {
@@ -321,7 +327,7 @@ m_enableSatCollisionDetection(false)
 
 	setSolverType(1);//issues with quickstep and memory allocations
 
-	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,pairCache);
+	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,pairCache,new btSequentialImpulseConstraintSolver2());
 	m_debugDrawer = 0;
 	m_gravity = btVector3(0.f,-10.f,0.f);
 	m_dynamicsWorld->setGravity(m_gravity);
@@ -340,6 +346,12 @@ void	CcdPhysicsEnvironment::addCcdPhysicsController(CcdPhysicsController* ctrl)
 	m_controllers.push_back(ctrl);
 
 	m_dynamicsWorld->addRigidBody(body);
+	if (body->isStaticOrKinematicObject())
+	{
+		body->setActivationState(ISLAND_SLEEPING);
+	}
+
+
 	//CollisionObject(body,ctrl->GetCollisionFilterGroup(),ctrl->GetCollisionFilterMask());
 
 	assert(body->getBroadphaseHandle());
@@ -438,15 +450,28 @@ void	CcdPhysicsEnvironment::beginFrame()
 bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 {
 
-	int numCtrl = GetNumControllers();
-	for (int i=0;i<numCtrl;i++)
+	int i,numCtrl = GetNumControllers();
+	for (i=0;i<numCtrl;i++)
 	{
 		CcdPhysicsController* ctrl = GetPhysicsController(i);
 		ctrl->SynchronizeMotionStates(timeStep);
 	}
 
-	m_dynamicsWorld->stepSimulation(timeStep);
+	m_dynamicsWorld->stepSimulation(timeStep,5);//5);
 	
+	numCtrl = GetNumControllers();
+	for (i=0;i<numCtrl;i++)
+	{
+		CcdPhysicsController* ctrl = GetPhysicsController(i);
+		ctrl->SynchronizeMotionStates(timeStep);
+	}
+
+	for (i=0;i<m_wrapperVehicles.size();i++)
+	{
+		WrapperVehicle* veh = m_wrapperVehicles[i];
+		veh->SyncWheels();
+	}
+
 	return true;
 }
 
