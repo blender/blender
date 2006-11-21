@@ -13,30 +13,38 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "btTriangleBuffer.h"
+/*
+GJK-EPA collision solver by Nathanael Presson
+Nov.2006
+*/
 
 
-///example usage of this class:
-//			btTriangleBuffer	triBuf;
-//			concaveShape->processAllTriangles(&triBuf,aabbMin, aabbMax);
-//			for (int i=0;i<triBuf.getNumTriangles();i++)
-//			{
-//				const btTriangle& tri = triBuf.getTriangle(i);
-//				//do something useful here with the triangle
-//			}
+#ifndef _05E48D53_04E0_49ad_BB0A_D74FE62E7366_
+#define _05E48D53_04E0_49ad_BB0A_D74FE62E7366_
+#include "BulletCollision/CollisionShapes/btConvexShape.h"
 
-
-
-
-void btTriangleBuffer::processTriangle(btVector3* triangle,int partId,int  triangleIndex)
+///btGjkEpaSolver contributed under zlib by Nathanael Presson
+struct	btGjkEpaSolver
 {
-		btTriangle	tri;
-		tri.m_vertex0 = triangle[0];
-		tri.m_vertex1 = triangle[1];
-		tri.m_vertex2 = triangle[2];
-		tri.m_partId = partId;
-		tri.m_triangleIndex = triangleIndex;
-			
-		m_triangleBuffer.push_back(tri);
-}
+struct	sResults
+	{
+	enum eStatus
+		{
+		Separated,		/* Shapes doesnt penetrate												*/ 
+		Penetrating,	/* Shapes are penetrating												*/ 
+		GJK_Failed,		/* GJK phase fail, no big issue, shapes are probably just 'touching'	*/ 
+		EPA_Failed,		/* EPA phase fail, bigger problem, need to save parameters, and debug	*/ 
+		}		status;
+	btVector3	witnesses[2];
+	btVector3	normal;
+	btScalar	depth;
+	int	epa_iterations;
+	int	gjk_iterations;
+	};
+static bool	Collide(btConvexShape* shape0,const btTransform& wtrs0,
+					btConvexShape* shape1,const btTransform& wtrs1,
+					btScalar	radialmargin,
+					sResults&	results);
+};
 
+#endif

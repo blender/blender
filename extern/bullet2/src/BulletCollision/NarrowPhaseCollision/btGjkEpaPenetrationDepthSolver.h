@@ -2,6 +2,8 @@
 Bullet Continuous Collision Detection and Physics Library
 Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
+EPA Copyright (c) Ricardo Padrela 2006 
+
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
 Permission is granted to anyone to use this software for any purpose, 
@@ -12,31 +14,26 @@ subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
+#ifndef BT_GJP_EPA_PENETRATION_DEPTH_H
+#define BT_GJP_EPA_PENETRATION_DEPTH_H
 
-#include "btTriangleBuffer.h"
+#include "btConvexPenetrationDepthSolver.h"
 
-
-///example usage of this class:
-//			btTriangleBuffer	triBuf;
-//			concaveShape->processAllTriangles(&triBuf,aabbMin, aabbMax);
-//			for (int i=0;i<triBuf.getNumTriangles();i++)
-//			{
-//				const btTriangle& tri = triBuf.getTriangle(i);
-//				//do something useful here with the triangle
-//			}
-
-
-
-
-void btTriangleBuffer::processTriangle(btVector3* triangle,int partId,int  triangleIndex)
+///EpaPenetrationDepthSolver uses the Expanding Polytope Algorithm to
+///calculate the penetration depth between two convex shapes.
+class btGjkEpaPenetrationDepthSolver : public btConvexPenetrationDepthSolver
 {
-		btTriangle	tri;
-		tri.m_vertex0 = triangle[0];
-		tri.m_vertex1 = triangle[1];
-		tri.m_vertex2 = triangle[2];
-		tri.m_partId = partId;
-		tri.m_triangleIndex = triangleIndex;
-			
-		m_triangleBuffer.push_back(tri);
-}
+	public :
+
+		bool			calcPenDepth( btSimplexSolverInterface& simplexSolver,
+									  btConvexShape* pConvexA, btConvexShape* pConvexB,
+									  const btTransform& transformA, const btTransform& transformB,
+									  btVector3& v, btPoint3& wWitnessOnA, btPoint3& wWitnessOnB,
+									  class btIDebugDraw* debugDraw );
+
+	private :
+
+};
+
+#endif	// BT_GJP_EPA_PENETRATION_DEPTH_H
 

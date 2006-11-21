@@ -63,8 +63,14 @@ bool  MyContactDestroyedCallback(void* userPersistentData)
 	return true;
 }
 
+btSequentialImpulseConstraintSolver2::btSequentialImpulseConstraintSolver2()
+{
+	setSolverMode(SOLVER_USE_WARMSTARTING);
+}
+
 
 btSequentialImpulseConstraintSolver::btSequentialImpulseConstraintSolver()
+:m_solverMode(SOLVER_RANDMIZE_ORDER)
 {
 	gContactDestroyedCallback = &MyContactDestroyedCallback;
 
@@ -92,18 +98,13 @@ float btSequentialImpulseConstraintSolver::solveGroup(btPersistentManifold** man
 
 	int totalPoints = 0;
 
-	{
-		int j;
-		for (j=0;j<numManifolds;j++)
-		{
-			prepareConstraints(manifoldPtr[j],info,debugDrawer);
-		}
-	}
 
 	{
 		int j;
 		for (j=0;j<numManifolds;j++)
 		{
+			btPersistentManifold* manifold = manifoldPtr[j];
+			prepareConstraints(manifold,info,debugDrawer);
 			for (int p=0;p<manifoldPtr[j]->getNumContacts();p++)
 			{
 				gOrder[totalPoints].m_manifoldIndex = j;
@@ -113,36 +114,111 @@ float btSequentialImpulseConstraintSolver::solveGroup(btPersistentManifold** man
 		}
 	}
 	
+	//should traverse the contacts random order...
+	int iteration;
+
+	{
+		for ( iteration = 0;iteration<numiter-1;iteration++)
+		{
+			int j;
+			if (m_solverMode & SOLVER_RANDMIZE_ORDER)
+			{
+				if ((iteration & 7) == 0) {
+					for (j=0; j<totalPoints; ++j) {
+						btOrderIndex tmp = gOrder[j];
+						int swapi = btRandInt2(j+1);
+						gOrder[j] = gOrder[swapi];
+						gOrder[swapi] = tmp;
+					}
+				}
+			}
+
+			for (j=0;j<totalPoints;j++)
+			{
+				btPersistentManifold* manifold = manifoldPtr[gOrder[j].m_manifoldIndex];
+				solve( (btRigidBody*)manifold->getBody0(),
+									(btRigidBody*)manifold->getBody1()
+				,manifold->getContactPoint(gOrder[j].m_pointIndex),info,iteration,debugDrawer);
+			}
+		
+			for (j=0;j<totalPoints;j++)
+			{
+				btPersistentManifold* manifold = manifoldPtr[gOrder[j].m_manifoldIndex];
+				solveFriction((btRigidBody*)manifold->getBody0(),
+					(btRigidBody*)manifold->getBody1(),manifold->getContactPoint(gOrder[j].m_pointIndex),info,iteration,debugDrawer);
+			}
+		}
+	}
+		
+#ifdef USE_PROFILE
+	btProfiler::endBlock("solve");
+#endif //USE_PROFILE
+
+	return 0.f;
+}
+
+
+/// btSequentialImpulseConstraintSolver Sequentially applies impulses
+float btSequentialImpulseConstraintSolver2::solveGroup(btPersistentManifold** manifoldPtr, int numManifolds,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer)
+{
+	
+	btContactSolverInfo info = infoGlobal;
+
+	int numiter = infoGlobal.m_numIterations;
+#ifdef USE_PROFILE
+	btProfiler::beginBlock("solve");
+#endif //USE_PROFILE
+
+	{
+		int j;
+		for (j=0;j<numManifolds;j++)
+		{
+			btPersistentManifold* manifold = manifoldPtr[j];
+			prepareConstraints(manifold,info,debugDrawer);
+			for (int p=0;p<manifoldPtr[j]->getNumContacts();p++)
+			{
+				//interleaving here gives better results
+				solve( (btRigidBody*)manifold->getBody0(),
+									(btRigidBody*)manifold->getBody1()
+				,manifoldPtr[j]->getContactPoint(p),info,0,debugDrawer);
+			}
+		}
+	}
 	
 	//should traverse the contacts random order...
 	int iteration;
+
 	for ( iteration = 0;iteration<numiter-1;iteration++)
 	{
 		int j;
-		if ((iteration & 7) == 0) {
-			for (j=0; j<totalPoints; ++j) {
-				btOrderIndex tmp = gOrder[j];
-				int swapi = btRandInt2(j+1);
-				gOrder[j] = gOrder[swapi];
-				gOrder[swapi] = tmp;
+
+		for (j=0;j<numManifolds;j++)
+		{
+			btPersistentManifold* manifold = manifoldPtr[j];
+			for (int p=0;p<manifold->getNumContacts();p++)
+			{
+				solve( (btRigidBody*)manifold->getBody0(),
+									(btRigidBody*)manifold->getBody1()
+				,manifold->getContactPoint(p),info,iteration,debugDrawer);
 			}
 		}
-
-		for (j=0;j<totalPoints;j++)
-		{
-			btPersistentManifold* manifold = manifoldPtr[gOrder[j].m_manifoldIndex];
-			solve( (btRigidBody*)manifold->getBody0(),
-								(btRigidBody*)manifold->getBody1()
-			,manifold->getContactPoint(gOrder[j].m_pointIndex),info,iteration,debugDrawer);
-		}
 	
-		for (j=0;j<totalPoints;j++)
+	}
+
+	for ( iteration = 0;iteration<numiter-1;iteration++)
+	{
+		int j;
+		for (j=0;j<numManifolds;j++)
 		{
-			btPersistentManifold* manifold = manifoldPtr[gOrder[j].m_manifoldIndex];
-			solveFriction((btRigidBody*)manifold->getBody0(),
-				(btRigidBody*)manifold->getBody1(),manifold->getContactPoint(gOrder[j].m_pointIndex),info,iteration,debugDrawer);
+			btPersistentManifold* manifold = manifoldPtr[j];
+			for (int p=0;p<manifold->getNumContacts();p++)
+			{
+				solveFriction((btRigidBody*)manifold->getBody0(),
+					(btRigidBody*)manifold->getBody1(),manifold->getContactPoint(p),info,iteration,debugDrawer);
+			}
 		}
 	}
+
 		
 #ifdef USE_PROFILE
 	btProfiler::endBlock("solve");
@@ -264,7 +340,14 @@ void	btSequentialImpulseConstraintSolver::prepareConstraints(btPersistentManifol
 				
 
 				float relaxation = info.m_damping;
-				cpd->m_appliedImpulse =0.f;//*= relaxation;
+				if (m_solverMode & SOLVER_USE_WARMSTARTING)
+				{
+					cpd->m_appliedImpulse *= relaxation;
+				} else
+				{
+					cpd->m_appliedImpulse =0.f;
+				}
+	
 				//for friction
 				cpd->m_prevAppliedImpulse = cpd->m_appliedImpulse;
 				

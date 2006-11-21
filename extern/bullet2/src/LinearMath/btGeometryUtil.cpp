@@ -166,3 +166,4 @@ void	btGeometryUtil::getVerticesFromPlaneEquations(const std::vector<btVector3>&
 		}
 	}
 }
+

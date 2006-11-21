@@ -16,50 +16,71 @@ subject to the following restrictions:
 #include "btConeShape.h"
 #include "LinearMath/btPoint3.h"
 
-#ifdef WIN32
-static int coneindices[3] = {1,2,0};
-#else
-static int coneindices[3] = {2,1,0};
-#endif
+
 
 btConeShape::btConeShape (btScalar radius,btScalar height):
 m_radius (radius),
 m_height(height)
 {
+	setConeUpIndex(1);
 	btVector3 halfExtents;
 	m_sinAngle = (m_radius / sqrt(m_radius * m_radius + m_height * m_height));
 }
 
+///choose upAxis index
+void	btConeShape::setConeUpIndex(int upIndex)
+{
+	switch (upIndex)
+	{
+	case 0:
+			m_coneIndices[0] = 1;
+			m_coneIndices[1] = 0;
+			m_coneIndices[2] = 2;
+		break;
+	case 1:
+			m_coneIndices[0] = 0;
+			m_coneIndices[1] = 1;
+			m_coneIndices[2] = 2;
+		break;
+	case 2:
+			m_coneIndices[0] = 0;
+			m_coneIndices[1] = 2;
+			m_coneIndices[2] = 1;
+		break;
+	default:
+		assert(0);
+	};
+}
 
 btVector3 btConeShape::coneLocalSupport(const btVector3& v) const
 {
 	
 	float halfHeight = m_height * 0.5f;
 
- if (v[coneindices[1]] > v.length() * m_sinAngle)
+ if (v[m_coneIndices[1]] > v.length() * m_sinAngle)
  {
 	btVector3 tmp;
 
-	tmp[coneindices[0]] = 0.f;
-	tmp[coneindices[1]] = halfHeight;
-	tmp[coneindices[2]] = 0.f;
+	tmp[m_coneIndices[0]] = 0.f;
+	tmp[m_coneIndices[1]] = halfHeight;
+	tmp[m_coneIndices[2]] = 0.f;
 	return tmp;
  }
   else {
-    btScalar s = btSqrt(v[coneindices[0]] * v[coneindices[0]] + v[coneindices[2]] * v[coneindices[2]]);
+    btScalar s = btSqrt(v[m_coneIndices[0]] * v[m_coneIndices[0]] + v[m_coneIndices[2]] * v[m_coneIndices[2]]);
     if (s > SIMD_EPSILON) {
       btScalar d = m_radius / s;
 	  btVector3 tmp;
-	  tmp[coneindices[0]] = v[coneindices[0]] * d;
-	  tmp[coneindices[1]] = -halfHeight;
-	  tmp[coneindices[2]] = v[coneindices[2]] * d;
+	  tmp[m_coneIndices[0]] = v[m_coneIndices[0]] * d;
+	  tmp[m_coneIndices[1]] = -halfHeight;
+	  tmp[m_coneIndices[2]] = v[m_coneIndices[2]] * d;
 	  return tmp;
     }
     else  {
 		btVector3 tmp;
-		tmp[coneindices[0]] = 0.f;
-		tmp[coneindices[1]] = -halfHeight;
-		tmp[coneindices[2]] = 0.f;
+		tmp[m_coneIndices[0]] = 0.f;
+		tmp[m_coneIndices[1]] = -halfHeight;
+		tmp[m_coneIndices[2]] = 0.f;
 		return tmp;
 	}
   }

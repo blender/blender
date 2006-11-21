@@ -38,7 +38,9 @@ struct btDispatcherInfo
 		DISPATCH_CONTINUOUS
 	};
 	btDispatcherInfo()
-		:m_dispatchFunc(DISPATCH_DISCRETE),
+		:m_timeStep(0.f),
+		m_stepCount(0),
+		m_dispatchFunc(DISPATCH_DISCRETE),
 		m_timeOfImpact(1.f),
 		m_useContinuous(false),
 		m_debugDraw(0),

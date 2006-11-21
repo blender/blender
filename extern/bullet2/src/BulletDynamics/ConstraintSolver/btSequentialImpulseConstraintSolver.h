@@ -30,6 +30,7 @@ class btIDebugDraw;
 class btSequentialImpulseConstraintSolver : public btConstraintSolver
 {
 
+protected:
 	float solve(btRigidBody* body0,btRigidBody* body1, btManifoldPoint& cp, const btContactSolverInfo& info,int iter,btIDebugDraw* debugDrawer);
 	float solveFriction(btRigidBody* body0,btRigidBody* body1, btManifoldPoint& cp, const btContactSolverInfo& info,int iter,btIDebugDraw* debugDrawer);
 	void  prepareConstraints(btPersistentManifold* manifoldPtr, const btContactSolverInfo& info,btIDebugDraw* debugDrawer);
@@ -37,7 +38,17 @@ class btSequentialImpulseConstraintSolver : public btConstraintSolver
 	ContactSolverFunc m_contactDispatch[MAX_CONTACT_SOLVER_TYPES][MAX_CONTACT_SOLVER_TYPES];
 	ContactSolverFunc m_frictionDispatch[MAX_CONTACT_SOLVER_TYPES][MAX_CONTACT_SOLVER_TYPES];
 
+	//choose between several modes, different friction model etc.
+	int	m_solverMode;
+
 public:
+
+	enum	eSolverMode
+	{
+		SOLVER_RANDMIZE_ORDER = 1,
+		SOLVER_FRICTION_SEPARATE = 2,
+		SOLVER_USE_WARMSTARTING = 4
+	};
 
 	btSequentialImpulseConstraintSolver();
 
@@ -59,7 +70,29 @@ public:
 	
 	virtual float solveGroup(btPersistentManifold** manifold,int numManifolds,const btContactSolverInfo& info, btIDebugDraw* debugDrawer=0);
 
+	void	setSolverMode(int mode)
+	{
+		m_solverMode = mode;
+	}
+
+	int	getSolverMode() const
+	{
+		return m_solverMode;
+	}
 };
+
+/// Small variation on btSequentialImpulseConstraintSolver: warmstarting, separate friction, non-randomized ordering
+class btSequentialImpulseConstraintSolver2 : public btSequentialImpulseConstraintSolver
+{
+public:
+
+	btSequentialImpulseConstraintSolver2();
+
+	virtual float solveGroup(btPersistentManifold** manifold,int numManifolds,const btContactSolverInfo& info, btIDebugDraw* debugDrawer=0);
+
+
+};
+
 
 #endif //SEQUENTIAL_IMPULSE_CONSTRAINT_SOLVER_H
 

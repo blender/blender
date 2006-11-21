@@ -104,7 +104,7 @@ float resolveSingleCollision(
 	
 	btScalar Kfps = 1.f / solverInfo.m_timeStep ;
 
-	float damping = solverInfo.m_damping ;
+	// float damping = solverInfo.m_damping ;
 	float Kerp = solverInfo.m_erp;
 	float Kcor = Kerp *Kfps;
 
@@ -136,7 +136,7 @@ float resolveSingleCollision(
 	{
 		body2.internalApplyImpulse(contactPoint.m_normalWorldOnB*body2.getInvMass(),cpd->m_angularComponentB,-normalImpulse);
 	}
-#else USE_INTERNAL_APPLY_IMPULSE
+#else //USE_INTERNAL_APPLY_IMPULSE
 	body1.applyImpulse(normal*(normalImpulse), rel_pos1);
 	body2.applyImpulse(-normal*(normalImpulse), rel_pos2);
 #endif //USE_INTERNAL_APPLY_IMPULSE
@@ -215,7 +215,7 @@ float resolveSingleFriction(
 		body2.internalApplyImpulse(cpd->m_frictionWorldTangential0*body2.getInvMass(),cpd->m_frictionAngularComponent0B,-j1);
 		body2.internalApplyImpulse(cpd->m_frictionWorldTangential1*body2.getInvMass(),cpd->m_frictionAngularComponent1B,-j2);	
 	}
-#else USE_INTERNAL_APPLY_IMPULSE
+#else //USE_INTERNAL_APPLY_IMPULSE
 	body1.applyImpulse((j1 * cpd->m_frictionWorldTangential0)+(j2 * cpd->m_frictionWorldTangential1), rel_pos1);
 	body2.applyImpulse((j1 * -cpd->m_frictionWorldTangential0)+(j2 * -cpd->m_frictionWorldTangential1), rel_pos2);
 #endif //USE_INTERNAL_APPLY_IMPULSE
@@ -317,7 +317,7 @@ float resolveSingleCollisionCombined(
 	
 	btScalar Kfps = 1.f / solverInfo.m_timeStep ;
 
-	float damping = solverInfo.m_damping ;
+	//float damping = solverInfo.m_damping ;
 	float Kerp = solverInfo.m_erp;
 	float Kcor = Kerp *Kfps;
 
@@ -350,7 +350,7 @@ float resolveSingleCollisionCombined(
 	{
 		body2.internalApplyImpulse(contactPoint.m_normalWorldOnB*body2.getInvMass(),cpd->m_angularComponentB,-normalImpulse);
 	}
-#else USE_INTERNAL_APPLY_IMPULSE
+#else //USE_INTERNAL_APPLY_IMPULSE
 	body1.applyImpulse(normal*(normalImpulse), rel_pos1);
 	body2.applyImpulse(-normal*(normalImpulse), rel_pos2);
 #endif //USE_INTERNAL_APPLY_IMPULSE

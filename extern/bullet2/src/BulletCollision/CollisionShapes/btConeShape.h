@@ -19,7 +19,7 @@ subject to the following restrictions:
 #include "btConvexShape.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
-/// implements cone shape interface
+///btConeShape implements a Cone shape, around the Y axis
 class btConeShape : public btConvexShape
 
 {
@@ -27,7 +27,7 @@ class btConeShape : public btConvexShape
 	float m_sinAngle;
 	float m_radius;
 	float m_height;
-	
+	int		m_coneIndices[3];
 	btVector3 coneLocalSupport(const btVector3& v) const;
 
 
@@ -76,8 +76,28 @@ public:
 		{
 			return "Cone";
 		}
+		
+		///choose upAxis index
+		void	setConeUpIndex(int upIndex);
+		
+		int	getConeUpIndex() const
+		{
+			return m_coneIndices[1];
+		}
 };
 
+///btConeShape implements a Cone shape, around the X axis
+class btConeShapeX : public btConeShape
+{
+	public:
+		btConeShapeX(btScalar radius,btScalar height);
+};
 
+///btConeShapeZ implements a Cone shape, around the Z axis
+class btConeShapeZ : public btConeShape
+{
+	public:
+		btConeShapeZ(btScalar radius,btScalar height);
+};
 #endif //CONE_MINKOWSKI_H
 

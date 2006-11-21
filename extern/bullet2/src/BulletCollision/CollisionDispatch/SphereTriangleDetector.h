@@ -46,3 +46,4 @@ private:
 	
 };
 #endif //SPHERE_TRIANGLE_DETECTOR_H
+

@@ -137,6 +137,13 @@ public:
 	void	debugDrawObject(const btTransform& worldTransform, const btCollisionShape* shape, const btVector3& color);
 
 	virtual void	setConstraintSolver(btConstraintSolver* solver);
+	
+	virtual	int		getNumConstraints() const;
+
+	virtual btTypedConstraint* getConstraint(int index)	;
+
+	virtual const btTypedConstraint* getConstraint(int index) const;
+
 
 };
 

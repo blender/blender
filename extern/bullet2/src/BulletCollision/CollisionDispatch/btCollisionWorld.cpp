@@ -121,13 +121,13 @@ void	btCollisionWorld::addCollisionObject(btCollisionObject* collisionObject,sho
 
 }
 
-void	btCollisionWorld::performDiscreteCollisionDetection()
+
+
+
+void	btCollisionWorld::performDiscreteCollisionDetection(btDispatcherInfo& dispatchInfo)
 {
 	BEGIN_PROFILE("performDiscreteCollisionDetection");
 
-	btDispatcherInfo	dispatchInfo;
-	dispatchInfo.m_timeStep = 0.f;
-	dispatchInfo.m_stepCount = 0;
 
 	//update aabb (of all moved objects)
 

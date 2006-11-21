@@ -236,8 +236,8 @@ public:
 
 	void	removeCollisionObject(btCollisionObject* collisionObject);
 
-	virtual void	performDiscreteCollisionDetection();
-
+	virtual void	performDiscreteCollisionDetection(	btDispatcherInfo&	dispatchInfo);
+	
 };
 
 

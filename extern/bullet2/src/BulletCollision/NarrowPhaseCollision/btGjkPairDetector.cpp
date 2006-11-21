@@ -25,6 +25,9 @@ subject to the following restrictions:
 //must be above the machine epsilon
 #define REL_ERROR2 1.0e-6f
 
+//temp globals, to improve GJK/EPA/penetration calculations
+int gNumDeepPenetrationChecks = 0;
+int gNumGjkChecks = 0;
 
 #ifdef __SPU__
 #include <spu_printf.h>
@@ -39,7 +42,7 @@ m_minkowskiA(objectA),
 m_minkowskiB(objectB),
 m_ignoreMargin(false),
 m_lastUsedMethod(-1),
-m_catchDegeneracies(0)
+m_catchDegeneracies(1)
 {
 }
 
@@ -57,6 +60,8 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 	float marginA = m_minkowskiA->getMargin();
 	float marginB = m_minkowskiB->getMargin();
 
+	gNumGjkChecks++;
+
 	//for CCD we don't use margins
 	if (m_ignoreMargin)
 	{
@@ -71,7 +76,7 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 	bool isValid = false;
 	bool checkSimplex = false;
 	bool checkPenetration = true;
-	m_degenerateSimplex = false;
+	m_degenerateSimplex = 0;
 
 	m_lastUsedMethod = -1;
 
@@ -109,6 +114,7 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 			//exit 0: the new point is already in the simplex, or we didn't come any closer
 			if (m_simplexSolver->inSimplex(w))
 			{
+				m_degenerateSimplex = 1;
 				checkSimplex = true;
 				break;
 			}
@@ -116,14 +122,12 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 			float f0 = squaredDistance - delta;
 			float f1 = squaredDistance * REL_ERROR2;
 
-			if (f0 <= 0.f)
+			if (f0 <= f1)
 			{
-				m_degenerateSimplex = 2;
-			}
-
-			if (f0 >= 0.f && (f0 <= f1))
-			//if (f0 <= f1)
-			{
+				if (f0 <= 0.f)
+				{
+					m_degenerateSimplex = 2;
+				}
 				checkSimplex = true;
 				break;
 			}
@@ -133,7 +137,7 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 			//calculate the closest point to the origin (update vector v)
 			if (!m_simplexSolver->closest(m_cachedSeparatingAxis))
 			{
-				m_degenerateSimplex = 1;
+				m_degenerateSimplex = 3;
 				checkSimplex = true;
 				break;
 			}
@@ -188,7 +192,10 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 			normalInB = pointOnA-pointOnB;
 			float lenSqr = m_cachedSeparatingAxis.length2();
 			//valid normal
-			//if (lenSqr > (0.1f*margin)) //SIMD_EPSILON*SIMD_EPSILON))
+			if (lenSqr < 0.0001)
+			{
+				m_degenerateSimplex = 5;
+			} 
 			if (lenSqr > SIMD_EPSILON*SIMD_EPSILON)
 			{
 				float rlen = 1.f / btSqrt(lenSqr );
@@ -200,6 +207,7 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 				pointOnB += m_cachedSeparatingAxis * (marginB / s);
 				distance = ((1.f/rlen) - margin);
 				isValid = true;
+				
 				m_lastUsedMethod = 1;
 			} else
 			{
@@ -207,8 +215,11 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 			}
 		}
 
+		bool catchDegeneratePenetrationCase = 
+			(m_catchDegeneracies && m_penetrationDepthSolver && m_degenerateSimplex && ((distance+margin) < 0.01));
+
 		//if (checkPenetration && !isValid)
-		if (checkPenetration && (!isValid || (m_catchDegeneracies && m_penetrationDepthSolver && m_degenerateSimplex) ))
+		if (checkPenetration && (!isValid || catchDegeneratePenetrationCase ))
 		{
 			//penetration case
 		
@@ -217,6 +228,9 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 			{
 				// Penetration depth case.
 				btVector3 tmpPointOnA,tmpPointOnB;
+				
+				gNumDeepPenetrationChecks++;
+
 				bool isValid2 = m_penetrationDepthSolver->calcPenDepth( 
 					*m_simplexSolver, 
 					m_minkowskiA,m_minkowskiB,
