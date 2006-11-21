@@ -114,8 +114,8 @@ void calc_curvepath(Object *ob)
 	else tot= bl->nr-1;
 	
 	path->len= tot+1;
-	/* exception: vector handle paths and polygon paths should be subdivided at least a factor 6 (or more?) */
-	if(path->len<6*nu->pntsu) path->len= 6*nu->pntsu;
+	/* exception: vector handle paths and polygon paths should be subdivided at least a factor resolu */
+	if(path->len<nu->resolu*nu->pntsu) path->len= nu->resolu*nu->pntsu;
 	
 	dist= (float *)MEM_mallocN((tot+1)*4, "calcpathdist");
 
