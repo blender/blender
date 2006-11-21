@@ -873,7 +873,8 @@ void vec_roll_to_mat3(float *vec, float roll, float mat[][3])
 	if (Inpf(axis,axis) > 0.0000000000001) {
 		/* if nor is *not* a multiple of target ... */
 		Normalise (axis);
-		theta= NormalizedVecAngle2(target, nor);
+		theta=(float) acos (Inpf (target,nor));
+		// theta= NormalizedVecAngle2(target, nor);
 		
 		/*	Make Bone matrix*/
 		VecRotToMat3(axis, theta, bMatrix);

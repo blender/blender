@@ -3799,6 +3799,7 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 			break;
 		}
 		default:
+			x= z= 0.0f;
 			break;
 	}
 	
