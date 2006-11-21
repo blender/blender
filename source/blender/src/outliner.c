@@ -3275,13 +3275,10 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 				uiButSetFunc(bt, restrictbutton_sel_cb, ob, NULL);
 				uiButSetFlag(bt, UI_NO_HILITE);
 				
-				/* don't show 'renderable' icons for objects that don't render anyway */
-				if (! (ELEM4(ob->type, OB_CAMERA, OB_LATTICE, OB_ARMATURE, OB_EMPTY))) {
-					bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, REDRAWALL, ICON_RESTRICT_RENDER_OFF, 
-							(int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_RENDERX+SCROLLB), te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow renderability");
-					uiButSetFunc(bt, restrictbutton_rend_cb, NULL, NULL);
-					uiButSetFlag(bt, UI_NO_HILITE);
-				}
+				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, REDRAWALL, ICON_RESTRICT_RENDER_OFF, 
+						(int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_RENDERX+SCROLLB), te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow renderability");
+				uiButSetFunc(bt, restrictbutton_rend_cb, NULL, NULL);
+				uiButSetFlag(bt, UI_NO_HILITE);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
 			
