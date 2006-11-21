@@ -677,7 +677,7 @@ Possible arguments (provide as strings):\n\
 	 "Set the object's rotation according to the specified Euler\n\
 angles. The argument must be a vector triple"},
 	{"setMatrix", ( PyCFunction ) Object_SetMatrix, METH_VARARGS,
-	 "Set and apply a new matrix for the object"},
+	 "Set and apply a new local matrix for the object"},
 	{"setLocation", ( PyCFunction ) Object_setLocation, METH_VARARGS,
 	 "Set the object's location. The first argument must be a vector\n\
 triple."},
@@ -2112,6 +2112,7 @@ static int Object_setEuler( BPy_Object * self, PyObject * args )
 }
 
 static int Object_setMatrix( BPy_Object * self, MatrixObject * mat )
+#if 0
 {
 	int x, y;
 
@@ -2138,6 +2139,52 @@ static int Object_setMatrix( BPy_Object * self, MatrixObject * mat )
 	} else 
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"expected 3x3 or 4x4 matrix" );
+
+	apply_obmat( self->object );
+
+	/* since we have messed with object, we need to flag for DAG recalc */
+	self->object->recalc |= OB_RECALC_OB;  
+
+	return 0;
+}
+#endif
+{
+	int x, y;
+	float matrix[4][4]; /* for the result */
+	float invmat[4][4]; /* for the result */
+
+	if( !MatrixObject_Check( mat ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected matrix object as argument" );
+
+	if( mat->rowSize == 4 && mat->colSize == 4 ) {
+		for( x = 0; x < 4; x++ ) {
+			for( y = 0; y < 4; y++ ) {
+				matrix[x][y] = mat->matrix[x][y];
+			}
+		}
+	} else if( mat->rowSize == 3 && mat->colSize == 3 ) {
+		for( x = 0; x < 3; x++ ) {
+			for( y = 0; y < 3; y++ ) {
+				matrix[x][y] = mat->matrix[x][y];
+			}
+		}
+		/* if a 3x3 matrix, clear the fourth row/column */
+		for( x = 0; x < 3; x++ )
+			matrix[x][3] = matrix[3][x] = 0.0;
+		matrix[3][3] = 1.0;
+	} else 
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"expected 3x3 or 4x4 matrix" );
+
+	/* localspace matrix is truly relative to the parent, but parameters
+	 * stored in object are relative to parentinv matrix.  Undo the parent
+	 * inverse part before updating obmat and calling apply_obmat() */
+	if( self->object->parent ) {
+		Mat4Invert( invmat, self->object->parentinv );
+		Mat4MulMat4( self->object->obmat, matrix, invmat );
+	} else
+		Mat4CpyMat4( self->object->obmat, matrix );
 
 	apply_obmat( self->object );
 
@@ -4340,7 +4387,7 @@ static PyObject *Object_getMatrixLocal( BPy_Object * self )
 		float invmat[4][4]; /* for inverse of parent's matrix */
   	 
 		Mat4Invert(invmat, self->object->parent->obmat );
-		Mat4MulMat4(matrix, invmat, self->object->obmat);
+		Mat4MulMat4(matrix, self->object->obmat, invmat);
 		return newMatrixObject((float*)matrix,4,4,Py_NEW);
 	} else { /* no parent, so return world space matrix */
 		disable_where_script( 1 );
@@ -4697,11 +4744,11 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 "Ending frame (for DupliFrames)",
 	 (void *)EXPP_OBJ_ATTR_DUPEND},
 	{"mat",
-	 (getter)Object_getMatrixWorld, (setter)Object_setMatrix,
+	 (getter)Object_getMatrixWorld, (setter)NULL,
 	 "worldspace matrix: absolute, takes vertex parents, tracking and Ipos into account",
 	 NULL},
 	{"matrix",
-	 (getter)Object_getMatrixWorld, (setter)Object_setMatrix,
+	 (getter)Object_getMatrixWorld, (setter)NULL,
 	 "worldspace matrix: absolute, takes vertex parents, tracking and Ipos into account",
 	 NULL},
 	{"matrixWorld",
@@ -4709,7 +4756,7 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 "worldspace matrix: absolute, takes vertex parents, tracking and Ipos into account",
 	 NULL},
 	{"matrixLocal",
-	 (getter)Object_getMatrixLocal, (setter)NULL,
+	 (getter)Object_getMatrixLocal, (setter)Object_setMatrix,
 	 "localspace matrix: relative to the object's parent",
 	 NULL},
 	{"matrixOldWorld",

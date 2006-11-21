@@ -344,7 +344,7 @@ class Object:
     @ivar matrix: Same as L{mat}.  Read-only.
     @type matrix: Matrix
     @ivar matrixLocal: The matrix of the object relative to its parent; if there is no parent,
-    returns the world matrix (L{matrixWorld<Object.Object.matrixWorld>}).  Read-only.
+    returns the world matrix (L{matrixWorld<Object.Object.matrixWorld>}).
     @type matrixLocal: Matrix
     @ivar matrixOldWorld: Old-type worldspace matrix (prior to Blender 2.34).
         Read-only.
@@ -1054,15 +1054,23 @@ class Object:
 
   def setMatrix(matrix):
     """
-    Sets the object's matrix and updates its transformation. 
+    Sets the object's matrix and updates its transformation.  If the object
+    has a parent, the matrix transform is relative to the parent.
     @type matrix: Py_Matrix 3x3 or 4x4
     @param matrix: a 3x3 or 4x4 Python matrix.  If a 3x3 matrix is given,
     it is extended to a 4x4 matrix.
+    @Note: This method is "bad": when called it changes the location,
+    rotation and size attributes of the object (since Blender uses these
+    values to calculate the object's transformation matrix).  Ton is
+    not happy having a method which "pretends" to do a matrix operation.
+    In the future, this method may be replaced with other methods which
+    make it easier for the user to determine the correct loc/rot/size values
+    for necessary for the object.
     """
 
   def setName(name):
     """
-    Sets the name of the object. A string longer then 20 characters will be shortened.
+    Sets the name of the object. A string longer than 20 characters will be shortened.
     @type name: String
     @param name: The new name for the object.
     """
@@ -1091,7 +1099,7 @@ class Object:
     if both objects are of the same type.
     @type object: Blender Object
     @param object: A Blender Object of the same type.
-    @note: This function is faster then using L{getData()} and setData()
+    @note: This function is faster than using L{getData()} and setData()
     because it skips making a Python object from the object's data.
     """
   
