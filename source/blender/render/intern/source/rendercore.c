@@ -3725,7 +3725,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	shi->puno= 0;
 
 	if(bs->quad) 
-		shade_input_set_coords(shi, -u, -v, 0, 3, 4);
+		shade_input_set_coords(shi, -u, -v, 0, 2, 3);
 	else
 		shade_input_set_coords(shi, -u, -v, 0, 1, 2);
 	
@@ -3822,7 +3822,8 @@ static void shade_tface(BakeShade *bs, VlakRen *vlr)
 
 /* using object selection tags, the faces with UV maps get baked */
 /* render should have been setup */
-void RE_bake_shade_all_selected(Render *re, int type)
+/* returns 0 if nothing was handled */
+int RE_bake_shade_all_selected(Render *re, int type)
 {
 	BakeShade handle;
 	Image *ima;
@@ -3874,5 +3875,5 @@ void RE_bake_shade_all_selected(Render *re, int type)
 			free_realtime_image(ima); /* force OpenGL reload */
 		}
 	}
-	
+	return vdone;
 }

@@ -808,6 +808,7 @@ void objects_bake_render(void)
 	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4");
 	if(event>0) {
 		Render *re= RE_NewRender("_Bake View_");
+		int tot;
 		
 		if(event==1) event= RE_BAKE_ALL;
 		else if(event==2) event= RE_BAKE_AO;
@@ -829,10 +830,12 @@ void objects_bake_render(void)
 		
 		RE_Database_Baking(re, G.scene, event);
 		
-		RE_bake_shade_all_selected(re, event);
+		tot= RE_bake_shade_all_selected(re, event);
 		
 		RE_Database_Free(re);
 		waitcursor(0);
+		
+		if(tot==0) error("No Images found to bake to");
 		
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWVIEW3D, 0);
