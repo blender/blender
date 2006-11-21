@@ -23,23 +23,24 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Jacques Beaurain.
+# Contributor(s): Jacques Beaurai, Erwin Coumans
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 
-IF(WITH_GAMEENGINE)
-  SUBDIRS(qhull solid)
+SET(INC . src)
 
-  IF(WITH_BULLET)
-    SUBDIRS(bullet2)
-  ENDIF(WITH_BULLET)
-ENDIF(WITH_GAMEENGINE)
+FILE(GLOB SRC   
+  src/LinearMath/*.cpp
+  src/BulletCollision/BroadphaseCollision/*.cpp
+  src/BulletCollision/CollisionShapes/*.cpp
+  src/BulletCollision/NarrowPhaseCollision/*.cpp
+  src/BulletCollision//CollisionDispatch/*.cpp
+  src/BulletDynamics/ConstraintSolver/*.cpp
+  src/BulletDynamics/Vehicle/*.cpp
+  src/BulletDynamics/Dynamics/*.cpp
+)
 
-IF(WITH_INTERNATIONAL)
-  SUBDIRS(bFTGL)
-ENDIF(WITH_INTERNATIONAL)
+ADD_DEFINITIONS(-D_LIB)
 
-IF(WITH_VERSE)
-  SUBDIRS(verse)
-ENDIF(WITH_VERSE)
-
+BLENDERLIB(extern_bullet "${SRC}" "${INC}")
+#, libtype=['game2', 'player'], priority=[20, 170], compileflags=cflags )
