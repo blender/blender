@@ -3040,6 +3040,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		sce->sculptdata.mtex[a]= newdataadr(fd,sce->sculptdata.mtex[a]);
 
 	if(sce->ed) {
+		ListBase *old_seqbasep= &((Editing *)sce->ed)->seqbase;
+		
 		ed= sce->ed= newdataadr(fd, sce->ed);
 
 		/* recursive link sequences, lb will be correctly initialized */
@@ -3126,28 +3128,37 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			Sequence temp;
 			char *poin;
 			long offset;
-			/*int seted=0;*/ /*unused*/
 			
 			offset= ((long)&(temp.seqbase)) - ((long)&temp);
-
-			/* root pointer */
-			poin= (char *)ed->seqbasep;
-			poin -= offset;
-			poin= newdataadr(fd, poin);
-			if(poin) ed->seqbasep= (ListBase *)(poin+offset);
-			else ed->seqbasep= &ed->seqbase;
 			
+			/* root pointer */
+			if(ed->seqbasep == old_seqbasep) {
+				ed->seqbasep= &ed->seqbase;
+			}
+			else {
+				
+				poin= (char *)ed->seqbasep;
+				poin -= offset;
+				
+				poin= newdataadr(fd, poin);
+				if(poin) ed->seqbasep= (ListBase *)(poin+offset);
+				else ed->seqbasep= &ed->seqbase;
+			}			
 			/* stack */
 			link_list(fd, &(ed->metastack));
 			
 			for(ms= ed->metastack.first; ms; ms= ms->next) {
 				ms->parseq= newdataadr(fd, ms->parseq);
 				
-				poin= (char *)ms->oldbasep;
-				poin -= offset;
-				poin= newdataadr(fd, poin);
-				if(poin) ms->oldbasep= (ListBase *)(poin+offset);
-				else ms->oldbasep= &ed->seqbase;
+				if(ms->oldbasep == old_seqbasep)
+					ms->oldbasep= &ed->seqbase;
+				else {
+					poin= (char *)ms->oldbasep;
+					poin -= offset;
+					poin= newdataadr(fd, poin);
+					if(poin) ms->oldbasep= (ListBase *)(poin+offset);
+					else ms->oldbasep= &ed->seqbase;
+				}
 			}
 		}
 	}
