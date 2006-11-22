@@ -1855,7 +1855,8 @@ void flushTransUVs(TransInfo *t)
 		}
 	}
 
-	if((G.sima->flag & SI_BE_SQUARE) && (t->state != TRANS_CANCEL))
+	/* always call this, also for cancel (it transforms non-selected vertices...) */
+	if((G.sima->flag & SI_BE_SQUARE))
 		be_square_tface_uv(me);
 
 	/* this is overkill if G.sima->lock is not set, but still needed */

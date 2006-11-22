@@ -729,13 +729,41 @@ static uiBlock *image_uvs_weldalignmenu(void *arg_unused)
 	return block;
 }
 
+static void do_image_uvs_scriptsmenu(void *arg, int event)
+{
+	BPY_menu_do_python(PYMENU_UV, event);
+
+	allqueue(REDRAWIMAGE, 0);
+}
+
+static uiBlock *image_uvs_scriptsmenu (void *args_unused)
+{
+	uiBlock *block;
+	BPyMenu *pym;
+	int i= 0;
+	short yco = 20, menuwidth = 120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "image_uvs_scriptsmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_image_uvs_scriptsmenu, NULL);
+	
+	/* note that we acount for the N previous entries with i+20: */
+	for (pym = BPyMenuTable[PYMENU_UV]; pym; pym = pym->next, i++) {
+		
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, 
+						 NULL, 0.0, 0.0, 1, i, 
+						 pym->tooltip?pym->tooltip:pym->filename);
+	}
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+
 static void do_image_uvsmenu(void *arg, int event)
 {
-	/* events >=20 are registered bpython scripts */
-	if (event >= 20) BPY_menu_do_python(PYMENU_UV, event - 20);
 
-	else switch(event)
-	{
+	switch(event) {
 	case 1: /* UVs Constrained Rectangular */
 		if(G.sima->flag & SI_BE_SQUARE) G.sima->flag &= ~SI_BE_SQUARE;
 		else G.sima->flag |= SI_BE_SQUARE;
@@ -782,8 +810,6 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
-	BPyMenu *pym;
-	int i = 0;
 
 	block= uiNewBlock(&curarea->uiblocks, "image_uvsmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_uvsmenu, NULL);
@@ -829,19 +855,13 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, image_uvs_propfalloffmenu, NULL, ICON_RIGHTARROW_THIN, "Proportional Falloff", 0, yco-=20, 120, 19, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
-	
-	/* note that we acount for the N previous entries with i+20: */
-	for (pym = BPyMenuTable[PYMENU_UV]; pym; pym = pym->next, i++) {
-
-		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, 
-				 NULL, 0.0, 0.0, 1, i+20, 
-				 pym->tooltip?pym->tooltip:pym->filename);
-	}
-
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
 	uiDefIconTextBlockBut(block, image_uvs_showhidemenu, NULL, ICON_RIGHTARROW_THIN, "Show/Hide Faces", 0, yco-=20, menuwidth, 19, "");
 
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
+	
+	uiDefIconTextBlockBut(block, image_uvs_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Scripts", 0, yco-=20, 120, 19, "");
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}

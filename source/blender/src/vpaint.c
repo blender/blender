@@ -268,6 +268,22 @@ static void copy_vpaint_prev(VPaint *vp, unsigned int *mcol, int tot)
 	
 }
 
+static void copy_wpaint_prev (VPaint *vp, MDeformVert *dverts, int dcount)
+{
+	if (vp->wpaint_prev) {
+		free_dverts(vp->wpaint_prev, vp->tot);
+		vp->wpaint_prev= NULL;
+	}
+	
+	if(dverts && dcount) {
+		
+		vp->wpaint_prev = MEM_mallocN (sizeof(MDeformVert)*dcount, "wpaint prev");
+		vp->tot = dcount;
+		copy_dverts (vp->wpaint_prev, dverts, dcount);
+	}
+}
+
+
 void clear_vpaint()
 {
 	Mesh *me;
@@ -813,21 +829,6 @@ static int calc_vp_alpha_dl(VPaint *vp, float vpimat[][3], float *vert_nor, shor
 	}
 	
 	return alpha;
-}
-
-void copy_wpaint_prev (VPaint *vp, MDeformVert *dverts, int dcount)
-{
-	if (vp->wpaint_prev) {
-		free_dverts(vp->wpaint_prev, vp->tot);
-		vp->wpaint_prev= NULL;
-	}
-	
-	if(dverts && dcount) {
-		
-		vp->wpaint_prev = MEM_mallocN (sizeof(MDeformVert)*dcount, "wpaint prev");
-		vp->tot = dcount;
-		copy_dverts (vp->wpaint_prev, dverts, dcount);
-	}
 }
 
 static void wpaint_blend(MDeformWeight *dw, MDeformWeight *uw, float alpha, float paintval)
