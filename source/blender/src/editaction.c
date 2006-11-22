@@ -2108,7 +2108,9 @@ void snap_keys_to_frame()
 	key = get_action_mesh_key();
 	
 	/* find the type of snapping to do */
-	event = pupmenu("Snap Frames To%t|Nearest Frame%x1|Current Frame%x2");
+	if (act || key)
+		event = pupmenu("Snap Frames To%t|Nearest Frame%x1|Current Frame%x2");
+	else return;
 	
 	/* handle events */
 	switch (event) {
