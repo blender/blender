@@ -106,7 +106,7 @@ void initSnapping(TransInfo *t)
 {
 	setSnappingCallback(t);
 	
-	if (G.vd->flag2 & V3D_TRANSFORM_SNAP)
+	if ((t->spacetype==SPACE_VIEW3D) && (G.vd->flag2 & V3D_TRANSFORM_SNAP))
 	{
 		t->tsnap.status |= SNAP_ON;
 	}
