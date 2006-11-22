@@ -1690,7 +1690,8 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 	/* create custom vertex data arrays and copy existing vertices into it */
 
 	newlen = mesh->totvert + len;
-	CustomData_copy( &mesh->vdata, &vdata, CD_MASK_MESH, CD_DUPLICATE, newlen );
+	CustomData_copy( &mesh->vdata, &vdata, CD_MASK_MESH, CD_CALLOC, newlen );
+	CustomData_copy_data( &mesh->vdata, &vdata, 0, 0, mesh->totvert );
 	CustomData_set_default( &vdata, mesh->totvert, len );
 
 	if ( !CustomData_has_layer( &vdata, CD_MVERT ) )
@@ -2859,7 +2860,8 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		int totedge = mesh->totedge+good_edges;
 
 	/* create custom edge data arrays and copy existing edges into it */
-		CustomData_copy( &mesh->edata, &edata, CD_MASK_MESH, CD_DUPLICATE, totedge );
+		CustomData_copy( &mesh->edata, &edata, CD_MASK_MESH, CD_CALLOC, totedge );
+		CustomData_copy_data( &mesh->edata, &edata, 0, 0, mesh->totedge );
 		CustomData_set_default( &edata, mesh->totedge, good_edges );
 
 		if ( !CustomData_has_layer( &edata, CD_MEDGE ) )
@@ -4802,7 +4804,8 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 		int totface = mesh->totface+good_faces;	/* new face count */
 		CustomData fdata;
 
-		CustomData_copy( &mesh->fdata, &fdata, CD_MASK_MESH, CD_DUPLICATE, totface );
+		CustomData_copy( &mesh->fdata, &fdata, CD_MASK_MESH, CD_CALLOC, totface );
+		CustomData_copy_data( &mesh->fdata, &fdata, 0, 0, mesh->totface );
 		CustomData_set_default( &fdata, mesh->totface, good_faces );
 
 		if ( !CustomData_has_layer( &fdata, CD_MFACE ) )

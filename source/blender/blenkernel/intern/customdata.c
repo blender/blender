@@ -431,14 +431,11 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 		flag = layer->flag & ~CD_FLAG_NOFREE;
 		data = layer->data;
 
-		if (alloctype == CD_CALLOC) {
+		if (alloctype == CD_CALLOC || alloctype == CD_DUPLICATE) {
 			CustomData_add_layer(dest, type, flag, NULL, totelem);
 		}
 		else if (alloctype == CD_REFERENCE) {
 			CustomData_add_layer(dest, type, flag|CD_FLAG_NOFREE, data, totelem);
-		}
-		else if (alloctype == CD_DUPLICATE) {
-			CustomData_add_layer(dest, type, flag, MEM_dupallocN(data), totelem);
 		}
 		else if (alloctype == CD_DEFAULT) {
 			data = CustomData_add_layer(dest, type, flag, NULL, totelem);
@@ -447,8 +444,10 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 		}
 	}
 
-	CustomData_update_offsets(dest);
+	if (alloctype == CD_DUPLICATE)
+		CustomData_copy_data(source, dest, 0, 0, totelem);
 
+	CustomData_update_offsets(dest);
 }
 
 void CustomData_copy(const struct CustomData *source, struct CustomData *dest,
