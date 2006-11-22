@@ -162,7 +162,7 @@ struct Render
 	struct VlakRen **blovl;
 	ListBase objecttable;
 	
-	struct Image *backbuf;
+	struct Image *backbuf, *bakebuf;
 	
 	struct GHash *orco_hash;
 

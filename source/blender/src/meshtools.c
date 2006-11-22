@@ -53,12 +53,14 @@ void sort_faces(void);
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
@@ -84,10 +86,12 @@ void sort_faces(void);
 #include "BIF_toolbox.h"
 #include "BIF_editconstraint.h"
 
+#include "BDR_drawmesh.h" 
 #include "BDR_editobject.h" 
 #include "BDR_editface.h" 
 
 #include "BLI_editVert.h"
+#include "BLI_threads.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -97,6 +101,9 @@ void sort_faces(void);
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 
+#include "PIL_time.h"
+
+#include "IMB_imbuf_types.h"
 
 /* * ********************** no editmode!!! *********** */
 
@@ -800,6 +807,40 @@ EditVert *editmesh_get_x_mirror_vert(Object *ob, float *co)
 
 /* ****************** render BAKING ********************** */
 
+
+static ScrArea *biggest_image_area(void)
+{
+	ScrArea *sa, *big= NULL;
+	int size, maxsize= 0;
+	
+	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_IMAGE) {
+			size= sa->winx*sa->winy;
+			if(sa->winx > 10 && sa->winy > 10 && size > maxsize) {
+				maxsize= size;
+				big= sa;
+			}
+		}
+	}
+	return big;
+}
+
+
+typedef struct BakeRender {
+	Render *re;
+	int event, tot, ready;
+} BakeRender;
+
+static void *do_bake_render(void *bake_v)
+{
+	BakeRender *bkr= bake_v;
+	
+	bkr->tot= RE_bake_shade_all_selected(bkr->re, bkr->event);
+	bkr->ready= 1;
+	
+	return NULL;
+}
+
 /* all selected meshes with UV maps are rendered for current scene visibility */
 void objects_bake_render(void)
 {
@@ -808,6 +849,7 @@ void objects_bake_render(void)
 	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4");
 	if(event>0) {
 		Render *re= RE_NewRender("_Bake View_");
+		ScrArea *area;
 		int tot;
 		
 		if(event==1) event= RE_BAKE_ALL;
@@ -830,12 +872,49 @@ void objects_bake_render(void)
 		
 		RE_Database_Baking(re, G.scene, event);
 		
-		tot= RE_bake_shade_all_selected(re, event);
+		/* live updates, threaded */
+		area= biggest_image_area();
+		if(area) {
+			ListBase threads;
+			BakeRender bkr;
+			int timer;
+			
+			BLI_init_threads(&threads, do_bake_render, 1);
+			bkr.re= re;
+			bkr.event= event;
+			bkr.ready= 0;
+			BLI_insert_thread(&threads, &bkr);
+			
+			while(bkr.ready==0) {
+				PIL_sleep_ms(50);
+				if(bkr.ready)
+					break;
+				timer++;
+				if(timer==20) {
+					Image *ima= RE_bake_shade_get_image();
+					if(ima) ((SpaceImage *)area->spacedata.first)->image= ima;
+					scrarea_do_windraw(area);
+					myswapbuffers();	
+					timer= 0;
+				}
+			}
+			BLI_end_threads(&threads);
+			tot= bkr.tot;
+		}
+		else /* no thread bake */ 
+			tot= RE_bake_shade_all_selected(re, event);
 		
 		RE_Database_Free(re);
 		waitcursor(0);
 		
 		if(tot==0) error("No Images found to bake to");
+		else {
+			Image *ima;
+			/* force OpenGL reload */
+			for(ima= G.main->image.first; ima; ima= ima->id.next)
+				if(ima->ibuf->userflags & IB_BITMAPDIRTY)
+					free_realtime_image(ima); 
+		}
 		
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWVIEW3D, 0);

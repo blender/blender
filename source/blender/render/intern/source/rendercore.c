@@ -3792,8 +3792,12 @@ static void shade_tface(BakeShade *bs, VlakRen *vlr)
 		zbuf_alloc_span(zspan, ima->ibuf->x, ima->ibuf->y);
 		ima->id.newid= (ID *)zspan;
 		
+		/* clear image */
 		memset(vec, 0, sizeof(vec));
 		IMB_rectfill(ima->ibuf, vec[0]);
+		
+		/* might be read by UI to set active image for display */
+		R.bakebuf= ima;
 	}
 	
 	bs->vlr= vlr;
@@ -3832,6 +3836,7 @@ int RE_bake_shade_all_selected(Render *re, int type)
 	
 	/* initialize render global */
 	R= *re;
+	R.bakebuf= NULL;
 	
 	/* set defaults in handle */
 	memset(&handle, 0, sizeof(BakeShade));
@@ -3863,7 +3868,6 @@ int RE_bake_shade_all_selected(Render *re, int type)
 	/* free zspans, filter images */
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if(ima->id.newid) {
-			extern void free_realtime_image(Image *ima);	/* bad level call */
 			
 			zbuf_free_span((ZSpan *)ima->id.newid);
 			MEM_freeN(ima->id.newid);
@@ -3872,8 +3876,13 @@ int RE_bake_shade_all_selected(Render *re, int type)
 			IMB_filter_extend(ima->ibuf);
 			IMB_filter_extend(ima->ibuf);	/* 2nd pixel extra */
 			ima->ibuf->userflags |= IB_BITMAPDIRTY;
-			free_realtime_image(ima); /* force OpenGL reload */
 		}
 	}
 	return vdone;
 }
+
+struct Image *RE_bake_shade_get_image(void)
+{
+	return R.bakebuf;
+}
+
