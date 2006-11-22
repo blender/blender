@@ -1,3 +1,4 @@
+#
 # $Id$
 #
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -24,53 +25,39 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s):
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
-# Bounces make to subdirectories. Also installs after succesful all target.
+LIBNAME = bullet2
+SOURCEDIR = extern/$(LIBNAME)
+DIR = $(OCGDIR)/extern/$(LIBNAME)
+DIRS = src
+DISTDIR = src
 
-include nan_definitions.mk
+BULLETDIRS = \
+LinearMath \
+BulletCollision/BroadphaseCollision \
+BulletCollision/CollisionShapes \
+BulletCollision/NarrowPhaseCollision \
+BulletCollision//CollisionDispatch \
+BulletDynamics/ConstraintSolver \
+BulletDynamics/Vehicle \
+BulletDynamics/Dynamics
 
-SOURCEDIR = extern
-DIR = $(OCGDIR)/extern
-DIRS = qhull/src solid 
+include nan_subdirs.mk
 
-ifeq ($(WITH_FREETYPE2), true)
-    DIRS += bFTGL/src
-endif
+CP = $(NANBLENDERHOME)/intern/tools/cpifdiff.sh
 
-ifeq ($(WITH_FFMPEG), true)
-ifeq ($(NAN_FFMPEG), $(LCGDIR)/ffmpeg)
-    DIRS += ffmpeg
-endif
-ifeq ($(NAN_FFMPEG), $(LCGDIR)/gcc/ffmpeg)
-    DIRS += ffmpeg
-endif
-endif
-
-ifeq ($(WITH_VERSE), true)
-   DIRS += verse
-endif
-
-ifneq ($(NAN_NO_KETSJI), true)
-    DIRS += bullet2
-endif
-
-TARGET =
-ifneq ($(OS),irix)
-  TARGET=solid
-endif
-
-all::
-	@[ -d $(OCGDIR)/extern ] || mkdir -p $(OCGDIR)/extern
-	@for i in $(DIRS); do \
-	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i install || exit 1; \
+install: all debug
+	@[ -d $(NAN_BULLET2) ] || mkdir -p $(NAN_BULLET2)
+	@[ -d $(NAN_BULLET2)/include ] || mkdir -p $(NAN_BULLET2)/include
+	@for i in $(BULLETDIRS); do \
+	[ -d $(NAN_BULLET2)/include/$$i ] || mkdir -p $(NAN_BULLET2)/include/$$i; \
+	$(CP) $(DISTDIR)/$$i/*.h $(NAN_BULLET2)/include/$$i; \
 	done
-
-clean test debug::
-	@[ -d $(OCGDIR)/extern ] || mkdir -p $(OCGDIR)/extern
-	@for i in $(DIRS); do \
-	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i $@ || exit 1; \
-	done
+	@[ -d $(NAN_BULLET2)/lib ] || mkdir -p $(NAN_BULLET2)/lib
+	@$(CP) $(DISTDIR)/*.h $(NAN_BULLET2)/include
+	@$(CP) $(DIR)/libbullet2.a $(NAN_BULLET2)/lib
+ifeq ($(OS),darwin)
+	ranlib $(NAN_BULLET2)/lib/libbullet2.a
+endif

@@ -1,3 +1,4 @@
+#
 # $Id$
 #
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -19,7 +20,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2002 by Hans Lambermont
+# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
 # All rights reserved.
 #
 # The Original Code is: all of this file.
@@ -27,50 +28,39 @@
 # Contributor(s): none yet.
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
-# Bounces make to subdirectories. Also installs after succesful all target.
+#
 
-include nan_definitions.mk
+LIBNAME = bullet2
+DIR = $(OCGDIR)/extern/$(LIBNAME)
 
-SOURCEDIR = extern
-DIR = $(OCGDIR)/extern
-DIRS = qhull/src solid 
+BULLETDIRS = \
+LinearMath \
+BulletCollision/BroadphaseCollision \
+BulletCollision/CollisionShapes \
+BulletCollision/NarrowPhaseCollision \
+BulletCollision/CollisionDispatch \
+BulletDynamics/ConstraintSolver \
+BulletDynamics/Vehicle \
+BulletDynamics/Dynamics
 
-ifeq ($(WITH_FREETYPE2), true)
-    DIRS += bFTGL/src
-endif
+CCSRCS = $(wildcard \
+LinearMath/*.cpp \
+BulletCollision/BroadphaseCollision/*.cpp \
+BulletCollision/CollisionShapes/*.cpp \
+BulletCollision/NarrowPhaseCollision/*.cpp \
+BulletCollision/CollisionDispatch/*.cpp \
+BulletDynamics/ConstraintSolver/*.cpp \
+BulletDynamics/Vehicle/*.cpp \
+BulletDynamics/Dynamics/*.cpp)
 
-ifeq ($(WITH_FFMPEG), true)
-ifeq ($(NAN_FFMPEG), $(LCGDIR)/ffmpeg)
-    DIRS += ffmpeg
-endif
-ifeq ($(NAN_FFMPEG), $(LCGDIR)/gcc/ffmpeg)
-    DIRS += ffmpeg
-endif
-endif
+CPPFLAGS += -D_LIB -I. -IBulletCollision -IBulletDynamics -ILinearMath
 
-ifeq ($(WITH_VERSE), true)
-   DIRS += verse
-endif
+all debug:: objdirs
 
-ifneq ($(NAN_NO_KETSJI), true)
-    DIRS += bullet2
-endif
+include nan_compile.mk
 
-TARGET =
-ifneq ($(OS),irix)
-  TARGET=solid
-endif
-
-all::
-	@[ -d $(OCGDIR)/extern ] || mkdir -p $(OCGDIR)/extern
-	@for i in $(DIRS); do \
-	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i install || exit 1; \
-	done
-
-clean test debug::
-	@[ -d $(OCGDIR)/extern ] || mkdir -p $(OCGDIR)/extern
-	@for i in $(DIRS); do \
-	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i $@ || exit 1; \
+.PHONY: objdirs clean
+objdirs:
+	@for i in $(BULLETDIRS); do \
+	[ -d $(DIR)/$(DEBUG_DIR)$$i ] || mkdir -p $(DIR)/$(DEBUG_DIR)$$i; \
 	done

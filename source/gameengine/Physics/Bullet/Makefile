@@ -38,7 +38,7 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
-CPPFLAGS += -I$(NAN_BULLET)/include
+CPPFLAGS += -I$(NAN_BULLET2)/include
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../Physics/common
 CPPFLAGS += -I../../Physics/Dummy

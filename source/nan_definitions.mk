@@ -34,9 +34,6 @@
 
 sinclude ../user-def.mk
 
-#game engine temporarily disabled: need to upgrade to Bullet 2.x
-export NAN_NO_KETSJI=true
- 
 ifndef CONFIG_GUESS
   ifeq (debug, $(findstring debug, $(MAKECMDGOALS)))
     ifeq (all, $(findstring all, $(MAKECMDGOALS)))
@@ -70,7 +67,7 @@ else
     export NAN_SOLID ?= $(LCGDIR)/solid
     export NAN_QHULL ?= $(LCGDIR)/qhull
 endif
-    export NAN_BULLET ?= $(LCGDIR)/bullet
+    export NAN_BULLET2 ?= $(LCGDIR)/bullet2
     export NAN_SUMO ?= $(SRCHOME)/gameengine/Physics/Sumo
     export NAN_FUZZICS ?= $(SRCHOME)/gameengine/Physics/Sumo/Fuzzics
     export NAN_BLENKEY ?= $(LCGDIR)/blenkey
@@ -229,7 +226,7 @@ endif
     ifeq ($(CPU), i386)
 	    export NAN_NO_OPENAL=true
     endif
-	
+
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
