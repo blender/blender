@@ -193,7 +193,8 @@ void free_editing(Editing *ed)
 	MetaStack *ms;
 	Sequence *seq;
 
-	if(ed==0) return;
+	if(ed==NULL) return;
+	set_last_seq(NULL);	/* clear_last_seq doesnt work, it screws up free_sequence */
 
 	WHILE_SEQ(&ed->seqbase) {
 		free_sequence(seq);
@@ -207,7 +208,6 @@ void free_editing(Editing *ed)
 
 	MEM_freeN(ed);
 
-	clear_last_seq();
 }
 
 void calc_sequence(Sequence *seq)
