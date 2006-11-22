@@ -136,6 +136,7 @@ void open_plugin_tex(PluginTex *pit)
 
 				info_func= (int (*)(PluginInfo *))PIL_dynlib_find_symbol(pit->handle, "plugin_getinfo");
 				if (!test_dlerr(pit->name, "plugin_getinfo")) {
+					info->instance_init = NULL;
 
 					info_func(info);
 
@@ -148,6 +149,7 @@ void open_plugin_tex(PluginTex *pit)
 					pit->varstr= info->varstr;
 					pit->result= info->result;
 					pit->cfra= info->cfra;
+					pit->instance_init = info->instance_init;
 					if (info->init) info->init();
 				}
 				MEM_freeN(info);
@@ -190,6 +192,9 @@ PluginTex *add_plugin_tex(char *str)
 		else if( (varstr->type & INT)==INT)
 			*((int *)(pit->data+a))= (int) varstr->def;
 	}
+
+	if (pit->instance_init)
+		pit->instance_init((void *) pit->data);
 
 	return pit;
 }

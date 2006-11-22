@@ -62,6 +62,8 @@ typedef struct _PluginInfo {
 	void (*callback)(int);
 	TexDoit tex_doit;
 	SeqDoit seq_doit;
+
+	void (*instance_init)(void *);
 } PluginInfo;
 
 int plugin_tex_getversion(void);

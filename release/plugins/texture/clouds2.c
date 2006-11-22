@@ -77,6 +77,7 @@ float result[8];
 float cfra;
 
 int plugin_tex_doit(int, Cast*, float*, float*, float*);
+void plugin_instance_init(Cast*);
 
 /* ******************** Fixed functions ***************** */
 
@@ -92,6 +93,14 @@ void plugin_but_changed(int but)
 void plugin_init(void)
 {
 	
+}
+
+/* 
+ * initialize any data for a particular instance of
+ * the plugin here
+ */
+void plugin_instance_init(Cast *cast)
+{
 }
 
 /* this function should not be changed: */
@@ -110,6 +119,7 @@ void plugin_getinfo(PluginInfo *info)
 	info->init= plugin_init;
 	info->tex_doit=  (TexDoit) plugin_tex_doit;
 	info->callback= plugin_but_changed;
+	info->instance_init= (void (*)(void *)) plugin_instance_init;
 }
 
 /* ********************* the texture ******************** */

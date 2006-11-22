@@ -89,6 +89,7 @@ typedef struct PluginTex {
 	float data[32];
 
 	int (*doit)(void);
+	void (*instance_init)(void *);
 
 	/* should be void (*)(unsigned short)... patched */	
 	void (*callback)(dna_ushort_fix);

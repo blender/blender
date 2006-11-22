@@ -2255,6 +2255,11 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	if(tex->plugin) {
 		tex->plugin->handle= 0;
 		open_plugin_tex(tex->plugin);
+		/* initialize data for this instance, if an initialization
+		 * function exists.
+		 */
+		if (tex->plugin->instance_init)
+			tex->plugin->instance_init((void *) tex->plugin->data);
 	}
 	tex->coba= newdataadr(fd, tex->coba);
 	tex->env= newdataadr(fd, tex->env);
