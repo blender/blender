@@ -388,6 +388,7 @@ void clear_wpaint_selectedfaces()
 	}
 	/* end copy from weight_paint*/
 	
+	copy_wpaint_prev(&Gwp, me->dvert, me->totvert);
 	
 	for(index=0; index<me->totface; index++) {
 		if(indexar[index] && indexar[index]<=me->totface) {
@@ -434,6 +435,7 @@ void clear_wpaint_selectedfaces()
 	}
 	
 	MEM_freeN(indexar);
+	copy_wpaint_prev(&Gwp, NULL, 0);
 
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	BIF_undo_push("Set vertex weight");

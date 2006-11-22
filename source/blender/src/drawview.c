@@ -2883,7 +2883,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	/* Draw Sculpt Mode brush */
 	if(!G.obedit && (G.f & G_SCULPTMODE)) {
 		PropsetData *pd = G.scene->sculptdata.propset;
-		short r1, r2, r3;
+		short r1=100, r2=100, r3=100;
 		if(pd) {
 			if(pd->mode == PropsetSize) {
 				r1= sculptmode_brush()->size;

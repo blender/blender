@@ -909,6 +909,12 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 	return draw_tface__set_draw(tface, mcol, matnr);
 }
 
+static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
+{
+	*drawSmooth_r = 1;
+	return 1;
+}
+
 void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 /* maximum dt (drawtype): exactly according values that have been set */
 {
@@ -951,31 +957,33 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	set_draw_settings_cached(1, 0, 0, 0, 0, 0, 0);
 
 	if(dt > OB_SOLID || g_draw_tface_mesh_islight==-1) {
-		MTFace *tface= me->mtface;
-		MCol *mcol= me->mcol;
-		MFace *mface= me->mface;
 		bProperty *prop = get_property(ob, "Text");
 		int editing= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
-		int start, totface;
 
 #ifdef WITH_VERSE
 		if(me->vnode) {
 			/* verse-blender doesn't support uv mapping of textures yet */
 			dm->drawFacesTex(dm, NULL);
 		}
-		else if(ob==OBACT && (G.f & G_FACESELECT) && me && me->mtface)
+		else if(ob==OBACT && (G.f & G_FACESELECT) && me && me->mtface) {
 #else
-		if(ob==OBACT && (G.f & G_FACESELECT) && me && me->mtface)
-#endif
-			dm->drawMappedFacesTex(dm, draw_tface_mapped__set_draw, (void*)me);
+		if(ob==OBACT && (G.f & G_FACESELECT) && me && me->mtface) {
+#endif		
+			if(G.f & G_WEIGHTPAINT)
+				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1);
+			else
+				dm->drawMappedFacesTex(dm, draw_tface_mapped__set_draw, (void*)me);
+		}
 		else
 			dm->drawFacesTex(dm, draw_tface__set_draw);
 
-		start = 0;
-		totface = me->totface;
-
-		if (!editing && prop && tface) {
+		/* drawing game engine text hack */
+		if (!editing && prop && me->tface) {
 			DerivedMesh *ddm = mesh_get_derived_deform(ob);
+			MFace *mface= me->mface;
+			MTFace *tface= me->mtface;
+			MCol *mcol= me->mcol;	/* why does mcol exist? */
+			int start= 0, totface= me->totface;
 
 			tface+= start;
 			mcol+= start*4;
