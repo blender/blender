@@ -466,14 +466,12 @@ static void emDM_foreachMappedEdge(DerivedMesh *dm, void (*func)(void *userData,
 	int i;
 
 	if (emdm->vertexCos) {
-		EditVert *eve, *preveve;
+		EditVert *eve;
 
 		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
-			eve->prev = (EditVert*) i++;
+			eve->tmp.l = (long) i++;
 		for(i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next)
-			func(userData, i, emdm->vertexCos[(int) eed->v1->prev], emdm->vertexCos[(int) eed->v2->prev]);
-		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
-			eve->prev = preveve;
+			func(userData, i, emdm->vertexCos[(int) eed->v1->tmp.l], emdm->vertexCos[(int) eed->v2->tmp.l]);
 	} else {
 		for(i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next)
 			func(userData, i, eed->v1->co, eed->v2->co);
@@ -486,22 +484,19 @@ static void emDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	int i;
 
 	if (emdm->vertexCos) {
-		EditVert *eve, *preveve;
+		EditVert *eve;
 
 		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
-			eve->prev = (EditVert*) i++;
+			eve->tmp.l = (long) i++;
 
 		glBegin(GL_LINES);
 		for(i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next) {
 			if(!setDrawOptions || setDrawOptions(userData, i)) {
-				glVertex3fv(emdm->vertexCos[(int) eed->v1->prev]);
-				glVertex3fv(emdm->vertexCos[(int) eed->v2->prev]);
+				glVertex3fv(emdm->vertexCos[(int) eed->v1->tmp.l]);
+				glVertex3fv(emdm->vertexCos[(int) eed->v2->tmp.l]);
 			}
 		}
 		glEnd();
-
-		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
-			eve->prev = preveve;
 	} else {
 		glBegin(GL_LINES);
 		for(i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next) {
@@ -524,24 +519,21 @@ static void emDM_drawMappedEdgesInterp(DerivedMesh *dm, int (*setDrawOptions)(vo
 	int i;
 
 	if (emdm->vertexCos) {
-		EditVert *eve, *preveve;
+		EditVert *eve;
 
 		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
-			eve->prev = (EditVert*) i++;
+			eve->tmp.l = (long) i++;
 
 		glBegin(GL_LINES);
 		for (i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next) {
 			if(!setDrawOptions || setDrawOptions(userData, i)) {
 				setDrawInterpOptions(userData, i, 0.0);
-				glVertex3fv(emdm->vertexCos[(int) eed->v1->prev]);
+				glVertex3fv(emdm->vertexCos[(int) eed->v1->tmp.l]);
 				setDrawInterpOptions(userData, i, 1.0);
-				glVertex3fv(emdm->vertexCos[(int) eed->v2->prev]);
+				glVertex3fv(emdm->vertexCos[(int) eed->v2->tmp.l]);
 			}
 		}
 		glEnd();
-
-		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
-			eve->prev = preveve;
 	} else {
 		glBegin(GL_LINES);
 		for (i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next) {
@@ -590,10 +582,10 @@ static void emDM_drawUVEdges(DerivedMesh *dm)
 static void emDM__calcFaceCent(EditFace *efa, float cent[3], float (*vertexCos)[3])
 {
 	if (vertexCos) {
-		VECCOPY(cent, vertexCos[(int) efa->v1->prev]);
-		VecAddf(cent, cent, vertexCos[(int) efa->v2->prev]);
-		VecAddf(cent, cent, vertexCos[(int) efa->v3->prev]);
-		if (efa->v4) VecAddf(cent, cent, vertexCos[(int) efa->v4->prev]);
+		VECCOPY(cent, vertexCos[(int) efa->v1->tmp.l]);
+		VecAddf(cent, cent, vertexCos[(int) efa->v2->tmp.l]);
+		VecAddf(cent, cent, vertexCos[(int) efa->v3->tmp.l]);
+		if (efa->v4) VecAddf(cent, cent, vertexCos[(int) efa->v4->tmp.l]);
 	} else {
 		VECCOPY(cent, efa->v1->co);
 		VecAddf(cent, cent, efa->v2->co);
@@ -610,24 +602,19 @@ static void emDM__calcFaceCent(EditFace *efa, float cent[3], float (*vertexCos)[
 static void emDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no), void *userData)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
-	EditVert *eve, *preveve;
+	EditVert *eve;
 	EditFace *efa;
 	float cent[3];
 	int i;
 
 	if (emdm->vertexCos) {
 		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
-			eve->prev = (EditVert*) i++;
+			eve->tmp.l = (long) i++;
 	}
 
 	for(i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
 		emDM__calcFaceCent(efa, cent, emdm->vertexCos);
 		func(userData, i, cent, emdm->vertexCos?emdm->faceNos[i]:efa->n);
-	}
-
-	if (emdm->vertexCos) {
-		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
-			eve->prev = preveve;
 	}
 }
 static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors)
@@ -637,10 +624,10 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	int i;
 
 	if (emdm->vertexCos) {
-		EditVert *eve, *preveve;
+		EditVert *eve;
 
 		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
-			eve->prev = (EditVert*) i++;
+			eve->tmp.l = (long) i++;
 
 		for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
 			int drawSmooth = (efa->flag & ME_SMOOTH);
@@ -650,28 +637,25 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 				if (!drawSmooth) {
 					glNormal3fv(emdm->faceNos[i]);
-					glVertex3fv(emdm->vertexCos[(int) efa->v1->prev]);
-					glVertex3fv(emdm->vertexCos[(int) efa->v2->prev]);
-					glVertex3fv(emdm->vertexCos[(int) efa->v3->prev]);
-					if(efa->v4) glVertex3fv(emdm->vertexCos[(int) efa->v4->prev]);
+					glVertex3fv(emdm->vertexCos[(int) efa->v1->tmp.l]);
+					glVertex3fv(emdm->vertexCos[(int) efa->v2->tmp.l]);
+					glVertex3fv(emdm->vertexCos[(int) efa->v3->tmp.l]);
+					if(efa->v4) glVertex3fv(emdm->vertexCos[(int) efa->v4->tmp.l]);
 				} else {
-					glNormal3fv(emdm->vertexNos[(int) efa->v1->prev]);
-					glVertex3fv(emdm->vertexCos[(int) efa->v1->prev]);
-					glNormal3fv(emdm->vertexNos[(int) efa->v2->prev]);
-					glVertex3fv(emdm->vertexCos[(int) efa->v2->prev]);
-					glNormal3fv(emdm->vertexNos[(int) efa->v3->prev]);
-					glVertex3fv(emdm->vertexCos[(int) efa->v3->prev]);
+					glNormal3fv(emdm->vertexNos[(int) efa->v1->tmp.l]);
+					glVertex3fv(emdm->vertexCos[(int) efa->v1->tmp.l]);
+					glNormal3fv(emdm->vertexNos[(int) efa->v2->tmp.l]);
+					glVertex3fv(emdm->vertexCos[(int) efa->v2->tmp.l]);
+					glNormal3fv(emdm->vertexNos[(int) efa->v3->tmp.l]);
+					glVertex3fv(emdm->vertexCos[(int) efa->v3->tmp.l]);
 					if(efa->v4) {
-						glNormal3fv(emdm->vertexNos[(int) efa->v4->prev]);
-						glVertex3fv(emdm->vertexCos[(int) efa->v4->prev]);
+						glNormal3fv(emdm->vertexNos[(int) efa->v4->tmp.l]);
+						glVertex3fv(emdm->vertexCos[(int) efa->v4->tmp.l]);
 					}
 				}
 				glEnd();
 			}
 		}
-
-		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
-			eve->prev = preveve;
 	} else {
 		for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
 			int drawSmooth = (efa->flag & ME_SMOOTH);
@@ -856,12 +840,12 @@ void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 {
 	EditMesh *em = ((EditMeshDerivedMesh *)dm)->em;
 	EditEdge *ee = em->edges.first;
-	EditVert *ev, *prevev;
+	EditVert *ev;
 	int i;
 
-	/* store vert indices in the prev pointer (kind of hacky) */
+	/* store vertex indices in tmp union */
 	for(ev = em->verts.first, i = 0; ev; ev = ev->next, ++i)
-		ev->prev = (EditVert*) i++;
+		ev->tmp.l = (long) i++;
 
 	for( ; ee; ee = ee->next, ++edge_r) {
 		edge_r->crease = (unsigned char) (ee->crease*255.0f);
@@ -874,42 +858,34 @@ void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 		if (!ee->f2) edge_r->flag |= ME_LOOSEEDGE;
 #endif
 
-		edge_r->v1 = (int)ee->v1->prev;
-		edge_r->v2 = (int)ee->v2->prev;
+		edge_r->v1 = (int)ee->v1->tmp.l;
+		edge_r->v2 = (int)ee->v2->tmp.l;
 	}
-
-	/* restore prev pointers */
-	for(prevev = NULL, ev = em->verts.first; ev; prevev = ev, ev = ev->next)
-		ev->prev = prevev;
 }
 
 void emDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 {
 	EditMesh *em = ((EditMeshDerivedMesh *)dm)->em;
 	EditFace *ef = em->faces.first;
-	EditVert *ev, *prevev;
+	EditVert *ev;
 	int i;
 
-	/* store vert indices in the prev pointer (kind of hacky) */
+	/* store vertexes indices in tmp union */
 	for(ev = em->verts.first, i = 0; ev; ev = ev->next, ++i)
-		ev->prev = (EditVert*) i++;
+		ev->tmp.l = (long) i++;
 
 	for( ; ef; ef = ef->next, ++face_r) {
 		face_r->mat_nr = ef->mat_nr;
 		face_r->flag = ef->flag;
 
-		face_r->v1 = (int)ef->v1->prev;
-		face_r->v2 = (int)ef->v2->prev;
-		face_r->v3 = (int)ef->v3->prev;
-		if(ef->v4) face_r->v4 = (int)ef->v4->prev;
+		face_r->v1 = (int)ef->v1->tmp.l;
+		face_r->v2 = (int)ef->v2->tmp.l;
+		face_r->v3 = (int)ef->v3->tmp.l;
+		if(ef->v4) face_r->v4 = (int)ef->v4->tmp.l;
 		else face_r->v4 = 0;
 
 		test_index_face(face_r, NULL, 0, ef->v4?4:3);
 	}
-
-	/* restore prev pointers */
-	for(prevev = NULL, ev = em->verts.first; ev; prevev = ev, ev = ev->next)
-		ev->prev = prevev;
 }
 
 static void emDM_release(DerivedMesh *dm)
@@ -975,36 +951,36 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 	}
 
 	if(vertexCos) {
-		EditVert *eve, *preveve;
+		EditVert *eve;
 		EditFace *efa;
 		int totface = BLI_countlist(&em->faces);
 		int i;
 
 		for (i=0,eve=em->verts.first; eve; eve= eve->next)
-			eve->prev = (EditVert*) i++;
+			eve->tmp.l = (long) i++;
 
 		emdm->vertexNos = MEM_callocN(sizeof(*emdm->vertexNos)*i, "emdm_vno");
 		emdm->faceNos = MEM_mallocN(sizeof(*emdm->faceNos)*totface, "emdm_vno");
 
 		for(i=0, efa= em->faces.first; efa; i++, efa=efa->next) {
-			float *v1 = vertexCos[(int) efa->v1->prev];
-			float *v2 = vertexCos[(int) efa->v2->prev];
-			float *v3 = vertexCos[(int) efa->v3->prev];
+			float *v1 = vertexCos[(int) efa->v1->tmp.l];
+			float *v2 = vertexCos[(int) efa->v2->tmp.l];
+			float *v3 = vertexCos[(int) efa->v3->tmp.l];
 			float *no = emdm->faceNos[i];
 			
 			if(efa->v4) {
-				float *v4 = vertexCos[(int) efa->v3->prev];
+				float *v4 = vertexCos[(int) efa->v3->tmp.l];
 
 				CalcNormFloat4(v1, v2, v3, v4, no);
-				VecAddf(emdm->vertexNos[(int) efa->v4->prev], emdm->vertexNos[(int) efa->v4->prev], no);
+				VecAddf(emdm->vertexNos[(int) efa->v4->tmp.l], emdm->vertexNos[(int) efa->v4->tmp.l], no);
 			}
 			else {
 				CalcNormFloat(v1, v2, v3, no);
 			}
 
-			VecAddf(emdm->vertexNos[(int) efa->v1->prev], emdm->vertexNos[(int) efa->v1->prev], no);
-			VecAddf(emdm->vertexNos[(int) efa->v2->prev], emdm->vertexNos[(int) efa->v2->prev], no);
-			VecAddf(emdm->vertexNos[(int) efa->v3->prev], emdm->vertexNos[(int) efa->v3->prev], no);
+			VecAddf(emdm->vertexNos[(int) efa->v1->tmp.l], emdm->vertexNos[(int) efa->v1->tmp.l], no);
+			VecAddf(emdm->vertexNos[(int) efa->v2->tmp.l], emdm->vertexNos[(int) efa->v2->tmp.l], no);
+			VecAddf(emdm->vertexNos[(int) efa->v3->tmp.l], emdm->vertexNos[(int) efa->v3->tmp.l], no);
 		}
 
 		for(i=0, eve= em->verts.first; eve; i++, eve=eve->next) {
@@ -1016,9 +992,6 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 				Normalise(no);
 			}
 		}
-
-		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
-			eve->prev = preveve;
 	}
 
 	return (DerivedMesh*) emdm;
@@ -1183,7 +1156,7 @@ void vDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 	VerseVert *vvert = ((VDerivedMesh*)dm)->vertex_layer->dl.lb.first;
 	int i;
 
-	/* store vert indices in the prev pointer (kind of hacky) */
+	/* store vertexes indices in tmp union */
 	for(i = 0; vvert; vvert = vvert->next, ++i)
 		vvert->tmp.index = i;
 
