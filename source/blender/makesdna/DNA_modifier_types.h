@@ -206,6 +206,7 @@ typedef struct UVProjectModifierData {
 	struct Image *image;      /* the image to project */
 	int flags;
 	int num_projectors;
+	float aspectx, aspecty;
 } UVProjectModifierData;
 
 #define MOD_UVPROJECT_MAXPROJECTORS 10

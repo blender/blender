@@ -2477,6 +2477,7 @@ static void uvprojectModifier_initData(ModifierData *md)
 	umd->image = NULL;
 	umd->flags = MOD_UVPROJECT_ADDUVS;
 	umd->num_projectors = 1;
+	umd->aspectx = umd->aspecty = 1.0f;
 }
 
 static void uvprojectModifier_copyData(ModifierData *md, ModifierData *target)
@@ -2490,6 +2491,8 @@ static void uvprojectModifier_copyData(ModifierData *md, ModifierData *target)
 	tumd->image = umd->image;
 	tumd->flags = umd->flags;
 	tumd->num_projectors = umd->num_projectors;
+	tumd->aspectx = umd->aspectx;
+	tumd->aspecty = umd->aspecty;
 }
 
 static void uvprojectModifier_foreachObjectLink(ModifierData *md, Object *ob,
@@ -2531,7 +2534,7 @@ static void uvprojectModifier_updateDepgraph(ModifierData *md,
 
 typedef struct Projector {
 	Object *ob;				/* object this projector is derived from */
-	float imat[4][4];		/* world space -> projector space matrix */ 
+	float projmat[4][4];	/* projection matrix */ 
 	float normal[3];		/* projector normal in world space */
 } Projector;
 
@@ -2546,6 +2549,10 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	int new_tfaces = 0;
 	Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
 	int num_projectors = 0;
+	float aspect;
+	
+	if(umd->aspecty != 0) aspect = umd->aspectx / umd->aspecty;
+	else aspect = 1.0f;
 
 	for(i = 0; i < umd->num_projectors; ++i)
 		if(umd->projectors[i])
@@ -2573,37 +2580,78 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	for(i = 0, co = coords; i < numVerts; ++i, ++co)
 		Mat4MulVecfl(ob->obmat, *co);
 
-	if(num_projectors == 1) {
-		float imat[4][4];
+	/* calculate a projection matrix and normal for each projector */
+	for(i = 0; i < num_projectors; ++i) {
+		float tmpmat[4][4];
+		float offsetmat[4][4];
 
-		/* get projector space matrix */
-		Mat4Invert(imat, projectors[0].ob->obmat);
-		if(projectors[0].ob->type == OB_CAMERA) {
-			Camera *cam = (Camera *)projectors[0].ob->data;
-			if(cam->type == CAM_ORTHO)
-				Mat4MulFloat3(imat[0], 1 / cam->ortho_scale);
-		}
+		/* calculate projection matrix */
+		Mat4Invert(projectors[i].projmat, projectors[i].ob->obmat);
 
-		/* convert coords to projector space */
-		for(i = 0, co = coords; i < numVerts; ++i, ++co)
-			Mat4MulVecfl(imat, *co);
-	} else {
-		/* calculate a world space -> projector space matrix and normal 
-		 * for each projector
-		 */
-		for(i = 0; i < num_projectors; ++i) {
-			Mat4Invert(projectors[i].imat, projectors[i].ob->obmat);
-			if(projectors[i].ob->type == OB_CAMERA) {
-				Camera *cam = (Camera *)projectors[i].ob->data;
-				if(cam->type == CAM_ORTHO)
-					Mat4MulFloat3(*projectors[i].imat, 1 / cam->ortho_scale);
+		if(projectors[i].ob->type == OB_CAMERA) {
+			Camera *cam = (Camera *)projectors[i].ob->data;
+			if(cam->type == CAM_PERSP) {
+				float perspmat[4][4];
+				float xmax; 
+				float xmin;
+				float ymax;
+				float ymin;
+				float pixsize = cam->clipsta * 32.0 / cam->lens;
+
+				if(aspect > 1.0f) {
+					xmax = 0.5f * pixsize; 
+					ymax = xmax / aspect;
+				} else {
+					ymax = 0.5f * pixsize;
+					xmax = ymax * aspect; 
+				}
+				xmin = -xmax;
+				ymin = -ymax;
+
+				i_window(xmin, xmax, ymin, ymax,
+				         cam->clipsta, cam->clipend, perspmat);
+				Mat4MulMat4(tmpmat, projectors[i].projmat, perspmat);
+			} else if(cam->type == CAM_ORTHO) {
+				float orthomat[4][4];
+				float xmax; 
+				float xmin;
+				float ymax;
+				float ymin;
+
+				if(aspect > 1.0f) {
+					xmax = 0.5f * cam->ortho_scale; 
+					ymax = xmax / aspect;
+				} else {
+					ymax = 0.5f * cam->ortho_scale;
+					xmax = ymax * aspect; 
+				}
+				xmin = -xmax;
+				ymin = -ymax;
+
+				i_ortho(xmin, xmax, ymin, ymax,
+				        cam->clipsta, cam->clipend, orthomat);
+				Mat4MulMat4(tmpmat, projectors[i].projmat, orthomat);
 			}
-			projectors[i].normal[0] = 0;
-			projectors[i].normal[1] = 0;
-			projectors[i].normal[2] = 1;
-			Mat4Mul3Vecfl(projectors[i].ob->obmat, projectors[i].normal);
+		} else {
+			Mat4CpyMat4(tmpmat, projectors[i].projmat);
 		}
+
+		Mat4One(offsetmat);
+		Mat4MulFloat3(offsetmat[0], 0.5);
+		offsetmat[3][0] = offsetmat[3][1] = offsetmat[3][2] = 0.5;
+		Mat4MulMat4(projectors[i].projmat, tmpmat, offsetmat);
+
+		/* calculate worldspace projector normal (for best projector test) */
+		projectors[i].normal[0] = 0;
+		projectors[i].normal[1] = 0;
+		projectors[i].normal[2] = 1;
+		Mat4Mul3Vecfl(projectors[i].ob->obmat, projectors[i].normal);
 	}
+
+	/* if only one projector, project coords to UVs */
+	if(num_projectors == 1)
+		for(i = 0, co = coords; i < numVerts; ++i, ++co)
+			Mat4MulVec3Project(projectors[0].projmat, *co);
 
 	mface = dm->getFaceArray(dm);
 	numFaces = dm->getNumFaces(dm);
@@ -2660,11 +2708,11 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 					}
 				}
 
-				Mat4MulVecfl(best_projector->imat, co1);
-				Mat4MulVecfl(best_projector->imat, co2);
-				Mat4MulVecfl(best_projector->imat, co3);
+				Mat4MulVec3Project(best_projector->projmat, co1);
+				Mat4MulVec3Project(best_projector->projmat, co2);
+				Mat4MulVec3Project(best_projector->projmat, co3);
 				if(mf->v4)
-					Mat4MulVecfl(best_projector->imat, co4);
+					Mat4MulVec3Project(best_projector->projmat, co4);
 
 				/* apply transformed coords as UVs */
 				tface->uv[0][0] = co1[0];

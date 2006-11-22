@@ -838,6 +838,18 @@ void Mat4Mul3Vecfl( float mat[][4], float *vec)
 	vec[2]= x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2];
 }
 
+void Mat4MulVec3Project(float mat[][4], float *vec)
+{
+	float w;
+
+	w = vec[0]*mat[0][3] + vec[1]*mat[1][3] + vec[2]*mat[2][3] + mat[3][3];
+	Mat4MulVecfl(mat, vec);
+
+	vec[0] /= w;
+	vec[1] /= w;
+	vec[2] /= w;
+}
+
 void Mat4MulVec4fl( float mat[][4], float *vec)
 {
 	float x,y,z;

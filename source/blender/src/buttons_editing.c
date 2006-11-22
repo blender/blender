@@ -1355,7 +1355,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 124;
 			if(dmd->texmapping == MOD_DISP_MAP_OBJECT) height += 19;
 		} else if (md->type==eModifierType_UVProject) {
-			height = 67 + ((UVProjectModifierData *)md)->num_projectors * 19;
+			height = 86 + ((UVProjectModifierData *)md)->num_projectors * 19;
 		} else if (md->type==eModifierType_Decimate) {
 			height = 48;
 		} else if (md->type==eModifierType_Wave) {
@@ -1509,6 +1509,15 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			             lx, (cy-=19), buttonWidth, 19,
 			             &umd->flags, 0, 0, 0, 0,
 			             "Add UV coordinates if missing");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "AspX:",
+			          lx, (cy -= 19), buttonWidth / 2, 19, &umd->aspectx,
+			          1, 1000, 100, 2,
+			          "Horizontal Aspect Ratio");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "AspY:",
+			          lx + (buttonWidth / 2) + 1, cy, buttonWidth / 2, 19,
+			          &umd->aspecty,
+			          1, 1000, 100, 2,
+			          "Vertical Aspect Ratio");
 			uiDefButI(block, NUM, B_MODIFIER_RECALC, "Projectors:",
 			          lx, (cy -= 19), buttonWidth, 19, &umd->num_projectors,
 			          1, MOD_UVPROJECT_MAXPROJECTORS, 0, 0,

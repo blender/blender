@@ -401,6 +401,11 @@ Mat3Clr(
 Mat3One(
 	float m[][3]
 );
+	void
+Mat4MulVec3Project(
+	float mat[][4],
+	float *vec
+);
 	void 
 Mat4MulVec(
 	float mat[][4],
