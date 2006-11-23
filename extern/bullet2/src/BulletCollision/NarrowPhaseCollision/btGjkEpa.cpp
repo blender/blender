@@ -3,18 +3,18 @@ Bullet Continuous Collision Detection and Physics Library
 Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
-In no event will the authors be held liable for any damages arising from the 
+In no event will the authors be held liable for any damages arising from the
 use of this software.
 Permission is granted to anyone to use this software for any purpose,
-including commercial applications, and to alter it and redistribute it 
+including commercial applications, and to alter it and redistribute it
 freely,
 subject to the following restrictions:
 
-1. The origin of this software must not be misrepresented; you must not 
-claim that you wrote the original software. If you use this software in a 
-product, an acknowledgment in the product documentation would be appreciated 
+1. The origin of this software must not be misrepresented; you must not
+claim that you wrote the original software. If you use this software in a
+product, an acknowledgment in the product documentation would be appreciated
 but is not required.
-2. Altered source versions must be plainly marked as such, and must not be 
+2. Altered source versions must be plainly marked as such, and must not be
 misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
@@ -23,7 +23,6 @@ misrepresented as being the original software.
 GJK-EPA collision solver by Nathanael Presson
 Nov.2006
 */
-
 
 #include "btGjkEpa.h"
 #include <string.h> //for memset
@@ -90,23 +89,11 @@ return(a>b?a:b); }
 static inline void							ClearMemory(void* p,U sz)	{ memset(p,0,(size_t)sz); 
 }
 #if 0
-template <typename T> static inline void	Raise(const T& object)		{ 
+template <typename T> static inline void	Raise(const T& object)		{
 throw(object); }
 #else
 template <typename T> static inline void	Raise(const T&)				{}
 #endif
-static inline F								Det(const Vector3& a,const Vector3& b,const Vector3& 
-c,const Vector3& d)
-		{
-		return(	-(a.z()*b.y()*c.x()) + a.y()*b.z()*c.x() + a.z()*b.x()*c.y() - 
-a.x()*b.z()*c.y() - a.y()*b.x()*c.z() + a.x()*b.y()*c.z() +
-				a.z()*b.y()*d.x() - a.y()*b.z()*d.x() - a.z()*c.y()*d.x() + 
-b.z()*c.y()*d.x() + a.y()*c.z()*d.x() - b.y()*c.z()*d.x() -
-				a.z()*b.x()*d.y() + a.x()*b.z()*d.y() + a.z()*c.x()*d.y() - 
-b.z()*c.x()*d.y() - a.x()*c.z()*d.y() + b.x()*c.z()*d.y() +
-				a.y()*b.x()*d.z() - a.x()*b.y()*d.z() - a.y()*c.x()*d.z() + 
-b.y()*c.x()*d.z() + a.x()*c.y()*d.z() - b.x()*c.y()*d.z());
-		}
 
 //
 // StackAlloc
@@ -127,16 +114,6 @@ struct StackAlloc
 		data		=	new U1[size];
 		totalsize	=	size;
 		}
-	StackAlloc*	CreateChild(U size)
-		{
-		StackAlloc*	sa(Allocate<StackAlloc>());
-		sa->ischild		=	true;
-		sa->data		=	Allocate(size);
-		sa->totalsize	=	size;
-		sa->usedsize	=	0;
-		sa->current		=	0;
-		return(sa);
-		}
 	void		Free()
 		{
 		if(usedsize==0)
@@ -148,7 +125,7 @@ struct StackAlloc
 		}
 	Block*		BeginBlock()
 		{
-		Block*	pb(Allocate<Block>());
+		Block*	pb((Block*)Allocate(sizeof(Block)));
 		pb->previous	=	current;
 		pb->address		=	data+usedsize;
 		current			=	pb;
@@ -173,10 +150,6 @@ struct StackAlloc
 		Raise(L"Not enough memory");
 		return(0);
 		}
-	template <typename T> T*	Allocate()				{
-return((T*)Allocate((U)sizeof(T))); }
-	template <typename T> T*	AllocateArray(U count)	{
-return((T*)Allocate((U)sizeof(T)*count)); }
 	private:
 	void		ctor()
 		{
@@ -208,10 +181,9 @@ struct	GJK
 		Vector3	v;
 		He*		n;
 		};
-	static const U			hashsize=64;
 	StackAlloc*				sa;
 	StackAlloc::Block*		sablock;
-	He*						table[hashsize];
+	He*						table[GJK_hashsize];
 	Rotation				wrotations[2];
 	Vector3					positions[2];
 	const btConvexShape*	shapes[2];
@@ -242,7 +214,7 @@ struct	GJK
 	// vdh : very dumm hash
 	static inline U	Hash(const Vector3& v)
 		{
-                const U h((U)(v[0]*15461)^(U)(v[1]*83003)^(U)(v[2]*15473));
+		const U	h(U(v[0]*15461)^U(v[1]*83003)^U(v[2]*15473));
 		return(((*((const U*)&h))*169639)&GJK_hashmask);
 		}
 	//
@@ -264,7 +236,7 @@ struct	GJK
 		const U			h(Hash(ray));
 		He*				e(table[h]);
 		while(e) { if(e->v==ray) { --order;return(false); } else e=e->n; }
-		e=sa->Allocate<He>();e->v=ray;e->n=table[h];table[h]=e;
+		e=(He*)sa->Allocate(sizeof(He));e->v=ray;e->n=table[h];table[h]=e;
 		Support(ray,simplex[++order]);
 		return(ray.dot(SPXW(order))>0);
 		}
@@ -331,10 +303,12 @@ order=2;SPX(1)=SPX(0);SPX(0)=SPX(2);SPX(2)=SPX(3);return(SolveSimplex3a(ao,ad,ab
 	inline Z		SearchOrigin(const Vector3& initray=Vector3(1,0,0))
 		{
 		iterations	=	0;
-		order		=	0;
+		order		=	(U)-1;
 		failed		=	false;
-		Support(initray,simplex[0]);ray=-SPXW(0);
-		ClearMemory(table,sizeof(void*)*hashsize);
+		ray			=	initray.normalized();
+		ClearMemory(table,sizeof(void*)*GJK_hashsize);
+		FetchSupport();
+		ray			=	-SPXW(0);
 		for(;iterations<GJK_maxiterations;++iterations)
 			{
 			const F		rl(ray.length());
@@ -464,7 +438,7 @@ struct	EPA
 		return(bf);
 		}
 	//
-	inline Z		Set(Face* f,const GJK::Mkv* a,const GJK::Mkv* b,const GJK::Mkv* 
+	inline Z		Set(Face* f,const GJK::Mkv* a,const GJK::Mkv* b,const GJK::Mkv*
 c) const
 		{
 		const Vector3	nrm(cross(b->w-a->w,c->w-a->w));
@@ -483,7 +457,7 @@ c) const
 	//
 	inline Face*	NewFace(const GJK::Mkv* a,const GJK::Mkv* b,const GJK::Mkv* c)
 		{
-		Face*	pf(sa->Allocate<Face>());
+		Face*	pf((Face*)sa->Allocate(sizeof(Face)));
 		if(Set(pf,a,b,c))
 			{
 			if(root) root->prev=pf;
@@ -525,7 +499,7 @@ c) const
 	//
 	GJK::Mkv*		Support(const Vector3& w) const
 		{
-		GJK::Mkv*		v(sa->Allocate<GJK::Mkv>());
+		GJK::Mkv*		v((GJK::Mkv*)sa->Allocate(sizeof(GJK::Mkv)));
 		gjk->Support(w,*v);
 		return(v);
 		}
@@ -596,7 +570,8 @@ U	eidx[9][4]={{0,0,4,0},{0,1,2,1},{0,2,1,2},{1,1,5,2},{1,0,2,0},{2,2,3,2},{3,1,5
 							}	break;
 				}
 			for(U i=0;i<=gjk->order;++i)		{ 
-basemkv[i]=sa->Allocate<GJK::Mkv>();*basemkv[i]=gjk->simplex[i]; }
+basemkv[i]=(GJK::Mkv*)sa->Allocate(sizeof(GJK::Mkv));*basemkv[i]=gjk->simplex[i]; 
+}
 			for(U i=0;i<nfidx;++i,pfidx+=3)		{ 
 basefaces[i]=NewFace(basemkv[pfidx[0]],basemkv[pfidx[1]],basemkv[pfidx[2]]); 
 }
@@ -704,6 +679,8 @@ if(collide)
 	} else { if(gjk.failed) results.status=sResults::GJK_Failed; }
 return(false);
 }
+
+
 
 
 
