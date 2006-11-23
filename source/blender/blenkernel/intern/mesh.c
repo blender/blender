@@ -772,8 +772,11 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 			mface->v2= index[1];
 			mface->v3= index[2];
 			mface->v4= index[3];
-			mface->flag = ME_SMOOTH;
-			
+			mface->flag= ME_SMOOTH;
+
+			if(mface->v3==mface->v4)
+				mface->v4= 0;
+
 			mface++;
 			index+= 4;
 		}
