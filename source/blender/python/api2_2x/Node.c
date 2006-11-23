@@ -77,7 +77,12 @@ static int dict_socks_to_typeinfo(PyObject *dict, bNodeSocketType **socks, int l
 		}
 		newsocks[a].type = -1;
 		if(*socks) {
-			fprintf(stderr, "\t> freeing *socks %p\n", *socks);
+			int b = 0;
+			while((*socks)[b].type!=-1) {
+				MEM_freeN((*socks)[b].name);
+				(*socks)[b].name = NULL;
+				b++;
+			}
 			MEM_freeN(*socks);
 		}
 		*socks = newsocks;
@@ -102,9 +107,7 @@ static int Map_socketdef(PyObject *self, PyObject *args, void *closure)
 	bNode *node = NULL;
 	BPy_OutputDefMap *out= NULL;
 	BPy_InputDefMap *in= NULL;
-	bNodeSocket *sock, *nsock;
 	int pos=0;
-	PyObject *key, *value;
 
 	switch((int)closure) {
 		case 'I':
@@ -1041,7 +1044,7 @@ static int ShadeInput_compare(BPy_ShadeInput *a, BPy_ShadeInput *b)
 
 static PyObject *ShadeInput_repr(BPy_ShadeInput *self)
 {
-	return PyString_FromString( "[ShadeInput]" );
+	return PyString_FromFormat( "[ShadeInput @ \"%p\"]", self);
 }
 
 BPy_ShadeInput *ShadeInput_CreatePyObject(ShadeInput *shi)
