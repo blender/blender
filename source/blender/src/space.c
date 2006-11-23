@@ -3113,11 +3113,9 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			char lightname[12];
 			int lightbutw=buth*2;
 			int offs=cur_light*(midsp+lightbutw);
-			//if (cur_light>0) offs += midsp;
 			
 			sprintf(lightname, "Light %d", cur_light+1);
 			
-			uiBlockBeginAlign(block);
 			uiDefButBitI(block, TOG, 1, B_RECALCLIGHT, lightname,
 				xpos+edgsp+offs, y5, lightbutw, buth, 
 				&U.light[cur_light].flag, 0.0, 0.0, 0, 0, "Enable this OpenGL light in Solid draw mode");
