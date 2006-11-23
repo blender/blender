@@ -2643,8 +2643,8 @@ static int mface_from_data( MFace * mf, CustomData *fdata, int findex,
 	MTFace *tf = CustomData_get(fdata, findex, CD_MTFACE);
 	MCol *col = CustomData_get(fdata, findex, CD_MCOL);
 
-	int i = PyList_Size( from->v );
-	if( i != 3 && i != 4 ) {	/* face can only have three or four verts */
+	int numverts = PyList_Size( from->v );
+	if( numverts != 3 && numverts != 4 ) {	/* face can only have three or four verts */
 		PyErr_SetString ( PyExc_RuntimeError,
 				"faces must have at 3 or 4 vertices" );
 		return 0;
@@ -2668,7 +2668,7 @@ static int mface_from_data( MFace * mf, CustomData *fdata, int findex,
 	else
 		mf->v3 = 0;
 
-	if( i == 4 ) {
+	if( numverts == 4 ) {
 		nmv = ( BPy_NMVert * ) PyList_GetItem( from->v, 3 );
 		if( BPy_NMVert_Check( nmv ) && nmv->index != -1 )
 			mf->v4 = nmv->index;
@@ -2684,7 +2684,7 @@ static int mface_from_data( MFace * mf, CustomData *fdata, int findex,
 	mf->flag = from->mf_flag;
 
 	if( col ) {
-		int len = PySequence_Length( from->col );
+		int i, len = PySequence_Length( from->col );
 
 		if( len > 4 )
 			len = 4;
@@ -2707,7 +2707,7 @@ static int mface_from_data( MFace * mf, CustomData *fdata, int findex,
 		}
 	}
 
-	test_index_face(mf, fdata, findex, i );
+	test_index_face(mf, fdata, findex, numverts);
 
 	return 1;
 }
