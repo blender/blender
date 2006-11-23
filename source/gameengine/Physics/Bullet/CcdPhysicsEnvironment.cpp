@@ -327,7 +327,7 @@ m_enableSatCollisionDetection(false)
 
 	setSolverType(1);//issues with quickstep and memory allocations
 
-	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,pairCache,new btSequentialImpulseConstraintSolver2());
+	m_dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher,pairCache,new btSequentialImpulseConstraintSolver());
 	m_debugDrawer = 0;
 	m_gravity = btVector3(0.f,-10.f,0.f);
 	m_dynamicsWorld->setGravity(m_gravity);
