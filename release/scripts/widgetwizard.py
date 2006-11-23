@@ -106,10 +106,13 @@ def verifyIpocurve(ky,index):
 		nip = Ipo.New("Key","keyipo")
 		ky.ipo = nip
 	ipo = ky.ipo
-	idx = "Key " + str(index)
+	if index == 0:
+		idx = "Basis"
+	else:
+		idx = "Key " + str(index)
 	crv = ipo.getCurve(index)
 	if crv == None:
-	   crv = ipo.addCurve(idx)
+		crv = ipo.addCurve(idx)
 	crv.setInterpolation("Linear")
 	return crv
 
