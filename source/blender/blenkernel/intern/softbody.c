@@ -2920,7 +2920,7 @@ static int softbody_baked_step(Object *ob, float framenr, float (*vertexCos)[3],
 	fac= ((cfra-sfra)/dfra) - (float)ofs1;
 	CLAMP(fac, 0.0, 1.0);
 	set_four_ipo(fac, data, KEY_BSPLINE);
-	
+	if (key0&&key1&&key2&&key3) // may be null because we SHIFT_ESCAPED 
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++, key0++, key1++, key2++, key3++) {
 		bp->pos[0]= data[0]*key0->vec[0] +  data[1]*key1->vec[0] + data[2]*key2->vec[0] + data[3]*key3->vec[0];
 		bp->pos[1]= data[0]*key0->vec[1] +  data[1]*key1->vec[1] + data[2]*key2->vec[1] + data[3]*key3->vec[1];

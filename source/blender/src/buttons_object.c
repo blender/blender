@@ -1435,7 +1435,7 @@ void softbody_bake(Object *ob)
 		}
 
 	}
-	if(didbreak) {
+	if((didbreak)&&(G.qual!=LR_SHIFTKEY)) {
 		if(ob) 
 			sbObjectToSoftbody(ob);	// free bake
 		else {
