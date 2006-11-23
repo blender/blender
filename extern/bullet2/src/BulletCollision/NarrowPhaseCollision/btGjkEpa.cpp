@@ -218,8 +218,11 @@ struct	GJK
 	// vdh : very dumm hash
 	static inline U	Hash(const Vector3& v)
 		{
-		const U	h(U(v[0]*15461)^U(v[1]*83003)^U(v[2]*15473));
-		return(((*((const U*)&h))*169639)&GJK_hashmask);
+		//this doesn't compile under GCC 3.3.5, so add the ()...
+		//const U	h(U(v[0]*15461)^U(v[1]*83003)^U(v[2]*15473));
+		//return(((*((const U*)&h))*169639)&GJK_hashmask);
+	    const U h((U)(v[0]*15461)^(U)(v[1]*83003)^(U)(v[2]*15473));
+	    return(((*((const U*)&h))*169639)&GJK_hashmask);
 		}
 	//
 	inline Vector3	LocalSupport(const Vector3& d,U i) const
