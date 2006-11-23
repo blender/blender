@@ -82,11 +82,11 @@ public:
 };
 
 /// Small variation on btSequentialImpulseConstraintSolver: warmstarting, separate friction, non-randomized ordering
-class btSequentialImpulseConstraintSolver2 : public btSequentialImpulseConstraintSolver
+class btSequentialImpulseConstraintSolver3 : public btSequentialImpulseConstraintSolver
 {
 public:
 
-	btSequentialImpulseConstraintSolver2();
+	btSequentialImpulseConstraintSolver3();
 
 	virtual float solveGroup(btPersistentManifold** manifold,int numManifolds,const btContactSolverInfo& info, btIDebugDraw* debugDrawer=0);
 

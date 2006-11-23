@@ -47,10 +47,47 @@ unsigned long btRand2()
   return btSeed2;
 }
 
+
+
+
+//See ODE: adam's all-int straightforward(?) dRandInt (0..n-1)
 int btRandInt2 (int n)
 {
+  // seems good; xor-fold and modulus
+  const unsigned long un = n;
+  unsigned long r = btRand2();
+
+  // note: probably more aggressive than it needs to be -- might be
+  //       able to get away without one or two of the innermost branches.
+  if (un <= 0x00010000UL) {
+    r ^= (r >> 16);
+    if (un <= 0x00000100UL) {
+      r ^= (r >> 8);
+      if (un <= 0x00000010UL) {
+        r ^= (r >> 4);
+        if (un <= 0x00000004UL) {
+          r ^= (r >> 2);
+          if (un <= 0x00000002UL) {
+            r ^= (r >> 1);
+          }
+        }
+     }
+    }
+   }
+
+  return (int) (r % un);
+}
+
+
+
+int btRandIntWrong (int n)
+{
   float a = float(n) / 4294967296.0f;
-  return (int) (float(btRand2()) * a);
+//  printf("n = %d\n",n);
+//  printf("a = %f\n",a);
+  int res = (int) (float(btRand2()) * a);
+//	printf("res=%d\n",res);
+  return res;
 }
 
 bool  MyContactDestroyedCallback(void* userPersistentData)
@@ -63,14 +100,14 @@ bool  MyContactDestroyedCallback(void* userPersistentData)
 	return true;
 }
 
-btSequentialImpulseConstraintSolver2::btSequentialImpulseConstraintSolver2()
+btSequentialImpulseConstraintSolver3::btSequentialImpulseConstraintSolver3()
 {
-	setSolverMode(SOLVER_USE_WARMSTARTING);
+	setSolverMode(SOLVER_RANDMIZE_ORDER);
 }
 
 
 btSequentialImpulseConstraintSolver::btSequentialImpulseConstraintSolver()
-:m_solverMode(SOLVER_RANDMIZE_ORDER)
+:m_solverMode(SOLVER_USE_WARMSTARTING)
 {
 	gContactDestroyedCallback = &MyContactDestroyedCallback;
 
@@ -86,7 +123,7 @@ btSequentialImpulseConstraintSolver::btSequentialImpulseConstraintSolver()
 }
 
 /// btSequentialImpulseConstraintSolver Sequentially applies impulses
-float btSequentialImpulseConstraintSolver::solveGroup(btPersistentManifold** manifoldPtr, int numManifolds,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer)
+float btSequentialImpulseConstraintSolver3::solveGroup(btPersistentManifold** manifoldPtr, int numManifolds,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer)
 {
 	
 	btContactSolverInfo info = infoGlobal;
@@ -105,6 +142,7 @@ float btSequentialImpulseConstraintSolver::solveGroup(btPersistentManifold** man
 		{
 			btPersistentManifold* manifold = manifoldPtr[j];
 			prepareConstraints(manifold,info,debugDrawer);
+
 			for (int p=0;p<manifoldPtr[j]->getNumContacts();p++)
 			{
 				gOrder[totalPoints].m_manifoldIndex = j;
@@ -159,7 +197,7 @@ float btSequentialImpulseConstraintSolver::solveGroup(btPersistentManifold** man
 
 
 /// btSequentialImpulseConstraintSolver Sequentially applies impulses
-float btSequentialImpulseConstraintSolver2::solveGroup(btPersistentManifold** manifoldPtr, int numManifolds,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer)
+float btSequentialImpulseConstraintSolver::solveGroup(btPersistentManifold** manifoldPtr, int numManifolds,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer)
 {
 	
 	btContactSolverInfo info = infoGlobal;
@@ -292,7 +330,9 @@ void	btSequentialImpulseConstraintSolver::prepareConstraints(btPersistentManifol
 				} else
 				{
 						
-					cpd = new btConstraintPersistentData();
+					cpd = new btConstraintPersistentData;
+					assert(cpd);
+
 					totalCpd ++;
 					//printf("totalCpd = %i Created Ptr %x\n",totalCpd,cpd);
 					cp.m_userPersistentData = cpd;

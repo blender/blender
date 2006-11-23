@@ -95,16 +95,19 @@ throw(object); }
 template <typename T> static inline void	Raise(const T&)				{}
 #endif
 
-//
-// StackAlloc
-//
-struct StackAlloc
-	{
 	struct Block
 		{
 		Block*	previous;
 		U1*		address;
 		};
+
+//
+// StackAlloc
+//
+struct StackAlloc
+	{
+	
+
 				StackAlloc()		{ ctor(); }
 				StackAlloc(U size)	{ ctor();Create(size); }
 				~StackAlloc()		{ Free(); }
@@ -123,9 +126,20 @@ struct StackAlloc
 			usedsize			=	0;
 			} else Raise(L"StackAlloc is still in use");
 		}
+		U1*			Allocate(U size)
+		{
+		const U	nus(usedsize+size);
+		if(nus<totalsize)
+			{
+			usedsize=nus;
+			return(data+(usedsize-size));
+			}
+		Raise(L"Not enough memory");
+		return(0);
+		}
 	Block*		BeginBlock()
 		{
-		Block*	pb((Block*)Allocate(sizeof(Block)));
+		Block*	pb = (Block*)Allocate(sizeof(Block));
 		pb->previous	=	current;
 		pb->address		=	data+usedsize;
 		current			=	pb;
@@ -139,17 +153,7 @@ struct StackAlloc
 			usedsize	=	(U)((block->address-data)-sizeof(Block));
 			} else Raise(L"Unmatched blocks");
 		}
-	U1*			Allocate(U size)
-		{
-		const U	nus(usedsize+size);
-		if(nus<totalsize)
-			{
-			usedsize=nus;
-			return(data+(usedsize-size));
-			}
-		Raise(L"Not enough memory");
-		return(0);
-		}
+
 	private:
 	void		ctor()
 		{
@@ -182,7 +186,7 @@ struct	GJK
 		He*		n;
 		};
 	StackAlloc*				sa;
-	StackAlloc::Block*		sablock;
+	Block*		sablock;
 	He*						table[GJK_hashsize];
 	Rotation				wrotations[2];
 	Vector3					positions[2];
@@ -234,7 +238,7 @@ struct	GJK
 	inline Z		FetchSupport()
 		{
 		const U			h(Hash(ray));
-		He*				e(table[h]);
+		He*				e = (He*)(table[h]);
 		while(e) { if(e->v==ray) { --order;return(false); } else e=e->n; }
 		e=(He*)sa->Allocate(sizeof(He));e->v=ray;e->n=table[h];table[h]=e;
 		Support(ray,simplex[++order]);
@@ -426,10 +430,10 @@ struct	EPA
 	//
 	inline Face*	FindBest() const
 		{
-		Face*	bf(0);
+		Face*	bf = 0;
 		if(root)
 			{
-			Face*	cf(root);
+			Face*	cf = root;
 			F		bd(cstInf);
 			do	{
 				if(cf->d<bd) { bd=cf->d;bf=cf; }
@@ -457,7 +461,7 @@ c) const
 	//
 	inline Face*	NewFace(const GJK::Mkv* a,const GJK::Mkv* b,const GJK::Mkv* c)
 		{
-		Face*	pf((Face*)sa->Allocate(sizeof(Face)));
+		Face*	pf = (Face*)sa->Allocate(sizeof(Face));
 		if(Set(pf,a,b,c))
 			{
 			if(root) root->prev=pf;
@@ -499,7 +503,7 @@ c) const
 	//
 	GJK::Mkv*		Support(const Vector3& w) const
 		{
-		GJK::Mkv*		v((GJK::Mkv*)sa->Allocate(sizeof(GJK::Mkv)));
+		GJK::Mkv*		v =(GJK::Mkv*)sa->Allocate(sizeof(GJK::Mkv));
 		gjk->Support(w,*v);
 		return(v);
 		}
@@ -514,7 +518,7 @@ ff)
 			const U	e1(mod3[e+1]);
 			if((f.n.dot(w->w)+f.d)>0)
 				{
-				Face*	nf(NewFace(f.v[e1],f.v[e],w));
+				Face*	nf = NewFace(f.v[e1],f.v[e],w);
 				Link(nf,0,&f,e);
 				if(cf) Link(cf,1,nf,2); else ff=nf;
 				cf=nf;ne=1;
@@ -533,8 +537,8 @@ ff)
 	//
 	inline F		EvaluatePD(F accuracy=EPA_accuracy)
 		{
-		StackAlloc::Block*	sablock(sa->BeginBlock());
-		Face*				bestface(0);
+		Block*	sablock = sa->BeginBlock();
+		Face*				bestface = 0;
 		U					markid(1);
 		depth		=	-cstInf;
 		normal		=	Vector3(0,0,0);
@@ -545,10 +549,10 @@ ff)
 		/* Prepare hull		*/
 		if(gjk->EncloseOrigin())
 			{
-			const U*		pfidx(0);
-			U				nfidx(0);
-			const U*		peidx(0);
-			U				neidx(0);
+			const U*		pfidx = 0;
+			U				nfidx= 0;
+			const U*		peidx = 0;
+			U				neidx = 0;
 			GJK::Mkv*		basemkv[5];
 			Face*			basefaces[6];
 			switch(gjk->order)
@@ -569,13 +573,15 @@ U	eidx[9][4]={{0,0,4,0},{0,1,2,1},{0,2,1,2},{1,1,5,2},{1,0,2,0},{2,2,3,2},{3,1,5
 							pfidx=(const U*)fidx;nfidx=6;peidx=(const U*)eidx;neidx=9;
 							}	break;
 				}
-			for(U i=0;i<=gjk->order;++i)		{ 
+			U i;
+
+			for( i=0;i<=gjk->order;++i)		{ 
 basemkv[i]=(GJK::Mkv*)sa->Allocate(sizeof(GJK::Mkv));*basemkv[i]=gjk->simplex[i]; 
 }
-			for(U i=0;i<nfidx;++i,pfidx+=3)		{ 
+			for( i=0;i<nfidx;++i,pfidx+=3)		{ 
 basefaces[i]=NewFace(basemkv[pfidx[0]],basemkv[pfidx[1]],basemkv[pfidx[2]]); 
 }
-			for(U i=0;i<neidx;++i,peidx+=4)		{ 
+			for( i=0;i<neidx;++i,peidx+=4)		{ 
 Link(basefaces[peidx[0]],peidx[1],basefaces[peidx[2]],peidx[3]); }
 			}
 		if(0==nfaces)
@@ -586,17 +592,17 @@ Link(basefaces[peidx[0]],peidx[1],basefaces[peidx[2]],peidx[3]); }
 		/* Expand hull		*/
 		for(;iterations<EPA_maxiterations;++iterations)
 			{
-			Face*		bf(FindBest());
+			Face*		bf = FindBest();
 			if(bf)
 				{
-				GJK::Mkv*	w(Support(-bf->n));
+				GJK::Mkv*	w = Support(-bf->n);
 				const F		d(bf->n.dot(w->w)+bf->d);
 				bestface	=	bf;
 				if(d<-accuracy)
 					{
-					Face*	cf(0);
-					Face*	ff(0);
-					U		nf(0);
+					Face*	cf =0;
+					Face*	ff =0;
+					U		nf = 0;
 					Detach(bf);
 					bf->mark=++markid;
 					for(U i=0;i<3;++i)	{ 
