@@ -2575,7 +2575,7 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 void drawinfospace(ScrArea *sa, void *spacedata)
 {
 	uiBlock *block;
-	static short cur_light=0, cur_light_var=0;
+	static short cur_light=0;
 	float fac, col[3];
 	short xpos, ypos, ypostab,  buth, rspace, dx, y1, y2, y3, y4, y5, y6;
 	short y2label, y3label, y4label, y5label, y6label;
@@ -3105,76 +3105,53 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 	} else if (U.userpref == 4) { /* system & opengl */
 
+		uiDefBut(block, LABEL,0,"Solid OpenGL lights:",
+			xpos+edgsp, y6label, mpref, buth,
+			0, 0, 0, 0, 0, "");
+			
+		for (cur_light=0; cur_light<3; cur_light++) {
+			char lightname[12];
+			int lightbutw=buth*2;
+			int offs=cur_light*(midsp+lightbutw);
+			//if (cur_light>0) offs += midsp;
+			
+			sprintf(lightname, "Light %d", cur_light+1);
+			
+			uiBlockBeginAlign(block);
+			uiDefButBitI(block, TOG, 1, B_RECALCLIGHT, lightname,
+				xpos+edgsp+offs, y5, lightbutw, buth, 
+				&U.light[cur_light].flag, 0.0, 0.0, 0, 0, "Enable this OpenGL light in Solid draw mode");
+			
+			uiDefButF(block, BUT_NORMAL, B_RECALCLIGHT, "", 
+				xpos+edgsp+offs, y3, lightbutw, buth*2+rspace,
+				U.light[cur_light].vec, 0.0f, 1.0f, 0, 0, "The direction that the OpenGL light is shining");	
+			
+			uiDefButF(block, COL, B_RECALCLIGHT, "",		
+				xpos+edgsp+offs, y2, lightbutw, buth,
+				U.light[cur_light].col, 0.0, 0.0, 0, 0, "");
+			uiDefButF(block, COL, B_RECALCLIGHT, "",		
+				xpos+edgsp+offs, y1, lightbutw, buth,
+				U.light[cur_light].spec, 0.0, 0.0, 0, 0, "");		
+		}
+
+		uiDefBut(block, LABEL,0,"Color",
+			xpos+edgsp+140, y2, mpref/4, buth,
+			0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL,0,"Spec",
+			xpos+edgsp+140, y1, mpref/4, buth,
+			0, 0, 0, 0, 0, "");
+			
+		
 #ifdef WITH_VERSE
 		uiDefBut(block, TEX, 0, "Verse Master: ",
-			(xpos+edgsp),y3label+buth+5,mpref*2,buth,
+			(xpos+edgsp)+mpref*2+2*midsp,y5,mpref*2+midsp,buth,
 			U.versemaster, 1.0, 63.0, 0, 0,
 			"The Verse Master-server IP");
 		uiDefBut(block, TEX, 0, "Verse Username: ",
-			(xpos+edgsp)+mpref*2+10,y3label+buth+5,mpref*2,buth,
+			(xpos+edgsp)+mpref*2+2*midsp,y4,mpref*2+midsp,buth,
 			U.verseuser, 1.0, 63.0, 0, 0,
 			"The Verse user name");
 #endif
-
-		uiDefBut(block, LABEL,0,"Solid OpenGL light:",
-			xpos+edgsp, y3label, mpref, buth,
-			0, 0, 0, 0, 0, "");
-		
-		uiBlockBeginAlign(block);
-		uiDefButS(block, MENU, B_REDR, "Light1 %x0|Light2 %x1|Light3 %x2",
-			xpos+edgsp, y2, 2*mpref/6, buth, &cur_light, 0.0, 0.0, 0, 0, "");
-		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButBitI(block, TOG, 1, B_RECALCLIGHT, "On",
-			xpos+edgsp+2*mpref/6, y2, mpref/6, buth, 
-			&U.light[cur_light].flag, 0.0, 0.0, 0, 0, "Enable this OpenGL light in Solid draw mode");
-		
-		uiBlockSetCol(block, TH_AUTO);
-		uiDefButS(block, ROW, B_REDR, "Vec",
-			xpos+edgsp+3*mpref/6, y2, mpref/6, buth, 
-			&cur_light_var, 123.0, 0.0, 0, 0, "Lamp vector for OpenGL light");
-		uiDefButS(block, ROW, B_REDR, "Col",
-			xpos+edgsp+4*mpref/6, y2, mpref/6, buth, 
-			&cur_light_var, 123.0, 1.0, 0, 0, "Diffuse Color for OpenGL light");
-		uiDefButS(block, ROW, B_REDR, "Spec",
-			xpos+edgsp+5*mpref/6, y2, mpref/6, buth, 
-			&cur_light_var, 123.0, 2.0, 0, 0, "Specular color for OpenGL light");
-		uiBlockEndAlign(block);
-		
-		uiBlockBeginAlign(block);
-		if(cur_light_var==1) {
-			uiDefButF(block, NUM, B_RECALCLIGHT, "R ",
-				xpos+edgsp, y1, mpref/3, buth, 
-				U.light[cur_light].col, 0.0, 1.0, 100, 2, "");
-			uiDefButF(block, NUM, B_RECALCLIGHT, "G ",
-				xpos+edgsp+mpref/3, y1, mpref/3, buth, 
-				U.light[cur_light].col+1, 0.0, 1.0, 100, 2, "");
-			uiDefButF(block, NUM, B_RECALCLIGHT, "B ",
-				xpos+edgsp+2*mpref/3, y1, mpref/3, buth, 
-				U.light[cur_light].col+2, 0.0, 1.0, 100, 2, "");
-		}
-		else if(cur_light_var==2) {
-			uiDefButF(block, NUM, B_RECALCLIGHT, "sR ",
-				xpos+edgsp, y1, mpref/3, buth, 
-				U.light[cur_light].spec, 0.0, 1.0, 100, 2, "");
-			uiDefButF(block, NUM, B_RECALCLIGHT, "sG ",
-				xpos+edgsp+mpref/3, y1, mpref/3, buth, 
-				U.light[cur_light].spec+1, 0.0, 1.0, 100, 2, "");
-			uiDefButF(block, NUM, B_RECALCLIGHT, "sB ",
-				xpos+edgsp+2*mpref/3, y1, mpref/3, buth, 
-				U.light[cur_light].spec+2, 0.0, 1.0, 100, 2, "");
-		}
-		else if(cur_light_var==0) {
-			uiDefButF(block, NUM, B_RECALCLIGHT, "X ",
-				xpos+edgsp, y1, mpref/3, buth, 
-				U.light[cur_light].vec, -1.0, 1.0, 100, 2, "");
-			uiDefButF(block, NUM, B_RECALCLIGHT, "Y ",
-				xpos+edgsp+mpref/3, y1, mpref/3, buth, 
-				U.light[cur_light].vec+1, -1.0, 1.0, 100, 2, "");
-			uiDefButF(block, NUM, B_RECALCLIGHT, "Z ",
-				xpos+edgsp+2*mpref/3, y1, mpref/3, buth, 
-				U.light[cur_light].vec+2, -1.0, 1.0, 100, 2, "");
-		}
-		uiBlockEndAlign(block);
 
 /*
 		uiDefButBitS(block, TOG, USER_EVTTOCONSOLE, 0, "Log Events to Console",
