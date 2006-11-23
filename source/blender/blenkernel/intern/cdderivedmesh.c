@@ -1012,7 +1012,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	MFace *mf = cddm->mface;
 	MEdge *med;
 	EdgeHash *eh = BLI_edgehash_new();
-	int i, numEdges, maxFaces = dm->numFaceData;
+	int i, *index, numEdges, maxFaces = dm->numFaceData;
 
 	for (i = 0; i < maxFaces; i++, mf++) {
 		if (!BLI_edgehash_haskey(eh, mf->v1, mf->v2))
@@ -1036,14 +1036,16 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	/* write new edges into a temporary CustomData */
 	memset(&edgeData, 0, sizeof(edgeData));
 	CustomData_add_layer(&edgeData, CD_MEDGE, 0, NULL, numEdges);
-	
+	index = CustomData_add_layer(&edgeData, CD_ORIGINDEX, 0, NULL, numEdges);
+
 	ehi = BLI_edgehashIterator_new(eh);
 	med = CustomData_get_layer(&edgeData, CD_MEDGE);
 	for(i = 0; !BLI_edgehashIterator_isDone(ehi);
-	    BLI_edgehashIterator_step(ehi), ++i, ++med) {
+	    BLI_edgehashIterator_step(ehi), ++i, ++med, ++index) {
 		BLI_edgehashIterator_getKey(ehi, (int*)&med->v1, (int*)&med->v2);
 
 		med->flag = ME_EDGEDRAW|ME_EDGERENDER;
+		*index = ORIGINDEX_NONE;
 	}
 	BLI_edgehashIterator_free(ehi);
 
