@@ -912,8 +912,9 @@ void objects_bake_render(void)
 			Image *ima;
 			/* force OpenGL reload */
 			for(ima= G.main->image.first; ima; ima= ima->id.next)
-				if(ima->ibuf->userflags & IB_BITMAPDIRTY)
-					free_realtime_image(ima); 
+				if(ima->ibuf)
+					if(ima->ibuf->userflags & IB_BITMAPDIRTY)
+						free_realtime_image(ima); 
 		}
 		
 		allqueue(REDRAWIMAGE, 0);
