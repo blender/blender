@@ -2760,13 +2760,25 @@ static void EXPP_unlink_mesh( Mesh * me )
 
 static int unlink_existingMeshData( Mesh * mesh )
 {
+	MDeformVert *dvert= NULL;
+
 	EXPP_unlink_mesh( mesh );
+
+	if(mesh->dvert) {
+		/* we don't want to remove dvert here, check_dverts still needs it */
+		dvert= mesh->dvert;
+		CustomData_set_layer( &mesh->vdata, CD_MDEFORMVERT, NULL );
+	}
 
 	CustomData_free( &mesh->vdata, mesh->totvert );
 	CustomData_free( &mesh->edata, mesh->totedge );
 	CustomData_free( &mesh->fdata, mesh->totface );
 	mesh_update_customdata_pointers( mesh );
 	
+	if(dvert)
+		mesh->dvert= CustomData_add_layer( &mesh->vdata, CD_MDEFORMVERT, 0,
+			dvert, mesh->totvert );
+
 	mesh->totedge = 0;
 
 	if( mesh->mat ) {
@@ -2967,25 +2979,17 @@ static void check_dverts(Mesh *me, int old_totvert)
 	/* if vert count didn't change or there are no dverts, all is fine */
 	if ((totvert == old_totvert) || (!me->dvert)) return;
 	/* if all verts have been deleted, free old dverts */
-	else if (totvert == 0) free_dverts(me->dvert, old_totvert);
-	/* if verts have been added, expand me->dvert */
-	else if (totvert > old_totvert) {
-		MDeformVert *mdv = me->dvert;
-		me->dvert = NULL;
-		create_dverts( &me->id );
-		copy_dverts(me->dvert, mdv, old_totvert);
-		free_dverts(mdv, old_totvert);
+	else if (totvert == 0) {
+		CustomData_free_layer( &me->vdata, CD_MDEFORMVERT, old_totvert );
+		me->dvert= NULL;
 	}
-	/* if verts have been deleted, shrink me->dvert */
 	else {
-		MDeformVert *mdv = me->dvert;
-		me->dvert = NULL;
-		create_dverts( &me->id );
-		copy_dverts(me->dvert, mdv, totvert);
-		free_dverts(mdv, old_totvert);
+		/* verts added or removed, make new me->dvert */
+		MDeformVert *mdv = MEM_callocN( sizeof(MDeformVert)*totvert, "mdv" );
+		copy_dverts( mdv, me->dvert, MIN2( old_totvert, totvert ) );
+		free_dverts( me->dvert, old_totvert );
+		me->dvert= CustomData_set_layer( &me->vdata, CD_MDEFORMVERT, mdv );
 	}
-
-	return;
 }
 
 static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh)
