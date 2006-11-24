@@ -137,11 +137,15 @@ def setup_staticlibs(lenv):
 
 def setup_syslibs(lenv):
     syslibs = [
-        lenv['BF_PYTHON_LIB'],
+        
         lenv['BF_JPEG_LIB'],
         lenv['BF_PNG_LIB'],
         lenv['BF_ZLIB_LIB']
         ]
+    if lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
+        syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
+    else:
+        syslibs.append(lenv['BF_PYTHON_LIB'])
     if lenv['WITH_BF_INTERNATIONAL']:
         syslibs += Split(lenv['BF_FREETYPE_LIB'])
         syslibs += Split(lenv['BF_GETTEXT_LIB'])
