@@ -35,6 +35,7 @@
 #include "BLI_arithb.h"
 
 #include "DNA_action_types.h"
+#include "DNA_color_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
@@ -981,7 +982,12 @@ static int node_composit_buts_map_value(uiBlock *block, bNodeTree *ntree, bNode 
 static int node_composit_buts_time(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
+		CurveMapping *cumap= node->storage;
 		short dx= (butr->xmax-butr->xmin)/2;
+		
+		cumap->flag |= CUMA_DRAW_CFRA;
+		if(node->custom1<node->custom2)
+			cumap->black[0]= (float)(CFRA - node->custom1)/(float)(node->custom2-node->custom1);
 		
 		uiDefBut(block, BUT_CURVE, B_NODE_EXEC+node->nr, "", 
 				 butr->xmin, butr->ymin+24, butr->xmax-butr->xmin, butr->ymax-butr->ymin-24, 

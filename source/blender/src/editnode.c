@@ -35,6 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
+#include "DNA_color_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
@@ -45,6 +46,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -1674,7 +1676,30 @@ void node_hide(SpaceNode *snode)
 	BIF_undo_push("Hide nodes");
 	allqueue(REDRAWNODE, 1);
 }
+
+void node_insert_key(SpaceNode *snode)
+{
+	bNode *node= editnode_get_active(snode->edittree);
+
+	if(node->type==CMP_NODE_TIME) {
+		if(node->custom1<node->custom2) {
+
+			CurveMapping *cumap= node->storage;
+			float fval, curval;
+		
+			curval= (float)(CFRA - node->custom1)/(float)(node->custom2-node->custom1);
+			fval= curvemapping_evaluateF(cumap, 0, curval);
 			
+			if(fbutton(&fval, 0.0f, 1.0f, 10, 10, "Insert Value")) {
+				curvemap_insert(cumap->cm, curval, fval);
+
+				BIF_undo_push("Insert key in Time node");
+				allqueue(REDRAWNODE, 1);
+			}
+		}
+	}
+}
+
 
 static void node_border_link_delete(SpaceNode *snode)
 {
@@ -1997,6 +2022,9 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case HKEY:
 			node_hide(snode);
+			break;
+		case IKEY:
+			node_insert_key(snode);
 			break;
 		case RKEY:
 			if(okee("Read saved Render Layers"))

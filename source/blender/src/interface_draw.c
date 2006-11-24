@@ -2191,6 +2191,15 @@ static void ui_draw_but_CURVE(uiBut *but)
 	glVertex2f(but->x1 + zoomx*(-offsx), but->y2);
 	glEnd();
 	
+	/* cfra option */
+	if(cumap->flag & CUMA_DRAW_CFRA) {
+		glColor3ub(0x60, 0xc0, 0x40);
+		glBegin(GL_LINES);
+		glVertex2f(but->x1 + zoomx*(cumap->black[0]-offsx), but->y1);
+		glVertex2f(but->x1 + zoomx*(cumap->black[0]-offsx), but->y2);
+		glEnd();
+	}
+	
 	/* the curve */
 	BIF_ThemeColor(TH_TEXT);
 	glBegin(GL_LINE_STRIP);

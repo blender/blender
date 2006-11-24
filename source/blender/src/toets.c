@@ -729,7 +729,7 @@ int blenderqread(unsigned short event, short val)
 		}
 		break;
 	case IKEY:
-		if(textediting==0 && textspace==0 && curarea->spacetype!=SPACE_FILE && curarea->spacetype!=SPACE_IMASEL) {
+		if(textediting==0 && textspace==0 && !ELEM3(curarea->spacetype, SPACE_FILE, SPACE_IMASEL, SPACE_NODE)) {
 			if(G.qual==0) {
 				common_insertkey();
 				return 0;
