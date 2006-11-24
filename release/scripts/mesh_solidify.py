@@ -1,9 +1,9 @@
 #!BPY
 """
-Name: 'Solidify Mesh'
+Name: 'Solidify Selection'
 Blender: 240
 Group: 'Mesh'
-Tooltip: 'Makes the mesh solid by creating a second skin of a set width.'
+Tooltip: 'Makes the mesh solid by creating a second skin.'
 """
 
 __author__ = "Campbell Barton"
@@ -47,13 +47,13 @@ def lengthFromAngle(angle):
 def main():
 	scn = Scene.GetCurrent()
 	ob = scn.getActiveObject()
-	if not ob or ob.getType() != 'Mesh':
+	if not ob or ob.type != 'Mesh':
 		Draw.PupMenu('ERROR: Active object is not a mesh, aborting.')
 		return
+	
 	is_editmode = Window.EditMode() 
 	if is_editmode:
 		Window.EditMode(0)
-	
 	
 	# Create the variables.
 	PREF_THICK = Draw.Create(-0.1)
@@ -62,9 +62,9 @@ def main():
 	
 	pup_block = [\
 	'Projection',\
-	('thick:', PREF_THICK, -10, 10, 'lower for more projection groups, higher for less distortion.'),\
-	('Skin Sides', PREF_SKIN_SIDES, 'skin between the original and new faces.'),\
-	('Remove Original', PREF_REM_ORIG, 'Remove the original faces used for skinning.'),\
+	('thick:', PREF_THICK, -10, 10, 'Skin thickness in mesh space.'),\
+	('Skin Sides', PREF_SKIN_SIDES, 'Skin between the original and new faces.'),\
+	('Remove Original', PREF_REM_ORIG, 'Remove the selected faces after skinning.'),\
 	]
 	
 	if not Draw.PupBlock('Skin Selected Faces', pup_block):
@@ -121,15 +121,17 @@ def main():
 			i= v.index
 			if vert_mapping[i]==-1:
 				vert_mapping[i]= len_verts + len(verts)
-				verts.append(v.co + normals[v.index])
+				verts.append(v.co + normals[i])
 	
 	#verts= [v.co + normals[v.index] for v in me.verts]
 	
 	me.verts.extend( verts )
 	#faces= [tuple([ me.verts[v.index+len_verts] for v in reversed(f.v)]) for f in me.faces ]
-	faces= []
 	faces= [ tuple([vert_mapping[v.index] for v in reversed(f.v)]) for f in faces_sel ]
 	me.faces.extend( faces )
+	
+	has_uv = me.faceUV
+	has_vcol = me.vertexColors
 	
 	for i, orig_f in enumerate(faces_sel):
 		new_f= me.faces[len_faces + i]
@@ -138,14 +140,14 @@ def main():
 		orig_f.sel=False
 		new_f.sel= True
 		new_f = me.faces[i+len_faces]
-		if me.faceUV:
-			new_f.col = [c for c in reversed(orig_f.col)]
+		if has_uv:
 			new_f.uv = [c for c in reversed(orig_f.uv)]
 			new_f.mode = orig_f.mode
 			new_f.flag = orig_f.flag
 			if orig_f.image:
 				new_f.image = orig_f.image
-	
+		if has_vcol:
+			new_f.col = [c for c in reversed(orig_f.col)]
 	# Now add quads between if we wants
 	
 	if PREF_SKIN_SIDES:
