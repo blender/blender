@@ -351,7 +351,7 @@ short fbutton(float *var, float min, float max, float a1, float a2, char *str)
 	return 0;
 }
 
-int movetolayer_buts(unsigned int *lay)
+int movetolayer_buts(unsigned int *lay, char *title)
 {
 	uiBlock *block;
 	ListBase listb={0, 0};
@@ -382,8 +382,10 @@ int movetolayer_buts(unsigned int *lay)
 	dx= (sizex-5)/12;
 	dy= sizey/2;
 	
-	/* buttons have 0 as return event, to prevent menu to close on hotkeys */
+	if(title)
+		uiDefBut(block, LABEL, 0, title, (short)(x1), (short)y1+30, sizex, 20, NULL, 1, 0, 0, 0, "");
 	
+	/* buttons have 0 as return event, to prevent menu to close on hotkeys */
 	uiBlockBeginAlign(block);
 	for(a=0; a<5; a++) 
 		uiDefButBitI(block, TOGR, 1<<a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
@@ -409,7 +411,8 @@ int movetolayer_buts(unsigned int *lay)
 	return 0;
 }
 
-int movetolayer_short_buts(short *lay)
+/* armature or bone */
+int movetolayer_short_buts(short *lay, char *title)
 {
 	uiBlock *block;
 	ListBase listb={0, 0};
@@ -435,8 +438,10 @@ int movetolayer_short_buts(short *lay)
 	dx= (sizex-5)/10;
 	dy= sizey/2;
 	
+	if(title)
+		uiDefBut(block, LABEL, 0, title, (short)(x1), (short)y1+30, sizex, 20, NULL, 1, 0, 0, 0, "");
+
 	/* buttons have 0 as return event, to prevent menu to close on hotkeys */
-	
 	uiBlockBeginAlign(block);
 	for(a=0; a<8; a++) 
 		uiDefButBitS(block, TOGR, 1<<a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, lay, 0, 0, 0, 0, "");

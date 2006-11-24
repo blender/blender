@@ -2066,7 +2066,7 @@ void movetolayer(void)
 			base= base->next;
 		}
 	} else {
-		if( movetolayer_buts(&lay)==0 ) return;
+		if( movetolayer_buts(&lay, NULL)==0 ) return;
 		
 		/* normal non localview operation */
 		base= FIRSTBASE;

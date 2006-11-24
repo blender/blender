@@ -1659,7 +1659,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.qual & LR_CTRLKEY) {
 					mirrormenu();
 				}
-				else if(G.qual==0) {
+				else if(G.qual==0 || G.qual==LR_SHIFTKEY) {
 					if(ob && (ob->flag & OB_POSEMODE))
 						pose_movetolayer();
 					else

@@ -912,7 +912,18 @@ void pose_movetolayer(void)
 	if(ob==NULL) return;
 	arm= ob->data;
 	
-	if(ob->flag & OB_POSEMODE) {
+	if(G.qual & LR_SHIFTKEY) {
+		lay= arm->layer;
+		if( movetolayer_short_buts(&lay, "Armature Layers")==0 ) return;
+		if(lay==0) return;
+		arm->layer= lay;
+		
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		
+	}
+	else if(ob->flag & OB_POSEMODE) {
 		bPoseChannel *pchan;
 		
 		if(pose_has_protected_selected(ob, 0))
@@ -926,7 +937,7 @@ void pose_movetolayer(void)
 		}
 		if(lay==0) return;
 		
-		if( movetolayer_short_buts(&lay)==0 ) return;
+		if( movetolayer_short_buts(&lay, "Bone Layers")==0 ) return;
 		if(lay==0) return;
 
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {

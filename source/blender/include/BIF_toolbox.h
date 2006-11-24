@@ -50,8 +50,8 @@ short button (short *var, short min, short max, char *str);
 short fbutton (float *var, float min, float max, float a1, float a2, char *str);
 short sbutton (char *var, float min, float max, char *str);	/* __NLA */
 
-int movetolayer_buts (unsigned int *lay);
-int movetolayer_short_buts (short *lay);
+int movetolayer_buts (unsigned int *lay, char *title);
+int movetolayer_short_buts (short *lay, char *title);
 
 void draw_numbuts_tip (char *str, int x1, int y1, int x2, int y2);
 int do_clever_numbuts (char *name, int tot, int winevent);
