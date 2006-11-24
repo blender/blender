@@ -1569,6 +1569,8 @@ static void isb_add_shadfac(ISBShadfacA **isbsapp, MemArena *mem, int facenr, sh
 	new->shadfac= shadfacf;
 	if(*isbsapp)
 		new->next= (*isbsapp);
+	else
+		new->next= NULL;
 	
 	*isbsapp= new;
 }
@@ -1762,6 +1764,8 @@ static ISBSampleA *isb_alloc_sample_transp(ISBSampleA **isbsa, MemArena *mem)
 	new= BLI_memarena_alloc(mem, sizeof(ISBSampleA));
 	if(*isbsa)
 		new->next= (*isbsa);
+	else
+		new->next= NULL;
 	
 	*isbsa= new;
 	return new;
