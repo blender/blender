@@ -550,13 +550,16 @@ void *CustomData_add_layer(CustomData *data, int type, int flag,
 	int size = layerType_getInfo(type)->size * totelem;
 	void *tmpdata = layerdata;
 
-	if(!tmpdata)
-		tmpdata = MEM_callocN(size, layerType_getName(type));
-	if(!tmpdata)
-		return NULL;
+	if(totelem > 0) {
+		if(!tmpdata)
+			tmpdata = MEM_callocN(size, layerType_getName(type));
+		if(!tmpdata)
+			return NULL;
+	}
 
 	if(!customData_add_layer__internal(data, type, flag, tmpdata)) {
-		MEM_freeN(tmpdata);
+		if(tmpdata)
+			MEM_freeN(tmpdata);
 		return NULL;
 	}
 	
