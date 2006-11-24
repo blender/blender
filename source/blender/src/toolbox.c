@@ -1727,15 +1727,31 @@ static void do_group_addmenu(void *arg, int event)
 		DAG_scene_sort(G.scene);
 	}
 }
+
+static void tag_groups_for_toolbox(void)
+{
+	Group *group;
+	GroupObject *go;
+	
+	for(group= G.main->group.first; group; group= group->id.next)
+		group->id.flag |= LIB_DOIT;
+	
+	for(group= G.main->group.first; group; group= group->id.next) {
+		if(group->id.flag & LIB_DOIT)
+			for(go= group->gobject.first; go; go= go->next) 
+				if(go->ob && go->ob->dup_group)
+					go->ob->dup_group->id.flag &= ~LIB_DOIT;
+	}
+	
+}
 							 
 /* example of dynamic toolbox sublevel */
 static TBitem *create_group_sublevel(void)
 {
 	static TBitem addmenu[]= { {	0, "No Groups", 	0, NULL}, {  -1, "", 			0, NULL}};
-	TBitem *groupmenu;
+	TBitem *groupmenu, *gm;
 	Group *group;
 	int a;
-	
 	int tot= BLI_countlist(&G.main->group);
 	
 	if(tot==0) {
@@ -1743,15 +1759,22 @@ static TBitem *create_group_sublevel(void)
 		return NULL;
 	}
 	
-	groupmenu= MEM_callocN(sizeof(TBitem)*(tot+1), "group menu");
+	/* let's skip group-in-group */
+	tag_groups_for_toolbox();
+	
+	/* build menu */
+	gm= groupmenu= MEM_callocN(sizeof(TBitem)*(tot+1), "group menu");
 	for(a=0, group= G.main->group.first; group; group= group->id.next, a++) {
-		groupmenu[a].name= group->id.name+2;
-		groupmenu[a].retval= a;
+		if(group->id.flag & LIB_DOIT) {
+			gm->name= group->id.name+2;
+			gm->retval= a;
+			gm++;
+		}
 	}
-	groupmenu[a].icon= -1;	/* end signal */
-	groupmenu[a].name= "";
-	groupmenu[a].retval= a;
-	groupmenu[a].poin= do_group_addmenu;
+	gm->icon= -1;	/* end signal */
+	gm->name= "";
+	gm->retval= a;
+	gm->poin= do_group_addmenu;
 	
 	tb_add[TB_ADD_GROUP].poin= groupmenu;
 	
