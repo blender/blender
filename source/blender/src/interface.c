@@ -552,10 +552,11 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 
 /* ******************* block calc ************************* */
 
+/* only for pulldowns */
 void uiTextBoundsBlock(uiBlock *block, int addval)
 {
 	uiBut *bt;
-	int i = 0, j;
+	int i = 0, j, x1addval= 0, nextcol;
 	
 	bt= block->buttons.first;
 	while(bt) {
@@ -569,11 +570,21 @@ void uiTextBoundsBlock(uiBlock *block, int addval)
 		bt= bt->next;
 	}
 
-	
+	/* cope with multi collumns */
 	bt= block->buttons.first;
 	while(bt) {
-		bt->x2 = i + addval;
+		if(bt->next && bt->x1 < bt->next->x1)
+			nextcol= 1;
+		else nextcol= 0;
+		
+		bt->x1 = x1addval;
+		bt->x2 = bt->x1 + i + addval;
+		
 		ui_check_but(bt);	// clips text again
+		
+		if(nextcol)
+			x1addval+= i + addval;
+		
 		bt= bt->next;
 	}
 }

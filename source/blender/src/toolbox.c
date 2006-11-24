@@ -1529,36 +1529,20 @@ static TBitem tb_render[]= {
 
 
 /* dynamic items */
-#define TB_SH_INPUTS		0
-#define TB_SH_OUTPUTS		1
-#define TB_SH_OP_COLOR		2
-#define TB_SH_OP_VECTOR		3
-#define TB_SH_CONVERTORS	4
-#define TB_SH_GROUPS		5
 
 static TBitem tb_node_addsh[]= {
-	{	0, "Input",		1, NULL},
+	{	0, "Input",			1, NULL},
 	{	0, "Output",		2, NULL},
-	{	0, "Color",		3, NULL},
+	{	0, "Color",			3, NULL},
 	{	0, "Vector",		4, NULL},
 	{	0, "Convertors",	5, NULL},
 	{	0, "Groups",		6, NULL},
 	{  -1, "", 			0, NULL}};
 
-
-#define TB_CMP_INPUTS		0
-#define TB_CMP_OUTPUTS		1
-#define TB_CMP_OP_COLOR		2
-#define TB_CMP_OP_VECTOR	3
-#define TB_CMP_OP_FILTER	4
-#define TB_CMP_CONVERTORS	5
-#define TB_CMP_GROUPS		6
-#define TB_CMP_MATTE		7
-
 static TBitem tb_node_addcomp[]= {
-	{	0, "Input",		1, NULL},
+	{	0, "Input",			1, NULL},
 	{	0, "Output",		2, NULL},
-	{	0, "Color",		3, NULL},
+	{	0, "Color",			3, NULL},
 	{	0, "Vector",		4, NULL},
 	{	0, "Filters",		5, NULL},
 	{	0, "Convertors",	6, NULL},
@@ -1569,9 +1553,10 @@ static TBitem tb_node_addcomp[]= {
 /* do_node_addmenu() in header_node.c, prototype in BSE_headerbuttons.h */
 
 /* dynamic toolbox sublevel */
-static TBitem *node_add_sublevel(void **poin, bNodeTree *ntree, int nodeclass)
+static TBitem *node_add_sublevel(ListBase *storage, bNodeTree *ntree, int nodeclass)
 {
 	static TBitem _addmenu[]= { {	0, "Empty", 	0, NULL}, {  -1, "", 			0, NULL}};
+	Link *link;
 	bNodeType **typedefs;
 	TBitem *addmenu;
 	int tot= 0, a;
@@ -1590,11 +1575,12 @@ static TBitem *node_add_sublevel(void **poin, bNodeTree *ntree, int nodeclass)
 		}
 	}	
 	if(tot==0) {
-		*poin= _addmenu;
-		return NULL;
+		return _addmenu;
 	}
 	
-	addmenu= MEM_callocN(sizeof(TBitem)*(tot+1), "types menu");
+	link= MEM_callocN(sizeof(Link) + sizeof(TBitem)*(tot+1), "types menu");
+	BLI_addtail(storage, link);
+	addmenu= (TBitem *)(link+1);
 	
 	if(nodeclass==NODE_CLASS_GROUP) {
 		bNodeTree *ngroup= G.main->nodetree.first;
@@ -1620,8 +1606,6 @@ static TBitem *node_add_sublevel(void **poin, bNodeTree *ntree, int nodeclass)
 	addmenu[a].name= "";
 	addmenu[a].retval= a;
 	addmenu[a].poin= do_node_addmenu;
-	
-	*poin= addmenu;
 	
 	return addmenu;
 }
@@ -1664,7 +1648,7 @@ static uiBlock *tb_makemenu(void *arg)
 	static int counter=0;
 	TBitem *item= arg, *itemt;
 	uiBlock *block;
-	int yco= 0;
+	int xco= 0, yco= 0;
 	char str[10];
 	
 	if(arg==NULL) return NULL;
@@ -1682,19 +1666,26 @@ static uiBlock *tb_makemenu(void *arg)
 	while(item->icon != -1) {
 
 		if(strcmp(item->name, "SEPR")==0) {
-			uiDefBut(block, SEPR, 0, "", 0, yco-=6, 50, 6, NULL, 0.0, 0.0, 0, 0, "");
+			uiDefBut(block, SEPR, 0, "", xco, yco-=6, 50, 6, NULL, 0.0, 0.0, 0, 0, "");
 		}
 		else if(item->icon) {
-			uiDefIconTextBut(block, BUTM, 1, item->icon, item->name, 0, yco-=20, 80, 19, NULL, 0.0, 0.0, 0, item->retval, "");
+			uiDefIconTextBut(block, BUTM, 1, item->icon, item->name, xco, yco-=20, 80, 19, NULL, 0.0, 0.0, 0, item->retval, "");
 		}
 		else if(item->poin) {
 			uiDefIconTextBlockBut(block, tb_makemenu, item->poin, ICON_RIGHTARROW_THIN, item->name, 0, yco-=20, 80, 19, "");
 		}
 		else {
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, item->name, 0, yco-=20, 80, 19, NULL, 0.0, 0.0, 0, item->retval, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, item->name, xco, yco-=20, 80, 19, NULL, 0.0, 0.0, 0, item->retval, "");
 		}
+		
+		if(yco <= -600) {
+			yco = 0;
+			xco += 80;
+		}
+		
 		item++;
 	}
+	
 	uiTextBoundsBlock(block, 60);
 	
 	/* direction is also set in the function that calls this */
@@ -1717,6 +1708,8 @@ static void do_group_addmenu(void *arg, int event)
 {
 	Object *ob;
 	
+	if(event<0) return;
+	
 	add_object_draw(OB_EMPTY);
 	ob= OBACT;
 	
@@ -1728,6 +1721,7 @@ static void do_group_addmenu(void *arg, int event)
 	}
 }
 
+/* helper for create group menu */
 static void tag_groups_for_toolbox(void)
 {
 	Group *group;
@@ -1742,30 +1736,47 @@ static void tag_groups_for_toolbox(void)
 				if(go->ob && go->ob->dup_group)
 					go->ob->dup_group->id.flag &= ~LIB_DOIT;
 	}
-	
 }
-							 
-/* example of dynamic toolbox sublevel */
-static TBitem *create_group_sublevel(void)
+
+/* helper for create group menu */
+static int count_group_libs(void)
+{
+	Group *group;
+	Library *lib;
+	int tot= 0;
+	
+	for(lib= G.main->library.first; lib; lib= lib->id.next)
+		lib->id.flag |= LIB_DOIT;
+	
+	for(group= G.main->group.first; group; group= group->id.next) {
+		if(group->id.lib && (group->id.lib->id.flag & LIB_DOIT)) {
+			group->id.lib->id.flag &= ~LIB_DOIT;
+			tot++;
+		}
+	}
+	return tot;
+}
+
+/* dynamic toolbox sublevel */
+static TBitem *create_group_sublevel(ListBase *storage, Library *lib)
 {
 	static TBitem addmenu[]= { {	0, "No Groups", 	0, NULL}, {  -1, "", 			0, NULL}};
+	Link *link;
 	TBitem *groupmenu, *gm;
 	Group *group;
 	int a;
 	int tot= BLI_countlist(&G.main->group);
 	
 	if(tot==0) {
-		tb_add[TB_ADD_GROUP].poin= addmenu;
-		return NULL;
+		return addmenu;
 	}
 	
-	/* let's skip group-in-group */
-	tag_groups_for_toolbox();
-	
-	/* build menu */
-	gm= groupmenu= MEM_callocN(sizeof(TBitem)*(tot+1), "group menu");
+	/* build menu, we insert a Link before the array of TBitems */
+	link= MEM_callocN(sizeof(Link) + sizeof(TBitem)*(tot+1), "group menu lib");
+	BLI_addtail(storage, link);
+	gm= groupmenu= (TBitem *)(link+1);
 	for(a=0, group= G.main->group.first; group; group= group->id.next, a++) {
-		if(group->id.flag & LIB_DOIT) {
+		if(group->id.lib==lib && (group->id.flag & LIB_DOIT)) {
 			gm->name= group->id.name+2;
 			gm->retval= a;
 			gm++;
@@ -1776,20 +1787,71 @@ static TBitem *create_group_sublevel(void)
 	gm->retval= a;
 	gm->poin= do_group_addmenu;
 	
-	tb_add[TB_ADD_GROUP].poin= groupmenu;
+	return groupmenu;
+}
+
+static TBitem *create_group_all_sublevels(ListBase *storage)
+{
+	Library *lib;
+	Group *group;
+	Link *link;
+	TBitem *groupmenu, *gm;
+	int a;
+	int totlevel= count_group_libs();
+	int totlocal= 0;
+	
+	/* we add totlevel + local groups entries */
+	
+	/* let's skip group-in-group */
+	tag_groups_for_toolbox();
+	
+	for(group= G.main->group.first; group; group= group->id.next)
+		if(group->id.flag & LIB_DOIT)
+			if(group->id.lib==NULL)
+				totlocal++;
+	
+	if(totlocal+totlevel==0)
+		return create_group_sublevel(storage, NULL);
+	
+	/* build menu, we insert a Link before the array of TBitems */
+	link= MEM_callocN(sizeof(Link) + sizeof(TBitem)*(totlocal+totlevel+1), "group menu");
+	BLI_addtail(storage, link);
+	gm= groupmenu= (TBitem *)(link+1);
+	
+	/* first all levels. libs with groups are not tagged */
+	for(lib= G.main->library.first; lib; lib= lib->id.next) {
+		if(!(lib->id.flag & LIB_DOIT)) {
+			gm->name= BLI_last_slash(lib->filename)+1;
+			gm->retval= -1;
+			gm->poin= create_group_sublevel(storage, lib);
+			gm++;
+		}
+	}
+	/* remaining groups */
+	for(a=0, group= G.main->group.first; group; group= group->id.next, a++) {
+		if(group->id.lib==NULL && (group->id.flag & LIB_DOIT)) {
+			gm->name= group->id.name+2;
+			gm->retval= a;
+			gm++;
+		}
+	}
+	gm->icon= -1;	/* end signal */
+	gm->name= "";
+	gm->retval= a;
+	gm->poin= do_group_addmenu;
 	
 	return groupmenu;
 }
+
 
 void toolbox_n(void)
 {
 	uiBlock *block;
 	uiBut *but;
+	ListBase storage= {NULL, NULL};
 	TBitem *menu1=NULL, *menu2=NULL, *menu3=NULL; 
 	TBitem *menu4=NULL, *menu5=NULL, *menu6=NULL;
-	TBitem *menu7=NULL, *groupmenu= NULL;
-	TBitem *node_add_gen= NULL, *node_add_group= NULL,*node_add_matte=NULL, *node_add_out= NULL, *node_add_in= NULL;
-	TBitem *node_add_op_col= NULL, *node_add_op_filt= NULL, *node_add_op_vec= NULL, *node_add_con= NULL;
+	TBitem *menu7=NULL;
 	int dx=0;
 	short event, mval[2], tot=0;
 	char *str1=NULL, *str2=NULL, *str3=NULL, *str4=NULL, *str5=NULL, *str6=NULL, *str7=NULL;
@@ -1815,8 +1877,9 @@ void toolbox_n(void)
 	if(curarea->spacetype==SPACE_VIEW3D) {
 
 		/* dynamic menu entries */
-		groupmenu= create_group_sublevel();
+		tb_add[TB_ADD_GROUP].poin= create_group_all_sublevels(&storage);
 		
+		/* static */
 		if (G.scene->r.renderer==R_YAFRAY)
 			tb_add[TB_ADD_LAMP].poin= addmenu_YF_lamp;
 		else
@@ -1955,22 +2018,22 @@ void toolbox_n(void)
 		menu5= tb_node_view; str5= "View";
 		
 		if(snode->treetype==NTREE_SHADER) {
-			node_add_in= node_add_sublevel(&menu1[TB_SH_INPUTS].poin, snode->nodetree, NODE_CLASS_INPUT);
-			node_add_out= node_add_sublevel(&menu1[TB_SH_OUTPUTS].poin, snode->nodetree, NODE_CLASS_OUTPUT);
-			node_add_op_col= node_add_sublevel(&menu1[TB_SH_OP_COLOR].poin, snode->nodetree, NODE_CLASS_OP_COLOR);
-			node_add_op_vec= node_add_sublevel(&menu1[TB_SH_OP_VECTOR].poin, snode->nodetree, NODE_CLASS_OP_VECTOR);
-			node_add_con= node_add_sublevel(&menu1[TB_SH_CONVERTORS].poin, snode->nodetree, NODE_CLASS_CONVERTOR);
-			node_add_group= node_add_sublevel(&menu1[TB_SH_GROUPS].poin, snode->nodetree, NODE_CLASS_GROUP);
+			menu1[0].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_INPUT);
+			menu1[1].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OUTPUT);
+			menu1[2].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_COLOR);
+			menu1[3].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_VECTOR);
+			menu1[4].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_CONVERTOR);
+			menu1[5].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_GROUP);
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
-			node_add_in= node_add_sublevel(&menu1[TB_CMP_INPUTS].poin, snode->nodetree, NODE_CLASS_INPUT);
-			node_add_out= node_add_sublevel(&menu1[TB_CMP_OUTPUTS].poin, snode->nodetree, NODE_CLASS_OUTPUT);
-			node_add_op_col= node_add_sublevel(&menu1[TB_CMP_OP_COLOR].poin, snode->nodetree, NODE_CLASS_OP_COLOR);
-			node_add_op_filt= node_add_sublevel(&menu1[TB_CMP_OP_FILTER].poin, snode->nodetree, NODE_CLASS_OP_FILTER);
-			node_add_op_vec= node_add_sublevel(&menu1[TB_CMP_OP_VECTOR].poin, snode->nodetree, NODE_CLASS_OP_VECTOR);
-			node_add_con= node_add_sublevel(&menu1[TB_CMP_CONVERTORS].poin, snode->nodetree, NODE_CLASS_CONVERTOR);
-			node_add_group= node_add_sublevel(&menu1[TB_CMP_GROUPS].poin, snode->nodetree, NODE_CLASS_GROUP);
-			node_add_matte= node_add_sublevel(&menu1[TB_CMP_MATTE].poin,snode->nodetree, NODE_CLASS_MATTE);
+			menu1[0].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_INPUT);
+			menu1[1].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OUTPUT);
+			menu1[2].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_COLOR);
+			menu1[3].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_VECTOR);
+			menu1[4].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_FILTER);
+			menu1[5].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_CONVERTOR);
+			menu1[6].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_GROUP);
+			menu1[7].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_MATTE);
 		}
 		
 		dx= 96;
@@ -2060,18 +2123,8 @@ void toolbox_n(void)
 	uiBoundsBlock(block, 2);
 	event= uiDoBlocks(&tb_listb, 0);
 	
-	/* free all dynamic entries... clumsy! */
-	if(groupmenu) MEM_freeN(groupmenu);
-	
-	if(node_add_in) MEM_freeN(node_add_in);
-	if(node_add_out) MEM_freeN(node_add_out);
-	if(node_add_op_col) MEM_freeN(node_add_op_col);
-	if(node_add_op_filt) MEM_freeN(node_add_op_filt);
-	if(node_add_op_vec) MEM_freeN(node_add_op_vec);
-	if(node_add_con) MEM_freeN(node_add_con);
-	if(node_add_gen) MEM_freeN(node_add_gen);
-	if(node_add_group) MEM_freeN(node_add_group);
-	if(node_add_matte) MEM_freeN(node_add_matte);
+	/* free all dynamic entries... */
+	BLI_freelistN(&storage);
 	
 	mywinset(curarea->win);
 }
