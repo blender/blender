@@ -54,6 +54,7 @@
 #include "BKE_utildefines.h" // for ENDB
 
 #include "BKE_main.h"
+#include "BKE_global.h"
 #include "BKE_library.h" // for free_main
 
 #include "BLO_readfile.h"
@@ -98,7 +99,6 @@ static IDType idtypes[]= {
 	{ ID_ME,		"Mesh",		IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_NT,		"NodeTree",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_OB,		"Object",	IDTYPE_FLAGS_ISLINKABLE}, 
-	{ ID_SAMPLE,	"Sample",	0}, 
 	{ ID_SCE,		"Scene",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_SCR,		"Screen",	0}, 
 	{ ID_SEQ,		"Sequence",	0}, 
@@ -289,15 +289,20 @@ BlendFileData *BLO_read_from_memory(void *mem, int memsize, BlendReadError *erro
 	return bfd;	
 }
 
-
 BlendFileData *BLO_read_from_memfile(const char *filename, MemFile *memfile, BlendReadError *error_r) 
 {
 	BlendFileData *bfd = NULL;
 	FileData *fd;
-		
+	ListBase mainlist;
+	
 	fd = blo_openblendermemfile(memfile, error_r);
 	if (fd) {
 		strcpy(fd->filename, filename);
+		
+		/* separate libraries from G.main */
+		blo_split_main(&mainlist, G.main);
+		/* add the library pointers in oldmap lookup */
+		blo_add_library_pointer_map(&mainlist, fd);
 		
 		/* makes lookup of existing images in G.main */
 		blo_make_image_pointer_map(fd);
@@ -310,6 +315,19 @@ BlendFileData *BLO_read_from_memfile(const char *filename, MemFile *memfile, Ble
 		
 		/* ensures relinked images are not freed */
 		blo_end_image_pointer_map(fd);
+		
+		/* move libraries from G.main to new main */
+		if(bfd && mainlist.first!=mainlist.last) {
+			
+			/* Library structs themselves */
+			bfd->main->library= G.main->library;
+			G.main->library.first= G.main->library.last= NULL;
+			
+			/* add the Library mainlist to the new main */
+			BLI_remlink(&mainlist, G.main);
+			BLI_addhead(&mainlist, bfd->main);
+		}
+		blo_join_main(&mainlist);
 		
 		blo_freefiledata(fd);			
 	}

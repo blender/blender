@@ -99,9 +99,9 @@ typedef struct BHeadN {
 #define SIZEOFBLENDERHEADER 12
 
 	/***/
-
+struct Main;
 void blo_join_main(ListBase *mainlist);
-void blo_split_main(ListBase *mainlist);
+void blo_split_main(ListBase *mainlist, struct Main *main);
 
 BlendFileData *blo_read_file_internal( FileData *fd,  BlendReadError *error_r);
 
@@ -111,6 +111,7 @@ FileData *blo_openblendermemfile(struct MemFile *memfile, BlendReadError *error_
 
 void blo_make_image_pointer_map(FileData *fd);
 void blo_end_image_pointer_map(FileData *fd);
+void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd);
 
 void blo_freefiledata( FileData *fd);
 

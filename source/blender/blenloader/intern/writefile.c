@@ -1603,20 +1603,18 @@ static void write_libraries(WriteData *wd, Main *main)
 	ID *id;
 	int a, tot, foundone;
 
-	while(main) {
+	for(; main; main= main->next) {
 
 		a=tot= set_listbasepointers(main, lbarray);
 
 		/* test: is lib being used */
 		foundone= 0;
 		while(tot--) {
-			id= lbarray[tot]->first;
-			while(id) {
+			for(id= lbarray[tot]->first; id; id= id->next) {
 				if(id->us>0 && (id->flag & LIB_EXTERN)) {
 					foundone= 1;
 					break;
 				}
-				id= id->next;
 			}
 			if(foundone) break;
 		}
@@ -1625,20 +1623,13 @@ static void write_libraries(WriteData *wd, Main *main)
 			writestruct(wd, ID_LI, "Library", 1, main->curlib);
 
 			while(a--) {
-				id= lbarray[a]->first;
-				while(id) {
-					if(G.rt==127 && GS(id->name)!=ID_GR) break;
-					
+				for(id= lbarray[a]->first; id; id= id->next) {
 					if(id->us>0 && (id->flag & LIB_EXTERN)) {
-
 						writestruct(wd, ID_ID, "ID", 1, id);
 					}
-					id= id->next;
 				}
 			}
 		}
-
-		main= main->next;
 	}
 }
 
@@ -1856,19 +1847,15 @@ static void write_global(WriteData *wd)
 	writestruct(wd, GLOB, "FileGlobal", 1, &fg);
 }
 
-/* if *mem there's filesave to memory */
+/* if MemFile * there's filesave to memory */
 static int write_file_handle(int handle, MemFile *compare, MemFile *current, int write_user_block, int write_flags)
 {
 	BHead bhead;
 	ListBase mainlist;
 	char buf[13];
 	WriteData *wd;
-/*	int data; */ /*unused*/
 
-	mainlist.first= mainlist.last= G.main;
-	G.main->next= NULL;
-
-	blo_split_main(&mainlist);
+	blo_split_main(&mainlist, G.main);
 
 	wd= bgnwrite(handle, compare, current, write_flags);
 	
@@ -1878,7 +1865,7 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 	write_renderinfo(wd);
 	
 	if(current==NULL)
-		write_screens  (wd, &G.main->screen);	// no UI save
+		write_screens  (wd, &G.main->screen);	/* no UI save in undo */
 	write_scenes   (wd, &G.main->scene);
 	write_curves   (wd, &G.main->curve);
 	write_mballs   (wd, &G.main->mball);
@@ -1901,7 +1888,8 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 	write_meshs    (wd, &G.main->mesh);
 	write_nodetrees(wd, &G.main->nodetree);
 	write_brushes  (wd, &G.main->brush);
-	write_libraries(wd,  G.main->next);
+	if(current==NULL)	
+		write_libraries(wd,  G.main->next); /* no library save in undo */
 
 	write_global(wd);
 	if (write_user_block) {
@@ -1927,7 +1915,7 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 {
 	char userfilename[FILE_MAXDIR+FILE_MAXFILE];
 	char tempname[FILE_MAXDIR+FILE_MAXFILE];
-	int file, fout, write_user_block;
+	int file, err, write_user_block;
 
 	sprintf(tempname, "%s@", dir);
 
@@ -1941,10 +1929,10 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 
 	write_user_block= BLI_streq(dir, userfilename);
 
-	fout= write_file_handle(file, NULL,NULL, write_user_block, write_flags);
+	err= write_file_handle(file, NULL,NULL, write_user_block, write_flags);
 	close(file);
 
-	if(!fout) {
+	if(!err) {
 		if(write_flags & G_FILE_COMPRESS)
 		{	
 			// compressed files have the same ending as regular files... only from 2.4!!!

@@ -62,7 +62,25 @@ void sound_free_sample(bSample *sample)
 	}
 }
 
-
+/* this is called after file reading or undos */
+void sound_free_all_samples(void)
+{
+	bSample *sample;
+	bSound *sound;
+	
+	/* ensure no sample pointers exist, and check packedfile */
+	for(sound= G.main->sound.first; sound; sound= sound->id.next) {
+		if(sound->sample && sound->sample->packedfile==sound->newpackedfile)
+			sound->newpackedfile= NULL;
+		sound->sample= NULL;
+	}
+	
+	/* now free samples */
+	for(sample= samples->first; sample; sample= sample->id.next)
+		sound_free_sample(sample);
+	BLI_freelistN(samples);
+	
+}
 
 void sound_set_packedfile(bSample *sample, PackedFile *pf)
 {

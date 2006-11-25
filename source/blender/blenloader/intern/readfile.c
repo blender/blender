@@ -320,7 +320,7 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr)
 	return NULL;
 }
 
-/* for libdate, nr has ID code, no increment */
+/* for libdata, nr has ID code, no increment */
 static void *oldnewmap_liblookup(OldNewMap *onm, void *addr, void *lib) 
 {
 	int i;
@@ -438,22 +438,27 @@ static void split_libdata(ListBase *lb, Main *first)
 	}
 }
 
-void blo_split_main(ListBase *mainlist)
+void blo_split_main(ListBase *mainlist, Main *main)
 {
-	Main *mainl= mainlist->first;
 	ListBase *lbarray[MAX_LIBARRAY];
 	Library *lib;
 	int i;
 
-	for (lib= mainl->library.first; lib; lib= lib->id.next) {
+	mainlist->first= mainlist->last= main;
+	main->next= NULL;
+
+	if(main->library.first==NULL)
+		return;
+	
+	for (lib= main->library.first; lib; lib= lib->id.next) {
 		Main *libmain= MEM_callocN(sizeof(Main), "libmain");
 		libmain->curlib= lib;
 		BLI_addtail(mainlist, libmain);
 	}
 
-	i= set_listbasepointers(mainl, lbarray);
+	i= set_listbasepointers(main, lbarray);
 	while(i--)
-		split_libdata(lbarray[i], mainl->next);
+		split_libdata(lbarray[i], main->next);
 }
 
 /* removes things like /blah/blah/../../blah/ etc, then writes in *name the full path */
@@ -1031,9 +1036,8 @@ static void *newlibadr_us(FileData *fd, void *lib, void *adr)	/* increases user 
 {
 	ID *id= newlibadr(fd, lib, adr);
 
-	if(id) {
+	if(id)
 		id->us++;
-	}
 
 	return id;
 }
@@ -1121,6 +1125,23 @@ void blo_end_image_pointer_map(FileData *fd)
 		}
 	}
 }
+
+/* undo file support: add all library pointers in lookup */
+void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd)
+{
+	Main *main= mainlist->first;
+	ListBase *lbarray[MAX_LIBARRAY];
+	
+	for(main= main->next; main; main= main->next) {
+		int i= set_listbasepointers(main, lbarray);
+		while(i--) {
+			ID *id;
+			for(id= lbarray[i]->first; id; id= id->next)
+				oldnewmap_insert(fd->libmap, id, id, GS(id->name));
+		}
+	}
+}
+		
 
 /* ********** END OLD POINTERS ****************** */
 /* ********** READ FILE ****************** */
@@ -3804,7 +3825,6 @@ static char *dataname(short id_code)
 		case ID_VF: return "Data from VF";
 		case ID_TXT	: return "Data from TXT";
 		case ID_SO: return "Data from SO";
-		case ID_SAMPLE: return "Data from SAMPLE";
 		case ID_NT: return "Data from NT";
 		case ID_BR: return "Data from BR";
 	}
@@ -4915,8 +4935,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Mesh *me;
 		bScreen *sc;
 
-		for (sound=main->sound.first; sound; sound=sound->id.next)
-		{
+		for (sound=main->sound.first; sound; sound=sound->id.next) {
 			if (sound->packedfile) {
 				if (sound->newpackedfile == NULL) {
 					sound->newpackedfile = sound->packedfile;
@@ -6179,17 +6198,15 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 				 */
 			bhead = read_libblock(fd, fd->mainlist.last, bhead, LIB_READ+LIB_EXTERN, NULL);
 			break;
-//		case ID_GR:
-//			bhead = blo_nextbhead(fd, bhead);
-//			break;
 			
 		default:
 			bhead = read_libblock(fd, bfd->main, bhead, LIB_LOCAL, NULL);
 		}
 	}
 
-	/* before read_libraries */
-	do_versions(fd, NULL, bfd->main);
+	/* do before read_libraries, but skip undo case */
+//	if(fd->memfile==NULL) (the mesh shuffle hacks don't work yet? ton)
+		do_versions(fd, NULL, bfd->main);
 	
 	read_libraries(fd, &fd->mainlist);
 	blo_join_main(&fd->mainlist);
@@ -6966,11 +6983,8 @@ void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcod
 	Main *mainl;
 	FileData *fd = (FileData *)bh;
 
-	mainlist.first= mainlist.last= G.main;
-	G.main->next= NULL;
-
 	/* make mains */
-	blo_split_main(&mainlist);
+	blo_split_main(&mainlist, G.main);
 
 	/* which one do we need? */
 	mainl = blo_find_main(&mainlist, dir, G.sce);
@@ -7030,11 +7044,8 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	
 	if(sfile->flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
 
-	fd->mainlist.first= fd->mainlist.last= G.main;
-	G.main->next= NULL;
-
 	/* make mains */
-	blo_split_main(&fd->mainlist);
+	blo_split_main(&fd->mainlist, G.main);
 
 	/* which one do we need? */
 	mainl = blo_find_main(&fd->mainlist, dir, G.sce);

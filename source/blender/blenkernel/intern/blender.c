@@ -73,6 +73,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
+#include "BKE_sound.h"
 
 #include "BLI_editVert.h"
 
@@ -166,10 +167,14 @@ void pushpop_test()
 
 void free_blender(void)
 {
+	/* samples are in a global list..., also sets G.main->sound->sample NULL */
+	sound_free_all_samples();
+	
 	free_main(G.main);
 	G.main= NULL;
 
 	IMB_freeImBufdata();		/* imbuf lib */
+	
 }
 
 void duplicatelist(ListBase *list1, ListBase *list2)  /* copy from 2 to 1 */
@@ -336,7 +341,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		lib_link_screen_restore(bfd->main, curscene);
 	}
 	
-	clear_global();
+	clear_global();	/* free Main database */
 	
 	if(mode!='u') G.save_over = 1;
 	
@@ -350,6 +355,9 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		MEM_freeN(bfd->user);
 		
 	}
+	
+	/* samples is a global list... */
+	sound_free_all_samples();
 	
 	/* case G_FILE_NO_UI or no screens in file */
 	if(mode) {
@@ -459,6 +467,7 @@ int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r)
 	return (bfd?1:0);
 }
 
+/* memfile is the undo buffer */
 int BKE_read_file_from_memfile(MemFile *memfile)
 {
 	BlendReadError bre;

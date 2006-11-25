@@ -39,7 +39,10 @@ struct bSound;
 struct bSample;
 struct ListBase;
 
+/* bad bad global... */
 extern struct ListBase *samples;
+
+void sound_free_all_samples(void);
 
 /*  void *sound_get_listener(void); implemented in src!also declared there now  */
 

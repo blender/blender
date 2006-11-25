@@ -201,7 +201,7 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 void sound_initialize_sounds(void)
 {
-	bSound* sound;
+	bSound *sound;
 
 	if(ghSoundScene) {
 
@@ -212,8 +212,7 @@ void sound_initialize_sounds(void)
 	
 	/* initialize sample blocks (doesnt call audio system, needs to be done once after load */
 	sound = G.main->sound.first;
-	while (sound)
-	{
+	while (sound) {
 		sound_sample_is_null(sound);
 		sound = (bSound *) sound->id.next;
 	}
@@ -221,9 +220,9 @@ void sound_initialize_sounds(void)
 
 
 
-bSound* sound_make_copy(bSound* originalsound)
+bSound *sound_make_copy(bSound *originalsound)
 {
-	bSound* sound = NULL;
+	bSound *sound = NULL;
 	char name[160];
 	int len;
 	
@@ -273,7 +272,7 @@ bSound* sound_make_copy(bSound* originalsound)
 
 
 
-void sound_initialize_sample(bSound* sound)
+void sound_initialize_sample(bSound *sound)
 {
 	if(ghSoundScene==NULL) sound_init_audio();
 
@@ -282,7 +281,7 @@ void sound_initialize_sample(bSound* sound)
 }
 
 
-void sound_read_wav_data(bSound* sound, PackedFile* pf)
+void sound_read_wav_data(bSound *sound, PackedFile *pf)
 {
 	int i, temp;
 	short shortbuf, *temps;
@@ -299,36 +298,31 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 	rewindPackedFile(pf);
 
 	/* check to see if it is a file in "RIFF WAVE fmt" format */
-	if (readPackedFile(pf, buffer, 16) != 16)
-	{
+	if (readPackedFile(pf, buffer, 16) != 16) {
 		if (G.f & G_DEBUG) printf("File too short\n");
 		return;
 	}
 
-	if(!(memcmp(buffer, "RIFF", 4) && memcmp(&(buffer[8]), "WAVEfmt ", 8)))
-	{
+	if(!(memcmp(buffer, "RIFF", 4) && memcmp(&(buffer[8]), "WAVEfmt ", 8))) {
 		readPackedFile(pf, &i, 4);// start of data
 		if(G.order==B_ENDIAN)
 			SWITCH_INT(i);
 
 		/* read the sampleformat */
 		readPackedFile(pf, &shortbuf, 2);
-		if(G.order==B_ENDIAN)
-		{
+		if(G.order==B_ENDIAN) {
 			SWITCH_SHORT(shortbuf);
 		}
 
 		/* read the number of channels */
 		readPackedFile(pf, &shortbuf, 2);
 
-		if(G.order==B_ENDIAN)
-		{
+		if(G.order==B_ENDIAN) {
 			SWITCH_SHORT(shortbuf);
 		}
 
 		/* check the number of channels */
-		if(shortbuf != 1 && shortbuf != 2)
-		{
+		if(shortbuf != 1 && shortbuf != 2) {
 			if (G.f & G_DEBUG) printf("Unsupported number of channels\n");
 			return;
 		}
@@ -356,8 +350,7 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 
 		readPackedFile(pf, &shortbuf, 2);
 		readPackedFile(pf, &shortbuf, 2);
-		if(G.order==B_ENDIAN)
-		{
+		if(G.order==B_ENDIAN) {
 			SWITCH_SHORT(shortbuf);
 		}
 		bits = shortbuf;
@@ -365,8 +358,7 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 		seekPackedFile(pf, i-16, SEEK_CUR);
 		readPackedFile(pf, buffer, 4);
 		/* check if we have a 'data' chunk */
-		while(memcmp(buffer, "data", 4)!=0)
-		{
+		while(memcmp(buffer, "data", 4)!=0) {
 			if (readPackedFile(pf, &i, 4) != 4)
 				break;
 			
@@ -379,13 +371,11 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 		}
 		
 		/* guess not */
-		if (memcmp(buffer, "data", 4) !=0)
-		{
+		if (memcmp(buffer, "data", 4) !=0) {
 			if (G.f & G_DEBUG) printf("No data found\n");
 		}
 		/* or maybe we do! */
-		else
-		{
+		else {
 			readPackedFile(pf, &longbuf, 4); 
 			if(G.order==B_ENDIAN) SWITCH_INT(longbuf);
 			
@@ -399,21 +389,17 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 			len = longbuf /*/ 4.0*/; /* for some strange reason the sample length is off by a factor of 4... */
 			/* intrr's comment: Funny eh, how one 16-bit stereo sample is 4 bytes? :-) */
 			
-			if(data)
-			{
+			if(data) {
 				readPackedFile(pf, data, len);
 				/* data is only used to draw! */
-				if (bits == 8)
-				{
+				if (bits == 8) {
 					temps = (short *) data;
 					tempc = (char *) data;
 					for (i = len - 1; i >= 0; i--)
 						temps[i] = tempc[i] << 8;
 				}
-				else
-				{
-					if(G.order==B_ENDIAN)
-					{
+				else {
+					if(G.order==B_ENDIAN) {
 						swab(data, data, len);
 					}
 				}
@@ -428,8 +414,7 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 			}
 		}
 	}
-	else
-	{
+	else {
 		sound->sample->type = SAMPLE_INVALID;
 		if (G.f & G_DEBUG) printf("Unsupported sound format: %s\n", sound->name);
 	}
@@ -438,7 +423,7 @@ void sound_read_wav_data(bSound* sound, PackedFile* pf)
 
 
 /* ugly, but it works (for now) */
-static int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
+static int sound_get_filetype_from_header(bSound *sound, PackedFile *pf)
 {
 	int filetype = SAMPLE_INVALID;
 	int i;
@@ -447,22 +432,19 @@ static int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
 	
 	rewindPackedFile(pf);
 	
-	if (readPackedFile(pf, buffer, 16) != 16)
-	{
+	if (readPackedFile(pf, buffer, 16) != 16) {
 		if (G.f & G_DEBUG) printf("File too short\n");
 		return filetype;
 	}
 	
-	if(!(memcmp(buffer, "RIFF", 4) && memcmp(&(buffer[8]), "WAVEfmt ", 8)))
-	{
+	if(!(memcmp(buffer, "RIFF", 4) && memcmp(&(buffer[8]), "WAVEfmt ", 8))) {
 		readPackedFile(pf, &i, 4);
 		if(G.order==B_ENDIAN)
 			SWITCH_INT(i);
 		
 		/* read the sampleformat */
 		readPackedFile(pf, &shortbuf, 2);
-		if(G.order==B_ENDIAN)
-		{
+		if(G.order==B_ENDIAN) {
 			char s_i, *p_i;
 			p_i= (char *)&(shortbuf);
 			s_i= p_i[0];
@@ -470,8 +452,7 @@ static int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
 			p_i[1]= s_i;
 		}
 		
-		if (shortbuf == SND_WAVE_FORMAT_PCM)
-		{
+		if (shortbuf == SND_WAVE_FORMAT_PCM) {
 			filetype = SAMPLE_WAV;
 		}
 		else
@@ -500,17 +481,14 @@ static int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
 #ifdef USE_FMOD
 		}
 	}
-	else if (!memcmp(buffer, "OggS", 4))
-	{
+	else if (!memcmp(buffer, "OggS", 4)) {
 		filetype = SAMPLE_OGG_VORBIS;
 	}
-	else if ((!memcmp(buffer, "ID3", 3)) || (!memcmp(buffer, "", 2)))
-	{
+	else if ((!memcmp(buffer, "ID3", 3)) || (!memcmp(buffer, "", 2))) {
 		filetype = SAMPLE_MP3;
 	}
 #endif
-	else
-	{
+	else {
 		filetype = SAMPLE_INVALID;
 		if (G.f & G_DEBUG) printf("Unsupported sound format: %s\n", sound->name);
 	}
@@ -520,7 +498,7 @@ static int sound_get_filetype_from_header(bSound* sound, PackedFile* pf)
 
 
 
-static int check_filetype(bSound* sound, PackedFile* pf)
+static int check_filetype(bSound *sound, PackedFile *pf)
 {
 //	char* pdest;
 	sound->sample->type = SAMPLE_INVALID;
@@ -550,8 +528,7 @@ static int check_filetype(bSound* sound, PackedFile* pf)
 	sound->sample->type = sound_get_filetype_from_header(sound, pf);
 
 	/* get some info from the sample */
-	switch (sound->sample->type)
-	{
+	switch (sound->sample->type) {
 	case SAMPLE_WAV:
 		{
 			sound_read_wav_data(sound, pf);
@@ -576,24 +553,22 @@ static int check_filetype(bSound* sound, PackedFile* pf)
 
 
 
-int sound_load_sample(bSound* sound)
+int sound_load_sample(bSound *sound)
 {
 	int result = FALSE;
-	PackedFile* pf;
+	PackedFile *pf;
 	int freePF = FALSE;
 	int buffer = -1;
 
 	if(ghSoundScene==NULL) sound_init_audio();
 
 	/* check the sample (valid?) */
-	if (sound->sample->type == SAMPLE_UNKNOWN || sound->snd_sound == NULL)
-	{
+	if (sound->sample->type == SAMPLE_UNKNOWN || sound->snd_sound == NULL) {
 		/* find... */
 		pf = sound_find_packedfile(sound);
 
 		/* ...or create a (temp)packedfile */
-		if (pf == NULL)
-		{
+		if (pf == NULL) {
 			pf = newPackedFile(sound->name);
 			
 			/* if autopack is off, free the pf afterwards */
@@ -602,14 +577,12 @@ int sound_load_sample(bSound* sound)
 		}
 		
 		/* if we have a valid pf... */
-		if (pf)
-		{
+		if (pf) {
 			/* check the content of the pf */
 			check_filetype(sound, pf);
 
 			/* check if the sampletype is supported */
-			if (sound->sample->type != SAMPLE_INVALID && sound->sample->type != SAMPLE_UNKNOWN)
-			{
+			if (sound->sample->type != SAMPLE_INVALID && sound->sample->type != SAMPLE_UNKNOWN) {
 				/* register the sample at the audiodevice */
 				buffer = SND_AddSample(ghSoundScene, sound->sample->name, pf->data, pf->size);
 
@@ -628,33 +601,28 @@ int sound_load_sample(bSound* sound)
 					result = TRUE;
 			}
 			/* if not, free the pf */
-			else
-			{
+			else {
 				freePF = TRUE;
 			}
 			
 			/* if you want it freed, make it so */
-			if (freePF)
-			{
+			if (freePF) {
 				freePackedFile(pf);
 				pf = NULL;
 			} 
 			/* or else connect the pf to the sound and sample */
-//			else
-//			{
+//			else {
 				sound->newpackedfile = pf;
 				sound->sample->packedfile = pf;
 //			}
 		}
-		else 
-		{
+		else  {
 			if (G.f & G_DEBUG) printf("%s: File not found!\n", sound->name);
 			sound->sample->type = SAMPLE_INVALID;
 		}
 	}
 	/* if the sample ain't invalid, we're ready to go! */
-	else if (sound->sample->type != SAMPLE_INVALID)
-	{
+	else if (sound->sample->type != SAMPLE_INVALID) {
 		result = TRUE;
 	}
 
@@ -663,7 +631,7 @@ int sound_load_sample(bSound* sound)
 
 
 
-bSound* sound_new_sound(char* name)
+bSound *sound_new_sound(char *name)
 {
 	bSound *sound = NULL;
 	int len, file;
@@ -679,8 +647,7 @@ bSound* sound_new_sound(char* name)
 	/* check if the sample on disk can be opened */
 	file = open(str, O_BINARY|O_RDONLY);
 	
-	if (file != -1)
-	{
+	if (file != -1) {
 		close(file);
 
 
@@ -699,8 +666,7 @@ bSound* sound_new_sound(char* name)
 		/* load the sample & check if this blender supports the sound format */
 //		sound_load_sample(sound);
 
-		if (sound->sample->type == SAMPLE_INVALID)
-		{
+		if (sound->sample->type == SAMPLE_INVALID) {
 			free_libblock(&G.main->sound, sound);
 			sound = NULL;
 		} 
@@ -725,13 +691,8 @@ int sound_set_sample(bSound *sound, bSample *sample)
 	
 	if(ghSoundScene==NULL) sound_init_audio();
 	
-	/* decrease the usernumber for this sample */
-	if (sound->sample)
-		sound->sample->id.us--;
-
 	/* delete the soundobject */
-	if (sound->snd_sound)
-	{
+	if (sound->snd_sound) {
 		SND_RemoveSound(ghSoundScene, sound->snd_sound);
 		sound->snd_sound = NULL;
 	}
@@ -740,22 +701,17 @@ int sound_set_sample(bSound *sound, bSample *sample)
 	sound->sample = sample;
 	sound->newpackedfile = NULL;
 	
-	/* increase the usercount */
-	if (sound->sample)
-	{
-		sound->sample->id.us++;
+	if (sound->sample) {
 
 		/* and set the right pf */
 		sound->newpackedfile = sample->packedfile;
 
 		/* if the sampletype is unknown initialize it */
-		if (sound->sample->type == SAMPLE_UNKNOWN)
-		{
+		if (sound->sample->type == SAMPLE_UNKNOWN) {
 			sound_initialize_sample(sound);
 			
 			/* load the sample & check if this blender supports the sound format */
-			if (!sound_load_sample(sound))
-			{
+			if (!sound_load_sample(sound)) {
 				result = FALSE;
 			}
 		}
@@ -766,14 +722,13 @@ int sound_set_sample(bSound *sound, bSample *sample)
 
 
 
-bSample *sound_new_sample(bSound * sound)
+bSample *sound_new_sample(bSound *sound)
 {
 	bSample *sample = NULL;
 	int len;
 	char *name;
 	
-	if (sound != NULL)
-	{
+	if (sound != NULL) {
 		name = sound->name;	
 		len = strlen(name);
 		/* do some name magic */
@@ -781,7 +736,10 @@ bSample *sound_new_sample(bSound * sound)
 			len--;
 		
 		/* allocate the memory for the sample */
-		sample = alloc_libblock(samples, ID_SAMPLE, name + len);
+		sample = MEM_callocN(sizeof(bSample), "sample");
+		BLI_strncpy(sample->id.name+2, name+len, 20);
+		BLI_addtail(samples, sample);	/* samples is ugly global */
+		
 		sample->data = &sample->fakedata[0];
 		sample->type = SAMPLE_UNKNOWN;
 		
@@ -808,9 +766,9 @@ bSample *sound_new_sample(bSound * sound)
 
 
 /* find a sample that might already be loaded */
-bSample* sound_find_sample(bSound* sound)
+bSample *sound_find_sample(bSound *sound)
 {
-	bSample* sample;
+	bSample *sample;
 	char name[FILE_MAXDIR + FILE_MAXFILE];
 	char samplename[FILE_MAXDIR + FILE_MAXFILE];
 	
@@ -820,14 +778,11 @@ bSample* sound_find_sample(bSound* sound)
 	
 	/* search through the list of loaded samples */
 	sample = samples->first;
-	
-	while (sample)
-	{
+	while (sample) {
 		strcpy(samplename, sample->name);
 		BLI_convertstringcode(samplename, G.sce, G.scene->r.cfra);
 		
-		if (strcmp(name, samplename) == 0)
-		{
+		if (strcmp(name, samplename) == 0)	{
 			break;
 		}
 		sample = sample->id.next;
@@ -838,16 +793,15 @@ bSample* sound_find_sample(bSound* sound)
 
 
 
-int sound_sample_is_null(bSound* sound)
+int sound_sample_is_null(bSound *sound)
 {
 	int result = FALSE;
-	bSample* sample;
+	bSample *sample;
 	
 	if(ghSoundScene==NULL) sound_init_audio();
 	
 	/* find the right sample or else create one */
-	if (sound->sample == NULL)
-	{
+	if (sound->sample == NULL) {
 		/* find... */
 		sample = sound_find_sample(sound);
 
@@ -888,7 +842,7 @@ void sound_end_all_sounds(void)
 
 
 
-void sound_play_sound(bSound* sound)
+void sound_play_sound(bSound *sound)
 {
 #if GAMEBLENDER == 1
 	if(ghSoundScene==NULL) sound_init_audio();

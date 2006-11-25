@@ -188,11 +188,7 @@ void do_soundbuts(unsigned short event)
 		break;
 
 	case B_SOUND_MENU_SAMPLE:
-		if (G.buts->menunr == -2) {
-			if (sound) {
-				activate_databrowse((ID *)sound->sample, ID_SAMPLE, 0, B_SOUND_MENU_SAMPLE, &G.buts->menunr, do_soundbuts);
-			}
-		} else if (G.buts->menunr > 0) {
+		if (G.buts->menunr > 0) {
 			sample = BLI_findlink(samples, G.buts->menunr - 1);
 			if (sample && sound) {
 				BLI_strncpy(sound->name, sample->name, sizeof(sound->name));
@@ -348,13 +344,32 @@ static void sound_panel_sequencer(void)
 	
 }
 
+static char *make_sample_menu(void)
+{
+	int len= BLI_countlist(samples);	/* BKE_sound.h */
+	
+	if(len) {
+		bSample *sample;
+		char *str;
+		int nr, a=0;
+		
+		str= MEM_callocN(32*len, "menu");
+		
+		for(nr=1, sample= samples->first; sample; sample= sample->id.next, nr++) {
+			a+= sprintf(str+a, "|%s %%x%d", sample->id.name+2, nr);
+		}
+		return str;
+	}
+	return NULL;
+}
+
 static void sound_panel_sound(bSound *sound)
 {
 	static int packdummy=0;
 	ID *id, *idfrom;
 	uiBlock *block;
 	bSample *sample;
-	char *strp, str[32], ch[256];
+	char *strp, ch[256];
 
 	block= uiNewBlock(&curarea->uiblocks, "sound_panel_sound", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Sound", "Sound", 0, 0, 318, 204)==0) return;
@@ -388,27 +403,26 @@ static void sound_panel_sound(bSound *sound)
 		}
 
 		/* sample browse buttons */
-
-		id= (ID *)sound->sample;
-		IDnames_to_pupstring(&strp, NULL, NULL, samples, id, &(G.buts->menunr));
-		if (strp[0]) uiDefButS(block, MENU, B_SOUND_MENU_SAMPLE, strp, 10,120,23,20, &(G.buts->menunr), 0, 0, 0, 0, "Select another loaded sample");
-		MEM_freeN(strp);
-		
-		uiDefBut(block, TEX, B_SOUND_NAME_SAMPLE, "",		35,120,225,20, sound->name, 0.0, 79.0, 0, 0, "The sample file used by this Sound");
-		
-		sprintf(str, "%d", sample->id.us);
-		uiDefBut(block, BUT, B_SOUND_UNLINK_SAMPLE, str,	260,120,25,20, 0, 0, 0, 0, 0, "The number of users");
+		uiBlockBeginAlign(block);
+		strp= make_sample_menu();
+		if (strp) {
+			uiDefButS(block, MENU, B_SOUND_MENU_SAMPLE, strp, 10,120,23,20, &(G.buts->menunr), 0, 0, 0, 0, "Select another loaded sample");
+			MEM_freeN(strp);
+		}
+		uiDefBut(block, TEX, B_SOUND_NAME_SAMPLE, "",		35,120,250,20, sound->name, 0.0, 79.0, 0, 0, "The sample file used by this Sound");
 		
 		if (sound->sample->packedfile) packdummy = 1;
 		else packdummy = 0;
 		
 		uiDefIconButBitI(block, TOG, 1, B_SOUND_UNPACK_SAMPLE, ICON_PACKAGE,
-			285, 120,25,24, &packdummy, 0, 0, 0, 0,"Pack/Unpack this sample");
+			285, 120,25,20, &packdummy, 0, 0, 0, 0,"Pack/Unpack this sample");
 		
+		uiBlockBeginAlign(block);
 		uiDefBut(block, BUT, B_SOUND_LOAD_SAMPLE, "Load sample", 10, 95,150,24, 0, 0, 0, 0, 0, "Load a different sample file");
 
 		uiDefBut(block, BUT, B_SOUND_PLAY_SAMPLE, "Play", 	160, 95, 150, 24, 0, 0.0, 0, 0, 0, "Playback sample using settings below");
 		
+		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_SOUND_CHANGED, "Volume: ",
 			10,70,150,20, &sound->volume, 0.0, 1.0, 0, 0, "Game engine only: Set the volume of this sound");
 
@@ -416,6 +430,7 @@ static void sound_panel_sound(bSound *sound)
 			160,70,150,20, &sound->pitch, -12.0, 12.0, 0, 0, "Game engine only: Set the pitch of this sound");
 
 		/* looping */
+		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, SOUND_FLAGS_LOOP, B_SOUND_REDRAW, "Loop",
 			10, 50, 95, 20, &sound->flags, 0.0, 0.0, 0, 0, "Game engine only: Toggle between looping on/off");
 
@@ -427,6 +442,7 @@ static void sound_panel_sound(bSound *sound)
 	
 
 		/* 3D settings ------------------------------------------------------------------ */
+		uiBlockBeginAlign(block);
 
 		if (sound->sample->channels == 1) {
 			uiDefButBitI(block, TOG, SOUND_FLAGS_3D, B_SOUND_REDRAW, "3D Sound",

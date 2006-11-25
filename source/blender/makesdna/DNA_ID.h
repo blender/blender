@@ -147,7 +147,7 @@ typedef struct Library {
 #define BLITTLE_ENDIAN
 #endif
 
-/* ID */
+/* ID from database */
 #define ID_SCE		MAKE_ID2('S', 'C')
 #define ID_LI		MAKE_ID2('L', 'I')
 #define ID_OB		MAKE_ID2('O', 'B')
@@ -171,13 +171,11 @@ typedef struct Library {
 #define ID_VF		MAKE_ID2('V', 'F')
 #define ID_TXT		MAKE_ID2('T', 'X')
 #define ID_SO		MAKE_ID2('S', 'O')
-#define ID_SAMPLE	MAKE_ID2('S', 'A')
 #define ID_GR		MAKE_ID2('G', 'R')
 #define ID_ID		MAKE_ID2('I', 'D')
 #define ID_AR		MAKE_ID2('A', 'R')
 #define ID_AC		MAKE_ID2('A', 'C')
 #define ID_SCRIPT	MAKE_ID2('P', 'Y')
-#define ID_FLUIDSIM	MAKE_ID2('F', 'S')
 #define ID_NT		MAKE_ID2('N', 'T')
 #define ID_BR		MAKE_ID2('B', 'R')
 
@@ -189,6 +187,9 @@ typedef struct Library {
 #define ID_PO		MAKE_ID2('A', 'C')
 			/* used in outliner... */
 #define ID_NLA		MAKE_ID2('N', 'L')
+			/* fluidsim Ipo */
+#define ID_FLUIDSIM	MAKE_ID2('F', 'S')
+
 
 /*#ifdef WITH_VERSE*/
 #define ID_VS		MAKE_ID2('V', 'S')	/* fake id for VerseSession, needed for outliner */

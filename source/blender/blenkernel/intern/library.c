@@ -184,9 +184,6 @@ ListBase *wich_libbase(Main *mainlib, short type)
 			return &(mainlib->script);
 		case ID_SO:
 			return &(mainlib->sound);
-		case ID_SAMPLE:
-			/* declared as an external in sound.h !!! */
-			return (samples);
 		case ID_GR:
 			return &(mainlib->group);
 		case ID_AR:
@@ -239,12 +236,10 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[22]= &(main->group);
 	lb[23]= &(main->nodetree);
 	lb[24]= &(main->brush);
+	lb[25]= &(main->script);
+	lb[26]= NULL;
 
-	lb[25]= samples;
-	lb[26]= &(main->script);
-	lb[27]= NULL;
-
-	return 27;
+	return 26;
 }
 
 /* *********** ALLOC AND FREE *****************
@@ -325,11 +320,8 @@ static ID *alloc_libblock_notest(short type)
 		case ID_SO:
 			id= MEM_callocN(sizeof(bSound), "sound");
 			break;
-		case ID_SAMPLE:
-			id = MEM_callocN(sizeof(bSample), "sound");
-			break;
 		case ID_GR:
-			id= MEM_callocN(sizeof(Group), "sound");
+			id= MEM_callocN(sizeof(Group), "group");
 			break;
 		case ID_AR:
 			id = MEM_callocN(sizeof(bArmature), "armature");
@@ -470,9 +462,6 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_SO:
 			sound_free_sound((bSound *)id);
-			break;
-		case ID_SAMPLE:
-			sound_free_sample((bSample *)id);
 			break;
 		case ID_GR:
 			free_group((Group *)id);
