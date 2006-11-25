@@ -6625,6 +6625,15 @@ static void expand_modifier(FileData *fd, Main *mainvar, ModifierData *md)
 	}
 }
 
+static void expand_scriptlink(FileData *fd, Main *mainvar, ScriptLink *slink)
+{
+	int i;
+	
+	for(i=0; i<slink->totscript; i++) {
+		expand_doit(fd, mainvar, slink->scripts[i]);
+	}
+}
+
 static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 {
 	ModifierData *md;
@@ -6729,6 +6738,8 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		}
 		act= act->next;
 	}
+	
+	expand_scriptlink(fd, mainvar, &ob->scriptlink);
 }
 
 static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
