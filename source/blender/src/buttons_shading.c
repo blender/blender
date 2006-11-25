@@ -3282,11 +3282,17 @@ static void material_panel_links(Object *ob, Material *ma)
 				  
 	/* indicate which one is linking a material */
 	if(id) {
+		if(id->lib)
+			uiSetButLock(1, "Can't edit library data");
+		else
+			uiClearButLock();
+
 		strncpy(str, id->name, 2);
 		str[2]= ':'; str[3]= 0;
 		but= uiDefBut(block, TEX, B_IDNAME, str,		10,135,115,20, id->name+2, 0.0, 18.0, 0, 0, "Shows the block the material is linked to");
 		uiButSetFunc(but, test_idbutton_cb, id->name, NULL);
 	}
+	
 	uiBlockSetCol(block, TH_BUT_ACTION);
 	uiDefButBitS(block, TOG, 1<<(ob->actcol-1), B_MATFROM, "OB",	125,135,32,20, &ob->colbits, 0, 0, 0, 0, "Links material to object");
 	idn= ob->data;
@@ -3302,6 +3308,7 @@ static void material_panel_links(Object *ob, Material *ma)
 	uiBlockEndAlign(block);
 	
 	if(ma==NULL) return;
+	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
 
 	/* Active material node */
 	if(ma->use_nodes) {

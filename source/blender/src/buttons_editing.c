@@ -4002,6 +4002,9 @@ static void editing_panel_links(Object *ob)
 	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL);
 	else return;
 	
+	id= ob->data;
+	uiSetButLock(id->lib!=NULL, "Cannot edit Library data");
+	
 	if(ob->type==OB_MESH) poin= &( ((Mesh *)ob->data)->texflag );
 	else if(ob->type==OB_MBALL) poin= &( ((MetaBall *)ob->data)->texflag );
 	else poin= &( ((Curve *)ob->data)->texflag );

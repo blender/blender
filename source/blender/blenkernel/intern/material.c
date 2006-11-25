@@ -404,6 +404,13 @@ Material *give_current_material(Object *ob, int act)
 		ma= ob->mat[act-1];
 	}
 	else {								/* in data */
+		short *totcolp= give_totcolp(ob);
+
+		/* check for inconsistancy */
+		if(*totcolp < ob->totcol)
+			ob->totcol= *totcolp;
+		if(act>ob->totcol) act= ob->totcol;
+
 		matarar= give_matarar(ob);
 		
 		if(matarar && *matarar) ma= (*matarar)[act-1];
