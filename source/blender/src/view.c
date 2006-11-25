@@ -602,17 +602,6 @@ void viewmove(int mode)
 					G.vd->view= 0;
 				}
 				if(G.vd->persp==2 && mode!=1 && G.vd->camera) {
-					float upvec[3]={0,0,0}; /* the view vector */
-					float mat[3][3]; /* view matrix 3x3 to rotate the upvec */
-					where_is_object(G.vd->camera);
-					VecCopyf(G.vd->ofs, G.vd->camera->obmat[3]);
-					VecMulf(G.vd->ofs, -1.0f); /*flip the vector*/
-					
-					upvec[2]= G.vd->dist;
-					Mat3CpyMat4(mat, G.vd->viewinv);
-					Mat3MulVecfl(mat, upvec);
-					VecAddf(G.vd->ofs, G.vd->ofs, upvec);
-					
 					G.vd->persp= 1;
 					scrarea_do_windraw(curarea);
 					scrarea_queue_headredraw(curarea);

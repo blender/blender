@@ -1805,6 +1805,9 @@ static void object_panel_object(Object *ob)
 			yco+= 40;
 		}
 	}
+	
+	if(120-yco < -10)
+		uiNewPanelHeight(block, 204 - (120-yco));
 }
 
 static void object_panel_anim(Object *ob)
