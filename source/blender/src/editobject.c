@@ -260,10 +260,6 @@ void delete_obj(int ok)
 	Base *base;
 	int islamp= 0;
 	
-	/* used for global delete only*/
-	Scene *scene; 
-	Base *base_other;
-	
 	if(G.obedit) return;
 	if(G.scene->id.lib) return;
 
@@ -290,6 +286,9 @@ void delete_obj(int ok)
 			if(base->object->vnode) b_verse_delete_object(base->object);
 #endif
 			if (ok==2) {
+				Scene *scene; 
+				Base *base_other;
+				
 				for (scene= G.main->scene.first; scene; scene= scene->id.next) {
 					if (scene != G.scene && !(scene->id.lib)) {
 						base_other= object_in_scene( base->object, scene );

@@ -296,6 +296,7 @@ void sculptmode_undo_free(Scene *sce)
 		sculptmode_undo_free_link(sus);
 	BLI_freelistN(&sce->sculptdata.undo->steps);
 	MEM_freeN(sce->sculptdata.undo);
+	sce->sculptdata.undo= NULL;
 }
 
 void sculptmode_undo_push(char *str, SculptUndoType type)
