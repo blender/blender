@@ -123,6 +123,7 @@ IF(UNIX)
     extern_qhull 
     bf_moto 
     blender_python
+    bf_quicktime
   )
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})

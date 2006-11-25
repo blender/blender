@@ -94,6 +94,7 @@ IF(UNIX)
     extern_ftgl 
     bf_readblenfile 
     blenkernel_blc
+    bf_quicktime
   ) 
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})
