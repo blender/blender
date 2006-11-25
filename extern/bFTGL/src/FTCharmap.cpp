@@ -44,13 +44,13 @@ bool FTCharmap::CharMap( FT_Encoding encoding)
 }
 
 
-unsigned int FTCharmap::GlyphListIndex( unsigned int characterCode )
+unsigned int FTCharmap::GlyphListIndex( const unsigned int characterCode )
 {
     return charMap.find( characterCode);
 }
 
 
-unsigned int FTCharmap::FontIndex( unsigned int characterCode )
+unsigned int FTCharmap::FontIndex( const unsigned int characterCode )
 {
     return FT_Get_Char_Index( ftFace, characterCode);
 }

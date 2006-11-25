@@ -529,7 +529,7 @@ bool RAS_OpenGLRasterizer::Stereo()
 }
 
 
-void RAS_OpenGLRasterizer::SetEye(StereoEye eye)
+void RAS_OpenGLRasterizer::SetEye(const StereoEye eye)
 {
 	m_curreye = eye;
 	switch (m_stereomode)
@@ -574,7 +574,7 @@ RAS_IRasterizer::StereoEye RAS_OpenGLRasterizer::GetEye()
 }
 
 
-void RAS_OpenGLRasterizer::SetEyeSeparation(float eyeseparation)
+void RAS_OpenGLRasterizer::SetEyeSeparation(const float eyeseparation)
 {
 	m_eyeseparation = eyeseparation;
 	m_seteyesep = true;
@@ -585,7 +585,7 @@ float RAS_OpenGLRasterizer::GetEyeSeparation()
 	return m_eyeseparation;
 }
 
-void RAS_OpenGLRasterizer::SetFocalLength(float focallength)
+void RAS_OpenGLRasterizer::SetFocalLength(const float focallength)
 {
 	m_focallength = focallength;
 	m_setfocallength = true;

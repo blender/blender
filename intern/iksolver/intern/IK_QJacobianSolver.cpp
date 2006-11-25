@@ -178,8 +178,8 @@ bool IK_QJacobianSolver::UpdateAngles(MT_Scalar& norm)
 bool IK_QJacobianSolver::Solve(
 	IK_QSegment *root,
 	std::list<IK_QTask*> tasks,
-	MT_Scalar,
-	int max_iterations
+	const MT_Scalar,
+	const int max_iterations
 )
 {
 	//double dt = analyze_time();

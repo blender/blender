@@ -138,7 +138,7 @@ bool GHOST_System::validWindow(GHOST_IWindow* window)
 
 
 GHOST_TSuccess GHOST_System::beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window,
-											 bool stereoVisual)
+											 const bool stereoVisual)
 {
 	GHOST_TSuccess success = GHOST_kFailure;
 	GHOST_ASSERT(m_windowManager, "GHOST_System::beginFullScreen(): invalid window manager")
@@ -310,7 +310,7 @@ GHOST_TSuccess GHOST_System::exit()
 }
 
 
-GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window** window, bool stereoVisual)
+GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window** window, const bool stereoVisual)
 {
 	GHOST_TSuccess success;
 	GHOST_ASSERT(m_displayManager, "GHOST_System::createFullScreenWindow(): invalid display manager")
