@@ -1285,6 +1285,7 @@ static void createTransLatticeVerts(TransInfo *t)
 /* proportional distance based on connectivity  */
 #define E_VEC(a)	(vectors + (3 * (a)->tmp.l))
 #define E_NEAR(a)	(nears[((a)->tmp.l)])
+#define THRESHOLD	0.0001f
 static void editmesh_set_connectivity_distance(int total, float *vectors, EditVert **nears)
 {
 	EditMesh *em = G.editMesh;
@@ -1340,12 +1341,14 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 						if (v2->f2 != 2) {
 							VecSubf(nvec, v2->co, E_NEAR(v1)->co);
 							lenn = VecLength(nvec);
-							if (lenn - len1 > 0.00001f && len2 - lenn > 0.00001f) {
+							/* 1 < n < 2 */
+							if (lenn - len1 > THRESHOLD && len2 - lenn > THRESHOLD) {
 								VECCOPY(vec2, nvec);
 								E_NEAR(v2) = E_NEAR(v1);
 								done = 1;
 							}
-							else if (len2 - len1 > 0.00001f && len1 - lenn > 0.00001f) {
+							/* n < 1 < 2 */
+							else if (len2 - len1 > THRESHOLD && len1 - lenn > THRESHOLD) {
 								VECCOPY(vec2, vec1);
 								E_NEAR(v2) = E_NEAR(v1);
 								done = 1;
@@ -1355,12 +1358,14 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 						if (v1->f2 != 2) {
 							VecSubf(nvec, v1->co, E_NEAR(v2)->co);
 							lenn = VecLength(nvec);
-							if (lenn - len2 > 0.00001f && len1 - lenn > 0.00001f) {
+							/* 2 < n < 1 */
+							if (lenn - len2 > THRESHOLD && len1 - lenn > THRESHOLD) {
 								VECCOPY(vec1, nvec);
 								E_NEAR(v1) = E_NEAR(v2);
 								done = 1;
 							}
-							else if (len1 - len2 > 0.00001f && len2 - lenn > 0.00001f) {
+							/* n < 2 < 1 */
+							else if (len1 - len2 > THRESHOLD && len2 - lenn > THRESHOLD) {
 								VECCOPY(vec1, vec2);
 								E_NEAR(v1) = E_NEAR(v2);
 								done = 1;
@@ -1370,7 +1375,8 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 					else {
 						v2->f2 = 1;
 						VecSubf(vec2, v2->co, E_NEAR(v1)->co);
-						if (VecLength(vec1) - VecLength(vec2) > 0.00001f) {
+						/* 2 < 1 */
+						if (VecLength(vec1) - VecLength(vec2) > THRESHOLD) {
 							VECCOPY(vec2, vec1);
 						}
 						E_NEAR(v2) = E_NEAR(v1);
@@ -1380,7 +1386,8 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 				else if (v2->f2) {
 					v1->f2 = 1;
 					VecSubf(vec1, v1->co, E_NEAR(v2)->co);
-					if (VecLength(vec2) - VecLength(vec1) > 0.00001f) {
+					/* 2 < 1 */
+					if (VecLength(vec2) - VecLength(vec1) > THRESHOLD) {
 						VECCOPY(vec1, vec2);
 					}
 					E_NEAR(v1) = E_NEAR(v2);
