@@ -1145,7 +1145,7 @@ static void ccgDM_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
 	int grid;
 	int x, y;
 	int lastface = ccgSubSurf_getNumFaces(ss) - 1;
-	int *faceFlags = dm->getFaceData(dm, faceNum, CD_FLAGS);
+	int *faceFlags = dm->getFaceDataArray(dm, CD_FLAGS);
 
 	memset(mf, 0, sizeof(*mf));
 
