@@ -58,8 +58,11 @@ except:
 import Blender
 from Blender import Image, sys, Draw, Registry
 
-def main():
-	image = Image.GetCurrent()
+def edit_extern(image=None):
+	
+	if not image:
+		image = Image.GetCurrent()
+	
 	if not image: # Image is None
 		Draw.PupMenu('ERROR: You must select an active Image.')
 		return
@@ -121,6 +124,11 @@ def main():
 	appstring = appstring.replace('%f', imageFileName)
 	print '\tediting image with command "%s"' % appstring
 	os.system(appstring)
+
+
+def main():
+	edit_extern()
+	
 
 if __name__ == '__main__' and os != None:
 	main()
