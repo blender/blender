@@ -61,13 +61,12 @@ def main():
 	PREF_REM_ORIG= Draw.Create(0)
 	
 	pup_block = [\
-	'Projection',\
-	('thick:', PREF_THICK, -10, 10, 'Skin thickness in mesh space.'),\
+	('Thick:', PREF_THICK, -10, 10, 'Skin thickness in mesh space.'),\
 	('Skin Sides', PREF_SKIN_SIDES, 'Skin between the original and new faces.'),\
 	('Remove Original', PREF_REM_ORIG, 'Remove the selected faces after skinning.'),\
 	]
 	
-	if not Draw.PupBlock('Skin Selected Faces', pup_block):
+	if not Draw.PupBlock('Solid Skin Selection', pup_block):
 		return
 	
 	PREF_THICK= PREF_THICK.val
@@ -180,6 +179,7 @@ def main():
 		me.faces.extend(skin_side_faces)
 		
 		
+		
 		# Now assign properties.
 		for i, origfData in enumerate(skin_side_faces_orig):
 			orig_f, new_f_idx, i1, i2 = origfData
@@ -187,18 +187,19 @@ def main():
 			
 			new_f.mat= orig_f.mat
 			new_f.smooth= orig_f.smooth
-			if me.faceUV:
+			if has_uv:
 				new_f.mode= orig_f.mode
 				new_f.flag= orig_f.flag
 				if orig_f.image:
 					new_f.image= orig_f.image
-					
+				
 				uv1= orig_f.uv[i1]
 				uv2= orig_f.uv[i2]
+				new_f.uv= (uv1, uv2, uv2, uv1)
+			
+			if has_vcol:
 				col1= orig_f.col[i1]
 				col2= orig_f.col[i2]
-				
-				new_f.uv= (uv1, uv2, uv2, uv1)
 				new_f.col= (col1, col2, col2, col1)
 	
 	if PREF_REM_ORIG:
