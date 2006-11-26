@@ -3259,7 +3259,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 		if ((curBone->flag & BONE_SELECTED) && (curBone->layer & arm->layer)) {
 
 			/*	Bone naming button */
-			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", -10,by,117,18, curBone->name, 0, 24, 0, 0, "Change the bone name");
+			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", -10,by,117,18, curBone->name, 0, 31, 0, 0, "Change the bone name");
 			uiButSetFunc(but, validate_editbonebutton_cb, curBone, NULL);
 			uiButSetCompleteFunc(but, autocomplete_editbone, (void *)OBACT);
 
