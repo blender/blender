@@ -92,9 +92,10 @@ typedef struct Image {
 #define IMA_NOCOLLECT   32
 
 /* tpageflag */
-#define IMA_TILES		1
-#define IMA_TWINANIM	2
-#define IMA_COLCYCLE	4	/* Depreciated */
+#define IMA_TILES			1
+#define IMA_TWINANIM		2
+#define IMA_COLCYCLE		4	/* Depreciated */
+#define IMA_MIPMAP_COMPLETE 8   /* all mipmap levels in OpenGL texture set? */
 
 #endif
 

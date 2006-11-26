@@ -78,7 +78,7 @@ void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 	if(G.f & G_VERTEXPAINT)
 		set_vpaint();
 	if(G.f & G_TEXTUREPAINT)
-		G.f &= ~G_TEXTUREPAINT;
+		set_texturepaint();
 	if(G.f & G_WEIGHTPAINT)
 		set_wpaint();
 	

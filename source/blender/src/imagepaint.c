@@ -544,29 +544,34 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 
 	if (texpaint) {
 
-		/* pick face and image */
+		/* pick new face and image */
 		if (facesel_face_pick(s->me, mval, &newfaceindex, 0)) {
 			newimage = (Image*)((s->me->mtface+newfaceindex)->tpage);
-			texpaint_pick_uv(s->ob, s->me, newfaceindex, mval, newuv);
+			if(newimage && newimage->ibuf && newimage->ibuf->rect)
+				texpaint_pick_uv(s->ob, s->me, newfaceindex, mval, newuv);
+			else
+				newimage = NULL;
 		}
 		else
 			newuv[0] = newuv[1] = 0.0f;
 
 		/* see if stroke is broken, and if so finish painting in old position */
 		if (s->image) {
-			if (newimage == s->image) {
-				texpaint_pick_uv(s->ob, s->me, s->faceindex, mval, fwuv);
-				texpaint_pick_uv(s->ob, s->me, newfaceindex, prevmval, bkuv);
+			texpaint_pick_uv(s->ob, s->me, s->faceindex, mval, fwuv);
+			texpaint_pick_uv(s->ob, s->me, newfaceindex, prevmval, bkuv);
+
+			if (newimage == s->image)
 				breakstroke= texpaint_break_stroke(s->uv, fwuv, bkuv, newuv);
-			}
 			else
 				breakstroke= 1;
 		}
+		else
+			fwuv[0]= fwuv[1]= 0.0f;
 
 		if (breakstroke) {
 			texpaint_pick_uv(s->ob, s->me, s->faceindex, mval, fwuv);
-			redraw |= imapaint_paint_sub_stroke(s, painter, s->image, texpaint, fwuv,
-				time, 1, pressure);
+			redraw |= imapaint_paint_sub_stroke(s, painter, s->image, texpaint,
+				fwuv, time, 1, pressure);
 			imapaint_clear_partial_redraw();
 			brush_painter_break_stroke(painter);
 		}
@@ -579,10 +584,10 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 		/* paint in new image */
 		if (newimage) {
 			if (breakstroke)
-				redraw|= imapaint_paint_sub_stroke(s, painter, newimage, texpaint,
-					bkuv, time, 0, pressure);
-			redraw|= imapaint_paint_sub_stroke(s, painter, newimage, texpaint, newuv,
-				time, 1, pressure);
+				redraw|= imapaint_paint_sub_stroke(s, painter, newimage,
+					texpaint, bkuv, time, 0, pressure);
+			redraw|= imapaint_paint_sub_stroke(s, painter, newimage, texpaint,
+				newuv, time, 1, pressure);
 		}
 
 		/* update state */

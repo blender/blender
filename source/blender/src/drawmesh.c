@@ -134,13 +134,12 @@ void set_mipmap(int mipmap)
 	}
 }
 
-
 /**
  * Returns the current setting for mipmapping.
  */
-int get_mipmap(void)
+static int get_mipmap(void)
 {
-	return fDoMipMap;
+	return fDoMipMap && (!(G.f & G_TEXTUREPAINT));
 }
 
 /**
@@ -398,7 +397,7 @@ int set_tpage(MTFace *tface)
 		}
 		glBindTexture( GL_TEXTURE_2D, *bind);
 
-		if (!fDoMipMap)
+		if (!get_mipmap())
 		{
 			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -406,10 +405,12 @@ int set_tpage(MTFace *tface)
 		} else
 		{
 			int minfilter= fLinearMipMap?GL_LINEAR_MIPMAP_LINEAR:GL_LINEAR_MIPMAP_NEAREST;
-			
+
 			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rectw, recth, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minfilter);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+			ima->tpageflag |= IMA_MIPMAP_COMPLETE;
 		}
 
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -435,7 +436,7 @@ int set_tpage(MTFace *tface)
 
 void update_realtime_image(Image *ima, int x, int y, int w, int h)
 {
-	if (ima->repbind || fDoMipMap || !ima->bindcode || !ima->ibuf ||
+	if (ima->repbind || get_mipmap() || !ima->bindcode || !ima->ibuf ||
 		(!is_pow2(ima->ibuf->x) || !is_pow2(ima->ibuf->y)) ||
 		(w == 0) || (h == 0)) {
 		/* these special cases require full reload still */
@@ -461,6 +462,9 @@ void update_realtime_image(Image *ima, int x, int y, int w, int h)
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, skip_pixels);
 		glPixelStorei(GL_UNPACK_SKIP_ROWS, skip_rows);
+
+		if(ima->tpageflag & IMA_MIPMAP_COMPLETE)
+			ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 	}
 }
 
@@ -469,12 +473,14 @@ void free_realtime_image(Image *ima)
 	if(ima->bindcode) {
 		glDeleteTextures(1, (GLuint *)&ima->bindcode);
 		ima->bindcode= 0;
+		ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 	}
 	if(ima->repbind) {
 		glDeleteTextures(ima->totbind, (GLuint *)ima->repbind);
 	
 		MEM_freeN(ima->repbind);
 		ima->repbind= NULL;
+		ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 	}
 }
 
@@ -482,10 +488,49 @@ void free_all_realtime_images(void)
 {
 	Image* ima;
 
-	ima= G.main->image.first;
-	while(ima) {
+	for(ima=G.main->image.first; ima; ima=ima->id.next)
 		free_realtime_image(ima);
-		ima= ima->id.next;
+}
+
+/* these two functions are called on entering and exiting texture paint mode,
+   temporary disabling/enabling mipmapping on all images for quick texture
+   updates with glTexSubImage2D. images that didn't change don't have to be
+   re-uploaded to OpenGL */
+void texpaint_disable_mipmap(void)
+{
+	Image* ima;
+	
+	if(!fDoMipMap)
+		return;
+
+	for(ima=G.main->image.first; ima; ima=ima->id.next) {
+		if(ima->bindcode) {
+			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
+	}
+}
+
+void texpaint_enable_mipmap(void)
+{
+	Image* ima;
+
+	if(!fDoMipMap)
+		return;
+
+	for(ima=G.main->image.first; ima; ima=ima->id.next) {
+		if(ima->bindcode) {
+			if(ima->tpageflag & IMA_MIPMAP_COMPLETE) {
+				int minfilter= fLinearMipMap?GL_LINEAR_MIPMAP_LINEAR:GL_LINEAR_MIPMAP_NEAREST;
+
+				glBindTexture(GL_TEXTURE_2D, ima->bindcode);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minfilter);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			}
+			else
+				free_realtime_image(ima);
+		}
 	}
 }
 
@@ -497,6 +542,7 @@ void make_repbind(Image *ima)
 		glDeleteTextures(ima->totbind, (GLuint *)ima->repbind);
 		MEM_freeN(ima->repbind);
 		ima->repbind= 0;
+		ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 	}
 	ima->totbind= ima->xrep*ima->yrep;
 	if(ima->totbind>1) {

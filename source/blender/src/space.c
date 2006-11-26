@@ -408,6 +408,9 @@ static void SaveState(void)
 	init_realtime_GL();
 	init_gl_stuff();
 
+	if(G.f & G_TEXTUREPAINT)
+		texpaint_enable_mipmap();
+
 	if(G.scene->camera==0 || G.scene->camera->type!=OB_CAMERA)
 		error("no (correct) camera");
 
@@ -416,6 +419,9 @@ static void SaveState(void)
 
 static void RestoreState(void)
 {
+	if(G.f & G_TEXTUREPAINT)
+		texpaint_disable_mipmap();
+
 	curarea->win_swap = 0;
 	curarea->head_swap=0;
 	allqueue(REDRAWVIEW3D, 1);

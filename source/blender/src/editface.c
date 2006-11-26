@@ -1505,14 +1505,18 @@ void set_texturepaint() /* toggle */
 	if(me)
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
-	if(G.f & G_TEXTUREPAINT)
+	if(G.f & G_TEXTUREPAINT) {
 		G.f &= ~G_TEXTUREPAINT;
+		texpaint_enable_mipmap();
+	}
 	else if (me) {
 		G.f |= G_TEXTUREPAINT;
 		brush_check_exists(&G.scene->toolsettings->imapaint.brush);
+		texpaint_disable_mipmap();
 	}
 
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 /* Get the barycentric coordinates of 2d point p in 2d triangle (v1, v2, v3) */
