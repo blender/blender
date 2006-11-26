@@ -43,7 +43,11 @@ extern "C" {
 struct ListBase;
 struct MemFile;
 
-#define BLENDER_VERSION		242
+#define BLENDER_VERSION			242
+#define BLENDER_SUBVERSION		1
+
+#define BLENDER_MINVERSION		240
+#define BLENDER_MINSUBVERSION	0
 
 int	BKE_read_file(char *dir, void *type_r);
 int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r);

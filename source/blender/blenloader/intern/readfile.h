@@ -68,7 +68,8 @@ typedef struct FileData {
 	struct SDNA *memsdna;
 	char *compflags;
 	
-	int fileversion;
+	int fileversion, filesubversion;
+	int fileminversion, fileminsubversion;
 	
 	struct OldNewMap *datamap;
 	struct OldNewMap *globmap;
@@ -88,6 +89,7 @@ typedef struct BHeadN {
 	struct BHeadN *next, *prev;
 	struct BHead bhead;
 } BHeadN;
+
 
 #define FD_FLAGS_SWITCH_ENDIAN             (1<<0)
 #define FD_FLAGS_FILE_POINTSIZE_IS_4       (1<<1)

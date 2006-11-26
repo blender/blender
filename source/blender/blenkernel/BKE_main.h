@@ -48,7 +48,9 @@ struct Library;
 typedef struct Main {
 	struct Main *next, *prev;
 	char name[160];
-	short versionfile, rt;
+	short versionfile, subversionfile;
+	short minversionfile, minsubversionfile;
+	
 	struct Library *curlib;
 	ListBase scene;
 	ListBase library;

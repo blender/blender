@@ -240,7 +240,7 @@ typedef struct OldNewMap {
 
 
 /* local prototypes */
-extern          short freeN(void *vmemh); /* defined in util.h */  
+static void *read_struct(FileData *fd, BHead *bh, char *blockname);
 
 
 static OldNewMap *oldnewmap_new(void) 
@@ -719,6 +719,25 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 	return(bhead);
 }
 
+static void get_blender_subversion(FileData *fd)
+{
+	BHead *bhead;
+	
+	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
+		if (bhead->code==GLOB) {
+			FileGlobal *fg= read_struct(fd, bhead, "Global");
+			fd->filesubversion= fg->subversion;
+			fd->fileminversion= fg->minversion;
+			fd->fileminsubversion= fg->minsubversion;
+			MEM_freeN(fg);
+			return;
+		} 
+		else if (bhead->code==ENDB)
+			break;
+	}
+}
+
+
 static void decode_blender_header(FileData *fd)
 {
 	char header[SIZEOFBLENDERHEADER], num[4];
@@ -779,6 +798,7 @@ static int read_file_dna(FileData *fd)
 
 	return 0;
 }
+
 static int fd_read_from_file(FileData *filedata, void *buffer, int size)
 {
 	int readsize = read(filedata->filedes, buffer, size);
@@ -896,7 +916,12 @@ static FileData *blo_decode_and_check(FileData *fd, BlendReadError *error_r)
 			blo_freefiledata(fd);
 			fd= NULL;
 		}
-	} else {
+		
+		// subversion, stored in GLOB since 2.42
+		if(fd->fileversion>=242)
+			get_blender_subversion(fd);
+	} 
+	else {
 		*error_r = BRE_NOT_A_BLEND;
 		blo_freefiledata(fd);
 		fd= NULL;
@@ -3984,6 +4009,7 @@ static void link_global(FileData *fd, BlendFileData *bfd, FileGlobal *fg)
 	bfd->fileflags= fg->fileflags;
 	bfd->displaymode= fg->displaymode;
 	bfd->globalf= fg->globalf;
+	
 	bfd->curscreen= newlibadr(fd, 0, fg->curscreen);
 	bfd->curscene= newlibadr(fd, 0, fg->curscene);
 	// this happens in files older than 2.35
@@ -6097,6 +6123,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		/* History fix (python?), shape key adrcode numbers have to be sorted */
 		sort_shape_fix(main);
+		
+		/* now, subversion control! */
+		if(main->subversionfile < 1) {
+			
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -6168,6 +6199,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	BLI_addtail(&fd->mainlist, bfd->main);
 
 	bfd->main->versionfile= fd->fileversion;
+	bfd->main->subversionfile= fd->filesubversion;
+	bfd->main->minversionfile= fd->fileminversion;
+	bfd->main->minsubversionfile= fd->fileminsubversion;
 
 	while(bhead) {
 		switch(bhead->code) {
@@ -6177,7 +6211,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 		case TEST:
 		case REND:
 			if (bhead->code==GLOB) {
-				fg= read_struct(fd, bhead, "REND");
+				fg= read_struct(fd, bhead, "Global");
 			}
 			bhead = blo_nextbhead(fd, bhead);
 			break;
@@ -7060,7 +7094,12 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 
 	/* which one do we need? */
 	mainl = blo_find_main(&fd->mainlist, dir, G.sce);
+	
 	mainl->versionfile= fd->fileversion;	// needed for do_version
+	mainl->subversionfile= fd->filesubversion;
+	mainl->minversionfile= fd->fileminversion;
+	mainl->minsubversionfile= fd->fileminsubversion;
+	
 	curlib= mainl->curlib;
 	
 	if(totsel==0) {
@@ -7200,6 +7239,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						
 						mainptr->curlib->filedata= fd;
 						mainptr->versionfile= fd->fileversion;
+						mainptr->subversionfile= fd->filesubversion;
+						mainptr->minversionfile= fd->fileminversion;
+						mainptr->minsubversionfile= fd->fileminsubversion;
 					}
 					else mainptr->curlib->filedata= NULL;
 

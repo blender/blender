@@ -213,7 +213,10 @@ void initglobals(void)
 	G.order= 1;
 	G.order= (((char*)&G.order)[0])?L_ENDIAN:B_ENDIAN;
 
-	sprintf(versionstr, "www.blender.org %d", G.version);
+	if(BLENDER_SUBVERSION)
+		sprintf(versionstr, "www.blender.org %d.%d", G.version, BLENDER_SUBVERSION);
+	else
+		sprintf(versionstr, "www.blender.org %d", G.version);
 
 #ifdef _WIN32	// FULLSCREEN
 	G.windowstate = G_WINDOWSTATE_USERDEF;
@@ -411,6 +414,20 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	MEM_freeN(bfd);
 }
 
+static void handle_subversion_warning(Main *main)
+{
+	if(main->minversionfile > BLENDER_VERSION ||
+	   (main->minversionfile == BLENDER_VERSION && 
+		 main->minsubversionfile > BLENDER_SUBVERSION)) {
+		
+		char str[128];
+		
+		sprintf(str, "File written by newer Blender binary: %d.%d , expect loss of data!", main->minversionfile, main->minsubversionfile);
+		error(str);
+	}
+		
+}
+
 /* returns:
    0: no load file
    1: OK
@@ -433,7 +450,10 @@ int BKE_read_file(char *dir, void *type_r)
 			*((BlenFileType*)type_r)= bfd->type;
 		
 		setup_app_data(bfd, dir);
-	} else {
+		
+		handle_subversion_warning(bfd->main);
+	} 
+	else {
 		error("Loading %s failed: %s", dir, BLO_bre_as_string(bre));
 	}
 	

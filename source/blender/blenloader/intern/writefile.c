@@ -153,6 +153,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 
 #include "BKE_action.h"
 #include "BKE_bad_level_calls.h" // build_seqar (from WHILE_SEQ) free_oops error
+#include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h" // for G
@@ -474,7 +475,7 @@ static void write_scriptlink(WriteData *wd, ScriptLink *slink)
 	writedata(wd, DATA, sizeof(short)*slink->totscript, slink->flag);
 }
 
-static void write_renderinfo(WriteData *wd)		/* for renderdaemon */
+static void write_renderinfo(WriteData *wd)		/* for renderdeamon */
 {
 	Scene *sce;
 	int data[8];
@@ -1843,6 +1844,9 @@ static void write_global(WriteData *wd)
 	fg.winpos= G.winpos;
 	fg.fileflags= (G.fileflags & ~G_FILE_NO_UI);	// prevent to save this, is not good convention, and feature with concerns...
 	fg.globalf= G.f;
+	fg.subversion= BLENDER_SUBVERSION;
+	fg.minversion= BLENDER_MINVERSION;
+	fg.minsubversion= BLENDER_MINSUBVERSION;
 
 	writestruct(wd, GLOB, "FileGlobal", 1, &fg);
 }
@@ -1863,7 +1867,8 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 	mywrite(wd, buf, 12);
 
 	write_renderinfo(wd);
-	
+	write_global(wd);
+
 	if(current==NULL)
 		write_screens  (wd, &G.main->screen);	/* no UI save in undo */
 	write_scenes   (wd, &G.main->scene);
@@ -1891,7 +1896,6 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 	if(current==NULL)	
 		write_libraries(wd,  G.main->next); /* no library save in undo */
 
-	write_global(wd);
 	if (write_user_block) {
 		write_userdef(wd);
 	}
