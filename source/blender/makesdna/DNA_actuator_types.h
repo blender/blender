@@ -104,8 +104,6 @@ typedef struct bObjectActuator {
 	float loc[3], rot[3];
 	float dloc[3], drot[3];
 	float linearvelocity[3], angularvelocity[3];
-//	float addedlinearvelocity[3];
-//	char anotherpad[4];
 } bObjectActuator;
 
 typedef struct bIpoActuator {

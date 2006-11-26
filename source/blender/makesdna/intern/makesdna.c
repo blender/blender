@@ -141,7 +141,7 @@ int nr_structs=0;
 char **names, *namedata;		/* at adress names[a] is string a */
 char **types, *typedata;		/* at adress types[a] is string a */
 short *typelens;				/* at typelens[a] is de length of type a */
-short *alphalens;			    /* contains sizes as they are calculated on the alpha */
+short *alphalens;			    /* contains sizes as they are calculated on the DEC Alpha (64 bits) */
 short **structs, *structdata;	/* at sp= structs[a] is the first adress of a struct definition
 								   sp[0] is type number
 								   sp[1] is amount of elements
@@ -870,7 +870,7 @@ int make_structDNA(char *baseDirectory, FILE *file)
 	add_type("short", 2);	/* 2 */
 	add_type("ushort", 2);	/* 3 */
 	add_type("int", 4);		/* 4 */
-	add_type("long", 4);	/* 5 */
+	add_type("long", 4);	/* 5 */		/* should it be 8 on 64 bits? */
 	add_type("ulong", 4);	/* 6 */
 	add_type("float", 4);	/* 7 */
 	add_type("double", 8);	/* 8 */
@@ -988,7 +988,6 @@ int make_structDNA(char *baseDirectory, FILE *file)
 		dna_write(file, structs[0], len);
 	
 		/* a simple dna padding test */
-
 		if (0) {
 			FILE *fp;
 			int a;
@@ -999,16 +998,18 @@ int make_structDNA(char *baseDirectory, FILE *file)
 
 				// add all include files defined in the global array
 				for (i = 0; strlen(includefiles[i]); i++) {
-					fprintf(fp, "#include \"%s\"\n", includefiles[i]);
+					fprintf(fp, "#include \"%s%s\"\n", baseDirectory, includefiles[i]);
 				}
 
 				fprintf(fp, "main(){\n");
 				sp = typelens;
 				sp += firststruct;
 				for(a=firststruct; a<nr_types; a++, sp++) { 
-					fprintf(fp, "\tprintf(\" ");
-					fprintf(fp, "%%d %s %d ", types[a], *sp);
-					fprintf(fp, "\\n\",  sizeof(struct %s) - %d);\n", types[a], *sp);
+					if(*sp) {
+						fprintf(fp, "\tif(sizeof(struct %s) - %d) printf(\"ALIGN ERROR:", types[a], *sp);
+						fprintf(fp, "%%d %s %d ", types[a], *sp);
+						fprintf(fp, "\\n\",  sizeof(struct %s) - %d);\n", types[a], *sp);
+					}
 				}
 				fprintf(fp, "}\n");
 				fclose(fp);

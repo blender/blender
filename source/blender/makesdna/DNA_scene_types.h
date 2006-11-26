@@ -367,12 +367,14 @@ typedef struct BrushData
 	short size;
 	char strength, dir; /* Not used for smooth brush */
 	char airbrush;
-	char pad[7];
+	char pad[3];
 } BrushData;
 
 struct PropsetData;
 struct RenderInfo;
 struct SculptUndo;
+
+/* DNA WARNING: use of doubles forces SculptData internal alignment to 8 (only in gcc?) */
 typedef struct SculptData
 {
 	/* Cache of the OpenGL matrices */
@@ -396,10 +398,10 @@ typedef struct SculptData
 
 	struct PropsetData *propset;
 
-	struct SculptUndo *undo;
+	struct SculptUndo *undo, *padp;	/* pointer pad! */
 
 	/* For rotating around a pivot point */
-	vec3f pivot;
+	vec3f pivot, padv;				/* vec3f is 12 bytes */
 
 	/* Settings for each brush */
 	BrushData drawbrush, smoothbrush, pinchbrush, inflatebrush, grabbrush, layerbrush;
@@ -417,11 +419,11 @@ typedef struct SculptData
 	short texscale;
 	short texact, texnr;
 	short spacing;
-	char pad[2];
+	char pad;
 	char texrept;
 	char texfade;
 
-	char averaging, pad2[3];
+	char averaging;
 } SculptData;
 
 #define SCULPTREPT_DRAG 1

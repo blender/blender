@@ -103,8 +103,6 @@ typedef struct bSound {
 	float distance;
 	int flags;
 	int streamlen;
-//	unsigned int loopstart;
-//	unsigned int loopend;
 	char channels;
 	char highprio;
 	char pad[10];
