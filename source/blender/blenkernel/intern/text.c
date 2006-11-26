@@ -32,7 +32,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include <ctype.h> /* isprint() */
 #include <string.h> /* strstr */
 
 #include "MEM_guardedalloc.h"
@@ -551,13 +550,6 @@ int txt_get_span (TextLine *from, TextLine *to)
 	}
 
 	return ret;	
-}
-
-static int txt_illegal_char (char c)
-{
-	if (isprint(c) || c=='\t') return 0;
-	
-	return 1;
 }
 
 static void txt_make_dirty (Text *text)
@@ -1285,7 +1277,8 @@ void txt_paste(Text *text)
 		} \
 	}
 
-static void dump_buffer(Text *text) {
+static void dump_buffer(Text *text) 
+{
 	int i= 0;
 	
 	while (i++<text->undo_pos) printf("%d: %d %c\n", i, text->undo_buf[i], text->undo_buf[i]);
@@ -1954,7 +1947,8 @@ void txt_do_redo(Text *text)
 /* Line editing functions */ 
 /**************************/
 
-void txt_split_curline (Text *text) {
+void txt_split_curline (Text *text) 
+{
 	TextLine *ins;
 	char *left, *right, *fleft, *fright;
 	
@@ -2072,7 +2066,8 @@ void txt_delete_char (Text *text)
 	if(!undoing) txt_undo_add_charop(text, UNDO_DEL, c);
 }
 
-void txt_backspace_char (Text *text) {
+void txt_backspace_char (Text *text) 
+{
 	char c='\n';
 	
 	if (!text) return;
@@ -2110,7 +2105,8 @@ void txt_backspace_char (Text *text) {
 	if(!undoing) txt_undo_add_charop(text, UNDO_BS, c);
 }
 
-int txt_add_char (Text *text, char add) {
+int txt_add_char (Text *text, char add) 
+{
 	int len;
 	char *tmp, *format;
 	
@@ -2121,8 +2117,6 @@ int txt_add_char (Text *text, char add) {
 		txt_split_curline(text);
 		return 1;
 	}
-	
-	if(txt_illegal_char(add)) return 0;
 	
 	txt_delete_sel(text);
 	
