@@ -722,9 +722,10 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if(amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
 		Curve *cu = amd->curve_ob->data;
 		if(cu) {
-			if(!cu->path)
-				calc_curvepath(amd->curve_ob);
-
+			if(!cu->path) {
+				cu->flag |= CU_PATH; // needed for path & bevlist
+				makeDispListCurveTypes(amd->curve_ob, 0);
+			}
 			if(cu->path)
 				length = cu->path->totdist;
 		}
