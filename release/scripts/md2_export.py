@@ -1187,8 +1187,8 @@ def build_GL_commands(md2):
 				cmd=md2_GL_command()										
 				s=md2.tex_coords[best_st[command_counter]].u
 				t=md2.tex_coords[best_st[command_counter]].v
-				cmd.s=s/md2.skin_width
-				cmd.t=t/md2.skin_height
+				cmd.s=s/float(md2.skin_width)
+				cmd.t=t/float(md2.skin_height)
 				cmd.vert_index=best_verts[command_counter]
 				num_commands+=3
 				cmd_list.cmd_list.append(cmd)
