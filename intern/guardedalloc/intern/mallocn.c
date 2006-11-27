@@ -120,6 +120,8 @@ static void (*error_callback)(char *) = NULL;
 static void (*thread_lock_callback)(void) = NULL;
 static void (*thread_unlock_callback)(void) = NULL;
 
+static int malloc_debug_memset= 0;
+
 #ifdef malloc
 #undef malloc
 #endif
@@ -185,6 +187,11 @@ void MEM_set_lock_callback(void (*lock)(void), void (*unlock)(void))
 {
 	thread_lock_callback = lock;
 	thread_unlock_callback = unlock;
+}
+
+void MEM_set_memory_debug(void)
+{
+	malloc_debug_memset= 1;
 }
 
 int MEM_allocN_len(void *vmemh)
@@ -253,6 +260,8 @@ void *MEM_mallocN(unsigned int len, const char *str)
 	if(memh) {
 		make_memhead_header(memh, len, str);
 		mem_unlock_thread();
+		if(malloc_debug_memset && len)
+			memset(memh+1, 255, len);
 		return (++memh);
 	}
 	mem_unlock_thread();
@@ -447,10 +456,11 @@ static void remlink(volatile localListBase *listbase, void *vlink)
 static void rem_memblock(MemHead *memh)
 {
     remlink(membase,&memh->next);
-    if (memh->prev){
-        if (memh->next) MEMNEXT(memh->prev)->nextname = 
-MEMNEXT(memh->next)->name;
-        else MEMNEXT(memh->prev)->nextname = 0;
+    if (memh->prev) {
+        if (memh->next) 
+			MEMNEXT(memh->prev)->nextname = MEMNEXT(memh->next)->name;
+        else 
+			MEMNEXT(memh->prev)->nextname = NULL;
     }
 
     totblock--;
@@ -465,8 +475,11 @@ MEMNEXT(memh->next)->name;
         if (munmap(memh, memh->len + sizeof(MemHead) + sizeof(MemTail)))
             printf("Couldn't unmap memory %s\n", memh->name);
     }
-    else   
+    else {
+		if(malloc_debug_memset && memh->len)
+			memset(memh+1, 255, memh->len);
         free(memh);
+	}
 #endif
 }
 

@@ -115,6 +115,10 @@ extern "C" {
 	/** Set thread locking functions for safe memory allocation from multiple
 	    threads, pass NULL pointers to disable thread locking again. */
 	void MEM_set_lock_callback(void (*lock)(void), void (*unlock)(void));
+	
+	/** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
+	void MEM_set_memory_debug(void);
+
 
 #ifdef __cplusplus
 }
