@@ -5030,6 +5030,7 @@ void freespacelist(ScrArea *sa)
 				vd->depths= NULL;
 			}
 			retopo_free_view_data(vd);
+			if(vd->properties_storage) MEM_freeN(vd->properties_storage);
 			if(G.vd==vd) G.vd= NULL;
 			if(vd->ri) { 
 				BIF_view3d_previewrender_free(vd);

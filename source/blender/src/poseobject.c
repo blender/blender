@@ -947,6 +947,7 @@ void pose_movetolayer(void)
 			}
 		}
 		
+		BIF_undo_push("Move Bone layer");
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWBUTSEDIT, 0);

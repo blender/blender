@@ -3661,6 +3661,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				v3d->afterdraw.first= v3d->afterdraw.last= NULL;
 				v3d->clipbb= newdataadr(fd, v3d->clipbb);
 				v3d->retopo_view_data= NULL;
+				v3d->properties_storage= NULL;
 			}
 			else if (sl->spacetype==SPACE_OOPS) {
 				SpaceOops *soops= (SpaceOops*) sl;

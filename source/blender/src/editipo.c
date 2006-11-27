@@ -2673,6 +2673,13 @@ void common_insertkey(void)
 		ob= OBACT;
 
 		if (ob && (ob->flag & OB_POSEMODE)) {
+			bPoseChannel *pchan;
+			
+			set_pose_keys(ob);  // sets pchan->flag to POSE_KEY if bone selected
+			for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next)
+				if (pchan->flag & POSE_KEY)
+					break;
+			if(pchan==NULL) return;
 			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Scale%x2|LocRot%x3|LocRotScale%x4|Avail%x9|Needed%x15|VisualLoc%x11|VisualRot%x12|VisualLocRot%x13");
 		}
 		else {
@@ -2708,7 +2715,6 @@ void common_insertkey(void)
 				return;
 			}
 
-			set_pose_keys(ob);  // sets pchan->flag to POSE_KEY if bone selected
 			id= &ob->id;
 			for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
 				if (pchan->flag & POSE_KEY){

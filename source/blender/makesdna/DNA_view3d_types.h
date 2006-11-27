@@ -136,9 +136,11 @@ typedef struct View3D {
 
 	short flag, flag2;
 	
-	short gridsubdiv;	// Number of subdivisions in the grid between each highlighted grid line
+	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
 	
 	short pad2[2];
+	
+	void *properties_storage;	/* Nkey panel stores stuff here, not in file */
 
 } View3D;
 
