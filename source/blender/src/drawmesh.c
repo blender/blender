@@ -957,6 +957,12 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 
 static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
 {
+	MTFace *tface = (MTFace *)userData;
+	if (tface) {
+		tface+= index;
+		if ((tface->flag&TF_HIDE) || (tface->mode&TF_INVISIBLE)) 
+			return 0;
+	}
 	*drawSmooth_r = 1;
 	return 1;
 }
@@ -1016,7 +1022,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		if(ob==OBACT && (G.f & G_FACESELECT) && me && me->mtface) {
 #endif		
 			if(G.f & G_WEIGHTPAINT)
-				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1);
+				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mtface, 1);
 			else
 				dm->drawMappedFacesTex(dm, draw_tface_mapped__set_draw, (void*)me);
 		}
