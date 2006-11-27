@@ -3650,7 +3650,7 @@ void draw_object(Base *base, int flag)
 
 	ob= base->object;
 
-	if (!(G.obedit)) {
+	if (ob!=G.obedit) {
 		/*
 		 * Always draw dupli objects here, restriction of those is governed by the flag of their duplicator
 		 * object, in drawview.c, draw_dupli_objects()

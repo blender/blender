@@ -1354,6 +1354,14 @@ void mouse_select(void)
 					
 					base= startbase;
 					while(base) {
+						/* skip objects with select restriction, to prevent prematurely ending this loop
+						 * with an un-selectable choice */
+						if (base->object->restrictflag & OB_RESTRICT_SELECT) {
+							base=base->next;
+							if(base==NULL) base= FIRSTBASE;
+							if(base==startbase) break;
+						}
+					
 						if(base->lay & G.vd->lay) {
 							for(a=0; a<hits; a++) {
 								if(has_bones) {
