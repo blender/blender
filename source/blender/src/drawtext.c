@@ -1419,8 +1419,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	/* smartass code to prevent the CTRL/ALT events below from not working! */
 	if(G.qual & (LR_ALTKEY|LR_CTRLKEY))
 		if(!ispunct(ascii)) 
-			if(!isprint(ascii))
-				ascii= 0;
+			ascii= 0;
 
 	text= st->text;
 	
