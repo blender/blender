@@ -1026,9 +1026,6 @@ void ManipulatorTransform()
 	if(Trans.state == TRANS_CANCEL) {
 		restoreTransObjects(&Trans);
 	}
-	else {
-		BIF_undo_push(transform_to_undostr(&Trans));
-	}
 	
 	/* free data, reset vars */
 	postTrans(&Trans);
@@ -1038,6 +1035,11 @@ void ManipulatorTransform()
 	
 	/* send events out for redraws */
 	viewRedrawPost(&Trans);
+
+	if(Trans.state != TRANS_CANCEL) {
+		BIF_undo_push(transform_to_undostr(&Trans));
+	}
+	
 }
 
 /* ************************** TRANSFORMATIONS **************************** */
