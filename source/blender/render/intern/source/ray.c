@@ -957,7 +957,8 @@ static int testnode(Isect *is, Node *no, OcVal ocval)
 	VlakRen *vlr;
 	short nr=0;
 	OcVal *ov;
-	
+
+	/* return on any first hit */
 	if(is->mode==DDA_SHADOW) {
 		
 		vlr= no->v[0];
@@ -990,7 +991,7 @@ static int testnode(Isect *is, Node *no, OcVal ocval)
 			vlr= no->v[nr];
 		}
 	}
-	else {			/* else mirror and glass  */
+	else {			/* else mirror or glass or shadowtra, return closest face  */
 		Isect isect;
 		int found= 0;
 		
@@ -2130,7 +2131,7 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 
 	isec.vlrorig= shi->vlr;
 	isec.vlr_last= NULL;
-	isec.mode= DDA_SHADOW;
+	isec.mode= (R.wrld.aomode & WO_AODIST)?DDA_SHADOW_TRA:DDA_SHADOW;
 	isec.lay= -1;
 
 	shadfac[0]= shadfac[1]= shadfac[2]= 0.0;
