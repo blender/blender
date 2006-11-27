@@ -101,12 +101,12 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 		
 		# Absolute path - c:\.. etc would work here
 		image= obj_image_load(imagepath, DIR, IMAGE_SEARCH)
-		
+		has_data = image.has_data
 		texture.image = image
 		
 		# Adds textures for materials (rendering)
 		if type == 'Kd':
-			if image.depth == 32:
+			if has_data and image.depth == 32:
 				# Image has alpha
 				blender_material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL | Texture.MapTo.ALPHA)
 				texture.setImageFlags('MipMap', 'InterPol', 'UseAlpha')
@@ -117,7 +117,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 				
 			# adds textures to faces (Textured/Alt-Z mode)
 			# Only apply the diffuse texture to the face if the image has not been set with the inline usemat func.
-			unique_material_images[context_material_name]= image # set the texface image
+			unique_material_images[context_material_name]= image, has_data # set the texface image
 		
 		elif type == 'Ka':
 			blender_material.setTexture(1, texture, Texture.TexCo.UV, Texture.MapTo.CMIR) # TODO- Add AMB to BPY API
@@ -148,7 +148,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 	for name in unique_materials.iterkeys():
 		unique_materials[name]= Material.New(name)
 		
-		unique_material_images[name]= None # assign None to all material images to start with, add to later.
+		unique_material_images[name]= None, False # assign None to all material images to start with, add to later.
 		
 	unique_materials[None]= None
 	
@@ -441,10 +441,10 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 				
 				if verts_tex:	
 					if context_material:
-						image= unique_material_images[context_material]
+						image, has_data= unique_material_images[context_material]
 						if image: # Can be none if the material dosnt have an image.
 							blender_face.image= image
-							if image.depth == 32:
+							if has_data and image.depth == 32:
 								blender_face.transp |= ALPHA
 					
 					# BUG - Evil eekadoodle problem where faces that have vert index 0 location at 3 or 4 are shuffled.
