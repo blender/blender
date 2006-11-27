@@ -625,14 +625,19 @@ void multires_del_lower(void *ob, void *me)
 {
 	Multires *mr= ((Mesh*)me)->mr;
 	MultiresLevel *lvl= BLI_findlink(&mr->levels,mr->current-1);
-
+	MultiresLevel *lvlprev;
+	
 	lvl= lvl->prev;
 	while(lvl) {
+		lvlprev= lvl->prev;
+		
 		multires_free_level(lvl);
-		BLI_freelinkN(&mr->levels,lvl);
-		lvl= lvl->prev;
+		BLI_freelinkN(&mr->levels, lvl);
+		
 		mr->current-= 1;
 		mr->level_count-= 1;
+		
+		lvl= lvlprev;
 	}
 	mr->newlvl= mr->current;
 
@@ -645,13 +650,18 @@ void multires_del_higher(void *ob, void *me)
 {
 	Multires *mr= ((Mesh*)me)->mr;
 	MultiresLevel *lvl= BLI_findlink(&mr->levels,mr->current-1);
-
+	MultiresLevel *lvlnext;
+	
 	lvl= lvl->next;
 	while(lvl) {
+		lvlnext= lvl->next;
+		
 		multires_free_level(lvl);
 		BLI_freelinkN(&mr->levels,lvl);
-		lvl= lvl->next;
+
 		mr->level_count-= 1;
+		
+		lvl= lvlnext;
 	}
 
 	allqueue(REDRAWBUTSEDIT, 0);
