@@ -1837,17 +1837,19 @@ static void write_brushes(WriteData *wd, ListBase *idbase)
 static void write_global(WriteData *wd)
 {
 	FileGlobal fg;
-
+	
 	fg.curscreen= G.curscreen;
 	fg.curscene= G.scene;
 	fg.displaymode= G.displaymode;
 	fg.winpos= G.winpos;
 	fg.fileflags= (G.fileflags & ~G_FILE_NO_UI);	// prevent to save this, is not good convention, and feature with concerns...
 	fg.globalf= G.f;
+	/* note, this will print byte nr 5, but that's corrected */
+	sprintf(fg.subvstr, "%4d", BLENDER_SUBVERSION);
 	fg.subversion= BLENDER_SUBVERSION;
 	fg.minversion= BLENDER_MINVERSION;
 	fg.minsubversion= BLENDER_MINSUBVERSION;
-
+	
 	writestruct(wd, GLOB, "FileGlobal", 1, &fg);
 }
 

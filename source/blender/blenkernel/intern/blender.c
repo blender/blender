@@ -451,7 +451,7 @@ int BKE_read_file(char *dir, void *type_r)
 		
 		setup_app_data(bfd, dir);
 		
-		handle_subversion_warning(bfd->main);
+		handle_subversion_warning(G.main);
 	} 
 	else {
 		error("Loading %s failed: %s", dir, BLO_bre_as_string(bre));

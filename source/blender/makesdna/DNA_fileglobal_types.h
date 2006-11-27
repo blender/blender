@@ -39,14 +39,14 @@
  * the moment of saving, and the file-specific settings.
  */
 typedef struct FileGlobal {
-	void *curscreen;
-	void *curscene;
-	short displaymode, winpos;
-	int fileflags;
-	int globalf;
-	int pad;
+	char subvstr[4];		/* needs to be here, for human fileformat recognition */
 	short subversion, pads;
 	short minversion, minsubversion;
+	short displaymode, winpos;
+	void *curscreen;
+	void *curscene;
+	int fileflags;
+	int globalf;
 } FileGlobal;
 
 
