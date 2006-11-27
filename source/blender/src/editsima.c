@@ -1560,7 +1560,7 @@ static void image_replace(Image *old, Image *new)
 	me= G.main->mesh.first;
 	while(me) {
 
-		if(me->mtface) {
+		if(me->id.lib==NULL && me->mtface) {
 			tface= me->mtface;
 			a= me->totface;
 			while(a--) {
@@ -1575,7 +1575,9 @@ static void image_replace(Image *old, Image *new)
  
 	}
 	if(rep) {
-		if(new->id.us==0) new->id.us= 1;
+		if(new->id.us==0) id_us_plus(&new->id);
+		else id_lib_extern(&new->id);
+		
 	}
 	else error("Nothing replaced");
 }

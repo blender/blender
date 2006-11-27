@@ -140,7 +140,7 @@ Image *add_image(char *name)
 		if( strcmp(strtest, str)==0 ) {
 			if(ima->anim==0 || ima->id.us==0) {
 				strcpy(ima->name, name);	/* for stringcode */
-				ima->id.us++;
+				ima->id.us++;				/* officially should not, it doesn't link here! */
 				ima->ok= 1;
 				return ima;
 			}

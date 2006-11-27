@@ -334,8 +334,8 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 		
 		if(id->lib) {
 			
-			if(parid && parid->lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Displays name of the current Indirect Library Datablock. Click to change.");
-			else uiDefIconBut(block, BUT, lib, ICON_PARLIB, xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Displays current Library Datablock name. Click to make local.");
+			if(id->flag & LIB_INDIRECT) uiDefIconBut(block, BUT, 0, ICON_DATALIB,xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Indirect Library Datablock. Cannot change.");
+			else uiDefIconBut(block, BUT, lib, ICON_PARLIB, xco,yco,XIC,YIC, 0, 0, 0, 0, 0, "Direct linked Library Datablock. Click to make local.");
 			
 			xco+= XIC;
 		}

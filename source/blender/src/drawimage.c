@@ -331,7 +331,8 @@ void image_changed(SpaceImage *sima, int dotile)
 							if(sima->image->tpageflag & IMA_TILES) tface->mode |= TF_TILES;
 							else tface->mode &= ~TF_TILES;
 						
-							if(sima->image->id.us==0) sima->image->id.us= 1;
+							if(sima->image->id.us==0) id_us_plus(&sima->image->id);
+							else id_lib_extern(&sima->image->id);
 						}
 					}
 					tface++;
@@ -2201,7 +2202,7 @@ static ScrArea *imagewindow_set_render_display(void)
 		sima->image= ima;
 	}
 	else if(sima->image->id.us==0)	/* well... happens on reload, dunno yet what todo, imagewindow cannot be user when hidden*/
-		sima->image->id.us= 1;
+		id_us_plus(&sima->image->id);
 	
 	/* this enforces reading empty buffer in what_image(), so display is cleared */
 	IMB_freeImBuf(sima->image->ibuf);
