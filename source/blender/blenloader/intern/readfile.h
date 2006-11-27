@@ -68,8 +68,7 @@ typedef struct FileData {
 	struct SDNA *memsdna;
 	char *compflags;
 	
-	int fileversion, filesubversion;
-	int fileminversion, fileminsubversion;
+	int fileversion;
 	
 	struct OldNewMap *datamap;
 	struct OldNewMap *globmap;

@@ -719,6 +719,7 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 	return(bhead);
 }
 
+#if 0
 static void get_blender_subversion(FileData *fd)
 {
 	BHead *bhead;
@@ -736,7 +737,7 @@ static void get_blender_subversion(FileData *fd)
 			break;
 	}
 }
-
+#endif
 
 static void decode_blender_header(FileData *fd)
 {
@@ -916,10 +917,6 @@ static FileData *blo_decode_and_check(FileData *fd, BlendReadError *error_r)
 			blo_freefiledata(fd);
 			fd= NULL;
 		}
-		
-		// subversion, stored in GLOB since 2.42
-		if(fd->fileversion>=242)
-			get_blender_subversion(fd);
 	} 
 	else {
 		*error_r = BRE_NOT_A_BLEND;
@@ -4011,6 +4008,10 @@ static void link_global(FileData *fd, BlendFileData *bfd, FileGlobal *fg)
 	bfd->displaymode= fg->displaymode;
 	bfd->globalf= fg->globalf;
 	
+	bfd->main->subversionfile= fg->subversion;
+	bfd->main->minversionfile= fg->minversion;
+	bfd->main->minsubversionfile= fg->minsubversion;
+	
 	bfd->curscreen= newlibadr(fd, 0, fg->curscreen);
 	bfd->curscene= newlibadr(fd, 0, fg->curscene);
 	// this happens in files older than 2.35
@@ -6200,9 +6201,6 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	BLI_addtail(&fd->mainlist, bfd->main);
 
 	bfd->main->versionfile= fd->fileversion;
-	bfd->main->subversionfile= fd->filesubversion;
-	bfd->main->minversionfile= fd->fileminversion;
-	bfd->main->minsubversionfile= fd->fileminsubversion;
 
 	while(bhead) {
 		switch(bhead->code) {
@@ -7097,9 +7095,6 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	mainl = blo_find_main(&fd->mainlist, dir, G.sce);
 	
 	mainl->versionfile= fd->fileversion;	// needed for do_version
-	mainl->subversionfile= fd->filesubversion;
-	mainl->minversionfile= fd->fileminversion;
-	mainl->minsubversionfile= fd->fileminsubversion;
 	
 	curlib= mainl->curlib;
 	
@@ -7240,9 +7235,6 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						
 						mainptr->curlib->filedata= fd;
 						mainptr->versionfile= fd->fileversion;
-						mainptr->subversionfile= fd->filesubversion;
-						mainptr->minversionfile= fd->fileminversion;
-						mainptr->minsubversionfile= fd->fileminsubversion;
 					}
 					else mainptr->curlib->filedata= NULL;
 
