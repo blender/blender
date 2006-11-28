@@ -34,6 +34,7 @@ DIR = $(OCGDIR)/$(SOURCEDIR)
 DIRS = dist
 
 include nan_subdirs.mk
+include nan_link.mk
 
 DISTDIR = dist
 CP = ../../intern/tools/cpifdiff.sh
