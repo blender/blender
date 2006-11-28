@@ -176,10 +176,6 @@ void free_action(bAction *act)
 		free_constraint_channels(&chan->constraintChannels);
 	}
 	
-	/* Free markers */
-	if (act->markers.first)
-		BLI_freelistN (&act->markers);
-	
 	if (act->chanbase.first)
 		BLI_freelistN (&act->chanbase);
 }
@@ -193,7 +189,6 @@ bAction* copy_action(bAction *src)
 	
 	dst= copy_libblock(src);
 	duplicatelist(&(dst->chanbase), &(src->chanbase));
-	duplicatelist(&(dst->markers), &(src->markers));
 	
 	for (dchan=dst->chanbase.first, schan=src->chanbase.first; dchan; dchan=dchan->next, schan=schan->next){
 		dchan->ipo = copy_ipo(dchan->ipo);

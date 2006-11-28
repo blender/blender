@@ -1681,7 +1681,6 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 {
 	bAction			*act;
 	bActionChannel	*chan;
-	TimeMarker 		*marker;
 	
 	for(act=idbase->first; act; act= act->id.next) {
 		if (act->id.us>0 || wd->current) {
@@ -1692,10 +1691,6 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 				writestruct(wd, DATA, "bActionChannel", 1, chan);
 				write_constraint_channels(wd, &chan->constraintChannels);
 			}
-			
-			/* writing dynamic list of TimeMarkers to the blend file */
-			for(marker= act->markers.first; marker; marker= marker->next)
-				writestruct(wd, DATA, "TimeMarker", 1, marker);
 		}
 	}
 }
