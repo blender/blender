@@ -3946,7 +3946,7 @@ int RE_bake_shade_all_selected(Render *re, int type)
 	
 	/* filter images */
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
-		if((ima->flag & LIB_DOIT)==0) {
+		if((ima->id.flag & LIB_DOIT)==0) {
 			
 			IMB_filter_extend(ima->ibuf);
 			IMB_filter_extend(ima->ibuf);	/* 2nd pixel extra */
