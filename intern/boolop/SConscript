@@ -7,4 +7,8 @@ incs = '. intern extern ../moto/include ../container ../memutil'
 incs += ' ../../source/blender/makesdna ../../intern/guardedalloc'
 incs += ' ../../source/blender/blenlib'
 
-env.BlenderLib ('blender_bop', sources, Split(incs) , [], libtype='common', priority = 5 )
+if (env['OURPLATFORM'] == 'win32-mingw'):
+    env.BlenderLib ('blender_bop', sources, Split(incs) , [], libtype=['common','intern'], priority = [5,50] )
+else:
+    env.BlenderLib ('blender_bop', sources, Split(incs) , [], libtype='common', priority = 5 )
+
