@@ -3297,6 +3297,8 @@ void copy_attr_menu()
 	
 	if(!(ob=OBACT)) return;
 	
+	if ((G.obedit)) return; /* no editmode copy yet */
+	
 	if(G.f & G_FACESELECT) {
 		event= pupmenu("Copy Active Texface%t|Image%x1|UV Coords%x2|Color%x3|Mode%x4|Transp%x5");
 		copy_attr_tface(event);
@@ -4937,7 +4939,7 @@ void selectlinks_menu(void)
 	/* If you modify this menu, please remember to update view3d_select_linksmenu
 	 * in header_view3d.c and the menu in toolbox.c
 	 */
-	nr= pupmenu("Select Linked%t|Object Ipo%x1|ObData%x2|Material%x3|Texture%x4|Group%x5");
+	nr= pupmenu("Select Linked%t|Object Ipo%x1|ObData%x2|Material%x3|Texture%x4|DupliGroup%x5");
 	
 	if (nr <= 0) return;
 	
