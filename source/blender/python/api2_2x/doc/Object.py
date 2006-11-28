@@ -246,7 +246,7 @@ class Object:
     To get these values in worldspace (taking into account vertex parents, constraints etc)
     pass the argument 'worldspace' to these functions.
 
-    @ivar idproperties: Returns an L{IDProperty<IDProperty>} reference of type L{IDGroup<IDGroup>} to 
+    @ivar properties: Returns an L{IDProperty<IDProperty>} reference of type L{IDGroup<IDGroup>} to 
     this object's ID Properties.  Note that dict access is available for groups on the parent 
     L{IDProperty<IDProperty>} object, but for everything else you need to get the L{IDGroup<IDGroup>}
     object from the L{IDProperty<IDProperty>}'s data member.
@@ -451,8 +451,8 @@ class Object:
     @type oopsLoc:  tuple of 2 floats
     @ivar oopsSel: Object OOPs selection flag.
     @type oopsSel: boolean
-    @ivar properties: The object's properties.  Read-only.
-    @type properties: list of Properties.
+    @ivar game_properties: The object's properties.  Read-only.
+    @type game_properties: list of Properties.
     @ivar timeOffset: The time offset of the object's animation.
         Value clamped to [-300000.0,300000.0].
     @type timeOffset: float

@@ -4811,7 +4811,7 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getAction, (setter)NULL,
 	 "The action associated with this object (if defined)",
 	 NULL},
-	{"properties",
+	{"game_properties",
 	 (getter)Object_getAllProperties, (setter)NULL,
 	 "The object's properties",
 	 NULL},
@@ -5042,7 +5042,7 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getType, (setter)NULL, 
 	 "String describing Object type",
 	 NULL},
-	{"idproperties", (getter)Object_GetProperties, (setter)NULL,
+	{"properties", (getter)Object_GetProperties, (setter)NULL,
 	"Get the ID properties associated with this object"},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
