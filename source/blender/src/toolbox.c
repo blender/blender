@@ -1821,7 +1821,14 @@ static TBitem *create_group_all_sublevels(ListBase *storage)
 	/* first all levels. libs with groups are not tagged */
 	for(lib= G.main->library.first; lib; lib= lib->id.next) {
 		if(!(lib->id.flag & LIB_DOIT)) {
-			gm->name= BLI_last_slash(lib->filename)+1;
+			char *str;
+			/* do some tricks to get .blend file name without extension */
+			link= MEM_callocN(sizeof(Link) + 128, "string");
+			BLI_addtail(storage, link);
+			str= (char *)(link+1);
+			BLI_strncpy(str, BLI_last_slash(lib->filename)+1, 128);
+			if(strlen(str)>6) str[strlen(str)-6]= 0;
+			gm->name= str;
 			gm->retval= -1;
 			gm->poin= create_group_sublevel(storage, lib);
 			gm++;

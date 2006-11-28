@@ -75,6 +75,8 @@
 
 #include "texture.h"
 
+#include "PIL_time.h"
+
 /* own include */
 #include "rendercore.h"
 
@@ -3675,7 +3677,11 @@ typedef struct BakeShade {
 	ShadeInput shi;
 	VlakRen *vlr;
 	
-	int rectx, recty, quad, type;
+	ZSpan *zspan;
+	Image *ima;
+	
+	int rectx, recty, quad, type, vdone, ready;
+	
 	unsigned int *rect;
 	float *rect_float;
 } BakeShade;
@@ -3687,6 +3693,10 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	ShadeResult shr;
 	VlakRen *vlr= bs->vlr;
 	float l, *v1, *v2, *v3;
+	
+	/* fast threadsafe break test */
+	if(R.test_break())
+		return;
 	
 	shi->xs= x;
 	shi->ys= y;
@@ -3768,39 +3778,84 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	}
 }
 
-/* already have tested for tface and ima */
-static void shade_tface(BakeShade *bs, VlakRen *vlr)
+static int get_next_bake_face(BakeShade *bs)
 {
+	VlakRen *vlr;
+	static int v= 0, vdone= 0;
+	
+	if(bs==NULL) {
+		vlr= NULL;
+		v= vdone= 0;
+		return 0;
+	}
+	
+	BLI_lock_thread(LOCK_CUSTOM1);	
+	
+	for(; v<R.totvlak; v++) {
+		vlr= RE_findOrAddVlak(&R, v);
+		
+		if(vlr->ob->flag & SELECT) {
+			if(vlr->tface && vlr->tface->tpage) {
+				Image *ima= vlr->tface->tpage;
+				float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+				
+				if(ima->ibuf==NULL)
+					continue;
+				
+				if(ima->ibuf->rect==NULL && ima->ibuf->rect_float==NULL)
+					continue;
+				
+				/* find the image for the first time? */
+				if(ima->id.flag & LIB_DOIT) {
+					ima->id.flag &= ~LIB_DOIT;
+					
+					/* we either fill in float or char, this ensures things go fine */
+					if(ima->ibuf->rect_float)
+						imb_freerectImBuf(ima->ibuf);
+					/* clear image */
+					IMB_rectfill(ima->ibuf, vec);
+				
+					/* might be read by UI to set active image for display */
+					R.bakebuf= ima;
+				}				
+				
+				/* do time cursor */
+				vdone++;
+				if((vdone & 1023)==1)
+					R.timecursor(vdone>>10);
+				
+				bs->vlr= vlr;
+				
+				bs->vdone++;	/* only for error message if nothing was rendered */
+				v++;
+				
+				BLI_unlock_thread(LOCK_CUSTOM1);
+				return 1;
+			}
+		}
+	}
+	
+	BLI_unlock_thread(LOCK_CUSTOM1);
+	return 0;
+}
+
+/* already have tested for tface and ima and zspan */
+static void shade_tface(BakeShade *bs)
+{
+	VlakRen *vlr= bs->vlr;
 	MTFace *tface= vlr->tface;
 	Image *ima= tface->tpage;
-	ZSpan *zspan= (ZSpan *)ima->id.newid;
 	float vec[4][2];
 	int a, i1, i2, i3;
 	
-	if(ima->ibuf==NULL)
-		return;
+	/* check valid zspan */
+	if(ima!=bs->ima) {
+		bs->ima= ima;
+		/* note, these calls only free/fill contents of zspan struct, not zspan itself */
+		zbuf_free_span(bs->zspan);
+		zbuf_alloc_span(bs->zspan, ima->ibuf->x, ima->ibuf->y);
+	}				
 	
-	/* signal we find this image for the first time */
-	if(zspan==NULL) {
-		if(ima->ibuf->rect==NULL && ima->ibuf->rect_float==NULL)
-			return;
-		/* we either fill in float or char, this ensures things go fine */
-		if(ima->ibuf->rect_float)
-			imb_freerectImBuf(ima->ibuf);
-		
-		zspan= MEM_mallocN(sizeof(ZSpan), "zspan for bake");
-		zbuf_alloc_span(zspan, ima->ibuf->x, ima->ibuf->y);
-		ima->id.newid= (ID *)zspan;
-		
-		/* clear image */
-		memset(vec, 0, sizeof(vec));
-		IMB_rectfill(ima->ibuf, vec[0]);
-		
-		/* might be read by UI to set active image for display */
-		R.bakebuf= ima;
-	}
-	
-	bs->vlr= vlr;
 	bs->rectx= ima->ibuf->x;
 	bs->recty= ima->ibuf->y;
 	bs->rect= ima->ibuf->rect;
@@ -3816,12 +3871,28 @@ static void shade_tface(BakeShade *bs, VlakRen *vlr)
 	/* UV indices have to be corrected for possible quad->tria splits */
 	i1= 0; i2= 1; i3= 2;
 	vlr_set_uv_indices(vlr, &i1, &i2, &i3);
-	zspan_scanconvert(zspan, bs, vec[i1], vec[i2], vec[i3], do_bake_shade);
+	zspan_scanconvert(bs->zspan, bs, vec[i1], vec[i2], vec[i3], do_bake_shade);
 	
 	if(vlr->v4) {
 		bs->quad= 1;
-		zspan_scanconvert(zspan, bs, vec[0], vec[2], vec[3], do_bake_shade);
+		zspan_scanconvert(bs->zspan, bs, vec[0], vec[2], vec[3], do_bake_shade);
 	}
+}
+
+static void *do_bake_thread(void *bs_v)
+{
+	BakeShade *bs= bs_v;
+	
+	while(get_next_bake_face(bs)) {
+		shade_tface(bs);
+		
+		/* fast threadsafe break test */
+		if(R.test_break())
+			break;
+	}
+	bs->ready= 1;
+	
+	return NULL;
 }
 
 /* using object selection tags, the faces with UV maps get baked */
@@ -3829,55 +3900,69 @@ static void shade_tface(BakeShade *bs, VlakRen *vlr)
 /* returns 0 if nothing was handled */
 int RE_bake_shade_all_selected(Render *re, int type)
 {
-	BakeShade handle;
+	BakeShade handles[RE_MAXTHREAD];
+	ListBase threads;
 	Image *ima;
-	VlakRen *vlr= NULL;
-	int v, vdone=0;
+	int a, vdone=0, maxthreads= 1;
+	
+	/* initialize static vars */
+	get_next_bake_face(NULL);
+	
+	/* baker uses this flag to detect if image was initialized */
+	for(ima= G.main->image.first; ima; ima= ima->id.next)
+		ima->id.flag |= LIB_DOIT;
 	
 	/* initialize render global */
 	R= *re;
 	R.bakebuf= NULL;
 	
-	/* set defaults in handle */
-	memset(&handle, 0, sizeof(BakeShade));
-	handle.shi.lay= re->scene->lay;
-	handle.type= type;
-	
-	/* baker abuses newid for zspans */
-	for(ima= G.main->image.first; ima; ima= ima->id.next)
-		ima->id.newid= NULL;
-	
-	for(v=0; v<R.totvlak; v++) {
-		if((v & 255)==0)
-			vlr= R.blovl[v>>8];
-		else vlr++;
+	if(re->r.mode & R_THREADS) 
+		maxthreads= RE_MAXTHREAD;	/* should become button value too */
+	else maxthreads= 1;
+
+	BLI_init_threads(&threads, do_bake_thread, maxthreads);
+
+	/* get the threads running */
+	for(a=0; a<maxthreads; a++) {
+		/* set defaults in handles */
+		memset(&handles[a], 0, sizeof(BakeShade));
+		handles[a].shi.lay= re->scene->lay;
+		handles[a].type= type;
+		handles[a].zspan= MEM_callocN(sizeof(ZSpan), "zspan for bake");
 		
-		if(vlr->ob->flag & SELECT) {
-			if(vlr->tface && vlr->tface->tpage) {
-				shade_tface(&handle, vlr);
-				vdone++;
-				
-				if((vdone & 1023)==1)
-					R.timecursor(vdone>>10);
-				
-				if(R.test_break()) break; 
-			}
-		}
+		BLI_insert_thread(&threads, &handles[a]);
 	}
 	
-	/* free zspans, filter images */
+	/* wait for everything to be done */
+	a= 0;
+	while(a!=maxthreads) {
+		
+		PIL_sleep_ms(50);
+
+		for(a=0; a<maxthreads; a++)
+			if(handles[a].ready==0)
+				break;
+	}
+	
+	/* filter images */
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
-		if(ima->id.newid) {
-			
-			zbuf_free_span((ZSpan *)ima->id.newid);
-			MEM_freeN(ima->id.newid);
-			ima->id.newid= NULL;
+		if((ima->flag & LIB_DOIT)==0) {
 			
 			IMB_filter_extend(ima->ibuf);
 			IMB_filter_extend(ima->ibuf);	/* 2nd pixel extra */
 			ima->ibuf->userflags |= IB_BITMAPDIRTY;
 		}
 	}
+	
+	/* calculate return value */
+	for(a=0; a<maxthreads; a++) {
+		vdone+= handles[a].vdone;
+		
+		zbuf_free_span(handles[a].zspan);
+		MEM_freeN(handles[a].zspan);
+	}
+	
+	BLI_end_threads(&threads);
 	return vdone;
 }
 

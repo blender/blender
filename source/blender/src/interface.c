@@ -5467,7 +5467,7 @@ void ui_check_but(uiBut *but)
 	}
 
 	if(but->strwidth==0) but->drawstr[0]= 0;
-	else if(but->type==BUTM);	// clip string
+	else if(but->type==BUTM || but->type==BLOCK);	// no clip string, uiTextBoundsBlock is used (hack!)
 	else {
 
 		/* calc but->ofs, to draw the string shorter if too long */

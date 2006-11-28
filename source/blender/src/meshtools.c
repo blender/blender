@@ -807,6 +807,12 @@ EditVert *editmesh_get_x_mirror_vert(Object *ob, float *co)
 
 /* ****************** render BAKING ********************** */
 
+/* threaded break test */
+static volatile int g_break= 0;
+static int thread_break(void)
+{
+	return g_break;
+}
 
 static ScrArea *biggest_image_area(void)
 {
@@ -849,8 +855,10 @@ void objects_bake_render(void)
 	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4");
 	if(event>0) {
 		Render *re= RE_NewRender("_Bake View_");
-		ScrArea *area;
-		int tot;
+		ScrArea *area= biggest_image_area();
+		ListBase threads;
+		BakeRender bkr;
+		int timer, tot;
 		
 		if(event==1) event= RE_BAKE_ALL;
 		else if(event==2) event= RE_BAKE_AO;
@@ -867,42 +875,38 @@ void objects_bake_render(void)
 		
 		waitcursor(1);
 		RE_timecursor_cb(re, set_timecursor);
-		RE_test_break_cb(re, blender_test_break);
+		RE_test_break_cb(re, thread_break);
+		g_break= 0;
 		G.afbreek= 0;	/* blender_test_break uses this global */
 		
 		RE_Database_Baking(re, G.scene, event);
 		
-		/* live updates, threaded */
-		area= biggest_image_area();
-		if(area) {
-			ListBase threads;
-			BakeRender bkr;
-			int timer;
+		/* baking itself is threaded, cannot use test_break in threads. we also update optional imagewindow */
+	
+		BLI_init_threads(&threads, do_bake_render, 1);
+		bkr.re= re;
+		bkr.event= event;
+		bkr.ready= 0;
+		BLI_insert_thread(&threads, &bkr);
+		
+		while(bkr.ready==0) {
+			PIL_sleep_ms(50);
+			if(bkr.ready)
+				break;
 			
-			BLI_init_threads(&threads, do_bake_render, 1);
-			bkr.re= re;
-			bkr.event= event;
-			bkr.ready= 0;
-			BLI_insert_thread(&threads, &bkr);
+			g_break= blender_test_break();
 			
-			while(bkr.ready==0) {
-				PIL_sleep_ms(50);
-				if(bkr.ready)
-					break;
-				timer++;
-				if(timer==20) {
-					Image *ima= RE_bake_shade_get_image();
-					if(ima) ((SpaceImage *)area->spacedata.first)->image= ima;
-					scrarea_do_windraw(area);
-					myswapbuffers();	
-					timer= 0;
-				}
+			timer++;
+			if(timer==20) {
+				Image *ima= RE_bake_shade_get_image();
+				if(ima) ((SpaceImage *)area->spacedata.first)->image= ima;
+				scrarea_do_windraw(area);
+				myswapbuffers();	
+				timer= 0;
 			}
-			BLI_end_threads(&threads);
-			tot= bkr.tot;
 		}
-		else /* no thread bake */ 
-			tot= RE_bake_shade_all_selected(re, event);
+		BLI_end_threads(&threads);
+		tot= bkr.tot;
 		
 		RE_Database_Free(re);
 		waitcursor(0);

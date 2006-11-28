@@ -85,6 +85,7 @@ A sample loop can look like this (pseudo c);
  ************************************************ */
 static pthread_mutex_t _malloc_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _custom1_lock = PTHREAD_MUTEX_INITIALIZER;
+static int thread_levels= 0;	/* threads can be invoked inside threads */
 
 /* just a max for security reasons */
 #define RE_MAX_THREAD	8
@@ -126,6 +127,7 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 	}
 
 	MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
+	thread_levels++;
 }
 
 /* amount of available threads */
@@ -194,7 +196,9 @@ void BLI_end_threads(ListBase *threadbase)
 	}
 	BLI_freelistN(threadbase);
 	
-	MEM_set_lock_callback(NULL, NULL);
+	thread_levels--;
+	if(thread_levels==0)
+		MEM_set_lock_callback(NULL, NULL);
 }
 
 void BLI_lock_thread(int type)
