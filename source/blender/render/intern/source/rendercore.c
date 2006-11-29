@@ -3315,6 +3315,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 	/* free all */
 	MEM_freeN(pa->rectp); pa->rectp= NULL;
 	MEM_freeN(pa->rectz); pa->rectz= NULL;
+	MEM_freeN(pa->clipflag); pa->clipflag= NULL;
 	
 	/* display active layer */
 	rr->renrect.ymin=rr->renrect.ymax= 0;
@@ -3462,6 +3463,7 @@ void zbufshade_tile(RenderPart *pa)
 	
 	MEM_freeN(pa->rectp); pa->rectp= NULL;
 	MEM_freeN(pa->rectz); pa->rectz= NULL;
+	MEM_freeN(pa->clipflag); pa->clipflag= NULL;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -3900,10 +3902,10 @@ static void *do_bake_thread(void *bs_v)
 /* returns 0 if nothing was handled */
 int RE_bake_shade_all_selected(Render *re, int type)
 {
-	BakeShade handles[RE_MAXTHREAD];
+	BakeShade handles[BLENDER_MAX_THREADS];
 	ListBase threads;
 	Image *ima;
-	int a, vdone=0, maxthreads= 1;
+	int a, vdone=0;
 	
 	/* initialize static vars */
 	get_next_bake_face(NULL);
@@ -3916,14 +3918,10 @@ int RE_bake_shade_all_selected(Render *re, int type)
 	R= *re;
 	R.bakebuf= NULL;
 	
-	if(re->r.mode & R_THREADS) 
-		maxthreads= RE_MAXTHREAD;	/* should become button value too */
-	else maxthreads= 1;
-
-	BLI_init_threads(&threads, do_bake_thread, maxthreads);
+	BLI_init_threads(&threads, do_bake_thread, re->r.threads);
 
 	/* get the threads running */
-	for(a=0; a<maxthreads; a++) {
+	for(a=0; a<re->r.threads; a++) {
 		/* set defaults in handles */
 		memset(&handles[a], 0, sizeof(BakeShade));
 		handles[a].shi.lay= re->scene->lay;
@@ -3935,11 +3933,11 @@ int RE_bake_shade_all_selected(Render *re, int type)
 	
 	/* wait for everything to be done */
 	a= 0;
-	while(a!=maxthreads) {
+	while(a!=re->r.threads) {
 		
 		PIL_sleep_ms(50);
 
-		for(a=0; a<maxthreads; a++)
+		for(a=0; a<re->r.threads; a++)
 			if(handles[a].ready==0)
 				break;
 	}
@@ -3955,7 +3953,7 @@ int RE_bake_shade_all_selected(Render *re, int type)
 	}
 	
 	/* calculate return value */
-	for(a=0; a<maxthreads; a++) {
+	for(a=0; a<re->r.threads; a++) {
 		vdone+= handles[a].vdone;
 		
 		zbuf_free_span(handles[a].zspan);

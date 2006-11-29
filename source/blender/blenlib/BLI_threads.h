@@ -34,12 +34,17 @@
 /* one custom lock available now. can be extended */
 #define LOCK_CUSTOM1	1
 
-void	BLI_init_threads	(ListBase *threadbase, void *(*do_thread)(void *), int tot);
-int		BLI_available_threads(ListBase *threadbase);
-int		BLI_available_thread_index(ListBase *threadbase);
-void	BLI_insert_thread	(ListBase *threadbase, void *callerdata);
-void	BLI_remove_thread	(ListBase *threadbase, void *callerdata);
-void	BLI_end_threads		(ListBase *threadbase);
+/* for tables, button in UI, etc */
+#define BLENDER_MAX_THREADS		8
+
+struct ListBase;
+
+void	BLI_init_threads	(struct ListBase *threadbase, void *(*do_thread)(void *), int tot);
+int		BLI_available_threads(struct ListBase *threadbase);
+int		BLI_available_thread_index(struct ListBase *threadbase);
+void	BLI_insert_thread	(struct ListBase *threadbase, void *callerdata);
+void	BLI_remove_thread	(struct ListBase *threadbase, void *callerdata);
+void	BLI_end_threads		(struct ListBase *threadbase);
 
 void	BLI_lock_thread		(int type);
 void	BLI_unlock_thread	(int type);

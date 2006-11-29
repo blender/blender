@@ -1100,7 +1100,7 @@ static void threaded_tile_processor(Render *re)
 	RenderPart *pa, *nextpa;
 	RenderResult *rr;
 	rctf viewplane= re->viewplane;
-	int maxthreads, rendering=1, counter= 1, drawtimer=0, hasdrawn, minx=0;
+	int rendering=1, counter= 1, drawtimer=0, hasdrawn, minx=0;
 	
 	/* first step; the entire render result, or prepare exr buffer saving */
 	free_render_result(re->result);
@@ -1123,11 +1123,7 @@ static void threaded_tile_processor(Render *re)
 		IMB_exrtile_begin_write(rr->exrhandle, str, rr->rectx, rr->recty, rr->rectx/re->xparts, rr->recty/re->yparts);
 	}
 	
-	if(re->r.mode & R_THREADS) 
-		maxthreads= RE_MAXTHREAD;	/* should become button value too */
-	else maxthreads= 1;
-	
-	BLI_init_threads(&threads, do_part_thread, maxthreads);
+	BLI_init_threads(&threads, do_part_thread, re->r.threads);
 	
 	/* assuming no new data gets added to dbase... */
 	R= *re;
@@ -1154,7 +1150,7 @@ static void threaded_tile_processor(Render *re)
 			nextpa= find_next_part(re, minx);
 		}
 		else if(re->r.mode & R_PANORAMA) {
-			if(nextpa==NULL && BLI_available_threads(&threads)==maxthreads)
+			if(nextpa==NULL && BLI_available_threads(&threads)==re->r.threads)
 				nextpa= find_next_pano_slice(re, &minx, &viewplane);
 			else {
 				PIL_sleep_ms(50);
@@ -1195,7 +1191,7 @@ static void threaded_tile_processor(Render *re)
 			drawtimer= 0;
 
 		/* on break, wait for all slots to get freed */
-		if( (g_break=re->test_break()) && BLI_available_threads(&threads)==maxthreads)
+		if( (g_break=re->test_break()) && BLI_available_threads(&threads)==re->r.threads)
 			rendering= 0;
 		
 	}
@@ -1223,10 +1219,8 @@ void RE_TileProcessor(Render *re, int firsttile)
 
 	re->i.starttime= PIL_check_seconds_timer();
 
-	//if(re->r.mode & R_THREADS) 
 	//	threaded_tile_processor(re);
-	//else
-		render_tile_processor(re, firsttile);
+	render_tile_processor(re, firsttile);
 		
 	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
 	re->stats_draw(&re->i);

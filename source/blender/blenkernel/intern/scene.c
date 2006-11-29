@@ -211,7 +211,8 @@ Scene *add_scene(char *name)
 	sce->r.yplay= 480;
 	sce->r.freqplay= 60;
 	sce->r.depth= 32;
-
+	sce->r.threads= 1;
+	
 	sce->r.stereomode = 1;  // no stereo
 
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");

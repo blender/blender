@@ -102,7 +102,7 @@ typedef struct World {
 	/* ambient occlusion */
 	float aodist, aodistfac, aoenergy, aobias;
 	short aomode, aosamp, aomix, aocolor;
-	float *aosphere;
+	float *aosphere, *aotables;
 	
 	struct Ipo *ipo;
 	struct MTex *mtex[10];

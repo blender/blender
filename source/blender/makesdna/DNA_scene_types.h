@@ -151,7 +151,7 @@ typedef struct RenderData {
 	int cfra, sfra, efra;	/* fames as in 'images' */
 
 	int images, framapto, pad3;
-	short flag, pad1;
+	short flag, threads;
 
 	float ctime;			/* use for calcutions */
 	float framelen, blurfac;
@@ -514,6 +514,7 @@ typedef struct Scene {
 #define R_GAUSS      	0x20000
 		/* fbuf obsolete... */
 #define R_FBUF			0x40000
+		/* threads obsolete... is there for old files */
 #define R_THREADS		0x80000
 #define R_SPEED			0x100000
 

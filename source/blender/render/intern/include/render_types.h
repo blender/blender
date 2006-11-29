@@ -37,6 +37,8 @@
 #include "DNA_object_types.h"
 #include "DNA_vec_types.h"
 
+#include "BLI_threads.h"
+
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"	/* TexResult, ShadeResult, ShadeInput */
 
@@ -48,8 +50,6 @@ struct GHash;
 
 #define TABLEINITSIZE 1024
 #define LAMPINITSIZE 256
-		/* hardcoded maximum now, for optimize tables */
-#define RE_MAXTHREAD	2
 
 typedef struct SampleTables
 {
@@ -77,6 +77,7 @@ typedef struct RenderPart
 	short sample, nr;				/* sample can be used by zbuffers, nr is partnr */
 	short thread;					/* thread id */
 	
+	char *clipflag;					/* clipflags for part zbuffering */
 } RenderPart;
 
 typedef struct Octree {
@@ -209,7 +210,7 @@ typedef struct ShadBuf {
 	ListBase buffers;
 	
 	/* irregular shadowbufer, result stored per thread */
-	struct ISBData *isb_result[RE_MAXTHREAD];
+	struct ISBData *isb_result[BLENDER_MAX_THREADS];
 } ShadBuf;
 
 /* ------------------------------------------------------------------------- */
@@ -326,7 +327,7 @@ typedef struct LampRen
 	float bias;
 	
 	short ray_samp, ray_sampy, ray_sampz, ray_samp_type, area_shape, ray_totsamp;
-	short xold1, yold1, xold2, yold2;	/* last jitter table for area lights */
+	short xold[BLENDER_MAX_THREADS], yold[BLENDER_MAX_THREADS];	/* last jitter table for area lights */
 	float area_size, area_sizey, area_sizez;
 	
 	struct ShadBuf *shb;
@@ -347,7 +348,7 @@ typedef struct LampRen
 	short YF_glowtype;
 	
 	/* ray optim */
-	VlakRen *vlr_last[RE_MAXTHREAD];
+	VlakRen *vlr_last[BLENDER_MAX_THREADS];
 	
 	struct MTex *mtex[MAX_MTEX];
 } LampRen;

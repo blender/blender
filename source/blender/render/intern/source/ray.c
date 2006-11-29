@@ -1762,7 +1762,10 @@ void init_jitter_plane(LampRen *lar)
 	float *fp;
 	int x, iter=12, tot= lar->ray_totsamp;
 	
-	fp=lar->jitter= MEM_mallocN(4*tot*2*sizeof(float), "lamp jitter tab");
+	/* at least 4, or max threads+1 tables */
+	if(BLENDER_MAX_THREADS < 4) x= 4;
+	else x= BLENDER_MAX_THREADS+1;
+	fp= lar->jitter= MEM_mallocN(x*tot*2*sizeof(float), "lamp jitter tab");
 	
 	/* set per-lamp fixed seed */
 	BLI_srandom(tot);
@@ -1780,7 +1783,7 @@ void init_jitter_plane(LampRen *lar)
 		}
 	}
 	
-	/* create the dithered tables */
+	/* create the dithered tables (could just check lamp type!) */
 	jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, 0.5, 0.0);
 	jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, 0.5, 0.5);
 	jitter_plane_offset(lar->jitter, lar->jitter+6*tot, tot, lar->area_size, lar->area_sizey, 0.0, 0.5);
@@ -1795,20 +1798,13 @@ static float *give_jitter_plane(LampRen *lar, int thread, int xs, int ys)
 			
 	if(lar->ray_samp_type & LA_SAMP_JITTER) {
 		/* made it threadsafe */
-		if(thread & 1) {
-			if(lar->xold1!=xs || lar->yold1!=ys) {
-				jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, BLI_thread_frand(1), BLI_thread_frand(1));
-				lar->xold1= xs; lar->yold1= ys;
-			}
-			return lar->jitter+2*tot;
+		
+		if(lar->xold[thread]!=xs || lar->yold[thread]!=ys) {
+			jitter_plane_offset(lar->jitter, lar->jitter+2*(thread+1)*tot, tot, lar->area_size, lar->area_sizey, BLI_thread_frand(thread), BLI_thread_frand(thread));
+			lar->xold[thread]= xs; 
+			lar->yold[thread]= ys;
 		}
-		else {
-			if(lar->xold2!=xs || lar->yold2!=ys) {
-				jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, BLI_thread_frand(0), BLI_thread_frand(0));
-				lar->xold2= xs; lar->yold2= ys;
-			}
-			return lar->jitter+4*tot;
-		}
+		return lar->jitter+2*(thread+1)*tot;
 	}
 	if(lar->ray_samp_type & LA_SAMP_DITHER) {
 		return lar->jitter + 2*tot*((xs & 1)+2*(ys & 1));
@@ -2029,45 +2025,52 @@ static void DS_energy(float *sphere, int tot, float *vec)
 
 /* called from convertBlenderScene.c */
 /* creates an equally distributed spherical sample pattern */
-void init_ao_sphere(float *sphere, int tot, int iter)
+/* and allocates threadsafe memory */
+void init_ao_sphere(World *wrld)
 {
 	float *fp;
-	int a;
+	int a, tot, iter= 16;
 
+	/* we make twice the amount of samples, because only a hemisphere is used */
+	tot= 2*wrld->aosamp*wrld->aosamp;
+	
+	wrld->aosphere= MEM_mallocN(3*tot*sizeof(float), "AO sphere");
+	
+	/* fixed random */
 	BLI_srandom(tot);
 	
 	/* init */
-	fp= sphere;
+	fp= wrld->aosphere;
 	for(a=0; a<tot; a++, fp+= 3) {
 		RandomSpherical(fp);
 	}
 	
 	while(iter--) {
-		for(a=0, fp= sphere; a<tot; a++, fp+= 3) {
-			DS_energy(sphere, tot, fp);
+		for(a=0, fp= wrld->aosphere; a<tot; a++, fp+= 3) {
+			DS_energy(wrld->aosphere, tot, fp);
 		}
 	}
+	
+	/* tables */
+	wrld->aotables= MEM_mallocN(BLENDER_MAX_THREADS*3*tot*sizeof(float), "AO tables");
 }
 
-
-static float *threadsafe_table_sphere(int test, int thread, int xs, int ys)
+/* give per thread a table, we have to compare xs ys because of way OSA works... */
+static float *threadsafe_table_sphere(int test, int thread, int xs, int ys, int tot)
 {
-	static float sphere1[2*3*256];
-	static float sphere2[2*3*256];
-	static int xs1=-1, xs2=-1, ys1=-1, ys2=-1;
+	static int xso[BLENDER_MAX_THREADS], yso[BLENDER_MAX_THREADS];
+	static int firsttime= 1;
 	
-	if(thread & 1) {
-		if(xs==xs1 && ys==ys1) return sphere1;
-		if(test) return NULL;
-		xs1= xs; ys1= ys;
-		return sphere1;
+	if(firsttime) {
+		memset(xso, 255, sizeof(xso));
+		memset(yso, 255, sizeof(yso));
+		firsttime= 0;
 	}
-	else  {
-		if(xs==xs2 && ys==ys2) return sphere2;
-		if(test) return NULL;
-		xs2= xs; ys2= ys;
-		return sphere2;
-	}
+	
+	if(xs==xso[thread] && ys==yso[thread]) return R.wrld.aotables+ thread*tot*3;
+	if(test) return NULL;
+	xso[thread]= xs; yso[thread]= ys;
+	return R.wrld.aotables+ thread*tot*3;
 }
 
 static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
@@ -2097,9 +2100,9 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 		float ang, *vec1;
 		int a;
 		
-		sphere= threadsafe_table_sphere(1, thread, xs, ys);	// returns table if xs and ys were equal to last call
+		sphere= threadsafe_table_sphere(1, thread, xs, ys, tot);	// returns table if xs and ys were equal to last call
 		if(sphere==NULL) {
-			sphere= threadsafe_table_sphere(0, thread, xs, ys);
+			sphere= threadsafe_table_sphere(0, thread, xs, ys, tot);
 			
 			// random rotation
 			ang= BLI_thread_frand(thread);
@@ -2239,7 +2242,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 
 	/* only when not mir tracing, first hit optimm */
 	if(shi->depth==0) 
-		isec.vlr_last= lar->vlr_last[shi->thread & 1];
+		isec.vlr_last= lar->vlr_last[shi->thread];
 	else 
 		isec.vlr_last= NULL;
 	
@@ -2352,7 +2355,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 
 	/* for first hit optim, set last interesected shadow face */
 	if(shi->depth==0) 
-		lar->vlr_last[shi->thread & 1]= isec.vlr_last;
+		lar->vlr_last[shi->thread]= isec.vlr_last;
 
 }
 

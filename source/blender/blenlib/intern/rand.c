@@ -36,6 +36,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "PIL_time.h"
+
+#include "BLI_threads.h"
 #include "BLI_rand.h"
 
 #ifdef HAVE_CONFIG_H
@@ -163,15 +165,14 @@ void BLI_array_randomize(void *data, int elemSize, int numElems, unsigned int se
 }
 
 /* ********* for threaded random ************** */
-#define MAX_RNG_THREADS		16
 
-static RNG rng_tab[MAX_RNG_THREADS];
+static RNG rng_tab[BLENDER_MAX_THREADS];
 
 void BLI_thread_srandom(int thread, unsigned int seed)
 {
 	extern unsigned char hash[];	// noise.c
 	
-	if(thread >= MAX_RNG_THREADS)
+	if(thread >= BLENDER_MAX_THREADS)
 		thread= 0;
 	
 	rng_seed(&rng_tab[thread], seed + hash[seed & 255]);

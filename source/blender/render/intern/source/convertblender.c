@@ -2974,6 +2974,11 @@ void RE_Database_Free(Render *re)
 		re->wrld.aosphere= NULL;
 		re->scene->world->aosphere= NULL;
 	}
+	if(re->wrld.aotables) {
+		MEM_freeN(re->wrld.aotables);
+		re->wrld.aotables= NULL;
+		re->scene->world->aotables= NULL;
+	}
 	
 	if(re->r.mode & R_RAYTRACE) freeoctree(re);
 	
@@ -3220,11 +3225,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
-	if( (re->wrld.mode & WO_AMB_OCC) && (re->r.mode & R_RAYTRACE) ) {
-		re->wrld.aosphere= MEM_mallocN(2*3*re->wrld.aosamp*re->wrld.aosamp*sizeof(float), "AO sphere");
-		/* we make twice the amount of samples, because only a hemisphere is used */
-		init_ao_sphere(re->wrld.aosphere, 2*re->wrld.aosamp*re->wrld.aosamp, 16);
-	}
+	if( (re->wrld.mode & WO_AMB_OCC) && (re->r.mode & R_RAYTRACE) )
+		init_ao_sphere(&re->wrld);
 	
 	/* still bad... doing all */
 	init_render_textures(re);
@@ -3894,11 +3896,8 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
-	if( (re->wrld.mode & WO_AMB_OCC) && (re->r.mode & R_RAYTRACE) ) {
-		re->wrld.aosphere= MEM_mallocN(2*3*re->wrld.aosamp*re->wrld.aosamp*sizeof(float), "AO sphere");
-		/* we make twice the amount of samples, because only a hemisphere is used */
-		init_ao_sphere(re->wrld.aosphere, 2*re->wrld.aosamp*re->wrld.aosamp, 16);
-	}
+	if( (re->wrld.mode & WO_AMB_OCC) && (re->r.mode & R_RAYTRACE) )
+		init_ao_sphere(&re->wrld);
 	
 	/* still bad... doing all */
 	init_render_textures(re);

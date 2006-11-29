@@ -6012,8 +6012,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		BPoint *bp;
 		int a;
 
-		sc= main->screen.first;
-		while(sc) {
+		for(sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
 			sa= sc->areabase.first;
 			while(sa) {
@@ -6028,12 +6027,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 				sa = sa->next;
 			}
-			sc = sc->id.next;
 		}
 		
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if (sce->toolsettings->select_thresh == 0.0f)
 				sce->toolsettings->select_thresh= 0.01f;
+			if (sce->r.threads==0) {
+				if (sce->r.mode & R_THREADS)
+					sce->r.threads= 2;
+				else
+					sce->r.threads= 1;
+			}
 		}
 		
 		/* add default radius values to old curve points */

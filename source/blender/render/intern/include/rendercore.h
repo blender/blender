@@ -46,6 +46,7 @@
 struct HaloRen;
 struct ShadeInput;
 struct ShadeResult;
+struct World;
 
 /* ------------------------------------------------------------------------- */
 
@@ -109,7 +110,7 @@ extern void ray_shadow(ShadeInput *, LampRen *, float *);
 extern void ray_trace(ShadeInput *, ShadeResult *);
 extern void ray_ao(ShadeInput *, float *);
 extern void init_jitter_plane(LampRen *lar);
-extern void init_ao_sphere(float *sphere, int tot, int iter);
+extern void init_ao_sphere(struct World *wrld);
 
 #endif /* RENDER_EXT_H */
 

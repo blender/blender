@@ -1685,68 +1685,42 @@ void set_part_zbuf_clipflag(RenderPart *pa)
 {
 	VertRen *ver=NULL;
 	float minx, miny, maxx, maxy, wco;
-	unsigned short clipclear;
 	int v;
+	char *clipflag;
 
+	/* flags stored in part now */
+	clipflag= pa->clipflag= MEM_mallocN(R.totvert+1, "part clipflags");
+	
 	minx= (2*pa->disprect.xmin - R.winx-1)/(float)R.winx;
 	maxx= (2*pa->disprect.xmax - R.winx+1)/(float)R.winx;
 	miny= (2*pa->disprect.ymin - R.winy-1)/(float)R.winy;
 	maxy= (2*pa->disprect.ymax - R.winy+1)/(float)R.winy;
 	
-	/* supports up to 4 threads this way */
-	clipclear= ~(15 << 4*(pa->thread & 3));
-	
-	/* extra security to prevent access to same data */
-	BLI_lock_thread(LOCK_CUSTOM1);
-	
-	for(v=0; v<R.totvert; v++) {
+	for(v=0; v<R.totvert; v++, clipflag++) {
 		if((v & 255)==0)
 			ver= RE_findOrAddVert(&R, v);
 		else ver++;
 		
 		wco= ver->ho[3];
-		ver->flag &= clipclear;
-		
-		switch(pa->thread & 3) {
-			case 0:
-				if( ver->ho[0] > maxx*wco) ver->flag |= 1;
-				else if( ver->ho[0]< minx*wco) ver->flag |= 2;
-				if( ver->ho[1] > maxy*wco) ver->flag |= 4;
-				else if( ver->ho[1]< miny*wco) ver->flag |= 8;
-				break;
-			case 1:
-				if( ver->ho[0] > maxx*wco) ver->flag |= 16;
-				else if( ver->ho[0]< minx*wco) ver->flag |= 32;
-				if( ver->ho[1] > maxy*wco) ver->flag |= 64;
-				else if( ver->ho[1]< miny*wco) ver->flag |= 128;
-				break;
-			case 2:
-				if( ver->ho[0] > maxx*wco) ver->flag |= 256;
-				else if( ver->ho[0]< minx*wco) ver->flag |= 512;
-				if( ver->ho[1] > maxy*wco) ver->flag |= 1024;
-				else if( ver->ho[1]< miny*wco) ver->flag |= 2048;
-				break;
-			case 3:
-				if( ver->ho[0] > maxx*wco) ver->flag |= 4096;
-				else if( ver->ho[0]< minx*wco) ver->flag |= 8192;
-				if( ver->ho[1] > maxy*wco) ver->flag |= 16384;
-				else if( ver->ho[1]< miny*wco) ver->flag |= 32768;
-				break;
-		}
+
+		*clipflag= 0;
+		if( ver->ho[0] > maxx*wco) *clipflag |= 1;
+		else if( ver->ho[0]< minx*wco) *clipflag |= 2;
+		if( ver->ho[1] > maxy*wco) *clipflag |= 4;
+		else if( ver->ho[1]< miny*wco) *clipflag |= 8;
 	}
-	
-	BLI_unlock_thread(LOCK_CUSTOM1);
 }
 
 void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 {
 	ZSpan zspan;
 	VlakRen *vlr= NULL;
+	VertRen *v1, *v2, *v3, *v4;
 	Material *ma=0;
 	int v, zvlnr;
-	unsigned short clipmask;
 	short nofill=0, env=0, wire=0, all_z= layflag & SCE_LAY_ALL_Z;
-
+	char *clipflag= pa->clipflag;
+	
 	zbuf_alloc_span(&zspan, pa->rectx, pa->recty);
 	
 	/* needed for transform from hoco to zbuffer co */
@@ -1779,9 +1753,6 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 	zspan.zbuffunc= zbuffillGL4;
 	zspan.zbuflinefunc= zbufline;
 
-	/* part clipflag, threaded */
-	clipmask= (15 << 4*(pa->thread & 3));
-
 	for(v=0; v<R.totvlak; v++) {
 
 		if((v & 255)==0) vlr= R.blovl[v>>8];
@@ -1813,11 +1784,17 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 			if(nofill==0) {
 				unsigned short partclip;
 				
-				/* partclipping doesn't need viewplane clipping */
-				if(vlr->v4) partclip= vlr->v1->flag & vlr->v2->flag & vlr->v3->flag & vlr->v4->flag;
-				else partclip= vlr->v1->flag & vlr->v2->flag & vlr->v3->flag;
+				v1= vlr->v1;
+				v2= vlr->v2;
+				v3= vlr->v3;
+				v4= vlr->v4;
 				
-				if((partclip & clipmask)==0) {
+				/* partclipping doesn't need viewplane clipping */
+				partclip= clipflag[v1->index] & clipflag[v2->index] & clipflag[v3->index];
+				if(v4)
+					partclip &= clipflag[v4->index];
+				
+				if(partclip==0) {
 					
 					if(env) zvlnr= -1;
 					else zvlnr= v+1;
@@ -1825,14 +1802,14 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 					if(wire) zbufclipwire(&zspan, zvlnr, vlr);
 					else {
 						/* strands allow to be filled in as quad */
-						if(vlr->v4 && (vlr->flag & R_STRAND)) {
-							zbufclip4(&zspan, zvlnr, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip, vlr->v4->clip);
+						if(v4 && (vlr->flag & R_STRAND)) {
+							zbufclip4(&zspan, zvlnr, v1->ho, v2->ho, v3->ho, v4->ho, v1->clip, v2->clip, v3->clip, v4->clip);
 						}
 						else {
-							zbufclip(&zspan, zvlnr, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
-							if(vlr->v4) {
+							zbufclip(&zspan, zvlnr, v1->ho, v2->ho, v3->ho, v1->clip, v2->clip, v3->clip);
+							if(v4) {
 								if(zvlnr>0) zvlnr+= RE_QUAD_OFFS;
-								zbufclip(&zspan, zvlnr, vlr->v1->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
+								zbufclip(&zspan, zvlnr, v1->ho, v3->ho, v4->ho, v1->clip, v3->clip, v4->clip);
 							}
 						}
 					}
@@ -2561,9 +2538,10 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 	ZSpan zspan;
 	Material *ma=NULL;
 	VlakRen *vlr=NULL;
+	VertRen *v1, *v2, *v3, *v4;
 	float vec[3], hoco[4], mul, zval, fval;
 	int v, zvlnr, zsample, dofill= 0;
-	unsigned short clipmask;
+	char *clipflag= pa->clipflag;
 	
 	zbuf_alloc_span(&zspan, pa->rectx, pa->recty);
 	
@@ -2579,9 +2557,6 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 	/* filling methods */
 	zspan.zbuffunc= zbuffillAc4;
 	zspan.zbuflinefunc= zbuflineAc;
-	
-	/* part clipflag, 4 threads */
-	clipmask= (15 << 4*(pa->thread & 3));
 	
 	for(zsample=0; zsample<R.osa || R.osa==0; zsample++) {
 		
@@ -2618,17 +2593,23 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 				if((vlr->flag & R_VISIBLE) && (vlr->lay & lay)) {
 					unsigned short partclip;
 					
-					/* partclipping doesn't need viewplane clipping */
-					if(vlr->v4) partclip= vlr->v1->flag & vlr->v2->flag & vlr->v3->flag & vlr->v4->flag;
-					else partclip= vlr->v1->flag & vlr->v2->flag & vlr->v3->flag;
+					v1= vlr->v1;
+					v2= vlr->v2;
+					v3= vlr->v3;
+					v4= vlr->v4;
 					
-					if((partclip & clipmask)==0) {
+					/* partclipping doesn't need viewplane clipping */
+					partclip= clipflag[v1->index] & clipflag[v2->index] & clipflag[v3->index];
+					if(v4)
+						partclip &= clipflag[v4->index];
+					
+					if(partclip==0) {
 						/* a little advantage for transp rendering (a z offset) */
 						if( ma->zoffs != 0.0) {
 							mul= 0x7FFFFFFF;
-							zval= mul*(1.0+vlr->v1->ho[2]/vlr->v1->ho[3]);
+							zval= mul*(1.0+v1->ho[2]/v1->ho[3]);
 
-							VECCOPY(vec, vlr->v1->co);
+							VECCOPY(vec, v1->co);
 							/* z is negative, otherwise its being clipped */ 
 							vec[2]-= ma->zoffs;
 							projectverto(vec, R.winmat, hoco);
@@ -2642,14 +2623,14 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 			
 						if(ma->mode & (MA_WIRE)) zbufclipwire(&zspan, zvlnr, vlr);
 						else {
-							if(vlr->v4 && (vlr->flag & R_STRAND)) {
-								zbufclip4(&zspan, zvlnr, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip, vlr->v4->clip);
+							if(v4 && (vlr->flag & R_STRAND)) {
+								zbufclip4(&zspan, zvlnr, v1->ho, v2->ho, v3->ho, v4->ho, v1->clip, v2->clip, v3->clip, v4->clip);
 							}
 							else {
-								zbufclip(&zspan, zvlnr, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
-								if(vlr->v4) {
+								zbufclip(&zspan, zvlnr, v1->ho, v2->ho, v3->ho, v1->clip, v2->clip, v3->clip);
+								if(v4) {
 									zvlnr+= RE_QUAD_OFFS;
-									zbufclip(&zspan, zvlnr, vlr->v1->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
+									zbufclip(&zspan, zvlnr, v1->ho, v3->ho, v4->ho, v1->clip, v3->clip, v4->clip);
 								}
 							}
 						}

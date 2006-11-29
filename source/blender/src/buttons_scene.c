@@ -78,14 +78,20 @@
 /* -----includes for this file specific----- */
 
 #include "DNA_image_types.h"
+
 #include "BKE_writeavi.h"
 #include "BKE_writeffmpeg.h"
 #include "BKE_image.h"
+
+#include "BLI_threads.h"
+
+#include "BIF_editsound.h"
 #include "BIF_writeimage.h"
 #include "BIF_writeavicodec.h"
-#include "BIF_editsound.h"
+
 #include "BSE_seqaudio.h"
 #include "BSE_headerbuttons.h"
+
 
 #include "butspace.h" // own module
 
@@ -1186,7 +1192,7 @@ static void render_panel_output(void)
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButBitS(block, TOG, R_BACKBUF, B_NOP,"Backbuf",	10, 94, 80, 20, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
-	uiDefButBitI(block, TOG, R_THREADS, B_NOP,"Threads",	10, 68, 80, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable/Disable render in two threads");	
+	uiDefButS(block, NUM, B_NOP, "Threads:",				10, 68, 120, 20, &G.scene->r.threads, 1, BLENDER_MAX_THREADS, 0, 0, "Amount of threads for render");	
 	uiBlockSetCol(block, TH_AUTO);
 		
 	uiBlockBeginAlign(block);
