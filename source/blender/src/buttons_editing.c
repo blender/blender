@@ -3172,6 +3172,9 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 18+a*dx, 123, dx, 15, &arm->layer, 0, 0, 0, 0, "");
 		uiButSetFunc(but, armature_layer_cb, &arm->layer, (void *)(1<<a));
 	}
+	/* quite bad here, but I don't know a better place for copy... */
+	if(ob->pose)
+		ob->pose->proxy_layer= arm->layer;
 	
 	uiBlockBeginAlign(block);
 	uiDefButI(block, ROW, REDRAWVIEW3D, "Octahedron", 10, 100,90,20, &arm->drawtype, 0, ARM_OCTA, 0, 0, "Draw bones as octahedra");

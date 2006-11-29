@@ -519,12 +519,12 @@ static void count_object(Object *ob, int sel, int totob)
 			ModifierData *md = modifiers_findByType(ob, eModifierType_Subsurf);
 			int totvert, totface;
 			
+			subsurf= 1;
 			if (md) {
 				SubsurfModifierData *smd = (SubsurfModifierData*) md;
-				
-				subsurf= 1<<(2*smd->levels);
+				if(smd->modifier.mode & eModifierMode_Realtime)
+					subsurf= 1<<(2*smd->levels);
 			}
-			else subsurf= 1;
 			
 			totvert= subsurf*me->totvert*totob;
 			totface= subsurf*me->totface*totob;
@@ -731,7 +731,7 @@ void countall()
 			
 			if(base->flag & SELECT) G.totobjsel++;
 			
-			if(ob->parent && (ob->parent->transflag & OB_DUPLIVERTS)) {
+			if(ob->parent && (ob->parent->transflag & (OB_DUPLIVERTS|OB_DUPLIFACES))) {
 				int tot= count_duplilist(ob->parent);
 				G.totobj+=tot;
 				count_object(ob, base->flag & SELECT, tot);

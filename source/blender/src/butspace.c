@@ -148,7 +148,7 @@ void test_actionpoin_but(char *name, ID **idpp)
 	id= G.main->action.first;
 	while(id) {
 		if( strcmp(name, id->name+2)==0 ) {
-			id_lib_extern(id);	/* checks lib data, sets correct flag for saving then */
+			id_us_plus(id);
 			*idpp= id;
 			return;
 		}

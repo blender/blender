@@ -917,6 +917,8 @@ void pose_movetolayer(void)
 		if( movetolayer_short_buts(&lay, "Armature Layers")==0 ) return;
 		if(lay==0) return;
 		arm->layer= lay;
+		if(ob->pose)
+			ob->pose->proxy_layer= lay;
 		
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
