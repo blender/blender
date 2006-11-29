@@ -187,6 +187,7 @@ static void print_help(void)
 	printf ("    (formats that can be compiled into blender, not available on all systems)\n");
 	printf ("    \tHDR TIFF EXR MPEG AVICODEC QUICKTIME CINEON DPX\n");
 	printf ("    -x <bool>\tSet option to add the file extension to the end of the file.\n");
+	printf ("    -t <threads>\tUse amount of <threads> for rendering\n");
 	printf ("\nAnimation options:\n");
 	printf ("  -a <file(s)>\tPlayback <file(s)>\n");
 	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
@@ -353,7 +354,6 @@ int main(int argc, char **argv)
 			case 'h':			
 				print_help();
 				exit(0);
-			
 			case 'v':
 				print_version();
 				exit(0);
@@ -398,6 +398,7 @@ int main(int argc, char **argv)
 				case 'd':
 					G.f |= G_DEBUG;		/* std output printf's */ 
 					printf ("Blender V %d.%02d\n", G.version/100, G.version%100);
+					MEM_set_memory_debug();
 #ifdef NAN_BUILDINFO
 					printf("Build: %s %s %s %s\n", build_date, build_time, build_platform, build_type);
 
@@ -649,6 +650,12 @@ int main(int argc, char **argv)
 				}
 				break;
 				
+			case 't':
+				a++;
+				if(G.background) {
+					RE_set_max_threads(atoi(argv[a]));
+				}
+				break;
 			case 'x': /* extension */
 				a++;
 				if (a < argc) {

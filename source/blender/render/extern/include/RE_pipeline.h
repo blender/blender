@@ -159,6 +159,9 @@ void RE_Database_Free (struct Render *re);
 /* project dbase again, when viewplane/perspective changed */
 void RE_DataBase_ApplyWindow(struct Render *re);
 
+/* override the scene setting for amount threads, commandline */
+void RE_set_max_threads(int threads);
+
 /* the main processor, assumes all was set OK! */
 void RE_TileProcessor(struct Render *re, int firsttile);
 

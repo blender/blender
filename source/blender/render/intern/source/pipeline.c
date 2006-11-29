@@ -114,6 +114,9 @@ static struct ListBase RenderList= {NULL, NULL};
 /* hardcopy of current render, used while rendering for speed */
 Render R;
 
+/* commandline thread override */
+static int commandline_threads= 0;
+
 /* ********* alloc and free ******** */
 
 
@@ -812,6 +815,9 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 		re->result= MEM_callocN(sizeof(RenderResult), "new render result");
 		re->result->rectx= re->rectx;
 		re->result->recty= re->recty;
+		
+		if(commandline_threads>0 && commandline_threads<=BLENDER_MAX_THREADS)
+			re->r.threads= commandline_threads;
 	}
 }
 
@@ -2066,4 +2072,12 @@ void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 	re->scene= scene;
 	
 	read_render_result(re);
+}
+
+void RE_set_max_threads(int threads)
+{
+	if(threads>0 && threads<=BLENDER_MAX_THREADS)
+		commandline_threads= threads;
+	else
+		printf("Error, threads has to be in range 1-%d\n", BLENDER_MAX_THREADS);
 }
