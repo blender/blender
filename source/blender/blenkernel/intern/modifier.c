@@ -3801,6 +3801,7 @@ ModifierData *modifiers_getVirtualModifierList(Object *ob)
 			return &amd.modifier;
 		} else if(ob->parent->type==OB_CURVE && ob->partype==PARSKEL) {
 			cmd.object = ob->parent;
+			cmd.defaxis = ob->trackflag + 1;
 			cmd.modifier.next = ob->modifiers.first;
 			return &cmd.modifier;
 		} else if(ob->parent->type==OB_LATTICE && ob->partype==PARSKEL) {
