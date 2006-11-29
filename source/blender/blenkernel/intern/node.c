@@ -1724,7 +1724,7 @@ static void composit_begin_exec(bNodeTree *ntree, int is_group)
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(is_group==0) {
 			for(sock= node->outputs.first; sock; sock= sock->next) {
-				bNodeStack *ns= ntree->stack + sock->stack_index;
+				bNodeStack *ns= ntree->stack[0] + sock->stack_index;
 				
 				if(sock->ns.data) {
 					ns->data= sock->ns.data;
@@ -1757,7 +1757,7 @@ static void composit_end_exec(bNodeTree *ntree, int is_group)
 			bNodeSocket *sock;
 		
 			for(sock= node->outputs.first; sock; sock= sock->next) {
-				ns= ntree->stack + sock->stack_index;
+				ns= ntree->stack[0] + sock->stack_index;
 				if(ns->data) {
 					sock->ns.data= ns->data;
 					ns->data= NULL;
@@ -1775,7 +1775,7 @@ static void composit_end_exec(bNodeTree *ntree, int is_group)
 	
 	if(is_group==0) {
 		/* internally, group buffers are not stored */
-		for(ns= ntree->stack, a=0; a<ntree->stacksize; a++, ns++) {
+		for(ns= ntree->stack[0], a=0; a<ntree->stacksize; a++, ns++) {
 			if(ns->data) {
 				printf("freed leftover buffer from stack\n");
 				free_compbuf(ns->data);
@@ -1827,8 +1827,9 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 		bNodeStack *ns;
 		int a;
 		
-		/* allocate stack */
-		ns=ntree->stack= MEM_callocN(ntree->stacksize*sizeof(bNodeStack), "node stack");
+		/* allocate stack array, and the base stack */
+		ntree->stack= MEM_callocN(BLENDER_MAX_THREADS*sizeof(void *), "stack array");
+		ns=ntree->stack[0]= MEM_callocN(ntree->stacksize*sizeof(bNodeStack), "node stack");
 		
 		/* tag inputs, the get_stack() gives own socket stackdata if not in use */
 		for(a=0; a<ntree->stacksize; a++, ns++) ns->hasinput= 1;
@@ -1838,17 +1839,21 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 			bNodeSocket *sock;
 			for(sock= node->inputs.first; sock; sock= sock->next) {
 				if(sock->link) {
-					ns= ntree->stack + sock->link->fromsock->stack_index;
+					ns= ntree->stack[0] + sock->link->fromsock->stack_index;
 					ns->hasoutput= 1;
 				}
 			}
 			if(node->type==NODE_GROUP && node->id)
-				group_tag_used_outputs(node, ntree->stack);
+				group_tag_used_outputs(node, ntree->stack[0]);
 		}
+		
+		/* composite does 1 node per thread, so no multiple stacks needed */
 		if(ntree->type==NTREE_COMPOSIT)
 			composit_begin_exec(ntree, 0);
-		else
-			ntree->stack1= MEM_dupallocN(ntree->stack);
+		else {
+			for(a=1; a<BLENDER_MAX_THREADS; a++)
+				ntree->stack[a]= MEM_dupallocN(ntree->stack[0]);
+		}
 	}
 	
 	ntree->init |= NTREE_EXEC_INIT;
@@ -1858,18 +1863,20 @@ void ntreeEndExecTree(bNodeTree *ntree)
 {
 	
 	if(ntree->init & NTREE_EXEC_INIT) {
+		int a;
 		
 		/* another callback candidate! */
 		if(ntree->type==NTREE_COMPOSIT)
 			composit_end_exec(ntree, 0);
 		
-		if(ntree->stack)
-			MEM_freeN(ntree->stack);
-		ntree->stack= NULL;
+		if(ntree->stack) {
+			for(a=0; a<BLENDER_MAX_THREADS; a++)
+				if(ntree->stack[a])
+					MEM_freeN(ntree->stack[a]);
 		
-		if(ntree->stack1)
-			MEM_freeN(ntree->stack1);
-		ntree->stack1= NULL;
+			MEM_freeN(ntree->stack);
+			ntree->stack= NULL;
+		}
 
 		ntree->init &= ~NTREE_EXEC_INIT;
 	}
@@ -1904,10 +1911,7 @@ void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
 	if((ntree->init & NTREE_EXEC_INIT)==0)
 		ntreeBeginExecTree(ntree);
 		
-	if(thread)
-		stack= ntree->stack1;
-	else
-		stack= ntree->stack;
+	stack= ntree->stack[thread];
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->typeinfo->execfunc) {
@@ -2058,7 +2062,7 @@ static void freeExecutableNode(bNodeTree *ntree)
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->exec & NODE_FREEBUFS) {
 			for(sock= node->outputs.first; sock; sock= sock->next) {
-				bNodeStack *ns= ntree->stack + sock->stack_index;
+				bNodeStack *ns= ntree->stack[0] + sock->stack_index;
 				if(ns->data) {
 					free_compbuf(ns->data);
 					ns->data= NULL;
@@ -2097,14 +2101,9 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	bNode *node;
 	ListBase threads;
 	ThreadData thdata;
-	int totnode, maxthreads, rendering= 1;
+	int totnode, rendering= 1;
 	
 	if(ntree==NULL) return;
-	
-	if(rd->mode & R_THREADS)
-		maxthreads= 2;
-	else
-		maxthreads= 1;
 	
 	if(do_preview)
 		ntreeInitPreview(ntree, 0, 0);
@@ -2117,7 +2116,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	
 	/* setup callerdata for thread callback */
 	thdata.rd= rd;
-	thdata.stack= ntree->stack;
+	thdata.stack= ntree->stack[0];
 	
 	/* fixed seed, for example noise texture */
 	BLI_srandom(rd->cfra);
@@ -2125,7 +2124,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	/* sets need_exec tags in nodes */
 	totnode= setExecutableNodes(ntree, &thdata);
 	
-	BLI_init_threads(&threads, exec_composite_node, maxthreads);
+	BLI_init_threads(&threads, exec_composite_node, rd->threads);
 	
 	while(rendering) {
 		
