@@ -266,16 +266,18 @@ extern Object workob;
 #define PARSLOW			16
 
 /* (short) transflag */
-#define OB_OFFS_LOCAL	1
-#define OB_QUAT			2
-#define OB_NEG_SCALE	4
-#define OB_DUPLI		(8+16+256)
-#define OB_DUPLIFRAMES	8
-#define OB_DUPLIVERTS	16
-#define OB_DUPLIROT		32
-#define OB_DUPLINOSPEED	64
-#define OB_POWERTRACK	128
-#define OB_DUPLIGROUP	256
+#define OB_OFFS_LOCAL		1
+#define OB_QUAT				2
+#define OB_NEG_SCALE		4
+#define OB_DUPLI			(8+16+256+512)
+#define OB_DUPLIFRAMES		8
+#define OB_DUPLIVERTS		16
+#define OB_DUPLIROT			32
+#define OB_DUPLINOSPEED		64
+#define OB_POWERTRACK		128
+#define OB_DUPLIGROUP		256
+#define OB_DUPLIFACES		512
+#define OB_DUPLIFACES_SCALE	1024
 
 /* (short) ipoflag */
 #define OB_DRAWKEY			1

@@ -872,7 +872,7 @@ void emDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 
 	/* store vertexes indices in tmp union */
 	for(ev = em->verts.first, i = 0; ev; ev = ev->next, ++i)
-		ev->tmp.l = (long) i++;
+		ev->tmp.l = (long) i;
 
 	for( ; ef; ef = ef->next, ++face_r) {
 		face_r->mat_nr = ef->mat_nr;

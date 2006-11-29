@@ -1530,10 +1530,11 @@ void do_object_panels(unsigned short event)
 	Effect *eff;
 	
 	ob= OBACT;
-
+	if(ob==NULL)
+		return;
+	
 	switch(event) {
 	case B_TRACKBUTS:
-		ob= OBACT;
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
@@ -1541,9 +1542,29 @@ void do_object_panels(unsigned short event)
 		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
+	case B_DUPLI_FRAME:
+		ob->transflag &= ~(OB_DUPLIVERTS|OB_DUPLIFACES|OB_DUPLIGROUP);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		break;
+	case B_DUPLI_VERTS:
+		ob->transflag &= ~(OB_DUPLIFRAMES|OB_DUPLIFACES|OB_DUPLIGROUP);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		break;
+	case B_DUPLI_FACES:
+		ob->transflag &= ~(OB_DUPLIVERTS|OB_DUPLIFRAMES|OB_DUPLIGROUP);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		break;
+	case B_DUPLI_GROUP:
+		ob->transflag &= ~(OB_DUPLIVERTS|OB_DUPLIFRAMES|OB_DUPLIFACES);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		break;
+		
 	case B_PRINTSPEED:
-		ob= OBACT;
-		if(ob) {
+		{
 			float vec[3];
 			CFRA++;
 			do_ob_ipo(ob);
@@ -1558,8 +1579,7 @@ void do_object_panels(unsigned short event)
 		}
 		break;
 	case B_PRINTLEN:
-		ob= OBACT;
-		if(ob && ob->type==OB_CURVE) {
+		if(ob->type==OB_CURVE) {
 			Curve *cu=ob->data;
 			
 			if(cu->path) prlen= cu->path->totdist; else prlen= -1.0;
@@ -1571,24 +1591,20 @@ void do_object_panels(unsigned short event)
 		allqueue(REDRAWBUTSOBJECT, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWIPO, 0);
-		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		break;
 	case B_CURVECHECK:
-		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	
 	case B_SOFTBODY_CHANGE:
-		ob= OBACT;
-		if(ob) {
-			ob->softflag |= OB_SB_REDO;
-			allqueue(REDRAWBUTSOBJECT, 0);
-			allqueue(REDRAWVIEW3D, 0);
-		}
+		ob->softflag |= OB_SB_REDO;
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_SOFTBODY_DEL_VG:
-		ob= OBACT;
-		if(ob && ob->soft) {
+		if(ob->soft) {
 			ob->soft->vertgroup= 0;
 			ob->softflag |= OB_SB_REDO;
 			allqueue(REDRAWBUTSOBJECT, 0);
@@ -1596,23 +1612,19 @@ void do_object_panels(unsigned short event)
 		}
 		break;
 	case B_SOFTBODY_BAKE:
-		ob= OBACT;
-		if(ob && ob->soft) softbody_bake(ob);
+		if(ob->soft) softbody_bake(ob);
 		break;
 	case B_SOFTBODY_BAKE_FREE:
-		ob= OBACT;
-		if(ob && ob->soft) sbObjectToSoftbody(ob);
+		if(ob->soft) sbObjectToSoftbody(ob);
 		allqueue(REDRAWBUTSOBJECT, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_FLUIDSIM_BAKE:
-		ob= OBACT;
 		/* write config files (currently no simulation) */
 		fluidsimBake(ob);
 		break;
 	case B_FLUIDSIM_MAKEPART:
-		ob= OBACT;
-		if(1) {
+		{
 			PartEff *paf= NULL;
 			/* prepare fluidsim particle display */
 			// simplified delete effect, create new - recalc some particles...
@@ -1634,9 +1646,9 @@ void do_object_panels(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
-	case B_FLUIDSIM_SELDIR: {
+	case B_FLUIDSIM_SELDIR: 
+		{
 			ScrArea *sa = closest_bigger_area();
-			ob= OBACT;
 			/* choose dir for surface files */
 			areawinset(sa->win);
 			activate_fileselect(FILE_SPECIAL, "Select Directory", ob->fluidsimSettings->surfdataPath, fluidsimFilesel);
@@ -1649,26 +1661,23 @@ void do_object_panels(unsigned short event)
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		break;
 	case B_GROUP_RELINK:
-		group_relink_nla_objects(OBACT);
+		group_relink_nla_objects(ob);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 		
 	default:
 		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
-			ob= OBACT;
-			if(ob) {
-				int a=B_SELEFFECT;
+			int a=B_SELEFFECT;
+			
+			eff= ob->effect.first;
+			while(eff) {
+				if(event==a) eff->flag |= SELECT;
+				else eff->flag &= ~SELECT;
 				
-				eff= ob->effect.first;
-				while(eff) {
-					if(event==a) eff->flag |= SELECT;
-					else eff->flag &= ~SELECT;
-					
-					a++;
-					eff= eff->next;
-				}
-				allqueue(REDRAWBUTSOBJECT, 0);
+				a++;
+				eff= eff->next;
 			}
+			allqueue(REDRAWBUTSOBJECT, 0);
 		}
 	}
 
@@ -1839,13 +1848,18 @@ static void object_panel_anim(Object *ob)
 	uiDefButBitS(block, TOG, PARSLOW, 0, "SlowPar",					260,155,56,19, &ob->partype, 0, 0, 0, 0, "Create a delay in the parent relationship");
 	uiBlockBeginAlign(block);
 	
-	uiDefButBitS(block, TOG, OB_DUPLIFRAMES, REDRAWVIEW3D, "DupliFrames",	24,130,89,20, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
-	uiDefButBitS(block, TOG, OB_DUPLIVERTS, REDRAWVIEW3D, "DupliVerts",		114,130,82,20, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
-	uiDefButBitS(block, TOG, OB_DUPLIROT, REDRAWVIEW3D, "Rot",				200,130,31,20, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to vertnormal");
-	uiDefButBitS(block, TOG, OB_DUPLINOSPEED, REDRAWVIEW3D, "No Speed",		234,130,82,20, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
-	
-	uiDefButBitS(block, TOG, OB_DUPLIGROUP, REDRAWVIEW3D, "DupliGroup",		24,110,150,20, &ob->transflag, 0, 0, 0, 0, "Enable group instancing");
-	uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_GROUP_RELINK, "GR:",	174,110,142,20, &ob->dup_group, "Instance an existing group");
+	uiDefButBitS(block, TOG, OB_DUPLIFRAMES, B_DUPLI_FRAME, "DupliFrames",	24,130,95,20, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
+	uiDefButBitS(block, TOG, OB_DUPLIVERTS, B_DUPLI_VERTS, "DupliVerts",		119,130,95,20, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
+	uiDefButBitS(block, TOG, OB_DUPLIFACES, B_DUPLI_FACES, "DupliFaces",		214,130,102,20, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all faces");
+	uiDefButBitS(block, TOG, OB_DUPLIGROUP, B_DUPLI_GROUP, "DupliGroup",		24,110,150,20, &ob->transflag, 0, 0, 0, 0, "Enable group instancing");
+	if(ob->transflag & OB_DUPLIFRAMES)
+		uiDefButBitS(block, TOG, OB_DUPLINOSPEED, REDRAWVIEW3D, "No Speed",		174,110,142,20, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
+	else if(ob->transflag & OB_DUPLIVERTS)
+		uiDefButBitS(block, TOG, OB_DUPLIROT, REDRAWVIEW3D, "Rot",				174,110,142,20, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to vertex normal");
+	else if(ob->transflag & OB_DUPLIFACES)
+		uiDefButBitS(block, TOG, OB_DUPLIFACES_SCALE, REDRAWVIEW3D, "Scale",			174,110,142,20, &ob->transflag, 0, 0, 0, 0, "Scale dupli based on face size");
+	else
+		uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_GROUP_RELINK, "GR:",	174,110,142,20, &ob->dup_group, "Instance an existing group");
 
 	uiBlockBeginAlign(block);
 	/* DupSta and DupEnd are both shorts, so the maxframe is greater then their range

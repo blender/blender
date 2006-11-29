@@ -253,6 +253,11 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 
 #define B_RECALCPATH	1401
 #define B_TRACKBUTS		1402
+#define B_DUPLI_FRAME	1403
+#define B_DUPLI_VERTS	1404
+#define B_DUPLI_FACES	1405
+#define B_DUPLI_GROUP	1406
+
 
 #define B_PRINTSPEED	1413
 #define B_PRINTLEN		1414

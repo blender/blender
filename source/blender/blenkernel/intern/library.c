@@ -538,7 +538,8 @@ ID *find_id(char *type, char *name)		/* type: "OB" or "MA" etc */
 	
 	id= lb->first;
 	while(id) {
-		if( strcmp(id->name+2, name)==0 ) return id;
+		if(id->name[2]==name[0] && strcmp(id->name+2, name)==0 ) 
+			return id;
 		id= id->next;
 	}
 	return 0;

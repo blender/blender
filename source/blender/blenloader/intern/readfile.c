@@ -3419,26 +3419,30 @@ static void lib_link_screen(FileData *fd, Main *main)
 	}
 }
 
+/* Only for undo files, or to restore a screen after reading without UI... */
 static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 {
-	ListBase *lb;
-	ID *idn=NULL;
 		
 	if(id) {
-		lb= wich_libbase(mainp, GS(id->name));
+		ListBase *lb= wich_libbase(mainp, GS(id->name));
 		
 		if(lb) {	// there's still risk of checking corrupt mem (freed Ids in oops)
-			idn= lb->first;
+			ID *idn= lb->first;
+			char *name= id->name+2;
+			
 			while(idn) {
-				if( strcmp(idn->name, id->name)==0) {
-					if(user && idn->us==0) idn->us++;
-					break;
+				if(idn->name[2]==name[0] && strcmp(idn->name+2, name)==0) {
+					if(idn->lib==id->lib) {
+						if(user && idn->us==0) idn->us++;
+						break;
+					}
 				}
 				idn= idn->next;
 			}
+			return idn;
 		}
 	}
-	return idn;
+	return NULL;
 }
 
 /* called from kernel/blender.c */

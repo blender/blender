@@ -457,6 +457,107 @@ static void vertex_duplilist(ListBase *lb, Scene *sce, Object *par)
 	dm->release(dm);
 }
 
+static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
+{
+	Object *ob;
+	Base *base;
+	DerivedMesh *dm;
+	MFace *mface;
+	MVert *mvert;
+	float pmat[4][4];
+	int lay, totface, a;
+	
+	Mat4CpyMat4(pmat, par->obmat);
+	
+	lay= G.scene->lay;
+	
+	if(par==G.obedit) {
+		int totvert;
+		dm= editmesh_get_derived_cage();
+		
+		totface= dm->getNumFaces(dm);
+		mface= MEM_mallocN(sizeof(MFace)*totface, "mface temp");
+		dm->copyFaceArray(dm, mface);
+		totvert= dm->getNumVerts(dm);
+		mvert= MEM_mallocN(sizeof(MVert)*totvert, "mvert temp");
+		dm->copyVertArray(dm, mvert);
+	}
+	else {
+		dm = mesh_get_derived_deform(par);
+		
+		totface= dm->getNumFaces(dm);
+		mface= dm->getFaceArray(dm);
+		mvert= dm->getVertArray(dm);
+	}
+	
+	
+	for(base= sce->base.first; base; base= base->next) {
+		
+		if(base->object->type>0 && (lay & base->lay) && G.obedit!=base->object) {
+			ob= base->object->parent;
+			while(ob) {
+				if(ob==par) {
+					
+					ob= base->object;
+					
+					/* mballs have a different dupli handling */
+					if(ob->type!=OB_MBALL) ob->flag |= OB_DONE;	/* doesnt render */
+
+					for(a=0; a<totface; a++) {
+						float *v1= mvert[ mface[a].v1 ].co;
+						float *v2= mvert[ mface[a].v2 ].co;
+						float *v3= mvert[ mface[a].v3 ].co;
+						float *v4= mface[a].v4?mvert[ mface[a].v4 ].co:NULL;
+						float cent[3], quat[4], mat[3][3], tmat[4][4], obmat[4][4];
+
+						/* translation */
+						if(v4)
+							CalcCent4f(cent, v1, v2, v3, v4);
+						else
+							CalcCent3f(cent, v1, v2, v3);
+						Mat4MulVecfl(pmat, cent);
+						
+						VecSubf(cent, cent, pmat[3]);
+						VecAddf(cent, cent, ob->obmat[3]);
+						
+						Mat4CpyMat4(obmat, ob->obmat);
+						VECCOPY(obmat[3], cent);
+						
+						/* rotation */
+						triatoquat(v1, v2, v3, quat);
+						QuatToMat3(quat, mat);
+						
+						/* scale */
+						if(par->transflag & OB_DUPLIFACES_SCALE) {
+							float size= v4?AreaQ3Dfl(v1, v2, v3, v4):AreaT3Dfl(v1, v2, v3);
+							size= sqrt(size);
+							Mat3MulFloat(mat[0], size);
+						}
+						
+						Mat4CpyMat4(tmat, obmat);
+						Mat4MulMat43(obmat, tmat, mat);
+						
+						new_dupli_object(lb, ob, obmat, lay, a);
+
+					}
+					
+					break;
+				}
+				ob= ob->parent;
+			}
+		}
+	}
+	
+	if(par==G.obedit) {
+		MEM_freeN(mface);
+		MEM_freeN(mvert);
+	}
+	
+	dm->release(dm);
+}
+
+
+
 static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *paf)
 {
 	Object *ob, copyob;
@@ -670,15 +771,19 @@ ListBase *object_duplilist(Scene *sce, Object *ob)
 	if(ob->transflag & OB_DUPLI) {
 		if(ob->transflag & OB_DUPLIVERTS) {
 			if(ob->type==OB_MESH) {
-				if(ob->transflag & OB_DUPLIVERTS) {
-					PartEff *paf;
-					if( (paf=give_parteff(ob)) ) particle_duplilist(&duplilist, sce, ob, paf);
-					else vertex_duplilist(&duplilist, sce, ob);
-				}
+				PartEff *paf;
+				if( (paf=give_parteff(ob)) ) 
+					particle_duplilist(&duplilist, sce, ob, paf);
+				else 
+					vertex_duplilist(&duplilist, sce, ob);
 			}
 			else if(ob->type==OB_FONT) {
 				font_duplilist(&duplilist, ob);
 			}
+		}
+		else if(ob->transflag & OB_DUPLIFACES) {
+			if(ob->type==OB_MESH)
+				face_duplilist(&duplilist, sce, ob);
 		}
 		else if(ob->transflag & OB_DUPLIFRAMES) 
 			frames_duplilist(&duplilist, ob);
