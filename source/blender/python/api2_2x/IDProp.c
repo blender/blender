@@ -84,7 +84,7 @@ PyObject *BPy_IDProperty_getattr(BPy_IDProperty *self, char *name)
 	//} else if (BSTR_EQ(name, "object")) {
 		/*hrm the idea is here is to return the wrapped ID object. how the hell
 		  do I do that? eek! */
-	} else if (BSTR_EQ(name, "__member__"))
+	} else if (BSTR_EQ(name, "__members__"))
 		return Py_BuildValue("[s, s, s]", "data", "name", "type");
 
 	return NULL;
