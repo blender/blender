@@ -30,7 +30,7 @@ class btOverlappingPairCache;
 
 #include "btCollisionCreateFunc.h"
 
-
+#define USE_DISPATCH_REGISTRY_ARRAY 1
 
 
 ///btCollisionDispatcher supports algorithms that handle ConvexConvex and ConvexConcave collision pairs.
@@ -56,7 +56,9 @@ class btCollisionDispatcher : public btDispatcher
 	btCollisionAlgorithmCreateFunc*	m_swappedCompoundCreateFunc;
 	btCollisionAlgorithmCreateFunc*   m_emptyCreateFunc;
 
+#ifndef USE_DISPATCH_REGISTRY_ARRAY
 	btCollisionAlgorithm* internalFindAlgorithm(btCollisionObject* body0,btCollisionObject* body1,btPersistentManifold* sharedManifold = 0);
+#endif //USE_DISPATCH_REGISTRY_ARRAY
 
 public:
 

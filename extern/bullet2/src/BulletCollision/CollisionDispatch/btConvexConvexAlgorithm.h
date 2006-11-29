@@ -28,23 +28,17 @@ class btConvexPenetrationDepthSolver;
 ///ConvexConvexAlgorithm collision algorithm implements time of impact, convex closest points and penetration depth calculations.
 class btConvexConvexAlgorithm : public btCollisionAlgorithm
 {
-	//ConvexPenetrationDepthSolver*	m_penetrationDepthSolver;
-	btVoronoiSimplexSolver	m_simplexSolver;
 	btGjkPairDetector m_gjkPairDetector;
-	bool	m_useEpa;
 public:
 
 	bool	m_ownManifold;
 	btPersistentManifold*	m_manifoldPtr;
 	bool			m_lowLevelOfDetail;
-
-	void	checkPenetrationDepthSolver();
-
 	
 
 public:
 
-	btConvexConvexAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* body0,btCollisionObject* body1);
+	btConvexConvexAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* body0,btCollisionObject* body1, btSimplexSolverInterface* simplexSolver, btConvexPenetrationDepthSolver* pdSolver);
 
 	virtual ~btConvexConvexAlgorithm();
 
@@ -62,9 +56,16 @@ public:
 
 	struct CreateFunc :public 	btCollisionAlgorithmCreateFunc
 	{
+		btConvexPenetrationDepthSolver*		m_pdSolver;
+		btSimplexSolverInterface*			m_simplexSolver;
+		bool	m_ownsSolvers;
+		
+		CreateFunc(btSimplexSolverInterface*			simplexSolver, btConvexPenetrationDepthSolver* pdSolver);
+		CreateFunc();
+
 		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
 		{
-			return new btConvexConvexAlgorithm(ci.m_manifold,ci,body0,body1);
+			return new btConvexConvexAlgorithm(ci.m_manifold,ci,body0,body1,m_simplexSolver,m_pdSolver);
 		}
 	};
 

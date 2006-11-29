@@ -51,7 +51,7 @@ void btSolve2LinearConstraint::resolveUnilateralPairConstraint(
 	if (fabs(len) >= SIMD_EPSILON)
 		return;
 
-	ASSERT(len < SIMD_EPSILON);
+	btAssert(len < SIMD_EPSILON);
 
 
 	//this jacobian entry could be re-used for all iterations
@@ -133,7 +133,7 @@ void btSolve2LinearConstraint::resolveBilateralPairConstraint(
 	if (fabs(len) >= SIMD_EPSILON)
 		return;
 
-	ASSERT(len < SIMD_EPSILON);
+	btAssert(len < SIMD_EPSILON);
 
 
 	//this jacobian entry could be re-used for all iterations

@@ -32,7 +32,7 @@ btTriangleIndexVertexArray::btTriangleIndexVertexArray(int numTriangles,int* tri
 
 void	btTriangleIndexVertexArray::getLockedVertexIndexBase(unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& vertexStride,unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart)
 {
-	ASSERT(subpart< getNumSubParts() );
+	btAssert(subpart< getNumSubParts() );
 	
 	btIndexedMesh& mesh = m_indexedMeshes[subpart];
 

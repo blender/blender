@@ -29,6 +29,7 @@ enum btCollisionDispatcherId
 };
 
 class btPersistentManifold;
+class btStackAlloc;
 
 struct btDispatcherInfo
 {
@@ -45,7 +46,8 @@ struct btDispatcherInfo
 		m_useContinuous(false),
 		m_debugDraw(0),
 		m_enableSatConvex(false),
-		m_enableSPU(false)
+		m_enableSPU(false),
+		m_stackAllocator(0)
 	{
 
 	}
@@ -57,6 +59,7 @@ struct btDispatcherInfo
 	class btIDebugDraw*	m_debugDraw;
 	bool	m_enableSatConvex;
 	bool	m_enableSPU;
+	btStackAlloc*	m_stackAllocator;
 	
 };
 

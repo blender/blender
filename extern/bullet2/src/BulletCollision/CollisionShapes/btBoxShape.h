@@ -220,7 +220,7 @@ public:
 			edgeVert1 = 7;
 			break;
 		default:
-			ASSERT(0);
+			btAssert(0);
 
 		}
 

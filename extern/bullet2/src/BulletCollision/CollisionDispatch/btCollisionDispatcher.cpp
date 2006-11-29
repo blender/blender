@@ -101,7 +101,7 @@ btPersistentManifold*	btCollisionDispatcher::getNewManifold(void* b0,void* b1)
 { 
 	gNumManifold++;
 	
-	//ASSERT(gNumManifold < 65535);
+	//btAssert(gNumManifold < 65535);
 	
 
 	btCollisionObject* body0 = (btCollisionObject*)b0;
@@ -145,7 +145,7 @@ void btCollisionDispatcher::releaseManifold(btPersistentManifold* manifold)
 
 btCollisionAlgorithm* btCollisionDispatcher::findAlgorithm(btCollisionObject* body0,btCollisionObject* body1,btPersistentManifold* sharedManifold)
 {
-#define USE_DISPATCH_REGISTRY_ARRAY 1
+
 #ifdef USE_DISPATCH_REGISTRY_ARRAY
 	
 	btCollisionAlgorithmConstructionInfo ci;
@@ -194,6 +194,7 @@ btCollisionAlgorithmCreateFunc* btCollisionDispatcher::internalFindCreateFunc(in
 }
 
 
+#ifndef USE_DISPATCH_REGISTRY_ARRAY
 
 btCollisionAlgorithm* btCollisionDispatcher::internalFindAlgorithm(btCollisionObject* body0,btCollisionObject* body1,btPersistentManifold* sharedManifold)
 {
@@ -232,6 +233,7 @@ btCollisionAlgorithm* btCollisionDispatcher::internalFindAlgorithm(btCollisionOb
 	return new btEmptyAlgorithm(ci);
 	
 }
+#endif //USE_DISPATCH_REGISTRY_ARRAY
 
 bool	btCollisionDispatcher::needsResponse(btCollisionObject* body0,btCollisionObject* body1)
 {

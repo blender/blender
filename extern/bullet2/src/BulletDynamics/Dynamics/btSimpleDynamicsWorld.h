@@ -46,8 +46,6 @@ protected:
 public:
 
 
-	///this btSimpleDynamicsWorld constructor creates and owns dispatcher, broadphase pairCache and constraintSolver
-	btSimpleDynamicsWorld();
 
 	///this btSimpleDynamicsWorld constructor creates dispatcher, broadphase pairCache and constraintSolver
 	btSimpleDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver);

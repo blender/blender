@@ -29,7 +29,7 @@ subject to the following restrictions:
 
 /// btEmptyShape is a collision shape without actual collision detection. 
 ///It can be replaced by another shape during runtime
-class btEmptyShape	: public ConcaveShape
+class btEmptyShape	: public btConcaveShape
 {
 public:
 	btEmptyShape();

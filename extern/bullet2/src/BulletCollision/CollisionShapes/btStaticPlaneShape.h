@@ -21,7 +21,7 @@ subject to the following restrictions:
 
 ///StaticPlaneShape simulates an 'infinite' plane by dynamically reporting triangles approximated by intersection of the plane with the AABB.
 ///Assumed is that the other objects is not also infinite, so a reasonable sized AABB.
-class btStaticPlaneShape : public ConcaveShape
+class btStaticPlaneShape : public btConcaveShape
 {
 protected:
 	btVector3	m_localAabbMin;

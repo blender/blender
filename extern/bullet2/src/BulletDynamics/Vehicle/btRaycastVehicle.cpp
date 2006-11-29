@@ -386,21 +386,21 @@ void	btRaycastVehicle::applyEngineForce(btScalar force, int wheel)
 
 const btWheelInfo&	btRaycastVehicle::getWheelInfo(int index) const
 {
-	ASSERT((index >= 0) && (index < 	getNumWheels()));
+	btAssert((index >= 0) && (index < 	getNumWheels()));
 	
 	return m_wheelInfo[index];
 }
 
 btWheelInfo&	btRaycastVehicle::getWheelInfo(int index) 
 {
-	ASSERT((index >= 0) && (index < 	getNumWheels()));
+	btAssert((index >= 0) && (index < 	getNumWheels()));
 	
 	return m_wheelInfo[index];
 }
 
 void btRaycastVehicle::setBrake(float brake,int wheelIndex)
 {
-	ASSERT((wheelIndex >= 0) && (wheelIndex < 	getNumWheels()));
+	btAssert((wheelIndex >= 0) && (wheelIndex < 	getNumWheels()));
 	getWheelInfo(wheelIndex).m_brake;
 }
 

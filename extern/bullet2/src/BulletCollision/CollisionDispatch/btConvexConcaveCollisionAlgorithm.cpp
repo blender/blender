@@ -172,7 +172,7 @@ void btConvexConcaveCollisionAlgorithm::processCollision (btCollisionObject* bod
 
 
 		btCollisionObject*	triOb = triBody;
-		ConcaveShape* concaveShape = static_cast<ConcaveShape*>( triOb->getCollisionShape());
+		btConcaveShape* concaveShape = static_cast<btConcaveShape*>( triOb->getCollisionShape());
 		
 		if (convexBody->getCollisionShape()->isConvex())
 		{
@@ -288,7 +288,7 @@ float btConvexConcaveCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject
 
 		btCollisionObject* concavebody = triBody;
 
-		ConcaveShape* triangleMesh = (ConcaveShape*) concavebody->getCollisionShape();
+		btConcaveShape* triangleMesh = (btConcaveShape*) concavebody->getCollisionShape();
 		
 		if (triangleMesh)
 		{

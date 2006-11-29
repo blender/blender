@@ -23,6 +23,8 @@ Nov.2006
 #define _05E48D53_04E0_49ad_BB0A_D74FE62E7366_
 #include "BulletCollision/CollisionShapes/btConvexShape.h"
 
+class btStackAlloc;
+
 ///btGjkEpaSolver contributed under zlib by Nathanael Presson
 struct	btGjkEpaSolver
 {
@@ -44,6 +46,7 @@ struct	sResults
 static bool	Collide(btConvexShape* shape0,const btTransform& wtrs0,
 					btConvexShape* shape1,const btTransform& wtrs1,
 					btScalar	radialmargin,
+					btStackAlloc* stackAlloc,
 					sResults&	results);
 };
 

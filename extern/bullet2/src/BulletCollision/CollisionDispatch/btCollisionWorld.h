@@ -64,7 +64,7 @@ subject to the following restrictions:
 #ifndef COLLISION_WORLD_H
 #define COLLISION_WORLD_H
 
-
+class btStackAlloc;
 class btCollisionShape;
 class btBroadphaseInterface;
 #include "LinearMath/btVector3.h"
@@ -88,6 +88,10 @@ protected:
 	
 	btDispatcher*	m_dispatcher1;
 
+	btDispatcherInfo	m_dispatchInfo;
+
+	btStackAlloc*	m_stackAlloc;
+
 	btOverlappingPairCache*	m_broadphasePairCache;
 	
 	bool	m_ownsDispatcher;
@@ -95,11 +99,8 @@ protected:
 
 public:
 
-	//this constructor will create and own a dispatcher and paircache and delete it at destruction
-	btCollisionWorld();
-
 	//this constructor doesn't own the dispatcher and paircache/broadphase
-	btCollisionWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache);
+	btCollisionWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache, int stackSize = 2*1024*1024);
 
 	virtual ~btCollisionWorld();
 
@@ -237,7 +238,12 @@ public:
 	void	removeCollisionObject(btCollisionObject* collisionObject);
 
 	virtual void	performDiscreteCollisionDetection(	btDispatcherInfo&	dispatchInfo);
-	
+
+	btDispatcherInfo& getDispatchInfo()
+	{
+		return m_dispatchInfo;
+	}
+
 };
 
 

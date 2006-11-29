@@ -76,7 +76,7 @@ void	btStridingMeshInterface::InternalProcessAllTriangles(btInternalTriangleInde
 				break;
 			}
 		default:
-			ASSERT((gfxindextype == PHY_INTEGER) || (gfxindextype == PHY_SHORT));
+			btAssert((gfxindextype == PHY_INTEGER) || (gfxindextype == PHY_SHORT));
 		}
 
 		unLockReadOnlyVertexBase(part);

@@ -86,13 +86,13 @@ public:
 
 	inline const btManifoldPoint& getContactPoint(int index) const
 	{
-		ASSERT(index < m_cachedPoints);
+		btAssert(index < m_cachedPoints);
 		return m_pointCache[index];
 	}
 
 	inline btManifoldPoint& getContactPoint(int index)
 	{
-		ASSERT(index < m_cachedPoints);
+		btAssert(index < m_cachedPoints);
 		return m_pointCache[index];
 	}
 

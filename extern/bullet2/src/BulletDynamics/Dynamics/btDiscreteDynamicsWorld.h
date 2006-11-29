@@ -23,7 +23,8 @@ class btOverlappingPairCache;
 class btConstraintSolver;
 class btSimulationIslandManager;
 class btTypedConstraint;
-struct btContactSolverInfo;
+#include "BulletDynamics/ConstraintSolver/btContactSolverInfo.h"
+
 class btRaycastVehicle;
 class btIDebugDraw;
 
@@ -51,6 +52,9 @@ protected:
 
 	bool	m_ownsIslandManager;
 	bool	m_ownsConstraintSolver;
+
+	btContactSolverInfo	m_solverInfo;
+
 
 	std::vector<btRaycastVehicle*>	m_vehicles;
 
@@ -83,11 +87,8 @@ public:
 
 
 	///this btDiscreteDynamicsWorld constructor gets created objects from the user, and will not delete those
-	btDiscreteDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver=0);
+	btDiscreteDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver);
 
-	///this btDiscreteDynamicsWorld will create and own dispatcher, pairCache and constraintSolver, and deletes it in the destructor.
-	btDiscreteDynamicsWorld(btConstraintSolver* constraintSolver = 0);
-		
 	virtual ~btDiscreteDynamicsWorld();
 
 	///if maxSubSteps > 0, it will interpolate motion between fixedTimeStep's
@@ -143,6 +144,11 @@ public:
 	virtual btTypedConstraint* getConstraint(int index)	;
 
 	virtual const btTypedConstraint* getConstraint(int index) const;
+
+	btContactSolverInfo& getSolverInfo()
+	{
+		return m_solverInfo;
+	}
 
 
 };

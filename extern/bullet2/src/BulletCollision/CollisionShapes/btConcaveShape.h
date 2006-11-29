@@ -24,15 +24,15 @@ subject to the following restrictions:
 
 ///Concave shape proves an interface concave shapes that can produce triangles that overlapping a given AABB.
 ///Static triangle mesh, infinite plane, height field/landscapes are example that implement this interface.
-class ConcaveShape : public btCollisionShape
+class btConcaveShape : public btCollisionShape
 {
 protected:
 	float m_collisionMargin;
 
 public:
-	ConcaveShape();
+	btConcaveShape();
 
-	virtual ~ConcaveShape();
+	virtual ~btConcaveShape();
 
 	virtual void	processAllTriangles(btTriangleCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const = 0;
 

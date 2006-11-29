@@ -23,7 +23,7 @@ bool btGjkEpaPenetrationDepthSolver::calcPenDepth( btSimplexSolverInterface& sim
 											  btConvexShape* pConvexA, btConvexShape* pConvexB,
 											  const btTransform& transformA, const btTransform& transformB,
 											  btVector3& v, btPoint3& wWitnessOnA, btPoint3& wWitnessOnB,
-											  class btIDebugDraw* debugDraw )
+											  class btIDebugDraw* debugDraw, btStackAlloc* stackAlloc )
 {
 
 
@@ -32,7 +32,7 @@ bool btGjkEpaPenetrationDepthSolver::calcPenDepth( btSimplexSolverInterface& sim
 	btGjkEpaSolver::sResults	results;
 	if(btGjkEpaSolver::Collide(	pConvexA,transformA,
 								pConvexB,transformB,
-								radialmargin,results))
+								radialmargin,stackAlloc,results))
 		{
 	//	debugDraw->drawLine(results.witnesses[1],results.witnesses[1]+results.normal,btVector3(255,0,0));
 		//resultOut->addContactPoint(results.normal,results.witnesses[1],-results.depth);

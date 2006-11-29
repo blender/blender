@@ -22,13 +22,7 @@ subject to the following restrictions:
 #include "BulletDynamics/ConstraintSolver/btContactSolverInfo.h"
 
 
-btSimpleDynamicsWorld::btSimpleDynamicsWorld()
-:m_constraintSolver(new btSequentialImpulseConstraintSolver),
-m_ownsConstraintSolver(true),
-m_debugDrawer(0),
-m_gravity(0,0,-10)
-{
-}
+
 
 btSimpleDynamicsWorld::btSimpleDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver)
 :btDynamicsWorld(dispatcher,pairCache),

@@ -17,6 +17,7 @@ subject to the following restrictions:
 #ifndef CONVEX_PENETRATION_DEPTH_H
 #define CONVEX_PENETRATION_DEPTH_H
 
+class btStackAlloc;
 class btVector3;
 #include "btSimplexSolverInterface.h"
 class btConvexShape;
@@ -33,7 +34,7 @@ public:
 		btConvexShape* convexA,btConvexShape* convexB,
 					const btTransform& transA,const btTransform& transB,
 				btVector3& v, btPoint3& pa, btPoint3& pb,
-				class btIDebugDraw* debugDraw
+				class btIDebugDraw* debugDraw,btStackAlloc* stackAlloc
 				) = 0;
 
 

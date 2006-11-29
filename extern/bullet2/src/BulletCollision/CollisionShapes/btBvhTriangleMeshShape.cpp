@@ -15,7 +15,6 @@ subject to the following restrictions:
 
 //#define DISABLE_BVH
 
-
 #include "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
 #include "BulletCollision/CollisionShapes/btOptimizedBvh.h"
 

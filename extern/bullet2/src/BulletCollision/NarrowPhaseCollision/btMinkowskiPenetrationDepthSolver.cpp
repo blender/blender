@@ -74,7 +74,7 @@ bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& s
 												   btConvexShape* convexA,btConvexShape* convexB,
 												   const btTransform& transA,const btTransform& transB,
 												   btVector3& v, btPoint3& pa, btPoint3& pb,
-												   class btIDebugDraw* debugDraw
+												   class btIDebugDraw* debugDraw,btStackAlloc* stackAlloc
 												   )
 {
 

@@ -44,6 +44,8 @@ CONCAVE_SHAPES_START_HERE,
 	TRIANGLE_MESH_SHAPE_PROXYTYPE,
 	///used for demo integration FAST/Swift collision library and Bullet
 	FAST_CONCAVE_MESH_PROXYTYPE,
+	//terrain
+	TERRAIN_SHAPE_PROXYTYPE,
 ///Used for GIMPACT Trimesh integration
 	GIMPACT_SHAPE_PROXYTYPE,
 	

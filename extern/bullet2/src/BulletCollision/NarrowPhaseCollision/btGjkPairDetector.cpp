@@ -20,6 +20,10 @@ subject to the following restrictions:
 
 #if defined(DEBUG) || defined (_DEBUG)
 #include <stdio.h> //for debug printf
+#ifdef __SPU__
+#include <spu_printf.h>
+#define printf spu_printf
+#endif //__SPU__
 #endif
 
 //must be above the machine epsilon
@@ -29,10 +33,7 @@ subject to the following restrictions:
 int gNumDeepPenetrationChecks = 0;
 int gNumGjkChecks = 0;
 
-#ifdef __SPU__
-#include <spu_printf.h>
-#define printf spu_printf
-#endif //__SPU__
+
 
 btGjkPairDetector::btGjkPairDetector(btConvexShape* objectA,btConvexShape* objectB,btSimplexSolverInterface* simplexSolver,btConvexPenetrationDepthSolver*	penetrationDepthSolver)
 :m_cachedSeparatingAxis(0.f,0.f,1.f),
@@ -202,7 +203,7 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 				normalInB *= rlen; //normalize
 				btScalar s = btSqrt(squaredDistance);
 			
-				ASSERT(s > btScalar(0.0));
+				btAssert(s > btScalar(0.0));
 				pointOnA -= m_cachedSeparatingAxis * (marginA / s);
 				pointOnB += m_cachedSeparatingAxis * (marginB / s);
 				distance = ((1.f/rlen) - margin);
@@ -236,7 +237,7 @@ void btGjkPairDetector::getClosestPoints(const ClosestPointInput& input,Result& 
 					m_minkowskiA,m_minkowskiB,
 					localTransA,localTransB,
 					m_cachedSeparatingAxis, tmpPointOnA, tmpPointOnB,
-					debugDraw
+					debugDraw,input.m_stackAlloc
 					);
 
 				if (isValid2)

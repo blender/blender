@@ -57,19 +57,6 @@ subject to the following restrictions:
 #include <algorithm>
 
 
-btDiscreteDynamicsWorld::btDiscreteDynamicsWorld(btConstraintSolver* constraintSolver)
-:btDynamicsWorld(),
-m_constraintSolver(constraintSolver? constraintSolver: new btSequentialImpulseConstraintSolver),
-m_debugDrawer(0),
-m_gravity(0,-10,0),
-m_localTime(1.f/60.f),
-m_profileTimings(0)
-{
-	m_islandManager = new btSimulationIslandManager();
-	m_ownsIslandManager = true;
-	m_ownsConstraintSolver = (constraintSolver==0);
-}
-
 
 btDiscreteDynamicsWorld::btDiscreteDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver)
 :btDynamicsWorld(dispatcher,pairCache),
@@ -267,27 +254,27 @@ void	btDiscreteDynamicsWorld::internalSingleStepSimulation(float timeStep)
 	///apply gravity, predict motion
 	predictUnconstraintMotion(timeStep);
 
-	btDispatcherInfo	dispatchInfo;
+	btDispatcherInfo& dispatchInfo = getDispatchInfo();
+
 	dispatchInfo.m_timeStep = timeStep;
 	dispatchInfo.m_stepCount = 0;
 	dispatchInfo.m_debugDraw = getDebugDrawer();
-
 
 	///perform collision detection
 	performDiscreteCollisionDetection(dispatchInfo);
 
 	calculateSimulationIslands();
 
-	btContactSolverInfo infoGlobal;
-	infoGlobal.m_timeStep = timeStep;
+	
+	getSolverInfo().m_timeStep = timeStep;
 	
 
 
 	///solve non-contact constraints
-	solveNoncontactConstraints(infoGlobal);
+	solveNoncontactConstraints(getSolverInfo());
 	
 	///solve contact constraints
-	solveContactConstraints(infoGlobal);
+	solveContactConstraints(getSolverInfo());
 
 	///CallbackTriggers();
 

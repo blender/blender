@@ -25,6 +25,7 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btBroadphaseInterface.h"
 #include "LinearMath/btAabbUtil2.h"
 #include "LinearMath/btQuickprof.h"
+#include "LinearMath/btStackAlloc.h"
 
 //When the user doesn't provide dispatcher or broadphase, create basic versions (and delete them in destructor)
 #include "BulletCollision/CollisionDispatch/btCollisionDispatcher.h"
@@ -32,26 +33,22 @@ subject to the following restrictions:
 
 #include <algorithm>
 
-btCollisionWorld::btCollisionWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache)
+btCollisionWorld::btCollisionWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache, int stackSize)
 :m_dispatcher1(dispatcher),
 m_broadphasePairCache(pairCache),
 m_ownsDispatcher(false),
 m_ownsBroadphasePairCache(false)
 {
-}
-
-
-btCollisionWorld::btCollisionWorld()
-: m_dispatcher1(new	btCollisionDispatcher()),
-m_broadphasePairCache(new btSimpleBroadphase()),
-m_ownsDispatcher(true),
-m_ownsBroadphasePairCache(true)
-{
+	m_stackAlloc = new btStackAlloc(stackSize);
+	m_dispatchInfo.m_stackAllocator = m_stackAlloc;
 }
 
 
 btCollisionWorld::~btCollisionWorld()
 {
+	m_stackAlloc->destroy();
+	delete m_stackAlloc;
+
 	//clean up remaining objects
 	std::vector<btCollisionObject*>::iterator i;
 

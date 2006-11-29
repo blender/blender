@@ -13,40 +13,31 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef TRIANGLE_MESH_SHAPE_H
-#define TRIANGLE_MESH_SHAPE_H
+#ifndef HEIGHTFIELD_TERRAIN_SHAPE_H
+#define HEIGHTFIELD_TERRAIN_SHAPE_H
 
 #include "BulletCollision/CollisionShapes/btConcaveShape.h"
-#include "BulletCollision/CollisionShapes/btStridingMeshInterface.h"
 
-
-///Concave triangle mesh. Uses an interface to access the triangles to allow for sharing graphics/physics triangles.
-class btTriangleMeshShape : public btConcaveShape
+///btHeightfieldTerrainShape simulates a 2D heightfield terrain 
+class btHeightfieldTerrainShape : public btConcaveShape
 {
 protected:
-	btStridingMeshInterface* m_meshInterface;
 	btVector3	m_localAabbMin;
 	btVector3	m_localAabbMax;
 	
+	//todo: terrain data
+
+	btVector3	m_localScaling;
 
 public:
-	btTriangleMeshShape(btStridingMeshInterface* meshInterface);
+	btHeightfieldTerrainShape();
 
-	virtual ~btTriangleMeshShape();
+	virtual ~btHeightfieldTerrainShape();
 
-	virtual btVector3 localGetSupportingVertex(const btVector3& vec) const;
-
-	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const
-	{
-		assert(0);
-		return localGetSupportingVertex(vec);
-	}
-
-	void	recalcLocalAabb();
 
 	virtual int	getShapeType() const
 	{
-		return TRIANGLE_MESH_SHAPE_PROXYTYPE;
+		return TERRAIN_SHAPE_PROXYTYPE;
 	}
 
 	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const;
@@ -56,13 +47,12 @@ public:
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
 
 	virtual void	setLocalScaling(const btVector3& scaling);
+	
 	virtual const btVector3& getLocalScaling() const;
 	
-
 	//debugging
-	virtual char*	getName()const {return "TRIANGLEMESH";}
-
+	virtual char*	getName()const {return "HEIGHTFIELD";}
 
 };
 
-#endif //TRIANGLE_MESH_SHAPE_H
+#endif //HEIGHTFIELD_TERRAIN_SHAPE_H

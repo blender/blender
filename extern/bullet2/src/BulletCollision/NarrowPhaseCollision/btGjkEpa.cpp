@@ -26,6 +26,15 @@ Nov.2006
 
 #include "btGjkEpa.h"
 #include <string.h> //for memset
+#include <LinearMath/btStackAlloc.h>
+
+#if defined(DEBUG) || defined (_DEBUG)
+#include <stdio.h> //for debug printf
+#ifdef __SPU__
+#include <spu_printf.h>
+#define printf spu_printf
+#endif //__SPU__
+#endif
 
 namespace gjkepa_impl
 {
@@ -58,21 +67,18 @@ typedef btMatrix3x3		Rotation;
 // Const
 //
 
-static const U			chkPrecision		=1/U(sizeof(F)==4);
 
-static const F			cstInf				=F(1/sin(0.));
-static const F			cstPi				=F(acos(-1.));
-static const F			cst2Pi				=cstPi*2;
-
-static const U			GJK_maxiterations	=128;
-static const U			GJK_hashsize		=1<<6;
-static const U			GJK_hashmask		=GJK_hashsize-1;
-static const F			GJK_insimplex_eps	=F(0.0001);
-static const F			GJK_sqinsimplex_eps	=GJK_insimplex_eps*GJK_insimplex_eps;
-
-static const U			EPA_maxiterations	=256;
-static const F			EPA_inface_eps		=F(0.01);
-static const F			EPA_accuracy		=F(0.001);
+#define cstInf				SIMD_INFINITY
+#define cstPi				SIMD_PI
+#define	cst2Pi				SIMD_2_PI
+#define GJK_maxiterations	(128)
+#define GJK_hashsize		(1<<6)
+#define GJK_hashmask		(GJK_hashsize-1)
+#define GJK_insimplex_eps	F(0.0001)
+#define GJK_sqinsimplex_eps	(GJK_insimplex_eps*GJK_insimplex_eps)
+#define EPA_maxiterations	256
+#define	EPA_inface_eps		F(0.01)
+#define EPA_accuracy		F(0.001)
 
 //
 // Utils
@@ -95,80 +101,7 @@ throw(object); }
 template <typename T> static inline void	Raise(const T&)				{}
 #endif
 
-	struct Block
-		{
-		Block*	previous;
-		U1*		address;
-		};
 
-//
-// StackAlloc
-//
-struct StackAlloc
-	{
-	
-
-				StackAlloc()		{ ctor(); }
-				StackAlloc(U size)	{ ctor();Create(size); }
-				~StackAlloc()		{ Free(); }
-	void		Create(U size)
-		{
-		Free();
-		data		=	new U1[size];
-		totalsize	=	size;
-		}
-	void		Free()
-		{
-		if(usedsize==0)
-			{
-			if(!ischild)		delete[] data;
-			data				=	0;
-			usedsize			=	0;
-			} else Raise(L"StackAlloc is still in use");
-		}
-		U1*			Allocate(U size)
-		{
-		const U	nus(usedsize+size);
-		if(nus<totalsize)
-			{
-			usedsize=nus;
-			return(data+(usedsize-size));
-			}
-		Raise(L"Not enough memory");
-		return(0);
-		}
-	Block*		BeginBlock()
-		{
-		Block*	pb = (Block*)Allocate(sizeof(Block));
-		pb->previous	=	current;
-		pb->address		=	data+usedsize;
-		current			=	pb;
-		return(pb);
-		}
-	void		EndBlock(Block* block)
-		{
-		if(block==current)
-			{
-			current		=	block->previous;
-			usedsize	=	(U)((block->address-data)-sizeof(Block));
-			} else Raise(L"Unmatched blocks");
-		}
-
-	private:
-	void		ctor()
-		{
-		data		=	0;
-		totalsize	=	0;
-		usedsize	=	0;
-		current		=	0;
-		ischild		=	false;
-		}
-	U1*		data;
-	U		totalsize;
-	U		usedsize;
-	Block*	current;
-	Z		ischild;
-	};
 
 //
 // GJK
@@ -185,8 +118,8 @@ struct	GJK
 		Vector3	v;
 		He*		n;
 		};
-	StackAlloc*				sa;
-	Block*		sablock;
+	btStackAlloc*				sa;
+	btBlock*		sablock;
 	He*						table[GJK_hashsize];
 	Rotation				wrotations[2];
 	Vector3					positions[2];
@@ -198,7 +131,7 @@ struct	GJK
 	F						margin;
 	Z						failed;
 	//
-					GJK(StackAlloc* psa,
+					GJK(btStackAlloc* psa,
 						const Rotation& wrot0,const Vector3& pos0,const btConvexShape* shape0,
 						const Rotation& wrot1,const Vector3& pos1,const btConvexShape* shape1,
 						F pmargin=0)
@@ -206,14 +139,14 @@ struct	GJK
 		wrotations[0]=wrot0;positions[0]=pos0;shapes[0]=shape0;
 		wrotations[1]=wrot1;positions[1]=pos1;shapes[1]=shape1;
 		sa		=psa;
-		sablock	=sa->BeginBlock();
+		sablock	=sa->beginBlock();
 		margin	=pmargin;
 		failed	=false;
 		}
 	//
 					~GJK()
 		{
-		sa->EndBlock(sablock);
+		sa->endBlock(sablock);
 		}
 	// vdh : very dumm hash
 	static inline U	Hash(const Vector3& v)
@@ -243,7 +176,7 @@ struct	GJK
 		const U			h(Hash(ray));
 		He*				e = (He*)(table[h]);
 		while(e) { if(e->v==ray) { --order;return(false); } else e=e->n; }
-		e=(He*)sa->Allocate(sizeof(He));e->v=ray;e->n=table[h];table[h]=e;
+		e=(He*)sa->allocate(sizeof(He));e->v=ray;e->n=table[h];table[h]=e;
 		Support(ray,simplex[++order]);
 		return(ray.dot(SPXW(order))>0);
 		}
@@ -401,7 +334,7 @@ struct	EPA
 		};
 	//
 	GJK*			gjk;
-	StackAlloc*		sa;
+	btStackAlloc*		sa;
 	Face*			root;
 	U				nfaces;
 	U				iterations;
@@ -464,7 +397,7 @@ c) const
 	//
 	inline Face*	NewFace(const GJK::Mkv* a,const GJK::Mkv* b,const GJK::Mkv* c)
 		{
-		Face*	pf = (Face*)sa->Allocate(sizeof(Face));
+		Face*	pf = (Face*)sa->allocate(sizeof(Face));
 		if(Set(pf,a,b,c))
 			{
 			if(root) root->prev=pf;
@@ -506,7 +439,7 @@ c) const
 	//
 	GJK::Mkv*		Support(const Vector3& w) const
 		{
-		GJK::Mkv*		v =(GJK::Mkv*)sa->Allocate(sizeof(GJK::Mkv));
+		GJK::Mkv*		v =(GJK::Mkv*)sa->allocate(sizeof(GJK::Mkv));
 		gjk->Support(w,*v);
 		return(v);
 		}
@@ -540,7 +473,7 @@ ff)
 	//
 	inline F		EvaluatePD(F accuracy=EPA_accuracy)
 		{
-		Block*	sablock = sa->BeginBlock();
+		btBlock*	sablock = sa->beginBlock();
 		Face*				bestface = 0;
 		U					markid(1);
 		depth		=	-cstInf;
@@ -579,7 +512,7 @@ U	eidx[9][4]={{0,0,4,0},{0,1,2,1},{0,2,1,2},{1,1,5,2},{1,0,2,0},{2,2,3,2},{3,1,5
 			U i;
 
 			for( i=0;i<=gjk->order;++i)		{ 
-basemkv[i]=(GJK::Mkv*)sa->Allocate(sizeof(GJK::Mkv));*basemkv[i]=gjk->simplex[i]; 
+basemkv[i]=(GJK::Mkv*)sa->allocate(sizeof(GJK::Mkv));*basemkv[i]=gjk->simplex[i]; 
 }
 			for( i=0;i<nfidx;++i,pfidx+=3)		{ 
 basefaces[i]=NewFace(basemkv[pfidx[0]],basemkv[pfidx[1]],basemkv[pfidx[2]]); 
@@ -589,7 +522,7 @@ Link(basefaces[peidx[0]],peidx[1],basefaces[peidx[2]],peidx[3]); }
 			}
 		if(0==nfaces)
 			{
-			sa->EndBlock(sablock);
+			sa->endBlock(sablock);
 			return(depth);
 			}
 		/* Expand hull		*/
@@ -632,7 +565,7 @@ nf+=BuildHorizon(markid,w,*bf->f[i],bf->e[i],cf,ff); }
 			nearest[0]		=	features[0][0]*b.x()+features[0][1]*b.y()+features[0][2]*b.z();
 			nearest[1]		=	features[1][0]*b.x()+features[1][1]*b.y()+features[1][2]*b.z();
 			} else failed=true;
-		sa->EndBlock(sablock);
+		sa->endBlock(sablock);
 		return(depth);
 		}
 	};
@@ -644,17 +577,17 @@ nf+=BuildHorizon(markid,w,*bf->f[i],bf->e[i],cf,ff); }
 
 using namespace	gjkepa_impl;
 
-/* Need some kind of stackalloc , create a static one till bullet provide
-one.	*/
-static const U		g_sasize((1024<<10)*2);
-static StackAlloc	g_sa(g_sasize);
+
 
 //
 bool	btGjkEpaSolver::Collide(btConvexShape *shape0,const btTransform &wtrs0,
 								btConvexShape *shape1,const btTransform &wtrs1,
 								btScalar	radialmargin,
+								btStackAlloc* stackAlloc,
 								sResults&	results)
 {
+	
+
 /* Initialize					*/
 results.witnesses[0]	=
 results.witnesses[1]	=
@@ -664,7 +597,7 @@ results.status			=	sResults::Separated;
 results.epa_iterations	=	0;
 results.gjk_iterations	=	0;
 /* Use GJK to locate origin		*/
-GJK			gjk(&g_sa,
+GJK			gjk(stackAlloc,
 				wtrs0.getBasis(),wtrs0.getOrigin(),shape0,
 				wtrs1.getBasis(),wtrs1.getOrigin(),shape1,
 				radialmargin+EPA_accuracy);

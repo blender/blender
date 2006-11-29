@@ -61,37 +61,28 @@ subject to the following restrictions:
 
 #endif //USE_HULL
 
-bool gUseEpa = true;
 
+btConvexConvexAlgorithm::CreateFunc::CreateFunc()
+{
+	m_ownsSolvers = true;
+	m_simplexSolver = new btVoronoiSimplexSolver();
+	m_pdSolver = new btGjkEpaPenetrationDepthSolver;
+}
 
-#ifdef WIN32
-void DrawRasterizerLine(const float* from,const float* to,int color);
-#endif
+btConvexConvexAlgorithm::CreateFunc::CreateFunc(btSimplexSolverInterface*			simplexSolver, btConvexPenetrationDepthSolver* pdSolver)
+{
+	m_ownsSolvers = false;
+	m_simplexSolver = simplexSolver;
+	m_pdSolver = pdSolver;
+}
 
-
-
-
-//#define PROCESS_SINGLE_CONTACT
-#ifdef WIN32
-bool gForceBoxBox = false;//false;//true;
-
-#else
-bool gForceBoxBox = false;//false;//true;
-#endif
-bool gBoxBoxUseGjk = true;//true;//false;
-bool gDisableConvexCollision = false;
-
-
-
-btConvexConvexAlgorithm::btConvexConvexAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* body0,btCollisionObject* body1)
+btConvexConvexAlgorithm::btConvexConvexAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* body0,btCollisionObject* body1,btSimplexSolverInterface* simplexSolver, btConvexPenetrationDepthSolver* pdSolver)
 : btCollisionAlgorithm(ci),
-m_gjkPairDetector(0,0,&m_simplexSolver,0),
-m_useEpa(!gUseEpa),
+m_gjkPairDetector(0,0,simplexSolver,pdSolver),
 m_ownManifold (false),
 m_manifoldPtr(mf),
 m_lowLevelOfDetail(false)
 {
-	checkPenetrationDepthSolver();
 
 }
 
@@ -114,27 +105,6 @@ void	btConvexConvexAlgorithm ::setLowLevelOfDetail(bool useLowLevel)
 
 
 
-
-static btGjkEpaPenetrationDepthSolver	gEpaPenetrationDepthSolver;
-static btMinkowskiPenetrationDepthSolver	gPenetrationDepthSolver;
-
-
-
-void	btConvexConvexAlgorithm::checkPenetrationDepthSolver()
-{
-	if (m_useEpa != gUseEpa)
-	{
-		m_useEpa  = gUseEpa;
-		if (m_useEpa)
-		{
-			m_gjkPairDetector.setPenetrationDepthSolver(&gEpaPenetrationDepthSolver);
-		} else
-		{
-			m_gjkPairDetector.setPenetrationDepthSolver(&gPenetrationDepthSolver);
-		}
-	}
-	
-}
 
 
 //
@@ -164,7 +134,6 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 		resultOut->addContactPoint(results.normal,results.witnesses[1],-results.depth);
 		}
 #else
-	checkPenetrationDepthSolver();
 
 	btConvexShape* min0 = static_cast<btConvexShape*>(body0->getCollisionShape());
 	btConvexShape* min1 = static_cast<btConvexShape*>(body1->getCollisionShape());
@@ -176,7 +145,8 @@ void btConvexConvexAlgorithm ::processCollision (btCollisionObject* body0,btColl
 	m_gjkPairDetector.setMinkowskiB(min1);
 	input.m_maximumDistanceSquared = min0->getMargin() + min1->getMargin() + m_manifoldPtr->getContactBreakingThreshold();
 	input.m_maximumDistanceSquared*= input.m_maximumDistanceSquared;
-	
+	input.m_stackAlloc = dispatchInfo.m_stackAllocator;
+
 //	input.m_maximumDistanceSquared = 1e30f;
 	
 	input.m_transformA = body0->getWorldTransform();
@@ -209,7 +179,6 @@ float	btConvexConvexAlgorithm::calculateTimeOfImpact(btCollisionObject* col0,btC
 	if (disableCcd)
 		return 1.f;
 
-	checkPenetrationDepthSolver();
 
 	//An adhoc way of testing the Continuous Collision Detection algorithms
 	//One object is approximated as a sphere, to simplify things

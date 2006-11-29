@@ -59,7 +59,7 @@ public:
 
 	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax)const 
 	{
-//		ASSERT(0);
+//		btAssert(0);
 		getAabbSlow(t,aabbMin,aabbMax);
 	}
 
@@ -116,7 +116,7 @@ public:
 
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia)
 	{
-		ASSERT(0);
+		btAssert(0);
 		inertia.setValue(0.f,0.f,0.f);
 	}
 

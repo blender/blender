@@ -17,12 +17,12 @@ subject to the following restrictions:
 
 #include "btConcaveShape.h"
 
-ConcaveShape::ConcaveShape() : m_collisionMargin(0.f)
+btConcaveShape::btConcaveShape() : m_collisionMargin(0.f)
 {
 
 }
 
-ConcaveShape::~ConcaveShape()
+btConcaveShape::~btConcaveShape()
 {
 
 }

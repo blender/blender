@@ -37,7 +37,7 @@ subject to the following restrictions:
 		//#define ATTRIBUTE_ALIGNED16(a) __declspec(align(16)) a
 		#define ATTRIBUTE_ALIGNED16(a) a
 		#include <assert.h>
-		#define ASSERT assert
+		#define btAssert assert
 #else
 	
 	//non-windows systems
@@ -47,7 +47,7 @@ subject to the following restrictions:
 		#ifndef assert
 		#include <assert.h>
 		#endif
-		#define ASSERT assert
+		#define btAssert assert
 #endif
 
 
