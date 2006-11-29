@@ -18,9 +18,11 @@
  *****************************************************************************/
 
 bool Attribute::initChannel(int elemSize) {
+	elemSize=0; // remove warning
 	return false;
 }
 string Attribute::getAsString(bool debug) {
+	debug=false; // remove warning
 	return string("");
 }
 int Attribute::getAsInt() {
@@ -36,6 +38,7 @@ ntlVec3d Attribute::getAsVec3d() {
 	return ntlVec3d(0.);
 }
 void Attribute::getAsMat4Gfx(ntlMat4Gfx *mat) {
+	mat=NULL; // remove warning
 }
 string Attribute::getCompleteString() {
 	return string("");
@@ -73,22 +76,29 @@ void AttributeList::setAllUsed() {
  * Attribute list read functions
  *****************************************************************************/
 int AttributeList::readInt(string name, int defaultValue, string source,string target, bool needed) {
+	name=source=target=string(""); needed=false; // remove warning
 	return defaultValue;
 }
 bool AttributeList::readBool(string name, bool defaultValue, string source,string target, bool needed) {
+	name=source=target=string(""); needed=false; // remove warning
 	return defaultValue;
 }
 double AttributeList::readFloat(string name, double defaultValue, string source,string target, bool needed) {
+	name=source=target=string(""); needed=false; // remove warning
 	return defaultValue;
 }
 string AttributeList::readString(string name, string defaultValue, string source,string target, bool needed) {
+	name=source=target=string(""); needed=false; // remove warning
 	return defaultValue;
 }
 ntlVec3d AttributeList::readVec3d(string name, ntlVec3d defaultValue, string source,string target, bool needed) {
+	name=source=target=string(""); needed=false; // remove warning
 	return defaultValue;
 }
 
 void AttributeList::readMat4Gfx(string name, ntlMat4Gfx defaultValue, string source,string target, bool needed, ntlMat4Gfx *mat) {
+	*mat = defaultValue;
+	name=source=target=string(""); needed=false; mat=NULL; // remove warning
 }
 
 // set that a parameter can be given, and will be ignored...
@@ -98,21 +108,27 @@ bool AttributeList::ignoreParameter(string name, string source) {
 		
 // read channels
 AnimChannel<int> AttributeList::readChannelInt(string name, int defaultValue, string source, string target, bool needed) {
+	name=source=target=string(""); needed=false; // remove warning
 	return AnimChannel<int>(defaultValue);
 }
 AnimChannel<double> AttributeList::readChannelFloat(string name, double defaultValue, string source, string target, bool needed ) {
+	name=source=target=string(""); needed=false; // remove warning
 	return AnimChannel<double>(defaultValue);
 }
 AnimChannel<ntlVec3d> AttributeList::readChannelVec3d(string name, ntlVec3d defaultValue, string source, string target, bool needed ) {
+	name=source=target=string(""); needed=false; // remove warning
 	return AnimChannel<ntlVec3d>(defaultValue);
 }
 AnimChannel<ntlSetVec3f> AttributeList::readChannelSetVec3f(string name, ntlSetVec3f defaultValue, string source, string target, bool needed) {
+	name=source=target=string(""); needed=false; // remove warning
 	return AnimChannel<ntlSetVec3f>(defaultValue);
 }
 AnimChannel<float> AttributeList::readChannelSinglePrecFloat(string name, float defaultValue, string source, string target, bool needed ) {
+	name=source=target=string(""); needed=false; // remove warning
 	return AnimChannel<float>(defaultValue);
 }
 AnimChannel<ntlVec3f> AttributeList::readChannelVec3f(string name, ntlVec3f defaultValue, string source, string target, bool needed) {
+	name=source=target=string(""); needed=false; // remove warning
 	return AnimChannel<ntlVec3f>(defaultValue);
 }
 
@@ -140,6 +156,7 @@ void AttributeList::print() {
  * import attributes from other attribute list
  *****************************************************************************/
 void AttributeList::import(AttributeList *oal) {
+	oal=NULL; // remove warning
 }
 
 

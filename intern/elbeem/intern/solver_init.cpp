@@ -466,14 +466,7 @@ void LbmFsgrSolver::parseAttrList()
 	mInitSurfaceSmoothing = mpSifAttrs->readInt("initsurfsmooth", mInitSurfaceSmoothing, "SimulationLbm","mInitSurfaceSmoothing", false );
 	mSmoothSurface = mpSifAttrs->readFloat("smoothsurface", mSmoothSurface, "SimulationLbm","mSmoothSurface", false );
 	mSmoothNormals = mpSifAttrs->readFloat("smoothnormals", mSmoothNormals, "SimulationLbm","mSmoothNormals", false );
-
 	mFsSurfGenSetting = mpSifAttrs->readInt("fssurfgen", mFsSurfGenSetting, "SimulationLbm","mFsSurfGenSetting", false );
-	if(mFsSurfGenSetting==-1) {
-		// all on
-		mFsSurfGenSetting = 
-			 fssgNormal   | fssgNoNorth  | fssgNoSouth  | fssgNoEast   |
-			 fssgNoWest   | fssgNoTop    | fssgNoBottom | fssgNoObs   ;
-	}
 
 	// refinement
 	mMaxRefine = mRefinementDesired;
@@ -524,9 +517,7 @@ void LbmFsgrSolver::parseAttrList()
 	mUseTestdata = 0;
 	if(mFarFieldSize>=2.) mUseTestdata=1; // equiv. to test solver check
 #endif // LBM_INCLUDE_TESTSOLVERS!=1
-  //if(mUseTestdata) { mMaxRefine=0; } // force fsgr off
 
-	if(mMaxRefine==0) mInitialCsmago=0.02;
 	mInitialCsmago = mpSifAttrs->readFloat("csmago", mInitialCsmago, "SimulationLbm","mInitialCsmago", false );
 	// deprecated!
 	float mInitialCsmagoCoarse = 0.0;
@@ -562,19 +553,33 @@ void LbmFsgrSolver::initLevelOmegas()
 		}
 	}
 
+	LbmFloat  fineCsmago  = mInitialCsmago;
+	LbmFloat coarseCsmago = mInitialCsmago;
+	LbmFloat maxFineCsmago1    = 0.026; 
+	LbmFloat maxCoarseCsmago1  = 0.029; // try stabilizing
+	LbmFloat maxFineCsmago2    = 0.028; 
+	LbmFloat maxCoarseCsmago2  = 0.032; // try stabilizing some more
+	if((mMaxRefine==1)&&(mInitialCsmago<maxFineCsmago1)) {
+		fineCsmago = maxFineCsmago1;
+		coarseCsmago = maxCoarseCsmago1;
+	}
+	if((mMaxRefine>1)&&(mInitialCsmago<maxFineCsmago2)) {
+		fineCsmago = maxFineCsmago2;
+		coarseCsmago = maxCoarseCsmago2;
+	}
+		
+
 	// use Tau instead of Omega for calculations
 	{ // init base level
 		int i = mMaxRefine;
 		mLevel[i].omega    = mOmega;
 		mLevel[i].timestep = mpParam->getTimestep();
-		mLevel[i].lcsmago = mInitialCsmago; //CSMAGO_INITIAL;
+		mLevel[i].lcsmago = fineCsmago; //CSMAGO_INITIAL;
 		mLevel[i].lcsmago_sqr = mLevel[i].lcsmago*mLevel[i].lcsmago;
 		mLevel[i].lcnu = (2.0* (1.0/mLevel[i].omega)-1.0) * (1.0/6.0);
 	}
 
 	// init all sub levels
-	LbmFloat coarseCsmago = mInitialCsmago;
-	coarseCsmago = 0.04; // try stabilizing
 	for(int i=mMaxRefine-1; i>=0; i--) {
 		//mLevel[i].omega = 2.0 * (mLevel[i+1].omega-0.5) + 0.5;
 		double nomega = 0.5 * (  (1.0/(double)mLevel[i+1].omega) -0.5) + 0.5;
@@ -634,6 +639,12 @@ bool LbmFsgrSolver::initializeSolverMemory()
 		mSizex *= mCppfStage;
 		mSizey *= mCppfStage;
 		mSizez *= mCppfStage;
+	}
+	if(mFsSurfGenSetting==-1) {
+		// all on
+		mFsSurfGenSetting = 
+			 fssgNormal   | fssgNoNorth  | fssgNoSouth  | fssgNoEast   |
+			 fssgNoWest   | fssgNoTop    | fssgNoBottom | fssgNoObs   ;
 	}
 
 	// size inits to force cubic cells and mult4 level dimensions

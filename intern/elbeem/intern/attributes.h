@@ -131,13 +131,15 @@ class ntlSetVec3f {
 class Attribute
 {
 	public:
-  	Attribute(string mn, vector<string> &value, int setline,bool channel) { };
-  	Attribute(Attribute &a) { };
+  	Attribute(string mn, vector<string> &value, int setline,bool channel) { 
+			mn = string(""); setline=0; channel=false; value.clear(); // remove warnings
+		};
+  	Attribute(Attribute &a) { a.getCompleteString(); };
   	~Attribute() { };
 
-		void setUsed(bool set){ }
+		void setUsed(bool set){ set=false; }
 		bool getUsed() { return true; }
-		void setIsChannel(bool set){  }
+		void setIsChannel(bool set){ set=false;  }
 		bool getIsChannel() { return false; }
 
 		string getAsString(bool debug=false);
@@ -166,10 +168,12 @@ class Attribute
 class AttributeList
 {
 	public:
-  	AttributeList(string name) { };
+  	AttributeList(string name) { name=string(""); };
   	~AttributeList();
-		void addAttr(string name, vector<string> &value, int line, bool isChannel) { }
-		bool exists(string name) { return false; }
+		void addAttr(string name, vector<string> &value, int line, bool isChannel) { 
+			name=string(""); value.clear(); line=0; isChannel=false; // remove warnings
+		};
+		bool exists(string name) { name=string(""); return false; }
 		void setAllUsed();
 		bool checkUnusedParams();
 		void import(AttributeList *oal);

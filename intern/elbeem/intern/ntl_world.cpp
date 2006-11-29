@@ -61,7 +61,7 @@ ntlWorld::ntlWorld(string filename, bool commandlineMode)
 		finishWorldInit();
 
 #else // ELBEEM_PLUGIN
-	errFatal("ntlWorld::init","Cfg file parsing not supported for API version!", SIMWORLD_INITERROR);
+	errFatal("ntlWorld::init","Cfg file parsing not supported for API version! "<<filename<<" "<<commandlineMode, SIMWORLD_INITERROR);
 #endif // ELBEEM_PLUGIN
 }
 
@@ -257,11 +257,6 @@ void ntlWorld::setSingleFrameOut(string singleframeFilename) {
  * render a whole animation (command line mode) 
  *****************************************************************************/
 
-// blender interface
-//#if ELBEEM_BLENDER==1
-//extern "C" { void simulateThreadIncreaseFrame(void); }
-//#endif // ELBEEM_BLENDER==1
-
 int ntlWorld::renderAnimation( void )
 {
 	// only single pic currently
@@ -297,10 +292,6 @@ int ntlWorld::renderAnimation( void )
 	for( ; ((mFrameCnt<mpGlob->getAniFrames()) && (!getStopRenderVisualization() ) && (simok)); mFrameCnt++) {
 		if(!advanceSims(mFrameCnt)) {
 			renderScene();
-//#if ELBEEM_BLENDER==1
-			// update Blender gui display after each frame
-			//simulateThreadIncreaseFrame();
-//#endif // ELBEEM_BLENDER==1
 		} // else means sim panicked, so dont render...
 		else { simok=false; }
 	}
@@ -416,11 +407,6 @@ int ntlWorld::advanceSims(int framenum)
 	}
 
 	int gstate = 0;
-//#if ELBEEM_BLENDER==1
-	// same as solver_main check, but no mutex check here
-	//gstate = getGlobalBakeState();
-	//if(gstate<0) { allPanic = true; done = true; } // this means abort... cause panic
-//#endif // ELBEEM_BLENDER==1
 	myTime_t advsstart = getTime();
 
 	// step all the sims, and check for panic

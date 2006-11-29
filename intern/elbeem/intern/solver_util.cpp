@@ -862,7 +862,7 @@ void LbmFsgrSolver::advanceParticles() {
 					          //&&(!(RFLAG(level, i,j,k, workSet)& CFNoNbFluid)) 
 										) {
 						// add to no nb fluid i.f.'s, so skip if interface with fluid nb
-					} else if(pflag  & (CFFluid|CFUnused|CFInter) ){
+					} else if(pflag  & (CFFluid|CFUnused|CFInter) ){ // interface cells ignored here due to previous check!
 						// add dropmass again, (these are only interf. with nonbfl.)
 						int oi= (int)(pos[0]-1.25*v[0]+0.5);
 						int oj= (int)(pos[1]-1.25*v[1]+0.5);
@@ -870,13 +870,17 @@ void LbmFsgrSolver::advanceParticles() {
 						const LbmFloat size = p->getSize();
 						const LbmFloat dropmass = ParticleObject::getMass(mPartDropMassSub*size);
 						bool orgcellok = false;
-						if( RFLAG(level, oi,oj,ok, workSet) & (CFInter) ){
+						if( (oi<0)||(oi>mSizex-1)||
+						    (oj<0)||(oj>mSizey-1)||
+						    (ok<0)||(ok>mSizez-1) ) {
+							// org cell not ok!
+						} else if( RFLAG(level, oi,oj,ok, workSet) & (CFInter) ){
 							orgcellok = true;
 						} else {
 							// search upward for interface
 							oi=i; oj=j; ok=k;
-							for(int kk=0; kk<5 && ok<=mSizez-1; kk++) {
-								ok++;
+							for(int kk=0; kk<5 && ok<=mSizez-2; kk++) {
+								ok++; // check sizez-2 due to this increment!
 								if( RFLAG(level, oi,oj,ok, workSet) & (CFInter) ){
 									kk = 5; orgcellok = true;
 								}

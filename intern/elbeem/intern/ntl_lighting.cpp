@@ -121,7 +121,7 @@ ntlColor ntlLightObject::illuminatePoint(ntlRay &reflectedRay, ntlGeometryObject
 	// where is the lightsource ?
 	ntlRay rayOfLight(intersectionPos, lightDir, 0, 1.0, mpGlob );
 	
-	if( (mCastShadows)&&(closest->getReceiveShadows()) ) {
+	if( (1) && (mCastShadows)&&(closest->getReceiveShadows()) ) {
 		ntlTriangle *tri;
 		ntlVec3Gfx triNormal;
 		gfxReal trit;
@@ -131,6 +131,7 @@ ntlColor ntlLightObject::illuminatePoint(ntlRay &reflectedRay, ntlGeometryObject
 	}
 	
 	/* is light partly visible ? */
+//? visibility=1.;
 	if (visibility>0.0) {
 		ntlColor highTemp(0.0); // temporary highlight color to multiply highTemp with offFac
 		current_color = getShadedColor(reflectedRay, lightDir, clossurf, highTemp) * visibility;
@@ -149,10 +150,8 @@ ntlMaterial::ntlMaterial( void ) :
 	mName( "default" ),
   mDiffuseRefl(0.5,0.5,0.5),  mAmbientRefl(0.0,0.0,0.0),
   mSpecular(0.0), mSpecExponent(0.0), mMirror(0.0),
-  mTransparence(0.0), mRefracIndex(0.0), mTransAdditive(0.0), mTransAttCol(0.0),
-	mFresnel( 0 )
-  //mNtfId(0), mNtfFluid(0), mNtfSolid(0)
-{ 
+  mTransparence(0.0), mRefracIndex(1.05), mTransAdditive(0.0), mTransAttCol(0.0),
+	mFresnel( 0 ) { 
   // just do default init...
 }
 

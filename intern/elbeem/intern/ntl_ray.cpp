@@ -594,22 +594,19 @@ const ntlColor ntlRay::shade() //const
 
     /* Trace another ray on for transparent objects */
     if(currTrans > RAY_THRESHOLD) {
-
-      //gfxReal refrac_dn = mDirection | normal;
       /* position at the other side of the surface, along ray */
       ntlVec3Gfx refraction_position(mOrigin + (mDirection * minT) );
       refraction_position += (mDirection * getVecEpsilon());
 			refraction_position -= (triangleNormal*getVecEpsilon() );
-			
       ntlColor refracCol(0.0);         /* refracted color */
-			
 
       /* trace refracted ray */
       ntlRay transRay(refraction_position, refractedDir, mDepth+1, mContribution*currTrans, mpGlob);
       transRay.setRefracted(1);
 			transRay.setNormal( normal );
       if(mDepth < mpGlob->getRayMaxDepth() ) {
-				if(!refRefl) {
+				// full reflection should make sure refracindex&fresnel are on...
+				if((0)||(!refRefl)) {
 					if(mpGlob->getDebugOut() > 5) errorOut("Refracted ray from depth "<<mDepth<<", dir "<<refractedDir );
 					refracCol = transRay.shade();
 				} else { 
@@ -618,17 +615,19 @@ const ntlColor ntlRay::shade() //const
 					refracCol = reflectedRay.shade();
 				}
       }
+			//errMsg("REFMIR","t"<<currTrans<<" thres"<<RAY_THRESHOLD<<" mirr"<<currRefl<<" refRefl"<<refRefl<<" md"<<mDepth);
 
       /* calculate color */
+			// use transadditive setting!?
       /* additive transparency "light amplification" */
-      ntlColor add_col = currentColor + refracCol * currTrans;
-      /* subtractive transparency, more realistic */
-      ntlColor sub_col = (refracCol * currTrans) + 
-        ( currentColor * (1.0-currTrans) );
-
+      //? ntlColor add_col = currentColor + refracCol * currTrans;
       /* mix additive and subtractive */
-			add_col += sub_col;
-			currentColor += (refracCol * currTrans);
+			//? add_col += sub_col;
+			//? currentColor += (refracCol * currTrans);
+
+      /* subtractive transparency, more realistic */
+      ntlColor sub_col = (refracCol * currTrans) + ( currentColor * (1.0-currTrans) );
+			currentColor = sub_col;
 
     }
 
@@ -873,8 +872,13 @@ void ntlScene::prepareScene(double time)
 	buildScene(time, false);
 	// what for currently not used ???
 	if(mpTree != NULL) delete mpTree;
-	mpTree = new ntlTree( mpGlob->getTreeMaxDepth(), mpGlob->getTreeMaxTriangles(), 
-												this, TRI_GEOMETRY );
+	mpTree = new ntlTree( 
+#			if FSGR_STRICT_DEBUG!=1
+			mpGlob->getTreeMaxDepth(), mpGlob->getTreeMaxTriangles(), 
+#			else
+			mpGlob->getTreeMaxDepth()/3*2, mpGlob->getTreeMaxTriangles()*2, 
+#			endif
+			this, TRI_GEOMETRY );
 
 	//debMsgStd("ntlScene::prepareScene",DM_MSG,"Stats - tris:"<< (int)mTriangles.size()<<" verts:"<<mVertices.size()<<" vnorms:"<<mVertNormals.size(), 5 );
 }

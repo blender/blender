@@ -441,15 +441,6 @@ static int fluidsimSimulateThread(void *unused) { // *ptr) {
 	return ret;
 }
 
-// called by simulation to set frame no.
-// TODO deprecate...
-void simulateThreadIncreaseFrame(void) {
-	/*if(!globalBakeLock) return;
-	if(globalBakeState!=0) return; // this means abort...
-	SDL_mutexP(globalBakeLock);
-	globalBakeFrame++;
-	SDL_mutexV(globalBakeLock);*/
-}
 
 int runSimulationCallback(void *data, int status, int frame) {
 	//elbeemSimulationSettings *settings = (elbeemSimulationSettings*)data;
@@ -967,6 +958,7 @@ void fluidsimBake(struct Object *ob)
 				int numVerts=0, numTris=0;
 				int o = channelObjCount;
 				int	deform = (obit->fluidsimSettings->domainNovecgen); // misused value
+				// todo - use blenderInitElbeemMesh
 				elbeemMesh fsmesh;
 				elbeemResetMesh( &fsmesh );
 				fsmesh.type = obit->fluidsimSettings->type;;

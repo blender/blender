@@ -336,17 +336,17 @@ public:
 
 	/*! Acces a certain object */
 	inline ntlGeometryObject *getObject(int id) { 
-		if(!mSceneBuilt) { errMsg("ntlScene::getObject","Scene not inited!"); return NULL; }
+		if(!mSceneBuilt) { errFatal("ntlScene::getObject","Scene not inited!", SIMWORLD_INITERROR); }
 		return mObjects[id]; }
 
 	/*! Acces object array */
 	inline vector<ntlGeometryObject*> *getObjects() { 
-		if(!mSceneBuilt) { errMsg("ntlScene::getObjects[]","Scene not inited!"); return NULL; }
+		if(!mSceneBuilt) { errFatal("ntlScene::getObjects[]","Scene not inited!", SIMWORLD_INITERROR); }
 		return &mObjects; }
 
 	/*! Acces geo class array */
 	inline vector<ntlGeometryClass*> *getGeoClasses() { 
-		if(!mSceneBuilt) { errMsg("ntlScene::getGeoClasses[]","Scene not inited!"); return NULL; }
+		if(!mSceneBuilt) { errFatal("ntlScene::getGeoClasses[]","Scene not inited!", SIMWORLD_INITERROR); }
 		return &mGeos; }
 
 	/*! draw scene with opengl */

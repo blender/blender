@@ -392,6 +392,9 @@ class LbmSolverInterface
 		inline bool getDumpRawBinary() const	{ return mDumpRawBinary; }
 		inline void setDumpRawBinaryZip(bool set)	{ mDumpRawBinaryZip = set; }
 		inline bool getDumpRawBinaryZip() const	{ return mDumpRawBinaryZip; }
+		//! set/get debug vel scale
+		inline void setDebugVelScale(LbmFloat set)	{ mDebugVelScale = set; }
+		inline LbmFloat getDebugVelScale() const	{ return mDebugVelScale; }
 
 		// cell iterator interface
 		

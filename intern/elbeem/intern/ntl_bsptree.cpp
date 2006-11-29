@@ -217,6 +217,7 @@ ntlTree::ntlTree(int depth, int objnum, ntlScene *scene, int triFlagMask) :
 			}
 		}
 		mppTriangles->push_back( &(*iter) );
+		//errMsg("TreeDebug","Triangle "<<(*mpVertices)[(*iter).getPoints()[0]]<<" "<<(*mpVertices)[(*iter).getPoints()[1]]<<" "<<(*mpVertices)[(*iter).getPoints()[2]]<<" ");
 
 		// add BB
 		mpTBB[ bbCount ].start = bbs;
@@ -296,7 +297,7 @@ ntlTree::~ntlTree()
  *****************************************************************************/
 void ntlTree::subdivide(BSPNode *node, int depth, int axis)
 {
-  int nextAxis; /* next axis to partition */
+  int nextAxis=0; /* next axis to partition */
 	int allTriDistSet = (1<<0)|(1<<1); // all mpTriDist flags set?
 	//errorOut(" "<<node<<" depth:"<<depth<<" m:"<<node->members->size() <<"  "<<node->min<<" - "<<node->max );
 

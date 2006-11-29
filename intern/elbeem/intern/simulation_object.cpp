@@ -79,6 +79,7 @@ void SimulationObject::initGeoTree() {
 	char treeFlag = (1<<(mGeoInitId+4));
 	mpGiTree = new ntlTree( 20, 4, // warning - fixed values for depth & maxtriangles here...
 												scene, treeFlag );
+	exit(1); // unused!? overriden by solver interface	
 }
 
 /*****************************************************************************/
@@ -269,7 +270,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	}
 	
 #ifdef ELBEEM_PLUGIN
-	mShowParticles=1;
+	mShowParticles=1; // for e.g. dumping
 #endif // ELBEEM_PLUGIN
 	if((mpLbm->getGenerateParticles()>0.0)||(mpParts->getNumInitialParticles()>0)) {
 		mShowParticles=1;
@@ -288,6 +289,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 		debugObjs[i]->setReceiveShadows( false );
 		debugObjs[i]->searchMaterial( glob->getMaterials() );
 		mObjects.push_back( debugObjs[i] );
+		debMsgStd("SimulationObject::init",DM_NOTIFY,"Added debug obj "<<debugObjs[i]->getName(), 10 );
 	}
 	return 0;
 }
