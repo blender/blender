@@ -264,11 +264,11 @@ char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObje
 		Py_XDECREF(vals);
 	}
 	
-	if (!IDP_AddToGroup(group, prop)) {
-		IDP_FreeProperty(prop);
-		MEM_freeN(prop);
-		return "property name already exists in group";
+	if (IDP_GetPropertyFromGroup(group, prop->name) == NULL) {
+		IDP_RemFromGroup(group, IDP_GetPropertyFromGroup(group, prop->name));
 	}
+
+	IDP_AddToGroup(group, prop);
 	return NULL;
 }
 
