@@ -362,7 +362,8 @@ int boundbox_clip(float obmat[][4], BoundBox *bb)
 	float vec[4], min, max;
 	int a, flag= -1, fl;
 	
-	if(bb==0) return 1;
+	if(bb==NULL) return 1;
+	if(bb->flag & OB_BB_DISABLED) return 1;
 	
 	Mat4MulMat4(mat, obmat, G.vd->persmat);
 

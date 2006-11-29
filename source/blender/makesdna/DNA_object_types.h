@@ -63,7 +63,11 @@ typedef struct bDeformGroup {
 
 typedef struct BoundBox {
 	float vec[8][3];
+	int flag, pad;
 } BoundBox;
+
+/* boundbox flag */
+#define OB_BB_DISABLED	1
 
 /* OcInfo and LBuf structs are for the Enji gameengine */
 

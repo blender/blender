@@ -464,7 +464,7 @@ static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
 	DerivedMesh *dm;
 	MFace *mface;
 	MVert *mvert;
-	float pmat[4][4];
+	float pmat[4][4], imat[3][3];
 	int lay, totface, a;
 	
 	Mat4CpyMat4(pmat, par->obmat);
@@ -499,6 +499,7 @@ static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
 				if(ob==par) {
 					
 					ob= base->object;
+					Mat3CpyMat4(imat, ob->parentinv);
 					
 					/* mballs have a different dupli handling */
 					if(ob->type!=OB_MBALL) ob->flag |= OB_DONE;	/* doesnt render */
@@ -508,7 +509,7 @@ static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
 						float *v2= mvert[ mface[a].v2 ].co;
 						float *v3= mvert[ mface[a].v3 ].co;
 						float *v4= mface[a].v4?mvert[ mface[a].v4 ].co:NULL;
-						float cent[3], quat[4], mat[3][3], tmat[4][4], obmat[4][4];
+						float cent[3], quat[4], mat[3][3], mat3[3][3], tmat[4][4], obmat[4][4];
 
 						/* translation */
 						if(v4)
@@ -533,6 +534,9 @@ static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
 							size= sqrt(size);
 							Mat3MulFloat(mat[0], size);
 						}
+						
+						Mat3CpyMat3(mat3, mat);
+						Mat3MulMat3(mat, imat, mat3);
 						
 						Mat4CpyMat4(tmat, obmat);
 						Mat4MulMat43(obmat, tmat, mat);

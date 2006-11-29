@@ -1890,6 +1890,16 @@ BoundBox *object_get_boundbox(Object *ob)
 	return bb;
 }
 
+/* used to temporally disable/enable boundbox */
+void object_boundbox_flag(Object *ob, int flag, int set)
+{
+	BoundBox *bb= object_get_boundbox(ob);
+	if(bb) {
+		if(set) bb->flag |= flag;
+		else bb->flag &= ~flag;
+	}
+}
+
 void minmax_object(Object *ob, float *min, float *max)
 {
 	BoundBox bb;

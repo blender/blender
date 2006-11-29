@@ -2650,8 +2650,10 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 	ListBase *lb;
 	DupliObject *dob;
 	Base tbase;
+	BoundBox *bb= NULL;
+	GLuint displist=0;
 	int color= (base->flag & SELECT)?TH_SELECT:TH_WIRE;
-	short transflag;
+	short transflag, use_displist= G.rt;	/* -1 is initialize */
 	char dt, dtx;
 	
 	if (base->object->restrictflag & OB_RESTRICT_VIEW) return;
@@ -2660,6 +2662,10 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 	if(base->object->dup_group && base->object->dup_group->id.us<1)
 		color= TH_REDALERT;
 	
+	/* test if we can do a displist */
+	if(base->object->transflag & OB_DUPLIGROUP)
+		use_displist= 0;
+	
 	tbase.flag= OB_FROMDUPLI|base->flag;
 	lb= object_duplilist(G.scene, base->object);
 
@@ -2667,8 +2673,6 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 		if(dob->no_draw);
 		else {
 			tbase.object= dob->ob;
-			
-			Mat4CpyMat4(dob->ob->obmat, dob->mat);
 			
 			/* extra service: draw the duplicator in drawtype of parent */
 			dt= tbase.object->dt; tbase.object->dt= base->object->dt;
@@ -2680,7 +2684,39 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 				tbase.object->transflag ^= OB_NEG_SCALE;
 			
 			BIF_ThemeColorBlend(color, TH_BACK, 0.5);
-			draw_object(&tbase, DRAW_CONSTCOLOR);
+			
+			/* generate displist, test for new object */
+			if(use_displist==1 && dob->prev && dob->prev->ob!=dob->ob) {
+				use_displist= -1;
+				glDeleteLists(displist, 1);
+			}
+			/* generate displist */
+			if(use_displist == -1) {
+				/* disable boundbox check for list creation */
+				object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
+				/* need this for next part of code */
+				bb= object_get_boundbox(dob->ob);
+				
+				Mat4One(dob->ob->obmat);	/* obmat gets restored */
+				
+				displist= glGenLists(1);
+				glNewList(displist, GL_COMPILE);
+				draw_object(&tbase, DRAW_CONSTCOLOR);
+				glEndList();
+				
+				use_displist= 1;
+				object_boundbox_flag(dob->ob, OB_BB_DISABLED, 0);
+			}
+			if(use_displist) {
+				mymultmatrix(dob->mat);
+				if(boundbox_clip(dob->mat, bb))
+				   glCallList(displist);
+				myloadmatrix(G.vd->viewmat);
+			}
+			else {
+				Mat4CpyMat4(dob->ob->obmat, dob->mat);
+				draw_object(&tbase, DRAW_CONSTCOLOR);
+			}
 			
 			tbase.object->dt= dt;
 			tbase.object->dtx= dtx;
@@ -2691,7 +2727,9 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 	/* Transp afterdraw disabled, afterdraw only stores base pointers, and duplis can be same obj */
 	
 	free_object_duplilist(lb);	/* does restore */
-				
+	
+	if(use_displist)
+		glDeleteLists(displist, 1);
 }
 
 void view3d_update_depths(View3D *v3d)
