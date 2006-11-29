@@ -1476,7 +1476,7 @@ void sculptmode_draw_mesh(ListBase *damaged_rects) {
 	glColorMask(1,1,1,1);
 
 	if(dt==OB_WIRE || (sd->active_ob->dtx & OB_DRAWWIRE))
-		sculptmode_draw_wires(0, me);
+		sculptmode_draw_wires(damaged_rects ? 1 : 0, me);
 
 	glDisable(GL_DEPTH_TEST);
 }
