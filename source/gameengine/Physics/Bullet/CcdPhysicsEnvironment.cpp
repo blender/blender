@@ -535,7 +535,7 @@ void		CcdPhysicsEnvironment::setLinearAirDamping(float damping)
 
 void		CcdPhysicsEnvironment::setUseEpa(bool epa)
 {
-	gUseEpa = epa;
+	//gUseEpa = epa;
 }
 
 void		CcdPhysicsEnvironment::setSolverType(int solverType)
@@ -1000,8 +1000,8 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 		return 0;
 
 
-	ASSERT(rb0);
-
+	btAssert(0);
+	
 	btVector3 pivotInA(pivotX,pivotY,pivotZ);
 	btVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : pivotInA;
 	btVector3 axisInA(axisX,axisY,axisZ);
