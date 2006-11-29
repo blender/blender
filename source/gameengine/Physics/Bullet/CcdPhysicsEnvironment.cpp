@@ -472,6 +472,8 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 		veh->SyncWheels();
 	}
 
+	CallbackTriggers();
+
 	return true;
 }
 
@@ -999,9 +1001,6 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 	if (rb0static && rb1static)
 		return 0;
 
-
-	btAssert(0);
-	
 	btVector3 pivotInA(pivotX,pivotY,pivotZ);
 	btVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : pivotInA;
 	btVector3 axisInA(axisX,axisY,axisZ);
