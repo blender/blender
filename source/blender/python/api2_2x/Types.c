@@ -30,7 +30,7 @@
 */
 
 #include "Types.h" 
-
+#include "IDProp.h"
 /* 
    stuff pasted from the old Types.h
    is only need here now
@@ -134,6 +134,7 @@ void types_InitAll( void )
 	PyType_Ready( &EditBone_Type );
 	PyType_Ready( &ThemeSpace_Type );
 	PyType_Ready( &ThemeUI_Type );
+	IDProp_Init_Types();
 }
 
 /*****************************************************************************/
