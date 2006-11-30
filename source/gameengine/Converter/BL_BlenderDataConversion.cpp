@@ -1907,8 +1907,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
                     if (dat->tar)
                         if (!dat->child){
                             KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
-                            PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) (int)gameobj->GetPhysicsController()->GetUserData();
-                            PHY_IPhysicsController* physctr2 = (PHY_IPhysicsController*) (int)gotar->GetPhysicsController()->GetUserData();
+                            PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) gameobj->GetPhysicsController()->GetUserData();
+                            PHY_IPhysicsController* physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
                             kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,(float)dat->pivY,(float)dat->pivZ,(float)dat->axX,(float)dat->axY,(float)dat->axZ);
                             /*switch(dat->type){
                                 case CONSTRAINT_RB_BALL:
