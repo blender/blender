@@ -67,6 +67,7 @@
 #include "BSE_editipo.h"
 #include "BSE_drawipo.h"
 #include "BSE_trans_types.h"
+#include "BSE_time.h"
 
 #include "BDR_drawobject.h"
 
@@ -771,7 +772,10 @@ void borderselect_ipo(void)
 		mval[0]= rect.xmax;
 		mval[1]= rect.ymax;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
-
+		
+		/* do markers first */
+		borderselect_markers(rectf.xmin, rectf.xmax, val);		
+		
 		if(G.sipo->showkey) {
 			ik= G.sipo->ipokey.first;
 			while(ik) {
@@ -812,7 +816,11 @@ void borderselect_ipo(void)
 			}
 		}
 		BIF_undo_push("Border select Ipo");
-		scrarea_queue_winredraw(curarea);
+		allqueue(REDRAWTIME, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWSOUND, 0);
 	}
 }
 

@@ -55,6 +55,7 @@
 #include "BIF_resources.h"
 
 #include "BSE_drawipo.h"
+#include "BSE_time.h"
 #include "BMF_Api.h"
 
 /* local */
@@ -188,6 +189,7 @@ static void draw_cfra_sound(SpaceSound *ssound)
 
 void drawsoundspace(ScrArea *sa, void *spacedata)
 {
+	SpaceSound *ssound;
 	float col[3];
 	short ofsx, ofsy;
 	
@@ -217,7 +219,9 @@ void drawsoundspace(ScrArea *sa, void *spacedata)
 		draw_sample(G.ssound->sound->sample);
 	}
 	
-	draw_cfra_sound(spacedata);
+	ssound= spacedata;
+	draw_cfra_sound(ssound);
+	draw_markers_timespace(&(ssound->v2d));
 
 	/* restore viewport */
 	mywinset(curarea->win);

@@ -111,6 +111,7 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_node.h"
 #include "BSE_sequence.h"
+#include "BSE_time.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -1360,6 +1361,7 @@ void mouse_select_ipo(void)
 	IpoCurve *icu;
 	IpoKey *ik, *actik;
 	BezTriple *bezt;
+	TimeMarker *marker;
 	float x, y, dist, mindist;
 	int a, oldflag = 0, hand, ok;
 	short mval[2], xo, yo;
@@ -1367,6 +1369,7 @@ void mouse_select_ipo(void)
 	if(G.sipo->editipo==0) return;
 	
 	get_status_editipo();
+	marker=find_nearest_marker(1);
 	
 	if(G.sipo->showkey) {
 		getmouseco_areawin(mval);
@@ -1434,6 +1437,21 @@ void mouse_select_ipo(void)
 				else bezt->f3|= 1;
 			}
 		}
+	}
+	else if (marker) {
+		/* select timeline marker */
+		if ((G.qual & LR_SHIFTKEY)==0) {
+			oldflag= marker->flag;
+			deselect_markers(0, 0);
+			
+			if (oldflag & SELECT)
+				marker->flag &= ~SELECT;
+			else
+				marker->flag |= SELECT;
+		}
+		else {
+			marker->flag |= SELECT;				
+		}		
 	}
 	else {
 		
@@ -1532,8 +1550,13 @@ void mouse_select_ipo(void)
 		getmouseco_areawin(mval);
 		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 4) {
 			
-			if(actkb) move_keys(OBACT);
-			else transform_ipo('g');
+			if (marker) {
+				transform_markers('g', 0);
+			}
+			else {
+				if(actkb) move_keys(OBACT);
+				else transform_ipo('g');
+			}
 			
 			return;
 		}
@@ -3581,7 +3604,7 @@ void del_ipoCurve ( IpoCurve * icu )
 	}
 }
 
-void del_ipo(void)
+void del_ipo(int need_check)
 {
 	EditIpo *ei;
 	BezTriple *bezt, *bezt1;
@@ -3592,12 +3615,17 @@ void del_ipo(void)
 	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
 	
 	if(totipo_edit==0 && totipo_sel==0 && totipo_vertsel==0) {
-		if(okee("Erase selected keys"))
-		   delete_key(OBACT);
+		if (need_check) {
+			if(okee("Erase selected keys"))
+			   delete_key(OBACT);
+		}
+		else 
+			delete_key(OBACT);
 		return;
 	}
 	
-	if( okee("Erase selected")==0 ) return;
+	if (need_check)
+		if( okee("Erase selected")==0 ) return;
 
 	// first round, can we delete entire parts? 
 	ei= G.sipo->editipo;

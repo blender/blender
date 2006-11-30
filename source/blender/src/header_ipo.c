@@ -79,6 +79,7 @@
 #include "BSE_edit.h"
 #include "BSE_editipo.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_time.h"
 
 #include "BIF_editaction.h"
 #include "BIF_interface.h"
@@ -336,9 +337,9 @@ static uiBlock *ipo_editmenu_mirrormenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu_mirrormenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_ipo_editmenu_mirrormenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Over Current Frame|M, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Over Vertical Axis|M, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Over Horizontal Axis|M, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Over Current Frame|Ctrl M, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Over Vertical Axis|Ctrl M, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Over Horizontal Axis|Ctrl M, 3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");	
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -555,7 +556,7 @@ static void do_ipo_editmenu(void *arg, int event)
 	switch(event)
 	{
 	case 0:
-		del_ipo();
+		del_ipo(1);
 		break;
 	case 1:
 		add_duplicate_editipo();
@@ -813,6 +814,69 @@ static uiBlock *ipo_selectmenu(void *arg_unused)
 	return block;
 }
 
+static void do_ipo_markermenu(void *arg, int event)
+{	
+	switch(event)
+	{
+		case 1:
+			add_marker(CFRA);
+			break;
+		case 2:
+			duplicate_marker();
+			break;
+		case 3:
+			remove_marker();
+			break;
+		case 4:
+			rename_marker();
+			break;
+		case 5:
+			transform_markers('g', 0);
+			break;
+	}
+	
+	allqueue(REDRAWTIME, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWSOUND, 0);
+}
+
+static uiBlock *ipo_markermenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "ipo_markermenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_ipo_markermenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Marker|M", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate Marker|Ctrl Shift D", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker|X", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+					 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "(Re)Name Marker|Shift M", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|Shift G", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
 
 static char *ipo_modeselect_pup(void)
 {
@@ -1113,7 +1177,11 @@ void ipo_buttons(void)
 		xmax= GetButStringLength("Select");
 		uiDefPulldownBut(block,ipo_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
 		xco+=xmax;
-	
+		
+		xmax= GetButStringLength("Marker");
+		uiDefPulldownBut(block,ipo_markermenu, NULL, "Marker", xco, -2, xmax-3, 24, "");
+		xco+=xmax;
+		
 		if (G.sipo->showkey) {
 			xmax= GetButStringLength("Key");
 			uiDefPulldownBut(block,ipo_editmenu, NULL, "Key", xco, -2, xmax-3, 24, "");
@@ -1126,7 +1194,6 @@ void ipo_buttons(void)
 			xmax= GetButStringLength("Curve");
 			uiDefPulldownBut(block,ipo_editmenu, NULL, "Curve", xco, -2, xmax-3, 24, "");
 		}
-			
 		xco+=xmax;
 	}
 

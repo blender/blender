@@ -70,6 +70,7 @@
 #include "BSE_drawipo.h"
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_time.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -186,6 +187,12 @@ static void do_sound_viewmenu(void *arg, int event)
 		case 4: /* Maximize Window */
 			/* using event B_FULL */
 			break;
+		case 5: /* jump to next marker */
+			nextprev_marker(1);
+			break;
+		case 6: /* jump to previous marker */
+			nextprev_marker(-1);
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -198,6 +205,13 @@ static uiBlock *sound_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "sound_viewmenu", 
 					  UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_sound_viewmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump To Next Marker|PageUp", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Jump To Prev Marker|PageDown", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation|Alt A", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
@@ -225,6 +239,72 @@ static uiBlock *sound_viewmenu(void *arg_unused)
 	
 	return block;
 }
+
+static void do_sound_markermenu(void *arg, int event)
+{	
+	switch(event)
+	{
+		case 1:
+			add_marker(CFRA);
+			break;
+		case 2:
+			duplicate_marker();
+			break;
+		case 3:
+			remove_marker();
+			break;
+		case 4:
+			rename_marker();
+			break;
+		case 5:
+			transform_markers('g', 0);
+			break;
+	}
+	
+	allqueue(REDRAWTIME, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWSOUND, 0);
+}
+
+static uiBlock *sound_markermenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "sound_markermenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_sound_markermenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Marker|M", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate Marker|Shift D", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker|X", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+					 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "(Re)Name Marker|Shift M", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|G", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
+
 
 void sound_buttons(void)
 {
@@ -278,6 +358,10 @@ void sound_buttons(void)
 					  "View", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 
+		xmax= GetButStringLength("Marker");
+		uiDefPulldownBut(block, sound_markermenu, NULL, 
+					  "Marker", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSS);

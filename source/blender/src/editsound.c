@@ -73,9 +73,13 @@
 #include "BIF_interface.h"
 #include "BIF_editsound.h"
 #include "BIF_mywindow.h"
+#include "BIF_toolbox.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_time.h"
+
+#include "BDR_editobject.h"
 
 #include "blendef.h"
 
@@ -163,14 +167,28 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			view2dmove(event);	/* in drawipo.c */
 			break;
 		case RIGHTMOUSE:
-			nr= pupmenu("Time value%t|Frames %x1|Seconds%x2");
-			if (nr>0) {
-				if(nr==1) ssound->flag |= SND_DRAWFRAMES;
-				else ssound->flag &= ~SND_DRAWFRAMES;
-				doredraw= 1;
-			}
+			{
+				TimeMarker *marker;
+				
+				getmouseco_areawin(mval);
+				areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
 
+				marker = find_nearest_marker(0);
+				if (marker) {
+					if ((G.qual & LR_SHIFTKEY)==0)
+						deselect_markers(0, 0);
+						
+					if (marker->flag & SELECT)
+						marker->flag &= ~SELECT;
+					else
+						marker->flag |= SELECT;
+				}
+				
+				force_draw(0);
+				std_rmouse_transform(transform_markers);
+			}
 			break;
+			
 		case PADPLUSKEY:
 			dx= (float)(0.1154*(G.v2d->cur.xmax-G.v2d->cur.xmin));
 			G.v2d->cur.xmin+= dx;
@@ -189,6 +207,85 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case HOMEKEY:
 			do_sound_buttons(B_SOUNDHOME);
+			break;
+			
+		case PAGEUPKEY: /* cfra to next marker */
+			nextprev_marker(1);
+			break;
+		case PAGEDOWNKEY: /* cfra to prev marker */
+			nextprev_marker(-1);
+			break;
+		
+		case AKEY: /* select/deselect all  */
+			deselect_markers(1, 0);
+			
+			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWSOUND, 0);
+			break;
+			
+		case BKEY: /* borderselect markers */
+			borderselect_timeline_markers();
+			
+			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWSOUND, 0);
+			break;
+		
+		case DKEY: /* duplicate selected marker(s) */
+			if (G.qual & LR_SHIFTKEY) {
+				duplicate_marker();
+				
+				allqueue(REDRAWTIME, 0);
+				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWACTION, 0);
+				allqueue(REDRAWNLA, 0);
+				allqueue(REDRAWSOUND, 0);
+			}
+			break;
+			
+		case GKEY:
+			transform_markers('g', 0);
+			break;
+			
+		case MKEY: /* add marker or rename first selected */
+			if (G.qual & LR_SHIFTKEY)
+				rename_marker();
+			else
+				add_marker(CFRA);
+			
+			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWSOUND, 0);
+			break;		
+		
+		case TKEY: /* toggle time display */
+			nr= pupmenu("Time value%t|Frames %x1|Seconds%x2");
+			if (nr>0) {
+				if(nr==1) ssound->flag |= SND_DRAWFRAMES;
+				else ssound->flag &= ~SND_DRAWFRAMES;
+				doredraw= 1;
+			}
+
+			break;
+			
+		case DELKEY: /* delete selected markers */
+		case XKEY:
+			if (okee("Erase selected")) {
+				remove_marker();
+				
+				allqueue(REDRAWTIME, 0);
+				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWACTION, 0);
+				allqueue(REDRAWNLA, 0);
+				allqueue(REDRAWSOUND, 0);
+			}
 			break;
 		}
 	}

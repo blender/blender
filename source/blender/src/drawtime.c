@@ -45,6 +45,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_view2d_types.h"
 
 #include "BKE_ipo.h"
 #include "BKE_object.h"
@@ -162,7 +164,7 @@ static void draw_marker(TimeMarker *marker)
 	}
 }
 
-static void draw_markers_time( void )
+static void draw_markers_time(void)
 {
 	TimeMarker *marker;
 
@@ -179,17 +181,17 @@ static void draw_markers_time( void )
 	}
 }
 
-void draw_markers_action(SpaceAction *sact)
+void draw_markers_timespace(View2D *v2d)
 {
 	TimeMarker *marker;
 	float yspace, ypixels;
 	
 	/* move ortho view to align with slider in bottom */
-	glTranslatef(0.0f, sact->v2d.cur.ymin, 0.0f);
+	glTranslatef(0.0f, v2d->cur.ymin, 0.0f);
 	
 	/* bad hacks in drawing markers... inverse correct that as well */
-	yspace= sact->v2d.cur.ymax - sact->v2d.cur.ymin;
-	ypixels= sact->v2d.mask.ymax - sact->v2d.mask.ymin;
+	yspace= v2d->cur.ymax - v2d->cur.ymin;
+	ypixels= v2d->mask.ymax - v2d->mask.ymin;
 	glTranslatef(0.0f, -11.0*yspace/ypixels, 0.0f);
 		
 	/* unselected markers are drawn at the first time */
@@ -203,11 +205,10 @@ void draw_markers_action(SpaceAction *sact)
 		if(marker->flag & SELECT) draw_marker(marker);
 	}
 
-	glTranslatef(0.0f, -sact->v2d.cur.ymin, 0.0f);
+	glTranslatef(0.0f, -v2d->cur.ymin, 0.0f);
 	glTranslatef(0.0f, 11.0*yspace/ypixels, 0.0f);
 
 }
-
 
 static void draw_sfra_efra()
 {

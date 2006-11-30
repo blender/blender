@@ -63,8 +63,10 @@
 #include "BIF_interface.h"
 #include "BIF_toolbox.h"
 #include "BIF_mywindow.h"
+#include "BIF_editaction.h"
 
 #include "BSE_drawipo.h"
+#include "BSE_edit.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_time.h"
 
@@ -79,10 +81,10 @@
 /* declarations */
 void winqreadtimespace(ScrArea *, void *, BWinEvent *);
 
-/* ************* Timeline marker code **************** */
+/* ************* Marker API **************** */
 
 /* add TimeMarker at curent frame */
-void add_timeline_marker(int frame)
+void add_marker(int frame)
 {
 	TimeMarker *marker;
 	
@@ -98,29 +100,29 @@ void add_timeline_marker(int frame)
 	marker->frame= frame;
 	BLI_addtail(&(G.scene->markers), marker);
 	
-	BIF_undo_push("Add Timeline Marker");
+	BIF_undo_push("Add Marker");
 }
 
-/* remove TimeMarker */
-void remove_timeline_marker(void)
+/* remove selected TimeMarkers */
+void remove_marker(void)
 {
 	TimeMarker *marker;
-	
+		
 	for(marker= G.scene->markers.first; marker; marker= marker->next) {
 		if(marker->flag & SELECT){
-			BLI_freelinkN(&G.scene->markers, marker);
+			BLI_freelinkN(&(G.scene->markers), marker);
 		}
 	}
 	
-	BIF_undo_push("Remove Timeline Marker");
+	BIF_undo_push("Remove Marker");
 }
 
 /* rename first selected TimeMarker */
-void rename_timeline_marker(void)
+void rename_marker(void)
 {
 	TimeMarker *marker;
 	char name[64];
-	
+		
 	for(marker= G.scene->markers.first; marker; marker= marker->next) {
 		if(marker->flag & SELECT) {
 			sprintf(name, marker->name);
@@ -130,14 +132,14 @@ void rename_timeline_marker(void)
 		}
 	}
 	
-	BIF_undo_push("Rename Timeline Marker");
+	BIF_undo_push("Rename Marker");
 }
 
 /* duplicate selected TimeMarkers */
-void duplicate_timeline_marker(void)
+void duplicate_marker(void)
 {
 	TimeMarker *marker, *newmarker;
-
+	
 	/* go through the list of markers, duplicate selected markers and add duplicated copies
 	 * to the begining of the list (unselect original markers) */
 	for(marker= G.scene->markers.first; marker; marker= marker->next) {
@@ -154,12 +156,288 @@ void duplicate_timeline_marker(void)
 		}
 	}
 	
-	timeline_grab('g', 0);
+	transform_markers('g', 0);
 }
 
+void transform_markers(int mode, int smode)	// mode and smode unused here, for callback
+{
+	SpaceLink *slink= curarea->spacedata.first;
+	SpaceTime *stime= curarea->spacedata.first;
+	TimeMarker *marker, *selmarker=NULL;
+	float dx, fac;
+	int a, ret_val= 0, totmark=0, *oldframe, offs, firsttime=1;
+	unsigned short event;
+	short val, pmval[2], mval[2], mvalo[2];
+	char str[32];
+	
+	for(marker= G.scene->markers.first; marker; marker= marker->next) {
+		if(marker->flag & SELECT) totmark++;
+	}
+	if(totmark==0) return;
+	
+	oldframe= MEM_mallocN(totmark*sizeof(int), "marker array");
+	for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
+		if(marker->flag & SELECT) {
+			oldframe[a]= marker->frame;
+			selmarker= marker;	// used for hederprint
+			a++;
+		}
+	}
+	
+	dx= G.v2d->mask.xmax-G.v2d->mask.xmin;
+	dx= (G.v2d->cur.xmax-G.v2d->cur.xmin)/dx;
+	
+	getmouseco_areawin(pmval);
+	mvalo[0]= pmval[0];
+	
+	while(ret_val == 0) {
+		
+		getmouseco_areawin(mval);
+		
+		if (mval[0] != mvalo[0] || firsttime) {
+			mvalo[0]= mval[0];
+			firsttime= 0;
+			
+			fac= (((float)(mval[0] - pmval[0]))*dx);
+			
+			if (ELEM(slink->spacetype, SPACE_TIME, SPACE_SOUND)) 
+				apply_keyb_grid(&fac, 0.0, (float)G.scene->r.frs_sec, 0.1*(float)G.scene->r.frs_sec, 0);
+			else
+				apply_keyb_grid(&fac, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
+			offs= (int)fac;
+			
+			for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
+				if(marker->flag & SELECT) {
+					marker->frame= oldframe[a] + offs;
+					a++;
+				}
+			}
+			
+			if(totmark==1) {	// we print current marker value
+				if (ELEM(slink->spacetype, SPACE_TIME, SPACE_SOUND)) {
+					if(stime->flag & TIME_DRAWFRAMES) 
+						sprintf(str, "Marker %d offset %d", selmarker->frame, offs);
+					else 
+						sprintf(str, "Marker %.2f offset %.2f", (selmarker->frame/(float)G.scene->r.frs_sec), (offs/(float)G.scene->r.frs_sec));
+				}
+				else {
+					sprintf(str, "Marker %.2f offset %.2f", (double)(selmarker->frame), (double)(offs));
+				}
+			}
+			else {
+				if (ELEM(slink->spacetype, SPACE_TIME, SPACE_SOUND)) { 
+					if(stime->flag & TIME_DRAWFRAMES) 
+						sprintf(str, "Marker offset %d ", offs);
+					else 
+						sprintf(str, "Marker offset %.2f ", (offs/(float)G.scene->r.frs_sec));
+				}
+				else {
+					sprintf(str, "Marker offset %.2f ", (double)(offs));
+				}
+			}
+			headerprint(str);
+			
+			force_draw(0);	// areas identical to this, 0 = no header
+		}
+		else PIL_sleep_ms(10);	// idle
+		
+		/* emptying queue and reading events */
+		while( qtest() ) {
+			event= extern_qread(&val);
+			
+			if(val) {
+				if(event==ESCKEY || event==RIGHTMOUSE) ret_val= 2;
+				else if(event==LEFTMOUSE || event==RETKEY || event==SPACEKEY) ret_val= 1;
+			}
+		}
+	}
+	
+	/* restore? */
+	if(ret_val==2) {
+		for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
+			if(marker->flag & SELECT) {
+				marker->frame= oldframe[a];
+				a++;
+			}
+		}
+	}
+	else {
+		BIF_undo_push("Move Markers");
+	}
+	MEM_freeN(oldframe);
+	allqueue(REDRAWTIME, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWSOUND, 0);
+}
 
+/* select/deselect all TimeMarkers
+ * 	test - based on current selections?
+ *	sel - selection status to set all markers to if blanket apply status
+ */
+void deselect_markers(short test, short sel)
+{
+	TimeMarker *marker;
+		
+	/* check if need to find out whether to how to select markers */
+	if (test) {
+		/* dependant on existing selection */
+		/* determine if select all or deselect all */
+		sel = 1;
+		for (marker= G.scene->markers.first; marker; marker= marker->next) {
+			if (marker->flag & SELECT) {
+				sel = 0;
+				break;
+			}
+		}
+		
+		/* do selection */
+		for (marker= G.scene->markers.first; marker; marker= marker->next) {
+			if (sel) {
+				if ((marker->flag & SELECT)==0) 
+					marker->flag |= SELECT;
+			}
+			else {
+				if (marker->flag & SELECT)
+					marker->flag &= ~SELECT;
+			}
+		}
+	}
+	else {
+		/* not dependant on existing selection */
+		for (marker= G.scene->markers.first; marker; marker= marker->next) {
+				if (sel) {
+					if ((marker->flag & SELECT)==0)
+						marker->flag |= SELECT;
+				}
+				else {
+					if (marker->flag & SELECT)
+						marker->flag &= ~SELECT;
+				}
+		}
+	}
+}
 
-static int find_nearest_marker(float dx)
+void borderselect_markers(float xmin, float xmax, int selectmode)
+{
+	TimeMarker *marker;
+		
+	for(marker= G.scene->markers.first; marker; marker= marker->next) {
+		if ((marker->frame > xmin) && (marker->frame <= xmax)) {
+			switch (selectmode) {
+				case SELECT_ADD:
+					if ((marker->flag & SELECT) == 0) 
+						marker->flag |= SELECT;
+					break;
+				case SELECT_SUBTRACT:
+					if (marker->flag & SELECT) 
+						marker->flag &= ~SELECT;
+					break;
+			}
+		}
+	}
+}
+
+void nextprev_marker(short dir)
+{
+	TimeMarker *marker, *cur=NULL, *first, *last;
+	int mindist= MAXFRAME, dist;
+		
+	first= last= G.scene->markers.first; 
+	for(marker= G.scene->markers.first; marker; marker= marker->next) {
+		/* find closest to current frame first */
+		dist= (marker->frame/G.scene->r.framelen) - CFRA;
+		if(dir==1 && dist>0 && dist<mindist) {
+			mindist= dist;
+			cur= marker;
+		}
+		else if(dir==-1 && dist<0 && -dist<mindist) {
+			mindist= -dist;
+			cur= marker;
+		}
+		/* find first/last */
+		if(marker->frame > last->frame) last= marker;
+		if(marker->frame < first->frame) first= marker;
+	}
+	
+	if(cur==NULL) {
+		if(dir==1) cur= first;
+		else cur= last;
+	}
+	if(cur) {
+		CFRA= cur->frame/G.scene->r.framelen;
+		update_for_newframe();
+		allqueue(REDRAWALL, 0);
+	}
+}
+
+TimeMarker *find_nearest_marker(int clip_y)
+{
+	TimeMarker *marker;
+	float xmin, xmax;
+	rctf	rectf;
+	short mval[2];
+	
+	getmouseco_areawin (mval);
+	
+	/* first clip selection in Y */
+	if((clip_y) && (mval[1] > 30))
+		return NULL;
+	
+	mval[0]-=7;
+	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
+	mval[0]+=14;
+	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
+	
+	xmin= rectf.xmin;
+	xmax= rectf.xmax;
+	
+	for(marker= G.scene->markers.first; marker; marker= marker->next) {
+		if ((marker->frame > xmin) && (marker->frame <= xmax)) {
+			return marker;
+		}
+	}
+	
+	return NULL;
+}
+
+/* *********** End Markers - Markers API *************** */
+
+/* border-select markers */
+void borderselect_timeline_markers(void) 
+{
+	rcti rect;
+	rctf rectf;
+	int val, selectmode;		
+	short	mval[2];
+
+	if ( (val = get_border(&rect, 3)) ){
+		if (val == LEFTMOUSE)
+			selectmode = SELECT_ADD;
+		else
+			selectmode = SELECT_SUBTRACT;
+
+		mval[0]= rect.xmin;
+		mval[1]= rect.ymin+2;
+		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
+		mval[0]= rect.xmax;
+		mval[1]= rect.ymax-2;
+		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
+			
+		/* do markers */
+		borderselect_markers(rectf.xmin, rectf.xmax, selectmode);
+		
+		BIF_undo_push("Border Select TimeLine");
+		allqueue(REDRAWTIME, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWSOUND, 0);
+	}
+}
+
+static int find_nearest_timeline_marker(float dx)
 {
 	TimeMarker *marker, *nearest= NULL;
 	float dist, min_dist= 1000000;
@@ -196,59 +474,7 @@ static void select_timeline_marker_frame(int frame, unsigned char shift)
 	}
 }
 
-/* select/deselect all TimeMarkers */
-void select_timeline_markers(void)
-{
-	TimeMarker *marker;
-	char any_selected= 0;
-	
-	for(marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(marker->flag & SELECT) any_selected= 1;
-		marker->flag &= ~SELECT;
-	}
-	
-	/* no TimeMarker selected, then select all TimeMarkers */
-	if(!any_selected){
-		for(marker= G.scene->markers.first; marker; marker= marker->next) {
-			marker->flag |= SELECT;
-		}
-	}
-}
-
-void nextprev_timeline_marker(short dir)
-{
-	TimeMarker *marker, *cur=NULL, *first, *last;
-	int mindist= MAXFRAME, dist;
-	
-	first= last= G.scene->markers.first; 
-	for(marker= G.scene->markers.first; marker; marker= marker->next) {
-		/* find closest to current frame first */
-		dist= (marker->frame/G.scene->r.framelen) - CFRA;
-		if(dir==1 && dist>0 && dist<mindist) {
-			mindist= dist;
-			cur= marker;
-		}
-		else if(dir==-1 && dist<0 && -dist<mindist) {
-			mindist= -dist;
-			cur= marker;
-		}
-		/* find first/last */
-		if(marker->frame > last->frame) last= marker;
-		if(marker->frame < first->frame) first= marker;
-	}
-	
-	if(cur==NULL) {
-		if(dir==1) cur= first;
-		else cur= last;
-	}
-	if(cur) {
-		CFRA= cur->frame/G.scene->r.framelen;
-		update_for_newframe();
-		allqueue(REDRAWALL, 0);
-	}
-}
-
-/* *********** end Markers *************** */
+/* *********** end Markers - TimeLine *************** */
 
 static int float_to_frame(float frame) 
 {
@@ -357,102 +583,6 @@ void timeline_frame_to_center(void)
 	G.v2d->cur.xmin += dtime;
 	G.v2d->cur.xmax += dtime;
 	scrarea_queue_winredraw(curarea);
-}
-
-void timeline_grab(int mode, int smode)	// mode and smode unused here, for callback
-{
-	SpaceTime *stime= curarea->spacedata.first;
-	TimeMarker *marker, *selmarker=NULL;
-	float dx, fac;
-	int a, ret_val= 0, totmark=0, *oldframe, offs, firsttime=1;
-	unsigned short event;
-	short val, pmval[2], mval[2], mvalo[2];
-	char str[32];
-	
-	for(marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(marker->flag & SELECT) totmark++;
-	}
-	if(totmark==0) return;
-	
-	oldframe= MEM_mallocN(totmark*sizeof(int), "marker array");
-	for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(marker->flag & SELECT) {
-			oldframe[a]= marker->frame;
-			selmarker= marker;	// used for hederprint
-			a++;
-		}
-	}
-	
-	dx= G.v2d->mask.xmax-G.v2d->mask.xmin;
-	dx= (G.v2d->cur.xmax-G.v2d->cur.xmin)/dx;
-	
-	getmouseco_areawin(pmval);
-	mvalo[0]= pmval[0];
-	
-	while(ret_val == 0) {
-		
-		getmouseco_areawin(mval);
-		
-		if (mval[0] != mvalo[0] || firsttime) {
-			mvalo[0]= mval[0];
-			firsttime= 0;
-			
-			fac= (((float)(mval[0] - pmval[0]))*dx);
-			
-			apply_keyb_grid(&fac, 0.0, (float)G.scene->r.frs_sec, 0.1*(float)G.scene->r.frs_sec, 0);
-			offs= (int)fac;
-			
-			for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-				if(marker->flag & SELECT) {
-					marker->frame= oldframe[a] + offs;
-					a++;
-				}
-			}
-			
-			if(totmark==1) {	// we print current marker value
-				if(stime->flag & TIME_DRAWFRAMES) 
-					sprintf(str, "Marker %d offset %d", selmarker->frame, offs);
-				else 
-					sprintf(str, "Marker %.2f offset %.2f", (selmarker->frame/(float)G.scene->r.frs_sec), (offs/(float)G.scene->r.frs_sec));
-			}
-			else {
-				if(stime->flag & TIME_DRAWFRAMES) 
-					sprintf(str, "Marker offset %d ", offs);
-				else 
-					sprintf(str, "Marker offset %.2f ", (offs/(float)G.scene->r.frs_sec));
-			}
-			headerprint(str);
-			
-			force_draw(0);	// areas identical to this, 0 = no header
-		}
-		else PIL_sleep_ms(10);	// idle
-		
-		/* emptying queue and reading events */
-		while( qtest() ) {
-			event= extern_qread(&val);
-			
-			if(val) {
-				if(event==ESCKEY || event==RIGHTMOUSE) ret_val= 2;
-				else if(event==LEFTMOUSE || event==RETKEY || event==SPACEKEY) ret_val= 1;
-			}
-		}
-	}
-	
-	/* restore? */
-	if(ret_val==2) {
-		for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-			if(marker->flag & SELECT) {
-				marker->frame= oldframe[a];
-				a++;
-			}
-		}
-	}
-	else {
-		BIF_undo_push("Move Markers");
-	}
-	MEM_freeN(oldframe);
-	allqueue(REDRAWTIME, 0);
-	allqueue(REDRAWACTION, 0);
 }
 
 /* copy of this is actually in editscreen.c, but event based */
@@ -564,7 +694,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			getmouseco_areawin(mval);
 			areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
 
-			cfra= find_nearest_marker(dx);
+			cfra= find_nearest_timeline_marker(dx);
 
 			if (G.qual && LR_SHIFTKEY)
 				select_timeline_marker_frame(cfra, 1);
@@ -572,7 +702,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				select_timeline_marker_frame(cfra, 0);
 			
 			force_draw(0);
-			std_rmouse_transform(timeline_grab);
+			std_rmouse_transform(transform_markers);
 
 			break;
 		case MIDDLEMOUSE:
@@ -608,29 +738,37 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if(G.qual==LR_CTRLKEY)
 				nextprev_timeline_key(1);
 			else
-				nextprev_timeline_marker(1);
+				nextprev_marker(1);
 			break;
 		case PAGEDOWNKEY: /* prev keyframe */
 			if(G.qual==LR_CTRLKEY)
 				nextprev_timeline_key(-1);
 			else
-				nextprev_timeline_marker(-1);
+				nextprev_marker(-1);
 			break;
 			
 		case AKEY:
 			/* deselect all TimeMarkers */
-			select_timeline_markers();
-			doredraw= 1;
+			deselect_markers(1, 0);
+			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWSOUND, 0);
+			break;
+		case BKEY:
+			/* borderselect markers */
+			borderselect_timeline_markers();
 			break;
 		case DKEY:
 			if(G.qual==LR_SHIFTKEY)
-				duplicate_timeline_marker();
+				duplicate_marker();
 			break;
 		case CKEY:
 			timeline_frame_to_center();
 			break;
 		case GKEY: /* move marker */
-			timeline_grab('g', 0);
+			transform_markers('g', 0);
 			break;
 		case EKEY: /* set end frame */
 			G.scene->r.efra = CFRA;
@@ -638,12 +776,15 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			allqueue(REDRAWTIME, 1);
 			break;
 		case MKEY: /* add, rename marker */
-			if (G.qual & LR_CTRLKEY)
-				rename_timeline_marker();
+			if (G.qual & LR_SHIFTKEY)
+				rename_marker();
 			else
-				add_timeline_marker(CFRA);
+				add_marker(CFRA);
 			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWSOUND, 0);
 			break;
 		case SKEY: /* set start frame */
 			G.scene->r.sfra = CFRA;
@@ -662,9 +803,12 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case XKEY:
 			if( okee("Erase selected")==0 ) break;
 
-			remove_timeline_marker();
+			remove_marker();
 			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWSOUND, 0);
 			break;
 		}
 	}

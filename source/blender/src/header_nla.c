@@ -58,9 +58,12 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_editnla.h"
+#include "BIF_editaction.h"
+#include "BIF_toolbox.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_time.h"
 
 //#include "nla.h"
 
@@ -180,6 +183,14 @@ static void do_nla_selectmenu(void *arg, int event)
 		allqueue (REDRAWNLA, 0);
 		allqueue (REDRAWIPO, 0);
 		break;
+	case 3: /* Select/Deselect All Markers */
+		deselect_markers(1, 0);
+		allqueue(REDRAWTIME, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWSOUND, 0);
+		break;
 	}
 }
 
@@ -197,6 +208,7 @@ static uiBlock *nla_selectmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All Keys|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All Channels", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All Markers|Ctrl A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -208,6 +220,31 @@ static uiBlock *nla_selectmenu(void *arg_unused)
 
 	uiTextBoundsBlock(block, 50);
 
+	return block;
+}
+
+static void do_nla_strip_snapmenu(void *arg, int event)
+{
+	snap_action_strips(event);
+	
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);	
+}
+
+static uiBlock *nla_strip_snapmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "nla_strip_snapmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_nla_strip_snapmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Nearest Frame|Shift S, 1",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Current Frame|Shift S, 2",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
 	return block;
 }
 
@@ -257,8 +294,10 @@ static void do_nla_stripmenu(void *arg, int event)
 		update_for_newframe_muted();
 		break;
 	case 3: /* Delete Strips */
-		delete_nlachannel_keys ();
-		update_for_newframe_muted();
+		if (okee("Erase selected strips and/or keys")) {
+			delete_nlachannel_keys ();
+			update_for_newframe_muted();
+		}
 		break;
 	case 5: /* Convert Action to NLA Strip */
 		break;
@@ -273,9 +312,6 @@ static void do_nla_stripmenu(void *arg, int event)
 		break;
 	case 9:	/* reset start/end of action */
 		reset_action_strips(2);
-		break;
-	case 10: /* snap to frame */
-		snap_action_strips();
 		break;
 	}
 }
@@ -292,7 +328,7 @@ static uiBlock *nla_stripmenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, nla_strip_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 20, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Strip Size|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Action Start/End|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Snap to Frame|Shift S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
+	uiDefIconTextBlockBut(block, nla_strip_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap To Frame", 0, yco-=20, 120, 20, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -302,11 +338,75 @@ static uiBlock *nla_stripmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Down|Page Down", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Up|Page Up", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Down|Ctrl Page Down", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Up|Ctrl Page Up", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 		
 	// uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Convert Action to NLA Strip|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
+
+static void do_nla_markermenu(void *arg, int event)
+{	
+	switch(event)
+	{
+		case 1:
+			add_marker(CFRA);
+			break;
+		case 2:
+			duplicate_marker();
+			break;
+		case 3:
+			remove_marker();
+			break;
+		case 4:
+			rename_marker();
+			break;
+		case 5:
+			transform_markers('g', 0);
+			break;
+	}
+	
+	allqueue(REDRAWTIME, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWSOUND, 0);
+}
+
+static uiBlock *nla_markermenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "nla_markermenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_nla_markermenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Marker|M", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate Marker|Ctrl Shift D", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker|X", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+					 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "(Re)Name Marker|Shift M", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|Shift G", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -367,11 +467,16 @@ void nla_buttons(void)
 		xmax= GetButStringLength("Select");
 		uiDefPulldownBut(block, nla_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
-
+	
+		xmax= GetButStringLength("Marker");
+		uiDefPulldownBut(block, nla_markermenu, NULL, "Marker", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
+		
 		xmax= GetButStringLength("Strip");
 		uiDefPulldownBut(block, nla_stripmenu, NULL, "Strip", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
-
+	
+		
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSS);

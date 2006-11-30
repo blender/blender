@@ -70,6 +70,7 @@
 
 #include "BSE_drawipo.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_time.h"
 
 #include "nla.h"
 
@@ -84,6 +85,9 @@
 #define ACTMENU_VIEW_MAXIMIZE   5
 #define ACTMENU_VIEW_LOCK		6
 #define ACTMENU_VIEW_SLIDERS	7
+#define ACTMENU_VIEW_NEXTMARKER	8
+#define ACTMENU_VIEW_PREVMARKER	9
+
 
 #define ACTMENU_SEL_BORDER      		0
 #define ACTMENU_SEL_ALL_KEYS    		1
@@ -96,8 +100,8 @@
 #define ACTMENU_KEY_DUPLICATE     0
 #define ACTMENU_KEY_DELETE        1
 #define ACTMENU_KEY_BAKE          2
-#define ACTMENU_KEY_SNAP          3
-#define ACTMENU_KEY_CLEAN		  4
+#define ACTMENU_KEY_CLEAN		  3
+#define ACTMENU_KEY_MIRROR		  4
 
 #define ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_UP		0
 #define ACTMENU_KEY_CHANPOS_MOVE_CHANNEL_DOWN	1
@@ -121,6 +125,9 @@
 #define ACTMENU_KEY_EXTEND_EXTRAPOLATION 1
 #define ACTMENU_KEY_EXTEND_CYCLIC 2
 #define ACTMENU_KEY_EXTEND_CYCLICEXTRAPOLATION 3
+
+#define ACTMENU_KEY_SNAP_NEARFRAME  0
+#define ACTMENU_KEY_SNAP_CURFRAME 1
 
 #define ACTMENU_MARKERS_ADD 0
 #define ACTMENU_MARKERS_DUPLICATE 1
@@ -250,6 +257,12 @@ static void do_action_viewmenu(void *arg, int event)
 		case ACTMENU_VIEW_MAXIMIZE: /* Maximize Window */
 			/* using event B_FULL */
 			break;
+		case ACTMENU_VIEW_NEXTMARKER: /* jump to next marker */
+			nextprev_marker(1);
+			break;
+		case ACTMENU_VIEW_PREVMARKER: /* jump to previous marker */
+			nextprev_marker(-1);
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -267,14 +280,6 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 "Center View to Current Frame|C", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_CENTERVIEW, "");
-	
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
-			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, BTST(G.saction->lock, 0)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
-					 "Update Automatically|", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
-					 ACTMENU_VIEW_AUTOUPDATE, "");
 		
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -283,10 +288,30 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 "Show Sliders|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_SLIDERS, "");
+					 
+	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Lock Time to Other Windows|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_LOCK, "");
+					 
+	uiDefIconTextBut(block, BUTM, 1, BTST(G.saction->lock, 0)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Update Automatically|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_AUTOUPDATE, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
+					 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+				"Jump To Next Marker|PageUp", 0, yco-=20,
+				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_NEXTMARKER, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+				"Jump To Prev Marker|PageDown", 0, yco-=20, 
+				menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_VIEW_PREVMARKER, "");
+					 
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+			
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Play Back Animation|Alt A", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
@@ -303,11 +328,6 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 "View All|Home", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_ALL, "");
-		
-	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
-					 "Lock Time to Other Windows|", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
-					 ACTMENU_VIEW_LOCK, "");
 	
 	if (!curarea->full) 
 		uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, 
@@ -338,7 +358,6 @@ static void do_action_selectmenu(void *arg, int event)
 	SpaceAction *saction;
 	bAction	*act;
 	Key *key;
-	ListBase *markers;
 	
 	saction = curarea->spacedata.first;
 	if (!saction)
@@ -346,7 +365,6 @@ static void do_action_selectmenu(void *arg, int event)
 
 	act = saction->action;
 	key = get_action_mesh_key();
-	markers = get_saction_markers(saction);
 	
 	switch(event)
 	{
@@ -383,11 +401,12 @@ static void do_action_selectmenu(void *arg, int event)
 			break;
 			
 		case ACTMENU_SEL_ALL_MARKERS: /* select/deselect all markers */
-			if (markers != NULL) {
-				deselect_saction_markers(markers, 1, 0);
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWTIME, 0);
-			}
+			deselect_markers(1, 0);
+			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWSOUND, 0);
 			break;
 			
 		case ACTMENU_SEL_COLUMN: /* select column */
@@ -800,6 +819,45 @@ static uiBlock *action_keymenu_chanposmenu(void *arg_unused)
 	return block;
 }
 
+static void do_action_keymenu_snapmenu(void *arg, int event)
+{
+	switch(event)
+	{
+		case ACTMENU_KEY_SNAP_NEARFRAME:
+			snap_keys_to_frame(1);
+			break;
+		case ACTMENU_KEY_SNAP_CURFRAME:
+			snap_keys_to_frame(2);
+			break;
+	}
+
+	scrarea_queue_winredraw(curarea);
+}
+
+static uiBlock *action_keymenu_snapmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_keymenu_snapmenu", 
+					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_action_keymenu_snapmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Nearest Frame|Shift S, 1", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_SNAP_NEARFRAME, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Current Frame|Shift S, 2", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_SNAP_CURFRAME, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
 static void do_action_keymenu(void *arg, int event)
 {	
 	SpaceAction *saction;
@@ -836,9 +894,6 @@ static void do_action_keymenu(void *arg, int event)
 		case ACTMENU_KEY_BAKE:
 			bake_action_with_client (G.saction->action, OBACT, 0.01);
 			break;
-		case ACTMENU_KEY_SNAP:
-			snap_keys_to_frame();
-			break;
 		case ACTMENU_KEY_CLEAN:
 			if (key) 
 				clean_shapekeys(key);
@@ -860,9 +915,8 @@ static uiBlock *action_keymenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, action_keymenu_transformmenu, 
 						  NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 20, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Snap to Frame|Shift S", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_KEY_SNAP, "");
+	uiDefIconTextBlockBut(block, action_keymenu_snapmenu, 
+						  NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 20, "");
 	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -926,39 +980,30 @@ static uiBlock *action_keymenu(void *arg_unused)
 
 static void do_action_markermenu(void *arg, int event)
 {	
-	SpaceAction *saction;
-	ListBase *markers = NULL;
-	
-	saction= curarea->spacedata.first;
-	if (!saction)
-		return;
-
-	/* get set of markers */
-	markers= get_saction_markers(saction);
-	if (markers == NULL) 
-		return;
-	
 	switch(event)
 	{
 		case ACTMENU_MARKERS_ADD:
-			add_saction_marker(markers, CFRA);
+			add_marker(CFRA);
 			break;
 		case ACTMENU_MARKERS_DUPLICATE:
-			duplicate_saction_markers(markers);
+			duplicate_marker();
 			break;
 		case ACTMENU_MARKERS_DELETE:
-			remove_saction_markers(markers);
+			remove_marker();
 			break;
 		case ACTMENU_MARKERS_NAME:
-			rename_saction_markers(markers);
+			rename_marker();
 			break;
 		case ACTMENU_MARKERS_MOVE:
-			transform_saction_markers('g', 0);
+			transform_markers('g', 0);
 			break;
 	}
 	
-	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWTIME, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWSOUND, 0);
 }
 
 static uiBlock *action_markermenu(void *arg_unused)
@@ -972,16 +1017,16 @@ static uiBlock *action_markermenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Marker|M", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_ADD, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate Marker(s)|Ctrl Shift M", 0, yco-=20, 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate Marker|Ctrl Shift D", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_DUPLICATE, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker(s)|Alt M", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker|X", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_DELETE, "");
 					 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "(Re)Name Marker(s)|Ctrl M", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "(Re)Name Marker|Shift M", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_NAME, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker(s)|Shift M", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|Shift G", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_MOVE, "");
 	
 	
@@ -1069,19 +1114,16 @@ void action_buttons(void)
 		uiDefPulldownBut(block, action_selectmenu, NULL, 
 					  "Select", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
-	
+		
+		xmax= GetButStringLength("Marker");
+		uiDefPulldownBut(block, action_markermenu, NULL, 
+					  "Marker", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
+		
 		xmax= GetButStringLength("Key");
 		uiDefPulldownBut(block, action_keymenu, NULL, 
 					  "Key", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
-		
-		//if ((G.saction->markert != SACTION_NOMARKERS) &&
-		//	(G.saction->action != NULL)) {
-			xmax= GetButStringLength("Marker");
-			uiDefPulldownBut(block, action_markermenu, NULL, 
-						  "Marker", xco, -2, xmax-3, 24, "");
-			xco+= xmax;
-		//}
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSS);

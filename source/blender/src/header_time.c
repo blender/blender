@@ -203,10 +203,10 @@ static void do_time_viewmenu(void *arg, int event)
 			stime->flag ^= TIME_DRAWFRAMES;
 			break;
 		case 6:
-			nextprev_timeline_marker(1);
+			nextprev_marker(1);
 			break;
 		case 7:
-			nextprev_timeline_marker(-1);
+			nextprev_marker(-1);
 			break;
 		case 8:
 			nextprev_timeline_key(1);
@@ -290,22 +290,26 @@ static void do_time_framemenu(void *arg, int event)
 			allqueue(REDRAWALL, 1);
 			break;
 		case 3: /* Add Marker */
-			add_timeline_marker(CFRA);
+			add_marker(CFRA);
 			break;
 		case 4: /* Remove Marker */
-			remove_timeline_marker();
+			remove_marker();
 			break;
 		case 5: /* Rename Marker */
-			rename_timeline_marker();
+			rename_marker();
 			break;
 		case 6: /* Grab Marker */
-			timeline_grab('g', 0);
+			transform_markers('g', 0);
 			break;
 		case 7: /* duplicate marker */
-			duplicate_timeline_marker();
+			duplicate_marker();
 			break;
 	}
 	allqueue(REDRAWTIME, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWSOUND, 0);
 }
 
 static uiBlock *time_framemenu(void *arg_unused)
@@ -319,14 +323,14 @@ static uiBlock *time_framemenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Marker|M", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate Marker|M", 0, yco-=20, 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate Marker|Shift D", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker|X", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 					 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Name Marker|Ctrl M", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Name Marker|Shift M", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|G", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");

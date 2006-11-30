@@ -697,7 +697,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	draw_cfra_action();
 	
 	/* Draw markers */
-	draw_markers_action(G.saction);
+	draw_markers_timespace(&(G.saction->v2d));
 
 	/* Draw scroll */
 	mywinset(curarea->win);	// reset scissor too

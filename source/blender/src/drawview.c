@@ -3278,7 +3278,7 @@ int play_anim(int mode)
 				}
 			}
 			else if(event==MKEY) {
-				if(val) add_timeline_marker(CFRA-1);
+				if(val) add_marker(CFRA-1);
 			}
 		}
 		if(ELEM3(event, ESCKEY, SPACEKEY, RIGHTMOUSE)) break;

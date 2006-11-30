@@ -78,24 +78,14 @@ void transform_actionchannel_keys(int mode, int dummy);
 void transform_meshchannel_keys(char mode, struct Key *key);
 struct Key *get_action_mesh_key(void);
 int get_nearest_key_num(struct Key *key, short *mval, float *x);
-void snap_keys_to_frame(void);
+void snap_keys_to_frame(int snap_mode);
 void clean_shapekeys(struct Key *key);
 void clean_actionchannels(struct bAction *act);
 
 /* Marker Operations */
-struct ListBase *get_saction_markers(struct SpaceAction *saction);
-struct TimeMarker *find_nearest_saction_marker(struct ListBase *markers);
-void get_minmax_saction_markers(struct ListBase *markers, float *first, float *last);
-void add_saction_marker(struct ListBase *markers, int frame);
-void duplicate_saction_markers(struct ListBase *markers);
-void remove_saction_markers(struct ListBase *markers);
-void rename_saction_markers(struct ListBase *markers);
-void transform_saction_markers(int mode, int smode);
-void deselect_saction_markers(struct ListBase *markers, short test, short sel);
-void borderselect_saction_markers(struct ListBase *markers, float xmin, float xmax, int selectmode);
-void nextprev_saction_markers(ListBase *markers, short dir);
-void selectkeys_columns_markers(struct ListBase *markers);
-void selectkeys_between_markers(struct ListBase *markers);
+void get_minmax_saction_markers(float *first, float *last);
+void selectkeys_columns_markers(void);
+void selectkeys_between_markers(void);
 
 /* channel/strip operations */
 void up_sel_action(void);

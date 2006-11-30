@@ -300,6 +300,9 @@ int BoneSize(TransInfo *t, short mval[2]);
 void initBoneEnvelope(TransInfo *t);
 int BoneEnvelope(TransInfo *t, short mval[2]);
 
+void initBoneRoll(TransInfo *t);
+int BoneRoll(TransInfo *t, short mval[2]);
+
 /*********************** transform_conversions.c ********** */
 struct ListBase;
 void flushTransUVs(TransInfo *t);

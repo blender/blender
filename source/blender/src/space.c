@@ -135,6 +135,7 @@
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_editnla_types.h"
+#include "BSE_time.h"
 
 #include "BDR_vpaint.h"
 #include "BDR_editmball.h"
@@ -1871,9 +1872,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							selectrow_nurb();
 					}
 					else if(G.qual==LR_CTRLKEY) {
-						if (G.obedit->type==OB_MESH)
+						if (G.obedit->type==OB_MESH) {
 							CutEdgeloop(1);
 							BIF_undo_push("Cut Edgeloop");
+						}
+						//else if (G.obedit->type==OB_ARMATURE) {
+						//	initTransform(TFM_BONE_ROLL, CTX_NONE);
+						//	Transform();
+						//}
 					}
 					else if((G.qual==0)) {
 						initTransform(TFM_ROTATION, CTX_NONE);
@@ -2342,8 +2348,11 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case RIGHTMOUSE:
 			mouse_select_ipo();
-			allqueue (REDRAWACTION, 0);
+			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWSOUND, 0);
 			break;
 		case MIDDLEMOUSE:
 			if(in_ipo_buttons()) {
@@ -2364,16 +2373,20 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			doredraw= 1;
 			break;
 		case PAGEUPKEY:
-			if(G.qual==LR_CTRLKEY)
+			if(G.qual & LR_CTRLKEY)
 				movekey_ipo(1);
-			else if((G.qual==0))
+			else if(G.qual & LR_SHIFTKEY)
 				nextkey_ipo(1);
+			else
+				nextprev_marker(1);
 			break;
 		case PAGEDOWNKEY:
-			if(G.qual==LR_CTRLKEY)
+			if(G.qual & LR_CTRLKEY)
 				movekey_ipo(-1);
-			else if((G.qual==0))
+			else if(G.qual & LR_SHIFTKEY)
 				nextkey_ipo(-1);
+			else
+				nextprev_marker(-1);
 			break;
 		case HOMEKEY:
 			if((G.qual==0))
@@ -2381,7 +2394,15 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case AKEY:
-			if((G.qual==0)) {
+			if (G.qual & LR_CTRLKEY) {
+				deselect_markers(1, 0);
+				allqueue(REDRAWTIME, 0);
+				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWACTION, 0);
+				allqueue(REDRAWNLA, 0);
+				allqueue(REDRAWSOUND, 0);
+			}
+			else if (G.qual==0) {
 				if(in_ipo_buttons()) {
 					swap_visible_editipo();
 				}
@@ -2392,37 +2413,42 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				allqueue (REDRAWNLA, 0);
 				allqueue (REDRAWACTION, 0);
 			}
+			
 			break;
 		case BKEY:
-			if((G.qual==0))
+			if (G.qual==0)
 				borderselect_ipo();
 			break;
 		case CKEY:
-			if((G.qual==0))
+			if (G.qual==0)
 				move_to_frame();
 			break;
 		case DKEY:
-			if((G.qual==LR_SHIFTKEY))
+			if (G.qual==LR_SHIFTKEY)
 				add_duplicate_editipo();
+			else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+				duplicate_marker();
 			break;
 		case GKEY:
-			if((G.qual==0))
+			if (G.qual & LR_SHIFTKEY)
+				transform_markers('g', 0);
+			else if (G.qual==0)
 				transform_ipo('g');
 			break;
 		case HKEY:
-			if(G.qual==LR_ALTKEY)
+			if (G.qual==LR_ALTKEY)
 				sethandles_ipo(HD_AUTO_ANIM);
-			if(G.qual==LR_SHIFTKEY)
+			if (G.qual==LR_SHIFTKEY)
 				sethandles_ipo(HD_AUTO);
-			else if(G.qual==0)
+			else if (G.qual==0)
 				sethandles_ipo(HD_ALIGN);
 			break;
 		case JKEY:
-			if((G.qual==LR_CTRLKEY))
+			if (G.qual==LR_CTRLKEY)
 				join_ipo_menu();
 			break;
 		case KKEY:
-			if((G.qual==0)) {
+			if (G.qual==0) {
 				ipo_toggle_showkey();
 				scrarea_queue_headredraw(curarea);
 				allqueue(REDRAWVIEW3D, 0);
@@ -2430,40 +2456,64 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case MKEY:
-			if((G.qual==0))
+			if (G.qual==LR_CTRLKEY) {
 				ipo_mirror_menu();
+				break;
+			}
+			if (G.qual == 0)
+				add_marker(CFRA);
+			else if (G.qual == LR_SHIFTKEY)
+				rename_marker();
+			else 
+				break;
+			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWSOUND, 0);
 			break;
 		case NKEY:
 			toggle_blockhandler(sa, IPO_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 			doredraw= 1;
 			break;
 		case OKEY: 
-			if(G.qual==LR_SHIFTKEY) 
+			if (G.qual==LR_SHIFTKEY) 
 				smooth_ipo();
 			else
 				clean_ipo(sipo->ipo, 1);
 			break;
 		case RKEY:
-			if((G.qual==0))
+			if (G.qual==0)
 				ipo_record();
 			break;
 		case SKEY:
-			if((G.qual==LR_SHIFTKEY)) {		
+			if (G.qual==LR_SHIFTKEY) {		
 				ipo_snap_menu();
-			} else if((G.qual==0))
+			} 
+			else if (G.qual==0)
 				transform_ipo('s');
 			break;
 		case TKEY:
-			if((G.qual==0))
+			if (G.qual==0)
 				set_ipotype();
 			break;
 		case VKEY:
-			if((G.qual==0))
+			if (G.qual==0)
 				sethandles_ipo(HD_VECT);
 			break;
 		case XKEY:
 		case DELKEY:
-			del_ipo();
+			val= pupmenu("Erase selected%t|Keys %x1|Markers %x2");
+			if (val == 1)
+				del_ipo(0);
+			else if (val == 2) {
+				remove_marker();
+				allqueue(REDRAWTIME, 0);
+				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWACTION, 0);
+				allqueue(REDRAWNLA, 0);
+				allqueue(REDRAWSOUND, 0);
+			}
 			break;
 		}
 	}

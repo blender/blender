@@ -85,6 +85,7 @@
 #include "BSE_editipo.h"
 #include "BSE_editipo_types.h"
 #include "BSE_editnla_types.h"
+#include "BSE_time.h"
 
 #include "BPY_extern.h"
 
@@ -2135,6 +2136,9 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		draw_ipocurves(1);
 		draw_ipohandles(1);
 		draw_ipovertices(1);
+		
+		/* draw markers */
+		draw_markers_timespace(&(sipo->v2d));
 		
 		/* restore viewport */
 		mywinset(sa->win);

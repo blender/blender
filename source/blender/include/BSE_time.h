@@ -33,19 +33,28 @@
 #ifndef BSE_TIME_H
 #define BSE_TIME_H
 
-struct SpaceAction;
+struct View2D;
 
-/* ******** Markers ********* */
-void add_timeline_marker(int frame);
-void duplicate_timeline_marker(void);
-void remove_timeline_marker(void);
-void rename_timeline_marker(void);
-void select_timeline_markers(void);
+/* ******** Markers - General Api ********* */
+void add_marker(int frame);
+void duplicate_marker(void);
+void remove_marker(void);
+void rename_marker(void);
+void transform_markers(int mode, int smode);
+void deselect_markers(short test, short sel);
+void borderselect_markers(float xmin, float xmax, int selectmode);
+struct TimeMarker *find_nearest_marker(int clip_y);
+void nextprev_marker(short dir);
+
+/* ******** Markers - Space Specific ************* */
+/* TimeLine Marker Stuff ----------------------------------- */
+void borderselect_timeline_markers(void);
+/* Other Space Marker Stuff ----------------------------- */
+void draw_markers_timespace(struct View2D *v2d);
+
+/* *********** TimeLine Specific  ***************/
 void timeline_frame_to_center(void);
 void nextprev_timeline_key(short dir);
-void nextprev_timeline_marker(short dir);
-void timeline_grab(int mode, int smode);
-void draw_markers_action(struct SpaceAction *sact);
 
 #endif
 

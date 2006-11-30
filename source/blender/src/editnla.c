@@ -81,6 +81,7 @@
 #include "BSE_filesel.h"
 #include "BDR_editobject.h"
 #include "BSE_drawnla.h"
+#include "BSE_time.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -229,7 +230,7 @@ void reset_action_strips(int val)
 	allqueue (REDRAWNLA, 0);
 }
 
-void snap_action_strips(void)
+void snap_action_strips(int snap_mode)
 {
 	Base *base;
 	bActionStrip *strip;
@@ -237,8 +238,25 @@ void snap_action_strips(void)
 	for (base=G.scene->base.first; base; base=base->next) {
 		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_SELECT) {
-				strip->start= floor(strip->start+0.5);
-				strip->end= floor(strip->end+0.5);
+				if (snap_mode==1) {
+					/* nearest frame */
+					strip->start= floor(strip->start+0.5);
+					strip->end= floor(strip->end+0.5);
+				}
+				else if (snap_mode==2) {
+					/* current frame */
+					float diff;
+					if (CFRA < strip->start) {
+						diff = (strip->start - CFRA);
+						strip->start -= diff;
+						strip->end -= diff;
+					}
+					else {
+						diff = (CFRA - strip->start);
+						strip->start += diff;
+						strip->end += diff;
+					}
+				}
 			}
 		}
 	}
@@ -953,10 +971,7 @@ void delete_nlachannel_keys(void)
 	bActionChannel *chan;
 	bConstraintChannel *conchan;
 	bActionStrip *strip, *nextstrip;
-	
-	if (!okee("Erase selected strips and/or keys"))
-		return;
-	
+		
 	for (base = G.scene->base.first; base; base=base->next){
 
 		/* Delete object ipos */
@@ -1059,17 +1074,20 @@ void borderselect_nla(void)
 	bConstraintChannel *conchan;
 	
 	if ( (val = get_border (&rect, 3)) ){
-    if (val == LEFTMOUSE)
-      selectmode = SELECT_ADD;
-    else
-      selectmode = SELECT_SUBTRACT;
-
+	    if (val == LEFTMOUSE)
+			selectmode = SELECT_ADD;
+	    else
+			selectmode = SELECT_SUBTRACT;
+	  
 		mval[0]= rect.xmin;
 		mval[1]= rect.ymin+2;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
 		mval[0]= rect.xmax;
 		mval[1]= rect.ymax-2;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
+		
+		/* do markers first */
+		borderselect_markers(rectf.xmin, rectf.xmax, selectmode);	
 		
 		ymax = count_nla_levels();
 		ymax*= (NLACHANNELHEIGHT+NLACHANNELSKIP);
@@ -1136,9 +1154,11 @@ void borderselect_nla(void)
 			}
 		}	
 		BIF_undo_push("Border select NLA");
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWTIME, 0);
 		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWSOUND, 0);
 	}
 }
 
@@ -1150,6 +1170,7 @@ static void mouse_nla(int selectmode)
 	bActionChannel *chan;
 	bActionStrip *rstrip;
 	bConstraintChannel *conchan;
+	TimeMarker *marker;
 	float	selx;
 	short	mval[2];
 	short sel, isdone=0;
@@ -1158,6 +1179,7 @@ static void mouse_nla(int selectmode)
 	
 	/* Try object ipo or ob-constraint ipo selection */
 	base= get_nearest_nlachannel_ob_key(&selx, &sel);
+	marker=find_nearest_marker(1);
 	if (base) {
 		isdone= 1;
 		
@@ -1171,6 +1193,31 @@ static void mouse_nla(int selectmode)
 		/* Try object constraint selection */
 		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
 			select_ipo_key(conchan->ipo, selx, selectmode);
+	}
+	else if (marker) {
+		/* marker */		
+		if (selectmode == SELECT_REPLACE) {			
+			deselect_markers(0, 0);
+			marker->flag |= SELECT;
+		}
+		else if (selectmode == SELECT_INVERT) {
+			if (marker->flag & SELECT)
+				marker->flag &= ~SELECT;
+			else
+				marker->flag |= SELECT;
+		}
+		else if (selectmode == SELECT_ADD) 
+			marker->flag |= SELECT;
+		else if (selectmode == SELECT_SUBTRACT)
+			marker->flag &= ~SELECT;
+		
+		std_rmouse_transform(transform_markers);
+		
+		allqueue(REDRAWTIME, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWSOUND, 0);
 	}
 	else {
 		/* Try action ipo selection */
@@ -1606,13 +1653,37 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 				
 			case EQUALKEY:
-			case PAGEUPKEY:
 				shift_nlastrips_up();
+				break;
+			
+			case PAGEUPKEY:
+				if (G.qual & LR_CTRLKEY)
+					shift_nlastrips_up();
+				else {
+					nextprev_marker(1);
+					allqueue(REDRAWTIME, 0);
+					allqueue(REDRAWIPO, 0);
+					allqueue(REDRAWACTION, 0);
+					allqueue(REDRAWNLA, 0);
+					allqueue(REDRAWSOUND, 0);
+				}				
 				break;
 				
 			case MINUSKEY:
-			case PAGEDOWNKEY:
 				shift_nlastrips_down();
+				break;
+				
+			case PAGEDOWNKEY:
+				if (G.qual & LR_CTRLKEY)
+					shift_nlastrips_down();
+				else {
+					nextprev_marker(-1);
+					allqueue(REDRAWTIME, 0);
+					allqueue(REDRAWIPO, 0);
+					allqueue(REDRAWACTION, 0);
+					allqueue(REDRAWNLA, 0);
+					allqueue(REDRAWSOUND, 0);
+				}
 				break;
 				
 			case AKEY:
@@ -1620,6 +1691,14 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					add_nlablock();
 					allqueue (REDRAWNLA, 0);
 					allqueue (REDRAWVIEW3D, 0);
+				}
+				else if (G.qual & LR_CTRLKEY) {
+					deselect_markers(1, 0);
+					allqueue(REDRAWTIME, 0);
+					allqueue(REDRAWIPO, 0);
+					allqueue(REDRAWACTION, 0);
+					allqueue(REDRAWNLA, 0);
+					allqueue(REDRAWSOUND, 0);
 				}
 				else{
 					if (mval[0]>=NLAWIDTH)
@@ -1656,18 +1735,48 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 				
 			case DKEY:
-				if (G.qual & LR_SHIFTKEY && mval[0]>=NLAWIDTH){
+				if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY) && mval[0]>=NLAWIDTH) {
+					duplicate_marker();
+					allqueue(REDRAWTIME, 0);
+					allqueue(REDRAWIPO, 0);
+					allqueue(REDRAWACTION, 0);
+					allqueue(REDRAWNLA, 0);
+					allqueue(REDRAWSOUND, 0);
+				}
+				else if (G.qual & LR_SHIFTKEY && mval[0]>=NLAWIDTH){
 					duplicate_nlachannel_keys();
 					update_for_newframe_muted();
 				}
+				
 				break;
 				
 			case GKEY:
-				if (mval[0]>=NLAWIDTH)
-					transform_nlachannel_keys ('g', 0);
-				update_for_newframe_muted();
+				if (mval[0]>=NLAWIDTH) {
+					if (G.qual & LR_SHIFTKEY) {
+						transform_markers('g', 0);
+					}
+					else {
+						transform_nlachannel_keys ('g', 0);
+						update_for_newframe_muted();
+					}
+				}
 				break;
-				
+			
+			case MKEY:
+				/* marker operations */
+				if (G.qual == 0)
+					add_marker(CFRA);
+				else if (G.qual == LR_SHIFTKEY)
+					rename_marker();
+				else 
+					break;
+				allqueue(REDRAWTIME, 0);
+				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWACTION, 0);
+				allqueue(REDRAWNLA, 0);
+				allqueue(REDRAWSOUND, 0);
+				break;				
+			
 			case NKEY:
 				if(G.qual==0) {
 					toggle_blockhandler(curarea, NLA_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
@@ -1687,8 +1796,9 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						reset_action_strips(2);
 				}
 				else if(G.qual & LR_SHIFTKEY) {
-					if(okee("Snap Strips to Frame"))
-						snap_action_strips();
+					val= pupmenu("Snap To%t|Nearest Frame%x1|Current Frame%x2");
+					if (val==1 || val==2)
+						snap_action_strips(val);
 				}
 				else {
 					if (mval[0]>=NLAWIDTH)
@@ -1699,10 +1809,22 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 			case DELKEY:
 			case XKEY:
-				if (mval[0]>=NLAWIDTH)
-					delete_nlachannel_keys ();
-				
-				update_for_newframe_muted();
+				if (mval[0]>=NLAWIDTH) {
+					val= pupmenu("Erase selected%t|Strips and/or Keys%x1|Markers%x2");
+					if (val==1) {
+						delete_nlachannel_keys();
+						update_for_newframe_muted();
+					}
+					else if (val==2) {
+						remove_marker();
+						
+						allqueue(REDRAWTIME, 0);
+						allqueue(REDRAWIPO, 0);
+						allqueue(REDRAWACTION, 0);
+						allqueue(REDRAWNLA, 0);
+						allqueue(REDRAWSOUND, 0);
+					}				
+				}
 				break;
 				
 				/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
