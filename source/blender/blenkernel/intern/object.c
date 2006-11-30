@@ -273,6 +273,10 @@ void unlink_object(Object *ob)
 	while(obt) {
 		if(obt->proxy==ob)
 			obt->proxy= NULL;
+		if(obt->proxy_from==ob) {
+			obt->proxy_from= NULL;
+			obt->recalc |= OB_RECALC_OB;
+		}
 		if(obt->proxy_group==ob)
 			obt->proxy_group= NULL;
 		
@@ -992,7 +996,8 @@ void make_local_object(Object *ob)
 	    */
 	
 	if(ob->id.lib==NULL) return;
-	if(ob->proxy) return;
+	
+	ob->proxy= ob->proxy_from= NULL;
 	
 	if(ob->id.us==1) {
 		ob->id.lib= NULL;
@@ -1047,7 +1052,7 @@ void make_local_object(Object *ob)
 
 /* *************** PROXY **************** */
 
-/* proxy rule: lib_object->proxy == the one we borrow from, set temporally while object_update */
+/* proxy rule: lib_object->proxy_from == the one we borrow from, set temporally while object_update */
 /*             local_object->proxy == pointer to library object, saved in files and read */
 /*             local_object->proxy_group == pointer to group dupli-object, saved in files and read */
 
@@ -1499,7 +1504,7 @@ void where_is_object_time(Object *ob, float ctime)
 			pushdata(par, sizeof(Object));
 			pop= 1;
 			
-			if(par->id.lib && par->proxy);	// was a copied matrix, no where_is! bad...
+			if(par->proxy_from);	// was a copied matrix, no where_is! bad...
 			else where_is_object_time(par, ctime);
 		}
 		
@@ -1966,8 +1971,8 @@ void minmax_object(Object *ob, float *min, float *max)
 	}
 }
 
-/* proxy rule: lib_object->proxy == the one we borrow from, only set temporal and cleared here */
-/*             local_object->proxy == pointer to library object, saved in files and read */
+/* proxy rule: lib_object->proxy_from == the one we borrow from, only set temporal and cleared here */
+/*           local_object->proxy      == pointer to library object, saved in files and read */
 
 /* function below is polluted with proxy exceptions, cleanup will follow! */
 
@@ -1978,13 +1983,19 @@ void object_handle_update(Object *ob)
 	if(ob->recalc & OB_RECALC) {
 		
 		if(ob->recalc & OB_RECALC_OB) {
-			if(OB_COPY_PROXY(ob)) {
-				if(ob->proxy->proxy_group) {/* transform proxy into group space */
-					Mat4Invert(ob->proxy->proxy_group->imat, ob->proxy->proxy_group->obmat);
-					Mat4MulMat4(ob->obmat, ob->proxy->obmat, ob->proxy->proxy_group->imat);
+			
+			// printf("recalcob %s\n", ob->id.name+2);
+			
+			/* handle proxy copy for target */
+			if(ob->id.lib && ob->proxy_from) {
+				// printf("ob proxy copy, lib ob %s proxy %s\n", ob->id.name, ob->proxy_from->id.name);
+				if(ob->proxy_from->proxy_group) {/* transform proxy into group space */
+					Object *obg= ob->proxy_from->proxy_group;
+					Mat4Invert(obg->imat, obg->obmat);
+					Mat4MulMat4(ob->obmat, ob->proxy_from->obmat, obg->imat);
 				}
 				else
-					Mat4CpyMat4(ob->obmat, ob->proxy->obmat);
+					Mat4CpyMat4(ob->obmat, ob->proxy_from->obmat);
 			}
 			else
 				where_is_object(ob);
@@ -2012,8 +2023,10 @@ void object_handle_update(Object *ob)
 				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
 					armature_rebuild_pose(ob, ob->data);
 				
-				if(OB_COPY_PROXY(ob))
-					copy_pose_result(ob->pose, ob->proxy->pose);
+				if(ob->id.lib && ob->proxy_from) {
+					copy_pose_result(ob->pose, ob->proxy_from->pose);
+					// printf("pose proxy copy, lib ob %s proxy %s\n", ob->id.name, ob->proxy_from->id.name);
+				}
 				else {
 					do_all_pose_actions(ob);
 					where_is_pose(ob);
@@ -2022,9 +2035,10 @@ void object_handle_update(Object *ob)
 		}
 	
 		/* the no-group proxy case, we call update */
-		if(OB_DO_PROXY(ob)) {
+		if(ob->proxy && ob->proxy_group==NULL) {
 			/* set pointer in library proxy target, for copying, but restore it */
-			ob->proxy->proxy= ob;
+			ob->proxy->proxy_from= ob;
+			// printf("call update, lib ob %s proxy %s\n", ob->proxy->id.name, ob->id.name);
 			object_handle_update(ob->proxy);
 		}
 	
@@ -2032,9 +2046,9 @@ void object_handle_update(Object *ob)
 	}
 
 	/* the case when this is a group proxy, object_update is called in group.c */
-	if(OB_IS_PROXY(ob)) {
-		ob->proxy->proxy= ob;
-		//printf("set proxy pointer for later group stuff %s\n", ob->id.name);
+	if(ob->proxy) {
+		ob->proxy->proxy_from= ob;
+		// printf("set proxy pointer for later group stuff %s\n", ob->id.name);
 	}
 }
 

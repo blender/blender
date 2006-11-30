@@ -177,7 +177,7 @@ static int pose_has_protected_selected(Object *ob, int only_selected)
 {
 	
 	/* check protection */
-	if(OB_IS_PROXY(ob)) {
+	if(ob->proxy) {
 		bPoseChannel *pchan;
 		bArmature *arm= ob->data;
 		

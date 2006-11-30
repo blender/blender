@@ -90,7 +90,10 @@ typedef struct Object {
 	int par1, par2, par3;	/* can be vertexnrs */
 	char parsubstr[32];	/* String describing subobject info */
 	void *pardata;
-	struct Object *parent, *track, *proxy, *proxy_group;
+	struct Object *parent, *track;
+	/* if ob->proxy (or proxy_group), this object is proxy for object ob->proxy */
+	/* proxy_from is set in target back to the proxy. */
+	struct Object *proxy, *proxy_group, *proxy_from;
 	struct Ipo *ipo;
 	struct Path *path;
 	struct BoundBox *bb;

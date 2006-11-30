@@ -52,7 +52,7 @@ struct QuicktimeCodecData;
 				if(seqar) MEM_freeN(seqar);		\
 }
 
-
+/* note; doesn't work when scene is empty */
 #define SETLOOPER(s, b) sce= s, b= sce->base.first; b; b= (b->next?b->next:sce->set?(sce=sce->set)->base.first:NULL)
 
 

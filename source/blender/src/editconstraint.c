@@ -620,7 +620,7 @@ void add_constraint(int only_IK)
 		if(pchanact==NULL) return;
 	
 		/* check protection */
-		if(OB_IS_PROXY(ob) && (pchanact->bone->layer & arm->layer_protected)) {
+		if(ob->proxy && (pchanact->bone->layer & arm->layer_protected)) {
 			error("Bone is Proxy protected");
 			return;
 		}

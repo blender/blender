@@ -71,6 +71,7 @@
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "MEM_guardedalloc.h"
@@ -466,7 +467,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 		dag_add_relation(dag,node2,node,DAG_RL_OB_OB);
 		addtoroot = 0;
 	}
-	if (ob->id.lib==NULL && ob->proxy) {
+	if (ob->proxy) {
 		node2 = dag_get_node(dag, ob->proxy);
 		dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA|DAG_RL_OB_OB);
 		/* inverted relation, so addtoroot shouldn't be set to zero */
@@ -1792,15 +1793,16 @@ static void dag_object_time_update_flags(Object *ob)
 }
 
 /* flag all objects that need recalc, for changes in time for example */
-void DAG_scene_update_flags(Scene *sce, unsigned int lay)
+void DAG_scene_update_flags(Scene *scene, unsigned int lay)
 {
 	Base *base;
 	Object *ob;
 	Group *group;
 	GroupObject *go;
+	Scene *sce;
 	
 	/* set ob flags where animated systems are */
-	for(base= sce->base.first; base; base= base->next) {
+	for(SETLOOPER(scene, base)) {
 		ob= base->object;
 		
 		/* now if DagNode were part of base, the node->lay could be checked... */
@@ -1810,8 +1812,7 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 		/* handled in next loop */
 		if(ob->dup_group) 
 			ob->dup_group->id.flag |= LIB_DOIT;
-		
-	}
+	}	
 	
 	/* we do groups each once */
 	for(group= G.main->group.first; group; group= group->id.next) {
@@ -1822,25 +1823,26 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 		}
 	}
 	
-	DAG_scene_flush_update(sce, lay);
+	for(sce= scene; sce; sce= sce->set)
+		DAG_scene_flush_update(sce, lay);
 	
 	/* test: set time flag, to disable baked systems to update */
-	for(base= sce->base.first; base; base= base->next) {
+	for(SETLOOPER(scene, base)) {
 		ob= base->object;
 		if(ob->recalc)
 			ob->recalc |= OB_RECALC_TIME;
 	}
 	
 	/* hrmf... an exception to look at once, for invisible camera object we do it over */
-	if(sce->camera)
-		dag_object_time_update_flags(sce->camera);
+	if(scene->camera)
+		dag_object_time_update_flags(scene->camera);
 	
 	/* and store the info in groupobject */
 	for(group= G.main->group.first; group; group= group->id.next) {
 		if(group->id.flag & LIB_DOIT) {
 			for(go= group->gobject.first; go; go= go->next) {
 				go->recalc= go->ob->recalc;
-//				printf("ob %s recalc %d\n", go->ob->id.name, go->recalc);
+				// printf("ob %s recalc %d\n", go->ob->id.name, go->recalc);
 			}
 			group->id.flag &= ~LIB_DOIT;
 		}

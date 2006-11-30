@@ -277,29 +277,28 @@ void set_scene_bg(Scene *sce)
 	scene_check_setscene(G.scene);
 	
 	/* deselect objects (for dataselect) */
-	ob= G.main->object.first;
-	while(ob) {
+	for(ob= G.main->object.first; ob; ob= ob->id.next)
 		ob->flag &= ~(SELECT|OB_FROMGROUP);
-		ob= ob->id.next;
-	}
 
 	/* group flags again */
-	group= G.main->group.first;
-	while(group) {
+	for(group= G.main->group.first; group; group= group->id.next) {
 		go= group->gobject.first;
 		while(go) {
 			if(go->ob) go->ob->flag |= OB_FROMGROUP;
 			go= go->next;
 		}
-		group= group->id.next;
 	}
 
 	/* sort baselist */
 	DAG_scene_sort(sce);
+	
+	/* ensure dags are built for sets */
+	for(sce= sce->set; sce; sce= sce->set)
+		if(sce->theDag==NULL)
+			DAG_scene_sort(sce);
 
 	/* copy layers and flags from bases to objects */
-	base= G.scene->base.first;
-	while(base) {
+	for(base= G.scene->base.first; base; base= base->next) {
 		ob= base->object;
 		ob->lay= base->lay;
 		
@@ -311,7 +310,6 @@ void set_scene_bg(Scene *sce)
 		ob->flag= base->flag;
 		
 		ob->ctime= -1234567.0;	/* force ipo to be calculated later */
-		base= base->next;
 	}
 	/* no full animation update, this to enable render code to work (render code calls own animation updates) */
 	

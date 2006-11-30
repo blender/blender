@@ -38,16 +38,6 @@
 extern "C" {
 #endif
 
-/* defines now, might become functions */
-
-/* proxy rule: lib_object->proxy == the one we borrow from, only set temporal and cleared here */
-/*             local_object->proxy == pointer to library object, saved in files and read */
-	
-#define OB_COPY_PROXY(a)	a->id.lib && a->proxy
-#define OB_IS_PROXY(a)		a->id.lib==NULL && a->proxy
-#define OB_DO_PROXY(a)		a->id.lib==NULL && a->proxy && a->proxy_group==NULL
-	
-
 struct Base;
 struct Object;
 struct Camera;

@@ -486,7 +486,7 @@ static Main *blo_find_main(ListBase *mainlist, const char *name, const char *rel
 		char *libname= (m->curlib)?m->curlib->filename:m->name;
 		
 		if (BLI_streq(name1, libname)) {
-			printf("blo_find_main: found library %s\n", libname);
+			if(G.f & G_DEBUG) printf("blo_find_main: found library %s\n", libname);
 			return m;
 		}
 	}
@@ -500,7 +500,7 @@ static Main *blo_find_main(ListBase *mainlist, const char *name, const char *rel
 	
 	m->curlib= lib;
 	
-	printf("blo_find_main: added new lib %s\n", name);
+	if(G.f & G_DEBUG) printf("blo_find_main: added new lib %s\n", name);
 	return m;
 }
 
@@ -2588,20 +2588,23 @@ static void lib_link_object(FileData *fd, Main *main)
 			ob->ipo= newlibadr_us(fd, ob->id.lib, ob->ipo);
 			ob->action = newlibadr_us(fd, ob->id.lib, ob->action);
 			ob->dup_group= newlibadr_us(fd, ob->id.lib, ob->dup_group);
-			if(ob->id.lib) {
-				/* no proxy in library data, is default local data */
-				ob->proxy= NULL; ob->proxy_group= NULL;
-			}
-			else {
-				ob->proxy= newlibadr_us(fd, ob->id.lib, ob->proxy);
-				if(ob->proxy) {
+			
+			ob->proxy= newlibadr_us(fd, ob->id.lib, ob->proxy);
+			if(ob->proxy) {
+				/* paranoia check, actually a proxy_from pointer should never be written... */
+				if(ob->proxy->id.lib==NULL) {
+					ob->proxy->proxy_from= NULL;
+					ob->proxy= NULL;
+				}
+				else {
 					/* this triggers object_update to always use a copy */
-					ob->proxy->proxy= ob;
+					ob->proxy->proxy_from= ob;
 					/* force proxy updates after load/undo, a bit weak */
 					ob->recalc= ob->proxy->recalc= OB_RECALC;
 				}
-				ob->proxy_group= newlibadr(fd, ob->id.lib, ob->proxy_group);
-			}			
+			}
+			ob->proxy_group= newlibadr(fd, ob->id.lib, ob->proxy_group);
+
 			poin= ob->data;
 			ob->data= newlibadr_us(fd, ob->id.lib, ob->data);
 			   
@@ -6335,13 +6338,13 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 
 				if(id==0) {
 					read_libblock(fd, mainvar, bhead, LIB_READ+LIB_INDIRECT, NULL);
-					printf("expand_doit: other lib %s\n", lib->name);
+					if(G.f & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
 				}
 				else {
 					//oldnewmap_insert(fd->libmap, bhead->old, id, 1);
 					
 					change_idid_adr_fd(fd, bhead->old, id);
-					printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
+					if(G.f & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
 				}
 			}
 		}
@@ -6727,6 +6730,11 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 
 	if(ob->dup_group)
 		expand_doit(fd, mainvar, ob->dup_group);
+	
+	if(ob->proxy)
+		expand_doit(fd, mainvar, ob->proxy);
+	if(ob->proxy_group)
+		expand_doit(fd, mainvar, ob->proxy_group);
 
 	sens= ob->sensors.first;
 	while(sens) {
@@ -7246,7 +7254,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 				if(fd==NULL) {
 					BlendReadError err;
-					printf("read_libraries: lib %s\n", mainptr->curlib->name);
+					printf("read library: lib %s\n", mainptr->curlib->name);
 					fd= blo_openblenderfile(mainptr->curlib->filename, &err);
 					if (fd) {
 						if (fd->libmap)

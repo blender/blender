@@ -665,7 +665,6 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	Mat4Invert(obinv, target->obmat);
 	Mat4CpyMat4(premat, target->obmat);
 	Mat4MulMat4(postmat, armOb->obmat, obinv);
-
 	Mat4Invert(premat, postmat);
 
 	/* bone defmats are already in the channels, chan_mat */
@@ -967,21 +966,25 @@ void where_is_armature (bArmature *arm)
 	}
 }
 
-/* if bone layer is protected, copy the data from proxy->pose */
-static void pose_proxy_synchronize(Object *ob, Object *proxy, int layer_protected)
+/* if bone layer is protected, copy the data from from->pose */
+static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected)
 {
-	bPose *pose= ob->pose, *proxypose= proxy->pose;
+	bPose *pose= ob->pose, *frompose= from->pose;
 	bPoseChannel *pchan, *pchanp, pchanw;
 	bConstraint *con;
 	char *str;
 	
-	if(proxypose==NULL) return;
+	if(frompose==NULL) return;
+	
+	/* exception, armature local layer should be proxied too */
+	if(pose->proxy_layer)
+		((bArmature *)ob->data)->layer= pose->proxy_layer;
 	
 	/* clear all transformation values from library */
-	rest_pose(proxypose);
+	rest_pose(frompose);
 	
 	pchan= pose->chanbase.first;
-	pchanp= proxypose->chanbase.first;
+	pchanp= frompose->chanbase.first;
 	for(; pchan && pchanp; pchan= pchan->next, pchanp= pchanp->next) {
 		if(pchan->bone->layer & layer_protected) {
 			
@@ -997,7 +1000,7 @@ static void pose_proxy_synchronize(Object *ob, Object *proxy, int layer_protecte
 			copy_constraints(&pchanw.constraints, &pchanp->constraints);
 
 			for(con= pchanw.constraints.first; con; con= con->next) {
-				if(proxy==get_constraint_target(con, &str))
+				if(from==get_constraint_target(con, &str))
 					set_constraint_target(con, ob, NULL);
 			}
 			
@@ -1064,10 +1067,10 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 			BLI_freelinkN(&pose->chanbase, pchan);
 		}
 	}
-//	printf("rebuild pose %s, %d bones\n", ob->id.name, counter);
+	// printf("rebuild pose %s, %d bones\n", ob->id.name, counter);
 	
 	/* synchronize protected layers with proxy */
-	if(OB_IS_PROXY(ob))
+	if(ob->proxy)
 		pose_proxy_synchronize(ob, ob->proxy, arm->layer_protected);
 	
 	update_pose_constraint_flags(ob->pose); // for IK detection for example

@@ -82,12 +82,10 @@ typedef struct bPoseChannel {
 
 typedef struct bPose{
 	ListBase			chanbase;
-	int flag;
+	short flag, proxy_layer;	/* proxy layer: copy from armature, gets synced */
 	float ctime;				/* local action time of this pose */
 	float stride_offset[3];		/* applied to object */
 	float cyclic_offset[3];		/* result of match and cycles, applied in where_is_pose() */
-	short proxy_layer, pad1;
-	int pad2;
 } bPose;
 
 typedef struct bActionChannel {

@@ -2768,7 +2768,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	
 	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
 	   no layer check here, gets correct flushed */
-	for(base= G.scene->base.first; base; base= base->next) {
+	for(SETLOOPER(G.scene, base)) {
 		object_handle_update(base->object);   // bke_object.h
 	}
 	
@@ -2857,8 +2857,6 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		for(SETLOOPER(G.scene->set, base)) {
 			
 			if(v3d->lay & base->lay) {
-
-				object_handle_update(base->object);
 				
 				BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
 				draw_object(base, DRAW_CONSTCOLOR);
