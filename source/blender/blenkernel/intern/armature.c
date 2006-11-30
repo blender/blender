@@ -984,9 +984,9 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	rest_pose(frompose);
 	
 	pchan= pose->chanbase.first;
-	pchanp= frompose->chanbase.first;
-	for(; pchan && pchanp; pchan= pchan->next, pchanp= pchanp->next) {
+	for(; pchan; pchan= pchan->next) {
 		if(pchan->bone->layer & layer_protected) {
+			pchanp= get_pose_channel(frompose, pchan->name);
 			
 			/* copy posechannel to temp, but restore important pointers */
 			pchanw= *pchanp;
