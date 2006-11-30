@@ -227,13 +227,7 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case BKEY: /* borderselect markers */
-			borderselect_timeline_markers();
-			
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			borderselect_markers();
 			break;
 		
 		case DKEY: /* duplicate selected marker(s) */
@@ -253,7 +247,7 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case MKEY: /* add marker or rename first selected */
-			if (G.qual & LR_SHIFTKEY)
+			if (G.qual & LR_CTRLKEY)
 				rename_marker();
 			else
 				add_marker(CFRA);

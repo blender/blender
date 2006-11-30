@@ -1086,9 +1086,6 @@ void borderselect_nla(void)
 		mval[1]= rect.ymax-2;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 		
-		/* do markers first */
-		borderselect_markers(rectf.xmin, rectf.xmax, selectmode);	
-		
 		ymax = count_nla_levels();
 		ymax*= (NLACHANNELHEIGHT+NLACHANNELSKIP);
 		ymax+= (NLACHANNELHEIGHT+NLACHANNELSKIP)/2;
@@ -1714,17 +1711,19 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 				
 			case BKEY:
-			  if (G.qual & LR_SHIFTKEY){
-			    bake_all_to_action();
-			    allqueue (REDRAWNLA, 0);
-			    allqueue (REDRAWVIEW3D, 0);
-			    BIF_undo_push("Bake All To Action");
-			    ob = get_object_from_active_strip();
-			    //build_match_caches(ob);
-			  }
-			  else
-			    borderselect_nla();
-			  break;
+				if (G.qual & LR_SHIFTKEY){
+					bake_all_to_action();
+					allqueue (REDRAWNLA, 0);
+				    allqueue (REDRAWVIEW3D, 0);
+				    BIF_undo_push("Bake All To Action");
+				    ob = get_object_from_active_strip();
+				    //build_match_caches(ob);
+				}
+				else if (G.qual & LR_CTRLKEY) 
+					borderselect_markers();
+				else
+					borderselect_nla();
+				break;
 				
 			case CKEY:
 				if(G.qual==LR_CTRLKEY) {
@@ -1737,11 +1736,6 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case DKEY:
 				if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY) && mval[0]>=NLAWIDTH) {
 					duplicate_marker();
-					allqueue(REDRAWTIME, 0);
-					allqueue(REDRAWIPO, 0);
-					allqueue(REDRAWACTION, 0);
-					allqueue(REDRAWNLA, 0);
-					allqueue(REDRAWSOUND, 0);
 				}
 				else if (G.qual & LR_SHIFTKEY && mval[0]>=NLAWIDTH){
 					duplicate_nlachannel_keys();
@@ -1752,7 +1746,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 			case GKEY:
 				if (mval[0]>=NLAWIDTH) {
-					if (G.qual & LR_SHIFTKEY) {
+					if (G.qual & LR_CTRLKEY) {
 						transform_markers('g', 0);
 					}
 					else {
@@ -1766,7 +1760,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				/* marker operations */
 				if (G.qual == 0)
 					add_marker(CFRA);
-				else if (G.qual == LR_SHIFTKEY)
+				else if (G.qual == LR_CTRLKEY)
 					rename_marker();
 				else 
 					break;

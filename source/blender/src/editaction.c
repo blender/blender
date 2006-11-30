@@ -778,9 +778,6 @@ void borderselect_action(void)
 		mval[0]= rect.xmax;
 		mval[1]= rect.ymax-2;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
-			
-		/* do markers first */
-		borderselect_markers(rectf.xmin, rectf.xmax, selectmode);		
 		
 		/* if action is mapped in NLA, it returns a correction */
 		if(G.saction->pin==0 && OBACT) {
@@ -815,11 +812,9 @@ void borderselect_action(void)
 		}	
 		
 		BIF_undo_push("Border Select Action");
-		allqueue(REDRAWTIME, 0);
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWSOUND, 0);
 	}
 }
 
@@ -863,9 +858,6 @@ void borderselect_mesh(Key *key)
 		adrcodemin = get_nearest_key_num(key, mval, &xmax);
 		adrcodemin = (adrcodemin < 1) ? 1 : adrcodemin;
 		
-		/* do markers first */
-		borderselect_markers(rect.xmin, rect.xmax, selectmode);	
-		
 		/* Lets loop throug the IpoCurves and do borderselect
 		 * on the curves with adrcodes in our selected range.
 		 */
@@ -883,11 +875,9 @@ void borderselect_mesh(Key *key)
 		
 		/* redraw stuff */
 		BIF_undo_push("Border select Action Key");
-		allqueue(REDRAWTIME, 0);
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWSOUND, 0);
 	}
 }
 
@@ -2518,7 +2508,9 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case BKEY:
-			if (key) {
+			if (G.qual & LR_CTRLKEY)
+				borderselect_markers();
+			else if (key) {
 				if (mval[0]<ACTWIDTH){
 					/* to do?? */
 				}
@@ -2588,7 +2580,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case GKEY:
-			if (G.qual & LR_SHIFTKEY) {
+			if (G.qual & LR_CTRLKEY) {
 				transform_markers('g', 0);
 			}
 			else {
@@ -2638,7 +2630,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			/* marker operations */
 			if (G.qual == 0)
 				add_marker(CFRA);
-			else if (G.qual == LR_SHIFTKEY)
+			else if (G.qual == LR_CTRLKEY)
 				rename_marker();
 			else 
 				break;

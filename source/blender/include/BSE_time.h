@@ -41,15 +41,12 @@ void duplicate_marker(void);
 void remove_marker(void);
 void rename_marker(void);
 void transform_markers(int mode, int smode);
+void borderselect_markers(void);
 void deselect_markers(short test, short sel);
-void borderselect_markers(float xmin, float xmax, int selectmode);
 struct TimeMarker *find_nearest_marker(int clip_y);
 void nextprev_marker(short dir);
 
 /* ******** Markers - Space Specific ************* */
-/* TimeLine Marker Stuff ----------------------------------- */
-void borderselect_timeline_markers(void);
-/* Other Space Marker Stuff ----------------------------- */
 void draw_markers_timespace(struct View2D *v2d);
 
 /* *********** TimeLine Specific  ***************/

@@ -2418,6 +2418,9 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case BKEY:
 			if (G.qual==0)
 				borderselect_ipo();
+			else if (G.qual==LR_CTRLKEY) {
+				borderselect_markers();
+			}
 			break;
 		case CKEY:
 			if (G.qual==0)
@@ -2430,7 +2433,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				duplicate_marker();
 			break;
 		case GKEY:
-			if (G.qual & LR_SHIFTKEY)
+			if (G.qual & LR_CTRLKEY)
 				transform_markers('g', 0);
 			else if (G.qual==0)
 				transform_ipo('g');
@@ -2456,13 +2459,13 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case MKEY:
-			if (G.qual==LR_CTRLKEY) {
+			if (G.qual==LR_SHIFTKEY) {
 				ipo_mirror_menu();
 				break;
 			}
 			if (G.qual == 0)
 				add_marker(CFRA);
-			else if (G.qual == LR_SHIFTKEY)
+			else if (G.qual == LR_CTRLKEY)
 				rename_marker();
 			else 
 				break;

@@ -786,6 +786,9 @@ static void do_ipo_selectmenu(void *arg, int event)
 	case 1:
 		swap_selectall_editipo();
 		break;
+	case 2:
+		borderselect_markers();
+		break;
 	}
 }
 
@@ -798,7 +801,10 @@ static uiBlock *ipo_selectmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_ipo_selectmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select Markers|Ctrl B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 
 	if(curarea->headertype==HEADERTOP) {
@@ -860,9 +866,9 @@ static uiBlock *ipo_markermenu(void *arg_unused)
 					 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "(Re)Name Marker|Shift M", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "(Re)Name Marker|Ctrl M", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|Shift G", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|Ctrl G", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	
 	if(curarea->headertype==HEADERTOP) {

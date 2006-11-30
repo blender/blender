@@ -319,7 +319,7 @@ void deselect_markers(short test, short sel)
 	}
 }
 
-void borderselect_markers(float xmin, float xmax, int selectmode)
+static void borderselect_markers_func(float xmin, float xmax, int selectmode)
 {
 	TimeMarker *marker;
 		
@@ -336,6 +336,39 @@ void borderselect_markers(float xmin, float xmax, int selectmode)
 					break;
 			}
 		}
+	}
+}
+
+/* border-select markers */
+void borderselect_markers(void) 
+{
+	rcti rect;
+	rctf rectf;
+	int val, selectmode;		
+	short	mval[2];
+
+	if ( (val = get_border(&rect, 3)) ){
+		if (val == LEFTMOUSE)
+			selectmode = SELECT_ADD;
+		else
+			selectmode = SELECT_SUBTRACT;
+
+		mval[0]= rect.xmin;
+		mval[1]= rect.ymin+2;
+		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
+		mval[0]= rect.xmax;
+		mval[1]= rect.ymax-2;
+		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
+			
+		/* do markers */
+		borderselect_markers_func(rectf.xmin, rectf.xmax, selectmode);
+		
+		BIF_undo_push("Border Select Markers");
+		allqueue(REDRAWTIME, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWSOUND, 0);
 	}
 }
 
@@ -403,39 +436,6 @@ TimeMarker *find_nearest_marker(int clip_y)
 }
 
 /* *********** End Markers - Markers API *************** */
-
-/* border-select markers */
-void borderselect_timeline_markers(void) 
-{
-	rcti rect;
-	rctf rectf;
-	int val, selectmode;		
-	short	mval[2];
-
-	if ( (val = get_border(&rect, 3)) ){
-		if (val == LEFTMOUSE)
-			selectmode = SELECT_ADD;
-		else
-			selectmode = SELECT_SUBTRACT;
-
-		mval[0]= rect.xmin;
-		mval[1]= rect.ymin+2;
-		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
-		mval[0]= rect.xmax;
-		mval[1]= rect.ymax-2;
-		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
-			
-		/* do markers */
-		borderselect_markers(rectf.xmin, rectf.xmax, selectmode);
-		
-		BIF_undo_push("Border Select TimeLine");
-		allqueue(REDRAWTIME, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWSOUND, 0);
-	}
-}
 
 static int find_nearest_timeline_marker(float dx)
 {
@@ -758,7 +758,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case BKEY:
 			/* borderselect markers */
-			borderselect_timeline_markers();
+			borderselect_markers();
 			break;
 		case DKEY:
 			if(G.qual==LR_SHIFTKEY)
@@ -776,7 +776,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			allqueue(REDRAWTIME, 1);
 			break;
 		case MKEY: /* add, rename marker */
-			if (G.qual & LR_SHIFTKEY)
+			if (G.qual & LR_CTRLKEY)
 				rename_marker();
 			else
 				add_marker(CFRA);

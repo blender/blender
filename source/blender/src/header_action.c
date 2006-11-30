@@ -88,14 +88,14 @@
 #define ACTMENU_VIEW_NEXTMARKER	8
 #define ACTMENU_VIEW_PREVMARKER	9
 
-
 #define ACTMENU_SEL_BORDER      		0
-#define ACTMENU_SEL_ALL_KEYS    		1
-#define ACTMENU_SEL_ALL_CHAN    		2
-#define ACTMENU_SEL_COLUMN				3
-#define ACTMENU_SEL_ALL_MARKERS			4
-#define ACTMENU_SEL_MARKERS_KEYSBETWEEN 5
-#define ACTMENU_SEL_MARKERS_KEYSCOLUMN	6
+#define ACTMENU_SEL_BORDERM      		1
+#define ACTMENU_SEL_ALL_KEYS    		2
+#define ACTMENU_SEL_ALL_CHAN    		3
+#define ACTMENU_SEL_COLUMN				4
+#define ACTMENU_SEL_ALL_MARKERS			5
+#define ACTMENU_SEL_MARKERS_KEYSBETWEEN 6
+#define ACTMENU_SEL_MARKERS_KEYSCOLUMN	7
 
 #define ACTMENU_KEY_DUPLICATE     0
 #define ACTMENU_KEY_DELETE        1
@@ -376,6 +376,10 @@ static void do_action_selectmenu(void *arg, int event)
 				borderselect_action();
 			}
 			break;
+			
+		case ACTMENU_SEL_BORDERM: /* Border Select */
+			borderselect_markers();
+			break;
 
 		case ACTMENU_SEL_ALL_KEYS: /* Select/Deselect All Keys */
 			if (key) {
@@ -431,9 +435,13 @@ static uiBlock *action_selectmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_action_selectmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Border Select|B", 0, yco-=20, 
+					 "Border Select Keys|B", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_BORDER, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Border Select Markers|Ctrl B", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_BORDERM, "");
 					 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -1024,9 +1032,9 @@ static uiBlock *action_markermenu(void *arg_unused)
 					 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "(Re)Name Marker|Shift M", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "(Re)Name Marker|Ctrl M", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_NAME, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|Shift G", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|Ctrl G", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_MOVE, "");
 	
 	
