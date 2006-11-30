@@ -1463,7 +1463,6 @@ void sculptmode_draw_mesh(ListBase *damaged_rects) {
 			if(inside)
 				glDrawElements(f->v4?GL_QUADS:GL_TRIANGLES,f->v4?4:3,GL_UNSIGNED_INT,&f->v1);
 		}
-		glEnd();
 	}
 	else { /* Draw entire model */
 		for(i=0; i<me->totface; ++i) {
