@@ -116,7 +116,7 @@ typedef struct SpaceAction {
 	View2D v2d;	
 	bAction		*action;
 	int	flag;
-	short pin, actnr, lock, pad;
+	short pin, actnr, lock, actwidth;
 	float timeslide;
 } SpaceAction;
 

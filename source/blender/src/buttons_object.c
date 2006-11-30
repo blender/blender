@@ -1143,7 +1143,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 				int textButWidth = ((width/2)-togButWidth);
 
-				uiDefButS(block, MENU, B_SWITCHRENDER, "Joint Types%t|Ball%x1|Hinge%x2|Generic6DOF%x3",//|Extra Force%x6",
+				uiDefButI(block, MENU, B_SWITCHRENDER, "Joint Types%t|Ball%x1|Hinge%x2|Generic6DOF%x3",//|Extra Force%x6",
 												*xco, *yco-25, 150, 18, &data->type, 0, 0, 0, 0, "Choose the joint type");
                 height = 310;
 				

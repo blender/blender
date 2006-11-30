@@ -105,9 +105,6 @@ void down_sel_action();
 /* Local Function prototypes, are forward needed */
 static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
 
-/* Implementation */
-short ACTWIDTH = NAMEWIDTH;
-
 /* messy call... */
 static void select_poseelement_by_name (char *name, int select)
 {

@@ -48,6 +48,7 @@
 #define	CHANNELSKIP		2
 #define NAMEWIDTH      128
 #define SLIDERWIDTH    125
+#define ACTWIDTH 		(G.saction->actwidth)
 
 #define CHANNEL_FILTER_LOC		0x00000001	/* Show location keys */
 #define CHANNEL_FILTER_ROT		0x00000002	/* Show rotation keys */

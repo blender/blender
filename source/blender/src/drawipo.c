@@ -79,6 +79,7 @@
 #include "BIF_toolbox.h"
 #include "BIF_glutil.h"
 #include "BIF_editseq.h"
+#include "BIF_editaction.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_view.h"
@@ -106,8 +107,6 @@ static float ipogrid_dx, ipogrid_dy, ipogrid_startx, ipogrid_starty;
 static int ipomachtx, ipomachty;
 
 static int vertymin, vertymax, horxmin, horxmax;	/* globals to test LEFTMOUSE for scrollbar */
-
-extern short ACTWIDTH;		/* this is ugly! */
 
 static void scroll_prstr(float x, float y, float val, char dir, int disptype)
 {

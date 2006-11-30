@@ -98,8 +98,6 @@ static BezTriple **ob_to_keylist(Object *ob, int flags, int *totvert);
 static BezTriple **icu_to_keylist(IpoCurve *icu, int flags, int *totvert);
 void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, int flags, float ypos);
 
-/* implementation ------------------------------------------------------ */
-extern short ACTWIDTH;
 
 static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 {
@@ -622,7 +620,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	 * they have scrolled off of the screen ... this
 	 * oughta fix it
 	 */
-		   
+	
 	if (key) {
 		if (G.v2d->cur.ymin < -CHANNELHEIGHT) 
 			G.v2d->cur.ymin = -CHANNELHEIGHT;
