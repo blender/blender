@@ -64,3 +64,7 @@ objdirs:
 	@for i in $(BULLETDIRS); do \
 	[ -d $(DIR)/$(DEBUG_DIR)$$i ] || mkdir -p $(DIR)/$(DEBUG_DIR)$$i; \
 	done
+
+clean::
+	rm -rf $(DIR)
+
