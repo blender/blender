@@ -116,9 +116,12 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 	OLD_MESH_MODE= Blender.Mesh.Mode()
 	Blender.Mesh.Mode(Blender.Mesh.SelectModes.VERTEX)
 	
-	if (DO_UV or DO_VCOL) and not me.faceUV:
-		DO_VCOL= DO_UV= False
-		
+	if DO_UV and not me.faceUV:
+		DO_UV= False
+	
+	if DO_VCOL and not me.vertexColors:
+		DO_VCOL = False
+	
 	current_face_count= len(me.faces)
 	target_face_count= int(current_face_count * REDUX)
 	# % of the collapseable faces to collapse per pass.
@@ -238,9 +241,10 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 			self.normal= f.no
 			self.area= f.area
 			self.index= f.index
-			if DO_UV or DO_VCOL:
+			if DO_UV:
 				self.orig_uv= [uv_key(uv) for uv in f.uv]
 				self.uv= f.uv
+			if DO_VCOL:
 				self.orig_col= [col_key(col) for col in f.col]
 				self.col= f.col
 	
