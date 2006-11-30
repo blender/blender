@@ -254,7 +254,7 @@ void KX_KetsjiEngine::SetSceneConverter(KX_ISceneConverter* sceneconverter)
  * Blender into Ketsji native (realtime) format also sets up the
  * graphics context
  */
-void KX_KetsjiEngine::StartEngine()
+void KX_KetsjiEngine::StartEngine(bool clearIpo)
 {
 	m_clockTime = m_kxsystem->GetTimeInSeconds();
 	m_frameTime = m_kxsystem->GetTimeInSeconds();
@@ -266,7 +266,7 @@ void KX_KetsjiEngine::StartEngine()
 	
 	if (m_game2ipo)
 	{
-		m_sceneconverter->ResetPhysicsObjectsAnimationIpo();
+		m_sceneconverter->ResetPhysicsObjectsAnimationIpo(clearIpo);
 		m_sceneconverter->WritePhysicsObjectToAnimationIpo(m_currentFrame);
 	}
 

@@ -1515,6 +1515,84 @@ static struct Scene *GetSceneForName(struct Main *maggie, const STR_String& scen
 	return (Scene*) maggie->scene.first;
 }
 
+#include "DNA_constraint_types.h"
+#include "BIF_editconstraint.h"
+
+bPoseChannel *get_active_posechannel2 (Object *ob)
+{
+	bArmature *arm= (bArmature*)ob->data;
+	bPoseChannel *pchan;
+	
+	/* find active */
+	for(pchan= (bPoseChannel *)ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone && (pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer))
+			return pchan;
+	}
+	
+	return NULL;
+}
+
+ListBase *get_active_constraints2(Object *ob)
+{
+	if (!ob)
+		return NULL;
+
+	if (ob->flag & OB_POSEMODE) {
+		bPoseChannel *pchan;
+
+		pchan = get_active_posechannel2(ob);
+		if (pchan)
+			return &pchan->constraints;
+	}
+	else 
+		return &ob->constraints;
+
+	return NULL;
+}
+
+
+void RBJconstraints(Object *ob)//not used
+{
+	ListBase *conlist;
+	bConstraint *curcon;
+
+	conlist = get_active_constraints2(ob);
+
+	if (conlist) {
+		for (curcon = (bConstraint *)conlist->first; curcon; curcon=(bConstraint *)curcon->next) {
+
+			printf("%i\n",curcon->type);
+		}
+
+
+	}
+}
+
+#include "PHY_IPhysicsEnvironment.h"
+#include "KX_IPhysicsController.h"
+#include "PHY_DynamicTypes.h"
+
+KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc){//not used
+
+    for (int j=0;j<sumolist->GetCount();j++)
+	{
+	    KX_GameObject* gameobje = (KX_GameObject*) sumolist->GetValue(j);
+	    if (gameobje->GetName()==busc)
+            return gameobje->GetPhysicsController();
+	}
+
+}
+
+KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist){
+
+    for (int j=0;j<sumolist->GetCount();j++)
+	{
+	    KX_GameObject* gameobje = (KX_GameObject*) sumolist->GetValue(j);
+	    if (gameobje->GetName()==busc)
+            return gameobje;
+	}
+
+}
 
 // convert blender objects into ketsji gameobjects
 void BL_ConvertBlenderObjects(struct Main* maggie,
@@ -1811,6 +1889,77 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,activeLayerBitInfo,physics_engine,converter);
 
 	}
+	
+		// create physics joints
+	for (i=0;i<sumolist->GetCount();i++)
+	{
+		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
+		struct Object* blenderobject = converter->FindBlenderObject(gameobj);
+		int nummeshes = gameobj->GetMeshCount();
+		RAS_MeshObject* meshobj = 0;
+        ListBase *conlist;
+        bConstraint *curcon;
+        conlist = get_active_constraints2(blenderobject);
+        if (conlist) {
+            for (curcon = (bConstraint *)conlist->first; curcon; curcon=(bConstraint *)curcon->next) {
+                if (curcon->type==CONSTRAINT_TYPE_RIGIDBODYJOINT){
+                    bRigidBodyJointConstraint *dat=(bRigidBodyJointConstraint *)curcon->data;
+                    if (dat->tar)
+                        if (!dat->child){
+                            KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
+                            PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) (int)gameobj->GetPhysicsController()->GetUserData();
+                            PHY_IPhysicsController* physctr2 = (PHY_IPhysicsController*) (int)gotar->GetPhysicsController()->GetUserData();
+                            kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,(float)dat->pivY,(float)dat->pivZ,(float)dat->axX,(float)dat->axY,(float)dat->axZ);
+                            /*switch(dat->type){
+                                case CONSTRAINT_RB_BALL:
+                                    KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
+                                    PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) (int)gameobj->GetPhysicsController()->GetUserData();
+                                    PHY_IPhysicsController* physctr2 = (PHY_IPhysicsController*) (int)gotar->GetPhysicsController()->GetUserData();
+                                    kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,(float)dat->pivY,(float)dat->pivZ,(float)dat->axX,(float)dat->axY,(float)dat->axZ);
+                                    break;
+                                case CONSTRAINT_RB_HINGE:
+                                    KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
+                                    PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) (int)gameobj->GetPhysicsController()->GetUserData();
+                                    PHY_IPhysicsController* physctr2 = (PHY_IPhysicsController*) (int)gotar->GetPhysicsController()->GetUserData();
+                                    kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,(float)dat->pivY,(float)dat->pivZ,(float)dat->axX,(float)dat->axY,(float)dat->axZ);
+                                    break;
+                            }*/
+                        }
+                }
+            }
+        }
+
+	}
+
+    //Intento de actualizar posicion
+	/*for (i=0;i<sumolist->GetCount();i++)
+	{
+		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
+		struct Object* blenderobject = converter->FindBlenderObject(gameobj);
+
+		MT_Point3 pos = MT_Point3(
+				blenderobject->loc[0]+blenderobject->dloc[0],
+				blenderobject->loc[1]+blenderobject->dloc[1],
+				blenderobject->loc[2]+blenderobject->dloc[2]
+			);
+		MT_Vector3 eulxyz = MT_Vector3(
+				blenderobject->rot[0],
+				blenderobject->rot[1],
+				blenderobject->rot[2]
+			);
+		MT_Vector3 scale = MT_Vector3(
+				blenderobject->size[0],
+				blenderobject->size[1],
+				blenderobject->size[2]
+			);
+
+		gameobj->NodeSetLocalPosition(pos);
+		gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
+		gameobj->NodeSetLocalScale(scale);
+		gameobj->NodeUpdateGS(0,true);
+	}*/
+    //rcruiz>
+
 	
 	templist->Release();
 	sumolist->Release();	

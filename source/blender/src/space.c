@@ -169,6 +169,7 @@
 
 
 extern void StartKetsjiShell(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);
+extern void StartKetsjiShellSimulation(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);//rcruiz
 
 /**
  * When the mipmap setting changes, we want to redraw the view right
@@ -538,6 +539,78 @@ void start_game(void)
 #endif
 #else
 	notice("Game engine is disabled in this release!");
+#endif
+}
+
+void start_RBSimulation(void)
+{
+#if GAMEBLENDER == 1
+#ifndef NO_KETSJI
+	Scene *sc, *startscene = G.scene;
+	LinkNode *scene_cfra_store;
+
+		/* XXX, silly code -  the game engine can
+		 * access any scene through logic, so we try
+		 * to make sure each scene has a valid camera,
+		 * just in case the game engine tries to use it.
+		 *
+		 * Better would be to make a better routine
+		 * in the game engine for finding the camera.
+		 *  - zr
+		 * Note: yes, this is all very badly hacked! (ton)
+		 */
+	for (sc= G.main->scene.first; sc; sc= sc->id.next) {
+		if (!sc->camera) {
+			Base *base;
+
+			for (base= sc->base.first; base; base= base->next)
+				if (base->object->type==OB_CAMERA)
+					break;
+
+			sc->camera= base?base->object:NULL;
+		}
+	}
+
+	/* these two lines make sure front and backbuffer are equal. for swapbuffers */
+	markdirty_all();
+	screen_swapbuffers();
+
+	/* can start from header */
+	mywinset(curarea->win);
+
+	scene_cfra_store= save_and_reset_all_scene_cfra();
+
+
+	/* game engine will do its own sounds. */
+	sound_stop_all_sounds();
+	sound_exit_audio();
+
+	/* Before jumping into Ketsji, we configure some settings. */
+	space_set_commmandline_options();
+
+	SaveState();
+	StartKetsjiShellSimulation(curarea, startscene->id.name+2, G.main,G.sipo, 1);
+	RestoreState();
+	/* Restart BPY - unload the game engine modules. */
+	BPY_end_python();
+	BPY_start_python(0, NULL); /* argc, argv stored there already */
+	BPY_post_start_python(); /* userpref path and menus init */
+
+	restore_all_scene_cfra(scene_cfra_store);
+	set_scene_bg(startscene);
+	scene_update_for_newframe(G.scene, G.scene->lay);
+
+	if (G.flags & G_FILE_AUTOPLAY)
+		exit_usiblender();
+
+		/* groups could have changed ipo */
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWACTION, 0);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWIPO, 0);
+#endif
+#else
+	notice("YOU NEED GAME ENGIEN TO RUN THE SIMULATION!");
 #endif
 }
 
@@ -1771,6 +1844,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					clear_parent();
 				else if(G.qual==(LR_ALTKEY|LR_CTRLKEY))
 					make_proxy();
+				else if(G.qual==(LR_ALTKEY|LR_CTRLKEY|LR_SHIFTKEY)) {
+                	start_RBSimulation();
+				}
 				else if((G.qual==0) && (OBACT) && (OBACT->type==OB_ARMATURE) && (OBACT->flag & OB_POSEMODE))
 					select_bone_parent();
 				else if((G.qual==0)) {

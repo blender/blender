@@ -348,7 +348,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 				rasterizer->Init();
 				
 				// start the engine
-				ketsjiengine->StartEngine();
+				ketsjiengine->StartEngine(true);
 				
 				// the mainloop
 				while (!exitrequested)
@@ -447,5 +447,351 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 	
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 
+	if (bfd) BLO_blendfiledata_free(bfd);
+}
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "BSE_headerbuttons.h"
+void update_for_newframe();
+#ifdef __cplusplus
+}
+#endif
+
+extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
+								 char* scenename,
+								 struct Main* maggie,
+								 struct SpaceIpo *sipo,
+								 int always_use_expand_framing)
+{
+    int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
+
+	Main* blenderdata = maggie;
+
+	char* startscenename = scenename;
+	char pathname[160];
+	strcpy (pathname, maggie->name);
+	STR_String exitstring = "";
+	BlendFileData *bfd= NULL;
+
+	bgl::InitExtensions(1);
+
+	do
+	{
+//		View3D *v3d= (View3D*) area->spacedata.first;
+
+		// get some preferences
+		SYS_SystemHandle syshandle = SYS_GetSystem();
+		bool properties	= (SYS_GetCommandLineInt(syshandle, "show_properties", 0) != 0);
+		bool usefixed = (SYS_GetCommandLineInt(syshandle, "fixedtime", 0) != 0);
+		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
+		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
+		bool game2ipo = true;//(SYS_GetCommandLineInt(syshandle, "game2ipo", 0) != 0);
+		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
+		bool usemat = false;
+
+/*		#ifdef GL_ARB_multitexture
+		if(bgl::RAS_EXT_support._ARB_multitexture && bgl::QueryVersion(1, 1)) {
+			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
+			int unitmax=0;
+			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&unitmax);
+			bgl::max_texture_units = MAXTEX>unitmax?unitmax:MAXTEX;
+			//std::cout << "using(" << bgl::max_texture_units << ") of(" << unitmax << ") texture units." << std::endl;
+		} else {
+			bgl::max_texture_units = 0;
+		}
+		#endif
+
+*/
+		// create the canvas, rasterizer and rendertools
+		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
+		//canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
+		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
+		RAS_IRasterizer* rasterizer = NULL;
+
+		// let's see if we want to use vertexarrays or not
+		int usevta = SYS_GetCommandLineInt(syshandle,"vertexarrays",1);
+		bool useVertexArrays = (usevta > 0);
+
+		bool lock_arrays = (displaylists && useVertexArrays);
+
+		if(displaylists && !useVertexArrays)
+			rasterizer = new RAS_ListRasterizer(canvas);
+		else if (useVertexArrays && bgl::QueryVersion(1, 1))
+			rasterizer = new RAS_VAOpenGLRasterizer(canvas, lock_arrays);
+		else
+			rasterizer = new RAS_OpenGLRasterizer(canvas);
+
+		// create the inputdevices
+		KX_BlenderKeyboardDevice* keyboarddevice = new KX_BlenderKeyboardDevice();
+		KX_BlenderMouseDevice* mousedevice = new KX_BlenderMouseDevice();
+
+		// create a networkdevice
+		NG_NetworkDeviceInterface* networkdevice = new
+			NG_LoopBackNetworkDeviceInterface();
+
+		// get an audiodevice
+		SND_DeviceManager::Subscribe();
+		SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
+		audiodevice->UseCD();
+
+		// create a ketsji/blendersystem (only needed for timing and stuff)
+		KX_BlenderSystem* kxsystem = new KX_BlenderSystem();
+
+		// create the ketsjiengine
+		KX_KetsjiEngine* ketsjiengine = new KX_KetsjiEngine(kxsystem);
+
+/*		// set the devices
+		ketsjiengine->SetKeyboardDevice(keyboarddevice);
+		ketsjiengine->SetMouseDevice(mousedevice);
+		ketsjiengine->SetNetworkDevice(networkdevice);
+		ketsjiengine->SetCanvas(canvas);
+		ketsjiengine->SetRenderTools(rendertools);
+		ketsjiengine->SetRasterizer(rasterizer);
+		ketsjiengine->SetNetworkDevice(networkdevice);
+		ketsjiengine->SetAudioDevice(audiodevice);
+		ketsjiengine->SetUseFixedTime(usefixed);
+		ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
+
+*/
+
+		// some blender stuff
+		MT_CmMatrix4x4 projmat;
+		MT_CmMatrix4x4 viewmat;
+		int i;
+
+/*		for (i = 0; i < 16; i++)
+		{
+			float *viewmat_linear= (float*) v3d->viewmat;
+			viewmat.setElem(i, viewmat_linear[i]);
+		}
+		for (i = 0; i < 16; i++)
+		{
+			float *projmat_linear = (float*) area->winmat;
+			projmat.setElem(i, projmat_linear[i]);
+		}
+*/
+/*		float camzoom = (1.41421 + (v3d->camzoom / 50.0));
+		camzoom *= camzoom;
+		camzoom = 4.0 / camzoom;
+*/
+//		ketsjiengine->SetDrawType(v3d->drawtype);
+//		ketsjiengine->SetCameraZoom(camzoom);
+/*
+		// if we got an exitcode 3 (KX_EXIT_REQUEST_START_OTHER_GAME) load a different file
+		if (exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME || exitrequested == KX_EXIT_REQUEST_RESTART_GAME)
+		{
+			exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
+			if (bfd) BLO_blendfiledata_free(bfd);
+
+			char basedpath[160];
+			// base the actuator filename with respect
+			// to the original file working directory
+			if (exitstring != "")
+				strcpy(basedpath, exitstring.Ptr());
+
+			BLI_convertstringcode(basedpath, pathname, 0);
+			bfd = load_game_data(basedpath);
+
+			// if it wasn't loaded, try it forced relative
+			if (!bfd)
+			{
+				// just add "//" in front of it
+				char temppath[162];
+				strcpy(temppath, "//");
+				strcat(temppath, basedpath);
+
+				BLI_convertstringcode(temppath, pathname, 0);
+				bfd = load_game_data(temppath);
+			}
+
+			// if we got a loaded blendfile, proceed
+			if (bfd)
+			{
+				blenderdata = bfd->main;
+				startscenename = bfd->curscene->id.name + 2;
+			}
+			// else forget it, we can't find it
+			else
+			{
+				exitrequested = KX_EXIT_REQUEST_QUIT_GAME;
+			}
+		}
+*/
+		Scene *blscene = NULL;
+		if (!bfd)
+		{
+			blscene = (Scene*) maggie->scene.first;
+			for (Scene *sce= (Scene*) maggie->scene.first; sce; sce= (Scene*) sce->id.next)
+			{
+				if (startscenename == (sce->id.name+2))
+				{
+					blscene = sce;
+					break;
+				}
+			}
+		} else {
+			blscene = bfd->curscene;
+		}
+        int cframe,startFrame;
+		if (blscene)
+		{
+			cframe=blscene->r.cfra;
+			startFrame = blscene->r.sfra;
+			blscene->r.cfra=startFrame;
+			update_for_newframe();
+			ketsjiengine->SetGame2IpoMode(game2ipo,startFrame);
+		}
+
+		// Quad buffered needs a special window.
+		if (blscene->r.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
+			rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->r.stereomode);
+
+		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
+		{
+			/*if (v3d->persp != 2)
+			{
+				ketsjiengine->EnableCameraOverride(startscenename);
+				ketsjiengine->SetCameraOverrideUseOrtho((v3d->persp == 0));
+				ketsjiengine->SetCameraOverrideProjectionMatrix(projmat);
+				ketsjiengine->SetCameraOverrideViewMatrix(viewmat);
+			}*/
+
+			// create a scene converter, create and convert the startingscene
+			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(maggie,sipo, ketsjiengine);
+			ketsjiengine->SetSceneConverter(sceneconverter);
+
+			if (always_use_expand_framing)
+				sceneconverter->SetAlwaysUseExpandFraming(true);
+
+			if(usemat)
+				sceneconverter->SetMaterials(true);
+
+			KX_Scene* startscene = new KX_Scene(keyboarddevice,
+				mousedevice,
+				networkdevice,
+				audiodevice,
+				startscenename);
+
+			// some python things
+			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
+			ketsjiengine->SetPythonDictionary(dictionaryobject);
+			initRasterizer(rasterizer, canvas);
+			PyObject *gameLogic = initGameLogic(startscene);
+			initGameKeys();
+			initPythonConstraintBinding();
+
+			if (sceneconverter)
+			{
+				// convert and add scene
+				sceneconverter->ConvertScene(
+					startscenename,
+					startscene,
+					dictionaryobject,
+					keyboarddevice,
+					rendertools,
+					canvas);
+				ketsjiengine->AddScene(startscene);
+
+				// init the rasterizer
+				//rasterizer->Init();
+
+				// start the engine
+				ketsjiengine->StartEngine(false);
+
+				// the mainloop
+				while ((blscene->r.cfra<=blscene->r.efra)&&(!exitrequested))
+				{
+                    printf("frame %i\n",blscene->r.cfra);
+                    // first check if we want to exit
+					exitrequested = ketsjiengine->GetExitCode();
+
+					// kick the engine
+					ketsjiengine->NextFrame();
+				    blscene->r.cfra=blscene->r.cfra+1;
+				    update_for_newframe();
+					// render the frame
+					//ketsjiengine->Render();
+
+					// test for the ESC key
+					/*while (qtest())
+					{
+						short val;
+						unsigned short event = extern_qread(&val);
+
+						if (keyboarddevice->ConvertBlenderEvent(event,val))
+							exitrequested = KX_EXIT_REQUEST_BLENDER_ESC;
+
+						if (event==MOUSEX) {
+							val = val - scrarea_get_win_x(area);
+						} else if (event==MOUSEY) {
+							val = scrarea_get_win_height(area) - (val - scrarea_get_win_y(area)) - 1;
+						}
+
+						mousedevice->ConvertBlenderEvent(event,val);
+					}*/
+				}
+				exitstring = ketsjiengine->GetExitString();
+				// when exiting the mainloop
+				//dictionaryClearByHand(gameLogic);
+				//ketsjiengine->StopEngine();
+				//exitGamePythonScripting();
+				//networkdevice->Disconnect();
+			}
+			if (sceneconverter)
+			{
+				delete sceneconverter;
+				sceneconverter = NULL;
+			}
+		}
+		blscene->r.cfra=cframe;
+		// set the cursor back to normal
+		canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
+
+		// clean up some stuff
+		audiodevice->StopCD();
+		if (ketsjiengine)
+		{
+			delete ketsjiengine;
+			ketsjiengine = NULL;
+		}
+		if (kxsystem)
+		{
+			delete kxsystem;
+			kxsystem = NULL;
+		}
+		if (networkdevice)
+		{
+			delete networkdevice;
+			networkdevice = NULL;
+		}
+		if (keyboarddevice)
+		{
+			delete keyboarddevice;
+			keyboarddevice = NULL;
+		}
+		if (mousedevice)
+		{
+			delete mousedevice;
+			mousedevice = NULL;
+		}
+		/*if (rasterizer)
+		{
+			delete rasterizer;
+			rasterizer = NULL;
+		}
+		if (rendertools)
+		{
+			delete rendertools;
+			rendertools = NULL;
+		}
+		if (canvas)
+		{
+			delete canvas;
+			canvas = NULL;
+		}*/
+		SND_DeviceManager::Unsubscribe();
+
+	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 	if (bfd) BLO_blendfiledata_free(bfd);
 }

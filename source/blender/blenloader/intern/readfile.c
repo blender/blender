@@ -1690,6 +1690,13 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data= ((bSizeLimitConstraint*)con->data);
 			};
 			break;
+		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
+			{
+				bRigidBodyJointConstraint *data;
+				data= ((bRigidBodyJointConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			};
+			break;
 
 		case CONSTRAINT_TYPE_NULL:
 			break;
@@ -6586,6 +6593,12 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 		case CONSTRAINT_TYPE_STRETCHTO:
 			{
 				bStretchToConstraint *data = (bStretchToConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+				break;
+			}
+		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
+			{
+				bRigidBodyJointConstraint *data = (bRigidBodyJointConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
 				break;
 			}

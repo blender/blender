@@ -673,7 +673,7 @@ bool GPG_Application::startEngine(void)
 			m_frameTimer = m_system->installTimer(0, kTimerFreq, frameTimerProc, m_mainWindow);
 		}
 		m_rasterizer->Init();
-		m_ketsjiengine->StartEngine();
+		m_ketsjiengine->StartEngine(true);
 		m_engineRunning = true;
 		
 	}

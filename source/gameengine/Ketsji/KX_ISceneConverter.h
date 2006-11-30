@@ -61,7 +61,7 @@ public:
 	virtual bool	TryAndLoadNewFile() = 0;
 
 
-	virtual void	ResetPhysicsObjectsAnimationIpo() = 0;
+	virtual void	ResetPhysicsObjectsAnimationIpo(bool clearIpo) = 0;
 
 	///this generates ipo curves for position, rotation, allowing to use game physics in animation
 	virtual void	WritePhysicsObjectToAnimationIpo(int frameNumber) = 0;

@@ -130,7 +130,7 @@ public:
 
 	void RegisterWorldInfo(KX_WorldInfo *worldinfo);
 
-	virtual void	ResetPhysicsObjectsAnimationIpo();
+	virtual void	ResetPhysicsObjectsAnimationIpo(bool clearIpo);
 
 	///this generates ipo curves for position, rotation, allowing to use game physics in animation
 	virtual void	WritePhysicsObjectToAnimationIpo(int frameNumber);

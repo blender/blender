@@ -723,7 +723,40 @@ void *new_constraint_data (short type)
 			result = data;
 		}
 		break;
-	default:
+    case CONSTRAINT_TYPE_RIGIDBODYJOINT:
+		{
+			bRigidBodyJointConstraint *data;
+			int i;
+			Base *base_iter;
+
+			data = MEM_callocN(sizeof(bRigidBodyJointConstraint), "RigidBodyToConstraint");
+			base_iter = G.scene->base.first;
+            while( base_iter && !data->tar ) {
+                if( ( ( base_iter->flag & SELECT ) &&
+//                    ( base_iter->lay & G.vd->lay ) ) &&
+                    ( base_iter != G.scene->basact ) )
+                    )
+                        data->tar=base_iter->object;
+                base_iter = base_iter->next;
+            }
+            data->type=1;
+            data->pivX=0.0;
+            data->pivY=0.0;
+            data->pivZ=0.0;
+            data->axX=0.0;
+            data->axY=0.0;
+            data->axZ=1.0;
+			for (i=0;i<6;i++)
+			{
+				data->minLimit[i]=0.0;
+				data->maxLimit[i]=0.0;
+			}
+            data->extraFz=0.0;
+			result = data;
+		}
+		break;
+  
+   	default:
 		result = NULL;
 		break;
 	}
@@ -2014,6 +2047,12 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			VecMulf(ob->obmat[2], size[2]/obsize[2]);
 		}
 		break;
+	case CONSTRAINT_TYPE_RIGIDBODYJOINT:
+        {
+
+
+        }
+        break;		
 	default:
 		printf ("Error: Unknown constraint type\n");
 		break;

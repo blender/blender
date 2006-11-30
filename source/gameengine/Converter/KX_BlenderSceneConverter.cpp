@@ -576,7 +576,7 @@ Ipo* KX_BlenderSceneConverter::findIpoForName(char* objName)
 }
 
 
-void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo()
+void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 {
 
 	KX_SceneList* scenes = m_ketsjiEngine->CurrentScenes();
@@ -604,6 +604,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo()
 					if (ipo)
 					{
 						//clear the curve data
+						if (clearIpo){
 						IpoCurve *icu1;
 						int numCurves = 0;
 						for( icu1 = (IpoCurve*)ipo->curve.first; icu1;  ) {
@@ -618,6 +619,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo()
 							MEM_freeN( tmpicu );
 							localDel_ipoCurve( tmpicu ,m_sipo);
 						}
+					  }
 					} else
 					{
 						ipo = add_ipo(blenderObject->id.name+2, ID_OB);

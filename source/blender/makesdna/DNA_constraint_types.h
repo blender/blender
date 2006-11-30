@@ -194,6 +194,26 @@ typedef struct bSizeLimitConstraint{
 	short		pad1;
 } bSizeLimitConstraint;
 
+/* Rigid Body constraint */
+typedef struct bRigidBodyJointConstraint{
+	Object		*tar;
+	Object		*child;
+	int         type;
+	float       pivX;
+	float       pivY;
+	float       pivZ;
+	float       axX;
+	float       axY;
+	float       axZ;
+	float       minLimit[6];
+	float       maxLimit[6];
+	float       extraFz;
+	short		flag;
+	short		pad;
+	short		pad1;
+	short		pad2;
+} bRigidBodyJointConstraint;
+
 /* bConstraint.type */
 #define CONSTRAINT_TYPE_NULL		0
 #define CONSTRAINT_TYPE_CHILDOF		1	/* Unimplemented */
@@ -212,7 +232,7 @@ typedef struct bSizeLimitConstraint{
 #define CONSTRAINT_TYPE_DISTANCELIMIT	14 
 #define CONSTRAINT_TYPE_STRETCHTO	15  /* claiming this to be mine :) is in tuhopuu bjornmose */ 
 #define CONSTRAINT_TYPE_MINMAX      16  /* floor constraint */
-
+#define CONSTRAINT_TYPE_RIGIDBODYJOINT 17 /* rigidbody constraint */
 
 /* bConstraint.flag */
 		/* expand for UI */
@@ -297,6 +317,11 @@ typedef struct bSizeLimitConstraint{
 #define LIMIT_ZROT 0x04
 
 #define LIMIT_NOPARENT 0x01
+
+#define CONSTRAINT_RB_BALL		1
+#define CONSTRAINT_RB_HINGE		2
+#define CONSTRAINT_RB_GENERIC6DOF 3
+#define CONSTRAINT_RB_VEHICLE	11
 
 #endif
 

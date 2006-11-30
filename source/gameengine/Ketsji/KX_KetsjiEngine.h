@@ -205,7 +205,7 @@ public:
 	void			NextFrame();
 	void			Render();
 	
-	void			StartEngine();
+	void			StartEngine(bool clearIpo);
 	void			StopEngine();
 	void			Export(const STR_String& filename);
 

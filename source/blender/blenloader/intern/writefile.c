@@ -741,6 +741,9 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 		case CONSTRAINT_TYPE_SIZELIMIT:
 			writestruct(wd, DATA, "bSizeLimitConstraint", 1, con->data);
 			break;
+		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
+			writestruct(wd, DATA, "bRigidBodyJointConstraint", 1, con->data);
+			break;
 		default:
 			break;
 		}
