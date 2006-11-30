@@ -29,6 +29,7 @@
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 LIBNAME = bullet2
+include nan_definitions.mk
 SOURCEDIR = extern/$(LIBNAME)
 DIR = $(OCGDIR)/extern/$(LIBNAME)
 DIRS = src
@@ -57,7 +58,7 @@ install: all debug
 	done
 	@[ -d $(NAN_BULLET2)/lib ] || mkdir -p $(NAN_BULLET2)/lib
 	@$(CP) $(DISTDIR)/*.h $(NAN_BULLET2)/include
-	@$(CP) $(DIR)/libbullet2.a $(NAN_BULLET2)/lib
+	@$(CP) $(OCGDIR)/extern/bullet2/libbullet2.a $(NAN_BULLET2)/lib
 ifeq ($(OS),darwin)
 	ranlib $(NAN_BULLET2)/lib/libbullet2.a
 endif
