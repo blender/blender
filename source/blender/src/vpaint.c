@@ -734,13 +734,13 @@ static void vpaint_blend( unsigned int *col, unsigned int *colorig, unsigned int
 }
 
 
-static int sample_backbuf_area(VPaint *vp, int *indexar, int x, int y, float size)
+static int sample_backbuf_area(VPaint *vp, int *indexar, int totface, int x, int y, float size)
 {
 	unsigned int *rt;
 	struct ImBuf *ibuf;
 	int x1, y1, x2, y2, a, tot=0, index;
 	
-	if(vp->tot>=MAXINDEX) return 0;
+	if(totface>=MAXINDEX) return 0;
 	
 	if(size>64.0) size= 64.0;
 	
@@ -770,20 +770,20 @@ static int sample_backbuf_area(VPaint *vp, int *indexar, int x, int y, float siz
 	size= (y2-y1)*(x2-x1);
 	if(size<=0) return 0;
 
-	memset(indexar, 0, sizeof(int)*vp->tot+2);	/* plus 2! first element is total */
+	memset(indexar, 0, sizeof(int)*totface+2);	/* plus 2! first element is total */
 	
 	while(size--) {
 			
 		if(*rt) {
 			index= framebuffer_to_index(*rt);
-			if(index>0 && index<=vp->tot)
+			if(index>0 && index<=totface)
 				indexar[index] = 1;
 		}
 	
 		rt++;
 	}
 	
-	for(a=1; a<=vp->tot; a++) {
+	for(a=1; a<=totface; a++) {
 		if(indexar[a]) indexar[tot++]= a;
 	}
 
@@ -1193,7 +1193,7 @@ void weight_paint(void)
 			
 			/* which faces are involved */
 			if(Gwp.flag & VP_AREA) {
-				totindex= sample_backbuf_area(&Gwp, indexar, mval[0], mval[1], Gwp.size);
+				totindex= sample_backbuf_area(&Gwp, indexar, me->totface, mval[0], mval[1], Gwp.size);
 			}
 			else {
 				indexar[0]= sample_backbuf(mval[0], mval[1]);
@@ -1413,7 +1413,7 @@ void vertex_paint()
 
 			/* which faces are involved */
 			if(Gvp.flag & VP_AREA) {
-				totindex= sample_backbuf_area(&Gvp, indexar, mval[0], mval[1], Gvp.size);
+				totindex= sample_backbuf_area(&Gvp, indexar, me->totface, mval[0], mval[1], Gvp.size);
 			}
 			else {
 				indexar[0]= sample_backbuf(mval[0], mval[1]);

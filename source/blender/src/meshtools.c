@@ -897,7 +897,7 @@ void objects_bake_render(void)
 			g_break= blender_test_break();
 			
 			timer++;
-			if(timer==20) {
+			if(area && timer==20) {
 				Image *ima= RE_bake_shade_get_image();
 				if(ima) ((SpaceImage *)area->spacedata.first)->image= ima;
 				scrarea_do_windraw(area);
