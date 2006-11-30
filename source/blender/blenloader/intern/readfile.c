@@ -2613,6 +2613,13 @@ static void lib_link_object(FileData *fd, Main *main)
 				warn= 1;
 				if(ob->id.lib) printf("Can't find obdata of %s lib %s\n", ob->id.name+2, ob->id.lib->name);
 				else printf("Object %s lost data. Lib:%x\n", ob->id.name+2, (unsigned int) ob->id.lib);
+				
+				if(ob->pose) {
+					free_pose_channels(ob->pose);
+					MEM_freeN(ob->pose);
+					ob->pose= NULL;
+					ob->flag &= ~OB_POSEMODE;
+				}
 			}
 			for(a=0; a<ob->totcol; a++) ob->mat[a]= newlibadr_us(fd, ob->id.lib, ob->mat[a]);
 
