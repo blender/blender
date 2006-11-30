@@ -2176,7 +2176,9 @@ static bScreen *addscreen(char *name)		/* use setprefsize() if you want somethin
 		glClear(GL_COLOR_BUFFER_BIT);
 		window_swap_buffers(mainwin);
 		
-		warp_pointer(sc->sizex/2,  sc->sizey/2);
+		/* this is unneeded and with large monitors can be a
+		 * pain so commenting out */
+		/* warp_pointer(sc->sizex/2,  sc->sizey/2); */
 		
 		mainqenter(REDRAW, 1);
 	}
