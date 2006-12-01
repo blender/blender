@@ -920,6 +920,11 @@ void multires_add_level(void *ob, void *me_v)
 	multires_update_levels(me);
 	me->mr->newlvl= me->mr->level_count;
 	me->mr->current= me->mr->newlvl;
+	/* Unless the render level has been set to something other than the
+	   highest level (by the user), increment the render level to match
+	   the highest available level */
+	if(me->mr->renderlvl == me->mr->level_count - 1) me->mr->renderlvl= me->mr->level_count;
+	
 	multires_level_to_mesh(ob,me);
 	if(em) enter_editmode(0);
 	
@@ -1341,30 +1346,18 @@ void multires_calc_level_maps(MultiresLevel *lvl)
 	}
 }
 
-unsigned powi(const unsigned b, const unsigned p)
-{
-	unsigned i,r= b;
-
-	if(p==0) return 1;
-
-	for(i=1; i<p; ++i)
-		r*= b;
-
-	return r;
-}
-
 void multires_edge_level_update(void *ob, void *me_v)
 {
 	Mesh *me= me_v;
 	MultiresLevel *cr_lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
 	MultiresLevel *edge_lvl= BLI_findlink(&me->mr->levels,me->mr->edgelvl-1);
+	const int threshold= edge_lvl->totedge * powf(2, me->mr->current - me->mr->edgelvl);
 	unsigned i;
 
 	for(i=0; i<cr_lvl->totedge; ++i) {
 		const int ndx= me->pv ? me->pv->edge_map[i] : i;
 		if(ndx != -1) { /* -1= hidden edge */
-			if(me->mr->edgelvl >= me->mr->current ||
-			   i<edge_lvl->totedge*powi(2,me->mr->current-me->mr->edgelvl))
+			if(me->mr->edgelvl >= me->mr->current || i<threshold)
 				me->medge[ndx].flag= ME_EDGEDRAW;
 			else
 				me->medge[ndx].flag= 0;
