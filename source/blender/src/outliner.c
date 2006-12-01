@@ -842,9 +842,29 @@ static void outliner_build_tree(SpaceOops *soops)
 	/* options */
 	if(soops->outlinevis == SO_LIBRARIES) {
 		Library *lib;
+		
 		for(lib= G.main->library.first; lib; lib= lib->id.next) {
-			outliner_add_element(soops, &soops->tree, lib, NULL, 0, 0);
+			ten= outliner_add_element(soops, &soops->tree, lib, NULL, 0, 0);
+			lib->id.newid= (ID *)ten;
 		}
+		/* make hierarchy */
+		ten= soops->tree.first;
+		while(ten) {
+			TreeElement *nten= ten->next, *par;
+			tselem= TREESTORE(ten);
+			lib= (Library *)tselem->id;
+			if(lib->parent) {
+				BLI_remlink(&soops->tree, ten);
+				par= (TreeElement *)lib->parent->id.newid;
+				BLI_addtail(&par->subtree, ten);
+				ten->parent= par;
+			}
+			ten= nten;
+		}
+		/* restore newid pointers */
+		for(lib= G.main->library.first; lib; lib= lib->id.next)
+			lib->id.newid= NULL;
+		
 	}
 	else if(soops->outlinevis == SO_ALL_SCENES) {
 		Scene *sce;
@@ -1637,9 +1657,9 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 	return 0;
 }
 
+#ifdef WITH_VERSE
 static void verse_operation_menu(TreeElement *te)
 {
-#ifdef WITH_VERSE
 	short event=0;
 	if(te->idcode==ID_VS) {
 		struct VerseSession *session = (VerseSession*)te->directdata;
@@ -1713,9 +1733,8 @@ static void verse_operation_menu(TreeElement *te)
 				break;
 		}
 	}
-#endif
-
 }
+#endif
 
 
 static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short event, float *mval)
@@ -2711,7 +2730,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case ID_GR:
 				BIF_icon_draw(x, y, ICON_CIRCLE_DEHLT); break;
 			case ID_LI:
-				BIF_icon_draw(x, y, ICON_PARLIB); break;
+				BIF_icon_draw(x, y, ICON_LIBRARY_DEHLT); break;
 		}
 	}
 }

@@ -403,8 +403,10 @@ static void add_main_to_main(Main *mainvar, Main *from)
 
 void blo_join_main(ListBase *mainlist)
 {
-	Main *tojoin, *mainl= mainlist->first;
-
+	Main *tojoin, *mainl;
+	
+	
+	mainl= mainlist->first;
 	while ((tojoin= mainl->next)) {
 		add_main_to_main(mainl, tojoin);
 		BLI_remlink(mainlist, tojoin);
@@ -3731,99 +3733,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	}
 }
 
-/* ********** READ LIBRARY: facility to build a tree to see dependencies *************** */
-
-typedef struct LibLink {
-	struct LibLink *prev, *next;
-	Main *lib;
-	ListBase tree;
-} LibLink;
-
-static int library_add_dependency(LibLink *llink, Main *from, Main *to)
-{
-	LibLink *lc;
-	
-	if(llink->lib==from) {
-		for(lc= llink->tree.first; lc; lc= lc->next)
-			if(lc->lib==to)
-				break;
-		if(lc)
-			return;
-		
-		lc= MEM_callocN(sizeof(LibLink), "lib link");
-		BLI_addtail(&llink->tree, lc);
-		lc->lib= to;
-		
-		if(from && from->curlib) printf("Added from %s to %s \n", from->curlib->name, to->curlib->name);
-		else printf("Added to %s\n", to->curlib->name);
-		
-		return 1;
-	}
-	else {
-		for(lc= llink->tree.first; lc; lc= lc->next)
-			if(library_add_dependency(lc, from, to))
-				return 1;
-	}
-	if(from) printf("not added from %s to %s \n", from->curlib->name, to->curlib->name);
-	else printf("not added to %s\n", to->curlib->name);
-	return 0;
-}
-
-static void library_print_dependency(LibLink *llink, int level)
-{
-	LibLink *lc;
-	
-	for(lc= llink->tree.first; lc; lc= lc->next) {
-		int a;
-		for(a=0; a<level; a++)
-			printf(" ");
-		printf("%s\n", lc->lib->curlib->name);
-		library_print_dependency(lc, level+1);
-	}
-}
-
-static void library_free_dependency(LibLink *llink, int level)
-{
-	LibLink *lc, *next;
-	
-	for(lc= llink->tree.first; lc; lc= next) {
-		next= lc->next;
-		library_free_dependency(lc, 1);
-	}
-	if(level)
-		MEM_freeN(llink);
-}
-
-
-static void library_do_dependency(char mode, Main *from, Main *to)
-{
-	static int doit= 0;
-	static LibLink llink;
-	
-	return;		// temporary disabled
-	
-	if(mode=='s') {	/* start */
-	   memset(&llink, 0, sizeof(LibLink));
-	   llink.lib= from;
-	   doit= 1;
-	   return;
-	}
-
-	if(doit==0) return;
-
-	if(mode=='e') {	/* end */
-	   library_print_dependency(&llink, 1);
-	   library_free_dependency(&llink, 0);
-	   doit= 0;
-	   return;
-	}
-	if(mode=='a') {
-		library_add_dependency(&llink, from, to);
-	}
-}
-
-
-
 /* ********** READ LIBRARY *************** */
 
 
@@ -3858,8 +3767,8 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 	newmain= MEM_callocN(sizeof(Main), "directlink");
 	BLI_addtail(&fd->mainlist, newmain);
 	newmain->curlib= lib;
-	
-	library_do_dependency('a', main, newmain);
+
+	lib->parent= NULL;
 }
 
 static void lib_link_library(FileData *fd, Main *main)
@@ -6322,9 +6231,6 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	BLI_addtail(&fd->mainlist, bfd->main);
 
 	bfd->main->versionfile= fd->fileversion;
-
-	/* facility to print depsgraph */
-	library_do_dependency('s', bfd->main, NULL);
 	
 	while(bhead) {
 		switch(bhead->code) {
@@ -6366,6 +6272,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 		do_versions(fd, NULL, bfd->main);
 	
 	read_libraries(fd, &fd->mainlist);
+	
 	blo_join_main(&fd->mainlist);
 
 	lib_link_all(fd, bfd->main);
@@ -6375,9 +6282,6 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 
 	/* removed here: check for existance of curscreen/scene, moved to kernel setup_app */
 	MEM_freeN(fg);
-
-	/* facility to print depsgraph */
-	library_do_dependency('e', NULL, NULL);
 	
 	return bfd;
 }
@@ -6439,7 +6343,9 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 			if(bheadlib) {
 				// BHEAD+DATA dependancy
 				Library *lib= (Library *)(bheadlib+1);
-				/* we read the lib->name directly from the bhead, potential danger (64 bits?) */
+				/* ***************************** */
+				/* we read the lib->name directly from the bhead, no DNA, potential danger (64 bits?) */
+				/* ***************************** */
 				Main *main= blo_find_main(&fd->mainlist, lib->name, fd->filename);
 
 				id= is_yet_read(main, bhead);
@@ -6449,7 +6355,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					if(G.f & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
 					
 					/* for outliner dependency only */
-					library_do_dependency('a', mainvar, main);
+					main->curlib->parent= mainvar->curlib;
 				}
 				else {
 					//oldnewmap_insert(fd->libmap, bhead->old, id, 1);

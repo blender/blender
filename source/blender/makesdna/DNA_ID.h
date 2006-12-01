@@ -117,14 +117,16 @@ typedef struct ID {
 
 /**
  * For each library file used, a Library struct is added to Main
+ * WARNING: readfile.c, expand_doit() reads this struct without DNA check!
  */
 typedef struct Library {
 	ID id;
 	ID *idblock;
 	struct FileData *filedata;
-	char name[240];		/* reveiled in the UI, can store relative path */
-	char filename[240];	/* expanded name, not relative, used while reading */
-	int tot, pad;		/* tot, idblock and filedata are only fo read and write */
+	char name[240];			/* reveiled in the UI, can store relative path */
+	char filename[240];		/* expanded name, not relative, used while reading */
+	int tot, pad;			/* tot, idblock and filedata are only fo read and write */
+	struct Library *parent;	/* for outliner, showing dependency */
 } Library;
 
 /**

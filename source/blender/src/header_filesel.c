@@ -145,7 +145,6 @@ void file_buttons(void)
 		uiDefButBitS(block, TOG, FILE_AUTOSELECT, B_REDR, "Autosel", xco+=125,0,65,YIC, &sfile->flag, 0, 0, 0, 0, "Autoselect imported objects");
 		uiDefButBitS(block, TOG, FILE_ACTIVELAY, B_REDR, "Active Layer", xco+=65,0,80,YIC, &sfile->flag, 0, 0, 0, 0, "Append object(s) in active layer");
 		uiDefButBitS(block, TOG, FILE_ATCURSOR, B_REDR, "At Cursor", xco+=80,0,65,YIC, &sfile->flag, 0, 0, 0, 0, "Append object(s) at cursor, use centroid if more than one object is selected");
-		uiDefButBitS(block, TOG, FILE_SYNCPOSE, B_REDR, "Sync Pose", xco+=80,0,65,YIC, &sfile->flag, 0, 0, 0, 0, "If Object with Pose appended, link the Pose and Armature to all selected Objects");
 		uiBlockEndAlign(block);
 		
 		xco+= 100;	// scroll

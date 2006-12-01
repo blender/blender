@@ -139,6 +139,16 @@ int fnmatch(const char *pattern, const char *string, int flags)
 
 #define STARTSWITH(x, y) (strncmp(x, y, sizeof(x) - 1) == 0)
 
+/* button events */
+#define B_FS_FILENAME	1
+#define B_FS_DIRNAME	2
+#define B_FS_DIR_MENU	3
+#define B_FS_PARDIR	4
+#define B_FS_LOAD	5
+#define B_FS_CANCEL	6
+#define B_FS_LIBNAME	7
+
+
 static int is_a_library(SpaceFile *sfile, char *dir, char *group);
 static void do_library_append(SpaceFile *sfile);
 static void library_to_filelist(SpaceFile *sfile);
@@ -148,7 +158,7 @@ static int groupname_to_code(char *group);
 
 extern void countall(void);
 
-/* local globals */
+/* very bad local globals */
 
 static rcti scrollrct, textrct, bar;
 static int filebuty1, filebuty2, page_ofs, collumwidth, selecting=0;
@@ -1118,6 +1128,21 @@ static void draw_filetext(SpaceFile *sfile)
 	uiEmboss(textrct.xmin, textrct.ymin, textrct.xmax, textrct.ymax, 1);
 }
 
+static char *library_string(void)
+{
+	Library *lib;
+	char *str;
+	int nr=0, tot= BLI_countlist(&G.main->library);
+	
+	if(tot==0) return NULL;
+	str= MEM_callocN(tot*(FILE_MAXDIR+FILE_MAXFILE), "filesel lib menu");
+	
+	for(tot=0, lib= G.main->library.first; lib; lib= lib->id.next, nr++) {
+		tot+= sprintf(str+tot, "%s %%x%d|", lib->name+2, nr);
+	}
+	return str;
+}
+
 void drawfilespace(ScrArea *sa, void *spacedata)
 {
 	SpaceFile *sfile;
@@ -1126,7 +1151,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	int act, loadbutton;
 	short mval[2];
 	char name[20];
-	char *menu;
+	char *menu, *strp= NULL;
 
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 
@@ -1148,6 +1173,10 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	}
 	else calc_file_rcts(sfile);
 
+	/* check if we load library, extra button */
+	if(sfile->type==FILE_LOADLIB)
+		strp= library_string();
+	
 	/* HEADER */
 	sprintf(name, "win %d", sa->win);
 	block= uiNewBlock(&sa->uiblocks, name, UI_EMBOSS, UI_HELV, sa->win);
@@ -1162,28 +1191,33 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	else loadbutton= 0;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, TEX,2,"",	textrct.xmin, filebuty2, textrct.xmax-textrct.xmin-loadbutton, 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "Directory, enter a directory and press enter to create it"); /* Directory input */
+	uiDefBut(block, TEX, B_FS_DIRNAME,"",	textrct.xmin + (strp?20:0), filebuty2, textrct.xmax-textrct.xmin-loadbutton - (strp?20:0), 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "Directory, enter a directory and press enter to create it"); /* Directory input */
 	if(loadbutton) {
 		uiSetCurFont(block, UI_HELV);
-		uiDefBut(block, BUT,	    5, sfile->title,	textrct.xmax-loadbutton, filebuty2, loadbutton, 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+		uiDefBut(block, BUT, B_FS_LOAD, sfile->title,	textrct.xmax-loadbutton, filebuty2, loadbutton, 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	}
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefBut(block, TEX,1,"",	textrct.xmin, filebuty1, textrct.xmax-textrct.xmin-loadbutton, 21, sfile->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "File, increment version number with (+/-)"); /* File input */
+	uiDefBut(block, TEX, B_FS_FILENAME,"",	textrct.xmin, filebuty1, textrct.xmax-textrct.xmin-loadbutton, 21, sfile->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "File, increment version number with (+/-)"); /* File input */
 	if(loadbutton) {
 		uiSetCurFont(block, UI_HELV);
-		uiDefBut(block, BUT,	    6, "Cancel",	textrct.xmax-loadbutton, filebuty1, loadbutton, 21, sfile->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+		uiDefBut(block, BUT, B_FS_CANCEL, "Cancel",	textrct.xmax-loadbutton, filebuty1, loadbutton, 21, sfile->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	}
 	uiBlockEndAlign(block);
 	
 	menu= fsmenu_build_menu();
-	if(menu[0])	// happens when no .Bfs is there, and first time browse
-		uiDefButS(block, MENU,	3, menu, scrollrct.xmin, filebuty1, scrollrct.xmax-scrollrct.xmin, 21, &sfile->menu, 0, 0, 0, 0, "");
+	if(menu[0])	/* happens when no .Bfs is there, and first time browse */
+		uiDefButS(block, MENU, B_FS_DIR_MENU, menu, scrollrct.xmin, filebuty1, scrollrct.xmax-scrollrct.xmin, 21, &sfile->menu, 0, 0, 0, 0, "");
 	MEM_freeN(menu);
 
-	uiDefBut(block, BUT,		4, "P", scrollrct.xmin, filebuty2, scrollrct.xmax-scrollrct.xmin, 21, 0, 0, 0, 0, 0, "Move to the parent directory (PKEY)");
-
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT, B_FS_PARDIR, "P", scrollrct.xmin, filebuty2, scrollrct.xmax-scrollrct.xmin, 21, 0, 0, 0, 0, 0, "Move to the parent directory (PKEY)");
+	if(strp) {
+		uiDefIconTextButS(block, MENU, B_FS_LIBNAME, ICON_LIBRARY_DEHLT, strp, scrollrct.xmin+20, filebuty2, scrollrct.xmax-scrollrct.xmin, 21, &sfile->menu, 0, 0, 0, 0, "");
+		MEM_freeN(strp);
+	}
+			 
 	uiDrawBlock(block);
 
 	draw_filescroll(sfile);
@@ -1587,7 +1621,7 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 {
 	char butname[FILE_MAXDIR+FILE_MAXFILE];
 	
-	if (event == 1) {
+	if (event == B_FS_FILENAME) {
 		if (strchr(sfile->file, '*') || strchr(sfile->file, '?') || strchr(sfile->file, '[')) {
 			int i, match = FALSE;
 			
@@ -1602,7 +1636,7 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 			scrarea_queue_winredraw(curarea);
 		}
 	}
-	else if(event== 2) {
+	else if(event== B_FS_DIRNAME) {
 		/* reuse the butname variable */
 		BLI_cleanup_dir(G.sce, sfile->dir);
 
@@ -1625,7 +1659,7 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 		sfile->ofs= 0;
 		scrarea_queue_winredraw(curarea);
 	}
-	else if(event== 3) {
+	else if(event== B_FS_DIR_MENU) {
 		char *selected= fsmenu_get_entry(sfile->menu-1);
 		
 		/* which string */
@@ -1641,11 +1675,26 @@ static void do_filesel_buttons(short event, SpaceFile *sfile)
 		sfile->act= -1;
 		
 	}
-	else if(event== 4) parent(sfile);
-	else if(event== 5) {
-		if(sfile->type) filesel_execute(sfile);
+	else if(event== B_FS_PARDIR) 
+		parent(sfile);
+	else if(event== B_FS_LOAD) {
+		if(sfile->type) 
+			filesel_execute(sfile);
 	}
-	else if(event== 6) filesel_prevspace();
+	else if(event== B_FS_CANCEL) 
+		filesel_prevspace();
+	else if(event== B_FS_LIBNAME) {
+		Library *lib= BLI_findlink(&G.main->library, sfile->menu);
+		if(lib) {
+			BLI_strncpy(sfile->dir, lib->filename, sizeof(sfile->dir));
+			BLI_make_exist(sfile->dir);
+			BLI_cleanup_dir(G.sce, sfile->dir);
+			freefilelist(sfile);
+			sfile->ofs= 0;
+			scrarea_queue_winredraw(curarea);
+			sfile->act= -1;
+		}
+	}
 	
 }
 
@@ -2244,73 +2293,6 @@ static int is_a_library(SpaceFile *sfile, char *dir, char *group)
 	return 1;
 }
 
-/* orange hack... :) */
-static void do_sync_pose(Library *lib)
-{
-	Object *ob, *obt;
-	Base *base;
-	bArmature *arm;
-	
-	/* find the armature and the pose from library */
-	for(ob= G.main->object.first; ob; ob= ob->id.next)
-		if(ob->type==OB_ARMATURE && ob->id.lib==lib)
-			break;
-	
-	if(ob==NULL || ob->pose==NULL) {
-		error("No pose appended");
-		return;
-	}
-	
-	arm= ob->data;
-
-	/* for all visible objects in this scene */
-	for(base= G.scene->base.first; base; base= base->next) {
-		if((base->flag & SELECT)) {
-			obt= base->object;
-			if(obt->type==OB_ARMATURE && obt->pose && ob!=obt) {
-				char str[128];
-				
-				sprintf(str, "Replace Object %s", obt->id.name);
-				if(okee(str)) {
-					bPoseChannel *chan;
-					bArmature *oldarm= obt->data;
-					
-					/* link armature */
-					oldarm->id.us--;
-					obt->data= arm;
-					arm->id.us++;
-					
-					/* link pose */
-					free_pose_channels(obt->pose);
-					MEM_freeN(obt->pose);
-					copy_pose(&obt->pose, ob->pose, 1);
-					
-					/* relink */
-					ob->id.newid= &obt->id;
-					for (chan = obt->pose->chanbase.first; chan; chan=chan->next){
-						relink_constraints(&chan->constraints);
-					}
-					
-					obt->pose->flag |= POSE_RECALC;
-					obt->recalc |= OB_RECALC_DATA;
-				}
-			}
-		}
-	}
-
-	/* prevent saving in file, unlink from scene */
-	for(base= G.scene->base.first; base; base= base->next) {
-		if(base->object==ob)
-			break;
-	}
-	
-	if(base) {
-		free_and_unlink_base(base);
-	}
-
-	DAG_scene_sort(G.scene);	// for accidentally appended other objects
-}
-
 static void do_library_append(SpaceFile *sfile)
 {
 	Library *lib;
@@ -2347,8 +2329,6 @@ static void do_library_append(SpaceFile *sfile)
 		}
 		
 		if(lib) {
-			if(sfile->flag & FILE_SYNCPOSE)
-				do_sync_pose(lib);
 			if((sfile->flag & FILE_LINK)==0) 
 				all_local(lib);
 		}
