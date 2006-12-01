@@ -479,7 +479,7 @@ static Main *blo_find_main(ListBase *mainlist, const char *name, const char *rel
 	Library *lib;
 	char name1[FILE_MAXDIR+FILE_MAXFILE];
 	
-	strcpy(name1, name);
+	strncpy(name1, name, sizeof(name1)-1);
 	cleanup_path(relabase, name1);
 //	printf("blo_find_main: original in  %s\n", name);
 //	printf("blo_find_main: converted to %s\n", name1);
@@ -497,8 +497,8 @@ static Main *blo_find_main(ListBase *mainlist, const char *name, const char *rel
 	BLI_addtail(mainlist, m);
 
 	lib= alloc_libblock(&m->library, ID_LI, "lib");
-	strcpy(lib->name, name);
-	strcpy(lib->filename, name1);
+	strncpy(lib->name, name, sizeof(lib->name)-1);
+	BLI_strncpy(lib->filename, name1, sizeof(lib->filename));
 	
 	m->curlib= lib;
 	
@@ -611,6 +611,7 @@ static BHeadN *get_bhead(FileData *fd)
 					}
 				} else {
 					fd->eof = 1;
+					bhead.len= 0;
 				}
 			} else {
 				bhead8.code = DATA;
@@ -628,6 +629,7 @@ static BHeadN *get_bhead(FileData *fd)
 					}
 				} else {
 					fd->eof = 1;
+					bhead.len= 0;
 				}
 			}
 
@@ -2703,8 +2705,10 @@ static void lib_link_object(FileData *fd, Main *main)
 					if(eoa==NULL) {
 						init_actuator(act);
 					}
-					eoa->ob= newlibadr(fd, ob->id.lib, eoa->ob);
-					eoa->me= newlibadr(fd, ob->id.lib, eoa->me);
+					else {
+						eoa->ob= newlibadr(fd, ob->id.lib, eoa->ob);
+						eoa->me= newlibadr(fd, ob->id.lib, eoa->me);
+					}
 				}
 				else if(act->type==ACT_SCENE) {
 					bSceneActuator *sa= act->data;
@@ -6278,7 +6282,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	lib_link_all(fd, bfd->main);
 	lib_verify_nodetree(bfd->main);
 	
-	link_global(fd, bfd, fg);	/* as last */
+	if(fg)
+		link_global(fd, bfd, fg);	/* as last */
 
 	/* removed here: check for existance of curscreen/scene, moved to kernel setup_app */
 	MEM_freeN(fg);

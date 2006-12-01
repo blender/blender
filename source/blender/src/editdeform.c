@@ -346,6 +346,7 @@ void remove_vert_def_nr (Object *ob, int def_nr, int vertnum)
 			else {
 				MEM_freeN (dvert->dw);
 				dvert->dw = NULL;
+				break;
 			}
 		}
 	}
@@ -639,6 +640,7 @@ void remove_verts_defgroup (int allverts)
 						else{
 							MEM_freeN (dvert->dw);
 							dvert->dw=NULL;
+							break;
 						}
 					}
 				}

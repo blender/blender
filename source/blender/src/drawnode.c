@@ -1215,7 +1215,7 @@ static int node_composit_buts_file_output(uiBlock *block, bNodeTree *ntree, bNod
 				  &nif->imtype, 0.0f, 1.0f, 0, 0, "");
 		
 		if(nif->imtype==R_OPENEXR) {
-			uiDefButBitS(block, TOG, R_OPENEXR_HALF, B_NOP, "Half",	
+			uiDefButBitS(block, TOG, R_OPENEXR_HALF, B_REDR, "Half",	
 						x, y+20, w/2, 20, 
 						&nif->subimtype, 0, 0, 0, 0, "");
 
@@ -1985,10 +1985,12 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 		
 	/* buttons */
 	if(node->flag & NODE_OPTIONS) {
-		if(node->typeinfo->butfunc) {
-			node->typeinfo->butfunc(block, snode->nodetree, node, &node->butr);
+		if(block) {
+			if(node->typeinfo->butfunc) {
+				node->typeinfo->butfunc(block, snode->nodetree, node, &node->butr);
+			}
+			uiDrawBlock(block);
 		}
-		uiDrawBlock(block);
 	}
 
 }

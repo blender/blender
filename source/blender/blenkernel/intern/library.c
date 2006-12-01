@@ -763,7 +763,7 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 {
 	ID *idtest;
 	int nr= 0, nrtest, maxtest=32, a;
-	char aname[32], *name, left[24], leftest[24], in_use[32];
+	char aname[32], *name, left[32], leftest[32], in_use[32];
 	
 	/* - split name
 	 * - search
@@ -800,7 +800,7 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 
 	/* if there is no double return */
 	if(idtest==0) {
-		strcpy(id->name+2, name);
+		strncpy(id->name+2, name, 21);
 		return 0;
 	}
 	
@@ -835,7 +835,7 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 		}
 	}
 	
-	if(nr==0) sprintf(id->name+2, "%s", left);
+	if(nr==0) strncpy(id->name+2, left, 21);
 	else {
 		if (nr >= 1000 && strlen(left) > 16) {
 			// this would overflow name buffer

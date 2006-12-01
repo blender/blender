@@ -486,7 +486,8 @@ static void write_renderinfo(WriteData *wd)		/* for renderdeamon */
 			data[0]= sce->r.sfra;
 			data[1]= sce->r.efra;
 
-			strncpy((char *)(data+2), sce->id.name+2, 23);
+			memset(data+2, 0, sizeof(int)*6);
+			strncpy((char *)(data+2), sce->id.name+2, 21);
 
 			writedata(wd, REND, 32, data);
 		}
@@ -1856,7 +1857,7 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 {
 	BHead bhead;
 	ListBase mainlist;
-	char buf[13];
+	char buf[16];
 	WriteData *wd;
 
 	blo_split_main(&mainlist, G.main);

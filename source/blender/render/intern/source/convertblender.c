@@ -383,7 +383,7 @@ static void calc_edge_stress(Render *re, Mesh *me, int startvert, int startvlak)
 	accum= MEM_callocN(2*sizeof(float)*(re->totvert-startvert), "temp accum for stress");
 	
 	/* de-normalize orco */
-	for(a=startvert; a<re->totvert; a++, acc+=2) {
+	for(a=startvert; a<re->totvert; a++) {
 		VertRen *ver= RE_findOrAddVert(re, a);
 		if(ver->orco) {
 			ver->orco[0]= ver->orco[0]*size[0] +loc[0];

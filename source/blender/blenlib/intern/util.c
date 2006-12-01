@@ -892,15 +892,15 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 	return wasrelative;
 }
 
-void BLI_splitdirstring(char *di,char *fi)
+void BLI_splitdirstring(char *di, char *fi)
 {
 	char *lslash= BLI_last_slash(di);
 
 	if (lslash) {
-		strcpy(fi, lslash+1);
+		BLI_strncpy(fi, lslash+1, FILE_MAXFILE);
 		*(lslash+1)=0;
 	} else {
-		strcpy(fi, di);
+		BLI_strncpy(fi, di, FILE_MAXFILE);
 		di[0]= 0;
 	}
 }

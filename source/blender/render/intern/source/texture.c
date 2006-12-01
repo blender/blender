@@ -1164,7 +1164,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	switch(tex->type) {
 	
 	case 0:
-		texres->tin= 0.0;
+		texres->tin= 0.0f;
 		return 0;
 	case TEX_CLOUDS:
 		retval= clouds(tex, texvec, texres);
@@ -1259,7 +1259,10 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
 {
 	
-	if(tex==NULL) return 0;
+	if(tex==NULL) {
+		memset(texres, 0, sizeof(TexResult));
+		return 0;
+	}
 	
 	/* Image requires 2d mapping conversion */
 	if(tex->type==TEX_IMAGE) {
@@ -1438,7 +1441,7 @@ void do_material_tex(ShadeInput *shi)
 {
 	MTex *mtex;
 	Tex *tex;
-	TexResult texres;
+	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float *co = NULL, *dx = NULL, *dy = NULL;
 	float fact, facm, factt, facmm, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], warpvec[3], Tnor=1.0;
@@ -1926,7 +1929,7 @@ void do_material_tex(ShadeInput *shi)
 void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 {
 	MTex *mtex;
-	TexResult texres;
+	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float texvec[3], dxt[3], dyt[3], fact, facm, dx;
 	int rgb, osatex;
 	
@@ -2052,7 +2055,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, float *blend, int skyflag)
 {
 	MTex *mtex;
-	TexResult texres;
+	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float *co, fact, stencilTin=1.0;
 	float tempvec[3], texvec[3], dxt[3], dyt[3];
 	int tex_nr, rgb= 0, ok;
@@ -2236,7 +2239,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf)
 	Object *ob;
 	MTex *mtex;
 	Tex *tex;
-	TexResult texres;
+	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float *co = NULL, *dx = NULL, *dy = NULL, fact, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3];
 	int tex_nr, rgb= 0;
@@ -2451,7 +2454,7 @@ void render_realtime_texture(ShadeInput *shi)
 	static Tex tex1, tex2;	// threadsafe
 	static int firsttime= 1;
 	Tex *tex;
-	float texvec[2], dx[2], dy[2];
+	float texvec[3], dx[2], dy[2];
 	
 	if(firsttime) {
 		firsttime= 0;

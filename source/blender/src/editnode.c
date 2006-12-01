@@ -1466,7 +1466,7 @@ static void node_insert_convertor(SpaceNode *snode, bNodeLink *link)
 static int node_add_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock, int in_out)
 {
 	bNode *tnode;
-	bNodeSocket *tsock;
+	bNodeSocket *tsock= NULL;
 	bNodeLink *link= NULL;
 	short mval[2], mvalo[2], firsttime=1;	/* firsttime reconnects a link broken by caller */
 	
@@ -1539,7 +1539,7 @@ static int node_add_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock, 
 		
 		/* we might need to remove a link */
 		if(in_out==SOCK_OUT) {
-			if(nodeCountSocketLinks(snode->edittree, link->tosock) > tsock->limit) {
+			if(tsock && nodeCountSocketLinks(snode->edittree, link->tosock) > tsock->limit) {
 				
 				for(tlink= snode->edittree->links.first; tlink; tlink= tlink->next) {
 					if(link!=tlink && tlink->tosock==link->tosock)

@@ -858,7 +858,7 @@ void objects_bake_render(void)
 		ScrArea *area= biggest_image_area();
 		ListBase threads;
 		BakeRender bkr;
-		int timer, tot;
+		int timer=0, tot;
 		
 		if(event==1) event= RE_BAKE_ALL;
 		else if(event==2) event= RE_BAKE_AO;

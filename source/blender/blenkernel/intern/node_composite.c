@@ -121,12 +121,12 @@ static CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 static CompBuf *dupalloc_compbuf(CompBuf *cbuf)
 {
 	CompBuf *dupbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 1);
-	if(dupbuf)
+	if(dupbuf) {
 		memcpy(dupbuf->rect, cbuf->rect, cbuf->type*sizeof(float)*cbuf->x*cbuf->y);
 	
-	dupbuf->xof= cbuf->xof;
-	dupbuf->yof= cbuf->yof;
-	
+		dupbuf->xof= cbuf->xof;
+		dupbuf->yof= cbuf->yof;
+	}	
 	return dupbuf;
 }
 
@@ -136,18 +136,19 @@ static CompBuf *pass_on_compbuf(CompBuf *cbuf)
 	CompBuf *dupbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 0);
 	CompBuf *lastbuf;
 	
-	dupbuf->rect= cbuf->rect;
-	dupbuf->xof= cbuf->xof;
-	dupbuf->yof= cbuf->yof;
-	dupbuf->malloc= 0;
-	
-	/* get last buffer in list, and append dupbuf */
-	for(lastbuf= dupbuf; lastbuf; lastbuf= lastbuf->next)
-		if(lastbuf->next==NULL)
-			break;
-	lastbuf->next= dupbuf;
-	dupbuf->prev= lastbuf;
-	
+	if(dupbuf) {
+		dupbuf->rect= cbuf->rect;
+		dupbuf->xof= cbuf->xof;
+		dupbuf->yof= cbuf->yof;
+		dupbuf->malloc= 0;
+		
+		/* get last buffer in list, and append dupbuf */
+		for(lastbuf= dupbuf; lastbuf; lastbuf= lastbuf->next)
+			if(lastbuf->next==NULL)
+				break;
+		lastbuf->next= dupbuf;
+		dupbuf->prev= lastbuf;
+	}	
 	return dupbuf;
 }
 
@@ -1189,11 +1190,10 @@ static void texture_procedural(CompBuf *cbuf, float *col, float xco, float yco)
 {
 	bNode *node= cbuf->node;
 	bNodeSocket *sock= node->inputs.first;
-	TexResult texres;
+	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float vec[3], *size, nor[3]={0.0f, 0.0f, 0.0f};
 	int retval, type= cbuf->type;
 	
-	texres.nor= NULL;
 	size= sock->next->ns.vec;
 	
 	vec[0]= size[0]*(xco + sock->ns.vec[0]);
