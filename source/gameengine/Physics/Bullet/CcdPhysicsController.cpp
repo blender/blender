@@ -126,7 +126,8 @@ void CcdPhysicsController::CreateRigidbody()
 	
 	//setMassProps this also sets collisionFlags
 	//convert collision flags!
-//	m_body->m_collisionFlags = m_cci.m_collisionFlags;
+
+	m_body->setCollisionFlags(m_body->getCollisionFlags() | m_cci.m_collisionFlags);
 	
 	m_body->setGravity( m_cci.m_gravity);
 	m_body->setDamping(m_cci.m_linearDamping, m_cci.m_angularDamping);

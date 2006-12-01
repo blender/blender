@@ -1206,13 +1206,33 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 						 KX_Scene* kxscene,
 						 int activeLayerBitInfo,
 						 e_PhysicsEngine	physics_engine,
-						 KX_BlenderSceneConverter *converter
+						 KX_BlenderSceneConverter *converter,
+						 bool processCompoundChildren
 						 )
 					
 {
 	//SYS_SystemHandle syshandle = SYS_GetSystem(); /*unused*/
 	//int userigidbody = SYS_GetCommandLineInt(syshandle,"norigidbody",0);
 	//bool bRigidBody = (userigidbody == 0);
+
+	// get Root Parent of blenderobject
+	struct Object* parent= blenderobject->parent;
+	while(parent && parent->parent) {
+		parent= parent->parent;
+	}
+
+	bool isCompoundChild = false;
+
+	if (parent && (parent->gameflag & OB_DYNAMIC)) {
+		
+		if ((parent->gameflag & OB_CHILD) != 0)
+		{
+			isCompoundChild = true;
+		} 
+	}
+	if (processCompoundChildren != isCompoundChild)
+		return;
+
 
 	PHY_ShapeProps* shapeprops =
 			CreateShapePropsFromBlenderObject(blenderobject, 
@@ -1223,6 +1243,10 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 		CreateMaterialFromBlenderObject(blenderobject, kxscene);
 					
 	KX_ObjectProperties objprop;
+
+	objprop.m_isCompoundChild = isCompoundChild;
+	objprop.m_hasCompoundChildren = (blenderobject->gameflag & OB_CHILD) != 0;
+
 	if ((objprop.m_isactor = (blenderobject->gameflag & OB_ACTOR)!=0))
 	{
 		objprop.m_dyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;
@@ -1242,7 +1266,6 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	objprop.m_dynamic_parent=NULL;
 	objprop.m_isdeformable = ((blenderobject->gameflag2 & 2)) != 0;
 	objprop.m_boundclass = objprop.m_dyna?KX_BOUNDSPHERE:KX_BOUNDMESH;
-	
 	KX_BoxBounds bb;
 	my_get_local_bounds(blenderobject,objprop.m_boundobject.box.m_center,bb.m_extends);
 	if (blenderobject->gameflag & OB_BOUNDS)
@@ -1295,19 +1318,17 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 		}
 	}
 
-	// get Root Parent of blenderobject
-	struct Object* parent= blenderobject->parent;
-	while(parent && parent->parent) {
-		parent= parent->parent;
-	}
-
+	
 	if (parent && (parent->gameflag & OB_DYNAMIC)) {
 		
 		KX_GameObject *parentgameobject = converter->FindGameObject(parent);
 		objprop.m_dynamic_parent = parentgameobject;
-
+		//cannot be dynamic:
+		objprop.m_dyna = false;
+		shapeprops->m_mass = 0.f;
 	}
 
+	
 	objprop.m_concave = (blenderobject->boundtype & 4) != 0;
 	
 	switch (physics_engine)
@@ -1873,6 +1894,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		}
 	}
 	
+	bool processCompoundChildren = false;
+
 	// create physics information
 	for (i=0;i<sumolist->GetCount();i++)
 	{
@@ -1880,16 +1903,28 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		struct Object* blenderobject = converter->FindBlenderObject(gameobj);
 		int nummeshes = gameobj->GetMeshCount();
 		RAS_MeshObject* meshobj = 0;
-
 		if (nummeshes > 0)
 		{
 			meshobj = gameobj->GetMesh(0);
 		}
-
-		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,activeLayerBitInfo,physics_engine,converter);
-
+		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,activeLayerBitInfo,physics_engine,converter,processCompoundChildren);
 	}
-	
+
+	processCompoundChildren = true;
+	// create physics information
+	for (i=0;i<sumolist->GetCount();i++)
+	{
+		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
+		struct Object* blenderobject = converter->FindBlenderObject(gameobj);
+		int nummeshes = gameobj->GetMeshCount();
+		RAS_MeshObject* meshobj = 0;
+		if (nummeshes > 0)
+		{
+			meshobj = gameobj->GetMesh(0);
+		}
+		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,activeLayerBitInfo,physics_engine,converter,processCompoundChildren);
+	}
+
 		// create physics joints
 	for (i=0;i<sumolist->GetCount();i++)
 	{
@@ -1910,20 +1945,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
                             PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) gameobj->GetPhysicsController()->GetUserData();
                             PHY_IPhysicsController* physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
                             kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,(float)dat->pivY,(float)dat->pivZ,(float)dat->axX,(float)dat->axY,(float)dat->axZ);
-                            /*switch(dat->type){
-                                case CONSTRAINT_RB_BALL:
-                                    KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
-                                    PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) (int)gameobj->GetPhysicsController()->GetUserData();
-                                    PHY_IPhysicsController* physctr2 = (PHY_IPhysicsController*) (int)gotar->GetPhysicsController()->GetUserData();
-                                    kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,(float)dat->pivY,(float)dat->pivZ,(float)dat->axX,(float)dat->axY,(float)dat->axZ);
-                                    break;
-                                case CONSTRAINT_RB_HINGE:
-                                    KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
-                                    PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) (int)gameobj->GetPhysicsController()->GetUserData();
-                                    PHY_IPhysicsController* physctr2 = (PHY_IPhysicsController*) (int)gotar->GetPhysicsController()->GetUserData();
-                                    kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,(float)dat->pivY,(float)dat->pivZ,(float)dat->axX,(float)dat->axY,(float)dat->axZ);
-                                    break;
-                            }*/
                         }
                 }
             }

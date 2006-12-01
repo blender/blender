@@ -814,6 +814,8 @@ void CcdPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)
 	{
 		addCcdPhysicsController(ctrl1);
 	}
+	//force collision detection with everything, including static objects (might hurt performance!)
+	ctrl1->GetRigidBody()->getBroadphaseHandle()->m_collisionFilterMask = btBroadphaseProxy::AllFilter;
 
 	requestCollisionCallback(ctrl);
 	//printf("addSensor\n");
@@ -970,7 +972,7 @@ PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radi
 	cinfo.m_collisionShape = new btSphereShape(radius);
 	cinfo.m_MotionState = 0;
 	cinfo.m_physicsEnv = this;
-	cinfo.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE;
+	cinfo.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE | btCollisionObject::CF_KINEMATIC_OBJECT;
 	DefaultMotionState* motionState = new DefaultMotionState();
 	cinfo.m_MotionState = motionState;
 	motionState->m_worldTransform.setIdentity();
@@ -1153,6 +1155,7 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::CreateConeController(float conera
 	cinfo.m_collisionShape = new btConeShape(coneradius,coneheight);
 	cinfo.m_MotionState = 0;
 	cinfo.m_physicsEnv = this;
+	cinfo.m_collisionFlags |= btCollisionObject::CF_NO_CONTACT_RESPONSE;
 	DefaultMotionState* motionState = new DefaultMotionState();
 	cinfo.m_MotionState = motionState;
 	motionState->m_worldTransform.setIdentity();

@@ -884,29 +884,11 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	CcdPhysicsEnvironment* env = (CcdPhysicsEnvironment*)kxscene->GetPhysicsEnvironment();
 	assert(env);
 	
-
-	bool isbulletdyna = false;
+	bool isbulletdyna = objprop->m_dyna;
 	CcdConstructionInfo ci;
-	class PHY_IMotionState* motionstate = new KX_MotionState(gameobj->GetSGNode());
-
-	
-
-	if (!objprop->m_dyna)
-	{
-		ci.m_collisionFlags |= btCollisionObject::CF_STATIC_OBJECT;
-	}
-
-	ci.m_MotionState = motionstate;
-	ci.m_gravity = btVector3(0,0,0);
 	ci.m_localInertiaTensor =btVector3(0,0,0);
 	ci.m_mass = objprop->m_dyna ? shapeprops->m_mass : 0.f;
-	isbulletdyna = objprop->m_dyna;
-	
-	ci.m_localInertiaTensor = btVector3(ci.m_mass/3.f,ci.m_mass/3.f,ci.m_mass/3.f);
-	
-	btTransform trans;
-	trans.setIdentity();
-	
+
 	btCollisionShape* bm = 0;
 
 	switch (objprop->m_boundclass)
@@ -1022,6 +1004,59 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 	bm->setMargin(0.06);
 
+	if (objprop->m_isCompoundChild)
+	{
+		//find parent, compound shape and add to it
+		//take relative transform into account!
+		KX_BulletPhysicsController* parentCtrl = (KX_BulletPhysicsController*)objprop->m_dynamic_parent->GetPhysicsController();
+		assert(parentCtrl);
+		btRigidBody* rigidbody = parentCtrl->GetRigidBody();
+		btCollisionShape* colShape = rigidbody->getCollisionShape();
+		assert(colShape->isCompound());
+		btCompoundShape* compoundShape = (btCompoundShape*)colShape;
+		btTransform childTrans;
+		childTrans.setIdentity();
+		NodeList& children = objprop->m_dynamic_parent->GetSGNode()->GetSGChildren();
+
+		MT_Point3 childPos = gameobj->GetSGNode()->GetLocalPosition();
+		MT_Matrix3x3 childRot = gameobj->GetSGNode()->GetLocalOrientation();
+		MT_Vector3 childScale = gameobj->GetSGNode()->GetLocalScale();
+
+		bm->setLocalScaling(btVector3(childScale.x(),childScale.y(),childScale.z()));
+		childTrans.setOrigin(btVector3(childPos.x(),childPos.y(),childPos.z()));
+		float rotval[12];
+		childRot.getValue(rotval);
+		btMatrix3x3 newRot;
+		newRot.setValue(rotval[0],rotval[1],rotval[2],rotval[4],rotval[5],rotval[6],rotval[8],rotval[9],rotval[10]);
+		newRot = newRot.transpose();
+
+		childTrans.setBasis(newRot);
+			
+
+		compoundShape->addChildShape(childTrans,bm);
+		//do some recalc?
+		//recalc inertia for rigidbody
+		if (!rigidbody->isStaticOrKinematicObject())
+		{
+			btVector3 localInertia;
+			float mass = 1.f/rigidbody->getInvMass();
+			compoundShape->calculateLocalInertia(mass,localInertia);
+			rigidbody->setMassProps(mass,localInertia);
+		}
+		return;
+	}
+
+	if (objprop->m_hasCompoundChildren)
+	{
+		//replace shape by compoundShape
+		btCompoundShape* compoundShape = new btCompoundShape();
+		btTransform identTrans;
+		identTrans.setIdentity();
+		compoundShape->addChildShape(identTrans,bm);
+		bm = compoundShape;
+	}
+
+
 #ifdef TEST_SIMD_HULL
 	if (bm->IsPolyhedral())
 	{
@@ -1050,6 +1085,23 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 
 	ci.m_collisionShape = bm;
+	
+
+	class PHY_IMotionState* motionstate = new KX_MotionState(gameobj->GetSGNode());
+
+	if (!objprop->m_dyna)
+	{
+		ci.m_collisionFlags |= btCollisionObject::CF_STATIC_OBJECT;
+	}
+
+	
+	ci.m_MotionState = motionstate;
+	ci.m_gravity = btVector3(0,0,0);
+	
+	ci.m_localInertiaTensor = btVector3(ci.m_mass/3.f,ci.m_mass/3.f,ci.m_mass/3.f);
+	
+	btTransform trans;
+	trans.setIdentity();
 	
 
 	

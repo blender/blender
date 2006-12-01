@@ -343,6 +343,8 @@ extern Object workob;
 #define OB_BOUND_CONE		3
 #define OB_BOUND_POLYH		4
 #define OB_BOUND_POLYT		5
+#define OB_BOUND_DYN_MESH   6
+
 
 /* **************** BASE ********************* */
 

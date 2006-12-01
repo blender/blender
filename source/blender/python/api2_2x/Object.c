@@ -3306,7 +3306,7 @@ static int Object_setRBShapeBoundType( BPy_Object * self, PyObject * args )
 {
 	self->object->recalc |= OB_RECALC_OB;  
 	return EXPP_setIValueRange( args, &self->object->boundtype,
-			0, OB_BOUND_POLYH, 'h' );
+			0, OB_BOUND_DYN_MESH, 'h' );
 }
 
 /*  SOFTBODY FUNCTIONS */

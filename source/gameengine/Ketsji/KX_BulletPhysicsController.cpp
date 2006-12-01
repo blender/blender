@@ -195,6 +195,34 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 
 void	KX_BulletPhysicsController::SetSumoTransform(bool nondynaonly)
 {
+	GetRigidBody()->activate(true);
+
+	if (!m_bDyna)
+	{
+		GetRigidBody()->setCollisionFlags(GetRigidBody()->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+	} else
+	{
+		if (!nondynaonly)
+		{
+			btTransform worldTrans;
+			GetRigidBody()->getMotionState()->getWorldTransform(worldTrans);
+			GetRigidBody()->setCenterOfMassTransform(worldTrans);
+			
+			/*
+			scaling?
+			if (m_bDyna)
+			{
+				m_sumoObj->setScaling(MT_Vector3(1,1,1));
+			} else
+			{
+				MT_Vector3 scale;
+				GetWorldScaling(scale);
+				m_sumoObj->setScaling(scale);
+			}
+			*/
+
+		}
+	}
 }
 
 // todo: remove next line !

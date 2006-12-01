@@ -57,7 +57,8 @@ typedef enum {
 	KX_BOUNDCYLINDER,
 	KX_BOUNDCONE,
 	KX_BOUNDMESH,
-	KX_BOUNDPOLYTOPE
+	KX_BOUNDPOLYTOPE,
+	KX_BOUND_DYN_MESH
 } KX_BoundBoxClass;
 
 struct KX_BoxBounds
@@ -86,6 +87,8 @@ struct KX_ObjectProperties
 	bool	m_concave;
 	bool	m_isdeformable;
 	bool	m_disableSleeping;
+	bool	m_hasCompoundChildren;
+	bool	m_isCompoundChild;
 	KX_BoundBoxClass	m_boundclass;
 	union {
 		KX_BoxBounds	box;
