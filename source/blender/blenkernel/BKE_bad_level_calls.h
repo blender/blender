@@ -201,6 +201,7 @@ struct MultiresLevel;
 void multires_free(struct Mesh *me);
 void multires_set_level(void *ob, void *me_v);
 void multires_calc_level_maps(struct MultiresLevel *lvl);
+struct Multires *multires_copy(struct Multires *orig);
 /* sculptmode.c */
 void sculptmode_free_vertexusers(struct Scene *sce);
 void sculptmode_init(struct Scene *sce);

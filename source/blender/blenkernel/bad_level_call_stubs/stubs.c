@@ -287,5 +287,6 @@ void post_server_add(void) {}
 void multires_free(struct Mesh *me) {}
 void multires_set_level(void *ob, void *me_v) {}
 void multires_calc_level_maps(struct MultiresLevel *lvl) {}
+struct Multires *multires_copy(struct Multires *orig) {}
 void sculptmode_init(struct Scene *sce) {}
 void sculptmode_free_all(struct Scene *sce) {}
