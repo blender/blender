@@ -579,6 +579,47 @@ void multires_delete(void *ob, void *me_v)
 	BIF_undo_push("Delete multires");
 }
 
+MultiresLevel *multires_level_copy(MultiresLevel *orig)
+{
+	if(orig) {
+		MultiresLevel *lvl= MEM_dupallocN(orig);
+		
+		lvl->verts= MEM_dupallocN(orig->verts);
+		lvl->faces= MEM_dupallocN(orig->faces);
+		lvl->texcolfaces= MEM_dupallocN(orig->texcolfaces);
+		lvl->edges= MEM_dupallocN(orig->edges);
+		lvl->vert_edge_map= lvl->vert_face_map= NULL;
+		multires_calc_level_maps(lvl);
+		
+		return lvl;
+	}
+	return NULL;
+}
+
+Multires *multires_copy(Multires *orig)
+{
+	if(orig) {
+		Multires *mr= MEM_dupallocN(orig);
+		MultiresLevel *lvlorig;
+		
+		mr->levels.first= mr->levels.last= NULL;
+		
+		for(lvlorig= orig->levels.first; lvlorig; lvlorig= lvlorig->next)
+			BLI_addtail(&mr->levels, multires_level_copy(lvlorig));
+			
+		if(mr->dverts && mr->levels.first) {
+			MultiresLevel *lvl= mr->levels.first;
+			mr->dverts= MEM_mallocN(sizeof(MDeformVert)*lvl->totvert, "MDeformVert");
+			copy_dverts(mr->dverts, orig->dverts, lvl->totvert);
+		}
+		else
+			mr->dverts= NULL;
+		
+		return mr;
+	}
+	return NULL;
+}
+
 void multires_free(Mesh *me)
 {
 	if(me->mr) {

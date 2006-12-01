@@ -269,6 +269,9 @@ Mesh *copy_mesh(Mesh *me)
 			if(tface->tpage)
 				id_lib_extern((ID*)tface->tpage);
 	}
+	
+	if(me->mr)
+		men->mr= multires_copy(me->mr);
 
 	men->mselect= NULL;
 
