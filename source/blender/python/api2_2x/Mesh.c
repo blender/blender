@@ -6549,7 +6549,7 @@ static int Mesh_setVerts( BPy_Mesh * self, PyObject * args )
 	int i;
 	
 	/* special case if None: delete the mesh */
-	if( args == Py_None ) {
+	if( args == NULL || args == Py_None ) {
 		Mesh *me = self->mesh;
 		free_mesh( me );
         me->mvert = NULL; me->medge = NULL; me->mface = NULL;
