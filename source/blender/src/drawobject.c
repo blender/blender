@@ -2160,7 +2160,7 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 		finalDM->release(finalDM);
 	}
 	else if(!G.obedit && G.scene->sculptdata.active_ob == ob && !modifiers_getVirtualModifierList(ob)) {
-		sculptmode_draw_mesh(NULL);
+		sculptmode_draw_mesh(0);
 	}
 	else {
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */

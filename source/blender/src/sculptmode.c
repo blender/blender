@@ -1266,7 +1266,7 @@ void sculptmode_propset_calctex()
 		
 			
 		if(!pd->tex)
-			glGenTextures(1, (GLint *)&pd->tex);
+			glGenTextures(1, (GLuint *)&pd->tex);
 		glBindTexture(GL_TEXTURE_2D, pd->tex);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, tsz, tsz, 0, GL_ALPHA, GL_FLOAT, d);
@@ -1408,7 +1408,7 @@ void sculptmode_update_all_projverts()
 	}
 }
 
-void sculptmode_draw_wires(char only_damaged, Mesh *me)
+void sculptmode_draw_wires(int only_damaged, Mesh *me)
 {
 	int i;
 
@@ -1429,10 +1429,10 @@ void sculptmode_draw_wires(char only_damaged, Mesh *me)
 	bglPolygonOffset(0.0);
 }
 
-void sculptmode_draw_mesh(ListBase *damaged_rects) {
+void sculptmode_draw_mesh(int only_damaged) {
 	Mesh *me= get_mesh(G.scene->sculptdata.active_ob);
 	SculptData *sd= &G.scene->sculptdata;
-	int i, j, dt;
+	int i, j, dt, drawCurrentMat = 1, matnr= -1;
 
 	persp(PERSP_VIEW);
 	mymultmatrix(sd->active_ob->obmat);
@@ -1449,33 +1449,37 @@ void sculptmode_draw_mesh(ListBase *damaged_rects) {
 	if(dt==OB_WIRE)
 		glColorMask(0,0,0,0);
 
-	/* Only draw faces within the modified areas of the screen */
-	if(damaged_rects) {
-		for(i=0; i<me->totface; ++i) {
-			MFace *f= &me->mface[i];
-			char inside= 0;
+	
+	for(i=0; i<me->totface; ++i) {
+		MFace *f= &me->mface[i];
+		char inside= 0;
+		int new_matnr= f->mat_nr + 1;
+		
+		if(new_matnr != matnr)
+			drawCurrentMat= set_gl_material(matnr = new_matnr);
+		
+		/* If only_damaged!=0, only draw faces that are partially
+		   inside the area(s) modified by the brush */
+		if(only_damaged) {
 			for(j=0; j<(f->v4?4:3); ++j) {
 				if(projverts[*((&f->v1)+j)].inside) {
 					inside= 1;
 					break;
 				}
 			}
-			if(inside)
-				glDrawElements(f->v4?GL_QUADS:GL_TRIANGLES,f->v4?4:3,GL_UNSIGNED_INT,&f->v1);
 		}
-	}
-	else { /* Draw entire model */
-		for(i=0; i<me->totface; ++i) {
-			const char q= me->mface[i].v4?1:0;
-			glDrawElements(q?GL_QUADS:GL_TRIANGLES,q?4:3,GL_UNSIGNED_INT,&me->mface[i].v1);
-		}
+		else
+			inside= 1;
+			
+		if(inside && drawCurrentMat)
+			glDrawElements(f->v4?GL_QUADS:GL_TRIANGLES, f->v4?4:3, GL_UNSIGNED_INT, &f->v1);
 	}
 
 	glDisable(GL_LIGHTING);
 	glColorMask(1,1,1,1);
 
 	if(dt==OB_WIRE || (sd->active_ob->dtx & OB_DRAWWIRE))
-		sculptmode_draw_wires(damaged_rects ? 1 : 0, me);
+		sculptmode_draw_wires(only_damaged, me);
 
 	glDisable(GL_DEPTH_TEST);
 }
@@ -1637,7 +1641,7 @@ void sculpt()
 				}
 				glDisable(GL_SCISSOR_TEST);
 				
-				sculptmode_draw_mesh(&damaged_rects);
+				sculptmode_draw_mesh(1);
 
 				glAccum(GL_LOAD, 1);
 				
