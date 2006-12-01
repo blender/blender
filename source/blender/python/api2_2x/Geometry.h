@@ -38,7 +38,5 @@
 #include "vector.h"
 
 PyObject *Geometry_Init( void );
-static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * args );
-static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args );
 
 #endif				/* EXPP_Geometry_H */

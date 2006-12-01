@@ -107,7 +107,6 @@ static int Map_socketdef(PyObject *self, PyObject *args, void *closure)
 	bNode *node = NULL;
 	BPy_OutputDefMap *out= NULL;
 	BPy_InputDefMap *in= NULL;
-	int pos=0;
 
 	switch((int)closure) {
 		case 'I':

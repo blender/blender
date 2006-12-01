@@ -50,6 +50,11 @@
 
 #define SWAP_FLOAT(a,b,tmp) tmp=a; a=b; b=tmp
 #define eul 0.000001
+
+/*-- forward declarations -- */
+static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * args );
+static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args );
+
 /*-------------------------DOC STRINGS ---------------------------*/
 static char M_Geometry_doc[] = "The Blender Geometry module\n\n";
 static char M_Geometry_PolyFill_doc[] = "(veclist_list) - takes a list of polylines (each point a vector) and returns the point indicies for a polyline filled with triangles";
