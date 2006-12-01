@@ -39,6 +39,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
@@ -47,6 +48,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
 
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -1365,4 +1367,26 @@ void multires_edge_level_update(void *ob, void *me_v)
 	}
 
 	allqueue(REDRAWVIEW3D, 0);
+}
+
+int multires_modifier_warning()
+{
+	ModifierData *md;
+	
+	for(md= modifiers_getVirtualModifierList(OBACT); md; md= md->next) {
+		if(md->mode & eModifierMode_Render) {
+			switch(md->type) {
+			case eModifierType_Subsurf:
+			case eModifierType_Build:
+			case eModifierType_Mirror:
+			case eModifierType_Decimate:
+			case eModifierType_Boolean:
+			case eModifierType_Array:
+			case eModifierType_EdgeSplit:
+				return 1;
+			}
+		}
+	}
+	
+	return 0;
 }

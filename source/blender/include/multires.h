@@ -52,5 +52,6 @@ void multires_update_levels(Mesh *me);
 void multires_level_to_mesh(Object *ob, Mesh *me);
 void multires_calc_level_maps(MultiresLevel *lvl);
 void multires_edge_level_update(void *ob, void *me);
+int multires_modifier_warning();
 
 #endif

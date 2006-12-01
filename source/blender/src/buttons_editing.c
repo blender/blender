@@ -4802,6 +4802,12 @@ void editing_panel_mesh_multires()
 
 			uiDefButC(block,NUM,B_NOP,"Render: ",cx,cy,200,19,&me->mr->renderlvl,1.0,me->mr->level_count,0,0,"Set level to render");
 			cy-= 20;
+			
+			if(multires_modifier_warning()) {
+				char *tip= "One or more modifiers are enabled that modify mesh topology";
+				uiDefIconBut(block,LABEL,B_NOP,ICON_ERROR, cx,cy,20,20, 0,0,0,0,0, tip);
+				uiDefBut(block,LABEL,B_NOP, "Cannot use render level", cx+20,cy,180,19, 0,0,0,0,0, tip);
+			}
 		}
 	}
 
