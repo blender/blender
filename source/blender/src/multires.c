@@ -584,6 +584,7 @@ MultiresLevel *multires_level_copy(MultiresLevel *orig)
 	if(orig) {
 		MultiresLevel *lvl= MEM_dupallocN(orig);
 		
+		lvl->next= lvl->prev= NULL;
 		lvl->verts= MEM_dupallocN(orig->verts);
 		lvl->faces= MEM_dupallocN(orig->faces);
 		lvl->texcolfaces= MEM_dupallocN(orig->texcolfaces);
@@ -1330,7 +1331,6 @@ void multires_calc_level_maps(MultiresLevel *lvl)
 		}
 	}
 
-
        	lvl->vert_face_map= MEM_callocN(sizeof(ListBase)*lvl->totvert,"vert_face_map");
 	for(i=0; i<lvl->totface; ++i){
 		for(j=0; j<(lvl->faces[i].v[3]?4:3); ++j){
@@ -1339,7 +1339,6 @@ void multires_calc_level_maps(MultiresLevel *lvl)
 			BLI_addtail(&lvl->vert_face_map[lvl->faces[i].v[j]],indexnode);
 		}
 	}
-
 }
 
 unsigned powi(const unsigned b, const unsigned p)

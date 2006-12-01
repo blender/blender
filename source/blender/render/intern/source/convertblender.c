@@ -77,6 +77,7 @@
 #include "BKE_ipo.h"
 #include "BKE_image.h"
 #include "BKE_lattice.h"
+#include "BKE_library.h"
 #include "BKE_material.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
@@ -1830,32 +1831,7 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 	   to allow multires to be applied with modifiers. */
 	if(me->mr) {
 		me_store= me;
-
-		{
-			Mesh *men= MEM_callocN(sizeof(Mesh),"mrm render mesh");
-			men->totvert= me->totvert;
-			men->totedge= me->totedge;
-			men->totface= me->totface;
-			men->mvert= MEM_dupallocN(me->mvert);
-			men->medge= MEM_dupallocN(me->medge);
-			men->mface= MEM_dupallocN(me->mface);
-			if(me->mr) {
-				MultiresLevel *lvl, *nlvl;
-				men->mr= MEM_dupallocN(me->mr);
-				men->mr->levels.first= men->mr->levels.last= NULL;
-				for(lvl= me->mr->levels.first; lvl; lvl= lvl->next) {
-					nlvl= MEM_dupallocN(lvl);
-					BLI_addtail(&men->mr->levels,nlvl);
-					nlvl->verts= MEM_dupallocN(lvl->verts);
-					nlvl->faces= MEM_dupallocN(lvl->faces);
-					nlvl->edges= MEM_dupallocN(lvl->edges);
-					multires_calc_level_maps(nlvl);
-				}
-			}
-
-			me= men;
-
-		}
+		me= copy_mesh(me);
 		ob->data= me;
 	}
 
@@ -2094,8 +2070,7 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 
 	dm->release(dm);
 	if(me_store) {
-		free_mesh(me_store);
-		MEM_freeN(me_store);
+		free_libblock(&G.main->mesh, &me_store->id);
 	}
 }
 
