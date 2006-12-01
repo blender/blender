@@ -37,6 +37,10 @@ class IDGroup:
 	Note that for arrays, the array type defaults to int unless a float is found
 	while scanning the template list; if any floats are found, then the whole
 	array is float.
+	
+	You can also delete properties with the del operator.  For example:
+	
+	del group['property']
 	"""
 	
 	def newProperty(type, name, array_type="Float", val=""):

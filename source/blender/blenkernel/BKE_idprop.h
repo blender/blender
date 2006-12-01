@@ -94,7 +94,17 @@ struct.  In the future this will just be IDP_FreeProperty and the code will
 be reorganized to work properly.
 */
 int IDP_AddToGroup(struct IDProperty *group, struct IDProperty *prop);
+
+
+/*NOTE: this does not free the property!!
+
+ To free the property, you have to do:
+ IDP_FreeProperty(prop); //free all subdata
+ MEM_freeN(prop); //free property struct itself
+
+*/
 void IDP_RemFromGroup(struct IDProperty *group, struct IDProperty *prop);
+
 IDProperty *IDP_GetPropertyFromGroup(struct IDProperty *prop, char *name);
 
 /*Get an iterator to iterate over the members of an id property group.

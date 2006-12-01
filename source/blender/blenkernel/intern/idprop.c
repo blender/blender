@@ -192,7 +192,7 @@ IDProperty *IDP_GetPropertyFromGroup(IDProperty *prop, char *name)
 {
 	IDProperty *loop;
 	for (loop=prop->data.group.first; loop; loop=loop->next) {
-		if (strcmp(prop->name, name)==0) return prop;
+		if (strcmp(loop->name, name)==0) return loop;
 	}
 	return NULL;
 }

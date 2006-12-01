@@ -249,7 +249,6 @@ char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObje
 		prop = IDP_New(IDP_ARRAY, val, name);
 		for (i=0; i<val.array.len; i++) {
 			item = PySequence_GetItem(ob, i);
-			Py_XDECREF(item);
 			if (val.array.type == IDP_INT) {
 				item = PyNumber_Int(item);
 				((int*)prop->data.pointer)[i] = (int)PyInt_AsLong(item);
@@ -292,10 +291,13 @@ char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObje
 		}
 		Py_XDECREF(keys);
 		Py_XDECREF(vals);
-	}
+	} else return "invalid property value";
 	
-	if (IDP_GetPropertyFromGroup(group, prop->name) == NULL) {
-		IDP_RemFromGroup(group, IDP_GetPropertyFromGroup(group, prop->name));
+	if (IDP_GetPropertyFromGroup(group, prop->name) != NULL) {
+		IDProperty *prop2 = IDP_GetPropertyFromGroup(group, prop->name);
+		IDP_RemFromGroup(group, prop2);
+		IDP_FreeProperty(prop2);
+		MEM_freeN(prop2);
 	}
 
 	IDP_AddToGroup(group, prop);
@@ -313,6 +315,16 @@ int BPy_IDProperty_Map_SetItem(BPy_IDProperty *self, PyObject *key, PyObject *va
 	if (!PyString_Check(key))
 		return EXPP_ReturnIntError( PyExc_TypeError,
 		   "only strings are allowed as subgroup keys" );
+
+	if (val == NULL) {
+		IDProperty *pkey = IDP_GetPropertyFromGroup(self->prop, PyString_AsString(key));
+		if (pkey) {
+			IDP_RemFromGroup(self->prop, pkey);
+			IDP_FreeProperty(pkey);
+			MEM_freeN(pkey);
+			return 0;
+		} else return EXPP_ReturnIntError( PyExc_RuntimeError, "property not found in group" );
+	}
 	
 	err = BPy_IDProperty_Map_ValidateAndCreate(PyString_AsString(key), self->prop, val);
 	if (err) return EXPP_ReturnIntError( PyExc_RuntimeError, err );
