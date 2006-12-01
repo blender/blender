@@ -2284,13 +2284,14 @@ static bNodeType cmp_node_alphaover= {
 /* **************** Z COMBINE ******************** */
 static bNodeSocketType cmp_node_zcombine_in[]= {
 	{	SOCK_RGBA, 1, "Image",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Z",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Z",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 10000.0f},
 	{	SOCK_RGBA, 1, "Image",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Z",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Z",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 10000.0f},
 	{	-1, 0, ""	}
 };
 static bNodeSocketType cmp_node_zcombine_out[]= {
 	{	SOCK_RGBA, 0, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Z",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 10000.0f},
 	{	-1, 0, ""	}
 };
 
@@ -2304,6 +2305,17 @@ static void do_zcombine(bNode *node, float *out, float *src1, float *z1, float *
 	}
 }
 
+static void do_zcombine_assign(bNode *node, float *out, float *src1, float *z1, float *src2, float *z2)
+{
+	if(*z1 <= *z2) {
+		QUATCOPY(out, src1);
+	}
+	else {
+		*z1= *z2;
+		QUATCOPY(out, src2);
+	}
+}
+
 static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	/* stack order in: col z col z */
@@ -2311,19 +2323,39 @@ static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in
 	if(out[0]->hasoutput==0) 
 		return;
 	
-	/* no input no image do nothing now */
-	if(in[0]->data==NULL || in[1]->data==NULL || in[2]->data==NULL || in[3]->data==NULL) {
+	/* no input image; do nothing now */
+	if(in[0]->data==NULL) {
 		return;
 	}
 	else {
 		/* make output size of first input image */
 		CompBuf *cbuf= in[0]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		CompBuf *zbuf= NULL;
 		
-		composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, 
-								   in[3]->data, in[3]->vec, do_zcombine, CB_RGBA, CB_VAL, CB_RGBA, CB_VAL);
+		if(out[1]->hasoutput) {
+			/* copy or make a buffer for for the first z value, here we write result in */
+			if(in[1]->data)
+				zbuf= dupalloc_compbuf(in[1]->data);
+			else {
+				float *zval;
+				int tot= cbuf->x*cbuf->y;
+				
+				zbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
+				for(zval= zbuf->rect; tot; tot--, zval++)
+					*zval= in[1]->vec[0];
+			}
+		}
+		
+		if(zbuf) 
+			composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, zbuf, in[1]->vec, in[2]->data, in[2]->vec, 
+									  in[3]->data, in[3]->vec, do_zcombine_assign, CB_RGBA, CB_VAL, CB_RGBA, CB_VAL);
+		else
+			composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, 
+									  in[3]->data, in[3]->vec, do_zcombine, CB_RGBA, CB_VAL, CB_RGBA, CB_VAL);
 		
 		out[0]->data= stackbuf;
+		out[1]->data= zbuf;
 	}
 }
 
