@@ -773,7 +773,7 @@ void multires_add_level(void *ob, void *me_v)
 	lvl->verts= MEM_callocN(sizeof(MVert)*lvl->totvert,"multires verts");
 	/* Copy previous level's verts */
 	for(i=0; i<lvl->prev->totvert; ++i)
-		VecCopyf(lvl->verts[i].co,lvl->prev->verts[i].co);
+		lvl->verts[i]= lvl->prev->verts[i];
 	/* Create new edge verts */
 	for(i=0; i<lvl->prev->totedge; ++i) {
 		VecMidf(lvl->verts[lvl->prev->totvert + i].co,
@@ -995,10 +995,12 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		me->mface[i].v3= lvl->faces[i].v[2];
 		me->mface[i].v4= lvl->faces[i].v[3];
 		me->mface[i].flag= lvl->faces[i].flag;
+		me->mface[i].flag &= ~ME_HIDE;
 	}
 	for(i=0; i<lvl->totedge; ++i) {
 		me->medge[i].v1= lvl->edges[i].v[0];
 		me->medge[i].v2= lvl->edges[i].v[1];
+		me->medge[i].flag &= ~ME_HIDE;
 	}
 
 	/* Vertex groups */
@@ -1202,7 +1204,7 @@ void multires_update_levels(Mesh *me)
 
 	/* Update current level -- copy current mesh into current level */
 	for(i=0; i<cr_lvl->totvert; ++i)
-		VecCopyf(cr_lvl->verts[i].co,me->mvert[i].co);
+		cr_lvl->verts[i]= me->mvert[i];
 	for(i=0; i<cr_lvl->totface; ++i)
 		cr_lvl->faces[i].flag= me->mface[i].flag;
 
@@ -1230,6 +1232,14 @@ void multires_update_levels(Mesh *me)
 			VecAddf(cr_lvl->verts[f->mid].co,
 				cr_lvl->verts[f->mid].co,
 				&cr_deltas[f->mid].x);
+			
+			cr_lvl->verts[f->mid].flag= 0;
+			for(j=0; j<(data.quad?4:3); ++j) {
+				if(pr_lvl->verts[f->v[j]].flag & 1)
+					cr_lvl->verts[f->mid].flag |= 1;
+				if(pr_lvl->verts[f->v[j]].flag & ME_HIDE)
+					cr_lvl->verts[f->mid].flag |= ME_HIDE;
+			}
 		}
 
 		for(i=0; i<pr_lvl->totedge; ++i) {
@@ -1240,6 +1250,14 @@ void multires_update_levels(Mesh *me)
 			data.endpoint2= &pr_deltas[e->v[1]].x;
 			multi_apply(&cr_deltas[e->mid].x, &data, 3, catmullclark_smooth_edge);
 			MEM_freeN(data.edge_face_neighbor_midpoints_accum);
+			
+			cr_lvl->verts[e->mid].flag= 0;
+			for(j=0; j<2; ++j) {
+				if(pr_lvl->verts[e->v[j]].flag & 1)
+					cr_lvl->verts[e->mid].flag |= 1;
+				if(pr_lvl->verts[e->v[j]].flag & ME_HIDE)
+					cr_lvl->verts[e->mid].flag |= ME_HIDE;
+			}
 		}
 		for(i=0; i<pr_lvl->totedge; ++i) {
 			const unsigned ndx= pr_lvl->edges[i].mid;
@@ -1265,6 +1283,9 @@ void multires_update_levels(Mesh *me)
 				MEM_freeN(data.vert_face_neighbor_midpoints_average);
 				MEM_freeN(data.vert_edge_neighbor_midpoints_average);
 			}
+			cr_lvl->verts[i].flag= 0;
+			if(pr_lvl->verts[i].flag & 1) cr_lvl->verts[i].flag |= 1;
+			if(pr_lvl->verts[i].flag & ME_HIDE) cr_lvl->verts[i].flag |= ME_HIDE;
 		}
 		for(i=0; i<pr_lvl->totvert; ++i) {
 			VecAddf(cr_lvl->verts[i].co,
