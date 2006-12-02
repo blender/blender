@@ -518,12 +518,12 @@ void ccd_update_deflector_hache(Object *vertexowner,GHash *hash)
 	Object *ob;
 	base= G.scene->base.first;
 	base= G.scene->base.first;
-	if (!hash) return;
+	if ((!hash) || (!vertexowner)) return;
 	while (base) {
 		/*Only proceed for mesh object in same layer */
 		if(base->object->type==OB_MESH && (base->lay & vertexowner->lay)) {
 			ob= base->object;
-			if((vertexowner) && (ob == vertexowner)){ 
+			if(ob == vertexowner){ 
 				/* if vertexowner is given  we don't want to check collision with owner object */ 
 				base = base->next;
 				continue;				
