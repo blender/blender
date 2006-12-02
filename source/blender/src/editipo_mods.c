@@ -585,6 +585,45 @@ void snap_ipo_keys(Ipo *ipo, short snaptype)
 	}
 }
 
+static int mirror_bezier_cframe(BezTriple *bezt)
+{
+	float diff;
+	
+	if(bezt->f2 & SELECT) {
+		diff= ((float)CFRA - bezt->vec[1][0]);
+		bezt->vec[1][0]= ((float)CFRA + diff);
+	}
+	
+	return 0;
+}
+
+static int mirror_bezier_yaxis(BezTriple *bezt)
+{
+	float diff;
+	
+	if(bezt->f2 & SELECT) {
+		diff= (0.0f - bezt->vec[1][0]);
+		bezt->vec[1][0]= (0.0f + diff);
+	}
+	
+	return 0;
+}
+
+void mirror_ipo_keys(Ipo *ipo, short mirror_type)
+{
+	switch (mirror_type) {
+		case 1: /* mirror over current frame */
+			ipo_keys_bezier_loop(ipo, mirror_bezier_cframe, calchandles_ipocurve);
+			break;
+		case 2: /* snap over frame 0 */
+			ipo_keys_bezier_loop(ipo, mirror_bezier_yaxis, calchandles_ipocurve);
+			break;
+		default: /* just in case */
+			ipo_keys_bezier_loop(ipo, mirror_bezier_yaxis, calchandles_ipocurve);
+			break;
+	}
+}
+
 static void ipo_curves_auto_horiz(void)
 {
     EditIpo *ei;

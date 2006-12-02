@@ -2083,48 +2083,113 @@ void snap_keys_to_frame(int snap_mode)
 	SpaceAction *saction;
 	bAction *act;
 	Key *key;
+	char str[32];
 
 	/* get data */
 	saction= curarea->spacedata.first;
 	if (!saction) return;
 	act = saction->action;
 	key = get_action_mesh_key();
-		
-	/* handle events */
+	
+	/* determine mode */
 	switch (snap_mode) {
-		case 1: /* snap to nearest frame */
-			if (act) 
-				set_snap_actionchannels(act, snap_mode);
-			else
-				set_snap_meshchannels(key, snap_mode);
-			
-			/* Clean up and redraw stuff */
-			remake_action_ipos (act);
-			BIF_undo_push("Snap To Nearest Frame");
-			allspace(REMAKEIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWNLA, 0);
-			
+		case 1:
+			strcpy(str, "Snap Keys To Nearest Frame");
 			break;
-		case 2: /* snap to current frame */
-			if (act) 
-				set_snap_actionchannels(act, snap_mode);
-			else
-				set_snap_meshchannels(key, snap_mode);
-			
-			/* Clean up and redraw stuff */
-			remake_action_ipos (act);
-			BIF_undo_push("Snap To Current Frame");
-			allspace(REMAKEIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWNLA, 0);
-			
+		case 2:
+			strcpy(str, "Snap Keys To Current Frame");
 			break;
+		default:
+			return;
+	}
+	
+	/* snap to frame */
+	if (key)
+		set_snap_meshchannels(key, snap_mode);
+	else
+		set_snap_actionchannels(act, snap_mode);
+	remake_action_ipos (act);
+	
+	BIF_undo_push(str);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+}
+
+static void mirror_actionchannels(bAction *act, short mirror_mode) 
+{
+	/* mirror function for action channels */
+	bActionChannel *chan;
+	bConstraintChannel *conchan;
+	
+	/* Loop through the channels */
+	for (chan = act->chanbase.first; chan; chan=chan->next){
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			if (chan->ipo) {
+				mirror_ipo_keys(chan->ipo, mirror_mode);
+			}
+			/* constraint channels */
+			for (conchan=chan->constraintChannels.first; conchan; conchan= conchan->next) {
+				if (conchan->ipo) {
+					mirror_ipo_keys(conchan->ipo, mirror_mode);
+				}
+			}						
+		}
 	}
 }
 
+static void mirror_meshchannels(Key *key, short mirror_mode) 
+{
+	/* mirror function for mesh channels */
+	if(key->ipo) {
+		mirror_ipo_keys(key->ipo, mirror_mode);
+	}
+}
+
+void mirror_action_keys(short mirror_mode)
+{
+	/* This function is the generic entry-point for mirroring keyframes
+	 * to over a frame. It passes the work off to sub-functions for the 
+	 * different types in the action editor.
+	 */
+	 
+	SpaceAction *saction;
+	bAction *act;
+	Key *key;
+	char str[32];
+
+	/* get data */
+	saction= curarea->spacedata.first;
+	if (!saction) return;
+	act = saction->action;
+	key = get_action_mesh_key();
+	
+	/* determine mode */
+	switch (mirror_mode) {
+		case 1:
+			strcpy(str, "Mirror Keys Over Current Frame");
+			break;
+		case 2:
+			strcpy(str, "Mirror Keys Over Y-Axis");
+			break;
+		default:
+			return;
+	}
+	
+	/* mirror */
+	if (key)
+		mirror_meshchannels(key, mirror_mode);
+	else
+		mirror_actionchannels(act, mirror_mode);
+	remake_action_ipos (act);
+	
+	BIF_undo_push(str);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+}
 
 static void select_all_keys_frames(bAction *act, short *mval, 
 							short *mvalo, int selectmode) {
@@ -2627,18 +2692,25 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case MKEY:
-			/* marker operations */
-			if (G.qual == 0)
-				add_marker(CFRA);
-			else if (G.qual == LR_CTRLKEY)
-				rename_marker();
-			else 
-				break;
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			if (G.qual & LR_SHIFTKEY) {
+				/* mirror keyframes */
+				val = pupmenu("Mirror Keys Over%t|Current Frame%x1|Vertical Axis%x2");
+				mirror_action_keys(val);
+			}
+			else {
+				/* marker operations */
+				if (G.qual == 0)
+					add_marker(CFRA);
+				else if (G.qual == LR_CTRLKEY)
+					rename_marker();
+				else 
+					break;
+				allqueue(REDRAWTIME, 0);
+				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWACTION, 0);
+				allqueue(REDRAWNLA, 0);
+				allqueue(REDRAWSOUND, 0);
+			}
 			break;
 			
 		case NKEY:

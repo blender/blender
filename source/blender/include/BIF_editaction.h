@@ -80,8 +80,10 @@ void transform_meshchannel_keys(char mode, struct Key *key);
 struct Key *get_action_mesh_key(void);
 int get_nearest_key_num(struct Key *key, short *mval, float *x);
 void snap_keys_to_frame(int snap_mode);
+void mirror_action_keys(short mirror_mode);
 void clean_shapekeys(struct Key *key);
 void clean_actionchannels(struct bAction *act);
+
 
 /* Marker Operations */
 void get_minmax_saction_markers(float *first, float *last);

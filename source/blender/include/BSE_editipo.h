@@ -140,6 +140,7 @@ void ipo_record(void);
 
 void sethandles_ipo_keys(struct Ipo *ipo, int code);
 void snap_ipo_keys(struct Ipo *ipo, short snaptype);
+void mirror_ipo_keys(struct Ipo *ipo, short mirror_mode);
 void setipotype_ipo(struct Ipo *ipo, int code);
 void set_ipo_key_selection(struct Ipo *ipo, int sel);
 int is_ipo_key_selected(struct Ipo *ipo);
