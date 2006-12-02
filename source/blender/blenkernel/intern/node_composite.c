@@ -60,6 +60,11 @@
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"		/* <- TexResult */
 
+#ifndef atanf
+	#define atanf(a)	atan((double)(a))
+#endif
+
+
 /* *************************** operations support *************************** */
 
 /* general signal that's in output sockets, and goes over the wires */
