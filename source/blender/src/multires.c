@@ -504,7 +504,10 @@ void multires_make(void *ob, void *me_v)
 {
 	Mesh *me= me_v;
 	MultiresLevel *lvl= MEM_callocN(sizeof(MultiresLevel), "multires level");
-	int em= G.obedit!=NULL;
+	EditMesh *em= G.obedit ? G.editMesh : NULL;
+	EditVert *eve= NULL;
+	EditFace *efa= NULL;
+	EditEdge *eed= NULL;
 	int i;
 
 	waitcursor(1);
@@ -519,37 +522,65 @@ void multires_make(void *ob, void *me_v)
 	me->mr->edgelvl= 1;
 	me->mr->pinlvl= 1;
 	me->mr->renderlvl= 1;
-
-	/* Load mesh into modifier */
-	if(em) exit_editmode(2);
+	
+	/* Load mesh (or editmesh) into multires data */
 
 	/* Load vertices */
-	lvl->verts= MEM_callocN(sizeof(MVert)*me->totvert,"multires verts");
-	lvl->totvert= me->totvert;
-	for(i=0; i<me->totvert; ++i) {
-		lvl->verts[i]= me->mvert[i];
+	lvl->totvert= em ? BLI_countlist(&em->verts) : me->totvert;
+	lvl->verts= MEM_callocN(sizeof(MVert)*lvl->totvert,"multires verts");
+	if(em) eve= em->verts.first;
+	for(i=0; i<lvl->totvert; ++i) {
+		if(em) {
+			VecCopyf(lvl->verts[i].co, eve->co);
+			if(eve->f & SELECT) lvl->verts[i].flag |= 1;
+			if(eve->h) lvl->verts[i].flag |= ME_HIDE;
+			eve->tmp.l= i;
+			eve= eve->next;
+		}
+		else
+			lvl->verts[i]= me->mvert[i];
 	}
 
 	/* Load faces */
-	lvl->faces= MEM_callocN(sizeof(MultiresFace)*me->totface,"multires faces");
-	lvl->totface= me->totface;
-	for(i=0; i<me->totface; ++i) {
+	lvl->totface= em ? BLI_countlist(&em->faces) : me->totface;
+	lvl->faces= MEM_callocN(sizeof(MultiresFace)*lvl->totface,"multires faces");
+	if(em) efa= em->faces.first;
+	for(i=0; i<lvl->totface; ++i) {
 		MultiresFace* f= &lvl->faces[i];
-		f->v[0]= me->mface[i].v1;
-		f->v[1]= me->mface[i].v2;
-		f->v[2]= me->mface[i].v3;
-		f->v[3]= me->mface[i].v4;
+		if(em) {
+			f->v[0]= efa->v1->tmp.l;
+			f->v[1]= efa->v2->tmp.l;
+			f->v[2]= efa->v3->tmp.l;
+			if(efa->v4) f->v[3]= efa->v4->tmp.l;
+			f->flag= efa->flag;
+			if(efa->f & 1) f->flag |= ME_FACE_SEL;
+			else f->flag &= ~ME_FACE_SEL;
+			if(efa->h) f->flag |= ME_HIDE;
+			efa= efa->next;
+		} else {		
+			f->v[0]= me->mface[i].v1;
+			f->v[1]= me->mface[i].v2;
+			f->v[2]= me->mface[i].v3;
+			f->v[3]= me->mface[i].v4;
+			f->flag= me->mface[i].flag;
+		}
 		f->mid= 0;
 		f->childrenstart= 0;
-		f->flag= me->mface[i].flag;
 	}
 
 	/* Load edges */
-	lvl->edges= MEM_callocN(sizeof(MultiresEdge)*me->totedge,"multires edges");
-	lvl->totedge= me->totedge;
-	for(i=0; i<me->totedge; ++i) {
-		lvl->edges[i].v[0]= me->medge[i].v1;
-		lvl->edges[i].v[1]= me->medge[i].v2;
+	lvl->totedge= em ? BLI_countlist(&em->edges) : me->totedge;
+	lvl->edges= MEM_callocN(sizeof(MultiresEdge)*lvl->totedge,"multires edges");
+	if(em) eed= em->edges.first;
+	for(i=0; i<lvl->totedge; ++i) {
+		if(em) {
+			lvl->edges[i].v[0]= eed->v1->tmp.l;
+			lvl->edges[i].v[1]= eed->v2->tmp.l;
+			eed= eed->next;
+		} else {
+			lvl->edges[i].v[0]= me->medge[i].v1;
+			lvl->edges[i].v[1]= me->medge[i].v2;
+		}
 		lvl->edges[i].mid= 0;
 	}
 
@@ -562,8 +593,6 @@ void multires_make(void *ob, void *me_v)
 	multires_load_cols(me);
 
 	multires_calc_level_maps(lvl);
-
-	if(em) enter_editmode(0);
 	
 	allqueue(REDRAWBUTSEDIT, 0);
 
