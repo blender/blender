@@ -782,24 +782,37 @@ CcdPhysicsController* CcdPhysicsEnvironment::GetPhysicsController( int index)
 
 
 
-
+void	CcdPhysicsEnvironment::setConstraintParam(int constraintId,int param,float value0,float value1)
+{
+	btTypedConstraint* typedConstraint = getConstraintById(constraintId);
+	switch (typedConstraint->getUserConstraintType())
+	{
+	case PHY_GENERIC_6DOF_CONSTRAINT:
+		{
+			//param = 1..12, min0,max0,min1,max1...min6,max6
+			btGeneric6DofConstraint* genCons = (btGeneric6DofConstraint*)typedConstraint;
+			genCons->SetLimit(param,value0,value1);
+			break;
+		};
+	default:
+		{
+		};
+	};
+}
 
 btTypedConstraint*	CcdPhysicsEnvironment::getConstraintById(int constraintId)
 {
-	return 0;
-	/*
-	int numConstraint = m_constraints.size();
+
+	int numConstraints = m_dynamicsWorld->getNumConstraints();
 	int i;
-	for (i=0;i<numConstraint;i++)
+	for (i=0;i<numConstraints;i++)
 	{
-		btTypedConstraint* constraint = m_constraints[i];
+		btTypedConstraint* constraint = m_dynamicsWorld->getConstraint(i);
 		if (constraint->getUserConstraintId()==constraintId)
 		{
 			return constraint;
 		}
 	}
-	*/
-
 	return 0;
 }
 
@@ -1004,7 +1017,8 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 		return 0;
 
 	btVector3 pivotInA(pivotX,pivotY,pivotZ);
-	btVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : pivotInA;
+	btVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : 
+		rb0->getCenterOfMassTransform() * pivotInA;
 	btVector3 axisInA(axisX,axisY,axisZ);
 	btVector3 axisInB = rb1 ? 
 		(rb1->getCenterOfMassTransform().getBasis().inverse()*(rb0->getCenterOfMassTransform().getBasis() * axisInA)) : 
@@ -1072,17 +1086,41 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 
 			} else
 			{
-				// TODO: Implement single body case...
+				static btRigidBody s_fixedObject2( 0,0,0);
+					btTransform frameInA;
+				btTransform frameInB;
+				
+				btVector3 axis1, axis2;
+				btPlaneSpace1( axisInA, axis1, axis2 );
 
+				frameInA.getBasis().setValue( axisInA.x(), axis1.x(), axis2.x(),
+					                          axisInA.y(), axis1.y(), axis2.y(),
+											  axisInA.z(), axis1.z(), axis2.z() );
+
+	
+				btPlaneSpace1( axisInB, axis1, axis2 );
+				frameInB.getBasis().setValue( axisInB.x(), axis1.x(), axis2.x(),
+					                          axisInB.y(), axis1.y(), axis2.y(),
+											  axisInB.z(), axis1.z(), axis2.z() );
+
+				frameInA.setOrigin( pivotInA );
+				frameInB.setOrigin( pivotInB );
+
+
+				genericConstraint = new btGeneric6DofConstraint(
+					*rb0,s_fixedObject2,
+					frameInA,frameInB);
 			}
 			
-
-			//m_constraints.push_back(genericConstraint);
-			m_dynamicsWorld->addConstraint(genericConstraint);
-			genericConstraint->setUserConstraintId(gConstraintUid++);
-			genericConstraint->setUserConstraintType(type);
-			//64 bit systems can't cast pointer to int. could use size_t instead.
-			return genericConstraint->getUserConstraintId();
+			if (genericConstraint)
+			{
+				//m_constraints.push_back(genericConstraint);
+				m_dynamicsWorld->addConstraint(genericConstraint);
+				genericConstraint->setUserConstraintId(gConstraintUid++);
+				genericConstraint->setUserConstraintType(type);
+				//64 bit systems can't cast pointer to int. could use size_t instead.
+				return genericConstraint->getUserConstraintId();
+			} 
 
 			break;
 		}

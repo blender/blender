@@ -1939,12 +1939,37 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
             for (curcon = (bConstraint *)conlist->first; curcon; curcon=(bConstraint *)curcon->next) {
                 if (curcon->type==CONSTRAINT_TYPE_RIGIDBODYJOINT){
                     bRigidBodyJointConstraint *dat=(bRigidBodyJointConstraint *)curcon->data;
-                    if (dat->tar)
+                    //if (dat->tar)
                         if (!dat->child){
-                            KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
+							PHY_IPhysicsController* physctr2 = 0;
+							if (dat->tar)
+							{
+								KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
+								physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
+							}
+                            
                             PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) gameobj->GetPhysicsController()->GetUserData();
-                            PHY_IPhysicsController* physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
-                            kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,(float)dat->pivY,(float)dat->pivZ,(float)dat->axX,(float)dat->axY,(float)dat->axZ);
+                            
+                            int constraintId = kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,(float)dat->pivY,(float)dat->pivZ,(float)dat->axX,(float)dat->axY,(float)dat->axZ);
+							//if it is a generic 6DOF constraint, set all the limits accordingly
+							if (dat->type == PHY_GENERIC_6DOF_CONSTRAINT)
+							{
+								int dof;
+								int dofbit=1;
+								for (dof=0;dof<6;dof++)
+								{
+									if (dat->flag & dofbit)
+									{
+										kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,dat->minLimit[dof],dat->maxLimit[dof]);
+									} else
+									{
+										//minLimit > maxLimit means free(disabled limit) for this degree of freedom
+										kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
+									}
+									dofbit<<=1;
+								}
+							}
+
                         }
                 }
             }

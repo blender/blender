@@ -124,6 +124,33 @@ enum constraint_constants {
 	
 	EXPP_CONSTR_LIMLOCALBONE,
 	EXPP_CONSTR_LIMLOCALNOPAR,
+	
+	EXPP_CONSTR_RB_TYPE,
+	EXPP_CONSTR_RB_BALL,
+	EXPP_CONSTR_RB_HINGE,
+	EXPP_CONSTR_RB_GENERIC6DOF,
+	EXPP_CONSTR_RB_VEHICLE,
+	EXPP_CONSTR_RB_PIVX,
+	EXPP_CONSTR_RB_PIVY,
+	EXPP_CONSTR_RB_PIVZ,
+	EXPP_CONSTR_RB_AXX,
+	EXPP_CONSTR_RB_AXY,
+	EXPP_CONSTR_RB_AXZ,
+	EXPP_CONSTR_RB_MINLIMIT0,
+	EXPP_CONSTR_RB_MINLIMIT1,
+	EXPP_CONSTR_RB_MINLIMIT2,
+	EXPP_CONSTR_RB_MINLIMIT3,
+	EXPP_CONSTR_RB_MINLIMIT4,
+	EXPP_CONSTR_RB_MINLIMIT5,
+	EXPP_CONSTR_RB_MAXLIMIT0,
+	EXPP_CONSTR_RB_MAXLIMIT1,
+	EXPP_CONSTR_RB_MAXLIMIT2,
+	EXPP_CONSTR_RB_MAXLIMIT3,
+	EXPP_CONSTR_RB_MAXLIMIT4,
+	EXPP_CONSTR_RB_MAXLIMIT5,
+	EXPP_CONSTR_RB_EXTRAFZ,
+	EXPP_CONSTR_RB_FLAG,
+	
 };
 
 /*****************************************************************************/
@@ -1147,6 +1174,125 @@ static int sizelimit_setter( BPy_Constraint *self, int type, PyObject *value )
 	}
 }
 
+
+static PyObject *rigidbody_getter( BPy_Constraint * self, int type)
+{
+	bRigidBodyJointConstraint *con = (bRigidBodyJointConstraint *)(self->con->data);
+
+	switch( type ) {
+	case EXPP_CONSTR_TARGET:
+		return Object_CreatePyObject( con->tar );
+	case EXPP_CONSTR_RB_PIVX:
+		return PyFloat_FromDouble( (double)con->pivX );
+	case EXPP_CONSTR_RB_PIVY:
+		return PyFloat_FromDouble( (double)con->pivY );
+	case EXPP_CONSTR_RB_PIVZ:
+		return PyFloat_FromDouble( (double)con->pivZ );
+	case EXPP_CONSTR_RB_AXX:
+		return PyFloat_FromDouble( (double)con->axX );
+	case EXPP_CONSTR_RB_AXY:
+		return PyFloat_FromDouble( (double)con->axY );
+	case EXPP_CONSTR_RB_AXZ:
+		return PyFloat_FromDouble( (double)con->axZ );
+	case EXPP_CONSTR_RB_MINLIMIT0:
+		return PyFloat_FromDouble( (double)con->minLimit[0] );
+	case EXPP_CONSTR_RB_MINLIMIT1:
+		return PyFloat_FromDouble( (double)con->minLimit[1] );
+	case EXPP_CONSTR_RB_MINLIMIT2:
+		return PyFloat_FromDouble( (double)con->minLimit[2] );
+	case EXPP_CONSTR_RB_MINLIMIT3:
+		return PyFloat_FromDouble( (double)con->minLimit[3] );
+	case EXPP_CONSTR_RB_MINLIMIT4:
+		return PyFloat_FromDouble( (double)con->minLimit[4] );
+	case EXPP_CONSTR_RB_MINLIMIT5:
+		return PyFloat_FromDouble( (double)con->minLimit[5] );
+	case EXPP_CONSTR_RB_MAXLIMIT0:
+		return PyFloat_FromDouble( (double)con->maxLimit[0] );
+	case EXPP_CONSTR_RB_MAXLIMIT1:
+		return PyFloat_FromDouble( (double)con->maxLimit[1] );
+	case EXPP_CONSTR_RB_MAXLIMIT2:
+		return PyFloat_FromDouble( (double)con->maxLimit[2] );
+	case EXPP_CONSTR_RB_MAXLIMIT3:
+		return PyFloat_FromDouble( (double)con->maxLimit[3] );
+	case EXPP_CONSTR_RB_MAXLIMIT4:
+		return PyFloat_FromDouble( (double)con->maxLimit[4] );
+	case EXPP_CONSTR_RB_MAXLIMIT5:
+		return PyFloat_FromDouble( (double)con->maxLimit[5] );
+	case EXPP_CONSTR_RB_EXTRAFZ:
+		return PyFloat_FromDouble( (double)con->extraFz );		
+	case EXPP_CONSTR_LIMIT:
+		return PyInt_FromLong( (int)con->flag );
+		
+	case EXPP_CONSTR_RB_TYPE:
+		return PyInt_FromLong( (int)con->type );
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );	
+	}
+}
+
+
+static int rigidbody_setter( BPy_Constraint *self, int type, PyObject *value )
+{
+	bRigidBodyJointConstraint *con = (bRigidBodyJointConstraint *)(self->con->data);	
+	
+	switch( type ) {
+	case EXPP_CONSTR_TARGET: {
+		Object *obj = (( BPy_Object * )value)->object;
+		if( !BPy_Object_Check( value ) )
+			return EXPP_ReturnIntError( PyExc_TypeError, 
+					"expected BPy object argument" );
+		con->tar = obj;
+		return 0;
+		}
+	case EXPP_CONSTR_RB_PIVX:
+		return EXPP_setFloatClamped( value, &con->pivX , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_PIVY:
+		return EXPP_setFloatClamped( value, &con->pivY , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_PIVZ:
+		return EXPP_setFloatClamped( value, &con->pivZ , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_AXX:
+		return EXPP_setFloatClamped( value, &con->axX , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_AXY:
+		return EXPP_setFloatClamped( value, &con->axY , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_AXZ:
+		return EXPP_setFloatClamped( value, &con->axZ , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_MINLIMIT0:
+		return EXPP_setFloatClamped( value, &con->minLimit[0] , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_MINLIMIT1:
+		return EXPP_setFloatClamped( value, &con->minLimit[1] , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_MINLIMIT2:
+		return EXPP_setFloatClamped( value, &con->minLimit[2] , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_MINLIMIT3:
+		return EXPP_setFloatClamped( value, &con->minLimit[3] , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_MINLIMIT4:
+		return EXPP_setFloatClamped( value, &con->minLimit[4] , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_MINLIMIT5:
+		return EXPP_setFloatClamped( value, &con->minLimit[5] , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_MAXLIMIT0:
+		return EXPP_setFloatClamped( value, &con->maxLimit[0] , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_MAXLIMIT1:
+		return EXPP_setFloatClamped( value, &con->maxLimit[1] , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_MAXLIMIT2:
+		return EXPP_setFloatClamped( value, &con->maxLimit[2] , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_MAXLIMIT3:
+		return EXPP_setFloatClamped( value, &con->maxLimit[3] , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_MAXLIMIT4:
+		return EXPP_setFloatClamped( value, &con->maxLimit[4] , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_MAXLIMIT5:
+		return EXPP_setFloatClamped( value, &con->maxLimit[5] , -1000.0, 1000.0 );
+	case EXPP_CONSTR_RB_EXTRAFZ:
+		return EXPP_setFloatClamped( value, &con->extraFz , -1000.0, 1000.0 );						
+	case EXPP_CONSTR_LIMIT:
+		return EXPP_setIValueRange( value, &con->flag, 0, 
+			LIMIT_XMIN | LIMIT_XMAX | LIMIT_YMIN | LIMIT_YMAX | LIMIT_ZMIN | LIMIT_ZMAX, 'i' );
+	case EXPP_CONSTR_RB_TYPE:
+		return EXPP_setIValueRange( value, &con->type, 0, 
+			EXPP_CONSTR_RB_BALL | EXPP_CONSTR_RB_HINGE | EXPP_CONSTR_RB_GENERIC6DOF | EXPP_CONSTR_RB_VEHICLE, 'i' );
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
+
 /*
  * get data from a constraint
  */
@@ -1193,6 +1339,8 @@ static PyObject *Constraint_getData( BPy_Constraint * self, PyObject * key )
 			return loclimit_getter( self, setting );
 		case CONSTRAINT_TYPE_SIZELIMIT:
 			return sizelimit_getter( self, setting );
+		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
+			return rigidbody_getter( self, setting );
 		case CONSTRAINT_TYPE_CHILDOF:	/* Unimplemented */
 		case CONSTRAINT_TYPE_PYTHON:
 		default:
@@ -1253,6 +1401,9 @@ static int Constraint_setData( BPy_Constraint * self, PyObject * key,
 		break;
 	case CONSTRAINT_TYPE_SIZELIMIT:
 		result = sizelimit_setter( self, key_int, arg);
+		break;
+	case CONSTRAINT_TYPE_RIGIDBODYJOINT:
+		result = rigidbody_setter( self, key_int, arg);
 		break;
 	case CONSTRAINT_TYPE_NULL:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
@@ -1483,7 +1634,7 @@ static PyObject *ConstraintSeq_append( BPy_ConstraintSeq *self, PyObject *args )
 		EXPP_ReturnPyObjError( PyExc_TypeError, "expected int argument" );
 
 	/* type 0 is CONSTRAINT_TYPE_NULL, should we be able to add one of these? */
-	if( type < CONSTRAINT_TYPE_NULL || type > CONSTRAINT_TYPE_MINMAX ) 
+	if( type < CONSTRAINT_TYPE_NULL || type > CONSTRAINT_TYPE_RIGIDBODYJOINT ) 
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"int argument out of range" );
 
@@ -1747,6 +1898,8 @@ static PyObject *M_Constraint_TypeDict( void )
 				PyInt_FromLong( CONSTRAINT_TYPE_ROTLIMIT ) );
 		PyConstant_Insert( d, "LIMITSIZE", 
 				PyInt_FromLong( CONSTRAINT_TYPE_SIZELIMIT ) );
+		PyConstant_Insert( d, "RIGIDBODYJOINT", 
+				PyInt_FromLong( CONSTRAINT_TYPE_RIGIDBODYJOINT ) );
 	}
 	return S;
 }
@@ -1927,6 +2080,58 @@ static PyObject *M_Constraint_SettingsDict( void )
 				PyInt_FromLong( EXPP_CONSTR_LIMLOCALBONE ) );
 		PyConstant_Insert( d, "LIMIT_LOCAL_NOPARENT",
 				PyInt_FromLong( EXPP_CONSTR_LIMLOCALNOPAR ) );
+
+
+		PyConstant_Insert( d, "CONSTR_RB_TYPE",
+				PyInt_FromLong( EXPP_CONSTR_RB_TYPE ) );
+		PyConstant_Insert( d, "CONSTR_RB_BALL",
+				PyInt_FromLong( EXPP_CONSTR_RB_BALL ) );
+		PyConstant_Insert( d, "CONSTR_RB_HINGE",
+				PyInt_FromLong( EXPP_CONSTR_RB_HINGE ) );
+		PyConstant_Insert( d, "CONSTR_RB_GENERIC6DOF",
+				PyInt_FromLong( EXPP_CONSTR_RB_GENERIC6DOF ) );
+		PyConstant_Insert( d, "CONSTR_RB_VEHICLE",
+				PyInt_FromLong( EXPP_CONSTR_RB_VEHICLE ) );
+		PyConstant_Insert( d, "CONSTR_RB_PIVX",
+				PyInt_FromLong( EXPP_CONSTR_RB_PIVX ) );
+		PyConstant_Insert( d, "CONSTR_RB_PIVY",
+				PyInt_FromLong( EXPP_CONSTR_RB_PIVY ) );
+		PyConstant_Insert( d, "CONSTR_RB_PIVZ",
+				PyInt_FromLong( EXPP_CONSTR_RB_PIVZ ) );
+		PyConstant_Insert( d, "CONSTR_RB_AXX",
+				PyInt_FromLong( EXPP_CONSTR_RB_AXX ) );
+		PyConstant_Insert( d, "CONSTR_RB_AXY",
+				PyInt_FromLong( EXPP_CONSTR_RB_AXY ) );
+		PyConstant_Insert( d, "CONSTR_RB_AXZ",
+				PyInt_FromLong( EXPP_CONSTR_RB_AXZ ) );
+		PyConstant_Insert( d, "CONSTR_RB_MINLIMIT0",
+				PyInt_FromLong( EXPP_CONSTR_RB_MINLIMIT0 ) );
+		PyConstant_Insert( d, "CONSTR_RB_MINLIMIT1",
+				PyInt_FromLong( EXPP_CONSTR_RB_MINLIMIT1 ) );
+		PyConstant_Insert( d, "CONSTR_RB_MINLIMIT2",
+				PyInt_FromLong( EXPP_CONSTR_RB_MINLIMIT2 ) );
+		PyConstant_Insert( d, "CONSTR_RB_MINLIMIT3",
+				PyInt_FromLong( EXPP_CONSTR_RB_MINLIMIT3 ) );
+		PyConstant_Insert( d, "CONSTR_RB_MINLIMIT4",
+				PyInt_FromLong( EXPP_CONSTR_RB_MINLIMIT4 ) );
+		PyConstant_Insert( d, "CONSTR_RB_MINLIMIT5",
+				PyInt_FromLong( EXPP_CONSTR_RB_MINLIMIT5 ) );
+		PyConstant_Insert( d, "CONSTR_RB_MAXLIMIT0",
+				PyInt_FromLong( EXPP_CONSTR_RB_MAXLIMIT0 ) );
+		PyConstant_Insert( d, "CONSTR_RB_MAXLIMIT1",
+				PyInt_FromLong( EXPP_CONSTR_RB_MAXLIMIT1 ) );
+		PyConstant_Insert( d, "CONSTR_RB_MAXLIMIT2",
+				PyInt_FromLong( EXPP_CONSTR_RB_MAXLIMIT2 ) );
+		PyConstant_Insert( d, "CONSTR_RB_MAXLIMIT3",
+				PyInt_FromLong( EXPP_CONSTR_RB_MAXLIMIT3 ) );
+		PyConstant_Insert( d, "CONSTR_RB_MAXLIMIT4",
+				PyInt_FromLong( EXPP_CONSTR_RB_MAXLIMIT4 ) );
+		PyConstant_Insert( d, "CONSTR_RB_MAXLIMIT5",
+				PyInt_FromLong( EXPP_CONSTR_RB_MAXLIMIT5 ) );				
+		PyConstant_Insert( d, "CONSTR_RB_EXTRAFZ",
+				PyInt_FromLong( EXPP_CONSTR_RB_EXTRAFZ ) );
+		PyConstant_Insert( d, "CONSTR_RB_FLAG",
+				PyInt_FromLong( EXPP_CONSTR_RB_FLAG ) );
 	}
 	return S;
 }

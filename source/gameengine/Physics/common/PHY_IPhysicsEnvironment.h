@@ -107,6 +107,7 @@ class PHY_IPhysicsEnvironment
 		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) =0;
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight)=0;
 		
+		virtual void	setConstraintParam(int constraintId,int param,float value,float value1) = 0;
 };
 
 #endif //_IPHYSICSENVIRONMENT
