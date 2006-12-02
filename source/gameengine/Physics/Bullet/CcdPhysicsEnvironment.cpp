@@ -457,7 +457,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 		ctrl->SynchronizeMotionStates(timeStep);
 	}
 
-	m_dynamicsWorld->stepSimulation(timeStep,2);
+	m_dynamicsWorld->stepSimulation(timeStep,5);
 	
 	numCtrl = GetNumControllers();
 	for (i=0;i<numCtrl;i++)

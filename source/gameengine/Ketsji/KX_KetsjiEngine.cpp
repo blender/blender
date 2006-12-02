@@ -378,17 +378,11 @@ else
 
 	bool doRender = frames>0;
 
-	float remainingTimeFraction = 0.f;
-
-	if (frames>0)
-	{
-		remainingTimeFraction = (m_clockTime - m_frameTime - frames*(1.0/m_ticrate)) / frames;	
-	}
 	while (frames)
 	{
 	
 
-		m_frameTime += 1.0/m_ticrate + remainingTimeFraction;
+		m_frameTime += 1.0/m_ticrate;
 		
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
 		// for each scene, call the proceed functions
