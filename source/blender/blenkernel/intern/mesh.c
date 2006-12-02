@@ -186,7 +186,7 @@ void free_mesh(Mesh *me)
 	if(me->bb) MEM_freeN(me->bb);
 	if(me->mselect) MEM_freeN(me->mselect);
 
-	if(me->mr) multires_free(me);
+	if(me->mr) multires_free(me->mr);
 }
 
 void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)

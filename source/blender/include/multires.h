@@ -42,7 +42,7 @@ void multires_disp_map(void *, void*);
 void multires_make(void *ob, void *me);
 void multires_delete(void *ob, void *me);
 struct Multires *multires_copy(struct Multires *orig);
-void multires_free(Mesh *me);
+void multires_free(Multires *mr);
 void multires_free_level(MultiresLevel *lvl);
 void multires_del_lower(void *ob, void *me);
 void multires_del_higher(void *ob, void *me);

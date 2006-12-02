@@ -197,8 +197,9 @@ void post_layer_destroy(struct VLayer *vlayer);
 void post_server_add(void);
 
 /* multires.c */
+struct Multires;
 struct MultiresLevel;
-void multires_free(struct Mesh *me);
+void multires_free(struct Multires *mr);
 void multires_set_level(void *ob, void *me_v);
 void multires_calc_level_maps(struct MultiresLevel *lvl);
 struct Multires *multires_copy(struct Multires *orig);

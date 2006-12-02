@@ -104,6 +104,7 @@
 #include "BDR_editface.h"
 #include "BDR_vpaint.h"
 
+#include "multires.h"
 #include "mydevice.h"
 #include "blendef.h"
 
@@ -1815,6 +1816,7 @@ typedef struct UndoMesh {
 	RetopoPaintData *retopo_paint_data;
 	char retopo_mode;
 	CustomData vdata, fdata;
+	Multires *mr;
 } UndoMesh;
 
 /* for callbacks */
@@ -1830,6 +1832,7 @@ static void free_undoMesh(void *umv)
 	if(um->retopo_paint_data) retopo_free_paint_data(um->retopo_paint_data);
 	CustomData_free(&um->vdata, um->totvert);
 	CustomData_free(&um->fdata, um->totface);
+	if(um->mr) multires_free(um->mr);
 	MEM_freeN(um);
 }
 
@@ -1923,6 +1926,8 @@ static void *editMesh_to_undoMesh(void)
 
 	um->retopo_paint_data= retopo_paint_data_copy(em->retopo_paint_data);
 	um->retopo_mode= em->retopo_mode;
+	
+	um->mr = get_mesh(G.obedit)->mr ? multires_copy(get_mesh(G.obedit)->mr) : NULL;
 	
 	return um;
 }
@@ -2034,6 +2039,13 @@ static void undoMesh_to_editMesh(void *umv)
 	retopo_free_paint();
 	em->retopo_paint_data= retopo_paint_data_copy(um->retopo_paint_data);
 	em->retopo_mode= um->retopo_mode;
+	
+	{
+		Mesh *me= get_mesh(G.obedit);
+		multires_free(me->mr);
+		me->mr= NULL;
+		if(um->mr) me->mr= multires_copy(um->mr);
+	}
 }
 
 
