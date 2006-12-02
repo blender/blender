@@ -619,10 +619,55 @@ def mergeUvIslands(islandList, islandListArea):
 		i-=1
 		if not islandList[i]:
 			del islandList[i] # Can increment islands removed here.
+
+
+def face_ed_keys(f):
+	# Return ordered edge keys per face
+	# used so a face can lookup its edges.
+	fi = [v.index for v in f] 
+	if len(fi) == 3:
+		i1, i2 = fi[0], fi[1]
+		if i1 > i2: i1, i2= i2, i1
+			
+		i3, i4 = fi[1], fi[2]
+		if i3 > i4: i3, i4= i4, i3
+		
+		i5, i6 = fi[2], fi[0]
+		if i5 > i6: i5, i6= i6, i5
+		
+		return (i1,i2), (i3,i4), (i5,i6)
 	
+	else:
+		i1, i2 = fi[0], fi[1]
+		if i1 > i2: i1, i2= i2, i1
+			
+		i3, i4 = fi[1], fi[2]
+		if i3 > i4: i3, i4= i4, i3
+		
+		i5, i6 = fi[2], fi[3]
+		if i5 > i6: i5, i6= i6, i5
+
+		i7, i8 = fi[3], fi[0]
+		if i7 > i8: i7, i8= i8, i7
+		
+		return (i1,i2), (i3,i4), (i5,i6), (i7,i8)
 	
 # Takes groups of faces. assumes face groups are UV groups.
 def getUvIslands(faceGroups, faceGroupsArea, me):
+	
+	
+	# Get seams so we dont cross over seams
+	edge_seams = {} # shoudl be a set
+	SEAM = Mesh.EdgeFlags.SEAM
+	for ed in me.edges:
+		if ed.flag & SEAM:
+			i1 = ed.v1.index
+			i2 = ed.v2.index
+			if i1>i2: i1,i2= i2,i1
+			edge_seams[i1,i2] = None # dummy var- use sets!			
+	# Done finding seams
+	
+	
 	islandList = []
 	islandListArea = []
 	
@@ -636,91 +681,68 @@ def getUvIslands(faceGroups, faceGroupsArea, me):
 		faceGroupIdx-=1
 		faces = faceGroups[faceGroupIdx]
 		facesArea = faceGroupsArea[faceGroupIdx]
-		# print '.',
 		
-		faceUsers = [[] for i in xrange(len(me.verts)) ]
-		faceUsersArea = [[] for i in xrange(len(me.verts)) ]
-		# Do the first face
-		fIdx = len(faces)
-		for fIdx, f in enumerate(faces):
-			for v in f:
-				faceUsers[v.index].append(f)
-				faceUsersArea[v.index].append(facesArea[fIdx])
-				
+		# Build edge dict
+		edge_users = {}
 		
-		while 1:			
+		face_keys = [face_ed_keys(f) for f in faces]
+		
+		
+		for i, ks in enumerate(face_keys):
+			for ed_key in ks:
+				if edge_seams.has_key(ed_key): # DELIMIT SEAMS! ;)
+					edge_users[ed_key] = [] # so as not to raise an error
+				else:
+					try:		edge_users[ed_key].append(i)
+					except:		edge_users[ed_key] = [i]
+		
+		# Modes
+		# 0 - face not yet touched.
+		# 1 - added to island list, and need to search
+		# 2 - touched and searched - dont touch again.
+		face_modes = [0] * len(faces) # initialize zero - untested.
+		
+		face_modes[0] = 1 # start the search with face 1
+		
+		newIsland = []
+		newIslandArea = []
+		
+		newIsland.append(faces[0])
+		newIslandArea.append(facesArea[0])
+		
+		
+		ok = True
+		while ok:
 			
-			# This is an index that is used to remember
-			# what was the last face that was removed, so we know which faces are new and need to have 
-			# faces next to them added into the list
-			searchFaceIndex = 0
+			ok = True
+			while ok:
+				ok= False
+				for i in xrange(len(faces)):
+					if face_modes[i] == 1: # search
+						for ed_key in face_keys[i]:
+							for ii in edge_users[ed_key]:
+								if i != ii and face_modes[ii] == 0:
+									face_modes[ii] = ok = 1 # mark as searched
+									newIsland.append(faces[ii])
+									newIslandArea.append(facesArea[ii])
+								
+						# mark as searched, dont look again.
+						face_modes[i] = 2
 			
-			# Find a face that hasnt been used alredy to start the search with
-			newIsland = []
-			newIslandArea = []
-			while not newIsland:
-				hasBeenUsed = 1 # Assume its been used.
-				if searchFaceIndex >= len(faces):
+			islandList.append(newIsland)
+			islandListArea.append(newIslandArea)
+			
+			ok = False
+			for i in xrange(len(faces)):
+				if face_modes[i] == 0:
+					newIsland = []
+					newIslandArea = []
+					newIsland.append(faces[i])
+					newIslandArea.append(facesArea[i])
+					
+					face_modes[i] = ok = 1
 					break
-				for v in faces[searchFaceIndex]:
-					if faces[searchFaceIndex] in faceUsers[v.index]:
-						# This has not yet been used, it still being used by a vert
-						hasBeenUsed = 0
-						break
-				if hasBeenUsed == 0:
-					newIsland.append(faces.pop(searchFaceIndex))
-					newIslandArea.append(facesArea.pop(searchFaceIndex))
-				
-				searchFaceIndex+=1
-
-			if newIsland == []:
-				break
-			
-			
-			# Before we start remove the first, search face from being used.
-			for v in newIsland[0]:
-				vIdx= v.index
-				popoffset = 0
-				for fIdx in xrange(len(faceUsers[vIdx])):
-					if faceUsers[vIdx][fIdx - popoffset] is newIsland[0]:						
-						del faceUsers[vIdx][fIdx - popoffset]
-						del faceUsersArea[vIdx][fIdx - popoffset]
-						
-						popoffset += 1
-			
-			searchFaceIndex = 0
-			while searchFaceIndex != len(newIsland):
-				for v in newIsland[searchFaceIndex]:
-					vIdx= v.index
-					# Loop through all faces that use this vert
-					while faceUsers[vIdx]:
-						sharedFace = faceUsers[vIdx][-1]
-						sharedFaceArea = faceUsersArea[vIdx][-1]
-						
-						newIsland.append(sharedFace)
-						newIslandArea.append(sharedFaceArea)
-						# Before we start remove the first, search face from being used.
-						for vv in sharedFace:
-							#faceUsers = [f for f in faceUsers[vv.index] if f != sharedFace]
-							vvIdx= vv.index
-							fIdx = 0
-							for fIdx in xrange(len(faceUsers[vvIdx])):
-								if faceUsers[vvIdx][fIdx] is sharedFace:
-									del faceUsers[vvIdx][fIdx]
-									del faceUsersArea[vvIdx][fIdx]
-									break # Can only be used once.
-				
-				searchFaceIndex += 1
-				
-				# If all the faces are done and no face has been added then we can quit
-			if newIsland:
-				islandList.append(newIsland)
-				
-				islandListArea.append(newIslandArea)
-			
-			else:
-				print '\t(empty island found, ignoring)'
-	
+			# if not ok will stop looping
 	
 	Window.DrawProgressBar(0.1, 'Optimizing Rotation for %i UV Islands' % len(islandList))
 	
