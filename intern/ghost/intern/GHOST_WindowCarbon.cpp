@@ -403,9 +403,19 @@ GHOST_TSuccess GHOST_WindowCarbon::setOrder(GHOST_TWindowOrder order)
     return GHOST_kSuccess;
 }
 
+#define  WAIT_FOR_VSYNC 1
+#ifdef WAIT_FOR_VSYNC
+#include <OpenGL/OpenGL.h>
+#endif
 
 GHOST_TSuccess GHOST_WindowCarbon::swapBuffers()
 {
+#ifdef WAIT_FOR_VSYNC
+/* wait for vsync, to avoid tearing artifacts */
+long VBL = 1;
+CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &VBL);
+#endif
+
     GHOST_TSuccess succeeded = GHOST_kSuccess;
     if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
         if (m_aglCtx) {

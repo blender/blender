@@ -108,8 +108,8 @@ public:
 		{
 			btWheelInfo& info = m_vehicle->getWheelInfo(i);
 			PHY_IMotionState* motionState = (PHY_IMotionState*)info.m_clientInfo ;
-			m_vehicle->updateWheelTransform(i);
-			btTransform trans = m_vehicle->getWheelTransformWS(i);
+			m_vehicle->updateWheelTransform(i,true);
+			btTransform trans = m_vehicle->getWheelInfo(i).m_worldTransform;
 			btQuaternion orn = trans.getRotation();
 			const btVector3& pos = trans.getOrigin();
 			motionState->setWorldOrientation(orn.x(),orn.y(),orn.z(),orn[3]);
@@ -457,13 +457,13 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 		ctrl->SynchronizeMotionStates(timeStep);
 	}
 
-	m_dynamicsWorld->stepSimulation(timeStep,5);//5);
+	m_dynamicsWorld->stepSimulation(timeStep,2);
 	
 	numCtrl = GetNumControllers();
 	for (i=0;i<numCtrl;i++)
 	{
 		CcdPhysicsController* ctrl = GetPhysicsController(i);
-		ctrl->SynchronizeMotionStates(timeStep);
+		//ctrl->SynchronizeMotionStates(timeStep);
 	}
 
 	for (i=0;i<m_wrapperVehicles.size();i++)

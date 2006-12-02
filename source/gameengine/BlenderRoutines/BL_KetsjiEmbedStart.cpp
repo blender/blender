@@ -357,10 +357,13 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 					exitrequested = ketsjiengine->GetExitCode();
 					
 					// kick the engine
-					ketsjiengine->NextFrame();
+					bool render = ketsjiengine->NextFrame();
 					
-					// render the frame
-					ketsjiengine->Render();
+					if (render)
+					{
+						// render the frame
+						ketsjiengine->Render();
+					}
 					
 					// test for the ESC key
 					while (qtest())

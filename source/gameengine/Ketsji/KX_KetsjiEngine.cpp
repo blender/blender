@@ -256,9 +256,9 @@ void KX_KetsjiEngine::SetSceneConverter(KX_ISceneConverter* sceneconverter)
  */
 void KX_KetsjiEngine::StartEngine(bool clearIpo)
 {
-	m_clockTime = m_kxsystem->GetTimeInSeconds();
-	m_frameTime = m_kxsystem->GetTimeInSeconds();
-	m_previousClockTime = m_kxsystem->GetTimeInSeconds();
+	m_clockTime = 0.f;// m_kxsystem->GetTimeInSeconds();
+	m_frameTime = 0.f;//m_kxsystem->GetTimeInSeconds();
+	m_previousClockTime = 0.f;//m_kxsystem->GetTimeInSeconds();
 
 	m_firstframe = true;
 	m_bInitialized = true;
@@ -315,22 +315,35 @@ void KX_KetsjiEngine::EndFrame()
 	// swap backbuffer (drawing into this buffer) <-> front/visible buffer
 	m_rasterizer->SwapBuffers();
 	m_rendertools->EndFrame(m_rasterizer);
+
 	
 	m_canvas->EndDraw();
 	
 
 }
 
-// #include "PIL_time.h"
+//#include "PIL_time.h"
+//#include "LinearMath/btQuickprof.h"
 
-void KX_KetsjiEngine::NextFrame()
+
+bool KX_KetsjiEngine::NextFrame()
 {
-	m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
-	
-	if (m_bFixedTime)
-		m_clockTime += 1.0/m_ticrate;
-	else
-		m_clockTime = m_kxsystem->GetTimeInSeconds();
+
+//	static hidden::Clock sClock;
+
+m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(),true);
+
+//float dt = sClock.getTimeMicroseconds() * 0.000001f;
+//sClock.reset();
+
+if (m_bFixedTime)
+	m_clockTime += 1./m_ticrate;
+else
+{
+
+//	m_clockTime += dt;
+	m_clockTime = m_kxsystem->GetTimeInSeconds();
+}
 	
 	double deltatime = m_clockTime - m_frameTime;
 	if (deltatime<0.f)
@@ -341,30 +354,41 @@ void KX_KetsjiEngine::NextFrame()
 		m_frameTime = 0.f;
 	}
 
+
 	// Compute the number of logic frames to do each update (fixed tic bricks)
 	int frames =int(deltatime*m_ticrate);
+//	if (frames>1)
+//		printf("****************************************");
+//	printf("dt = %f, deltatime = %f, frames = %d\n",dt, deltatime,frames);
 	
 //	if (!frames)
-//		PIL_sleep_ms(4);
+//		PIL_sleep_ms(1);
 	
 	KX_SceneList::iterator sceneit;
 	int frameOut = 5;
 	
 	if (frames>frameOut)
 	{
-		printf("framedOut: %d\n",frames);
+	
+	//	printf("framedOut: %d\n",frames);
 		m_frameTime+=(frames-frameOut)*(1.0/m_ticrate);
 		frames = frameOut;
 	}
+	
 
+	bool doRender = frames>0;
+
+	float remainingTimeFraction = 0.f;
+
+	if (frames>0)
+	{
+		remainingTimeFraction = (m_clockTime - m_frameTime - frames*(1.0/m_ticrate)) / frames;	
+	}
 	while (frames)
 	{
-		if (frames > frameOut)
-		{
-			printf ("what happened\n");
-		}
+	
 
-		m_frameTime += 1.0/m_ticrate;
+		m_frameTime += 1.0/m_ticrate + remainingTimeFraction;
 		
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
 		// for each scene, call the proceed functions
@@ -419,6 +443,7 @@ void KX_KetsjiEngine::NextFrame()
 				// Do some cleanup work for this logic frame
 				m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
 				scene->LogicUpdateFrame(m_frameTime, true);
+				
 				scene->LogicEndFrame();
 	
 				// Actuators can affect the scenegraph
@@ -448,7 +473,7 @@ void KX_KetsjiEngine::NextFrame()
 					scene->setSuspendedTime(m_clockTime);
 	
 			DoSound(scene);
-	
+			
 			m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
 		}
 
@@ -472,7 +497,7 @@ void KX_KetsjiEngine::NextFrame()
 		frames--;
 	}
 
-	bool bUseAsyncLogicBricks= false;
+	bool bUseAsyncLogicBricks= false;//true;
 
 	if (bUseAsyncLogicBricks)
 	{	
@@ -532,6 +557,8 @@ void KX_KetsjiEngine::NextFrame()
 	
 	// Start logging time spend outside main loop
 	m_logger->StartLog(tc_outside, m_kxsystem->GetTimeInSeconds(), true);
+	
+	return doRender;
 }
 
 

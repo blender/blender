@@ -999,6 +999,9 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		{
 			if (meshobj)
 			{
+				bm = CreateBulletShapeFromMesh(meshobj,false);
+				ci.m_localInertiaTensor.setValue(0.f,0.f,0.f);
+
 			//	assert(0);
 
 					/*

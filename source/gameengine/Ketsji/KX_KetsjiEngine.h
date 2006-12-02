@@ -201,8 +201,8 @@ public:
 	void			SetSceneConverter(KX_ISceneConverter* sceneconverter);
 	void			SetGame2IpoMode(bool game2ipo,int startFrame);
 
-
-	void			NextFrame();
+	///returns true if an update happened to indicate -> Render
+	bool			NextFrame();
 	void			Render();
 	
 	void			StartEngine(bool clearIpo);
