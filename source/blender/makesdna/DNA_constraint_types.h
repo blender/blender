@@ -77,6 +77,8 @@ typedef struct bTrackToConstraint{
 	Object		*tar;
 	int			reserved1; /* I'll be using reserved1 and reserved2 as Track and Up flags, not sure if that's what they were intented for anyway. Not sure either if it would create backward incompatibility if I were to rename them. - theeth*/
 	int			reserved2;
+	int			flags;
+	int			pad;
 	char		subtarget[32];
 } bTrackToConstraint;
 
@@ -281,6 +283,9 @@ typedef struct bRigidBodyJointConstraint{
 #define TRACK_nX	0x03
 #define TRACK_nY	0x04
 #define TRACK_nZ	0x05
+
+/* bTrackToConstraint->flags */
+#define TARGET_Z_UP 0x01
 
 #define VOLUME_XZ	0x00
 #define VOLUME_X	0x01

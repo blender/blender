@@ -886,6 +886,93 @@ static void constraint_target_to_mat4 (Object *ob, const char *substring, float 
 	}
 }
 
+
+/* stupid little cross product function, 0:x, 1:y, 2:z axes */
+static int basis_cross(int n, int m)
+{
+	if(n-m == 1) return 1;
+	if(n-m == -1) return -1;
+	if(n-m == 2) return -1;
+	if(n-m == -2) return 1;
+	else return 0;
+}
+
+static void vectomat(float *vec, float *target_up, short axis, short upflag, short flags, float m[][3])
+{
+	float n[3];
+	float u[3]; /* vector specifying the up axis */
+	float proj[3];
+	float right[3];
+	float sign = 1;
+	float neg = -1;
+	int back_index, up_index, right_index;
+
+	VecCopyf(n, vec);
+	if(Normalise(n) == 0.0) { 
+		n[0] = 0.0;
+		n[1] = 0.0;
+		n[2] = 1.0;
+	}
+	if(axis > 2) axis -= 3;
+	else VecMulf(n,-1);
+
+	/* n specifies the transformation of the track axis */
+
+	if(flags & TARGET_Z_UP) { 
+		/* target Z axis is the global up axis */
+		u[0] = target_up[0];
+		u[1] = target_up[1];
+		u[2] = target_up[2];
+	}
+	else { 
+		/* world Z axis is the global up axis */
+		u[0] = 0;
+		u[1] = 0;
+		u[2] = 1;
+	}
+
+	/* project the up vector onto the plane specified by n */
+	Projf(proj, u, n); /* first u onto n... */
+	VecSubf(proj, u, proj); /* then onto the plane */
+	/* proj specifies the transformation of the up axis */
+
+	if(Normalise(proj) == 0.0) { /* degenerate projection */
+		proj[0] = 0.0;
+		proj[1] = 1.0;
+		proj[2] = 0.0;
+	}
+
+	/* normalised cross product of n and proj specifies transformation of the right axis */
+	Crossf(right, proj, n);
+	Normalise(right);
+
+	if(axis != upflag) {
+		right_index = 3 - axis - upflag;
+		neg = (float) basis_cross(axis, upflag);
+
+		/* account for up direction, track direction */
+		m[right_index][0] = neg * right[0];
+		m[right_index][1] = neg * right[1];
+		m[right_index][2] = neg * right[2];
+
+		m[upflag][0] = proj[0];
+		m[upflag][1] = proj[1];
+		m[upflag][2] = proj[2];
+
+		m[axis][0] = n[0];
+		m[axis][1] = n[1];
+		m[axis][2] = n[2];
+	}
+
+	else {
+		m[0][0]= m[1][1]= m[2][2]= 1.0;
+		m[0][1]= m[0][2]= m[0][3]= 0.0;
+		m[1][0]= m[1][2]= m[1][3]= 0.0;
+		m[2][0]= m[2][1]= m[2][3]= 0.0;
+	}
+}
+
+
 /* called during solve_constraints */
 /* also for make_parent, to find correct inverse of "follow path" */
 /* warning, ownerdata is void... is not Bone anymore, but PoseChannel or Object */
@@ -1371,8 +1458,9 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 	
 			
 				VecSubf(vec, ob->obmat[3], targetmat[3]);
-				quat= vectoquat(vec, (short)data->reserved1, (short)data->reserved2);
-				QuatToMat3(quat, totmat);
+				vectomat(vec, targetmat[2], 
+						(short)data->reserved1, (short)data->reserved2, 
+						data->flags, totmat);
 
 				Mat4CpyMat4(tmat, ob->obmat);
 				
