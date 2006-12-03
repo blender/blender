@@ -432,7 +432,7 @@ void sculptmode_undo()
 {
 	SculptUndo *su= G.scene->sculptdata.undo;
 
-	if(su->cur->prev)
+	if(su && su->cur->prev)
 		sculptmode_undo_update(su->cur->prev);
 }
 
@@ -440,7 +440,7 @@ void sculptmode_redo()
 {
 	SculptUndo *su= G.scene->sculptdata.undo;
 
-	if(su->cur->next)
+	if(su && su->cur->next)
 		sculptmode_undo_update(su->cur->next);
 }
 
@@ -450,6 +450,8 @@ void sculptmode_undo_menu()
 	SculptUndoStep *sus;
 	DynStr *ds= BLI_dynstr_new();
 	char *menu;
+	
+	if(!su) return;
 	
 	BLI_dynstr_append(ds, "Sculpt Mode Undo History %t");
 	for(sus= su->steps.first; sus; sus= sus->next) {
