@@ -514,7 +514,7 @@ void multires_get_vert(MVert *out, EditVert *eve, MVert *m, int i)
 		eve->tmp.l= i;
 	}
 	else
-		out= m;
+		*out= *m;
 }
 
 void multires_get_face(MultiresFace *f, EditFace *efa, MFace *m)
