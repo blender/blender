@@ -256,9 +256,9 @@ void KX_KetsjiEngine::SetSceneConverter(KX_ISceneConverter* sceneconverter)
  */
 void KX_KetsjiEngine::StartEngine(bool clearIpo)
 {
-	m_clockTime = 0.f;// m_kxsystem->GetTimeInSeconds();
-	m_frameTime = 0.f;//m_kxsystem->GetTimeInSeconds();
-	m_previousClockTime = 0.f;//m_kxsystem->GetTimeInSeconds();
+	m_clockTime = m_kxsystem->GetTimeInSeconds();
+	m_frameTime = m_kxsystem->GetTimeInSeconds();
+	m_previousClockTime = m_kxsystem->GetTimeInSeconds();
 
 	m_firstframe = true;
 	m_bInitialized = true;
