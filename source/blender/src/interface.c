@@ -2057,13 +2057,12 @@ static int ui_act_as_text_but(uiBut *but)
 	but->max= max;
 	if(textleft==0) but->flag &= ~UI_TEXT_LEFT;
 
-	if(str[0] == '#') {
-		if(BPY_button_eval(str+1, &value)) { /* str+1 to skip the # sign */
-			error("Invalid Python expression, check console");
-			retval = 0; /* invalidate return value if eval failed */
-		}
+	if(BPY_button_eval(str, &value)) {
+		/* Uncomment this if you want to see an error message (and annoy users) */
+		/* error("Invalid Python expression, check console");*/
+		value = 0.0f; /* Zero out value on error */
+		retval = 0;  /* invalidate return value if eval failed */
 	}
-	else value = atof(str);
 	
 	if(but->pointype!=FLO) value= (int)value;
 
