@@ -155,6 +155,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "BKE_bad_level_calls.h" // build_seqar (from WHILE_SEQ) free_oops error
 #include "BKE_blender.h"
 #include "BKE_curve.h"
+#include "BKE_customdata.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h" // for G
 #include "BKE_library.h" // for  set_listbasepointers
@@ -1172,7 +1173,10 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 			/* Multires data */
 			writestruct(wd, DATA, "Multires", 1, mesh->mr);
 			if(mesh->mr) {
-				for(lvl= mesh->mr->levels.first; lvl; lvl= lvl->next) {
+				lvl= mesh->mr->levels.first;
+				if(lvl)
+					write_customdata(wd, lvl->totvert, &mesh->mr->vdata);
+				for(; lvl; lvl= lvl->next) {
 					writestruct(wd, DATA, "MultiresLevel", 1, lvl);
 					writestruct(wd, DATA, "MVert", lvl->totvert, lvl->verts);
 					writestruct(wd, DATA, "MultiresFace", lvl->totface, lvl->faces);

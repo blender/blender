@@ -520,14 +520,19 @@ void multires_get_vert(MVert *out, EditVert *eve, MVert *m, int i)
 void multires_get_face(MultiresFace *f, EditFace *efa, MFace *m)
 {
 	if(efa) {
-		f->v[0]= efa->v1->tmp.l;
-		f->v[1]= efa->v2->tmp.l;
-		f->v[2]= efa->v3->tmp.l;
-		if(efa->v4) f->v[3]= efa->v4->tmp.l;
-		f->flag= efa->flag;
-		if(efa->f & 1) f->flag |= ME_FACE_SEL;
+		MFace tmp;
+		int j;
+		tmp.v1= efa->v1->tmp.l;
+		tmp.v2= efa->v2->tmp.l;
+		tmp.v3= efa->v3->tmp.l;
+		if(efa->v4) tmp.v4= efa->v4->tmp.l;
+		tmp.flag= efa->flag;
+		if(efa->f & 1) tmp.flag |= ME_FACE_SEL;
 		else f->flag &= ~ME_FACE_SEL;
-		if(efa->h) f->flag |= ME_HIDE;
+		if(efa->h) tmp.flag |= ME_HIDE;
+		test_index_face(&tmp, NULL, 0, efa->v4?4:3);
+		for(j=0; j<4; ++j) f->v[j]= (&tmp.v1)[j];
+		f->flag= tmp.flag;
 	} else {		
 		f->v[0]= m->v1;
 		f->v[1]= m->v2;

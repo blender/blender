@@ -2498,7 +2498,9 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	if(mesh->mr) {
 		MultiresLevel *lvl;
 		link_list(fd, &mesh->mr->levels);
-		for(lvl= mesh->mr->levels.first; lvl; lvl= lvl->next) {
+		lvl= mesh->mr->levels.first;
+		direct_link_customdata(fd, &mesh->mr->vdata, lvl->totvert);
+		for(; lvl; lvl= lvl->next) {
 			lvl->verts= newdataadr(fd, lvl->verts);
 			lvl->faces= newdataadr(fd, lvl->faces);
 			lvl->edges= newdataadr(fd, lvl->edges);
