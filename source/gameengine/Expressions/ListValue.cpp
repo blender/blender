@@ -23,12 +23,16 @@
 #include <config.h>
 #endif
 
-int listvalue_bufferlen(PyObject* list)
+#if  ((PY_MAJOR_VERSION == 2) &&(PY_MINOR_VERSION < 5))
+#define Py_ssize_t int
+#endif
+
+Py_ssize_t listvalue_bufferlen(PyObject* list)
 {
-	return ( ((CListValue*)list)->GetCount());
+	return (Py_ssize_t)( ((CListValue*)list)->GetCount());
 }
 
-PyObject* listvalue_buffer_item(PyObject* list,int index)
+PyObject* listvalue_buffer_item(PyObject* list,Py_ssize_t index)
 {
 	if (index >= 0 && index < ((CListValue*) list)->GetCount())
 	{
@@ -68,7 +72,7 @@ PyObject* listvalue_mapping_subscript(PyObject* list,PyObject* pyindex)
 
 
 /* just slice it into a python list... */
-PyObject* listvalue_buffer_slice(PyObject* list,int ilow, int ihigh)
+PyObject* listvalue_buffer_slice(PyObject* list,Py_ssize_t ilow, Py_ssize_t ihigh)
 {
 	int i, j;
 	PyListObject *newlist;
@@ -162,23 +166,23 @@ listvalue_buffer_concat(PyObject * self, PyObject * other)
 
 
 
-static PySequenceMethods listvalue_as_sequence = {
-	(inquiry)listvalue_bufferlen,//(inquiry)buffer_length, /*sq_length*/
-	(binaryfunc)listvalue_buffer_concat, /*sq_concat*/
-	0,//(intargfunc)buffer_repeat, /*sq_repeat*/
-	(intargfunc)listvalue_buffer_item, /*sq_item*/
-	(intintargfunc)listvalue_buffer_slice, /*sq_slice*/
-	0,//(intobjargproc)buffer_ass_item, /*sq_ass_item*/
-	0,//(intintobjargproc)buffer_ass_slice, /*sq_ass_slice*/
+static  PySequenceMethods listvalue_as_sequence = {
+	listvalue_bufferlen,//(inquiry)buffer_length, /*sq_length*/
+	listvalue_buffer_concat, /*sq_concat*/
+ 	NULL, /*sq_repeat*/
+	listvalue_buffer_item, /*sq_item*/
+	listvalue_buffer_slice, /*sq_slice*/
+ 	NULL, /*sq_ass_item*/
+ 	NULL /*sq_ass_slice*/
 };
 
 
 
 /* Is this one used ? */
-static PyMappingMethods instance_as_mapping = {
-	(inquiry)listvalue_bufferlen, /*mp_length*/
-	(binaryfunc)listvalue_mapping_subscript, /*mp_subscript*/
-	0,//(objobjargproc)instance_ass_subscript, /*mp_ass_subscript*/
+static  PyMappingMethods instance_as_mapping = {
+	listvalue_bufferlen, /*mp_length*/
+	listvalue_mapping_subscript, /*mp_subscript*/
+	NULL /*mp_ass_subscript*/
 };
 
 
