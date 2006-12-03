@@ -1876,10 +1876,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							CutEdgeloop(1);
 							BIF_undo_push("Cut Edgeloop");
 						}
-						//else if (G.obedit->type==OB_ARMATURE) {
-						//	initTransform(TFM_BONE_ROLL, CTX_NONE);
-						//	Transform();
-						//}
+						else if (G.obedit->type==OB_ARMATURE) {
+							initTransform(TFM_BONE_ROLL, CTX_NONE);
+							Transform();
+						}
 					}
 					else if((G.qual==0)) {
 						initTransform(TFM_ROTATION, CTX_NONE);

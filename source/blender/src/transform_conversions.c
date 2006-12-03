@@ -836,6 +836,10 @@ static void createTransArmatureVerts(TransInfo *t)
 				if (ebo->flag & BONE_SELECTED)
 					t->total++;
 			}
+			else if (t->mode==TFM_BONE_ROLL) {
+				if (ebo->flag & BONE_SELECTED)
+					t->total++;
+			}
 			else {
 				if (ebo->flag & BONE_TIPSEL)
 					t->total++;
@@ -915,6 +919,21 @@ static void createTransArmatureVerts(TransInfo *t)
 					
 					Mat3CpyMat3(td->axismtx, td->mtx);
 					Mat3Ortho(td->axismtx);
+
+					td->ext = NULL;
+					td->tdi = NULL;
+					
+					td++;
+				}
+			}
+			else if (t->mode==TFM_BONE_ROLL) {
+				if (ebo->flag & BONE_SELECTED) {
+					td->loc= NULL;
+					td->val= &(ebo->roll);
+					td->ival= ebo->roll;
+					
+					VECCOPY (td->center, ebo->head);
+					td->flag= TD_SELECTED;
 
 					td->ext = NULL;
 					td->tdi = NULL;

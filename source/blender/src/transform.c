@@ -809,6 +809,9 @@ void initTransform(int mode, int context) {
 	case TFM_BONE_ENVELOPE:
 		initBoneEnvelope(&Trans);
 		break;
+	case TFM_BONE_ROLL:
+		initBoneRoll(&Trans);
+		break;
 	}
 }
 
@@ -2588,6 +2591,284 @@ int Crease(TransInfo *t, short mval[2])
 	return 1;
 }
 
+/* ******************** EditBone (B-bone) width scaling *************** */
+
+void initBoneSize(TransInfo *t)
+{
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+	t->transform = BoneSize;
+	t->fac = (float)sqrt( (
+					   ((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
+					   +
+					   ((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
+					   ) );
+	
+	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
+}
+
+static void ElementBoneSize(TransInfo *t, TransData *td, float mat[3][3]) 
+{
+	float tmat[3][3], smat[3][3], oldy;
+	float sizemat[3][3];
+	
+	Mat3MulMat3(smat, mat, td->mtx);
+	Mat3MulMat3(tmat, td->smtx, smat);
+	
+	if (t->con.applySize) {
+		t->con.applySize(t, td, tmat);
+	}
+	
+	/* we've tucked the scale in loc */
+	oldy= td->iloc[1];
+	SizeToMat3(td->iloc, sizemat);
+	Mat3MulMat3(tmat, tmat, sizemat);
+	Mat3ToSize(tmat, td->loc);
+	td->loc[1]= oldy;
+}
+
+int BoneSize(TransInfo *t, short mval[2]) 
+{
+	TransData *td = t->data;
+	float size[3], mat[3][3];
+	float ratio;
+	int i;
+	char str[50];
+	
+	/* for manipulator, center handle, the scaling can't be done relative to center */
+	if( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0) {
+		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1]))/100.0f;
+	}
+	else {
+		
+		if(t->flag & T_SHIFT_MOD) {
+			/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
+			float dx= (float)(t->center2d[0] - t->shiftmval[0]);
+			float dy= (float)(t->center2d[1] - t->shiftmval[1]);
+			ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
+			
+			dx= (float)(t->center2d[0] - mval[0]);
+			dy= (float)(t->center2d[1] - mval[1]);
+			ratio+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -ratio);
+			
+		}
+		else {
+			float dx= (float)(t->center2d[0] - mval[0]);
+			float dy= (float)(t->center2d[1] - mval[1]);
+			ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
+		}
+		
+		/* flip scale, but not for manipulator center handle */
+		if	((t->center2d[0] - mval[0]) * (t->center2d[0] - t->imval[0]) + 
+			 (t->center2d[1] - mval[1]) * (t->center2d[1] - t->imval[1]) < 0)
+			ratio *= -1.0f;
+	}
+	
+	size[0] = size[1] = size[2] = ratio;
+	
+	snapGrid(t, size);
+	
+	if (hasNumInput(&t->num)) {
+		applyNumInput(&t->num, size);
+		constraintNumInput(t, size);
+	}
+	
+	SizeToMat3(size, mat);
+	
+	if (t->con.applySize) {
+		t->con.applySize(t, NULL, mat);
+	}
+	
+	Mat3CpyMat3(t->mat, mat);	// used in manipulator
+	
+	headerResize(t, size, str);
+	
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+		
+		ElementBoneSize(t, td, mat);
+	}
+	
+	recalcData(t);
+	
+	headerprint(str);
+	
+	viewRedrawForce(t);
+	
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
+	
+	return 1;
+}
+
+
+/* ******************** EditBone envelope *************** */
+
+void initBoneEnvelope(TransInfo *t)
+{
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+	t->transform = BoneEnvelope;
+	t->fac = (float)sqrt( (
+						   ((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
+						   +
+						   ((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
+						   ) );
+	
+	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
+}
+
+int BoneEnvelope(TransInfo *t, short mval[2]) 
+{
+	TransData *td = t->data;
+	float ratio;
+	int i;
+	char str[50];
+	
+	if(t->flag & T_SHIFT_MOD) {
+		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
+		float dx= (float)(t->center2d[0] - t->shiftmval[0]);
+		float dy= (float)(t->center2d[1] - t->shiftmval[1]);
+		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
+		
+		dx= (float)(t->center2d[0] - mval[0]);
+		dy= (float)(t->center2d[1] - mval[1]);
+		ratio+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -ratio);
+		
+	}
+	else {
+		float dx= (float)(t->center2d[0] - mval[0]);
+		float dy= (float)(t->center2d[1] - mval[1]);
+		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
+	}
+	
+	snapGrid(t, &ratio);
+	
+	applyNumInput(&t->num, &ratio);
+	
+	/* header print for NumInput */
+	if (hasNumInput(&t->num)) {
+		char c[20];
+		
+		outputNumInput(&(t->num), c);
+		sprintf(str, "Envelope: %s", c);
+	}
+	else {
+		sprintf(str, "Envelope: %3f", ratio);
+	}
+	
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+		
+		if(td->val) *td->val= td->ival*ratio;
+	}
+	
+	recalcData(t);
+	
+	headerprint(str);
+	
+	force_draw(0);
+	
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
+	
+	return 1;
+}
+
+
+/* ******************** EditBone roll *************** */
+
+void initBoneRoll(TransInfo *t)
+{
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = (float)((5.0/180)*M_PI);
+	t->snap[2] = t->snap[1] * 0.2f;
+	
+	t->fac = 0.0f;
+	
+	t->transform = BoneRoll;
+}
+
+int BoneRoll(TransInfo *t, short mval[2]) 
+{
+	TransData *td = t->data;
+	int i;
+	char str[50];
+
+	float final;
+
+	int dx2 = t->center2d[0] - mval[0];
+	int dy2 = t->center2d[1] - mval[1];
+	double B = sqrt(dx2*dx2+dy2*dy2);
+
+	int dx1 = t->center2d[0] - t->imval[0];
+	int dy1 = t->center2d[1] - t->imval[1];
+	double A = sqrt(dx1*dx1+dy1*dy1);
+
+	int dx3 = mval[0] - t->imval[0];
+	int dy3 = mval[1] - t->imval[1];
+		/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
+	double deler= ((double)((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3) ))
+		/ (2.0 * (A*B?A*B:1.0));
+	/* (A*B?A*B:1.0f) this takes care of potential divide by zero errors */
+
+	float dphi;
+	
+	dphi = saacos((float)deler);
+	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
+
+	if(G.qual & LR_SHIFTKEY) t->fac += dphi/30.0f;
+	else t->fac += dphi;
+
+	final = t->fac;
+
+	snapGrid(t, &final);
+
+	t->imval[0] = mval[0];
+	t->imval[1] = mval[1];
+
+	if (hasNumInput(&t->num)) {
+		char c[20];
+
+		applyNumInput(&t->num, &final);
+
+		outputNumInput(&(t->num), c);
+
+		sprintf(str, "Roll: %s", &c[0]);
+
+		final *= (float)(M_PI / 180.0);
+	}
+	else {
+		sprintf(str, "Roll: %.2f", 180.0*final/M_PI);
+	}
+	
+	/* set roll values */
+	for (i = 0; i < t->total; i++, td++) {  
+		if (td->flag & TD_NOACTION)
+			break;
+		
+		*(td->val) = td->ival - final;
+	}
+		
+	recalcData(t);
+
+	headerprint(str);
+
+	viewRedrawForce(t);
+
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
+
+	return 1;
+}
+
 /* ************************** MIRROR *************************** */
 
 void Mirror(short mode) 
@@ -2685,196 +2966,6 @@ void Mirror(short mode)
 
 	/* send events out for redraws */
 	viewRedrawPost(&Trans);
-}
-
-/* ******************** EditBone (B-bone) width scaling *************** */
-
-static void ElementBoneSize(TransInfo *t, TransData *td, float mat[3][3]) 
-{
-	float tmat[3][3], smat[3][3], oldy;
-	float sizemat[3][3];
-	
-	Mat3MulMat3(smat, mat, td->mtx);
-	Mat3MulMat3(tmat, td->smtx, smat);
-	
-	if (t->con.applySize) {
-		t->con.applySize(t, td, tmat);
-	}
-	
-	/* we've tucked the scale in loc */
-	oldy= td->iloc[1];
-	SizeToMat3(td->iloc, sizemat);
-	Mat3MulMat3(tmat, tmat, sizemat);
-	Mat3ToSize(tmat, td->loc);
-	td->loc[1]= oldy;
-}
-
-
-int BoneSize(TransInfo *t, short mval[2]) 
-{
-	TransData *td = t->data;
-	float size[3], mat[3][3];
-	float ratio;
-	int i;
-	char str[50];
-	
-	/* for manipulator, center handle, the scaling can't be done relative to center */
-	if( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0) {
-		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1]))/100.0f;
-	}
-	else {
-		
-		if(t->flag & T_SHIFT_MOD) {
-			/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
-			float dx= (float)(t->center2d[0] - t->shiftmval[0]);
-			float dy= (float)(t->center2d[1] - t->shiftmval[1]);
-			ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
-			
-			dx= (float)(t->center2d[0] - mval[0]);
-			dy= (float)(t->center2d[1] - mval[1]);
-			ratio+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -ratio);
-			
-		}
-		else {
-			float dx= (float)(t->center2d[0] - mval[0]);
-			float dy= (float)(t->center2d[1] - mval[1]);
-			ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
-		}
-		
-		/* flip scale, but not for manipulator center handle */
-		if	((t->center2d[0] - mval[0]) * (t->center2d[0] - t->imval[0]) + 
-			 (t->center2d[1] - mval[1]) * (t->center2d[1] - t->imval[1]) < 0)
-			ratio *= -1.0f;
-	}
-	
-	size[0] = size[1] = size[2] = ratio;
-	
-	snapGrid(t, size);
-	
-	if (hasNumInput(&t->num)) {
-		applyNumInput(&t->num, size);
-		constraintNumInput(t, size);
-	}
-	
-	SizeToMat3(size, mat);
-	
-	if (t->con.applySize) {
-		t->con.applySize(t, NULL, mat);
-	}
-	
-	Mat3CpyMat3(t->mat, mat);	// used in manipulator
-	
-	headerResize(t, size, str);
-	
-	for(i = 0 ; i < t->total; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
-		
-		ElementBoneSize(t, td, mat);
-	}
-	
-	recalcData(t);
-	
-	headerprint(str);
-	
-	viewRedrawForce(t);
-	
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
-	
-	return 1;
-}
-
-void initBoneSize(TransInfo *t)
-{
-	t->idx_max = 0;
-	t->num.idx_max = 0;
-	t->snap[0] = 0.0f;
-	t->snap[1] = 0.1f;
-	t->snap[2] = t->snap[1] * 0.1f;
-	t->transform = BoneSize;
-	t->fac = (float)sqrt( (
-					   ((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
-					   +
-					   ((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
-					   ) );
-	
-	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
-}
-
-/* ******************** EditBone envelope *************** */
-
-int BoneEnvelope(TransInfo *t, short mval[2]) 
-{
-	TransData *td = t->data;
-	float ratio;
-	int i;
-	char str[50];
-	
-	if(t->flag & T_SHIFT_MOD) {
-		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
-		float dx= (float)(t->center2d[0] - t->shiftmval[0]);
-		float dy= (float)(t->center2d[1] - t->shiftmval[1]);
-		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
-		
-		dx= (float)(t->center2d[0] - mval[0]);
-		dy= (float)(t->center2d[1] - mval[1]);
-		ratio+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -ratio);
-		
-	}
-	else {
-		float dx= (float)(t->center2d[0] - mval[0]);
-		float dy= (float)(t->center2d[1] - mval[1]);
-		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
-	}
-	
-	snapGrid(t, &ratio);
-	
-	applyNumInput(&t->num, &ratio);
-	
-	/* header print for NumInput */
-	if (hasNumInput(&t->num)) {
-		char c[20];
-		
-		outputNumInput(&(t->num), c);
-		sprintf(str, "Envelope: %s", c);
-	}
-	else {
-		sprintf(str, "Envelope: %3f", ratio);
-	}
-	
-	for(i = 0 ; i < t->total; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
-		
-		if(td->val) *td->val= td->ival*ratio;
-	}
-	
-	recalcData(t);
-	
-	headerprint(str);
-	
-	force_draw(0);
-	
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
-	
-	return 1;
-}
-
-void initBoneEnvelope(TransInfo *t)
-{
-	t->idx_max = 0;
-	t->num.idx_max = 0;
-	t->snap[0] = 0.0f;
-	t->snap[1] = 0.1f;
-	t->snap[2] = t->snap[1] * 0.1f;
-	t->transform = BoneEnvelope;
-	t->fac = (float)sqrt( (
-						   ((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
-						   +
-						   ((float)(t->center2d[0] - t->imval[0]))*((float)(t->center2d[0] - t->imval[0]))
-						   ) );
-	
-	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
 }
 
 /* ************************************ */

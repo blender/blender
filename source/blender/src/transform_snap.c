@@ -196,7 +196,7 @@ void snapGrid(TransInfo *t, float *val) {
 	int invert;
 	GearsType action;
 
-	if(t->mode==TFM_ROTATION || t->mode==TFM_WARP || t->mode==TFM_TILT || t->mode==TFM_TRACKBALL)
+	if(t->mode==TFM_ROTATION || t->mode==TFM_WARP || t->mode==TFM_TILT || t->mode==TFM_TRACKBALL || t->mode==TFM_BONE_ROLL)
 		invert = U.flag & USER_AUTOROTGRID;
 	else if(t->mode==TFM_RESIZE || t->mode==TFM_SHEAR || t->mode==TFM_BONESIZE || t->mode==TFM_SHRINKFATTEN || t->mode==TFM_CURVE_SHRINKFATTEN)
 		invert = U.flag & USER_AUTOSIZEGRID;

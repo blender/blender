@@ -3530,6 +3530,9 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 	case 13: /* flip left and right names */
 		armature_flip_names();
 		break;
+	case 14: /* interactively set bone roll */
+		initTransform(TFM_BONE_ROLL, CTX_NONE);
+		Transform();
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3551,6 +3554,7 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Bone Roll Angle|Ctrl R",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Bone Roll Angle|Ctrl N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
