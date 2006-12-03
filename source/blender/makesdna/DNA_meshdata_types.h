@@ -32,6 +32,8 @@
 #ifndef DNA_MESHDATA_TYPES_H
 #define DNA_MESHDATA_TYPES_H
 
+#include "DNA_customdata_types.h"
+
 struct Bone;
 struct Image;
 
@@ -132,7 +134,7 @@ typedef struct Multires {
 
 	/* Vertex groups are stored only for the level 1 mesh, for all other
 	 * levels it's calculated when multires_level_to_mesh() is called */
-	MDeformVert *dverts;
+	struct CustomData vdata;
 } Multires;
 
 typedef struct PartialVisibility {

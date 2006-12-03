@@ -50,6 +50,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 
+#include "BIF_editmesh.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
@@ -72,6 +73,9 @@
 
 #include <math.h>
 #include <string.h>
+
+/* Only do deformverts */
+CustomDataMask vdata_mask[]= {0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
 
 /* editmesh.h */
 int multires_test()
@@ -396,7 +400,8 @@ void multires_add_dvert(MDeformVert *out, const MDeformVert *in, const float w)
 				}
 			}
 			if(!found) {
-				MDeformWeight *newdw= MEM_callocN(sizeof(MDeformWeight)*(out->totweight+1), "multires dvert");
+				MDeformWeight *newdw= MEM_callocN(sizeof(MDeformWeight)*(out->totweight+1),
+				                                  "multires dvert");
 				if(out->dw) {
 					memcpy(newdw, out->dw, sizeof(MDeformWeight)*out->totweight);
 					MEM_freeN(out->dw);
@@ -500,16 +505,16 @@ void multires_load_cols(Mesh *me)
 	}
 }
 
-void multires_get_vert(MVert *v, EditVert *eve, MVert *m, int i)
+void multires_get_vert(MVert *out, EditVert *eve, MVert *m, int i)
 {
 	if(eve) {
-		VecCopyf(v->co, eve->co);
-		if(eve->f & SELECT) v->flag |= 1;
-		if(eve->h) v->flag |= ME_HIDE;
+		VecCopyf(out->co, eve->co);
+		if(eve->f & SELECT) out->flag |= 1;
+		if(eve->h) out->flag |= ME_HIDE;
 		eve->tmp.l= i;
 	}
 	else
-		v= m;
+		out= m;
 }
 
 void multires_get_face(MultiresFace *f, EditFace *efa, MFace *m)
@@ -543,6 +548,29 @@ void multires_get_edge(MultiresEdge *e, EditEdge *eed, MEdge *m)
 	}
 }
 
+void multires_update_deformverts(Multires *mr, CustomData *src)
+{
+	MultiresLevel *lvl= mr->levels.first;
+	if(lvl) {
+		int i;
+		
+		CustomData_free(&mr->vdata, lvl->totvert);
+				
+		if(CustomData_has_layer(src, CD_MDEFORMVERT)) {				
+			if(G.obedit) {
+				EditVert *eve= G.editMesh->verts.first;
+				CustomData_add_layer(&mr->vdata, CD_MDEFORMVERT, 0, NULL, lvl->totvert);
+				for(i=0; i<lvl->totvert; ++i) {
+					CustomData_from_em_block(&G.editMesh->vdata, &mr->vdata, eve->data, i);
+					eve= eve->next;
+				}
+			}
+			else
+				CustomData_copy(src, &mr->vdata, vdata_mask, CD_DUPLICATE, lvl->totvert);
+		}
+	}
+}
+
 void multires_make(void *ob, void *me_v)
 {
 	Mesh *me= me_v;
@@ -551,6 +579,7 @@ void multires_make(void *ob, void *me_v)
 	EditVert *eve= NULL;
 	EditFace *efa= NULL;
 	EditEdge *eed= NULL;
+	
 	int i;
 
 	waitcursor(1);
@@ -571,6 +600,7 @@ void multires_make(void *ob, void *me_v)
 	/* Load vertices */
 	lvl->totvert= em ? BLI_countlist(&em->verts) : me->totvert;
 	lvl->verts= MEM_callocN(sizeof(MVert)*lvl->totvert,"multires verts");
+	multires_update_deformverts(me->mr, em ? &em->vdata : &me->vdata);
 	if(em) eve= em->verts.first;
 	for(i=0; i<lvl->totvert; ++i) {
 		multires_get_vert(&lvl->verts[i], eve, &me->mvert[i], i);
@@ -593,12 +623,6 @@ void multires_make(void *ob, void *me_v)
 	for(i=0; i<lvl->totedge; ++i) {
 		multires_get_edge(&lvl->edges[i], eed, &me->medge[i]);
 		if(em) eed= eed->next;
-	}
-
-	/* Load dverts */
-	if(me->dvert) {
-		me->mr->dverts= MEM_mallocN(sizeof(MDeformVert)*me->totvert, "MDeformVert");
-		copy_dverts(me->mr->dverts, me->dvert, me->totvert);
 	}
 
 	multires_load_cols(me);
@@ -645,20 +669,16 @@ Multires *multires_copy(Multires *orig)
 {
 	if(orig) {
 		Multires *mr= MEM_dupallocN(orig);
-		MultiresLevel *lvlorig;
+		MultiresLevel *lvl;
 		
 		mr->levels.first= mr->levels.last= NULL;
 		
-		for(lvlorig= orig->levels.first; lvlorig; lvlorig= lvlorig->next)
-			BLI_addtail(&mr->levels, multires_level_copy(lvlorig));
-			
-		if(mr->dverts && mr->levels.first) {
-			MultiresLevel *lvl= mr->levels.first;
-			mr->dverts= MEM_mallocN(sizeof(MDeformVert)*lvl->totvert, "MDeformVert");
-			copy_dverts(mr->dverts, orig->dverts, lvl->totvert);
-		}
-		else
-			mr->dverts= NULL;
+		for(lvl= orig->levels.first; lvl; lvl= lvl->next)
+			BLI_addtail(&mr->levels, multires_level_copy(lvl));
+		
+		lvl= mr->levels.first;
+		if(lvl)
+			CustomData_copy(&orig->vdata, &mr->vdata, vdata_mask, CD_DUPLICATE, lvl->totvert);
 		
 		return mr;
 	}
@@ -672,7 +692,7 @@ void multires_free(Multires *mr)
 
 		/* Free the first-level data */
 		if(lvl)
-			free_dverts(mr->dverts, lvl->totvert);
+			CustomData_free(&mr->vdata, lvl->totvert);
 
 		while(lvl) {
 			multires_free_level(lvl);			
@@ -1004,7 +1024,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 	MultiresLevel *lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
 	int i,sm= G.f & G_SCULPTMODE;
 	EditMesh *em= G.obedit ? G.editMesh : NULL;
-	EditVert **eves= NULL;
+	EditVert **eves= NULL, *eve;
 	
 	if(em) {
 		/* Remove editmesh elements */
@@ -1065,10 +1085,17 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 	}
 
 	/* Vertex groups */
-	if(me->mr->dverts && lvl==me->mr->levels.first) {
-		me->dvert= CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, 0, NULL, me->totvert);
-		copy_dverts(me->dvert, me->mr->dverts, lvl->totvert);
-	} else if(me->mr->dverts) {
+	if(lvl==me->mr->levels.first && CustomData_has_layer(&me->mr->vdata, CD_MDEFORMVERT)) {
+		if(em) {
+			EM_add_data_layer(&em->vdata, CD_MDEFORMVERT);
+			for(i=0, eve= em->verts.first; eve; ++i, eve= eve->next)
+				CustomData_em_set(&em->vdata, eve->data, CD_MDEFORMVERT,
+				                  CustomData_get(&me->mr->vdata, i, CD_MDEFORMVERT));
+		} else
+			CustomData_merge(&me->mr->vdata, (em ? &em->vdata : &me->vdata),
+			                 vdata_mask, CD_DUPLICATE, lvl->totvert);
+	}
+	else if(CustomData_has_layer(&me->mr->vdata, CD_MDEFORMVERT)) {
 		MultiresLevel *dlvl, *lvl1= me->mr->levels.first;
 		MDeformVert **lvl_dverts;
 		MDeformVert *source;
@@ -1081,7 +1108,10 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		for(dlvl= lvl1->next; dlvl && dlvl != lvl->next; dlvl= dlvl->next) {
 			lvl_dverts[dlvl_ndx]= MEM_callocN(sizeof(MDeformVert)*dlvl->totvert, "dvert prop data");
 
-			source= dlvl->prev==lvl1 ? me->mr->dverts : lvl_dverts[dlvl_ndx-1];
+			if(dlvl->prev==lvl1)
+				source= CustomData_get(&me->mr->vdata, 0, CD_MDEFORMVERT);
+			else
+				source= lvl_dverts[dlvl_ndx-1];
 
 			/* Copy lower level */
 			for(i=0; i<dlvl->prev->totvert; ++i)
@@ -1106,13 +1136,17 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		}
 
 		dlvl= lvl1->next;
-		for(i=0; i<(dlvl_ndx-1); ++i) {
-			for(j=0; j<dlvl->totvert; ++j)
-				if(lvl_dverts[i][j].dw) MEM_freeN(lvl_dverts[i][j].dw);
-			MEM_freeN(lvl_dverts[i]);
-		}
+		for(i=0; i<(dlvl_ndx-1); ++i, dlvl= dlvl->next)
+			free_dverts(lvl_dverts[i], dlvl->totvert);
 
-		me->dvert= CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, 0, lvl_dverts[dlvl_ndx-1], me->totvert);
+		if(em) {
+			EM_add_data_layer(&em->vdata, CD_MDEFORMVERT);
+			for(i=0, eve= em->verts.first; eve; ++i, eve= eve->next)
+				CustomData_em_set(&em->vdata, eve->data, CD_MDEFORMVERT, &lvl_dverts[dlvl_ndx-1][i]);
+			free_dverts(lvl_dverts[dlvl_ndx-1], dlvl->totvert);
+		} else
+			me->dvert= CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, 0,
+			                                lvl_dverts[dlvl_ndx-1], me->totvert);
 
 		MEM_freeN(lvl_dverts);
 	}
@@ -1253,14 +1287,8 @@ void multires_update_levels(Mesh *me)
 	unsigned i,j,curf;
 
 	/* Update special first-level data */
-	if(cr_lvl==me->mr->levels.first) {
-		/* Update deformverts */
-		free_dverts(me->mr->dverts, cr_lvl->totvert);
-		if(me->dvert) {
-			me->mr->dverts= MEM_mallocN(sizeof(MDeformVert)*me->totvert, "MDeformVert");
-			copy_dverts(me->mr->dverts, me->dvert, me->totvert);
-		}
-	}
+	if(cr_lvl==me->mr->levels.first)
+		multires_update_deformverts(me->mr, (em ? &em->vdata : &me->vdata));
 
 	/* Prepare deltas */
 	cr_deltas= MEM_callocN(sizeof(vec3f)*cr_lvl->totvert,"initial deltas");
