@@ -4252,7 +4252,7 @@ void do_fpaintbuts(unsigned short event)
 						else tf->mode &= ~TF_TILES;
 					}
 					else if(event==B_COPY_TF_COL && activemcol)
-						memcpy(&me->mcol[a], activemcol, sizeof(MCol)*4);
+						memcpy(&me->mcol[a*4], activemcol, sizeof(MCol)*4);
 				}
 			}
 

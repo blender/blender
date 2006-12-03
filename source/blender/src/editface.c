@@ -584,21 +584,21 @@ MTFace *get_active_tface(MCol **mcol)
 	
 	for(a=0, tf=me->mtface; a < me->totface; a++, tf++) {
 		if(tf->flag & TF_ACTIVE) {
-			if(mcol) *mcol = (me->mcol)? &me->mcol[a]: NULL;
+			if(mcol) *mcol = (me->mcol)? &me->mcol[a*4]: NULL;
 			return tf;
 		}
 	}
 
 	for(a=0, tf=me->mtface; a < me->totface; a++, tf++) {
 		if(tf->flag & TF_SELECT) {
-			if(mcol) *mcol = (me->mcol)? &me->mcol[a]: NULL;
+			if(mcol) *mcol = (me->mcol)? &me->mcol[a*4]: NULL;
 			return tf;
 		}
 	}
 
 	for(a=0, tf=me->mtface; a < me->totface; a++, tf++) {
 		if((tf->flag & TF_HIDE)==0) {
-			if(mcol) *mcol = (me->mcol)? &me->mcol[a]: NULL;
+			if(mcol) *mcol = (me->mcol)? &me->mcol[a*4]: NULL;
 			return tf;
 		}
 	}

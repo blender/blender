@@ -3270,13 +3270,13 @@ void copy_attr_tface(short event)
 			case 1:
 				tface->tpage = activetf->tpage;
 				tface->tile= activetf->tile;
-				tface->mode = activetf->mode & TF_TEX;
+				tface->mode |= TF_TEX;
 				break;
 			case 2:
 				memcpy(tface->uv, activetf->uv, sizeof(tface->uv)); break;
 			case 3:
 				if(activemcol)
-					memcpy(&me->mcol[a], activemcol, sizeof(MCol)*3); break;
+					memcpy(&me->mcol[a*4], activemcol, sizeof(MCol)*4); break;
 			case 4:
 				tface->mode = activetf->mode; break;
 			case 5:

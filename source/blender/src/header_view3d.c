@@ -4220,7 +4220,7 @@ static void do_view3d_faceselmenu(void *arg, int event)
 						
 					}
 					else if(event==2 && activemcol)
-						memcpy(&me->mcol[a], activemcol, sizeof(MCol)*4);
+						memcpy(&me->mcol[a*4], activemcol, sizeof(MCol)*4);
 				}
 			}
 
