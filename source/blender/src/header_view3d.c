@@ -4003,14 +4003,41 @@ static uiBlock *view3d_wpaintmenu(void *arg_unused)
 
 void do_view3d_sculptmenu(void *arg, int event)
 {
-	short avg= G.scene->sculptdata.averaging;
+	SculptData *sd= &G.scene->sculptdata;
+	BrushData *br= sculptmode_brush();
+	short avg= sd->averaging;
 	switch(event) {
-	case 0: /* Set sculptdata.averaging */
+	case 0:
+	case 1:
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+		sd->brush_type= event+1;
+		break;
+	case 6:
+		br->dir= 1; break;
+	case 7:
+		br->dir= 0; break;
+	case 8:
+		br->airbrush= !br->airbrush; break;
+	case 9:
+		sd->symm_x= !sd->symm_x; break;
+	case 10:
+		sd->symm_y= !sd->symm_y; break;
+	case 11:
+		sd->symm_z= !sd->symm_z; break;
+	case 12: /* Set sculptdata.averaging */
 		if(button(&avg,1,10,"Averaging:")==0) return;
-		G.scene->sculptdata.averaging= avg;
+		sd->averaging= avg;
+		break;
+	case 13:
+		if(G.vd)
+			G.vd->pivot_last= !G.vd->pivot_last;
 		break;
 	}
 
+	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -4018,11 +4045,34 @@ uiBlock *view3d_sculptmenu(void *arg_unused_so_why_have_it/*?*/)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth= 120;
+	SculptData *sd= &G.scene->sculptdata;
+	const BrushData *br= sculptmode_brush();
 	
 	block= uiNewBlock(&curarea->uiblocks, "view3d_sculptmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_sculptmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mouse averaging", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	if(G.vd)
+		uiDefIconTextBut(block, BUTM, 1, (G.vd->pivot_last ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Pivot last", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mouse averaging", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->symm_z ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry Z", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->symm_y ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry Y", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->symm_x ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	if(sd->brush_type!=GRAB_BRUSH)
+		uiDefIconTextBut(block, BUTM, 1, (br->airbrush ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Airbrush", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+	if(sd->brush_type!=SMOOTH_BRUSH && sd->brush_type!=GRAB_BRUSH) {
+		uiDefIconTextBut(block, BUTM, 1, (br->dir==0 ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Sub", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+		uiDefIconTextBut(block, BUTM, 1, (br->dir==1 ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Add", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	}
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==LAYER_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Layer", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==GRAB_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Grab", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==INFLATE_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Inflate", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==PINCH_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Pinch", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==SMOOTH_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Smooth", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==DRAW_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Draw", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

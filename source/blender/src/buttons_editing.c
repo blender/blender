@@ -4072,9 +4072,6 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 
 	uiDefBut(block,LABEL,B_NOP,"Brush",cx,cy,90,19,NULL,0,0,0,0,"");
 	cy-= 20;
-
-	uiBlockBeginAlign(block);
-	uiDefButC(block, TOG, B_NOP, "PvRot", cx+206,cy,50,20, &G.vd->pivot_last, 0,0,0,0, "Rotate around the center of the last brush action");
 	
 	uiBlockBeginAlign(block);	
 	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Draw",cx,cy,67,19,&sd->brush_type,14.0,DRAW_BRUSH,0,0,"Draw lines on the model");
