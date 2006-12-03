@@ -1611,7 +1611,7 @@ int ToSphere(TransInfo *t, short mval[2])
 	float vec[3];
 	float ratio, radius;
 	int i;
-	char str[50];
+	char str[64];
 	TransData *td = t->data;
 
 	ratio = InputHorizontalRatio(t, mval);
@@ -1833,7 +1833,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 int Rotation(TransInfo *t, short mval[2]) 
 {
 	TransData *td = t->data;
-	char str[50];
+	char str[64];
 
 	float final;
 
@@ -1968,7 +1968,7 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 
 int Trackball(TransInfo *t, short mval[2]) 
 {
-	char str[80];
+	char str[128];
 	float axis1[3], axis2[3];
 	float mat[3][3], totmat[3][3], smat[3][3];
 	float phi[2];
@@ -2209,7 +2209,7 @@ int ShrinkFatten(TransInfo *t, short mval[2])
 	float vec[3];
 	float distance;
 	int i;
-	char str[50];
+	char str[64];
 	TransData *td = t->data;
 
 	distance = -InputVerticalAbsolute(t, mval);
@@ -2437,7 +2437,7 @@ int PushPull(TransInfo *t, short mval[2])
 	float vec[3], axis[3];
 	float distance;
 	int i;
-	char str[50];
+	char str[128];
 	TransData *td = t->data;
 
 	distance = InputVerticalAbsolute(t, mval);

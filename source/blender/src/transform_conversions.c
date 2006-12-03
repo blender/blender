@@ -268,6 +268,11 @@ static void createTransTexspace(TransInfo *t)
 	ID *id;
 	
 	ob= OBACT;
+	
+	if (ob==NULL) { // Should logically happen, but still...
+		t->total = 0;
+		return;
+	}
 
 	id= ob->data;
 	if(id==NULL || !ELEM3( GS(id->name), ID_ME, ID_CU, ID_MB )) {
@@ -666,6 +671,10 @@ static void pose_grab_with_ik_add(bPoseChannel *pchan)
 	bKinematicConstraint *data;
 	bConstraint *con;
 	
+	if (pchan == NULL) { // Sanity check
+		return;
+	}
+	
 	/* rule: not if there's already an IK on this channel */
 	for(con= pchan->constraints.first; con; con= con->next)
 		if(con->type==CONSTRAINT_TYPE_KINEMATIC)
@@ -717,11 +726,13 @@ static void pose_grab_with_ik_children(bPose *pose, Bone *bone)
 /* main call which adds temporal IK chains */
 static void pose_grab_with_ik(Object *ob)
 {
-	bArmature *arm= ob->data;
+	bArmature *arm;
 	bPoseChannel *pchan, *pchansel= NULL;
 	
 	if(ob==NULL || ob->pose==NULL || (ob->flag & OB_POSEMODE)==0)
 		return;
+		
+	arm = ob->data;
 	
 	/* rule: only one Bone */
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -2390,7 +2401,12 @@ static void createTransObject(TransInfo *t)
 					ipoflag= ob->ipoflag;
 					ob->ipoflag &= ~OB_OFFS_OB;
 					
-					pushdata(ob->loc, 7*3*4); // tsk! tsk!
+					/*
+					 * This is really EVIL code that pushes down Object values
+					 * (loc, dloc, orig, size, dsize, rot, drot)
+					 * */
+					 
+					pushdata((void*)ob->loc, 7 * 3 * sizeof(float)); // tsk! tsk!
 					
 					for(ik= elems.first; ik; ik= ik->next) {
 						
