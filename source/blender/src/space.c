@@ -1204,6 +1204,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(!G.scene->sculptdata.propset)
 					sculpt();
 				break;
+			/* View */
 			case MIDDLEMOUSE:
 				handle_view_middlemouse();
 				break;
@@ -1218,6 +1219,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case RIGHTMOUSE:
 				if(G.qual==LR_SHIFTKEY+LR_CTRLKEY)
 					sculptmode_pmv(1);
+				break;
+			case PAD0: case PAD1: case PAD2: case PAD3: case PAD4:
+			case PAD5: case PAD6: case PAD7: case PAD8: case PAD9:
+			case PADPLUSKEY:
+			case PADMINUS:
+			case PADENTER:
+				persptoetsen(event);
+				doredraw= 1;
 				break;
 			/* Brush properties */
 			case AKEY:
