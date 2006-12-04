@@ -2448,7 +2448,7 @@ static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
 
 static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 {
-	int i = 0, removed;
+	int i = 0;
 
 	data->layers= newdataadr(fd, data->layers);
 
@@ -3510,7 +3510,7 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 					if(v3d->bgpic) {
 						v3d->bgpic->ima= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->ima, 1);
 						v3d->bgpic->tex= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->tex, 1);
-						if(v3d->bgpic->rect) freeN(v3d->bgpic->rect);
+						if(v3d->bgpic->rect) MEM_freeN(v3d->bgpic->rect);
 						v3d->bgpic->rect= NULL;
 					}
 					if(v3d->localvd) {
