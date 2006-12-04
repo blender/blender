@@ -35,6 +35,7 @@ btRigidBody::btRigidBody(float mass, btMotionState* motionState, btCollisionShap
 	m_totalTorque(0.0f, 0.0f, 0.0f),
 	m_linearVelocity(0.0f, 0.0f, 0.0f),
 	m_angularVelocity(0.f,0.f,0.f),
+	m_angularFactor(1.f),
 	m_linearDamping(0.f),
 	m_angularDamping(0.5f),
 	m_optionalMotionState(motionState),

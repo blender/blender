@@ -47,6 +47,7 @@ class btRigidBody  : public btCollisionObject
 	btVector3		m_linearVelocity;
 	btVector3		m_angularVelocity;
 	btScalar		m_inverseMass;
+	btScalar		m_angularFactor;
 
 	btVector3		m_gravity;	
 	btVector3		m_invInertiaLocal;
@@ -159,7 +160,10 @@ public:
 		if (m_inverseMass != 0.f)
 		{
 			applyCentralImpulse(impulse);
-			applyTorqueImpulse(rel_pos.cross(impulse));
+			if (m_angularFactor)
+			{
+				applyTorqueImpulse(rel_pos.cross(impulse)*m_angularFactor);
+			}
 		}
 	}
 
@@ -169,7 +173,10 @@ public:
 		if (m_inverseMass != 0.f)
 		{
 			m_linearVelocity += linearComponent*impulseMagnitude;
-			m_angularVelocity += angularComponent*impulseMagnitude;
+			if (m_angularFactor)
+			{
+				m_angularVelocity += angularComponent*impulseMagnitude*m_angularFactor;
+			}
 		}
 	}
 	
@@ -321,6 +328,14 @@ public:
 	int	m_contactSolverType;
 	int	m_frictionSolverType;
 
+	void	setAngularFactor(float angFac)
+	{
+		m_angularFactor = angFac;
+	}
+	float	getAngularFactor() const
+	{
+		return m_angularFactor;
+	}
 	
 
 	int	m_debugBodyId;

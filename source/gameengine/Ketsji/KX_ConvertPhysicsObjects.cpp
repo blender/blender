@@ -1156,9 +1156,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		physicscontroller->GetRigidBody()->updateInertiaTensor();
 		*/
 
-		env->createConstraint(physicscontroller,0,PHY_ANGULAR_CONSTRAINT,0,0,0,0,0,1);
-		
-
+		//env->createConstraint(physicscontroller,0,PHY_ANGULAR_CONSTRAINT,0,0,0,0,0,1);
+		physicscontroller->GetRigidBody()->setAngularFactor(0.f);
 
 	}
 
