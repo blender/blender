@@ -108,7 +108,8 @@ public:
 		{
 			btWheelInfo& info = m_vehicle->getWheelInfo(i);
 			PHY_IMotionState* motionState = (PHY_IMotionState*)info.m_clientInfo ;
-			m_vehicle->updateWheelTransform(i,true);
+	//		m_vehicle->updateWheelTransformsWS(info,false);
+			m_vehicle->updateWheelTransform(i,false);
 			btTransform trans = m_vehicle->getWheelInfo(i).m_worldTransform;
 			btQuaternion orn = trans.getRotation();
 			const btVector3& pos = trans.getOrigin();
@@ -463,7 +464,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 	for (i=0;i<numCtrl;i++)
 	{
 		CcdPhysicsController* ctrl = GetPhysicsController(i);
-		//ctrl->SynchronizeMotionStates(timeStep);
+		ctrl->SynchronizeMotionStates(timeStep);
 	}
 
 	for (i=0;i<m_wrapperVehicles.size();i++)
@@ -829,6 +830,8 @@ void CcdPhysicsEnvironment::addSensor(PHY_IPhysicsController* ctrl)
 	}
 	//force collision detection with everything, including static objects (might hurt performance!)
 	ctrl1->GetRigidBody()->getBroadphaseHandle()->m_collisionFilterMask = btBroadphaseProxy::AllFilter;
+	ctrl1->GetRigidBody()->getBroadphaseHandle()->m_collisionFilterGroup = btBroadphaseProxy::AllFilter;
+	//todo: make this 'sensor'!
 
 	requestCollisionCallback(ctrl);
 	//printf("addSensor\n");

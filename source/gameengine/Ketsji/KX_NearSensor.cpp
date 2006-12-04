@@ -116,6 +116,7 @@ CValue* KX_NearSensor::GetReplica()
 	//replica->m_sumoObj->setMargin(m_Margin);
 	//replica->m_sumoObj->setClientObject(replica->m_client_info);
 	
+	((KX_GameObject*)replica->GetParent())->GetSGNode()->ComputeWorldTransforms(NULL);
 	replica->SynchronizeTransform();
 	
 	return replica;
@@ -139,7 +140,7 @@ void KX_NearSensor::ReParent(SCA_IObject* parent)
 	client_info->m_sensors.push_back(this);
 	SCA_ISensor::ReParent(parent);
 */
-
+	((KX_GameObject*)GetParent())->GetSGNode()->ComputeWorldTransforms(NULL);
 	SynchronizeTransform();
 }
 

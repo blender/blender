@@ -103,6 +103,7 @@ CValue* KX_RadarSensor::GetReplica()
 	//replica->m_sumoObj->setMargin(m_Margin);
 	//replica->m_sumoObj->setClientObject(replica->m_client_info);
 	
+	((KX_GameObject*)replica->GetParent())->GetSGNode()->ComputeWorldTransforms(NULL);
 	replica->SynchronizeTransform();
 	
 	return replica;

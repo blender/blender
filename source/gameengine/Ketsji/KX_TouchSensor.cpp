@@ -54,8 +54,10 @@ void KX_TouchSensor::SynchronizeTransform()
 
 	if (m_physCtrl)
 	{
-		MT_Vector3 pos = ((KX_GameObject*)GetParent())->NodeGetWorldPosition();
-		MT_Quaternion orn = ((KX_GameObject*)GetParent())->NodeGetWorldOrientation().getRotation();
+
+		KX_GameObject* parent = ((KX_GameObject*)GetParent());
+		MT_Vector3 pos = parent->NodeGetWorldPosition();
+		MT_Quaternion orn = parent->NodeGetWorldOrientation().getRotation();
 		m_physCtrl->setPosition(pos.x(),pos.y(),pos.z());
 		m_physCtrl->setOrientation(orn.x(),orn.y(),orn.z(),orn.w());
 		m_physCtrl->calcXform();

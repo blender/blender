@@ -99,7 +99,7 @@ public:
 		m_blenderMotionState->setWorldPosition(worldTrans.getOrigin().getX(),worldTrans.getOrigin().getY(),worldTrans.getOrigin().getZ());
 		btQuaternion rotQuat = worldTrans.getRotation();
 		m_blenderMotionState->setWorldOrientation(rotQuat[0],rotQuat[1],rotQuat[2],rotQuat[3]);
-
+		m_blenderMotionState->calculateWorldTransformations();
 	}
 
 };
