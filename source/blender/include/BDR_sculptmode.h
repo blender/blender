@@ -72,7 +72,7 @@ void sculptmode_undo_menu();
 void sculptmode_draw_interface_tools(struct uiBlock *block,unsigned short cx, unsigned short cy);
 void sculptmode_draw_interface_textures(struct uiBlock *block,unsigned short cx, unsigned short cy);
 void sculptmode_rem_tex(void*,void*);
-void sculptmode_propset_init(unsigned short key);
+void sculptmode_propset_init(PropsetMode mode);
 void sculptmode_propset(const unsigned short event);
 void sculptmode_selectbrush_menu();
 void sculptmode_draw_mesh(int);

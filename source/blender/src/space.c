@@ -1114,7 +1114,61 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			}
 		}
-		else {
+		if(!G.obedit && (G.f & G_SCULPTMODE)) {
+			SculptData *sd= &G.scene->sculptdata;
+			BrushData *br= sculptmode_brush();
+			switch(event) {
+			case LEFTMOUSE:
+				if(G.qual==LR_SHIFTKEY+LR_CTRLKEY)
+					sculptmode_pmv(0);
+				else if(!G.scene->sculptdata.propset)
+					sculpt();
+				break;
+			case RIGHTMOUSE:
+				if(G.qual==LR_SHIFTKEY+LR_CTRLKEY)
+					sculptmode_pmv(1);
+				break;
+			/* Brush properties */
+			case AKEY:
+				br->airbrush= !br->airbrush;
+				allqueue(REDRAWBUTSEDIT, 0); break;
+			case FKEY:
+				if(G.qual==0)
+					sculptmode_propset_init(PropsetSize);
+				if(G.qual==LR_SHIFTKEY)
+					sculptmode_propset_init(PropsetStrength);	
+				break;
+			/* Set brush */
+			case DKEY:
+				sd->brush_type= DRAW_BRUSH;
+				allqueue(REDRAWBUTSEDIT, 0); break;
+			case SKEY:
+				sd->brush_type= SMOOTH_BRUSH;
+				allqueue(REDRAWBUTSEDIT, 0); break;
+			case PKEY:
+				sd->brush_type= PINCH_BRUSH;
+				allqueue(REDRAWBUTSEDIT, 0); break;
+			case IKEY:
+				sd->brush_type= INFLATE_BRUSH;
+				allqueue(REDRAWBUTSEDIT, 0); break;
+			case GKEY:
+				sd->brush_type= GRAB_BRUSH;
+				allqueue(REDRAWBUTSEDIT, 0); break;
+			case LKEY:
+				sd->brush_type= LAYER_BRUSH;
+				allqueue(REDRAWBUTSEDIT, 0); break;
+			/* Symmetry */
+			case XKEY:
+				sd->symm_x= !sd->symm_x;
+				allqueue(REDRAWBUTSEDIT, 0); break;
+			case YKEY:
+				sd->symm_y= !sd->symm_y;
+				allqueue(REDRAWBUTSEDIT, 0); break;
+			case ZKEY:
+				sd->symm_z= !sd->symm_z;
+				allqueue(REDRAWBUTSEDIT, 0); break;
+			}
+		} else {
 
 			if (U.flag & USER_NONUMPAD) {
 				event= convert_for_nonumpad(event);
@@ -1136,12 +1190,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case LEFTMOUSE: 
 				if ((G.obedit) || !(G.f&(G_SCULPTMODE|G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
 					mouse_cursor();
-				}
-				else if (G.f & G_SCULPTMODE) {
-					if(G.qual==LR_SHIFTKEY+LR_CTRLKEY)
-						sculptmode_pmv(0);
-					else if(!G.scene->sculptdata.propset)
-						sculpt();
 				}
 				else if (G.f & G_WEIGHTPAINT) {
 					weight_paint();
@@ -1195,8 +1243,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					face_select();
 				else if( G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))
 					sample_vpaint();
-				else if((G.f & G_SCULPTMODE) && G.qual==LR_SHIFTKEY+LR_CTRLKEY)
-					sculptmode_pmv(1);
 				else
 					mouse_select();	/* does poses too */
 				break;
@@ -1455,16 +1501,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					imagestodisplist();
 				}
 				else if((G.qual==0)){
-					if(G.f & G_SCULPTMODE)
-						sculptmode_propset_init(DKEY);
-					else {
-						pupval= pupmenu("Draw mode%t|BoundBox %x1|Wire %x2|OpenGL Solid %x3|Shaded Solid %x4|Textured Solid %x5");
-						if(pupval>0) {
-							G.vd->drawtype= pupval;
-							doredraw= 1;
-						}
+					pupval= pupmenu("Draw mode%t|BoundBox %x1|Wire %x2|OpenGL Solid %x3|Shaded Solid %x4|Textured Solid %x5");
+					if(pupval>0) {
+						G.vd->drawtype= pupval;
+						doredraw= 1;
 					}
-				}
+                                }
 				
 				break;
 			case EKEY:

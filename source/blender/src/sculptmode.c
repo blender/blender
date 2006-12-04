@@ -1298,7 +1298,7 @@ void sculptmode_propset_end(int cancel)
 	}
 }
 
-void sculptmode_propset_init(unsigned short key)
+void sculptmode_propset_init(PropsetMode mode)
 {
 	PropsetData *pd= G.scene->sculptdata.propset;
 	
@@ -1318,15 +1318,7 @@ void sculptmode_propset_init(unsigned short key)
 		sculptmode_propset_calctex();
 	}
 
-	switch(key) {
-	case DKEY:
-		if(pd->mode == PropsetNone)
-			pd->mode= PropsetSize;
-		else if(pd->mode == PropsetSize)
-			pd->mode= PropsetStrength;
-		else
-			sculptmode_propset_end(1);
-	}
+	pd->mode= mode;
 }
 
 void sculptmode_propset(unsigned short event)
@@ -1337,10 +1329,6 @@ void sculptmode_propset(unsigned short event)
 	float dist;
 
 	switch(event) {
-	case DKEY:
-		sculptmode_propset_init(DKEY);
-		allqueue(REDRAWVIEW3D, 0);
-		break;
 	case MOUSEX:
 	case MOUSEY:
 		getmouseco_areawin(mouse);

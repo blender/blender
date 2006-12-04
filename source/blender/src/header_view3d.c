@@ -4055,23 +4055,23 @@ uiBlock *view3d_sculptmenu(void *arg_unused_so_why_have_it/*?*/)
 		uiDefIconTextBut(block, BUTM, 1, (G.vd->pivot_last ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Pivot last", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mouse averaging", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->symm_z ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry Z", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->symm_y ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry Y", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->symm_x ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->symm_z ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry Z|Z", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->symm_y ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry Y|Y", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->symm_x ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry X|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	if(sd->brush_type!=GRAB_BRUSH)
-		uiDefIconTextBut(block, BUTM, 1, (br->airbrush ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Airbrush", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+		uiDefIconTextBut(block, BUTM, 1, (br->airbrush ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Airbrush|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
 	if(sd->brush_type!=SMOOTH_BRUSH && sd->brush_type!=GRAB_BRUSH) {
 		uiDefIconTextBut(block, BUTM, 1, (br->dir==0 ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Sub", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 		uiDefIconTextBut(block, BUTM, 1, (br->dir==1 ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Add", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	}
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==LAYER_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Layer", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==GRAB_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Grab", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==INFLATE_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Inflate", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==PINCH_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Pinch", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==SMOOTH_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Smooth", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==DRAW_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Draw", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==LAYER_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Layer|L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==GRAB_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Grab|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==INFLATE_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Inflate|I", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==PINCH_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Pinch|P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==SMOOTH_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Smooth|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==DRAW_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Draw|D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 
 	if(curarea->headertype==HEADERTOP) {
