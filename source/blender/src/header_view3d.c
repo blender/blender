@@ -4035,6 +4035,9 @@ void do_view3d_sculptmenu(void *arg, int event)
 		if(G.vd)
 			G.vd->pivot_last= !G.vd->pivot_last;
 		break;
+	case 14:
+		sd->draw_mode= !sd->draw_mode;
+		break;
 	}
 
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -4051,6 +4054,7 @@ uiBlock *view3d_sculptmenu(void *arg_unused_so_why_have_it/*?*/)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_sculptmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_sculptmenu, NULL);
 	
+	uiDefIconTextBut(block, BUTM, 1, (sd->draw_mode ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Partial Redraw", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
 	if(G.vd)
 		uiDefIconTextBut(block, BUTM, 1, (G.vd->pivot_last ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Pivot last", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mouse averaging", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");

@@ -4032,13 +4032,9 @@ static void editing_panel_links(Object *ob)
 	uiDefBut(block, BUT,B_MATASS,	"Assign",	292,47,162,26, 0, 0, 0, 0, 0, "In EditMode, assigns the active index to selected faces");
 
 	uiBlockBeginAlign(block);
-	if(!(G.f & G_SCULPTMODE) || ((G.f & G_SCULPTMODE) && G.obedit))
-	{
-		
-		uiDefBut(block, BUT,B_SETSMOOTH,"Set Smooth",	291,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'smooth' rendering of selected faces");
-		uiDefBut(block, BUT,B_SETSOLID,	"Set Solid",	373,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'solid' rendering of selected faces");
-		
-	}
+	uiDefBut(block, BUT,B_SETSMOOTH,"Set Smooth",	291,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'smooth' rendering of selected faces");
+	uiDefBut(block, BUT,B_SETSOLID,	"Set Solid",	373,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'solid' rendering of selected faces");
+
 	uiBlockEndAlign(block);
 
 

@@ -419,11 +419,12 @@ typedef struct SculptData
 	short texscale;
 	short texact, texnr;
 	short spacing;
-	char pad;
 	char texrept;
 	char texfade;
 
 	char averaging;
+	
+	char draw_mode;
 } SculptData;
 
 #define SCULPTREPT_DRAG 1

@@ -2159,7 +2159,8 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 			cageDM->release(cageDM);
 		finalDM->release(finalDM);
 	}
-	else if(!G.obedit && G.scene->sculptdata.active_ob == ob && !modifiers_getVirtualModifierList(ob)) {
+	else if(!G.obedit && G.scene->sculptdata.draw_mode &&
+	        G.scene->sculptdata.active_ob == ob && !modifiers_getVirtualModifierList(ob)) {
 		sculptmode_draw_mesh(0);
 	}
 	else {

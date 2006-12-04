@@ -175,6 +175,7 @@ void sculptmode_init(Scene *sce)
 	sd->averaging= 1;
 	sd->texscale= 100;
 	sd->texrept= SCULPTREPT_DRAG;
+	sd->draw_mode= 0;
 }
 
 /* Free G.sculptdata->vertexusers */
@@ -428,7 +429,7 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 	
 	set_sculpt_object(ob);
 	
-	if(modifiers_getVirtualModifierList(ob))
+	if(!sd->draw_mode || modifiers_getVirtualModifierList(ob))
 		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 
 	if(G.vd->depths) G.vd->depths->damaged= 1;
@@ -1558,7 +1559,8 @@ void sculpt()
 	e.layer_store= NULL;
 
 	/* Capture original copy */
-	glAccum(GL_LOAD, 1);
+	if(sd->draw_mode)
+		glAccum(GL_LOAD, 1);
 
 	while (get_mbut() & mousebut) {
 		getmouseco_areawin(mouse);
@@ -1604,14 +1606,17 @@ void sculpt()
 			if(modifier_calculations)
 				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 
-			if(modifier_calculations || sd->brush_type == GRAB_BRUSH) {
+			if(modifier_calculations || sd->brush_type == GRAB_BRUSH || !sd->draw_mode) {
 				calc_damaged_verts(&damaged_verts,e.grabdata);
-
 				scrarea_do_windraw(curarea);
 				screen_swapbuffers();
-			} else {
+			} else { /* Optimized drawing */
 				calc_damaged_verts(&damaged_verts,e.grabdata);
 
+				/* Draw the stored image to the screen */
+				glAccum(GL_RETURN, 1);
+
+				/* Clear each of the area(s) modified by the brush */
 				for(rn=damaged_rects.first; rn; rn= rn->next) {
 					float col[3];
 					rcti clp= rn->r;
@@ -1636,21 +1641,19 @@ void sculpt()
 					glClearColor(col[0], col[1], col[2], 0.0);
 					glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
 				}
-				glDisable(GL_SCISSOR_TEST);
 				
+				/* Draw all the polygons that are inside the modified area(s) */
+				glDisable(GL_SCISSOR_TEST);
 				sculptmode_draw_mesh(1);
-
 				glAccum(GL_LOAD, 1);
+				glEnable(GL_SCISSOR_TEST);
 				
 				/* Draw cursor */
 				persp(PERSP_WIN);
 				glDisable(GL_DEPTH_TEST);
 				fdrawXORcirc((float)mouse[0],(float)mouse[1],sculptmode_brush()->size);
-				glRasterPos2i(0, 0);
-				myswapbuffers();
-				glAccum(GL_RETURN, 1);
 				
-				glEnable(GL_SCISSOR_TEST);
+				myswapbuffers();
 			}
 
 			BLI_freelistN(&damaged_rects);
