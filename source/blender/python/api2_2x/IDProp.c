@@ -83,6 +83,10 @@ PyObject *BPy_IDProperty_getattr(BPy_IDProperty *self, char *name)
 					return self->data_wrap;
 				} else {
 					BPy_IDProperty *group = PyObject_New(BPy_IDProperty, &IDGroup_Type);
+					if (!group)
+						return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						   "PyObject_New() failed" );
+				
 					group->id = self->id;
 					group->data_wrap = NULL;
 					group->prop = self->prop;
@@ -96,6 +100,10 @@ PyObject *BPy_IDProperty_getattr(BPy_IDProperty *self, char *name)
 					return self->data_wrap;
 				} else {
 					BPy_IDProperty *array = PyObject_New(BPy_IDProperty, &IDArray_Type);
+					if (!array)
+						return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						   "PyObject_New() failed" );
+						   
 					array->id = self->id;
 					array->data_wrap = NULL;
 					array->prop = self->prop;
@@ -400,6 +408,11 @@ PyTypeObject IDProperty_Type = {
 PyObject *BPy_Wrap_IDProperty(ID *id, IDProperty *prop, IDProperty *parent)
 {
 	BPy_IDProperty *wrap = PyObject_New(BPy_IDProperty, &IDProperty_Type);
+	
+	if (!wrap)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+		   "PyObject_New() failed" );
+						   
 	wrap->prop = prop;
 	wrap->parent = parent;
 	wrap->id = id;
@@ -733,6 +746,10 @@ PyObject *BPy_IDGroup_setattr(BPy_IDProperty *self, PyObject *val, char *name)
 PyObject *BPy_IDGroup_SpawnIterator(BPy_IDProperty *self)
 {
 	BPy_IDGroup_Iter *iter = PyObject_New(BPy_IDGroup_Iter, &IDGroup_Iter_Type);
+	
+	if (!iter)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+		   "PyObject_New() failed" );
 	iter->group = self;
 	iter->cur = self->prop->data.group.first;
 	Py_XINCREF(iter);
