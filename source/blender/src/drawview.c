@@ -2897,9 +2897,6 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 	}
 
-	if(!(retopo_mesh_check() || retopo_curve_check()) && (G.f & G_SCULPTMODE))
-		view3d_update_depths(v3d);
-
 	if(G.moving) {
 		BIF_drawConstraint();
 		if(G.obedit) BIF_drawPropCircle();	// only editmode has proportional edit
@@ -2910,6 +2907,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	/* Transp and X-ray afterdraw stuff */
 	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
 	view3d_draw_transp(v3d, 0);
+	
+	if(!(retopo_mesh_check() || retopo_curve_check()) && (G.f & G_SCULPTMODE))
+		view3d_update_depths(v3d);
 	
 	if(v3d->flag & V3D_CLIPPING)
 		view3d_clr_clipping();
