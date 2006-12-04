@@ -70,7 +70,8 @@ struct btBroadphaseProxy
 	        StaticFilter = 2,
 	        KinematicFilter = 4,
 	        DebrisFilter = 8,
-	        AllFilter = DefaultFilter | StaticFilter | KinematicFilter | DebrisFilter,
+			SensorTrigger = 16,
+	        AllFilter = DefaultFilter | StaticFilter | KinematicFilter | DebrisFilter | SensorTrigger,
 	};
 
 	//Usually the client btCollisionObject or Rigidbody class
@@ -118,8 +119,7 @@ class btCollisionAlgorithm;
 
 struct btBroadphaseProxy;
 
-//Increase SIMPLE_MAX_ALGORITHMS to allow multiple btDispatchers caching their own algorithms
-#define SIMPLE_MAX_ALGORITHMS 1
+
 
 /// contains a pair of aabb-overlapping objects
 struct btBroadphasePair
@@ -127,22 +127,16 @@ struct btBroadphasePair
 	btBroadphasePair ()
 		:
 	m_pProxy0(0),
-		m_pProxy1(0)
+		m_pProxy1(0),
+		m_algorithm(0)
 	{
-		for (int i=0;i<SIMPLE_MAX_ALGORITHMS;i++)
-		{
-			m_algorithms[i] = 0;
-		}
 	}
 
 	btBroadphasePair(const btBroadphasePair& other)
 		:		m_pProxy0(other.m_pProxy0),
-				m_pProxy1(other.m_pProxy1)
+				m_pProxy1(other.m_pProxy1),
+				m_algorithm(other.m_algorithm)
 	{
-		for (int i=0;i<SIMPLE_MAX_ALGORITHMS;i++)
-		{
-			m_algorithms[i] = other.m_algorithms[i];
-		}
 	}
 	btBroadphasePair(btBroadphaseProxy& proxy0,btBroadphaseProxy& proxy1)
 	{
@@ -159,17 +153,14 @@ struct btBroadphasePair
             m_pProxy1 = &proxy0; 
         }
 
-		for (int i=0;i<SIMPLE_MAX_ALGORITHMS;i++)
-		{
-			m_algorithms[i] = 0;
-		}
+		m_algorithm = 0;
 
 	}
 	
 	btBroadphaseProxy* m_pProxy0;
 	btBroadphaseProxy* m_pProxy1;
 	
-	mutable btCollisionAlgorithm* m_algorithms[SIMPLE_MAX_ALGORITHMS];
+	mutable btCollisionAlgorithm* m_algorithm;
 };
 
 

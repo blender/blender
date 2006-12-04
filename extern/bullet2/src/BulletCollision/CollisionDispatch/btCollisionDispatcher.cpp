@@ -45,6 +45,8 @@ m_emptyCreateFunc(0)
 {
 	int i;
 
+	setNearCallback(defaultNearCallback);
+
 	m_emptyCreateFunc = new btEmptyAlgorithm::CreateFunc;
 	for (i=0;i<MAX_BROADPHASE_COLLISION_TYPES;i++)
 	{
@@ -61,6 +63,8 @@ btCollisionDispatcher::btCollisionDispatcher ():
 		m_count(0)
 {
 	int i;
+
+	setNearCallback(defaultNearCallback);
 	
 	//default CreationFunctions, filling the m_doubleDispatch table
 	m_convexConvexCreateFunc = new btConvexConvexAlgorithm::CreateFunc;
@@ -275,50 +279,20 @@ class btCollisionPairCallback : public btOverlapCallback
 {
 	btDispatcherInfo& m_dispatchInfo;
 	btCollisionDispatcher*	m_dispatcher;
-	int		m_dispatcherId;
+
 public:
 
-	btCollisionPairCallback(btDispatcherInfo& dispatchInfo,btCollisionDispatcher*	dispatcher,int		dispatcherId)
+	btCollisionPairCallback(btDispatcherInfo& dispatchInfo,btCollisionDispatcher*	dispatcher)
 	:m_dispatchInfo(dispatchInfo),
-	m_dispatcher(dispatcher),
-	m_dispatcherId(dispatcherId)
+	m_dispatcher(dispatcher)
 	{
 	}
 
 	virtual bool	processOverlap(btBroadphasePair& pair)
 	{
-		btCollisionObject* body0 = (btCollisionObject*)pair.m_pProxy0->m_clientObject;
-		btCollisionObject* body1 = (btCollisionObject*)pair.m_pProxy1->m_clientObject;
+		(*m_dispatcher->getNearCallback())(pair,*m_dispatcher,m_dispatchInfo);
 
-		if (!m_dispatcher->needsCollision(body0,body1))
-			return false;
-
-		//dispatcher will keep algorithms persistent in the collision pair
-		if (!pair.m_algorithms[m_dispatcherId])
-		{
-			pair.m_algorithms[m_dispatcherId] = m_dispatcher->findAlgorithm(
-				body0,
-				body1);
-		}
-
-		if (pair.m_algorithms[m_dispatcherId])
-		{
-			btManifoldResult* resultOut = m_dispatcher->internalGetNewManifoldResult(body0,body1);
-			if (m_dispatchInfo.m_dispatchFunc == 		btDispatcherInfo::DISPATCH_DISCRETE)
-			{
-				
-				pair.m_algorithms[m_dispatcherId]->processCollision(body0,body1,m_dispatchInfo,resultOut);
-			} else
-			{
-				float toi = pair.m_algorithms[m_dispatcherId]->calculateTimeOfImpact(body0,body1,m_dispatchInfo,resultOut);
-				if (m_dispatchInfo.m_timeOfImpact > toi)
-					m_dispatchInfo.m_timeOfImpact = toi;
-
-			}
-			m_dispatcher->internalReleaseManifoldResult(resultOut);
-		}
 		return false;
-
 	}
 };
 
@@ -327,9 +301,7 @@ void	btCollisionDispatcher::dispatchAllCollisionPairs(btOverlappingPairCache* pa
 {
 	//m_blockedForChanges = true;
 
-	int dispatcherId = getUniqueId();
-
-	btCollisionPairCallback	collisionCallback(dispatchInfo,this,dispatcherId);
+	btCollisionPairCallback	collisionCallback(dispatchInfo,this);
 
 	pairCache->processAllOverlappingPairs(&collisionCallback);
 
@@ -338,3 +310,39 @@ void	btCollisionDispatcher::dispatchAllCollisionPairs(btOverlappingPairCache* pa
 }
 
 
+
+
+//by default, Bullet will use this near callback
+void btCollisionDispatcher::defaultNearCallback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo)
+{
+		btCollisionObject* colObj0 = (btCollisionObject*)collisionPair.m_pProxy0->m_clientObject;
+		btCollisionObject* colObj1 = (btCollisionObject*)collisionPair.m_pProxy1->m_clientObject;
+
+		if (dispatcher.needsCollision(colObj0,colObj1))
+		{
+			//dispatcher will keep algorithms persistent in the collision pair
+			if (!collisionPair.m_algorithm)
+			{
+				collisionPair.m_algorithm = dispatcher.findAlgorithm(colObj0,colObj1);
+			}
+
+			if (collisionPair.m_algorithm)
+			{
+				btManifoldResult contactPointResult(colObj0,colObj1);
+				
+				if (dispatchInfo.m_dispatchFunc == 		btDispatcherInfo::DISPATCH_DISCRETE)
+				{
+					//discrete collision detection query
+					collisionPair.m_algorithm->processCollision(colObj0,colObj1,dispatchInfo,&contactPointResult);
+				} else
+				{
+					//continuous collision detection query, time of impact (toi)
+					float toi = collisionPair.m_algorithm->calculateTimeOfImpact(colObj0,colObj1,dispatchInfo,&contactPointResult);
+					if (dispatchInfo.m_timeOfImpact > toi)
+						dispatchInfo.m_timeOfImpact = toi;
+
+				}
+			}
+		}
+
+}

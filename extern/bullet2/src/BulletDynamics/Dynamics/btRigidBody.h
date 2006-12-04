@@ -336,7 +336,12 @@ public:
 	{
 		return m_angularFactor;
 	}
-	
+
+	//is this rigidbody added to a btCollisionWorld/btDynamicsWorld/btBroadphase?
+	bool	isInWorld() const
+	{
+		return (getBroadphaseProxy() != 0);
+	}
 
 	int	m_debugBodyId;
 };

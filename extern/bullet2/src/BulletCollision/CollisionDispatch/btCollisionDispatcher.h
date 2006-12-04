@@ -32,6 +32,10 @@ class btOverlappingPairCache;
 
 #define USE_DISPATCH_REGISTRY_ARRAY 1
 
+class btCollisionDispatcher;
+///user can override this nearcallback for collision filtering and more finegrained control over collision detection
+typedef void (*btNearCallback)(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo);
+
 
 ///btCollisionDispatcher supports algorithms that handle ConvexConvex and ConvexConcave collision pairs.
 ///Time of Impact, Closest Points and Penetration Depth.
@@ -43,6 +47,8 @@ class btCollisionDispatcher : public btDispatcher
 	bool m_useIslands;
 	
 	btManifoldResult	m_defaultManifoldResult;
+
+	btNearCallback		m_nearCallback;
 	
 	btCollisionAlgorithmCreateFunc* m_doubleDispatch[MAX_BROADPHASE_COLLISION_TYPES][MAX_BROADPHASE_COLLISION_TYPES];
 	
@@ -62,19 +68,7 @@ class btCollisionDispatcher : public btDispatcher
 
 public:
 
-	///allows the user to get contact point callbacks 
-	inline btManifoldResult*	internalGetNewManifoldResult(btCollisionObject* obj0,btCollisionObject* obj1)
-	{
-		//in-place, this prevents parallel dispatching, but just adding a list would fix that.
-		btManifoldResult* manifoldResult = new (&m_defaultManifoldResult)	btManifoldResult(obj0,obj1);
-		return manifoldResult;
-	}
-		
-	///allows the user to get contact point callbacks 
-	inline void	internalReleaseManifoldResult(btManifoldResult*)
-	{
-	}
-
+	
 	///registerCollisionCreateFunc allows registration of custom/alternative collision create functions
 	void	registerCollisionCreateFunc(int proxyType0,int proxyType1, btCollisionAlgorithmCreateFunc* createFunc);
 
@@ -121,12 +115,21 @@ public:
 	virtual bool	needsCollision(btCollisionObject* body0,btCollisionObject* body1);
 	
 	virtual bool	needsResponse(btCollisionObject* body0,btCollisionObject* body1);
-
-	virtual int getUniqueId() { return RIGIDBODY_DISPATCHER;}
 	
 	virtual void	dispatchAllCollisionPairs(btOverlappingPairCache* pairCache,btDispatcherInfo& dispatchInfo);
 
-	
+	void	setNearCallback(btNearCallback	nearCallback)
+	{
+		m_nearCallback = nearCallback; 
+	}
+
+	btNearCallback	getNearCallback() const
+	{
+		return m_nearCallback;
+	}
+
+	//by default, Bullet will use this near callback
+	static void  defaultNearCallback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher, btDispatcherInfo& dispatchInfo);
 
 };
 

@@ -22,11 +22,6 @@ class btRigidBody;
 class	btCollisionObject;
 class btOverlappingPairCache;
 
-enum btCollisionDispatcherId
-{
-	RIGIDBODY_DISPATCHER = 0,
-	USERCALLBACK_DISPATCHER
-};
 
 class btPersistentManifold;
 class btStackAlloc;
@@ -73,11 +68,6 @@ public:
 	virtual ~btDispatcher() ;
 
 	virtual btCollisionAlgorithm* findAlgorithm(btCollisionObject* body0,btCollisionObject* body1,btPersistentManifold* sharedManifold=0) = 0;
-
-	//
-	// asume dispatchers to have unique id's in the range [0..max dispacher]
-	//
-	virtual int getUniqueId() = 0;
 
 	virtual btPersistentManifold*	getNewManifold(void* body0,void* body1)=0;
 

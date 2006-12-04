@@ -54,14 +54,11 @@ void	btOverlappingPairCache::removeOverlappingPair(btBroadphasePair& findPair)
 
 void	btOverlappingPairCache::cleanOverlappingPair(btBroadphasePair& pair)
 {
-	for (int dispatcherId=0;dispatcherId<SIMPLE_MAX_ALGORITHMS;dispatcherId++)
+	if (pair.m_algorithm)
 	{
-		if (pair.m_algorithms[dispatcherId])
 		{
-			{
-				delete pair.m_algorithms[dispatcherId];
-				pair.m_algorithms[dispatcherId]=0;
-			}
+			delete pair.m_algorithm;;
+			pair.m_algorithm=0;
 		}
 	}
 }
