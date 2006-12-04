@@ -1197,6 +1197,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if(!G.obedit && (G.f & G_SCULPTMODE)) {
 			SculptData *sd= &G.scene->sculptdata;
 			BrushData *br= sculptmode_brush();
+			char update_prop= 0;
 			switch(event) {
 			case LEFTMOUSE:
 				if(G.qual==LR_SHIFTKEY+LR_CTRLKEY)
@@ -1231,7 +1232,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			/* Brush properties */
 			case AKEY:
 				br->airbrush= !br->airbrush;
-				allqueue(REDRAWBUTSEDIT, 0); break;
+				update_prop= 1; break;
 			case FKEY:
 				if(G.qual==0)
 					sculptmode_propset_init(PropsetSize);
@@ -1241,32 +1242,38 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			/* Set brush */
 			case DKEY:
 				sd->brush_type= DRAW_BRUSH;
-				allqueue(REDRAWBUTSEDIT, 0); break;
+				update_prop= 1; break;
 			case SKEY:
 				sd->brush_type= SMOOTH_BRUSH;
-				allqueue(REDRAWBUTSEDIT, 0); break;
+				update_prop= 1; break;
 			case PKEY:
 				sd->brush_type= PINCH_BRUSH;
-				allqueue(REDRAWBUTSEDIT, 0); break;
+				update_prop= 1; break;
 			case IKEY:
 				sd->brush_type= INFLATE_BRUSH;
-				allqueue(REDRAWBUTSEDIT, 0); break;
+				update_prop= 1; break;
 			case GKEY:
 				sd->brush_type= GRAB_BRUSH;
-				allqueue(REDRAWBUTSEDIT, 0); break;
+				update_prop= 1; break;
 			case LKEY:
 				sd->brush_type= LAYER_BRUSH;
-				allqueue(REDRAWBUTSEDIT, 0); break;
+				update_prop= 1; break;
 			/* Symmetry */
 			case XKEY:
 				sd->symm_x= !sd->symm_x;
-				allqueue(REDRAWBUTSEDIT, 0); break;
+				update_prop= 1; break;
 			case YKEY:
 				sd->symm_y= !sd->symm_y;
-				allqueue(REDRAWBUTSEDIT, 0); break;
+				update_prop= 1; break;
 			case ZKEY:
 				sd->symm_z= !sd->symm_z;
-				allqueue(REDRAWBUTSEDIT, 0); break;
+				update_prop= 1; break;
+			}
+			
+			/* Redraw buttons window as well as view 3d (for floating panel) */
+			if(update_prop) {
+				allqueue(REDRAWVIEW3D, 0);
+				allqueue(REDRAWBUTSEDIT, 0);
 			}
 		} else {
 
@@ -1288,7 +1295,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			 * based on user preference USER_LMOUSESELECT
 			 */
 			case LEFTMOUSE: 
-				if ((G.obedit) || !(G.f&(G_SCULPTMODE|G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
+				if ((G.obedit) || !(G.f&(G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
 					mouse_cursor();
 				}
 				else if (G.f & G_WEIGHTPAINT) {
