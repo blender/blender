@@ -944,6 +944,86 @@ void BIF_undo_menu(void)
 
 /* *************** */
 
+void handle_view_middlemouse() {
+	/* use '&' here, because of alt+leftmouse which emulates middlemouse */
+	if(U.flag & USER_VIEWMOVE) {
+		if((G.qual==LR_SHIFTKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
+			viewmove(0);
+		else if((G.qual==LR_CTRLKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
+			viewmove(2);
+		else if((G.qual==0) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==LR_ALTKEY)))
+			viewmove(1);
+	}
+	else {
+		if((G.qual==LR_SHIFTKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
+			viewmove(1);
+		else if((G.qual==LR_CTRLKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
+			viewmove(2);
+		else if((G.qual==0) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==LR_ALTKEY)))
+			viewmove(0);
+	}
+}
+
+void handle_view_wheelup()
+{
+	/* Regular:   Zoom in */
+	/* Shift:     Scroll up */
+	/* Ctrl:      Scroll right */
+	/* Alt-Shift: Rotate up */
+	/* Alt-Ctrl:  Rotate right */
+
+	if( G.qual & LR_SHIFTKEY ) {
+		if( G.qual & LR_ALTKEY ) { 
+			G.qual &= ~LR_SHIFTKEY;
+			persptoetsen(PAD2);
+			G.qual |= LR_SHIFTKEY;
+		} else {
+			persptoetsen(PAD2);
+		}
+	} else if( G.qual & LR_CTRLKEY ) {
+		if( G.qual & LR_ALTKEY ) { 
+			G.qual &= ~LR_CTRLKEY;
+			persptoetsen(PAD4);
+			G.qual |= LR_CTRLKEY;
+		} else {
+			persptoetsen(PAD4);
+		}
+	} else if(U.uiflag & USER_WHEELZOOMDIR) 
+		persptoetsen(PADMINUS);
+	else
+		persptoetsen(PADPLUSKEY);
+}
+
+void handle_view_wheeldown()
+{
+	/* Regular:   Zoom out */
+	/* Shift:     Scroll down */
+	/* Ctrl:      Scroll left */
+	/* Alt-Shift: Rotate down */
+	/* Alt-Ctrl:  Rotate left */
+
+	if( G.qual & LR_SHIFTKEY ) {
+		if( G.qual & LR_ALTKEY ) { 
+			G.qual &= ~LR_SHIFTKEY;
+			persptoetsen(PAD8);
+			G.qual |= LR_SHIFTKEY;
+		} else {
+			persptoetsen(PAD8);
+		}
+	} else if( G.qual & LR_CTRLKEY ) {
+		if( G.qual & LR_ALTKEY ) { 
+			G.qual &= ~LR_CTRLKEY;
+			persptoetsen(PAD6);
+			G.qual |= LR_CTRLKEY;
+		} else {
+			persptoetsen(PAD6);
+		}
+	} else if(U.uiflag & USER_WHEELZOOMDIR) 
+		persptoetsen(PADPLUSKEY);
+	else
+		persptoetsen(PADMINUS);
+}
+
 static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	View3D *v3d= sa->spacedata.first;
@@ -1124,6 +1204,17 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(!G.scene->sculptdata.propset)
 					sculpt();
 				break;
+			case MIDDLEMOUSE:
+				handle_view_middlemouse();
+				break;
+			case WHEELUPMOUSE:
+				handle_view_wheelup();
+				doredraw= 1;
+				break;
+			case WHEELDOWNMOUSE:
+				handle_view_wheeldown();
+				doredraw= 1;
+				break;
 			case RIGHTMOUSE:
 				if(G.qual==LR_SHIFTKEY+LR_CTRLKEY)
 					sculptmode_pmv(1);
@@ -1202,23 +1293,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case MIDDLEMOUSE:
-				/* use '&' here, because of alt+leftmouse which emulates middlemouse */
-				if(U.flag & USER_VIEWMOVE) {
-					if((G.qual==LR_SHIFTKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
-						viewmove(0);
-					else if((G.qual==LR_CTRLKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
-						viewmove(2);
-					else if((G.qual==0) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==LR_ALTKEY)))
-						viewmove(1);
-				}
-				else {
-					if((G.qual==LR_SHIFTKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_SHIFTKEY))))
-						viewmove(1);
-					else if((G.qual==LR_CTRLKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
-						viewmove(2);
-					else if((G.qual==0) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==LR_ALTKEY)))
-						viewmove(0);
-				}
+				handle_view_middlemouse();
 				break;
 			case RIGHTMOUSE:
 				if((G.obedit) && (G.qual & LR_CTRLKEY)==0) {
@@ -1247,63 +1322,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					mouse_select();	/* does poses too */
 				break;
 			case WHEELUPMOUSE:
-				/* Regular:   Zoom in */
-				/* Shift:     Scroll up */
-				/* Ctrl:      Scroll right */
-				/* Alt-Shift: Rotate up */
-				/* Alt-Ctrl:  Rotate right */
-
-				if( G.qual & LR_SHIFTKEY ) {
-					if( G.qual & LR_ALTKEY ) { 
-						G.qual &= ~LR_SHIFTKEY;
-						persptoetsen(PAD2);
-						G.qual |= LR_SHIFTKEY;
-					} else {
-						persptoetsen(PAD2);
-					}
-				} else if( G.qual & LR_CTRLKEY ) {
-					if( G.qual & LR_ALTKEY ) { 
-						G.qual &= ~LR_CTRLKEY;
-						persptoetsen(PAD4);
-						G.qual |= LR_CTRLKEY;
-					} else {
-						persptoetsen(PAD4);
-					}
-				} else if(U.uiflag & USER_WHEELZOOMDIR) 
-					persptoetsen(PADMINUS);
-				else
-					persptoetsen(PADPLUSKEY);
-
+				handle_view_wheelup();
 				doredraw= 1;
 				break;
 			case WHEELDOWNMOUSE:
-				/* Regular:   Zoom out */
-				/* Shift:     Scroll down */
-				/* Ctrl:      Scroll left */
-				/* Alt-Shift: Rotate down */
-				/* Alt-Ctrl:  Rotate left */
-
-				if( G.qual & LR_SHIFTKEY ) {
-					if( G.qual & LR_ALTKEY ) { 
-						G.qual &= ~LR_SHIFTKEY;
-						persptoetsen(PAD8);
-						G.qual |= LR_SHIFTKEY;
-					} else {
-						persptoetsen(PAD8);
-					}
-				} else if( G.qual & LR_CTRLKEY ) {
-					if( G.qual & LR_ALTKEY ) { 
-						G.qual &= ~LR_CTRLKEY;
-						persptoetsen(PAD6);
-						G.qual |= LR_CTRLKEY;
-					} else {
-						persptoetsen(PAD6);
-					}
-				} else if(U.uiflag & USER_WHEELZOOMDIR) 
-					persptoetsen(PADPLUSKEY);
-				else
-					persptoetsen(PADMINUS);
-				
+				handle_view_wheeldown();
 				doredraw= 1;
 				break;
 

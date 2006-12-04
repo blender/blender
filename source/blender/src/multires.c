@@ -43,6 +43,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
@@ -61,6 +62,7 @@
 #include "BLI_editVert.h"
 
 #include "BSE_edit.h"
+#include "BSE_view.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -1181,6 +1183,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 
 	countall();
 
+	if(G.vd->depths) G.vd->depths->damaged= 1;
 	allqueue(REDRAWVIEW3D, 0);
 }
 
