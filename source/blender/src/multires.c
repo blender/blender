@@ -1063,8 +1063,11 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 	/* Vertices/Edges/Faces */
 	
 	for(i=0; i<lvl->totvert; ++i) {
-		if(em)
+		if(em) {
 			eves[i]= addvertlist(lvl->verts[i].co, NULL); /* TODO */
+			if(lvl->verts[i].flag & 1) eves[i]->f |= SELECT;
+			if(lvl->verts[i].flag & ME_HIDE) eves[i]->h= 1;
+		}
 		else
 			me->mvert[i]= lvl->verts[i];
 	}

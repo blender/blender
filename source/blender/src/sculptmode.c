@@ -301,10 +301,17 @@ void sculptmode_undo_free(Scene *sce)
 
 void sculptmode_undo_push(char *str, SculptUndoType type)
 {
-	int cnt= 7;
+	int cnt= U.undosteps-1;
 	SculptUndo *su= G.scene->sculptdata.undo;
-	SculptUndoStep *n= MEM_callocN(sizeof(SculptUndoStep), "SculptUndo"), *sus, *chop, *path;
+	SculptUndoStep *n, *sus, *chop, *path;
 	Mesh *me= get_mesh(G.scene->sculptdata.active_ob);
+	
+	if(U.undosteps==0) {
+		sculptmode_undo_free(G.scene);
+		return;
+	}
+	
+	n= MEM_callocN(sizeof(SculptUndoStep), "SculptUndo");
 
 	/* Chop off undo data after cur */
 	for(sus= su->steps.last; sus && sus != su->cur; sus= path) {
