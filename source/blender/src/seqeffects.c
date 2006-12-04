@@ -2842,6 +2842,7 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 	float facf0 = seq->facf0;
 	float ctime, div;
 	int cfra;
+	float fallback_fac;
 	SpeedControlVars * v = (SpeedControlVars *)seq->effectdata;
 
 	/* if not already done, load / initialize data */
@@ -2859,10 +2860,34 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 		v->frameMap = MEM_callocN(sizeof(float) * v->length, 
 					  "speedcontrol frameMap");
 	}
+
+	fallback_fac = 1.0;
+	
+	/* if there is no IPO, try to make retiming easy by stretching the
+	   strip */
+
+	if (!seq->ipo && seq->seq1 && seq->seq1->enddisp != seq->seq1->start
+	    && seq->seq1->len != 0) {
+		fallback_fac = (float) seq->seq1->len / 
+			(float) (seq->seq1->enddisp - seq->seq1->start);
+		/* FIXME: this strip stretching gets screwed by stripdata
+		   handling one layer up.
+		   
+		   So it currently works by enlarging, never by shrinking!
+
+		   (IPOs still work, if used correctly)
+		*/
+		if (fallback_fac > 1.0) {
+			fallback_fac = 1.0;
+		}
+	}
+
 	if ((v->flags & SEQ_SPEED_INTEGRATE) != 0) {
 		float cursor = 0;
 
-		for (cfra = 0; cfra < v->length; cfra++) {
+		v->frameMap[0] = 0;
+
+		for (cfra = 1; cfra < v->length; cfra++) {
 			if(seq->ipo) {
 				if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
 					ctime = frame_to_float(seq->startdisp
@@ -2877,7 +2902,7 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 				calc_ipo(seq->ipo, ctime/div);
 				execute_ipo((ID *)seq, seq->ipo);
 			} else {
-				seq->facf0 = 1.0;
+				seq->facf0 = fallback_fac;
 			}
 			seq->facf0 *= v->globalSpeed;
 
@@ -2910,7 +2935,7 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 				seq->facf0 *= v->length;
 			}
 			if (!seq->ipo) {
-				seq->facf0 = cfra;
+				seq->facf0 = (float) cfra * fallback_fac;
 			}
 			seq->facf0 *= v->globalSpeed;
 			if (seq->facf0 >= v->length) {
