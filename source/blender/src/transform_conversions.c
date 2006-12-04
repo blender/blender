@@ -2236,15 +2236,31 @@ void special_aftertrans_update(TransInfo *t)
 
 							if (achan->ipo && !strcmp (achan->name, pchan->name)){
 								for (icu = achan->ipo->curve.first; icu; icu=icu->next){
-									insertkey(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
+									if (U.uiflag & USER_KEYINSERTNEED)
+										insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
+									else
+										insertkey(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
 								}
 
 								break;
 							}
 						}
 					}
-					else{
+					else if (U.uiflag & USER_KEYINSERTNEED) {
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
 
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+					}
+					else {
 						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
 						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
 						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
@@ -2305,13 +2321,28 @@ void special_aftertrans_update(TransInfo *t)
 						icu= base->object->ipo->curve.first;
 						while(icu) {
 							icu->flag &= ~IPO_SELECT;
-							insertkey(id, ID_OB, actname, NULL, icu->adrcode);
+							if (U.uiflag & USER_KEYINSERTNEED)
+								insertkey_smarter(id, ID_OB, actname, NULL, icu->adrcode);
+							else
+								insertkey(id, ID_OB, actname, NULL, icu->adrcode);
 							icu= icu->next;
 						}
 					}
 				}
-				else {
+				else if (U.uiflag & USER_KEYINSERTNEED) {
+					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_ROT_X);
+					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_ROT_Y);
+					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_ROT_Z);
 
+					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_LOC_X);
+					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_LOC_Y);
+					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_LOC_Z);
+
+					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_SIZE_X);
+					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Y);
+					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Z);
+				}
+				else {
 					insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_X);
 					insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_Y);
 					insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_Z);

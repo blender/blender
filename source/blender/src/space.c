@@ -1194,7 +1194,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			}
 		}
-		if(!G.obedit && (G.f & G_SCULPTMODE)) {
+		else if(!G.obedit && (G.f & G_SCULPTMODE)) {
 			SculptData *sd= &G.scene->sculptdata;
 			BrushData *br= sculptmode_brush();
 			Mesh *me= get_mesh(sd->active_ob);
@@ -3179,17 +3179,23 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 		uiDefBut(block, LABEL,0,"Auto keyframe",
-			(xpos+(2*edgsp)+(2*mpref)+midsp),y3label,mpref,buth,
+			(xpos+(2*edgsp)+(2*mpref)+midsp),y4label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 
 		uiDefButBitI(block, TOG, G_RECORDKEYS, REDRAWTIME, "Action and Object", 
-					(xpos+edgsp+(2*mpref)+(2*midsp)),y2,mpref, buth,
+					(xpos+edgsp+(2*mpref)+(2*midsp)),y3,mpref, buth,
 					 &(G.flags), 0, 0, 0, 0, "Automatic keyframe insertion in Object and Action Ipo curves");
 
+		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, USER_KEYINSERTAVAI, REDRAWTIME, "Available", 
-			(xpos+edgsp+(2*mpref)+(2*midsp)),y1,mpref, buth,
+			(xpos+edgsp+(2*mpref)+(2*midsp)),y2,mpref, buth,
 			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in available curves");
-
+			
+		uiDefButBitI(block, TOG, USER_KEYINSERTNEED, REDRAWTIME, "Needed", 
+			(xpos+edgsp+(2*mpref)+(2*midsp)),y1,mpref, buth,
+			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion only when keyframe needed");
+		uiBlockEndAlign(block);
+			
 /*		uiDefButBitS(block, TOG, USER_KEYINSERTACT, 0, "Action",
 			(xpos+edgsp+(2*mpref)+(2*midsp)),y2,(spref+edgsp),buth,
 			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in Action Ipo curve");

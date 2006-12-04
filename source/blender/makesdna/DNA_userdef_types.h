@@ -227,6 +227,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_HIDE_DOT			65536
 #define USER_SHOW_ROTVIEWICON	131072
 #define USER_SHOW_VIEWPORTNAME	262144
+#define USER_KEYINSERTNEED		524288
 
 /* transopts */
 
