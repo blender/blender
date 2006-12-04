@@ -1197,6 +1197,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if(!G.obedit && (G.f & G_SCULPTMODE)) {
 			SculptData *sd= &G.scene->sculptdata;
 			BrushData *br= sculptmode_brush();
+			Mesh *me= get_mesh(sd->active_ob);
 			char update_prop= 0;
 			switch(event) {
 			case LEFTMOUSE:
@@ -1268,6 +1269,36 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case ZKEY:
 				sd->symm_z= !sd->symm_z;
 				update_prop= 1; break;
+			/* Interface */
+			case NKEY:
+				if(G.qual==0) {
+					toggle_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_TO_MOUSE);
+					allqueue(REDRAWVIEW3D, 0);
+				}
+				break;
+			/* Multires */
+			case PAGEUPKEY:
+				if(me && me->mr) {
+					me->mr->newlvl= ((Mesh*)ob->data)->mr->current+1;
+					multires_set_level(ob,ob->data);
+				}
+				break;
+			case PAGEDOWNKEY:
+				if(me && me->mr) {
+					me->mr->newlvl= ((Mesh*)ob->data)->mr->current-1;
+					multires_set_level(ob,ob->data);
+				}
+				break;
+			/* Partial Visibility */
+			case HKEY:
+				if(G.qual==LR_ALTKEY) {
+					waitcursor(1);
+					sculptmode_pmv_off(get_mesh(ob));
+					BIF_undo_push("Partial mesh hide");
+					allqueue(REDRAWVIEW3D,0);
+					waitcursor(0);
+				}
+				break;
 			}
 			
 			/* Redraw buttons window as well as view 3d (for floating panel) */
@@ -1694,15 +1725,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if(G.f & G_FACESELECT)
 					hide_tface();
-				else if(G.f & G_SCULPTMODE) {
-					if(G.qual==LR_ALTKEY) {
-						waitcursor(1);
-						sculptmode_pmv_off(get_mesh(ob));
-						BIF_undo_push("Partial mesh hide");
-						allqueue(REDRAWVIEW3D,0);
-						waitcursor(0);
-					}
-				}
 				else if(ob && (ob->flag & OB_POSEMODE)) {
 					if (G.qual==0)
 						hide_selected_pose_bones();
@@ -2235,31 +2257,17 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			
 			case PAGEUPKEY:
-				if(G.f & G_SCULPTMODE) {
-					if(ob && ob->type == OB_MESH && ((Mesh*)ob->data)->mr) {
-						((Mesh*)ob->data)->mr->newlvl= ((Mesh*)ob->data)->mr->current+1;
-						multires_set_level(ob,ob->data);
-					}
-				} else {
-					if(G.qual==LR_CTRLKEY)
-						movekey_obipo(1);
-					else if((G.qual==0))
-						nextkey_obipo(1);	/* in editipo.c */
-				}
+				if(G.qual==LR_CTRLKEY)
+					movekey_obipo(1);
+				else if((G.qual==0))
+					nextkey_obipo(1);	/* in editipo.c */
 				break;
 
 			case PAGEDOWNKEY:
-				if(G.f & G_SCULPTMODE) {
-					if(ob && ob->type == OB_MESH && ((Mesh*)ob->data)->mr) {
-						((Mesh*)ob->data)->mr->newlvl= ((Mesh*)ob->data)->mr->current-1;
-						multires_set_level(ob,ob->data);
-					}
-				} else {
-					if(G.qual==LR_CTRLKEY)
-						movekey_obipo(-1);
-					else if((G.qual==0))
-						nextkey_obipo(-1);
-				}
+				if(G.qual==LR_CTRLKEY)
+					movekey_obipo(-1);
+				else if((G.qual==0))
+					nextkey_obipo(-1);
 				break;
 
 			case PAD0: case PAD1: case PAD2: case PAD3: case PAD4:
