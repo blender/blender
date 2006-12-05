@@ -855,7 +855,7 @@ void shade_sample_initialize(ShadeSample *ssamp, RenderPart *pa, RenderLayer *rl
 	
 	for(a=0; a<tot; a++) {
 		shade_input_initialize(&ssamp->shi[a], pa, rl, a);
-		memset(&ssamp->shr[a], 0, sizeof(RenderResult));
+		memset(&ssamp->shr[a], 0, sizeof(ShadeResult));
 	}
 }
 
