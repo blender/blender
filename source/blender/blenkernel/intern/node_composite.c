@@ -1603,7 +1603,7 @@ static bNodeType cmp_node_hue_sat= {
 
 /* **************** MIX RGB ******************** */
 static bNodeSocketType cmp_node_mix_rgb_in[]= {
-	{	SOCK_VALUE, 1, "Fac",			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Fac",			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 5.0f},
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
@@ -2983,8 +2983,12 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 {
 	CompBuf *new, *img= in[0]->data;
 	
-	if(img==NULL || img->type==CB_VEC3 || out[0]->hasoutput==0)
+	if(img==NULL || out[0]->hasoutput==0)
 		return;
+	
+	if(img->type==CB_VEC3) {
+		img= typecheck_compbuf(in[0]->data, CB_RGBA);
+	}
 	
 	/* if fac input, we do it different */
 	if(in[1]->data) {
@@ -3028,6 +3032,8 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 		}
 		out[0]->data= new;
 	}
+	if(img!=in[0]->data)
+		free_compbuf(img);
 }
 	
 
