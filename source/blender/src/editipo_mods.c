@@ -995,7 +995,12 @@ void set_ipo_key_selection(Ipo *ipo, int sel)
 	
 	for (icu=ipo->curve.first; icu; icu=icu->next){
 		for (i=0; i<icu->totvert; i++){
-			if (sel){
+			if (sel == 2) {
+				icu->bezt[i].f1^=1;
+				icu->bezt[i].f2^=1;
+				icu->bezt[i].f3^=1;
+			}
+			else if (sel == 1){
 				icu->bezt[i].f1|=1;
 				icu->bezt[i].f2|=1;
 				icu->bezt[i].f3|=1;

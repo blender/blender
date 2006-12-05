@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id: BIF_edittime.c
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -294,7 +294,10 @@ void deselect_markers(short test, short sel)
 		
 		/* do selection */
 		for (marker= G.scene->markers.first; marker; marker= marker->next) {
-			if (sel) {
+			if (sel == 2) {
+				marker->flag ^= SELECT;
+			}
+			else if (sel == 1) {
 				if ((marker->flag & SELECT)==0) 
 					marker->flag |= SELECT;
 			}
@@ -307,7 +310,10 @@ void deselect_markers(short test, short sel)
 	else {
 		/* not dependant on existing selection */
 		for (marker= G.scene->markers.first; marker; marker= marker->next) {
-				if (sel) {
+				if (sel==2) {
+					marker->flag ^= SELECT;
+				}
+				else if (sel==1) {
 					if ((marker->flag & SELECT)==0)
 						marker->flag |= SELECT;
 				}
@@ -403,6 +409,57 @@ void nextprev_marker(short dir)
 		update_for_newframe();
 		allqueue(REDRAWALL, 0);
 	}
+}
+
+void get_minmax_markers(short sel, float *first, float *last)
+{
+	TimeMarker *marker;
+	ListBase *markers;
+	float min, max;
+	int selcount = 0;
+	
+	markers= &(G.scene->markers);
+	
+	if (sel)
+		for (marker= markers->first; marker; marker= marker->next) {
+			if (marker->flag & SELECT)
+				selcount++;
+		}
+	else {
+		selcount= BLI_countlist(markers);
+	}
+	
+	if (markers->first && markers->last) {
+		min= ((TimeMarker *)markers->first)->frame;
+		max= ((TimeMarker *)markers->last)->frame;
+	}
+	else {
+		*first = 0.0f;
+		*last = 0.0f;
+		return;
+	}
+	
+	if (selcount > 1) {
+		for (marker= markers->first; marker; marker= marker->next) {
+			if (sel) {
+				if (marker->flag & SELECT) {
+					if (marker->frame < min)
+						min= marker->frame;
+					else if (marker->frame > max)
+						max= marker->frame;
+				}
+			}
+			else {
+				if (marker->frame < min)
+					min= marker->frame;
+				else if (marker->frame > max)
+					max= marker->frame;
+			}	
+		}
+	}
+	
+	*first= min;
+	*last= max;
 }
 
 TimeMarker *find_nearest_marker(int clip_y)

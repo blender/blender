@@ -48,6 +48,7 @@ void deselect_markers(short test, short sel);
 struct TimeMarker *find_nearest_marker(int clip_y);
 
 void nextprev_marker(short dir);
+void get_minmax_markers(short sel, float *first, float *last);
 
 void add_marker_to_cfra_elem(struct ListBase *lb, struct TimeMarker *marker);
 void make_marker_cfra_list(struct ListBase *lb);

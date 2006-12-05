@@ -631,7 +631,7 @@ static void mouse_action(int selectmode)
 		if (selectmode == SELECT_REPLACE) {
 			selectmode = SELECT_ADD;
 			
-			deselect_actionchannel_keys(act, 0);
+			deselect_actionchannel_keys(act, 0, 0);
 			deselect_actionchannels(act, 0);
 			
 			chan->flag |= ACHAN_SELECTED;
@@ -716,7 +716,7 @@ static void mouse_mesh_action(int selectmode, Key *key)
 			 * key had been unselected, we will select 
 			 * it, otherwise, we are done.
 			 */
-            deselect_meshchannel_keys(key, 0);
+            deselect_meshchannel_keys(key, 0, 0);
 
             if (sel == 0)
                 selectmode = SELECT_ADD;
@@ -1388,11 +1388,10 @@ void transform_meshchannel_keys(char mode, Key *key)
 	 */
 }
 
-void deselect_actionchannel_keys (bAction *act, int test)
+void deselect_actionchannel_keys (bAction *act, int test, int sel)
 {
 	bActionChannel	*chan;
 	bConstraintChannel *conchan;
-	int		sel=1;;
 
 	if (!act)
 		return;
@@ -1421,8 +1420,6 @@ void deselect_actionchannel_keys (bAction *act, int test)
 			}
 		}
 	}
-	else
-		sel=0;
 	
 	/* Set the flags */
 	for (chan=act->chanbase.first; chan; chan=chan->next){
@@ -1434,20 +1431,16 @@ void deselect_actionchannel_keys (bAction *act, int test)
 	}
 }
 
-void deselect_meshchannel_keys (Key *key, int test)
+void deselect_meshchannel_keys (Key *key, int test, int sel)
 {
 	/* should deselect the rvk keys
 	 */
-    int		sel=1;
 
     /* Determine if this is selection or deselection */
     if (test){
         if (is_ipo_key_selected(key->ipo)){
             sel = 0;
         }
-    }
-    else {
-        sel=0;
     }
 	
     /* Set the flags */
@@ -2229,7 +2222,7 @@ static void select_all_keys_frames(bAction *act, short *mval,
 		return;
 
 	if (selectmode == SELECT_REPLACE) {
-		deselect_actionchannel_keys(act, 0);
+		deselect_actionchannel_keys(act, 0, 1);
 		selectmode = SELECT_ADD;
 	}
 
@@ -2309,7 +2302,7 @@ static void select_all_keys_channels(bAction *act, short *mval,
 		return;
 
 	if (selectmode == SELECT_REPLACE) {
-		deselect_actionchannel_keys(act, 0);
+		deselect_actionchannel_keys(act, 0, 1);
 		selectmode = SELECT_ADD;
 	}
 
@@ -2555,7 +2548,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						allqueue(REDRAWSOUND, 0);
 					}
 					else {
-						deselect_meshchannel_keys(key, 1);
+						deselect_meshchannel_keys(key, 1, 1);
 						allqueue (REDRAWACTION, 0);
 						allqueue(REDRAWNLA, 0);
 						allqueue (REDRAWIPO, 0);
@@ -2580,7 +2573,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						allqueue(REDRAWSOUND, 0);
 					}
 					else {
-						deselect_actionchannel_keys (act, 1);
+						deselect_actionchannel_keys (act, 1, 1);
 						allqueue (REDRAWACTION, 0);
 						allqueue(REDRAWNLA, 0);
 						allqueue (REDRAWIPO, 0);
@@ -2697,12 +2690,17 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case KKEY:
-			val= (G.qual & LR_SHIFTKEY) ? 2 : 1;
-			
-			if(key)
-				column_select_shapekeys(key, val);
-			else if(act)
-				column_select_actionkeys(act, val);
+			if (G.qual & LR_CTRLKEY) {
+				markers_selectkeys_between();
+			}
+			else {
+				val= (G.qual & LR_SHIFTKEY) ? 2 : 1;
+				
+				if(key)
+					column_select_shapekeys(key, val);
+				else if(act)
+					column_select_actionkeys(act, val);
+			}
 			
 			allqueue(REDRAWTIME, 0);
 			allqueue(REDRAWIPO, 0);
@@ -3004,26 +3002,40 @@ int get_nearest_key_num(Key *key, short *mval, float *x) {
 }
 
 /* ************************************* Action Editor Markers ************************************* */
-void get_minmax_saction_markers(float *first, float *last)
+
+void markers_selectkeys_between(void)
 {
-	TimeMarker *marker;
-	ListBase *markers;
+	bAction *act;
+	Key *key;
 	float min, max;
 	
-	markers= &(G.scene->markers);
+	/* get extreme markers */
+	get_minmax_markers(1, &min, &max);
+	if (min==max) return;
 	
-	min= ((TimeMarker *)markers->first)->frame;
-	max= ((TimeMarker *)markers->last)->frame;
+	/* get keyframe data */
+	act = G.saction->action;
+	key = get_action_mesh_key();
 	
-	for (marker= markers->first; marker; marker= marker->next) {
-		if (marker->frame < min)
-			min= marker->frame;
-		else if (marker->frame > max)
-			max= marker->frame;
+	/* select keys in-between */
+	if (key) {
+		if (key->ipo) 
+			borderselect_ipo_key(key->ipo, min, max, SELECT_ADD);
 	}
-	
-	*first= min;
-	*last= max;
+	else {
+		bActionChannel *achan;
+		bConstraintChannel *conchan;
+		
+		for (achan= act->chanbase.first; achan; achan= achan->next) {
+			if (achan->ipo) 
+				borderselect_ipo_key(achan->ipo, min, max, SELECT_ADD);
+			
+			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
+				if (conchan->ipo)
+					borderselect_ipo_key(conchan->ipo, min, max, SELECT_ADD);
+			}
+		}
+	}
 }
 
 /* ************************************* Action Channel Ordering *********************************** */

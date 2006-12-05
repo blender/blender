@@ -86,9 +86,9 @@ void clean_actionchannels(struct bAction *act);
 
 
 /* Marker Operations */
-void get_minmax_saction_markers(float *first, float *last);
-void selectkeys_columns_markers(void);
-void selectkeys_between_markers(void);
+void column_select_shapekeys(struct Key *key, int mode);
+void column_select_actionkeys(struct bAction *act, int mode);
+void markers_selectkeys_between(void);
 
 /* channel/strip operations */
 void up_sel_action(void);
@@ -108,13 +108,11 @@ void set_extendtype_actionchannels(int extendtype);
 /* Select */
 void borderselect_mesh(struct Key *key);
 void borderselect_action(void);
-void deselect_actionchannel_keys(struct bAction *act, int test);
+void deselect_actionchannel_keys(struct bAction *act, int test, int sel);
 void deselect_actionchannels (struct bAction *act, int test);
-void deselect_meshchannel_keys (struct Key *key, int test);
+void deselect_meshchannel_keys (struct Key *key, int test, int sel);
 int select_channel(struct bAction *act, struct bActionChannel *chan, int selectmode);
 void select_actionchannel_by_name (struct bAction *act, char *name, int select);
-void column_select_meshkeys(struct Key *key, int mode);
-void column_select_actionkeys(struct bAction *act, int mode);
 
 /* Action */
 struct bActionChannel* get_hilighted_action_channel(struct bAction* action);

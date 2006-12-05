@@ -93,6 +93,8 @@
 #define ACTMENU_SEL_ALL_KEYS    		2
 #define ACTMENU_SEL_ALL_CHAN    		3
 #define ACTMENU_SEL_ALL_MARKERS			4
+#define ACTMENU_SEL_INVERSE_KEYS		5
+#define ACTMENU_SEL_INVERSE_MARKERS		6
 
 #define ACTMENU_SEL_COLUMN_KEYS				1
 #define ACTMENU_SEL_COLUMN_MARKERSCOLUMN 	2
@@ -362,19 +364,21 @@ static void do_action_selectmenu_columnmenu(void *arg, int event)
 	bAction	*act;
 	Key *key;
 	
-	key = get_action_mesh_key();
 	saction= curarea->spacedata.first;
-	
 	act=saction->action;
+	key = get_action_mesh_key();
 	
-	if ( ELEM3(event, ACTMENU_SEL_COLUMN_KEYS, ACTMENU_SEL_COLUMN_MARKERSCOLUMN, 
-			ACTMENU_SEL_COLUMN_MARKERSBETWEEN) == 0)
-		return;
-	
-	if (key)
-		column_select_shapekeys(key, event);
+	if (event == ACTMENU_SEL_COLUMN_MARKERSBETWEEN) {
+		markers_selectkeys_between();
+	}
+	else if (ELEM(event, ACTMENU_SEL_COLUMN_KEYS, ACTMENU_SEL_COLUMN_MARKERSCOLUMN)) {
+		if (key)
+			column_select_shapekeys(key, event);
+		else
+			column_select_actionkeys(act, event);
+	}
 	else
-		column_select_actionkeys(act, event);
+		return;
 		
 	allqueue(REDRAWTIME, 0);
 	allqueue(REDRAWIPO, 0);
@@ -398,6 +402,9 @@ static uiBlock *action_selectmenu_columnmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "On Selected Markers|Shift K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_COLUMN_MARKERSCOLUMN, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Between Selected Markers|Ctrl K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_COLUMN_MARKERSBETWEEN, "");
 	
 	
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -436,13 +443,13 @@ static void do_action_selectmenu(void *arg, int event)
 
 		case ACTMENU_SEL_ALL_KEYS: /* Select/Deselect All Keys */
 			if (key) {
-				deselect_meshchannel_keys(key, 1);
+				deselect_meshchannel_keys(key, 1, 1);
 				allqueue (REDRAWACTION, 0);
 				allqueue(REDRAWNLA, 0);
 				allqueue (REDRAWIPO, 0);
 			}
 			else {
-				deselect_actionchannel_keys (act, 1);
+				deselect_actionchannel_keys (act, 1, 1);
 				allqueue (REDRAWACTION, 0);
 				allqueue(REDRAWNLA, 0);
 				allqueue (REDRAWIPO, 0);
@@ -459,6 +466,30 @@ static void do_action_selectmenu(void *arg, int event)
 			
 		case ACTMENU_SEL_ALL_MARKERS: /* select/deselect all markers */
 			deselect_markers(1, 0);
+			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWSOUND, 0);
+			break;
+			
+		case ACTMENU_SEL_INVERSE_KEYS: /* invert selection status of keys */
+			if (key) {
+				deselect_meshchannel_keys(key, 0, 2);
+				allqueue (REDRAWACTION, 0);
+				allqueue(REDRAWNLA, 0);
+				allqueue (REDRAWIPO, 0);
+			}
+			else {
+				deselect_actionchannel_keys (act, 0, 2);
+				allqueue (REDRAWACTION, 0);
+				allqueue(REDRAWNLA, 0);
+				allqueue (REDRAWIPO, 0);
+			}
+			break;
+			
+		case ACTMENU_SEL_INVERSE_MARKERS: /* invert selection of markers */
+			deselect_markers(0, 2);
 			allqueue(REDRAWTIME, 0);
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWACTION, 0);
@@ -504,7 +535,19 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-			
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Inverse Keys", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_INVERSE_KEYS, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Inverse Markers", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_INVERSE_MARKERS, "");
+		
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+			 
 	uiDefIconTextBlockBut(block, action_selectmenu_columnmenu, 
 						  NULL, ICON_RIGHTARROW_THIN, "Column Select Keys", 0, yco-=20, 120, 20, "");
 	
