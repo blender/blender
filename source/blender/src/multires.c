@@ -77,7 +77,7 @@
 #include <string.h>
 
 /* Only do deformverts */
-CustomDataMask vdata_mask[]= {0, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+CustomDataMask vdata_mask= CD_MASK_MDEFORMVERT;
 
 /* editmesh.h */
 int multires_test()
@@ -525,6 +525,7 @@ void multires_get_face(MultiresFace *f, EditFace *efa, MFace *m)
 		tmp.v1= efa->v1->tmp.l;
 		tmp.v2= efa->v2->tmp.l;
 		tmp.v3= efa->v3->tmp.l;
+		tmp.v4= 0;
 		if(efa->v4) tmp.v4= efa->v4->tmp.l;
 		tmp.flag= efa->flag;
 		if(efa->f & 1) tmp.flag |= ME_FACE_SEL;
