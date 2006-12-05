@@ -158,6 +158,12 @@
 				RelativePath="..\..\..\source\blender\render\intern\source\shadbuf.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\shadeinput.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\shadeoutput.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\texture.c">
 			</File>
 			<File
@@ -214,6 +220,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\shadbuf.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\shading.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\texture.h">
