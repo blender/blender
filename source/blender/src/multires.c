@@ -1076,8 +1076,9 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 	}
 	for(i=0; i<lvl->totface; ++i) {
 		if(em) {
+			EditVert *eve4= lvl->faces[i].v[3] ? eves[lvl->faces[i].v[3]] : NULL;
 			addfacelist(eves[lvl->faces[i].v[0]], eves[lvl->faces[i].v[1]],
-			            eves[lvl->faces[i].v[2]], eves[lvl->faces[i].v[3]], NULL, NULL); /* TODO */
+			            eves[lvl->faces[i].v[2]], eve4, NULL, NULL); /* TODO */
 		}
 		else {
 			me->mface[i].v1= lvl->faces[i].v[0];
