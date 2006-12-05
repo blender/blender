@@ -903,9 +903,8 @@ static void vectomat(float *vec, float *target_up, short axis, short upflag, sho
 	float u[3]; /* vector specifying the up axis */
 	float proj[3];
 	float right[3];
-	float sign = 1;
 	float neg = -1;
-	int back_index, up_index, right_index;
+	int right_index;
 
 	VecCopyf(n, vec);
 	if(Normalise(n) == 0.0) { 
@@ -1431,7 +1430,6 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 		{
 			bTrackToConstraint *data;
 			float size[3];
-			float *quat;
 			float vec[3];
 			float totmat[3][3];
 			float tmat[4][4];
