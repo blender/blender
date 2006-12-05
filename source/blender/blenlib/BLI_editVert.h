@@ -164,6 +164,10 @@ typedef struct EditMesh
 		 * to derived final, care should be taken on release.
 		 */
 	struct DerivedMesh *derivedCage, *derivedFinal;
+	/* the custom data layer mask that was last used to calculate
+	 * derivedCage and derivedFinal
+	 */
+	int lastDataMask;
 
 	char retopo_mode; /* 0=OFF, 1=ON, 2=PAINT */
 	struct RetopoPaintData *retopo_paint_data;

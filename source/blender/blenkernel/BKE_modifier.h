@@ -33,12 +33,15 @@
 #ifndef BKE_MODIFIER_H
 #define BKE_MODIFIER_H
 
+#include "BKE_customdata.h"
+
 struct EditMesh;
 struct DerivedMesh;
 struct DagForest;
 struct DagNode;
 struct Object;
 struct ListBase;
+struct LinkNode;
 struct bArmature;
 
 typedef enum {
@@ -101,7 +104,6 @@ typedef struct ModifierTypeInfo {
 	 * level settings to the target modifier.
 	 */
 	void (*copyData)(ModifierData *md, ModifierData *target);
-
 
 	/********************* Deform modifier functions *********************/
 
@@ -169,6 +171,24 @@ typedef struct ModifierTypeInfo {
 	 * This function is optional.
 	 */
 	void (*initData)(ModifierData *md);
+
+	/* Should return a CustomDataMask indicating what data this
+	 * modifier needs. If (mask & (1 << (layer type))) != 0, this modifier
+	 * needs that custom data layer. This function's return value can change
+	 * depending on the modifier's settings.
+	 *
+	 * Note that this means extra data (e.g. vertex groups) - it is assumed
+	 * that all modifiers need mesh data and deform modifiers need vertex
+	 * coordinates.
+	 *
+	 * Note that this limits the number of custom data layer types to 32.
+	 *
+	 * If this function is not present or it returns 0, it is assumed that
+	 * no extra data is needed.
+	 *
+	 * This function is optional.
+	 */
+	CustomDataMask (*requiredDataMask)(ModifierData *md);
 
 	/* Free internal modifier data variables, this function should
 	 * not free the md variable itself.
@@ -253,6 +273,13 @@ struct Object *modifiers_isDeformedByArmature(struct Object *ob);
 int           modifiers_usesArmature(struct Object *ob, struct bArmature *arm);
 int           modifiers_isDeformed(struct Object *ob);
 
+/* Calculates and returns a linked list of CustomDataMasks indicating the
+ * data required by each modifier in the stack pointed to by md for correct
+ * evaluation, assuming the data indicated by dataMask is required at the
+ * end of the stack.
+ */
+struct LinkNode *modifiers_calcDataMasks(ModifierData *md,
+                                         CustomDataMask dataMask);
 ModifierData  *modifiers_getVirtualModifierList(struct Object *ob);
 
 #endif

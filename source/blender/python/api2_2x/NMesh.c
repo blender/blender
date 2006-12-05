@@ -1455,7 +1455,7 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 		}
 
 		/* recalculate the derived mesh before trying to use it */
-		makeDerivedMesh(nmesh->object);
+		makeDerivedMesh(nmesh->object, CD_MASK_BAREMESH);
 		make_vertexcol(1);
 
 		countall();
@@ -2557,7 +2557,9 @@ static PyObject *M_NMesh_GetRawFromObject( PyObject * self, PyObject * args )
  		break;
  	case OB_MESH:
  		{
-			DerivedMesh *dm = mesh_create_derived_render( ob );
+ 			CustomDataMask dataMask = CD_MASK_BAREMESH | CD_MASK_MTFACE
+ 			                          | CD_MASK_MCOL;
+			DerivedMesh *dm = mesh_create_derived_render( ob, dataMask );
 			nmesh = new_NMesh_internal( ob->data, dm );
 			dm->release(dm);
  		}

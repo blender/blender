@@ -1584,7 +1584,7 @@ void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy,
 	float v1[2], v2[2], v3[2], v4[2], p[2], w[3];
 	float absw, minabsw;
 	int nvert;
-	DerivedMesh *dm = mesh_get_derived_final(ob);
+	DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
 	int *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
 	MTFace *tface = dm->getFaceDataArray(dm, CD_MTFACE), *tf;
 	int numfaces = dm->getNumFaces(dm), a;

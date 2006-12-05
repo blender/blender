@@ -410,9 +410,9 @@ static void vertex_duplilist(ListBase *lb, Scene *sce, Object *par)
 	lay= G.scene->lay;
 	
 	if(par==G.obedit)
-		dm= editmesh_get_derived_cage();
+		dm= editmesh_get_derived_cage(CD_MASK_BAREMESH);
 	else
-		dm = mesh_get_derived_deform(par);
+		dm = mesh_get_derived_deform(par, CD_MASK_BAREMESH);
 	
 	totvert = dm->getNumVerts(dm);
 
@@ -473,7 +473,7 @@ static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
 	
 	if(par==G.obedit) {
 		int totvert;
-		dm= editmesh_get_derived_cage();
+		dm= editmesh_get_derived_cage(CD_MASK_BAREMESH);
 		
 		totface= dm->getNumFaces(dm);
 		mface= MEM_mallocN(sizeof(MFace)*totface, "mface temp");
@@ -483,7 +483,7 @@ static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
 		dm->copyVertArray(dm, mvert);
 	}
 	else {
-		dm = mesh_get_derived_deform(par);
+		dm = mesh_get_derived_deform(par, CD_MASK_BAREMESH);
 		
 		totface= dm->getNumFaces(dm);
 		mface= dm->getFaceArray(dm);

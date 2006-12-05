@@ -374,12 +374,17 @@ const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	"CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace", "CDMTFace",
 	"CDMCol", "CDOrigIndex", "CDNormal", "CDFlags"};
 
-CustomDataMask CD_MASK_MESH[CD_NUMTYPES] = {
-	1, 1, 1, 1, 1, 1, 1, 0, 0, 0};
-CustomDataMask CD_MASK_EDITMESH[CD_NUMTYPES] = {
-	0, 1, 1, 0, 0, 1, 1, 0, 0, 0};
-CustomDataMask CD_MASK_DERIVEDMESH[CD_NUMTYPES] = {
-	0, 1, 1, 0, 0, 1, 1, 1, 0, 0};
+const CustomDataMask CD_MASK_BAREMESH =
+	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE;
+const CustomDataMask CD_MASK_MESH =
+	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE |
+	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MCOL;
+const CustomDataMask CD_MASK_EDITMESH =
+	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
+	CD_MASK_MCOL;
+const CustomDataMask CD_MASK_DERIVEDMESH =
+	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
+	CD_MASK_MCOL | CD_MASK_ORIGINDEX;
 
 static const LayerTypeInfo *layerType_getInfo(int type)
 {
@@ -412,7 +417,7 @@ static void CustomData_update_offsets(CustomData *data)
 }
 
 void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
-                      CustomDataMask *mask, int alloctype, int totelem)
+                      CustomDataMask mask, int alloctype, int totelem)
 {
 	const LayerTypeInfo *typeInfo;
 	CustomDataLayer *layer;
@@ -424,7 +429,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 		typeInfo = layerType_getInfo(layer->type);
 
 		if(layer->flag & CD_FLAG_NOCOPY) continue;
-		else if(mask && !mask[layer->type]) continue;
+		else if(!(mask & (1 << layer->type))) continue;
 		else if(CustomData_has_layer(dest, layer->type)) continue;
 
 		type = layer->type;
@@ -451,7 +456,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 }
 
 void CustomData_copy(const struct CustomData *source, struct CustomData *dest,
-                     CustomDataMask *mask, int alloctype, int totelem)
+                     CustomDataMask mask, int alloctype, int totelem)
 {
 	memset(dest, 0, sizeof(*dest));
 
@@ -648,6 +653,16 @@ int CustomData_compat(const CustomData *data1, const CustomData *data2)
 	}
 
 	return 1;
+}
+
+void CustomData_set_only_copy(const struct CustomData *data,
+                              CustomDataMask mask)
+{
+	int i;
+
+	for(i = 0; i < data->totlayer; ++i)
+		if(!(mask & (1 << data->layers[i].type)))
+			data->layers[i].flag |= CD_FLAG_NOCOPY;
 }
 
 void CustomData_copy_data(const CustomData *source, CustomData *dest,
@@ -1108,4 +1123,9 @@ int CustomData_sizeof(int type)
 	const LayerTypeInfo *type_info = layerType_getInfo(type);
 
 	return type_info->size;
+}
+
+const char *CustomData_layertype_name(int type)
+{
+	return layerType_getName(type);
 }

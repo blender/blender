@@ -5573,9 +5573,9 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 			
 			/* Write the display mesh into the dummy mesh */
 			if (render)
-				dm = mesh_create_derived_render( ob );
+				dm = mesh_create_derived_render( ob, CD_MASK_MESH );
 			else
-				dm = mesh_create_derived_view( ob );
+				dm = mesh_create_derived_view( ob, CD_MASK_MESH );
 			
 			tmpmesh = add_mesh(  );
 			DM_to_mesh( dm, tmpmesh );

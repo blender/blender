@@ -62,6 +62,18 @@ typedef struct CustomData {
 #define CD_FLAGS		9
 #define CD_NUMTYPES		10
 
+/* Bits for CustomDataMask */
+#define CD_MASK_MVERT		(1 << CD_MVERT)
+#define CD_MASK_MSTICKY		(1 << CD_MSTICKY)
+#define CD_MASK_MDEFORMVERT	(1 << CD_MDEFORMVERT)
+#define CD_MASK_MEDGE		(1 << CD_MEDGE)
+#define CD_MASK_MFACE		(1 << CD_MFACE)
+#define CD_MASK_MTFACE		(1 << CD_MTFACE)
+#define CD_MASK_MCOL		(1 << CD_MCOL)
+#define CD_MASK_ORIGINDEX	(1 << CD_ORIGINDEX)
+#define CD_MASK_NORMAL		(1 << CD_NORMAL)
+#define CD_MASK_FLAGS		(1 << CD_FLAGS)
+
 /* CustomData.flag */
 
 /* indicates layer should not be copied by CustomData_from_template or

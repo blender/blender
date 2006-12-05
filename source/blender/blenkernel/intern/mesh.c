@@ -505,9 +505,9 @@ static float *make_orco_mesh_internal(Object *ob, int render)
 		/* Apply orco-changing modifiers */
 
 	if (render) {
-		dm = mesh_create_derived_no_deform_render(ob, vcos);
+		dm = mesh_create_derived_no_deform_render(ob, vcos, CD_MASK_BAREMESH);
 	} else {
-		dm = mesh_create_derived_no_deform(ob, vcos);
+		dm = mesh_create_derived_no_deform(ob, vcos, CD_MASK_BAREMESH);
 	}
 	totvert = dm->getNumVerts(dm);
 

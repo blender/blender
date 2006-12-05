@@ -401,7 +401,8 @@ void draw_tfaces(void)
 				DerivedMesh *dm;
 
 				/* draw final mesh with modifiers applied */
-				dm = mesh_get_derived_final(OBACT);
+				dm = mesh_get_derived_final(OBACT,
+				                            CD_MASK_BAREMESH | CD_MASK_MTFACE);
 
 				glColor3ub(112, 112, 112);
 				if (dm->drawUVEdges) dm->drawUVEdges(dm);

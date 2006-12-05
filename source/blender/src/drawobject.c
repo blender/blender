@@ -1137,7 +1137,7 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, int clipVerts)
 {
 	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
-	DerivedMesh *dm = editmesh_get_derived_cage();
+	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
 
 	data.func = func;
 	data.userData = userData;
@@ -1179,7 +1179,7 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
 {
 	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
-	DerivedMesh *dm = editmesh_get_derived_cage();
+	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
 
 	data.func = func;
 	data.userData = userData;
@@ -1209,7 +1209,7 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *ce
 void mesh_foreachScreenFace(void (*func)(void *userData, EditFace *efa, int x, int y, int index), void *userData)
 {
 	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; float pmat[4][4], vmat[4][4]; } data;
-	DerivedMesh *dm = editmesh_get_derived_cage();
+	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
 
 	data.func = func;
 	data.userData = userData;
@@ -2150,7 +2150,8 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 		if (G.obedit!=ob)
 			finalDM = cageDM = editmesh_get_derived_base();
 		else
-			cageDM = editmesh_get_derived_cage_and_final(&finalDM);
+			cageDM = editmesh_get_derived_cage_and_final(&finalDM,
+			                                get_viewedit_datamask());
 
 		if(dt>OB_WIRE) init_gl_materials(ob, 0);	// no transp in editmode, the fancy draw over goes bad then
 		draw_em_fancy(ob, G.editMesh, cageDM, finalDM, dt);
@@ -2167,8 +2168,10 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
 		
 		if(me->totface<=4 || boundbox_clip(ob->obmat, me->bb)) {
-			DerivedMesh *baseDM = mesh_get_derived_deform(ob);
-			DerivedMesh *realDM = mesh_get_derived_final(ob);
+			DerivedMesh *baseDM
+			    = mesh_get_derived_deform(ob, get_viewedit_datamask());
+			DerivedMesh *realDM
+			    = mesh_get_derived_final(ob, get_viewedit_datamask());
 
 			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob, (base->flag & OB_FROMDUPLI)==0);
 			if(baseDM && realDM) draw_mesh_fancy(base, baseDM, realDM, dt, flag);
@@ -4275,7 +4278,7 @@ static int bbs_mesh_wire__setDrawOpts(void *userData, int index)
 
 static void bbs_mesh_solid(Object *ob)
 {
-	DerivedMesh *dm = mesh_get_derived_final(ob);
+	DerivedMesh *dm = mesh_get_derived_final(ob, get_viewedit_datamask());
 	Mesh *me = (Mesh*)ob->data;
 	
 	glColor3ub(0, 0, 0);
@@ -4311,7 +4314,7 @@ void draw_object_backbufsel(Object *ob)
 	switch( ob->type) {
 	case OB_MESH:
 		if(ob==G.obedit) {
-			DerivedMesh *dm = editmesh_get_derived_cage();
+			DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
 
 			EM_init_index_arrays(1, 1, 1);
 
@@ -4356,7 +4359,7 @@ void draw_object_instance(Object *ob, int dt, int outline)
 	if(G.obedit && ob->data==G.obedit->data)
 		edm= editmesh_get_derived_base();
 	else 
-		dm = mesh_get_derived_final(ob);
+		dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
 
 	if(dt<=OB_WIRE) {
 		if(dm)

@@ -2007,7 +2007,7 @@ void object_handle_update(Object *ob)
 			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
-				makeDerivedMesh(ob);
+				makeDerivedMesh(ob, get_viewedit_datamask());
 			}
 			else if(ob->type==OB_MBALL) {
 				makeDispListMBall(ob);

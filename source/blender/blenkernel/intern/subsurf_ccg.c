@@ -507,7 +507,7 @@ DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 		tface = NULL;
 	}
 
-	if(useSubsurfUv && tface) {
+	if(useSubsurfUv && result->getFaceDataArray(result, CD_MTFACE)) {
 		uvss = _getSubSurf(NULL, ccgSubSurf_getSubdivisionLevels(ss),
 		                   0, 1, 0);
 
@@ -2141,7 +2141,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	}
 	ccgFaceIterator_free(fi);
 
-	if(useSubsurfUv && tface) {
+	if(useSubsurfUv && dm->getFaceDataArray(&ccgdm->dm, CD_MTFACE)) {
 		/* not for editmesh currently */
 		uvss = _getSubSurf(NULL, ccgSubSurf_getSubdivisionLevels(ss),
 		                   0, 1, 0);

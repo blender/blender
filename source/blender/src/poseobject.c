@@ -755,7 +755,7 @@ void pose_adds_vgroups(Object *meshobj)
 	
 	if(poseobj==NULL || (poseobj->flag & OB_POSEMODE)==0) return;
 	
-	dm = mesh_get_derived_final(meshobj);
+	dm = mesh_get_derived_final(meshobj, CD_MASK_BAREMESH);
 	
 	map.meshobj= meshobj;
 	

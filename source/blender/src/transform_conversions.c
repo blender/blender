@@ -1521,11 +1521,11 @@ static float *get_crazy_mapped_editverts(void)
 		/* this call disables subsurf and enables the underlying modifier to deform, apparently */
 		modifiers_setOnCage(G.obedit, md);
 		/* make it all over */
-		makeDerivedMesh(G.obedit);
+		makeDerivedMesh(G.obedit, CD_MASK_BAREMESH);
 	}
 	
 	/* now get the cage */
-	dm= editmesh_get_derived_cage();
+	dm= editmesh_get_derived_cage(CD_MASK_BAREMESH);
 
 	vertexcos= MEM_mallocN(3*sizeof(float)*G.totvert, "vertexcos map");
 	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, vertexcos);

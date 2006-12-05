@@ -36,6 +36,7 @@
 #define BKE_DISPLIST_H
 
 #include "DNA_customdata_types.h"
+#include "BKE_customdata.h"
 
 /* dl->type */
 #define DL_POLY                 0
@@ -109,7 +110,7 @@ extern void addnormalsDispList(struct Object *ob, struct ListBase *lb);
 extern void count_displist(struct ListBase *lb, int *totvert, int *totface);
 extern void freedisplist(struct ListBase *lb);
 extern int displist_has_faces(struct ListBase *lb);
-extern void makeDerivedMesh(struct Object *ob);
+extern void makeDerivedMesh(struct Object *ob, CustomDataMask dataMask);
 extern void makeDispListSurf(struct Object *ob, struct ListBase *dispbase, int forRender);
 extern void makeDispListCurveTypes(struct Object *ob, int forOrco);
 extern void makeDispListMBall(struct Object *ob);

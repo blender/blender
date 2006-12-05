@@ -977,7 +977,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	
 	if(me==NULL) return;
 
-	dm = mesh_get_derived_final(ob);
+	dm = mesh_get_derived_final(ob, get_viewedit_datamask());
 
 	glShadeModel(GL_SMOOTH);
 
@@ -1031,7 +1031,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 
 		/* drawing game engine text hack */
 		if (!editing && prop && me->tface) {
-			DerivedMesh *ddm = mesh_get_derived_deform(ob);
+			DerivedMesh *ddm = mesh_get_derived_deform(ob, CD_MASK_BAREMESH);
 			MFace *mface= me->mface;
 			MTFace *tface= me->mtface;
 			MCol *mcol= me->mcol;	/* why does mcol exist? */

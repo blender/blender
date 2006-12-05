@@ -119,6 +119,17 @@ static void curveModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tcmd->name, cmd->name, 32);
 }
 
+CustomDataMask curveModifier_requiredDataMask(ModifierData *md)
+{
+	CurveModifierData *cmd = (CurveModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(cmd->name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
 static int curveModifier_isDisabled(ModifierData *md)
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
@@ -182,6 +193,17 @@ static void latticeModifier_copyData(ModifierData *md, ModifierData *target)
 
 	tlmd->object = lmd->object;
 	strncpy(tlmd->name, lmd->name, 32);
+}
+
+CustomDataMask latticeModifier_requiredDataMask(ModifierData *md)
+{
+	LatticeModifierData *lmd = (LatticeModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(lmd->name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
 }
 
 static int latticeModifier_isDisabled(ModifierData *md)
@@ -2203,6 +2225,20 @@ static void displaceModifier_copyData(ModifierData *md, ModifierData *target)
 	*tdmd = *dmd;
 }
 
+CustomDataMask displaceModifier_requiredDataMask(ModifierData *md)
+{
+	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(dmd->defgrp_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+
+	/* ask for UV coordinates if we need them */
+	if(dmd->texmapping == MOD_DISP_MAP_UV) dataMask |= (1 << CD_MTFACE);
+
+	return dataMask;
+}
+
 static void displaceModifier_foreachObjectLink(ModifierData *md, Object *ob,
                                          ObjectWalkFunc walk, void *userData)
 {
@@ -2494,6 +2530,16 @@ static void uvprojectModifier_copyData(ModifierData *md, ModifierData *target)
 	tumd->num_projectors = umd->num_projectors;
 	tumd->aspectx = umd->aspectx;
 	tumd->aspecty = umd->aspecty;
+}
+
+CustomDataMask uvprojectModifier_requiredDataMask(ModifierData *md)
+{
+	CustomDataMask dataMask = 0;
+
+	/* ask for UV coordinates */
+	dataMask |= (1 << CD_MTFACE);
+
+	return dataMask;
 }
 
 static void uvprojectModifier_foreachObjectLink(ModifierData *md, Object *ob,
@@ -3054,6 +3100,16 @@ static void armatureModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tamd->defgrp_name, amd->defgrp_name, 32);
 }
 
+CustomDataMask armatureModifier_requiredDataMask(ModifierData *md)
+{
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups */
+	dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
 static int armatureModifier_isDisabled(ModifierData *md)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
@@ -3132,6 +3188,17 @@ static void hookModifier_copyData(ModifierData *md, ModifierData *target)
 	thmd->indexar = MEM_dupallocN(hmd->indexar);
 	memcpy(thmd->parentinv, hmd->parentinv, sizeof(hmd->parentinv));
 	strncpy(thmd->name, hmd->name, 32);
+}
+
+CustomDataMask hookModifier_requiredDataMask(ModifierData *md)
+{
+	HookModifierData *hmd = (HookModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(!hmd->indexar && hmd->name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
 }
 
 static void hookModifier_freeData(ModifierData *md)
@@ -3413,6 +3480,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		             | eModifierTypeFlag_SupportsEditmode;
 		mti->initData = curveModifier_initData;
 		mti->copyData = curveModifier_copyData;
+		mti->requiredDataMask = curveModifier_requiredDataMask;
 		mti->isDisabled = curveModifier_isDisabled;
 		mti->foreachObjectLink = curveModifier_foreachObjectLink;
 		mti->updateDepgraph = curveModifier_updateDepgraph;
@@ -3424,6 +3492,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsCVs
 		             | eModifierTypeFlag_SupportsEditmode;
 		mti->copyData = latticeModifier_copyData;
+		mti->requiredDataMask = latticeModifier_requiredDataMask;
 		mti->isDisabled = latticeModifier_isDisabled;
 		mti->foreachObjectLink = latticeModifier_foreachObjectLink;
 		mti->updateDepgraph = latticeModifier_updateDepgraph;
@@ -3490,6 +3559,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsMesh|eModifierTypeFlag_SupportsEditmode;
 		mti->initData = displaceModifier_initData;
 		mti->copyData = displaceModifier_copyData;
+		mti->requiredDataMask = displaceModifier_requiredDataMask;
 		mti->foreachObjectLink = displaceModifier_foreachObjectLink;
 		mti->foreachIDLink = displaceModifier_foreachIDLink;
 		mti->updateDepgraph = displaceModifier_updateDepgraph;
@@ -3505,6 +3575,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		             | eModifierTypeFlag_EnableInEditmode;
 		mti->initData = uvprojectModifier_initData;
 		mti->copyData = uvprojectModifier_copyData;
+		mti->requiredDataMask = uvprojectModifier_requiredDataMask;
 		mti->foreachObjectLink = uvprojectModifier_foreachObjectLink;
 		mti->foreachIDLink = uvprojectModifier_foreachIDLink;
 		mti->updateDepgraph = uvprojectModifier_updateDepgraph;
@@ -3536,6 +3607,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		             | eModifierTypeFlag_SupportsEditmode;
 		mti->initData = armatureModifier_initData;
 		mti->copyData = armatureModifier_copyData;
+		mti->requiredDataMask = armatureModifier_requiredDataMask;
 		mti->isDisabled = armatureModifier_isDisabled;
 		mti->foreachObjectLink = armatureModifier_foreachObjectLink;
 		mti->updateDepgraph = armatureModifier_updateDepgraph;
@@ -3548,6 +3620,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		             | eModifierTypeFlag_SupportsEditmode;
 		mti->initData = hookModifier_initData;
 		mti->copyData = hookModifier_copyData;
+		mti->requiredDataMask = hookModifier_requiredDataMask;
 		mti->freeData = hookModifier_freeData;
 		mti->isDisabled = hookModifier_isDisabled;
 		mti->foreachObjectLink = hookModifier_foreachObjectLink;
@@ -3759,6 +3832,46 @@ int modifiers_isSoftbodyEnabled(Object *ob)
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Softbody);
 
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
+}
+
+LinkNode *modifiers_calcDataMasks(ModifierData *md, CustomDataMask dataMask)
+{
+	LinkNode *dataMasks = NULL;
+	LinkNode *curr, *prev;
+
+	/* build a list of modifier data requirements in reverse order */
+	for(; md; md = md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		CustomDataMask mask = 0;
+
+		if(mti->requiredDataMask) mask = mti->requiredDataMask(md);
+
+		BLI_linklist_prepend(&dataMasks, (void *)mask);
+	}
+
+	/* build the list of required data masks - each mask in the list must
+	 * include all elements of the masks that follow it
+	 *
+	 * note the list is currently in reverse order, so "masks that follow it"
+	 * actually means "masks that precede it" at the moment
+	 */
+	for(curr = dataMasks, prev = NULL; curr; prev = curr, curr = curr->next) {
+		if(prev) {
+			CustomDataMask prev_mask = (CustomDataMask)prev->link;
+			CustomDataMask curr_mask = (CustomDataMask)curr->link;
+
+			curr->link = (void *)(curr_mask | prev_mask);
+		} else {
+			CustomDataMask curr_mask = (CustomDataMask)curr->link;
+
+			curr->link = (void *)(curr_mask | dataMask);
+		}
+	}
+
+	/* reverse the list so it's in the correct order */
+	BLI_linklist_reverse(&dataMasks);
+
+	return dataMasks;
 }
 
 ModifierData *modifiers_getVirtualModifierList(Object *ob)

@@ -988,7 +988,7 @@ static void sample_wpaint(int mode)
 			extern float editbutvweight;
 			float w1, w2, w3, w4, co[3], fac;
 			
-			dm = mesh_get_derived_final(ob);
+			dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
 			if(dm->getVertCo==NULL) {
 				notice("Not supported yet");
 			}

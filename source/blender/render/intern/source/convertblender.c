@@ -1836,7 +1836,8 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 		ob->data= me;
 	}
 
-	dm = mesh_create_derived_render(ob);
+	dm = mesh_create_derived_render(ob,
+	                    CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL);
 
 	/* (Multires) Now switch the meshes back around */
 	if(me->mr) {

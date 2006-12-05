@@ -46,6 +46,7 @@
  */
 
 #include "DNA_customdata_types.h"
+#include "BKE_customdata.h"
 
 struct MVert;
 struct MEdge;
@@ -295,6 +296,12 @@ int DM_release(DerivedMesh *dm);
  */
 void DM_to_mesh(DerivedMesh *dm, struct Mesh *me);
 
+/* set the CD_FLAG_NOCOPY flag in custom data layers where the mask is
+ * zero for the layer type, so only layer types specified by the mask
+ * will be copied
+ */
+void DM_set_only_copy(DerivedMesh *dm, CustomDataMask mask);
+
 /* adds a vertex/edge/face custom data layer to a DerivedMesh, optionally
  * backed by an external data array
  * if layer != NULL, it is used as the layer data array, otherwise new memory
@@ -337,7 +344,7 @@ void DM_set_face_data(struct DerivedMesh *dm, int index, int type, void *data);
 
 /* custom data copy functions
  * copy count elements from source_index in source to dest_index in dest
- * these copy all layers for which the LAYERFLAG_NOCOPY flag is not set
+ * these copy all layers for which the CD_FLAG_NOCOPY flag is not set
  */
 void DM_copy_vert_data(struct DerivedMesh *source, struct DerivedMesh *dest,
                        int source_index, int dest_index, int count);
@@ -396,21 +403,34 @@ void DM_swap_face_data(struct DerivedMesh *dm, int index, int *corner_indices);
 float *mesh_get_mapped_verts_nors(struct Object *ob);
 
 	/* */
-DerivedMesh *mesh_get_derived_final(struct Object *ob);
-DerivedMesh *mesh_get_derived_deform(struct Object *ob);
+DerivedMesh *mesh_get_derived_final(struct Object *ob,
+                                    CustomDataMask dataMask);
+DerivedMesh *mesh_get_derived_deform(struct Object *ob,
+                                     CustomDataMask dataMask);
 
 DerivedMesh *mesh_create_derived_for_modifier(struct Object *ob, struct ModifierData *md);
 
-DerivedMesh *mesh_create_derived_render(struct Object *ob);
-DerivedMesh *mesh_create_derived_view(struct Object *ob); /* same as above but wont use render settings */
-DerivedMesh *mesh_create_derived_no_deform(struct Object *ob, float (*vertCos)[3]);
-DerivedMesh *mesh_create_derived_no_deform_render(struct Object *ob, float (*vertCos)[3]);
+DerivedMesh *mesh_create_derived_render(struct Object *ob,
+                                        CustomDataMask dataMask);
+/* same as above but wont use render settings */
+DerivedMesh *mesh_create_derived_view(struct Object *ob,
+                                      CustomDataMask dataMask);
+DerivedMesh *mesh_create_derived_no_deform(struct Object *ob,
+                                           float (*vertCos)[3],
+                                           CustomDataMask dataMask);
+DerivedMesh *mesh_create_derived_no_deform_render(struct Object *ob,
+                                                  float (*vertCos)[3],
+                                                  CustomDataMask dataMask);
 
 DerivedMesh *editmesh_get_derived_base(void);
-DerivedMesh *editmesh_get_derived_cage(void);
-DerivedMesh *editmesh_get_derived_cage_and_final(DerivedMesh **final_r);
+DerivedMesh *editmesh_get_derived_cage(CustomDataMask dataMask);
+DerivedMesh *editmesh_get_derived_cage_and_final(DerivedMesh **final_r,
+                                                 CustomDataMask dataMask);
 
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);
+
+/* determines required DerivedMesh data according to view and edit modes */
+CustomDataMask get_viewedit_datamask();
 
 #endif
 

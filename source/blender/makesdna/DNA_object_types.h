@@ -210,6 +210,8 @@ typedef struct Object {
 	struct FluidsimSettings *fluidsimSettings; /* if fluidsim enabled, store additional settings */
   
 	struct DerivedMesh *derivedDeform, *derivedFinal;
+	int lastDataMask;			/* the custom data layer mask that was last used to calculate derivedDeform and derivedFinal */
+	int pad;
 
 /*#ifdef WITH_VERSE*/
 	void *vnode;			/* pointer at object VerseNode */

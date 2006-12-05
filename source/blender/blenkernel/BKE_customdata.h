@@ -36,9 +36,10 @@ struct CustomData;
 struct CustomDataLayer;
 typedef int CustomDataMask;
 
-extern CustomDataMask CD_MASK_MESH[];
-extern CustomDataMask CD_MASK_EDITMESH[];
-extern CustomDataMask CD_MASK_DERIVEDMESH[];
+extern const CustomDataMask CD_MASK_BAREMESH;
+extern const CustomDataMask CD_MASK_MESH;
+extern const CustomDataMask CD_MASK_EDITMESH;
+extern const CustomDataMask CD_MASK_DERIVEDMESH;
 
 /* for ORIGINDEX layer type, indicates no original index for this element */
 #define ORIGINDEX_NONE -1
@@ -54,15 +55,15 @@ extern CustomDataMask CD_MASK_DERIVEDMESH[];
 #define CD_REFERENCE 3  /* reference original pointers, set layer flag NOFREE */
 
 /* initialises a CustomData object with the same layer setup as source.
- * mask must be an array of length CD_NUMTYPES elements, that indicates
+ * mask is a bitfield where (mask & (1 << (layer type))) indicates
  * if a layer should be copied or not. alloctype must be one of the above. */
 void CustomData_copy(const struct CustomData *source, struct CustomData *dest,
-                     CustomDataMask *mask, int alloctype, int totelem);
+                     CustomDataMask mask, int alloctype, int totelem);
 
 /* same as the above, except that will preserve existing layers, and only add
  * the layers that were not there yet */
 void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
-                      CustomDataMask *mask, int alloctype, int totelem);
+                      CustomDataMask mask, int alloctype, int totelem);
 
 /* frees data associated with a CustomData object (doesn't free the object
  * itself, though)
@@ -104,6 +105,13 @@ int CustomData_has_layer(const struct CustomData *data, int type);
 /* duplicate data of a layer with flag NOFREE, and remove that flag.
  * returns the layer data */
 void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type);
+
+/* set the CD_FLAG_NOCOPY flag in custom data layers where the mask is
+ * zero for the layer type, so only layer types specified by the mask
+ * will be copied
+ */
+void CustomData_set_only_copy(const struct CustomData *data,
+                              CustomDataMask mask);
 
 /* copies data from one CustomData object to another
  * objects need not be compatible, each source layer is copied to the
@@ -190,5 +198,8 @@ void CustomData_from_em_block(const struct CustomData *source,
 /* query info over types */
 void CustomData_file_write_info(int type, char **structname, int *structnum);
 int CustomData_sizeof(int type);
+
+/* get the name of a layer type */
+const char *CustomData_layertype_name(int type);
 
 #endif

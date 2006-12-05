@@ -414,7 +414,7 @@ void b_verse_unsubscribe(VNode *vnode)
 		}
 		
 		/* reinitialize object derived mesh */
-		makeDerivedMesh(ob);
+		makeDerivedMesh(ob, get_viewedit_datamask());
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	}
 	else if(vnode->type==V_NT_BITMAP) {
@@ -445,7 +445,7 @@ void post_link_set(VLink *vlink)
 			me = (Mesh*)((VGeomData*)target->data)->mesh;
 		if(ob && me && ob->data!=me)  {
 			ob->data = me;
-			makeDerivedMesh(ob);
+			makeDerivedMesh(ob, get_viewedit_datamask());
 		}
 	}
 

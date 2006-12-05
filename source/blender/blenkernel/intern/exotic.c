@@ -2495,7 +2495,7 @@ static int write_derivedmesh_stl(FILE *fpSTL, Object *ob, DerivedMesh *dm)
 static int write_object_stl(FILE *fpSTL, Object *ob, Mesh *me)
 {
 	int  numfacets = 0;
-	DerivedMesh *dm = mesh_get_derived_final(ob);
+	DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
 
 	numfacets += write_derivedmesh_stl(fpSTL, ob, dm);
 
@@ -2649,7 +2649,7 @@ static void write_videoscape_mesh(Object *ob, char *str)
 		}
 	}
 	else {
-		DerivedMesh *dm = mesh_get_derived_deform(ob);
+		DerivedMesh *dm = mesh_get_derived_deform(ob, CD_MASK_BAREMESH);
 		
 		me= ob->data;
 		

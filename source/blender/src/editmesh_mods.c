@@ -625,7 +625,7 @@ static void draw_dm_mapped_face_center(DerivedMesh *dm, EditFace *efa)
 
 static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 {
-	DerivedMesh *dm = editmesh_get_derived_cage();
+	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
 
 	glDrawBuffer(GL_FRONT);
 

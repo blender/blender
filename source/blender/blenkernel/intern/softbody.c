@@ -492,9 +492,9 @@ void ccd_build_deflector_hache(Object *vertexowner,GHash *hash)
 				DerivedMesh *dm= NULL;
 				
 				if(ob->softflag & OB_SB_COLLFINAL) { /* so maybe someone wants overkill to collide with subsurfed */
-					dm = mesh_get_derived_final(ob);
+					dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
 				} else {
-					dm = mesh_get_derived_deform(ob);
+					dm = mesh_get_derived_deform(ob, CD_MASK_BAREMESH);
 				}
 
 				if(dm){
@@ -534,9 +534,9 @@ void ccd_update_deflector_hache(Object *vertexowner,GHash *hash)
 				DerivedMesh *dm= NULL;
 				
 				if(ob->softflag & OB_SB_COLLFINAL) { /* so maybe someone wants overkill to collide with subsurfed */
-					dm = mesh_get_derived_final(ob);
+					dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
 				} else {
-					dm = mesh_get_derived_deform(ob);
+					dm = mesh_get_derived_deform(ob, CD_MASK_BAREMESH);
 				}
 				if(dm){
 					ccd_Mesh *ccdmesh = BLI_ghash_lookup(hash,ob);
