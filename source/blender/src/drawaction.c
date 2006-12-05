@@ -48,6 +48,7 @@
 #include "BLI_arithb.h"
 
 /* Types --------------------------------------------------------------- */
+#include "DNA_listBase.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
@@ -92,10 +93,10 @@
 
 /* local functions ----------------------------------------------------- */
 int count_action_levels(bAction *act);
-static BezTriple **ipo_to_keylist(Ipo *ipo, int flags, int *totvert);
-static BezTriple **action_to_keylist(bAction *act, int flags, int *totvert);
-static BezTriple **ob_to_keylist(Object *ob, int flags, int *totvert);
-static BezTriple **icu_to_keylist(IpoCurve *icu, int flags, int *totvert);
+static ListBase *ipo_to_keylist(Ipo *ipo, int flags);
+static ListBase *action_to_keylist(bAction *act, int flags);
+static ListBase *ob_to_keylist(Object *ob, int flags);
+static ListBase *icu_to_keylist(IpoCurve *icu, int flags);
 void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, int flags, float ypos);
 
 
@@ -777,50 +778,50 @@ static void draw_key_but(int x, int y, int w, int h, int sel)
 
 #endif
 
-static void draw_keylist(gla2DDrawInfo *di, int totvert, BezTriple **blist, float ypos)
+static void draw_keylist(gla2DDrawInfo *di, ListBase *elems, float ypos)
 {
-	int v;
-
-	if (!blist)
+	CfraElem *ce;
+	
+	if (!elems)
 		return;
 
 	glEnable(GL_BLEND);
 	
-	for (v = 0; v<totvert; v++){
-		if (v==0 || (blist[v]->vec[1][0] != blist[v-1]->vec[1][0])){
-			int sc_x, sc_y;
-			gla2DDrawTranslatePt(di, blist[v]->vec[1][0], ypos, &sc_x, &sc_y);
-			// draw_key_but(sc_x-5, sc_y-6, 13, 13, (blist[v]->f2 & 1));
-			
-			if(blist[v]->f2 & 1) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
-			else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
-
-		}
-	}			
+	for (ce= elems->first; ce; ce= ce->next){
+		int sc_x, sc_y;
+		gla2DDrawTranslatePt(di, ce->cfra, ypos, &sc_x, &sc_y);
+		// draw_key_but(sc_x-5, sc_y-6, 13, 13, (ce->sel & 1));
+		
+		if(ce->sel & 1) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
+		else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
+	}	
+	
 	glDisable(GL_BLEND);
 }
 
 void draw_object_channel(gla2DDrawInfo *di, Object *ob, int flags, float ypos)
 {
-	BezTriple **blist;
-	int totvert;
+	ListBase *elems;
 
-	blist = ob_to_keylist(ob, flags, &totvert);
-	if (blist){
-		draw_keylist(di,totvert, blist, ypos);
-		MEM_freeN(blist);
+	elems = ob_to_keylist(ob, flags);
+	if (elems){
+		draw_keylist(di, elems, ypos);
+		
+		BLI_freelistN(elems);
+		MEM_freeN(elems);
 	}
 }
 
 void draw_ipo_channel(gla2DDrawInfo *di, Ipo *ipo, int flags, float ypos)
 {
-	BezTriple **blist;
-	int totvert;
+	ListBase *elems;
 
-	blist = ipo_to_keylist(ipo, flags, &totvert);
-	if (blist){
-		draw_keylist(di,totvert, blist, ypos);
-		MEM_freeN(blist);
+	elems = ipo_to_keylist(ipo, flags);
+	if (elems){
+		draw_keylist(di, elems, ypos);
+		
+		BLI_freelistN(elems);
+		MEM_freeN(elems);
 	}
 }
 
@@ -828,194 +829,127 @@ void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, int flags, float ypos)
 {
 	/* draw the keys for an IpoCurve
 	 */
-	BezTriple **blist;
-	int totvert;
+	ListBase *elems;
 
-	blist = icu_to_keylist(icu, flags, &totvert);
-	if (blist){
-		draw_keylist(di,totvert, blist, ypos);
-		MEM_freeN(blist);
+	elems = icu_to_keylist(icu, flags);
+	if (elems){
+		draw_keylist(di, elems, ypos);
+		
+		BLI_freelistN(elems);
+		MEM_freeN(elems);
 	}
 }
 
 void draw_action_channel(gla2DDrawInfo *di, bAction *act, int flags, float ypos)
 {
-	BezTriple **blist;
-	int totvert;
+	ListBase *elems;
 
-	blist = action_to_keylist(act, flags, &totvert);
-	if (blist){
-		draw_keylist(di,totvert, blist, ypos);
-		MEM_freeN(blist);
+	elems = action_to_keylist(act, flags);
+	
+	if (elems){
+		draw_keylist(di, elems, ypos);
+		
+		BLI_freelistN(elems);
+		MEM_freeN(elems);
 	}
 }
 
-static BezTriple **ob_to_keylist(Object *ob, int flags, int *totvert)
+static ListBase *ob_to_keylist(Object *ob, int flags)
 {
-	IpoCurve *icu;
 	bConstraintChannel *conchan;
-	int v, count=0;
+	ListBase *elems = NULL;
 
-	BezTriple **list = NULL;
-
-	if (ob){
-
-		/* Count Object Keys */
-		if (ob->ipo){
-			for (icu=ob->ipo->curve.first; icu; icu=icu->next){
-				count+=icu->totvert;
-			}
+	if (ob) {
+		/* allocate memory for list */
+		elems = MEM_callocN(sizeof(ListBase), "ObKeylist");
+		
+		/* Add object keyframes */
+		if (ob->ipo) {
+			make_cfra_list(ob->ipo, elems);
 		}
 		
-		/* Count Constraint Keys */
+		/* Add constraint keyframes */
 		for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next){
-			if(conchan->ipo)
-				for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
-					count+=icu->totvert;
+			if(conchan->ipo) {
+				make_cfra_list(conchan->ipo, elems);
+			}				
 		}
-		
-		/* Count object data keys */
-
-		/* Build the list */
-		if (count){
-			list = MEM_callocN(sizeof(BezTriple*)*count, "beztlist");
-			count=0;
 			
-			/* Add object keyframes */
-			if(ob->ipo) {
-				for (icu=ob->ipo->curve.first; icu; icu=icu->next){
-					for (v=0; v<icu->totvert; v++){
-						list[count++]=&icu->bezt[v];
-					}
-				}
-			}			
-			/* Add constraint keyframes */
-			for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next){
-				if(conchan->ipo)
-					for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
-						for (v=0; v<icu->totvert; v++)
-							list[count++]=&icu->bezt[v];
-			}
-			
-			/* Add object data keyframes */
-
-			/* Sort */
-			qsort(list, count, sizeof(BezTriple*), bezt_compare);
-		}
+		/* Add object data keyframes */
+		// 		TODO??
 	}
-	(*totvert)=count;
-	return list;
+	
+	/* return pointer to listbase */
+	return elems;
 }
 
-static BezTriple **icu_to_keylist(IpoCurve *icu, int flags, int *totvert)
+static ListBase *icu_to_keylist(IpoCurve *icu, int flags)
 {
 	/* compile a list of all bezier triples in an
 	 * IpoCurve.
 	 */
-	int v, count = 0;
-
-	BezTriple **list = NULL;
-
-	count=icu->totvert;
-
-	if (count){
-		list = MEM_callocN(sizeof(BezTriple*)*count, "beztlist");
-		count=0;
-			
-		for (v=0; v<icu->totvert; v++){
-			list[count++]=&icu->bezt[v];
-		}
-		qsort(list, count, sizeof(BezTriple*), bezt_compare);
-	}
-	(*totvert)=count;
-	return list;
-
-}
-
-static BezTriple **ipo_to_keylist(Ipo *ipo, int flags, int *totvert)
-{
-	IpoCurve *icu;
-	int v, count=0;
-
-	BezTriple **list = NULL;
-
-	if (ipo){
-		/* Count required keys */
-		for (icu=ipo->curve.first; icu; icu=icu->next){
-			count+=icu->totvert;
-		}
+	ListBase *elems = NULL;
+	BezTriple *bezt;
+	int v;
+	
+	if (icu && icu->totvert){
+		elems = MEM_callocN(sizeof(ListBase), "IpoCurveKeylist");
 		
-		/* Build the list */
-		if (count){
-			list = MEM_callocN(sizeof(BezTriple*)*count, "beztlist");
-			count=0;
-			
-			for (icu=ipo->curve.first; icu; icu=icu->next){
-				for (v=0; v<icu->totvert; v++){
-					list[count++]=&icu->bezt[v];
-				}
-			}			
-			qsort(list, count, sizeof(BezTriple*), bezt_compare);
+		/* loop through beztriples, making CfraElems */
+		bezt= icu->bezt;
+		for (v=0; v<icu->totvert; v++, bezt++) {
+			add_to_cfra_elem(elems, bezt);
 		}
 	}
-	(*totvert)=count;
-	return list;
+	
+	/* return pointer to listbase */
+	return elems;
 }
 
-static BezTriple **action_to_keylist(bAction *act, int flags, int *totvert)
+static ListBase *ipo_to_keylist(Ipo *ipo, int flags)
 {
-	IpoCurve *icu;
+	ListBase *elems = NULL;
+
+	if (ipo) {
+		/* allocate memory for list of keys */
+		elems= MEM_callocN(sizeof(ListBase), "IpoKeylist");
+		
+		/* make list */
+		make_cfra_list(ipo, elems);
+	}
+	
+	/* return pointer to listbase */
+	return elems;
+}
+
+static ListBase *action_to_keylist(bAction *act, int flags)
+{
 	bActionChannel *achan;
 	bConstraintChannel *conchan;
-	int v, count=0;
+	
+	ListBase *elems = NULL;
 
-	BezTriple **list = NULL;
-
-	if (act){
-		/* Count required keys */
-		for (achan=act->chanbase.first; achan; achan=achan->next){
-			if((achan->flag & ACHAN_HIDDEN)==0) {
-				/* Count transformation keys */
-				if(achan->ipo) {
-					for (icu=achan->ipo->curve.first; icu; icu=icu->next)
-						count+=icu->totvert;
-				}
-				/* Count constraint keys */
-				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-					if(conchan->ipo) 
-						for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
-							count+=icu->totvert;
-			}				
-		}
+	if (act) {
+		/* allocate memory for list of keys */
+		elems= MEM_callocN(sizeof(ListBase), "ActionKeylist");
 		
-		/* Build the list */
-		if (count){
-			list = MEM_callocN(sizeof(BezTriple*)*count, "beztlist");
-			count=0;
+		/* loop through action channels */
+		for (achan= act->chanbase.first; achan; achan= achan->next) {
+			/* firstly, add keys from action channel's ipo block */
+			if (achan->ipo) {
+				make_cfra_list(achan->ipo, elems);
+			}
 			
-			for (achan=act->chanbase.first; achan; achan=achan->next){
-				if((achan->flag & ACHAN_HIDDEN)==0) {
-					if(achan->ipo) {
-						/* Add transformation keys */
-						for (icu=achan->ipo->curve.first; icu; icu=icu->next){
-							for (v=0; v<icu->totvert; v++)
-								list[count++]=&icu->bezt[v];
-						}
-					}					
-						/* Add constraint keys */
-					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next){
-						if(conchan->ipo)
-							for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
-								for (v=0; v<icu->totvert; v++)
-									list[count++]=&icu->bezt[v];
-					}
-				}							
-			}		
-			qsort(list, count, sizeof(BezTriple*), bezt_compare);
-			
+			/* then, add keys from constraint channels */
+			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
+				if (conchan->ipo) {
+					make_cfra_list(conchan->ipo, elems);
+				}
+			}
 		}
 	}
-	(*totvert)=count;
-	return list;
+	
+	/* return pointer to listbase */
+	return elems;
 }
 

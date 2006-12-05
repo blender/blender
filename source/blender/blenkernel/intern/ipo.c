@@ -2296,7 +2296,9 @@ void make_cfra_list(Ipo *ipo, ListBase *elems)
 			}
 		}
 	}
-	
+
+	/* what's the point of this little block of code?  */
+#if 0
 	if(ipo->showkey==0) {
 		/* deselect all keys */
 		ce= elems->first;
@@ -2305,6 +2307,7 @@ void make_cfra_list(Ipo *ipo, ListBase *elems)
 			ce= ce->next;
 		}
 	}
+#endif
 }
 
 /* *********************** INTERFACE FOR KETSJI ********** */
