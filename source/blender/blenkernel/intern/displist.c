@@ -286,6 +286,7 @@ static void init_fastshade_shadeinput(void)
 	memset(&shi, 0, sizeof(ShadeInput));
 	shi.lay= G.scene->lay;
 	shi.view[2]= -1.0f;
+	shi.passflag= SCE_PASS_COMBINED;
 }
 
 static Render *fastshade_get_render(void)

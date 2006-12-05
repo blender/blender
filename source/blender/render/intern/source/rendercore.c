@@ -1267,6 +1267,8 @@ void add_halo_flare(Render *re)
 	R.r.mode= mode;	
 }
 
+/* ************************* used for shaded view ************************ */
+
 /* if *re, then initialize, otherwise execute */
 void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr)
 {
@@ -1294,6 +1296,7 @@ void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr)
 		shade_material_loop(shi, shr);
 	}
 }
+
 /* ************************* bake ************************ */
 
 #define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))

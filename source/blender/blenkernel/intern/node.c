@@ -1819,6 +1819,9 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 	if(ntree->init & NTREE_EXEC_INIT)
 		return;
 	
+	/* allocate the stack pointer array */
+	ntree->stack= MEM_callocN(BLENDER_MAX_THREADS*sizeof(void *), "stack array");
+	
 	/* goes recursive over all groups */
 	ntree->stacksize= ntree_begin_exec_tree(ntree);
 
@@ -1827,8 +1830,7 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 		bNodeStack *ns;
 		int a;
 		
-		/* allocate stack array, and the base stack */
-		ntree->stack= MEM_callocN(BLENDER_MAX_THREADS*sizeof(void *), "stack array");
+		/* allocate the base stack */
 		ns=ntree->stack[0]= MEM_callocN(ntree->stacksize*sizeof(bNodeStack), "node stack");
 		
 		/* tag inputs, the get_stack() gives own socket stackdata if not in use */
