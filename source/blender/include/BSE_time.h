@@ -33,6 +33,7 @@
 #ifndef BSE_TIME_H
 #define BSE_TIME_H
 
+struct ListBase;
 struct View2D;
 
 /* ******** Markers - General Api ********* */
@@ -41,10 +42,15 @@ void duplicate_marker(void);
 void remove_marker(void);
 void rename_marker(void);
 void transform_markers(int mode, int smode);
+
 void borderselect_markers(void);
 void deselect_markers(short test, short sel);
 struct TimeMarker *find_nearest_marker(int clip_y);
+
 void nextprev_marker(short dir);
+
+void add_marker_to_cfra_elem(struct ListBase *lb, struct TimeMarker *marker);
+void make_marker_cfra_list(struct ListBase *lb);
 
 /* ******** Markers - Space Specific ************* */
 void draw_markers_timespace(struct View2D *v2d);

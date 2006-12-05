@@ -485,16 +485,24 @@ static void make_sel_cfra_list(Ipo *ipo, ListBase *elems)
 /* This function selects all key frames in the same column(s) as a already selected key(s)
  * this version only works for Shape Keys, Key should be not NULL
  */
-static void column_select_shapekeys(Key *key)
+void column_select_shapekeys(Key *key, int mode)
 {
-
 	if(key->ipo) {
 		IpoCurve *icu;
 		ListBase elems= {NULL, NULL};
 		CfraElem *ce;
 		
-		/* create a list of all selected keys */
-		make_sel_cfra_list(key->ipo, &elems);
+		/* build list of columns */
+		switch (mode) {
+			case 1:
+				/* create a list of all selected keys */
+				make_sel_cfra_list(key->ipo, &elems);
+				break;
+			case 2:
+				/* create a list of all selected markers */
+				make_marker_cfra_list(&elems);
+				break;
+		}
 		
 		/* loop through all of the keys and select additional keyframes
 			* based on the keys found to be selected above
@@ -521,7 +529,7 @@ static void column_select_shapekeys(Key *key)
 /* This function selects all key frames in the same column(s) as a already selected key(s)
  * this version only works for on Action. *act should be not NULL
  */
-static void column_select_actionkeys(bAction *act)
+void column_select_actionkeys(bAction *act, int mode)
 {
 	IpoCurve *icu;
 	BezTriple *bezt;
@@ -530,18 +538,27 @@ static void column_select_actionkeys(bAction *act)
 	bActionChannel *chan;
 	bConstraintChannel *conchan;
 
-	/* create a list of all selected keys */
-	for (chan=act->chanbase.first; chan; chan=chan->next){
-		if((chan->flag & ACHAN_HIDDEN)==0) {
-			if (chan->ipo)
-				make_sel_cfra_list(chan->ipo, &elems);
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
-				if (conchan->ipo)
-					make_sel_cfra_list(conchan->ipo, &elems);
+	/* build list of columns */
+	switch (mode) {
+		case 1:
+			/* create a list of all selected keys */
+			for (chan=act->chanbase.first; chan; chan=chan->next){
+				if((chan->flag & ACHAN_HIDDEN)==0) {
+					if (chan->ipo)
+						make_sel_cfra_list(chan->ipo, &elems);
+					for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
+						if (conchan->ipo)
+							make_sel_cfra_list(conchan->ipo, &elems);
+					}
+				}
 			}
-		}
+			break;
+		case 2:
+			/* create a list of all selected markers */
+			make_marker_cfra_list(&elems);
+			break;
 	}
-
+	
 	/* loop through all of the keys and select additional keyframes
 	 * based on the keys found to be selected above
 	 */
@@ -2680,15 +2697,18 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case KKEY:
-			if(key)
-				column_select_shapekeys(key);
-			else if(act)
-				column_select_actionkeys(act);
+			val= (G.qual & LR_SHIFTKEY) ? 2 : 1;
 			
+			if(key)
+				column_select_shapekeys(key, val);
+			else if(act)
+				column_select_actionkeys(act, val);
+			
+			allqueue(REDRAWTIME, 0);
 			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWSOUND, 0);
 			break;
 			
 		case MKEY:

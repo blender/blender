@@ -113,7 +113,8 @@ void deselect_actionchannels (struct bAction *act, int test);
 void deselect_meshchannel_keys (struct Key *key, int test);
 int select_channel(struct bAction *act, struct bActionChannel *chan, int selectmode);
 void select_actionchannel_by_name (struct bAction *act, char *name, int select);
-
+void column_select_meshkeys(struct Key *key, int mode);
+void column_select_actionkeys(struct bAction *act, int mode);
 
 /* Action */
 struct bActionChannel* get_hilighted_action_channel(struct bAction* action);

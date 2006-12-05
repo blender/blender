@@ -92,10 +92,11 @@
 #define ACTMENU_SEL_BORDERM      		1
 #define ACTMENU_SEL_ALL_KEYS    		2
 #define ACTMENU_SEL_ALL_CHAN    		3
-#define ACTMENU_SEL_COLUMN				4
-#define ACTMENU_SEL_ALL_MARKERS			5
-#define ACTMENU_SEL_MARKERS_KEYSBETWEEN 6
-#define ACTMENU_SEL_MARKERS_KEYSCOLUMN	7
+#define ACTMENU_SEL_ALL_MARKERS			4
+
+#define ACTMENU_SEL_COLUMN_KEYS				1
+#define ACTMENU_SEL_COLUMN_MARKERSCOLUMN 	2
+#define ACTMENU_SEL_COLUMN_MARKERSBETWEEN	3
 
 #define ACTMENU_KEY_DUPLICATE     0
 #define ACTMENU_KEY_DELETE        1
@@ -355,6 +356,56 @@ static uiBlock *action_viewmenu(void *arg_unused)
 	return block;
 }
 
+static void do_action_selectmenu_columnmenu(void *arg, int event)
+{
+	SpaceAction *saction;
+	bAction	*act;
+	Key *key;
+	
+	key = get_action_mesh_key();
+	saction= curarea->spacedata.first;
+	
+	act=saction->action;
+	
+	if ( ELEM3(event, ACTMENU_SEL_COLUMN_KEYS, ACTMENU_SEL_COLUMN_MARKERSCOLUMN, 
+			ACTMENU_SEL_COLUMN_MARKERSBETWEEN) == 0)
+		return;
+	
+	if (key)
+		column_select_shapekeys(key, event);
+	else
+		column_select_actionkeys(act, event);
+		
+	allqueue(REDRAWTIME, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWSOUND, 0);
+}
+
+static uiBlock *action_selectmenu_columnmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_selectmenu_columnmenu", 
+					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_action_selectmenu_columnmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "On Selected Keys|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,  
+					 ACTMENU_SEL_COLUMN_KEYS, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "On Selected Markers|Shift K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_COLUMN_MARKERSCOLUMN, "");
+	
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
 static void do_action_selectmenu(void *arg, int event)
 {	
 	SpaceAction *saction;
@@ -414,16 +465,6 @@ static void do_action_selectmenu(void *arg, int event)
 			allqueue(REDRAWNLA, 0);
 			allqueue(REDRAWSOUND, 0);
 			break;
-			
-		case ACTMENU_SEL_COLUMN: /* select column */
-			addqueue (curarea->win, KKEY, 1);
-			break;
-			
-		case ACTMENU_SEL_MARKERS_KEYSBETWEEN: /* keys between 2 extreme selected markers */
-			break;
-			
-		case ACTMENU_SEL_MARKERS_KEYSCOLUMN: /* keys on same frame as marker(s) */
-			break;
 	}
 }
 
@@ -463,23 +504,9 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-			 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Select Keys Column|K", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_SEL_COLUMN, "");
-	
-/*	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Select Keys At Markers|CTRL K", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_SEL_MARKERS_KEYSCOLUMN, "");
-					
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Select Keys Between Markers|SHIFT K", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_SEL_MARKERS_KEYSBETWEEN, "");
-*/
+			
+	uiDefIconTextBlockBut(block, action_selectmenu_columnmenu, 
+						  NULL, ICON_RIGHTARROW_THIN, "Column Select Keys", 0, yco-=20, 120, 20, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

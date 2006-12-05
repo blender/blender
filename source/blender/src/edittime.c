@@ -435,6 +435,43 @@ TimeMarker *find_nearest_marker(int clip_y)
 	return NULL;
 }
 
+/* Adds a marker to list of cfra elems */
+void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker)
+{
+	CfraElem *ce, *cen;
+	
+	ce= lb->first;
+	while(ce) {
+		
+		if( ce->cfra==marker->frame ) {
+			/* do because of double keys */
+			if(marker->flag & SELECT) ce->sel= marker->flag;
+			return;
+		}
+		else if(ce->cfra > marker->frame) break;
+		
+		ce= ce->next;
+	}	
+	
+	cen= MEM_callocN(sizeof(CfraElem), "add_to_cfra_elem");	
+	if(ce) BLI_insertlinkbefore(lb, ce, cen);
+	else BLI_addtail(lb, cen);
+
+	cen->cfra= marker->frame;
+	cen->sel= marker->flag;
+}
+
+/* This function makes a list of the selected markers
+ */
+void make_marker_cfra_list(ListBase *lb)
+{
+	TimeMarker *marker;
+	
+	for (marker= G.scene->markers.first; marker; marker= marker->next) {
+		add_marker_to_cfra_elem(lb, marker);
+	}
+}
+
 /* *********** End Markers - Markers API *************** */
 
 static int find_nearest_timeline_marker(float dx)
