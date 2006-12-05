@@ -1380,6 +1380,58 @@ void node_border_select(SpaceNode *snode)
 
 /* ****************** Add *********************** */
 
+void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag)
+{
+	bNodeSocket *sock, *sockfrom[8];
+	bNode *node, *nodefrom[8];
+	int totsock= 0, socktype=0;
+
+	if(node_to->inputs.first==NULL)
+		return;
+	
+	/* no inputs for node allowed (code it) */
+
+	/* connect first 1 socket type now */
+	for(sock= node_to->inputs.first; sock; sock= sock->next)
+		if(socktype<sock->type)
+			socktype= sock->type;
+
+	
+	/* find potential sockets, max 8 should work */
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if((node->flag & flag) && node!=node_to) {
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
+					sockfrom[totsock]= sock;
+					nodefrom[totsock]= node;
+					totsock++;
+					if(totsock>7)
+						break;
+				}
+			}
+		}
+		if(totsock>7)
+			break;
+	}
+
+	/* now just get matching socket types and create links */
+	for(sock= node_to->inputs.first; sock; sock= sock->next) {
+		int a;
+		
+		for(a=0; a<totsock; a++) {
+			if(sockfrom[a]) {
+				if(sock->type==sockfrom[a]->type && sock->type==socktype) {
+					nodeAddLink(snode->edittree, nodefrom[a], sockfrom[a], node_to, sock);
+					sockfrom[a]= NULL;
+					break;
+				}
+			}
+		}
+	}
+	
+	ntreeSolveOrder(snode->edittree);
+}
+
 /* can be called from menus too, but they should do own undopush and redraws */
 bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 {
@@ -1421,7 +1473,7 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 		
 		if(snode->nodetree->type==NTREE_COMPOSIT)
 			ntreeCompositForceHidden(G.scene->nodetree);
-
+		
 	}
 	return node;
 }

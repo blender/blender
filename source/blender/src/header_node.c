@@ -198,13 +198,23 @@ static uiBlock *node_selectmenu(void *arg_unused)
 void do_node_addmenu(void *arg, int event)
 {
 	SpaceNode *snode= curarea->spacedata.first;
+	bNode *node;
 	float locx, locy;
 	short mval[2];
 	
+	/* store selection in temp test flag */
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(node->flag & NODE_SELECT) node->flag |= NODE_TEST;
+		else node->flag &= ~NODE_TEST;
+	}
+	
 	getmouseco_areawin(mval);
 	areamouseco_to_ipoco(G.v2d, mval, &locx, &locy);
-	node_add_node(snode, event, locx, locy);
+	node= node_add_node(snode, event, locx, locy);
 	
+	/* uses test flag */
+	snode_autoconnect(snode, node, NODE_TEST);
+		
 	addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 	
 	BIF_undo_push("Add Node");

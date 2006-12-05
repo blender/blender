@@ -140,6 +140,8 @@ typedef struct bNode {
 #define NODE_ACTIVE_ID		32
 #define NODE_DO_OUTPUT		64
 #define NODE_GROUP_EDIT		128
+		/* free test flag, undefined */
+#define NODE_TEST			256
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;
