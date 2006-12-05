@@ -628,6 +628,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 	}	
 	/* will become or-ed result of all node modes */
 	ma->mode_l= ma->mode;
+	ma->mode_l &= ~MA_SHLESS;
 }
 
 static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode, float *amb)

@@ -1504,6 +1504,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		if(ma->fresnel_tra!=0.0f) 
 			shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
 			
+		/* note: shi->mode! */
 		if(shi->mode & (MA_ZTRA|MA_RAYTRANSP)) {
 			if(shi->spectra!=0.0f) {
 				float t = MAX3(shr->spec[0], shr->spec[1], shr->spec[2]);

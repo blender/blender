@@ -223,6 +223,7 @@ void shade_input_set_triangle_i(ShadeInput *shi, VlakRen *vlr, short i1, short i
 	
 	shi->mat= vlr->mat;
 	shi->osatex= (shi->mat->texco & TEXCO_OSA);
+	shi->mode= shi->mat->mode_l;		/* or-ed result for all nodes */
 	
 	/* calculate vertexnormals */
 	if(vlr->flag & R_SMOOTH) {
@@ -505,7 +506,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 	VertRen *v1= shi->v1, *v2= shi->v2, *v3= shi->v3;
 	float u= shi->u, v= shi->v;
 	float l= 1.0f+u+v, dl;
-	int mode= shi->mode= shi->mat->mode_l;		/* or-ed result for all nodes */
+	int mode= shi->mode;		/* or-ed result for all nodes */
 	short texco= shi->mat->texco;
 
 	/* calculate dxno and tangents */
@@ -879,7 +880,7 @@ void shade_samples_do_shadow(ShadeSample *ssamp)
 					float visifac, lv[3], lampdist, inpr;
 					
 					/* three tests to quickly reject */
-					if(!(shi->mat->mode & MA_SHADOW) || (shi->mat->mode & MA_SHLESS))
+					if(!(shi->mode & MA_SHADOW) || (shi->mode & MA_SHLESS))
 						continue;
 					
 					visifac= lamp_get_visibility(lar, shi->co, lv, &lampdist);
@@ -905,8 +906,8 @@ void shade_samples_do_shadow(ShadeSample *ssamp)
 	if(R.wrld.mode & WO_AMB_OCC)
 		if(ssamp->shi[0].passflag & (SCE_PASS_COMBINED|SCE_PASS_DIFFUSE|SCE_PASS_AO))
 			for(sample=0, shi= ssamp->shi; sample<ssamp->tot; shi++, sample++)
-				if(!(shi->mat->mode & MA_SHLESS))
-					if(shi->mat->mode & MA_SHADOW)
+				if(!(shi->mode & MA_SHLESS))
+					if(shi->mode & MA_SHADOW)
 						ambient_occlusion(shi);		/* stores in shi->ao[] */
 		
 }
