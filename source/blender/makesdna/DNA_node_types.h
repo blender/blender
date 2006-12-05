@@ -86,9 +86,12 @@ typedef struct bNodeSocket {
 #define SOCK_RGBA		2
 
 /* sock->flag, first bit is select */
+		/* hidden is user defined, to hide unused */
 #define SOCK_HIDDEN				2
 		/* only used now for groups... */
 #define SOCK_IN_USE				4
+		/* unavailable is for dynamic sockets */
+#define SOCK_UNAVAIL			8
 
 #
 #

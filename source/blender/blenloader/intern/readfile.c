@@ -6039,7 +6039,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		BezTriple *bezt;
 		BPoint *bp;
 		int a;
-
+		
 		for(sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
 			sa= sc->areabase.first;
@@ -6164,7 +6164,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		/* now, subversion control! */
 		if(main->subversionfile < 1) {
-			
 		}
 	}
 

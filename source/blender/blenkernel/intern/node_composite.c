@@ -1053,14 +1053,16 @@ static bNodeType cmp_node_image= {
 #define RRES_OUT_IMAGE	0
 #define RRES_OUT_ALPHA	1
 #define RRES_OUT_Z		2
-#define RRES_OUT_NOR	3
+#define RRES_OUT_NORMAL	3
 #define RRES_OUT_VEC	4
-#define RRES_OUT_COL	5
+#define RRES_OUT_RGBA	5
 #define RRES_OUT_DIFF	6
 #define RRES_OUT_SPEC	7
-#define RRES_OUT_SHAD	8
+#define RRES_OUT_SHADOW	8
 #define RRES_OUT_AO		9
-#define RRES_OUT_RAY	10
+#define RRES_OUT_REFLECT 10
+#define RRES_OUT_REFRACT 11
+#define RRES_OUT_INDEXOB 12
 
 static bNodeSocketType cmp_node_rlayers_out[]= {
 	{	SOCK_RGBA, 0, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
@@ -1068,12 +1070,14 @@ static bNodeSocketType cmp_node_rlayers_out[]= {
 	{	SOCK_VALUE, 0, "Z",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 0, "Normal",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 0, "Speed",	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-//	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-//	{	SOCK_RGBA, 0, "Diffuse",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-//	{	SOCK_RGBA, 0, "Specular",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-//	{	SOCK_RGBA, 0, "Shadow",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-//	{	SOCK_RGBA, 0, "AO",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-//	{	SOCK_RGBA, 0, "Ray",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Diffuse",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Specular",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Shadow",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "AO",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Reflect",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Refract",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "IndexOB",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -1085,7 +1089,7 @@ static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, in
 		CompBuf *buf;
 		int buftype= CB_VEC3;
 		
-		if(passcode==SCE_PASS_Z)
+		if(ELEM(passcode, SCE_PASS_Z, SCE_PASS_INDEXOB))
 			buftype= CB_VAL;
 		else if(passcode==SCE_PASS_VECTOR)
 			buftype= CB_VEC4;
@@ -1141,22 +1145,26 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in,
 						out[RRES_OUT_Z]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_Z);
 					if(out[RRES_OUT_VEC]->hasoutput)
 						out[RRES_OUT_VEC]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_VECTOR);
-					if(out[RRES_OUT_NOR]->hasoutput)
-						out[RRES_OUT_NOR]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_NORMAL);
-		/*			
-					if(out[RRES_OUT_COL]->hasoutput)
-						out[RRES_OUT_COL]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_RGBA);
+					if(out[RRES_OUT_NORMAL]->hasoutput)
+						out[RRES_OUT_NORMAL]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_NORMAL);
+
+					if(out[RRES_OUT_RGBA]->hasoutput)
+						out[RRES_OUT_RGBA]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_RGBA);
 					if(out[RRES_OUT_DIFF]->hasoutput)
 						out[RRES_OUT_DIFF]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_DIFFUSE);
 					if(out[RRES_OUT_SPEC]->hasoutput)
 						out[RRES_OUT_SPEC]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_SPEC);
-					if(out[RRES_OUT_SHAD]->hasoutput)
-						out[RRES_OUT_SHAD]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_SHADOW);
+					if(out[RRES_OUT_SHADOW]->hasoutput)
+						out[RRES_OUT_SHADOW]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_SHADOW);
 					if(out[RRES_OUT_AO]->hasoutput)
 						out[RRES_OUT_AO]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_AO);
-					if(out[RRES_OUT_RAY]->hasoutput)
-						out[RRES_OUT_RAY]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_RAY);
-		*/			
+					if(out[RRES_OUT_REFLECT]->hasoutput)
+						out[RRES_OUT_REFLECT]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_REFLECT);
+					if(out[RRES_OUT_REFRACT]->hasoutput)
+						out[RRES_OUT_REFRACT]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_REFRACT);
+					if(out[RRES_OUT_INDEXOB]->hasoutput)
+						out[RRES_OUT_INDEXOB]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_INDEXOB);
+
 					generate_preview(node, stackbuf);
 				}
 			}
@@ -4384,6 +4392,49 @@ bNodeType *node_all_composit[]= {
 
 /* ******************* parse ************ */
 
+/* based on rules, force sockets hidden always */
+void ntreeCompositForceHidden(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree==NULL) return;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if( node->type==CMP_NODE_R_LAYERS) {
+			Scene *sce= node->id?(Scene *)node->id:G.scene; /* G.scene is WEAK! */
+			SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
+			if(srl) {
+				bNodeSocket *sock;
+				for(sock= node->outputs.first; sock; sock= sock->next)
+					sock->flag &= ~SOCK_UNAVAIL;
+				
+				sock= BLI_findlink(&node->outputs, RRES_OUT_Z);
+				if(!(srl->passflag & SCE_PASS_Z)) sock->flag |= SOCK_UNAVAIL;
+				sock= BLI_findlink(&node->outputs, RRES_OUT_NORMAL);
+				if(!(srl->passflag & SCE_PASS_NORMAL)) sock->flag |= SOCK_UNAVAIL;
+				sock= BLI_findlink(&node->outputs, RRES_OUT_VEC);
+				if(!(srl->passflag & SCE_PASS_VECTOR)) sock->flag |= SOCK_UNAVAIL;
+				sock= BLI_findlink(&node->outputs, RRES_OUT_RGBA);
+				if(!(srl->passflag & SCE_PASS_RGBA)) sock->flag |= SOCK_UNAVAIL;
+				sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF);
+				if(!(srl->passflag & SCE_PASS_DIFFUSE)) sock->flag |= SOCK_UNAVAIL;
+				sock= BLI_findlink(&node->outputs, RRES_OUT_SPEC);
+				if(!(srl->passflag & SCE_PASS_SPEC)) sock->flag |= SOCK_UNAVAIL;
+				sock= BLI_findlink(&node->outputs, RRES_OUT_SHADOW);
+				if(!(srl->passflag & SCE_PASS_SHADOW)) sock->flag |= SOCK_UNAVAIL;
+				sock= BLI_findlink(&node->outputs, RRES_OUT_AO);
+				if(!(srl->passflag & SCE_PASS_AO)) sock->flag |= SOCK_UNAVAIL;
+				sock= BLI_findlink(&node->outputs, RRES_OUT_REFLECT);
+				if(!(srl->passflag & SCE_PASS_REFLECT)) sock->flag |= SOCK_UNAVAIL;
+				sock= BLI_findlink(&node->outputs, RRES_OUT_REFRACT);
+				if(!(srl->passflag & SCE_PASS_REFRACT)) sock->flag |= SOCK_UNAVAIL;
+				sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXOB);
+				if(!(srl->passflag & SCE_PASS_INDEXOB)) sock->flag |= SOCK_UNAVAIL;
+			}
+		}
+	}
+	
+}
 
 /* called from render pipeline, to tag render input and output */
 void ntreeCompositTagRender(bNodeTree *ntree)

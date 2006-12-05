@@ -139,9 +139,11 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_SPEC		16
 #define SCE_PASS_SHADOW		32
 #define SCE_PASS_AO			64
-#define SCE_PASS_RAY		128
+#define SCE_PASS_REFLECT	128
 #define SCE_PASS_NORMAL		256
 #define SCE_PASS_VECTOR		512
+#define SCE_PASS_REFRACT	1024
+#define SCE_PASS_INDEXOB	2048
 
 typedef struct RenderData {
 	struct AviCodecData *avicodecdata;

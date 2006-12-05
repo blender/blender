@@ -270,6 +270,7 @@ struct CompBuf;
 void ntreeCompositTagRender(struct bNodeTree *ntree);
 void ntreeCompositTagAnimated(struct bNodeTree *ntree);
 void ntreeCompositTagGenerators(struct bNodeTree *ntree);
+void ntreeCompositForceHidden(struct bNodeTree *ntree);
 
 void free_compbuf(struct CompBuf *cbuf); /* internal...*/
 

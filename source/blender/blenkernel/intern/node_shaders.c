@@ -34,6 +34,7 @@
 #include "DNA_ID.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
 #include "BKE_blender.h"
@@ -54,8 +55,8 @@
 /* ********* exec data struct, remains internal *********** */
 
 typedef struct ShaderCallData {
-	ShadeInput *shi;
-	ShadeResult *shr;
+	ShadeInput *shi;		/* from render pipe */
+	ShadeResult *shr;		/* from render pipe */
 } ShaderCallData;
 
 
@@ -103,9 +104,7 @@ static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bN
 		if(node->flag & NODE_DO_OUTPUT) {
 			ShadeResult *shr= ((ShaderCallData *)data)->shr;
 			
-			VECCOPY(shr->diff, col);
-			col[0]= col[1]= col[2]= 0.0f;
-			VECCOPY(shr->spec, col);
+			QUATCOPY(shr->combined, col);
 			shr->alpha= col[3];
 			
 			//	VECCOPY(shr->nor, in[3]->vec);
@@ -223,9 +222,10 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 	if(data && node->id) {
 		ShadeResult shrnode;
 		ShadeInput *shi;
+		ShaderCallData *shcd= data;
 		float col[4], *nor;
 		
-		shi= ((ShaderCallData *)data)->shi;
+		shi= shcd->shi;
 		shi->mat= (Material *)node->id;
 		
 		/* copy all relevant material vars, note, keep this synced with render_types.h */
@@ -264,9 +264,9 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		
 		/* write to outputs */
 		if(node->custom1 & SH_NODE_MAT_DIFF) {
-			VECCOPY(col, shrnode.diff);
-			if(node->custom1 & SH_NODE_MAT_SPEC) {
-				VecAddf(col, col, shrnode.spec);
+			VECCOPY(col, shrnode.combined);
+			if(!(node->custom1 & SH_NODE_MAT_SPEC)) {
+				VecSubf(col, col, shrnode.spec);
 			}
 		}
 		else if(node->custom1 & SH_NODE_MAT_SPEC) {
@@ -291,6 +291,9 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		
 		VECCOPY(out[MAT_OUT_NORMAL]->vec, shi->vn);
 		
+		/* copy passes, now just active node */
+		if(node->flag & NODE_ACTIVE)
+			*(shcd->shr)= shrnode;
 	}
 }
 
@@ -1029,11 +1032,21 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	scd.shr= shr;
 	
 	ntreeExecTree(ntree, &scd, shi->thread);	/* threads */
+	
+	/* better not allow negative for now */
+	if(shr->spec[0]<0.0f) shr->spec[0]= 0.0f;
+	if(shr->spec[1]<0.0f) shr->spec[1]= 0.0f;
+	if(shr->spec[2]<0.0f) shr->spec[2]= 0.0f;
+	
+	if(shr->combined[0]<0.0f) shr->combined[0]= 0.0f;
+	if(shr->combined[1]<0.0f) shr->combined[1]= 0.0f;
+	if(shr->combined[2]<0.0f) shr->combined[2]= 0.0f;
+	
 }
 
 /* go over all used Geometry and Texture nodes, and return a texco flag */
 /* no group inside needed, this function is called for groups too */
-int ntreeShaderGetTexco(bNodeTree *ntree, int osa)
+int ntreeShaderGetTexco(bNodeTree *ntree, int r_mode)
 {
 	bNode *node;
 	bNodeSocket *sock;
@@ -1043,7 +1056,7 @@ int ntreeShaderGetTexco(bNodeTree *ntree, int osa)
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->type==SH_NODE_TEXTURE) {
-			if(osa && node->id) {
+			if((r_mode & R_OSA) && node->id) {
 				Tex *tex= (Tex *)node->id;
 				if ELEM3(tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) 
 					texco |= TEXCO_OSA|NEED_UV;

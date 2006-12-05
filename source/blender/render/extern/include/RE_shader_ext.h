@@ -48,22 +48,50 @@ typedef struct ShadeResult
 	float combined[4];
 	float col[4];
 	float alpha;
-	float diff[3];
+	float diff[3];		/* includes ramps, shadow, etc */
+	float diff_raw[3];	/* pure diffuse, no shadow no ramps */
 	float spec[3];
 	float shad[3];
 	float ao[3];
-	float ray[3];
+	float refl[3];
+	float refr[3];
 	float nor[3];
 	float winspeed[4];
-	
 } ShadeResult;
+
+/* only here for quick copy */
+struct ShadeInputCopy {
+	
+	struct Material *mat;
+	struct VlakRen *vlr;
+	int facenr;
+	float facenor[3];				/* copy from face */
+	struct VertRen *v1, *v2, *v3;	/* vertices can be in any order for quads... */
+	short i1, i2, i3;				/* original vertex indices */
+	short puno;
+	float vn[3], vno[3];			/* actual render normal, and a copy to restore it */
+	float n1[3], n2[3], n3[3];		/* vertex normals, corrected */
+};
 
 /* localized renderloop data */
 typedef struct ShadeInput
 {
+	/* copy from face, also to extract tria from quad */
+	/* note it mirrors a struct above for quick copy */
+	
 	struct Material *mat;
 	struct VlakRen *vlr;
-	float co[3];
+	int facenr;
+	float facenor[3];				/* copy from face */
+	struct VertRen *v1, *v2, *v3;	/* vertices can be in any order for quads... */
+	short i1, i2, i3;				/* original vertex indices */
+	short puno;
+	float vn[3], vno[3];			/* actual render normal, and a copy to restore it */
+	float n1[3], n2[3], n3[3];		/* vertex normals, corrected */
+	
+	/* internal face coordinates */
+	float u, v, dx_u, dx_v, dy_u, dy_v;
+	float co[3], view[3];
 	
 	/* copy from material, keep synced so we can do memcopy */
 	/* current size: 23*4 */
@@ -86,7 +114,7 @@ typedef struct ShadeInput
 	
 	/* texture coordinates */
 	float lo[3], gl[3], uv[3], ref[3], orn[3], winco[3], sticky[3], vcol[3], rad[3];
-	float vn[3], vno[3], facenor[3], view[3], refcol[4], displace[3];
+	float refcol[4], displace[3];
 	float strand, tang[3], stress, winspeed[4];
 	
 	/* dx/dy OSA coordinates */
@@ -100,14 +128,20 @@ typedef struct ShadeInput
 	float dxrefract[3], dyrefract[3];
 	float dxstrand, dystrand;
 	
-	int xs, ys;			/* pixel to be rendered */
-	short do_preview;	/* for nodes, in previewrender */
-	short thread;
-	short osatex, puno;
+	/* AO is a pre-process now */
+	float ao[3];
+	
+	int xs, ys;				/* pixel to be rendered */
+	short osatex;
 	int mask;
-	int depth;			/* 1 or larger on raytrace shading */
-	int facenr;
+	int depth;				/* 1 or larger on raytrace shading */
+	
+	/* from initialize, part or renderlayer */
+	short do_preview;		/* for nodes, in previewrender */
+	short thread, sample;	/* sample: ShadeSample array index */
 	unsigned int lay;
+	int layflag, passflag;
+	
 } ShadeInput;
 
 

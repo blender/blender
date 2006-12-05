@@ -162,6 +162,7 @@ typedef struct PartialVisibility {
 #define ME_SHARP			(1<<9)
 
 /* puno = vertexnormal (mface) */
+/* render assumes flips to be ordered like this */
 #define ME_FLIPV1		1
 #define ME_FLIPV2		2
 #define ME_FLIPV3		4

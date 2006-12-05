@@ -830,6 +830,13 @@ void do_render_panels(unsigned short event)
 		}
 		allqueue(REDRAWBUTSSCENE, 0);
 		allqueue(REDRAWNODE, 0);
+		break;
+	case B_SET_PASS:
+		if(G.scene->nodetree) {
+			ntreeCompositForceHidden(G.scene->nodetree);
+			allqueue(REDRAWBUTSSCENE, 0);
+			allqueue(REDRAWNODE, 0);
+		}
 	}
 }
 
@@ -863,30 +870,6 @@ static uiBlock *edge_render_menu(void *arg_unused)
 	return block;
 }
 
-#if 0
-/* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
-static uiBlock *post_render_menu(void *arg_unused)
-{
-	uiBlock *block;
-	
-	block= uiNewBlock(&curarea->uiblocks, "post render", UI_EMBOSS, UI_HELV, curarea->win);
-		
-	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "",			-10, -10, 200, 120, NULL, 0, 0, 0, 0, "");
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, 0, "Add:",		0,80,180,19, &G.scene->r.postadd, -1.0, 1.0, 0, 0, "");
-	uiDefButF(block, NUMSLI, 0, "Mul:",		0,60,180,19,  &G.scene->r.postmul, 0.01, 4.0, 0, 0, "");
-	uiDefButF(block, NUMSLI, 0, "Gamma:",	0,40,180,19,  &G.scene->r.postgamma, 0.1, 4.0, 0, 0, "");
-	uiDefButF(block, NUMSLI, 0, "Hue:",		0,20,180,19,  &G.scene->r.posthue, -0.5, 0.5, 0, 0, "");
-	uiDefButF(block, NUMSLI, 0, "Sat:",		0, 0,180,19,  &G.scene->r.postsat, 0.0, 4.0, 0, 0, "");
-
-	uiBlockSetDirection(block, UI_TOP);
-	
-	addqueue(curarea->win, UI_BUT_EVENT, B_FBUF_REDO);
-	
-	return block;
-}
-#endif
 
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
 static uiBlock *framing_render_menu(void *arg_unused)
@@ -1291,7 +1274,6 @@ static void render_panel_render(void)
 	uiDefButF(block, NUM,B_DIFF,"",			627,34,60,20,&G.scene->r.gauss,0.5, 1.5, 10, 2, "Sets the filter size");
 	
 	uiDefButBitI(block, TOG, R_BORDER, REDRAWVIEWCAM, "Border",	565,13,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
-	uiDefButBitI(block, TOG, R_GAMMA, B_REDR, "Gamma",	627,13,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable gamma correction");
 	uiBlockEndAlign(block);
 
 }
@@ -1838,36 +1820,32 @@ static void render_panel_layers(void)
 	draw_3d_layer_buttons(block, &srl->lay,		130, 95, 35, 30);
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, SCE_LAY_SKY, B_NOP,"Sky",		10, 70, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Sky or backbuffer in this Layer");	
-	uiDefButBitS(block, TOG, SCE_LAY_SOLID, B_NOP,"Solid",	50, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
-	uiDefButBitS(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	115, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer (on top of Solid)");	
-	uiDefButBitS(block, TOG, SCE_LAY_ZTRA, B_NOP,"Ztra",	180, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Z-Transparent faces in this Layer (On top of Solid and Halos)");	
-	uiDefButBitS(block, TOG, SCE_LAY_EDGE, B_NOP,"Edge",	245, 70, 65, 20, &srl->layflag, 0, 0, 0, 0, "Render Edge-enhance in this Layer (only works for Solid faces)");	
-	uiDefButBitS(block, TOG, SCE_LAY_ALL_Z, B_NOP,"All Z values",		10, 50, 105, 20, &srl->layflag, 0, 0, 0, 0, "Fill in Z values for all not-rendered faces, for masking");	
+	uiDefButBitS(block, TOG, SCE_LAY_ALL_Z, B_NOP,"AllZ",	10, 70, 40, 20, &srl->layflag, 0, 0, 0, 0, "Fill in Z values for all not-rendered faces, for masking");	
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, SCE_LAY_SOLID, B_NOP,"Solid",	50, 70, 60, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
+	uiDefButBitS(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	110, 70, 55, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer (on top of Solid)");	
+	uiDefButBitS(block, TOG, SCE_LAY_ZTRA, B_NOP,"Ztra",	165, 70, 55, 20, &srl->layflag, 0, 0, 0, 0, "Render Z-Transparent faces in this Layer (On top of Solid and Halos)");	
+	uiDefButBitS(block, TOG, SCE_LAY_SKY, B_NOP,"Sky",		220, 70, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Sky or backbuffer in this Layer");	
+	uiDefButBitS(block, TOG, SCE_LAY_EDGE, B_NOP,"Edge",	260, 70, 50, 20, &srl->layflag, 0, 0, 0, 0, "Render Edge-enhance in this Layer (only works for Solid faces)");	
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, LABEL, 0, "Passes:",					10,30,150,20, NULL, 0, 0, 0, 0, "");
-	
+	uiDefBut(block, LABEL, 0, "Passes:",					10,30,50,20, NULL, 0, 0, 0, 0, "");
+
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, SCE_PASS_COMBINED, B_NOP,"Combined",	10, 10, 150, 20, &srl->passflag, 0, 0, 0, 0, "Deliver full combined RGBA buffer");	
-	uiDefButBitS(block, TOG, SCE_PASS_Z, B_NOP,"Z",			160, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Z values pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_VECTOR, B_NOP,"Vec",	200, 10, 55, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Vector pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_NORMAL, B_NOP,"Nor",	255, 10, 55, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Normal pass");	
-#if 0
-	/* bring back after release */
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, SCE_PASS_COMBINED, B_NOP,"Combined",	130, 30, 115, 20, &srl->passflag, 0, 0, 0, 0, "Deliver full combined RGBA buffer");	
-	uiDefButBitS(block, TOG, SCE_PASS_Z, B_NOP,"Z",			245, 30, 25, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Z values pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_VECTOR, B_NOP,"Vec",	270, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Vector pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_COMBINED, B_NOP,"Combined",	60, 30, 85, 20, &srl->passflag, 0, 0, 0, 0, "Deliver full combined RGBA buffer");	
+	uiDefButBitS(block, TOG, SCE_PASS_Z, B_SET_PASS,"Z",			145, 30, 25, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Z values pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_VECTOR, B_SET_PASS,"Vec",		170, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Speed Vector pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_NORMAL, B_SET_PASS,"Nor",		210, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Normal pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_INDEXOB, B_SET_PASS,"IndexOb",250, 30, 60, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Object Index pass");	
 	
-	uiDefButBitS(block, TOG, SCE_PASS_RGBA, B_NOP,"Col",	10, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver shade-less Color pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_DIFFUSE, B_NOP,"Diff",55, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_SPEC, B_NOP,"Spec",	100, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Specular pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_SHADOW, B_NOP,"Shad",	145, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Shadow pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_AO, B_NOP,"AO",		185, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver AO pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_RAY, B_NOP,"Ray",	225, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Mirror and Transparent pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_NORMAL, B_NOP,"Nor",	270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Normal pass");	
-#endif
+	uiDefButBitS(block, TOG, SCE_PASS_RGBA, B_SET_PASS,"Col",		10, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver shade-less Color pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_DIFFUSE, B_SET_PASS,"Diff",	55, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_SPEC, B_SET_PASS,"Spec",		100, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Specular pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_SHADOW, B_SET_PASS,"Shad",	145, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Shadow pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_AO, B_SET_PASS,"AO",			185, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver AO pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_REFLECT, B_SET_PASS,"Refl",	225, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Reflection pass");	
+	uiDefButBitS(block, TOG, SCE_PASS_REFRACT, B_SET_PASS,"Refr",	270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Refraction pass");	
+
 }	
 
 void render_panels()

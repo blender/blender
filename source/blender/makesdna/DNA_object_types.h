@@ -167,7 +167,7 @@ typedef struct Object {
     void *sumohandle;
     
 	float bbsize[3];
-	short dfras;
+	short index;			/* custom index, for renderpasses */
 	unsigned short actdef;	/* current deformation group */
 	float col[4];
 	/**

@@ -1580,10 +1580,10 @@ static void node_update_hidden(bNode *node)
 	
 	/* calculate minimal radius */
 	for(nsock= node->inputs.first; nsock; nsock= nsock->next)
-		if(!(nsock->flag & SOCK_HIDDEN))
+		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
 			totin++;
 	for(nsock= node->outputs.first; nsock; nsock= nsock->next)
-		if(!(nsock->flag & SOCK_HIDDEN))
+		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
 			totout++;
 	
 	tot= MAX2(totin, totout);
@@ -1600,7 +1600,7 @@ static void node_update_hidden(bNode *node)
 	rad=drad= M_PI/(1.0f + (float)totout);
 	
 	for(nsock= node->outputs.first; nsock; nsock= nsock->next) {
-		if(!(nsock->flag & SOCK_HIDDEN)) {
+		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
 			nsock->locx= node->totr.xmax - hiddenrad + sin(rad)*hiddenrad;
 			nsock->locy= node->totr.ymin + hiddenrad + cos(rad)*hiddenrad;
 			rad+= drad;
@@ -1611,7 +1611,7 @@ static void node_update_hidden(bNode *node)
 	rad=drad= - M_PI/(1.0f + (float)totin);
 	
 	for(nsock= node->inputs.first; nsock; nsock= nsock->next) {
-		if(!(nsock->flag & SOCK_HIDDEN)) {
+		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
 			nsock->locx= node->totr.xmin + hiddenrad + sin(rad)*hiddenrad;
 			nsock->locy= node->totr.ymin + hiddenrad + cos(rad)*hiddenrad;
 			rad+= drad;
@@ -1634,7 +1634,7 @@ static void node_update(bNode *node)
 	
 	/* output sockets */
 	for(nsock= node->outputs.first; nsock; nsock= nsock->next) {
-		if(!(nsock->flag & SOCK_HIDDEN)) {
+		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
 			nsock->locx= node->locx + node->width;
 			nsock->locy= dy - NODE_DYS;
 			dy-= NODE_DY;
@@ -1690,7 +1690,7 @@ static void node_update(bNode *node)
 	
 	/* input sockets */
 	for(nsock= node->inputs.first; nsock; nsock= nsock->next) {
-		if(!(nsock->flag & SOCK_HIDDEN)) {
+		if(!(nsock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
 			nsock->locx= node->locx;
 			nsock->locy= dy - NODE_DYS;
 			dy-= NODE_DY;
@@ -1921,7 +1921,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	
 	/* socket inputs, buttons */
 	for(sock= node->inputs.first; sock; sock= sock->next) {
-		if(!(sock->flag & SOCK_HIDDEN)) {
+		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
 			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
 			
 			if(block && sock->link==NULL) {
@@ -1963,7 +1963,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	
 	/* socket outputs */
 	for(sock= node->outputs.first; sock; sock= sock->next) {
-		if(!(sock->flag & SOCK_HIDDEN)) {
+		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
 			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
 			
 			BIF_ThemeColor(TH_TEXT);
@@ -2051,12 +2051,12 @@ void node_draw_hidden(SpaceNode *snode, bNode *node)
 	
 	/* sockets */
 	for(sock= node->inputs.first; sock; sock= sock->next) {
-		if(!(sock->flag & SOCK_HIDDEN))
+		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
 			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
 	}
 	
 	for(sock= node->outputs.first; sock; sock= sock->next) {
-		if(!(sock->flag & SOCK_HIDDEN))
+		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
 			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
 	}
 }
@@ -2080,6 +2080,12 @@ void node_draw_link(SpaceNode *snode, bNodeLink *link)
 		do_shaded= 0;
 	}
 	else {
+		/* going to give issues once... */
+		if(link->tosock->flag & SOCK_UNAVAIL)
+			return;
+		if(link->fromsock->flag & SOCK_UNAVAIL)
+			return;
+		
 		/* a bit ugly... but thats how we detect the internal group links */
 		if(link->fromnode==link->tonode) {
 			BIF_ThemeColorBlend(TH_BACK, TH_WIRE, 0.25f);
@@ -2202,7 +2208,7 @@ static void node_draw_group_links(SpaceNode *snode, bNode *gnode)
 	fakelink.tonode= fakelink.fromnode= gnode;
 	
 	for(sock= gnode->inputs.first; sock; sock= sock->next) {
-		if(!(sock->flag & SOCK_HIDDEN)) {
+		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
 			if(sock->tosock) {
 				fakelink.fromsock= sock;
 				fakelink.tosock= sock->tosock;
@@ -2212,7 +2218,7 @@ static void node_draw_group_links(SpaceNode *snode, bNode *gnode)
 	}
 	
 	for(sock= gnode->outputs.first; sock; sock= sock->next) {
-		if(!(sock->flag & SOCK_HIDDEN)) {
+		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
 			if(sock->tosock) {
 				fakelink.tosock= sock;
 				fakelink.fromsock= sock->tosock;
@@ -2261,10 +2267,10 @@ static void node_draw_group(ScrArea *sa, SpaceNode *snode, bNode *gnode)
 	
 	/* group sockets */
 	for(sock= gnode->inputs.first; sock; sock= sock->next)
-		if(!(sock->flag & SOCK_HIDDEN))
+		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
 			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
 	for(sock= gnode->outputs.first; sock; sock= sock->next)
-		if(!(sock->flag & SOCK_HIDDEN))
+		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
 			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
 
 	/* and finally the whole tree */

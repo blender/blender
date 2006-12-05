@@ -574,7 +574,7 @@ void new_material_to_objectdata(Object *ob)
 	ob->actcol= ob->totcol;
 }
 
-static void do_init_render_material(Material *ma, int osa, float *amb)
+static void do_init_render_material(Material *ma, int r_mode, float *amb)
 {
 	MTex *mtex;
 	int a, needuv=0;
@@ -590,11 +590,11 @@ static void do_init_render_material(Material *ma, int osa, float *amb)
 		if(ma->septex & (1<<a)) continue;
 
 		mtex= ma->mtex[a];
-		if(mtex && mtex->tex) {
+		if(mtex && mtex->tex && mtex->tex->type) {
 			
 			ma->texco |= mtex->texco;
 			ma->mapto |= mtex->mapto;
-			if(osa) {
+			if(r_mode & R_OSA) {
 				if ELEM3(mtex->tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) ma->texco |= TEXCO_OSA;
 			}
 			
@@ -604,20 +604,23 @@ static void do_init_render_material(Material *ma, int osa, float *amb)
 		}
 	}
 	
-	if(ma->mode & MA_RADIO) needuv= 1;
+	if(r_mode & R_RADIO)
+		if(ma->mode & MA_RADIO) needuv= 1;
 	
 	if(ma->mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)) {
 		needuv= 1;
-		if(osa) ma->texco |= TEXCO_OSA;		/* for texfaces */
+		if(r_mode & R_OSA) ma->texco |= TEXCO_OSA;		/* for texfaces */
 	}
 	if(needuv) ma->texco |= NEED_UV;
 	
-	// since the raytracer doesnt recalc O structs for each ray, we have to preset them all
-	if(ma->mode & (MA_RAYMIRROR|MA_RAYTRANSP|MA_SHADOW_TRA)) { 
-		ma->texco |= NEED_UV|TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM;
-		if(osa) ma->texco |= TEXCO_OSA;
+	/* since the raytracer doesnt recalc O structs for each ray, we have to preset them all */
+	if(r_mode & R_RAYTRACE) {
+		if(ma->mode & (MA_RAYMIRROR|MA_RAYTRANSP|MA_SHADOW_TRA)) { 
+			ma->texco |= NEED_UV|TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM;
+			if(r_mode & R_OSA) ma->texco |= TEXCO_OSA;
+		}
 	}
-
+	
 	if(amb) {
 		ma->ambr= ma->amb*amb[0];
 		ma->ambg= ma->amb*amb[1];
@@ -627,7 +630,7 @@ static void do_init_render_material(Material *ma, int osa, float *amb)
 	ma->mode_l= ma->mode;
 }
 
-static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int osa, float *amb)
+static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode, float *amb)
 {
 	bNode *node;
 	
@@ -636,32 +639,32 @@ static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int osa, f
 			if(GS(node->id->name)==ID_MA) {
 				Material *ma= (Material *)node->id;
 				if(ma!=basemat) {
-					do_init_render_material(ma, osa, amb);
+					do_init_render_material(ma, r_mode, amb);
 					basemat->texco |= ma->texco;
 					basemat->mode_l |= ma->mode_l;
 				}
 			}
 			else if(node->type==NODE_GROUP)
-				init_render_nodetree((bNodeTree *)node->id, basemat, osa, amb);
+				init_render_nodetree((bNodeTree *)node->id, basemat, r_mode, amb);
 		}
 	}
 	/* parses the geom+tex nodes */
-	basemat->texco |= ntreeShaderGetTexco(ntree, osa);
+	basemat->texco |= ntreeShaderGetTexco(ntree, r_mode);
 }
 
-void init_render_material(Material *mat, int osa, float *amb)
+void init_render_material(Material *mat, int r_mode, float *amb)
 {
 	
-	do_init_render_material(mat, osa, amb);
+	do_init_render_material(mat, r_mode, amb);
 	
 	if(mat->nodetree && mat->use_nodes) {
-		init_render_nodetree(mat->nodetree, mat, osa, amb);
+		init_render_nodetree(mat->nodetree, mat, r_mode, amb);
 		
 		ntreeBeginExecTree(mat->nodetree); /* has internal flag to detect it only does it once */
 	}
 }
 
-void init_render_materials(int osa, float *amb)
+void init_render_materials(int r_mode, float *amb)
 {
 	Material *ma;
 	
@@ -670,7 +673,7 @@ void init_render_materials(int osa, float *amb)
 		/* is_used flag comes back in convertblender.c */
 		ma->flag &= ~MA_IS_USED;
 		if(ma->id.us) 
-			init_render_material(ma, osa, amb);
+			init_render_material(ma, r_mode, amb);
 	}
 }
 

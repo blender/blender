@@ -338,6 +338,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SET_EDGE			1643
 #define B_SET_ZBLUR			1644
 #define B_ADD_RENDERLAYER	1645
+#define B_SET_PASS			1646
 
 /* *********************** */
 #define B_ARMATUREBUTS		1800

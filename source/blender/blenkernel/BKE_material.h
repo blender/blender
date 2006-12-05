@@ -53,7 +53,7 @@ void make_local_material(struct Material *ma);
 struct Material ***give_matarar(struct Object *ob);
 short *give_totcolp(struct Object *ob);
 struct Material *give_current_material(struct Object *ob, int act);
-ID *material_from(struct Object *ob, int act);
+struct ID *material_from(struct Object *ob, int act);
 void assign_material(struct Object *ob, struct Material *ma, int act);
 void new_material_to_objectdata(struct Object *ob);
 

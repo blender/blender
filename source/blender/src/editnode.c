@@ -370,6 +370,8 @@ void node_composit_default(Scene *sce)
 	nodeAddLink(sce->nodetree, in, fromsock, out, tosock);
 	
 	ntreeSolveOrder(sce->nodetree);	/* needed for pointers */
+	
+	ntreeCompositForceHidden(sce->nodetree);
 }
 
 /* Here we set the active tree(s), even called for each redraw now, so keep it fast :) */
@@ -395,6 +397,11 @@ void snode_set_context(SpaceNode *snode)
 	else if(snode->treetype==NTREE_COMPOSIT) {
 		snode->from= NULL;
 		snode->id= &G.scene->id;
+		
+		/* bit clumsy but reliable way to see if we draw first time */
+		if(snode->nodetree==NULL)
+			ntreeCompositForceHidden(G.scene->nodetree);
+		
 		snode->nodetree= G.scene->nodetree;
 	}
 	
@@ -816,7 +823,7 @@ static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(in_out & SOCK_IN) {
 			for(sock= node->inputs.first; sock; sock= sock->next) {
-				if(!(sock->flag & SOCK_HIDDEN)) {
+				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
 					if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
 						if(node == visible_node(snode, &rect)) {
 							*nodep= node;
@@ -829,7 +836,7 @@ static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **
 		}
 		if(in_out & SOCK_OUT) {
 			for(sock= node->outputs.first; sock; sock= sock->next) {
-				if(!(sock->flag & SOCK_HIDDEN)) {
+				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
 					if(BLI_in_rctf(&rect, sock->locx, sock->locy)) {
 						if(node == visible_node(snode, &rect)) {
 							*nodep= node;
@@ -1411,6 +1418,10 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 		
 		if(node->id)
 			id_us_plus(node->id);
+		
+		if(snode->nodetree->type==NTREE_COMPOSIT)
+			ntreeCompositForceHidden(G.scene->nodetree);
+
 	}
 	return node;
 }
