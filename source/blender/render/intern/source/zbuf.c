@@ -66,6 +66,7 @@
 #include "renderdatabase.h"
 #include "rendercore.h"
 #include "shadbuf.h"
+#include "shading.h"
 
 /* own includes */
 #include "zbuf.h"
@@ -2533,14 +2534,14 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int sample)
  * Do accumulation z buffering.
  */
 
-static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, unsigned int lay)
+static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, unsigned int lay)
 {
 	ZSpan zspan;
 	Material *ma=NULL;
 	VlakRen *vlr=NULL;
 	VertRen *v1, *v2, *v3, *v4;
 	float vec[3], hoco[4], mul, zval, fval;
-	int v, zvlnr, zsample, dofill= 0;
+	int v, zvlnr= 0, zsample, dofill= 0;
 	char *clipflag= pa->clipflag;
 	
 	zbuf_alloc_span(&zspan, pa->rectx, pa->recty);
@@ -2578,6 +2579,9 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 		/* to centre the sample position */
 		zspan.zofsx -= 0.5f;
 		zspan.zofsy -= 0.5f;
+		
+		/* we use this to test if nothing was filled in */
+		zvlnr= 0;
 		
 		for(v=0; v<R.totvlak; v++) {
 			if((v & 255)==0)
@@ -2644,11 +2648,13 @@ static void zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, u
 		
 		if(R.osa==0) break;
 		if(R.test_break()) break;
+		if(zvlnr==0) break;
 	}
 	
 	MEM_freeN(zspan.arectz);
 	zbuf_free_span(&zspan);
-
+	
+	return zvlnr;
 }
 
 /* different rules for speed in transparent pass...  */
@@ -2685,49 +2691,117 @@ static void add_transp_speed(RenderLayer *rl, int offset, float *speed, float al
 				}
 				
 			}
+			break;
 		}
 	}
 }
 
-static void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float weight)
+/* ONLY OSA! merge all shaderesult samples to one */
+/* target should have been cleared */
+static void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
+{
+	RenderPass *rpass;
+	float weight= 1.0f/((float)R.osa);
+	int delta= sizeof(ShadeResult)/4;
+	
+	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
+		float *col= NULL;
+		int pixsize= 0;
+		
+		switch(rpass->passtype) {
+			case SCE_PASS_RGBA:
+				col= shr->col;
+				pixsize= 4;
+				break;
+			case SCE_PASS_VECTOR:
+				col= shr->winspeed;
+				pixsize= 4;
+				break;
+			case SCE_PASS_DIFFUSE:
+				col= shr->diff;
+				break;
+			case SCE_PASS_SPEC:
+				col= shr->spec;
+				break;
+			case SCE_PASS_SHADOW:
+				col= shr->shad;
+				break;
+			case SCE_PASS_AO:
+				col= shr->ao;
+				break;
+			case SCE_PASS_REFLECT:
+				col= shr->refl;
+				break;
+			case SCE_PASS_REFRACT:
+				col= shr->refr;
+				break;
+			case SCE_PASS_NORMAL:
+				col= shr->nor;
+				break;
+		}
+		if(col) {
+			float *fp= col+delta;
+			int samp;
+			
+			for(samp= 1; samp<R.osa; samp++, fp+=delta) {
+				col[0]+= fp[0];
+				col[1]+= fp[1];
+				col[2]+= fp[2];
+				if(pixsize) col[3]+= fp[3];
+			}
+			col[0]*= weight;
+			col[1]*= weight;
+			col[2]*= weight;
+			if(pixsize) col[3]*= weight;
+		}
+	}
+				
+}
+
+static void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alpha)
 {
 	RenderPass *rpass;
 	
 	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
 		float *fp, *col= NULL;
-		int a, pixsize= 3;
 		
 		switch(rpass->passtype) {
 			case SCE_PASS_RGBA:
-				if(shr) col= shr->col;
-				pixsize= 4;
+				fp= rpass->rect + 4*offset;
+				addAlphaOverFloat(fp, shr->col);
 				break;
 			case SCE_PASS_DIFFUSE:
-				if(shr) col= shr->diff;
+				col= shr->diff;
 				break;
 			case SCE_PASS_SPEC:
-				if(shr) col= shr->spec;
+				col= shr->spec;
 				break;
 			case SCE_PASS_SHADOW:
-				if(shr) col= shr->shad;
+				col= shr->shad;
 				break;
 			case SCE_PASS_AO:
-				if(shr) col= shr->ao;
+				col= shr->ao;
 				break;
-			case SCE_PASS_RAY:
-				if(shr) col= shr->ray;
+			case SCE_PASS_REFLECT:
+				col= shr->refl;
+				break;
+			case SCE_PASS_REFRACT:
+				col= shr->refr;
 				break;
 			case SCE_PASS_NORMAL:
-				if(shr) col= shr->nor;
+				col= shr->nor;
 				break;
 		}
 		if(col) {
-			fp= rpass->rect + pixsize*offset;
-			for(a=0; a<pixsize; a++)
-				fp[a]+= weight*col[a];
+
+			fp= rpass->rect + 3*offset;
+			fp[0]= alpha*col[0] + (1.0f-alpha)*fp[0];
+			fp[1]= alpha*col[1] + (1.0f-alpha)*fp[1];
+			fp[2]= alpha*col[2] + (1.0f-alpha)*fp[2];
 		}
 	}
 }
+
 
 
 static int vergzvlak(const void *a1, const void *a2)
@@ -2742,112 +2816,183 @@ static int vergzvlak(const void *a1, const void *a2)
 /**
 * Shade this face at this location in SCS.
  */
-static void shadetrapixel(ShadePixelInfo *shpi, float x, float y, int z, int facenr, int mask)
+
+static void shade_tra_samples_fill(ShadeSample *ssamp, int x, int y, int z, int facenr, int curmask)
 {
-	float rco[3];
+	ShadeInput *shi= ssamp->shi;
+	float xs, ys;
 	
-	if(facenr<0)
-		return;
-	else if( (facenr & RE_QUAD_MASK) > R.totvlak) {
-		printf("error in shadetrapixel nr: %d\n", (facenr & RE_QUAD_MASK));
-		return;
-	}
-	/* correction back for zbuffer filling in */
-	x+= 0.5f;
-	y+= 0.5f;
-	
-	if(R.osa) {
-		VlakRen *vlr= RE_findOrAddVlak(&R, (facenr-1) & RE_QUAD_MASK);
-		float accumcol[4]={0,0,0,0}, tot=0.0;
-		int a;
+	ssamp->tot= 0;
+
+	shade_input_set_triangle(shi, facenr, 1);
 		
-		if(vlr->flag & R_FULL_OSA) {
-			for(a=0; a<R.osa; a++) {
-				if(mask & (1<<a)) {
-					shadepixel(shpi, x+R.jit[a][0], y+R.jit[a][1], z, facenr, 1<<a, rco);
-					accumcol[0]+= shpi->shr.combined[0];
-					accumcol[1]+= shpi->shr.combined[1];
-					accumcol[2]+= shpi->shr.combined[2];
-					accumcol[3]+= shpi->shr.combined[3];
-					tot+= 1.0;
+	/* officially should always be true... we have no sky info */
+	if(shi->vlr) {
+		
+		/* full osa is only set for OSA renders */
+		if(shi->vlr->flag & R_FULL_OSA) {
+			short shi_inc= 0, samp;
+			
+			for(samp=0; samp<R.osa; samp++) {
+				if(curmask & (1<<samp)) {
+					xs= (float)x + R.jit[samp][0] + 0.5f;	/* zbuffer has this inverse corrected, ensures xs,ys are inside pixel */
+					ys= (float)y + R.jit[samp][1] + 0.5f;
+					
+					if(shi_inc) {
+						shade_input_copy_triangle(shi+1, shi);
+						shi++;
+					}
+					shi->mask= (1<<samp);
+					shade_input_set_viewco(shi, xs, ys, (float)z);
+					shade_input_set_uv(shi);
+					shade_input_set_normals(shi);
+					
+					shi_inc= 1;
 				}
 			}
-			tot= 1.0/tot;
-			shpi->shr.combined[0]= accumcol[0]*tot;
-			shpi->shr.combined[1]= accumcol[1]*tot;
-			shpi->shr.combined[2]= accumcol[2]*tot;
-			shpi->shr.combined[3]= accumcol[3]*tot;
 		}
 		else {
-			int b= R.samples->centmask[mask];
-			x= x+R.samples->centLut[b & 15];
-			y= y+R.samples->centLut[b>>4];
-			shadepixel(shpi, x, y, z, facenr, mask, rco);
+			if(R.osa) {
+				short b= R.samples->centmask[curmask];
+				xs= (float)x + R.samples->centLut[b & 15] + 0.5f;
+				ys= (float)y + R.samples->centLut[b>>4] + 0.5f;
+			}
+			else {
+				xs= (float)x + 0.5f;
+				ys= (float)y + 0.5f;
+			}
+			shi->mask= curmask;
+			shade_input_set_viewco(shi, xs, ys, (float)z);
+			shade_input_set_uv(shi);
+			shade_input_set_normals(shi);
 		}
-	}
-	else {
-		shadepixel(shpi, x, y, z, facenr, mask, rco);
+		
+		/* total sample amount, shi->sample is static set in initialize */
+		ssamp->tot= shi->sample+1;
 	}
 }
 
-static int addtosamp_shr(ShadeResult *samp_shr, ShadeResult *shr, int mask, int addpassflag)
+static int shade_tra_samples(ShadeSample *ssamp, int x, int y, int z, int facenr, int mask)
 {
-	int a, retval = R.osa;
+	shade_tra_samples_fill(ssamp, x, y, z, facenr, mask);
 	
-	for(a=0; a < R.osa; a++) {
-		if(mask & (1<<a)) {
-			addAlphaUnderFloat(samp_shr->combined, shr->combined);
-			
-			if(addpassflag & SCE_PASS_VECTOR) {
-				QUATCOPY(samp_shr->winspeed, shr->winspeed);
+	if(ssamp->tot) {
+		ShadeInput *shi= ssamp->shi;
+		ShadeResult *shr= ssamp->shr;
+		int samp;
+		
+		/* if shadow or AO? */
+		if(R.r.mode & R_SHADOW)
+			shade_samples_do_shadow(ssamp);
+		
+		/* if shade (all shadepinputs have same passflag) */
+		if(shi->passflag & ~(SCE_PASS_Z|SCE_PASS_INDEXOB)) {
+			for(samp=0; samp<ssamp->tot; samp++, shi++, shr++) {
+				shade_input_set_shade_texco(shi);
+				shade_input_do_shade(shi, shr);
+				
+				/* include lamphalos for ztra, since halo layer was added already */
+				if(R.flag & R_LAMPHALO)
+					if(shi->layflag & SCE_LAY_HALO)
+						renderspothalo(shi, shr->combined, shr->combined[3]);
 			}
-			else if(addpassflag & SCE_PASS_NORMAL) {
-				VECCOPY(samp_shr->nor, shr->nor);
+		}
+		return 1;
+	}
+	return 0;
+}
+
+static void addvecmul(float *v1, float *v2, float fac)
+{
+	v1[0]= v1[0]+fac*v2[0];
+	v1[1]= v1[1]+fac*v2[1];
+	v1[2]= v1[2]+fac*v2[2];
+}
+
+static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassflag)
+{
+	int a, sample, retval = R.osa;
+	
+	for(a=0; a < R.osa; a++, samp_shr++) {
+		ShadeInput *shi= ssamp->shi;
+		ShadeResult *shr= ssamp->shr;
+		
+ 		for(sample=0; sample<ssamp->tot; sample++, shi++, shr++) {
+		
+			if(shi->mask & (1<<a)) {
+				float fac= (1.0f - samp_shr->combined[3])*shr->combined[3];
+				
+				addAlphaUnderFloat(samp_shr->combined, shr->combined);
+				
+				if(addpassflag & SCE_PASS_VECTOR) {
+					QUATCOPY(samp_shr->winspeed, shr->winspeed);
+				}
+				/* optim... */
+				if(addpassflag & ~(SCE_PASS_VECTOR)) {
+					
+					if(addpassflag & SCE_PASS_RGBA)
+						addAlphaUnderFloat(samp_shr->col, shr->col);
+					
+					if(addpassflag & SCE_PASS_NORMAL)
+						addvecmul(samp_shr->nor, shr->nor, fac);
+
+					if(addpassflag & SCE_PASS_DIFFUSE)
+						addvecmul(samp_shr->diff, shr->diff, fac);
+					
+					if(addpassflag & SCE_PASS_SPEC)
+						addvecmul(samp_shr->spec, shr->spec, fac);
+
+					if(addpassflag & SCE_PASS_SHADOW)
+						addvecmul(samp_shr->shad, shr->shad, fac);
+
+					if(addpassflag & SCE_PASS_AO)
+						addvecmul(samp_shr->ao, shr->ao, fac);
+
+					if(addpassflag & SCE_PASS_REFLECT)
+						addvecmul(samp_shr->refl, shr->refl, fac);
+					
+					if(addpassflag & SCE_PASS_REFRACT)
+						addvecmul(samp_shr->refr, shr->refr, fac);
+				}
 			}
 		}
 		
-		if(samp_shr->combined[3]>0.999) retval--;
-		samp_shr++;
+		if(samp_shr->combined[3]>0.999f) retval--;
 	}
 	return retval;
 }
 
 #define MAX_ZROW	2000
 /* main render call to fill in pass the full transparent layer */
-
-void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
+/* returns a mask, only if a) transp rendered and b) solid was rendered */
+unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 {
 	RenderResult *rr= pa->result;
-	ShadePixelInfo shpi;
+	ShadeSample ssamp;
 	APixstr *APixbuf;      /* Zbuffer: linked list of face samples */
 	APixstr *ap, *aprect, *apn;
 	ListBase apsmbase={NULL, NULL};
-	ShadeResult samp_shr[16];
-	float fac, sampalpha, *passrect= pass;
+	ShadeResult samp_shr[16];		/* MAX_OSA */
+	float sampalpha, *passrect= pass;
 	long *rdrect;
 	int x, y, crop=0, a, zrow[MAX_ZROW][3], totface;
-	int sval, addpassflag, offs= 0, od, addzbuf;
-
+	int addpassflag, offs= 0, od, addzbuf;
+	unsigned short *ztramask= NULL;
+	
 	/* looks nicer for calling code */
 	if(R.test_break())
-		return;
+		return NULL;
 	
 	APixbuf= MEM_callocN(pa->rectx*pa->recty*sizeof(APixstr), "APixbuf");
 	
-	if(R.osa>16) {
-		printf("abufsetrow: osa too large\n");
+	if(R.osa>16) { /* MAX_OSA */
+		printf("zbuffer_transp_shade: osa too large\n");
 		G.afbreek= 1;
-		return;
+		return NULL;
 	}
 	
-	/* fill shadepixel info struct */
-	shpi.thread= pa->thread;
-	shpi.lay= rl->lay;
-	shpi.layflag= rl->layflag;
-	shpi.passflag= 0;
-	
-	if(rl->passflag & ~(SCE_PASS_Z|SCE_PASS_NORMAL|SCE_PASS_VECTOR|SCE_PASS_COMBINED))
-		shpi.passflag= rl->passflag;
+	/* general shader info, passes */
+	shade_sample_initialize(&ssamp, pa, rl);
 	addpassflag= rl->passflag & ~(SCE_PASS_Z|SCE_PASS_COMBINED);
 	addzbuf= rl->passflag & SCE_PASS_Z;
 	
@@ -2857,14 +3002,23 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 		sampalpha= 1.0f;
 	
 	/* fill the Apixbuf */
-	zbuffer_abuf(pa, APixbuf, &apsmbase, rl->lay);
+	if(0 == zbuffer_abuf(pa, APixbuf, &apsmbase, rl->lay)) {
+		/* nothing filled in */
+		MEM_freeN(APixbuf);
+		freepsA(&apsmbase);	
+		return NULL;
+	}
 	aprect= APixbuf;
 	rdrect= pa->rectdaps;
 	
 	/* irregular shadowb buffer creation */
 	if(R.r.mode & R_SHADOW)
 		ISB_create(pa, APixbuf);
-	
+
+	/* masks, to have correct alpha combine */
+	if(R.osa && (rl->layflag & SCE_LAY_SOLID))
+		ztramask= MEM_callocN(pa->rectx*pa->recty*sizeof(short), "ztramask");
+
 	/* filtered render, for now we assume only 1 filter size */
 	if(pa->crop) {
 		crop= 1;
@@ -2911,85 +3065,67 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 					apn= apn->next;
 				}
 				
-				if(totface==1) {
-					
-					shadetrapixel(&shpi, (float)x, (float)y, zrow[0][0], zrow[0][1], zrow[0][2]);
-					
-					if(R.osa) {
-						add_filt_fmask(zrow[0][2], shpi.shr.combined, pass, rr->rectx);
-					}
-					else {
-						QUATCOPY(pass, shpi.shr.combined);
+				if(totface==2) {
+					if(zrow[0][0] < zrow[1][0]) {
+						a= zrow[0][0]; zrow[0][0]= zrow[1][0]; zrow[1][0]= a;
+						a= zrow[0][1]; zrow[0][1]= zrow[1][1]; zrow[1][1]= a;
+						a= zrow[0][2]; zrow[0][2]= zrow[1][2]; zrow[1][2]= a;
 					}
 					
-					if(addpassflag) 
-						add_transp_passes(rl, od, &shpi.shr, 1.0f);
-					
-					if(addpassflag & SCE_PASS_VECTOR)
-						add_transp_speed(rl, od, shpi.shr.winspeed, pass[3], rdrect);
-					
-					if(addzbuf)
-						if(pa->rectz[od]>zrow[0][0])
-							pa->rectz[od]= zrow[0][0];
 				}
-				else {
-					
-					if(totface==2) {
-						if(zrow[0][0] < zrow[1][0]) {
-							a= zrow[0][0]; zrow[0][0]= zrow[1][0]; zrow[1][0]= a;
-							a= zrow[0][1]; zrow[0][1]= zrow[1][1]; zrow[1][1]= a;
-							a= zrow[0][2]; zrow[0][2]= zrow[1][2]; zrow[1][2]= a;
-						}
+				else if(totface>2) {
+					qsort(zrow, totface, sizeof(int)*3, vergzvlak);
+				}
+				
+				if(addzbuf)
+					if(pa->rectz[od]>zrow[totface-1][0])
+						pa->rectz[od]= zrow[totface-1][0];
+				
+				if(R.osa==0) {
+					while(totface>0) {
+						totface--;
 						
-					}
-					else {	/* totface>2 */
-						qsort(zrow, totface, sizeof(int)*3, vergzvlak);
-					}
-					
-					if(addzbuf)
-						if(pa->rectz[od]>zrow[totface-1][0])
-							pa->rectz[od]= zrow[totface-1][0];
-					
-					if(R.osa==0) {
-						while(totface>0) {
-							totface--;
-							
-							shadetrapixel(&shpi, (float)x, (float)y, zrow[totface][0], zrow[totface][1], zrow[totface][2]);
-							addAlphaUnderFloat(pass, shpi.shr.combined);
+						if(shade_tra_samples(&ssamp, x, y, zrow[totface][0], zrow[totface][1], zrow[totface][2])) {
 							if(addpassflag) 
-								add_transp_passes(rl, od, &shpi.shr, 1.0f);
+								add_transp_passes(rl, od, ssamp.shr, (1.0f-pass[3])*ssamp.shr[0].combined[3]);
 							
+							addAlphaUnderFloat(pass, ssamp.shr[0].combined);
 							if(pass[3]>=0.999) break;
 						}
-						if(addpassflag & SCE_PASS_VECTOR)
-							add_transp_speed(rl, od, shpi.shr.winspeed, pass[3], rdrect);
 					}
-					else {
-						/* for each mask-sample we alpha-under colors. then in end it's added using filter */
-						memset(samp_shr, 0, sizeof(ShadeResult)*R.osa);
+					if(addpassflag & SCE_PASS_VECTOR)
+						add_transp_speed(rl, od, ssamp.shr[0].winspeed, pass[3], rdrect);
+				}
+				else {
+					short filled, *sp= ztramask+od;
+					
+					/* for each mask-sample we alpha-under colors. then in end it's added using filter */
+					memset(samp_shr, 0, sizeof(ShadeResult)*R.osa);
 
-						while(totface>0) {
-							totface--;
+					while(totface>0) {
+						totface--;
+						
+						if(shade_tra_samples(&ssamp, x, y, zrow[totface][0], zrow[totface][1], zrow[totface][2])) {
+							filled= addtosamp_shr(samp_shr, &ssamp, addpassflag);
 							
-							shadetrapixel(&shpi, (float)x, (float)y, zrow[totface][0], zrow[totface][1], zrow[totface][2]);
-							sval= addtosamp_shr(samp_shr, &shpi.shr, zrow[totface][2], addpassflag);
-							
-							if(sval==0) break;
+							if(ztramask)
+								*sp |= zrow[totface][2];
+							if(filled==0)
+								break;
 						}
-						
-						for(a=0; a<R.osa; a++) {
-							add_filt_fmask(1<<a, samp_shr[a].combined, pass, rr->rectx);
-						
-							if(addpassflag) 
-								add_transp_passes(rl, od, samp_shr+a, sampalpha);
-						}
-						
-						if(addpassflag & SCE_PASS_VECTOR) {
-							fac= 0.0f;
-							for(a=0; a<R.osa; a++) 
-								fac+= samp_shr[a].combined[3];
-							add_transp_speed(rl, od, samp_shr[0].winspeed, fac*sampalpha, rdrect);
-						}
+					}
+					
+					for(a=0; a<R.osa; a++) {
+						add_filt_fmask(1<<a, samp_shr[a].combined, pass, rr->rectx);
+					}
+					
+					if(addpassflag) {
+						/* merge all in one, and then add */
+						merge_transp_passes(rl, samp_shr);
+						add_transp_passes(rl, od, samp_shr, pass[3]);
+
+						if(addpassflag & SCE_PASS_VECTOR)
+							add_transp_speed(rl, od, samp_shr[0].winspeed, pass[3], rdrect);
 					}
 				}
 			}
@@ -3009,6 +3145,7 @@ void zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass)
 	if(R.r.mode & R_SHADOW)
 		ISB_free(pa);
 
+	return ztramask;
 }
 
 /* *************** */

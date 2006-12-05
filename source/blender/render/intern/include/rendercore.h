@@ -47,16 +47,10 @@ struct HaloRen;
 struct ShadeInput;
 struct ShadeResult;
 struct World;
+struct RenderPart;
+struct RenderLayer;
 
 /* ------------------------------------------------------------------------- */
-
-/* to make passing on variables to shadepixel() easier */
-typedef struct ShadePixelInfo {
-	int thread;
-	int layflag, passflag;
-	unsigned int lay;
-	ShadeResult shr;
-} ShadePixelInfo;
 
 typedef struct PixStr
 {
@@ -79,24 +73,16 @@ typedef struct PixStrMain
 void	calc_view_vector(float *view, float x, float y);
 float   mistfactor(float zcor, float *co);	/* dist and height, return alpha */
 
+void	renderspothalo(struct ShadeInput *shi, float *col, float alpha);
 void	add_halo_flare(Render *re);
 
-void	shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, int i3);
+void calc_renderco_zbuf(float *co, float *view, int z);
+void calc_renderco_ortho(float *co, float x, float y, int z);
 
-void	shade_color(struct ShadeInput *shi, ShadeResult *shr);
-void	shade_lamp_loop(struct ShadeInput *shi, ShadeResult *shr);
-
-float	fresnel_fac(float *view, float *vn, float fresnel, float fac);
-void	calc_R_ref(struct ShadeInput *shi);
-
-/* for nodes */
-void shade_material_loop(struct ShadeInput *shi, struct ShadeResult *shr);
+int count_mask(unsigned short mask);
 
 void zbufshade(void);
 void zbufshadeDA(void);	/* Delta Accum Pixel Struct */
-
-void *shadepixel(ShadePixelInfo *shpi, float x, float y, int z, volatile int facenr, int mask, float *rco);
-int count_mask(unsigned short mask);
 
 void zbufshade_tile(struct RenderPart *pa);
 void zbufshadeDA_tile(struct RenderPart *pa);

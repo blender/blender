@@ -53,9 +53,8 @@ void shadeHaloFloat(HaloRen *har,
 /**
  * Render the sky at pixel (x, y).
  */
-void renderSkyPixelFloat(float *collector, float x, float y, float *rco);
-void shadeSkyPixel(float *collector, float fx, float fy, float *rco);
-void shadeSkyPixelFloat(float *colf, float *rco, float *view, float *dxyview);
+void shadeSkyPixel(float *collector, float fx, float fy);
+void shadeSkyView(float *colf, float *rco, float *view, float *dxyview);
 
 /* ------------------------------------------------------------------------- */
 

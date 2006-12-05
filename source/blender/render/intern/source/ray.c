@@ -51,6 +51,7 @@
 #include "rendercore.h"
 #include "pixelblending.h"
 #include "pixelshading.h"
+#include "shading.h"
 #include "texture.h"
 
 #define DDA_SHADOW 0
@@ -337,32 +338,32 @@ static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocfa
 	oy2= rtf[b2][c2];
 
 	if(ox1!=ox2) {
-		if(ox2-ox1>0.0) {
-			labdax= (ox1-ocx1-1.0)/(ox1-ox2);
-			ldx= -1.0/(ox1-ox2);
+		if(ox2-ox1>0.0f) {
+			labdax= (ox1-ocx1-1.0f)/(ox1-ox2);
+			ldx= -1.0f/(ox1-ox2);
 			dx= 1;
 		} else {
 			labdax= (ox1-ocx1)/(ox1-ox2);
-			ldx= 1.0/(ox1-ox2);
+			ldx= 1.0f/(ox1-ox2);
 			dx= -1;
 		}
 	} else {
-		labdax=1.0;
+		labdax=1.0f;
 		ldx=0;
 	}
 
 	if(oy1!=oy2) {
-		if(oy2-oy1>0.0) {
-			labday= (oy1-ocy1-1.0)/(oy1-oy2);
-			ldy= -1.0/(oy1-oy2);
+		if(oy2-oy1>0.0f) {
+			labday= (oy1-ocy1-1.0f)/(oy1-oy2);
+			ldy= -1.0f/(oy1-oy2);
 			dy= 1;
 		} else {
 			labday= (oy1-ocy1)/(oy1-oy2);
-			ldy= 1.0/(oy1-oy2);
+			ldy= 1.0f/(oy1-oy2);
 			dy= -1;
 		}
 	} else {
-		labday=1.0;
+		labday=1.0f;
 		ldy=0;
 	}
 	
@@ -391,7 +392,7 @@ static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocfa
 		}
 		labda=MIN2(labdax,labday);
 		if(labda==labdao) break;
-		if(labda>=1.0) break;
+		if(labda>=1.0f) break;
 	}
 	ocface[oc->ocres*ocx2+ocy2]=1;
 }
@@ -513,8 +514,8 @@ void makeoctree(Render *re)
 	memset(ocface, 0, 3*ocres2);
 
 	for(c=0;c<3;c++) {	/* octree enlarge, still needed? */
-		oc->min[c]-= 0.01;
-		oc->max[c]+= 0.01;
+		oc->min[c]-= 0.01f;
+		oc->max[c]+= 0.01f;
 	}
 
 	t00= oc->max[0]-oc->min[0];
@@ -535,7 +536,7 @@ void makeoctree(Render *re)
 			vlr= re->blovl[v>>8];
 			if(re->test_break())
 				break;
-			if(time-lasttime>1.0) {
+			if(time-lasttime>1.0f) {
 				char str[32];
 				sprintf(str, "Filling Octree: %d", v);
 				re->i.infostr= str;
@@ -697,16 +698,16 @@ static int intersection2(VlakRen *vlr, float r0, float r1, float r2, float rx1, 
 	m2= rz1-v3->co[2];
 	det1= m0*x0+m1*x1+m2*x2;
 	
-	if(divdet!=0.0) {
+	if(divdet!=0.0f) {
 		u1= det1/divdet;
 
-		if(u1<=0.0) {
+		if(u1<=0.0f) {
 			det= t00*(m1*r2-m2*r1);
 			det+= t01*(m2*r0-m0*r2);
 			det+= t02*(m0*r1-m1*r0);
 			v= det/divdet;
 
-			if(v<=0.0 && (u1 + v) >= -1.0) {
+			if(v<=0.0f && (u1 + v) >= -1.0f) {
 				return 1;
 			}
 		}
@@ -719,16 +720,16 @@ static int intersection2(VlakRen *vlr, float r0, float r1, float r2, float rx1, 
 		t22= v3->co[2]-v4->co[2];
 
 		divdet= t20*x0+t21*x1+t22*x2;
-		if(divdet!=0.0) {
+		if(divdet!=0.0f) {
 			u2= det1/divdet;
 		
-			if(u2<=0.0) {
+			if(u2<=0.0f) {
 				det= t20*(m1*r2-m2*r1);
 				det+= t21*(m2*r0-m0*r2);
 				det+= t22*(m0*r1-m1*r0);
 				v= det/divdet;
 	
-				if(v<=0.0 && (u2 + v) >= -1.0) {
+				if(v<=0.0f && (u2 + v) >= -1.0f) {
 					return 2;
 				}
 			}
@@ -845,12 +846,12 @@ static int intersection(Isect *is)
 	m2= is->start[2]-v3->co[2];
 	det1= m0*x0+m1*x1+m2*x2;
 	
-	if(divdet!=0.0) {
+	if(divdet!=0.0f) {
 		float u;
 
-		divdet= 1.0/divdet;
+		divdet= 1.0f/divdet;
 		u= det1*divdet;
-		if(u<0.0 && u>-1.0) {
+		if(u<0.0f && u>-1.0f) {
 			float v, cros0, cros1, cros2;
 			
 			cros0= m1*t02-m2*t01;
@@ -858,11 +859,11 @@ static int intersection(Isect *is)
 			cros2= m0*t01-m1*t00;
 			v= divdet*(cros0*r0 + cros1*r1 + cros2*r2);
 
-			if(v<0.0 && (u + v) > -1.0) {
+			if(v<0.0f && (u + v) > -1.0f) {
 				float labda;
 				labda= divdet*(cros0*t10 + cros1*t11 + cros2*t12);
 
-				if(labda>0.0 && labda<1.0) {
+				if(labda>0.0f && labda<1.0f) {
 					is->labda= labda;
 					is->u= u; is->v= v;
 					ok= 1;
@@ -878,23 +879,23 @@ static int intersection(Isect *is)
 		t22= v3->co[2]-v4->co[2];
 
 		divdet= t20*x0+t21*x1+t22*x2;
-		if(divdet!=0.0) {
+		if(divdet!=0.0f) {
 			float u;
-			divdet= 1.0/divdet;
+			divdet= 1.0f/divdet;
 			u = det1*divdet;
 			
-			if(u<0.0 && u>-1.0) {
+			if(u<0.0f && u>-1.0f) {
 				float v, cros0, cros1, cros2;
 				cros0= m1*t22-m2*t21;
 				cros1= m2*t20-m0*t22;
 				cros2= m0*t21-m1*t20;
 				v= divdet*(cros0*r0 + cros1*r1 + cros2*r2);
 	
-				if(v<0.0 && (u + v) > -1.0) {
+				if(v<0.0f && (u + v) > -1.0f) {
 					float labda;
 					labda= divdet*(cros0*t10 + cros1*t11 + cros2*t12);
 					
-					if(labda>0.0 && labda<1.0) {
+					if(labda>0.0f && labda<1.0f) {
 						ok= 2;
 						is->labda= labda;
 						is->u= u; is->v= v;
@@ -995,7 +996,7 @@ static int testnode(Isect *is, Node *no, OcVal ocval)
 		Isect isect;
 		int found= 0;
 		
-		is->labda= 1.0;	/* needed? */
+		is->labda= 1.0f;	/* needed? */
 		isect= *is;		/* copy for sorting */
 		
 		vlr= no->v[0];
@@ -1097,24 +1098,24 @@ static int cliptest(float p, float q, float *u1, float *u2)
 {
 	float r;
 
-	if(p<0.0) {
+	if(p<0.0f) {
 		if(q<p) return 0;
-		else if(q<0.0) {
+		else if(q<0.0f) {
 			r= q/p;
 			if(r>*u2) return 0;
 			else if(r>*u1) *u1=r;
 		}
 	}
 	else {
-		if(p>0.0) {
-			if(q<0.0) return 0;
+		if(p>0.0f) {
+			if(q<0.0f) return 0;
 			else if(q<p) {
 				r= q/p;
 				if(r<*u1) return 0;
 				else if(r<*u2) *u2=r;
 			}
 		}
-		else if(q<0.0) return 0;
+		else if(q<0.0f) return 0;
 	}
 	return 1;
 }
@@ -1183,8 +1184,8 @@ static int d3dda(Isect *is)
 	}
 	
 	ldx= is->end[0] - is->start[0];
-	u1= 0.0;
-	u2= 1.0;
+	u1= 0.0f;
+	u2= 1.0f;
 
 	/* clip with octree cube */
 	if(cliptest(-ldx, is->start[0]-R.oc.min[0], &u1,&u2)) {
@@ -1196,12 +1197,12 @@ static int d3dda(Isect *is)
 					if(cliptest(-ldz, is->start[2]-R.oc.min[2], &u1,&u2)) {
 						if(cliptest(ldz, R.oc.max[2]-is->start[2], &u1,&u2)) {
 							c1=1;
-							if(u2<1.0) {
+							if(u2<1.0f) {
 								is->end[0]= is->start[0]+u2*ldx;
 								is->end[1]= is->start[1]+u2*ldy;
 								is->end[2]= is->start[2]+u2*ldz;
 							}
-							if(u1>0.0) {
+							if(u1>0.0f) {
 								is->start[0]+=u1*ldx;
 								is->start[1]+=u1*ldy;
 								is->start[2]+=u1*ldz;
@@ -1243,7 +1244,7 @@ static int d3dda(Isect *is)
 			vec1[0]= ox1; vec1[1]= oy1; vec1[2]= oz1;
 			vec2[0]= ox2; vec2[1]= oy2; vec2[2]= oz2;
 			calc_ocval_ray(&ocval, (float)ocx1, (float)ocy1, (float)ocz1, vec1, vec2);
-			is->ddalabda= 1.0;
+			is->ddalabda= 1.0f;
 			if( testnode(is, no, ocval) ) return 1;
 		}
 	}
@@ -1258,43 +1259,43 @@ static int d3dda(Isect *is)
 		doz= oz1-oz2;
 
 		if(dox<-FLT_EPSILON) {
-			ldx= -1.0/dox;
-			labdax= (ocx1-ox1+1.0)*ldx;
+			ldx= -1.0f/dox;
+			labdax= (ocx1-ox1+1.0f)*ldx;
 			dx= 1;
 		} else if(dox>FLT_EPSILON) {
-			ldx= 1.0/dox;
+			ldx= 1.0f/dox;
 			labdax= (ox1-ocx1)*ldx;
 			dx= -1;
 		} else {
-			labdax=1.0;
+			labdax=1.0f;
 			ldx=0;
 			dx= 0;
 		}
 
 		if(doy<-FLT_EPSILON) {
-			ldy= -1.0/doy;
-			labday= (ocy1-oy1+1.0)*ldy;
+			ldy= -1.0f/doy;
+			labday= (ocy1-oy1+1.0f)*ldy;
 			dy= 1;
 		} else if(doy>FLT_EPSILON) {
-			ldy= 1.0/doy;
+			ldy= 1.0f/doy;
 			labday= (oy1-ocy1)*ldy;
 			dy= -1;
 		} else {
-			labday=1.0;
+			labday=1.0f;
 			ldy=0;
 			dy= 0;
 		}
 
 		if(doz<-FLT_EPSILON) {
-			ldz= -1.0/doz;
-			labdaz= (ocz1-oz1+1.0)*ldz;
+			ldz= -1.0f/doz;
+			labdaz= (ocz1-oz1+1.0f)*ldz;
 			dz= 1;
 		} else if(doz>FLT_EPSILON) {
-			ldz= 1.0/doz;
+			ldz= 1.0f/doz;
 			labdaz= (oz1-ocz1)*ldz;
 			dz= -1;
 		} else {
-			labdaz=1.0;
+			labdaz=1.0f;
 			ldz=0;
 			dz= 0;
 		}
@@ -1307,7 +1308,7 @@ static int d3dda(Isect *is)
 		vec2[2]= oz1;
 		
 		/* this loop has been constructed to make sure the first and last node of ray
-		   are always included, even when ddalabda==1.0 or larger */
+		   are always included, even when ddalabda==1.0f or larger */
 
 		while(TRUE) {
 
@@ -1388,7 +1389,7 @@ static int d3dda(Isect *is)
 			ddalabda=MIN3(labdax,labday,labdaz);
 			if(ddalabda==labdao) break;
 			/* to make sure the last node is always checked */
-			if(labdao>=1.0) break;
+			if(labdao>=1.0f) break;
 		}
 	}
 	
@@ -1421,7 +1422,7 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	
 	/* face normal, check for flip */
 	l= vlr->n[0]*shi->view[0]+vlr->n[1]*shi->view[1]+vlr->n[2]*shi->view[2];
-	if(l<0.0) {	
+	if(l<0.0f) {	
 		shi->facenor[0]= -vlr->n[0];
 		shi->facenor[1]= -vlr->n[1];
 		shi->facenor[2]= -vlr->n[2];
@@ -1436,34 +1437,42 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	// Osa structs we leave unchanged now
 	SWAP(int, osatex, shi->osatex);
 	
-	shi->dxco[0]= shi->dxco[1]= shi->dxco[2]= 0.0;
-	shi->dyco[0]= shi->dyco[1]= shi->dyco[2]= 0.0;
+	shi->dxco[0]= shi->dxco[1]= shi->dxco[2]= 0.0f;
+	shi->dyco[0]= shi->dyco[1]= shi->dyco[2]= 0.0f;
 	
 	// but, set Osa stuff to zero where it can confuse texture code
 	if(shi->mat->texco & (TEXCO_NORM|TEXCO_REFL) ) {
-		shi->dxno[0]= shi->dxno[1]= shi->dxno[2]= 0.0;
-		shi->dyno[0]= shi->dyno[1]= shi->dyno[2]= 0.0;
+		shi->dxno[0]= shi->dxno[1]= shi->dxno[2]= 0.0f;
+		shi->dyno[0]= shi->dyno[1]= shi->dyno[2]= 0.0f;
 	}
 
 	if(vlr->v4) {
 		if(is->isect==2) 
-			shade_input_set_coords(shi, is->u, is->v, 2, 1, 3);
+			shade_input_set_triangle_i(shi, vlr, 2, 1, 3);
 		else
-			shade_input_set_coords(shi, is->u, is->v, 0, 1, 3);
+			shade_input_set_triangle_i(shi, vlr, 0, 1, 3);
 	}
 	else {
-		shade_input_set_coords(shi, is->u, is->v, 0, 1, 2);
+		shade_input_set_triangle_i(shi, vlr, 0, 1, 2);
 	}
+	shi->u= is->u;
+	shi->v= is->v;
+	shade_input_set_normals(shi);
+	shade_input_set_shade_texco(shi);
 	
 	if(is->mode==DDA_SHADOW_TRA) 
 		shade_color(shi, shr);
-	else if(shi->mat->nodetree && shi->mat->use_nodes) {
-		ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
-		shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
-	}
-	else
-		shade_material_loop(shi, shr);
-	
+	else {
+		if(shi->mat->nodetree && shi->mat->use_nodes) {
+			ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
+			shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
+		}
+		else
+			shade_material_loop(shi, shr);
+		
+		/* raytrace likes to separate the spec color */
+		VECSUB(shr->diff, shr->combined, shr->spec);
+	}	
 	
 	SWAP(int, osatex, shi->osatex);  // XXXXX!!!!
 
@@ -1477,15 +1486,15 @@ static int refraction(float *refract, float *n, float *view, float index)
 	
 	dot= view[0]*n[0] + view[1]*n[1] + view[2]*n[2];
 
-	if(dot>0.0) {
-		index = 1.0/index;
-		fac= 1.0 - (1.0 - dot*dot)*index*index;
-		if(fac<= 0.0) return 0;
+	if(dot>0.0f) {
+		index = 1.0f/index;
+		fac= 1.0f - (1.0f - dot*dot)*index*index;
+		if(fac<= 0.0f) return 0;
 		fac= -dot*index + sqrt(fac);
 	}
 	else {
-		fac= 1.0 - (1.0 - dot*dot)*index*index;
-		if(fac<= 0.0) return 0;
+		fac= 1.0f - (1.0f - dot*dot)*index*index;
+		if(fac<= 0.0f) return 0;
 		fac= -dot*index - sqrt(fac);
 	}
 
@@ -1501,7 +1510,7 @@ static void reflection(float *ref, float *n, float *view, float *orn)
 {
 	float f1;
 	
-	f1= -2.0*(n[0]*view[0]+ n[1]*view[1]+ n[2]*view[2]);
+	f1= -2.0f*(n[0]*view[0]+ n[1]*view[1]+ n[2]*view[2]);
 	
 	ref[0]= (view[0]+f1*n[0]);
 	ref[1]= (view[1]+f1*n[1]);
@@ -1510,8 +1519,8 @@ static void reflection(float *ref, float *n, float *view, float *orn)
 	if(orn) {
 		/* test phong normals, then we should prevent vector going to the back */
 		f1= ref[0]*orn[0]+ ref[1]*orn[1]+ ref[2]*orn[2];
-		if(f1>0.0) {
-			f1+= .01;
+		if(f1>0.0f) {
+			f1+= .01f;
 			ref[0]-= f1*orn[0];
 			ref[1]-= f1*orn[1];
 			ref[2]-= f1*orn[2];
@@ -1547,8 +1556,8 @@ static float shade_by_transmission(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	if (0 == (shi->mat->mode & (MA_RAYTRANSP|MA_ZTRA)))
 		return -1;
 	   
-	if (shi->mat->tx_limit <= 0.0) {
-		d= 1.0;
+	if (shi->mat->tx_limit <= 0.0f) {
+		d= 1.0f;
 	} 
 	else {
 		/* shi.co[] calculated by shade_ray() */
@@ -1560,12 +1569,12 @@ static float shade_by_transmission(Isect *is, ShadeInput *shi, ShadeResult *shr)
 			d= shi->mat->tx_limit;
 
 		p = shi->mat->tx_falloff;
-		if(p < 0.0) p= 0.0;
-		else if (p > 10.0) p= 10.0;
+		if(p < 0.0f) p= 0.0f;
+		else if (p > 10.0f) p= 10.0f;
 
 		shr->alpha *= pow(d, p);
-		if (shr->alpha > 1.0)
-			shr->alpha= 1.0;
+		if (shr->alpha > 1.0f)
+			shr->alpha= 1.0f;
 	}
 
 	return d;
@@ -1588,7 +1597,7 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 	isec.vlrorig= vlr;
 
 	if( d3dda(&isec) ) {
-		float d= 1.0;
+		float d= 1.0f;
 		
 		shi.mask= origshi->mask;
 		shi.osatex= origshi->osatex;
@@ -1597,6 +1606,7 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 		shi.xs= origshi->xs;
 		shi.ys= origshi->ys;
 		shi.lay= origshi->lay;
+		shi.passflag= origshi->passflag;
 		shi.do_preview= 0;
 		
 		memset(&shr, 0, sizeof(ShadeResult));
@@ -1607,7 +1617,7 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 		
 		if(depth>0) {
 
-			if(shi.mat->mode_l & (MA_RAYTRANSP|MA_ZTRA) && shr.alpha < 1.0) {
+			if(shi.mat->mode_l & (MA_RAYTRANSP|MA_ZTRA) && shr.alpha < 1.0f) {
 				float nf, f, f1, refract[3], tracol[4];
 				
 				tracol[0]= shi.r;
@@ -1635,11 +1645,11 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 				else
 					traceray(origshi, depth-1, shi.co, shi.view, tracol, shi.vlr, 0);
 				
-				f= shr.alpha; f1= 1.0-f;
+				f= shr.alpha; f1= 1.0f-f;
 				nf= d * shi.mat->filter;
-				fr= 1.0+ nf*(shi.r-1.0);
-				fg= 1.0+ nf*(shi.g-1.0);
-				fb= 1.0+ nf*(shi.b-1.0);
+				fr= 1.0f+ nf*(shi.r-1.0f);
+				fg= 1.0f+ nf*(shi.g-1.0f);
+				fb= 1.0f+ nf*(shi.b-1.0f);
 				shr.diff[0]= f*shr.diff[0] + f1*fr*tracol[0];
 				shr.diff[1]= f*shr.diff[1] + f1*fg*tracol[1];
 				shr.diff[2]= f*shr.diff[2] + f1*fb*tracol[2];
@@ -1651,24 +1661,24 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 				col[3]= f1*tracol[3] + f;
 			}
 			else 
-				col[3]= 1.0;
+				col[3]= 1.0f;
 
 			if(shi.mat->mode_l & MA_RAYMIRROR) {
 				f= shi.ray_mirror;
-				if(f!=0.0) f*= fresnel_fac(shi.view, shi.vn, shi.mat->fresnel_mir_i, shi.mat->fresnel_mir);
+				if(f!=0.0f) f*= fresnel_fac(shi.view, shi.vn, shi.mat->fresnel_mir_i, shi.mat->fresnel_mir);
 			}
-			else f= 0.0;
+			else f= 0.0f;
 			
-			if(f!=0.0) {
+			if(f!=0.0f) {
 				float mircol[4];
 				
 				reflection(ref, shi.vn, shi.view, NULL);			
 				traceray(origshi, depth-1, shi.co, ref, mircol, shi.vlr, 0);
 			
-				f1= 1.0-f;
+				f1= 1.0f-f;
 
 				/* combine */
-				//color_combine(col, f*fr*(1.0-shr.spec[0]), f1, col, shr.diff);
+				//color_combine(col, f*fr*(1.0f-shr.spec[0]), f1, col, shr.diff);
 				//col[0]+= shr.spec[0];
 				//col[1]+= shr.spec[1];
 				//col[2]+= shr.spec[2];
@@ -1677,9 +1687,9 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 				fg= shi.mirg;
 				fb= shi.mirb;
 		
-				col[0]= f*fr*(1.0-shr.spec[0])*mircol[0] + f1*shr.diff[0] + shr.spec[0];
-				col[1]= f*fg*(1.0-shr.spec[1])*mircol[1] + f1*shr.diff[1] + shr.spec[1];
-				col[2]= f*fb*(1.0-shr.spec[2])*mircol[2] + f1*shr.diff[2] + shr.spec[2];
+				col[0]= f*fr*(1.0f-shr.spec[0])*mircol[0] + f1*shr.diff[0] + shr.spec[0];
+				col[1]= f*fg*(1.0f-shr.spec[1])*mircol[1] + f1*shr.diff[1] + shr.spec[1];
+				col[2]= f*fb*(1.0f-shr.spec[2])*mircol[2] + f1*shr.diff[2] + shr.spec[2];
 			}
 			else {
 				col[0]= shr.diff[0] + shr.spec[0];
@@ -1698,7 +1708,7 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 		VECCOPY(shi.view, vec);
 		Normalise(shi.view);
 		
-		shadeSkyPixelFloat(col, isec.start, shi.view, NULL);
+		shadeSkyView(col, isec.start, shi.view, NULL);
 	}
 }
 
@@ -1714,7 +1724,7 @@ static void DP_energy(float *table, float *vec, int tot, float xsize, float ysiz
 	
 	min= MIN2(xsize, ysize);
 	min*= min;
-	result[0]= result[1]= 0.0;
+	result[0]= result[1]= 0.0f;
 	
 	for(y= -1; y<2; y++) {
 		dy= ysize*y;
@@ -1725,7 +1735,7 @@ static void DP_energy(float *table, float *vec, int tot, float xsize, float ysiz
 				force[0]= vec[0] - fp[0]-dx;
 				force[1]= vec[1] - fp[1]-dy;
 				dist= force[0]*force[0] + force[1]*force[1];
-				if(dist < min && dist>0.0) {
+				if(dist < min && dist>0.0f) {
 					result[0]+= force[0]/dist;
 					result[1]+= force[1]/dist;
 				}
@@ -1784,9 +1794,9 @@ void init_jitter_plane(LampRen *lar)
 	}
 	
 	/* create the dithered tables (could just check lamp type!) */
-	jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, 0.5, 0.0);
-	jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, 0.5, 0.5);
-	jitter_plane_offset(lar->jitter, lar->jitter+6*tot, tot, lar->area_size, lar->area_sizey, 0.0, 0.5);
+	jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, 0.5f, 0.0f);
+	jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, 0.5f, 0.5f);
+	jitter_plane_offset(lar->jitter, lar->jitter+6*tot, tot, lar->area_size, lar->area_sizey, 0.0f, 0.5f);
 }
 
 /* table around origin, -0.5*size to 0.5*size */
@@ -1824,25 +1834,36 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	float i, f, f1, fr, fg, fb, vec[3], mircol[4], tracol[4];
 	int do_tra, do_mir;
 	
-	do_tra= ((shi->mat->mode & (MA_RAYTRANSP)) && shr->alpha!=1.0);
-	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0);
+	do_tra= ((shi->mat->mode & (MA_RAYTRANSP)) && shr->alpha!=1.0f);
+	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0f);
 	vlr= shi->vlr;
+	
+	/* raytrace likes to separate the spec color */
+	VECSUB(shr->diff, shr->combined, shr->spec);
 	
 	if(do_tra) {
 		float refract[3];
+		float olddiff[3];
 		
 		tracol[3]= shr->alpha;
 		
 		refraction(refract, shi->vn, shi->view, shi->ang);
 		traceray(shi, shi->mat->ray_depth_tra, shi->co, refract, tracol, shi->vlr, RAY_TRA|RAY_TRAFLIP);
 		
-		f= shr->alpha; f1= 1.0-f;
-		fr= 1.0+ shi->mat->filter*(shi->r-1.0);
-		fg= 1.0+ shi->mat->filter*(shi->g-1.0);
-		fb= 1.0+ shi->mat->filter*(shi->b-1.0);
-		shr->diff[0]= f*shr->diff[0] + f1*fr*tracol[0];
-		shr->diff[1]= f*shr->diff[1] + f1*fg*tracol[1];
-		shr->diff[2]= f*shr->diff[2] + f1*fb*tracol[2];
+		f= shr->alpha; f1= 1.0f-f;
+		fr= 1.0f+ shi->mat->filter*(shi->r-1.0f);
+		fg= 1.0f+ shi->mat->filter*(shi->g-1.0f);
+		fb= 1.0f+ shi->mat->filter*(shi->b-1.0f);
+		
+		/* for refract pass */
+		VECCOPY(olddiff, shr->diff);
+		
+		shr->diff[0]= f*shr->diff[0] + fr*tracol[0];
+		shr->diff[1]= f*shr->diff[1] + fr*tracol[1];
+		shr->diff[2]= f*shr->diff[2] + fr*tracol[2];
+		
+		if(shi->passflag & SCE_PASS_REFRACT)
+			VECSUB(shr->refr, shr->diff, olddiff);
 
 		shr->alpha= tracol[3];
 	}
@@ -1850,10 +1871,10 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	if(do_mir) {
 	
 		i= shi->ray_mirror*fresnel_fac(shi->view, shi->vn, shi->mat->fresnel_mir_i, shi->mat->fresnel_mir);
-		if(i!=0.0) {
-			fr= shi->mirr;
-			fg= shi->mirg;
-			fb= shi->mirb;
+		if(i!=0.0f) {
+			fr= i*shi->mirr;
+			fg= i*shi->mirg;
+			fb= i*shi->mirb;
 
 			if(vlr->flag & R_SMOOTH) 
 				reflection(vec, shi->vn, shi->view, shi->facenor);
@@ -1862,16 +1883,25 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	
 			traceray(shi, shi->mat->ray_depth, shi->co, vec, mircol, shi->vlr, 0);
 			
-			f= i*fr*(1.0-shr->spec[0]);	f1= 1.0-i;
+			if(shi->passflag & SCE_PASS_REFLECT) {
+				/* mirror pass is not blocked out with spec */
+				shr->refl[0]= fr*mircol[0] - fr*shr->diff[0];
+				shr->refl[1]= fg*mircol[1] - fg*shr->diff[1];
+				shr->refl[2]= fb*mircol[2] - fb*shr->diff[2];
+			}
+			f= fr*(1.0f-shr->spec[0]);	f1= 1.0f-i;
 			shr->diff[0]= f*mircol[0] + f1*shr->diff[0];
 			
-			f= i*fg*(1.0-shr->spec[1]);	f1= 1.0-i;
+			f= fg*(1.0f-shr->spec[1]);	f1= 1.0f-i;
 			shr->diff[1]= f*mircol[1] + f1*shr->diff[1];
 			
-			f= i*fb*(1.0-shr->spec[2]);	f1= 1.0-i;
+			f= fb*(1.0f-shr->spec[2]);	f1= 1.0f-i;
 			shr->diff[2]= f*mircol[2] + f1*shr->diff[2];
 		}
 	}
+	
+	/* put back together */
+	VECADD(shr->combined, shr->diff, shr->spec);
 }
 
 /* color 'shadfac' passes through 'col' with alpha and filter */
@@ -1880,26 +1910,26 @@ static void addAlphaLight(float *shadfac, float *col, float alpha, float filter)
 {
 	float fr, fg, fb;
 	
-	fr= 1.0+ filter*(col[0]-1.0);
-	fg= 1.0+ filter*(col[1]-1.0);
-	fb= 1.0+ filter*(col[2]-1.0);
+	fr= 1.0f+ filter*(col[0]-1.0f);
+	fg= 1.0f+ filter*(col[1]-1.0f);
+	fb= 1.0f+ filter*(col[2]-1.0f);
 	
-	shadfac[0]= alpha*col[0] + fr*(1.0-alpha)*shadfac[0];
-	shadfac[1]= alpha*col[1] + fg*(1.0-alpha)*shadfac[1];
-	shadfac[2]= alpha*col[2] + fb*(1.0-alpha)*shadfac[2];
+	shadfac[0]= alpha*col[0] + fr*(1.0f-alpha)*shadfac[0];
+	shadfac[1]= alpha*col[1] + fg*(1.0f-alpha)*shadfac[1];
+	shadfac[2]= alpha*col[2] + fb*(1.0f-alpha)*shadfac[2];
 	
-	shadfac[3]= (1.0-alpha)*shadfac[3];
+	shadfac[3]= (1.0f-alpha)*shadfac[3];
 }
 
 static void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
 {
 	/* ray to lamp, find first face that intersects, check alpha properties,
-	   if it has col[3]>0.0  continue. so exit when alpha is full */
+	   if it has col[3]>0.0f  continue. so exit when alpha is full */
 	ShadeInput shi;
 	ShadeResult shr;
 
 	if( d3dda(is)) {
-		float d= 1.0;
+		float d= 1.0f;
 		/* we got a face */
 		
 		shi.mask= 1;
@@ -1913,7 +1943,7 @@ static void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
 		/* mix colors based on shadfac (rgb + amount of light factor) */
 		addAlphaLight(is->col, shr.diff, shr.alpha, d*shi.mat->filter);
 		
-		if(depth>0 && is->col[3]>0.0) {
+		if(depth>0 && is->col[3]>0.0f) {
 			
 			/* adapt isect struct */
 			VECCOPY(is->start, shi.co);
@@ -1933,7 +1963,7 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 	Isect isec;
 	ShadeInput shi;
 	ShadeResult shr_t;
-	float vec[3], accum[3], div= 0.0;
+	float vec[3], accum[3], div= 0.0f;
 	int a;
 	
 	if(only_one) {
@@ -1941,7 +1971,7 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 	}
 	only_one= 1;
 	
-	accum[0]= accum[1]= accum[2]= 0.0;
+	accum[0]= accum[1]= accum[2]= 0.0f;
 	isec.mode= DDA_MIRROR;
 	isec.vlrorig= ship->vlr;
 	
@@ -1950,7 +1980,7 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 		counter+=3;
 		counter %= 768;
 		VECCOPY(vec, hashvectf+counter);
-		if(ship->vn[0]*vec[0]+ship->vn[1]*vec[1]+ship->vn[2]*vec[2]>0.0) {
+		if(ship->vn[0]*vec[0]+ship->vn[1]*vec[1]+ship->vn[2]*vec[2]>0.0f) {
 			vec[0]-= vec[0];
 			vec[1]-= vec[1];
 			vec[2]-= vec[2];
@@ -1964,21 +1994,21 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 			float fac;
 			shade_ray(&isec, &shi, &shr_t);
 			fac= isec.labda*isec.labda;
-			fac= 1.0;
+			fac= 1.0f;
 			accum[0]+= fac*(shr_t.diff[0]+shr_t.spec[0]);
 			accum[1]+= fac*(shr_t.diff[1]+shr_t.spec[1]);
 			accum[2]+= fac*(shr_t.diff[2]+shr_t.spec[2]);
 			div+= fac;
 		}
-		else div+= 1.0;
+		else div+= 1.0f;
 	}
 	
-	if(div!=0.0) {
+	if(div!=0.0f) {
 		shr->diff[0]+= accum[0]/div;
 		shr->diff[1]+= accum[1]/div;
 		shr->diff[2]+= accum[2]/div;
 	}
-	shr->alpha= 1.0;
+	shr->alpha= 1.0f;
 	
 	only_one= 0;
 	return 1;
@@ -2004,13 +2034,13 @@ static void DS_energy(float *sphere, int tot, float *vec)
 	float *fp, fac, force[3], res[3];
 	int a;
 	
-	res[0]= res[1]= res[2]= 0.0;
+	res[0]= res[1]= res[2]= 0.0f;
 	
 	for(a=0, fp=sphere; a<tot; a++, fp+=3) {
 		VecSubf(force, vec, fp);
 		fac= force[0]*force[0] + force[1]*force[1] + force[2]*force[2];
-		if(fac!=0.0) {
-			fac= 1.0/fac;
+		if(fac!=0.0f) {
+			fac= 1.0f/fac;
 			res[0]+= fac*force[0];
 			res[1]+= fac*force[1];
 			res[2]+= fac*force[2];
@@ -2127,7 +2157,7 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 void ray_ao(ShadeInput *shi, float *shadfac)
 {
 	Isect isec;
-	float *vec, *nrm, div, bias, sh=0;
+	float *vec, *nrm, div, bias, sh=0.0f;
 	float maxdist = R.wrld.aodist;
 	float dxyview[3];
 	int j= -1, tot, actual=0, skyadded=0;
@@ -2137,7 +2167,7 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 	isec.mode= (R.wrld.aomode & WO_AODIST)?DDA_SHADOW_TRA:DDA_SHADOW;
 	isec.lay= -1;
 
-	shadfac[0]= shadfac[1]= shadfac[2]= 0.0;
+	shadfac[0]= shadfac[1]= shadfac[2]= 0.0f;
 
 	// bias prevents smoothed faces to appear flat
 	if(shi->vlr->flag & R_SMOOTH) {
@@ -2145,7 +2175,7 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 		nrm= shi->vn;
 	}
 	else {
-		bias= 0.0;
+		bias= 0.0f;
 		nrm= shi->facenor;
 	}
 
@@ -2163,7 +2193,7 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 	while(tot--) {
 		
 		if ((vec[0]*nrm[0] + vec[1]*nrm[1] + vec[2]*nrm[2]) > bias) {
-			// only ao samples for mask
+			/* only ao samples for mask */
 			if(R.r.mode & R_OSA) {
 				j++;
 				if(j==R.osa) j= 0;
@@ -2184,7 +2214,7 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 			/* do the trace */
 			if (d3dda(&isec)) {
 				if (R.wrld.aomode & WO_AODIST) sh+= exp(-isec.labda*R.wrld.aodistfac); 
-				else sh+= 1.0;
+				else sh+= 1.0f;
 			}
 			else if(R.wrld.aocolor!=WO_AOPLAIN) {
 				float skycol[4];
@@ -2196,13 +2226,13 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 				Normalise(view);
 				
 				if(R.wrld.aocolor==WO_AOSKYCOL) {
-					fac= 0.5*(1.0+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
-					shadfac[0]+= (1.0-fac)*R.wrld.horr + fac*R.wrld.zenr;
-					shadfac[1]+= (1.0-fac)*R.wrld.horg + fac*R.wrld.zeng;
-					shadfac[2]+= (1.0-fac)*R.wrld.horb + fac*R.wrld.zenb;
+					fac= 0.5*(1.0f+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
+					shadfac[0]+= (1.0f-fac)*R.wrld.horr + fac*R.wrld.zenr;
+					shadfac[1]+= (1.0f-fac)*R.wrld.horg + fac*R.wrld.zeng;
+					shadfac[2]+= (1.0f-fac)*R.wrld.horb + fac*R.wrld.zenb;
 				}
 				else {	/* WO_AOSKYTEX */
-					shadeSkyPixelFloat(skycol, isec.start, view, dxyview);
+					shadeSkyView(skycol, isec.start, view, dxyview);
 					shadfac[0]+= skycol[0];
 					shadfac[1]+= skycol[1];
 					shadfac[2]+= skycol[2];
@@ -2214,15 +2244,18 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 		vec+= 3;
 	}
 	
-	if(actual==0) shadfac[3]= 1.0;
-	else shadfac[3] = 1.0 - sh/((float)actual);
+	if(actual==0) sh= 1.0f;
+	else sh = 1.0f - sh/((float)actual);
 	
 	if(R.wrld.aocolor!=WO_AOPLAIN && skyadded) {
-		div= shadfac[3]/((float)skyadded);
+		div= sh/((float)skyadded);
 		
 		shadfac[0]*= div;	// average color times distances/hits formula
 		shadfac[1]*= div;	// average color times distances/hits formula
 		shadfac[2]*= div;	// average color times distances/hits formula
+	}
+	else {
+		shadfac[0]= shadfac[1]= shadfac[2]= sh;
 	}
 }
 
@@ -2259,7 +2292,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	if(lar->ray_totsamp<2) {
 		
 		isec.vlrorig= shi->vlr;
-		shadfac[3]= 1.0; // 1.0=full light
+		shadfac[3]= 1.0f; // 1.0=full light
 		
 		/* set up isec vec */
 		VECCOPY(isec.start, shi->co);
@@ -2267,27 +2300,27 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 
 		if(isec.mode==DDA_SHADOW_TRA) {
 			/* isec.col is like shadfac, so defines amount of light (0.0 is full shadow) */
-			isec.col[0]= isec.col[1]= isec.col[2]=  1.0;
-			isec.col[3]= 1.0;
+			isec.col[0]= isec.col[1]= isec.col[2]=  1.0f;
+			isec.col[3]= 1.0f;
 
 			ray_trace_shadow_tra(&isec, DEPTH_SHADOW_TRA, 0);
 			QUATCOPY(shadfac, isec.col);
 			//printf("shadfac %f %f %f %f\n", shadfac[0], shadfac[1], shadfac[2], shadfac[3]);
 		}
-		else if( d3dda(&isec)) shadfac[3]= 0.0;
+		else if( d3dda(&isec)) shadfac[3]= 0.0f;
 	}
 	else {
 		/* area soft shadow */
 		float *jitlamp;
-		float fac=0.0, div=0.0, vec[3];
+		float fac=0.0f, div=0.0f, vec[3];
 		int a, j= -1, mask;
 		
 		if(isec.mode==DDA_SHADOW_TRA) {
-			shadfac[0]= shadfac[1]= shadfac[2]= shadfac[3]= 0.0;
+			shadfac[0]= shadfac[1]= shadfac[2]= shadfac[3]= 0.0f;
 		}
-		else shadfac[3]= 1.0;							// 1.0=full light
+		else shadfac[3]= 1.0f;							// 1.0=full light
 		
-		fac= 0.0;
+		fac= 0.0f;
 		jitlamp= give_jitter_plane(lar, shi->thread, shi->xs, shi->ys);
 
 		a= lar->ray_totsamp;
@@ -2312,7 +2345,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 			
 			vec[0]= jitlamp[0];
 			vec[1]= jitlamp[1];
-			vec[2]= 0.0;
+			vec[2]= 0.0f;
 			Mat3MulVecfl(lar->mat, vec);
 			
 			/* set start and end, d3dda clips it */
@@ -2323,8 +2356,8 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 			
 			if(isec.mode==DDA_SHADOW_TRA) {
 				/* isec.col is like shadfac, so defines amount of light (0.0 is full shadow) */
-				isec.col[0]= isec.col[1]= isec.col[2]=  1.0;
-				isec.col[3]= 1.0;
+				isec.col[0]= isec.col[1]= isec.col[2]=  1.0f;
+				isec.col[3]= 1.0f;
 				
 				ray_trace_shadow_tra(&isec, DEPTH_SHADOW_TRA, 0);
 				shadfac[0] += isec.col[0];
@@ -2332,9 +2365,9 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 				shadfac[2] += isec.col[2];
 				shadfac[3] += isec.col[3];
 			}
-			else if( d3dda(&isec) ) fac+= 1.0;
+			else if( d3dda(&isec) ) fac+= 1.0f;
 			
-			div+= 1.0;
+			div+= 1.0f;
 			jitlamp+= 2;
 		}
 		
@@ -2347,9 +2380,9 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 		else {
 			// sqrt makes nice umbra effect
 			if(lar->ray_samp_type & LA_SAMP_UMBRA)
-				shadfac[3]= sqrt(1.0-fac/div);
+				shadfac[3]= sqrt(1.0f-fac/div);
 			else
-				shadfac[3]= 1.0-fac/div;
+				shadfac[3]= 1.0f-fac/div;
 		}
 	}
 

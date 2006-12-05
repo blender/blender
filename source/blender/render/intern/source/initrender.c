@@ -74,7 +74,6 @@
 
 #include "rendercore.h"
 #include "pixelshading.h"
-#include "gammaCorrectionTables.h"
 #include "zbuf.h"
 
 /* Own includes */
@@ -98,7 +97,7 @@ static void init_render_jit(Render *re)
 }
 
 
-/* ****************** GAMMA, MASKS and LUTS **************** */
+/* ****************** MASKS and LUTS **************** */
 
 static float filt_quadratic(float x)
 {
@@ -264,7 +263,6 @@ void make_sample_tables(Render *re)
 
 	/* optimization tables, only once */
 	if(firsttime) {
-		makeGammaTables(2.0);	/* tables only used for adding colors */
 		firsttime= 0;
 	}
 	
@@ -276,12 +274,6 @@ void make_sample_tables(Render *re)
 		/* just prevents cpu cycles for larger render and copying */
 		re->r.filtertype= 0;
 		return;
-	}
-	
-	re->do_gamma= 0;
-	if(re->r.mode & R_GAMMA) {
-		if(re->r.alphamode!=R_ALPHAKEY)	/* alpha corrected gamma doesnt work for key alpha */
-			re->do_gamma= 1;
 	}
 	
 	st= re->samples= MEM_callocN(sizeof(SampleTables), "sample tables");

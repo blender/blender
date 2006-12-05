@@ -101,6 +101,7 @@
 #include "renderpipeline.h"
 #include "radio.h"
 #include "shadbuf.h"
+#include "shading.h"
 #include "texture.h"
 #include "zbuf.h"
 
@@ -2323,6 +2324,9 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 
 		}
 	}
+	else if(la->type==LA_HEMI) {
+		lar->mode &= ~(LA_SHAD_RAY|LA_SHAD_BUF);
+	}
 
 	for(c=0; c<MAX_MTEX; c++) {
 		if(la->mtex[c] && la->mtex[c]->tex) {
@@ -2353,11 +2357,18 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 	
 	/* yafray: shadow flag should not be cleared, only used with internal renderer */
 	if (re->r.renderer==R_INTERN) {
+		int a, b;
+		
 		/* to make sure we can check ray shadow easily in the render code */
 		if(lar->mode & LA_SHAD_RAY) {
 			if( (re->r.mode & R_RAYTRACE)==0)
 				lar->mode &= ~LA_SHAD_RAY;
 		}
+		/* shadfacs actually mean light, let's put them to 1 to prevent unitialized accidents */
+		for(c=0; c<re->r.threads; c++)
+			for(a=0; a<re->r.osa; a++)
+				for(b=0; b<4; b++)
+					lar->shadsamp[c].shadfac[a][b]= 1.0f;
 	}
 	return lar;
 }
@@ -2974,6 +2985,9 @@ static void set_fullsample_flag(Render *re)
 	VlakRen *vlr;
 	int a, trace;
 
+	if(re->osa==0)
+		return;
+	
 	trace= re->r.mode & R_RAYTRACE;
 	
 	for(a=re->totvlak-1; a>=0; a--) {
@@ -3147,7 +3161,12 @@ void init_render_world(Render *re)
 		for(a=0; a<MAX_MTEX; a++) 
 			if(re->wrld.mtex[a] && re->wrld.mtex[a]->tex) re->wrld.skytype |= WO_SKYTEX;
 		
-		while(re->wrld.aosamp*re->wrld.aosamp < re->osa) re->wrld.aosamp++;
+		/* AO samples should be OSA minimum */
+		if(re->osa)
+			while(re->wrld.aosamp*re->wrld.aosamp < re->osa) 
+				re->wrld.aosamp++;
+		if(!(re->r.mode & R_RAYTRACE))
+			re->wrld.mode &= ~WO_AMB_OCC;
 	}
 	else {
 		memset(&re->wrld, 0, sizeof(World));
@@ -3200,12 +3219,12 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
-	if( (re->wrld.mode & WO_AMB_OCC) && (re->r.mode & R_RAYTRACE) )
+	if(re->wrld.mode & WO_AMB_OCC)
 		init_ao_sphere(&re->wrld);
 	
 	/* still bad... doing all */
 	init_render_textures(re);
-	init_render_materials(re->osa, &re->wrld.ambr);
+	init_render_materials(re->r.mode, &re->wrld.ambr);
 	set_node_shader_lamp_loop(shade_material_loop);
 
 	for(SETLOOPER(re->scene, base)) {
@@ -3871,12 +3890,12 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
-	if( (re->wrld.mode & WO_AMB_OCC) && (re->r.mode & R_RAYTRACE) )
+	if(re->wrld.mode & WO_AMB_OCC)
 		init_ao_sphere(&re->wrld);
 	
 	/* still bad... doing all */
 	init_render_textures(re);
-	init_render_materials(re->osa, &re->wrld.ambr);
+	init_render_materials(re->r.mode, &re->wrld.ambr);
 	set_node_shader_lamp_loop(shade_material_loop);
 	
 	for(SETLOOPER(re->scene, base)) {

@@ -290,11 +290,18 @@ static char *get_pass_name(int passtype, int channel)
 		else if(channel==1) return "AO.G";
 		else return "AO.B";
 	}
-	if(passtype == SCE_PASS_RAY) {
-		if(channel==0) return "Ray.R";
-		else if(channel==1) return "Ray.G";
-		else return "Ray.B";
+	if(passtype == SCE_PASS_REFLECT) {
+		if(channel==0) return "Reflect.R";
+		else if(channel==1) return "Reflect.G";
+		else return "Reflect.B";
 	}
+	if(passtype == SCE_PASS_REFRACT) {
+		if(channel==0) return "Refract.R";
+		else if(channel==1) return "Refract.G";
+		else return "Refract.B";
+	}
+	if(passtype == SCE_PASS_INDEXOB)
+		return "IndexOB";
 	return "Unknown";
 }
 
@@ -434,12 +441,19 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_DIFFUSE);
 		if(srl->passflag  & SCE_PASS_SPEC)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_SPEC);
-		if(srl->passflag  & SCE_PASS_SHADOW)
-			render_layer_add_pass(rr, rl, 3, SCE_PASS_SHADOW);
-		if(srl->passflag  & SCE_PASS_AO)
-			render_layer_add_pass(rr, rl, 3, SCE_PASS_AO);
-		if(srl->passflag  & SCE_PASS_RAY)
-			render_layer_add_pass(rr, rl, 3, SCE_PASS_RAY);
+		if(re->r.mode & R_SHADOW)
+			if(srl->passflag  & SCE_PASS_SHADOW)
+				render_layer_add_pass(rr, rl, 3, SCE_PASS_SHADOW);
+		if(re->r.mode & R_RAYTRACE) {
+			if(srl->passflag  & SCE_PASS_AO)
+				render_layer_add_pass(rr, rl, 3, SCE_PASS_AO);
+			if(srl->passflag  & SCE_PASS_REFLECT)
+				render_layer_add_pass(rr, rl, 3, SCE_PASS_REFLECT);
+			if(srl->passflag  & SCE_PASS_REFRACT)
+				render_layer_add_pass(rr, rl, 3, SCE_PASS_REFRACT);
+		}
+		if(srl->passflag  & SCE_PASS_INDEXOB)
+			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB);
 		
 	}
 	/* previewrender and envmap don't do layers, so we make a default one */

@@ -59,10 +59,11 @@
 #include "BKE_key.h"
 #include "BKE_ipo.h"
 
+#include "envmap.h"
 #include "renderpipeline.h"
 #include "render_types.h"
 #include "rendercore.h"
-#include "envmap.h"
+#include "shading.h"
 #include "texture.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

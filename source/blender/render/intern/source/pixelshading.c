@@ -54,7 +54,6 @@
 #include "pixelblending.h"
 #include "rendercore.h"
 #include "shadbuf.h"
-#include "gammaCorrectionTables.h"
 #include "pixelshading.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -438,42 +437,6 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 }
 
 /* ------------------------------------------------------------------------- */
-/*
-  
-  There are three different modes for blending sky behind a picture:       
-  1. sky    = blend in sky directly                                        
-  2. premul = don't do sky, but apply alpha (so pretend the picture ends   
-     exactly at it's boundaries)                                  
-  3. key    = don't do anything                                            
-  Now the stupid thing is that premul means do nothing for us, and key     
-  we have to adjust a bit...
-
-*/
-
-
-/* This one renders into collector, as always.                               */
-void renderSkyPixelFloat(float *collector, float x, float y, float *rco)
-{
-
-	switch (R.r.alphamode) {
-	case R_ALPHAPREMUL:
-	case R_ALPHAKEY:
-		/* Premul or key: don't fill, and don't change the values! */
-		/* key alpha used to fill in color in 'empty' pixels, doesn't work anymore this way */
-		collector[0] = 0.0; 
-		collector[1] = 0.0; 
-		collector[2] = 0.0; 
-		collector[3] = 0.0; 
-		break;
-	case R_ADDSKY:
-		/* Fill in the sky as if it were a normal face. */
-		shadeSkyPixel(collector, x, y, rco);
-		collector[3]= 0.0;
-		break;
-	default:
-		; /* Error: illegal alpha blending state */
-	}
-}
 
 static void fillBackgroundImage(float *collector, float fx, float fy)
 {
@@ -490,10 +453,69 @@ static void fillBackgroundImage(float *collector, float fx, float fy)
 	}
 }
 
+/* Only view vector is important here. Result goes to colf[3] */
+void shadeSkyView(float *colf, float *rco, float *view, float *dxyview)
+{
+	float lo[3], zen[3], hor[3], blend, blendm;
+	int skyflag;
+	
+	/* flag indicating if we render the top hemisphere */
+	skyflag = WO_ZENUP;
+	
+	/* Some view vector stuff. */
+	if(R.wrld.skytype & WO_SKYREAL) {
+		
+		blend= view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2];
+		
+		if(blend<0.0) skyflag= 0;
+		
+		blend= fabs(blend);
+	}
+	else if(R.wrld.skytype & WO_SKYPAPER) {
+		blend= 0.5+ 0.5*view[1];
+	}
+	else {
+		/* the fraction of how far we are above the bottom of the screen */
+		blend= fabs(0.5+ view[1]);
+	}
+	
+	hor[0]= R.wrld.horr; hor[1]= R.wrld.horg; hor[2]= R.wrld.horb;
+	zen[0]= R.wrld.zenr; zen[1]= R.wrld.zeng; zen[2]= R.wrld.zenb;
+	
+	/* Careful: SKYTEX and SKYBLEND are NOT mutually exclusive! If           */
+	/* SKYBLEND is active, the texture and colour blend are added.           */
+	if(R.wrld.skytype & WO_SKYTEX) {
+		VECCOPY(lo, view);
+		if(R.wrld.skytype & WO_SKYREAL) {
+			
+			MTC_Mat3MulVecfl(R.imat, lo);
+			
+			SWAP(float, lo[1],  lo[2]);
+			
+		}
+		do_sky_tex(rco, lo, dxyview, hor, zen, &blend, skyflag);
+	}
+	
+	if(blend>1.0) blend= 1.0;
+	blendm= 1.0-blend;
+	
+	/* No clipping, no conversion! */
+	if(R.wrld.skytype & WO_SKYBLEND) {
+		colf[0] = (blendm*hor[0] + blend*zen[0]);
+		colf[1] = (blendm*hor[1] + blend*zen[1]);
+		colf[2] = (blendm*hor[2] + blend*zen[2]);
+	} else {
+		/* Done when a texture was grabbed. */
+		colf[0]= hor[0];
+		colf[1]= hor[1];
+		colf[2]= hor[2];
+	}
+}
+
 /*
   Stuff the sky colour into the collector.
  */
-void shadeSkyPixel(float *collector, float fx, float fy, float *rco) 
+void shadeSkyPixel(float *collector, float fx, float fy) 
 {
 	float view[3], dxyview[2];
 	
@@ -509,23 +531,16 @@ void shadeSkyPixel(float *collector, float fx, float fy, float *rco)
 	if(R.r.bufflag & 1) {
 		fillBackgroundImage(collector, fx, fy);
 		return;
-	} else if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
-		/*
-		  2. Test for these types of sky. The old renderer always had to check for
-		  coverage, but we don't need that anymore                                 
-		  - SKYBLEND or SKYTEX disabled: fill in a flat colour                     
-		  - otherwise, do the appropriate mapping (tex or colour blend)            
-		  There used to be cached chars here, but they are not useful anymore
-		*/
+	} 
+	else if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
+		/* 2. solid color */
 		collector[0] = R.wrld.horr;
 		collector[1] = R.wrld.horg;
 		collector[2] = R.wrld.horb;
-		collector[3] = 1.0f;
-	} else {
-		/*
-		  3. Which type(s) is(are) this (these)? This has to be done when no simple
-		  way of determining the colour exists.
-		*/
+		collector[3] = 0.0f;
+	} 
+	else {
+		/* 3. */
 
 		/* This one true because of the context of this routine  */
 		if(R.wrld.skytype & WO_SKYPAPER) {
@@ -547,67 +562,8 @@ void shadeSkyPixel(float *collector, float fx, float fy, float *rco)
 		}
 		
 		/* get sky colour in the collector */
-		shadeSkyPixelFloat(collector, rco, view, dxyview);
-		collector[3] = 1.0f;
-	}
-}
-
-/* Only view vector is important here. Result goes to colf[3] */
-void shadeSkyPixelFloat(float *colf, float *rco, float *view, float *dxyview)
-{
-	float lo[3], zen[3], hor[3], blend, blendm;
-	int skyflag;
-	
-	/* flag indicating if we render the top hemisphere */
-	skyflag = WO_ZENUP;
-	
-	/* Some view vector stuff. */
-	if(R.wrld.skytype & WO_SKYREAL) {
-	
-		blend= view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2];
-
-		if(blend<0.0) skyflag= 0;
-		
-		blend= fabs(blend);
-	}
-	else if(R.wrld.skytype & WO_SKYPAPER) {
-		blend= 0.5+ 0.5*view[1];
-	}
-	else {
-		/* the fraction of how far we are above the bottom of the screen */
-		blend= fabs(0.5+ view[1]);
-	}
-
-	hor[0]= R.wrld.horr; hor[1]= R.wrld.horg; hor[2]= R.wrld.horb;
-	zen[0]= R.wrld.zenr; zen[1]= R.wrld.zeng; zen[2]= R.wrld.zenb;
-	
-	/* Careful: SKYTEX and SKYBLEND are NOT mutually exclusive! If           */
-	/* SKYBLEND is active, the texture and colour blend are added.           */
-	if(R.wrld.skytype & WO_SKYTEX) {
-		VECCOPY(lo, view);
-		if(R.wrld.skytype & WO_SKYREAL) {
-			
-			MTC_Mat3MulVecfl(R.imat, lo);
-
-			SWAP(float, lo[1],  lo[2]);
-			
-		}
-		do_sky_tex(rco, lo, dxyview, hor, zen, &blend, skyflag);
-	}
-
-	if(blend>1.0) blend= 1.0;
-	blendm= 1.0-blend;
-
-	/* No clipping, no conversion! */
-	if(R.wrld.skytype & WO_SKYBLEND) {
-		colf[0] = (blendm*hor[0] + blend*zen[0]);
-		colf[1] = (blendm*hor[1] + blend*zen[1]);
-		colf[2] = (blendm*hor[2] + blend*zen[2]);
-	} else {
-		/* Done when a texture was grabbed. */
-		colf[0]= hor[0];
-		colf[1]= hor[1];
-		colf[2]= hor[2];
+		shadeSkyView(collector, NULL, view, dxyview);
+		collector[3] = 0.0f;
 	}
 }
 

@@ -253,9 +253,8 @@ typedef struct RadFace {
 	int flag;
 } RadFace;
 
-typedef struct VlakRen
-{
-	struct VertRen *v1, *v2, *v3, *v4;
+typedef struct VlakRen {
+	struct VertRen *v1, *v2, *v3, *v4;	/* keep in order for ** addressing */
 	unsigned int lay;
 	float n[3];
 	struct Material *mat;
@@ -290,8 +289,12 @@ struct MTex;
  * For each lamp in a scene, a LampRen is created. It determines the
  * properties of a lightsource.
  */
-typedef struct LampRen
-{
+
+typedef struct LampShadowSample {
+	float shadfac[16][4];	/* 16 = RE_MAX_OSA, 4 = rgba */
+} LampShadowSample;
+
+typedef struct LampRen {
 	float xs, ys, dist;
 	float co[3];
 	short type, mode;
@@ -339,6 +342,10 @@ typedef struct LampRen
 	
 	float mat[3][3];	/* 3x3 part from lampmat x viewmat */
 	float area[8][3], areasize;
+	
+	/* passes & node shader support: all shadow info for a pixel */
+	/* struct is currently 2k long... check on alloc? */
+	LampShadowSample shadsamp[BLENDER_MAX_THREADS];
 	
 	/* yafray: photonlight params */
 	int YF_numphotons, YF_numsearch;
