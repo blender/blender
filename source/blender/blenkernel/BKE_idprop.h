@@ -117,7 +117,7 @@ void *IDP_GetGroupIterator(struct IDProperty *prop);
  while (IDP_GroupIterNext(iter) != NULL) {
 	. . .
  }*/
-void *IDP_GroupIterNext(void *vself);
+IDProperty *IDP_GroupIterNext(void *vself);
 
 /*Frees the iterator pointed to at vself, only use this if iteration is stopped early; 
   when the iterator hits the end of the list it'll automatially free itself.*/

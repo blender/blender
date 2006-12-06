@@ -210,7 +210,7 @@ void *IDP_GetGroupIterator(IDProperty *prop)
 	return (void*) iter;
 }
 
-void *IDP_GroupIterNext(void *vself)
+IDProperty *IDP_GroupIterNext(void *vself)
 {
 	IDPIter *self = (IDPIter*) vself;
 	Link *next = (Link*) self->next;
