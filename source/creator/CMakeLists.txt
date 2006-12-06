@@ -49,11 +49,40 @@ IF(WITH_QUICKTIME)
   ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
+MESSAGE(STATUS "Configuring blender")
+
 IF(WIN32)
   ADD_EXECUTABLE(blender ${EXETYPE} creator.c ../blender/makesdna/intern/dna.c ../icons/winblender.rc)
 ELSE(WIN32)
   ADD_EXECUTABLE(blender ${EXETYPE} creator.c ../blender/makesdna/intern/dna.c)
 ENDIF(WIN32)
+
+IF(APPLE)
+  SET(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
+  SET(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
+  SET(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/blender.app)
+  SET(TARGETINFO ${TARGETDIR}/Contents/Info.plist)
+
+  ADD_CUSTOM_COMMAND(TARGET blender
+    POST_BUILD
+    MAIN_DEPENDENCY blender
+    COMMAND cp -R ${SOURCEINFO} ${TARGETDIR}/Contents/
+    COMMAND cp -R ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/Contents/
+    COMMAND cp -R ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/Contents/
+    COMMAND cat ${SOURCEINFO} | sed s/VERSION/`cat ${CMAKE_SOURCE_DIR}/release/VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
+    COMMAND rm -Rf ${TARGETDIR}/Contents/MacOS/.blender
+    COMMAND mkdir ${TARGETDIR}/Contents/MacOS/.blender/
+    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.bfont.ttf ${TARGETDIR}/Contents/MacOS/.blender/
+    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/Contents/MacOS/.blender/
+    COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/Contents/Resources/
+    COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/Contents/MacOS/.blender/
+    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/Contents/Resources/
+    COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/Contents/MacOS/.blender/
+    COMMAND find ${TARGETDIR} -name CVS -prune -exec rm -rf {} "\;"
+    COMMAND find ${TARGETDIR} -name CVS.sandboxinfo -prune -exec rm -rf {} "\;"
+    COMMAND find ${TARGETDIR} -name .DS_Store -prune -exec rm -rf {} "\;"
+  )
+ENDIF(APPLE)
 
 ADD_DEPENDENCIES(blender makesdna)
 
@@ -143,4 +172,3 @@ ELSE(UNIX)
   TARGET_LINK_LIBRARIES(blender ${BLENDER_LINK_LIBS})
 ENDIF(UNIX)
 
-MESSAGE(STATUS "Configuring blender")

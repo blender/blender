@@ -27,6 +27,8 @@
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 
+MESSAGE(STATUS "Configuring blenderplayer")
+
 SETUP_LIBDIRS()
 
 FILE(APPEND ../source/blender/makesdna/intern/dna.c "")
@@ -36,9 +38,9 @@ IF(WITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
 IF(WIN32)
-  ADD_EXECUTABLE(blenderplayer ${EXETYPE} ../source/blender/makesdna/intern/dna.c ../source/icons/winblender.rc)
+  ADD_EXECUTABLE(blenderplayer ${EXETYPE} ../source/blender/makesdna/intern/dna.c ../source/icons/winplayer.rc)
 ELSE(WIN32)
-  ADD_EXECUTABLE(blenderplayer ${EXETYPE} ../source/blender/makesdna/intern/dna.c)
+  ADD_EXECUTABLE(blenderplayer ../source/blender/makesdna/intern/dna.c)
 ENDIF(WIN32)
 
 ADD_DEPENDENCIES(blenderplayer makesdna)
@@ -115,4 +117,3 @@ ELSE(UNIX)
   TARGET_LINK_LIBRARIES(blenderplayer ${BLENDER_LINK_LIBS})
 ENDIF(UNIX)
 
-MESSAGE(STATUS "Configuring blenderplayer")
