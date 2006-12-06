@@ -227,6 +227,7 @@ static void draw_action_channel_names(bAction	*act)
 	for (chan=act->chanbase.first; chan; chan=chan->next){
 		if((chan->flag & ACHAN_HIDDEN)==0) {
 			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
 			
 			/* draw backing strip behind action channel name */
 			BIF_ThemeColorShade(TH_HEADER, 20);
