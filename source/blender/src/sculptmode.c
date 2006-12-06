@@ -1738,10 +1738,9 @@ void set_sculptmode()
 		
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_NORMAL_ARRAY);
-
-		allqueue(REDRAWVIEW3D,0);
 	}
 
+	allqueue(REDRAWVIEW3D, 1);
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 

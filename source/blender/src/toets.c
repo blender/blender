@@ -694,6 +694,8 @@ int blenderqread(unsigned short event, short val)
 				set_texturepaint();
 			if(G.f & G_WEIGHTPAINT)
 				set_wpaint();
+			if(G.f & G_SCULPTMODE)
+				set_sculptmode();
 		}
 		break;
 
