@@ -133,6 +133,7 @@ static void draw_nla_channels(void)
 			/* icon to indicate nla or action */
 			if(ob->nlastrips.first && ob->action) {
 				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
 				if(ob->nlaflag & OB_NLA_OVERRIDE)
 					BIF_icon_draw(x+5, y-8, ICON_NLA);
 				else
