@@ -92,7 +92,6 @@
 
 
 /* local functions ----------------------------------------------------- */
-int count_action_levels(bAction *act);
 static ListBase *ipo_to_keylist(Ipo *ipo, int flags);
 static ListBase *action_to_keylist(bAction *act, int flags);
 static ListBase *ob_to_keylist(Object *ob, int flags);
@@ -227,9 +226,19 @@ static void draw_action_channel_names(bAction	*act)
 
 	for (chan=act->chanbase.first; chan; chan=chan->next){
 		if((chan->flag & ACHAN_HIDDEN)==0) {
+			glEnable(GL_BLEND);
+			
+			/* draw backing strip behind action channel name */
 			BIF_ThemeColorShade(TH_HEADER, 20);
 			glRectf(x,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
-		
+			
+			/* draw 'lock' indicating whether channel is protected */
+			if (chan->flag & ACHAN_PROTECTED) 
+				BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_LOCKED);
+			else 
+				BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_UNLOCKED);
+			
+			/* draw name of action channel */
 			if (chan->flag & ACHAN_SELECTED)
 				BIF_ThemeColor(TH_TEXT_HI);
 			else
@@ -239,17 +248,24 @@ static void draw_action_channel_names(bAction	*act)
 			y-=CHANNELHEIGHT+CHANNELSKIP;
 		
 			/* Draw constraint channels */
-			for (conchan=chan->constraintChannels.first; 
-					conchan; conchan=conchan->next){
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
+				/* draw 'lock' to indicate if constraint channel is protected */
+				if (conchan->flag & CONSTRAINT_CHANNEL_PROTECTED) 
+					BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_LOCKED);
+				else 
+					BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_UNLOCKED);	
+				
+				/* draw name of constraint channel */
 				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
 					BIF_ThemeColor(TH_TEXT_HI);
 				else
 					BIF_ThemeColor(TH_TEXT);
-					
 				glRasterPos2f(x+32,  y-4);
 				BMF_DrawString(G.font, conchan->name);
 				y-=CHANNELHEIGHT+CHANNELSKIP;
 			}
+			
+			glDisable(GL_BLEND);
 		}
 	}
 }

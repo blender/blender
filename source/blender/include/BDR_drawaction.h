@@ -44,5 +44,7 @@ void draw_ipo_channel(struct gla2DDrawInfo *di, struct Ipo *ipo, int flags, floa
 void draw_action_channel(struct gla2DDrawInfo *di, struct bAction *act, int flags, float ypos);
 void draw_object_channel(struct gla2DDrawInfo *di, struct Object *ob, int flags, float ypos);
 
+int count_action_levels (bAction *act);
+
 #endif  /*  BDR_DRAWACTION_H */
 

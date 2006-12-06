@@ -249,7 +249,8 @@ typedef struct bRigidBodyJointConstraint{
 
 
 /* bConstraintChannel.flag */
-#define CONSTRAINT_CHANNEL_SELECT	0x01
+#define CONSTRAINT_CHANNEL_SELECT		0x01
+#define CONSTRAINT_CHANNEL_PROTECTED 	0x02
 
 /* bRotateLikeConstraint.flag */
 #define ROTLIKE_X		0x01

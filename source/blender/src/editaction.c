@@ -88,19 +88,19 @@
 #include "BSE_time.h"
 #include "BSE_trans_types.h"
 
+#include "BDR_drawaction.h"
 #include "BDR_editobject.h"
 
 #include "mydevice.h"
 #include "blendef.h"
 #include "nla.h"
 
-extern int count_action_levels (bAction *act);
-void top_sel_action();
-void up_sel_action();
-void bottom_sel_action();
-void down_sel_action();
-
+/* Useful macros ----------------------------------------------- */
 #define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
+
+#define VISIBLE_ACHAN(achan) ((achan->flag & ACHAN_HIDDEN)==0)
+#define EDITABLE_ACHAN(achan) (((achan->flag & ACHAN_HIDDEN)==0) && ((achan->flag & ACHAN_PROTECTED)==0))
+#define EDITABLE_CONCHAN(conchan) ((conchan->flag & CONSTRAINT_CHANNEL_PROTECTED)==0)
 
 /* Local Function prototypes, are forward needed */
 static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
@@ -220,7 +220,7 @@ void duplicate_meshchannel_keys(Key *key)
 void duplicate_actionchannel_keys(void)
 {
 	bAction *act;
-	bActionChannel *chan;
+	bActionChannel *achan;
 	bConstraintChannel *conchan;
 
 	act=G.saction->action;
@@ -228,11 +228,15 @@ void duplicate_actionchannel_keys(void)
 		return;
 
 	/* Find selected items */
-	for (chan = act->chanbase.first; chan; chan=chan->next){
-		if((chan->flag & ACHAN_HIDDEN)==0) {
-			duplicate_ipo_keys(chan->ipo);
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-				duplicate_ipo_keys(conchan->ipo);
+	for (achan = act->chanbase.first; achan; achan= achan->next){
+		if(EDITABLE_ACHAN(achan))
+			duplicate_ipo_keys(achan->ipo);
+		
+		if (VISIBLE_ACHAN(achan)) {
+			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+				if (EDITABLE_CONCHAN(conchan))
+					duplicate_ipo_keys(conchan->ipo);
+			}
 		}
 	}
 
@@ -961,8 +965,8 @@ void transform_actionchannel_keys(int mode, int dummy)
 	bAction	*act;
 	TransVert *tv;
 	Object *ob= OBACT;
+	bActionChannel	*achan;
 	bConstraintChannel *conchan;
-	bActionChannel	*chan;
 	float	deltax, startx;
 	float	minx, maxx, cenf[2];
 	float	sval[2], cval[2], lastcval[2]={0,0};
@@ -979,12 +983,15 @@ void transform_actionchannel_keys(int mode, int dummy)
 	if(act==NULL) return;
 	
 	/* Ensure that partial selections result in beztriple selections */
-	for (chan=act->chanbase.first; chan; chan=chan->next){
-		if((chan->flag & ACHAN_HIDDEN)==0) {
-			tvtot+=fullselect_ipo_keys(chan->ipo);
+	for (achan=act->chanbase.first; achan; achan= achan->next){
+		if (EDITABLE_ACHAN(achan))
+			tvtot+=fullselect_ipo_keys(achan->ipo);
 
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-				tvtot+=fullselect_ipo_keys(conchan->ipo);
+		if (VISIBLE_ACHAN(achan)) {
+			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+				if (EDITABLE_CONCHAN(conchan))
+					tvtot+=fullselect_ipo_keys(conchan->ipo);
+			}
 		}
 	}
 	
@@ -997,12 +1004,15 @@ void transform_actionchannel_keys(int mode, int dummy)
 	tv = MEM_callocN (sizeof(TransVert) * tvtot, "transVert");
 	
 	tvtot=0;
-	for (chan=act->chanbase.first; chan; chan=chan->next){
-		if((chan->flag & ACHAN_HIDDEN)==0) {
-			/* Add the actionchannel */
-			tvtot = add_trans_ipo_keys(chan->ipo, tv, tvtot);
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-				tvtot = add_trans_ipo_keys(conchan->ipo, tv, tvtot);
+	for (achan=act->chanbase.first; achan; achan= achan->next){
+		if(EDITABLE_ACHAN(achan))
+			tvtot = add_trans_ipo_keys(achan->ipo, tv, tvtot);
+			
+		if (VISIBLE_ACHAN(achan)) {
+			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+				if (EDITABLE_CONCHAN(conchan))
+					tvtot = add_trans_ipo_keys(conchan->ipo, tv, tvtot);
+			}
 		}
 	}
 	
@@ -1681,6 +1691,77 @@ static void mouse_actionchannels(bAction *act, short *mval,
 	allqueue (REDRAWBUTSALL, 0);
 }
 
+/* turn on/off protect option for action channel */
+static void mouse_actionchannels_protect (bAction *act, short *mval)
+{
+	bActionChannel *achan;
+	bConstraintChannel *conchan;
+	
+	float x,y;
+	int clickmin, clickmax;
+	int wsize, lock;
+	
+	/* wsize is the greatest possible height (in pixels) that would be
+	 * needed to draw all of the action channels and constraint
+	 * channels.
+	 */
+	wsize =  count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
+	wsize += CHANNELHEIGHT/2;
+	
+	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
+    clickmin = (int) ((wsize - y) / (CHANNELHEIGHT+CHANNELSKIP));
+	clickmax = clickmin;
+	
+	if (clickmax < 0)
+		return;
+	
+	/* clickmin and clickmax now coorespond to indices into
+	 * the collection of channels and constraint channels.
+	 * What we need to do is turn locks on/off for all action
+	 * channels and constraint channels between these indices.
+	 * This is done by traversing the channels and constraint
+	 * channels, for each item decrementing clickmin and clickmax.
+	 * When clickmin is less than zero we start locking stuff,
+	 * until clickmax is less than zero or we run out of channels
+	 * and constraint channels.
+	 */
+
+	for (achan = act->chanbase.first; achan; achan= achan->next){
+		if((achan->flag & ACHAN_HIDDEN)==0) {
+			if (clickmax < 0) break;
+
+			/* assume locking this action channel */
+			if ( clickmin <= 0) {
+				/* invert the channel's protect property */
+				lock = (achan->flag & ACHAN_PROTECTED);
+				if (lock)
+					achan->flag &= ~ACHAN_PROTECTED;
+				else
+					achan->flag |= ACHAN_PROTECTED;
+			}
+			--clickmin;
+			--clickmax;
+
+			/* Check for click in a constraint channel */
+			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next){
+				if (clickmax < 0) break;
+				if ( clickmin <= 0) {
+					/* invert the channel's protect property */
+					lock = (conchan->flag & CONSTRAINT_CHANNEL_PROTECTED);
+					if (lock)
+						conchan->flag &= ~CONSTRAINT_CHANNEL_PROTECTED;
+					else
+						conchan->flag |= CONSTRAINT_CHANNEL_PROTECTED;
+				}
+				--clickmin;
+				--clickmax;
+			}
+		}
+	}
+	
+	allqueue (REDRAWACTION, 0);
+}
+
 void delete_meshchannel_keys(Key *key)
 {
 	if (!okee("Erase selected keys"))
@@ -1695,7 +1776,7 @@ void delete_meshchannel_keys(Key *key)
 void delete_actionchannel_keys(void)
 {
 	bAction *act;
-	bActionChannel *chan;
+	bActionChannel *achan;
 	bConstraintChannel *conchan;
 
 	act = G.saction->action;
@@ -1705,19 +1786,22 @@ void delete_actionchannel_keys(void)
 	if (!okee("Erase selected keys"))
 		return;
 
-	for (chan = act->chanbase.first; chan; chan=chan->next){
-		if((chan->flag & ACHAN_HIDDEN)==0) {
-
+	for (achan = act->chanbase.first; achan; achan= achan->next){
+		if(EDITABLE_ACHAN(achan)) {
 			/* Check action channel keys*/
-			delete_ipo_keys(chan->ipo);
-
+			delete_ipo_keys(achan->ipo);
+		}
+		
+		if (VISIBLE_ACHAN(achan)) {
 			/* Delete constraint channel keys */
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-				delete_ipo_keys(conchan->ipo);
+			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+				if (EDITABLE_CONCHAN(conchan)) 
+					delete_ipo_keys(conchan->ipo);
+			}
 		}
 	}
 
-	remake_action_ipos (act);
+	remake_action_ipos(act);
 	BIF_undo_push("Delete Action keys");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
@@ -1822,14 +1906,13 @@ void clean_shapekeys(Key *key)
 
 void clean_actionchannels(bAction *act) 
 {
-	bActionChannel *chan;
+	bActionChannel *achan;
 	bConstraintChannel *conchan;
 	
 	Ipo *ipo;
 	IpoCurve *icu;
 	
 	int ok;
-	
 	
 	/* don't proceed any further if no action or user refuses */
 	if (!act) return;
@@ -1841,23 +1924,27 @@ void clean_actionchannels(bAction *act)
 	if (!ok) return;
 	
 	/* clean selected channels only */
-	for (chan= act->chanbase.first; chan; chan= chan->next) {
-		if((chan->flag & ACHAN_HIDDEN)==0) {
+	for (achan= act->chanbase.first; achan; achan= achan->next) {
+		if(EDITABLE_ACHAN(achan)) {
 			/* clean if action channel if selected */
-			if (chan->flag & ACHAN_SELECTED) {
-				ipo= chan->ipo;
+			if (achan->flag & ACHAN_SELECTED) {
+				ipo= achan->ipo;
 				if (ipo) {
 					for (icu= ipo->curve.first; icu; icu= icu->next) 
 						clean_ipo_curve(icu);
 				}
 			}
-			
+		}
+
+		if (VISIBLE_ACHAN(achan)) {
 			/* clean action channel's constraint channels */
-			for (conchan= chan->constraintChannels.first; conchan; conchan=conchan->next) {
-				ipo= conchan->ipo;
-				if (ipo) {
-					for (icu= ipo->curve.first; icu; icu= icu->next) 
-						clean_ipo_curve(icu);
+			for (conchan= achan->constraintChannels.first; conchan; conchan=conchan->next) {
+				if (EDITABLE_CONCHAN(conchan)) {
+					ipo= conchan->ipo;
+					if (ipo) {
+						for (icu= ipo->curve.first; icu; icu= icu->next) 
+							clean_ipo_curve(icu);
+					}
 				}
 			}
 		}
@@ -1883,7 +1970,8 @@ void sethandles_meshchannel_keys(int code, Key *key)
 void sethandles_actionchannel_keys(int code)
 {
 	bAction *act;
-	bActionChannel *chan;
+	bActionChannel *achan;
+	bConstraintChannel *conchan;
 
 	/* Get the selected action, exit if none are selected 
 	 */
@@ -1894,14 +1982,21 @@ void sethandles_actionchannel_keys(int code)
 	/* Loop through the channels and set the beziers
 	 * of the selected keys based on the integer code
 	 */
-	for (chan = act->chanbase.first; chan; chan=chan->next){
-		if((chan->flag & ACHAN_HIDDEN)==0)
-			sethandles_ipo_keys(chan->ipo, code);
+	for (achan = act->chanbase.first; achan; achan= achan->next){
+		if(EDITABLE_ACHAN(achan))
+			sethandles_ipo_keys(achan->ipo, code);
+			
+		if (VISIBLE_ACHAN(achan)) {
+			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
+				if (EDITABLE_CONCHAN(conchan))
+					sethandles_ipo_keys(conchan->ipo, code);
+			}
+		}
 	}
 
 	/* Clean up and redraw stuff
 	 */
-	remake_action_ipos (act);
+	remake_action_ipos(act);
 	BIF_undo_push("Set handles Action channel");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
@@ -1913,7 +2008,7 @@ void set_ipotype_actionchannels(int ipotype)
 {
 
 	bAction *act; 
-	bActionChannel *chan;
+	bActionChannel *achan;
 	bConstraintChannel *conchan;
 	short event;
 
@@ -1940,26 +2035,30 @@ void set_ipotype_actionchannels(int ipotype)
 	 * the type for each Ipo curve in the channel Ipo (based on
 	 * the value from the popup).
 	 */
-	for (chan = act->chanbase.first; chan; chan=chan->next){
-		if((chan->flag & ACHAN_HIDDEN)==0) {
-			if (chan->flag & ACHAN_SELECTED){
-				if (chan->ipo)
-					setipotype_ipo(chan->ipo, ipotype);
+	for (achan = act->chanbase.first; achan; achan= achan->next){
+		if(EDITABLE_ACHAN(achan)) {
+			if (achan->flag & ACHAN_SELECTED){
+				if (achan->ipo)
+					setipotype_ipo(achan->ipo, ipotype);
 			}
+		}
+		
+		if (VISIBLE_ACHAN(achan)) {
 			/* constraint channels */
-			for (conchan=chan->constraintChannels.first; conchan; conchan= conchan->next) {
-				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT) {
-					if (conchan->ipo)
-						setipotype_ipo(conchan->ipo, ipotype);
+			for (conchan=achan->constraintChannels.first; conchan; conchan= conchan->next) {
+				if (EDITABLE_CONCHAN(conchan)) {
+					if (conchan->flag & CONSTRAINT_CHANNEL_SELECT) {
+						if (conchan->ipo)
+							setipotype_ipo(conchan->ipo, ipotype);
+					}
 				}
 			}
-			
 		}
 	}
 
 	/* Clean up and redraw stuff
 	 */
-	remake_action_ipos (act);
+	remake_action_ipos(act);
 	BIF_undo_push("Set Ipo type Action channel");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
@@ -1970,7 +2069,7 @@ void set_ipotype_actionchannels(int ipotype)
 void set_extendtype_actionchannels(int extendtype)
 {
 	bAction *act; 
-	bActionChannel *chan;
+	bActionChannel *achan;
 	bConstraintChannel *conchan;
 	short event;
 
@@ -1998,43 +2097,48 @@ void set_extendtype_actionchannels(int extendtype)
 	 * the type for each Ipo curve in the channel Ipo (based on
 	 * the value from the popup).
 	 */
-	for (chan = act->chanbase.first; chan; chan=chan->next){
-		if((chan->flag & ACHAN_HIDDEN)==0) {
-			if (chan->flag & ACHAN_SELECTED) {
-				if (chan->ipo) {
+	for (achan = act->chanbase.first; achan; achan= achan->next){
+		if (EDITABLE_ACHAN(achan)) {
+			if (achan->flag & ACHAN_SELECTED) {
+				if (achan->ipo) {
 					switch (extendtype) {
 					case SET_EXTEND_CONSTANT:
-						setexprap_ipoloop(chan->ipo, IPO_HORIZ);
+						setexprap_ipoloop(achan->ipo, IPO_HORIZ);
 						break;
 					case SET_EXTEND_EXTRAPOLATION:
-						setexprap_ipoloop(chan->ipo, IPO_DIR);
+						setexprap_ipoloop(achan->ipo, IPO_DIR);
 						break;
 					case SET_EXTEND_CYCLIC:
-						setexprap_ipoloop(chan->ipo, IPO_CYCL);
+						setexprap_ipoloop(achan->ipo, IPO_CYCL);
 						break;
 					case SET_EXTEND_CYCLICEXTRAPOLATION:
-						setexprap_ipoloop(chan->ipo, IPO_CYCLX);
+						setexprap_ipoloop(achan->ipo, IPO_CYCLX);
 						break;
 					}
 				}
 			}
+		}
+		
+		if (VISIBLE_ACHAN(achan)) {
 			/* constraint channels */
-			for (conchan=chan->constraintChannels.first; conchan; conchan= conchan->next) {
-				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT) {
-					if (conchan->ipo) {
-						switch (extendtype) {
-							case SET_EXTEND_CONSTANT:
-								setexprap_ipoloop(conchan->ipo, IPO_HORIZ);
-								break;
-							case SET_EXTEND_EXTRAPOLATION:
-								setexprap_ipoloop(conchan->ipo, IPO_DIR);
-								break;
-							case SET_EXTEND_CYCLIC:
-								setexprap_ipoloop(conchan->ipo, IPO_CYCL);
-								break;
-							case SET_EXTEND_CYCLICEXTRAPOLATION:
-								setexprap_ipoloop(conchan->ipo, IPO_CYCLX);
-								break;
+			for (conchan=achan->constraintChannels.first; conchan; conchan= conchan->next) {
+				if (EDITABLE_CONCHAN(conchan)) {
+					if (conchan->flag & CONSTRAINT_CHANNEL_SELECT) {
+						if (conchan->ipo) {
+							switch (extendtype) {
+								case SET_EXTEND_CONSTANT:
+									setexprap_ipoloop(conchan->ipo, IPO_HORIZ);
+									break;
+								case SET_EXTEND_EXTRAPOLATION:
+									setexprap_ipoloop(conchan->ipo, IPO_DIR);
+									break;
+								case SET_EXTEND_CYCLIC:
+									setexprap_ipoloop(conchan->ipo, IPO_CYCL);
+									break;
+								case SET_EXTEND_CYCLICEXTRAPOLATION:
+									setexprap_ipoloop(conchan->ipo, IPO_CYCLX);
+									break;
+							}
 						}
 					}
 				}
@@ -2044,7 +2148,7 @@ void set_extendtype_actionchannels(int extendtype)
 
 	/* Clean up and redraw stuff
 	 */
-	remake_action_ipos (act);
+	remake_action_ipos(act);
 	BIF_undo_push("Set Ipo type Action channel");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
@@ -2055,19 +2159,22 @@ void set_extendtype_actionchannels(int extendtype)
 static void set_snap_actionchannels(bAction *act, short snaptype) 
 {
 	/* snapping function for action channels*/
-	bActionChannel *chan;
+	bActionChannel *achan;
 	bConstraintChannel *conchan;
 	
 	/* Loop through the channels */
-	for (chan = act->chanbase.first; chan; chan=chan->next){
-		if((chan->flag & ACHAN_HIDDEN)==0) {
-			if (chan->ipo) {
-				snap_ipo_keys(chan->ipo, snaptype);
-			}
+	for (achan = act->chanbase.first; achan; achan= achan->next){
+		if(EDITABLE_ACHAN(achan)) {
+			if (achan->ipo)
+				snap_ipo_keys(achan->ipo, snaptype);
+		}
+		
+		if (VISIBLE_ACHAN(achan)) {
 			/* constraint channels */
-			for (conchan=chan->constraintChannels.first; conchan; conchan= conchan->next) {
-				if (conchan->ipo) {
-					snap_ipo_keys(conchan->ipo, snaptype);
+			for (conchan=achan->constraintChannels.first; conchan; conchan= conchan->next) {
+				if (EDITABLE_CONCHAN(conchan)) {
+					if (conchan->ipo) 
+						snap_ipo_keys(conchan->ipo, snaptype);
 				}
 			}						
 		}
@@ -2130,19 +2237,22 @@ void snap_keys_to_frame(int snap_mode)
 static void mirror_actionchannels(bAction *act, short mirror_mode) 
 {
 	/* mirror function for action channels */
-	bActionChannel *chan;
+	bActionChannel *achan;
 	bConstraintChannel *conchan;
 	
 	/* Loop through the channels */
-	for (chan = act->chanbase.first; chan; chan=chan->next){
-		if((chan->flag & ACHAN_HIDDEN)==0) {
-			if (chan->ipo) {
-				mirror_ipo_keys(chan->ipo, mirror_mode);
-			}
+	for (achan = act->chanbase.first; achan; achan= achan->next){
+		if(EDITABLE_ACHAN(achan)) {
+			if (achan->ipo) 
+				mirror_ipo_keys(achan->ipo, mirror_mode);
+		}
+		
+		if (VISIBLE_ACHAN(achan)) {
 			/* constraint channels */
-			for (conchan=chan->constraintChannels.first; conchan; conchan= conchan->next) {
-				if (conchan->ipo) {
-					mirror_ipo_keys(conchan->ipo, mirror_mode);
+			for (conchan=achan->constraintChannels.first; conchan; conchan= conchan->next) {
+				if (EDITABLE_CONCHAN(conchan)) {	
+					if (conchan->ipo) 
+						mirror_ipo_keys(conchan->ipo, mirror_mode);
 				}
 			}						
 		}
@@ -2870,12 +2980,21 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			 */
 			if (mval[0]<NAMEWIDTH) {
 				if(act) {
-					if(G.qual & LR_SHIFTKEY)
-						mouse_actionchannels(act, mval, NULL,  SELECT_INVERT);
-					else
-						mouse_actionchannels(act, mval, NULL,  SELECT_REPLACE);
-					
-					BIF_undo_push("Select Action");
+					if (mval[0] < (NAMEWIDTH-16)) {
+						/* mouse is over action channels */
+						if(G.qual & LR_SHIFTKEY)
+							mouse_actionchannels(act, mval, NULL,  SELECT_INVERT);
+						else
+							mouse_actionchannels(act, mval, NULL,  SELECT_REPLACE);
+						
+						BIF_undo_push("Select Action");
+					}
+					else {
+						/* mouse is over channel locks */
+						mouse_actionchannels_protect(act, mval);
+						
+						BIF_undo_push("Protect Channel");
+					}
 				}
 				else numbuts_action();
 			}

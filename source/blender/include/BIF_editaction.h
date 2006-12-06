@@ -46,7 +46,7 @@
 
 #define	CHANNELHEIGHT	16
 #define	CHANNELSKIP		2
-#define NAMEWIDTH      128
+#define NAMEWIDTH      144
 #define SLIDERWIDTH    125
 #define ACTWIDTH 		(G.saction->actwidth)
 
@@ -119,7 +119,6 @@ struct bActionChannel* get_hilighted_action_channel(struct bAction* action);
 struct bAction *add_empty_action(int blocktype);
 
 void winqreadactionspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
-struct bAction *bake_action_with_client (struct bAction *act, struct Object *arm, float tolerance);
 
 /* contextual get action */
 struct bAction *ob_get_action(struct Object *ob);
@@ -127,6 +126,7 @@ struct bAction *ob_get_action(struct Object *ob);
 void remake_action_ipos(struct bAction *act);
 
 /* this needs review badly! (ton) */
+struct bAction *bake_action_with_client (struct bAction *act, struct Object *arm, float tolerance);
 void world2bonespace(float boneSpaceMat[][4], float worldSpace[][4], float restPos[][4], float armPos[][4]);
 
 #endif
