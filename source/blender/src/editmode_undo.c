@@ -244,7 +244,7 @@ void undo_editmode_step(int step)
 	}
 
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWVIEW3D, 1);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
