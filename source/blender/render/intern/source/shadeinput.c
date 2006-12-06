@@ -879,7 +879,10 @@ void shade_samples_do_shadow(ShadeSample *ssamp)
 				for(sample=0, shi= ssamp->shi; sample<ssamp->tot; shi++, sample++) {
 					float visifac, lv[3], lampdist, inpr;
 					
-					/* three tests to quickly reject */
+					/* tests to quickly reject */
+					if(lar->mode & LA_LAYER) if((lar->lay & shi->vlr->lay)==0) continue;
+					if((lar->lay & shi->lay)==0) continue;
+					
 					if(!(shi->mode & MA_SHADOW) || (shi->mode & MA_SHLESS))
 						continue;
 					
