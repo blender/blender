@@ -725,10 +725,6 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiDefIDPoinBut(block, test_meshpoin_but, ID_ME, B_REDR, "TexMesh: ",	175,124,230,19, &me->texcomesh, "Derive texture coordinates from another mesh.");
 	
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_SLOWERDRAW,"SlowerDraw",			175,30,95,19, 0, 0, 0, 0, 0, "Displays the active object with all possible edges shown");
-	uiDefBut(block, BUT, B_FASTERDRAW,"FasterDraw",			175,10,95,19, 0, 0, 0, 0, 0, "Displays the active object faster by omitting some edges when drawing");
-
-	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					275, 95, 130, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
 	uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			275, 75, 130, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
 	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		275, 55, 130, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
@@ -3630,13 +3626,6 @@ void do_meshbuts(unsigned short event)
 				BIF_undo_push("Flip Normals");
 				allqueue(REDRAWVIEW3D, 0);
 			}
-			break;
-
-		case B_SLOWERDRAW:
-			slowerdraw();
-			break;
-		case B_FASTERDRAW:
-			fasterdraw();
 			break;
 		}
 	}

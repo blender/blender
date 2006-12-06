@@ -38,9 +38,6 @@ struct EditVert;
 
 extern int join_mesh(void);
 
-extern void fasterdraw(void);
-extern void slowerdraw(void);
-
 extern void sort_faces(void);
 extern void objects_bake_render(void);
 
