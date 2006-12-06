@@ -4685,6 +4685,7 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case WHEELUPMOUSE:
 		case WHEELDOWNMOUSE:
 			view2dmove(event);	/* in drawipo.c */
+			soops->storeflag |= SO_TREESTORE_REDRAW;
 			break;
 			
 		case AKEY:

@@ -210,7 +210,7 @@ typedef struct SpaceOops {
 	/* search stuff */
 	char search_string[32];
 	struct TreeStoreElem search_tse;
-	int search_flags, pad;
+	int search_flags, do_;
 	
 	short type, outlinevis, storeflag;
 	short deps_flags;
@@ -540,6 +540,8 @@ typedef struct SpaceImaSel {
 
 /* SpaceOops->storeflag */
 #define SO_TREESTORE_CLEANUP	1
+		/* if set, it allows redraws. gets set for some allqueue events */
+#define SO_TREESTORE_REDRAW		2
 
 /* headerbuttons: 450-499 */
 

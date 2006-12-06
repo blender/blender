@@ -2531,6 +2531,9 @@ int view2dmove(unsigned short event)
 			view2d_do_locks(curarea, V2D_LOCK_COPY|V2D_LOCK_REDRAW);
 			areawinset(sa->win);
 			
+			if(curarea->spacetype==SPACE_OOPS)
+				((SpaceOops *)curarea->spacedata.first)->storeflag |= SO_TREESTORE_REDRAW;
+			
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
 				
