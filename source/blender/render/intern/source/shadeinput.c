@@ -919,32 +919,31 @@ static void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, in
 	
 	ssamp->tot= 0;
 	
-	for(shi= ssamp->shi; ps; ps= ps->next, shi++) {
+	for(shi= ssamp->shi; ps; ps= ps->next) {
 		shade_input_set_triangle(shi, ps->facenr, 1);
 		
-		/* officially should always be true... we have no sky info */
-		if(shi->vlr) {
+		if(shi->vlr) {	/* NULL happens for env material or for 'all z' */
 			unsigned short curmask= ps->mask;
 			
 			/* full osa is only set for OSA renders */
 			if(shi->vlr->flag & R_FULL_OSA) {
-				short shi_inc= 0, samp;
+				short shi_cp= 0, samp;
 				
 				for(samp=0; samp<R.osa; samp++) {
 					if(curmask & (1<<samp)) {
 						xs= (float)x + R.jit[samp][0] + 0.5f;	/* zbuffer has this inverse corrected, ensures xs,ys are inside pixel */
 						ys= (float)y + R.jit[samp][1] + 0.5f;
 						
-						if(shi_inc) {
+						if(shi_cp)
 							shade_input_copy_triangle(shi+1, shi);
-							shi++;
-						}
+						
 						shi->mask= (1<<samp);
 						shade_input_set_viewco(shi, xs, ys, (float)ps->z);
 						shade_input_set_uv(shi);
 						shade_input_set_normals(shi);
 						
-						shi_inc= 1;
+						shi_cp= 1;
+						shi++;
 					}
 				}
 			}
@@ -962,10 +961,12 @@ static void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, in
 				shade_input_set_viewco(shi, xs, ys, (float)ps->z);
 				shade_input_set_uv(shi);
 				shade_input_set_normals(shi);
+				shi++;
 			}
 			
 			/* total sample amount, shi->sample is static set in initialize */
-			ssamp->tot= shi->sample+1;
+			if(shi!=ssamp->shi)
+				ssamp->tot= (shi-1)->sample + 1;
 		}
 	}
 }
