@@ -67,4 +67,5 @@ objdirs:
 
 clean::
 	rm -rf $(DIR)
-
+	rm -rf $(NAN_BULLET2)/lib/libbullet2.a
+	rm -rf $(NAN_BULLET2)/include
