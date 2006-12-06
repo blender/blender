@@ -369,7 +369,8 @@ typedef struct BrushData
 	short size;
 	char strength, dir; /* Not used for smooth brush */
 	char airbrush;
-	char pad[3];
+	char view;
+	char pad[2];
 } BrushData;
 
 struct PropsetData;

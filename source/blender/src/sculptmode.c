@@ -131,8 +131,8 @@ typedef struct EditData {
 	char flip;
 	short mouse[2];
 
-	/* Normals */
-	vec3f up, right;
+	/* View normals */
+	vec3f up, right, out;
 
 	GrabData *grabdata;
 	float *layer_disps;
@@ -169,6 +169,7 @@ void sculptmode_init(Scene *sce)
 	sd->drawbrush.strength=sd->smoothbrush.strength=sd->pinchbrush.strength=sd->inflatebrush.strength=sd->grabbrush.strength=sd->layerbrush.strength= 25;
 	sd->drawbrush.dir=sd->pinchbrush.dir=sd->inflatebrush.dir=sd->layerbrush.dir= 1;
 	sd->drawbrush.airbrush=sd->smoothbrush.airbrush=sd->pinchbrush.airbrush=sd->inflatebrush.airbrush=sd->layerbrush.airbrush= 0;
+	sd->drawbrush.view= 0;
 	sd->brush_type= DRAW_BRUSH;
 	sd->texact= -1;
 	sd->texfade= 1;
@@ -680,7 +681,7 @@ float brush_strength(EditData *e)
 
 /* Currently only for the draw brush; finds average normal for all active
    vertices */
-vec3f calc_area_normal(const ListBase* active_verts)
+vec3f calc_area_normal(const vec3f *outdir, const int view, const ListBase* active_verts)
 {
 	Mesh *me= get_mesh(G.scene->sculptdata.active_ob);
 	vec3f area_normal= {0,0,0};
@@ -693,12 +694,18 @@ vec3f calc_area_normal(const ListBase* active_verts)
 		node= node->next;
 	}
 	Normalise(&area_normal.x);
+	if(outdir) {
+		area_normal.x= outdir->x * view + area_normal.x * (100-view);
+		area_normal.y= outdir->y * view + area_normal.y * (100-view);
+		area_normal.z= outdir->z * view + area_normal.z * (100-view);
+	}
+	Normalise(&area_normal.x);
 	return area_normal;
 }
-void do_draw_brush(const ListBase* active_verts)
+void do_draw_brush(EditData *e, const ListBase* active_verts)
 {
 	Mesh *me= get_mesh(G.scene->sculptdata.active_ob);
-	const vec3f area_normal= calc_area_normal(active_verts);
+	const vec3f area_normal= calc_area_normal(&e->out, sculptmode_brush()->view, active_verts);
 	ActiveData *node= active_verts->first;
 
 	while(node){
@@ -800,7 +807,7 @@ void do_grab_brush(EditData *e)
 void do_layer_brush(EditData *e, const ListBase *active_verts)
 {
 	Mesh *me= get_mesh(G.scene->sculptdata.active_ob);
-	vec3f area_normal= calc_area_normal(active_verts);
+	vec3f area_normal= calc_area_normal(NULL, 0, active_verts);
 	ActiveData *node= active_verts->first;
 	const float bstr= brush_strength(e);
 
@@ -1009,7 +1016,7 @@ void do_brush_action(float *vertexcosnos, EditData e,
 
 	switch(G.scene->sculptdata.brush_type){
 	case DRAW_BRUSH:
-		do_draw_brush(&active_verts);
+		do_draw_brush(&e, &active_verts);
 		break;
 	case SMOOTH_BRUSH:
 		do_smooth_brush(&active_verts);
@@ -1044,18 +1051,21 @@ EditData flip_editdata(EditData *e, short x, short y, short z)
 		fe.center.x= -fe.center.x;
 		fe.up.x= -fe.up.x;
 		fe.right.x= -fe.right.x;
+		fe.out.x= -fe.out.x;
 	}
 
 	if(y) {
 		fe.center.y= -fe.center.y;
 		fe.up.y= -fe.up.y;
 		fe.right.y= -fe.right.y;
+		fe.out.y= -fe.out.y;
 	}
 
 	if(z) {
 		fe.center.z= -fe.center.z;
 		fe.up.z= -fe.up.z;
 		fe.right.z= -fe.right.z;
+		fe.out.z= -fe.out.z;
 	}
 
 	project(&fe.center.x,fe.mouse);
@@ -1199,14 +1209,17 @@ void init_editdata(SculptData *sd, EditData *e, short *mouse, short *pr_mouse, c
 				  mouse_depth);
 	e->size= VecLenf(&e->center.x,&brush_edge_loc.x);
 
-	/* Now project the Up and Right normals from view to model coords */
-	zero_loc= unproject(0,0,0);
-	e->up= unproject(0,-1,0);
-	e->right= unproject(1,0,0);
-	VecSubf(&e->up.x,&e->up.x,&zero_loc.x);
-	VecSubf(&e->right.x,&e->right.x,&zero_loc.x);
+	/* Now project the Up, Right, and Out normals from view to model coords */
+	zero_loc= unproject(0, 0, 0);
+	e->up= unproject(0, -1, 0);
+	e->right= unproject(1, 0, 0);
+	e->out= unproject(0, 0, -1);
+	VecSubf(&e->up.x, &e->up.x, &zero_loc.x);
+	VecSubf(&e->right.x, &e->right.x, &zero_loc.x);
+	VecSubf(&e->out.x, &e->out.x, &zero_loc.x);
 	Normalise(&e->up.x);
 	Normalise(&e->right.x);
+	Normalise(&e->out.x);
 
 	if(sd->brush_type == GRAB_BRUSH) {
 		vec3f gcenter;

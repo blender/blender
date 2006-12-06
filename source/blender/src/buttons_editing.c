@@ -4171,8 +4171,9 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 			
 			uiDefButC(block,TOG,B_NOP, "Fade", cx,cy,50,19, &sd->texfade, 0,0,0,0,"Smooth the edges of the texture");
 			uiDefButS(block,NUM,B_NOP, "Space", cx+50,cy,65,19, &sd->spacing, 0,500,20,0,"Non-zero inserts N pixels between dots");
-			
-			cy+= 40;
+			cy-= 20;
+			if(sd->brush_type == DRAW_BRUSH)
+				uiDefButC(block,NUM,B_NOP, "View", cx+50,cy,65,19, &sculptmode_brush()->view, 0,100,20,0,"Pulls brush direction towards view");
 		}
 		else {
 		       uiDefButS(block,TOG,B_SCULPT_TEXBROWSE, "Add New" ,cx, cy, 115, 19, &G.buts->texnr,-1,32767,0,0, "Adds a new texture");
@@ -4184,6 +4185,9 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 	else {
 		uiBlockBeginAlign(block);
 		uiDefButS(block,NUM,B_NOP, "Space", cx+50,cy,65,19, &sd->spacing, 0,500,20,0,"Non-zero inserts N pixels between dots");
+		cy-= 20;
+		if(sd->brush_type == DRAW_BRUSH)
+			uiDefButC(block,NUM,B_NOP, "View", cx+50,cy,65,19, &sculptmode_brush()->view, 0,100,20,0,"Pulls brush direction towards view");
 	}
 	
 	uiBlockEndAlign(block);
