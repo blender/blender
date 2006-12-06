@@ -52,6 +52,14 @@ IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
   MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
 ENDIF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 
+# For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
+# On Unix: 
+#   cmake -D PYTHON_LIB=/usr/local/lib/python2.3/config/libpython2.3.so -D PYTHON_INC=/usr/local/include/python2.3 -D PYTHON_BINARY=/usr/local/bin/python2.3 -G "Unix Makefiles" ../blender
+# On Macs: 
+#   cmake -D PYTHON_INC=/System/Library/Frameworks/Python.framework/Versions/2.5/include/python2.5 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/config -D PYTHON_BINARY=/System/Library/Frameworks/Python.framework/Versions/2.5/bin/python2.5 -G Xcode ../blender
+#
+# When changing any of this remember to update the notes in doc/blender-cmake.txt
+
 #-----------------------------------------------------------------------------
 # Load some macros.
 INCLUDE(CMake/macros.cmake)
@@ -120,16 +128,10 @@ IF(UNIX)
   SET(FREETYPE_LIB freetype)
 
   INCLUDE(${CMAKE_ROOT}/Modules/FindPythonLibs.cmake)
-
-# For FreeBSD (and possibly others) allow the commandline to override this to force Pyhon 2.3
-# for instance. e.g:
-# cmake -D PYTHON_LIB=/usr/local/lib/python2.3/config/libpython2.3.so -D PYTHON_INC=/usr/local/include/python2.3 -G "Unix Makefiles" ../blender
-
   SET(PYTHON_INC "${PYTHON_INCLUDE_PATH}" CACHE STRING "")
   SET(PYTHON_LIB "${PYTHON_LIBRARIES}" CACHE STRING "")
-
   INCLUDE(${CMAKE_ROOT}/Modules/FindPythonInterp.cmake)
-  SET(PYTHON_BINARY ${PYTHON_EXECUTABLE})
+  SET(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
   SET(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
 
   INCLUDE(${CMAKE_ROOT}/Modules/FindSDL.cmake)
@@ -280,10 +282,10 @@ IF(APPLE)
 
   SET(PYTHON /System/Library/Frameworks/Python.framework/Versions/)
   SET(PYTHON_VERSION 2.3)
-  SET(PYTHON_INC "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}")
-  SET(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION})
+  SET(PYTHON_INC "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}" CACHE STRING "")
+  SET(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION} CACHE STRING "")
   SET(PYTHON_LIB "")
-  SET(PYTHON_LIBPATH ${PYTHON}${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config)
+  SET(PYTHON_LIBPATH ${PYTHON}${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config CACHE STRING "")
   SET(PYTHON_LINKFLAGS "-u __dummy -u _PyMac_Error -framework System -framework Python")
 
   SET(GETTEXT ${LIBDIR}/gettext)

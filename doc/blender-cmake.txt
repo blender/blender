@@ -3,22 +3,34 @@ $Id$
     Blender CMake build system
     ============================
 
-    Introduction
-    ------------
+    Contents
+    ---------------
+
+    1. Introduction
+    2. Obtaining CMake
+    3. Obtaining Dependencies
+    4. Deciding on a Build Environment
+    5. Configuring the build for the first time
+    6. Configuring the build after CVS updates
+    7. Specify alternate Python library versions and locations
+
+
+    1. Introduction
+    ---------------
 
     This document describes general usage of the new CMake scripts. The
-    inner workings are described in blender-cmake-dev.txt.
+    inner workings will be described in blender-cmake-dev.txt (TODO).
 
-    Obtaining CMake
-    ---------------
+    2. Obtaining CMake
+    ------------------
 
     CMake for can either be downloaded using your favorite package manager 
     or is also available from the CMake website at http://www.cmake.org 
     The website also contains some documentation on CMake usage but I found
     the man page alone pretty helpful. 
 
-    Obtaining Dependencies
-    ----------------------
+    3. Obtaining Dependencies
+    -------------------------
 
     Check from the page
     http://www.blender.org/cms/Getting_Dependencies.135.0.html that you
@@ -26,8 +38,8 @@ $Id$
     windows many of these dependencies already come in the lib/windows
     module from CVS.
 
-    Deciding on a Build Environment
-    -------------------------------
+    4. Deciding on a Build Environment
+    ----------------------------------
 
     To build Blender with the CMake scripts you first need to decide which
     build environment you feel comfortable with. This decision will also be
@@ -45,8 +57,8 @@ $Id$
        progress indicator.
 
 
-    Configuring the build for the first time
-    ----------------------------------------
+    5. Configuring the build for the first time
+    -------------------------------------------
 
     CMake allows one to generate the build project files and binary objects
     outside the source tree which can be pretty handy in working and experimenting
@@ -102,8 +114,8 @@ $Id$
     It is also possible to use the commandline of 'cmake' to override certain
     of these settings. 
 
-    Configuring the build after CVS updates
-    ---------------------------------------
+    6. Configuring the build after CVS updates
+    ------------------------------------------
 
     The $BLENDERBUILD directory maintains a file called CMakeCache.txt which 
     remembers the initial run's settings for subsequent generation runs. After
@@ -113,6 +125,20 @@ $Id$
     'cvs up':
 
         % cmake -G Xcode $BLENDERSOURCE
+
+    7. Specify alternate Python library versions and locations
+    ----------------------------------------------------------
+    
+    The commandline can be used to override detected/default settings, e.g:
+ 
+    On Unix: 
+      cmake -D PYTHON_LIB=/usr/local/lib/python2.3/config/libpython2.3.so -D PYTHON_INC=/usr/local/include/python2.3 -D PYTHON_BINARY=/usr/local/bin/python2.3 -G "Unix Makefiles" ../blender
+    On Macs: 
+      cmake -D PYTHON_INC=/System/Library/Frameworks/Python.framework/Versions/2.5/include/python2.5 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/config -D PYTHON_BINARY=/System/Library/Frameworks/Python.framework/Versions/2.5/bin/python2.5 -G Xcode ../blender
+
+    Mote that this should only be needed once per build directory generation because it will keep the overrides in CMakeCache.txt for subsequent runs.
+
+
 
     To be continued...
 
