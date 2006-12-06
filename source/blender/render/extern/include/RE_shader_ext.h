@@ -71,6 +71,7 @@ struct ShadeInputCopy {
 	short puno;
 	float vn[3], vno[3];			/* actual render normal, and a copy to restore it */
 	float n1[3], n2[3], n3[3];		/* vertex normals, corrected */
+	int mode;						/* base material mode (OR-ed result of entire node tree) */
 };
 
 /* localized renderloop data */
@@ -88,6 +89,7 @@ typedef struct ShadeInput
 	short puno;
 	float vn[3], vno[3];			/* actual render normal, and a copy to restore it */
 	float n1[3], n2[3], n3[3];		/* vertex normals, corrected */
+	int mode;						/* base material mode (OR-ed result of entire node tree) */
 	
 	/* internal face coordinates */
 	float u, v, dx_u, dx_v, dy_u, dy_v;
@@ -108,9 +110,6 @@ typedef struct ShadeInput
 	/* individual copies: */
 	int har;
 	float layerfac;
-	
-	/* base material mode (OR-ed result of entire node tree) */
-	int mode;
 	
 	/* texture coordinates */
 	float lo[3], gl[3], uv[3], ref[3], orn[3], winco[3], sticky[3], vcol[3], rad[3];

@@ -935,7 +935,7 @@ static void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, in
 						ys= (float)y + R.jit[samp][1] + 0.5f;
 						
 						if(shi_cp)
-							shade_input_copy_triangle(shi+1, shi);
+							shade_input_copy_triangle(shi, shi-1);
 						
 						shi->mask= (1<<samp);
 						shade_input_set_viewco(shi, xs, ys, (float)ps->z);
