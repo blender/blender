@@ -2247,18 +2247,22 @@ void special_aftertrans_update(TransInfo *t)
 						}
 					}
 					else if (U.uiflag & USER_KEYINSERTNEED) {
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
-
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+						if (t->mode==TFM_RESIZE) {
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+						}
+						else if (t->mode==TFM_ROTATION) {
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+						}
+						else if (t->mode==TFM_TRANSLATION) {
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+						}
 					}
 					else {
 						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
@@ -2330,17 +2334,21 @@ void special_aftertrans_update(TransInfo *t)
 					}
 				}
 				else if (U.uiflag & USER_KEYINSERTNEED) {
-					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_ROT_X);
-					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_ROT_Y);
-					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_ROT_Z);
-
-					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_LOC_X);
-					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_LOC_Y);
-					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_LOC_Z);
-
-					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_SIZE_X);
-					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Y);
-					insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Z);
+					if (t->mode==TFM_RESIZE) {
+						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_SIZE_X);
+						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Y);
+						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Z);
+					}
+					else if (t->mode==TFM_ROTATION) {
+						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_ROT_X);
+						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_ROT_Y);
+						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_ROT_Z);
+					}
+					else if (t->mode==TFM_TRANSLATION) {
+						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_LOC_X);
+						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_LOC_Y);
+						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_LOC_Z);
+					}
 				}
 				else {
 					insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_X);
