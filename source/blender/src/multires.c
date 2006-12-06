@@ -509,6 +509,7 @@ void multires_get_vert(MVert *out, EditVert *eve, MVert *m, int i)
 {
 	if(eve) {
 		VecCopyf(out->co, eve->co);
+		out->flag= 0;
 		if(eve->f & SELECT) out->flag |= 1;
 		if(eve->h) out->flag |= ME_HIDE;
 		eve->tmp.l= i;
@@ -1355,13 +1356,6 @@ void multires_update_levels(Mesh *me)
 	for(i=0; i<cr_lvl->totvert; ++i) {
 		multires_get_vert(&cr_lvl->verts[i], eve, &me->mvert[i], i);
 		if(em) eve= eve->next;
-	}
-	if(em) efa= em->faces.first;
-	for(i=0; i<cr_lvl->totface; ++i) {
-		if(em) {
-			efa= efa->next;
-		} else
-			cr_lvl->faces[i].flag= me->mface[i].flag;
 	}
 
 	/* Update higher levels */
