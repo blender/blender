@@ -1531,7 +1531,7 @@ void loop_multiselect(int looptype)
 static void mouse_mesh_loop(void)
 {
 	EditEdge *eed;
-	int select;
+	int select= 1;
 	int dist= 50;
 	
 	eed= findnearestedge(&dist);

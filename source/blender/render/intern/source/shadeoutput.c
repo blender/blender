@@ -1022,7 +1022,7 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 		return 1.0f;
 	}
 	else {
-		float visifac, t;
+		float visifac= 1.0f, t;
 		
 		VECSUB(lv, co, lar->co);
 		*dist= sqrt( INPR(lv, lv));

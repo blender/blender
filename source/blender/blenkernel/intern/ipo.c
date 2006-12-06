@@ -552,7 +552,7 @@ void sort_time_ipocurve(IpoCurve *icu)
 						ok= 1;
 					}
 				}
-				if(bezt->vec[0][0]>=bezt->vec[1][0] && bezt->vec[2][0]<=bezt->vec[1][0]) {
+				if(bezt->vec[0][0]>bezt->vec[1][0] && bezt->vec[2][0]<bezt->vec[1][0]) {
 					SWAP(float, bezt->vec[0][0], bezt->vec[2][0]);
 					SWAP(float, bezt->vec[0][1], bezt->vec[2][1]);
 				}
@@ -2210,7 +2210,6 @@ void add_to_cfra_elem(ListBase *lb, BezTriple *bezt)
 void make_cfra_list(Ipo *ipo, ListBase *elems)
 {
 	IpoCurve *icu;
-	CfraElem *ce;
 	BezTriple *bezt;
 	int a;
 	

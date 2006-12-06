@@ -5960,7 +5960,7 @@ static void collapse_edgeuvs(void)
 	wUVNode *curwnode;
 	wUVEdgeCollect *collectedwuve, *newcollectedwuve;
 	Collection *wuvecollection, *newcollection;
-	int curtag, balanced, collectionfound, vcount;
+	int curtag, balanced, collectionfound= 0, vcount;
 	float avg[2];
 
 	if (!CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE))
