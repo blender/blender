@@ -676,6 +676,8 @@ void init_render_materials(int r_mode, float *amb)
 		if(ma->id.us) 
 			init_render_material(ma, r_mode, amb);
 	}
+	
+	do_init_render_material(&defmaterial, r_mode, amb);
 }
 
 /* only needed for nodes now */
