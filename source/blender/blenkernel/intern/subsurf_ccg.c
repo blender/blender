@@ -1123,7 +1123,12 @@ static void ccgDM_getFinalEdge(DerivedMesh *dm, int edgeNum, MEdge *med)
 				         | ME_EDGEDRAW | ME_EDGERENDER;
 			}
 		} else {
-			flags |= ME_EDGEDRAW | ME_EDGERENDER;
+			int *edgeFlag = dm->getEdgeData(dm, edgeNum, CD_FLAGS);
+			if(edgeFlag)
+				flags |= (*edgeFlag & (ME_SEAM | ME_SHARP))
+				         | ME_EDGEDRAW | ME_EDGERENDER;
+			else
+				flags |= ME_EDGEDRAW | ME_EDGERENDER;
 		}
 
 		med->flag = flags;
@@ -1235,6 +1240,7 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
 	int i = 0;
 	MEdge *origEdges = NULL;
+	int *edgeFlags = dm->getEdgeDataArray(dm, CD_FLAGS);
 
 	if(ccgdm->me) origEdges = ccgdm->me->medge;
 
@@ -1285,16 +1291,20 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
 		CCGEdge *e = ccgdm->edgeMap[index].edge;
 		unsigned int flags = 0;
 		int x;
+		int edgeIdx = (int)ccgSubSurf_getEdgeEdgeHandle(ss, e);
 
 		if(!ccgSubSurf_getEdgeNumFaces(ss, e)) flags |= ME_LOOSEEDGE;
 
 		if(origEdges){
-			int edgeIdx = (int)ccgSubSurf_getEdgeEdgeHandle(ss, e);
-
 			if(edgeIdx != -1) {
 				MEdge *origMed = &origEdges[edgeIdx];
 
 				flags |= (origMed->flag & (ME_SEAM | ME_SHARP))
+				         | ME_EDGEDRAW | ME_EDGERENDER;
+			}
+		} else if(edgeFlags) {
+			if(edgeIdx != -1) {
+				flags |= (edgeFlags[i] & (ME_SEAM | ME_SHARP))
 				         | ME_EDGEDRAW | ME_EDGERENDER;
 			}
 		} else {
@@ -2039,7 +2049,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	int i;
 	int vertNum, edgeNum, faceNum;
 	int *vertOrigIndex, *edgeOrigIndex, *faceOrigIndex;
-	int *faceFlags;
+	int *faceFlags, *edgeFlags;
 	int edgeSize;
 	int gridSize;
 	int gridFaces;
@@ -2061,6 +2071,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		                 ccgSubSurf_getNumFinalFaces(ss));
 		tface = dm->getFaceDataArray(dm, CD_MTFACE);
 		DM_add_face_layer(&ccgdm->dm, CD_FLAGS, CD_FLAG_NOCOPY, NULL);
+		DM_add_edge_layer(&ccgdm->dm, CD_FLAGS, CD_FLAG_NOCOPY, NULL);
 	} else {
 		DM_init(&ccgdm->dm, ccgSubSurf_getNumFinalVerts(ss),
 		        ccgSubSurf_getNumFinalEdges(ss),
@@ -2321,12 +2332,15 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		MEM_freeN(faceMap2Uv);
 	}
 
+	edgeFlags = DM_get_edge_data_layer(&ccgdm->dm, CD_FLAGS);
+
 	for(index = 0; index < totedge; ++index) {
 		CCGEdge *e = ccgdm->edgeMap[index].edge;
 		int numFinalEdges = edgeSize - 1;
 		int mapIndex = ccgDM_getEdgeMapIndex(ccgdm, ss, e);
 		int x;
 		int vertIdx[2];
+		int edgeIdx = (int)ccgSubSurf_getEdgeEdgeHandle(ss, e);
 
 		CCGVert *v;
 		v = ccgSubSurf_getEdgeVert0(ss, e);
@@ -2350,9 +2364,13 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 			++vertNum;
 		}
 
-		for(i = 0; i < numFinalEdges; ++i)
+		for(i = 0; i < numFinalEdges; ++i) {
+			if(edgeIdx >= 0 && edgeFlags)
+					edgeFlags[edgeNum + i] = medge[edgeIdx].flag;
+
 			*(int *)DM_get_edge_data(&ccgdm->dm, edgeNum + i,
 			                         CD_ORIGINDEX) = mapIndex;
+		}
 
 		edgeNum += numFinalEdges;
 	}
