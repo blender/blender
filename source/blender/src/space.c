@@ -5356,6 +5356,7 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			}
 			vd->clipbb= MEM_dupallocN(vd->clipbb);
 			vd->ri= NULL;
+			vd->properties_storage= NULL;
 		}
 		else if(sl->spacetype==SPACE_IMAGE) {
 			SpaceImage *sima= (SpaceImage *)sl;
@@ -5375,6 +5376,7 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			if(v3d->localvd) {
 				restore_localviewdata(v3d);
 				v3d->localvd= NULL;
+				v3d->properties_storage= NULL;
 				v3d->localview= 0;
 				v3d->lay &= 0xFFFFFF;
 			}
