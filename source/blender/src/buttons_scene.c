@@ -1176,7 +1176,7 @@ static void render_panel_output(void)
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButBitS(block, TOG, R_BACKBUF, B_NOP,"Backbuf",	10, 94, 80, 20, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
-	uiDefButS(block, NUM, B_NOP, "Threads:",				10, 68, 120, 20, &G.scene->r.threads, 1, BLENDER_MAX_THREADS, 0, 0, "Amount of threads for render");	
+	uiDefButS(block, NUM, B_NOP, "Threads:",				10, 68, 100, 20, &G.scene->r.threads, 1, BLENDER_MAX_THREADS, 0, 0, "Amount of threads for render");	
 	uiBlockSetCol(block, TH_AUTO);
 		
 	uiBlockBeginAlign(block);
@@ -1202,8 +1202,8 @@ static void render_panel_output(void)
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, R_NO_TEX, B_NOP, "Disable Tex", 100, 68, 70, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Disables Textures for render");
-	uiDefButBitS(block, TOG, R_FREE_IMAGE, B_NOP, "Free Tex Images", 170, 68, 140, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Frees all Images used by Textures after each render");
+	uiDefButBitS(block, TOG, R_NO_TEX, B_NOP, "Disable Tex", 115, 68, 70, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Disables Textures for render");
+	uiDefButBitS(block, TOG, R_FREE_IMAGE, B_NOP, "Free Tex Images", 205, 68, 100, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Frees all Images used by Textures after each render");
 	uiBlockEndAlign(block);
 }
 
