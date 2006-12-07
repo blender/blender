@@ -1835,15 +1835,22 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 {
 	VlakRen *vlr;
 	float i, f, f1, fr, fg, fb, vec[3], mircol[4], tracol[4];
+	float diff[3];
 	int do_tra, do_mir;
 	
 	do_tra= ((shi->mat->mode & (MA_RAYTRANSP)) && shr->alpha!=1.0f);
 	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0f);
 	vlr= shi->vlr;
 	
+	/* raytrace mirror amd refract like to separate the spec color */
+	if(shi->combinedflag & SCE_PASS_SPEC)
+		VECSUB(diff, shr->combined, shr->spec) /* no ; */
+	else
+		VECCOPY(diff, shr->combined);
+	
 	if(do_tra) {
 		float refract[3];
-		float combined[3];
+		float olddiff[3];
 		
 		tracol[3]= shr->alpha;
 		
@@ -1856,17 +1863,17 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 		fb= 1.0f+ shi->mat->filter*(shi->b-1.0f);
 		
 		/* for refract pass */
-		VECCOPY(combined, shr->combined);
+		VECCOPY(olddiff, diff);
 		
-		combined[0]= f*combined[0] + fr*tracol[0];
-		combined[1]= f*combined[1] + fr*tracol[1];
-		combined[2]= f*combined[2] + fr*tracol[2];
+		diff[0]= f*diff[0] + fr*tracol[0];
+		diff[1]= f*diff[1] + fg*tracol[1];
+		diff[2]= f*diff[2] + fb*tracol[2];
 		
 		if(shi->passflag & SCE_PASS_REFRACT)
-			VECSUB(shr->refr, combined, shr->combined);
+			VECSUB(shr->refr, diff, olddiff);
 		
 		if(shi->combinedflag & SCE_PASS_REFRACT)
-			VECCOPY(shr->combined, combined);
+			VECCOPY(olddiff, diff);
 		
 		shr->alpha= tracol[3];
 	}
@@ -1875,10 +1882,6 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	
 		i= shi->ray_mirror*fresnel_fac(shi->view, shi->vn, shi->mat->fresnel_mir_i, shi->mat->fresnel_mir);
 		if(i!=0.0f) {
-			float diff[3];
-			
-			/* raytrace mirror likes to separate the spec color */
-			VECSUB(diff, shr->combined, shr->spec);
 			
 			fr= i*shi->mirr;
 			fg= i*shi->mirg;
@@ -1908,12 +1911,14 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 				
 				f= fb*(1.0f-shr->spec[2]);	f1= 1.0f-i;
 				diff[2]= f*mircol[2] + f1*diff[2];
-			
-				/* put back together */
-				VECADD(shr->combined, diff, shr->spec);
 			}
 		}
 	}
+	/* put back together */
+	if(shi->combinedflag & SCE_PASS_SPEC)
+		VECADD(shr->combined, diff, shr->spec) /* no ; */
+	else
+		VECCOPY(shr->combined, diff);
 }
 
 /* color 'shadfac' passes through 'col' with alpha and filter */
