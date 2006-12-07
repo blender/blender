@@ -1457,6 +1457,7 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	}
 	shi->u= is->u;
 	shi->v= is->v;
+	shi->dx_u= shi->dx_v= shi->dy_u= shi->dy_v=  0.0f;
 	shade_input_set_normals(shi);
 	shade_input_set_shade_texco(shi);
 	
