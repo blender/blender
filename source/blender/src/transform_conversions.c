@@ -2247,22 +2247,18 @@ void special_aftertrans_update(TransInfo *t)
 						}
 					}
 					else if (U.uiflag & USER_KEYINSERTNEED) {
-						if (t->mode==TFM_RESIZE) {
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
-						}
-						else if (t->mode==TFM_ROTATION) {
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-						}
-						else if (t->mode==TFM_TRANSLATION) {
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
-						}
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
 					}
 					else {
 						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
