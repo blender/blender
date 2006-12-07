@@ -1201,7 +1201,10 @@ static void render_panel_output(void)
 	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 170, 94, 140, 20, "Display Edge settings");
 	uiBlockEndAlign(block);
 	
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, R_NO_TEX, B_NOP, "Disable Tex", 100, 68, 70, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Disables Textures for render");
 	uiDefButBitS(block, TOG, R_FREE_IMAGE, B_NOP, "Free Tex Images", 170, 68, 140, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Frees all Images used by Textures after each render");
+	uiBlockEndAlign(block);
 }
 
 static void render_panel_render(void)

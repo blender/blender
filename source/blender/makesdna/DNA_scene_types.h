@@ -559,6 +559,8 @@ typedef struct Scene {
 #define R_EXR_TILE_FILE		0x0400
 #define R_COMP_FREE			0x0800
 #define R_NO_IMAGE_LOAD		0x1000
+#define R_NO_TEX		0x2000
+
 
 /* alphamode */
 #define R_ADDSKY		0

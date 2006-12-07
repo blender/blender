@@ -1448,6 +1448,7 @@ void do_material_tex(ShadeInput *shi)
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], warpvec[3], Tnor=1.0;
 	int tex_nr, rgbnor= 0, warpdone=0;
 
+	if (R.r.scemode & R_NO_TEX) return;
 	/* here: test flag if there's a tex (todo) */
 	
 	for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
@@ -1933,6 +1934,8 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float texvec[3], dxt[3], dyt[3], fact, facm, dx;
 	int rgb, osatex;
+
+	if (R.r.scemode & R_NO_TEX) return;
 	
 	mtex= har->mat->mtex[0];
 	if(mtex->tex==NULL) return;
@@ -2061,6 +2064,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 	float tempvec[3], texvec[3], dxt[3], dyt[3];
 	int tex_nr, rgb= 0, ok;
 	
+	if (R.r.scemode & R_NO_TEX) return;
 	/* todo: add flag to test if there's a tex */
 	texres.nor= NULL;
 	
@@ -2245,6 +2249,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf)
 	float texvec[3], dxt[3], dyt[3], tempvec[3];
 	int tex_nr, rgb= 0;
 	
+	if (R.r.scemode & R_NO_TEX) return;
 	tex_nr= 0;
 	
 	for(; tex_nr<MAX_MTEX; tex_nr++) {
