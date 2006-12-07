@@ -54,6 +54,16 @@
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+static ListBase *get_lights(ShadeInput *shi)
+{
+	
+	if(shi->light_override)
+		return &shi->light_override->gobject;
+	else if(shi->mat->group)
+		return &shi->mat->group->gobject;
+	else
+		return &R.lights;
+}
 
 #if 0
 static void fogcolor(float *colf, float *rco, float *view)
@@ -323,13 +333,14 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 
 void renderspothalo(ShadeInput *shi, float *col, float alpha)
 {
+	ListBase *lights= get_lights(shi);
 	GroupObject *go;
 	LampRen *lar;
 	float i;
 	
 	if(alpha==0.0f) return;
-
-	for(go=R.lights.first; go; go= go->next) {
+	
+	for(go=lights->first; go; go= go->next) {
 		lar= go->lampren;
 		
 		if(lar->type==LA_SPOT && (lar->mode & LA_HALO) && lar->haint>0) {
@@ -1099,7 +1110,7 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 	}
 }
 
-/* function returns diff, spec and raw diff */
+/* function returns raw diff, spec and full shadowed diff in the 'shad' pass */
 static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int passflag)
 {
 	Material *ma= shi->mat;
@@ -1226,14 +1237,11 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 					if(lar->mode & LA_ONLYSHADOW) {
 						
 						shadfac[3]= i*lar->energy*(1.0f-shadfac[3]);
-						shr->diff[0] -= shadfac[3]*shi->r;
-						shr->diff[1] -= shadfac[3]*shi->g;
-						shr->diff[2] -= shadfac[3]*shi->b;
+						shr->shad[0] -= shadfac[3]*shi->r;
+						shr->shad[1] -= shadfac[3]*shi->g;
+						shr->shad[2] -= shadfac[3]*shi->b;
 						return;
 					}
-					
-					if(!(passflag & (SCE_PASS_DIFFUSE|SCE_PASS_SHADOW)))
-						if(shadfac[3]==0.0f) return;
 					
 					i*= shadfac[3];
 				}
@@ -1244,15 +1252,19 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 		if(!(lar->mode & LA_NO_DIFF)) {
 			if(i>0.0f) {
 				if(ma->mode & MA_SHADOW_TRA)
-					add_to_diffuse(shr->diff, shi, is, i*shadfac[0]*lacol[0], i*shadfac[1]*lacol[1], i*shadfac[2]*lacol[2]);
+					add_to_diffuse(shr->shad, shi, is, i*shadfac[0]*lacol[0], i*shadfac[1]*lacol[1], i*shadfac[2]*lacol[2]);
 				else
-					add_to_diffuse(shr->diff, shi, is, i*lacol[0], i*lacol[1], i*lacol[2]);
+					add_to_diffuse(shr->shad, shi, is, i*lacol[0], i*lacol[1], i*lacol[2]);
 			}
-			if(i_noshad>0.0f && (passflag & (SCE_PASS_DIFFUSE|SCE_PASS_SHADOW))) {
-				if(ma->mode & MA_SHADOW_TRA)
-					add_to_diffuse(shr->diff_raw, shi, is, i_noshad*shadfac[0]*lacol[0], i_noshad*shadfac[1]*lacol[1], i_noshad*shadfac[2]*lacol[2]);
+			if(i_noshad>0.0f) {
+				if(passflag & (SCE_PASS_DIFFUSE|SCE_PASS_SHADOW)) {
+					if(ma->mode & MA_SHADOW_TRA)
+						add_to_diffuse(shr->diff, shi, is, i_noshad*shadfac[0]*lacol[0], i_noshad*shadfac[1]*lacol[1], i_noshad*shadfac[2]*lacol[2]);
+					else
+						add_to_diffuse(shr->diff, shi, is, i_noshad*lacol[0], i_noshad*lacol[1], i_noshad*lacol[2]);
+				}
 				else
-					add_to_diffuse(shr->diff_raw, shi, is, i_noshad*lacol[0], i_noshad*lacol[1], i_noshad*lacol[2]);
+					VECCOPY(shr->diff, shr->shad);
 			}
 		}
 		
@@ -1323,7 +1335,7 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 {
 	
 	if(R.r.mode & R_SHADOW) {
-		ListBase *lights;
+		ListBase *lights= get_lights(shi);
 		LampRen *lar;
 		GroupObject *go;
 		float inpr, lv[3];
@@ -1332,13 +1344,7 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 		
 		vn= shi->vn;
 		view= shi->view;
-		
-		/* lights */
-		if(shi->mat->group)
-			lights= &shi->mat->group->gobject;
-		else
-			lights= &R.lights;
-		
+
 		accum= ir= 0.0f;
 		
 		for(go=lights->first; go; go= go->next) {
@@ -1389,6 +1395,13 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 			shr->alpha += f;
 		}
 	}
+}
+
+static void wrld_exposure_correct(float *diff)
+{
+	diff[0]= R.wrld.linfac*(1.0f-exp( diff[0]*R.wrld.logfac) );
+	diff[1]= R.wrld.linfac*(1.0f-exp( diff[1]*R.wrld.logfac) );
+	diff[2]= R.wrld.linfac*(1.0f-exp( diff[2]*R.wrld.logfac) );
 }
 
 void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
@@ -1456,14 +1469,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	/* lighting pass */
 	if(passflag & (SCE_PASS_COMBINED|SCE_PASS_DIFFUSE|SCE_PASS_SPEC|SCE_PASS_SHADOW)) {
 		GroupObject *go;
-		ListBase *lights;
+		ListBase *lights= get_lights(shi);
 		LampRen *lar;
-		
-		/* lights */
-		if(ma->group)
-			lights= &ma->group->gobject;
-		else
-			lights= &R.lights;
 		
 		for(go=lights->first; go; go= go->next) {
 			lar= go->lampren;
@@ -1476,31 +1483,31 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			if(lar->mode & LA_LAYER) if((lar->lay & vlr->lay)==0) continue;
 			if((lar->lay & shi->lay)==0) continue;
 
-			/* accumulates in shr->diff and shr->spec and shr->diff_raw (diffuse without shadow!) */
+			/* accumulates in shr->diff and shr->spec and shr->shad (diffuse with shadow!) */
 			shade_one_light(lar, shi, shr, passflag);
 		}
 		
+		if(shi->combinedflag & SCE_PASS_SHADOW)	
+			VECCOPY(shr->combined, shr->shad) 	/* note, no ';' ! */
+		else
+			VECCOPY(shr->combined, shr->diff);
+			
 		/* calculate shadow pass, we use a multiplication mask */
 		if(passflag & SCE_PASS_SHADOW) {
-			if(shr->diff_raw[0]!=0.0f) shr->shad[0]= shr->diff[0]/shr->diff_raw[0];
-			if(shr->diff_raw[1]!=0.0f) shr->shad[1]= shr->diff[1]/shr->diff_raw[1];
-			if(shr->diff_raw[2]!=0.0f) shr->shad[2]= shr->diff[2]/shr->diff_raw[2];
+			if(shr->diff[0]!=0.0f) shr->shad[0]= shr->shad[0]/shr->diff[0];
+			if(shr->diff[1]!=0.0f) shr->shad[1]= shr->shad[1]/shr->diff[1];
+			if(shr->diff[2]!=0.0f) shr->shad[2]= shr->shad[2]/shr->diff[2];
 		}
 		
 		/* exposure correction */
 		if(R.wrld.exp!=0.0f || R.wrld.range!=1.0f) {
-			shr->diff[0]= R.wrld.linfac*(1.0f-exp( shr->diff[0]*R.wrld.logfac) );
-			shr->diff[1]= R.wrld.linfac*(1.0f-exp( shr->diff[1]*R.wrld.logfac) );
-			shr->diff[2]= R.wrld.linfac*(1.0f-exp( shr->diff[2]*R.wrld.logfac) );
-			
-			shr->spec[0]= R.wrld.linfac*(1.0f-exp( shr->spec[0]*R.wrld.logfac) );
-			shr->spec[1]= R.wrld.linfac*(1.0f-exp( shr->spec[1]*R.wrld.logfac) );
-			shr->spec[2]= R.wrld.linfac*(1.0f-exp( shr->spec[2]*R.wrld.logfac) );
+			wrld_exposure_correct(shr->diff);
+			wrld_exposure_correct(shr->spec);
 		}
 	}
 	
 	/* alpha in end, spec can influence it */
-	if(passflag & (SCE_PASS_COMBINED|SCE_PASS_RGBA)) {
+	if(passflag & (SCE_PASS_COMBINED)) {
 		if(ma->fresnel_tra!=0.0f) 
 			shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
 			
@@ -1516,44 +1523,47 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	}
 	shr->alpha= shi->alpha;
 	
-	/* now stuff everything in shr->diff: ambient, AO, radio, ramps, exposure */
-	shr->diff[0]+= shi->ambr + shi->r*shi->amb*shi->rad[0];
-	shr->diff[1]+= shi->ambg + shi->g*shi->amb*shi->rad[1];
-	shr->diff[2]+= shi->ambb + shi->b*shi->amb*shi->rad[2];
+	/* from now stuff everything in shr->combined: ambient, AO, radio, ramps, exposure */
+	shr->combined[0]+= shi->ambr + shi->r*shi->amb*shi->rad[0];
+	shr->combined[1]+= shi->ambg + shi->g*shi->amb*shi->rad[1];
+	shr->combined[2]+= shi->ambb + shi->b*shi->amb*shi->rad[2];
 	
+	/* add AO in combined? */
 	if(R.wrld.mode & WO_AMB_OCC) {
-		float aodiff[3];
-		ambient_occlusion_to_diffuse(shi, aodiff);
-		
-		shr->diff[0] += shi->r*aodiff[0];
-		shr->diff[1] += shi->g*aodiff[1];
-		shr->diff[2] += shi->b*aodiff[2];
+		if(shi->combinedflag & SCE_PASS_AO) {
+			float aodiff[3];
+			ambient_occlusion_to_diffuse(shi, aodiff);
+			
+			shr->combined[0] += shi->r*aodiff[0];
+			shr->combined[1] += shi->g*aodiff[1];
+			shr->combined[2] += shi->b*aodiff[2];
+		}
 	}
 	
-	if(ma->mode & MA_RAMP_COL) ramp_diffuse_result(shr->diff, shi);
+	if(ma->mode & MA_RAMP_COL) ramp_diffuse_result(shr->combined, shi);
 	if(ma->mode & MA_RAMP_SPEC) ramp_spec_result(shr->spec, shr->spec+1, shr->spec+2, shi);
 	
 	/* refcol is for envmap only */
 	if(shi->refcol[0]!=0.0f) {
-		float olddiff[3];
+		float result[3];
 		
-		VECCOPY(olddiff, shr->diff);
-		
-		shr->diff[0]= shi->mirr*shi->refcol[1] + (1.0f - shi->mirr*shi->refcol[0])*shr->diff[0];
-		shr->diff[1]= shi->mirg*shi->refcol[2] + (1.0f - shi->mirg*shi->refcol[0])*shr->diff[1];
-		shr->diff[2]= shi->mirb*shi->refcol[3] + (1.0f - shi->mirb*shi->refcol[0])*shr->diff[2];
+		result[0]= shi->mirr*shi->refcol[1] + (1.0f - shi->mirr*shi->refcol[0])*shr->combined[0];
+		result[1]= shi->mirg*shi->refcol[2] + (1.0f - shi->mirg*shi->refcol[0])*shr->combined[1];
+		result[2]= shi->mirb*shi->refcol[3] + (1.0f - shi->mirb*shi->refcol[0])*shr->combined[2];
 		
 		if(passflag & SCE_PASS_REFLECT)
-			VECSUB(shr->refl, shr->diff, olddiff);
+			VECSUB(shr->refl, result, shr->combined);
+		
+		if(shi->combinedflag & SCE_PASS_REFLECT)
+			VECCOPY(shr->combined, result);
+			
 	}
+	
+	/* and add spec */
+	if(shi->combinedflag & SCE_PASS_SPEC)
+		VECADD(shr->combined, shr->combined, shr->spec);
 
-	/* XXX SOLVE */
-	if(passflag & SCE_PASS_COMBINED) {
-		shr->combined[0]= shr->diff[0]+ shr->spec[0];
-		shr->combined[1]= shr->diff[1]+ shr->spec[1];
-		shr->combined[2]= shr->diff[2]+ shr->spec[2];
-		shr->combined[3]= shr->alpha;
-	}
+	shr->combined[3]= shr->alpha;
 }
 
 

@@ -362,6 +362,7 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 		if(totelem>1) {
 			struct treesort *tear= MEM_mallocN(totelem*sizeof(struct treesort), "tree sort array");
 			struct treesort *tp=tear;
+			int skip= 0;
 			
 			for(te= lb->first; te; te= te->next, tp++) {
 				tselem= TREESTORE(te);
@@ -371,8 +372,12 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 				if(tselem->type && tselem->type!=TSE_DEFGROUP) tp->idcode= 0;	// dont sort this
 				tp->id= tselem->id;
 			}
+			/* keep beginning of list */
+			for(tp= tear, skip=0; skip<totelem; skip++, tp++)
+				if(tp->idcode) break;
 			
-			qsort(tear, totelem, sizeof(struct treesort), treesort_alpha);
+			if(skip<totelem)
+				qsort(tear+skip, totelem-skip, sizeof(struct treesort), treesort_alpha);
 			
 			lb->first=lb->last= NULL;
 			tp= tear;
@@ -389,9 +394,86 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 	}
 }
 
-/* Prototype, see function below */
-static void outliner_add_bone(SpaceOops *soops, ListBase *lb, 
-							  ID *id, Bone *curBone, TreeElement *parent, int *a);
+/* Prototype, see functions below */
+static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
+										 TreeElement *parent, short type, short index);
+
+
+static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, SceneRenderLayer *srl)
+{
+	TreeStoreElem *tselem= TREESTORE(tenla);
+	TreeElement *te;
+	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_COMBINED);
+	te->name= "Combined";
+	te->directdata= &srl->passflag;
+	
+	/* save cpu cycles, but we add the first to invoke an open/close triangle */
+	if(tselem->flag & TSE_CLOSED)
+		return;
+	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_Z);
+	te->name= "Z";
+	te->directdata= &srl->passflag;
+	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_VECTOR);
+	te->name= "Vector";
+	te->directdata= &srl->passflag;
+	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_NORMAL);
+	te->name= "Normal";
+	te->directdata= &srl->passflag;
+	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_INDEXOB);
+	te->name= "Index Object";
+	te->directdata= &srl->passflag;
+	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_RGBA);
+	te->name= "Color";
+	te->directdata= &srl->passflag;
+	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_DIFFUSE);
+	te->name= "Diffuse";
+	te->directdata= &srl->passflag;
+	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_SPEC);
+	te->name= "Specular";
+	te->directdata= &srl->passflag;
+	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_SHADOW);
+	te->name= "Shadow";
+	te->directdata= &srl->passflag;
+	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_AO);
+	te->name= "AO";
+	te->directdata= &srl->passflag;
+	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_REFRACT);
+	te->name= "Reflection";
+	te->directdata= &srl->passflag;
+	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_REFLECT);
+	te->name= "Refraction";
+	te->directdata= &srl->passflag;
+	
+}
+
+
+/* special handling of hierarchical non-lib data */
+static void outliner_add_bone(SpaceOops *soops, ListBase *lb, ID *id, Bone *curBone, 
+							  TreeElement *parent, int *a)
+{
+	TreeElement *te= outliner_add_element(soops, lb, id, parent, TSE_BONE, *a);
+	
+	(*a)++;
+	te->name= curBone->name;
+	te->directdata= curBone;
+	
+	for(curBone= curBone->childbase.first; curBone; curBone=curBone->next) {
+		outliner_add_bone(soops, &te->subtree, id, curBone, te, a);
+	}
+}
+
 
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
 										 TreeElement *parent, short type, short index)
@@ -428,9 +510,28 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		case ID_SCE:
 			{
 				Scene *sce= (Scene *)id;
+				SceneRenderLayer *srl;
+				TreeElement *tenla= outliner_add_element(soops, &te->subtree, sce, te, TSE_R_LAYER_BASE, 0);
+				int a;
+				
+				tenla->name= "RenderLayers";
+				for(a=0, srl= sce->r.layers.first; srl; srl= srl->next, a++) {
+					TreeElement *tenlay= outliner_add_element(soops, &tenla->subtree, sce, te, TSE_R_LAYER, a);
+					tenlay->name= srl->name;
+					tenlay->directdata= &srl->passflag;
+					
+					if(srl->light_override)
+						outliner_add_element(soops, &tenlay->subtree, srl->light_override, tenlay, TSE_LINKED_LAMP, 0);
+					if(srl->mat_override)
+						outliner_add_element(soops, &tenlay->subtree, srl->mat_override, tenlay, TSE_LINKED_MAT, 0);
+					
+					outliner_add_passes(soops, tenlay, &sce->id, srl);
+				}
+				
 				outliner_add_element(soops, &te->subtree, sce->world, te, 0, 0);
+				
 				if(sce->scriptlink.scripts) {
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, sce, te, TSE_SCRIPT_BASE, 0);
+					tenla= outliner_add_element(soops, &te->subtree, sce, te, TSE_SCRIPT_BASE, 0);
 					int a= 0;
 					tenla->name= "Scripts";
 					for (a=0; a<sce->scriptlink.totscript; a++) {
@@ -779,22 +880,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	}
 #endif
 	return te;
-}
-
-
-/* special handling of hierarchical non-lib data */
-static void outliner_add_bone(SpaceOops *soops, ListBase *lb, ID *id, Bone *curBone, 
-							  TreeElement *parent, int *a)
-{
-	TreeElement *te= outliner_add_element(soops, lb, id, parent, TSE_BONE, *a);
-	
-	(*a)++;
-	te->name= curBone->name;
-	te->directdata= curBone;
-	
-	for(curBone= curBone->childbase.first; curBone; curBone=curBone->next) {
-		outliner_add_bone(soops, &te->subtree, id, curBone, te, a);
-	}
 }
 
 static void outliner_make_hierarchy(SpaceOops *soops, ListBase *lb)
@@ -1777,7 +1862,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 			if(event==LEFTMOUSE) {
 			
 				if (G.qual & LR_CTRLKEY) {
-					if(ELEM5(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE)) 
+					if(ELEM8(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
 						error("Cannot edit builtin name");
 					else if(tselem->id->lib)
 						error("Cannot edit Library Data");
@@ -1902,11 +1987,13 @@ static TreeElement *outliner_find_id(SpaceOops *soops, ListBase *lb, ID *id)
 	
 	for(te= lb->first; te; te= te->next) {
 		tselem= TREESTORE(te);
-		if(tselem->id==id) return te;
-		/* only deeper on scene or object */
-		if( te->idcode==ID_OB || te->idcode==ID_SCE) { 
-			tes= outliner_find_id(soops, &te->subtree, id);
-			if(tes) return tes;
+		if(tselem->type==0) {
+			if(tselem->id==id) return te;
+			/* only deeper on scene or object */
+			if( te->idcode==ID_OB || te->idcode==ID_SCE) { 
+				tes= outliner_find_id(soops, &te->subtree, id);
+				if(tes) return tes;
+			}
 		}
 	}
 	return NULL;
@@ -2686,6 +2773,15 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				BIF_icon_draw(x, y, ICON_WPAINT_DEHLT); break;
 			case TSE_PROXY:
 				BIF_icon_draw(x, y, ICON_GHOST); break;
+			case TSE_R_LAYER_BASE:
+				BIF_icon_draw(x, y, ICON_RESTRICT_RENDER_OFF); break;
+			case TSE_R_LAYER:
+				BIF_icon_draw(x, y, ICON_IMAGE_DEHLT); break;
+			case TSE_LINKED_LAMP:
+				BIF_icon_draw(x, y, ICON_LAMP_DEHLT); break;
+			case TSE_LINKED_MAT:
+				BIF_icon_draw(x, y, ICON_MATERIAL_DEHLT); break;
+				
 #ifdef WITH_VERSE
 			case ID_VS:
 			case ID_MS:
@@ -2783,7 +2879,9 @@ static void outliner_draw_iconrow(SpaceOops *soops, ListBase *lb, int level, int
 			(*offsx) += OL_X;
 		}
 		
-		outliner_draw_iconrow(soops, &te->subtree, level+1, offsx, ys);
+		/* this tree element always has same amount of branches, so dont draw */
+		if(tselem->type!=TSE_R_LAYER)
+			outliner_draw_iconrow(soops, &te->subtree, level+1, offsx, ys);
 	}
 	
 }
@@ -2895,7 +2993,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		}
 		
 		/* open/close icon, only when sublevels, except for scene */
-		if(te->subtree.first || te->idcode==ID_SCE) {
+		if(te->subtree.first || (te->idcode==ID_SCE && tselem->type==0)) {
 			int icon_x;
 			if((tselem->type==0 && ELEM(te->idcode, ID_OB, ID_SCE)) || ELEM4(te->idcode,ID_VN,ID_VS, ID_MS, ID_SS))
 				icon_x = startx;
@@ -2961,7 +3059,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 					offsx+= OL_X + BIF_GetStringWidth(G.font, server_buf, 0);
 				}
 #endif
-				else {
+				else if(tselem->type!=TSE_R_LAYER) { /* this tree element always has same amount of branches, so dont draw */
 					int tempx= startx+offsx;
 					// divider
 					BIF_ThemeColorShade(TH_BACK, -40);
@@ -2969,7 +3067,9 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 
 					glEnable(GL_BLEND);
 					glPixelTransferf(GL_ALPHA_SCALE, 0.5);
+
 					outliner_draw_iconrow(soops, &te->subtree, 0, &tempx, *starty+2);
+					
 					glPixelTransferf(GL_ALPHA_SCALE, 1.0);
 					glDisable(GL_BLEND);
 				}
@@ -3178,6 +3278,12 @@ static void restrictbutton_rend_cb(void *poin, void *poin2)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
+static void restrictbutton_r_lay_cb(void *poin, void *poin2)
+{
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWBUTSSCENE, 0);
+}
+
 static void namebutton_cb(void *tep, void *oldnamep)
 {
 	SpaceOops *soops= curarea->spacedata.first;
@@ -3251,7 +3357,10 @@ static void namebutton_cb(void *tep, void *oldnamep)
 				allqueue(REDRAWVIEW3D, 1);
 				allqueue(REDRAWBUTSEDIT, 0);
 				break;
-				
+			case TSE_R_LAYER:
+				allqueue(REDRAWOOPS, 0);
+				allqueue(REDRAWBUTSSCENE, 0);
+				break;
 			}
 		}
 	}
@@ -3292,8 +3401,9 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 			}
 			
 			if (!(soops->flag & SO_HIDE_RESTRICTCOLS)) {
+				
+				/* objects have toggle-able restriction flags */
 				if(tselem->type==0 && te->idcode==ID_OB) {
-					/* only objects have toggle-able flags */
 					ob = (Object *)tselem->id;
 
 					uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -3313,7 +3423,33 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 					uiButSetFlag(bt, UI_NO_HILITE);
 					
 					uiBlockSetEmboss(block, UI_EMBOSS);
-				
+				}
+				/* scene render layers and passes have toggle-able flags too! */
+				else if(tselem->type==TSE_R_LAYER) {
+					uiBlockSetEmboss(block, UI_EMBOSSN);
+					
+					bt= uiDefIconButBitI(block, ICONTOGN, SCE_LAY_DISABLE, REDRAWBUTSSCENE, ICON_CHECKBOX_HLT-1, 
+										 (int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_VIEWX+SCROLLB), te->ys, 17, OL_H-1, te->directdata, 0, 0, 0, 0, "Render this RenderLayer");
+					uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
+					
+					uiBlockSetEmboss(block, UI_EMBOSS);
+				}
+				else if(tselem->type==TSE_R_PASS) {
+					int *layflag= te->directdata;
+					uiBlockSetEmboss(block, UI_EMBOSSN);
+					
+					/* NOTE: tselem->nr is short! */
+					bt= uiDefIconButBitI(block, ICONTOG, tselem->nr, REDRAWBUTSSCENE, ICON_CHECKBOX_HLT-1, 
+										 (int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_VIEWX+SCROLLB), te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Render this Pass");
+					uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
+					
+					layflag++;	/* is lay_xor */
+					if(ELEM6(tselem->nr, SCE_PASS_SPEC, SCE_PASS_SHADOW, SCE_PASS_AO, SCE_PASS_REFLECT, SCE_PASS_REFRACT, SCE_PASS_RADIO))
+						bt= uiDefIconButBitI(block, TOG, tselem->nr, REDRAWBUTSSCENE, (*layflag & tselem->nr)?ICON_DOT:ICON_BLANK1, 
+										 (int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_SELECTX+SCROLLB), te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Exclude this Pass from Combined");
+					uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
+					
+					uiBlockSetEmboss(block, UI_EMBOSS);
 				}
 			}
 		

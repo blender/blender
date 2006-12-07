@@ -72,6 +72,12 @@ typedef struct TreeElement {
 #define TSE_VERSE_GEOM_NODE	17
 /*#endif*/
 #define TSE_PROXY			18
+#define TSE_R_LAYER_BASE	19
+#define TSE_R_LAYER			20
+#define TSE_R_PASS			21
+#define TSE_LINKED_MAT		22
+		/* NOTE, is used for light group */
+#define TSE_LINKED_LAMP		23
 
 /* outliner search flags */
 #define OL_FIND					0

@@ -3115,28 +3115,45 @@ static void check_non_flat_quads(Render *re)
 	}
 }
 
-static void set_material_lightgroups(Render *re)
+static void add_lightgroup(Render *re, Group *group)
 {
 	GroupObject *go, *gol;
+	
+	/* it's a bit too many loops in loops... but will survive */
+	for(go= group->gobject.first; go; go= go->next) {
+		go->lampren= NULL;
+		if(go->ob && go->ob->type==OB_LAMP) {
+			for(gol= re->lights.first; gol; gol= gol->next) {
+				if(gol->ob==go->ob) {
+					go->lampren= gol->lampren;
+					break;
+				}
+			}
+			if(go->lampren==NULL) 
+				go->lampren= add_render_lamp(re, go->ob);
+		}
+	}
+}
+
+static void set_material_lightgroups(Render *re)
+{
 	Material *ma;
 	
 	/* it's a bit too many loops in loops... but will survive */
+	/* hola! materials not in use...? */
 	for(ma= G.main->mat.first; ma; ma=ma->id.next) {
-		if(ma->group) {
-			for(go= ma->group->gobject.first; go; go= go->next) {
-				go->lampren= NULL;
-				if(go->ob && go->ob->type==OB_LAMP) {
-					for(gol= re->lights.first; gol; gol= gol->next) {
-						if(gol->ob==go->ob) {
-							go->lampren= gol->lampren;
-							break;
-						}
-					}
-					if(go->lampren==NULL) 
-						go->lampren= add_render_lamp(re, go->ob);
-				}
-			}
-		}
+		if(ma->group)
+			add_lightgroup(re, ma->group);
+	}
+}
+
+static void set_renderlayer_lightgroups(Render *re, Scene *sce)
+{
+	SceneRenderLayer *srl;
+	
+	for(srl= sce->r.layers.first; srl; srl= srl->next) {
+		if(srl->light_override)
+			add_lightgroup(re, srl->light_override);
 	}
 }
 
@@ -3367,6 +3384,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		sort_halos(re);
 		
 		set_material_lightgroups(re);
+		for(sce= re->scene; sce; sce= sce->set)
+			set_renderlayer_lightgroups(re, sce);
 		
 		slurph_opt= 1;
 		

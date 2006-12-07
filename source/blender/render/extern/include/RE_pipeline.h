@@ -70,7 +70,10 @@ typedef struct RenderLayer {
 	/* copy of RenderData */
 	char name[RE_MAXNAME];		
 	unsigned int lay;			
-	int layflag, passflag;		
+	int layflag, passflag, pass_xor;		
+	
+	struct Material *mat_override;
+	struct Group *light_override;
 	
 	float *rectf;		/* 4 float, standard rgba buffer */
 	float *acolrect;	/* 4 float, optional transparent buffer, needs storage for display updates */

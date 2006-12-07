@@ -834,9 +834,10 @@ void do_render_panels(unsigned short event)
 	case B_SET_PASS:
 		if(G.scene->nodetree) {
 			ntreeCompositForceHidden(G.scene->nodetree);
-			allqueue(REDRAWBUTSSCENE, 0);
 			allqueue(REDRAWNODE, 0);
 		}
+		allqueue(REDRAWBUTSSCENE, 0);
+		allqueue(REDRAWOOPS, 0);
 	}
 }
 
@@ -1167,7 +1168,7 @@ static void render_panel_output(void)
 
 	if(G.scene->set) {
 		uiSetButLock(1, NULL);
-		uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 0, "",	31, 120, 100, 20, &(G.scene->set), "Name of the Set");
+		uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, B_NOP, "",	31, 120, 100, 20, &(G.scene->set), "Name of the Set");
 		uiClearButLock();
 		uiDefIconBut(block, BUT, B_CLEARSET, ICON_X, 		132, 120, 20, 20, 0, 0, 0, 0, 0, "Remove Set link");
 	}
@@ -1273,7 +1274,7 @@ static void render_panel_render(void)
 	uiDefButS(block, MENU, B_DIFF,str,		565,34,60,20, &G.scene->r.filtertype, 0, 0, 0, 0, "Set sampling filter for antialiasing");
 	uiDefButF(block, NUM,B_DIFF,"",			627,34,60,20,&G.scene->r.gauss,0.5, 1.5, 10, 2, "Sets the filter size");
 	
-	uiDefButBitI(block, TOG, R_BORDER, REDRAWVIEWCAM, "Border",	565,13,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
+	uiDefButBitI(block, TOG, R_BORDER, REDRAWVIEWCAM, "Border",	565,13,122,20, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
 	uiBlockEndAlign(block);
 
 }
@@ -1732,6 +1733,7 @@ static void rename_scene_layer_func(void *srl_v, void *unused_v)
 		}
 	}
 	allqueue(REDRAWBUTSSCENE, 0);
+	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWNODE, 0);
 }
 
@@ -1745,7 +1747,10 @@ static char *scene_layer_menu(void)
 	strcpy(str, "ADD NEW %x32767");
 	a= strlen(str);
 	for(nr=0, srl= G.scene->r.layers.first; srl; srl= srl->next, nr++) {
-		a+= sprintf(str+a, "|%s %%x%d", srl->name, nr);
+		if(srl->layflag & SCE_LAY_DISABLE)
+			a+= sprintf(str+a, "|%s %%i%d %%x%d", srl->name, ICON_BLANK1, nr);
+		else 
+			a+= sprintf(str+a, "|%s %%i%d %%x%d", srl->name, ICON_CHECKBOX_HLT, nr);
 	}
 	
 	return str;
@@ -1798,53 +1803,55 @@ static void render_panel_layers(void)
 	
 	/* first, as reminder, the scene layers */
 	uiDefBut(block, LABEL, 0, "Scene:",				10,170,100,20, NULL, 0, 0, 0, 0, "");
+	draw_3d_layer_buttons(block, &G.scene->lay,		130, 170, 35, 30);
 	
-	draw_3d_layer_buttons(block, &G.scene->lay, 130, 170, 35, 30);
-	
-	/* layer menu, name, delete button */
+	/* layer disable, menu, name, delete button */
 	uiBlockBeginAlign(block);
+	uiDefIconButBitI(block, ICONTOGN, SCE_LAY_DISABLE, B_REDR, ICON_CHECKBOX_HLT-1,	10, 145, 20, 20, &srl->layflag, 0.0, 0.0, 0, 0, "Disable or enable this RenderLayer");
 	strp= scene_layer_menu();
-	uiDefButS(block, MENU, B_ADD_RENDERLAYER, strp, 10,130,23,20, &(G.scene->r.actlay), 0, 0, 0, 0, "Choose Active Render Layer");
+	uiDefButS(block, MENU, B_ADD_RENDERLAYER, strp, 30,145,23,20, &(G.scene->r.actlay), 0, 0, 0, 0, "Choose Active Render Layer");
 	MEM_freeN(strp);
 	
-	bt= uiDefBut(block, TEX, REDRAWNODE, "",  33,130,192,20, srl->name, 0.0, 31.0, 0, 0, "");
+	bt= uiDefBut(block, TEX, REDRAWNODE, "",  53,145,172,20, srl->name, 0.0, 31.0, 0, 0, "");
 	uiButSetFunc(bt, rename_scene_layer_func, srl, NULL);
 	
-	uiDefButBitS(block, TOG, R_SINGLE_LAYER, B_NOP, "Single",	230,130,60,20, &G.scene->r.scemode, 0, 0, 0, 0, "Only render this layer");	
-	bt=uiDefIconBut(block, BUT, B_NOP, ICON_X,	285, 130, 25, 20, 0, 0, 0, 0, 0, "Deletes current Render Layer");
+	uiDefButBitS(block, TOG, R_SINGLE_LAYER, B_NOP, "Single",	230,145,60,20, &G.scene->r.scemode, 0, 0, 0, 0, "Only render this layer");	
+	bt=uiDefIconBut(block, BUT, B_NOP, ICON_X,	285, 145, 25, 20, 0, 0, 0, 0, 0, "Deletes current Render Layer");
 	uiButSetFunc(bt, delete_scene_layer_func, srl, (void *)(long)G.scene->r.actlay);
 	uiBlockEndAlign(block);
 
 	/* RenderLayer visible-layers */
-	uiDefBut(block, LABEL, 0, "Layer:",	10,95,100,20, NULL, 0, 0, 0, 0, "");
-	draw_3d_layer_buttons(block, &srl->lay,		130, 95, 35, 30);
+	uiDefBut(block, LABEL, 0, "Layer:",			10,110,100,20, NULL, 0, 0, 0, 0, "");
+	draw_3d_layer_buttons(block, &srl->lay,		130,110, 35, 30);
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, SCE_LAY_ALL_Z, B_NOP,"AllZ",	10, 70, 40, 20, &srl->layflag, 0, 0, 0, 0, "Fill in Z values for all not-rendered faces, for masking");	
+	uiDefButBitI(block, TOG, SCE_LAY_ALL_Z, B_NOP,"AllZ",	10, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Fill in Z values for all not-rendered faces, for masking");	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, SCE_LAY_SOLID, B_NOP,"Solid",	50, 70, 60, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
-	uiDefButBitS(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	110, 70, 55, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer (on top of Solid)");	
-	uiDefButBitS(block, TOG, SCE_LAY_ZTRA, B_NOP,"Ztra",	165, 70, 55, 20, &srl->layflag, 0, 0, 0, 0, "Render Z-Transparent faces in this Layer (On top of Solid and Halos)");	
-	uiDefButBitS(block, TOG, SCE_LAY_SKY, B_NOP,"Sky",		220, 70, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Sky or backbuffer in this Layer");	
-	uiDefButBitS(block, TOG, SCE_LAY_EDGE, B_NOP,"Edge",	260, 70, 50, 20, &srl->layflag, 0, 0, 0, 0, "Render Edge-enhance in this Layer (only works for Solid faces)");	
+	uiDefButBitI(block, TOG, SCE_LAY_SOLID, B_NOP,"Solid",	50, 85, 60, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
+	uiDefButBitI(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	110, 85, 55, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer (on top of Solid)");	
+	uiDefButBitI(block, TOG, SCE_LAY_ZTRA, B_NOP,"Ztra",	165, 85, 55, 20, &srl->layflag, 0, 0, 0, 0, "Render Z-Transparent faces in this Layer (On top of Solid and Halos)");	
+	uiDefButBitI(block, TOG, SCE_LAY_SKY, B_NOP,"Sky",		220, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Sky or backbuffer in this Layer");	
+	uiDefButBitI(block, TOG, SCE_LAY_EDGE, B_NOP,"Edge",	260, 85, 50, 20, &srl->layflag, 0, 0, 0, 0, "Render Edge-enhance in this Layer (only works for Solid faces)");	
+	
+	uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_SET_PASS, "Light:",	10, 65, 150, 20, &(srl->light_override), "Name of Group to use as Lamps instead");
+	uiDefIDPoinBut(block, test_matpoin_but, ID_MA, B_SET_PASS, "Mat:",	160, 65, 150, 20, &(srl->mat_override), "Name of Material to use as Lamps instead");
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, LABEL, 0, "Passes:",					10,30,50,20, NULL, 0, 0, 0, 0, "");
-
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, SCE_PASS_COMBINED, B_NOP,"Combined",	60, 30, 85, 20, &srl->passflag, 0, 0, 0, 0, "Deliver full combined RGBA buffer");	
-	uiDefButBitS(block, TOG, SCE_PASS_Z, B_SET_PASS,"Z",			145, 30, 25, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Z values pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_VECTOR, B_SET_PASS,"Vec",		170, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Speed Vector pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_NORMAL, B_SET_PASS,"Nor",		210, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Normal pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_INDEXOB, B_SET_PASS,"IndexOb",250, 30, 60, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Object Index pass");	
+	uiDefBut(block, LABEL, 0, "Pass:", 10,30,45,20, NULL, 0, 0, 0, 0, "");
+	uiDefButBitI(block, TOG, SCE_PASS_COMBINED, B_SET_PASS,"Combined",	55, 30, 90, 20, &srl->passflag, 0, 0, 0, 0, "Deliver full combined RGBA buffer");	
+	uiDefButBitI(block, TOG, SCE_PASS_Z, B_SET_PASS,"Z",			145, 30, 25, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Z values pass");	
+	uiDefButBitI(block, TOG, SCE_PASS_VECTOR, B_SET_PASS,"Vec",		170, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Speed Vector pass");	
+	uiDefButBitI(block, TOG, SCE_PASS_NORMAL, B_SET_PASS,"Nor",		210, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Normal pass");	
+	uiDefButBitI(block, TOG, SCE_PASS_INDEXOB, B_SET_PASS,"IndexOb",250, 30, 60, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Object Index pass");	
 	
-	uiDefButBitS(block, TOG, SCE_PASS_RGBA, B_SET_PASS,"Col",		10, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver shade-less Color pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_DIFFUSE, B_SET_PASS,"Diff",	55, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_SPEC, B_SET_PASS,"Spec",		100, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Specular pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_SHADOW, B_SET_PASS,"Shad",	145, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Shadow pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_AO, B_SET_PASS,"AO",			185, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver AO pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_REFLECT, B_SET_PASS,"Refl",	225, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Reflection pass");	
-	uiDefButBitS(block, TOG, SCE_PASS_REFRACT, B_SET_PASS,"Refr",	270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Refraction pass");	
+	uiDefButBitI(block, TOG, SCE_PASS_RGBA, B_SET_PASS,"Col",		10, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver shade-less Color pass");	
+	uiDefButBitI(block, TOG, SCE_PASS_DIFFUSE, B_SET_PASS,"Diff",	55, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_SPEC, B_SET_PASS,"Spec",		100, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Specular pass");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_SHADOW, B_SET_PASS,"Shad",	145, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Shadow pass");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_AO, B_SET_PASS,"AO",			185, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver AO pass");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_REFLECT, B_SET_PASS,"Refl",	225, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Reflection pass");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_REFRACT, B_SET_PASS,"Refr",	270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Refraction pass");	
 
 }	
 

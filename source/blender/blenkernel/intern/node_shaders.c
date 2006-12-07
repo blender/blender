@@ -1034,10 +1034,6 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	ntreeExecTree(ntree, &scd, shi->thread);	/* threads */
 	
 	/* better not allow negative for now */
-	if(shr->spec[0]<0.0f) shr->spec[0]= 0.0f;
-	if(shr->spec[1]<0.0f) shr->spec[1]= 0.0f;
-	if(shr->spec[2]<0.0f) shr->spec[2]= 0.0f;
-	
 	if(shr->combined[0]<0.0f) shr->combined[0]= 0.0f;
 	if(shr->combined[1]<0.0f) shr->combined[1]= 0.0f;
 	if(shr->combined[2]<0.0f) shr->combined[2]= 0.0f;

@@ -2821,9 +2821,7 @@ static void material_panel_texture(Material *ma)
 	for(a= 0; a<MAX_MTEX; a++) {
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) {
-			if(ma->septex & (1<<a)) 
-				uiDefButBitS(block, TOG, 1<<a, B_MATPRV, " ",	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
-			else uiDefIconButBitS(block, TOG, 1<<a, B_MATPRV, ICON_CHECKBOX_HLT,	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
+			uiDefIconButBitS(block, ICONTOGN, 1<<a, B_MATPRV, ICON_CHECKBOX_HLT-1,	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
 		}
 	}
 	uiBlockBeginAlign(block);

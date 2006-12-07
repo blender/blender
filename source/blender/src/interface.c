@@ -1412,7 +1412,7 @@ static void ui_is_but_sel(uiBut *but)
 
 	value= ui_get_but_val(but);
 
-	if( but->type==TOGN ) true= 0;
+	if( but->type==TOGN  || but->type==ICONTOGN) true= 0;
 
 	if( but->bit ) {
 		lvalue= (int)value;
@@ -1434,6 +1434,7 @@ static void ui_is_but_sel(uiBut *but)
 		case ICONTOG:
 			if(value!=but->min) push= 1;
 			break;
+		case ICONTOGN:
 		case TOGN:
 			if(value==0.0) push= 1;
 			break;
@@ -1556,28 +1557,29 @@ static int ui_do_but_TOG(uiBlock *block, uiBut *but, int qual)
 		}
 		
 		ui_set_but_val(but, (double)lvalue);
-		if(but->type==ICONTOG) ui_check_but(but);
+		if(but->type==ICONTOG || but->type==ICONTOGN) ui_check_but(but);
 		// no frontbuffer draw for this one
-		if((but->flag & UI_NO_HILITE)==0) ui_draw_but(but);
+		if(but->type==BUT_TOGDUAL);
+		else if((but->flag & UI_NO_HILITE)==0) ui_draw_but(but);
 	}
 	else {
 		
 		if(value==0.0) push= 1; 
 		else push= 0;
 		
-		if(but->type==TOGN) push= !push;
+		if(but->type==TOGN || but->type==ICONTOGN) push= !push;
 		ui_set_but_val(but, (double)push);
-		if(but->type==ICONTOG) ui_check_but(but);		
+		if(but->type==ICONTOG || but->type==ICONTOGN) ui_check_but(but);		
 		// no frontbuffer draw for this one
 		if((but->flag & UI_NO_HILITE)==0) ui_draw_but(but);
 	}
 	
 	/* end local hack... */
-	if(but->type==BUT_TOGDUAL && qual) {
+	if(but->type==BUT_TOGDUAL && qual==LR_CTRLKEY) {
 		if(but->pointype==SHO)
 			but->poin -= 2;
 		else if(but->pointype==INT)
-			but->poin -= 2;
+			but->poin -= 4;
 	}
 	
 	/* no while loop...this button is used for viewmove */
@@ -3843,7 +3845,8 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 
 	case TOG: 
 	case TOGR: 
-	case ICONTOG: 
+	case ICONTOG:
+	case ICONTOGN:
 	case TOGN:
 	case BUT_TOGDUAL:
 		if(uevent->val) {
@@ -5353,6 +5356,7 @@ void ui_check_but(uiBut *but)
 			break;
 			
 		case ICONTOG: 
+		case ICONTOGN:
 			if(but->flag & UI_SELECT) but->iconadd= 1;
 			else but->iconadd= 0;
 			break;
@@ -5446,7 +5450,13 @@ void ui_check_but(uiBut *but)
 			strcat(but->drawstr, key_event_to_string((short) ui_get_but_val(but)));
 		}
 		break;
-
+	case BUT_TOGDUAL:
+		/* trying to get the dual-icon to left of text... not very nice */
+		if(but->str[0]) {
+			strcpy(but->drawstr, "  ");
+			strcpy(but->drawstr+2, but->str);
+		}
+		break;
 	default:
 		strcpy(but->drawstr, but->str);
 		
@@ -5811,6 +5821,10 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 
 	if ELEM8(but->type, HSVSLI , NUMSLI, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM) {
 		but->flag |= UI_TEXT_LEFT;
+	}
+	
+	if(but->type==BUT_TOGDUAL) {
+		but->flag |= UI_ICON_LEFT;
 	}
 
 	if(but->type==ROUNDBOX)

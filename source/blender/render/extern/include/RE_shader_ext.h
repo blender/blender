@@ -48,14 +48,14 @@ typedef struct ShadeResult
 	float combined[4];
 	float col[4];
 	float alpha;
-	float diff[3];		/* includes ramps, shadow, etc */
-	float diff_raw[3];	/* pure diffuse, no shadow no ramps */
+	float diff[3];		/* no ramps, shadow, etc */
 	float spec[3];
 	float shad[3];
 	float ao[3];
 	float refl[3];
 	float refr[3];
 	float nor[3];
+	float rad[3];
 	float winspeed[4];
 } ShadeResult;
 
@@ -139,8 +139,9 @@ typedef struct ShadeInput
 	short do_preview;		/* for nodes, in previewrender */
 	short thread, sample;	/* sample: ShadeSample array index */
 	unsigned int lay;
-	int layflag, passflag;
-	
+	int layflag, passflag, combinedflag;
+	struct Group *light_override;
+	struct Material *mat_override;
 } ShadeInput;
 
 

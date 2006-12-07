@@ -108,7 +108,7 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 		if(shi->passflag & SCE_PASS_SPEC)
 			VECADDISFAC(shr->spec, shr_t.spec, fac);
 		if(shi->passflag & SCE_PASS_DIFFUSE)
-			VECADDISFAC(shr->diff_raw, shr_t.diff_raw, fac);
+			VECADDISFAC(shr->diff, shr_t.diff, fac);
 		if(shi->passflag & SCE_PASS_SHADOW)
 			VECADDISFAC(shr->shad, shr_t.shad, fac);
 
@@ -221,7 +221,9 @@ void shade_input_set_triangle_i(ShadeInput *shi, VlakRen *vlr, short i1, short i
 	shi->i2= i2;
 	shi->i3= i3;
 	
-	shi->mat= vlr->mat;
+	/* note, shi->mat is set in node shaders */
+	shi->mat= shi->mat_override?shi->mat_override:vlr->mat;
+	
 	shi->osatex= (shi->mat->texco & TEXCO_OSA);
 	shi->mode= shi->mat->mode_l;		/* or-ed result for all nodes */
 	
@@ -832,7 +834,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 /* ****************** ShadeSample ************************************** */
 
 
-
+/* initialize per part, not per pixel! */
 static void shade_input_initialize(ShadeInput *shi, RenderPart *pa, RenderLayer *rl, int sample)
 {
 	
@@ -844,10 +846,14 @@ static void shade_input_initialize(ShadeInput *shi, RenderPart *pa, RenderLayer 
 	shi->lay= rl->lay;
 	shi->layflag= rl->layflag;
 	shi->passflag= rl->passflag;
+	shi->combinedflag= ~rl->pass_xor;
+	shi->mat_override= rl->mat_override;
+	shi->light_override= rl->light_override;
 	
 	/* note shi.depth==0  means first hit, not raytracing */
 }
 
+/* initialize per part, not per pixel! */
 void shade_sample_initialize(ShadeSample *ssamp, RenderPart *pa, RenderLayer *rl)
 {
 	int a, tot;
@@ -884,6 +890,9 @@ void shade_samples_do_shadow(ShadeSample *ssamp)
 					if((lar->lay & shi->lay)==0) continue;
 					
 					if(!(shi->mode & MA_SHADOW) || (shi->mode & MA_SHLESS))
+						continue;
+					
+					if(!( (shi->combinedflag | shi->passflag) & SCE_PASS_SHADOW))
 						continue;
 					
 					visifac= lamp_get_visibility(lar, shi->co, lv, &lampdist);

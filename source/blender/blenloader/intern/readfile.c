@@ -2993,6 +2993,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 	Base *base, *next;
 	Editing *ed;
 	Sequence *seq;
+	SceneRenderLayer *srl;
 	int a;
 	
 	sce= main->scene.first;
@@ -3016,8 +3017,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 					mtex->tex= newlibadr_us(fd, sce->id.lib, mtex->tex);
 			}
 
-			base= sce->base.first;
-			while(base) {
+			for(base= sce->base.first; base; base= next) {
 				next= base->next;
 
 				/* base->object= newlibadr_us(fd, sce->id.lib, base->object); */
@@ -3032,7 +3032,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 					if(base==sce->basact) sce->basact= 0;
 					MEM_freeN(base);
 				}
-				base= next;
 			}
 
 			ed= sce->ed;
@@ -3057,7 +3056,12 @@ static void lib_link_scene(FileData *fd, Main *main)
 			
 			if(sce->nodetree)
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
-
+			
+			for(srl= sce->r.layers.first; srl; srl= srl->next) {
+				srl->mat_override= newlibadr_us(fd, sce->id.lib, srl->mat_override);
+				srl->light_override= newlibadr_us(fd, sce->id.lib, srl->light_override);
+			}
+			
 			sce->id.flag -= LIB_NEEDLINK;
 		}
 
@@ -6830,17 +6834,22 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 {
 	Base *base;
+	SceneRenderLayer *srl;
 
-	base= sce->base.first;
-	while(base) {
+	for(base= sce->base.first; base; base= base->next) {
 		expand_doit(fd, mainvar, base->object);
-		base= base->next;
 	}
 	expand_doit(fd, mainvar, sce->camera);
 	expand_doit(fd, mainvar, sce->world);
 	
 	if(sce->nodetree)
 		expand_nodetree(fd, mainvar, sce->nodetree);
+	
+	for(srl= sce->r.layers.first; srl; srl= srl->next) {
+		expand_doit(fd, mainvar, srl->mat_override);
+		expand_doit(fd, mainvar, srl->light_override);
+	}
+				
 }
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)

@@ -160,10 +160,9 @@ void uiEmboss(float x1, float y1, float x2, float y2, int sel)
 /* icons have been standardized... and this call draws in untransformed coordinates */
 #define ICON_HEIGHT		16.0f
 
-static void ui_draw_icon(uiBut *but, BIFIconID icon)
+static void ui_draw_icon(uiBut *but, BIFIconID icon, int blend)
 {
 	float xs=0, ys=0, aspect, height;
-	int blend= 0;
 
 	/* this icon doesn't need draw... */
 	if(icon==ICON_BLANK1) return;
@@ -184,7 +183,10 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 		height= ICON_HEIGHT;
 	
 	if(but->flag & UI_ICON_LEFT) {
-		if (but->type==BUTM) {
+		if (but->type==BUT_TOGDUAL && but->drawstr[0]) {
+			xs= but->x1-1.0;
+		}
+		else if (but->type==BUTM ) {
 			xs= but->x1+1.0;
 		}
 		else if ((but->type==ICONROW) || (but->type==ICONTEXTROW)) {
@@ -1455,7 +1457,7 @@ static void ui_draw_text_icon(uiBut *but)
 	
 	/* check for button text label */
 	if (but->type == ICONTEXTROW) {
-		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
+		ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd), 0);
 	}
 	else {
 
@@ -1514,9 +1516,8 @@ static void ui_draw_text_icon(uiBut *but)
 				dualset= BTST( *(((short *)but->poin)+1), but->bitnr);
 			else if(but->pointype==INT)
 				dualset= BTST( *(((int *)but->poin)+1), but->bitnr);
-			if(dualset) {
-				ui_draw_icon(but, ICON_DOT);
-			}
+			
+			ui_draw_icon(but, ICON_DOT, dualset?0:-100);
 		}
 		
 		if(but->drawstr[0]!=0) {
@@ -1531,7 +1532,7 @@ static void ui_draw_text_icon(uiBut *but)
 			and offset the text label to accomodate it */
 			
 			if ( (but->flag & UI_HAS_ICON) && (but->flag & UI_ICON_LEFT) ) {
-				ui_draw_icon(but, but->icon);
+				ui_draw_icon(but, but->icon, 0);
 
 				if(but->flag & UI_TEXT_LEFT) x= but->x1 + but->aspect*BIF_icon_get_width(but->icon)+5.0;
 				else x= (but->x1+but->x2-but->strwidth+1)/2.0;
@@ -1591,7 +1592,7 @@ static void ui_draw_text_icon(uiBut *but)
 		}
 		/* if there's no text label, then check to see if there's an icon only and draw it */
 		else if( but->flag & UI_HAS_ICON ) {
-			ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd));
+			ui_draw_icon(but, (BIFIconID) (but->icon+but->iconadd), 0);
 		}
 	}
 }
@@ -2368,7 +2369,7 @@ void ui_draw_but(uiBut *but)
 
 	case LINK:
 	case INLINK:
-		ui_draw_icon(but, but->icon);
+		ui_draw_icon(but, but->icon, 0);
 		break;
 		
 	case ROUNDBOX:

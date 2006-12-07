@@ -411,6 +411,8 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 		
 		if((re->r.scemode & R_SINGLE_LAYER) && nr!=re->r.actlay)
 			continue;
+		if(srl->layflag & SCE_LAY_DISABLE)
+			continue;
 		
 		rl= MEM_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
@@ -419,6 +421,9 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 		rl->lay= srl->lay;
 		rl->layflag= srl->layflag;
 		rl->passflag= srl->passflag;
+		rl->pass_xor= srl->pass_xor;
+		rl->light_override= srl->light_override;
+		rl->mat_override= srl->mat_override;
 		
 		if(rr->exrhandle) {
 			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.R");
@@ -484,8 +489,9 @@ static int render_scene_needs_vector(Render *re)
 		SceneRenderLayer *srl;
 	
 		for(srl= re->scene->r.layers.first; srl; srl= srl->next)
-			if(srl->passflag & SCE_PASS_VECTOR)
-				return 1;
+			if(!(srl->layflag & SCE_LAY_DISABLE))
+				if(srl->passflag & SCE_PASS_VECTOR)
+					return 1;
 	}
 	return 0;
 }
@@ -1788,6 +1794,7 @@ static void do_render_all_options(Render *re)
 
 static int is_rendering_allowed(Render *re)
 {
+	SceneRenderLayer *srl;
 	
 	/* forbidden combinations */
 	if(re->r.mode & R_PANORAMA) {
@@ -1855,6 +1862,14 @@ static int is_rendering_allowed(Render *re)
 			re->error("No camera");
 			return 0;
 		}
+	}
+	/* layer flag tests */
+	for(srl= re->scene->r.layers.first; srl; srl= srl->next)
+		if(!(srl->layflag & SCE_LAY_DISABLE))
+			break;
+	if(srl==NULL) {
+		re->error("All RenderLayers are disabled");
+		return 0;
 	}
 	
 	return 1;

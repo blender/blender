@@ -115,10 +115,14 @@ typedef struct SceneRenderLayer {
 	struct SceneRenderLayer *next, *prev;
 	
 	char name[32];
-	struct Scene *scene;	/* unused still */
+	
+	struct Material *mat_override;
+	struct Group *light_override;
+	
 	unsigned int lay;		/* scene->lay itself has priority over this */
-	short layflag;
-	short passflag;
+	int layflag;
+	int passflag;			/* pass_xor has to be after passflag */
+	int pass_xor;
 } SceneRenderLayer;
 
 /* srl->layflag */
@@ -128,8 +132,11 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_EDGE	8
 #define SCE_LAY_SKY		16
 #define SCE_LAY_STRAND	32
+	/* flags between 32 and 0x8000 are set to 1 already, for future options */
 
 #define SCE_LAY_ALL_Z	0x8000
+#define SCE_LAY_XOR		0x10000
+#define SCE_LAY_DISABLE	0x20000
 
 /* srl->passflag */
 #define SCE_PASS_COMBINED	1
@@ -144,6 +151,8 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_VECTOR		512
 #define SCE_PASS_REFRACT	1024
 #define SCE_PASS_INDEXOB	2048
+#define SCE_PASS_RADIO		4096
+		/* note, passflag is treestore element 'nr' in outliner, short still... */
 
 typedef struct RenderData {
 	struct AviCodecData *avicodecdata;

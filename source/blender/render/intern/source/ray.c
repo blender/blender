@@ -1601,13 +1601,16 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 		
 		shi.mask= origshi->mask;
 		shi.osatex= origshi->osatex;
-		shi.depth= 1;	// only now to indicate tracing
+		shi.depth= 1;					/* only used to indicate tracing */
 		shi.thread= origshi->thread;
 		shi.xs= origshi->xs;
 		shi.ys= origshi->ys;
 		shi.lay= origshi->lay;
-		shi.passflag= origshi->passflag;
+		shi.passflag= SCE_PASS_COMBINED; /* result of tracing needs no pass info */
+		shi.combinedflag= 0xFFFFFF;		 /* ray trace does all options */
 		shi.do_preview= 0;
+		shi.light_override= origshi->light_override;
+		shi.mat_override= origshi->mat_override;
 		
 		memset(&shr, 0, sizeof(ShadeResult));
 		
@@ -1838,12 +1841,9 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0f);
 	vlr= shi->vlr;
 	
-	/* raytrace likes to separate the spec color */
-	VECSUB(shr->diff, shr->combined, shr->spec);
-	
 	if(do_tra) {
 		float refract[3];
-		float olddiff[3];
+		float combined[3];
 		
 		tracol[3]= shr->alpha;
 		
@@ -1856,15 +1856,18 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 		fb= 1.0f+ shi->mat->filter*(shi->b-1.0f);
 		
 		/* for refract pass */
-		VECCOPY(olddiff, shr->diff);
+		VECCOPY(combined, shr->combined);
 		
-		shr->diff[0]= f*shr->diff[0] + fr*tracol[0];
-		shr->diff[1]= f*shr->diff[1] + fr*tracol[1];
-		shr->diff[2]= f*shr->diff[2] + fr*tracol[2];
+		combined[0]= f*combined[0] + fr*tracol[0];
+		combined[1]= f*combined[1] + fr*tracol[1];
+		combined[2]= f*combined[2] + fr*tracol[2];
 		
 		if(shi->passflag & SCE_PASS_REFRACT)
-			VECSUB(shr->refr, shr->diff, olddiff);
-
+			VECSUB(shr->refr, combined, shr->combined);
+		
+		if(shi->combinedflag & SCE_PASS_REFRACT)
+			VECCOPY(shr->combined, combined);
+		
 		shr->alpha= tracol[3];
 	}
 	
@@ -1872,6 +1875,11 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	
 		i= shi->ray_mirror*fresnel_fac(shi->view, shi->vn, shi->mat->fresnel_mir_i, shi->mat->fresnel_mir);
 		if(i!=0.0f) {
+			float diff[3];
+			
+			/* raytrace mirror likes to separate the spec color */
+			VECSUB(diff, shr->combined, shr->spec);
+			
 			fr= i*shi->mirr;
 			fg= i*shi->mirg;
 			fb= i*shi->mirb;
@@ -1885,23 +1893,27 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 			
 			if(shi->passflag & SCE_PASS_REFLECT) {
 				/* mirror pass is not blocked out with spec */
-				shr->refl[0]= fr*mircol[0] - fr*shr->diff[0];
-				shr->refl[1]= fg*mircol[1] - fg*shr->diff[1];
-				shr->refl[2]= fb*mircol[2] - fb*shr->diff[2];
+				shr->refl[0]= fr*mircol[0] - fr*diff[0];
+				shr->refl[1]= fg*mircol[1] - fg*diff[1];
+				shr->refl[2]= fb*mircol[2] - fb*diff[2];
 			}
-			f= fr*(1.0f-shr->spec[0]);	f1= 1.0f-i;
-			shr->diff[0]= f*mircol[0] + f1*shr->diff[0];
 			
-			f= fg*(1.0f-shr->spec[1]);	f1= 1.0f-i;
-			shr->diff[1]= f*mircol[1] + f1*shr->diff[1];
+			if(shi->combinedflag & SCE_PASS_REFLECT) {
+				
+				f= fr*(1.0f-shr->spec[0]);	f1= 1.0f-i;
+				diff[0]= f*mircol[0] + f1*diff[0];
+				
+				f= fg*(1.0f-shr->spec[1]);	f1= 1.0f-i;
+				diff[1]= f*mircol[1] + f1*diff[1];
+				
+				f= fb*(1.0f-shr->spec[2]);	f1= 1.0f-i;
+				diff[2]= f*mircol[2] + f1*diff[2];
 			
-			f= fb*(1.0f-shr->spec[2]);	f1= 1.0f-i;
-			shr->diff[2]= f*mircol[2] + f1*shr->diff[2];
+				/* put back together */
+				VECADD(shr->combined, diff, shr->spec);
+			}
 		}
 	}
-	
-	/* put back together */
-	VECADD(shr->combined, shr->diff, shr->spec);
 }
 
 /* color 'shadfac' passes through 'col' with alpha and filter */

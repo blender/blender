@@ -378,7 +378,7 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 				pixsize= 4;
 				break;
 			case SCE_PASS_DIFFUSE:
-				col= shr->diff_raw;
+				col= shr->diff;
 				break;
 			case SCE_PASS_SPEC:
 				col= shr->spec;
@@ -442,7 +442,7 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 				pixsize= 4;
 				break;
 			case SCE_PASS_DIFFUSE:
-				col= shr->diff_raw;
+				col= shr->diff;
 				break;
 			case SCE_PASS_SPEC:
 				col= shr->spec;
