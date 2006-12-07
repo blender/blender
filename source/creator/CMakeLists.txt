@@ -29,8 +29,6 @@
 
 SETUP_LIBDIRS()
 
-FILE(APPEND ../blender/makesdna/intern/dna.c "")
-
 INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../blender/blenlib
   ../blender/blenkernel
@@ -51,10 +49,16 @@ ENDIF(WITH_QUICKTIME)
 
 MESSAGE(STATUS "Configuring blender")
 
+ADD_CUSTOM_COMMAND(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
+  COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
+  DEPENDS ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna
+)
+
 IF(WIN32)
-  ADD_EXECUTABLE(blender ${EXETYPE} creator.c ../blender/makesdna/intern/dna.c ../icons/winblender.rc)
+  ADD_EXECUTABLE(blender ${EXETYPE} creator.c ${CMAKE_CURRENT_BINARY_DIR}/dna.c ../icons/winblender.rc)
 ELSE(WIN32)
-  ADD_EXECUTABLE(blender ${EXETYPE} creator.c ../blender/makesdna/intern/dna.c)
+  ADD_EXECUTABLE(blender ${EXETYPE} creator.c ${CMAKE_CURRENT_BINARY_DIR}/dna.c)
 ENDIF(WIN32)
 
 IF(APPLE)
@@ -87,7 +91,7 @@ ENDIF(APPLE)
 ADD_DEPENDENCIES(blender makesdna)
 
 SETUP_LIBLINKS(blender)
-FILE(READ ${CMAKE_SOURCE_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
+FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
 SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} src blender_python blender_render blender_radiosity blender_IK bf_elbeem)
 
@@ -163,7 +167,7 @@ IF(UNIX)
       ENDIF(${SEARCHLIB} STREQUAL ${SORTLIB})
     ENDFOREACH(SEARCHLIB)
     IF(REMLIB)
-      MESSAGE("Removing library ${REMLIB} from blender linking because: not configured")
+      MESSAGE(STATUS "Removing library ${REMLIB} from blender linking because: not configured")
       LIST(REMOVE_ITEM BLENDER_SORTED_LIBS ${REMLIB})
     ENDIF(REMLIB)
   ENDFOREACH(SORTLIB)

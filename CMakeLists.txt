@@ -361,7 +361,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ")
 
 #-----------------------------------------------------------------------------
 # Libraries
-FILE(WRITE ${CMAKE_SOURCE_DIR}/cmake_blender_libs.txt "")
+FILE(WRITE ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt "")
 SUBDIRS(
   intern
   extern

@@ -31,22 +31,26 @@ MESSAGE(STATUS "Configuring blenderplayer")
 
 SETUP_LIBDIRS()
 
-FILE(APPEND ../source/blender/makesdna/intern/dna.c "")
-
 IF(WITH_QUICKTIME)
   ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
+ADD_CUSTOM_COMMAND(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
+  COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna ${CMAKE_CURRENT_BINARY_DIR}/dna.c ${CMAKE_SOURCE_DIR}/source/blender/makesdna/
+  DEPENDS ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesdna
+)
+
 IF(WIN32)
-  ADD_EXECUTABLE(blenderplayer ${EXETYPE} ../source/blender/makesdna/intern/dna.c ../source/icons/winplayer.rc)
+  ADD_EXECUTABLE(blenderplayer ${EXETYPE} ${CMAKE_CURRENT_BINARY_DIR}/dna.c ../source/icons/winblender.rc)
 ELSE(WIN32)
-  ADD_EXECUTABLE(blenderplayer ../source/blender/makesdna/intern/dna.c)
+  ADD_EXECUTABLE(blenderplayer ${CMAKE_CURRENT_BINARY_DIR}/dna.c)
 ENDIF(WIN32)
 
 ADD_DEPENDENCIES(blenderplayer makesdna)
 
 SETUP_LIBLINKS(blenderplayer)
-FILE(READ ${CMAKE_SOURCE_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
+FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
 SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} gp_common gp_ghost blenkernel_blc)
 
@@ -107,7 +111,7 @@ IF(UNIX)
       ENDIF(${SEARCHLIB} STREQUAL ${SORTLIB})
     ENDFOREACH(SEARCHLIB)
     IF(REMLIB)
-      MESSAGE("Removing library ${REMLIB} from blenderplayer linking because: not configured")
+      MESSAGE(STATUS "Removing library ${REMLIB} from blenderplayer linking because: not configured")
       LIST(REMOVE_ITEM BLENDER_SORTED_LIBS ${REMLIB})
     ENDIF(REMLIB)
   ENDFOREACH(SORTLIB)
