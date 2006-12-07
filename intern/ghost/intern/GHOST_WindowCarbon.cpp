@@ -403,7 +403,7 @@ GHOST_TSuccess GHOST_WindowCarbon::setOrder(GHOST_TWindowOrder order)
     return GHOST_kSuccess;
 }
 
-#define  WAIT_FOR_VSYNC 1
+/*#define  WAIT_FOR_VSYNC 1*/
 #ifdef WAIT_FOR_VSYNC
 #include <OpenGL/OpenGL.h>
 #endif
