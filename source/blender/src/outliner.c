@@ -531,8 +531,8 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				outliner_add_element(soops, &te->subtree, sce->world, te, 0, 0);
 				
 				if(sce->scriptlink.scripts) {
-					tenla= outliner_add_element(soops, &te->subtree, sce, te, TSE_SCRIPT_BASE, 0);
 					int a= 0;
+					tenla= outliner_add_element(soops, &te->subtree, sce, te, TSE_SCRIPT_BASE, 0);
 					tenla->name= "Scripts";
 					for (a=0; a<sce->scriptlink.totscript; a++) {
 						outliner_add_element(soops, &tenla->subtree, sce->scriptlink.scripts[a], tenla, 0, 0);
