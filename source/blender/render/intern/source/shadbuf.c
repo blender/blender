@@ -130,8 +130,8 @@ static float *give_jitter_tab(int samp)
 	for(a=0; a<samp-1; a++) offset+= tab[a];
 
 	if(ctab[samp]==0) {
-		BLI_initjit(jit[offset], samp*samp);
 		ctab[samp]= 1;
+		BLI_initjit(jit[offset], samp*samp);
 	}
 		
 	return jit[offset];

@@ -2159,7 +2159,7 @@ static void area_lamp_vectors(LampRen *lar)
 }
 
 /* If lar takes more lamp data, the decoupling will be better. */
-static LampRen *add_render_lamp(Render *re, Object *ob)
+static GroupObject *add_render_lamp(Render *re, Object *ob)
 {
 	Lamp *la= ob->data;
 	LampRen *lar;
@@ -2172,12 +2172,16 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 		if((re->r.mode & R_SHADOW)==0)
 			return NULL;
 	
+	re->totlamp++;
+	
+	/* groups is used to unify support for lightgroups, this is the global lightgroup */
 	go= MEM_callocN(sizeof(GroupObject), "groupobject");
 	BLI_addtail(&re->lights, go);
-	re->totlamp++;
-	lar= (LampRen *)MEM_callocN(sizeof(LampRen),"lampren");
-	go->lampren= lar;
 	go->ob= ob;
+	/* lamprens are in own list, for freeing */
+	lar= (LampRen *)MEM_callocN(sizeof(LampRen),"lampren");
+	BLI_addtail(&re->lampren, lar);
+	go->lampren= lar;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
@@ -2378,7 +2382,7 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 		}
 	}
 	
-	return lar;
+	return go;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -2924,7 +2928,7 @@ static void init_render_object(Render *re, Object *ob, Object *par, int index, i
 void RE_Database_Free(Render *re)
 {
 	Object *ob = NULL;
-	GroupObject *go;
+	LampRen *lar;
 
 	/* FREE */
 	
@@ -2933,15 +2937,13 @@ void RE_Database_Free(Render *re)
 		re->memArena = NULL;
 	}
 	
-	for(go= re->lights.first; go; go= go->next) {
-		struct LampRen *lar= go->lampren;
-		
+	for(lar= re->lampren.first; lar; lar= lar->next) {
 		freeshadowbuf(lar);
 		if(lar->jitter) MEM_freeN(lar->jitter);
 		if(lar->shadsamp) MEM_freeN(lar->shadsamp);
-		MEM_freeN(lar);
 	}
 	
+	BLI_freelistN(&re->lampren);
 	BLI_freelistN(&re->lights);
 
 	free_renderdata_tables(re);
@@ -3125,11 +3127,14 @@ static void check_non_flat_quads(Render *re)
 }
 
 /* layflag: allows material group to ignore layerflag */
-static void add_lightgroup(Render *re, Group *group, int nolay)
+static void add_lightgroup(Render *re, Group *group, int exclusive)
 {
 	GroupObject *go, *gol;
 	
+	group->id.flag &= ~LIB_DOIT;
+
 	/* it's a bit too many loops in loops... but will survive */
+	/* note that 'exclusive' will remove it from the global list */
 	for(go= group->gobject.first; go; go= go->next) {
 		go->lampren= NULL;
 		if(go->ob && go->ob->type==OB_LAMP) {
@@ -3140,21 +3145,31 @@ static void add_lightgroup(Render *re, Group *group, int nolay)
 				}
 			}
 			if(go->lampren==NULL) 
-				go->lampren= add_render_lamp(re, go->ob);
-			if(nolay)
-				((LampRen *)go->lampren)->lay= 0xFFFFFFFF;
+				gol= add_render_lamp(re, go->ob);
+			if(exclusive) {
+				BLI_remlink(&re->lights, gol);
+				MEM_freeN(gol);
+			}
 		}
 	}
 }
 
 static void set_material_lightgroups(Render *re)
 {
+	Group *group;
 	Material *ma;
+	
+	/* not for preview render */
+	if(re->scene->r.scemode & R_PREVIEWBUTS)
+		return;
+	
+	for(group= G.main->group.first; group; group=group->id.next)
+		group->id.flag |= LIB_DOIT;
 	
 	/* it's a bit too many loops in loops... but will survive */
 	/* hola! materials not in use...? */
 	for(ma= G.main->mat.first; ma; ma=ma->id.next) {
-		if(ma->group)
+		if(ma->group && (ma->group->id.flag & LIB_DOIT))
 			add_lightgroup(re, ma->group, ma->mode & MA_GROUP_NOLAY);
 	}
 }
@@ -3212,7 +3227,6 @@ void init_render_world(Render *re)
 void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 {
 	extern int slurph_opt;	/* key.c */
-	GroupObject *go;
 	Base *base;
 	Object *ob;
 	Scene *sce;
@@ -3229,6 +3243,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	re->memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
 	re->totvlak=re->totvert=re->totlamp=re->tothalo= 0;
 	re->lights.first= re->lights.last= NULL;
+	re->lampren.first= re->lampren.last= NULL;
 	
 	slurph_opt= 0;
 	re->i.partsdone= 0;	/* signal now in use for previewrender */
@@ -3393,6 +3408,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 
 	
 	if(!re->test_break()) {
+		LampRen *lar;
+		
 		sort_halos(re);
 		
 		set_material_lightgroups(re);
@@ -3420,9 +3437,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		re->stats_draw(&re->i);
 
 		/* SHADOW BUFFER */
-		for(go=re->lights.first; go; go= go->next) {
-			LampRen *lar= go->lampren;
-			
+		for(lar=re->lampren.first; lar; lar= lar->next) {
 			if(re->test_break()) break;
 			if(lar->shb) {
 				/* if type is irregular, this only sets the perspective matrix and autoclips */
@@ -3883,7 +3898,6 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 	Base *base;
 	Object *ob;
 	Scene *sce;
-	GroupObject *go;
 	float mat[4][4];
 	unsigned int lay;
 	
@@ -3905,6 +3919,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 	
 	re->totvlak=re->totvert=re->totlamp=re->tothalo= 0;
 	re->lights.first= re->lights.last= NULL;
+	re->lampren.first= re->lampren.last= NULL;
 
 	/* in localview, lamps are using normal layers, objects only local bits */
 	if(re->scene->lay & 0xFF000000) lay= re->scene->lay & 0xFF000000;
@@ -3963,9 +3978,10 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 	
 	if(type!=RE_BAKE_LIGHT) {
 		if(re->r.mode & R_SHADOW) {
+			LampRen *lar;
+			
 			/* SHADOW BUFFER */
-			for(go=re->lights.first; go; go= go->next) {
-				LampRen *lar= go->lampren;
+			for(lar=re->lampren.first; lar; lar= lar->next) {
 				
 				if(re->test_break()) break;
 				if(lar->shb) {

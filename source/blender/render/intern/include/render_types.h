@@ -153,7 +153,8 @@ struct Render
 	
 	/* render database */
 	int totvlak, totvert, tothalo, totlamp;
-	ListBase lights;
+	ListBase lights;	/* GroupObject pointers */
+	ListBase lampren;	/* storage, for free */
 	
 	int vertnodeslen;
 	struct VertTableNode *vertnodes;
@@ -300,6 +301,8 @@ typedef struct LampShadowSample {
 } LampShadowSample;
 
 typedef struct LampRen {
+	struct LampRen *next, *prev;
+	
 	float xs, ys, dist;
 	float co[3];
 	short type, mode;

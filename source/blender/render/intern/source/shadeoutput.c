@@ -333,19 +333,22 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 
 void renderspothalo(ShadeInput *shi, float *col, float alpha)
 {
-	ListBase *lights= get_lights(shi);
+	ListBase *lights;
 	GroupObject *go;
 	LampRen *lar;
 	float i;
 	
 	if(alpha==0.0f) return;
 	
+	lights= get_lights(shi);
 	for(go=lights->first; go; go= go->next) {
 		lar= go->lampren;
 		
 		if(lar->type==LA_SPOT && (lar->mode & LA_HALO) && lar->haint>0) {
+			
+			if(lar->mode & LA_LAYER) if((lar->lay & shi->vlr->lay)==0) continue;
 			if((lar->lay & shi->lay)==0) continue;
-
+			
 			spothalo(lar, shi, &i);
 			if(i>0.0f) {
 				col[3]+= i*alpha;			// all premul
@@ -1344,7 +1347,7 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 {
 	
 	if(R.r.mode & R_SHADOW) {
-		ListBase *lights= get_lights(shi);
+		ListBase *lights;
 		LampRen *lar;
 		GroupObject *go;
 		float inpr, lv[3];
@@ -1356,6 +1359,7 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 
 		accum= ir= 0.0f;
 		
+		lights= get_lights(shi);
 		for(go=lights->first; go; go= go->next) {
 			lar= go->lampren;
 			if(lar==NULL) continue;
@@ -1480,9 +1484,10 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	/* lighting pass */
 	if(passflag & (SCE_PASS_COMBINED|SCE_PASS_DIFFUSE|SCE_PASS_SPEC|SCE_PASS_SHADOW)) {
 		GroupObject *go;
-		ListBase *lights= get_lights(shi);
+		ListBase *lights;
 		LampRen *lar;
 		
+		lights= get_lights(shi);
 		for(go=lights->first; go; go= go->next) {
 			lar= go->lampren;
 			if(lar==NULL) continue;
@@ -1493,7 +1498,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			/* test for lamp layer */
 			if(lar->mode & LA_LAYER) if((lar->lay & vlr->lay)==0) continue;
 			if((lar->lay & shi->lay)==0) continue;
-
+			
 			/* accumulates in shr->diff and shr->spec and shr->shad (diffuse with shadow!) */
 			shade_one_light(lar, shi, shr, passflag);
 		}
