@@ -1386,12 +1386,13 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 		}
 	}
 	
+	/* quite disputable this...  also note it doesn't mirror-raytrace */	
 	if((R.wrld.mode & WO_AMB_OCC) && shi->amb!=0.0f) {
 		float f;
 		
-		f= shi->ao[0];
+		f= 1.0f - shi->ao[0];
+		f= R.wrld.aoenergy*f*shi->amb;
 		
-		/* quite disputable this...  also note it doesn't mirror-raytrace */
 		if(R.wrld.aomix==WO_AOADD) {
 			shr->alpha += f;
 			shr->alpha *= f;
