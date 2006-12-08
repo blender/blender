@@ -1541,7 +1541,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 	node->lasttime= curtime;
 	
 	ob= node->ob;
-	if(ob->recalc & OB_RECALC) {
+	if(ob && (ob->recalc & OB_RECALC)) {
 		all_layer= ob->lay;
 		/* got an object node that changes, now check relations */
 		for(itA = node->child; itA; itA= itA->next) {
