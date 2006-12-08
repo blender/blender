@@ -69,6 +69,44 @@ void set_node_shader_lamp_loop(void (*lamp_loop_func)(ShadeInput *, ShadeResult 
 	node_shader_lamp_loop= lamp_loop_func;
 }
 
+/* ****** */
+
+static void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
+{
+	float *from= ns->vec;
+		
+	if(type_in==SOCK_VALUE) {
+		if(ns->sockettype==SOCK_VALUE)
+			*in= *from;
+		else 
+			*in= 0.333333f*(from[0]+from[1]+from[2]);
+	}
+	else if(type_in==SOCK_VECTOR) {
+		if(ns->sockettype==SOCK_VALUE) {
+			in[0]= from[0];
+			in[1]= from[0];
+			in[2]= from[0];
+		}
+		else {
+			VECCOPY(in, from);
+		}
+	}
+	else { /* type_in==SOCK_RGBA */
+		if(ns->sockettype==SOCK_RGBA) {
+			QUATCOPY(in, from);
+		}
+		else if(ns->sockettype==SOCK_VALUE) {
+			in[0]= from[0];
+			in[1]= from[0];
+			in[2]= from[0];
+			in[3]= 1.0f;
+		}
+		else {
+			VECCOPY(in, from);
+			in[3]= 1.0f;
+		}
+	}
+}
 
 /* ******************************************************** */
 /* ********* Shader Node type definitions ***************** */
@@ -93,8 +131,8 @@ static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bN
 		float col[4];
 		
 		/* stack order input sockets: col, alpha, normal */
-		VECCOPY(col, in[0]->vec);
-		col[3]= in[1]->vec[0];
+		nodestack_get_vec(col, SOCK_VECTOR, in[0]);
+		nodestack_get_vec(col+3, SOCK_VALUE, in[1]);
 		
 		if(shi->do_preview) {
 			nodeAddToPreview(node, col, shi->xs, shi->ys);
@@ -234,17 +272,17 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		
 		/* write values */
 		if(in[MAT_IN_COLOR]->hasinput)
-			VECCOPY(&shi->r,  in[MAT_IN_COLOR]->vec);
+			nodestack_get_vec(&shi->r, SOCK_VECTOR, in[MAT_IN_COLOR]);
 		
 		if(in[MAT_IN_SPEC]->hasinput)
-			VECCOPY(&shi->specr,  in[MAT_IN_SPEC]->vec);
+			nodestack_get_vec(&shi->specr, SOCK_VECTOR, in[MAT_IN_SPEC]);
 		
 		if(in[MAT_IN_REFL]->hasinput)
-			shi->mat->ref= in[MAT_IN_REFL]->vec[0]; 
+			nodestack_get_vec(&shi->refl, SOCK_VALUE, in[MAT_IN_REFL]);
 		
 		/* retrieve normal */
 		if(in[MAT_IN_NORMAL]->hasinput) {
-			nor= in[MAT_IN_NORMAL]->vec;
+			nodestack_get_vec(nor, SOCK_VECTOR, in[MAT_IN_NORMAL]);
 			Normalise(nor);
 		}
 		else
@@ -326,7 +364,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 	if(data && node->id) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
 		TexResult texres;
-		float *vec, nor[3]={0.0f, 0.0f, 0.0f};
+		float vec[3], nor[3]={0.0f, 0.0f, 0.0f};
 		int retval;
 		
 		/* out: value, color, normal */
@@ -335,7 +373,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 		texres.nor= nor;
 		
 		if(in[0]->hasinput) {
-			vec= in[0]->vec;
+			nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
 			
 			if(in[0]->datatype==NS_OSA_VECTORS) {
 				float *fp= in[0]->data;
@@ -353,7 +391,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 				retval= multitex_ext((Tex *)node->id, vec, NULL, NULL, 0, &texres);
 		}
 		else {	/* only for previewrender, so we see stuff */
-			vec= shi->lo;
+			VECCOPY(vec, shi->lo);
 			retval= multitex_ext((Tex *)node->id, vec, NULL, NULL, 0, &texres);
 		}
 		
@@ -421,7 +459,7 @@ static void node_shader_exec_mapping(void *data, bNode *node, bNodeStack **in, b
 	
 	/* stack order input:  vector */
 	/* stack order output: vector */
-	VECCOPY(vec, in[0]->vec);
+	nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
 	Mat4MulVecfl(texmap->mat, vec);
 	
 	if(texmap->flag & TEXMAP_CLIP_MIN) {
@@ -653,7 +691,13 @@ static bNodeSocketType sh_node_squeeze_out[]= {
 static void node_shader_exec_squeeze(void *data, bNode *node, bNodeStack **in, 
 bNodeStack **out) 
 {
-    out[0]->vec[0] = 1 / (1 + pow(2.71828183,-((in[0]->vec[0]-in[2]->vec[0])*in[1]->vec[0]))) ;
+	float vec[3];
+	
+	nodestack_get_vec(vec, SOCK_VALUE, in[0]);
+	nodestack_get_vec(vec+1, SOCK_VALUE, in[1]);
+	nodestack_get_vec(vec+2, SOCK_VALUE, in[2]);
+
+    out[0]->vec[0] = 1.0f / (1.0f + pow(2.71828183,-((vec[0]-vec[2])*vec[1]))) ;
 }
 
 static bNodeType sh_node_squeeze= { 
@@ -684,47 +728,52 @@ static bNodeSocketType sh_node_vect_math_out[]= {
 
 static void node_shader_exec_vect_math(void *data, bNode *node, bNodeStack **in, bNodeStack **out) 
 { 
+	float vec1[3], vec2[3];
+	
+	nodestack_get_vec(vec1, SOCK_VECTOR, in[0]);
+	nodestack_get_vec(vec1, SOCK_VECTOR, in[1]);
+	
 	if(node->custom1 == 0) {	/* Add */
-		out[0]->vec[0]= in[0]->vec[0] + in[1]->vec[0];
-		out[0]->vec[1]= in[0]->vec[1] + in[1]->vec[1];
-		out[0]->vec[2]= in[0]->vec[2] + in[1]->vec[2];
+		out[0]->vec[0]= vec1[0] + vec2[0];
+		out[0]->vec[1]= vec1[1] + vec2[1];
+		out[0]->vec[2]= vec1[2] + vec2[2];
 		
 		out[1]->vec[0]= (fabs(out[0]->vec[0]) + fabs(out[0]->vec[0]) + fabs(out[0]->vec[0])) / 3;
 	}
 	else if(node->custom1 == 1) {	/* Subtract */
-		out[0]->vec[0]= in[0]->vec[0] - in[1]->vec[0];
-		out[0]->vec[1]= in[0]->vec[1] - in[1]->vec[1];
-		out[0]->vec[2]= in[0]->vec[2] - in[1]->vec[2];
+		out[0]->vec[0]= vec1[0] - vec2[0];
+		out[0]->vec[1]= vec1[1] - vec2[1];
+		out[0]->vec[2]= vec1[2] - vec2[2];
 		
 		out[1]->vec[0]= (fabs(out[0]->vec[0]) + fabs(out[0]->vec[0]) + fabs(out[0]->vec[0])) / 3;
 	}
 	else if(node->custom1 == 2) {	/* Average */
-		out[0]->vec[0]= in[0]->vec[0] + in[1]->vec[0];
-		out[0]->vec[1]= in[0]->vec[1] + in[1]->vec[1];
-		out[0]->vec[2]= in[0]->vec[2] + in[1]->vec[2];
+		out[0]->vec[0]= vec1[0] + vec2[0];
+		out[0]->vec[1]= vec1[1] + vec2[1];
+		out[0]->vec[2]= vec1[2] + vec2[2];
 		
 		out[1]->vec[0] = Normalise( out[0]->vec );
 	}
 	else if(node->custom1 == 3) {	/* Dot product */
-		out[1]->vec[0]= (in[0]->vec[0] * in[1]->vec[0]) + (in[0]->vec[1] * in[1]->vec[1]) + (in[0]->vec[2] * in[1]->vec[2]);
+		out[1]->vec[0]= (vec1[0] * vec2[0]) + (vec1[1] * vec2[1]) + (vec1[2] * vec2[2]);
 	}
 	else if(node->custom1 == 4) {	/* Cross product */
-		out[0]->vec[0]= (in[0]->vec[1] * in[1]->vec[2]) - (in[0]->vec[2] * in[1]->vec[1]);
-		out[0]->vec[1]= (in[0]->vec[2] * in[1]->vec[0]) - (in[0]->vec[0] * in[1]->vec[2]);
-		out[0]->vec[2]= (in[0]->vec[0] * in[1]->vec[1]) - (in[0]->vec[1] * in[1]->vec[0]);
+		out[0]->vec[0]= (vec1[1] * vec2[2]) - (vec1[2] * vec2[1]);
+		out[0]->vec[1]= (vec1[2] * vec2[0]) - (vec1[0] * vec2[2]);
+		out[0]->vec[2]= (vec1[0] * vec2[1]) - (vec1[1] * vec2[0]);
 		
 		out[1]->vec[0] = Normalise( out[0]->vec );
 	}
 	else if(node->custom1 == 5) {	/* Normalize */
 		if(in[0]->hasinput || !in[1]->hasinput) {	/* This one only takes one input, so we've got to choose. */
-			out[0]->vec[0]= in[0]->vec[0];
-			out[0]->vec[1]= in[0]->vec[1];
-			out[0]->vec[2]= in[0]->vec[2];
+			out[0]->vec[0]= vec1[0];
+			out[0]->vec[1]= vec1[1];
+			out[0]->vec[2]= vec1[2];
 		}
 		else {
-			out[0]->vec[0]= in[1]->vec[0];
-			out[0]->vec[1]= in[1]->vec[1];
-			out[0]->vec[2]= in[1]->vec[2];
+			out[0]->vec[0]= vec2[0];
+			out[0]->vec[1]= vec2[1];
+			out[0]->vec[2]= vec2[2];
 		}
 		
 		out[1]->vec[0] = Normalise( out[0]->vec );
@@ -759,12 +808,16 @@ static bNodeSocketType sh_node_normal_out[]= {
 static void node_shader_exec_normal(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	bNodeSocket *sock= node->outputs.first;
+	float vec[3];
+	
 	/* stack order input:  normal */
 	/* stack order output: normal, value */
 	
+	nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	
 	VECCOPY(out[0]->vec, sock->ns.vec);
 	/* render normals point inside... the widget points outside */
-	out[1]->vec[0]= -INPR(out[0]->vec, in[0]->vec);
+	out[1]->vec[0]= -INPR(out[0]->vec, vec);
 }
 
 static bNodeType sh_node_normal= {
@@ -792,10 +845,12 @@ static bNodeSocketType sh_node_curve_vec_out[]= {
 
 static void node_shader_exec_curve_vec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	float vec[3];
+	
 	/* stack order input:  vec */
 	/* stack order output: vec */
-	
-	curvemapping_evaluate3F(node->storage, out[0]->vec, in[0]->vec);
+	nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	curvemapping_evaluate3F(node->storage, out[0]->vec, vec);
 }
 
 static bNodeType sh_node_curve_vec= {
@@ -823,10 +878,12 @@ static bNodeSocketType sh_node_curve_rgb_out[]= {
 
 static void node_shader_exec_curve_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	float vec[3];
+	
 	/* stack order input:  vec */
 	/* stack order output: vec */
-	
-	curvemapping_evaluateRGBF(node->storage, out[0]->vec, in[0]->vec);
+	nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
+	curvemapping_evaluateRGBF(node->storage, out[0]->vec, vec);
 }
 
 static bNodeType sh_node_curve_rgb= {
@@ -908,12 +965,16 @@ static void node_shader_exec_mix_rgb(void *data, bNode *node, bNodeStack **in, b
 	/* stack order in: fac, col1, col2 */
 	/* stack order out: col */
 	float col[3];
-	float fac= in[0]->vec[0];
-	
+	float fac;
+	float vec[3];
+
+	nodestack_get_vec(&fac, SOCK_VALUE, in[0]);
 	CLAMP(fac, 0.0f, 1.0f);
 	
-	VECCOPY(col, in[1]->vec);
-	ramp_blend(node->custom1, col, col+1, col+2, fac, in[2]->vec);
+	nodestack_get_vec(col, SOCK_VECTOR, in[1]);
+	nodestack_get_vec(vec, SOCK_VECTOR, in[2]);
+
+	ramp_blend(node->custom1, col, col+1, col+2, fac, vec);
 	VECCOPY(out[0]->vec, col);
 }
 
@@ -947,7 +1008,10 @@ static void node_shader_exec_valtorgb(void *data, bNode *node, bNodeStack **in, 
 	/* stack order out: col, alpha */
 	
 	if(node->storage) {
-		do_colorband(node->storage, in[0]->vec[0], out[0]->vec);
+		float fac;
+		nodestack_get_vec(&fac, SOCK_VALUE, in[0]);
+
+		do_colorband(node->storage, fac, out[0]->vec);
 		out[1]->vec[0]= out[0]->vec[3];
 	}
 }

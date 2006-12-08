@@ -50,7 +50,7 @@ typedef struct bNodeStack {
 	short hasinput;			/* when input has link, tagged before executing */
 	short hasoutput;		/* when output is linked, tagged before executing */
 	short datatype;			/* type of data pointer */
-	short pad;
+	short sockettype;		/* type of socket stack comes from, to remap linking different sockets */
 } bNodeStack;
 
 /* ns->datatype, shadetree only */

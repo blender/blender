@@ -163,6 +163,12 @@ static void do_node_selectmenu(void *arg, int event)
 		case 2: /* select/deselect all */
 			node_deselectall(snode, 1);
 			break;
+		case 3:	/* select linked in */
+			node_select_linked(snode, 0);
+			break;
+		case 4:	/* select linked out */
+			node_select_linked(snode, 1);
+			break;
 	}
 	allqueue(REDRAWNODE, 0);
 }
@@ -181,6 +187,8 @@ static uiBlock *node_selectmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Linked From|L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Linked To|Shift L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

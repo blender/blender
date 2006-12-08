@@ -79,6 +79,8 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_node.h"
 
+#include "BDR_drawmesh.h"
+
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_keyval.h"
@@ -405,6 +407,8 @@ void do_texbuts(unsigned short event)
 			
 			if(tex->env)
 				BKE_free_envmapdata(tex->env);
+			
+			free_realtime_image(tex->ima); 
 			
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWIMAGE, 0);

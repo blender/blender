@@ -1490,6 +1490,7 @@ void node_adduplicate(SpaceNode *snode)
 	transform_nodes(snode->edittree, 'g', "Duplicate");
 }
 
+#if 0
 static void node_insert_convertor(SpaceNode *snode, bNodeLink *link)
 {
 	bNode *newnode= NULL;
@@ -1523,6 +1524,7 @@ static void node_insert_convertor(SpaceNode *snode, bNodeLink *link)
 	}
 }
 
+#endif
 
 /* loop that adds a nodelink, called by function below  */
 /* in_out = starting socket */
@@ -1621,15 +1623,6 @@ static int node_add_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock, 
 						nodeRemLink(snode->edittree, tlink);
 					}
 				}					
-			}
-		}
-		
-		/* and last trick: insert a convertor when types dont match */
-		if(snode->treetype==NTREE_SHADER) {
-			if(link->tosock->type!=link->fromsock->type) {
-				node_insert_convertor(snode, link);
-				/* so nice do it twice! well, the sort-order can only handle 1 added link at a time */
-				ntreeSolveOrder(snode->edittree);
 			}
 		}
 	}
@@ -1763,6 +1756,33 @@ void node_insert_key(SpaceNode *snode)
 	}
 }
 
+void node_select_linked(SpaceNode *snode, int out)
+{
+	bNodeLink *link;
+	bNode *node;
+	
+	/* NODE_TEST is the free flag */
+	for(node= snode->edittree->nodes.first; node; node= node->next)
+		node->flag &= ~NODE_TEST;
+
+	for(link= snode->edittree->links.first; link; link= link->next) {
+		if(out) {
+			if(link->fromnode->flag & NODE_SELECT)
+				link->tonode->flag |= NODE_TEST;
+		}
+		else {
+			if(link->tonode->flag & NODE_SELECT)
+				link->fromnode->flag |= NODE_TEST;
+		}
+	}
+	
+	for(node= snode->edittree->nodes.first; node; node= node->next)
+		if(node->flag & NODE_TEST)
+			node->flag |= NODE_SELECT;
+	
+	BIF_undo_push("Select Linked nodes");
+	allqueue(REDRAWNODE, 1);
+}
 
 static void node_border_link_delete(SpaceNode *snode)
 {
@@ -2088,6 +2108,9 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case IKEY:
 			node_insert_key(snode);
+			break;
+		case LKEY:
+			node_select_linked(snode, G.qual==LR_SHIFTKEY);
 			break;
 		case RKEY:
 			if(okee("Read saved Render Layers"))

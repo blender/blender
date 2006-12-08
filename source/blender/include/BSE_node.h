@@ -80,6 +80,7 @@ struct bNode *node_add_node(struct SpaceNode *snode, int type, float locx, float
 void node_adduplicate(struct SpaceNode *snode);
 
 void snode_autoconnect(struct SpaceNode *snode, struct bNode *node_to, int flag);
+void node_select_linked(struct SpaceNode *snode, int out);
 
 /* ************* drawnode.c *************** */
 struct SpaceNode;
