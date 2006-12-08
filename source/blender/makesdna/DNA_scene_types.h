@@ -366,7 +366,11 @@ typedef struct ToolSettings {
 	
 	/* IPO-Editor */
 	float clean_thresh;
-	float pad3;
+	
+	/* Retopo */
+	char retopo_mode;
+	char line_div, ellipse_div;
+	char pad3;
 	
 } ToolSettings;
 
@@ -653,6 +657,11 @@ typedef struct Scene {
 #define IMAGEPAINT_DRAWING				1
 #define IMAGEPAINT_DRAW_TOOL			2
 #define IMAGEPAINT_DRAW_TOOL_DRAWING	4
+
+/* toolsettings->retopo_mode */
+#define RETOPO_PEN 1
+#define RETOPO_LINE 2
+#define RETOPO_ELLIPSE 4
 
 #ifdef __cplusplus
 }

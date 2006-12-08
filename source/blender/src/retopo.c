@@ -38,6 +38,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
@@ -351,8 +352,8 @@ void retopo_paint_add_line(RetopoPaintData *rpd, short mouse[2])
 
 	/* Add initial point */
 	add_rppoint(l,rpd->sloc[0],rpd->sloc[1]);
-	for(i=0; i<rpd->line_div; ++i) {
-		const float mul= (i+1.0f)/rpd->line_div;
+	for(i=0; i<G.scene->toolsettings->line_div; ++i) {
+		const float mul= (i+1.0f) / G.scene->toolsettings->line_div;
 		add_rppoint(l,rpd->sloc[0] + range[0]*mul,rpd->sloc[1] + range[1]*mul);
 	}
 
@@ -364,8 +365,8 @@ void retopo_paint_add_ellipse(RetopoPaintData *rpd, short mouse[2])
 	int i;
 
 	add_rpline(rpd);
-	for (i=0; i<rpd->ellipse_div; i++) {
-		float t= (float) i/rpd->ellipse_div;
+	for (i=0; i<G.scene->toolsettings->ellipse_div; i++) {
+		float t= (float) i / G.scene->toolsettings->ellipse_div;
 		float cur= t*(M_PI*2);
 		
 		float w= abs(mouse[0]-rpd->sloc[0]);
@@ -396,11 +397,11 @@ void retopo_paint_toggle(void *a, void *b)
 		RetopoPaintData *rpd= MEM_callocN(sizeof(RetopoPaintData),"RetopoPaintData");
 		
 		G.editMesh->retopo_paint_data= rpd;
-		rpd->mode= RETOPO_PEN;
+		G.scene->toolsettings->retopo_mode= RETOPO_PEN;
 		rpd->seldist= 15;
 		rpd->nearest.line= NULL;
-		rpd->line_div= 25;
-		rpd->ellipse_div= 25;
+		G.scene->toolsettings->line_div= 25;
+		G.scene->toolsettings->ellipse_div= 25;
 	} else retopo_end_okee();
 
 	BIF_undo_push("Retopo toggle");
@@ -445,7 +446,7 @@ char retopo_paint(const unsigned short event)
 		if(rpd->in_drag && !lbut) { /* End drag */
 			rpd->in_drag= 0;
 
-			switch(rpd->mode) {
+			switch(G.scene->toolsettings->retopo_mode) {
 			case RETOPO_PEN:
 				break;
 			case RETOPO_LINE:
@@ -461,7 +462,7 @@ char retopo_paint(const unsigned short event)
 		switch(event) {
 		case MOUSEX:
 		case MOUSEY:
-			switch(rpd->mode) {
+			switch(G.scene->toolsettings->retopo_mode) {
 			case RETOPO_PEN:
 				if(rpd->in_drag && rpd->lines.last) {
 					l= rpd->lines.last;
@@ -526,11 +527,11 @@ char retopo_paint(const unsigned short event)
 			allqueue(REDRAWVIEW3D, 0);
 			break;
 		case EKEY:
-			rpd->mode= RETOPO_ELLIPSE;
+			G.scene->toolsettings->retopo_mode= RETOPO_ELLIPSE;
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
 		case PKEY:
-			rpd->mode= RETOPO_PEN;
+			G.scene->toolsettings->retopo_mode= RETOPO_PEN;
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
 		case LEFTMOUSE:
@@ -541,7 +542,7 @@ char retopo_paint(const unsigned short event)
 				rpd->sloc[0]= mouse[0];
 				rpd->sloc[1]= mouse[1];
 				
-				switch(rpd->mode) {
+				switch(G.scene->toolsettings->retopo_mode) {
 				case RETOPO_PEN:
 					if(rpd->nearest.line) {
 						RetopoPaintPoint *p, *pt;
@@ -609,7 +610,7 @@ void retopo_draw_paint_lines()
 		}
 
 		/* Draw ellipse */
-		if(rpd->mode==RETOPO_ELLIPSE && rpd->in_drag) {
+		if(G.scene->toolsettings->retopo_mode==RETOPO_ELLIPSE && rpd->in_drag) {
 			short mouse[2];
 			getmouseco_areawin(mouse);
 		
@@ -617,7 +618,7 @@ void retopo_draw_paint_lines()
 			fdrawXORellipse(rpd->sloc[0],rpd->sloc[1],abs(mouse[0]-rpd->sloc[0]),abs(mouse[1]-rpd->sloc[1]));
 			setlinestyle(0);
 		}
-		else if(rpd->mode==RETOPO_LINE && rpd->in_drag) {
+		else if(G.scene->toolsettings->retopo_mode==RETOPO_LINE && rpd->in_drag) {
 			short mouse[2];
 			getmouseco_areawin(mouse);
 

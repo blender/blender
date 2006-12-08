@@ -4918,17 +4918,17 @@ void view3d_buttons(void)
 	if(retopo_mesh_paint_check()) {
  		RetopoPaintData *rpd= get_retopo_paint_data();
  		if(rpd) {
- 			uiDefButC(block,ROW,B_NOP,"Pen",xco,0,40,20,&rpd->mode,6.0,RETOPO_PEN,0,0,"");
+ 			uiDefButC(block,ROW,B_NOP,"Pen",xco,0,40,20,&G.scene->toolsettings->retopo_mode,6.0,RETOPO_PEN,0,0,"");
  			xco+=40;
- 			uiDefButC(block,ROW,B_NOP,"Line",xco,0,40,20,&rpd->mode,6.0,RETOPO_LINE,0,0,"");
+ 			uiDefButC(block,ROW,B_NOP,"Line",xco,0,40,20,&G.scene->toolsettings->retopo_mode,6.0,RETOPO_LINE,0,0,"");
  			xco+=40;
- 			uiDefButC(block,ROW,B_NOP,"Ellipse",xco,0,60,20,&rpd->mode,6.0,RETOPO_ELLIPSE,0,0,"");
+ 			uiDefButC(block,ROW,B_NOP,"Ellipse",xco,0,60,20,&G.scene->toolsettings->retopo_mode,6.0,RETOPO_ELLIPSE,0,0,"");
  			xco+=65;
 			
  			uiBlockBeginAlign(block);
- 			uiDefButC(block,NUM,B_NOP,"LineDiv",xco,0,80,20,&rpd->line_div,1,50,0,0,"How much to subdivide each line made with the Line tool");
+ 			uiDefButC(block,NUM,B_NOP,"LineDiv",xco,0,80,20,&G.scene->toolsettings->line_div,1,50,0,0,"Subdivisions per retopo line");
  			xco+=80;
- 			uiDefButC(block,NUM,B_NOP,"EllDiv",xco,0,80,20,&rpd->ellipse_div,3,50,0,0,"How much to subdivide each ellipse made with the Ellipse tool");
+ 			uiDefButC(block,NUM,B_NOP,"EllDiv",xco,0,80,20,&G.scene->toolsettings->ellipse_div,3,50,0,0,"Subdivisions per retopo ellipse");
  			xco+=85;
  			
  			uiBlockEndAlign(block);

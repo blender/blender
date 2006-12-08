@@ -66,7 +66,6 @@ typedef struct RetopoPaintSel {
 } RetopoPaintSel;
 
 typedef struct RetopoPaintData {
-	char mode;
 	char in_drag;
 	short sloc[2];
 
@@ -75,16 +74,7 @@ typedef struct RetopoPaintData {
 
 	short seldist;
 	RetopoPaintSel nearest;
-
-	/* Interface controls */
-	char line_div;
-	char ellipse_div;
 } RetopoPaintData;
-
-/* RetopoPaintData.mode */
-#define RETOPO_PEN 1
-#define RETOPO_LINE 2
-#define RETOPO_ELLIPSE 4
 
 RetopoPaintData *get_retopo_paint_data();
 
