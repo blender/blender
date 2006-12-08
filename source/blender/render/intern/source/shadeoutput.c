@@ -1019,8 +1019,10 @@ void lamp_get_shadow(LampRen *lar, ShadeInput *shi, float inp, float *shadfac, i
 			ray_shadow(shi, lar, shadfac);
 		}
 		
-		QUATCOPY(lss->shadfac, shadfac);
-		lss->samplenr= shi->samplenr;
+		if(shi->depth==0) {
+			QUATCOPY(lss->shadfac, shadfac);
+			lss->samplenr= shi->samplenr;
+		}
 	}
 	else {
 		QUATCOPY(shadfac, lss->shadfac);

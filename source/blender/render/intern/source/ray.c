@@ -1604,6 +1604,7 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 		shi.osatex= origshi->osatex;
 		shi.depth= 1;					/* only used to indicate tracing */
 		shi.thread= origshi->thread;
+		shi.sample= 0;
 		shi.xs= origshi->xs;
 		shi.ys= origshi->ys;
 		shi.lay= origshi->lay;
@@ -1953,7 +1954,7 @@ static void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
 		shi.depth= 1;					/* only used to indicate tracing */
 		shi.mask= 1;
 		shi.osatex= 0;
-		shi.thread= 0;
+		shi.thread= shi.sample= 0;
 		shi.lay= 0;
 		shi.passflag= 0;
 		shi.combinedflag= 0;
