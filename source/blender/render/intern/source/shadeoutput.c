@@ -59,7 +59,7 @@ static ListBase *get_lights(ShadeInput *shi)
 	
 	if(shi->light_override)
 		return &shi->light_override->gobject;
-	else if(shi->mat->group)
+	else if(shi->mat && shi->mat->group)
 		return &shi->mat->group->gobject;
 	else
 		return &R.lights;
@@ -1003,8 +1003,9 @@ void ambient_occlusion_to_diffuse(ShadeInput *shi, float *diff)
 /* result written in shadfac */
 void lamp_get_shadow(LampRen *lar, ShadeInput *shi, float inp, float *shadfac, int do_real)
 {
+	LampShadowSubSample *lss= &(lar->shadsamp[shi->thread].s[shi->sample]);
 	
-	if(do_real) {
+	if(do_real || lss->samplenr!=shi->samplenr) {
 		
 		shadfac[0]= shadfac[1]= shadfac[2]= shadfac[3]= 1.0f;
 		
@@ -1017,10 +1018,12 @@ void lamp_get_shadow(LampRen *lar, ShadeInput *shi, float inp, float *shadfac, i
 		else if(lar->mode & LA_SHAD_RAY) {
 			ray_shadow(shi, lar, shadfac);
 		}
+		
+		QUATCOPY(lss->shadfac, shadfac);
+		lss->samplenr= shi->samplenr;
 	}
 	else {
-		float *fp= lar->shadsamp[shi->thread].shadfac[shi->sample];
-		QUATCOPY(shadfac, fp);
+		QUATCOPY(shadfac, lss->shadfac);
 	}
 }
 
@@ -1455,6 +1458,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		shr->diff[1]= shi->g*shi->emit;
 		shr->diff[2]= shi->b*shi->emit;
 	}
+	VECCOPY(shr->shad, shr->diff);
 	
 	/* AO pass */
 	if(R.wrld.mode & WO_AMB_OCC) {
@@ -1501,7 +1505,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		
 		/* exposure correction */
 		if(R.wrld.exp!=0.0f || R.wrld.range!=1.0f) {
-			wrld_exposure_correct(shr->diff);
+			wrld_exposure_correct(shr->combined);	/* has no spec! */
 			wrld_exposure_correct(shr->spec);
 		}
 	}

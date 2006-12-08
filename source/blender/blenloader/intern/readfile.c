@@ -5329,21 +5329,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Lamp *la;
 		World *wrld;
 
+		/* introduction of raytrace */
 		while(ma) {
 			if(ma->fresnel_tra_i==0.0) ma->fresnel_tra_i= 1.25;
 			if(ma->fresnel_mir_i==0.0) ma->fresnel_mir_i= 1.25;
-			if(ma->ang==0.0) {
-				ma->ang= 1.0;
-				ma->ray_depth= 2;
-				ma->ray_depth_tra= 2;
-				ma->fresnel_tra= 0.0;
-				ma->fresnel_mir= 0.0;
-			}
-			else if(ma->ang<1.0) {		// temporal, because of IOR & fresnel change
-				ma->ang= 1.0f/ma->ang;
-				ma->fresnel_tra= ma->ang;
-				ma->fresnel_mir= ma->ang;
-			}
+
+			ma->ang= 1.0;
+			ma->ray_depth= 2;
+			ma->ray_depth_tra= 2;
+			ma->fresnel_tra= 0.0;
+			ma->fresnel_mir= 0.0;
+
 			ma= ma->id.next;
 		}
 		sce= main->scene.first;

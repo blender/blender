@@ -2340,9 +2340,15 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 			}
 		}
 	}
-
-	/* yafray: shadowbuffers and jitter only needed for internal render */
+	/* yafray: shadow flag should not be cleared, only used with internal renderer */
 	if (re->r.renderer==R_INTERN) {
+		/* to make sure we can check ray shadow easily in the render code */
+		if(lar->mode & LA_SHAD_RAY) {
+			if( (re->r.mode & R_RAYTRACE)==0)
+				lar->mode &= ~LA_SHAD_RAY;
+		}
+	
+
 		if(re->r.mode & R_SHADOW) {
 			if (la->type==LA_SPOT && (lar->mode & LA_SHAD_BUF) ) {
 				/* Per lamp, one shadow buffer is made. */
@@ -2353,24 +2359,25 @@ static LampRen *add_render_lamp(Render *re, Object *ob)
 			else if(la->type==LA_AREA && (lar->mode & LA_SHAD_RAY) ) {
 				init_jitter_plane(lar);
 			}
+			
+			/* this is the way used all over to check for shadow */
+			if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
+				LampShadowSubSample *lss;
+				int a, b, tot= re->r.threads*re->r.osa;
+				
+				lar->shadsamp= MEM_mallocN(re->r.threads*sizeof(LampShadowSample), "lamp shadow sample");
+				lss= lar->shadsamp[0].s;
+				/* shadfacs actually mean light, let's put them to 1 to prevent unitialized accidents */
+				for(a=0; a<tot; a++, lss++) {
+					for(b=0; b<4; b++) {
+						lss->samplenr= -1;	/* used to detect whether we store or read */
+						lss->shadfac[b]= 1.0f;
+					}
+				}
+			}
 		}
 	}
 	
-	/* yafray: shadow flag should not be cleared, only used with internal renderer */
-	if (re->r.renderer==R_INTERN) {
-		int a, b;
-		
-		/* to make sure we can check ray shadow easily in the render code */
-		if(lar->mode & LA_SHAD_RAY) {
-			if( (re->r.mode & R_RAYTRACE)==0)
-				lar->mode &= ~LA_SHAD_RAY;
-		}
-		/* shadfacs actually mean light, let's put them to 1 to prevent unitialized accidents */
-		for(c=0; c<re->r.threads; c++)
-			for(a=0; a<re->r.osa; a++)
-				for(b=0; b<4; b++)
-					lar->shadsamp[c].shadfac[a][b]= 1.0f;
-	}
 	return lar;
 }
 
@@ -2928,8 +2935,10 @@ void RE_Database_Free(Render *re)
 	
 	for(go= re->lights.first; go; go= go->next) {
 		struct LampRen *lar= go->lampren;
+		
 		freeshadowbuf(lar);
 		if(lar->jitter) MEM_freeN(lar->jitter);
+		if(lar->shadsamp) MEM_freeN(lar->shadsamp);
 		MEM_freeN(lar);
 	}
 	
@@ -3115,7 +3124,8 @@ static void check_non_flat_quads(Render *re)
 	}
 }
 
-static void add_lightgroup(Render *re, Group *group)
+/* layflag: allows material group to ignore layerflag */
+static void add_lightgroup(Render *re, Group *group, int nolay)
 {
 	GroupObject *go, *gol;
 	
@@ -3131,6 +3141,8 @@ static void add_lightgroup(Render *re, Group *group)
 			}
 			if(go->lampren==NULL) 
 				go->lampren= add_render_lamp(re, go->ob);
+			if(nolay)
+				((LampRen *)go->lampren)->lay= 0xFFFFFFFF;
 		}
 	}
 }
@@ -3143,7 +3155,7 @@ static void set_material_lightgroups(Render *re)
 	/* hola! materials not in use...? */
 	for(ma= G.main->mat.first; ma; ma=ma->id.next) {
 		if(ma->group)
-			add_lightgroup(re, ma->group);
+			add_lightgroup(re, ma->group, ma->mode & MA_GROUP_NOLAY);
 	}
 }
 
@@ -3153,7 +3165,7 @@ static void set_renderlayer_lightgroups(Render *re, Scene *sce)
 	
 	for(srl= sce->r.layers.first; srl; srl= srl->next) {
 		if(srl->light_override)
-			add_lightgroup(re, srl->light_override);
+			add_lightgroup(re, srl->light_override, 0);
 	}
 }
 

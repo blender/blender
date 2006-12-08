@@ -132,7 +132,8 @@ typedef struct ShadeInput
 	
 	int xs, ys;				/* pixel to be rendered */
 	short osatex;
-	int mask;
+	int mask;				/* subsample mask */
+	int samplenr;			/* sample counter, to detect if we should do shadow again */
 	int depth;				/* 1 or larger on raytrace shading */
 	
 	/* from initialize, part or renderlayer */

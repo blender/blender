@@ -287,14 +287,15 @@ static void halo_tile(RenderPart *pa, float *pass, unsigned int lay)
 	}
 }
 
-static void lamphalo_tile(RenderPart *pa, float *pass, unsigned int lay)
+static void lamphalo_tile(RenderPart *pa, RenderLayer *rl)
 {
 	ShadeInput shi;
+	float *pass= rl->rectf;
 	float fac;
 	long *rd= pa->rectdaps;
 	int x, y, *rz= pa->rectz;
 	
-	shi.lay= lay;
+	shade_input_initialize(&shi, pa, rl, 0);
 	
 	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
 		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, rz++, pass+=4) {
@@ -321,7 +322,6 @@ static void lamphalo_tile(RenderPart *pa, float *pass, unsigned int lay)
 					shi.co[2]= 0.0f;
 					renderspothalo(&shi, pass, fac);
 				}
-				
 			}
 			else {
 				if(R.r.mode & R_ORTHO)
@@ -859,7 +859,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 		/* lamphalo after solid, before ztra, looks nicest because ztra does own halo */
 		if(R.flag & R_LAMPHALO)
 			if(rl->layflag & SCE_LAY_HALO)
-				lamphalo_tile(pa, rl->rectf, rl->lay);
+				lamphalo_tile(pa, rl);
 		
 		/* halo before ztra, because ztra fills in zbuffer now */
 		if(R.flag & R_HALO)
@@ -1028,7 +1028,7 @@ void zbufshade_tile(RenderPart *pa)
 		/* lamphalo after solid, before ztra, looks nicest because ztra does own halo */
 		if(R.flag & R_LAMPHALO)
 			if(rl->layflag & SCE_LAY_HALO)
-					lamphalo_tile(pa, rl->rectf, rl->lay);
+				lamphalo_tile(pa, rl);
 		
 		/* halo before ztra, because ztra fills in zbuffer now */
 		if(R.flag & R_HALO)
@@ -1353,6 +1353,9 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	/* no face normal flip */
 	shi->puno= 0;
 	
+	/* cache for shadow */
+	shi->samplenr++;
+	
 	if(bs->quad) 
 		shade_input_set_triangle_i(shi, vlr, 0, 2, 3);
 	else
@@ -1377,8 +1380,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 		
 		shade_input_set_shade_texco(shi);
 		
-		if(R.r.mode & R_SHADOW)
-			shade_samples_do_shadow(ssamp);
+		shade_samples_do_AO(ssamp);
 		
 		if(shi->mat->nodetree && shi->mat->use_nodes) {
 			ntreeShaderExecTree(shi->mat->nodetree, shi, &shr);

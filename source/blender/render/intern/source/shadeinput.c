@@ -70,8 +70,8 @@ extern struct Render R;
 			- shade_input_set_uv()        <- not for ray or bake
 			- shade_input_set_normals()
 - shade_samples()
-	- if shadow or AO
-		- shade_samples_do_shadow()
+	- if AO
+		- shade_samples_do_AO()
 	- if shading happens
 		- for each sample
 			- shade_input_set_shade_texco()
@@ -835,7 +835,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 
 
 /* initialize per part, not per pixel! */
-static void shade_input_initialize(ShadeInput *shi, RenderPart *pa, RenderLayer *rl, int sample)
+void shade_input_initialize(ShadeInput *shi, RenderPart *pa, RenderLayer *rl, int sample)
 {
 	
 	memset(shi, 0, sizeof(ShadeInput));
@@ -864,65 +864,31 @@ void shade_sample_initialize(ShadeSample *ssamp, RenderPart *pa, RenderLayer *rl
 		shade_input_initialize(&ssamp->shi[a], pa, rl, a);
 		memset(&ssamp->shr[a], 0, sizeof(ShadeResult));
 	}
+	
+	ssamp->samplenr= 0; /* counter, detect shadow-reuse for shaders */
 }
 
-/* for all lamps, for all samples, do shadow */
-/* renderdata mode was checked for */
-void shade_samples_do_shadow(ShadeSample *ssamp)
+
+/* Do AO or (future) GI */
+void shade_samples_do_AO(ShadeSample *ssamp)
 {
-	GroupObject *go;
-	LampRen *lar;
 	ShadeInput *shi;
 	int sample;
 	
-	if(ssamp->shi[0].passflag & (SCE_PASS_COMBINED|SCE_PASS_DIFFUSE|SCE_PASS_SPEC|SCE_PASS_SHADOW)) {
-		for(go=R.lights.first; go; go= go->next) {
-			lar= go->lampren;
-			
-			/* if there's shadow */
-			if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
-				
-				for(sample=0, shi= ssamp->shi; sample<ssamp->tot; shi++, sample++) {
-					float visifac, lv[3], lampdist, inpr;
-					
-					/* tests to quickly reject */
-					if(lar->mode & LA_LAYER) if((lar->lay & shi->vlr->lay)==0) continue;
-					if((lar->lay & shi->lay)==0) continue;
-					
-					if(!(shi->mode & MA_SHADOW) || (shi->mode & MA_SHLESS))
-						continue;
-					
-					if(!( (shi->combinedflag | shi->passflag) & SCE_PASS_SHADOW))
-						continue;
-					
-					visifac= lamp_get_visibility(lar, shi->co, lv, &lampdist);
-					if(visifac==0.0f)
-						continue;
-
-					inpr= INPR(shi->vn, lv);
-					
-					/* tangential faces always look at lamp */
-					if( (shi->mat->mode & MA_TANGENT_V) || (shi->vlr->flag & R_TANGENT) )
-						inpr= 1.0f - inpr*inpr;
-					else if(inpr <= 0.0f)
-						continue;
-					
-					/* now we're going (1 = do it real) */
-					lamp_get_shadow(lar, shi, inpr, lar->shadsamp[shi->thread].shadfac[sample], 1);
-				}
-			}
-		}
-	}
+	if(!(R.r.mode & R_SHADOW))
+		return;
+	if(!(R.r.mode & R_RAYTRACE))
+		return;
 	
-	/* do the AO */
 	if(R.wrld.mode & WO_AMB_OCC)
-		if(ssamp->shi[0].passflag & (SCE_PASS_COMBINED|SCE_PASS_DIFFUSE|SCE_PASS_AO))
+		if(ssamp->shi[0].passflag & (SCE_PASS_COMBINED|SCE_PASS_AO))
 			for(sample=0, shi= ssamp->shi; sample<ssamp->tot; shi++, sample++)
 				if(!(shi->mode & MA_SHLESS))
 					if(shi->mode & MA_SHADOW)
 						ambient_occlusion(shi);		/* stores in shi->ao[] */
 		
 }
+
 
 static void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, int y)
 {
@@ -950,6 +916,7 @@ static void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, in
 							shade_input_copy_triangle(shi, shi-1);
 						
 						shi->mask= (1<<samp);
+						shi->samplenr= ssamp->samplenr++;
 						shade_input_set_viewco(shi, xs, ys, (float)ps->z);
 						shade_input_set_uv(shi);
 						shade_input_set_normals(shi);
@@ -970,6 +937,7 @@ static void shade_samples_fill_with_ps(ShadeSample *ssamp, PixStr *ps, int x, in
 					ys= (float)y + 0.5f;
 				}
 				shi->mask= curmask;
+				shi->samplenr= ssamp->samplenr++;
 				shade_input_set_viewco(shi, xs, ys, (float)ps->z);
 				shade_input_set_uv(shi);
 				shade_input_set_normals(shi);
@@ -994,8 +962,7 @@ int shade_samples(ShadeSample *ssamp, PixStr *ps, int x, int y)
 		int samp;
 		
 		/* if shadow or AO? */
-		if(R.r.mode & R_SHADOW)
-			shade_samples_do_shadow(ssamp);
+		shade_samples_do_AO(ssamp);
 		
 		/* if shade (all shadepinputs have same passflag) */
 		if(ssamp->shi[0].passflag & ~(SCE_PASS_Z|SCE_PASS_INDEXOB)) {

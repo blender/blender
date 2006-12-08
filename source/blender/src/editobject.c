@@ -201,7 +201,7 @@ void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff 
 		if(type==OB_EMPTY) BIF_undo_push("Add Empty");
 		else if(type==OB_LAMP) {
 			BIF_undo_push("Add Lamp");
-			if(G.vd->drawtype == OB_SHADED) reshadeall_displist();
+			reshadeall_displist();	/* only frees */
 		}
 		else if(type==OB_LATTICE) BIF_undo_push("Add Lattice");
 		else if(type==OB_CAMERA) BIF_undo_push("Add Camera");
@@ -311,7 +311,7 @@ void delete_obj(int ok)
 	G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT);
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 	
-	if(islamp && G.vd->drawtype==OB_SHADED) reshadeall_displist();
+	if(islamp) reshadeall_displist();	/* only frees displist */
 
 	redraw_test_buttons(OBACT);
 	allqueue(REDRAWVIEW3D, 0);
@@ -2080,7 +2080,7 @@ void movetolayer(void)
 			base= base->next;
 		}
 	}
-	if(islamp && G.vd->drawtype == OB_SHADED) reshadeall_displist();
+	if(islamp) reshadeall_displist();	/* only frees */
 	
 	/* warning, active object may be hidden now */
 	

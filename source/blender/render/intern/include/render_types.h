@@ -290,8 +290,13 @@ struct MTex;
  * properties of a lightsource.
  */
 
+typedef struct LampShadowSubSample {
+	int samplenr;
+	float shadfac[4];	/* rgba shadow */
+} LampShadowSubSample;
+
 typedef struct LampShadowSample {
-	float shadfac[16][4];	/* 16 = RE_MAX_OSA, 4 = rgba */
+	LampShadowSubSample s[16];	/* MAX OSA */
 } LampShadowSample;
 
 typedef struct LampRen {
@@ -344,8 +349,7 @@ typedef struct LampRen {
 	float area[8][3], areasize;
 	
 	/* passes & node shader support: all shadow info for a pixel */
-	/* struct is currently 2k long... check on alloc? */
-	LampShadowSample shadsamp[BLENDER_MAX_THREADS];
+	LampShadowSample *shadsamp;
 	
 	/* yafray: photonlight params */
 	int YF_numphotons, YF_numsearch;

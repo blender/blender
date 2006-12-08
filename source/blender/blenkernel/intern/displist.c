@@ -720,6 +720,7 @@ void shadeDispList(Base *base)
 }
 
 /* frees render and shade part of displists */
+/* note: dont do a shade again, until a redraw happens */
 void reshadeall_displist(void)
 {
 	Base *base;

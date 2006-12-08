@@ -2813,9 +2813,6 @@ static int vergzvlak(const void *a1, const void *a2)
 	return 0;
 }
 
-/**
-* Shade this face at this location in SCS.
- */
 
 static void shade_tra_samples_fill(ShadeSample *ssamp, int x, int y, int z, int facenr, int curmask)
 {
@@ -2843,6 +2840,7 @@ static void shade_tra_samples_fill(ShadeSample *ssamp, int x, int y, int z, int 
 						shi++;
 					}
 					shi->mask= (1<<samp);
+					shi->samplenr= ssamp->samplenr++;
 					shade_input_set_viewco(shi, xs, ys, (float)z);
 					shade_input_set_uv(shi);
 					shade_input_set_normals(shi);
@@ -2862,6 +2860,7 @@ static void shade_tra_samples_fill(ShadeSample *ssamp, int x, int y, int z, int 
 				ys= (float)y + 0.5f;
 			}
 			shi->mask= curmask;
+			shi->samplenr= ssamp->samplenr++;
 			shade_input_set_viewco(shi, xs, ys, (float)z);
 			shade_input_set_uv(shi);
 			shade_input_set_normals(shi);
@@ -2881,9 +2880,8 @@ static int shade_tra_samples(ShadeSample *ssamp, int x, int y, int z, int facenr
 		ShadeResult *shr= ssamp->shr;
 		int samp;
 		
-		/* if shadow or AO? */
-		if(R.r.mode & R_SHADOW)
-			shade_samples_do_shadow(ssamp);
+		/* if AO? */
+		shade_samples_do_AO(ssamp);
 		
 		/* if shade (all shadepinputs have same passflag) */
 		if(shi->passflag & ~(SCE_PASS_Z|SCE_PASS_INDEXOB)) {

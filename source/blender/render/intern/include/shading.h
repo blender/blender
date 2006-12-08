@@ -28,6 +28,7 @@ struct ShadeResult;
 struct RenderPart;
 struct RenderLayer;
 struct PixStr;
+struct LampRen;
 
 /* shadeinput.c */
 
@@ -35,8 +36,12 @@ struct PixStr;
 /* needed to calculate shadow and AO for an entire pixel */
 typedef struct ShadeSample {
 	int tot;				/* amount of shi in use, can be 1 for not FULL_OSA */
+	
+	/* could be malloced once */
 	ShadeInput shi[16];		/* RE_MAX_OSA */
 	ShadeResult shr[16];	/* RE_MAX_OSA */
+	
+	int samplenr;			/* counter, detect shadow-reuse for shaders */
 } ShadeSample;
 
 
@@ -52,8 +57,10 @@ void shade_input_set_normals(struct ShadeInput *shi);
 void shade_input_set_shade_texco(struct ShadeInput *shi);
 void shade_input_do_shade(struct ShadeInput *shi, struct ShadeResult *shr);
 
+void shade_input_initialize(struct ShadeInput *shi, struct RenderPart *pa, struct RenderLayer *rl, int sample);
+
 void shade_sample_initialize(struct ShadeSample *ssamp, struct RenderPart *pa, struct RenderLayer *rl);
-void shade_samples_do_shadow(struct ShadeSample *ssamp);
+void shade_samples_do_AO(struct ShadeSample *ssamp);
 int shade_samples(struct ShadeSample *ssamp, struct PixStr *ps, int x, int y);
 
 void vlr_set_uv_indices(struct VlakRen *vlr, int *i1, int *i2, int *i3);
