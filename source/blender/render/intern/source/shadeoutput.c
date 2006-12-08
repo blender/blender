@@ -1152,6 +1152,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	if(lar->mode & LA_TEXTURE)  do_lamp_tex(lar, lv, shi, lacol);
 	
 	/* tangent case; calculate fake face normal, aligned with lampvector */	
+	/* note, vnor==vn is used as tangent trigger for buffer shadow */
 	if(vlr->flag & R_TANGENT) {
 		float cross[3];
 		Crossf(cross, lv, vn);
@@ -1234,8 +1235,11 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 			if(ma->mode & MA_SHADOW) {
 				if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
 					
-					lamp_get_shadow(lar, shi, inp, shadfac, shi->depth);
-					
+					if(vn==vnor)	/* tangent trigger */
+						lamp_get_shadow(lar, shi, INPR(shi->vn, lv), shadfac, shi->depth);
+					else
+						lamp_get_shadow(lar, shi, inp, shadfac, shi->depth);
+						
 					/* warning, here it skips the loop */
 					if(lar->mode & LA_ONLYSHADOW) {
 						

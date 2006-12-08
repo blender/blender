@@ -1950,9 +1950,16 @@ static void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
 		float d= 1.0f;
 		/* we got a face */
 		
+		shi.depth= 1;					/* only used to indicate tracing */
 		shi.mask= 1;
 		shi.osatex= 0;
-		shi.depth= 1;	// only now to indicate tracing
+		shi.thread= 0;
+		shi.lay= 0;
+		shi.passflag= 0;
+		shi.combinedflag= 0;
+		shi.do_preview= 0;
+		shi.light_override= NULL;
+		shi.mat_override= NULL;
 		
 		shade_ray(is, &shi, &shr);
 		if (traflag & RAY_TRA)
