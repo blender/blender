@@ -343,6 +343,7 @@ void renderspothalo(ShadeInput *shi, float *col, float alpha)
 	lights= get_lights(shi);
 	for(go=lights->first; go; go= go->next) {
 		lar= go->lampren;
+		if(lar==NULL) continue;
 		
 		if(lar->type==LA_SPOT && (lar->mode & LA_HALO) && lar->haint>0) {
 			

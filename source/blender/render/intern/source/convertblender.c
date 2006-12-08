@@ -2167,6 +2167,9 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	float mat[4][4], angle, xn, yn;
 	int c;
 
+	/* previewrender sets this to zero... prevent accidents */
+	if(la==NULL) return NULL;
+	
 	/* prevent only shadow from rendering light */
 	if(la->mode & LA_ONLYSHADOW)
 		if((re->r.mode & R_SHADOW)==0)
@@ -3137,18 +3140,21 @@ static void add_lightgroup(Render *re, Group *group, int exclusive)
 	/* note that 'exclusive' will remove it from the global list */
 	for(go= group->gobject.first; go; go= go->next) {
 		go->lampren= NULL;
-		if(go->ob && go->ob->type==OB_LAMP) {
-			for(gol= re->lights.first; gol; gol= gol->next) {
-				if(gol->ob==go->ob) {
-					go->lampren= gol->lampren;
-					break;
+		
+		if(go->ob->lay & re->scene->lay) {
+			if(go->ob && go->ob->type==OB_LAMP) {
+				for(gol= re->lights.first; gol; gol= gol->next) {
+					if(gol->ob==go->ob) {
+						go->lampren= gol->lampren;
+						break;
+					}
 				}
-			}
-			if(go->lampren==NULL) 
-				gol= add_render_lamp(re, go->ob);
-			if(exclusive) {
-				BLI_remlink(&re->lights, gol);
-				MEM_freeN(gol);
+				if(go->lampren==NULL) 
+					gol= add_render_lamp(re, go->ob);
+				if(gol && exclusive) {
+					BLI_remlink(&re->lights, gol);
+					MEM_freeN(gol);
+				}
 			}
 		}
 	}
