@@ -770,6 +770,18 @@ static int Object_compare( BPy_Object * a, BPy_Object * b );
 /* Function:			  M_Object_New				 */
 /* Python equivalent:	  Blender.Object.New				 */
 /*****************************************************************************/
+
+/*
+ * Note: if this method is called without later linking object data to it, 
+ * errors can be caused elsewhere in Blender.  Future versions of the API
+ * will designate obdata as a parameter to this method to prevent this, and
+ * eventually this method will be deprecated.
+ *
+ * When we can guarantee that objects will always have valid obdata, 
+ * unlink_object() should be edited to remove checks for NULL pointers and
+ * debugging messages.
+ */
+
 PyObject *M_Object_New( PyObject * self_unused, PyObject * args )
 {
 	struct Object *object;
@@ -3104,18 +3116,21 @@ Object *GetObjectByName( char *name )
 }
 
 /*****************************************************************************/
-/* Function:	Object_dealloc						 */
-/* Description: This is a callback function for the BlenObject type. It is  */
-/*		the destructor function.				 */
+/* Function:    Object_dealloc                                               */
+/* Description: This is a callback function for the BlenObject type. It is   */
+/*      the destructor function.                                             */
 /*****************************************************************************/
-static void Object_dealloc( BPy_Object * obj )
+static void Object_dealloc( BPy_Object * self )
 {
-#if 1	/* this just adjust the ID but doesn't delete zero-user objects */
-	obj->object->id.us--;
-#else	/* this will adjust the ID and if zero delete the object */
-	free_libblock_us( &G.main->object, obj->object );
+	if( self->object->data )
+		self->object->id.us--;
+	else
+		free_libblock_us( &G.main->object, self->object );
+
+#if 0	/* this will adjust the ID and if zero delete the object */
+	free_libblock_us( &G.main->object, self->object );
 #endif
-	PyObject_DEL( obj );
+	PyObject_DEL( self );
 }
 
 /*****************************************************************************/

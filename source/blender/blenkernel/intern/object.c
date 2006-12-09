@@ -294,6 +294,14 @@ void unlink_object(Object *ob)
 		
 		if ELEM(obt->type, OB_CURVE, OB_FONT) {
 			cu= obt->data;
+			/* this test is for a bug in the Python API with Object.New():
+			 * objects can be created without any obdata; when deleted,
+			 * a segfault occurs since obt->data == NULL */
+			if (!cu) {
+				printf ("ERROR: found curve object with no obdata!\n");
+				break;
+			}
+
 			if(cu->bevobj==ob) {
 				cu->bevobj= NULL;
 				obt->recalc |= OB_RECALC;
