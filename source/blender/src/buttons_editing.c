@@ -4081,7 +4081,8 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	cy-= 20;
 	but= uiDefButS(block,NUMSLI,B_NOP,"Size: ",cx,cy,200,19,&sculptmode_brush()->size,1.0,200.0,0,0,"Set brush radius in pixels");
 	cy-= 20;
-	uiDefButC(block,NUMSLI,B_NOP,"Strength: ",cx,cy,200,19,&sculptmode_brush()->strength,1.0,100.0,0,0,"Set brush strength");
+	if(sd->brush_type!=GRAB_BRUSH)
+		uiDefButC(block,NUMSLI,B_NOP,"Strength: ",cx,cy,200,19,&sculptmode_brush()->strength,1.0,100.0,0,0,"Set brush strength");
 	cy-= 25;
 
 	uiBlockBeginAlign(block);
