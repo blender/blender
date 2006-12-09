@@ -1024,6 +1024,16 @@ void handle_view_wheeldown()
 		persptoetsen(PADMINUS);
 }
 
+int mouse_in_header(ScrArea *sa)
+{
+	short mouse[2];
+	getmouseco_sc(mouse);
+	return mouse[0] >= sa->headrct.xmin &&
+	       mouse[0] <= sa->headrct.xmax &&
+	       mouse[1] >= sa->headrct.ymin &&
+	       mouse[1] <= sa->headrct.ymax;
+}
+
 static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	View3D *v3d= sa->spacedata.first;
@@ -1053,21 +1063,23 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			else if (event==RIGHTMOUSE) event = LEFTMOUSE;
 		}
 
-		if(!G.obedit && (G.f & G_SCULPTMODE)) {
-			if(G.scene->sculptdata.propset) {
-				sculptmode_propset(event);
-				return;
+		if(!mouse_in_header(sa)) {
+			if(!G.obedit && (G.f & G_SCULPTMODE)) {
+				if(G.scene->sculptdata.propset) {
+					sculptmode_propset(event);
+					return;
+				}
+				else if(event!=LEFTMOUSE && event!=MIDDLEMOUSE && (event==MOUSEY || event==MOUSEX)) {
+					if(!bwin_qtest(sa->win))
+						allqueue(REDRAWVIEW3D, 0);
+				}
 			}
-			else if(event!=LEFTMOUSE && event!=MIDDLEMOUSE && (event==MOUSEY || event==MOUSEX)) {
-				if(!bwin_qtest(sa->win))
-					allqueue(REDRAWVIEW3D, 0);
-			}
-		}
 
-		/* Handle retopo painting */
-		if(retopo_mesh_paint_check()) {
-			if(!retopo_paint(event))
-				return;
+			/* Handle retopo painting */
+			if(retopo_mesh_paint_check()) {
+				if(!retopo_paint(event))
+					return;
+			}
 		}
 
 		/* run any view3d event handler script links */
