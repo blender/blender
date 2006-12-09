@@ -1867,9 +1867,9 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 		/* for refract pass */
 		VECCOPY(olddiff, diff);
 		
-		diff[0]= f*diff[0] + fr*tracol[0];
-		diff[1]= f*diff[1] + fg*tracol[1];
-		diff[2]= f*diff[2] + fb*tracol[2];
+		diff[0]= f*diff[0] + f1*fr*tracol[0];
+		diff[1]= f*diff[1] + f1*fg*tracol[1];
+		diff[2]= f*diff[2] + f1*fb*tracol[2];
 		
 		if(shi->passflag & SCE_PASS_REFRACT)
 			VECSUB(shr->refr, diff, olddiff);
