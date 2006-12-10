@@ -1432,6 +1432,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 			ma= vlr->mat;
 			ok= 1;
 			if((ma->mode & MA_SHADBUF)==0) ok= 0;
+			if(ma->mode & MA_WIRE) ok= 0;
 			zspanstrand.shad_alpha= zspan.shad_alpha= ma->shad_alpha;
 		}
 		
