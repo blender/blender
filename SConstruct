@@ -129,7 +129,9 @@ if env['CC'] in ['cl', 'cl.exe'] and sys.platform=='win32':
 elif env['CC'] in ['gcc'] and sys.platform=='win32':
     platform = 'win32-mingw'
 
-if platform == 'win32-mingw':
+# Fix me!
+#if platform == 'win32-mingw':
+if 0:
     try:
         import win32file
         import win32event
