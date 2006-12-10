@@ -64,30 +64,55 @@ ENDIF(WIN32)
 
 # Post build steps for bundling/packaging.
 
+SET(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR})
+
+
+IF(UNIX)
+  ADD_CUSTOM_COMMAND(TARGET blender
+    POST_BUILD
+    MAIN_DEPENDENCY blender
+    COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/plugins ${TARGETDIR}/
+    COMMAND cp ${CMAKE_SOURCE_DIR}/release/text/* ${TARGETDIR}/
+  )
+ENDIF(UNIX)
+
+IF(UNIX AND NOT APPLE)
+  ADD_CUSTOM_COMMAND(TARGET blender
+    POST_BUILD
+    MAIN_DEPENDENCY blender
+    COMMAND rm -Rf ${TARGETDIR}/.blender
+    COMMAND mkdir ${TARGETDIR}/.blender/
+    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.bfont.ttf ${TARGETDIR}/.blender/
+    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/.blender/
+    COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/.blender/
+    COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/.blender/
+    COMMAND find ${TARGETDIR} -name CVS -prune -exec rm -rf {} "\;"
+  )
+ENDIF(UNIX AND NOT APPLE)
+
 IF(APPLE)
   SET(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
   SET(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
-  SET(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}/blender.app)
   SET(TARGETINFO ${TARGETDIR}/Contents/Info.plist)
 
   ADD_CUSTOM_COMMAND(TARGET blender
     POST_BUILD
     MAIN_DEPENDENCY blender
-    COMMAND cp -R ${SOURCEINFO} ${TARGETDIR}/Contents/
-    COMMAND cp -R ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/Contents/
-    COMMAND cp -R ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/Contents/
+    COMMAND cp -R ${SOURCEINFO} ${TARGETDIR}/blender.app/Contents/
+    COMMAND cp -R ${SOURCEDIR}/Contents/PkgInfo ${TARGETDIR}/blender.app/Contents/
+    COMMAND cp -R ${SOURCEDIR}/Contents/Resources ${TARGETDIR}/blender.app/Contents/
     COMMAND cat ${SOURCEINFO} | sed s/VERSION/`cat ${CMAKE_SOURCE_DIR}/release/VERSION`/ | sed s/DATE/`date +'%Y-%b-%d'`/ > ${TARGETINFO}
-    COMMAND rm -Rf ${TARGETDIR}/Contents/MacOS/.blender
-    COMMAND mkdir ${TARGETDIR}/Contents/MacOS/.blender/
-    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.bfont.ttf ${TARGETDIR}/Contents/MacOS/.blender/
-    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/Contents/MacOS/.blender/
-    COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/Contents/Resources/
-    COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/Contents/MacOS/.blender/
-    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/Contents/Resources/
-    COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/Contents/MacOS/.blender/
-    COMMAND find ${TARGETDIR} -name CVS -prune -exec rm -rf {} "\;"
-    COMMAND find ${TARGETDIR} -name CVS.sandboxinfo -prune -exec rm -rf {} "\;"
-    COMMAND find ${TARGETDIR} -name .DS_Store -prune -exec rm -rf {} "\;"
+    COMMAND rm -Rf ${TARGETDIR}/blender.app/Contents/MacOS/.blender
+    COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.bfont.ttf ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+    COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/Resources/
+    COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+    COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/Resources/
+    COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+    COMMAND find ${TARGETDIR}/blender.app -name CVS -prune -exec rm -rf {} "\;"
+    COMMAND find ${TARGETDIR}/blender.app -name CVS.sandboxinfo -prune -exec rm -rf {} "\;"
+    COMMAND find ${TARGETDIR}/blender.app -name .DS_Store -prune -exec rm -rf {} "\;"
   )
 ENDIF(APPLE)
 
@@ -100,10 +125,12 @@ IF(WIN32)
     COMMAND if not exist \"$\(TargetDir\)\\.blender\" mkdir \"$\(TargetDir\)\\.blender\"
     COMMAND if not exist \"$\(TargetDir\)\\.blender\\locale\" mkdir \"$\(TargetDir\)\\.blender\\locale\"
     COMMAND if not exist \"$\(TargetDir\)\\.blender\\scripts\" mkdir \"$\(TargetDir\)\\.blender\\scripts\"
+    COMMAND if not exist \"$\(TargetDir\)\\plugins\" mkdir \"$\(TargetDir\)\\plugins\"
     COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.Blanguages\" \"$\(TargetDir\)\\.blender\\\"
     COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.bfont.ttf\" \"$\(TargetDir\)\\.blender\\\"
     COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\locale\\*.*\" \"$\(TargetDir\)\\.blender\\locale\"
-    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\scripts\\*.*\" \"$\(TargetDir\)\\.blender\\scripts\"
+    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\plugins\\*.*\" \"$\(TargetDir\)\\plugins\"
+    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\text\\*.*\" \"$\(TargetDir\)\"
   )
   
   FILE(TO_NATIVE_PATH "${LIBDIR}" WIN_LIBDIR)
