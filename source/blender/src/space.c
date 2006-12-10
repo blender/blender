@@ -5326,8 +5326,10 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			sfile->filelist= 0;
 		}
 		else if(sl->spacetype==SPACE_VIEW3D) {
-			BIF_view3d_previewrender_free((View3D *)sl);
-			((View3D*)sl)->depths= NULL;
+			View3D *v3d= (View3D*)sl;
+			BIF_view3d_previewrender_free(v3d);
+			v3d->depths= NULL;
+			v3d->retopo_view_data= NULL;
 		}
 		else if(sl->spacetype==SPACE_OOPS) {
 			SpaceOops *so= (SpaceOops *)sl;
