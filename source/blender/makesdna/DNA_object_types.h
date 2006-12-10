@@ -426,6 +426,7 @@ extern Object workob;
 
 /* ob->nlaflag */
 #define OB_NLA_OVERRIDE		1
+#define OB_NLA_COLLAPSED	2
 
 /* ob->protectflag */
 #define OB_LOCK_LOCX	1

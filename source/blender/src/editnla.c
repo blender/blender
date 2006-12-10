@@ -108,6 +108,9 @@ void shift_nlastrips_up(void) {
 	bActionStrip *strip, *prevstrip;
 
 	for (base=G.scene->base.first; base; base=base->next) {
+		if (base->object->nlaflag & OB_NLA_COLLAPSED)
+			continue;
+		
 		for (strip = base->object->nlastrips.first; 
 			 strip; strip=strip->next){
 			if (strip->flag & ACTSTRIP_SELECT) {
@@ -145,6 +148,9 @@ void shift_nlastrips_down(void) {
 	bActionStrip *strip, *nextstrip;
 
 	for (base=G.scene->base.first; base; base=base->next) {
+		if (base->object->nlaflag & OB_NLA_COLLAPSED)
+			continue;
+		
 		for (strip = base->object->nlastrips.last; 
 			 strip; strip=strip->prev){
 			if (strip->flag & ACTSTRIP_SELECT) {
@@ -209,6 +215,9 @@ void reset_action_strips(int val)
 	bActionStrip *strip;
 	
 	for (base=G.scene->base.first; base; base=base->next) {
+		if (base->object->nlaflag & OB_NLA_COLLAPSED)
+			continue;
+		
 		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_SELECT) {
 				if(val==2) {
@@ -236,6 +245,9 @@ void snap_action_strips(int snap_mode)
 	bActionStrip *strip;
 	
 	for (base=G.scene->base.first; base; base=base->next) {
+		if (base->object->nlaflag & OB_NLA_COLLAPSED)
+			continue;
+		
 		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_SELECT) {
 				if (snap_mode==1) {
@@ -467,6 +479,7 @@ static void relink_active_strip(void)
 	char *str;
 	
 	if(ob==NULL) return;
+	if(ob->nlaflag & OB_NLA_COLLAPSED) return;
 	
 	for (strip = ob->nlastrips.first; strip; strip=strip->next)
 		if(strip->flag & ACTSTRIP_ACTIVE)
@@ -530,22 +543,25 @@ static void mouse_nlachannels(short mval[2])
 			}
 			click--;
 			
-			/* See if this is an action */
-			if (ob->action){
-				if (click==0) {
-					actclick= 1;
-					break;
+			/* see if any strips under object */
+			if ((ob->nlaflag & OB_NLA_COLLAPSED)==0) {
+				/* See if this is an action */
+				if (ob->action){
+					if (click==0) {
+						actclick= 1;
+						break;
+					}
+					click--;
 				}
-				click--;
-			}
 
-			/* See if this is an nla strip */
-			if(ob->nlastrips.first) {
-				for (strip = ob->nlastrips.first; strip; strip=strip->next){
-					if (click==0) break;
-					click--;				
+				/* See if this is an nla strip */
+				if(ob->nlastrips.first) {
+					for (strip = ob->nlastrips.first; strip; strip=strip->next){
+						if (click==0) break;
+						click--;				
+					}
+					if (strip && click==0) break;
 				}
-				if (strip && click==0) break;
 			}
 		}
 	}
@@ -571,9 +587,15 @@ static void mouse_nlachannels(short mval[2])
 	else if(strip) /* set action */
 		set_active_strip(ob, strip);
 
-	/* override option for NLA */
-	if(obclick && mval[0]<25)
+	/* icon toggles beside strip */
+	if (obclick && mval[0]<20) {
+		/* collapse option for NLA object strip */
+		ob->nlaflag ^= OB_NLA_COLLAPSED;
+	}
+	else if(obclick && mval[0]<36) {
+		/* override option for NLA */
 		ob->nlaflag ^= OB_NLA_OVERRIDE;
+	}
 	
 	ob->ctime= -1234567.0f;	// eveil! 
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
@@ -596,6 +618,9 @@ void deselect_nlachannel_keys (int test)
 	/* Determine if this is selection or deselection */
 	if (test){
 		for (base=G.scene->base.first; base && sel; base=base->next){
+			/* check if collapsed */
+			if (base->object->nlaflag & OB_NLA_COLLAPSED)
+				continue;
 			
 			/* Test object ipos */
 			if (is_ipo_key_selected(base->object->ipo)){
@@ -652,6 +677,9 @@ void deselect_nlachannel_keys (int test)
 	
 	/* Set the flags */
 	for (base=G.scene->base.first; base; base=base->next){
+		/* check if collapsed */
+		if (base->object->nlaflag & OB_NLA_COLLAPSED)
+			continue;
 		
 		/* Set the object ipos */
 		set_ipo_key_selection(base->object->ipo, sel);
@@ -716,7 +744,10 @@ void transform_nlachannel_keys(int mode, int dummy)
 
 	/* Ensure that partial selections result in beztriple selections */
 	for (base=G.scene->base.first; base; base=base->next){
-
+		/* skip if object is collapsed */
+		if (base->object->nlaflag & OB_NLA_COLLAPSED)
+			continue;
+		
 		/* Check object ipos */
 		i= fullselect_ipo_keys(base->object->ipo);
 		if(i) base->flag |= BA_HAS_RECALC_OB;
@@ -766,6 +797,10 @@ void transform_nlachannel_keys(int mode, int dummy)
 	tv = MEM_callocN (sizeof(TransVert) * tvtot, "transVert");
 	tvtot=0;
 	for (base=G.scene->base.first; base; base=base->next){
+		/* skip if object collapsed */
+		if (base->object->nlaflag & OB_NLA_COLLAPSED)
+			continue;
+		
 		/* Manipulate object ipos */
 		tvtot=add_trans_ipo_keys(base->object->ipo, tv, tvtot);
 
@@ -973,7 +1008,10 @@ void delete_nlachannel_keys(void)
 	bActionStrip *strip, *nextstrip;
 		
 	for (base = G.scene->base.first; base; base=base->next){
-
+		/* check if object collapsed */
+		if (base->object->nlaflag & OB_NLA_COLLAPSED)
+			continue;
+	
 		/* Delete object ipos */
 		delete_ipo_keys(base->object->ipo);
 		
@@ -1021,6 +1059,10 @@ void duplicate_nlachannel_keys(void)
 	
 	/* Find selected items */
 	for (base = G.scene->base.first; base; base=base->next){
+		/* check if object collapsed */
+		if (base->object->nlaflag & OB_NLA_COLLAPSED)
+			continue;
+		
 		/* Duplicate object keys */
 		duplicate_ipo_keys(base->object->ipo);
 		
@@ -1094,6 +1136,10 @@ void borderselect_nla(void)
 			if (nla_filter(base)) {
 				
 				ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
+				
+				/* check if expanded */
+				if (base->object->nlaflag & OB_NLA_COLLAPSED)
+					continue;
 				
 				/* Check object ipos */
 				if (base->object->ipo){
@@ -1295,6 +1341,10 @@ static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel)
 			
 			/* Skip object ipos */
 			ymax-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
+			
+			/* check if skip strips if collapsed */
+			if (base->object->nlaflag & OB_NLA_COLLAPSED)
+				continue;
 
 			/* Skip action ipos */
 			if (base->object->action)
@@ -1368,6 +1418,10 @@ static Base *get_nearest_nlachannel_ob_key (float *index, short *sel)
 		if (nla_filter(base)) {
 			
 			ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
+			
+			/* check if skip strips below due to collapsed */
+			if (base->object->nlaflag & OB_NLA_COLLAPSED)
+				continue;
 			
 			/* Handle object ipo selection */
 			if (base->object->ipo){
@@ -1478,6 +1532,11 @@ static bAction *get_nearest_nlachannel_ac_key (float *index, short *sel)
 			
 			/* Skip object ipo and ob-constraint ipo */
 			ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
+			
+			/* skip this object if it is collapsed */
+			if (base->object->nlaflag & OB_NLA_COLLAPSED)
+				continue;
+			
 			ymax=ymin;
 			
 			/* Handle action ipos */
@@ -1598,10 +1657,12 @@ static Object *get_object_from_active_strip(void) {
 	bActionStrip *strip;
 	
 	for (base=G.scene->base.first; base; base=base->next) {
-		for (strip = base->object->nlastrips.first; 
-			 strip; strip=strip->next){
-			if (strip->flag & ACTSTRIP_SELECT) {
-				return base->object;
+		if ((base->object->nlaflag & OB_NLA_COLLAPSED)==0) {
+			for (strip = base->object->nlastrips.first; 
+				 strip; strip=strip->next){
+				if (strip->flag & ACTSTRIP_SELECT) {
+					return base->object;
+				}
 			}
 		}
 	}

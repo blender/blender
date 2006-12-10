@@ -87,6 +87,7 @@
 
 #define TESTBASE_SAFE(base)	((base)->flag & SELECT)
 
+
 /* the left hand side with channels only */
 static void draw_nla_channels(void)
 {
@@ -126,74 +127,83 @@ static void draw_nla_channels(void)
 				BIF_ThemeColor(TH_TEXT_HI);
 			else
 				BIF_ThemeColor(TH_TEXT);
-			glRasterPos2f(x+21,  y-4);
-
+			glRasterPos2f(x+34,  y-4);
 			BMF_DrawString(G.font, ob->id.name+2);
 			
-			/* icon to indicate nla or action */
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
+			
+			/* icon to indicate expanded or collapsed */
+			if (ob->nlaflag & OB_NLA_COLLAPSED)
+				BIF_icon_draw(x+1, y-8, ICON_TRIA_RIGHT);
+			else
+				BIF_icon_draw(x+1, y-8, ICON_TRIA_DOWN);
+			
+			/* icon to indicate nla or action  */
 			if(ob->nlastrips.first && ob->action) {
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
 				if(ob->nlaflag & OB_NLA_OVERRIDE)
-					BIF_icon_draw(x+5, y-8, ICON_NLA);
+					BIF_icon_draw(x+17, y-8, ICON_NLA);
 				else
-					BIF_icon_draw(x+5, y-8, ICON_ACTION);
-				glDisable(GL_BLEND);
-			}			
+					BIF_icon_draw(x+17, y-8, ICON_ACTION);
+			}	
+			glDisable(GL_BLEND);
 			y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
 			
-			/* Draw the action timeline */
-			if (ob->action){
-				BIF_ThemeColorShade(TH_HEADER, -20);
-				glRectf(x+16,  y-NLACHANNELHEIGHT/2,  (float)NLAWIDTH,  y+NLACHANNELHEIGHT/2);
+			/* check if object's nla strips are collapsed or not */
+			if ((ob->nlaflag & OB_NLA_COLLAPSED)==0) {
+				/* Draw the action timeline */
+				if (ob->action){
+					BIF_ThemeColorShade(TH_HEADER, -20);
+					glRectf(x+19,  y-NLACHANNELHEIGHT/2,  (float)NLAWIDTH,  y+NLACHANNELHEIGHT/2);
 
-				if (TESTBASE_SAFE(base))
-					BIF_ThemeColor(TH_TEXT_HI);
-				else
-					BIF_ThemeColor(TH_TEXT);
-				glRasterPos2f(x+32,  y-4);
-				BMF_DrawString(G.font, ob->action->id.name+2);
-				
-				/* icon for active action (no strip mapping) */
-				for (strip = ob->nlastrips.first; strip; strip=strip->next)
-					if(strip->flag & ACTSTRIP_ACTIVE) break;
-				if(strip==NULL) {
-					glEnable(GL_BLEND);
-					BIF_icon_draw(x, y-8, ICON_DOT);
-					glDisable(GL_BLEND);
-				}
-				
-				y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
-			}
-
-			/* Draw the nla strips */
-			for (strip = ob->nlastrips.first; strip; strip=strip->next){
-				BIF_ThemeColorShade(TH_HEADER, -40);
-				glRectf(x+32,  y-NLACHANNELHEIGHT/2,  (float)NLAWIDTH,  y+NLACHANNELHEIGHT/2);
-
-				if (TESTBASE_SAFE(base))
-					BIF_ThemeColor(TH_TEXT_HI);
-				else
-					BIF_ThemeColor(TH_TEXT);
-
-				// why this test? check freeing mem when deleting strips? (ton)
-				if(strip->act) {
-					glRasterPos2f(x+48,  y-4);
-					BMF_DrawString(G.font, strip->act->id.name+2);
+					if (TESTBASE_SAFE(base))
+						BIF_ThemeColor(TH_TEXT_HI);
+					else
+						BIF_ThemeColor(TH_TEXT);
+					glRasterPos2f(x+38,  y-4);
+					BMF_DrawString(G.font, ob->action->id.name+2);
 					
-					if(strip->flag & ACTSTRIP_ACTIVE) {
+					/* icon for active action (no strip mapping) */
+					for (strip = ob->nlastrips.first; strip; strip=strip->next)
+						if(strip->flag & ACTSTRIP_ACTIVE) break;
+					if(strip==NULL) {
 						glEnable(GL_BLEND);
-						BIF_icon_draw(x+16, y-8, ICON_DOT);
+						BIF_icon_draw(x+5, y-8, ICON_DOT);
 						glDisable(GL_BLEND);
 					}
-					if(strip->modifiers.first) {
-						glEnable(GL_BLEND);
-						BIF_icon_draw(x+34, y-8, ICON_MODIFIER);
-						glDisable(GL_BLEND);
-					}
+					
+					y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
 				}
-				
-				y-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
+
+				/* Draw the nla strips */
+				for (strip = ob->nlastrips.first; strip; strip=strip->next){
+					BIF_ThemeColorShade(TH_HEADER, -40);
+					glRectf(x+32,  y-NLACHANNELHEIGHT/2,  (float)NLAWIDTH,  y+NLACHANNELHEIGHT/2);
+
+					if (TESTBASE_SAFE(base))
+						BIF_ThemeColor(TH_TEXT_HI);
+					else
+						BIF_ThemeColor(TH_TEXT);
+
+					// why this test? check freeing mem when deleting strips? (ton)
+					if(strip->act) {
+						glRasterPos2f(x+48,  y-4);
+						BMF_DrawString(G.font, strip->act->id.name+2);
+						
+						if(strip->flag & ACTSTRIP_ACTIVE) {
+							glEnable(GL_BLEND);
+							BIF_icon_draw(x+16, y-8, ICON_DOT);
+							glDisable(GL_BLEND);
+						}
+						if(strip->modifiers.first) {
+							glEnable(GL_BLEND);
+							BIF_icon_draw(x+34, y-8, ICON_MODIFIER);
+							glDisable(GL_BLEND);
+						}
+					}
+					
+					y-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
+				}
 			}
 		}
 	}
@@ -274,7 +284,11 @@ static void draw_nla_strips_keys(SpaceNla *snla)
 		
 		y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
 		
-				
+		/* check if object nla-strips expanded or not */
+		if (ob->nlaflag & OB_NLA_COLLAPSED)
+			continue;
+		
+		
 		/* Draw the action strip */
 		if (ob->action) {
 			
@@ -430,10 +444,12 @@ bActionStrip *get_active_nlastrip(Object **obpp)
 	bActionStrip *strip;
 	
 	for (base=G.scene->base.first; base; base=base->next){
-		for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-			if (strip->flag & ACTSTRIP_SELECT) {
-				*obpp= base->object;
-				return strip;
+		if ((base->object->nlaflag & OB_NLA_COLLAPSED)==0) {
+			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
+				if (strip->flag & ACTSTRIP_SELECT) {
+					*obpp= base->object;
+					return strip;
+				}
 			}
 		}
 	}
@@ -718,18 +734,21 @@ void drawnlaspace(ScrArea *sa, void *spacedata)
 int count_nla_levels(void)
 {
 	Base *base;
-	int y=0;
+	int y= 0;
 
-	for (y=0, base=G.scene->base.first; base; base=base->next) {
+	for (base=G.scene->base.first; base; base=base->next) {
 		if (nla_filter(base)) {
 			/* object level */
 			y++;
-
-			if(base->object->action)
-				y++;
 			
-			/* Nla strips */
-			y+= BLI_countlist(&base->object->nlastrips);
+			/* nla strips for object collapsed? */
+			if ((base->object->nlaflag & OB_NLA_COLLAPSED)==0) {
+				if(base->object->action)
+					y++;
+				
+				/* Nla strips */
+				y+= BLI_countlist(&base->object->nlastrips);
+			}
 		}
 	}
 
