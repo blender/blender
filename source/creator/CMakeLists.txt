@@ -72,7 +72,7 @@ IF(UNIX)
     POST_BUILD
     MAIN_DEPENDENCY blender
     COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/plugins ${TARGETDIR}/
-    COMMAND cp ${CMAKE_SOURCE_DIR}/release/text/* ${TARGETDIR}/
+    COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/text/* ${TARGETDIR}/
   )
 ENDIF(UNIX)
 
