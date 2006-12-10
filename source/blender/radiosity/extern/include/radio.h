@@ -86,6 +86,7 @@ extern void setnodelimit(float limit);
 extern float *mallocVert(void);
 extern float *callocVert(void);
 extern void freeVert(float *vert);
+extern int totalRadVert(void);
 extern RNode *mallocNode(void);
 extern RNode *callocNode(void);
 extern void freeNode(RNode *node);

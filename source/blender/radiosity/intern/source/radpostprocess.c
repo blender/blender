@@ -52,6 +52,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_ghash.h"
 #include "BIF_toolbox.h"  // notice()
 
 #include "DNA_material_types.h"
@@ -684,6 +685,24 @@ void removeEqualNodes(short limit)
 	waitcursor(0);
 }
 
+unsigned int rad_find_or_add_mvert(Mesh *me, MFace *mf, RNode *orignode, float *w, float *radco, GHash *hash)
+{
+	MVert *mvert = BLI_ghash_lookup(hash, radco);
+
+	if(!mvert) {
+		mvert = &me->mvert[me->totvert];
+		VECCOPY(mvert->co, radco);
+		me->totvert++;
+
+		BLI_ghash_insert(hash, radco, mvert);
+	}
+
+	InterpWeightsQ3Dfl(orignode->v1, orignode->v2, orignode->v3,
+		orignode->v4, mvert->co, w);
+
+	return (unsigned int)(mvert - me->mvert);
+}
+
 void rad_addmesh(void)
 {
 	Face *face = NULL;
@@ -691,25 +710,28 @@ void rad_addmesh(void)
 	Mesh *me;
 	MVert *mvert;
 	MFace *mf;
+	RNode *node;
 	Material *ma=0;
-	float **vco, **vertexco;
-	float cent[3], min[3], max[3];
-	int a, nvert, i;
+	GHash *verthash;
 	unsigned int *mcol;
-	
+	float cent[3], min[3], max[3], w[4][4];
+	int a;
+
 	if(RG.totface==0)
 		return;
 	
 	if(RG.totmat==MAXMAT)
 		notice("warning: cannot assign more than 16 materials to 1 mesh");
-	
+
 	/* create the mesh */
 	ob= add_object(OB_MESH);
 	
 	me= ob->data;
-	me->totvert= 0;
+	me->totvert= totalRadVert();
 	me->totface= RG.totface;
 	me->flag= 0;
+
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, NULL, me->totvert);
 	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0, NULL, me->totface);
 	me->mcol= CustomData_add_layer(&me->fdata, CD_MCOL, 0, NULL, me->totface);
 
@@ -723,103 +745,45 @@ void rad_addmesh(void)
 		if(ma) ma->mode |= MA_VERTEXCOL;
 	}
 
-	/* copy face data, load Face vertex colors into mcol, with alpha added */
+	/* create vertices and faces in one go, adding vertices to the end of the
+	   mvert array if they were not added already */
+	me->totvert= 0;
+	verthash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+
 	mcol= (unsigned int*)me->mcol;
-	for(a=0; a<me->totface; a++, mcol+=4) {
+	mf= me->mface;
+
+	for(a=0; a<me->totface; a++, mf++, mcol+=4) {
 		RAD_NEXTFACE(a);
 
-		CustomData_copy_data(RG.mfdata, &me->fdata, face->orig, a, 1);
+		/* the original node that this node is a subnode of */
+		node= RG.mfdatanodes[face->orig];
 
+		/* set mverts from the radio data, and compute interpolation weights */
+		mf->v1= rad_find_or_add_mvert(me, mf, node, w[0], face->v1, verthash);
+		mf->v2= rad_find_or_add_mvert(me, mf, node, w[1], face->v2, verthash);
+		mf->v3= rad_find_or_add_mvert(me, mf, node, w[2], face->v3, verthash);
+		if(face->v4)
+			mf->v4= rad_find_or_add_mvert(me, mf, node, w[3], face->v4, verthash);
+
+		/* copy face and interpolate data */
+		mf->mat_nr= face->matindex;
+
+		CustomData_copy_data(RG.mfdata, &me->fdata, face->orig, a, 1);
+		CustomData_interp(RG.mfdata, &me->fdata, &face->orig, NULL, (float*)w, 1, a);
+
+		/* load face vertex colors, with alpha added */
 		mcol[0]= *((unsigned int*)face->v1+3) | 0x1000000;
 		mcol[1]= *((unsigned int*)face->v2+3) | 0x1000000;
 		mcol[2]= *((unsigned int*)face->v3+3) | 0x1000000;
 		if(face->v4)
 			mcol[3]= *((unsigned int*)face->v4+3) | 0x1000000;
-	}
 
-	/* clear Face vertex color memory for vertex index assignment */
-	for(a=0; a<me->totface; a++) {
-		RAD_NEXTFACE(a);
-
-		*((unsigned int*)face->v1+3)= ~0;
-		*((unsigned int*)face->v2+3)= ~0;
-		*((unsigned int*)face->v3+3)= ~0;
-		if(face->v4)
-			*((unsigned int*)face->v4+3)= ~0;
-	}
-
-	/* create faces and create array with pointers to vertex coords */
-	vco= vertexco= MEM_mallocN(sizeof(float *)*4*RG.totface, "radiovertexco");
-	mf= me->mface;
-
-	for(a=0; a<me->totface; a++, mf++) {
-		RAD_NEXTFACE(a);
-		nvert= (face->v4)? 4: 3;
-
-		for(i=0; i<nvert; i++) {
-			unsigned int *col= ((unsigned int**)&face->v1)[i] + 3;
-
-			if (*col == ~0) {
-				/* vertex has no index yet, so assign one */
-				*col= me->totvert;
-				*vco= ((float**)&face->v1)[i];
-				me->totvert++;
-				vco++;
-			}
-
-			((unsigned int*)&mf->v1)[i] = *col;
-		}
-	}
-
-	/* create vertices */
-	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, NULL, me->totvert);
-	mvert= me->mvert;
-	for(vco=vertexco, a=0; a<me->totvert; a++, mvert++, vco++) {
-		VECCOPY(mvert->co, *vco);
-	}
-
-	MEM_freeN(vertexco);
-	
-	/* assign face data */
-	mf= me->mface;
-
-	for(a=0; a<me->totface; a++, mf++ ) {
-		RNode *orignode;
-		float w[4][4];
-		float *subco;
-
-		RAD_NEXTFACE(a);
-		nvert= (face->v4)? 4: 3;
-
-		/* copy */
-		mf->mat_nr= face->matindex;
-
-		orignode= RG.mfdatanodes[face->orig];
-
-		for(i=0; i<nvert; i++) {
-			subco= (me->mvert + ((unsigned int*)&mf->v1)[i])->co;
-
-			InterpWeightsQ3Dfl(orignode->v1, orignode->v2, orignode->v3,
-				orignode->v4, subco, w[i]);
-		}
-
-		CustomData_interp(RG.mfdata, &me->fdata, &face->orig, NULL, (float*)w, 1, a);
-	}
-
-	/* restore vertex colors, and test_index */
-	mf= me->mface;
-	mcol= (unsigned int*)me->mcol;
-	for(a=0; a<me->totface; a++, mf++, mcol+=4) {
-		RAD_NEXTFACE(a);
-
-		*((unsigned int*)face->v1+3)= mcol[0];
-		*((unsigned int*)face->v2+3)= mcol[1];
-		*((unsigned int*)face->v3+3)= mcol[2];
-		if(face->v4)
-			*((unsigned int*)face->v4+3)= mcol[3];
-
+		/* reorder face indices if needed to make face->v4 == 0 */
 		test_index_face(mf, &me->fdata, a, face->v4? 4: 3);
 	}
+
+	BLI_ghash_free(verthash, NULL, NULL);
 
 	/* boundbox and centre new */
 	INIT_MINMAX(min, max);

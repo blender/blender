@@ -259,6 +259,11 @@ void freeVert(float *vert)
 	Ntotvert--;
 }
 
+int totalRadVert()
+{
+	return Ntotvert;
+}
+
 RNode *mallocNode()
 {
 	Ntotnode++;
