@@ -290,3 +290,9 @@ void multires_calc_level_maps(struct MultiresLevel *lvl) {}
 struct Multires *multires_copy(struct Multires *orig) {return NULL;}
 void sculptmode_init(struct Scene *sce) {}
 void sculptmode_free_all(struct Scene *sce) {}
+
+/* zbuf.c stub */
+void antialias_tagbuf(int xsize, int ysize, char *rectmove) {}
+
+/* imagetexture.c stub */
+void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result) {}

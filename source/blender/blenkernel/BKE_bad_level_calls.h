@@ -207,5 +207,11 @@ struct Multires *multires_copy(struct Multires *orig);
 void sculptmode_free_vertexusers(struct Scene *sce);
 void sculptmode_init(struct Scene *sce);
 
+/* zbuf.c */
+void antialias_tagbuf(int xsize, int ysize, char *rectmove);
+
+/* imagetexture.c */
+void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result);
+
 #endif
 
