@@ -71,6 +71,7 @@
 #include "BIF_editview.h"
 #include "BIF_toolbox.h"
 #include "BIF_editnla.h"
+#include "BIF_editaction.h"
 
 #include "BSE_editipo.h"
 #include "BSE_editnla_types.h"
@@ -328,6 +329,11 @@ static void convert_nla(short mval[2])
 			
 			/* Area that encloses object name (or ipo) */
 			ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
+			
+			/* skip if object collapsed */
+			if (base->object->nlaflag & OB_NLA_COLLAPSED)
+				continue;
+			
 			ymax=ymin;
 			
 			/* Check action ipo */
@@ -768,13 +774,17 @@ void transform_nlachannel_keys(int mode, int dummy)
 			if(strip==NULL) {
 				
 				for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
-					i= fullselect_ipo_keys(chan->ipo);
-					if(i) base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
-					tvtot+=i;
+					if (EDITABLE_ACHAN(chan)) {
+						i= fullselect_ipo_keys(chan->ipo);
+						if(i) base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
+						tvtot+=i;
+					}
 					
 					/* Check action constraint ipos */
-					for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-						tvtot+=fullselect_ipo_keys(conchan->ipo);
+					for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
+						if (EDITABLE_CONCHAN(conchan))
+							tvtot+=fullselect_ipo_keys(conchan->ipo);
+					}
 				}
 			}		
 		}
@@ -819,11 +829,14 @@ void transform_nlachannel_keys(int mode, int dummy)
 			if(strip==NULL) {
 				
 				for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
-					tvtot=add_trans_ipo_keys(chan->ipo, tv, tvtot);
+					if (EDITABLE_ACHAN(chan))
+						tvtot=add_trans_ipo_keys(chan->ipo, tv, tvtot);
 
 					/* Manipulate action constraint ipos */
-					for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-						tvtot=add_trans_ipo_keys(conchan->ipo, tv, tvtot);
+					for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
+						if (EDITABLE_CONCHAN(conchan))
+							tvtot=add_trans_ipo_keys(conchan->ipo, tv, tvtot);
+					}
 				}
 			}
 		}
@@ -1032,10 +1045,14 @@ void delete_nlachannel_keys(void)
 		/* Delete action ipos */
 		if (base->object->action){
 			for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
-				delete_ipo_keys(chan->ipo);
+				if (EDITABLE_ACHAN(chan))
+					delete_ipo_keys(chan->ipo);
+					
 				/* Delete action constraint keys */
-				for(conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-					delete_ipo_keys(conchan->ipo);
+				for(conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
+					if (EDITABLE_CONCHAN(conchan))
+						delete_ipo_keys(conchan->ipo);
+				}
 			}
 		}
 	}
@@ -1092,10 +1109,14 @@ void duplicate_nlachannel_keys(void)
 		/* Duplicate actionchannel keys */
 		if (base->object->action){
 			for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
-				duplicate_ipo_keys(chan->ipo);
+				if (EDITABLE_ACHAN(chan))
+					duplicate_ipo_keys(chan->ipo);
+					
 				/* Duplicate action constraint keys */
-				for(conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-					duplicate_ipo_keys(conchan->ipo);
+				for(conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
+					if (EDITABLE_CONCHAN(conchan))
+						duplicate_ipo_keys(conchan->ipo);
+				}
 			}
 		}
 	}

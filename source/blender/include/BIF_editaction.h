@@ -50,6 +50,10 @@
 #define SLIDERWIDTH    125
 #define ACTWIDTH 		(G.saction->actwidth)
 
+#define VISIBLE_ACHAN(achan) ((achan->flag & ACHAN_HIDDEN)==0)
+#define EDITABLE_ACHAN(achan) (((achan->flag & ACHAN_HIDDEN)==0) && ((achan->flag & ACHAN_PROTECTED)==0))
+#define EDITABLE_CONCHAN(conchan) ((conchan->flag & CONSTRAINT_CHANNEL_PROTECTED)==0)
+
 #define CHANNEL_FILTER_LOC		0x00000001	/* Show location keys */
 #define CHANNEL_FILTER_ROT		0x00000002	/* Show rotation keys */
 #define CHANNEL_FILTER_SIZE		0x00000004	/* Show size keys */

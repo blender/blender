@@ -98,10 +98,6 @@
 /* Useful macros ----------------------------------------------- */
 #define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
 
-#define VISIBLE_ACHAN(achan) ((achan->flag & ACHAN_HIDDEN)==0)
-#define EDITABLE_ACHAN(achan) (((achan->flag & ACHAN_HIDDEN)==0) && ((achan->flag & ACHAN_PROTECTED)==0))
-#define EDITABLE_CONCHAN(conchan) ((conchan->flag & CONSTRAINT_CHANNEL_PROTECTED)==0)
-
 /* Local Function prototypes, are forward needed */
 static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
 
@@ -1734,10 +1730,12 @@ static void mouse_actionchannels_protect (bAction *act, short *mval)
 			if ( clickmin <= 0) {
 				/* invert the channel's protect property */
 				lock = (achan->flag & ACHAN_PROTECTED);
-				if (lock)
+				if (lock) {
 					achan->flag &= ~ACHAN_PROTECTED;
-				else
+				}
+				else {
 					achan->flag |= ACHAN_PROTECTED;
+				}
 			}
 			--clickmin;
 			--clickmax;
