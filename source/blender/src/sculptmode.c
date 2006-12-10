@@ -718,14 +718,23 @@ void do_draw_brush(EditData *e, const ListBase* active_verts)
 
 vec3f neighbor_average(const int vert)
 {
-	Mesh *me= get_mesh(G.scene->sculptdata.active_ob);
+	SculptData *sd= &G.scene->sculptdata;
+	Mesh *me= get_mesh(sd->active_ob);
 	int i, skip= -1, total=0;
-	IndexNode *node= G.scene->sculptdata.vertex_users[vert].first;
+	IndexNode *node= sd->vertex_users[vert].first;
 	vec3f avg= {0,0,0};
+	char ncount= BLI_countlist(&sd->vertex_users[vert]);
 	MFace *f;
+		
+	/* Don't modify corner vertices */
+	if(ncount==1) {
+		VecCopyf(&avg.x, me->mvert[vert].co);
+		return avg;
+	}
 
 	while(node){
 		f= &me->mface[node->Index];
+		
 		if(f->v4) {
 			skip= (f->v1==vert?2:
 			       f->v2==vert?3:
@@ -734,7 +743,7 @@ vec3f neighbor_average(const int vert)
 		}
 
 		for(i=0; i<(f->v4?4:3); ++i) {
-			if(i != skip) {
+			if(i != skip && (ncount!=2 || BLI_countlist(&sd->vertex_users[(&f->v1)[i]]) <= 2)) {
 				VecAddf(&avg.x,&avg.x,me->mvert[(&f->v1)[i]].co);
 				++total;
 			}
@@ -743,9 +752,13 @@ vec3f neighbor_average(const int vert)
 		node= node->next;
 	}
 
-	avg.x/= total;
-	avg.y/= total;
-	avg.z/= total;
+	if(total>0) {
+		avg.x/= total;
+		avg.y/= total;
+		avg.z/= total;
+	}
+	else
+		VecCopyf(&avg.x, me->mvert[vert].co);
 
 	return avg;
 }
@@ -759,16 +772,12 @@ void do_smooth_brush(const ListBase* active_verts)
 
 	while(node){
 		cur= node->Index;
-
-		if(BLI_countlist(&G.scene->sculptdata.vertex_users[cur]) > 2) {
-			avg.x=avg.y=avg.z= 0;
 			
-			avg= neighbor_average(cur);
+		avg= neighbor_average(cur);
 			
-			me->mvert[cur].co[0]+= (avg.x - me->mvert[cur].co[0])*node->Fade;
-			me->mvert[cur].co[1]+= (avg.y - me->mvert[cur].co[1])*node->Fade;
-			me->mvert[cur].co[2]+= (avg.z - me->mvert[cur].co[2])*node->Fade;
-		}
+		me->mvert[cur].co[0]+= (avg.x - me->mvert[cur].co[0])*node->Fade;
+		me->mvert[cur].co[1]+= (avg.y - me->mvert[cur].co[1])*node->Fade;
+		me->mvert[cur].co[2]+= (avg.z - me->mvert[cur].co[2])*node->Fade;
 
 		node= node->next;
 	}
