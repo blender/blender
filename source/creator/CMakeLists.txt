@@ -61,6 +61,9 @@ ELSE(WIN32)
   ADD_EXECUTABLE(blender ${EXETYPE} creator.c ${CMAKE_CURRENT_BINARY_DIR}/dna.c)
 ENDIF(WIN32)
 
+
+# Post build steps for bundling/packaging.
+
 IF(APPLE)
   SET(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
   SET(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
@@ -87,6 +90,67 @@ IF(APPLE)
     COMMAND find ${TARGETDIR} -name .DS_Store -prune -exec rm -rf {} "\;"
   )
 ENDIF(APPLE)
+
+IF(WIN32)
+  FILE(TO_NATIVE_PATH ${CMAKE_SOURCE_DIR} WIN_SOURCE_DIR)
+  
+  ADD_CUSTOM_COMMAND(TARGET blender
+    POST_BUILD
+    MAIN_DEPENDENCY blender
+    COMMAND if not exist \"$\(TargetDir\)\\.blender\" mkdir \"$\(TargetDir\)\\.blender\"
+    COMMAND if not exist \"$\(TargetDir\)\\.blender\\locale\" mkdir \"$\(TargetDir\)\\.blender\\locale\"
+    COMMAND if not exist \"$\(TargetDir\)\\.blender\\scripts\" mkdir \"$\(TargetDir\)\\.blender\\scripts\"
+    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.Blanguages\" \"$\(TargetDir\)\\.blender\\\"
+    COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.bfont.ttf\" \"$\(TargetDir\)\\.blender\\\"
+    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\locale\\*.*\" \"$\(TargetDir\)\\.blender\\locale\"
+    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\scripts\\*.*\" \"$\(TargetDir\)\\.blender\\scripts\"
+  )
+  
+  FILE(TO_NATIVE_PATH "${LIBDIR}" WIN_LIBDIR)
+  
+  ADD_CUSTOM_COMMAND(TARGET blender
+    POST_BUILD
+    MAIN_DEPENDENCY blender
+    COMMAND copy /Y \"${WIN_LIBDIR}\\gettext\\lib\\gnu_gettext.dll\" \"$\(TargetDir\)\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\png\\lib\\libpng.dll\" \"$\(TargetDir\)\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\sdl\\lib\\SDL.dll\" \"$\(TargetDir\)\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\zlib\\lib\\zlib.dll\" \"$\(TargetDir\)\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\tiff\\lib\\libtiff.dll\" \"$\(TargetDir\)\\\"
+    COMMAND if $\(ConfigurationName\)==Debug copy /Y \"${WIN_LIBDIR}\\python\\lib\\python24_D.dll\" \"$\(TargetDir\)\\\"
+    COMMAND if $\(ConfigurationName\)==Debug copy /Y \"${WIN_LIBDIR}\\CRTL\\lib\\msvcrtd.dll\" \"$\(TargetDir\)\\\"
+    COMMAND if NOT $\(ConfigurationName\)==Debug copy /Y \"${WIN_LIBDIR}\\python\\lib\\python24.dll\" \"$\(TargetDir\)\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"$\(TargetDir\)\\\"
+  )
+
+  IF(WITH_INTERNATIONAL)
+    ADD_CUSTOM_COMMAND(TARGET blender
+      POST_BUILD
+      MAIN_DEPENDENCY blender
+      COMMAND copy /Y \"${WIN_LIBDIR}\\iconv\\lib\\iconv.dll\" \"$\(TargetDir\)\\\"
+    )
+  ENDIF(WITH_INTERNATIONAL)
+
+  IF(WITH_FFMPEG)
+    ADD_CUSTOM_COMMAND(TARGET blender
+      POST_BUILD
+      MAIN_DEPENDENCY blender
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avcodec-51.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avformat-51.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\avutil-49.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libdts.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaac.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libfaad.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libgsm.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libmp3lame-0.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libogg-0.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libvorbis-0.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libvorbisenc-2.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\libx264-54.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\postproc-51.dll\" \"$\(TargetDir\)\\\"
+      COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\xvidcore.dll\" \"$\(TargetDir\)\\\"
+    )
+  ENDIF(WITH_FFMPEG)
+ENDIF(WIN32)
 
 ADD_DEPENDENCIES(blender makesdna)
 
