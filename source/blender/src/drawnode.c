@@ -275,10 +275,15 @@ static int node_buts_mix_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf
 		uiBut *bt;
 		
 		/* blend type */
+		uiBlockBeginAlign(block);
 		bt=uiDefButS(block, MENU, B_NODE_EXEC+node->nr, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Overlay %x9|Divide %x5|Difference %x6|Darken %x7|Lighten %x8|Dodge %x10|Burn %x11|Color %x15|Value %x14|Saturation %x13|Hue %x12",
-					 butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
+					 butr->xmin, butr->ymin, butr->xmax-butr->xmin-20, 20, 
 					 &node->custom1, 0, 0, 0, 0, "");
 		uiButSetFunc(bt, node_but_title_cb, node, bt);
+		/* Alpha option */
+		uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "A",
+				  butr->xmax-20, butr->ymin, 20, 20, 
+				  &node->custom2, 0, 0, 0, 0, "Include Alpha of 2nd input in this operation");
 	}
 	return 20;
 }
@@ -1177,6 +1182,27 @@ static int node_composit_buts_luma_matte(uiBlock *block, bNodeTree *ntree, bNode
 	return 60;
  }
 
+static int node_composit_buts_map_uv(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Alpha:",
+				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
+				  &node->custom1, 0, 100, 0, 0, "Conversion percentage of UV differences to Alpha");
+	}
+	return 20;
+}
+
+static int node_composit_buts_id_mask(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "ID:",
+				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
+				  &node->custom1, 0, 10000, 0, 0, "Pass Index number to convert to Alpha");
+	}
+	return 20;
+}
+
+
 /* allocate sufficient! */
 static void node_imagetype_string(char *str)
 {
@@ -1352,6 +1378,12 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_LUMA:
 			ntype->butfunc= node_composit_buts_luma_matte;
+			break;
+		case CMP_NODE_MAP_UV:
+			ntype->butfunc= node_composit_buts_map_uv;
+			break;
+		case CMP_NODE_ID_MASK:
+			ntype->butfunc= node_composit_buts_id_mask;
 			break;
 		default:
 			ntype->butfunc= NULL;

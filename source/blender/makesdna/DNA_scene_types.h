@@ -151,8 +151,10 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_VECTOR		512
 #define SCE_PASS_REFRACT	1024
 #define SCE_PASS_INDEXOB	2048
-#define SCE_PASS_RADIO		4096
-		/* note, passflag is treestore element 'nr' in outliner, short still... */
+#define SCE_PASS_UV			4096
+#define SCE_PASS_RADIO		8192
+/* note, srl->passflag is treestore element 'nr' in outliner, short still... */
+
 
 typedef struct RenderData {
 	struct AviCodecData *avicodecdata;

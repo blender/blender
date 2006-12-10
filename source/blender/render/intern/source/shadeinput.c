@@ -32,6 +32,7 @@
 #include "MTC_matrixops.h"
 #include "BLI_arithb.h"
 
+#include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_meshdata_types.h"
@@ -151,9 +152,12 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 		shade_material_loop(shi, shr);
 	}
 	
-	/* additional passes */
-	QUATCOPY(shr->winspeed, shi->winspeed);
-	VECCOPY(shr->nor, shi->vn);
+	/* copy additional passes */
+	if(shi->passflag & (SCE_PASS_VECTOR|SCE_PASS_NORMAL|SCE_PASS_RADIO)) {
+		QUATCOPY(shr->winspeed, shi->winspeed);
+		VECCOPY(shr->nor, shi->vn);
+		VECCOPY(shr->rad, shi->rad);
+	}
 	
 	/* MIST */
 	if((R.wrld.mode & WO_MIST) && (shi->mat->mode & MA_NOMIST)==0 ) {
@@ -396,7 +400,7 @@ void shade_input_set_uv(ShadeInput *shi)
 {
 	VlakRen *vlr= shi->vlr;
 	
-	if( (vlr->flag & R_SMOOTH) || (shi->mat->texco & NEED_UV) ) {
+	if( (vlr->flag & R_SMOOTH) || (shi->mat->texco & NEED_UV) || (shi->passflag & SCE_PASS_UV)) {
 		float *v1= shi->v1->co, *v2= shi->v2->co, *v3= shi->v3->co;
 		
 		/* exception case for wire render of edge */
@@ -578,6 +582,10 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			shi->winspeed[0]= shi->winspeed[1]= shi->winspeed[2]= shi->winspeed[3]= 0.0f;
 		}
 	}
+
+	/* pass option forces UV calc */
+	if(shi->passflag & SCE_PASS_UV)
+		texco |= (NEED_UV|TEXCO_UV);
 	
 	/* texture coordinates. shi->dxuv shi->dyuv have been set */
 	if(texco & NEED_UV) {
@@ -663,7 +671,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				
 				shi->uv[0]= -1.0f + 2.0f*(l*uv3[0]-u*uv1[0]-v*uv2[0]);
 				shi->uv[1]= -1.0f + 2.0f*(l*uv3[1]-u*uv1[1]-v*uv2[1]);
-				shi->uv[2]= 0.0f;	// texture.c assumes there are 3 coords
+				shi->uv[2]= 1.0f;	/* texture.c assumes there are 3 coords, also to indicate it is real UV for passes */
 				
 				if(shi->osatex) {
 					float duv[2];
@@ -694,7 +702,8 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			else {
 				shi->uv[0]= 2.0f*(u+.5f);
 				shi->uv[1]= 2.0f*(v+.5f);
-				shi->uv[2]= 0.0f;	// texture.c assumes there are 3 coords
+				shi->uv[2]= 0.0f;	/* texture.c assumes there are 3 coords, also to indicate it is no real UV for passes */
+				
 				if(mode & MA_FACETEXTURE) {
 					/* no tface? set at 1.0f */
 					shi->vcol[0]= 1.0f;

@@ -2117,7 +2117,9 @@ static void zbuf_fill_in_rgba(ZSpan *zspan, DrawBufPixel *col, float *v1, float 
 	}
 }
 
-static void antialias_tagbuf(int xsize, int ysize, char *rectmove)
+/* char value==255 is filled in, rest should be zero */
+/* returns alpha values, but sets alpha to 1 for zero alpha pixels that have an alpha value as neighbour */
+void antialias_tagbuf(int xsize, int ysize, char *rectmove)
 {
 	char *row1, *row2, *row3;
 	char prev, next;
@@ -2136,6 +2138,7 @@ static void antialias_tagbuf(int xsize, int ysize, char *rectmove)
 			}
 		}
 	}
+	
 	/* 2: evaluate horizontal scanlines and calculate alphas */
 	row1= rectmove;
 	for(y=0; y<ysize; y++) {
@@ -2151,21 +2154,23 @@ static void antialias_tagbuf(int xsize, int ysize, char *rectmove)
 				if(x+step!=xsize) {
 					/* now we can blend values */
 					next= row1[step];
-					if(prev!=next) {
-						for(a=0; a<step; a++) {
-							int fac, mfac;
-							
-							fac= ((a+1)<<8)/(step+1);
-							mfac= 255-fac;
-							
-							row1[a]= (prev*mfac + next*fac)>>8; 
-						}
+
+					/* note, prev value can be next value, but we do this loop to clear 128 then */
+					for(a=0; a<step; a++) {
+						int fac, mfac;
+						
+						fac= ((a+1)<<8)/(step+1);
+						mfac= 255-fac;
+						
+						row1[a]= (prev*mfac + next*fac)>>8; 
 					}
 				}
 			}
 		}
 	}
-	/* 2: evaluate vertical scanlines and calculate alphas */
+	
+	/* 3: evaluate vertical scanlines and calculate alphas */
+	/*    use for reading a copy of the original tagged buffer */
 	for(x=0; x<xsize; x++) {
 		row1= rectmove + x+xsize;
 		
@@ -2180,21 +2185,19 @@ static void antialias_tagbuf(int xsize, int ysize, char *rectmove)
 				if(y+step!=ysize) {
 					/* now we can blend values */
 					next= row1[step*xsize];
-					if(prev!=next) {
-						for(a=0; a<step; a++) {
-							int fac, mfac;
-							
-							fac= ((a+1)<<8)/(step+1);
-							mfac= 255-fac;
-							
-							row1[a*xsize]= (prev*mfac + next*fac)>>8; 
-						}
+					/* note, prev value can be next value, but we do this loop to clear 128 then */
+					for(a=0; a<step; a++) {
+						int fac, mfac;
+						
+						fac= ((a+1)<<8)/(step+1);
+						mfac= 255-fac;
+						
+						row1[a*xsize]= (prev*mfac + next*fac)>>8; 
 					}
 				}
 			}
 		}
 	}
-	
 	
 	/* last: pixels with 0 we fill in zbuffer, with 1 we skip for mask */
 	for(y=2; y<ysize; y++) {
@@ -2732,6 +2735,9 @@ static void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 			case SCE_PASS_REFLECT:
 				col= shr->refl;
 				break;
+			case SCE_PASS_RADIO:
+				col= shr->rad;
+				break;
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
 				break;
@@ -2787,6 +2793,9 @@ static void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, flo
 				break;
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
+				break;
+			case SCE_PASS_RADIO:
+				col= shr->rad;
 				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
@@ -2951,6 +2960,9 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 					
 					if(addpassflag & SCE_PASS_REFRACT)
 						addvecmul(samp_shr->refr, shr->refr, fac);
+					
+					if(addpassflag & SCE_PASS_RADIO)
+						addvecmul(samp_shr->refr, shr->rad, fac);
 				}
 			}
 		}

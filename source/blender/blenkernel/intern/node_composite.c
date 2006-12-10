@@ -59,6 +59,7 @@
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"		/* <- TexResult */
+#include "RE_render_ext.h"		/* <- ibuf_sample() */
 
 #ifndef atanf
 	#define atanf(a)	atan((double)(a))
@@ -260,42 +261,87 @@ static CompBuf *typecheck_compbuf(CompBuf *inbuf, int type)
 		outbuf->xof= inbuf->xof;
 		outbuf->yof= inbuf->yof;
 		
-		if(type==CB_VAL && inbuf->type==CB_VEC3) {
-			for(; x>0; x--, outrf+= 1, inrf+= 3)
-				*outrf= 0.333333f*(inrf[0]+inrf[1]+inrf[2]);
-		}
-		else if(type==CB_VAL && inbuf->type==CB_RGBA) {
-			for(; x>0; x--, outrf+= 1, inrf+= 4)
-				*outrf= inrf[0]*0.35f + inrf[1]*0.45f + inrf[2]*0.2f;
-		}
-		else if(type==CB_VEC3 && inbuf->type==CB_VAL) {
-			for(; x>0; x--, outrf+= 3, inrf+= 1) {
-				outrf[0]= inrf[0];
-				outrf[1]= inrf[0];
-				outrf[2]= inrf[0];
+		if(type==CB_VAL) {
+			if(inbuf->type==CB_VEC2) {
+				for(; x>0; x--, outrf+= 1, inrf+= 2)
+					*outrf= 0.5f*(inrf[0]+inrf[1]);
+			}
+			else if(inbuf->type==CB_VEC3) {
+				for(; x>0; x--, outrf+= 1, inrf+= 3)
+					*outrf= 0.333333f*(inrf[0]+inrf[1]+inrf[2]);
+			}
+			else if(inbuf->type==CB_RGBA) {
+				for(; x>0; x--, outrf+= 1, inrf+= 4)
+					*outrf= inrf[0]*0.35f + inrf[1]*0.45f + inrf[2]*0.2f;
 			}
 		}
-		else if(type==CB_VEC3 && inbuf->type==CB_RGBA) {
-			for(; x>0; x--, outrf+= 3, inrf+= 4) {
-				outrf[0]= inrf[0];
-				outrf[1]= inrf[1];
-				outrf[2]= inrf[2];
+		else if(type==CB_VEC2) {
+			if(inbuf->type==CB_VAL) {
+				for(; x>0; x--, outrf+= 2, inrf+= 1) {
+					outrf[0]= inrf[0];
+					outrf[1]= inrf[0];
+				}
+			}
+			else if(inbuf->type==CB_VEC3) {
+				for(; x>0; x--, outrf+= 2, inrf+= 3) {
+					outrf[0]= inrf[0];
+					outrf[1]= inrf[1];
+				}
+			}
+			else if(inbuf->type==CB_RGBA) {
+				for(; x>0; x--, outrf+= 2, inrf+= 4) {
+					outrf[0]= inrf[0];
+					outrf[1]= inrf[1];
+				}
 			}
 		}
-		else if(type==CB_RGBA && inbuf->type==CB_VAL) {
-			for(; x>0; x--, outrf+= 4, inrf+= 1) {
-				outrf[0]= inrf[0];
-				outrf[1]= inrf[0];
-				outrf[2]= inrf[0];
-				outrf[3]= inrf[0];
+		else if(type==CB_VEC3) {
+			if(inbuf->type==CB_VAL) {
+				for(; x>0; x--, outrf+= 3, inrf+= 1) {
+					outrf[0]= inrf[0];
+					outrf[1]= inrf[0];
+					outrf[2]= inrf[0];
+				}
+			}
+			else if(inbuf->type==CB_VEC2) {
+				for(; x>0; x--, outrf+= 3, inrf+= 2) {
+					outrf[0]= inrf[0];
+					outrf[1]= inrf[1];
+					outrf[2]= 0.0f;
+				}
+			}
+			else if(inbuf->type==CB_RGBA) {
+				for(; x>0; x--, outrf+= 3, inrf+= 4) {
+					outrf[0]= inrf[0];
+					outrf[1]= inrf[1];
+					outrf[2]= inrf[2];
+				}
 			}
 		}
-		else if(type==CB_RGBA && inbuf->type==CB_VEC3) {
-			for(; x>0; x--, outrf+= 4, inrf+= 3) {
-				outrf[0]= inrf[0];
-				outrf[1]= inrf[1];
-				outrf[2]= inrf[2];
-				outrf[3]= 1.0f;
+		else if(type==CB_RGBA) {
+			if(inbuf->type==CB_VAL) {
+				for(; x>0; x--, outrf+= 4, inrf+= 1) {
+					outrf[0]= inrf[0];
+					outrf[1]= inrf[0];
+					outrf[2]= inrf[0];
+					outrf[3]= inrf[0];
+				}
+			}
+			else if(inbuf->type==CB_VEC2) {
+				for(; x>0; x--, outrf+= 4, inrf+= 2) {
+					outrf[0]= inrf[0];
+					outrf[1]= inrf[1];
+					outrf[2]= 0.0f;
+					outrf[3]= 1.0f;
+				}
+			}
+			else if(inbuf->type==CB_VEC3) {
+				for(; x>0; x--, outrf+= 4, inrf+= 3) {
+					outrf[0]= inrf[0];
+					outrf[1]= inrf[1];
+					outrf[2]= inrf[2];
+					outrf[3]= 1.0f;
+				}
 			}
 		}
 		
@@ -1054,21 +1100,24 @@ static bNodeType cmp_node_image= {
 #define RRES_OUT_ALPHA	1
 #define RRES_OUT_Z		2
 #define RRES_OUT_NORMAL	3
-#define RRES_OUT_VEC	4
-#define RRES_OUT_RGBA	5
-#define RRES_OUT_DIFF	6
-#define RRES_OUT_SPEC	7
-#define RRES_OUT_SHADOW	8
-#define RRES_OUT_AO		9
-#define RRES_OUT_REFLECT 10
-#define RRES_OUT_REFRACT 11
-#define RRES_OUT_INDEXOB 12
+#define RRES_OUT_UV		4
+#define RRES_OUT_VEC	5
+#define RRES_OUT_RGBA	6
+#define RRES_OUT_DIFF	7
+#define RRES_OUT_SPEC	8
+#define RRES_OUT_SHADOW	9
+#define RRES_OUT_AO		10
+#define RRES_OUT_REFLECT 11
+#define RRES_OUT_REFRACT 12
+#define RRES_OUT_RADIO	 13
+#define RRES_OUT_INDEXOB 14
 
 static bNodeSocketType cmp_node_rlayers_out[]= {
 	{	SOCK_RGBA, 0, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "Z",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 0, "Normal",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, "UV",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 0, "Speed",	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, "Diffuse",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
@@ -1077,6 +1126,7 @@ static bNodeSocketType cmp_node_rlayers_out[]= {
 	{	SOCK_RGBA, 0, "AO",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, "Reflect",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, "Refract",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Radio",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "IndexOB",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
@@ -1147,6 +1197,8 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in,
 						out[RRES_OUT_VEC]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_VECTOR);
 					if(out[RRES_OUT_NORMAL]->hasoutput)
 						out[RRES_OUT_NORMAL]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_NORMAL);
+					if(out[RRES_OUT_UV]->hasoutput)
+						out[RRES_OUT_UV]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_UV);
 
 					if(out[RRES_OUT_RGBA]->hasoutput)
 						out[RRES_OUT_RGBA]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_RGBA);
@@ -1162,6 +1214,8 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in,
 						out[RRES_OUT_REFLECT]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_REFLECT);
 					if(out[RRES_OUT_REFRACT]->hasoutput)
 						out[RRES_OUT_REFRACT]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_REFRACT);
+					if(out[RRES_OUT_RADIO]->hasoutput)
+						out[RRES_OUT_RADIO]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_RADIO);
 					if(out[RRES_OUT_INDEXOB]->hasoutput)
 						out[RRES_OUT_INDEXOB]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_INDEXOB);
 
@@ -1618,7 +1672,10 @@ static void do_mix_rgb(bNode *node, float *out, float *in1, float *in2, float *f
 	float col[3];
 	
 	VECCOPY(col, in1);
-	ramp_blend(node->custom1, col, col+1, col+2, fac[0], in2);
+	if(node->custom2)
+		ramp_blend(node->custom1, col, col+1, col+2, in2[3]*fac[0], in2);
+	else
+		ramp_blend(node->custom1, col, col+1, col+2, fac[0], in2);
 	VECCOPY(out, col);
 	out[3]= in1[3];
 }
@@ -1650,7 +1707,7 @@ static void node_composit_exec_mix_rgb(void *data, bNode *node, bNodeStack **in,
 static bNodeType cmp_node_mix_rgb= {
 	/* type code   */	CMP_NODE_MIX_RGB,
 	/* name        */	"Mix",
-	/* width+range */	80, 40, 120,
+	/* width+range */	80, 60, 120,
 	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_mix_rgb_in,
 	/* output sock */	cmp_node_mix_rgb_out,
@@ -1741,7 +1798,7 @@ static void do_filter3(CompBuf *out, CompBuf *in, float *filter, float fac)
 		
 		if(pixlen==1) {
 			fp[0]= row2[0];
-			fp+= pixlen;
+			fp+= 1;
 			
 			for(x=2; x<rowlen; x++) {
 				fp[0]= mfac*row2[1] + fac*(filter[0]*row1[0] + filter[1]*row1[1] + filter[2]*row1[2] + filter[3]*row2[0] + filter[4]*row2[1] + filter[5]*row2[2] + filter[6]*row3[0] + filter[7]*row3[1] + filter[8]*row3[2]);
@@ -1749,12 +1806,26 @@ static void do_filter3(CompBuf *out, CompBuf *in, float *filter, float fac)
 			}
 			fp[0]= row2[1];
 		}
-		else if(pixlen==3) {
-			VECCOPY(fp, row2);
-			fp+= pixlen;
+		else if(pixlen==2) {
+			fp[0]= row2[0];
+			fp[1]= row2[1];
+			fp+= 2;
 			
 			for(x=2; x<rowlen; x++) {
-				for(c=0; c<pixlen; c++) {
+				for(c=0; c<2; c++) {
+					fp[0]= mfac*row2[2] + fac*(filter[0]*row1[0] + filter[1]*row1[2] + filter[2]*row1[4] + filter[3]*row2[0] + filter[4]*row2[2] + filter[5]*row2[4] + filter[6]*row3[0] + filter[7]*row3[2] + filter[8]*row3[4]);
+					fp++; row1++; row2++; row3++;
+				}
+			}
+			fp[0]= row2[2];
+			fp[1]= row2[3];
+		}
+		else if(pixlen==3) {
+			VECCOPY(fp, row2);
+			fp+= 3;
+			
+			for(x=2; x<rowlen; x++) {
+				for(c=0; c<3; c++) {
 					fp[0]= mfac*row2[3] + fac*(filter[0]*row1[0] + filter[1]*row1[3] + filter[2]*row1[6] + filter[3]*row2[0] + filter[4]*row2[3] + filter[5]*row2[6] + filter[6]*row3[0] + filter[7]*row3[3] + filter[8]*row3[6]);
 					fp++; row1++; row2++; row3++;
 				}
@@ -1763,10 +1834,10 @@ static void do_filter3(CompBuf *out, CompBuf *in, float *filter, float fac)
 		}
 		else {
 			QUATCOPY(fp, row2);
-			fp+= pixlen;
+			fp+= 4;
 			
 			for(x=2; x<rowlen; x++) {
-				for(c=0; c<pixlen; c++) {
+				for(c=0; c<4; c++) {
 					fp[0]= mfac*row2[4] + fac*(filter[0]*row1[0] + filter[1]*row1[4] + filter[2]*row1[8] + filter[3]*row2[0] + filter[4]*row2[4] + filter[5]*row2[8] + filter[6]*row3[0] + filter[7]*row3[4] + filter[8]*row3[8]);
 					fp++; row1++; row2++; row3++;
 				}
@@ -2295,6 +2366,7 @@ static bNodeType cmp_node_alphaover= {
 };
 
 /* **************** Z COMBINE ******************** */
+    /* lazy coder note: node->custom1 is abused to send signal */
 static bNodeSocketType cmp_node_zcombine_in[]= {
 	{	SOCK_RGBA, 1, "Image",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "Z",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 10000.0f},
@@ -2308,25 +2380,24 @@ static bNodeSocketType cmp_node_zcombine_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void do_zcombine(bNode *node, float *out, float *src1, float *z1, float *src2, float *z2)
+static void do_zcombine_mask(bNode *node, float *out, float *z1, float *z2)
 {
-	if(*z1 <= *z2) {
-		QUATCOPY(out, src1);
-	}
-	else {
-		QUATCOPY(out, src2);
+	if(*z1 > *z2) {
+		*out= 1.0f;
+		if(node->custom1)
+			*z1= *z2;
 	}
 }
 
-static void do_zcombine_assign(bNode *node, float *out, float *src1, float *z1, float *src2, float *z2)
+static void do_zcombine_add(bNode *node, float *out, float *col1, float *col2, float *acol)
 {
-	if(*z1 <= *z2) {
-		QUATCOPY(out, src1);
-	}
-	else {
-		*z1= *z2;
-		QUATCOPY(out, src2);
-	}
+	float alpha= *acol;
+	float malpha= 1.0f - alpha;
+	
+	out[0]= malpha*col1[0] + alpha*col2[0];
+	out[1]= malpha*col1[1] + alpha*col2[1];
+	out[2]= malpha*col1[2] + alpha*col2[2];
+	out[3]= malpha*col1[3] + alpha*col2[3];
 }
 
 static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
@@ -2344,7 +2415,10 @@ static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in
 		/* make output size of first input image */
 		CompBuf *cbuf= in[0]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
-		CompBuf *zbuf= NULL;
+		CompBuf *zbuf, *mbuf;
+		float *fp;
+		int x;
+		char *aabuf;
 		
 		if(out[1]->hasoutput) {
 			/* copy or make a buffer for for the first z value, here we write result in */
@@ -2358,17 +2432,42 @@ static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in
 				for(zval= zbuf->rect; tot; tot--, zval++)
 					*zval= in[1]->vec[0];
 			}
+			/* lazy coder hack */
+			node->custom1= 1;
+		}
+		else {
+			node->custom1= 0;
+			zbuf= in[1]->data;
 		}
 		
-		if(zbuf) 
-			composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, zbuf, in[1]->vec, in[2]->data, in[2]->vec, 
-									  in[3]->data, in[3]->vec, do_zcombine_assign, CB_RGBA, CB_VAL, CB_RGBA, CB_VAL);
-		else
-			composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, 
-									  in[3]->data, in[3]->vec, do_zcombine, CB_RGBA, CB_VAL, CB_RGBA, CB_VAL);
+		/* make a mask based on comparison, optionally write zvalue */
+		mbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
+		composit2_pixel_processor(node, mbuf, zbuf, in[1]->vec, in[3]->data, in[3]->vec, do_zcombine_mask, CB_VAL, CB_VAL);
+		
+		/* convert to char */
+		aabuf= MEM_mallocN(cbuf->x*cbuf->y, "aa buf");
+		fp= mbuf->rect;
+		for(x= cbuf->x*cbuf->y-1; x>=0; x--)
+			if(fp[x]==0.0f) aabuf[x]= 0;
+			else aabuf[x]= 255;
+		
+		antialias_tagbuf(cbuf->x, cbuf->y, aabuf);
+		
+		/* convert to float */
+		fp= mbuf->rect;
+		for(x= cbuf->x*cbuf->y-1; x>=0; x--)
+			if(aabuf[x]>1)
+				fp[x]= (1.0f/255.0f)*(float)aabuf[x];
+		
+		composit3_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[2]->data, in[2]->vec, mbuf, NULL, 
+								  do_zcombine_add, CB_RGBA, CB_RGBA, CB_VAL);
+		/* free */
+		free_compbuf(mbuf);
+		MEM_freeN(aabuf);
 		
 		out[0]->data= stackbuf;
-		out[1]->data= zbuf;
+		if(node->custom1)
+			out[1]->data= zbuf;
 	}
 }
 
@@ -2986,7 +3085,7 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 	if(img==NULL || out[0]->hasoutput==0)
 		return;
 	
-	if(img->type==CB_VEC3) {
+	if(img->type==CB_VEC2 || img->type==CB_VEC3) {
 		img= typecheck_compbuf(in[0]->data, CB_RGBA);
 	}
 	
@@ -4348,6 +4447,180 @@ static bNodeType cmp_node_scale= {
 	/* execfunc    */	node_composit_exec_scale
 };
 
+/* **************** Map UV  ******************** */
+
+static bNodeSocketType cmp_node_mapuv_in[]= {
+	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 1, "UV",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_mapuv_out[]= {
+	{	SOCK_RGBA, 0, "Image",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+/* foreach UV, use these values to read in cbuf and write to stackbuf */
+/* stackbuf should be zeroed */
+static void do_mapuv(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *uvbuf, float threshold)
+{
+	ImBuf *ibuf;
+	float *out= stackbuf->rect, *uv, *uvnext, *uvprev;
+	float dx, dy, alpha;
+	int x, y, sx, sy, row= 3*stackbuf->x;
+	
+	/* ibuf needed for sampling */
+	ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0, 0);
+	ibuf->rect_float= cbuf->rect;
+	
+	/* vars for efficient looping */
+	uv= uvbuf->rect;
+	uvnext= uv+row;
+	uvprev= uv-row;
+	sx= stackbuf->x;
+	sy= stackbuf->y;
+	
+	for(y=0; y<sy; y++) {
+		for(x=0; x<sx; x++, out+=4, uv+=3, uvnext+=3, uvprev+=3) {
+			if(x>0 && x<sx-1 && y>0 && y<sy-1) {
+				if(uv[2]!=0.0f) {
+					
+					dx= 0.5f*(fabs(uv[0]-uv[-3]) + fabs(uv[0]-uv[3]));
+					
+					dx+= 0.25f*(fabs(uv[0]-uvprev[-3]) + fabs(uv[0]-uvnext[-3]));
+					dx+= 0.25f*(fabs(uv[0]-uvprev[+3]) + fabs(uv[0]-uvnext[+3]));
+					
+					dy= 0.5f*(fabs(uv[1]-uv[-row+1]) + fabs(uv[1]-uv[row+1]));
+							 
+					dy+= 0.25f*(fabs(uv[1]-uvprev[+1-3]) + fabs(uv[1]-uvnext[+1-3]));
+					dy+= 0.25f*(fabs(uv[1]-uvprev[+1+3]) + fabs(uv[1]-uvnext[+1+3]));
+					
+					/* UV to alpha threshold */
+					alpha= 1.0f - threshold*(dx+dy);
+					if(alpha<0.0f) alpha= 0.0f;
+					else alpha*= uv[2];
+					
+					/* should use mipmap */
+					if(dx > 0.20f) dx= 0.20f;
+					if(dy > 0.20f) dy= 0.20f;
+					
+					ibuf_sample(ibuf, uv[0], uv[1], dx, dy, out);
+					/* premul */
+					if(alpha<1.0f) {
+						out[0]*= alpha;
+						out[1]*= alpha;
+						out[2]*= alpha;
+						out[3]*= alpha;
+					}
+				}
+			}
+		}
+	}
+
+	IMB_freeImBuf(ibuf);	
+}
+
+
+static void node_composit_exec_mapuv(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	if(out[0]->hasoutput==0)
+		return;
+	
+	if(in[0]->data && in[1]->data) {
+		CompBuf *cbuf= in[0]->data;
+		CompBuf *uvbuf= in[1]->data;
+		CompBuf *stackbuf;
+		
+		cbuf= typecheck_compbuf(cbuf, CB_RGBA);
+		uvbuf= typecheck_compbuf(uvbuf, CB_VEC3);
+		stackbuf= alloc_compbuf(uvbuf->x, uvbuf->y, CB_RGBA, 1); // allocs;
+		
+		do_mapuv(stackbuf, cbuf, uvbuf, 0.05f*(float)node->custom1);
+		
+		out[0]->data= stackbuf;
+		
+		if(cbuf!=in[0]->data)
+			free_compbuf(cbuf);
+		if(uvbuf!=in[1]->data)
+			free_compbuf(uvbuf);
+	}
+}
+
+static bNodeType cmp_node_mapuv= {
+	/* type code   */	CMP_NODE_MAP_UV,
+	/* name        */	"Map UV",
+	/* width+range */	140, 100, 320,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_mapuv_in,
+	/* output sock */	cmp_node_mapuv_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_mapuv
+};
+
+
+/* **************** ID Mask  ******************** */
+
+static bNodeSocketType cmp_node_idmask_in[]= {
+	{	SOCK_VALUE, 1, "ID value",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_idmask_out[]= {
+	{	SOCK_VALUE, 0, "Alpha",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+/* stackbuf should be zeroed */
+static void do_idmask(CompBuf *stackbuf, CompBuf *cbuf, float idnr)
+{
+	float *rect;
+	int x;
+	char *abuf= MEM_mapallocN(cbuf->x*cbuf->y, "anti ali buf");
+	
+	rect= cbuf->rect;
+	for(x= cbuf->x*cbuf->y - 1; x>=0; x--)
+		if(rect[x]==idnr)
+			abuf[x]= 255;
+	
+	antialias_tagbuf(cbuf->x, cbuf->y, abuf);
+	
+	rect= stackbuf->rect;
+	for(x= cbuf->x*cbuf->y - 1; x>=0; x--)
+		if(abuf[x]>1)
+			rect[x]= (1.0f/255.0f)*(float)abuf[x];
+	
+	MEM_freeN(abuf);
+}
+
+static void node_composit_exec_idmask(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	if(out[0]->hasoutput==0)
+		return;
+	
+	if(in[0]->data) {
+		CompBuf *cbuf= in[0]->data;
+		CompBuf *stackbuf;
+		
+		if(cbuf->type!=CB_VAL)
+			return;
+		
+		stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); // allocs;
+		
+		do_idmask(stackbuf, cbuf, (float)node->custom1);
+		
+		out[0]->data= stackbuf;
+	}
+}
+
+static bNodeType cmp_node_idmask= {
+	/* type code   */	CMP_NODE_ID_MASK,
+	/* name        */	"ID Mask",
+	/* width+range */	140, 100, 320,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_idmask_in,
+	/* output sock */	cmp_node_idmask_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_idmask
+};
+
 
 /* ****************** types array for all shaders ****************** */
 
@@ -4393,6 +4666,8 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_scale,
 	&cmp_node_luma,
 	&cmp_node_splitviewer,
+	&cmp_node_mapuv,
+	&cmp_node_idmask,
 	NULL
 };
 
@@ -4420,6 +4695,8 @@ void ntreeCompositForceHidden(bNodeTree *ntree)
 				if(!(srl->passflag & SCE_PASS_NORMAL)) sock->flag |= SOCK_UNAVAIL;
 				sock= BLI_findlink(&node->outputs, RRES_OUT_VEC);
 				if(!(srl->passflag & SCE_PASS_VECTOR)) sock->flag |= SOCK_UNAVAIL;
+				sock= BLI_findlink(&node->outputs, RRES_OUT_UV);
+				if(!(srl->passflag & SCE_PASS_UV)) sock->flag |= SOCK_UNAVAIL;
 				sock= BLI_findlink(&node->outputs, RRES_OUT_RGBA);
 				if(!(srl->passflag & SCE_PASS_RGBA)) sock->flag |= SOCK_UNAVAIL;
 				sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF);
@@ -4434,6 +4711,8 @@ void ntreeCompositForceHidden(bNodeTree *ntree)
 				if(!(srl->passflag & SCE_PASS_REFLECT)) sock->flag |= SOCK_UNAVAIL;
 				sock= BLI_findlink(&node->outputs, RRES_OUT_REFRACT);
 				if(!(srl->passflag & SCE_PASS_REFRACT)) sock->flag |= SOCK_UNAVAIL;
+				sock= BLI_findlink(&node->outputs, RRES_OUT_RADIO);
+				if(!(srl->passflag & SCE_PASS_RADIO)) sock->flag |= SOCK_UNAVAIL;
 				sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXOB);
 				if(!(srl->passflag & SCE_PASS_INDEXOB)) sock->flag |= SOCK_UNAVAIL;
 			}

@@ -1841,21 +1841,21 @@ static void render_panel_layers(void)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, LABEL, 0, "Pass:", 10,30,45,20, NULL, 0, 0, 0, 0, "");
-	uiDefButBitI(block, TOG, SCE_PASS_COMBINED, B_SET_PASS,"Combined",	55, 30, 90, 20, &srl->passflag, 0, 0, 0, 0, "Deliver full combined RGBA buffer");	
-	uiDefButBitI(block, TOG, SCE_PASS_Z, B_SET_PASS,"Z",			145, 30, 25, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Z values pass");	
-	uiDefButBitI(block, TOG, SCE_PASS_VECTOR, B_SET_PASS,"Vec",		170, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Speed Vector pass");	
-	uiDefButBitI(block, TOG, SCE_PASS_NORMAL, B_SET_PASS,"Nor",		210, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Normal pass");	
-	uiDefButBitI(block, TOG, SCE_PASS_INDEXOB, B_SET_PASS,"IndexOb",250, 30, 60, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Object Index pass");	
+	uiDefButBitI(block, TOG, SCE_PASS_COMBINED, B_SET_PASS,"Combined",	10, 30, 80, 20, &srl->passflag, 0, 0, 0, 0, "Deliver full combined RGBA buffer");	
+	uiDefButBitI(block, TOG, SCE_PASS_Z, B_SET_PASS,"Z",			90, 30, 30, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Z values pass");	
+	uiDefButBitI(block, TOG, SCE_PASS_VECTOR, B_SET_PASS,"Vec",		120, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Speed Vector pass");	
+	uiDefButBitI(block, TOG, SCE_PASS_NORMAL, B_SET_PASS,"Nor",		160, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Normal pass");	
+	uiDefButBitI(block, TOG, SCE_PASS_UV, B_SET_PASS,"UV",			200, 30, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Texture UV pass");	
+	uiDefButBitI(block, TOG, SCE_PASS_INDEXOB, B_SET_PASS,"IndexOb",240, 30, 70, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Object Index pass");	
 	
-	uiDefButBitI(block, TOG, SCE_PASS_RGBA, B_SET_PASS,"Col",		10, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver shade-less Color pass");	
-	uiDefButBitI(block, TOG, SCE_PASS_DIFFUSE, B_SET_PASS,"Diff",	55, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
-	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_SPEC, B_SET_PASS,"Spec",		100, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Specular pass");	
-	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_SHADOW, B_SET_PASS,"Shad",	145, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Shadow pass");	
-	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_AO, B_SET_PASS,"AO",			185, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver AO pass");	
-	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_REFLECT, B_SET_PASS,"Refl",	225, 10, 45, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Reflection pass");	
-	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_REFRACT, B_SET_PASS,"Refr",	270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Refraction pass");	
-
+	uiDefButBitI(block, TOG, SCE_PASS_RGBA, B_SET_PASS,"Col",				10, 10, 35, 20, &srl->passflag, 0, 0, 0, 0, "Deliver shade-less Color pass");	
+	uiDefButBitI(block, TOG, SCE_PASS_DIFFUSE, B_SET_PASS,"Diff",			45, 10, 35, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Diffuse pass");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_SPEC, B_SET_PASS,"Spec",		80, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Specular pass");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_SHADOW, B_SET_PASS,"Shad",	120, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Shadow pass");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_AO, B_SET_PASS,"AO",			160, 10, 30, 20, &srl->passflag, 0, 0, 0, 0, "Deliver AO pass");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_REFLECT, B_SET_PASS,"Refl",	190, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Reflection pass");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_REFRACT, B_SET_PASS,"Refr",	230, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Refraction pass");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_RADIO, B_SET_PASS,"Rad",		270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Refraction pass");	
 }	
 
 void render_panels()

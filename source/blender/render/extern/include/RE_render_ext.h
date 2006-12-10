@@ -42,10 +42,16 @@ struct RadView;
 struct RNode;
 struct Render;
 struct MTex;
+struct ImBuf;
+
 void    RE_zbufferall_radio(struct RadView *vw, struct RNode **rg_elem, int rg_totelem, struct Render *re);
 
 /* effect.c, editmesh_modes.c and brush.c, returns 1 if rgb, 0 otherwise */
 int	externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta);
+
+/* node_composite.c */
+void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result);
+void antialias_tagbuf(int xsize, int ysize, char *rectmove);
 
 #endif /* RE_RENDER_EXT_H */
 

@@ -2653,7 +2653,7 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 	BoundBox *bb= NULL;
 	GLuint displist=0;
 	int color= (base->flag & SELECT)?TH_SELECT:TH_WIRE;
-	short transflag, use_displist= G.rt;	/* -1 is initialize */
+	short transflag, use_displist= -1;	/* -1 is initialize */
 	char dt, dtx;
 	
 	if (base->object->restrictflag & OB_RESTRICT_VIEW) return;

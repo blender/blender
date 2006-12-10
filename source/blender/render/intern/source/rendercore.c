@@ -395,14 +395,28 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
 				break;
+			case SCE_PASS_RADIO:
+				col= shr->rad;
+				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
+				break;
+			case SCE_PASS_UV:
+				/* box filter only, gauss will screwup UV too much */
+				if(shi->uv[2]!=0.0f) {
+					float mult= (float)count_mask(curmask)/(float)R.osa;
+					fp= rpass->rect + 3*offset;
+					fp[0]+= mult*(0.5f + 0.5f*shi->uv[0]);
+					fp[1]+= mult*(0.5f + 0.5f*shi->uv[1]);
+					fp[2]+= mult;
+				}
 				break;
 			case SCE_PASS_INDEXOB:
 				/* no filter */
 				if(shi->vlr) {
 					fp= rpass->rect + offset;
-					*fp= (float)shi->vlr->ob->index;
+					if(*fp==0.0f)
+						*fp= (float)shi->vlr->ob->index;
 				}
 				break;
 			case SCE_PASS_VECTOR:
@@ -433,7 +447,7 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 	RenderPass *rpass;
 	
 	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
-		float *fp, *col= NULL;
+		float *fp, *col= NULL, uvcol[3];
 		int a, pixsize= 3;
 		
 		switch(rpass->passtype) {
@@ -459,8 +473,17 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
 				break;
+			case SCE_PASS_RADIO:
+				col= shr->rad;
+				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
+				break;
+			case SCE_PASS_UV:
+				uvcol[0]= 0.5f + 0.5f*shi->uv[0];
+				uvcol[1]= 0.5f + 0.5f*shi->uv[1];
+				uvcol[2]= 1.0f;
+				col= uvcol;
 				break;
 			case SCE_PASS_VECTOR:
 				col= shr->winspeed;
@@ -559,7 +582,7 @@ static void shadeDA_tile(RenderPart *pa, RenderLayer *rl)
 						add_filt_fmask(ssamp.shi[samp].mask, fcol, rf, pa->rectx);
 						
 						if(addpassflag)
-							add_filt_passes(rl, ssamp.shi[samp].mask, pa->rectx, od, ssamp.shi, &ssamp.shr[samp]);
+							add_filt_passes(rl, ssamp.shi[samp].mask, pa->rectx, od, &ssamp.shi[samp], &ssamp.shr[samp]);
 					}
 				}
 			}

@@ -264,6 +264,10 @@ static char *get_pass_name(int passtype, int channel)
 		else if(channel==1) return "Normal.Y";
 		else return "Normal.Z";
 	}
+	if(passtype == SCE_PASS_UV) {
+		if(channel==0) return "Tex.U";
+		else return "Tex.V";
+	}
 	if(passtype == SCE_PASS_RGBA) {
 		if(channel==0) return "Color.R";
 		else if(channel==1) return "Color.G";
@@ -299,6 +303,11 @@ static char *get_pass_name(int passtype, int channel)
 		if(channel==0) return "Refract.R";
 		else if(channel==1) return "Refract.G";
 		else return "Refract.B";
+	}
+	if(passtype == SCE_PASS_RADIO) {
+		if(channel==0) return "Radio.R";
+		else if(channel==1) return "Radio.G";
+		else return "Radio.B";
 	}
 	if(passtype == SCE_PASS_INDEXOB)
 		return "IndexOB";
@@ -440,6 +449,8 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			render_layer_add_pass(rr, rl, 4, SCE_PASS_VECTOR);
 		if(srl->passflag  & SCE_PASS_NORMAL)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_NORMAL);
+		if(srl->passflag  & SCE_PASS_UV) 
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_UV);
 		if(srl->passflag  & SCE_PASS_RGBA)
 			render_layer_add_pass(rr, rl, 4, SCE_PASS_RGBA);
 		if(srl->passflag  & SCE_PASS_DIFFUSE)
@@ -457,6 +468,9 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			if(srl->passflag  & SCE_PASS_REFRACT)
 				render_layer_add_pass(rr, rl, 3, SCE_PASS_REFRACT);
 		}
+		if(re->r.mode & R_RADIO)
+			if(srl->passflag  & SCE_PASS_RADIO)
+				render_layer_add_pass(rr, rl, 3, SCE_PASS_RADIO);
 		if(srl->passflag  & SCE_PASS_INDEXOB)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB);
 		
