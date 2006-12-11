@@ -94,7 +94,7 @@ typedef struct MultiresFace {
 	unsigned int v[4];
        	unsigned int mid;
 	unsigned int childrenstart;
-	char flag, pad[3];
+	char flag, mat_nr, pad[2];
 } MultiresFace;
 typedef struct MultiresEdge {
 	unsigned int v[2];

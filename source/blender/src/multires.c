@@ -535,12 +535,14 @@ void multires_get_face(MultiresFace *f, EditFace *efa, MFace *m)
 		test_index_face(&tmp, NULL, 0, efa->v4?4:3);
 		for(j=0; j<4; ++j) f->v[j]= (&tmp.v1)[j];
 		f->flag= tmp.flag;
+		f->mat_nr= efa->mat_nr;
 	} else {		
 		f->v[0]= m->v1;
 		f->v[1]= m->v2;
 		f->v[2]= m->v3;
 		f->v[3]= m->v4;
 		f->flag= m->flag;
+		f->mat_nr= m->mat_nr;
 	}
 }
 
@@ -879,6 +881,7 @@ void multires_add_level(void *ob, void *me_v)
 							     lvl->prev->faces[i].v[j==max?0:j+1]);
 			lvl->faces[curf].v[3]= lvl->prev->totvert + lvl->prev->totedge + i;
 			lvl->faces[curf].flag= lvl->prev->faces[i].flag;
+			lvl->faces[curf].mat_nr= lvl->prev->faces[i].mat_nr;
 
 			++curf;
 		}
@@ -1078,8 +1081,10 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 	for(i=0; i<lvl->totface; ++i) {
 		if(em) {
 			EditVert *eve4= lvl->faces[i].v[3] ? eves[lvl->faces[i].v[3]] : NULL;
-			addfacelist(eves[lvl->faces[i].v[0]], eves[lvl->faces[i].v[1]],
-			            eves[lvl->faces[i].v[2]], eve4, NULL, NULL); /* TODO */
+			EditFace *efa= addfacelist(eves[lvl->faces[i].v[0]], eves[lvl->faces[i].v[1]],
+			               eves[lvl->faces[i].v[2]], eve4, NULL, NULL); /* TODO */
+			efa->flag= lvl->faces[i].flag;
+			efa->mat_nr= lvl->faces[i].mat_nr;
 		}
 		else {
 			me->mface[i].v1= lvl->faces[i].v[0];
@@ -1088,6 +1093,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 			me->mface[i].v4= lvl->faces[i].v[3];
 			me->mface[i].flag= lvl->faces[i].flag;
 			me->mface[i].flag &= ~ME_HIDE;
+			me->mface[i].mat_nr= lvl->faces[i].mat_nr;
 		}
 	}
 	for(i=0; i<lvl->totedge; ++i) {
@@ -1328,6 +1334,8 @@ void multires_update_levels(Mesh *me)
 {
 	MultiresLevel *cr_lvl= BLI_findlink(&me->mr->levels,me->mr->current-1), *pr_lvl;
 	vec3f *pr_deltas= NULL, *cr_deltas= NULL;
+	char *pr_flag_damaged= NULL, *cr_flag_damaged= NULL, *pr_mat_damaged= NULL, *cr_mat_damaged= NULL;
+	char *or_flag_damaged= NULL, *or_mat_damaged= NULL;
 	EditMesh *em= G.obedit ? G.editMesh : NULL;
 	EditVert *eve= NULL;
 	EditFace *efa= NULL;
@@ -1350,12 +1358,34 @@ void multires_update_levels(Mesh *me)
 		} else
 			VecSubf(&cr_deltas[i].x, me->mvert[i].co, cr_lvl->verts[i].co);
 	}
+	
+	/* Faces -- find whether flag/mat has changed */
+	cr_flag_damaged= MEM_callocN(sizeof(char)*cr_lvl->totface, "flag_damaged 1");
+	cr_mat_damaged= MEM_callocN(sizeof(char)*cr_lvl->totface, "mat_damaged 1");
+	if(em) efa= em->faces.first;
+	for(i=0; i<cr_lvl->totface; ++i) {
+		if(cr_lvl->faces[i].flag != (em ? efa->flag : me->mface[i].flag))
+			cr_flag_damaged[i]= 1;
+		if(cr_lvl->faces[i].mat_nr != (em ? efa->mat_nr : me->mface[i].mat_nr))
+			cr_mat_damaged[i]= 1;
+		if(em) efa= efa->next;
+	}
+	or_flag_damaged= MEM_dupallocN(cr_flag_damaged);
+	or_mat_damaged= MEM_dupallocN(cr_mat_damaged);
 
 	/* Update current level -- copy current mesh into current level */
-	if(em) eve= em->verts.first;
+	if(em) {
+		eve= em->verts.first;
+		efa= em->faces.first;
+	}
 	for(i=0; i<cr_lvl->totvert; ++i) {
 		multires_get_vert(&cr_lvl->verts[i], eve, &me->mvert[i], i);
 		if(em) eve= eve->next;
+	}
+	for(i=0; i<cr_lvl->totface; ++i) {
+		cr_lvl->faces[i].flag= em ? efa->flag : me->mface[i].flag;
+		cr_lvl->faces[i].mat_nr= em ? efa->mat_nr : me->mface[i].mat_nr;
+		if(em) efa= efa->next;
 	}
 
 	/* Update higher levels */
@@ -1366,10 +1396,15 @@ void multires_update_levels(Mesh *me)
 		if(pr_deltas) MEM_freeN(pr_deltas);
 		pr_deltas= cr_deltas;
 		cr_deltas= MEM_callocN(sizeof(vec3f)*cr_lvl->totvert,"deltas");
+		if(pr_flag_damaged) MEM_freeN(pr_flag_damaged);
+		pr_flag_damaged= cr_flag_damaged;
+		cr_flag_damaged= MEM_callocN(sizeof(char)*cr_lvl->totface,"flag_damaged 2");
+		if(pr_mat_damaged) MEM_freeN(pr_mat_damaged);
+		pr_mat_damaged= cr_mat_damaged;
+		cr_mat_damaged= MEM_callocN(sizeof(char)*cr_lvl->totface,"mat_damaged 2");
 
 		/* Calculate and add new deltas
 		   ============================*/
-
 		for(i=0; i<pr_lvl->totface; ++i) {
 			const MultiresFace *f= &pr_lvl->faces[i];
 			data.corner1= &pr_deltas[f->v[0]].x;
@@ -1445,13 +1480,17 @@ void multires_update_levels(Mesh *me)
 
 		/* Update faces */
 		curf= 0;
-		for(i=0; i<cr_lvl->prev->totface; ++i) {
+		for(i=0; i<pr_lvl->totface; ++i) {
 			const int sides= cr_lvl->prev->faces[i].v[3] ? 4 : 3;
 			for(j=0; j<sides; ++j) {
-				if(pr_lvl->faces[i].flag & ME_SMOOTH)
-					cr_lvl->faces[curf].flag |= ME_SMOOTH;
-				else
-					cr_lvl->faces[curf].flag &= ~ME_SMOOTH;
+				if(pr_flag_damaged[i]) {
+					cr_lvl->faces[curf].flag= pr_lvl->faces[i].flag;
+					cr_flag_damaged[curf]= 1;
+				}
+				if(pr_mat_damaged[i]) {
+					cr_lvl->faces[curf].mat_nr= pr_lvl->faces[i].mat_nr;
+					cr_mat_damaged[curf]= 1;
+				}
 				++curf;
 			}
 		}
@@ -1465,7 +1504,24 @@ void multires_update_levels(Mesh *me)
 	/* Update lower levels */
 	cr_lvl= me->mr->levels.last;
 	cr_lvl= cr_lvl->prev;
+	
+	/* Clear to original damages */
+	if(pr_flag_damaged) MEM_freeN(pr_flag_damaged);
+	if(cr_flag_damaged) MEM_freeN(cr_flag_damaged);
+	if(pr_mat_damaged) MEM_freeN(pr_mat_damaged);
+	if(cr_mat_damaged) MEM_freeN(cr_mat_damaged);
+	pr_flag_damaged= pr_mat_damaged= NULL;
+	cr_flag_damaged= or_flag_damaged;
+	cr_mat_damaged= or_mat_damaged;
+	
 	while(cr_lvl) {
+		if(pr_flag_damaged) MEM_freeN(pr_flag_damaged);
+		pr_flag_damaged= cr_flag_damaged;
+		cr_flag_damaged= MEM_callocN(sizeof(char)*cr_lvl->totface,"flag_damaged 3");
+		if(pr_mat_damaged) MEM_freeN(pr_mat_damaged);
+		pr_mat_damaged= cr_mat_damaged;
+		cr_mat_damaged= MEM_callocN(sizeof(char)*cr_lvl->totface,"mat_damaged 3");
+	
 		for(i=0; i<cr_lvl->totvert; ++i)
 			cr_lvl->verts[i]= cr_lvl->next->verts[i];
 
@@ -1473,23 +1529,27 @@ void multires_update_levels(Mesh *me)
 		curf= 0;
 		for(i=0; i<cr_lvl->totface; ++i) {
 			const int sides= cr_lvl->faces[i].v[3] ? 4 : 3;
-			char smooth= 1;
 			
-			for(j=0; j<sides; ++j) {
-				if(!(cr_lvl->next->faces[curf].flag & ME_SMOOTH)) {
-					smooth= 0;
-					break;
+			/* Check damages */
+			for(j=0; j<sides; ++j, ++curf) {
+				if(pr_flag_damaged[curf]) {
+					cr_lvl->faces[i].flag= cr_lvl->next->faces[curf].flag;
+					cr_flag_damaged[i]= 1;
 				}
-				++curf;
+				if(pr_mat_damaged[curf]) {
+					cr_lvl->faces[i].mat_nr= cr_lvl->next->faces[curf].mat_nr;
+					cr_mat_damaged[i]= 1;
+				}
 			}
-			if(smooth)
-				cr_lvl->faces[i].flag |= ME_SMOOTH;
-			else
-				cr_lvl->faces[i].flag &= ~ME_SMOOTH;
 		}
 
 		cr_lvl= cr_lvl->prev;
 	}
+
+	if(pr_flag_damaged) MEM_freeN(pr_flag_damaged);
+	if(cr_flag_damaged) MEM_freeN(cr_flag_damaged);
+	if(pr_mat_damaged) MEM_freeN(pr_mat_damaged);
+	if(cr_mat_damaged) MEM_freeN(cr_mat_damaged);
 
 	multires_update_colors(me);
 
