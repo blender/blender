@@ -3181,7 +3181,7 @@ void convert_zbuf_to_distbuf(RenderPart *pa, RenderLayer *rl)
 	rectz= pa->rectz;
 	
 	for(a=pa->rectx*pa->recty; a>0; a--, rectz++, rectzf++) {
-		if(*rectz==0x7FFFFFFF)
+		if(*rectz>=0x7FFFFFF0)
 			*rectzf= 10e10;
 		else {
 			/* inverse of zbuf calc: zbuf = MAXZ*hoco_z/hoco_w */

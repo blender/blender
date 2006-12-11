@@ -474,6 +474,38 @@ static void outliner_add_bone(SpaceOops *soops, ListBase *lb, ID *id, Bone *curB
 	}
 }
 
+static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *sce, TreeElement *te)
+{
+	SceneRenderLayer *srl;
+	TreeElement *tenla= outliner_add_element(soops, lb, sce, te, TSE_R_LAYER_BASE, 0);
+	int a;
+	
+	tenla->name= "RenderLayers";
+	for(a=0, srl= sce->r.layers.first; srl; srl= srl->next, a++) {
+		TreeElement *tenlay= outliner_add_element(soops, &tenla->subtree, sce, te, TSE_R_LAYER, a);
+		tenlay->name= srl->name;
+		tenlay->directdata= &srl->passflag;
+		
+		if(srl->light_override)
+			outliner_add_element(soops, &tenlay->subtree, srl->light_override, tenlay, TSE_LINKED_LAMP, 0);
+		if(srl->mat_override)
+			outliner_add_element(soops, &tenlay->subtree, srl->mat_override, tenlay, TSE_LINKED_MAT, 0);
+		
+		outliner_add_passes(soops, tenlay, &sce->id, srl);
+	}
+	
+	outliner_add_element(soops,  lb, sce->world, te, 0, 0);
+	
+	if(sce->scriptlink.scripts) {
+		int a= 0;
+		tenla= outliner_add_element(soops,  lb, sce, te, TSE_SCRIPT_BASE, 0);
+		tenla->name= "Scripts";
+		for (a=0; a<sce->scriptlink.totscript; a++) {
+			outliner_add_element(soops, &tenla->subtree, sce->scriptlink.scripts[a], tenla, 0, 0);
+		}
+	}
+
+}
 
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
 										 TreeElement *parent, short type, short index)
@@ -508,37 +540,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			te->name= ((Library *)id)->name;
 			break;
 		case ID_SCE:
-			{
-				Scene *sce= (Scene *)id;
-				SceneRenderLayer *srl;
-				TreeElement *tenla= outliner_add_element(soops, &te->subtree, sce, te, TSE_R_LAYER_BASE, 0);
-				int a;
-				
-				tenla->name= "RenderLayers";
-				for(a=0, srl= sce->r.layers.first; srl; srl= srl->next, a++) {
-					TreeElement *tenlay= outliner_add_element(soops, &tenla->subtree, sce, te, TSE_R_LAYER, a);
-					tenlay->name= srl->name;
-					tenlay->directdata= &srl->passflag;
-					
-					if(srl->light_override)
-						outliner_add_element(soops, &tenlay->subtree, srl->light_override, tenlay, TSE_LINKED_LAMP, 0);
-					if(srl->mat_override)
-						outliner_add_element(soops, &tenlay->subtree, srl->mat_override, tenlay, TSE_LINKED_MAT, 0);
-					
-					outliner_add_passes(soops, tenlay, &sce->id, srl);
-				}
-				
-				outliner_add_element(soops, &te->subtree, sce->world, te, 0, 0);
-				
-				if(sce->scriptlink.scripts) {
-					int a= 0;
-					tenla= outliner_add_element(soops, &te->subtree, sce, te, TSE_SCRIPT_BASE, 0);
-					tenla->name= "Scripts";
-					for (a=0; a<sce->scriptlink.totscript; a++) {
-						outliner_add_element(soops, &tenla->subtree, sce->scriptlink.scripts[a], tenla, 0, 0);
-					}
-				}
-			}
+			outliner_add_scene_contents(soops, &te->subtree, (Scene *)id, te);
 			break;
 		case ID_OB:
 			{
@@ -972,7 +974,8 @@ static void outliner_build_tree(SpaceOops *soops)
 		}
 	}
 	else if(soops->outlinevis == SO_CUR_SCENE) {
-		outliner_add_element(soops, &soops->tree, G.scene->world, NULL, 0, 0);
+		
+		outliner_add_scene_contents(soops, &soops->tree, G.scene, NULL);
 		
 		for(base= G.scene->base.first; base; base= base->next) {
 			ten= outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
@@ -1234,6 +1237,25 @@ void outliner_page_up_down(ScrArea *sa, int up)
 }
 
 /* **** do clicks on items ******* */
+
+static int tree_element_active_renderlayer(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	Scene *sce;
+	
+	/* paranoia check */
+	if(te->idcode!=ID_SCE)
+		return 0;
+	sce= (Scene *)tselem->id;
+	
+	if(set) {
+		sce->r.actlay= tselem->nr;
+		allqueue(REDRAWBUTSSCENE, 0);
+	}
+	else {
+		return sce->r.actlay==tselem->nr;
+	}
+	return 0;
+}
 
 static void tree_element_active_object(SpaceOops *soops, TreeElement *te)
 {
@@ -1739,10 +1761,10 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 			break;
 		case TSE_POSE_CHANNEL:
 			return tree_element_active_posechannel(te, tselem, set);
-			break;
 		case TSE_CONSTRAINT:
 			return tree_element_active_constraint(te, tselem, set);
-			break;
+		case TSE_R_LAYER:
+			return tree_element_active_renderlayer(te, tselem, set);
 	}
 	return 0;
 }

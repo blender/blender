@@ -330,7 +330,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		VECCOPY(out[MAT_OUT_NORMAL]->vec, shi->vn);
 		
 		/* copy passes, now just active node */
-		if(node->flag & NODE_ACTIVE)
+		if(node->flag & NODE_ACTIVE_ID)
 			*(shcd->shr)= shrnode;
 	}
 }
@@ -1094,7 +1094,9 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	/* convert caller data to struct */
 	scd.shi= shi;
 	scd.shr= shr;
-	
+	/* each material node has own local shaderesult, with optional copying */
+	memset(shr, 0, sizeof(ShadeResult));
+		   
 	ntreeExecTree(ntree, &scd, shi->thread);	/* threads */
 	
 	/* better not allow negative for now */
