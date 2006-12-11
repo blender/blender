@@ -1,5 +1,7 @@
 $Id$
 
+    Note: The current official release of SCons is 0.96.1
+
     Blenders SCons build scripts
     ============================
 
@@ -27,7 +29,7 @@ $Id$
 
     To build Blender with the SCons scripts you need a full Python
     install, version 2.4 or later (http://www.python.org) and a SCons
-    installation, version v0.96.1.D001 or later (http://www.scons.org).
+    installation, version v0.96.1 (http://www.scons.org).
 
     Check from the page
     http://www.blender.org/cms/Getting_Dependencies.135.0.html that you
