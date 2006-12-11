@@ -91,7 +91,7 @@ class Group:
   @ivar users: Number of users this group has (read only)
   @ivar layers: Layer mask for this group.
   @ivar objects: Objects that this group uses.
-  This is a sequence with list like access so use list(grp.objects) if you need to use a list. (where grp is a group).
+  This is a sequence with-list like access so use list(grp.objects) if you need to use a list (where grp is a group).
   The groups objects can be set by assigning a list or iterator of objects to the groups objects.
   objects.link() and objects.unlink() also work with the the objects iterator just like with lists.
   """
