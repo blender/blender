@@ -94,12 +94,9 @@
 #include "mydevice.h"
 #include "blendef.h"
 
-
 #include "BDR_editcurve.h"
 /* still need to eradicate a few :( */
 #define callocstructN(x,y,name) (x*)MEM_callocN((y)* sizeof(x),name)
-/* only used sparingly: */
-#define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
 
 
 ListBase editNurb;

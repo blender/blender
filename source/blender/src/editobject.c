@@ -177,10 +177,6 @@
 
 #include "BIF_poseobject.h"
 
-/* used in editipo, editcurve and here */
-#define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
-
-/* local prototypes -------------*/
 
 /* --------------------------------- */
 

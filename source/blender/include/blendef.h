@@ -114,6 +114,7 @@
 #define ISPOIN3(a, b, c, d)		( (a->b) && (a->c) && (a->d) )
 #define ISPOIN4(a, b, c, d, e)	( (a->b) && (a->c) && (a->d) && (a->e) )
 
+#define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
 
 /* psfont */
 #define FNT_PDRAW 1

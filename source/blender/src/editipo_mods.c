@@ -74,13 +74,6 @@
 #include "blendef.h"
 #include "mydevice.h"
 
-/* copy from editipo.c */
-#define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
-
-#define ISPOIN(a, b, c)                       ( (a->b) && (a->c) )
-#define ISPOIN3(a, b, c, d)           ( (a->b) && (a->c) && (a->d) )
-#define ISPOIN4(a, b, c, d, e)        ( (a->b) && (a->c) && (a->d) && (a->e) )   
-
 extern int totipo_edit, totipo_sel, totipo_vertsel, totipo_vis;
 
 void ipo_toggle_showkey(void) 
@@ -157,7 +150,7 @@ void swap_selectall_editipo(void)
 		
 	}
 	
-	BIF_undo_push("Swap select all Ipo");
+	BIF_undo_push("Swap Select All Ipo");
 	scrarea_queue_winredraw(curarea);
 	
 }

@@ -95,9 +95,6 @@
 #include "blendef.h"
 #include "nla.h"
 
-/* Useful macros ----------------------------------------------- */
-#define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
-
 /* Local Function prototypes, are forward needed */
 static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
 

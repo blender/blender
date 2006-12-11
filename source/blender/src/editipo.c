@@ -130,11 +130,7 @@ extern int te_ar[];
 extern int fluidsim_ar[]; // NT
 
 /* forwards */
-#define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
-
 #define IPOTHRESH	0.9
-#define ISPOIN(a, b, c)                       ( (a->b) && (a->c) )
-#define ISPOIN3(a, b, c, d)           ( (a->b) && (a->c) && (a->d) )
 
 /* tests if only one editipo is active */
 static void check_active_editipo(void)
