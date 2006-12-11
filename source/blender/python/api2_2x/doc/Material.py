@@ -66,6 +66,7 @@ Example::
     - FULLOSA      - Force rendering of all OSA samples.
     - TANGENT_V    - Use the tangent vector in V direction for shading
     - NMAP_TS      - Tangent space normal mapping.
+    - GROUP_EXCLUSIVE	- Light from this group even if the lights are on a hidden Layer.
 
 @type Shaders: readonly dictionary
 @var Shaders: The available Material Shaders.

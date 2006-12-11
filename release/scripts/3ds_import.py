@@ -130,7 +130,12 @@ try:
 except:
 	from sets import Set as set
 
+#global SCN_OBJECTS
+#SCN_OBJECTS = None
 BOUNDS_3DS= []
+
+
+
 
 #this script imports uvcoords as sticky vertex coords
 #this parameter enables copying these to face uv coords
@@ -392,8 +397,10 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			
 			tempName= '%s_%s' % (contextObName, matName) # matName may be None.
 			bmesh.name= tempName
-			ob = Object.New('Mesh', tempName)
-			ob.link(bmesh)
+			# ob = Object.New('Mesh', tempName)
+			# ob.link(bmesh)
+			ob = SCN_OBJECTS.new(bmesh, tempName)
+			
 			####ob.setMatrix(contextMatrix)
 			importedObjects.append(ob)
 			
@@ -739,15 +746,15 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 		putContextMesh(contextMesh_vertls, contextMesh_facels, contextMeshMaterials)
 
 def load_3ds(filename, PREF_UI= True):
+	global FILENAME, SCN_OBJECTS
 	
 	if BPyMessages.Error_NoFile(filename):
 		return
 	
-	print '\n\nImporting "%s" "%s"' % (filename, Blender.sys.expandpath(filename))
+	print '\n\nImporting 3DS: "%s"' % (Blender.sys.expandpath(filename))
 	
 	time1= Blender.sys.time()
 	
-	global FILENAME
 	FILENAME=filename
 	current_chunk=chunk()
 	
@@ -768,7 +775,7 @@ def load_3ds(filename, PREF_UI= True):
 	# Get USER Options
 	pup_block= [\
 	('Size Constraint:', IMPORT_CONSTRAIN_BOUNDS, 0.0, 1000.0, 'Scale the model by 10 until it reacehs the size constraint. Zero Disables.'),\
-	('Group Instance', IMPORT_AS_INSTANCE, 'Import objects into a new scene and group, creating an instance in the current scene.'),\
+	#('Group Instance', IMPORT_AS_INSTANCE, 'Import objects into a new scene and group, creating an instance in the current scene.'),\
 	]
 	
 	if PREF_UI:
@@ -782,16 +789,18 @@ def load_3ds(filename, PREF_UI= True):
 		BOUNDS_3DS[:]= [1<<30, 1<<30, 1<<30, -1<<30, -1<<30, -1<<30]
 	else:
 		BOUNDS_3DS[:]= []
-		
+	
+	scn= Scene.GetCurrent()
+	SCN_OBJECTS = scn.objects
+	for ob in SCN_OBJECTS:
+		ob.sel= 0
+	
 	importedObjects= [] # Fill this list with objects
 	process_next_chunk(file, current_chunk, importedObjects)
 	
-	scn= Scene.GetCurrent()
-	for ob in scn.getChildren():
-		ob.sel= 0
 	
 	# Link the objects into this scene.
-	Layers= scn.Layers
+	# Layers= scn.Layers
 	
 	# REMOVE DUMMYVERT, - remove this in the next release when blenders internal are fixed.
 	for ob in importedObjects:
@@ -799,7 +808,7 @@ def load_3ds(filename, PREF_UI= True):
 			me= ob.getData(mesh=1)
 			me.verts.delete([me.verts[0],])
 	# Done DUMMYVERT
-	
+	"""
 	if IMPORT_AS_INSTANCE:
 		name= filename.split('\\')[-1].split('/')[-1]
 		# Create a group for this import.
@@ -822,6 +831,7 @@ def load_3ds(filename, PREF_UI= True):
 			scn.link(ob)
 			ob.Layers= Layers
 			ob.sel= 1
+	"""
 	
 	if IMPORT_CONSTRAIN_BOUNDS!=0.0:
 		# Set bounds from objecyt bounding box
@@ -838,7 +848,7 @@ def load_3ds(filename, PREF_UI= True):
 		
 		# Get the max axis x/y/z
 		max_axis= max(BOUNDS_3DS[3]-BOUNDS_3DS[0], BOUNDS_3DS[4]-BOUNDS_3DS[1], BOUNDS_3DS[5]-BOUNDS_3DS[2])
-		print max_axis
+		# print max_axis
 		if max_axis < 1<<30: # Should never be false but just make sure.
 			
 			# Get a new scale factor if set as an option

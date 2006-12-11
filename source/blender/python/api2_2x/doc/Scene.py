@@ -106,8 +106,8 @@ class Scene:
           scene.layers = [3] # set layer 3
           scene.layers = scene.layers.append(1)
           print scene.layers # will print: [1, 3]
-  @type objects: list of objects
-  @ivar objects: An iterator for the scenes objects with set-like functionality. 
+  @type objects: sequence of objects
+  @ivar objects: An iterator for the scenes objects with with functions .link(ob) .unlink(ob) .new(obdata)
   """
 
   def getName():

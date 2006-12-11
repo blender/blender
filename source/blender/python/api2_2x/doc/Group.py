@@ -15,9 +15,9 @@ Example::
   from Blender import *
 
   scn= Scene.GetCurrent()
-  for ob in Object.GetSelected():
+  for ob in scn.objects:
     print 'Object Group Settings'
-    print ob.name, ob.getType()
+    print ob.name, ob.type
     print 'enableDupVerts:', ob.enableDupVerts
     print 'enableDupFrames:', ob.enableDupFrames
     print 'enableDupGroup:', ob.enableDupGroup
@@ -27,9 +27,7 @@ Example::
 
     for dup_ob, dup_matrix in dupe_obs:
       print '\tDupOb', dup_ob.name
-      new_ob= Object.New(dup_ob.getType())
-      new_ob.shareFrom(dup_ob)
-      scn.link(new_ob)
+      scn.objects.new(dup_ob.data)
       new_ob.setMatrix(dup_matrix)
       new_ob.sel= 1 # select all real instances.
 
@@ -46,14 +44,13 @@ Example::
   scn= Scene.GetCurrent()
   
   # New Group
-  gp= Group.New('mygroup')
-  gp.objects= Object.GetSelected()
+  grp= Group.New('mygroup')
+  grp.objects= scn.objects
   
   # Instance the group at an empty using dupligroups
-  ob= Object.New('Empty')
-  scn.link(ob)
+  ob= scn.objects.new(None)
   ob.enableDupGroup= True
-  ob.DupGroup= gp
+  ob.DupGroup= grp
   Window.RedrawAll()
 """
 
@@ -94,8 +91,8 @@ class Group:
   @ivar users: Number of users this group has (read only)
   @ivar layers: Layer mask for this group.
   @ivar objects: Objects that this group uses.
-  This is an iterator with list like access so use list(gp.objects) if you need to use a list. (where gp is a group object).
+  This is a sequence with list like access so use list(grp.objects) if you need to use a list. (where grp is a group).
   The groups objects can be set by assigning a list or iterator of objects to the groups objects.
-  objects.add() and objects.remove() also work with the the objects iterator just like with lists.
+  objects.link() and objects.unlink() also work with the the objects iterator just like with lists.
   """
 

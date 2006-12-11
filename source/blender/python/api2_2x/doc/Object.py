@@ -250,6 +250,12 @@ class Object:
     this object's ID Properties.  Note that dict access is available for groups on the parent 
     L{IDProperty<IDProperty>} object, but for everything else you need to get the L{IDGroup<IDGroup>}
     object from the L{IDProperty<IDProperty>}'s data member.
+    @ivar restrictDisplay: Dont display this object in the 3d view, disabled by default, use the outliner to toggle.
+    @type restrictDisplay: bool
+    @ivar restrictSelect: Dont select this object in the 3d view, disabled by default, use the outliner to toggle.
+    @type restrictSelect: bool
+    @ivar restrictRender: Dont render this object, disabled by default, use the outliner to toggle.
+    @type restrictRender: bool
     @ivar LocX: The X location coordinate of the object.
     @type LocX: float
     @ivar LocY: The Y location coordinate of the object.

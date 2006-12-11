@@ -4100,6 +4100,25 @@ static int setFloat3Attr( BPy_Object *self, PyObject *value, void *type )
 /* BPy_Object methods and attribute handlers                                 */
 /*****************************************************************************/
 
+static PyObject *Object_getRestricted( BPy_Object *self, void *type )
+{
+	if (self->object->restrictflag & (short)type)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+static int Object_setRestricted( BPy_Object *self, PyObject *value,
+		void *type )
+{
+	if (PyObject_IsTrue(value) )
+		self->object->restrictflag |= (short)type;
+	else
+		self->object->restrictflag &= ~(short)type;
+	
+	return 0;
+}
+
 static PyObject *Object_getDrawModeBits( BPy_Object *self, void *type )
 {
 	return EXPP_getBitfield( (void *)&self->object->dtx, (int)type, 'b' );
@@ -5057,6 +5076,20 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getType, (setter)NULL, 
 	 "String describing Object type",
 	 NULL},
+
+	{"restrictDisplay",
+	 (getter)Object_getRestricted, (setter)Object_setRestricted, 
+	 "Toggle object restrictions",
+	 (void *)OB_RESTRICT_VIEW},
+	{"restrictSelect",
+	 (getter)Object_getRestricted, (setter)Object_setRestricted, 
+	 "Toggle object restrictions",
+	 (void *)OB_RESTRICT_SELECT},
+	{"restrictRender",
+	 (getter)Object_getRestricted, (setter)Object_setRestricted, 
+	 "Toggle object restrictions",
+	 (void *)OB_RESTRICT_RENDER},
+
 	{"properties", (getter)Object_GetProperties, (setter)NULL,
 	"Get the ID properties associated with this object"},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */

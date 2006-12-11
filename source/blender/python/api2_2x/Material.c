@@ -359,6 +359,7 @@ static PyObject *Material_ModesDict( void )
 		PyConstant_Insert(c, "RAYTRANSP", PyInt_FromLong(MA_RAYTRANSP));
 		PyConstant_Insert(c, "TANGENT_V", PyInt_FromLong(MA_TANGENT_V));
 		PyConstant_Insert(c, "NMAP_TS", PyInt_FromLong(MA_NORMAP_TANG));
+		PyConstant_Insert(c, "GROUP_EXCLUSIVE", PyInt_FromLong(MA_GROUP_NOLAY));
 	}
 
 	return Modes;

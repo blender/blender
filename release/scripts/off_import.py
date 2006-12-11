@@ -77,7 +77,7 @@ def read(filename):
 	# === OFF Header ===
 	# Skip the comments
 	offheader= file.readline()
-	while offheader.startswith('#'):
+	while offheader.startswith('#') or offheader.lower().startswith('off'):
 		offheader = file.readline()
 	
 	numverts, numfaces, numedges= map(int, offheader.split())
@@ -105,11 +105,15 @@ def read(filename):
 	for i in xrange(numfaces):
 		line = file.readline().split() # ignore the first value, its just the face count but we can work that out anyway
 		
-		
 		# appends all the indicies in reverse order except 0
 		# xrange(len(line)-1, -1, -1) # normal reverse loop
 		# xrange(len(line)-1, 0, -1) # ignoring index 0 because its only a count
-		face= [int(line[j]) for j in xrange(len(line)-1, 0, -1)]
+		# face= [int(line[j]) for j in xrange(len(line)-1, 0, -1)]
+		
+		# Some OFF files have floats on the end of the face. what are these for?
+		face= [int(line[j]) for j in xrange(int(line[0]), 0, -1)]
+		
+		
 		if len(face)>4:
 			faces.extend( fan_face(face) )
 		else:
@@ -136,9 +140,15 @@ def read(filename):
 			
 			edge_dict[i1,i2]= ed
 		
-		# Now make known edges fisible
+		# Now make known edges visible
+		has_edges = True
 		for i in xrange(numedges):
-			i1,i2= file.readline().split()
+			try:
+				i1,i2= file.readline().split()
+			except:
+				has_edges = False
+				break # some files dont define edges :/
+			
 			i1= int(i1)
 			i2= int(i2)		
 			if i1>i2:
@@ -146,7 +156,12 @@ def read(filename):
 			
 			# We know this edge is seen so unset the fgon flag
 			edge_dict[i1,i2].flag &= ~FGON_FLAG
-	
+		
+		if not has_edges:
+			# dang, we'v turned all the edges into fgons and then the file didnt define any edges.
+			# oh well, just enable them all
+			for ed in me.edges:
+				ed.flag &= ~FGON_FLAG
 	
 	# Assign uvs from vert index
 	if has_uv:
@@ -155,14 +170,10 @@ def read(filename):
 			for i, v in enumerate(f): # same as f.v
 				f_uv[i]= uvs[v.index]
 	
-	for ob in scn.getChildren():
+	for ob in scn.objects:
 		ob.sel=0
 	
-	ob= Blender.Object.New('Mesh', name)
-	ob.link(me)
-	scn.link(ob)
-	ob.Layers= scn.Layers
-	ob.sel= 1
+	scn.objects.active = scn.objects.new(me, name)
 	Blender.Window.RedrawAll()
 	print 'Off "%s" imported in %.4f seconds.' % (name, Blender.sys.time()-start)
 	
