@@ -1242,6 +1242,16 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				persptoetsen(event);
 				doredraw= 1;
 				break;
+			case BKEY:
+				if(G.qual==LR_ALTKEY)
+					view3d_edit_clipping(v3d);
+				else if(G.qual==LR_SHIFTKEY) {
+					if(G.vd->persp==2)
+						set_render_border();
+					else
+						view3d_border_zoom();
+				}
+				break;
 			/* Brush properties */
 			case AKEY:
 				br->airbrush= !br->airbrush;
