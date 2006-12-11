@@ -480,7 +480,7 @@ static void headmenu(ScrArea *sa)
 static void addqueue_ext(short win, unsigned short event, short val, char ascii)
 {
 	if (win<4 || !areawinar[win]) {
-		if(win==0) // other win ids are for mainwin & renderwin
+		if(win==0 && !G.background) /* other win ids are for mainwin & renderwin */
 			printf("bad call to addqueue: %d (%d, %d)\n", win, event, val);
 	} 
 	else {
