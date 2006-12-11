@@ -1280,14 +1280,20 @@ static PyObject *SceneObSeq_nextIter( BPy_SceneObSeq * self )
 }
 
 
-static PyObject *SceneObSeq_add( BPy_SceneObSeq * self, PyObject *pyobj )
+static PyObject *SceneObSeq_link( BPy_SceneObSeq * self, PyObject *pyobj )
 {	
 	SCENE_DEL_CHECK_PY(self->bpyscene);
 	
 	/* this shold eventually replace Scene_link */
 	if (self->mode != 0)
 		return (EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "Cannot add to objects.selection or objects.context!" ));	
+					      "Cannot link to objects.selection or objects.context!" ));	
+	
+	/*
+	if (self->iter != NULL)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Cannot modify scene objects while iterating" );
+	*/
 	
 	return Scene_link(self->bpyscene, pyobj);
 }
@@ -1295,8 +1301,9 @@ static PyObject *SceneObSeq_add( BPy_SceneObSeq * self, PyObject *pyobj )
 
 /* This is buggy with new object data not alredy linked to an object, for now use the above code */
 static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
-{
+{	
 	void *data = NULL;
+	char *name;
 	short type = OB_EMPTY;
 	struct Object *object;
 	Base *base;
@@ -1309,9 +1316,9 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 		return (EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "Cannot add new to objects.selection or objects.context!" ));	
 	
-	if( !PyArg_ParseTuple( args, "O", &py_data ) )
+	if( !PyArg_ParseTuple( args, "O|s", &py_data, &name ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected an object as argument" );
+				"expected an object and optionaly a string as arguments" );
 
 	if (py_data == Py_None) {
 		type = OB_EMPTY;
@@ -1345,7 +1352,9 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 
 	/* have we set data to something good? */
 	if( data ) {
-		object = alloc_libblock( &( G.main->object ), ID_OB, ((ID *)data)->name + 2 );
+		if (!name) name = ((ID *)data)->name + 2;
+		
+		object = alloc_libblock( &( G.main->object ), ID_OB, name);
 		object->data = data;
 		((ID *)data)->us++;
 	} else {
@@ -1353,6 +1362,8 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 			return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					"objects.new() argument type is not supported" );
 		}
+		
+		if (!name) name = "Empty";
 		
 		object = alloc_libblock( &( G.main->object ), ID_OB, "Empty" );
 	}
@@ -1439,7 +1450,7 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 }
 
 
-static PyObject *SceneObSeq_remove( BPy_SceneObSeq * self, PyObject *args )
+static PyObject *SceneObSeq_unlink( BPy_SceneObSeq * self, PyObject *args )
 {
 	PyObject *pyobj;
 	Object *blen_ob;
@@ -1535,12 +1546,12 @@ static int SceneObSeq_setActive(BPy_SceneObSeq *self, PyObject *value)
 
 
 static struct PyMethodDef BPy_SceneObSeq_methods[] = {
-	{"add", (PyCFunction)SceneObSeq_add, METH_VARARGS,
-		"add object to the scene"},
+	{"link", (PyCFunction)SceneObSeq_link, METH_VARARGS,
+		"link object to this scene"},
 	{"new", (PyCFunction)SceneObSeq_new, METH_VARARGS,
-		"add object data to this scene and return the object"},
-	{"remove", (PyCFunction)SceneObSeq_remove, METH_VARARGS,
-		"remove object from the scene"},
+		"Create a new object in this scene from the obdata given and return a new object"},
+	{"unlink", (PyCFunction)SceneObSeq_unlink, METH_VARARGS,
+		"unlinks the object from the scene"},
 	{NULL, NULL, 0, NULL}
 };
 

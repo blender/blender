@@ -755,9 +755,11 @@ static PyObject *GroupObSeq_getIter( BPy_GroupObSeq * self )
 static PyObject *GroupObSeq_nextIter( BPy_GroupObSeq * self )
 {
 	PyObject *object;
-	if( !(self->iter) ||  !(self->bpygroup->group) )
+	if( !(self->iter) ||  !(self->bpygroup->group) ) {
+		self->iter = NULL; /* so we can add objects again */
 		return EXPP_ReturnPyObjError( PyExc_StopIteration,
 				"iterator at end" );
+	}
 	
 	object= Object_CreatePyObject( self->iter->ob ); 
 	self->iter= self->iter->next;
@@ -765,7 +767,7 @@ static PyObject *GroupObSeq_nextIter( BPy_GroupObSeq * self )
 }
 
 
-static PyObject *GroupObSeq_add( BPy_GroupObSeq * self, PyObject *args )
+static PyObject *GroupObSeq_link( BPy_GroupObSeq * self, PyObject *args )
 {
 	PyObject *pyobj;
 	Object *blen_ob;
@@ -776,6 +778,12 @@ static PyObject *GroupObSeq_add( BPy_GroupObSeq * self, PyObject *args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a python object as an argument" ) );
 	
+	/*
+	if (self->iter != NULL)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Cannot modify group objects while iterating" );
+	*/
+	
 	blen_ob = ( ( BPy_Object * ) pyobj )->object;
 	
 	add_to_group_wraper(self->bpygroup->group, blen_ob); /* this checks so as not to add the object into the group twice*/
@@ -785,7 +793,7 @@ static PyObject *GroupObSeq_add( BPy_GroupObSeq * self, PyObject *args )
 
 
 
-static PyObject *GroupObSeq_remove( BPy_GroupObSeq * self, PyObject *args )
+static PyObject *GroupObSeq_unlink( BPy_GroupObSeq * self, PyObject *args )
 {
 	PyObject *pyobj;
 	Object *blen_ob;
@@ -815,10 +823,10 @@ static PyObject *GroupObSeq_remove( BPy_GroupObSeq * self, PyObject *args )
 
 
 static struct PyMethodDef BPy_GroupObSeq_methods[] = {
-	{"add", (PyCFunction)GroupObSeq_add, METH_VARARGS,
-		"add object to group"},
-	{"remove", (PyCFunction)GroupObSeq_remove, METH_VARARGS,
-		"remove object from group"},
+	{"link", (PyCFunction)GroupObSeq_link, METH_VARARGS,
+		"make the object a part of this group"},
+	{"remove", (PyCFunction)GroupObSeq_unlink, METH_VARARGS,
+		"remove object from this group"},
 	{NULL, NULL, 0, NULL}
 };
 
