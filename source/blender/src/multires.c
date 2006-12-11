@@ -1332,7 +1332,9 @@ void multires_update_colors(Mesh *me)
 
 void multires_update_levels(Mesh *me)
 {
+	/* cr=current, pr=previous, or=original */
 	MultiresLevel *cr_lvl= BLI_findlink(&me->mr->levels,me->mr->current-1), *pr_lvl;
+	MultiresLevel *or_lvl= cr_lvl;
 	vec3f *pr_deltas= NULL, *cr_deltas= NULL;
 	char *pr_flag_damaged= NULL, *cr_flag_damaged= NULL, *pr_mat_damaged= NULL, *cr_mat_damaged= NULL;
 	char *or_flag_damaged= NULL, *or_mat_damaged= NULL;
@@ -1504,16 +1506,22 @@ void multires_update_levels(Mesh *me)
 	/* Update lower levels */
 	cr_lvl= me->mr->levels.last;
 	cr_lvl= cr_lvl->prev;
+	/* Update Verts */
+	while(cr_lvl) {
+		for(i=0; i<cr_lvl->totvert; ++i)
+			cr_lvl->verts[i]= cr_lvl->next->verts[i];
+		cr_lvl= cr_lvl->prev;
+	}
+	
+	/* Update Faces */
 	
 	/* Clear to original damages */
-	if(pr_flag_damaged) MEM_freeN(pr_flag_damaged);
 	if(cr_flag_damaged) MEM_freeN(cr_flag_damaged);
-	if(pr_mat_damaged) MEM_freeN(pr_mat_damaged);
 	if(cr_mat_damaged) MEM_freeN(cr_mat_damaged);
-	pr_flag_damaged= pr_mat_damaged= NULL;
 	cr_flag_damaged= or_flag_damaged;
 	cr_mat_damaged= or_mat_damaged;
 	
+	cr_lvl= or_lvl->prev;
 	while(cr_lvl) {
 		if(pr_flag_damaged) MEM_freeN(pr_flag_damaged);
 		pr_flag_damaged= cr_flag_damaged;
@@ -1521,9 +1529,6 @@ void multires_update_levels(Mesh *me)
 		if(pr_mat_damaged) MEM_freeN(pr_mat_damaged);
 		pr_mat_damaged= cr_mat_damaged;
 		cr_mat_damaged= MEM_callocN(sizeof(char)*cr_lvl->totface,"mat_damaged 3");
-	
-		for(i=0; i<cr_lvl->totvert; ++i)
-			cr_lvl->verts[i]= cr_lvl->next->verts[i];
 
 		/* Update faces */
 		curf= 0;
