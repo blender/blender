@@ -18,6 +18,10 @@ This script imports a 3ds file and the materials into Blender for editing.
 Loader is based on 3ds loader from www.gametutorials.com (Thanks DigiBen).
 
 
+0.995 by Campbell Barton<br>
+- workaround for buggy mesh vert delete
+- minor tweaks
+
 0.99 by Bob Holcomb<br>
 - added support for floating point color values that previously broke on import.
 
@@ -130,11 +134,7 @@ try:
 except:
 	from sets import Set as set
 
-#global SCN_OBJECTS
-#SCN_OBJECTS = None
 BOUNDS_3DS= []
-
-
 
 
 #this script imports uvcoords as sticky vertex coords
@@ -373,11 +373,11 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 				try:	img= TEXTURE_DICT[bmat.name]
 				except:	img= None
 				
-			
-			bmesh.verts.extend( [Vector()] )
-			bmesh.verts.extend( [myContextMesh_vertls[i] for i in vertsToUse] )
+			bmesh_verts = bmesh.verts
+			bmesh_verts.extend( [Vector()] )
+			bmesh_verts.extend( [myContextMesh_vertls[i] for i in vertsToUse] )
 			# +1 because of DUMMYVERT
-			face_mapping= bmesh.faces.extend( [ [ bmesh.verts[ myVertMapping[vindex]+1] for vindex in myContextMesh_facels[fIdx]] for fIdx in faces ], indexList=True )
+			face_mapping= bmesh.faces.extend( [ [ bmesh_verts[ myVertMapping[vindex]+1] for vindex in myContextMesh_facels[fIdx]] for fIdx in faces ], indexList=True )
 			
 			if contextMeshUV or img:
 				bmesh.faceUV= 1
@@ -782,6 +782,8 @@ def load_3ds(filename, PREF_UI= True):
 		if not Blender.Draw.PupBlock('Import 3DS...', pup_block):
 			return
 	
+	Blender.Window.WaitCursor(1)
+	
 	IMPORT_CONSTRAIN_BOUNDS= IMPORT_CONSTRAIN_BOUNDS.val
 	IMPORT_AS_INSTANCE= IMPORT_AS_INSTANCE.val
 	
@@ -803,10 +805,13 @@ def load_3ds(filename, PREF_UI= True):
 	# Layers= scn.Layers
 	
 	# REMOVE DUMMYVERT, - remove this in the next release when blenders internal are fixed.
+	
+	'''
 	for ob in importedObjects:
 		if ob.getType()=='Mesh':
 			me= ob.getData(mesh=1)
 			me.verts.delete([me.verts[0],])
+	'''
 	# Done DUMMYVERT
 	"""
 	if IMPORT_AS_INSTANCE:
@@ -859,7 +864,6 @@ def load_3ds(filename, PREF_UI= True):
 			# SCALE Matrix
 			SCALE_MAT= Blender.Mathutils.Matrix([SCALE,0,0,0],[0,SCALE,0,0],[0,0,SCALE,0],[0,0,0,1])
 			
-			
 			for ob in importedObjects:
 				ob.setMatrix(ob.matrixWorld*SCALE_MAT)
 				
@@ -868,6 +872,8 @@ def load_3ds(filename, PREF_UI= True):
 	# Select all new objects.
 	print 'finished importing: "%s" in %.4f sec.' % (filename, (Blender.sys.time()-time1))
 	file.close()
+	Blender.Window.WaitCursor(0)
+	
 
 DEBUG= False
 
@@ -875,6 +881,7 @@ if __name__=='__main__' and not DEBUG:
 	Blender.Window.FileSelector(load_3ds, 'Import 3DS', '*.3ds')
 
 # For testing compatibility
+'''
 else:
 	# DEBUG ONLY
 	TIME= Blender.sys.time()
@@ -902,3 +909,4 @@ else:
 			load_3ds(_3ds, False)
 
 	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
+'''
