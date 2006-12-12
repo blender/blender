@@ -1602,6 +1602,8 @@ KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc){//not used
             return gameobje->GetPhysicsController();
 	}
 
+	return 0;
+
 }
 
 KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist){
@@ -1612,6 +1614,8 @@ KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist){
 	    if (gameobje->GetName()==busc)
             return gameobje;
 	}
+	
+	return 0;
 
 }
 
@@ -1945,7 +1949,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							if (dat->tar)
 							{
 								KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
-								physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
+								if (gotar)
+									physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
 							}
 
 							if (gameobj->GetPhysicsController())
