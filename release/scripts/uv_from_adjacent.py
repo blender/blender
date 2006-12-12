@@ -1,7 +1,7 @@
 #!BPY
 """
-Name: 'UVs from adjacent'
-Blender: 241
+Name: 'UVs from unselected adjacent'
+Blender: 242
 Group: 'UvCalculation'
 Tooltip: 'Assign UVs to selected faces from surrounding unselected faces.'
 """
@@ -49,10 +49,15 @@ def mostUsedImage(imageList): # Returns the image most used in the list.
 	# 3+ Images, Get the most used image for surrounding faces.
 	imageCount = {}
 	for image in imageList:
+		if image:
+			image_key= image.name
+		else:
+			image_key = None
+		
 		try:
-			imageCount[image.name]['imageCount'] +=1 # an extra user of this image
+			imageCount[image_key]['imageCount'] +=1 # an extra user of this image
 		except:
-			imageCount[image.name] = {'imageCount':1, 'blenderImage':image} # start with 1 user.
+			imageCount[image_key] = {'imageCount':1, 'blenderImage':image} # start with 1 user.
 	
 	# Now a list of tuples, (imageName, {imageCount, image})
 	imageCount = imageCount.items()
@@ -64,8 +69,8 @@ def mostUsedImage(imageList): # Returns the image most used in the list.
 
 def main():
 	scn = Scene.GetCurrent()
-	ob = scn.getActiveObject()
-	if ob == None or ob.getType() != 'Mesh':
+	ob = scn.objects.active
+	if ob == None or ob.type != 'Mesh':
 		Draw.PupMenu('ERROR: No mesh object in face select mode.')
 		return
 	me = ob.getData(mesh=1)
@@ -79,30 +84,32 @@ def main():
 	
 	
 	# Gather per Vert UV and Image, store in vertUvAverage
-	vertUvAverage = [{'averageUv':[], 'vertImages':[]} for i in xrange(len(me.verts))]
+	vertUvAverage = [[[],[]] for i in xrange(len(me.verts))]
 	
 	for f in unselfaces: # Unselected faces only.
-		if f.image:
-			for i,v in enumerate(f.v):
-				vertUvAverage[v.index]['averageUv'].append(f.uv[i])
-				vertUvAverage[v.index]['vertImages'].append(f.image)
+		fuv = f.uv
+		for i,v in enumerate(f):
+			vertUvAverage[v.index][0].append(fuv[i])
+			vertUvAverage[v.index][1].append(f.image)
 			
 	# Average per vectex UV coords
 	for vertUvData in vertUvAverage:
-		uvList = vertUvData['averageUv']
+		uvList = vertUvData[0]
 		if uvList:
 			# Convert from a list of vectors into 1 vector.
-			vertUvData['averageUv'] = reduce(lambda a,b: a+b, uvList, Mathutils.Vector(0,0)) * (1.0/len(uvList))
+			vertUvData[0] = reduce(lambda a,b: a+b, uvList, Mathutils.Vector(0,0)) * (1.0/len(uvList))
 		else:
-			vertUvData['averageUv'] = None
-			
+			vertUvData[0] = None
+	
+	
+	
 	# Assign to selected faces
+	TEX_FLAG = Mesh.FaceModes['TEX']
 	for f in selfaces:
 		uvlist = []
 		imageList = []
-		for i,v in enumerate(f.v):
-			uv = vertUvAverage[v.index]['averageUv']
-			vImages = vertUvAverage[v.index]['vertImages']
+		for i,v in enumerate(f):
+			uv, vImages = vertUvAverage[v.index]
 			uvlist.append( uv )
 			imageList.extend(vImages)
 		
@@ -110,10 +117,12 @@ def main():
 			# all the faces images used by this faces vert. some faces will be added twice but thats ok.
 			# Get the most used image and assign to the face.
 			image = mostUsedImage(imageList) 
-			print uvlist
-			f.uv = tuple(uvlist)
-			f.image = image
-			f.mode |= Mesh.FaceModes['TEX']
-
+			f.uv = uvlist
+			
+			if image:
+				f.image = image
+				f.mode |= TEX_FLAG
+	Window.RedrawAll()
+	
 if __name__ == '__main__':
 	main()
