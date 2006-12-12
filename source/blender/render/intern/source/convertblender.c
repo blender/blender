@@ -3343,6 +3343,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 					for(dob= lb->first; dob; dob= dob->next) {
 						Object *obd= dob->ob;
 						
+						if (obd->restrictflag & OB_RESTRICT_RENDER) continue;
+						
 						Mat4CpyMat4(obd->obmat, dob->mat);
 						
 						/* group duplis need to set ob matrices correct, for deform. so no_draw is part handled */
@@ -3531,6 +3533,8 @@ static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
 		
+		if (ob->restrictflag & OB_RESTRICT_RENDER) continue;
+
 		/* OB_DONE means the object itself got duplicated, so was already converted */
 		if(ob->flag & OB_DONE);
 		else if( (base->lay & lay) || (ob->type==OB_LAMP && (base->lay & re->scene->lay)) ) {
@@ -3553,6 +3557,8 @@ static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 					
 					for(dob= lb->first; dob; dob= dob->next) {
 						Object *obd= dob->ob;
+						
+						if (obd->restrictflag & OB_RESTRICT_RENDER) continue;
 						
 						Mat4CpyMat4(obd->obmat, dob->mat);
 						
