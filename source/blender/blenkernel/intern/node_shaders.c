@@ -261,7 +261,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		ShadeResult shrnode;
 		ShadeInput *shi;
 		ShaderCallData *shcd= data;
-		float col[4], *nor;
+		float col[4];
 		
 		shi= shcd->shi;
 		shi->mat= (Material *)node->id;
@@ -282,20 +282,17 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		
 		/* retrieve normal */
 		if(in[MAT_IN_NORMAL]->hasinput) {
-			nodestack_get_vec(nor, SOCK_VECTOR, in[MAT_IN_NORMAL]);
-			Normalise(nor);
+			nodestack_get_vec(shi->vn, SOCK_VECTOR, in[MAT_IN_NORMAL]);
+			Normalise(shi->vn);
 		}
 		else
-			nor= shi->vno;
+			VECCOPY(shi->vn, shi->vno);
 		
 		/* custom option to flip normal */
 		if(node->custom1 & SH_NODE_MAT_NEG) {
-			shi->vn[0]= -nor[0];
-			shi->vn[1]= -nor[1];
-			shi->vn[2]= -nor[2];
-		}
-		else {
-			VECCOPY(shi->vn, nor);
+			shi->vn[0]= -shi->vn[0];
+			shi->vn[1]= -shi->vn[1];
+			shi->vn[2]= -shi->vn[2];
 		}
 		
 		node_shader_lamp_loop(shi, &shrnode);	/* clears shrnode */
@@ -731,7 +728,7 @@ static void node_shader_exec_vect_math(void *data, bNode *node, bNodeStack **in,
 	float vec1[3], vec2[3];
 	
 	nodestack_get_vec(vec1, SOCK_VECTOR, in[0]);
-	nodestack_get_vec(vec1, SOCK_VECTOR, in[1]);
+	nodestack_get_vec(vec2, SOCK_VECTOR, in[1]);
 	
 	if(node->custom1 == 0) {	/* Add */
 		out[0]->vec[0]= vec1[0] + vec2[0];
