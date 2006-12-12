@@ -112,6 +112,7 @@ def verifyIpocurve(ky,index):
 		idx = "Key " + str(index)
 	crv = ipo.getCurve(index)
 	if crv == None:
+		# print idx
 		crv = ipo.addCurve(idx)
 	crv.setInterpolation("Linear")
 	return crv
@@ -119,8 +120,12 @@ def verifyIpocurve(ky,index):
 # Add the Drivers and Curves	
 def setupDrivers(ob,ctrl,type):    
 	global shapes
-	me = ob.getData()	
-	ky = me.getKey()
+	me = ob.getData(mesh=1)	
+	ky = me.key
+	
+	# Should we add an error here??
+	if not ky:
+		return
 	
 	if type in [SHAPE1_ONE_MONE,SHAPE1_ONE_ZERO,SHAPE1_ZERO_MONE]:
 		ctrl.protectFlags = int("111111011",2)
@@ -372,15 +377,28 @@ def setupDrivers(ob,ctrl,type):
 		
 def build(type):
 	global shapes,widmenu,rangename
-	sce = Blender.Scene.getCurrent()
+	sce = Blender.Scene.GetCurrent()
+	
+	ob = sce.objects.active
+	
+	try:
+		ob.getData(mesh=1).key
+	except:
+		Blender.Draw.PupMenu('Aborting%t|Object has no keys')
+		return
+	
 	loc = Window.GetCursorPos() 
 	range	   = makeRange(type,rangename.val)
- 	controller = makeController(rangename.val)
+	controller = makeController(rangename.val)
 	text       = makeText(rangename.val)
 
 	sce.link(range)
 	sce.link(controller)
 	sce.link(text)
+	
+	range.restrictRender = True
+	controller.restrictRender = True
+	text.restrictRender = True
 	
 	range.setLocation(loc)
 	controller.setLocation(loc)
@@ -390,8 +408,7 @@ def build(type):
 	range.makeParent([text],0)
 
 	sce.update()
-
-	ob = Object.GetSelected()[0]
+	
 	setupDrivers(ob,controller,widmenu.val)
 	
 #Create the text
@@ -402,8 +419,8 @@ def makeText(name):
 	txt.setDrawMode(Text3d.DRAW3D)
 	txt.setAlignment(Text3d.MIDDLE)
 	txt.setText(name)
-  	ob.link(txt)
-  	ob.setEuler(3.14159/2,0,0)
+	ob.link(txt)
+	ob.setEuler(3.14159/2,0,0)
 	return ob
 	
 
@@ -589,16 +606,20 @@ EVENT_BACK 			= 103
 #get the list of shapes from the selected object
 
 def shapeMenuText():
-	if len(Object.GetSelected()) == 0:
+	ob = Blender.Scene.GetCurrent().objects.active
+	if not ob:
 		return ""
-	ob = Object.GetSelected()[0]
-	me = ob.getData()
-	key= me.getKey()
+	
+	me = ob.getData(mesh=1)
+	try:	key= me.key
+	except:	key = None
+	
 	if key == None:
-		return ""	
+		return ""
+	
 	blocks = key.getBlocks()
 	menu = "Choose Shape %t|"
-	for n in range(len(blocks)):
+	for n in xrange(len(blocks)):
 		menu = menu + blocks[n].name + " %x" + str(n) + "|"
 	return menu 		
 
