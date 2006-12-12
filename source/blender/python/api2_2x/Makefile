@@ -58,3 +58,9 @@ CPPFLAGS += -I../../radiosity/extern/include
 CPPFLAGS += -I$(NAN_BMFONT)/include
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+
+# We'll just add a little duct tape to fix things here ...
+.PHONY: clean
+clean::
+	@rm -f $(OCGDIR)/blender/BPY_*.o
+	@rm -f $(OCGDIR)/blender/BPY_*.d
