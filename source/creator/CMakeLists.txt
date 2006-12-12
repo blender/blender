@@ -93,7 +93,7 @@ ENDIF(UNIX AND NOT APPLE)
 IF(APPLE)
   SET(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
   SET(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
-  SET(TARGETINFO ${TARGETDIR}/Contents/Info.plist)
+  SET(TARGETINFO ${TARGETDIR}/blender.app/Contents/Info.plist)
 
   ADD_CUSTOM_COMMAND(TARGET blender
     POST_BUILD
