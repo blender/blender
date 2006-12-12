@@ -67,7 +67,7 @@ specular highlights to the vertex colors.
 #
 # ***** END GPL LICENCE BLOCK *****
 
-import Blender, meshtools
+import Blender
 #import time
 import BPyMesh
 
@@ -87,19 +87,19 @@ def write(filename):
 		filename += '.radio'
 	
 	scn= Blender.Scene.GetCurrent()
-	object= scn.getActiveObject()
-	if not object:
+	ob= scn.objects.active
+	if not ob:
 		Blender.Draw.PupMenu('Error%t|Select 1 active object')
 		return
-	objname= object.name
+	objname= ob.name
 	
 	file = open(filename, 'wb')
-	mesh = BPyMesh.getMeshFromObject(object, None, True, False, scn)
+	mesh = BPyMesh.getMeshFromObject(ob, None, True, False, scn)
 	if not mesh:
 		Blender.Draw.PupMenu('Error%t|Could not get mesh data from active object')
 		return
 		
-	mesh.transform(object.matrixWorld)
+	mesh.transform(ob.matrixWorld)
 	
 	
 	
@@ -107,7 +107,8 @@ def write(filename):
 	file = open(filename, "wb")
 
 	if not mesh.faceUV:
-		mesh.faceUV= 1
+		mesh.vertexColors= 1
+		
 		#message = 'Please assign vertex colors before exporting "%s"|object was not saved' % object.name
 		#Blender.Draw.PupMenu("ERROR%t|"+message)
 		#return
@@ -133,7 +134,7 @@ def write(filename):
 		
 		file.write(struct.pack('<b', len(f) ))
 		#for j in range(len(mesh.faces[i].v)):
-		for v in f.v:
+		for v in f:
 			file.write(struct.pack('<h', v.index))
 		
 		f_col= f.col
@@ -147,8 +148,9 @@ def write(filename):
 	Blender.Window.DrawProgressBar(1.0, '')  # clear progressbar
 	file.close()
 	end = Blender.sys.time()
-	message = 'Successfully exported "%s" in %.2f seconds' % (Blender.sys.basename(filename), end-start)
-	meshtools.print_boxed(message)
+	print '\nSuccessfully exported "%s" in %.2f seconds\n' % (Blender.sys.basename(filename), end-start)
+	
+	#meshtools.print_boxed(message)
 
 
 def main():

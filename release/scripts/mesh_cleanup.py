@@ -48,7 +48,7 @@ meshWeight2Dict= BPyMesh.meshWeight2Dict
 def rem_free_verts(me):
 	vert_users= [0] * len(me.verts)
 	for f in me.faces:
-		for v in f.v:
+		for v in f:
 			vert_users[v.index]+=1
 	
 	for e in me.edges:

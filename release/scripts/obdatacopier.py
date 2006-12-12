@@ -48,28 +48,25 @@ from Blender.Draw import *
 from Blender.BGL import *
 
 
-
-obsel = Object.GetSelected()
+scn= Blender.Scene.GetCurrent()
 
 type_func_method= type(dir)
 type_func= type(lambda:i)
 type_dict= type({})
 # type_list= type([])
 
+IGNORE_VARS = 'users', 'fakeUser', 'edges', 'faces', 'verts',  'elements'
 
 def renew():
-	global obsel
 	scn= Blender.Scene.GetCurrent()
-	act_ob= scn.getActiveObject()
+	act_ob= scn.objects.active
 	if act_ob==None:
 		return {}
 
 	act_ob_type= act_ob.getType()
 	act_ob_data= act_ob.getData(mesh=1)
-	
-	obsel = Object.GetSelected()
 
-	if act_ob_data==None: # Surf
+	if act_ob_data==None: # Surf?
 		return {}
 	
 	PARAM={}
@@ -77,7 +74,7 @@ def renew():
 	doc='doc' 
 	
 	for prop_name in dir(act_ob_data):
-		if not prop_name.startswith('__'):
+		if not prop_name.startswith('__') and prop_name not in IGNORE_VARS:
 			# Get the type
 			try:		exec 'prop_type= type(act_ob_data.%s)' % prop_name
 			except:		prop_type= None
@@ -130,7 +127,7 @@ def copy():
 	
 	print '\n\nStarting copy for object "%s"' % act_ob.name
 	some_errors= False
-	for ob in Blender.Object.GetSelected():
+	for ob in scn.objects.context:
 		if ob != act_ob and ob.getType() == act_ob_type:
 			ob_data= None
 			for prop_name, value in PARAM.iteritems():
@@ -170,7 +167,7 @@ def DRAW():
 	global PARAM
 	
 	scn= Blender.Scene.GetCurrent()
-	act_ob= scn.getActiveObject()
+	act_ob= scn.objects.active
 	
 	glColor3f(0.7, 0.7, 0.7)
 	glClear(GL_COLOR_BUFFER_BIT)
@@ -187,7 +184,10 @@ def DRAW():
 	Button("Renew",3,184,4,80,ligne)
 
 	glRasterPos2f(20, ligne*2-8)
-	Text(act_ob.getType()+" DATA copier")
+	if act_ob:
+		Text(act_ob.getType()+" DATA copier")
+	else:
+		Text("Please select an object")
 
 
 	max=size[3] / 22 -2

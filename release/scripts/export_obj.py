@@ -359,7 +359,7 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 			if EXPORT_NORMALS:
 				for f in faces:
 					if f.smooth:
-						for v in f.v:
+						for v in f:
 							noKey = veckey3d(v.no)
 							if not globalNormals.has_key( noKey ):
 								globalNormals[noKey] = totno

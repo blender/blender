@@ -460,7 +460,7 @@ def edge_face_users(me):
 	
 	face_edges_dict= dict([(sorted_edge_indicies(ed), (ed.index, [])) for ed in me.edges])
 	for f in me.faces:
-		fvi= [v.index for v in f.v]# face vert idx's
+		fvi= [v.index for v in f]# face vert idx's
 		for i in xrange(len(f)):
 			i1= fvi[i]
 			i2= fvi[i-1]
@@ -490,7 +490,7 @@ def face_edges(me):
 	
 	face_edges_dict= dict([(sorted_edge_indicies(ed), []) for ed in me.edges])
 	for fidx, f in enumerate(me.faces):
-		fvi= [v.index for v in f.v]# face vert idx's
+		fvi= [v.index for v in f]# face vert idx's
 		for i in xrange(len(f)):
 			i1= fvi[i]
 			i2= fvi[i-1]
@@ -671,7 +671,7 @@ def edgeFaceUserCount(me, faces= None):
 	edges_idx_dict= dict([(sorted_edge_indicies(ed), ed.index) for ed in me.edges])
 
 	for f in faces:
-		fvi= [v.index for v in f.v]# face vert idx's
+		fvi= [v.index for v in f]# face vert idx's
 		for i in xrange(len(f)):
 			i1= fvi[i]
 			i2= fvi[i-1]
@@ -1000,8 +1000,9 @@ def meshCalcNormals(me, vertNormals=None):
 		
 	edges={}
 	for f in me.faces:
+		f_v = f.v
 		for i in xrange(len(f)):
-			i1, i2= f.v[i].index, f.v[i-1].index
+			i1, i2= f_v[i].index, f_v[i-1].index
 			if i1<i2:
 				i1,i2= i2,i1
 				
@@ -1052,25 +1053,25 @@ def pointInsideMesh(ob, pt):
 	Vector = Blender.Mathutils.Vector
 	
 	def ptInFaceXYBounds(f, pt):
-			
-		co= f.v[0].co
+		f_v = f.v
+		co= f_v[0].co
 		xmax= xmin= co.x
 		ymax= ymin= co.y
 		
-		co= f.v[1].co
+		co= f_v[1].co
 		xmax= max(xmax, co.x)
 		xmin= min(xmin, co.x)
 		ymax= max(ymax, co.y)
 		ymin= min(ymin, co.y)
 		
-		co= f.v[2].co
+		co= f_v[2].co
 		xmax= max(xmax, co.x)
 		xmin= min(xmin, co.x)
 		ymax= max(ymax, co.y)
 		ymin= min(ymin, co.y)
 		
-		if len(f)==4: 
-			co= f.v[3].co
+		if len(f_v)==4: 
+			co= f_v[3].co
 			xmax= max(xmax, co.x)
 			xmin= min(xmin, co.x)
 			ymax= max(ymax, co.y)
@@ -1088,9 +1089,10 @@ def pointInsideMesh(ob, pt):
 		#return xmax, ymax, xmin, ymin
 	
 	def faceIntersect(f):
-		isect = Intersect(f.v[0].co, f.v[1].co, f.v[2].co, ray, obSpacePt, 1) # Clipped.
+		f_v = f.v
+		isect = Intersect(f_v[0].co, f_v[1].co, f_v[2].co, ray, obSpacePt, 1) # Clipped.
 		if not isect and len(f) == 4:
-			isect = Intersect(f.v[0].co, f.v[2].co, f.v[3].co, ray, obSpacePt, 1) # Clipped.
+			isect = Intersect(f_v[0].co, f_v[2].co, f_v[3].co, ray, obSpacePt, 1) # Clipped.
 				
 		if isect and isect.z > obSpacePt.z: # This is so the ray only counts if its above the point. 
 			return True
