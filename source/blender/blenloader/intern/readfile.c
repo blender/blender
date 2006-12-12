@@ -3679,7 +3679,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		link_list(fd, &(sa->panels));
 
 		/* accident can happen when read/save new file with older version */
-		if(sa->spacedata.first==NULL)
+		if(sa->spacedata.first==NULL && sa->spacetype>SPACE_NLA)
 			sa->spacetype= SPACE_EMPTY;
 		
 		for(pa= sa->panels.first; pa; pa=pa->next) {
