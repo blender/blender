@@ -261,7 +261,7 @@ void	btDiscreteDynamicsWorld::internalSingleStepSimulation(float timeStep)
 	dispatchInfo.m_debugDraw = getDebugDrawer();
 
 	///perform collision detection
-	performDiscreteCollisionDetection(dispatchInfo);
+	performDiscreteCollisionDetection();
 
 	calculateSimulationIslands();
 
@@ -270,12 +270,9 @@ void	btDiscreteDynamicsWorld::internalSingleStepSimulation(float timeStep)
 	
 
 
-	///solve non-contact constraints
-	solveNoncontactConstraints(getSolverInfo());
+	///solve contact and other joint constraints
+	solveConstraints(getSolverInfo());
 	
-	///solve contact constraints
-	solveContactConstraints(getSolverInfo());
-
 	///CallbackTriggers();
 
 	///integrate transforms
@@ -401,79 +398,116 @@ void	btDiscreteDynamicsWorld::removeVehicle(btRaycastVehicle* vehicle)
 	}
 }
 
+inline	int	btGetConstraintIslandId(const btTypedConstraint* lhs)
+{
+	int islandId;
+	
+	const btCollisionObject& rcolObj0 = lhs->getRigidBodyA();
+	const btCollisionObject& rcolObj1 = lhs->getRigidBodyB();
+	islandId= rcolObj0.getIslandTag()>=0?rcolObj0.getIslandTag():rcolObj1.getIslandTag();
+	return islandId;
 
-void	btDiscreteDynamicsWorld::solveContactConstraints(btContactSolverInfo& solverInfo)
+}
+
+static bool btSortConstraintOnIslandPredicate(const btTypedConstraint* lhs, const btTypedConstraint* rhs)
+{
+	int rIslandId0,lIslandId0;
+	rIslandId0 = btGetConstraintIslandId(rhs);
+	lIslandId0 = btGetConstraintIslandId(lhs);
+	return lIslandId0 < rIslandId0;
+}
+
+void	btDiscreteDynamicsWorld::solveConstraints(btContactSolverInfo& solverInfo)
 {
 	
-	BEGIN_PROFILE("solveContactConstraints");
+	BEGIN_PROFILE("solveConstraints");
 
 	struct InplaceSolverIslandCallback : public btSimulationIslandManager::IslandCallback
 	{
 
-		btContactSolverInfo& m_solverInfo;
-		btConstraintSolver*	m_solver;
-		btIDebugDraw*	m_debugDrawer;
+		btContactSolverInfo&	m_solverInfo;
+		btConstraintSolver*		m_solver;
+		btTypedConstraint**		m_sortedConstraints;
+		int						m_numConstraints;
+		btIDebugDraw*			m_debugDrawer;
+
+
 
 		InplaceSolverIslandCallback(
 			btContactSolverInfo& solverInfo,
 			btConstraintSolver*	solver,
+			btTypedConstraint** sortedConstraints,
+			int	numConstraints,
 			btIDebugDraw*	debugDrawer)
 			:m_solverInfo(solverInfo),
 			m_solver(solver),
+			m_sortedConstraints(sortedConstraints),
+			m_numConstraints(numConstraints),
 			m_debugDrawer(debugDrawer)
 		{
 
 		}
 
-		virtual	void	ProcessIsland(btPersistentManifold**	manifolds,int numManifolds)
+		virtual	void	ProcessIsland(btPersistentManifold**	manifolds,int numManifolds, int islandId)
 		{
-			m_solver->solveGroup( manifolds, numManifolds,m_solverInfo,m_debugDrawer);
+			//also add all non-contact constraints/joints for this island
+			btTypedConstraint** startConstraint = 0;
+			int numCurConstraints = 0;
+			int i;
+			
+			//find the first constraint for this island
+			for (i=0;i<m_numConstraints;i++)
+			{
+				if (btGetConstraintIslandId(m_sortedConstraints[i]) == islandId)
+				{
+					startConstraint = &m_sortedConstraints[i];
+					break;
+				}
+			}
+			//count the number of constraints in this island
+			for (;i<m_numConstraints;i++)
+			{
+				if (btGetConstraintIslandId(m_sortedConstraints[i]) == islandId)
+				{
+					numCurConstraints++;
+				}
+			}
+
+			m_solver->solveGroup( manifolds, numManifolds,startConstraint,numCurConstraints,m_solverInfo,m_debugDrawer);
 		}
 
 	};
 
 	
-	InplaceSolverIslandCallback	solverCallback(	solverInfo,	m_constraintSolver,	m_debugDrawer);
 
 	
-	/// solve all the contact points and contact friction
+
+	//sorted version of all btTypedConstraint, based on islandId
+	std::vector<btTypedConstraint*>	sortedConstraints;
+	sortedConstraints.resize( m_constraints.size());
+	int i; 
+	for (i=0;i<getNumConstraints();i++)
+	{
+		sortedConstraints[i] = m_constraints[i];
+	}
+	
+	std::sort(sortedConstraints.begin(),sortedConstraints.end(),btSortConstraintOnIslandPredicate);
+	
+	btTypedConstraint** constraintsPtr = getNumConstraints() ? &sortedConstraints[0] : 0;
+	
+	InplaceSolverIslandCallback	solverCallback(	solverInfo,	m_constraintSolver, constraintsPtr,sortedConstraints.size(),	m_debugDrawer);
+
+	
+	
+	/// solve all the constraints for this island
 	m_islandManager->buildAndProcessIslands(getCollisionWorld()->getDispatcher(),getCollisionWorld()->getCollisionObjectArray(),&solverCallback);
 
-	END_PROFILE("solveContactConstraints");
+	END_PROFILE("solveConstraints");
 
 }
 
 
-void	btDiscreteDynamicsWorld::solveNoncontactConstraints(btContactSolverInfo& solverInfo)
-{
-	BEGIN_PROFILE("solveNoncontactConstraints");
 
-	int i;
-	int numConstraints = int(m_constraints.size());
-
-	///constraint preparation: building jacobians
-	for (i=0;i< numConstraints ; i++ )
-	{
-		btTypedConstraint* constraint = m_constraints[i];
-		constraint->buildJacobian();
-	}
-
-	//solve the regular non-contact constraints (point 2 point, hinge, generic d6)
-	for (int g=0;g<solverInfo.m_numIterations;g++)
-	{
-		//
-		// constraint solving
-		//
-		for (i=0;i< numConstraints ; i++ )
-		{
-			btTypedConstraint* constraint = m_constraints[i];
-			constraint->solveConstraint( solverInfo.m_timeStep );
-		}
-	}
-
-	END_PROFILE("solveNoncontactConstraints");
-
-}
 
 void	btDiscreteDynamicsWorld::calculateSimulationIslands()
 {

@@ -289,7 +289,7 @@ void	btGeneric6DofConstraint::solveConstraint(btScalar	timeStep)
 				btScalar loLimit =  m_upperLimit[i+3] > -3.1415 ? m_lowerLimit[i+3] : -1e30f;
 				btScalar hiLimit = m_upperLimit[i+3] < 3.1415 ? m_upperLimit[i+3] : 1e30f;
 
-				float projAngle  = -2.*xyz[i];
+				float projAngle  = -2.f*xyz[i];
 				
 				if (projAngle < loLimit)
 				{

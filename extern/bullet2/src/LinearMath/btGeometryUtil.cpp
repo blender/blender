@@ -16,7 +16,7 @@ subject to the following restrictions:
 
 #include "btGeometryUtil.h"
 
-bool	btGeometryUtil::isPointInsidePlanes(const std::vector<btVector3>& planeEquations, const btVector3& point, float	margin)
+bool	btGeometryUtil::isPointInsidePlanes(const btAlignedObjectArray<btVector3>& planeEquations, const btVector3& point, float	margin)
 {
 	int numbrushes = planeEquations.size();
 	for (int i=0;i<numbrushes;i++)
@@ -33,7 +33,7 @@ bool	btGeometryUtil::isPointInsidePlanes(const std::vector<btVector3>& planeEqua
 }
 
 
-bool	btGeometryUtil::areVerticesBehindPlane(const btVector3& planeNormal, const std::vector<btVector3>& vertices, float	margin)
+bool	btGeometryUtil::areVerticesBehindPlane(const btVector3& planeNormal, const btAlignedObjectArray<btVector3>& vertices, float	margin)
 {
 	int numvertices = vertices.size();
 	for (int i=0;i<numvertices;i++)
@@ -48,7 +48,7 @@ bool	btGeometryUtil::areVerticesBehindPlane(const btVector3& planeNormal, const 
 	return true;
 }
 
-bool notExist(const btVector3& planeEquation,const std::vector<btVector3>& planeEquations)
+bool notExist(const btVector3& planeEquation,const btAlignedObjectArray<btVector3>& planeEquations)
 {
 	int numbrushes = planeEquations.size();
 	for (int i=0;i<numbrushes;i++)
@@ -62,7 +62,7 @@ bool notExist(const btVector3& planeEquation,const std::vector<btVector3>& plane
 	return true;
 }
 
-void	btGeometryUtil::getPlaneEquationsFromVertices(std::vector<btVector3>& vertices, std::vector<btVector3>& planeEquationsOut )
+void	btGeometryUtil::getPlaneEquationsFromVertices(btAlignedObjectArray<btVector3>& vertices, btAlignedObjectArray<btVector3>& planeEquationsOut )
 {
 		const int numvertices = vertices.size();
 	// brute force:
@@ -110,7 +110,7 @@ void	btGeometryUtil::getPlaneEquationsFromVertices(std::vector<btVector3>& verti
 
 }
 
-void	btGeometryUtil::getVerticesFromPlaneEquations(const std::vector<btVector3>& planeEquations , std::vector<btVector3>& verticesOut )
+void	btGeometryUtil::getVerticesFromPlaneEquations(const btAlignedObjectArray<btVector3>& planeEquations , btAlignedObjectArray<btVector3>& verticesOut )
 {
 	const int numbrushes = planeEquations.size();
 	// brute force:

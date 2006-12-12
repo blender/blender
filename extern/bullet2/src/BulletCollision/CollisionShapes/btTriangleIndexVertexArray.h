@@ -17,7 +17,7 @@ subject to the following restrictions:
 #define BT_TRIANGLE_INDEX_VERTEX_ARRAY_H
 
 #include "btStridingMeshInterface.h"
-#include <vector>
+#include <LinearMath/btAlignedObjectArray.h>
 
 ///IndexedMesh indexes into existing vertex and index arrays, in a similar way OpenGL glDrawElements
 ///instead of the number of indices, we pass the number of triangles
@@ -38,7 +38,7 @@ struct	btIndexedMesh
 ///So keep those arrays around during the lifetime of this btTriangleIndexVertexArray.
 class btTriangleIndexVertexArray : public btStridingMeshInterface
 {
-	std::vector<btIndexedMesh>	m_indexedMeshes;
+	btAlignedObjectArray<btIndexedMesh>	m_indexedMeshes;
 
 		
 public:

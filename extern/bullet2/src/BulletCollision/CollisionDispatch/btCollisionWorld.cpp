@@ -121,8 +121,10 @@ void	btCollisionWorld::addCollisionObject(btCollisionObject* collisionObject,sho
 
 
 
-void	btCollisionWorld::performDiscreteCollisionDetection(btDispatcherInfo& dispatchInfo)
+void	btCollisionWorld::performDiscreteCollisionDetection()
 {
+	btDispatcherInfo& dispatchInfo = getDispatchInfo();
+
 	BEGIN_PROFILE("performDiscreteCollisionDetection");
 
 

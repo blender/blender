@@ -268,17 +268,44 @@ void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,
 	int startManifoldIndex = 0;
 	int endManifoldIndex = 1;
 
-	for (startManifoldIndex=0;startManifoldIndex<numManifolds;startManifoldIndex = endManifoldIndex)
+	int islandId;
+
+
+		//update the sleeping state for bodies, if all are sleeping
+	for (int startIslandIndex=0;startIslandIndex<numElem;startIslandIndex = endIslandIndex)
 	{
-		int islandId = getIslandId(islandmanifold[startManifoldIndex]);
-		for (endManifoldIndex = startManifoldIndex+1;(endManifoldIndex<numManifolds) && (islandId == getIslandId(islandmanifold[endManifoldIndex]));endManifoldIndex++)
+		int islandId = getUnionFind().getElement(startIslandIndex).m_id;
+
+		for (endIslandIndex = startIslandIndex+1;(endIslandIndex<numElem) && (getUnionFind().getElement(endIslandIndex).m_id == islandId);endIslandIndex++)
 		{
 		}
-		/// Process the actual simulation, only if not sleeping/deactivated
-		int numIslandManifolds = endManifoldIndex-startManifoldIndex;
+
+		//find the accompanying contact manifold for this islandId
+		int numIslandManifolds = 0;
+		btPersistentManifold** startManifold = 0;
+
+		if (startManifoldIndex<numManifolds)
+		{
+			int curIslandId = getIslandId(islandmanifold[startManifoldIndex]);
+			if (curIslandId == islandId)
+			{
+				startManifold = &islandmanifold[startManifoldIndex];
+			
+				for (endManifoldIndex = startManifoldIndex+1;(endManifoldIndex<numManifolds) && (islandId == getIslandId(islandmanifold[endManifoldIndex]));endManifoldIndex++)
+				{
+
+				}
+				/// Process the actual simulation, only if not sleeping/deactivated
+				numIslandManifolds = endManifoldIndex-startManifoldIndex;
+			}
+
+		}
+
+		callback->ProcessIsland(startManifold,numIslandManifolds, islandId);
+
 		if (numIslandManifolds)
 		{
-			callback->ProcessIsland(&islandmanifold[startManifoldIndex],numIslandManifolds);
+			startManifoldIndex = endManifoldIndex;
 		}
 	}
 }

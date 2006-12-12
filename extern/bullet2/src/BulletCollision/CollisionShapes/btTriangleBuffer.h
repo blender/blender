@@ -17,7 +17,8 @@ subject to the following restrictions:
 #define BT_TRIANGLE_BUFFER_H
 
 #include "btTriangleCallback.h"
-#include <vector>
+//#include <vector>
+#include "LinearMath/btAlignedObjectArray.h"
 
 struct	btTriangle
 {
@@ -32,7 +33,7 @@ struct	btTriangle
 class btTriangleBuffer : public btTriangleCallback
 {
 
-	std::vector<btTriangle>	m_triangleBuffer;
+	btAlignedObjectArray<btTriangle>	m_triangleBuffer;
 	
 public:
 

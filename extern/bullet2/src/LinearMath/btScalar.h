@@ -27,15 +27,15 @@ subject to the following restrictions:
 
 		#if defined(__MINGW32__) || defined(__CYGWIN__)
 			#define SIMD_FORCE_INLINE inline
+			#define ATTRIBUTE_ALIGNED16(a) a
 		#else
 			#pragma warning(disable:4530)
 			#pragma warning(disable:4996)
 			#pragma warning(disable:4786)
 			#define SIMD_FORCE_INLINE __forceinline
+			#define ATTRIBUTE_ALIGNED16(a) __declspec(align(16)) a
 		#endif //__MINGW32__
-	
-		//#define ATTRIBUTE_ALIGNED16(a) __declspec(align(16)) a
-		#define ATTRIBUTE_ALIGNED16(a) a
+
 		#include <assert.h>
 		#define btAssert assert
 #else
@@ -54,8 +54,10 @@ subject to the following restrictions:
 
 typedef float    btScalar;
 
-#if defined (__sun) || defined (__sun__) || defined (__sparc) || defined (__APPLE__)
-//use double float precision operation on those platforms for Blender
+///older compilers (gcc 3.x) and Sun needs double versions of srqt etc.
+///exclude Apple Intel (it's assumed to be a Macbook or newer Intel Dual Core processor)
+#if defined (__sun) || defined (__sun__) || defined (__sparc) || (defined (__APPLE__) && ! defined (__i386__))
+//use slow double float precision operation on those platforms
 		
 SIMD_FORCE_INLINE btScalar btSqrt(btScalar x) { return sqrt(x); }
 SIMD_FORCE_INLINE btScalar btFabs(btScalar x) { return fabs(x); }

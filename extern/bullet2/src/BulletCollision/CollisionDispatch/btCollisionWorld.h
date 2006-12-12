@@ -173,7 +173,7 @@ public:
 
 	struct	ClosestRayResultCallback : public RayResultCallback
 	{
-		ClosestRayResultCallback(btVector3	rayFromWorld,btVector3	rayToWorld)
+		ClosestRayResultCallback(const btVector3&	rayFromWorld,const btVector3&	rayToWorld)
 		:m_rayFromWorld(rayFromWorld),
 		m_rayToWorld(rayToWorld),
 		m_collisionObject(0)
@@ -237,7 +237,7 @@ public:
 
 	void	removeCollisionObject(btCollisionObject* collisionObject);
 
-	virtual void	performDiscreteCollisionDetection(	btDispatcherInfo&	dispatchInfo);
+	virtual void	performDiscreteCollisionDetection();
 
 	btDispatcherInfo& getDispatchInfo()
 	{

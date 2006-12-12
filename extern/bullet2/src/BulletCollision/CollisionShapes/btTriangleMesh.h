@@ -18,9 +18,8 @@ subject to the following restrictions:
 #define TRIANGLE_MESH_H
 
 #include "BulletCollision/CollisionShapes/btStridingMeshInterface.h"
-#include <vector>
 #include <LinearMath/btVector3.h>
-
+#include "LinearMath/btAlignedObjectArray.h"
 struct btMyTriangle
 {
 	btVector3	m_vert0;
@@ -31,8 +30,7 @@ struct btMyTriangle
 ///TriangleMesh provides storage for a concave triangle mesh. It can be used as data for the btTriangleMeshShape.
 class btTriangleMesh : public btStridingMeshInterface
 {
-	std::vector<btMyTriangle>	m_triangles;
-	
+	btAlignedObjectArray<btMyTriangle>	m_triangles;
 
 	public:
 		btTriangleMesh ();

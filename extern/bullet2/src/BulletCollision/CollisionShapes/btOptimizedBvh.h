@@ -15,8 +15,16 @@ subject to the following restrictions:
 
 #ifndef OPTIMIZED_BVH_H
 #define OPTIMIZED_BVH_H
+
+
 #include "LinearMath/btVector3.h"
+
+
+//http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vclang/html/vclrf__m128.asp
+
+
 #include <vector>
+
 
 class btStridingMeshInterface;
 
@@ -26,7 +34,7 @@ class btStridingMeshInterface;
 /// and storing aabbmin/max as quantized integers.
 /// 'subpart' doesn't need an integer either. It allows to re-use graphics triangle
 /// meshes stored in a non-uniform way (like batches/subparts of triangle-fans
-struct btOptimizedBvhNode
+ATTRIBUTE_ALIGNED16 (struct btOptimizedBvhNode)
 {
 
 	btVector3	m_aabbMin;
@@ -52,12 +60,23 @@ public:
 	virtual void processNode(const btOptimizedBvhNode* node) = 0;
 };
 
-typedef std::vector<btOptimizedBvhNode>	NodeArray;
+#include "LinearMath/btAlignedAllocator.h"
+#include "LinearMath/btAlignedObjectArray.h"
+
+//typedef std::vector< unsigned , allocator_type >     container_type;
+const unsigned size = (1 << 20);
+typedef btAlignedAllocator< btOptimizedBvhNode , size >  allocator_type;
+
+//typedef btAlignedObjectArray<btOptimizedBvhNode, allocator_type>	NodeArray;
+
+typedef btAlignedObjectArray<btOptimizedBvhNode>	NodeArray;
 
 
 ///OptimizedBvh store an AABB tree that can be quickly traversed on CPU (and SPU,GPU in future)
 class btOptimizedBvh
 {
+	NodeArray			m_leafNodes;
+
 	btOptimizedBvhNode*	m_rootNode1;
 	
 	btOptimizedBvhNode*	m_contiguousNodes;
@@ -65,10 +84,11 @@ class btOptimizedBvh
 
 	int					m_numNodes;
 
-	NodeArray			m_leafNodes;
+
 
 public:
-	btOptimizedBvh() :m_rootNode1(0), m_numNodes(0) { }
+	btOptimizedBvh();
+
 	virtual ~btOptimizedBvh();
 	
 	void	build(btStridingMeshInterface* triangles);

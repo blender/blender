@@ -66,10 +66,8 @@ protected:
 		
 	void	calculateSimulationIslands();
 
-	void	solveNoncontactConstraints(btContactSolverInfo& solverInfo);
-
-	void	solveContactConstraints(btContactSolverInfo& solverInfo);
-
+	void	solveConstraints(btContactSolverInfo& solverInfo);
+	
 	void	updateActivationState(float timeStep);
 
 	void	updateVehicles(float timeStep);

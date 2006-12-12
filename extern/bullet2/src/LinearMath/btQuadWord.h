@@ -21,11 +21,10 @@ subject to the following restrictions:
 
 
 
-
-class	btQuadWord
+ATTRIBUTE_ALIGNED16 (class	btQuadWord)
 {
 	protected:
-		ATTRIBUTE_ALIGNED16	(btScalar	m_x);
+		btScalar	m_x;
 		btScalar	m_y;
 		btScalar	m_z;
 		btScalar	m_unusedW;

@@ -128,11 +128,10 @@ void	btRaycastVehicle::updateWheelTransform( int wheelIndex , bool interpolatedT
 void btRaycastVehicle::resetSuspension()
 {
 
-	std::vector<btWheelInfo>::iterator wheelIt;
-	for (wheelIt = m_wheelInfo.begin();
-	!(wheelIt == m_wheelInfo.end());wheelIt++)
+	int i;
+	for (i=0;i<m_wheelInfo.size();	i++)
 	{
-			btWheelInfo& wheel = *wheelIt;
+			btWheelInfo& wheel = m_wheelInfo[i];
 			wheel.m_raycastInfo.m_suspensionLength = wheel.getSuspensionRestLength();
 			wheel.m_suspensionRelativeVelocity = 0.0f;
 			
@@ -285,23 +284,21 @@ void btRaycastVehicle::updateVehicle( btScalar step )
 	//
 	// simulate suspension
 	//
-	std::vector<btWheelInfo>::iterator wheelIt;
+	
 	int i=0;
-	for (wheelIt = m_wheelInfo.begin();
-	!(wheelIt == m_wheelInfo.end());wheelIt++,i++)
+	for (i=0;i<m_wheelInfo.size();i++)
 	{
 		btScalar depth; 
-		depth = rayCast( *wheelIt );
+		depth = rayCast( m_wheelInfo[i]);
 	}
 
 	updateSuspension(step);
 
 	
-	for (wheelIt = m_wheelInfo.begin();
-	!(wheelIt == m_wheelInfo.end());wheelIt++)
+	for (i=0;i<m_wheelInfo.size();i++)
 	{
 		//apply suspension force
-		btWheelInfo& wheel = *wheelIt;
+		btWheelInfo& wheel = m_wheelInfo[i];
 		
 		float suspensionForce = wheel.m_wheelsSuspensionForce;
 		
@@ -322,10 +319,9 @@ void btRaycastVehicle::updateVehicle( btScalar step )
 	updateFriction( step);
 
 	
-	for (wheelIt = m_wheelInfo.begin();
-	!(wheelIt == m_wheelInfo.end());wheelIt++)
+	for (i=0;i<m_wheelInfo.size();i++)
 	{
-		btWheelInfo& wheel = *wheelIt;
+		btWheelInfo& wheel = m_wheelInfo[i];
 		btVector3 relpos = wheel.m_raycastInfo.m_hardPointWS - getRigidBody()->getCenterOfMassPosition();
 		btVector3 vel = getRigidBody()->getVelocityInLocalPoint( relpos );
 

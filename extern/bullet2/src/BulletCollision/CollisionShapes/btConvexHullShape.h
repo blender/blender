@@ -19,7 +19,8 @@ subject to the following restrictions:
 #include "btPolyhedralConvexShape.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
-#include <vector>
+
+#include "LinearMath/btAlignedObjectArray.h"
 
 ///ConvexHullShape implements an implicit (getSupportingVertex) Convex Hull of a Point Cloud (vertices)
 ///No connectivity is needed. localGetSupportingVertex iterates linearly though all vertices.
@@ -27,7 +28,7 @@ subject to the following restrictions:
 ///(memory is much slower then the cpu)
 class btConvexHullShape : public btPolyhedralConvexShape
 {
-	std::vector<btPoint3>	m_points;
+	btAlignedObjectArray<btPoint3>	m_points;
 
 public:
 	///this constructor optionally takes in a pointer to points. Each point is assumed to be 3 consecutive float (x,y,z), the striding defines the number of bytes between each point, in memory.

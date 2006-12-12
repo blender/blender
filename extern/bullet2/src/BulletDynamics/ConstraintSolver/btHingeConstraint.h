@@ -29,14 +29,18 @@ class btRigidBody;
 class btHingeConstraint : public btTypedConstraint
 {
 	btJacobianEntry	m_jac[3]; //3 orthogonal linear constraints
-	btJacobianEntry	m_jacAng[2]; //2 orthogonal angular constraints
+	btJacobianEntry	m_jacAng[3]; //2 orthogonal angular constraints+ 1 for limit/motor
 
 	btVector3	m_pivotInA;
 	btVector3	m_pivotInB;
 	btVector3	m_axisInA;
 	btVector3	m_axisInB;
 
-	bool	m_angularOnly;
+	bool		m_angularOnly;
+
+	float		m_motorTargetVelocity;
+	float		m_maxMotorImpulse;
+	bool		m_enableAngularMotor;
 	
 public:
 
@@ -66,7 +70,12 @@ public:
 		m_angularOnly = angularOnly;
 	}
 
-
+	void	enableAngularMotor(bool enableMotor,float targetVelocity,float maxMotorImpulse)
+	{
+		m_enableAngularMotor  = enableMotor;
+		m_motorTargetVelocity = targetVelocity;
+		m_maxMotorImpulse = maxMotorImpulse;
+	}
 
 };
 

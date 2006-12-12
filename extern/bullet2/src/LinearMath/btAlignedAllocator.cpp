@@ -4,8 +4,8 @@ Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
@@ -13,29 +13,35 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef CONSTRAINT_SOLVER_H
-#define CONSTRAINT_SOLVER_H
+#include "btAlignedAllocator.h"
 
-class btPersistentManifold;
-class btRigidBody;
-class btTypedConstraint;
-struct btContactSolverInfo;
-struct btBroadphaseProxy;
-class btIDebugDraw;
 
-/// btConstraintSolver provides solver interface
-class btConstraintSolver
+#if defined (WIN32) && !defined(__MINGW32__) && !defined(__CYGWIN__)
+
+#include <malloc.h>
+void*	btAlignedAlloc	(int size, int alignment)
 {
+	return _aligned_malloc(size,alignment);
+}
 
-public:
+void	btAlignedFree	(void* ptr)
+{
+	_aligned_free(ptr);
+}
 
-	virtual ~btConstraintSolver() {}
-	
-	virtual float solveGroup(btPersistentManifold** manifold,int numManifolds,btTypedConstraint** constraints,int numConstraints, const btContactSolverInfo& info,class btIDebugDraw* debugDrawer = 0) = 0;
+#else
 
-};
+///todo
+///will add some multi-platform version that works without _aligned_malloc/_aligned_free
 
+void*	btAlignedAlloc	(int size, int alignment)
+{
+	return new char[size];
+}
 
+void	btAlignedFree	(void* ptr)
+{
+	delete ptr;
+}
 
-
-#endif //CONSTRAINT_SOLVER_H
+#endif

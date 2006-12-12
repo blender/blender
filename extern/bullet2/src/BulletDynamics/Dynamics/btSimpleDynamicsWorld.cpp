@@ -46,13 +46,13 @@ int		btSimpleDynamicsWorld::stepSimulation( float timeStep,int maxSubSteps, floa
 	///apply gravity, predict motion
 	predictUnconstraintMotion(timeStep);
 
-	btDispatcherInfo	dispatchInfo;
+	btDispatcherInfo&	dispatchInfo = getDispatchInfo();
 	dispatchInfo.m_timeStep = timeStep;
 	dispatchInfo.m_stepCount = 0;
 	dispatchInfo.m_debugDraw = getDebugDrawer();
 
 	///perform collision detection
-	performDiscreteCollisionDetection(dispatchInfo );
+	performDiscreteCollisionDetection();
 
 	///solve contact constraints
 	int numManifolds = m_dispatcher1->getNumManifolds();
@@ -63,7 +63,7 @@ int		btSimpleDynamicsWorld::stepSimulation( float timeStep,int maxSubSteps, floa
 		btContactSolverInfo infoGlobal;
 		infoGlobal.m_timeStep = timeStep;
 		
-		m_constraintSolver->solveGroup(manifoldPtr, numManifolds,infoGlobal,m_debugDrawer);
+		m_constraintSolver->solveGroup(manifoldPtr, numManifolds,0,0,infoGlobal,m_debugDrawer);
 	}
 
 	///integrate transforms
@@ -101,7 +101,10 @@ void	btSimpleDynamicsWorld::addRigidBody(btRigidBody* body)
 {
 	body->setGravity(m_gravity);
 
-	addCollisionObject(body);
+	if (body->getCollisionShape())
+	{
+		addCollisionObject(body);
+	}
 }
 
 void	btSimpleDynamicsWorld::updateAabbs()

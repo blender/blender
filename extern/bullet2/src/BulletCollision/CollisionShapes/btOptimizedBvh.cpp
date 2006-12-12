@@ -18,6 +18,11 @@ subject to the following restrictions:
 #include "LinearMath/btAabbUtil2.h"
 
 
+btOptimizedBvh::btOptimizedBvh() :m_rootNode1(0), m_numNodes(0) 
+{ 
+
+}
+
 
 void btOptimizedBvh::build(btStridingMeshInterface* triangles)
 {

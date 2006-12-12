@@ -68,7 +68,7 @@ public:
 
 	virtual ~btSequentialImpulseConstraintSolver() {}
 	
-	virtual float solveGroup(btPersistentManifold** manifold,int numManifolds,const btContactSolverInfo& info, btIDebugDraw* debugDrawer=0);
+	virtual float solveGroup(btPersistentManifold** manifold,int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& info, btIDebugDraw* debugDrawer=0);
 
 	void	setSolverMode(int mode)
 	{
@@ -88,7 +88,7 @@ public:
 
 	btSequentialImpulseConstraintSolver3();
 
-	virtual float solveGroup(btPersistentManifold** manifold,int numManifolds,const btContactSolverInfo& info, btIDebugDraw* debugDrawer=0);
+	virtual float solveGroup(btPersistentManifold** manifold,int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& info, btIDebugDraw* debugDrawer=0);
 
 
 };

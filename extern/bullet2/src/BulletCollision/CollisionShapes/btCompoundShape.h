@@ -23,6 +23,7 @@ subject to the following restrictions:
 #include "LinearMath/btMatrix3x3.h"
 #include <vector>
 #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
+#include "LinearMath/btAlignedObjectArray.h"
 
 class btOptimizedBvh;
 
@@ -30,8 +31,8 @@ class btOptimizedBvh;
 /// This allows for concave collision objects. This is more general then the Static Concave btTriangleMeshShape.
 class btCompoundShape	: public btCollisionShape
 {
-	std::vector<btTransform>		m_childTransforms;
-	std::vector<btCollisionShape*>	m_childShapes;
+	btAlignedObjectArray<btTransform>		m_childTransforms;
+	btAlignedObjectArray<btCollisionShape*>	m_childShapes;
 	btVector3						m_localAabbMin;
 	btVector3						m_localAabbMax;
 

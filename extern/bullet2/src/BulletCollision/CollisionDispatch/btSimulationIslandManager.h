@@ -49,7 +49,7 @@ public:
 	{
 		virtual ~IslandCallback() {};
 
-		virtual	void	ProcessIsland(class btPersistentManifold**	manifolds,int numManifolds) = 0;
+		virtual	void	ProcessIsland(class btPersistentManifold**	manifolds,int numManifolds, int islandId) = 0;
 	};
 
 	void	buildAndProcessIslands(btDispatcher* dispatcher,btCollisionObjectArray& collisionObjects, IslandCallback* callback);

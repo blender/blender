@@ -15,7 +15,7 @@
 #include "BulletDynamics/ConstraintSolver/btTypedConstraint.h"
 #include "btVehicleRaycaster.h"
 class btDynamicsWorld;
-
+#include "LinearMath/btAlignedObjectArray.h"
 #include "btWheelInfo.h"
 
 class btVehicleTuning;
@@ -95,7 +95,7 @@ public:
 		return int (m_wheelInfo.size());
 	}
 	
-	std::vector<btWheelInfo>	m_wheelInfo;
+	btAlignedObjectArray<btWheelInfo>	m_wheelInfo;
 
 
 	const btWheelInfo&	getWheelInfo(int index) const;

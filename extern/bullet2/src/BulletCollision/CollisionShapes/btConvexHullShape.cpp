@@ -22,6 +22,7 @@ subject to the following restrictions:
 btConvexHullShape ::btConvexHullShape (const float* points,int numPoints,int stride)
 {
 	m_points.resize(numPoints);
+
 	unsigned char* pointsBaseAddress = (unsigned char*)points;
 
 	for (int i=0;i<numPoints;i++)

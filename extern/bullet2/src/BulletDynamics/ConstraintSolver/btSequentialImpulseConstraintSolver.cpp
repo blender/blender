@@ -23,6 +23,8 @@ subject to the following restrictions:
 #include "LinearMath/btIDebugDraw.h"
 #include "btJacobianEntry.h"
 #include "LinearMath/btMinMax.h"
+#include "BulletDynamics/ConstraintSolver/btTypedConstraint.h"
+
 
 #ifdef USE_PROFILE
 #include "LinearMath/btQuickprof.h"
@@ -123,7 +125,7 @@ btSequentialImpulseConstraintSolver::btSequentialImpulseConstraintSolver()
 }
 
 /// btSequentialImpulseConstraintSolver Sequentially applies impulses
-float btSequentialImpulseConstraintSolver3::solveGroup(btPersistentManifold** manifoldPtr, int numManifolds,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer)
+float btSequentialImpulseConstraintSolver3::solveGroup(btPersistentManifold** manifoldPtr, int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer)
 {
 	
 	btContactSolverInfo info = infoGlobal;
@@ -151,6 +153,15 @@ float btSequentialImpulseConstraintSolver3::solveGroup(btPersistentManifold** ma
 			}
 		}
 	}
+
+	{
+		int j;
+		for (j=0;j<numConstraints;j++)
+		{
+			btTypedConstraint* constraint = constraints[j];
+			constraint->buildJacobian();
+		}
+	}
 	
 	//should traverse the contacts random order...
 	int iteration;
@@ -169,6 +180,12 @@ float btSequentialImpulseConstraintSolver3::solveGroup(btPersistentManifold** ma
 						gOrder[swapi] = tmp;
 					}
 				}
+			}
+
+			for (j=0;j<numConstraints;j++)
+			{
+				btTypedConstraint* constraint = constraints[j];
+				constraint->solveConstraint(info.m_timeStep);
 			}
 
 			for (j=0;j<totalPoints;j++)
@@ -197,7 +214,7 @@ float btSequentialImpulseConstraintSolver3::solveGroup(btPersistentManifold** ma
 
 
 /// btSequentialImpulseConstraintSolver Sequentially applies impulses
-float btSequentialImpulseConstraintSolver::solveGroup(btPersistentManifold** manifoldPtr, int numManifolds,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer)
+float btSequentialImpulseConstraintSolver::solveGroup(btPersistentManifold** manifoldPtr, int numManifolds,btTypedConstraint** constraints,int numConstraints,const btContactSolverInfo& infoGlobal,btIDebugDraw* debugDrawer)
 {
 	
 	btContactSolverInfo info = infoGlobal;
@@ -222,6 +239,14 @@ float btSequentialImpulseConstraintSolver::solveGroup(btPersistentManifold** man
 			}
 		}
 	}
+	{
+		int j;
+		for (j=0;j<numConstraints;j++)
+		{
+			btTypedConstraint* constraint = constraints[j];
+			constraint->buildJacobian();
+		}
+	}
 	
 	//should traverse the contacts random order...
 	int iteration;
@@ -229,6 +254,12 @@ float btSequentialImpulseConstraintSolver::solveGroup(btPersistentManifold** man
 	for ( iteration = 0;iteration<numiter-1;iteration++)
 	{
 		int j;
+
+		for (j=0;j<numConstraints;j++)
+		{
+			btTypedConstraint* constraint = constraints[j];
+			constraint->solveConstraint(info.m_timeStep);
+		}
 
 		for (j=0;j<numManifolds;j++)
 		{

@@ -15,23 +15,24 @@ subject to the following restrictions:
 
 #ifndef BT_GEOMETRY_UTIL_H
 #define BT_GEOMETRY_UTIL_H
-#include <vector>
+
 #include "btVector3.h"
+#include "btAlignedObjectArray.h"
 
 class btGeometryUtil
 {
 	public:
 	
 	
-		static void	getPlaneEquationsFromVertices(std::vector<btVector3>& vertices, std::vector<btVector3>& planeEquationsOut );
+		static void	getPlaneEquationsFromVertices(btAlignedObjectArray<btVector3>& vertices, btAlignedObjectArray<btVector3>& planeEquationsOut );
 
-		static void	getVerticesFromPlaneEquations(const std::vector<btVector3>& planeEquations , std::vector<btVector3>& verticesOut );
+		static void	getVerticesFromPlaneEquations(const btAlignedObjectArray<btVector3>& planeEquations , btAlignedObjectArray<btVector3>& verticesOut );
 	
-		static bool	isInside(const std::vector<btVector3>& vertices, const btVector3& planeNormal, float	margin);
+		static bool	isInside(const btAlignedObjectArray<btVector3>& vertices, const btVector3& planeNormal, float	margin);
 		
-		static bool	isPointInsidePlanes(const std::vector<btVector3>& planeEquations, const btVector3& point, float	margin);
+		static bool	isPointInsidePlanes(const btAlignedObjectArray<btVector3>& planeEquations, const btVector3& point, float	margin);
 
-		static bool	areVerticesBehindPlane(const btVector3& planeNormal, const std::vector<btVector3>& vertices, float	margin);
+		static bool	areVerticesBehindPlane(const btVector3& planeNormal, const btAlignedObjectArray<btVector3>& vertices, float	margin);
 
 };
 
