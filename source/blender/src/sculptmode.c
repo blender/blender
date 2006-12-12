@@ -1279,8 +1279,13 @@ void sculptmode_propset_calctex()
 			if(G.scene->sculptdata.texrept!=SCULPTREPT_3D)
 				sculptmode_update_tex();
 			for(i=0; i<tsz; ++i)
-				for(j=0; j<tsz; ++j)
-					pd->texdata[i*tsz+j]= simple_strength(sqrt(pow(i-tsz/2,2)+pow(j-tsz/2,2)),tsz/2);
+				for(j=0; j<tsz; ++j) {
+					float magn= sqrt(pow(i-tsz/2,2)+pow(j-tsz/2,2));
+					if(G.scene->sculptdata.texfade)
+						pd->texdata[i*tsz+j]= simple_strength(magn,tsz/2);
+					else
+						pd->texdata[i*tsz+j]= magn < tsz/2 ? 1 : 0;
+				}
 			if(G.scene->sculptdata.texact != -1 && G.scene->sculptdata.texrndr) {
 				for(i=0; i<tsz; ++i)
 					for(j=0; j<tsz; ++j) {
