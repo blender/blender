@@ -93,9 +93,9 @@ def write(filename):
 	G,P,V,U,M = 1000,2000,3000,4000,5000
 	for object in objects:
 		objname = object.name
-		meshname = object.data.name
+		meshname = object.getData(name_only=1)
 		mesh = Blender.NMesh.GetRaw(meshname)
-		obj = Blender.Object.Get(objname)
+		obj = object
 		if not mesh: continue
 
 		grou = generate_grou('Group ' + `objects.index(object)+1`)

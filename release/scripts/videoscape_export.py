@@ -83,9 +83,9 @@ def write(filename):
 
 	objects = Blender.Object.GetSelected()
 	objname = objects[0].name
-	meshname = objects[0].data.name
+	meshname = objects[0].getData(name_only=1)
 	mesh = Blender.NMesh.GetRaw(meshname)
-	obj = Blender.Object.Get(objname)
+	obj = objects[0]
 
 	if not meshtools.has_vertex_colors(mesh):
 		message = "Please assign vertex colors before exporting.\n"

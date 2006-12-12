@@ -409,7 +409,7 @@ def save(x0,y0,dx,dy):
     Blender.Redraw()
 
 def DOCMat_list(TMATList,ME):
-    me=Blender.NMesh.GetRaw(ME.getData().name) 
+    me=Blender.NMesh.GetRaw(ME.getData(name_only=1)) 
     if len(me.materials)!=0: 
                 n=0 
                 for mat in me.materials:

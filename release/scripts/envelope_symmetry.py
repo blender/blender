@@ -145,7 +145,7 @@ for obj in objs:
 				# update vertices
 
 				mirror_mesh = mirror_obj.getData()
-				for i in range(len(mesh.verts)):
+				for i in xrange(len(mesh.verts)):
 					org = mesh.verts[i]
 					mir = mirror_mesh.verts[i]
 					mir.co[0], mir.co[1], mir.co[2] = org.co[0], org.co[1], org.co[2]
@@ -156,7 +156,7 @@ for obj in objs:
 
 				# create mirror object
 
-				mirror_mesh = Blender.NMesh.GetRaw(obj.getData().name)
+				mirror_mesh = obj.data
 				for face in mirror_mesh.faces:
 					flipFace(face.v)
 				for vert in mirror_mesh.verts:

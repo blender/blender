@@ -71,7 +71,7 @@ def getmaxmin():
 	"""Getting the extremes of the mesh to be exported"""
 	objects = Blender.Object.GetSelected()
 	objname = objects[0].name
-	meshname = objects[0].data.name
+	meshname = objects[0].getData(name_only=1)
 	mesh = Blender.NMesh.GetRaw(meshname)
 	obj = Blender.Object.Get(objname)
 	#initializing max-min find.
@@ -226,7 +226,7 @@ def figdata(expview):
 	"""Prints all the xfig data (no header)"""
 	objects = Blender.Object.GetSelected()
 	objname = objects[0].name
-	meshname = objects[0].data.name
+	meshname = objects[0].getData(name_only=1)
 	mesh = Blender.NMesh.GetRaw(meshname)
 	obj = Blender.Object.Get(objname)
 	facenumber = len(mesh.faces)

@@ -239,8 +239,8 @@ def paint():
          if Me[0].getType()=='Mesh':   
                     
                vindex=[]
-               ORIName=Me[0].getData().name
-               me=NMesh.GetRaw(Me[0].getData().name)
+               ORIName=Me[0].getData(name_only=1)
+               me=NMesh.GetRaw(Me[0].getData(name_only=1))
                   
                try:  
                    for m in me.verts:
@@ -285,7 +285,7 @@ def NEWMEcreation(obj):
          ozero=obj
          nomdelobjet=ozero.getName()
          Mesh=Blender.NMesh.GetRawFromObject(nomdelobjet)
-         name=obj.getData().name
+         name=obj.getData(name_only=1)
          n=0; name2=name[:];ok=0  
 
          while ok==0:
@@ -305,7 +305,7 @@ def DOCMat_list(TMATList):
     Me=Object.GetSelected()
     if Me!=[]:
        if Me[0].getType()=='Mesh':
-            me=NMesh.GetRaw(Me[0].getData().name) 
+            me=NMesh.GetRaw(Me[0].getData(name_only=1)) 
             if len(me.materials)!=0: 
                 n=0 
                 for mat in me.materials:

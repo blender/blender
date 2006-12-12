@@ -641,7 +641,7 @@ def do_mesh_shape(obj):
   global UVC, UVI, VCC, VCI, FD, NORMALS
 
   # Grab the mesh itself
-  mesh = Blender.NMesh.GetRaw(obj.data.name)
+  mesh = obj.data
 
   # get the world matrix
   matrix = obj.getMatrix('worldspace')
@@ -1008,7 +1008,7 @@ def do_model(obj):
 #
 
 def validMesh (obj):
-  mesh = Blender.NMesh.GetRaw(obj.data.name)
+  mesh = obj.data
   for f in mesh.faces:
     if len(f.v) < 3:
       print "MESH HAS FACES WITH < 3 VERTICES"
@@ -1071,7 +1071,7 @@ def do_light(obj):
 
   aLampType = 1
 
-  lmpName=Lamp.Get(obj.data.getName())
+  lmpName=Lamp.Get(obj.getData(name_only=1))
   lmpType=lmpName.getType()
 
   if lmpType == Lamp.Types.Lamp:

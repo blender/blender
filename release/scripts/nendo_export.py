@@ -85,9 +85,9 @@ def write(filename):
 
 	objects = Blender.Object.GetSelected()
 	objname = objects[0].name
-	meshname = objects[0].data.name
+	meshname = objects[0].getData(name_only=1)
 	mesh = Blender.NMesh.GetRaw(meshname)
-	obj = Blender.Object.Get(objname)
+	obj = objects[0]
 
 	numedges = len(mesh.verts)+len(mesh.faces)-2
 	maxedges = (2**16)-1	# Blender & Wings can read more edges
