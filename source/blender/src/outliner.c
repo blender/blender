@@ -3398,8 +3398,8 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 	int dx, len;
 	
 	for(te= lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
 		if(te->ys >= soops->v2d.cur.ymin && te->ys <= soops->v2d.cur.ymax) {
-			tselem= TREESTORE(te);
 			
 			if(tselem->flag & TSE_TEXTBUT) {
 				if(tselem->type == TSE_POSE_BASE) continue; // prevent crash when trying to rename 'pose' entry of armature
@@ -3474,9 +3474,9 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 					uiBlockSetEmboss(block, UI_EMBOSS);
 				}
 			}
-		
-			if((tselem->flag & TSE_CLOSED)==0) outliner_buttons(block, soops, &te->subtree);
 		}
+		
+		if((tselem->flag & TSE_CLOSED)==0) outliner_buttons(block, soops, &te->subtree);
 	}
 }
 
