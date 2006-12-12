@@ -1887,7 +1887,7 @@ static void object_panel_object(Object *ob)
 	/* parent */
 	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", xco+5, 180, 305-xco, 20, &ob->parent, "Parent Object"); 
 	
-	but = uiDefButS(block, NUM, B_NOP, "PassIndex:",		xco+5, 150, 305-xco, 20, &ob->index, 0.0, 1000.0, 0, 0, "Object Pass Index");
+	but = uiDefButS(block, NUM, B_NOP, "PassIndex:",		xco+5, 150, 305-xco, 20, &ob->index, 0.0, 1000.0, 0, 0, "Index # for the IndexOB render pass.");
 
 	uiDefBlockBut(block, add_groupmenu, NULL, "Add to Group", 10,150,150,20, "Add Object to a new Group");
 

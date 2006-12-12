@@ -436,6 +436,9 @@ class Object:
     @ivar DupOff: The DupliFrame removal of every Nth frame for this object.
         Use with L{enableDupFrames}.  Value is clamped to [0,1500].
     @type DupOff: int
+    @ivar passIndex: Index # for the IndexOB render pass.
+        Value is clamped to [0,1000].
+    @type DupOff: int
     @ivar drawSize: The size to display the Empty.
     Value clamped to [0.01,10.0].
     @type drawSize: float

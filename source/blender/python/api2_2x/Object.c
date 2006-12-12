@@ -172,7 +172,8 @@ enum obj_consts {
 	EXPP_OBJ_ATTR_TIMEOFFSET,
 	EXPP_OBJ_ATTR_DRAWSIZE,
 	EXPP_OBJ_ATTR_PARENT_TYPE,
-
+	EXPP_OBJ_ATTR_PASSINDEX,
+	
 	EXPP_OBJ_ATTR_PI_SURFACEDAMP,	/* these need to stay together */
 	EXPP_OBJ_ATTR_PI_RANDOMDAMP,	/* and in order */
 	EXPP_OBJ_ATTR_PI_PERM,
@@ -3544,6 +3545,9 @@ static PyObject *getIntAttr( BPy_Object *self, void *type )
 	case EXPP_OBJ_ATTR_DUPEND:
 		param = object->dupend;
 		break;
+	case EXPP_OBJ_ATTR_PASSINDEX:
+		param = object->index;
+		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"undefined type in getIntAttr" );
@@ -3592,6 +3596,12 @@ static int setIntAttrClamp( BPy_Object *self, PyObject *value, void *type )
 		max = 32767;
 		size = 'H';			/* in case max is later made > 32767 */
 		param = (void *)&object->dupend;
+		break;
+	case EXPP_OBJ_ATTR_PASSINDEX:
+		min = 0;
+		max = 1000;
+		size = 'H';			/* in case max is later made > 32767 */
+		param = (void *)&object->index;
 		break;
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -4102,7 +4112,7 @@ static int setFloat3Attr( BPy_Object *self, PyObject *value, void *type )
 
 static PyObject *Object_getRestricted( BPy_Object *self, void *type )
 {
-	if (self->object->restrictflag & (short)type)
+	if (self->object->restrictflag & (int)type)
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
@@ -4112,9 +4122,9 @@ static int Object_setRestricted( BPy_Object *self, PyObject *value,
 		void *type )
 {
 	if (PyObject_IsTrue(value) )
-		self->object->restrictflag |= (short)type;
+		self->object->restrictflag |= (int)type;
 	else
-		self->object->restrictflag &= ~(short)type;
+		self->object->restrictflag &= ~(int)type;
 	
 	return 0;
 }
@@ -4777,6 +4787,10 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)getIntAttr, (setter)setIntAttrClamp,
 	 "Ending frame (for DupliFrames)",
 	 (void *)EXPP_OBJ_ATTR_DUPEND},
+	{"passIndex",
+	 (getter)getIntAttr, (setter)setIntAttrClamp,
+	 "Index for object masks in the compositor",
+	 (void *)EXPP_OBJ_ATTR_PASSINDEX},
 	{"mat",
 	 (getter)Object_getMatrixWorld, (setter)NULL,
 	 "worldspace matrix: absolute, takes vertex parents, tracking and Ipos into account",
