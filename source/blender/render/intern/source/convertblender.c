@@ -4072,7 +4072,8 @@ void RE_make_sticky(void)
 				mvert= me->mvert;
 				if(me->msticky)
 					CustomData_free_layer(&me->vdata, CD_MSTICKY, me->totvert);
-				me->msticky= CustomData_add_layer(&me->vdata, CD_MSTICKY, 0, NULL, me->totvert);
+				me->msticky= CustomData_add_layer(&me->vdata, CD_MSTICKY,
+					CD_CALLOC, NULL, me->totvert);
 				
 				where_is_object(ob);
 				Mat4MulMat4(mat, ob->obmat, re->viewmat);

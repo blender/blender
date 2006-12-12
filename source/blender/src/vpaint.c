@@ -239,8 +239,10 @@ void make_vertexcol(int shade)	/* single ob */
 	if(me==0) return;
 
 	/* copies from shadedisplist to mcol */
-	if(me->mcol == NULL)
-		me->mcol = CustomData_add_layer(&me->fdata, CD_MCOL, 0, NULL, me->totface);
+	if(!me->mcol) {
+		CustomData_add_layer(&me->fdata, CD_MCOL, CD_CALLOC, NULL, me->totface);
+		mesh_update_customdata_pointers(me);
+	}
 
 	if(shade)
 		shadeMeshMCol(ob, me);

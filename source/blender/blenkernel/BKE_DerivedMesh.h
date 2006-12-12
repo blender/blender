@@ -304,16 +304,14 @@ void DM_set_only_copy(DerivedMesh *dm, CustomDataMask mask);
 
 /* adds a vertex/edge/face custom data layer to a DerivedMesh, optionally
  * backed by an external data array
- * if layer != NULL, it is used as the layer data array, otherwise new memory
- * is allocated
- * the layer data will be freed by dm->release unless
- * (flag & LAYERFLAG_NOFREE) is true
+ * alloctype defines how the layer is allocated or copied, and how it is
+ * freed, see BKE_customdata.h for the different options
  */
-void DM_add_vert_layer(struct DerivedMesh *dm, int type, int flag,
+void DM_add_vert_layer(struct DerivedMesh *dm, int type, int alloctype,
                        void *layer);
-void DM_add_edge_layer(struct DerivedMesh *dm, int type, int flag,
+void DM_add_edge_layer(struct DerivedMesh *dm, int type, int alloctype,
                        void *layer);
-void DM_add_face_layer(struct DerivedMesh *dm, int type, int flag,
+void DM_add_face_layer(struct DerivedMesh *dm, int type, int alloctype,
                        void *layer);
 
 /* custom data access functions
@@ -355,7 +353,7 @@ void DM_copy_face_data(struct DerivedMesh *source, struct DerivedMesh *dest,
 
 /* custom data free functions
  * free count elements, starting at index
- * they free all layers for which the LAYERFLAG_NOFREE flag is not set
+ * they free all layers for which the CD_FLAG_NOCOPY flag is not set
  */
 void DM_free_vert_data(struct DerivedMesh *dm, int index, int count);
 void DM_free_edge_data(struct DerivedMesh *dm, int index, int count);

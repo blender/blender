@@ -389,22 +389,24 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_FRACSUBDIV	2059
 #define B_XSORT			2060
 #define B_HASH			2061
-#define B_DELSTICKY		2062
-#define B_DELVERTCOL		2063
-#define B_MAKE_TFACES		2064
-#define B_TOSPHERE			2065
-#define B_DEL_TFACES		2066
+#define B_MAKESTICKY	2062
+#define B_DELSTICKY		2063
+#define B_NEWMCOL		2064
+#define B_DELMCOL		2065
+#define B_TOSPHERE			2066
 #define B_DECIM_FACES		2067
 #define B_DECIM_CANCEL		2068
 #define B_DECIM_APPLY		2069
 /* B_SLOWERDRAW and B_FASTERDRAW removed */
 #define B_VERTEXNOISE		2072
 #define B_VERTEXSMOOTH		2073
-#define B_MAKESTICKY		2074
-#define B_MAKEVERTCOL		2075
+#define B_NEWTFACE			2074
+#define B_DELTFACE			2075
 #define B_CHROMADEPTH		2076
 #define B_DRAWEDGES			2077
 #define B_DRAWCREASES		2078
+#define B_SETTFACE			2079
+#define B_SETMCOL			2080
 
 /* *********************** */
 #define B_VGROUPBUTS		2100

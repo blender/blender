@@ -731,9 +731,9 @@ void rad_addmesh(void)
 	me->totface= RG.totface;
 	me->flag= 0;
 
-	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, NULL, me->totvert);
-	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0, NULL, me->totface);
-	me->mcol= CustomData_add_layer(&me->fdata, CD_MCOL, 0, NULL, me->totface);
+	CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
+	CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
+	CustomData_add_layer(&me->fdata, CD_MCOL, CD_CALLOC, NULL, me->totface);
 
 	CustomData_merge(RG.mfdata, &me->fdata, CD_MASK_MESH, CD_CALLOC, me->totface);
 	mesh_update_customdata_pointers(me);

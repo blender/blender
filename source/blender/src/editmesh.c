@@ -1004,9 +1004,8 @@ void load_editMesh(void)
 	oldverts= me->mvert;
 	ototvert= me->totvert;
 
-	for (i=0; i<me->vdata.totlayer; i++)
-		if (me->vdata.layers[i].type == CD_MVERT)
-			me->vdata.layers[i].flag |= CD_FLAG_NOFREE;
+	/* don't free this yet */
+	CustomData_set_layer(&me->vdata, CD_MVERT, NULL);
 
 	/* free custom data */
 	CustomData_free(&me->vdata, me->totvert);
@@ -1021,10 +1020,9 @@ void load_editMesh(void)
 	CustomData_copy(&em->vdata, &me->vdata, CD_MASK_MESH, CD_CALLOC, me->totvert);
 	CustomData_copy(&em->fdata, &me->fdata, CD_MASK_MESH, CD_CALLOC, me->totface);
 
-	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, mvert, me->totvert);
-	me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, 0, medge, me->totedge);
-	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0, mface, me->totface);
-
+	CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, mvert, me->totvert);
+	CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, me->totedge);
+	CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, mface, me->totface);
 	mesh_update_customdata_pointers(me);
 
 	/* the vertices, use ->tmp.l as counter */
@@ -1095,7 +1093,7 @@ void load_editMesh(void)
 		mface->v2= (unsigned int) efa->v2->tmp.l;
 		mface->v3= (unsigned int) efa->v3->tmp.l;
 		if (efa->v4) mface->v4 = (unsigned int) efa->v4->tmp.l;
-			
+
 		mface->mat_nr= efa->mat_nr;
 		
 		mface->flag= efa->flag;
@@ -1331,7 +1329,7 @@ void load_editMesh(void)
 			}
 		}
 	}
-	
+
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 }
 

@@ -565,7 +565,7 @@ void multires_update_deformverts(Multires *mr, CustomData *src)
 		
 		CustomData_free(&mr->vdata, lvl->totvert);
 				
-		if(CustomData_has_layer(src, CD_MDEFORMVERT)) {				
+		if(CustomData_has_layer(src, CD_MDEFORMVERT)) {
 			if(G.obedit) {
 				EditVert *eve= G.editMesh->verts.first;
 				CustomData_add_layer(&mr->vdata, CD_MDEFORMVERT, 0, NULL, lvl->totvert);
@@ -1054,17 +1054,17 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		CustomData_free_layer(&me->edata, CD_MEDGE, me->totedge);
 		CustomData_free_layer(&me->fdata, CD_MFACE, me->totface);
 		CustomData_free_layer(&me->vdata, CD_MDEFORMVERT, me->totvert);
-		CustomData_free_layer(&me->fdata, CD_MTFACE, me->totface);
-		CustomData_free_layer(&me->fdata, CD_MCOL, me->totface);
-		mesh_update_customdata_pointers(me);
+		CustomData_free_layers(&me->fdata, CD_MTFACE, me->totface);
+		CustomData_free_layers(&me->fdata, CD_MCOL, me->totface);
 		
 		me->totvert= lvl->totvert;
 		me->totface= lvl->totface;
 		me->totedge= lvl->totedge;
 
-		me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, NULL, me->totvert);
-		me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, 0, NULL, me->totedge);
-		me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0, NULL, me->totface);
+		CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
+		CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, me->totedge);
+		CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
+		mesh_update_customdata_pointers(me);
 	}
 
 	/* Vertices/Edges/Faces */
@@ -1184,8 +1184,8 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 			efa= em->faces.first;
 		}
 		else {
-			if(me->mr->use_col) me->mcol= CustomData_add_layer(src, CD_MCOL, 0, NULL, me->totface);
-			if(me->mr->use_tex) me->mtface= CustomData_add_layer(src, CD_MTFACE, 0, NULL, me->totface);
+			if(me->mr->use_col) me->mcol= CustomData_add_layer(src, CD_MCOL, CD_CALLOC, NULL, me->totface);
+			if(me->mr->use_tex) me->mtface= CustomData_add_layer(src, CD_MTFACE, CD_CALLOC, NULL, me->totface);
 		}
 		
 		for(i=0; i<lvl->totface; ++i) {

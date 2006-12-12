@@ -332,7 +332,7 @@ static void delete_verts( Mesh *mesh, unsigned int *vert_table, int to_delete )
 				++count;
 			} else {
 				if( count ) {
-					CustomData_copy_data( &mesh->vdata, &vdata, i,
+					CustomData_copy_data( &mesh->vdata, &vdata, i-count,
 						dstindex, count );
 					dstindex += count;
 				}
@@ -344,7 +344,7 @@ static void delete_verts( Mesh *mesh, unsigned int *vert_table, int to_delete )
 
 	/* if we were gathering verts at the end of the loop, copy those */
 	if( state && count )
-		CustomData_copy_data( &mesh->vdata, &vdata, i, dstindex, count );
+		CustomData_copy_data( &mesh->vdata, &vdata, i-count, dstindex, count );
 
 	/* delete old vertex list, install the new one, update vertex count */
 	CustomData_free( &mesh->vdata, mesh->totvert );
@@ -402,7 +402,7 @@ static void delete_edges( Mesh *mesh, unsigned int *vert_table, int to_delete )
 					++count;
 				} else {
 					if( count ) {
-						CustomData_copy_data( &mesh->edata, &edata, i,
+						CustomData_copy_data( &mesh->edata, &edata, i-count,
 							dstindex, count );
 						dstindex += count;
 					}
@@ -415,7 +415,8 @@ static void delete_edges( Mesh *mesh, unsigned int *vert_table, int to_delete )
 
 	/* copy any pending good edges */
 		if( state && count )
-			CustomData_copy_data( &mesh->edata, &edata, i, dstindex, count );
+			CustomData_copy_data( &mesh->edata, &edata, i-count, dstindex,
+				count );
 
 	/* delete old edge list, install the new one, update vertex count */
 		CustomData_free( &mesh->edata, mesh->totedge );
@@ -472,7 +473,7 @@ static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 					++count;
 				} else {
 					if( count ) {
-						CustomData_copy_data( &mesh->fdata, &fdata, i,
+						CustomData_copy_data( &mesh->fdata, &fdata, i-count,
 							dstindex, count );
 						dstindex += count;
 					}
@@ -485,7 +486,8 @@ static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 
 	/* if we were gathering faces at the end of the loop, copy those */
 		if ( state && count )
-			CustomData_copy_data( &mesh->fdata, &fdata, i, dstindex, count );
+			CustomData_copy_data( &mesh->fdata, &fdata, i-count, dstindex,
+				count );
 
 	/* delete old face list, install the new one, update face count */
 
@@ -1690,12 +1692,11 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 	/* create custom vertex data arrays and copy existing vertices into it */
 
 	newlen = mesh->totvert + len;
-	CustomData_copy( &mesh->vdata, &vdata, CD_MASK_MESH, CD_CALLOC, newlen );
+	CustomData_copy( &mesh->vdata, &vdata, CD_MASK_MESH, CD_DEFAULT, newlen );
 	CustomData_copy_data( &mesh->vdata, &vdata, 0, 0, mesh->totvert );
-	CustomData_set_default( &vdata, mesh->totvert, len );
 
 	if ( !CustomData_has_layer( &vdata, CD_MVERT ) )
-		CustomData_add_layer( &vdata, CD_MVERT, 0, NULL, newlen );
+		CustomData_add_layer( &vdata, CD_MVERT, CD_CALLOC, NULL, newlen );
 
 	newvert = CustomData_get_layer( &vdata, CD_MVERT );
 
@@ -2860,12 +2861,11 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		int totedge = mesh->totedge+good_edges;
 
 	/* create custom edge data arrays and copy existing edges into it */
-		CustomData_copy( &mesh->edata, &edata, CD_MASK_MESH, CD_CALLOC, totedge );
+		CustomData_copy( &mesh->edata, &edata, CD_MASK_MESH, CD_DEFAULT, totedge );
 		CustomData_copy_data( &mesh->edata, &edata, 0, 0, mesh->totedge );
-		CustomData_set_default( &edata, mesh->totedge, good_edges );
 
 		if ( !CustomData_has_layer( &edata, CD_MEDGE ) )
-			CustomData_add_layer( &edata, CD_MEDGE, 0, NULL, totedge );
+			CustomData_add_layer( &edata, CD_MEDGE, CD_CALLOC, NULL, totedge );
 
 	/* replace old with new data */
 		CustomData_free( &mesh->edata, mesh->totedge );
@@ -4804,12 +4804,11 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 		int totface = mesh->totface+good_faces;	/* new face count */
 		CustomData fdata;
 
-		CustomData_copy( &mesh->fdata, &fdata, CD_MASK_MESH, CD_CALLOC, totface );
+		CustomData_copy( &mesh->fdata, &fdata, CD_MASK_MESH, CD_DEFAULT, totface );
 		CustomData_copy_data( &mesh->fdata, &fdata, 0, 0, mesh->totface );
-		CustomData_set_default( &fdata, mesh->totface, good_faces );
 
 		if ( !CustomData_has_layer( &fdata, CD_MFACE ) )
-			CustomData_add_layer( &fdata, CD_MFACE, 0, NULL, totface );
+			CustomData_add_layer( &fdata, CD_MFACE, CD_CALLOC, NULL, totface );
 
 		CustomData_free( &mesh->fdata, mesh->totface );
 		mesh->fdata = fdata;
@@ -6822,7 +6821,7 @@ static PyObject *Mesh_getFlag( BPy_Mesh * self, void *type )
 
 static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 {
-	int param, i;
+	int param;
 	Mesh *mesh = self->mesh;
 
 	param = PyObject_IsTrue( value );
@@ -6837,7 +6836,7 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 	case MESH_HASFACEUV:
 		if( !param ) {
 			if( mesh->mtface ) {
-				CustomData_free_layer( &mesh->fdata, CD_MTFACE, mesh->totface );
+				CustomData_free_layers( &mesh->fdata, CD_MTFACE, mesh->totface );
 				mesh->mtface = NULL;
 			}
 		} else if( !mesh->mtface ) {
@@ -6850,15 +6849,13 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 	case MESH_HASMCOL:
 		if( !param ) {
 			if( mesh->mcol ) {
-				CustomData_free_layer( &mesh->fdata, CD_MCOL, mesh->totface );
+				CustomData_free_layers( &mesh->fdata, CD_MCOL, mesh->totface );
 				mesh->mcol = NULL;
 			}
 		} else if( !mesh->mcol ) {
 				/* TODO: mesh_create_shadedColors */
-			mesh->mcol = CustomData_add_layer( &mesh->fdata, CD_MCOL, 0, NULL,
-				mesh->totface );
-			for( i = 0; i < mesh->totface*4; i++ )
-				mesh->mcol[i].a = 255;
+			mesh->mcol = CustomData_add_layer( &mesh->fdata, CD_MCOL,
+				CD_DEFAULT, NULL, mesh->totface );
 		}
 		return 0;
 	case MESH_HASVERTUV:
@@ -6870,7 +6867,7 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 		} else {
 			if( !mesh->msticky ) {
 				mesh->msticky = CustomData_add_layer( &mesh->vdata, CD_MSTICKY,
-					0, NULL, mesh->totvert );
+					CD_CALLOC, NULL, mesh->totvert );
 				memset( mesh->msticky, 255, mesh->totvert*sizeof( MSticky ) );
 				/* TODO: rework RE_make_sticky() so we can calculate */
 			}

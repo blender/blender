@@ -339,10 +339,10 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	// create a new DerivedMesh
 	dm = CDDM_new(vertex_it->num_elements, 0, face_it->num_elements);
 
-	CustomData_merge(&me1->fdata, &dm->faceData, CD_MASK_DERIVEDMESH, CD_DEFAULT,
-	                 face_it->num_elements); 
-	CustomData_merge(&me2->fdata, &dm->faceData, CD_MASK_DERIVEDMESH, CD_DEFAULT,
-	                 face_it->num_elements); 
+	CustomData_merge(&me1->fdata, &dm->faceData, CD_MASK_DERIVEDMESH,
+	                 CD_DEFAULT, face_it->num_elements); 
+	CustomData_merge(&me2->fdata, &dm->faceData, CD_MASK_DERIVEDMESH,
+	                 CD_DEFAULT, face_it->num_elements); 
 
 	// step through the vertex iterators:
 	for (i = 0; !vertex_it->Done(vertex_it->it); i++) {

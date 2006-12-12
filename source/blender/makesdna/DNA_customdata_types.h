@@ -36,13 +36,14 @@
 typedef struct CustomDataLayer {
 	int type;       /* type of data in layer */
 	int offset;     /* in editmode, offset of layer in block */
-	int flag, pad;  /* general purpose flag */
+	int flag;       /* general purpose flag */
+	int active;     /* number of the active layer of this type */
 	void *data;     /* layer data */
 } CustomDataLayer;
 
 /* structure which stores custom element data associated with mesh elements
  * (vertices, edges or faces). The custom data is organised into a series of
- * layers, each with a data type (e.g. TFace, MDeformVert, etc.). */
+ * layers, each with a data type (e.g. MTFace, MDeformVert, etc.). */
 typedef struct CustomData {
 	CustomDataLayer *layers;  /* CustomDataLayers, ordered by type */
 	int totlayer, maxlayer;   /* number of layers, size of layers array */

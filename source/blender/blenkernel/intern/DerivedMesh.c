@@ -98,8 +98,9 @@ MVert *dm_getVertArray(DerivedMesh *dm)
 	MVert *mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
 
 	if (!mvert) {
-		mvert = CustomData_add_layer(&dm->vertData, CD_MVERT,
-			CD_FLAG_TEMPORARY, NULL, dm->getNumVerts(dm));
+		mvert = CustomData_add_layer(&dm->vertData, CD_MVERT, CD_CALLOC, NULL,
+			dm->getNumVerts(dm));
+		CustomData_set_layer_flag(&dm->vertData, CD_MVERT, CD_FLAG_TEMPORARY);
 		dm->copyVertArray(dm, mvert);
 	}
 
@@ -111,8 +112,9 @@ MEdge *dm_getEdgeArray(DerivedMesh *dm)
 	MEdge *medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
 
 	if (!medge) {
-		medge = CustomData_add_layer(&dm->edgeData, CD_MEDGE,
-			CD_FLAG_TEMPORARY, NULL, dm->getNumEdges(dm));
+		medge = CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_CALLOC, NULL,
+			dm->getNumEdges(dm));
+		CustomData_set_layer_flag(&dm->edgeData, CD_MEDGE, CD_FLAG_TEMPORARY);
 		dm->copyEdgeArray(dm, medge);
 	}
 
@@ -124,8 +126,9 @@ MFace *dm_getFaceArray(DerivedMesh *dm)
 	MFace *mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 
 	if (!mface) {
-		mface = CustomData_add_layer(&dm->faceData, CD_MFACE,
-			CD_FLAG_TEMPORARY, NULL, dm->getNumFaces(dm));
+		mface = CustomData_add_layer(&dm->faceData, CD_MFACE, CD_CALLOC, NULL,
+			dm->getNumFaces(dm));
+		CustomData_set_layer_flag(&dm->faceData, CD_MFACE, CD_FLAG_TEMPORARY);
 		dm->copyFaceArray(dm, mface);
 	}
 
@@ -183,9 +186,9 @@ void DM_init_funcs(DerivedMesh *dm)
 void DM_init(DerivedMesh *dm,
              int numVerts, int numEdges, int numFaces)
 {
-	CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, 0, NULL, numVerts);
-	CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, 0, NULL, numEdges);
-	CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, 0, NULL, numFaces);
+	CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, numVerts);
+	CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
+	CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, CD_CALLOC, NULL, numFaces);
 
 	dm->numVertData = numVerts;
 	dm->numEdgeData = numEdges;
@@ -254,11 +257,11 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me)
 	/* not all DerivedMeshes store their verts/edges/faces in CustomData, so
 	   we set them here in case they are missing */
 	if(!CustomData_has_layer(&tmp.vdata, CD_MVERT))
-		CustomData_add_layer(&tmp.vdata, CD_MVERT, 0, dm->dupVertArray(dm), totvert);
+		CustomData_add_layer(&tmp.vdata, CD_MVERT, CD_ASSIGN, dm->dupVertArray(dm), totvert);
 	if(!CustomData_has_layer(&tmp.edata, CD_MEDGE))
-		CustomData_add_layer(&tmp.edata, CD_MEDGE, 0, dm->dupEdgeArray(dm), totedge);
+		CustomData_add_layer(&tmp.edata, CD_MEDGE, CD_ASSIGN, dm->dupEdgeArray(dm), totedge);
 	if(!CustomData_has_layer(&tmp.fdata, CD_MFACE))
-		CustomData_add_layer(&tmp.fdata, CD_MFACE, 0, dm->dupFaceArray(dm), totface);
+		CustomData_add_layer(&tmp.fdata, CD_MFACE, CD_ASSIGN, dm->dupFaceArray(dm), totface);
 
 	mesh_update_customdata_pointers(&tmp);
 
@@ -282,19 +285,19 @@ void DM_set_only_copy(DerivedMesh *dm, CustomDataMask mask)
 	CustomData_set_only_copy(&dm->faceData, mask);
 }
 
-void DM_add_vert_layer(DerivedMesh *dm, int type, int flag, void *layer)
+void DM_add_vert_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
 {
-	CustomData_add_layer(&dm->vertData, type, flag, layer, dm->numVertData);
+	CustomData_add_layer(&dm->vertData, type, alloctype, layer, dm->numVertData);
 }
 
-void DM_add_edge_layer(DerivedMesh *dm, int type, int flag, void *layer)
+void DM_add_edge_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
 {
-	CustomData_add_layer(&dm->edgeData, type, flag, layer, dm->numEdgeData);
+	CustomData_add_layer(&dm->edgeData, type, alloctype, layer, dm->numEdgeData);
 }
 
-void DM_add_face_layer(DerivedMesh *dm, int type, int flag, void *layer)
+void DM_add_face_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
 {
-	CustomData_add_layer(&dm->faceData, type, flag, layer, dm->numFaceData);
+	CustomData_add_layer(&dm->faceData, type, alloctype, layer, dm->numFaceData);
 }
 
 void *DM_get_vert_data(DerivedMesh *dm, int index, int type)
@@ -954,7 +957,7 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 		EditVert *eve;
 		int i;
 
-		DM_add_vert_layer(&emdm->dm, CD_MDEFORMVERT, 0, NULL);
+		DM_add_vert_layer(&emdm->dm, CD_MDEFORMVERT, CD_CALLOC, NULL);
 
 		for(eve = em->verts.first, i = 0; eve; eve = eve->next, ++i)
 			DM_set_vert_data(&emdm->dm, i, CD_MDEFORMVERT,
@@ -2103,29 +2106,19 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 		int needMapping = editing && (ob==obact);
 
 		if( (G.f & G_WEIGHTPAINT) && ob==obact ) {
-			MCol *mcol = me->mcol;
 			MCol *wpcol = (MCol*)calc_weightpaint_colors(ob);
+			int layernum = CustomData_number_of_layers(&me->fdata, CD_MCOL);
 
-			/* ugly hack here, we replace mcol with weight paint colors, then
-			   CDDM_from_mesh duplicates it, and uses that instead of mcol */
-			if (mcol) {
-				CustomData_set_layer(&me->fdata, CD_MCOL, NULL);
-				CustomData_free_layer(&me->fdata, CD_MCOL, me->totface);
-			}
-
-			CustomData_add_layer(&me->fdata, CD_MCOL, CD_FLAG_NOFREE, wpcol, me->totface);
-			me->mcol= wpcol;
+			/* ugly hack here, we temporarily add a new active mcol layer with
+			   weightpaint colors in it, that is then duplicated in CDDM_from_mesh */
+			CustomData_add_layer(&me->fdata, CD_MCOL, CD_ASSIGN, wpcol, me->totface);
+			CustomData_set_layer_active(&me->fdata, CD_MCOL, layernum);
 
 			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
 			                    &ob->derivedFinal, 0, 1,
 			                    needMapping, dataMask);
 
 			CustomData_free_layer(&me->fdata, CD_MCOL, me->totface);
-			if (wpcol) MEM_freeN(wpcol);
-
-			if (mcol)
-				me->mcol= CustomData_add_layer(&me->fdata, CD_MCOL, 0, mcol, me->totface);
-			me->mcol= mcol;
 		} else {
 			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
 			                    &ob->derivedFinal, 0, 1,
@@ -2222,7 +2215,6 @@ DerivedMesh *mesh_create_derived_render(Object *ob, CustomDataMask dataMask)
 {
 	DerivedMesh *final;
 	Mesh *m= get_mesh(ob);
-	unsigned i;
 
 	/* Goto the pin level for multires */
 	if(m->mr) {
@@ -2236,9 +2228,7 @@ DerivedMesh *mesh_create_derived_render(Object *ob, CustomDataMask dataMask)
 	if(m->mr) {
 		if(final->getNumVerts(final) == m->totvert &&
 		   final->getNumFaces(final) == m->totface) {
-			for(i=0; i<m->totvert; ++i)
-				memcpy(&m->mvert[i], CustomData_get(&final->vertData, i, CD_MVERT), sizeof(MVert));
-
+			final->copyVertArray(final, m->mvert);
 			final->release(final);
 			
 			m->mr->newlvl= m->mr->renderlvl;
@@ -2520,7 +2510,6 @@ void initElbeemMesh(struct Object *ob,
 
 	dm = mesh_create_derived_render(ob, CD_MASK_BAREMESH);
 	//dm = mesh_create_derived_no_deform(ob,NULL);
-	if(!dm) { *numVertices = *numTriangles = 0; *triangles=NULL; *vertices=NULL; }
 
 	mvert = dm->getVertArray(dm);
 	mface = dm->getFaceArray(dm);
@@ -2624,7 +2613,7 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh, float* bbstart, float *bbsize) /
 	//if(sizeof(wri)!=4) { snprintf(debugStrBuffer,256,"Reading GZ_BOBJ, Invalid int size %d...\n", wri); return NULL; } // paranoia check
 	gotBytes = gzread(gzf, &wri, sizeof(wri));
 	newmesh->totvert = wri;
-	newmesh->mvert = CustomData_add_layer(&newmesh->vdata, CD_MVERT, 0, NULL, newmesh->totvert);
+	newmesh->mvert = CustomData_add_layer(&newmesh->vdata, CD_MVERT, CD_CALLOC, NULL, newmesh->totvert);
 	if(debugBobjRead){ snprintf(debugStrBuffer,256,"#vertices %d ", newmesh->totvert); elbeemDebugOut(debugStrBuffer); } //DEBUG
 	for(i=0; i<newmesh->totvert;i++) {
 		//if(debugBobjRead) snprintf(debugStrBuffer,256,"V %d = ",i);
@@ -2660,7 +2649,7 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh, float* bbstart, float *bbsize) /
 	/* compute no. of triangles */
 	gotBytes = gzread(gzf, &wri, sizeof(wri));
 	newmesh->totface = wri;
-	newmesh->mface = CustomData_add_layer(&newmesh->fdata, CD_MFACE, 0, NULL, newmesh->totface);
+	newmesh->mface = CustomData_add_layer(&newmesh->fdata, CD_MFACE, CD_CALLOC, NULL, newmesh->totface);
 	if(debugBobjRead){ snprintf(debugStrBuffer,256,"#faces %d ", newmesh->totface); elbeemDebugOut(debugStrBuffer); } //DEBUG
 	fsface = newmesh->mface;
 	for(i=0; i<newmesh->totface; i++) {
@@ -2927,13 +2916,15 @@ void fluidsimGetAxisAlignedBB(struct Mesh *mesh, float obmat[][4],
 		else {           newmesh = *bbmesh; }
 
 		newmesh->totvert = 8;
-		if(!newmesh->mvert) newmesh->mvert = CustomData_add_layer(&newmesh->vdata, CD_MVERT, 0, NULL, newmesh->totvert);
+		if(!newmesh->mvert)
+			newmesh->mvert = CustomData_add_layer(&newmesh->vdata, CD_MVERT, CD_CALLOC, NULL, newmesh->totvert);
 		for(i=0; i<8; i++) {
 			for(j=0; j<3; j++) newmesh->mvert[i].co[j] = start[j]; 
 		}
 
 		newmesh->totface = 6;
-		if(!newmesh->mface) newmesh->mface = CustomData_add_layer(&newmesh->fdata, CD_MFACE, 0, NULL, newmesh->totface);
+		if(!newmesh->mface)
+			newmesh->mface = CustomData_add_layer(&newmesh->fdata, CD_MFACE, CD_CALLOC, NULL, newmesh->totface);
 
 		*bbmesh = newmesh;
 	}

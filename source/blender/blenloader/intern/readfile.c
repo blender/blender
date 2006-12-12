@@ -2460,9 +2460,9 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 			i++;
 		}
 		else {
-			/* delete layer with unknown type */
+			/* delete layers with unknown type */
 			layer->data = NULL;
-			CustomData_free_layer(data, layer->type, 0);
+			CustomData_free_layers(data, layer->type, 0);
 		}
 	}
 }
@@ -4189,25 +4189,26 @@ static void customdata_version_242(Mesh *me)
 	int a;
 
 	if (!me->vdata.totlayer) {
-		CustomData_add_layer(&me->vdata, CD_MVERT, 0, me->mvert, me->totvert);
+		CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, me->mvert, me->totvert);
 
 		if (me->msticky)
-			CustomData_add_layer(&me->vdata, CD_MSTICKY, 0, me->msticky, me->totvert);
+			CustomData_add_layer(&me->vdata, CD_MSTICKY, CD_ASSIGN, me->msticky, me->totvert);
 		if (me->dvert)
-			CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, 0, me->dvert, me->totvert);
+			CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_ASSIGN, me->dvert, me->totvert);
 	}
 
 	if (!me->edata.totlayer)
-		CustomData_add_layer(&me->edata, CD_MEDGE, 0, me->medge, me->totedge);
+		CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, me->medge, me->totedge);
 	
 	if (!me->fdata.totlayer) {
-		CustomData_add_layer(&me->fdata, CD_MFACE, 0, me->mface, me->totface);
+		CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, me->mface, me->totface);
 
-		if (me->mcol || me->tface)
-			me->mcol= CustomData_add_layer(&me->fdata, CD_MCOL, 0, me->mcol, me->totface);
-
-		if (me->tface) {
-			me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, 0, NULL, me->totface);
+		if (me->mcol) {
+			me->mcol= CustomData_add_layer(&me->fdata, CD_MCOL, CD_ASSIGN, me->mcol, me->totface);
+		}
+		else if (me->tface) {
+			me->mcol= CustomData_add_layer(&me->fdata, CD_MCOL, CD_CALLOC, NULL, me->totface);
+			me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, me->totface);
 
 			mtf= me->mtface;
 			mcol= me->mcol;

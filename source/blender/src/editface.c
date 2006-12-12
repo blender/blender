@@ -74,6 +74,7 @@
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
 #include "BIF_toolbox.h"
+#include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -607,32 +608,12 @@ void default_uv(float uv[][2], float size)
 	uv[3][1]= size+dy;
 }
 
-void default_tface(MTFace *tface)
-{
-	default_uv(tface->uv, 1.0);
-
-	tface->mode= TF_TEX;
-	tface->mode= 0;
-	tface->flag= TF_SELECT;
-	tface->tpage= 0;
-	tface->mode |= TF_DYNAMIC;
-}
-
 void make_tfaces(Mesh *me) 
 {
-	MTFace *tf;
-	int a;
-
-	if(me->mtface)
-		return;
-
-	me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, 0, 0, me->totface);
-
-	tf= me->mtface;
-	for (a=0; a<me->totface; a++, tf++)
-		default_tface(tf);
+	if(!me->mtface)
+		me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT,
+			NULL, me->totface);
 }
-
 
 void reveal_tface()
 {
@@ -1547,7 +1528,7 @@ static int texpaint_projected_verts(Object *ob, MFace *mf, MTFace *tf, MVert *mv
 
 	persp(PERSP_VIEW);
 
-	/* get the need opengl matrices */
+	/* get the needed opengl matrices */
 	glGetIntegerv(GL_VIEWPORT, view);
 	glGetDoublev(GL_MODELVIEW_MATRIX, model);
 	glGetDoublev(GL_PROJECTION_MATRIX, proj);

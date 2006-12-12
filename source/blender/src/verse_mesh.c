@@ -1429,8 +1429,12 @@ void create_meshdata_from_geom_node(Mesh *me, VNode *vnode)
 	me->totface = face_vlayer->dl.da.count;
 	me->totselect = 0;
 
-	mvert = me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, 0, NULL, me->totvert);
-	mface = me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, 0, NULL, me->totface);
+	CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
+	CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
+	mesh_update_customdata_pointers(me);
+
+	mvert = me->mvert;
+	mface = me->mface;
 
 	index = 0;
 	vvert = vert_vlayer->dl.lb.first;
@@ -1484,7 +1488,7 @@ void create_meshdata_from_geom_node(Mesh *me, VNode *vnode)
 
 	if(me->totedge) {
 		EdgeHashIterator *i;
-		MEdge *medge = me->medge = CustomData_add_layer(&me->edata, CD_MEDGE, 0, NULL, me->totedge);
+		MEdge *medge = me->medge = CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, me->totedge);
 
 		for(i = BLI_edgehashIterator_new(edges); !BLI_edgehashIterator_isDone(i); BLI_edgehashIterator_step(i), ++medge) {
 			BLI_edgehashIterator_getKey(i, (int*)&medge->v1, (int*)&medge->v2);

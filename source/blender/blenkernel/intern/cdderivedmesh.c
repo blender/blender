@@ -725,9 +725,13 @@ DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces)
 
 	DM_init(dm, numVerts, numEdges, numFaces);
 
-	cddm->mvert = CustomData_add_layer(&dm->vertData, CD_MVERT, 0, 0, numVerts);
-	cddm->medge = CustomData_add_layer(&dm->edgeData, CD_MEDGE, 0, 0, numEdges);
-	cddm->mface = CustomData_add_layer(&dm->faceData, CD_MFACE, 0, 0, numFaces);
+	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_CALLOC, NULL, numVerts);
+	CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
+	CustomData_add_layer(&dm->faceData, CD_MFACE, CD_CALLOC, NULL, numFaces);
+
+	cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
+	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
+	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 
 	return dm;
 }
@@ -765,8 +769,8 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	for(i = 0; i < mesh->totface; ++i, ++index)
 		*index = i;
 	
-	/* works in conjunction with hack during modifier calc, where mcol is
-	   temporarily replaced by weight paint colors */
+	/* works in conjunction with hack during modifier calc, where active mcol
+	   layer with weight paint colors is temporarily added */
 	if ((G.f & G_WEIGHTPAINT) &&
 		(ob && ob==(G.scene->basact?G.scene->basact->object:NULL)))
 		CustomData_duplicate_referenced_layer(&dm->faceData, CD_MCOL);
@@ -889,9 +893,9 @@ DerivedMesh *CDDM_copy(DerivedMesh *source)
 	cddm->medge = source->dupEdgeArray(source);
 	cddm->mface = source->dupFaceArray(source);
 
-	CustomData_add_layer(&dm->vertData, CD_MVERT, 0, cddm->mvert, numVerts);
-	CustomData_add_layer(&dm->edgeData, CD_MEDGE, 0, cddm->medge, numEdges);
-	CustomData_add_layer(&dm->faceData, CD_MFACE, 0, cddm->mface, numFaces);
+	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_ASSIGN, cddm->mvert, numVerts);
+	CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_ASSIGN, cddm->medge, numEdges);
+	CustomData_add_layer(&dm->faceData, CD_MFACE, CD_ASSIGN, cddm->mface, numFaces);
 
 	return dm;
 }
@@ -906,9 +910,13 @@ DerivedMesh *CDDM_from_template(DerivedMesh *source,
 	DM_from_template(dm, source, numVerts, numEdges, numFaces);
 
 	/* now add mvert/medge/mface layers */
-	cddm->mvert = CustomData_add_layer(&dm->vertData, CD_MVERT, 0, 0, numVerts);
-	cddm->medge = CustomData_add_layer(&dm->edgeData, CD_MEDGE, 0, 0, numEdges);
-	cddm->mface = CustomData_add_layer(&dm->faceData, CD_MFACE, 0, 0, numFaces);
+	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_CALLOC, NULL, numVerts);
+	CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
+	CustomData_add_layer(&dm->faceData, CD_MFACE, CD_CALLOC, NULL, numFaces);
+
+	cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
+	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
+	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 
 	return dm;
 }
@@ -965,8 +973,8 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	/* make a face normal layer if not present */
 	face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);
 	if(!face_nors)
-		face_nors = CustomData_add_layer(&dm->faceData, CD_NORMAL, 0, NULL,
-		                                 dm->numFaceData);
+		face_nors = CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_CALLOC,
+		                                 NULL, dm->numFaceData);
 
 	/* calculate face normals and add to vertex normals */
 	mf = CDDM_get_faces(dm);
@@ -1035,11 +1043,12 @@ void CDDM_calc_edges(DerivedMesh *dm)
 
 	/* write new edges into a temporary CustomData */
 	memset(&edgeData, 0, sizeof(edgeData));
-	CustomData_add_layer(&edgeData, CD_MEDGE, 0, NULL, numEdges);
-	index = CustomData_add_layer(&edgeData, CD_ORIGINDEX, 0, NULL, numEdges);
+	CustomData_add_layer(&edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
+	CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
 
 	ehi = BLI_edgehashIterator_new(eh);
 	med = CustomData_get_layer(&edgeData, CD_MEDGE);
+	index = CustomData_get_layer(&edgeData, CD_ORIGINDEX);
 	for(i = 0; !BLI_edgehashIterator_isDone(ehi);
 	    BLI_edgehashIterator_step(ehi), ++i, ++med, ++index) {
 		BLI_edgehashIterator_getKey(ehi, (int*)&med->v1, (int*)&med->v2);
@@ -1062,7 +1071,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 void CDDM_lower_num_verts(DerivedMesh *dm, int numVerts)
 {
 	if (numVerts < dm->numVertData)
-		CustomData_free_elem(&dm->vertData, numVerts, dm->numVertData - numVerts);
+		CustomData_free_elem(&dm->vertData, numVerts, dm->numVertData-numVerts);
 
 	dm->numVertData = numVerts;
 }
@@ -1070,7 +1079,7 @@ void CDDM_lower_num_verts(DerivedMesh *dm, int numVerts)
 void CDDM_lower_num_edges(DerivedMesh *dm, int numEdges)
 {
 	if (numEdges < dm->numEdgeData)
-		CustomData_free_elem(&dm->edgeData, numEdges, dm->numEdgeData - numEdges);
+		CustomData_free_elem(&dm->edgeData, numEdges, dm->numEdgeData-numEdges);
 
 	dm->numEdgeData = numEdges;
 }
@@ -1078,7 +1087,7 @@ void CDDM_lower_num_edges(DerivedMesh *dm, int numEdges)
 void CDDM_lower_num_faces(DerivedMesh *dm, int numFaces)
 {
 	if (numFaces < dm->numFaceData)
-		CustomData_free_elem(&dm->faceData, numFaces, dm->numFaceData - numFaces);
+		CustomData_free_elem(&dm->faceData, numFaces, dm->numFaceData-numFaces);
 
 	dm->numFaceData = numFaces;
 }

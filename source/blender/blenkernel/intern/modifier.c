@@ -71,6 +71,7 @@
 #include "BKE_main.h"
 #include "BKE_anim.h"
 #include "BKE_bad_level_calls.h"
+#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
@@ -2612,7 +2613,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	if(!tface) {
 		if(!(umd->flags & MOD_UVPROJECT_ADDUVS)) return dm;
 
-		DM_add_face_layer(dm, CD_MTFACE, 0, NULL);
+		DM_add_face_layer(dm, CD_MTFACE, CD_CALLOC, NULL);
 		tface = dm->getFaceDataArray(dm, CD_MTFACE);
 		new_tfaces = 1;
 	}

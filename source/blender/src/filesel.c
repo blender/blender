@@ -1759,19 +1759,20 @@ static void replace_image(ID *oldblock, ID *newblock) {
 	}
 
 	for (me= G.main->mesh.first; me; me= me->id.next) {
-		MTFace *tfaces= me->mtface;
+		int i, a;
+		MTFace *tface;
 
-		if (tfaces) {
-			int i;
+		for(i=0; i<me->fdata.totlayer; i++) {
+			if(me->fdata.layers[i].type == CD_MTFACE) {
+				tface= (MTFace*)me->fdata.layers[i].data;
 
-			for (i=0; i<me->totface; i++) {
-				MTFace *tf= &tfaces[i];
-
-				if (tf->tpage == oldima) {
-						/* not change_id_link, tpage's aren't owners :(
-						 * see hack below.
-						 */
-					tf->tpage= newima;
+				for (a=0; a<me->totface; a++, tface++) {
+					if (tface->tpage == oldima) {
+							/* not change_id_link, tpage's aren't owners :(
+							 * see hack below.
+							 */
+						tface->tpage= newima;
+					}
 				}
 			}
 		}

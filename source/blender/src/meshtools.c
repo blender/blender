@@ -255,14 +255,17 @@ int join_mesh(void)
 	memset(&edata, 0, sizeof(edata));
 	memset(&fdata, 0, sizeof(fdata));
 	
-	mvertmain= mvert= CustomData_add_layer(&vdata, CD_MVERT, 0, NULL, totvert);
-	medgemain= medge= CustomData_add_layer(&edata, CD_MEDGE, 0, NULL, totedge);
-	mfacemain= mface= CustomData_add_layer(&fdata, CD_MFACE, 0, NULL, totface);
+	mvert= CustomData_add_layer(&vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
+	medge= CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
+	mface= CustomData_add_layer(&fdata, CD_MFACE, CD_CALLOC, NULL, totface);
 
+	mvertmain= mvert;
+	medgemain= medge;
+	mfacemain= mface;
 
 	/* inverse transorm all selected meshes in this object */
 	Mat4Invert(imat, ob->obmat);
-	
+
 	vertofs= 0;
 	edgeofs= 0;
 	faceofs= 0;

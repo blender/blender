@@ -247,7 +247,8 @@ Mesh *add_mesh()
 Mesh *copy_mesh(Mesh *me)
 {
 	Mesh *men;
-	int a;
+	MTFace *tface;
+	int a, i;
 	
 	men= copy_libblock(me);
 	
@@ -262,12 +263,15 @@ Mesh *copy_mesh(Mesh *me)
 	CustomData_copy(&me->fdata, &men->fdata, CD_MASK_MESH, CD_DUPLICATE, men->totface);
 	mesh_update_customdata_pointers(men);
 
-	if (me->mtface){
-		/* ensure indirect linked data becomes lib-extern */
-		MTFace *tface= me->mtface;
-		for(a=0; a<me->totface; a++, tface++)
-			if(tface->tpage)
-				id_lib_extern((ID*)tface->tpage);
+	/* ensure indirect linked data becomes lib-extern */
+	for(i=0; i<me->fdata.totlayer; i++) {
+		if(me->fdata.layers[i].type == CD_MTFACE) {
+			tface= (MTFace*)me->fdata.layers[i].data;
+
+			for(a=0; a<me->totface; a++, tface++)
+				if(tface->tpage)
+					id_lib_extern((ID*)tface->tpage);
+		}
 	}
 	
 	if(me->mr)
@@ -291,26 +295,25 @@ void make_local_tface(Mesh *me)
 {
 	MTFace *tface;
 	Image *ima;
-	int a;
+	int a, i;
 	
-	if(me->mtface==0) return;
-	
-	a= me->totface;
-	tface= me->mtface;
-	while(a--) {
-		
-		/* special case: ima always local immediately */
-		if(tface->tpage) {
-			ima= tface->tpage;
-			if(ima->id.lib) {
-				ima->id.lib= 0;
-				ima->id.flag= LIB_LOCAL;
-				new_id(0, (ID *)ima, 0);
+	for(i=0; i<me->fdata.totlayer; i++) {
+		if(me->fdata.layers[i].type == CD_MTFACE) {
+			tface= (MTFace*)me->fdata.layers[i].data;
+			
+			for(a=0; a<me->totface; a++, tface++) {
+				/* special case: ima always local immediately */
+				if(tface->tpage) {
+					ima= tface->tpage;
+					if(ima->id.lib) {
+						ima->id.lib= 0;
+						ima->id.flag= LIB_LOCAL;
+						new_id(0, (ID *)ima, 0);
+					}
+				}
 			}
 		}
-		tface++;
 	}
-	
 }
 
 void make_local_mesh(Mesh *me)
@@ -687,7 +690,8 @@ void make_edges(Mesh *me, int old)
 	final++;
 	
 
-	medge= me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, 0, NULL, final);
+	medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, final);
+	me->medge= medge;
 	me->totedge= final;
 	
 	for(a=totedge, ed=edsort; a>1; a--, ed++) {
@@ -750,8 +754,8 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 		me->totvert= dl->nr;
 		me->totface= dl->parts;
 		
-		mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, NULL, dl->nr);
-		mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0, NULL, dl->parts);
+		mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, dl->nr);
+		mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, dl->parts);
 		me->mvert= mvert;
 		me->mface= mface;
 
@@ -841,8 +845,8 @@ void nurbs_to_mesh(Object *ob)
 	cu->mat= 0;
 	cu->totcol= 0;
 
-	mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, NULL, me->totvert);
-	mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0, NULL, me->totface);
+	mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
+	mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
 	me->mvert= mvert;
 	me->mface= mface;
 

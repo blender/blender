@@ -300,9 +300,9 @@ static void read_stl_mesh_binary(char *str)
 			me= ob->data;
 			me->totvert = totvert;
 			me->totface = totface;
-			me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, 0,
+			me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN,
 			                                 vertdata, totvert);
-			me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, 0,
+			me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN,
 			                                 facedata, totface);
 
 			mesh_add_normals_flags(me);
@@ -444,9 +444,9 @@ static void read_stl_mesh_ascii(char *str)
 
 	me->totface = totface;
 	me->totvert = totvert;
-	me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, 0,
+	me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC,
 	                                 NULL, totvert);
-	me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, 0,
+	me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC,
 	                                 NULL, totface);
 
 	/* Copy vert coords and create topology */
@@ -563,9 +563,9 @@ static void read_videoscape_mesh(char *str)
 	me->totvert= verts;
 	me->totface= totedge+tottria+totquad;
 	
-	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0,
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC,
 	                                NULL, me->totvert);
-	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0,
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC,
 	                                NULL, me->totface);
 	
 	/* colors */
@@ -770,9 +770,9 @@ static void read_radiogour(char *str)
 	me->totface= totedge+tottria+totquad;
 	me->flag= 0;
 
-	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0,
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC,
 	                                NULL, me->totvert);
-	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0,
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC,
 	                                NULL, me->totface);
 	
 	/* verts */
@@ -2067,9 +2067,9 @@ static void displist_to_mesh(DispList *dlfirst)
 	
 	me->totvert= totvert;
 	me->totface= totface;
-	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0,
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC,
 	                                NULL, me->totvert);
-	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0,
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC,
 	                                NULL, me->totface);
 	maxvertidx= totvert-1;
 	
@@ -3640,8 +3640,8 @@ static void dxf_get_mesh(Mesh** m, Object** o, int noob)
 	}
 	me->totvert=0;
 	me->totface=0;
-	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, NULL, 0);
-	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0, NULL, 0);
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, 0);
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, 0);
 }
 
 static void dxf_read_point(int noob) {	

@@ -167,8 +167,9 @@
 #include "butspace.h" // own module
 #include "multires.h"
 
-static float editbutweight=1.0;
-float editbutvweight=1;
+static float editbutweight= 1.0;
+float editbutvweight= 1;
+static int actmcol= 0, acttface= 0;
 
 extern ListBase editNurb;
 
@@ -670,11 +671,40 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 
 /* *************************** MESH  ******************************** */
 
+static void customdata_buttons(uiBlock *block, CustomData *data, int type, int *activep, int setevt, int newevt, int delevt, char *label, char *shortlabel, char *browsetip, char *newtip, char *deltip, int x, int y)
+{
+	CustomDataLayer *layer;
+	int i, count= 0;
+
+	*activep = 1;
+
+	for (i=0; i<data->totlayer; i++) {
+		layer= &data->layers[i];
+
+		if(layer->type == type) {
+			if(count == layer->active)
+				*activep = count+1;
+			count++;
+		}
+	}
+
+	uiBlockBeginAlign(block);
+	if (count == 0)
+		uiDefBut(block, LABEL, 0, label, x,y,140,20, 0, 0.0, 0, 0, 0, "");
+	else
+		uiDefButI(block, NUM, setevt, shortlabel, x,y,140,20, activep, 1, count, 0, 0, browsetip);
+
+	uiDefBut(block, BUT, newevt, "New",		x+140,y,52,20, 0,0,0,0,0, newtip);
+	uiDefBut(block, BUT, delevt, "Delete",	x+182,y,68,20, 0,0,0,0,0, deltip);
+	uiBlockEndAlign(block);
+}
+
 static void editing_panel_mesh_type(Object *ob, Mesh *me)
 {
 	uiBlock *block;
 	uiBut *but;
 	float val;
+	CustomData *fdata;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "Mesh", "Editing", 320, 0, 318, 204)==0) return;
@@ -682,6 +712,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, ME_AUTOSMOOTH, REDRAWVIEW3D, "Auto Smooth",10,180,154,19, &me->flag, 0, 0, 0, 0, "Treats all set-smoothed faces with angles less than Degr: as 'smooth' during render");
 	uiDefButS(block, NUM, B_DIFF, "Degr:",				10,160,154,19, &me->smoothresh, 1, 80, 0, 0, "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
+	uiBlockEndAlign(block);
 
 	/* Retopo */
 	if(G.obedit) {
@@ -694,36 +725,33 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 			but= uiDefBut(block,BUT,B_NOP,"Retopo All", 60,110,104,19, 0,0,0,0,0, "Apply the re-topology tool to all selected vertices");
 			uiButSetFunc(but,retopo_do_all,ob,me);
 		}
+		uiBlockEndAlign(block);
 	}
 
-	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_AUTO);
 
-	if(me->mcol) val= 1.0; else val= 0.0;
-	uiDefBut(block, LABEL, 0, "VertCol", 				10,50,70,20, 0, val, 0, 0, 0, "");
-	if(me->mcol==NULL) {
-		uiDefBut(block, BUT, B_MAKEVERTCOL, "Make",		80,50,84,19, 0, 0, 0, 0, 0, "Enables vertex color painting on active Mesh");
-	}
-	else uiDefBut(block, BUT, B_DELVERTCOL, "Delete", 	80,50,84,19, 0, 0, 0, 0, 0, "Deletes vertex colors on active Mesh");
+	uiDefIDPoinBut(block, test_meshpoin_but, ID_ME, B_REDR, "TexMesh: ",	180,180,230,19, &me->texcomesh, "Derive texture coordinates from another mesh.");
 
-	if(me->mtface) val= 1.0; else val= 0.0;
-	uiDefBut(block, LABEL, 0, "TexFace", 				10,30,70,20, 0, val, 0, 0, 0, "");
-	if(me->mtface==NULL) {
-		uiDefBut(block, BUT, B_MAKE_TFACES, "Make",		80,30,84,19, 0, 0, 0, 0, 0, "Enables the active Mesh's faces for UV coordinate mapping");
-	}
-	else uiDefBut(block, BUT, B_DEL_TFACES, "Delete", 	80,30,84,19, 0, 0, 0, 0, 0, "Deletes UV coordinates for active Mesh's faces");
+	fdata= (G.obedit)? &G.editMesh->fdata: &me->fdata;
+	customdata_buttons(block, fdata, CD_MCOL, &actmcol, B_SETMCOL,
+		B_NEWMCOL, B_DELMCOL, "Vert Color", "Vert Color:",
+		"Sets active vertex color layer", "Creates a new vertex color layer",
+		"Removes the current vertex color layer", 10, 60);
 
+	customdata_buttons(block, fdata, CD_MTFACE, &acttface, B_SETTFACE,
+		B_NEWTFACE, B_DELTFACE, "UV Texture", "UV Texture:",
+		"Set active UV texture", "Creates a new UV texture layer",
+		"Removes the current UV texture layer", 10, 35);
+
+	uiBlockBeginAlign(block);
 	if(me->msticky) val= 1.0; else val= 0.0;
-	uiDefBut(block, LABEL, 0, "Sticky", 				10,10,70,20, 0, val, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Sticky", 				10,10,140,20, 0, val, 0, 0, 0, "");
 	if(me->msticky==NULL) {
-		uiDefBut(block, BUT, B_MAKESTICKY, "Make",		80,10,84,19, 0, 0, 0, 0, 0, "Creates Sticky coordinates for the active Mesh from the current camera view background picture");
+		uiDefBut(block, BUT, B_MAKESTICKY, "Make",		150,10,110,20, 0, 0, 0, 0, 0, "Creates Sticky coordinates from the current camera view background picture");
 	}
-	else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 	80,10,84,19, 0, 0, 0, 0, 0, "Deletes Sticky texture coordinates");
-
+	else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 	150,10,110,20, 0, 0, 0, 0, 0, "Deletes Sticky texture coordinates");
 	uiBlockEndAlign(block);
 
-	uiDefIDPoinBut(block, test_meshpoin_but, ID_ME, B_REDR, "TexMesh: ",	175,124,230,19, &me->texcomesh, "Derive texture coordinates from another mesh.");
-	
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					275, 95, 130, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
 	uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			275, 75, 130, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
@@ -733,7 +761,6 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiDefButBitS(block, TOG, ME_TWOSIDED, REDRAWVIEW3D, "Double Sided",	275,30,130,19, &me->flag, 0, 0, 0, 0, "Render/display the mesh as double or single sided");
 	uiDefButBitS(block, TOG, ME_NOPUNOFLIP, REDRAWVIEW3D, "No V.Normal Flip",275,10,130,19, &me->flag, 0, 0, 0, 0, "Disables flipping of vertexnormals during render");
 	uiBlockEndAlign(block);
-
 }
 
 /* *************************** MODIFIERS ******************************** */
@@ -3551,8 +3578,11 @@ void do_meshbuts(unsigned short event)
 {
 	Object *ob;
 	Mesh *me;
+	MCol *mcol;
+	EditMesh *em= G.editMesh;
 	float fac;
 	int count; /* store num of changes made to see if redraw & undo are needed*/
+	int layernum;
 	short randfac;
 	
 	ob= OBACT;
@@ -3573,50 +3603,113 @@ void do_meshbuts(unsigned short event)
 			RE_make_sticky();
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
-		
-		case B_MAKEVERTCOL:
-			if(G.obedit)
-				EM_add_data_layer(&G.editMesh->fdata, CD_MCOL);
-			else
-				make_vertexcol(1);
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			break;
-		case B_DELVERTCOL:
+
+		case B_NEWMCOL:
 			if(G.obedit) {
-				EM_free_data_layer(&G.editMesh->fdata, CD_MCOL);
+				layernum= CustomData_number_of_layers(&em->fdata, CD_MCOL);
+				EM_add_data_layer(&em->fdata, CD_MCOL);
+				CustomData_set_layer_active(&em->fdata, CD_MCOL, layernum);
 			}
-			else {
+			else if(me) {
+				mcol= me->mcol;
+				layernum= CustomData_number_of_layers(&me->fdata, CD_MCOL);
+
+				if(mcol)
+					CustomData_add_layer(&me->fdata, CD_MCOL, CD_DUPLICATE,
+					                     mcol, me->totface);
+				else
+					CustomData_add_layer(&me->fdata, CD_MCOL, CD_CALLOC,
+					                     NULL, me->totface);
+
+				CustomData_set_layer_active(&me->fdata, CD_MCOL, layernum);
+				mesh_update_customdata_pointers(me);
+
+				if(!mcol)
+					shadeMeshMCol(ob, me);
+			}
+
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+			break;
+		case B_DELMCOL:
+			if(G.obedit) {
+				EM_free_data_layer(&em->fdata, CD_MCOL);
+			}
+			else if(me) {
 				CustomData_free_layer(&me->fdata, CD_MCOL, me->totface);
-				me->mcol= NULL;
+				me->mcol= CustomData_get_layer(&me->fdata, CD_MCOL);
 			}
-			G.f &= ~G_VERTEXPAINT;
+
+			if((me && me->mcol == NULL) && (G.f & G_VERTEXPAINT))
+				G.f &= ~G_VERTEXPAINT; /* get out of vertexpaint mode */
+
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
-			break;
-
-		case B_MAKE_TFACES:
-			if(G.obedit)
-				EM_add_data_layer(&G.editMesh->fdata, CD_MTFACE);
-			else
-				make_tfaces(me);
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
+		case B_SETMCOL:
+			if (G.obedit || me) {
+				CustomData *fdata= (G.obedit)? &em->fdata: &me->fdata;
+				CustomData_set_layer_active(fdata, CD_MCOL, actmcol-1);
+				mesh_update_customdata_pointers(me);
 
-		case B_DEL_TFACES:
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				allqueue(REDRAWVIEW3D, 0);
+				allqueue(REDRAWBUTSEDIT, 0);
+			}
+			break;
+
+		case B_NEWTFACE:
 			if(G.obedit) {
-				EM_free_data_layer(&G.editMesh->fdata, CD_MTFACE);
+				layernum= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
+				EM_add_data_layer(&em->fdata, CD_MTFACE);
+				CustomData_set_layer_active(&em->fdata, CD_MTFACE, layernum);
 			}
-			else {
-				CustomData_free_layer(&me->fdata, CD_MTFACE, me->totface);
-				me->mtface= NULL;
+			else if(me) {
+				layernum= CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+
+				if(me->mtface)
+					CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DUPLICATE,
+					                     me->mtface, me->totface);
+				else
+					CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT,
+					                     NULL, me->totface);
+
+				CustomData_set_layer_active(&me->fdata, CD_MTFACE, layernum);
+				mesh_update_customdata_pointers(me);
 			}
-			G.f &= ~G_FACESELECT;
+
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWIMAGE, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+			break;
+		case B_DELTFACE:
+			if(G.obedit) {
+				EM_free_data_layer(&em->fdata, CD_MTFACE);
+			}
+			else if(me) {
+				CustomData_free_layer(&me->fdata, CD_MTFACE, me->totface);
+				me->mtface= CustomData_get_layer(&me->fdata, CD_MTFACE);
+			}
+
+			if((me && me->mtface == NULL) && (G.f & G_FACESELECT))
+				set_faceselect();  /* get out of vertexpaint mode */
+
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+			break;
+		case B_SETTFACE:
+			if (G.obedit || me) {
+				CustomData *fdata= (G.obedit)? &em->fdata: &me->fdata;
+				CustomData_set_layer_active(fdata, CD_MTFACE, acttface-1);
+				mesh_update_customdata_pointers(me);
+
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				allqueue(REDRAWVIEW3D, 0);
+				allqueue(REDRAWBUTSEDIT, 0);
+			}
 			break;
 
 		case B_FLIPNORM:

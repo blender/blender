@@ -48,11 +48,13 @@ extern const CustomDataMask CD_MASK_DERIVEDMESH;
  * memory space for totelem elements. mask must be an array of length
  * CD_NUMTYPES elements, that indicate if a layer can be copied. */
 
-/* copy/merge allocation types */
-#define CD_CALLOC    0  /* allocate blank memory for all layers */
-#define CD_DEFAULT   1  /* allocate layers and set them to their defaults */
-#define CD_DUPLICATE 2  /* do a full copy of all layer */
-#define CD_REFERENCE 3  /* reference original pointers, set layer flag NOFREE */
+/* add/copy/merge allocation types */
+#define CD_ASSIGN    0  /* use the data pointer */
+#define CD_CALLOC    1  /* allocate blank memory */
+#define CD_DEFAULT   2  /* allocate and set to default */
+#define CD_REFERENCE 3  /* use data pointers, set layer flag NOFREE */
+#define CD_DUPLICATE 4  /* do a full copy of all layers, only allowed if source
+                           has same number of elements */
 
 /* initialises a CustomData object with the same layer setup as source.
  * mask is a bitfield where (mask & (1 << (layer type))) indicates
@@ -60,8 +62,8 @@ extern const CustomDataMask CD_MASK_DERIVEDMESH;
 void CustomData_copy(const struct CustomData *source, struct CustomData *dest,
                      CustomDataMask mask, int alloctype, int totelem);
 
-/* same as the above, except that will preserve existing layers, and only add
- * the layers that were not there yet */
+/* same as the above, except that this will preserve existing layers, and only
+ * add the layers that were not there yet */
 void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
                       CustomDataMask mask, int alloctype, int totelem);
 
@@ -70,37 +72,33 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
  */
 void CustomData_free(struct CustomData *data, int totelem);
 
-/* frees all layers with flag LAYERFLAG_TEMPORARY */
+/* frees all layers with CD_FLAG_TEMPORARY */
 void CustomData_free_temporary(struct CustomData *data, int totelem);
 
 /* adds a data layer of the given type to the CustomData object, optionally
- * backed by an external data array
- * if layer != NULL, it is used as the layer data array, otherwise new memory
- * is allocated
- * the layer data will be freed by CustomData_free unless
- * (flag & LAYERFLAG_NOFREE) is true
- * returns the data of the layer
+ * backed by an external data array. the different allocation types are
+ * defined above. returns the data of the layer.
  *
  * in editmode, use EM_add_data_layer instead of this function
  */
-void *CustomData_add_layer(struct CustomData *data, int type, int flag,
+void *CustomData_add_layer(struct CustomData *data, int type, int alloctype,
                            void *layer, int totelem);
 
-/* frees the first data layer with the give type.
+/* frees the active or first data layer with the give type.
  * returns 1 on succes, 0 if no layer with the given type is found
  *
  * in editmode, use EM_free_data_layer instead of this function
  */
 int CustomData_free_layer(struct CustomData *data, int type, int totelem);
 
-/* returns 1 if the two objects are compatible (same layer types and
- * flags in the same order), 0 if not
- */
-int CustomData_compat(const struct CustomData *data1,
-                      const struct CustomData *data2);
+/* same as above, but free all layers with type */
+void CustomData_free_layers(struct CustomData *data, int type, int totelem);
 
 /* returns 1 if a layer with the specified type exists */
 int CustomData_has_layer(const struct CustomData *data, int type);
+
+/* returns the number of layers with this type */
+int CustomData_number_of_layers(const struct CustomData *data, int type);
 
 /* duplicate data of a layer with flag NOFREE, and remove that flag.
  * returns the layer data */
@@ -162,15 +160,11 @@ void CustomData_swap(struct CustomData *data, int index, int *corner_indices);
 void *CustomData_get(const struct CustomData *data, int index, int type);
 void *CustomData_em_get(const struct CustomData *data, void *block, int type);
 
-/* gets a pointer to the first layer of type
+/* gets a pointer to the active or first layer of type
  * returns NULL if there is no layer of type
  */
 void *CustomData_get_layer(const struct CustomData *data, int type);
-
-/* set the pointer of to the first layer of type. the old data is not freed.
- * returns the value of ptr if the layer is found, NULL otherwise
- */
-void *CustomData_set_layer(const struct CustomData *data, int type, void *ptr);
+void *CustomData_get_layer_n(const struct CustomData *data, int type, int n);
 
 /* copies the data from source to the data element at index in the first
  * layer of type
@@ -181,15 +175,23 @@ void CustomData_set(const struct CustomData *data, int index, int type,
 void CustomData_em_set(struct CustomData *data, void *block, int type,
                        void *source);
 
-/* set data layers that have a non-zero default value to their defaults */
-void CustomData_set_default(struct CustomData *data, int index, int count);
+/* set the pointer of to the first layer of type. the old data is not freed.
+ * returns the value of ptr if the layer is found, NULL otherwise
+ */
+void *CustomData_set_layer(const struct CustomData *data, int type, void *ptr);
+
+/* sets the nth layer of type as active */
+void CustomData_set_layer_active(struct CustomData *data, int type, int n);
+
+/* adds flag to the layer flags */
+void CustomData_set_layer_flag(struct CustomData *data, int type, int flag);
 
 /* alloc/free a block of custom data attached to one element in editmode */
 void CustomData_em_set_default(struct CustomData *data, void **block);
 void CustomData_em_free_block(struct CustomData *data, void **block);
 
 /* copy custom data to/from layers as in mesh/derivedmesh, to editmesh
-   blocks of data. the CustomData's must be compatible  */
+   blocks of data. the CustomData's must not be compatible  */
 void CustomData_to_em_block(const struct CustomData *source,
                             struct CustomData *dest, int index, void **block);
 void CustomData_from_em_block(const struct CustomData *source,

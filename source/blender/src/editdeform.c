@@ -267,7 +267,7 @@ void create_dverts(ID *id)
 
 	if( GS(id->name)==ID_ME) {
 		Mesh *me= (Mesh *)id;
-		me->dvert= CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, 0, NULL, me->totvert);
+		me->dvert= CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, me->totvert);
 	}
 	else if( GS(id->name)==ID_LT) {
 		Lattice *lt= (Lattice *)id;

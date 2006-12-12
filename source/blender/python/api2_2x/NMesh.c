@@ -2778,8 +2778,8 @@ static int unlink_existingMeshData( Mesh * mesh )
 	mesh_update_customdata_pointers( mesh );
 	
 	if(dvert)
-		mesh->dvert= CustomData_add_layer( &mesh->vdata, CD_MDEFORMVERT, 0,
-			dvert, mesh->totvert );
+		mesh->dvert= CustomData_add_layer( &mesh->vdata, CD_MDEFORMVERT,
+			CD_ASSIGN, dvert, mesh->totvert );
 
 	mesh->totedge = 0;
 
@@ -2939,7 +2939,9 @@ static void fill_medge_from_nmesh(Mesh * mesh, BPy_NMesh * nmesh)
 
   /* Now we have the total count of valid edges */
   mesh->totedge=tot_valid_nmedges+tot_valid_faces_edges;
-  mesh->medge= CustomData_add_layer(&mesh->edata, CD_MEDGE, 0, NULL, mesh->totedge);
+  mesh->medge= CustomData_add_layer( &mesh->edata, CD_MEDGE, CD_CALLOC, NULL,
+  	mesh->totedge );
+
   for ( i = 0; i < tot_valid_nmedges; ++i )
   {
     BPy_NMEdge *edge=valid_nmedges[i];
@@ -3013,11 +3015,11 @@ static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh)
 	mesh->totvert = PySequence_Length( nmesh->verts );
 	if( mesh->totvert ) {
 		if( nmesh->flags & NMESH_HASVERTUV )
-			mesh->msticky = CustomData_add_layer( &mesh->vdata, CD_MSTICKY, 0,
-				NULL, mesh->totvert );
+			mesh->msticky = CustomData_add_layer( &mesh->vdata, CD_MSTICKY,
+				CD_CALLOC, NULL, mesh->totvert );
 
-		mesh->mvert = CustomData_add_layer( &mesh->vdata, CD_MVERT, 0, NULL,
-			mesh->totvert );
+		mesh->mvert = CustomData_add_layer( &mesh->vdata, CD_MVERT, CD_CALLOC,
+			NULL, mesh->totvert );
 	}
 
 	if( mesh->totvert )
@@ -3027,11 +3029,11 @@ static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh)
 
 	if( mesh->totface ) {
 		if( nmesh->flags & NMESH_HASMCOL  )
-			mesh->mcol = CustomData_add_layer( &mesh->fdata, CD_MCOL, 0, NULL,
-				mesh->totface );
+			mesh->mcol = CustomData_add_layer( &mesh->fdata, CD_MCOL,
+				CD_DEFAULT, NULL, mesh->totface );
 
-		mesh->mface = CustomData_add_layer( &mesh->fdata, CD_MFACE, 0, NULL,
-			mesh->totface );
+		mesh->mface = CustomData_add_layer( &mesh->fdata, CD_MFACE, CD_CALLOC,
+			NULL, mesh->totface );
 	}
 
 	/*@ This stuff here is to tag all the vertices referenced

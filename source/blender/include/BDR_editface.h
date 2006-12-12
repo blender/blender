@@ -40,7 +40,6 @@ struct MCol;
 struct MTFace *get_active_tface(struct MCol **mcol);
 void calculate_uv_map(unsigned short mapmode);
 void default_uv(float uv[][2], float size);
-void default_tface(struct MTFace *tface);
 void make_tfaces(struct Mesh *me);
 void reveal_tface(void);
 void hide_tface(void);

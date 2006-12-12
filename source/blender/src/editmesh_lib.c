@@ -775,6 +775,7 @@ static void update_data_blocks(CustomData *olddata, CustomData *data)
 	if (data == &G.editMesh->vdata) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			block = NULL;
+			CustomData_em_set_default(data, &block);
 			CustomData_em_copy_data(olddata, data, eve->data, &block);
 			CustomData_em_free_block(olddata, &eve->data);
 			eve->data= block;
@@ -783,6 +784,7 @@ static void update_data_blocks(CustomData *olddata, CustomData *data)
 	else if (data == &G.editMesh->fdata) {
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			block = NULL;
+			CustomData_em_set_default(data, &block);
 			CustomData_em_copy_data(olddata, data, efa->data, &block);
 			CustomData_em_free_block(olddata, &efa->data);
 			efa->data= block;
@@ -794,12 +796,9 @@ void EM_add_data_layer(CustomData *data, int type)
 {
 	CustomData olddata;
 
-	if (CustomData_has_layer(data, type))
-		return;
-
 	olddata= *data;
 	olddata.layers= (olddata.layers)? MEM_dupallocN(olddata.layers): NULL;
-	CustomData_add_layer(data, type, 0, NULL, 0);
+	CustomData_add_layer(data, type, CD_CALLOC, NULL, 0);
 
 	update_data_blocks(&olddata, data);
 	if (olddata.layers) MEM_freeN(olddata.layers);
@@ -808,9 +807,6 @@ void EM_add_data_layer(CustomData *data, int type)
 void EM_free_data_layer(CustomData *data, int type)
 {
 	CustomData olddata;
-
-	if (!CustomData_has_layer(data, type))
-		return;
 
 	olddata= *data;
 	olddata.layers= (olddata.layers)? MEM_dupallocN(olddata.layers): NULL;

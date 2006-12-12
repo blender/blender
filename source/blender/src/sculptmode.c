@@ -379,7 +379,7 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 	if(newcur->verts) {
 		CustomData_free_layer(&me->vdata, CD_MVERT, me->totvert);
 		me->mvert= MEM_dupallocN(newcur->verts);
-		CustomData_add_layer(&me->vdata, CD_MVERT, 0, me->mvert, newcur->totvert);
+		CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, me->mvert, newcur->totvert);
 	}
 	
 	/* Check if faces/edges have been modified between oldcur and newcur */
@@ -405,8 +405,8 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 
 				me->medge= MEM_dupallocN(sus->edges);
 				me->mface= MEM_dupallocN(sus->faces);
-				CustomData_add_layer(&me->edata, CD_MEDGE, 0, me->medge, sus->totedge);
-				CustomData_add_layer(&me->fdata, CD_MFACE, 0, me->mface, sus->totface);
+				CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, me->medge, sus->totedge);
+				CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, me->mface, sus->totface);
 
 				me->totvert= sus->totvert;
 				me->totedge= sus->totedge;
@@ -1799,9 +1799,10 @@ void sculptmode_revert_pmv(Mesh *me)
 		CustomData_free_layer(&me->edata, CD_MEDGE, me->totedge);
 		CustomData_free_layer(&me->fdata, CD_MFACE, me->totface);
 
-		me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, old_verts, me->pv->totvert);
-		me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, 0, me->pv->old_edges, me->pv->totedge);
-		me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, 0, me->pv->old_faces, me->pv->totface);
+		CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, old_verts, me->pv->totvert);
+		CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, me->pv->old_edges, me->pv->totedge);
+		CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, me->pv->old_faces, me->pv->totface);
+		mesh_update_customdata_pointers(me);
 
 		me->totvert= me->pv->totvert;
 		me->totedge= me->pv->totedge;
@@ -1933,7 +1934,7 @@ void sculptmode_do_pmv(Object *ob, rcti *hb_2d, int mode)
 		}
 	}
 	CustomData_free_layer(&me->vdata, CD_MVERT, me->pv->totvert);
-	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, 0, nve, me->totvert);
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, nve, me->totvert);
 
 	/* Create new face array */
 	me->pv->old_faces= me->mface;
