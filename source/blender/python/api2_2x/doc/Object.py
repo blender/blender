@@ -438,7 +438,7 @@ class Object:
     @type DupOff: int
     @ivar passIndex: Index # for the IndexOB render pass.
         Value is clamped to [0,1000].
-    @type DupOff: int
+    @type passIndex: int
     @ivar drawSize: The size to display the Empty.
     Value clamped to [0.01,10.0].
     @type drawSize: float
