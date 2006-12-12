@@ -762,17 +762,18 @@ histIndex = cursor = -1 # How far back from the first letter are we? - in curren
 
 # Autoexec, startup code.
 scriptDir = Get('scriptsdir')
-if not scriptDir.endswith(Blender.sys.sep):
-	scriptDir += Blender.sys.sep
+if scriptDir:
+	if scriptDir.endswith(Blender.sys.sep):
+		scriptDir += Blender.sys.sep
+	
+	console_autoexec  = '%s%s' % (scriptDir, 'console_autoexec.py')
 
-console_autoexec  = '%s%s' % (scriptDir, 'console_autoexec.py')
-
-if not sys.exists(console_autoexec):
-	# touch the file
-	cmdBuffer.append(cmdLine('...console_autoexec.py not found, making new in scripts dir', 1, None))
-	open(console_autoexec, 'w').close()
-else:
-	cmdBuffer.append(cmdLine('...Using existing console_autoexec.py in scripts dir', 1, None))
+	if not sys.exists(console_autoexec):
+		# touch the file
+		cmdBuffer.append(cmdLine('...console_autoexec.py not found, making new in scripts dir', 1, None))
+		open(console_autoexec, 'w').close()
+	else:
+		cmdBuffer.append(cmdLine('...Using existing console_autoexec.py in scripts dir', 1, None))
 
 
 
@@ -790,7 +791,9 @@ def include_console(includeFile):
 		# Execute the local > global coversion.
 		exec('%s%s' % ('__CONSOLE_VAR_DICT__[__TMP_VAR_NAME__]=', __TMP_VAR_NAME__))
 		
-include_console(console_autoexec) # pass the blender module
+if scriptDir:
+	include_console(console_autoexec) # pass the blender module
+
 #-end autoexec-----------------------------------------------------------------#
 
 

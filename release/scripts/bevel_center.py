@@ -66,6 +66,16 @@ except:
 global E_selected
 E_selected = NMesh.EdgeFlags['SELECT']
 
+old_dist = None
+
+def act_mesh_ob():
+	scn = Scene.GetCurrent()
+	ob = scn.getActiveObject()
+	if ob == None or ob.getType() != 'Mesh': 
+		PupMenu('ERROR%t|Select a mesh object.')
+		return
+	return ob
+
 def make_sel_vert(*co):
 	v= NMesh.Vert(*co)
 	v.sel = 1
@@ -341,7 +351,7 @@ EVENT_RECURS = 4
 EVENT_EXIT = 5
 
 def draw():
-	global dist, left, right, num
+	global dist, left, right, num, old_dist
 	global EVENT_NOEVENT, EVENT_BEVEL, EVENT_UPDATE, EVENT_RECURS, EVENT_EXIT
 
 	glClear(GL_COLOR_BUFFER_BIT)
@@ -352,8 +362,12 @@ def draw():
 			"Thickness of the bevel, can be changed even after bevelling")
 	glRasterPos2d(8,40)
 	Text('To finish, you can use recursive bevel to smooth it')
-	num=Number('',  EVENT_NOEVENT,10,10,40, 16,num.val,1,100,'Recursion level')
-	Button("Recursive",EVENT_RECURS,55,10,100,16)
+	
+	
+	if old_dist != None:
+		num=Number('',  EVENT_NOEVENT,10,10,40, 16,num.val,1,100,'Recursion level')
+		Button("Recursive",EVENT_RECURS,55,10,100,16)
+	
 	Button("Exit",EVENT_EXIT,210,10,80,20)
 
 def event(evt, val):
@@ -373,15 +387,12 @@ Register(draw, event, bevent)
 def bevel():
 	""" The main function, which creates the bevel """
 	global me,NV,NV_ext,NE,NC, old_faces,old_dist
-	t= Blender.sys.time()
-	scn = Scene.GetCurrent()
-	ob = scn.getActiveObject() 
-	if ob == None or ob.getType() != 'Mesh': 
-		Draw.PupMenu('ERROR%t|Select a mesh object.')
-		return
+	
+	ob = act_mesh_ob()
+	if not ob: return
 	
 	Window.WaitCursor(1) # Change the Cursor
-	
+	t= Blender.sys.time()
 	is_editmode = Window.EditMode() 
 	if is_editmode: Window.EditMode(0)
 	
@@ -411,6 +422,10 @@ def bevel_update():
 	global dist, old_dist
 	is_editmode = Window.EditMode()
 	if is_editmode: Window.EditMode(0)
+	
+	if old_dist == None:
+		PupMenu('ERROR%t|Must bevel first.')
+	
 	fac = dist.val - old_dist
 	old_dist = dist.val
 
@@ -427,7 +442,7 @@ def recursive():
 	""" Make a recursive bevel... still experimental """
 	global dist
 	from math import pi, sin
-
+	
 	if num.val > 1:
 		a = pi/4
 		ang = []
