@@ -94,20 +94,17 @@
 
 #include "BDR_unwrapper.h"
 
+#include "BPY_extern.h"
+#include "BPY_menus.h"
+
 /* Pupmenu codes: */
 #define UV_CUBE_MAPPING 2
 #define UV_CYL_MAPPING 3
 #define UV_SPHERE_MAPPING 4
-#define UV_BOUNDS8_MAPPING 68
-#define UV_BOUNDS4_MAPPING 65
-#define UV_BOUNDS2_MAPPING 66
-#define UV_BOUNDS1_MAPPING 67
-#define UV_STD8_MAPPING 131
-#define UV_STD4_MAPPING 130
-#define UV_STD2_MAPPING 129
-#define UV_STD1_MAPPING 128
-#define UV_WINDOW_MAPPING 5
-#define UV_UNWRAP_MAPPING 6
+#define UV_BOUNDS_MAPPING 5
+#define UV_RESET_MAPPING 6
+#define UV_WINDOW_MAPPING 7
+#define UV_UNWRAP_MAPPING 8
 #define UV_CYL_EX 32
 #define UV_SPHERE_EX 34
 
@@ -363,16 +360,7 @@ void calculate_uv_map(unsigned short mapmode)
 	if(me->totface==0) return;
 	
 	switch(mapmode) {
-	case B_UVAUTO_BOUNDS1:
-	case B_UVAUTO_BOUNDS2:
-	case B_UVAUTO_BOUNDS4:
-	case B_UVAUTO_BOUNDS8:
-		switch(mapmode) {
-		case B_UVAUTO_BOUNDS2: fac = 0.5; break;
-		case B_UVAUTO_BOUNDS4: fac = 0.25; break;
-		case B_UVAUTO_BOUNDS8: fac = 0.125; break;
-		}
-
+	case B_UVAUTO_BOUNDS:
 		min[0]= min[1]= 10000000.0;
 		max[0]= max[1]= -10000000.0;
 
@@ -402,7 +390,7 @@ void calculate_uv_map(unsigned short mapmode)
 				if(mface->v4) b= 3; else b= 2;
 				for(; b>=0; b--) {
 					tface->uv[b][0]= ((tface->uv[b][0]-min[0])*fac)/dx;
-					tface->uv[b][1]= 1.0-fac+((tface->uv[b][1]-min[1])*fac)/dy;
+					tface->uv[b][1]= 1.0-fac+((tface->uv[b][1]-min[1])/* *fac */)/dy;
 				}
 			}
 		}
@@ -425,20 +413,11 @@ void calculate_uv_map(unsigned short mapmode)
 		}
 		break;
 
-	case B_UVAUTO_STD8:
-	case B_UVAUTO_STD4:
-	case B_UVAUTO_STD2:
-	case B_UVAUTO_STD1:
-		switch(mapmode) {
-		case B_UVAUTO_STD8: fac = 0.125; break;
-		case B_UVAUTO_STD4: fac = 0.25; break;
-		case B_UVAUTO_STD2: fac = 0.5; break;
-		}
-
+	case B_UVAUTO_RESET:
 		tface= me->mtface;
 		for(a=0; a<me->totface; a++, tface++)
 			if(tface->flag & TF_SELECT) 
-				default_uv(tface->uv, fac);
+				default_uv(tface->uv, 1.0);
 		break;
 
 	case B_UVAUTO_CYLINDER:
@@ -1386,23 +1365,41 @@ void face_borderselect()
 
 void uv_autocalc_tface()
 {
-	short mode;
-	mode= pupmenu(MENUTITLE("UV Calculation")
-	              MENUSTRING("Cube Projection",          UV_CUBE_MAPPING) "|"
-	              MENUSTRING("Cylinder from View",      UV_CYL_MAPPING) "|"
-	              MENUSTRING("Sphere from View",        UV_SPHERE_MAPPING) "|"
-	              MENUSTRING("Unwrap",          UV_UNWRAP_MAPPING) "|"
-	              MENUSTRING("Project From View",   UV_WINDOW_MAPPING) "|"
-	              MENUSTRING("Project from View 1/1", UV_BOUNDS1_MAPPING) "|"
-	              MENUSTRING("Project from View 1/2", UV_BOUNDS2_MAPPING) "|"
-	              MENUSTRING("Project from View 1/4", UV_BOUNDS4_MAPPING) "|"
-	              MENUSTRING("Project from View 1/8", UV_BOUNDS8_MAPPING) "|"
-	              MENUSTRING("Reset 1/1",  UV_STD1_MAPPING) "|"
-	              MENUSTRING("Reset 1/2",  UV_STD2_MAPPING) "|"
-	              MENUSTRING("Reset 1/4",  UV_STD4_MAPPING) "|"
-	              MENUSTRING("Reset 1/8",  UV_STD8_MAPPING) );
-	              
+	short mode, i=0, has_pymenu=0; /* pymenu must be bigger then UV_*_MAPPING */
+	BPyMenu *pym;
+	char menu_number[3];
 	
+	/* uvmenu, will add python items */
+	char uvmenu[4096]=MENUTITLE("UV Calculation")
+					MENUSTRING("Cube Projection",			UV_CUBE_MAPPING) "|"
+					MENUSTRING("Cylinder from View",		UV_CYL_MAPPING) "|"
+					MENUSTRING("Sphere from View",			UV_SPHERE_MAPPING) "|"
+					MENUSTRING("Unwrap (LSCM)",				UV_UNWRAP_MAPPING) "|"
+					MENUSTRING("Project From View",			UV_WINDOW_MAPPING) "|"
+					MENUSTRING("Project from View (bounds)",UV_BOUNDS_MAPPING) "|"
+					MENUSTRING("Reset",						UV_RESET_MAPPING);
+	
+	/* note that we account for the 10 previous entries with i+10: */
+	for (pym = BPyMenuTable[PYMENU_UVCALCULATION]; pym; pym = pym->next, i++) {
+		
+		if (!has_pymenu) {
+			strcat(uvmenu, "|%l");
+			has_pymenu = 1;
+		}
+		
+		strcat(uvmenu, "|");
+		strcat(uvmenu, pym->name);
+		strcat(uvmenu, " %x");
+		sprintf(menu_number, "%d", i+10);
+		strcat(uvmenu, menu_number);
+	}
+	
+	mode= pupmenu(uvmenu);
+	
+	if (mode >= 10) {
+		BPY_menu_do_python(PYMENU_UVCALCULATION, mode - 10);
+		return;
+	}
 	
 	switch(mode) {
 	case UV_CUBE_MAPPING:
@@ -1411,22 +1408,10 @@ void uv_autocalc_tface()
 		calculate_uv_map(B_UVAUTO_CYLINDER); break;
 	case UV_SPHERE_MAPPING:
 		calculate_uv_map(B_UVAUTO_SPHERE); break;
-	case UV_BOUNDS8_MAPPING:
-		calculate_uv_map(B_UVAUTO_BOUNDS8); break;
-	case UV_BOUNDS4_MAPPING:
-		calculate_uv_map(B_UVAUTO_BOUNDS4); break;
-	case UV_BOUNDS2_MAPPING:
-		calculate_uv_map(B_UVAUTO_BOUNDS2); break;
-	case UV_BOUNDS1_MAPPING:
-		calculate_uv_map(B_UVAUTO_BOUNDS1); break;
-	case UV_STD8_MAPPING:
-		calculate_uv_map(B_UVAUTO_STD8); break;
-	case UV_STD4_MAPPING:
-		calculate_uv_map(B_UVAUTO_STD4); break;
-	case UV_STD2_MAPPING:
-		calculate_uv_map(B_UVAUTO_STD2); break;
-	case UV_STD1_MAPPING:
-		calculate_uv_map(B_UVAUTO_STD1); break;
+	case UV_BOUNDS_MAPPING:
+		calculate_uv_map(B_UVAUTO_BOUNDS); break;
+	case UV_RESET_MAPPING:
+		calculate_uv_map(B_UVAUTO_RESET); break;
 	case UV_WINDOW_MAPPING:
 		calculate_uv_map(B_UVAUTO_WINDOW); break;
 	case UV_UNWRAP_MAPPING:

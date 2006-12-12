@@ -3,7 +3,7 @@
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'ArchiMap UV Projection Unwrapper'
 Blender: 240
-Group: 'UV'
+Group: 'UvCalculation'
 Tooltip: 'ArchiMap UV Unwrap mesh faces for all select mesh objects'
 """
 

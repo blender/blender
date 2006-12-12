@@ -1413,9 +1413,13 @@ void do_global_buttons(unsigned short event)
 		break;
 
 	case B_PYMENUEVAL: /* is button from space.c *info* */
+		waitcursor( 1 ); /* can take some time */
 		BPyMenu_RemoveAllEntries(); /* free old data */
-		if (BPyMenu_Init(1) == -1) /* re-eval scripts registration in menus */
+		if (BPyMenu_Init(1) == -1) { /* re-eval scripts registration in menus */
+			waitcursor( 0 );
 			error("Invalid scripts dir: check console");
+		}
+		waitcursor( 0 );
 		break;
 	case B_PYTHONDIRFILESEL:	/* is button from space.c  *info* */
 		if(curarea->spacetype==SPACE_INFO) {
