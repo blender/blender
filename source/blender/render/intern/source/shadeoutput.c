@@ -1373,22 +1373,26 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 			
 			if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
 				visifac= lamp_get_visibility(lar, shi->co, lv, &lampdist);
-				if(visifac < 0.0f)
+				if(visifac <= 0.0f) {
+					ir+= 1.0f;
+					accum+= 1.0f;
 					continue;
-				
+				}
 				inpr= INPR(shi->vn, lv);
 				if(inpr <= 0.0f)
 					continue;
 				
 				lamp_get_shadow(lar, shi, inpr, shadfac, shi->depth);
+
 				ir+= 1.0f;
-				accum+= shadfac[3];
+				accum+= (1.0f-visifac) + (visifac)*shadfac[3];
 			}
 		}
 		if(ir>0.0f) {
 			accum/= ir;
-			shr->alpha= (shi->alpha)*(1.0f-accum);
+			shr->alpha= (shi->mat->alpha)*(1.0f-accum);
 		}
+		else shr->alpha= shi->mat->alpha;
 	}
 	
 	/* quite disputable this...  also note it doesn't mirror-raytrace */	

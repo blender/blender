@@ -1802,6 +1802,8 @@ static void group_tag_used_outputs(bNode *gnode, bNodeStack *stack)
 						ns->hasoutput= 1;
 						ns->sockettype= sock->link->fromsock->type;
 					}
+					else
+						sock->ns.sockettype= sock->type;
 				}
 			}
 		}
@@ -1846,6 +1848,8 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 					ns->hasoutput= 1;
 					ns->sockettype= sock->link->fromsock->type;
 				}
+				else
+					sock->ns.sockettype= sock->type;
 			}
 			if(node->type==NODE_GROUP && node->id)
 				group_tag_used_outputs(node, ntree->stack[0]);

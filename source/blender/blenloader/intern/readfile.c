@@ -3678,12 +3678,16 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		link_list(fd, &(sa->spacedata));
 		link_list(fd, &(sa->panels));
 
+		/* accident can happen when read/save new file with older version */
+		if(sa->spacedata.first==NULL)
+			sa->spacetype= SPACE_EMPTY;
+		
 		for(pa= sa->panels.first; pa; pa=pa->next) {
 			pa->paneltab= newdataadr(fd, pa->paneltab);
 			pa->active= 0;
 			pa->sortcounter= 0;
 		}
-
+		
 		for (sl= sa->spacedata.first; sl; sl= sl->next) {
 			if (sl->spacetype==SPACE_VIEW3D) {
 				View3D *v3d= (View3D*) sl;
