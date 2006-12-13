@@ -751,15 +751,15 @@ class Mesh:
     mesh can be used for rendering textures.
   @type texMesh: Mesh or None
 
-  @ivar activeUvLayer: The mesh's active UV/Image layer index. -1 if there is no UV/Image layers.
-  @type activeUvLayer: int
+  @ivar activeUVLayer: The mesh's active UV/Image layer index. -1 if there is no UV/Image layers.
+  @type activeUVLayer: int
   @ivar activeColorLayer: The mesh's active Vertex Color layer index. -1 if there is no UV/Image layers.
   @type activeColorLayer: int
   
-  @ivar totUvLayers: The mesh's total number of UV/Image layers.
-  @type totUvLayers: int
-  @ivar totColorLayers: The mesh's total number of Vertex Color layers.
-  @type totColorLayers: int
+  @ivar totalUVLayers: The mesh's total number of UV/Image layers.
+  @type totalUVLayers: int
+  @ivar totalColorLayers: The mesh's total number of Vertex Color layers.
+  @type totalColorLayers: int
   
   """
 
@@ -1002,7 +1002,7 @@ class Mesh:
         Blender itself later).
     """
 
-  def addUvLayer():
+  def addUVLayer():
     """
     Adds a new UV/Image layer to this mesh, it will always be the last layer and made active.
     """
@@ -1012,7 +1012,7 @@ class Mesh:
     Adds a new Vertex Color layer to this mesh, it will always be the last layer and made active.
     """
 
-  def removeUvLayer():
+  def removeUVLayer():
     """
     Removes the active UV/Image layer.
     """

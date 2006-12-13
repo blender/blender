@@ -6236,7 +6236,7 @@ void Mesh_addCustomLayer_internal(Mesh *me, int type)
 }
 
 /* custom data layers */
-static PyObject *Mesh_addUvLayer( BPy_Mesh * self )
+static PyObject *Mesh_addUVLayer( BPy_Mesh * self )
 {
 	Mesh_addCustomLayer_internal(self->mesh, CD_MTFACE);
 	Py_RETURN_NONE;
@@ -6248,7 +6248,7 @@ static PyObject *Mesh_addColorLayer( BPy_Mesh * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Mesh_removeUvLayer( BPy_Mesh * self )
+static PyObject *Mesh_removeUVLayer( BPy_Mesh * self )
 {
 	Mesh *me = self->mesh;
 	if (me->mtface != NULL) {
@@ -6558,11 +6558,11 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Recalculates inside or outside normals (experimental)"},
 	
 	/* mesh custom data layers */
-	{"addUvLayer", (PyCFunction)Mesh_addUvLayer, METH_NOARGS,
+	{"addUVLayer", (PyCFunction)Mesh_addUVLayer, METH_NOARGS,
 		"adds a UV layer to this mesh"},
 	{"addColorLayer", (PyCFunction)Mesh_addColorLayer, METH_NOARGS,
 		"adds a color layer to this mesh"},
-	{"removeUvLayer", (PyCFunction)Mesh_removeUvLayer, METH_NOARGS,
+	{"removeUVLayer", (PyCFunction)Mesh_removeUVLayer, METH_NOARGS,
 		"removes a UV layer to this mesh"},
 	{"removeColorLayer", (PyCFunction)Mesh_removeColorLayer, METH_NOARGS,
 		"removes a color layer to this mesh"},
@@ -7327,17 +7327,17 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	 (getter)Mesh_getActiveLayer, (setter)Mesh_setActiveLayer,
 	 "Index of the active UV layer",
 	 CD_MCOL},
-	{"activeUvLayer",
+	{"activeUVLayer",
 	 (getter)Mesh_getActiveLayer, (setter)Mesh_setActiveLayer,
 	 "Index of the active vertex color layer",
 	 CD_MTFACE},
 
-	{"totColorLayers",
+	{"totalColorLayers",
 	 (getter)Mesh_getTotLayers, (setter)NULL,
 	 "Index of the active vertex color layer",
 	 CD_MCOL},
 	 
-	{"totUvLayers",
+	{"totalUVLayers",
 	 (getter)Mesh_getTotLayers, (setter)NULL,
 	 "Index of the active vertex color layer",
 	 CD_MTFACE},
