@@ -27,6 +27,24 @@
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 
+#-----------------------------------------------------------------------------
+# We don't allow in-source builds. This causes no end of troubles because 
+# all out-of-source builds will use the CMakeCache.txt file there and even 
+# build the libs and objects in it. It will also conflict with the current 
+# Makefile system for Blender
+
+IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+MESSAGE(FATAL_ERROR "CMake generation for blender is not allowed within the source directory! 
+Remove the CMakeCache.txt file and try again from another folder, e.g.: 
+
+   rm CMakeCache.txt 
+   cd ..
+   mkdir cmake-make 
+   cd cmake-make
+   cmake -G \"Unix Makefiles\" ../blender
+")
+ENDIF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 PROJECT(Blender)
 
