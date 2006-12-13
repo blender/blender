@@ -6251,10 +6251,13 @@ static PyObject *Mesh_addColorLayer( BPy_Mesh * self, PyObject * args )
 static PyObject *Mesh_removeUVLayer( BPy_Mesh * self )
 {
 	Mesh *me = self->mesh;
-	if (me->mtface != NULL) {
+	if (CustomData_number_of_layers(&me->fdata, CD_MTFACE)) {
 		CustomData_free_layer(&me->fdata, CD_MTFACE, me->totface);
 		me->mtface= CustomData_get_layer(&me->fdata, CD_MTFACE);
-	}
+	} else
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"No more UV layers to remove" );
+	
 	mesh_update_customdata_pointers(me);
 	Py_RETURN_NONE;
 }
@@ -6262,10 +6265,13 @@ static PyObject *Mesh_removeUVLayer( BPy_Mesh * self )
 static PyObject *Mesh_removeColorLayer( BPy_Mesh * self )
 {
 	Mesh *me = self->mesh;
-	if (me->mcol != NULL) {
+	if (CustomData_number_of_layers(&me->fdata, CD_MCOL)) {
 		CustomData_free_layer(&me->fdata, CD_MCOL, me->totface);
 		me->mcol= CustomData_get_layer(&me->fdata, CD_MCOL);
-	}
+	} else
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"No more color layers to remove" );
+	
 	mesh_update_customdata_pointers(me);
 	Py_RETURN_NONE;
 }
@@ -7092,8 +7098,12 @@ static int Mesh_setActiveGroup( BPy_Mesh * self, PyObject * arg )
 static PyObject *Mesh_getActiveLayer( BPy_Mesh * self, void *type )
 {
 	int i = CustomData_get_active_layer_index(&self->mesh->fdata, (int)type);
-	if (i != -1) i--; /* so -1 is for no active layer 0+ for an active layer */
-	return PyInt_FromLong( i );	
+	if (i == -1) /* so -1 is for no active layer 0+ for an active layer */
+		return  PyInt_FromLong(i);
+	else {
+		i--;
+		return  PyInt_FromLong( self->mesh->fdata.layers[i-1].active );
+	}
 }
 
 static int Mesh_setActiveLayer( BPy_Mesh * self, PyObject * arg, void *type )
