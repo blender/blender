@@ -2407,7 +2407,7 @@ static void view3d_panel_background(short cntrl)	// VIEW3D_HANDLER_BACKGROUND
 		uiDefIconBut(block, BUT, B_LOADBGPIC, ICON_FILESEL,	90, 128, 20, 20, 0, 0, 0, 0, 0, "Open a new background image");
 
 		id= (ID *)vd->bgpic->ima;
-		IMAnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(vd->menunr));
+		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(vd->menunr));
 		if(strp[0]) {
 		
 			uiDefButS(block, MENU, B_BGPICBROWSE, strp, 	110, 128, 20, 20, &(vd->menunr), 0, 0, 0, 0, "Select a background image");
