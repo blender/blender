@@ -730,14 +730,15 @@ void copy_pose_result(bPose *to, bPose *from)
 		return;
 	}
 
-	pchanto= to->chanbase.first;
-	pchanfrom= from->chanbase.first;
-	for(; pchanto && pchanfrom; pchanto= pchanto->next, pchanfrom= pchanfrom->next) {
-		Mat4CpyMat4(pchanto->pose_mat, pchanfrom->pose_mat);
-		Mat4CpyMat4(pchanto->chan_mat, pchanfrom->chan_mat);
-		VECCOPY(pchanto->pose_head, pchanfrom->pose_head);
-		VECCOPY(pchanto->pose_tail, pchanfrom->pose_tail);
-		pchanto->flag= pchanfrom->flag;
+	for(pchanfrom= from->chanbase.first; pchanfrom; pchanfrom= pchanfrom->next) {
+		pchanto= get_pose_channel(to, pchanfrom->name);
+		if(pchanto) {
+			Mat4CpyMat4(pchanto->pose_mat, pchanfrom->pose_mat);
+			Mat4CpyMat4(pchanto->chan_mat, pchanfrom->chan_mat);
+			VECCOPY(pchanto->pose_head, pchanfrom->pose_head);
+			VECCOPY(pchanto->pose_tail, pchanfrom->pose_tail);
+			pchanto->flag= pchanfrom->flag;
+		}
 	}
 }
 

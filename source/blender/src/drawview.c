@@ -1850,7 +1850,7 @@ static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 	uiBut *but;
 	bArmature *arm;
 	bPoseChannel *pchan;
-	Bone *bone;
+	Bone *bone= NULL;
 	TransformProperties *tfp= G.vd->properties_storage;
 
 	arm = get_armature(OBACT);
@@ -1861,7 +1861,7 @@ static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 		if(bone && (bone->flag & BONE_ACTIVE) && (bone->layer & arm->layer))
 			break;
 	}
-	if (!pchan) return;
+	if (!pchan || !bone) return;
 	
 	but= uiDefBut(block, TEX, B_DIFF, "Bone:",				160, 140, 140, 19, bone->name, 1, 31, 0, 0, "");
 	uiButSetFunc(but, validate_bonebutton_cb, bone, NULL);
@@ -2407,7 +2407,7 @@ static void view3d_panel_background(short cntrl)	// VIEW3D_HANDLER_BACKGROUND
 		uiDefIconBut(block, BUT, B_LOADBGPIC, ICON_FILESEL,	90, 128, 20, 20, 0, 0, 0, 0, 0, "Open a new background image");
 
 		id= (ID *)vd->bgpic->ima;
-		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(vd->menunr));
+		IMAnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(vd->menunr));
 		if(strp[0]) {
 		
 			uiDefButS(block, MENU, B_BGPICBROWSE, strp, 	110, 128, 20, 20, &(vd->menunr), 0, 0, 0, 0, "Select a background image");
@@ -2489,17 +2489,17 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	
 	uiDefButF(block, NUM, REDRAWVIEW3D, "Lens:",		10, 120, 140, 19, &vd->lens, 10.0, 120.0, 100, 0, "The lens angle in perspective view");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip Start:",	10, 96, 140, 19, &vd->near, vd->grid/10.0, 100.0, 10, 0, "Set the beginning of the range in which 3D objects are displayed (perspective view)");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip End:",	10, 76, 140, 19, &vd->far, 1.0, 1000.0*vd->grid, 100, 0, "Set the end of the range in which 3D objects are displayed (perspective view)");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip Start:",	10, 96, 140, 19, &vd->near, vd->grid/100.0, 100.0, 10, 0, "Set the beginning of the range in which 3D objects are displayed (perspective view)");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Clip End:",	10, 76, 140, 19, &vd->far, 1.0, 10000.0*vd->grid, 100, 0, "Set the end of the range in which 3D objects are displayed (perspective view)");
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, LABEL, 1, "3D Cursor:",				160, 150, 140, 19, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
 	curs= give_cursor();
-	uiDefButF(block, NUM, REDRAWVIEW3D, "X:",			160, 130, 150, 22, curs, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "X co-ordinate of the 3D cursor");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Y:",			160, 108, 150, 22, curs+1, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "Y co-ordinate of the 3D cursor");
-	uiDefButF(block, NUM, REDRAWVIEW3D, "Z:",			160, 86, 150, 22, curs+2, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "Z co-ordinate of the 3D cursor");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "X:",			160, 130, 150, 22, curs, -10000.0*vd->grid, 10000.0*vd->grid, 10, 0, "X co-ordinate of the 3D cursor");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Y:",			160, 108, 150, 22, curs+1, -10000.0*vd->grid, 10000.0*vd->grid, 10, 0, "Y co-ordinate of the 3D cursor");
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Z:",			160, 86, 150, 22, curs+2, -10000.0*vd->grid, 10000.0*vd->grid, 10, 0, "Z co-ordinate of the 3D cursor");
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, LABEL, 1, "Display:",				10, 50, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
