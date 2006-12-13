@@ -504,7 +504,7 @@ static int CustomData_get_layer_index(const struct CustomData *data, int type)
 	return -1;
 }
 
-static int CustomData_get_active_layer_index(const CustomData *data, int type)
+int CustomData_get_active_layer_index(const CustomData *data, int type)
 {
 	int i;
 

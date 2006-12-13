@@ -6223,6 +6223,55 @@ static PyObject *Mesh_insertKey( BPy_Mesh * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
+
+void Mesh_addCustomLayer_internal(Mesh *me, int type)
+{
+	int layernum = CustomData_number_of_layers(&me->fdata, type);
+	
+	CustomData_add_layer(&me->fdata, type, CD_DEFAULT,
+					                     NULL, me->totface);
+	
+	CustomData_set_layer_active(&me->fdata, type, layernum);
+	mesh_update_customdata_pointers(me);
+}
+
+/* custom data layers */
+static PyObject *Mesh_addUvLayer( BPy_Mesh * self )
+{
+	Mesh_addCustomLayer_internal(self->mesh, CD_MTFACE);
+	Py_RETURN_NONE;
+}
+
+static PyObject *Mesh_addColorLayer( BPy_Mesh * self, PyObject * args )
+{
+	Mesh_addCustomLayer_internal(self->mesh, CD_MCOL);
+	Py_RETURN_NONE;
+}
+
+static PyObject *Mesh_removeUvLayer( BPy_Mesh * self )
+{
+	Mesh *me = self->mesh;
+	if (me->mtface != NULL) {
+		CustomData_free_layer(&me->fdata, CD_MTFACE, me->totface);
+		me->mtface= CustomData_get_layer(&me->fdata, CD_MTFACE);
+	}
+	mesh_update_customdata_pointers(me);
+	Py_RETURN_NONE;
+}
+
+static PyObject *Mesh_removeColorLayer( BPy_Mesh * self )
+{
+	Mesh *me = self->mesh;
+	if (me->mcol != NULL) {
+		CustomData_free_layer(&me->fdata, CD_MCOL, me->totface);
+		me->mcol= CustomData_get_layer(&me->fdata, CD_MCOL);
+	}
+	mesh_update_customdata_pointers(me);
+	Py_RETURN_NONE;
+}
+
+
+
 static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 {
 	Base *base;
@@ -6507,6 +6556,16 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Removes duplicates from selected vertices (experimental)"},
 	{"recalcNormals", (PyCFunction)Mesh_recalcNormals, METH_VARARGS,
 		"Recalculates inside or outside normals (experimental)"},
+	
+	/* mesh custom data layers */
+	{"addUvLayer", (PyCFunction)Mesh_addUvLayer, METH_NOARGS,
+		"adds a UV layer to this mesh"},
+	{"addColorLayer", (PyCFunction)Mesh_addColorLayer, METH_NOARGS,
+		"adds a color layer to this mesh"},
+	{"removeUvLayer", (PyCFunction)Mesh_removeUvLayer, METH_NOARGS,
+		"removes a UV layer to this mesh"},
+	{"removeColorLayer", (PyCFunction)Mesh_removeColorLayer, METH_NOARGS,
+		"removes a color layer to this mesh"},
 	
 	/* python standard class functions */
 	{"__copy__", (PyCFunction)Mesh_copy, METH_NOARGS,
@@ -7029,6 +7088,43 @@ static int Mesh_setActiveGroup( BPy_Mesh * self, PyObject * arg )
 	return 0;
 }
 
+
+static PyObject *Mesh_getActiveLayer( BPy_Mesh * self, void *type )
+{
+	int i = CustomData_get_active_layer_index(&self->mesh->fdata, (int)type);
+	if (i != -1) i--; /* so -1 is for no active layer 0+ for an active layer */
+	return PyInt_FromLong( i );	
+}
+
+static int Mesh_setActiveLayer( BPy_Mesh * self, PyObject * arg, void *type )
+{
+	int i, totlayers;
+	
+	if( !PyInt_Check( arg ) )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+				"expected an int argument" );
+	
+	totlayers = CustomData_number_of_layers(&self->mesh->fdata, (int)type );
+	
+	i = PyInt_AsLong( arg );
+	
+	if (i >= totlayers)
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"index out of range" );
+	
+	if (i<0)
+		i = totlayers+i;
+	
+	CustomData_set_layer_active(&self->mesh->fdata, (int)type, i);
+	mesh_update_customdata_pointers(self->mesh);
+	return 0;
+}
+
+static PyObject *Mesh_getTotLayers( BPy_Mesh * self, void *type )
+{
+	return PyInt_FromLong( CustomData_number_of_layers(&self->mesh->fdata, (int)type ) );
+}
+
 static PyObject *Mesh_getTexMesh( BPy_Mesh * self )
 {
 	Mesh *texme= self->mesh->texcomesh;
@@ -7226,6 +7322,26 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	 (getter)Mesh_getActiveGroup, (setter)Mesh_setActiveGroup,
 	 "Active group for the mesh",
 	 NULL},
+
+	{"activeColorLayer",
+	 (getter)Mesh_getActiveLayer, (setter)Mesh_setActiveLayer,
+	 "Index of the active UV layer",
+	 CD_MCOL},
+	{"activeUvLayer",
+	 (getter)Mesh_getActiveLayer, (setter)Mesh_setActiveLayer,
+	 "Index of the active vertex color layer",
+	 CD_MTFACE},
+
+	{"totColorLayers",
+	 (getter)Mesh_getTotLayers, (setter)NULL,
+	 "Index of the active vertex color layer",
+	 CD_MCOL},
+	 
+	{"totUvLayers",
+	 (getter)Mesh_getTotLayers, (setter)NULL,
+	 "Index of the active vertex color layer",
+	 CD_MTFACE},
+	
 	{"texMesh",
 	 (getter)Mesh_getTexMesh, (setter)Mesh_setTexMesh,
 	 "The meshes tex mesh proxy texture coord mesh",

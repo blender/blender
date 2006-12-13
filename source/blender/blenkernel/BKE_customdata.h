@@ -166,6 +166,8 @@ void *CustomData_em_get(const struct CustomData *data, void *block, int type);
 void *CustomData_get_layer(const struct CustomData *data, int type);
 void *CustomData_get_layer_n(const struct CustomData *data, int type, int n);
 
+int CustomData_get_active_layer_index(const struct CustomData *data, int type);
+
 /* copies the data from source to the data element at index in the first
  * layer of type
  * no effect if there is no layer of type

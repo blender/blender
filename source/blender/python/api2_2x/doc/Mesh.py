@@ -720,7 +720,7 @@ class Mesh:
   @type name: str
   @ivar subDivLevels: The [display, rendering] subdivision levels in [1, 6].
   @type subDivLevels: list of 2 ints
-  @ivar users: The number of Objects using (linked to) this mesh.
+  @ivar users: The number of Objects using (linked to) this mesh. (read only)
   @type users: int
 
   @ivar faceUV: The mesh contains UV-mapped textured faces.  Enabling faceUV
@@ -750,6 +750,17 @@ class Mesh:
   @ivar texMesh: The mesh's texMesh setting, used so coordinates from another
     mesh can be used for rendering textures.
   @type texMesh: Mesh or None
+
+  @ivar activeUvLayer: The mesh's active UV/Image layer index. -1 if there is no UV/Image layers.
+  @type activeUvLayer: int
+  @ivar activeColorLayer: The mesh's active Vertex Color layer index. -1 if there is no UV/Image layers.
+  @type activeColorLayer: int
+  
+  @ivar totUvLayers: The mesh's total number of UV/Image layers.
+  @type totUvLayers: int
+  @ivar totColorLayers: The mesh's total number of Vertex Color layers.
+  @type totColorLayers: int
+  
   """
 
   def getFromObject(object, cage=0, render=0):
@@ -991,6 +1002,25 @@ class Mesh:
         Blender itself later).
     """
 
+  def addUvLayer():
+    """
+    Adds a new UV/Image layer to this mesh, it will always be the last layer and made active.
+    """
+
+  def addColorLayer():
+    """
+    Adds a new Vertex Color layer to this mesh, it will always be the last layer and made active.
+    """
+
+  def removeUvLayer():
+    """
+    Removes the active UV/Image layer.
+    """
+
+  def removeColorLayer():
+    """
+    Removes the active Vertex Color layer.
+    """
 
   def smooth():
     """
