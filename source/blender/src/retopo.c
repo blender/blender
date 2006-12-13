@@ -413,7 +413,7 @@ void retopo_paint_view_update(struct View3D *v3d)
 {
 	RetopoPaintData *rpd= get_retopo_paint_data();
 
-	if(rpd) {
+	if(rpd && rpd->paint_v3d==v3d) {
 		RetopoPaintLine *l;
 		RetopoPaintPoint *p;
 		double ux, uy, uz;
@@ -440,6 +440,8 @@ char retopo_paint(const unsigned short event)
 		RetopoPaintLine *l;
 		short mouse[2];
 		char lbut= get_mbut() & L_MOUSE;
+		
+		if(rpd->paint_v3d && rpd->paint_v3d!=G.vd) return 1;
 	
 		getmouseco_areawin(mouse);
 
@@ -538,6 +540,9 @@ char retopo_paint(const unsigned short event)
 			if(!rpd->in_drag) { /* Start new drag */
 				rpd->in_drag= 1;
 				
+				if(!rpd->paint_v3d)
+					rpd->paint_v3d= G.vd;
+				
 				/* Location of mouse down */
 				rpd->sloc[0]= mouse[0];
 				rpd->sloc[1]= mouse[1];
@@ -591,7 +596,7 @@ void retopo_draw_paint_lines()
 {
 	RetopoPaintData *rpd= get_retopo_paint_data();
 
-	if(rpd) {
+	if(rpd && rpd->paint_v3d==G.vd) {
 		RetopoPaintLine *l;
 		RetopoPaintPoint *p;
 
@@ -791,7 +796,8 @@ void retopo_queue_updates(View3D *v3d)
 
 void retopo_matrix_update(View3D *v3d)
 {
-	if(retopo_mesh_check() || retopo_curve_check()) {
+	RetopoPaintData *rpd= get_retopo_paint_data();
+	if((retopo_mesh_check() || retopo_curve_check()) && (!rpd || rpd->paint_v3d==v3d)) {
 		RetopoViewData *rvd= v3d->retopo_view_data;
 		if(!rvd) {
 			rvd= MEM_callocN(sizeof(RetopoViewData),"RetopoViewData");

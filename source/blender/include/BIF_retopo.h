@@ -74,6 +74,8 @@ typedef struct RetopoPaintData {
 
 	short seldist;
 	RetopoPaintSel nearest;
+	
+	struct View3D *paint_v3d;
 } RetopoPaintData;
 
 RetopoPaintData *get_retopo_paint_data();
