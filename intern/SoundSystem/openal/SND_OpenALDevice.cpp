@@ -43,9 +43,15 @@
 
 #include "SND_Utils.h"
 
+#ifdef APPLE_FRAMEWORK_FIX
+#include <al.h>
+#include <alc.h>
+#include <alut.h>
+#else
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alut.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
