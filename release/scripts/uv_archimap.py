@@ -193,8 +193,10 @@ def island2Edge(island):
 	
 		
 	length_sorted_edges = [(Vector(key[0]), Vector(key[1]), value) for key, value in edges.iteritems() if value != 0]
-	length_sorted_edges.sort(lambda A, B: cmp(B[2], A[2]))
-		
+	
+	try:	length_sorted_edges.sort(key = lambda A: -A[2]) # largest first
+	except:	length_sorted_edges.sort(lambda A, B: cmp(B[2], A[2]))
+	
 	# Its okay to leave the length in there.
 	#for e in length_sorted_edges:
 	#	e.pop(2)
@@ -435,12 +437,18 @@ def mergeUvIslands(islandList):
 	# Sort by island bounding box area, smallest face area first.
 	# no.. chance that to most simple edge loop first.
 	decoratedIslandListAreaSort =decoratedIslandList[:]
-	decoratedIslandListAreaSort.sort(lambda A, B: cmp(A[3], B[3]))
+	
+	try:	decoratedIslandListAreaSort.sort(key = lambda A: A[3])
+	except:	decoratedIslandListAreaSort.sort(lambda A, B: cmp(A[3], B[3]))
+	
 	
 	# sort by efficiency, Least Efficient first.
 	decoratedIslandListEfficSort = decoratedIslandList[:]
-	decoratedIslandListEfficSort.sort(lambda A, B: cmp(B[2], A[2]))
-	
+	# decoratedIslandListEfficSort.sort(lambda A, B: cmp(B[2], A[2]))
+
+	try:	decoratedIslandListEfficSort.sort(key = lambda A: -A[2])
+	except:	decoratedIslandListEfficSort.sort(lambda A, B: cmp(B[2], A[2]))
+
 	# ================================================== THESE CAN BE TWEAKED.
 	# This is a quality value for the number of tests.
 	# from 1 to 4, generic quality value is from 1 to 100
@@ -584,7 +592,10 @@ def mergeUvIslands(islandList):
 								sourceIsland[6][:] = [] # Empty
 								
 								# Sort by edge length, reverse so biggest are first.
-								targetIsland[6].sort(lambda B,A: cmp(A[2], B[2] ))
+								
+								try: 	targetIsland[6].sort(key = lambda A: A[2])
+								except:	targetIsland[6].sort(lambda B,A: cmp(A[2], B[2] ))
+								
 								
 								targetIsland[7].extend(sourceIsland[7])
 								offset= Vector(boxLeft, boxBottom, 0)
@@ -808,7 +819,10 @@ def packIslands(islandList):
 	
 	#print '\tWriting Packed Data to faces'
 	Window.DrawProgressBar(0.8, 'Writing Packed Data to faces')
-	packedLs.sort(lambda A, B: cmp(A[0] , B[0])) # Sort by ID, so there in sync again
+	
+	# Sort by ID, so there in sync again
+	try:	packedLs.sort(lambda key = A: A[0])				
+	except:	packedLs.sort(lambda A, B: cmp(A[0] , B[0]))	
 	
 	islandIdx = len(islandList)
 	# Having these here avoids devide by 0
@@ -946,7 +960,8 @@ def main():
 	
 	if USER_SHARE_SPACE:
 		# Sort by data name so we get consistand results
-		obList.sort(lambda ob1, ob2: cmp( ob1.getData(name_only=1), ob2.getData(name_only=1) ))
+		try:	obList.sort(key = lambda ob: ob.getData(name_only=1))
+		except:	obList.sort(lambda ob1, ob2: cmp( ob1.getData(name_only=1), ob2.getData(name_only=1) ))
 		
 		collected_islandList= []
 	
@@ -980,7 +995,9 @@ def main():
 		# Make a Face List that is sorted by area.
 		# meshFaces = []
 		
-		meshFaces.sort( lambda a, b: cmp(b.area , a.area) ) # Biggest first.
+		# meshFaces.sort( lambda a, b: cmp(b.area , a.area) ) # Biggest first.
+		try:	meshFaces.sort( lambda a: -a.area ) 
+		except:	meshFaces.sort( lambda a, b: cmp(b.area , a.area) )
 			
 		# remove all zero area faces
 		while meshFaces and meshFaces[-1].area <= SMALL_NUM:

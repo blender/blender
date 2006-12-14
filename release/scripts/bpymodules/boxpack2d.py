@@ -63,7 +63,8 @@ class vertList:
 		that use too much 
 		Lambada based sort
 		'''
-		self.verts.sort(lambda A, B: cmp(max(A.x+w, A.y+h) , max(B.x+w, B.y+h))) # Reverse area sort
+		# self.verts.sort(lambda A, B: cmp(max(A.x+w, A.y+h) , max(B.x+w, B.y+h))) # Reverse area sort
+		self.verts.sort(key = lambda b: max(b.x+w, b.y+h) ) # Reverse area sort
 		
 
 class box:
@@ -378,7 +379,9 @@ class boxList:
 		
 	# Sort boxes by area
 	def sortArea(self):
-		self.boxes.sort(lambda A, B: cmp(A.area, B.area) ) # Reverse area sort
+		# uvlist.sort(key=lambda v: v.uv.x) #X coord sort
+		# self.boxes.sort(lambda A, B: cmp(A.area, B.area) ) # Reverse area sort
+		self.boxes.sort(key=lambda b: b.area ) # Reverse area sort
 	
 	# BLENDER only
 	def draw(self):

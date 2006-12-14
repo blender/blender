@@ -171,7 +171,9 @@ def worldspace_verts_idx(me, ob):
 	verts_zsort= [ (i, v.co*mat) for i, v in enumerate(me.verts) ]
 	
 	# Sorts along the Z Axis so we can optimize the getsnap.
-	verts_zsort.sort(lambda a,b: cmp(a[1].z, b[1].z,))
+	try:	verts_zsort.sort(key = lambda a: a[1].z)
+	except:	verts_zsort.sort(lambda a,b: cmp(a[1].z, b[1].z,))
+	
 	return verts_zsort
 
 

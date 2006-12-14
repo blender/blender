@@ -152,7 +152,8 @@ def mesh_mirror(me, PREF_MIRROR_LOCATION, PREF_XMID_SNAP, PREF_MAX_DIST, PREF_XZ
 		
 		# Now we have a list of the pairs we might use, lets find the best and do them first.
 		# de-selecting as we go. so we can makke sure not to mess it up.
-		mirror_pairs.sort(lambda a,b: cmp(a[0], b[0]))
+		try:	mirror_pairs.sort(key = lambda a: a[0])
+		except:	mirror_pairs.sort(lambda a,b: cmp(a[0], b[0]))
 		
 		for dist, v1,v2 in mirror_pairs: # dist, neg, pos
 			if v1.sel and v2.sel:

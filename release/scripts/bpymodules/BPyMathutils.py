@@ -162,7 +162,9 @@ def convexHull(point_list_2d):
 
 	# Get a local list copy of the points and sort them lexically.
 	points = [(p, i) for i, p in enumerate(point_list_2d)]
-	points.sort(lambda a,b: cmp((a[0].x, a[0].y), (b[0].x, b[0].y)))
+	
+	try:	points.sort(key = lambda a: (a[0].x, a[0].y))
+	except:	points.sort(lambda a,b: cmp((a[0].x, a[0].y), (b[0].x, b[0].y)))
 
 	# Build upper half of the hull.
 	upper = [points[0], points[1]] # cant remove these.

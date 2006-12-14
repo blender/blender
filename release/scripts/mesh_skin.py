@@ -47,7 +47,7 @@ A pop-up will provide further options, if the results of a method are not adequa
 # ***** END GPL LICENCE BLOCK ***** 
 # -------------------------------------------------------------------------- 
 
-# Made by Ideasman/Campbell 2005/06/15 - ideasman@linuxmail.org
+# Made by Ideasman/Campbell 2005/06/15 - cbarton@metavr.com
 
 import Blender
 from Blender import *
@@ -184,7 +184,12 @@ class edgeLoop:
 		global CULL_METHOD
 		if CULL_METHOD == 1: # Shortest edge
 			eloopCopy = self.edges[:]
-			eloopCopy.sort(lambda e1, e2: cmp(e1.length, e2.length )) # Length sort, smallest first
+			
+			# Length sort, smallest first
+			try:	eloopCopy.sort(key = lambda e1: e1.length)
+			except:	eloopCopy.sort(lambda e1, e2: cmp(e1.length, e2.length ))
+			
+			# Dont use atm
 			#eloopCopy.sort(lambda e1, e2: cmp(e1.angle*e1.length, e2.angle*e2.length)) # Length sort, smallest first
 			#eloopCopy.sort(lambda e1, e2: cmp(e1.angle, e2.angle)) # Length sort, smallest first
 			eloopCopy = eloopCopy[:cullNum]

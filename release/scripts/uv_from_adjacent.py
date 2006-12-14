@@ -62,7 +62,9 @@ def mostUsedImage(imageList): # Returns the image most used in the list.
 	# Now a list of tuples, (imageName, {imageCount, image})
 	imageCount = imageCount.items()
 	
-	imageCount.sort(lambda a,b: cmp(a[1], b[1]))
+	try:	imageCount.sort(key=lambda a: a[1])
+	except:	imageCount.sort(lambda a,b: cmp(a[1], b[1]))
+	
 	
 	return imageCount[-1][1]['blenderImage']	
 

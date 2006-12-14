@@ -498,7 +498,9 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 		# END BOUNDRY. Can remove
 		
 		# sort by collapse weight
-		collapse_edges.sort(lambda ced1, ced2: cmp(ced1.collapse_weight, ced2.collapse_weight)) # edges will be used for sorting
+		try:	collapse_edges.sort(key = lambda ced: ced.collapse_weight) # edges will be used for sorting
+		except:	collapse_edges.sort(lambda ced1, ced2: cmp(ced1.collapse_weight, ced2.collapse_weight)) # edges will be used for sorting
+		
 		
 		vert_collapsed= [0]*len(verts)
 		
