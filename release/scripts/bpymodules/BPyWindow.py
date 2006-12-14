@@ -105,15 +105,25 @@ def mouseViewRay(screen_x, screen_y, localMatrix=None, useMid = False):
 			if localMatrix:
 				localInvMatrix = Matrix(localMatrix)
 				localInvMatrix.invert()
-				p = p*localInvMatrix
-				d = d*localInvMatrix # normalize_v3
-				p.x += localInvMatrix[3][0]
-				p.y += localInvMatrix[3][1]
-				p.z += localInvMatrix[3][2]
+				localInvMatrix_notrans = localInvMatrix.rotationPart()
+				p = p * localInvMatrix
+				d = d * localInvMatrix # normalize_v3
 				
-			#else: # Worldspace, do nothing
+				# remove the translation from d
+				d.x -= localInvMatrix[3][0]
+				d.y -= localInvMatrix[3][1]
+				d.z -= localInvMatrix[3][2]
+				
 			
-			d.normalize()
+			d.normalize()			
+			'''
+			# Debugging
+			me = Blender.Mesh.New()
+			me.verts.extend([p[0:3]])
+			me.verts.extend([(p-d)[0:3]])
+			me.edges.extend([0,1])
+			ob = Blender.Scene.GetCurrent().objects.new(me)
+			'''
 			return True, p, d # Origin, Direction	
 	
 	# Mouse is not in any view, return None.

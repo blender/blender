@@ -4,7 +4,6 @@ import Blender
 import BPyMesh
 import BPyWindow
 
-
 mouseViewRay= BPyWindow.mouseViewRay
 from Blender import Mathutils, Window, Scene, Draw, sys
 from Blender.Mathutils import CrossVecs, Vector, Intersect, LineIntersect, AngleBetweenVecs
