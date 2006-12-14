@@ -1510,16 +1510,17 @@ static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
 		case CONSTRAINT_TYPE_LOCLIKE:
 		{
 			bLocateLikeConstraint *data= con->data;
+			float fac= con->enforce;
 			
 			if(data->tar && data->subtarget[0]) {
 				bPoseChannel *pchant= get_pose_channel(data->tar->pose, data->subtarget);
 				if(pchant) {
 					if (data->flag & LOCLIKE_X)
-						pchan->loc[0]= pchant->loc[0];
+						pchan->loc[0]= FloatLerpf(pchant->loc[0], pchan->loc[0], fac);
 					if (data->flag & LOCLIKE_Y)
-						pchan->loc[1]= pchant->loc[1];
+						pchan->loc[1]= FloatLerpf(pchant->loc[1], pchan->loc[1], fac);
 					if (data->flag & LOCLIKE_Z)
-						pchan->loc[2]= pchant->loc[2];
+						pchan->loc[2]= FloatLerpf(pchant->loc[2], pchan->loc[2], fac);
 				}
 			}
 		}
@@ -1536,9 +1537,9 @@ static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
 						QuatToEul(pchan->quat, eul);
 						QuatToEul(pchant->quat, eult);
 						VECCOPY(euln, eul);
-						if(data->flag & ROTLIKE_X) euln[0]= fac*eult[0] + (1.0f-fac)*eul[0];
-						if(data->flag & ROTLIKE_Y) euln[1]= fac*eult[1] + (1.0f-fac)*eul[1];
-						if(data->flag & ROTLIKE_Z) euln[2]= fac*eult[2] + (1.0f-fac)*eul[2];
+						if(data->flag & ROTLIKE_X) euln[0]= FloatLerpf(eult[0], eul[0], fac); 
+						if(data->flag & ROTLIKE_Y) euln[1]= FloatLerpf(eult[1], eul[1], fac);
+						if(data->flag & ROTLIKE_Z) euln[2]= FloatLerpf(eult[2], eul[2], fac);
 						compatible_eul(eul, euln);
 						EulToQuat(euln, pchan->quat);
 					}
@@ -1552,31 +1553,31 @@ static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
 		case CONSTRAINT_TYPE_LOCLIMIT:
 		{
 			bLocLimitConstraint *data= con->data;
+			float fac= con->enforce;
 			
-			/* Aligorith: don't know whether this function really evaluates constraints, but here goes anyways */
 			if (data->flag & LIMIT_XMIN) {
 				if(pchan->loc[0] < data->xmin)
-					pchan->loc[0] = data->xmin;
+					pchan->loc[0] = FloatLerpf(data->xmin, pchan->loc[0], fac);
 			}
 			if (data->flag & LIMIT_XMAX) {
 				if (pchan->loc[0] > data->xmax)
-					pchan->loc[0] = data->xmax;
+					pchan->loc[0] = FloatLerpf(data->xmax, pchan->loc[0], fac);
 			}
 			if (data->flag & LIMIT_YMIN) {
 				if(pchan->loc[1] < data->ymin)
-					pchan->loc[1] = data->ymin;
+					pchan->loc[1] = FloatLerpf(data->ymin, pchan->loc[1], fac);
 			}
 			if (data->flag & LIMIT_YMAX) {
 				if (pchan->loc[1] > data->ymax)
-					pchan->loc[1] = data->ymax;
+					pchan->loc[1] = FloatLerpf(data->ymax, pchan->loc[1], fac);
 			}
 			if (data->flag & LIMIT_ZMIN) {
 				if(pchan->loc[2] < data->zmin)
-					pchan->loc[2] = data->zmin;
+					pchan->loc[2] = FloatLerpf(data->zmin, pchan->loc[2], fac);
 			}
 			if (data->flag & LIMIT_ZMAX) {
 				if (pchan->loc[2] > data->zmax)
-					pchan->loc[2] = data->zmax;
+					pchan->loc[2] = FloatLerpf(data->zmax, pchan->loc[2], fac);
 			}
 		}	
 			break;
@@ -1584,8 +1585,7 @@ static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
 		{
 			bRotLimitConstraint *data = con->data;
 			float eul[3];
-			
-			/*Aligorith:  don't know whether this function is really for evaluating constraints, but here goes anyways */
+			float fac= con->enforce;
 			
 			QuatToEul(pchan->quat, eul);
 			
@@ -1597,24 +1597,24 @@ static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
 			/* limiting of euler values... */
 			if (data->flag & LIMIT_XROT) {
 				if (eul[0] < data->xmin) 
-					eul[0] = data->xmin;
+					eul[0] = FloatLerpf(data->xmin, eul[0], fac);
 					
 				if (eul[0] > data->xmax)
-					eul[0] = data->xmax;
+					eul[0] = FloatLerpf(data->xmax, eul[0], fac);
 			}
 			if (data->flag & LIMIT_YROT) {
 				if (eul[1] < data->ymin)
-					eul[1] = data->ymin;
+					eul[1] = FloatLerpf(data->ymin, eul[1], fac);
 					
 				if (eul[1] > data->ymax)
-					eul[1] = data->ymax;
+					eul[1] = FloatLerpf(data->ymax, eul[1], fac);
 			}
 			if (data->flag & LIMIT_ZROT) {
 				if (eul[2] < data->zmin)
-					eul[2] = data->zmin;
+					eul[2] = FloatLerpf(data->zmin, eul[2], fac);
 					
 				if (eul[2] > data->zmax)
-					eul[2] = data->zmax;
+					eul[2] = FloatLerpf(data->zmax, eul[2], fac);
 			}
 				
 			/* eulers: degrees to radians ! */

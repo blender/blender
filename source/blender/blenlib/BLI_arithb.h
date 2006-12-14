@@ -472,6 +472,12 @@ FloatCompare(
 	float limit
 );
 	float 
+FloatLerpf(
+	float target,
+	float origin,
+	float fac
+);
+	float 
 Normalise(
 	float *n
 );

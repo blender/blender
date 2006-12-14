@@ -969,6 +969,11 @@ int FloatCompare( float *v1,  float *v2, float limit)
 	return 0;
 }
 
+float FloatLerpf( float target, float origin, float fac)
+{
+	return (fac*target) + (1.0f-fac)*origin;
+}
+
 void printvecf( char *str,  float v[3])
 {
 	printf("%s: %.3f %.3f %.3f\n", str, v[0], v[1], v[2]);
