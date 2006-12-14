@@ -1305,7 +1305,7 @@ static void render_panel_anim(void)
 
 	uiBlockBeginAlign(block);
 	uiDefButI(block, NUM,REDRAWSEQ,"Sta:",692,10,94,24, &G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "The start frame of the animation");
-	uiDefButI(block, NUM,REDRAWSEQ,"End:",789,10,95,24, &G.scene->r.efra,1.0,MAXFRAMEF, 0, 0, "The end  frame of the animation");
+	uiDefButI(block, NUM,REDRAWSEQ,"End:",789,10,95,24, &G.scene->r.efra,SFRA,MAXFRAMEF, 0, 0, "The end  frame of the animation");
 	uiBlockEndAlign(block);
 }
 

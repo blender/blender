@@ -429,7 +429,7 @@ void time_buttons(ScrArea *sa)
 
 	uiDefButI(block, NUM, REDRAWALL,"End:",	
 		xco,0,4.5*XIC,YIC,
-		&G.scene->r.efra,MINFRAMEF,MAXFRAMEF, 0, 0,
+		&G.scene->r.efra,SFRA,MAXFRAMEF, 0, 0,
 		"The end  frame of the animation");
 	uiBlockEndAlign(block);
 
