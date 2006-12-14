@@ -1352,12 +1352,15 @@ void uv_autocalc_tface()
 	
 	/* uvmenu, will add python items */
 	char uvmenu[4096]=MENUTITLE("UV Calculation")
+					MENUSTRING("Unwrap",				UV_UNWRAP_MAPPING) "|%l|"
+					
 					MENUSTRING("Cube Projection",			UV_CUBE_MAPPING) "|"
 					MENUSTRING("Cylinder from View",		UV_CYL_MAPPING) "|"
-					MENUSTRING("Sphere from View",			UV_SPHERE_MAPPING) "|"
-					MENUSTRING("Unwrap (LSCM)",				UV_UNWRAP_MAPPING) "|"
+					MENUSTRING("Sphere from View",			UV_SPHERE_MAPPING) "|%l|"
+
 					MENUSTRING("Project From View",			UV_WINDOW_MAPPING) "|"
-					MENUSTRING("Project from View (bounds)",UV_BOUNDS_MAPPING) "|"
+					MENUSTRING("Project from View (Bounds)",UV_BOUNDS_MAPPING) "|%l|"
+					
 					MENUSTRING("Reset",						UV_RESET_MAPPING);
 	
 	/* note that we account for the 10 previous entries with i+10: */
