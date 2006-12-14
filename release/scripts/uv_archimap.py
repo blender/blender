@@ -1,9 +1,9 @@
 #!BPY
 
 """ Registration info for Blender menus: <- these words are ignored
-Name: 'ArchiMap UV Projection Unwrapper'
+Name: 'Unwrap (smart projections)'
 Blender: 240
-Group: 'UvCalculation'
+Group: 'UVCalculation'
 Tooltip: 'ArchiMap UV Unwrap mesh faces for all select mesh objects'
 """
 
@@ -43,7 +43,7 @@ selected faces, or all faces.
 
 
 from Blender import Object, Scene, Draw, Window, sys, Mesh, Geometry
-from Blender.Mathutils import CrossVecs, Matrix, Vector, RotationMatrix, DotVecs, TriangleArea
+from Blender.Mathutils import CrossVecs, Matrix, Vector, RotationMatrix, DotVecs
 
 from math import cos
 
@@ -57,7 +57,7 @@ USER_FILL_HOLES = None
 USER_FILL_HOLES_QUALITY = None
 
 import boxpack2d
-reload(boxpack2d) # for developing.
+# reload(boxpack2d) # for developing.
 
 dict_matrix = {}
 
@@ -389,12 +389,14 @@ def optiRotateUvIsland(faces):
 	# Now write the vectors back to the face UV's
 	i = 0 # count the serialized uv/vectors
 	for f in faces:
-		f.uv = [uv for uv in uvVecs[i:len(f)+i] ]
-		i += len(f)
+		#f.uv = [uv for uv in uvVecs[i:len(f)+i] ]
+		for j, k in enumerate(xrange(i, len(f.v)+i)):
+			f.uv[j][:] = uvVecs[k]
+		i += len(f.v)
 
 
 # Takes an island list and tries to find concave, hollow areas to pack smaller islands into.
-def mergeUvIslands(islandList, islandListArea):
+def mergeUvIslands(islandList):
 	global USER_FILL_HOLES
 	global USER_FILL_HOLES_QUALITY
 	
@@ -415,11 +417,11 @@ def mergeUvIslands(islandList, islandListArea):
 		
 		totFaceArea = 0
 		offset= Vector(minx, miny)
-		for fIdx, f in enumerate(islandList[islandIdx]):
+		for f in islandList[islandIdx]:
 			for uv in f.uv:
 				uv -= offset
 			
-			totFaceArea += islandListArea[islandIdx][fIdx] # Use Cached area. dont recalculate.
+			totFaceArea += f.area
 		
 		islandBoundsArea = w*h
 		efficiency = abs(islandBoundsArea - totFaceArea)
@@ -624,7 +626,7 @@ def mergeUvIslands(islandList, islandListArea):
 def face_ed_keys(f):
 	# Return ordered edge keys per face
 	# used so a face can lookup its edges.
-	fi = [v.index for v in f] 
+	fi = [v.index for v in f.v] 
 	if len(fi) == 3:
 		i1, i2 = fi[0], fi[1]
 		if i1 > i2: i1, i2= i2, i1
@@ -653,8 +655,7 @@ def face_ed_keys(f):
 		return (i1,i2), (i3,i4), (i5,i6), (i7,i8)
 	
 # Takes groups of faces. assumes face groups are UV groups.
-def getUvIslands(faceGroups, faceGroupsArea, me):
-	
+def getUvIslands(faceGroups, me):
 	
 	# Get seams so we dont cross over seams
 	edge_seams = {} # shoudl be a set
@@ -669,7 +670,6 @@ def getUvIslands(faceGroups, faceGroupsArea, me):
 	
 	
 	islandList = []
-	islandListArea = []
 	
 	Window.DrawProgressBar(0.0, 'Splitting %d projection groups into UV islands:' % len(faceGroups))
 	#print '\tSplitting %d projection groups into UV islands:' % len(faceGroups),
@@ -680,7 +680,6 @@ def getUvIslands(faceGroups, faceGroupsArea, me):
 	while faceGroupIdx:
 		faceGroupIdx-=1
 		faces = faceGroups[faceGroupIdx]
-		facesArea = faceGroupsArea[faceGroupIdx]
 		
 		# Build edge dict
 		edge_users = {}
@@ -705,10 +704,8 @@ def getUvIslands(faceGroups, faceGroupsArea, me):
 		face_modes[0] = 1 # start the search with face 1
 		
 		newIsland = []
-		newIslandArea = []
 		
 		newIsland.append(faces[0])
-		newIslandArea.append(facesArea[0])
 		
 		
 		ok = True
@@ -724,21 +721,17 @@ def getUvIslands(faceGroups, faceGroupsArea, me):
 								if i != ii and face_modes[ii] == 0:
 									face_modes[ii] = ok = 1 # mark as searched
 									newIsland.append(faces[ii])
-									newIslandArea.append(facesArea[ii])
 								
 						# mark as searched, dont look again.
 						face_modes[i] = 2
 			
 			islandList.append(newIsland)
-			islandListArea.append(newIslandArea)
 			
 			ok = False
 			for i in xrange(len(faces)):
 				if face_modes[i] == 0:
 					newIsland = []
-					newIslandArea = []
 					newIsland.append(faces[i])
-					newIslandArea.append(facesArea[i])
 					
 					face_modes[i] = ok = 1
 					break
@@ -749,13 +742,13 @@ def getUvIslands(faceGroups, faceGroupsArea, me):
 	for island in islandList:
 		optiRotateUvIsland(island)
 	
-	return islandList, islandListArea
+	return islandList
 	
 
-def packIslands(islandList, islandListArea):
+def packIslands(islandList):
 	if USER_FILL_HOLES:
 		Window.DrawProgressBar(0.1, 'Merging Islands (Ctrl: skip merge)...')
-		mergeUvIslands(islandList, islandListArea) # Modify in place
+		mergeUvIslands(islandList) # Modify in place
 		
 	
 	# Now we have UV islands, we need to pack them.
@@ -856,6 +849,15 @@ def VectoMat(vec):
 	return Matrix([a1[0], a1[1], a1[2]], [a2[0], a2[1], a2[2]], [a3[0], a3[1], a3[2]])
 
 
+
+class thickface(object):
+	__slost__= 'v', 'uv', 'no', 'area'
+	def __init__(self, face):
+		self.v = face.v
+		self.uv = face.uv
+		self.no = face.no
+		self.area = face.area
+
 global ob
 ob = None
 def main():
@@ -947,8 +949,6 @@ def main():
 		obList.sort(lambda ob1, ob2: cmp( ob1.getData(name_only=1), ob2.getData(name_only=1) ))
 		
 		collected_islandList= []
-		collected_islandListArea= []
-	
 	
 	Window.WaitCursor(1)
 	SELECT_FLAG = Mesh.FaceFlags['SELECT']
@@ -960,9 +960,9 @@ def main():
 			me.faceUV= True
 		
 		if USER_ONLY_SELECTED_FACES:
-			meshFaces = [f for f in me.faces if f.flag & SELECT_FLAG]
+			meshFaces = [thickface(f) for f in me.faces if f.flag & SELECT_FLAG]
 		else:
-			meshFaces = me.faces
+			meshFaces = map(thickface, me.faces)
 		
 		if not meshFaces:
 			continue
@@ -978,23 +978,17 @@ def main():
 		
 		# make a list of face props that are in sync with meshFaces		
 		# Make a Face List that is sorted by area.
-		faceListProps = []		
+		# meshFaces = []
 		
-		for f in meshFaces:
-			area = f.area
-			if area <= SMALL_NUM:
-				for uv in f.uv: # Assign Dummy UVs
-					uv.zero()
-				
-				print 'found zero area face, removing.'
-				
-			else:
-				# Store all here
-				faceListProps.append( (f, area, f.no) )
+		meshFaces.sort( lambda a, b: cmp(b.area , a.area) ) # Biggest first.
+			
+		# remove all zero area faces
+		while meshFaces and meshFaces[-1].area <= SMALL_NUM:
+			# Set their UV's to 0,0
+			for uv in meshFaces[-1].uv:
+				uv.zero()
+			meshFaces.pop()
 		
-		del meshFaces
-		
-		faceListProps.sort( lambda A, B: cmp(B[1] , A[1]) ) # Biggest first.
 		# Smallest first is slightly more efficient, but if the user cancels early then its better we work on the larger data.
 		
 		# Generate Projection Vecs
@@ -1003,14 +997,15 @@ def main():
 		
 		
 		# Initialize projectVecs
-		newProjectVec = faceListProps[0][2] 
-		newProjectFacePropList = [faceListProps[0]]	# Popping stuffs it up.
+		newProjectVec = meshFaces[0].no
+		newProjectMeshFaces = [meshFaces[0]]	# Popping stuffs it up.
+		
 		
 		# Predent that the most unique angke is ages away to start the loop off
 		mostUniqueAngle = -1.0
 		
 		# This is popped
-		tempFaceListProps = faceListProps[:]
+		tempMeshFaces = meshFaces[:]
 		
 		while 1:
 			# If theres none there then start with the largest face
@@ -1019,7 +1014,7 @@ def main():
 			mostUniqueAngle = 1.0 # 1.0 is 0d. no difference.
 			mostUniqueIndex = 0 # fake
 			
-			fIdx = len(tempFaceListProps)
+			fIdx = len(tempMeshFaces)
 			
 			while fIdx:
 				fIdx-=1
@@ -1027,7 +1022,7 @@ def main():
 				
 				# Get the closest vec angle we are to.
 				for p in projectVecs:
-					temp_angle_diff= DotVecs(p, tempFaceListProps[fIdx][2])
+					temp_angle_diff= DotVecs(p, tempMeshFaces[fIdx].no)
 					
 					if angleDifference < temp_angle_diff:
 						angleDifference= temp_angle_diff
@@ -1039,37 +1034,37 @@ def main():
 				
 			
 			if mostUniqueAngle < USER_PROJECTION_LIMIT_CONVERTED:
-				#print 'adding', mostUniqueAngle, USER_PROJECTION_LIMIT, len(newProjectFacePropList)
-				newProjectVec = tempFaceListProps[mostUniqueIndex][2]
-				newProjectFacePropList = [tempFaceListProps.pop(mostUniqueIndex)]				
+				#print 'adding', mostUniqueAngle, USER_PROJECTION_LIMIT, len(newProjectMeshFaces)
+				newProjectVec = tempMeshFaces[mostUniqueIndex].no
+				newProjectMeshFaces = [tempMeshFaces.pop(mostUniqueIndex)]				
 			else:
 				if len(projectVecs) >= 1: # Must have at least 2 projections
 					break
 			
 			
 			# Now we have found the most different vector, add all the faces that are close.
-			fIdx = len(tempFaceListProps)
+			fIdx = len(tempMeshFaces)
 			while fIdx:
 				fIdx -= 1
 				
 				# Use half the angle limit so we dont overweight faces towards this
 				# normal and hog all the faces.
-				if DotVecs(newProjectVec, tempFaceListProps[fIdx][2]) > USER_PROJECTION_LIMIT_HALF_CONVERTED:
-					newProjectFacePropList.append(tempFaceListProps.pop(fIdx))
+				if DotVecs(newProjectVec, tempMeshFaces[fIdx].no) > USER_PROJECTION_LIMIT_HALF_CONVERTED:
+					newProjectMeshFaces.append(tempMeshFaces.pop(fIdx))
 			
 			
 			# Now weight the vector to all its faces, will give a more direct projection
 			# if the face its self was not representive of the normal from surrounding faces.
 			averageVec = Vector(0,0,0)
-			for fprop in newProjectFacePropList:
-				averageVec += (fprop[2] * fprop[1]) # / len(newProjectFacePropList)
+			for fprop in newProjectMeshFaces:
+				averageVec += (fprop.no * fprop.area)
 			
 			if averageVec.x != 0 or averageVec.y != 0 or averageVec.z != 0: # Avoid NAN
 				averageVec.normalize()				
 				projectVecs.append(averageVec)
 			
 			# Now we have used it, ignore it.
-			newProjectFacePropList = []
+			newProjectMeshFaces = []
 			
 		# If there are only zero area faces then its possible
 		# there are no projectionVecs
@@ -1078,16 +1073,12 @@ def main():
 			return
 		
 		faceProjectionGroupList =[[] for i in xrange(len(projectVecs)) ]
-		faceProjectionGroupListArea =[[] for i in xrange(len(projectVecs)) ]
-		
-		# We need the area later, and we alredy have calculated it. so store it here.
-		#faceProjectionGroupListArea =[[] for i in xrange(len(projectVecs)) ]
 		
 		# MAP and Arrange # We know there are 3 or 4 faces here 
-		fIdx = len(faceListProps)
+		fIdx = len(meshFaces)
 		while fIdx:
 			fIdx-=1
-			fvec = faceListProps[fIdx][2]
+			fvec = meshFaces[fIdx].no
 			i = len(projectVecs)
 			
 			# Initialize first
@@ -1104,9 +1095,7 @@ def main():
 					bestAngIdx = i
 			
 			# Store the area for later use.
-			faceProjectionGroupList[bestAngIdx].append(faceListProps[fIdx][0])
-			faceProjectionGroupListArea[bestAngIdx].append(faceListProps[fIdx][1])
-			
+			faceProjectionGroupList[bestAngIdx].append(meshFaces[fIdx])
 		
 		# Cull faceProjectionGroupList,
 		
@@ -1115,7 +1104,6 @@ def main():
 		i= len(projectVecs)
 		while i:
 			i-=1
-			
 			# Account for projectVecs having no faces.
 			if not faceProjectionGroupList[i]:
 				continue
@@ -1125,19 +1113,19 @@ def main():
 			
 			# Get the faces UV's from the projected vertex.
 			for f in faceProjectionGroupList[i]:
-				f.uv = [MatProj * v.co for v in f]
+				for j, v in enumerate(f.v):
+					f.uv[j][:] = (MatProj * v.co)[:2]
 		
 		
 		if USER_SHARE_SPACE:
 			# Should we collect and pack later?
-			islandList, islandListArea = getUvIslands(faceProjectionGroupList, faceProjectionGroupListArea, me)
+			islandList = getUvIslands(faceProjectionGroupList, me)
 			collected_islandList.extend(islandList)
-			collected_islandListArea.extend(islandListArea)
 			
 		else:
 			# Should we pack the islands for this 1 object?
-			islandList, islandListArea = getUvIslands(faceProjectionGroupList, faceProjectionGroupListArea, me)
-			packIslands(islandList, islandListArea)
+			islandList = getUvIslands(faceProjectionGroupList, me)
+			packIslands(islandList)
 			
 		
 		
@@ -1146,7 +1134,7 @@ def main():
 	# We want to pack all in 1 go, so pack now
 	if USER_SHARE_SPACE:
 		Window.DrawProgressBar(0.9, "Box Packing for all objects...")
-		packIslands(collected_islandList, collected_islandListArea)
+		packIslands(collected_islandList)
 	
 	print "ArchiMap time: %.2f" % (sys.time() - time1)
 	Window.DrawProgressBar(0.9, "ArchiMap Done, time: %.2f sec." % (sys.time() - time1))

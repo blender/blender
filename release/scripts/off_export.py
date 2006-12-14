@@ -57,7 +57,7 @@ Notes:<br>
 # ***** END GPL LICENCE BLOCK *****
 
 import Blender
-#import time
+import BPyMessages
 
 # Python 2.3 has no reversed.
 try:
@@ -69,14 +69,14 @@ except:
 # ====== Write OFF Format ======
 # ==============================
 def write(filename):
-	#start = time.clock()
 	file = open(filename, 'wb')
 	scn= Blender.Scene.GetCurrent()
-	object= scn.getActiveObject()
-	if not object or object.getType()!='Mesh':
-		Blender.Draw.PupMenu('Error%t|Select 1 active mesh object')
+	object= scn.objects.active
+	if not object or object.type != 'Mesh':
+		BPyMessages.Error_NoMeshActive()
 		return
-		
+	
+	Blender.Window.WaitCursor(1)
 	mesh = object.getData(mesh=1)
 
 	# === OFF Header ===
@@ -85,24 +85,22 @@ def write(filename):
 
 	# === Vertex List ===
 	for i, v in enumerate(mesh.verts):
-		file.write('%f %f %f\n' % tuple(v.co))
+		file.write('%.6f %.6f %.6f\n' % tuple(v.co))
 
 	# === Face List ===
 	for i, f in enumerate(mesh.faces):
-		file.write('%i ' % len(f))
+		file.write('%i' % len(f))
 		for v in reversed(f.v):
-			file.write('%d ' % v.index)
+			file.write(' %d' % v.index)
 		file.write('\n')
-
-
-	Blender.Window.DrawProgressBar(1.0, '')  # clear progressbar
+	
 	file.close()
-	#end = time.clock()
-	#seconds = " in %.2f %s" % (end-start, "seconds")
-	message = 'Successfully exported "%s"' % Blender.sys.basename(filename)# + seconds
+	Blender.Window.WaitCursor(0)
+	message = 'Successfully exported "%s"' % Blender.sys.basename(filename)
+	
 
 def fs_callback(filename):
-	if filename.find('.off', -4) <= 0: filename += '.off'
+	if not filename.lower().endswith('.off'): filename += '.off'
 	write(filename)
 
 Blender.Window.FileSelector(fs_callback, "Export OFF", Blender.sys.makename(ext='.off'))

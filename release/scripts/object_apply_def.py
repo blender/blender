@@ -65,18 +65,37 @@ This script will work with object types: Mesh, Metaballs, Text3d, Curves and Nur
 import Blender
 import BPyMesh
 
+def copy_vgroups(source_ob, target_ob):
+	
+	source_me = source_ob.getData(mesh=1)
+	
+	vgroups= source_me.getVertGroupNames()
+	if vgroups:
+		ADD= Blender.Mesh.AssignModes.ADD
+		target_me = target_ob.getData(mesh=1)
+		for vgroupname in vgroups:
+			target_me.addVertGroup(vgroupname)
+			if len(target_me.verts) == len(source_me.verts):
+				vlist = source_me.getVertsFromGroup(vgroupname, True)
+				try:
+					for vpair in vlist:
+						target_me.assignVertsToGroup(vgroupname, [vpair[0]], vpair[1], ADD)
+				except:
+					pass
+
+
 def apply_deform():
 	scn= Blender.Scene.GetCurrent()
-	ADD= Blender.Mesh.AssignModes.ADD
 	#Blender.Window.EditMode(0)
 	
 	NAME_LENGTH = 19
-	PREFIX = "_def"
-	PREFIX_LENGTH = len(PREFIX)
+	SUFFIX = "_def"
+	SUFFIX_LENGTH = len(SUFFIX)
 	# Get all object and mesh names
 	
 
-	ob_list = Blender.Object.GetSelected()
+	ob_list = list(scn.objects.context)
+	ob_act = scn.objects.active
 	
 	# Assume no soft body
 	has_sb= False
@@ -92,7 +111,7 @@ def apply_deform():
 			has_sb= True
 		
 		# Remove all numbered metaballs because their disp list is only on the main metaball (un numbered)
-		if ob.getType()=='MBall':
+		if ob.type == 'MBall':
 			name= ob.name
 			# is this metaball numbered?
 			dot_idx= name.rfind('.') + 1
@@ -127,49 +146,27 @@ def apply_deform():
 		
 		
 		name = ob.name
-		new_name = "%s_def" % name[:NAME_LENGTH-PREFIX_LENGTH]
+		new_name = "%s_def" % name[:NAME_LENGTH-SUFFIX_LENGTH]
 		num = 0
 		
 		while new_name in used_names:
-			new_name = "%s_def.%.3i" % (name[:NAME_LENGTH-(PREFIX_LENGTH+PREFIX_LENGTH)], num)
+			new_name = "%s_def.%.3i" % (name[:NAME_LENGTH-(SUFFIX_LENGTH+SUFFIX_LENGTH)], num)
 			num += 1
 		used_names.append(new_name)
 		
-
-			
 		new_me.name= new_name
 		
-		new_ob= Blender.Object.New('Mesh', new_name)
-		new_ob.link(new_me)
-		scn.link(new_ob)
+		new_ob= scn.objects.new(new_me)
 		new_ob.setMatrix(ob.matrixWorld)
-		new_ob.Layers= ob.Layers
 		
-		deformedList.append(new_ob)
+		# Make the active duplicate also active
+		if ob == ob_act:
+			scn.objects.active = new_ob
 		
 		# Original object was a mesh? see if we can copy any vert groups.
-		if ob.getType()=='Mesh':
-			orig_me= ob.getData(mesh=1)
-			
-			vgroups= orig_me.getVertGroupNames()
-			if vgroups:
-				new_me= new_ob.getData(mesh=1) # Do this so we can de vgroup stuff
-				for vgroupname in vgroups:
-					new_me.addVertGroup(vgroupname)
-					if len(new_me.verts) == len(orig_me.verts):
-						vlist = orig_me.getVertsFromGroup(vgroupname, True)
-						try:
-							for vpair in vlist:
-								new_me.assignVertsToGroup(vgroupname, [vpair[0]], vpair[1], ADD)
-						except:
-							pass
+		if ob.type =='Mesh':
+			copy_vgroups(ob, new_ob)
 	
-	for ob in deformedList:
-		ob.sel = 1
-	
-	if deformedList:
-		deformedList[0].sel = 1 # Keep the same object active.
-		
 	Blender.Window.RedrawAll()
 
 if __name__=='__main__':

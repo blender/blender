@@ -2,7 +2,7 @@
 """
 Name: 'UVs from unselected adjacent'
 Blender: 242
-Group: 'UvCalculation'
+Group: 'UVCalculation'
 Tooltip: 'Assign UVs to selected faces from surrounding unselected faces.'
 """
 __author__ = "Campbell Barton"
