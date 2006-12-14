@@ -378,14 +378,17 @@ def pickMeshRayFace(me, orig, dir):
 				best_face= f
 				best_side= side
 				best_isect= isect
-	f= best_face
-	isect= best_isect
-	side= best_side
+	
+	return best_face, best_isect, best_side
+
+
+def pickMeshRayFaceWeight(me, orig, dir):
+	f, isect, side = pickMeshRayFace(me, orig, dir)
 	
 	if f==None:
 		return None, None, None, None, None
 	
-	f_v= [v.co for v in f.v]
+	f_v= [v.co for v in f]
 	if side==1: # we can leave side 0 without changes.
 		f_v = f_v[0], f_v[2], f_v[3]
 	
@@ -407,7 +410,7 @@ def pickMeshRayFace(me, orig, dir):
 
 
 def pickMeshGroupWeight(me, act_group, orig, dir):
-	f, side, w0, w1, w2= pickMeshRayFace(me, orig, dir)
+	f, side, w0, w1, w2= pickMeshRayFaceWeight(me, orig, dir)
 	
 	if f==None:
 		return None
@@ -427,7 +430,7 @@ def pickMeshGroupWeight(me, act_group, orig, dir):
 
 def pickMeshGroupVCol(me, orig, dir):
 	Vector= Blender.Mathutils.Vector
-	f, side, w0, w1, w2= pickMeshRayFace(me, orig, dir)
+	f, side, w0, w1, w2= pickMeshRayFaceWeight(me, orig, dir)
 	
 	if f==None:
 		return None
