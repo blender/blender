@@ -1148,6 +1148,11 @@ void transform_actionchannel_keys(int mode, int dummy)
 					headerprint(str);
 				}
 				else if (mode=='g'){
+					if(G.saction->pin==0 && OBACT) {
+						/* recalculate the delta based on 'visual' times */
+						fac = get_action_frame_inv(OBACT, cval[0]);
+						fac -= get_action_frame_inv(OBACT, sval[0]);
+					}
 					sprintf(str, "deltaX: %.3f", fac);
 					headerprint(str);
 				}
