@@ -1303,7 +1303,7 @@ static PyObject *SceneObSeq_link( BPy_SceneObSeq * self, PyObject *pyobj )
 static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 {	
 	void *data = NULL;
-	char *name;
+	char *name = NULL;
 	short type = OB_EMPTY;
 	struct Object *object;
 	Base *base;
