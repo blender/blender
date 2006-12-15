@@ -152,6 +152,7 @@ def main():
 	orig_cursor = Window.GetCursorPos()
 	Window.SetCursorPos(face_corner_main.x, face_corner_main.y, face_corner_main.z)
 	
+	SHIFT = Window.Qual.SHIFT
 	MODE = 0 # firstclick, 1, secondclick
 	mouse_buttons = Window.GetMouseButtons()
 	
@@ -159,10 +160,15 @@ def main():
 	
 	
 	SELECT_FLAG = Blender.Mesh.FaceFlags['SELECT']
-	me_faces_sel = [ ([v.co-face_corner_main for v in f], f.uv) for f in me.faces if f.flag & SELECT_FLAG ]
+	
+	def get_face_coords(f):
+		f_uv = f.uv
+		return [(v.co-face_corner_main, f_uv[i]) for i,v in enumerate(f.v)]
+		
+	coords = [ (co,uv) for f in me.faces if f.flag & SELECT_FLAG  for co, uv in get_face_coords(f)]
 	del SELECT_FLAG
 	
-	me_faces_sel_uvs = [uv.copy() for f in me_faces_sel for uv in f[1]]
+	coords_orig = [uv.copy() for co, uv in coords]
 	
 	while 1:
 		if mouse_buttons & LMB:
@@ -170,25 +176,24 @@ def main():
 				mousedown_wait()
 				Window.DrawProgressBar (0.8, '(3 of 3 ) Click confirms the V coords')
 				MODE = 1 # second click
+				
+				# Se we cont continually set the length and get float error
+				proj_y_component_orig = proj_y_component.copy()
 			else:
 				break
+		
 		elif mouse_buttons & RMB:
-			
 			# Restore old uvs
-			i= 0
-			for f in me_faces_sel:
-				for uv in f[1]:
-					uv[:] = me_faces_sel_uvs[i]
-					i+=1
+			for i, uv_orig in enumerate(coords_orig):
+				coords[i][1][:] = uv_orig
 			break
-			
+		
 		mouse_buttons = Window.GetMouseButtons()
 		screen_x, screen_y = Window.GetMouseCoords()
 		mouseInView, OriginA, DirectionA = mouseViewRay(screen_x, screen_y, obmat)
 		
 		if not mouseInView:
 			continue
-		
 		
 		# Do a ray tri intersection, not clipped by the tri
 		new_isect = Intersect(face_corner_main, face_corner_a, face_corner_b, DirectionA, OriginA, False)
@@ -199,7 +204,10 @@ def main():
 		line_isect_a_pair = LineIntersect(new_isect, new_isect_alt, face_corner_main, face_corner_a)
 		line_isect_b_pair = LineIntersect(new_isect, new_isect_alt, face_corner_main, face_corner_b)
 		
-		if MODE == 0:	
+		# SHIFT to flip the axis.
+		is_shift = Window.GetKeyQualifiers() & SHIFT
+		
+		if MODE == 0:
 			line_dist_a = (line_isect_a_pair[0]-line_isect_a_pair[1]).length
 			line_dist_b = (line_isect_b_pair[0]-line_isect_b_pair[1]).length
 			
@@ -216,22 +224,26 @@ def main():
 			
 			proj_y_component.length = 1/y_axis_length
 			proj_x_component.length = 1/x_axis_length
+			
+			if is_shift: proj_x_component.negate()
 		
 		else:
+			proj_y_component[:] = proj_y_component_orig
 			if line_dist_a < line_dist_b:
 				proj_y_component.length = 1/(line_isect_a_pair[1]-new_isect).length
 			else:
 				proj_y_component.length = 1/(line_isect_b_pair[1]-new_isect).length
-		
+			
+			if is_shift: proj_y_component.negate()
+			
 		# Use the existing matrix to make a new 3x3 projecton matrix
-		project_mat[0][:] = proj_x_component
-		project_mat[1][:] = proj_y_component
+		project_mat[0][:] = -proj_y_component
+		project_mat[1][:] = -proj_x_component
 		project_mat[2][:] = proj_z_component
 		
 		# Apply the projection matrix
-		for f_proj_co, f_uv in me_faces_sel:
-			for i, uv in enumerate(f_uv):
-				uv[:] = (project_mat * f_proj_co[i])[0:2]
+		for proj_co, uv in coords:
+				uv[:] = (project_mat * proj_co)[0:2]
 		
 		Window.Redraw(Window.Types.VIEW3D)
 	
