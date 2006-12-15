@@ -129,6 +129,7 @@ IF(WIN32)
     COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.Blanguages\" \"$\(TargetDir\)\\.blender\\\"
     COMMAND copy /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\.bfont.ttf\" \"$\(TargetDir\)\\.blender\\\"
     COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\bin\\.blender\\locale\\*.*\" \"$\(TargetDir\)\\.blender\\locale\"
+    COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\scripts\\*.*\" \"$\(TargetDir\)\\.blender\\scripts\"
     COMMAND xcopy /E /Y \"${WIN_SOURCE_DIR}\\release\\plugins\\*.*\" \"$\(TargetDir\)\\plugins\"
     COMMAND copy /Y \"${WIN_SOURCE_DIR}\\release\\text\\*.*\" \"$\(TargetDir\)\"
   )
