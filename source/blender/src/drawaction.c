@@ -91,14 +91,6 @@
 #include "mydevice.h"
 
 
-/* local functions ----------------------------------------------------- */
-static ListBase *ipo_to_keylist(Ipo *ipo, int flags);
-static ListBase *action_to_keylist(bAction *act, int flags);
-static ListBase *ob_to_keylist(Object *ob, int flags);
-static ListBase *icu_to_keylist(IpoCurve *icu, int flags);
-void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, int flags, float ypos);
-
-
 static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 {
 	int           i;
@@ -484,12 +476,12 @@ static void draw_channel_strips(SpaceAction *saction)
 	for (chan=act->chanbase.first; chan; chan=chan->next){
 		if((chan->flag & ACHAN_HIDDEN)==0) {
 			
-			draw_ipo_channel(di, chan->ipo, 0, y);
+			draw_ipo_channel(di, chan->ipo, y);
 			y-=CHANNELHEIGHT+CHANNELSKIP;
 
 			/* Draw constraint channels */
 			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
-				draw_ipo_channel(di, conchan->ipo, 0, y);
+				draw_ipo_channel(di, conchan->ipo, y);
 				y-=CHANNELHEIGHT+CHANNELSKIP;
 			}
 		}
@@ -559,7 +551,7 @@ static void draw_mesh_strips(SpaceAction *saction, Key *key)
 
 		/* draw the little squares
 		 */
-		draw_icu_channel(di, icu, 0, y); 
+		draw_icu_channel(di, icu, y); 
 	}
 
 	glaEnd2DDraw(di);
@@ -747,67 +739,42 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	curarea->win_swap= WIN_BACK_OK;
 }
 
-#if 0
-/** Draw a nicely beveled diamond shape (in screen space) */
-static void draw_key_but(int x, int y, int w, int h, int sel)
-{
-	int xmin= x, ymin= y;
-	int xmax= x+w-1, ymax= y+h-1;
-	int xc= (xmin+xmax)/2, yc= (ymin+ymax)/2;
-	
-	/* interior */
-	if (sel) glColor3ub(0xF1, 0xCA, 0x13);
-	else glColor3ub(0xAC, 0xAC, 0xAC);
-	
-	glBegin(GL_QUADS);
-	glVertex2i(xc, ymin);
-	glVertex2i(xmax, yc);
-	glVertex2i(xc, ymax);
-	glVertex2i(xmin, yc);
-	glEnd();
-
-	
-	/* bevel */
-	glBegin(GL_LINE_LOOP);
-	
-	if (sel) glColor3ub(0xD0, 0x7E, 0x06);
-	else glColor3ub(0x8C, 0x8C, 0x8C);
-	/* under */
-	glVertex2i(xc, ymin+1);
-	glVertex2i(xmax-1, yc);
-	
-	if (sel) glColor3ub(0xF4, 0xEE, 0x8E);
-	else glColor3ub(0xDF, 0xDF, 0xDF);
-	/* top */
-	glVertex2i(xc, ymax-1);
-	glVertex2i(xmin+1, yc);
-	glEnd();
-	
-	/* outline */
-	glColor3ub(0,0,0);
-	glBegin(GL_LINE_LOOP);
-	glVertex2i(xc, ymin);
-	glVertex2i(xmax, yc);
-	glVertex2i(xc, ymax);
-	glVertex2i(xmin, yc);
-	glEnd();
-}
-
-#endif
-
-static void draw_keylist(gla2DDrawInfo *di, ListBase *elems, float ypos)
+static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, float ypos)
 {
 	CfraElem *ce;
+	ActKeyBlock *ab;
 	
-	if (!elems)
+	if ((keys==NULL) || (blocks==NULL))
 		return;
 
 	glEnable(GL_BLEND);
 	
-	for (ce= elems->first; ce; ce= ce->next){
+	/* draw keyblocks */
+	for (ab= blocks->first; ab; ab= ab->next) {
+		/* only draw keyblock if it appears in all curves sampled */
+		if (ab->incurve == ab->totcurve) {
+			int sc_xa, sc_ya;
+			int sc_xb, sc_yb;
+			
+			/* get co-ordinates of block */
+			gla2DDrawTranslatePt(di, ab->start, ypos, &sc_xa, &sc_ya);
+			gla2DDrawTranslatePt(di, ab->end, ypos, &sc_xb, &sc_yb);
+			
+			/* draw block */
+			if (ab->sel & 1)
+				BIF_ThemeColor4(TH_STRIP_SELECT);
+			else
+				BIF_ThemeColor4(TH_STRIP);
+			glRectf(sc_xa,  sc_ya-3,  sc_xb,  sc_yb+5);
+		}
+	}
+	
+	/* draw keys */
+	for (ce= keys->first; ce; ce= ce->next) {
 		int sc_x, sc_y;
+		
+		/* get co-ordinate to draw at */
 		gla2DDrawTranslatePt(di, ce->cfra, ypos, &sc_x, &sc_y);
-		// draw_key_but(sc_x-5, sc_y-6, 13, 13, (ce->sel & 1));
 		
 		if(ce->sel & 1) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
 		else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
@@ -816,157 +783,189 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *elems, float ypos)
 	glDisable(GL_BLEND);
 }
 
-void draw_object_channel(gla2DDrawInfo *di, Object *ob, int flags, float ypos)
+void draw_object_channel(gla2DDrawInfo *di, Object *ob, float ypos)
 {
-	ListBase *elems;
+	ListBase keys = {0, 0};
+	ListBase blocks = {0, 0};
 
-	elems = ob_to_keylist(ob, flags);
-	if (elems){
-		draw_keylist(di, elems, ypos);
-		
-		BLI_freelistN(elems);
-		MEM_freeN(elems);
-	}
-}
-
-void draw_ipo_channel(gla2DDrawInfo *di, Ipo *ipo, int flags, float ypos)
-{
-	ListBase *elems;
-
-	elems = ipo_to_keylist(ipo, flags);
-	if (elems){
-		draw_keylist(di, elems, ypos);
-		
-		BLI_freelistN(elems);
-		MEM_freeN(elems);
-	}
-}
-
-void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, int flags, float ypos)
-{
-	/* draw the keys for an IpoCurve
-	 */
-	ListBase *elems;
-
-	elems = icu_to_keylist(icu, flags);
-	if (elems){
-		draw_keylist(di, elems, ypos);
-		
-		BLI_freelistN(elems);
-		MEM_freeN(elems);
-	}
-}
-
-void draw_action_channel(gla2DDrawInfo *di, bAction *act, int flags, float ypos)
-{
-	ListBase *elems;
-
-	elems = action_to_keylist(act, flags);
+	ob_to_keylist(ob, &keys, &blocks);
+	draw_keylist(di, &keys, &blocks, ypos);
 	
-	if (elems){
-		draw_keylist(di, elems, ypos);
-		
-		BLI_freelistN(elems);
-		MEM_freeN(elems);
-	}
+	BLI_freelistN(&keys);
+	BLI_freelistN(&blocks);
 }
 
-static ListBase *ob_to_keylist(Object *ob, int flags)
+void draw_ipo_channel(gla2DDrawInfo *di, Ipo *ipo, float ypos)
+{
+	ListBase keys = {0, 0};
+	ListBase blocks = {0, 0};
+
+	ipo_to_keylist(ipo, &keys, &blocks);
+	draw_keylist(di, &keys, &blocks, ypos);
+	
+	BLI_freelistN(&keys);
+	BLI_freelistN(&blocks);
+}
+
+void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, float ypos)
+{
+	ListBase keys = {0, 0};
+	ListBase blocks = {0, 0};
+
+	icu_to_keylist(icu, &keys, &blocks);
+	draw_keylist(di, &keys, &blocks, ypos);
+	
+	BLI_freelistN(&keys);
+	BLI_freelistN(&blocks);
+}
+
+void draw_action_channel(gla2DDrawInfo *di, bAction *act, float ypos)
+{
+	ListBase keys = {0, 0};
+	ListBase blocks = {0, 0};
+
+	action_to_keylist(act, &keys, &blocks);
+	
+	/* Keyblocks need to be freed here, otherwise, 
+	 * they will draw in the nla editor as keyframes
+	 * for the active strip. We don't want this as
+	 * it could get confusing...
+	 */
+	BLI_freelistN(&blocks);
+	
+	draw_keylist(di, &keys, &blocks, ypos);
+	BLI_freelistN(&keys);
+}
+
+static void add_bezt_to_keyblockslist(BezTriple *bezt, BezTriple *prev, ListBase *blocks)
+{
+	/* The equivilant of add_to_cfra_elem except this version 
+	 * makes ActKeyBlocks - one of the two datatypes required
+	 * for action editor drawing.
+	 */
+	ActKeyBlock *ab, *abn;
+	
+	/* check if block needed */
+	if (bezt->vec[1][1] != prev->vec[1][1])
+		return;
+	
+	/* try to find a keyblock that starts on the previous beztriple */
+	for (ab= blocks->first; ab; ab= ab->next) {
+		/* check if alter existing block or add new block */
+		if (ab->start == prev->vec[1][0]) {
+			/* replace end frame if end frame is less than current beztriple */
+			if (ab->end < bezt->vec[1][0])
+				ab->end= bezt->vec[1][0];
+			
+			/* set selection status and 'touched' status */
+			if (BEZSELECTED(bezt)) ab->sel = SELECT;
+			ab->modified += 1;
+			
+			return;
+		}
+		else if (ab->start > prev->vec[1][0]) break;
+	}
+	
+	/* add new block */
+	abn= MEM_callocN(sizeof(ActKeyBlock), "add_bezt_to_keyblockslist");
+	if (ab) BLI_insertlinkbefore(blocks, ab, abn);
+	else BLI_addtail(blocks, abn);
+	
+	abn->start= prev->vec[1][0];
+	abn->end= bezt->vec[1][0];
+	abn->val= bezt->vec[1][1];
+	
+	if (BEZSELECTED(prev) || BEZSELECTED(bezt))
+		abn->sel = SELECT;
+	else
+		abn->sel = 0;
+	abn->modified += 1;
+}
+
+void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks)
 {
 	bConstraintChannel *conchan;
-	ListBase *elems = NULL;
 
 	if (ob) {
-		/* allocate memory for list */
-		elems = MEM_callocN(sizeof(ListBase), "ObKeylist");
-		
 		/* Add object keyframes */
 		if (ob->ipo) {
-			make_cfra_list(ob->ipo, elems);
+			ipo_to_keylist(ob->ipo, keys, blocks);
 		}
 		
 		/* Add constraint keyframes */
 		for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next){
 			if(conchan->ipo) {
-				make_cfra_list(conchan->ipo, elems);
+				ipo_to_keylist(conchan->ipo, keys, blocks);
 			}				
 		}
 			
 		/* Add object data keyframes */
 		// 		TODO??
 	}
-	
-	/* return pointer to listbase */
-	return elems;
 }
 
-static ListBase *icu_to_keylist(IpoCurve *icu, int flags)
+void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks)
 {
-	/* compile a list of all bezier triples in an
-	 * IpoCurve.
-	 */
-	ListBase *elems = NULL;
-	BezTriple *bezt;
+	BezTriple *bezt, *prev;
+	ActKeyBlock *ab, *abn;
 	int v;
 	
 	if (icu && icu->totvert){
-		elems = MEM_callocN(sizeof(ListBase), "IpoCurveKeylist");
-		
-		/* loop through beztriples, making CfraElems */
+		/* loop through beztriples, making ActKeys and ActKeyBlocks */
 		bezt= icu->bezt;
+		prev= NULL;
+		
 		for (v=0; v<icu->totvert; v++, bezt++) {
-			add_to_cfra_elem(elems, bezt);
+			add_to_cfra_elem(keys, bezt);
+			if (v) add_bezt_to_keyblockslist(bezt, prev, blocks);
+			
+			prev= bezt;
+		}
+		
+		/* update the number of curves the blocks have appeared in */
+		for (ab= blocks->first; ab; ab= abn) {
+			abn= ab->next;
+			
+			if (ab->modified) {
+				ab->modified = 0;
+				ab->incurve += 1;
+			}
+			ab->totcurve += 1;
 		}
 	}
-	
-	/* return pointer to listbase */
-	return elems;
 }
 
-static ListBase *ipo_to_keylist(Ipo *ipo, int flags)
+void ipo_to_keylist(Ipo *ipo, ListBase *keys, ListBase *blocks)
 {
-	ListBase *elems = NULL;
-
-	if (ipo) {
-		/* allocate memory for list of keys */
-		elems= MEM_callocN(sizeof(ListBase), "IpoKeylist");
-		
-		/* make list */
-		make_cfra_list(ipo, elems);
-	}
+	IpoCurve *icu;
 	
-	/* return pointer to listbase */
-	return elems;
+	if (ipo) {
+		for (icu= ipo->curve.first; icu; icu= icu->next) {
+			icu_to_keylist(icu, keys, blocks);
+		}
+	}
 }
 
-static ListBase *action_to_keylist(bAction *act, int flags)
+void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks)
 {
 	bActionChannel *achan;
 	bConstraintChannel *conchan;
-	
-	ListBase *elems = NULL;
 
 	if (act) {
-		/* allocate memory for list of keys */
-		elems= MEM_callocN(sizeof(ListBase), "ActionKeylist");
-		
 		/* loop through action channels */
 		for (achan= act->chanbase.first; achan; achan= achan->next) {
 			/* firstly, add keys from action channel's ipo block */
 			if (achan->ipo) {
-				make_cfra_list(achan->ipo, elems);
+				ipo_to_keylist(achan->ipo, keys, blocks);
 			}
 			
 			/* then, add keys from constraint channels */
 			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
 				if (conchan->ipo) {
-					make_cfra_list(conchan->ipo, elems);
+					ipo_to_keylist(achan->ipo, keys, blocks);
 				}
 			}
 		}
 	}
-	
-	/* return pointer to listbase */
-	return elems;
 }
 

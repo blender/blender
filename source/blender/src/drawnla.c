@@ -280,7 +280,7 @@ static void draw_nla_strips_keys(SpaceNla *snla)
 		glDisable (GL_BLEND);
 		
 		/* Draw the ipo keys */
-		draw_object_channel(di, ob, 0, y);
+		draw_object_channel(di, ob, y);
 		
 		y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
 		
@@ -312,7 +312,7 @@ static void draw_nla_strips_keys(SpaceNla *snla)
 			
 			/* Draw the action keys, optionally corrected for active strip */
 			map_active_strip(di, ob, 0);
-			draw_action_channel(di, ob->action, 0, y);
+			draw_action_channel(di, ob->action, y);
 			map_active_strip(di, ob, 1);
 			
 			y-=NLACHANNELHEIGHT+NLACHANNELSKIP;

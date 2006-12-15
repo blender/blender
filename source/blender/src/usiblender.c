@@ -304,10 +304,12 @@ static void init_userdef_file(void)
 				SETCOL(btheme->tnode.syntaxv, 142, 138, 145, 255);	/* generator */
 				SETCOL(btheme->tnode.syntaxc, 120, 145, 120, 255);	/* group */
 			}
+			/* Group theme colours */
 			if(btheme->tv3d.group[3]==0) {
 				SETCOL(btheme->tv3d.group, 0x10, 0x40, 0x10, 255);
 				SETCOL(btheme->tv3d.group_active, 0x66, 0xFF, 0x66, 255);
 			}
+			/* Sequence editor theme*/
 			if(btheme->tseq.movie[3]==0) {
 				SETCOL(btheme->tseq.movie, 	81, 105, 135, 255);
 				SETCOL(btheme->tseq.image, 	109, 88, 129, 255);
@@ -328,6 +330,17 @@ static void init_userdef_file(void)
 			U.uiflag |= USER_SHOW_ROTVIEWICON;
 		}
 		
+	}
+	if (G.main->versionfile <= 242) {
+		bTheme *btheme;
+		/* long keyframe colour */
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* check for alpha==0 is safe, then color was never set */
+			if(btheme->tact.strip[3]==0) {
+				SETCOL(btheme->tact.strip_select, 	0xff, 0xff, 0xaa, 204);
+				SETCOL(btheme->tact.strip, 0xe4, 0x9c, 0xc6, 204);
+			}
+		}
 	}
 	
 	if (U.undosteps==0) U.undosteps=32;

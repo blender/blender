@@ -612,6 +612,8 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "View Sliders %%x%d|", TH_SHADE1);
 			str += sprintf(str, "Channels %%x%d|", TH_SHADE2);
 			str += sprintf(str, "Channels Selected %%x%d|", TH_HILITE);
+			str += sprintf(str, "Long Key %%x%d|", TH_STRIP);
+			str += sprintf(str, "Long Key selected %%x%d|", TH_STRIP_SELECT);
 			break;
 		case SPACE_IMAGE:
 			str += sprintf(str, "%%l|");
