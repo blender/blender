@@ -71,7 +71,6 @@ def main():
 	
 	pup_block = [\
 	('Poly Reduce:', PREF_REDUX, 0.05, 0.95, 'Scale the meshes poly count by this value.'),\
-	'',\
 	('Boundry Weight:', PREF_BOUNDRY_WEIGHT, 0.0, 20.0, 'Weight boundry verts by this scale, 0.0 for no boundry weighting.'),\
 	('Area Weight:', PREF_FACE_AREA_WEIGHT, 0.0, 20.0, 'Collapse edges effecting lower area faces first.'),\
 	('Triangulate', PREF_FACE_TRIANGULATE, 'Convert quads to tris before reduction, for more choices of edges to collapse.'),\
@@ -79,17 +78,17 @@ def main():
 	('VGroup Weighting', VGROUP_INF_ENABLE, 'Use a vertex group to influence the reduction, higher weights for higher quality '),\
 	('vgroup name: ', VGROUP_INF_REDUX, 0, 32, 'The name of the vertex group to use for the weight map'),\
 	('vgroup mult: ', VGROUP_INF_WEIGHT, 0.0, 100.0, 'How much to make the weight effect the reduction'),\
+	('Other Selected Obs', PREF_OTHER_SEL_OBS, 'reduce other selected objects.'),\
+	'',\
+	'',\
 	'',\
 	('UV Coords', PREF_DO_UV, 'Interpolate UV Coords.'),\
 	('Vert Colors', PREF_DO_VCOL, 'Interpolate Vertex Colors'),\
 	('Vert Weights', PREF_DO_WEIGHTS, 'Interpolate Vertex Weights'),\
 	('Remove Doubles', PREF_REM_DOUBLES, 'Remove doubles before reducing to avoid boundry tearing.'),\
-	'',\
-	('Other Selected Obs', PREF_OTHER_SEL_OBS, 'reduce other selected objects.'),\
-	
 	]
 	
-	if not Draw.PupBlock("X Mirror mesh tool", pup_block):
+	if not Draw.PupBlock("Poly Reducer", pup_block):
 		return
 	
 	PREF_REDUX= PREF_REDUX.val

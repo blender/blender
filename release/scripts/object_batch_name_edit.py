@@ -46,6 +46,7 @@ from Blender import *
 
 global renameCount
 renameCount = 0
+obsel = Scene.GetCurrent().objects.context
 
 def setDataNameWrapper(ob, newname):
 	if ob.getData(name_only=1) == newname:
@@ -64,7 +65,7 @@ def main():
 	def renameLinkedDataFromObject():
 		
 		# Result 1, we want to rename data
-		for ob in Object.GetSelected():
+		for ob in obsel:
 			if ob.name == ob.getData(name_only=1):
 				return # Alredy the same name, dont bother.
 			
@@ -88,7 +89,7 @@ def main():
 		NEW_NAME_STRING= NEW_NAME_STRING.val
 		
 		Window.WaitCursor(1)
-		for ob in Object.GetSelected():
+		for ob in obsel:
 			if ob.name != NEW_NAME_STRING:
 				ob.name = NEW_NAME_STRING
 				renameCount+=1
@@ -115,7 +116,7 @@ def main():
 		WITH_STRING = WITH_STRING.val
 		
 		Window.WaitCursor(1)
-		for ob in Object.GetSelected():
+		for ob in obsel:
 			newname = ob.name.replace(REPLACE_STRING, WITH_STRING)
 			if ob.name != newname:
 				ob.name = newname
@@ -140,7 +141,7 @@ def main():
 		PREFIX_STRING = PREFIX_STRING.val
 		
 		Window.WaitCursor(1)
-		for ob in Object.GetSelected():
+		for ob in obsel:
 			ob.name = PREFIX_STRING + ob.name
 			renameCount+=1 # we knows these are different.
 		return RENAME_LINKED.val
@@ -162,7 +163,7 @@ def main():
 		SUFFIX_STRING = SUFFIX_STRING.val
 		
 		Window.WaitCursor(1)
-		for ob in Object.GetSelected():
+		for ob in obsel:
 			ob.name =  ob.name + SUFFIX_STRING
 			renameCount+=1 # we knows these are different.
 		return RENAME_LINKED.val	
@@ -183,7 +184,7 @@ def main():
 			
 		Window.WaitCursor(1)
 		TRUNCATE_START = TRUNCATE_START.val
-		for ob in Object.GetSelected():
+		for ob in obsel:
 			newname = ob.name[TRUNCATE_START: ]
 			ob.name = newname
 			renameCount+=1
@@ -206,7 +207,7 @@ def main():
 			
 		Window.WaitCursor(1)
 		TRUNCATE_END = TRUNCATE_END.val
-		for ob in Object.GetSelected():
+		for ob in obsel:
 			newname = ob.name[: -TRUNCATE_END]
 			ob.name = newname
 			renameCount+=1
@@ -217,7 +218,7 @@ def main():
 		global renameCount
 		Window.WaitCursor(1)
 		
-		for ob in Object.GetSelected():
+		for ob in obsel:
 			newname = ob.getData(name_only=1)
 			if newname != None and ob.name != newname:
 				ob.name = newname
@@ -228,7 +229,7 @@ def main():
 		global renameCount
 		Window.WaitCursor(1)
 		
-		for ob in Object.GetSelected():
+		for ob in obsel:
 			group= ob.DupGroup
 			if group != None:
 				newname= group.name
@@ -241,7 +242,7 @@ def main():
 		global renameCount
 		Window.WaitCursor(1)
 		
-		for ob in Object.GetSelected():
+		for ob in obsel:
 			if setDataNameWrapper(ob, ob.name):
 				renameCount+=1
 		return 0

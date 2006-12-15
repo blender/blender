@@ -524,20 +524,22 @@ def write_ui(filename):
 	
 	# Get USER Options
 	pup_block = [\
-	('Mesh Options...'),\
+	('Context...'),\
+	('Selection Only', EXPORT_SEL_ONLY, 'Only export objects in visible selection. Else export whole scene.'),\
+	('All Scenes', EXPORT_ALL_SCENES, 'Each scene as a seperate OBJ file.'),\
+	('Animation', EXPORT_ANIMATION, 'Each frame as a numbered OBJ file.'),\
+	('Object Prefs...'),\
 	('Apply Modifiers', EXPORT_APPLY_MODIFIERS, 'Use transformed mesh data from each object. May break vert order for morph targets.'),\
 	('Rotate X90', EXPORT_ROTX90 , 'Rotate on export so Blenders UP is translated into OBJs UP'),\
-	('Triangulate', EXPORT_TRI, 'Triangulate quadsModifiers.'),\
+	(''),\
+	('Extra Data...'),\
 	('Edges', EXPORT_EDGES, 'Edges not connected to faces.'),\
 	('Normals', EXPORT_NORMALS, 'Export vertex normal data (Ignored on import).'),\
 	('High Quality Normals', EXPORT_NORMALS_HQ, 'Calculate high quality normals for rendering.'),\
 	('UVs', EXPORT_UV, 'Export texface UV coords.'),\
 	('Materials', EXPORT_MTL, 'Write a separate MTL file with the OBJ.'),\
-	('Context...'),\
-	('Selection Only', EXPORT_SEL_ONLY, 'Only export objects in visible selection. Else export whole scene.'),\
-	('All Scenes', EXPORT_ALL_SCENES, 'Each scene as a seperate OBJ file.'),\
-	('Animation', EXPORT_ANIMATION, 'Each frame as a numbered OBJ file.'),\
 	('Copy Images', EXPORT_COPY_IMAGES, 'Copy image files to the export directory, never overwrite.'),\
+	('Triangulate', EXPORT_TRI, 'Triangulate quads.'),\
 	('Grouping...'),\
 	('Objects', EXPORT_BLEN_OBS, 'Export blender objects as "OBJ objects".'),\
 	('Object Groups', EXPORT_GROUP_BY_OB, 'Export blender objects as "OBJ Groups".'),\
@@ -601,7 +603,7 @@ def write_ui(filename):
 			
 			Blender.Set('curframe', frame)
 			if EXPORT_SEL_ONLY:
-				export_objects = scn.objects.selected #Blender.Object.GetSelected() # Export Context
+				export_objects = scn.objects.context
 			else:	
 				export_objects = scn.objects # scn.getChildren()
 			

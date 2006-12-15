@@ -734,7 +734,6 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 	('Split by Groups', SPLIT_GROUPS, 'Import OBJ Groups into Blender Objects'),\
 	('Split by Material', SPLIT_MATERIALS, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)'),\
 	('Clamp Scale:', CLAMP_SIZE, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)'),\
-	'',\
 	('Image Search', IMAGE_SEARCH, 'Search subdirs for any assosiated images (Warning, may be slow)'),\
 	]
 	

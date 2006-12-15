@@ -1,6 +1,8 @@
 from Blender import Draw, sys
 def Error_NoMeshSelected():
 	Draw.PupMenu('ERROR%t|No mesh objects selected')
+def Error_NoActive():
+	Draw.PupMenu('ERROR%t|No active object')
 def Error_NoMeshActive():
 	Draw.PupMenu('ERROR%t|Active object is not a mesh')
 def Error_NoMeshUvSelected():

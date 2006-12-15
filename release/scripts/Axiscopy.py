@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'Axis Orientation Copy'
-Blender: 239
+Blender: 242
 Group: 'Object'
 Tip: 'Copy local axis orientation of active object to all selected meshes (changes mesh data)'
 """
@@ -73,47 +73,54 @@ orientation.
 from Blender import *
 from Blender import Mathutils
 from Blender.Mathutils import *
+import BPyMessages
 
+def realusers(data):
+	users = data.users
+	if data.fakeUser: users -= 1
+	return users
 
-def applyTransform(mesh,mat):
-  for v in mesh.verts:
-	  vec = v.co*mat
-	  v.co[0], v.co[1], v.co[2] = vec[0], vec[1], vec[2]
+	
 
-
-
-
-oblist =Object.GetSelected()
-lenob=len(oblist)
-
-error = 0
-for o in oblist[1:]:
-	if o.getType() != "Mesh":
-		Draw.PupMenu("Error: selected objects must be meshes")
-		error = 1
-
-if not error:
-	if lenob<2:
+def main():
+	
+	scn_obs= Scene.GetCurrent().objects
+	ob_act = scn_obs.active
+	scn_obs = scn_obs.context
+	
+	if not ob_act:
+		BPyMessages.Error_NoActive()
+	
+	obs = [(ob, ob.getData(mesh=1)) for ob in scn_obs if ob != ob_act]
+	
+	for ob, me in obs:
+		
+		if ob.type != 'Mesh':
+			Draw.PupMenu("Error%t|Selection must be made up of mesh objects only")
+			return
+		
+		if realusers(me) != 1:
+			Draw.PupMenu("Error%t|Meshes must be single user")
+			return
+	
+	# remove linked 
+	if len(obs) < 1:
 		Draw.PupMenu("Error: you must select at least 2 objects")
-	else :
-		source=oblist[0]
-		nsource=source.name
-		texte="Copy axis orientation from: " + nsource + " ?%t|OK"
-		result=Draw.PupMenu(texte)
+		return
+	
+	result = Draw.PupMenu("Copy axis orientation from: " + ob_act.name + " ?%t|OK")
+	if result == -1:
+		return
+	
+	for ob_target, me_target in obs:
+		if ob_act.rot != ob_target.rot:
+			rot_target = ob_target.matrixWorld.rotationPart().toEuler().toMatrix()
+			rot_source = ob_act.matrixWorld.rotationPart().toEuler().toMatrix()
+			rot_source_inv = rot_source.copy().invert()
+			tx_mat = rot_target * rot_source_inv
+			tx_mat.resize4x4()
+			me_target.transform(tx_mat)
+			ob_target.rot=ob_act.rot
 
-
-		for cible in oblist[1:]:
-			if source.rot!=cible.rot:
-				rotcible=cible.mat.rotationPart().toEuler().toMatrix()
-				rotsource=source.mat.rotationPart().toEuler().toMatrix()
-				rotsourcet = Matrix(rotsource)
-				rotsourcet.invert()
-				mat=rotcible*rotsourcet
-				me=cible.getData()
-				#ncible=cible.name
-				#me=NMesh.GetRaw(ncible)
-				applyTransform(me,mat)
-				#NMesh.PutRaw(me,ncible)
-				me.update()
-				cible.makeDisplayList()
-				cible.rot=source.rot
+if __name__ == '__main__':
+	main()
