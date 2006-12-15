@@ -601,24 +601,25 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 			curve_yloc.append((last_frame, pose_locations[-1][1]))
 			curve_zloc.append((last_frame, pose_locations[-1][2]))
 			
-			ox,oy,oz= pose_locations[0]
-			x,y,z= pose_locations[1]
-			
-			for i in xrange(1, len(pose_locations)-1): # from second frame to second last frame
+			if len(pose_locations) > 1:
+				ox,oy,oz= pose_locations[0]
+				x,y,z= pose_locations[1]
 				
-				nx,ny,nz= pose_locations[i+1]
-				xset= yset= zset= True # we set all these by default
-				if abs((ox+nx)/2 - x) < 0.00001:	xset= False
-				if abs((oy+ny)/2 - y) < 0.00001:	yset= False
-				if abs((oz+nz)/2 - z) < 0.00001:	zset= False
-				
-				if xset: curve_xloc.append((i+IMPORT_START_FRAME, x))
-				if yset: curve_yloc.append((i+IMPORT_START_FRAME, y))
-				if zset: curve_zloc.append((i+IMPORT_START_FRAME, z))
-				
-				# Set the old and use the new
-				ox,oy,oz=	x,y,z
-				x,y,z=		nx,ny,nz
+				for i in xrange(1, len(pose_locations)-1): # from second frame to second last frame
+					
+					nx,ny,nz= pose_locations[i+1]
+					xset= yset= zset= True # we set all these by default
+					if abs((ox+nx)/2 - x) < 0.00001:	xset= False
+					if abs((oy+ny)/2 - y) < 0.00001:	yset= False
+					if abs((oz+nz)/2 - z) < 0.00001:	zset= False
+					
+					if xset: curve_xloc.append((i+IMPORT_START_FRAME, x))
+					if yset: curve_yloc.append((i+IMPORT_START_FRAME, y))
+					if zset: curve_zloc.append((i+IMPORT_START_FRAME, z))
+					
+					# Set the old and use the new
+					ox,oy,oz=	x,y,z
+					x,y,z=		nx,ny,nz
 		
 		
 		if has_rot:
@@ -630,26 +631,28 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 			curve_yquat.append((last_frame, pose_rotations[-1][2]))
 			curve_zquat.append((last_frame, pose_rotations[-1][3]))
 			
-			ow,ox,oy,oz= pose_rotations[0]
-			w,x,y,z= pose_rotations[1]
 			
-			for i in xrange(1, len(pose_rotations)-1): # from second frame to second last frame
+			if len(pose_rotations) > 1:
+				ow,ox,oy,oz= pose_rotations[0]
+				w,x,y,z= pose_rotations[1]
 				
-				nw, nx,ny,nz= pose_rotations[i+1]
-				wset= xset= yset= zset= True # we set all these by default
-				if abs((ow+nw)/2 - w) < 0.00001:	wset= False
-				if abs((ox+nx)/2 - x) < 0.00001:	xset= False
-				if abs((oy+ny)/2 - y) < 0.00001:	yset= False
-				if abs((oz+nz)/2 - z) < 0.00001:	zset= False
-				
-				if wset: curve_wquat.append((i+IMPORT_START_FRAME, w))
-				if xset: curve_xquat.append((i+IMPORT_START_FRAME, x))
-				if yset: curve_yquat.append((i+IMPORT_START_FRAME, y))
-				if zset: curve_zquat.append((i+IMPORT_START_FRAME, z))
-				
-				# Set the old and use the new
-				ow,ox,oy,oz=	w,x,y,z
-				w,x,y,z=		nw,nx,ny,nz
+				for i in xrange(1, len(pose_rotations)-1): # from second frame to second last frame
+					
+					nw, nx,ny,nz= pose_rotations[i+1]
+					wset= xset= yset= zset= True # we set all these by default
+					if abs((ow+nw)/2 - w) < 0.00001:	wset= False
+					if abs((ox+nx)/2 - x) < 0.00001:	xset= False
+					if abs((oy+ny)/2 - y) < 0.00001:	yset= False
+					if abs((oz+nz)/2 - z) < 0.00001:	zset= False
+					
+					if wset: curve_wquat.append((i+IMPORT_START_FRAME, w))
+					if xset: curve_xquat.append((i+IMPORT_START_FRAME, x))
+					if yset: curve_yquat.append((i+IMPORT_START_FRAME, y))
+					if zset: curve_zquat.append((i+IMPORT_START_FRAME, z))
+					
+					# Set the old and use the new
+					ow,ox,oy,oz=	w,x,y,z
+					w,x,y,z=		nw,nx,ny,nz
 
 	# IPO KEYFRAME SETTING
 	

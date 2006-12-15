@@ -465,7 +465,7 @@ int movetolayer_short_buts(short *lay, char *title)
 /* ********************** CLEVER_NUMBUTS ******************** */
 
 #define MAXNUMBUTS	120
-#define MAXNUMBUTROWS	5
+#define MAXNUMBUTROWS	8
 
 VarStruct numbuts[MAXNUMBUTS];
 void *numbpoin[MAXNUMBUTS];

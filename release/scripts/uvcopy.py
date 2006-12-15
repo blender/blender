@@ -80,8 +80,10 @@ def main():
 				# Add uvs if there not there
 				target.faceUV = True
 				
-				for i, f_source in enumerate(target.faces): 
+				for i, f_source in enumerate(source_faces): 
 					target_faces[i].uv = f_source.uv
+				
+				target.update()
 	
 	msg = 'Copied UVs to %d of %d mesh(s)' % (len(target_mes)-fail_count, len(target_mes))
 	
