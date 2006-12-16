@@ -171,7 +171,11 @@ def copy_images(dest_dir):
 		# Get MTex images
 		if matname != None:
 			mat= Material.Get(matname)
-			for mtex in mat.getTextures():
+			for mtex in mat.getTex* The ambient and emit data we can retrieve from Blender are single values, that this script copies to an RGB triplet, giving shades of gray. A config option can be set to export RGB mirror color as either or both.
+* In AC3D 4 "compatibility mode":
+** Shininess of materials is taken from the shader specularity value in Blender, mapped from [0.0, 2.0] to [0, 128].
+** Crease angle is exported, but in Blender it is limited to [1, 80], since there are other more powerful ways to control surface smoothing.  In AC3D 4.0 crease's range is [0.0, 180.0].
+* Blender groups are not supported yet.tures():
 				if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
 					try:
 						uniqueImages[mtex.tex.image.name] = None
@@ -526,7 +530,7 @@ def write_ui(filename):
 	pup_block = [\
 	('Context...'),\
 	('Selection Only', EXPORT_SEL_ONLY, 'Only export objects in visible selection. Else export whole scene.'),\
-	('All Scenes', EXPORT_ALL_SCENES, 'Each scene as a seperate OBJ file.'),\
+	('All Scenes', EXPORT_ALL_SCENES, 'Each scene as a separate OBJ file.'),\
 	('Animation', EXPORT_ANIMATION, 'Each frame as a numbered OBJ file.'),\
 	('Object Prefs...'),\
 	('Apply Modifiers', EXPORT_APPLY_MODIFIERS, 'Use transformed mesh data from each object. May break vert order for morph targets.'),\

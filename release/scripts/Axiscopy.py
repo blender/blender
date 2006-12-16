@@ -103,7 +103,6 @@ def main():
 			Draw.PupMenu("Error%t|Meshes must be single user")
 			return
 	
-	# remove linked 
 	if len(obs) < 1:
 		Draw.PupMenu("Error: you must select at least 2 objects")
 		return
