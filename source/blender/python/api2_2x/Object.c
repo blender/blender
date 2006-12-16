@@ -5082,7 +5082,7 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getRBShapeBoundType, (setter)Object_setRBShapeBoundType, 
 	 "Rigid body physics bounds object type",
 	 NULL},
-	{"rbShapeBoundType",
+	{"rbHalfExtents",
 	 (getter)Object_getRBHalfExtents, (setter)NULL, 
 	 "Rigid body physics bounds object type",
 	 NULL},
