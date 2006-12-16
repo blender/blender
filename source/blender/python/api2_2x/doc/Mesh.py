@@ -381,6 +381,10 @@ class MEdge:
   changing the select state of an edge changes the select state of the edge's
   vertices.
   @type sel: int
+  @ivar key: The edges vert indicies in an ordered tuple, this can be used as a dictionary key. Read-only.
+
+  This is the same as (min(ed.v1.index, ed.v2.index), max(ed.v1.index, ed.v2.index))
+  @type key: typle
   """
 
   def __iter__():
@@ -576,6 +580,24 @@ class MFace:
   @type cent: vector
   @ivar area: The area of the face. Read-only.
   @type area: float
+  @ivar edge_keys: A tuple, each item a key that can reference an edge by its ordered indicies. Read-only.
+  This is usefull for building connectivity data
+  Example::
+       from Blender import Mesh
+       me = Mesh.Get('Cube')
+       # a dictionary where the edge is the key, and a list of faces that use it are the value
+       edge_faces = dict([(ed.key, []) for ed in me.edges])
+
+       # Add the faces to the dict
+       for f in me.faces:
+           for key in f.edge_keys:
+               edge_faces[key].append(f) # add this face to the edge as a user
+
+       # Print the edges and the number of face users
+       for key, face_users in edge_faces.iteritems():
+           print 'Edge:', key, 'uses:', len(face_users),'faces'
+
+  @type edge_keys: tuple
   @note: there are regular faces and textured faces in Blender, both currently
     with their own selection and visibility states, due to a mix of old and new
     code.  To (un)select or (un)hide regular faces (visible in EditMode), use

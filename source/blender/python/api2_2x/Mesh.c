@@ -2223,7 +2223,7 @@ static PyObject *MEdge_getIndex( BPy_MEdge * self )
 }
 
 /*
- * get an edge's select state
+ * get an edge's flag
  */
 
 static PyObject *MEdge_getMFlagBits( BPy_MEdge * self, void * type )
@@ -2237,7 +2237,7 @@ static PyObject *MEdge_getMFlagBits( BPy_MEdge * self, void * type )
 }
 
 /*
- * get an edge's select state
+ * get an edge's length
  */
 
 static PyObject *MEdge_getLength( BPy_MEdge * self )
@@ -2260,6 +2260,24 @@ static PyObject *MEdge_getLength( BPy_MEdge * self )
 		dot += tmpf*tmpf;
 	}
 	return PyFloat_FromDouble( sqrt( dot ) );
+}
+
+/*
+ * get an key for using in a dictionary or set key
+ */
+
+static PyObject *MEdge_getKey( BPy_MEdge * self )
+{
+	MEdge *edge = MEdge_get_pointer( self );
+	PyObject *attr = PyTuple_New( 2 );
+	if (edge->v1 > edge->v2) {
+		PyTuple_SetItem( attr, 0, PyInt_FromLong(edge->v2) );
+		PyTuple_SetItem( attr, 1, PyInt_FromLong(edge->v1) );
+	} else {
+		PyTuple_SetItem( attr, 0, PyInt_FromLong(edge->v1) );
+		PyTuple_SetItem( attr, 1, PyInt_FromLong(edge->v2) );
+	}
+	return attr;
 }
 
 /*
@@ -2335,6 +2353,10 @@ static PyGetSetDef BPy_MEdge_getseters[] = {
 	{"length",
 	 (getter)MEdge_getLength, (setter)NULL,
      "edge's length, read only",
+     NULL},
+	{"key",
+	 (getter)MEdge_getKey, (setter)NULL,
+     "edge's key for using with sets or dictionaries, read only",
      NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
@@ -4150,6 +4172,95 @@ static int MFace_setCol( BPy_MFace * self, PyObject *value )
 	return 0;
 }
 
+
+/*
+ * get edge keys for using in a dictionary or set key
+ */
+
+static PyObject *MFace_getEdgeKeys( BPy_MFace * self )
+{
+	MFace *face = MFace_get_pointer( self );
+	PyObject *attr, *edpair;
+	if (face->v4) {
+		attr = PyTuple_New( 4 );
+		edpair = PyTuple_New( 2 );
+		if (face->v1 > face->v2) {
+			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v2) );
+			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v1) );
+		} else {
+			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v1) );
+			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v2) );
+		}
+		PyTuple_SetItem( attr, 0, edpair );
+		
+		edpair = PyTuple_New( 2 );
+		if (face->v2 > face->v3) {
+			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v3) );
+			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v2) );
+		} else {
+			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v2) );
+			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v3) );
+		}
+		PyTuple_SetItem( attr, 1, edpair );
+
+		edpair = PyTuple_New( 2 );
+		if (face->v3 > face->v4) {
+			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v4) );
+			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v3) );
+		} else {
+			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v3) );
+			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v4) );
+		}
+		PyTuple_SetItem( attr, 2, edpair );
+		
+		edpair = PyTuple_New( 2 );
+		if (face->v4 > face->v1) {
+			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v1) );
+			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v4) );
+		} else {
+			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v4) );
+			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v1) );
+		}
+		PyTuple_SetItem( attr, 3, edpair );
+		
+	} else {
+		
+		attr = PyTuple_New( 3 );
+		edpair = PyTuple_New( 2 );
+		if (face->v1 > face->v2) {
+			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v2) );
+			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v1) );
+		} else {
+			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v1) );
+			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v2) );
+		}
+		PyTuple_SetItem( attr, 0, edpair );
+		
+		edpair = PyTuple_New( 2 );
+		if (face->v2 > face->v3) {
+			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v3) );
+			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v2) );
+		} else {
+			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v2) );
+			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v3) );
+		}
+		PyTuple_SetItem( attr, 1, edpair );
+
+		edpair = PyTuple_New( 2 );
+		if (face->v3 > face->v1) {
+			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v1) );
+			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v3) );
+		} else {
+			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v3) );
+			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v1) );
+		}
+		PyTuple_SetItem( attr, 2, edpair );
+	}
+	
+	return attr;
+}
+
+
 /************************************************************************
  *
  * Python MFace_Type attributes get/set structure
@@ -4228,6 +4339,10 @@ static PyGetSetDef BPy_MFace_getseters[] = {
     {"uvSel",
      (getter)MFace_getUVSel, (setter)MFace_setUVSel,
      "face's UV coordinates select status",
+     NULL},
+    {"edge_keys",
+     (getter)MFace_getEdgeKeys, (setter)NULL,
+     "for each edge this face uses return an ordered tuple edge pair that can be used as a key in a dictionary or set",
      NULL},
 
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
