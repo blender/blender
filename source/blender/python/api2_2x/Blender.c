@@ -907,6 +907,10 @@ static PyObject *Blender_UnpackModesDict( void )
 /*****************************************************************************/
 /* Function:		initBlender		 */
 /*****************************************************************************/
+extern PyTypeObject IDArray_Type;
+extern PyTypeObject IDGroup_Type;
+extern PyTypeObject IDGroup_Iter_Type;
+
 void M_Blender_Init(void)
 {
 	PyObject *module;
@@ -971,6 +975,9 @@ void M_Blender_Init(void)
 	EXPP_dict_set_item_str(dict, "event", PyString_FromString(""));
 	EXPP_dict_set_item_str(dict, "mode", smode);
 
+	PyDict_SetItemString(dict, "IDGroupType", &IDGroup_Type);
+	PyDict_SetItemString(dict, "IDArrayType", &IDArray_Type);
+	
 	PyDict_SetItemString(dict, "Armature", Armature_Init());
 	PyDict_SetItemString(dict, "BezTriple", BezTriple_Init());
 	PyDict_SetItemString(dict, "BGL", BGL_Init());

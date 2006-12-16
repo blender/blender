@@ -182,6 +182,19 @@ int IDP_AddToGroup(IDProperty *group, IDProperty *prop)
 	return 1;
 }
 
+int IDP_InsertToGroup(IDProperty *group, IDProperty *previous, IDProperty *pnew)
+{
+	IDProperty *loop;
+	for (loop=group->data.group.first; loop; loop=loop->next) {
+		if (BSTR_EQ(loop->name, pnew->name)) return 0;
+	}
+	
+	group->len++;
+	
+	BLI_insertlink(&group->data.group, previous, pnew);
+	return 1;
+}
+
 void IDP_RemFromGroup(IDProperty *group, IDProperty *prop)
 {
 	group->len--;

@@ -51,7 +51,11 @@ typedef struct BPy_IDGroup_Iter {
 	PyObject_VAR_HEAD
 	BPy_IDProperty *group;
 	struct IDProperty *cur;
+	int mode;
 } BPy_IDGroup_Iter;
 
 PyObject *BPy_Wrap_IDProperty(struct ID *id, struct IDProperty *prop, struct IDProperty *parent);
 void IDProp_Init_Types(void);
+
+#define IDPROP_ITER_KEYS	0
+#define IDPROP_ITER_ITEMS	1

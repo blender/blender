@@ -95,6 +95,10 @@ be reorganized to work properly.
 */
 int IDP_AddToGroup(struct IDProperty *group, struct IDProperty *prop);
 
+/*this is the same as IDP_AddToGroup, only you pass an item
+  in the group list to be inserted after.*/
+int IDP_InsertToGroup(struct IDProperty *group, struct IDProperty *previous, 
+                      struct IDProperty *pnew);
 
 /*NOTE: this does not free the property!!
 
