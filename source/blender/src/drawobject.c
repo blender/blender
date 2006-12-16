@@ -3636,6 +3636,51 @@ static void draw_hooks(Object *ob)
 	}
 }
 
+//<rcruiz>
+void drawRBpivot(bRigidBodyJointConstraint *data){
+	float size=1.0f;
+	int axis;
+	float v1[3]= {data->pivX, data->pivY, data->pivZ};
+	float eu[3]= {data->axX, data->axY, data->axZ};
+	float mat[4][4];
+	EulToMat4(eu,mat);
+	glLineWidth (4.0f);
+	setlinestyle(2);
+	for (axis=0; axis<3; axis++) {
+			float dir[3] = {0,0,0};
+			float v[3]= {data->pivX, data->pivY, data->pivZ};
+			int arrow_axis= (axis==0)?1:0;
+			dir[axis] = 1.f;
+			glBegin(GL_LINES);
+			Mat4MulVecfl(mat,dir);
+			v[0] += dir[0];
+			v[1] += dir[1];
+			v[2] += dir[2];
+			glVertex3fv(v1);
+			glVertex3fv(v);			
+/*			v1[axis]= size*0.8;
+			v1[arrow_axis]= -size*0.125;
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+				
+			v1[arrow_axis]= size*0.125;
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+*/
+			glEnd();
+			glRasterPos3fv(v);
+			if (axis==0)
+				BMF_DrawString(G.font, "px");
+			else if (axis==1)
+				BMF_DrawString(G.font, "py");
+			else
+				BMF_DrawString(G.font, "pz");			
+					
+	}
+	glLineWidth (1.0f);
+	setlinestyle(0);
+}
+
 /* flag can be DRAW_PICKING	and/or DRAW_CONSTCOLOR */
 void draw_object(Base *base, int flag)
 {
@@ -4001,6 +4046,18 @@ void draw_object(Base *base, int flag)
 	}
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(ob);
 
+	{
+		bConstraint *con;
+		for(con=ob->constraints.first; con; con= con->next) 
+		{
+			if(con->type==CONSTRAINT_TYPE_RIGIDBODYJOINT) 
+			{
+				bRigidBodyJointConstraint *data = (bRigidBodyJointConstraint*)con->data;
+				if(data->flag&CONSTRAINT_DRAW_PIVOT)
+					drawRBpivot(data);
+			}
+		}
+	}
 
 	/* draw extra: after normal draw because of makeDispList */
 	if(dtx) {

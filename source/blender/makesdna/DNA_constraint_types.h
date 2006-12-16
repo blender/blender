@@ -324,6 +324,8 @@ typedef struct bRigidBodyJointConstraint{
 
 #define LIMIT_NOPARENT 0x01
 
+#define CONSTRAINT_DRAW_PIVOT 0x40
+
 /* important: these defines need to match up with PHY_DynamicTypes headerfile */
 #define CONSTRAINT_RB_BALL		1
 #define CONSTRAINT_RB_HINGE		2

@@ -394,6 +394,9 @@ else
 			* the settings for that preceed the logic and physics
 			* update. */
 			m_logger->StartLog(tc_logic, m_kxsystem->GetTimeInSeconds(), true);
+
+			m_sceneconverter->resetNoneDynamicObjectToIpo();//this is for none dynamic objects with ipo
+
 			scene->UpdateObjectActivity();
 	
 			if (!scene->IsSuspended())
@@ -456,7 +459,7 @@ else
 			
 			
 				if (m_game2ipo)
-				{
+				{					
 					m_sceneconverter->WritePhysicsObjectToAnimationIpo(++m_currentFrame);
 				}
 

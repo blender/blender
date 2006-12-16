@@ -1002,7 +1002,10 @@ PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radi
 
 int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl0,class PHY_IPhysicsController* ctrl1,PHY_ConstraintType type,
 													float pivotX,float pivotY,float pivotZ,
-													float axisX,float axisY,float axisZ)
+													float axisX,float axisY,float axisZ,
+													float axis1X,float axis1Y,float axis1Z,
+													float axis2X,float axis2Y,float axis2Z
+													)
 {
 
 
@@ -1066,9 +1069,12 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 				btTransform frameInA;
 				btTransform frameInB;
 				
-				btVector3 axis1, axis2;
-				btPlaneSpace1( axisInA, axis1, axis2 );
-
+				btVector3 axis1(axis1X,axis1Y,axis1Z), axis2(axis2X,axis2Y,axis2Z);
+				if (axis1.length() == 0.0)
+				{
+					btPlaneSpace1( axisInA, axis1, axis2 );
+				}
+				
 				frameInA.getBasis().setValue( axisInA.x(), axis1.x(), axis2.x(),
 					                          axisInA.y(), axis1.y(), axis2.y(),
 											  axisInA.z(), axis1.z(), axis2.z() );

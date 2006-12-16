@@ -117,7 +117,10 @@ protected:
 
 		virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,
-			float axisX,float axisY,float axisZ);
+			float axisX,float axisY,float axisZ,
+			float axis1X=0,float axis1Y=0,float axis1Z=0,
+			float axis2X=0,float axis2Y=0,float axis2Z=0
+			);
 
 
 		//Following the COLLADA physics specification for constraints

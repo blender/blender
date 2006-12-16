@@ -1159,14 +1159,16 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				{
 				    //uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, "");
                     uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "toObject:", *xco, *yco-50, 130, 18, &data->tar, "Child Object");
+                    uiDefButBitS(block, TOG, CONSTRAINT_DRAW_PIVOT, B_CONSTRAINT_TEST, "ShowPivot", *xco+135, *yco-50, 130, 18, &data->flag, 0, 24, 0, 0, "Show pivot position and rotation"); 				
                     //if (data->tar)
                     //    uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "Child:", *xco+135, *yco-50, 130, 18, &data->child, "Child2 Object (if this exist then this object will be the pivot Only)");
-                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot X:", *xco, *yco-75, 130, 18, &data->pivX, -10000, 10000, 100.0, 0.0, "Offset Joint");
-                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Y:", *xco, *yco-100, 130, 18, &data->pivY, -10000, 10000, 100.0, 0.0, "Offset Joint");
-                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Z:", *xco, *yco-125, 130, 18, &data->pivZ, -10000, 10000, 100.0, 0.0, "Offset Joint");
-                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax X:", *xco+135, *yco-75, 130, 18, &data->axX, -10000, 10000, 100.0, 0.0, "Offset Joint");
-                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax Y:", *xco+135, *yco-100, 130, 18, &data->axY, -10000, 10000, 100.0, 0.0, "Offset Joint");
-                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax Z:", *xco+135, *yco-125, 130, 18, &data->axZ, -10000, 10000, 100.0, 0.0, "Offset Joint");
+                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot X:", *xco, *yco-75, 130, 18, &data->pivX, -1000, 1000, 0.1, 0.0, "Offset pivot on X");
+                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Y:", *xco, *yco-100, 130, 18, &data->pivY, -1000, 1000, 0.1, 0.0, "Offset pivot on Y");
+                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Z:", *xco, *yco-125, 130, 18, &data->pivZ, -1000, 1000, 0.1, 0.0, "Offset pivot on z");
+					
+                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "AxEX:", *xco+135, *yco-75, 130, 18, &data->axX, -3.141592, 3.141592, 0.1, 0.0, "Rotate pivot on X Axis");
+                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "AxEY:", *xco+135, *yco-100, 130, 18, &data->axY, -3.141592, 3.141592, 0.1, 0.0, "Rotate pivot on Y Axis");
+                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "AxEZ:", *xco+135, *yco-125, 130, 18, &data->axZ, -3.141592, 3.141592, 0.1, 0.0, "Rotate pivot on Z Axis");
 					
 					if (data->type==CONSTRAINT_RB_GENERIC6DOF){
 						/* Draw Pairs of LimitToggle+LimitValue */

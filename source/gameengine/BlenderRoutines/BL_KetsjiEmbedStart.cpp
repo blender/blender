@@ -83,6 +83,15 @@
 #include "DNA_scene_types.h"
 	/***/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "BSE_headerbuttons.h"
+void update_for_newframe();
+#ifdef __cplusplus
+}
+#endif
+
 static BlendFileData *load_game_data(char *filename) {
 	BlendReadError error;
 	//this doesn't work anymore for relative paths, so use BLO_read_from_memory instead
@@ -310,7 +319,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			// create a scene converter, create and convert the startingscene
 			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(blenderdata,sipo, ketsjiengine);
 			ketsjiengine->SetSceneConverter(sceneconverter);
-			
+			sceneconverter->addInitFromFrame=false;
 			if (always_use_expand_framing)
 				sceneconverter->SetAlwaysUseExpandFraming(true);
 			
@@ -452,14 +461,6 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 
 	if (bfd) BLO_blendfiledata_free(bfd);
 }
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "BSE_headerbuttons.h"
-void update_for_newframe();
-#ifdef __cplusplus
-}
-#endif
 
 extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 								 char* scenename,
@@ -481,7 +482,6 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 
 	do
 	{
-//		View3D *v3d= (View3D*) area->spacedata.first;
 
 		// get some preferences
 		SYS_SystemHandle syshandle = SYS_GetSystem();
@@ -493,19 +493,6 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
 		bool usemat = false;
 
-/*		#ifdef GL_ARB_multitexture
-		if(bgl::RAS_EXT_support._ARB_multitexture && bgl::QueryVersion(1, 1)) {
-			usemat = (SYS_GetCommandLineInt(syshandle, "blender_material", 0) != 0);
-			int unitmax=0;
-			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint*)&unitmax);
-			bgl::max_texture_units = MAXTEX>unitmax?unitmax:MAXTEX;
-			//std::cout << "using(" << bgl::max_texture_units << ") of(" << unitmax << ") texture units." << std::endl;
-		} else {
-			bgl::max_texture_units = 0;
-		}
-		#endif
-
-*/
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
 		//canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
@@ -544,83 +531,8 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 		// create the ketsjiengine
 		KX_KetsjiEngine* ketsjiengine = new KX_KetsjiEngine(kxsystem);
 
-/*		// set the devices
-		ketsjiengine->SetKeyboardDevice(keyboarddevice);
-		ketsjiengine->SetMouseDevice(mousedevice);
-		ketsjiengine->SetNetworkDevice(networkdevice);
-		ketsjiengine->SetCanvas(canvas);
-		ketsjiengine->SetRenderTools(rendertools);
-		ketsjiengine->SetRasterizer(rasterizer);
-		ketsjiengine->SetNetworkDevice(networkdevice);
-		ketsjiengine->SetAudioDevice(audiodevice);
-		ketsjiengine->SetUseFixedTime(usefixed);
-		ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
-
-*/
-
-		// some blender stuff
-		MT_CmMatrix4x4 projmat;
-		MT_CmMatrix4x4 viewmat;
 		int i;
 
-/*		for (i = 0; i < 16; i++)
-		{
-			float *viewmat_linear= (float*) v3d->viewmat;
-			viewmat.setElem(i, viewmat_linear[i]);
-		}
-		for (i = 0; i < 16; i++)
-		{
-			float *projmat_linear = (float*) area->winmat;
-			projmat.setElem(i, projmat_linear[i]);
-		}
-*/
-/*		float camzoom = (1.41421 + (v3d->camzoom / 50.0));
-		camzoom *= camzoom;
-		camzoom = 4.0 / camzoom;
-*/
-//		ketsjiengine->SetDrawType(v3d->drawtype);
-//		ketsjiengine->SetCameraZoom(camzoom);
-/*
-		// if we got an exitcode 3 (KX_EXIT_REQUEST_START_OTHER_GAME) load a different file
-		if (exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME || exitrequested == KX_EXIT_REQUEST_RESTART_GAME)
-		{
-			exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
-			if (bfd) BLO_blendfiledata_free(bfd);
-
-			char basedpath[160];
-			// base the actuator filename with respect
-			// to the original file working directory
-			if (exitstring != "")
-				strcpy(basedpath, exitstring.Ptr());
-
-			BLI_convertstringcode(basedpath, pathname, 0);
-			bfd = load_game_data(basedpath);
-
-			// if it wasn't loaded, try it forced relative
-			if (!bfd)
-			{
-				// just add "//" in front of it
-				char temppath[162];
-				strcpy(temppath, "//");
-				strcat(temppath, basedpath);
-
-				BLI_convertstringcode(temppath, pathname, 0);
-				bfd = load_game_data(temppath);
-			}
-
-			// if we got a loaded blendfile, proceed
-			if (bfd)
-			{
-				blenderdata = bfd->main;
-				startscenename = bfd->curscene->id.name + 2;
-			}
-			// else forget it, we can't find it
-			else
-			{
-				exitrequested = KX_EXIT_REQUEST_QUIT_GAME;
-			}
-		}
-*/
 		Scene *blscene = NULL;
 		if (!bfd)
 		{
@@ -652,18 +564,11 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{
-			/*if (v3d->persp != 2)
-			{
-				ketsjiengine->EnableCameraOverride(startscenename);
-				ketsjiengine->SetCameraOverrideUseOrtho((v3d->persp == 0));
-				ketsjiengine->SetCameraOverrideProjectionMatrix(projmat);
-				ketsjiengine->SetCameraOverrideViewMatrix(viewmat);
-			}*/
-
 			// create a scene converter, create and convert the startingscene
 			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(maggie,sipo, ketsjiengine);
 			ketsjiengine->SetSceneConverter(sceneconverter);
-
+			sceneconverter->addInitFromFrame=true;
+			
 			if (always_use_expand_framing)
 				sceneconverter->SetAlwaysUseExpandFraming(true);
 
@@ -675,7 +580,6 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 				networkdevice,
 				audiodevice,
 				startscenename);
-
 			// some python things
 			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest);
 			ketsjiengine->SetPythonDictionary(dictionaryobject);
@@ -696,9 +600,6 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 					canvas);
 				ketsjiengine->AddScene(startscene);
 
-				// init the rasterizer
-				//rasterizer->Init();
-
 				// start the engine
 				ketsjiengine->StartEngine(false);
 
@@ -708,38 +609,22 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
                     printf("frame %i\n",blscene->r.cfra);
                     // first check if we want to exit
 					exitrequested = ketsjiengine->GetExitCode();
-
+					/*for (int ix=0;i<geobjs->GetCount();ix++){
+						KX_GameObject* gameobj = (KX_GameObject*) geobjs->GetValue(ix);
+						if (!gameobj->IsDynamic()){
+							//gameobj->UpdateNonDynas();//UpdateIPO((float)blscene->r.cfra,true, true, true);
+							struct Object* blenderobject = sceneconverter->FindBlenderObject(gameobj);
+						}
+					}*/
+	
+	
 					// kick the engine
 					ketsjiengine->NextFrame();
 				    blscene->r.cfra=blscene->r.cfra+1;
 				    update_for_newframe();
-					// render the frame
-					//ketsjiengine->Render();
-
-					// test for the ESC key
-					/*while (qtest())
-					{
-						short val;
-						unsigned short event = extern_qread(&val);
-
-						if (keyboarddevice->ConvertBlenderEvent(event,val))
-							exitrequested = KX_EXIT_REQUEST_BLENDER_ESC;
-
-						if (event==MOUSEX) {
-							val = val - scrarea_get_win_x(area);
-						} else if (event==MOUSEY) {
-							val = scrarea_get_win_height(area) - (val - scrarea_get_win_y(area)) - 1;
-						}
-
-						mousedevice->ConvertBlenderEvent(event,val);
-					}*/
+					
 				}
 				exitstring = ketsjiengine->GetExitString();
-				// when exiting the mainloop
-				//dictionaryClearByHand(gameLogic);
-				//ketsjiengine->StopEngine();
-				//exitGamePythonScripting();
-				//networkdevice->Disconnect();
 			}
 			if (sceneconverter)
 			{
@@ -778,21 +663,6 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 			delete mousedevice;
 			mousedevice = NULL;
 		}
-		/*if (rasterizer)
-		{
-			delete rasterizer;
-			rasterizer = NULL;
-		}
-		if (rendertools)
-		{
-			delete rendertools;
-			rendertools = NULL;
-		}
-		if (canvas)
-		{
-			delete canvas;
-			canvas = NULL;
-		}*/
 		SND_DeviceManager::Unsubscribe();
 
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);

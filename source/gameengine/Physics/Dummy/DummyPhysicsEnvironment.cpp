@@ -93,7 +93,11 @@ void DummyPhysicsEnvironment::setGravity(float x,float y,float z)
 
 
 int			DummyPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
-		float pivotX,float pivotY,float pivotZ,float axisX,float axisY,float axisZ)
+		float pivotX,float pivotY,float pivotZ,float axisX,float axisY,float axisZ,
+			float axis1X,float axis1Y,float axis1Z,
+			float axis2X,float axis2Y,float axis2Z
+
+		)
 {
 	
 	int constraintid = 0;

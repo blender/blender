@@ -77,6 +77,8 @@
 #include "DNA_world_types.h"
 #include "BKE_main.h"
 
+#include "BLI_arithb.h"
+
 extern "C"
 {
 #include "DNA_object_types.h"
@@ -560,7 +562,8 @@ IpoCurve* findIpoCurve(IpoCurve* first,char* searchName)
 	return 0;
 }
 
-Ipo* KX_BlenderSceneConverter::findIpoForName(char* objName)
+// this is not longer necesary //rcruiz
+/*Ipo* KX_BlenderSceneConverter::findIpoForName(char* objName)
 {
 	Ipo* ipo_iter = (Ipo*)m_maggie->ipo.first;
 
@@ -574,7 +577,7 @@ Ipo* KX_BlenderSceneConverter::findIpoForName(char* objName)
 	}
 	return 0;
 }
-
+*/
 
 void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 {
@@ -600,29 +603,35 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 				if (blenderObject)
 				{
 					//erase existing ipo's
-					Ipo* ipo = findIpoForName(blenderObject->id.name+2);
+					Ipo* ipo = blenderObject->ipo;//findIpoForName(blenderObject->id.name+2);
 					if (ipo)
-					{
-						//clear the curve data
-						if (clearIpo){
-						IpoCurve *icu1;
-						int numCurves = 0;
-						for( icu1 = (IpoCurve*)ipo->curve.first; icu1;  ) {
+					{ 	//clear the curve data
+						if (clearIpo){//rcruiz
+							IpoCurve *icu1;
+														
+							int numCurves = 0;
+							for( icu1 = (IpoCurve*)ipo->curve.first; icu1;  ) {
 							
-							IpoCurve* tmpicu = icu1;
-							icu1 = icu1->next;
-							numCurves++;
+								IpoCurve* tmpicu = icu1;
+								
+								/*int i;
+								BezTriple *bezt;
+								for( bezt = tmpicu->bezt, i = 0;	i < tmpicu->totvert; i++, bezt++){
+									printf("(%f,%f,%f),(%f,%f,%f),(%f,%f,%f)\n",bezt->vec[0][0],bezt->vec[0][1],bezt->vec[0][2],bezt->vec[1][0],bezt->vec[1][1],bezt->vec[1][2],bezt->vec[2][0],bezt->vec[2][1],bezt->vec[2][2]);
+								}*/
+								
+								icu1 = icu1->next;
+								numCurves++;
 			
-							BLI_remlink( &( blenderObject->ipo->curve ), tmpicu );
-							if( tmpicu->bezt )
-								MEM_freeN( tmpicu->bezt );
-							MEM_freeN( tmpicu );
-							localDel_ipoCurve( tmpicu ,m_sipo);
-						}
-					  }
+								BLI_remlink( &( blenderObject->ipo->curve ), tmpicu );
+								if( tmpicu->bezt )
+									MEM_freeN( tmpicu->bezt );
+								MEM_freeN( tmpicu );
+								localDel_ipoCurve( tmpicu ,m_sipo);
+							}
+					  	}
 					} else
-					{
-						ipo = add_ipo(blenderObject->id.name+2, ID_OB);
+					{	ipo = add_ipo(blenderObject->id.name+2, ID_OB);
 						blenderObject->ipo = ipo;
 
 					}
@@ -643,6 +652,48 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 
 }
 
+void	KX_BlenderSceneConverter::resetNoneDynamicObjectToIpo(){
+	
+	if (addInitFromFrame){		
+		KX_SceneList* scenes = m_ketsjiEngine->CurrentScenes();
+		int numScenes = scenes->size();
+		if (numScenes>=0){
+			KX_Scene* scene = scenes->at(0);
+			CListValue* parentList = scene->GetRootParentList();
+			for (int ix=0;ix<parentList->GetCount();ix++){
+				KX_GameObject* gameobj = (KX_GameObject*)parentList->GetValue(ix);
+				if (!gameobj->IsDynamic()){
+					Object* blenderobject = FindBlenderObject(gameobj);
+					if (!blenderobject)
+						continue;
+					if (blenderobject->type==OB_ARMATURE)
+						continue;
+					float eu[3];
+					Mat4ToEul(blenderobject->obmat,eu);					
+					MT_Point3 pos = MT_Point3(
+						blenderobject->obmat[3][0],
+						blenderobject->obmat[3][1],
+						blenderobject->obmat[3][2]
+					);
+					MT_Vector3 eulxyz = MT_Vector3(
+						eu[0],
+						eu[1],
+						eu[2]
+					);
+					MT_Vector3 scale = MT_Vector3(
+						blenderobject->size[0],
+						blenderobject->size[1],
+						blenderobject->size[2]
+					);
+					gameobj->NodeSetLocalPosition(pos);
+					gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
+					gameobj->NodeSetLocalScale(scale);
+					gameobj->NodeUpdateGS(0,true);
+				}
+			}
+		}
+	}
+}
 
 #define TEST_HANDLES_GAME2IPO 0
 
@@ -797,9 +848,8 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 		}
 		
 	
-	}
-
-
+	}	
+	
 
 }
 

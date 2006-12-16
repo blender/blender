@@ -167,6 +167,18 @@
 #include "BL_ArmatureObject.h"
 #include "BL_DeformableGameObject.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "BSE_headerbuttons.h"
+void update_for_newframe();
+//void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
+//#include "BKE_ipo.h"
+//void do_all_data_ipos(void);
+#ifdef __cplusplus
+}
+#endif
+
 static int default_face_mode = TF_DYNAMIC;
 
 static unsigned int KX_rgbaint2uint_new(unsigned int icol)
@@ -1618,7 +1630,7 @@ KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist){
 	return 0;
 
 }
-
+#include "BLI_arithb.h"
 // convert blender objects into ketsji gameobjects
 void BL_ConvertBlenderObjects(struct Main* maggie,
 							  const STR_String& scenename,
@@ -1642,6 +1654,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	RAS_FrameSettings::RAS_FrameType frame_type;
 	int aspect_width;
 	int aspect_height;
+	vector<MT_Vector3> inivel,iniang;
 	
 	if (alwaysUseExpandFraming) {
 		frame_type = RAS_FrameSettings::e_frame_extend;
@@ -1720,6 +1733,10 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 											
 		if (gameobj)
 		{
+			MT_Point3 posPrev;			
+			MT_Matrix3x3 angor;			
+			if (converter->addInitFromFrame) blenderscene->r.cfra=blenderscene->r.sfra;
+			
 			MT_Point3 pos = MT_Point3(
 				blenderobject->loc[0]+blenderobject->dloc[0],
 				blenderobject->loc[1]+blenderobject->dloc[1],
@@ -1735,7 +1752,26 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				blenderobject->size[1],
 				blenderobject->size[2]
 			);
-			
+			if (converter->addInitFromFrame){//rcruiz
+				float eulxyzPrev[3];
+				blenderscene->r.cfra=blenderscene->r.sfra-1;
+				update_for_newframe();
+				MT_Vector3 tmp=pos-MT_Point3(blenderobject->loc[0]+blenderobject->dloc[0],
+											blenderobject->loc[1]+blenderobject->dloc[1],
+											blenderobject->loc[2]+blenderobject->dloc[2]
+									);
+				eulxyzPrev[0]=blenderobject->rot[0];
+				eulxyzPrev[1]=blenderobject->rot[1];
+				eulxyzPrev[2]=blenderobject->rot[2];
+				tmp.scale((float)blenderscene->r.frs_sec,(float)blenderscene->r.frs_sec,(float)blenderscene->r.frs_sec);
+				inivel.push_back(tmp);
+				tmp=eulxyz-eulxyzPrev;
+				tmp.scale((float)blenderscene->r.frs_sec,(float)blenderscene->r.frs_sec,(float)blenderscene->r.frs_sec);
+				iniang.push_back(tmp);
+				blenderscene->r.cfra=blenderscene->r.sfra;
+				update_for_newframe();
+			}		
+						
 			gameobj->NodeSetLocalPosition(pos);
 			gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
 			gameobj->NodeSetLocalScale(scale);
@@ -1759,7 +1795,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			templist->Add(gameobj->AddRef());
 			
 			// update children/parent hierarchy
-			if (blenderobject->parent != 0)
+			if ((blenderobject->parent != 0)&&(!converter->addInitFromFrame))
 			{
 				// blender has an additional 'parentinverse' offset in each object
 				SG_Node* parentinversenode = new SG_Node(NULL,NULL,SG_Callbacks());
@@ -1790,12 +1826,15 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				logicmgr->RegisterGameMeshName(gameobj->GetMesh(i)->GetName(), blenderobject);
 	
 			converter->RegisterGameObject(gameobj, blenderobject);	
-			
 			// this was put in rapidly, needs to be looked at more closely
 			// only draw/use objects in active 'blender' layers
 	
 			logicbrick_conversionlist->Add(gameobj->AddRef());
 			
+			if (converter->addInitFromFrame){
+				posPrev=gameobj->NodeGetWorldPosition();
+				angor=gameobj->NodeGetWorldOrientation();
+			}
 			if (isInActiveLayer)
 			{
 				objectlist->Add(gameobj->AddRef());
@@ -1805,7 +1844,11 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				gameobj->Bucketize();
 				
 			}
-			
+			if (converter->addInitFromFrame){
+				gameobj->NodeSetLocalPosition(posPrev);
+				gameobj->NodeSetLocalOrientation(angor);
+			}
+						
 		}
 			
 		base = base->next;
@@ -1928,6 +1971,20 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		}
 		BL_CreatePhysicsObjectNew(gameobj,blenderobject,meshobj,kxscene,activeLayerBitInfo,physics_engine,converter,processCompoundChildren);
 	}
+	
+	
+	//set ini linearVel and int angularVel //rcruiz
+	if (converter->addInitFromFrame)
+		for (i=0;i<sumolist->GetCount();i++)
+		{
+			KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
+			if (gameobj->IsDynamic()){
+				gameobj->setLinearVelocity(inivel[i],false);
+				gameobj->setAngularVelocity(iniang[i],false);
+			}
+		
+		
+		}	
 
 		// create physics joints
 	for (i=0;i<sumolist->GetCount();i++)
@@ -1956,8 +2013,19 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							if (gameobj->GetPhysicsController())
 							{
 								PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) gameobj->GetPhysicsController()->GetUserData();
+								//we need to pass a full constraint frame, not just axis
 	                            
-								int constraintId = kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,(float)dat->pivY,(float)dat->pivZ,(float)dat->axX,(float)dat->axY,(float)dat->axZ);
+								//localConstraintFrameBasis
+								MT_Matrix3x3 localCFrame(MT_Vector3(dat->axX,dat->axY,dat->axZ));
+								MT_Vector3 axis0 = localCFrame.getColumn(0);
+								MT_Vector3 axis1 = localCFrame.getColumn(1);
+								MT_Vector3 axis2 = localCFrame.getColumn(2);
+								
+								int constraintId = kxscene->GetPhysicsEnvironment()->createConstraint(physctrl,physctr2,(PHY_ConstraintType)dat->type,(float)dat->pivX,(float)dat->pivY,(float)dat->pivZ,
+								(float)axis0.x(),(float)axis0.y(),(float)axis0.z(),
+								(float)axis1.x(),(float)axis1.y(),(float)axis1.z(),
+								(float)axis2.x(),(float)axis2.y(),(float)axis2.z()
+											);
 								//if it is a generic 6DOF constraint, set all the limits accordingly
 								if (dat->type == PHY_GENERIC_6DOF_CONSTRAINT)
 								{
@@ -1984,39 +2052,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 	}
 
-    //Intento de actualizar posicion
-	/*for (i=0;i<sumolist->GetCount();i++)
-	{
-		KX_GameObject* gameobj = (KX_GameObject*) sumolist->GetValue(i);
-		struct Object* blenderobject = converter->FindBlenderObject(gameobj);
-
-		MT_Point3 pos = MT_Point3(
-				blenderobject->loc[0]+blenderobject->dloc[0],
-				blenderobject->loc[1]+blenderobject->dloc[1],
-				blenderobject->loc[2]+blenderobject->dloc[2]
-			);
-		MT_Vector3 eulxyz = MT_Vector3(
-				blenderobject->rot[0],
-				blenderobject->rot[1],
-				blenderobject->rot[2]
-			);
-		MT_Vector3 scale = MT_Vector3(
-				blenderobject->size[0],
-				blenderobject->size[1],
-				blenderobject->size[2]
-			);
-
-		gameobj->NodeSetLocalPosition(pos);
-		gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
-		gameobj->NodeSetLocalScale(scale);
-		gameobj->NodeUpdateGS(0,true);
-	}*/
-    //rcruiz>
-
-	
 	templist->Release();
 	sumolist->Release();	
-
 
 	int executePriority=0; /* incremented by converter routines */
 	

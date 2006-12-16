@@ -76,7 +76,7 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	bool					m_usemat;
 
 	void localDel_ipoCurve ( IpoCurve * icu ,struct SpaceIpo*	sipo);
-	struct Ipo* findIpoForName(char* objName);
+//	struct Ipo* findIpoForName(char* objName);
 
 public:
 	KX_BlenderSceneConverter(
@@ -132,6 +132,9 @@ public:
 
 	virtual void	ResetPhysicsObjectsAnimationIpo(bool clearIpo);
 
+	///this is for reseting the position,rotation and scale of the gameobjet that is not dynamic
+	virtual	void	resetNoneDynamicObjectToIpo();
+	
 	///this generates ipo curves for position, rotation, allowing to use game physics in animation
 	virtual void	WritePhysicsObjectToAnimationIpo(int frameNumber);
 	virtual void	TestHandlesPhysicsObjectToAnimationIpo();
