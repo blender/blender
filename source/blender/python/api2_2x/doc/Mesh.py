@@ -722,6 +722,9 @@ class Mesh:
   @type subDivLevels: list of 2 ints
   @ivar users: The number of Objects using (linked to) this mesh. (read only)
   @type users: int
+  @ivar fakeUser: The fake user status.
+    enabling this will keep it in the blend even if there are no users.
+  @type fakeUser: bool
 
   @ivar faceUV: The mesh contains UV-mapped textured faces.  Enabling faceUV
     does not initialize the face colors like the Blender UI does; this must

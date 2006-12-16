@@ -4422,6 +4422,38 @@ static PyObject *Object_getUsers( BPy_Object * self )
 	return PyInt_FromLong( self->object->id.us );
 }
 
+static PyObject *Object_getFakeUser( BPy_Object * self )
+{
+	if (self->object->id.flag & LIB_FAKEUSER)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+static int Object_setFakeUser( BPy_Object * self, PyObject * value )
+{
+	int param;
+	ID *id = &self->object->id;
+	param = PyObject_IsTrue( value );
+
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument in range [0,1]" );
+	
+	if (param) {
+		if (!(id->flag & LIB_FAKEUSER)) {
+			id->flag |= LIB_FAKEUSER;
+			id_us_plus(id);
+		}
+	} else {
+		if (id->flag & LIB_FAKEUSER) {
+			id->flag &= ~LIB_FAKEUSER;
+			id->us--;
+		}
+	}
+	return 0;
+}
+
 /* Localspace matrix */
 
 static PyObject *Object_getMatrixLocal( BPy_Object * self )
@@ -4867,7 +4899,11 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getUsers, (setter)NULL,
 	 "The number of object users",
 	 NULL},
-
+	{"fakeUser",
+	 (getter)Object_getFakeUser, (setter)Object_setFakeUser,
+	 "The fake user status of this object",
+	 NULL},
+	 
 	{"piFalloff",
 	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
 	 "The particle interaction falloff power",
@@ -5008,14 +5044,23 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 "Transparent materials for the active object (mesh only) enabled",
 	 (void *)OB_DRAWTRANSP},
 
-	{"enableDupVerts",
-	 (getter)Object_getTransflagBits, (setter)Object_setTransflagBits,
-	 "Duplicate child objects on all vertices",
-	 (void *)OB_DUPLIVERTS},
 	{"enableNLAOverride",
 	 (getter)Object_getNLAflagBits, (setter)Object_setNLAflagBits,
 	 "Toggles Action-NLA based animation",
 	 (void *)OB_NLA_OVERRIDE},
+
+	{"enableDupVerts",
+	 (getter)Object_getTransflagBits, (setter)Object_setTransflagBits,
+	 "Duplicate child objects on all vertices",
+	 (void *)OB_DUPLIVERTS},
+	{"enableDupFaces",
+	 (getter)Object_getTransflagBits, (setter)Object_setTransflagBits,
+	 "Duplicate child objects on all faces",
+	 (void *)OB_DUPLIFACES},
+	{"enableDupFacesScale",
+	 (getter)Object_getTransflagBits, (setter)Object_setTransflagBits,
+	 "Use face scale to scale all dupliFaces",
+	 (void *)OB_DUPLIFACES_SCALE},
 	{"enableDupFrames",
 	 (getter)Object_getTransflagBits, (setter)Object_setTransflagBits,
 	 "Make copy of object for every frame",

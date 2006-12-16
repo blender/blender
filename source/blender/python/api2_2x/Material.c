@@ -527,12 +527,14 @@ static int Material_setRefracIndex( BPy_Material * self, PyObject * value );
 static int Material_setRms( BPy_Material * self, PyObject * value );
 static int Material_setFilter( BPy_Material * self, PyObject * value );
 static int Material_setTranslucency( BPy_Material * self, PyObject * value );
+static int Material_setFakeUser( BPy_Material * self, PyObject * value );
 
 static PyObject *Material_getColorComponent( BPy_Material * self,
 							void * closure );
 static PyObject *Material_getOopsLoc( BPy_Material * self );
 static PyObject *Material_getOopsSel( BPy_Material * self );
 static PyObject *Material_getUsers( BPy_Material * self );
+static PyObject *Material_getFakeUser( BPy_Material * self );
 /*static int Material_setSeptex( BPy_Material * self, PyObject * value );
   static PyObject *Material_getSeptex( BPy_Material * self );*/
 
@@ -1085,6 +1087,10 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	{"users",
 	 (getter)Material_getUsers, (setter)NULL,
 	 "Number of material users",
+	 NULL},
+	{"fakeUser",
+	 (getter)Material_getFakeUser, (setter)Material_setFakeUser,
+	 "The fake user status of this material",
 	 NULL},
 	 {"properties", (getter) Material_getProperties, (setter)NULL,
 	 "Get material's ID properties"},
@@ -2852,6 +2858,39 @@ static PyObject *Material_getUsers( BPy_Material * self )
 {
 	return PyInt_FromLong( self->material->id.us );
 }
+
+static PyObject *Material_getFakeUser( BPy_Material * self )
+{
+	if (self->material->id.flag & LIB_FAKEUSER)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+static int Material_setFakeUser( BPy_Material * self, PyObject * value )
+{
+	int param;
+	ID *id = &self->material->id;
+	param = PyObject_IsTrue( value );
+
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument in range [0,1]" );
+	
+	if (param) {
+		if (!(id->flag & LIB_FAKEUSER)) {
+			id->flag |= LIB_FAKEUSER;
+			id_us_plus(id);
+		}
+	} else {
+		if (id->flag & LIB_FAKEUSER) {
+			id->flag &= ~LIB_FAKEUSER;
+			id->us--;
+		}
+	}
+	return 0;
+}
+
 
 /* #####DEPRECATED###### */
 

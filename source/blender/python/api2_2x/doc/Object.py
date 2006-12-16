@@ -407,6 +407,12 @@ class Object:
         Does not indicate that this object has any dupliVerts,
         (as returned by L{DupObjects}) just that dupliVerts are enabled.
     @type enableDupVerts: boolean
+    @ivar enableDupFaces: The DupliFaces status of the object.
+        Does not indicate that this object has any dupliFaces,
+        (as returned by L{DupObjects}) just that dupliFaces are enabled.
+    @type enableDupFaces: boolean
+    @ivar enableDupFacesScale: The DupliFacesScale status of the object.
+    @type enableDupFacesScale: boolean
     @ivar enableDupFrames: The DupliFrames status of the object.
         Does not indicate that this object has any dupliFrames,
         (as returned by L{DupObjects}) just that dupliFrames are enabled.
@@ -472,6 +478,9 @@ class Object:
     @type type: string
     @ivar users: The number of users of the object.  Read-only.
     @type users: int
+    @ivar fakeUser: The fake user status.
+      enabling this will keep it in the blend even if there are no users.
+    @type fakeUser: bool
     @ivar boundingBox: The bounding box of this object.  Read-only.
     @type boundingBox: list of 8 3D vectors
     @ivar drawType: The object's drawing type.

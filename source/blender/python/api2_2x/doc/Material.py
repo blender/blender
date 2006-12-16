@@ -285,6 +285,9 @@ class Material:
   @type translucency:  float
   @ivar users:  Number of material users.
   @type users:  int
+  @ivar fakeUser: The fake user status.
+    enabling this will keep it in the blend even if there are no users.
+  @type fakeUser: bool
   @ivar zOffset:  Artificial offset in the Z buffer (for Ztransp option).
   Value is clamped to the range [0.0,10.0].
   @type zOffset:  float
