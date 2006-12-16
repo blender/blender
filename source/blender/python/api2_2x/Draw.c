@@ -1416,8 +1416,8 @@ static PyObject *Method_PupBlock( PyObject * self, PyObject * args )
 	if (len == 0)
 		return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string and a non-empty sequence." );
 
-	if (len > 24) /* LIMIT DEFINED IN toolbox.c	*/
-		return EXPP_ReturnPyObjError( PyExc_ValueError, "sequence cannot have more than 24 elements" );
+	if (len > 120) /* LIMIT DEFINED IN toolbox.c	*/
+		return EXPP_ReturnPyObjError( PyExc_ValueError, "sequence cannot have more than 120 elements" );
 
 	for ( i=0 ; i<len ; i++ ) {
 		PyObject *pyMin = NULL, *pyMax = NULL;

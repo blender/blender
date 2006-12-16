@@ -39,6 +39,15 @@
 #include "PIL_time.h"
 #include "gen_utils.h"
 
+#ifdef WIN32
+#define DIRSEP '\\'
+#define DIRSEP_STR "\\"
+#else
+#define DIRSEP '/'
+#define DIRSEP_STR "/"
+#endif
+
+
 /*****************************************************************************/
 /* Python API function prototypes for the sys module.                        */
 /*****************************************************************************/
@@ -142,35 +151,23 @@ static PyObject *g_sysmodule = NULL;	/* pointer to Blender.sys module */
 
 PyObject *sys_Init( void )
 {
-	PyObject *submodule, *dict, *sep;
+	PyObject *submodule, *dict;
 
 	submodule = Py_InitModule3( "Blender.sys", M_sys_methods, M_sys_doc );
 
 	g_sysmodule = submodule;
 
 	dict = PyModule_GetDict( submodule );
-
-#ifdef WIN32
-	sep = PyString_FromString( "\\" );
-#else
-	sep = PyString_FromString( "/" );
-#endif
-
-	if( sep ) {
-		Py_INCREF( sep );
-		EXPP_dict_set_item_str( dict, "dirsep", sep );
-		EXPP_dict_set_item_str( dict, "sep", sep );
-	}
+	
+	EXPP_dict_set_item_str( dict, "dirsep", PyString_FromString(DIRSEP_STR) );
+	EXPP_dict_set_item_str( dict, "sep", PyString_FromString(DIRSEP_STR) );
 
 	return submodule;
 }
 
 static PyObject *M_sys_basename( PyObject * self, PyObject * args )
 {
-	PyObject *c;
-
 	char *name, *p, basename[FILE_MAXDIR + FILE_MAXFILE];
-	char sep;
 	int n, len;
 
 	if( !PyArg_ParseTuple( args, "s", &name ) )
@@ -179,11 +176,7 @@ static PyObject *M_sys_basename( PyObject * self, PyObject * args )
 
 	len = strlen( name );
 
-	c = PyObject_GetAttrString( g_sysmodule, "dirsep" );
-	sep = PyString_AsString( c )[0];
-	Py_DECREF( c );
-
-	p = strrchr( name, sep );
+	p = strrchr( name, DIRSEP );
 
 	if( p ) {
 		n = name + len - p - 1;	/* - 1 because we don't want the sep */
@@ -194,7 +187,6 @@ static PyObject *M_sys_basename( PyObject * self, PyObject * args )
 
 		BLI_strncpy( basename, p + 1, n + 1 );
 		return PyString_FromString( basename );
-		
 	}
 
 	return PyString_FromString( name );
@@ -202,21 +194,14 @@ static PyObject *M_sys_basename( PyObject * self, PyObject * args )
 
 static PyObject *M_sys_dirname( PyObject * self, PyObject * args )
 {
-	PyObject *c;
-
 	char *name, *p, dirname[FILE_MAXDIR + FILE_MAXFILE];
-	char sep;
 	int n;
 
 	if( !PyArg_ParseTuple( args, "s", &name ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 
-	c = PyObject_GetAttrString( g_sysmodule, "dirsep" );
-	sep = PyString_AsString( c )[0];
-	Py_DECREF( c );
-
-	p = strrchr( name, sep );
+	p = strrchr( name, DIRSEP );
 
 	if( p ) {
 		n = p - name;
@@ -234,10 +219,8 @@ static PyObject *M_sys_dirname( PyObject * self, PyObject * args )
 
 static PyObject *M_sys_join( PyObject * self, PyObject * args )
 {
-	PyObject *c = NULL;
 	char *name = NULL, *path = NULL;
 	char filename[FILE_MAXDIR + FILE_MAXFILE];
-	char sep;
 	int pathlen = 0, namelen = 0;
 
 	if( !PyArg_ParseTuple( args, "ss", &path, &name ) )
@@ -251,14 +234,10 @@ static PyObject *M_sys_join( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "filename is too long." );
 
-	c = PyObject_GetAttrString( g_sysmodule, "dirsep" );
-	sep = PyString_AsString( c )[0];
-	Py_DECREF( c );
-
 	BLI_strncpy( filename, path, pathlen );
 
-	if( filename[pathlen - 2] != sep ) {
-		filename[pathlen - 1] = sep;
+	if( filename[pathlen - 2] != DIRSEP ) {
+		filename[pathlen - 1] = DIRSEP;
 		pathlen += 1;
 	}
 
@@ -269,10 +248,7 @@ static PyObject *M_sys_join( PyObject * self, PyObject * args )
 
 static PyObject *M_sys_splitext( PyObject * self, PyObject * args )
 {
-	PyObject *c;
-
 	char *name, *dot, *p, path[FILE_MAXDIR + FILE_MAXFILE], ext[FILE_MAXDIR + FILE_MAXFILE];
-	char sep;
 	int n, len;
 
 	if( !PyArg_ParseTuple( args, "s", &name ) )
@@ -280,17 +256,12 @@ static PyObject *M_sys_splitext( PyObject * self, PyObject * args )
 					      "expected string argument" );
 
 	len = strlen( name );
-
-	c = PyObject_GetAttrString( g_sysmodule, "dirsep" );
-	sep = PyString_AsString( c )[0];
-	Py_DECREF( c );
-
 	dot = strrchr( name, '.' );
 
 	if( !dot )
 		return Py_BuildValue( "ss", name, "" );
 
-	p = strrchr( name, sep );
+	p = strrchr( name, DIRSEP );
 
 	if( p ) {
 		if( p > dot )
@@ -318,9 +289,7 @@ static PyObject *M_sys_makename( PyObject * self, PyObject * args,
 	int strip = 0;
 	static char *kwlist[] = { "path", "ext", "strip", NULL };
 	char *dot = NULL, *p = NULL, basename[FILE_MAXDIR + FILE_MAXFILE];
-	char sep;
 	int n, len, lenext = 0;
-	PyObject *c;
 
 	if( !PyArg_ParseTupleAndKeywords( args, kw, "|ssi", kwlist,
 					  &path, &ext, &strip ) )
@@ -335,11 +304,7 @@ static PyObject *M_sys_makename( PyObject * self, PyObject * args,
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "path too long" );
 
-	c = PyObject_GetAttrString( g_sysmodule, "dirsep" );
-	sep = PyString_AsString( c )[0];
-	Py_DECREF( c );
-
-	p = strrchr( path, sep );
+	p = strrchr( path, DIRSEP );
 
 	if( p && strip ) {
 		n = path + len - p;
