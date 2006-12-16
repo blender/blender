@@ -50,7 +50,7 @@ typedef struct ActKeyBlock {
 	
 	/* only while drawing - used to determine if block needs to be drawn */
 	short modified;
-	short incurve, totcurve; 
+	short totcurve; 
 } ActKeyBlock;
 
 /*Action Generics */
@@ -65,9 +65,9 @@ void draw_object_channel(struct gla2DDrawInfo *di, Object *ob, float ypos);
 
 /* Keydata Generation */
 void icu_to_keylist(struct IpoCurve *icu, ListBase *keys, ListBase *blocks);
-void ipo_to_keylist(struct Ipo *ipo, ListBase *keys, ListBase *blocks);
-void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks);
-void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks);
+int ipo_to_keylist(struct Ipo *ipo, ListBase *keys, ListBase *blocks);
+int action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks);
+int ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks);
 
 #endif  /*  BDR_DRAWACTION_H */
 

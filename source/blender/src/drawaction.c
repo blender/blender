@@ -739,7 +739,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	curarea->win_swap= WIN_BACK_OK;
 }
 
-static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, float ypos)
+static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, float ypos, int totcurve)
 {
 	CfraElem *ce;
 	ActKeyBlock *ab;
@@ -752,7 +752,7 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 	/* draw keyblocks */
 	for (ab= blocks->first; ab; ab= ab->next) {
 		/* only draw keyblock if it appears in all curves sampled */
-		if (ab->incurve == ab->totcurve) {
+		if (ab->totcurve == totcurve) {
 			int sc_xa, sc_ya;
 			int sc_xb, sc_yb;
 			
@@ -787,9 +787,10 @@ void draw_object_channel(gla2DDrawInfo *di, Object *ob, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
+	int totcurve;
 
-	ob_to_keylist(ob, &keys, &blocks);
-	draw_keylist(di, &keys, &blocks, ypos);
+	totcurve= ob_to_keylist(ob, &keys, &blocks);
+	draw_keylist(di, &keys, &blocks, ypos, totcurve);
 	
 	BLI_freelistN(&keys);
 	BLI_freelistN(&blocks);
@@ -799,9 +800,10 @@ void draw_ipo_channel(gla2DDrawInfo *di, Ipo *ipo, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
+	int totcurve;
 
-	ipo_to_keylist(ipo, &keys, &blocks);
-	draw_keylist(di, &keys, &blocks, ypos);
+	totcurve= ipo_to_keylist(ipo, &keys, &blocks);
+	draw_keylist(di, &keys, &blocks, ypos, totcurve);
 	
 	BLI_freelistN(&keys);
 	BLI_freelistN(&blocks);
@@ -813,7 +815,7 @@ void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, float ypos)
 	ListBase blocks = {0, 0};
 
 	icu_to_keylist(icu, &keys, &blocks);
-	draw_keylist(di, &keys, &blocks, ypos);
+	draw_keylist(di, &keys, &blocks, ypos, 1);
 	
 	BLI_freelistN(&keys);
 	BLI_freelistN(&blocks);
@@ -833,7 +835,7 @@ void draw_action_channel(gla2DDrawInfo *di, bAction *act, float ypos)
 	 */
 	BLI_freelistN(&blocks);
 	
-	draw_keylist(di, &keys, &blocks, ypos);
+	draw_keylist(di, &keys, &blocks, ypos, 0);
 	BLI_freelistN(&keys);
 }
 
@@ -882,26 +884,29 @@ static void add_bezt_to_keyblockslist(BezTriple *bezt, BezTriple *prev, ListBase
 	abn->modified += 1;
 }
 
-void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks)
+int ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks)
 {
 	bConstraintChannel *conchan;
+	int totcurve = 0;
 
 	if (ob) {
 		/* Add object keyframes */
 		if (ob->ipo) {
-			ipo_to_keylist(ob->ipo, keys, blocks);
+			totcurve += ipo_to_keylist(ob->ipo, keys, blocks);
 		}
 		
 		/* Add constraint keyframes */
 		for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next){
 			if(conchan->ipo) {
-				ipo_to_keylist(conchan->ipo, keys, blocks);
+				totcurve += ipo_to_keylist(conchan->ipo, keys, blocks);
 			}				
 		}
 			
 		/* Add object data keyframes */
 		// 		TODO??
 	}
+	
+	return totcurve;
 }
 
 void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks)
@@ -928,44 +933,50 @@ void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks)
 			
 			if (ab->modified) {
 				ab->modified = 0;
-				ab->incurve += 1;
+				ab->totcurve += 1;
 			}
-			ab->totcurve += 1;
 		}
 	}
 }
 
-void ipo_to_keylist(Ipo *ipo, ListBase *keys, ListBase *blocks)
+int ipo_to_keylist(Ipo *ipo, ListBase *keys, ListBase *blocks)
 {
 	IpoCurve *icu;
+	int totcurve = 0;
 	
 	if (ipo) {
 		for (icu= ipo->curve.first; icu; icu= icu->next) {
 			icu_to_keylist(icu, keys, blocks);
+			totcurve++;
 		}
 	}
+	
+	return totcurve;
 }
 
-void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks)
+int action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks)
 {
 	bActionChannel *achan;
 	bConstraintChannel *conchan;
+	int totcurve = 0;
 
 	if (act) {
 		/* loop through action channels */
 		for (achan= act->chanbase.first; achan; achan= achan->next) {
 			/* firstly, add keys from action channel's ipo block */
 			if (achan->ipo) {
-				ipo_to_keylist(achan->ipo, keys, blocks);
+				totcurve+= ipo_to_keylist(achan->ipo, keys, blocks);
 			}
 			
 			/* then, add keys from constraint channels */
 			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
 				if (conchan->ipo) {
-					ipo_to_keylist(achan->ipo, keys, blocks);
+					totcurve+= ipo_to_keylist(achan->ipo, keys, blocks);
 				}
 			}
 		}
 	}
+	
+	return totcurve;
 }
 
