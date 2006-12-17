@@ -92,7 +92,7 @@ class Group:
   @ivar users: Number of users this group has (read only)
   @type users: int
   @ivar fakeUser: The fake user status.
-    enabling this will keep it in the blend even if there are no users.
+    Enabling this will keep it in the blend even if there are no users.
   @type fakeUser: bool
   @ivar layers: Layer bitmask for this group.
   @type layers: int

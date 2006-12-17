@@ -246,13 +246,13 @@ class Object:
 
     B{Note}:
     When dealing with properties and functions such as LocX/RotY/getLocation(), getSize() and getEuler(),
-    keep in mind that these transformation properties are relative to the objects parent (if any).
+    keep in mind that these transformation properties are relative to the object's parent (if any).
 
-    To get these values in worldspace (taking into account vertex parents, constraints etc)
+    To get these values in worldspace (taking into account vertex parents, constraints, etc.)
     pass the argument 'worldspace' to these functions.
 
     @ivar properties: Returns an L{IDGroup<IDProp.IDGroup>} reference to this 
-    objects's ID Properties.
+    object's ID Properties.
     @type properties: L{IDGroup<IDProp.IDGroup>}
     @ivar restrictDisplay: Don't display this object in the 3D view: disabled by default, use the outliner to toggle.
     @type restrictDisplay: bool
@@ -483,7 +483,7 @@ class Object:
     @ivar users: The number of users of the object.  Read-only.
     @type users: int
     @ivar fakeUser: The fake user status.
-      enabling this will keep it in the blend even if there are no users.
+      Enabling this will keep it in the blend even if there are no users.
     @type fakeUser: bool
     @ivar boundingBox: The bounding box of this object.  Read-only.
     @type boundingBox: list of 8 3D vectors

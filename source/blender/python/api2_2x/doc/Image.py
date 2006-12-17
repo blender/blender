@@ -317,7 +317,7 @@ class Image:
   def pack():
     """
     Packs the image into the current blend file.
-    @note: An error will be raised if the image is alredy packed or the filename path does not exist.
+    @note: An error will be raised if the image is already packed or the filename path does not exist.
     @returns: nothing
     @rtype: none
     """

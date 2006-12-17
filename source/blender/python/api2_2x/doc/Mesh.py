@@ -381,10 +381,10 @@ class MEdge:
   changing the select state of an edge changes the select state of the edge's
   vertices.
   @type sel: int
-  @ivar key: The edges vert indicies in an ordered tuple, this can be used as a dictionary key. Read-only.
-
+  @ivar key: The edge's vert indices in an ordered tuple, which can be used
+  as a dictionary key. Read-only.
   This is the same as (min(ed.v1.index, ed.v2.index), max(ed.v1.index, ed.v2.index))
-  @type key: typle
+  @type key: tuple
   """
 
   def __iter__():
@@ -580,8 +580,8 @@ class MFace:
   @type cent: vector
   @ivar area: The area of the face. Read-only.
   @type area: float
-  @ivar edge_keys: A tuple, each item a key that can reference an edge by its ordered indicies. Read-only.
-  This is usefull for building connectivity data
+  @ivar edge_keys: A tuple, each item a key that can reference an edge by its
+  ordered indices. Read-only.  This is useful for building connectivity data.
   Example::
        from Blender import Mesh
        me = Mesh.Get('Cube')

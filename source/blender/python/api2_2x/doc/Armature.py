@@ -164,7 +164,7 @@ class Armature:
   @ivar users: The number of users of the armature.  Read-only.
   @type users: int
   @ivar fakeUser: The fake user status.
-    enabling this will keep it in the blend even if there are no users.
+    Enabling this will keep it in the blend even if there are no users.
   @type fakeUser: bool
   """
 

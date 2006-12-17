@@ -53,7 +53,7 @@ class Font:
   def pack():
     """
     Packs the sound into the current blend file.
-    @note: An error will be raised if the sound is alredy packed or the filename path does not exist.
+    @note: An error will be raised if the sound is already packed or the filename path does not exist.
     @returns: nothing
     @rtype: none
     """

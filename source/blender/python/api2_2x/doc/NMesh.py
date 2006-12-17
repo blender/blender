@@ -345,7 +345,7 @@ class NMesh:
     This object gives access to mesh data in Blender.  We refer to mesh as the
     object in Blender and NMesh as its Python counterpart.
   @ivar properties: Returns an L{IDGroup<IDProp.IDGroup>} reference to this 
-  objects's ID Properties.
+  object's ID Properties.
   @type properties: L{IDGroup<IDProp.IDGroup>}
   @ivar name: The NMesh name.  It's common to use this field to store extra
      data about the mesh (to be exported to another program, for example).
