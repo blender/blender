@@ -237,7 +237,7 @@ def Duplicate (mesh=0, surface=0, curve=0, text=0, metaball=0, armature=0, lamp=
     Blender.Redraw()
   """
 
-from IDProp import IDProperty, IDGroup, IDArray
+from IDProp import IDGroup, IDArray
 class Object:
   """
   The Object object
@@ -251,10 +251,9 @@ class Object:
     To get these values in worldspace (taking into account vertex parents, constraints etc)
     pass the argument 'worldspace' to these functions.
 
-    @ivar properties: Returns an L{IDProperty<IDProperty>} reference of type L{IDGroup<IDGroup>} to 
-    this object's ID Properties.  Note that dict access is available for groups on the parent 
-    L{IDProperty<IDProperty>} object, but for everything else you need to get the L{IDGroup<IDGroup>}
-    object from the L{IDProperty<IDProperty>}'s data member.
+    @ivar properties: Returns an L{IDGroup<IDProp.IDGroup>} reference to this 
+    objects's ID Properties.
+    @type properties: L{IDGroup<IDProp.IDGroup>}
     @ivar restrictDisplay: Don't display this object in the 3D view: disabled by default, use the outliner to toggle.
     @type restrictDisplay: bool
     @ivar restrictSelect: Don't select this object in the 3D view: disabled by default, use the outliner to toggle.

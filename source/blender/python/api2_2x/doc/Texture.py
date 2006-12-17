@@ -241,7 +241,7 @@ def Get (name = None):
         - ():     A list with all Texture objects in the current scene.
     """
 
-from IDProp import IDProperty, IDGroup, IDArray
+from IDProp import IDGroup, IDArray
 class Texture:
     """
     The Texture object
@@ -251,10 +251,8 @@ class Texture:
     Note that many of the attributes of this object are only relevant for
     specific texture types.
 
-	@ivar properties: Returns an L{IDProperty<IDProperty>} reference of type L{IDGroup<IDGroup>} to 
-	this textures's ID Properties.  Note that dict access is available for groups on the parent 
-	L{IDProperty<IDProperty>} object, but for everything else you need to get the L{IDGroup<IDGroup>}
-	object from the L{IDProperty<IDProperty>}'s data member.
+	@ivar properties: Returns an L{IDGroup<IDProp.IDGroup>} reference to this texture's ID Properties.
+	@type properties: L{IDGroup<IDProp.IDGroup>}
 	@ivar animFrames:  Number of frames of a movie to use.
 	Value is clamped to the range [0,30000].
 	@type animFrames:  int

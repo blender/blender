@@ -691,7 +691,7 @@ class MFaceSeq:
     @rtype: list of ints
     """
 
-from IDProp import IDProperty, IDGroup, IDArray
+from IDProp import IDGroup, IDArray
 class Mesh:
   """
   The Mesh Data object
@@ -702,10 +702,9 @@ class Mesh:
   The operator[] and len() are defined for these sequences.  You cannot
   assign to an item in the sequence, but you can assign to most of the
   attributes of individual items.
-  @ivar properties: Returns an L{IDProperty<IDProperty>} reference of type L{IDGroup<IDGroup>} to 
-  this mesh's ID Properties.  Note that dict access is available for groups on the parent 
-  L{IDProperty<IDProperty>} object, but for everything else you need to get the L{IDGroup<IDGroup>}
-  object from the L{IDProperty<IDProperty>}'s data member.
+  @ivar properties: Returns an L{IDGroup<IDProp.IDGroup>} reference to this 
+  mesh's ID Properties.
+  @type properties: L{IDGroup<IDProp.IDGroup>}
   @ivar edges: The mesh's edges.
   @type edges: sequence of MEdges
   @ivar faces: The mesh's faces.

@@ -106,12 +106,8 @@ class Material:
   The Material object
   ===================
    This object gives access to Materials in Blender.
-  @ivar properties: Returns an L{IDProperty<IDProp.IDProperty>} reference of
-  type L{IDGroup<IDProp.IDGroup>} to this material's ID Properties.  Note that
-  dict access is available for groups on the parent 
-  L{IDProperty<IDProp.IDProperty>} object, but for everything else you need
-  to get the L{IDGroup<IDProp.IDGroup>}
-  object from the L{IDProperty<IDProp.IDProperty>}'s data member.
+  @ivar properties: Returns an L{IDGroup<IDProp.IDGroup>} reference to this 
+  materials's ID Properties.
   @ivar B:  Diffuse color (L{rgbCol}) blue component.
   Value is clamped to the range [0.0,1.0].
   @type B:  float

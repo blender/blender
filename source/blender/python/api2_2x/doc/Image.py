@@ -65,16 +65,15 @@ def GetCurrent ():
   @return: The Current Blender Image, If there is no current image it returns None.
   """
 
-from IDProp import IDProperty, IDGroup, IDArray
+from IDProp import IDGroup, IDArray
 class Image:
   """
   The Image object
   ================
     This object gives access to Images in Blender.
-  @ivar properties: Returns an L{IDProperty<IDProperty>} reference of type L{IDGroup<IDGroup>} to 
-  this image's ID Properties.  Note that dict access is available for groups on the parent 
-  L{IDProperty<IDProperty>} object, but for everything else you need to get the L{IDGroup<IDGroup>}
-  object from the L{IDProperty<IDProperty>}'s data member.
+  @ivar properties: Returns an L{IDGroup<IDProp.IDGroup>} reference to this 
+  image's ID Properties.
+  @type properties: L{IDGroup<IDProp.IDGroup>}
   @ivar name: The name of this Image object.
   @ivar filename: The filename (path) to the image file loaded into this Image
      object.
