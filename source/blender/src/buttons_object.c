@@ -1010,7 +1010,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				int togButWidth = 50;
 				int textButWidth = ((width/2)-togButWidth);
 				
-				height = 118; 
+				height = 106; 
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				/* Draw Pairs of LimitToggle+LimitValue */
@@ -1060,10 +1060,13 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_ROTLIMIT:
 			{
 				bRotLimitConstraint *data = con->data;
-				
 				int normButWidth = (width/3);
 				
-				height = 118; 
+				if (ob->type == OB_ARMATURE && (ob->flag & OB_POSEMODE))
+					height = 106; 
+				else
+					height = 78;
+				
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				/* Draw Pairs of LimitToggle+LimitValue */
@@ -1100,7 +1103,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				int togButWidth = 50;
 				int textButWidth = ((width/2)-togButWidth);
 				
-				height = 90; 
+				height = 78; 
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				/* Draw Pairs of LimitToggle+LimitValue */

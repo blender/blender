@@ -749,7 +749,7 @@ void add_constraint(int only_IK)
 	else if(obsel) {
 		set_constraint_target(con, obsel, NULL);
 	}
-	else if(nr!=11) {	/* add new empty as target */
+	else if(ELEM4(nr, 11, 13, 14, 15)==0) {	/* add new empty as target */
 		Base *base= BASACT, *newbase;
 		Object *obt;
 		
