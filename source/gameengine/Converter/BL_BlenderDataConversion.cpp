@@ -2006,7 +2006,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							if (dat->tar)
 							{
 								KX_GameObject *gotar=getGameOb(dat->tar->id.name,sumolist);
-								if (gotar)
+								if (gotar && gotar->GetPhysicsController())
 									physctr2 = (PHY_IPhysicsController*) gotar->GetPhysicsController()->GetUserData();
 							}
 
