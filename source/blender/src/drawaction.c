@@ -854,11 +854,7 @@ static void add_bezt_to_keyblockslist(BezTriple *bezt, BezTriple *prev, ListBase
 	/* try to find a keyblock that starts on the previous beztriple */
 	for (ab= blocks->first; ab; ab= ab->next) {
 		/* check if alter existing block or add new block */
-		if (ab->start == prev->vec[1][0]) {
-			/* replace end frame if end frame is less than current beztriple */
-			if (ab->end < bezt->vec[1][0])
-				ab->end= bezt->vec[1][0];
-			
+		if (ab->start == prev->vec[1][0]) {			
 			/* set selection status and 'touched' status */
 			if (BEZSELECTED(bezt)) ab->sel = SELECT;
 			ab->modified += 1;
