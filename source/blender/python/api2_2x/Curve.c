@@ -1527,7 +1527,10 @@ PyObject *Curve_getNurb( BPy_Curve * self, int n )
 	if( !pNurb )		/* we came to the end of the list */
 		return ( EXPP_ReturnPyObjError( PyExc_IndexError,
 						"index out of range" ) );
-	if( pNurb->pntsv == 1 )
+
+	/* until there is a Surface BPyType, distinquish between a curve and a
+	 * surface based on whether it's a Bezier and the v size */
+	if( (pNurb->type & 7) == CU_BEZIER || pNurb->pntsv <= 1 )
 		return CurNurb_CreatePyObject( pNurb );	/* make a bpy_curnurb */
 	else
 		return SurfNurb_CreatePyObject( pNurb );	/* make a bpy_surfnurb */

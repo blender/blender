@@ -4534,6 +4534,7 @@ static PyObject *get_obj_data( BPy_Object *self, int mesh )
 		data_object = Camera_CreatePyObject( object->data );
 		break;
 	case OB_CURVE:
+	case OB_SURF:
 		data_object = Curve_CreatePyObject( object->data );
 		break;
 	case ID_IM:
