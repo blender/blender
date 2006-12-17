@@ -3089,6 +3089,7 @@ PyObject *Object_CreatePyObject( struct Object * obj )
 		return ( NULL );
 	}
 	blen_object->object = obj;
+	blen_object->realtype = OB_EMPTY;
 	obj->id.us++;
 	return ( ( PyObject * ) blen_object );
 }
