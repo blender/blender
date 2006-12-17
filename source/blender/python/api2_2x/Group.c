@@ -250,13 +250,24 @@ static PyObject *Group_getName( BPy_Group * self, PyObject * args )
 
 static PyObject *Group_getUsers( BPy_Group * self )
 {
+	GROUP_DEL_CHECK_PY(self);
 	return PyInt_FromLong( self->group->id.us );
 }
 
+static PyObject *Group_getFakeUser( BPy_Group * self )
+{
+	GROUP_DEL_CHECK_PY(self);
+	if (self->group->id.flag & LIB_FAKEUSER)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
 
-
-
-
+static int Group_setFakeUser( BPy_Group * self, PyObject * value )
+{
+	GROUP_DEL_CHECK_PY(self);
+	return SetIdFakeUser(&self->group->id, value);
+}
 
 
 
@@ -300,6 +311,10 @@ static PyGetSetDef BPy_Group_getseters[] = {
 	 NULL},
 	{"users",
 	 (getter)Group_getUsers, (setter)NULL,
+	 "Number of group users",
+	 NULL},
+	{"fakeUser",
+	 (getter)Group_getFakeUser, (setter)Group_setFakeUser,
 	 "Number of group users",
 	 NULL},
 	{"layers",

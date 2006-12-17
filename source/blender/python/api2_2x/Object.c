@@ -4456,26 +4456,7 @@ static PyObject *Object_getFakeUser( BPy_Object * self )
 
 static int Object_setFakeUser( BPy_Object * self, PyObject * value )
 {
-	int param;
-	ID *id = &self->object->id;
-	param = PyObject_IsTrue( value );
-
-	if( param == -1 )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected int argument in range [0,1]" );
-	
-	if (param) {
-		if (!(id->flag & LIB_FAKEUSER)) {
-			id->flag |= LIB_FAKEUSER;
-			id_us_plus(id);
-		}
-	} else {
-		if (id->flag & LIB_FAKEUSER) {
-			id->flag &= ~LIB_FAKEUSER;
-			id->us--;
-		}
-	}
-	return 0;
+	return SetIdFakeUser(&self->object->id, value);
 }
 
 /* Localspace matrix */

@@ -118,6 +118,8 @@ static PyObject *Metaball_getThresh( BPy_Metaball * self );
 static int Metaball_setThresh( BPy_Metaball * self, PyObject * args );
 static PyObject *Metaball_copy( BPy_Metaball * self );
 static PyObject *Metaball_getUsers( BPy_Metaball * self );
+static PyObject *Metaball_getFakeUser( BPy_Metaball * self );
+static int Metaball_setFakeUser( BPy_Metaball * self, PyObject * value );
 
 /*****************************************************************************/
 /* Python BPy_Metaball methods table:                                       */
@@ -177,6 +179,10 @@ static PyGetSetDef BPy_Metaball_getseters[] = {
 	{"users",
 	 (getter)Metaball_getUsers, (setter)NULL,
 	 "Number of metaball users",
+	 NULL},
+	{"fakeUser",
+	 (getter)Metaball_getFakeUser, (setter)Metaball_setFakeUser,
+	 "The fake user status of this object",
 	 NULL},
 	{"materials",
 	 (getter)Metaball_getMaterials, (setter)Metaball_setMaterials,
@@ -696,6 +702,19 @@ static int Metaball_setThresh( BPy_Metaball * self, PyObject * value )
 static PyObject *Metaball_getUsers( BPy_Metaball * self )
 {
 	return PyInt_FromLong( self->metaball->id.us );
+}
+
+static PyObject *Metaball_getFakeUser( BPy_Metaball * self )
+{
+	if (self->metaball->id.flag & LIB_FAKEUSER)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+static int Metaball_setFakeUser( BPy_Metaball * self, PyObject * value )
+{
+	return SetIdFakeUser(&self->metaball->id, value);
 }
 
 

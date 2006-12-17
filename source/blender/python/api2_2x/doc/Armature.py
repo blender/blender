@@ -161,6 +161,11 @@ class Armature:
   @type mirrorEdit: Bool
   @ivar autoIK: Adds temporary IK chains while grabbing bones
   @type autoIK: Bool
+  @ivar users: The number of users of the armature.  Read-only.
+  @type users: int
+  @ivar fakeUser: The fake user status.
+    enabling this will keep it in the blend even if there are no users.
+  @type fakeUser: bool
   """
 
   def __init__(name = 'myArmature'):

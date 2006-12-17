@@ -88,11 +88,18 @@ class Group:
   ================
     This object gives access to Groups in Blender.
   @ivar name: The name of this Group object.
+  @type name: string
   @ivar users: Number of users this group has (read only)
-  @ivar layers: Layer mask for this group.
+  @type users: int
+  @ivar fakeUser: The fake user status.
+    enabling this will keep it in the blend even if there are no users.
+  @type fakeUser: bool
+  @ivar layers: Layer bitmask for this group.
+  @type layers: int
   @ivar objects: Objects that this group uses.
   This is a sequence with-list like access so use list(grp.objects) if you need to use a list (where grp is a group).
   The groups objects can be set by assigning a list or iterator of objects to the groups objects.
   objects.link() and objects.unlink() also work with the the objects iterator just like with lists.
+  @type objects: custom object sequence
   """
 

@@ -66,6 +66,8 @@ PyObject *EXPP_GetModuleConstant(char *module, char *constant);
 
 int StringEqual( const char *string1, const char *string2 );
 char *GetIdName( ID * id );
+int SetIdFakeUser( ID * id, PyObject *value);
+
 ID *GetIdFromList( ListBase * list, char *name );
 
 PyObject *PythonReturnErrorObject( PyObject * type, char *error_msg );

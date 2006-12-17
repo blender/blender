@@ -2869,26 +2869,7 @@ static PyObject *Material_getFakeUser( BPy_Material * self )
 
 static int Material_setFakeUser( BPy_Material * self, PyObject * value )
 {
-	int param;
-	ID *id = &self->material->id;
-	param = PyObject_IsTrue( value );
-
-	if( param == -1 )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected int argument in range [0,1]" );
-	
-	if (param) {
-		if (!(id->flag & LIB_FAKEUSER)) {
-			id->flag |= LIB_FAKEUSER;
-			id_us_plus(id);
-		}
-	} else {
-		if (id->flag & LIB_FAKEUSER) {
-			id->flag &= ~LIB_FAKEUSER;
-			id->us--;
-		}
-	}
-	return 0;
+	return SetIdFakeUser(&self->material->id, value);
 }
 
 

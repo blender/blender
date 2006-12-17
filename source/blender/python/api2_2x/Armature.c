@@ -607,6 +607,29 @@ AttributeError:
 	return EXPP_ReturnIntError( PyExc_TypeError,
 			"expected a list of integers" );
 }
+
+//------------------------Armature.users (getter)
+static PyObject *Armature_getUsers( BPy_Armature * self )
+{
+	return PyInt_FromLong( self->armature->id.us );
+}
+
+
+//------------------------Armature.fakeUser (getter)
+static PyObject *Armature_getFakeUser( BPy_Armature * self )
+{
+	if (self->armature->id.flag & LIB_FAKEUSER)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+//------------------------Armature.fakeUser (setter)
+static int Armature_setFakeUser( BPy_Armature * self, PyObject * value )
+{
+	return SetIdFakeUser(&self->armature->id, value);
+}
+
+
 //------------------------Armature.mirrorEdit (getter)
 static PyObject *Armature_getMirrorEdit(BPy_Armature *self, void *closure)
 {
@@ -1001,6 +1024,10 @@ static PyGetSetDef BPy_Armature_getset[] = {
 		"Adds temporal IK chains while grabbing bones", NULL},
 	{"layers", (getter)Armature_getLayers, (setter)Armature_setLayers, 
 		"List of layers for the armature", NULL},
+	{"users", (getter)Armature_getUsers, (setter)NULL, 
+		"The number of object users", NULL},
+	{"fakeUser", (getter)Armature_getFakeUser, (setter)Armature_setFakeUser, 
+		"The fake user status of this object", NULL},
 	{NULL, NULL, NULL, NULL, NULL}
 };
 //------------------------tp_new

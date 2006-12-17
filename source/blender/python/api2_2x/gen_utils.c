@@ -159,6 +159,34 @@ ID *GetIdFromList( ListBase * list, char *name )
 }
 
 /*****************************************************************************/
+/* Description: This function sets the fake user status of the ID            */
+/* returns an int error, so from getsetattrs                                 */
+/*****************************************************************************/
+int SetIdFakeUser( ID * id, PyObject *value)
+{
+	int param;
+	param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument in range [0,1]" );
+	
+	if (param) {
+		if (!(id->flag & LIB_FAKEUSER)) {
+			id->flag |= LIB_FAKEUSER;
+			id_us_plus(id);
+		}
+	} else {
+		if (id->flag & LIB_FAKEUSER) {
+			id->flag &= ~LIB_FAKEUSER;
+			id->us--;
+		}
+	}
+	return 0;
+}
+
+
+
+/*****************************************************************************/
 /* Description: These functions set an internal string with the given type   */
 /*		  and error_msg arguments.				     */
 /*****************************************************************************/
