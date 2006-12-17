@@ -307,7 +307,7 @@ class IDPropertyBrowser:
 		
 		if evt == Draw.LEFTMOUSE and val == 1:
 			a = self.active_item
-			if a > 0 and a < len(plist):
+			if a >= 0 and a < len(plist):
 				p = plist[a]
 			
 				basictypes = [IDGroupType, type(0.0), type(""), type(0)]
@@ -439,14 +439,18 @@ class IDPropertyBrowser:
 			
 			name = name.val
 			i = 1
-			for p in self.group:
-				if p == name:
-					d = name.rfind(".")
-					if d != -1:
-						name = name[:d]
-					name = name + "." + str(i).zfill(3)
-					i += 1
-			
+			stop = 0
+			while stop == 0:
+				stop = 1
+				for p in self.group:
+					if p == name:
+						d = name.rfind(".")
+						if d != -1:
+							name = name[:d]
+						name = name + "." + str(i).zfill(3)
+						i += 1
+						stop = 0
+				
 			type = "String"
 			if stype.val: 
 				self.group[name] = ""
