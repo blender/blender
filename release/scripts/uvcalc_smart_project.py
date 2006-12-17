@@ -171,21 +171,10 @@ def island2Edge(island):
 		f_uvkey= map(tuple, f_uv)
 		
 		
-		for vIdx in xrange(len(f_v)):
-			
+		for vIdx, edkey in enumerate(f.edge_keys):
 			unique_points[f_uvkey[vIdx]] = f_uv[vIdx]
-			
-			
-			if f_v[vIdx].index > f_v[vIdx-1].index:
-				i1= vIdx-1;	i2= vIdx
-			else:
-				i1= vIdx;	i2= vIdx-1
-			
-			try:
-				edges[ f_uvkey[i1], f_uvkey[i2] ] *= 0 # sets eny edge with more then 1 user to 0 are not returned.
-				
-			except:
-				edges[ f_uvkey[i1], f_uvkey[i2] ] = (f_uv[i1] - f_uv[i2]).length, 
+			try:	edges[ f_uvkey[edkey[0]], f_uvkey[edkey[1]] ] *= 0 # sets eny edge with more then 1 user to 0 are not returned.
+			except:	edges[ f_uvkey[edkey[0]], f_uvkey[edkey[1]] ] = (f_uv[i1] - f_uv[i2]).length, 
 	
 	# If 2 are the same then they will be together, but full [a,b] order is not correct.
 	

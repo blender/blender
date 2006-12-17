@@ -52,11 +52,6 @@ def col_key_mix(col1, col2,  w1, w2):
 	# Weighted mix. w1+w2==1.0
 	return int(w1*col1[0] + w2*col2[0]), int(w1*col1[1] + w2*col2[1]), int(w1*col1[2]+col2[2]*w2)
 
-def ed_key(ed):
-	i1= ed.v1.index
-	i2= ed.v2.index
-	if i1<i2: return i1,i2
-	return i2,i1
 
 def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEIGHT=1.0, FACE_TRIANGULATE=True, DO_UV=True, DO_VCOL=True, DO_WEIGHTS=True, VGROUP_INF_REDUX= None, VGROUP_INF_WEIGHT=0.5):
 	"""
@@ -153,7 +148,7 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 			self.init_from_edge(ed) # So we can re-use the classes without using more memory.
 		
 		def init_from_edge(self, ed):
-			self.key= ed_key(ed)
+			self.key= ed.key
 			self.length= ed.length
 			self.faces= []
 			self.v1= ed.v1

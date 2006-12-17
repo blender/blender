@@ -446,14 +446,6 @@ def pickMeshGroupVCol(me, orig, dir):
 	f_colvecs= [col2vec(f_c[i]) for i in idxs]
 	return f_colvecs[0]*w0 +  f_colvecs[1]*w1 + f_colvecs[2]*w2
 
-# reuse me more.
-def sorted_edge_indicies(ed):
-	i1= ed.v1.index
-	i2= ed.v2.index
-	if i1>i2:
-		i1,i2= i2,i1
-	return i1, i2
-
 def edge_face_users(me):
 	''' 
 	Takes a mesh and returns a list aligned with the meshes edges.
@@ -461,17 +453,11 @@ def edge_face_users(me):
 	would be the equiv for having ed.face_users as a property
 	'''
 	
-	face_edges_dict= dict([(sorted_edge_indicies(ed), (ed.index, [])) for ed in me.edges])
+	face_edges_dict= dict([(ed.key, (ed.index, [])) for ed in me.edges])
 	for f in me.faces:
 		fvi= [v.index for v in f]# face vert idx's
-		for i in xrange(len(f)):
-			i1= fvi[i]
-			i2= fvi[i-1]
-			
-			if i1>i2:
-				i1,i2= i2,i1
-			
-			face_edges_dict[i1,i2][1].append(f)
+		for edkey in f.edge_keys:
+			face_edges_dict[edkey][1].append(f)
 	
 	face_edges= [None] * len(me.edges)
 	for ed_index, ed_faces in face_edges_dict.itervalues():
@@ -489,21 +475,13 @@ def face_edges(me):
 	face_edges[i][j] -> list of faces that this edge uses.
 	crap this is tricky to explain :/
 	'''
-	face_edges= [ [None] * len(f) for f in me.faces ]
+	face_edges= [ [-1] * len(f) for f in me.faces ]
 	
-	face_edges_dict= dict([(sorted_edge_indicies(ed), []) for ed in me.edges])
+	face_edges_dict= dict([(ed.key, []) for ed in me.edges])
 	for fidx, f in enumerate(me.faces):
-		fvi= [v.index for v in f]# face vert idx's
-		for i in xrange(len(f)):
-			i1= fvi[i]
-			i2= fvi[i-1]
-			
-			if i1>i2:
-				i1,i2= i2,i1
-			
-			edge_face_users= face_edges_dict[i1,i2]
+		for i, edkey in enumerate(f.edge_keys):
+			edge_face_users= face_edges_dict[edkey]
 			edge_face_users.append(f)
-			
 			face_edges[fidx][i]= edge_face_users
 			
 	return face_edges
@@ -671,19 +649,12 @@ def edgeFaceUserCount(me, faces= None):
 	
 	edge_users= [0] * len(me.edges)
 	
-	edges_idx_dict= dict([(sorted_edge_indicies(ed), ed.index) for ed in me.edges])
+	edges_idx_dict= dict([(ed.key, ed.index) for ed in me.edges])
 
 	for f in faces:
-		fvi= [v.index for v in f]# face vert idx's
-		for i in xrange(len(f)):
-			i1= fvi[i]
-			i2= fvi[i-1]
-			
-			if i1>i2:
-				i1,i2= i2,i1
-			
-			edge_users[edges_idx_dict[i1,i2]] += 1 
-			
+		for edkey in f.edge_keys:
+			edge_users[edges_idx_dict[edkey]] += 1 
+	
 	return edge_users
 
 
@@ -1004,16 +975,10 @@ def meshCalcNormals(me, vertNormals=None):
 	edges={}
 	for f in me.faces:
 		f_v = f.v
-		for i in xrange(len(f)):
-			i1, i2= f_v[i].index, f_v[i-1].index
-			if i1<i2:
-				i1,i2= i2,i1
-				
-			try:
-				edges[i1, i2].append(f.no)
-			except:
-				edges[i1, i2]= [f.no]
-				
+		for edkey in f.edge_keys:
+			try:	edges[edkey].append(f.no)
+			except:	edges[edkey]= [f.no]
+	
 	# Weight the edge normals by total angle difference
 	for fnos in edges.itervalues():
 		

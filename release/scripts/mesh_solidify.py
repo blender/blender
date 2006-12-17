@@ -156,16 +156,11 @@ def main():
 		edges = {}
 		for f in faces_sel:
 			f_v= f.v
-			for i in xrange(len(f_v)):
-				i1=f_v[i].index
-				i2=f_v[i-1].index
-				if i1>i2:	edge_key= i2, i1
-				else:		edge_key= i1, i2
-				
-				if edges.has_key(edge_key):
-					edges[edge_key]= None
+			for i, edgekey in enumerate(f.edge_keys):
+				if edges.has_key(edgekey):
+					edges[edgekey]= None
 				else:
-					edges[edge_key] = f, f_v, i, i-1
+					edges[edgekey] = f, f_v, i, i-1
 		
 		# Edges are done. extrude the single user edges.
 		for edge_face_data in edges.itervalues():
