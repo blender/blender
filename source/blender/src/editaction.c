@@ -1764,13 +1764,14 @@ static void mouse_actionchannels_protect (bAction *act, short *mval)
 
 void delete_meshchannel_keys(Key *key)
 {
-	if (!okee("Erase selected keys"))
-		return;
-
-	BIF_undo_push("Delete Action keys");
 	delete_ipo_keys(key->ipo);
-
+	
+	BIF_undo_push("Delete Action Keys");
 	meshkey_do_redraw(key);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
 }
 
 void delete_actionchannel_keys(void)
@@ -1781,9 +1782,6 @@ void delete_actionchannel_keys(void)
 
 	act = G.saction->action;
 	if (!act)
-		return;
-
-	if (!okee("Erase selected keys"))
 		return;
 
 	for (achan = act->chanbase.first; achan; achan= achan->next){
@@ -1802,7 +1800,7 @@ void delete_actionchannel_keys(void)
 	}
 
 	remake_action_ipos(act);
-	BIF_undo_push("Delete Action keys");
+	BIF_undo_push("Delete Action Keys");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);

@@ -59,6 +59,7 @@
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
+#include "BIF_toolbox.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -999,11 +1000,13 @@ static void do_action_keymenu(void *arg, int event)
  			break;
 
 		case ACTMENU_KEY_DELETE:
-			if (key) {
-				delete_meshchannel_keys(key);
-			}
-			else if (act) {
-				delete_actionchannel_keys ();
+			if (okee("Erase selected keys")) {
+				if (key) {
+					delete_meshchannel_keys(key);
+				}
+				else if (act) {
+					delete_actionchannel_keys ();
+				}
 			}
 			break;
 		case ACTMENU_KEY_BAKE:
