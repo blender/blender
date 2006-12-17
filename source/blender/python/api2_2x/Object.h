@@ -48,8 +48,8 @@ extern PyTypeObject Object_Type;
 typedef struct {
 	PyObject_HEAD 
 	struct Object *object;
+	short realtype;
 } BPy_Object;
-
 
 PyObject *Object_Init( void );
 PyObject *Object_CreatePyObject( struct Object *obj );

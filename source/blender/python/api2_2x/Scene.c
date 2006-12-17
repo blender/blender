@@ -809,8 +809,16 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 			return EXPP_ReturnPyObjError( PyExc_MemoryError,
 						      "couldn't allocate new Base for object" );
 
+		/*  if the object has not yet been linked to object data, then
+		 *  set the real type before we try creating data */
+
+		if( bpy_obj->realtype != OB_EMPTY ) {
+			object->type = bpy_obj->realtype;
+			bpy_obj->realtype = OB_EMPTY;
+		}
+
 		/* check if this object has obdata, case not, try to create it */
-		
+
 		if( !object->data && ( object->type != OB_EMPTY ) )
 			EXPP_add_obdata( object ); /* returns -1 on error, defined in Object.c */
 

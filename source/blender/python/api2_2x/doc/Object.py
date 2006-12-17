@@ -108,14 +108,14 @@ Example::
 
 def New (type, name='type'):
   """
-  Creates a new Object.
+  Creates a new Object.  Deprecated; instead use Scene.objects.new().
   @type type: string
   @param type: The Object type: 'Armature', 'Camera', 'Curve', 'Lamp', 'Lattice',
       'Mball', 'Mesh', 'Surf' or 'Empty'.
   @type name: string
   @param name: The name of the object. By default, the name will be the same
       as the object type.
-      If the name is alredy in use, this new object will have a number at the end of the name.
+      If the name is already in use, this new object will have a number at the end of the name.
   @return: The created Object.
 
   I{B{Example:}}
@@ -131,6 +131,11 @@ def New (type, name='type'):
     scene.link(object)
 
     Blender.Redraw()
+  @Note: if an object is created but is not linked to object data, and the
+  object is not linked to a scene, it will be deleted when the Python
+  object is deallocated.  This is because Blender does not allow objects
+  to exist without object data unless they are Empty objects.  Scene.link()
+  will automatically create object data for an object if it has none.
   """
 
 def Get (name = None):

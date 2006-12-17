@@ -790,6 +790,8 @@ PyObject *M_Object_New( PyObject * self_unused, PyObject * args )
 	char *str_type;
 	char *name = NULL;
 	Object *add_only_object(int type, char *name);
+	PyObject *py_object;
+	BPy_Object *blen_object;
 
 	if( !PyArg_ParseTuple( args, "s|s", &str_type, &name ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -835,7 +837,15 @@ PyObject *M_Object_New( PyObject * self_unused, PyObject * args )
 	object->id.us = 0;
 
 	/* Create a Python object from it. */
-	return Object_CreatePyObject( object );
+	py_object = Object_CreatePyObject( object );
+	blen_object = (BPy_Object *)py_object;
+
+	/* store the real object type in the PyObject, treat this as an Empty
+	 * until it has some obdata */
+	blen_object->realtype = object->type;
+	object->type = OB_EMPTY;
+
+	return py_object;
 }
 
 /*****************************************************************************/
@@ -1370,7 +1380,13 @@ static PyObject *Object_getTracked( BPy_Object * self )
 static PyObject *Object_getType( BPy_Object * self )
 {
 	char *str;
-	switch ( self->object->type ) {
+	int type = self->object->type;
+
+	/* if object not yet linked to data, return the stored type */
+	if( self->realtype != OB_EMPTY )
+		type = self->realtype;
+
+	switch ( type ) {
 	case OB_ARMATURE:
 		str = "Armature";
 		break;
@@ -1408,6 +1424,7 @@ static PyObject *Object_getType( BPy_Object * self )
 		str = "unknown";
 		break;
 	}
+
 	return PyString_FromString( str );
 }
 
@@ -1567,6 +1584,13 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 	oldid = ( ID * ) self->object->data;
 	id = ( ID * ) data;
 	obj_id = MAKE_ID2( id->name[0], id->name[1] );
+
+	/* if the object object has not been linked to real data before, we
+	 * can now let it assume its real type */
+	if( self->realtype != OB_EMPTY ) {
+		self->object->type = self->realtype;
+		self->realtype = OB_EMPTY;
+	}
 
 	ok = 1;
 	switch ( obj_id ) {
@@ -3123,10 +3147,10 @@ Object *GetObjectByName( char *name )
 /*****************************************************************************/
 static void Object_dealloc( BPy_Object * self )
 {
-	if( self->object->data )
-		self->object->id.us--;
-	else
+	if( self->realtype != OB_EMPTY ) 
 		free_libblock_us( &G.main->object, self->object );
+	else 
+		self->object->id.us--;
 
 #if 0	/* this will adjust the ID and if zero delete the object */
 	free_libblock_us( &G.main->object, self->object );
