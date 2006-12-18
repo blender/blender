@@ -91,6 +91,21 @@ int multires_test()
 	return 0;
 }
 
+/* Sculptmode */
+
+void multires_check_state()
+{
+	if(G.f & G_SCULPTMODE && !G.obedit)
+		sculptmode_correct_state();
+}
+
+void multires_undo_push(char *str)
+{
+	if(G.f & G_SCULPTMODE && !G.obedit)
+		sculptmode_undo_push(str, SUNDO_VERT | SUNDO_TOPO | SUNDO_PVIS | SUNDO_MRES);
+	else
+		BIF_undo_push(str);
+}
 
 void Vec3fAvg3(float *out, float *v1, float *v2, float *v3)
 {
@@ -592,6 +607,8 @@ void multires_make(void *ob, void *me_v)
 	int i;
 
 	waitcursor(1);
+	
+	multires_check_state();
 
 	if(me->pv) sculptmode_pmv_off(me);
 
@@ -640,7 +657,7 @@ void multires_make(void *ob, void *me_v)
 	
 	allqueue(REDRAWBUTSEDIT, 0);
 
-	BIF_undo_push("Make multires");
+	multires_undo_push("Make multires");
 
 	waitcursor(0);
 }
@@ -650,10 +667,12 @@ void multires_delete(void *ob, void *me_v)
 	Mesh *me= me_v;
 	multires_free(me->mr);
 	me->mr= NULL;
+	
+	multires_check_state();
 
 	allqueue(REDRAWBUTSEDIT, 0);
 
-	BIF_undo_push("Delete multires");
+	multires_undo_push("Delete multires");
 }
 
 MultiresLevel *multires_level_copy(MultiresLevel *orig)
@@ -741,6 +760,8 @@ void multires_del_lower(void *ob, void *me)
 	MultiresLevel *lvl= BLI_findlink(&mr->levels,mr->current-1);
 	MultiresLevel *lvlprev;
 	
+	multires_check_state();
+	
 	lvl= lvl->prev;
 	while(lvl) {
 		lvlprev= lvl->prev;
@@ -757,7 +778,7 @@ void multires_del_lower(void *ob, void *me)
 
 	allqueue(REDRAWBUTSEDIT, 0);
 
-	BIF_undo_push("Multires delete lower");
+	multires_undo_push("Multires delete lower");
 }
 
 void multires_del_higher(void *ob, void *me)
@@ -765,6 +786,8 @@ void multires_del_higher(void *ob, void *me)
 	Multires *mr= ((Mesh*)me)->mr;
 	MultiresLevel *lvl= BLI_findlink(&mr->levels,mr->current-1);
 	MultiresLevel *lvlnext;
+	
+	multires_check_state();
 	
 	lvl= lvl->next;
 	while(lvl) {
@@ -780,7 +803,7 @@ void multires_del_higher(void *ob, void *me)
 
 	allqueue(REDRAWBUTSEDIT, 0);
 
-	BIF_undo_push("Multires delete higher");
+	multires_undo_push("Multires delete higher");
 }
 
 unsigned int find_mid_edge(ListBase *vert_edge_map,
@@ -828,6 +851,8 @@ void multires_add_level(void *ob, void *me_v)
 	Mesh *me= me_v;
 	MultiresLevel *lvl= MEM_callocN(sizeof(MultiresLevel), "multireslevel");
 	MultiApplyData data;
+	
+	multires_check_state();
 
 	waitcursor(1);
 
@@ -1003,7 +1028,7 @@ void multires_add_level(void *ob, void *me_v)
 	
 	allqueue(REDRAWBUTSEDIT, 0);
 
-	BIF_undo_push("Add multires level");
+	multires_undo_push("Add multires level");
 
 	waitcursor(0);
 }
@@ -1013,6 +1038,8 @@ void multires_set_level(void *ob, void *me_v)
 	Mesh *me= me_v;
 
 	waitcursor(1);
+	
+	multires_check_state();
 
 	if(me->pv) sculptmode_pmv_off(me);
 
@@ -1025,8 +1052,8 @@ void multires_set_level(void *ob, void *me_v)
 
 	multires_level_to_mesh(ob,me);
 	
-	if(G.obedit)
-		BIF_undo_push("Multires set level");
+	if(G.obedit || G.f & G_SCULPTMODE)
+		multires_undo_push("Multires set level");
 
 	allqueue(REDRAWBUTSEDIT, 0);
 	
@@ -1036,7 +1063,7 @@ void multires_set_level(void *ob, void *me_v)
 void multires_level_to_mesh(Object *ob, Mesh *me)
 {
 	MultiresLevel *lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
-	int i,sm= G.f & G_SCULPTMODE;
+	int i;
 	EditMesh *em= G.obedit ? G.editMesh : NULL;
 	EditVert **eves= NULL, *eve;
 	
@@ -1048,8 +1075,6 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		
 		eves= MEM_callocN(sizeof(EditVert)*lvl->totvert, "editvert pointers");
 	} else {
-		if(sm) set_sculptmode();
-	
 		CustomData_free_layer(&me->vdata, CD_MVERT, me->totvert);
 		CustomData_free_layer(&me->edata, CD_MEDGE, me->totedge);
 		CustomData_free_layer(&me->fdata, CD_MFACE, me->totface);
@@ -1214,7 +1239,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		multires_edge_level_update(ob,me);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
-		if(sm) set_sculptmode();
+		set_sculpt_object(ob);
 	}
 
 	countall();

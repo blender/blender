@@ -85,6 +85,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "blendef.h"
+#include "multires.h"
 #include "mydevice.h"
 
 #include "RE_render_ext.h"
@@ -211,6 +212,8 @@ typedef struct SculptUndoStep {
 	int totvert, totedge, totface;
 	
 	PartialVisibility *pv;
+	
+	Multires *mr;
 } SculptUndoStep;
 typedef struct SculptUndo {
 	ListBase steps;
@@ -222,6 +225,7 @@ void sculptmode_undo_debug_print_type(SculptUndoType t)
 	if(t & SUNDO_VERT) printf("VERT,");
 	if(t & SUNDO_TOPO) printf("TOPO,");
 	if(t & SUNDO_PVIS) printf("PVIS,");
+	if(t & SUNDO_MRES) printf("MRES,");
 }
 
 void sculptmode_undo_push_debug_print()
@@ -249,7 +253,7 @@ void sculptmode_undo_push_debug_print()
 void sculptmode_undo_init()
 {
 	G.scene->sculptdata.undo= MEM_callocN(sizeof(SculptUndo), "Sculpt Undo");
-	sculptmode_undo_push("Original", SUNDO_VERT|SUNDO_TOPO|SUNDO_PVIS);
+	sculptmode_undo_push("Original", SUNDO_VERT|SUNDO_TOPO|SUNDO_PVIS|SUNDO_MRES);
 }
 
 void sculptmode_undo_free_link(SculptUndoStep *sus)
@@ -262,6 +266,8 @@ void sculptmode_undo_free_link(SculptUndoStep *sus)
 		MEM_freeN(sus->faces);
 	if(sus->pv)
 		sculptmode_pmv_free(sus->pv);
+	if(sus->mr)
+		multires_free(sus->mr);
 }
 
 void sculptmode_undo_pull_chopped(SculptUndoStep *sus)
@@ -286,6 +292,14 @@ void sculptmode_undo_pull_chopped(SculptUndoStep *sus)
 			sus->pv= f->pv;
 			f->pv= NULL;
 			sus->type |= SUNDO_PVIS;
+			break;
+		}
+		
+	for(f= sus; f && !(sus->type & SUNDO_MRES); f= f->prev)
+		if(f->type & SUNDO_MRES) {
+			sus->mr= f->mr;
+			f->mr= NULL;
+			sus->type |= SUNDO_MRES;
 			break;
 		}
 }
@@ -337,6 +351,10 @@ void sculptmode_undo_push(char *str, SculptUndoType type)
 	if(type & SUNDO_PVIS) {
 		if(me->pv)
 			n->pv= sculptmode_copy_pmv(me->pv);
+	}
+	if(type & SUNDO_MRES) {
+		if(me->mr)
+			n->mr= multires_copy(me->mr);
 	}
 
 	/* Add new undo step */
@@ -396,6 +414,14 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 			type |= SUNDO_PVIS;
 			break;
 		}
+		
+	for(sus= forward?oldcur->next:newcur->next;
+	    sus && sus != (forward?newcur->next:oldcur->next); sus= sus->next)
+		if(sus->type & SUNDO_MRES) {
+			type |= SUNDO_MRES;
+			break;
+		}
+		
 	
 	if(type & SUNDO_TOPO)
 		for(sus= newcur; sus; sus= sus->prev) {
@@ -425,6 +451,17 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 					me->pv= sculptmode_copy_pmv(sus->pv);
 				break;
 			}
+			
+	if(type & SUNDO_MRES)
+		for(sus= newcur; sus; sus= sus->prev)
+			if(sus->type & SUNDO_MRES) {
+				if(me->mr)
+					multires_free(me->mr);
+				me->mr= NULL;
+				if(sus->mr)
+					me->mr= multires_copy(sus->mr);
+				break;
+			}
 
 	sd->undo->cur= newcur;
 	
@@ -435,6 +472,7 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 
 	if(G.vd->depths) G.vd->depths->damaged= 1;
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 void sculptmode_undo()

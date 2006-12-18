@@ -56,12 +56,14 @@ typedef struct PropsetData {
 /* Memory */
 void sculptmode_init(struct Scene *);
 void sculptmode_free_all(struct Scene *);
+void sculptmode_correct_state();
 
 /* Undo */
 typedef enum SculptUndoType {
 	SUNDO_VERT= 1, /* Vertex locations modified */
 	SUNDO_TOPO= 2, /* Any face/edge change, different # of verts, etc. */
-	SUNDO_PVIS= 4  /* Mesh.pv changed */
+	SUNDO_PVIS= 4, /* Mesh.pv changed */
+	SUNDO_MRES= 8  /* Mesh.mr changed */
 } SculptUndoType;
 void sculptmode_undo_push(char *str, SculptUndoType type);
 void sculptmode_undo();
