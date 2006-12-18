@@ -752,6 +752,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
+				if (is_armature_target)
+					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco+((width/2)-98), *yco-64, 50, 18, &con->flag, 0, 24, 0, 0, "Work on a Pose's local transform");
 				but=uiDefButI(block, TOG|BIT|0, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
 				but=uiDefButI(block, TOG|BIT|1, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
 				but=uiDefButI(block, TOG|BIT|2, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
@@ -1103,7 +1105,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				int togButWidth = 50;
 				int textButWidth = ((width/2)-togButWidth);
 				
-				height = 78; 
+				if (ob->type == OB_ARMATURE && (ob->flag & OB_POSEMODE))
+					height = 106; 
+				else
+					height = 78;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				/* Draw Pairs of LimitToggle+LimitValue */
@@ -1138,6 +1143,13 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefButBitS(block, TOG, LIMIT_ZMAX, B_CONSTRAINT_TEST, "maxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-72, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum z value"); 
 				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-72, (textButWidth-5), 18, &(data->zmax), 0.0001, 1000, 0.1,0.5,"Highest z value to allow"); 
 				uiBlockEndAlign(block);
+				
+				if (ob->type == OB_ARMATURE && (ob->flag & OB_POSEMODE)) {
+					uiBlockBeginAlign(block);
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST,"Co-ordinate Space:",*xco, *yco-100,150,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco+160, *yco-100, 60, 18, &con->flag, 0, 24, 0, 0, "Work on a Pose's local transform");
+					uiBlockEndAlign(block);
+				}
 			}
 			break;
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:

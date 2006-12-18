@@ -1550,6 +1550,24 @@ static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
 			}
 		}
 			break;
+		case CONSTRAINT_TYPE_SIZELIKE:
+		{
+			bSizeLikeConstraint *data= con->data;
+			float fac= con->enforce;
+			
+			if(data->tar && data->subtarget[0]) {
+				bPoseChannel *pchant= get_pose_channel(data->tar->pose, data->subtarget);
+				if(pchant) {
+					if (data->flag & SIZELIKE_X)
+						pchan->size[0]= FloatLerpf(pchant->size[0], pchan->size[0], fac);
+					if (data->flag & SIZELIKE_Y)
+						pchan->size[1]= FloatLerpf(pchant->size[1], pchan->size[1], fac);
+					if (data->flag & SIZELIKE_Z)
+						pchan->size[2]= FloatLerpf(pchant->size[2], pchan->size[2], fac);
+				}
+			}
+		}
+			break;
 		case CONSTRAINT_TYPE_LOCLIMIT:
 		{
 			bLocLimitConstraint *data= con->data;
@@ -1624,6 +1642,37 @@ static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
 			
 			/* convert back */
 			EulToQuat(eul, pchan->quat);
+		}
+			break;
+		case CONSTRAINT_TYPE_SIZELIMIT:
+		{
+			bSizeLimitConstraint *data= con->data;
+			float fac= con->enforce;
+			
+			if (data->flag & LIMIT_XMIN) {
+				if(pchan->size[0] < data->xmin)
+					pchan->size[0] = FloatLerpf(data->xmin, pchan->size[0], fac);
+			}
+			if (data->flag & LIMIT_XMAX) {
+				if (pchan->size[0] > data->xmax)
+					pchan->size[0] = FloatLerpf(data->xmax, pchan->size[0], fac);
+			}
+			if (data->flag & LIMIT_YMIN) {
+				if(pchan->size[1] < data->ymin)
+					pchan->size[1] = FloatLerpf(data->ymin, pchan->size[1], fac);
+			}
+			if (data->flag & LIMIT_YMAX) {
+				if (pchan->size[1] > data->ymax)
+					pchan->size[1] = FloatLerpf(data->ymax, pchan->size[1], fac);
+			}
+			if (data->flag & LIMIT_ZMIN) {
+				if(pchan->size[2] < data->zmin)
+					pchan->size[2] = FloatLerpf(data->zmin, pchan->size[2], fac);
+			}
+			if (data->flag & LIMIT_ZMAX) {
+				if (pchan->size[2] > data->zmax)
+					pchan->size[2] = FloatLerpf(data->zmax, pchan->size[2], fac);
+			}
 		}
 			break;
 	}
