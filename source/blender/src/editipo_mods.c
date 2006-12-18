@@ -53,6 +53,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_global.h"
+#include "BKE_action.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_utildefines.h"
@@ -614,6 +615,25 @@ void mirror_ipo_keys(Ipo *ipo, short mirror_type)
 		default: /* just in case */
 			ipo_keys_bezier_loop(ipo, mirror_bezier_yaxis, calchandles_ipocurve);
 			break;
+	}
+}
+
+/* currently only used by some action editor tools, but may soon get used by ipo editor */
+void actstrip_map_ipo_keys(Object *ob, Ipo *ipo, short restore)
+{
+	IpoCurve *icu;
+	BezTriple *bezt;
+	int a;
+	
+	/* loop through all ipo curves, adjusting the times of the selected keys */
+	for (icu= ipo->curve.first; icu; icu= icu->next) {
+		for (a=0, bezt=icu->bezt; a<icu->totvert; a++, bezt++) {
+			/* are the times being adjusted for editing, or has editing finished */
+			if (restore) 
+				bezt->vec[1][0]= get_action_frame(ob, bezt->vec[1][0]);
+			else
+				bezt->vec[1][0]= get_action_frame_inv(ob, bezt->vec[1][0]);
+		}
 	}
 }
 
