@@ -32,6 +32,9 @@
  
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h>
+
+#include "PIL_time.h"
 
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
@@ -39,9 +42,11 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_arithb.h"
+#include "BLI_editVert.h"
 
 #include "BDR_drawobject.h"
 
+#include "editmesh.h"
 #include "BIF_editsima.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -54,16 +59,23 @@
 #include "transform.h"
 #include "mydevice.h"		/* for KEY defines	*/
 
-#define SNAP_ON	1
+#define SNAP_ON			0x1
+#define TARGET_INIT		0x2
+#define POINT_INIT		0x4
 
 /********************* PROTOTYPES ***********************/
 
 void setSnappingCallback(TransInfo *t);
-void SnapTranslation(TransInfo *t, float vec[3]);
-void SnapRotation(TransInfo *t, float *vec);
 
-void CalcSnapGrid(TransInfo *t, float vec[3]);
+void ApplySnapTranslation(TransInfo *t, float vec[3]);
+void ApplySnapRotation(TransInfo *t, float *vec);
 
+void CalcSnapGrid(TransInfo *t, float *vec);
+void CalcSnapGeometry(TransInfo *t, float *vec);
+
+void TargetSnapMedian(TransInfo *t);
+void TargetSnapCenter(TransInfo *t);
+void TargetSnapClosest(TransInfo *t);
 
 /****************** IMPLEMENTATIONS *********************/
 
@@ -90,20 +102,37 @@ int  handleSnapping(TransInfo *t, int event)
 
 void applySnapping(TransInfo *t, float *vec)
 {
-	if ((t->tsnap.status & SNAP_ON) && t->tsnap.applySnap != NULL)
+	if (	(t->tsnap.status & SNAP_ON) &&
+			t->tsnap.applySnap != NULL &&
+			(t->flag & T_PROP_EDIT) == 0)
 	{
-		t->tsnap.applySnap(t, vec);
+		double current = PIL_check_seconds_timer();
+		
+		// Time base quirky code to go around findnearest slowness
+		if (current - t->tsnap.last  >= 0.25)
+		{
+			t->tsnap.calcSnap(t, vec);
+			t->tsnap.targetSnap(t);
+	
+			t->tsnap.last = current;
+		}
+		if ((t->tsnap.status & (POINT_INIT|TARGET_INIT)) == (POINT_INIT|TARGET_INIT))
+		{
+			t->tsnap.applySnap(t, vec);
+		}
 	}
 }
 
 void resetSnapping(TransInfo *t)
 {
 	t->tsnap.status = 0;
+	t->tsnap.last = 0;
 	t->tsnap.applySnap = NULL;
 }
 
 void initSnapping(TransInfo *t)
 {
+	resetSnapping(t);
 	setSnappingCallback(t);
 	
 	if ((t->spacetype==SPACE_VIEW3D) && (G.vd->flag2 & V3D_TRANSFORM_SNAP))
@@ -121,12 +150,12 @@ void setSnappingCallback(TransInfo *t)
 	switch (t->mode)
 	{
 	case TFM_TRANSLATION:
-		t->tsnap.applySnap = SnapTranslation;
-		t->tsnap.calcSnap = CalcSnapGrid;
+		t->tsnap.applySnap = ApplySnapTranslation;
+		t->tsnap.calcSnap = CalcSnapGeometry;
+		t->tsnap.targetSnap = TargetSnapClosest;
 		break;
 	case TFM_ROTATION:
-		t->tsnap.applySnap = NULL; //SnapRotation;
-		//t->tsnap.calcSnap = CalcSnapGrid;
+		t->tsnap.applySnap = NULL;
 		break;
 	case TFM_RESIZE:
 		t->tsnap.applySnap = NULL;
@@ -137,21 +166,11 @@ void setSnappingCallback(TransInfo *t)
 	}
 }
 
-void SnapTranslation(TransInfo *t, float vec[3])
+/********************** APPLY **************************/
+
+void ApplySnapTranslation(TransInfo *t, float vec[3])
 {
-	float center[3];
-
-	VECCOPY(center, t->center);	
-	if(t->flag & (T_EDIT|T_POSE)) {
-		Object *ob= G.obedit?G.obedit:t->poseobj;
-		Mat4MulVecfl(ob->obmat, center);
-	}
-	
-	VecAddf(t->tsnap.snapPoint, vec, center);
-
-	t->tsnap.calcSnap(t, t->tsnap.snapPoint);
-	
-	VecSubf(vec, t->tsnap.snapPoint, center);
+	VecSubf(vec, t->tsnap.snapPoint, t->tsnap.snapTarget);
 	
 	if (t->con.mode & CON_APPLY)
 	{
@@ -159,21 +178,105 @@ void SnapTranslation(TransInfo *t, float vec[3])
 	}
 }
 
-void SnapRotation(TransInfo *t, float *vec)
+void ApplySnapRotation(TransInfo *t, float vec[3])
 {
-	TransData *td;
-	
-	td = t->data;
-	
-	VECCOPY(t->tsnap.snapPoint, td->loc);
-	t->tsnap.calcSnap(t, t->tsnap.snapPoint);
-	
-	
+	// FOO
 }
 
-void CalcSnapGrid(TransInfo *t, float vec[3])
+/********************** CALC **************************/
+
+void CalcSnapGrid(TransInfo *t, float *vec)
 {
-	snapGridAction(t, vec, BIG_GEARS);
+	snapGridAction(t, t->tsnap.snapPoint, BIG_GEARS);
+}
+
+void CalcSnapGeometry(TransInfo *t, float *vec)
+{
+	if (G.obedit != NULL && G.obedit->type==OB_MESH)
+	{
+		EditVert *nearest=NULL;
+		int dist = 50; // Use a user defined value here
+		
+		// use findnearestverts in vert mode, others in other modes
+		nearest = findnearestvert(&dist, 0);
+		
+		if (nearest != NULL)
+		{
+			VECCOPY(t->tsnap.snapPoint, nearest->co);
+			
+			Mat4MulVecfl(G.obedit->obmat, t->tsnap.snapPoint);
+			
+			t->tsnap.status |=  POINT_INIT;
+		}
+		else
+		{
+			t->tsnap.status &= ~POINT_INIT;
+		}
+	}
+}
+
+/********************** TARGET **************************/
+
+void TargetSnapCenter(TransInfo *t)
+{
+	VECCOPY(t->tsnap.snapTarget, t->center);	
+	if(t->flag & (T_EDIT|T_POSE)) {
+		Object *ob= G.obedit?G.obedit:t->poseobj;
+		Mat4MulVecfl(ob->obmat, t->tsnap.snapTarget);
+	}
+}
+
+void TargetSnapClosest(TransInfo *t)
+{
+	if (t->tsnap.status & POINT_INIT)
+	{
+		TransData *closest = NULL, *td = NULL;
+		float closestDist = 0;
+		
+		// Base case, only one selected item
+		if (t->total == 1)
+		{
+			closest = t->data;
+		}
+		// More than one selected item
+		else
+			{
+			float point[3];
+			
+			VECCOPY(point, t->tsnap.snapPoint);
+				
+			if(t->flag & (T_EDIT|T_POSE)) {
+				Object *ob= G.obedit?G.obedit:t->poseobj;
+				float imat[4][4];
+				Mat4Invert(imat, ob->obmat);
+				Mat4MulVecfl(imat, point);
+			}
+				
+			for (td = t->data; td != NULL && td->flag & TD_SELECTED ; td++)
+			{
+				float vdist[3];
+				float dist;
+				
+				VecSubf(vdist, td->iloc, point);
+				dist = Inpf(vdist, vdist);
+				
+				if (closest == NULL || dist < closestDist)
+				{
+					closest = td;
+					closestDist = dist; 
+				}
+			}
+		}
+		
+		VECCOPY(t->tsnap.snapTarget, closest->iloc);
+		
+		if(t->flag & (T_EDIT|T_POSE)) {
+			Object *ob= G.obedit?G.obedit:t->poseobj;
+			Mat4MulVecfl(ob->obmat, t->tsnap.snapTarget);
+		}
+		
+		t->tsnap.status |= TARGET_INIT;
+	}
 }
 
 /*================================================================*/

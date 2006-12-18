@@ -62,8 +62,11 @@ typedef struct NumInput {
 typedef struct TransSnap {
 	int  status;
 	float snapPoint[3];
+	float snapTarget[3];
+	double last;
 	void (*applySnap)(struct TransInfo *, float *);
 	void (*calcSnap)(struct TransInfo *, float *);
+	void (*targetSnap)(struct TransInfo *);
 } TransSnap;
 
 typedef struct TransCon {
