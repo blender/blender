@@ -745,7 +745,7 @@ void *new_constraint_data (short type)
             data->pivZ=0.0;
             data->axX=0.0;
             data->axY=0.0;
-            data->axZ=1.0;
+            data->axZ=0.0;
 			for (i=0;i<6;i++)
 			{
 				data->minLimit[i]=0.0;
