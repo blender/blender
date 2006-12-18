@@ -304,6 +304,7 @@ static void do_nla_stripmenu(void *arg, int event)
 		}
 		break;
 	case 5: /* Convert Action to NLA Strip */
+		convert_nla();
 		break;
 	case 6: /* Move Up */
 		shift_nlastrips_up();
@@ -337,6 +338,8 @@ static uiBlock *nla_stripmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Action Strip|Shift A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Convert Action to NLA Strip|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	
@@ -344,8 +347,7 @@ static uiBlock *nla_stripmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Down|Ctrl Page Down", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Up|Ctrl Page Up", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
-		
-	// uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Convert Action to NLA Strip|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

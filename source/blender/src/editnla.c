@@ -99,7 +99,6 @@ static Base *get_nearest_nlachannel_ob_key (float *index, short *sel);
 static bAction *get_nearest_nlachannel_ac_key (float *index, short *sel);
 static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel);
 static void mouse_nlachannels(short mval[2]);
-static void convert_nla(short mval[2]);
 
 /* ******************** SPACE: NLA ********************** */
 
@@ -308,75 +307,29 @@ static void set_active_strip(Object *ob, bActionStrip *act)
 	}	
 }
 
-static void convert_nla(short mval[2])
+void convert_nla(void)
 {
-	bActionStrip *strip, *nstrip;
-	Base *base;
-	float x,y;
-	float	ymax, ymin;
-	int sel=0;
-	short event;
+	bActionStrip *strip;
+	Object *ob= OBACT;
 	char str[128];
+	short event;
 	
-	/* Find out what strip we're over */
-	ymax = count_nla_levels() * (NLACHANNELSKIP+NLACHANNELHEIGHT);
-	ymax+= NLACHANNELHEIGHT/2;
-	
-	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
-	
-	for (base=G.scene->base.first; base; base=base->next){
-		if (nla_filter(base)) {
-			
-			/* Area that encloses object name (or ipo) */
-			ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
-			
-			/* skip if object collapsed */
-			if (base->object->nlaflag & OB_NLA_COLLAPSED)
-				continue;
-			
-			ymax=ymin;
-			
-			/* Check action ipo */
-			if (base->object->action) {
-				ymin=ymax-(NLACHANNELSKIP+NLACHANNELHEIGHT);
-				if (y>=ymin && y<=ymax)
-					break;
-				ymax=ymin;
-			}			
-				
-			/* Check nlastrips */
-			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-				ymin=ymax-(NLACHANNELSKIP+NLACHANNELHEIGHT);
-				if (y>=ymin && y<=ymax){
-					sel = 1;
-					break;
-				}
-				ymax=ymin;
-			}
-			if (sel)
-				break;
-		}
+	if ((ob==NULL)||(ob->action==NULL)) {
+		error("Need active Object to convert Action to NLA Strip");
+		return;
 	}
 	
-	if (base==0 || base->object->action==NULL)
-		return;
-	
-	sprintf(str, "Convert Action%%t|%s to NLA Strip%%x1", base->object->action->id.name+2);
+	sprintf(str, "Convert Action%%t|%s to NLA Strip%%x1", ob->action->id.name+2);
 	event = pupmenu(str);
 	
-	switch (event){
-	case 1:
-		if (base->object->action) {
+	if (event==1) {
+		if (ob->action) {
 			deselect_nlachannel_keys(0);
-			nstrip = convert_action_to_strip(base->object); //creates a new NLA strip from the action in given object
-			set_active_strip(base->object, nstrip);
+			strip = convert_action_to_strip(ob); //creates a new NLA strip from the action in given object
+			set_active_strip(ob, strip);
 			BIF_undo_push("Convert NLA");
 			allqueue (REDRAWNLA, 0);
 		}
-
-		break;
-	default:
-		break;
 	}
 }
 
@@ -1812,7 +1765,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(okee("Copy Modifiers"))
 						copy_action_modifiers();
 				}
-				else convert_nla(mval);
+				else convert_nla();
 				break;
 				
 			case DKEY:
