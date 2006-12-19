@@ -541,7 +541,7 @@ void column_select_actionkeys(bAction *act, int mode)
 			/* create a list of all selected keys */
 			for (achan=act->chanbase.first; achan; achan=achan->next){
 				if((achan->flag & ACHAN_HIDDEN)==0) {
-					if (chan->ipo)
+					if (achan->ipo)
 						make_sel_cfra_list(achan->ipo, &elems);
 					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 						if (conchan->ipo)

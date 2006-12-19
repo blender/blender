@@ -374,7 +374,7 @@ class Object:
         Read-only.
     @type effects: list of Effect objects
     @ivar parentbonename: The string name of the parent bone (if defined).
-        Read-only.
+        This can be set to another bone in the armature if the object already has a bone parent
     @type parentbonename: string or None
     @ivar protectFlags: The "transform locking" bitfield flags for the object.  
     See L{ProtectFlags} const dict for values.
@@ -990,6 +990,28 @@ class Object:
     @param objects: The children of the parent
     @type indices: Tuple of Integers
     @param indices: The indices of the vertices you want to parent to (1 or 3 values)
+    @type noninverse: Integer
+    @param noninverse:
+        0 - make parent with inverse
+        1 - make parent without inverse
+    @type fast: Integer
+    @param fast:
+        0 - update scene hierarchy automatically
+        1 - don't update scene hierarchy (faster). In this case, you must
+        explicitely update the Scene hierarchy.
+    @warn: objects must first be linked to a scene before they can become
+        parents of other objects.  Calling this makeParent method for an
+        unlinked object will result in an error.
+    """
+  def makeParentBone(objects, bonename, noninverse = 0, fast = 0):
+    """
+    Makes one of the objects bones the parent of the objects provided in the argument
+    which must be a list of valid Objects.
+    The parent object must be an Armature.
+    @type objects: Sequence of Blender Object
+    @param objects: The children of the parent
+    @type bonename: string
+    @param bonename: a valid bone name from the armature
     @type noninverse: Integer
     @param noninverse:
         0 - make parent with inverse

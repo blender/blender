@@ -44,7 +44,7 @@ struct rctf;
 #include "DNA_view3d_types.h"
 #include "DNA_object_force.h"
 #include "DNA_userdef_types.h"
-#include "DNA_oops_types.h" 
+#include "DNA_oops_types.h"
 
 #include "BKE_action.h"
 #include "BKE_anim.h" /* used for dupli-objects */
@@ -281,7 +281,7 @@ static PyObject *M_Object_GetSelected( PyObject * self );
 static PyObject *M_Object_Duplicate( PyObject * self, PyObject * args, PyObject *kwd);
 
 /* HELPER FUNCTION FOR PARENTING */
-static PyObject *internal_makeParent(Object *parent, PyObject *py_child, int partype, int noninverse, int fast, int v1, int v2, int v3);
+static PyObject *internal_makeParent(Object *parent, PyObject *py_child, int partype, int noninverse, int fast, int v1, int v2, int v3, char *bonename);
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.	 */
@@ -348,6 +348,7 @@ static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args );
 static PyObject *Object_getName( BPy_Object * self );
 static PyObject *Object_getParent( BPy_Object * self );
 static PyObject *Object_getParentBoneName( BPy_Object * self );
+static int Object_setParentBoneName( BPy_Object * self, PyObject * value );
 static PyObject *Object_getSize( BPy_Object * self, PyObject * args );
 static PyObject *Object_getTimeOffset( BPy_Object * self );
 static PyObject *Object_getTracked( BPy_Object * self );
@@ -363,6 +364,7 @@ static PyObject *Object_makeParent( BPy_Object * self, PyObject * args );
 static PyObject *Object_join( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeParentDeform( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeParentVertex( BPy_Object * self, PyObject * args );
+static PyObject *Object_makeParentBone( BPy_Object * self, PyObject * args );
 static PyObject *Object_materialUsage( void );
 static PyObject *Object_getDupliObjects ( BPy_Object * self);
 static PyObject *Object_getEffects( BPy_Object * self );
@@ -660,6 +662,14 @@ mode:\n\t0: make parent with inverse\n\t1: without inverse\n\
 fast:\n\t0: update scene hierarchy automatically\n\t\
 don't update scene hierarchy (faster). In this case, you must\n\t\
 explicitely update the Scene hierarchy."},
+	{"makeParentBone", ( PyCFunction ) Object_makeParentBone, METH_VARARGS,
+	 "Makes this armature objects bone, the parent of the objects provided in the \n\
+argument which must be a list of valid Objects. Optional extra arguments:\n\
+mode:\n\t0: make parent with inverse\n\t1: without inverse\n\
+fast:\n\t0: update scene hierarchy automatically\n\t\
+don't update scene hierarchy (faster). In this case, you must\n\t\
+explicitely update the Scene hierarchy."},
+
 	{"materialUsage", ( PyCFunction ) Object_materialUsage, METH_NOARGS,
 	 "Determines the way the material is used and returns status.\n\
 Possible arguments (provide as strings):\n\
@@ -1333,6 +1343,33 @@ static PyObject *Object_getParentBoneName( BPy_Object * self )
 	Py_RETURN_NONE;
 }
 
+static int Object_setParentBoneName( BPy_Object * self, PyObject *value )
+{
+	char *bonename;
+	
+	if (!PyString_Check(value))
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected an int or nothing" );
+	
+	if (
+		self->object->parent &&
+		self->object->parent->type == OB_ARMATURE &&
+		self->object->partype == PARBONE
+	) {/* its all good */} else
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"can only set the parent bone name for objects that alredy have a bone parent" );
+	
+	bonename = PyString_AsString(value);
+
+	if (!get_named_bone(self->object->parent->data, bonename))
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"cannot parent to this bone: invalid bone name" );
+	
+	strcpy(self->object->parsubstr, bonename);
+	DAG_scene_sort( G.scene );
+	return 0;
+}
+
 static PyObject *Object_getSize( BPy_Object * self, PyObject * args )
 {
 	PyObject *attr;
@@ -1381,11 +1418,11 @@ static PyObject *Object_getType( BPy_Object * self )
 {
 	char *str;
 	int type = self->object->type;
-
+	
 	/* if object not yet linked to data, return the stored type */
 	if( self->realtype != OB_EMPTY )
 		type = self->realtype;
-
+	
 	switch ( type ) {
 	case OB_ARMATURE:
 		str = "Armature";
@@ -1726,7 +1763,7 @@ static PyObject *Object_makeParentVertex( BPy_Object * self, PyObject * args )
 	for( i = 0; i < PySequence_Length( list ); i++ ) {
 		py_child = PySequence_GetItem( list, i );
 
-		ret_val = internal_makeParent(parent, py_child, partype, noninverse, fast, v1, v2, v3);
+		ret_val = internal_makeParent(parent, py_child, partype, noninverse, fast, v1, v2, v3, NULL);
 		Py_DECREF (py_child);
 
 		if (ret_val)
@@ -1777,7 +1814,7 @@ static PyObject *Object_makeParentDeform( BPy_Object * self, PyObject * args )
 	for( i = 0; i < PySequence_Length( list ); i++ ) {
 		py_child = PySequence_GetItem( list, i );
 
-		ret_val = internal_makeParent(parent, py_child, PARSKEL, noninverse, fast, 0, 0, 0);
+		ret_val = internal_makeParent(parent, py_child, PARSKEL, noninverse, fast, 0, 0, 0, NULL);
 		Py_DECREF (py_child);
 
 		if (ret_val)
@@ -1794,6 +1831,64 @@ static PyObject *Object_makeParentDeform( BPy_Object * self, PyObject * args )
 
 	Py_RETURN_NONE;
 }
+
+
+static PyObject *Object_makeParentBone( BPy_Object * self, PyObject * args )
+{
+	char *bonename;
+	PyObject *list;
+	PyObject *py_child;
+	PyObject *ret_val;
+	Object *parent;
+	int noninverse = 0;
+	int fast = 0;
+	int i;
+	
+	/* Check if the arguments passed to makeParent are valid. */
+	if( !PyArg_ParseTuple( args, "Os|ii", &list, &bonename, &noninverse, &fast ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected a list of objects, bonename and optionally two integers as arguments" );
+	
+	parent = ( Object * ) self->object;
+	
+	if (parent->type != OB_ARMATURE)
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"Parent Bone only applies to armature objects" );
+
+	if (parent->id.us == 0)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"object must be linked to a scene before it can become a parent");
+	
+	if (!parent->data)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"object must be linked to armature data");
+	
+	if (!get_named_bone(parent->data, bonename))
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"Parent Bone Name is not in the armature" );
+	
+	/* Check if the PyObject passed in list is a Blender object. */
+	for( i = 0; i < PySequence_Length( list ); i++ ) {
+		py_child = PySequence_GetItem( list, i );
+
+		ret_val = internal_makeParent(parent, py_child, PARBONE, noninverse, fast, 0, 0, 0, bonename);
+		Py_DECREF (py_child);
+
+		if (ret_val)
+			Py_DECREF(ret_val);
+		else {
+			if (!fast)	/* need to sort when interupting in the middle of the list */
+				DAG_scene_sort( G.scene );
+			return NULL; /* error has been set already */
+		}
+	}
+
+	if (!fast) /* otherwise, only sort at the end */
+		DAG_scene_sort( G.scene );
+
+	Py_RETURN_NONE;
+}
+
 
 static PyObject *Object_makeParent( BPy_Object * self, PyObject * args )
 {
@@ -1824,7 +1919,7 @@ static PyObject *Object_makeParent( BPy_Object * self, PyObject * args )
 	for( i = 0; i < PySequence_Length( list ); i++ ) {
 		py_child = PySequence_GetItem( list, i );
 
-		ret_val = internal_makeParent(parent, py_child, PAROBJECT, noninverse, fast, 0, 0, 0);
+		ret_val = internal_makeParent(parent, py_child, PAROBJECT, noninverse, fast, 0, 0, 0, NULL);
 		Py_DECREF (py_child);
 
 		if (ret_val)
@@ -1990,7 +2085,8 @@ letting the user know that their data could not be joined." ) );
 static PyObject *internal_makeParent(Object *parent, PyObject *py_child,
 		int partype,                /* parenting type */
 		int noninverse, int fast,   /* parenting arguments */
-		int v1, int v2, int v3 )    /* for vertex parent */
+		int v1, int v2, int v3,     /* for vertex parent */
+		char *bonename)             /* for bone parents - assume the name is alredy checked to be a valid bone name*/
 {
 	Object *child = NULL;
 
@@ -2017,7 +2113,11 @@ static PyObject *internal_makeParent(Object *parent, PyObject *py_child,
 	}
 	else if (partype == PARVERT1) {
 		child->par1 = v1;
+	} else if (partype == PARBONE) {
+		strcpy( child->parsubstr, bonename );
 	}
+	
+	
 
 	child->parent = parent;
 	/* py_obj_child = (BPy_Object *) py_child; */
@@ -4875,8 +4975,8 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 "The object's parent object (if parented)",
 	 NULL},
 	{"parentbonename",
-	 (getter)Object_getParentBoneName, (setter)NULL,
-	 "Returns the object's parent object's sub name",
+	 (getter)Object_getParentBoneName, (setter)Object_setParentBoneName,
+	 "The object's parent object's sub name",
 	 NULL},
 	{"track",
 	 (getter)Object_getTracked, (setter)Object_setTracked,
