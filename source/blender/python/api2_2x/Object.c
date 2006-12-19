@@ -651,7 +651,7 @@ argument which must be a list of valid Objects. Optional extra arguments:\n\
 mode:\n\t0: make parent with inverse\n\t1: without inverse\n\
 fast:\n\t0: update scene hierarchy automatically\n\t\
 don't update scene hierarchy (faster). In this case, you must\n\t\
-explicitely update the Scene hierarchy."},
+explicitly update the Scene hierarchy."},
 	{"makeParentVertex", ( PyCFunction ) Object_makeParentVertex, METH_VARARGS,
 	 "Makes the object the vertex parent of the objects provided in the \n\
 argument which must be a list of valid Objects. \n\
@@ -661,7 +661,7 @@ Optional extra arguments:\n\
 mode:\n\t0: make parent with inverse\n\t1: without inverse\n\
 fast:\n\t0: update scene hierarchy automatically\n\t\
 don't update scene hierarchy (faster). In this case, you must\n\t\
-explicitely update the Scene hierarchy."},
+explicitly update the Scene hierarchy."},
 	{"makeParentBone", ( PyCFunction ) Object_makeParentBone, METH_VARARGS,
 	 "Makes this armature objects bone, the parent of the objects provided in the \n\
 argument which must be a list of valid Objects. Optional extra arguments:\n\
@@ -1357,7 +1357,7 @@ static int Object_setParentBoneName( BPy_Object * self, PyObject *value )
 		self->object->partype == PARBONE
 	) {/* its all good */} else
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
-				"can only set the parent bone name for objects that alredy have a bone parent" );
+				"can only set the parent bone name for objects that already have a bone parent" );
 	
 	bonename = PyString_AsString(value);
 
@@ -2086,7 +2086,7 @@ static PyObject *internal_makeParent(Object *parent, PyObject *py_child,
 		int partype,                /* parenting type */
 		int noninverse, int fast,   /* parenting arguments */
 		int v1, int v2, int v3,     /* for vertex parent */
-		char *bonename)             /* for bone parents - assume the name is alredy checked to be a valid bone name*/
+		char *bonename)             /* for bone parents - assume the name is already checked to be a valid bone name*/
 {
 	Object *child = NULL;
 
