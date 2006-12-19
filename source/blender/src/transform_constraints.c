@@ -241,24 +241,29 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], flo
 	VECCOPY(out, in);
 	if (!td && t->con.mode & CON_APPLY) {
 		Mat3MulVecfl(t->con.pmtx, out);
-		if (getConstraintSpaceDimension(t) == 2) {
-			if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
-				planeProjection(t, in, out);
+		
+		// With snap, a projection is alright, no need to correct for view alignment
+		if ((t->tsnap.status & SNAP_ON) == 0)
+			{
+			if (getConstraintSpaceDimension(t) == 2) {
+				if (out[0] != 0.0f || out[1] != 0.0f || out[2] != 0.0f) {
+					planeProjection(t, in, out);
+				}
 			}
-		}
-		else if (getConstraintSpaceDimension(t) == 1) {
-			float c[3];
-
-			if (t->con.mode & CON_AXIS0) {
-				VECCOPY(c, t->con.mtx[0]);
+			else if (getConstraintSpaceDimension(t) == 1) {
+				float c[3];
+	
+				if (t->con.mode & CON_AXIS0) {
+					VECCOPY(c, t->con.mtx[0]);
+				}
+				else if (t->con.mode & CON_AXIS1) {
+					VECCOPY(c, t->con.mtx[1]);
+				}
+				else if (t->con.mode & CON_AXIS2) {
+					VECCOPY(c, t->con.mtx[2]);
+				}
+				axisProjection(t, c, in, out);
 			}
-			else if (t->con.mode & CON_AXIS1) {
-				VECCOPY(c, t->con.mtx[1]);
-			}
-			else if (t->con.mode & CON_AXIS2) {
-				VECCOPY(c, t->con.mtx[2]);
-			}
-			axisProjection(t, c, in, out);
 		}
 		postConstraintChecks(t, out, pvec);
 	}

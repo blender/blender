@@ -167,6 +167,11 @@ typedef struct View3D {
 #define V3D_OPP_DIRECTION_NAME	1
 #define V3D_FLYMODE				2
 #define V3D_TRANSFORM_SNAP		4
+#define V3D_SNAP_TARGET			(8|16)
+#define V3D_SNAP_TARGET_CLOSEST	0
+#define V3D_SNAP_TARGET_CENTER	8
+#define V3D_SNAP_TARGET_MEDIAN	16
+
 
 /* View3D->around */
 #define V3D_CENTRE		 0

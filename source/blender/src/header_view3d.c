@@ -1696,6 +1696,21 @@ static void do_view3d_transformmenu(void *arg, int event)
 		initTransform(TFM_CURVE_SHRINKFATTEN, CTX_NONE);
 		Transform();
 		break;
+	case 15:
+		G.vd->flag2 ^= V3D_TRANSFORM_SNAP;
+		break;
+	case 16:
+		G.vd->flag2 &= ~V3D_SNAP_TARGET;
+		G.vd->flag2 |= V3D_SNAP_TARGET_CLOSEST;
+		break;
+	case 17:
+		G.vd->flag2 &= ~V3D_SNAP_TARGET;
+		G.vd->flag2 |= V3D_SNAP_TARGET_CENTER;
+		break;
+	case 18:
+		G.vd->flag2 &= ~V3D_SNAP_TARGET;
+		G.vd->flag2 |= V3D_SNAP_TARGET_MEDIAN;
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1747,6 +1762,35 @@ static uiBlock *view3d_transformmenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center Cursor",          0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	}
 	
+	if (G.obedit != NULL && G.obedit->type==OB_MESH)
+	{
+		uiDefBut(block, SEPR, 0, "",                    0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+		if (G.vd->flag2 & V3D_TRANSFORM_SNAP)
+			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
+		else
+			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
+			
+		switch(G.vd->flag2 & V3D_SNAP_TARGET)
+		{
+			case V3D_SNAP_TARGET_CLOSEST:
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap Closest",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Center",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Median",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
+				break;
+			case V3D_SNAP_TARGET_CENTER:
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Closest",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap Center",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Median",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
+				break;
+			case V3D_SNAP_TARGET_MEDIAN:
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Closest",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Center",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap Median",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
+				break;
+		}
+	}
+
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 	return block;
@@ -2262,9 +2306,6 @@ static void do_view3d_edit_objectmenu(void *arg, int event)
 		if(session) b_verse_push_object(session, ob);
 		break;
 #endif
-	case 17: /* Transform snap to grid */
-		G.vd->flag2 ^= V3D_TRANSFORM_SNAP;
-		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2289,11 +2330,6 @@ static uiBlock *view3d_edit_objectmenu(void *arg_unused)
 		}
 	}
 #endif
-
-	if (G.vd->flag2 & V3D_TRANSFORM_SNAP)
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Transform Snap",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
-	else
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Transform Snap",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
 	
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
@@ -2831,9 +2867,6 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 		if(session) b_verse_push_object(session, G.obedit);
 		break;
 #endif
-	case 17: /* Transform snap to grid */
-		G.vd->flag2 ^= V3D_TRANSFORM_SNAP;
-		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2861,11 +2894,6 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if (G.vd->flag2 & V3D_TRANSFORM_SNAP)
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Transform Snap",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
-	else
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Transform Snap",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
-
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, 120, 19, "");

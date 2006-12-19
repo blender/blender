@@ -98,6 +98,14 @@
 TransInfo Trans = {TFM_INIT, 0};	// enforce init on first usage
 
 /******************************** Helper functions ************************************/
+
+/* GLOBAL Wrapper Fonctions */
+
+void BIF_drawSnap()
+{
+	drawSnapping(&Trans);
+}
+
 /* ************************** Dashed help line **************************** */
 
 
@@ -2158,9 +2166,9 @@ int Translation(TransInfo *t, short mval[2])
 
 	if (t->con.mode & CON_APPLY) {
 		float pvec[3] = {0.0f, 0.0f, 0.0f};
+		applySnapping(t, t->vec);
 		t->con.applyVec(t, NULL, t->vec, tvec, pvec);
 		VECCOPY(t->vec, tvec);
-		applySnapping(t, t->vec);
 		headerTranslation(t, pvec, str);
 	}
 	else {

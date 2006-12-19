@@ -251,6 +251,13 @@ typedef struct TransInfo {
 #define TD_VERSE_VERT		64
 #endif
 
+/* transsnap->status */
+#define SNAP_ON			0x1
+#define TARGET_INIT		0x2
+#define POINT_INIT		0x4
+
+
+
 void checkFirstTime(void);
 
 void setTransformViewMatrices(TransInfo *t);

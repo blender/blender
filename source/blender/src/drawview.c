@@ -2900,6 +2900,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	if(G.moving) {
 		BIF_drawConstraint();
 		if(G.obedit) BIF_drawPropCircle();	// only editmode has proportional edit
+		BIF_drawSnap();
 	}
 
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
