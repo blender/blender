@@ -493,10 +493,15 @@ TimeMarker *find_nearest_marker(int clip_y)
 }
 
 /* Adds a marker to list of cfra elems */
-void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker)
+void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, short only_sel)
 {
 	CfraElem *ce, *cen;
 	
+	/* should this one only be considered if it is selected? */
+	if ((only_sel) && ((marker->flag & SELECT)==0))
+		return;
+	
+	/* try to find a previous cfra elem */
 	ce= lb->first;
 	while(ce) {
 		
@@ -518,14 +523,16 @@ void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker)
 	cen->sel= marker->flag;
 }
 
-/* This function makes a list of the selected markers
+/* This function makes a list of all the markers. The only_sel
+ * argument is used to specify whether only the selected markers
+ * are added.
  */
-void make_marker_cfra_list(ListBase *lb)
+void make_marker_cfra_list(ListBase *lb, short only_sel)
 {
 	TimeMarker *marker;
 	
 	for (marker= G.scene->markers.first; marker; marker= marker->next) {
-		add_marker_to_cfra_elem(lb, marker);
+		add_marker_to_cfra_elem(lb, marker, only_sel);
 	}
 }
 

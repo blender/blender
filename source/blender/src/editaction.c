@@ -497,7 +497,7 @@ void column_select_shapekeys(Key *key, int mode)
 				break;
 			case 2:
 				/* create a list of all selected markers */
-				make_marker_cfra_list(&elems);
+				make_marker_cfra_list(&elems, 1);
 				break;
 		}
 		
@@ -532,18 +532,18 @@ void column_select_actionkeys(bAction *act, int mode)
 	BezTriple *bezt;
 	ListBase elems= {NULL, NULL};
 	CfraElem *ce;
-	bActionChannel *chan;
+	bActionChannel *achan;
 	bConstraintChannel *conchan;
 
 	/* build list of columns */
 	switch (mode) {
 		case 1:
 			/* create a list of all selected keys */
-			for (chan=act->chanbase.first; chan; chan=chan->next){
-				if((chan->flag & ACHAN_HIDDEN)==0) {
+			for (achan=act->chanbase.first; achan; achan=achan->next){
+				if((achan->flag & ACHAN_HIDDEN)==0) {
 					if (chan->ipo)
-						make_sel_cfra_list(chan->ipo, &elems);
-					for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
+						make_sel_cfra_list(achan->ipo, &elems);
+					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 						if (conchan->ipo)
 							make_sel_cfra_list(conchan->ipo, &elems);
 					}
@@ -552,24 +552,30 @@ void column_select_actionkeys(bAction *act, int mode)
 			break;
 		case 2:
 			/* create a list of all selected markers */
-			make_marker_cfra_list(&elems);
+			make_marker_cfra_list(&elems, 1);
+			
+			/* apply scaled action correction if needed */
+			if (G.saction->pin==0 && OBACT) {
+				for (ce= elems.first; ce; ce= ce->next) 
+					ce->cfra= get_action_frame(OBACT, ce->cfra);
+			}
 			break;
 	}
 	
 	/* loop through all of the keys and select additional keyframes
 	 * based on the keys found to be selected above
 	 */
-	for (chan=act->chanbase.first; chan; chan=chan->next){
-		if((chan->flag & ACHAN_HIDDEN)==0) {
-			if (chan->ipo) {
+	for (achan=act->chanbase.first; achan; achan=achan->next){
+		if((achan->flag & ACHAN_HIDDEN)==0) {
+			if (achan->ipo) {
 				for(ce= elems.first; ce; ce= ce->next) {
-					for (icu = chan->ipo->curve.first; icu; icu = icu->next){
+					for (icu = achan->ipo->curve.first; icu; icu = icu->next){
 						bezt= icu->bezt;
 						if(bezt) {
 							int verts = icu->totvert;
 							while(verts--) {
 						
-								if( ((int)ce->cfra) == ((int)bezt->vec[1][0]) ) {
+								if( (int)(ce->cfra) == (int)(bezt->vec[1][0]) ) {
 									bezt->f2 |= 1;
 								}
 								bezt++;
@@ -580,7 +586,7 @@ void column_select_actionkeys(bAction *act, int mode)
 			}
 
 
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
+			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 				if (conchan->ipo) {
 					for(ce= elems.first; ce; ce= ce->next) {
 						for (icu = conchan->ipo->curve.first; icu; icu = icu->next){
@@ -3161,6 +3167,8 @@ void markers_selectkeys_between(void)
 	/* get extreme markers */
 	get_minmax_markers(1, &min, &max);
 	if (min==max) return;
+	min -= 0.5f;
+	max += 0.5f;
 	
 	/* get keyframe data */
 	act = G.saction->action;
@@ -3176,12 +3184,28 @@ void markers_selectkeys_between(void)
 		bConstraintChannel *conchan;
 		
 		for (achan= act->chanbase.first; achan; achan= achan->next) {
-			if (achan->ipo) 
-				borderselect_ipo_key(achan->ipo, min, max, SELECT_ADD);
-			
+			if (achan->ipo) {
+				if(G.saction->pin==0 && OBACT) {
+					actstrip_map_ipo_keys(OBACT, achan->ipo, 0);
+					borderselect_ipo_key(achan->ipo, min, max, SELECT_ADD);
+					actstrip_map_ipo_keys(OBACT, achan->ipo, 1);
+				}
+				else {
+					borderselect_ipo_key(achan->ipo, min, max, SELECT_ADD);
+				}
+			}
+				
 			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
-				if (conchan->ipo)
-					borderselect_ipo_key(conchan->ipo, min, max, SELECT_ADD);
+				if (conchan->ipo) {
+					if(G.saction->pin==0 && OBACT) {
+						actstrip_map_ipo_keys(OBACT, conchan->ipo, 0);
+						borderselect_ipo_key(conchan->ipo, min, max, SELECT_ADD);
+						actstrip_map_ipo_keys(OBACT, conchan->ipo, 1);
+					}
+					else {
+						borderselect_ipo_key(conchan->ipo, min, max, SELECT_ADD);
+					}
+				}
 			}
 		}
 	}
