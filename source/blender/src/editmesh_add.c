@@ -757,6 +757,7 @@ void adduplicate_mesh(void)
 {
 
 	TEST_EDITMESH
+	if(multires_test()) return;
 
 	waitcursor(1);
 
