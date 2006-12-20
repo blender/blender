@@ -1150,7 +1150,10 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 		BLI_remlink(&ob->modifiers, md);
 		modifier_free(md);
 
-		BIF_undo_push("Apply modifier");
+		if(G.f & G_SCULPTMODE)
+			sculptmode_undo_push("Apply modifier", SUNDO_VERT|SUNDO_TOPO|SUNDO_PVIS|SUNDO_MRES);
+		else
+			BIF_undo_push("Apply modifier");
 	}
 
 	if (G.f & G_SCULPTMODE)
