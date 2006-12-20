@@ -675,6 +675,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
 		layname[len]= 0;
 	}
 	// printf("found lay %s pass %s chan %c\n", layname, passname, echan->chan_id);
+	return 1;
 }
 
 static ExrLayer *imb_exr_get_layer(ListBase *lb, char *layname)
@@ -728,7 +729,7 @@ static ExrHandle *imb_exr_begin_read_mem(InputFile *file, int width, int height)
 	data->height= height;
 	
 	const ChannelList &channels = data->ifile->header().channels();
-	
+
 	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
 		IMB_exr_add_channel(data, NULL, i.name(), 0, 0, NULL);
 	
@@ -877,7 +878,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 		//printf("OpenEXR-load: image data window %d %d %d %d\n", 
 		//	   dw.min.x, dw.min.y, dw.max.x, dw.max.y);
 
-		//exr_print_filecontents(file);
+		// exr_print_filecontents(file);
 		
 		is_multi= exr_is_renderresult(file);
 		
