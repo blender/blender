@@ -905,7 +905,7 @@ void do_inflate_brush(const ListBase *active_verts)
 float simple_strength(float p, const float len)
 {
 	if(p > len) p= len;
-	return 0.5f * (cos(3*p/len) + 1);
+	return 0.5f * (cos(M_PI*p/len) + 1);
 }
 
 float tex_strength(EditData *e, float *point, const float len,const unsigned vindex)
@@ -1385,6 +1385,11 @@ void sculptmode_propset_init(PropsetMode mode)
 		pd->origloc[0]= mouse[0];
 		pd->origloc[1]= mouse[1];
 		
+		if(mode == PropsetSize)
+			pd->origloc[0]-= sculptmode_brush()->size;
+		else if(mode == PropsetStrength)
+			pd->origloc[0]-= 200 - 2*sculptmode_brush()->strength;
+		
 		pd->origsize= sculptmode_brush()->size;
 		pd->origstrength= sculptmode_brush()->strength;
 		
@@ -1392,6 +1397,8 @@ void sculptmode_propset_init(PropsetMode mode)
 	}
 
 	pd->mode= mode;
+	
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 void sculptmode_propset(unsigned short event)
