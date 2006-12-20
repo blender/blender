@@ -1067,8 +1067,8 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 void image_buttons(void)
 {
-	Image *ima= G.sima->image;
-	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+	Image *ima;
+	ImBuf *ibuf;
 	uiBlock *block;
 	short xco, xmax;
 	char naam[256], *menuname;
@@ -1084,6 +1084,8 @@ void image_buttons(void)
 	else uiBlockSetCol(block, TH_HEADERDESEL);
 
 	what_image(G.sima);
+	ima= G.sima->image;
+	ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
 
 	curarea->butspacetype= SPACE_IMAGE;
 
@@ -1187,7 +1189,7 @@ void image_buttons(void)
 			uiDefIconBut(block, BUT, B_SIMA_RECORD, ICON_REC,  xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Record Composite");
 			xco+= XIC;
 		}
-		if((ima->type==IMA_TYPE_COMPOSITE) || ELEM(G.sima->image->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+		if((ima->type==IMA_TYPE_COMPOSITE) || ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 			uiDefIconBut(block, BUT, B_SIMA_PLAY, ICON_PLAY, xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Play");
 			xco+= XIC;
 		}

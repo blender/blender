@@ -1348,7 +1348,7 @@ void BIF_swap_render_rects(void)
 	if(G.displaymode!=R_DISPLAYWIN) {
 		imagewindow_swap_render_rects();
 	}
-	else {
+	else if(render_win) {
 		
 		render_win->storespare= 1;
 		render_win->showspare ^= 1;
