@@ -593,15 +593,16 @@ typedef struct Scene {
 #define R_AVIJPEG	16
 #define R_PNG		17
 #define R_AVICODEC	18
-#define R_QUICKTIME 	19
+#define R_QUICKTIME 19
 #define R_BMP		20
 #define R_RADHDR	21
 #define R_TIFF		22
 #define R_OPENEXR	23
 #define R_FFMPEG        24
 #define R_FRAMESERVER   25
-#define R_CINEON	26
-#define R_DPX		27
+#define R_CINEON		26
+#define R_DPX			27
+#define R_MULTILAYER	28
 
 /* subimtype, flag options for imtype */
 #define R_OPENEXR_HALF	1

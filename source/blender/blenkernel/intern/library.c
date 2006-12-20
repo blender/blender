@@ -569,7 +569,9 @@ static void get_flags_for_id(ID *id, char *buf)
 		sprintf(buf, "%c%c%c ", id->lib?'L':' ', isfake?'F':' ', (id->us==0)?'O':' ');
 }
 
-static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, short *nr)
+#define IDPUP_NO_VIEWER 1
+
+static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, short *nr, int hideflag)
 {
 	int i, nids= BLI_countlist(lb);
 		
@@ -588,6 +590,10 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 
 			if (U.uiflag & USER_HIDE_DOT && id->name[2]=='.')
 				continue;
+			if (hideflag & IDPUP_NO_VIEWER)
+				if (GS(id->name)==ID_IM)
+					if ( ((Image *)id)->source==IMA_SRC_VIEWER )
+						continue;
 			
 			get_flags_for_id(id, buf);
 				
@@ -681,11 +687,34 @@ void IDnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb,
 			BLI_dynstr_append(pupds, "|");
 	}
 
-	IDnames_to_dyn_pupstring(pupds, lb, link, nr);
+	IDnames_to_dyn_pupstring(pupds, lb, link, nr, 0);
 	
 	*str= BLI_dynstr_get_cstring(pupds);
 	BLI_dynstr_free(pupds);
 }
+
+/* skips viewer images */
+void IMAnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb, ID *link, short *nr)
+{
+	DynStr *pupds= BLI_dynstr_new();
+	
+	if (title) {
+		BLI_dynstr_append(pupds, title);
+		BLI_dynstr_append(pupds, "%t|");
+	}
+	
+	if (extraops) {
+		BLI_dynstr_append(pupds, extraops);
+		if (BLI_dynstr_get_len(pupds))
+			BLI_dynstr_append(pupds, "|");
+	}
+	
+	IDnames_to_dyn_pupstring(pupds, lb, link, nr, IDPUP_NO_VIEWER);
+	
+	*str= BLI_dynstr_get_cstring(pupds);
+	BLI_dynstr_free(pupds);
+}
+
 
 // only used by headerbuttons.c
 void IPOnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb, ID *link, short *nr, int blocktype)

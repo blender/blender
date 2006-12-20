@@ -35,6 +35,7 @@
 #define DNA_TEXTURE_TYPES_H
 
 #include "DNA_ID.h"
+#include "DNA_image_types.h"
 
 struct Ipo;
 struct PluginTex;
@@ -43,6 +44,7 @@ struct EnvMap;
 struct Object;
 struct Tex;
 struct Image;
+struct ImBuf;
 
 typedef struct MTex {
 
@@ -112,7 +114,7 @@ typedef struct ColorBand {
 typedef struct EnvMap {
 	struct Object *object;
 	struct Image *ima;		/* type ENV_LOAD */
-	struct Image *cube[6];		/* these images are dynamic, not part of the main struct */
+	struct ImBuf *cube[6];		/* these images are dynamic, not part of the main struct */
 	float imat[4][4];
 	float obimat[3][3];
 	short type, stype;
@@ -152,11 +154,16 @@ typedef struct Tex {
 	float cropxmin, cropymin, cropxmax, cropymax;
 	short xrepeat, yrepeat;
 	short extend;
+	
+	/* variables disabled, moved to struct iuser */
 	short fie_ima;
 	int len;
-	float checkerdist, nabla;
 	int frames, offset, sfra;
+	
+	float checkerdist, nabla;
 	float norfac;
+	
+	struct ImageUser iuser;
 	
 	struct Ipo *ipo;
 	struct Image *ima;
@@ -164,7 +171,6 @@ typedef struct Tex {
 	struct ColorBand *coba;
 	struct EnvMap *env;
 	
-	int fradur[4][2];
 	
 } Tex;
 
@@ -234,18 +240,18 @@ typedef struct TexMapping {
 #define TEX_INTERPOL	1
 #define TEX_USEALPHA	2
 #define TEX_MIPMAP		4
-#define TEX_FIELDS		8
 #define TEX_IMAROT		16
 #define TEX_CALCALPHA	32
-#define TEX_ANIMCYCLIC	64
-#define TEX_ANIM5		128
-#define TEX_ANTIALI		256
-#define TEX_ANTISCALE	512
-#define TEX_STD_FIELD	1024
 #define TEX_NORMALMAP	2048
 #define TEX_GAUSS_MIP	4096
 
-#define TEX_MORKPATCH	16384
+/* imaflag unused, only for version check */
+#define TEX_FIELDS_		8
+#define TEX_ANIMCYCLIC_	64
+#define TEX_ANIM5_		128
+#define TEX_ANTIALI_	256
+#define TEX_ANTISCALE_	512
+#define TEX_STD_FIELD_	1024
 
 /* flag */
 #define TEX_COLORBAND		1

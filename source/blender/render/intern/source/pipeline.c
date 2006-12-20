@@ -40,6 +40,7 @@
 
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
@@ -162,7 +163,7 @@ static void stats_background(RenderStats *rs)
 	}	
 }
 
-static void free_render_result(RenderResult *res)
+void RE_FreeRenderResult(RenderResult *res)
 {
 	if(res==NULL) return;
 
@@ -197,7 +198,7 @@ static void free_render_result(RenderResult *res)
 static void push_render_result(Render *re)
 {
 	/* officially pushed result should be NULL... error can happen with do_seq */
-	free_render_result(re->pushedresult);
+	RE_FreeRenderResult(re->pushedresult);
 	
 	re->pushedresult= re->result;
 	re->result= NULL;
@@ -236,89 +237,157 @@ static void pop_render_result(Render *re)
 			}
 		}
 		
-		free_render_result(re->pushedresult);
+		RE_FreeRenderResult(re->pushedresult);
 		re->pushedresult= NULL;
 	}
 }
 
-
+/* NOTE: OpenEXR only supports 32 chars for layer+pass names
+   In blender we now use max 10 chars for pass, max 20 for layer */
 static char *get_pass_name(int passtype, int channel)
 {
 	
 	if(passtype == SCE_PASS_COMBINED) {
+		if(channel==-1) return "Combined";
 		if(channel==0) return "Combined.R";
-		else if(channel==1) return "Combined.G";
-		else if(channel==2) return "Combined.B";
-		else return "Combined.A";
+		if(channel==1) return "Combined.G";
+		if(channel==2) return "Combined.B";
+		return "Combined.A";
 	}
-	if(passtype == SCE_PASS_Z)
-		return "Z";
+	if(passtype == SCE_PASS_Z) {
+		if(channel==-1) return "Depth";
+		return "Depth.Z";
+	}
 	if(passtype == SCE_PASS_VECTOR) {
+		if(channel==-1) return "Vector";
 		if(channel==0) return "Vector.X";
-		else if(channel==1) return "Vector.Y";
-		else if(channel==2) return "Vector.Z";
-		else return "Vector.W";
+		if(channel==1) return "Vector.Y";
+		if(channel==2) return "Vector.Z";
+		return "Vector.W";
 	}
 	if(passtype == SCE_PASS_NORMAL) {
+		if(channel==-1) return "Normal";
 		if(channel==0) return "Normal.X";
-		else if(channel==1) return "Normal.Y";
-		else return "Normal.Z";
+		if(channel==1) return "Normal.Y";
+		return "Normal.Z";
 	}
 	if(passtype == SCE_PASS_UV) {
-		if(channel==0) return "Tex.U";
-		else return "Tex.V";
+		if(channel==-1) return "UV";
+		if(channel==0) return "UV.U";
+		if(channel==1) return "UV.V";
+		return "UV.A";
 	}
 	if(passtype == SCE_PASS_RGBA) {
+		if(channel==-1) return "Color";
 		if(channel==0) return "Color.R";
-		else if(channel==1) return "Color.G";
-		else if(channel==2) return "Color.B";
-		else return "Color.A";
+		if(channel==1) return "Color.G";
+		if(channel==2) return "Color.B";
+		return "Color.A";
 	}
 	if(passtype == SCE_PASS_DIFFUSE) {
+		if(channel==-1) return "Diffuse";
 		if(channel==0) return "Diffuse.R";
-		else if(channel==1) return "Diffuse.G";
-		else return "Diffuse.B";
+		if(channel==1) return "Diffuse.G";
+		return "Diffuse.B";
 	}
 	if(passtype == SCE_PASS_SPEC) {
+		if(channel==-1) return "Spec";
 		if(channel==0) return "Spec.R";
-		else if(channel==1) return "Spec.G";
-		else return "Spec.B";
+		if(channel==1) return "Spec.G";
+		return "Spec.B";
 	}
 	if(passtype == SCE_PASS_SHADOW) {
+		if(channel==-1) return "Shadow";
 		if(channel==0) return "Shadow.R";
-		else if(channel==1) return "Shadow.G";
-		else return "Shadow.B";
+		if(channel==1) return "Shadow.G";
+		return "Shadow.B";
 	}
 	if(passtype == SCE_PASS_AO) {
+		if(channel==-1) return "AO";
 		if(channel==0) return "AO.R";
-		else if(channel==1) return "AO.G";
-		else return "AO.B";
+		if(channel==1) return "AO.G";
+		return "AO.B";
 	}
 	if(passtype == SCE_PASS_REFLECT) {
+		if(channel==-1) return "Reflect";
 		if(channel==0) return "Reflect.R";
-		else if(channel==1) return "Reflect.G";
-		else return "Reflect.B";
+		if(channel==1) return "Reflect.G";
+		return "Reflect.B";
 	}
 	if(passtype == SCE_PASS_REFRACT) {
+		if(channel==-1) return "Refract";
 		if(channel==0) return "Refract.R";
-		else if(channel==1) return "Refract.G";
-		else return "Refract.B";
+		if(channel==1) return "Refract.G";
+		return "Refract.B";
 	}
 	if(passtype == SCE_PASS_RADIO) {
+		if(channel==-1) return "Radio";
 		if(channel==0) return "Radio.R";
-		else if(channel==1) return "Radio.G";
-		else return "Radio.B";
+		if(channel==1) return "Radio.G";
+		return "Radio.B";
 	}
-	if(passtype == SCE_PASS_INDEXOB)
-		return "IndexOB";
+	if(passtype == SCE_PASS_INDEXOB) {
+		if(channel==-1) return "IndexOB";
+		return "IndexOB.X";
+	}
 	return "Unknown";
 }
 
+static int passtype_from_name(char *str)
+{
+	
+	if(strcmp(str, "Combined")==0)
+		return SCE_PASS_COMBINED;
+
+	if(strcmp(str, "Depth")==0)
+		return SCE_PASS_Z;
+
+	if(strcmp(str, "Vector")==0)
+		return SCE_PASS_VECTOR;
+
+	if(strcmp(str, "Normal")==0)
+		return SCE_PASS_NORMAL;
+
+	if(strcmp(str, "UV")==0)
+		return SCE_PASS_UV;
+
+	if(strcmp(str, "Color")==0)
+		return SCE_PASS_RGBA;
+
+	if(strcmp(str, "Diffuse")==0)
+		return SCE_PASS_DIFFUSE;
+
+	if(strcmp(str, "Spec")==0)
+		return SCE_PASS_SPEC;
+
+	if(strcmp(str, "Shadow")==0)
+		return SCE_PASS_SHADOW;
+	
+	if(strcmp(str, "AO")==0)
+		return SCE_PASS_AO;
+
+	if(strcmp(str, "Reflect")==0)
+		return SCE_PASS_REFLECT;
+
+	if(strcmp(str, "Refract")==0)
+		return SCE_PASS_REFRACT;
+
+	if(strcmp(str, "Radio")==0)
+		return SCE_PASS_RADIO;
+
+	if(strcmp(str, "IndexOB")==0)
+		return SCE_PASS_INDEXOB;
+
+	return 0;
+}
+
+
+
 static void render_unique_exr_name(Render *re, char *str)
 {
-	char di[FILE_MAXDIR+FILE_MAXFILE], name[FILE_MAXFILE], fi[FILE_MAXFILE];
+	char di[FILE_MAX], name[FILE_MAXFILE], fi[FILE_MAXFILE];
 	
-	BLI_strncpy(di, G.sce, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_strncpy(di, G.sce, FILE_MAX);
 	BLI_splitdirstring(di, fi);
 	sprintf(name, "%s_%s.exr", fi, re->scene->id.name+2);
 	if(G.background)
@@ -341,7 +410,7 @@ static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channel
 	if(rr->exrhandle) {
 		int a;
 		for(a=0; a<channels; a++)
-			IMB_exr_add_channel(rr->exrhandle, rl->name, get_pass_name(passtype, a));
+			IMB_exr_add_channel(rr->exrhandle, rl->name, get_pass_name(passtype, a), 0, 0, NULL);
 	}
 	else {
 		if(passtype==SCE_PASS_VECTOR) {
@@ -435,10 +504,10 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 		rl->mat_override= srl->mat_override;
 		
 		if(rr->exrhandle) {
-			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.R");
-			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.G");
-			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.B");
-			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.A");
+			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.R", 0, 0, NULL);
+			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.G", 0, 0, NULL);
+			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.B", 0, 0, NULL);
+			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.A", 0, 0, NULL);
 		}
 		else
 			rl->rectf= MEM_mapallocN(rectx*recty*sizeof(float)*4, "Combined rgba");
@@ -608,20 +677,142 @@ static void save_render_result_tile(Render *re, RenderPart *pa)
 
 }
 
+/* for passes read from files, these have names stored */
+static char *make_pass_name(RenderPass *rpass, int chan)
+{
+	static char name[16];
+	int len;
+	
+	BLI_strncpy(name, rpass->name, EXR_PASS_MAXNAME);
+	len= strlen(name);
+	name[len]= '.';
+	name[len+1]= rpass->chan_id[chan];
+	name[len+2]= 0;
+
+	return name;
+}
+
+/* filename already made absolute */
+/* called from within UI, saves both rendered result as a file-read result */
+void RE_WriteRenderResult(RenderResult *rr, char *filename)
+{
+	RenderLayer *rl;
+	RenderPass *rpass;
+	void *exrhandle= IMB_exr_get_handle();
+	
+	/* composite result */
+	if(rr->rectf) {
+		IMB_exr_add_channel(exrhandle, "Composite", "Combined.R", 4, 4*rr->rectx, rr->rectf);
+		IMB_exr_add_channel(exrhandle, "Composite", "Combined.G", 4, 4*rr->rectx, rr->rectf+1);
+		IMB_exr_add_channel(exrhandle, "Composite", "Combined.B", 4, 4*rr->rectx, rr->rectf+2);
+		IMB_exr_add_channel(exrhandle, "Composite", "Combined.A", 4, 4*rr->rectx, rr->rectf+3);
+	}
+	
+	/* add layers/passes and assign channels */
+	for(rl= rr->layers.first; rl; rl= rl->next) {
+		
+		/* combined */
+		if(rl->rectf) {
+			int a, xstride= 4;
+			for(a=0; a<xstride; a++)
+				IMB_exr_add_channel(exrhandle, rl->name, get_pass_name(SCE_PASS_COMBINED, a), 
+									xstride, xstride*rr->rectx, rl->rectf+a);
+		}
+		
+		/* passes are allocated in sync */
+		for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
+			int a, xstride= rpass->channels;
+			for(a=0; a<xstride; a++) {
+				if(rpass->passtype)
+					IMB_exr_add_channel(exrhandle, rl->name, get_pass_name(rpass->passtype, a), 
+										xstride, xstride*rr->rectx, rpass->rect+a);
+				else
+					IMB_exr_add_channel(exrhandle, rl->name, make_pass_name(rpass, a), 
+										xstride, xstride*rr->rectx, rpass->rect+a);
+			}
+		}
+	}
+	
+	IMB_exr_begin_write(exrhandle, filename, rr->rectx, rr->recty);
+	
+	IMB_exr_write_channels(exrhandle);
+	IMB_exr_close(exrhandle);
+}
+
+/* callbacks for RE_MultilayerConvert */
+static void *ml_addlayer_cb(void *base, char *str)
+{
+	RenderResult *rr= base;
+	RenderLayer *rl;
+	
+	rl= MEM_callocN(sizeof(RenderLayer), "new render layer");
+	BLI_addtail(&rr->layers, rl);
+	
+	BLI_strncpy(rl->name, str, EXR_LAY_MAXNAME);
+	return rl;
+}
+static void ml_addpass_cb(void *base, void *lay, char *str, float *rect, int totchan, char *chan_id)
+{
+	RenderLayer *rl= lay;	
+	RenderPass *rpass= MEM_callocN(sizeof(RenderPass), "loaded pass");
+	int a;
+	
+	BLI_addtail(&rl->passes, rpass);
+	rpass->channels= totchan;
+	
+	rpass->passtype= passtype_from_name(str);
+	if(rpass->passtype==0) printf("unknown pass %s\n", str);
+	rl->passflag |= rpass->passtype;
+	
+	BLI_strncpy(rpass->name, str, EXR_PASS_MAXNAME);
+	/* channel id chars */
+	for(a=0; a<totchan; a++)
+		rpass->chan_id[a]= chan_id[a];
+	
+	rpass->rect= rect;
+}
+
+/* from imbuf, if a handle was returned we convert this to render result */
+RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty)
+{
+	RenderResult *rr= MEM_callocN(sizeof(RenderResult), "loaded render result");
+	
+	rr->rectx= rectx;
+	rr->recty= recty;
+	
+	IMB_exr_multilayer_convert(exrhandle, rr, ml_addlayer_cb, ml_addpass_cb);
+	
+	return rr;
+}
+
+/* called in end of render, to add names to passes... for UI only */
+static void renderresult_add_names(RenderResult *rr)
+{
+	RenderLayer *rl;
+	RenderPass *rpass;
+	
+	for(rl= rr->layers.first; rl; rl= rl->next)
+		for(rpass= rl->passes.first; rpass; rpass= rpass->next)
+			strcpy(rpass->name, get_pass_name(rpass->passtype, -1));
+}
+
+
+/* only for temp buffer files, makes exact copy of render result */
 static void read_render_result(Render *re)
 {
 	RenderLayer *rl;
 	RenderPass *rpass;
 	void *exrhandle= IMB_exr_get_handle();
 	int rectx, recty;
-	char str[FILE_MAXDIR+FILE_MAXFILE];
+	char str[FILE_MAX];
 	
-	free_render_result(re->result);
+	RE_FreeRenderResult(re->result);
 	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 
 	render_unique_exr_name(re, str);
 	if(IMB_exr_begin_read(exrhandle, str, &rectx, &recty)==0) {
-		printf("cannot read render result\n");
+		IMB_exr_close(exrhandle);
+		printf("cannot read: %s\n", str);
 		return;
 	}
 	
@@ -649,6 +840,7 @@ static void read_render_result(Render *re)
 			
 		}
 		IMB_exr_read_channels(exrhandle);
+		renderresult_add_names(re->result);
 	}
 	
 	IMB_exr_close(exrhandle);
@@ -787,8 +979,8 @@ void RE_FreeRender(Render *re)
 	free_renderdata_tables(re);
 	free_sample_tables(re);
 	
-	free_render_result(re->result);
-	free_render_result(re->pushedresult);
+	RE_FreeRenderResult(re->result);
+	RE_FreeRenderResult(re->pushedresult);
 	
 	BLI_remlink(&RenderList, re);
 	MEM_freeN(re);
@@ -845,7 +1037,7 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 		make_sample_tables(re);	
 		
 		/* make empty render result, so display callbacks can initialize */
-		free_render_result(re->result);
+		RE_FreeRenderResult(re->result);
 		re->result= MEM_callocN(sizeof(RenderResult), "new render result");
 		re->result->rectx= re->rectx;
 		re->result->recty= re->recty;
@@ -862,7 +1054,7 @@ void RE_SetDispRect (struct Render *re, rcti *disprect)
 	re->recty= disprect->ymax-disprect->ymin;
 	
 	/* initialize render result */
-	free_render_result(re->result);
+	RE_FreeRenderResult(re->result);
 	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 }
 
@@ -981,7 +1173,7 @@ static void render_tile_processor(Render *re, int firsttile)
 
 	/* hrmf... exception, this is used for preview render, re-entrant, so render result has to be re-used */
 	if(re->result==NULL || re->result->layers.first==NULL) {
-		if(re->result) free_render_result(re->result);
+		if(re->result) RE_FreeRenderResult(re->result);
 		re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 	}
 	
@@ -1010,7 +1202,7 @@ static void render_tile_processor(Render *re, int firsttile)
 					re->i.partsdone++;
 					re->stats_draw(&re->i);
 				}
-				free_render_result(pa->result);
+				RE_FreeRenderResult(pa->result);
 				pa->result= NULL;
 			}		
 			if(re->test_break())
@@ -1143,7 +1335,7 @@ static void threaded_tile_processor(Render *re)
 	int rendering=1, counter= 1, drawtimer=0, hasdrawn, minx=0;
 	
 	/* first step; the entire render result, or prepare exr buffer saving */
-	free_render_result(re->result);
+	RE_FreeRenderResult(re->result);
 	rr= re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & R_EXR_TILE_FILE);
 	
 	if(rr==NULL)
@@ -1155,7 +1347,7 @@ static void threaded_tile_processor(Render *re)
 	initparts(re);
 	
 	if(rr->exrhandle) {
-		char str[FILE_MAXDIR+FILE_MAXFILE];
+		char str[FILE_MAX];
 		
 		render_unique_exr_name(re, str);
 		
@@ -1213,7 +1405,7 @@ static void threaded_tile_processor(Render *re)
 					re->display_draw(pa->result, NULL);
 					print_part_stats(re, pa);
 					
-					free_render_result(pa->result);
+					RE_FreeRenderResult(pa->result);
 					pa->result= NULL;
 					re->i.partsdone++;
 					hasdrawn= 1;
@@ -1361,7 +1553,7 @@ static void do_render_blur_3d(Render *re)
 	}
 	
 	/* swap results */
-	free_render_result(re->result);
+	RE_FreeRenderResult(re->result);
 	re->result= rres;
 	
 	set_mblur_offs(0.0f);
@@ -1467,9 +1659,9 @@ static void do_render_fields_3d(Render *re)
 		else
 			merge_renderresult_fields(re->result, rr1, rr2);
 		
-		free_render_result(rr2);
+		RE_FreeRenderResult(rr2);
 	}
-	free_render_result(rr1);
+	RE_FreeRenderResult(rr1);
 	
 	re->i.curfield= 0;	/* stats */
 	
@@ -1481,7 +1673,7 @@ static void do_render_fields_3d(Render *re)
 static void load_backbuffer(Render *re)
 {
 	if(re->r.alphamode == R_ADDSKY) {
-		Image *bima;
+		ImBuf *ibuf;
 		char name[256];
 		
 		strcpy(name, re->r.backbuf);
@@ -1489,31 +1681,20 @@ static void load_backbuffer(Render *re)
 		
 		if(re->backbuf) {
 			re->backbuf->id.us--;
-			bima= re->backbuf;
-		}
-		else bima= NULL;
-		
-		re->backbuf= add_image(name);
-		
-		if(bima && bima->id.us<1) {
-			free_image_buffers(bima);
+			if(re->backbuf->id.us<1)
+				BKE_image_signal(re->backbuf, NULL, IMA_SIGNAL_RELOAD);
 		}
 		
-		if(re->backbuf && re->backbuf->ibuf==NULL) {
-			re->backbuf->ibuf= IMB_loadiffname(re->backbuf->name, IB_rect);
-			if(re->backbuf->ibuf==NULL) 
-				re->backbuf->ok= 0;
-			else {
-				re->backbuf->ok= 1;
-				
-				if (re->r.mode & R_FIELDS)
-					image_de_interlace(re->backbuf, re->r.mode & R_ODDFIELD);
-			}
-		}
-		if(re->backbuf==NULL || re->backbuf->ok==0) {
+		re->backbuf= BKE_add_image_file(name);
+		ibuf= BKE_image_get_ibuf(re->backbuf, NULL);
+		if(ibuf==NULL) {
 			// error() doesnt work with render window open
 			//error("No backbuf there!");
 			printf("Error: No backbuf %s\n", name);
+		}
+		else {
+			if (re->r.mode & R_FIELDS)
+				image_de_interlace(re->backbuf, re->r.mode & R_ODDFIELD);
 		}
 	}
 }
@@ -1561,7 +1742,7 @@ static void do_render_fields_blur_3d(Render *re)
 				rres= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 				
 				merge_render_result(rres, re->result);
-				free_render_result(re->result);
+				RE_FreeRenderResult(re->result);
 				re->result= rres;
 				
 				/* weak... the display callback wants an active renderlayer pointer... */
@@ -1716,7 +1897,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 /* yafray: main yafray render/export call */
 static void yafrayRender(Render *re)
 {
-	free_render_result(re->result);
+	RE_FreeRenderResult(re->result);
 	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 	
 	// need this too, for aspect/ortho/etc info
@@ -1756,7 +1937,7 @@ static void yafrayRender(Render *re)
 				rres= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 				
 				merge_render_result(rres, re->result);
-				free_render_result(re->result);
+				RE_FreeRenderResult(re->result);
 				re->result= rres;
 				
 				re->display_init(re->result);
@@ -1776,12 +1957,14 @@ static void yafrayRender(Render *re)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-
 /* main loop: doing sequence + fields + blur + 3d render + compositing */
 static void do_render_all_options(Render *re)
 {
 	re->i.starttime= PIL_check_seconds_timer();
 
+	/* ensure no images are in memory from previous animated sequences */
+	BKE_image_all_free_anim_ibufs(re->r.cfra);
+	
 	if(re->r.scemode & R_DOSEQ) {
 		/* note: do_render_seq() frees rect32 when sequencer returns float images */
 		if(!re->test_break()) 
@@ -1801,6 +1984,9 @@ static void do_render_all_options(Render *re)
 		do_render_composite_fields_blur_3d(re);
 #endif
 	}
+	
+	/* for UI only */
+	renderresult_add_names(re->result);
 	
 	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
 	re->stats_draw(&re->i);
@@ -1835,7 +2021,7 @@ static int is_rendering_allowed(Render *re)
 	}
 	
 	if(re->r.scemode & R_EXR_TILE_FILE) {
-		char str[FILE_MAXDIR+FILE_MAXFILE];
+		char str[FILE_MAX];
 		
 		render_unique_exr_name(re, str);
 		
@@ -1964,7 +2150,7 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 
 static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 {
-	char name[FILE_MAXDIR+FILE_MAXFILE];
+	char name[FILE_MAX];
 	RenderResult rres;
 	
 	RE_GetResultImage(re, &rres);
@@ -1983,40 +2169,49 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 			MEM_freeN(rres.rect32);
 		}
 		printf("Append frame %d", scene->r.cfra);
-	} else {
-		ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0, 0);
-		int ok;
-		
+	} 
+	else {
 		BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype);
-
-                /* if not exists, BKE_write_ibuf makes one */
-		ibuf->rect= rres.rect32;    
-		ibuf->rect_float= rres.rectf;
-		ibuf->zbuf_float= rres.rectz;
 		
-		/* float factor for random dither, imbuf takes care of it */
-		ibuf->dither= scene->r.dither_intensity;
-
-		ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
-		
-		if(ok==0) {
-			printf("Render error: cannot save %s\n", name);
-			G.afbreek=1;
+		if(re->r.imtype==R_MULTILAYER) {
+			if(re->result) {
+				RE_WriteRenderResult(re->result, name);
+				printf("Saved: %s", name);
+			}
 		}
-		else printf("Saved: %s", name);
-		
-		/* optional preview images for exr */
-		if(ok && scene->r.imtype==R_OPENEXR && (scene->r.subimtype & R_PREVIEW_JPG)) {
-			if(BLI_testextensie(name, ".exr")) 
-				name[strlen(name)-4]= 0;
-			BKE_add_image_extension(name, R_JPEG90);
-			ibuf->depth= 24; 
-			BKE_write_ibuf(ibuf, name, R_JPEG90, scene->r.subimtype, scene->r.quality);
-			printf("\nSaved: %s", name);
+		else {
+			ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0, 0);
+			int ok;
+			
+					/* if not exists, BKE_write_ibuf makes one */
+			ibuf->rect= rres.rect32;    
+			ibuf->rect_float= rres.rectf;
+			ibuf->zbuf_float= rres.rectz;
+			
+			/* float factor for random dither, imbuf takes care of it */
+			ibuf->dither= scene->r.dither_intensity;
+
+			ok= BKE_write_ibuf(ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
+			
+			if(ok==0) {
+				printf("Render error: cannot save %s\n", name);
+				G.afbreek=1;
+			}
+			else printf("Saved: %s", name);
+			
+			/* optional preview images for exr */
+			if(ok && scene->r.imtype==R_OPENEXR && (scene->r.subimtype & R_PREVIEW_JPG)) {
+				if(BLI_testextensie(name, ".exr")) 
+					name[strlen(name)-4]= 0;
+				BKE_add_image_extension(name, R_JPEG90);
+				ibuf->depth= 24; 
+				BKE_write_ibuf(ibuf, name, R_JPEG90, scene->r.subimtype, scene->r.quality);
+				printf("\nSaved: %s", name);
+			}
+			
+					/* imbuf knows which rects are not part of ibuf */
+			IMB_freeImBuf(ibuf);
 		}
-		
-                /* imbuf knows which rects are not part of ibuf */
-		IMB_freeImBuf(ibuf);	
 	}
 	
 	BLI_timestr(re->i.lastframetime, name);
@@ -2083,6 +2278,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra)
 
 /* note; repeated win/disprect calc... solve that nicer, also in compo */
 
+/* only temp file! */
 void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 {
 	Render *re;

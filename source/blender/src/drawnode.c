@@ -647,7 +647,7 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 	}
 }
 
-/* ****************** BUTTON CALLBACKS FOR COMPOSIT NODES ***************** */
+/* ****************** BUTTON CALLBACKS FOR COMPOSITE NODES ***************** */
 
 
 
@@ -670,6 +670,7 @@ static void node_browse_image_cb(void *ntree_v, void *node_v)
 		BLI_strncpy(node->name, node->id->name+2, 21);
 
 		NodeTagChanged(ntree, node); 
+		BKE_image_signal((Image *)node->id, node->storage, IMA_SIGNAL_USER_NEW_IMAGE);
 		addqueue(curarea->win, UI_BUT_EVENT, B_NODE_EXEC+node->nr);
 	}
 	node->menunr= 0;
@@ -679,24 +680,57 @@ static void node_active_cb(void *ntree_v, void *node_v)
 {
 	nodeSetActive(ntree_v, node_v);
 }
-static void node_image_anim_cb(void *node_v, void *unused)
+static void node_image_type_cb(void *node_v, void *unused)
 {
-	bNode *node= node_v;
-	NodeImageAnim *nia;
 	
-	if(node->storage) {
-		MEM_freeN(node->storage);
-		node->storage= NULL;
-	}
-	else {
-		nia= node->storage= MEM_callocN(sizeof(NodeImageAnim), "node image anim");
-		nia->sfra= nia->nr= 1;
-	}
 	allqueue(REDRAWNODE, 1);
+}
+
+static char *node_image_type_pup(void)
+{
+	char *str= MEM_mallocN(256, "image type pup");
+	int a;
+	
+	str[0]= 0;
+	
+	a= sprintf(str, "Image Type %%t|");
+	a+= sprintf(str+a, "  Image %%x%d %%i%d|", IMA_SRC_FILE, ICON_IMAGE_DEHLT);
+	a+= sprintf(str+a, "  Movie %%x%d %%i%d|", IMA_SRC_MOVIE, ICON_SEQUENCE);
+	a+= sprintf(str+a, "  Sequence %%x%d %%i%d|", IMA_SRC_SEQUENCE, ICON_IMAGE_COL);
+	a+= sprintf(str+a, "  Generated %%x%d %%i%d", IMA_SRC_GENERATED, ICON_BLANK1);
+	
+	return str;
+}
+
+/* copy from buttons_shading.c */
+static char *layer_menu(RenderResult *rr)
+{
+	RenderLayer *rl;
+	int len= 40 + 40*BLI_countlist(&rr->layers);
+	short a, nr;
+	char *str= MEM_callocN(len, "menu layers");
+	
+	strcpy(str, "Layer %t");
+	a= strlen(str);
+	for(nr=0, rl= rr->layers.first; rl; rl= rl->next, nr++) {
+		a+= sprintf(str+a, "|%s %%x%d", rl->name, nr);
+	}
+	
+	return str;
+}
+
+static void image_layer_cb(void *ima_v, void *iuser_v)
+{
+	
+	ntreeCompositForceHidden(G.scene->nodetree);
+	BKE_image_multilayer_index(ima_v, iuser_v);
+	allqueue(REDRAWNODE, 0);
 }
 
 static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
+	ImageUser *iuser= node->storage;
+	
 	if(block) {
 		uiBut *bt;
 		short dy= (short)butr->ymax-19;
@@ -706,7 +740,7 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 		uiBlockSetCol(block, TH_BUT_SETTING2);
 		
 		/* browse button */
-		IDnames_to_pupstring(&strp, NULL, "LOAD NEW %x32767", &(G.main->image), NULL, NULL);
+		IMAnames_to_pupstring(&strp, NULL, "LOAD NEW %x32767", &(G.main->image), NULL, NULL);
 		node->menunr= 0;
 		bt= uiDefButS(block, MENU, B_NOP, strp, 
 					  butr->xmin, dy, 19, 19, 
@@ -723,44 +757,82 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 			uiBlockSetCol(block, TH_AUTO);
 		}
 		else {
-			/* name button */
-			short width= (short)(butr->xmax-butr->xmin-38.0f);
-			bt= uiDefBut(block, TEX, B_NOP, "IMA:",
-						 butr->xmin+19, dy, width, 19, 
+			/* name button + type */
+			Image *ima= (Image *)node->id;
+			short xmin= (short)butr->xmin, xmax= (short)butr->xmax;
+			short width= xmax - xmin - 45;
+			short icon= ICON_IMAGE_DEHLT;
+			
+			if(ima->source==IMA_SRC_MOVIE) icon= ICON_SEQUENCE;
+			else if(ima->source==IMA_SRC_SEQUENCE) icon= ICON_IMAGE_COL;
+			else if(ima->source==IMA_SRC_GENERATED) icon= ICON_BLANK1;
+			
+			bt= uiDefBut(block, TEX, B_NOP, "IM:",
+						 xmin+19, dy, width, 19, 
 						 node->id->name+2, 0.0, 19.0, 0, 0, "Image name");
 			uiButSetFunc(bt, node_ID_title_cb, node, NULL);
-			bt= uiDefIconBut(block, BUT, B_NOP, ICON_SEQUENCE,
-						 butr->xmax-19, dy, 19, 19, 
-						 node->id->name+2, 0.0, 19.0, 0, 0, "Enable/Disable Image animation");
-			uiButSetFunc(bt, node_image_anim_cb, node, NULL);
-		}
-		if(node->storage) {
-			NodeImageAnim *nia= node->storage;
-			short width= (short)(butr->xmax-butr->xmin)/2;
 			
-			dy-= 19;
-			uiDefButI(block, NUM, B_NODE_EXEC+node->nr, "Frs:",
-					  butr->xmin, dy, width, 19, 
-					  &nia->frames, 0.0, 10000.0, 0, 0, "Amount of images used in animation");
-			uiDefButI(block, NUM, B_NODE_EXEC+node->nr, "SFra:",
-					  butr->xmin+width, dy, width, 19, 
-					  &nia->sfra, 1.0, 10000.0, 0, 0, "Start frame of animation");
-			dy-= 19;
-			uiDefButI(block, NUM, B_NODE_EXEC+node->nr, "First:",
-					  butr->xmin, dy, width, 19, 
-					  &nia->nr, 0.0, 10000.0, 0, 0, "Number in image name, used as first in animation");
-			uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Cycl",
-					  butr->xmin+width, dy, width-19, 19, 
-					  &nia->cyclic, 0.0, 0.0, 0, 0, "Make animation go cyclic");
-			bt= uiDefIconButC(block, TOG, B_NODE_EXEC+node->nr, ICON_SEQUENCE,
-					  butr->xmax-19, dy, 19, 19, 
-					  &nia->movie, 0.0, 19.0, 0, 0, "Enable/Disable reading Image from Movie file");
+			/* buffer type option */
+			strp= node_image_type_pup();
+			bt= uiDefIconTextButS(block, MENU, B_NOP, icon, strp,
+						 xmax-26, dy, 26, 19, 
+						 &ima->source, 0.0, 19.0, 0, 0, "Image type");
+			uiButSetFunc(bt, node_image_type_cb, node, ima);
+			MEM_freeN(strp);
 			
+			if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE) ) {
+				width= (xmax-xmin)/2;
+				
+				dy-= 19;
+				uiDefButI(block, NUM, B_NODE_EXEC+node->nr, "Frs:",
+						  xmin, dy, width, 19, 
+						  &iuser->frames, 0.0, 10000.0, 0, 0, "Amount of images used in animation");
+				uiDefButI(block, NUM, B_NODE_EXEC+node->nr, "SFra:",
+						  xmin+width, dy, width, 19, 
+						  &iuser->sfra, 1.0, 10000.0, 0, 0, "Start frame of animation");
+				dy-= 19;
+				uiDefButI(block, NUM, B_NODE_EXEC+node->nr, "Offs:",
+						  xmin, dy, width, 19, 
+						  &iuser->offset, 0.0, 10000.0, 0, 0, "Offsets the number of the frame to use in the animation");
+				uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "Cycl",
+						  xmin+width, dy, width-20, 19, 
+						  &iuser->cycl, 0.0, 0.0, 0, 0, "Make animation go cyclic");
+				uiDefIconButBitS(block, TOG, IMA_ANIM_ALWAYS, B_NODE_EXEC+node->nr, ICON_AUTO,
+						  xmax-20, dy, 20, 19, 
+						  &iuser->flag, 0.0, 0.0, 0, 0, "Always refresh Image on frame changes");
+			}
+			if( ima->type==IMA_TYPE_MULTILAYER && ima->rr) {
+				RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
+				if(rl) {
+					width= (xmax-xmin);
+					dy-= 19;
+					strp= layer_menu(ima->rr);
+					bt= uiDefButS(block, MENU, B_NODE_EXEC+node->nr, strp,
+							  xmin, dy, width, 19, 
+							  &iuser->layer, 0.0, 10000.0, 0, 0, "Layer");
+					uiButSetFunc(bt, image_layer_cb, ima, node->storage);
+					MEM_freeN(strp);
+				}
+			}
 		}
 		
 	}	
-	if(node->storage) 
-		return 57;
+	if(node->id) {
+		Image *ima= (Image *)node->id;
+		int retval= 19;
+		
+		/* for each draw we test for anim refresh event */
+		if(iuser->flag & IMA_ANIM_REFRESHED) {
+			iuser->flag &= ~IMA_ANIM_REFRESHED;
+			addqueue(curarea->win, UI_BUT_EVENT, B_NODE_EXEC+node->nr);
+		}
+		
+		if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE) )
+			retval+= 38;
+		if( ima->type==IMA_TYPE_MULTILAYER)
+			retval+= 19;
+		return retval;
+	}
 	else
 		return 19;
 }
@@ -1445,27 +1517,27 @@ static void draw_nodespace_grid(SpaceNode *snode)
 
 static void draw_nodespace_back(ScrArea *sa, SpaceNode *snode)
 {
-	Image *ima;
-	int x, y; 
-	
+
 	draw_nodespace_grid(snode);
 	
 	if(snode->flag & SNODE_BACKDRAW) {
-		ima= (Image *)find_id("IM", "Viewer Node");
-		if(ima && ima->ibuf) {
+		Image *ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+		if(ibuf) {
+			int x, y; 
 			/* somehow the offset has to be calculated inverse */
 			
 			glaDefine2DArea(&sa->winrct);
 			/* ortho at pixel level curarea */
 			myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 
-			x = (sa->winx-ima->ibuf->x)/2 + snode->xof;
-			y = (sa->winx-ima->ibuf->y)/2 + snode->yof;
+			x = (sa->winx-ibuf->x)/2 + snode->xof;
+			y = (sa->winx-ibuf->y)/2 + snode->yof;
 
-			if(ima->ibuf->rect)
-				glaDrawPixelsSafe(x, y, ima->ibuf->x, ima->ibuf->y, ima->ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ima->ibuf->rect);
-			else
-				glaDrawPixelsSafe(x, y, ima->ibuf->x, ima->ibuf->y, ima->ibuf->x, GL_RGBA, GL_FLOAT, ima->ibuf->rect_float);
+			if(ibuf->rect)
+				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+			else if(ibuf->channels==4)
+				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
 			
 			/* sort this out, this should not be needed */
 			myortho2(snode->v2d.cur.xmin, snode->v2d.cur.xmax, snode->v2d.cur.ymin, snode->v2d.cur.ymax);

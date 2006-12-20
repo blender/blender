@@ -181,7 +181,7 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 	/* quick method to convert floatbuf to byte */
 	float *tof = ibuf->rect_float;
 	float dither= ibuf->dither;
-	int i;
+	int i, channels= ibuf->channels;
 	unsigned char *to = (unsigned char *) ibuf->rect;
 	
 	if(tof==NULL) return;
@@ -190,14 +190,26 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 		to = (unsigned char *) ibuf->rect;
 	}
 	
-	if(dither==0.0f) {
-		for (i = ibuf->x * ibuf->y; i > 0; i--) {
-			to[0] = FTOCHAR(tof[0]);
-			to[1] = FTOCHAR(tof[1]);
-			to[2] = FTOCHAR(tof[2]);
-			to[3] = FTOCHAR(tof[3]);
-			to += 4; 
-			tof += 4;
+	if(dither==0.0f || channels!=4) {
+		if(channels==1) {
+			for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof++)
+				to[1]= to[2]= to[3]= to[0] = FTOCHAR(tof[0]);
+		}
+		else if(channels==3) {
+			for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=3) {
+				to[0] = FTOCHAR(tof[0]);
+				to[1] = FTOCHAR(tof[1]);
+				to[2] = FTOCHAR(tof[2]);
+				to[3] = 255;
+			}
+		}
+		else {
+			for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=4) {
+				to[0] = FTOCHAR(tof[0]);
+				to[1] = FTOCHAR(tof[1]);
+				to[2] = FTOCHAR(tof[2]);
+				to[3] = FTOCHAR(tof[3]);
+			}
 		}
 	}
 	else {

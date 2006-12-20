@@ -74,6 +74,7 @@
 #include "BKE_displist.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
@@ -709,9 +710,7 @@ void replace_names_but(void)
 				strcat(temp, ima->name+len);
 				BLI_strncpy(ima->name, temp, sizeof(ima->name));
 				
-				if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
-				ima->ibuf= 0;
-				ima->ok= 1;
+				BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
 				
 				tot++;
 			}

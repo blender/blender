@@ -455,13 +455,17 @@ void default_tex(Tex *tex)
 
 	pit = tex->plugin;
 	if (pit) {
-			varstr= pit->varstr;
-			if(varstr) {
-					for(a=0; a<pit->vars; a++, varstr++) {
-						pit->data[a] = varstr->def;
-					}
+		varstr= pit->varstr;
+		if(varstr) {
+			for(a=0; a<pit->vars; a++, varstr++) {
+				pit->data[a] = varstr->def;
 			}
+		}
 	}
+	
+	tex->iuser.fie_ima= 2;
+	tex->iuser.ok= 1;
+	tex->iuser.frames= 100;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -776,7 +780,7 @@ EnvMap *BKE_copy_envmap(EnvMap *env)
 	
 	envn= MEM_dupallocN(env);
 	envn->ok= 0;
-	for(a=0; a<6; a++) envn->cube[a]= 0;
+	for(a=0; a<6; a++) envn->cube[a]= NULL;
 	if(envn->ima) id_us_plus((ID *)envn->ima);
 	
 	return envn;
@@ -786,20 +790,12 @@ EnvMap *BKE_copy_envmap(EnvMap *env)
 
 void BKE_free_envmapdata(EnvMap *env)
 {
-	Image *ima;
-	unsigned int a, part;
+	unsigned int part;
 	
 	for(part=0; part<6; part++) {
-		ima= env->cube[part];
-		if(ima) {
-			if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
-			
-			for(a=0; a<BLI_ARRAY_NELEMS(ima->mipmap); a++) {
-				if(ima->mipmap[a]) IMB_freeImBuf(ima->mipmap[a]);
-			}
-			MEM_freeN(ima);
-			env->cube[part]= 0;
-		}
+		if(env->cube[part])
+			IMB_freeImBuf(env->cube[part]);
+		env->cube[part]= NULL;
 	}
 	env->ok= 0;
 }

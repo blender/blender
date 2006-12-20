@@ -96,7 +96,7 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 void BLI_make_exist(char *dir);
 void BLI_make_existing_file(char *name);
 void BLI_split_dirfile(const char *string, char *dir, char *file);
-int BLI_testextensie(char *str, char *ext);
+int BLI_testextensie(const char *str, const char *ext);
 void addlisttolist(ListBase *list1, ListBase *list2);
 void BLI_insertlink(struct ListBase *listbase, void *vprevlink, void *vnewlink);
 void * BLI_findlink(struct ListBase *listbase, int number);
@@ -193,7 +193,7 @@ char* BLI_strdupn(char *str, int len);
 	 *   the size of dst)
 	 * @retval Returns dst
 	 */
-char* BLI_strncpy(char *dst, char *src, int maxncpy);
+char* BLI_strncpy(char *dst, const char *src, int maxncpy);
 
 	/**
 	 * Compare two strings

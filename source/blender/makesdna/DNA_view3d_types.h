@@ -54,17 +54,16 @@ struct RetopoViewData;
 #endif
 
 #include "DNA_listBase.h"
+#include "DNA_image_types.h"
 
 /* The near/far thing is a Win EXCEPTION. Thus, leave near/far in the
  * code, and patch for windows. */
 
 typedef struct BGpic {
     struct Image *ima;
-	struct ImBuf *ibuf;
-	struct Tex *tex;
+	struct ImageUser iuser;
     float xof, yof, size, zoom, blend;
     short xim, yim;
-	unsigned int *rect;
 } BGpic;
 
 typedef struct View3D {

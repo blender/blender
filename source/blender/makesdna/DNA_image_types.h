@@ -39,6 +39,7 @@
 struct PackedFile;
 struct anim;
 struct ImBuf;
+struct RenderResult;
 
 typedef struct PreviewImage {
 	unsigned int w;
@@ -46,23 +47,43 @@ typedef struct PreviewImage {
 	unsigned int * rect;
 } PreviewImage;
 
+/* ImageUser is in Texture, in Nodes, Background Image, Image Window, .... */
+/* should be used in conjunction with an ID * to Image. */
+typedef struct ImageUser {
+	int framenr;				/* movies, sequences: current to display */
+	int frames;					/* total amount of frames to use */
+	int offset, sfra;			/* offset within movie, start frame in global time */
+	short fie_ima, cycl;		/* fields/image in movie, cyclic flag */
+	short flag, ok;
+	
+	short multi_index, layer, pass;	 /* listbase indices, for menu browsing or retrieve buffer */
+	short menunr;					/* localized menu entry, for handling browse event */
+} ImageUser;
+
+/* iuser->flag */
+#define	IMA_ANIM_ALWAYS		1
+#define IMA_ANIM_REFRESHED	2
+
 typedef struct Image {
 	ID id;
 	
-	char name[160];
+	char name[240];
 	
+	ListBase ibufs;			/* not written in file */
+	
+	/* sources from: */
 	struct anim *anim;
-	struct ImBuf *ibuf;
-	struct ImBuf *mipmap[10];
+	struct RenderResult *rr;
 	
 	short ok, flag;
+	short source, type, pad, pad1;
 	int lastframe;
 
 	/* texture page */
 	short tpageflag, totbind;
 	short xrep, yrep;
 	short twsta, twend;
-	unsigned int bindcode;
+	unsigned int bindcode;	/* only for current image... */
 	unsigned int *repbind;	/* for repeat of parts of images */
 	
 	struct PackedFile * packedfile;
@@ -71,31 +92,33 @@ typedef struct Image {
 	float lastupdate;
 	int lastused;
 	short animspeed;
-	short reserved1;
-	int   reserved2;
+	
+	short gen_x, gen_y, gen_type;	/* for generated images */
+	
 /*#ifdef WITH_VERSE*/
 	void *vnode;		/* pointer at verse bitmap node */
 /*#endif*/
 } Image;
 
-/*  in Image struct */
-#define MAXMIPMAP	10
 
 /* **************** IMAGE ********************* */
 
 /* flag */
-#define IMA_HALVE		1
-#define IMA_BW			2
-#define IMA_FROMANIM	4
-#define IMA_USED		8
+#define IMA_FIELDS		1
+#define IMA_STD_FIELD	2
+
 #define	IMA_REFLECT		16
 #define IMA_NOCOLLECT   32
+#define IMA_ANTIALI		64
+
 
 /* tpageflag */
 #define IMA_TILES			1
 #define IMA_TWINANIM		2
 #define IMA_COLCYCLE		4	/* Depreciated */
 #define IMA_MIPMAP_COMPLETE 8   /* all mipmap levels in OpenGL texture set? */
+
+/* ima->type and ima->source moved to BKE_image.h, for API */
 
 #endif
 

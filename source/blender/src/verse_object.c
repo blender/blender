@@ -289,7 +289,7 @@ void b_verse_pop_node(VNode *vnode)
 			return;
 		}
 
-		vbitmap->image = (void*)new_image(
+		vbitmap->image = (void*)BKE_add_image_size(
 				vbitmap->width,
 				vbitmap->height,
 				vnode->name,

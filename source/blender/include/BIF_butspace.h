@@ -42,6 +42,8 @@ struct ID;
 extern void do_butspace(unsigned short event);
 extern void redraw_test_buttons(struct Object *new);
 
+extern char *image_type_pup(void);
+
 /* buttons_editing.c */
 extern void validate_editbonebutton_cb(void *bonev, void *namev);
 

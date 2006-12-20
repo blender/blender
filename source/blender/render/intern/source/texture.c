@@ -47,6 +47,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
+#include "BKE_image.h"
 #include "BKE_plugin_types.h"
 #include "BKE_utildefines.h"
 
@@ -73,112 +74,26 @@ extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 
-/* prototypes */
-static int calcimanr(int cfra, Tex *tex);
 
-/* ------------------------------------------------------------------------- */
 
-int calcimanr(int cfra, Tex *tex)
-{
-	int imanr, len, a, fra, dur;
-	
-	/* here (+fie_ima/2-1) makes sure that division happens correctly */
-	
-	if(tex->frames==0) return 1;
-	
-	cfra= cfra-tex->sfra+1;
-	
-	/* cyclic */
-	if(tex->len==0) len= (tex->fie_ima*tex->frames)/2;
-	else len= tex->len;
-	
-	if(tex->imaflag & TEX_ANIMCYCLIC) {
-		cfra= ( (cfra) % len );
-		if(cfra < 0) cfra+= len;
-		if(cfra==0) cfra= len;
-	}
-	
-	if(cfra<1) cfra= 1;
-	else if(cfra>len) cfra= len;
-	
-	/* convert current frame to current field */
-	cfra= 2*(cfra);
-	if(R.flag & R_SEC_FIELD) cfra++;
-	
-	/* transform to images space */
-	imanr= (cfra+tex->fie_ima-2)/tex->fie_ima;
-	if(imanr>tex->frames) imanr= tex->frames;
-	imanr+= tex->offset;
-	
-	if(tex->imaflag & TEX_ANIMCYCLIC) {
-		imanr= ( (imanr) % len );
-		while(imanr < 0) imanr+= len;
-		if(imanr==0) imanr= len;
-	}
-	
-	/* are there images that last longer? */
-	for(a=0; a<4; a++) {
-		if(tex->fradur[a][0]) {
-			
-			fra= tex->fradur[a][0];
-			dur= tex->fradur[a][1]-1;
-			
-			while(dur>0 && imanr>fra) {
-				imanr--;
-				dur--;
-			}
-		}
-	}
-	
-	return imanr;
-}
-
-/* note; this function is called in src/drawview.c for animated background image, option should move to kernel */
+/* note; this is called WITH RENDER IS NULL in src/drawview.c for animated 
+   background image, option should move to kernel */
 void init_render_texture(Render *re, Tex *tex)
 {
-	Image *ima;
-	int imanr;
-	unsigned short numlen;
-	char name[FILE_MAXDIR+FILE_MAXFILE], head[FILE_MAXDIR+FILE_MAXFILE], tail[FILE_MAXDIR+FILE_MAXFILE];
-
-	/* imap test */
-	if(tex->frames && tex->ima && tex->ima->name) {	/* frames */
-		strcpy(name, tex->ima->name);
-		
-		imanr= calcimanr(G.scene->r.cfra, tex);
-		
-		if(tex->imaflag & TEX_ANIM5) {
-			if(tex->ima->lastframe != imanr) {
-				if(tex->ima->ibuf) IMB_freeImBuf(tex->ima->ibuf);
-				tex->ima->ibuf= 0;
-				tex->ima->lastframe= imanr;
-			}
-		}
-		else {
-				/* for patch field-ima rendering */
-			tex->ima->lastframe= imanr;
-			
-			BLI_stringdec(name, head, tail, &numlen);
-			BLI_stringenc(name, head, tail, numlen, imanr);
+	int cfra= G.scene->r.cfra;
 	
-			ima= add_image(name);
-
-			if(ima) {
-				ima->flag |= IMA_FROMANIM;
-				
-				if(tex->ima) tex->ima->id.us--;
-				tex->ima= ima;
-				
-				ima->ok= 1;
-			}
-		}
+	if(re) cfra= re->r.cfra;
+	
+	/* imap test */
+	if(tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+		BKE_image_user_calc_imanr(&tex->iuser, cfra, re?re->flag & R_SEC_FIELD:0);
 	}
 	
 	if(tex->type==TEX_PLUGIN) {
 		if(tex->plugin && tex->plugin->doit) {
-				if(tex->plugin->cfra) {
- 					*(tex->plugin->cfra)= frame_to_float(G.scene->r.cfra); 
-				}
+			if(tex->plugin->cfra) {
+				*(tex->plugin->cfra)= frame_to_float(cfra); 
+			}
 		}
 	}
 	else if(tex->type==TEX_ENVMAP) {
@@ -191,7 +106,7 @@ void init_render_texture(Render *re, Tex *tex)
 				tex->extend= TEX_EXTEND;
 			
 			/* only free envmap when rendermode was set to render envmaps, for previewrender */
-			if(G.rendering) {
+			if(G.rendering && re) {
 				if (re->r.mode & R_ENVMAP)
 					if(tex->env->stype==ENV_ANIM) 
 						BKE_free_envmapdata(tex->env);
@@ -211,8 +126,6 @@ void init_render_textures(Render *re)
 		if(tex->id.us) init_render_texture(re, tex);
 		tex= tex->id.next;
 	}
-	
-	free_unused_animimages();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1189,8 +1102,8 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		retval= texnoise(tex, texres); 
 		break;
 	case TEX_IMAGE:
-		if(osatex) retval= imagewraposa(tex, tex->ima, texvec, dxt, dyt, texres); 
-		else retval= imagewrap(tex, tex->ima, texvec, texres); 
+		if(osatex) retval= imagewraposa(tex, tex->ima, NULL, texvec, dxt, dyt, texres); 
+		else retval= imagewrap(tex, tex->ima, NULL, texvec, texres); 
 		tag_image_time(tex->ima); /* tag image as having being used */
 		break;
 	case TEX_PLUGIN:
@@ -2486,8 +2399,8 @@ void render_realtime_texture(ShadeInput *shi)
 		
 		texr.nor= NULL;
 		
-		if(shi->osatex) imagewraposa(tex, ima, texvec, dx, dy, &texr); 
-		else imagewrap(tex, ima, texvec, &texr); 
+		if(shi->osatex) imagewraposa(tex, ima, NULL, texvec, dx, dy, &texr); 
+		else imagewrap(tex, ima, NULL, texvec, &texr); 
 		
 		shi->vcol[0]*= texr.tr;
 		shi->vcol[1]*= texr.tg;

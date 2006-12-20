@@ -76,7 +76,10 @@ void new_image_sima(void);
 void reload_image_sima(void);
 void save_image_sima(void);
 void save_as_image_sima(void);
+void save_image_sequence_sima(void);
 void replace_image_sima(short imageselect);
 void open_image_sima(short imageselect);
 void pack_image_sima(void);
 
+/* checks images for forced updates on frame change */
+void BIF_image_update_frame(void);

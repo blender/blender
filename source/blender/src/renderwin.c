@@ -599,7 +599,7 @@ static void renderwin_handler(Window *win, void *user_data, short evt, short val
 				mainwindow_make_active();
 				rw->active= 0;
 				areawinset(find_biggest_area()->win);
-				BIF_save_rendered_image_fs(0);
+				BIF_save_rendered_image_fs();
 			}
 		} 
 		else if (evt==F11KEY) {
@@ -1115,17 +1115,20 @@ static void do_render(int anim)
 	waitcursor(0);
 }
 
+/* called before render, store old render in spare buffer */
 static void renderwin_store_spare(void)
 {
 	RenderResult rres;
 	
 	if(render_win==0 || render_win->storespare==0)
 		return;
-
-	if(render_win->showspare) {
-		render_win->showspare= 0;
-		window_set_title(render_win->win, renderwin_get_title(1));
-	}
+	
+	/* only store when it does not show spare */
+	if(render_win->showspare==0)
+		return;
+	
+	render_win->showspare= 0;
+	window_set_title(render_win->win, renderwin_get_title(1));
 	
 	BLI_strncpy(render_win->render_text_spare, render_win->render_text, RW_MAXTEXT);
 	
@@ -1197,6 +1200,14 @@ void BIF_end_render_callbacks(void)
 	}
 }
 
+void BIF_store_spare(void)
+{
+	if(render_win)
+		renderwin_store_spare();
+	else
+		imagewin_store_spare();
+}
+
 /* set up display, render an image or scene */
 void BIF_do_render(int anim)
 {
@@ -1210,8 +1221,7 @@ void BIF_do_render(int anim)
 		}
 	}
 	
-	if(render_win && render_win->showspare)
-		renderwin_store_spare();
+	BIF_store_spare();
 
 	do_render(anim);
 
@@ -1327,12 +1337,7 @@ void BIF_redraw_render_rect(void)
 		renderwin_queue_redraw(render_win);
 	}
 	else {
-		Image *ima = (Image *)find_id("IM", "Render Result");
-		if(ima && ima->ibuf) {
-			IMB_freeImBuf(ima->ibuf);
-			ima->ibuf= NULL;
-			allqueue(REDRAWIMAGE, 0);
-		}
+		allqueue(REDRAWIMAGE, 0);
 	}
 }	
 
@@ -1340,22 +1345,26 @@ void BIF_swap_render_rects(void)
 {
 	RenderResult rres;
 	
-	if (render_win==NULL) return;
-	
-	render_win->storespare= 1;
-	render_win->showspare ^= 1;
+	if(G.displaymode!=R_DISPLAYWIN) {
+		imagewindow_swap_render_rects();
+	}
+	else {
 		
-	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
+		render_win->storespare= 1;
+		render_win->showspare ^= 1;
+			
+		RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
+			
+		if(render_win->sparex!=rres.rectx || render_win->sparey!=rres.recty) {
+			if(render_win->rectspare) MEM_freeN(render_win->rectspare);
+			render_win->rectspare= NULL;
+			if(render_win->rectsparef) MEM_freeN(render_win->rectsparef);
+			render_win->rectsparef= NULL;
+		}
 		
-	if(render_win->sparex!=rres.rectx || render_win->sparey!=rres.recty) {
-		if(render_win->rectspare) MEM_freeN(render_win->rectspare);
-		render_win->rectspare= NULL;
-		if(render_win->rectsparef) MEM_freeN(render_win->rectsparef);
-		render_win->rectsparef= NULL;
+		window_set_title(render_win->win, renderwin_get_title(1));
 	}
 	
-	window_set_title(render_win->win, renderwin_get_title(1));
-
 	/* redraw */
 	BIF_redraw_render_rect();
 

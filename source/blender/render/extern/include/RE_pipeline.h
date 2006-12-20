@@ -59,11 +59,14 @@ typedef struct Render Render;
 typedef struct RenderPass {
 	struct RenderPass *next, *prev;
 	int passtype, channels;
+	char name[16];		/* amount defined in openexr_multi.h */
+	char chan_id[8];	/* amount defined in openexr_multi.h */
 	float *rect;
 } RenderPass;
 
 /* a renderlayer is a full image, but with all passes and samples */
 /* size of the rects is defined in RenderResult */
+/* after render, the Combined pass is in rectf, for renderlayers read from files it is a real pass */
 typedef struct RenderLayer {
 	struct RenderLayer *next, *prev;
 	
@@ -75,7 +78,7 @@ typedef struct RenderLayer {
 	struct Material *mat_override;
 	struct Group *light_override;
 	
-	float *rectf;		/* 4 float, standard rgba buffer */
+	float *rectf;		/* 4 float, standard rgba buffer (read not above!) */
 	float *acolrect;	/* 4 float, optional transparent buffer, needs storage for display updates */
 	
 	ListBase passes;
@@ -111,6 +114,9 @@ typedef struct RenderResult {
 	char exrfile[FILE_MAXDIR];
 	void *exrhandle;
 	
+	/* for render results in Image, verify validity for sequences */
+	int framenr;
+	
 } RenderResult;
 
 typedef struct RenderStats {
@@ -134,6 +140,7 @@ void RE_FreeRender (struct Render *re);
 void RE_FreeAllRender (void);
 
 /* get results and statistics */
+void RE_FreeRenderResult(struct RenderResult *rr);
 struct RenderResult *RE_GetResult(struct Render *re);
 void RE_GetResultImage(struct Render *re, struct RenderResult *rr);
 struct RenderStats *RE_GetStats(struct Render *re);
@@ -173,6 +180,8 @@ void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame);
 void RE_BlenderAnim(struct Render *re, struct Scene *scene, int sfra, int efra);
 
 void RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
+void RE_WriteRenderResult(RenderResult *rr, char *filename);
+struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty);
 
 /* ancient stars function... go away! */
 void RE_make_stars(struct Render *re, void (*initfunc)(void),

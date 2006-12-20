@@ -66,17 +66,17 @@ void BIF_save_envmap(EnvMap *env, char *str)
 	int dx;
 	
 	/* all interactive stuff is handled in buttons.c */
-	if(env->cube[0]==NULL || env->cube[0]->ibuf==NULL) return;
+	if(env->cube[0]==NULL) return;
 		
-	dx= env->cube[0]->ibuf->x;
+	dx= env->cube[0]->x;
 	ibuf= IMB_allocImBuf(3*dx, 2*dx, 24, IB_rect, 0);
 	
-	IMB_rectcpy(ibuf, env->cube[0]->ibuf, 0, 0, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[1]->ibuf, dx, 0, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[2]->ibuf, 2*dx, 0, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[3]->ibuf, 0, dx, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[4]->ibuf, dx, dx, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[5]->ibuf, 2*dx, dx, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[0], 0, 0, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[1], dx, 0, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[2], 2*dx, 0, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[3], 0, dx, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[4], dx, dx, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[5], 2*dx, dx, 0, 0, dx, dx);
 	
 	BKE_write_ibuf(ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);
 	IMB_freeImBuf(ibuf);
@@ -86,12 +86,10 @@ void BIF_save_envmap(EnvMap *env, char *str)
 #define FTOCHAR(val) val<=0.0f?255: 255-(val>=255.0f?255: (char)(val))
 
 /* callback for fileselect to save rendered image, renderresult was checked to exist */
-void save_rendered_image_cb_real(char *name, int zbuf, int confirm)
+static void save_rendered_image_cb_real(char *name, int confirm)
 {
 	char str[FILE_MAXDIR+FILE_MAXFILE];
-	int pixel, end, overwrite;
-	float *pixf = 0;
-	char *pixc = 0;
+	int overwrite;
 	
 	if(BLI_testextensie(name,".blend")) {
 		error("Wrong filename");
@@ -112,40 +110,30 @@ void save_rendered_image_cb_real(char *name, int zbuf, int confirm)
 		overwrite = 1;
 	
 	if(overwrite) {
-		RenderResult rres;
-		ImBuf *ibuf;
-		
-		RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
+		if(G.scene->r.imtype==R_MULTILAYER) {
+			RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name));
+			if(rr) 
+				RE_WriteRenderResult(rr, str);
+		}
+		else {
+			RenderResult rres;
+			ImBuf *ibuf;
+			
+			RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
 
-		waitcursor(1); /* from screen.c */
+			waitcursor(1); /* from screen.c */
 
-		ibuf= IMB_allocImBuf(rres.rectx, rres.recty, G.scene->r.planes, 0, 0);
-		if (zbuf == 1) {
-			if (ibuf->rect ==NULL) imb_addrectImBuf(ibuf);
-			if (ibuf->rect_float==NULL) imb_addrectfloatImBuf(ibuf);
-
-			ibuf->zbuf_float= rres.rectz;
-
-			pixc = (char *)ibuf->rect;
-			pixf = (float *)ibuf->rect_float;
-
-			end = ibuf->x * ibuf->y;
-			for(pixel = 0; pixel < end; pixel++, pixf+=4, pixc+=4) {
-				pixf[0] = pixf[1] = pixf[2] = pixf[3] = 1-rres.rectz[pixel]/100000000000.0;
-				pixc[0] = pixc[1] = pixc[2] = pixc[3] = FTOCHAR(rres.rectz[pixel]);
-			}
-			ibuf->zbuf_float= rres.rectz;
-		} else {
+			ibuf= IMB_allocImBuf(rres.rectx, rres.recty, G.scene->r.planes, 0, 0);
 			ibuf->rect= rres.rect32;
 			ibuf->rect_float= rres.rectf;
 			ibuf->zbuf_float= rres.rectz;
+			
+			/* float factor for random dither, imbuf takes care of it */
+			ibuf->dither= G.scene->r.dither_intensity;
+			
+			BKE_write_ibuf(ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);
+			IMB_freeImBuf(ibuf);	/* imbuf knows rects are not part of ibuf */
 		}
-		
-		/* float factor for random dither, imbuf takes care of it */
-		ibuf->dither= G.scene->r.dither_intensity;
-		
-		BKE_write_ibuf(ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);
-		IMB_freeImBuf(ibuf);	/* imbuf knows rects are not part of ibuf */
 		
 		strcpy(G.ima, name);
 		
@@ -153,13 +141,6 @@ void save_rendered_image_cb_real(char *name, int zbuf, int confirm)
 	}
 }
 
-static void save_rendered_image_cb(char *name) {
-	save_rendered_image_cb_real(name,0,1);
-}
-
-static void save_rendered_image_zbuf_cb(char *name) {
-	save_rendered_image_cb_real(name,1,1);
-}
 
 void save_image_filesel_str(char *str)
 {
@@ -203,7 +184,9 @@ void save_image_filesel_str(char *str)
 		case R_TARGA:
 			strcpy(str, "Save Targa");
 			break;
-			
+		case R_MULTILAYER:
+			strcpy(str, "Save Multi Layer EXR");
+			break;
 			/* default we save jpeg, also for all movie formats */
 		case R_JPEG90:
 		case R_MOVIE:
@@ -216,8 +199,19 @@ void save_image_filesel_str(char *str)
 	}	
 }
 
-/* calls fileselect if zbuf is set we are rendering the zbuffer */
-void BIF_save_rendered_image_fs(int zbuf)
+static void save_rendered_image_cb(char *name) 
+{
+	save_rendered_image_cb_real(name, 1);
+}
+
+/* no fileselect, no confirm */
+void BIF_save_rendered_image(char *name)
+{
+	save_rendered_image_cb_real(name, 0);
+}
+	
+/* calls fileselect */
+void BIF_save_rendered_image_fs(void)
 {
 	RenderResult rres;
 	
@@ -225,7 +219,8 @@ void BIF_save_rendered_image_fs(int zbuf)
 
 	if(!rres.rectf && !rres.rect32) {
 		error("No image rendered");
-	} else {
+	} 
+	else {
 		char dir[FILE_MAXDIR * 2], str[FILE_MAXFILE * 2];
 		
 		if(G.ima[0]==0) {
@@ -235,10 +230,6 @@ void BIF_save_rendered_image_fs(int zbuf)
 		}
 		
 		save_image_filesel_str(str);
-		if (zbuf) {
-			activate_fileselect(FILE_SPECIAL, str, G.ima, save_rendered_image_zbuf_cb);
-			return;
-		}
 		activate_fileselect(FILE_SPECIAL, str, G.ima, save_rendered_image_cb);
 	}
 }

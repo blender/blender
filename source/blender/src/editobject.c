@@ -107,6 +107,7 @@
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_ipo.h"
+#include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -5049,8 +5050,9 @@ void image_aspect(void)
 					for(b=0; b<MAX_MTEX; b++) {
 						if(ma->mtex[b] && ma->mtex[b]->tex) {
 							tex= ma->mtex[b]->tex;
-							if(tex->type==TEX_IMAGE && tex->ima && tex->ima->ibuf) {
-
+							if(tex->type==TEX_IMAGE && tex->ima) {
+								ImBuf *ibuf= BKE_image_get_ibuf(tex->ima, NULL);
+								
 								/* texturespace */
 								space= 1.0;
 								if(ob->type==OB_MESH) {
@@ -5063,8 +5065,8 @@ void image_aspect(void)
 									space= cu->size[0]/cu->size[1];
 								}
 							
-								x= tex->ima->ibuf->x/space;
-								y= tex->ima->ibuf->y;
+								x= ibuf->x/space;
+								y= ibuf->y;
 								
 								if(x>y) ob->size[0]= ob->size[1]*x/y;
 								else ob->size[1]= ob->size[0]*y/x;

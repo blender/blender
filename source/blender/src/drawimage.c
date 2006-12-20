@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,9 +22,9 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Blender Foundation, 2002-2006
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <math.h>
@@ -56,6 +53,7 @@
 #include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
@@ -99,8 +97,10 @@
 #include "BIF_transform.h"
 
 #include "BSE_drawipo.h"
+#include "BSE_drawview.h"
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_node.h"
 #include "BSE_trans_types.h"
 #include "BSE_view.h"
 
@@ -118,26 +118,24 @@
 static unsigned char *alloc_alpha_clone_image(int *width, int *height)
 {
 	Brush *brush = G.scene->toolsettings->imapaint.brush;
-	Image *image;
+	ImBuf *ibuf;
 	unsigned int size, alpha;
 	unsigned char *rect, *cp;
 
 	if(!brush || !brush->clone.image)
 		return NULL;
 	
-	image= brush->clone.image;
-	if(!image->ibuf)
-		load_image(image, IB_rect, G.sce, G.scene->r.cfra);
+	ibuf= BKE_image_get_ibuf(brush->clone.image, NULL);
 
-	if(!image->ibuf || !image->ibuf->rect)
+	if(!ibuf || !ibuf->rect)
 		return NULL;
 
-	rect= MEM_dupallocN(image->ibuf->rect);
+	rect= MEM_dupallocN(ibuf->rect);
 	if(!rect)
 		return NULL;
 
-	*width= image->ibuf->x;
-	*height= image->ibuf->y;
+	*width= ibuf->x;
+	*height= ibuf->y;
 
 	size= (*width)*(*height);
 	alpha= (unsigned char)255*brush->clone.alpha;
@@ -190,11 +188,13 @@ void calc_image_view(SpaceImage *sima, char mode)
 	
 	if(image_preview_active(curarea, &xim, &yim));
 	else if(sima->image) {
-		if(sima->image->ibuf) {
-			xim= sima->image->ibuf->x;
-			yim= sima->image->ibuf->y;
+		ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+		
+		if(ibuf) {
+			xim= ibuf->x;
+			yim= ibuf->y;
 		}
-		else if( BLI_streq(sima->image->id.name+2, "Render Result") ) {
+		else if( sima->image->type==IMA_TYPE_R_RESULT ) {
 			/* not very important, just nice */
 			xim= (G.scene->r.xsch*G.scene->r.size)/100;
 			yim= (G.scene->r.ysch*G.scene->r.size)/100;
@@ -246,24 +246,8 @@ void what_image(SpaceImage *sima)
 		
 	if(sima->mode==SI_TEXTURE) {
 		
-		if(sima->image && BLI_streq(sima->image->id.name+2, "Render Result")) {
-			if(sima->image->ibuf==NULL) {
-				RenderResult rres;
-				
-				/* make ibuf if needed, and initialize it */
-				RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
-				if(rres.rectf || rres.rect32) {
-					ImBuf *ibuf= sima->image->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, 0, 0);
-					
-					ibuf->x= rres.rectx;
-					ibuf->y= rres.recty;
-					ibuf->rect= rres.rect32;
-					ibuf->rect_float= rres.rectf;
-					
-					sima->image->ok= 1;
-				}
-			}
-		}
+		/* viewer overrides faceselect */
+		if(sima->image && sima->image->source==IMA_SRC_VIEWER);
 		else if((G.f & G_FACESELECT)) {
 			
 			sima->image= NULL;
@@ -301,11 +285,11 @@ void image_changed(SpaceImage *sima, int dotile)
 		
 		if(G.f & G_FACESELECT) {
 			
-			/* exception images, name rules are actually weak... */
+			/* skip assigning these procedural images... */
 			if(sima->image) {
-				if(BLI_streq(sima->image->id.name+2, "Render Result"))
+				if(sima->image->type==IMA_TYPE_R_RESULT)
 					return;
-				if(BLI_streq(sima->image->id.name+2, "Composite"))
+				if(sima->image->type==IMA_TYPE_COMPOSITE)
 					return;
 			}
 			
@@ -740,26 +724,25 @@ static void draw_image_view_tool(void)
 
 /* ************ panel stuff ************* */
 
-// button define is local, only events defined here possible
-#define B_TRANS_IMAGE	1
-
 /* is used for both read and write... */
-static void image_editvertex_buts(uiBlock *block)
+void image_editvertex_buts(uiBlock *block)
 {
 	static float ocent[2];
 	float cent[2]= {0.0, 0.0};
-	int imx, imy;
+	int imx= 256, imy= 256;
 	int i, nactive= 0, step, digits;
 	Mesh *me;
 	
 	if( is_uv_tface_editing_allowed_silent()==0 ) return;
 	me= get_mesh(OBACT);
 	
-	if (G.sima->image && G.sima->image->ibuf) {
-		imx= G.sima->image->ibuf->x;
-		imy= G.sima->image->ibuf->y;
-	} else
-		imx= imy= 256;
+	if (G.sima->image) {
+		ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+		if(ibuf) {
+			imx= ibuf->x;
+			imy= ibuf->y;
+		}
+	}
 	
 	for (i=0; i<me->totface; i++) {
 		MFace *mf= &((MFace*) me->mface)[i];
@@ -863,174 +846,77 @@ static void image_editvertex_buts(uiBlock *block)
 	}
 }
 
-
-void do_imagebuts(unsigned short event)
+void image_info(Image *ima, ImBuf *ibuf, char *str)
 {
-	ToolSettings *settings= G.scene->toolsettings;
-
-	switch(event) {
-	case B_TRANS_IMAGE:
-		image_editvertex_buts(NULL);
-		break;
-
-	case B_SIMAGEDRAW:
-		if(G.f & G_FACESELECT) {
-			make_repbind(G.sima->image);
-			image_changed(G.sima, 1);
-		}
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWIMAGE, 0);
-		break;
-
-	case B_SIMAGEDRAW1:
-		image_changed(G.sima, 2);		/* 2: only tileflag */
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWIMAGE, 0);
-		break;
-		
-	case B_TWINANIM:
-		{
-			Image *ima;
-			int nr;
-
-			ima = G.sima->image;
-			if (ima) {
-				if(ima->flag & IMA_TWINANIM) {
-					nr= ima->xrep*ima->yrep;
-					if(ima->twsta>=nr) ima->twsta= 1;
-					if(ima->twend>=nr) ima->twend= nr-1;
-					if(ima->twsta>ima->twend) ima->twsta= 1;
-					allqueue(REDRAWIMAGE, 0);
-				}
-			}
-		}
-		break;
-
-	case B_SIMACLONEBROWSE:
-		if (settings->imapaint.brush)
-			if (brush_clone_image_set_nr(settings->imapaint.brush, G.sima->menunr))
-				allqueue(REDRAWIMAGE, 0);
-		break;
-		
-	case B_SIMACLONEDELETE:
-		if (settings->imapaint.brush)
-			if (brush_clone_image_delete(settings->imapaint.brush))
-				allqueue(REDRAWIMAGE, 0);
-		break;
-
-	case B_SIMABRUSHCHANGE:
-		allqueue(REDRAWIMAGE, 0);
-		allqueue(REDRAWBUTSEDIT, 0);
-		break;
-		
-	case B_SIMACURVES:
-		curvemapping_do_image(G.sima->cumap, G.sima->image);
-		allqueue(REDRAWIMAGE, 0);
-		break;
-		
-	case B_SIMARANGE:
-		curvemapping_set_black_white(G.sima->cumap, NULL, NULL);
-		curvemapping_do_image(G.sima->cumap, G.sima->image);
-		allqueue(REDRAWIMAGE, 0);
-		break;
+	int ofs= 0;
 	
-	case B_SIMABRUSHBROWSE:
-		if(G.sima->menunr==-2) {
-			activate_databrowse((ID*)settings->imapaint.brush, ID_BR, 0, B_SIMABRUSHBROWSE, &G.sima->menunr, do_global_buttons);
-			break;
-		}
-		else if(G.sima->menunr < 0) break;
-			
-		if(brush_set_nr(&settings->imapaint.brush, G.sima->menunr)) {
-			BIF_undo_push("Browse Brush");
-			allqueue(REDRAWBUTSEDIT, 0);
-			allqueue(REDRAWIMAGE, 0);
-		}
-		break;
-	case B_SIMABRUSHDELETE:
-		if(brush_delete(&settings->imapaint.brush)) {
-			BIF_undo_push("Unlink Brush");
-			allqueue(REDRAWIMAGE, 0);
-			allqueue(REDRAWBUTSEDIT, 0);
-		}
-		break;
-	case B_KEEPDATA:
-		brush_toggle_fake_user(settings->imapaint.brush);
-		allqueue(REDRAWIMAGE, 0);
-		allqueue(REDRAWBUTSEDIT, 0);
-		break;
-	case B_SIMABRUSHLOCAL:
-		if(settings->imapaint.brush && settings->imapaint.brush->id.lib) {
-			if(okee("Make local")) {
-				make_local_brush(settings->imapaint.brush);
-				allqueue(REDRAWIMAGE, 0);
-				allqueue(REDRAWBUTSEDIT, 0);
-			}
-		}
-		break;
-	case B_SIMABTEXBROWSE:
-		if(settings->imapaint.brush) {
-			Brush *brush= settings->imapaint.brush;
-
-			if(G.sima->menunr==-2) {
-				MTex *mtex= brush->mtex[brush->texact];
-				ID *id= (ID*)((mtex)? mtex->tex: NULL);
-				activate_databrowse(id, ID_TE, 0, B_SIMABTEXBROWSE, &G.sima->menunr, do_global_buttons);
-				break;
-			}
-			else if(G.sima->menunr < 0) break;
-				
-			if(brush_texture_set_nr(brush, G.sima->menunr)) {
-				BIF_undo_push("Browse Brush Texture");
-				allqueue(REDRAWBUTSSHADING, 0);
-				allqueue(REDRAWBUTSEDIT, 0);
-				allqueue(REDRAWIMAGE, 0);
-			}
-		}
-		break;
-	case B_SIMABTEXDELETE:
-		if(settings->imapaint.brush) {
-			if (brush_texture_delete(settings->imapaint.brush)) {
-				BIF_undo_push("Unlink Brush Texture");
-				allqueue(REDRAWBUTSSHADING, 0);
-				allqueue(REDRAWBUTSEDIT, 0);
-				allqueue(REDRAWIMAGE, 0);
-			}
-		}
-		break;
+	str[0]= 0;
+	
+	if(ima==NULL) return;
+	if(ibuf==NULL) {
+		sprintf(str, "Can not get an image");
+		return;
 	}
+	
+	if(ima->source==IMA_SRC_MOVIE) {
+		ofs= sprintf(str, "Movie ");
+		if(ima->anim) 
+			ofs+= sprintf(str+ofs, "%d frs", IMB_anim_get_duration(ima->anim));
+	}
+	else
+	 	ofs= sprintf(str, "Image ");
+
+	ofs+= sprintf(str+ofs, ": size %d x %d,", ibuf->x, ibuf->y);
+	
+	if(ibuf->rect_float) {
+		if(ibuf->channels!=4) {
+			sprintf(str+ofs, "%d float channel(s)", ibuf->channels);
+		}
+		else if(ibuf->depth==32)
+			strcat(str, " RGBA float");
+		else
+			strcat(str, " RGB float");
+	}
+	else {
+		if(ibuf->depth==32)
+			strcat(str, " RGBA byte");
+		else
+			strcat(str, " RGB byte");
+	}
+	if(ibuf->zbuf || ibuf->zbuf_float)
+		strcat(str, " + Z");
+	
 }
 
 static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 {
 	uiBlock *block;
-
+	
 	block= uiNewBlock(&curarea->uiblocks, "image_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(IMAGE_HANDLER_PROPERTIES);  // for close and esc
 	if(uiNewPanel(curarea, block, "Properties", "Image", 10, 10, 318, 204)==0)
 		return;
+	
+	uiblock_image_panel(block, &G.sima->image, &G.sima->iuser, B_REDR, B_REDR);
 
-	if (G.sima->image && G.sima->image->ibuf) {
-		ImBuf *ibuf= G.sima->image->ibuf;
-		char str[64];
+}	
 
-		sprintf(str, "Image: size %d x %d", ibuf->x, ibuf->y);
-		if(ibuf->rect_float) {
-			if(ibuf->depth==32)
-				strcat(str, " RGBA float");
-			else
-				strcat(str, " RGB float");
-		}
-		else {
-			if(ibuf->depth==32)
-				strcat(str, " RGBA byte");
-			else
-				strcat(str, " RGB byte");
-		}
-		if(ibuf->zbuf || ibuf->zbuf_float)
-			strcat(str, " + Z");
+static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPERTIES
+{
+	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+	uiBlock *block;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_panel_game_properties", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(IMAGE_HANDLER_GAME_PROPERTIES);  // for close and esc
+	if(uiNewPanel(curarea, block, "Game Properties", "Image", 10, 10, 318, 204)==0)
+		return;
+
+	if (ibuf) {
+		char str[128];
 		
+		image_info(G.sima->image, ibuf, str);
 		uiDefBut(block, LABEL, B_NOP, str,		10,180,300,19, 0, 0, 0, 0, 0, "");
 
 		uiBlockBeginAlign(block);
@@ -1050,7 +936,7 @@ static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	image_editvertex_buts(block);
 }
 
-static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
+static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PAINT
 {
 	/* B_SIMABRUSHCHANGE only redraws and eats the mouse messages  */
 	/* so that LEFTMOUSE does not 'punch' through the floating panel */
@@ -1135,7 +1021,7 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 #endif
 }
 
-static void image_panel_curves_reset(void *cumap_v, void *unused)
+static void image_panel_curves_reset(void *cumap_v, void *ibuf_v)
 {
 	CurveMapping *cumap = cumap_v;
 	int a;
@@ -1148,14 +1034,15 @@ static void image_panel_curves_reset(void *cumap_v, void *unused)
 	curvemapping_set_black_white(cumap, NULL, NULL);
 	
 	curvemapping_changed(cumap, 0);
-	curvemapping_do_image(cumap, G.sima->image);
+	curvemapping_do_ibuf(cumap, ibuf_v);
 	
 	allqueue(REDRAWIMAGE, 0);
 }
 
 
-static void image_panel_curves(short cntrl)	// IMAGE_HANDLER_PROPERTIES
+static void image_panel_curves(short cntrl)	// IMAGE_HANDLER_CURVES
 {
+	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
 	uiBlock *block;
 	uiBut *bt;
 	
@@ -1165,7 +1052,7 @@ static void image_panel_curves(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	if(uiNewPanel(curarea, block, "Curves", "Image", 10, 450, 318, 204)==0)
 		return;
 	
-	if (G.sima->image && G.sima->image->ibuf) {
+	if (ibuf) {
 		rctf rect;
 		
 		if(G.sima->cumap==NULL)
@@ -1176,7 +1063,7 @@ static void image_panel_curves(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 		curvemap_buttons(block, G.sima->cumap, 'c', B_SIMACURVES, B_SIMAGEDRAW, &rect);
 		
 		bt=uiDefBut(block, BUT, B_SIMARANGE, "Reset",	10, 160, 90, 19, NULL, 0.0f, 0.0f, 0, 0, "Reset Black/White point and curves");
-		uiButSetFunc(bt, image_panel_curves_reset, G.sima->cumap, NULL);
+		uiButSetFunc(bt, image_panel_curves_reset, G.sima->cumap, ibuf);
 		
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_SIMARANGE, "Min R:",	10, 120, 90, 19, G.sima->cumap->black, -1000.0f, 1000.0f, 10, 2, "Black level");
@@ -1339,6 +1226,9 @@ static void image_blockhandlers(ScrArea *sa)
 		case IMAGE_HANDLER_PROPERTIES:
 			image_panel_properties(sima->blockhandler[a+1]);
 			break;
+		case IMAGE_HANDLER_GAME_PROPERTIES:
+			image_panel_game_properties(sima->blockhandler[a+1]);
+			break;
 		case IMAGE_HANDLER_PAINT:
 			image_panel_paint(sima->blockhandler[a+1]);
 			break;		
@@ -1353,6 +1243,53 @@ static void image_blockhandlers(ScrArea *sa)
 		sima->blockhandler[a+1]= 0;
 	}
 	uiDrawBlocksPanels(sa, 0);
+}
+
+void imagespace_composite_flipbook(ScrArea *sa)
+{
+	SpaceImage *sima= sa->spacedata.first;
+	ImBuf *ibuf;
+	int cfrao= G.scene->r.cfra;
+	int sfra, efra;
+	
+	if(sa->spacetype!=SPACE_IMAGE)
+		return;
+	if(sima->iuser.frames<2)
+		return;
+	if(G.scene->nodetree==NULL)
+		return;
+	
+	sfra= sima->iuser.sfra;
+	efra= sima->iuser.sfra + sima->iuser.frames-1;
+	G.scene->nodetree->test_break= blender_test_break;
+	
+	for(G.scene->r.cfra=sfra; G.scene->r.cfra<=efra; G.scene->r.cfra++) {
+		
+		set_timecursor(CFRA);
+		
+		BKE_image_all_free_anim_ibufs(CFRA);
+		ntreeCompositTagAnimated(G.scene->nodetree);
+		ntreeCompositExecTree(G.scene->nodetree, &G.scene->r, G.scene->r.cfra!=cfrao);	/* 1 is no previews */
+		
+		force_draw(0);
+		
+		ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+		/* save memory in flipbooks */
+		if(ibuf)
+			imb_freerectfloatImBuf(ibuf);
+		
+		if(blender_test_break())
+			break;
+	}
+	G.scene->nodetree->test_break= NULL;
+	waitcursor(0);
+	
+	play_anim(0);
+	
+	allqueue(REDRAWNODE, 1);
+	allqueue(REDRAWIMAGE, 1);
+	
+	G.scene->r.cfra= cfrao;
 }
 
 static void imagespace_grid(SpaceImage *sima)
@@ -1548,8 +1485,9 @@ static void imagewindow_draw_renderinfo(ScrArea *sa)
 	SpaceImage *sima= sa->spacedata.first;
 	rcti rect;
 	float colf[3];
+	char *str= sima->showspare?sima->info_spare:sima->info_str;
 	
-	if(sima->info_str==NULL)
+	if(str==NULL)
 		return;
 	
 	rect= sa->winrct;
@@ -1564,7 +1502,11 @@ static void imagewindow_draw_renderinfo(ScrArea *sa)
 	
 	BIF_ThemeColor(TH_TEXT_HI);
 	glRasterPos2i(12, 5);
-	BMF_DrawString(G.fonts, sima->info_str);
+	if(sima->showspare) {
+		BMF_DrawString(G.fonts, "(Previous)");
+		glRasterPos2i(72, 5);
+	}		
+	BMF_DrawString(G.fonts, str);
 }
 
 void drawimagespace(ScrArea *sa, void *spacedata)
@@ -1575,7 +1517,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	float col[3];
 	unsigned int *rect;
 	float x1, y1;
-	short sx, sy, dx, dy, show_render= 0;
+	short sx, sy, dx, dy, show_render= 0, show_viewer= 0;
 	
 		/* If derived data is used then make sure that object
 		 * is up-to-date... might not be the case because updates
@@ -1593,24 +1535,33 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	bwin_clear_viewmat(sa->win);	/* clear buttons view */
 	glLoadIdentity();
 	
-	if(sima->image && BLI_streq(sima->image->id.name+2, "Render Result") )
-		show_render= 1;
-	
+	if(sima->image && sima->image->source==IMA_SRC_VIEWER) {
+		show_viewer= 1;
+		if(sima->image->type==IMA_TYPE_R_RESULT)
+			show_render= 1;
+	}
 	what_image(sima);
 	
 	if(sima->image) {
-		if(sima->image->ibuf==NULL && show_render==0) {
-			load_image(sima->image, IB_rect, G.sce, G.scene->r.cfra);
-			scrarea_queue_headredraw(sa);	/* update header for image options */
-		}
 		
-		tag_image_time(sima->image);
-		ibuf= sima->image->ibuf;
+		/* UGLY hack? until now iusers worked fine... but for flipbook viewer we need this */
+		if(sima->image->type==IMA_TYPE_COMPOSITE) {
+			ImageUser *iuser= ntree_get_active_iuser(G.scene->nodetree);
+			if(iuser) {
+				BKE_image_user_calc_imanr(iuser, G.scene->r.cfra, 0);
+				G.sima->iuser= *iuser;
+			}
+		}
+		/* and we check for spare */
+		if(sima->image->type==IMA_TYPE_R_RESULT && sima->showspare)
+			ibuf= sima->spare;
+		else
+			ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
 	}
 	
 	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
 		imagespace_grid(sima);
-		if(show_render==0)
+		if(show_viewer==0)
 			draw_tfaces();
 	}
 	else {
@@ -1706,14 +1657,16 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 				if(sima->flag & SI_SHOW_ALPHA) {
 					if(ibuf->rect)
 						sima_draw_alpha_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
-					else if(ibuf->rect_float)
+					else if(ibuf->rect_float && ibuf->channels==4)
 						sima_draw_alpha_pixelsf(x1, y1, ibuf->x, ibuf->y, ibuf->rect_float);
 				}
 				else if(sima->flag & SI_SHOW_ZBUF) {
 					if(ibuf->zbuf)
 						sima_draw_zbuf_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->zbuf);
-					else
+					else if(ibuf->zbuf_float)
 						sima_draw_zbuffloat_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->zbuf_float);
+					else if(ibuf->channels==1)
+						sima_draw_zbuffloat_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->rect_float);
 				}
 				else {
 					if(sima->flag & SI_USE_ALPHA) {
@@ -1725,11 +1678,14 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 					/* detect if we need to redo the curve map. 
 					   ibuf->rect is zero for compositor and render results after change 
 					   convert to 32 bits always... drawing float rects isnt supported well (atis)
+					
+					   NOTE: if float buffer changes, we have to manually remove the rect
 					*/
+					
 					if(ibuf->rect_float) {
 						if(ibuf->rect==NULL) {
 							if(image_curves_active(sa))
-								curvemapping_do_image(G.sima->cumap, G.sima->image);
+								curvemapping_do_ibuf(G.sima->cumap, ibuf);
 							else 
 								IMB_rect_from_float(ibuf);
 						}
@@ -1770,7 +1726,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 			
 			glPixelZoom(1.0, 1.0);
 			
-			if(show_render==0) 
+			if(show_viewer==0) 
 				draw_tfaces();
 		}
 
@@ -1828,7 +1784,9 @@ static void image_zoom_set_factor(float zoomfac)
 	width= 256;
 	height= 256;
 	if (sima->image) {
-		if (sima->image->ibuf) {
+		ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+
+		if (ibuf) {
 			float xim, yim;
 			/* I know a bit weak... but preview uses not actual image size */
 			if(image_preview_active(curarea, &xim, &yim)) {
@@ -1836,8 +1794,8 @@ static void image_zoom_set_factor(float zoomfac)
 				height= (int) yim;
 			}
 			else {
-				width= sima->image->ibuf->x;
-				height= sima->image->ibuf->y;
+				width= ibuf->x;
+				height= ibuf->y;
 			}
 		}
 	}
@@ -1938,18 +1896,19 @@ void image_viewzoom(unsigned short event, int invert)
  */
 void image_home(void)
 {
+	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
 	int width, height, imgwidth, imgheight;
 	float zoomX, zoomY;
 
 	if (curarea->spacetype != SPACE_IMAGE) return;
 
-	if ((G.sima->image == NULL) || (G.sima->image->ibuf == NULL)) {
+	if (ibuf == NULL) {
 		imgwidth = 256;
 		imgheight = 256;
 	}
 	else {
-		imgwidth = G.sima->image->ibuf->x;
-		imgheight = G.sima->image->ibuf->y;
+		imgwidth = ibuf->x;
+		imgheight = ibuf->y;
 	}
 
 	/* Check if the image will fit in the image with zoom==1 */
@@ -1977,15 +1936,16 @@ void image_home(void)
 
 void image_viewcentre(void)
 {
+	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
 	float size, min[2], max[2], d[2], xim=256.0f, yim=256.0f;
 
 	if( is_uv_tface_editing_allowed()==0 ) return;
 
 	if (!minmax_tface_uv(min, max)) return;
 
-	if(G.sima->image && G.sima->image->ibuf) {
-		xim= G.sima->image->ibuf->x;
-		yim= G.sima->image->ibuf->y;
+	if(ibuf) {
+		xim= ibuf->x;
+		yim= ibuf->y;
 	}
 
 	G.sima->xof= (int) (((min[0] + max[0])*0.5f - 0.5f)*xim);
@@ -2090,14 +2050,6 @@ static void imagewindow_progress_display_cb(RenderResult *rr, volatile rcti *rec
 	
 	if (image_area) {
 		
-		if(rect==NULL) {
-			SpaceImage *sima= image_area->spacedata.first;
-			
-			/* this enforces reading correct buffer in what_image(), renderlayers/scenes/compo/sequences... */
-			IMB_freeImBuf(sima->image->ibuf);
-			sima->image->ibuf= NULL;
-		}		
-		
 		imagewindow_progress(image_area, rr, rect);
 
 		/* no screen_swapbuffers, prevent any other window to draw */
@@ -2153,7 +2105,7 @@ static ScrArea *biggest_area(void)
       make a new temp fullscreen area with Image Window
 */
 
-static ScrArea *imagewindow_set_render_display(void)
+static ScrArea *find_area_showing_r_result(void)
 {
 	ScrArea *sa;
 	SpaceImage *sima;
@@ -2162,11 +2114,20 @@ static ScrArea *imagewindow_set_render_display(void)
 	for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
 		if(sa->spacetype==SPACE_IMAGE) {
 			sima= sa->spacedata.first;
-			
-			if(sima->image && BLI_streq(sima->image->id.name+2, "Render Result") )
+			if(sima->image && sima->image->type==IMA_TYPE_R_RESULT)
 				break;
 		}
 	}
+	return sa;
+}
+
+static ScrArea *imagewindow_set_render_display(void)
+{
+	ScrArea *sa;
+	SpaceImage *sima;
+	
+	sa= find_area_showing_r_result();
+	
 	if(sa==NULL) {
 		/* find largest open non-image area */
 		sa= biggest_non_image_area();
@@ -2193,21 +2154,7 @@ static ScrArea *imagewindow_set_render_display(void)
 	sima= sa->spacedata.first;
 	
 	/* get the correct image, and scale it */
-	sima->image = (Image *)find_id("IM", "Render Result");
-	
-	if(sima->image==NULL) {
-		Image *ima= alloc_libblock(&G.main->image, ID_IM, "Render Result");
-		strcpy(ima->name, "Render Result");
-		ima->ok= 1;
-		ima->xrep= ima->yrep= 1;
-		sima->image= ima;
-	}
-	else if(sima->image->id.us==0)	/* well... happens on reload, dunno yet what todo, imagewindow cannot be user when hidden*/
-		id_us_plus(&sima->image->id);
-	
-	/* this enforces reading empty buffer in what_image(), so display is cleared */
-	IMB_freeImBuf(sima->image->ibuf);
-	sima->image->ibuf= NULL;
+	sima->image= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	
 	if(G.displaymode==R_DISPLAYSCREEN) {
 		if(sa->full==0) {
@@ -2260,7 +2207,7 @@ void imagewindow_toggle_render(void)
 		if(sa->spacetype==SPACE_IMAGE) {
 			SpaceImage *sima= sa->spacedata.first;
 			
-			if(sima->image && BLI_streq(sima->image->id.name+2, "Render Result") )
+			if(sima->image && sima->image->type==IMA_TYPE_R_RESULT)
 				if(sima->flag & (SI_PREVSPACE|SI_FULLWINDOW))
 					break;
 		}
@@ -2292,12 +2239,61 @@ static void imagewindow_renderinfo_cb(RenderStats *rs)
 	}
 }
 
-
 void imagewindow_render_callbacks(Render *re)
 {
 	RE_display_init_cb(re, imagewindow_init_display_cb);
 	RE_display_draw_cb(re, imagewindow_progress_display_cb);
 	RE_display_clear_cb(re, imagewindow_clear_display_cb);
 	RE_stats_draw_cb(re, imagewindow_renderinfo_cb);	
+}
+
+void imagewin_store_spare(void)
+{
+	ScrArea *sa= find_area_showing_r_result();
+
+	if(sa) {
+		ImBuf *ibuf;
+		SpaceImage *sima= sa->spacedata.first;
+		
+		if(sima->spare==NULL)
+			return;
+		
+		/* only store when it does not show spare */
+		if(sima->showspare==0)
+			return;
+		sima->showspare= 0;
+		
+		/* free spare */
+		IMB_freeImBuf(sima->spare);
+		
+		/* make a copy of render result */
+		ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+		sima->spare= IMB_dupImBuf(ibuf);
+		
+		BLI_strncpy(sima->info_spare, sima->info_str, RW_MAXTEXT);
+
+	}
+}
+
+/* context: in current image window? */
+void imagewindow_swap_render_rects(void)
+{
+	ScrArea *sa= find_area_showing_r_result();
+					
+	if(sa) {
+		SpaceImage *sima= sa->spacedata.first;
+		ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+		if(ibuf) {
+			
+			sima->showspare ^= 1;
+			
+			if(sima->spare==NULL)
+				sima->spare= IMB_allocImBuf(ibuf->x, ibuf->y, 32, 0, 0);
+			if(sima->info_spare==NULL)
+				sima->info_spare= MEM_callocN(RW_MAXTEXT, "info str imagewin");
+			
+			allqueue(REDRAWIMAGE, 0);
+		}
+	}
 }
 

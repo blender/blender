@@ -66,6 +66,7 @@ struct ID *find_id(char *type, char *name);
 void clear_id_newpoins(void);
 
 void IDnames_to_pupstring(char **str, char *title, char *extraops, struct ListBase *lb,struct ID* link, short *nr);
+void IMAnames_to_pupstring(char **str, char *title, char *extraops, struct ListBase *lb, struct ID *link, short *nr);
 void IPOnames_to_pupstring(char **str, char *title, char *extraops, struct ListBase *lb, struct ID* link, short *nr, int blocktype);
 
 #endif

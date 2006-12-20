@@ -127,6 +127,10 @@ void file_buttons(void)
 	xcotitle= xco;
 	xco+= BIF_GetStringWidth(G.font, sfile->title, (U.transopts & USER_TR_BUTTONS));
 	
+	if(sfile->pupmenu && sfile->menup) {
+		uiDefButS(block, MENU, B_NOP, sfile->pupmenu, xco+10,0,90,20, sfile->menup, 0, 0, 0, 0, "");
+		xco+= 100;
+	}
 	uiBlockBeginAlign(block);
 	uiDefIconButBitS(block, ICONTOG, FILE_SHOWSHORT, B_SORTFILELIST, ICON_LONGDISPLAY,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Toggles long info");
 	uiDefIconButBitS(block, TOG, FILE_HIDE_DOT, B_RELOADDIR, ICON_GHOST,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Hides dot files");

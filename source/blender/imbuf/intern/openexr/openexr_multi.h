@@ -32,28 +32,41 @@
 
 /* experiment with more advanced exr api */
 
+/* Note: as for now openexr only supports 32 chars in channel names.
+   This api also supports max 8 channels per pass now. easy to fix! */
+#define EXR_LAY_MAXNAME		19
+#define EXR_PASS_MAXNAME	11
+#define EXR_TOT_MAXNAME		32
+#define EXR_PASS_MAXCHAN	8
+
+
 #ifdef WITH_OPENEXR
 void *	IMB_exr_get_handle			(void);
-void	IMB_exr_add_channel			(void *handle, const char *layname, const char *channame);
+void	IMB_exr_add_channel			(void *handle, const char *layname, const char *passname, int xstride, int ystride, float *rect);
 
 int		IMB_exr_begin_read			(void *handle, char *filename, int *width, int *height);
 void	IMB_exr_begin_write			(void *handle, char *filename, int width, int height);
 void	IMB_exrtile_begin_write		(void *handle, char *filename, int width, int height, int tilex, int tiley);
 
-void	IMB_exr_set_channel			(void *handle, char *layname, char *channame, int xstride, int ystride, float *rect);
+void	IMB_exr_set_channel			(void *handle, char *layname, char *passname, int xstride, int ystride, float *rect);
 
 void	IMB_exr_read_channels		(void *handle);
 void	IMB_exr_write_channels		(void *handle);
 void	IMB_exrtile_write_channels	(void *handle, int partx, int party);
 
+void    IMB_exr_multilayer_convert	(void *handle, void *base,  
+									 void * (*addlayer)(void *base, char *str), 
+									 void (*addpass)(void *base, void *lay, char *str, float *rect, int totchan, char *chan_id));
+
 void	IMB_exr_close				(void *handle);
+
 
 #else
 
 /* ugly... but we only use it on pipeline.c, render module, now */
 
 void *	IMB_exr_get_handle			(void) {return NULL;}
-void	IMB_exr_add_channel			(void *handle, const char *layname, const char *channame) {}
+void	IMB_exr_add_channel			(void *handle, const char *layname, const char *channame, int xstride, int ystride, float *rect) {}
 
 int		IMB_exr_begin_read			(void *handle, char *filename, int *width, int *height) {return 0;}
 void	IMB_exr_begin_write			(void *handle, char *filename, int width, int height) {}
@@ -64,6 +77,10 @@ void	IMB_exr_set_channel			(void *handle, char *layname, char *channame, int xst
 void	IMB_exr_read_channels		(void *handle) {}
 void	IMB_exr_write_channels		(void *handle) {}
 void	IMB_exrtile_write_channels	(void *handle, int partx, int party) {}
+
+void    IMB_exr_multilayer_convert	(void *handle, void *base,  
+									 void * (*addlayer)(void *base, char *str), 
+									 void (*addpass)(void *base, void *lay, char *str, float *rect, int totchan, char *chan_id)) {}
 
 void	IMB_exr_close				(void *handle) {}
 

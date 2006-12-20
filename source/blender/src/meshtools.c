@@ -70,6 +70,7 @@ void sort_faces(void);
 #include "BKE_depsgraph.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
@@ -850,10 +851,13 @@ void objects_bake_render(void)
 		else {
 			Image *ima;
 			/* force OpenGL reload */
-			for(ima= G.main->image.first; ima; ima= ima->id.next)
-				if(ima->ibuf)
-					if(ima->ibuf->userflags & IB_BITMAPDIRTY)
+			for(ima= G.main->image.first; ima; ima= ima->id.next) {
+				if(ima->ok==IMA_OK_LOADED) {
+					ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+					if(ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
 						free_realtime_image(ima); 
+				}
+			}
 		}
 		
 		allqueue(REDRAWIMAGE, 0);

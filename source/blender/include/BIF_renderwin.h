@@ -50,6 +50,7 @@ void BIF_renderwin_set_custom_cursor(unsigned char mask[16][2], unsigned char bi
 
 void BIF_redraw_render_rect(void);
 void BIF_swap_render_rects(void);
+void BIF_store_spare(void);
 void BIF_toggle_render_display(void);
 
 void BIF_init_render_callbacks(struct Render *re, int do_display);

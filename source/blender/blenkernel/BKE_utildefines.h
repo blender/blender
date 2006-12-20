@@ -42,10 +42,12 @@
 #define TRUE 1
 #endif
 
-/* also fill in structs itself, dna cannot handle defines, duplicate in blendef.h still */
+/* these values need to be hardcoded in structs, dna does not recognize defines */
+/* also defined in DNA_space_types.h */
 #ifndef FILE_MAXDIR
 #define FILE_MAXDIR			160
 #define FILE_MAXFILE		80
+#define FILE_MAX			240
 #endif
 
 #define ELEM(a, b, c)           ( (a)==(b) || (a)==(c) )

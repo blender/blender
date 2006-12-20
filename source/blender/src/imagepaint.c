@@ -56,6 +56,7 @@
 #include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -65,7 +66,9 @@
 
 #include "BKE_brush.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_mesh.h"
+#include "BKE_node.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_mywindow.h"
@@ -74,6 +77,7 @@
 #include "BIF_toolbox.h"
 
 #include "BSE_drawipo.h"
+#include "BSE_node.h"
 #include "BSE_trans_types.h"
 #include "BSE_view.h"
 
@@ -84,6 +88,7 @@
 #include "GHOST_Types.h"
 
 #include "blendef.h"
+#include "butspace.h"
 #include "mydevice.h"
 
 /* Defines and Structs */
@@ -109,6 +114,7 @@ typedef struct ImagePaintState {
 	ImBuf *clonecanvas;
 	short clonefreefloat;
 	char *warnpackedfile;
+	char *warnmultifile;
 
 	/* texture paint only */
 	Object *ob;
@@ -132,21 +138,21 @@ typedef struct ImagePaintPartialRedraw {
 static ImagePaintUndo imapaintundo = {NULL, NULL, NULL, 0, 0};
 static ImagePaintPartialRedraw imapaintpartial = {0, 0, 0, 0, 0};
 
-static void init_imagapaint_undo(Image *ima)
+static void init_imagapaint_undo(Image *ima, ImBuf *ibuf)
 {
 	int xt, yt;
 
 	imapaintundo.image = ima;
-	imapaintundo.xtiles = xt = IMAPAINT_TILE_NUMBER(ima->ibuf->x);
-	imapaintundo.ytiles = yt = IMAPAINT_TILE_NUMBER(ima->ibuf->y);
+	imapaintundo.xtiles = xt = IMAPAINT_TILE_NUMBER(ibuf->x);
+	imapaintundo.ytiles = yt = IMAPAINT_TILE_NUMBER(ibuf->y);
 	imapaintundo.tiles = MEM_callocN(sizeof(void*)*xt*yt, "ImagePaintUndoTiles");
 	imapaintundo.tilebuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE,
-		ima->ibuf->depth, (ima->ibuf->rect_float)? IB_rectfloat: IB_rect, 0);
+						ibuf->depth, (ibuf->rect_float)? IB_rectfloat: IB_rect, 0);
 }
 
-static void imapaint_copy_tile(Image *ima, int tile, int x, int y, int swapundo)
+static void imapaint_copy_tile(ImBuf *ibuf, int tile, int x, int y, int swapundo)
 {
-	IMB_rectcpy(imapaintundo.tilebuf, ima->ibuf, 0, 0, x*IMAPAINT_TILE_SIZE,
+	IMB_rectcpy(imapaintundo.tilebuf, ibuf, 0, 0, x*IMAPAINT_TILE_SIZE,
 		y*IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
 
 	if (imapaintundo.tilebuf->rect_float)
@@ -155,7 +161,7 @@ static void imapaint_copy_tile(Image *ima, int tile, int x, int y, int swapundo)
 		SWAP(void*, imapaintundo.tilebuf->rect, imapaintundo.tiles[tile])
 	
 	if (swapundo)
-		IMB_rectcpy(ima->ibuf, imapaintundo.tilebuf, x*IMAPAINT_TILE_SIZE,
+		IMB_rectcpy(ibuf, imapaintundo.tilebuf, x*IMAPAINT_TILE_SIZE,
 			y*IMAPAINT_TILE_SIZE, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
 }
 
@@ -164,11 +170,11 @@ static void imapaint_clear_partial_redraw()
 	memset(&imapaintpartial, 0, sizeof(imapaintpartial));
 }
 
-static void imapaint_dirty_region(Image *ima, int x, int y, int w, int h)
+static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int h)
 {
 	int srcx= 0, srcy= 0, origx, tile, allocsize;
 
-	IMB_rectclip(ima->ibuf, NULL, &x, &y, &srcx, &srcy, &w, &h);
+	IMB_rectclip(ibuf, NULL, &x, &y, &srcx, &srcy, &w, &h);
 
 	if (w == 0 || h == 0)
 		return;
@@ -196,27 +202,29 @@ static void imapaint_dirty_region(Image *ima, int x, int y, int w, int h)
 		for (x=origx; x <= w; x++) {
 			if (ima != imapaintundo.image) {
 				free_imagepaint();
-				init_imagapaint_undo(ima);
+				init_imagapaint_undo(ima, ibuf);
 			}
 
 			tile = y*imapaintundo.xtiles + x;
 			if (!imapaintundo.tiles[tile]) {
-				allocsize= (ima->ibuf->rect_float)? sizeof(float): sizeof(char);
+				allocsize= (ibuf->rect_float)? sizeof(float): sizeof(char);
 				imapaintundo.tiles[tile]= MEM_mapallocN(allocsize*4*
 					IMAPAINT_TILE_SIZE*IMAPAINT_TILE_SIZE, "ImagePaintUndoTile");
-				imapaint_copy_tile(ima, tile, x, y, 0);
+				imapaint_copy_tile(ibuf, tile, x, y, 0);
 			}
 		}
 	}
 
-	ima->ibuf->userflags |= IB_BITMAPDIRTY;
+	ibuf->userflags |= IB_BITMAPDIRTY;
 }
 
-static void imapaint_image_update(Image *image, short texpaint)
+static void imapaint_image_update(Image *image, ImBuf *ibuf, short texpaint)
 {
-	if(image->ibuf->rect_float)
-		imb_freerectImBuf(image->ibuf); /* force recreate of char rect */
-	
+	if(ibuf->rect_float)
+		imb_freerectImBuf(ibuf); /* force recreate of char rect */
+	if(ibuf->mipmap[0])
+		imb_freemipmapImBuf(ibuf);
+
 	/* todo: should set_tpage create ->rect? */
 	if(texpaint || G.sima->lock) {
 		int w = imapaintpartial.x2 - imapaintpartial.x1;
@@ -236,6 +244,24 @@ static void imapaint_redraw(int final, int texpaint, Image *image)
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		allqueue(REDRAWHEADERS, 0);
+		
+		/* after paint, tag Image or RenderResult nodes changed */
+		if(G.scene->nodetree) {
+			imagepaint_composite_tags(G.scene->nodetree, image, &G.sima->iuser);
+		}
+		/* signal composite (hurmf, need an allqueue?) */
+		if(G.sima->lock) {
+			ScrArea *sa;
+			for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
+				if(sa->spacetype==SPACE_NODE) {
+					if(((SpaceNode *)sa->spacedata.first)->treetype==NTREE_COMPOSIT) {
+						addqueue(sa->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
+						break;
+					}
+				}
+			}
+		}
+		
 	}
 	else if(!texpaint && G.sima->lock)
 		force_draw_plus(SPACE_VIEW3D, 0);
@@ -245,20 +271,21 @@ static void imapaint_redraw(int final, int texpaint, Image *image)
 
 void imagepaint_undo()
 {
-	int x, y, tile;
 	Image *ima= imapaintundo.image;
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+	int x, y, tile;
 
-	if (!ima || !ima->ibuf || !(ima->ibuf->rect || ima->ibuf->rect_float))
+	if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float))
 		return;
 
 	for (tile = 0, y = 0; y < imapaintundo.ytiles; y++)
 		for (x = 0; x < imapaintundo.xtiles; x++, tile++)
 			if (imapaintundo.tiles[tile])
-				imapaint_copy_tile(ima, tile, x, y, 1);
+				imapaint_copy_tile(ibuf, tile, x, y, 1);
 
 	free_realtime_image(ima); /* force OpenGL reload */
-	if(ima->ibuf->rect_float)
-		imb_freerectImBuf(ima->ibuf); /* force recreate of char rect */
+	if(ibuf->rect_float)
+		imb_freerectImBuf(ibuf); /* force recreate of char rect */
 
 	allqueue(REDRAWIMAGE, 0);
 	allqueue(REDRAWVIEW3D, 0);
@@ -435,7 +462,7 @@ static int imapaint_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *p
 		clonebuf= imapaint_lift_clone(s->clonecanvas, ibufb, bliftpos);
 	}
 
-	imapaint_dirty_region(s->image, bpos[0], bpos[1], ibufb->x, ibufb->y);
+	imapaint_dirty_region(s->image, s->canvas, bpos[0], bpos[1], ibufb->x, ibufb->y);
 
 	/* blend into canvas */
 	if(torus)
@@ -479,26 +506,32 @@ static int texpaint_break_stroke(float *prevuv, float *fwuv, float *bkuv, float 
 
 static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 {
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+	
 	/* verify that we can paint and set canvas */
-	if(ima->packedfile) {
+	if(ima->packedfile && ima->rr) {
 		s->warnpackedfile = ima->id.name + 2;
 		return 0;
-	}
-	else if(!ima || !ima->ibuf || !(ima->ibuf->rect || ima->ibuf->rect_float))
+	}	
+	else if(ibuf && ibuf->channels!=4) {
+		s->warnmultifile = ima->id.name + 2;
 		return 0;
-	else if(ima->packedfile)
+	}
+	else if(!ima || !ibuf || !(ibuf->rect || ibuf->rect_float))
 		return 0;
 
 	s->image= ima;
-	s->canvas= ima->ibuf;
+	s->canvas= ibuf;
 
 	/* set clone canvas */
 	if(s->tool == PAINT_TOOL_CLONE) {
 		ima= s->brush->clone.image;
-		if(!ima || !ima->ibuf || !(ima->ibuf->rect || ima->ibuf->rect_float))
+		ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+		
+		if(!ima || !ibuf || !(ibuf->rect || ibuf->rect_float))
 			return 0;
 
-		s->clonecanvas= ima->ibuf;
+		s->clonecanvas= ibuf;
 
 		if(s->canvas->rect_float && !s->clonecanvas->rect_float) {
 			/* temporarily add float rect for cloning */
@@ -520,16 +553,17 @@ static void imapaint_canvas_free(ImagePaintState *s)
 
 static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, Image *image, short texpaint, float *uv, double time, int update, float pressure)
 {
+	ImBuf *ibuf= BKE_image_get_ibuf(image, &G.sima->iuser);
 	float pos[2];
 
-	pos[0] = uv[0]*image->ibuf->x;
-	pos[1] = uv[1]*image->ibuf->y;
+	pos[0] = uv[0]*ibuf->x;
+	pos[1] = uv[1]*ibuf->y;
 
-	brush_painter_require_imbuf(painter, ((image->ibuf->rect_float)? 1: 0), 0, 0);
+	brush_painter_require_imbuf(painter, ((ibuf->rect_float)? 1: 0), 0, 0);
 
 	if (brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s)) {
 		if (update)
-			imapaint_image_update(image, texpaint);
+			imapaint_image_update(image, ibuf, texpaint);
 		return 1;
 	}
 	else return 0;
@@ -546,8 +580,12 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 
 		/* pick new face and image */
 		if (facesel_face_pick(s->me, mval, &newfaceindex, 0)) {
+			ImBuf *ibuf;
+			
 			newimage = (Image*)((s->me->mtface+newfaceindex)->tpage);
-			if(newimage && newimage->ibuf && newimage->ibuf->rect)
+			ibuf= BKE_image_get_ibuf(newimage, &G.sima->iuser);
+
+			if(ibuf && ibuf->rect)
 				texpaint_pick_uv(s->ob, s->me, newfaceindex, mval, newuv);
 			else
 				newimage = NULL;
@@ -641,8 +679,10 @@ void imagepaint_paint(short mousebutton, short texpaint)
 		s.image = G.sima->image;
 
 		if(!imapaint_canvas_set(&s, G.sima->image)) {
+			if(s.warnmultifile)
+				error("Image requires 4 color channels to paint");
 			if(s.warnpackedfile)
-				error("Painting in packed images not supported");
+				error("Packed MultiLayer files cannot be painted");
 			return;
 		}
 	}
@@ -694,9 +734,12 @@ void imagepaint_paint(short mousebutton, short texpaint)
 
 	imapaint_redraw(1, texpaint, s.image);
 
+	
 	if (texpaint) {
-		if (s.warnpackedfile)
-			error("Painting in packed images is not supported: %s", s.warnpackedfile);
+		if (s.warnmultifile)
+			error("Image requires 4 color channels to paint: %s", s.warnmultifile);
+		if(s.warnpackedfile)
+			error("Packed MultiLayer files cannot be painted %s", s.warnpackedfile);
 
 		persp(PERSP_WIN);
 	}
@@ -708,7 +751,7 @@ void imagepaint_pick(short mousebutton)
 	Brush *brush= settings->imapaint.brush;
 
 	if(brush && (settings->imapaint.tool == PAINT_TOOL_CLONE)) {
-		if(brush->clone.image && brush->clone.image->ibuf) {
+		if(brush->clone.image) {
 			short prevmval[2], mval[2];
 			float lastmousepos[2], mousepos[2];
 		

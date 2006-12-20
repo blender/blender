@@ -44,8 +44,7 @@
 /* max length material array, 16 because of bits in matfrom */
 #define MAXPICKBUF      10000
 #define MAXSEQ          32
-/*  in Image struct */
-#define MAXMIPMAP       10
+
 /* in buttons.c */
 #define MAX_EFFECT      20
 
@@ -326,6 +325,13 @@
 #define B_SIMABRUSHCHANGE	377
 #define B_SIMABTEXBROWSE	378
 #define B_SIMABTEXDELETE	379
+#define B_SIMARELOAD		380
+#define B_SIMANAME			381
+#define B_SIMAMULTI			382
+#define B_TRANS_IMAGE		383
+#define B_SIMA_REPACK		384
+#define B_SIMA_PLAY			385
+#define B_SIMA_RECORD		386
 
 /* BUTS: 400 */
 #define B_BUTSHOME		401

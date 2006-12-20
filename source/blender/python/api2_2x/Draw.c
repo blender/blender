@@ -1534,6 +1534,7 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 	PyObject *pyObjImage;
 	BPy_Image *py_img;
 	Image *image;
+	ImBuf *ibuf;
 	float originX, originY;
 	float zoomX = 1.0, zoomY = 1.0;
 	int clipX = 0, clipY = 0, clipW = -1, clipH = -1;
@@ -1559,14 +1560,15 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 	/* fetch a C Image pointer from the passed-in Python object */
 	py_img = ( BPy_Image * ) pyObjImage;
 	image = py_img->image;
-
-	/* load the image data if necessary */
-	if( !image->ibuf )      /* if no image data is available ... */
-		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
-	if( !image->ibuf )      /* if failed to load the image */
+	ibuf = BKE_image_get_ibuf( image, NULL );
+		
+	if( !ibuf )      /* if failed to load the image */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't load image data in Blender" );
-
+									  "couldn't load image data in Blender" );
+	if( !ibuf->rect )      /* no float yet */
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+									  "Image has no byte rect" );
+	
 	/* Update the time tag of the image */
 	tag_image_time(image);
 
@@ -1575,12 +1577,12 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 	 * the clipping is just checked against the bounds of the image.
 	 * if clipW or clipH are less than zero then they include as much of
 	 * the image as they can. */
-	clipX = EXPP_ClampInt( clipX, 0, image->ibuf->x );
-	clipY = EXPP_ClampInt( clipY, 0, image->ibuf->y );
-	if( ( clipW < 0 ) || ( clipW > ( image->ibuf->x - clipW ) ) )
-		clipW = image->ibuf->x - clipX;
-	if( ( clipH < 0 ) || ( clipH > ( image->ibuf->y - clipH ) ) )
-		clipH = image->ibuf->y - clipY;
+	clipX = EXPP_ClampInt( clipX, 0, ibuf->x );
+	clipY = EXPP_ClampInt( clipY, 0, ibuf->y );
+	if( ( clipW < 0 ) || ( clipW > ( ibuf->x - clipW ) ) )
+		clipW = ibuf->x - clipX;
+	if( ( clipH < 0 ) || ( clipH > ( ibuf->y - clipH ) ) )
+		clipH = ibuf->y - clipY;
 
 	/* -- we are "Go" to Draw! -- */
 
@@ -1626,13 +1628,13 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 	/* set the width of the image (ROW_LENGTH), and the offset to the
 	 * clip origin within the image in x (SKIP_PIXELS) and 
 	 * y (SKIP_ROWS) */
-	glPixelStorei( GL_UNPACK_ROW_LENGTH,  image->ibuf->x );
+	glPixelStorei( GL_UNPACK_ROW_LENGTH,  ibuf->x );
 	glPixelStorei( GL_UNPACK_SKIP_PIXELS, clipX );
 	glPixelStorei( GL_UNPACK_SKIP_ROWS,   clipY );
 
 	/* draw the image */
 	glDrawPixels( clipW, clipH, GL_RGBA, GL_UNSIGNED_BYTE, 
-		image->ibuf->rect );
+		ibuf->rect );
 
 	/* restore the defaults for some parameters (we could also use a
 	 * glPushClientAttrib() and glPopClientAttrib() pair). */

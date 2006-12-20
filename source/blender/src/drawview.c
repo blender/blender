@@ -168,22 +168,6 @@ static void star_stuff_term_func(void)
 	glEnd();
 }
 
-static void setalpha_bgpic(BGpic *bgpic)
-{
-	int x, y, alph;
-	char *rect;
-	
-	alph= (int)(255.0*(1.0-bgpic->blend));
-	
-	rect= (char *)bgpic->rect;
-	for(y=0; y< bgpic->yim; y++) {
-		for(x= bgpic->xim; x>0; x--, rect+=4) {
-			rect[3]= alph;
-		}
-	}
-}
-
-
 void default_gl_light(void)
 {
 	int a;
@@ -349,63 +333,24 @@ static void draw_bgpic(void)
 {
 	BGpic *bgpic;
 	Image *ima;
+	ImBuf *ibuf= NULL;
 	float vec[4], fac, asp, zoomx, zoomy;
 	float x1, y1, x2, y2, cx, cy;
 	
 	bgpic= G.vd->bgpic;
 	if(bgpic==NULL) return;
 	
-	if(bgpic->tex) {
-		extern void init_render_texture(struct Render *re, Tex *tex);
-		/* note; bad call, this has to be recoded to move to blenkernel */
-		init_render_texture(NULL, bgpic->tex);
-		free_unused_animimages();
-		ima= bgpic->tex->ima;
-	}
-	else {
-		ima= bgpic->ima;
-	}
+	ima= bgpic->ima;
 	
-	if(ima==NULL) return;
-	if(ima->ok==0) return;
-
-	tag_image_time(ima);
+	if(ima)
+		ibuf= BKE_image_get_ibuf(ima, &bgpic->iuser);
+	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL) ) 
+		return;
+	if(ibuf->channels!=4)
+		return;
+	if(ibuf->rect==NULL)
+		IMB_rect_from_float(ibuf);
 	
-	/* test for image */
-	if(ima->ibuf==NULL) {
-	
-		if(bgpic->rect) MEM_freeN(bgpic->rect);
-		bgpic->rect= NULL;
-		
-		if(bgpic->tex) {
-			ima_ibuf_is_nul(bgpic->tex, bgpic->tex->ima);
-		}
-		else {
-			waitcursor(1);
-			load_image(ima, IB_rect, G.sce, G.scene->r.cfra);
-			waitcursor(0);
-		}
-		if(ima->ibuf==NULL) {
-			ima->ok= 0;
-			return;
-		}
-	}
-	
-	/* this ensures that when ibuf changed (reloaded) the backbuf changes too */
-	if(bgpic->ibuf!=ima->ibuf) {
-		if(bgpic->rect) MEM_freeN(bgpic->rect);
-		bgpic->rect= NULL;
-	}
-	bgpic->ibuf= ima->ibuf;
-	
-	if(bgpic->rect==NULL) {
-		
-		bgpic->rect= MEM_dupallocN(ima->ibuf->rect);
-		bgpic->xim= ima->ibuf->x;
-		bgpic->yim= ima->ibuf->y;
-		setalpha_bgpic(bgpic);
-	}
-
 	if(G.vd->persp==2) {
 		rctf vb;
 
@@ -425,7 +370,7 @@ static void draw_bgpic(void)
 		fac= MAX3( fabs(vec[0]), fabs(vec[1]), fabs(vec[1]) );
 		fac= 1.0/fac;
 	
-		asp= ( (float)ima->ibuf->y)/(float)ima->ibuf->x;
+		asp= ( (float)ibuf->y)/(float)ibuf->x;
 
 		vec[0] = vec[1] = vec[2] = 0.0;
 		view3d_project_float(curarea, vec, sco, G.vd->persmat);
@@ -445,10 +390,27 @@ static void draw_bgpic(void)
 	if(x1 > curarea->winx ) return;
 	if(y1 > curarea->winy ) return;
 	
-	zoomx= (x2-x1)/ima->ibuf->x;
-	zoomy= (y2-y1)/ima->ibuf->y;
-
-	glEnable(GL_BLEND);
+	zoomx= (x2-x1)/ibuf->x;
+	zoomy= (y2-y1)/ibuf->y;
+	
+	/* for some reason; zoomlevels down refuses to use GL_ALPHA_SCALE */
+	if(zoomx < 1.0f || zoomy < 1.0f) {
+		float tzoom= MIN2(zoomx, zoomy);
+		int mip= 0;
+		
+		if(ibuf->mipmap[0]==NULL)
+			IMB_makemipmap(ibuf, 0);
+		
+		while(tzoom < 1.0f && mip<8 && ibuf->mipmap[mip]) {
+			tzoom*= 2.0f;
+			zoomx*= 2.0f;
+			zoomy*= 2.0f;
+			mip++;
+		}
+		if(mip>0)
+			ibuf= ibuf->mipmap[mip-1];
+	}
+	
 	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
@@ -459,16 +421,18 @@ static void draw_bgpic(void)
 	glPushMatrix();
 	
 	glaDefine2DArea(&curarea->winrct);
+	glEnable(GL_BLEND);
+	glPixelTransferf(GL_ALPHA_SCALE, (1.0f-bgpic->blend));
 	glPixelZoom(zoomx, zoomy);
-	glaDrawPixelsSafe(x1, y1, ima->ibuf->x, ima->ibuf->y, ima->ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, bgpic->rect);
+	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 	glPixelZoom(1.0, 1.0);
+	glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 	
-	glBlendFunc(GL_ONE,  GL_ZERO); 
 	glDisable(GL_BLEND);
 	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 	
@@ -1213,9 +1177,6 @@ ImBuf *read_backbuf(short xmin, short ymin, short xmax, short ymax)
 		dr++;
 	}
 	
-	ibuf->ftype= PNG;
-	IMB_saveiff(ibuf, "/tmp/rt.png", IB_rect);
-	
 	/* put clipped result back, if needed */
 	if(xminc==xmin && xmaxc==xmax && yminc==ymin && ymaxc==ymax) 
 		return ibuf;
@@ -1444,7 +1405,6 @@ static void draw_view_icon(void)
 	
 	BIF_icon_draw(5.0, 5.0, icon);
 	
-	glBlendFunc(GL_ONE,  GL_ZERO); 
 	glDisable(GL_BLEND);
 }
 
@@ -1475,54 +1435,6 @@ static void draw_viewport_name(ScrArea *sa)
 
 /* ******************* view3d space & buttons ************** */
 
-static void view3d_change_bgpic_ima(View3D *v3d, Image *newima) {
-	if (v3d->bgpic && v3d->bgpic->ima!=newima) {
-		if (newima)
-			id_us_plus((ID*) newima);
-		if (v3d->bgpic->ima)
-			v3d->bgpic->ima->id.us--;
-		v3d->bgpic->ima= newima;
-
-		if(v3d->bgpic->rect) MEM_freeN(v3d->bgpic->rect);
-		v3d->bgpic->rect= NULL;
-		
-		allqueue(REDRAWVIEW3D, 0);
-	}
-}
-static void view3d_change_bgpic_tex(View3D *v3d, Tex *newtex) {
-	if (v3d->bgpic && v3d->bgpic->tex!=newtex) {
-		if (newtex)
-			id_us_plus((ID*) newtex);
-		if (v3d->bgpic->tex)
-			v3d->bgpic->tex->id.us--;
-		v3d->bgpic->tex= newtex;
-		
-		allqueue(REDRAWVIEW3D, 0);
-	}
-}
-
-static void load_bgpic_image(char *name)
-{
-	Image *ima;
-	View3D *vd;
-	
-	areawinset(curarea->win);
-	vd= G.vd;
-	if(vd==0 || vd->bgpic==0) return;
-	
-	ima= add_image(name);
-	if(ima) {
-		if(vd->bgpic->ima) {
-			vd->bgpic->ima->id.us--;
-		}
-		vd->bgpic->ima= ima;
-		
-		free_image_buffers(ima);	/* force read again */
-		ima->ok= 1;
-	}
-	allqueue(REDRAWVIEW3D, 0);
-	
-}
 
 /* temporal struct for storing transform properties */
 typedef struct {
@@ -1975,63 +1887,12 @@ void do_viewbuts(unsigned short event)
 	View3D *vd;
 	Object *ob= OBACT;
 	TransformProperties *tfp= G.vd->properties_storage;
-	char *name;
 	
 	vd= G.vd;
-	if(vd==0) return;
+	if(vd==NULL) return;
 
 	switch(event) {
-	case B_LOADBGPIC:
-		if(vd->bgpic && vd->bgpic->ima) name= vd->bgpic->ima->name;
-		else name= G.ima;
 		
-		if(G.qual==LR_CTRLKEY)
-			activate_imageselect(FILE_SPECIAL, "Select Image", name, load_bgpic_image);
-		else
-			activate_fileselect(FILE_SPECIAL, "Select Image", name, load_bgpic_image);
-		break;
-		
-	case B_BLENDBGPIC:
-		if(vd->bgpic && vd->bgpic->rect) setalpha_bgpic(vd->bgpic);
-		addqueue(curarea->win, REDRAW, 1);
-		break;
-		
-	case B_BGPICBROWSE:
-		if(vd->bgpic) {
-			if (vd->menunr==-2) {
-				activate_databrowse((ID*) vd->bgpic->ima, ID_IM, 0, B_BGPICBROWSE, &vd->menunr, do_viewbuts);
-			} else if (vd->menunr>0) {
-				Image *newima= (Image*) BLI_findlink(&G.main->image, vd->menunr-1);
-
-				if (newima)
-					view3d_change_bgpic_ima(vd, newima);
-			}
-		}
-		break;
-		
-	case B_BGPICCLEAR:
-		if (vd->bgpic)
-			view3d_change_bgpic_ima(vd, NULL);
-		break;
-		
-	case B_BGPICTEX:
-		if (vd->bgpic) {
-			if (vd->texnr==-2) {
-				activate_databrowse((ID*) vd->bgpic->tex, ID_TE, 0, B_BGPICTEX, &vd->texnr, do_viewbuts);
-			} else if (vd->texnr>0) {
-				Tex *newtex= (Tex*) BLI_findlink(&G.main->tex, vd->texnr-1);
-				
-				if (newtex)
-					view3d_change_bgpic_tex(vd, newtex);
-			}
-		}
-		break;
-		
-	case B_BGPICTEXCLEAR:
-		if (vd->bgpic)
-			view3d_change_bgpic_tex(vd, NULL);
-		break;
-	
 	case B_OBJECTPANEL:
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 		allqueue(REDRAWVIEW3D, 1);
@@ -2371,8 +2232,6 @@ static void view3d_panel_background(short cntrl)	// VIEW3D_HANDLER_BACKGROUND
 {
 	uiBlock *block;
 	View3D *vd;
-	ID *id;
-	char *strp;
 	
 	vd= G.vd;
 
@@ -2386,68 +2245,29 @@ static void view3d_panel_background(short cntrl)	// VIEW3D_HANDLER_BACKGROUND
 	}
 	
 	if(vd->flag & V3D_DISPBGPIC) {
-		if(vd->bgpic==0) {
+		if(vd->bgpic==NULL) {
 			vd->bgpic= MEM_callocN(sizeof(BGpic), "bgpic");
 			vd->bgpic->size= 5.0;
 			vd->bgpic->blend= 0.5;
+			vd->bgpic->iuser.fie_ima= 2;
+			vd->bgpic->iuser.ok= 1;
 		}
 	}
 	
-	uiDefButBitS(block, TOG, V3D_DISPBGPIC, REDRAWVIEW3D, "Use Background Image", 0, 162, 200, 20, &vd->flag, 0, 0, 0, 0, "Display an image in the background of the 3D View");
-	
-	uiDefBut(block, LABEL, 1, " ",	206, 162, 84, 20, NULL, 0.0, 0.0, 0, 0, "");
-	
-	
-	if(vd->flag & V3D_DISPBGPIC) {
-
-		/* Background Image */
-		uiDefBut(block, LABEL, 1, "Image:",	0, 128, 76, 19, NULL, 0.0, 0.0, 0, 0, "");
-		
+	if(!(vd->flag & V3D_DISPBGPIC)) {
+		uiDefButBitS(block, TOG, V3D_DISPBGPIC, B_REDR, "Use Background Image", 10, 180, 150, 20, &vd->flag, 0, 0, 0, 0, "Display an image in the background of the 3D View");
+		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
+	}
+	else {
 		uiBlockBeginAlign(block);
-		uiDefIconBut(block, BUT, B_LOADBGPIC, ICON_FILESEL,	90, 128, 20, 20, 0, 0, 0, 0, 0, "Open a new background image");
+		uiDefButBitS(block, TOG, V3D_DISPBGPIC, B_REDR, "Use", 10, 225, 50, 20, &vd->flag, 0, 0, 0, 0, "Display an image in the background of the 3D View");
+		uiDefButF(block, NUMSLI, B_REDR, "Blend:",	60, 225, 150, 20, &vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the transparency of the background image");
+		uiDefButF(block, NUM, B_REDR, "Size:",		210, 225, 100, 20, &vd->bgpic->size, 0.1, 250.0*vd->grid, 100, 0, "Set the size (width) of the background image");
 
-		id= (ID *)vd->bgpic->ima;
-		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(vd->menunr));
-		if(strp[0]) {
+		uiDefButF(block, NUM, B_REDR, "X Offset:",	10, 205, 150, 20, &vd->bgpic->xof, -250.0*vd->grid,250.0*vd->grid, 10, 2, "Set the horizontal offset of the background image");
+		uiDefButF(block, NUM, B_REDR, "Y Offset:",	160, 205, 150, 20, &vd->bgpic->yof, -250.0*vd->grid,250.0*vd->grid, 10, 2, "Set the vertical offset of the background image");
 		
-			uiDefButS(block, MENU, B_BGPICBROWSE, strp, 	110, 128, 20, 20, &(vd->menunr), 0, 0, 0, 0, "Select a background image");
-		
-			if(vd->bgpic->ima)  {
-				uiDefBut(block, TEX,	    0,"BG: ",		130, 128, 140, 20, &vd->bgpic->ima->name,0.0,100.0, 0, 0, "The currently selected background image");
-				uiDefIconBut(block, BUT, B_BGPICCLEAR, ICON_X, 270, 128, 20, 20, 0, 0, 0, 0, 0, "Remove background image link");
-			}
-			uiBlockEndAlign(block);
-		} else {
-			uiBlockEndAlign(block);
-		}
-		MEM_freeN(strp);
-
-
-		/* Background texture */
-		uiDefBut(block, LABEL, 1, "Texture:",	0, 100, 76, 19, NULL, 0.0, 0.0, 0, 0, "");
-		
-		id= (ID *)vd->bgpic->tex;
-		IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->tex), id, &(vd->texnr));
-		if (strp[0])
-			uiBlockBeginAlign(block);
-			uiDefButS(block, MENU, B_BGPICTEX, strp,			90, 100, 20,20, &(vd->texnr), 0, 0, 0, 0, "Select a texture to use as an animated background image");
-		MEM_freeN(strp);
-		
-		if (id) {
-			uiDefBut(block, TEX, B_IDNAME, "TE:",				110, 100, 160, 20, id->name+2, 0.0, 18.0, 0, 0, "");
-			uiDefIconBut(block, BUT, B_BGPICTEXCLEAR, ICON_X, 	270, 100, 20, 20, 0, 0, 0, 0, 0, "Remove background texture link");
-			uiBlockEndAlign(block);
-		} else {
-			uiBlockEndAlign(block);
-		}
-
-		uiDefButF(block, NUMSLI, B_BLENDBGPIC, "Blend:",	0, 60 , 290, 19, &vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the transparency of the background image");
-
-		uiDefButF(block, NUM, REDRAWVIEW3D, "Size:",		0, 28, 140, 19, &vd->bgpic->size, 0.1, 250.0*vd->grid, 100, 0, "Set the size (width) of the background image");
-
-		uiDefButF(block, NUM, REDRAWVIEW3D, "X Offset:",	0, 6, 140, 19, &vd->bgpic->xof, -250.0*vd->grid,250.0*vd->grid, 10, 2, "Set the horizontal offset of the background image");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "Y Offset:",	150, 6, 140, 19, &vd->bgpic->yof, -250.0*vd->grid,250.0*vd->grid, 10, 2, "Set the vertical offset of the background image");
-
+		uiblock_image_panel(block, &vd->bgpic->ima, &vd->bgpic->iuser, B_REDR, B_REDR);
 	}
 }
 

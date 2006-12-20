@@ -68,6 +68,7 @@
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_ipo.h"
+#include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"

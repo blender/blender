@@ -154,7 +154,9 @@ static void snode_handle_recalc(SpaceNode *snode)
 			snode->nodetree->timecursor= set_timecursor;
 			G.afbreek= 0;
 			snode->nodetree->test_break= blender_test_break;
-
+			
+			BIF_store_spare();
+			
 			ntreeCompositExecTree(snode->nodetree, &G.scene->r, 1);	/* 1 is do_previews */
 			
 			snode->nodetree->timecursor= NULL;
@@ -191,7 +193,7 @@ static void load_node_image(char *str)	/* called from fileselect */
 	bNode *node= nodeGetActive(snode->edittree);
 	Image *ima= NULL;
 	
-	ima= add_image(str);
+	ima= BKE_add_image_file(str);
 	if(ima) {
 		if(node->id)
 			node->id->us--;
@@ -201,8 +203,7 @@ static void load_node_image(char *str)	/* called from fileselect */
 
 		BLI_strncpy(node->name, node->id->name+2, 21);
 				   
-		free_image_buffers(ima);	/* force read again */
-		ima->ok= 1;
+		BKE_image_signal(ima, node->storage, IMA_SIGNAL_RELOAD);
 		
 		NodeTagChanged(snode->edittree, node);
 		snode_handle_recalc(snode);
@@ -417,6 +418,28 @@ void snode_set_context(SpaceNode *snode)
 		snode->edittree= snode->nodetree;
 }
 
+/* on activate image viewer, check if we show it */
+static void node_active_image(Image *ima)
+{
+	ScrArea *sa;
+	SpaceImage *sima= NULL;
+	
+	/* find an imagewindow showing render result */
+	for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_IMAGE) {
+			sima= sa->spacedata.first;
+			if(sima->image && sima->image->source!=IMA_SRC_VIEWER)
+				break;
+		}
+	}
+	if(sa && sima) {
+		sima->image= ima;
+		scrarea_queue_winredraw(sa);
+		scrarea_queue_headredraw(sa);
+	}
+}
+
+
 static void node_set_active(SpaceNode *snode, bNode *node)
 {
 	
@@ -460,18 +483,17 @@ static void node_set_active(SpaceNode *snode, bNode *node)
 					snode_handle_recalc(snode);
 				}
 				
-				/* add node doesnt link this yet... */
-				if(node->id==NULL) {
-					node->id= find_id("IM", "Viewer Node");
-					if(node->id==NULL) {
-						Image *ima= alloc_libblock(&G.main->image, ID_IM, "Viewer Node");
-						strcpy(ima->name, "Viewer Node");
-						ima->ok= 1;
-						ima->xrep= ima->yrep= 1;
-						node->id= &ima->id;
-					}
-					else 
-						node->id->us++;
+				/* addnode() doesnt link this yet... */
+				node->id= (ID *)BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+			}
+			else if(node->type==CMP_NODE_IMAGE) {
+				if(node->id)
+					node_active_image((Image *)node->id);
+			}
+			else if(node->type==CMP_NODE_R_LAYERS) {
+				if(node->id==NULL || node->id==(ID *)G.scene) {
+					G.scene->r.actlay= node->custom1;
+					allqueue(REDRAWBUTSSCENE, 0);
 				}
 			}
 		}
@@ -746,19 +768,21 @@ void snode_zoom_in(ScrArea *sa)
 static void snode_bg_viewmove(SpaceNode *snode)
 {
 	ScrArea *sa;
+	Image *ima;
+	ImBuf *ibuf;
+	Window *win;
 	short mval[2], mvalo[2];
 	short rectx, recty, xmin, xmax, ymin, ymax, pad;
-	Window *win;
 	int oldcursor;
-	Image *ima;
 	
-	ima= (Image *)find_id("IM", "Viewer Node");
+	ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	ibuf= BKE_image_get_ibuf(ima, NULL);
 	
 	sa = snode->area;
 	
-	if(ima && ima->ibuf) {
-		rectx = ima->ibuf->x;
-		recty = ima->ibuf->y;
+	if(ibuf) {
+		rectx = ibuf->x;
+		recty = ibuf->y;
 	} else {
 		rectx = recty = 1;
 	}
@@ -1472,8 +1496,9 @@ bNode *node_add_node(SpaceNode *snode, int type, float locx, float locy)
 			id_us_plus(node->id);
 		
 		if(snode->nodetree->type==NTREE_COMPOSIT)
-			ntreeCompositForceHidden(G.scene->nodetree);
+			ntreeCompositForceHidden(snode->edittree);
 		
+		NodeTagChanged(snode->edittree, node);
 	}
 	return node;
 }
@@ -1884,6 +1909,43 @@ void node_read_renderlayers(SpaceNode *snode)
 	snode_handle_recalc(snode);
 }
 
+/* gets active viewer user */
+struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree)
+		for(node= ntree->nodes.first; node; node= node->next)
+			if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) 
+				if(node->flag & NODE_DO_OUTPUT)
+					return node->storage;
+	return NULL;
+}
+
+void imagepaint_composite_tags(bNodeTree *ntree, Image *image, ImageUser *iuser)
+{
+	bNode *node;
+	
+	if(ntree==NULL)
+		return;
+	
+	/* search for renderresults */
+	if(image->type==IMA_TYPE_R_RESULT) {
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(node->type==CMP_NODE_R_LAYERS && node->id==NULL) {
+				/* imageuser comes from ImageWin, so indexes are offset 1 */
+				if(node->custom1==iuser->layer-1)
+					NodeTagChanged(ntree, node);
+			}
+		}
+	}
+	else {
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(node->id== &image->id)
+				NodeTagChanged(ntree, node);
+		}
+	}
+}
 
 /* ********************** */
 
@@ -2084,6 +2146,9 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(fromlib) fromlib= -1;
 				else node_adduplicate(snode);
 			}
+			break;
+		case EKEY:
+			snode_handle_recalc(snode);
 			break;
 		case GKEY:
 			if(fromlib) fromlib= -1;

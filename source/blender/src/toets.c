@@ -456,14 +456,11 @@ int blenderqread(unsigned short event, short val)
 		break;
 	case F3KEY:
 		if(G.qual==0) {
-			BIF_save_rendered_image_fs(0);
+			BIF_save_rendered_image_fs();
 			return 0;
 		}
 		else if(G.qual & LR_CTRLKEY) {
 			BIF_screendump(0);
-		}
-		else if(G.qual & LR_SHIFTKEY) {
-			BIF_save_rendered_image_fs(1);
 		}
 		break;
 	case F4KEY:
@@ -473,7 +470,7 @@ int blenderqread(unsigned short event, short val)
 			ob= OBACT;
 			if(ob) strcpy(str, ob->id.name);
 
-			activate_fileselect(FILE_MAIN, "Data Select", str, 0);
+			activate_fileselect(FILE_MAIN, "Data Select", str, NULL);
 			return 0;
 		}
 		else if(G.qual==0) {

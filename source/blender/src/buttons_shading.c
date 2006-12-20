@@ -81,6 +81,7 @@
 
 #include "BDR_drawmesh.h"
 
+#include "BIF_drawimage.h"
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_keyval.h"
@@ -102,15 +103,12 @@
 #include "blendef.h"
 #include "radio.h"
 
+#include "RE_pipeline.h"
+
 /* -----includes for this file specific----- */
 
 #include "butspace.h" // own module
 
-/* ---------function prototypes ------------- */
-void load_tex_image(char *);	
-void load_plugin_tex(char *);
-
-void save_env(char *);
 
 static MTex emptytex;
 static int packdummy = 0;
@@ -178,40 +176,37 @@ void shade_buttons_change_3d(void)
 
 /* *************************** TEXTURE ******************************** */
 
-Tex *cur_imatex=0;
-int prv_win= 0;
-
-void load_tex_image(char *str)	/* called from fileselect */
+static void load_image_cb(char *str, void *ima_pp_v, void *iuser_v)	/* called from fileselect or button */
 {
-	Image *ima=0;
-	Tex *tex;
+	Image **ima_pp= (Image **)ima_pp_v;
+	Image *ima= NULL;
 	
-	tex= cur_imatex;
-	if(tex->type==TEX_IMAGE || tex->type==TEX_ENVMAP) {
-
-		ima= add_image(str);
-		if(ima) {
-			if(tex->ima) {
-				tex->ima->id.us--;
-			}
-			tex->ima= ima;
-
-			free_image_buffers(ima);	/* force reading again */
-			ima->ok= 1;
+	ima= BKE_add_image_file(str);
+	if(ima) {
+		if(*ima_pp) {
+			(*ima_pp)->id.us--;
 		}
+		*ima_pp= ima;
 
-		BIF_undo_push("Load image");
-		allqueue(REDRAWBUTSSHADING, 0);
-
-		BIF_preview_changed(ID_TE);
+		BKE_image_signal(ima, iuser_v, IMA_SIGNAL_RELOAD);
+		
+		/* button event gets lost when it goes via filewindow */
+		if(G.buts && G.buts->lockpoin) {
+			Tex *tex= G.buts->lockpoin;
+			if(GS(tex->id.name)==ID_TE) {
+				BIF_preview_changed(ID_TE);
+				allqueue(REDRAWBUTSSHADING, 0);
+			}
+		}
 	}
+
+	BIF_undo_push("Load image");
 }
 
-void load_plugin_tex(char *str)	/* called from fileselect */
+static void load_plugin_tex(char *str, void *tex_v, void *unused)	/* called from fileselect */
 {
-	Tex *tex;
+	Tex *tex= tex_v;
 	
-	tex= cur_imatex;
 	if(tex->type!=TEX_PLUGIN) return;
 	
 	if(tex->plugin) free_plugin_tex(tex->plugin);
@@ -223,10 +218,10 @@ void load_plugin_tex(char *str)	/* called from fileselect */
 	BIF_preview_changed(ID_TE);
 }
 
-void save_env(char *name)
+static void save_env(char *name)
 {
 	Tex *tex;
-	char str[FILE_MAXDIR+FILE_MAXFILE];
+	char str[FILE_MAX];
 	
 	strcpy(str, name);
 	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
@@ -255,11 +250,8 @@ static int vergcband(const void *a1, const void *a2)
 void do_texbuts(unsigned short event)
 {
 	Tex *tex;
-	ImBuf *ibuf;
 	ScrArea *sa;
-	ID *id;	
-	int nr;
-	char *name, str[FILE_MAXDIR+FILE_MAXFILE];
+	char str[FILE_MAX];
 	
 	tex= G.buts->lockpoin;
 	
@@ -279,7 +271,7 @@ void do_texbuts(unsigned short event)
 		allqueue(REDRAWBUTSSHADING, 0);
 		break;
 	case B_TEXTYPE:
-		if(tex==0) return;
+		if(tex==NULL) return;
 		tex->stype= 0;
 		allqueue(REDRAWBUTSSHADING, 0);
 		BIF_preview_changed(ID_TE);
@@ -290,175 +282,41 @@ void do_texbuts(unsigned short event)
 		}
 		break;
 	case B_DEFTEXVAR:
-		if(tex==0) return;
+		if(tex==NULL) return;
 		default_tex(tex);
 		BIF_undo_push("Default texture vars");
 		allqueue(REDRAWBUTSSHADING, 0);
 		BIF_preview_changed(ID_TE);
 		break;
-	case B_LOADTEXIMA:
-		if(tex==0) return;
-		/* globals: temporal store them: we make another area a fileselect */
-		cur_imatex= tex;
-		prv_win= curarea->win;
 		
-		sa= closest_bigger_area();
-		areawinset(sa->win);
-		if(tex->ima) name= tex->ima->name;
-#ifdef _WIN32
-		else {
-			if (strcmp (U.textudir, "/") == 0)
-				name= G.sce;
-			else
-				name= U.textudir;
+	case B_IMAGECHANGED:
+		BIF_preview_changed(ID_TE);
+		allqueue(REDRAWBUTSSHADING, 0);
+		
+		if(tex) {
+			if(G.scene->nodetree) {
+				NodeTagIDChanged(G.scene->nodetree, &tex->id);
+				allqueue(RECALC_COMPOSITE, 0);
+			}
+			if(tex->ima && (tex->imaflag & TEX_MIPMAP) && (tex->ima->flag & IMA_FIELDS)) {
+				error("Cannot combine fields and mipmap");
+				tex->imaflag -= TEX_MIPMAP;
+			}
+			if(tex->env)
+				BKE_free_envmapdata(tex->env);
 		}
-#else
-		else name = U.textudir;
-#endif
-		
-		if(G.qual==LR_CTRLKEY)
-			activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_tex_image);
-		else 
-			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_tex_image);
-		
-		break;
-	case B_NAMEIMA:
-		if(tex==0) return;
-		if(tex->ima) {
-			cur_imatex= tex;
-			prv_win= curarea->win;
 			
-			/* name in tex->ima has been changed by button! */
-			strcpy(str, tex->ima->name);
-			if(tex->ima->ibuf) strcpy(tex->ima->name, tex->ima->ibuf->name);
-
-			load_tex_image(str);
-		}
 		break;
+		
 	case B_TEXREDR_PRV:
 		allqueue(REDRAWBUTSSHADING, 0);
 		BIF_preview_changed(ID_TE);
 		shade_buttons_change_3d();
 		break;
-	case B_TEXIMABROWSE:
-		if(tex) {
-			id= (ID*) tex->ima;
-			
-			if(G.buts->menunr== -2) {
-				activate_databrowse(id, ID_IM, 0, B_TEXIMABROWSE, &G.buts->menunr, do_texbuts);
-			} else if (G.buts->menunr>0) {
-				Image *newima= (Image*) BLI_findlink(&G.main->image, G.buts->menunr-1);
-				
-				if (newima && newima!=(Image*) id) {
-					tex->ima= newima;
-					id_us_plus((ID*) newima);
-					if(id) id->us--;
-				
-					BIF_undo_push("Browse image");
-					allqueue(REDRAWBUTSSHADING, 0);
-					BIF_preview_changed(ID_TE);
-				}
-			}
-		}
-		break;
-	case B_IMAPTEST:
-		if(tex) {
-			if( (tex->imaflag & (TEX_FIELDS+TEX_MIPMAP))== TEX_FIELDS+TEX_MIPMAP ) {
-				error("Cannot combine fields and mipmap");
-				tex->imaflag -= TEX_MIPMAP;
-				allqueue(REDRAWBUTSSHADING, 0);
-			}
-			
-			if(tex->ima && tex->ima->ibuf) {
-				ibuf= tex->ima->ibuf;
-				nr= 0;
-				if( !(tex->imaflag & TEX_FIELDS) && (ibuf->flags & IB_fields) ) nr= 1;
-				if( (tex->imaflag & TEX_FIELDS) && !(ibuf->flags & IB_fields) ) nr= 1;
-				if(nr) {
-					IMB_freeImBuf(ibuf);
-					tex->ima->ibuf= 0;
-					tex->ima->ok= 1;
-					BIF_preview_changed(ID_TE);
-				}
-			}
-		}
-		break;
-	case B_RELOADIMA:
-		if(tex && tex->ima) {
-			// check if there is a newer packedfile
 
-			if (tex->ima->packedfile) {
-				PackedFile *pf;
-				pf = newPackedFile(tex->ima->name);
-				if (pf) {
-					freePackedFile(tex->ima->packedfile);
-					tex->ima->packedfile = pf;
-				} else {
-					error("Image not available. Keeping packed image.");
-				}
-			}
-			if (tex->ima->preview) {
-				free_image_preview(tex->ima);
-			}
 
-			IMB_freeImBuf(tex->ima->ibuf);
-			tex->ima->ibuf= NULL;
-			tex->ima->ok= 1;
-			
-			if(tex->env)
-				BKE_free_envmapdata(tex->env);
-			
-			free_realtime_image(tex->ima); 
-			
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWIMAGE, 0);
-			BIF_preview_changed(ID_TE);
-		}
-		allqueue(REDRAWBUTSSHADING, 0);	// redraw buttons
-		
-		break;
-	case B_UNLINKIMA:
-		if(tex && tex->ima) {
-			tex->ima->id.us--;
-			tex->ima= NULL;
-			allqueue(REDRAWBUTSSHADING, 0);	// redraw buttons
-			BIF_preview_changed(ID_TE); 
-		}
-		break;
-	case B_TEXSETFRAMES:
-		if(tex->ima->anim) tex->frames = IMB_anim_get_duration(tex->ima->anim);
-		allqueue(REDRAWBUTSSHADING, 0);
-		break;
-
-	case B_PACKIMA:
-		if(tex && tex->ima) {
-			if (tex->ima->packedfile) {
-				if (G.fileflags & G_AUTOPACK) {
-					if (okee("Disable AutoPack ?")) {
-						G.fileflags &= ~G_AUTOPACK;
-					}
-				}
-				
-				if ((G.fileflags & G_AUTOPACK) == 0) {
-					unpackImage(tex->ima, PF_ASK);
-				}
-			} else {
-				if (tex->ima->ibuf && (tex->ima->ibuf->userflags & IB_BITMAPDIRTY)) {
-					error("Can't pack painted image. Save image from Image window first.");
-				} else {
-					tex->ima->packedfile = newPackedFile(tex->ima->name);
-				}
-			}
-			allqueue(REDRAWBUTSSHADING, 0);
-			allqueue(REDRAWHEADERS, 0);
-		}
-		break;
 	case B_LOADPLUGIN:
-		if(tex==0) return;
-
-		/* globals: store temporal: we make another area a fileselect */
-		cur_imatex= tex;
-		prv_win= curarea->win;
+		if(tex==NULL) return;
 			
 		sa= closest_bigger_area();
 		areawinset(sa->win);
@@ -466,12 +324,12 @@ void do_texbuts(unsigned short event)
 		else {
 			strcpy(str, U.plugtexdir);
 		}
-		activate_fileselect(FILE_SPECIAL, "SELECT PLUGIN", str, load_plugin_tex);
+		activate_fileselect_args(FILE_SPECIAL, "SELECT PLUGIN", str, load_plugin_tex, tex, NULL);
 		
 		break;
 
 	case B_NAMEPLUGIN:
-		if(tex==0 || tex->plugin==0) return;
+		if(tex==NULL || tex->plugin==NULL) return;
 		strcpy(str, tex->plugin->name);
 		free_plugin_tex(tex->plugin);
 		tex->stype= 0;
@@ -481,8 +339,8 @@ void do_texbuts(unsigned short event)
 		break;
 	
 	case B_COLORBAND:
-		if(tex==0) return;
-		if(tex->coba==0) tex->coba= add_colorband(0);
+		if(tex==NULL) return;
+		if(tex->coba==NULL) tex->coba= add_colorband(0);
 		allqueue(REDRAWBUTSSHADING, 0);
 		BIF_preview_changed(ID_TE); // also ramps, so we do this
 		break;
@@ -854,11 +712,559 @@ static void texture_panel_voronoi(Tex *tex)
 }
 
 
+static char *layer_menu(RenderResult *rr, short *curlay)
+{
+	RenderLayer *rl;
+	int len= 64 + 32*BLI_countlist(&rr->layers);
+	short a, nr= 0;
+	char *str= MEM_callocN(len, "menu layers");
+	
+	strcpy(str, "Layer %t");
+	a= strlen(str);
+	
+	/* compo result */
+	if(rr->rectf) {
+		a+= sprintf(str+a, "|Composite %%x0");
+		nr= 1;
+	}
+	for(rl= rr->layers.first; rl; rl= rl->next, nr++) {
+		a+= sprintf(str+a, "|%s %%x%d", rl->name, nr);
+	}
+	
+	if(*curlay >= nr)
+		*curlay= 0;
+	
+	return str;
+}
+
+/* rl==NULL means composite result */
+static char *pass_menu(RenderLayer *rl, short *curpass)
+{
+	RenderPass *rpass;
+	int len= 64 + 32*(rl?BLI_countlist(&rl->passes):1);
+	short a, nr= 0;
+	char *str= MEM_callocN(len, "menu layers");
+	
+	strcpy(str, "Pass %t");
+	a= strlen(str);
+	
+	/* rendered results don't have a Combined pass */
+	if(rl==NULL || rl->rectf) {
+		a+= sprintf(str+a, "|Combined %%x0");
+		nr= 1;
+	}
+	
+	if(rl)
+		for(rpass= rl->passes.first; rpass; rpass= rpass->next, nr++)
+			a+= sprintf(str+a, "|%s %%x%d", rpass->name, nr);
+	
+	if(*curpass >= nr)
+		*curpass= 0;
+	
+	return str;
+}
+
+static void set_frames_cb(void *ima_v, void *iuser_v)
+{
+	Image *ima= ima_v;
+	ImageUser *iuser= iuser_v;
+	
+	if(ima->anim) {
+		iuser->frames = IMB_anim_get_duration(ima->anim);
+		BKE_image_user_calc_imanr(iuser, G.scene->r.cfra, 0);
+	}
+}
+
+static void image_src_change_cb(void *ima_v, void *iuser_v)
+{
+	BKE_image_signal(ima_v, iuser_v, IMA_SIGNAL_SRC_CHANGE);
+}
+
+/* buttons have 2 arg callbacks, filewindow has 3 args... so thats why the wrapper below */
+static void image_browse_cb1(char *unused, void *ima_pp_v, void *iuser_v)
+{
+	Image **ima_pp= (Image **)ima_pp_v;
+	ImageUser *iuser= iuser_v;
+	
+	if(ima_pp) {
+		Image *ima= *ima_pp;
+		
+		if(iuser->menunr== -2) {
+			activate_databrowse_args(&ima->id, ID_IM, 0, &iuser->menunr, image_browse_cb1, ima_pp, iuser);
+		} 
+		else if (iuser->menunr>0) {
+			Image *newima= (Image*) BLI_findlink(&G.main->image, iuser->menunr-1);
+			
+			if (newima && newima!=ima) {
+				*ima_pp= newima;
+				id_us_plus(&newima->id);
+				if(ima) ima->id.us--;
+				
+				BKE_image_signal(newima, iuser, IMA_SIGNAL_USER_NEW_IMAGE);
+				
+				BIF_undo_push("Browse image");
+			}
+		}
+	}
+}
+
+static void image_browse_cb(void *ima_pp_v, void *iuser_v)
+{
+	image_browse_cb1(NULL, ima_pp_v, iuser_v);
+}
+
+static void image_reload_cb(void *ima_v, void *iuser_v)
+{
+	if(ima_v) {
+		BKE_image_signal(ima_v, iuser_v, IMA_SIGNAL_RELOAD);
+	}
+}
+
+static void image_field_test(void *ima_v, void *iuser_v)
+{
+	Image *ima= ima_v;
+	
+	if(ima) {
+		ImBuf *ibuf= BKE_image_get_ibuf(ima, iuser_v);
+		if(ibuf) {
+			short nr= 0;
+			if( !(ima->flag & IMA_FIELDS) && (ibuf->flags & IB_fields) ) nr= 1;
+			if( (ima->flag & IMA_FIELDS) && !(ibuf->flags & IB_fields) ) nr= 1;
+			if(nr) {
+				BKE_image_signal(ima, iuser_v, IMA_SIGNAL_FREE);
+			}
+		}
+	}
+}
+
+static void image_unlink_cb(void *ima_pp_v, void *unused)
+{
+	Image **ima_pp= (Image **)ima_pp_v;
+	
+	if(ima_pp && *ima_pp) {
+		Image *ima= *ima_pp;
+		ima->id.us--;
+		*ima_pp= NULL;
+	}
+}
+
+static void image_load_fs_cb(void *ima_pp_v, void *iuser_v)
+{
+	Image **ima_pp= (Image **)ima_pp_v;
+	ScrArea *sa;
+	char *name;
+	
+	if(ima_pp==NULL) return;
+	
+	sa= closest_bigger_area();
+	areawinset(sa->win);
+	if(*ima_pp) name= (*ima_pp)->name;
+#ifdef _WIN32
+	else {
+		if (strcmp (U.textudir, "/") == 0)
+			name= G.sce;
+		else
+			name= U.textudir;
+	}
+#else
+	else name = U.textudir;
+#endif
+	activate_fileselect_args(FILE_SPECIAL, "SELECT IMAGE", name, load_image_cb, ima_pp_v, iuser_v);
+}
+
+/* 5 layer button callbacks... */
+static void image_multi_cb(void *rr_v, void *iuser_v) 
+{
+	BKE_image_multilayer_index(rr_v, iuser_v); 
+}
+static void image_multi_inclay_cb(void *rr_v, void *iuser_v) 
+{
+	RenderResult *rr= rr_v;
+	ImageUser *iuser= iuser_v;
+	int tot= BLI_countlist(&rr->layers) + (rr->rectf?1:0);  /* fake compo result layer */
+	if(iuser->layer<tot-1)
+		iuser->layer++;
+	BKE_image_multilayer_index(rr, iuser); 
+}
+static void image_multi_declay_cb(void *rr_v, void *iuser_v) 
+{
+	ImageUser *iuser= iuser_v;
+	if(iuser->layer>0)
+		iuser->layer--;
+	BKE_image_multilayer_index(rr_v, iuser); 
+}
+static void image_multi_incpass_cb(void *rr_v, void *iuser_v) 
+{
+	RenderResult *rr= rr_v;
+	ImageUser *iuser= iuser_v;
+	RenderLayer *rl= BLI_findlink(&rr->layers, iuser->layer);
+	if(rl) {
+		int tot= BLI_countlist(&rl->passes) + (rl->rectf?1:0);	/* builtin render result has no combined pass in list */
+		if(iuser->pass<tot-1) {
+			iuser->pass++;
+			BKE_image_multilayer_index(rr, iuser); 
+		}
+	}
+}
+static void image_multi_decpass_cb(void *rr_v, void *iuser_v) 
+{
+	ImageUser *iuser= iuser_v;
+	if(iuser->pass>0) {
+		iuser->pass--;
+		BKE_image_multilayer_index(rr_v, iuser); 
+	}
+}
+
+static void image_pack_cb(void *ima_v, void *iuser_v) 
+{
+	if(ima_v) {
+		Image *ima= ima_v;
+		if(ima->source!=IMA_SRC_SEQUENCE && ima->source!=IMA_SRC_MOVIE) {
+			if (ima->packedfile) {
+				if (G.fileflags & G_AUTOPACK) {
+					if (okee("Disable AutoPack ?")) {
+						G.fileflags &= ~G_AUTOPACK;
+					}
+				}
+				
+				if ((G.fileflags & G_AUTOPACK) == 0) {
+					unpackImage(ima, PF_ASK);
+					BIF_undo_push("Unpack image");
+				}
+			} 
+			else {
+				ImBuf *ibuf= BKE_image_get_ibuf(ima, iuser_v);
+				if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
+					error("Can't pack painted image. Save image or use Repack as PNG.");
+				} else {
+					ima->packedfile = newPackedFile(ima->name);
+					BIF_undo_push("Pack image");
+				}
+			}
+		}
+	}
+}
+
+static void image_load_cb(void *ima_pp_v, void *iuser_v)
+{
+	if(ima_pp_v) {
+		Image *ima= *((Image **)ima_pp_v);
+		ImBuf *ibuf= BKE_image_get_ibuf(ima, iuser_v);
+		char str[FILE_MAX];
+	
+		/* name in ima has been changed by button! */
+		BLI_strncpy(str, ima->name, FILE_MAX);
+		if(ibuf) BLI_strncpy(ima->name, ibuf->name, FILE_MAX);
+		
+		load_image_cb(str, ima_pp_v, iuser_v);
+	}
+}
+
+static void image_freecache_cb(void *ima_v, void *unused) 
+{
+	BKE_image_free_anim_ibufs(ima_v, G.scene->r.cfra);
+	allqueue(REDRAWIMAGE, 0);
+}
+
+static void image_generated_change_cb(void *ima_v, void *iuser_v)
+{
+	BKE_image_signal(ima_v, iuser_v, IMA_SIGNAL_FREE);
+}
+
+static void image_user_change(void *iuser_v, void *unused)
+{
+	BKE_image_user_calc_imanr(iuser_v, G.scene->r.cfra, 0);
+}
+
+void uiblock_layer_pass_buttons(uiBlock *block, RenderResult *rr, ImageUser *iuser, int event, int x, int y, int w)
+{
+	uiBut *but;
+	RenderLayer *rl= NULL;
+	int wmenu1, wmenu2;
+	char *strp;
+
+	/* layer menu is 1/3 larger than pass */
+	wmenu1= (3*w)/5;
+	wmenu2= (2*w)/5;
+	
+	/* menu buts */
+	strp= layer_menu(rr, &iuser->layer);
+	but= uiDefButS(block, MENU, event, strp,					x, y, wmenu1, 20, &iuser->layer, 0,0,0,0, "Select Layer");
+	uiButSetFunc(but, image_multi_cb, rr, iuser);
+	MEM_freeN(strp);
+	
+	rl= BLI_findlink(&rr->layers, iuser->layer - (rr->rectf?1:0)); /* fake compo layer, return NULL is meant to be */
+	strp= pass_menu(rl, &iuser->pass);
+	but= uiDefButS(block, MENU, event, strp,					x+wmenu1, y, wmenu2, 20, &iuser->pass, 0,0,0,0, "Select Pass");
+	uiButSetFunc(but, image_multi_cb, rr, iuser);
+	MEM_freeN(strp);	
+}
+
+static void uiblock_layer_pass_arrow_buttons(uiBlock *block, RenderResult *rr, ImageUser *iuser, int imagechanged) 
+{
+	uiBut *but;
+	
+	if(rr==NULL || iuser==NULL)
+		return;
+	if(rr->layers.first==NULL) {
+		uiDefBut(block, LABEL, 0, "No Layers in Render Result,",	10, 107, 300, 20, NULL, 1, 0, 0, 0, "");
+		return;
+	}
+	
+	uiBlockBeginAlign(block);
+
+	/* decrease, increase arrows */
+	but= uiDefIconBut(block, BUT, imagechanged, ICON_TRIA_LEFT,	10,107,17,20, NULL, 0, 0, 0, 0, "Previous Layer");
+	uiButSetFunc(but, image_multi_declay_cb, rr, iuser);
+	but= uiDefIconBut(block, BUT, imagechanged, ICON_TRIA_RIGHT,	27,107,18,20, NULL, 0, 0, 0, 0, "Next Layer");
+	uiButSetFunc(but, image_multi_inclay_cb, rr, iuser);
+
+	uiblock_layer_pass_buttons(block, rr, iuser, imagechanged, 45, 107, 230);
+
+	/* decrease, increase arrows */
+	but= uiDefIconBut(block, BUT, imagechanged, ICON_TRIA_LEFT,	275,107,17,20, NULL, 0, 0, 0, 0, "Previous Pass");
+	uiButSetFunc(but, image_multi_decpass_cb, rr, iuser);
+	but= uiDefIconBut(block, BUT, imagechanged, ICON_TRIA_RIGHT,	292,107,18,20, NULL, 0, 0, 0, 0, "Next Pass");
+	uiButSetFunc(but, image_multi_incpass_cb, rr, iuser);
+
+	uiBlockEndAlign(block);
+			 
+}
+
+/* The general Image panel with the loadsa callbacks! */
+void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser, 
+						 short redraw, short imagechanged)
+{
+	Image *ima= *ima_pp;
+	uiBut *but;
+	char str[128], *strp;
+	
+	/* different stuff when we show viewer */
+	if(ima && ima->source==IMA_SRC_VIEWER) {
+		ImBuf *ibuf= BKE_image_get_ibuf(ima, iuser);
+		
+		image_info(ima, ibuf, str);
+		uiDefBut(block, LABEL, 0, ima->id.name+2,	10, 180, 300, 20, NULL, 1, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, str,				10, 160, 300, 20, NULL, 1, 0, 0, 0, "");
+		
+		if(ima->type==IMA_TYPE_COMPOSITE) {
+			iuser= ntree_get_active_iuser(G.scene->nodetree);
+			
+			uiBlockBeginAlign(block);
+			uiDefIconTextBut(block, BUT, B_SIMA_RECORD, ICON_REC, "Record",	10,120,100,20, 0, 0, 0, 0, 0, "");
+			uiDefIconTextBut(block, BUT, B_SIMA_PLAY, ICON_PLAY, "Play",	110,120,100,20, 0, 0, 0, 0, 0, "");
+			but= uiDefBut(block, BUT, B_NOP, "Free Cache",	210,120,100,20, 0, 0, 0, 0, 0, "");
+			uiButSetFunc(but, image_freecache_cb, ima, NULL);
+			
+			if(iuser->frames)
+				sprintf(str, "(%d) Frames:", iuser->framenr);
+			else strcpy(str, "Frames:");
+			uiBlockBeginAlign(block);
+			uiDefButI(block, NUM, imagechanged, str,		10, 90,150, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
+			uiDefButI(block, NUM, imagechanged, "StartFr:",	160,90,150,20, &iuser->sfra, 1.0, MAXFRAMEF, 0, 0, "Sets the global starting frame of the movie");
+		}
+		else if(ima->type==IMA_TYPE_R_RESULT) {
+			/* browse layer/passes */
+			uiblock_layer_pass_arrow_buttons(block, RE_GetResult(RE_GetRender(G.scene->id.name)), iuser, imagechanged);
+		}
+		return;
+	}
+	
+	/* the main ima source types */
+	if(ima) {
+		uiSetButLock(ima->id.lib!=NULL, "Can't edit library data");
+		uiBlockBeginAlign(block);
+		uiBlockSetFunc(block, image_src_change_cb, ima, iuser);
+		uiDefButS(block, ROW, imagechanged, "Still",		10, 180, 60, 20, &ima->source, 0.0, IMA_SRC_FILE, 0, 0, "Single Image file");
+		uiDefButS(block, ROW, imagechanged, "Movie",		70, 180, 60, 20, &ima->source, 0.0, IMA_SRC_MOVIE, 0, 0, "Movie file");
+		uiDefButS(block, ROW, imagechanged, "Sequence",	130, 180, 90, 20, &ima->source, 0.0, IMA_SRC_SEQUENCE, 0, 0, "Multiple Image files, as a sequence");
+		uiDefButS(block, ROW, imagechanged, "Generated",	220, 180, 90, 20, &ima->source, 0.0, IMA_SRC_GENERATED, 0, 0, "Generated Image");
+		uiBlockSetFunc(block, NULL, NULL, NULL);
+	}
+	else
+		uiDefBut(block, LABEL, 0, " ",					10, 180, 300, 20, 0, 0, 0, 0, 0, "");	/* for align in panel */
+				 
+	 /* Browse */
+	 IMAnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), NULL, &iuser->menunr);
+	 
+	 uiBlockBeginAlign(block);
+	 but= uiDefButS(block, MENU, imagechanged, strp,		10,155,23,20, &iuser->menunr, 0, 0, 0, 0, "Selects an existing Image or Movie");
+	 uiButSetFunc(but, image_browse_cb, ima_pp, iuser);
+	 
+	 MEM_freeN(strp);
+	 
+	 /* name + options, or only load */
+	 if(ima) {
+		 int drawpack= (ima->source!=IMA_SRC_SEQUENCE && ima->source!=IMA_SRC_MOVIE && ima->ok);
+
+		 but= uiDefBut(block, TEX, B_IDNAME, "IM:",		33, 155, 177, 20, ima->id.name+2, 0.0, 19.0, 0, 0, "Current Image Datablock name.");
+		 uiButSetFunc(but, test_idbutton_cb, ima->id.name, NULL);
+		 but= uiDefBut(block, BUT, imagechanged, "Reload",		210, 155, 60, 20, NULL, 0, 0, 0, 0, "Reloads Image or Movie");
+		 uiButSetFunc(but, image_reload_cb, ima, iuser);
+		 
+		 but= uiDefIconBut(block, BUT, imagechanged, ICON_X,	270,155,20,20, 0, 0, 0, 0, 0, "Unlink Image block");
+		 uiButSetFunc(but, image_unlink_cb, ima_pp, NULL);
+		 sprintf(str, "%d", ima->id.us);
+		 uiDefBut(block, BUT, B_NOP, str,					290,155,20,20, 0, 0, 0, 0, 0, "Only displays number of users of Image block");
+		 
+		 but= uiDefIconBut(block, BUT, imagechanged, ICON_FILESEL,	10, 135, 23, 20, 0, 0, 0, 0, 0, "Open Fileselect to load new Image");
+		 uiButSetFunc(but, image_load_fs_cb, ima_pp, iuser);
+		 but= uiDefBut(block, TEX, imagechanged, "",				33,135,257+(drawpack?0:20),20, ima->name, 0.0, 239.0, 0, 0, "Image/Movie file name, change to load new");
+		 uiButSetFunc(but, image_load_cb, ima_pp, iuser);
+		 
+		 if(drawpack) {
+			 if (ima->packedfile) packdummy = 1;
+			 else packdummy = 0;
+			 but= uiDefIconButBitI(block, TOG, 1, redraw, ICON_PACKAGE, 290,135,20,20, &packdummy, 0, 0, 0, 0, "Toggles Packed status of this Image");
+			 uiButSetFunc(but, image_pack_cb, ima, iuser);
+		 }
+		 
+	 }
+	 else {
+		 but= uiDefBut(block, BUT, imagechanged, "Load",		33, 155, 100,20, NULL, 0, 0, 0, 0, "Load new Image of Movie");
+		 uiButSetFunc(but, image_load_fs_cb, ima_pp, iuser);
+	 }
+	 uiBlockEndAlign(block);
+	 
+	 if(ima) {
+		 ImBuf *ibuf= BKE_image_get_ibuf(ima, iuser);
+		 
+		 /* check for re-render, only buttons */
+		 if(imagechanged==B_IMAGECHANGED) {
+			 if(iuser->flag & IMA_ANIM_REFRESHED) {
+				 iuser->flag &= ~IMA_ANIM_REFRESHED;
+				 BIF_preview_changed(ID_TE);
+			 }
+		 }
+		 
+		 /* multilayer? */
+		 if(ima->type==IMA_TYPE_MULTILAYER && ima->rr) {
+			 uiblock_layer_pass_arrow_buttons(block, ima->rr, iuser, imagechanged);
+		 }
+		 else {
+			 image_info(ima, ibuf, str);
+			 uiDefBut(block, LABEL, 0, str,		10, 107, 300, 20, NULL, 1, 0, 0, 0, "");
+		 }
+		 
+		 /* left side default per-image options, right half the additional options */
+		 
+		 /* fields */
+		 uiBlockBeginAlign(block);
+		 but= uiDefButBitS(block, TOG, IMA_FIELDS, imagechanged, "Fields",	10, 70, 100, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
+		 uiButSetFunc(but, image_field_test, ima, iuser);
+		 uiDefButBitS(block, TOG, IMA_STD_FIELD, B_NOP, "Odd",			10, 50, 100, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
+		 uiBlockEndAlign(block);
+		 
+		 uiDefButBitS(block, TOG, IMA_ANTIALI, B_NOP, "Anti",			10, 10, 100, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
+		 
+		 if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+			 sprintf(str, "(%d) Frames:", iuser->framenr);
+			 
+			 uiBlockBeginAlign(block);
+			 uiBlockSetFunc(block, image_user_change, iuser, NULL);
+			 uiDefButBitS(block, TOG, IMA_ANIM_ALWAYS, B_NOP, "Auto Refresh",	120, 70, 190, 20, &iuser->flag, 0, 0, 0, 0, "Always refresh Image on frame changes");
+			 
+			 if(ima->anim) {
+				 uiDefButI(block, NUM, imagechanged, str,		120, 50,170, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
+				 but= uiDefBut(block, BUT, redraw, "<",		290, 50, 20, 20, 0, 0, 0, 0, 0, "Copies number of frames in movie file to Frames: button");
+				 uiButSetFunc(but, set_frames_cb, ima, iuser);
+			 }
+			 else 
+				 uiDefButI(block, NUM, imagechanged, str,		120, 50,190, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
+			 
+			 uiDefButI(block, NUM, imagechanged, "Offs:",	120,30,100,20, &iuser->offset, -MAXFRAMEF, MAXFRAMEF, 0, 0, "Offsets the number of the frame to use in the animation");
+			 uiDefButS(block, NUM, imagechanged, "Fie/Ima:",	220,30,90,20, &iuser->fie_ima, 1.0, 200.0, 0, 0, "The number of fields per rendered frame (2 fields is 1 image)");
+			 
+			 uiDefButI(block, NUM, imagechanged, "StartFr:",	120,10,100,20, &iuser->sfra, 1.0, MAXFRAMEF, 0, 0, "Sets the global starting frame of the movie");
+			 uiDefButS(block, TOG, imagechanged, "Cyclic",	220,10,90,20, &iuser->cycl, 0.0, 1.0, 0, 0, "Cycle the images in the movie");
+			 
+			 uiBlockSetFunc(block, NULL, iuser, NULL);
+		 }
+		 else if(ima->source==IMA_SRC_GENERATED) {
+			 
+			 uiBlockBeginAlign(block);
+			 uiBlockSetFunc(block, image_generated_change_cb, ima, iuser);
+			 uiDefButS(block, NUM, imagechanged, "SizeX:",	120,70,100,20, &ima->gen_x, 1.0, 5000.0, 0, 0, "Image size x");
+			 uiDefButS(block, NUM, imagechanged, "SizeY:",	220,70,90,20, &ima->gen_y, 1.0, 5000.0, 0, 0, "Image size y");
+			 uiDefButS(block, TOG, imagechanged, "UV Test grid",120,50,190,20, &ima->gen_type, 0.0, 1.0, 0, 0, "");
+			 uiBlockSetFunc(block, NULL, NULL, NULL);
+		 }
+	 }
+
+}	
+
+static void texture_panel_image(Image **ima, ImageUser *iuser)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_image", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Image", "Texture", 960, 0, 318, 204)==0) return;
+	
+	uiblock_image_panel(block, ima, iuser, B_REDR, B_IMAGECHANGED);
+}	
+
+static void texture_panel_image_map(Tex *tex)
+{
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "texture_panel_image_map", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Map Image", "Texture", 640, 0, 318, 204)==0) return;
+	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+
+	/* types */
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, TEX_MIPMAP, B_IMAGECHANGED, "MipMap",	10, 180, 75, 20, &tex->imaflag, 0, 0, 0, 0, "Generates and uses mipmaps");
+	uiDefButBitS(block, TOG, TEX_GAUSS_MIP, 0, "Gauss",			85, 180, 75, 20, &tex->imaflag, 0, 0, 0, 0, "Enable Gauss filter to sample down mipmaps");
+	uiDefButBitS(block, TOG, TEX_INTERPOL, 0, "Interpol",		160, 180, 75, 20, &tex->imaflag, 0, 0, 0, 0, "Interpolates pixels using Area filter");
+	uiDefButBitS(block, TOG, TEX_IMAROT, B_TEXPRV, "Rot90",		235, 180, 75, 20, &tex->imaflag, 0, 0, 0, 0, "Actually flips X and Y for rendering, rotates and mirrors");
+	
+	uiDefButBitS(block, TOG, TEX_USEALPHA, B_TEXPRV, "UseAlpha",	10, 160, 100, 20, &tex->imaflag, 0, 0, 0, 0, "Click to use Image's alpha channel");
+	uiDefButBitS(block, TOG, TEX_CALCALPHA, B_TEXPRV, "CalcAlpha",	110, 160, 100, 20, &tex->imaflag, 0, 0, 0, 0, "Click to calculate an alpha channel based on Image RGB values");
+	uiDefButBitS(block, TOG, TEX_NEGALPHA, B_TEXPRV, "NegAlpha",	210, 160, 100, 20, &tex->flag, 0, 0, 0, 0, "Click to invert the alpha values");
+	uiBlockEndAlign(block);
+
+	uiDefButF(block, NUM, B_TEXPRV, "Filter :",						10,120,150,20, &tex->filtersize, 0.1, 25.0, 0, 3, "Sets the filter size used by mipmap and interpol");
+	
+	uiDefButBitS(block, TOG, TEX_NORMALMAP, B_NOP, "Normal Map",	160,120,150,20, &tex->imaflag,
+					0, 0, 0, 0, "Use image RGB values for normal mapping");
+
+	/* crop extend clip */
+	
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "Extend",			10,90,63,19, &tex->extend, 4.0, 1.0, 0, 0, "Extends the colour of the edge pixels");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "Clip",			73,90,48,19, &tex->extend, 4.0, 2.0, 0, 0, "Sets alpha 0.0 outside Image edges");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "ClipCube",		121,90,63,19, &tex->extend, 4.0, 4.0, 0, 0, "Sets alpha to 0.0 outside cubeshaped area around Image");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "Repeat",			184,90,63,19, &tex->extend, 4.0, 3.0, 0, 0, "Causes Image to repeat horizontally and vertically");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "Checker",			247,90,63,19, &tex->extend, 4.0, 5.0, 0, 0, "Causes Image to repeat in checker pattern");
+
+	if(tex->extend==TEX_REPEAT) {
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, B_TEXPRV, "Xrepeat:",	10,60,150,19, &tex->xrepeat, 1.0, 512.0, 0, 0, "Sets a repetition multiplier in the X direction");
+		uiDefButS(block, NUM, B_TEXPRV, "Yrepeat:",	160,60,150,19, &tex->yrepeat, 1.0, 512.0, 0, 0, "Sets a repetition multiplier in the Y direction");
+	}
+	else if(tex->extend==TEX_CHECKER) {
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, TEX_CHECKER_ODD, B_TEXPRV, "Odd",	10,60,100,19, &tex->flag, 0.0, 0.0, 0, 0, "Sets odd checker tiles");
+		uiDefButBitS(block, TOG, TEX_CHECKER_EVEN, B_TEXPRV, "Even",	110,60,100,19, &tex->flag, 0.0, 0.0, 0, 0, "Sets even checker tiles");
+		uiDefButF(block, NUM, B_TEXPRV, "Mortar:",		210,60,100,19, &tex->checkerdist, 0.0, 0.99, 0, 0, "Set checkers distance (like mortar)");
+	}
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_TEXPRV, "MinX ",		10,30,150,19, &tex->cropxmin, -10.0, 10.0, 10, 0, "Sets minimum X value to crop Image");
+	uiDefButF(block, NUM, B_TEXPRV, "MinY ",		10,10,150,19, &tex->cropymin, -10.0, 10.0, 10, 0, "Sets minimum Y value to crop Image");
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_TEXPRV, "MaxX ",		160,30,150,19, &tex->cropxmax, -10.0, 10.0, 10, 0, "Sets maximum X value to crop Image");
+	uiDefButF(block, NUM, B_TEXPRV, "MaxY ",		160,10,150,19, &tex->cropymax, -10.0, 10.0, 10, 0, "Sets maximum Y value to crop Image");
+	uiBlockEndAlign(block);
+
+}
+
 /***************************************/
 
 static void texture_panel_envmap(Tex *tex)
 {
 	uiBlock *block;
+	uiBut *but;
 	EnvMap *env;
 	ID *id;
 	short a, xco, yco, dx, dy;
@@ -867,7 +1273,7 @@ static void texture_panel_envmap(Tex *tex)
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_envmap", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Envmap", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
-
+	
 	if(tex->env==NULL) {
 		tex->env= BKE_add_envmap();
 		tex->env->object= OBACT;
@@ -884,28 +1290,35 @@ static void texture_panel_envmap(Tex *tex)
 		if(env->stype==ENV_LOAD) {
 			/* file input */
 			id= (ID *)tex->ima;
-			IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(G.buts->menunr));
+			IMAnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(G.buts->menunr));
 			if(strp[0]) {
 				uiBlockBeginAlign(block);
-				uiDefButS(block, MENU, B_TEXIMABROWSE, strp, 10,145,23,20, &(G.buts->menunr), 0, 0, 0, 0, "Selects an existing environment map or creates new");
+				
+				but= uiDefButS(block, MENU, B_TEXPRV, strp,		10,145,23,20, &tex->iuser.menunr, 0, 0, 0, 0, "Selects an existing environment map");
+				uiButSetFunc(but, image_browse_cb, &tex->ima, &tex->iuser);
 				
 				if(tex->ima) {
-					uiDefBut(block, TEX, B_NAMEIMA, "",			35,145,255,20, tex->ima->name, 0.0, 79.0, 0, 0, "Displays environment map name: click to change");
+					but= uiDefBut(block, TEX, B_NAMEIMA, "",			35,145,255,20, tex->ima->name, 0.0, 79.0, 0, 0, "Displays environment map name: click to change");
+					uiButSetFunc(but, image_load_cb, &tex->ima, &tex->iuser);
+					
 					sprintf(str, "%d", tex->ima->id.us);
 					uiDefBut(block, BUT, 0, str,				290,145,20,20, 0, 0, 0, 0, 0, "Displays number of users of environment map: click to make single user");
 					uiBlockEndAlign(block);
 					
-					uiDefBut(block, BUT, B_RELOADIMA, "Reload",	230,125,80,20, 0, 0, 0, 0, 0, "Reloads saved environment map");
-				
+					but= uiDefBut(block, BUT, B_IMAGECHANGED, "Reload",	230,125,80,20, 0, 0, 0, 0, 0, "Reloads saved environment map");
+					uiButSetFunc(but, image_reload_cb, tex->ima, NULL);
+					
 					if (tex->ima->packedfile) packdummy = 1;
 					else packdummy = 0;
-					uiDefIconButBitI(block, TOG, 1, B_PACKIMA, ICON_PACKAGE, 205,125,24,20, &packdummy, 0, 0, 0, 0, "Toggles Packed status of this environment map");
+					but= uiDefIconButBitI(block, TOG, 1, B_REDR, ICON_PACKAGE, 205,125,24,20, &packdummy, 0, 0, 0, 0, "Toggles Packed status of this environment map");
+					uiButSetFunc(but, image_pack_cb, tex->ima, &tex->iuser);
 				}
 				else uiBlockEndAlign(block);
 			}
 			MEM_freeN(strp);
-		
-			uiDefBut(block, BUT, B_LOADTEXIMA, "Load Image", 10,125,150,20, 0, 0, 0, 0, 0, "Loads saved environment map - file select");
+			
+			but= uiDefBut(block, BUT, B_IMAGECHANGED, "Load Image", 10,125,150,20, 0, 0, 0, 0, 0, "Loads saved environment map - file select");
+			uiButSetFunc(but, image_load_fs_cb, &tex->ima, &tex->iuser);
 		}
 		else {
 			uiBlockBeginAlign(block);
@@ -919,15 +1332,15 @@ static void texture_panel_envmap(Tex *tex)
 			uiDefButF(block, NUM, B_NOP, "Zoom: ",			210,120,100,20, &env->viewscale, 0.5f, 5.0f, 100, 2, "Zoom factor for planar environment map");
 			uiBlockEndAlign(block);
 		}
-
+		
 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_ENV_OB, "Ob:",	10,90,150,20, &(env->object), "Displays object to use as viewpoint for environment map: click to change");
 		if(env->stype!=ENV_LOAD) 
 			uiDefButS(block, NUM, B_ENV_FREE, 	"CubeRes", 		160,90,150,20, &env->cuberes, 50, 4096.0, 0, 0, "Sets the pixel resolution of the rendered environment map");
-
+		
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_TEXPRV, "Filter :",				10,65,150,20, &tex->filtersize, 0.1, 25.0, 0, 3, "Adjusts sharpness or blurriness of the reflection"),
-		uiDefButS(block, NUM, B_ENV_FREE, "Depth:",				160,65,150,20, &env->depth, 0, 5.0, 0, 0, "Sets the number of times a map will be rendered recursively mirror effects"),
-		uiDefButF(block, NUM, REDRAWVIEW3D, 	"ClipSta", 		10,40,150,20, &env->clipsta, 0.01, 50.0, 100, 0, "Sets start value for clipping: objects nearer than this are not visible to map");
+			uiDefButS(block, NUM, B_ENV_FREE, "Depth:",				160,65,150,20, &env->depth, 0, 5.0, 0, 0, "Sets the number of times a map will be rendered recursively mirror effects"),
+			uiDefButF(block, NUM, REDRAWVIEW3D, 	"ClipSta", 		10,40,150,20, &env->clipsta, 0.01, 50.0, 100, 0, "Sets start value for clipping: objects nearer than this are not visible to map");
 		uiDefButF(block, NUM, B_NOP, 	"ClipEnd", 					160,40,150,20, &env->clipend, 0.1, 5000.0, 1000, 0, "Sets end value for clipping beyond which objects are not visible to map");
 		uiBlockEndAlign(block);
 		
@@ -942,146 +1355,15 @@ static void texture_panel_envmap(Tex *tex)
 			uiDefButBitI(block, TOG, 1<<a, 0, "",	(xco+a*(dx/2)), (yco+dy/2), (dx/2), (1+dy/2), &env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
 		for(a=0; a<5; a++) 
 			uiDefButBitI(block, TOG, 1<<(a+10), 0, "",(xco+a*(dx/2)), yco, (dx/2), (dy/2), &env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
-
+		
 		uiBlockBeginAlign(block);
 		xco+= 5;
 		for(a=5; a<10; a++) 
 			uiDefButBitI(block, TOG, 1<<a, 0, "",	(xco+a*(dx/2)), (yco+dy/2), (dx/2), (1+dy/2), &env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
 		for(a=5; a<10; a++) 
 			uiDefButBitI(block, TOG, 1<<(a+10), 0, "",(xco+a*(dx/2)), yco, (dx/2), (dy/2), &env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
-
-	}
-}
-
-
-static void texture_panel_image1(Tex *tex)
-{
-	uiBlock *block;
-	char str[32];
-	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel1", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Anim and Movie", "Texture", 960, 0, 318, 204)==0) return;
-	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
-
-	/* print amount of frames anim */
-	if(tex->ima && tex->ima->anim) {
-		uiDefBut(block, BUT, B_TEXSETFRAMES, "<",      802, 110, 20, 18, 0, 0, 0, 0, 0, "Copies number of frames in movie file to Frames: button");
-		sprintf(str, "%d frs  ", IMB_anim_get_duration(tex->ima->anim));
-		uiDefBut(block, LABEL, 0, str,      834, 110, 90, 18, 0, 0, 0, 0, 0, "Number of frames in movie file");
-		sprintf(str, "%d cur  ", tex->ima->lastframe);
-		uiDefBut(block, LABEL, 0, str,      834, 90, 90, 18, 0, 0, 0, 0, 0, "");
-	}
-	else uiDefBut(block, LABEL, 0, "<",      802, 110, 20, 18, 0, 0, 0, 0, 0, "");
-			
-	uiDefButI(block, NUM, B_TEXPRV, "Frames :",	642,110,150,19, &tex->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of frames of a movie to use and activates animation options");
-	uiDefButI(block, NUM, B_TEXPRV, "Offset :",	642,90,150,19, &tex->offset, -MAXFRAMEF, MAXFRAMEF, 0, 0, "Offsets the number of the first movie frame to use in the animation");
-	uiDefButS(block, NUM, B_TEXPRV, "Fie/Ima:",	642,60,98,19, &tex->fie_ima, 1.0, 200.0, 0, 0, "Sets the number of fields per rendered frame");
-	uiDefButI(block, NUM, B_TEXPRV, "StartFr:",	642,30,150,19, &tex->sfra, 1.0, MAXFRAMEF, 0, 0, "Sets the starting frame of the movie to use in animation");
-	uiDefButI(block, NUM, B_TEXPRV, "Len:",		642,10,150,19, &tex->len, 0.0, MAXFRAMEF, 0, 0, "Sets the number of movie frames to use in animation: 0=all");
-	
-	uiBlockBeginAlign(block);
-	uiDefButI(block, NUM, B_TEXPRV, "Fra:",		802,70,73,19, &(tex->fradur[0][0]), 0.0, MAXFRAMEF, 0, 0, "Montage mode: frame start");
-	uiDefButI(block, NUM, B_TEXPRV, "Fra:",		802,50,73,19, &(tex->fradur[1][0]), 0.0, MAXFRAMEF, 0, 0, "Montage mode: frame start");
-	uiDefButI(block, NUM, B_TEXPRV, "Fra:",		802,30,73,19, &(tex->fradur[2][0]), 0.0, MAXFRAMEF, 0, 0, "Montage mode: frame start");
-	uiDefButI(block, NUM, B_TEXPRV, "Fra:",		802,10,73,19, &(tex->fradur[3][0]), 0.0, MAXFRAMEF, 0, 0, "Montage mode: frame start");
-	uiBlockBeginAlign(block);
-	uiDefButI(block, NUM, B_TEXPRV, "",			879,70,37,19, &(tex->fradur[0][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
-	uiDefButI(block, NUM, B_TEXPRV, "",			879,50,37,19, &(tex->fradur[1][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
-	uiDefButI(block, NUM, B_TEXPRV, "",			879,30,37,19, &(tex->fradur[2][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
-	uiDefButI(block, NUM, B_TEXPRV, "",			879,10,37,19, &(tex->fradur[3][1]), 0.0, 250.0, 0, 0, "Montage mode: amount of displayed frames");
-	uiBlockEndAlign(block);
-	uiDefButBitS(block, TOG, TEX_ANIMCYCLIC, B_TEXPRV, "Cyclic",		743,60,48,19, &tex->imaflag, 0, 0, 0, 0, "Toggles looping of animated frames");
-}
-
-
-static void texture_panel_image(Tex *tex)
-{
-	uiBlock *block;
-	ID *id;
-	char *strp, str[32];
-	
-	block= uiNewBlock(&curarea->uiblocks, "texture_panel_image", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Image", "Texture", 640, 0, 318, 204)==0) return;
-	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
-
-	/* types */
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, TEX_MIPMAP, B_IMAPTEST, "MipMap",	10, 180, 60, 18, &tex->imaflag, 0, 0, 0, 0, "Generates and uses mipmaps");
-	uiDefButBitS(block, TOG, TEX_GAUSS_MIP, 0, "Gauss",			70, 180, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Enable Gauss filter to sample down mipmaps");
-	uiDefButBitS(block, TOG, TEX_INTERPOL, 0, "Interpol",		120, 180, 60, 18, &tex->imaflag, 0, 0, 0, 0, "Interpolates pixels using Area filter");
-	uiDefButBitS(block, TOG, TEX_IMAROT, B_TEXPRV, "Rot90",		180, 180, 40, 18, &tex->imaflag, 0, 0, 0, 0, "Actually flips X and Y for rendering, rotates and mirrors");
-	uiDefButBitS(block, TOG, TEX_ANTIALI, 0, "Anti",			220, 180, 40, 18, &tex->imaflag, 0, 0, 0, 0, "Toggles Image anti-aliasing");
-	uiDefButBitS(block, TOG, TEX_ANIM5, B_RELOADIMA, "Movie",	260, 180, 50, 18, &tex->imaflag, 0, 0, 0, 0, "Click to enable movie frames as Images");
-	
-	uiDefButBitS(block, TOG, TEX_USEALPHA, B_TEXPRV, "UseAlpha",	10, 160, 70, 18, &tex->imaflag, 0, 0, 0, 0, "Click to use Image's alpha channel");
-	uiDefButBitS(block, TOG, TEX_CALCALPHA, B_TEXPRV, "CalcAlpha",	80, 160, 70, 18, &tex->imaflag, 0, 0, 0, 0, "Click to calculate an alpha channel based on Image RGB values");
-	uiDefButBitS(block, TOG, TEX_NEGALPHA, B_TEXPRV, "NegAlpha",	150, 160, 60, 18, &tex->flag, 0, 0, 0, 0, "Click to invert the alpha values");
-	uiDefButBitS(block, TOG, TEX_FIELDS, B_IMAPTEST, "Fields",		210, 160, 60, 18, &tex->imaflag, 0, 0, 0, 0, "Click to enable use of fields in Image");
-	uiDefButBitS(block, TOG, TEX_STD_FIELD, 0, "Odd",				270, 160, 40, 18, &tex->imaflag, 0, 0, 0, 0, "Standard Field Toggle");
-	uiBlockEndAlign(block);
-	
-	/* file input */
-	id= (ID *)tex->ima;
-	IDnames_to_pupstring(&strp, NULL, NULL, &(G.main->image), id, &(G.buts->menunr));
-	if(strp[0]) {
-		uiBlockBeginAlign(block);
-		uiDefButS(block, MENU, B_TEXIMABROWSE, strp, 10,135,23,20, &(G.buts->menunr), 0, 0, 0, 0, "Selects an existing texture or creates new");
 		
-		if(tex->ima) {
-			uiDefBut(block, TEX, B_NAMEIMA, "",			35,135,235,20, tex->ima->name, 0.0, 79.0, 0, 0, "Displays name of the Image file: click to change");
-			uiDefIconBut(block, BUT, B_UNLINKIMA, ICON_X,	270,135,20,20, 0, 0, 0, 0, 0, "Unlink Image block from Texture");
-			
-			sprintf(str, "%d", tex->ima->id.us);
-			uiDefBut(block, BUT, 0, str,				290,135,20,20, 0, 0, 0, 0, 0, "Displays number of users of texture");
-			uiBlockEndAlign(block);
-			
-			uiDefBut(block, BUT, B_RELOADIMA, "Reload",	230,115,80,19, 0, 0, 0, 0, 0, "Reloads Image");
-		
-			if (tex->ima->packedfile) packdummy = 1;
-			else packdummy = 0;
-			
-			uiDefIconButBitI(block, TOG, 1, B_PACKIMA, ICON_PACKAGE, 205,115,24,19, &packdummy, 0, 0, 0, 0, "Toggles Packed status of this Image");
-		}
-		else uiBlockEndAlign(block);
 	}
-	MEM_freeN(strp);
-
-	uiDefBut(block, BUT, B_LOADTEXIMA, "Load Image", 10,115,150,19, 0, 0, 0, 0, 0, "Click to load an Image");
-
-	/* crop extend clip */
-	
-	uiDefButF(block, NUM, B_TEXPRV, "Filter :",			10,92,150,19, &tex->filtersize, 0.1, 25.0, 0, 3, "Sets the filter size used by mipmap and interpol");
-	
-	uiDefButBitS(block, TOG, TEX_NORMALMAP, B_NOP, "Normal Map",	160,92,150,19, &tex->imaflag,
-					0, 0, 0, 0, "Use image RGB values for normal mapping");
-
-	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXREDR_PRV, "Extend",			10,70,63,19, &tex->extend, 4.0, 1.0, 0, 0, "Extends the colour of the edge pixels");
-	uiDefButS(block, ROW, B_TEXREDR_PRV, "Clip",			73,70,48,19, &tex->extend, 4.0, 2.0, 0, 0, "Sets alpha 0.0 outside Image edges");
-	uiDefButS(block, ROW, B_TEXREDR_PRV, "ClipCube",		121,70,63,19, &tex->extend, 4.0, 4.0, 0, 0, "Sets alpha to 0.0 outside cubeshaped area around Image");
-	uiDefButS(block, ROW, B_TEXREDR_PRV, "Repeat",			184,70,63,19, &tex->extend, 4.0, 3.0, 0, 0, "Causes Image to repeat horizontally and vertically");
-	uiDefButS(block, ROW, B_TEXREDR_PRV, "Checker",			247,70,63,19, &tex->extend, 4.0, 5.0, 0, 0, "Causes Image to repeat in checker pattern");
-
-	if(tex->extend==TEX_REPEAT) {
-		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM, B_TEXPRV, "Xrepeat:",	10,50,150,19, &tex->xrepeat, 1.0, 512.0, 0, 0, "Sets a repetition multiplier in the X direction");
-		uiDefButS(block, NUM, B_TEXPRV, "Yrepeat:",	160,50,150,19, &tex->yrepeat, 1.0, 512.0, 0, 0, "Sets a repetition multiplier in the Y direction");
-	}
-	else if(tex->extend==TEX_CHECKER) {
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, TEX_CHECKER_ODD, B_TEXPRV, "Odd",	10,50,100,19, &tex->flag, 0.0, 0.0, 0, 0, "Sets odd checker tiles");
-		uiDefButBitS(block, TOG, TEX_CHECKER_EVEN, B_TEXPRV, "Even",	110,50,100,19, &tex->flag, 0.0, 0.0, 0, 0, "Sets even checker tiles");
-		uiDefButF(block, NUM, B_TEXPRV, "Mortar:",		210,50,100,19, &tex->checkerdist, 0.0, 0.99, 0, 0, "Set checkers distance (like mortar)");
-	}
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_TEXPRV, "MinX ",		10,28,150,19, &tex->cropxmin, -10.0, 10.0, 10, 0, "Sets minimum X value to crop Image");
-	uiDefButF(block, NUM, B_TEXPRV, "MinY ",		10,8,150,19, &tex->cropymin, -10.0, 10.0, 10, 0, "Sets minimum Y value to crop Image");
-
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_TEXPRV, "MaxX ",		160,28,150,19, &tex->cropxmax, -10.0, 10.0, 10, 0, "Sets maximum X value to crop Image");
-	uiDefButF(block, NUM, B_TEXPRV, "MaxY ",		160,8,150,19, &tex->cropymax, -10.0, 10.0, 10, 0, "Sets maximum Y value to crop Image");
-	uiBlockEndAlign(block);
-
 }
 
 static void colorband_pos_cb(void *coba_v, void *unused_v)
@@ -1594,7 +1876,7 @@ void do_worldbuts(unsigned short event)
 		wrld= G.buts->lockpoin;
 		if(wrld && wrld->mtex[(int)wrld->texact] ) {
 			mtex= wrld->mtex[(int)wrld->texact];
-			if(mtex->tex==0) {
+			if(mtex->tex==NULL) {
 				error("No texture available");
 			}
 			else {
@@ -1606,7 +1888,7 @@ void do_worldbuts(unsigned short event)
 	case B_WMTEXPASTE:
 		wrld= G.buts->lockpoin;
 		if(wrld && mtexcopied && mtexcopybuf.tex) {
-			if(wrld->mtex[(int)wrld->texact]==0 ) 
+			if(wrld->mtex[(int)wrld->texact]==NULL ) 
 				wrld->mtex[(int)wrld->texact]= MEM_mallocN(sizeof(MTex), "mtex"); 
 			else if(wrld->mtex[(int)wrld->texact]->tex)
 				wrld->mtex[(int)wrld->texact]->tex->id.us--;
@@ -1641,7 +1923,7 @@ static void world_panel_mapto(World *wrld)
 	uiSetButLock(wrld->id.lib!=0, "Can't edit library data");
 
 	mtex= wrld->mtex[ wrld->texact ];
-	if(mtex==0) {
+	if(mtex==NULL) {
 		mtex= &emptytex;
 		default_mtex(mtex);
 		mtex->texco= TEXCO_VIEW;
@@ -1707,7 +1989,7 @@ static void world_panel_texture(World *wrld)
 	uiBlockEndAlign(block);
 
 	mtex= wrld->mtex[ wrld->texact ];
-	if(mtex==0) {
+	if(mtex==NULL) {
 		mtex= &emptytex;
 		default_mtex(mtex);
 		mtex->texco= TEXCO_VIEW;
@@ -1984,7 +2266,7 @@ void do_lampbuts(unsigned short event)
 		la= G.buts->lockpoin;
 		if(la && la->mtex[(int)la->texact] ) {
 			mtex= la->mtex[(int)la->texact];
-			if(mtex->tex==0) {
+			if(mtex->tex==NULL) {
 				error("No texture available");
 			}
 			else {
@@ -1996,7 +2278,7 @@ void do_lampbuts(unsigned short event)
 	case B_LMTEXPASTE:
 		la= G.buts->lockpoin;
 		if(la && mtexcopied && mtexcopybuf.tex) {
-			if(la->mtex[(int)la->texact]==0 ) 
+			if(la->mtex[(int)la->texact]==NULL ) 
 				la->mtex[(int)la->texact]= MEM_mallocN(sizeof(MTex), "mtex"); 
 			else if(la->mtex[(int)la->texact]->tex)
 				la->mtex[(int)la->texact]->tex->id.us--;
@@ -2026,7 +2308,7 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 	uiSetButLock(la->id.lib!=0, "Can't edit library data");
 
 	mtex= la->mtex[ la->texact ];
-	if(mtex==0) {
+	if(mtex==NULL) {
 		mtex= &emptytex;
 		default_mtex(mtex);
 		mtex->texco= TEXCO_VIEW;
@@ -2085,7 +2367,7 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 	uiBlockEndAlign(block);
 	
 	mtex= la->mtex[ la->texact ];
-	if(mtex==0) {
+	if(mtex==NULL) {
 		mtex= &emptytex;
 		default_mtex(mtex);
 		mtex->texco= TEXCO_VIEW;
@@ -2233,7 +2515,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 		if(la->area_shape==LA_AREA_CUBE) 
 			uiDefButS(block, NUM,0,"Samples:",	100,160,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp x samp)");
 
-		if ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_BOX) {
+		if (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_BOX)) {
 			uiDefButS(block, NUM,0,"SamplesX:",	100,180,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of X samples taken extra");
 			uiDefButS(block, NUM,0,"SamplesY:",	100,160,200,19,	&la->ray_sampy, 1.0, 16.0, 100, 0, "Sets the amount of Y samples taken extra");
 			if(la->area_shape==LA_AREA_BOX)
@@ -2361,16 +2643,16 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 		//uiDefButS(block, MENU, B_LAMPREDRAW, "Shape %t|Square %x0|Rect %x1|Cube %x2|Box %x3",
 		uiDefButS(block, MENU, B_LAMPREDRAW, "Shape %t|Square %x0|Rect %x1",
 				10, 150, 100, 19, &la->area_shape, 0,0,0,0, "Sets area light shape");	
-		if ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_BOX){
+		if (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_BOX)){
 			uiDefButF(block, NUM,B_LAMPREDRAW,"SizeX ",	10,130,100,19, &la->area_size, 0.01, 100.0, 10, 0, "Area light size X, doesn't affect energy amount");
 			uiDefButF(block, NUM,B_LAMPREDRAW,"SizeY ",	10,110,100,19, &la->area_sizey, 0.01, 100.0, 10, 0, "Area light size Y, doesn't affect energy amount");
 		}
 		if(la->area_shape==LA_AREA_BOX)
 			uiDefButF(block, NUM,B_LAMPREDRAW,"SizeZ ",	10,90,100,19, &la->area_sizez, 0.01, 100.0, 10, 0, "Area light size Z, doesn't affect energy amount");
-		if ELEM(la->area_shape, LA_AREA_SQUARE, LA_AREA_CUBE) 
+		if (ELEM(la->area_shape, LA_AREA_SQUARE, LA_AREA_CUBE))
 			uiDefButF(block, NUM,B_LAMPREDRAW,"Size ",	10,130,100,19, &la->area_size, 0.01, 100.0, 10, 0, "Area light size, doesn't affect energy amount");
 	}
-	else if ELEM(la->type, LA_LOCAL, LA_SPOT) {
+	else if( ELEM(la->type, LA_LOCAL, LA_SPOT)) {
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButBitS(block, TOG, LA_QUAD, B_LAMPPRV,"Quad",		10,150,100,19,&la->mode, 0, 0, 0, 0, "Uses inverse quadratic proportion for light attenuation");
 		uiDefButBitS(block, TOG, LA_SPHERE, REDRAWVIEW3D,"Sphere",	10,130,100,19,&la->mode, 0, 0, 0, 0, "Sets light intensity to zero for objects beyond the distance value");
@@ -2396,7 +2678,7 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	uiDefButF(block, COL, B_LAMPPRV, "",		120,52,180,24, &la->r, 0, 0, 0, B_COLLAMP, "");
 	
 	uiBlockBeginAlign(block);
-	if ELEM(la->type, LA_LOCAL, LA_SPOT) {
+	if (ELEM(la->type, LA_LOCAL, LA_SPOT)) {
 		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad1 ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuatation for a quad lamp");
 		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad2 ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuatation for a quad lamp");
 	}
@@ -2561,7 +2843,7 @@ void do_matbuts(unsigned short event)
 	case B_MTEXCOPY:
 		if(ma && ma->mtex[(int)ma->texact] ) {
 			mtex= ma->mtex[(int)ma->texact];
-			if(mtex->tex==0) {
+			if(mtex->tex==NULL) {
 				error("No texture available");
 			}
 			else {
@@ -2572,7 +2854,7 @@ void do_matbuts(unsigned short event)
 		break;
 	case B_MTEXPASTE:
 		if(ma && mtexcopied && mtexcopybuf.tex) {
-			if(ma->mtex[(int)ma->texact]==0 ) 
+			if(ma->mtex[(int)ma->texact]==NULL ) 
 				ma->mtex[(int)ma->texact]= MEM_mallocN(sizeof(MTex), "mtex"); 
 			else if(ma->mtex[(int)ma->texact]->tex)
 				ma->mtex[(int)ma->texact]->tex->id.us--;
@@ -2657,7 +2939,7 @@ static void material_panel_map_to(Material *ma)
 	if(uiNewPanel(curarea, block, "Map To", "Material", 1600, 0, 318, 204)==0) return;
 
 	mtex= ma->mtex[ ma->texact ];
-	if(mtex==0) {
+	if(mtex==NULL) {
 		mtex= &emptytex;
 		default_mtex(mtex);
 	}
@@ -2734,7 +3016,7 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	if(uiNewPanel(curarea, block, "Map Input", "Material", 1280, 0, 318, 204)==0) return;
 
 	mtex= ma->mtex[ ma->texact ];
-	if(mtex==0) {
+	if(mtex==NULL) {
 		mtex= &emptytex;
 		default_mtex(mtex);
 	}
@@ -2835,14 +3117,14 @@ static void material_panel_texture(Material *ma)
 	uiBlockSetCol(block, TH_AUTO);
 	
 	mtex= ma->mtex[ ma->texact ];
-	if(mtex==0) {
+	if(mtex==NULL) {
 		mtex= &emptytex;
 		default_mtex(mtex);
 	}
 
 	/* TEXTUREBLOK SELECT */
 	uiBlockSetCol(block, TH_BUT_SETTING2);
-	if(G.main->tex.first==0)
+	if(G.main->tex.first==NULL)
 		id= NULL;
 	else
 		id= (ID*) mtex->tex;
@@ -3388,7 +3670,7 @@ void material_panels()
 	MTex *mtex;
 	Object *ob= OBACT;
 	
-	if(ob==0) return;
+	if(ob==NULL) return;
 	
 	// type numbers are ordered
 	if((ob->type<OB_LAMP) && ob->type) {
@@ -3537,8 +3819,8 @@ void texture_panels()
 			
 			switch(tex->type) {
 			case TEX_IMAGE:
-				texture_panel_image(tex);
-				texture_panel_image1(tex);
+				texture_panel_image(&tex->ima, &tex->iuser);
+				texture_panel_image_map(tex);
 				break;
 			case TEX_ENVMAP:
 				texture_panel_envmap(tex);
@@ -3589,7 +3871,7 @@ void radio_panels()
 	int flag;
 	
 	rad= G.scene->radio;
-	if(rad==0) {
+	if(rad==NULL) {
 		add_radio();
 		rad= G.scene->radio;
 	}

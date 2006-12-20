@@ -120,7 +120,7 @@
 #include "BKE_effect.h" // for give_parteff
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
-#include "BKE_property.h" // for get_property
+#include "BKE_image.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h" // for wich_libbase
 #include "BKE_main.h" // for Main
@@ -128,6 +128,7 @@
 #include "BKE_modifier.h"
 #include "BKE_node.h" // for tree type defines
 #include "BKE_object.h"
+#include "BKE_property.h" // for get_property
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
 #include "BKE_softbody.h"	// sbNew()
@@ -1108,8 +1109,9 @@ void blo_make_image_pointer_map(FileData *fd)
 	fd->imamap= oldnewmap_new();
 	
 	for(;ima; ima= ima->id.next) {
-		if(ima->ibuf)
-			oldnewmap_insert(fd->imamap, ima->ibuf, ima->ibuf, 0);
+		Link *ibuf= ima->ibufs.first;
+		for(; ibuf; ibuf= ibuf->next) 
+			oldnewmap_insert(fd->imamap, ibuf, ibuf, 0);
 	}
 	for(; sce; sce= sce->id.next) {
 		if(sce->nodetree) {
@@ -1136,11 +1138,15 @@ void blo_end_image_pointer_map(FileData *fd)
 	}
 	
 	for(;ima; ima= ima->id.next) {
-		if(ima->ibuf) {
-			ima->ibuf= newimaadr(fd, ima->ibuf);
-			/* this mirrors direct_link_image */
-			if(ima->ibuf==NULL)
+		Link *ibuf, *next;
+		
+		/* this mirrors direct_link_image */
+		for(ibuf= ima->ibufs.first; ibuf; ibuf= next) {
+			next= ibuf->next;
+			if(NULL==newimaadr(fd, ibuf)) {	/* so was restored */
+				BLI_remlink(&ima->ibufs, ibuf);
 				ima->bindcode= 0;
+			}
 		}
 	}
 	for(; sce; sce= sce->id.next) {
@@ -1213,11 +1219,11 @@ static void link_list(FileData *fd, ListBase *lb)		/* only direct data */
 {
 	Link *ln, *prev;
 
-	if(lb->first==0) return;
+	if(lb->first==NULL) return;
 
 	lb->first= newdataadr(fd, lb->first);
 	ln= lb->first;
-	prev= 0;
+	prev= NULL;
 	while(ln) {
 		ln->next= newdataadr(fd, ln->next);
 		ln->prev= prev;
@@ -1480,9 +1486,12 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 			/* could be handlerized at some point */
 			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
 				direct_link_curvemapping(fd, node->storage);
-			else if(ntree->type==NTREE_COMPOSIT && (node->type==CMP_NODE_TIME || node->type==CMP_NODE_CURVE_VEC || node->type==CMP_NODE_CURVE_RGB))
-				direct_link_curvemapping(fd, node->storage);
-			
+			else if(ntree->type==NTREE_COMPOSIT) {
+				if( ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB))
+					direct_link_curvemapping(fd, node->storage);
+				else if(ELEM3(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
+					((ImageUser *)node->storage)->ok= 1;
+			}
 		}
 		link_list(fd, &node->inputs);
 		link_list(fd, &node->outputs);
@@ -2167,16 +2176,38 @@ static void lib_link_image(FileData *fd, Main *main)
 	}
 }
 
+static void link_ibuf_list(FileData *fd, ListBase *lb)
+{
+	Link *ln, *prev;
+	
+	if(lb->first==NULL) return;
+	
+	lb->first= newimaadr(fd, lb->first);
+	ln= lb->first;
+	prev= NULL;
+	while(ln) {
+		ln->next= newimaadr(fd, ln->next);
+		ln->prev= prev;
+		prev= ln;
+		ln= ln->next;
+	}
+	lb->last= prev;
+}
+
 static void direct_link_image(FileData *fd, Image *ima)
 {
 	/* for undo system, pointers could be restored */
-	ima->ibuf= newimaadr(fd, ima->ibuf);
-	/* if restored, we keep the binded opengl index */
-	if(ima->ibuf==NULL)
+	if(fd->imamap)
+		link_ibuf_list(fd, &ima->ibufs);
+	else
+		ima->ibufs.first= ima->ibufs.last= NULL;
+	
+	/* if not restored, we keep the binded opengl index */
+	if(ima->ibufs.first==NULL)
 		ima->bindcode= 0;
 	
-	memset(ima->mipmap, 0, sizeof(ima->mipmap));
 	ima->anim= NULL;
+	ima->rr= NULL;
 	ima->repbind= NULL;
 	
 	ima->packedfile = direct_link_packedfile(fd, ima->packedfile);
@@ -2319,10 +2350,11 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	tex->coba= newdataadr(fd, tex->coba);
 	tex->env= newdataadr(fd, tex->env);
 	if(tex->env) {
-		tex->env->ima= 0;
+		tex->env->ima= NULL;
 		memset(tex->env->cube, 0, 6*sizeof(void *));
 		tex->env->ok= 0;
 	}
+	tex->iuser.ok= 1;
 }
 
 
@@ -3304,10 +3336,8 @@ static void lib_link_screen_sequence_ipos(Main *main)
 	bScreen *sc;
 	ScrArea *sa;
 
-	sc= main->screen.first;
-	while(sc) {
-		sa= sc->areabase.first;
-		while(sa) {
+	for(sc= main->screen.first; sc; sc= sc->id.next) {
+		for(sa= sc->areabase.first; sa; sa= sa->next) {
 			SpaceLink *sl;
 			for (sl= sa->spacedata.first; sl; sl= sl->next) {
 				if(sl->spacetype == SPACE_IPO) {
@@ -3317,9 +3347,7 @@ static void lib_link_screen_sequence_ipos(Main *main)
 					}
 				}
 			}
-			sa= sa->next;
 		}
-		sc= sc->id.next;
 	}
 }
 
@@ -3332,8 +3360,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 	bScreen *sc;
 	ScrArea *sa;
 
-	sc= main->screen.first;
-	while(sc) {
+	for(sc= main->screen.first; sc; sc= sc->id.next) {
 		if(sc->id.flag & LIB_NEEDLINK) {
 			sc->id.us= 1;
 			sc->scene= newlibadr(fd, sc->id.lib, sc->scene);
@@ -3356,8 +3383,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 
 						if(v3d->bgpic) {
 							v3d->bgpic->ima= newlibadr_us(fd, sc->id.lib, v3d->bgpic->ima);
-							v3d->bgpic->tex= newlibadr_us(fd, sc->id.lib, v3d->bgpic->tex);
-							v3d->bgpic->rect= NULL;
 						}
 						if(v3d->localvd) {
 							v3d->localvd->camera= newlibadr(fd, sc->id.lib, v3d->localvd->camera);
@@ -3384,9 +3409,11 @@ static void lib_link_screen(FileData *fd, Main *main)
 					else if(sl->spacetype==SPACE_FILE) {
 						SpaceFile *sfile= (SpaceFile *)sl;
 
-						sfile->filelist= 0;
-						sfile->libfiledata= 0;
-						sfile->returnfunc= 0;
+						sfile->filelist= NULL;
+						sfile->libfiledata= NULL;
+						sfile->returnfunc= NULL;
+						sfile->menup= NULL;
+						sfile->pupmenu= NULL;
 					}
 					else if(sl->spacetype==SPACE_IMASEL) {
 						check_imasel_copy((SpaceImaSel *)sl);
@@ -3446,7 +3473,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 			}
 			sc->id.flag -= LIB_NEEDLINK;
 		}
-		sc= sc->id.next;
 	}
 }
 
@@ -3484,8 +3510,7 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 	bScreen *sc;
 	ScrArea *sa;
 
-	sc= newmain->screen.first;
-	while(sc) {
+	for(sc= newmain->screen.first; sc; sc= sc->id.next) {
 		
 		sc->scene= curscene;
 
@@ -3514,9 +3539,6 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 					
 					if(v3d->bgpic) {
 						v3d->bgpic->ima= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->ima, 1);
-						v3d->bgpic->tex= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->tex, 1);
-						if(v3d->bgpic->rect) MEM_freeN(v3d->bgpic->rect);
-						v3d->bgpic->rect= NULL;
 					}
 					if(v3d->localvd) {
 						Base *base;
@@ -3624,10 +3646,7 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 			}
 			sa= sa->next;
 		}
-
-		sc= sc->id.next;
 	}
-
 }
 
 static void direct_link_screen(FileData *fd, bScreen *sc)
@@ -3693,6 +3712,8 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			if (sl->spacetype==SPACE_VIEW3D) {
 				View3D *v3d= (View3D*) sl;
 				v3d->bgpic= newdataadr(fd, v3d->bgpic);
+				if(v3d->bgpic)
+					v3d->bgpic->iuser.ok= 1;
 				v3d->localvd= newdataadr(fd, v3d->localvd);
 				v3d->afterdraw.first= v3d->afterdraw.last= NULL;
 				v3d->clipbb= newdataadr(fd, v3d->clipbb);
@@ -3723,7 +3744,9 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				sima->cumap= newdataadr(fd, sima->cumap);
 				if(sima->cumap)
 					direct_link_curvemapping(fd, sima->cumap);
-				sima->info_str= NULL;
+				sima->info_str= sima->info_spare= NULL;
+				sima->spare= NULL;
+				sima->iuser.ok= 1;
 			}
 			else if(sl->spacetype==SPACE_NODE) {
 				SpaceNode *snode= (SpaceNode *)sl;
@@ -4049,10 +4072,6 @@ static void link_global(FileData *fd, BlendFileData *bfd, FileGlobal *fg)
 	bfd->displaymode= fg->displaymode;
 	bfd->globalf= fg->globalf;
 	
-	bfd->main->subversionfile= fg->subversion;
-	bfd->main->minversionfile= fg->minversion;
-	bfd->main->minsubversionfile= fg->minsubversion;
-	
 	bfd->curscreen= newlibadr(fd, 0, fg->curscreen);
 	bfd->curscene= newlibadr(fd, 0, fg->curscene);
 	// this happens in files older than 2.35
@@ -4240,6 +4259,40 @@ static void customdata_version_242(Mesh *me)
 	mesh_update_customdata_pointers(me);
 }
 
+/* struct NodeImageAnim moved to ImageUser, and we make it default available */
+static void do_version_ntree_242_2(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree->type==NTREE_COMPOSIT) {
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(ELEM3(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+				/* only image had storage */
+				if(node->storage) {
+					NodeImageAnim *nia= node->storage;
+					ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "ima user node");
+
+					iuser->frames= nia->frames;
+					iuser->sfra= nia->sfra;
+					iuser->offset= nia->nr-1;
+					iuser->cycl= nia->cyclic;
+					iuser->fie_ima= 2;
+					iuser->ok= 1;
+					
+					node->storage= iuser;
+					MEM_freeN(nia);
+				}
+				else {
+					ImageUser *iuser= node->storage= MEM_callocN(sizeof(ImageUser), "node image user");
+					iuser->sfra= 1;
+					iuser->fie_ima= 2;
+					iuser->ok= 1;
+				}
+			}
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -4258,10 +4311,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 
-				if(tex->imaflag & TEX_ANIM5) {
-					tex->imaflag |= TEX_MORKPATCH;
-					tex->imaflag |= TEX_ANTIALI;
-				}
 			}
 			tex= tex->id.next;
 		}
@@ -6169,7 +6218,71 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		sort_shape_fix(main);
 		
 		/* now, subversion control! */
-		if(main->subversionfile < 1) {
+		if(main->subversionfile < 3) {
+			bScreen *sc;
+			Image *ima;
+			Tex *tex;
+			Scene *sce;
+			bNodeTree *ntree;
+			
+			/* Image refactor initialize */
+			for(ima= main->image.first; ima; ima= ima->id.next) {
+				ima->source= IMA_SRC_FILE;
+				ima->type= IMA_TYPE_IMAGE;
+				
+				ima->gen_x= 256; ima->gen_y= 256;
+				ima->gen_type= 1;
+				
+				if(0==strncmp(ima->id.name+2, "Viewer Node", sizeof(ima->id.name+2))) {
+					ima->source= IMA_SRC_VIEWER;
+					ima->type= IMA_TYPE_COMPOSITE;
+				}
+				if(0==strncmp(ima->id.name+2, "Render Result", sizeof(ima->id.name+2))) {
+					ima->source= IMA_SRC_VIEWER;
+					ima->type= IMA_TYPE_R_RESULT;
+				}
+				
+			}
+			for(tex= main->tex.first; tex; tex= tex->id.next) {
+				if(tex->type==TEX_IMAGE && tex->ima) {
+					ima= newlibadr(fd, lib, tex->ima);
+					if(tex->imaflag & TEX_ANIM5_)
+						ima->source= IMA_SRC_MOVIE;
+					if(tex->imaflag & TEX_FIELDS_)
+						ima->flag |= IMA_FIELDS;
+					if(tex->imaflag & TEX_STD_FIELD_)
+						ima->flag |= IMA_STD_FIELD;
+					if(tex->imaflag & TEX_ANTIALI_)
+						ima->flag |= IMA_ANTIALI;
+				}
+				tex->iuser.frames= tex->frames;
+				tex->iuser.fie_ima= tex->fie_ima;
+				tex->iuser.offset= tex->offset;
+				tex->iuser.sfra= tex->sfra;
+				tex->iuser.cycl= (tex->imaflag & TEX_ANIMCYCLIC_)!=0;
+			}
+			for(sce= main->scene.first; sce; sce= sce->id.next) {
+				if(sce->nodetree)
+					do_version_ntree_242_2(sce->nodetree);
+			}
+			for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next)
+				do_version_ntree_242_2(ntree);
+			
+			for(sc= main->screen.first; sc; sc= sc->id.next) {
+				ScrArea *sa;
+				for(sa= sc->areabase.first; sa; sa= sa->next) {
+					SpaceLink *sl;
+					for (sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_IMAGE)
+							((SpaceImage *)sl)->iuser.fie_ima= 2;
+						else if(sl->spacetype==SPACE_VIEW3D) {
+							View3D *v3d= (View3D *)sl;
+							if(v3d->bgpic)
+								v3d->bgpic->iuser.fie_ima= 2;
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -6252,6 +6365,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 		case REND:
 			if (bhead->code==GLOB) {
 				fg= read_struct(fd, bhead, "Global");
+				/* set right away */
+				bfd->main->subversionfile= fg->subversion;
+				bfd->main->minversionfile= fg->minversion;
+				bfd->main->minsubversionfile= fg->minsubversion;
 			}
 			bhead = blo_nextbhead(fd, bhead);
 			break;

@@ -490,6 +490,9 @@ static void do_node_nodemenu(void *arg, int event)
 		case 9: /* show cyclic */
 			ntreeSolveOrder(snode->edittree);
 			break;
+		case 10: /* execute */
+			addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
+			break;
 	}
 	
 	if(fromlib==-1) error("Can't edit Library Data");
@@ -525,8 +528,10 @@ static uiBlock *node_nodemenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if(snode->treetype==NTREE_COMPOSIT)
+	if(snode->treetype==NTREE_COMPOSIT) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Execute Composite|E", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Read Saved Render Results|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Cyclic Dependencies|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	
 	if(curarea->headertype==HEADERTOP) {

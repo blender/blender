@@ -699,10 +699,12 @@ static void icon_from_image(Image *img, RenderInfo *ri)
 	/* new rule: never read images, so icons get created while user works, 
 	    not always on first use of a menu */
 	if(!img->preview) {
-		if(img->ibuf==NULL || img->ibuf->rect==NULL) {				
+		ImBuf *ibuf;
+		if(img->ok!=IMA_OK_LOADED) {				
 			return;
 		}
-		icon_copy_rect(img->ibuf, ri);
+		ibuf= BKE_image_get_ibuf(img, NULL);
+		icon_copy_rect(ibuf, ri);
 		
 		/* now copy the created preview to the DNA struct to be saved in file */
 		img->preview = MEM_callocN(sizeof(PreviewImage), "img_prv");

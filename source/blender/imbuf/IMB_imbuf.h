@@ -315,6 +315,7 @@ void IMB_antialias(struct ImBuf * ibuf);
 void IMB_filter(struct ImBuf *ibuf);
 void IMB_filterN(struct ImBuf *out, struct ImBuf *in);
 void IMB_filter_extend(struct ImBuf *ibuf);
+void IMB_makemipmap(struct ImBuf *ibuf, int use_filter);
 
 /**
  *
@@ -537,6 +538,7 @@ void imb_freerectImBuf(struct ImBuf * ibuf);
 
 short imb_addrectfloatImBuf(struct ImBuf * ibuf);
 void imb_freerectfloatImBuf(struct ImBuf * ibuf);
+void imb_freemipmapImBuf(struct ImBuf * ibuf);
 
 #ifdef WITH_QUICKTIME
 /**

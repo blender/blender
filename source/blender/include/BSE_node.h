@@ -44,6 +44,8 @@ struct bNodeTree;
 struct Material;
 struct ID;
 struct Scene;
+struct Image;
+struct ImageUser;
 
 /* ************* API for editnode.c *********** */
 
@@ -81,6 +83,12 @@ void node_adduplicate(struct SpaceNode *snode);
 
 void snode_autoconnect(struct SpaceNode *snode, struct bNode *node_to, int flag);
 void node_select_linked(struct SpaceNode *snode, int out);
+
+struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);
+
+void imagepaint_composite_tags(struct bNodeTree *ntree, struct Image *image, struct ImageUser *iuser);
+
+
 
 /* ************* drawnode.c *************** */
 struct SpaceNode;

@@ -4347,7 +4347,7 @@ static void init_imaselspace(ScrArea *sa)
 	simasel->firstdir		=  0;
 	simasel->firstfile		=  0;
 	simasel->cmap           =  0;
-	simasel->returnfunc     =  0;
+	simasel->returnfunc     =  NULL;
 	
 	simasel->title[0]       =  0;
 	
@@ -4589,7 +4589,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	/* Events handled always (whether the draw tool is active or not) */
 	switch (event) {
 	case UI_BUT_EVENT:
-		do_imagebuts(val);	/* drawimage.c */
+		do_image_buttons(val);	/* header_image.c */
 		break;
 	case MIDDLEMOUSE:
 		if((G.qual==LR_CTRLKEY) || ((U.flag & USER_TWOBUTTONMOUSE) && (G.qual==(LR_ALTKEY|LR_CTRLKEY))))
@@ -4665,6 +4665,10 @@ static void init_imagespace(ScrArea *sa)
 	sima->zoom= 1;
 	sima->blockscale= 0.7;
 	sima->flag = SI_LOCALSTICKY;
+
+	sima->iuser.ok= 1;
+	sima->iuser.fie_ima= 2;
+	sima->iuser.frames= 100;
 }
 
 
@@ -5216,14 +5220,14 @@ void newspace(ScrArea *sa, int type)
 			sfile->type= FILE_UNIX;
 		}
 		
-		sfile->returnfunc= 0;
+		sfile->returnfunc= NULL;
 		sfile->title[0]= 0;
 		if(sfile->filelist) test_flags_file(sfile);
 	}
 	/* exception: imasel space */
 	else if(sa->spacetype==SPACE_IMASEL) {
 		SpaceImaSel *simasel= sa->spacedata.first;
-		simasel->returnfunc= 0;
+		simasel->returnfunc= NULL;
 		simasel->title[0]= 0;
 	}
 	else if(sa->spacetype==SPACE_OOPS) {
@@ -5248,6 +5252,8 @@ void freespacelist(ScrArea *sa)
 				BLO_blendhandle_close(sfile->libfiledata);
 			if(sfile->filelist)
 				freefilelist(sfile);
+			if(sfile->pupmenu)
+				MEM_freeN(sfile->pupmenu);
 		}
 		else if(sl->spacetype==SPACE_BUTS) {
 			SpaceButs *buts= (SpaceButs*) sl;
@@ -5266,7 +5272,6 @@ void freespacelist(ScrArea *sa)
 		else if(sl->spacetype==SPACE_VIEW3D) {
 			View3D *vd= (View3D*) sl;
 			if(vd->bgpic) {
-				if(vd->bgpic->rect) MEM_freeN(vd->bgpic->rect);
 				if(vd->bgpic->ima) vd->bgpic->ima->id.us--;
 				MEM_freeN(vd->bgpic);
 			}
@@ -5312,6 +5317,10 @@ void freespacelist(ScrArea *sa)
 				curvemapping_free(sima->cumap);
 			if(sima->info_str)
 				MEM_freeN(sima->info_str);
+			if(sima->info_spare)
+				MEM_freeN(sima->info_spare);
+			if(sima->spare)
+				IMB_freeImBuf(sima->spare);
 		}
 		else if(sl->spacetype==SPACE_NODE) {
 /*			SpaceNode *snode= (SpaceNode *)sl; */
@@ -5321,6 +5330,7 @@ void freespacelist(ScrArea *sa)
 	BLI_freelistN(&sa->spacedata);
 }
 
+/* can be called for area-full, so it should keep interesting stuff */
 void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 {
 	SpaceLink *sl;
@@ -5333,8 +5343,10 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 	while(sl) {
 		if(sl->spacetype==SPACE_FILE) {
 			SpaceFile *sfile= (SpaceFile*) sl;
-			sfile->libfiledata= 0;
-			sfile->filelist= 0;
+			sfile->libfiledata= NULL;
+			sfile->filelist= NULL;
+			sfile->pupmenu= NULL;
+			sfile->menup= NULL;
 		}
 		else if(sl->spacetype==SPACE_VIEW3D) {
 			View3D *v3d= (View3D*)sl;
@@ -5351,6 +5363,10 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 		else if(sl->spacetype==SPACE_IMASEL) {
 			check_imasel_copy((SpaceImaSel *) sl);
 		}
+		else if(sl->spacetype==SPACE_IMAGE) {
+			SpaceImage *sima= (SpaceImage *)sl;
+			sima->spare= NULL;
+		}
 		else if(sl->spacetype==SPACE_NODE) {
 			SpaceNode *snode= (SpaceNode *)sl;
 			snode->nodetree= NULL;
@@ -5359,6 +5375,8 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 		sl= sl->next;
 	}
 	
+	/* but some things we copy */
+	
 	sl= lb1->first;
 	while(sl) {
 		sl->area= newarea;
@@ -5366,6 +5384,10 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 		if(sl->spacetype==SPACE_BUTS) {
 			SpaceButs *buts= (SpaceButs *)sl;
 			buts->ri= NULL;
+		}
+		else if(sl->spacetype==SPACE_FILE) {
+			SpaceFile *sfile= (SpaceFile*) sl;
+			sfile->menup= NULL;
 		}
 		else if(sl->spacetype==SPACE_IPO) {
 			SpaceIpo *si= (SpaceIpo *)sl;
@@ -5376,7 +5398,6 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			View3D *vd= (View3D *)sl;
 			if(vd->bgpic) {
 				vd->bgpic= MEM_dupallocN(vd->bgpic);
-				vd->bgpic->rect= NULL;
 				if(vd->bgpic->ima) vd->bgpic->ima->id.us++;
 			}
 			vd->clipbb= MEM_dupallocN(vd->clipbb);
@@ -5389,6 +5410,8 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 				sima->cumap= curvemapping_copy(sima->cumap);
 			if(sima->info_str)
 				sima->info_str= MEM_dupallocN(sima->info_str);
+			if(sima->info_spare)
+				sima->info_spare= MEM_dupallocN(sima->info_spare);
 		}
 		sl= sl->next;
 	}

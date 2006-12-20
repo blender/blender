@@ -182,6 +182,7 @@ typedef struct bNodeTree {
 
 /* data structs, for node->storage */
 
+/* this one has been replaced with ImageUser, keep it for do_versions() */
 typedef struct NodeImageAnim {
 	int frames, sfra, nr;
 	char cyclic, movie;

@@ -49,17 +49,20 @@
 #include "BLI_arithb.h"
 
 #include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
 
+#include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_node_types.h"
+#include "DNA_object_types.h" // only for uvedit_selectionCB() (struct Object)
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_space_types.h"
-#include "DNA_image_types.h"
-#include "DNA_object_types.h" // only for uvedit_selectionCB() (struct Object)
+#include "DNA_view3d_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
@@ -69,6 +72,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_packedFile.h"
 #include "BKE_utildefines.h"
@@ -96,6 +100,8 @@
 #include "BDR_unwrapper.h"
 
 #include "BMF_Api.h"
+
+#include "RE_pipeline.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -142,10 +148,10 @@ int is_uv_tface_editing_allowed(void)
 
 void get_connected_limit_tface_uv(float *limit)
 {
-	if(G.sima->image && G.sima->image->ibuf && G.sima->image->ibuf->x > 0 &&
-	   G.sima->image->ibuf->y > 0) {
-		limit[0]= 0.05/(float)G.sima->image->ibuf->x;
-		limit[1]= 0.05/(float)G.sima->image->ibuf->y;
+	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
+		limit[0]= 0.05/(float)ibuf->x;
+		limit[1]= 0.05/(float)ibuf->y;
 	}
 	else
 		limit[0]= limit[1]= 0.05/256.0;
@@ -154,18 +160,20 @@ void get_connected_limit_tface_uv(float *limit)
 void clever_numbuts_sima(void)
 {
 	float ocent[2], cent[2]= {0.0, 0.0};
-	int imx, imy;
+	int imx= 256, imy= 256;
 	int i, nactive= 0;
 	Mesh *me;
 	
 	if( is_uv_tface_editing_allowed()==0 ) return;
 	me= get_mesh(OBACT);
 	
-	if (G.sima->image && G.sima->image->ibuf) {
-		imx= G.sima->image->ibuf->x;
-		imy= G.sima->image->ibuf->y;
-	} else
-		imx= imy= 256;
+	if (G.sima->image) {
+		ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+		if(ibuf) {
+			imx= ibuf->x;
+			imy= ibuf->y;
+		}
+	}
 	
 	for (i=0; i<me->totface; i++) {
 		MFace *mf= &((MFace*) me->mface)[i];
@@ -312,9 +320,11 @@ void transform_aspect_ratio_tface_uv(float *aspx, float *aspy)
 
 void transform_width_height_tface_uv(int *width, int *height)
 {
-	if(G.sima->image && G.sima->image->ibuf) {
-		*width= G.sima->image->ibuf->x;
-		*height= G.sima->image->ibuf->y;
+	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+
+	if(ibuf) {
+		*width= ibuf->x;
+		*height= ibuf->y;
 	}
 	else {
 		*width= 256;
@@ -861,14 +871,14 @@ void sel_uvco_inside_radius(short sel, MTFace *tface, int index, float *offset, 
 /** gets image dimensions of the 2D view 'v' */
 static void getSpaceImageDimension(SpaceImage *sima, float *xy)
 {
-	Image *img = sima->image;
+	ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
 	float z;
 
 	z = sima->zoom;
 
-	if (img && img->ibuf) {
-		xy[0] = img->ibuf->x * z;
-		xy[1] = img->ibuf->y * z;
+	if (ibuf) {
+		xy[0] = ibuf->x * z;
+		xy[1] = ibuf->y * z;
 	} else {
 		xy[0] = 256 * z;
 		xy[1] = 256 * z;
@@ -1049,13 +1059,15 @@ void stitch_uv_tface(int mode)
 			return;
 	}
 
-	if(G.sima->image && G.sima->image->ibuf && G.sima->image->ibuf->x > 0 &&
-	   G.sima->image->ibuf->y > 0) {
-		limit[1]= limit[0]/(float)G.sima->image->ibuf->y;
-		limit[0]= limit[0]/(float)G.sima->image->ibuf->x;
+	limit[0]= limit[1]= limit[0]/256.0;
+	if(G.sima->image) {
+		ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+
+		if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
+			limit[1]= limit[0]/(float)ibuf->y;
+			limit[0]= limit[0]/(float)ibuf->x;
+		}
 	}
-	else
-		limit[0]= limit[1]= limit[0]/256.0;
 
 	me= get_mesh(OBACT);
 	tf= me->mtface;
@@ -1418,7 +1430,7 @@ int minmax_tface_uv(float *min, float *max)
 	return sel;
 }
 
-static void sima_show_info(int x, int y, char *cp, float *fp, int *zp, float *zpf)
+static void sima_show_info(int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf)
 {
 	short ofs;
 	char str[256];
@@ -1426,8 +1438,14 @@ static void sima_show_info(int x, int y, char *cp, float *fp, int *zp, float *zp
 	ofs= sprintf(str, "X: %d Y: %d ", x, y);
 	if(cp)
 		ofs+= sprintf(str+ofs, "| R: %d G: %d B: %d A: %d ", cp[0], cp[1], cp[2], cp[3]);
-	if(fp)
-		ofs+= sprintf(str+ofs, "| R: %.3f G: %.3f B: %.3f A: %.3f ", fp[0], fp[1], fp[2], fp[3]);
+	if(fp) {
+		if(channels==4)
+			ofs+= sprintf(str+ofs, "| R: %.3f G: %.3f B: %.3f A: %.3f ", fp[0], fp[1], fp[2], fp[3]);
+		else if(channels==1)
+			ofs+= sprintf(str+ofs, "| Val: %.3f ", fp[0]);
+		else if(channels==3)
+			ofs+= sprintf(str+ofs, "| R: %.3f G: %.3f B: %.3f ", fp[0], fp[1], fp[2]);
+	}
 	if(zp)
 		ofs+= sprintf(str+ofs, "| Z: %.4f ", 0.5+0.5*( ((float)*zp)/(float)0x7fffffff));
 	if(zpf)
@@ -1449,13 +1467,12 @@ static void sima_show_info(int x, int y, char *cp, float *fp, int *zp, float *zp
 
 void sima_sample_color(void)
 {
-	ImBuf *ibuf;
+	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
 	float fx, fy;
 	short mval[2], mvalo[2], firsttime=1;
 	
-	if(G.sima->image==NULL) return;
-	if(G.sima->image->ibuf==NULL) return;
-	ibuf= G.sima->image->ibuf;
+	if(ibuf==NULL)
+		return;
 	
 	calc_image_view(G.sima, 'f');
 	getmouseco_areawin(mvalo);
@@ -1485,7 +1502,7 @@ void sima_sample_color(void)
 				if(ibuf->zbuf_float)
 					zpf= ibuf->zbuf_float + y*ibuf->x + x;
 				if(ibuf->rect_float)
-					fp= (ibuf->rect_float + 4*(y*ibuf->x + x));
+					fp= (ibuf->rect_float + (ibuf->channels)*(y*ibuf->x + x));
 					
 				if(G.sima->cumap) {
 					float vec[3];
@@ -1496,20 +1513,22 @@ void sima_sample_color(void)
 						vec[2]= (float)cp[2]/255.0f;
 					}
 					
-					if(G.qual & LR_CTRLKEY) {
-						curvemapping_set_black_white(G.sima->cumap, NULL, fp);
-						curvemapping_do_image(G.sima->cumap, G.sima->image);
-					}
-					else if(G.qual & LR_SHIFTKEY) {
-						curvemapping_set_black_white(G.sima->cumap, fp, NULL);
-						curvemapping_do_image(G.sima->cumap, G.sima->image);
+					if(ibuf->channels==4) {
+						if(G.qual & LR_CTRLKEY) {
+							curvemapping_set_black_white(G.sima->cumap, NULL, fp);
+							curvemapping_do_ibuf(G.sima->cumap, ibuf);
+						}
+						else if(G.qual & LR_SHIFTKEY) {
+							curvemapping_set_black_white(G.sima->cumap, fp, NULL);
+							curvemapping_do_ibuf(G.sima->cumap, ibuf);
+						}
 					}
 				}
 				
 				scrarea_do_windraw(curarea);
 				myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
 				glLoadIdentity();
-				sima_show_info(x, y, cp, fp, zp, zpf);
+				sima_show_info(ibuf->channels, x, y, cp, fp, zp, zpf);
 				screen_swapbuffers();
 			}
 			
@@ -1524,20 +1543,19 @@ void sima_sample_color(void)
 
 static void load_image_filesel(char *str)	/* called from fileselect */
 {
-	Image *ima=0;
+	Image *ima= NULL;
  
 	if(G.obedit) {
 		error("Can't perfom this in editmode");
 		return;
 	}
 
-	ima= add_image(str);
+	ima= BKE_add_image_file(str);
 	if(ima) {
 
 		G.sima->image= ima;
 
-		free_image_buffers(ima);	/* force read again */
-		ima->ok= 1;
+		BKE_image_signal(ima, &G.sima->iuser, IMA_SIGNAL_RELOAD);
 		image_changed(G.sima, 0);
 
 	}
@@ -1591,7 +1609,7 @@ static void replace_image_filesel(char *str)		/* called from fileselect */
 		return;
 	}
 
-	ima= add_image(str);
+	ima= BKE_add_image_file(str);
 	if(ima) {
  
 		if(G.sima->image && G.sima->image != ima) {
@@ -1600,8 +1618,8 @@ static void replace_image_filesel(char *str)		/* called from fileselect */
  
 		G.sima->image= ima;
 
-		free_image_buffers(ima);	/* force read again */
-		ima->ok= 1;
+		BKE_image_signal(ima, &G.sima->iuser, IMA_SIGNAL_RELOAD);
+
 		/* replace also assigns: */
 		image_changed(G.sima, 0);
 
@@ -1610,42 +1628,69 @@ static void replace_image_filesel(char *str)		/* called from fileselect */
 	allqueue(REDRAWIMAGE, 0);
 }
 
-static void save_image_filesel(char *name)
+
+static void save_image_doit(char *name)
 {
-	Image *ima = G.sima->image;
+	Image *ima= G.sima->image;
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
 	int len;
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
-	if (ima && ima->ibuf) {
+	if (ibuf) {
 		BLI_strncpy(str, name, sizeof(str));
 
 		BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
 		
 		if(G.scene->r.scemode & R_EXTENSION) 
-			BKE_add_image_extension(str, G.scene->r.imtype);
-
+			BKE_add_image_extension(str, G.sima->imtypenr);
+		
 		if (saveover(str)) {
+			
 			/* enforce user setting for RGB or RGBA, but skip BW */
 			if(G.scene->r.planes==32)
-				ima->ibuf->depth= 32;
+				ibuf->depth= 32;
 			else if(G.scene->r.planes==24)
-				ima->ibuf->depth= 24;
+				ibuf->depth= 24;
 			
 			waitcursor(1);
-			if (BKE_write_ibuf(ima->ibuf, str, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality)) {
+			if(G.sima->imtypenr==R_MULTILAYER) {
+				RenderResult *rr= BKE_image_get_renderresult(ima);
+				if(rr) {
+					RE_WriteRenderResult(rr, str);
+					
+					BLI_strncpy(ima->name, name, sizeof(ima->name));
+					BLI_strncpy(ibuf->name, str, sizeof(ibuf->name));
+					
+					/* should be function? nevertheless, saving only happens here */
+					for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next)
+						ibuf->userflags &= ~IB_BITMAPDIRTY;
+					
+				}
+				else error("Did not write, no Multilayer Image");
+			}
+			else if (BKE_write_ibuf(ibuf, str, G.sima->imtypenr, G.scene->r.subimtype, G.scene->r.quality)) {
 				BLI_strncpy(ima->name, name, sizeof(ima->name));
-				BLI_strncpy(ima->ibuf->name, str, sizeof(ima->ibuf->name));
-				ima->ibuf->userflags &= ~IB_BITMAPDIRTY;
-				allqueue(REDRAWHEADERS, 0);
-				allqueue(REDRAWBUTSSHADING, 0);
-			} else {
+				BLI_strncpy(ibuf->name, str, sizeof(ibuf->name));
+				
+				ibuf->userflags &= ~IB_BITMAPDIRTY;
+				
+				/* change type? */
+				if( ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER))
+					ima->source= IMA_SRC_FILE;
+				if(ima->type==IMA_TYPE_R_RESULT)
+					ima->type= IMA_TYPE_IMAGE;
+				
+				/* name image as how we saved it */
+				len= strlen(str);
+				while (len > 0 && str[len - 1] != '/' && str[len - 1] != '\\') len--;
+				rename_id(&ima->id, str+len);
+			} 
+			else {
 				error("Couldn't write image: %s", str);
 			}
-			
-			/* name image as how we saved it */
-			len= strlen(str);
-			while (len > 0 && str[len - 1] != '/' && str[len - 1] != '\\') len--;
-			rename_id(&ima->id, str+len);
+
+			allqueue(REDRAWHEADERS, 0);
+			allqueue(REDRAWBUTSSHADING, 0);
 
 			waitcursor(0);
 		}
@@ -1682,64 +1727,138 @@ void replace_image_sima(short imageselect)
 		activate_fileselect(FILE_SPECIAL, "Replace Image", name, replace_image_filesel);
 }
 
-void save_as_image_sima()
+
+static char *filesel_imagetype_string(Image *ima)
+{
+	char *strp, *str= MEM_callocN(14*32, "menu for filesel");
+	
+	strp= str;
+	str += sprintf(str, "Save Image as: %%t|");
+	str += sprintf(str, "Targa %%x%d|", R_TARGA);
+	str += sprintf(str, "Targa Raw %%x%d|", R_RAWTGA);
+	str += sprintf(str, "PNG %%x%d|", R_PNG);
+	str += sprintf(str, "BMP %%x%d|", R_BMP);
+	str += sprintf(str, "Jpeg %%x%d|", R_JPEG90);
+	str += sprintf(str, "Iris %%x%d|", R_IRIS);
+	if(G.have_libtiff)
+		str += sprintf(str, "Tiff %%x%d|", R_TIFF);
+	str += sprintf(str, "Radiance HDR %%x%d|", R_RADHDR);
+	str += sprintf(str, "Cineon %%x%d|", R_CINEON);
+	str += sprintf(str, "DPX %%x%d|", R_DPX);
+#ifdef WITH_OPENEXR
+	str += sprintf(str, "OpenEXR %%x%d|", R_OPENEXR);
+	/* saving sequences of multilayer won't work, they copy buffers  */
+	if(ima->source==IMA_SRC_SEQUENCE && ima->type==IMA_TYPE_MULTILAYER);
+	else str += sprintf(str, "MultiLayer %%x%d|", R_MULTILAYER);
+#endif	
+	return strp;
+}
+
+/* always opens fileselect */
+void save_as_image_sima(void)
 {
 	Image *ima = G.sima->image;
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (ima) {
 		strcpy(name, ima->name);
 
-		if (ima->ibuf) {
-			char str[64];
-			save_image_filesel_str(str);
+		if (ibuf) {
+			char *strp;
 			
-			/* so it shows an extension in filewindow */
-			if(G.scene->r.scemode & R_EXTENSION) 
-				BKE_add_image_extension(name, G.scene->r.imtype);
+			strp= filesel_imagetype_string(ima);
 			
-			activate_fileselect(FILE_SPECIAL, str, name, save_image_filesel);
+			/* cant save multilayer sequence, ima->rr isn't valid for a specific frame */
+			if(ima->rr && !(ima->source==IMA_SRC_SEQUENCE && ima->type==IMA_TYPE_MULTILAYER))
+				G.sima->imtypenr= R_MULTILAYER;
+			else if(ima->type==IMA_TYPE_R_RESULT)
+				G.sima->imtypenr= R_MULTILAYER;
+			else G.sima->imtypenr= BKE_ftype_to_imtype(ibuf->ftype);
+			
+			activate_fileselect_menu(FILE_SPECIAL, "Save Image", name, strp, &G.sima->imtypenr, save_image_doit);
 		}
 	}
 }
 
-void save_image_sima()
+/* if exists, saves over without fileselect */
+void save_image_sima(void)
 {
 	Image *ima = G.sima->image;
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (ima) {
 		strcpy(name, ima->name);
 
-		if (ima->ibuf) {
-			if (BLI_exists(ima->ibuf->name))
-				save_image_filesel(ima->ibuf->name);
+		if (ibuf) {
+			if (BLI_exists(ibuf->name)) {
+				if(BKE_image_get_renderresult(ima)) 
+					G.sima->imtypenr= R_MULTILAYER;
+				else 
+					G.sima->imtypenr= BKE_ftype_to_imtype(ibuf->ftype);
+				
+				save_image_doit(ibuf->name);
+			}
 			else
 				save_as_image_sima();
 		}
 	}
 }
 
-void reload_image_sima()
+void save_image_sequence_sima(void)
 {
-	Image *ima = G.sima->image;
-
-	if (ima && ima->ibuf && BLI_exists(ima->ibuf->name)) {
-		if (ima->packedfile) {
-			PackedFile *pf;
-			pf = newPackedFile(ima->name);
-			if (pf) {
-				freePackedFile(ima->packedfile);
-				ima->packedfile = pf;
+	ImBuf *ibuf;
+	int tot= 0;
+	char di[FILE_MAX], fi[FILE_MAX];
+	
+	if(G.sima->image==NULL)
+		return;
+	if(G.sima->image->source!=IMA_SRC_SEQUENCE)
+		return;
+	if(G.sima->image->type==IMA_TYPE_MULTILAYER) {
+		error("Cannot save Multilayer Sequences");
+		return;
+	}
+	
+	/* get total */
+	for(ibuf= G.sima->image->ibufs.first; ibuf; ibuf= ibuf->next) 
+		if(ibuf->userflags & IB_BITMAPDIRTY)
+			tot++;
+	
+	if(tot==0) {
+		notice("No Images have been changed");
+		return;
+	}
+	/* get a filename for menu */
+	for(ibuf= G.sima->image->ibufs.first; ibuf; ibuf= ibuf->next) 
+		if(ibuf->userflags & IB_BITMAPDIRTY)
+			break;
+	
+	BLI_strncpy(di, ibuf->name, FILE_MAX);
+	BLI_splitdirstring(di, fi);
+	
+	sprintf(fi, "%d Image(s) will be saved in %s", tot, di);
+	if(okee(fi)) {
+		
+		for(ibuf= G.sima->image->ibufs.first; ibuf; ibuf= ibuf->next) {
+			if(ibuf->userflags & IB_BITMAPDIRTY) {
+				if(0 == IMB_saveiff(ibuf, ibuf->name, IB_rect | IB_zbuf | IB_zbuffloat)) {
+					error("Could not write image", ibuf->name);
+					break;
+				}
+				printf("Saved: %s\n", ibuf->name);
+				ibuf->userflags &= ~IB_BITMAPDIRTY;
 			}
-			else
-				error("Image not available. Keeping packed image.");
 		}
-		if (ima->preview) {
-			free_image_preview(ima);
-		}
-		free_image_buffers(ima);	/* force read again */
-		ima->ok= 1;
+	}
+}
+
+void reload_image_sima(void)
+{
+
+	if (G.sima ) {
+		BKE_image_signal(G.sima->image, &G.sima->iuser, IMA_SIGNAL_RELOAD);
 		image_changed(G.sima, 0);
 	}
 
@@ -1748,13 +1867,13 @@ void reload_image_sima()
 	BIF_preview_changed(ID_TE);
 }
 
-void new_image_sima()
+void new_image_sima(void)
 {
 	static int width= 256, height= 256;
 	static short uvtestgrid=0;
 	char name[256];
 
-	strcpy(name, "Image");
+	strcpy(name, "Untitled");
 
 	add_numbut(0, TEX, "Name:", 0, 255, name, NULL);
 	add_numbut(1, NUM|INT, "Width:", 1, 5000, &width, NULL);
@@ -1763,7 +1882,7 @@ void new_image_sima()
 	if (!do_clever_numbuts("New Image", 4, REDRAW))
 		return;
 
-	G.sima->image= new_image(width, height, name, uvtestgrid);
+	G.sima->image= BKE_add_image_size(width, height, name, uvtestgrid);
 	image_changed(G.sima, 0);
 
 	BIF_undo_push("Add image");
@@ -1777,28 +1896,80 @@ void pack_image_sima()
 	Image *ima = G.sima->image;
 
 	if (ima) {
-		if (ima->packedfile) {
-			if (G.fileflags & G_AUTOPACK)
-				if (okee("Disable AutoPack?"))
-					G.fileflags &= ~G_AUTOPACK;
-			
-			if ((G.fileflags & G_AUTOPACK) == 0) {
-				unpackImage(ima, PF_ASK);
-				BIF_undo_push("Unpack image");
-			}
-		}
-		else {
-			if (ima->ibuf && (ima->ibuf->userflags & IB_BITMAPDIRTY)) {
-				error("Can't pack painted image. Save the painted image first.");
+		if(ima->source!=IMA_SRC_SEQUENCE && ima->source!=IMA_SRC_MOVIE) {
+			if (ima->packedfile) {
+				if (G.fileflags & G_AUTOPACK)
+					if (okee("Disable AutoPack?"))
+						G.fileflags &= ~G_AUTOPACK;
+				
+				if ((G.fileflags & G_AUTOPACK) == 0) {
+					unpackImage(ima, PF_ASK);
+					BIF_undo_push("Unpack image");
+				}
 			}
 			else {
-				ima->packedfile = newPackedFile(ima->name);
-				BIF_undo_push("Pack image");
+				ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+				if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
+					error("Can't pack painted image. Save image or use Repack as PNG.");
+				}
+				else {
+					ima->packedfile = newPackedFile(ima->name);
+					BIF_undo_push("Pack image");
+				}
+			}
+
+			allqueue(REDRAWBUTSSHADING, 0);
+			allqueue(REDRAWHEADERS, 0);
+		}
+	}
+}
+
+
+
+/* goes over all ImageUsers, and sets frame numbers if auto-refresh is set */
+void BIF_image_update_frame(void)
+{
+	Tex *tex;
+	
+	/* texture users */
+	for(tex= G.main->tex.first; tex; tex= tex->id.next) {
+		if(tex->type==TEX_IMAGE && tex->ima)
+			if(ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
+				if(tex->iuser.flag & IMA_ANIM_ALWAYS)
+					BKE_image_user_calc_imanr(&tex->iuser, G.scene->r.cfra, 0);
+		
+	}
+	/* image window, compo node users */
+	if(G.curscreen) {
+		ScrArea *sa;
+		for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+			if(sa->spacetype==SPACE_VIEW3D) {
+				View3D *v3d= sa->spacedata.first;
+				if(v3d->bgpic)
+					if(v3d->bgpic->iuser.flag & IMA_ANIM_ALWAYS)
+						BKE_image_user_calc_imanr(&v3d->bgpic->iuser, G.scene->r.cfra, 0);
+			}
+			else if(sa->spacetype==SPACE_IMAGE) {
+				SpaceImage *sima= sa->spacedata.first;
+				if(sima->iuser.flag & IMA_ANIM_ALWAYS)
+					BKE_image_user_calc_imanr(&sima->iuser, G.scene->r.cfra, 0);
+			}
+			else if(sa->spacetype==SPACE_NODE) {
+				SpaceNode *snode= sa->spacedata.first;
+				if(snode->treetype==NTREE_COMPOSIT) {
+					bNode *node;
+					for(node= snode->nodetree->nodes.first; node; node= node->next) {
+						if(node->id && node->type==CMP_NODE_IMAGE) {
+							Image *ima= (Image *)node->id;
+							ImageUser *iuser= node->storage;
+							if(ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
+								if(iuser->flag & IMA_ANIM_ALWAYS)
+									BKE_image_user_calc_imanr(iuser, G.scene->r.cfra, 0);
+						}
+					}
+				}
 			}
 		}
-
-		allqueue(REDRAWBUTSSHADING, 0);
-		allqueue(REDRAWHEADERS, 0);
 	}
 }
 

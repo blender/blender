@@ -154,6 +154,10 @@ static uiBlock *time_redrawmenu(void *arg_unused)
 	else icon= ICON_CHECKBOX_DEHLT;
 	uiDefIconTextBut(block, BUTM, 1, icon, "Buttons Windows",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_ALL_BUTS_WIN, "");
 	
+	if(stime->redraws & TIME_ALL_IMAGE_WIN) icon= ICON_CHECKBOX_HLT;
+	else icon= ICON_CHECKBOX_DEHLT;
+	uiDefIconTextBut(block, BUTM, 1, icon, "Image Windows",      0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_ALL_IMAGE_WIN, "");
+	
 	/* Add sequencer only redraw*/
 	if(stime->redraws & TIME_SEQ) icon= ICON_CHECKBOX_HLT;
 	else icon= ICON_CHECKBOX_DEHLT;

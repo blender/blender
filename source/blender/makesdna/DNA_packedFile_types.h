@@ -55,6 +55,7 @@ enum PF_FileStatus
 	PF_USE_LOCAL,
 	PF_USE_ORIGINAL,
 	PF_KEEP,
+	PF_REMOVE,
 	PF_NOOP,
 			
 	PF_ASK

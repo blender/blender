@@ -232,12 +232,12 @@ static PyObject *M_Image_New( PyObject * self, PyObject * args)
 	if (width > 5000 || height > 5000 || width < 1 || height < 1)
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 					"Image width and height must be between 1 and 5000" ) );
-	image = new_image(width, height, name, 0);
+	image = BKE_add_image_size(width, height, name, 0);
 	if( !image )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"couldn't create PyObject Image_Type" ) );
 
-	/* reset usage count, since new_image() incremented it */
+	/* reset usage count, since BKE_add_image_size() incremented it */
 	/* image->id.us--; */
 	/* Strange, new images have a user count of one???, otherwise it messes up */
 	
@@ -354,14 +354,13 @@ static PyObject *M_Image_Load( PyObject * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"couldn't create PyObject Image_Type" ) );
 
-	img_ptr = add_image( fname );
+	img_ptr = BKE_add_image_file( fname );
 	if( !img_ptr )
 		return ( EXPP_ReturnPyObjError( PyExc_IOError,
 						"couldn't load image" ) );
 
-	/*reload the image buffers*/
-	free_image_buffers(img_ptr);
-	img_ptr->ibuf = IMB_loadiffname(img_ptr->name , 0);
+	/* force a load the image buffers*/
+	BKE_image_get_ibuf(img_ptr, NULL);
 
 	image->image = img_ptr;
 
@@ -380,7 +379,7 @@ static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 {
 
 	PyObject *attr;
-	Image *image = self->image;
+	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
 	char *pixel;		/* image data */
 	int index;		/* offset into image data */
 	int x = 0;
@@ -391,20 +390,17 @@ static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected 2 integers" );
 
-	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
-		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
-
-	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
+	if( !ibuf || !ibuf->rect )	/* loading didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	if( image->ibuf->type == 1 )	/* bitplane image */
+	if( ibuf->type == 1 )	/* bitplane image */
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "unsupported bitplane image format" );
 
-	if( x > ( image->ibuf->x - 1 )
-	    || y > ( image->ibuf->y - 1 )
-	    || x < image->ibuf->xorig || y < image->ibuf->yorig )
+	if( x > ( ibuf->x - 1 )
+	    || y > ( ibuf->y - 1 )
+	    || x < ibuf->xorig || y < ibuf->yorig )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "x or y is out of range" );
 
@@ -413,9 +409,9 @@ static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 	   so we calc ourselves
 	 */
 
-	index = ( x + y * image->ibuf->x ) * pixel_size;
+	index = ( x + y * ibuf->x ) * pixel_size;
 
-	pixel = ( char * ) image->ibuf->rect;
+	pixel = ( char * ) ibuf->rect;
 	attr = Py_BuildValue( "[f,f,f,f]",
 			      ( ( float ) pixel[index] ) / 255.0,
 			      ( ( float ) pixel[index + 1] ) / 255.0,
@@ -440,7 +436,7 @@ static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 static PyObject *Image_getPixelI( BPy_Image * self, PyObject * args )
 {
 	PyObject *attr;
-	Image *image = self->image;
+	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
 	char *pixel;		/* image data */
 	int index;		/* offset into image data */
 	int x = 0;
@@ -451,20 +447,17 @@ static PyObject *Image_getPixelI( BPy_Image * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected 2 integers" );
 
-	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
-		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
-
-	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
+	if( !ibuf || !ibuf->rect )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	if( image->ibuf->type == 1 )	/* bitplane image */
+	if( ibuf->type == 1 )	/* bitplane image */
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "unsupported bitplane image format" );
 
-	if( x > ( image->ibuf->x - 1 )
-	    || y > ( image->ibuf->y - 1 )
-	    || x < image->ibuf->xorig || y < image->ibuf->yorig )
+	if( x > ( ibuf->x - 1 )
+	    || y > ( ibuf->y - 1 )
+	    || x < ibuf->xorig || y < ibuf->yorig )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "x or y is out of range" );
 
@@ -473,9 +466,9 @@ static PyObject *Image_getPixelI( BPy_Image * self, PyObject * args )
 	   so we calc ourselves
 	 */
 
-	index = ( x + y * image->ibuf->x ) * pixel_size;
+	index = ( x + y * ibuf->x ) * pixel_size;
 
-	pixel = ( char * ) image->ibuf->rect;
+	pixel = ( char * ) ibuf->rect;
 	attr = Py_BuildValue( "[i,i,i,i]",
 			      pixel[index],
 			      pixel[index + 1],
@@ -493,7 +486,7 @@ static PyObject *Image_getPixelI( BPy_Image * self, PyObject * args )
 
 static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args )
 {
-	Image *image = self->image;
+	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
 	char *pixel;		/* image data */
 	int index;		/* offset into image data */
 	int x = 0;
@@ -507,20 +500,17 @@ static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected 2 integers and an array of 4 floats" );
 
-	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
-		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
-
-	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
+	if( !ibuf || !ibuf->rect )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	if( image->ibuf->type == 1 )	/* bitplane image */
+	if( ibuf->type == 1 )	/* bitplane image */
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "unsupported bitplane image format" );
 
-	if( x > ( image->ibuf->x - 1 )
-	    || y > ( image->ibuf->y - 1 )
-	    || x < image->ibuf->xorig || y < image->ibuf->yorig )
+	if( x > ( ibuf->x - 1 )
+	    || y > ( ibuf->y - 1 )
+	    || x < ibuf->xorig || y < ibuf->yorig )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "x or y is out of ruange" );
 
@@ -536,9 +526,9 @@ static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args )
 	   so we calc ourselves
 	 */
 
-	index = ( x + y * image->ibuf->x ) * pixel_size;
+	index = ( x + y * ibuf->x ) * pixel_size;
 
-	pixel = ( char * ) image->ibuf->rect;
+	pixel = ( char * ) ibuf->rect;
 
 	pixel[index] = ( char ) ( p[0] * 255.0 );
 	pixel[index + 1] = ( char ) ( p[1] * 255.0 );
@@ -553,7 +543,7 @@ static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args )
 
 static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args )
 {
-	Image *image = self->image;
+	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
 	char *pixel;		/* image data */
 	int index;		/* offset into image data */
 	int x = 0;
@@ -567,20 +557,17 @@ static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected 2 integers and an list of 4 ints" );
 
-	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
-		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
-
-	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
+	if( !ibuf || !ibuf->rect )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	if( image->ibuf->type == 1 )	/* bitplane image */
+	if( ibuf->type == 1 )	/* bitplane image */
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "unsupported bitplane image format" );
 
-	if( x > ( image->ibuf->x - 1 )
-	    || y > ( image->ibuf->y - 1 )
-	    || x < image->ibuf->xorig || y < image->ibuf->yorig )
+	if( x > ( ibuf->x - 1 )
+	    || y > ( ibuf->y - 1 )
+	    || x < ibuf->xorig || y < ibuf->yorig )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "x or y is out of range" );
 
@@ -595,9 +582,9 @@ static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args )
 	   so we calc ourselves
 	 */
 
-	index = ( x + y * image->ibuf->x ) * pixel_size;
+	index = ( x + y * ibuf->x ) * pixel_size;
 
-	pixel = ( char * ) image->ibuf->rect;
+	pixel = ( char * ) ibuf->rect;
 
 	pixel[index] = ( char ) p[0];
 	pixel[index + 1] = ( char ) p[1];
@@ -612,17 +599,14 @@ static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args )
 
 static PyObject *Image_getMaxXY( BPy_Image * self )
 {
-	Image *image = self->image;
+	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
 	PyObject *attr;
 
-	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
-		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
-
-	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
+	if( !ibuf || !ibuf->rect )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	attr = Py_BuildValue( "[i,i]", image->ibuf->x, image->ibuf->y );
+	attr = Py_BuildValue( "[i,i]", ibuf->x, ibuf->y );
 
 	if( attr )
 		return attr;
@@ -636,18 +620,15 @@ static PyObject *Image_getMaxXY( BPy_Image * self )
 
 static PyObject *Image_getMinXY( BPy_Image * self )
 {
-	Image *image = self->image;
+	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
 	PyObject *attr;
 
-	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
-		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
-
-	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
+	if( !ibuf || !ibuf->rect )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	attr = Py_BuildValue( "[i,i]", image->ibuf->xorig,
-			      image->ibuf->yorig );
+	attr = Py_BuildValue( "[i,i]", ibuf->xorig,
+			      ibuf->yorig );
 
 	if( attr )
 		return attr;
@@ -713,9 +694,9 @@ static PyObject *Image_makeCurrent( BPy_Image * self )
 
 static PyObject *Image_save( BPy_Image * self )
 {
-	if( !IMB_saveiff
-	    ( self->image->ibuf, self->image->name,
-	      self->image->ibuf->flags ) )
+	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
+	
+	if(!ibuf || !IMB_saveiff( ibuf, self->image->name, ibuf->flags ) )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "could not save image" );
 
@@ -849,18 +830,14 @@ static PyObject *Image_getFilename( BPy_Image * self )
 
 static PyObject *Image_getSize( BPy_Image * self )
 {
-	PyObject *attr;
-	Image *image = self->image;
+	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
+	PyObject *attr;	
 	
-	
-	if( !image->ibuf ) /* if no image data available */
-		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
-
-	if( !image->ibuf )	/* didn't work */
+	if( !ibuf )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	attr = Py_BuildValue( "[hh]", image->ibuf->x, image->ibuf->y );
+	attr = Py_BuildValue( "[hh]", ibuf->x, ibuf->y );
 
 	if( attr )
 		return attr;
@@ -871,17 +848,14 @@ static PyObject *Image_getSize( BPy_Image * self )
 
 static PyObject *Image_getDepth( BPy_Image * self )
 {
+	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
 	PyObject *attr;
-	Image *image = self->image;
 
-	if( !image->ibuf )	/* if no image data available */
-		load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
-
-	if( !image->ibuf )	/* didn't work */
+	if( !ibuf )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	attr = Py_BuildValue( "h", image->ibuf->depth );
+	attr = Py_BuildValue( "h", ibuf->depth );
 
 	if( attr )
 		return attr;
@@ -961,8 +935,8 @@ static PyObject *Image_reload( BPy_Image * self )
 {
 	Image *image = self->image;
 
-	free_image_buffers( image );	/* force read again */
-	image->ok = 1;
+	BKE_image_signal(image, NULL, IMA_SIGNAL_RELOAD);
+
 	Py_RETURN_NONE;
 }
 
@@ -982,29 +956,27 @@ static PyObject *Image_glLoad( BPy_Image * self )
 	unsigned int *bind = &image->bindcode;
 
 	if( *bind == 0 ) {
+		ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
 
-		if( !image->ibuf )	/* if no image data is available */
-			load_image( image, IB_rect, G.sce,  G.scene->r.cfra );	/* loading it */
-
-		if( !image->ibuf )	/* didn't work */
+		if( !ibuf )	/* didn't work */
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						      "couldn't load image data in Blender" );
 
 		glGenTextures( 1, ( GLuint * ) bind );
 		glBindTexture( GL_TEXTURE_2D, *bind );
 
-		gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGBA, image->ibuf->x,
-				   image->ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
-				   image->ibuf->rect );
+		gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGBA, ibuf->x,
+				   ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE,
+				   ibuf->rect );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 				 GL_LINEAR_MIPMAP_NEAREST );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
 				 GL_LINEAR );
 		glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, image->ibuf->x,
-			      image->ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-			      image->ibuf->rect );
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, ibuf->x,
+			      ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+			      ibuf->rect );
 
 		/* raise the nocollect flag, 
 		   image is not available for garbage collection 
@@ -1176,7 +1148,7 @@ static PyObject *Image_getAttr( BPy_Image * self, char *name )
 		else
 			attr = EXPP_incr_ret_False();
 	} else if( strcmp( name, "has_data" ) == 0 ) {
-		if (self->image->ibuf)
+		if (self->image->ibufs.first)
 			attr = EXPP_incr_ret_True();
 		else
 			attr = EXPP_incr_ret_False();

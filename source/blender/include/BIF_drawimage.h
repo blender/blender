@@ -36,6 +36,9 @@
 struct ScrArea;
 struct SpaceImage;
 struct Render;
+struct Image;
+struct ImBuf;
+struct uiBlock;
 
 void do_imagebuts(unsigned short event);
 void calc_image_view(struct SpaceImage *sima, char mode);
@@ -51,8 +54,15 @@ void uvco_to_areaco_noclip(float *vec, int *mval);
 void what_image(struct SpaceImage *sima);
 void image_preview_event(int event);
 
+void image_info(struct Image *ima, struct ImBuf *ibuf, char *str);
+void imagespace_composite_flipbook(struct ScrArea *sa);
+
 void imagewindow_render_callbacks(struct Render *re);
 void imagewindow_toggle_render(void);
+void imagewindow_swap_render_rects(void);
+void imagewin_store_spare(void);
+
+void image_editvertex_buts(struct uiBlock *block);
 
 #endif
 

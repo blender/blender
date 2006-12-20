@@ -36,7 +36,8 @@
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
-#include "DNA_oops_types.h"	/* for TreeStoreElem */
+#include "DNA_oops_types.h"		/* for TreeStoreElem */
+#include "DNA_image_types.h"	/* ImageUser */
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
 
@@ -163,31 +164,27 @@ typedef struct SpaceFile {
 
 	struct direntry *filelist;
 	int totfile;
+	
 	char title[24];
 	char dir[160];
 	char file[80];
+	
 	short type, ofs, flag, sort;
 	short maxnamelen, collums;
 	
 	struct BlendHandle *libfiledata;
 	
-	short retval, ipotype;
-	short menu, act;
-
-	/* changed type for compiling */
-	/* void (*returnfunc)(short); ? used with char* ....*/
-	/**
-	 * @attention Called in filesel.c: 
-	 * @attention returnfunc(this->retval) : short
-	 * @attention returnfunc(name)         : char*
-	 * @attention Other uses are limited to testing against
-	 * @attention the value. How do we resolve this? Two args?
-	 * @attention For now, keep the char*, as it seems stable.
-	 * @attention Be warned that strange behaviour _has_ been spotted!
-	 */
-	void (*returnfunc)(char*);
- 		
-	short *menup;
+	unsigned short retval;		/* event */
+	short menu, act, ipotype;
+	
+	/* one day we'll add unions to dna */
+	void (*returnfunc)(char *);
+	void (*returnfunc_event)(unsigned short);
+	void (*returnfunc_args)(char *, void *, void *);
+	
+	void *arg1, *arg2;
+	short *menup;	/* pointer to menu result or ID browsing */
+	char *pupmenu;	/* optional menu in header */
 } SpaceFile;
 
 typedef struct SpaceOops {
@@ -228,18 +225,21 @@ typedef struct SpaceImage {
 	View2D v2d;
 	
 	struct Image *image;
+	struct ImageUser iuser;
+	
 	struct CurveMapping *cumap;
 	short mode, menunr;
 	short imanr, curtile;
 	int flag;
-	short pad1, lock;
+	short imtypenr, lock;
+	short showspare, pad2;
+	float zoom;
 	
-	float zoom, pad2;
+	float xof, yof;					/* user defined offset, image is centered */
+	float centx, centy;				/* storage for offset while render drawing */
 	
-	float xof, yof;			/* user defined offset, image is centered */
-	
-	float centx, centy;		/* storage for offset while render drawing */
-	char *info_str;			/* info string for render */
+	char *info_str, *info_spare;	/* info string for render */
+	struct ImBuf *spare;
 } SpaceImage;
 
 typedef struct SpaceNla{
@@ -429,9 +429,11 @@ typedef struct SpaceImaSel {
 /* sbuts->flag */
 #define SB_PRV_OSA			1
 
-/* these values need to be hardcoded in blender.h SpaceFile: struct dna does not recognize defines */
+/* these values need to be hardcoded in structs, dna does not recognize defines */
+/* also defined in BKE */
 #define FILE_MAXDIR			160
 #define FILE_MAXFILE		80
+#define FILE_MAX			240
 
 /* filesel types */
 #define FILE_UNIX			8
@@ -589,7 +591,8 @@ typedef struct SpaceImaSel {
 #define TIME_ALL_ANIM_WIN		4
 #define TIME_ALL_BUTS_WIN		8
 #define TIME_WITH_SEQ_AUDIO		16
-#define TIME_SEQ                        32
+#define TIME_SEQ				32
+#define TIME_ALL_IMAGE_WIN		64
 
 /* sseq->mainb */
 #define SEQ_DRAW_SEQUENCE         0

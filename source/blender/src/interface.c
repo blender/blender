@@ -118,8 +118,10 @@
 float UIwinmat[4][4];
 static int UIlock= 0, UIafterval;
 static char *UIlockstr=NULL;
-static void (*UIafterfunc)(void *arg, int event);
-static void *UIafterfunc_arg;
+
+static void (*UIafterfunc_butm)(void *arg, int event);
+static void (*UIafterfunc_but)(void *arg1, void *arg2);
+static void *UIafterfunc_arg1, *UIafterfunc_arg2;
 
 static uiFont UIfont[UI_ARRAY];  // no init needed
 uiBut *UIbuttip;
@@ -1481,7 +1483,10 @@ static int ui_do_but_BUT(uiBut *but)
 	activated= (but->flag & UI_SELECT);
 
 	if(activated) {
-		uibut_do_func(but);
+		UIafterfunc_but= but->func;
+		UIafterfunc_arg1= but->func_arg1;
+		UIafterfunc_arg2= but->func_arg2;
+		/* no more uibut_do_func(but); this button calls fileselecting windows */
 	}
 	
 	but->flag &= ~UI_SELECT;
@@ -2649,8 +2654,8 @@ static int ui_do_but_BUTM(uiBut *but)
 {
 
 	ui_set_but_val(but, but->min);
-	UIafterfunc= but->butm_func;
-	UIafterfunc_arg= but->butm_func_arg;
+	UIafterfunc_butm= but->butm_func;
+	UIafterfunc_arg1= but->butm_func_arg;
 	UIafterval= but->a2;
 	
 	return but->retval;
@@ -4899,7 +4904,9 @@ int uiDoBlocks(ListBase *lb, int event)
 	if(event==MOUSEX) return UI_NOTHING;
 		
 	UIbuttip= NULL;
-	UIafterfunc= NULL;	/* to prevent infinite loops, this shouldnt be a global! */
+	UIafterfunc_butm= NULL;	/* to prevent infinite loops, this shouldnt be a global! */
+	UIafterfunc_but= NULL;	/* to prevent infinite loops, this shouldnt be a global! */
+	UIafterfunc_arg1= UIafterfunc_arg2= NULL;
 	
 	uevent.qual= G.qual;
 	uevent.event= event;
@@ -5016,11 +5023,16 @@ int uiDoBlocks(ListBase *lb, int event)
 	
 	/* afterfunc is used for fileloading too, so after this call, the blocks pointers are invalid */
 	if(retval & UI_RETURN_OK) {
-		if(UIafterfunc) {
+		if(UIafterfunc_butm) {
 			mywinset(curarea->win);
-			UIafterfunc(UIafterfunc_arg, UIafterval);
+			UIafterfunc_butm(UIafterfunc_arg1, UIafterval);
+			UIafterfunc_butm= NULL;
 		}
-		UIafterfunc= NULL;
+		if(UIafterfunc_but) {
+			mywinset(curarea->win);
+			UIafterfunc_but(UIafterfunc_arg1, UIafterfunc_arg2);
+			UIafterfunc_but= NULL;
+		}
 	}
 	
 	/* tooltip */	

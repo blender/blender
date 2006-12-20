@@ -100,29 +100,8 @@ char texstr[20][12]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
 void test_idbutton_cb(void *namev, void *arg2)
 {
 	char *name= namev;
-	test_idbutton(name+2);
 	
-	/* temporal! image rename for procedural Image has issues */
-	if(arg2 && GS(name)==ID_IM) {
-		/* when name changed */
-		if(strcmp(name+2, (char *)arg2)) {
-			ID *id= NULL;
-			if(strcmp((char *)arg2, "Render Result")==0)
-				id= find_id(name, name+2);
-			else if(strcmp((char *)arg2, "Compositor")==0)
-				id= find_id(name, name+2);
-			if(id) {
-				Image *ima= (Image *)id;
-				if(ima->ibuf) {
-					/* ibuf rect or rect_float is possibly not allocated but borrowed */
-					ImBuf *ibuf= IMB_dupImBuf(ima->ibuf);
-					IMB_freeImBuf(ima->ibuf);
-					ima->ibuf= ibuf;
-					printf("changed ima %s\n", name);
-				}
-			}
-		}
-	}
+	test_idbutton(name+2);
 }
 
 

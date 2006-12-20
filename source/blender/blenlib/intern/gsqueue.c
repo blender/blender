@@ -81,7 +81,14 @@ void BLI_gsqueue_pop(GSQueue *gq, void *item_r)
 }
 void BLI_gsqueue_push(GSQueue *gq, void *item)
 {
-	GSQueueElem *elem= MEM_mallocN(sizeof(*elem)+gq->elem_size, "gqueue_push");
+	GSQueueElem *elem;
+	
+	/* compare: prevent events added double in row */
+	if (!BLI_gsqueue_is_empty(gq)) {
+		if(0==memcmp(item, &gq->head[1], gq->elem_size))
+			return;
+	}
+	elem= MEM_mallocN(sizeof(*elem)+gq->elem_size, "gqueue_push");
 	memcpy(&elem[1], item, gq->elem_size);
 	elem->next= NULL;
 	

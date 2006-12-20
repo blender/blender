@@ -480,8 +480,7 @@ static void headmenu(ScrArea *sa)
 static void addqueue_ext(short win, unsigned short event, short val, char ascii)
 {
 	if (win<4 || !areawinar[win]) {
-		if(win==0 && !G.background) /* other win ids are for mainwin & renderwin */
-			printf("bad call to addqueue: %d (%d, %d)\n", win, event, val);
+		/* other win ids are for mainwin & renderwin */
 	} 
 	else {
 		BWinEvent evt;
@@ -1842,8 +1841,8 @@ static void del_area(ScrArea *sa)
 	if(sa==g_activearea) g_activearea= NULL;
 }
 
-/* sa2 to sa1 */
-static void copy_areadata(ScrArea *sa1, ScrArea *sa2)
+/* sa2 to sa1, we swap spaces for fullscreen to keep all allocated data */
+static void copy_areadata(ScrArea *sa1, ScrArea *sa2, int swap_space)
 {
 	Panel *pa1, *pa2, *patab;
 	ScriptLink *slink1 = &sa1->scriptlink, *slink2 = &sa2->scriptlink;
@@ -1852,8 +1851,13 @@ static void copy_areadata(ScrArea *sa1, ScrArea *sa2)
 	sa1->spacetype= sa2->spacetype;
 	Mat4CpyMat4(sa1->winmat, sa2->winmat);
 
-	freespacelist(sa1);
-	duplicatespacelist(sa1, &sa1->spacedata, &sa2->spacedata);
+	if(swap_space) {
+		SWAP(ListBase, sa1->spacedata, sa2->spacedata);
+	}
+	else {
+		freespacelist(sa1);
+		duplicatespacelist(sa1, &sa1->spacedata, &sa2->spacedata);
+	}
 
 	BLI_freelistN(&sa1->panels);
 	duplicatelist(&sa1->panels, &sa2->panels);
@@ -2332,7 +2336,7 @@ void area_fullscreen(void)	/* with curarea */
 				headertype = curarea->headertype;
 			}
 
-			copy_areadata(old, curarea);
+			copy_areadata(old, curarea, 1);	/*  1 = swap spacelist */
 			old->headertype = headertype;
 
 			old->full= 0;
@@ -2364,7 +2368,7 @@ void area_fullscreen(void)	/* with curarea */
 		G.curscreen= oldscreen;	/* needed because of setscreen */
 		
 		/* copy area */
-		copy_areadata(newa, curarea);
+		copy_areadata(newa, curarea, 1);	/* 1 = swap spacelist */
 		
 		curarea->full= oldscreen;
 		newa->full= oldscreen;
@@ -2416,7 +2420,7 @@ static void area_autoplayscreen(void)
 			G.curscreen= oldscreen;	/* because of setscreen */
 			
 			/* copy area settings */
-			copy_areadata(newa, curarea);
+			copy_areadata(newa, curarea, 1);	/* swap spacedata */
 			newa->headertype= 0;
 			
 			curarea->full= oldscreen;
@@ -2470,7 +2474,7 @@ static void copy_screen(bScreen *to, bScreen *from)
 		sa->spacedata.first= sa->spacedata.last= NULL;
 		sa->uiblocks.first= sa->uiblocks.last= NULL;
 		sa->panels.first= sa->panels.last= NULL;
-		copy_areadata(sa, saf);
+		copy_areadata(sa, saf, 0);
 		
 		sa= sa->next;
 		saf= saf->next;
@@ -2939,7 +2943,7 @@ static void splitarea(ScrArea *sa, char dir, float fac)
 		
 		/* new areas: top */
 		newa= screen_addarea(sc, sv1, sa->v2, sa->v3, sv2, sa->headertype, sa->spacetype);
-		copy_areadata(newa, sa);
+		copy_areadata(newa, sa, 0);
 
 		/* area below */
 		sa->v2= sv1;
@@ -2960,7 +2964,7 @@ static void splitarea(ScrArea *sa, char dir, float fac)
 		
 		/* new areas: left */
 		newa= screen_addarea(sc, sa->v1, sa->v2, sv2, sv1, sa->headertype, sa->spacetype);
-		copy_areadata(newa, sa);
+		copy_areadata(newa, sa, 0);
 
 		/* area right */
 		sa->v1= sv1;		

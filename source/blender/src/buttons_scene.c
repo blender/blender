@@ -124,7 +124,7 @@ void playback_anim(void);
 /* ************************ SOUND *************************** */
 static void load_new_sample(char *str)	/* called from fileselect */
 {
-	char name[FILE_MAXDIR+FILE_MAXFILE];
+	char name[FILE_MAX];
 	bSound *sound;
 	bSample *sample, *newsample;
 
@@ -164,7 +164,7 @@ static void load_new_sample(char *str)	/* called from fileselect */
 
 void do_soundbuts(unsigned short event)
 {
-	char name[FILE_MAXDIR+FILE_MAXFILE];
+	char name[FILE_MAX];
 	bSound *sound;
 	bSample *sample;
 	bSound* tempsound;
@@ -481,11 +481,10 @@ static void backbuf_pic(char *name)
 	strcpy(G.scene->r.backbuf, name);
 	allqueue(REDRAWBUTSSCENE, 0);
 
-	ima= add_image(name);
-	if(ima) {
-		free_image_buffers(ima);	/* force read again */
-		ima->ok= 1;
-	}
+	ima= BKE_add_image_file(name);
+	if(ima)
+		BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+
 	BIF_undo_push("Change background picture");
 }
 
@@ -498,7 +497,7 @@ static void ftype_pic(char *name)
 static void run_playanim(char *file) 
 {
 	extern char bprogname[];	/* usiblender.c */
-	char str[FILE_MAXDIR+FILE_MAXFILE];
+	char str[FILE_MAX];
 	int pos[2], size[2];
 
 	/* use current settings for defining position of window. it actually should test image size */
@@ -511,7 +510,7 @@ static void run_playanim(char *file)
 
 void playback_anim(void)
 {	
-	char file[FILE_MAXDIR+FILE_MAXFILE];
+	char file[FILE_MAX];
 
 	if(BKE_imtype_is_movie(G.scene->r.imtype)) {
 		switch (G.scene->r.imtype) {
@@ -1114,6 +1113,8 @@ static char *imagetype_pup(void)
 #ifdef WITH_OPENEXR
 	strcpy(formatstring, "|%s %%x%d");
 	sprintf(appendstring, formatstring, "OpenEXR", R_OPENEXR);
+	strcat(string, appendstring);
+	sprintf(appendstring, formatstring, "MultiLayer", R_MULTILAYER);
 	strcat(string, appendstring);
 #endif
 	
@@ -1815,7 +1816,8 @@ static void render_panel_layers(void)
 	uiDefButS(block, MENU, B_ADD_RENDERLAYER, strp, 30,145,23,20, &(G.scene->r.actlay), 0, 0, 0, 0, "Choose Active Render Layer");
 	MEM_freeN(strp);
 	
-	bt= uiDefBut(block, TEX, REDRAWNODE, "",  53,145,172,20, srl->name, 0.0, 31.0, 0, 0, "");
+	/* name max 20, exr format limit... */
+	bt= uiDefBut(block, TEX, REDRAWNODE, "",  53,145,172,20, srl->name, 0.0, 20.0, 0, 0, "");
 	uiButSetFunc(bt, rename_scene_layer_func, srl, NULL);
 	
 	uiDefButBitS(block, TOG, R_SINGLE_LAYER, B_NOP, "Single",	230,145,60,20, &G.scene->r.scemode, 0, 0, 0, 0, "Only render this layer");	

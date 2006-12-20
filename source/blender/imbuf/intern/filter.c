@@ -302,3 +302,28 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 	}
 }
 
+void IMB_makemipmap(ImBuf *ibuf, int use_filter)
+{
+	ImBuf *hbuf= ibuf;
+	int minsize, curmap=0;
+	
+	minsize= ibuf->x<ibuf->y?ibuf->x:ibuf->y;
+	
+	while(minsize>10 && curmap<IB_MIPMAP_LEVELS) {
+		if(use_filter) {
+			ImBuf *nbuf= IMB_allocImBuf(hbuf->x, hbuf->y, 32, IB_rect, 0);
+			IMB_filterN(nbuf, hbuf);
+			ibuf->mipmap[curmap]= IMB_onehalf(nbuf);
+			IMB_freeImBuf(nbuf);
+		}
+		else {
+			ibuf->mipmap[curmap]= IMB_onehalf(hbuf);
+		}
+		hbuf= ibuf->mipmap[curmap];
+		
+		curmap++;
+		minsize= hbuf->x<hbuf->y?hbuf->x:hbuf->y;
+	}
+}
+
+

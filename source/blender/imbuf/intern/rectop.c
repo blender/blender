@@ -332,6 +332,8 @@ void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 	IMB_rectclip(dbuf, sbuf, &destx, &desty, &srcx, &srcy, &width, &height);
 
 	if (width == 0 || height == 0) return;
+	if (sbuf && sbuf->channels!=4) return;
+	if (dbuf->channels!=4) return;
 	
 	do_char = (sbuf && sbuf->rect && dbuf->rect);
 	do_float = (sbuf && sbuf->rect_float && dbuf->rect_float);

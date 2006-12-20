@@ -600,10 +600,27 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 	/* stack order input sockets: col, alpha, z */
 	
 	if(node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
+		RenderData *rd= data;
 		Image *ima= (Image *)node->id;
+		ImBuf *ibuf;
 		CompBuf *cbuf, *tbuf;
 		int rectx, recty;
+		
+		BKE_image_user_calc_imanr(node->storage, rd->cfra, 0);
 
+		/* always returns for viewer image, but we check nevertheless */
+		ibuf= BKE_image_get_ibuf(ima, node->storage);
+		if(ibuf==NULL) {
+			printf("node_composit_exec_viewer error\n");
+			return;
+		}
+		
+		/* free all in ibuf */
+		imb_freerectImBuf(ibuf);
+		imb_freerectfloatImBuf(ibuf);
+		IMB_freezbuffloatImBuf(ibuf);
+		
+		/* get size */
 		tbuf= in[0]->data?in[0]->data:(in[1]->data?in[1]->data:in[2]->data);
 		if(tbuf==NULL) {
 			rectx= 320; recty= 256;
@@ -613,31 +630,16 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 			recty= tbuf->y;
 		}
 		
-		if(ima->ibuf==NULL)
-			ima->ibuf= IMB_allocImBuf(rectx, recty, 32, 0, 0);
+		/* make ibuf, and connect to ima */
+		ibuf->x= rectx;
+		ibuf->y= recty;
+		imb_addrectfloatImBuf(ibuf);
 		
-		/* cleanup of composit image */
-		if(ima->ibuf->rect) {
-			MEM_freeN(ima->ibuf->rect);
-			ima->ibuf->rect= NULL;
-			ima->ibuf->mall &= ~IB_rect;
-		}
-		if(ima->ibuf->zbuf_float) {
-			MEM_freeN(ima->ibuf->zbuf_float);
-			ima->ibuf->zbuf_float= NULL;
-			ima->ibuf->mall &= ~IB_zbuffloat;
-		}
-		if(ima->ibuf->rect_float)
-			MEM_freeN(ima->ibuf->rect_float);
-		
-		ima->ibuf->x= rectx;
-		ima->ibuf->y= recty;
-		ima->ibuf->mall |= IB_rectfloat;
-		ima->ibuf->rect_float= MEM_mallocN(4*rectx*recty*sizeof(float), "viewer rect");
-		
+		ima->ok= IMA_OK_LOADED;
+
 		/* now we combine the input with ibuf */
 		cbuf= alloc_compbuf(rectx, recty, CB_RGBA, 0);	/* no alloc*/
-		cbuf->rect= ima->ibuf->rect_float;
+		cbuf->rect= ibuf->rect_float;
 		
 		/* when no alpha, we can simply copy */
 		if(in[1]->data==NULL) {
@@ -646,10 +648,11 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		else
 			composit2_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba, CB_RGBA, CB_VAL);
 		
+		/* zbuf option */
 		if(in[2]->data) {
 			CompBuf *zbuf= alloc_compbuf(rectx, recty, CB_VAL, 1);
-			ima->ibuf->zbuf_float= zbuf->rect;
-			ima->ibuf->mall |= IB_zbuffloat;
+			ibuf->zbuf_float= zbuf->rect;
+			ibuf->mall |= IB_zbuffloat;
 			
 			composit1_pixel_processor(node, zbuf, in[2]->data, in[2]->vec, do_copy_value, CB_VAL);
 			
@@ -674,7 +677,7 @@ static bNodeType cmp_node_viewer= {
 	/* class+opts  */	NODE_CLASS_OUTPUT, NODE_PREVIEW,
 	/* input sock  */	cmp_node_viewer_in,
 	/* output sock */	NULL,
-	/* storage     */	"",
+	/* storage     */	"ImageUser",
 	/* execfunc    */	node_composit_exec_viewer
 	
 };
@@ -706,37 +709,38 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 	
 	if(node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
 		Image *ima= (Image *)node->id;
+		RenderData *rd= data;
+		ImBuf *ibuf;
 		CompBuf *cbuf, *buf1, *buf2, *mask;
 		int x, y;
 		
 		buf1= typecheck_compbuf(in[0]->data, CB_RGBA);
 		buf2= typecheck_compbuf(in[1]->data, CB_RGBA);
 		
-		if(ima->ibuf==NULL)
-			ima->ibuf= IMB_allocImBuf(buf1->x, buf1->y, 32, 0, 0);
+		BKE_image_user_calc_imanr(node->storage, rd->cfra, 0);
 		
-		/* cleanup of viewer image */
-		if(ima->ibuf->rect) {
-			MEM_freeN(ima->ibuf->rect);
-			ima->ibuf->rect= NULL;
-			ima->ibuf->mall &= ~IB_rect;
+		/* always returns for viewer image, but we check nevertheless */
+		ibuf= BKE_image_get_ibuf(ima, node->storage);
+		if(ibuf==NULL) {
+			printf("node_composit_exec_viewer error\n");
+			return;
 		}
-		if(ima->ibuf->zbuf_float) {
-			MEM_freeN(ima->ibuf->zbuf_float);
-			ima->ibuf->zbuf_float= NULL;
-			ima->ibuf->mall &= ~IB_zbuffloat;
-		}
-		if(ima->ibuf->rect_float)
-			MEM_freeN(ima->ibuf->rect_float);
 		
-		ima->ibuf->x= buf1->x;
-		ima->ibuf->y= buf1->y;
-		ima->ibuf->mall |= IB_rectfloat;
-		ima->ibuf->rect_float= MEM_mallocN(4*buf1->x*buf1->y*sizeof(float), "viewer rect");
+		/* free all in ibuf */
+		imb_freerectImBuf(ibuf);
+		imb_freerectfloatImBuf(ibuf);
+		IMB_freezbuffloatImBuf(ibuf);
 		
+		/* make ibuf, and connect to ima */
+		ibuf->x= buf1->x;
+		ibuf->y= buf1->y;
+		imb_addrectfloatImBuf(ibuf);
+		
+		ima->ok= IMA_OK_LOADED;
+
 		/* output buf */
 		cbuf= alloc_compbuf(buf1->x, buf1->y, CB_RGBA, 0);	/* no alloc*/
-		cbuf->rect= ima->ibuf->rect_float;
+		cbuf->rect= ibuf->rect_float;
 		
 		/* mask buf */
 		mask= alloc_compbuf(buf1->x, buf1->y, CB_VAL, 1);
@@ -766,7 +770,7 @@ static bNodeType cmp_node_splitviewer= {
 	/* class+opts  */	NODE_CLASS_OUTPUT, NODE_PREVIEW,
 	/* input sock  */	cmp_node_splitviewer_in,
 	/* output sock */	NULL,
-	/* storage     */	"",
+	/* storage     */	"ImageUser",
 	/* execfunc    */	node_composit_exec_splitviewer
 	
 };
@@ -818,6 +822,8 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 				outbuf->malloc= 0;
 				free_compbuf(outbuf);
 				
+				/* signal for imageviewer to refresh (it converts to byte rects...) */
+				BKE_image_signal(BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
 				return;
 			}
 		}
@@ -900,200 +906,7 @@ static bNodeType cmp_node_output_file= {
 	
 };
 
-/* **************** IMAGE ******************** */
-static bNodeSocketType cmp_node_image_out[]= {
-	{	SOCK_RGBA, 0, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 0, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 0, "Z",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
-};
-
-static int calcimanr(int cfra, NodeImageAnim *nia)
-{
-	
-	if(nia->frames==0) return nia->nr;
-	
-	cfra= cfra - nia->sfra;
-	
-	/* cyclic */
-	if(nia->cyclic)
-		cfra= (cfra % nia->frames);
-	else if(cfra>=nia->frames)
-		cfra= nia->frames-1;
-	else if(cfra<0)
-		cfra= 0;
-	
-	cfra+= nia->nr;
-	
-	if(cfra<1) cfra= 1;
-	
-	return cfra;
-}
-
-
-static void animated_image(bNode *node, int cfra)
-{
-	Image *ima;
-	NodeImageAnim *nia;
-	int imanr;
-	
-	ima= (Image *)node->id;
-	nia= node->storage;
-	
-	if(nia && nia->frames && ima && ima->name) {	/* frames anim or movie */
-		
-		imanr= calcimanr(cfra, nia);
-		
-		if(nia->movie) {
-			char str[FILE_MAXDIR+FILE_MAXFILE];
-			
-			strcpy(str, ima->name);
-			if(ima->id.lib)
-				BLI_convertstringcode(str, ima->id.lib->filename, cfra);
-			else
-				BLI_convertstringcode(str, G.sce, cfra);
-			
-			if(ima->anim==NULL) 
-				ima->anim = openanim(str, IB_cmap | IB_rect);
-			
-			if (ima->anim) {
-				int dur = IMB_anim_get_duration(ima->anim);
-				
-				if(imanr < 0) imanr = 0;
-				if(imanr > (dur-1)) imanr= dur-1;
-				
-				BLI_lock_thread(LOCK_CUSTOM1);
-				if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
-				ima->ibuf = IMB_anim_absolute(ima->anim, imanr);
-				BLI_unlock_thread(LOCK_CUSTOM1);
-				
-				/* patch for textbutton with name ima (B_NAMEIMA) */
-				if(ima->ibuf) {
-					strcpy(ima->ibuf->name, ima->name);
-					ima->ok= 1;
-				}
-			}
-		}
-		else {
-			
-			if(imanr!=ima->lastframe) {
-				unsigned short numlen;
-				char name[FILE_MAXDIR+FILE_MAXFILE], head[FILE_MAXDIR+FILE_MAXFILE], tail[FILE_MAXDIR+FILE_MAXFILE];
-				
-				strcpy(name, ima->name);
-				
-				ima->lastframe= imanr;
-				
-				BLI_stringdec(name, head, tail, &numlen);
-				BLI_stringenc(name, head, tail, numlen, imanr);
-				
-				ima= add_image(name);
-				
-				if(ima) {
-					ima->flag |= IMA_FROMANIM;
-					if(node->id) node->id->us--;
-					node->id= (ID *)ima;
-					
-					ima->ok= 1;
-				}
-			}
-		}
-	}
-}
-
-static CompBuf *node_composit_get_image(bNode *node, RenderData *rd)
-{
-	Image *ima;
-	CompBuf *stackbuf;
-	
-	/* animated image? */
-	if(node->storage)
-		animated_image(node, rd->cfra);
-	
-	ima= (Image *)node->id;
-	
-	/* test if image is OK */
-	if(ima->ok==0) return NULL;
-	
-	if(ima->ibuf==NULL) {
-		BLI_lock_thread(LOCK_CUSTOM1);
-		load_image(ima, IB_rect, G.sce, rd->cfra);	/* G.sce is current .blend path */
-		BLI_unlock_thread(LOCK_CUSTOM1);
-		if(ima->ibuf==NULL) {
-			ima->ok= 0;
-			return NULL;
-		}
-	}
-	if(ima->ibuf->rect_float==NULL)
-		IMB_float_from_rect(ima->ibuf);
-	
-	if(rd->scemode & R_COMP_CROP) {
-		stackbuf= get_cropped_compbuf(&rd->disprect, ima->ibuf->rect_float, ima->ibuf->x, ima->ibuf->y, CB_RGBA);
-	}
-	else {
-		/* we put imbuf copy on stack, cbuf knows rect is from other ibuf when freed! */
-		stackbuf= alloc_compbuf(ima->ibuf->x, ima->ibuf->y, CB_RGBA, 0);
-		stackbuf->rect= ima->ibuf->rect_float;
-	}
-	
-	return stackbuf;
-}
-
-static CompBuf *node_composit_get_zimage(bNode *node, RenderData *rd)
-{
-	Image *ima= (Image *)node->id;
-	CompBuf *zbuf= NULL;
-	
-	if(ima->ibuf && ima->ibuf->zbuf_float) {
-		if(rd->scemode & R_COMP_CROP) {
-			zbuf= get_cropped_compbuf(&rd->disprect, ima->ibuf->zbuf_float, ima->ibuf->x, ima->ibuf->y, CB_VAL);
-		}
-		else {
-			zbuf= alloc_compbuf(ima->ibuf->x, ima->ibuf->y, CB_VAL, 0);
-			zbuf->rect= ima->ibuf->zbuf_float;
-		}
-	}
-	return zbuf;
-}
-
-static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	
-	/* image assigned to output */
-	/* stack order input sockets: col, alpha */
-	if(node->id) {
-		CompBuf *stackbuf= node_composit_get_image(node, data);
-		
-		/* put ibuf on stack */	
-		out[0]->data= stackbuf;
-		
-		if(stackbuf) {
-			if(out[1]->hasoutput)
-				out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
-			
-			if(out[2]->hasoutput)
-				out[2]->data= node_composit_get_zimage(node, data);
-			
-			generate_preview(node, stackbuf);
-		}
-	}	
-}
-
-/* uses node->storage to indicate animated image */
-
-static bNodeType cmp_node_image= {
-	/* type code   */	CMP_NODE_IMAGE,
-	/* name        */	"Image",
-	/* width+range */	120, 80, 300,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */	NULL,
-	/* output sock */	cmp_node_image_out,
-	/* storage     */	"NodeImageAnim",
-	/* execfunc    */	node_composit_exec_image
-	
-};
-
-/* **************** RENDER RESULT ******************** */
+/* **************** IMAGE (and RenderResult, multilayer image) ******************** */
 
 /* output socket defines */
 #define RRES_OUT_IMAGE	0
@@ -1132,6 +945,171 @@ static bNodeSocketType cmp_node_rlayers_out[]= {
 };
 
 
+/* note: this function is used for multilayer too, to ensure uniform 
+   handling with BKE_image_get_ibuf() */
+static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *iuser)
+{
+	ImBuf *ibuf;
+	CompBuf *stackbuf;
+	int type;
+	
+	ibuf= BKE_image_get_ibuf(ima, iuser);
+	if(ibuf==NULL)
+		return NULL;
+	
+	if(ibuf->rect_float==NULL)
+		IMB_float_from_rect(ibuf);
+	
+	type= ibuf->channels;
+	
+	if(rd->scemode & R_COMP_CROP) {
+		stackbuf= get_cropped_compbuf(&rd->disprect, ibuf->rect_float, ibuf->x, ibuf->y, type);
+	}
+	else {
+		/* we put imbuf copy on stack, cbuf knows rect is from other ibuf when freed! */
+		stackbuf= alloc_compbuf(ibuf->x, ibuf->y, type, 0);
+		stackbuf->rect= ibuf->rect_float;
+	}
+	
+	return stackbuf;
+}
+
+static CompBuf *node_composit_get_zimage(bNode *node, RenderData *rd)
+{
+	ImBuf *ibuf= BKE_image_get_ibuf((Image *)node->id, node->storage);
+	CompBuf *zbuf= NULL;
+	
+	if(ibuf && ibuf->zbuf_float) {
+		if(rd->scemode & R_COMP_CROP) {
+			zbuf= get_cropped_compbuf(&rd->disprect, ibuf->zbuf_float, ibuf->x, ibuf->y, CB_VAL);
+		}
+		else {
+			zbuf= alloc_compbuf(ibuf->x, ibuf->y, CB_VAL, 0);
+			zbuf->rect= ibuf->zbuf_float;
+		}
+	}
+	return zbuf;
+}
+
+/* check if layer is available, returns pass buffer */
+static CompBuf *compbuf_multilayer_get(RenderData *rd, RenderLayer *rl, Image *ima, ImageUser *iuser, int passtype)
+{
+	RenderPass *rpass;
+	short index;
+	
+	for(index=0, rpass= rl->passes.first; rpass; rpass= rpass->next, index++)
+		if(rpass->passtype==passtype)
+			break;
+	
+	if(rpass) {
+		CompBuf *cbuf;
+		
+		iuser->pass= index;
+		BKE_image_multilayer_index(ima->rr, iuser);
+		cbuf= node_composit_get_image(rd, ima, iuser);
+		
+		return cbuf;
+	}
+	return NULL;
+}
+
+void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack **out, Image *ima, ImageUser *iuser)
+{
+	if(out[RRES_OUT_Z]->hasoutput)
+		out[RRES_OUT_Z]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_Z);
+	if(out[RRES_OUT_VEC]->hasoutput)
+		out[RRES_OUT_VEC]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_VECTOR);
+	if(out[RRES_OUT_NORMAL]->hasoutput)
+		out[RRES_OUT_NORMAL]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_NORMAL);
+	if(out[RRES_OUT_UV]->hasoutput)
+		out[RRES_OUT_UV]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_UV);
+	
+	if(out[RRES_OUT_RGBA]->hasoutput)
+		out[RRES_OUT_RGBA]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_RGBA);
+	if(out[RRES_OUT_DIFF]->hasoutput)
+		out[RRES_OUT_DIFF]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_DIFFUSE);
+	if(out[RRES_OUT_SPEC]->hasoutput)
+		out[RRES_OUT_SPEC]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_SPEC);
+	if(out[RRES_OUT_SHADOW]->hasoutput)
+		out[RRES_OUT_SHADOW]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_SHADOW);
+	if(out[RRES_OUT_AO]->hasoutput)
+		out[RRES_OUT_AO]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_AO);
+	if(out[RRES_OUT_REFLECT]->hasoutput)
+		out[RRES_OUT_REFLECT]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_REFLECT);
+	if(out[RRES_OUT_REFRACT]->hasoutput)
+		out[RRES_OUT_REFRACT]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_REFRACT);
+	if(out[RRES_OUT_RADIO]->hasoutput)
+		out[RRES_OUT_RADIO]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_RADIO);
+	if(out[RRES_OUT_INDEXOB]->hasoutput)
+		out[RRES_OUT_INDEXOB]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_INDEXOB);
+	
+}
+
+
+static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	
+	/* image assigned to output */
+	/* stack order input sockets: col, alpha */
+	if(node->id) {
+		RenderData *rd= data;
+		Image *ima= (Image *)node->id;
+		ImageUser *iuser= (ImageUser *)node->storage;
+		CompBuf *stackbuf= NULL;
+		
+		/* first set the right frame number in iuser */
+		BKE_image_user_calc_imanr(iuser, rd->cfra, 0);
+		
+		/* force a load, we assume iuser index will be set OK anyway */
+		if(ima->type==IMA_TYPE_MULTILAYER)
+			BKE_image_get_ibuf(ima, iuser);
+		
+		if(ima->type==IMA_TYPE_MULTILAYER && ima->rr) {
+			RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
+			
+			if(rl) {
+				out[0]->data= stackbuf= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_COMBINED);
+				
+				/* go over all layers */
+				outputs_multilayer_get(rd, rl, out, ima, iuser);
+			}
+		}
+		else {
+			stackbuf= node_composit_get_image(rd, ima, iuser);
+
+			/* put image on stack */	
+			out[0]->data= stackbuf;
+			
+			if(out[2]->hasoutput)
+				out[2]->data= node_composit_get_zimage(node, rd);
+		}
+		
+		/* alpha and preview for both types */
+		if(stackbuf) {
+			if(out[1]->hasoutput)
+				out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
+
+			generate_preview(node, stackbuf);
+		}
+	}	
+}
+
+/* uses node->storage to indicate animated image */
+
+static bNodeType cmp_node_image= {
+	/* type code   */	CMP_NODE_IMAGE,
+	/* name        */	"Image",
+	/* width+range */	120, 80, 300,
+	/* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
+	/* input sock  */	NULL,
+	/* output sock */	cmp_node_rlayers_out,
+	/* storage     */	"ImageUser",
+	/* execfunc    */	node_composit_exec_image
+	
+};
+
+/* **************** RENDER RESULT ******************** */
+
 static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, int recty, int passcode)
 {
 	float *fp= RE_RenderLayerGetPass(rl, passcode);
@@ -1143,9 +1121,9 @@ static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, in
 			buftype= CB_VAL;
 		else if(passcode==SCE_PASS_VECTOR)
 			buftype= CB_VEC4;
-		else if(passcode==SCE_PASS_RGBA)
+		else if(ELEM(passcode, SCE_PASS_COMBINED, SCE_PASS_RGBA))
 			buftype= CB_RGBA;
-
+		
 		if(rd->scemode & R_COMP_CROP)
 			buf= get_cropped_compbuf(&rd->disprect, fp, rectx, recty, buftype);
 		else {
@@ -1155,6 +1133,38 @@ static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, in
 		return buf;
 	}
 	return NULL;
+}
+
+void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out, int rectx, int recty)
+{
+	if(out[RRES_OUT_Z]->hasoutput)
+		out[RRES_OUT_Z]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_Z);
+	if(out[RRES_OUT_VEC]->hasoutput)
+		out[RRES_OUT_VEC]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_VECTOR);
+	if(out[RRES_OUT_NORMAL]->hasoutput)
+		out[RRES_OUT_NORMAL]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_NORMAL);
+	if(out[RRES_OUT_UV]->hasoutput)
+		out[RRES_OUT_UV]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_UV);
+	
+	if(out[RRES_OUT_RGBA]->hasoutput)
+		out[RRES_OUT_RGBA]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_RGBA);
+	if(out[RRES_OUT_DIFF]->hasoutput)
+		out[RRES_OUT_DIFF]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_DIFFUSE);
+	if(out[RRES_OUT_SPEC]->hasoutput)
+		out[RRES_OUT_SPEC]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_SPEC);
+	if(out[RRES_OUT_SHADOW]->hasoutput)
+		out[RRES_OUT_SHADOW]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_SHADOW);
+	if(out[RRES_OUT_AO]->hasoutput)
+		out[RRES_OUT_AO]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_AO);
+	if(out[RRES_OUT_REFLECT]->hasoutput)
+		out[RRES_OUT_REFLECT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_REFLECT);
+	if(out[RRES_OUT_REFRACT]->hasoutput)
+		out[RRES_OUT_REFRACT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_REFRACT);
+	if(out[RRES_OUT_RADIO]->hasoutput)
+		out[RRES_OUT_RADIO]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_RADIO);
+	if(out[RRES_OUT_INDEXOB]->hasoutput)
+		out[RRES_OUT_INDEXOB]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_INDEXOB);
+	
 }
 
 static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
@@ -1191,33 +1201,8 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in,
 					
 					if(out[RRES_OUT_ALPHA]->hasoutput)
 						out[RRES_OUT_ALPHA]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
-					if(out[RRES_OUT_Z]->hasoutput)
-						out[RRES_OUT_Z]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_Z);
-					if(out[RRES_OUT_VEC]->hasoutput)
-						out[RRES_OUT_VEC]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_VECTOR);
-					if(out[RRES_OUT_NORMAL]->hasoutput)
-						out[RRES_OUT_NORMAL]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_NORMAL);
-					if(out[RRES_OUT_UV]->hasoutput)
-						out[RRES_OUT_UV]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_UV);
-
-					if(out[RRES_OUT_RGBA]->hasoutput)
-						out[RRES_OUT_RGBA]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_RGBA);
-					if(out[RRES_OUT_DIFF]->hasoutput)
-						out[RRES_OUT_DIFF]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_DIFFUSE);
-					if(out[RRES_OUT_SPEC]->hasoutput)
-						out[RRES_OUT_SPEC]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_SPEC);
-					if(out[RRES_OUT_SHADOW]->hasoutput)
-						out[RRES_OUT_SHADOW]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_SHADOW);
-					if(out[RRES_OUT_AO]->hasoutput)
-						out[RRES_OUT_AO]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_AO);
-					if(out[RRES_OUT_REFLECT]->hasoutput)
-						out[RRES_OUT_REFLECT]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_REFLECT);
-					if(out[RRES_OUT_REFRACT]->hasoutput)
-						out[RRES_OUT_REFRACT]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_REFRACT);
-					if(out[RRES_OUT_RADIO]->hasoutput)
-						out[RRES_OUT_RADIO]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_RADIO);
-					if(out[RRES_OUT_INDEXOB]->hasoutput)
-						out[RRES_OUT_INDEXOB]->data= compbuf_from_pass(rd, rl, rr->rectx, rr->recty, SCE_PASS_INDEXOB);
+					
+					node_composit_rlayers_out(rd, rl, out, rr->rectx, rr->recty);
 
 					generate_preview(node, stackbuf);
 				}
@@ -3415,10 +3400,6 @@ static void node_composit_exec_dilateerode(void *data, bNode *node, bNodeStack *
 		CompBuf *stackbuf= dupalloc_compbuf(cbuf);
 		short i;
 		
-		/* warning note: xof and yof are applied in pixelprocessor, but should be copied otherwise? */
-		stackbuf->xof= cbuf->xof;
-		stackbuf->yof= cbuf->yof;
-
 		if (node->custom2 > 0) { // positive, dilate
 			for (i = 0; i < node->custom2; i++)
 				morpho_dilate(stackbuf);
@@ -3426,6 +3407,9 @@ static void node_composit_exec_dilateerode(void *data, bNode *node, bNodeStack *
 			for (i = 0; i > node->custom2; i--)
 				morpho_erode(stackbuf);
 		}
+		
+		if(cbuf!=in[0]->data)
+			free_compbuf(cbuf);
 		
 		out[0]->data= stackbuf;
 	}
@@ -4673,6 +4657,43 @@ bNodeType *node_all_composit[]= {
 
 /* ******************* parse ************ */
 
+/* clumsy checking... should do dynamic outputs once */
+static void force_hidden_passes(bNode *node, int passflag)
+{
+	bNodeSocket *sock;
+	
+	for(sock= node->outputs.first; sock; sock= sock->next)
+		sock->flag &= ~SOCK_UNAVAIL;
+	
+	sock= BLI_findlink(&node->outputs, RRES_OUT_Z);
+	if(!(passflag & SCE_PASS_Z)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_NORMAL);
+	if(!(passflag & SCE_PASS_NORMAL)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_VEC);
+	if(!(passflag & SCE_PASS_VECTOR)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_UV);
+	if(!(passflag & SCE_PASS_UV)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_RGBA);
+	if(!(passflag & SCE_PASS_RGBA)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF);
+	if(!(passflag & SCE_PASS_DIFFUSE)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_SPEC);
+	if(!(passflag & SCE_PASS_SPEC)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_SHADOW);
+	if(!(passflag & SCE_PASS_SHADOW)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_AO);
+	if(!(passflag & SCE_PASS_AO)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_REFLECT);
+	if(!(passflag & SCE_PASS_REFLECT)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_REFRACT);
+	if(!(passflag & SCE_PASS_REFRACT)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_RADIO);
+	if(!(passflag & SCE_PASS_RADIO)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXOB);
+	if(!(passflag & SCE_PASS_INDEXOB)) sock->flag |= SOCK_UNAVAIL;
+				
+}
+
 /* based on rules, force sockets hidden always */
 void ntreeCompositForceHidden(bNodeTree *ntree)
 {
@@ -4684,38 +4705,26 @@ void ntreeCompositForceHidden(bNodeTree *ntree)
 		if( node->type==CMP_NODE_R_LAYERS) {
 			Scene *sce= node->id?(Scene *)node->id:G.scene; /* G.scene is WEAK! */
 			SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
-			if(srl) {
-				bNodeSocket *sock;
-				for(sock= node->outputs.first; sock; sock= sock->next)
-					sock->flag &= ~SOCK_UNAVAIL;
-				
-				sock= BLI_findlink(&node->outputs, RRES_OUT_Z);
-				if(!(srl->passflag & SCE_PASS_Z)) sock->flag |= SOCK_UNAVAIL;
-				sock= BLI_findlink(&node->outputs, RRES_OUT_NORMAL);
-				if(!(srl->passflag & SCE_PASS_NORMAL)) sock->flag |= SOCK_UNAVAIL;
-				sock= BLI_findlink(&node->outputs, RRES_OUT_VEC);
-				if(!(srl->passflag & SCE_PASS_VECTOR)) sock->flag |= SOCK_UNAVAIL;
-				sock= BLI_findlink(&node->outputs, RRES_OUT_UV);
-				if(!(srl->passflag & SCE_PASS_UV)) sock->flag |= SOCK_UNAVAIL;
-				sock= BLI_findlink(&node->outputs, RRES_OUT_RGBA);
-				if(!(srl->passflag & SCE_PASS_RGBA)) sock->flag |= SOCK_UNAVAIL;
-				sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF);
-				if(!(srl->passflag & SCE_PASS_DIFFUSE)) sock->flag |= SOCK_UNAVAIL;
-				sock= BLI_findlink(&node->outputs, RRES_OUT_SPEC);
-				if(!(srl->passflag & SCE_PASS_SPEC)) sock->flag |= SOCK_UNAVAIL;
-				sock= BLI_findlink(&node->outputs, RRES_OUT_SHADOW);
-				if(!(srl->passflag & SCE_PASS_SHADOW)) sock->flag |= SOCK_UNAVAIL;
-				sock= BLI_findlink(&node->outputs, RRES_OUT_AO);
-				if(!(srl->passflag & SCE_PASS_AO)) sock->flag |= SOCK_UNAVAIL;
-				sock= BLI_findlink(&node->outputs, RRES_OUT_REFLECT);
-				if(!(srl->passflag & SCE_PASS_REFLECT)) sock->flag |= SOCK_UNAVAIL;
-				sock= BLI_findlink(&node->outputs, RRES_OUT_REFRACT);
-				if(!(srl->passflag & SCE_PASS_REFRACT)) sock->flag |= SOCK_UNAVAIL;
-				sock= BLI_findlink(&node->outputs, RRES_OUT_RADIO);
-				if(!(srl->passflag & SCE_PASS_RADIO)) sock->flag |= SOCK_UNAVAIL;
-				sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXOB);
-				if(!(srl->passflag & SCE_PASS_INDEXOB)) sock->flag |= SOCK_UNAVAIL;
+			if(srl)
+				force_hidden_passes(node, srl->passflag);
+		}
+		else if( node->type==CMP_NODE_IMAGE) {
+			Image *ima= (Image *)node->id;
+			if(ima) {
+				if(ima->rr) {
+					ImageUser *iuser= node->storage;
+					RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
+					if(rl)
+						force_hidden_passes(node, rl->passflag);
+					else
+						force_hidden_passes(node, 0);
+				}
+				else if(ima->type!=IMA_TYPE_MULTILAYER) {	/* if ->rr not yet read we keep inputs */
+					force_hidden_passes(node, 0);
+				}
 			}
+			else
+				force_hidden_passes(node, 0);
 		}
 	}
 	
@@ -4743,8 +4752,8 @@ void ntreeCompositTagAnimated(bNodeTree *ntree)
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->type==CMP_NODE_IMAGE) {
-			/* no actual test yet... */
-			if(node->storage)
+			Image *ima= (Image *)node->id;
+			if(ima && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
 				NodeTagChanged(ntree, node);
 		}
 		else if(node->type==CMP_NODE_TIME)

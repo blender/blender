@@ -42,6 +42,7 @@ struct View3D; /* keep me up here */
 
 #include "BIF_drawscene.h"
 #include "BIF_renderwin.h"
+#include "BIF_writeimage.h"
 
 #include "BLI_blenlib.h"
 
@@ -108,7 +109,6 @@ enum rend_constants {
 #define EXPP_RENDER_ATTR_YF_GIMETHOD         34
 #define EXPP_RENDER_ATTR_YF_GIQUALITY        35
 
-extern void save_rendered_image_cb_real(char *name, int zbuf, int confirm);
 
 /* Render doc strings */
 static char M_Render_doc[] = "The Blender Render module";
@@ -420,8 +420,8 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 	char dir[FILE_MAXDIR * 2], str[FILE_MAXFILE * 2];
 	char *name_str, filepath[FILE_MAXDIR+FILE_MAXFILE];
 	RenderResult *rr = NULL;
-	int zbuff = 0;
-
+	int zbuff;
+	
 	if( !PyArg_ParseTuple( args, "s|i", &name_str, &zbuff ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a filename (string) and optional int" );
@@ -431,7 +431,7 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"full filename too long" );
 
-	if (zbuff !=0	) zbuff = 1; /*required 1/0 */
+	if (zbuff !=0	) zbuff = 1; /*required 1/0 */ /* removed! (ton) */
 
 	BLI_strncpy( filepath, self->renderContext->pic, sizeof(filepath) );
 	strcat(filepath, name_str);
@@ -445,7 +445,7 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 			BLI_splitdirstring(dir, str);
 			strcpy(G.ima, dir);
 		}
-		save_rendered_image_cb_real(filepath, zbuff,0);
+		BIF_save_rendered_image(filepath);
 	}
 	return EXPP_incr_ret(Py_None);
 }
@@ -1902,11 +1902,9 @@ static int RenderData_setBackbufPath( BPy_RenderData *self, PyObject *value )
 	strcpy( self->renderContext->backbuf, name );
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
-	ima = add_image( name );
-	if( ima ) {
-		free_image_buffers( ima );
-		ima->ok = 1;
-	}
+	ima = BKE_add_image_file( name );
+	if( ima )
+		BKE_image_signal( ima, NULL, IMA_SIGNAL_RELOAD );
 
 	return 0;
 }

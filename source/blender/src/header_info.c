@@ -529,15 +529,16 @@ static void check_packAll()
 	// first check for dirty images
 	Image *ima;
 
-	ima = G.main->image.first;
-	while (ima) {
-		if (ima->ibuf && (ima->ibuf->userflags &= IB_BITMAPDIRTY)) {
-			break;
+	for(ima = G.main->image.first; ima; ima= ima->id.next) {
+		if (ima->ibufs.first) { /* XXX FIX */
+			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+
+			if (ibuf && (ibuf->userflags &= IB_BITMAPDIRTY))
+				break;
 		}
-		ima= ima->id.next;
-		}
+	}
 	
-	if (ima == 0 || okee("Some images are painted on. These changes will be lost. Continue ?")) {
+	if (ima == NULL || okee("Some images are painted on. These changes will be lost. Continue ?")) {
 		packAll();
 		G.fileflags |= G_AUTOPACK;
 	}
@@ -852,7 +853,7 @@ static void do_info_filemenu(void *arg, int event)
 		}
 		break;
 	case 6: /* save image */
-		BIF_save_rendered_image_fs(0);
+		BIF_save_rendered_image_fs();
 		break;
 	case 22: /* save runtime */
 		activate_fileselect(FILE_SPECIAL, "Save Runtime", "", write_runtime_check);

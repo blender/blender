@@ -183,6 +183,7 @@ int set_tpage(MTFace *tface)
 	static int alphamode= -1;
 	static MTFace *lasttface= 0;
 	Image *ima;
+	ImBuf *ibuf;
 	unsigned int *rect=NULL, *bind;
 	int tpx=0, tpy=0, tilemode, tileXRep,tileYRep;
 	
@@ -256,8 +257,7 @@ int set_tpage(MTFace *tface)
 	tilemode= tface->mode & TF_TILES;
 	tileXRep = 0;
 	tileYRep = 0;
-	if (ima)
-	{
+	if (ima) {
 		tileXRep = ima->xrep;
 		tileYRep = ima->yrep;
 	}
@@ -265,18 +265,17 @@ int set_tpage(MTFace *tface)
 
 	if(ima==fCurpage && fCurtile==tface->tile && tilemode==fCurmode && fCurtileXRep==tileXRep && fCurtileYRep == tileYRep) return ima!=0;
 
-	if(tilemode!=fCurmode || fCurtileXRep!=tileXRep || fCurtileYRep != tileYRep)
-	{
+	if(tilemode!=fCurmode || fCurtileXRep!=tileXRep || fCurtileYRep != tileYRep) {
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 		
-		if(tilemode && ima!=0)
+		if(tilemode && ima!=NULL)
 			glScalef(ima->xrep, ima->yrep, 1.0);
 
 		glMatrixMode(GL_MODELVIEW);
 	}
 
-	if(ima==0 || ima->ok==0) {
+	if(ima==NULL || ima->ok==0) {
 		glDisable(GL_TEXTURE_2D);
 		
 		fCurtile= tface->tile;
@@ -288,25 +287,21 @@ int set_tpage(MTFace *tface)
 		return 0;
 	}
 
-	if(ima->ibuf==0) {
-		load_image(ima, IB_rect, G.sce, G.scene->r.cfra);
+	ibuf= BKE_image_get_ibuf(ima, NULL);
+	if(ibuf==NULL) {
 
-		if(ima->ibuf==0) {
-			ima->ok= 0;
-
-			fCurtile= tface->tile;
-			fCurpage= 0;
-			fCurmode= tilemode;
-			fCurtileXRep = tileXRep;
-			fCurtileYRep = tileYRep;
-			
-			glDisable(GL_TEXTURE_2D);
-			return 0;
-		}
+		fCurtile= tface->tile;
+		fCurpage= 0;
+		fCurmode= tilemode;
+		fCurtileXRep = tileXRep;
+		fCurtileYRep = tileYRep;
+		
+		glDisable(GL_TEXTURE_2D);
+		return 0;
 	}
 
-	if ((ima->ibuf->rect==NULL) && ima->ibuf->rect_float)
-		IMB_rect_from_float(ima->ibuf);
+	if ((ibuf->rect==NULL) && ibuf->rect_float)
+		IMB_rect_from_float(ibuf);
 
 	if(ima->tpageflag & IMA_TWINANIM) fCurtile= ima->lastframe;
 	else fCurtile= tface->tile;
@@ -323,8 +318,8 @@ int set_tpage(MTFace *tface)
 		
 		if(*bind==0) {
 			
-			fTexwindx= ima->ibuf->x/ima->xrep;
-			fTexwindy= ima->ibuf->y/ima->yrep;
+			fTexwindx= ibuf->x/ima->xrep;
+			fTexwindy= ibuf->y/ima->yrep;
 			
 			if(fCurtile>=ima->xrep*ima->yrep) fCurtile= ima->xrep*ima->yrep-1;
 	
@@ -337,16 +332,16 @@ int set_tpage(MTFace *tface)
 			tpx= fTexwindx;
 			tpy= fTexwindy;
 
-			rect= ima->ibuf->rect + fTexwinsy*ima->ibuf->x + fTexwinsx;
+			rect= ibuf->rect + fTexwinsy*ibuf->x + fTexwinsx;
 		}
 	}
 	else {
 		bind= &ima->bindcode;
 		
 		if(*bind==0) {
-			tpx= ima->ibuf->x;
-			tpy= ima->ibuf->y;
-			rect= ima->ibuf->rect;
+			tpx= ibuf->x;
+			tpy= ibuf->y;
+			rect= ibuf->rect;
 		}
 	}
 
@@ -367,7 +362,7 @@ int set_tpage(MTFace *tface)
 				
 			tilerect= MEM_mallocN(rectw*recth*sizeof(*tilerect), "tilerect");
 			for (y=0; y<recth; y++) {
-				unsigned int *rectrow= &rect[y*ima->ibuf->x];
+				unsigned int *rectrow= &rect[y*ibuf->x];
 				unsigned int *tilerectrow= &tilerect[y*rectw];
 					
 				memcpy(tilerectrow, rectrow, tpx*sizeof(*rectrow));
@@ -422,8 +417,6 @@ int set_tpage(MTFace *tface)
 	}
 	else glBindTexture( GL_TEXTURE_2D, *bind);
 	
-	tag_image_time(ima);
-
 	glEnable(GL_TEXTURE_2D);
 
 	fCurpage= ima;
@@ -436,8 +429,10 @@ int set_tpage(MTFace *tface)
 
 void update_realtime_image(Image *ima, int x, int y, int w, int h)
 {
-	if (ima->repbind || get_mipmap() || !ima->bindcode || !ima->ibuf ||
-		(!is_pow2(ima->ibuf->x) || !is_pow2(ima->ibuf->y)) ||
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+	
+	if (ima->repbind || get_mipmap() || !ima->bindcode || !ibuf ||
+		(!is_pow2(ibuf->x) || !is_pow2(ibuf->y)) ||
 		(w == 0) || (h == 0)) {
 		/* these special cases require full reload still */
 		free_realtime_image(ima);
@@ -447,17 +442,17 @@ void update_realtime_image(Image *ima, int x, int y, int w, int h)
 		int skip_pixels = glaGetOneInteger(GL_UNPACK_SKIP_PIXELS);
 		int skip_rows = glaGetOneInteger(GL_UNPACK_SKIP_ROWS);
 
-		if ((ima->ibuf->rect==NULL) && ima->ibuf->rect_float)
-			IMB_rect_from_float(ima->ibuf);
+		if ((ibuf->rect==NULL) && ibuf->rect_float)
+			IMB_rect_from_float(ibuf);
 
 		glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, ima->ibuf->x);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, ibuf->x);
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, x);
 		glPixelStorei(GL_UNPACK_SKIP_ROWS, y);
 
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
-			GL_UNSIGNED_BYTE, ima->ibuf->rect);
+			GL_UNSIGNED_BYTE, ibuf->rect);
 
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, skip_pixels);
@@ -536,7 +531,9 @@ void texpaint_enable_mipmap(void)
 
 void make_repbind(Image *ima)
 {
-	if(ima==0 || ima->ibuf==0) return;
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+	
+	if(ibuf==NULL) return;
 
 	if(ima->repbind) {
 		glDeleteTextures(ima->totbind, (GLuint *)ima->repbind);
@@ -1050,7 +1047,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 					float v1[3], v2[3], v3[3], v4[3];
 					char string[MAX_PROPSTRING];
 					int characters, index;
-					Image *ima;
+					ImBuf *ibuf;
 					float curpos;
 
 					if (badtex)
@@ -1068,8 +1065,8 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 					set_property_valstr(prop, string);
 					characters = strlen(string);
 					
-					ima = tface->tpage;
-					if (ima == NULL) {
+					ibuf= BKE_image_get_ibuf(tface->tpage, NULL);
+					if (ibuf == NULL) {
 						characters = 0;
 					}
 
@@ -1092,7 +1089,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 						// space starts at offset 1
 						// character = character - ' ' + 1;
 						
-						matrixGlyph(ima->ibuf, character, & centerx, &centery, &sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
+						matrixGlyph(ibuf, character, & centerx, &centery, &sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
 						movex+= curpos;
 
 						if (tface->mode & TF_OBCOL) glColor3ubv(obcol);

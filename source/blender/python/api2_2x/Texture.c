@@ -208,17 +208,13 @@ static const EXPP_map_pair tex_flag_map[] = {
 	{NULL, 0}
 };
 
+/* NOTE: flags moved to image... */
 static const EXPP_map_pair tex_imageflag_map[] = {
 	{"InterPol", TEX_INTERPOL},
 	{"UseAlpha", TEX_USEALPHA},
 	{"MipMap", TEX_MIPMAP},
-	{"Fields", TEX_FIELDS},
 	{"Rot90", TEX_IMAROT},
 	{"CalcAlpha", TEX_CALCALPHA},
-	{"Cyclic", TEX_ANIMCYCLIC},
-	{"Movie", TEX_ANIM5},
-	{"StField", TEX_STD_FIELD},
-	{"Anti", TEX_ANTIALI},
 	{"NormalMap", TEX_NORMALMAP},
 	{NULL, 0}
 };
@@ -397,6 +393,10 @@ GETFUNC( getName );
 GETFUNC( getType );
 GETFUNC( getSType );
 GETFUNC( clearIpo );
+GETFUNC( getAnimMontage );
+GETFUNC( getAnimLength );
+SETFUNC( setAnimLength );
+SETFUNC( setAnimMontage );
 #endif
 
 GETFUNC( oldgetSType );
@@ -405,8 +405,6 @@ GETFUNC( oldgetType );
 GETFUNC(getProperties);
 GETFUNC( clearIpo );
 GETFUNC( getAnimFrames );
-GETFUNC( getAnimLength );
-GETFUNC( getAnimMontage );
 GETFUNC( getAnimOffset );
 GETFUNC( getAnimStart );
 GETFUNC( getBrightness );
@@ -455,8 +453,6 @@ OLDSETFUNC( setSType );
 OLDSETFUNC( setType );
 
 SETFUNC( setAnimFrames );
-SETFUNC( setAnimLength );
-SETFUNC( setAnimMontage );
 SETFUNC( setAnimOffset );
 SETFUNC( setAnimStart );
 SETFUNC( setBrightness );
@@ -552,6 +548,7 @@ static PyGetSetDef BPy_Texture_getseters[] = {
 	 (getter)Texture_getAnimFrames, (setter)Texture_setAnimFrames,
 	 "Number of frames of a movie to use",
 	 NULL},
+#if 0
 	{"animLength",
 	 (getter)Texture_getAnimLength, (setter)Texture_setAnimLength,
 	 "Number of frames of a movie to use (0 for all)",
@@ -560,6 +557,7 @@ static PyGetSetDef BPy_Texture_getseters[] = {
 	 (getter)Texture_getAnimMontage, (setter)Texture_setAnimMontage,
 	 "Montage mode, start frames and durations",
 	 NULL},
+#endif
 	{"animOffset",
 	 (getter)Texture_getAnimOffset, (setter)Texture_setAnimOffset,
 	 "Offsets the number of the first movie frame to use",
@@ -729,14 +727,16 @@ static PyGetSetDef BPy_Texture_getseters[] = {
 	 (getter)Texture_getImageFlags, (setter)Texture_setImageFlags,
 	 "Mipmaps enabled ('ImageFlags')",
 	 (void *)TEX_MIPMAP},
-	{"fields",
-	 (getter)Texture_getImageFlags, (setter)Texture_setImageFlags,
-	 "Use of image's fields enabled ('ImageFlags')",
-	 (void *)TEX_FIELDS},
 	{"rot90",
 	 (getter)Texture_getImageFlags, (setter)Texture_setImageFlags,
 	 "X/Y flip for rendering enabled ('ImageFlags')",
 	 (void *)TEX_IMAROT},
+#if 0
+	/* disabled, moved to image */
+	{"fields",
+	 (getter)Texture_getImageFlags, (setter)Texture_setImageFlags,
+	 "Use of image's fields enabled ('ImageFlags')",
+	 (void *)TEX_FIELDS},
 	{"cyclic",
 	 (getter)Texture_getImageFlags, (setter)Texture_setImageFlags,
 	 "Looping of animated frames enabled ('ImageFlags')",
@@ -753,6 +753,7 @@ static PyGetSetDef BPy_Texture_getseters[] = {
 	 (getter)Texture_getImageFlags, (setter)Texture_setImageFlags,
 	 "Standard field deinterlacing enabled ('ImageFlags')",
 	 (void *)TEX_STD_FIELD},
+#endif
 	{"normalMap",
 	 (getter)Texture_getImageFlags, (setter)Texture_setImageFlags,
 	 "Use of image RGB values for normal mapping enabled ('ImageFlags')",
@@ -1174,12 +1175,8 @@ static PyObject *M_Texture_ImageFlagsDict( void )
 		PyConstant_Insert(d, "INTERPOL", PyInt_FromLong(TEX_INTERPOL));
 		PyConstant_Insert(d, "USEALPHA", PyInt_FromLong(TEX_USEALPHA));
 		PyConstant_Insert(d, "MIPMAP", PyInt_FromLong(TEX_MIPMAP));
-		PyConstant_Insert(d, "FIELDS", PyInt_FromLong(TEX_FIELDS));
 		PyConstant_Insert(d, "ROT90", PyInt_FromLong(TEX_IMAROT));
 		PyConstant_Insert(d, "CALCALPHA", PyInt_FromLong(TEX_CALCALPHA));
-		PyConstant_Insert(d, "STFIELD", PyInt_FromLong(TEX_STD_FIELD));
-		PyConstant_Insert(d, "MOVIE", PyInt_FromLong(TEX_ANIM5));
-		PyConstant_Insert(d, "CYCLIC", PyInt_FromLong(TEX_ANIMCYCLIC));
 		PyConstant_Insert(d, "NORMALMAP", PyInt_FromLong(TEX_NORMALMAP));
 	}
 	return ImageFlags;
@@ -1422,11 +1419,13 @@ static PyObject *Texture_oldgetType( BPy_Texture * self )
 
 static int Texture_setAnimFrames( BPy_Texture * self, PyObject * value )
 {
-	return EXPP_setIValueClamped ( value, &self->texture->frames,
+	return EXPP_setIValueClamped ( value, &self->texture->iuser.frames,
 								EXPP_TEX_ANIMFRAME_MIN,
 								EXPP_TEX_ANIMFRAME_MAX, 'h' );
 }
 
+#if 0
+/* this was stupid to begin with! (ton) */
 static int Texture_setAnimLength( BPy_Texture * self, PyObject * value )
 {
 	return EXPP_setIValueClamped ( value, &self->texture->len,
@@ -1434,6 +1433,7 @@ static int Texture_setAnimLength( BPy_Texture * self, PyObject * value )
 								EXPP_TEX_ANIMLEN_MAX, 'h' );
 }
 
+/* this is too simple to keep supporting? disabled for time being (ton) */
 static int Texture_setAnimMontage( BPy_Texture * self, PyObject * value )
 {
 	int fradur[4][2];
@@ -1458,17 +1458,18 @@ static int Texture_setAnimMontage( BPy_Texture * self, PyObject * value )
 
 	return 0;
 }
+#endif
 
 static int Texture_setAnimOffset( BPy_Texture * self, PyObject * value )
 {
-	return EXPP_setIValueClamped ( value, &self->texture->offset,
+	return EXPP_setIValueClamped ( value, &self->texture->iuser.offset,
 								EXPP_TEX_ANIMOFFSET_MIN,
 								EXPP_TEX_ANIMOFFSET_MAX, 'h' );
 }
 
 static int Texture_setAnimStart( BPy_Texture * self, PyObject * value )
 {
-	return EXPP_setIValueClamped ( value, &self->texture->sfra,
+	return EXPP_setIValueClamped ( value, &self->texture->iuser.sfra,
 								EXPP_TEX_ANIMSTART_MIN,
 								EXPP_TEX_ANIMSTART_MAX, 'h' );
 }
@@ -1610,13 +1611,8 @@ static int Texture_setImageFlags( BPy_Texture * self, PyObject * value,
 		int bitmask = TEX_INTERPOL
 					| TEX_USEALPHA
 					| TEX_MIPMAP
-					| TEX_FIELDS
 					| TEX_IMAROT
 					| TEX_CALCALPHA
-					| TEX_ANIMCYCLIC
-					| TEX_ANIM5
-					| TEX_ANTIALI
-					| TEX_STD_FIELD
 					| TEX_NORMALMAP;
 
 		if( !PyInt_CheckExact ( value ) ) {
@@ -1630,13 +1626,6 @@ static int Texture_setImageFlags( BPy_Texture * self, PyObject * value,
 			return EXPP_ReturnIntError( PyExc_ValueError,
 							"invalid bit(s) set in mask" );
 	}
-
-	/* "mipmap" and "fields" can't be set at the same time */
-
-	if( ( param & TEX_MIPMAP ) &&
-			( param & TEX_FIELDS ) )
-		return EXPP_ReturnIntError( PyExc_ValueError,
-				"image flags MIPMAP and FIELDS cannot be used together" );
 
 	/* everything is OK; save the new flag setting */
 
@@ -2024,6 +2013,8 @@ static PyObject *Texture_getAnimFrames( BPy_Texture *self )
 	return attr;
 }
 
+#if 0
+/* disabled. this option was too stupid! (ton) */
 static PyObject *Texture_getAnimLength( BPy_Texture *self )
 {
 	PyObject *attr = PyInt_FromLong( self->texture->len );
@@ -2055,10 +2046,11 @@ static PyObject *Texture_getAnimMontage( BPy_Texture *self )
 
 	return attr;
 }
+#endif
 
 static PyObject *Texture_getAnimOffset( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->offset );
+	PyObject *attr = PyInt_FromLong( self->texture->iuser.offset );
 
 	if( !attr )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -2069,7 +2061,7 @@ static PyObject *Texture_getAnimOffset( BPy_Texture *self )
 
 static PyObject *Texture_getAnimStart( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->sfra );
+	PyObject *attr = PyInt_FromLong( self->texture->iuser.sfra );
 
 	if( !attr )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -2162,7 +2154,7 @@ static PyObject *Texture_getIntExtend( BPy_Texture * self )
 
 static PyObject *Texture_getFieldsPerImage( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->fie_ima );
+	PyObject *attr = PyInt_FromLong( self->texture->iuser.fie_ima );
 
 	if( !attr )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,

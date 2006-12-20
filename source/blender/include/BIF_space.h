@@ -64,6 +64,7 @@ struct SpaceOops;
 #define IMAGE_HANDLER_PAINT			31
 #define IMAGE_HANDLER_CURVES		32
 #define IMAGE_HANDLER_PREVIEW		33
+#define IMAGE_HANDLER_GAME_PROPERTIES	34
 
 /* action handler codes */
 #define ACTION_HANDLER_PROPERTIES	40

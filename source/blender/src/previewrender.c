@@ -269,6 +269,8 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 		/* set world always back, is used now */
 		sce->world= pr_main->world.first;
 		
+		sce->r.cfra= G.scene->r.cfra;
+		
 		if(id_type==ID_MA) {
 			Material *mat= (Material *)id;
 			

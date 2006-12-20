@@ -48,6 +48,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_texture.h"
@@ -1330,6 +1331,7 @@ typedef struct BakeShade {
 	
 	ZSpan *zspan;
 	Image *ima;
+	ImBuf *ibuf;
 	
 	int rectx, recty, quad, type, vdone, ready;
 	
@@ -1457,12 +1459,16 @@ static int get_next_bake_face(BakeShade *bs)
 		if(vlr->ob->flag & SELECT) {
 			if(vlr->tface && vlr->tface->tpage) {
 				Image *ima= vlr->tface->tpage;
+				ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 				float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
 				
-				if(ima->ibuf==NULL)
+				if(ibuf==NULL)
 					continue;
 				
-				if(ima->ibuf->rect==NULL && ima->ibuf->rect_float==NULL)
+				if(ibuf->rect==NULL && ibuf->rect_float==NULL)
+					continue;
+				
+				if(ibuf->rect_float && !(ibuf->channels==0 || ibuf->channels==4))
 					continue;
 				
 				/* find the image for the first time? */
@@ -1470,10 +1476,10 @@ static int get_next_bake_face(BakeShade *bs)
 					ima->id.flag &= ~LIB_DOIT;
 					
 					/* we either fill in float or char, this ensures things go fine */
-					if(ima->ibuf->rect_float)
-						imb_freerectImBuf(ima->ibuf);
+					if(ibuf->rect_float)
+						imb_freerectImBuf(ibuf);
 					/* clear image */
-					IMB_rectfill(ima->ibuf, vec);
+					IMB_rectfill(ibuf, vec);
 				
 					/* might be read by UI to set active image for display */
 					R.bakebuf= ima;
@@ -1511,15 +1517,16 @@ static void shade_tface(BakeShade *bs)
 	/* check valid zspan */
 	if(ima!=bs->ima) {
 		bs->ima= ima;
+		bs->ibuf= BKE_image_get_ibuf(ima, NULL);
 		/* note, these calls only free/fill contents of zspan struct, not zspan itself */
 		zbuf_free_span(bs->zspan);
-		zbuf_alloc_span(bs->zspan, ima->ibuf->x, ima->ibuf->y);
+		zbuf_alloc_span(bs->zspan, bs->ibuf->x, bs->ibuf->y);
 	}				
 	
-	bs->rectx= ima->ibuf->x;
-	bs->recty= ima->ibuf->y;
-	bs->rect= ima->ibuf->rect;
-	bs->rect_float= ima->ibuf->rect_float;
+	bs->rectx= bs->ibuf->x;
+	bs->recty= bs->ibuf->y;
+	bs->rect= bs->ibuf->rect;
+	bs->rect_float= bs->ibuf->rect_float;
 	bs->quad= 0;
 	
 	/* get pixel level vertex coordinates */
@@ -1607,10 +1614,10 @@ int RE_bake_shade_all_selected(Render *re, int type)
 	/* filter images */
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if((ima->id.flag & LIB_DOIT)==0) {
-			
-			IMB_filter_extend(ima->ibuf);
-			IMB_filter_extend(ima->ibuf);	/* 2nd pixel extra */
-			ima->ibuf->userflags |= IB_BITMAPDIRTY;
+			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+			IMB_filter_extend(ibuf);
+			IMB_filter_extend(ibuf);	/* 2nd pixel extra */
+			ibuf->userflags |= IB_BITMAPDIRTY;
 		}
 	}
 	

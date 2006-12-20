@@ -279,6 +279,8 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 		if (lb) {
 			if( id_code==ID_IP)
 				IPOnames_to_pupstring(&str, NULL, extrastr, lb, id, menupoin, G.sipo->blocktype);
+			else if(browse!=B_SIMABROWSE && id_code==ID_IM )
+				IMAnames_to_pupstring(&str, NULL, extrastr, lb, id, menupoin);
 			else
 				IDnames_to_pupstring(&str, NULL, extrastr, lb, id, menupoin);
 		}
@@ -411,9 +413,12 @@ static void do_update_for_newframe(int mute, int events)
 	/* this function applies the changes too */
 	scene_update_for_newframe(G.scene, screen_view3d_layers()); /* BKE_scene.h */
 
-	if ( (CFRA>1) && (!mute) && (G.scene->audio.flag & AUDIO_SCRUB)) audiostream_scrub( CFRA );
+	if ( (CFRA>1) && (!mute) && (G.scene->audio.flag & AUDIO_SCRUB)) 
+		audiostream_scrub( CFRA );
+	
 	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 
+	BIF_image_update_frame();
 }
 
 void update_for_newframe(void)
@@ -573,7 +578,7 @@ void do_global_buttons(unsigned short event)
 	ScrArea *sa;
 	Brush *br;
 	int nr= 1;
-	char buf[FILE_MAXDIR+FILE_MAXFILE];
+	char buf[FILE_MAX];
 
 	ob= OBACT;
 
@@ -1518,8 +1523,8 @@ void do_global_buttons(unsigned short event)
 		allqueue(REDRAWNLA, 1);
 		/* name scene also in set PUPmenu */
 		allqueue(REDRAWBUTSALL, 0);
+		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWHEADERS, 0);
-
 		break;
 	
 	case B_KEEPDATA:

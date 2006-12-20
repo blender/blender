@@ -31,7 +31,7 @@
 
 struct CurveMapping;
 struct CurveMap;
-struct Image;
+struct ImBuf;
 struct rctf;
  
 struct CurveMapping	*curvemapping_add(int tot, float minx, float miny, float maxx, float maxy);
@@ -53,7 +53,7 @@ float				curvemapping_evaluateF(struct CurveMapping *cumap, int cur, float value
 void				curvemapping_evaluate3F(struct CurveMapping *cumap, float *vecout, const float *vecin);
 void				curvemapping_evaluateRGBF(struct CurveMapping *cumap, float *vecout, const float *vecin);
 void				curvemapping_evaluate_premulRGBF(struct CurveMapping *cumap, float *vecout, const float *vecin);
-void				curvemapping_do_image(struct CurveMapping *cumap, struct Image *ima);
+void				curvemapping_do_ibuf(struct CurveMapping *cumap, struct ImBuf *ibuf);
 void				curvemapping_premultiply(struct CurveMapping *cumap, int restore);
 int					curvemapping_RGBA_does_something(struct CurveMapping *cumap);
 void				curvemapping_initialize(struct CurveMapping *cumap);

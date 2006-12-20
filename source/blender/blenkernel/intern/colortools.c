@@ -43,6 +43,7 @@
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
+#include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
 
@@ -623,30 +624,43 @@ void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float *vecout, const 
 
 #define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
 
-void curvemapping_do_image(CurveMapping *cumap, Image *ima)
+void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 {
 	int pixel;
 	
-	if(ima==NULL || ima->ibuf==NULL)
+	if(ibuf==NULL)
 		return;
-	if(ima->ibuf->rect_float==NULL)
-		IMB_float_from_rect(ima->ibuf);
-	else if(ima->ibuf->rect==NULL)
-		imb_addrectImBuf(ima->ibuf);
+	if(ibuf->rect_float==NULL)
+		IMB_float_from_rect(ibuf);
+	else if(ibuf->rect==NULL)
+		imb_addrectImBuf(ibuf);
 	
 	curvemapping_premultiply(cumap, 0);
 	
-	if(ima->ibuf->rect_float && ima->ibuf->rect) {
-		float *pixf= ima->ibuf->rect_float;
+	if(ibuf->rect_float && ibuf->rect) {
+		float *pixf= ibuf->rect_float;
 		float col[3];
-		char *pixc= (char *)ima->ibuf->rect;
+		int stride= 4;
+		char *pixc= (char *)ibuf->rect;
 		
-		for(pixel= ima->ibuf->x*ima->ibuf->y; pixel>0; pixel--, pixf+=4, pixc+=4) {
-			curvemapping_evaluate_premulRGBF(cumap, col, pixf);
-			pixc[0]= FTOCHAR(col[0]);
-			pixc[1]= FTOCHAR(col[1]);
-			pixc[2]= FTOCHAR(col[2]);
-			pixc[3]= FTOCHAR(pixf[3]);
+		if(ibuf->channels)
+			stride= ibuf->channels;
+		
+		for(pixel= ibuf->x*ibuf->y; pixel>0; pixel--, pixf+=stride, pixc+=4) {
+			if(stride<3) {
+				col[0]= curvemap_evaluateF(cumap->cm, *pixf);
+				pixc[1]= pixc[2]= pixc[3]= pixc[0]= FTOCHAR(col[0]);
+			}
+			else {
+				curvemapping_evaluate_premulRGBF(cumap, col, pixf);
+				pixc[0]= FTOCHAR(col[0]);
+				pixc[1]= FTOCHAR(col[1]);
+				pixc[2]= FTOCHAR(col[2]);
+				if(stride>3)
+					pixc[3]= FTOCHAR(pixf[3]);
+				else
+					pixc[3]= 255;
+			}
 		}
 	}
 	

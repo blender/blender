@@ -22,7 +22,6 @@ extern "C" {
 #include "DNA_world_types.h"
 
 #include "BKE_global.h"
-#include "BKE_image.h"
 
 #include "render_types.h"
 /* display_draw() needs render layer info */

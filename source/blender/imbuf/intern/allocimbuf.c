@@ -62,6 +62,17 @@ void imb_freeplanesImBuf(struct ImBuf * ibuf)
 	ibuf->mall &= ~IB_planes;
 }
 
+void imb_freemipmapImBuf(struct ImBuf * ibuf)
+{
+	int a;
+	
+	for(a=0; a<IB_MIPMAP_LEVELS; a++) {
+		if(ibuf->mipmap[a]) IMB_freeImBuf(ibuf->mipmap[a]);
+		ibuf->mipmap[a]= NULL;
+	}
+}
+
+/* any free rect frees mipmaps to be sure, creation is in render on first request */
 void imb_freerectfloatImBuf(struct ImBuf * ibuf)
 {
 	if (ibuf==NULL) return;
@@ -73,10 +84,13 @@ void imb_freerectfloatImBuf(struct ImBuf * ibuf)
 		}
 	}
 
+	imb_freemipmapImBuf(ibuf);
+	
 	ibuf->rect_float= NULL;
 	ibuf->mall &= ~IB_rectfloat;
 }
 
+/* any free rect frees mipmaps to be sure, creation is in render on first request */
 void imb_freerectImBuf(struct ImBuf * ibuf)
 {
 	if (ibuf==NULL) return;
@@ -86,6 +100,8 @@ void imb_freerectImBuf(struct ImBuf * ibuf)
 			MEM_freeN(ibuf->rect);
 		}
 	}
+	
+	imb_freemipmapImBuf(ibuf);
 	
 	ibuf->rect= NULL;
 	ibuf->mall &= ~IB_rect;
@@ -363,7 +379,8 @@ struct ImBuf *IMB_allocImBuf(short x, short y, uchar d, unsigned int flags, ucha
 		ibuf->y= y;
 		ibuf->depth= d;
 		ibuf->ftype= TGA;
-
+		ibuf->channels= 4;	/* float option, is set to other values when buffers get assigned */
+		
 		if (flags & IB_rect){
 			if (imb_addrectImBuf(ibuf)==FALSE){
 				IMB_freeImBuf(ibuf);
@@ -407,7 +424,7 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1)
 {
 	struct ImBuf *ibuf2, tbuf;
 	int flags = 0;
-	int x, y;
+	int a, x, y;
 	
 	if (ibuf1 == NULL) return NULL;
 
@@ -452,6 +469,8 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1)
 	tbuf.encodedbuffer = ibuf2->encodedbuffer;
 	tbuf.zbuf= NULL;
 	tbuf.zbuf_float= NULL;
+	for(a=0; a<IB_MIPMAP_LEVELS; a++)
+		tbuf.mipmap[a]= NULL;
 	
 	// set malloc flag
 	tbuf.mall		= ibuf2->mall;

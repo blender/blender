@@ -638,7 +638,7 @@ char *BLI_strdup(char *str) {
 	return BLI_strdupn(str, strlen(str));
 }
 
-char *BLI_strncpy(char *dst, char *src, int maxncpy) {
+char *BLI_strncpy(char *dst, const char *src, int maxncpy) {
 	int srclen= strlen(src);
 	int cpylen= (srclen>(maxncpy-1))?(maxncpy-1):srclen;
 	
@@ -1117,7 +1117,7 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 	BLI_clean(string);
 }
 
-int BLI_testextensie(char *str, char *ext)
+int BLI_testextensie(const char *str, const char *ext)
 {
 	short a, b;
 	int retval;

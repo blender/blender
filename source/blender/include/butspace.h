@@ -41,6 +41,8 @@ struct ColorBand;
 struct uiBlock;
 struct rctf;
 struct CurveMap;
+struct ImageUser;
+struct RenderResult;
 
 /* buts->scaflag */		
 #define BUTS_SENS_SEL		1
@@ -115,6 +117,10 @@ extern void radio_panels(void);
 extern void do_radiobuts(unsigned short event);
 extern void texture_panels(void);
 extern void do_texbuts(unsigned short event);
+void uiblock_image_panel(struct uiBlock *block, struct Image **ima_pp, struct ImageUser *iuser, 
+						 short redraw, short imagechanged);
+void uiblock_layer_pass_buttons(struct uiBlock *block, struct RenderResult *rr, 
+							   struct ImageUser *iuser, int event, int x, int y, int w);
 
 /* logic */
 extern void do_logic_buts(unsigned short event);
@@ -151,18 +157,11 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 /* *********************** */
 #define B_VIEWBUTS		1100
 
-#define B_LOADBGPIC		1001
-#define B_BLENDBGPIC		1002
-#define B_BGPICBROWSE		1003
-#define B_BGPICTEX		1004
-#define B_BGPICCLEAR		1005
-#define B_BGPICTEXCLEAR		1006
-
 #define B_OBJECTPANELROT 	1007
-#define B_OBJECTPANELMEDIAN 	1008
+#define B_OBJECTPANELMEDIAN 1008
 #define B_ARMATUREPANEL1 	1009
 #define B_ARMATUREPANEL2 	1010
-#define B_OBJECTPANELPARENT 	1011
+#define B_OBJECTPANELPARENT 1011
 #define B_OBJECTPANEL		1012
 #define B_ARMATUREPANEL3 	1013
 #define B_OBJECTPANELSCALE 	1014
@@ -213,13 +212,12 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 
 #define B_TEXTYPE		1301
 #define B_DEFTEXVAR		1302
-#define B_LOADTEXIMA	1303
+
 #define B_NAMEIMA		1304
 #define B_TEXCHANNEL	1305
 #define B_TEXREDR_PRV	1306
-#define B_TEXIMABROWSE	1307
-#define B_IMAPTEST		1308
-#define B_RELOADIMA		1309
+#define B_IMAGECHANGED	1307
+
 #define B_LOADPLUGIN	1310
 #define B_NAMEPLUGIN	1311
 #define B_COLORBAND		1312
@@ -233,20 +231,18 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_LOADTEXIMA1	1320
 #define B_TEXPRV		1321
 
+
 #define B_PLUGBUT		1325
 /* B_PLUGBUT reserves 24 buttons at least! */
 
 #define B_ENV_MAKE		1350
 #define B_ENV_FREE		1351
-#define B_ENV_DELETE		1352
+#define B_ENV_DELETE	1352
 #define B_ENV_SAVE		1353
 #define B_ENV_OB		1354
 
-#define B_PACKIMA		1355
-#define B_TEXSETFRAMES		1356
+#define B_ENV_FREE_ALL	1357
 
-#define B_ENV_FREE_ALL		1357
-#define B_UNLINKIMA		1358
 
 /* **************** animbuts = object buttons ******* */
 #define B_ANIMBUTS		1500

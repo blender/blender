@@ -69,14 +69,26 @@ extern struct Render R;
 
 /* *********** IMAGEWRAPPING ****************** */
 
+
 /* x and y have to be checked for image size */
 static void ibuf_get_color(float *col, struct ImBuf *ibuf, int x, int y)
 {
 	int ofs = y * ibuf->x + x;
 	
 	if(ibuf->rect_float) {
-		float *fp= ibuf->rect_float + 4*ofs;
-		QUATCOPY(col, fp);
+		if(ibuf->channels==4) {
+			float *fp= ibuf->rect_float + 4*ofs;
+			QUATCOPY(col, fp);
+		}
+		else if(ibuf->channels==3) {
+			float *fp= ibuf->rect_float + 3*ofs;
+			VECCOPY(col, fp);
+			col[3]= 1.0f;
+		}
+		else {
+			float *fp= ibuf->rect_float + ofs;
+			col[0]= col[1]= col[2]= col[3]= *fp;
+		}
 	}
 	else {
 		char *rect = (char *)( ibuf->rect+ ofs);
@@ -88,156 +100,151 @@ static void ibuf_get_color(float *col, struct ImBuf *ibuf, int x, int y)
 	}	
 }
 
-int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
+int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, TexResult *texres)
 {
-	struct ImBuf *ibuf;
 	float fx, fy, val1, val2, val3;
-	int x, y;
+	int x, y, retval;
 
-	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0;
-
-	if(ima==NULL || ima->ok== 0) {
-		if(texres->nor) return 3;
-		else return 1;
+	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0f;
+	
+	/* we need to set retval OK, otherwise texture code generates normals itself... */
+	retval= texres->nor?3:1;
+	
+	/* quick tests */
+	if(ibuf==NULL && ima==NULL)
+		return retval;
+	if(ima) {
+		
+		/* hack for icon render */
+		if(ima->ibufs.first==NULL && (R.r.scemode & R_NO_IMAGE_LOAD))
+			return retval;
+		
+		ibuf= BKE_image_get_ibuf(ima, &tex->iuser);
+	}
+	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL))
+		return retval;
+	
+	/* setup mapping */
+	if(tex->imaflag & TEX_IMAROT) {
+		fy= texvec[0];
+		fx= texvec[1];
+	}
+	else {
+		fx= texvec[0];
+		fy= texvec[1];
 	}
 	
-	if(ima->ibuf==NULL) {
-		/* hack for icon render */
-		if(R.r.scemode &R_NO_IMAGE_LOAD)
-			return 0;
-		if(ima->ibuf==NULL) {
-			BLI_lock_thread(LOCK_CUSTOM1);
-			if(ima->ibuf==NULL) ima_ibuf_is_nul(tex, ima);
-			BLI_unlock_thread(LOCK_CUSTOM1);
+	if(tex->extend == TEX_CHECKER) {
+		int xs, ys;
+		
+		xs= (int)floor(fx);
+		ys= (int)floor(fy);
+		fx-= xs;
+		fy-= ys;
+
+		if( (tex->flag & TEX_CHECKER_ODD)==0) {
+			if((xs+ys) & 1);else return retval;
+		}
+		if( (tex->flag & TEX_CHECKER_EVEN)==0) {
+			if((xs+ys) & 1) return retval; 
+		}
+		/* scale around center, (0.5, 0.5) */
+		if(tex->checkerdist<1.0) {
+			fx= (fx-0.5)/(1.0-tex->checkerdist) +0.5;
+			fy= (fy-0.5)/(1.0-tex->checkerdist) +0.5;
 		}
 	}
 
-	if (ima->ok) {
-		ibuf = ima->ibuf;
+	x = (int)(fx*ibuf->x);
+	y = (int)(fy*ibuf->y);
 
-		if(tex->imaflag & TEX_IMAROT) {
-			fy= texvec[0];
-			fx= texvec[1];
+	if(tex->extend == TEX_CLIPCUBE) {
+		if(x<0 || y<0 || x>=ibuf->x || y>=ibuf->y || texvec[2]<-1.0 || texvec[2]>1.0) {
+			return retval;
+		}
+	}
+	else if( tex->extend==TEX_CLIP || tex->extend==TEX_CHECKER) {
+		if(x<0 || y<0 || x>=ibuf->x || y>=ibuf->y) {
+			return retval;
+		}
+	}
+	else {
+		if(tex->extend==TEX_EXTEND) {
+			if(x>=ibuf->x) x = ibuf->x-1;
+			else if(x<0) x= 0;
 		}
 		else {
-			fx= texvec[0];
-			fy= texvec[1];
+			x= x % ibuf->x;
+			if(x<0) x+= ibuf->x;
 		}
-		
-		if(tex->extend == TEX_CHECKER) {
-			int xs, ys;
-			
-			xs= (int)floor(fx);
-			ys= (int)floor(fy);
-			fx-= xs;
-			fy-= ys;
-
-			if( (tex->flag & TEX_CHECKER_ODD)==0) {
-				if((xs+ys) & 1);else return 0;
-			}
-			if( (tex->flag & TEX_CHECKER_EVEN)==0) {
-				if((xs+ys) & 1) return 0; 
-			}
-			/* scale around center, (0.5, 0.5) */
-			if(tex->checkerdist<1.0) {
-				fx= (fx-0.5)/(1.0-tex->checkerdist) +0.5;
-				fy= (fy-0.5)/(1.0-tex->checkerdist) +0.5;
-			}
-		}
-
-		x = (int)(fx*ibuf->x);
-		y = (int)(fy*ibuf->y);
-
-		if(tex->extend == TEX_CLIPCUBE) {
-			if(x<0 || y<0 || x>=ibuf->x || y>=ibuf->y || texvec[2]<-1.0 || texvec[2]>1.0) {
-				return 0;
-			}
-		}
-		else if( tex->extend==TEX_CLIP || tex->extend==TEX_CHECKER) {
-			if(x<0 || y<0 || x>=ibuf->x || y>=ibuf->y) {
-				return 0;
-			}
+		if(tex->extend==TEX_EXTEND) {
+			if(y>=ibuf->y) y = ibuf->y-1;
+			else if(y<0) y= 0;
 		}
 		else {
-			if(tex->extend==TEX_EXTEND) {
-				if(x>=ibuf->x) x = ibuf->x-1;
-				else if(x<0) x= 0;
-			}
-			else {
-				x= x % ibuf->x;
-				if(x<0) x+= ibuf->x;
-			}
-			if(tex->extend==TEX_EXTEND) {
-				if(y>=ibuf->y) y = ibuf->y-1;
-				else if(y<0) y= 0;
-			}
-			else {
-				y= y % ibuf->y;
-				if(y<0) y+= ibuf->y;
-			}
+			y= y % ibuf->y;
+			if(y<0) y+= ibuf->y;
 		}
-		
-		/* warning, no return before setting back! */
-		if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
-			ibuf->rect+= (ibuf->x*ibuf->y);
-		}
-
-		ibuf_get_color(&texres->tr, ibuf, x, y);
-		
-		if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
-			ibuf->rect-= (ibuf->x*ibuf->y);
-		}
-
-		if(tex->imaflag & TEX_USEALPHA) {
-			if(tex->imaflag & TEX_CALCALPHA);
-			else texres->talpha= 1;
-		}
-		
-		if(texres->nor) {
-			if(tex->imaflag & TEX_NORMALMAP) {
-				// qdn: normal from color
-				texres->nor[0] = 2.f*(texres->tr - 0.5f);
-				texres->nor[1] = 2.f*(0.5f - texres->tg);
-				texres->nor[2] = 2.f*(texres->tb - 0.5f);
-			}
-			else {
-				/* bump: take three samples */
-				val1= texres->tr+texres->tg+texres->tb;
-
-				if(x<ibuf->x-1) {
-					float col[4];
-					ibuf_get_color(col, ibuf, x+1, y);
-					val2= (col[0]+col[1]+col[2]);
-				}
-				else val2= val1;
-
-				if(y<ibuf->y-1) {
-					float col[4];
-					ibuf_get_color(col, ibuf, x, y+1);
-					val3= (col[0]+col[1]+col[2]);
-				}
-				else val3= val1;
-
-				/* do not mix up x and y here! */
-				texres->nor[0]= (val1-val2);
-				texres->nor[1]= (val1-val3);
-			}
-		}
-
-		BRICONTRGB;
-
-		if(texres->talpha) texres->tin= texres->ta;
-		else if(tex->imaflag & TEX_CALCALPHA) {
-			texres->ta= texres->tin= MAX3(texres->tr, texres->tg, texres->tb);
-		}
-		else texres->ta= texres->tin= 1.0;
-		
-		if(tex->flag & TEX_NEGALPHA) texres->ta= 1.0f-texres->ta;
-
+	}
+	
+	/* warning, no return before setting back! */
+	if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
+		ibuf->rect+= (ibuf->x*ibuf->y);
 	}
 
-	if(texres->nor) return 3;
-	else return 1;
+	ibuf_get_color(&texres->tr, ibuf, x, y);
+	
+	if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
+		ibuf->rect-= (ibuf->x*ibuf->y);
+	}
+
+	if(tex->imaflag & TEX_USEALPHA) {
+		if(tex->imaflag & TEX_CALCALPHA);
+		else texres->talpha= 1;
+	}
+	
+	if(texres->nor) {
+		if(tex->imaflag & TEX_NORMALMAP) {
+			// qdn: normal from color
+			texres->nor[0] = 2.f*(texres->tr - 0.5f);
+			texres->nor[1] = 2.f*(0.5f - texres->tg);
+			texres->nor[2] = 2.f*(texres->tb - 0.5f);
+		}
+		else {
+			/* bump: take three samples */
+			val1= texres->tr+texres->tg+texres->tb;
+
+			if(x<ibuf->x-1) {
+				float col[4];
+				ibuf_get_color(col, ibuf, x+1, y);
+				val2= (col[0]+col[1]+col[2]);
+			}
+			else val2= val1;
+
+			if(y<ibuf->y-1) {
+				float col[4];
+				ibuf_get_color(col, ibuf, x, y+1);
+				val3= (col[0]+col[1]+col[2]);
+			}
+			else val3= val1;
+
+			/* do not mix up x and y here! */
+			texres->nor[0]= (val1-val2);
+			texres->nor[1]= (val1-val3);
+		}
+	}
+
+	BRICONTRGB;
+
+	if(texres->talpha) texres->tin= texres->ta;
+	else if(tex->imaflag & TEX_CALCALPHA) {
+		texres->ta= texres->tin= MAX3(texres->tr, texres->tg, texres->tb);
+	}
+	else texres->ta= texres->tin= 1.0;
+	
+	if(tex->flag & TEX_NEGALPHA) texres->ta= 1.0f-texres->ta;
+
+	return retval;
 }
 
 static void clipx_rctf_swap(rctf *stack, short *count, float x1, float x2)
@@ -567,50 +574,27 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 	}
 }	
 
-static void makemipmap(Tex *tex, Image *ima)
-{
-	struct ImBuf *ibuf, *nbuf;
-	int minsize, curmap=0;
-	
-	ibuf= ima->ibuf;
-	minsize= MIN2(ibuf->x, ibuf->y);
-	
-	while(minsize>10 && curmap<BLI_ARRAY_NELEMS(ima->mipmap)) {
-		if(tex->imaflag & TEX_GAUSS_MIP) {
-			nbuf= IMB_allocImBuf(ibuf->x, ibuf->y, 32, IB_rect, 0);
-			IMB_filterN(nbuf, ibuf);
-			ima->mipmap[curmap]= (struct ImBuf *)IMB_onehalf(nbuf);
-			IMB_freeImBuf(nbuf);
-		}
-		else {
-			ima->mipmap[curmap]= (struct ImBuf *)IMB_onehalf(ibuf);
-		}
-		ibuf= ima->mipmap[curmap];
-		
-		curmap++;
-		minsize= MIN2(ibuf->x, ibuf->y);
-	}
-}
-
 void image_sample(Image *ima, float fx, float fy, float dx, float dy, float *result)
 {
 	TexResult texres;
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 	
-	if(ima==NULL || ima->ok== 0 || ima->ibuf==NULL) {
+	if(ibuf==NULL) {
+		result[0]= result[1]= result[2]= result[3]= 0.0f;
 		return;
 	}
 	
-	if( (R.flag & R_SEC_FIELD) && (ima->ibuf->flags & IB_fields) )
-		ima->ibuf->rect+= (ima->ibuf->x*ima->ibuf->y);
+	if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) )
+		ibuf->rect+= (ibuf->x*ibuf->y);
 	
-	boxsample(ima->ibuf, fx, fy, fx+dx, fy+dy, &texres, 0, 1);
+	boxsample(ibuf, fx, fy, fx+dx, fy+dy, &texres, 0, 1);
 	result[0]= texres.tr;
 	result[1]= texres.tg;
 	result[2]= texres.tb;
 	result[3]= texres.ta;
 
-	if( (R.flag & R_SEC_FIELD) && (ima->ibuf->flags & IB_fields) )
-		ima->ibuf->rect-= (ima->ibuf->x*ima->ibuf->y);
+	if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) )
+		ibuf->rect-= (ibuf->x*ibuf->y);
 }
 
 void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result)
@@ -630,354 +614,349 @@ void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float *res
 
 
 
-int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, TexResult *texres)
+int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *dxt, float *dyt, TexResult *texres)
 {
 	TexResult texr;
-	ImBuf *ibuf, *previbuf;
 	float fx, fy, minx, maxx, miny, maxy, dx, dy;
 	float maxd, pixsize, val1, val2, val3;
 	int curmap, retval, imaprepeat, imapextend;
 
-	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0;
+	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0f;
 	
 	/* we need to set retval OK, otherwise texture code generates normals itself... */
 	retval= texres->nor?3:1;
 	
-	if(ima==NULL || ima->ok== 0) {
+	/* quick tests */
+	if(ibuf==NULL && ima==NULL)
 		return retval;
+	if(ima) {
+
+		/* hack for icon render */
+		if(ima->ibufs.first==NULL && (R.r.scemode & R_NO_IMAGE_LOAD))
+			return retval;
+		
+		ibuf= BKE_image_get_ibuf(ima, &tex->iuser); 
+	}
+	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL))
+	   return retval;
+	
+	/* mipmap test */
+	if(tex->imaflag & TEX_MIPMAP) {
+		if(ibuf->flags & IB_fields);
+		else if(ibuf->mipmap[0]==NULL) {
+			BLI_lock_thread(LOCK_CUSTOM1);
+			
+			if(ibuf->mipmap[0]==NULL)
+				IMB_makemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
+
+			BLI_unlock_thread(LOCK_CUSTOM1);
+		}
+	}
+
+	if(tex->imaflag & TEX_USEALPHA) {
+		if(tex->imaflag & TEX_CALCALPHA);
+		else texres->talpha= 1;
 	}
 	
-	if(ima->ibuf==NULL) {
-		BLI_lock_thread(LOCK_CUSTOM1);
-		if(ima->ibuf==NULL) ima_ibuf_is_nul(tex, ima);
-		BLI_unlock_thread(LOCK_CUSTOM1);
+	texr.talpha= texres->talpha;
+	
+	if(tex->imaflag & TEX_IMAROT) {
+		fy= texvec[0];
+		fx= texvec[1];
+	}
+	else {
+		fx= texvec[0];
+		fy= texvec[1];
 	}
 	
-	if (ima->ok) {
-	
-		if(tex->imaflag & TEX_MIPMAP) {
-			if(ima->mipmap[0]==NULL) {
-				if(ima->mipmap[0]==NULL) {
-					BLI_lock_thread(LOCK_CUSTOM1);
-					if(ima->mipmap[0]==NULL) makemipmap(tex, ima);
-					BLI_unlock_thread(LOCK_CUSTOM1);
-				}
+	if(ibuf->flags & IB_fields) {
+		if(R.r.mode & R_FIELDS) {			/* field render */
+			if(R.flag & R_SEC_FIELD) {		/* correction for 2nd field */
+				/* fac1= 0.5/( (float)ibuf->y ); */
+				/* fy-= fac1; */
+			}
+			else {				/* first field */
+				fy+= 0.5f/( (float)ibuf->y );
 			}
 		}
+	}
 	
-		ibuf = ima->ibuf;
+	/* pixel coordinates */
+
+	minx= MIN3(dxt[0],dyt[0],dxt[0]+dyt[0] );
+	maxx= MAX3(dxt[0],dyt[0],dxt[0]+dyt[0] );
+	miny= MIN3(dxt[1],dyt[1],dxt[1]+dyt[1] );
+	maxy= MAX3(dxt[1],dyt[1],dxt[1]+dyt[1] );
+
+	/* tex_sharper has been removed */
+	minx= tex->filtersize*(maxx-minx)/2.0f;
+	miny= tex->filtersize*(maxy-miny)/2.0f;
+	
+	if(tex->filtersize!=1.0f) {
+		dxt[0]*= tex->filtersize;
+		dxt[1]*= tex->filtersize;
+		dyt[0]*= tex->filtersize;
+		dyt[1]*= tex->filtersize;
+	}
+
+	if(tex->imaflag & TEX_IMAROT) SWAP(float, minx, miny);
+	
+	if(minx>0.25) minx= 0.25;
+	else if(minx<0.00001f) minx= 0.00001f;	/* side faces of unit-cube */
+	if(miny>0.25) miny= 0.25;
+	else if(miny<0.00001f) miny= 0.00001f;
+
+	
+	/* repeat and clip */
+	imaprepeat= (tex->extend==TEX_REPEAT);
+	imapextend= (tex->extend==TEX_EXTEND);
+
+	if(tex->extend == TEX_CHECKER) {
+		int xs, ys, xs1, ys1, xs2, ys2, boundary;
 		
-		if(tex->imaflag & TEX_USEALPHA) {
-			if(tex->imaflag & TEX_CALCALPHA);
-			else texres->talpha= 1;
-		}
+		xs= (int)floor(fx);
+		ys= (int)floor(fy);
 		
-		texr.talpha= texres->talpha;
-		
-		if(tex->imaflag & TEX_IMAROT) {
-			fy= texvec[0];
-			fx= texvec[1];
+		// both checkers available, no boundary exceptions, checkerdist will eat aliasing
+		if( (tex->flag & TEX_CHECKER_ODD) && (tex->flag & TEX_CHECKER_EVEN) ) {
+			fx-= xs;
+			fy-= ys;
 		}
 		else {
-			fx= texvec[0];
-			fy= texvec[1];
-		}
-		
-		if(ibuf->flags & IB_fields) {
-			if(R.r.mode & R_FIELDS) {			/* field render */
-				if(R.flag & R_SEC_FIELD) {		/* correction for 2nd field */
-					/* fac1= 0.5/( (float)ibuf->y ); */
-					/* fy-= fac1; */
-				}
-				else {				/* first field */
-					fy+= 0.5f/( (float)ibuf->y );
-				}
-			}
-		}
-		
-		/* pixel coordinates */
-
-		minx= MIN3(dxt[0],dyt[0],dxt[0]+dyt[0] );
-		maxx= MAX3(dxt[0],dyt[0],dxt[0]+dyt[0] );
-		miny= MIN3(dxt[1],dyt[1],dxt[1]+dyt[1] );
-		maxy= MAX3(dxt[1],dyt[1],dxt[1]+dyt[1] );
-
-		/* tex_sharper has been removed */
-		minx= tex->filtersize*(maxx-minx)/2.0f;
-		miny= tex->filtersize*(maxy-miny)/2.0f;
-		
-		if(tex->filtersize!=1.0f) {
-			dxt[0]*= tex->filtersize;
-			dxt[1]*= tex->filtersize;
-			dyt[0]*= tex->filtersize;
-			dyt[1]*= tex->filtersize;
-		}
-
-		if(tex->imaflag & TEX_IMAROT) SWAP(float, minx, miny);
-		
-		if(minx>0.25) minx= 0.25;
-		else if(minx<0.00001f) minx= 0.00001f;	/* side faces of unit-cube */
-		if(miny>0.25) miny= 0.25;
-		else if(miny<0.00001f) miny= 0.00001f;
-
-		
-		/* repeat and clip */
-		imaprepeat= (tex->extend==TEX_REPEAT);
-		imapextend= (tex->extend==TEX_EXTEND);
-
-		if(tex->extend == TEX_CHECKER) {
-			int xs, ys, xs1, ys1, xs2, ys2, boundary;
 			
-			xs= (int)floor(fx);
-			ys= (int)floor(fy);
-			
-			// both checkers available, no boundary exceptions, checkerdist will eat aliasing
-			if( (tex->flag & TEX_CHECKER_ODD) && (tex->flag & TEX_CHECKER_EVEN) ) {
+			xs1= (int)floor(fx-minx);
+			ys1= (int)floor(fy-miny);
+			xs2= (int)floor(fx+minx);
+			ys2= (int)floor(fy+miny);
+			boundary= (xs1!=xs2) || (ys1!=ys2);
+
+			if(boundary==0) {
+				if( (tex->flag & TEX_CHECKER_ODD)==0) {
+					if((xs+ys) & 1); 
+					else return retval;
+				}
+				if( (tex->flag & TEX_CHECKER_EVEN)==0) {
+					if((xs+ys) & 1) return retval;
+				}
 				fx-= xs;
 				fy-= ys;
 			}
 			else {
-				
-				xs1= (int)floor(fx-minx);
-				ys1= (int)floor(fy-miny);
-				xs2= (int)floor(fx+minx);
-				ys2= (int)floor(fy+miny);
-				boundary= (xs1!=xs2) || (ys1!=ys2);
-	
-				if(boundary==0) {
-					if( (tex->flag & TEX_CHECKER_ODD)==0) {
-						if((xs+ys) & 1); 
-						else return retval;
-					}
-					if( (tex->flag & TEX_CHECKER_EVEN)==0) {
-						if((xs+ys) & 1) return retval;
-					}
-					fx-= xs;
-					fy-= ys;
+				if(tex->flag & TEX_CHECKER_ODD) {
+					if((xs1+ys) & 1) fx-= xs2;
+					else fx-= xs1;
+					
+					if((ys1+xs) & 1) fy-= ys2;
+					else fy-= ys1;
 				}
-				else {
-					if(tex->flag & TEX_CHECKER_ODD) {
-						if((xs1+ys) & 1) fx-= xs2;
-						else fx-= xs1;
-						
-						if((ys1+xs) & 1) fy-= ys2;
-						else fy-= ys1;
-					}
-					if(tex->flag & TEX_CHECKER_EVEN) {
-						if((xs1+ys) & 1) fx-= xs1;
-						else fx-= xs2;
-						
-						if((ys1+xs) & 1) fy-= ys1;
-						else fy-= ys2;
-					}
-				}
-			}
-
-			/* scale around center, (0.5, 0.5) */
-			if(tex->checkerdist<1.0) {
-				fx= (fx-0.5)/(1.0-tex->checkerdist) +0.5;
-				fy= (fy-0.5)/(1.0-tex->checkerdist) +0.5;
-				minx/= (1.0-tex->checkerdist);
-				miny/= (1.0-tex->checkerdist);
-			}
-		}
-
-		if(tex->extend == TEX_CLIPCUBE) {
-			if(fx+minx<0.0 || fy+miny<0.0 || fx-minx>1.0 || fy-miny>1.0 || texvec[2]<-1.0 || texvec[2]>1.0) {
-				return retval;
-			}
-		}
-		else if(tex->extend==TEX_CLIP || tex->extend==TEX_CHECKER) {
-			if(fx+minx<0.0 || fy+miny<0.0 || fx-minx>1.0 || fy-miny>1.0) {
-				return retval;
-			}
-		}
-		else {
-			if(tex->extend==TEX_EXTEND) {
-				if(fx>1.0) fx = 1.0;
-				else if(fx<0.0) fx= 0.0;
-			}
-			else {
-				if(fx>1.0) fx -= (int)(fx);
-				else if(fx<0.0) fx+= 1-(int)(fx);
-			}
-			
-			if(tex->extend==TEX_EXTEND) {
-				if(fy>1.0) fy = 1.0;
-				else if(fy<0.0) fy= 0.0;
-			}
-			else {
-				if(fy>1.0) fy -= (int)(fy);
-				else if(fy<0.0) fy+= 1-(int)(fy);
-			}
-		}
-	
-		/* warning no return! */
-		if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
-			ibuf->rect+= (ibuf->x*ibuf->y);
-		}
-
-		/* choice:  */
-		if(tex->imaflag & TEX_MIPMAP) {
-			float bumpscale;
-			
-			dx= minx;
-			dy= miny;
-			maxd= MAX2(dx, dy);
-			if(maxd>0.5) maxd= 0.5;
-
-			pixsize = 1.0f/ (float) MIN2(ibuf->x, ibuf->y);
-			
-			bumpscale= pixsize/maxd;
-			if(bumpscale>1.0f) bumpscale= 1.0f;
-			else bumpscale*=bumpscale;
-			
-			curmap= 0;
-			previbuf= ibuf;
-			while(curmap<BLI_ARRAY_NELEMS(ima->mipmap) && ima->mipmap[curmap]) {
-				if(maxd < pixsize) break;
-				previbuf= ibuf;
-				ibuf= ima->mipmap[curmap];
-				pixsize= 1.0f / (float)MIN2(ibuf->x, ibuf->y); /* this used to be 1.0 */		
-				curmap++;
-			}
-
-			if(previbuf!=ibuf || (tex->imaflag & TEX_INTERPOL)) {
-				/* sample at least 1 pixel */
-				if (minx < 0.5f / ima->ibuf->x) minx = 0.5f / ima->ibuf->x;
-				if (miny < 0.5f / ima->ibuf->y) miny = 0.5f / ima->ibuf->y;
-			}
-			
-			if(texres->nor && (tex->imaflag & TEX_NORMALMAP)==0) {
-				/* a bit extra filter */
-				//minx*= 1.35f;
-				//miny*= 1.35f;
-				
-				boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend);
-				val1= texres->tr+texres->tg+texres->tb;
-				boxsample(ibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend);
-				val2= texr.tr + texr.tg + texr.tb;
-				boxsample(ibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend);
-				val3= texr.tr + texr.tg + texr.tb;
-	
-				/* don't switch x or y! */
-				texres->nor[0]= (val1-val2);
-				texres->nor[1]= (val1-val3);
-				
-				if(previbuf!=ibuf) {  /* interpolate */
+				if(tex->flag & TEX_CHECKER_EVEN) {
+					if((xs1+ys) & 1) fx-= xs1;
+					else fx-= xs2;
 					
-					boxsample(previbuf, fx-minx, fy-miny, fx+minx, fy+miny, &texr, imaprepeat, imapextend);
-					
-					/* calc rgb */
-					dx= 2.0f*(pixsize-maxd)/pixsize;
-					if(dx>=1.0f) {
-						texres->ta= texr.ta; texres->tb= texr.tb;
-						texres->tg= texr.tg; texres->tr= texr.tr;
-					}
-					else {
-						dy= 1.0f-dx;
-						texres->tb= dy*texres->tb+ dx*texr.tb;
-						texres->tg= dy*texres->tg+ dx*texr.tg;
-						texres->tr= dy*texres->tr+ dx*texr.tr;
-						texres->ta= dy*texres->ta+ dx*texr.ta;
-					}
-					
-					val1= dy*val1+ dx*(texr.tr + texr.tg + texr.tb);
-					boxsample(previbuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend);
-					val2= dy*val2+ dx*(texr.tr + texr.tg + texr.tb);
-					boxsample(previbuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend);
-					val3= dy*val3+ dx*(texr.tr + texr.tg + texr.tb);
-					
-					texres->nor[0]= (val1-val2);	/* vals have been interpolated above! */
-					texres->nor[1]= (val1-val3);
-					
-					if(dx<1.0f) {
-						dy= 1.0f-dx;
-						texres->tb= dy*texres->tb+ dx*texr.tb;
-						texres->tg= dy*texres->tg+ dx*texr.tg;
-						texres->tr= dy*texres->tr+ dx*texr.tr;
-						texres->ta= dy*texres->ta+ dx*texr.ta;
-					}
-				}
-				texres->nor[0]*= bumpscale;
-				texres->nor[1]*= bumpscale;
-			}
-			else {
-				maxx= fx+minx;
-				minx= fx-minx;
-				maxy= fy+miny;
-				miny= fy-miny;
-	
-				boxsample(ibuf, minx, miny, maxx, maxy, texres, imaprepeat, imapextend);
-	
-				if(previbuf!=ibuf) {  /* interpolate */
-					boxsample(previbuf, minx, miny, maxx, maxy, &texr, imaprepeat, imapextend);
-					
-					fx= 2.0f*(pixsize-maxd)/pixsize;
-					
-					if(fx>=1.0) {
-						texres->ta= texr.ta; texres->tb= texr.tb;
-						texres->tg= texr.tg; texres->tr= texr.tr;
-					} else {
-						fy= 1.0f-fx;
-						texres->tb= fy*texres->tb+ fx*texr.tb;
-						texres->tg= fy*texres->tg+ fx*texr.tg;
-						texres->tr= fy*texres->tr+ fx*texr.tr;
-						texres->ta= fy*texres->ta+ fx*texr.ta;
-					}
+					if((ys1+xs) & 1) fy-= ys1;
+					else fy-= ys2;
 				}
 			}
 		}
-		else {
-			if((tex->imaflag & TEX_INTERPOL)) {
-				/* sample 1 pixel minimum */
-				if (minx < 0.5f / ima->ibuf->x) minx = 0.5f / ima->ibuf->x;
-				if (miny < 0.5f / ima->ibuf->y) miny = 0.5f / ima->ibuf->y;
-			}
 
-			if(texres->nor && (tex->imaflag & TEX_NORMALMAP)==0) {
-				
-				/* a bit extra filter */
-				//minx*= 1.35f;
-				//miny*= 1.35f;
-				
-				boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend);
-				val1= texres->tr+texres->tg+texres->tb;
-				boxsample(ibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend);
-				val2= texr.tr + texr.tg + texr.tb;
-				boxsample(ibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend);
-				val3= texr.tr + texr.tg + texr.tb;
-				/* don't switch x or y! */
-				texres->nor[0]= (val1-val2);
-				texres->nor[1]= (val1-val3);
-			}
-			else {
-				boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend);
-			}
+		/* scale around center, (0.5, 0.5) */
+		if(tex->checkerdist<1.0) {
+			fx= (fx-0.5)/(1.0-tex->checkerdist) +0.5;
+			fy= (fy-0.5)/(1.0-tex->checkerdist) +0.5;
+			minx/= (1.0-tex->checkerdist);
+			miny/= (1.0-tex->checkerdist);
 		}
-		
-		BRICONTRGB;
-		
-		if(tex->imaflag & TEX_CALCALPHA) {
-			texres->ta= texres->tin= texres->ta*MAX3(texres->tr, texres->tg, texres->tb);
-		}
-		else texres->tin= texres->ta;
+	}
 
-		if(tex->flag & TEX_NEGALPHA) texres->ta= 1.0f-texres->ta;
-		
-		if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
-			ibuf->rect-= (ibuf->x*ibuf->y);
+	if(tex->extend == TEX_CLIPCUBE) {
+		if(fx+minx<0.0 || fy+miny<0.0 || fx-minx>1.0 || fy-miny>1.0 || texvec[2]<-1.0 || texvec[2]>1.0) {
+			return retval;
 		}
-
-		if(texres->nor && (tex->imaflag & TEX_NORMALMAP)) {
-			// qdn: normal from color
-			texres->nor[0] = 2.f*(texres->tr - 0.5f);
-			texres->nor[1] = 2.f*(0.5f - texres->tg);
-			texres->nor[2] = 2.f*(texres->tb - 0.5f);
+	}
+	else if(tex->extend==TEX_CLIP || tex->extend==TEX_CHECKER) {
+		if(fx+minx<0.0 || fy+miny<0.0 || fx-minx>1.0 || fy-miny>1.0) {
+			return retval;
 		}
 	}
 	else {
-		texres->tin= 0.0f;
+		if(tex->extend==TEX_EXTEND) {
+			if(fx>1.0) fx = 1.0;
+			else if(fx<0.0) fx= 0.0;
+		}
+		else {
+			if(fx>1.0) fx -= (int)(fx);
+			else if(fx<0.0) fx+= 1-(int)(fx);
+		}
+		
+		if(tex->extend==TEX_EXTEND) {
+			if(fy>1.0) fy = 1.0;
+			else if(fy<0.0) fy= 0.0;
+		}
+		else {
+			if(fy>1.0) fy -= (int)(fy);
+			else if(fy<0.0) fy+= 1-(int)(fy);
+		}
+	}
+
+	/* warning no return! */
+	if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
+		ibuf->rect+= (ibuf->x*ibuf->y);
+	}
+
+	/* choice:  */
+	if(tex->imaflag & TEX_MIPMAP) {
+		ImBuf *previbuf, *curibuf;
+		float bumpscale;
+		
+		dx= minx;
+		dy= miny;
+		maxd= MAX2(dx, dy);
+		if(maxd>0.5) maxd= 0.5;
+
+		pixsize = 1.0f/ (float) MIN2(ibuf->x, ibuf->y);
+		
+		bumpscale= pixsize/maxd;
+		if(bumpscale>1.0f) bumpscale= 1.0f;
+		else bumpscale*=bumpscale;
+		
+		curmap= 0;
+		previbuf= curibuf= ibuf;
+		while(curmap<IB_MIPMAP_LEVELS && ibuf->mipmap[curmap]) {
+			if(maxd < pixsize) break;
+			previbuf= curibuf;
+			curibuf= ibuf->mipmap[curmap];
+			pixsize= 1.0f / (float)MIN2(curibuf->x, curibuf->y);
+			curmap++;
+		}
+
+		if(previbuf!=curibuf || (tex->imaflag & TEX_INTERPOL)) {
+			/* sample at least 1 pixel */
+			if (minx < 0.5f / ibuf->x) minx = 0.5f / ibuf->x;
+			if (miny < 0.5f / ibuf->y) miny = 0.5f / ibuf->y;
+		}
+		
+		if(texres->nor && (tex->imaflag & TEX_NORMALMAP)==0) {
+			/* a bit extra filter */
+			//minx*= 1.35f;
+			//miny*= 1.35f;
+			
+			boxsample(curibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend);
+			val1= texres->tr+texres->tg+texres->tb;
+			boxsample(curibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend);
+			val2= texr.tr + texr.tg + texr.tb;
+			boxsample(curibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend);
+			val3= texr.tr + texr.tg + texr.tb;
+
+			/* don't switch x or y! */
+			texres->nor[0]= (val1-val2);
+			texres->nor[1]= (val1-val3);
+			
+			if(previbuf!=curibuf) {  /* interpolate */
+				
+				boxsample(previbuf, fx-minx, fy-miny, fx+minx, fy+miny, &texr, imaprepeat, imapextend);
+				
+				/* calc rgb */
+				dx= 2.0f*(pixsize-maxd)/pixsize;
+				if(dx>=1.0f) {
+					texres->ta= texr.ta; texres->tb= texr.tb;
+					texres->tg= texr.tg; texres->tr= texr.tr;
+				}
+				else {
+					dy= 1.0f-dx;
+					texres->tb= dy*texres->tb+ dx*texr.tb;
+					texres->tg= dy*texres->tg+ dx*texr.tg;
+					texres->tr= dy*texres->tr+ dx*texr.tr;
+					texres->ta= dy*texres->ta+ dx*texr.ta;
+				}
+				
+				val1= dy*val1+ dx*(texr.tr + texr.tg + texr.tb);
+				boxsample(previbuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend);
+				val2= dy*val2+ dx*(texr.tr + texr.tg + texr.tb);
+				boxsample(previbuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend);
+				val3= dy*val3+ dx*(texr.tr + texr.tg + texr.tb);
+				
+				texres->nor[0]= (val1-val2);	/* vals have been interpolated above! */
+				texres->nor[1]= (val1-val3);
+				
+				if(dx<1.0f) {
+					dy= 1.0f-dx;
+					texres->tb= dy*texres->tb+ dx*texr.tb;
+					texres->tg= dy*texres->tg+ dx*texr.tg;
+					texres->tr= dy*texres->tr+ dx*texr.tr;
+					texres->ta= dy*texres->ta+ dx*texr.ta;
+				}
+			}
+			texres->nor[0]*= bumpscale;
+			texres->nor[1]*= bumpscale;
+		}
+		else {
+			maxx= fx+minx;
+			minx= fx-minx;
+			maxy= fy+miny;
+			miny= fy-miny;
+
+			boxsample(curibuf, minx, miny, maxx, maxy, texres, imaprepeat, imapextend);
+
+			if(previbuf!=curibuf) {  /* interpolate */
+				boxsample(previbuf, minx, miny, maxx, maxy, &texr, imaprepeat, imapextend);
+				
+				fx= 2.0f*(pixsize-maxd)/pixsize;
+				
+				if(fx>=1.0) {
+					texres->ta= texr.ta; texres->tb= texr.tb;
+					texres->tg= texr.tg; texres->tr= texr.tr;
+				} else {
+					fy= 1.0f-fx;
+					texres->tb= fy*texres->tb+ fx*texr.tb;
+					texres->tg= fy*texres->tg+ fx*texr.tg;
+					texres->tr= fy*texres->tr+ fx*texr.tr;
+					texres->ta= fy*texres->ta+ fx*texr.ta;
+				}
+			}
+		}
+	}
+	else {
+		if((tex->imaflag & TEX_INTERPOL)) {
+			/* sample 1 pixel minimum */
+			if (minx < 0.5f / ibuf->x) minx = 0.5f / ibuf->x;
+			if (miny < 0.5f / ibuf->y) miny = 0.5f / ibuf->y;
+		}
+
+		if(texres->nor && (tex->imaflag & TEX_NORMALMAP)==0) {
+			
+			boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend);
+			val1= texres->tr+texres->tg+texres->tb;
+			boxsample(ibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend);
+			val2= texr.tr + texr.tg + texr.tb;
+			boxsample(ibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend);
+			val3= texr.tr + texr.tg + texr.tb;
+			/* don't switch x or y! */
+			texres->nor[0]= (val1-val2);
+			texres->nor[1]= (val1-val3);
+		}
+		else {
+			boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend);
+		}
+	}
+	
+	BRICONTRGB;
+	
+	if(tex->imaflag & TEX_CALCALPHA) {
+		texres->ta= texres->tin= texres->ta*MAX3(texres->tr, texres->tg, texres->tb);
+	}
+	else texres->tin= texres->ta;
+
+	if(tex->flag & TEX_NEGALPHA) texres->ta= 1.0f-texres->ta;
+	
+	if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
+		ibuf->rect-= (ibuf->x*ibuf->y);
+	}
+
+	if(texres->nor && (tex->imaflag & TEX_NORMALMAP)) {
+		// qdn: normal from color
+		texres->nor[0] = 2.f*(texres->tr - 0.5f);
+		texres->nor[1] = 2.f*(0.5f - texres->tg);
+		texres->nor[2] = 2.f*(texres->tb - 0.5f);
 	}
 	
 	return retval;

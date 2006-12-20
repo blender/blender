@@ -31,6 +31,7 @@
 #include <string.h>
 
 #include "DNA_ID.h"
+#include "DNA_image_types.h"
 #include "DNA_node_types.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
@@ -641,7 +642,7 @@ static void find_node_with_socket(bNodeTree *ntree, bNodeSocket *sock, bNode **n
 {
 	bNode *node;
 	bNodeSocket *tsock;
-	int index;
+	int index= 0;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		for(index=0, tsock= node->inputs.first; tsock; tsock= tsock->next, index++)
@@ -806,6 +807,13 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 			node->storage= nbd;
 			nbd->samples= 32;
 			nbd->fac= 1.0f;
+		}
+		else if(ELEM3(type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
+			ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
+			node->storage= iuser;
+			iuser->sfra= 1;
+			iuser->fie_ima= 2;
+			iuser->ok= 1;
 		}
 		else if(type==CMP_NODE_HUE_SAT) {
 			NodeHueSat *nhs= MEM_callocN(sizeof(NodeHueSat), "node hue sat");
@@ -1488,10 +1496,10 @@ void NodeTagChanged(bNodeTree *ntree, bNode *node)
 				free_compbuf(sock->ns.data);
 				sock->ns.data= NULL;
 				
-				if(node->preview && node->preview->rect) {
-					MEM_freeN(node->preview->rect);
-					node->preview->rect= NULL;
-				}
+				//if(node->preview && node->preview->rect) {
+				//	MEM_freeN(node->preview->rect);
+				//	node->preview->rect= NULL;
+				//}
 					
 			}
 		}
@@ -1967,6 +1975,14 @@ static void *exec_composite_node(void *node_v)
 	return 0;
 }
 
+/* should become a type? these are nodes without input, only giving values */
+static int node_only_value(bNode *node)
+{
+	if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_VALUE, CMP_NODE_RGB))
+		return 1;
+	return 0;
+}
+
 /* return total of executable nodes, for timecursor */
 /* only compositor uses it */
 static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
@@ -1991,10 +2007,13 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 		node_get_stack(node, thd->stack, nsin, nsout);
 		
 		/* test the outputs */
-		for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
-			if(nsout[a]->data==NULL && nsout[a]->hasoutput) {
-				node->need_exec= 1;
-				break;
+		/* skip value-only nodes (should be in type!) */
+		if(!node_only_value(node)) {
+			for(a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
+				if(nsout[a]->data==NULL && nsout[a]->hasoutput) {
+					node->need_exec= 1;
+					break;
+				}
 			}
 		}
 		
@@ -2008,7 +2027,7 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 				bNodeLink *link= sock->link;
 				/* this is the test for a cyclic case */
 				if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) {
-					if(nsin[a]->data==NULL || sock->link->fromnode->need_exec) {
+					if(sock->link->fromnode->need_exec) {
 						node->need_exec= 1;
 						break;
 					}
@@ -2030,15 +2049,31 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 				}
 			}
 			totnode++;
-			// printf("node needs exec %s\n", node->name);
+			/* printf("node needs exec %s\n", node->name); */
 			
 			/* tag for getExecutableNode() */
 			node->exec= 0;
 		}
-		else
+		else {
 			/* tag for getExecutableNode() */
 			node->exec= NODE_READY|NODE_FINISHED;
+			
+		}
 	}
+	
+	/* last step: set the stack values for only-value nodes */
+	/* just does all now, compared to a full buffer exec this is nothing */
+	if(totnode) {
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(node->need_exec==0 && node_only_value(node)) {
+				if(node->typeinfo->execfunc) {
+					node_get_stack(node, thd->stack, nsin, nsout);
+					node->typeinfo->execfunc(thd->rd, node, nsin, nsout);
+				}
+			}
+		}
+	}
+	
 	return totnode;
 }
 
@@ -2186,8 +2221,6 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	BLI_end_threads(&threads);
 	
 	ntreeEndExecTree(ntree);
-	
-	free_unused_animimages();
 	
 }
 

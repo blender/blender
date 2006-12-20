@@ -42,21 +42,28 @@
 #include <config.h>
 #endif
 
+#include "DNA_brush_types.h"
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
+
+#include "BLI_blenlib.h"
 
 #include "BDR_drawmesh.h"
 #include "BDR_unwrapper.h"
 
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
+#include "BKE_utildefines.h"
 
+#include "BIF_butspace.h"
 #include "BIF_drawimage.h"
 #include "BIF_editsima.h"
 #include "BIF_interface.h"
@@ -64,26 +71,38 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_transform.h"
+#include "BIF_toolbox.h"
 
+#include "BSE_drawview.h"
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_trans_types.h"
 
 #include "BPY_extern.h"
 #include "BPY_menus.h"
 
 #include "IMB_imbuf_types.h"
-#include "BSE_trans_types.h"
+
+#include "RE_pipeline.h"
 
 #include "blendef.h"
+#include "butspace.h"
 #include "mydevice.h"
 
 void do_image_buttons(unsigned short event)
 {
+	ToolSettings *settings= G.scene->toolsettings;
 	ID *id, *idtest;
 	int nr;
 
 	if(curarea->win==0) return;
 
+	if(event<=100) {
+		if(event<=50) do_global_buttons2(event);
+		else do_global_buttons(event);
+		return;
+	}
+	
 	switch(event) {
 	case B_SIMAGEHOME:
 		image_home();
@@ -100,21 +119,15 @@ void do_image_buttons(unsigned short event)
 		nr= 1;
 		id= (ID *)G.sima->image;
 
-		idtest= G.main->image.first;
-		while(idtest) {
-			if(nr==G.sima->imanr) {
-				break;
-			}
-			nr++;
-			idtest= idtest->next;
-		}
-		if(idtest==0) { /* no new */
+		idtest= BLI_findlink(&G.main->image, G.sima->imanr-1);
+		if(idtest==NULL) { /* no new */
 			return;
 		}
 	
 		if(idtest!=id) {
 			G.sima->image= (Image *)idtest;
 			if(idtest->us==0) idtest->us= 1;
+			BKE_image_signal(G.sima->image, &G.sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
 			allqueue(REDRAWIMAGE, 0);
 		}
 		/* also when image is the same: assign! 0==no tileflag: */
@@ -128,10 +141,15 @@ void do_image_buttons(unsigned short event)
 			make_repbind(G.sima->image);
 			image_changed(G.sima, 1);
 		}
+		/* XXX might be another event needed for this? */
+		if(G.sima->image)
+			if(ELEM(G.sima->image->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
+				if(G.sima->iuser.flag & IMA_ANIM_ALWAYS)
+					BKE_image_user_calc_imanr(&G.sima->iuser, G.scene->r.cfra, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
 		break;
-
+		
 	case B_SIMAGEDRAW1:
 		image_changed(G.sima, 2);		/* 2: only tileflag */
 		allqueue(REDRAWVIEW3D, 0);
@@ -150,6 +168,11 @@ void do_image_buttons(unsigned short event)
 		pack_image_sima();
 		break;
 		
+	case B_SIMA_REPACK:
+		BKE_image_memorypack(G.sima->image);
+		allqueue(REDRAWIMAGE, 0);
+		break;
+		
 	case B_SIMA_USE_ALPHA:
 		G.sima->flag &= ~(SI_SHOW_ALPHA|SI_SHOW_ZBUF);
 		scrarea_queue_winredraw(curarea);
@@ -164,6 +187,157 @@ void do_image_buttons(unsigned short event)
 		G.sima->flag &= ~(SI_SHOW_ALPHA|SI_USE_ALPHA);
 		scrarea_queue_winredraw(curarea);
 		scrarea_queue_headredraw(curarea);
+		break;
+	case B_SIMARELOAD:
+		reload_image_sima();
+		break;
+	case B_SIMAGELOAD:
+		open_image_sima(0);
+		break;
+	case B_SIMANAME:
+		if(G.sima->image) {
+			Image *ima;
+			char str[FILE_MAXDIR+FILE_MAXFILE];
+			
+			/* name in ima has been changed by button! */
+			BLI_strncpy(str, G.sima->image->name, sizeof(str));
+			ima= BKE_add_image_file(str);
+			if(ima) {
+				
+				G.sima->image= ima;
+				
+				BKE_image_signal(ima, &G.sima->iuser, IMA_SIGNAL_RELOAD);
+				image_changed(G.sima, 0);
+				
+			}
+			BIF_undo_push("Load image");
+			allqueue(REDRAWIMAGE, 0);
+		}
+		break;
+	case B_SIMAMULTI:
+		if(G.sima && G.sima->image) {
+			BKE_image_multilayer_index(G.sima->image->rr, &G.sima->iuser);
+			allqueue(REDRAWIMAGE, 0);
+		}
+		break;
+	case B_TRANS_IMAGE:
+		image_editvertex_buts(NULL);
+		break;
+		
+	case B_TWINANIM:
+	{
+		Image *ima;
+		int nr;
+		
+		ima = G.sima->image;
+		if (ima) {
+			if(ima->flag & IMA_TWINANIM) {
+				nr= ima->xrep*ima->yrep;
+				if(ima->twsta>=nr) ima->twsta= 1;
+				if(ima->twend>=nr) ima->twend= nr-1;
+				if(ima->twsta>ima->twend) ima->twsta= 1;
+				allqueue(REDRAWIMAGE, 0);
+			}
+		}
+		break;
+	}	
+	case B_SIMACLONEBROWSE:
+		if (settings->imapaint.brush)
+			if (brush_clone_image_set_nr(settings->imapaint.brush, G.sima->menunr))
+				allqueue(REDRAWIMAGE, 0);
+		break;
+		
+	case B_SIMACLONEDELETE:
+		if (settings->imapaint.brush)
+			if (brush_clone_image_delete(settings->imapaint.brush))
+				allqueue(REDRAWIMAGE, 0);
+		break;
+		
+	case B_SIMABRUSHCHANGE:
+		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+		
+	case B_SIMACURVES:
+		curvemapping_do_ibuf(G.sima->cumap, BKE_image_get_ibuf(G.sima->image, &G.sima->iuser));
+		allqueue(REDRAWIMAGE, 0);
+		break;
+		
+	case B_SIMARANGE:
+		curvemapping_set_black_white(G.sima->cumap, NULL, NULL);
+		curvemapping_do_ibuf(G.sima->cumap, BKE_image_get_ibuf(G.sima->image, &G.sima->iuser));
+		allqueue(REDRAWIMAGE, 0);
+		break;
+		
+	case B_SIMABRUSHBROWSE:
+		if(G.sima->menunr==-2) {
+			activate_databrowse((ID*)settings->imapaint.brush, ID_BR, 0, B_SIMABRUSHBROWSE, &G.sima->menunr, do_global_buttons);
+			break;
+		}
+		else if(G.sima->menunr < 0) break;
+		
+		if(brush_set_nr(&settings->imapaint.brush, G.sima->menunr)) {
+			BIF_undo_push("Browse Brush");
+			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWIMAGE, 0);
+		}
+		break;
+	case B_SIMABRUSHDELETE:
+		if(brush_delete(&settings->imapaint.brush)) {
+			BIF_undo_push("Unlink Brush");
+			allqueue(REDRAWIMAGE, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+		break;
+	case B_KEEPDATA:
+		brush_toggle_fake_user(settings->imapaint.brush);
+		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+	case B_SIMABRUSHLOCAL:
+		if(settings->imapaint.brush && settings->imapaint.brush->id.lib) {
+			if(okee("Make local")) {
+				make_local_brush(settings->imapaint.brush);
+				allqueue(REDRAWIMAGE, 0);
+				allqueue(REDRAWBUTSEDIT, 0);
+			}
+		}
+		break;
+	case B_SIMABTEXBROWSE:
+		if(settings->imapaint.brush) {
+			Brush *brush= settings->imapaint.brush;
+			
+			if(G.sima->menunr==-2) {
+				MTex *mtex= brush->mtex[brush->texact];
+				ID *id= (ID*)((mtex)? mtex->tex: NULL);
+				activate_databrowse(id, ID_TE, 0, B_SIMABTEXBROWSE, &G.sima->menunr, do_global_buttons);
+				break;
+			}
+			else if(G.sima->menunr < 0) break;
+			
+			if(brush_texture_set_nr(brush, G.sima->menunr)) {
+				BIF_undo_push("Browse Brush Texture");
+				allqueue(REDRAWBUTSSHADING, 0);
+				allqueue(REDRAWBUTSEDIT, 0);
+				allqueue(REDRAWIMAGE, 0);
+			}
+		}
+		break;
+	case B_SIMABTEXDELETE:
+		if(settings->imapaint.brush) {
+			if (brush_texture_delete(settings->imapaint.brush)) {
+				BIF_undo_push("Unlink Brush Texture");
+				allqueue(REDRAWBUTSSHADING, 0);
+				allqueue(REDRAWBUTSEDIT, 0);
+				allqueue(REDRAWIMAGE, 0);
+			}
+		}
+		break;
+	case B_SIMA_PLAY:
+		play_anim(0);
+		break;
+	case B_SIMA_RECORD:
+		imagespace_composite_flipbook(curarea);
 		break;
 	}
 }
@@ -498,11 +672,19 @@ static void do_image_imagemenu(void *arg, int event)
 	case 8:
 		save_image_sima();
 		break;
+	case 9:
+		save_image_sequence_sima();
+		break;
+	case 10:
+		BKE_image_memorypack(G.sima->image);
+		allqueue(REDRAWIMAGE, 0);
+		break;
 	}
 }
 
 static uiBlock *image_imagemenu(void *arg_unused)
 {
+	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
 	uiBlock *block;
 	short yco= 0, menuwidth=150;
 	BPyMenu *pym;
@@ -519,8 +701,10 @@ static uiBlock *image_imagemenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reload|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save As...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+		if(G.sima->image->source==IMA_SRC_SEQUENCE)
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Changed Images", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 		
 		if (G.sima->image->packedfile) {
@@ -528,7 +712,13 @@ static uiBlock *image_imagemenu(void *arg_unused)
 		} else {
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack Image", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 		}
-			
+		
+		/* only for dirty && specific image types */
+		if(ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
+			if( ELEM(G.sima->image->source, IMA_SRC_FILE, IMA_SRC_GENERATED))
+				if(G.sima->image->type!=IMA_TYPE_MULTILAYER)
+					uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack Image as PNG", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
+		
 		uiDefBut(block, SEPR, 0, "",        0, yco-=7, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 		if(G.sima->flag & SI_DRAWTOOL) {
@@ -877,12 +1067,13 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 void image_buttons(void)
 {
+	Image *ima= G.sima->image;
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
 	uiBlock *block;
 	short xco, xmax;
 	char naam[256], *menuname;
 	/* This should not be a static var */
 	static int headerbuttons_packdummy;
-	Image *ima= G.sima->image;
 
 	headerbuttons_packdummy = 0;
 		
@@ -914,6 +1105,7 @@ void image_buttons(void)
 	xco+=XIC;
 
 	if((curarea->flag & HEADER_NO_PULLDOWN)==0) {
+		
 		/* pull down menus */
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
@@ -927,7 +1119,7 @@ void image_buttons(void)
 			xco+= xmax;
 		}
 		
-		if (ima && ima->ibuf && (ima->ibuf->userflags & IB_BITMAPDIRTY))
+		if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
 			menuname= "Image*";
 		else
 			menuname= "Image";
@@ -948,29 +1140,57 @@ void image_buttons(void)
 	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, ID_IM, 0, (ID *)ima, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
 
 	if (ima) {
+		RenderResult *rr= BKE_image_get_renderresult(ima);
+		
 		xco+= 8;
 	
-		if (ima->packedfile) {
-			headerbuttons_packdummy = 1;
+		if(rr) {
+			uiBlockBeginAlign(block);
+			uiblock_layer_pass_buttons(block, rr, &G.sima->iuser, B_REDR, xco, 0, 160);
+			uiBlockEndAlign(block);
+			xco+= 166;
 		}
-		uiDefIconButBitI(block, TOG, 1, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
-		xco+= XIC+8;
+		if( !ELEM3(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_VIEWER) && ima->ok) {
 
+			if (ima->packedfile) {
+				headerbuttons_packdummy = 1;
+			}
+			if (ima->packedfile && (ibuf->userflags & IB_BITMAPDIRTY))
+				uiDefIconButBitI(block, TOG, 1, B_SIMA_REPACK, ICON_UGLYPACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Re-Pack this image as PNG");
+			else
+				uiDefIconButBitI(block, TOG, 1, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
+				
+			xco+= XIC+8;
+		}
+		
 		uiDefIconButBitI(block, TOG, SI_DRAWTOOL, B_SIMAGEPAINTTOOL, ICON_TPAINT_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables painting textures on the image with left mouse button");
 		xco+= XIC+8;
 
 		uiBlockBeginAlign(block);
-		uiDefIconButBitI(block, TOG, SI_USE_ALPHA, B_SIMA_USE_ALPHA, ICON_TRANSP_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws image with alpha");
-		xco+= XIC;
-		uiDefIconButBitI(block, TOG, SI_SHOW_ALPHA, B_SIMA_SHOW_ALPHA, ICON_DOT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws only alpha");
-		xco+= XIC;
-		if(ima->ibuf) {
-			if(ima->ibuf->zbuf || ima->ibuf->zbuf_float) {
+		if(ibuf==NULL || ibuf->channels==4) {
+			uiDefIconButBitI(block, TOG, SI_USE_ALPHA, B_SIMA_USE_ALPHA, ICON_TRANSP_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws image with alpha");
+			xco+= XIC;
+			uiDefIconButBitI(block, TOG, SI_SHOW_ALPHA, B_SIMA_SHOW_ALPHA, ICON_DOT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws only alpha");
+			xco+= XIC;
+		}
+		if(ibuf) {
+			if(ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1)) {
 				uiDefIconButBitI(block, TOG, SI_SHOW_ZBUF, B_SIMA_SHOW_ZBUF, ICON_SOLID, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws zbuffer values");
 				xco+= XIC;
 			}
 			else G.sima->flag &= ~SI_SHOW_ZBUF;	/* no confusing display for non-zbuf images */
 		}		
+		xco+= 8;
+		
+		uiBlockBeginAlign(block);
+		if(ima->type==IMA_TYPE_COMPOSITE) {
+			uiDefIconBut(block, BUT, B_SIMA_RECORD, ICON_REC,  xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Record Composite");
+			xco+= XIC;
+		}
+		if((ima->type==IMA_TYPE_COMPOSITE) || ELEM(G.sima->image->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+			uiDefIconBut(block, BUT, B_SIMA_PLAY, ICON_PLAY, xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Play");
+			xco+= XIC;
+		}
 		uiBlockEndAlign(block);
 		xco+= 8;
 	}

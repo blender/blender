@@ -402,7 +402,7 @@ there was an error or when the user desides to cancel the operation.
 
 */
 
-char * unpackFile(char * abs_name, char * local_name, PackedFile * pf, int how)
+char *unpackFile(char * abs_name, char * local_name, PackedFile * pf, int how)
 {
 	char menu[6 * (FILE_MAXDIR + FILE_MAXFILE + 100)];
 	char line[FILE_MAXDIR + FILE_MAXFILE + 100];
@@ -413,7 +413,7 @@ char * unpackFile(char * abs_name, char * local_name, PackedFile * pf, int how)
 	
 	if (pf != NULL) {
 		if (how == PF_ASK) {
-			strcpy(menu, "UnPack file%t");
+			sprintf(menu, "UnPack file%%t|Remove Pack %%x%d", PF_REMOVE);
 			
 			if (strcmp(abs_name, local_name)) {
 				switch (checkPackedFile(local_name, pf)) {
@@ -459,6 +459,9 @@ char * unpackFile(char * abs_name, char * local_name, PackedFile * pf, int how)
 		switch (how) {
 			case -1:
 			case PF_KEEP:
+				break;
+			case PF_REMOVE:
+				temp= abs_name;
 				break;
 			case PF_USE_LOCAL:
 				// if file exists use it
@@ -596,10 +599,10 @@ int unpackImage(Image * ima, int how)
 		if (newname != NULL) {
 			ret_value = RET_OK;
 			freePackedFile(ima->packedfile);
-			ima->packedfile = 0;
+			ima->packedfile = NULL;
 			strcpy(ima->name, newname);
 			MEM_freeN(newname);
-			free_image_buffers(ima);
+			BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
 		}
 	}
 	

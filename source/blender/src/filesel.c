@@ -164,7 +164,7 @@ static rcti scrollrct, textrct, bar;
 static int filebuty1, filebuty2, page_ofs, collumwidth, selecting=0;
 static int filetoname= 0;
 static float pixels_to_ofs;
-static char otherdir[FILE_MAXDIR+FILE_MAXFILE];
+static char otherdir[FILE_MAX];
 static ScrArea *otherarea;
 
 /* FSMENU HANDLING */
@@ -441,12 +441,12 @@ static int compare_extension(const void *a1, const void *a2) {
 }
 
 /* **************************************** */
-
-void clear_global_filesel_vars()
+static int filesel_has_func(SpaceFile *sfile)
 {
-	selecting= 0;
+	if(sfile->returnfunc || sfile->returnfunc_event || sfile->returnfunc_args)
+		return 1;
+	return 0;
 }
-
 
 void filesel_statistics(SpaceFile *sfile, int *totfile, int *selfile, float *totlen, float *sellen)
 {
@@ -497,7 +497,7 @@ void test_flags_file(SpaceFile *sfile)
 				file->flags |= BLENDERFILE;
 				
 				if(sfile->type==FILE_LOADLIB) {
-					char name[FILE_MAXDIR+FILE_MAXFILE];
+					char name[FILE_MAX];
 					BLI_strncpy(name, sfile->dir, sizeof(name));
 					strcat(name, file->relname);
 					
@@ -614,7 +614,7 @@ void sort_filelist(SpaceFile *sfile)
 void read_dir(SpaceFile *sfile)
 {
 	int num, len;
-	char wdir[FILE_MAXDIR+FILE_MAXFILE];
+	char wdir[FILE_MAX];
 
 	/* sfile->act is used for example in databrowse: double names of library objects */
 	sfile->act= -1;
@@ -675,7 +675,7 @@ void freefilelist(SpaceFile *sfile)
 
 static void split_sfile(SpaceFile *sfile, char *s1)
 {
-	char string[FILE_MAXDIR+FILE_MAXFILE], dir[FILE_MAXDIR+FILE_MAXFILE], file[FILE_MAXDIR+FILE_MAXFILE];
+	char string[FILE_MAX], dir[FILE_MAX], file[FILE_MAX];
 
 	BLI_strncpy(string, s1, sizeof(string));
 
@@ -699,7 +699,7 @@ void parent(SpaceFile *sfile)
 	char *dir;
 	
 	/* if databrowse: no parent */
-	if(sfile->type==FILE_MAIN && sfile->returnfunc) return;
+	if(sfile->type==FILE_MAIN && filesel_has_func(sfile)) return;
 
 	dir= sfile->dir;
 	
@@ -1135,7 +1135,7 @@ static char *library_string(void)
 	int nr=0, tot= BLI_countlist(&G.main->library);
 	
 	if(tot==0) return NULL;
-	str= MEM_callocN(tot*(FILE_MAXDIR+FILE_MAXFILE), "filesel lib menu");
+	str= MEM_callocN(tot*(FILE_MAX), "filesel lib menu");
 	
 	for(tot=0, lib= G.main->library.first; lib; lib= lib->id.next, nr++) {
 		tot+= sprintf(str+tot, "%s %%x%d|", lib->name+2, nr);
@@ -1181,7 +1181,8 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	sprintf(name, "win %d", sa->win);
 	block= uiNewBlock(&sa->uiblocks, name, UI_EMBOSS, UI_HELV, sa->win);
 	
-	uiSetButLock( sfile->type==FILE_MAIN && sfile->returnfunc, NULL);
+	/* browse 1 datablock */
+	uiSetButLock( sfile->type==FILE_MAIN && filesel_has_func(sfile), NULL);
 
 	/* space available for load/save buttons? */
 	loadbutton= MAX2(80, 20+BMF_GetStringWidth(G.font, sfile->title));
@@ -1300,10 +1301,15 @@ static void do_filescrollwheel(SpaceFile *sfile, int move)
 	}
 }
 
-void activate_fileselect(int type, char *title, char *file, void (*func)(char *))
+/* the complete call; pulldown menu, and three callback types */
+static void activate_fileselect_(int type, char *title, char *file, short *menup, char *pupmenu,
+										 void (*func)(char *),
+										 void (*func_event)(unsigned short),
+										 void (*func_args)(char *, void *arg1, void *arg2),
+										 void *arg1, void *arg2)
 {
 	SpaceFile *sfile;
-	char group[24], name[FILE_MAXDIR+FILE_MAXFILE], temp[FILE_MAXDIR+FILE_MAXFILE];
+	char group[24], name[FILE_MAX], temp[FILE_MAX];
 	
 	if(curarea==0) return;
 	if(curarea->win==0) return;
@@ -1318,10 +1324,21 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 	BLI_strncpy(name, file, sizeof(name));
 	
 	sfile= curarea->spacedata.first;
-	/* sfile wants a (*)(short), but get (*)(char*) */
+
 	sfile->returnfunc= func;
+	sfile->returnfunc_event= func_event;
+	sfile->returnfunc_args= func_args;
+	sfile->arg1= arg1;
+	sfile->arg2= arg2;
+	
 	sfile->type= type;
 	sfile->ofs= 0;
+	
+	if(sfile->pupmenu)
+		MEM_freeN(sfile->pupmenu);
+	sfile->pupmenu= pupmenu;
+	sfile->menup= menup;
+	
 	/* sfile->act is used for databrowse: double names of library objects */
 	sfile->act= -1;
 
@@ -1372,12 +1389,28 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 	filetoname= 1;
 }
 
+void activate_fileselect(int type, char *title, char *file, void (*func)(char *))
+{
+	activate_fileselect_(type, title, file, NULL, NULL, func, NULL, NULL, NULL, NULL);
+}
+
+void activate_fileselect_menu(int type, char *title, char *file, char *pupmenu, short *menup, void (*func)(char *))
+{
+	activate_fileselect_(type, title, file, menup, pupmenu, func, NULL, NULL, NULL, NULL);
+}
+
+void activate_fileselect_args(int type, char *title, char *file, void (*func)(char *, void *, void *), void *arg1, void *arg2)
+{
+	activate_fileselect_(type, title, file, NULL, NULL, NULL, NULL, func, arg1, arg2);
+}
+
+
 void activate_imageselect(int type, char *title, char *file, void (*func)(char *))
 {
 	SpaceImaSel *simasel;
-	char dir[FILE_MAXDIR+FILE_MAXFILE], name[FILE_MAXDIR+FILE_MAXFILE];
+	char dir[FILE_MAX], name[FILE_MAX];
 	
-	if(curarea==0) return;
+	if(curarea==NULL) return;
 	if(curarea->win==0) return;
 	
 	newspace(curarea, SPACE_IMASEL);
@@ -1420,19 +1453,47 @@ void activate_databrowse(ID *id, int idcode, int fromcode, int retval, short *me
 	if(id) BLI_strncpy(str, id->name, sizeof(str));
 	else return;
 	
-	activate_fileselect(FILE_MAIN, "SELECT DATABLOCK", str, (void (*) (char*))func);
+	activate_fileselect_(FILE_MAIN, "SELECT DATABLOCK", str, menup, NULL, NULL, func, NULL, NULL, NULL);
 	
 	sfile= curarea->spacedata.first;
 	sfile->retval= retval;
 	sfile->ipotype= fromcode;
-	sfile->menup= menup;
+}
+
+void activate_databrowse_args(struct ID *id, int idcode, int fromcode, short *menup, void (*func)(char *, void *, void *), void *arg1, void *arg2)
+{
+	ListBase *lb;
+	SpaceFile *sfile;
+	char str[32];
+	
+	if(id==NULL) {
+		lb= wich_libbase(G.main, idcode);
+		id= lb->first;
+	}
+	
+	if(id) BLI_strncpy(str, id->name, sizeof(str));
+	else return;
+	
+	activate_fileselect_(FILE_MAIN, "SELECT DATABLOCK", str, menup, NULL, NULL, NULL, func, arg1, arg2);
+	
+	sfile= curarea->spacedata.first;
+	sfile->ipotype= fromcode;
 }
 
 void filesel_prevspace()
 {
-	SpaceFile *sfile;
+	SpaceFile *sfile= curarea->spacedata.first;
 	
-	sfile= curarea->spacedata.first;
+	/* cleanup */
+	if(sfile->spacetype==SPACE_FILE) {
+		if(sfile->menup)
+			sfile->menup= NULL;
+		if(sfile->pupmenu) {
+			MEM_freeN(sfile->pupmenu);
+			sfile->pupmenu= NULL;
+		}
+	}
+
 	if(sfile->next) {
 	
 		BLI_remlink(&curarea->spacedata, sfile);
@@ -1527,11 +1588,11 @@ void free_filesel_spec(char *dir)
 	}
 }
 
-
+/* NOTE: this is called for file read, after the execfunc no UI memory is valid! */
 static void filesel_execute(SpaceFile *sfile)
 {
 	struct direntry *files;
-	char name[FILE_MAXDIR+FILE_MAXFILE];
+	char name[FILE_MAX];
 	int a;
 	
 	filesel_prevspace();
@@ -1548,7 +1609,7 @@ static void filesel_execute(SpaceFile *sfile)
 		BIF_undo_push("Append from file");
 		allqueue(REDRAWALL, 1);
 	}
-	else if(sfile->returnfunc) {
+	else if(filesel_has_func(sfile)) {
 		fsmenu_insert_entry(sfile->dir, 1);
 	
 		if(sfile->type==FILE_MAIN) { /* DATABROWSE */
@@ -1593,7 +1654,10 @@ static void filesel_execute(SpaceFile *sfile)
 					}
 				}
 			}
-			sfile->returnfunc((char*) (long)sfile->retval);
+			if(sfile->returnfunc_event)
+				sfile->returnfunc_event(sfile->retval);
+			else if(sfile->returnfunc_args)
+				sfile->returnfunc_args(NULL, sfile->arg1, sfile->arg2);
 		}
 		else {
 			if(strncmp(sfile->title, "Save", 4)==0) free_filesel_spec(sfile->dir);
@@ -1604,22 +1668,27 @@ static void filesel_execute(SpaceFile *sfile)
 			
 			if(sfile->flag & FILE_STRINGCODE) {
 				if (!G.relbase_valid) {
-					okee("You have to save the .blend file before using relative paths! Using absolute path instead.");
-					sfile->flag &= ~FILE_STRINGCODE;
+					/* skip save */
+					if(strncmp(sfile->title, "Save", 4)) {
+						okee("You have to save the .blend file before using relative paths! Using absolute path instead.");
+						sfile->flag &= ~FILE_STRINGCODE;
+					}
 				}
 				else {
 					BLI_makestringcode(G.sce, name);
 				}
 			}
-
-			sfile->returnfunc(name);
+			if(sfile->returnfunc)
+				sfile->returnfunc(name);
+			else if(sfile->returnfunc_args)
+				sfile->returnfunc_args(name, sfile->arg1, sfile->arg2);
 		}
 	}
 }
 
 static void do_filesel_buttons(short event, SpaceFile *sfile)
 {
-	char butname[FILE_MAXDIR+FILE_MAXFILE];
+	char butname[FILE_MAX];
 	
 	if (event == B_FS_FILENAME) {
 		if (strchr(sfile->file, '*') || strchr(sfile->file, '?') || strchr(sfile->file, '[')) {
@@ -1864,7 +1933,7 @@ static void fs_fake_users(SpaceFile *sfile)
 	int a;
 	
 	/* only for F4 DATABROWSE */
-	if(sfile->returnfunc) return;
+	if(filesel_has_func(sfile)) return;
 	
 	for(a=0; a<sfile->totfile; a++) {
 		if(sfile->filelist[a].flags & ACTIVE) {
@@ -1907,7 +1976,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	SpaceFile *sfile;
 	int act, do_draw= 0, i, test, ret = 0;
 	short qual, mval[2];
-	char str[FILE_MAXDIR+FILE_MAXFILE+12];
+	char str[FILE_MAX+12];
 	
 	sfile= curarea->spacedata.first;
 	if(sfile==0) return;
@@ -2297,7 +2366,7 @@ static int is_a_library(SpaceFile *sfile, char *dir, char *group)
 static void do_library_append(SpaceFile *sfile)
 {
 	Library *lib;
-	char dir[FILE_MAXDIR+FILE_MAXFILE], group[32];
+	char dir[FILE_MAX], group[32];
 	
 	if ( is_a_library(sfile, dir, group)==0 ) {
 		error("Not a library");
@@ -2344,8 +2413,8 @@ static void library_to_filelist(SpaceFile *sfile)
 {
 	LinkNode *l, *names;
 	int ok, i, nnames, idcode;
-	char filename[FILE_MAXDIR+FILE_MAXFILE];
-	char dir[FILE_MAXDIR+FILE_MAXFILE], group[24];
+	char filename[FILE_MAX];
+	char dir[FILE_MAX], group[24];
 	
 	/* name test */
 	ok= is_a_library(sfile, dir, group);
@@ -2420,7 +2489,7 @@ static void filesel_select_objects(SpaceFile *sfile)
 	int a;
 	
 	/* only when F4 DATABROWSE */
-	if(sfile->returnfunc) return;
+	if(filesel_has_func(sfile)) return;
 	
 	if( strcmp(sfile->dir, "Object/")==0 ) {
 		for(a=0; a<sfile->totfile; a++) {
@@ -2462,7 +2531,7 @@ static void active_file_object(SpaceFile *sfile)
 	Object *ob;
 	
 	/* only when F4 DATABROWSE */
-	if(sfile->returnfunc) return;
+	if(filesel_has_func(sfile)) return;
 	
 	if( strcmp(sfile->dir, "Object/")==0 ) {
 		if(sfile->act >= 0) {
@@ -2551,7 +2620,7 @@ void main_to_filelist(SpaceFile *sfile)
 		id= lb->first;
 		sfile->totfile= 0;
 		while(id) {
-			if(sfile->returnfunc && idcode==ID_IP) {
+			if(filesel_has_func(sfile) && idcode==ID_IP) {
 				if(sfile->ipotype== ((Ipo *)id)->blocktype) sfile->totfile++;
 			}
 			else if (hide==0 || id->name[2] != '.')
@@ -2560,12 +2629,12 @@ void main_to_filelist(SpaceFile *sfile)
 			id= id->next;
 		}
 		
-		if(sfile->returnfunc==0) sfile->totfile+= 2;
+		if(!filesel_has_func(sfile)) sfile->totfile+= 2;
 		sfile->filelist= (struct direntry *)malloc(sfile->totfile * sizeof(struct direntry));
 		
 		files= sfile->filelist;
 		
-		if(sfile->returnfunc==0) {
+		if(!filesel_has_func(sfile)) {
 			memset( &(sfile->filelist[0]), 0 , sizeof(struct direntry));
 			sfile->filelist[0].relname= BLI_strdup(".");
 			sfile->filelist[0].type |= S_IFDIR;
@@ -2582,7 +2651,7 @@ void main_to_filelist(SpaceFile *sfile)
 		while(id) {
 			
 			ok= 0;
-			if(sfile->returnfunc && idcode==ID_IP) {
+			if(filesel_has_func(sfile) && idcode==ID_IP) {
 				if(sfile->ipotype== ((Ipo *)id)->blocktype) ok= 1;
 			}
 			else ok= 1;
@@ -2594,14 +2663,14 @@ void main_to_filelist(SpaceFile *sfile)
 					if(id->lib==NULL)
 						files->relname= BLI_strdup(id->name+2);
 					else {
-						char tmp[FILE_MAXDIR+FILE_MAXFILE], fi[FILE_MAXFILE];
-						BLI_strncpy(tmp, id->lib->name, FILE_MAXDIR+FILE_MAXFILE);
+						char tmp[FILE_MAX], fi[FILE_MAXFILE];
+						BLI_strncpy(tmp, id->lib->name, FILE_MAX);
 						BLI_splitdirstring(tmp, fi);
 						files->relname= MEM_mallocN(FILE_MAXFILE+32, "filename for lib");
 						sprintf(files->relname, "%s / %s", fi, id->name+2);
 					}
 					
-					if(sfile->returnfunc==0) { /* F4 DATA BROWSE */
+					if(!filesel_has_func(sfile)) { /* F4 DATA BROWSE */
 						if(idcode==ID_OB) {
 							if( ((Object *)id)->flag & SELECT) files->flags |= ACTIVE;
 						}
@@ -2646,7 +2715,7 @@ void main_to_filelist(SpaceFile *sfile)
 			if( strcmp(sfile->file, sfile->filelist[a].relname)==0) {
 				sfile->ofs= a-( sfile->collums*(curarea->winy-FILESELHEAD-10)/(2*FILESEL_DY));
 				filetoname= 0;
-				if(sfile->returnfunc) sfile->filelist[a].flags |= ACTIVE;
+				if(filesel_has_func(sfile)) sfile->filelist[a].flags |= ACTIVE;
 			}
 		}
 	}
@@ -2656,9 +2725,9 @@ void main_to_filelist(SpaceFile *sfile)
 void clever_numbuts_filesel()
 {
 	SpaceFile *sfile;
-	char orgname[FILE_MAXDIR+FILE_MAXFILE+12];
-	char filename[FILE_MAXDIR+FILE_MAXFILE+12];
-	char newname[FILE_MAXDIR+FILE_MAXFILE+12];
+	char orgname[FILE_MAX+12];
+	char filename[FILE_MAX+12];
+	char newname[FILE_MAX+12];
 	int test;
 	int len;
 	

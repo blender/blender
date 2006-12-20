@@ -270,7 +270,7 @@ struct ImBuf *IMB_loadiffname(char *naam, int flags) {
 
 	ibuf= IMB_loadifffile(file, flags);
 
-	if (ibuf == 0) {
+	if (ibuf == NULL) {
 		if (read(file, buf, 4) != 4) buf[0] = 0;
 		if ((BIG_LONG(buf[0]) & 0xfffffff0) == 0xffd8ffe0)
 			ibuf = imb_ibJpegImageFromFilename(naam, flags);			

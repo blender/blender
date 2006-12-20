@@ -66,45 +66,37 @@
 
 /* ------------------------------------------------------------------------- */
 
-static void envmap_split_ima(EnvMap *env)
+static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 {
-	ImBuf *ibuf;
-	Image *ima;
-/*  	extern rectcpy(); */
 	int dx, part;
 	
 	BKE_free_envmapdata(env);	
 	
-	dx= env->ima->ibuf->y;
+	dx= ibuf->y;
 	dx/= 2;
-	if(3*dx != env->ima->ibuf->x) {
+	if(3*dx != ibuf->x) {
 		printf("Incorrect envmap size\n");
 		env->ok= 0;
 		env->ima->ok= 0;
 	}
 	else {
 		for(part=0; part<6; part++) {
-			ibuf= IMB_allocImBuf(dx, dx, 24, IB_rect, 0);
-			ima= MEM_callocN(sizeof(Image), "image");
-			ima->ibuf= ibuf;
-			ima->ok= 1;
-			env->cube[part]= ima;
+			env->cube[part]= IMB_allocImBuf(dx, dx, 24, IB_rect, 0);
 		}
-		IMB_rectcpy(env->cube[0]->ibuf, env->ima->ibuf, 
+		IMB_rectcpy(env->cube[0], ibuf, 
 			0, 0, 0, 0, dx, dx);
-		IMB_rectcpy(env->cube[1]->ibuf, env->ima->ibuf, 
+		IMB_rectcpy(env->cube[1], ibuf, 
 			0, 0, dx, 0, dx, dx);
-		IMB_rectcpy(env->cube[2]->ibuf, env->ima->ibuf, 
+		IMB_rectcpy(env->cube[2], ibuf, 
 			0, 0, 2*dx, 0, dx, dx);
-		IMB_rectcpy(env->cube[3]->ibuf, env->ima->ibuf, 
+		IMB_rectcpy(env->cube[3], ibuf, 
 			0, 0, 0, dx, dx, dx);
-		IMB_rectcpy(env->cube[4]->ibuf, env->ima->ibuf, 
+		IMB_rectcpy(env->cube[4], ibuf, 
 			0, 0, dx, dx, dx, dx);
-		IMB_rectcpy(env->cube[5]->ibuf, env->ima->ibuf, 
+		IMB_rectcpy(env->cube[5], ibuf, 
 			0, 0, 2*dx, dx, dx, dx);
 		env->ok= ENV_OSA;
 	}
-	printf("split\n");
 }
 
 /* ------------------------------------------------------------------------- */
@@ -372,7 +364,6 @@ static void render_envmap(Render *re, EnvMap *env)
 	/* only the cubemap and planar map is implemented */
 	Render *envre;
 	ImBuf *ibuf;
-	Image *ima;
 	float orthmat[4][4];
 	float oldviewinv[4][4], mat[4][4], tmat[4][4];
 	short part;
@@ -431,11 +422,7 @@ static void render_envmap(Render *re, EnvMap *env)
 			IMB_rect_from_float(ibuf);
 			ibuf->rect_float= NULL;
 				
-			ima= MEM_callocN(sizeof(Image), "image");
-			
-			ima->ibuf= ibuf;
-			ima->ok= 1;
-			env->cube[part]= ima;
+			env->cube[part]= ibuf;
 		}
 		
 		if(re->test_break()) break;
@@ -629,12 +616,9 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	extern Render R;				/* only in this call */
 	/* texvec should be the already reflected normal */
 	EnvMap *env;
-	Image *ima;
+	ImBuf *ibuf;
 	float fac, vec[3], sco[3], dxts[3], dyts[3];
 	int face, face1;
-	
-	if((R.r.mode & R_ENVMAP)==0)
-		return 0;
 	
 	env= tex->env;
 	if(env==NULL || (env->stype!=ENV_LOAD && env->object==NULL)) {
@@ -644,13 +628,9 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	if(env->stype==ENV_LOAD) {
 		env->ima= tex->ima;
 		if(env->ima && env->ima->ok) {
-			if(env->ima->ibuf==NULL) {
-				printf("load ibuf\n");
-				BLI_lock_thread(LOCK_CUSTOM1);
-				if(env->ima->ibuf==NULL) ima_ibuf_is_nul(tex, env->ima);
-				if(env->ima->ok && env->ok==0)
-					envmap_split_ima(env);
-				BLI_unlock_thread(LOCK_CUSTOM1);
+			if(env->cube[0]==NULL) {
+				ImBuf *ibuf= BKE_image_get_ibuf(env->ima, NULL);
+				envmap_split_ima(env, ibuf);
 			}
 		}
 	}
@@ -667,7 +647,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	else MTC_Mat4Mul3Vecfl(R.viewinv, vec);
 	
 	face= envcube_isect(env, vec, sco);
-	ima= env->cube[face];
+	ibuf= env->cube[face];
 	
 	if(osatex) {
 		if(env->object) {
@@ -679,7 +659,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			MTC_Mat4Mul3Vecfl(R.viewinv, dyt);
 		}
 		set_dxtdyt(dxts, dyts, dxt, dyt, face);
-		imagewraposa(tex, ima, sco, dxts, dyts, texres);
+		imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, texres);
 		
 		/* edges? */
 		
@@ -693,9 +673,9 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			VecSubf(vec, vec, dxt);
 			
 			if(face!=face1) {
-				ima= env->cube[face1];
+				ibuf= env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
-				imagewraposa(tex, ima, sco, dxts, dyts, &texr1);
+				imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, &texr1);
 			}
 			else texr1.tr= texr1.tg= texr1.tb= texr1.ta= 0.0;
 			
@@ -706,9 +686,9 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			VecSubf(vec, vec, dyt);
 			
 			if(face!=face1) {
-				ima= env->cube[face1];
+				ibuf= env->cube[face1];
 				set_dxtdyt(dxts, dyts, dxt, dyt, face1);
-				imagewraposa(tex, ima, sco, dxts, dyts, &texr2);
+				imagewraposa(tex, NULL, ibuf, sco, dxts, dyts, &texr2);
 			}
 			else texr2.tr= texr2.tg= texr2.tb= texr2.ta= 0.0;
 			
@@ -724,7 +704,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 		}
 	}
 	else {
-		imagewrap(tex, ima, sco, texres);
+		imagewrap(tex, NULL, ibuf, sco, texres);
 	}
 	
 	return 1;

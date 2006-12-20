@@ -343,37 +343,69 @@ short imb_save_openexr(struct ImBuf *ibuf, char *name, int flags)
 	}
 }
 
-/* ********************* Tile file support ************************************ */
+/* ********************* Nicer API, MultiLayer and with Tile file support ************************************ */
+
+/* naming rules:
+   - parse name from right to left
+   - last character is channel ID, 1 char like 'A' 'R' 'G' 'B' 'X' 'Y' 'Z' 'W' 'U' 'V'
+   - separated with a dot; the Pass name (like "Depth", "Color", "Diffuse" or "Combined")
+   - separated with a dot: the Layer name (like "Lamp1" or "Walls" or "Characters")
+*/
+
+static ListBase exrhandles= {NULL, NULL};
 
 typedef struct ExrHandle {
+	struct ExrHandle *next, *prev;
+	
 	InputFile *ifile;
 	TiledOutputFile *tofile;
 	OutputFile *ofile;
 	int tilex, tiley;
 	int width, height;
-	ListBase channels;
+	
+	ListBase channels;	/* flattened out, ExrChannel */
+	ListBase layers;	/* hierarchical, pointing in end to ExrChannel */
 } ExrHandle;
 
-#define CHANMAXNAME 64
+/* flattened out channel */
 typedef struct ExrChannel {
 	struct ExrChannel *next, *prev;
-	char name[2*CHANMAXNAME + 1];
-	int xstride, ystride;
-	float *rect;
+	
+	char name[EXR_TOT_MAXNAME+1];	/* full name of layer+pass */
+	int xstride, ystride;		/* step to next pixel, to next scanline */
+	float *rect;				/* first pointer to write in */
+	char chan_id;				/* quick lookup of channel char */
 } ExrChannel;
 
-/* not threaded! write one tiled file at a time */
+
+/* hierarchical; layers -> passes -> channels[] */
+typedef struct ExrPass {
+	struct ExrPass *next, *prev;
+	char name[EXR_PASS_MAXNAME];
+	int totchan;
+	float *rect;
+	struct ExrChannel *chan[EXR_PASS_MAXCHAN];
+	char chan_id[EXR_PASS_MAXCHAN];
+} ExrPass;
+
+typedef struct ExrLayer {
+	struct ExrLayer *next, *prev;
+	char name[EXR_LAY_MAXNAME+1];
+	ListBase passes;
+} ExrLayer;
+
+/* ********************** */
+
 void *IMB_exr_get_handle(void)
 {
-	static ExrHandle data;
-	
-	memset(&data, sizeof(ExrHandle), 0);
-	
-	return &data;
+	ExrHandle *data= (ExrHandle *)MEM_callocN(sizeof(ExrHandle), "exr handle");
+	BLI_addtail(&exrhandles, data);
+	return data;
 }
 
-/* still clumsy name handling, layers/channels can be ordered as list in list later */
-void IMB_exr_add_channel(void *handle, const char *layname, const char *channame)
+/* adds flattened ExrChannels */
+/* xstride, ystride and rect can be done in set_channel too, for tile writing */
+void IMB_exr_add_channel(void *handle, const char *layname, const char *passname, int xstride, int ystride, float *rect)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	ExrChannel *echan;
@@ -381,14 +413,19 @@ void IMB_exr_add_channel(void *handle, const char *layname, const char *channame
 	echan= (ExrChannel *)MEM_callocN(sizeof(ExrChannel), "exr tile channel");
 	
 	if(layname) {
-		char lay[CHANMAXNAME], chan[CHANMAXNAME];
-		strncpy(lay, layname, CHANMAXNAME-1);
-		strncpy(chan, channame, CHANMAXNAME-1);
+		char lay[EXR_LAY_MAXNAME+1], pass[EXR_PASS_MAXNAME+1];
+		BLI_strncpy(lay, layname, EXR_LAY_MAXNAME);
+		BLI_strncpy(pass, passname, EXR_PASS_MAXNAME);
 
-		sprintf(echan->name, "%s.%s", lay, chan);
+		sprintf(echan->name, "%s.%s", lay, pass);
 	}
 	else
-		strncpy(echan->name, channame, 2*CHANMAXNAME);
+		BLI_strncpy(echan->name, passname, EXR_TOT_MAXNAME-1);
+	
+	echan->xstride= xstride;
+	echan->ystride= ystride;
+	echan->rect= rect;
+	
 	// printf("added channel %s\n", echan->name);
 	BLI_addtail(&data->channels, echan);
 }
@@ -405,7 +442,9 @@ void IMB_exr_begin_write(void *handle, char *filename, int width, int height)
 	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
 		header.channels().insert (echan->name, Channel (FLOAT));
 	
-	header.insert ("comments", StringAttribute ("Blender MultiChannel"));
+	header.compression() = RLE_COMPRESSION;
+	
+	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.43"));
 	
 	data->ofile = new OutputFile(filename, header);
 }
@@ -426,13 +465,14 @@ void IMB_exrtile_begin_write(void *handle, char *filename, int width, int height
 	
 	header.setTileDescription (TileDescription (tilex, tiley, ONE_LEVEL));
 	header.lineOrder() = RANDOM_Y,
-	header.compression() = NO_COMPRESSION;
+	header.compression() = RLE_COMPRESSION;
 	
-	header.insert ("comments", StringAttribute ("Blender MultiChannel"));
+	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.43"));
 	
 	data->tofile = new TiledOutputFile(filename, header);
 }
 
+/* read from file */
 int IMB_exr_begin_read(void *handle, char *filename, int *width, int *height)
 {
 	ExrHandle *data= (ExrHandle *)handle;
@@ -447,7 +487,7 @@ int IMB_exr_begin_read(void *handle, char *filename, int *width, int *height)
 			const ChannelList &channels = data->ifile->header().channels();
 			
 			for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
-				IMB_exr_add_channel(data, NULL, i.name());
+				IMB_exr_add_channel(data, NULL, i.name(), 0, 0, NULL);
 			
 			return 1;
 		}
@@ -456,21 +496,21 @@ int IMB_exr_begin_read(void *handle, char *filename, int *width, int *height)
 }
 
 /* still clumsy name handling, layers/channels can be ordered as list in list later */
-void IMB_exr_set_channel(void *handle, char *layname, char *channame, int xstride, int ystride, float *rect)
+void IMB_exr_set_channel(void *handle, char *layname, char *passname, int xstride, int ystride, float *rect)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	ExrChannel *echan;
-	char name[2*CHANMAXNAME + 1];
+	char name[EXR_TOT_MAXNAME + 1];
 	
 	if(layname) {
-		char lay[CHANMAXNAME], chan[CHANMAXNAME];
-		strncpy(lay, layname, CHANMAXNAME-1);
-		strncpy(chan, channame, CHANMAXNAME-1);
+		char lay[EXR_LAY_MAXNAME+1], pass[EXR_PASS_MAXNAME+1];
+		BLI_strncpy(lay, layname, EXR_LAY_MAXNAME);
+		BLI_strncpy(pass, passname, EXR_PASS_MAXNAME);
 		
-		sprintf(name, "%s.%s", lay, chan);
+		sprintf(name, "%s.%s", lay, pass);
 	}
 	else
-		strncpy(name, channame, 2*CHANMAXNAME);
+		BLI_strncpy(name, passname, EXR_TOT_MAXNAME-1);
 	
 	
 	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
@@ -540,11 +580,38 @@ void IMB_exr_read_channels(void *handle)
 	data->ifile->readPixels (0, data->height-1);	
 }
 
+void IMB_exr_multilayer_convert(void *handle, void *base,  
+								void * (*addlayer)(void *base, char *str), 
+								void (*addpass)(void *base, void *lay, char *str, 
+												float *rect, int totchan, char *chan_id))
+{
+	ExrHandle *data= (ExrHandle *)handle;
+	ExrLayer *lay;
+	ExrPass *pass;
+
+	if(data->layers.first==NULL) {
+		printf("cannot convert multilayer, no layers in handle\n");
+		return;
+	}
+
+	for(lay= (ExrLayer *)data->layers.first; lay; lay= lay->next) {
+		void *laybase= addlayer(base, lay->name);
+		if(laybase) {
+			for(pass= (ExrPass *)lay->passes.first; pass; pass= pass->next) {
+				addpass(base, laybase, pass->name, pass->rect, pass->totchan, pass->chan_id);
+				pass->rect= NULL;
+			}
+		}
+	}
+}
+
 
 void IMB_exr_close(void *handle)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	ExrChannel *echan;
+	ExrLayer *lay;
+	ExrPass *pass;
 	
 	if(data->ifile)
 		delete data->ifile;
@@ -558,6 +625,191 @@ void IMB_exr_close(void *handle)
 	data->tofile= NULL;
 	
 	BLI_freelistN(&data->channels);
+	
+	for(lay= (ExrLayer *)data->layers.first; lay; lay= lay->next) {
+		for(pass= (ExrPass *)lay->passes.first; pass; pass= pass->next)
+			if(pass->rect)
+				MEM_freeN(pass->rect);
+		BLI_freelistN(&lay->passes);
+	}
+	BLI_freelistN(&data->layers);
+	
+	BLI_remlink(&exrhandles, data);
+	MEM_freeN(data);
+}
+
+/* ********* */
+
+static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *passname)
+{
+	int plen, len= strlen(echan->name);
+	
+	if(len < 4) {
+		printf("multilayer read: name too short: %s\n", echan->name);
+		return 0;
+	}
+	if(echan->name[len-2]!='.') {
+		printf("multilayer read: name has no Channel: %s\n", echan->name);
+		return 0;
+	}
+	echan->chan_id= echan->name[len-1];
+	
+	len-= 3;
+	while(len>=0) {
+		if(echan->name[len]=='.')
+			break;
+		len--;
+	}
+	BLI_strncpy(passname, echan->name+len+1, EXR_PASS_MAXNAME);
+	plen= strlen(passname);
+	if(plen < 3) {
+		printf("multilayer read: should not happen: %s\n", echan->name);
+		return 0;
+	}
+	passname[plen-2]= 0;
+	
+	if(len<1)
+		layname[0]= 0;
+	else {
+		BLI_strncpy(layname, echan->name, EXR_LAY_MAXNAME);
+		layname[len]= 0;
+	}
+	// printf("found lay %s pass %s chan %c\n", layname, passname, echan->chan_id);
+}
+
+static ExrLayer *imb_exr_get_layer(ListBase *lb, char *layname)
+{
+	ExrLayer *lay;
+	
+	for(lay= (ExrLayer *)lb->first; lay; lay= lay->next) {
+		if( strcmp(lay->name, layname)==0 )
+			return lay;
+	}
+	lay= (ExrLayer *)MEM_callocN(sizeof(ExrLayer), "exr layer");
+	BLI_addtail(lb, lay);
+	BLI_strncpy(lay->name, layname, EXR_LAY_MAXNAME);
+	
+	return lay;
+}
+
+static ExrPass *imb_exr_get_pass(ListBase *lb, char *passname)
+{
+	ExrPass *pass;
+	
+	for(pass= (ExrPass *)lb->first; pass; pass= pass->next) {
+		if( strcmp(pass->name, passname)==0 )
+			return pass;
+	}
+	
+	pass= (ExrPass *)MEM_callocN(sizeof(ExrPass), "exr pass");
+
+	if(strcmp(passname, "Combined")==0)
+		BLI_addhead(lb, pass);
+	else
+		BLI_addtail(lb, pass);
+	
+	BLI_strncpy(pass->name, passname, EXR_LAY_MAXNAME);
+	
+	return pass;
+}
+
+/* creates channels, makes a hierarchy and assigns memory to channels */
+static ExrHandle *imb_exr_begin_read_mem(InputFile *file, int width, int height)
+{
+	ExrLayer *lay;
+	ExrPass *pass;
+	ExrChannel *echan;
+	ExrHandle *data= (ExrHandle *)IMB_exr_get_handle();
+	int a;
+	char layname[EXR_TOT_MAXNAME], passname[EXR_TOT_MAXNAME];
+	
+	data->ifile= file;
+	data->width= width;
+	data->height= height;
+	
+	const ChannelList &channels = data->ifile->header().channels();
+	
+	for (ChannelList::ConstIterator i = channels.begin(); i != channels.end(); ++i)
+		IMB_exr_add_channel(data, NULL, i.name(), 0, 0, NULL);
+	
+	/* now try to sort out how to assign memory to the channels */
+	/* first build hierarchical layer list */
+	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next) {
+		if( imb_exr_split_channel_name(echan, layname, passname) ) {
+			ExrLayer *lay= imb_exr_get_layer(&data->layers, layname);
+			ExrPass *pass= imb_exr_get_pass(&lay->passes, passname);
+			
+			pass->chan[pass->totchan]= echan;
+			pass->totchan++;
+			if(pass->totchan>=EXR_PASS_MAXCHAN)
+				break;
+		}
+	}
+	if(echan) {
+		printf("error, too many channels in one pass: %s\n", echan->name);
+		IMB_exr_close(data);
+		return NULL;
+	}
+	
+	/* with some heuristics, try to merge the channels in buffers */
+	for(lay= (ExrLayer *)data->layers.first; lay; lay= lay->next) {
+		for(pass= (ExrPass *)lay->passes.first; pass; pass= pass->next) {
+			if(pass->totchan) {
+				pass->rect= (float *)MEM_mapallocN(width*height*pass->totchan*sizeof(float), "pass rect");
+				if(pass->totchan==1) {
+					echan= pass->chan[0];
+					echan->rect= pass->rect;
+					echan->xstride= 1;
+					echan->ystride= width;
+					pass->chan_id[0]= echan->chan_id;
+				}
+				else {
+					char lookup[256];
+					
+					memset(lookup, 0, sizeof(lookup));
+						   
+					/* we can have RGB(A), XYZ(W), UVA */
+					if(pass->totchan==3 || pass->totchan==4) {
+						if(pass->chan[0]->chan_id=='B' || pass->chan[1]->chan_id=='B' ||  pass->chan[2]->chan_id=='B') {
+							lookup['R']= 0;
+							lookup['G']= 1;
+							lookup['B']= 2;
+							lookup['A']= 3;
+						}
+						else if(pass->chan[0]->chan_id=='Y' || pass->chan[1]->chan_id=='Y' ||  pass->chan[2]->chan_id=='Y') {
+							lookup['X']= 0;
+							lookup['Y']= 1;
+							lookup['Z']= 2;
+							lookup['W']= 3;
+						}
+						else {
+							lookup['U']= 0;
+							lookup['V']= 1;
+							lookup['A']= 2;
+						}
+						for(a=0; a<pass->totchan; a++) {
+							echan= pass->chan[a];
+							echan->rect= pass->rect + lookup[echan->chan_id];
+							echan->xstride= pass->totchan;
+							echan->ystride= width*pass->totchan;
+							pass->chan_id[ lookup[echan->chan_id] ]= echan->chan_id;
+						}
+					}
+					else { /* unknown */
+						for(a=0; a<pass->totchan; a++) {
+							echan= pass->chan[a];
+							echan->rect= pass->rect + a;
+							echan->xstride= pass->totchan;
+							echan->ystride= width*pass->totchan;
+							pass->chan_id[a]= echan->chan_id;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	return data;
 }
 
 
@@ -598,9 +850,9 @@ static int exr_has_zbuffer(InputFile *file)
 
 static int exr_is_renderresult(InputFile *file)
 {
-	const StringAttribute *comments= file->header().findTypedAttribute<StringAttribute>("comments");
+	const StringAttribute *comments= file->header().findTypedAttribute<StringAttribute>("BlenderMultiChannel");
 	if(comments)
-		if(comments->value() == "Blender MultiChannel")
+//		if(comments->value() == "Blender MultiChannel")
 			return 1;
 	return 0;
 }
@@ -615,6 +867,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 	try
 	{
 		Mem_IStream membuf(mem, size); 
+		int is_multi;
 		file = new InputFile(membuf);
 		
 		Box2i dw = file->header().dataWindow();
@@ -625,52 +878,69 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 		//	   dw.min.x, dw.min.y, dw.max.x, dw.max.y);
 
 		//exr_print_filecontents(file);
-		int flipped= exr_is_renderresult(file);
 		
-		ibuf = IMB_allocImBuf(width, height, 32, 0, 0);
+		is_multi= exr_is_renderresult(file);
 		
-		if (ibuf) 
+		/* do not make an ibuf when */
+		if(is_multi && !(flags & IB_test) && !(flags & IB_multilayer)) 
 		{
+			printf("Error: can't process EXR multilayer file\n");
+		}
+		else {
+		
+			ibuf = IMB_allocImBuf(width, height, 32, 0, 0);
 			ibuf->ftype = OPENEXR;
 			
 			if (!(flags & IB_test))
 			{
-				FrameBuffer frameBuffer;
-				float *first;
-				int xstride = sizeof(float) * 4;
-				int ystride = flipped ? xstride*width : - xstride*width;
-				
-				imb_addrectfloatImBuf(ibuf);
-				
-				/* inverse correct first pixel for datawindow coordinates (- dw.min.y because of y flip) */
-				first= ibuf->rect_float - 4*(dw.min.x - dw.min.y*width);
-				/* but, since we read y-flipped (negative y stride) we move to last scanline */
-				if(!flipped) first+= 4*(height-1)*width;
-				
-				frameBuffer.insert ("R", Slice (FLOAT,  (char *) first, xstride, ystride));
-				frameBuffer.insert ("G", Slice (FLOAT,  (char *) (first+1), xstride, ystride));
-				frameBuffer.insert ("B", Slice (FLOAT,  (char *) (first+2), xstride, ystride));
-																		/* 1.0 is fill value */
-				frameBuffer.insert ("A", Slice (FLOAT,  (char *) (first+3), xstride, ystride, 1, 1, 1.0f));
-
-				if(exr_has_zbuffer(file)) 
+				if(is_multi) /* only enters with IB_multilayer flag set */
 				{
-					float *firstz;
-					
-					addzbuffloatImBuf(ibuf);
-					firstz= ibuf->zbuf_float - (dw.min.x - dw.min.y*width);
-					if(!flipped) firstz+= (height-1)*width;
-					frameBuffer.insert ("Z", Slice (FLOAT,  (char *)firstz , sizeof(float), -width*sizeof(float)));
+					/* constructs channels for reading, allocates memory in channels */
+					ExrHandle *handle= imb_exr_begin_read_mem(file, width, height);
+					if(handle) {
+						IMB_exr_read_channels(handle);
+						ibuf->userdata= handle;			/* potential danger, the caller has to check for this! */
+						return ibuf;
+					}
 				}
-				
-				file->setFrameBuffer (frameBuffer);
-				file->readPixels (dw.min.y, dw.max.y);
-				
-				IMB_rect_from_float(ibuf);
+				else {
+					FrameBuffer frameBuffer;
+					float *first;
+					int xstride = sizeof(float) * 4;
+					int ystride = - xstride*width;
+					
+					imb_addrectfloatImBuf(ibuf);
+					
+					/* inverse correct first pixel for datawindow coordinates (- dw.min.y because of y flip) */
+					first= ibuf->rect_float - 4*(dw.min.x - dw.min.y*width);
+					/* but, since we read y-flipped (negative y stride) we move to last scanline */
+					first+= 4*(height-1)*width;
+					
+					frameBuffer.insert ("R", Slice (FLOAT,  (char *) first, xstride, ystride));
+					frameBuffer.insert ("G", Slice (FLOAT,  (char *) (first+1), xstride, ystride));
+					frameBuffer.insert ("B", Slice (FLOAT,  (char *) (first+2), xstride, ystride));
+																			/* 1.0 is fill value */
+					frameBuffer.insert ("A", Slice (FLOAT,  (char *) (first+3), xstride, ystride, 1, 1, 1.0f));
+
+					if(exr_has_zbuffer(file)) 
+					{
+						float *firstz;
+						
+						addzbuffloatImBuf(ibuf);
+						firstz= ibuf->zbuf_float - (dw.min.x - dw.min.y*width);
+						firstz+= (height-1)*width;
+						frameBuffer.insert ("Z", Slice (FLOAT,  (char *)firstz , sizeof(float), -width*sizeof(float)));
+					}
+					
+					file->setFrameBuffer (frameBuffer);
+					file->readPixels (dw.min.y, dw.max.y);
+					
+					IMB_rect_from_float(ibuf);
+				}
 			}
+			
+			delete file;
 		}
-		
-		delete file;
 		
 		return(ibuf);
 				
