@@ -3743,14 +3743,10 @@ static int MFace_setImage( BPy_MFace *self, PyObject *value )
 
 	face = &self->mesh->mtface[self->index];
 
-	if( face->tpage )
-		face->tpage->id.us--;
-
 	if( value == NULL || value == Py_None )
         	face->tpage = NULL;		/* should memory be freed? */
 	else {
 		face->tpage = ( ( BPy_Image * ) value )->image;
-		face->tpage->id.us++;
 		face->mode |= TF_TEX;
 	}
 
