@@ -107,6 +107,11 @@ void multires_undo_push(char *str)
 		BIF_undo_push(str);
 }
 
+typedef struct MultiresMapNode {
+	struct MultiresMapNode *next, *prev;
+	unsigned Index;
+} MultiresMapNode;
+
 void Vec3fAvg3(float *out, float *v1, float *v2, float *v3)
 {
 	out[0]= (v1[0]+v2[0]+v3[0])/3;
@@ -737,20 +742,15 @@ void multires_free(Multires *mr)
 void multires_free_level(MultiresLevel *lvl)
 {
 	if(lvl) {
-		unsigned i;
-
 		if(lvl->verts) MEM_freeN(lvl->verts);
 		if(lvl->faces) MEM_freeN(lvl->faces);
 		if(lvl->edges) MEM_freeN(lvl->edges);
 		if(lvl->texcolfaces) MEM_freeN(lvl->texcolfaces);
 		
 		/* Free all vertex maps */
-		for(i=0; i<lvl->totvert; ++i)
-			BLI_freelistN(&lvl->vert_edge_map[i]);
-		for(i=0; i<lvl->totvert; ++i)
-			BLI_freelistN(&lvl->vert_face_map[i]);
 		MEM_freeN(lvl->vert_edge_map);
 		MEM_freeN(lvl->vert_face_map);
+		MEM_freeN(lvl->map_mem);
 	}
 }
 
@@ -1591,21 +1591,22 @@ void multires_calc_level_maps(MultiresLevel *lvl)
 	unsigned i,j;
 	MultiresMapNode *indexnode= NULL;
 	
+	lvl->map_mem= MEM_mallocN(sizeof(MultiresMapNode)*(lvl->totedge*2 + lvl->totface*4), "map_mem");
+	indexnode= lvl->map_mem;
+	
 	lvl->vert_edge_map= MEM_callocN(sizeof(ListBase)*lvl->totvert,"vert_edge_map");
 	for(i=0; i<lvl->totedge; ++i) {
-		for(j=0; j<2; ++j) {
-			indexnode= MEM_callocN(sizeof(MultiresMapNode),"vert_edge_map indexnode");
+		for(j=0; j<2; ++j, ++indexnode) {
 			indexnode->Index= i;
-			BLI_addtail(&lvl->vert_edge_map[lvl->edges[i].v[j]],indexnode);
+			BLI_addtail(&lvl->vert_edge_map[lvl->edges[i].v[j]], indexnode);
 		}
 	}
 
        	lvl->vert_face_map= MEM_callocN(sizeof(ListBase)*lvl->totvert,"vert_face_map");
 	for(i=0; i<lvl->totface; ++i){
-		for(j=0; j<(lvl->faces[i].v[3]?4:3); ++j){
-			indexnode= MEM_callocN(sizeof(MultiresMapNode),"vert_face_map indexnode");
+		for(j=0; j<(lvl->faces[i].v[3]?4:3); ++j, ++indexnode) {
 			indexnode->Index= i;
-			BLI_addtail(&lvl->vert_face_map[lvl->faces[i].v[j]],indexnode);
+			BLI_addtail(&lvl->vert_face_map[lvl->faces[i].v[j]], indexnode);
 		}
 	}
 }

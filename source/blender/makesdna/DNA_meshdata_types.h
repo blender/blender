@@ -109,11 +109,7 @@ typedef struct MultiresTexColFace {
 	char tex_flag, tex_transp;
 } MultiresTexColFace;
 
-typedef struct MultiresMapNode {
-	struct MultiresMapNode *next, *prev;
-	int Index, pad;
-} MultiresMapNode;
-
+struct MultiresMapNode;
 typedef struct MultiresLevel {
 	struct MultiresLevel *next, *prev;
 
@@ -121,8 +117,9 @@ typedef struct MultiresLevel {
 	MultiresFace *faces;
 	MultiresTexColFace *texcolfaces;
 	MultiresEdge *edges;
-	ListBase *vert_edge_map;
-	ListBase *vert_face_map;
+	struct ListBase *vert_edge_map;
+	struct ListBase *vert_face_map;
+	struct MultiresMapNode *map_mem;
 
 	unsigned int totvert, totface, totedge, pad;
 } MultiresLevel;
