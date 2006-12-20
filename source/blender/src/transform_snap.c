@@ -79,7 +79,8 @@ void TargetSnapClosest(TransInfo *t);
 
 void drawSnapping(TransInfo *t)
 {
-	if ((t->tsnap.status & (SNAP_ON|POINT_INIT|TARGET_INIT)) == (SNAP_ON|POINT_INIT|TARGET_INIT)) {
+	if ((t->tsnap.status & (SNAP_ON|POINT_INIT|TARGET_INIT)) == (SNAP_ON|POINT_INIT|TARGET_INIT) &&
+		(G.qual & LR_CTRLKEY)) {
 		float unitmat[4][4];
 		char col[4];
 		
@@ -103,21 +104,15 @@ int  handleSnapping(TransInfo *t, int event)
 {
 	int status = 0;
 	
-	switch(event) {
-	case ACCENTGRAVEKEY:
-		t->tsnap.status ^= SNAP_ON;
-		status = 1;
-		break;
-	}
+	// Put keyhandling code here
 	
 	return status;
 }
 
 void applySnapping(TransInfo *t, float *vec)
 {
-	if (	(t->tsnap.status & SNAP_ON) &&
-			t->tsnap.applySnap != NULL &&
-			(t->flag & T_PROP_EDIT) == 0)
+	if ((t->tsnap.status & SNAP_ON) &&
+		(G.qual & LR_CTRLKEY))
 	{
 		double current = PIL_check_seconds_timer();
 		
@@ -148,13 +143,18 @@ void initSnapping(TransInfo *t)
 	resetSnapping(t);
 	setSnappingCallback(t);
 	
-	if ((t->spacetype==SPACE_VIEW3D) && (G.vd->flag2 & V3D_TRANSFORM_SNAP))
+	if (t->tsnap.applySnap != NULL && // A snapping function actually exist
+		(G.obedit != NULL && G.obedit->type==OB_MESH) && // Temporary limited to edit mode meshes
+		(t->spacetype==SPACE_VIEW3D) && // Only 3D view (not UV)
+		(G.vd->flag2 & V3D_TRANSFORM_SNAP) && // Only if the snap flag is on
+		(t->flag & T_PROP_EDIT) == 0) // No PET, obviously
 	{
 		t->tsnap.status |= SNAP_ON;
+		t->tsnap.mode = SNAP_GEO;
 	}
 	else
 	{
-		t->tsnap.status &= ~SNAP_ON;
+		t->tsnap.mode = SNAP_GRID;
 	}
 }
 
@@ -197,12 +197,6 @@ void setSnappingCallback(TransInfo *t)
 void ApplySnapTranslation(TransInfo *t, float vec[3])
 {
 	VecSubf(vec, t->tsnap.snapPoint, t->tsnap.snapTarget);
-/*	
-	if (t->con.mode & CON_APPLY)
-	{
-		Mat3MulVecfl(t->con.pmtx, vec);
-	}
-*/
 }
 
 void ApplySnapRotation(TransInfo *t, float vec[3])
@@ -387,6 +381,10 @@ void snapGridAction(TransInfo *t, float *val, GearsType action) {
 void snapGrid(TransInfo *t, float *val) {
 	int invert;
 	GearsType action;
+	
+	// Only do something if using Snap to Grid
+	if ((t->tsnap.mode & SNAP_GRID) == 0)
+		return;
 
 	if(t->mode==TFM_ROTATION || t->mode==TFM_WARP || t->mode==TFM_TILT || t->mode==TFM_TRACKBALL || t->mode==TFM_BONE_ROLL)
 		invert = U.flag & USER_AUTOROTGRID;

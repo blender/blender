@@ -60,6 +60,7 @@ typedef struct NumInput {
 */
 
 typedef struct TransSnap {
+	int  mode;
 	int  status;
 	float snapPoint[3];
 	float snapTarget[3];
@@ -252,11 +253,13 @@ typedef struct TransInfo {
 #endif
 
 /* transsnap->status */
-#define SNAP_ON			0x1
-#define TARGET_INIT		0x2
-#define POINT_INIT		0x4
+#define SNAP_ON			1
+#define TARGET_INIT		2
+#define POINT_INIT		4
 
-
+/* transsnap->mode */
+#define SNAP_GRID		1
+#define SNAP_GEO		2
 
 void checkFirstTime(void);
 

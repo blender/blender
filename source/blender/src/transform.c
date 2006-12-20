@@ -2067,8 +2067,6 @@ void initTranslation(TransInfo *t)
 		t->snap[0] = 0.0f;
 		t->snap[1] = t->snap[2] = 1.0f;
 	}
-	
-	initSnapping(t);
 }
 
 static void headerTranslation(TransInfo *t, float vec[3], char *str) {
