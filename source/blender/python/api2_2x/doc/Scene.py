@@ -306,3 +306,47 @@ class Scene:
     @rtype: bool
     @return: 0 on normal exit or 1 when play back is canceled by user input.
     """
+
+class SceneObjects:
+  """
+  The SceneObjects (Scene ObjectSeq) object
+  =========================================
+   This object gives access to the Objects in a Scene in Blender.
+
+  @ivar selected: an iterator over all the selected objects in a scene.
+  @type selected: sequence of L{Object}
+  @ivar context: an iterator over all the visible selected objects in a scene.
+  @type context: sequence of L{Object}
+  @ivar active: the active object in the scene.
+  @type active: L{Object}
+  """
+
+  def new(data):
+    """
+    Adds a new object to the scene.  Data is either object data such as a
+    L{Mesh} or L{Curve}, or the string "Empty" for an Empty object.  The
+    type of the object is determined by the type of the data.
+    @type data: string or object data
+    @param data: the object data for the new object
+    @return: the new object.
+    @rtype: L{Object}
+    """
+
+  def link(object):
+    """
+    Adds an existing object to the scene.  If the object is already linked
+    to the scene, no action is taken and no exception is raised.
+    @type object: L{Object}
+    @param object: the object
+    @rtype: None
+    """
+
+  def unlink(object):
+    """
+    Removes an object from the scene.  If the object is not linked
+    to the scene, no action is taken and no exception is raised.
+    @type object: L{Object}
+    @param object: the object
+    @rtype: None
+    """
+
