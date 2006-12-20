@@ -312,7 +312,7 @@ void GPC_RenderTools::BL_RenderText(
 				// space starts at offset 1
 				// character = character - ' ' + 1;
 				
-				matrixGlyph(ima->ibuf, character, & centerx, &centery, &sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
+				matrixGlyph((ImBuf *)ima->ibufs.first, character, & centerx, &centery, &sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
 				
 				glBegin(GL_POLYGON);
 				// printf(" %c %f %f %f %f\n", character, tface->uv[0][0], tface->uv[0][1], );

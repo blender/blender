@@ -100,7 +100,7 @@ static int smaller_pow2(int num) {
 
 static void my_make_repbind(Image *ima)
 {
-	if(ima==0 || ima->ibuf==0) return;
+	if(ima==0 || ima->ibufs.first==0) return;
 
 	if(ima->repbind) {
 		glDeleteTextures(ima->totbind, (GLuint*)ima->repbind);
@@ -221,23 +221,20 @@ int set_tpage(MTFace *tface)
 
 		return 0;
 	}
+	
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+	
+	if(ibuf==0) {
+		ima->ok= 0;
 
-	if(ima->ibuf==0) {	
-		load_image(ima, IB_rect, "", 0);
+		fCurtile= tface->tile;
+		fCurpage= 0;
+		fCurmode= tilemode;
+		fCurTileXRep = tileXRep;
+		fCurTileYRep = tileYRep;
 		
-		if(ima->ibuf==0) {
-			ima->ok= 0;
-
-			fCurtile= tface->tile;
-			fCurpage= 0;
-			fCurmode= tilemode;
-			fCurTileXRep = tileXRep;
-			fCurTileYRep = tileYRep;
-			
-			glDisable(GL_TEXTURE_2D);
-			return 0;
-		}
-		
+		glDisable(GL_TEXTURE_2D);
+		return 0;
 	}
 
 	if(ima->tpageflag & IMA_TWINANIM)	fCurtile= ima->lastframe;
@@ -255,8 +252,8 @@ int set_tpage(MTFace *tface)
 		
 		if(*bind==0) {
 			
-			fTexWindx= ima->ibuf->x/ima->xrep;
-			fTexWindy= ima->ibuf->y/ima->yrep;
+			fTexWindx= ibuf->x/ima->xrep;
+			fTexWindy= ibuf->y/ima->yrep;
 			
 			if(fCurtile>=ima->xrep*ima->yrep) fCurtile= ima->xrep*ima->yrep-1;
 	
@@ -269,16 +266,16 @@ int set_tpage(MTFace *tface)
 			tpx= fTexWindx;
 			tpy= fTexWindy;
 
-			rect= ima->ibuf->rect + fTexWinsy*ima->ibuf->x + fTexWinsx;
+			rect= ibuf->rect + fTexWinsy*ibuf->x + fTexWinsx;
 		}
 	}
 	else {
 		bind= &ima->bindcode;
 		
 		if(*bind==0) {
-			tpx= ima->ibuf->x;
-			tpy= ima->ibuf->y;
-			rect= ima->ibuf->rect;
+			tpx= ibuf->x;
+			tpy= ibuf->y;
+			rect= ibuf->rect;
 		}
 	}
 
@@ -299,7 +296,7 @@ int set_tpage(MTFace *tface)
 				
 			tilerect= (unsigned int*)MEM_mallocN(rectw*recth*sizeof(*tilerect), "tilerect");
 			for (y=0; y<recth; y++) {
-				unsigned int *rectrow= &rect[y*ima->ibuf->x];
+				unsigned int *rectrow= &rect[y*ibuf->x];
 				unsigned int *tilerectrow= &tilerect[y*rectw];
 					
 				memcpy(tilerectrow, rectrow, tpx*sizeof(*rectrow));
