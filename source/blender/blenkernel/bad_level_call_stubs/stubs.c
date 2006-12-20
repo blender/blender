@@ -229,6 +229,10 @@ void fluidsimSettingsCopy(struct FluidsimSettings* sb) {}
 
 /*new render funcs */
 int     externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta) { return 0; }
+
+void RE_FreeRenderResult(struct RenderResult *rr) {}
+void RE_GetResultImage(struct Render *re, struct RenderResult *rr) {}
+struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty){return NULL;}
 struct Render *RE_GetRender(const char *name) {return (struct Render *)NULL;}
 struct RenderResult *RE_GetResult(Render *re) {return (struct RenderResult *)NULL;}
 float *RE_RenderLayerGetPass(RenderLayer *rl, int passtype) {return NULL;}

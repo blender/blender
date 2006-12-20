@@ -1293,7 +1293,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 		
 		/* this gives active layer, composite or seqence result */
 		RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
-		rect= rres.rect32;
+		rect= (unsigned int *)rres.rect32;
 		rectf= rres.rectf;
 		
 		/* get compo/seq result by default */
