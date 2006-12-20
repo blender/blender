@@ -1057,6 +1057,7 @@ static void end_test_break_callback()
 
 static void do_render(int anim)
 {
+	Image *ima;
 	Render *re= RE_NewRender(G.scene->id.name);
 	unsigned int lay= G.scene->lay;
 	int scemode= G.scene->r.scemode;
@@ -1109,7 +1110,11 @@ static void do_render(int anim)
 //		}
 		
 	scene_update_for_newframe(G.scene, G.scene->lay);	// no redraw needed, this restores to view as we left it
-
+	
+	/* get a render result image, and make sure it is clean */
+	ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
+	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
+	
 	if(sculptmode) set_sculptmode();
 	
 	waitcursor(0);
