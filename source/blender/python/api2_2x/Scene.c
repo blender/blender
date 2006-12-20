@@ -1306,12 +1306,12 @@ static PyObject *SceneObSeq_link( BPy_SceneObSeq * self, PyObject *pyobj )
 	return Scene_link(self->bpyscene, pyobj);
 }
 
-
-/* This is buggy with new object data not alredy linked to an object, for now use the above code */
+/* This is buggy with new object data not already linked to an object, for now use the above code */
 static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 {	
 	void *data = NULL;
 	char *name = NULL;
+	char *desc = NULL;
 	short type = OB_EMPTY;
 	struct Object *object;
 	Base *base;
@@ -1321,16 +1321,14 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 	SCENE_DEL_CHECK_PY(self->bpyscene);
 	
 	if (self->mode != 0)
-		return (EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "Cannot add new to objects.selection or objects.context!" ));	
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"Cannot add new to objects.selection or objects.context!" );	
 	
 	if( !PyArg_ParseTuple( args, "O|s", &py_data, &name ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected an object and optionaly a string as arguments" );
+				"expected an object and optionally a string as arguments" );
 
-	if (py_data == Py_None) {
-		type = OB_EMPTY;
-	} else if( Camera_CheckPyObject( py_data ) ) {
+	if( Camera_CheckPyObject( py_data ) ) {
 		data = ( void * ) Camera_FromPyObject( py_data );
 		type = OB_CAMERA;
 	} else if( Lamp_CheckPyObject( py_data ) ) {
@@ -1356,31 +1354,29 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 	} else if( Text3d_CheckPyObject( py_data ) ) {
 		data = ( void * ) Text3d_FromPyObject( py_data );
 		type = OB_FONT;
-	}
+	} else if( desc = PyString_FromString( (PyObject *)py_data ) ) {
+		if( !strcmp( desc, "Empty" ) )
+			type = OB_EMPTY;
+		data = NULL;
+	} else
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected an object and optionally a string as arguments" );
 
-	/* have we set data to something good? */
+	if (!name) {
+		if (type == OB_EMPTY)
+			name = "Empty";
+		else
+			name = ((ID *)data)->name + 2;
+	}
+	object = alloc_libblock( &( G.main->object ), ID_OB, name );
 	if( data ) {
-		if (!name) name = ((ID *)data)->name + 2;
-		
-		object = alloc_libblock( &( G.main->object ), ID_OB, name);
 		object->data = data;
 		((ID *)data)->us++;
-	} else {
-		if (type != OB_EMPTY) {
-			return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					"objects.new() argument type is not supported" );
-		}
-		
-		if (!name) name = "Empty";
-		
-		object = alloc_libblock( &( G.main->object ), ID_OB, "Empty" );
 	}
-	
 	
 	object->flag = SELECT;
 	object->type = type;
-	
-	
+
 	/* Object properties copied from M_Object_New */
 	
 	/* creates the curve for the text object */
