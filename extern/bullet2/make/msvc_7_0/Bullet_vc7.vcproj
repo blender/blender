@@ -70,7 +70,8 @@ XCOPY /Y ..\..\src\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\build\msvc
 XCOPY /Y ..\..\src\BulletDynamics\Dynamics\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
 XCOPY /Y ..\..\src\BulletDynamics\Vehicle\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
 
-ECHO Done"/>
+ECHO Done
+"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -149,7 +150,8 @@ XCOPY /Y ..\..\src\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\build\msvc
 XCOPY /Y ..\..\src\BulletDynamics\Dynamics\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
 XCOPY /Y ..\..\src\BulletDynamics\Vehicle\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
 
-ECHO Done"/>
+ECHO Done
+"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -226,7 +228,8 @@ XCOPY /Y ..\..\src\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\build\msvc
 XCOPY /Y ..\..\src\BulletDynamics\Dynamics\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
 XCOPY /Y ..\..\src\BulletDynamics\Vehicle\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
 
-ECHO Done"/>
+ECHO Done
+"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -305,7 +308,8 @@ XCOPY /Y ..\..\src\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\build\msvc
 XCOPY /Y ..\..\src\BulletDynamics\Dynamics\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Dynamics
 XCOPY /Y ..\..\src\BulletDynamics\Vehicle\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BulletDynamics\Vehicle
 
-ECHO Done"/>
+ECHO Done
+"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -827,6 +831,15 @@ ECHO Done"/>
 				Filter="">
 				<File
 					RelativePath="..\..\src\LinearMath\btAabbUtil2.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btAlignedAllocator.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btAlignedAllocator.h">
+				</File>
+				<File
+					RelativePath="..\..\src\LinearMath\btAlignedObjectArray.h">
 				</File>
 				<File
 					RelativePath="..\..\src\LinearMath\btDefaultMotionState.h">
