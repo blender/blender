@@ -3640,7 +3640,6 @@ static void draw_hooks(Object *ob)
 //<rcruiz>
 void drawRBpivot(bRigidBodyJointConstraint *data){
 	float radsPerDeg = 6.283185307179586232f / 360.f;
-	float size=1.0f;
 	int axis;
 	float v1[3]= {data->pivX, data->pivY, data->pivZ};
 	float eu[3]= {radsPerDeg*data->axX, radsPerDeg*data->axY, radsPerDeg*data->axZ};
@@ -3654,7 +3653,7 @@ void drawRBpivot(bRigidBodyJointConstraint *data){
 	for (axis=0; axis<3; axis++) {
 			float dir[3] = {0,0,0};
 			float v[3]= {data->pivX, data->pivY, data->pivZ};
-			int arrow_axis= (axis==0)?1:0;
+
 			dir[axis] = 1.f;
 			glBegin(GL_LINES);
 			Mat4MulVecfl(mat,dir);

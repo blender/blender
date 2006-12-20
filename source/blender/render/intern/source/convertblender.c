@@ -2005,7 +2005,7 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 			if(end && (ma->mode & MA_WIRE)) {
 				MEdge *medge;
 				struct edgesort *edgetable;
-				int totedge;
+				int totedge= 0;
 				
 				medge= dm->getEdgeArray(dm);
 				

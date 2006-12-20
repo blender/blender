@@ -92,19 +92,19 @@ void BL_Texture::DeleteTex()
 
 bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 {
+	ImBuf *ibuf;
+	
 	if(!img || img->ok==0 ) {
 		mError = true;
 		mOk = false;
 		return mOk;
 	}
-	if( img->ibuf==0 ) {
-		load_image(img, IB_rect, "", 0);
-		if(img->ibuf==0) {
-			img->ok = 0;
-			mError = true;
-			mOk = false;
-			return mOk;
-		} 
+	ibuf= BKE_image_get_ibuf(img, NULL);
+	if( ibuf==NULL ) {
+		img->ok = 0;
+		mError = true;
+		mOk = false;
+		return mOk;
 	}
 	mTexture = img->bindcode;
 
@@ -119,7 +119,7 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 	}
 	mNeedsDeleted = 1;
 	glGenTextures(1, (GLuint*)&mTexture);
-	InitGLTex(img->ibuf->rect, img->ibuf->x, img->ibuf->y, mipmap);
+	InitGLTex(ibuf->rect, ibuf->x, ibuf->y, mipmap);
 	Validate();
 	return mOk;
 }
@@ -187,15 +187,12 @@ bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap )
 		mOk = false;
 		return mOk;
 	}
-
-	if( cubemap->ima->ibuf==0 )  {
-		load_image(cubemap->ima, IB_rect, "", 0);
-		if(cubemap->ima->ibuf==0) {
-			cubemap->ima->ok = 0;
-			mError = true;
-			mOk = false;
-			return mOk;
-		}
+	ImBuf *ibuf= BKE_image_get_ibuf(cubemap->ima, NULL);
+	if( ibuf==0 )  {
+		cubemap->ima->ok = 0;
+		mError = true;
+		mOk = false;
+		return mOk;
 	}
 
 	EnvMap *CubeMap = cubemap;
@@ -216,12 +213,9 @@ bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap )
 		my_envmap_split_ima(CubeMap);
 	}
 
-	int x = CubeMap->ima->ibuf->x;
-	int y = CubeMap->ima->ibuf->y;
-
 	// -----------------------------------
-	x	= CubeMap->cube[0]->ibuf->x;
-	y	= CubeMap->cube[0]->ibuf->y;
+	int x	= CubeMap->cube[0]->x;
+	int y	= CubeMap->cube[0]->y;
 
 	// check the first image, and assume the rest
 	if (!is_pow2(x) || !is_pow2(y)) {
@@ -236,10 +230,10 @@ bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap )
 
 #define SetCubeMapFace(face, num)	\
 	glTexImage2D(face, 0,GL_RGBA,	\
-	CubeMap->cube[num]->ibuf->x,	\
-	CubeMap->cube[num]->ibuf->y,	\
+	CubeMap->cube[num]->x,	\
+	CubeMap->cube[num]->y,	\
 	0, GL_RGBA, GL_UNSIGNED_BYTE,	\
-	CubeMap->cube[num]->ibuf->rect)
+	CubeMap->cube[num]->rect)
 
 	SetCubeMapFace(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, 5);
 	SetCubeMapFace(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, 3);
@@ -625,38 +619,34 @@ extern "C" {
 void my_envmap_split_ima(EnvMap *env)
 {
 	ImBuf *ibuf;
-	Image *ima;
 	int dx, part;
 	
 	my_free_envmapdata(env);	
 	
-	dx= env->ima->ibuf->y;
+	dx= ibuf->y;
 	dx/= 2;
-	if(3*dx != env->ima->ibuf->x) {
+	if(3*dx != ibuf->x) {
 		printf("Incorrect envmap size\n");
 		env->ok= 0;
 		env->ima->ok= 0;
 	}
 	else {
 		for(part=0; part<6; part++) {
-			ibuf= IMB_allocImBuf(dx, dx, 24, IB_rect, 0);
-			ima= (Image*)MEM_callocN(sizeof(Image), "image");
-			ima->ibuf= ibuf;
-			ima->ok= 1;
-			env->cube[part]= ima;
+			env->cube[part]= ibuf= IMB_allocImBuf(dx, dx, 24, IB_rect, 0);
 		}
-		IMB_rectcpy(env->cube[0]->ibuf, env->ima->ibuf, 
-			0, 0, 0, 0, dx, dx);
-		IMB_rectcpy(env->cube[1]->ibuf, env->ima->ibuf, 
-			0, 0, dx, 0, dx, dx);
-		IMB_rectcpy(env->cube[2]->ibuf, env->ima->ibuf, 
-			0, 0, 2*dx, 0, dx, dx);
-		IMB_rectcpy(env->cube[3]->ibuf, env->ima->ibuf, 
-			0, 0, 0, dx, dx, dx);
-		IMB_rectcpy(env->cube[4]->ibuf, env->ima->ibuf, 
-			0, 0, dx, dx, dx, dx);
-		IMB_rectcpy(env->cube[5]->ibuf, env->ima->ibuf, 
-			0, 0, 2*dx, dx, dx, dx);
+		IMB_rectcpy(env->cube[0], ibuf, 
+					0, 0, 0, 0, dx, dx);
+		IMB_rectcpy(env->cube[1], ibuf, 
+					0, 0, dx, 0, dx, dx);
+		IMB_rectcpy(env->cube[2], ibuf, 
+					0, 0, 2*dx, 0, dx, dx);
+		IMB_rectcpy(env->cube[3], ibuf, 
+					0, 0, 0, dx, dx, dx);
+		IMB_rectcpy(env->cube[4], ibuf, 
+					0, 0, dx, dx, dx, dx);
+		IMB_rectcpy(env->cube[5], ibuf, 
+					0, 0, 2*dx, dx, dx, dx);
+		
 		env->ok= 2;
 	}
 }
@@ -664,19 +654,13 @@ void my_envmap_split_ima(EnvMap *env)
 
 void my_free_envmapdata(EnvMap *env)
 {
-	Image *ima;
-	unsigned int a, part;
+	unsigned int part;
 	
 	for(part=0; part<6; part++) {
-		ima= env->cube[part];
-		if(ima) {
-			if(ima->ibuf) IMB_freeImBuf(ima->ibuf);
-
-			for(a=0; a<BLI_ARRAY_NELEMS(ima->mipmap); a++) {
-				if(ima->mipmap[a]) IMB_freeImBuf(ima->mipmap[a]);
-			}
-			MEM_freeN(ima);
-			env->cube[part]= 0;
+		ImBuf *ibuf= env->cube[part];
+		if(ibuf) {
+			IMB_freeImBuf(ibuf);
+			env->cube[part]= NULL;
 		}
 	}
 	env->ok= 0;

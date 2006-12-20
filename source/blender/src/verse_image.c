@@ -32,6 +32,7 @@
 #include "mydevice.h"
 
 #include "BKE_verse.h"
+#include "BKE_image.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -60,6 +61,7 @@ void unsubscribe_from_bitmap_node(VNode *vnode)
  */
 void push_image_to_verse_server(VerseSession *session, Image *image)
 {
+	ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
 	struct VNode *vnode;
 
 	if(!session) return;
@@ -77,9 +79,9 @@ void push_image_to_verse_server(VerseSession *session, Image *image)
 	strcat(vnode->name, image->id.name+2);
 
 	/* set up dimension of image */
-	if(image->ibuf) {
-		((VBitmapData*)vnode->data)->width = image->ibuf->x;
-		((VBitmapData*)vnode->data)->height = image->ibuf->y;
+	if(ibuf) {
+		((VBitmapData*)vnode->data)->width = ibuf->x;
+		((VBitmapData*)vnode->data)->height = ibuf->y;
 	}
 	else {
 		((VBitmapData*)vnode->data)->width = 0;
@@ -101,13 +103,12 @@ void push_image_to_verse_server(VerseSession *session, Image *image)
 void sync_blender_image_channel_with_verse_layer(VNode *vnode, VBitmapLayer *vblayer)
 {
 	struct Image *image = (Image*)((VBitmapData*)(vnode->data))->image;
-	struct ImBuf *ibuf;
+	struct ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
 	unsigned char *rect;
 	int x, y, height, t_width, i, channel=0;
 
 	if(!image) return;
 
-	ibuf = image->ibuf;
 	if(!ibuf) return;
 
 	rect = (unsigned char*)ibuf->rect;
@@ -172,11 +173,10 @@ void sync_blender_image_with_verse_bitmap_node(VNode *vnode)
 void post_bitmap_dimension_set(VNode *vnode)
 {
 	struct Image *image = (Image*)((VBitmapData*)(vnode->data))->image;
-	struct ImBuf *ibuf;
+	struct ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
 
 	if(!image) return;
 
-	ibuf = image->ibuf;
 	if(!ibuf) return;
 
 	if(vnode->owner_id == VN_OWNER_MINE) {
@@ -200,9 +200,9 @@ void post_bitmap_dimension_set(VNode *vnode)
 		new_ibuf= IMB_allocImBuf(((VBitmapData*)vnode->data)->width,
 				((VBitmapData*)vnode->data)->height, 24, IB_rect, 0);
 		/* free old ibuf */
-		IMB_freeImBuf(ibuf);
+		BKE_image_signal(image, NULL, IMA_SIGNAL_FREE);
 		/* set up pointer at new ibuf */
-		image->ibuf = new_ibuf;
+		BKE_image_assign_ibuf(image, ibuf);
 		
 		/* sync blender image with all verse layers */
 		vblayer = ((VBitmapData*)(vnode->data))->layers.lb.first;
@@ -222,7 +222,7 @@ void post_bitmap_layer_create(VBitmapLayer *vblayer)
 {
 	struct VNode *vnode = vblayer->vnode;
 	struct Image *image = (Image*)((VBitmapData*)(vnode->data))->image;
-	struct ImBuf *ibuf;
+	struct ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
 	unsigned char *rect;
 	short channel;
 /*	VNBTile tile[VN_B_TILE_SIZE*VN_B_TILE_SIZE];
@@ -234,7 +234,6 @@ void post_bitmap_layer_create(VBitmapLayer *vblayer)
 	
 	if(!image) return;
 
-	ibuf = image->ibuf;
 	if(!ibuf) return;
 
 	rect = (unsigned char*)ibuf->rect;
@@ -269,13 +268,12 @@ void post_bitmap_tile_set(VBitmapLayer *vblayer, unsigned int xs, unsigned int y
 {
 	struct VNode *vnode = vblayer->vnode;
 	struct Image *image = (Image*)((VBitmapData*)(vnode->data))->image;
-	struct ImBuf *ibuf;
+	struct ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
 	unsigned char *rect, *i_rect;
 	unsigned int x, y, t_width, t_height, height, m_ys, m_y, d, i, j, channel=0;
 
 	if(!image) return;
 
-	ibuf = image->ibuf;
 	if(!ibuf) return;
 
 	/* select channel due to verse layer name */

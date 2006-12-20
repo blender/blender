@@ -831,7 +831,7 @@ void rename_constraint(Object *ob, bConstraint *con, char *oldname)
 	bConstraintChannel *conchan;
 	ListBase *conlist= NULL;
 	int from_object= 0;
-	char *channame;
+	char *channame="";
 	
 	/* get context by searching for con (primitive...) */
 	for(tcon= ob->constraints.first; tcon; tcon= tcon->next)
