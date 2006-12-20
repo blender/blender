@@ -537,7 +537,8 @@ class MFace:
       Getting this attribute throw an exception if the mesh does not have 
       UV faces; use L{Mesh.faceUV} to test.  
       Assigning an image will automatically set the TEX attribute of the
-      L{mode} bitfield.
+      L{mode} bitfield.  Use "del f.image" or "f.image = None" to clear the
+      image assigned to the face.
   @type image: Image
   @ivar mode: The texture mode bitfield (see L{FaceModes}).
       Will throw an exception if the mesh does not have UV faces; use

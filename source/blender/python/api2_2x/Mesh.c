@@ -3729,6 +3729,10 @@ static int MFace_setImage( BPy_MFace *self, PyObject *value )
 	if( !MFace_get_pointer( self ) )
 		return -1;
 
+	if( value && value != Py_None && !BPy_Image_Check( value ) )
+	    return EXPP_ReturnIntError( PyExc_TypeError,
+		    "expected image object or None" );
+
 	if( !self->mesh->mtface )
 #if 0
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -3738,17 +3742,19 @@ static int MFace_setImage( BPy_MFace *self, PyObject *value )
 #endif
 
 	face = &self->mesh->mtface[self->index];
-    if( value == Py_None )
-        face->tpage = NULL;		/* should memory be freed? */
-    else {
-        if( !BPy_Image_Check( value ) )
-            return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected image object" );
-        face->tpage = ( ( BPy_Image * ) value )->image;
-		face->mode |= TF_TEX;
-    }
 
-    return 0;
+	if( face->tpage )
+		face->tpage->id.us--;
+
+	if( value == NULL || value == Py_None )
+        	face->tpage = NULL;		/* should memory be freed? */
+	else {
+		face->tpage = ( ( BPy_Image * ) value )->image;
+		face->tpage->id.us++;
+		face->mode |= TF_TEX;
+	}
+
+	return 0;
 }
 
 #define MFACE_FLAG_BITMASK ( TF_SELECT | TF_ACTIVE | TF_SEL1 | \
