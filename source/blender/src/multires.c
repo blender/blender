@@ -1240,7 +1240,8 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		multires_edge_level_update(ob,me);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
-		set_sculpt_object(ob);
+		if(G.f & G_SCULPTMODE)
+			set_sculpt_object(ob);
 	}
 
 	countall();

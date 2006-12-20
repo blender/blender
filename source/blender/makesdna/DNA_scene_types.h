@@ -391,6 +391,7 @@ typedef struct BrushData
 struct PropsetData;
 struct RenderInfo;
 struct SculptUndo;
+struct IndexNode;
 
 /* DNA WARNING: use of doubles forces SculptData internal alignment to 8 (only in gcc?) */
 typedef struct SculptData
@@ -410,13 +411,14 @@ typedef struct SculptData
 	   the list for each vert contains the index
 	   for all the faces that use that vertex */
 	struct ListBase *vertex_users;
+	struct IndexNode *vertex_users_mem;
 
 	/* Used to cache the render of the active texture */
 	struct RenderInfo *texrndr;
 
 	struct PropsetData *propset;
 
-	struct SculptUndo *undo, *padp;	/* pointer pad! */
+	struct SculptUndo *undo;
 
 	/* For rotating around a pivot point */
 	vec3f pivot, padv;				/* vec3f is 12 bytes */

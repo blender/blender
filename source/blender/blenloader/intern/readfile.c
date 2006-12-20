@@ -3105,6 +3105,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	/* SculptData */
 	sce->sculptdata.active_ob= NULL;
 	sce->sculptdata.vertex_users= NULL;
+	sce->sculptdata.vertex_users_mem= NULL;
 	sce->sculptdata.texrndr= NULL;
 	sce->sculptdata.propset= 0;
 	sce->sculptdata.undo= NULL;

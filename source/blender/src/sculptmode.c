@@ -189,12 +189,10 @@ void sculptmode_free_vertexusers(struct Scene *sce)
 
 	sd= &sce->sculptdata;
 	if(sd->vertex_users){
-		int i;
-		for(i=0; i<sd->vertex_users_size; ++i){
-			BLI_freelistN(&sd->vertex_users[i]);
-		}
 		MEM_freeN(sd->vertex_users);
+		MEM_freeN(sd->vertex_users_mem);
 		sd->vertex_users= NULL;
+		sd->vertex_users_mem= NULL;
 		sd->vertex_users_size= 0;
 	}
 }
@@ -546,26 +544,23 @@ void sculptmode_free_all(Scene *sce)
 void calc_vertex_users()
 {
 	int i,j;
-	IndexNode *node= 0;
-	Mesh *me= get_mesh(G.scene->sculptdata.active_ob);
+	IndexNode *node= NULL;
+	SculptData *sd= &G.scene->sculptdata;
+	Mesh *me= get_mesh(sd->active_ob);
 
 	sculptmode_free_vertexusers(G.scene);
-
+	
 	/* Allocate an array of ListBases, one per vertex */
-	G.scene->sculptdata.vertex_users= (ListBase*)MEM_mallocN(sizeof(ListBase) * me->totvert, "vertex_users");
-	G.scene->sculptdata.vertex_users_size= me->totvert;
-
-	/* Initialize */
-	for(i=0; i<me->totvert; ++i){
-		G.scene->sculptdata.vertex_users[i].first=G.scene->sculptdata.vertex_users[i].last= 0;
-	}
+	sd->vertex_users= (ListBase*)MEM_callocN(sizeof(ListBase) * me->totvert, "vertex_users");
+	sd->vertex_users_size= me->totvert;
+	sd->vertex_users_mem= MEM_mallocN(sizeof(IndexNode)*me->totvert*4, "vertex_users_mem");
+	node= sd->vertex_users_mem;
 
 	/* Find the users */
 	for(i=0; i<me->totface; ++i){
-		for(j=0; j<(me->mface[i].v4?4:3); ++j){
-			node= (IndexNode*)MEM_mallocN(sizeof(IndexNode), "faceindex");
+		for(j=0; j<(me->mface[i].v4?4:3); ++j, ++node) {
 			node->Index=i;
-			BLI_addtail(&G.scene->sculptdata.vertex_users[((unsigned int*)(&me->mface[i]))[j]], node);
+			BLI_addtail(&sd->vertex_users[((unsigned int*)(&me->mface[i]))[j]], node);
 		}
 	}
 }
