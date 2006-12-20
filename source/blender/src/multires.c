@@ -175,7 +175,7 @@ typedef struct MultiApplyData {
 
 	/* Smooth edges */
 	char boundary;
-	float *edge_face_neighbor_midpoints_accum;
+	float edge_face_neighbor_midpoints_accum[3];
 	unsigned edge_face_neighbor_midpoints_total;
 	float *endpoint1, *endpoint2;
 
@@ -183,9 +183,9 @@ typedef struct MultiApplyData {
 	/* uses 'char boundary' */
 	float *original;
 	int edge_count;
-	float *vert_face_neighbor_midpoints_average;
-	float *vert_edge_neighbor_midpoints_average;
-	float *boundary_edges_average;
+	float vert_face_neighbor_midpoints_average[3];
+	float vert_edge_neighbor_midpoints_average[3];
+	float boundary_edges_average[3];
 } MultiApplyData;
 
 /* CATMULL-CLARK
@@ -246,7 +246,7 @@ void edge_face_neighbor_midpoints_accum(MultiApplyData *data, MultiresLevel *lvl
 	ListBase *neighbors2= &lvl->vert_face_map[e->v[1]];
 	MultiresMapNode *n1, *n2;
 	unsigned j,count= 0;
-	float *out= MEM_callocN(sizeof(float)*3, "edge_face_neighbor_midpoints_average");
+	float *out= data->edge_face_neighbor_midpoints_accum;
 	
 	out[0]=out[1]=out[2]= 0;
 
@@ -260,7 +260,6 @@ void edge_face_neighbor_midpoints_accum(MultiApplyData *data, MultiresLevel *lvl
 		}
 	}
 
-	data->edge_face_neighbor_midpoints_accum= out;
 	data->edge_face_neighbor_midpoints_total= count;
 }
 void vert_face_neighbor_midpoints_average(MultiApplyData *data, MultiresLevel *lvl,
@@ -269,7 +268,7 @@ void vert_face_neighbor_midpoints_average(MultiApplyData *data, MultiresLevel *l
 	ListBase *neighbors= &lvl->vert_face_map[i];
 	MultiresMapNode *n1;
 	unsigned j,count= 0;
-	float *out= MEM_callocN(sizeof(float)*3, "vert_face_neighbor_midpoints_average");
+	float *out= data->vert_face_neighbor_midpoints_average;
 
 	out[0]=out[1]=out[2]= 0;
 
@@ -279,7 +278,6 @@ void vert_face_neighbor_midpoints_average(MultiApplyData *data, MultiresLevel *l
 		++count;
 	}
 	for(j=0; j<3; ++j) out[j]/= count;
-	data->vert_face_neighbor_midpoints_average= out;
 }
 void vert_edge_neighbor_midpoints_average(MultiApplyData *data, MultiresLevel *lvl,
 					  void *array, const char stride, const unsigned i)
@@ -287,7 +285,7 @@ void vert_edge_neighbor_midpoints_average(MultiApplyData *data, MultiresLevel *l
 	ListBase *neighbors= &lvl->vert_edge_map[i];
 	MultiresMapNode *n1;
 	unsigned j,count= 0;
-	float *out= MEM_callocN(sizeof(float)*3, "vert_edge_neighbor_midpoints_average");
+	float *out= data->vert_edge_neighbor_midpoints_average;
 
 	out[0]=out[1]=out[2]= 0;
 
@@ -298,7 +296,6 @@ void vert_edge_neighbor_midpoints_average(MultiApplyData *data, MultiresLevel *l
 		++count;
 	}
 	for(j=0; j<3; ++j) out[j]/= count;
-	data->vert_edge_neighbor_midpoints_average= out;
 }
 void boundary_edges_average(MultiApplyData *data, MultiresLevel *lvl,
 			    void *array, const char stride, const unsigned i)
@@ -306,7 +303,7 @@ void boundary_edges_average(MultiApplyData *data, MultiresLevel *lvl,
 	ListBase *neighbors= &lvl->vert_edge_map[i];
 	MultiresMapNode *n1;
 	unsigned j,count= 0;
-	float *out= MEM_callocN(sizeof(float)*3, "edge_boundary_average");
+	float *out= data->boundary_edges_average;
 
 	out[0]=out[1]=out[2]= 0;
 	
@@ -321,7 +318,6 @@ void boundary_edges_average(MultiApplyData *data, MultiresLevel *lvl,
 		}
 	}
 	for(j=0; j<3; ++j) out[j]/= count;
-	data->boundary_edges_average= out;
 }
 
 /* For manipulating MultiresTexColFace */
@@ -959,7 +955,6 @@ void multires_add_level(void *ob, void *me_v)
 		data.endpoint1= lvl->prev->verts[e->v[0]].co;
 		data.endpoint2= lvl->prev->verts[e->v[1]].co;
 		multi_apply(lvl->verts[e->mid].co, &data, 3, catmullclark_smooth_edge);
-		MEM_freeN(data.edge_face_neighbor_midpoints_accum);
 	}
 	
 	for(i=0; i<lvl->prev->totvert; ++i) {
@@ -973,12 +968,6 @@ void multires_add_level(void *ob, void *me_v)
 			vert_edge_neighbor_midpoints_average(&data,lvl->prev,lvl->prev->verts,sizeof(MVert),i);
 		}
 		multi_apply(lvl->verts[i].co, &data, 3, catmullclark_smooth_vert);
-		if(data.boundary)
-			MEM_freeN(data.boundary_edges_average);
-		else {
-			MEM_freeN(data.vert_face_neighbor_midpoints_average);
-			MEM_freeN(data.vert_edge_neighbor_midpoints_average);
-		}
 	}
 
 	/* Vertex Colors
@@ -1463,7 +1452,6 @@ void multires_update_levels(Mesh *me)
 			data.endpoint1= &pr_deltas[e->v[0]].x;
 			data.endpoint2= &pr_deltas[e->v[1]].x;
 			multi_apply(&cr_deltas[e->mid].x, &data, 3, catmullclark_smooth_edge);
-			MEM_freeN(data.edge_face_neighbor_midpoints_accum);
 			
 			cr_lvl->verts[e->mid].flag= 0;
 			for(j=0; j<2; ++j) {
@@ -1491,12 +1479,6 @@ void multires_update_levels(Mesh *me)
 				vert_edge_neighbor_midpoints_average(&data,pr_lvl,pr_deltas,sizeof(vec3f),i);
 			}
 			multi_apply(&cr_deltas[i].x, &data, 3, catmullclark_smooth_vert);
-			if(data.boundary)
-				MEM_freeN(data.boundary_edges_average);
-			else {
-				MEM_freeN(data.vert_face_neighbor_midpoints_average);
-				MEM_freeN(data.vert_edge_neighbor_midpoints_average);
-			}
 			cr_lvl->verts[i].flag= 0;
 			if(pr_lvl->verts[i].flag & 1) cr_lvl->verts[i].flag |= 1;
 			if(pr_lvl->verts[i].flag & ME_HIDE) cr_lvl->verts[i].flag |= ME_HIDE;
