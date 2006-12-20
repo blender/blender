@@ -1439,6 +1439,7 @@ static void do_info_gamemenu(void *arg, int event)
 	case G_FILE_AUTOPLAY:
 	case G_FILE_GAME_TO_IPO:
 	case G_FILE_GAME_MAT:
+	case G_FILE_SHOW_PHYSICS:
 		G.fileflags ^= event;
 		break;
 	default:
@@ -1493,6 +1494,13 @@ static uiBlock *info_gamemenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Framerate and Profile",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_FRAMERATE, "");
 	}
 
+
+	if(G.fileflags & G_FILE_SHOW_PHYSICS) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Physics Visualization",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_PHYSICS, "");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Physics Visualization",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_PHYSICS, "");
+	}
+	
 	if(G.fileflags & G_FILE_SHOW_DEBUG_PROPS) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Debug Properties",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_DEBUG_PROPS, "");
 	} else {

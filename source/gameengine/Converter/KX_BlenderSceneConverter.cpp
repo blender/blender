@@ -43,6 +43,7 @@
 #include "KX_KetsjiEngine.h"
 #include "KX_IPhysicsController.h"
 #include "BL_Material.h"
+#include "SYS_System.h"
 
 #include "DummyPhysicsEnvironment.h"
 
@@ -305,6 +306,11 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 				ccdPhysEnv->setDeactivationLinearTreshold(0.8f); // default, can be overridden by Python
 				ccdPhysEnv->setDeactivationAngularTreshold(1.0f); // default, can be overridden by Python
 
+				SYS_SystemHandle syshandle = SYS_GetSystem(); /*unused*/
+				int visualizePhysics = SYS_GetCommandLineInt(syshandle,"show_physics",0);
+				if (visualizePhysics)
+					ccdPhysEnv->setDebugMode(btIDebugDraw::DBG_DrawWireframe|btIDebugDraw::DBG_DrawAabb|btIDebugDraw::DBG_DrawContactPoints|btIDebugDraw::DBG_DrawText);
+		
 				//todo: get a button in blender ?
 				//disable / enable debug drawing (contact points, aabb's etc)	
 				//ccdPhysEnv->setDebugMode(1);

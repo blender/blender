@@ -381,6 +381,9 @@ void space_set_commmandline_options(void) {
 				  || (G.vd->drawtype == OB_SOLID)         );
 			SYS_WriteCommandLineInt(syshandle, "show_properties", a);
 		}
+		
+		a= (G.fileflags & G_FILE_SHOW_PHYSICS);
+		SYS_WriteCommandLineInt(syshandle, "show_physics", a);
 
 		a= (G.fileflags & G_FILE_ENABLE_ALL_FRAMES);
 		SYS_WriteCommandLineInt(syshandle, "fixedtime", a);
