@@ -1675,8 +1675,10 @@ static void save_image_doit(char *name)
 				ibuf->userflags &= ~IB_BITMAPDIRTY;
 				
 				/* change type? */
-				if( ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER))
+				if( ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
 					ima->source= IMA_SRC_FILE;
+					ima->type= IMA_TYPE_IMAGE;
+				}
 				if(ima->type==IMA_TYPE_R_RESULT)
 					ima->type= IMA_TYPE_IMAGE;
 				

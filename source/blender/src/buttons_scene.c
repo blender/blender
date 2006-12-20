@@ -1857,7 +1857,7 @@ static void render_panel_layers(void)
 	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_AO, B_SET_PASS,"AO",			160, 10, 30, 20, &srl->passflag, 0, 0, 0, 0, "Deliver AO pass");	
 	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_REFLECT, B_SET_PASS,"Refl",	190, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Reflection pass");	
 	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_REFRACT, B_SET_PASS,"Refr",	230, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Refraction pass");	
-	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_RADIO, B_SET_PASS,"Rad",		270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Raytraced Refraction pass");	
+	uiDefButBitI(block, BUT_TOGDUAL, SCE_PASS_RADIO, B_SET_PASS,"Rad",		270, 10, 40, 20, &srl->passflag, 0, 0, 0, 0, "Deliver Radiosity pass");	
 }	
 
 void render_panels()
