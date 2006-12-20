@@ -1103,6 +1103,15 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		else
 			me->mvert[i]= lvl->verts[i];
 	}
+	for(i=0; i<lvl->totedge; ++i) {
+		if(em) {
+			addedgelist(eves[lvl->edges[i].v[0]], eves[lvl->edges[i].v[1]], NULL);
+		} else {
+			me->medge[i].v1= lvl->edges[i].v[0];
+			me->medge[i].v2= lvl->edges[i].v[1];
+			me->medge[i].flag &= ~ME_HIDE;
+		}
+	}
 	for(i=0; i<lvl->totface; ++i) {
 		if(em) {
 			EditVert *eve4= lvl->faces[i].v[3] ? eves[lvl->faces[i].v[3]] : NULL;
@@ -1119,14 +1128,6 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 			me->mface[i].flag= lvl->faces[i].flag;
 			me->mface[i].flag &= ~ME_HIDE;
 			me->mface[i].mat_nr= lvl->faces[i].mat_nr;
-		}
-	}
-	for(i=0; i<lvl->totedge; ++i) {
-		if(em) {
-		} else {
-			me->medge[i].v1= lvl->edges[i].v[0];
-			me->medge[i].v2= lvl->edges[i].v[1];
-			me->medge[i].flag &= ~ME_HIDE;
 		}
 	}
 
@@ -1611,23 +1612,25 @@ void multires_calc_level_maps(MultiresLevel *lvl)
 
 void multires_edge_level_update(void *ob, void *me_v)
 {
-	Mesh *me= me_v;
-	MultiresLevel *cr_lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
-	MultiresLevel *edge_lvl= BLI_findlink(&me->mr->levels,me->mr->edgelvl-1);
-	const int threshold= edge_lvl->totedge * powf(2, me->mr->current - me->mr->edgelvl);
-	unsigned i;
+	if(!G.obedit) {
+		Mesh *me= me_v;
+		MultiresLevel *cr_lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
+		MultiresLevel *edge_lvl= BLI_findlink(&me->mr->levels,me->mr->edgelvl-1);
+		const int threshold= edge_lvl->totedge * powf(2, me->mr->current - me->mr->edgelvl);
+		unsigned i;
 
-	for(i=0; i<cr_lvl->totedge; ++i) {
-		const int ndx= me->pv ? me->pv->edge_map[i] : i;
-		if(ndx != -1) { /* -1= hidden edge */
-			if(me->mr->edgelvl >= me->mr->current || i<threshold)
-				me->medge[ndx].flag= ME_EDGEDRAW;
-			else
-				me->medge[ndx].flag= 0;
+		for(i=0; i<cr_lvl->totedge; ++i) {
+			const int ndx= me->pv ? me->pv->edge_map[i] : i;
+			if(ndx != -1) { /* -1= hidden edge */
+				if(me->mr->edgelvl >= me->mr->current || i<threshold)
+					me->medge[ndx].flag= ME_EDGEDRAW;
+				else
+					me->medge[ndx].flag= 0;
+			}
 		}
-	}
 
-	allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWVIEW3D, 0);
+	}
 }
 
 int multires_modifier_warning()
