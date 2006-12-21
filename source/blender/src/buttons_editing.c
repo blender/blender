@@ -1106,6 +1106,8 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 	}
 
 	if (ob->type==OB_MESH) {
+		sculptmode_pmv_off(me);
+	
 		dm = mesh_create_derived_for_modifier(ob, md);
 		if (!dm) {
 			error("Modifier is disabled or returned error, skipping apply");
