@@ -3759,6 +3759,8 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 				// sampled, simple rejection sampling here, good enough
 				unsigned int maxsam, s, ui = BLI_rand()*BLI_rand();
 				float cpr = BLI_frand();
+				float wcor;
+				
 				if (nqd->no_zbuf)
 					maxsam = nqd->samples;	// no zbuffer input, use sample value directly
 				else {
@@ -3766,7 +3768,9 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 					maxsam = (int)(0.5f + nqd->samples*(1.f-(float)exp(-fabs(zbuf->rect[cp] - cam_fdist))));
 					if (maxsam < 16) maxsam = 16;
 				}
-				float wcor = 1.f/(float)maxsam;
+				
+				wcor = 1.f/(float)maxsam;
+				
 				for (s=0; s<maxsam; ++s) {
 					u = ct_crad*(2.f*RI_vdC(s, ui) - 1.f);
 					v = ct_crad*(2.f*(s + cpr)/(float)maxsam - 1.f);
