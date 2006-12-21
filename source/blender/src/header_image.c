@@ -449,7 +449,11 @@ static void do_image_viewmenu(void *arg, int event)
 	case 12: /* composite preview */
 		toggle_blockhandler(curarea, IMAGE_HANDLER_PREVIEW, 0);
 		scrarea_queue_winredraw(curarea);
-
+		break;
+	case 13: /* Realtime Panel... */
+		add_blockhandler(curarea, IMAGE_HANDLER_GAME_PROPERTIES, UI_PNL_UNSTOW);
+		break;
+		
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -464,6 +468,7 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_image_viewmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Real-time Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 13, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Paint Tool...|C",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Curves Tool...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Composite Preview...|Shift P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 12, "");

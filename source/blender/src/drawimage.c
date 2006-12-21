@@ -910,7 +910,7 @@ static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPE
 	block= uiNewBlock(&curarea->uiblocks, "image_panel_game_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(IMAGE_HANDLER_GAME_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "Game Properties", "Image", 10, 10, 318, 204)==0)
+	if(uiNewPanel(curarea, block, "Real-time Properties", "Image", 10, 10, 318, 204)==0)
 		return;
 
 	if (ibuf) {
