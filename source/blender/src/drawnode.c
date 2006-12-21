@@ -996,6 +996,60 @@ static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node
 	return 38;
 }
 
+/* qdn: defocus node */
+static int node_composit_buts_defocus(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeDefocus *nqd = node->storage;
+		short dy = butr->ymin + 209;
+		short dx = butr->xmax - butr->xmin; 
+		char* mstr1 = "Bokeh Type%t|Octagon %x8|Heptagon %x7|Hexagon %x6|Pentagon %x5|Square %x4|Triangle %x3|Disk %x0";
+
+		uiDefBut(block, LABEL, B_NOP, "Bokeh Type", butr->xmin, dy, dx, 19, NULL, 0, 0, 0, 0, "");
+		uiDefButC(block, MENU, B_NODE_EXEC+node->nr, mstr1,
+		          butr->xmin, dy-19, dx, 19,
+		          &nqd->bktype, 0, 0, 0, 0, "Bokeh type");
+		if (nqd->bktype) { /* for some reason rotating a disk doesn't seem to work... ;) */
+			uiDefButC(block, NUM, B_NODE_EXEC+node->nr, "Rotate:",
+			          butr->xmin, dy-38, dx, 19,
+			          &nqd->rotation, 0, 90, 0, 0, "Bokeh shape rotation offset in degrees");
+		}
+		uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Gamma Correct",
+		          butr->xmin, dy-57, dx, 19,
+		          &nqd->gamco, 0, 0, 0, 0, "Enable gamma correction before and after main process");
+		if (nqd->no_zbuf==0) {
+			// only needed for zbuffer input
+			uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "fStop:",
+			          butr->xmin, dy-76, dx, 19,
+			          &nqd->fstop, 0.5, 128, 10, 0, "Amount of focal blur, 128=infinity=perfect focus, half the value doubles the blur radius");
+		}
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Maxblur:",
+		          butr->xmin, dy-95, dx, 19,
+		          &nqd->maxblur, 0, 10000, 1000, 0, "blur limit, maximum CoC radius, 0=no limit");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "BThreshold:",
+		          butr->xmin, dy-114, dx, 19,
+		          &nqd->bthresh, 0, 100, 100, 0, "CoC radius threshold, prevents background bleed on in-focus midground, 0=off");
+		uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Preview",
+		          butr->xmin, dy-142, dx, 19,
+		          &nqd->preview, 0, 0, 0, 0, "Enable sampling mode, useful for preview when using low samplecounts");
+		if (nqd->preview) {
+			/* only visible when sampling mode enabled */
+			uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Samples:",
+			          butr->xmin, dy-161, dx, 19,
+			          &nqd->samples, 16, 256, 0, 0, "Number of samples (16=grainy, higher=less noise)");
+		}
+		uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "No zbuffer",
+		          butr->xmin, dy-190, dx, 19,
+		          &nqd->no_zbuf, 0, 0, 0, 0, "Enable when using an image as input instead of actual zbuffer (auto enabled if node not image based, eg. time node)");
+		if (nqd->no_zbuf) {
+			uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Zscale:",
+		            butr->xmin, dy-209, dx, 19,
+		            &nqd->scale, 0, 1000, 100, 0, "Scales the Z input when not using a zbuffer, controls maximum blur designated by the color white or input value 1");
+		}
+	}
+	return 228;
+}
+
 static int node_composit_buts_vecblur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
@@ -1422,6 +1476,10 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_BLUR:
 			ntype->butfunc= node_composit_buts_blur;
+			break;
+		/*  qdn: defocus node */
+		case CMP_NODE_DEFOCUS:
+			ntype->butfunc = node_composit_buts_defocus;
 			break;
 		case CMP_NODE_VECBLUR:
 			ntype->butfunc= node_composit_buts_vecblur;

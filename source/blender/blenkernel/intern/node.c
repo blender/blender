@@ -804,6 +804,21 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 			node->storage= add_mapping();
 		else if(type==CMP_NODE_BLUR)
 			node->storage= MEM_callocN(sizeof(NodeBlurData), "node blur data");
+		else if(type==CMP_NODE_DEFOCUS) {
+			/* qdn: defocus node */
+			NodeDefocus *nbd = MEM_callocN(sizeof(NodeDefocus), "node defocus data");
+			nbd->bktype = 0;
+			nbd->rotation = 0.f;
+			nbd->preview = 1;
+			nbd->gamco = 0;
+			nbd->samples = 16;
+			nbd->fstop = 128.f;
+			nbd->maxblur = 0;
+			nbd->bthresh = 1.f;
+			nbd->scale = 1.f;
+			nbd->no_zbuf = 1;
+			node->storage = nbd;
+		}
 		else if(type==CMP_NODE_VECBLUR) {
 			NodeBlurData *nbd= MEM_callocN(sizeof(NodeBlurData), "node blur data");
 			node->storage= nbd;

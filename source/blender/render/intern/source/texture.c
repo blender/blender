@@ -1707,7 +1707,6 @@ void do_material_tex(ShadeInput *shi)
 						}
 						else {
 							float nor[3], dot;
-						
 							/* prevent bump to become negative normal */
 							nor[0]= Tnor*tex->norfac*texres.nor[0];
 							nor[1]= Tnor*tex->norfac*texres.nor[1];

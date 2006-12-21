@@ -2635,8 +2635,9 @@ void common_insertkey(void)
 				id= G.buts->lockpoin;
 				if(id) {
 					/* yafray: insert key extended with aperture and focal distance */
+					/* qdn: FocalDistance now enabled for Blender as wel, for use with defocus node */
 					if (G.scene->r.renderer==R_INTERN)
-						event= pupmenu("Insert Key %t|Lens%x0|Clipping%x1");
+						event= pupmenu("Insert Key %t|Lens%x0|Clipping%x1|FocalDistance%x3");
 					else
 						event= pupmenu("Insert Key %t|Lens%x0|Clipping%x1|Aperture%x2|FocalDistance%x3");
 					if(event== -1) return;

@@ -873,6 +873,7 @@ static void draw_limit_line(float sta, float end, unsigned int col)
 
 
 /* yafray: draw camera focus point (cross, similar to aqsis code in tuhopuu) */
+/* qdn: now also enabled for Blender to set focus point for defocus composit node */
 static void draw_focus_cross(float dist, float size)
 {
 	glBegin(GL_LINES);
@@ -976,8 +977,8 @@ static void drawcamera(Object *ob, int flag)
 
 			if(cam->flag & CAM_SHOWLIMITS) {
 				draw_limit_line(cam->clipsta, cam->clipend, 0x77FFFF);
-				/* yafray: dof focus point */
-				if (G.scene->r.renderer==R_YAFRAY) draw_focus_cross(cam->YF_dofdist, cam->drawsize);
+				/* qdn: was yafray only, now also enabled for Blender to be used with defocus composit node */
+				draw_focus_cross(cam->YF_dofdist, cam->drawsize);
 			}
 
 			wrld= G.scene->world;

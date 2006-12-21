@@ -459,6 +459,10 @@ int blenderqread(unsigned short event, short val)
 			BIF_save_rendered_image_fs();
 			return 0;
 		}
+		else if(G.qual==LR_SHIFTKEY) {
+			newspace(curarea, SPACE_NODE);
+			return 0;
+		}
 		else if(G.qual & LR_CTRLKEY) {
 			BIF_screendump(0);
 		}

@@ -164,6 +164,7 @@ int la_ar[LA_TOTIPO]= {
 };
 
 /* yafray: aperture & focal distance curves added */
+/* qdn: FDIST now available to Blender as well for defocus node */
 int cam_ar[CAM_TOTIPO]= {
 	CAM_LENS, CAM_STA, CAM_END, CAM_YF_APERT, CAM_YF_FDIST
 };

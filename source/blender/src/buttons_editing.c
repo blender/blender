@@ -2770,36 +2770,40 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 
 	uiDefBut(block, LABEL, 10, "Lens:", 10, 180, 150, 20, 0, 0.0, 0.0, 0, 0, "");
 	
-if(cam->type==CAM_ORTHO) {
+	if(cam->type==CAM_ORTHO) {
 		uiDefButF(block, NUM,REDRAWVIEW3D, "Scale:",
 				  10, 160, 150, 20, &cam->ortho_scale, 0.01, 1000.0, 50, 0, "Specify the ortho scaling of the used camera");
 	} else {
 		uiDefButF(block, NUM,REDRAWVIEW3D, "Lens:",
 				  10, 160, 150, 20, &cam->lens, 1.0, 250.0, 100, 0, "Specify the lens of the camera");
 	}
-	
+
+/* qdn: focal dist. param. from yafray now enabled for Blender as well, to use with defocus composit node */
+	uiDefButF(block, NUM, REDRAWVIEW3D, "DoFDist:", 10, 140, 150, 20 /*0, 125, 150, 20*/, &cam->YF_dofdist, 0.0, 5000.0, 50, 0, "Sets distance to point of focus (enable 'Limits' to make visible in 3Dview)");
+
 	uiDefButS(block, TOG, REDRAWVIEW3D, "Orthographic",
-			  10, 135, 150, 20, &cam->type, 0, 0, 0, 0, "Render orthogonally");
+			  10, 115, 150, 20, &cam->type, 0, 0, 0, 0, "Render orthogonally");
+			  //10, 135, 150, 20, &cam->type, 0, 0, 0, 0, "Render orthogonally");
 	
-	uiDefBut(block, LABEL, 0, "Clipping:", 10, 110, 150, 20, 0, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Clipping:", 10, 90, 150, 20, 0, 0.0, 0.0, 0, 0, "");
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,REDRAWVIEW3D, "Start:",
-			  10, 90, 150, 20, &cam->clipsta, 0.001*grid, 100.0*grid, 10, 0, "Specify the startvalue of the the field of view");
+			  10, 70, 150, 20, &cam->clipsta, 0.001*grid, 100.0*grid, 10, 0, "Specify the startvalue of the the field of view");
 	uiDefButF(block, NUM,REDRAWVIEW3D, "End:",
-			  10, 70, 150, 20, &cam->clipend, 1.0, 5000.0*grid, 100, 0, "Specify the endvalue of the the field of view");
+			  10, 50, 150, 20, &cam->clipend, 1.0, 5000.0*grid, 100, 0, "Specify the endvalue of the the field of view");
 	uiBlockEndAlign(block);
 			
 	uiDefButF(block, NUM,REDRAWVIEW3D, "Size:",
 			  170, 25, 150, 20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "The size that the camera is displayed in the 3D View (different to the object's scale)");
 
-	uiDefBut(block, LABEL, 0, "Shift:", 10, 45, 150, 20, 0, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Shift:", 10, 25, 150, 20, 0, 0.0, 0.0, 0, 0, "");
 				  
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,REDRAWVIEW3D, "X:",
-		10, 25, 75, 20, &cam->shiftx, -2.0, 2.0, 1, 2, "Horizontally shifts the camera view, without changing the perspective");
+		10, 5, 75, 20, &cam->shiftx, -2.0, 2.0, 1, 2, "Horizontally shifts the camera view, without changing the perspective");
 	uiDefButF(block, NUM,REDRAWVIEW3D, "Y:",
-		85, 25, 75, 20, &cam->shifty, -2.0, 2.0, 1, 2, "Vertically shifts the camera view, without changing the perspective");
+		85, 5, 75, 20, &cam->shifty, -2.0, 2.0, 1, 2, "Vertically shifts the camera view, without changing the perspective");
 	uiBlockEndAlign(block);
 	
 	uiDefBut(block, LABEL, 0, "Show:", 170, 180, 150, 20, 0, 0.0, 0.0, 0, 0, "");
