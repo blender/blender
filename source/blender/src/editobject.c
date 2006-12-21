@@ -2092,6 +2092,7 @@ void movetolayer(void)
 	BIF_undo_push("Move to layer");
 }
 
+/* THIS IS BAD CODE! do not bring back before it has a real implementation (ton) */
 void split_font()
 {
 	Object *ob = OBACT;
@@ -2267,12 +2268,14 @@ void special_editmenu(void)
 				allqueue(REDRAWVIEW3D, 0);
 			}
 			else if (ob->type == OB_FONT) {
-				nr= pupmenu("Split %t|Characters%x1");
+				/* removed until this gets a decent implementation (ton) */
+/*				nr= pupmenu("Split %t|Characters%x1");
 				if (nr > 0) {
 					switch(nr) {
 						case 1: split_font();
 					}
 				}
+*/
 			}			
 		}
 	}

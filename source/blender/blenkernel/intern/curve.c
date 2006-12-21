@@ -262,7 +262,7 @@ void tex_space_curve(Curve *cu)
 	float *data, min[3], max[3], loc[3], size[3];
 	int tot, doit= 0;
 	
-	if(cu->bb==0) cu->bb= MEM_callocN(sizeof(BoundBox), "boundbox");
+	if(cu->bb==NULL) cu->bb= MEM_callocN(sizeof(BoundBox), "boundbox");
 	bb= cu->bb;
 	
 	INIT_MINMAX(min, max);
