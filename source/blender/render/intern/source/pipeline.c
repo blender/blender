@@ -694,7 +694,7 @@ static char *make_pass_name(RenderPass *rpass, int chan)
 
 /* filename already made absolute */
 /* called from within UI, saves both rendered result as a file-read result */
-void RE_WriteRenderResult(RenderResult *rr, char *filename)
+void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress)
 {
 	RenderLayer *rl;
 	RenderPass *rpass;
@@ -733,7 +733,7 @@ void RE_WriteRenderResult(RenderResult *rr, char *filename)
 		}
 	}
 	
-	IMB_exr_begin_write(exrhandle, filename, rr->rectx, rr->recty);
+	IMB_exr_begin_write(exrhandle, filename, rr->rectx, rr->recty, compress);
 	
 	IMB_exr_write_channels(exrhandle);
 	IMB_exr_close(exrhandle);
@@ -2175,7 +2175,7 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 		
 		if(re->r.imtype==R_MULTILAYER) {
 			if(re->result) {
-				RE_WriteRenderResult(re->result, name);
+				RE_WriteRenderResult(re->result, name, scene->r.quality);
 				printf("Saved: %s", name);
 			}
 		}

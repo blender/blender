@@ -173,7 +173,7 @@ static void openexr_header_compression(Header *header, int compression)
 			header->compression() = RLE_COMPRESSION;
 			break;
 		default:
-			header->compression() = NO_COMPRESSION;
+			header->compression() = ZIP_COMPRESSION;
 			break; 
 	}
 }
@@ -430,7 +430,7 @@ void IMB_exr_add_channel(void *handle, const char *layname, const char *passname
 	BLI_addtail(&data->channels, echan);
 }
 
-void IMB_exr_begin_write(void *handle, char *filename, int width, int height)
+void IMB_exr_begin_write(void *handle, char *filename, int width, int height, int compress)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	Header header (width, height);
@@ -442,7 +442,7 @@ void IMB_exr_begin_write(void *handle, char *filename, int width, int height)
 	for(echan= (ExrChannel *)data->channels.first; echan; echan= echan->next)
 		header.channels().insert (echan->name, Channel (FLOAT));
 	
-	header.compression() = RLE_COMPRESSION;
+	openexr_header_compression(&header, compress);
 	
 	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.43"));
 	

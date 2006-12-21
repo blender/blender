@@ -1540,15 +1540,16 @@ static void render_panel_format(void)
 		}
 #ifdef WITH_OPENEXR
 	} 
-	else if (G.scene->r.imtype == R_OPENEXR ) {
-		if (G.scene->r.quality > 5) G.scene->r.quality = 0;
+	else if (ELEM(G.scene->r.imtype, R_OPENEXR, R_MULTILAYER)) {
+		if (G.scene->r.quality > 5) G.scene->r.quality = 2;
 		
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, R_OPENEXR_HALF, B_NOP,"Half",	892,yofs+44,60,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Use 16 bits float 'Half' type");
-		uiDefButBitS(block, TOG, R_OPENEXR_ZBUF, B_NOP,"Zbuf",	952,yofs+44,60,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Save the zbuffer as 32 bits unsigned int");
-		uiBlockEndAlign(block);
-		uiDefButBitS(block, TOG, R_PREVIEW_JPG, B_NOP,"Preview",1027,yofs+44,90,20, &G.scene->r.subimtype, 0, 0, 0, 0, "When animation render, save JPG preview images in same directory");
-		
+		if(G.scene->r.imtype==R_OPENEXR) {
+			uiBlockBeginAlign(block);
+			uiDefButBitS(block, TOG, R_OPENEXR_HALF, B_NOP,"Half",	892,yofs+44,60,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Use 16 bits float 'Half' type");
+			uiDefButBitS(block, TOG, R_OPENEXR_ZBUF, B_NOP,"Zbuf",	952,yofs+44,60,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Save the zbuffer as 32 bits unsigned int");
+			uiBlockEndAlign(block);
+			uiDefButBitS(block, TOG, R_PREVIEW_JPG, B_NOP,"Preview",1027,yofs+44,90,20, &G.scene->r.subimtype, 0, 0, 0, 0, "When animation render, save JPG preview images in same directory");
+		}		
 		uiDefButS(block, MENU,B_NOP, "Codec %t|None %x0|Pxr24 (lossy) %x1|ZIP (lossless) %x2|PIZ (lossless) %x3|RLE (lossless) %x4",  
 															892,yofs,112,20, &G.scene->r.quality, 0, 0, 0, 0, "Set codec settings for OpenEXR");
 		

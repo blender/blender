@@ -113,7 +113,7 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 		if(G.scene->r.imtype==R_MULTILAYER) {
 			RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name));
 			if(rr) 
-				RE_WriteRenderResult(rr, str);
+				RE_WriteRenderResult(rr, str, G.scene->r.quality);
 		}
 		else {
 			RenderResult rres;

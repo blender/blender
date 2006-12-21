@@ -1656,7 +1656,7 @@ static void save_image_doit(char *name)
 			if(G.sima->imtypenr==R_MULTILAYER) {
 				RenderResult *rr= BKE_image_get_renderresult(ima);
 				if(rr) {
-					RE_WriteRenderResult(rr, str);
+					RE_WriteRenderResult(rr, str, G.scene->r.quality);
 					
 					BLI_strncpy(ima->name, name, sizeof(ima->name));
 					BLI_strncpy(ibuf->name, str, sizeof(ibuf->name));

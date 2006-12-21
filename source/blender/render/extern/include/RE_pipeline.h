@@ -180,7 +180,7 @@ void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame);
 void RE_BlenderAnim(struct Render *re, struct Scene *scene, int sfra, int efra);
 
 void RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
-void RE_WriteRenderResult(RenderResult *rr, char *filename);
+void RE_WriteRenderResult(RenderResult *rr, char *filename, int compress);
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty);
 
 /* ancient stars function... go away! */
