@@ -1109,7 +1109,9 @@ void yafrayPluginRender_t::genUVcoords(vector<yafray::GFLOAT> &uvcoords, VlakRen
 
 void yafrayPluginRender_t::genVcol(vector<yafray::CFLOAT> &vcol, VlakRen *vlr, bool comple)
 {
-	if (vlr->vcol)
+	MCol *mcol= RE_vlakren_get_mcol(re, vlr, 0, NULL, 0);
+
+	if (mcol)
 	{
 		// tri vcol split indices
 		int ui1=0, ui2=1, ui3=2;
@@ -1123,11 +1125,11 @@ void yafrayPluginRender_t::genVcol(vector<yafray::CFLOAT> &vcol, VlakRen *vlr, b
 			ui2 = (ui2+2) & 3;
 			ui3 = (ui3+2) & 3;
 		}
-		unsigned char* pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui1]);
+		unsigned char* pt = reinterpret_cast<unsigned char*>(&mcol[ui1]);
 		vcol.push_back((float)pt[3]/255.f);  vcol.push_back((float)pt[2]/255.f);  vcol.push_back((float)pt[1]/255.f);
-		pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui2]);
+		pt = reinterpret_cast<unsigned char*>(&mcol[ui2]);
 		vcol.push_back((float)pt[3]/255.f);  vcol.push_back((float)pt[2]/255.f);  vcol.push_back((float)pt[1]/255.f);
-		pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui3]);
+		pt = reinterpret_cast<unsigned char*>(&mcol[ui3]);
 		vcol.push_back((float)pt[3]/255.f);  vcol.push_back((float)pt[2]/255.f);  vcol.push_back((float)pt[1]/255.f);
 	}
 	else
@@ -1148,7 +1150,7 @@ void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,ve
 	string fmatname(fmat->id.name);
 	// use name in imgtex_shader list if 'TexFace' enabled for this face material
 	if (fmat->mode & MA_FACETEXTURE) {
-		MTFace* tface = vlr->tface;
+		MTFace* tface = RE_vlakren_get_tface(re, vlr, 0, NULL, 0);
 		if (tface) {
 			Image* fimg = (Image*)tface->tpage;
 			if (fimg) fmatname = imgtex_shader[fmatname + string(fimg->id.name)];
@@ -1168,7 +1170,8 @@ void yafrayPluginRender_t::genFace(vector<int> &faces,vector<string> &shaders,ve
 		shaders.push_back(fmatname);
 		faceshader.push_back(shaders.size()-1);
 	}
-	MTFace* uvc = vlr->tface;	// possible uvcoords (v upside down)
+
+	MTFace* uvc = RE_vlakren_get_tface(re, vlr, 0, NULL, 0); // possible uvcoords (v upside down)
 	int idx1, idx2, idx3;
 
 	idx1 = vert_idx.find(vlr->v1)->second;
@@ -1193,7 +1196,7 @@ void yafrayPluginRender_t::genCompleFace(vector<int> &faces,/*vector<string> &sh
 	bool EXPORT_VCOL = ((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0);
 
 	faceshader.push_back(faceshader.back());
-	MTFace* uvc = vlr->tface;	// possible uvcoords (v upside down)
+	MTFace* uvc = RE_vlakren_get_tface(re, vlr, 0, NULL, 0); // possible uvcoords (v upside down)
 	int idx1, idx2, idx3;
 	idx1 = vert_idx.find(vlr->v3)->second;
 	idx2 = vert_idx.find(vlr->v4)->second;
@@ -1336,7 +1339,7 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 	{
 		VlakRen* vlr = *fci;
 		genVertices(verts, vidx, vert_idx, vlr, has_orco, obj);
-		if(vlr->tface) has_uv=true;
+		if(RE_vlakren_get_tface(re, vlr, 0, NULL, 0)) has_uv=true;
 	}
 	// all faces using the index list created above
 	vector<int> faces;

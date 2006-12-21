@@ -95,7 +95,7 @@ static VlakRen *findshoot_rr(Render *re)
 	maxenergy= 0.0;
 	
 	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
 		if(vlr->radface) {
 			rf= vlr->radface;
 			rf->flag &= ~RAD_SHOOT;
@@ -129,7 +129,7 @@ static void backface_test_rr(Render *re, VlakRen *shoot)
 	
 	/* backface testing */
 	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
 		if(vlr->radface) {
 			if(vlr!=shoot) {
 				rf= vlr->radface;
@@ -151,7 +151,7 @@ static void clear_backface_test_rr(Render *re)
 	
 	/* backface flag clear */
 	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
 		
 		if(vlr->radface) {
 			rf= vlr->radface;
@@ -208,7 +208,7 @@ static void makeformfactors_rr(Render *re, VlakRen *shoot)
 	fp= RG.formfactors;
 
 	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
 		
 		if(vlr->radface) {
 			rf= vlr->radface;
@@ -236,7 +236,7 @@ static void applyformfactors_rr(Render *re, VlakRen *shoot)
 	fp= RG.formfactors;
 	
 	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
 		
 		if(vlr->radface) {
 			rf= vlr->radface;
@@ -327,7 +327,7 @@ static void initradfaces(Render *re)
 	
 	/* count first for fast malloc */
 	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
 		
 		if(vlr->mat->mode & MA_RADIO) {
 			if(vlr->mat->emit > 0.0) {
@@ -343,7 +343,7 @@ printf(" Rad elems: %d emittors %d\n", RG.totelem, RG.totpatch);
 	/* make/init radfaces */
 	rf=radfaces= MEM_callocN(RG.totelem*sizeof(RadFace), "radfaces");
 	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
 		
 		if(vlr->mat->mode & MA_RADIO) {
 			
@@ -419,7 +419,7 @@ static void make_vertex_rad_values(Render *re)
 
 	/* accumulate vertexcolors */
 	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
 		
 		if(vlr->radface) {
 			rf= vlr->radface;

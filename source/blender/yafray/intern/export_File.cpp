@@ -1230,7 +1230,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	string matname(face0mat->id.name);
 	// use name in imgtex_shader list if 'TexFace' enabled for this material
 	if (face0mat->mode & MA_FACETEXTURE) {
-		MTFace* tface = face0->tface;
+		MTFace* tface = RE_vlakren_get_tface(re, face0, 0, NULL, 0);
 		if (tface) {
 			Image* fimg = (Image*)tface->tpage;
 			if (fimg) matname = imgtex_shader[string(face0mat->id.name) + string(fimg->id.name)];
@@ -1412,7 +1412,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		string fmatname(fmat->id.name);
 		// use name in imgtex_shader list if 'TexFace' enabled for this face material
 		if (fmat->mode & MA_FACETEXTURE) {
-			MTFace* tface = vlr->tface;
+			MTFace* tface = RE_vlakren_get_tface(re, vlr, 0, NULL, 0);
 			if (tface) {
 				Image* fimg = (Image*)tface->tpage;
 				if (fimg) fmatname = imgtex_shader[fmatname + string(fimg->id.name)];
@@ -1437,23 +1437,25 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		}
 		else if (vlr->flag & R_FACE_SPLIT) { ui2++;  ui3++; }
 
-		MTFace* uvc = vlr->tface;	// possible uvcoords (v upside down)
+		MTFace* uvc = RE_vlakren_get_tface(re, vlr, 0, NULL, 0); // possible uvcoords (v upside down)
 		if (uvc) {
 			ostr << " u_a=\"" << uvc->uv[ui1][0] << "\" v_a=\"" << 1-uvc->uv[ui1][1] << "\""
 			     << " u_b=\"" << uvc->uv[ui2][0] << "\" v_b=\"" << 1-uvc->uv[ui2][1] << "\""
 			     << " u_c=\"" << uvc->uv[ui3][0] << "\" v_c=\"" << 1-uvc->uv[ui3][1] << "\"";
 		}
 
+		MCol *mcol= RE_vlakren_get_mcol(re, vlr, 0, NULL, 0);
+
 		// since Blender seems to need vcols when uvs are used, for yafray only export when the material actually uses vcols
-		if ((EXPORT_VCOL) && (vlr->vcol)) {
+		if ((EXPORT_VCOL) && mcol) {
 			// vertex colors
-			unsigned char* pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui1]);
+			unsigned char* pt = reinterpret_cast<unsigned char*>(&mcol[ui1]);
 			ostr << " vcol_a_r=\"" << (float)pt[3]/255.f << "\" vcol_a_g=\"" << (float)pt[2]/255.f
 			     << "\" vcol_a_b=\"" << (float)pt[1]/255.f << "\"";
-			pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui2]);
+			pt = reinterpret_cast<unsigned char*>(&mcol[ui2]);
 			ostr << " vcol_b_r=\"" << (float)pt[3]/255.f << "\" vcol_b_g=\"" << (float)pt[2]/255.f
 			     << "\" vcol_b_b=\"" << (float)pt[1]/255.f << "\"";
-			pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui3]);
+			pt = reinterpret_cast<unsigned char*>(&mcol[ui3]);
 			ostr << " vcol_c_r=\"" << (float)pt[3]/255.f << "\" vcol_c_g=\"" << (float)pt[2]/255.f
 			     << "\" vcol_c_b=\"" << (float)pt[1]/255.f << "\"";
 		}
@@ -1480,15 +1482,15 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 				     << " u_b=\"" << uvc->uv[ui2][0] << "\" v_b=\"" << 1-uvc->uv[ui2][1] << "\""
 				     << " u_c=\"" << uvc->uv[ui3][0] << "\" v_c=\"" << 1-uvc->uv[ui3][1] << "\"";
 			}
-			if ((EXPORT_VCOL) && (vlr->vcol)) {
+			if ((EXPORT_VCOL) && mcol) {
 				// vertex colors
-				unsigned char* pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui1]);
+				unsigned char* pt = reinterpret_cast<unsigned char*>(&mcol[ui1]);
 				ostr << " vcol_a_r=\"" << (float)pt[3]/255.f << "\" vcol_a_g=\"" << (float)pt[2]/255.f
 				     << "\" vcol_a_b=\"" << (float)pt[1]/255.f << "\"";
-				pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui2]);
+				pt = reinterpret_cast<unsigned char*>(&mcol[ui2]);
 				ostr << " vcol_b_r=\"" << (float)pt[3]/255.f << "\" vcol_b_g=\"" << (float)pt[2]/255.f
 				     << "\" vcol_b_b=\"" << (float)pt[1]/255.f << "\"";
-				pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui3]);
+				pt = reinterpret_cast<unsigned char*>(&mcol[ui3]);
 				ostr << " vcol_c_r=\"" << (float)pt[3]/255.f << "\" vcol_c_g=\"" << (float)pt[2]/255.f
 				     << "\" vcol_c_b=\"" << (float)pt[1]/255.f << "\"";
 			}

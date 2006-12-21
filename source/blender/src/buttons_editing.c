@@ -671,32 +671,90 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 
 /* *************************** MESH  ******************************** */
 
-static void customdata_buttons(uiBlock *block, CustomData *data, int type, int *activep, int setevt, int newevt, int delevt, char *label, char *shortlabel, char *browsetip, char *newtip, char *deltip, int x, int y)
+static void verify_customdata_name_func(void *data1, void *data2)
+{
+	CustomData *data= (CustomData*)data1;
+	CustomDataLayer *layer= (CustomDataLayer*)data2;
+
+	CustomData_set_layer_unique_name(data, layer - data->layers);
+}
+
+static void delete_customdata_layer(void *data1, void *data2)
+{
+	Mesh *me= (Mesh*)data1;
+	CustomData *data= (G.obedit)? &G.editMesh->fdata: &me->fdata;
+	CustomDataLayer *layer= (CustomDataLayer*)data2;
+	int type= layer->type;
+	int index= CustomData_get_layer_index(data, type);
+
+	CustomData_set_layer_active(data, type, layer - &data->layers[index]);
+
+	if(G.obedit) {
+		EM_free_data_layer(data, type);
+	}
+	else if(me) {
+		CustomData_free_layer(data, type, me->totface);
+		mesh_update_customdata_pointers(me);
+	}
+
+	if(!CustomData_has_layer(data, type)) {
+		if(type == CD_MCOL && (G.f & G_VERTEXPAINT))
+			G.f &= ~G_VERTEXPAINT; /* get out of vertexpaint mode */
+		if(type == CD_MTFACE && (G.f & G_FACESELECT))
+			set_faceselect();  /* get out of faceselect mode */
+	}
+
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+
+	if(type == CD_MTFACE)
+		BIF_undo_push("Delete UV Texture");
+	else if(type == CD_MCOL)
+		BIF_undo_push("Delete Vertex Color");
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
+static int customdata_buttons(uiBlock *block, Mesh *me, CustomData *data, int type, int *activep, int setevt, int newevt, char *label, char *shortlabel, char *browsetip, char *newtip, char *deltip, int x, int y)
 {
 	CustomDataLayer *layer;
-	int i, count= 0;
+	uiBut *but;
+	int i, count= CustomData_number_of_layers(data, type);
 
-	*activep = 1;
+	if(count >= MAX_MTFACE) {
+		uiDefBut(block, LABEL, 0, label, x,y,220,19, 0, 0.0, 0, 0, 0, "");
+	}
+	else {
+		uiDefBut(block, LABEL, 0, label, x,y,140,19, 0, 0.0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiDefBut(block, BUT, newevt, "New", x+140,y,80,19, 0,0,0,0,0, newtip);
+		uiBlockEndAlign(block);
+	}
 
-	for (i=0; i<data->totlayer; i++) {
+	y -= (count)? 24: 19;
+
+	uiBlockBeginAlign(block);
+	for (count=1, i=0; i<data->totlayer; i++) {
 		layer= &data->layers[i];
 
 		if(layer->type == type) {
-			if(count == layer->active)
-				*activep = count+1;
+			*activep= layer->active + 1;
+
+			uiDefButI(block, ROW, setevt, "", x,y,25,19, activep, 1.0, count, 0, 0, "Set active UV texture layer");
+			but=uiDefBut(block, TEX, setevt, "", x+25,y,170,19, layer->name, 0.0, 31.0, 0, 0, "UV texture layer name");
+			uiButSetFunc(but, verify_customdata_name_func, data, layer);
+			but= uiDefIconBut(block, BUT, B_NOP, VICON_X, x+195,y,25,19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete UV texture layer");
+			uiButSetFunc(but, delete_customdata_layer, me, layer);
+
+
 			count++;
+			y -= 19;
 		}
 	}
-
-	uiBlockBeginAlign(block);
-	if (count == 0)
-		uiDefBut(block, LABEL, 0, label, x,y,140,20, 0, 0.0, 0, 0, 0, "");
-	else
-		uiDefButI(block, NUM, setevt, shortlabel, x,y,140,20, activep, 1, count, 0, 0, browsetip);
-
-	uiDefBut(block, BUT, newevt, "New",		x+140,y,52,20, 0,0,0,0,0, newtip);
-	uiDefBut(block, BUT, delevt, "Delete",	x+182,y,68,20, 0,0,0,0,0, deltip);
 	uiBlockEndAlign(block);
+
+	return y;
 }
 
 static void editing_panel_mesh_type(Object *ob, Mesh *me)
@@ -705,62 +763,65 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiBut *but;
 	float val;
 	CustomData *fdata;
+	int yco;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "Mesh", "Editing", 320, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, ME_AUTOSMOOTH, REDRAWVIEW3D, "Auto Smooth",10,180,154,19, &me->flag, 0, 0, 0, 0, "Treats all set-smoothed faces with angles less than Degr: as 'smooth' during render");
-	uiDefButS(block, NUM, B_DIFF, "Degr:",				10,160,154,19, &me->smoothresh, 1, 80, 0, 0, "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
+	uiDefButBitS(block, TOG, ME_AUTOSMOOTH, REDRAWVIEW3D, "Auto Smooth",10,180,170,19, &me->flag, 0, 0, 0, 0, "Treats all set-smoothed faces with angles less than Degr: as 'smooth' during render");
+	uiDefButS(block, NUM, B_DIFF, "Degr:",				10,160,170,19, &me->smoothresh, 1, 80, 0, 0, "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
 	uiBlockEndAlign(block);
 
 	/* Retopo */
 	if(G.obedit) {
 		uiBlockBeginAlign(block);
-		but= uiDefButBitC(block,TOG,1,B_NOP, "Retopo", 10,130,154,19, &G.editMesh->retopo_mode, 0,0,0,0, "Turn on the re-topology tool");
+		but= uiDefButBitC(block,TOG,1,B_NOP, "Retopo", 10,130,170,19, &G.editMesh->retopo_mode, 0,0,0,0, "Turn on the re-topology tool");
 		uiButSetFunc(but,retopo_toggle,ob,me);
 		if(G.editMesh->retopo_mode) {
-			but= uiDefButBitC(block,TOG,2,B_NOP,"Paint", 10,110,50,19, &G.editMesh->retopo_mode,0,0,0,0, "");
+			but= uiDefButBitC(block,TOG,2,B_NOP,"Paint", 10,110,55,19, &G.editMesh->retopo_mode,0,0,0,0, "");
 			uiButSetFunc(but,retopo_paint_toggle,ob,me);
-			but= uiDefBut(block,BUT,B_NOP,"Retopo All", 60,110,104,19, 0,0,0,0,0, "Apply the re-topology tool to all selected vertices");
+			but= uiDefBut(block,BUT,B_NOP,"Retopo All", 65,110,115,19, 0,0,0,0,0, "Apply the re-topology tool to all selected vertices");
 			uiButSetFunc(but,retopo_do_all,ob,me);
 		}
 		uiBlockEndAlign(block);
 	}
 
-	uiBlockSetCol(block, TH_AUTO);
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					10, 80, 65, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
+	uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			75, 80, 105, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
+	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		10, 60, 170, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
+	uiBlockEndAlign(block);
 
-	uiDefIDPoinBut(block, test_meshpoin_but, ID_ME, B_REDR, "TexMesh: ",	180,180,230,19, &me->texcomesh, "Derive texture coordinates from another mesh.");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, ME_TWOSIDED, REDRAWVIEW3D, "Double Sided",	10,30,170,19, &me->flag, 0, 0, 0, 0, "Render/display the mesh as double or single sided");
+	uiDefButBitS(block, TOG, ME_NOPUNOFLIP, REDRAWVIEW3D, "No V.Normal Flip", 10,10,170,19, &me->flag, 0, 0, 0, 0, "Disables flipping of vertexnormals during render");
+	uiBlockEndAlign(block);
+
+	uiDefIDPoinBut(block, test_meshpoin_but, ID_ME, B_REDR, "TexMesh: ",	190,180,220,19, &me->texcomesh, "Derive texture coordinates from another mesh.");
+
+	if(me->msticky) val= 1.0; else val= 0.0;
+	uiDefBut(block, LABEL, 0, "Sticky", 				190,155,140,19, 0, val, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	if(me->msticky==NULL) {
+		uiDefBut(block, BUT, B_MAKESTICKY, "Make",		330,155, 80,19, 0, 0, 0, 0, 0, "Creates Sticky coordinates from the current camera view background picture");
+	}
+	else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 	330,155, 80,19, 0, 0, 0, 0, 0, "Deletes Sticky texture coordinates");
+	uiBlockEndAlign(block);
 
 	fdata= (G.obedit)? &G.editMesh->fdata: &me->fdata;
-	customdata_buttons(block, fdata, CD_MCOL, &actmcol, B_SETMCOL,
-		B_NEWMCOL, B_DELMCOL, "Vert Color", "Vert Color:",
-		"Sets active vertex color layer", "Creates a new vertex color layer",
-		"Removes the current vertex color layer", 10, 60);
-
-	customdata_buttons(block, fdata, CD_MTFACE, &acttface, B_SETTFACE,
-		B_NEWTFACE, B_DELTFACE, "UV Texture", "UV Texture:",
+	yco= customdata_buttons(block, me, fdata, CD_MTFACE, &acttface,
+		B_SETTFACE, B_NEWTFACE, "UV Texture", "UV Texture:",
 		"Set active UV texture", "Creates a new UV texture layer",
-		"Removes the current UV texture layer", 10, 35);
+		"Removes the current UV texture layer", 190, 130);
 
-	uiBlockBeginAlign(block);
-	if(me->msticky) val= 1.0; else val= 0.0;
-	uiDefBut(block, LABEL, 0, "Sticky", 				10,10,140,20, 0, val, 0, 0, 0, "");
-	if(me->msticky==NULL) {
-		uiDefBut(block, BUT, B_MAKESTICKY, "Make",		150,10,110,20, 0, 0, 0, 0, 0, "Creates Sticky coordinates from the current camera view background picture");
-	}
-	else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 	150,10,110,20, 0, 0, 0, 0, 0, "Deletes Sticky texture coordinates");
-	uiBlockEndAlign(block);
+	yco= customdata_buttons(block, me, fdata, CD_MCOL, &actmcol,
+		B_SETMCOL, B_NEWMCOL, "Vertex Color", "Vertex Color:",
+		"Sets active vertex color layer", "Creates a new vertex color layer",
+		"Removes the current vertex color layer", 190, yco-5);
 
-	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					275, 95, 130, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
-	uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			275, 75, 130, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
-	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		275, 55, 130, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
-
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, ME_TWOSIDED, REDRAWVIEW3D, "Double Sided",	275,30,130,19, &me->flag, 0, 0, 0, 0, "Render/display the mesh as double or single sided");
-	uiDefButBitS(block, TOG, ME_NOPUNOFLIP, REDRAWVIEW3D, "No V.Normal Flip",275,10,130,19, &me->flag, 0, 0, 0, 0, "Disables flipping of vertexnormals during render");
-	uiBlockEndAlign(block);
+	if(yco < 0)
+		uiNewPanelHeight(block, 204 - yco);
 }
 
 /* *************************** MODIFIERS ******************************** */
@@ -3601,11 +3662,13 @@ void do_meshbuts(unsigned short event)
 			if(me->msticky) {
 				CustomData_free_layer(&me->vdata, CD_MSTICKY, me->totvert);
 				me->msticky= NULL;
+				BIF_undo_push("Delete Sticky");
 			}
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
 		case B_MAKESTICKY:
 			RE_make_sticky();
+			BIF_undo_push("Make Sticky");
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
 
@@ -3634,22 +3697,7 @@ void do_meshbuts(unsigned short event)
 			}
 
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWBUTSEDIT, 0);
-			break;
-		case B_DELMCOL:
-			if(G.obedit) {
-				EM_free_data_layer(&em->fdata, CD_MCOL);
-			}
-			else if(me) {
-				CustomData_free_layer(&me->fdata, CD_MCOL, me->totface);
-				me->mcol= CustomData_get_layer(&me->fdata, CD_MCOL);
-			}
-
-			if((me && me->mcol == NULL) && (G.f & G_VERTEXPAINT))
-				G.f &= ~G_VERTEXPAINT; /* get out of vertexpaint mode */
-
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			BIF_undo_push("New Vertex Color");
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
@@ -3660,6 +3708,7 @@ void do_meshbuts(unsigned short event)
 				mesh_update_customdata_pointers(me);
 
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				BIF_undo_push("Set Active Vertex Color");
 				allqueue(REDRAWVIEW3D, 0);
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
@@ -3686,34 +3735,28 @@ void do_meshbuts(unsigned short event)
 			}
 
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			BIF_undo_push("New UV Texture");
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWBUTSEDIT, 0);
-			break;
-		case B_DELTFACE:
-			if(G.obedit) {
-				EM_free_data_layer(&em->fdata, CD_MTFACE);
-			}
-			else if(me) {
-				CustomData_free_layer(&me->fdata, CD_MTFACE, me->totface);
-				me->mtface= CustomData_get_layer(&me->fdata, CD_MTFACE);
-			}
-
-			if((me && me->mtface == NULL) && (G.f & G_FACESELECT))
-				set_faceselect();  /* get out of vertexpaint mode */
-
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWIMAGE, 0);
 			break;
 		case B_SETTFACE:
 			if (G.obedit || me) {
+				if (G.f & G_FACESELECT)
+					select_mface_from_tface(me);
+
 				CustomData *fdata= (G.obedit)? &em->fdata: &me->fdata;
 				CustomData_set_layer_active(fdata, CD_MTFACE, acttface-1);
 				mesh_update_customdata_pointers(me);
 
+				if (G.f & G_FACESELECT)
+					select_tface_from_mface(me);
+
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				BIF_undo_push("Set Active UV Texture");
 				allqueue(REDRAWVIEW3D, 0);
 				allqueue(REDRAWBUTSEDIT, 0);
+				allqueue(REDRAWIMAGE, 0);
 			}
 			break;
 

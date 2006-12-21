@@ -1434,11 +1434,15 @@ void set_faceselect()	/* toggle */
 			setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 			BIF_undo_push("End UV Faceselect");
 		}
+
+		if(me)
+			select_mface_from_tface(me);
 	}
 	else if (me && (ob->lay & G.vd->lay)) {
 		G.f |= G_FACESELECT;
 		if(me->mtface==NULL)
 			make_tfaces(me);
+		select_tface_from_mface(me);
 
 		setcursor_space(SPACE_VIEW3D, CURSOR_FACESEL);
 		BIF_undo_push("Set UV Faceselect");
@@ -1449,6 +1453,44 @@ void set_faceselect()	/* toggle */
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWIMAGE, 0);
+}
+
+void select_tface_from_mface(Mesh *me)
+{
+	MFace *mf;
+	MTFace *tf;
+	int a;
+
+	if(!me->mtface) return;
+
+	mf= me->mface;
+	tf= me->mtface;
+	for(a=0; a<me->totface; a++, mf++, tf++) {
+		if(mf->flag & ME_FACE_SEL) tf->flag |= TF_SELECT;
+		else tf->flag &= ~TF_SELECT;
+
+		if(mf->flag & ME_HIDE) tf->flag |= TF_HIDE;
+		else tf->flag &= ~TF_HIDE;
+	}
+}
+
+void select_mface_from_tface(Mesh *me)
+{
+	MFace *mf;
+	MTFace *tf;
+	int a;
+
+	if(!me->mtface) return;
+
+	mf= me->mface;
+	tf= me->mtface;
+	for(a=0; a<me->totface; a++, mf++, tf++) {
+		if(tf->flag & TF_SELECT) mf->flag |= ME_FACE_SEL;
+		else mf->flag &= ~ME_FACE_SEL;
+
+		if(tf->flag & TF_HIDE) mf->flag |= ME_HIDE;
+		else mf->flag &= ~ME_HIDE;
+	}
 }
 
 /* Texture Paint */
@@ -1480,6 +1522,10 @@ void set_texturepaint() /* toggle */
 	}
 	else if (me) {
 		G.f |= G_TEXTUREPAINT;
+
+		if(me->mtface==NULL)
+			make_tfaces(me);
+
 		brush_check_exists(&G.scene->toolsettings->imapaint.brush);
 		texpaint_disable_mipmap();
 	}

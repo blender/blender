@@ -45,6 +45,7 @@
 struct Object;
 struct MemArena;
 struct VertTableNode;
+struct VlakTableNode;
 struct Octree;
 struct GHash;
 
@@ -158,15 +159,17 @@ struct Render
 	
 	int vertnodeslen;
 	struct VertTableNode *vertnodes;
+	int vlaknodeslen;
+	struct VlakTableNode *vlaknodes;
 	int blohalen;
 	struct HaloRen **bloha;
-	int blovllen;
-	struct VlakRen **blovl;
 	ListBase objecttable;
-	
+
 	struct Image *backbuf, *bakebuf;
 	
 	struct GHash *orco_hash;
+
+	ListBase customdata_names;
 
 	/* arena for allocating data for use during render, for
 		* example dynamic TFaces to go in the VlakRen structure.
@@ -259,12 +262,11 @@ typedef struct VlakRen {
 	unsigned int lay;
 	float n[3];
 	struct Material *mat;
-	struct MTFace *tface;
-	unsigned int *vcol;
 	char snproj, puno;
 	char flag, ec;
 	RadFace *radface;
 	Object *ob;
+	int index;
 } VlakRen;
 
 typedef struct HaloRen

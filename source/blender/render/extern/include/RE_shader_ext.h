@@ -74,6 +74,16 @@ struct ShadeInputCopy {
 	int mode;						/* base material mode (OR-ed result of entire node tree) */
 };
 
+typedef struct ShadeInputUV {
+	float dxuv[3], dyuv[3], uv[3];
+	char *name;
+} ShadeInputUV;
+
+typedef struct ShadeInputCol {
+	float col[3];
+	char *name;
+} ShadeInputCol;
+
 /* localized renderloop data */
 typedef struct ShadeInput
 {
@@ -112,13 +122,17 @@ typedef struct ShadeInput
 	float layerfac;
 	
 	/* texture coordinates */
-	float lo[3], gl[3], uv[3], ref[3], orn[3], winco[3], sticky[3], vcol[3], rad[3];
+	float lo[3], gl[3], ref[3], orn[3], winco[3], sticky[3], vcol[3], rad[3];
 	float refcol[4], displace[3];
 	float strand, tang[3], stress, winspeed[4];
+
+	ShadeInputUV uv[4];   /* 4 = MAX_MTFACE */
+	ShadeInputCol col[4]; /* 4 = MAX_MCOL */
+	int totuv, totcol;
 	
 	/* dx/dy OSA coordinates */
 	float dxco[3], dyco[3];
-	float dxlo[3], dylo[3], dxgl[3], dygl[3], dxuv[3], dyuv[3];
+	float dxlo[3], dylo[3], dxgl[3], dygl[3];
 	float dxref[3], dyref[3], dxorn[3], dyorn[3];
 	float dxno[3], dyno[3], dxview, dyview;
 	float dxlv[3], dylv[3];

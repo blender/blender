@@ -51,6 +51,7 @@ typedef struct MTex {
 	short texco, mapto, maptoneg, blendtype;
 	struct Object *object;
 	struct Tex *tex;
+	char uvname[32];
 	
 	char projx, projy, projz, mapping;
 	float ofs[3], size[3];

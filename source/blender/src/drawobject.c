@@ -2002,7 +2002,7 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 	else if(dt==OB_WIRE || totface==0) {
 		draw_wire = 1;
 	}
-	else if( (ob==OBACT && (G.f & G_FACESELECT)) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
+	else if( (ob==OBACT && (G.f & (G_FACESELECT|G_TEXTUREPAINT))) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
 		
 		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !(G.f&(G_FACESELECT|G_PICKSEL)) && !draw_wire) {
 			draw_mesh_object_outline(ob, dm);
@@ -2059,7 +2059,8 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1);
 			}
 			else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mtface) {
-				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1);
+				glColor3f(1.0f, 1.0f, 1.0f);
+				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 0);
 			}
 			else do_draw= 1;
 		}
@@ -2177,7 +2178,7 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 			if(baseDM && realDM) draw_mesh_fancy(base, baseDM, realDM, dt, flag);
 			
 			if(me->totvert==0) retval= 1;
-			
+
 			baseDM->release(baseDM);
 			realDM->release(realDM);
 		}

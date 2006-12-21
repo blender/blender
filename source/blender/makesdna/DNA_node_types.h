@@ -213,5 +213,9 @@ typedef struct NodeChroma {
 	float key[4];
 } NodeChroma;
 
+typedef struct NodeGeometry {
+	char uvname[32];
+} NodeGeometry;
+
 #endif
 

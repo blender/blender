@@ -1416,7 +1416,21 @@ void do_material_tex(ShadeInput *shi)
 				co= shi->gl; dx= shi->dxco; dy= shi->dyco;
 			}
 			else if(mtex->texco==TEXCO_UV) {
-				co= shi->uv; dx= shi->dxuv; dy= shi->dyuv; 
+				ShadeInputUV *suv= &shi->uv[0];
+				int i;
+
+				if(mtex->uvname[0] != 0) {
+					for(i = 0; i < shi->totuv; i++) {
+						if(strcmp(shi->uv[i].name, mtex->uvname)==0) {
+							suv= &shi->uv[i];
+							break;
+						}
+					}
+				}
+
+				co= suv->uv;
+				dx= suv->dxuv;
+				dy= suv->dyuv; 
 			}
 			else if(mtex->texco==TEXCO_WINDOW) {
 				co= shi->winco; dx= shi->dxwin; dy= shi->dywin;
@@ -2366,15 +2380,14 @@ int externtex(MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *t
 
 /* ------------------------------------------------------------------------- */
 
-void render_realtime_texture(ShadeInput *shi)
+void render_realtime_texture(ShadeInput *shi, Image *ima)
 {
 	TexResult texr;
-	Image *ima;
 	static Tex tex1, tex2;	// threadsafe
 	static int firsttime= 1;
 	Tex *tex;
 	float texvec[3], dx[2], dy[2];
-	
+
 	if(firsttime) {
 		firsttime= 0;
 		default_tex(&tex1);
@@ -2385,27 +2398,23 @@ void render_realtime_texture(ShadeInput *shi)
 	
 	if(shi->ys & 1) tex= &tex1; else tex= &tex2;	// threadsafe
 	
-	ima = shi->vlr->tface->tpage;
-	if(ima) {
-		
-		texvec[0]= 0.5+0.5*shi->uv[0];
-		texvec[1]= 0.5+0.5*shi->uv[1];
-		if(shi->osatex) {
-			dx[0]= 0.5*shi->dxuv[0];
-			dx[1]= 0.5*shi->dxuv[1];
-			dy[0]= 0.5*shi->dyuv[0];
-			dy[1]= 0.5*shi->dyuv[1];
-		}
-		
-		texr.nor= NULL;
-		
-		if(shi->osatex) imagewraposa(tex, ima, NULL, texvec, dx, dy, &texr); 
-		else imagewrap(tex, ima, NULL, texvec, &texr); 
-		
-		shi->vcol[0]*= texr.tr;
-		shi->vcol[1]*= texr.tg;
-		shi->vcol[2]*= texr.tb;
+	texvec[0]= 0.5+0.5*shi->uv[0].uv[0];
+	texvec[1]= 0.5+0.5*shi->uv[0].uv[1];
+	if(shi->osatex) {
+		dx[0]= 0.5*shi->uv[0].dxuv[0];
+		dx[1]= 0.5*shi->uv[0].dxuv[1];
+		dy[0]= 0.5*shi->uv[0].dyuv[0];
+		dy[1]= 0.5*shi->uv[0].dyuv[1];
 	}
+	
+	texr.nor= NULL;
+	
+	if(shi->osatex) imagewraposa(tex, ima, NULL, texvec, dx, dy, &texr); 
+	else imagewrap(tex, ima, NULL, texvec, &texr); 
+	
+	shi->vcol[0]*= texr.tr;
+	shi->vcol[1]*= texr.tg;
+	shi->vcol[2]*= texr.tb;
 }
 
 /* eof */

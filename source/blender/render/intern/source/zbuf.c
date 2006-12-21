@@ -1756,7 +1756,7 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 
 	for(v=0; v<R.totvlak; v++) {
 
-		if((v & 255)==0) vlr= R.blovl[v>>8];
+		if((v & 255)==0) vlr= R.vlaknodes[v>>8].vlak;
 		else vlr++;
 		
 		if((vlr->flag & R_VISIBLE)) {
@@ -1919,7 +1919,7 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem, Re
 		int totface=0;
 		
 		for(a=0; a<re->totvlak; a++) {
-			if((a & 255)==0) vlr= re->blovl[a>>8]; else vlr++;
+			if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
 		
 			if(vlr->radface) {
 				rf= vlr->radface;
@@ -1979,7 +1979,7 @@ void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size, float jitx, 
 
 	for(a=0; a<re->totvlak; a++) {
 
-		if((a & 255)==0) vlr= re->blovl[a>>8];
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak;
 		else vlr++;
 
 		/* note, these conditions are copied in shadowbuf_autoclip() */
@@ -2588,7 +2588,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, un
 		
 		for(v=0; v<R.totvlak; v++) {
 			if((v & 255)==0)
-				vlr= R.blovl[v>>8];
+				vlr= R.vlaknodes[v>>8].vlak;
 			else vlr++;
 			
 			if(vlr->mat!=ma) {

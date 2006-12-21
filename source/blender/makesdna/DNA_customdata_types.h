@@ -38,6 +38,7 @@ typedef struct CustomDataLayer {
 	int offset;     /* in editmode, offset of layer in block */
 	int flag;       /* general purpose flag */
 	int active;     /* number of the active layer of this type */
+	char name[32];  /* layer name */
 	void *data;     /* layer data */
 } CustomDataLayer;
 
@@ -84,5 +85,9 @@ typedef struct CustomData {
 #define CD_FLAG_NOFREE    (1<<1)
 /* indicates the layer is only temporary, also implies no copy */
 #define CD_FLAG_TEMPORARY ((1<<2)|CD_FLAG_NOCOPY)
+
+/* Limits */
+#define MAX_MTFACE 4
+#define MAX_MCOL   4
 
 #endif

@@ -166,6 +166,7 @@ void *CustomData_em_get(const struct CustomData *data, void *block, int type);
 void *CustomData_get_layer(const struct CustomData *data, int type);
 void *CustomData_get_layer_n(const struct CustomData *data, int type, int n);
 
+int CustomData_get_layer_index(const struct CustomData *data, int type);
 int CustomData_get_active_layer_index(const struct CustomData *data, int type);
 
 /* copies the data from source to the data element at index in the first
@@ -205,5 +206,8 @@ int CustomData_sizeof(int type);
 
 /* get the name of a layer type */
 const char *CustomData_layertype_name(int type);
+
+/* make sure the name of layer at index is unique */
+void CustomData_set_layer_unique_name(struct CustomData *data, int index);
 
 #endif

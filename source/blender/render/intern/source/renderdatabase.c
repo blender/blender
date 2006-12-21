@@ -28,7 +28,7 @@
 /*
  * Storage, retrieval and query of render specific data.
  *
- * All data from a Blender scene is converter by the renderconverter/
+ * All data from a Blender scene is converted by the renderconverter/
  * into a special format that is used by the render module to make
  * images out of. These functions interface to the render-specific
  * database.  
@@ -40,7 +40,7 @@
  * offset in a 256-entry block.
  *
  * - If the 256-entry block entry has an entry in the
- * vertnodes/bloha/blovl array of the current block, the i-th entry in
+ * vertnodes/vlaknodes/bloha array of the current block, the i-th entry in
  * that block is allocated to this entry.
  *
  * - If the entry has no block allocated for it yet, memory is
@@ -62,12 +62,14 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_memarena.h"
 
 #include "DNA_material_types.h" 
 #include "DNA_mesh_types.h" 
 #include "DNA_meshdata_types.h" 
 #include "DNA_texture_types.h" 
 
+#include "BKE_customdata.h"
 #include "BKE_texture.h" 
 
 #include "RE_render_ext.h"	/* externtex */
@@ -80,10 +82,11 @@
 
 /* ------------------------------------------------------------------------- */
 
-/* More dynamic allocation of options for render vertices, so we dont
+/* More dynamic allocation of options for render vertices and faces, so we dont
    have to reserve this space inside vertices.
-   Important; vertices should have been created already (to get tables checked) 
-   that's a reason why the calls demand VertRen * as arg, not the index */
+   Important; vertices and faces, should have been created already (to get tables
+   checked) that's a reason why the calls demand VertRen/VlakRen * as arg, not
+   the index */
 
 /* NOTE! the hardcoded table size 256 is used still in code for going quickly over vertices/faces */
 
@@ -94,6 +97,8 @@
 #define RE_TANGENT_ELEMS	3
 #define RE_STRESS_ELEMS		1
 #define RE_WINSPEED_ELEMS	4
+#define RE_MTFACE_ELEMS		1
+#define RE_MCOL_ELEMS		4
 
 float *RE_vertren_get_sticky(Render *re, VertRen *ver, int verify)
 {
@@ -268,6 +273,207 @@ VertRen *RE_findOrAddVert(Render *re, int nr)
 	return v;
 }
 
+/* ------------------------------------------------------------------------ */
+
+MTFace *RE_vlakren_get_tface(Render *re, VlakRen *vlr, int n, char **name, int verify)
+{
+	VlakTableNode *node;
+	int nr= vlr->index>>8, vlakindex= (vlr->index&255);
+	int index= (n<<8) + vlakindex;
+
+	node= &re->vlaknodes[nr];
+
+	if(verify) {
+		if(n>=node->totmtface) {
+			MTFace **mtface= node->mtface;
+			int size= size= (n+1)*256;
+
+			node->mtface= MEM_callocN(size*sizeof(MTFace*), "Vlak mtface");
+
+			if(mtface) {
+				size= node->totmtface*256;
+				memcpy(node->mtface, mtface, size*sizeof(MTFace*));
+				MEM_freeN(mtface);
+			}
+
+			node->totmtface= n+1;
+
+			if (!node->names) {
+				size= sizeof(*node->names)*256;
+				node->names= MEM_callocN(size, "Vlak names");
+			}
+		}
+
+		if(node->mtface[index]==NULL) {
+			node->mtface[index]= BLI_memarena_alloc(re->memArena,
+				sizeof(MTFace)*RE_MTFACE_ELEMS);
+
+			node->names[vlakindex]= re->customdata_names.last;
+		}
+	}
+	else {
+		if(n>=node->totmtface || node->mtface[index]==NULL)
+			return NULL;
+
+		if(name) *name= node->names[vlakindex]->mtface[n];
+	}
+
+	return node->mtface[index];
+}
+
+MCol *RE_vlakren_get_mcol(Render *re, VlakRen *vlr, int n, char **name, int verify)
+{
+	VlakTableNode *node;
+	int nr= vlr->index>>8, vlakindex= (vlr->index&255);
+	int index= (n<<8) + vlakindex;
+
+	node= &re->vlaknodes[nr];
+
+	if(verify) {
+		if(n>=node->totmcol) {
+			MCol **mcol= node->mcol;
+			int size= (n+1)*256;
+
+			node->mcol= MEM_callocN(size*sizeof(MCol*), "Vlak mcol");
+
+			if(mcol) {
+				size= node->totmcol*256;
+				memcpy(node->mcol, mcol, size*sizeof(MCol*));
+				MEM_freeN(mcol);
+			}
+
+			node->totmcol= n+1;
+
+			if (!node->names) {
+				size= sizeof(*node->names)*256;
+				node->names= MEM_callocN(size, "Vlak names");
+			}
+		}
+
+		if(node->mcol[index]==NULL) {
+			node->mcol[index]= BLI_memarena_alloc(re->memArena,
+				sizeof(MCol)*RE_MCOL_ELEMS);
+
+			node->names[vlakindex]= re->customdata_names.last;
+		}
+	}
+	else {
+		if(n>=node->totmcol || node->mcol[index]==NULL)
+			return NULL;
+
+		if(name) *name= node->names[vlakindex]->mcol[n];
+	}
+
+	return node->mcol[index];
+}
+
+VlakRen *RE_vlakren_copy(Render *re, VlakRen *vlr)
+{
+	VlakRen *vlr1 = RE_findOrAddVlak(re, re->totvlak++);
+	MTFace *mtface, *mtface1;
+	MCol *mcol, *mcol1;
+	int i, index = vlr1->index;
+	char *name;
+
+	*vlr1= *vlr;
+	vlr1->index= index;
+
+	for (i=0; (mtface=RE_vlakren_get_tface(re, vlr, i, &name, 0)) != NULL; i++) {
+		mtface1= RE_vlakren_get_tface(re, vlr1, i, &name, 1);
+		memcpy(mtface1, mtface, sizeof(MTFace)*RE_MTFACE_ELEMS);
+	}
+
+	for (i=0; (mcol=RE_vlakren_get_mcol(re, vlr, i, &name, 0)) != NULL; i++) {
+		mcol1= RE_vlakren_get_mcol(re, vlr1, i, &name, 1);
+		memcpy(mcol1, mcol, sizeof(MCol)*RE_MCOL_ELEMS);
+	}
+
+	return vlr1;
+}
+
+static int vlakren_remap_layer_num(int n, int active)
+{
+	/* make the active layer the first */
+	if (n == active) return 0;
+	else if (n < active) return n+1;
+	else return n;
+}
+
+void RE_vlakren_set_customdata_names(Render *re, CustomData *data)
+{
+	/* CustomData layer names are stored per object here, because the
+	   DerivedMesh which stores the layers is freed */
+	
+	CustomDataNames *cdn= MEM_callocN(sizeof(*cdn), "CustomDataNames");
+	CustomDataLayer *layer;
+	int numlayers, i, mtfn, mcn, n;
+
+	BLI_addtail(&re->customdata_names, cdn);
+
+	if (CustomData_has_layer(data, CD_MTFACE)) {
+		numlayers= CustomData_number_of_layers(data, CD_MTFACE);
+		cdn->mtface= MEM_callocN(sizeof(*cdn->mtface)*numlayers, "mtfacenames");
+	}
+
+	if (CustomData_has_layer(data, CD_MCOL)) {
+		numlayers= CustomData_number_of_layers(data, CD_MCOL);
+		cdn->mcol= MEM_callocN(sizeof(*cdn->mcol)*numlayers, "mcolnames");
+	}
+
+	for (i=0, mtfn=0, mcn=0; i < data->totlayer; i++) {
+		layer= &data->layers[i];
+
+		if (layer->type == CD_MTFACE) {
+			n= vlakren_remap_layer_num(mtfn++, layer->active);
+			strcpy(cdn->mtface[n], layer->name);
+		}
+		else if (layer->type == CD_MCOL) {
+			n= vlakren_remap_layer_num(mcn++, layer->active);
+			strcpy(cdn->mcol[n], layer->name);
+		}
+	}
+}
+
+VlakRen *RE_findOrAddVlak(Render *re, int nr)
+{
+	VlakTableNode *temp;
+	VlakRen *v;
+	int a;
+
+	if(nr<0) {
+		printf("error in findOrAddVlak: %d\n",nr);
+		return re->vlaknodes[0].vlak;
+	}
+	a= nr>>8;
+	
+	if (a>=re->vlaknodeslen-1){  /* Need to allocate more columns..., and keep last element NULL for free loop */
+		temp= re->vlaknodes;
+		
+		re->vlaknodes= MEM_mallocN(sizeof(VlakTableNode)*(re->vlaknodeslen+TABLEINITSIZE) , "vlaknodes");
+		if(temp) memcpy(re->vlaknodes, temp, re->vlaknodeslen*sizeof(VlakTableNode));
+		memset(re->vlaknodes+re->vlaknodeslen, 0, TABLEINITSIZE*sizeof(VlakTableNode));
+
+		re->vlaknodeslen+=TABLEINITSIZE;  /*Does this really need to be power of 2?*/
+		if(temp) MEM_freeN(temp);	
+	}
+
+	v= re->vlaknodes[a].vlak;
+	
+	if(v==NULL) {
+		int i;
+
+		v= (VlakRen *)MEM_callocN(256*sizeof(VlakRen),"findOrAddVlak");
+		re->vlaknodes[a].vlak= v;
+
+		for(i= (nr & 0xFFFFFF00), a=0; a<256; a++, i++)
+			v[a].index= i;
+	}
+	v+= (nr & 255);
+	return v;
+}
+
+/* ------------------------------------------------------------------------ */
+
 void RE_addRenderObject(Render *re, Object *ob, Object *par, int index, int sve, int eve, int sfa, int efa)
 {
 	ObjectRen *obr= MEM_mallocN(sizeof(ObjectRen), "object render struct");
@@ -306,21 +512,32 @@ void free_renderdata_vertnodes(VertTableNode *vertnodes)
 	}
 	
 	MEM_freeN(vertnodes);
+}
+
+void free_renderdata_vlaknodes(VlakTableNode *vlaknodes)
+{
+	int a;
 	
+	if(vlaknodes==NULL) return;
+	
+	for(a=0; vlaknodes[a].vlak; a++) {
+		MEM_freeN(vlaknodes[a].vlak);
+		
+		if(vlaknodes[a].mtface)
+			MEM_freeN(vlaknodes[a].mtface);
+		if(vlaknodes[a].mcol)
+			MEM_freeN(vlaknodes[a].mcol);
+		if(vlaknodes[a].names)
+			MEM_freeN(vlaknodes[a].names);
+	}
+	
+	MEM_freeN(vlaknodes);
 }
 
 void free_renderdata_tables(Render *re)
 {
 	int a=0;
-	
-	if(re->blovl) {
-		for(a=0; re->blovl[a]; a++)
-			MEM_freeN(re->blovl[a]);
-		
-		MEM_freeN(re->blovl);
-		re->blovl= NULL;
-		re->blovllen= 0;
-	}
+	CustomDataNames *cdn;
 	
 	if(re->bloha) {
 		for(a=0; re->bloha[a]; a++)
@@ -336,7 +553,21 @@ void free_renderdata_tables(Render *re)
 		re->vertnodes= NULL;
 		re->vertnodeslen= 0;
 	}
-	
+
+	if(re->vlaknodes) {
+		free_renderdata_vlaknodes(re->vlaknodes);
+		re->vlaknodes= NULL;
+		re->vlaknodeslen= 0;
+	}
+
+	for(cdn=re->customdata_names.first; cdn; cdn=cdn->next) {
+		if(cdn->mtface)
+			MEM_freeN(cdn->mtface);
+		if(cdn->mcol)
+			MEM_freeN(cdn->mcol);
+	}
+
+	BLI_freelistN(&re->customdata_names);
 	BLI_freelistN(&re->objecttable);
 }
 
@@ -373,41 +604,6 @@ HaloRen *RE_findOrAddHalo(Render *re, int nr)
 	}
 	h+= (nr & 255);
 	return h;
-}
-
-/* ------------------------------------------------------------------------ */
-
-VlakRen *RE_findOrAddVlak(Render *re, int nr)
-{
-	VlakRen *v, **temp;
-	int a;
-
-	if(nr<0) {
-		printf("error in findOrAddVlak: %d\n",nr);
-		return re->blovl[0];
-	}
-	a= nr>>8;
-	
-	if (a>=re->blovllen-1){  /* Need to allocate more columns..., and keep last element NULL for free loop */
-		// printf("Allocating %i more face groups.  %i total.\n", 
-		//	TABLEINITSIZE, re->blovllen+TABLEINITSIZE );
-		temp= re->blovl;
-		
-		re->blovl=(VlakRen**)MEM_callocN(sizeof(void*)*(re->blovllen+TABLEINITSIZE) , "Blovl");
-		if(temp) memcpy(re->blovl, temp, re->blovllen*sizeof(void*));
-		memset(&(re->blovl[re->blovllen]), 0, TABLEINITSIZE*sizeof(void*));
-		re->blovllen+=TABLEINITSIZE;  /*Does this really need to be power of 2?*/
-		if(temp) MEM_freeN(temp);	
-	}
-	
-	v= re->blovl[a];
-	
-	if(v==NULL) {
-		v= (VlakRen *)MEM_callocN(256*sizeof(VlakRen),"findOrAddVlak");
-		re->blovl[a]= v;
-	}
-	v+= (nr & 255);
-	return v;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -667,7 +863,7 @@ void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4],
 
 	/* set flags at 0 if clipped away */
 	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->blovl[a>>8];
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak;
 		else vlr++;
 
 			vlr->flag |= R_VISIBLE;
@@ -690,7 +886,7 @@ void set_normalflags(Render *re)
 	
 	/* switch normal 'snproj' values (define which axis is the optimal one for calculations) */
 	for(a1=0; a1<re->totvlak; a1++) {
-		if((a1 & 255)==0) vlr= re->blovl[a1>>8];
+		if((a1 & 255)==0) vlr= re->vlaknodes[a1>>8].vlak;
 		else vlr++;
 		
 		/* abuse of this flag... this is code that just sets face normal in direction of camera */

@@ -36,6 +36,9 @@ struct VertRen;
 struct HaloRen;
 struct Material;
 struct Render;
+struct MCol;
+struct MTFace;
+struct CustomData;
 
 #define RE_QUAD_MASK	0x7FFFFFF
 #define RE_QUAD_OFFS	0x8000000
@@ -51,9 +54,25 @@ typedef struct VertTableNode {
 	float *winspeed;
 } VertTableNode;
 
+typedef struct VlakTableNode {
+	struct VlakRen *vlak;
+	struct MTFace **mtface;
+	struct MCol **mcol;
+	int totmtface, totmcol;
+	struct CustomDataNames **names;
+} VlakTableNode;
+
+typedef struct CustomDataNames{
+	struct CustomDataNames *next, *prev;
+
+	char (*mtface)[32];
+	char (*mcol)[32];
+} CustomDataNames;
+
 /* renderdatabase.c */
 void free_renderdata_tables(struct Render *re);
 void free_renderdata_vertnodes(struct VertTableNode *vertnodes);
+void free_renderdata_vlaknodes(struct VlakTableNode *vlaknodes);
 
 void set_normalflags(Render *re);
 void project_renderdata(struct Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, float xoffs);
@@ -74,7 +93,13 @@ float *RE_vertren_get_strand(struct Render *re, struct VertRen *ver, int verify)
 float *RE_vertren_get_tangent(struct Render *re, struct VertRen *ver, int verify);
 float *RE_vertren_get_winspeed(struct Render *re, struct VertRen *ver, int verify);
 
-VertRen *RE_vertren_copy(struct Render *re, struct VertRen *ver);
+struct MTFace *RE_vlakren_get_tface(struct Render *re, VlakRen *ren, int n, char **name, int verify);
+struct MCol *RE_vlakren_get_mcol(struct Render *re, VlakRen *ren, int n, char **name, int verify);
+
+struct VertRen *RE_vertren_copy(struct Render *re, struct VertRen *ver);
+struct VlakRen *RE_vlakren_copy(struct Render *re, struct VlakRen *vlr);
+
+void RE_vlakren_set_customdata_names(struct Render *re, struct CustomData *data);
 
 /* haloren->type: flags */
 #define HA_ONLYSKY		1

@@ -785,6 +785,8 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 			node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
 		else if(type==SH_NODE_CURVE_RGB)
 			node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
+		else if(type==SH_NODE_GEOMETRY)
+			node->storage= MEM_callocN(sizeof(NodeGeometry), "NodeGeometry");
 	}
 	else if(ntree->type==NTREE_COMPOSIT) {
 		if(type==CMP_NODE_VALTORGB)

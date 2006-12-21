@@ -154,8 +154,9 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->vertnodes= re->vertnodes;
 	envre->blohalen= re->blohalen;
 	envre->bloha= re->bloha;
-	envre->blovllen= re->blovllen;
-	envre->blovl= re->blovl;
+	envre->vlaknodeslen= re->vlaknodeslen;
+	envre->vlaknodes= re->vlaknodes;
+	envre->customdata_names= re->customdata_names;
 	envre->oc= re->oc;
 	
 	return envre;
@@ -173,8 +174,9 @@ static void envmap_free_render_copy(Render *envre)
 	envre->vertnodes= NULL;
 	envre->blohalen= 0;
 	envre->bloha= NULL;
-	envre->blovllen= 0;
-	envre->blovl= NULL;
+	envre->vlaknodeslen= 0;
+	envre->vlaknodes= NULL;
+	envre->customdata_names.first= envre->customdata_names.last= NULL;
 	envre->oc.adrbranch= NULL;
 	envre->oc.adrnode= NULL;
 	
@@ -258,7 +260,7 @@ static void env_rotate_scene(Render *re, float mat[][4], int mode)
 	}
 		
 	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->blovl[a>>8];
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak;
 		else vlr++;
 		
 		xn= vlr->n[0];
@@ -321,7 +323,7 @@ static void env_layerflags(Render *re, unsigned int notlay)
 	notlay= ~notlay;
 	
 	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->blovl[a>>8];
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak;
 		else vlr++;
 		if((vlr->lay & notlay)==0)
 			vlr->flag &= ~R_VISIBLE;
@@ -334,7 +336,7 @@ static void env_hideobject(Render *re, Object *ob)
 	int a;
 	
 	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->blovl[a>>8];
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak;
 		else vlr++;
 		if(vlr->ob == ob) vlr->flag &= ~R_VISIBLE;
 	}

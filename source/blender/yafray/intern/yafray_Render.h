@@ -24,6 +24,7 @@ extern "C" {
 #include "BKE_global.h"
 
 #include "render_types.h"
+#include "renderdatabase.h"
 /* display_draw() needs render layer info */
 #include "renderpipeline.h"
 

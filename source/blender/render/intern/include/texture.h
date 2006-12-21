@@ -62,7 +62,7 @@ void do_lamp_tex(LampRen *la, float *lavec, struct ShadeInput *shi, float *colf)
 
 void init_render_textures(Render *re);
 
-void render_realtime_texture(struct ShadeInput *shi);           
+void render_realtime_texture(struct ShadeInput *shi, struct Image *ima);
 
 /* imagetexture.h */
 

@@ -34,6 +34,7 @@
 
 #include "BKE_customdata.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 
 #include "DNA_customdata_types.h"
@@ -52,6 +53,7 @@ typedef struct LayerTypeInfo {
 	int size;          /* the memory size of one element of this layer's data */
 	char *structname;  /* name of the struct used, for file writing */
 	int structnum;     /* number of structs per element, for file writing */
+	char *defaultname; /* default layer name */
 
 	/* a function to copy count elements of this layer's data
 	 * (deep copy if appropriate)
@@ -351,22 +353,22 @@ static void layerDefault_mcol(void *data, int count)
 }
 
 const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
-	{sizeof(MVert), "MVert", 1, NULL, NULL, NULL, NULL, NULL},
-	{sizeof(MSticky), "MSticky", 1, NULL, NULL, layerInterp_msticky, NULL,
+	{sizeof(MVert), "MVert", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(MSticky), "MSticky", 1, NULL, NULL, NULL, layerInterp_msticky, NULL,
 	 NULL},
-	{sizeof(MDeformVert), "MDeformVert", 1, layerCopy_mdeformvert,
+	{sizeof(MDeformVert), "MDeformVert", 1, NULL, layerCopy_mdeformvert,
 	 layerFree_mdeformvert, layerInterp_mdeformvert, NULL, NULL},
-	{sizeof(MEdge), "MEdge", 1, NULL, NULL, NULL, NULL, NULL},
-	{sizeof(MFace), "MFace", 1, NULL, NULL, NULL, NULL, NULL},
-	{sizeof(MTFace), "MTFace", 1, layerCopy_tface, NULL,
+	{sizeof(MEdge), "MEdge", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(MFace), "MFace", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(MTFace), "MTFace", 1, "UVTex", layerCopy_tface, NULL,
 	 layerInterp_tface, layerSwap_tface, layerDefault_tface},
 	/* 4 MCol structs per face */
-	{sizeof(MCol)*4, "MCol", 4, NULL, NULL, layerInterp_mcol,
+	{sizeof(MCol)*4, "MCol", 4, "Col", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
-	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 3 floats per normal vector */
-	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL},
-	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 };
 
 const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -403,7 +405,7 @@ static const char *layerType_getName(int type)
 static void customData_update_offsets(CustomData *data);
 
 static CustomDataLayer *customData_add_layer__internal(CustomData *data,
-	int type, int alloctype, void *layerdata, int totelem);
+	int type, int alloctype, void *layerdata, int totelem, const char *name);
 
 void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
                       CustomDataMask mask, int alloctype, int totelem)
@@ -432,10 +434,10 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 
 		if((alloctype == CD_ASSIGN) && (layer->flag & CD_FLAG_NOFREE))
 			newlayer = customData_add_layer__internal(dest, type, CD_REFERENCE,
-			                                          layer->data, totelem);
+				layer->data, totelem, layer->name);
 		else
 			newlayer = customData_add_layer__internal(dest, type, alloctype,
-			                                          layer->data, totelem);
+				layer->data, totelem, layer->name);
 		
 		if(newlayer)
 			newlayer->active = lastactive;
@@ -493,7 +495,7 @@ static void customData_update_offsets(CustomData *data)
 	data->totsize = offset;
 }
 
-static int CustomData_get_layer_index(const struct CustomData *data, int type)
+int CustomData_get_layer_index(const CustomData *data, int type)
 {
 	int i; 
 
@@ -550,7 +552,7 @@ static int customData_resize(CustomData *data, int amount)
 }
 
 static CustomDataLayer *customData_add_layer__internal(CustomData *data,
-	int type, int alloctype, void *layerdata, int totelem)
+	int type, int alloctype, void *layerdata, int totelem, const char *name)
 {
 	const LayerTypeInfo *typeInfo= layerType_getInfo(type);
 	int size = typeInfo->size * totelem, flag = 0, index = data->totlayer;
@@ -586,6 +588,8 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 		}
 	}
 	
+	data->totlayer++;
+
 	/* keep layers ordered by type */
 	for( ; index > 0 && data->layers[index - 1].type > type; --index)
 		data->layers[index] = data->layers[index - 1];
@@ -594,12 +598,17 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 	data->layers[index].flag = flag;
 	data->layers[index].data = newlayerdata;
 
+	if(name) {
+		strcpy(data->layers[index].name, name);
+		CustomData_set_layer_unique_name(data, index);
+	}
+	else
+		data->layers[index].name[0] = '\0';
+
 	if(index > 0 && data->layers[index-1].type == type)
 		data->layers[index].active = data->layers[index-1].active;
 	else
 		data->layers[index].active = 0;
-
-	data->totlayer++;
 
 	customData_update_offsets(data);
 
@@ -610,9 +619,10 @@ void *CustomData_add_layer(CustomData *data, int type, int alloctype,
                            void *layerdata, int totelem)
 {
 	CustomDataLayer *layer;
+	const LayerTypeInfo *typeInfo= layerType_getInfo(type);
 	
 	layer = customData_add_layer__internal(data, type, alloctype, layerdata,
-	                                       totelem);
+	                                       totelem, typeInfo->defaultname);
 
 	if(layer)
 		return layer->data;
@@ -1195,3 +1205,53 @@ const char *CustomData_layertype_name(int type)
 {
 	return layerType_getName(type);
 }
+
+void CustomData_set_layer_unique_name(CustomData *data, int index)
+{
+	char tempname[64];
+	int number, i, type;
+	char *dot, *name;
+	CustomDataLayer *layer, *nlayer= &data->layers[index];
+	const LayerTypeInfo *typeInfo= layerType_getInfo(nlayer->type);
+
+	if (!typeInfo->defaultname)
+		return;
+
+	type = nlayer->type;
+	name = nlayer->name;
+
+	if (name[0] == '\0')
+		BLI_strncpy(nlayer->name, typeInfo->defaultname, sizeof(nlayer->name));
+	
+	/* see if there is a duplicate */
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+
+		if(i!=index && layer->type==type && strcmp(layer->name, name)==0)
+			break;
+	}
+
+	if(i == data->totlayer)
+		return;
+
+	/* strip off the suffix */
+	dot = strchr(nlayer->name, '.');
+	if(dot) *dot=0;
+	
+	for(number=1; number <=999; number++) {
+		sprintf(tempname, "%s.%03d", nlayer->name, number);
+
+		for(i=0; i<data->totlayer; i++) {
+			layer = &data->layers[i];
+			
+			if(i!=index && layer->type==type && strcmp(layer->name, tempname)==0)
+				break;
+		}
+
+		if(i == data->totlayer) {
+			BLI_strncpy(nlayer->name, tempname, sizeof(nlayer->name));
+			return;
+		}
+	}	
+}
+

@@ -32,14 +32,15 @@ struct LampRen;
 
 /* shadeinput.c */
 
+#define RE_MAX_OSA 16
 
 /* needed to calculate shadow and AO for an entire pixel */
 typedef struct ShadeSample {
 	int tot;				/* amount of shi in use, can be 1 for not FULL_OSA */
 	
 	/* could be malloced once */
-	ShadeInput shi[16];		/* RE_MAX_OSA */
-	ShadeResult shr[16];	/* RE_MAX_OSA */
+	ShadeInput shi[RE_MAX_OSA];
+	ShadeResult shr[RE_MAX_OSA];
 	
 	int samplenr;			/* counter, detect shadow-reuse for shaders */
 } ShadeSample;

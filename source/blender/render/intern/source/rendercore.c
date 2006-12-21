@@ -404,11 +404,11 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 				break;
 			case SCE_PASS_UV:
 				/* box filter only, gauss will screwup UV too much */
-				if(shi->uv[2]!=0.0f) {
+				if(shi->uv[0].uv[2]!=0.0f) {
 					float mult= (float)count_mask(curmask)/(float)R.osa;
 					fp= rpass->rect + 3*offset;
-					fp[0]+= mult*(0.5f + 0.5f*shi->uv[0]);
-					fp[1]+= mult*(0.5f + 0.5f*shi->uv[1]);
+					fp[0]+= mult*(0.5f + 0.5f*shi->uv[0].uv[0]);
+					fp[1]+= mult*(0.5f + 0.5f*shi->uv[0].uv[1]);
 					fp[2]+= mult;
 				}
 				break;
@@ -481,8 +481,8 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 				col= shr->nor;
 				break;
 			case SCE_PASS_UV:
-				uvcol[0]= 0.5f + 0.5f*shi->uv[0];
-				uvcol[1]= 0.5f + 0.5f*shi->uv[1];
+				uvcol[0]= 0.5f + 0.5f*shi->uv[0].uv[0];
+				uvcol[1]= 0.5f + 0.5f*shi->uv[0].uv[1];
 				uvcol[2]= 1.0f;
 				col= uvcol;
 				break;
@@ -1443,6 +1443,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 static int get_next_bake_face(BakeShade *bs)
 {
 	VlakRen *vlr;
+	MTFace *tface;
 	static int v= 0, vdone= 0;
 	
 	if(bs==NULL) {
@@ -1457,8 +1458,10 @@ static int get_next_bake_face(BakeShade *bs)
 		vlr= RE_findOrAddVlak(&R, v);
 		
 		if(vlr->ob->flag & SELECT) {
-			if(vlr->tface && vlr->tface->tpage) {
-				Image *ima= vlr->tface->tpage;
+			tface= RE_vlakren_get_tface(&R, vlr, 0, NULL, 0);
+
+			if(tface && tface->tpage) {
+				Image *ima= tface->tpage;
 				ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 				float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
 				
@@ -1509,7 +1512,7 @@ static int get_next_bake_face(BakeShade *bs)
 static void shade_tface(BakeShade *bs)
 {
 	VlakRen *vlr= bs->vlr;
-	MTFace *tface= vlr->tface;
+	MTFace *tface= RE_vlakren_get_tface(&R, vlr, 0, NULL, 0);
 	Image *ima= tface->tpage;
 	float vec[4][2];
 	int a, i1, i2, i3;

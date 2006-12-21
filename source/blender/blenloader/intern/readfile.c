@@ -4203,10 +4203,11 @@ static void sort_shape_fix(Main *main)
 
 static void customdata_version_242(Mesh *me)
 {
+	CustomDataLayer *layer;
 	MTFace *mtf;
 	MCol *mcol;
 	TFace *tf;
-	int a;
+	int a, mtfacen, mcoln;
 
 	if (!me->vdata.totlayer) {
 		CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, me->mvert, me->totvert);
@@ -4254,6 +4255,25 @@ static void customdata_version_242(Mesh *me)
 	if (me->tface) {
 		MEM_freeN(me->tface);
 		me->tface= NULL;
+	}
+
+	for (a=0, mtfacen=0, mcoln=0; a < me->fdata.totlayer; a++) {
+		layer= &me->fdata.layers[a];
+
+		if (layer->type == CD_MTFACE) {
+			if (layer->name[0] == 0) {
+				if (mtfacen == 0) strcpy(layer->name, "UVTex");
+				else sprintf(layer->name, "UVTex.%.3d", mtfacen);
+			}
+			mtfacen++;
+		}
+		else if (layer->type == CD_MCOL) {
+			if (layer->name[0] == 0) {
+				if (mcoln == 0) strcpy(layer->name, "Col");
+				else sprintf(layer->name, "Col.%.3d", mcoln);
+			}
+			mcoln++;
+		}
 	}
 
 	mesh_update_customdata_pointers(me);

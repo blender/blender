@@ -926,16 +926,19 @@ static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
 {
 	if (tface && ((tface->flag&TF_HIDE) || (tface->mode&TF_INVISIBLE))) return 0;
 
-	if (set_draw_settings_cached(0, g_draw_tface_mesh_istex, tface, g_draw_tface_mesh_islight, g_draw_tface_mesh_ob, matnr, TF_TWOSIDE)) {
+	if (tface && set_draw_settings_cached(0, g_draw_tface_mesh_istex, tface, g_draw_tface_mesh_islight, g_draw_tface_mesh_ob, matnr, TF_TWOSIDE)) {
 		glColor3ub(0xFF, 0x00, 0xFF);
 		return 2; /* Don't set color */
 	} else if (tface && tface->mode&TF_OBCOL) {
 		glColor3ubv(g_draw_tface_mesh_obcol);
 		return 2; /* Don't set color */
 	} else if (!mcol) {
-		Material *ma= give_current_material(g_draw_tface_mesh_ob, matnr+1);
-		if(ma) glColor3f(ma->r, ma->g, ma->b);
-		else glColor3f(1.0, 1.0, 1.0);
+		if (tface) glColor3f(1.0, 1.0, 1.0);
+		else {
+			Material *ma= give_current_material(g_draw_tface_mesh_ob, matnr+1);
+			if(ma) glColor3f(ma->r, ma->g, ma->b);
+			else glColor3f(1.0, 1.0, 1.0);
+		}
 		return 2; /* Don't set color */
 	} else {
 		return 1; /* Set color from mcol */

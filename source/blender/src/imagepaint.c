@@ -250,7 +250,7 @@ static void imapaint_redraw(int final, int texpaint, Image *image)
 			imagepaint_composite_tags(G.scene->nodetree, image, &G.sima->iuser);
 		}
 		/* signal composite (hurmf, need an allqueue?) */
-		if(G.sima->lock) {
+		if(!texpaint && G.sima->lock) {
 			ScrArea *sa;
 			for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
 				if(sa->spacetype==SPACE_NODE) {

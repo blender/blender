@@ -784,7 +784,6 @@ void make_editMesh()
 	Mesh *me= G.obedit->data;
 	EditMesh *em= G.editMesh;
 	MFace *mface;
-	MTFace *tface;
 	MVert *mvert;
 	MSelect *mselect;
 	KeyBlock *actkey;
@@ -872,10 +871,11 @@ void make_editMesh()
 		}
 		
 		CustomData_copy(&me->fdata, &em->fdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
+		if (G.f & G_FACESELECT)
+			select_mface_from_tface(me);
 
 		/* make faces */
 		mface= me->mface;
-		tface= me->mtface;
 
 		for(a=0; a<me->totface; a++, mface++) {
 			eve1= evlist[mface->v1];
@@ -892,22 +892,15 @@ void make_editMesh()
 				efa->mat_nr= mface->mat_nr;
 				efa->flag= mface->flag & ~ME_HIDE;
 				
-				if((G.f & G_FACESELECT)==0) {
-					/* select face flag, if no edges we flush down */
-					if(mface->flag & ME_FACE_SEL) {
-						efa->f |= SELECT;
-					}
-					if(mface->flag & ME_HIDE) efa->h= 1;
+				/* select and hide face flag */
+				if(mface->flag & ME_FACE_SEL) {
+					efa->f |= SELECT;
 				}
-				else if((tface = CustomData_get(&me->fdata, a, CD_MTFACE))) {
-					if(tface->flag & TF_HIDE) 
-						efa->h= 1;
-					else if(tface->flag & TF_SELECT)
-						EM_select_face(efa, 1);
-				}
-			}
+				if(mface->flag & ME_HIDE) efa->h= 1;
 
-			if(me->mtface) tface++;
+				if((G.f & G_FACESELECT) && (efa->f & SELECT))
+					EM_select_face(efa, 1); /* flush down */
+			}
 		}
 	}
 	
@@ -956,7 +949,6 @@ void load_editMesh(void)
 	MEdge *medge;
 	MFace *mface;
 	MSelect *mselect;
-	MTFace *tf;
 	EditVert *eve;
 	EditFace *efa;
 	EditEdge *eed;
@@ -1148,20 +1140,8 @@ void load_editMesh(void)
 	}
 
 	/* sync hide and select flags with faceselect mode */
-	if(G.f & G_FACESELECT) {
-		if(me->mtface && (me->totface > 0)) {
-			efa= em->faces.first;
-			for(a=0, efa=em->faces.first; efa; a++, efa=efa->next) {
-				tf = &me->mtface[a];
-
-				if(efa->h) tf->flag |= TF_HIDE;
-				else tf->flag &= ~TF_HIDE;
-				if(efa->f & SELECT) tf->flag |= TF_SELECT;
-				else tf->flag &= ~TF_SELECT;
-			}
-		}
-	}
-
+	if (G.f & G_FACESELECT)
+		select_tface_from_mface(me);
 
 	/* patch hook indices and vertex parents */
 	{

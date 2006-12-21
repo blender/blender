@@ -86,7 +86,7 @@ bool yafrayRender_t::getAllMatTexObs()
 
 	for (int i=0; i < re->totvlak; i++) {
 
-		if ((i & 255)==0) vlr = re->blovl[i>>8]; else vlr++;
+		if ((i & 255)==0) vlr=re->vlaknodes[i>>8].vlak; else vlr++;
 
 		// ---- The materials & textures
 		// in this case, probably every face has a material assigned, which can be the default material,
@@ -129,17 +129,20 @@ bool yafrayRender_t::getAllMatTexObs()
 		// Also make list of facetexture images (material 'TexFace').
 		if (vlr->ob) {
 			int nv = 0;	// number of vertices
+			MTFace *tface;
+
 			if (vlr->v4) nv=4; else if (vlr->v3) nv=3;
 			if (nv) {
 				renderobs[vlr->ob->id.name] = vlr->ob;
 				all_objects[vlr->ob].push_back(vlr);
-				if (vlr->tface) {
-					Image* fc_img = vlr->tface->tpage;
-					if (fc_img) {
-						Material* fmat = vlr->mat;
-						// only save if TexFace enabled
-						if (fmat && (fmat->mode & MA_FACETEXTURE)) imagetex[fc_img].insert(fmat);
-					}
+
+				tface= RE_vlakren_get_tface(re, vlr, 0, NULL, 0);
+				if (tface && tface->tpage) {
+					Material* fmat = vlr->mat;
+
+					// only save if TexFace enabled
+					if(fmat && (fmat->mode & MA_FACETEXTURE))
+						imagetex[tface->tpage].insert(fmat);
 				}
 			}
 		}

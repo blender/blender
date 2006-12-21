@@ -46,6 +46,7 @@
 #include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
@@ -3025,7 +3026,10 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_MATPRV, "Glob",			630,180,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Object",		675,180,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "",750,180,158,18, &(mtex->object), "");
+	if(mtex->texco == TEXCO_UV)
+		uiDefBut(block, TEX, B_MATPRV, "UV:", 750,180,158,18, mtex->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
+	else
+		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "Ob:",750,180,158,18, &(mtex->object), "");
 	
 	uiDefButS(block, ROW, B_MATPRV, "UV",			630,160,40,18, &(mtex->texco), 4.0, (float)TEXCO_UV, 0, 0, "Uses UV coordinates for texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Orco",			670,160,55,18, &(mtex->texco), 4.0, (float)TEXCO_ORCO, 0, 0, "Uses the original undeformed coordinates of the object");

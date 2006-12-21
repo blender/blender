@@ -302,7 +302,7 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 	/* set clip in vertices when face visible */
 	for(a=0; a<re->totvlak; a++) {
 		
-		if((a & 255)==0) vlr= re->blovl[a>>8];
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak;
 		else vlr++;
 		
 		/* note; these conditions are copied from zbuffer_shadow() */
@@ -317,7 +317,7 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 			vlr->v2->clip= 1;
 			vlr->v3->clip= 1;
 			if(vlr->v4) vlr->v4->clip= 1;
-		}			
+		}				
 	}		
 	
 	/* calculate min and max */
@@ -1424,7 +1424,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 	
 	for(a=0; a<re->totvlak; a++) {
 		
-		if((a & 255)==0) vlr= re->blovl[a>>8];
+		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak;
 		else vlr++;
 		
 		/* note, these conditions are copied in shadowbuf_autoclip() */

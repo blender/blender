@@ -188,13 +188,25 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNod
 {
 	if(data) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
+		ShadeInputUV *suv= &shi->uv[0];
+		NodeGeometry *ngeo= (NodeGeometry*)node->storage;
+		int i;
+
+		if(ngeo->uvname[0]) {
+			for(i = 0; i < shi->totuv; i++) {
+				if(strcmp(shi->uv[i].name, ngeo->uvname)==0) {
+					suv= &shi->uv[i];
+					break;
+				}
+			}
+		}
 		
 		/* out: global, local, view, orco, uv, normal */
 		VECCOPY(out[GEOM_OUT_GLOB]->vec, shi->gl);
 		VECCOPY(out[GEOM_OUT_LOCAL]->vec, shi->co);
 		VECCOPY(out[GEOM_OUT_VIEW]->vec, shi->view);
 		VECCOPY(out[GEOM_OUT_ORCO]->vec, shi->lo);
-		VECCOPY(out[GEOM_OUT_UV]->vec, shi->uv);
+		VECCOPY(out[GEOM_OUT_UV]->vec, suv->uv);
 		VECCOPY(out[GEOM_OUT_NORMAL]->vec, shi->vno);
 		
 		if(shi->osatex) {
@@ -206,7 +218,7 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNod
 			out[GEOM_OUT_VIEW]->datatype= NS_OSA_VALUES;
 			out[GEOM_OUT_ORCO]->data= shi->dxlo;
 			out[GEOM_OUT_ORCO]->datatype= NS_OSA_VECTORS;
-			out[GEOM_OUT_UV]->data= shi->dxuv;
+			out[GEOM_OUT_UV]->data= suv->dxuv;
 			out[GEOM_OUT_UV]->datatype= NS_OSA_VECTORS;
 			out[GEOM_OUT_NORMAL]->data= shi->dxno;
 			out[GEOM_OUT_NORMAL]->datatype= NS_OSA_VECTORS;
@@ -218,11 +230,11 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNod
 static bNodeType sh_node_geom= {
 	/* type code   */	SH_NODE_GEOMETRY,
 	/* name        */	"Geometry",
-	/* width+range */	90, 40, 100,
-	/* class+opts  */	NODE_CLASS_INPUT, 0,
+	/* width+range */	120, 80, 160,
+	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS,
 	/* input sock  */	NULL,
 	/* output sock */	sh_node_geom_out,
-	/* storage     */	"",
+	/* storage     */	"NodeGeometry",
 	/* execfunc    */	node_shader_exec_geom
 	
 };

@@ -434,7 +434,7 @@ static void calc_edge_stress(Render *re, Mesh *me, int startvert, int startvlak)
 /* gets tangent from tface or orco */
 static void calc_tangent_vector(Render *re, VlakRen *vlr)
 {
-	MTFace *tface= vlr->tface;
+	MTFace *tface= RE_vlakren_get_tface(re, vlr, 0, NULL, 0);
 	VertRen *v1=vlr->v1, *v2=vlr->v2, *v3=vlr->v3, *v4=vlr->v4;
 	float tang[3], tangv[3], ct[3], e1[3], e2[3], *tav;
 	float *uv1, *uv2, *uv3, *uv4;
@@ -1627,37 +1627,33 @@ static void init_render_mball(Render *re, Object *ob)
 /* ------------------------------------------------------------------------- */
 /* convert */
 
+static int vlakren_customdata_layer_num(int n, int active)
+{
+	/* make the active layer the first */
+	if (n == active) return 0;
+	else if (n < active) return n+1;
+	else return n;
+}
+
 struct edgesort {
 	int v1, v2;
-	int has_mcol;
-	MTFace *tface;
-	float uv1[2], uv2[2];
-	unsigned int mcol1, mcol2;
+	int f;
+	int i1, i2;
 };
 
 /* edges have to be added with lowest index first for sorting */
-static void to_edgesort(struct edgesort *ed, int i1, int i2, int v1, int v2, unsigned int *mcol, MTFace *tface)
+static void to_edgesort(struct edgesort *ed, int i1, int i2, int v1, int v2, int f)
 {
-	if(v1<v2) {
-		ed->v1= v1; ed->v2= v2;
-	}
-	else {
-		ed->v1= v2; ed->v2= v1;
+	if(v1>v2) {
+		SWAP(int, v1, v2);
 		SWAP(int, i1, i2);
 	}
-	/* copy color and tface, edges use different ordering */
-	ed->tface= tface;
-	if(tface) {
-		ed->uv1[0]= tface->uv[i1][0];
-		ed->uv1[1]= tface->uv[i1][1];
-		ed->uv2[0]= tface->uv[i2][0];
-		ed->uv2[1]= tface->uv[i2][1];
-	}	
-	ed->has_mcol= mcol!=NULL;
-	if(mcol) {
-		ed->mcol1= mcol[i1];
-		ed->mcol2= mcol[i2];
-	}
+
+	ed->v1= v1;
+	ed->v2= v2;
+	ed->i1= i1;
+	ed->i2= i2;
+	ed->f = f;
 }
 
 static int vergedgesort(const void *v1, const void *v2)
@@ -1687,72 +1683,83 @@ static struct edgesort *make_mesh_edge_lookup(DerivedMesh *dm, int *totedgesort)
 	
 	if(mcol==NULL && tface==NULL) return NULL;
 	
-	/* make sorted table with edges and and tface/mcol pointers in it */
+	/* make sorted table with edges and face indices in it */
 	for(a= totface, mf= mface; a>0; a--, mf++) {
 		if(mf->v4) totedge+=4;
 		else if(mf->v3) totedge+=3;
 	}
-	if(totedge==0) return NULL;
+
+	if(totedge==0)
+		return NULL;
 	
 	ed= edsort= MEM_callocN(totedge*sizeof(struct edgesort), "edgesort");
 	
-	for(a= totface, mf= mface; a>0; a--, mf++) {
-		if(mface->v4 || mface->v3) {
-			to_edgesort(ed++, 0, 1, mf->v1, mf->v2, mcol, tface);
-			to_edgesort(ed++, 1, 2, mf->v2, mf->v3, mcol, tface);
-			if(mf->v4) {
-				to_edgesort(ed++, 2, 3, mf->v3, mf->v4, mcol, tface);
-				to_edgesort(ed++, 3, 0, mf->v4, mf->v1, mcol, tface);
-			}
-			else if(mf->v3) {
-				to_edgesort(ed++, 2, 3, mf->v3, mf->v1, mcol, tface);
-			}
+	for(a=0, mf=mface; a<totface; a++, mf++) {
+		to_edgesort(ed++, 0, 1, mf->v1, mf->v2, a);
+		to_edgesort(ed++, 1, 2, mf->v2, mf->v3, a);
+		if(mf->v4) {
+			to_edgesort(ed++, 2, 3, mf->v3, mf->v4, a);
+			to_edgesort(ed++, 3, 0, mf->v4, mf->v1, a);
 		}
-		if(mcol) mcol+=4;
-		if(tface) tface++;
+		else if(mf->v3)
+			to_edgesort(ed++, 2, 3, mf->v3, mf->v1, a);
 	}
 	
 	qsort(edsort, totedge, sizeof(struct edgesort), vergedgesort);
 	
 	*totedgesort= totedge;
+
 	return edsort;
 }
 
-static void use_mesh_edge_lookup(Render *re, MEdge *medge, VlakRen *vlr, struct edgesort *edgetable, int totedge)
+static void use_mesh_edge_lookup(Render *re, DerivedMesh *dm, MEdge *medge, VlakRen *vlr, struct edgesort *edgetable, int totedge)
 {
 	struct edgesort ed, *edp;
+	CustomDataLayer *layer;
+	MTFace *mtface, *mtf;
+	MCol *mcol, *mc;
+	int index, mtfn, mcn, n;
+	char *name;
 	
 	if(medge->v1 < medge->v2) {
-		ed.v1= medge->v1; ed.v2= medge->v2;
+		ed.v1= medge->v1;
+		ed.v2= medge->v2;
 	}
 	else {
-		ed.v1= medge->v2; ed.v2= medge->v1;
+		ed.v1= medge->v2;
+		ed.v2= medge->v1;
 	}
 	
 	edp= bsearch(&ed, edgetable, totedge, sizeof(struct edgesort), vergedgesort);
+
+	/* since edges have different index ordering, we have to duplicate mcol and tface */
 	if(edp) {
-		/* since edges have different index ordering, we have to duplicate mcol and tface */
-		if(edp->tface) {
-			vlr->tface= BLI_memarena_alloc(re->memArena, sizeof(MTFace));
-			memcpy(vlr->tface, edp->tface, sizeof(MTFace));
-			
-			if(edp->v1==medge->v1) {
-				memcpy(vlr->tface->uv[0], edp->uv1, 2*sizeof(float));
-				memcpy(vlr->tface->uv[1], edp->uv2, 2*sizeof(float));
+		mtfn= mcn= 0;
+
+		for(index=0; index<dm->faceData.totlayer; index++) {
+			layer= &dm->faceData.layers[index];
+			name= layer->name;
+
+			if(layer->type == CD_MTFACE && mtfn < MAX_MTFACE) {
+				mtface= &((MTFace*)layer->data)[edp->f];
+				n= vlakren_customdata_layer_num(mtfn++, layer->active);
+				mtf= RE_vlakren_get_tface(re, vlr, n, &name, 1);
+
+				*mtf= *mtface;
+
+				memcpy(mtf->uv[0], mtface->uv[edp->i1], sizeof(float)*2);
+				memcpy(mtf->uv[1], mtface->uv[edp->i2], sizeof(float)*2);
+				memcpy(mtf->uv[2], mtface->uv[1], sizeof(float)*2);
+				memcpy(mtf->uv[3], mtface->uv[1], sizeof(float)*2);
 			}
-			else {
-				memcpy(vlr->tface->uv[0], edp->uv2, 2*sizeof(float));
-				memcpy(vlr->tface->uv[1], edp->uv1, 2*sizeof(float));
+			else if(layer->type == CD_MCOL && mcn < MAX_MCOL) {
+				mcol= &((MCol*)layer->data)[edp->f*4];
+				n= vlakren_customdata_layer_num(mcn++, layer->active);
+				mc= RE_vlakren_get_mcol(re, vlr, n, &name, 1);
+
+				mc[0]= mcol[edp->i1];
+				mc[1]= mc[2]= mc[3]= mcol[edp->i2];
 			}
-			memcpy(vlr->tface->uv[2], vlr->tface->uv[1], 2*sizeof(float));
-			memcpy(vlr->tface->uv[3], vlr->tface->uv[1], 2*sizeof(float));
-		} 
-		if(edp->has_mcol) {
-			vlr->vcol= BLI_memarena_alloc(re->memArena, sizeof(MCol)*4);
-			vlr->vcol[0]= edp->mcol1;
-			vlr->vcol[1]= edp->mcol2;
-			vlr->vcol[2]= vlr->vcol[1];
-			vlr->vcol[3]= vlr->vcol[1];
 		}
 	}
 }
@@ -1768,7 +1775,6 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 	MSticky *ms = NULL;
 	PartEff *paf;
 	DerivedMesh *dm;
-	unsigned int *vertcol;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *orco=0;
 	int a, a1, ok, need_orco=0, need_stress=0, need_tangent=0, totvlako, totverto, vertofs;
@@ -1899,6 +1905,8 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 		}
 		
 		if(!only_verts) {
+			/* store customdata names, because DerivedMesh is freed */
+			RE_vlakren_set_customdata_names(re, &dm->faceData);
 			
 			/* still to do for keys: the correct local texture coordinate */
 
@@ -1927,14 +1935,10 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 				}
 
 				if(ok) {
-					MTFace *tface= NULL;
-
 					end= dm->getNumFaces(dm);
 					mface= dm->getFaceArray(dm);
-					tface= dm->getFaceDataArray(dm, CD_MTFACE);
-					vertcol= dm->getFaceDataArray(dm, CD_MCOL);
 
-					for(a=0; a<end; a++) {
+					for(a=0; a<end; a++, mface++) {
 						int v1, v2, v3, v4, flag;
 						
 						if( mface->mat_nr==a1 ) {
@@ -1981,19 +1985,31 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 
 							if(len==0) re->totvlak--;
 							else {
-								if(tface) {
-									vlr->tface= BLI_memarena_alloc(re->memArena, sizeof(MTFace));
-									memcpy(vlr->tface, tface, sizeof(MTFace));
-								} 
-								if (vertcol) {
-									vlr->vcol= BLI_memarena_alloc(re->memArena, sizeof(int)*4);
-									memcpy(vlr->vcol, vertcol+4*a, sizeof(int)*4);
+								CustomDataLayer *layer;
+								MTFace *mtface, *mtf;
+								MCol *mcol, *mc;
+								int index, mtfn= 0, mcn= 0, n;
+								char *name;
+
+								for(index=0; index<dm->faceData.totlayer; index++) {
+									layer= &dm->faceData.layers[index];
+									name= layer->name;
+									
+									if(layer->type == CD_MTFACE && mtfn < MAX_MTFACE) {
+										n= vlakren_customdata_layer_num(mtfn++, layer->active);
+										mtf= RE_vlakren_get_tface(re, vlr, n, &name, 1);
+										mtface= (MTFace*)layer->data;
+										*mtf= mtface[a];
+									}
+									else if(layer->type == CD_MCOL && mcn < MAX_MCOL) {
+										n= vlakren_customdata_layer_num(mcn++, layer->active);
+										mc= RE_vlakren_get_mcol(re, vlr, n, &name, 1);
+										mcol= (MCol*)layer->data;
+										memcpy(mc, &mcol[a*4], sizeof(MCol)*4);
+									}
 								}
 							}
 						}
-
-						mface++;
-						if(tface) tface++;
 					}
 				}
 			}
@@ -2025,7 +2041,7 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 						vlr->v4= NULL;
 						
 						if(edgetable) {
-							use_mesh_edge_lookup(re, medge, vlr, edgetable, totedge);
+							use_mesh_edge_lookup(re, dm, medge, vlr, edgetable, totedge);
 						}
 						
 						xn= -(v0->no[0]+v1->no[0]);
@@ -2935,11 +2951,6 @@ void RE_Database_Free(Render *re)
 
 	/* FREE */
 	
-	if(re->memArena) {
-		BLI_memarena_free(re->memArena);
-		re->memArena = NULL;
-	}
-	
 	for(lar= re->lampren.first; lar; lar= lar->next) {
 		freeshadowbuf(lar);
 		if(lar->jitter) MEM_freeN(lar->jitter);
@@ -2991,6 +3002,10 @@ void RE_Database_Free(Render *re)
 			if((re->r.scemode & R_PREVIEWBUTS)==0)
 				BKE_image_free_all_textures();
 
+	if(re->memArena) {
+		BLI_memarena_free(re->memArena);
+		re->memArena = NULL;
+	}
 }
 
 /* per face check if all samples should be taken.
@@ -3081,8 +3096,7 @@ static void check_non_flat_quads(Render *re)
 				if(ABS(xn) < 0.999995 ) {	// checked on noisy fractal grid
 					float d1, d2;
 
-					vlr1= RE_findOrAddVlak(re, re->totvlak++);
-					*vlr1= *vlr;
+					vlr1= RE_vlakren_copy(re, vlr);
 					vlr1->flag |= R_FACE_SPLIT;
 					
 					/* split direction based on vnorms */
@@ -3117,10 +3131,6 @@ static void check_non_flat_quads(Render *re)
 					/* new normals */
 					CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
 					CalcNormFloat(vlr1->v3->co, vlr1->v2->co, vlr1->v1->co, vlr1->n);
-					
-					/* so later UV can be pulled from original tface, look for R_DIVIDE_24 for direction */
-					vlr1->tface=vlr->tface; 
-
 				}
 				/* clear the flag when not divided */
 				else vlr->flag &= ~R_DIVIDE_24;
@@ -3914,7 +3924,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 	unsigned int lay;
 	
 	re->scene= scene;
-	
+
 	/* renderdata setup and exceptions */
 	re->r= scene->r;
 	re->r.mode &= ~R_OSA;
@@ -4110,15 +4120,34 @@ static short test_for_displace(Render *re, Object *ob)
 	return 0;
 }
 
-static void displace_render_vert(Render *re, ShadeInput *shi, VertRen *vr, float *scale)
+static void displace_render_vert(Render *re, ShadeInput *shi, VertRen *vr, int vindex, float *scale)
 {
+	MTFace *tface;
 	short texco= shi->mat->texco;
 	float sample=0;
+	char *name;
+	int i;
+
 	/* shi->co is current render coord, just make sure at least some vector is here */
 	VECCOPY(shi->co, vr->co);
 	/* vertex normal is used for textures type 'col' and 'var' */
 	VECCOPY(shi->vn, vr->n);
-	
+
+	if (texco & TEXCO_UV) {
+		shi->totuv= 0;
+
+		for (i=0; (tface=RE_vlakren_get_tface(re, shi->vlr, i, &name, 0)); i++) {
+			ShadeInputUV *suv= &shi->uv[i];
+
+			/* shi.uv needs scale correction from tface uv */
+			suv->uv[0]= 2*tface->uv[vindex][0]-1.0f;
+			suv->uv[1]= 2*tface->uv[vindex][1]-1.0f;
+			suv->uv[2]= 0.0f;
+			suv->name= name;
+			shi->totuv++;
+		}
+	}
+
 	/* set all rendercoords, 'texco' is an ORed value for all textures needed */
 	if ((texco & TEXCO_ORCO) && (vr->orco)) {
 		VECCOPY(shi->lo, vr->orco);
@@ -4173,55 +4202,26 @@ static void displace_render_vert(Render *re, ShadeInput *shi, VertRen *vr, float
 static void displace_render_face(Render *re, VlakRen *vlr, float *scale)
 {
 	ShadeInput shi;
-	//	VertRen vr;
-	//	float samp1,samp2, samp3, samp4, xn;
-	short hasuv=0;
+
 	/* set up shadeinput struct for multitex() */
-	
 	shi.osatex= 0;		/* signal not to use dx[] and dy[] texture AA vectors */
 	shi.vlr= vlr;		/* current render face */
 	shi.mat= vlr->mat;		/* current input material */
 	
-	
-	/* UV coords must come from face */
-	hasuv = vlr->tface && (shi.mat->texco & TEXCO_UV);
-	if (hasuv) shi.uv[2]=0.0f; 
-	/* I don't think this is used, but seting it just in case */
-	
 	/* Displace the verts, flag is set when done */
-	if (! (vlr->v1->flag)){		
-		if (hasuv)	{
-			shi.uv[0] = 2*vlr->tface->uv[0][0]-1.0f; /* shi.uv and tface->uv are */
-			shi.uv[1]=  2*vlr->tface->uv[0][1]-1.0f; /* scalled differently 	 */
-		}
-		displace_render_vert(re, &shi, vlr->v1, scale);
-	}
+	if (!vlr->v1->flag)
+		displace_render_vert(re, &shi, vlr->v1,0,  scale);
 	
-	if (! (vlr->v2->flag)) {
-		if (hasuv)	{
-			shi.uv[0] = 2*vlr->tface->uv[1][0]-1.0f; 
-			shi.uv[1]=  2*vlr->tface->uv[1][1]-1.0f;
-		}
-		displace_render_vert(re, &shi, vlr->v2, scale);
-	}
-	
- 	if (! (vlr->v3->flag)) {
-		if (hasuv)	{
-			shi.uv[0] = 2*vlr->tface->uv[2][0]-1.0f; 
-			shi.uv[1]=  2*vlr->tface->uv[2][1]-1.0f;
-		}	
-		displace_render_vert(re, &shi, vlr->v3, scale);
-	}
-	
+	if (!vlr->v2->flag)
+		displace_render_vert(re, &shi, vlr->v2, 1, scale);
+
+	if (!vlr->v3->flag)
+		displace_render_vert(re, &shi, vlr->v3, 2, scale);
+
 	if (vlr->v4) {
-		if (! (vlr->v4->flag)) {
-		 	if (hasuv)	{
-				shi.uv[0] = 2*vlr->tface->uv[3][0]-1.0f; 
-				shi.uv[1]=  2*vlr->tface->uv[3][1]-1.0f;
-			}	
-			displace_render_vert(re, &shi, vlr->v4, scale);
-		}
-		/* We want to split the quad along the opposite verts that are */
+		if (!vlr->v4->flag)
+			displace_render_vert(re, &shi, vlr->v4, 3, scale);
+
 		/*	closest in displace value.  This will help smooth edges.   */ 
 		if ( fabs(vlr->v1->accum - vlr->v3->accum) > fabs(vlr->v2->accum - vlr->v4->accum)) 
 			vlr->flag |= R_DIVIDE_24;
@@ -4235,7 +4235,6 @@ static void displace_render_face(Render *re, VlakRen *vlr, float *scale)
 	else {
 		CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
 	}
-	
 }
 
 
@@ -4261,7 +4260,7 @@ static void do_displacement(Render *re, Object *ob, int startface, int numface, 
 		vr= RE_findOrAddVert(re, i);
 		vr->flag= 0;
 	}
-	
+
 	for(i=startface; i<startface+numface; i++){
 		vlr=RE_findOrAddVlak(re, i);
 		displace_render_face(re, vlr, scale);

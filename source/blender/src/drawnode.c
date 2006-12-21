@@ -599,6 +599,18 @@ static int node_shader_buts_vect_math(uiBlock *block, bNodeTree *ntree, bNode *n
 	return 20; 
 }
 
+static int node_shader_buts_geometry(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeGeometry *ngeo= (NodeGeometry*)node->storage;
+
+		uiDefBut(block, TEX, B_NODE_EXEC+node->nr, "UV:", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, ngeo->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
+	}
+
+	return 20;
+}
+
+
 /* only once called */
 static void node_shader_set_butfunc(bNodeType *ntype)
 {
@@ -642,6 +654,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 		case SH_NODE_VECT_MATH: 
 			ntype->butfunc= node_shader_buts_vect_math;
 			break; 
+		case SH_NODE_GEOMETRY:
+			ntype->butfunc= node_shader_buts_geometry;
+			break;
 		default:
 			ntype->butfunc= NULL;
 	}

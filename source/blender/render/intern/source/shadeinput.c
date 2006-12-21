@@ -638,23 +638,38 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				
 		if((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)))  {
 			VlakRen *vlr= shi->vlr;
-			int j1=shi->i1, j2=shi->i2, j3=shi->i3;
-			
+			MTFace *tface;
+			MCol *mcol;
+			char *name;
+			int i, j1=shi->i1, j2=shi->i2, j3=shi->i3;
+
 			/* uv and vcols are not copied on split, so set them according vlr divide flag */
 			vlr_set_uv_indices(vlr, &j1, &j2, &j3);
-			
+
+			shi->totuv= 0;
+			shi->totcol= 0;
+
 			if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP)) {
-				
-				if(vlr->vcol) {
+				for (i=0; (mcol=RE_vlakren_get_mcol(&R, vlr, i, &name, 0)); i++) {
+					ShadeInputCol *scol= &shi->col[i];
 					char *cp1, *cp2, *cp3;
 					
-					cp1= (char *)(vlr->vcol+j1);
-					cp2= (char *)(vlr->vcol+j2);
-					cp3= (char *)(vlr->vcol+j3);
+					shi->totcol++;
+					scol->name= name;
+
+					cp1= (char *)(mcol+j1);
+					cp2= (char *)(mcol+j2);
+					cp3= (char *)(mcol+j3);
 					
-					shi->vcol[0]= (l*((float)cp3[3]) - u*((float)cp1[3]) - v*((float)cp2[3]))/255.0f;
-					shi->vcol[1]= (l*((float)cp3[2]) - u*((float)cp1[2]) - v*((float)cp2[2]))/255.0f;
-					shi->vcol[2]= (l*((float)cp3[1]) - u*((float)cp1[1]) - v*((float)cp2[1]))/255.0f;
+					scol->col[0]= (l*((float)cp3[3]) - u*((float)cp1[3]) - v*((float)cp2[3]))/255.0f;
+					scol->col[1]= (l*((float)cp3[2]) - u*((float)cp1[2]) - v*((float)cp2[2]))/255.0f;
+					scol->col[2]= (l*((float)cp3[1]) - u*((float)cp1[1]) - v*((float)cp2[1]))/255.0f;
+				}
+
+				if(shi->totcol) {
+					shi->vcol[0]= shi->col[0].col[0];
+					shi->vcol[1]= shi->col[0].col[1];
+					shi->vcol[2]= shi->col[0].col[2];
 				}
 				else {
 					shi->vcol[0]= 0.0f;
@@ -662,17 +677,22 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					shi->vcol[2]= 0.0f;
 				}
 			}
-			if(vlr->tface) {
+
+			for (i=0; (tface=RE_vlakren_get_tface(&R, vlr, i, &name, 0)); i++) {
+				ShadeInputUV *suv= &shi->uv[i];
 				float *uv1, *uv2, *uv3;
+
+				shi->totuv++;
+				suv->name= name;
 				
-				uv1= vlr->tface->uv[j1];
-				uv2= vlr->tface->uv[j2];
-				uv3= vlr->tface->uv[j3];
+				uv1= tface->uv[j1];
+				uv2= tface->uv[j2];
+				uv3= tface->uv[j3];
 				
-				shi->uv[0]= -1.0f + 2.0f*(l*uv3[0]-u*uv1[0]-v*uv2[0]);
-				shi->uv[1]= -1.0f + 2.0f*(l*uv3[1]-u*uv1[1]-v*uv2[1]);
-				shi->uv[2]= 1.0f;	/* texture.c assumes there are 3 coords, also to indicate it is real UV for passes */
-				
+				suv->uv[0]= -1.0f + 2.0f*(l*uv3[0]-u*uv1[0]-v*uv2[0]);
+				suv->uv[1]= -1.0f + 2.0f*(l*uv3[1]-u*uv1[1]-v*uv2[1]);
+				suv->uv[2]= 1.0f;	/* texture.c assumes there are 3 coords, also to indicate it is real UV for passes */
+
 				if(shi->osatex) {
 					float duv[2];
 					
@@ -680,29 +700,34 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					duv[0]= shi->dx_u; 
 					duv[1]= shi->dx_v;
 					
-					shi->dxuv[0]= 2.0f*(dl*uv3[0]-duv[0]*uv1[0]-duv[1]*uv2[0]);
-					shi->dxuv[1]= 2.0f*(dl*uv3[1]-duv[0]*uv1[1]-duv[1]*uv2[1]);
+					suv->dxuv[0]= 2.0f*(dl*uv3[0]-duv[0]*uv1[0]-duv[1]*uv2[0]);
+					suv->dxuv[1]= 2.0f*(dl*uv3[1]-duv[0]*uv1[1]-duv[1]*uv2[1]);
 					
 					dl= shi->dy_u+shi->dy_v;
 					duv[0]= shi->dy_u; 
 					duv[1]= shi->dy_v;
 					
-					shi->dyuv[0]= 2.0f*(dl*uv3[0]-duv[0]*uv1[0]-duv[1]*uv2[0]);
-					shi->dyuv[1]= 2.0f*(dl*uv3[1]-duv[0]*uv1[1]-duv[1]*uv2[1]);
+					suv->dyuv[0]= 2.0f*(dl*uv3[0]-duv[0]*uv1[0]-duv[1]*uv2[0]);
+					suv->dyuv[1]= 2.0f*(dl*uv3[1]-duv[0]*uv1[1]-duv[1]*uv2[1]);
 				}
-				if(mode & MA_FACETEXTURE) {
+
+				if((mode & MA_FACETEXTURE) && i==0) {
 					if((mode & (MA_VERTEXCOL|MA_VERTEXCOLP))==0) {
 						shi->vcol[0]= 1.0f;
 						shi->vcol[1]= 1.0f;
 						shi->vcol[2]= 1.0f;
 					}
-					if(vlr->tface) render_realtime_texture(shi);
+					if(tface && tface->tpage)
+						render_realtime_texture(shi, tface->tpage);
 				}
 			}
-			else {
-				shi->uv[0]= 2.0f*(u+.5f);
-				shi->uv[1]= 2.0f*(v+.5f);
-				shi->uv[2]= 0.0f;	/* texture.c assumes there are 3 coords, also to indicate it is no real UV for passes */
+
+			if(shi->totuv == 0) {
+				ShadeInputUV *suv= &shi->uv[0];
+
+				suv->uv[0]= 2.0f*(u+.5f);
+				suv->uv[1]= 2.0f*(v+.5f);
+				suv->uv[2]= 0.0f;	/* texture.c assumes there are 3 coords, also to indicate it is no real UV for passes */
 				
 				if(mode & MA_FACETEXTURE) {
 					/* no tface? set at 1.0f */
@@ -842,7 +867,6 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 
 /* ****************** ShadeSample ************************************** */
 
-
 /* initialize per part, not per pixel! */
 void shade_input_initialize(ShadeInput *shi, RenderPart *pa, RenderLayer *rl, int sample)
 {
@@ -876,7 +900,6 @@ void shade_sample_initialize(ShadeSample *ssamp, RenderPart *pa, RenderLayer *rl
 	
 	ssamp->samplenr= 0; /* counter, detect shadow-reuse for shaders */
 }
-
 
 /* Do AO or (future) GI */
 void shade_samples_do_AO(ShadeSample *ssamp)

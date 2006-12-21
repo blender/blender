@@ -49,6 +49,7 @@
 #include "render_types.h"
 #include "renderpipeline.h"
 #include "rendercore.h"
+#include "renderdatabase.h"
 #include "pixelblending.h"
 #include "pixelshading.h"
 #include "shading.h"
@@ -490,7 +491,7 @@ void makeoctree(Render *re)
 	
 	/* first min max octree space */
 	for(v=0;v<re->totvlak;v++) {
-		if((v & 255)==0) vlr= re->blovl[v>>8];	
+		if((v & 255)==0) vlr= re->vlaknodes[v>>8].vlak;
 		else vlr++;
 		if(vlr->mat->mode & MA_TRACEBLE) {	
 			if((vlr->mat->mode & MA_WIRE)==0) {	
@@ -533,7 +534,7 @@ void makeoctree(Render *re)
 		if((v & 255)==0) {
 			double time= PIL_check_seconds_timer();
 
-			vlr= re->blovl[v>>8];
+			vlr= re->vlaknodes[v>>8].vlak;
 			if(re->test_break())
 				break;
 			if(time-lasttime>1.0f) {
