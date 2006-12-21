@@ -197,7 +197,7 @@ def make_faces():
 						NF.append(NMesh.Face([newV[ind2-2][0],newV[ind2-2][1],newV[ind2-1][0],newV[ind2-1][1]]))
 					
 					else:
-						ind2 = min( [((newV[i][1].co-newV[i-1][0].co).length, i) for i in enumV] )
+						ind2 = min( [((newV[i][1].co-newV[i-1][0].co).length, i) for i in enumV] )[1]
 						NF.append(NMesh.Face([newV[ind2-1][1],newV[ind2][0],newV[ind2][1],newV[ind2-2][0]]))
 						NF.append(NMesh.Face([newV[ind2-2][0],newV[ind2-2][1],newV[ind2-1][0],newV[ind2-1][1]]))
 				
@@ -288,7 +288,7 @@ def make_corners():
 				
 				b = [x0]						# b will contain the sorted list of vertices
 				
-				for i in range(len(hc)-1):
+				for i in xrange(len(hc)-1):
 					for x in hc[x0] :
 						if x not in b :		 break
 					b.append(x)
@@ -308,12 +308,12 @@ def make_corners():
 						for i in xrange(3):	 New_d[i] += dir[i]
 
 					New_V *= 1./len(hc)
-					for i in range(3) :		 New_d[i] /= nV
+					for i in xrange(3) :		 New_d[i] /= nV
 					
 					center = make_sel_vert(New_V.x,New_V.y,New_V.z)
 					add_to_NV(v,tuple(New_d),center)
 
-					for k in range(len(b)-1):   make_sel_face([center, b[k], b[k+1]])
+					for k in xrange(len(b)-1):   make_sel_face([center, b[k], b[k+1]])
 				
 		if  2 < nV and v in NC :
 			for edge in NC[v] :				 me.findEdge(*edge).flag   |= E_selected
@@ -431,7 +431,7 @@ def bevel_update():
 
 	for old_v in NV.iterkeys():
 		for dir in NV[old_v].iterkeys():
-			for i in range(3):
+			for i in xrange(3):
 				NV[old_v][dir].co[i] += fac*dir[i]
 
 	me.update(1)
@@ -446,7 +446,7 @@ def recursive():
 	if num.val > 1:
 		a = pi/4
 		ang = []
-		for k in range(num.val):
+		for k in xrange(num.val):
 			ang.append(a)
 			a = (pi+2*a)/4
 
