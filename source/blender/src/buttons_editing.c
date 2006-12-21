@@ -3742,10 +3742,11 @@ void do_meshbuts(unsigned short event)
 			break;
 		case B_SETTFACE:
 			if (G.obedit || me) {
+				CustomData *fdata= (G.obedit)? &em->fdata: &me->fdata;
+
 				if (G.f & G_FACESELECT)
 					select_mface_from_tface(me);
 
-				CustomData *fdata= (G.obedit)? &em->fdata: &me->fdata;
 				CustomData_set_layer_active(fdata, CD_MTFACE, acttface-1);
 				mesh_update_customdata_pointers(me);
 
