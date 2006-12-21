@@ -379,9 +379,9 @@ class boxList:
 		
 	# Sort boxes by area
 	def sortArea(self):
-		# uvlist.sort(key=lambda v: v.uv.x) #X coord sort
-		# self.boxes.sort(lambda A, B: cmp(A.area, B.area) ) # Reverse area sort
-		self.boxes.sort(key=lambda b: b.area ) # Reverse area sort
+		try:	self.boxes.sort(key=lambda b: b.area )
+		except:	self.boxes.sort(lambda A, B: cmp(A.area, B.area) )
+			
 	
 	# BLENDER only
 	def draw(self):

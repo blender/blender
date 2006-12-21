@@ -38,6 +38,7 @@
 #include "BIF_space.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_library.h"
 
 #include "Mathutils.h"
 

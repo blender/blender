@@ -133,12 +133,7 @@ def read(filename):
 		# Set all edges to be fgons by default
 		for ed in me.edges:
 			ed.flag |= FGON_FLAG
-			i1= ed.v1.index
-			i2= ed.v2.index
-			if i1>i2:
-				i1,i2= i2,i1
-			
-			edge_dict[i1,i2]= ed
+			edge_dict[ed.key]= ed
 		
 		# Now make known edges visible
 		has_edges = True
