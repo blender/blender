@@ -1328,9 +1328,9 @@ static void draw_manipulator_rotate_cyl(float mat[][4], int moving, int drawflag
 
 /* ********************************************* */
 
-static float get_manipulator_drawsize(ScrArea *sa)
+float get_drawsize(View3D *v3d)
 {
-	View3D *v3d= sa->spacedata.first;
+	ScrArea *sa = v3d->area;
 	float size, vec[3], len1, len2;
 	
 	/* size calculus, depending ortho/persp settings, like initgrabz() */
@@ -1341,11 +1341,21 @@ static float get_manipulator_drawsize(ScrArea *sa)
 	VECCOPY(vec, v3d->persinv[1]);
 	len2= Normalise(vec);
 	
-	size*= (0.01f*(float)U.tw_size)*(len1>len2?len1:len2);
+	size*= 0.01f*(len1>len2?len1:len2);
 
 	/* correct for window size to make widgets appear fixed size */
 	if(sa->winx > sa->winy) size*= 1000.0f/(float)sa->winx;
 	else size*= 1000.0f/(float)sa->winy;
+
+	return size;
+}
+
+static float get_manipulator_drawsize(ScrArea *sa)
+{
+	View3D *v3d= sa->spacedata.first;
+	float size = get_drawsize(v3d);
+	
+	size*= (float)U.tw_size;
 
 	return size;
 }

@@ -82,7 +82,12 @@ void drawSnapping(TransInfo *t)
 	if ((t->tsnap.status & (SNAP_ON|POINT_INIT|TARGET_INIT)) == (SNAP_ON|POINT_INIT|TARGET_INIT) &&
 		(G.qual & LR_CTRLKEY)) {
 		float unitmat[4][4];
+		float size;
 		char col[4];
+		
+		size = get_drawsize(G.vd);
+		
+		size *= 0.5f * BIF_GetThemeValuef(TH_VERTEX_SIZE);
 		
 		BIF_GetThemeColor3ubv(TH_TRANSFORM, col);
 		glColor4ub(col[0], col[1], col[2], 128);
@@ -95,7 +100,7 @@ void drawSnapping(TransInfo *t)
 		glRotatef( -360.0f*saacos(G.vd->viewquat[0])/(float)M_PI, G.vd->viewquat[1], G.vd->viewquat[2], G.vd->viewquat[3]);
 
 		Mat4One(unitmat);
-		drawcircball(GL_LINE_LOOP, unitmat[3], 0.1f, unitmat);
+		drawcircball(GL_LINE_LOOP, unitmat[3], size, unitmat);
 		glPopMatrix();
 	}
 }
