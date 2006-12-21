@@ -529,7 +529,7 @@ int unpackVFont(VFont * vfont, int how)
 
 int unpackSample(bSample *sample, int how)
 {
-	char localname[FILE_MAX], fi[FILE_MAX];
+	char localname[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
 	char * newname;
 	int ret_value = RET_ERROR;
 	PackedFile *pf;
@@ -559,7 +559,7 @@ int unpackSample(bSample *sample, int how)
 
 int unpackImage(Image * ima, int how)
 {
-	char localname[FILE_MAX], fi[FILE_MAX];
+	char localname[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
 	char * newname;
 	int ret_value = RET_ERROR;
 	
