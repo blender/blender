@@ -526,6 +526,11 @@ void IMB_exr_set_channel(void *handle, char *layname, char *passname, int xstrid
 		printf("IMB_exrtile_set_channel error %s\n", name);
 }
 
+void IMB_exrtile_clear_channels(void *handle)
+{
+	ExrHandle *data= (ExrHandle *)handle;
+	BLI_freelistN(&data->channels);
+}
 
 void IMB_exrtile_write_channels(void *handle, int partx, int party)
 {

@@ -677,6 +677,22 @@ static void save_render_result_tile(Render *re, RenderPart *pa)
 
 }
 
+static void save_empty_result_tiles(Render *re)
+{
+	RenderPart *pa;
+	
+	IMB_exrtile_clear_channels(re->result->exrhandle);
+		
+	for(pa= re->parts.first; pa; pa= pa->next) {
+		if(pa->ready==0) {
+			int party= pa->disprect.ymin - re->disprect.ymin + pa->crop;
+			int partx= pa->disprect.xmin - re->disprect.xmin + pa->crop;
+			IMB_exrtile_write_channels(re->result->exrhandle, partx, party);
+		}
+	}
+}
+
+
 /* for passes read from files, these have names stored */
 static char *make_pass_name(RenderPass *rpass, int chan)
 {
@@ -1429,10 +1445,10 @@ static void threaded_tile_processor(Render *re)
 	}
 	
 	if(rr->exrhandle) {
+		save_empty_result_tiles(re);
 		IMB_exr_close(rr->exrhandle);
 		rr->exrhandle= NULL;
-		if(!re->test_break())
-			read_render_result(re);
+		read_render_result(re);
 	}
 	
 	/* unset threadsafety */

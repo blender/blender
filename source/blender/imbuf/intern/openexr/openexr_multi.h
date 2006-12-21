@@ -53,6 +53,7 @@ void	IMB_exr_set_channel			(void *handle, char *layname, char *passname, int xst
 void	IMB_exr_read_channels		(void *handle);
 void	IMB_exr_write_channels		(void *handle);
 void	IMB_exrtile_write_channels	(void *handle, int partx, int party);
+void	IMB_exrtile_clear_channels	(void *handle);
 
 void    IMB_exr_multilayer_convert	(void *handle, void *base,  
 									 void * (*addlayer)(void *base, char *str), 
@@ -77,6 +78,7 @@ void	IMB_exr_set_channel			(void *handle, char *layname, char *channame, int xst
 void	IMB_exr_read_channels		(void *handle) {}
 void	IMB_exr_write_channels		(void *handle) {}
 void	IMB_exrtile_write_channels	(void *handle, int partx, int party) {}
+void	IMB_exrtile_clear_channels	(void *handle) {}
 
 void    IMB_exr_multilayer_convert	(void *handle, void *base,  
 									 void * (*addlayer)(void *base, char *str), 
