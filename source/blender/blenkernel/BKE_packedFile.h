@@ -56,7 +56,6 @@ int writePackedFile(char * filename, struct PackedFile *pf, int guimode);
 int checkPackedFile(char * filename, struct PackedFile * pf);
 char * unpackFile(char * abs_name, char * local_name, struct PackedFile * pf, int how);
 int unpackVFont(struct VFont * vfont, int how);
-void create_local_name(char *localname, char *prefix, char *filename);
 int unpackSample(struct bSample *sample, int how);
 int unpackImage(struct Image * ima, int how);
 void unpackAll(int how);

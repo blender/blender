@@ -527,46 +527,17 @@ int unpackVFont(VFont * vfont, int how)
 	return (ret_value);
 }
 
-/*
-create_local_name() creates a relative (starting with //) name.
-Because it is allowed to have /'s and \'s in blenderobject names
-we have to remove these first.
-*/
-
-
-void create_local_name(char *localname, char *prefix, char *filename)
-{
-	char tempname[FILE_MAXDIR + FILE_MAXFILE];
-	int i, len;
-
-	strcpy(tempname, filename);
-	len = strlen(tempname);
-
-	for (i = 0; i < len ; i++) {
-		switch (tempname[i])
-		{
-		case '/':
-		case '\\':
-		case ' ':
-			tempname[i] = '_';
-			break;
-		}
-	}
-
-	strcpy(localname, prefix);
-	strcat(localname, tempname);
-}
-
-
 int unpackSample(bSample *sample, int how)
 {
-	char localname[FILE_MAXDIR + FILE_MAXFILE];
+	char localname[FILE_MAX], fi[FILE_MAX];
 	char * newname;
 	int ret_value = RET_ERROR;
 	PackedFile *pf;
 	
 	if (sample != NULL) {
-		create_local_name(localname, "//samples/", sample->id.name + 2);
+		strcpy(localname, sample->name);
+		BLI_splitdirstring(localname, fi);
+		sprintf(localname, "//samples/%s", fi);
 		
 		newname = unpackFile(sample->name, localname, sample->packedfile, how);
 		if (newname != NULL) {
@@ -588,13 +559,15 @@ int unpackSample(bSample *sample, int how)
 
 int unpackImage(Image * ima, int how)
 {
-	char localname[FILE_MAXDIR + FILE_MAXFILE];
+	char localname[FILE_MAX], fi[FILE_MAX];
 	char * newname;
 	int ret_value = RET_ERROR;
 	
 	if (ima != NULL) {
-		create_local_name(localname, "//textures/", ima->id.name + 2);
-		
+		strcpy(localname, ima->name);
+		BLI_splitdirstring(localname, fi);
+		sprintf(localname, "//textures/%s", fi);
+			
 		newname = unpackFile(ima->name, localname, ima->packedfile, how);
 		if (newname != NULL) {
 			ret_value = RET_OK;
