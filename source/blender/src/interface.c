@@ -466,6 +466,7 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 	void *poin;
 	
 	if(mode=='v' && but->lock) return 0;
+	if(but->poin==NULL) return 0;
 	
 	poin= but->poin;
 		
@@ -3200,7 +3201,8 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 
 	offs= FPICK+2*DPICK+BPICK;
 
-	bt= uiDefIconTextBut(block, BUT, UI_RETURN_OK, ICON_EYEDROPPER, "Sample", offs+55, 170, 85, 20, 0, 0, 0, 0, 0, "Sample the color underneath the following mouse click (ESC or RMB to cancel)");
+	/* note; made this a TOG now, with NULL pointer. Is because BUT now gets handled with a afterfunc */
+	bt= uiDefIconTextBut(block, TOG, UI_RETURN_OK, ICON_EYEDROPPER, "Sample", offs+55, 170, 85, 20, NULL, 0, 0, 0, 0, "Sample the color underneath the following mouse click (ESC or RMB to cancel)");
 	uiButSetFunc(bt, do_palette_sample_cb, bt, col);
 	uiButSetFlag(bt, UI_TEXT_LEFT);
 	
@@ -5087,6 +5089,7 @@ double ui_get_but_val(uiBut *but)
 	void *poin;
 	double value = 0.0;
 	
+	if(but->poin==NULL) return 0.0;
 	poin= but->poin;
 
 	if(but->type== HSVSLI) {
@@ -5746,7 +5749,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	short slen;
 	
 	if(type & BUTPOIN) {		/* a pointer is required */
-		if(poin==0) {
+		if(poin==NULL) {
 				/* if pointer is zero, button is removed and not drawn */
 			BIF_ThemeColor(block->themecol);
 			glRects(x1,  y1,  x1+x2,  y1+y2);
