@@ -44,7 +44,10 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+
+#ifdef WITH_OPENEXR
 #include "intern/openexr/openexr_multi.h"
+#endif
 
 #include "DNA_image_types.h"
 #include "DNA_packedFile_types.h"
