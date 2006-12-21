@@ -166,15 +166,19 @@ def island2Edge(island):
 	unique_points= {}
 	
 	for f in island:
-		f_v= f.v
-		f_uv= f.uv
-		f_uvkey= map(tuple, f_uv)
+		f_uvkey= map(tuple, f.uv)
 		
 		
 		for vIdx, edkey in enumerate(f.edge_keys):
-			unique_points[f_uvkey[vIdx]] = f_uv[vIdx]
-			try:	edges[ f_uvkey[edkey[0]], f_uvkey[edkey[1]] ] *= 0 # sets eny edge with more then 1 user to 0 are not returned.
-			except:	edges[ f_uvkey[edkey[0]], f_uvkey[edkey[1]] ] = (f_uv[i1] - f_uv[i2]).length, 
+			unique_points[f_uvkey[vIdx]] = f.uv[vIdx]
+			
+			if f.v[vIdx].index > f.v[vIdx-1].index:
+				i1= vIdx-1;	i2= vIdx
+			else:		
+				i1= vIdx;	i2= vIdx-1
+			
+			try:	edges[ f_uvkey[i1], f_uvkey[i2] ] *= 0 # sets eny edge with more then 1 user to 0 are not returned.
+			except:	edges[ f_uvkey[i1], f_uvkey[i2] ] = (f.uv[i1] - f.uv[i2]).length, 
 	
 	# If 2 are the same then they will be together, but full [a,b] order is not correct.
 	
@@ -219,18 +223,17 @@ def pointInEdges(pt, edges):
 def pointInIsland(pt, island):
 	vec1 = Vector(); vec2 = Vector(); vec3 = Vector()	
 	for f in island:
-		f_uv= f.uv
-		vec1.x, vec1.y = f_uv[0]
-		vec2.x, vec2.y = f_uv[1]
-		vec3.x, vec3.y = f_uv[2]
+		vec1.x, vec1.y = f.uv[0]
+		vec2.x, vec2.y = f.uv[1]
+		vec3.x, vec3.y = f.uv[2]
 
 		if pointInTri2D(pt, vec1, vec2, vec3):
 			return True
 		
-		if len(f) == 4:
-			vec1.x, vec1.y = f_uv[0]
-			vec2.x, vec2.y = f_uv[2]
-			vec3.x, vec3.y = f_uv[3]			
+		if len(f.v) == 4:
+			vec1.x, vec1.y = f.uv[0]
+			vec2.x, vec2.y = f.uv[2]
+			vec3.x, vec3.y = f.uv[3]			
 			if pointInTri2D(pt, vec1, vec2, vec3):
 				return True
 	return False
@@ -258,7 +261,7 @@ def islandIntersectUvIsland(source, target, SourceOffset):
 	
 	# 2 test for a part of the target being totaly inside the source.
 	for pv in target[7]:
-		if pointInIsland(pv+SourceOffset, source[0]):
+		if pointInIsland(pv-SourceOffset, source[0]):
 			return 3 # PART OF TARGET INSIDE SOURCE.
 
 	return 0 # NO INTERSECTION
@@ -491,8 +494,8 @@ def mergeUvIslands(islandList):
 					
 					
 					# if targetIsland[3] > (sourceIsland[2]) and\ #
-					
-					if targetIsland[3] > (sourceIsland[1] * USER_FREE_SPACE_TO_TEST_QUALITY) and\
+					# print USER_FREE_SPACE_TO_TEST_QUALITY, 'ass'
+					if targetIsland[2] > (sourceIsland[1] * USER_FREE_SPACE_TO_TEST_QUALITY) and\
 					targetIsland[4] > sourceIsland[4] and\
 					targetIsland[5] > sourceIsland[5]:
 						
@@ -506,15 +509,22 @@ def mergeUvIslands(islandList):
 						
 						boxLeft = 0
 						
+						
 						# Distllllance we can move between whilst staying inside the targets bounds.
 						testWidth = targetIsland[4] - sourceIsland[4]
 						testHeight = targetIsland[5] - sourceIsland[5]
 						
 						# Increment we move each test. x/y
-						xIncrement = (testWidth / (blockTestXUnit * USER_STEP_QUALITY))
-						yIncrement = (testHeight / (blockTestYUnit * USER_STEP_QUALITY))
-						xIncrement= testWidth/USER_STEP_QUALITY
-						yIncrement= testHeight/USER_STEP_QUALITY
+						#xIncrement = (testWidth / (blockTestXUnit * USER_STEP_QUALITY))
+						#yIncrement = (testHeight / (blockTestYUnit * USER_STEP_QUALITY))
+						#xIncrement= testWidth/USER_STEP_QUALITY
+						#yIncrement= testHeight/USER_STEP_QUALITY
+						# USER_STEP_QUALITY is 5.0 when quality is 100 and 1.0 when quality is 1
+						xIncrement = (sourceIsland[4] / targetIsland[4]) * ((6 - USER_STEP_QUALITY)*50)
+						yIncrement = (sourceIsland[5] / targetIsland[5]) * ((6 - USER_STEP_QUALITY)*50)
+						
+						
+						#~ print xIncrement, yIncrement, USER_STEP_QUALITY
 						
 						# Make sure were not moving less then a 3rg of our width/height
 						if xIncrement<sourceIsland[4]/3:
@@ -598,7 +608,7 @@ def mergeUvIslands(islandList):
 								targetIsland[1]+=sourceIsland[1] # Increment totFaceArea
 								targetIsland[2]-=sourceIsland[1] # Decrement efficiency
 								# IF we ever used these again, should set to 0, eg
-								sourceIsland[2] = 0 # No area is anyone wants to know
+								sourceIsland[2] = 0 # No area if anyone wants to know
 								
 								break
 							
@@ -622,38 +632,6 @@ def mergeUvIslands(islandList):
 		if not islandList[i]:
 			del islandList[i] # Can increment islands removed here.
 
-
-def face_ed_keys(f):
-	# Return ordered edge keys per face
-	# used so a face can lookup its edges.
-	fi = [v.index for v in f.v] 
-	if len(fi) == 3:
-		i1, i2 = fi[0], fi[1]
-		if i1 > i2: i1, i2= i2, i1
-			
-		i3, i4 = fi[1], fi[2]
-		if i3 > i4: i3, i4= i4, i3
-		
-		i5, i6 = fi[2], fi[0]
-		if i5 > i6: i5, i6= i6, i5
-		
-		return (i1,i2), (i3,i4), (i5,i6)
-	
-	else:
-		i1, i2 = fi[0], fi[1]
-		if i1 > i2: i1, i2= i2, i1
-			
-		i3, i4 = fi[1], fi[2]
-		if i3 > i4: i3, i4= i4, i3
-		
-		i5, i6 = fi[2], fi[3]
-		if i5 > i6: i5, i6= i6, i5
-
-		i7, i8 = fi[3], fi[0]
-		if i7 > i8: i7, i8= i8, i7
-		
-		return (i1,i2), (i3,i4), (i5,i6), (i7,i8)
-	
 # Takes groups of faces. assumes face groups are UV groups.
 def getUvIslands(faceGroups, me):
 	
@@ -662,10 +640,7 @@ def getUvIslands(faceGroups, me):
 	SEAM = Mesh.EdgeFlags.SEAM
 	for ed in me.edges:
 		if ed.flag & SEAM:
-			i1 = ed.v1.index
-			i2 = ed.v2.index
-			if i1>i2: i1,i2= i2,i1
-			edge_seams[i1,i2] = None # dummy var- use sets!			
+			edge_seams[ed.key] = None # dummy var- use sets!			
 	# Done finding seams
 	
 	
@@ -684,11 +659,8 @@ def getUvIslands(faceGroups, me):
 		# Build edge dict
 		edge_users = {}
 		
-		face_keys = [face_ed_keys(f) for f in faces]
-		
-		
-		for i, ks in enumerate(face_keys):
-			for ed_key in ks:
+		for i, f in enumerate(faces):
+			for ed_key in f.edge_keys:
 				if edge_seams.has_key(ed_key): # DELIMIT SEAMS! ;)
 					edge_users[ed_key] = [] # so as not to raise an error
 				else:
@@ -716,7 +688,7 @@ def getUvIslands(faceGroups, me):
 				ok= False
 				for i in xrange(len(faces)):
 					if face_modes[i] == 1: # search
-						for ed_key in face_keys[i]:
+						for ed_key in faces[i].edge_keys:
 							for ii in edge_users[ed_key]:
 								if i != ii and face_modes[ii] == 0:
 									face_modes[ii] = ok = 1 # mark as searched
@@ -854,12 +826,13 @@ def VectoMat(vec):
 
 
 class thickface(object):
-	__slost__= 'v', 'uv', 'no', 'area'
+	__slost__= 'v', 'uv', 'no', 'area', 'edge_keys'
 	def __init__(self, face):
 		self.v = face.v
 		self.uv = face.uv
 		self.no = face.no
 		self.area = face.area
+		self.edge_keys = face.edge_keys
 
 global ob
 ob = None
@@ -902,10 +875,15 @@ def main():
 	'Projection',\
 	('Angle Limit:', USER_PROJECTION_LIMIT, 1, 89, 'lower for more projection groups, higher for less distortion.'),\
 	('Selected Faces Only', USER_ONLY_SELECTED_FACES, 'Use only selected faces from all selected meshes.'),\
+	'',\
 	'UV Layout',\
 	('Share Tex Space', USER_SHARE_SPACE, 'Objects Share texture space, map all objects into 1 uvmap.'),\
 	('Stretch to bounds', USER_STRETCH_ASPECT, 'Stretch the final output to texture bounds.'),\
 	('Island Margin:', USER_ISLAND_MARGIN, 0.0, 0.25, 'Margin to reduce bleed from adjacent islands.'),\
+	'',\
+	'',\
+	'',\
+	'',\
 	'Fill in empty areas',\
 	('Fill Holes', USER_FILL_HOLES, 'Fill in empty areas reduced texture waistage (slow).'),\
 	('Fill Quality:', USER_FILL_HOLES_QUALITY, 1, 100, 'Depends on fill holes, how tightly to fill UV holes, (higher is slower)'),\
@@ -932,7 +910,7 @@ def main():
 	USER_ONLY_SELECTED_FACES = USER_ONLY_SELECTED_FACES.val
 	USER_SHARE_SPACE = USER_SHARE_SPACE.val
 	USER_STRETCH_ASPECT = USER_STRETCH_ASPECT.val
-	USER_ISLAND_MARGIN = USER_ISLAND_MARGIN.val * 50
+	USER_ISLAND_MARGIN = USER_ISLAND_MARGIN.val * 10
 	USER_FILL_HOLES = USER_FILL_HOLES.val
 	USER_FILL_HOLES_QUALITY = USER_FILL_HOLES_QUALITY.val
 	
