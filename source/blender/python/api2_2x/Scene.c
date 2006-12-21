@@ -1323,7 +1323,7 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 	if (self->mode != 0)
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					"Cannot add new to objects.selection or objects.context!" );	
-	
+
 	if( !PyArg_ParseTuple( args, "O|s", &py_data, &name ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected an object and optionally a string as arguments" );
@@ -1354,13 +1354,17 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 	} else if( Text3d_CheckPyObject( py_data ) ) {
 		data = ( void * ) Text3d_FromPyObject( py_data );
 		type = OB_FONT;
-	} else if( desc = PyString_FromString( (PyObject *)py_data ) ) {
-		if( !strcmp( desc, "Empty" ) )
+	} else if( ( desc = PyString_AsString( (PyObject *)py_data ) ) != NULL ) {
+		if( !strcmp( desc, "Empty" ) ) {
 			type = OB_EMPTY;
-		data = NULL;
-	} else
+			data = NULL;
+		} else
+			goto typeError;
+	} else {
+typeError:
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected an object and optionally a string as arguments" );
+	}
 
 	if (!name) {
 		if (type == OB_EMPTY)
@@ -1451,6 +1455,7 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 	test_object_materials( (ID *)object->data );
 	
 	return Object_CreatePyObject( object );
+
 }
 
 
