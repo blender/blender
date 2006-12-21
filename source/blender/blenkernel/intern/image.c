@@ -489,8 +489,10 @@ void BKE_image_memorypack(Image *ima)
 		ibuf->encodedsize= 0;
 		ibuf->userflags &= ~IB_BITMAPDIRTY;
 		
-		if(ima->source==IMA_SRC_GENERATED)
+		if(ima->source==IMA_SRC_GENERATED) {
 			ima->source= IMA_SRC_FILE;
+			ima->type= IMA_TYPE_IMAGE;
+		}
 	}
 }
 

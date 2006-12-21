@@ -1162,7 +1162,7 @@ void image_buttons(void)
 			if (ima->packedfile) {
 				headerbuttons_packdummy = 1;
 			}
-			if (ima->packedfile && (ibuf->userflags & IB_BITMAPDIRTY))
+			if (ima->packedfile && ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
 				uiDefIconButBitI(block, TOG, 1, B_SIMA_REPACK, ICON_UGLYPACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Re-Pack this image as PNG");
 			else
 				uiDefIconButBitI(block, TOG, 1, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");

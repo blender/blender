@@ -1912,7 +1912,8 @@ void pack_image_sima()
 			else {
 				ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
 				if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
-					error("Can't pack painted image. Save image or use Repack as PNG.");
+					if(okee("Can't pack painted image. Use Repack as PNG?"))
+						BKE_image_memorypack(ima);
 				}
 				else {
 					ima->packedfile = newPackedFile(ima->name);
