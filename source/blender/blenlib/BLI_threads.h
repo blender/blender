@@ -32,6 +32,7 @@
 #define BLI_THREADS_H 
 
 /* one custom lock available now. can be extended */
+#define LOCK_IMAGE		0
 #define LOCK_CUSTOM1	1
 
 /* for tables, button in UI, etc */

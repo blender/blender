@@ -1364,7 +1364,7 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 	else if(ima->ok==0)
 		return NULL;
 	
-	BLI_lock_thread(LOCK_CUSTOM1);
+	BLI_lock_thread(LOCK_IMAGE);
 	
 	/* handle image source and types */
 	if(ima->source==IMA_SRC_MOVIE) {
@@ -1456,7 +1456,7 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 	if(G.rendering==0)
 		tag_image_time(ima);
 
-	BLI_unlock_thread(LOCK_CUSTOM1);
+	BLI_unlock_thread(LOCK_IMAGE);
 
 	return ibuf;
 }

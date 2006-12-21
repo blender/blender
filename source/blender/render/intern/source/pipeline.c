@@ -640,7 +640,7 @@ static void save_render_result_tile(Render *re, RenderPart *pa)
 	RenderPass *rpassp;
 	int offs, partx, party;
 	
-	BLI_lock_thread(LOCK_CUSTOM1);
+	BLI_lock_thread(LOCK_IMAGE);
 	
 	for(rlp= rrpart->layers.first; rlp; rlp= rlp->next) {
 		
@@ -673,7 +673,7 @@ static void save_render_result_tile(Render *re, RenderPart *pa)
 	partx= rrpart->tilerect.xmin + rrpart->crop;
 	IMB_exrtile_write_channels(re->result->exrhandle, partx, party);
 
-	BLI_unlock_thread(LOCK_CUSTOM1);
+	BLI_unlock_thread(LOCK_IMAGE);
 
 }
 

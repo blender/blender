@@ -644,12 +644,12 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *dxt, f
 	if(tex->imaflag & TEX_MIPMAP) {
 		if(ibuf->flags & IB_fields);
 		else if(ibuf->mipmap[0]==NULL) {
-			BLI_lock_thread(LOCK_CUSTOM1);
+			BLI_lock_thread(LOCK_IMAGE);
 			
 			if(ibuf->mipmap[0]==NULL)
 				IMB_makemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
 
-			BLI_unlock_thread(LOCK_CUSTOM1);
+			BLI_unlock_thread(LOCK_IMAGE);
 		}
 	}
 
