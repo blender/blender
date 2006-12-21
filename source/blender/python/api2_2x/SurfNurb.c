@@ -322,7 +322,7 @@ static int SurfNurb_setFlagU( BPy_SurfNurb * self, PyObject * args )
 	flagu = (flagu << 1) | (self->nurb->flagu & CU_CYCLIC);
 	if( self->nurb->flagu != flagu ) {
 		self->nurb->flagu = (short)flagu;
-		makeknots( self->nurb, 1, self->nurb->flagu );
+		makeknots( self->nurb, 1, self->nurb->flagu >> 1 );
 	}
 
 	return 0;
@@ -366,7 +366,7 @@ static int SurfNurb_setFlagV( BPy_SurfNurb * self, PyObject * args )
 	flagv = (flagv << 1) | (self->nurb->flagv & CU_CYCLIC);
 	if( self->nurb->flagv != flagv ) {
 		self->nurb->flagv = (short)flagv;
-		makeknots( self->nurb, 2, self->nurb->flagv );
+		makeknots( self->nurb, 2, self->nurb->flagv >> 1 );
 	}
 
 	return 0;
