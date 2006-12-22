@@ -34,7 +34,7 @@ Example::
   Render.CloseRenderWindow()
   print context.fps
   print context.cFrame
-
+zz
 @type Modes: readonly dictionary
 @var Modes: Constant dict used for with L{RenderData.mode} bitfield attribute.  
 Values can be ORed together.  Individual bits can also be set/cleared with
@@ -72,6 +72,45 @@ attribute.  One of the following modes can be active:
     horizontally or vertically
   - SCALE: Stretch or squeeze the viewport to fill the display window.
 
+@var INTERNAL: The internal rendering engine. Use with setRenderer()
+@var YAFRAY: Yafray rendering engine. Use with setRenderer()
+
+@var AVIRAW: Output format. Use with renderdata.imageType / setImageType()
+@var AVIJPEG: Output format. Use with renderdata.imageType / setImageType()
+@var AVICODEC: Output format. Use with renderdata.imageType / setImageType()
+@var QUICKTIME: Output format. Use with renderdata.imageType / setImageType()
+@var TARGA: Output format. Use with renderdata.imageType / setImageType()
+@var RAWTGA: Output format. Use with renderdata.imageType / setImageType()
+@var HDR: Output format. Use with renderdata.imageType / setImageType()
+@var PNG: Output format. Use with renderdata.imageType / setImageType()
+@var BMP: Output format. Use with renderdata.imageType / setImageType()
+@var JPEG: Output format. Use with renderdata.imageType / setImageType()
+@var HAMX: Output format. Use with renderdata.imageType / setImageType()
+@var IRIS: Output format. Use with renderdata.imageType / setImageType()
+@var IRISZ: Output format. Use with renderdata.imageType / setImageType()
+@var FTYPE: Output format. Use with renderdata.imageType / setImageType()
+@var OPENEXR: Output format. Use with renderdata.imageType / setImageType()
+@var TIFF: Output format. Use with renderdata.imageType / setImageType()
+@var FFMPEG: Output format. Use with renderdata.imageType / setImageType()
+@var CINEON: Output format. Use with renderdata.imageType / setImageType()
+@var DPX: Output format. Use with renderdata.imageType / setImageType()
+
+@var PAL: Output format. Use with renderdata.sizePreset()
+@var NTSC: Output format. Use with renderdata.sizePreset()
+@var DEFAULT: Output format. Use with renderdata.sizePreset()
+@var PREVIEW: Output format. Use with renderdata.sizePreset()
+@var PC: Output format. Use with renderdata.sizePreset()
+@var PAL169: Output format. Use with renderdata.sizePreset()
+@var B_PR_FULL: Output format. Use with renderdata.sizePreset()
+
+@var NONE: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
+@var LOW: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
+@var MEDIUM: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
+@var HIGH: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
+@var HIGHER: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
+@var BEST: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
+@var SKYDOME: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
+@var GIFULL: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
 """
 
 def CloseRenderWindow():
