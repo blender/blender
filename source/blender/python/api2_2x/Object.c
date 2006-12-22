@@ -173,6 +173,7 @@ enum obj_consts {
 	EXPP_OBJ_ATTR_DRAWSIZE,
 	EXPP_OBJ_ATTR_PARENT_TYPE,
 	EXPP_OBJ_ATTR_PASSINDEX,
+	EXPP_OBJ_ATTR_ACT_MATERIAL,
 	
 	EXPP_OBJ_ATTR_PI_SURFACEDAMP,	/* these need to stay together */
 	EXPP_OBJ_ATTR_PI_RANDOMDAMP,	/* and in order */
@@ -3673,6 +3674,9 @@ static PyObject *getIntAttr( BPy_Object *self, void *type )
 	case EXPP_OBJ_ATTR_PASSINDEX:
 		param = object->index;
 		break;
+	case EXPP_OBJ_ATTR_ACT_MATERIAL:
+		param = object->actcol;
+		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"undefined type in getIntAttr" );
@@ -3727,6 +3731,12 @@ static int setIntAttrClamp( BPy_Object *self, PyObject *value, void *type )
 		max = 1000;
 		size = 'H';			/* in case max is later made > 32767 */
 		param = (void *)&object->index;
+		break;
+	case EXPP_OBJ_ATTR_ACT_MATERIAL:
+		min = 1;
+		max = object->totcol;
+		size = 'b';			/* in case max is later made > 128 */
+		param = (void *)&object->actcol;
 		break;
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -4930,6 +4940,10 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)getIntAttr, (setter)setIntAttrClamp,
 	 "Index for object masks in the compositor",
 	 (void *)EXPP_OBJ_ATTR_PASSINDEX},
+	{"activeMaterial",
+	 (getter)getIntAttr, (setter)setIntAttrClamp,
+	 "Index for the active material (displayed in the material panel)",
+	 (void *)EXPP_OBJ_ATTR_ACT_MATERIAL},
 	{"mat",
 	 (getter)Object_getMatrixWorld, (setter)NULL,
 	 "worldspace matrix: absolute, takes vertex parents, tracking and Ipos into account",

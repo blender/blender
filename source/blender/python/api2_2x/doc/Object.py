@@ -449,6 +449,13 @@ class Object:
     @ivar passIndex: Index # for the IndexOB render pass.
         Value is clamped to [0,1000].
     @type passIndex: int
+    @ivar activeMaterial: The active material index for this object.
+
+        The active index is used to select the material to edit in the material buttons,
+        new data created will also use the active material.
+
+        Value is clamped to [1,len(ob.materials)]. - [0,0] when there is no materials applied to the object.
+    @type activeMaterial: int
     @ivar drawSize: The size to display the Empty.
     Value clamped to [0.01,10.0].
     @type drawSize: float
