@@ -69,6 +69,7 @@ struct ShadeInputCopy {
 	struct VertRen *v1, *v2, *v3;	/* vertices can be in any order for quads... */
 	short i1, i2, i3;				/* original vertex indices */
 	short puno;
+	short osatex;
 	float vn[3], vno[3];			/* actual render normal, and a copy to restore it */
 	float n1[3], n2[3], n3[3];		/* vertex normals, corrected */
 	int mode;						/* base material mode (OR-ed result of entire node tree) */
@@ -97,6 +98,7 @@ typedef struct ShadeInput
 	struct VertRen *v1, *v2, *v3;	/* vertices can be in any order for quads... */
 	short i1, i2, i3;				/* original vertex indices */
 	short puno;
+	short osatex;
 	float vn[3], vno[3];			/* actual render normal, and a copy to restore it */
 	float n1[3], n2[3], n3[3];		/* vertex normals, corrected */
 	int mode;						/* base material mode (OR-ed result of entire node tree) */
@@ -145,7 +147,6 @@ typedef struct ShadeInput
 	float ao[3];
 	
 	int xs, ys;				/* pixel to be rendered */
-	short osatex;
 	int mask;				/* subsample mask */
 	int samplenr;			/* sample counter, to detect if we should do shadow again */
 	int depth;				/* 1 or larger on raytrace shading */
