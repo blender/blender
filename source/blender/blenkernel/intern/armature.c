@@ -819,6 +819,66 @@ void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[]
 	Mat4CpyMat4(M_accumulatedMatrix, bone->arm_mat);
 }
 
+/* **************** Space to Space API ****************** */
+
+/* Convert World-Space Matrix to Pose-Space Matrix */
+void armature_mat_world_to_pose(Object *ob, float inmat[][4], float outmat[][4]) 
+{
+	float obmat[4][4];
+	
+	/* prevent crashes */
+	if (ob==NULL) return;
+	
+	/* get inverse of (armature) object's matrix  */
+	Mat4Invert(obmat, ob->obmat);
+	
+	/* multiply given matrix by object's-inverse to find pose-space matrix */
+	Mat4MulMat4(outmat, obmat, inmat);
+}
+
+/* Convert Pose-Space Matrix to Bone-Space Matrix */
+void armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[][4], float outmat[][4])
+{
+	float pc_trans[4][4], inv_trans[4][4];
+	float pc_posemat[4][4], inv_posemat[4][4];
+	
+	/* paranoia: prevent crashes with no pose-channel supplied */
+	if (pchan==NULL) return;
+	
+	/* get the inverse matrix of the pchan's transforms */
+	LocQuatSizeToMat4(pc_trans, pchan->loc, pchan->quat, pchan->size);
+	Mat4Invert(inv_trans, pc_trans);
+	
+	/* Remove the pchan's transforms from it's pose_mat.
+	 * This should leave behind the effects of restpose + 
+	 * parenting + constraints
+	 */
+	Mat4MulMat4(pc_posemat, inv_trans, pchan->pose_mat);
+	
+	/* get the inverse of the leftovers so that we can remove 
+	 * that component from the supplied matrix
+	 */
+	Mat4Invert(inv_posemat, pc_posemat);
+	
+	/* get the new matrix */
+	Mat4MulMat4(outmat, inmat, inv_posemat);
+}
+
+/* Convert Pose-Space Location to Bone-Space Location */
+void armature_loc_pose_to_bone(bPoseChannel *pchan, float *inloc, float *outloc) 
+{
+	float xLocMat[4][4];
+	float nLocMat[4][4];
+	
+	/* build matrix for location */
+	Mat4One(xLocMat);
+	VECCOPY(xLocMat[3], inloc);
+
+	/* get bone-space cursor matrix and extract location */
+	armature_mat_pose_to_bone(pchan, xLocMat, nLocMat);
+	VECCOPY(outloc, nLocMat[3]);
+}
+
 
 /* **************** The new & simple (but OK!) armature evaluation ********* */ 
 

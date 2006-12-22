@@ -1103,7 +1103,52 @@ void snap_sel_to_grid()
 		if( ( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))) {
 			ob= base->object;
 			if(ob->flag & OB_POSEMODE) {
-				;	// todo
+				bPoseChannel *pchan;
+				bArmature *arm= ob->data;
+				
+				for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+					if(pchan->bone->flag & BONE_SELECTED) {
+						if(pchan->bone->layer & arm->layer) {
+							if (pchan->parent==NULL) {
+								float dLoc[3], oldLoc[3], nLoc[3];
+									
+								/* get nearest grid point to snap to */
+								VECCOPY(nLoc, pchan->pose_head);
+								vec[0]= gridf * (float)(floor(.5+ nLoc[0]/gridf));
+								vec[1]= gridf * (float)(floor(.5+ nLoc[1]/gridf));
+								vec[2]= gridf * (float)(floor(.5+ nLoc[2]/gridf));
+								
+								/* adjust location */
+								VecSubf(dLoc, vec, nLoc);
+								VECCOPY(oldLoc, pchan->loc);
+								VecAddf(pchan->loc, oldLoc, dLoc);
+							}
+							else if((pchan->bone->flag & BONE_CONNECTED)==0) { 
+								float vecN[3], nLoc[3]; 
+								float dLoc[3], oldLoc[3];
+								
+								/* get nearest grid point to snap to */
+								VECCOPY(nLoc, pchan->pose_mat[3]);
+								vec[0]= gridf * (float)(floor(.5+ nLoc[0]/gridf));
+								vec[1]= gridf * (float)(floor(.5+ nLoc[1]/gridf));
+								vec[2]= gridf * (float)(floor(.5+ nLoc[2]/gridf));
+								
+								/* get bone-space location of grid point */
+								armature_loc_pose_to_bone(pchan, vec, vecN);
+								
+								/* adjust location */
+								VECCOPY(oldLoc, pchan->loc);
+								VecSubf(dLoc, vecN, oldLoc);
+								VecAddf(pchan->loc, oldLoc, dLoc);
+							}
+							/* if the bone has a parent and is connected to the parent, 
+							 * don't do anything - will break chain unless we do auto-ik. 
+							 */
+						}
+					}
+				}
+				ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
+				ob->recalc |= OB_RECALC_DATA;
 			}
 			else {
 				ob->recalc |= OB_RECALC_OB;
@@ -1196,10 +1241,26 @@ void snap_sel_to_curs()
 					if(pchan->bone->flag & BONE_SELECTED) {
 						if(pchan->bone->layer & arm->layer) {
 							if(pchan->parent==NULL) {
-								/* this is wrong... lazy! */
-								VECCOPY(pchan->loc, cursp);
+								float dLoc[3], oldLoc[3];
+								
+								VecSubf(dLoc, cursp, pchan->pose_head);
+								VECCOPY(oldLoc, pchan->loc);
+								VecAddf(pchan->loc, oldLoc, dLoc);
 							}
-							/* else todo... */
+							else if((pchan->bone->flag & BONE_CONNECTED)==0) { 
+								float curspn[3], dLoc[3], oldLoc[3];
+								
+								/* get location of cursor in bone-space */
+								armature_loc_pose_to_bone(pchan, cursp, curspn);
+								
+								/* calculate new position */
+								VECCOPY(oldLoc, pchan->loc);
+								VecSubf(dLoc, curspn, oldLoc);
+								VecAddf(pchan->loc, oldLoc, dLoc);
+							}
+							/* if the bone has a parent and is connected to the parent, 
+							 * don't do anything - will break chain unless we do auto-ik. 
+							 */
 						}
 					}
 				}
@@ -1459,10 +1520,29 @@ void snap_to_center()
 		base= (G.scene->base.first);
 		while(base) {
 			if(((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
-				VECCOPY(vec, base->object->obmat[3]);
-				VecAddf(centroid, centroid, vec);
-				DO_MINMAX(vec, min, max);
-				count++;
+				ob= base->object;
+				if(ob->flag & OB_POSEMODE) {
+					bPoseChannel *pchan;
+					bArmature *arm= ob->data;
+					
+					for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+						if(pchan->bone->flag & BONE_SELECTED) {
+							if(pchan->bone->layer & arm->layer) {
+								VECCOPY(vec, pchan->pose_mat[3]);
+								VecAddf(centroid, centroid, vec);
+								DO_MINMAX(vec, min, max);
+								count++;
+							}
+						}
+					}
+				}
+				else {
+					/* not armature bones (i.e. objects) */
+					VECCOPY(vec, base->object->obmat[3]);
+					VecAddf(centroid, centroid, vec);
+					DO_MINMAX(vec, min, max);
+					count++;
+				}
 			}
 			base= base->next;
 		}
@@ -1514,7 +1594,37 @@ void snap_to_center()
 		if( ( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))) {
 			ob= base->object;
 			if(ob->flag & OB_POSEMODE) {
-				; // todo
+				bPoseChannel *pchan;
+				bArmature *arm= ob->data;
+				
+				for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+					if(pchan->bone->flag & BONE_SELECTED) {
+						if(pchan->bone->layer & arm->layer) {
+							if(pchan->parent==NULL) {
+								float dLoc[3], oldLoc[3];
+								VecSubf(dLoc, snaploc, pchan->pose_head);
+								VECCOPY(oldLoc, pchan->loc);
+								VecAddf(pchan->loc, oldLoc, dLoc);
+							}
+							else if((pchan->bone->flag & BONE_CONNECTED)==0) { 
+								float dLoc[3], oldLoc[3];
+								
+								/* get location of cursor in bone-space */
+								armature_loc_pose_to_bone(pchan, snaploc, vec);
+								
+								/* calculate new position */
+								VECCOPY(oldLoc, pchan->loc);
+								VecSubf(dLoc, vec, oldLoc);
+								VecAddf(pchan->loc, oldLoc, dLoc);
+							}
+							/* if the bone has a parent and is connected to the parent, 
+							 * don't do anything - will break chain unless we do auto-ik. 
+							 */
+						}
+					}
+				}
+				ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
+				ob->recalc |= OB_RECALC_DATA;
 			}
 			else {
 				ob->recalc |= OB_RECALC_OB;

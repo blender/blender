@@ -95,6 +95,11 @@ void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[]
 void vec_roll_to_mat3(float *vec, float roll, float mat[][3]);
 void mat3_to_vec_roll(float mat[][3], float *vec, float *roll);
 
+/* Common Conversions Between Co-ordinate Spaces */
+void armature_mat_world_to_pose(struct Object *ob, float inmat[][4], float outmat[][4]);
+void armature_mat_pose_to_bone(struct bPoseChannel *pchan, float inmat[][4], float outmat[][4]);
+void armature_loc_pose_to_bone(struct bPoseChannel *pchan, float *inloc, float *outloc);
+
 /*	Animation functions */
 struct PoseTree *ik_tree_to_posetree(struct Object *ob, struct Bone *bone);
 void solve_posetree(PoseTree *tree);

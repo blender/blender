@@ -3266,3 +3266,17 @@ void LocEulSizeToMat4(float mat[][4], float loc[3], float eul[3], float size[3])
 	mat[3][1] = loc[1];
 	mat[3][2] = loc[2];
 }
+
+/* make a 4x4 matrix out of 3 transform components */
+void LocQuatSizeToMat4(float mat[][4], float loc[3], float quat[4], float size[3])
+{
+	float eul[3];
+	
+	/* convert quaternion component to euler 
+	 * 	NOTE: not as good as using quat directly. Todo for later.
+	 */
+	QuatToEul(quat, eul);
+	
+	/* make into matrix using exisiting code */
+	LocEulSizeToMat4(mat, loc, eul, size);
+}
