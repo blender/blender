@@ -832,6 +832,15 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 						if (mface->v4)
 							uv3 = MT_Point2(tface->uv[3]);
 					} 
+					else
+					{
+						// no texfaces, set COLLSION true and everything else FALSE
+						
+						mode = default_face_mode;	
+						transp = TF_SOLID;
+						tile = 0;
+					}
+
 					if (mmcol)
 					{
 						// Use vertex colours
@@ -842,17 +851,13 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 						if (mface->v4)
 							rgb3 = KX_Mcol2uint_new(mmcol[3]);
 					}
-					else
-					{
-						// If there are no vertex colors OR texfaces,
-						// Initialize face to white and set COLLSION true and everything else FALSE
+					else {
+						// no vertex colors: take from material if we have one,
+						// otherwise set to white
 						unsigned int colour = 0xFFFFFFFFL;
-						mode = default_face_mode;	
-						transp = TF_SOLID;
-						tile = 0;
+
 						if (ma)
 						{
-							// If we have a material, take the default colour from the material.
 							union
 							{
 								unsigned char cp[4];
@@ -866,7 +871,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 							
 							colour = col_converter.integer;
 						}
-						
+	
 						rgb0 = KX_rgbaint2uint_new(colour);
 						rgb1 = KX_rgbaint2uint_new(colour);
 						rgb2 = KX_rgbaint2uint_new(colour);	
