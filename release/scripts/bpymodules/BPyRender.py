@@ -3,7 +3,25 @@ from Blender import Scene, sys, Camera, Object, Image
 from Blender.Scene import Render
 Vector= Blender.Mathutils.Vector
 
-def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, camera_matrix= None):
+
+def extFromFormat(format):
+	if format == Render.TARGA: return 'tga'
+	if format == Render.RAWTGA: return 'tga'
+	if format == Render.HDR: return 'hdr'
+	if format == Render.PNG: return 'png'
+	if format == Render.BMP: return 'bmp'
+	if format == Render.JPEG: return 'jpg'
+	if format == Render.HAMX: return 'ham'
+	if format == Render.TIFF: return 'tif'
+	if format == Render.CINEON: return 'cine'
+	if format == Render.DPX: return 'tif'
+	if format == Render.OPENEXR: return 'exr'
+	if format == Render.IRIS: return 'rgb'
+	return ''
+
+	
+
+def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, camera_matrix= None, format=Render.PNG):
 	'''
 	Takes any number of objects and renders them on the z axis, between x:y-0 and x:y-1
 	Usefull for making images from a mesh without per pixel operations
@@ -14,12 +32,15 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, cam
 	
 	returns the blender image
 	'''
-	
+	ext = '.' + extFromFormat(format)
+	print ext
 	# remove an extension if its alredy there
-	if path.lower().endswith('.png'):
+	if path.lower().endswith(ext):
 		path= path[:-4] 
 	
-	path_expand= sys.expandpath(path) + '.png'
+	path_expand= sys.expandpath(path) + ext
+	
+	print path_expand, 'path'
 	
 	# Touch the path
 	try:
@@ -53,7 +74,7 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, cam
 		render_context.enableOversampling(False) 
 	
 	render_context.setRenderWinSize(100)
-	render_context.setImageType(Render.PNG)
+	render_context.setImageType(format)
 	render_context.enableExtensions(True) 
 	#render_context.enableSky() # No alpha needed.
 	if alpha:

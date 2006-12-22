@@ -34,7 +34,7 @@ Example::
   Render.CloseRenderWindow()
   print context.fps
   print context.cFrame
-zz
+
 @type Modes: readonly dictionary
 @var Modes: Constant dict used for with L{RenderData.mode} bitfield attribute.  
 Values can be ORed together.  Individual bits can also be set/cleared with
