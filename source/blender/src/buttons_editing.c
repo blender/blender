@@ -1167,6 +1167,11 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 	}
 
 	if (ob->type==OB_MESH) {
+		if(me->mr && multires_modifier_warning()) {
+			error("Modifier changes topology; cannot apply with multires active");
+			return;
+		}
+	
 		sculptmode_pmv_off(me);
 	
 		dm = mesh_create_derived_for_modifier(ob, md);
