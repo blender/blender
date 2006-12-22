@@ -655,13 +655,13 @@ static PyObject *MCol_item(BPy_MCol * self, int i)
 	PyObject *attr;
 	switch (i) {
 	case 0:
-		param = self->color->r;
+		param = self->color->b;
 		break;
 	case 1:
 		param = self->color->g;
 		break;
 	case 2:
-		param = self->color->b;
+		param = self->color->r;
 		break;
 	case 3:
 		param = self->color->a;
@@ -687,13 +687,13 @@ static int MCol_ass_item(BPy_MCol * self, int i, PyObject * value)
 	
 	switch (i) {
 	case 0:
-		param = (unsigned char *)&self->color->r;
+		param = (unsigned char *)&self->color->b; /* reversed? why */
 		break;
 	case 1:
 		param = (unsigned char *)&self->color->g;
 		break;
 	case 2:
-		param = (unsigned char *)&self->color->b;
+		param = (unsigned char *)&self->color->r; /* reversed? why */
 		break;
 	case 3:
 		param = (unsigned char *)&self->color->a;
