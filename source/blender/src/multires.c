@@ -584,7 +584,7 @@ void multires_update_deformverts(Multires *mr, CustomData *src)
 		if(CustomData_has_layer(src, CD_MDEFORMVERT)) {
 			if(G.obedit) {
 				EditVert *eve= G.editMesh->verts.first;
-				CustomData_add_layer(&mr->vdata, CD_MDEFORMVERT, 0, NULL, lvl->totvert);
+				CustomData_add_layer(&mr->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, lvl->totvert);
 				for(i=0; i<lvl->totvert; ++i) {
 					CustomData_from_em_block(&G.editMesh->vdata, &mr->vdata, eve->data, i);
 					eve= eve->next;
@@ -1062,6 +1062,8 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		free_edgelist(&em->edges);
 		free_facelist(&em->faces);
 		
+		EM_free_data_layer(&G.editMesh->vdata, CD_MDEFORMVERT);
+		
 		eves= MEM_callocN(sizeof(EditVert)*lvl->totvert, "editvert pointers");
 	} else {
 		CustomData_free_layer(&me->vdata, CD_MVERT, me->totvert);
@@ -1223,9 +1225,10 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 			
 	}
 	
-	if(em)
+	if(em) {
 		MEM_freeN(eves);
-	else {
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	} else {
 		multires_edge_level_update(ob,me);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
