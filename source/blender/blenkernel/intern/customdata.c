@@ -211,10 +211,8 @@ static void layerCopy_tface(const void *source, void *dest, int count)
 	MTFace *dest_tf = (MTFace*)dest;
 	int i;
 
-	for(i = 0; i < count; ++i) {
+	for(i = 0; i < count; ++i)
 		dest_tf[i] = source_tf[i];
-		dest_tf[i].flag &= ~TF_ACTIVE;
-	}
 }
 
 static void layerInterp_tface(void **sources, float *weights,

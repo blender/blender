@@ -1459,7 +1459,7 @@ void select_tface_from_mface(Mesh *me)
 {
 	MFace *mf;
 	MTFace *tf;
-	int a;
+	int a, hasactive=0;
 
 	if(!me->mtface) return;
 
@@ -1471,6 +1471,11 @@ void select_tface_from_mface(Mesh *me)
 
 		if(mf->flag & ME_HIDE) tf->flag |= TF_HIDE;
 		else tf->flag &= ~TF_HIDE;
+
+		if(tf->flag & TF_ACTIVE) {
+			if(hasactive) tf->flag &= ~TF_ACTIVE;
+			else hasactive= 1;
+		}
 	}
 }
 
