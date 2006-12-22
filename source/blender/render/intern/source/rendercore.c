@@ -913,10 +913,16 @@ void zbufshadeDA_tile(RenderPart *pa)
 				
 				if(ztramask && solidmask) {
 					unsigned short *sps= solidmask, *spz= ztramask;
+					unsigned short fullmask= (1<<R.osa)-1;
 					float *fcol= rl->rectf; float *acol= rl->acolrect;
 					int x;
-					for(x=pa->rectx*pa->recty; x>0; x--, acol+=4, fcol+=4, sps++, spz++)
-						addAlphaOverFloatMask(fcol, acol, *sps, *spz);
+					
+					for(x=pa->rectx*pa->recty; x>0; x--, acol+=4, fcol+=4, sps++, spz++) {
+						if(*sps == fullmask)
+							addAlphaOverFloat(fcol, acol);
+						else
+							addAlphaOverFloatMask(fcol, acol, *sps, *spz);
+					}
  				}
 				else {
 					float *fcol= rl->rectf; float *acol= rl->acolrect;
