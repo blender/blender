@@ -310,20 +310,62 @@ void fastshade_free_render(void)
 	}
 }
 
-static void fastshade(float *co, float *nor, float *orco, float *uv, char *uvname, Material *ma, char *col1, char *col2, char *vertcol, char *colname)
+static int fastshade_customdata_layer_num(int n, int active)
+{   
+	/* make the active layer the first */
+	if (n == active) return 0;
+	else if (n < active) return n+1;
+	else return n;
+}
+
+static void fastshade_customdata(CustomData *fdata, int a, int j, Material *ma)
+{
+	CustomDataLayer *layer;
+	MTFace *mtface;
+	int index, n, needuv= ma->texco & TEXCO_UV;
+	char *vertcol;
+
+	shi.totuv= 0;
+	shi.totcol= 0;
+
+	for(index=0; index<fdata->totlayer; index++) {
+		layer= &fdata->layers[index];
+		
+		if(needuv && layer->type == CD_MTFACE && shi.totuv < MAX_MTFACE) {
+			n= fastshade_customdata_layer_num(shi.totuv, layer->active);
+			mtface= &((MTFace*)layer->data)[a];
+
+			shi.uv[shi.totuv].uv[0]= 2.0f*mtface->uv[j][0]-1.0f;
+			shi.uv[shi.totuv].uv[1]= 2.0f*mtface->uv[j][1]-1.0f;
+			shi.uv[shi.totuv].uv[2]= 1.0f;
+
+			shi.uv[shi.totuv].name= layer->name;
+			shi.totuv++;
+		}
+		else if(layer->type == CD_MCOL && shi.totcol < MAX_MCOL) {
+			n= fastshade_customdata_layer_num(shi.totcol, layer->active);
+			vertcol= (char*)&((MCol*)layer->data)[a*4 + j];
+
+			shi.col[shi.totcol].col[0]= ((float)vertcol[3])/255.0f;
+			shi.col[shi.totcol].col[1]= ((float)vertcol[2])/255.0f;
+			shi.col[shi.totcol].col[2]= ((float)vertcol[1])/255.0f;
+
+			shi.col[shi.totcol].name= layer->name;
+			shi.totcol++;
+		}
+	}
+
+	if(needuv && shi.totuv == 0)
+		VECCOPY(shi.uv[0].uv, shi.lo);
+
+	if(shi.totcol)
+		VECCOPY(shi.vcol, shi.col[0].col);
+}
+
+static void fastshade(float *co, float *nor, float *orco, Material *ma, char *col1, char *col2)
 {
 	ShadeResult shr;
 	int a;
-	
-	if(vertcol) {
-		shi.col[0].col[0]= ((float)vertcol[3])/255.0f;
-		shi.col[0].col[1]= ((float)vertcol[2])/255.0f;
-		shi.col[0].col[2]= ((float)vertcol[1])/255.0f;
-		shi.col[0].name= colname;
-		shi.totcol= 1;
-
-		VECCOPY(shi.vcol, shi.col[0].col);
-	}
 	
 	VECCOPY(shi.co, co);
 	shi.vn[0]= -nor[0];
@@ -343,18 +385,6 @@ static void fastshade(float *co, float *nor, float *orco, float *uv, char *uvnam
 		}
 		if(ma->texco & TEXCO_STICKY) {
 			VECCOPY(shi.sticky, shi.lo);
-		}
-		if(ma->texco & TEXCO_UV) {
-			if(uv) {
-				shi.uv[0].uv[0]= 2.0f*uv[0]-1.0f;
-				shi.uv[0].uv[1]= 2.0f*uv[1]-1.0f;
-				shi.uv[0].uv[2]= 1.0f;
-			}
-			else {
-				VECCOPY(shi.uv[0].uv, shi.lo);
-			}
-			shi.uv[0].name = uvname;
-			shi.totuv= 1;
 		}
 		if(ma->texco & TEXCO_OBJECT) {
 			VECCOPY(shi.co, shi.lo);
@@ -449,14 +479,11 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 {
 	Mesh *me= ob->data;
 	DerivedMesh *dm;
-	MCol *mcol;
 	MVert *mvert;
 	MFace *mface;
-	MTFace *mtface;
 	unsigned int *col1, *col2;
 	float *orco, *vnors, *nors, imat[3][3], mat[4][4], vec[3];
-	int a, i, need_orco, totface, totvert, layerindex;
-	char *uvname= "", *colname= "";
+	int a, i, need_orco, totface, totvert;
 	CustomDataMask dataMask = CD_MASK_BAREMESH | CD_MASK_MCOL
 	                          | CD_MASK_MTFACE | CD_MASK_NORMAL;
 
@@ -471,20 +498,9 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 	
 	mvert = dm->getVertArray(dm);
 	mface = dm->getFaceArray(dm);
-	mcol = dm->getFaceDataArray(dm, CD_MCOL);
-	mtface = dm->getFaceDataArray(dm, CD_MTFACE);
 	nors = dm->getFaceDataArray(dm, CD_NORMAL);
 	totvert = dm->getNumVerts(dm);
 	totface = dm->getNumFaces(dm);
-
-	if (mcol) {
-		layerindex= CustomData_get_active_layer_index(&dm->faceData, CD_MCOL);
-		colname= dm->faceData.layers[layerindex].name;
-	}
-	if (mtface) {
-		layerindex= CustomData_get_active_layer_index(&dm->faceData, CD_MTFACE);
-		uvname= dm->faceData.layers[layerindex].name;
-	}
 
 	if (onlyForMesh) {
 		col1 = *col1_r;
@@ -518,18 +534,14 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 
 	for (i=0; i<totface; i++) {
 		MFace *mf= &mface[i];
-		MTFace *tface= (mtface)? &mtface[i]: NULL;
 		Material *ma= give_current_material(ob, mf->mat_nr+1);
 		int j, vidx[4], nverts= mf->v4?4:3;
 		unsigned char *col1base= (unsigned char*) &col1[i*4];
 		unsigned char *col2base= (unsigned char*) (col2?&col2[i*4]:NULL);
-		unsigned char *mcolbase;
 		float nor[3], n1[3];
 		
 		if(ma==NULL) ma= &defmaterial;
 		
-		mcolbase = (mcol)? (unsigned char*)&mcol[i*4]: NULL;
-
 		vidx[0]= mf->v1;
 		vidx[1]= mf->v2;
 		vidx[2]= mf->v3;
@@ -553,16 +565,16 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 			MVert *mv= &mvert[vidx[j]];
 			char *col1= (char*)&col1base[j*4];
 			char *col2= (char*)(col2base?&col2base[j*4]:NULL);
-			char *mcol= (char*)(mcolbase?&mcolbase[j*4]:NULL);
 			float *vn = (mf->flag & ME_SMOOTH)?&vnors[3*vidx[j]]:n1;
-			float *uv= tface?tface->uv[j]:NULL;
 			
 			VECCOPY(vec, mv->co);
 			Mat4MulVecfl(mat, vec);
 			vec[0]+= 0.001*vn[0];
 			vec[1]+= 0.001*vn[1];
 			vec[2]+= 0.001*vn[2];
-			fastshade(vec, vn, orco?&orco[vidx[j]*3]:mv->co, uv, uvname, ma, col1, col2, mcol, colname);
+
+			fastshade_customdata(&dm->faceData, i, j, ma);
+			fastshade(vec, vn, orco?&orco[vidx[j]*3]:mv->co, ma, col1, col2);
 		}
 	} 
 	MEM_freeN(vnors);
@@ -579,9 +591,11 @@ void shadeMeshMCol(Object *ob, Mesh *me)
 {
 	int a;
 	char *cp;
+	unsigned int *mcol= (unsigned int*)me->mcol;
 	
 	Render *re= fastshade_get_render();
-	mesh_create_shadedColors(re, ob, 1, (unsigned int **)&me->mcol, NULL);
+	mesh_create_shadedColors(re, ob, 1, &mcol, NULL);
+	me->mcol= (MCol*)mcol;
 
 	/* swap bytes */
 	for(cp= (char *)me->mcol, a= 4*me->totface; a>0; a--, cp+=4) {
@@ -662,7 +676,7 @@ void shadeDispList(Base *base)
 							VECCOPY(vec, fp);
 							Mat4MulVecfl(mat, vec);
 							
-							fastshade(vec, n1, fp, NULL, "", ma, (char *)col1, NULL, NULL, "");
+							fastshade(vec, n1, fp, ma, (char *)col1, NULL);
 							
 							fp+= 3; col1++;
 						}
@@ -683,7 +697,7 @@ void shadeDispList(Base *base)
 							n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
 							Normalise(n1);
 				
-							fastshade(vec, n1, fp, NULL, "", ma, (char *)col1, NULL, NULL, "");
+							fastshade(vec, n1, fp, ma, (char *)col1, NULL);
 							
 							fp+= 3; nor+= 3; col1++;
 						}
@@ -721,7 +735,7 @@ void shadeDispList(Base *base)
 							n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
 							Normalise(n1);
 						
-							fastshade(vec, n1, fp, NULL, "", ma, (char *)col1, NULL, NULL, "");
+							fastshade(vec, n1, fp, ma, (char *)col1, NULL);
 							
 							fp+= 3; col1++; nor+= 3;
 						}
