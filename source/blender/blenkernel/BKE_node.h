@@ -178,10 +178,11 @@ struct ShadeResult;
 #define SH_NODE_MAPPING		109
 #define SH_NODE_CURVE_VEC	110
 #define SH_NODE_CURVE_RGB	111
-#define SH_NODE_CAMERA	114
+#define SH_NODE_CAMERA		114
 #define SH_NODE_MATH		115
 #define SH_NODE_VECT_MATH	116
 #define SH_NODE_SQUEEZE	    117
+#define SH_NODE_VERTEX_COL	118
 /* custom defines: options for Material node */
 #define SH_NODE_MAT_DIFF	1
 #define SH_NODE_MAT_SPEC	2

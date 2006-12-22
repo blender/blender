@@ -1069,6 +1069,50 @@ static bNodeType sh_node_rgbtobw= {
 	
 };
 
+/* **************** VERTEX COLOR  ******************** */
+
+/* output socket type definition */
+static bNodeSocketType sh_node_vertexcol_out[]= {
+	{	SOCK_RGBA, 0, "Color",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+/* node execute callback */
+static void node_shader_exec_vertexcol(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	if(data) {
+		ShadeInput *shi= ((ShaderCallData *)data)->shi;
+		ShadeInputCol *scol= &shi->col[0];
+		NodeVertexCol *nvcol= (NodeVertexCol*)node->storage;
+		int i;
+
+		if(nvcol->name[0]) {
+			for(i = 0; i < shi->totcol; i++) {
+				if(strcmp(shi->col[i].name, nvcol->name)==0) {
+					scol= &shi->col[i];
+					break;
+				}
+			}
+		}
+
+		VECCOPY(out[0]->vec, scol->col);
+		out[0]->vec[3]= 1.0f;
+	}
+}
+
+/* node type definition */
+static bNodeType sh_node_vertexcol= {
+	/* type code   */	SH_NODE_VERTEX_COL,
+	/* name        */	"Vertex Color",
+	/* width+range */	120, 80, 160,
+	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS,
+	/* input sock  */	NULL,
+	/* output sock */	sh_node_vertexcol_out,
+	/* storage     */	"NodeVertexCol",
+	/* execfunc    */	node_shader_exec_vertexcol
+	
+};
+
 
 /* ****************** types array for all shaders ****************** */
 
@@ -1091,6 +1135,7 @@ bNodeType *node_all_shaders[]= {
 	&sh_node_math,
 	&sh_node_vect_math,
 	&sh_node_squeeze,
+	&sh_node_vertexcol,
 	NULL
 };
 

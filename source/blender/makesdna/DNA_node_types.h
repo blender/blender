@@ -217,6 +217,10 @@ typedef struct NodeGeometry {
 	char uvname[32];
 } NodeGeometry;
 
+typedef struct NodeVertexCol {
+	char name[32];
+} NodeVertexCol;
+
 /* qdn: Defocus blur node */
 typedef struct NodeDefocus {
 	char bktype, rotation, preview, gamco;
