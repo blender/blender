@@ -109,8 +109,8 @@ def Get (name = None):
       - (name): The Armature object with the given I{name};
       - (name, name, ...): A list of Armature objects
       - ():     A list with all Armature objects in the current scene.
-  @warning: a string argument for an armature that dosnt exist in 2.42 will return None.
-    later versions raise a value error.
+  @warning: In versions 2.42 and earlier, a string argument for an armature
+    that doesn't exist will return None.  Later versions raise a Value error.
   """
 
 def New (name = None):
