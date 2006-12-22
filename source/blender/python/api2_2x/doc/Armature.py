@@ -12,21 +12,21 @@ example.
 
 Example::
   import Blender
-  from Blender import Armature as A
+  from Blender import Armature
   from Blender.Mathutils import *
   #
-  arms = A.Get()
+  arms = Armature.Get()
   for arm in arms.values():
-    arm.drawType = A.STICK #set the draw type
+    arm.drawType = Armature.STICK #set the draw type
     arm.makeEditable() #enter editmode
 
     #generating new editbone
-    eb = A.Editbone()
+    eb = Armature.Editbone()
     eb.roll = 10
     eb.parent = arm.bones['Bone.003']
     eb.head = Vector(1,1,1)
     eb.tail = Vector(0,0,1)
-    eb.options = [A.HINGE, A.CONNECTED]
+    eb.options = [Armature.HINGE, Armature.CONNECTED]
 
     #add the bone
     arm.bones['myNewBone'] = eb
@@ -48,15 +48,16 @@ Example::
 	from Blender import *
 	def test_arm():
 		scn= Scene.GetCurrent()
-		arm_ob= scn.getActiveObject()
+		arm_ob= scn.objects.active
 
-		if not arm_ob or arm_ob.getType() != 'Armature':
+		if not arm_ob or arm_ob.type != 'Armature':
 			Draw.PupMenu('not an armature object')
 			return
 
 		# Deselect all
-		for ob in scn.getChildren():
-			ob.sel= 0
+		for ob in scn.objects:
+			if ob != arm_ob:
+				ob.sel= 0
 
 		arm_mat= arm_ob.matrixWorld
 
@@ -67,14 +68,8 @@ Example::
 			bone_mat= bone.matrix['ARMATURESPACE']
 			bone_mat_world= bone_mat*arm_mat
 
-			ob_empty= Object.New('Empty', bone.name)
-			scn.link(ob_empty)
+			ob_empty= scn.objects.new('Empty')
 			ob_empty.setMatrix(bone_mat_world)
-			ob_empty.sel= 1
-
-		# Select then de-select keeps us active
-		arm_ob.sel= 1
-		arm_ob.sel= 0
 
 	test_arm()
 
@@ -114,6 +109,8 @@ def Get (name = None):
       - (name): The Armature object with the given I{name};
       - (name, name, ...): A list of Armature objects
       - ():     A list with all Armature objects in the current scene.
+  @warning: a string argument for an armature that dosnt exist in 2.42 will return None.
+    later versions raise a value error.
   """
 
 def New (name = None):

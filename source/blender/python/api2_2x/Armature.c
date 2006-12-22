@@ -1270,7 +1270,11 @@ static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 		if (data != NULL){
 			return PyArmature_FromArmature(data); //*new*
 		}else{
-			return EXPP_incr_ret(Py_None);
+			char buffer[128];
+			PyOS_snprintf( buffer, sizeof(buffer),
+						   "Armature \"%s\" not found", name);
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+										  buffer );
 		}
 	}
 

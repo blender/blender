@@ -75,20 +75,38 @@ class Image:
   image's ID Properties.
   @type properties: L{IDGroup<IDProp.IDGroup>}
   @ivar name: The name of this Image object.
+  @type name: string
   @ivar filename: The filename (path) to the image file loaded into this Image
      object.
+  @type filename: string
   @ivar size: The [width, height] dimensions of the image (in pixels).
-  @ivar depth: The pixel depth of the image.
+  @type size: list
+  @ivar depth: The pixel depth of the image. [8, 16, 18, 24, 32]
+  @type depth: int
   @ivar xrep: Texture tiling: the number of repetitions in the x (horizontal)
-     axis.
+     axis. [1, 16].
   @ivar yrep: Texture tiling: the number of repetitions in the y (vertical)
-     axis.
+     axis [1, 16].
+  @type xrep: int 
+  @type yrep: int 
   @ivar start: Texture's animation start frame [0, 128].
+  @type start: int
   @ivar end: Texture's animation end frame [0, 128].
+  @type end: int
   @ivar speed: Texture's animation speed [1, 100].
-  @ivar packed: Boolean, True when the Texture is packed (readonly).
-  @ivar has_data: Boolean, True when the image has pixel data (readonly).
+  @type speed: int
+  @ivar packed: True when the Texture is packed (readonly).
+  @type packed: boolean
+  @ivar has_data: True when the image has pixel data (readonly).
+  @type has_data: boolean
+  @ivar fields: enable or disable the fields option for this image.
+  @type fields: boolean
+  @ivar fields_odd: enable or disable the odd fields option for this image.
+  @type fields_odd: boolean
+  @ivar antialias: enable or disable the antialias option for this image.
+  @type antialias: boolean
   @ivar bindcode: Texture's bind code (readonly).
+  @type bindcode: int
   """
 
   def getName():

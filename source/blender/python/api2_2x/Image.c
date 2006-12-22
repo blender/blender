@@ -378,14 +378,19 @@ static PyObject *M_Image_Load( PyObject * self, PyObject * args )
 static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 {
 
-	PyObject *attr;
+	PyObject *attr = PyList_New(4);
 	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
 	char *pixel;		/* image data */
 	int index;		/* offset into image data */
 	int x = 0;
 	int y = 0;
 	int pixel_size = 4;	/* each pixel is 4 x 8-bits packed in unsigned int */
+	int i;
 
+	if (!attr)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't allocate memory for color list" );
+	
 	if( !PyArg_ParseTuple( args, "ii", &x, &y ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected 2 integers" );
@@ -412,17 +417,10 @@ static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 	index = ( x + y * ibuf->x ) * pixel_size;
 
 	pixel = ( char * ) ibuf->rect;
-	attr = Py_BuildValue( "[f,f,f,f]",
-			      ( ( float ) pixel[index] ) / 255.0,
-			      ( ( float ) pixel[index + 1] ) / 255.0,
-			      ( ( float ) pixel[index + 2] ) / 255.0,
-			      ( ( float ) pixel[index + 3] / 255.0 ) );
-
-	if( attr )		/* normal return */
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get pixel colors" );
+	for (i=0; i<4; i++) {
+		PyList_SetItem( attr, i, PyFloat_FromDouble( ( ( double ) pixel[index+i] ) / 255.0 ));
+	}
+	return attr;
 }
 
 
@@ -435,14 +433,19 @@ static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 
 static PyObject *Image_getPixelI( BPy_Image * self, PyObject * args )
 {
-	PyObject *attr;
+	PyObject *attr = PyList_New(4);
 	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
 	char *pixel;		/* image data */
 	int index;		/* offset into image data */
 	int x = 0;
 	int y = 0;
 	int pixel_size = 4;	/* each pixel is 4 x 8-bits packed in unsigned int */
+	int i;
 
+	if (!attr)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't allocate memory for color list" );
+	
 	if( !PyArg_ParseTuple( args, "ii", &x, &y ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected 2 integers" );
@@ -467,18 +470,12 @@ static PyObject *Image_getPixelI( BPy_Image * self, PyObject * args )
 	 */
 
 	index = ( x + y * ibuf->x ) * pixel_size;
-
 	pixel = ( char * ) ibuf->rect;
-	attr = Py_BuildValue( "[i,i,i,i]",
-			      pixel[index],
-			      pixel[index + 1],
-			      pixel[index + 2], pixel[index + 3] );
-
-	if( attr )		/* normal return */
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get pixel colors" );
+	
+	for (i=0; i<4; i++) {
+		PyList_SetItem( attr, i, PyInt_FromLong( pixel[index+i] ));
+	}
+	return attr;
 }
 
 
@@ -831,19 +828,20 @@ static PyObject *Image_getFilename( BPy_Image * self )
 static PyObject *Image_getSize( BPy_Image * self )
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
-	PyObject *attr;	
+	PyObject *attr = PyList_New(2);
 	
 	if( !ibuf )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
-
-	attr = Py_BuildValue( "[hh]", ibuf->x, ibuf->y );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	if( !attr )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				      "couldn't get Image.size attribute" );
+	
+	PyList_SetItem( attr, 0, PyInt_FromLong(ibuf->x));
+	PyList_SetItem( attr, 1, PyInt_FromLong(ibuf->y));
+	return attr;	
+
+
 }
 
 static PyObject *Image_getDepth( BPy_Image * self )
@@ -1143,25 +1141,37 @@ static PyObject *Image_getAttr( BPy_Image * self, char *name )
 	else if( strcmp( name, "speed" ) == 0 )
 		attr = PyInt_FromLong( self->image->animspeed );
 	else if( strcmp( name, "packed" ) == 0 ) {
-		if (self->image->packedfile)
-			attr = EXPP_incr_ret_True();
-		else
-			attr = EXPP_incr_ret_False();
+		if (self->image->packedfile) attr = Py_True;
+		else attr = Py_False;
+		EXPP_incr_ret(attr);
 	} else if( strcmp( name, "has_data" ) == 0 ) {
-		if (self->image->ibufs.first)
-			attr = EXPP_incr_ret_True();
-		else
-			attr = EXPP_incr_ret_False();
+		if (self->image->ibufs.first) attr = Py_True;
+		else attr = Py_False;
+		EXPP_incr_ret(attr);
+	} else if( strcmp( name, "fields" ) == 0 ) {
+		if (self->image->flag & IMA_FIELDS) attr = Py_True;
+		else attr = Py_False;
+		EXPP_incr_ret(attr);
+	} else if( strcmp( name, "fields_odd" ) == 0 ) {
+		if (self->image->flag & IMA_STD_FIELD) attr = Py_True;
+		else attr = Py_False;
+		EXPP_incr_ret(attr);
+	} else if( strcmp( name, "antialias" ) == 0 ) {
+		if (self->image->flag & IMA_ANTIALI) attr = Py_True;
+		else attr = Py_False;
+		EXPP_incr_ret(attr);
+		
 	} else if( strcmp( name, "bindcode" ) == 0 )
 		attr = PyInt_FromLong( self->image->bindcode );
 	else if( strcmp( name, "users" ) == 0 )
 		attr = PyInt_FromLong( self->image->id.us );
 	else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s,s]",
+		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
 				      "name", "filename", "size", "depth",
 				      "xrep", "yrep", "start", "end",
 				      "speed", "packed", "has_data"
-				      "bindcode", "users" );
+				      "fields", "odd", "antialias",
+					  "bindcode", "users" );
 
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
@@ -1210,7 +1220,38 @@ static int Image_setAttr( BPy_Image * self, char *name, PyObject * value )
 		error = Image_setEnd( self, valtuple );
 	else if( strcmp( name, "speed" ) == 0 )
 		error = Image_setSpeed( self, valtuple );
-	else {			/* Error: no such member in the Image object structure */
+	
+	else if( strcmp( name, "fields" ) == 0 ) {
+		int param = PyObject_IsTrue( value );
+		if( param == -1 )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected true/false argument" );
+		
+		if (param) self->image->flag |= IMA_FIELDS;
+		else self->image->flag &= ~IMA_FIELDS;
+		Py_INCREF( Py_None );
+		error = Py_None;
+	} else if( strcmp( name, "fields_odd" ) == 0 ) {
+		int param = PyObject_IsTrue( value );
+		if( param == -1 )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected true/false argument" );
+		
+		if (param) self->image->flag |= IMA_STD_FIELD;
+		else self->image->flag &= ~IMA_STD_FIELD;
+		Py_INCREF( Py_None );
+		error = Py_None;
+	} else if( strcmp( name, "antialias" ) == 0 ) {
+		int param = PyObject_IsTrue( value );
+		if( param == -1 )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected true/false argument" );
+		
+		if (param) self->image->flag |= IMA_ANTIALI;
+		else self->image->flag &= ~IMA_ANTIALI;
+		Py_INCREF( Py_None );
+		error = Py_None;
+	} else {			/* Error: no such member in the Image object structure */
 		/*Py_DECREF( value ); borrowed ref, no need to decref */
 		Py_DECREF( valtuple );
 		return ( EXPP_ReturnIntError( PyExc_KeyError,
