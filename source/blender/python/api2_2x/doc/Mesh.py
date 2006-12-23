@@ -776,16 +776,10 @@ class Mesh:
     mesh can be used for rendering textures.
   @type texMesh: Mesh or None
 
-  @ivar activeUVLayer: The mesh's active UV/Image layer index. -1 if there is no UV/Image layers.
-  @type activeUVLayer: int
-  @ivar activeColorLayer: The mesh's active Vertex Color layer index. -1 if there is no UV/Image layers.
-  @type activeColorLayer: int
-  
-  @ivar totalUVLayers: The mesh's total number of UV/Image layers.
-  @type totalUVLayers: int
-  @ivar totalColorLayers: The mesh's total number of Vertex Color layers.
-  @type totalColorLayers: int
-  
+  @ivar activeUVLayer: The mesh's active UV/Image layer. None if there is no UV/Image layers.
+  @type activeUVLayer: string
+  @ivar activeColorLayer: The mesh's active Vertex Color layer. None if there is no UV/Image layers.
+  @type activeColorLayer: string
   """
 
   def getFromObject(object, cage=0, render=0):
@@ -1053,6 +1047,24 @@ class Mesh:
     Removes the active Vertex Color layer.
     @type name: string
     @param name: The name of the Color layer to remove.
+    """
+
+  def renameUVLayer(name, newname):
+    """
+    Removes the active UV/Image layer.
+    @type name: string
+    @param name: The UV layer to rename.
+    @type newname: string
+    @param newname: The new name of the UV layer, will be made unique.
+    """
+
+  def renameColorLayer(name, newname):
+    """
+    Removes the active Vertex Color layer.
+    @type name: string
+    @param name: The Color layer to rename.
+    @type newname: string
+    @param newname: The new name of the Color layer, will be made unique.
     """
 
   def smooth():

@@ -504,6 +504,17 @@ int CustomData_get_layer_index(const CustomData *data, int type)
 	return -1;
 }
 
+int CustomData_get_named_layer_index(const CustomData *data, int type, char *name)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type && strcmp(data->layers[i].name, name)==0)
+			return i;
+
+	return -1;
+}
+
 int CustomData_get_active_layer_index(const CustomData *data, int type)
 {
 	int i;
