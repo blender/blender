@@ -233,7 +233,8 @@ static void imapaint_image_update(Image *image, ImBuf *ibuf, short texpaint)
 	}
 }
 
-/* note; gets called with Image == NULL for brushes */
+/* note; gets called for both 2d image paint and 3d texture paint. in the
+   latter case image may be NULL and G.sima may not exist */
 static void imapaint_redraw(int final, int texpaint, Image *image)
 {
 	if(final) {
@@ -246,13 +247,13 @@ static void imapaint_redraw(int final, int texpaint, Image *image)
 		}
 		allqueue(REDRAWHEADERS, 0);
 		
-		if(image) {
+		if(!texpaint && image) {
 			/* after paint, tag Image or RenderResult nodes changed */
 			if(G.scene->nodetree) {
 				imagepaint_composite_tags(G.scene->nodetree, image, &G.sima->iuser);
 			}
 			/* signal composite (hurmf, need an allqueue?) */
-			if(!texpaint && G.sima->lock) {
+			if(G.sima->lock) {
 				ScrArea *sa;
 				for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
 					if(sa->spacetype==SPACE_NODE) {
@@ -735,7 +736,6 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	brush_painter_free(painter);
 
 	imapaint_redraw(1, texpaint, s.image);
-
 	
 	if (texpaint) {
 		if (s.warnmultifile)
