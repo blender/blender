@@ -76,6 +76,7 @@
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -1851,8 +1852,11 @@ void build_particle_system(Object *ob)
 	
 	if( paf->flag & PAF_STATIC ) deform= 0;
 	else {
-		deform= (ob->parent && ob->parent->type==OB_LATTICE && ob->partype==PARSKEL);
-		if(deform) init_latt_deform(ob->parent, 0);
+		Object *parlatt= modifiers_isDeformedByLattice(ob);
+		if(parlatt) {
+			deform= 1;
+			init_latt_deform(parlatt, 0);
+		}
 	}
 	
 	/* get the effectors */

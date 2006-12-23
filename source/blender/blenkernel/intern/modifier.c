@@ -3952,6 +3952,33 @@ Object *modifiers_isDeformedByArmature(Object *ob)
 	return NULL;
 }
 
+/* Takes an object and returns its first selected lattice, else just its
+* armature
+* This should work for multiple armatures per object
+*/
+Object *modifiers_isDeformedByLattice(Object *ob)
+{
+	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	LatticeModifierData *lmd= NULL;
+	
+	/* return the first selected armature, this lets us use multiple armatures
+		*/
+	for (; md; md=md->next) {
+		if (md->type==eModifierType_Lattice) {
+			lmd = (LatticeModifierData*) md;
+			if (lmd->object && (lmd->object->flag & SELECT))
+				return lmd->object;
+		}
+	}
+	
+	if (lmd) /* if were still here then return the last lattice */
+		return lmd->object;
+	
+	return NULL;
+}
+
+
+
 int modifiers_usesArmature(Object *ob, bArmature *arm)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
