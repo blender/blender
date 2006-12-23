@@ -60,14 +60,17 @@ typedef struct NumInput {
 */
 
 typedef struct TransSnap {
-	int  mode;
-	int  status;
-	float snapPoint[3];
-	float snapTarget[3];
-	double last;
-	void (*applySnap)(struct TransInfo *, float *);
-	void (*calcSnap)(struct TransInfo *, float *);
-	void (*targetSnap)(struct TransInfo *);
+	short	modePoint;
+	short	modeTarget;
+	int  	status;
+	float	snapPoint[3];
+	float	snapTarget[3];
+	float	dist; // Distance from snapPoint to snapTarget
+	double	last;
+	void  (*applySnap)(struct TransInfo *, float *);
+	void  (*calcSnap)(struct TransInfo *, float *);
+	void  (*targetSnap)(struct TransInfo *);
+	float  (*distance)(struct TransInfo *, float p1[3], float p2[3]); // Get the transform distance between two points (used by Closest snap)
 } TransSnap;
 
 typedef struct TransCon {
@@ -257,9 +260,14 @@ typedef struct TransInfo {
 #define TARGET_INIT		2
 #define POINT_INIT		4
 
-/* transsnap->mode */
-#define SNAP_GRID		1
-#define SNAP_GEO		2
+/* transsnap->modePoint */
+#define SNAP_GRID			0
+#define SNAP_GEO			1
+
+/* transsnap->modeTarget */
+#define SNAP_CLOSEST		0
+#define SNAP_CENTER			1
+#define SNAP_MEDIAN			2
 
 void checkFirstTime(void);
 

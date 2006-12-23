@@ -756,6 +756,8 @@ void initTransform(int mode, int context) {
 
 	createTransData(&Trans);			// make TransData structs from selection
 
+	initSnapping(&Trans); // Initialize snapping data AFTER mode flags
+
 	if (Trans.total == 0) {
 		postTrans(&Trans);
 		return;
@@ -940,6 +942,8 @@ void initManipulator(int mode)
 	}
 
 	Trans.flag |= T_USES_MANIPULATOR;
+	
+	Trans.tsnap.modePoint = SNAP_GRID; // Always use snap to grid with manipulators
 }
 
 void ManipulatorTransform() 
@@ -1896,6 +1900,8 @@ int Rotation(TransInfo *t, short mval[2])
 	if (t->con.applyRot) {
 		t->con.applyRot(t, NULL, axis);
 	}
+	
+	applySnapping(t, &final);
 
 	if (hasNumInput(&t->num)) {
 		char c[20];

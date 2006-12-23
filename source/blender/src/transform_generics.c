@@ -494,7 +494,6 @@ void initTrans (TransInfo *t)
 		t->around = V3D_CENTRE;
 
 	setTransformViewMatrices(t);
-	initSnapping(t);
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */

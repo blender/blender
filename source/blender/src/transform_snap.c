@@ -75,6 +75,9 @@ void TargetSnapMedian(TransInfo *t);
 void TargetSnapCenter(TransInfo *t);
 void TargetSnapClosest(TransInfo *t);
 
+float RotationBetween(TransInfo *t, float p1[3], float p2[3]);
+float TranslationBetween(TransInfo *t, float p1[3], float p2[3]);
+
 /****************** IMPLEMENTATIONS *********************/
 
 void drawSnapping(TransInfo *t)
@@ -139,6 +142,8 @@ void applySnapping(TransInfo *t, float *vec)
 void resetSnapping(TransInfo *t)
 {
 	t->tsnap.status = 0;
+	t->tsnap.modePoint = 0;
+	t->tsnap.modeTarget = 0;
 	t->tsnap.last = 0;
 	t->tsnap.applySnap = NULL;
 }
@@ -150,29 +155,55 @@ void initSnapping(TransInfo *t)
 	
 	if (t->tsnap.applySnap != NULL && // A snapping function actually exist
 		(G.obedit != NULL && G.obedit->type==OB_MESH) && // Temporary limited to edit mode meshes
-		(t->spacetype==SPACE_VIEW3D) && // Only 3D view (not UV)
+		(t->spacetype == SPACE_VIEW3D) && // Only 3D view (not UV)
 		(G.vd->flag2 & V3D_TRANSFORM_SNAP) && // Only if the snap flag is on
 		(t->flag & T_PROP_EDIT) == 0) // No PET, obviously
 	{
 		t->tsnap.status |= SNAP_ON;
-		t->tsnap.mode = SNAP_GEO;
+		t->tsnap.modePoint = SNAP_GEO;
 	}
 	else
 	{
-		t->tsnap.mode = SNAP_GRID;
+		t->tsnap.modePoint = SNAP_GRID;
 	}
 }
 
 void setSnappingCallback(TransInfo *t)
 {
+	t->tsnap.calcSnap = CalcSnapGeometry;
+
+	
+	switch(G.vd->flag2 & V3D_SNAP_TARGET)
+	{
+		case V3D_SNAP_TARGET_CLOSEST:
+			t->tsnap.modeTarget = SNAP_CLOSEST;
+			t->tsnap.targetSnap = TargetSnapClosest;
+			break;
+		case V3D_SNAP_TARGET_CENTER:
+			t->tsnap.modeTarget = SNAP_CENTER;
+			t->tsnap.targetSnap = TargetSnapCenter;
+			break;
+		case V3D_SNAP_TARGET_MEDIAN:
+			t->tsnap.modeTarget = SNAP_MEDIAN;
+			t->tsnap.targetSnap = TargetSnapMedian;
+			break;
+	}
+
 	switch (t->mode)
 	{
 	case TFM_TRANSLATION:
 		t->tsnap.applySnap = ApplySnapTranslation;
-		t->tsnap.calcSnap = CalcSnapGeometry;
+		t->tsnap.distance = TranslationBetween;
 		break;
 	case TFM_ROTATION:
-		t->tsnap.applySnap = NULL;
+		t->tsnap.applySnap = ApplySnapRotation;
+		t->tsnap.distance = RotationBetween;
+		
+		// Can't do TARGET_CENTER with rotation, use TARGET_MEDIAN instead
+		if ((G.vd->flag2 & V3D_SNAP_TARGET) == V3D_SNAP_TARGET_CENTER) {
+			t->tsnap.modeTarget = SNAP_MEDIAN;
+			t->tsnap.targetSnap = TargetSnapMedian;
+		}
 		break;
 	case TFM_RESIZE:
 		t->tsnap.applySnap = NULL;
@@ -181,20 +212,6 @@ void setSnappingCallback(TransInfo *t)
 		t->tsnap.applySnap = NULL;
 		break;
 	}
-	
-	switch(G.vd->flag2 & V3D_SNAP_TARGET)
-	{
-		case V3D_SNAP_TARGET_CLOSEST:
-			t->tsnap.targetSnap = TargetSnapClosest;
-			break;
-		case V3D_SNAP_TARGET_CENTER:
-			t->tsnap.targetSnap = TargetSnapCenter;
-			break;
-		case V3D_SNAP_TARGET_MEDIAN:
-			t->tsnap.targetSnap = TargetSnapMedian;
-			break;
-	}
-
 }
 
 /********************** APPLY **************************/
@@ -204,9 +221,78 @@ void ApplySnapTranslation(TransInfo *t, float vec[3])
 	VecSubf(vec, t->tsnap.snapPoint, t->tsnap.snapTarget);
 }
 
-void ApplySnapRotation(TransInfo *t, float vec[3])
+void ApplySnapRotation(TransInfo *t, float *vec)
 {
-	// FOO
+	if (t->tsnap.modeTarget == SNAP_CLOSEST) {
+		*vec = t->tsnap.dist;
+	}
+	else {
+		*vec = RotationBetween(t, t->tsnap.snapTarget, t->tsnap.snapPoint);
+	}
+}
+
+
+/********************** DISTANCE **************************/
+
+float TranslationBetween(TransInfo *t, float p1[3], float p2[3])
+{
+	return VecLenf(p1, p2);
+}
+
+float RotationBetween(TransInfo *t, float p1[3], float p2[3])
+{
+	float angle, start[3], end[3], center[3];
+	
+	VECCOPY(center, t->center);	
+	if(t->flag & (T_EDIT|T_POSE)) {
+		Object *ob= G.obedit?G.obedit:t->poseobj;
+		Mat4MulVecfl(ob->obmat, center);
+	}
+
+	VecSubf(start, p1, center);
+	VecSubf(end, p2, center);	
+		
+	// Angle around a constraint axis (error prone, will need debug)
+	if (t->con.applyRot != NULL && (t->con.mode & CON_APPLY)) {
+		float axis[3], tmp[3];
+		
+		t->con.applyRot(t, NULL, axis);
+
+		Projf(tmp, end, axis);
+		VecSubf(end, end, tmp);
+		
+		Projf(tmp, start, axis);
+		VecSubf(start, start, tmp);
+		
+		Normalise(end);
+		Normalise(start);
+		
+		Crossf(tmp, start, end);
+		
+		if (Inpf(tmp, axis) < 0.0)
+			angle = -acos(Inpf(start, end));
+		else	
+			angle = acos(Inpf(start, end));
+	}
+	else {
+		float mtx[3][3];
+		
+		Mat3CpyMat4(mtx, t->viewinv);
+		
+		Mat3MulVecfl(mtx, end);
+		Mat3MulVecfl(mtx, start);
+			
+		angle = atan2(end[1],end[0]) - atan2(start[1],start[0]);
+	}
+	
+	if (angle > M_PI) {
+		angle = 2 * M_PI - angle;
+	}
+	else if (angle < -(M_PI)) {
+		angle = 2 * M_PI + angle;
+	}
+	
+	return angle;
 }
 
 /********************** CALC **************************/
@@ -319,7 +405,6 @@ void TargetSnapClosest(TransInfo *t)
 	if (t->tsnap.status & POINT_INIT)
 	{
 		TransData *closest = NULL, *td = NULL;
-		float closestDist = 0;
 		
 		// Base case, only one selected item
 		if (t->total == 1)
@@ -329,38 +414,23 @@ void TargetSnapClosest(TransInfo *t)
 		// More than one selected item
 		else
 			{
-			float point[3];
-			
-			VECCOPY(point, t->tsnap.snapPoint);
-				
-			if(t->flag & (T_EDIT|T_POSE)) {
-				Object *ob= G.obedit?G.obedit:t->poseobj;
-				float imat[4][4];
-				Mat4Invert(imat, ob->obmat);
-				Mat4MulVecfl(imat, point);
-			}
-				
 			for (td = t->data; td != NULL && td->flag & TD_SELECTED ; td++)
 			{
-				float vdist[3];
+				float loc[3];
 				float dist;
 				
-				VecSubf(vdist, td->iloc, point);
-				dist = Inpf(vdist, vdist);
+				VECCOPY(loc, td->iloc);
+				Mat4MulVecfl(G.obedit->obmat, loc);
 				
-				if (closest == NULL || dist < closestDist)
+				dist = t->tsnap.distance(t, td->iloc, t->tsnap.snapPoint);
+				
+				if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist))
 				{
+					VECCOPY(t->tsnap.snapTarget, loc);
 					closest = td;
-					closestDist = dist; 
+					t->tsnap.dist = dist; 
 				}
 			}
-		}
-		
-		VECCOPY(t->tsnap.snapTarget, closest->iloc);
-		
-		if(t->flag & (T_EDIT|T_POSE)) {
-			Object *ob= G.obedit?G.obedit:t->poseobj;
-			Mat4MulVecfl(ob->obmat, t->tsnap.snapTarget);
 		}
 		
 		t->tsnap.status |= TARGET_INIT;
@@ -388,7 +458,7 @@ void snapGrid(TransInfo *t, float *val) {
 	GearsType action;
 	
 	// Only do something if using Snap to Grid
-	if ((t->tsnap.mode & SNAP_GRID) == 0)
+	if (t->tsnap.modePoint != SNAP_GRID)
 		return;
 
 	if(t->mode==TFM_ROTATION || t->mode==TFM_WARP || t->mode==TFM_TILT || t->mode==TFM_TRACKBALL || t->mode==TFM_BONE_ROLL)
