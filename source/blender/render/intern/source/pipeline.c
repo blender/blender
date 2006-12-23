@@ -2058,9 +2058,13 @@ static int is_rendering_allowed(Render *re)
 				return 0;
 			}
 		
+			/* do it here, so stack gets freed omn esc */
+			ntreeCompositTagRender(ntree);
+			
 			for(node= ntree->nodes.first; node; node= node->next)
 				if(node->type==CMP_NODE_COMPOSITE)
 					break;
+			
 			
 			if(node==NULL) {
 				re->error("No Render Output Node in Scene");
