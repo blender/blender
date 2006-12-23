@@ -225,6 +225,16 @@ def Exit():
   Exit the windowing interface.
   """
 
+def BeginAlign():
+  """
+  Buttons after this function will draw aligned (button layout only).
+  """
+
+def EndAlign():
+  """
+  Use after BeginAlign() to stop aligning the buttons (button layout only).
+  """
+
 def Register(draw = None, event = None, button = None):
   """
   Register callbacks for windowing.

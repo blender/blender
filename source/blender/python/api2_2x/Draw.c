@@ -107,10 +107,12 @@ static PyObject *Method_String( PyObject * self, PyObject * args );
 static PyObject *Method_GetStringWidth( PyObject * self, PyObject * args );
 static PyObject *Method_Text( PyObject * self, PyObject * args );
 static PyObject *Method_PupMenu( PyObject * self, PyObject * args );
-/* next three by Campbell: */
+/* next Five by Campbell: */
 static PyObject *Method_PupIntInput( PyObject * self, PyObject * args );
 static PyObject *Method_PupFloatInput( PyObject * self, PyObject * args );
 static PyObject *Method_PupStrInput( PyObject * self, PyObject * args );
+static PyObject *Method_BeginAlign( PyObject * self );
+static PyObject *Method_EndAlign( PyObject * self );
 /* next by Jonathan Merritt (lancelet): */
 static PyObject *Method_Image( PyObject * self, PyObject * args);
 /* CLEVER NUMBUT */
@@ -157,6 +159,12 @@ static char Method_Button_doc[] =
 (width, height) The button width and height\n\
 [tooltip=] The button's tooltip\n\n\
 This function can be called as Button() or PushButton().";
+
+static char Method_BeginAlign_doc[] =
+	"Buttons after this function will draw aligned (button layout only)";
+
+static char Method_EndAlign_doc[] =
+	"Use after BeginAlign() to stop aligning the buttons (button layout only).";
 
 static char Method_Menu_doc[] =
 	"(name, event, x, y, width, height, default, [tooltip]) - Create a new Menu \
@@ -348,6 +356,8 @@ static struct PyMethodDef Draw_methods[] = {
 	MethodDef( Draw ),
 	MethodDef( Register ),
 	{"PushButton", Method_Button, METH_VARARGS, Method_Button_doc},
+	{"BeginAlign", Method_BeginAlign, METH_NOARGS, Method_BeginAlign_doc},
+	{"EndAlign", Method_EndAlign, METH_NOARGS, Method_EndAlign_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -853,6 +863,28 @@ static PyObject *Method_Button( PyObject * self, PyObject * args )
 		uiDefBut( block, BUT, event, name, (short)x, (short)y, (short)w, (short)h, 0, 0, 0, 0, 0,
 			  tip );
 
+	return EXPP_incr_ret( Py_None );
+}
+
+
+
+static PyObject *Method_BeginAlign( PyObject * self )
+{
+	uiBlock *block = Get_uiBlock(  );
+	
+	if (block)
+		uiBlockBeginAlign(block);
+	
+	return EXPP_incr_ret( Py_None );
+}
+
+static PyObject *Method_EndAlign( PyObject * self )
+{
+	uiBlock *block = Get_uiBlock(  );
+	
+	if (block)
+		uiBlockEndAlign(block);
+	
 	return EXPP_incr_ret( Py_None );
 }
 

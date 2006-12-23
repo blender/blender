@@ -897,15 +897,17 @@ def draw():
 3 Shape - T %x"      +str(SHAPE3_T)        +"|\
 3 Shape - Inv T%x"   +str(SHAPE3_INVT)     +"|\
 4 Shape - Mix %x"    +str(SHAPE4_X)
- 		widmenu = Menu(name, EVENT_NONE, 5, 120, 200, 40, widmenu.val, "Choose Widget Type.")
+		widmenu = Menu(name, EVENT_NONE, 5, 120, 200, 40, widmenu.val, "Choose Widget Type.")
 		PushButton("Next", EVENT_NEXT, 5, 25, 50, 18) 
 
 	elif stage == 2:
 		glRasterPos2d(60,140) 
 		rangename = String("Name: ", EVENT_NONE, 5, 170, 200, 18, rangename.val, 50, "Name for Range Object") 
 		drawWidget(widmenu.val)	
-		PushButton("Back",   EVENT_BACK, 5, 25, 50, 18)
-		PushButton("Finish", EVENT_NEXT, 55, 25, 50, 18)
+		BeginAlign()
+		PushButton("Back",   EVENT_BACK, 5, 25, 50, 18, "Choose another shape type")
+		PushButton("Finish", EVENT_NEXT, 55, 25, 50, 18, "Add Objects at the cursor location")
+		EndAlign()
 	return	 
 
 

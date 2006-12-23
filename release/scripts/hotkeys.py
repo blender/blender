@@ -711,12 +711,14 @@ def draw():
     Llisted=0
     size[3]=size[3]-18
 
-    for k in hot:             
+    BeginAlign()
+    for k in hot:
        #hotkeys[k][-1]=Toggle(k, hot.index(k)+10, 4+(20*26)/6*hot.index(k), size[3]-(42), len(k)*8, 20, hotkeys[k][-1].val )
        hotkeys[k][-1]=Toggle(k, hot.index(k)+10, 78*hot.index(k), size[3]-(47), 78, 24, hotkeys[k][-1].val )
        l+=len(k)
        if hotkeys[k][-1].val==1.0:
            listed=hot.index(k)
+    EndAlign()
     l=0
     size[3]=size[3]-4
     
@@ -725,8 +727,10 @@ def draw():
        SCROLL=size[3]/21
        END=-1
        if SCROLL < len(hotkeys[hot[listed]][:-1]):
+          BeginAlign()
           Button('/\\',up,4,size[3]+8,20,14,'Scroll up') 
           Button('\\/',down,4,size[3]-8,20,14,'Scroll down')            
+          EndAlign()
           if (SCROLL+UP)<len(hotkeys[hot[listed]][:-1]):
              END=(UP+SCROLL)
           else:
@@ -758,8 +762,10 @@ def draw():
         END=-1
         
         if SCROLL < len(FINDED):
+            BeginAlign()
             Button('/\\',up,4,size[3]+8,20,14,'Scroll up') 
             Button('\\/',down,4,size[3]-8,20,14,'Scroll down')            
+            EndAlign()
             if (SCROLL+UP)<len(FINDED):
                END=(UP+SCROLL-1)
             else:
@@ -779,18 +785,22 @@ def draw():
              Text('  : '+n[1]) 
              l+=1
     else:
+       BeginAlign()
        for k in hotL:
             pos=hotL.index(k)
             hotkeys['Letters '][0][k][-1]=Toggle(k,pos+20,hotL.index(k)*21, size[3]-(52+18), 21, 18, hotkeys['Letters '][0][k][-1].val )
             if hotkeys['Letters '][0][k][-1].val==1.0:
                Llisted=pos
+       EndAlign()
        size[3]=size[3]-8
        SCROLL=(size[3]-88)/21
        END=-1
        if SCROLL < len(hotkeys['Letters '][0][hotL[Llisted]]):
           LEN=len(hotkeys['Letters '][0][hotL[Llisted]])
+          BeginAlign()
           Button('/\\',up,4,size[3]+8,20,14,'Scroll up, you can use arrow or page keys too ') 
           Button('\\/',down,4,size[3]-8,20,14,'Scroll down,  you can use arrow or page keys too ')            
+          EndAlign()
           if (UP+SCROLL)<len(hotkeys['Letters '][0][hotL[Llisted]]):
              END=(UP+SCROLL)
           else:
