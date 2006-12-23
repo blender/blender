@@ -255,7 +255,7 @@ void del_defgroup (Object *ob)
 	/* remove all dverts */
 	if(ob->actdef==0) {
 		Mesh *me= ob->data;
-		CustomData_free_layer(&me->vdata, CD_MDEFORMVERT, me->totvert);
+		CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
 		me->dvert= NULL;
 	}
 }

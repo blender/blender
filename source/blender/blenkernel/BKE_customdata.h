@@ -89,7 +89,14 @@ void *CustomData_add_layer(struct CustomData *data, int type, int alloctype,
  *
  * in editmode, use EM_free_data_layer instead of this function
  */
-int CustomData_free_layer(struct CustomData *data, int type, int totelem);
+int CustomData_free_layer(struct CustomData *data, int type, int totelem, int index);
+
+/* frees the layer index with the give type.
+ * returns 1 on succes, 0 if no layer with the given type is found
+ *
+ * in editmode, use EM_free_data_layer instead of this function
+ */
+int CustomData_free_layer_active(struct CustomData *data, int type, int totelem);
 
 /* same as above, but free all layers with type */
 void CustomData_free_layers(struct CustomData *data, int type, int totelem);

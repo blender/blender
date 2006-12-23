@@ -810,7 +810,7 @@ void EM_free_data_layer(CustomData *data, int type)
 
 	olddata= *data;
 	olddata.layers= (olddata.layers)? MEM_dupallocN(olddata.layers): NULL;
-	CustomData_free_layer(data, type, 0);
+	CustomData_free_layer_active(data, type, 0);
 
 	update_data_blocks(&olddata, data);
 	if (olddata.layers) MEM_freeN(olddata.layers);

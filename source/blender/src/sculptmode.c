@@ -395,7 +395,7 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 
 	/* Verts */
 	if(newcur->verts) {
-		CustomData_free_layer(&me->vdata, CD_MVERT, me->totvert);
+		CustomData_free_layer_active(&me->vdata, CD_MVERT, me->totvert);
 		me->mvert= MEM_dupallocN(newcur->verts);
 		CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, me->mvert, newcur->totvert);
 	}
@@ -426,8 +426,8 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 	if(type & SUNDO_TOPO)
 		for(sus= newcur; sus; sus= sus->prev) {
 			if(sus->type & SUNDO_TOPO) {
-				CustomData_free_layer(&me->edata, CD_MEDGE, me->totedge);
-				CustomData_free_layer(&me->fdata, CD_MFACE, me->totface);
+				CustomData_free_layer_active(&me->edata, CD_MEDGE, me->totedge);
+				CustomData_free_layer_active(&me->fdata, CD_MFACE, me->totface);
 
 				me->medge= MEM_dupallocN(sus->edges);
 				me->mface= MEM_dupallocN(sus->faces);
@@ -1850,9 +1850,9 @@ void sculptmode_revert_pmv(Mesh *me)
 			old_verts[i]= nve[me->pv->vert_map[i]];
 
 		/* Restore verts, edges and faces */
-		CustomData_free_layer(&me->vdata, CD_MVERT, me->totvert);
-		CustomData_free_layer(&me->edata, CD_MEDGE, me->totedge);
-		CustomData_free_layer(&me->fdata, CD_MFACE, me->totface);
+		CustomData_free_layer_active(&me->vdata, CD_MVERT, me->totvert);
+		CustomData_free_layer_active(&me->edata, CD_MEDGE, me->totedge);
+		CustomData_free_layer_active(&me->fdata, CD_MFACE, me->totface);
 
 		CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, old_verts, me->pv->totvert);
 		CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, me->pv->old_edges, me->pv->totedge);
@@ -1988,7 +1988,7 @@ void sculptmode_do_pmv(Object *ob, rcti *hb_2d, int mode)
 			++ndx_show;
 		}
 	}
-	CustomData_free_layer(&me->vdata, CD_MVERT, me->pv->totvert);
+	CustomData_free_layer_active(&me->vdata, CD_MVERT, me->pv->totvert);
 	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, nve, me->totvert);
 
 	/* Create new face array */

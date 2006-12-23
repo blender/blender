@@ -1210,23 +1210,23 @@ void select_mesh_group_menu()
 {
 	short ret;
 	int selcount, first_item=1;
-	char str[512] = "Select Grouped%t"; /* total max length is 392 at the moment */
+	char str[512] = "Select Grouped%t"; /* total max length is 404 at the moment */
 
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		first_item=0;
-		strcat(str, "|Verts...|    Similar Normal %x1|    Same Face Users %x2|    Shared Vertex Groups%x3");
+		strcat(str, "|Verts...%x-1|    Similar Normal %x1|    Same Face Users %x2|    Shared Vertex Groups%x3");
 	}
 
 	if(G.scene->selectmode & SCE_SELECT_EDGE) {
 		if (!first_item)	strcat(str, "|%l");
 		else				first_item=1;
 		
-		strcat(str, "|Edges...|    Similar Length %x10|    Similar Direction %x20|    Same Face Users%x30|    Similar Face Angle%x40|    Similar Crease%x50");
+		strcat(str, "|Edges...%x-1|    Similar Length %x10|    Similar Direction %x20|    Same Face Users%x30|    Similar Face Angle%x40|    Similar Crease%x50");
 	}
 	
 	if(G.scene->selectmode & SCE_SELECT_FACE) {
 		if (!first_item)	strcat(str, "|%l");
-		strcat(str, "|Faces...|    Same Material %x100|    Same Image %x200|    Similar Area %x300|    Similar Perimeter %x400|    Similar Normal %x500|    Similar Co-Planer %x600");
+		strcat(str, "|Faces...%x-1|    Same Material %x100|    Same Image %x200|    Similar Area %x300|    Similar Perimeter %x400|    Similar Normal %x500|    Similar Co-Planer %x600");
 	
 	}
 	

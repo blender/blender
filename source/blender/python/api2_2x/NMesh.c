@@ -2914,7 +2914,7 @@ static void fill_medge_from_nmesh(Mesh * mesh, BPy_NMesh * nmesh)
   tot_valid_faces_edges=tot_faces_edges;
 
   mesh->medge= CustomData_set_layer(&mesh->edata, CD_MEDGE, NULL);
-  CustomData_free_layer(&mesh->edata, CD_MEDGE, mesh->totedge);
+  CustomData_free_layer_active(&mesh->edata, CD_MEDGE, mesh->totedge);
   mesh->totedge = 0;
 
   /* Flag each edge in faces_edges that is already in nmesh->edges list.
@@ -3004,7 +3004,7 @@ static void check_dverts(Mesh *me, int old_totvert)
 	if ((totvert == old_totvert) || (!me->dvert)) return;
 	/* if all verts have been deleted, free old dverts */
 	else if (totvert == 0) {
-		CustomData_free_layer( &me->vdata, CD_MDEFORMVERT, old_totvert );
+		CustomData_free_layer_active( &me->vdata, CD_MDEFORMVERT, old_totvert );
 		me->dvert= NULL;
 	}
 	else {

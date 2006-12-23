@@ -6211,6 +6211,45 @@ static PyObject *Mesh_renameVertGroup( BPy_Mesh * self, PyObject * args )
 	return EXPP_incr_ret( Py_None );
 }
 
+
+static PyObject *Mesh_renameLayer_internal( BPy_Mesh * self, PyObject * args, int type )
+{
+	CustomData *data;
+	CustomDataLayer *layer;
+	Mesh *mesh = self->mesh;
+	int i;
+	char *name_from, *name_to;
+	
+	data = &mesh->fdata;
+	
+	if( !PyArg_ParseTuple( args, "ss", &name_from, &name_to ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected 2 strings" );
+	
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+		if(layer->type == type && strcmp(layer->name, name_from)==0) {
+			BLI_strncpy(layer->name, name_to, 32);
+			CustomData_set_layer_unique_name(data, i);
+			return EXPP_incr_ret( Py_None );
+		}
+	}
+	return EXPP_ReturnPyObjError( PyExc_ValueError,
+			"layer name was not found" );
+}
+
+static PyObject *Mesh_renameUVLayer( BPy_Mesh * self, PyObject * args )
+{
+	return Mesh_renameLayer_internal( self, args, CD_MTFACE );
+}
+
+static PyObject *Mesh_renameColorLayer( BPy_Mesh * self, PyObject * args )
+{
+	return Mesh_renameLayer_internal( self, args, CD_MCOL );
+}
+
+
+
 static PyObject *Mesh_getVertGroupNames( BPy_Mesh * self )
 {
 	bDeformGroup *defGroup;
@@ -6242,6 +6281,37 @@ static PyObject *Mesh_getVertGroupNames( BPy_Mesh * self )
 				PyString_FromString( defGroup->name ) );
 
 	return list;
+}
+
+
+static PyObject *Mesh_getLayerNames_internal( BPy_Mesh * self, int type )
+{
+	CustomData *data;
+	CustomDataLayer *layer;
+	PyObject *list = PyList_New( 0 );
+	Mesh *mesh = self->mesh;
+	int i;
+	data = &mesh->fdata;
+	
+	/* see if there is a duplicate */
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+		if(layer->type == type) {
+			PyList_Append( list, PyString_FromString(layer->name) );
+		}
+	}
+	return list;
+}
+
+
+static PyObject *Mesh_getUVLayerNames( BPy_Mesh * self )
+{
+	return Mesh_getLayerNames_internal(self, CD_MTFACE);
+}
+
+static PyObject *Mesh_getColorLayerNames( BPy_Mesh * self )
+{
+	return Mesh_getLayerNames_internal(self, CD_MCOL);
 }
 
 static PyObject *Mesh_getVertexInfluences( BPy_Mesh * self, PyObject * args )
@@ -6341,59 +6411,80 @@ static PyObject *Mesh_insertKey( BPy_Mesh * self, PyObject * args )
 }
 
 
-void Mesh_addCustomLayer_internal(Mesh *me, int type)
+static PyObject * Mesh_addCustomLayer_internal(Mesh *me, PyObject * args, int type)
 {
-	int layernum = CustomData_number_of_layers(&me->fdata, type);
+	int i;
+	char *name = NULL;
+	void *layer_data;
+	CustomData *data = &me->fdata;
+	if( !PyArg_ParseTuple( args, "|s", &name ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected a string or nothing" );
 	
-	CustomData_add_layer(&me->fdata, type, CD_DEFAULT,
+	layer_data = CustomData_add_layer(data, type, CD_DEFAULT,
 					                     NULL, me->totface);
 	
-	CustomData_set_layer_active(&me->fdata, type, layernum);
+	if (name) {
+		for(i = 0; i < data->totlayer; i++) {
+			if (data->layers[i].data == layer_data ) {
+				BLI_strncpy(data->layers[i].name, name, 32);
+				CustomData_set_layer_unique_name(&me->fdata, i);
+			}
+		}
+	}
 	mesh_update_customdata_pointers(me);
+	Py_RETURN_NONE;
 }
 
 /* custom data layers */
-static PyObject *Mesh_addUVLayer( BPy_Mesh * self )
+static PyObject *Mesh_addUVLayer( BPy_Mesh * self, PyObject * args )
 {
-	Mesh_addCustomLayer_internal(self->mesh, CD_MTFACE);
-	Py_RETURN_NONE;
+	return Mesh_addCustomLayer_internal(self->mesh, args, CD_MTFACE);
 }
 
 static PyObject *Mesh_addColorLayer( BPy_Mesh * self, PyObject * args )
 {
-	Mesh_addCustomLayer_internal(self->mesh, CD_MCOL);
-	Py_RETURN_NONE;
+	return Mesh_addCustomLayer_internal(self->mesh, args, CD_MCOL);
 }
 
-static PyObject *Mesh_removeUVLayer( BPy_Mesh * self )
+static PyObject *Mesh_removeLayer_internal( BPy_Mesh * self, PyObject * args, int type )
 {
 	Mesh *me = self->mesh;
-	if (CustomData_number_of_layers(&me->fdata, CD_MTFACE)) {
-		CustomData_free_layer(&me->fdata, CD_MTFACE, me->totface);
-		me->mtface= CustomData_get_layer(&me->fdata, CD_MTFACE);
-	} else
-		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-			"No more UV layers to remove" );
+	CustomData *data = &me->fdata;
+	CustomDataLayer *layer;
+	char *name;
+	int i;
 	
-	mesh_update_customdata_pointers(me);
-	Py_RETURN_NONE;
+	if( !PyArg_ParseTuple( args, "s", &name ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected string argument" );
+	
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+		if(layer->type == type) {
+			if (strcmp(layer->name, name)==0) {
+				
+				CustomData_free_layer(data, type, me->totface, i);
+				mesh_update_customdata_pointers(me);
+				Py_RETURN_NONE;
+			}
+		}
+	}
+	
+	return EXPP_ReturnPyObjError(PyExc_ValueError,
+		"No matching layers to remove" );	
 }
 
-static PyObject *Mesh_removeColorLayer( BPy_Mesh * self )
+
+static PyObject *Mesh_removeUVLayer( BPy_Mesh * self, PyObject * args )
 {
-	Mesh *me = self->mesh;
-	if (CustomData_number_of_layers(&me->fdata, CD_MCOL)) {
-		CustomData_free_layer(&me->fdata, CD_MCOL, me->totface);
-		me->mcol= CustomData_get_layer(&me->fdata, CD_MCOL);
-	} else
-		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
-			"No more color layers to remove" );
-	
-	mesh_update_customdata_pointers(me);
-	Py_RETURN_NONE;
+	return Mesh_removeLayer_internal(self, args, CD_MTFACE);
 }
 
-
+static PyObject *Mesh_removeColorLayer( BPy_Mesh * self, PyObject * args )
+{
+	return Mesh_removeLayer_internal(self, args, CD_MCOL);
+}
 
 static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 {
@@ -6651,8 +6742,16 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Get index and optional weight for vertices in vertex group"},
 	{"renameVertGroup", (PyCFunction)Mesh_renameVertGroup, METH_VARARGS,
 		"Rename an existing vertex group"},
+	{"renameUVLayer", (PyCFunction)Mesh_renameUVLayer, METH_VARARGS,
+		"Rename a UV Layer"},
+	{"renameColorLayer", (PyCFunction)Mesh_renameColorLayer, METH_VARARGS,
+		"Rename a Color Layer"},
 	{"getVertGroupNames", (PyCFunction)Mesh_getVertGroupNames, METH_NOARGS,
 		"Get names of vertex groups"},
+	{"getUVLayerNames", (PyCFunction)Mesh_getUVLayerNames, METH_NOARGS,
+		"Get names of UV layers"},
+	{"getColorLayerNames", (PyCFunction)Mesh_getColorLayerNames, METH_NOARGS,
+		"Get names of Color layers"},
 	{"getVertexInfluences", (PyCFunction)Mesh_getVertexInfluences, METH_VARARGS,
 		"Get list of the influences of bones for a given mesh vertex"},
 	/* Shape Keys */
@@ -6681,13 +6780,13 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Recalculates inside or outside normals (experimental)"},
 	
 	/* mesh custom data layers */
-	{"addUVLayer", (PyCFunction)Mesh_addUVLayer, METH_NOARGS,
+	{"addUVLayer", (PyCFunction)Mesh_addUVLayer, METH_VARARGS,
 		"adds a UV layer to this mesh"},
-	{"addColorLayer", (PyCFunction)Mesh_addColorLayer, METH_NOARGS,
-		"adds a color layer to this mesh"},
-	{"removeUVLayer", (PyCFunction)Mesh_removeUVLayer, METH_NOARGS,
+	{"addColorLayer", (PyCFunction)Mesh_addColorLayer, METH_VARARGS,
+		"adds a color layer to this mesh "},
+	{"removeUVLayer", (PyCFunction)Mesh_removeUVLayer, METH_VARARGS,
 		"removes a UV layer to this mesh"},
-	{"removeColorLayer", (PyCFunction)Mesh_removeColorLayer, METH_NOARGS,
+	{"removeColorLayer", (PyCFunction)Mesh_removeColorLayer, METH_VARARGS,
 		"removes a color layer to this mesh"},
 	
 	/* python standard class functions */
@@ -7029,7 +7128,7 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 	case MESH_HASVERTUV:
 		if( !param ) {
 			if( mesh->msticky ) {
-				CustomData_free_layer( &mesh->vdata, CD_MSTICKY, mesh->totvert );
+				CustomData_free_layer_active( &mesh->vdata, CD_MSTICKY, mesh->totvert );
 				mesh->msticky = NULL;
 			}
 		} else {
@@ -7197,45 +7296,48 @@ static int Mesh_setActiveGroup( BPy_Mesh * self, PyObject * arg )
 	return 0;
 }
 
-
 static PyObject *Mesh_getActiveLayer( BPy_Mesh * self, void *type )
 {
-	int i = CustomData_get_active_layer_index(&self->mesh->fdata, (int)type);
+	CustomData *data = &self->mesh->fdata;
+	int i = CustomData_get_active_layer_index(data, (int)type);
 	if (i == -1) /* so -1 is for no active layer 0+ for an active layer */
-		return  PyInt_FromLong(i);
+		Py_RETURN_NONE;
 	else {
-		i--;
-		return  PyInt_FromLong( self->mesh->fdata.layers[i-1].active );
+		return PyString_FromString( data->layers[i].name);
 	}
 }
 
-static int Mesh_setActiveLayer( BPy_Mesh * self, PyObject * arg, void *type )
+static int Mesh_setActiveLayer( BPy_Mesh * self, PyObject * value, void *type )
 {
-	int i, totlayers;
+	CustomData *data = &self->mesh->fdata;
+	char *name;
+	int i,ok,n;
 	
-	if( !PyInt_Check( arg ) )
+	if( !PyString_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_AttributeError,
-				"expected an int argument" );
+				"expected a string argument" );
 	
-	totlayers = CustomData_number_of_layers(&self->mesh->fdata, (int)type );
+	name = PyString_AsString( value );
+	ok = 0;
+	n = 0;
+	for(i=0; i < data->totlayer; ++i) {
+		if(data->layers[i].type == (int) type) {
+			if (strcmp(data->layers[i].name, name)==0) {
+				ok = 1;
+				break;
+			}
+			n++;
+		}
+	}
 	
-	i = PyInt_AsLong( arg );
-	
-	if (i >= totlayers)
+	if (!ok)
 		return EXPP_ReturnIntError( PyExc_ValueError,
-				"index out of range" );
+				"layer name does not exist" );
 	
-	if (i<0)
-		i = totlayers+i;
+	CustomData_set_layer_active(data, (int)type, n);
 	
-	CustomData_set_layer_active(&self->mesh->fdata, (int)type, i);
 	mesh_update_customdata_pointers(self->mesh);
 	return 0;
-}
-
-static PyObject *Mesh_getTotLayers( BPy_Mesh * self, void *type )
-{
-	return PyInt_FromLong( CustomData_number_of_layers(&self->mesh->fdata, (int)type ) );
 }
 
 static PyObject *Mesh_getTexMesh( BPy_Mesh * self )
@@ -7438,20 +7540,11 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 
 	{"activeColorLayer",
 	 (getter)Mesh_getActiveLayer, (setter)Mesh_setActiveLayer,
-	 "Index of the active UV layer",
+	 "Name of the active UV layer",
 	 (void *)CD_MCOL},
 	{"activeUVLayer",
 	 (getter)Mesh_getActiveLayer, (setter)Mesh_setActiveLayer,
-	 "Index of the active vertex color layer",
-	 (void *)CD_MTFACE},
-
-	{"totalColorLayers",
-	 (getter)Mesh_getTotLayers, (setter)NULL,
-	 "Index of the active vertex color layer",
-	 (void *)CD_MCOL},
-	{"totalUVLayers",
-	 (getter)Mesh_getTotLayers, (setter)NULL,
-	 "Index of the active vertex color layer",
+	 "Name of the active vertex color layer",
 	 (void *)CD_MTFACE},
 	
 	{"texMesh",

@@ -1027,24 +1027,32 @@ class Mesh:
         Blender itself later).
     """
 
-  def addUVLayer():
+  def addUVLayer(name):
     """
-    Adds a new UV/Image layer to this mesh, it will always be the last layer and made active.
-    """
-
-  def addColorLayer():
-    """
-    Adds a new Vertex Color layer to this mesh, it will always be the last layer and made active.
+    Adds a new UV/Image layer to this mesh, it will always be the last layer but not made active.
+    @type name: string
+    @param name: The name of the new UV layer, 31 characters max.
     """
 
-  def removeUVLayer():
+  def addColorLayer(name):
+    """
+    Adds a new Vertex Color layer to this mesh, it will always be the last layer but not made active.
+    @type name: string
+    @param name: The name of the new Color layer, 31 characters max.
+    """
+
+  def removeUVLayer(name):
     """
     Removes the active UV/Image layer.
+    @type name: string
+    @param name: The name of the UV layer to remove.
     """
 
-  def removeColorLayer():
+  def removeColorLayer(name):
     """
     Removes the active Vertex Color layer.
+    @type name: string
+    @param name: The name of the Color layer to remove.
     """
 
   def smooth():

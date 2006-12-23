@@ -4081,7 +4081,7 @@ void RE_make_sticky(void)
 				me= ob->data;
 				mvert= me->mvert;
 				if(me->msticky)
-					CustomData_free_layer(&me->vdata, CD_MSTICKY, me->totvert);
+					CustomData_free_layer_active(&me->vdata, CD_MSTICKY, me->totvert);
 				me->msticky= CustomData_add_layer(&me->vdata, CD_MSTICKY,
 					CD_CALLOC, NULL, me->totvert);
 				

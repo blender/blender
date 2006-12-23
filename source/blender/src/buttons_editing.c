@@ -693,7 +693,7 @@ static void delete_customdata_layer(void *data1, void *data2)
 		EM_free_data_layer(data, type);
 	}
 	else if(me) {
-		CustomData_free_layer(data, type, me->totface);
+		CustomData_free_layer_active(data, type, me->totface);
 		mesh_update_customdata_pointers(me);
 	}
 
@@ -3669,7 +3669,7 @@ void do_meshbuts(unsigned short event)
 		switch(event) {
 		case B_DELSTICKY:
 			if(me->msticky) {
-				CustomData_free_layer(&me->vdata, CD_MSTICKY, me->totvert);
+				CustomData_free_layer_active(&me->vdata, CD_MSTICKY, me->totvert);
 				me->msticky= NULL;
 				BIF_undo_push("Delete Sticky");
 			}

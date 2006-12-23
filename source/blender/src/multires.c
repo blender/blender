@@ -1066,10 +1066,10 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		
 		eves= MEM_callocN(sizeof(EditVert)*lvl->totvert, "editvert pointers");
 	} else {
-		CustomData_free_layer(&me->vdata, CD_MVERT, me->totvert);
-		CustomData_free_layer(&me->edata, CD_MEDGE, me->totedge);
-		CustomData_free_layer(&me->fdata, CD_MFACE, me->totface);
-		CustomData_free_layer(&me->vdata, CD_MDEFORMVERT, me->totvert);
+		CustomData_free_layer_active(&me->vdata, CD_MVERT, me->totvert);
+		CustomData_free_layer_active(&me->edata, CD_MEDGE, me->totedge);
+		CustomData_free_layer_active(&me->fdata, CD_MFACE, me->totface);
+		CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
 		CustomData_free_layers(&me->fdata, CD_MTFACE, me->totface);
 		CustomData_free_layers(&me->fdata, CD_MCOL, me->totface);
 		

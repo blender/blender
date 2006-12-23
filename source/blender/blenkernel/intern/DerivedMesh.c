@@ -2118,7 +2118,7 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 			                    &ob->derivedFinal, 0, 1,
 			                    needMapping, dataMask);
 
-			CustomData_free_layer(&me->fdata, CD_MCOL, me->totface);
+			CustomData_free_layer_active(&me->fdata, CD_MCOL, me->totface);
 		} else {
 			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform,
 			                    &ob->derivedFinal, 0, 1,
@@ -2629,7 +2629,7 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh, float* bbstart, float *bbsize) /
 	gotBytes = gzread(gzf, &wri, sizeof(wri));
 	if(wri != newmesh->totvert) {
 		// complain #vertices has to be equal to #normals, reset&abort
-		CustomData_free_layer(&newmesh->vdata, CD_MVERT, newmesh->totvert);
+		CustomData_free_layer_active(&newmesh->vdata, CD_MVERT, newmesh->totvert);
 		MEM_freeN(newmesh);
 		snprintf(debugStrBuffer,256,"Reading GZ_BOBJ, #normals=%d, #vertices=%d, aborting...\n", wri,newmesh->totvert );
 		return NULL;

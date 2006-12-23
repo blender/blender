@@ -628,12 +628,11 @@ void *CustomData_add_layer(CustomData *data, int type, int alloctype,
 	return NULL;
 }
 
-int CustomData_free_layer(CustomData *data, int type, int totelem)
+int CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 {
-	int index = 0, i;
+	int i;
 	CustomDataLayer *layer;
-
-	index = CustomData_get_active_layer_index(data, type);
+	
 	if (index < 0) return 0;
 
 	layer = &data->layers[index];
@@ -662,10 +661,19 @@ int CustomData_free_layer(CustomData *data, int type, int totelem)
 	return 1;
 }
 
+int CustomData_free_layer_active(CustomData *data, int type, int totelem)
+{
+	int index = 0;
+	index = CustomData_get_active_layer_index(data, type);
+	if (index < 0) return 0;
+	return CustomData_free_layer(data, type, totelem, index);
+}
+
+
 void CustomData_free_layers(CustomData *data, int type, int totelem)
 {
 	while (CustomData_has_layer(data, type))
-		CustomData_free_layer(data, type, totelem);
+		CustomData_free_layer_active(data, type, totelem);
 }
 
 int CustomData_has_layer(const CustomData *data, int type)
