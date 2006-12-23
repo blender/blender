@@ -1665,7 +1665,7 @@ static PyObject *Ipo_getNBezPoints( BPy_Ipo * self, PyObject * args )
 		--num;
 	}
 
-	if( num < 0 && !icu )
+	if( num < 0 || !icu )
 		return EXPP_ReturnPyObjError( PyExc_IndexError,
 				"index out of range" );
 
