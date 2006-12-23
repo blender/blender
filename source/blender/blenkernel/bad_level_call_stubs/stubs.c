@@ -245,6 +245,7 @@ void RE_DataBase_GetView(Render *re, float mat[][4]) {}
 struct Render *RE_NewRender(const char *name) {return (struct Render *)NULL;}
 void RE_Database_Baking(struct Render *re, struct Scene *scene, int make_faces) {};
 
+
 /* node_composite.c */
 void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect) {}
 
@@ -300,6 +301,8 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove) {}
 
 /* imagetexture.c stub */
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result) {}
+
+void    IMB_exr_close               (void *handle) {}
 
 void update_for_newframe()
 {
