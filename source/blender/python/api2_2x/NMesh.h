@@ -41,6 +41,7 @@
 #include <config.h>
 #endif
 
+#include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -101,6 +102,7 @@ typedef struct {
 	unsigned char transp;
 	Image *image;
 	char mat_nr, mf_flag /* was char smooth */;
+	int orig_index;
 
 } BPy_NMFace;			/* an NMesh face */
 
@@ -130,6 +132,11 @@ typedef struct {
 #define NMESH_HASMCOL	(1<<0)
 #define NMESH_HASVERTUV	(1<<1)
 #define NMESH_HASFACEUV	(1<<2)
+
+	/* stores original data that is not accesible through NMesh, but that we
+	   still want to preserve, indexed by orig_index in NMFace */
+	CustomData fdata; 
+	int totfdata;
 
 } BPy_NMesh;
 

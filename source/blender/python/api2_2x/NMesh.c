@@ -551,6 +551,7 @@ static PyObject *new_NMFace( PyObject * vertexlist )
 
 	mf->mf_flag = 0;
 	mf->mat_nr = 0;
+	mf->orig_index = -1;
 
 	return ( PyObject * ) mf;
 }
@@ -1108,6 +1109,8 @@ PyTypeObject NMEdge_Type = {
 static void NMesh_dealloc( PyObject * self )
 {
 	BPy_NMesh *me = ( BPy_NMesh * ) self;
+
+	CustomData_free( &me->fdata, me->totfdata );
 
 	Py_DECREF( me->name );
 	Py_DECREF( me->verts );
@@ -1961,7 +1964,7 @@ PyTypeObject NMesh_Type = {
 };
 
 static BPy_NMFace *nmface_from_data( BPy_NMesh * mesh, int vidxs[4],
-	char mat_nr, char flag, MTFace * tface, MCol * col )
+	char mat_nr, char flag, MTFace * tface, MCol * col, int orig_index )
 {
 	BPy_NMFace *newf = PyObject_NEW( BPy_NMFace, &NMFace_Type );
 	int i, len;
@@ -2004,6 +2007,7 @@ static BPy_NMFace *nmface_from_data( BPy_NMesh * mesh, int vidxs[4],
 
 	newf->mat_nr = mat_nr;
 	newf->mf_flag = flag; /* MFace flag */
+	newf->orig_index = orig_index;
 
 	if( col ) {
 		newf->col = PyList_New( 4 );
@@ -2127,6 +2131,7 @@ static BPy_NMFace *nmface_from_index( BPy_NMesh * mesh, int vidxs[4], char mat_n
 
 	newf->mat_nr = mat_nr;
 	newf->mf_flag = 0;
+	newf->orig_index = -1;
 
 	newf->col = PyList_New( 0 );
 
@@ -2204,6 +2209,9 @@ static PyObject *new_NMesh_displist(ListBase *lb, Object *ob)
 
 	me->verts = PyList_New( 0 ); 
 	me->faces = PyList_New( 0 );
+
+	memset(&me->fdata, 0, sizeof(me->fdata));
+	me->totfdata = 0;
 
 	dl= lb->first;
 	while(dl) {
@@ -2339,6 +2347,8 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 		me->edges = PyList_New( 0 );
 		me->faces = PyList_New( 0 );
 		me->mesh = 0;
+		memset(&me->fdata, 0, sizeof(me->fdata));
+		me->totfdata = 0;
 	} else {
 		MVert *mverts;
 		MSticky *msticky;
@@ -2346,6 +2356,7 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 		MTFace *tfaces;
 		MCol *mcols;
 		MEdge *medges;
+		CustomData *fdata;
 		int i, totvert, totface, totedge;
 
 		me->name = PyString_FromString( oldmesh->id.name + 2 );
@@ -2364,6 +2375,7 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 			tfaces = dm->getFaceDataArray(dm, CD_MTFACE);
 			mcols = dm->getFaceDataArray(dm, CD_MCOL);
 			medges = dm->getEdgeArray(dm);
+			fdata = &dm->faceData;
 
 			totvert = dm->getNumVerts(dm);
 			totedge = dm->getNumEdges(dm);
@@ -2375,11 +2387,18 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 			tfaces = oldmesh->mtface;
 			mcols = oldmesh->mcol;
 			medges = oldmesh->medge;
+			fdata = &oldmesh->fdata;
 
 			totvert = oldmesh->totvert;
 			totface = oldmesh->totface;
 			totedge = oldmesh->totedge;
 		}
+
+		/* copy non active mcol and mtface layers, these can't be edited
+		   but will be preserved */
+		CustomData_copy( fdata, &me->fdata, CD_MASK_MCOL|CD_MASK_MTFACE,
+			CD_DUPLICATE, totface );
+		me->totfdata = totface;
 
 		if( msticky )
 			me->flags |= NMESH_HASVERTUV;
@@ -2421,7 +2440,8 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 									 oldmf->
 									 flag,
 									 oldtf,
-									 oldmc ) );
+									 oldmc,
+									 i) );
 		}
 
 		me->edges = PyList_New( totedge );
@@ -2996,6 +3016,43 @@ static void check_dverts(Mesh *me, int old_totvert)
 	}
 }
 
+static void check_mtface_mcols( BPy_NMesh *nmesh, Mesh *mesh )
+{
+	int i;
+
+	/* copy non-active mcol and mtface layers based on original index */
+	CustomData_merge( &nmesh->fdata, &mesh->fdata, CD_MASK_MCOL|CD_MASK_MTFACE,
+		CD_DEFAULT, mesh->totface );
+
+	for( i = 0; i < mesh->totface; i++ ) {
+		BPy_NMFace *mf =
+			( BPy_NMFace * ) PySequence_GetItem( nmesh->faces, i );
+
+		if ( mf->orig_index != -1 )
+			CustomData_copy_data( &nmesh->fdata, &mesh->fdata, mf->orig_index,
+				i, 1 );
+
+		Py_DECREF( mf );
+	}
+
+	/* add new layers if needed */
+	if( ( nmesh->flags & NMESH_HASMCOL ) &&
+		!CustomData_has_layer( &mesh->fdata, CD_MCOL ) ) {
+		mesh->mcol = CustomData_add_layer( &mesh->fdata, CD_MCOL,
+			CD_DEFAULT, NULL, mesh->totface );
+	}
+
+	if( ( nmesh->flags & NMESH_HASFACEUV ) || check_validFaceUV( nmesh ) ) {
+		if ( !CustomData_has_layer( &mesh->fdata, CD_MTFACE) )
+			make_tfaces( mesh );
+		nmesh->flags |= NMESH_HASFACEUV;
+	}
+	else
+		CustomData_free_layers( &mesh->fdata, CD_MTFACE, mesh->totface );
+
+	/* active uvs and colors from NMFace will be written in mface_from_data */
+}
+
 static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh)
 {
 	MFace *newmf;
@@ -3028,13 +3085,13 @@ static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh)
 		mesh->totface = 0;
 
 	if( mesh->totface ) {
-		if( nmesh->flags & NMESH_HASMCOL  )
-			mesh->mcol = CustomData_add_layer( &mesh->fdata, CD_MCOL,
-				CD_DEFAULT, NULL, mesh->totface );
+		check_mtface_mcols( nmesh, mesh );
 
 		mesh->mface = CustomData_add_layer( &mesh->fdata, CD_MFACE, CD_CALLOC,
 			NULL, mesh->totface );
 	}
+
+	mesh_update_customdata_pointers( mesh );
 
 	/*@ This stuff here is to tag all the vertices referenced
 	 * by faces, then untag the vertices which are actually
@@ -3087,16 +3144,6 @@ static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh)
 		newmv++;
 		if( newst )
 			newst++;
-	}
-
-/*	assign per face texture UVs */
-
-	/* check face UV flag, then check whether there was one 
-	 * UV coordinate assigned, if yes, make tfaces */
-	if( ( nmesh->flags & NMESH_HASFACEUV )
-	    || ( check_validFaceUV( nmesh ) ) ) {
-		make_tfaces( mesh );	/* initialize MTFaces */
-		nmesh->flags |= NMESH_HASFACEUV;
 	}
 
 	newmf = mesh->mface;
