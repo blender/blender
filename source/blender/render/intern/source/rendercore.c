@@ -1405,7 +1405,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	
 	if(bs->type==RE_BAKE_AO) {
 		ambient_occlusion(shi);
-		ambient_occlusion_to_diffuse(shi, shr.diff);
+		ambient_occlusion_to_diffuse(shi, shr.combined);
 	}
 	else {
 		
@@ -1421,27 +1421,27 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 			shade_material_loop(shi, &shr);
 		
 		if(bs->type==RE_BAKE_NORMALS) {
-			shr.diff[0]= shi->vn[0]/2.0f + 0.5f;
-			shr.diff[1]= 0.5f - shi->vn[1]/2.0f;
-			shr.diff[2]= shi->vn[2]/2.0f + 0.5f;
+			shr.combined[0]= shi->vn[0]/2.0f + 0.5f;
+			shr.combined[1]= 0.5f - shi->vn[1]/2.0f;
+			shr.combined[2]= shi->vn[2]/2.0f + 0.5f;
 		}
 		else if(bs->type==RE_BAKE_TEXTURE) {
-			shr.diff[0]= shi->r;
-			shr.diff[1]= shi->g;
-			shr.diff[2]= shi->b;
+			shr.combined[0]= shi->r;
+			shr.combined[1]= shi->g;
+			shr.combined[2]= shi->b;
 		}
 	}
 	
 	if(bs->rect) {
 		char *col= (char *)(bs->rect + bs->rectx*y + x);
-		col[0]= FTOCHAR(shr.diff[0]);
-		col[1]= FTOCHAR(shr.diff[1]);
-		col[2]= FTOCHAR(shr.diff[2]);
+		col[0]= FTOCHAR(shr.combined[0]);
+		col[1]= FTOCHAR(shr.combined[1]);
+		col[2]= FTOCHAR(shr.combined[2]);
 		col[3]= 255;
 	}
 	else {
 		float *col= bs->rect_float + 4*(bs->rectx*y + x);
-		VECCOPY(col, shr.diff);
+		VECCOPY(col, shr.combined);
 		col[3]= 1.0f;
 	}
 }
@@ -1601,8 +1601,10 @@ int RE_bake_shade_all_selected(Render *re, int type)
 		
 		handles[a].ssamp.shi[0].lay= re->scene->lay;
 		handles[a].ssamp.shi[0].passflag= SCE_PASS_COMBINED;
+		handles[a].ssamp.shi[0].combinedflag= ~(SCE_PASS_SPEC);
 		handles[a].ssamp.shi[0].thread= a;
-
+		handles[a].ssamp.tot= 1;
+		
 		handles[a].type= type;
 		handles[a].zspan= MEM_callocN(sizeof(ZSpan), "zspan for bake");
 		
