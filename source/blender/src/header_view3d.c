@@ -4040,11 +4040,37 @@ static uiBlock *view3d_wpaintmenu(void *arg_unused)
 	return block;
 }
 
+void do_view3d_sculpt_inputmenu(void *arg, int event)
+{
+	SculptData *sd= &G.scene->sculptdata;
+	short val;
+	
+	switch(event) {
+	case 0:
+		val= sd->averaging;
+		if(button(&val,1,10,"Averaging:")==0) return;
+		sd->averaging= val;
+		break;
+	case 1:
+		val= sd->tablet_size;
+		if(button(&val,0,10,"Tablet Size:")==0) return;
+		sd->tablet_size= val;
+		break;
+	case 2:
+		val= sd->tablet_strength;
+		if(button(&val,0,10,"Tablet Strength:")==0) return;
+		sd->tablet_strength= val;
+		break;
+	}
+	
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+}
+
 void do_view3d_sculptmenu(void *arg, int event)
 {
 	SculptData *sd= &G.scene->sculptdata;
 	BrushData *br= sculptmode_brush();
-	short avg= sd->averaging;
 	switch(event) {
 	case 0:
 	case 1:
@@ -4066,18 +4092,14 @@ void do_view3d_sculptmenu(void *arg, int event)
 		sd->symm_y= !sd->symm_y; break;
 	case 11:
 		sd->symm_z= !sd->symm_z; break;
-	case 12: /* Set sculptdata.averaging */
-		if(button(&avg,1,10,"Averaging:")==0) return;
-		sd->averaging= avg;
-		break;
-	case 13:
+	case 12:
 		if(G.vd)
 			G.vd->pivot_last= !G.vd->pivot_last;
 		break;
-	case 14:
+	case 13:
 		sd->draw_mode= !sd->draw_mode;
 		break;
-	case 15:
+	case 14:
 		add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
 		break;
 	}
@@ -4086,7 +4108,47 @@ void do_view3d_sculptmenu(void *arg, int event)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-uiBlock *view3d_sculptmenu(void *arg_unused_so_why_have_it/*?*/)
+uiBlock *view3d_sculpt_inputmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth= 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_sculpt_inputmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_sculpt_inputmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Averaging", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Tablet Size Adjust", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Tablet Strength Adjust", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
+	return block;
+}
+
+/*static uiBlock *view3d_view_alignviewmenu(void *arg_unused)
+{
+	
+	block= uiNewBlock(&curarea->uiblocks, "view3d_view_alignviewmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_view_alignviewmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center View to Cursor|C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center Cursor and View All|Shift C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align Active Camera to View|Ctrl Alt NumPad 0",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");	
+
+	if (((G.obedit) && (G.obedit->type == OB_MESH)) || (G.f & G_FACESELECT)) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected (Top)|Shift V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected (Front)|Shift V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected (Side)|Shift V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected|NumPad *",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	}
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
+	return block;
+}*/
+
+uiBlock *view3d_sculptmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth= 120;
@@ -4096,12 +4158,13 @@ uiBlock *view3d_sculptmenu(void *arg_unused_so_why_have_it/*?*/)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_sculptmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_sculptmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Sculpt Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Sculpt Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->draw_mode ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Partial Redraw", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
+	uiDefIconTextBlockBut(block, view3d_sculpt_inputmenu, NULL, ICON_RIGHTARROW_THIN, "Input Devices", 0, yco-=20, 120, 19, "");
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->draw_mode ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Partial Redraw", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 	if(G.vd)
-		uiDefIconTextBut(block, BUTM, 1, (G.vd->pivot_last ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Pivot last", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mouse averaging", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
+		uiDefIconTextBut(block, BUTM, 1, (G.vd->pivot_last ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Pivot last", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, (sd->symm_z ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry Z|Z", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
 	uiDefIconTextBut(block, BUTM, 1, (sd->symm_y ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry Y|Y", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");

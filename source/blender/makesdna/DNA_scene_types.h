@@ -445,6 +445,9 @@ typedef struct SculptData
 	char averaging;
 	
 	char draw_mode;
+	
+	/* Control tablet input */
+	char tablet_size, tablet_strength, pad[6];
 } SculptData;
 
 #define SCULPTREPT_DRAG 1

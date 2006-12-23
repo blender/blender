@@ -178,6 +178,8 @@ void sculptmode_init(Scene *sce)
 	sd->texscale= 100;
 	sd->texrept= SCULPTREPT_DRAG;
 	sd->draw_mode= 0;
+	sd->tablet_size=3;
+	sd->tablet_strength=10;
 }
 
 /* Free G.sculptdata->vertexusers */
@@ -672,6 +674,22 @@ void project(const float v[3], short p[2])
 /* ===== Sculpting =====
  *
  */
+ 
+char brush_size()
+{
+	const BrushData *b= sculptmode_brush();
+	float size= b->size;
+	const GHOST_TabletData *td= get_tablet_data();
+	
+	if(td) {
+		const float size_factor= G.scene->sculptdata.tablet_size / 10.0f;
+		if(td->Active==1 || td->Active==2)
+			size*= G.scene->sculptdata.tablet_size==0?1:
+			       (1-size_factor) + td->Pressure*size_factor;
+	}
+	
+	return size;
+}
 
 float brush_strength(EditData *e)
 {
@@ -682,17 +700,14 @@ float brush_strength(EditData *e)
 	float flip= e->flip ? -1:1;
 
 	if(td) {
-		switch(td->Active) {
-		case 1:
-			pressure= td->Pressure;
-			break;
-		case 2:
-			pressure= td->Pressure;
-			dir = -dir;
-			break;
-		default:
-			break;
-		}
+		const float strength_factor= G.scene->sculptdata.tablet_strength / 10.0f;
+		if(td->Active==1 || td->Active==2)
+			pressure= G.scene->sculptdata.tablet_strength==0?1:
+			          (1-strength_factor) + td->Pressure*strength_factor;
+		
+		/* Flip direction for eraser */
+		if(td->Active==2)
+			dir= -dir;
 	}
 
 	switch(G.scene->sculptdata.brush_type){
@@ -997,7 +1012,7 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 void sculptmode_add_damaged_rect(EditData *e, ListBase *damaged_rects)
 {
 	short p[2];
-	const float radius= sculptmode_brush()->size;
+	const float radius= brush_size();
 	RectNode *rn= MEM_mallocN(sizeof(RectNode),"RectNode");
 	Mesh *me= get_mesh(G.scene->sculptdata.active_ob);
 	unsigned i;
@@ -1247,7 +1262,7 @@ void init_editdata(SculptData *sd, EditData *e, short *mouse, short *pr_mouse, c
 	   modelspace coords */
 	e->center= unproject(mouse[0],mouse[1],mouse_depth);
 	brush_edge_loc= unproject(mouse[0] +
-				  sculptmode_brush()->size,mouse[1],
+				  brush_size(),mouse[1],
 				  mouse_depth);
 	e->size= VecLenf(&e->center.x,&brush_edge_loc.x);
 
