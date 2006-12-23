@@ -233,6 +233,7 @@ static void imapaint_image_update(Image *image, ImBuf *ibuf, short texpaint)
 	}
 }
 
+/* note; gets called with Image == NULL for brushes */
 static void imapaint_redraw(int final, int texpaint, Image *image)
 {
 	if(final) {
@@ -245,23 +246,24 @@ static void imapaint_redraw(int final, int texpaint, Image *image)
 		}
 		allqueue(REDRAWHEADERS, 0);
 		
-		/* after paint, tag Image or RenderResult nodes changed */
-		if(G.scene->nodetree) {
-			imagepaint_composite_tags(G.scene->nodetree, image, &G.sima->iuser);
-		}
-		/* signal composite (hurmf, need an allqueue?) */
-		if(!texpaint && G.sima->lock) {
-			ScrArea *sa;
-			for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
-				if(sa->spacetype==SPACE_NODE) {
-					if(((SpaceNode *)sa->spacedata.first)->treetype==NTREE_COMPOSIT) {
-						addqueue(sa->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
-						break;
+		if(image) {
+			/* after paint, tag Image or RenderResult nodes changed */
+			if(G.scene->nodetree) {
+				imagepaint_composite_tags(G.scene->nodetree, image, &G.sima->iuser);
+			}
+			/* signal composite (hurmf, need an allqueue?) */
+			if(!texpaint && G.sima->lock) {
+				ScrArea *sa;
+				for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
+					if(sa->spacetype==SPACE_NODE) {
+						if(((SpaceNode *)sa->spacedata.first)->treetype==NTREE_COMPOSIT) {
+							addqueue(sa->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
+							break;
+						}
 					}
 				}
 			}
-		}
-		
+		}		
 	}
 	else if(!texpaint && G.sima->lock)
 		force_draw_plus(SPACE_VIEW3D, 0);
