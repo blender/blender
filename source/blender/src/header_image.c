@@ -259,13 +259,13 @@ void do_image_buttons(unsigned short event)
 		break;
 		
 	case B_SIMACURVES:
-		curvemapping_do_ibuf(G.sima->cumap, BKE_image_get_ibuf(G.sima->image, &G.sima->iuser));
+		curvemapping_do_ibuf(G.sima->cumap, imagewindow_get_ibuf(G.sima));
 		allqueue(REDRAWIMAGE, 0);
 		break;
 		
 	case B_SIMARANGE:
 		curvemapping_set_black_white(G.sima->cumap, NULL, NULL);
-		curvemapping_do_ibuf(G.sima->cumap, BKE_image_get_ibuf(G.sima->image, &G.sima->iuser));
+		curvemapping_do_ibuf(G.sima->cumap, imagewindow_get_ibuf(G.sima));
 		allqueue(REDRAWIMAGE, 0);
 		break;
 		

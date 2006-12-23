@@ -271,6 +271,21 @@ void what_image(SpaceImage *sima)
 	}
 }
 
+/* after a what_image(), this call will give ibufs, includes the spare image */
+ImBuf *imagewindow_get_ibuf(SpaceImage *sima)
+{
+	
+	if(G.sima->image) {
+		/* check for spare */
+		if(sima->image->type==IMA_TYPE_R_RESULT && sima->showspare)
+			return sima->spare;
+		else
+			return BKE_image_get_ibuf(sima->image, &sima->iuser);
+	}
+	return NULL;
+}
+
+
 /* called to assign images to UV faces */
 void image_changed(SpaceImage *sima, int dotile)
 {
@@ -737,7 +752,7 @@ void image_editvertex_buts(uiBlock *block)
 	me= get_mesh(OBACT);
 	
 	if (G.sima->image) {
-		ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+		ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
 		if(ibuf) {
 			imx= ibuf->x;
 			imy= ibuf->y;
@@ -1042,9 +1057,12 @@ static void image_panel_curves_reset(void *cumap_v, void *ibuf_v)
 
 static void image_panel_curves(short cntrl)	// IMAGE_HANDLER_CURVES
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+	ImBuf *ibuf;
 	uiBlock *block;
 	uiBut *bt;
+	
+	/* and we check for spare */
+	ibuf= imagewindow_get_ibuf(G.sima);
 	
 	block= uiNewBlock(&curarea->uiblocks, "image_panel_curves", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
@@ -1553,10 +1571,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 			}
 		}
 		/* and we check for spare */
-		if(sima->image->type==IMA_TYPE_R_RESULT && sima->showspare)
-			ibuf= sima->spare;
-		else
-			ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+		ibuf= imagewindow_get_ibuf(sima);
 	}
 	
 	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
@@ -1784,7 +1799,7 @@ static void image_zoom_set_factor(float zoomfac)
 	width= 256;
 	height= 256;
 	if (sima->image) {
-		ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+		ImBuf *ibuf= imagewindow_get_ibuf(sima);
 
 		if (ibuf) {
 			float xim, yim;
@@ -1896,12 +1911,13 @@ void image_viewzoom(unsigned short event, int invert)
  */
 void image_home(void)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
+	ImBuf *ibuf;
 	int width, height, imgwidth, imgheight;
 	float zoomX, zoomY;
 
 	if (curarea->spacetype != SPACE_IMAGE) return;
-
+	ibuf= imagewindow_get_ibuf(G.sima);
+	
 	if (ibuf == NULL) {
 		imgwidth = 256;
 		imgheight = 256;

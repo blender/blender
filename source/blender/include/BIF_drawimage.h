@@ -61,6 +61,7 @@ void imagewindow_render_callbacks(struct Render *re);
 void imagewindow_toggle_render(void);
 void imagewindow_swap_render_rects(void);
 void imagewin_store_spare(void);
+struct ImBuf *imagewindow_get_ibuf(struct SpaceImage *sima);
 
 void image_editvertex_buts(struct uiBlock *block);
 
