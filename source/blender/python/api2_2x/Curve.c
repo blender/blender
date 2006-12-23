@@ -1465,7 +1465,7 @@ static PyObject *Curve_iterNext( BPy_Curve * self )
 	if( self->iter_pointer ) {
 		pnurb = self->iter_pointer;
 		self->iter_pointer = pnurb->next;	/* advance iterator */
-		if( pnurb->pntsv == 1 )
+		if( (pnurb->type & 7) == CU_BEZIER || pnurb->pntsv <= 1 )
 			return CurNurb_CreatePyObject( pnurb ); /* make a bpy_curnurb */
 		else
 			return SurfNurb_CreatePyObject( pnurb ); /* make a bpy_surfnurb */
@@ -1475,8 +1475,6 @@ static PyObject *Curve_iterNext( BPy_Curve * self )
 	return EXPP_ReturnPyObjError( PyExc_StopIteration,
 			"iterator at end" );
 }
-
-
 
 /* tp_sequence methods */
 
