@@ -277,16 +277,16 @@ float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 	else {
 		float mtx[3][3];
 		
-		Mat3CpyMat4(mtx, t->viewinv);
-		
+		Mat3CpyMat4(mtx, t->viewmat);
+
 		Mat3MulVecfl(mtx, end);
 		Mat3MulVecfl(mtx, start);
-			
-		angle = atan2(end[1],end[0]) - atan2(start[1],start[0]);
+		
+		angle = atan2(start[1],start[0]) - atan2(end[1],end[0]);
 	}
 	
 	if (angle > M_PI) {
-		angle = 2 * M_PI - angle;
+		angle = angle - 2 * M_PI;
 	}
 	else if (angle < -(M_PI)) {
 		angle = 2 * M_PI + angle;
@@ -422,7 +422,7 @@ void TargetSnapClosest(TransInfo *t)
 				VECCOPY(loc, td->iloc);
 				Mat4MulVecfl(G.obedit->obmat, loc);
 				
-				dist = t->tsnap.distance(t, td->iloc, t->tsnap.snapPoint);
+				dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 				
 				if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist))
 				{
