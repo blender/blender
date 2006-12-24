@@ -802,6 +802,7 @@ void retopo_matrix_update(View3D *v3d)
 		if(!rvd) {
 			rvd= MEM_callocN(sizeof(RetopoViewData),"RetopoViewData");
 			v3d->retopo_view_data= rvd;
+			rvd->queue_matrix_update= 1;
 		}
 		if(rvd && rvd->queue_matrix_update) {
 			glGetDoublev(GL_MODELVIEW_MATRIX, rvd->modelviewmat);
