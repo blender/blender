@@ -104,6 +104,7 @@ static PyObject *Camera_getMode( BPy_Camera * self );
 static PyObject *Camera_getLens( BPy_Camera * self );
 static PyObject *Camera_getClipStart( BPy_Camera * self );
 static PyObject *Camera_getClipEnd( BPy_Camera * self );
+static PyObject *Camera_getDofDist( BPy_Camera * self );
 static PyObject *Camera_getDrawSize( BPy_Camera * self );
 static PyObject *Camera_getScale( BPy_Camera * self );
 static PyObject *Camera_setIpo( BPy_Camera * self, PyObject * args );
@@ -116,6 +117,7 @@ static PyObject *Camera_setIntMode( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_setLens( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_setClipStart( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_setClipEnd( BPy_Camera * self, PyObject * args );
+static PyObject *Camera_setDofDist( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_setDrawSize( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_setScale( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_getScriptLinks( BPy_Camera * self, PyObject * args );
@@ -149,6 +151,8 @@ static PyMethodDef BPy_Camera_methods[] = {
 	 "() - Return Camera clip start value"},
 	{"getClipEnd", ( PyCFunction ) Camera_getClipEnd, METH_NOARGS,
 	 "() - Return Camera clip end value"},
+	{"getDofDist", ( PyCFunction ) Camera_getDofDist, METH_NOARGS,
+	 "() - Return Camera dof distance value"},
 	{"getDrawSize", ( PyCFunction ) Camera_getDrawSize, METH_NOARGS,
 	 "() - Return Camera draw size value"},
 	{"setIpo", ( PyCFunction ) Camera_setIpo, METH_VARARGS,
@@ -171,6 +175,8 @@ static PyMethodDef BPy_Camera_methods[] = {
 	 "(f) - Set Camera clip start value"},
 	{"setClipEnd", ( PyCFunction ) Camera_setClipEnd, METH_VARARGS,
 	 "(f) - Set Camera clip end value"},
+	{"setDifDist", ( PyCFunction ) Camera_setDofDist, METH_VARARGS,
+	 "(f) - Set Camera DOF Distance"},
 	{"setDrawSize", ( PyCFunction ) Camera_setDrawSize, METH_VARARGS,
 	 "(f) - Set Camera draw size value"},
 	{"getScriptLinks", ( PyCFunction ) Camera_getScriptLinks, METH_VARARGS,
@@ -421,10 +427,8 @@ static PyObject *Camera_getIpo( BPy_Camera * self )
 {
 	struct Ipo *ipo = self->camera->ipo;
 
-	if( !ipo ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( !ipo )
+		Py_RETURN_NONE;
 
 	return Ipo_CreatePyObject( ipo );
 }
@@ -512,6 +516,17 @@ static PyObject *Camera_getClipEnd( BPy_Camera * self )
 				      "couldn't get Camera.clipEnd attribute" );
 }
 
+static PyObject *Camera_getDofDist( BPy_Camera * self )
+{
+	PyObject *attr = PyFloat_FromDouble( self->camera->YF_dofdist );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't get Camera.dofDist attribute" );
+}
+
 static PyObject *Camera_getDrawSize( BPy_Camera * self )
 {
 	PyObject *attr = PyFloat_FromDouble( self->camera->drawsize );
@@ -552,12 +567,11 @@ static PyObject *Camera_setIpo( BPy_Camera * self, PyObject * args )
 			id->us--;
 	}
 
-	( ( ID * ) & ipo->id )->us++;
+	id_us_plus(&ipo->id); //( ( ID * ) & ipo->id )->us++;
 
 	self->camera->ipo = ipo;
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Camera_clearIpo( BPy_Camera * self )
@@ -590,8 +604,7 @@ static PyObject *Camera_setName( BPy_Camera * self, PyObject * args )
 
 	rename_id( &self->camera->id, buf );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Camera_setType( BPy_Camera * self, PyObject * args )
@@ -610,8 +623,7 @@ static PyObject *Camera_setType( BPy_Camera * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "unknown camera type" );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /* This one is 'private'. It is not really a method, just a helper function for
@@ -634,8 +646,7 @@ static PyObject *Camera_setIntType( BPy_Camera * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "expected int argument: 0 or 1" );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Camera_setMode( BPy_Camera * self, PyObject * args )
@@ -670,8 +681,7 @@ static PyObject *Camera_setMode( BPy_Camera * self, PyObject * args )
 
 	self->camera->flag = flag;
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /* Another helper function, for the same reason.
@@ -691,8 +701,7 @@ static PyObject *Camera_setIntMode( BPy_Camera * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "expected int argument in [0,3]" );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Camera_setLens( BPy_Camera * self, PyObject * args )
@@ -707,8 +716,7 @@ static PyObject *Camera_setLens( BPy_Camera * self, PyObject * args )
 					      EXPP_CAM_LENS_MIN,
 					      EXPP_CAM_LENS_MAX );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Camera_setScale( BPy_Camera * self, PyObject * args )
@@ -723,8 +731,7 @@ static PyObject *Camera_setScale( BPy_Camera * self, PyObject * args )
 					      EXPP_CAM_SCALE_MIN,
 					      EXPP_CAM_SCALE_MAX );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Camera_setClipStart( BPy_Camera * self, PyObject * args )
@@ -739,8 +746,7 @@ static PyObject *Camera_setClipStart( BPy_Camera * self, PyObject * args )
 						 EXPP_CAM_CLIPSTART_MIN,
 						 EXPP_CAM_CLIPSTART_MAX );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Camera_setClipEnd( BPy_Camera * self, PyObject * args )
@@ -755,8 +761,22 @@ static PyObject *Camera_setClipEnd( BPy_Camera * self, PyObject * args )
 						 EXPP_CAM_CLIPEND_MIN,
 						 EXPP_CAM_CLIPEND_MAX );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
+}
+
+static PyObject *Camera_setDofDist( BPy_Camera * self, PyObject * args )
+{
+	float value;
+
+	if( !PyArg_ParseTuple( args, "f", &value ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected float argument" );
+
+	self->camera->YF_dofdist = EXPP_ClampFloat( value,
+						 0.0,
+						 5000.0 );
+
+	Py_RETURN_NONE;
 }
 
 static PyObject *Camera_setDrawSize( BPy_Camera * self, PyObject * args )
@@ -771,8 +791,7 @@ static PyObject *Camera_setDrawSize( BPy_Camera * self, PyObject * args )
 						  EXPP_CAM_DRAWSIZE_MIN,
 						  EXPP_CAM_DRAWSIZE_MAX );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /* cam.addScriptLink */
@@ -862,6 +881,8 @@ static PyObject *Camera_getAttr( BPy_Camera * self, char *name )
 		attr = PyFloat_FromDouble( self->camera->clipsta );
 	else if( strcmp( name, "clipEnd" ) == 0 )
 		attr = PyFloat_FromDouble( self->camera->clipend );
+	else if( strcmp( name, "dofDist" ) == 0 )
+		attr = PyFloat_FromDouble( self->camera->YF_dofdist );
 	else if( strcmp( name, "drawSize" ) == 0 )
 		attr = PyFloat_FromDouble( self->camera->drawsize );
 	else if( strcmp( name, "users" ) == 0 )
@@ -932,6 +953,8 @@ static int Camera_setAttr( BPy_Camera * self, char *name, PyObject * value )
 		error = Camera_setClipStart( self, valtuple );
 	else if( strcmp( name, "clipEnd" ) == 0 )
 		error = Camera_setClipEnd( self, valtuple );
+	else if( strcmp( name, "dofDist" ) == 0 )
+		error = Camera_setDofDist( self, valtuple );
 	else if( strcmp( name, "drawSize" ) == 0 )
 		error = Camera_setDrawSize( self, valtuple );
 
@@ -1000,5 +1023,5 @@ static PyObject *Camera_insertIpoKey( BPy_Camera * self, PyObject * args )
 	EXPP_allqueue(REDRAWACTION, 0);
 	EXPP_allqueue(REDRAWNLA, 0);
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }

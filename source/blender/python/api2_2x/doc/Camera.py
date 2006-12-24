@@ -58,6 +58,7 @@ class Camera:
       cameras.
   @ivar clipStart: The clip start value in [0.0, 100.0].
   @ivar clipEnd: The clip end value in [1.0, 5000.0].
+  @ivar dofDist: The dofDist value in [0.0, 5000.0].
   @ivar drawSize: The draw size value in [0.1, 10.0].
   @type ipo: Blender Ipo
   @ivar ipo: The "camera data" ipo linked to this camera data object.
@@ -186,6 +187,19 @@ class Camera:
     Set the clip end value.
     @type clipend: float
     @param clipend: The new clip end value.
+    """
+
+  def getDofDist():
+    """
+    Get the dofDist value.
+    @rtype: float
+    """
+
+  def setDofDist(dist):
+    """
+    Set the dofDist value.
+    @type dist: float
+    @param dist: The new dof distance value.
     """
 
   def getDrawSize():

@@ -1375,7 +1375,7 @@ typeError:
 	object = alloc_libblock( &( G.main->object ), ID_OB, name );
 	if( data ) {
 		object->data = data;
-		((ID *)data)->us++;
+		id_us_plus((ID *)data);
 	}
 	
 	object->flag = SELECT;

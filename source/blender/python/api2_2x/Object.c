@@ -3111,7 +3111,7 @@ static int Object_setDupliGroup( BPy_Object * self, BPy_Group * args )
 			ob->dup_group->id.us--;
 		
 		ob->dup_group = args->group;
-		ob->dup_group->id.us++;
+		id_us_plus(&ob->dup_group->id);
 	} else {
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected a group or None" );

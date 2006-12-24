@@ -48,8 +48,8 @@ extern PyTypeObject KeyBlock_Type;
 typedef struct {
 	PyObject_HEAD		/* required python macro   */
 	Key * key;
-	// Object *object;		/* for vertex grouping info, since it's stored on the object */
-	//PyObject *keyBlock;
+	/* Object *object;/*		/* for vertex grouping info, since it's stored on the object */
+	/*PyObject *keyBlock;*/
 	PyObject *ipo;
 } BPy_Key;
 
@@ -57,7 +57,7 @@ typedef struct {
 	PyObject_HEAD		/* required python macro   */
 	Key *key;
 	KeyBlock * keyblock;
-	// Object *object;		/* for vertex grouping info, since it's stored on the object */
+	/* Object *object;*/		/* for vertex grouping info, since it's stored on the object */
 } BPy_KeyBlock;
 
 PyObject *Key_CreatePyObject( Key * k );

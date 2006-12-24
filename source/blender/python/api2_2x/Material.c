@@ -1920,7 +1920,7 @@ static int Material_setIpo( BPy_Material * self, PyObject * value )
 	self->material->ipo = ipo;
 	if ( ipo ) {
 		id = &ipo->id;
-		id->us++;
+		id_us_plus(id);
 	}
 
 	return 0;

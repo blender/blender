@@ -480,7 +480,7 @@ static PyObject *World_setIpo( BPy_World * self, PyObject * args )
 			id->us--;
 	}
 
-	( ( ID * ) & ipo->id )->us++;
+	id_us_plus(&ipo->id);
 
 	self->world->ipo = ipo;
 

@@ -1996,7 +1996,7 @@ static int Texture_setIpo( BPy_Texture * self, PyObject * value )
 	self->texture->ipo = ipo;
 	if ( ipo ) {
 		id = &ipo->id;
-		id->us++;
+		id_us_plus(id); //id->us++;
 	}
 
 	return 0;

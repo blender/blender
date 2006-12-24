@@ -1498,7 +1498,7 @@ static int Lamp_setIpo( BPy_Lamp * self, PyObject * value )
 	self->lamp->ipo = ipo;
 	if ( ipo ) {
 		id = &ipo->id;
-		id->us++;
+		id_us_plus(id);
 	}
 
 	return 0;

@@ -369,7 +369,7 @@ static int Key_setIpo( PyObject * self, PyObject * value )
 	(( BPy_Key * )self)->key->ipo = ipo;
 	if ( ipo ) {
 		id = &ipo->id;
-		id->us++;
+		id_us_plus(id);
 	}
 
 	return 0;
