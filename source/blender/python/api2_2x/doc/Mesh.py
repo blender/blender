@@ -60,13 +60,13 @@ done once.
     - AUTOSMOOTH - turn auto smoothing of faces "on".
     - note: SUBSURF and OPTIMAL have been removed, use Modifiers to apply subsurf.
 @var FaceFlags: The available *texture face* (uv face select mode) selection
-  flags.  Note: these refer to TexFace faces, available if mesh.faceUV()
+  flags.  Note: these refer to TexFace faces, available if mesh.faceUV
   returns true.
     - SELECT - selected.
     - HIDE - hidden.
     - ACTIVE - the active face, read only - Use L{mesh.activeFace<Mesh.Mesh.activeFace>} to set.
 @var FaceModes: The available *texture face* modes. Note: these are only
-  meaningful if mesh.faceUV() returns true, since in Blender this info is
+  meaningful if mesh.faceUV returns true, since in Blender this info is
   stored at the TexFace (TexFace button in Edit Mesh buttons) structure.
     - ALL - set all modes at once.
     - BILLBOARD - always orient after camera.
@@ -780,6 +780,21 @@ class Mesh:
   @type activeUVLayer: string
   @ivar activeColorLayer: The mesh's active Vertex Color layer. None if there is no UV/Image layers.
   @type activeColorLayer: string
+
+  @ivar multires: The mesh has multires data, set True to add multires data.
+  @type multires: bool
+  @ivar multiresLevelCount: The mesh has multires data. (read only)
+  @type multiresLevelCount: int
+  @ivar multiresDrawLevel: The multires level to display in the 3dview in [1 - multiresLevelCount].
+  @type multiresDrawLevel: int
+  @ivar multiresEdgeLevel: The multires level edge display in the 3dview [1 - multiresLevelCount].
+  @type multiresEdgeLevel: int
+  @ivar multiresPinLevel: The multires pin level, used for applying modifiers [1 - multiresLevelCount].
+  @type multiresPinLevel: int
+  @ivar multiresRenderLevel: The multires level to render [1 - multiresLevelCount].
+  @type multiresRenderLevel: int
+  
+  
   """
 
   def getFromObject(object, cage=0, render=0):

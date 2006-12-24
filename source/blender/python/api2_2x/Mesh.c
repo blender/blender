@@ -87,7 +87,7 @@
 #include "meshPrimitive.h"
 #include "constant.h"
 #include "gen_utils.h"
-
+#include "multires.h"
 
 /* EXPP Mesh defines */
 
@@ -101,6 +101,12 @@
 #define MESH_HASFACEUV                 0
 #define MESH_HASMCOL                   1
 #define MESH_HASVERTUV                 2
+#define MESH_HASMULTIRES               3
+
+#define MESH_MULTIRES_LEVEL            0
+#define MESH_MULTIRES_EDGE             1
+#define MESH_MULTIRES_PIN              2
+#define MESH_MULTIRES_RENDER           3
 
 #define MESH_TOOL_TOSPHERE             0
 #define MESH_TOOL_VERTEXSMOOTH         1
@@ -6392,7 +6398,6 @@ static PyObject *Mesh_removeLayer_internal( BPy_Mesh * self, PyObject * args, in
 {
 	Mesh *me = self->mesh;
 	CustomData *data = &me->fdata;
-	CustomDataLayer *layer;
 	char *name;
 	int i;
 	
@@ -6539,6 +6544,91 @@ static int Mesh_setActiveLayer( BPy_Mesh * self, PyObject * value, void *type )
 	mesh_update_customdata_pointers(self->mesh);
 	return 0;
 }
+
+
+/* multires */
+static PyObject *Mesh_getMultiresLevelCount( BPy_Mesh * self )
+{
+	int i;
+	if (!self->mesh->mr)
+		i=0;
+	else
+		i= self->mesh->mr->level_count;
+	
+	return PyInt_FromLong(i);
+}
+
+
+static PyObject *Mesh_getMultires( BPy_Mesh * self, void *type )
+{	
+	int i=0;
+	if (self->mesh->mr) {
+		switch ((int)type) {
+		case MESH_MULTIRES_LEVEL:
+			i = self->mesh->mr->newlvl;
+			break;
+		case MESH_MULTIRES_EDGE:
+			i = self->mesh->mr->edgelvl;
+			break;
+		case MESH_MULTIRES_PIN:
+			i = self->mesh->mr->pinlvl;
+			break;
+		case MESH_MULTIRES_RENDER:
+			i = self->mesh->mr->renderlvl;
+			break;
+		}
+	}
+	
+	return PyInt_FromLong(i);
+}
+
+static int Mesh_setMultires( BPy_Mesh * self, PyObject *value, void *type )
+{
+	int i;
+	if( !PyInt_CheckExact( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected integer argument" );
+	
+	if (!self->object)
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			"This mesh must be linked to an object" ); 
+	
+	if (!self->mesh->mr)
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"the mesh has no multires data" );
+	
+	if (!self->mesh->mr->level_count)
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"multires data has no levels added" );
+	
+	i = PyInt_AsLong(value);
+	
+	if (i<1||i>self->mesh->mr->level_count)
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					"value out of range" );
+	
+	switch ((int)type) {
+	case MESH_MULTIRES_LEVEL:
+		self->mesh->mr->newlvl = i;
+		multires_set_level(self->object, self->mesh);
+		break;
+	case MESH_MULTIRES_EDGE:
+		self->mesh->mr->edgelvl = i;
+		multires_edge_level_update(self->object, self->mesh);
+		break;
+	case MESH_MULTIRES_PIN:
+		self->mesh->mr->pinlvl = i;
+		break;
+	case MESH_MULTIRES_RENDER:
+		self->mesh->mr->renderlvl = i;
+		break;
+	}
+	
+	return 0;
+}
+
+/* end multires */
+
 
 static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 {
@@ -7129,6 +7219,10 @@ static PyObject *Mesh_getFlag( BPy_Mesh * self, void *type )
 		attr = self->mesh->msticky ? EXPP_incr_ret_True() :
 			EXPP_incr_ret_False();
 		break;
+	case MESH_HASMULTIRES:
+		attr = self->mesh->mr ? EXPP_incr_ret_True() :
+			EXPP_incr_ret_False();
+		break;
 	default:
 		attr = NULL;
 	}
@@ -7191,6 +7285,21 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 					CD_CALLOC, NULL, mesh->totvert );
 				memset( mesh->msticky, 255, mesh->totvert*sizeof( MSticky ) );
 				/* TODO: rework RE_make_sticky() so we can calculate */
+			}
+		}
+		return 0;
+	case MESH_HASMULTIRES:
+		if (!self->object)
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This mesh must be linked to an object" ); 
+		
+		if( !param ) {
+			if ( mesh->mr ) {
+				multires_delete(self->object, mesh);
+			}
+		} else {
+			if ( !mesh->mr ) {
+				multires_make(self->object, mesh);
 			}
 		}
 		return 0;
@@ -7531,6 +7640,10 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	 (getter)Mesh_getFlag, (setter)Mesh_setFlag,
 	 "'Sticky' flag for per vertex UV coordinates enabled",
 	 (void *)MESH_HASVERTUV},
+	{"multires",
+	 (getter)Mesh_getFlag, (setter)Mesh_setFlag,
+	 "'Sticky' flag for per vertex UV coordinates enabled",
+	 (void *)MESH_HASMULTIRES},
 	{"activeFace",
 	 (getter)Mesh_getActiveFace, (setter)Mesh_setActiveFace,
 	 "Index of the mesh's active texture face (in UV editor)",
@@ -7548,6 +7661,7 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	 "Active group for the mesh",
 	 NULL},
 
+	/* uv layers */
 	{"activeColorLayer",
 	 (getter)Mesh_getActiveLayer, (setter)Mesh_setActiveLayer,
 	 "Name of the active UV layer",
@@ -7556,7 +7670,29 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	 (getter)Mesh_getActiveLayer, (setter)Mesh_setActiveLayer,
 	 "Name of the active vertex color layer",
 	 (void *)CD_MTFACE},
-	
+
+	/* Multires */
+	{"multiresLevelCount",
+	 (getter)Mesh_getMultiresLevelCount, (setter)NULL,
+	 "The total number of multires levels",
+	 NULL},
+	{"multiresDrawLevel",
+	 (getter)Mesh_getMultires, (setter)Mesh_setMultires,
+	 "The current multires display level",
+	 (void *)MESH_MULTIRES_LEVEL},
+	{"multiresEdgeLevel",
+	 (getter)Mesh_getMultires, (setter)Mesh_setMultires,
+	 "The current multires edge level",
+	 (void *)MESH_MULTIRES_EDGE},
+	{"multiresPinLevel",
+	 (getter)Mesh_getMultires, (setter)Mesh_setMultires,
+	 "The current multires pin level",
+	 (void *)MESH_MULTIRES_PIN},
+	{"multiresRenderLevel",
+	 (getter)Mesh_getMultires, (setter)Mesh_setMultires,
+	 "The current multires render level",
+	 (void *)MESH_MULTIRES_RENDER},
+
 	{"texMesh",
 	 (getter)Mesh_getTexMesh, (setter)Mesh_setTexMesh,
 	 "The meshes tex mesh proxy texture coord mesh",
