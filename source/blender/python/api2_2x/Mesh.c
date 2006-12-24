@@ -6356,30 +6356,22 @@ static PyObject *Mesh_insertKey( BPy_Mesh * self, PyObject * args )
 
 static PyObject * Mesh_addCustomLayer_internal(Mesh *me, PyObject * args, int type)
 {
-	int i;
 	char *name = NULL;
-	void *layer_data;
 	CustomData *data = &me->fdata;
 	if( !PyArg_ParseTuple( args, "|s", &name ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a string or nothing" );
 	
-	layer_data = CustomData_add_layer(data, type, CD_DEFAULT,
-					                     NULL, me->totface);
+	if (strlen(name)>31)
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, maximum name length is 31" );
 	
-	if (name && layer_data) {
-		
-		if (strlen(name)>31)
-			return EXPP_ReturnPyObjError( PyExc_ValueError,
-					"error, maximum name length is 31" );
-		
-		for(i = 0; i < data->totlayer; i++) {
-			if (data->layers[i].data == layer_data ) {
-				BLI_strncpy(data->layers[i].name, name, 31);
-				CustomData_set_layer_unique_name(&me->fdata, i);
-			}
-		}
-	}
+	if (name)
+		CustomData_add_layer_named(data, type, CD_DEFAULT,
+											NULL, me->totface, name);
+	else
+		CustomData_add_layer(data, type, CD_DEFAULT,
+											NULL, me->totface);
 	mesh_update_customdata_pointers(me);
 	Py_RETURN_NONE;
 }

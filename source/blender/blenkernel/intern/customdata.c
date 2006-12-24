@@ -639,6 +639,23 @@ void *CustomData_add_layer(CustomData *data, int type, int alloctype,
 	return NULL;
 }
 
+/*same as above but accepts a name*/
+void *CustomData_add_layer_named(CustomData *data, int type, int alloctype,
+                           void *layerdata, int totelem, char *name)
+{
+	CustomDataLayer *layer;
+	const LayerTypeInfo *typeInfo= layerType_getInfo(type);
+	
+	layer = customData_add_layer__internal(data, type, alloctype, layerdata,
+	                                       totelem, name);
+
+	if(layer)
+		return layer->data;
+
+	return NULL;
+}
+
+
 int CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 {
 	int i;
