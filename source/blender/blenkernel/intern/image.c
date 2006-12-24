@@ -1019,7 +1019,11 @@ static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 {
 	
 	ima->rr= RE_MultilayerConvert(ibuf->userdata, ibuf->x, ibuf->y);
+
+#ifdef WITH_OPENEXR
 	IMB_exr_close(ibuf->userdata);
+#endif
+
 	ibuf->userdata= NULL;
 	if(ima->rr)
 		ima->rr->framenr= framenr;
