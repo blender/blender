@@ -1075,6 +1075,7 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 	printf("loaded %s\n", name);
 	
 	if (ibuf) {
+#ifdef WITH_OPENEXR
 		/* handle multilayer case, don't assign ibuf. will be handled in BKE_image_get_ibuf */
 		if (ibuf->ftype==OPENEXR && ibuf->userdata) {
 			image_create_multilayer(ima, ibuf, frame);	
@@ -1086,6 +1087,10 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 			image_assign_ibuf(ima, ibuf, 0, frame);
 			image_initialize_after_load(ima, ibuf);
 		}
+#else
+		image_assign_ibuf(ima, ibuf, 0, frame);
+		image_initialize_after_load(ima, ibuf);
+#endif
 	}
 	else
 		ima->ok= 0;
