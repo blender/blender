@@ -653,6 +653,8 @@ void		CcdPhysicsEnvironment::removeConstraint(int	constraintId)
 		btTypedConstraint* constraint = m_dynamicsWorld->getConstraint(i);
 		if (constraint->getUserConstraintId() == constraintId)
 		{
+			constraint->getRigidBodyA().activate();
+			constraint->getRigidBodyB().activate();
 			m_dynamicsWorld->removeConstraint(constraint);
 			break;
 		}

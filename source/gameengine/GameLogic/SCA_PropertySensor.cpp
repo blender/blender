@@ -268,7 +268,7 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 		m_recentresult=result;
 	} else
 	{
-		m_recentresult=true;
+		m_recentresult=result;//true;
 	}
 	return result;
 }

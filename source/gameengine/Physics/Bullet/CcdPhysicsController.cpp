@@ -379,6 +379,10 @@ void		CcdPhysicsController::ApplyTorque(float torqueX,float torqueY,float torque
 {
 	btVector3 torque(torqueX,torqueY,torqueZ);
 	btTransform xform = m_body->getCenterOfMassTransform();
+	if (torque.length2() > (SIMD_EPSILON*SIMD_EPSILON))
+	{
+		m_body->activate();
+	}
 	if (local)
 	{
 		torque	= xform.getBasis()*torque;
@@ -389,6 +393,13 @@ void		CcdPhysicsController::ApplyTorque(float torqueX,float torqueY,float torque
 void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bool local)
 {
 	btVector3 force(forceX,forceY,forceZ);
+	
+	if (force.length2() > (SIMD_EPSILON*SIMD_EPSILON))
+	{
+		m_body->activate();
+	}
+
+
 	btTransform xform = m_body->getCenterOfMassTransform();
 	if (local)
 	{

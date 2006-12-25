@@ -271,41 +271,50 @@ void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,
 	int islandId;
 
 
-		//update the sleeping state for bodies, if all are sleeping
+	//solve the constraint for each islands, if there are contacts/constraints
 	for (int startIslandIndex=0;startIslandIndex<numElem;startIslandIndex = endIslandIndex)
 	{
 		int islandId = getUnionFind().getElement(startIslandIndex).m_id;
 
-		for (endIslandIndex = startIslandIndex+1;(endIslandIndex<numElem) && (getUnionFind().getElement(endIslandIndex).m_id == islandId);endIslandIndex++)
+		bool islandSleeping = false;
+
+		for (endIslandIndex = startIslandIndex;(endIslandIndex<numElem) && (getUnionFind().getElement(endIslandIndex).m_id == islandId);endIslandIndex++)
 		{
+			int i = getUnionFind().getElement(endIslandIndex).m_sz;
+			btCollisionObject* colObj0 = collisionObjects[i];
+			if (!colObj0->isActive())
+				islandSleeping = true;
 		}
 
-		//find the accompanying contact manifold for this islandId
-		int numIslandManifolds = 0;
-		btPersistentManifold** startManifold = 0;
-
-		if (startManifoldIndex<numManifolds)
+		if (!islandSleeping)
 		{
-			int curIslandId = getIslandId(islandmanifold[startManifoldIndex]);
-			if (curIslandId == islandId)
-			{
-				startManifold = &islandmanifold[startManifoldIndex];
-			
-				for (endManifoldIndex = startManifoldIndex+1;(endManifoldIndex<numManifolds) && (islandId == getIslandId(islandmanifold[endManifoldIndex]));endManifoldIndex++)
-				{
+			//find the accompanying contact manifold for this islandId
+			int numIslandManifolds = 0;
+			btPersistentManifold** startManifold = 0;
 
+			if (startManifoldIndex<numManifolds)
+			{
+				int curIslandId = getIslandId(islandmanifold[startManifoldIndex]);
+				if (curIslandId == islandId)
+				{
+					startManifold = &islandmanifold[startManifoldIndex];
+				
+					for (endManifoldIndex = startManifoldIndex+1;(endManifoldIndex<numManifolds) && (islandId == getIslandId(islandmanifold[endManifoldIndex]));endManifoldIndex++)
+					{
+
+					}
+					/// Process the actual simulation, only if not sleeping/deactivated
+					numIslandManifolds = endManifoldIndex-startManifoldIndex;
 				}
-				/// Process the actual simulation, only if not sleeping/deactivated
-				numIslandManifolds = endManifoldIndex-startManifoldIndex;
+
 			}
 
-		}
+			callback->ProcessIsland(startManifold,numIslandManifolds, islandId);
 
-		callback->ProcessIsland(startManifold,numIslandManifolds, islandId);
-
-		if (numIslandManifolds)
-		{
-			startManifoldIndex = endManifoldIndex;
+			if (numIslandManifolds)
+			{
+				startManifoldIndex = endManifoldIndex;
+			}
 		}
 	}
 }

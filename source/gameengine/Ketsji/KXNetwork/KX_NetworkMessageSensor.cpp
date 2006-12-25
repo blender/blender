@@ -90,7 +90,8 @@ bool KX_NetworkMessageSensor::Evaluate(CValue* event)
 	bool result = false;
 	bool WasUp = m_IsUp;
 
-	m_IsUp = false;
+//	m_IsUp = false;
+
 	if (m_BodyList) {
 		m_BodyList->Release();
 		m_BodyList = NULL;

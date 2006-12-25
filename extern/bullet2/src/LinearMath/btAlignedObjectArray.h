@@ -68,8 +68,10 @@ class btAlignedObjectArray
 
 		SIMD_FORCE_INLINE	void	deallocate()
 		{
-			if(m_data)	
+			if(m_data)	{
 				m_allocator.deallocate(m_data);
+				m_data = 0;
+			}
 		}
 
 
