@@ -251,11 +251,11 @@ class VRML2Export:
 
     def writeNavigationInfo(self, scene):
         allObj = []
-        allObj = scene.getChildren()
+        allObj = list(scene.objects)
         headlight = "TRUE"
         vislimit = 0.0
         for thisObj in allObj:
-            objType=thisObj.getType()
+            objType=thisObj.type
             if objType == "Camera":
                 vislimit = thisObj.data.getClipEnd()
             elif objType == "Lamp":
@@ -731,21 +731,21 @@ class VRML2Export:
         self.proto = 0
         allObj = []
         if ARG == 'selected':
-            allObj = Blender.Object.GetSelected()
+            allObj = list(scene.objects.context)
         else:
-            allObj = scene.getChildren()
+            allObj = list(scene.objects)
             self.writeInline()
         for thisObj in allObj:
             try:
-                objType=thisObj.getType()
-                objName=thisObj.getName()
+                objType=thisObj.type
+                objName=thisObj.name
                 self.matonly = 0
                 if objType == "Camera":
                     self.writeViewpoint(thisObj)
                 elif objType == "Mesh":
                     self.writeIndexedFaceSet(thisObj, normals = 0)
                 elif objType == "Lamp":
-                    lmpName=Lamp.Get(thisObj.data.getName())
+                    lmpName= thisObj.data
                     lmpType=lmpName.getType()
                     if lmpType == Lamp.Types.Lamp:
                         self.writePointLight(thisObj, lmpName)

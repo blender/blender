@@ -289,7 +289,7 @@ def filesel_callback(filename):
 	
 	objname = Blender.sys.splitext(Blender.sys.basename(filename))[0]
 	scn= Blender.Scene.GetCurrent()
-	for obj in scn.getChildren():
+	for obj in scn.objects:
 		obj.sel= 0
 	
 	obj= Blender.Object.New('Mesh', objname)

@@ -682,7 +682,7 @@ def make_track_chunk(ID, obj):
 	# Next section should be repeated for every keyframe, but for now, animation is not actually supported.
 	track_chunk.add_variable("tcb_frame", _3ds_int(0))
 	track_chunk.add_variable("tcb_flags", _3ds_short())
-	if obj.getType()=='Empty':
+	if obj.type=='Empty':
 		if ID==POS_TRACK_TAG:
 			# position vector:
 			track_chunk.add_variable("position", _3ds_point_3d(obj.getLocation()))
@@ -714,7 +714,7 @@ def make_kf_obj_node(obj, name_to_id):
 	Takes the Blender object as a parameter. Object id's are taken from the dictionary name_to_id.
 	Blender Empty objects are converted to dummy nodes.'''
 	
-	name = obj.getName()
+	name = obj.name
 	# main object node chunk:
 	kf_obj_node = _3ds_chunk(KFDATA_OBJECT_NODE_TAG)
 	# chunk for the object id: 
@@ -725,7 +725,7 @@ def make_kf_obj_node(obj, name_to_id):
 	# object node header:
 	obj_node_header_chunk = _3ds_chunk(OBJECT_NODE_HDR)
 	# object name:
-	if (obj.getType() == 'Empty'):
+	if obj.type == 'Empty':
 		# Empties are called "$$$DUMMY" and use the OBJECT_INSTANCE_NAME chunk 
 		# for their name (see below):
 		obj_node_header_chunk.add_variable("name", _3ds_string("$$$DUMMY"))
@@ -737,14 +737,14 @@ def make_kf_obj_node(obj, name_to_id):
 	obj_node_header_chunk.add_variable("flags2", _3ds_short(0))
 	
 	# Check parent-child relationships:
-	parent = obj.getParent()
-	if (parent == None) or (parent.getName() not in name_to_id):
+	parent = obj.parent
+	if (parent == None) or (parent.name not in name_to_id):
 		# If no parent, or the parents name is not in the name_to_id dictionary,
 		# parent id becomes -1:
 		obj_node_header_chunk.add_variable("parent", _3ds_short(-1))
 	else:
 		# Get the parent's id from the name_to_id dictionary:
-		obj_node_header_chunk.add_variable("parent", _3ds_short(name_to_id[parent.getName()]))
+		obj_node_header_chunk.add_variable("parent", _3ds_short(name_to_id[parent.name]))
 	
 	# Add pivot chunk:
 	obj_pivot_chunk = _3ds_chunk(OBJECT_PIVOT)
@@ -756,7 +756,7 @@ def make_kf_obj_node(obj, name_to_id):
 	kf_obj_node.add_subchunk(obj_node_header_chunk)
 
 	# Empty objects need to have an extra chunk for the instance name:
-	if (obj.getType() == 'Empty'):
+	if obj.type == 'Empty':
 		obj_instance_name_chunk = _3ds_chunk(OBJECT_INSTANCE_NAME)
 		obj_instance_name_chunk.add_variable("name", _3ds_string(name))
 		kf_obj_node.add_subchunk(obj_instance_name_chunk)
@@ -791,10 +791,10 @@ def save_3ds(filename):
 	'''
 	
 	# Get all the supported objects selected in this scene:
-	ob_sel= Blender.Object.GetSelected()
+	ob_sel= list(scn.objects.context)
 	
 	mesh_objects = [ (ob, me) for ob in ob_sel   for me in (BPyMesh.getMeshFromObject(ob, None, True, False, scn),) if me ]
-	empty_objects = [ ob for ob in ob_sel if ob.getType() == 'Empty' ]
+	empty_objects = [ ob for ob in ob_sel if ob.type == 'Empty' ]
 	
 	# Make a list of all materials used in the selected meshes (use a dictionary,
 	# each material is added once):

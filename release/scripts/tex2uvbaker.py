@@ -507,11 +507,11 @@ def Blender240update(MESH2,FRAME):
      # ---------------------------   
      #  On ajouter les sommets necessaires ...
      # ---------------------------   
-     ipocurve.addBezier((-1,1))
+     ipocurve.append((-1,1))
      # ---------------------------   
      #   ... ce dernire n'est peut-être pas absolument obligatoire .
      # ---------------------------   
-     ipocurve.addBezier((FRAME+1,1))
+     ipocurve.append((FRAME+1,1))
 #----------------------------------- 
 # release : 0.3.2 ,  2005/12/28 , end
 #----------------------------------- 

@@ -1807,7 +1807,7 @@ def select_file(filename):
 	# first set the context
 	Blender.Window.WaitCursor(True)
 	Blender.Window.EditMode(0)
-	for ob in scene.getChildren():
+	for ob in scene.objects:
 		ob.sel=0
 	
 	

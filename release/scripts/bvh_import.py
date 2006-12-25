@@ -311,18 +311,14 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1):
 		IMPORT_START_FRAME= 1
 		
 	scn= Blender.Scene.GetCurrent()
-	for ob in scn.getChildren():
+	for ob in scn.objects:
 		ob.sel= 0
 	
 	objects= []
 	
 	def add_ob(name):
-		ob= Blender.Object.New('Empty', name)
-		scn.link(ob)
-		ob.sel= 1
-		ob.Layers= scn.Layers
+		ob = scn.objects.new('Empty')
 		objects.append(ob)
-		return ob
 	
 	# Add objects
 	for name, bvh_node in bvh_nodes.iteritems():
@@ -448,7 +444,7 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 	
 	scn= Blender.Scene.GetCurrent()
 	
-	for ob in scn.getChildren():
+	for ob in scn.objects:
 		ob.sel= 0
 	
 	scn.link(arm_ob)

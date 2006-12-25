@@ -8,7 +8,7 @@ Tip: 'See Trajectory of selected object'
 """
 
 __author__ = '3R - R3gis'
-__version__ = '2.42'
+__version__ = '2.43'
 __url__ = ["Script's site , http://blenderfrance.free.fr/python/Trajectory_en.htm","Author's site , http://cybercreator.free.fr", "French Blender support forum, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender"]
 __email__=["3R, r3gis@free.fr"]
 
@@ -230,23 +230,23 @@ def matrixForTraj(frame, parent_list):
 	for parent_data in parent_list:
 		parent_ob=	parent_data[0]
 		
-		try:	X=	parent_data[5].evaluate(frame)*pi/18
+		try:	X=	parent_data[5][frame]*pi/18
 		except:	X=	parent_ob.RotX
-		try:	Y=	parent_data[6].evaluate(frame)*pi/18
+		try:	Y=	parent_data[6][frame]*pi/18
 		except:	Y=	parent_ob.RotY
-		try:	Z=	parent_data[7].evaluate(frame)*pi/18
+		try:	Z=	parent_data[7][frame]*pi/18
 		except: Z=	parent_ob.RotZ
-		try:	LX=	parent_data[2].evaluate(frame)
+		try:	LX=	parent_data[2][frame]
 		except: LX=	parent_ob.LocX
-		try:	LY=	parent_data[3].evaluate(frame)
+		try:	LY=	parent_data[3][frame]
 		except: LY=	parent_ob.LocY
-		try:	LZ=	parent_data[4].evaluate(frame)
+		try:	LZ=	parent_data[4][frame]
 		except:	LZ=	parent_ob.LocZ
-		try:	SX=	parent_data[8].evaluate(frame)
+		try:	SX=	parent_data[8][frame]
 		except:	SX=	parent_ob.SizeX
-		try:	SY=	parent_data[9].evaluate(frame)
+		try:	SY=	parent_data[9][frame]
 		except:	SY=	parent_ob.SizeY
-		try:	SZ=	parent_data[10].evaluate(frame)
+		try:	SZ=	parent_data[10][frame]
 		except:	SZ=	parent_ob.SizeZ
 
 		NMat=Blender.Mathutils.Matrix([cos(Y)*cos(Z)*SX,SX*cos(Y)*sin(Z),-SX*sin(Y),0],
@@ -323,21 +323,20 @@ def Trace_Traj(ob):
 			
 		#security : if one of parents object are a path>>follow : trajectory don't work properly so it have to draw nothing
 		for parent in parent_list:
-			# getData() is slow especialy with NMesh.
-			# check its a curve. 
-			if parent[0].getType() == 'Curve':
+			if parent[0].type == 'Curve':
 				if parent[0].data.flag & 1<<4: # Follow path, 4th bit
 					return 1
 		
 		#ob >> re-assign obj and not parent
 		ob= backup_ob
+		ob= backup_ob
 		
 		
-		if ipoLocX: LXC= ipoLocX.evaluate(frameC)
+		if ipoLocX: LXC= ipoLocX[frameC]
 		else: 		LXC= ob.LocX
-		if ipoLocY:	LYC= ipoLocY.evaluate(frameC)
+		if ipoLocY:	LYC= ipoLocY[frameC]
 		else:		LYC= ob.LocY
-		if ipoLocZ:	LZC= ipoLocZ.evaluate(frameC)
+		if ipoLocZ:	LZC= ipoLocZ[frameC]
 		else:		LZC= ob.LocZ
 
 		vect= Vector([ob.LocX, ob.LocY, ob.LocZ, 1])
@@ -346,18 +345,18 @@ def Trace_Traj(ob):
 		#If trajectory is being modified and we are at a frame where a ipo key already exist
 		if round(ob.LocX, 5)!=round(LXC, 5):
 			for bez in ipoLocX.bezierPoints:
-				if round(bez.getPoints()[0], tr)==frameCtr:
-					bez.setPoints((frameCr, vect[0]))
+				if round(bez.pt[0], tr)==frameCtr:
+					bez.pt = [frameCr, vect[0]]
 			ipoLocX.recalc()
 		if round(ob.LocY, 5)!=round(LYC, 5):
 			for bez in ipoLocY.bezierPoints:
-				if round(bez.getPoints()[0], tr)==frameCtr:
-					bez.setPoints((frameCr, vect[1]))
+				if round(bez.pt[0], tr)==frameCtr:
+					bez.pt = [frameCr, vect[1]]
 			ipoLocY.recalc()
 		if round(ob.LocZ, 5)!=round(LZC, 5):
 			for bez in ipoLocZ.bezierPoints:
-				if round(bez.getPoints()[0], tr)==frameCtr:
-					bez.setPoints((frameCr, vect[2]))
+				if round(bez.pt[0], tr)==frameCtr:
+					bez.pt = [frameCr, vect[2]]
 			ipoLocZ.recalc()
 		
 		#change trajectory color if at an ipoKey
@@ -365,24 +364,24 @@ def Trace_Traj(ob):
 		bezier_Coord=0
 		if ipoLocX: # FIXED like others it was just in case ipoLocX==None
 			for bez in ipoLocX.bezierPoints:
-				bezier_Coord=round(bez.getPoints()[0], tr)
+				bezier_Coord=round(bez.pt[0], tr)
 				if bezier_Coord not in VertexFrame:
 					VertexFrame.append(bezier_Coord)
 				if bezier_Coord==frameCtr:
 						color=[1, color[1]-0.3]
 		if ipoLocY: # FIXED
 			for bez in ipoLocY.bezierPoints:
-				bezier_Coord=round(bez.getPoints()[0], tr)
+				bezier_Coord=round(bez.pt[0], tr)
 				if bezier_Coord not in VertexFrame:
 					VertexFrame.append(bezier_Coord)
-				if round(bez.getPoints()[0], tr)==frameCtr:
+				if round(bez.pt[0], tr)==frameCtr:
 						color=[1, color[1]-0.3]
 		if ipoLocZ: # FIXED
 			for bez in ipoLocZ.bezierPoints:
-				bezier_Coord=round(bez.getPoints()[0], tr)
+				bezier_Coord=round(bez.pt[0], tr)
 				if bezier_Coord not in VertexFrame:
 					VertexFrame.append(bezier_Coord)
-				if round(bez.getPoints()[0], tr)==frameCtr:
+				if round(bez.pt[0], tr)==frameCtr:
 						color=[1, color[1]-0.3]
 		
 	
@@ -390,15 +389,14 @@ def Trace_Traj(ob):
 		for frame in xrange(frameC-past, frameC+future):
 			DecMat=matrixForTraj(frame, parent_list)
 
-			if ipoLocX: LX= ipoLocX.evaluate(frame)
+			if ipoLocX: LX= ipoLocX[frame]
 			else: 		LX= ob.LocX
-			if ipoLocY:	LY= ipoLocY.evaluate(frame)
+			if ipoLocY:	LY= ipoLocY[frame]
 			else:		LY= ob.LocY
-			if ipoLocZ:	LZ= ipoLocZ.evaluate(frame)
+			if ipoLocZ:	LZ= ipoLocZ[frame]
 			else:		LZ= ob.LocZ
 			
-			vect= Vector([LX, LY, LZ, 1])
-			vect=vect*DecMat
+			vect=Vector(LX, LY, LZ)*DecMat
 			LocX.append(vect[0])
 			LocY.append(vect[1])
 			LocZ.append(vect[2])

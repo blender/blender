@@ -604,7 +604,7 @@ def construction_dico_correspondance():
 #we add a point to the IPO curve Target
 def ajoute_point(cle,frame,valeur):
 	cle.setInterpolation('Linear')
-	cle.addBezier((frame,valeur))
+	cle.append((frame,valeur))
 	cle.Recalc()
 
 #cette fonction parcours le dictionnaire des frame à ajouter et construit les points

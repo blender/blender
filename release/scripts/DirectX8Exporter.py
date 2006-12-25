@@ -296,31 +296,29 @@ class xExport:
 	#***********************************************
 	def analyzeScene(self):
 			parent_list = []
-			for obj in Blender.Scene.GetCurrent().getChildren(): #Object.Get():
-				mesh = obj.getData()
-				if type(mesh) == Types.ArmatureType or type(mesh) == Types.NMeshType or obj.getType() == "Empty":
-					pare = obj.getParent()
-					if pare == None :
+			for obj in Blender.Scene.GetCurrent().objects:
+				if obj.type in ('Mesh', 'Armature', 'Empty'):
+					if obj.parent == None :
 						parent_list.append(obj)
 						
 			return parent_list
 		
 	def getChildren(self,obj):	
 		children_list = []	
-		for object in Blender.Scene.GetCurrent().getChildren(): #Object.Get():
+		for object in Blender.Scene.GetCurrent().objects: #Object.Get():
 			pare = object.parent
 			if pare == obj :
 				children_list.append(object)
 		return children_list
 	
 	def getArmChildren(self,obj):		
-		for object in Blender.Scene.GetCurrent().getChildren(): #Object.Get():
+		for object in Blender.Scene.GetCurrent().objects: #Object.Get():
 			pare = object.parent
 			if pare == obj :	
 				return object
 				
 	def getLocMat(self, obj):
-		pare = obj.getParent()
+		pare = obj.parent
 		mat = obj.matrixWorld
 		mat_id = Matrix([1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1])
 		if pare:
@@ -336,7 +334,7 @@ class xExport:
 	def writeObjFrames(self,obj):
 		global space,chld_obj,ch_list
 		mesh = obj.getData()
-		if obj.getType() == "Empty" :
+		if obj.type == "Empty" :
 			mat = self.getLocMat(obj)
 			mat_c = Matrix(mat)
 			name = obj.name
@@ -391,12 +389,12 @@ class xExport:
 			self.writeObjFrames(obj)
 			ch_l = self.getChildren(obj)
 			for ch in ch_l:
-				if ch and ch.getType() == "Armature":
+				if ch and ch.type == "Armature":
 					ch_list.append(ch)
 					self.writeObjFrames(ch)
 				else :	
 					self.writeChildObj(ch_l)
-			if obj.getType() != "Armature":
+			if obj.type != "Armature":
 				self.file.write("  }  // SI End of the Object %s \n" % (obj.name))	
 				
 				
@@ -404,20 +402,18 @@ class xExport:
 		self.file.write("}  // End of the Root Frame\n")		
 		if anim :
 			self.file.write("AnimationSet {\n")
-			for obj in Blender.Scene.GetCurrent().getChildren(): #Object.Get():
-				
-					mesh = obj.getData()
-					if type(mesh) == Types.NMeshType or obj.getType() == "Empty":
-						ip_list = obj.getIpo()
-						if ip_list != None :
-							self.writeAnimationObj(obj)
-					elif type(mesh) == Types.ArmatureType :
-						act_list = obj.getAction()
-						if act_list != None :
-							self.writeAnimation(obj)
-						#ip_list = obj.getIpo()
-						#if ip_list != None :
-						#	self.writeAnimationObj(obj)
+			for obj in Blender.Scene.GetCurrent().objects:
+				if obj.type in ('Mesh', 'Empty'):
+					ip_list = obj.ipo
+					if ip_list != None :
+						self.writeAnimationObj(obj)
+				elif obj.type == 'Armature':
+					act_list = obj.getAction()
+					if act_list != None :
+						self.writeAnimation(obj)
+					#ip_list = obj.ipo
+					#if ip_list != None :
+					#	self.writeAnimationObj(obj)
 
 			self.file.write("} // End of Animation Set\n")
 		self.writeEnd()
@@ -466,7 +462,7 @@ class xExport:
 				ind = objs.index(obj)
 				if ind == len(objs)-1:
 					self.file.write("}\n")
-				ip_list = obj.getIpo()
+				ip_list = obj.ipo
 				if ip_list != None :
 					self.file.write("AnimationSet {\n")
 					self.writeAnimationObj(obj)
@@ -1142,7 +1138,7 @@ template SkinWeights {\n\
 	#***********************************************
 	def writeAnimationObj(self, obj):
 		point_list = []
-		ip = obj.getIpo()
+		ip = obj.ipo
 		poi = ip.getCurves()
 		for po in poi[0].getPoints():
 			a = po.getPoints()

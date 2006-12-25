@@ -284,11 +284,11 @@ class VRML2Export:
 
 	def writeNavigationInfo(self, scene):
 		allObj = []
-		allObj = scene.getChildren()
+		allObj = list(scene.objects)
 		headlight = "TRUE"
 		vislimit = 0.0
 		for thisObj in allObj:
-			objType=thisObj.getType()
+			objType=thisObj.type
 			if objType == "Camera":
 				vislimit = thisObj.data.getClipEnd()
 			elif objType == "Lamp":
@@ -958,7 +958,7 @@ class VRML2Export:
 								round(sky1,self.cp), \
 								round(sky2,self.cp)))
 		alltexture = len(worldmat)
-		for i in range(alltexture):
+		for i in xrange(alltexture):
 			namemat = worldmat[i].getName()
 			pic = worldmat[i].getImage()
 			if pic:
@@ -980,7 +980,7 @@ class VRML2Export:
 		self.writeIndented("\n\n")
 
 	def writeLamp(self, ob):
-		la = Lamp.Get(ob.data.getName())
+		la = ob.data
 		laType = la.getType()
 
 		if laType == Lamp.Types.Lamp:
@@ -1090,9 +1090,9 @@ class VRML2Export:
 		self.proto = 0
 		allObj = []
 		if ARG == 'selected':
-			allObj = Blender.Object.GetSelected()
+			allObj = list(scene.objects.context)
 		else:
-			allObj = scene.getChildren()
+			allObj = list(scene.objects)
 			self.writeInline()
 
 		for thisObj in allObj:

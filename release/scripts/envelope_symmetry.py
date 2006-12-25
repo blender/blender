@@ -103,9 +103,8 @@ def flipFace(v):
 
 # return object with given object name (with variable parts) and mesh name
 def getObjectByName(obj_name, mesh_name):
-	objs = Blender.Scene.GetCurrent().getChildren() #Blender.Object.Get()
-	for obj in objs:
-		if obj.getType() == "Mesh":
+	for obj in Blender.Scene.GetCurrent().objects:
+		if obj.type == "Mesh":
 #			if obj.getName()[0:len(obj_name)] == obj_name and obj.getData().name == mesh_name:
 			# use only mesh_name so bone name and weight (in the envelope name)
 			# can be changed by the user and mirrored by the script.
@@ -118,13 +117,12 @@ SUFFIX_LEN = len(REF_SUFFIX);
 Blender.Window.EditMode(0)
 
 count = 0
-objs = Blender.Scene.GetCurrent().getChildren() #objs = Blender.Object.Get()
-for obj in objs:
-	if obj.getType() != 'Mesh':
+for obj in Blender.Scene.GetCurrent().objects:
+	if obj.type != 'Mesh':
 		continue
 
 	count += 1
-	name = obj.getName()
+	name = obj.name
 	pos = name.find(SEPARATOR)
 	if (pos > -1):
 		ApplySizeAndRotation(obj)

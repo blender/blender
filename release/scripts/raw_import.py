@@ -102,17 +102,12 @@ def read(filename):
 	me.faces.extend(faces)
 	
 	
-	objname = Blender.sys.splitext(Blender.sys.basename(filename))[0]
 	scn= Blender.Scene.GetCurrent()
-	for obj in scn.getChildren():
+	for obj in scn.objects:
 		obj.sel= 0
 	
-	me.name= objname
-	ob= Blender.Object.New('Mesh', objname)
-	ob.link(me)
-	scn.link(ob)
-	ob.sel= 1
-	ob.Layers= scn.Layers
+	me.name= Blender.sys.splitext(Blender.sys.basename(filename))[0]
+	ob = scn.objects.new(me)
 	Blender.Redraw()
 	
 	print 'Successfully imported "%s" in %.4f seconds' % (Blender.sys.basename(filename), Blender.sys.time()-t)

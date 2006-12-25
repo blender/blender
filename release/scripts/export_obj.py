@@ -609,7 +609,7 @@ def write_ui(filename):
 			if EXPORT_SEL_ONLY:
 				export_objects = scn.objects.context
 			else:	
-				export_objects = scn.objects # scn.getChildren()
+				export_objects = scn.objects
 			
 			full_path= ''.join(context_name)
 			

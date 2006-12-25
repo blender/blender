@@ -47,7 +47,7 @@ from Blender.BGL import *
 
 
 
-O = Scene.GetCurrent().getChildren()
+O = list(Scene.GetCurrent().objects)
 stringlist=[[],[]]
 
 
@@ -55,7 +55,7 @@ def renew():
      global O
      
      #O = Object.Get()
-     O= Scene.GetCurrent().getChildren()
+     O = list(Scene.GetCurrent().objects)
      #param= [ [p.name, i, p.getType()] for i, p in enumerate(O) ]
      
      PARAM={}

@@ -1003,7 +1003,7 @@ def export(filename):
 		BASE_MATRIX = matrix_rotate_x(-90.0)
 		
 	# Get the scene
-	scene = Blender.Scene.getCurrent()
+	scene = Blender.Scene.GetCurrent()
 	
 	# ---- Export skeleton (=armature) ----------------------------------------
 	
@@ -1012,87 +1012,86 @@ def export(filename):
 	skeleton = Skeleton()
 
 	foundarmature = False
-	for obj in Blender.Scene.GetCurrent().getChildren(): #Blender.Object.Get():
-		data = obj.getData()
-		if type(data) is not Blender.Types.ArmatureType:
-			continue
-		
-		if foundarmature == True:
-			log.error("Found multiple armatures! '" + obj.getName() + "' ignored.\n")
-			continue
-
-		foundarmature = True
-		matrix = obj.getMatrix()
-		if BASE_MATRIX:
-			matrix = matrix_multiply(BASE_MATRIX, matrix)
-		
-		def treat_bone(b, parent = None):
-			head = b.head["BONESPACE"]
-			tail = b.tail["BONESPACE"]
+	for obj in scene.objects: #Blender.Object.Get():
+		if obj.type == 'Armature':
+			data = obj.data
 			
-			# Turns the Blender's head-tail-roll notation into a quaternion
-			quat = matrix2quaternion(blender_bone2matrix(head, tail, b.roll["BONESPACE"]))
-			
-			if parent:
-				# Compute the translation from the parent bone's head to the child
-				# bone's head, in the parent bone coordinate system.
-				# The translation is parent_tail - parent_head + child_head,
-				# but parent_tail and parent_head must be converted from the parent's parent
-				# system coordinate into the parent system coordinate.
-				
-				parent_invert_transform = matrix_invert(quaternion2matrix(parent.rot))
-				parent_head = vector_by_matrix(parent.head, parent_invert_transform)
-				parent_tail = vector_by_matrix(parent.tail, parent_invert_transform)
-				
-				
-				
-				#ploc = vector_add(head, b.getLoc())
-				parentheadtotail = vector_sub(parent_tail, parent_head)
-				# hmm this should be handled by the IPos, but isn't for non-animated
-				# bones which are transformed in the pose mode...
-				#loc = vector_add(ploc, parentheadtotail)
-				#rot = quaternion_multiply(blender2cal3dquat(b.getQuat()), quat)
-				loc = parentheadtotail
-				rot = quat
-				
-				log.debug("Parented Bone: %s",b.name)
-				
-				bone = Bone(skeleton, parent, b.name, loc, rot)
-			else:
-				# Apply the armature's matrix to the root bones
-				head = point_by_matrix(head, matrix)
-				tail = point_by_matrix(tail, matrix)
-				quat = matrix2quaternion(matrix_multiply(matrix, quaternion2matrix(quat))) # Probably not optimal
-				
-				# loc = vector_add(head, b.getLoc())
-				# rot = quaternion_multiply(blender2cal3dquat(b.getQuat()), quat)
-				loc = head
-				rot = quat
-				
-				log.debug("Non Parented Bone: %s",b.name)
-
-				# Here, the translation is simply the head vector
-				bone = Bone(skeleton, None, b.name, loc, rot)
-				
-			bone.head = head
-			bone.tail = tail
-			
-			if b.hasChildren():
-				for child in b.children:
-					treat_bone(child, bone)
-					
-		foundroot = False
-		for b in data.bones.values():
-			# child bones are handled in treat_bone
-			if b.parent != None:
+			if foundarmature == True:
+				log.error("Found multiple armatures! '" + obj.getName() + "' ignored.\n")
 				continue
-			if foundroot == True:
-				log.warning("Warning: Found multiple root-bones, this may not be supported in cal3d.")
-				#print "Ignoring bone '" + b.name + "' and it's childs."
-				#continue
+
+			foundarmature = True
+			matrix = obj.getMatrix()
+			if BASE_MATRIX:
+				matrix = matrix_multiply(BASE_MATRIX, matrix)
+			
+			def treat_bone(b, parent = None):
+				head = b.head["BONESPACE"]
+				tail = b.tail["BONESPACE"]
 				
-			treat_bone(b)
-			foundroot = True
+				# Turns the Blender's head-tail-roll notation into a quaternion
+				quat = matrix2quaternion(blender_bone2matrix(head, tail, b.roll["BONESPACE"]))
+				
+				if parent:
+					# Compute the translation from the parent bone's head to the child
+					# bone's head, in the parent bone coordinate system.
+					# The translation is parent_tail - parent_head + child_head,
+					# but parent_tail and parent_head must be converted from the parent's parent
+					# system coordinate into the parent system coordinate.
+					
+					parent_invert_transform = matrix_invert(quaternion2matrix(parent.rot))
+					parent_head = vector_by_matrix(parent.head, parent_invert_transform)
+					parent_tail = vector_by_matrix(parent.tail, parent_invert_transform)
+					
+					
+					
+					#ploc = vector_add(head, b.getLoc())
+					parentheadtotail = vector_sub(parent_tail, parent_head)
+					# hmm this should be handled by the IPos, but isn't for non-animated
+					# bones which are transformed in the pose mode...
+					#loc = vector_add(ploc, parentheadtotail)
+					#rot = quaternion_multiply(blender2cal3dquat(b.getQuat()), quat)
+					loc = parentheadtotail
+					rot = quat
+					
+					log.debug("Parented Bone: %s",b.name)
+					
+					bone = Bone(skeleton, parent, b.name, loc, rot)
+				else:
+					# Apply the armature's matrix to the root bones
+					head = point_by_matrix(head, matrix)
+					tail = point_by_matrix(tail, matrix)
+					quat = matrix2quaternion(matrix_multiply(matrix, quaternion2matrix(quat))) # Probably not optimal
+					
+					# loc = vector_add(head, b.getLoc())
+					# rot = quaternion_multiply(blender2cal3dquat(b.getQuat()), quat)
+					loc = head
+					rot = quat
+					
+					log.debug("Non Parented Bone: %s",b.name)
+
+					# Here, the translation is simply the head vector
+					bone = Bone(skeleton, None, b.name, loc, rot)
+					
+				bone.head = head
+				bone.tail = tail
+				
+				if b.hasChildren():
+					for child in b.children:
+						treat_bone(child, bone)
+						
+			foundroot = False
+			for b in data.bones.values():
+				# child bones are handled in treat_bone
+				if b.parent != None:
+					continue
+				if foundroot == True:
+					log.warning("Warning: Found multiple root-bones, this may not be supported in cal3d.")
+					#print "Ignoring bone '" + b.name + "' and it's childs."
+					#continue
+					
+				treat_bone(b)
+				foundroot = True
 
 	# ---- Export Mesh data ---------------------------------------------------
 
@@ -1100,137 +1099,138 @@ def export(filename):
 	
 	meshes = []
 	
-	for obj in Blender.Scene.GetCurrent().getChildren(): #Blender.Object.Get():
-		data = obj.getData()
-		if (type(data) is Blender.Types.NMeshType) and data.faces:
-			mesh_name = obj.getName()
-			if mesh_name[0]=='_': continue
-			
-			log.debug("Mesh: %s",mesh_name)
-			
-			mesh = Mesh(mesh_name)
-			meshes.append(mesh)
-			
-			matrix = obj.getMatrix()
-			if BASE_MATRIX:
-				matrix = matrix_multiply(BASE_MATRIX, matrix)
+	for obj in scene.objects: #Blender.Object.Get():
+		if obj.type == 'Mesh':
+			data = obj.data
+			if data.faces:
+				mesh_name = obj.name
+				if mesh_name[0]=='_': continue
 				
-			faces = data.faces
-			while faces:
-				image          = faces[0].image
-				image_filename = image and image.filename
-				image_name     = os.path.splitext(os.path.basename(image_filename))[0]
-				#print "MATERIAL", image_filename, image_name
-				if MATERIAL_MAP.has_key(image_name):
-					image_filename2 = os.path.join(os.path.dirname(image_filename), MATERIAL_MAP[image_name] + os.path.splitext(image_filename)[1])
-					#print "=>", image_filename
-				else: image_filename2 = image_filename
-				material       = MATERIALS.get(image_filename2) or Material(image_filename2)
-				outputuv       = len(material.maps_filenames) > 0
+				log.debug("Mesh: %s",mesh_name)
 				
-				# TODO add material color support here
+				mesh = Mesh(mesh_name)
+				meshes.append(mesh)
 				
-				submesh  = SubMesh(mesh, material)
-				vertices = {}
-				for face in faces[:]:
-					if (face.image and face.image.filename) == image_filename:
-						faces.remove(face)
-						
-						if not face.smooth:
-							try:
-								p1 = face.v[0].co
-								p2 = face.v[1].co
-								p3 = face.v[2].co
-							except IndexError:
-								log.error("You have faces with less that three verticies!")
-								continue
-
-							normal = vector_normalize(vector_by_matrix(vector_crossproduct(
-								[p3[0] - p2[0], p3[1] - p2[1], p3[2] - p2[2]],
-								[p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]],
-								), matrix))
+				matrix = obj.getMatrix()
+				if BASE_MATRIX:
+					matrix = matrix_multiply(BASE_MATRIX, matrix)
+					
+				faces = data.faces
+				while faces:
+					image          = faces[0].image
+					image_filename = image and image.filename
+					image_name     = os.path.splitext(os.path.basename(image_filename))[0]
+					#print "MATERIAL", image_filename, image_name
+					if MATERIAL_MAP.has_key(image_name):
+						image_filename2 = os.path.join(os.path.dirname(image_filename), MATERIAL_MAP[image_name] + os.path.splitext(image_filename)[1])
+						#print "=>", image_filename
+					else: image_filename2 = image_filename
+					material       = MATERIALS.get(image_filename2) or Material(image_filename2)
+					outputuv       = len(material.maps_filenames) > 0
+					
+					# TODO add material color support here
+					
+					submesh  = SubMesh(mesh, material)
+					vertices = {}
+					for face in faces[:]:
+						if (face.image and face.image.filename) == image_filename:
+							faces.remove(face)
 							
-						face_vertices = []
-						for i in range(len(face.v)):
-							vertex = vertices.get(face.v[i].index)
-							if not vertex:
-								coord    = point_by_matrix (face.v[i].co, matrix)
-								if face.smooth:
-									normal = vector_normalize(vector_by_matrix(face.v[i].no, matrix))
-								vertex   = vertices[face.v[i].index] = Vertex(submesh, coord, normal)
-								
-								influences = data.getVertexInfluences(face.v[i].index)
-								# should this really be a warning? (well currently enabled,
-								# because blender has some bugs where it doesn't return
-								# influences in python api though they are set, and because
-								# cal3d<=0.9.1 had bugs where objects without influences
-								# aren't drawn.
-								if not influences:
-									log.error("A vertex of object '%s' has no influences.\n(This occurs on objects placed in an invisible layer, you can fix it by using a single layer)\n. The vertex has been added to a vertex group called _no_inf" % obj.getName())
-									if '_no_inf' not in data.getVertGroupNames():
-										data.addVertGroup('_no_inf')
+							if not face.smooth:
+								try:
+									p1 = face.v[0].co
+									p2 = face.v[1].co
+									p3 = face.v[2].co
+								except IndexError:
+									log.error("You have faces with less that three verticies!")
+									continue
 
-									data.assignVertsToGroup('_no_inf',[face.v[i].index],0.5,'add')
+								normal = vector_normalize(vector_by_matrix(vector_crossproduct(
+									[p3[0] - p2[0], p3[1] - p2[1], p3[2] - p2[2]],
+									[p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]],
+									), matrix))
 								
-								# sum of influences is not always 1.0 in Blender ?!?!
-								sum = 0.0
-								for bone_name, weight in influences:
-									sum += weight
-								
-								for bone_name, weight in influences:
-									bone_name=string.replace(bone_name,'.','_')
-									if bone_name=='':
-										log.critical('Found bone with no name which influences %s' % obj.getName())
-										continue
-									if bone_name not in BONES:
-										log.error("Couldn't find bone '%s' which influences object '%s'.\n" % (bone_name, obj.getName()))
-										continue
-									vertex.influences.append(Influence(BONES[bone_name], weight / sum))
+							face_vertices = []
+							for i in range(len(face.v)):
+								vertex = vertices.get(face.v[i].index)
+								if not vertex:
+									coord    = point_by_matrix (face.v[i].co, matrix)
+									if face.smooth:
+										normal = vector_normalize(vector_by_matrix(face.v[i].no, matrix))
+									vertex   = vertices[face.v[i].index] = Vertex(submesh, coord, normal)
 									
-							elif not face.smooth:
-								# We cannot share vertex for non-smooth faces, since Cal3D does not
-								# support vertex sharing for 2 vertices with different normals.
-								# => we must clone the vertex.
-								
-								old_vertex = vertex
-								vertex = Vertex(submesh, vertex.loc, normal)
-								vertex.cloned_from = old_vertex
-								vertex.influences = old_vertex.influences
-								old_vertex.clones.append(vertex)
-								
-							if data.hasFaceUV():
-								uv = [face.uv[i][0], face.uv[i][1]]
-								if FLIP_TEXTURE_COORDS: uv[1] = -uv[1]
-								
-								if not vertex.maps:
-									if outputuv: vertex.maps.append(Map(*uv))
-								elif (vertex.maps[0].u != uv[0]) or (vertex.maps[0].v != uv[1]):
-									# This vertex can be shared for Blender, but not for Cal3D !!!
-									# Cal3D does not support vertex sharing for 2 vertices with
-									# different UV texture coodinates.
+									influences = data.getVertexInfluences(face.v[i].index)
+									# should this really be a warning? (well currently enabled,
+									# because blender has some bugs where it doesn't return
+									# influences in python api though they are set, and because
+									# cal3d<=0.9.1 had bugs where objects without influences
+									# aren't drawn.
+									if not influences:
+										log.error("A vertex of object '%s' has no influences.\n(This occurs on objects placed in an invisible layer, you can fix it by using a single layer)\n. The vertex has been added to a vertex group called _no_inf" % obj.getName())
+										if '_no_inf' not in data.getVertGroupNames():
+											data.addVertGroup('_no_inf')
+
+										data.assignVertsToGroup('_no_inf',[face.v[i].index],0.5,'add')
+									
+									# sum of influences is not always 1.0 in Blender ?!?!
+									sum = 0.0
+									for bone_name, weight in influences:
+										sum += weight
+									
+									for bone_name, weight in influences:
+										bone_name=string.replace(bone_name,'.','_')
+										if bone_name=='':
+											log.critical('Found bone with no name which influences %s' % obj.getName())
+											continue
+										if bone_name not in BONES:
+											log.error("Couldn't find bone '%s' which influences object '%s'.\n" % (bone_name, obj.getName()))
+											continue
+										vertex.influences.append(Influence(BONES[bone_name], weight / sum))
+										
+								elif not face.smooth:
+									# We cannot share vertex for non-smooth faces, since Cal3D does not
+									# support vertex sharing for 2 vertices with different normals.
 									# => we must clone the vertex.
 									
-									for clone in vertex.clones:
-										if (clone.maps[0].u == uv[0]) and (clone.maps[0].v == uv[1]):
-											vertex = clone
-											break
-									else: # Not yet cloned...
-										old_vertex = vertex
-										vertex = Vertex(submesh, vertex.loc, vertex.normal)
-										vertex.cloned_from = old_vertex
-										vertex.influences = old_vertex.influences
+									old_vertex = vertex
+									vertex = Vertex(submesh, vertex.loc, normal)
+									vertex.cloned_from = old_vertex
+									vertex.influences = old_vertex.influences
+									old_vertex.clones.append(vertex)
+									
+								if data.hasFaceUV():
+									uv = [face.uv[i][0], face.uv[i][1]]
+									if FLIP_TEXTURE_COORDS: uv[1] = -uv[1]
+									
+									if not vertex.maps:
 										if outputuv: vertex.maps.append(Map(*uv))
-										old_vertex.clones.append(vertex)
+									elif (vertex.maps[0].u != uv[0]) or (vertex.maps[0].v != uv[1]):
+										# This vertex can be shared for Blender, but not for Cal3D !!!
+										# Cal3D does not support vertex sharing for 2 vertices with
+										# different UV texture coodinates.
+										# => we must clone the vertex.
 										
-							face_vertices.append(vertex)
-							
-						# Split faces with more than 3 vertices
-						for i in range(1, len(face.v) - 1):
-							Face(submesh, face_vertices[0], face_vertices[i], face_vertices[i + 1])
-							
-				# Computes LODs info
-				if LODS:
-					submesh.compute_lods()
+										for clone in vertex.clones:
+											if (clone.maps[0].u == uv[0]) and (clone.maps[0].v == uv[1]):
+												vertex = clone
+												break
+										else: # Not yet cloned...
+											old_vertex = vertex
+											vertex = Vertex(submesh, vertex.loc, vertex.normal)
+											vertex.cloned_from = old_vertex
+											vertex.influences = old_vertex.influences
+											if outputuv: vertex.maps.append(Map(*uv))
+											old_vertex.clones.append(vertex)
+											
+								face_vertices.append(vertex)
+								
+							# Split faces with more than 3 vertices
+							for i in range(1, len(face.v) - 1):
+								Face(submesh, face_vertices[0], face_vertices[i], face_vertices[i + 1])
+								
+					# Computes LODs info
+					if LODS:
+						submesh.compute_lods()
 				
 	# ---- Export animations --------------------------------------------------
 
@@ -1269,14 +1269,14 @@ def export(filename):
 			
 			#run 1: we need to find all time values where we need to produce keyframes
 			for curve in ipo.getCurves():
-				curve_name = curve.getName()
+				curve_name = curve.name
 
 				if curve_name not in ["QuatW", "QuatX", "QuatY", "QuatZ", "LocX", "LocY", "LocZ"]:
 					log.error("Curve type %s not supported in Action '%s' Bone '%s'.\n"\
 										% (curve_name, animation_name, bone_name))
 				
-				for p in curve.getPoints():
-					time = p.getPoints() [0]
+				for p in curve.bezierPoints:
+					time = p.pt[0]
 					if time not in times:
 						times.append(time)
 			
@@ -1291,15 +1291,16 @@ def export(filename):
 				quat  = [0, 0, 0, 0]
 				
 				for curve in ipo.getCurves():
-					val = curve.evaluate(time)
-					if curve.getName() == "LocX": trans[0] = val
-					if curve.getName() == "LocY": trans[1] = val
-					if curve.getName() == "LocZ": trans[2] = val
-					if curve.getName() == "QuatW": quat[3] = val
-					if curve.getName() == "QuatX": quat[0] = val
-					if curve.getName() == "QuatY": quat[1] = val
-					if curve.getName() == "QuatZ": quat[2] = val
-					log.debug('Curve: %s' % curve.getName())
+					cname = curve.name
+					val = curve[time]
+					if   cname == "LocX": trans[0] = val
+					elif cname == "LocY": trans[1] = val
+					elif cname == "LocZ": trans[2] = val
+					elif cname == "QuatW": quat[3] = val
+					elif cname == "QuatX": quat[0] = val
+					elif cname == "QuatY": quat[1] = val
+					elif cname == "QuatZ": quat[2] = val
+					log.debug('Curve: %s' % cname)
 
 				if quat==[0,0,0,0]:
 					log.critical('You are using just Loc keys. You must use LocRot keys instead.')

@@ -122,7 +122,7 @@ def read(filename):
 		mesh.faces.append(face)
 
 	scn= Blender.Scene.GetCurrent()
-	for obj in scn.getChildren():
+	for obj in scn.objects:
 		obj.sel= 0
 	
 	obj= Blender.Object.New('Mesh', objname)

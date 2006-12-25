@@ -170,7 +170,7 @@ def PrintConfig():
 
 
 def ExportCallback(f):
-	obj = Blender.Scene.getCurrent().getActiveObject()
+	obj = Blender.Scene.GetCurrent().objects.active
 	
 	time1= Blender.sys.time()
 	
@@ -178,7 +178,7 @@ def ExportCallback(f):
 		Blender.Draw.PupMenu("ERROR%t|No Active Object!")
 		return
 
-	if obj.getType() != "Mesh":
+	if obj.type != "Mesh":
 		Blender.Draw.PupMenu("ERROR%t|Not a Mesh!")
 		return
 

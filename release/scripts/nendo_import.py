@@ -82,7 +82,7 @@ def read(filename):
 	start = Blender.sys.time()
 	
 	scn= Blender.Scene.GetCurrent()
-	for obj in scn.getChildren():
+	for obj in scn.objects:
 		obj.sel= 0
 		
 	file = open(filename, "rb")

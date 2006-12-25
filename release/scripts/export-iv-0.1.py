@@ -270,8 +270,8 @@ def ExportToIv(file_name):
 	meshes = []
 	lamps = []
 	cameras = []
-	for object in scene.getChildren():
-		obtype= object.getType()
+	for object in scene.objects:
+		obtype= object.type
 		if obtype == "Mesh":
 			meshes.append(object);
 		#elif obtype == "Lamp":

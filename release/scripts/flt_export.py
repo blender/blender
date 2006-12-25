@@ -675,7 +675,7 @@ class Database(Node):
 	def __init__(self, scene, fw):
 		self.fw = fw
 		self.scene = scene
-		self.all_objects = scene.getChildren()
+		self.all_objects = list(scene.objects)
 		self.GRR = GlobalResourceRepository()
 
 		Node.__init__(self, None, self, None, self.all_objects)

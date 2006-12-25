@@ -297,10 +297,10 @@ class AC3DExport: # the ac3d exporter part
 		file.write(header+'\n')
 
 		objs = \
-			[o for o in scene_objects if o.getType() in ['Mesh', 'Empty']]
+			[o for o in scene_objects if o.type in ['Mesh', 'Empty']]
 
 		for obj in objs[:]:
-			parent = obj.getParent()
+			parent = obj.parent
 			list = [obj]
 
 			while parent:
@@ -309,7 +309,7 @@ class AC3DExport: # the ac3d exporter part
 				list.insert(0, obj)
 
 			dict = tree
-			for i in range(len(list)):
+			for i in xrange(len(list)):
 				lname = list[i].getType()[:2] + list[i].name
 				if lname not in dict.keys():
 					dict[lname] = {}
@@ -321,7 +321,7 @@ class AC3DExport: # the ac3d exporter part
 
 		objlist = [Blender.Object.Get(name) for name in exp_objs]
 
-		meshlist = [o for o in objlist if o.getType() == 'Mesh']
+		meshlist = [o for o in objlist if o.type == 'Mesh']
 
 		self.MATERIALS(meshlist)
 		if not self.mbuf or ADD_DEFAULT_MAT:
@@ -333,7 +333,7 @@ class AC3DExport: # the ac3d exporter part
 		for obj in objlist:
 			self.obj = obj
 
-			objtype = obj.getType()
+			objtype = obj.type
 			objname = obj.name
 			kidsnum = kids_dict[objname]
 
@@ -687,11 +687,11 @@ def fs_callback(filename):
 
 
 # -- End of definitions
-
+scn = Blender.Scene.GetCurrent()
 if ONLY_SELECTED:
-	OBJS = Blender.Object.GetSelected()
+	OBJS = list(scn.objects.context)
 else:
-	OBJS = Blender.Scene.GetCurrent().getChildren()
+	OBJS = list(scn.objects)
 
 if not OBJS:
 	Blender.Draw.PupMenu('ERROR: no objects selected')

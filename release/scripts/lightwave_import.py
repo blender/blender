@@ -222,7 +222,7 @@ def read(filename):
 	tobj.logcon ("Importing file:")
 	tobj.logcon (filename)
 
-	for ob in Blender.Scene.GetCurrent().getChildren():
+	for ob in Blender.Scene.GetCurrent().objects:
 		ob.sel= 0
 	
 	start = Blender.sys.time()
@@ -1815,7 +1815,7 @@ for i, _lwo in enumerate(lines):
 		read(_lwo)
 		# Remove objects to save memory?
 		'''
-		for ob in newScn.getChildren():
+		for ob in newScn.objects:
 			if ob.getType()=='Mesh':
 				me= ob.getData(mesh=1)
 				me.verts= None
