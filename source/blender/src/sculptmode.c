@@ -1651,6 +1651,11 @@ void sculpt()
 	
 	ob= OBACT;
 	if(ob->id.lib) return;
+	
+	if(!ss) {
+		sculpt_init_session();
+		ss= sd->session;
+	}
 
 	/* Make sure that the active mesh is set correctly */
 	if(get_mesh(OBACT) != get_mesh(ob))
