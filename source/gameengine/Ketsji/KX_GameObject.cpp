@@ -519,7 +519,8 @@ void KX_GameObject::NodeSetLocalPosition(const MT_Point3& trans)
 		m_pPhysicsController1->setPosition(trans);
 	}
 
-	GetSGNode()->SetLocalPosition(trans);
+	if (GetSGNode())
+		GetSGNode()->SetLocalPosition(trans);
 }
 
 
@@ -530,8 +531,13 @@ void KX_GameObject::NodeSetLocalOrientation(const MT_Matrix3x3& rot)
 	{
 		m_pPhysicsController1->setOrientation(rot.getRotation());
 	}
-	
-	GetSGNode()->SetLocalOrientation(rot);
+	if (GetSGNode())
+		GetSGNode()->SetLocalOrientation(rot);
+	else
+	{
+		int i;
+		i=0;
+	}
 }
 
 
@@ -543,21 +549,24 @@ void KX_GameObject::NodeSetLocalScale(const MT_Vector3& scale)
 		m_pPhysicsController1->setScaling(scale);
 	}
 	
-	GetSGNode()->SetLocalScale(scale);
+	if (GetSGNode())
+		GetSGNode()->SetLocalScale(scale);
 }
 
 
 
 void KX_GameObject::NodeSetRelativeScale(const MT_Vector3& scale)
 {
-	GetSGNode()->RelativeScale(scale);
+	if (GetSGNode())
+		GetSGNode()->RelativeScale(scale);
 }
 
 
 
 void KX_GameObject::NodeUpdateGS(double time,bool bInitiator)
 {
-	GetSGNode()->UpdateWorldData(time);
+	if (GetSGNode())
+		GetSGNode()->UpdateWorldData(time);
 }
 
 
