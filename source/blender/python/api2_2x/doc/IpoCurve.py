@@ -48,10 +48,12 @@ class IpoCurve:
   the IPO Curve Editor window.  Positive rotations are in a counter-clockwise
   direction, following the standard convention.
   
-  @ivar driver:  Status of the driver.  1= on, 0= off.
+  @ivar driver:  Status of the driver.  1= on, 0= object, 2= python expression.
   @type driver:  int
   @ivar driverObject:  Object used to drive the Ipo curve.
   @type driverObject:  Blender Object or None
+  @ivar driverExpression:  Python expression used to drive the Ipo curve. [0 - 127 chars]
+  @type driverExpression:  string
   @ivar driverChannel:  Object channel used to drive the Ipo curve.
   Use module constants: IpoCurve.LOC_X, IpoCurve.LOC_Y, IpoCurve.LOC_Z,
   IpoCurve.ROT_X, IpoCurve.ROT_Y, IpoCurve.ROT_Z, IpoCurve.SIZE_X,

@@ -1045,9 +1045,12 @@ static float pydriver_error(IpoDriver *driver) {
 	}
 
 	driver->flag |= IPO_DRIVER_FLAG_INVALID; /* py expression failed */
-
-	fprintf(stderr, "\nError in Ipo Driver: Object %s\nThis is the failed Python expression:\n'%s'\n\n", driver->ob->id.name+2, driver->name);
-
+	
+	if (driver->ob)
+		fprintf(stderr, "\nError in Ipo Driver: Object %s\nThis is the failed Python expression:\n'%s'\n\n", driver->ob->id.name+2, driver->name);
+	else
+		fprintf(stderr, "\nError in Ipo Driver: No Object\nThis is the failed Python expression:\n'%s'\n\n", driver->name);
+	
 	PyErr_Print();
 
 	return 0.0f;

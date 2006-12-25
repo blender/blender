@@ -88,6 +88,8 @@ static PyObject *IpoCurve_getDriverObject( C_IpoCurve * self);
 static int IpoCurve_setDriverObject( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_getDriverChannel( C_IpoCurve * self);
 static int IpoCurve_setDriverChannel( C_IpoCurve * self, PyObject * args );
+static PyObject *IpoCurve_getDriverExpression( C_IpoCurve * self);
+static int IpoCurve_setDriverExpression( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_getCurval( C_IpoCurve * self, PyObject * args );
 static int IpoCurve_setCurval( C_IpoCurve * self, PyObject * key, 
 		PyObject * value );
@@ -150,6 +152,10 @@ static PyGetSetDef C_IpoCurve_getseters[] = {
 	{"driverChannel",
 	 (getter)IpoCurve_getDriverChannel, (setter)IpoCurve_setDriverChannel,
 	 "The channel on the driver object used to drive the IpoCurve",
+	 NULL},
+	{"driverExpression",
+	 (getter)IpoCurve_getDriverExpression, (setter)IpoCurve_setDriverExpression,
+	 "The python expression on the driver used to drive the IpoCurve",
 	 NULL},
 	{"interpolation",
 	 (getter)IpoCurve_newgetInterp, (setter)IpoCurve_newsetInterp,
@@ -785,36 +791,61 @@ static PyObject *IpoCurve_getDriver( C_IpoCurve * self )
 {
 	if( !self->ipocurve->driver )
 		return PyInt_FromLong( 0 );	
-	else
-		return PyInt_FromLong( 1 );	
+	else {
+		if (self->ipocurve->driver->type == IPO_DRIVER_TYPE_NORMAL)
+			return PyInt_FromLong( 1 );
+		if (self->ipocurve->driver->type == IPO_DRIVER_TYPE_PYTHON)
+			return PyInt_FromLong( 2 );
+	}
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"unknown driver type, internal error" );
+	
 }
 
+/*
+	sets the driver to
+	0: disabled
+	1: enabled (object)
+	2: enabled (python expression)
+*/
 static int IpoCurve_setDriver( C_IpoCurve * self, PyObject * args )
 {
 	IpoCurve *ipo = self->ipocurve;
-
+	int type;
 	if( !PyInt_CheckExact( args ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected int argument 0 or 1 " );
-
-	switch( PyInt_AS_LONG( args ) ) {
-	case 0:
+	
+	type = PyInt_AS_LONG( args );
+	
+	if (type < 0 || type > 2)
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"expected int argument 0, 1 or 2" );
+	
+	if (type==0) { /* disable driver */
 		if( ipo->driver ) {
 			MEM_freeN( ipo->driver );
 			ipo->driver = NULL;			
 		}
-		break;
-	case 1:
-		if( !ipo->driver ) {
+	} else {
+		if( !ipo->driver ) { /*add driver if its not there */
 			ipo->driver = MEM_callocN( sizeof(IpoDriver), "ipo driver" );
 			ipo->driver->blocktype = ID_OB;
 			ipo->driver->adrcode = OB_LOC_X;
 		}
-		break;
-	default:
-		return EXPP_ReturnIntError( PyExc_ValueError,
-				"expected int argument 0 or 1 " );
+		
+		if (type==1 && ipo->driver->type != IPO_DRIVER_TYPE_NORMAL) {
+			ipo->driver->type = IPO_DRIVER_TYPE_NORMAL;
+			ipo->driver->ob = NULL;
+			ipo->driver->flag &= ~IPO_DRIVER_FLAG_INVALID;
+			
+		} else if (type==2 && ipo->driver->type != IPO_DRIVER_TYPE_PYTHON) {
+			ipo->driver->type = IPO_DRIVER_TYPE_PYTHON;
+			/* we should probably set ipo->driver->ob, but theres no way to do it properly */
+			ipo->driver->ob = NULL;
+		}
 	}
+	
 	return 0;
 }
 
@@ -877,6 +908,42 @@ static int IpoCurve_setDriverChannel( C_IpoCurve * self, PyObject * args )
 	}
 
 	return EXPP_ReturnIntError( PyExc_ValueError, "invalid int argument" );
+}
+
+static PyObject *IpoCurve_getDriverExpression( C_IpoCurve * self )
+{
+	IpoCurve *ipo = self->ipocurve;
+	
+	if( ipo->driver && ipo->driver->type == IPO_DRIVER_TYPE_PYTHON )
+		return PyString_FromString( ipo->driver->name );
+
+	Py_RETURN_NONE;
+}
+
+static int IpoCurve_setDriverExpression( C_IpoCurve * self, PyObject * arg )
+{
+	IpoCurve *ipo = self->ipocurve;
+	char *exp; /* python expression */
+	
+	if( !ipo->driver )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			"This IpoCurve does not have an active driver" );
+
+	if (ipo->driver->type != IPO_DRIVER_TYPE_PYTHON)
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			"This IpoCurve is not a python expression set the driver attribute to 2" );
+	
+	if(!PyString_Check(arg) )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      "expected a string argument" );
+	
+	exp = PyString_AsString(arg);
+	if (strlen(exp)>127)
+		return EXPP_ReturnIntError( PyExc_ValueError,
+					      "string is too long, use 127 characters or less" );
+
+	strcpy(&ipo->driver->name, exp);
+	return 0;
 }
 
 static PyObject *M_IpoCurve_ExtendDict( void )

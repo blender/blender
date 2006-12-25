@@ -6449,7 +6449,7 @@ static PyObject *Mesh_renameLayer_internal( BPy_Mesh * self, PyObject * args, in
 				"layer name was not found" );	
 	
 	layer = &data->layers[i];
-	BLI_strncpy(layer->name, name_to, 31);
+	strcpy(layer->name, name_to); /* we alredy know the string sizes are under 32 */
 	CustomData_set_layer_unique_name(data, i);
 	return EXPP_incr_ret( Py_None );
 }
