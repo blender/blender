@@ -36,6 +36,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_curve.h"
+#include "BKE_material.h"
 #include "MEM_guardedalloc.h"	/* because we wil be mallocing memory */
 #include "CurNurb.h"
 #include "SurfNurb.h"
@@ -108,6 +109,7 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args );
 
 static PyObject *Curve_getMaterials( BPy_Curve * self );
+static PyObject *Curve_setMaterials( BPy_Curve * self, PyObject * args );
 
 static PyObject *Curve_getBevOb( BPy_Curve * self );
 static PyObject *Curve_setBevOb( BPy_Curve * self, PyObject * args );
@@ -1301,9 +1303,51 @@ PyObject *Curve_update( BPy_Curve * self )
 
 static PyObject *Curve_getMaterials( BPy_Curve * self )
 {
-	return ( EXPP_PyList_fromMaterialList( self->curve->mat,
-					       self->curve->totcol, 1 ) );
+	return EXPP_PyList_fromMaterialList( self->curve->mat,
+			self->curve->totcol, 1 );
+}
 
+static PyObject *Curve_setMaterials( BPy_Curve *self, PyObject * value )
+{
+	Material **matlist;
+	int len;
+
+	if( !PySequence_Check( value ) ||
+			!EXPP_check_sequence_consistency( value, &Material_Type ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"sequence should only contain materials or None)" );
+
+	len = PySequence_Size( value );
+	if( len > 16 )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"list can't have more than 16 materials" );
+
+	/* free old material list (if it exists) and adjust user counts */
+	if( self->curve->mat ) {
+		Curve *cur = self->curve;
+		int i;
+		for( i = cur->totcol; i-- > 0; )
+			if( cur->mat[i] )
+           		cur->mat[i]->id.us--;
+		MEM_freeN( cur->mat );
+	}
+
+	/* build the new material list, increment user count, store it */
+
+	matlist = EXPP_newMaterialList_fromPyList( value );
+	EXPP_incr_mats_us( matlist, len );
+	self->curve->mat = matlist;
+	self->curve->totcol = (short)len;
+
+/**@ This is another ugly fix due to the weird material handling of blender.
+    * it makes sure that object material lists get updated (by their length)
+    * according to their data material lists, otherwise blender crashes.
+    * It just stupidly runs through all objects...BAD BAD BAD.
+    */
+
+	test_object_materials( ( ID * ) self->curve );
+
+	Py_RETURN_NONE;
 }
 
 /*****************************************************************************/
@@ -1589,6 +1633,8 @@ static PyObject *CurveGetAttr( BPy_Curve * self, char *name )
 		return Curve_getTaperOb( self );
 	else if( strcmp( name, "key" ) == 0 )
 		return Curve_getKey( self );
+	else if( strcmp( name, "materials" ) == 0 )
+		return Curve_getMaterials( self );
 #if 0
 	else if( strcmp( name, "numpts" ) == 0 )
 		return Curve_getNumPoints( self );
@@ -1647,6 +1693,8 @@ static int CurveSetAttr( BPy_Curve * self, char *name, PyObject * value )
 		error = Curve_setBevOb( self, valtuple );
 	else if( strcmp( name, "taperob" ) == 0 )
 		error = Curve_setTaperOb( self, valtuple );
+	else if( strcmp( name, "materials" ) == 0 )
+		error = Curve_setMaterials( self, value );
 
 	else {			/* Error */
 		Py_DECREF( valtuple );

@@ -130,6 +130,15 @@ class Curve:
   @type bevob: Blender L{Object<Object.Object>} or None
   @ivar key: The Key object associated with this Curve, if any.
   @type key: Blender L{Key<Key.Key>}
+  @ivar materials: The curves's materials.  Each curve can reference up to
+    16 materials.  Empty slots in the curve's list are represented by B{None}.
+    B{Note}: L{Object.colbits<Object.Object.colbits>} needs to be set correctly
+    for each object in order for these materials to be used instead of
+    the object's materials.
+    B{Note}: The list that's returned is I{not} linked to the original curve.
+    curve.materials.append(material) won't do anything.
+    Use curve.materials += [material] instead.
+  @type materials: list of L{Material}s
   """
 
   def getName():

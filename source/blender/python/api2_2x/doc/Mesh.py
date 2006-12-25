@@ -718,12 +718,12 @@ class Mesh:
     B{Note}: L{Object.colbits<Object.Object.colbits>} needs to be set correctly
     for each object in order for these materials to be used instead of
     the object's materials.
-    B{Note}: Making the material list shorter does not change the faces material indices,
-    take care when using the faces material indices to reference a material in the materials list.
-    B{Note}: The the list thats returned is not linked to the original mesh.
-    mesh.materials.append(material) wont do anything.
+    B{Note}: Making the material list shorter does not change the face's material indices.
+    Take care when using the face's material indices to reference a material in this list.
+    B{Note}: The list that's returned is I{not} linked to the original mesh.
+    mesh.materials.append(material) won't do anything.
     Use mesh.materials += [material] instead.
-  @type materials: list of Materials
+  @type materials: list of L{Material}s
   @ivar degr: The max angle for auto smoothing in [1,80].  
   @type degr: int
   @ivar maxSmoothAngle: Same as L{degr}.  This attribute is only for
