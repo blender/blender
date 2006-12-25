@@ -187,7 +187,8 @@ class Scene:
   def getChildren():
     """
     Get all objects linked to this Scene. (B{deprecated}).  B{Note}: new scripts
-    should use the L{objects} attribute instead, in cases where a list is requiresd use list(scn.objects).
+    should use the L{objects} attribute instead. In cases where a list is
+    required use list(scn.objects).
     @rtype: list of Blender Objects
     @return: A list with all Blender Objects linked to this Scene.
     @note: L{Object.Get} will return all objects currently in Blender, which
