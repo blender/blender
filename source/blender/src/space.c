@@ -1068,7 +1068,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		if(!mouse_in_header(sa)) {
 			if(!G.obedit && (G.f & G_SCULPTMODE)) {
-				if(G.scene->sculptdata.propset) {
+				if(sculpt_session()->propset) {
 					sculptmode_propset(event);
 					return;
 				}
@@ -1212,13 +1212,13 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		else if(!G.obedit && (G.f & G_SCULPTMODE)) {
 			SculptData *sd= &G.scene->sculptdata;
 			BrushData *br= sculptmode_brush();
-			Mesh *me= get_mesh(sd->active_ob);
+			Mesh *me= get_mesh(OBACT);
 			char update_prop= 0;
 			switch(event) {
 			case LEFTMOUSE:
 				if(G.qual==LR_SHIFTKEY+LR_CTRLKEY)
 					sculptmode_pmv(0);
-				else if(!G.scene->sculptdata.propset)
+				else if(!sculpt_session()->propset)
 					sculpt();
 				break;
 			/* View */

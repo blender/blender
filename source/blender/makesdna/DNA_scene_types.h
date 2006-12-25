@@ -388,47 +388,17 @@ typedef struct BrushData
 	char pad[2];
 } BrushData;
 
-struct PropsetData;
-struct RenderInfo;
-struct SculptUndo;
-struct IndexNode;
-
-/* DNA WARNING: use of doubles forces SculptData internal alignment to 8 (only in gcc?) */
+struct SculptSession;
 typedef struct SculptData
 {
-	/* Cache of the OpenGL matrices */
-	double modelviewmat[16];
-	double projectionmat[16];
-	int viewport[4];
+	/* Data stored only from entering sculptmode until exiting sculptmode */
+	struct SculptSession *session;
 
 	/* Pointers to all of sculptmodes's textures */
 	struct MTex *mtex[10];
 
-	struct Object *active_ob;
-
-	/* An array of lists; array is sized as
-	   large as the number of verts in the mesh,
-	   the list for each vert contains the index
-	   for all the faces that use that vertex */
-	struct ListBase *vertex_users;
-	struct IndexNode *vertex_users_mem;
-
-	/* Used to cache the render of the active texture */
-	struct RenderInfo *texrndr;
-
-	struct PropsetData *propset;
-
-	struct SculptUndo *undo;
-
-	/* For rotating around a pivot point */
-	vec3f pivot, padv;				/* vec3f is 12 bytes */
-
 	/* Settings for each brush */
 	BrushData drawbrush, smoothbrush, pinchbrush, inflatebrush, grabbrush, layerbrush;
-
-	/* Number of nodes in vertex_users */
-	int vertex_users_size;
-
 	short brush_type;
 
 	/* Symmetry is separate from the other BrushData because the same
@@ -447,7 +417,7 @@ typedef struct SculptData
 	char draw_mode;
 	
 	/* Control tablet input */
-	char tablet_size, tablet_strength, pad[6];
+	char tablet_size, tablet_strength, pad[2];
 } SculptData;
 
 #define SCULPTREPT_DRAG 1

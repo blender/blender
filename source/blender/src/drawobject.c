@@ -2163,7 +2163,7 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 		finalDM->release(finalDM);
 	}
 	else if(!G.obedit && G.scene->sculptdata.draw_mode &&
-	        G.scene->sculptdata.active_ob == ob && !modifiers_getVirtualModifierList(ob)) {
+	        OBACT==ob && !modifiers_getVirtualModifierList(ob)) {
 		sculptmode_draw_mesh(0);
 	}
 	else {

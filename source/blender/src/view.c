@@ -82,6 +82,7 @@
 
 #include "BDR_drawobject.h"	/* For draw_object */
 #include "BDR_editface.h"	/* For minmax_tface */
+#include "BDR_sculptmode.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -566,7 +567,7 @@ void viewmove(int mode)
 		use_sel= 1;
 		VecCopyf(ofs, G.vd->ofs);
 
-		VecCopyf(obofs,&G.scene->sculptdata.pivot.x);
+		VecCopyf(obofs,&sculpt_session()->pivot.x);
 		Mat4MulVecfl(ob->obmat, obofs);
 		obofs[0]= -obofs[0];
 		obofs[1]= -obofs[1];

@@ -32,11 +32,16 @@
 
 struct uiBlock;
 struct BrushData;
+struct IndexNode;
+struct Key;
 struct Mesh;
 struct Object;
 struct PartialVisibility;
+struct RenderInfo;
 struct Scene;
 struct ScrArea;
+struct SculptData;
+struct SculptUndo;
 
 typedef enum PropsetMode {
 	PropsetNone = 0,
@@ -52,6 +57,36 @@ typedef struct PropsetData {
 	short origsize;
 	char origstrength;
 } PropsetData;
+
+typedef struct SculptSession {
+	/* Cache of the OpenGL matrices */
+	double modelviewmat[16];
+	double projectionmat[16];
+	int viewport[4];
+	
+	/* An array of lists; array is sized as
+	   large as the number of verts in the mesh,
+	   the list for each vert contains the index
+	   for all the faces that use that vertex */
+	struct ListBase *vertex_users;
+	struct IndexNode *vertex_users_mem;
+	int vertex_users_size;
+	
+	/* Used to cache the render of the active texture */
+	struct RenderInfo *texrndr;
+	
+	PropsetData *propset;
+	
+	struct SculptUndo *undo;
+	
+	/* For rotating around a pivot point */
+	vec3f pivot;
+	
+	struct Key *key;
+} SculptSession;
+
+SculptSession *sculpt_session();
+struct SculptData *sculpt_data();
 
 /* Memory */
 void sculptmode_init(struct Scene *);

@@ -2746,7 +2746,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 	/* Draw Sculpt Mode brush */
 	if(!G.obedit && (G.f & G_SCULPTMODE) && area_is_active_area(v3d->area)) {
-		PropsetData *pd = G.scene->sculptdata.propset;
+		PropsetData *pd= G.scene->sculptdata.session->propset;
 		short r1=100, r2=100, r3=100;
 		if(pd) {
 			if(pd->mode == PropsetSize) {
