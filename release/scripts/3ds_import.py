@@ -7,8 +7,8 @@ Tooltip: 'Import from 3DS file format (.3ds)'
 """
 
 __author__= ['Bob Holcomb', 'Richard L?rk?ng', 'Damien McGinnes', 'Campbell Barton']
-__url__= ('blender', 'elysiun', 'http://www.gametutorials.com')
-__version__= '0.99'
+__url__ = ("blenderartists.org", "www.blender.org", "www.gametutorials.com", "lib3ds.sourceforge.net/")
+__version__= '0.995'
 __bpydoc__= '''\
 
 3ds Importer

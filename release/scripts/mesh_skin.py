@@ -8,8 +8,8 @@ Tooltip: 'Select 2 vert loops, then run this script.'
 """
 
 __author__ = "Campbell Barton AKA Ideasman"
-__url__ = ["http://members.iinet.net.au/~cpbarton/ideasman/", "blender", "elysiun"]
-__version__ = "1.0 2004/04/25"
+__url__ = ["blenderartists.org", "www.blender.org"]
+__version__ = "1.1 2006/12/26"
 
 __bpydoc__ = """\
 With this script vertex loops can be skinned: faces are created to connect the
@@ -50,7 +50,9 @@ A pop-up will provide further options, if the results of a method are not adequa
 # Made by Ideasman/Campbell 2005/06/15 - cbarton@metavr.com
 
 import Blender
-from Blender import *
+from Blender import Window
+from Blender.Mathutils import AngleBetweenVecs, MidpointVecs, Vector, CrossVecs
+from Blender.Draw import PupMenu
 
 BIG_NUM = 1<<30
 
@@ -59,7 +61,7 @@ CULL_METHOD = 0
 
 def AngleBetweenVecs(a1,a2):
 	try:
-		return Mathutils.AngleBetweenVecs(a1,a2)
+		return AngleBetweenVecs(a1,a2)
 	except:
 		return 180.0
 
@@ -76,7 +78,7 @@ class edge:
 		self.removed = 0	# Have we been culled from the eloop
 		self.match = None	# The other edge were making a face with
 		
-		self.cent= Mathutils.MidpointVecs(co1, co2)
+		self.cent= MidpointVecs(co1, co2)
 		self.angle= 0.0
 
 class edgeLoop:
@@ -85,7 +87,7 @@ class edgeLoop:
 		
 		# Get Loops centre.
 		fac= len(loop)
-		self.centre= reduce(lambda a,b: a+b.co/fac, loop, Mathutils.Vector())
+		self.centre= reduce(lambda a,b: a+b.co/fac, loop, Vector())
 		
 		# Convert Vert loop to Edges.
 		self.edges = []
@@ -105,9 +107,9 @@ class edgeLoop:
 		
 		
 		# GENERATE AN AVERAGE NORMAL FOR THE WHOLE LOOP.
-		self.normal = Mathutils.Vector()
+		self.normal = Vector()
 		for e in self.edges:
-			n = Mathutils.CrossVecs(self.centre-e.co1, self.centre-e.co2)
+			n = CrossVecs(self.centre-e.co1, self.centre-e.co2)
 			# Do we realy need tot normalize?
 			n.normalize()
 			self.normal += n
@@ -137,7 +139,7 @@ class edgeLoop:
 			
 			a = n1-n2
 			b = n1-n3
-			normal1 = Mathutils.CrossVecs(a,b)
+			normal1 = CrossVecs(a,b)
 			normal1.normalize()
 			
 			n1 = e.co2
@@ -147,7 +149,7 @@ class edgeLoop:
 			a = n1-n2
 			b = n1-n3
 			
-			normal2 = Mathutils.CrossVecs(a,b)
+			normal2 = CrossVecs(a,b)
 			normal2.normalize()
 			
 			# Reuse normal1 var
@@ -173,7 +175,7 @@ class edgeLoop:
 		for e in self.edges:
 			e.normal = -e.normal
 			e.v1, e.v2 = e.v2, e.v1
-		self.normal = -self.normal
+		self.normal.negate()
 	
 	def removeSmallest(self, cullNum, otherLoopLen):
 		'''
@@ -244,36 +246,19 @@ def getSelectedEdges(me, ob):
 	elif MESH_MODE==Blender.Mesh.SelectModes.FACE:
 		Blender.Mesh.Mode(Blender.Mesh.SelectModes.EDGE)
 		
-		def ed_key(ed):
-			i1= ed.v1.index
-			i2= ed.v2.index
-			if i1 > i2:
-				return i2, i1
-			else:
-				return i1, i2
-		
 		# value is [edge, face_sel_user_in]
 		'''
 		try: # Python 2.4 only
-			edge_dict=  dict((ed_key(ed), [ed, 0]) for ed in me.edges)
+			edge_dict=  dict((ed.key, [ed, 0]) for ed in me.edges)
 		except:
 		'''
 		# Cant try 2.4 syntax because python 2.3 will complain still
-		edge_dict=  dict([(ed_key(ed), [ed, 0]) for ed in me.edges])
+		edge_dict=  dict([(ed.key, [ed, 0]) for ed in me.edges])
 		
 		for f in me.faces:
 			if f.sel:
-				fidx= [v.index for v in f]
-				for i in xrange(len(fidx)):
-					i1= fidx[i]
-					i2= fidx[i-1]
-					
-					if i1>i2:
-						i1,i2= i2,i1
-					
-					# ed_data is a list of 2 ed and face user
-					ed_data= edge_dict[i1,i2]
-					ed_data[1]+=1
+				for edkey in f.edge_keys:
+					edge_dict[edkey][1] += 1
 		
 		Blender.Mesh.Mode(MESH_MODE)
 		return [ ed_data[0] for ed_data in edge_dict.itervalues() if ed_data[1] == 1 ]
@@ -441,7 +426,7 @@ def main():
 	
 	is_editmode = Window.EditMode()
 	if is_editmode: Window.EditMode(0)
-	ob = Scene.GetCurrent().getActiveObject()
+	ob = Blender.Scene.GetCurrent().objects.active
 	if ob == None or ob.getType() != 'Mesh':
 		return
 	
@@ -451,12 +436,12 @@ def main():
 	vertLoops = getVertLoops(selEdges) # list of lists of edges.
 	
 	if len(vertLoops) > 2:
-		choice = Draw.PupMenu('Loft '+str(len(vertLoops))+' edge loops%t|loop|segment')
+		choice = PupMenu('Loft '+str(len(vertLoops))+' edge loops%t|loop|segment')
 		if choice == -1:
 			if is_editmode: Window.EditMode(1)
 			return
 	elif len(vertLoops) < 2:
-		Draw.PupMenu('Error, No Vertloops found%t|if you have a valid selection, go in and out of face edit mode to update the selection state.')
+		PupMenu('Error%t|No Vertloops found!')
 		if is_editmode: Window.EditMode(1)	
 		return
 	else:
@@ -465,7 +450,7 @@ def main():
 	
 	# The line below checks if any of the vert loops are differenyt in length.
 	if False in [len(v) == len(vertLoops[0]) for v in vertLoops]:
-		CULL_METHOD = Draw.PupMenu('Small to large edge loop distrobution method%t|remove edges evenly|remove smallest edges')
+		CULL_METHOD = PupMenu('Small to large edge loop distrobution method%t|remove edges evenly|remove smallest edges')
 		if CULL_METHOD == -1:
 			if is_editmode: Window.EditMode(1)
 			return
@@ -476,7 +461,7 @@ def main():
 			CULL_METHOD = 1 # even
 	
 	
-	time1 = sys.time()
+	time1 = Blender.sys.time()
 	# Convert to special edge data.
 	edgeLoops = []
 	for vloop in vertLoops:
@@ -528,13 +513,13 @@ def main():
 	if choice == 1 and len(edgeOrderedList) > 2: # Loop
 		skin2EdgeLoops(edgeOrderedList[0], edgeOrderedList[-1], me, ob, 0)	
 	
-	print '\nSkin done in %.4f sec.' % (sys.time()-time1)
-	
 	# REMOVE SELECTED FACES.
 	faces= [ f for f in me.faces if f.sel ]
 	
 	if faces:
 		me.faces.delete(1, faces)
+	
+	print '\nSkin done in %.4f sec.' % (Blender.sys.time()-time1)
 	
 	if is_editmode: Window.EditMode(1)
 

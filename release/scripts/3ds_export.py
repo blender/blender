@@ -8,7 +8,7 @@ Tooltip: 'Export to 3DS file format (.3ds).'
 """
 
 __author__ = ["Campbell Barton", "Bob Holcomb", "Richard Lärkäng", "Damien McGinnes", "Mark Stijnman"]
-__url__ = ("blender", "elysiun", "http://www.gametutorials.com", "http://lib3ds.sourceforge.net/")
+__url__ = ("blenderartists.org", "www.blender.org", "www.gametutorials.com", "lib3ds.sourceforge.net/")
 __version__ = "0.90a"
 __bpydoc__ = """\
 

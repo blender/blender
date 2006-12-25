@@ -8,7 +8,7 @@ Tip: 'Copy local axis orientation of active object to all selected meshes (chang
 """
 
 __author__ = "A Vanpoucke (xand)"
-__url__ = ("blender", "elysiun",
+__url__ = ("blenderartists.org", "www.blender.org",
 "French Blender support forum, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
 __version__ = "2 17/12/05"
 
