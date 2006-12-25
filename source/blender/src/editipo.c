@@ -215,6 +215,8 @@ static void set_active_key(int index)
 				ob->shapenr= index;
 				ob->shapeflag |= OB_SHAPE_TEMPLOCK;
 				
+				set_sculpt_object(ob);
+				
 				/* calc keypos */
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 				allqueue(REDRAWVIEW3D, 0);
