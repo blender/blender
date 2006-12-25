@@ -271,50 +271,53 @@ void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,
 	int islandId;
 
 
-	//solve the constraint for each islands, if there are contacts/constraints
-	for (int startIslandIndex=0;startIslandIndex<numElem;startIslandIndex = endIslandIndex)
-	{
-		int islandId = getUnionFind().getElement(startIslandIndex).m_id;
+	 //traverse the simulation islands, and call the solver, unless all objects are sleeping/deactivated
+        for (int startIslandIndex=0;startIslandIndex<numElem;startIslandIndex = endIslandIndex)
+        {               
+                int islandId = getUnionFind().getElement(startIslandIndex).m_id;
+                                
+                                        
+               bool islandSleeping = false;
+                
+                for (endIslandIndex = startIslandIndex;(endIslandIndex<numElem) && (getUnionFind().getElement(endIslandIndex).m_id == islandId);endIslandIndex++)
+                {
+                        int i = getUnionFind().getElement(endIslandIndex).m_sz;
+                        btCollisionObject* colObj0 = collisionObjects[i];
+                        if (!colObj0->isActive())
+                                islandSleeping = true;
+                }
+                
 
-		bool islandSleeping = false;
+                //find the accompanying contact manifold for this islandId
+                int numIslandManifolds = 0;
+                btPersistentManifold** startManifold = 0; 
 
-		for (endIslandIndex = startIslandIndex;(endIslandIndex<numElem) && (getUnionFind().getElement(endIslandIndex).m_id == islandId);endIslandIndex++)
-		{
-			int i = getUnionFind().getElement(endIslandIndex).m_sz;
-			btCollisionObject* colObj0 = collisionObjects[i];
-			if (!colObj0->isActive())
-				islandSleeping = true;
-		}
+                if (startManifoldIndex<numManifolds)
+                {
+                        int curIslandId = getIslandId(islandmanifold[startManifoldIndex]);
+                        if (curIslandId == islandId)
+                        {
+                                startManifold = &islandmanifold[startManifoldIndex];
 
-		if (!islandSleeping)
-		{
-			//find the accompanying contact manifold for this islandId
-			int numIslandManifolds = 0;
-			btPersistentManifold** startManifold = 0;
+                                for (endManifoldIndex = startManifoldIndex+1;(endManifoldIndex<numManifolds) && (islandId == getIslandId(islandmanifold[endManifoldIndex]));endManifoldIndex++)
+                                {
 
-			if (startManifoldIndex<numManifolds)
-			{
-				int curIslandId = getIslandId(islandmanifold[startManifoldIndex]);
-				if (curIslandId == islandId)
-				{
-					startManifold = &islandmanifold[startManifoldIndex];
-				
-					for (endManifoldIndex = startManifoldIndex+1;(endManifoldIndex<numManifolds) && (islandId == getIslandId(islandmanifold[endManifoldIndex]));endManifoldIndex++)
-					{
+                                }
+                                /// Process the actual simulation, only if not sleeping/deactivated
+                                numIslandManifolds = endManifoldIndex-startManifoldIndex;
+                        }
 
-					}
-					/// Process the actual simulation, only if not sleeping/deactivated
-					numIslandManifolds = endManifoldIndex-startManifoldIndex;
-				}
+                }
 
-			}
+                if (!islandSleeping)
+                {
+                        callback->ProcessIsland(startManifold,numIslandManifolds, islandId);
+                }
 
-			callback->ProcessIsland(startManifold,numIslandManifolds, islandId);
+                if (numIslandManifolds)
+                {
+                        startManifoldIndex = endManifoldIndex;
+                }
+        }
 
-			if (numIslandManifolds)
-			{
-				startManifoldIndex = endManifoldIndex;
-			}
-		}
-	}
 }
