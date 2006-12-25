@@ -63,6 +63,8 @@
 
 #include "BLI_blenlib.h"
 
+#include "blendef.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -1302,6 +1304,11 @@ int do_ob_key(Object *ob)
 	
 	if(key==NULL)
 		return 0;
+		
+	/* Don't apply key for sculptmode */
+	if(key==NULL || ((G.f & G_SCULPTMODE) && !G.obedit && ob==OBACT))
+		return 0;
+	
 	
 	if(ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)) {
 		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);

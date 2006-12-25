@@ -194,9 +194,11 @@ void sculptmode_init(Scene *sce)
 	sd->tablet_strength=10;
 }
 
+void sculptmode_undo_init();
 void sculpt_init_session()
 {
 	sculpt_data()->session= MEM_callocN(sizeof(SculptSession), "SculptSession");
+	sculptmode_undo_init();
 }
 
 /* Free G.sculptdata->vertexusers */
@@ -595,8 +597,31 @@ void calc_vertex_users()
 
 void set_sculpt_object(Object *ob)
 {
-	if(ob)
-		calc_vertex_users();
+	SculptSession *ss= sculpt_session();
+
+	if(ss) {
+		if(ss->keyblock) {
+			Mesh *me= get_mesh(ss->active_ob);
+			if(me) {
+				mesh_to_key(me, ss->keyblock);
+				DAG_object_flush_update(G.scene, ss->active_ob, OB_RECALC_DATA);
+			}
+		}
+
+		if(ob) {
+			Mesh *me= get_mesh(ob);
+			calc_vertex_users();
+			
+			/* Load in key */
+			ss->keyblock= ob_get_keyblock(ob);
+			if(ss->keyblock)
+				key_to_mesh(ss->keyblock, me);
+			
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		}	
+		
+		ss->active_ob= ob;
+	}
 }
 
 /* ===== INTERFACE =====
@@ -1597,8 +1622,8 @@ void sculptmode_draw_mesh(int only_damaged) {
 
 void sculptmode_correct_state()
 {
-	//if(get_mesh( != get_mesh(OBACT))
-		//set_sculpt_object(OBACT);
+	if(get_mesh(sculpt_session()->active_ob) != get_mesh(OBACT))
+		set_sculpt_object(OBACT);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
@@ -1823,8 +1848,6 @@ void set_sculptmode()
 		set_sculpt_object(NULL);
 
 		sculptmode_free_session(G.scene);
-
-		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 	} else {
 		G.f |= G_SCULPTMODE;
 
@@ -1835,8 +1858,6 @@ void set_sculptmode()
 
 		sculpt_init_session();
 		set_sculpt_object(OBACT);
-
-		sculptmode_undo_init();
 		
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_NORMAL_ARRAY);

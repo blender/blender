@@ -600,9 +600,11 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	
 	case B_ADDKEY:
 		insert_shapekey(ob);
+		set_sculpt_object(ob);
 		break;
 	case B_SETKEY:
 		ob->shapeflag |= OB_SHAPE_TEMPLOCK;
+		set_sculpt_object(ob);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIPO, 0);
@@ -610,6 +612,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		break;
 	case B_LOCKKEY:
 		ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+		set_sculpt_object(ob);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIPO, 0);
@@ -621,6 +624,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		if(ob->shapenr == BLI_countlist(&key->block))
 		   ob->shapenr= 1;
 		else ob->shapenr++;
+		set_sculpt_object(ob);
 		do_common_editbuts(B_SETKEY);
 		break;
 	}
@@ -630,6 +634,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		if(ob->shapenr <= 1)
 			ob->shapenr= BLI_countlist(&key->block);
 		else ob->shapenr--;
+		set_sculpt_object(ob);
 		do_common_editbuts(B_SETKEY);
 		break;
 	}
@@ -638,7 +643,9 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
         allqueue (REDRAWIPO, 0);
 		break;
 	case B_DELKEY:
+		set_sculpt_object(NULL);
 		delete_key(OBACT);
+		set_sculpt_object(ob);
 		allqueue(REDRAWACTION, 0);
 		break;
 		
