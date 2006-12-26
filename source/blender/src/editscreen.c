@@ -1363,7 +1363,7 @@ void screenmain(void)
 		else if (event==QKEY) {
 			if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
 			else {
-				if(val) {
+				if(val && (G.qual & LR_CTRLKEY)) {
 					if(okee("Quit Blender")) exit_usiblender();
 				}
 				towin= 0;

@@ -1012,7 +1012,7 @@ static uiBlock *info_filemenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Quit Blender| Q",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Quit Blender|Ctrl Q",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 
 	uiBlockSetDirection(block, UI_DOWN);
 	uiTextBoundsBlock(block, 80);

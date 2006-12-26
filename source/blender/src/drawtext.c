@@ -1454,7 +1454,9 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 			} 
 			else if (event==QKEY) {
+				if (G.qual & LR_CTRLKEY) {
 					if(okee("Quit Blender")) exit_usiblender();
+				}
 			}
 			else if (event==NKEY) {
 				if (G.qual & LR_ALTKEY) {
