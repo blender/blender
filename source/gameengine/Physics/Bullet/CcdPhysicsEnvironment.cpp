@@ -719,6 +719,13 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 		hitY = 	rayCallback.m_hitPointWorld.getY();
 		hitZ = 	rayCallback.m_hitPointWorld.getZ();
 
+		if (rayCallback.m_hitNormalWorld.length2() > (SIMD_EPSILON*SIMD_EPSILON))
+		{
+			rayCallback.m_hitNormalWorld.normalize();
+		} else
+		{
+			rayCallback.m_hitNormalWorld.setValue(1,0,0);
+		}
 		normalX = rayCallback.m_hitNormalWorld.getX();
 		normalY = rayCallback.m_hitNormalWorld.getY();
 		normalZ = rayCallback.m_hitNormalWorld.getZ();
