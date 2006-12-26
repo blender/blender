@@ -2021,11 +2021,10 @@ static PyObject *Object_join( BPy_Object * self, PyObject * args )
 				temp_base->lay = 1; /*1 layer on */
 				
 				BLI_addhead( &temp_scene->base, temp_base );	/* finally, link new base to scene */
-				/*child->id.us += 1;*/ /*Would usually increase user count but in this case it's ok not to */
-			} else {
-				child->id.us -= 1; /* python object user oddness */
-			}
+				child->id.us += 1; /*Would usually increase user count but in this case it's ok not to */
 				
+				//DAG_object_flush_update(temp_scene, temp_base->object, OB_RECALC_DATA);
+			}
 		}
 	}
 	

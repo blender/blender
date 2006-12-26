@@ -187,13 +187,9 @@ def mesh_edge_dict(me):
 	ed_dict= {}
 	for f in me.faces:
 		if not f.hide:
-			fidx= [v.index for v in f]
-			for i in xrange(len(fidx)):
-				edkey= sorted_indicies(fidx[i], fidx[i-1])
-				try:
-					ed_dict[edkey].append(f)
-				except:
-					ed_dict[edkey]= [f]
+			for edkey in f.edge_keys:
+				try:	ed_dict[edkey].append(f)
+				except:	ed_dict[edkey]= [f]
 	
 	return ed_dict
 

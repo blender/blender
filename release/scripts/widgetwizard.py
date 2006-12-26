@@ -110,7 +110,7 @@ def verifyIpocurve(ky,index):
 		idx = "Basis"
 	else:
 		idx = "Key " + str(index)
-	crv = ipo[index]
+	crv = ipo[idx]
 	if crv == None:
 		# print idx
 		crv = ipo.addCurve(idx)
@@ -617,11 +617,11 @@ def shapeMenuText():
 	if key == None:
 		return ""
 	
-	blocks = key.getBlocks()
+	blocks = key.blocks
 	menu = "Choose Shape %t|"
-	for n in xrange(len(blocks)):
-		menu = menu + blocks[n].name + " %x" + str(n) + "|"
-	return menu 		
+	for i, block in enumerate(blocks):
+		menu = menu + block.name + " %x" + str(n) + "|"
+	return menu
 
 
 #draw the widget for the gui
