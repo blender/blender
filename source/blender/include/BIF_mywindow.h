@@ -99,6 +99,7 @@ void bwin_getsinglematrix(int winid, float mat[][4]);
 void bwin_clear_viewmat(int winid);
 
 int myswinopen(int parentid, int xmin, int xmax, int ymin, int ymax);
+int myswinopen_allowed(void);
 void myswapbuffers(void);
 
 void mygetmatrix(float mat[][4]);

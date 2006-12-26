@@ -3011,7 +3011,11 @@ static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 	
 	if(sa->win==0) return;
 	if(sa->full) return;
-
+	if(myswinopen_allowed()==0) {
+		error("Max amount of subwindows reached");
+		return;
+	}
+	
 	dir= scredge_is_horizontal(onedge)?'v':'h';
 	
 	mywinset(G.curscreen->mainwin);

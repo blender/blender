@@ -377,11 +377,13 @@ int myswinopen(int parentid, int xmin, int xmax, int ymin, int ymax)
 		if (!swinarray[freewinid])
 			break;
 	
+	/* this case is not handled in Blender, so will crash. use myswinopen_allowed() first to check */
 	if (freewinid==MAXWIN) {
 		printf("too many windows\n");
 
 		return 0;
-	} else {
+	} 
+	else {
 		win= MEM_callocN(sizeof(*win), "winopen");
 
 		win->id= freewinid;
@@ -401,6 +403,19 @@ int myswinopen(int parentid, int xmin, int xmax, int ymin, int ymax)
 
 		return win->id;
 	}
+}
+
+int myswinopen_allowed(void)
+{
+	int totfree=0;
+	int freewinid;
+	
+	for (freewinid= 4; freewinid<MAXWIN; freewinid++)
+		if (swinarray[freewinid]==NULL)
+			totfree++;
+	if(totfree<2)
+		return 0;
+	return 1;
 }
 
 void mywinclose(int winid)
