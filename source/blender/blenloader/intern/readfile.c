@@ -6297,6 +6297,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
+			
+			/*improved triangle to quad conversion settings*/
+			for(sce= main->scene.first; sce; sce=sce->id.next) sce->toolsettings->jointrilimit = 0.8f;
 		}
 	}
 

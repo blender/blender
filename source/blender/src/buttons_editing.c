@@ -3866,6 +3866,9 @@ void do_meshbuts(unsigned short event)
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
+	case B_JOINTRIA:
+		join_triangles();
+		break;
 	}
 
 	/* WATCH IT: previous events only in editmode! */
@@ -3876,7 +3879,7 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	uiBlock *block;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_tools", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Mesh Tools", "Editing", 640, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Mesh Tools", "Editing", 640, 0, 318, 254)==0) return;
 
 	uiBlockBeginAlign(block);
 	//uiDefButBitS(block, TOG, B_AUTOFGON, 0, "FGon",		    10,195,30,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' To create FGon on inner edges where possible");
@@ -3921,6 +3924,17 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	uiDefBut(block, BUT,B_EXTREP, "Extrude Dup",	10,10,150,19, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a straight line away from the current viewport");
 	uiDefButF(block, NUM, B_DIFF, "Offset:",		160,10,165,19, &G.scene->toolsettings->extr_offs, 0.01, 100.0, 100, 0, "Sets the distance between each copy for 'Extrude Dup'");
 	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT, B_JOINTRIA, "Join Triangles", 10, -20, 120, 19, 0, 0, 0, 0, 0, "Convert selected triangles to Quads");
+	uiDefButF(block, NUM, B_DIFF, "Threshold", 130, -20, 195, 19, &G.scene->toolsettings->jointrilimit, 0.0, 1.0, 5, 0, "Conversion threshold for complex islands");
+	uiDefButBitS(block, TOG, B_JOINTRIA_UV, 0, "Delimit UVs",  10, -40, 78, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Don't join pairs where UVs don't match");
+	uiDefButBitS(block, TOG, B_JOINTRIA_VCOL, 0, "Delimit Vcol", 90, -40, 78, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Don't join pairs where Vcols don't match"); 
+	uiDefButBitS(block, TOG, B_JOINTRIA_SHARP, 0, "Delimit Sharp", 170, -40, 78, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Don't join pairs where edge is sharp"); 
+	uiDefButBitS(block, TOG, B_JOINTRIA_MAT, 0, "Delimit Mat", 250, -40, 74, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Don't join pairs where material dosnt match");
+	uiBlockEndAlign(block);
+
+	
 }
 
 static void verify_vertexgroup_name_func(void *datav, void *data2_unused)

@@ -334,6 +334,8 @@ typedef struct ToolSettings {
 	/* Subdivide Settings */
 	short cornertype;
 	short editbutflag;
+	/*Triangle to Quad conversion threshold*/
+	float jointrilimit;
 	/* Extrude Tools */
 	float degr; 
 	short step;
@@ -373,7 +375,7 @@ typedef struct ToolSettings {
 	char retopo_mode;
 	char line_div, ellipse_div;
 	char pad3;
-	
+	int  pad4;	
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set
