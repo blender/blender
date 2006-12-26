@@ -1464,12 +1464,10 @@ static void ui_draw_text_icon(uiBut *but)
 		/* text button selection and cursor */
 		if(but->pos != -1) {
 		
-			if (SELWIDTH > 0) {
+			if ((but->selend - but->selsta) > 0) {
 				/* text button selection */
 				selsta_tmp = but->selsta + strlen(but->str);
 				selend_tmp = but->selend + strlen(but->str);
-				if (but->ofs >= strlen(but->str))
-					selsta_tmp += (but->ofs - strlen(but->str));
 					
 				if(but->drawstr[0]!=0) {
 					ch= but->drawstr[selsta_tmp];

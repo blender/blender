@@ -1349,7 +1349,7 @@ static short ui_delete_selection_edittext(uiBut *but)
 	
 	str= (char *)but->poin;
 	
-	deletedwidth = SELWIDTH;
+	deletedwidth = (but->selend - but->selsta);
 	
 	for(x=0; x< strlen(str); x++) {
 		if (but->selend + x <= strlen(str) ) {
@@ -1745,7 +1745,7 @@ static int ui_do_but_TEX(uiBut *but)
 			/* paste */
 			if (dev==VKEY) {
 				/* paste over the current selection */
-				if (SELWIDTH > 0) {	
+				if ((but->selend - but->selsta) > 0) {	
 					len -= ui_delete_selection_edittext(but);
 				}
 				
@@ -1775,7 +1775,7 @@ static int ui_do_but_TEX(uiBut *but)
 				
 				/* for cut only, delete the selection afterwards */
 				if (dev==XKEY) {
-					if (SELWIDTH > 0) {	
+					if ((but->selend - but->selsta) > 0) {	
 						len -= ui_delete_selection_edittext(but);
 						
 						if (len < 0) len = 0;
@@ -1786,10 +1786,10 @@ static int ui_do_but_TEX(uiBut *but)
 		}
 		else if((ascii)){
 			
-			if(len-SELWIDTH+1 <= but->max) {
+			if(len-(but->selend - but->selsta)+1 <= but->max) {
 				
 				/* type over the current selection */
-				if (SELWIDTH > 0) {	
+				if ((but->selend - but->selsta) > 0) {	
 					len -= ui_delete_selection_edittext(but);
 				}
 
@@ -1810,7 +1810,7 @@ static int ui_do_but_TEX(uiBut *but)
 				
 			case RIGHTARROWKEY:
 				/* if there's a selection */
-				if (SELWIDTH > 0) {
+				if ((but->selend - but->selsta) > 0) {
 					/* extend the selection based on the first direction taken */
 					if(G.qual & LR_SHIFTKEY) {
 						if (!selextend) {
@@ -1859,7 +1859,7 @@ static int ui_do_but_TEX(uiBut *but)
 				
 			case LEFTARROWKEY:
 				/* if there's a selection */
-				if (SELWIDTH > 0) {
+				if ((but->selend - but->selsta) > 0) {
 					/* extend the selection based on the first direction taken */
 					if(G.qual & LR_SHIFTKEY) {
 						if (!selextend) {
@@ -1935,7 +1935,7 @@ static int ui_do_but_TEX(uiBut *but)
 				break;
 				
 			case DELKEY:
-				if (SELWIDTH > 0) {
+				if ((but->selend - but->selsta) > 0) {
 					len -= ui_delete_selection_edittext(but);
 					
 					if (len < 0) len = 0;
@@ -1951,7 +1951,7 @@ static int ui_do_but_TEX(uiBut *but)
 
 			case BACKSPACEKEY:
 				if(len!=0) {
-					if (SELWIDTH > 0) {
+					if ((but->selend - but->selsta) > 0) {
 						len -= ui_delete_selection_edittext(but);
 						
 						if (len < 0) len = 0;

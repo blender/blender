@@ -71,7 +71,6 @@
  * extension direction, selextend, inside ui_do_but_TEX */
 #define EXTEND_LEFT		1
 #define EXTEND_RIGHT	2
-#define SELWIDTH		(but->selend - but->selsta)
 
 typedef struct {
 	short xim, yim;
