@@ -2356,17 +2356,18 @@ static PyObject *Object_insertIpoKey( BPy_Object * self, PyObject * args )
 		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Y);
 		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Z);      
 	}
-	else if (key == IPOKEY_ROT || key == IPOKEY_LOCROT || key == IPOKEY_LOCROTSIZE){
+	if (key == IPOKEY_ROT || key == IPOKEY_LOCROT || key == IPOKEY_LOCROTSIZE){
 		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_X);
 		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Y);
 		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Z);      
 	}
-	else if (key == IPOKEY_SIZE || key == IPOKEY_LOCROTSIZE ){
+	if (key == IPOKEY_SIZE || key == IPOKEY_LOCROTSIZE ){
 		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_X);
 		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Y);
 		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Z);      
 	}
-	else if (key == IPOKEY_PI_STRENGTH ){
+
+	if (key == IPOKEY_PI_STRENGTH ){
 		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FSTR);   
 	} else if (key == IPOKEY_PI_FALLOFF ){
 		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FFALL);   
