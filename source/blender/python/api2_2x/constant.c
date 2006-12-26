@@ -105,6 +105,8 @@ static PyObject *constantSubscript(BPy_constant *self, PyObject *key)
 		if(v) {
 			return EXPP_incr_ret(v);
 		}
+		return EXPP_ReturnPyObjError( PyExc_KeyError,
+				"key not found" );
 	}
 	return NULL;
 }
