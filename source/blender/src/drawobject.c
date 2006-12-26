@@ -2320,7 +2320,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 				glColor3fv(curcol);
 				
 				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-				glDrawArrays(GL_LINE_STRIP, 0, dl->parts);
+				glDrawArrays(GL_LINE_STRIP, 0, dl->nr);
 
 				glEnable(GL_LIGHTING);
 			}
@@ -2331,7 +2331,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 				glDisable(GL_LIGHTING);
 				
 				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-				glDrawArrays(GL_LINE_LOOP, 0, dl->parts);
+				glDrawArrays(GL_LINE_LOOP, 0, dl->nr);
 				
 				glEnable(GL_LIGHTING);
 				break;
