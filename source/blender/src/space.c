@@ -2746,9 +2746,9 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	/* name */
 	uiDefBut(block, TEX, B_NAME_THEME, "", 			255,y3,200,20, btheme->name, 1.0, 30.0, 0, 0, "Rename theme");
 
-	/* main choices pup */
+	/* main choices pup: note, it uses collums, and the seperators (%l) then have to fill both halves equally for the menu to work */
 	uiDefButS(block, MENU, B_CHANGE_THEME, "UI and Buttons %x1|%l|3D View %x2|%l|Ipo Curve Editor %x3|Action Editor %x4|"
-		"NLA Editor %x5|%l|UV/Image Editor %x6|Video Sequence Editor %x7|Node Editor %x16|Timeline %x15|Audio Window %x8|Text Editor %x9|%l|User Preferences %x10|"
+		"NLA Editor %x5|%l|UV/Image Editor %x6|Video Sequence Editor %x7|Node Editor %x16|Timeline %x15|%l|Audio Window %x8|Text Editor %x9|%l|User Preferences %x10|"
 		"Outliner %x11|Buttons Window %x12|%l|File Browser %x13|Image Browser %x14",
 													255,y2,200,20, &curmain, 0, 0, 0, 0, "Specify theme for...");
 	if(curmain==1) spacetype= 0;
