@@ -9,7 +9,7 @@ B{New}:
   -  Ipo now supports the mapping operator [] to access IpoCurves
 
 This module provides access to the Ipo Data in Blender. An Ipo is composed of
-several IpoCurves, and an IpoCurve are composed of several BezTriples.
+several IpoCurves, and an IpoCurve is composed of several BezTriples.
 
 Example::
   from Blender import Ipo
@@ -19,7 +19,7 @@ Example::
   icu = ipo[Ipo.OB_LOCX]         # request X Location Ipo curve object
   if icu != None and len(icu.bezierPoints) > 0: # if curve exists and has BezTriple points
      val = icu[2.5]              # get the curve's value at time 2.5
-     icu[Ipo.OB_lOCX] = None     # delete the ipo curve
+     icu[Ipo.OB_LOCX] = None     # delete the ipo curve
   
 Each type of Ipo has different types Ipocurves.  With the exception of Shape
 Key Ipos, constants are used to specify all Ipocurves.  There are two ways
