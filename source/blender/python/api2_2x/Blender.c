@@ -236,17 +236,19 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 {
 	char *name, *dir = NULL;
 	PyObject *arg;
-	int framenum;
 
 	if( !PyArg_ParseTuple( args, "sO", &name, &arg ) )
 		return EXPP_ReturnPyObjError( PyExc_ValueError, "expected 2 args, where the first is always a string" );
 
 	if( StringEqual( name, "curframe" ) ) {
-		if( !PyArg_Parse( arg, "i", &framenum ) )
-			return ( NULL ); /* TODO: Do we need to generate a nice error message here? */
-		G.scene->r.cfra = (short)framenum;
-		/*	update all objects, so python scripts can export all objects in a scene
-			without worrying about the view layers */
+		if( !PyInt_Check( arg ) )
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"expected an integer" );
+
+		G.scene->r.cfra = (short)PyInt_AsLong( arg ) ;
+
+		/*	update all objects, so python scripts can export all objects
+		 in a scene without worrying about the view layers */
 		scene_update_for_newframe(G.scene, (1<<20) - 1);
 		
 	} else if (StringEqual( name , "uscriptsdir" ) ) {
@@ -975,9 +977,6 @@ void M_Blender_Init(void)
 	EXPP_dict_set_item_str(dict, "event", PyString_FromString(""));
 	EXPP_dict_set_item_str(dict, "mode", smode);
 
-	PyDict_SetItemString(dict, "IDGroupType", &IDGroup_Type);
-	PyDict_SetItemString(dict, "IDArrayType", &IDArray_Type);
-	
 	PyDict_SetItemString(dict, "Armature", Armature_Init());
 	PyDict_SetItemString(dict, "BezTriple", BezTriple_Init());
 	PyDict_SetItemString(dict, "BGL", BGL_Init());
