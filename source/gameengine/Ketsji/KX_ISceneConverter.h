@@ -39,7 +39,7 @@ class KX_ISceneConverter
 {
 
 public:
-	KX_ISceneConverter() {}
+	KX_ISceneConverter() :addInitFromFrame(false) {}//this addInitFromFrame is a back hack, todo remove
 	virtual ~KX_ISceneConverter () {};
 
 	/*

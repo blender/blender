@@ -435,10 +435,12 @@ bool GPG_Application::processEvent(GHOST_IEvent* event)
 					m_exitRequested = m_ketsjiengine->GetExitCode();
 					
 					// kick the engine
-					m_ketsjiengine->NextFrame();
-					
-					// render the frame
-					m_ketsjiengine->Render();
+					bool renderFrame = m_ketsjiengine->NextFrame();
+					if (renderFrame)
+					{
+						// render the frame
+						m_ketsjiengine->Render();
+					}
 				}
 				m_exitString = m_ketsjiengine->GetExitString();
 			}
@@ -495,6 +497,9 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		bool properties	= (SYS_GetCommandLineInt(syshandle, "show_properties", 0) != 0);
 		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
 		bool fixedFr = (G.fileflags & G_FILE_ENABLE_ALL_FRAMES);
+
+		bool showPhysics = (G.fileflags & G_FILE_SHOW_PHYSICS);
+		SYS_WriteCommandLineInt(syshandle, "show_physics", showPhysics);
 
 		bool fixed_framerate= (SYS_GetCommandLineInt(syshandle, "fixed_framerate", fixedFr) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);

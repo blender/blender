@@ -368,8 +368,14 @@ void		CcdPhysicsController::setScaling(float scaleX,float scaleY,float scaleZ)
 		if (m_body && m_body->getCollisionShape())
 		{
 			m_body->getCollisionShape()->setLocalScaling(m_cci.m_scaling);
-			m_body->getCollisionShape()->calculateLocalInertia(m_cci.m_mass, m_cci.m_localInertiaTensor);
-			m_body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
+			
+			//printf("no inertia recalc for fixed objects with mass=0\n");
+			if (m_cci.m_mass)
+			{
+				m_body->getCollisionShape()->calculateLocalInertia(m_cci.m_mass, m_cci.m_localInertiaTensor);
+				m_body->setMassProps(m_cci.m_mass, m_cci.m_localInertiaTensor * m_cci.m_inertiaFactor);
+			} 
+			
 		}
 	}
 }
