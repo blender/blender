@@ -3898,31 +3898,31 @@ static PyObject *getFloatAttr( BPy_Object *self, void *type )
     	param = self->object->soft->mediafrict;
 		break;
 	case EXPP_OBJ_ATTR_SB_RKLIMIT:
-    	param = self->object->soft->rklimit;
+    	param = object->soft->rklimit;
 		break;
 	case EXPP_OBJ_ATTR_SB_PHYSICSSPEED:
-    	param = self->object->soft->physics_speed;
+    	param = object->soft->physics_speed;
 		break;
 	case EXPP_OBJ_ATTR_SB_GOALSPRING:
-    	param = self->object->soft->goalspring;
+    	param = object->soft->goalspring;
 		break;
 	case EXPP_OBJ_ATTR_SB_GOALFRICT:
-    	param = self->object->soft->goalfrict;
+    	param = object->soft->goalfrict;
 		break;
 	case EXPP_OBJ_ATTR_SB_MINGOAL:
-    	param = self->object->soft->mingoal;
+    	param = object->soft->mingoal;
 		break;
 	case EXPP_OBJ_ATTR_SB_MAXGOAL:
-    	param = self->object->soft->maxgoal;
+    	param = object->soft->maxgoal;
 		break;
 	case EXPP_OBJ_ATTR_SB_DEFGOAL:
-    	param = self->object->soft->defgoal;
+    	param = object->soft->defgoal;
 		break;
 	case EXPP_OBJ_ATTR_SB_INSPRING:
-    	param = self->object->soft->inspring;
+    	param = object->soft->inspring;
 		break;
 	case EXPP_OBJ_ATTR_SB_INFRICT:
-    	param = self->object->soft->infrict;
+    	param = object->soft->infrict;
 		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
@@ -4439,10 +4439,8 @@ static int Object_setIpo( BPy_Object * self, PyObject * value )
 	/* assign new Ipo and increment user count, or set to NULL if deleting */
 
 	self->object->ipo = ipo;
-	if ( ipo ) {
-		id = &ipo->id;
-		id->us++;
-	}
+	if ( ipo )
+		id_us_plus(&ipo->id);
 
 	return 0;
 }

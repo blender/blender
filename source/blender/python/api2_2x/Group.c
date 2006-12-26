@@ -217,7 +217,7 @@ static int Group_compare( BPy_Group * a, BPy_Group * b );
 static int Group_setName( BPy_Group * self, PyObject * value )
 {
 	char *name = NULL;
-	char buf[21];
+	char buf[22];
 	
 	GROUP_DEL_CHECK_INT(self);
 	
@@ -234,7 +234,7 @@ static int Group_setName( BPy_Group * self, PyObject * value )
 }
 
 
-static PyObject *Group_getName( BPy_Group * self, PyObject * args )
+static PyObject *Group_getName( BPy_Group * self )
 {
 	PyObject *attr;
 	GROUP_DEL_CHECK_PY(self);
@@ -315,7 +315,7 @@ static PyGetSetDef BPy_Group_getseters[] = {
 	 NULL},
 	{"fakeUser",
 	 (getter)Group_getFakeUser, (setter)Group_setFakeUser,
-	 "Number of group users",
+	 "Groups fake user state",
 	 NULL},
 	{"layers",
 	 (getter)Group_getLayers, (setter)Group_setLayers,
