@@ -1622,6 +1622,9 @@ void sculptmode_draw_mesh(int only_damaged) {
 
 void sculptmode_correct_state()
 {
+	if(!sculpt_session())
+		sculpt_init_session();
+
 	if(get_mesh(sculpt_session()->active_ob) != get_mesh(OBACT))
 		set_sculpt_object(OBACT);
 
