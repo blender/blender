@@ -39,7 +39,8 @@ http://mediawiki.blender.org/index.php/Scripts/Manual/UV_Calculate/Follow_active
 
 
 from Blender import *
-
+import BPyMesh
+reload(BPyMesh)
 
 def extend():
 	scn = Scene.GetCurrent()
@@ -54,12 +55,12 @@ def extend():
 	me_verts = me.verts
 	
 	# 0:normal extend, 1:edge length
-	EXTEND_MODE = Draw.PupMenu("Use Face Area%t|Loop Average%x2|Face Average%x1|None%x0")
+	EXTEND_MODE = Draw.PupMenu("Use Face Area%t|Loop Average%x2|None%x0")
 	if EXTEND_MODE == -1:
 		return
 	
 	Window.WaitCursor(1)
-	
+	t = sys.time()
 	edge_average_lengths = {}
 	
 	OTHER_INDEX = 2,3,0,1
@@ -118,51 +119,28 @@ def extend():
 
 		# Set the 2 UV's on the target face that are not touching
 		# for this we need to do basic expaning on the source faces UV's
-		if EXTEND_MODE == 1 or EXTEND_MODE == 2:
+		if EXTEND_MODE == 2:
 			
 			try: # divide by zero is possible
 				'''
 				measure the length of each face from the middle of each edge to the opposite
 				allong the axis we are copying, use this
 				'''
+				i1a= edgepair_outer_target[iB]
+				i2a= edgepair_inner_target[iA]
+				if i1a>i2a: i1a, i2a = i2a, i1a
 				
-				if EXTEND_MODE == 1:
-				# Average lengths with edge_average_lengths
-					
-					factor =\
-					(\
-					 (me_verts[edgepair_outer_target[iB]].co + me_verts[edgepair_outer_target[iA]].co)-\
-					 (me_verts[edgepair_inner_target[iA]].co + me_verts[edgepair_inner_target[iB]].co)\
-					).length / (\
-					 (me_verts[edgepair_outer_source[iB]].co + me_verts[edgepair_outer_source[iA]].co)-\
-					 (me_verts[edgepair_inner_source[iA]].co + me_verts[edgepair_inner_source[iB]].co)\
-					).length
-				else: # EXTEND_MODE == 2
-					i1a= edgepair_outer_target[iB]
-					i2a= edgepair_inner_target[iA]
-					if i1a>i2a: i1a, i2a = i2a, i1a
-					
-					i1b= edgepair_outer_source[iB]
-					i2b= edgepair_inner_source[iA]
-					if i1b>i2b: i1b, i2b = i2b, i1b
-					# print edge_average_lengths
-					factor = edge_average_lengths[i1a, i2a][0] / edge_average_lengths[i1b, i2b][0]
-					
-					
-					
-					
+				i1b= edgepair_outer_source[iB]
+				i2b= edgepair_inner_source[iA]
+				if i1b>i2b: i1b, i2b = i2b, i1b
+				# print edge_average_lengths
+				factor = edge_average_lengths[i1a, i2a][0] / edge_average_lengths[i1b, i2b][0]
 			except:
 				# Div By Zero?
 				factor = 1.0
 			
 			uvs_vhash_target[edgepair_outer_target[iB]][:] = uvs_vhash_source[edgepair_inner_source[0]]  +factor * (uvs_vhash_source[edgepair_inner_source[0]] - uvs_vhash_source[edgepair_outer_source[1]])
 			uvs_vhash_target[edgepair_outer_target[iA]][:] = uvs_vhash_source[edgepair_inner_source[1]]  +factor * (uvs_vhash_source[edgepair_inner_source[1]] - uvs_vhash_source[edgepair_outer_source[0]])
-		
-			
-			
-			
-			
-			
 		
 		else:
 			# same as above but with no factor
@@ -197,7 +175,7 @@ def extend():
 	
 	# Modes
 	# 0 unsearched
-	# 1:mapped, use search from this face.
+	# 1:mapped, use search from this face. - removed!!
 	# 2:all siblings have been searched. dont search again.
 	face_modes = [0] * len(face_sel)
 	face_modes[face_act_local_index] = 1 # extend UV's from this face.
@@ -213,75 +191,14 @@ def extend():
 	SEAM = Mesh.EdgeFlags.SEAM
 	
 	if EXTEND_MODE == 2:
-		# Generate grid average edge lengths per edgeloop!
-		# this means that for each face loop, the edges on it will have new fake, everaged lengths
-		# WARNING! - This is not that optimal!!!... but neither is it horrid - Campbell
-		
-		seam_keys = {} # should be a set
-		for ed in me.edges:
-			if ed.flag & SEAM:
-				seam_keys[ed.key] = None
-		
-		
-		# edge_average_lengths = {} # ed.key:length
-		# #edge_average_lengths.fromkeys(edge_faces)
-		# Why dosnt fromkeys work?
-		for edkey in edge_faces.keys():
-			edge_average_lengths[edkey] = None
-		
-		# EDGROUP is the current edge loop index, assigned to all edges
-		EDGROUP = [0]
-		EDGROUPS = [EDGROUP] # 
-		while 1:
-			
-			start_edge = None
-			
-			# get the first unused edge
-			for edkey, value in edge_average_lengths.iteritems():
-				if value == None:
-					start_edge = edkey
-					break
-			
-			if start_edge == None:
-				break
-			
-			edge_average_lengths[start_edge] = EDGROUP
-			
-			one_more_edge = True
-			while one_more_edge:
-				one_more_edge = False
-				for f in face_sel:
-					edge_keys = f.edge_keys
-					for i, edkey in enumerate(edge_keys):
-						if edge_average_lengths[edkey] == EDGROUP:
-							# if the opposite edge has not been assigned then assign it
-							if (not seam_keys.has_key(edge_keys[OTHER_INDEX[i]])) and\
-							edge_average_lengths[edge_keys[OTHER_INDEX[i]]] == None:
-								
-								edge_average_lengths[edge_keys[OTHER_INDEX[i]]] = EDGROUP
-								one_more_edge = True
-			
-			# new list
-			EDGROUP = [EDGROUP[0]+1]
-			EDGROUPS.append(EDGROUP)
-		
-		edge_average_length_groups = [0.0] * len(EDGROUPS)
-		edge_average_count = [0] * len(EDGROUPS)
-		
-		edge_lengths = dict([(ed.key, ed.length) for ed in me.edges])
-		
-		# Now we have the edge loops, average the lengths.
-		for edkey, edgroup in edge_average_lengths.iteritems():
-			edge_average_length_groups[edgroup[0]] += edge_lengths[edkey]
-			edge_average_count[edgroup[0]] += 1
-		
-		for i in xrange(len(edge_average_count)):
-			if edge_average_count[i]:
-				# so edge_average_lengths now referenced the length rather then the group.
-				EDGROUPS[i][0] = edge_average_length_groups[i] / edge_average_count[i]
-		
-		# Finished averaging lengths
-		# edge_average_lengths can be used.
+		edge_loops = BPyMesh.getFaceLoopEdges(face_sel, [ed.key for ed in me.edges if ed.flag & SEAM] )
+		me_verts = me.verts
+		for loop in edge_loops:
+			looplen = [0.0]
+			for ed in loop:
+				edge_average_lengths[ed] = looplen
+				looplen[0] += (me_verts[ed[0]].co - me_verts[ed[1]].co).length
+			looplen[0] = looplen[0] / len(loop)
 		
 	
 	
@@ -318,12 +235,12 @@ def extend():
 						ok= True # keep searching
 				
 				face_modes[i] = 2 # dont search again
+	print  sys.time() - t
 	me.update()
 	Window.RedrawAll()
 	Window.WaitCursor(0)
 
 if __name__ == '__main__':
-	#t = sys.time()
 	extend()
-	#print  sys.time() - t
+	
 	

@@ -301,19 +301,76 @@ def mesh2linkedFaces(me):
 
 
 
-def getEdgeLoopsFromFaces(faces):
+def getFaceLoopEdges(faces, seams=[]):
 	'''
 	Takes me.faces or a list of faces and returns the edge loops
 	These edge loops are the edges that sit between quads, so they dont touch
 	1 quad, not not connected will make 2 edge loops, both only containing 2 edges.
+	
+	return a list of edge key lists
+	[ [(0,1), (4, 8), (3,8)], ...]
+	
+	optionaly, seams are edge keys that will be removed
 	'''
+	
+	OTHER_INDEX = 2,3,0,1 # opposite face index
 	
 	edges = {}
 	
 	for f in faces:
-		for i, edkey in enumerate(f.edge_keys):
-			try:	edges[edkey].append((f, i))
-			except:	edges[edkey] = [(f, i)]
+		if len(f) == 4:
+			edge_keys = f.edge_keys
+			for i, edkey in enumerate(f.edge_keys):
+				try:	edges[edkey].append(edge_keys[OTHER_INDEX[i]])
+				except:	edges[edkey] =  [ edge_keys[OTHER_INDEX[i]] ]
+	
+	for edkey in seams:
+		edges[edkey] = []
+	
+	# Collect edge loops here
+	edge_loops = []	
+	
+	for edkey, ed_adj in edges.iteritems():
+		if 0 <len(ed_adj) < 3: # 1 or 2
+			# Seek the first edge
+			context_loop = [edkey, ed_adj[0]]
+			edge_loops.append(context_loop)
+			if len(ed_adj) == 2:
+				other_dir = ed_adj[1]
+			else:
+				other_dir = None
+			
+			ed_adj[:] = []
+			
+			flipped = False
+			
+			while 1:
+				# from knowing the last 2, look for th next.
+				ed_adj = edges[context_loop[-1]]
+				if len(ed_adj) != 2:
+					
+					if other_dir and flipped==False: # the original edge had 2 other edges
+						flipped = True # only flip the list once
+						context_loop.reverse()
+						ed_adj[:] = []
+						context_loop.append(other_dir) # save 1 lookiup
+						
+						ed_adj = edges[context_loop[-1]]
+						if len(ed_adj) != 2:
+							ed_adj[:] = []
+							break
+					else:
+						ed_adj[:] = []
+						break
+				
+				i = ed_adj.index(context_loop[-2])
+				context_loop.append( ed_adj[ not  i] )
+				
+				# Dont look at this again
+				ed_adj[:] = []
+
+	
+	return edge_loops
 	
 
 
