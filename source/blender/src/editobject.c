@@ -174,6 +174,7 @@
 
 #include "blendef.h"
 #include "butspace.h"
+#include "multires.h"
 #include "BIF_transform.h"
 
 #include "BIF_poseobject.h"
@@ -1691,7 +1692,7 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 		load_editMesh();
 
 		if(freedata) free_editMesh(G.editMesh);
-
+			
 		if(G.f & G_FACESELECT)
 			allqueue(REDRAWIMAGE, 0);
 		if(G.f & G_WEIGHTPAINT)
@@ -1732,6 +1733,10 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 
 		sbObjectToSoftbody(ob);
 	}
+	
+	if(ob->type==OB_MESH && get_mesh(ob)->mr)
+		multires_edge_level_update(ob, get_mesh(ob));
+	
 	/* also flush ob recalc, doesn't take much overhead, but used for particles */
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
 
