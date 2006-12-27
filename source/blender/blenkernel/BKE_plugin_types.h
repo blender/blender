@@ -46,7 +46,7 @@ typedef void (*SeqDoit)(void*, float, float, int, int,
 
 typedef struct VarStruct {
 	int type;
-	char name[16];
+	char name[32];
 	float def, min, max;
 	char tip[80];
 } VarStruct;

@@ -135,35 +135,69 @@ def point_in_data(point, mesh_data_tuple):
 	return len( filter(isect, mesh_data) ) % 2
 
 import BPyMesh
-def env_from_group(ob_act, grp, PREF_OVERWRITE=True):
-	# get intersection data
-	# group_isect_data = [intersection_data(ob) for ob in group.objects]
-	group_isect_data = []
-	for ob in grp.objects:
-		if ob != ob_act: # in case we're in the group.
-			gid = intersection_data(ob)
-			if gid[1]: # has some triangles?
-				group_isect_data.append( gid )
-	
-	# sort by name
-	group_isect_data.sort()
-	
-	group_names = [gid[0] for gid in group_isect_data]
+def env_from_group(ob_act, grp, PREF_UPDATE_ACT=True):
 	
 	me = ob_act.getData(mesh=1)
-	len_group_names= len(group_names)
-	vweight_list= [[0.0]*len_group_names for i in xrange(len(me.verts))]
+	
+	if PREF_UPDATE_ACT:
+		act_group = me.activeGroup
+		if act_group == 'None':
+			Draw.PupMenu('Error%t|No active vertex group.')
+			return
+		
+		try:
+			ob = Object.Get(act_group)
+		except:
+			Draw.PupMenu('Error%t|No object named "'+ act_group +'".')
+			return
+		
+		group_isect = intersection_data(ob)
+		
+	else:
+		
+		# get intersection data
+		# group_isect_data = [intersection_data(ob) for ob in group.objects]
+		group_isect_data = []
+		for ob in grp.objects:
+			if ob != ob_act: # in case we're in the group.
+				gid = intersection_data(ob)
+				if gid[1]: # has some triangles?
+					group_isect_data.append( gid )
+					
+					# we only need 1 for the active group
+					if PREF_UPDATE_ACT:
+						break
+	
+		# sort by name
+		group_isect_data.sort()
+	
+	if PREF_UPDATE_ACT:
+		group_names, vweight_list = BPyMesh.meshWeight2List(me)
+		group_index = group_names.index(act_group)
+	else:
+		group_names = [gid[0] for gid in group_isect_data]
+		vweight_list= [[0.0]* len(group_names) for i in xrange(len(me.verts))]
+	
+	
 	
 	ob_act_mat = ob_act.matrixWorld
 	for vi, v in enumerate(me.verts):
 		# Get all the groups for this vert
 		co = v.co * ob_act_mat
-		for group_index, group_isect in enumerate(group_isect_data):
-			if point_in_data(co, group_isect):
-				vweight_list[vi][group_index] = 1.0
+		
+		if PREF_UPDATE_ACT:
+			# only update existing
+			if point_in_data(co, group_isect):	w = 1.0
+			else:								w = 0.0
+			vweight_list[vi][group_index] = w
+			
+		else:
+			# generate new vgroup weights.
+			for group_index, group_isect in enumerate(group_isect_data):
+				if point_in_data(co, group_isect):
+					vweight_list[vi][group_index] = 1.0
 	
 	BPyMesh.list2MeshWeight(me, group_names, vweight_list)
-
 
 import BPyMessages
 def main():
@@ -175,28 +209,30 @@ def main():
 		return
 	
 	PREF_ENV_GROUPNAME= Draw.Create('')	
-	PREF_OVERWRITE= Draw.Create(False)
+	PREF_UPDATE_ACT= Draw.Create(True)
 	pup_block= [\
-	'Group Name',\
+	('Update Active', PREF_UPDATE_ACT, 'Only apply envalope weights to the active group.'),\
+	'or initialize from group',\
 	('GR:', PREF_ENV_GROUPNAME, 0, 21, 'The name of an existing groups to '),\
-	#('Overwrite', PREF_OVERWRITE, 'Overwrite existing vertex groups.'),\
 	]
 	
 	if not Draw.PupBlock('Envalope From Group...', pup_block):
 		return
 	
-	try:
-		grp = Group.Get(PREF_ENV_GROUPNAME.val)
-	except:	
-		Draw.PupMenu('Error%t|Group "' + PREF_ENV_GROUPNAME.val + '" does not exist.')
-		return
+	PREF_UPDATE_ACT= PREF_UPDATE_ACT.val
 	
-	PREF_ENV_GROUPNAME= PREF_ENV_GROUPNAME.val
-	PREF_OVERWRITE= PREF_OVERWRITE.val
+	if not PREF_UPDATE_ACT:
+		try:
+			grp = Group.Get(PREF_ENV_GROUPNAME.val)
+		except:	
+			Draw.PupMenu('Error%t|Group "' + PREF_ENV_GROUPNAME.val + '" does not exist.')
+			return
+	else:
+		grp = None
 	
 	Window.WaitCursor(1)
 	t = sys.time()
-	env_from_group(ob_act, grp, PREF_OVERWRITE)
+	env_from_group(ob_act, grp, PREF_UPDATE_ACT)
 	print 'assigned envelopes in:', sys.time() - t
 	Window.WaitCursor(0)
 

@@ -25,9 +25,9 @@ import Blender
 
 def main():
 	scn= Blender.Scene.GetCurrent()
-	ob= scn.getActiveObject()
+	ob= scn.objects.active
 	
-	if not ob or ob.getType() != 'Mesh':
+	if not ob or ob.type != 'Mesh':
 		Blender.Draw.PupMenu('Error, no active mesh object, aborting.')
 		return
 	# MODE 0 == VCOL

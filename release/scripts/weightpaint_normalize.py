@@ -66,6 +66,7 @@ def actWeightNormalize(me, PREF_PEAKWEIGHT, PREF_KEEP_PROPORTION):
 	
 	if abs(max_weight-PREF_PEAKWEIGHT) < SMALL_NUM:
 		Draw.PupMenu('Vert Weights are alredy normalized.')
+		return
 	
 	max_weight= max_weight/PREF_PEAKWEIGHT
 	
@@ -90,13 +91,13 @@ def actWeightNormalize(me, PREF_PEAKWEIGHT, PREF_KEEP_PROPORTION):
 		
 	# Copy weights back to the mesh.
 	BPyMesh.dict2MeshWeight(me, groupNames, vWeightDict)
-
+	
 
 def main():
 	scn= Scene.GetCurrent()
-	ob= scn.getActiveObject()
+	ob= scn.objects.active
 	
-	if not ob or ob.getType() != 'Mesh':
+	if not ob or ob.type != 'Mesh':
 		Draw.PupMenu('Error, no active mesh object, aborting.')
 		return
 	
@@ -113,10 +114,7 @@ def main():
 	if not Draw.PupBlock('Clean Selected Meshes...', pup_block):
 		return
 	
-	PREF_PEAKWEIGHT= PREF_PEAKWEIGHT.val
-	PREF_KEEP_PROPORTION= PREF_KEEP_PROPORTION.val
-	
-	actWeightNormalize(me, PREF_PEAKWEIGHT, PREF_KEEP_PROPORTION)
+	actWeightNormalize(me, PREF_PEAKWEIGHT.val, PREF_KEEP_PROPORTION.val)
 	
 if __name__=='__main__':
 	main()

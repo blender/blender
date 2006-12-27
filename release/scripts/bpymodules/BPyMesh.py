@@ -78,6 +78,8 @@ def list2MeshWeight(me, groupNames, vWeightList):
 	if len(vWeightList) != len(me.verts):
 		raise 'Error, Lists Differ in size, do not modify your mesh.verts before updating the weights'
 	
+	act_group = me.activeGroup
+	
 	# Clear the vert group.
 	currentGroupNames= me.getVertGroupNames()
 	for group in currentGroupNames:
@@ -99,6 +101,9 @@ def list2MeshWeight(me, groupNames, vWeightList):
 					me.assignVertsToGroup(groupNames[group_index], vertList, min(1, max(0, weight)), add_)
 				except:
 					pass # vert group is not used anymore.
+	
+	try:	me.activeGroup = act_group
+	except:	pass
 	
 	me.update()
 
@@ -134,6 +139,8 @@ def dict2MeshWeight(me, groupNames, vWeightDict):
 	if len(vWeightDict) != len(me.verts):
 		raise 'Error, Lists Differ in size, do not modify your mesh.verts before updating the weights'
 	
+	act_group = me.activeGroup
+	
 	# Clear the vert group.
 	currentGroupNames= me.getVertGroupNames()
 	for group in currentGroupNames:
@@ -158,6 +165,9 @@ def dict2MeshWeight(me, groupNames, vWeightDict):
 				me.assignVertsToGroup(group, vertList, min(1, max(0, weight)), add_)
 			except:
 				pass # vert group is not used anymore.
+	
+	try:	me.activeGroup = act_group
+	except:	pass
 	
 	me.update()
 
@@ -288,6 +298,23 @@ def mesh2linkedFaces(me):
 	# return all face groups that are not null
 	# this is all the faces that are connected in their own lists.
 	return [fg for fg in face_groups if fg]
+
+
+
+def getEdgeLoopsFromFaces(faces):
+	'''
+	Takes me.faces or a list of faces and returns the edge loops
+	These edge loops are the edges that sit between quads, so they dont touch
+	1 quad, not not connected will make 2 edge loops, both only containing 2 edges.
+	'''
+	
+	edges = {}
+	
+	for f in faces:
+		for i, edkey in enumerate(f.edge_keys):
+			try:	edges[edkey].append((f, i))
+			except:	edges[edkey] = [(f, i)]
+	
 
 
 def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=True, scn=None):
