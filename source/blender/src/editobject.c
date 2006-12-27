@@ -1998,6 +1998,22 @@ void docentre(int centremode)
 
 					allqueue(REDRAWBUTSEDIT, 0);
 				}
+				else if(base->object->type==OB_ARMATURE) {
+					bArmature *arm = base->object->data;
+					
+					if(arm->id.us>1) {
+						error("Can't apply to a multi user armature");
+						return;
+					}
+					
+					/* Function to recenter armatures in editarmature.c 
+					 * Bone + object locations are handled there.
+					 */
+					docentre_armature(base->object, centremode);
+					
+					if(G.obedit) 
+						break;
+				}
 				base->object->recalc= OB_RECALC_OB|OB_RECALC_DATA;
 			}
 		}

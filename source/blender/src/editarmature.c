@@ -365,6 +365,67 @@ void apply_rot_armature (Object *ob, float mat[3][3])
 	}
 }
 
+/* 0 == do centre, 1 == centre new, 2 == centre cursor */
+void docentre_armature (Object *ob, int centremode)
+{
+	ListBase	list;
+	EditBone *ebone;
+	bArmature *arm;
+	float cent[3] = {0.0f, 0.0f, 0.0f};
+	float min[3], max[3];
+	float omat[3][3];
+		
+	arm = get_armature(ob);
+	if (!arm) return;
+
+	/* Put the armature into editmode */
+	list.first= list.last = NULL;
+	make_boneList(&list, &arm->bonebase, NULL);
+
+	/* Find the centrepoint */
+	if (centremode == 2) {
+		VECCOPY(cent, give_cursor());
+		Mat4Invert(ob->imat, ob->obmat);
+		Mat4MulVecfl(ob->imat, cent);
+	}
+	else {
+		INIT_MINMAX(min, max);
+		
+		for (ebone= list.first; ebone; ebone=ebone->next) {
+			DO_MINMAX(ebone->head, min, max);
+			DO_MINMAX(ebone->tail, min, max);
+		}
+		
+		cent[0]= (min[0]+max[0])/2.0f;
+		cent[1]= (min[1]+max[1])/2.0f;
+		cent[2]= (min[2]+max[2])/2.0f;
+	}
+	
+	/* Do the adjustments */
+	for (ebone= list.first; ebone; ebone=ebone->next){
+		VecSubf(ebone->head, ebone->head, cent);
+		VecSubf(ebone->tail, ebone->tail, cent);
+	}
+	
+	/* Turn the list into an armature */
+	editbones_to_armature(&list, ob);
+	
+	/* Free the editbones */
+	if (list.first){
+		BLI_freelistN(&list);
+	}
+	
+	/* Adjust object location for new centrepoint */
+	if(centremode && G.obedit==0) {
+		Mat3CpyMat4(omat, ob->obmat);
+		
+		Mat3MulVecfl(omat, cent);
+		ob->loc[0]+= cent[0];
+		ob->loc[1]+= cent[1];
+		ob->loc[2]+= cent[2];
+	}
+}
+
 int join_armature(void)
 {
 	Object	*ob;
