@@ -105,7 +105,7 @@ class Curve:
   @type name: string
   @ivar pathlen: The Curve Data path length.
   @type pathlen: int
-  @ivar totcol: The Curve Data maximal number of linked materials.
+  @ivar totcol: The Curve Data maximal number of linked materials. Read-only.
   @type totcol: int
   @ivar flag: The Curve Data flag value; see L{getFlag()} for the semantics.
   @ivar bevresol: The Curve Data bevel resolution.
@@ -179,10 +179,15 @@ class Curve:
 
   def setTotcol(totcol):
     """
-    Set the number of materials linked to the Curve.
+    Set the number of materials linked to the Curve.  B{Note}: this method
+    will probably be deprecated in the future.
     @rtype: None
     @type totcol: int
     @param totcol: number of materials linked.
+    @warn: It is not advisable to use this method unless you know what you
+    are doing; it's possible to
+    corrupt a .blend file if you don't know what you're doing.  If you want
+    to change the number of materials, use the L{materials} attribute.
     """
 
   def getFlag():

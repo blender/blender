@@ -733,47 +733,6 @@ PyObject *Curve_setExt2( BPy_Curve * self, PyObject * args )
 
 
 /*
-static PyObject *Curve_setControlPoint(BPy_Curve *self, PyObject *args)
-{
-  Nurb*ptrnurb = self->curve->nurb.first;
-  int numcourbe,numpoint,i,j;
-  float x,y,z,w;
-  float bez[9];
-  if (!ptrnurb){ Py_INCREF(Py_None);return Py_None;}
-
-  if (ptrnurb->bp)
-    if (!PyArg_ParseTuple(args, "iiffff", &numcourbe,&numpoint,&x,&y,&z,&w))  
-      return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-								"expected int int float float float float arguments"));
-  if (ptrnurb->bezt)
-    if (!PyArg_ParseTuple(args, "iifffffffff", &numcourbe,&numpoint,
-						bez,bez+1,bez+2,bez+3,bez+4,bez+5,bez+6,bez+7,bez+8))  
-      return (EXPP_ReturnPyObjError (PyExc_AttributeError,
-					"expected int int float float float float float float "
-					"float float float arguments"));
-
-  for(i = 0;i< numcourbe;i++)
-    ptrnurb=ptrnurb->next;
-  if (ptrnurb->bp)
-    {
-      ptrnurb->bp[numpoint].vec[0] = x;
-      ptrnurb->bp[numpoint].vec[1] = y;
-      ptrnurb->bp[numpoint].vec[2] = z;
-      ptrnurb->bp[numpoint].vec[3] = w;
-    }
-  if (ptrnurb->bezt)
-    {
-      for(i = 0;i<3;i++)
-	for(j = 0;j<3;j++)
-	  ptrnurb->bezt[numpoint].vec[i][j] = bez[i*3+j];
-    }
-	
-  Py_RETURN_NONE;
-}
-*/
-
-
-/*
  * Curve_setControlPoint
  * this function sets an EXISTING control point.
  * it does NOT add a new one.
@@ -1367,7 +1326,11 @@ PyObject *Curve_setBevOb( BPy_Curve * self, PyObject * args )
 	} else {
 	/* Accept Object with type 'Curve' */
 		if( Object_CheckPyObject( ( PyObject * ) pybevobj ) && 
-			pybevobj->object->type == OB_CURVE) {
+				pybevobj->object->type == OB_CURVE) {
+			if(self->curve == pybevobj->object->data )
+				return EXPP_ReturnPyObjError( PyExc_ValueError,
+							"objects cannot bevel themselves" );
+
 			self->curve->bevobj = 
 				Object_FromPyObject( ( PyObject * ) pybevobj );
 		} else {
@@ -1415,7 +1378,10 @@ PyObject *Curve_setTaperOb( BPy_Curve * self, PyObject * args )
 	} else {
 	/* Accept Object with type 'Curve' */
 		if( Object_CheckPyObject( ( PyObject * ) pytaperobj ) && 
-			pytaperobj->object->type == OB_CURVE) {
+				pytaperobj->object->type == OB_CURVE) {
+			if(self->curve == pytaperobj->object->data )
+				return EXPP_ReturnPyObjError( PyExc_ValueError,
+							"objects cannot taper themselves" );
 			self->curve->taperobj = 
 				Object_FromPyObject( ( PyObject * ) pytaperobj );
 		} else {
