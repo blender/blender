@@ -1109,21 +1109,7 @@ void snap_sel_to_grid()
 				for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 					if(pchan->bone->flag & BONE_SELECTED) {
 						if(pchan->bone->layer & arm->layer) {
-							if (pchan->parent==NULL) {
-								float dLoc[3], oldLoc[3], nLoc[3];
-									
-								/* get nearest grid point to snap to */
-								VECCOPY(nLoc, pchan->pose_head);
-								vec[0]= gridf * (float)(floor(.5+ nLoc[0]/gridf));
-								vec[1]= gridf * (float)(floor(.5+ nLoc[1]/gridf));
-								vec[2]= gridf * (float)(floor(.5+ nLoc[2]/gridf));
-								
-								/* adjust location */
-								VecSubf(dLoc, vec, nLoc);
-								VECCOPY(oldLoc, pchan->loc);
-								VecAddf(pchan->loc, oldLoc, dLoc);
-							}
-							else if((pchan->bone->flag & BONE_CONNECTED)==0) { 
+							if((pchan->bone->flag & BONE_CONNECTED)==0) { 
 								float vecN[3], nLoc[3]; 
 								float dLoc[3], oldLoc[3];
 								
@@ -1240,14 +1226,7 @@ void snap_sel_to_curs()
 				for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
 					if(pchan->bone->flag & BONE_SELECTED) {
 						if(pchan->bone->layer & arm->layer) {
-							if(pchan->parent==NULL) {
-								float dLoc[3], oldLoc[3];
-								
-								VecSubf(dLoc, cursp, pchan->pose_head);
-								VECCOPY(oldLoc, pchan->loc);
-								VecAddf(pchan->loc, oldLoc, dLoc);
-							}
-							else if((pchan->bone->flag & BONE_CONNECTED)==0) { 
+							if((pchan->bone->flag & BONE_CONNECTED)==0) { 
 								float curspn[3], dLoc[3], oldLoc[3];
 								
 								/* get location of cursor in bone-space */
@@ -1600,13 +1579,7 @@ void snap_to_center()
 				for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
 					if(pchan->bone->flag & BONE_SELECTED) {
 						if(pchan->bone->layer & arm->layer) {
-							if(pchan->parent==NULL) {
-								float dLoc[3], oldLoc[3];
-								VecSubf(dLoc, snaploc, pchan->pose_head);
-								VECCOPY(oldLoc, pchan->loc);
-								VecAddf(pchan->loc, oldLoc, dLoc);
-							}
-							else if((pchan->bone->flag & BONE_CONNECTED)==0) { 
+							if((pchan->bone->flag & BONE_CONNECTED)==0) { 
 								float dLoc[3], oldLoc[3];
 								
 								/* get location of cursor in bone-space */
