@@ -731,7 +731,7 @@ char brush_size()
 	float size= b->size;
 	const GHOST_TabletData *td= get_tablet_data();
 	
-	if(td) {
+	if(td && sculpt_data()->brush_type!=GRAB_BRUSH) {
 		const float size_factor= G.scene->sculptdata.tablet_size / 10.0f;
 		if(td->Active==1 || td->Active==2)
 			size*= G.scene->sculptdata.tablet_size==0?1:
