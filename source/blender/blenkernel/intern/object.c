@@ -340,7 +340,7 @@ void unlink_object(Object *ob)
 		}
 		
 		/* strips */
-		for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+		for(strip= obt->nlastrips.first; strip; strip= strip->next) {
 			if(strip->object==ob)
 				strip->object= NULL;
 			
