@@ -1306,9 +1306,6 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			
 			data = constraint->data;
 			
-			/* old files stuff only... version patch is too much code! */
-			if(data->flag==0) data->flag = ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z;
-			
 			VECCOPY(loc, ob->obmat[3]);
 			Mat4ToSize(ob->obmat, size);
 			

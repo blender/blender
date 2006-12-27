@@ -6166,13 +6166,25 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (list){
 				bConstraint *curcon;
 				for (curcon = list->first; curcon; curcon=curcon->next){
-					if (curcon->type == CONSTRAINT_TYPE_MINMAX){
-						bMinMaxConstraint *data = curcon->data;
-						if (data->sticky==1) {
-							data->flag|=MINMAX_STICKY;
-						} else {
-							data->flag&=~MINMAX_STICKY;
+					switch (curcon->type) {
+						case CONSTRAINT_TYPE_MINMAX:
+						{
+							bMinMaxConstraint *data = curcon->data;
+							if (data->sticky==1) 
+								data->flag |= MINMAX_STICKY;
+							else 
+								data->flag &= ~MINMAX_STICKY;
 						}
+							break;
+						case CONSTRAINT_TYPE_ROTLIKE:
+						{
+							bRotateLikeConstraint *data = curcon->data;
+							
+							/* version patch from buttons_object.c */
+							if(data->flag==0) 
+								data->flag = ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z;
+						}
+							break;
 					}
 				}
 			}
@@ -6181,24 +6193,36 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				if (ob->pose){
 					bConstraint *curcon;
 					bPoseChannel *pchan;
-					for (pchan = ob->pose->chanbase.first;
-						 pchan; pchan=pchan->next){
-						for (curcon = pchan->constraints.first;
-							 curcon; curcon=curcon->next){
-							if (curcon->type == CONSTRAINT_TYPE_MINMAX){
-								bMinMaxConstraint *data = curcon->data;
-								if (data->sticky==1) {
-									data->flag|=MINMAX_STICKY;
-								} else {
-									data->flag&=~MINMAX_STICKY;
+					for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next){
+						for (curcon = pchan->constraints.first; curcon; curcon=curcon->next){
+							switch (curcon->type) {
+								case CONSTRAINT_TYPE_MINMAX:
+								{
+									bMinMaxConstraint *data = curcon->data;
+									if (data->sticky==1) 
+										data->flag |= MINMAX_STICKY;
+									else 
+										data->flag &= ~MINMAX_STICKY;
 								}
-							}
-							else if (curcon->type == CONSTRAINT_TYPE_KINEMATIC){
-								bKinematicConstraint *data = curcon->data;
-								if (!(data->flag & CONSTRAINT_IK_POS)) {
-									data->flag |= CONSTRAINT_IK_POS;
-									data->flag |= CONSTRAINT_IK_STRETCH;
+									break;
+								case CONSTRAINT_TYPE_KINEMATIC:
+								{
+									bKinematicConstraint *data = curcon->data;
+									if (!(data->flag & CONSTRAINT_IK_POS)) {
+										data->flag |= CONSTRAINT_IK_POS;
+										data->flag |= CONSTRAINT_IK_STRETCH;
+									}
 								}
+									break;
+								case CONSTRAINT_TYPE_ROTLIKE:
+								{
+									bRotateLikeConstraint *data = curcon->data;
+									
+									/* version patch from buttons_object.c */
+									if(data->flag==0) 
+										data->flag = ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z;
+								}
+									break;
 							}
 						}
 					}
