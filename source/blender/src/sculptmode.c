@@ -141,6 +141,9 @@ typedef struct EditData {
 	GrabData *grabdata;
 	float *layer_disps;
 	vec3f *layer_store;
+	
+	char clip[3];
+	float cliptol[3];
 } EditData;
 
 typedef struct RectNode {
@@ -777,6 +780,18 @@ float brush_strength(EditData *e)
 	}
 }
 
+/* For clipping against a mirror modifier */
+void sculpt_clip(const EditData *e, float *co, const float val[3])
+{
+	char i;
+	for(i=0; i<3; ++i) {
+		if(e->clip[i] && (fabs(co[i]) <= e->cliptol[i]))
+			co[i]= 0.0f;
+		else
+			co[i]= val[i];
+	}		
+}
+
 /* Currently only for the draw brush; finds average normal for all active
    vertices */
 vec3f calc_area_normal(const vec3f *outdir, const int view, const ListBase* active_verts)
@@ -800,16 +815,19 @@ vec3f calc_area_normal(const vec3f *outdir, const int view, const ListBase* acti
 	Normalise(&area_normal.x);
 	return area_normal;
 }
-void do_draw_brush(EditData *e, const ListBase* active_verts)
+void do_draw_brush(const EditData *e, const ListBase* active_verts)
 {
 	Mesh *me= get_mesh(OBACT);
 	const vec3f area_normal= calc_area_normal(&e->out, sculptmode_brush()->view, active_verts);
 	ActiveData *node= active_verts->first;
 
 	while(node){
-		me->mvert[node->Index].co[0] += area_normal.x * node->Fade;
-		me->mvert[node->Index].co[1] += area_normal.y * node->Fade;
-		me->mvert[node->Index].co[2] += area_normal.z * node->Fade;
+		float *co= me->mvert[node->Index].co;
+		const float val[3]= {co[0]+area_normal.x*node->Fade,
+		                     co[1]+area_normal.y*node->Fade,
+		                     co[2]+area_normal.z*node->Fade};
+		sculpt_clip(e, co, val);
+		
 		node= node->next;
 	}
 }
@@ -861,37 +879,33 @@ vec3f neighbor_average(const int vert)
 	return avg;
 }
 
-void do_smooth_brush(const ListBase* active_verts)
+void do_smooth_brush(const EditData *e, const ListBase* active_verts)
 {
-	int cur;
 	ActiveData *node= active_verts->first;
 	Mesh *me= get_mesh(OBACT);
-	vec3f avg;
 
 	while(node){
-		cur= node->Index;
-			
-		avg= neighbor_average(cur);
-			
-		me->mvert[cur].co[0]+= (avg.x - me->mvert[cur].co[0])*node->Fade;
-		me->mvert[cur].co[1]+= (avg.y - me->mvert[cur].co[1])*node->Fade;
-		me->mvert[cur].co[2]+= (avg.z - me->mvert[cur].co[2])*node->Fade;
-
+		float *co= me->mvert[node->Index].co;
+		const vec3f avg= neighbor_average(node->Index);
+		const float val[3]= {co[0]+(avg.x-co[0])*node->Fade,
+		                     co[1]+(avg.y-co[1])*node->Fade,
+		                     co[2]+(avg.z-co[2])*node->Fade};
+		sculpt_clip(e, co, val);
 		node= node->next;
 	}
 }
 
-void do_pinch_brush(const ListBase* active_verts, const vec3f* center)
+void do_pinch_brush(const EditData *e, const ListBase* active_verts)
 {
 	Mesh *me= get_mesh(OBACT);
  	ActiveData *node= active_verts->first;
-	float* co;
 
 	while(node) {
-		co= me->mvert[node->Index].co;
-		co[0] += (center->x - co[0]) * node->Fade;
-		co[1] += (center->y - co[1]) * node->Fade;
-		co[2] += (center->z - co[2]) * node->Fade;
+		float *co= me->mvert[node->Index].co;
+		const float val[3]= {co[0]+(e->center.x-co[0])*node->Fade,
+		                     co[1]+(e->center.y-co[1])*node->Fade,
+		                     co[2]+(e->center.z-co[2])*node->Fade};
+		sculpt_clip(e, co, val);
 		node= node->next;
 	}
 }
@@ -903,9 +917,12 @@ void do_grab_brush(EditData *e)
 	float add[3];
 
 	while(node) {
-		VecCopyf(add,&e->grabdata->delta_symm.x);
-		VecMulf(add,node->Fade);
-		VecAddf(me->mvert[node->Index].co,me->mvert[node->Index].co,add);
+		float *co= me->mvert[node->Index].co;
+		
+		VecCopyf(add, &e->grabdata->delta_symm.x);
+		VecMulf(add, node->Fade);
+		VecAddf(add, add, co);
+		sculpt_clip(e, co, add);
 
 		node= node->next;
 	}
@@ -923,6 +940,8 @@ void do_layer_brush(EditData *e, const ListBase *active_verts)
 		
 		if((bstr > 0 && *disp < bstr) ||
 		  (bstr < 0 && *disp > bstr)) {
+		  	float *co= me->mvert[node->Index].co;
+		  	
 			*disp+= node->Fade;
 
 			if(bstr < 0) {
@@ -933,30 +952,35 @@ void do_layer_brush(EditData *e, const ListBase *active_verts)
 					*disp = bstr;
 			}
 
-			me->mvert[node->Index].co[0]= e->layer_store[node->Index].x + area_normal.x * *disp;
-			me->mvert[node->Index].co[1]= e->layer_store[node->Index].y + area_normal.y * *disp;
-			me->mvert[node->Index].co[2]= e->layer_store[node->Index].z + area_normal.z * *disp;
+			{
+				const float val[3]= {e->layer_store[node->Index].x+area_normal.x * *disp,
+				                     e->layer_store[node->Index].y+area_normal.y * *disp,
+				                     e->layer_store[node->Index].z+area_normal.z * *disp};
+				sculpt_clip(e, co, val);
+			}
 		}
 
 		node= node->next;
 	}
 }
 
-void do_inflate_brush(const ListBase *active_verts)
+void do_inflate_brush(const EditData *e, const ListBase *active_verts)
 {
 	ActiveData *node= active_verts->first;
-	int cur;
 	float add[3];
 	Mesh *me= get_mesh(OBACT);
 	
 	while(node) {
-		cur= node->Index;
+		float *co= me->mvert[node->Index].co;
+		short *no= me->mvert[node->Index].no;
 
-		add[0]= me->mvert[cur].no[0]/ 32767.0f;
-		add[1]= me->mvert[cur].no[1]/ 32767.0f;
-		add[2]= me->mvert[cur].no[2]/ 32767.0f;
-		VecMulf(add,node->Fade);
-		VecAddf(me->mvert[cur].co,me->mvert[cur].co,add);
+		add[0]= no[0]/ 32767.0f;
+		add[1]= no[1]/ 32767.0f;
+		add[2]= no[2]/ 32767.0f;
+		VecMulf(add, node->Fade);
+		VecAddf(add, add, co);
+		
+		sculpt_clip(e, co, add);
 
 		node= node->next;
 	}
@@ -1128,13 +1152,13 @@ void do_brush_action(float *vertexcosnos, EditData e,
 		do_draw_brush(&e, &active_verts);
 		break;
 	case SMOOTH_BRUSH:
-		do_smooth_brush(&active_verts);
+		do_smooth_brush(&e, &active_verts);
 		break;
 	case PINCH_BRUSH:
-		do_pinch_brush(&active_verts, &e.center);
+		do_pinch_brush(&e, &active_verts);
 		break;
 	case INFLATE_BRUSH:
-		do_inflate_brush(&active_verts);
+		do_inflate_brush(&e, &active_verts);
 		break;
 	case GRAB_BRUSH:
 		do_grab_brush(&e);
@@ -1308,6 +1332,8 @@ void init_editdata(SculptData *sd, EditData *e, short *mouse, short *pr_mouse, c
 {
 	const float mouse_depth= get_depth(mouse[0],mouse[1]);
 	vec3f brush_edge_loc, zero_loc, oldloc;
+	ModifierData *md;
+	int i;
 
 	e->flip= flip;
 	
@@ -1330,6 +1356,23 @@ void init_editdata(SculptData *sd, EditData *e, short *mouse, short *pr_mouse, c
 	Normalise(&e->up.x);
 	Normalise(&e->right.x);
 	Normalise(&e->out.x);
+	
+	/* Initialize mirror modifier clipping */
+	for(i=0; i<3; ++i) {
+		e->clip[i]= 0;
+		e->cliptol[i]= 0;
+	}
+	for(md= OBACT->modifiers.first; md; md= md->next) {
+		if(md->type==eModifierType_Mirror && (md->mode & eModifierMode_Realtime)) {
+			const MirrorModifierData *mmd = (MirrorModifierData*) md;
+			
+			if(mmd->flag & MOD_MIR_CLIPPING) {
+				e->clip[mmd->axis]= 1;
+				if(mmd->tolerance > e->cliptol[mmd->axis])
+					e->cliptol[mmd->axis]= mmd->tolerance;
+			}
+		}
+	}
 
 	if(sd->brush_type == GRAB_BRUSH) {
 		vec3f gcenter;
