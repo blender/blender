@@ -1133,7 +1133,6 @@ void snap_sel_to_grid()
 						if(pchan->bone->layer & arm->layer) {
 							if((pchan->bone->flag & BONE_CONNECTED)==0) { 
 								float vecN[3], nLoc[3]; 
-								float dLoc[3], oldLoc[3];
 								
 								/* get nearest grid point to snap to */
 								VECCOPY(nLoc, pchan->pose_mat[3]);
@@ -1145,9 +1144,7 @@ void snap_sel_to_grid()
 								armature_loc_pose_to_bone(pchan, vec, vecN);
 								
 								/* adjust location */
-								VECCOPY(oldLoc, pchan->loc);
-								VecSubf(dLoc, vecN, oldLoc);
-								VecAddf(pchan->loc, oldLoc, dLoc);
+								VECCOPY(pchan->loc, vecN);
 							}
 							/* if the bone has a parent and is connected to the parent, 
 							 * don't do anything - will break chain unless we do auto-ik. 
@@ -1250,15 +1247,13 @@ void snap_sel_to_curs()
 					if(pchan->bone->flag & BONE_SELECTED) {
 						if(pchan->bone->layer & arm->layer) {
 							if((pchan->bone->flag & BONE_CONNECTED)==0) { 
-								float curspn[3], dLoc[3], oldLoc[3];
+								float curspn[3];
 								
 								/* get location of cursor in bone-space */
 								armature_loc_pose_to_bone(pchan, cursp, curspn);
 								
 								/* calculate new position */
-								VECCOPY(oldLoc, pchan->loc);
-								VecSubf(dLoc, curspn, oldLoc);
-								VecAddf(pchan->loc, oldLoc, dLoc);
+								VECCOPY(pchan->loc, curspn);
 							}
 							/* if the bone has a parent and is connected to the parent, 
 							 * don't do anything - will break chain unless we do auto-ik. 
@@ -1604,15 +1599,11 @@ void snap_to_center()
 					if(pchan->bone->flag & BONE_SELECTED) {
 						if(pchan->bone->layer & arm->layer) {
 							if((pchan->bone->flag & BONE_CONNECTED)==0) { 
-								float dLoc[3], oldLoc[3];
-								
 								/* get location of cursor in bone-space */
 								armature_loc_pose_to_bone(pchan, snaploc, vec);
 								
 								/* calculate new position */
-								VECCOPY(oldLoc, pchan->loc);
-								VecSubf(dLoc, vec, oldLoc);
-								VecAddf(pchan->loc, oldLoc, dLoc);
+								VECCOPY(pchan->loc, vec);
 							}
 							/* if the bone has a parent and is connected to the parent, 
 							 * don't do anything - will break chain unless we do auto-ik. 
