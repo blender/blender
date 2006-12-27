@@ -128,8 +128,8 @@ typedef struct ShadeInput
 	float refcol[4], displace[3];
 	float strand, tang[3], stress, winspeed[4];
 
-	ShadeInputUV uv[4];   /* 4 = MAX_MTFACE */
-	ShadeInputCol col[4]; /* 4 = MAX_MCOL */
+	ShadeInputUV uv[8];   /* 8 = MAX_MTFACE */
+	ShadeInputCol col[8]; /* 8 = MAX_MCOL */
 	int totuv, totcol;
 	
 	/* dx/dy OSA coordinates */

@@ -87,7 +87,7 @@ typedef struct CustomData {
 #define CD_FLAG_TEMPORARY ((1<<2)|CD_FLAG_NOCOPY)
 
 /* Limits */
-#define MAX_MTFACE 4
-#define MAX_MCOL   4
+#define MAX_MTFACE 8
+#define MAX_MCOL   8
 
 #endif

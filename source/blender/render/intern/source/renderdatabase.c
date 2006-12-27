@@ -372,6 +372,8 @@ VlakRen *RE_vlakren_copy(Render *re, VlakRen *vlr)
 	VlakRen *vlr1 = RE_findOrAddVlak(re, re->totvlak++);
 	MTFace *mtface, *mtface1;
 	MCol *mcol, *mcol1;
+	VlakTableNode *node = &re->vlaknodes[vlr->index>>8];
+	VlakTableNode *node1 = &re->vlaknodes[vlr1->index>>8];
 	int i, index = vlr1->index;
 	char *name;
 
@@ -387,6 +389,9 @@ VlakRen *RE_vlakren_copy(Render *re, VlakRen *vlr)
 		mcol1= RE_vlakren_get_mcol(re, vlr1, i, &name, 1);
 		memcpy(mcol1, mcol, sizeof(MCol)*RE_MCOL_ELEMS);
 	}
+
+	if (node->names && node1->names)
+		node1->names[vlr1->index&255] = node->names[vlr->index&255];
 
 	return vlr1;
 }
