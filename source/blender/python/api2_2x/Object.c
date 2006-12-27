@@ -4207,10 +4207,15 @@ static int setFloat3Attr( BPy_Object *self, PyObject *value, void *type )
 	float *dst, param[3];
 	struct Object *object = self->object;
 
-	if( !PyArg_ParseTuple( value, "fff", &param[0], &param[1], &param[2] ) )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected a tuple of 3 floats" );
+	value = PySequence_Tuple( value );
 
+	if( !value || !PyArg_ParseTuple( value, "fff", &param[0], &param[1], &param[2] ) ) {
+		Py_XDECREF( value );
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected a list or tuple of 3 floats" );
+	}
+
+	Py_DECREF( value );
 	switch( (int)type ) {
 	case EXPP_OBJ_ATTR_LOC: 
 		dst = object->loc;
