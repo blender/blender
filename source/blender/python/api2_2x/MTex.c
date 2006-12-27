@@ -299,8 +299,7 @@ static PyObject *MTex_setTexMethod( BPy_MTex * self, PyObject * args )
 	if( self->mtex->tex )
 		self->mtex->tex->id.us++;
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static void MTex_dealloc( BPy_MTex * self )
@@ -327,10 +326,8 @@ static PyObject *MTex_getTex( BPy_MTex *self, void *closure )
 {
 	if( self->mtex->tex )
 		return Texture_CreatePyObject( self->mtex->tex );
-	else {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	else
+		Py_RETURN_NONE;
 }
 
 static int MTex_setTex( BPy_MTex *self, PyObject *value, void *closure)
@@ -389,10 +386,8 @@ static PyObject *MTex_getObject( BPy_MTex *self, void *closure )
 {
 	if( self->mtex->object )
 		return Object_CreatePyObject( self->mtex->object );
-	else {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	else
+		Py_RETURN_NONE;
 }
 
 static int MTex_setObject( BPy_MTex *self, PyObject *value, void *closure)

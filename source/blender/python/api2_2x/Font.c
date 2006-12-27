@@ -170,7 +170,7 @@ PyObject *M_Font_Load( PyObject * self, PyObject * args )
 		Py_DECREF (tmp);
 	}
 	else
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 	return ( PyObject * ) py_font;
 }
 
@@ -207,7 +207,6 @@ static PyObject *Font_getFilename( BPy_Font * self )
 static int Font_setName( BPy_Font * self, PyObject * value )
 {
 	char *name = NULL;
-	char buf[21];
 	
 	if( !(self->font) )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -218,10 +217,8 @@ static int Font_setName( BPy_Font * self, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected string argument" );
 
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
+	rename_id( &self->font->id, name );
 
-	rename_id( &self->font->id, buf );
-	
 	return 0;
 }
 
@@ -250,7 +247,7 @@ static PyObject *Font_pack( BPy_Font * self )
 {
 	if( !self->font->packedfile ) 
 		self->font->packedfile = newPackedFile(self->font->name);
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 /*--------------- BPy_Font.unpack()---------------------------------*/
@@ -269,7 +266,7 @@ static PyObject *Font_unpack( BPy_Font * self, PyObject * args )
                 return EXPP_ReturnPyObjError( PyExc_RuntimeError,
                                 "error unpacking font" );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 /*--------------- BPy_Font.packed---------------------------------*/

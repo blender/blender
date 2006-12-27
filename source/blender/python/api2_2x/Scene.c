@@ -574,17 +574,14 @@ static PyObject *Scene_getName( BPy_Scene * self )
 static PyObject *Scene_setName( BPy_Scene * self, PyObject * args )
 {
 	char *name;
-	char buf[21];
 	
 	SCENE_DEL_CHECK_PY(self);
 	
 	if( !PyArg_ParseTuple( args, "s", &name ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument" ) );
-	
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
 
-	rename_id( &self->scene->id, buf );
+	rename_id( &self->scene->id, name );
 
 	Py_RETURN_NONE;
 }

@@ -180,9 +180,9 @@ static PyObject *PoseBonesDict_GetItem(BPy_PoseBonesDict *self, PyObject* key)
 	PyObject *value = NULL;
 
 	value = PyDict_GetItem(self->bonesMap, key);
-	if(value == NULL){
-        return EXPP_incr_ret(Py_None);
-	}
+	if(value == NULL)
+        Py_RETURN_NONE;
+	
 	return EXPP_incr_ret(value);
 }
 //------------------TYPE_OBECT DEFINITION--------------------------
@@ -290,7 +290,7 @@ static PyObject *Pose_update(BPy_Pose *self)
 	if(daddy)
 		where_is_pose(daddy);
 
-	return EXPP_incr_ret(Py_None);
+	Py_RETURN_NONE;
 }
 //------------------------tp_methods
 //This contains a list of all methods the object contains
@@ -513,7 +513,7 @@ static PyObject *PoseBone_insertKey(BPy_PoseBone *self, PyObject *args)
 	//update the IPOs
 	remake_action_ipos (((BPy_Object*)parent_object)->object->action);
 
-	return EXPP_incr_ret(Py_None);
+	Py_RETURN_NONE;
 
 AttributeError:
 	return EXPP_objError(PyExc_AttributeError, "%s%s%s",
@@ -941,11 +941,10 @@ static int PoseBone_setSelect(BPy_PoseBone *self, PyObject *value, void *closure
 //Gets the pose bones selection
 static PyObject *PoseBone_getParent(BPy_PoseBone *self, void *closure)
 {
-	if (self->posechannel->parent) {
+	if (self->posechannel->parent)
 		return PyPoseBone_FromPosechannel(self->posechannel->parent);
-	} else {
-        return EXPP_incr_ret(Py_None);
-	}
+	else
+        Py_RETURN_NONE;
 }
 
 //------------------TYPE_OBECT IMPLEMENTATION---------------------------
@@ -1060,7 +1059,7 @@ PyObject *Pose_Init(void)
 	//Initializes TypeObject.ob_type
 	if (PyType_Ready(&Pose_Type) < 0 || PyType_Ready(&PoseBone_Type)  < 0 ||
 		PyType_Ready(&PoseBonesDict_Type) < 0) {
-		return EXPP_incr_ret(Py_None);
+		Py_RETURN_NONE;
 	}
 
 	//Register the module
@@ -1105,7 +1104,7 @@ PyObject *PyPose_FromPose(bPose *pose, char *name)
 
 		return (PyObject*)py_pose;
 	}else{
-		return EXPP_incr_ret(Py_None);
+		Py_RETURN_NONE;
 	}
 
 RuntimeError:
@@ -1125,7 +1124,7 @@ PyObject *PyPoseBone_FromPosechannel(bPoseChannel *pchan)
 		py_posechannel->posechannel = pchan;
 		return (PyObject*)py_posechannel;
 	}else{
-		return EXPP_incr_ret(Py_None);
+		Py_RETURN_NONE;
 	}
 
 RuntimeError:

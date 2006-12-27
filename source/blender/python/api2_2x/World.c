@@ -382,10 +382,9 @@ static PyObject *M_World_Get( PyObject * self, PyObject * args )
 static PyObject *M_World_GetCurrent( PyObject * self )
 {
 	BPy_World *w = NULL;
-	if( !G.scene->world ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( !G.scene->world )
+		Py_RETURN_NONE;
+	
 	w = ( BPy_World * ) PyObject_NEW( BPy_World, &World_Type );
 	w->world = G.scene->world;
 	return ( PyObject * ) w;
@@ -436,8 +435,7 @@ static PyObject *World_setRange( BPy_World * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "expected a float argument" ) );
 	self->world->range = range;
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -445,10 +443,8 @@ static PyObject *World_getIpo( BPy_World * self )
 {
 	struct Ipo *ipo = self->world->ipo;
 
-	if( !ipo ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( !ipo )
+		Py_RETURN_NONE;
 
 	return Ipo_CreatePyObject( ipo );
 }
@@ -484,8 +480,7 @@ static PyObject *World_setIpo( BPy_World * self, PyObject * args )
 
 	self->world->ipo = ipo;
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *World_clearIpo( BPy_World * self )
@@ -530,15 +525,12 @@ static PyObject *World_getName( BPy_World * self )
 static PyObject *World_setName( BPy_World * self, PyObject * args )
 {
 	char *name = 0;
-	char buf[21];
 	if( !PyArg_ParseTuple( args, "s", &name ) )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "expected string argument" ) );
-	snprintf( buf, sizeof( buf ), "%s", name );
-	rename_id( &self->world->id, buf );
+	rename_id( &self->world->id, name );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -577,8 +569,7 @@ static PyObject *World_setSkytype( BPy_World * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument" ) );
 	self->world->skytype = (short)skytype;
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -614,8 +605,7 @@ static PyObject *World_setMode( BPy_World * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument" ) );
 	self->world->mode = (short)mode;
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -663,8 +653,7 @@ static PyObject *World_setMistype( BPy_World * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument" ) );
 	self->world->mistype = (short)mistype;
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -693,8 +682,7 @@ static PyObject *World_setHor( BPy_World * self, PyObject * args )
 	self->world->horr = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
 	self->world->horg = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
 	self->world->horb = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -720,8 +708,7 @@ static PyObject *World_setZen( BPy_World * self, PyObject * args )
 	self->world->zenr = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
 	self->world->zeng = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
 	self->world->zenb = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -755,8 +742,7 @@ static PyObject *World_setAmb( BPy_World * self, PyObject * args )
 	self->world->ambr = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
 	self->world->ambg = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
 	self->world->ambb = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -800,8 +786,7 @@ static PyObject *World_setStar( BPy_World * self, PyObject * args )
 		(float)PyFloat_AsDouble( PyList_GetItem( listargs, 5 ) );
 	self->world->starcolnoise =
 		(float)PyFloat_AsDouble( PyList_GetItem( listargs, 6 ) );
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -842,8 +827,7 @@ static PyObject *World_setMist( BPy_World * self, PyObject * args )
 		(float)PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
 	self->world->misthi =
 		(float)PyFloat_AsDouble( PyList_GetItem( listargs, 3 ) );
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /* world.addScriptLink */
@@ -896,8 +880,7 @@ static PyObject *World_setCurrent( BPy_World * self )
 		G.scene->world->id.us--;
 	world->id.us++;
 	G.scene->world = world;
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /* world.__copy__ */
@@ -1179,5 +1162,5 @@ static PyObject *World_insertIpoKey( BPy_World * self, PyObject * args )
 	EXPP_allqueue(REDRAWACTION, 0);
 	EXPP_allqueue(REDRAWNLA, 0);
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }

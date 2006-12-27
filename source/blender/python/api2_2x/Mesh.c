@@ -7156,16 +7156,13 @@ static PyObject *Mesh_getName( BPy_Mesh * self )
 static int Mesh_setName( BPy_Mesh * self, PyObject * value )
 {
 	char *name;
-	char buf[21];
 
 	name = PyString_AsString ( value );
 	if( !name )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected string argument" );
 
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-
-	rename_id( &self->mesh->id, buf );
+	rename_id( &self->mesh->id, name );
 
 	return 0;
 }

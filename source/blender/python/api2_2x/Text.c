@@ -342,8 +342,7 @@ static PyObject *M_Text_unlink( PyObject * self, PyObject * args )
 
 	( ( BPy_Text * ) textobj )->text = NULL;
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*****************************************************************************/
@@ -437,18 +436,14 @@ static PyObject *Text_getNLines( BPy_Text * self )
 static PyObject *Text_setName( BPy_Text * self, PyObject * args )
 {
 	char *name;
-	char buf[21];
 
 	if( !PyArg_ParseTuple( args, "s", &name ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument" ) );
 
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
+	rename_id( &self->text->id, name );
 
-	rename_id( &self->text->id, buf );
-
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Text_clear( BPy_Text * self)
@@ -465,8 +460,7 @@ static PyObject *Text_clear( BPy_Text * self)
 	txt_cut_sel( self->text );
 	txt_set_undostate( oldstate );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Text_set( BPy_Text * self, PyObject * args )
@@ -485,8 +479,7 @@ static PyObject *Text_set( BPy_Text * self, PyObject * args )
 			self->text->flags &= EXPP_TEXT_MODE_FOLLOW;
 	}
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Text_write( BPy_Text * self, PyObject * args )
@@ -507,8 +500,7 @@ static PyObject *Text_write( BPy_Text * self, PyObject * args )
 	txt_move_eof( self->text, 0 );
 	txt_set_undostate( oldstate );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Text_asLines( BPy_Text * self )

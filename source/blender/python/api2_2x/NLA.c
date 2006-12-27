@@ -260,7 +260,6 @@ static PyObject *Action_getName( BPy_Action * self )
 static PyObject *Action_setName( BPy_Action * self, PyObject * args )
 {
 	char *name;
-	char buf[21];
 
 	if( !self->action )
 		( EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -271,8 +270,7 @@ static PyObject *Action_setName( BPy_Action * self, PyObject * args )
 						"expected string argument" ) );
 
 	/*change name*/
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-	rename_id( &self->action->id, buf);
+	rename_id( &self->action->id, name);
 
 	Py_RETURN_NONE;
 }
@@ -371,8 +369,7 @@ static PyObject *Action_verifyChannel( BPy_Action * self, PyObject * args )
 
 	chan = verify_action_channel(self->action, chanName);
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -400,8 +397,7 @@ static PyObject *Action_removeChannel( BPy_Action * self, PyObject * args )
 	/*remove channel*/
 	BLI_freelinkN( &self->action->chanbase, chan );
 
-	Py_INCREF( Py_None );
-	return ( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Action_getAllChannelIpos( BPy_Action * self )

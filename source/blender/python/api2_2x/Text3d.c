@@ -236,9 +236,7 @@ PyTypeObject Text3d_Type = {
 static PyObject *Text3d_update( BPy_Text3d * self )
 {
 	freedisplist( &self->curve->disp );
-
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*****************************************************************************/
@@ -248,7 +246,6 @@ static PyObject *Text3d_update( BPy_Text3d * self )
 
 PyObject *M_Text3d_New( PyObject * self, PyObject * args )
 {
-	char buf[24];
 	char *name = NULL;
 	BPy_Text3d *pytext3d;	/* for Curve Data object wrapper in Python */
 	Text3d *bltext3d = 0;	/* for actual Curve Data we create in Blender */
@@ -286,10 +283,9 @@ PyObject *M_Text3d_New( PyObject * self, PyObject * args )
 			   "couldn't create Curve Data object" ) );
 
 	pytext3d->curve = bltext3d;	/* link Python curve wrapper to Blender Curve */
-	if( name ) {
-		PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-		rename_id( &bltext3d->id, buf );
-	}
+	if( name )
+		rename_id( &bltext3d->id, name );
+	
 	Text3d_update ( pytext3d );
 	return ( PyObject * ) pytext3d;
 }
@@ -623,7 +619,7 @@ static PyObject* Text3d_setDrawMode(BPy_Text3d* self,PyObject* args)
 		Py_DECREF(v);
 	}
 	Py_DECREF(listObject);
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject* Text3d_getUVorco(BPy_Text3d* self)
@@ -651,7 +647,7 @@ static PyObject* Text3d_setUVorco(BPy_Text3d* self,PyObject* args)
 	else
 		self->curve->flag &= ~CU_UV_ORCO;
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject* Text3d_getBevelAmount(BPy_Text3d* self)
@@ -728,7 +724,7 @@ static PyObject *Text3d_setShear( BPy_Text3d * self, PyObject * args )
 			"acceptable values are between 1.0 and -1.0" ) );
 	self->curve->shear = value;
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Text3d_getSize( BPy_Text3d * self )
@@ -755,7 +751,7 @@ static PyObject *Text3d_setSize( BPy_Text3d * self, PyObject * args )
 			"acceptable values are between 10.0 and 0.1" ) );
 	self->curve->fsize = value;
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Text3d_getLineSeparation( BPy_Text3d * self )
@@ -782,7 +778,7 @@ static PyObject *Text3d_setLineSeparation( BPy_Text3d * self, PyObject * args )
 			"acceptable values are between 10.0 and 0.0" ) );
 	self->curve->linedist = value;
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Text3d_getSpacing( BPy_Text3d * self )
@@ -809,7 +805,7 @@ static PyObject *Text3d_setSpacing( BPy_Text3d * self, PyObject * args )
 			"acceptable values are between 10.0 and 0.0" ) );
 	self->curve->spacing = value;
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 static PyObject *Text3d_getXoffset( BPy_Text3d * self )
 {
@@ -835,7 +831,7 @@ static PyObject *Text3d_setXoffset( BPy_Text3d * self, PyObject * args )
 			"acceptable values are between 50.0 and -50.0" ) );
 	self->curve->xof = value;
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Text3d_getYoffset( BPy_Text3d * self )
@@ -862,7 +858,7 @@ static PyObject *Text3d_setYoffset( BPy_Text3d * self, PyObject * args )
 			"acceptable values are between 50.0 and -50.0" ) );
 	self->curve->yof = value;
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Text3d_getAlignment( BPy_Text3d * self )
@@ -892,7 +888,7 @@ static PyObject *Text3d_setAlignment( BPy_Text3d * self, PyObject * args )
 	value = PyInt_AS_LONG(PyDict_GetItemString(constant->dict, "value"));
 	self->curve->spacemode = (short)value;
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 
@@ -922,7 +918,7 @@ static PyObject *Text3d_getFont( BPy_Text3d * self )
 	if (self->curve) 
 		return Font_CreatePyObject (self->curve->vfont);
 	else
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 }
 
 static PyObject *Text3d_setFont( BPy_Text3d * self, PyObject * args )
@@ -935,7 +931,7 @@ static PyObject *Text3d_setFont( BPy_Text3d * self, PyObject * args )
 	if( !pyobj ) {
 	//	pyobj= M_Text3d_LoadFont (self, Py_BuildValue("(s)", "<builtin>"));
 		self->curve->vfont= get_builtin_font ();
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 	}
 	vf= exist_vfont(pyobj->font->name);
 	if (vf) {
@@ -952,7 +948,7 @@ static PyObject *Text3d_setFont( BPy_Text3d * self, PyObject * args )
 			self->curve->vfont= vf;
 		}	
 	}
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *M_Text3d_LoadFont( PyObject * self, PyObject * args )
@@ -979,7 +975,7 @@ PyObject *M_Text3d_LoadFont( PyObject * self, PyObject * args )
 		vf = exist_vfont( fontfile );
 		if(vf)
 			return Font_CreatePyObject( vf );
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 	}
 
 	return EXPP_ReturnPyObjError( PyExc_TypeError,

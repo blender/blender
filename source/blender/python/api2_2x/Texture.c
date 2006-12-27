@@ -1891,8 +1891,7 @@ static int Texture_setDistMetric( BPy_Texture * self, PyObject * value )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "invalid dist metric type" );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 #else
 	return EXPP_setIValueRange ( value, &self->texture->vn_distm,
 							TEX_DISTANCE,
@@ -1946,10 +1945,8 @@ static PyObject *Texture_getIpo( BPy_Texture * self )
 {
 	struct Ipo *ipo = self->texture->ipo;
 
-	if( !ipo ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( !ipo )
+		Py_RETURN_NONE;
 
 	return Ipo_CreatePyObject( ipo );
 }
@@ -1996,7 +1993,7 @@ static int Texture_setIpo( BPy_Texture * self, PyObject * value )
 	self->texture->ipo = ipo;
 	if ( ipo ) {
 		id = &ipo->id;
-		id_us_plus(id); //id->us++;
+		id_us_plus(id);
 	}
 
 	return 0;
@@ -2554,8 +2551,7 @@ static PyObject *Texture_oldsetType( BPy_Texture * self, PyObject * args )
 		self->texture->env->object= OBACT;
 	}
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Texture_oldsetExtend( BPy_Texture * self, PyObject * args )
@@ -2570,8 +2566,7 @@ static PyObject *Texture_oldsetExtend( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "invalid extend mode" );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*
@@ -2600,8 +2595,7 @@ static PyObject *Texture_oldsetNoiseBasis( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "invalid noise basis" );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Texture_oldsetDistNoise( BPy_Texture * self, PyObject * args )
@@ -2618,8 +2612,7 @@ static PyObject *Texture_oldsetDistNoise( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "invalid noise basis" );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Texture_oldsetSType( BPy_Texture * self, PyObject * args )
@@ -2648,8 +2641,7 @@ static PyObject *Texture_oldsetSType( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "invalid texture stype" );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Texture_oldsetDistMetric( BPy_Texture * self, PyObject * args )
@@ -2667,8 +2659,7 @@ static PyObject *Texture_oldsetDistMetric( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "invalid dist metric type" );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Texture_oldsetImageFlags( BPy_Texture * self, PyObject * args )
@@ -2699,7 +2690,6 @@ static PyObject *Texture_oldsetImageFlags( BPy_Texture * self, PyObject * args )
 
 	self->texture->imaflag = (short)flag;
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 

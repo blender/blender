@@ -357,10 +357,8 @@ static PyObject *M_Curve_New( PyObject * self, PyObject * args )
 			   "couldn't create Curve Data object" ) );
 
 	pycurve->curve = blcurve;	/* link Python curve wrapper to Blender Curve */
-	if( name ) {
-		PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-		rename_id( &blcurve->id, buf );
-	}
+	if( name )
+		rename_id( &blcurve->id, name );
 
 	return ( PyObject * ) pycurve;
 }
@@ -472,18 +470,15 @@ PyObject *Curve_getName( BPy_Curve * self )
 PyObject *Curve_setName( BPy_Curve * self, PyObject * args )
 {
 	char *name;
-	char buf[50];
 
 	if( !PyArg_ParseTuple( args, "s", &( name ) ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected string argument" ) );
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-	rename_id( &self->curve->id, buf );	/* proper way in Blender */
+
+	rename_id( &self->curve->id, name );	/* proper way in Blender */
 
 	Curve_update( self );
-
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Curve_getPathLen( BPy_Curve * self )
@@ -505,8 +500,7 @@ static PyObject *Curve_setPathLen( BPy_Curve * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected int argument" ) );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -529,8 +523,7 @@ static PyObject *Curve_setTotcol( BPy_Curve * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected int argument" ) );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -553,8 +546,7 @@ PyObject *Curve_setMode( BPy_Curve * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected int argument" ) );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 
@@ -776,8 +768,7 @@ static PyObject *Curve_setControlPoint(BPy_Curve *self, PyObject *args)
 	  ptrnurb->bezt[numpoint].vec[i][j] = bez[i*3+j];
     }
 	
-  Py_INCREF(Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 */
 
@@ -794,10 +785,8 @@ static PyObject *Curve_setControlPoint( BPy_Curve * self, PyObject * args )
 	Nurb *ptrnurb = self->curve->nurb.first;
 	int numcourbe = 0, numpoint = 0, i, j;
 
-	if( !ptrnurb ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( !ptrnurb )
+		Py_RETURN_NONE;
 
 	if( ptrnurb->bp )
 		if( !PyArg_ParseTuple
@@ -829,8 +818,7 @@ static PyObject *Curve_setControlPoint( BPy_Curve * self, PyObject * args )
 							  ( listargs,
 							    i * 3 + j ) );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Curve_getControlPoint( BPy_Curve * self, PyObject * args )
@@ -912,8 +900,7 @@ static PyObject *Curve_setLoc( BPy_Curve * self, PyObject * args )
 		PyObject *xx = PyList_GetItem( listargs, i );
 		self->curve->loc[i] = (float)PyFloat_AsDouble( xx );
 	}
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Curve_getRot( BPy_Curve * self )
@@ -942,9 +929,7 @@ static PyObject *Curve_setRot( BPy_Curve * self, PyObject * args )
 		PyObject *xx = PyList_GetItem( listargs, i );
 		self->curve->rot[i] = (float)PyFloat_AsDouble( xx );
 	}
-	Py_INCREF( Py_None );
-	return Py_None;
-
+	Py_RETURN_NONE;
 }
 static PyObject *Curve_getSize( BPy_Curve * self )
 {
@@ -971,8 +956,7 @@ static PyObject *Curve_setSize( BPy_Curve * self, PyObject * args )
 		PyObject *xx = PyList_GetItem( listargs, i );
 		self->curve->size[i] = (float)PyFloat_AsDouble( xx );
 	}
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 

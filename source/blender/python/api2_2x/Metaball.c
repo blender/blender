@@ -426,7 +426,7 @@ static PyObject *M_Metaball_New( PyObject * self, PyObject * args )
 	char *name = 0;
 	BPy_Metaball *pymball;	/* for Data object wrapper in Python */
 	MetaBall *blmball;	/* for actual Data we create in Blender */
-	char buf[21];
+	
 	if( !PyArg_ParseTuple( args, "|s", &name ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument (or nothing)" ) );
@@ -450,10 +450,9 @@ static PyObject *M_Metaball_New( PyObject * self, PyObject * args )
 
 	pymball->metaball = blmball;
 	/*link Python mballer wrapper to Blender MetaBall */
-	if( name ) {		/* user gave us a name for the metaball, use it */
-		PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-		rename_id( &blmball->id, buf );
-	}
+	if( name )		/* user gave us a name for the metaball, use it */
+		rename_id( &blmball->id, name );
+	
 	return ( PyObject * ) pymball;
 }
 
@@ -583,14 +582,12 @@ static PyObject *Metaball_getName( BPy_Metaball * self )
 static int Metaball_setName( BPy_Metaball * self, PyObject * value )
 {
 	char *name = NULL;
-	char buf[21];
 	
 	name = PyString_AsString ( value );
 	if( !name )
 		return ( EXPP_ReturnIntError( PyExc_TypeError,
 						"expected string argument" ) );
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-	rename_id( &self->metaball->id, buf );
+	rename_id( &self->metaball->id, name );
 	return 0;
 }
 

@@ -653,10 +653,8 @@ static PyObject *M_Lamp_New( PyObject * self, PyObject * args,
 
 	if( strcmp( name_str, "LampData" ) == 0 )
 		return ( PyObject * ) py_lamp;
-	else {			/* user gave us a name for the lamp, use it */
-		PyOS_snprintf( buf, sizeof( buf ), "%s", name_str );
-		rename_id( &bl_lamp->id, buf );
-	}
+	else			/* user gave us a name for the lamp, use it */
+		rename_id( &bl_lamp->id, name_str );
 
 	return ( PyObject * ) py_lamp;
 }
@@ -1448,10 +1446,8 @@ static PyObject *Lamp_getIpo( BPy_Lamp * self )
 {
 	struct Ipo *ipo = self->lamp->ipo;
 
-	if( !ipo ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( !ipo )
+		Py_RETURN_NONE;
 
 	return Ipo_CreatePyObject( ipo );
 }
@@ -1547,7 +1543,7 @@ static PyObject *Lamp_insertIpoKey( BPy_Lamp * self, PyObject * args )
 	EXPP_allqueue(REDRAWACTION, 0);
 	EXPP_allqueue(REDRAWNLA, 0);
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Lamp_getModesConst( void )

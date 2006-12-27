@@ -624,15 +624,12 @@ static PyObject *Camera_oldclearIpo( BPy_Camera * self )
 static PyObject *Camera_oldsetName( BPy_Camera * self, PyObject * args )
 {
 	char *name;
-	char buf[21];
 
 	if( !PyArg_ParseTuple( args, "s", &name ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-
-	rename_id( &self->camera->id, buf );
+	rename_id( &self->camera->id, name );
 
 	Py_RETURN_NONE;
 }

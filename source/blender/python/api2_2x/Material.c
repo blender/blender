@@ -1304,10 +1304,8 @@ static PyObject *Material_getIpo( BPy_Material * self )
 {
 	Ipo *ipo = self->material->ipo;
 
-	if( !ipo ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( !ipo )
+		Py_RETURN_NONE;
 
 	return Ipo_CreatePyObject( ipo );
 }
@@ -2004,22 +2002,19 @@ static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args )
 	EXPP_allqueue(REDRAWACTION, 0);
 	EXPP_allqueue(REDRAWNLA, 0);
 
-	return  EXPP_incr_ret( Py_None );		
+	Py_RETURN_NONE;
 }
 
 static int Material_setName( BPy_Material * self, PyObject * value )
 {
 	char *name;
-	char buf[21];
 
 	name = PyString_AsString ( value );
 	if( !name )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected string argument" );
 
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-
-	rename_id( &self->material->id, buf );
+	rename_id( &self->material->id, name );
 
 	return 0;
 }
@@ -2453,8 +2448,7 @@ static PyObject *Material_setTexture( BPy_Material * self, PyObject * args )
 	self->material->mtex[texnum]->texco = (short)texco;
 	self->material->mtex[texnum]->mapto = (short)mapto;
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Material_clearTexture( BPy_Material * self, PyObject * args )
@@ -2477,8 +2471,7 @@ static PyObject *Material_clearTexture( BPy_Material * self, PyObject * args )
 		self->material->mtex[texnum] = NULL;
 	}
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /* mat.addScriptLink */
@@ -2778,8 +2771,7 @@ static PyObject *Material_getOopsLoc ( BPy_Material * self )
 			oops = oops->next;
 		}
 	}
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Material_getOopsSel ( BPy_Material * self )
@@ -2797,8 +2789,7 @@ static PyObject *Material_getOopsSel ( BPy_Material * self )
 			oops = oops->next;
 	  	}
 	}
-	Py_INCREF( Py_None );
-	return Py_None;    
+	Py_RETURN_NONE;
 }
 
 static int Material_setOopsLoc ( BPy_Material * self, PyObject * value )

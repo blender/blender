@@ -423,16 +423,13 @@ static PyObject *Sound_getFilename( BPy_Sound * self )
 static PyObject *Sound_setName( BPy_Sound * self, PyObject * args )
 {
 	char *name;
-	char buf[21];
 
 	if( !PyArg_ParseTuple( args, "s", &name ) ) {
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected a String as argument" ) );
 	}
 
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-
-	rename_id( &self->sound->id, buf );
+	rename_id( &self->sound->id, name );
 
 	Py_RETURN_NONE;
 }
@@ -463,8 +460,7 @@ static PyObject *Sound_play( BPy_Sound * self )
 {
 	sound_play_sound( self->sound );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Sound_setCurrent( BPy_Sound * self )
@@ -480,8 +476,7 @@ static PyObject *Sound_setCurrent( BPy_Sound * self )
 	EXPP_allqueue( REDRAWSOUND, 0 );
 	EXPP_allqueue( REDRAWBUTSLOGIC, 0 );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /* unpack sound */
@@ -538,7 +533,7 @@ static PyObject *Sound_reload( BPy_Sound * self)
 		sound->snd_sound = NULL;
 	}
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 */
 

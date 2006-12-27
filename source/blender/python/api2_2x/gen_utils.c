@@ -685,13 +685,13 @@ int EXPP_setFloatClamped( PyObject *value, float *param,
 int EXPP_setIValueClamped( PyObject *value, void *param,
 								int min, int max, char type )
 {
-	char errstr[128];
 	int number;
 
-	sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
-
-	if( !PyInt_CheckExact ( value ) )
+	if( !PyInt_CheckExact ( value ) ) {
+		char errstr[128];
+		sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
+	}
 
 	number = PyInt_AS_LONG( value );
 

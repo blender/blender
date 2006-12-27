@@ -989,15 +989,12 @@ static PyObject *Image_glLoad( BPy_Image * self )
 static PyObject *Image_setName( BPy_Image * self, PyObject * args )
 {
 	char *name;
-	char buf[21];
 
 	if( !PyArg_ParseTuple( args, "s", &name ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument" ) );
 
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-
-	rename_id( &self->image->id, buf );
+	rename_id( &self->image->id, name );
 
 	Py_RETURN_NONE;
 }

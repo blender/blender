@@ -943,14 +943,12 @@ static PyObject *Armature_getName(BPy_Armature *self, void *closure)
 //Sets the name of the armature
 static int Armature_setName(BPy_Armature *self, PyObject *value, void *closure)
 {
-	char buffer[24];
-	char *name = "";
+	char *name;
 
 	if(value){
 		if(PyString_Check(value)){
 			name = PyString_AsString(value);
-			PyOS_snprintf(buffer, sizeof(buffer), "%s", name);
-			rename_id(&self->armature->id, buffer);
+			rename_id(&self->armature->id, name);
 			return 0; 
 		}
 	}

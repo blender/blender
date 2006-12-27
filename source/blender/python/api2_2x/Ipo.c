@@ -819,16 +819,13 @@ static PyObject *Ipo_getName( BPy_Ipo * self )
 static int Ipo_setName( BPy_Ipo * self, PyObject * args )
 {
 	char *name;
-	char buf[21];
 
 	name = PyString_AsString( args );
 	if( !name )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected string argument" );
 
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-
-	rename_id( &self->ipo->id, buf );
+	rename_id( &self->ipo->id, name );
 
 	return 0;
 }

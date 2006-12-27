@@ -2710,15 +2710,13 @@ static PyObject *Object_setMaterials( BPy_Object * self, PyObject * args )
 static int Object_setName( BPy_Object * self, PyObject * args )
 {
 	char *name;
-	char buf[21];
 
 	name = PyString_AsString ( args );
 	if( !name )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected a string argument" );
-
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-	rename_id( &self->object->id, buf );
+	
+	rename_id( &self->object->id, name );
 
 	return 0;
 }

@@ -255,7 +255,6 @@ int Lattice_CheckPyObject( PyObject * pyobj )
 static PyObject *M_Lattice_New( PyObject * self, PyObject * args )
 {
 	char *name = NULL;
-	char buf[21];
 	Lattice *bl_Lattice;	// blender Lattice object 
 	PyObject *py_Lattice;	// python wrapper 
 
@@ -275,10 +274,8 @@ static PyObject *M_Lattice_New( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
 					      "couldn't create Lattice Object wrapper" );
 
-	if( name ) {
-		PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-		rename_id( &bl_Lattice->id, buf );
-	}
+	if( name )
+		rename_id( &bl_Lattice->id, name );
 
 	return py_Lattice;
 }
@@ -393,18 +390,14 @@ static PyObject *Lattice_getName( BPy_Lattice * self )
 static PyObject *Lattice_setName( BPy_Lattice * self, PyObject * args )
 {
 	char *name;
-	char buf[21];
 
 	if( !PyArg_ParseTuple( args, "s", &name ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument" ) );
 
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
+	rename_id( &self->Lattice->id, name );
 
-	rename_id( &self->Lattice->id, buf );
-
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Lattice_setPartitions( BPy_Lattice * self, PyObject * args )
@@ -426,8 +419,7 @@ static PyObject *Lattice_setPartitions( BPy_Lattice * self, PyObject * args )
 
 	resizelattice(bl_Lattice, x, y, z, NULL);
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Lattice_getPartitions( BPy_Lattice * self )
@@ -446,9 +438,8 @@ static PyObject *Lattice_getKey( BPy_Lattice * self )
 
 	if (key)
 		return Key_CreatePyObject(key);
-	else {
-		return EXPP_incr_ret(Py_None);
-	}
+	else
+		Py_RETURN_NONE;
 }
 
 static PyObject *Lattice_getKeyTypes( BPy_Lattice * self )
@@ -538,8 +529,7 @@ static PyObject *Lattice_setKeyTypes( BPy_Lattice * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "type must be LINEAR, CARDINAL OR BSPLINE" );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Lattice_setMode( BPy_Lattice * self, PyObject * args )
@@ -561,8 +551,7 @@ static PyObject *Lattice_setMode( BPy_Lattice * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "type must be either GRID or OUTSIDE" );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Lattice_getMode( BPy_Lattice * self )
@@ -639,8 +628,7 @@ static PyObject *Lattice_setPoint( BPy_Lattice * self, PyObject * args )
 		bpoint->vec[x] = tempInt;
 	}
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Lattice_getPoint( BPy_Lattice * self, PyObject * args )
@@ -714,8 +702,7 @@ static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args )
 	if( frame > 0 )
 		G.scene->r.cfra = (int)oldfra;
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Lattice_copy( BPy_Lattice * self )

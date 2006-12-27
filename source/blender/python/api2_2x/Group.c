@@ -217,7 +217,6 @@ static int Group_compare( BPy_Group * a, BPy_Group * b );
 static int Group_setName( BPy_Group * self, PyObject * value )
 {
 	char *name = NULL;
-	char buf[22];
 	
 	GROUP_DEL_CHECK_INT(self);
 	
@@ -226,9 +225,7 @@ static int Group_setName( BPy_Group * self, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected string argument" );
 
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-
-	rename_id( &self->group->id, buf );
+	rename_id( &self->group->id, name );
 
 	return 0;
 }
