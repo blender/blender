@@ -102,6 +102,7 @@ static PyObject *Method_Toggle( PyObject * self, PyObject * args );
 static PyObject *Method_Slider( PyObject * self, PyObject * args );
 static PyObject *Method_Scrollbar( PyObject * self, PyObject * args );
 static PyObject *Method_ColorPicker( PyObject * self, PyObject * args );
+static PyObject *Method_Normal( PyObject * self, PyObject * args );
 static PyObject *Method_Number( PyObject * self, PyObject * args );
 static PyObject *Method_String( PyObject * self, PyObject * args );
 static PyObject *Method_GetStringWidth( PyObject * self, PyObject * args );
@@ -228,6 +229,15 @@ Color picker button\n\n\
 (initial) 3-Float tuple of the color (values between 0 and 1)\
 [tooltip=] The button's tooltip";
 
+static char Method_Normal_doc[] = 
+	"(event, x, y, width, height, initial, [tooltip]) - Create a new Button \
+Normal button (a sphere that you can roll to change the normal)\n\n\
+(event) The event number to pass to the button event function when the color changes\n\
+(x, y) The lower left coordinate of the button\n\
+(width, height) The button width and height - non square will gave odd results\n\
+(initial) 3-Float tuple of the normal vector (values between -1 and 1)\
+[tooltip=] The button's tooltip";
+
 static char Method_Number_doc[] =
 	"(name, event, x, y, width, height, initial, min, max, [tooltip]) - Create a \
 new Number button\n\n\
@@ -341,6 +351,7 @@ static struct PyMethodDef Draw_methods[] = {
 	MethodDef( Slider ),
 	MethodDef( Scrollbar ),
 	MethodDef( ColorPicker ),
+	MethodDef( Normal ),
 	MethodDef( Number ),
 	MethodDef( String ),
 	MethodDef( GetStringWidth ),
@@ -1160,6 +1171,49 @@ static PyObject *Method_ColorPicker( PyObject * self, PyObject * args )
  	return ( PyObject * ) but;
 }
 
+
+
+static PyObject *Method_Normal( PyObject * self, PyObject * args )
+{
+	char USAGE_ERROR[] = "expected a 3-float tuple of values between -1 and 1";
+	Button *but;
+	PyObject *inio;
+	uiBlock *block;
+	char *tip = NULL;
+	float nor[3];
+	int event;
+	short x, y, w, h;
+	
+	if( !PyArg_ParseTuple( args, "ihhhhO!|s", &event,
+			       &x, &y, &w, &h, &PyTuple_Type, &inio, &tip ) )
+ 		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected five ints, one tuple and optionally a string as arguments." );
+ 
+ 	if (check_button_event(&event) == -1)
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+ 			"button event argument must be in the range [0, 16382]");
+ 
+	if ( !PyArg_ParseTuple( inio, "fff", nor, nor+1, nor+2 ) )
+		return EXPP_ReturnPyObjError( PyExc_ValueError, USAGE_ERROR);
+
+	if ( EXPP_check_sequence_consistency( inio, &PyFloat_Type ) != 1 )
+		return EXPP_ReturnPyObjError( PyExc_ValueError, USAGE_ERROR);
+ 
+	but = newbutton();
+ 
+	but->type = BVECTOR_TYPE;
+	but->val.asvec[0] = nor[0];
+	but->val.asvec[1] = nor[1];
+	but->val.asvec[2] = nor[2];
+	
+	block = Get_uiBlock(  );
+	if( block ) {
+		uiBut *ubut;
+		ubut = uiDefButF( block, BUT_NORMAL, event, "", x, y, w, h, but->val.asvec, 0.0f, 1.0f, 0, 0, tip);
+	}
+	
+ 	return ( PyObject * ) but;
+}
 
 static PyObject *Method_Number( PyObject * self, PyObject * args )
 {

@@ -614,7 +614,32 @@ def ColorPicker(event, x, y, width, height, initial, tooltip = None):
   @rtype: Blender Button
   @return: The Button created.
   @note: The color picker will not work if the Register's event function is None.
-  @note: Using the same button variable with more then 1 color picker at a time will corrupt memory.
+  @note: Using the same button variable with more then 1 button at a time will corrupt memory.
+  """
+
+def Normal(event, x, y, width, height, initial, tooltip = None):
+  """
+  Create a new Normal button, this allows you to set a 3d vector by rotating a sphere.
+  @type event: int
+  @param event: The event number to pass to the button event function when
+      activated.
+  @type x: int
+  @type y: int
+  @param x: The lower left x (horizontal) coordinate of the button.
+  @param y: The lower left y (vertical) coordinate of the button.
+  @type width: int
+  @type height: int
+  @param width: The button width - non square normal buttons .
+  @param height: The button height.
+  @type initial: 3-float tuple
+  @param initial:  The initial vector value.
+  @type tooltip: string
+  @param tooltip: The button's tooltip (the string that appears when the mouse
+      is kept over the button).
+  @rtype: Blender Button
+  @return: The Button created.
+  @note: The normal button will not work if the Register's event function is None.
+  @note: Using the same button variable with more then 1 button at a time will corrupt memory.
   """
 
 def Number(name, event, x, y, width, height, initial, min, max, tooltip = None):
