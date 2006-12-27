@@ -785,10 +785,27 @@ static void special_transvert_update(void)
 		else if(G.obedit->type==OB_ARMATURE){
 			bArmature *arm= G.obedit->data;
 			EditBone *ebo;
+			TransVert *tv= transvmain;
+			int a=0;
+			
+			/* Ensure all bone tails are correctly adjusted */
+			for (ebo=G.edbo.first; ebo; ebo=ebo->next) {
+				/* adjust tip if both ends selected */
+				if ((ebo->flag & BONE_ROOTSEL) && (ebo->flag & BONE_TIPSEL)) {
+					if (tv) {
+						float diffvec[3];
+						
+						VecSubf(diffvec, tv->loc, tv->oldloc);
+						VecAddf(ebo->tail, ebo->tail, diffvec);
+						
+						a++;
+						if (a<tottrans) tv++;
+					}
+				}
+			}
 			
 			/* Ensure all bones are correctly adjusted */
-			for (ebo=G.edbo.first; ebo; ebo=ebo->next){
-				
+			for (ebo=G.edbo.first; ebo; ebo=ebo->next) {
 				if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
 					/* If this bone has a parent tip that has been moved */
 					if (ebo->parent->flag & BONE_TIPSEL){
@@ -913,25 +930,30 @@ static void make_trans_verts(float *min, float *max, int mode)
 		
 		for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 			if(ebo->layer & arm->layer) {
-				if (ebo->flag & BONE_TIPSEL){
-					VECCOPY (tv->oldloc, ebo->tail);
-					tv->loc= ebo->tail;
-					tv->nor= NULL;
-					tv->flag= 1;
-					tv++;
-					tottrans++;
-				}
-
-				/*  Only add the root if there is no connection */
-				if (ebo->flag & BONE_ROOTSEL){
-					if (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && ebo->parent->flag & BONE_TIPSEL)){
+				short tipsel= (ebo->flag & BONE_TIPSEL);
+				short rootsel= (ebo->flag & BONE_ROOTSEL);
+				short rootok= (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && ebo->parent->flag & BONE_TIPSEL));
+				
+				if ((tipsel && rootsel) || (rootsel)) {
+					/* Only add the root if there is no connection.
+					 * Don't add the tip, otherwise we get zero-length bones.
+					 */
+					if (rootok) {
 						VECCOPY (tv->oldloc, ebo->head);
 						tv->loc= ebo->head;
 						tv->nor= NULL;
 						tv->flag= 1;
 						tv++;
 						tottrans++;
-					}		
+					}	
+				}
+				else if (tipsel) {
+					VECCOPY (tv->oldloc, ebo->tail);
+					tv->loc= ebo->tail;
+					tv->nor= NULL;
+					tv->flag= 1;
+					tv++;
+					tottrans++;
 				}
 			}			
 		}
@@ -1089,10 +1111,10 @@ void snap_sel_to_grid()
 
 		}
 
+		special_transvert_update();
+		
 		MEM_freeN(transvmain);
 		transvmain= 0;
-		
-		special_transvert_update();
 
 		allqueue(REDRAWVIEW3D, 0);
 		return;
@@ -1201,10 +1223,11 @@ void snap_sel_to_curs()
 			VECCOPY(tv->loc, vec);
 
 		}
+		
+		special_transvert_update();
+		
 		MEM_freeN(transvmain);
 		transvmain= 0;
-
-		special_transvert_update();
 
 		allqueue(REDRAWVIEW3D, 0);
 		return;
@@ -1559,10 +1582,11 @@ void snap_to_center()
 			Mat3MulVecfl(imat, vec);
 			VECCOPY(tv->loc, vec);
 		}
+		
+		special_transvert_update();
+		
 		MEM_freeN(transvmain);
 		transvmain= 0;
-
-		special_transvert_update();
 
 		allqueue(REDRAWVIEW3D, 0);
 		return;
