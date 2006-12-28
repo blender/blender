@@ -51,7 +51,9 @@ A pop-up will provide further options, if the results of a method are not adequa
 
 import Blender
 from Blender import Window
-from Blender.Mathutils import AngleBetweenVecs, MidpointVecs, Vector, CrossVecs
+from Blender.Mathutils import MidpointVecs, Vector, CrossVecs
+from Blender.Mathutils import AngleBetweenVecs as _AngleBetweenVecs_
+
 from Blender.Draw import PupMenu
 
 BIG_NUM = 1<<30
@@ -61,7 +63,7 @@ CULL_METHOD = 0
 
 def AngleBetweenVecs(a1,a2):
 	try:
-		return AngleBetweenVecs(a1,a2)
+		return _AngleBetweenVecs_(a1,a2)
 	except:
 		return 180.0
 
@@ -333,7 +335,9 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 	
 	# IS THE LOOP FLIPPED, IF SO FLIP BACK.
 	angleBetweenLoopNormals = AngleBetweenVecs(eloop1.normal, eloop2.normal)
-	
+	print eloop1.normal, eloop2.normal
+	print "angleBetweenLoopNormals ", angleBetweenLoopNormals 
+	#if abs(angleBetweenLoopNormals-90) > 90:
 	if angleBetweenLoopNormals > 90:
 		eloop2.reverse()
 	
