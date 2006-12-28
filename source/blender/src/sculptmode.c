@@ -158,8 +158,11 @@ SculptData *sculpt_data()
 	return &G.scene->sculptdata;
 }
 
+void sculpt_init_session();
 SculptSession *sculpt_session()
 {
+	if(!sculpt_data()->session)
+		sculpt_init_session();
 	return sculpt_data()->session;
 }
 
@@ -1457,10 +1460,31 @@ void sculptmode_propset_calctex()
 	}
 }
 
+void sculptmode_propset_header()
+{
+	SculptSession *ss= sculpt_session();
+	PropsetData *pd= ss ? ss->propset : NULL;
+	if(pd) {
+		char str[512];
+		const char *name= "";
+		int val= 0;
+		if(pd->mode == PropsetSize) {
+			name= "Size";
+			val= sculptmode_brush()->size;
+		}
+		else if(pd->mode == PropsetStrength) {
+			name= "Strength";
+			val= sculptmode_brush()->strength;
+		}
+		sprintf(str, "Brush %s: %d", name, val);
+		headerprint(str);
+	}
+}
+
 void sculptmode_propset_end(int cancel)
 {
 	SculptSession *ss= sculpt_session();
-	PropsetData *pd= ss->propset;
+	PropsetData *pd= ss ? ss->propset : NULL;
 	if(pd) {
 		if(cancel) {
 			sculptmode_brush()->size= pd->origsize;
@@ -1507,6 +1531,7 @@ void sculptmode_propset_init(PropsetMode mode)
 	}
 
 	pd->mode= mode;
+	sculptmode_propset_header();
 	
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1556,6 +1581,8 @@ void sculptmode_propset(unsigned short event)
 	default:
 		break;
 	};
+	
+	sculptmode_propset_header();
 }
 
 void sculptmode_selectbrush_menu()
