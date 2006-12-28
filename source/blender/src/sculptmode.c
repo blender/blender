@@ -587,9 +587,9 @@ void calc_vertex_users()
 	sculptmode_free_vertexusers(ss);
 	
 	/* Allocate an array of ListBases, one per vertex */
-	ss->vertex_users= (ListBase*)MEM_callocN(sizeof(ListBase) * me->totvert, "vertex_users");
+	ss->vertex_users= MEM_callocN(sizeof(ListBase) * me->totvert, "vertex_users");
 	ss->vertex_users_size= me->totvert;
-	ss->vertex_users_mem= MEM_mallocN(sizeof(IndexNode)*me->totvert*4, "vertex_users_mem");
+	ss->vertex_users_mem= MEM_callocN(sizeof(IndexNode)*me->totface*4, "vertex_users_mem");
 	node= ss->vertex_users_mem;
 
 	/* Find the users */
