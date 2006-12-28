@@ -90,7 +90,17 @@ extern int convex(float *v1, float *v2, float *v3, float *v4);
 
 /* ******************* editmesh_mods.c */
 extern EditEdge *findnearestedge(int *dist);
-extern EditVert *findnearestvert(int *dist, short sel);
+
+/**
+ * findnearestvert
+ * 
+ * dist (in/out): minimal distance to the nearest and at the end, actual distance
+ * sel: selection bias
+ * 		if SELECT, selected vertice are given a 5 pixel bias to make them farter than unselect verts
+ * 		if 0, unselected vertice are given the bias
+ * strict: if 1, the vertice corresponding to the sel parameter are ignored and not just biased 
+ */
+extern EditVert *findnearestvert(int *dist, short sel, short strict);
 
 /* ******************* editmesh_tools.c */
 

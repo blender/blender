@@ -309,10 +309,10 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 		/*if (G.scene->selectmode & B_SEL_VERT)*/
 		{
 			EditVert *nearest=NULL;
-			int dist = 50; // Use a user defined value here
+			int dist = 40; // Use a user defined value here
 			
 			// use findnearestverts in vert mode, others in other modes
-			nearest = findnearestvert(&dist, 0);
+			nearest = findnearestvert(&dist, SELECT, 1);
 			
 			if (nearest != NULL)
 			{
@@ -409,7 +409,12 @@ void TargetSnapClosest(TransInfo *t)
 		// Base case, only one selected item
 		if (t->total == 1)
 		{
-			closest = t->data;
+			VECCOPY(t->tsnap.snapTarget, t->data[0].iloc);
+
+			if(t->flag & (T_EDIT|T_POSE)) {
+				Object *ob= G.obedit?G.obedit:t->poseobj;
+				Mat4MulVecfl(ob->obmat, t->tsnap.snapTarget);
+			}
 		}
 		// More than one selected item
 		else
@@ -420,7 +425,11 @@ void TargetSnapClosest(TransInfo *t)
 				float dist;
 				
 				VECCOPY(loc, td->iloc);
-				Mat4MulVecfl(G.obedit->obmat, loc);
+				
+				if(t->flag & (T_EDIT|T_POSE)) {
+					Object *ob= G.obedit?G.obedit:t->poseobj;
+					Mat4MulVecfl(ob->obmat, loc);
+				}
 				
 				dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 				

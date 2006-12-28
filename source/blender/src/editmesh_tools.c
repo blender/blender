@@ -6468,4 +6468,3 @@ void loop_to_region(void)
 	allqueue(REDRAWVIEW3D, 0);
 	BIF_undo_push("Edge Loop to Face Region");
 }
-   

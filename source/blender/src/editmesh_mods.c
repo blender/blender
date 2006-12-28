@@ -331,7 +331,7 @@ int EM_init_backbuf_circle(short xs, short ys, short rads)
 
 static void findnearestvert__doClosest(void *userData, EditVert *eve, int x, int y, int index)
 {
-	struct { short mval[2], pass, select; int dist, lastIndex, closestIndex; EditVert *closest; } *data = userData;
+	struct { short mval[2], pass, select, strict; int dist, lastIndex, closestIndex; EditVert *closest; } *data = userData;
 
 	if (data->pass==0) {
 		if (index<=data->lastIndex)
@@ -343,7 +343,12 @@ static void findnearestvert__doClosest(void *userData, EditVert *eve, int x, int
 
 	if (data->dist>3) {
 		int temp = abs(data->mval[0] - x) + abs(data->mval[1]- y);
-		if ((eve->f&1)==data->select) temp += 5;
+		if ((eve->f&1) == data->select) {
+			if (data->strict == 1)
+				return;
+			else
+				temp += 5;
+		}
 
 		if (temp<data->dist) {
 			data->dist = temp;
@@ -352,13 +357,28 @@ static void findnearestvert__doClosest(void *userData, EditVert *eve, int x, int
 		}
 	}
 }
-EditVert *findnearestvert(int *dist, short sel)
+
+/**
+ * findnearestvert
+ * 
+ * dist (in/out): minimal distance to the nearest and at the end, actual distance
+ * sel: selection bias
+ * 		if SELECT, selected vertice are given a 5 pixel bias to make them farter than unselect verts
+ * 		if 0, unselected vertice are given the bias
+ * strict: if 1, the vertice corresponding to the sel parameter are ignored and not just biased 
+ */
+EditVert *findnearestvert(int *dist, short sel, short strict)
 {
 	short mval[2];
 
 	getmouseco_areawin(mval);
 		
-	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+	/**
+	 *  FIXME
+	 *  Strict bypasses the openGL select buffer
+	 *  someone with more knowledge of this should fix it -- theeth
+	 */
+	if(strict == 0 && G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
 		int distance;
 		unsigned int index = sample_backbuf_rect(mval, 50, em_wireoffs, 0xFFFFFF, &distance);
 		EditVert *eve = BLI_findlink(&G.editMesh->verts, index-1);
@@ -371,7 +391,7 @@ EditVert *findnearestvert(int *dist, short sel)
 		}
 	}
 	else {
-		struct { short mval[2], pass, select; int dist, lastIndex, closestIndex; EditVert *closest; } data;
+		struct { short mval[2], pass, select, strict; int dist, lastIndex, closestIndex; EditVert *closest; } data;
 		static int lastSelectedIndex=0;
 		static EditVert *lastSelected=NULL;
 
@@ -385,6 +405,7 @@ EditVert *findnearestvert(int *dist, short sel)
 		data.mval[1] = mval[1];
 		data.select = sel;
 		data.dist = *dist;
+		data.strict = strict;
 		data.closest = NULL;
 		data.closestIndex = 0;
 
@@ -731,7 +752,7 @@ static int unified_findnearest(EditVert **eve, EditEdge **eed, EditFace **efa)
 	*efa= NULL;
 	
 	if(G.scene->selectmode & SCE_SELECT_VERTEX)
-		*eve= findnearestvert(&dist, SELECT);
+		*eve= findnearestvert(&dist, SELECT, 0);
 	if(G.scene->selectmode & SCE_SELECT_FACE)
 		*efa= findnearestface(&dist);
 

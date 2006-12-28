@@ -39,9 +39,12 @@
 
 struct TransInfo;
 struct TransData;
+struct TransSnap;
 struct NumInput;
 struct Object;
 struct View3D;
+struct ScrArea;
+
 
 typedef struct NumInput {
     short  idx;
@@ -331,8 +334,6 @@ void flushTransUVs(TransInfo *t);
 int clipUVTransform(TransInfo *t, float *vec, int resize);
 
 /*********************** exported from transform_manipulator.c ********** */
-struct ScrArea;
-struct View3d;
 void draw_manipulator_ext(struct ScrArea *sa, int type, char axis, int col, float vec[3], float mat[][3]);
 int calc_manipulator_stats(struct ScrArea *sa);
 float get_drawsize(struct View3D *v3d);

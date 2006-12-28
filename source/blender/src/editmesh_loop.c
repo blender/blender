@@ -562,7 +562,7 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 		if(vsnap){ 
 			persp(PERSP_VIEW);
 			dist = tolerance;
-			snapvert = findnearestvert(&dist, SELECT);
+			snapvert = findnearestvert(&dist, SELECT, 0);
 			glColor3ub(255, 0, 255);
 			glDrawBuffer(GL_FRONT);
 			persp(PERSP_WIN);
