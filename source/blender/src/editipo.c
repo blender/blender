@@ -2866,10 +2866,8 @@ void common_insertkey(void)
  					}
  					if(event==12 || event==13) {
  						float eul[3];
- 						float rotMat[3][3];
- 						
- 						Mat3CpyMat4(rotMat, ob->obmat);
- 						Mat3ToEul(rotMat, eul);
+						
+ 						Mat4ToEul(ob->obmat, eul);
  						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_X, eul[0]*(5.72958));
  						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_Y, eul[1]*(5.72958));
  						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_Z, eul[2]*(5.72958));
@@ -2884,10 +2882,14 @@ void common_insertkey(void)
 		else if(event==1) BIF_undo_push("Insert Rot Key");
 		else if(event==2) BIF_undo_push("Insert Scale Key");
 		else if(event==3) BIF_undo_push("Insert LocRot Key");
-		else if(event==4) BIF_undo_push("Insert LocRotSca;e Key");
+		else if(event==4) BIF_undo_push("Insert LocRotScale Key");
 		else if(event==5) BIF_undo_push("Insert Layer Key");
 		else if(event==7) BIF_undo_push("Insert Vertex Key");
 		else if(event==9) BIF_undo_push("Insert Avail Key");
+		else if(event==11) BIF_undo_push("Insert VisualLoc Key");
+		else if(event==12) BIF_undo_push("Insert VisualRot Key");
+		else if(event==13) BIF_undo_push("Insert VisualLocRot Key");
+		else if(event==15) BIF_undo_push("Insert Needed Key");
 		
 		DAG_scene_flush_update(G.scene, screen_view3d_layers());
 		
