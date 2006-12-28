@@ -41,6 +41,7 @@ struct TransInfo;
 struct TransData;
 struct NumInput;
 struct Object;
+struct View3D;
 
 typedef struct NumInput {
     short  idx;
