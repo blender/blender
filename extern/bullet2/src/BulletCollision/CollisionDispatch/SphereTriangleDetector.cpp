@@ -147,7 +147,7 @@ bool SphereTriangleDetector::collide(const btVector3& sphereCenter,btVector3 &po
 		btVector3 contactToCentre = c - contactPoint;
 		float distanceSqr = contactToCentre.length2();
 		if (distanceSqr < (r - MAX_OVERLAP)*(r - MAX_OVERLAP)) {
-			float distance = sqrtf(distanceSqr);
+			float distance = btSqrt(distanceSqr);
 			if (1)
 			{
 				resultNormal = contactToCentre;
