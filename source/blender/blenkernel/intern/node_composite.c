@@ -5152,7 +5152,7 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 			
 			if(ibuf->rect_float == cbuf->rect) {
 				/* no scaling happened. */
-				stackbuf= pass_on_compbuf(cbuf);
+				stackbuf= pass_on_compbuf(in[0]->data);
 			}
 			else {
 				stackbuf= alloc_compbuf(newx, newy, CB_RGBA, 0);
