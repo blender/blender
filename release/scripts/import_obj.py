@@ -482,18 +482,13 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 	if CREATE_EDGES:
 		me.edges.extend( edges )
 	
+	me.calcNormals()
+	
 	scn= Scene.GetCurrent()
 	ob= scn.objects.new(me)
 	new_objects.append(ob)
-	#ob= Object.New('Mesh')
-	#ob.link(me)
-	#scn.link(ob)
 	ob.sel= 1
-	# ob.makeDisplayList()
-	# me.update()
-	# print ob.getBoundBox()
-
-
+	
 
 def get_float_func(filepath):
 	'''
