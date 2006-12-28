@@ -1542,20 +1542,26 @@ void sculptmode_propset(unsigned short event)
 	short mouse[2];
 	short tmp[2];
 	float dist;
+	char ctrl;
+	BrushData *brush= sculptmode_brush();
 
 	switch(event) {
 	case MOUSEX:
 	case MOUSEY:
+		ctrl= G.qual & LR_CTRLKEY;
 		getmouseco_areawin(mouse);
 		tmp[0]= pd->origloc[0]-mouse[0];
 		tmp[1]= pd->origloc[1]-mouse[1];
 		dist= sqrt(tmp[0]*tmp[0]+tmp[1]*tmp[1]);
 		if(pd->mode == PropsetSize) {
-			sculptmode_brush()->size= dist;
-			if(sculptmode_brush()->size>200) sculptmode_brush()->size= 200;
+			brush->size= dist;
+			if(ctrl) brush->size= (brush->size+5)/10*10;
+			if(brush->size<1) brush->size= 1;
+			if(brush->size>200) brush->size= 200;
 		} else if(pd->mode == PropsetStrength) {
 			float fin= (200.0f - dist) * 0.5f;
-			sculptmode_brush()->strength= fin>=0 ? fin : 0;
+			brush->strength= fin>=0 ? fin : 0;
+			if(ctrl) brush->strength= (brush->strength+5)/10*10;
 			sculptmode_propset_calctex();
 		}
 		allqueue(REDRAWVIEW3D, 0);
@@ -1570,8 +1576,8 @@ void sculptmode_propset(unsigned short event)
 		break;*/
 	case ESCKEY:
 	case RIGHTMOUSE:
-		sculptmode_brush()->size= pd->origsize;
-		sculptmode_brush()->strength= pd->origstrength;
+		brush->size= pd->origsize;
+		brush->strength= pd->origstrength;
 	case LEFTMOUSE:
 		while(get_mbut()==L_MOUSE);
 	case RETKEY:
