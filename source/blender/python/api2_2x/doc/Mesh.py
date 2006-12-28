@@ -1002,6 +1002,22 @@ class Mesh:
     associated with the mesh's object
     """
 
+  def getUVLayerNames():
+    """
+    Return a list of all UV layer names
+    @rtype: list of strings
+    @return: returns a list of strings representing all UV layers
+    associated with the mesh's object
+    """
+
+  def getColorLayerNames():
+    """
+    Return a list of all color layer names
+    @rtype: list of strings
+    @return: returns a list of strings representing all color layers
+    associated with the mesh's object
+    """
+
   def getVertexInfluences(index):
     """
     Get the bone influences for a specific vertex.
