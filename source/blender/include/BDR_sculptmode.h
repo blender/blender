@@ -30,6 +30,8 @@
 #ifndef BDR_SCULPTMODE_H
 #define BDR_SCULPTMODE_H
 
+#include "transform.h"
+
 struct uiBlock;
 struct BrushData;
 struct IndexNode;
@@ -56,6 +58,8 @@ typedef struct PropsetData {
 	
 	short origsize;
 	char origstrength;
+	
+	NumInput num;
 } PropsetData;
 
 typedef struct SculptSession {

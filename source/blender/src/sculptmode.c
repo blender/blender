@@ -1528,6 +1528,8 @@ void sculptmode_propset_init(PropsetMode mode)
 		pd->origstrength= sculptmode_brush()->strength;
 		
 		sculptmode_propset_calctex();
+		
+		pd->num.idx_max= 0;
 	}
 
 	pd->mode= mode;
@@ -1542,38 +1544,44 @@ void sculptmode_propset(unsigned short event)
 	short mouse[2];
 	short tmp[2];
 	float dist;
-	char ctrl;
 	BrushData *brush= sculptmode_brush();
-
+	char valset= 0;
+	
+	handleNumInput(&pd->num, event);
+	
+	if(hasNumInput(&pd->num)) {
+		float val;
+		applyNumInput(&pd->num, &val);
+		if(pd->mode==PropsetSize)
+			brush->size= val;
+		else if(pd->mode==PropsetStrength)
+			brush->strength= val;
+		valset= 1;
+		allqueue(REDRAWVIEW3D, 0);
+	}
+	
 	switch(event) {
 	case MOUSEX:
 	case MOUSEY:
-		ctrl= G.qual & LR_CTRLKEY;
-		getmouseco_areawin(mouse);
-		tmp[0]= pd->origloc[0]-mouse[0];
-		tmp[1]= pd->origloc[1]-mouse[1];
-		dist= sqrt(tmp[0]*tmp[0]+tmp[1]*tmp[1]);
-		if(pd->mode == PropsetSize) {
-			brush->size= dist;
-			if(ctrl) brush->size= (brush->size+5)/10*10;
-			if(brush->size<1) brush->size= 1;
-			if(brush->size>200) brush->size= 200;
-		} else if(pd->mode == PropsetStrength) {
-			float fin= (200.0f - dist) * 0.5f;
-			brush->strength= fin>=0 ? fin : 0;
-			if(ctrl) brush->strength= (brush->strength+5)/10*10;
-			sculptmode_propset_calctex();
+		if(!hasNumInput(&pd->num)) {
+			char ctrl= G.qual & LR_CTRLKEY;
+			getmouseco_areawin(mouse);
+			tmp[0]= pd->origloc[0]-mouse[0];
+			tmp[1]= pd->origloc[1]-mouse[1];
+			dist= sqrt(tmp[0]*tmp[0]+tmp[1]*tmp[1]);
+			if(pd->mode == PropsetSize) {
+				brush->size= dist;
+				if(ctrl) brush->size= (brush->size+5)/10*10;
+			} else if(pd->mode == PropsetStrength) {
+				float fin= (200.0f - dist) * 0.5f;
+				brush->strength= fin>=0 ? fin : 0;
+				if(ctrl) brush->strength= (brush->strength+5)/10*10;
+				
+			}
+			valset= 1;
+			allqueue(REDRAWVIEW3D, 0);
 		}
-		allqueue(REDRAWVIEW3D, 0);
 		break;
-	/*case WHEELUPMOUSE:
-		sculptmode_set_strength(5);
-		allqueue(REDRAWVIEW3D, 0);
-		break;
-	case WHEELDOWNMOUSE:
-		sculptmode_set_strength(-5);
-		allqueue(REDRAWVIEW3D, 0);
-		break;*/
 	case ESCKEY:
 	case RIGHTMOUSE:
 		brush->size= pd->origsize;
@@ -1587,6 +1595,17 @@ void sculptmode_propset(unsigned short event)
 	default:
 		break;
 	};
+	
+	if(valset) {
+		if(pd->mode == PropsetSize) {
+			if(brush->size<1) brush->size= 1;
+			if(brush->size>200) brush->size= 200;
+		}
+		else if(pd->mode == PropsetStrength) {
+			if(brush->strength > 100) brush->strength= 100;
+			sculptmode_propset_calctex();
+		}
+	}
 	
 	sculptmode_propset_header();
 }
