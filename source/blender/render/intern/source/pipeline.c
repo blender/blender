@@ -1058,6 +1058,9 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 		re->result->rectx= re->rectx;
 		re->result->recty= re->recty;
 		
+		/* we clip faces with a minimum of 2 pixel boundary outside of image border. see zbuf.c */
+		re->clipcrop= 1.0f + 2.0f/(float)(re->winx>re->winy?re->winy:re->winx);
+		
 		if(commandline_threads>0 && commandline_threads<=BLENDER_MAX_THREADS)
 			re->r.threads= commandline_threads;
 	}
@@ -1084,6 +1087,7 @@ void RE_SetWindow(Render *re, rctf *viewplane, float clipsta, float clipend)
 	re->r.mode &= ~R_ORTHO;
 
 	i_window(re->viewplane.xmin, re->viewplane.xmax, re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend, re->winmat);
+	
 }
 
 void RE_SetOrtho(Render *re, rctf *viewplane, float clipsta, float clipend)

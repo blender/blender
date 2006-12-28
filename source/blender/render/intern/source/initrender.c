@@ -549,8 +549,6 @@ void RE_SetCamera(Render *re, Object *camera)
 	else 
 		RE_SetWindow(re, &viewplane, clipsta, clipend);
 
-	/* we clip faces with a minimum of 2 pixel boundary outside of image border. see zbuf.c */
-	re->clipcrop= 1.0f + 2.0f/(float)(re->winx>re->winy?re->winy:re->winx);
 }
 
 
