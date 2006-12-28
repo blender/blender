@@ -808,7 +808,7 @@ def load_3ds(filename, PREF_UI= True):
 	
 	'''
 	for ob in importedObjects:
-		if ob.getType()=='Mesh':
+		if ob.type=='Mesh':
 			me= ob.getData(mesh=1)
 			me.verts.delete([me.verts[0],])
 	'''

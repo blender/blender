@@ -394,7 +394,7 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 		mesh.verts= None
 	
 	
-	type = ob.getType()
+	type = ob.type
 	dataname = ob.getData(1)
 	tempob= None
 	if apply_modifiers or type != 'Mesh':

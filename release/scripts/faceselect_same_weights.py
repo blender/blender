@@ -89,16 +89,15 @@ def selSameWeights(me, PREF_TOLERENCE):
 
 def main():
 	scn= Scene.GetCurrent()
-	ob= scn.getActiveObject()
+	ob= scn.objects.active
 	
-	if not ob or ob.getType() != 'Mesh':
+	if not ob or ob.type != 'Mesh':
 		Draw.PupMenu('Error, no active mesh object, aborting.')
 		return
 	
 	me= ob.getData(mesh=1)
 	
 	PREF_TOLERENCE= Draw.Create(0.1)
-	
 	
 	pup_block= [\
 	('Tolerence:', PREF_TOLERENCE, 0.01, 1.0, 'Tolerence for selecting faces of the same weight.'),\

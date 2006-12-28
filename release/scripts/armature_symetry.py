@@ -246,9 +246,9 @@ def main():
 	'''
 	
 	scn= Scene.GetCurrent()
-	arm_ob= scn.getActiveObject()
+	arm_ob= scn.objects.active
 	
-	if not arm_ob or arm_ob.getType()!='Armature':
+	if not arm_ob or arm_ob.type!='Armature':
 		Blender.Draw.PupMenu('No Armature object selected.')
 		return
 	

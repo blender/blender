@@ -253,7 +253,7 @@ class Node:
 	def blender_export(self, level=[0]):
 		if self.object:
 			if options.verbose >= 2:
-				print '\t' * level[0], self.name, self.object.getType()
+				print '\t' * level[0], self.name, self.object.type
 
 		level[0] += 1
 		
@@ -294,7 +294,7 @@ class Node:
 		self.header = header
 		self.object = object
 		if object:
-			self.name = self.object.getName()
+			self.name = self.object.name
 			self.matrix = self.object.getMatrix('localspace')
 		else:
 			self.name = 'no name'
@@ -320,7 +320,7 @@ class Node:
 		# Spawn children.
 		self.has_object_child = False # For Database class.
 		for child in self.child_objects:			
-			if child.getType() == 'Mesh':
+			if child.type == 'Mesh':
 				BlenderMesh(self, header, child, left_over)
 				self.has_object_child = True
 			else: # Treat all non meshes as emptys
@@ -371,7 +371,7 @@ class BlenderMesh(Node):
 
 			# Gather Material
 			mat_desc = MaterialDesc()
-			mat_desc.name = mat.getName()
+			mat_desc.name = mat.name
 			mat_desc.alpha = mat.getAlpha()
 			mat_desc.shininess = mat.getSpec() * 64.0   # 2.0 => 128.0
 			if options.use_mat_color:

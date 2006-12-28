@@ -64,26 +64,20 @@ def rem_free_verts(me):
 	
 def rem_free_edges(me, limit=None):
 	''' Only remove based on limit if a limit is set, else remove all '''
-	def sortPair(a,b):
-		if a>b:
-			return b,a
-		else:
-			return a,b
 	
 	edgeDict= {} # will use a set when python 2.4 is standard.
 	
 	for f in me.faces:
-		fidxs= [v.index for v in f.v]
-		for i in xrange(len(fidxs)):
-			edgeDict[sortPair(fidxs[i], fidxs[i-1])]= None
+		for edkey in f.edge_keys:
+			edgeDict[edkey] = None
 	
 	edges_free= []
 	for e in me.edges:
-		if not edgeDict.has_key(sortPair(e.v1.index, e.v2.index)):
+		if not edgeDict.has_key(e.key):
 			edges_free.append(e)
 	
 	if limit != None:
-		edges_free= [e for e in edges_free if (e.v1.co-e.v2.co).length <= limit]
+		edges_free= [e for e in edges_free if e.length <= limit]
 	
 	me.edges.delete(edges_free)
 	return len(edges_free)
@@ -196,8 +190,8 @@ def normalize_vweight(me, groupNames, vWeightDict):
 
 def main():	
 	scn= Scene.GetCurrent()
-	obsel= Object.GetSelected()
-	actob= scn.getActiveObject()
+	obsel= list(scn.objects.context)
+	actob= scn.objects.active
 	
 	is_editmode= Window.EditMode()
 	
@@ -262,11 +256,11 @@ def main():
 	if CLEAN_ALL_DATA:
 		if CLEAN_GROUP or CLEAN_VWEIGHT or CLEAN_WEIGHT_NORMALIZE:
 			# For groups we need the objects linked to the mesh
-			meshes= [ob.getData(mesh=1) for ob in Object.Get() if ob.getType() == 'Mesh']
+			meshes= [ob.getData(mesh=1) for ob in Object.Get() if ob.type == 'Mesh']
 		else:
 			meshes= Mesh.Get()
 	else:
-		meshes= [ob.getData(mesh=1) for ob in obsel if ob.getType() == 'Mesh']
+		meshes= [ob.getData(mesh=1) for ob in obsel if ob.type == 'Mesh']
 	
 	rem_face_count= rem_edge_count= rem_vert_count= rem_material_count= rem_group_count= rem_vweight_count= 0
 	

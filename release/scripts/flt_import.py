@@ -1835,8 +1835,8 @@ def select_file(filename):
 	
 	# FIX UP AFTER DUMMY VERT AND REMOVE DOUBLES
 	Blender.Mesh.Mode(Blender.Mesh.SelectModes['VERTEX'])
-	for ob in Blender.Object.GetSelected():
-		if ob.getType()=='Mesh':
+	for ob in scene.objects.context:
+		if ob.type=='Mesh':
 			me=ob.getData(mesh=1)
 			me.verts.delete(0) # remove the dummy vert
 			me.sel= 1

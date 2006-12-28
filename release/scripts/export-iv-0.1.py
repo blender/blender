@@ -279,7 +279,7 @@ def ExportToIv(file_name):
 		#elif obtype == "Camera":
 		#	cameras.append(object);
 		#else:
-		#	print "Exporting %s objects isn't supported!" % object.getType()
+		#	print "Exporting %s objects isn't supported!" % object.type
 
 	# write header, footer and groups of object types
 	WriteHeader(file);

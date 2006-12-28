@@ -52,6 +52,21 @@ Example::
   ob.enableDupGroup= True
   ob.DupGroup= grp
   Window.RedrawAll()
+  
+  
+Example::
+
+  # Remove all non mesh objects from a group.
+
+  from Blender import *
+  
+  scn= Scene.GetCurrent()
+  
+  # New Group
+  grp= Group.Get('mygroup')
+  for ob in list(grp.objects): # Convert to a list before looping because we are removing items
+    if ob.type != 'Mesh':
+      grp.objects.unlink(ob)
 """
 
 def New (name = None):
@@ -77,6 +92,7 @@ def Get (name = None):
 def Unlink (group):
   """
   Unlink (delete) this group from Blender.
+  @Note: No objects will be removed, just the group that references them.
   @type group: group
   @param group: A group to remove from this blend file, does not remove objects that this group uses.
   """
@@ -97,9 +113,12 @@ class Group:
   @ivar layers: Layer bitmask for this group.
   @type layers: int
   @ivar objects: Objects that this group uses.
-  This is a sequence with-list like access so use list(grp.objects) if you need to use a list (where grp is a group).
-  The groups objects can be set by assigning a list or iterator of objects to the groups objects.
-  objects.link() and objects.unlink() also work with the the objects iterator just like with lists.
+    This is a sequence with-list like access so use list(grp.objects) if you need to use a list (where grp is a group).
+    The groups objects can be set by assigning a list or iterator of objects to the groups objects.
+    objects.link() and objects.unlink() also work with the the objects iterator just like with lists.
+
+    B{Note}: append() and remove() have been deprecated and replaced by link() and unlink(),
+    after Blender 2.43 append() and remove() will not be available.
   @type objects: custom object sequence
   """
 

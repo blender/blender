@@ -384,9 +384,9 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 
 def main():
 	scn= B.Scene.GetCurrent()
-	ob= scn.getActiveObject()
+	ob= scn.objects.active
 	
-	if not ob or ob.getType() != 'Mesh':
+	if not ob or ob.type != 'Mesh':
 		B.Draw.PupMenu('Error, no active mesh object, aborting.')
 		return
 	

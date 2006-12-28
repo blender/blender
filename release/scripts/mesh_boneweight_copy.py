@@ -216,17 +216,16 @@ def main():
 	PREF_NO_XCROSS= PREF_NO_XCROSS.val
 	quality=  PREF_QUALITY.val
 	
-	act_ob= scn.getActiveObject()
+	act_ob= scn.objects.active
 	if PREF_SEL_ONLY and act_ob==None:
 		Blender.Draw.PupMenu('Error%t|When dealing with 2 or more meshes with vgroups|There must be an active object|to be used as a source|aborting.')
 		return
 
 	sel=[]
 	from_data= None
-	act_ob= scn.getActiveObject()
+	
 	for ob in contextSel:
-		
-		if ob.getType()=='Mesh':
+		if ob.type=='Mesh':
 			me= ob.getData(mesh=1)
 			groups= me.getVertGroupNames()
 			
@@ -242,7 +241,7 @@ def main():
 							_ob.sel=0
 						ob.sel=1
 						Object.Duplicate(mesh=1)
-						ob= scn.getActiveObject()
+						ob= scn.objects.active
 						me= ob.getData(mesh=1)
 						# groups will be the same
 						print '\tGenerating higher %ix quality weights.' % quality
@@ -261,7 +260,6 @@ def main():
 		return
 	t= Blender.sys.time()
 	Window.WaitCursor(1)
-	
 	
 	# Now do the copy.
 	print '\tCopying from "%s" to %i other mesh(es).' % (from_data[0].name, len(sel))

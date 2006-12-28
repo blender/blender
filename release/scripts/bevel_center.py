@@ -70,8 +70,8 @@ old_dist = None
 
 def act_mesh_ob():
 	scn = Scene.GetCurrent()
-	ob = scn.getActiveObject()
-	if ob == None or ob.getType() != 'Mesh': 
+	ob = scn.objects.active
+	if ob == None or ob.type != 'Mesh': 
 		PupMenu('ERROR%t|Select a mesh object.')
 		return
 	return ob
