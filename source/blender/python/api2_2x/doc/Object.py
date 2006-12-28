@@ -459,8 +459,17 @@ class Object:
     @ivar drawSize: The size to display the Empty.
     Value clamped to [0.01,10.0].
     @type drawSize: float
-    @ivar modifiers: The modifiers associated with the object.  Read-only.
-    @type modifiers: L{Modifier Sequence<Modifier.Modifiers>}
+    @ivar modifiers: The modifiers associated with the object.
+        Example::
+          # copy the active objects modifiers to all other visible selected objects
+          from Blender import *
+          scn = Scene.GetCurrent()
+          ob_act = scn.objects.active
+          for ob in scn.objects.context:
+              # Cannot copy modifiers to an object of a different type
+              if ob.type == ob_act.type:
+                  ob.modifiers = ob_act.modifiers
+    @type modifiers: L{Modifier Sequence<Modifier.ModSeq>}
     @ivar constraints: a L{sequence<Constraint.Constraints>} of
         L{constraints<Constraint.Constraint>} for the object. Read-only.
     @type constraints: Constraint Sequence

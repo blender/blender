@@ -46,7 +46,7 @@ Example::
 
 
 @type Type: readonly dictionary
-@var Type: Constant Modifier dict used for  L{Modifiers.append()} to a
+@var Type: Constant Modifier dict used for  L{ModSeq.append()} to a
   modifier sequence and comparing with L{Modifier.type}:
     - ARMATURE - type value for Armature modifiers
     - BOOLEAN - type value for Boolean modifiers
@@ -106,10 +106,10 @@ Example::
 	- OPERATION - Used for boolean only (int 0,1,2 : Intersect, Union, Difference)
 """
 
-class Modifiers:
+class ModSeq:
   """
-  The Modifiers object
-  ====================
+  The ModSeq object
+  =================
   This object provides access to list of L{modifiers<Modifier.Modifier>} for a particular object.
   Only accessed from L{Object.Object.modifiers}.
   """
@@ -170,7 +170,7 @@ class Modifier:
   The Modifier object
   ===================
   This object provides access to a modifier for a particular object accessed
-  from L{Modifiers}.
+  from L{ModSeq}.
   @ivar name: The name of this modifier. 31 chars max.
   @type name: string
   @ivar type: The type of this modifier. Read-only.  The returned value

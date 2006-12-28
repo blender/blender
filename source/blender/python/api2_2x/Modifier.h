@@ -39,35 +39,35 @@
 #include "DNA_listBase.h"
 
 /*****************************************************************************/
-/* Python BPy_Modifier structure definition:                                 */
+/* Python BPy_Modifier and BPy_ModSeq structure definition:                  */
 /*****************************************************************************/
 typedef struct {
 	PyObject_HEAD		/* required macro */
-	Object *obj;
+	Object *object;
+	ModifierData *iter;
+} BPy_ModSeq;
+
+typedef struct {
+	PyObject_HEAD		/* required macro */
+	Object *object;
 	/* if md this is null, the modifier has been removed and we need to raise
 	an error when its data is accessed */
 	ModifierData *md; 
 } BPy_Modifier;
 
+extern PyTypeObject ModSeq_Type;
 extern PyTypeObject Modifier_Type;
-
-#define BPy_Modifier_Check(v)  ((v)->ob_type == &Modifier_Type)	/* for type checking */
+#define BPy_ModSeq_Check(v)  ((v)->ob_type == &ModSeq_Type)
+#define BPy_Modifier_Check(v)  ((v)->ob_type == &Modifier_Type)
 
 /* 
  *   prototypes
  */
 
 PyObject *Modifier_Init( void );
+PyObject *ModSeq_CreatePyObject( Object *obj, ModifierData *iter );
 PyObject *Modifier_CreatePyObject( Object *obj, ModifierData *md );
 ModifierData *Modifier_FromPyObject( PyObject * py_obj );
 int Modifier_CheckPyObject( PyObject * py_obj );
-
-typedef struct {
-	PyObject_HEAD		/* required macro */
-	Object *obj;
-	ModifierData *iter;
-} BPy_Modifiers;
-
-PyObject *ModSeq_CreatePyObject( Object *obj, ModifierData *iter );
 
 #endif				/* EXPP_MODIFIER_H */

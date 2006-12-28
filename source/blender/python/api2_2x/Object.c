@@ -66,7 +66,7 @@ struct rctf;
 #include "BKE_scene.h"
 #include "BKE_nla.h"
 #include "BKE_material.h"
-#include "BKE_idprop.h"
+#include "BKE_modifier.h"
 #include "BKE_idprop.h"
 
 #include "BSE_editipo.h"
@@ -2023,7 +2023,7 @@ static PyObject *Object_join( BPy_Object * self, PyObject * args )
 				BLI_addhead( &temp_scene->base, temp_base );	/* finally, link new base to scene */
 				child->id.us += 1; /*Would usually increase user count but in this case it's ok not to */
 				
-				//DAG_object_flush_update(temp_scene, temp_base->object, OB_RECALC_DATA);
+				/*DAG_object_flush_update(temp_scene, temp_base->object, OB_RECALC_DATA);*/
 			}
 		}
 	}
@@ -3149,6 +3149,37 @@ static PyObject *Object_getConstraints( BPy_Object * self )
 static PyObject *Object_getModifiers( BPy_Object * self )
 {
 	return ModSeq_CreatePyObject( self->object, NULL );
+}
+
+static int Object_setModifiers( BPy_Object * self, PyObject * value )
+{
+	BPy_ModSeq *pymodseq;
+	ModifierData *md;
+	
+	if (!BPy_ModSeq_Check(value))
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"can only assign another objects modifiers" );
+	
+	pymodseq = ( BPy_ModSeq * ) value;
+	
+	if (self->object->type != pymodseq->object->type)
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"can only assign modifiers between objects of the same type" );
+	
+	if (self->object == pymodseq->object)
+		return 0;
+	
+	object_free_modifiers(self->object);
+	for (md=pymodseq->object->modifiers.first; md; md=md->next) {
+		if (md->type!=eModifierType_Hook) {
+			ModifierData *nmd = modifier_new(md->type);
+			modifier_copyData(md, nmd);
+			BLI_addtail(&self->object->modifiers, nmd);
+		}
+	}
+	
+	DAG_object_flush_update(G.scene, self->object, OB_RECALC_DATA);
+	return 0;
 }
 
 static PyObject *Object_insertShapeKey(BPy_Object * self)
@@ -5221,7 +5252,7 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 "The constraints associated with the object",
 	 NULL},
 	{"modifiers",
-	 (getter)Object_getModifiers, (setter)NULL, 
+	 (getter)Object_getModifiers, (setter)Object_setModifiers, 
 	 "The modifiers associated with the object",
 	 NULL},
 	{"protectFlags",

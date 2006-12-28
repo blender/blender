@@ -61,7 +61,7 @@ extern PyTypeObject property_Type;
 extern PyTypeObject buffer_Type, constant_Type, euler_Type;
 extern PyTypeObject matrix_Type, quaternion_Type, rgbTuple_Type, vector_Type;
 extern PyTypeObject point_Type;
-extern PyTypeObject Modifier_Type, Modifiers_Type;
+extern PyTypeObject Modifier_Type, ModSeq_Type;
 extern PyTypeObject EditBone_Type;
 extern PyTypeObject ThemeSpace_Type;
 extern PyTypeObject ThemeUI_Type;
@@ -130,7 +130,7 @@ void types_InitAll( void )
 	property_Type.ob_type = &PyType_Type;
 	point_Type.ob_type = &PyType_Type;
 	PyType_Ready( &Modifier_Type );
-	PyType_Ready( &Modifiers_Type );
+	PyType_Ready( &ModSeq_Type );
 	PyType_Ready( &EditBone_Type );
 	PyType_Ready( &ThemeSpace_Type );
 	PyType_Ready( &ThemeUI_Type );
@@ -241,8 +241,8 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &point_Type );
 	PyDict_SetItemString( dict, "ModifierType",
 			      ( PyObject * ) &Modifier_Type );
-	PyDict_SetItemString( dict, "ModifiersType",
-			      ( PyObject * ) &Modifiers_Type );
+	PyDict_SetItemString( dict, "ModSeqType",
+			      ( PyObject * ) &ModSeq_Type );
 	PyDict_SetItemString( dict, "EditBoneType",
 			      ( PyObject * ) &EditBone_Type);
 	PyDict_SetItemString( dict, "ThemeSpaceType",
