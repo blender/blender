@@ -672,7 +672,7 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	
 	
 	# deselect all
-	for ob in Scene.GetCurrent().objects: ob.sel= False
+	Scene.GetCurrent().objects.selected = []
 	new_objects= [] # put new objects here
 	
 	print '\tbuilding geometry;\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % ( len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups) ),

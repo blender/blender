@@ -83,6 +83,14 @@ PyObject *M_Object_Get( PyObject * self, PyObject * args ); /* from Object.c */
 #define SCENE_DEL_CHECK_PY(bpy_scene) if (!(bpy_scene->scene)) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "Scene has been removed" ) )
 #define SCENE_DEL_CHECK_INT(bpy_scene) if (!(bpy_scene->scene)) return ( EXPP_ReturnIntError( PyExc_RuntimeError, "Scene has been removed" ) )
 
+
+enum obj_consts {
+	EXPP_OBSEQ_NORMAL = 0,
+	EXPP_OBSEQ_SELECTED,
+	EXPP_OBSEQ_CONTEXT,
+};
+
+
 /*-----------------------Python API function prototypes for the Scene module--*/
 static PyObject *M_Scene_New( PyObject * self, PyObject * args,
 			      PyObject * keywords );
@@ -1118,6 +1126,71 @@ static PyObject *SceneObSeq_getObjects( BPy_SceneObSeq *self, void *mode)
 	return SceneObSeq_CreatePyObject(self->bpyscene, NULL, (int)((long)mode));
 }
 
+int SceneObSeq_setObjects( BPy_SceneObSeq *self, PyObject *value, void *_mode_) 
+{
+	/*
+	ONLY SUPPORTS scn.objects.selected and scn.objects.context 
+	cannot assign to scn.objects yet!!!
+	*/
+	PyObject *item;
+	Scene *scene= self->bpyscene->scene;
+	Object *blen_ob;
+	Base *base;
+	int size, mode = (int)_mode_;
+	
+	SCENE_DEL_CHECK_INT(self->bpyscene);
+	
+	/* scn.objects.selected = scn.objects  - shortcut to select all */
+	if (BPy_SceneObSeq_Check(value)) {
+		BPy_SceneObSeq *bpy_sceneseq = (BPy_SceneObSeq *)value;
+		if (self->bpyscene->scene != bpy_sceneseq->bpyscene->scene)
+			return EXPP_ReturnIntError( PyExc_ValueError,
+					"Cannot assign a SceneObSeq type from another scene" );
+		if (bpy_sceneseq->mode != EXPP_OBSEQ_NORMAL)
+			return EXPP_ReturnIntError( PyExc_ValueError,
+					"Can only assign scn.objects to scn.objects.context or scn.objects.selected" );
+		
+		for (base= scene->base.first; base; base= base->next) {
+			base->flag |= SELECT;
+			base->object->flag |= SELECT;
+			
+			if (mode==EXPP_OBSEQ_CONTEXT && G.vd) {
+				base->object->lay= base->lay= G.vd->lay;
+			}
+		}
+		return 0;
+	}
+	
+	if (!PySequence_Check(value))
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"Error, must assign a sequence of objects to scn.objects.selected" );
+	
+	/* for context and selected, just deselect, dont remove */
+	for (base= scene->base.first; base; base= base->next) {
+		base->flag &= ~SELECT;
+		base->object->flag &= ~SELECT;
+	}
+	
+	size = PySequence_Length(value);
+	while (size) {
+		size--;
+		item = PySequence_GetItem(value, size);
+		if ( PyObject_TypeCheck(item, &Object_Type) ) {
+			blen_ob= ((BPy_Object *)item)->object;
+			base = object_in_scene( blen_ob, scene );
+			if (base) {
+				blen_ob->flag |= SELECT;
+				base->flag |= SELECT;
+				if (mode==EXPP_OBSEQ_CONTEXT && G.vd) {
+					blen_ob->lay= base->lay= G.vd->lay;
+				}
+			}
+		}
+		Py_DECREF(item);
+	}
+	return 0;
+}
+
 
 static PyObject *SceneObSeq_CreatePyObject( BPy_Scene *self, Base *iter, int mode )
 {
@@ -1133,9 +1206,9 @@ static int SceneObSeq_len( BPy_SceneObSeq * self )
 	Scene *scene= self->bpyscene->scene;
 	SCENE_DEL_CHECK_INT(self->bpyscene);
 	
-	if (self->mode == 0) /* all obejcts */
+	if (self->mode == EXPP_OBSEQ_NORMAL)
 		return BLI_countlist( &( scene->base ) );
-	else if (self->mode == 1) { /* selected obejcts */
+	else if (self->mode == EXPP_OBSEQ_SELECTED) {
 		int len=0;
 		Base *base;
 		for (base= scene->base.first; base; base= base->next) {
@@ -1144,7 +1217,7 @@ static int SceneObSeq_len( BPy_SceneObSeq * self )
 			}
 		}
 		return len;
-	} else if (self->mode == 2) { /* user context */
+	} else if (self->mode == EXPP_OBSEQ_CONTEXT) {
 		int len=0;
 		Base *base;
 		
@@ -1176,15 +1249,15 @@ static PyObject *SceneObSeq_item( BPy_SceneObSeq * self, int i )
 	SCENE_DEL_CHECK_PY(self->bpyscene);
 	
 	/* objects */
-	if (self->mode==0)
+	if (self->mode==EXPP_OBSEQ_NORMAL)
 		for (base= scene->base.first; base && i!=index; base= base->next, index++) {}
 	/* selected */
-	else if (self->mode==1)
+	else if (self->mode==EXPP_OBSEQ_SELECTED)
 		for (base= scene->base.first; base && i!=index; base= base->next)
 			if (base->flag & SELECT)
 				index++;
 	/* context */
-	else if (self->mode==2)
+	else if (self->mode==EXPP_OBSEQ_CONTEXT)
 		if (G.vd)
 			for (base= scene->base.first; base && i!=index; base= base->next)
 				if ((base->flag & SELECT) && (base->lay & G.vd->lay))
@@ -1233,10 +1306,10 @@ static PyObject *SceneObSeq_getIter( BPy_SceneObSeq * self )
 	
 	SCENE_DEL_CHECK_PY(self->bpyscene);
 	
-	if (self->mode==1) /* selected */
+	if (self->mode==EXPP_OBSEQ_SELECTED)
 		while (base && !(base->flag & SELECT))
 			base= base->next;
-	else if (self->mode==2) { /* context */
+	else if (self->mode==EXPP_OBSEQ_CONTEXT) {
 		if (!G.vd)
 			base= NULL; /* will never iterate if we have no */
 		else
@@ -1269,10 +1342,10 @@ static PyObject *SceneObSeq_nextIter( BPy_SceneObSeq * self )
 	object= Object_CreatePyObject( self->iter->object ); 
 	base= self->iter->next;
 	
-	if (self->mode==1) /* selected */
+	if (self->mode==EXPP_OBSEQ_SELECTED)
 		while (base && !(base->flag & SELECT))
 			base= base->next;
-	else if (self->mode==2) { /* context */
+	else if (self->mode==EXPP_OBSEQ_CONTEXT) {
 		if (!G.vd)
 			base= NULL; /* will never iterate if we have no */
 		else
@@ -1280,7 +1353,6 @@ static PyObject *SceneObSeq_nextIter( BPy_SceneObSeq * self )
 				base= base->next;	
 	}
 	self->iter= base;
-	
 	return object;
 }
 
@@ -1290,7 +1362,7 @@ static PyObject *SceneObSeq_link( BPy_SceneObSeq * self, PyObject *pyobj )
 	SCENE_DEL_CHECK_PY(self->bpyscene);
 	
 	/* this shold eventually replace Scene_link */
-	if (self->mode != 0)
+	if (self->mode != EXPP_OBSEQ_NORMAL)
 		return (EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "Cannot link to objects.selection or objects.context!" ));	
 	
@@ -1317,7 +1389,7 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 	
 	SCENE_DEL_CHECK_PY(self->bpyscene);
 	
-	if (self->mode != 0)
+	if (self->mode != EXPP_OBSEQ_NORMAL)
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					"Cannot add new to objects.selection or objects.context!" );	
 
@@ -1455,16 +1527,16 @@ typeError:
 
 }
 
-
 static PyObject *SceneObSeq_unlink( BPy_SceneObSeq * self, PyObject *args )
 {
 	PyObject *pyobj;
 	Object *blen_ob;
+	Scene *scene;
 	Base *base= NULL;
 	
 	SCENE_DEL_CHECK_PY(self->bpyscene);
 	
-	if (self->mode != 0)
+	if (self->mode != EXPP_OBSEQ_NORMAL)
 		return (EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "Cannot add new to objects.selection or objects.context!" ));	
 	
@@ -1473,23 +1545,25 @@ static PyObject *SceneObSeq_unlink( BPy_SceneObSeq * self, PyObject *args )
 				"expected a python object as an argument" ) );
 	
 	blen_ob = ( ( BPy_Object * ) pyobj )->object;
-
+	
+	scene = self->bpyscene->scene;
+		
 	/* is the object really in the scene? */
-	base = object_in_scene( blen_ob, self->bpyscene->scene );
+	base = object_in_scene( blen_ob, scene);
 
-	if( base ) {		/* if it is, remove it */
+	if( base ) { /* if it is, remove it */
 		/* check that there is a data block before decrementing refcount */
-		if( (ID *)blen_ob->data )
-			((ID *)blen_ob->data)->us--;
+		if( (ID *)base->object->data )
+			((ID *)base->object->data)->us--;
 		else if( blen_ob->type != OB_EMPTY )
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Object has no data!" );
+						  "Object has no data!" );
 		
-		if (self->bpyscene->scene->basact==base)
-			self->bpyscene->scene->basact= NULL;	/* in case the object was selected */
+		if (scene->basact==base)
+			scene->basact= NULL;	/* in case the object was selected */
 		
-		BLI_remlink( &(self->bpyscene->scene)->base, base );
-		blen_ob->id.us--;
+		BLI_remlink( &scene->base, base );
+		base->object->id.us--;
 		MEM_freeN( base );
 	}
 	Py_RETURN_NONE;
@@ -1503,7 +1577,7 @@ PyObject *SceneObSeq_getActive(BPy_SceneObSeq *self)
 	
 	SCENE_DEL_CHECK_PY(self->bpyscene);
 	
-	if (self->mode!=0)
+	if (self->mode!=EXPP_OBSEQ_NORMAL)
 			return (EXPP_ReturnPyObjError( PyExc_TypeError,
 						"cannot get active from objects.selected or objects.context" ));
 	
@@ -1526,7 +1600,7 @@ static int SceneObSeq_setActive(BPy_SceneObSeq *self, PyObject *value)
 	
 	SCENE_DEL_CHECK_INT(self->bpyscene);
 	
-	if (self->mode!=0)
+	if (self->mode!=EXPP_OBSEQ_NORMAL)
 			return (EXPP_ReturnIntError( PyExc_TypeError,
 						"cannot set active from objects.selected or objects.context" ));
 	
@@ -1586,10 +1660,10 @@ static PyObject *SceneObSeq_repr( BPy_SceneObSeq * self )
 {
 	if( !(self->bpyscene->scene) )
 		return PyString_FromFormat( "[Scene ObjectSeq Removed]" );
-	else if (self->mode==1)
+	else if (self->mode==EXPP_OBSEQ_SELECTED)
 		return PyString_FromFormat( "[Scene ObjectSeq Selected \"%s\"]",
 						self->bpyscene->scene->id.name + 2 );
-	else if (self->mode==2)
+	else if (self->mode==EXPP_OBSEQ_CONTEXT)
 		return PyString_FromFormat( "[Scene ObjectSeq Context \"%s\"]",
 						self->bpyscene->scene->id.name + 2 );
 	
@@ -1600,13 +1674,13 @@ static PyObject *SceneObSeq_repr( BPy_SceneObSeq * self )
 
 static PyGetSetDef SceneObSeq_getseters[] = {
 	{"selected",
-	 (getter)SceneObSeq_getObjects, (setter)NULL,
+	 (getter)SceneObSeq_getObjects, (setter)SceneObSeq_setObjects,
 	 "sequence of selected objects",
-	 (void *)1},
+	 (void *)EXPP_OBSEQ_SELECTED},
 	{"context",
-	 (getter)SceneObSeq_getObjects, (setter)NULL,
+	 (getter)SceneObSeq_getObjects, (setter)SceneObSeq_setObjects,
 	 "sequence of user context objects",
-	 (void *)2},
+	 (void *)EXPP_OBSEQ_CONTEXT},
 	{"active",
 	 (getter)SceneObSeq_getActive, (setter)SceneObSeq_setActive,
 	 "active object",

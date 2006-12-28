@@ -42,6 +42,8 @@ extern PyTypeObject SceneObSeq_Type;
 
 #define BPy_Scene_Check(v) \
     ((v)->ob_type == &Scene_Type)
+#define BPy_SceneObSeq_Check(v) \
+    ((v)->ob_type == &SceneObSeq_Type)
 
 /*---------------------------Python BPy_Scene structure definition----------*/
 typedef struct {
@@ -63,7 +65,7 @@ typedef struct {
 
 PyObject *Scene_Init( void );
 PyObject *Scene_CreatePyObject( Scene * cam );
-Scene *Scene_FromPyObject( PyObject * pyobj );
+/*Scene *Scene_FromPyObject( PyObject * pyobj );*/  /* not used yet */
 int Scene_CheckPyObject( PyObject * pyobj );
 Scene *GetSceneByName( char *name );
 

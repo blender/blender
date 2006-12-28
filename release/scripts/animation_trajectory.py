@@ -548,9 +548,8 @@ Blender.Text.unlink(scripting)
 							#Go to frame that correspond to selected "vertex"
 							Blender.Set('curframe', TestFRAME[k])
 							
-							#un select all objects
-							for _ob in Blender.Object.GetSelected():
-								_ob.sel= False
+							scene.objects.selected = [] #un select all objects
+							
 							#FIXED TestLIST[j][0].sel=0, but no j. So ob.sel and above variable changed in obj
 							ob.sel= True
 							Blender.Run('Edit_Trajectory')

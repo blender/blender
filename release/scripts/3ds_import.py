@@ -794,8 +794,7 @@ def load_3ds(filename, PREF_UI= True):
 	
 	scn= Scene.GetCurrent()
 	SCN_OBJECTS = scn.objects
-	for ob in SCN_OBJECTS:
-		ob.sel= 0
+	SCN_OBJECTS.selected = [] # de select all
 	
 	importedObjects= [] # Fill this list with objects
 	process_next_chunk(file, current_chunk, importedObjects)

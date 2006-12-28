@@ -311,8 +311,7 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1):
 		IMPORT_START_FRAME= 1
 		
 	scn= Blender.Scene.GetCurrent()
-	for ob in scn.objects:
-		ob.sel= 0
+	scn.objects.selected = []
 	
 	objects= []
 	
@@ -444,14 +443,10 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 	
 	scn= Blender.Scene.GetCurrent()
 	
-	for ob in scn.objects:
-		ob.sel= 0
+	scn.objects.selected = []
 	
 	scn.link(arm_ob)
-	arm_ob.sel= 1
-	arm_ob.Layers= scn.Layers
-	
-	
+	scn.objects.context = [arm_ob]
 	
 	# Now Apply the animation to the armature
 	

@@ -222,8 +222,7 @@ def read(filename):
 	tobj.logcon ("Importing file:")
 	tobj.logcon (filename)
 
-	for ob in Blender.Scene.GetCurrent().objects:
-		ob.sel= 0
+	Blender.Scene.GetCurrent().objects.selected = []
 	
 	start = Blender.sys.time()
 	file = open(filename, "rb")

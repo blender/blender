@@ -315,6 +315,27 @@ class SceneObjects:
   =========================================
    This object gives access to the Objects in a Scene in Blender.
 
+   Example::
+     from Blender import Scene
+     scn = Scene.GetCurrent()
+     
+     scn.objects.selected = [] # select none
+     scn.objects.selected = scn.objects # select all
+     scn.objects.context = scn.objects # select all and move into the scenes display layer
+     
+     # get a list of mesh objects
+     obs = [ob for ob in scn.objects if ob.type == 'Mesh']
+     
+     # Select only these mesh objects
+     scn.objects.selected = obs
+     
+     # print all object names
+     for ob in scn.objects: print ob.name
+     
+     # make a list of objects that you can add and remove to
+     # will not affect the current scene
+     scene_obs = list(scn.objects)
+
   @ivar selected: an iterator over all the selected objects in a scene.
   @type selected: sequence of L{Object}
   @ivar context: an iterator over all the visible selected objects in a scene.

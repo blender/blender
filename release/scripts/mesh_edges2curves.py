@@ -118,8 +118,8 @@ def polysFromMesh(me):
 
 def mesh2polys():
 	scn= Scene.GetCurrent()
-	for ob in scn.objects:
-		ob.sel= 0
+	scn.objects.selected = []
+	
 	meshOb= scn.objects.active
 	if meshOb==None or meshOb.type != 'Mesh':
 		Draw.PupMenu( 'ERROR: No Active Mesh Selected, Aborting' )
