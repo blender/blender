@@ -1912,6 +1912,13 @@ int Rotation(TransInfo *t, short mval[2])
 
 		sprintf(str, "Rot: %s %s", &c[0], t->proptext);
 
+		/* Clamp between -180 and 180 */
+		while (final >= 180.0)
+			final -= 360.0;
+		
+		while (final <= -180.0)
+			final += 360.0;
+
 		final *= (float)(M_PI / 180.0);
 	}
 	else {
