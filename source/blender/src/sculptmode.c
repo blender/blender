@@ -68,6 +68,7 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_editkey.h"
+#include "BIF_editview.h"
 #include "BIF_glutil.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
@@ -1538,6 +1539,24 @@ void sculptmode_propset_init(PropsetMode mode)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
+void sculpt_paint_brush(char clear)
+{
+	static short mvalo[2];
+	short mval[2];
+	const short rad= sculptmode_brush()->size;
+
+	getmouseco_areawin(mval);
+	
+	persp(PERSP_WIN);
+	if(clear)
+		fdrawXORcirc(mval[0], mval[1], rad);
+	else
+		draw_sel_circle(mval, mvalo, rad, rad, 0);
+	
+	mvalo[0]= mval[0];
+	mvalo[1]= mval[1];
+}
+
 void sculptmode_propset(unsigned short event)
 {
 	PropsetData *pd= sculpt_session()->propset;
@@ -1891,9 +1910,7 @@ void sculpt()
 				glEnable(GL_SCISSOR_TEST);
 				
 				/* Draw cursor */
-				persp(PERSP_WIN);
-				glDisable(GL_DEPTH_TEST);
-				fdrawXORcirc((float)mouse[0],(float)mouse[1],sculptmode_brush()->size);
+				sculpt_paint_brush(1);
 				
 				myswapbuffers();
 			}

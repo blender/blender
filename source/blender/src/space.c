@@ -1052,8 +1052,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(val) {
 
 		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
-
-		//if(event==MOUSEY || event==MOUSEX) return;
 		
 		if(event==UI_BUT_EVENT) do_butspace(val); /* temporal, view3d deserves own queue? */
 		
@@ -1075,7 +1073,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if(event!=LEFTMOUSE && event!=MIDDLEMOUSE && (event==MOUSEY || event==MOUSEX)) {
 					if(!bwin_qtest(sa->win))
-						allqueue(REDRAWVIEW3D, 0);
+						sculpt_paint_brush(0);
 				}
 			}
 

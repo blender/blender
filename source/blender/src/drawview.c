@@ -2787,9 +2787,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				fdrawXORcirc(pd->origloc[0], pd->origloc[1], r1);
 			fdrawXORcirc(pd->origloc[0], pd->origloc[1], r2);
 		} else {
-			short c[2];
-			getmouseco_areawin(c);
-			fdrawXORcirc((float)c[0], (float)c[1], sculptmode_brush()->size);
+			sculpt_paint_brush(1);
 		}
 	}
 	retopo_draw_paint_lines();

@@ -119,6 +119,7 @@ void sculptmode_propset_init(PropsetMode mode);
 void sculptmode_propset(const unsigned short event);
 void sculptmode_selectbrush_menu();
 void sculptmode_draw_mesh(int);
+void sculpt_paint_brush(char clear);
 
 struct BrushData *sculptmode_brush();
 
