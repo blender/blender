@@ -1486,8 +1486,6 @@ void filesel_prevspace()
 	
 	/* cleanup */
 	if(sfile->spacetype==SPACE_FILE) {
-		if(sfile->menup)
-			sfile->menup= NULL;
 		if(sfile->pupmenu) {
 			MEM_freeN(sfile->pupmenu);
 			sfile->pupmenu= NULL;
