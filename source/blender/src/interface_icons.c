@@ -45,6 +45,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_storage_types.h"
 
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
@@ -59,6 +61,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
 #include "BKE_material.h"
@@ -94,6 +97,9 @@
 #define ICON_RENDERSIZE 32	
 #define ICON_MIPMAPS 8
 
+#define ICON_IMAGE_W		512
+#define ICON_IMAGE_H		256
+
 #define ICON_GRID_COLS		25
 #define ICON_GRID_ROWS		12
 
@@ -110,6 +116,15 @@ typedef struct DrawInfo {
 	float aspect;
 	unsigned int *rect; 
 } DrawInfo;
+
+
+/* ******************* STATIC LOCAL VARS ******************* */
+/* static here to cache results of icon directory scan, so it's not 
+ * scanning the filesystem each time the menu is drawn */
+static struct ListBase iconfilelist = {0, 0};
+
+
+/* **************************************************** */
 
 static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs)
 {
@@ -513,9 +528,31 @@ static void prepare_internal_icons(ImBuf *bbuf)
 
 static void init_internal_icons()
 {
-	ImBuf *bbuf= IMB_ibImageFromMemory((int *)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
+	bTheme *btheme= U.themes.first;
+	ImBuf *bbuf;
+	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
+	char filenamestr[FILE_MAXFILE+16];	// 16 == strlen(".blender/icons/")+1
 	int x, y;
-
+	
+	if ((btheme!=NULL) && (strlen(btheme->tui.iconfile) > 0)) {
+	
+#ifdef WIN32
+		sprintf(filenamestr, "icons/%s", btheme->tui.iconfile);
+#else
+		sprintf(filenamestr, ".blender/icons/%s", btheme->tui.iconfile);
+#endif
+		
+		BLI_make_file_string("/", iconfilestr, BLI_gethome(), filenamestr);
+		
+		if (BLI_exists(iconfilestr)) {
+			bbuf = IMB_loadiffname(iconfilestr, IB_rect);
+		} else {
+			bbuf = IMB_ibImageFromMemory((int *)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
+		}
+	} else {
+		bbuf = IMB_ibImageFromMemory((int *)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
+	}
+	
 	prepare_internal_icons(bbuf);
 
 	for (y=0; y<ICON_GRID_ROWS; y++) {
@@ -540,9 +577,102 @@ static void init_internal_icons()
 }
 
 
+static void init_iconfile_list(struct ListBase *list)
+{
+	char icondirstr[FILE_MAXDIR];
+	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
+	IconFile *ifile;
+	ImBuf *bbuf;
+	struct direntry *dir;
+	int totfile, i, index=1;
+	int ifilex, ifiley;
+	
+	list->first = list->last = NULL;
+
+#ifdef WIN32
+	BLI_make_file_string("/", icondirstr, BLI_gethome(), "icons");
+#else
+	BLI_make_file_string("/", icondirstr, BLI_gethome(), ".blender/icons");
+#endif
+	
+	totfile = BLI_getdir(icondirstr, &dir);
+	
+	for(i=0; i<totfile; i++) {
+		if( (dir[i].type & S_IFREG) ) {
+			char *filename = dir[i].relname;
+			
+			if(BLI_testextensie(filename, ".png")) {
+			
+				/* check to see if the image is the right size, continue if not */
+				sprintf(iconfilestr, "%s/%s", icondirstr, filename);
+				if(BLI_exists(iconfilestr)) bbuf = IMB_loadiffname(iconfilestr, IB_rect);
+				
+				ifilex = bbuf->x;
+				ifiley = bbuf->y;
+				IMB_freeImBuf(bbuf);
+				
+				if ((ifilex != ICON_IMAGE_W) || (ifiley != ICON_IMAGE_H))
+					continue;
+			
+				/* found a potential icon file, so make an entry for it in the cache list */
+				ifile = MEM_callocN(sizeof(IconFile), "IconFile");
+				
+				BLI_strncpy(ifile->filename, filename, sizeof(ifile->filename));
+				ifile->index = index;
+
+				BLI_addtail(list, ifile);
+				
+				index++;
+			}
+		}
+	}
+	
+	/* free temporary direntry structure that's been created by BLI_getdir() */
+	i= totfile-1;
+	
+	for(; i>=0; i--){
+		MEM_freeN(dir[i].relname);
+		if (dir[i].string) MEM_freeN(dir[i].string);
+	}
+	free(dir);
+	dir= 0;
+}
+
+static void free_iconfile_list(struct ListBase *list)
+{
+	IconFile *ifile=NULL, *next_ifile=NULL;
+	
+	for(ifile=list->first; ifile; ifile=next_ifile) {
+		next_ifile = ifile->next;
+		BLI_freelinkN(list, ifile);
+	}
+}
+
+int BIF_iconfile_get_index(char *filename)
+{
+	IconFile *ifile;
+	ListBase *list=&(iconfilelist);
+	
+	for(ifile=list->first; ifile; ifile=ifile->next) {
+		if ( BLI_streq(filename, ifile->filename)) {
+			return ifile->index;
+		}
+	}
+	
+	return 0;
+}
+
+ListBase *BIF_iconfile_list(void)
+{
+	ListBase *list=&(iconfilelist);
+	
+	return list;
+}
+
 
 void BIF_icons_free()
 {
+	free_iconfile_list(&iconfilelist);
 	BKE_icons_free();
 }
 
@@ -625,7 +755,7 @@ int BIF_icon_get_height(int icon_id)
 
 void BIF_icons_init(int first_dyn_id)
 {
-
+	init_iconfile_list(&iconfilelist);
 	BKE_icons_init(first_dyn_id);
 	init_internal_icons();
 }

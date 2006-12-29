@@ -460,6 +460,7 @@ enum {
 	TH_CUSTOM,
 	
 	TH_BUT_TEXTFIELD_HI,
+	TH_ICONFILE,
 	
 	TH_THEMEUI,
 // common colors among spaces

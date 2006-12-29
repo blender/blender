@@ -40,6 +40,13 @@ struct Tex;
 struct Lamp;
 struct Material;
 
+typedef struct IconFile {
+	struct IconFile *next, *prev;
+	char filename[80];	// FILE_MAXFILE size
+	int index;
+} IconFile;
+
+
 #define ICON_DEFAULT_HEIGHT 16
 
 /*
@@ -54,5 +61,9 @@ void BIF_icon_draw_aspect(float x, float y, int icon_id, float aspect);
 void BIF_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, int shade);
 void BIF_icons_free();
 void BIF_icons_free_drawinfo(void *drawinfo);
+
+struct ListBase *BIF_iconfile_list(void);
+int BIF_iconfile_get_index(char *filename);
+
 
 #endif /*  BIF_ICONS_H */

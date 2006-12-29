@@ -133,7 +133,10 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			
 			case TH_BUT_DRAWTYPE:
 				cp= &btheme->tui.but_drawtype; break;
-			
+
+			case TH_ICONFILE:
+				cp= btheme->tui.iconfile; break;
+				
 			case TH_REDALERT:
 				cp= alert; break;
 			case TH_CUSTOM:
@@ -360,6 +363,8 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tui.menu_text_hi, 255, 255, 255, 255);
 	btheme->tui.but_drawtype= TH_SHADED;
 	
+	BLI_strncpy(btheme->tui.iconfile, "", sizeof(btheme->tui.iconfile));
+	
 	/* space view3d */
 	SETCOL(btheme->tv3d.back, 	115, 115, 115, 255);
 	SETCOL(btheme->tv3d.text, 	0, 0, 0, 255);
@@ -547,6 +552,8 @@ char *BIF_ThemeColorsPup(int spacetype)
 		str += sprintf(str, "Menu Text Highlight %%x%d|", TH_MENU_TEXT_HI);
 		str += sprintf(str, "%%l|");
 		str += sprintf(str, "Drawtype %%x%d|", TH_BUT_DRAWTYPE);
+		str += sprintf(str, "%%l|");
+		str += sprintf(str, "Icon File %%x%d|", TH_ICONFILE);
 	}
 	else {
 		// first defaults for each space

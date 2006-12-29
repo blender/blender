@@ -84,6 +84,7 @@ struct SpaceOops;
 #define B_CHANGE_THEME 	3306
 #define B_THEME_COPY 	3307
 #define B_THEME_PASTE 	3308
+#define B_UPDATE_THEME_ICONS 	3309
 
 #define B_RECALCLIGHT 	3310
 

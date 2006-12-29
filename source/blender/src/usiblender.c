@@ -320,6 +320,9 @@ static void init_userdef_file(void)
 				SETCOL(btheme->tseq.transition, 162, 95, 111, 255);
 				SETCOL(btheme->tseq.meta, 	109, 145, 131, 255);
 			}
+			if(!(btheme->tui.iconfile)) {
+				BLI_strncpy(btheme->tui.iconfile, "", sizeof(btheme->tui.iconfile));
+			}
 		}
 		
 		/* set defaults for 3D View rotating axis indicator */ 
@@ -815,8 +818,6 @@ static void initbuttons(void)
 				BMF_GetFont(BMF_kHelvetica12), 
 				BMF_GetFont(BMF_kHelvetica10), 
 				BMF_GetFont(BMF_kHelveticaBold8));
-	
-	BIF_resources_init();
 
 	glClearColor(.7f, .7f, .6f, 0.0);
 	
@@ -849,11 +850,12 @@ void BIF_init(void)
 	
 	BIF_preview_init_dbase();
 	BIF_read_homefile();
+
+	BIF_resources_init();	/* after homefile, to dynamically load an icon file based on theme settings */
 	
 	init_gl_stuff();	/* drawview.c, after homefile */
 	readBlog();
 	strcpy(G.lib, G.sce);
-
 }
 
 /***/

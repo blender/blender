@@ -61,7 +61,8 @@ typedef struct ThemeUI {
 	char menu_text_hi[4];
 	
 	char but_drawtype;
-	char pad1[3];
+	char pad[3];
+	char iconfile[80];	// FILE_MAXFILE length
 
 } ThemeUI;
 

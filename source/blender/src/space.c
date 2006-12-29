@@ -112,6 +112,7 @@
 #include "BIF_gl.h"
 #include "BIF_imasel.h"
 #include "BIF_interface.h"
+#include "BIF_interface_icons.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_oops.h"
@@ -2688,6 +2689,42 @@ static void space_sound_button_function(int event)
 }
 #endif
 
+
+static char *iconfile_menu(void)
+{
+ 	static char string[512];
+ 	char *str = string;
+	IconFile *ifile;
+	ListBase *iconfilelist = BIF_iconfile_list();
+	
+	str += sprintf(str, "Built-in %%x0|%%l|"); 
+	
+	for(ifile=iconfilelist->first; ifile; ifile=ifile->next) {
+		str += sprintf(str, "%s %%x%d|", ifile->filename, ifile->index);
+	}
+
+	return string;
+}
+
+static void set_userdef_iconfile_cb(void *menuindex, void *unused2)
+{
+	bTheme *btheme= U.themes.first;
+	IconFile *ifile;
+	ListBase *iconfilelist = BIF_iconfile_list();
+	int index = *((int *)menuindex);
+	
+	if (index==0) {
+		BLI_strncpy(btheme->tui.iconfile, "", sizeof(btheme->tui.iconfile));
+		return;
+	}
+	
+	for(ifile=iconfilelist->first; ifile; ifile=ifile->next) {
+		if (index == ifile->index) {
+			BLI_strncpy(btheme->tui.iconfile, ifile->filename, sizeof(btheme->tui.iconfile));
+		}
+	}
+}
+
 /* needed for event; choose new 'curmain' resets it... */
 static short th_curcol= TH_BACK;
 static char *th_curcol_ptr= NULL;
@@ -2700,6 +2737,8 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	static short cur=1, curmain=2;
 	short a, tot=0, isbuiltin= 0;
 	char string[21*32], *strp, *col;
+	/* for choosing an icon image based on index in the cached list */
+	static int iconfileindex=0;
 	
 	y3= y2+23;	/* exception! */
 	
@@ -2730,7 +2769,8 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 		strcat(string, bt->name);
 		if(btheme->next) strcat(string, "   |");
 	}
-	uiDefButS(block, MENU, B_UPDATE_THEME, string, 			45,y3,200,20, &cur, 0, 0, 0, 0, "Current theme");
+	uiDefButS(block, MENU, B_UPDATE_THEME_ICONS, string, 			45,y3,200,20, &cur, 0, 0, 0, 0, "Current theme");
+
 	
 	/* add / delete / name */
 
@@ -2789,11 +2829,22 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	}
 	else if(th_curcol==TH_BUT_DRAWTYPE) {
 		uiBlockBeginAlign(block);
-		uiDefButC(block, ROW, B_UPDATE_THEME, "Minimal", 465,y3,100,20,  col, 2.0, (float) TH_MINIMAL, 0, 0, "");
-		uiDefButC(block, ROW, B_UPDATE_THEME, "Shaded",	565,y3,100,20,  col, 2.0, (float) TH_SHADED, 0, 0, "");
-		uiDefButC(block, ROW, B_UPDATE_THEME, "Rounded", 465,y2,100,20,  col, 2.0, (float) TH_ROUNDED, 0, 0, "");
-		uiDefButC(block, ROW, B_UPDATE_THEME, "OldSkool", 565,y2,100,20,  col, 2.0, (float) TH_OLDSKOOL, 0, 0, "");
+		uiDefButC(block, ROW, B_UPDATE_THEME, "Shaded",		465,y2,80,20,  col, 2.0, (float) TH_SHADED, 0, 0, "");
+		uiDefButC(block, ROW, B_UPDATE_THEME, "Rounded",	545,y2,80,20,  col, 2.0, (float) TH_ROUNDED, 0, 0, "");
+		uiDefButC(block, ROW, B_UPDATE_THEME, "Minimal",	625,y2,80,20,  col, 2.0, (float) TH_MINIMAL, 0, 0, "");
+		uiDefButC(block, ROW, B_UPDATE_THEME, "OldSkool",	705,y2,80,20,  col, 2.0, (float) TH_OLDSKOOL, 0, 0, "");
 		uiBlockEndAlign(block);
+	}
+	else if(th_curcol==TH_ICONFILE) {
+		uiBut *but;
+			
+		/* set the icon file menu to the correct icon file index for what's stored in the theme values */
+		iconfileindex= BIF_iconfile_get_index(btheme->tui.iconfile);
+	
+		but = uiDefButI(block, MENU, B_UPDATE_THEME_ICONS, iconfile_menu(),
+			465,y2,200,20, &iconfileindex, 0, 0, 0, 0, "The icon PNG file to use, searching in .blender/icons");
+		uiButSetFunc(but, set_userdef_iconfile_cb, &iconfileindex, NULL);
+									
 	}
 	else {
 		uiBlockBeginAlign(block);
@@ -3651,6 +3702,11 @@ static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 			}
 			else if(val==B_UPDATE_THEME) {
+				allqueue(REDRAWALL, 0);
+			}
+			else if(val==B_UPDATE_THEME_ICONS) {
+				BIF_icons_free();
+				BIF_icons_init(BIFICONID_LAST+1);
 				allqueue(REDRAWALL, 0);
 			}
 			else if(val==B_CHANGE_THEME) {
