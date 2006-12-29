@@ -4272,7 +4272,7 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 
 void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsigned short cy)
 {
-	SculptData *sd= &G.scene->sculptdata;
+	SculptData *sd= sculpt_data();
 	MTex *mtex;
 	int i;
 	int orig_y= cy;
@@ -4319,7 +4319,10 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 	cx+= 85;
 	mtex= sd->mtex[sd->texact];
 
-	if(sd->texact != -1) {
+	if(sd->texact == -1) {
+		uiBlockBeginAlign(block);
+		uiDefBut(block,LABEL,B_NOP,"",cx,cy,115,20,0,0,0,0,0,""); /* Padding */
+	} else {
 		ID *id= NULL;
 		uiBlockBeginAlign(block);
 		
@@ -4335,15 +4338,26 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 
 			but= uiDefBut(block, BUT, B_NOP, "Clear",cx+43, cy, 72, 20, 0, 0, 0, 0, 0, "Erases link to texture");
 			uiButSetFunc(but,sculptmode_rem_tex,0,0);
+			cy-= 25;
+
+			uiBlockBeginAlign(block);
+			uiDefButC(block,ROW, REDRAWBUTSEDIT, "Drag", cx,   cy,39,19, &sd->texrept, 18,SCULPTREPT_DRAG,0,0,"Move the texture with the brush");
+			uiDefButC(block,ROW, REDRAWBUTSEDIT, "Tile", cx+39,cy,39,19, &sd->texrept, 18,SCULPTREPT_TILE,0,0,"Treat the texture as a tiled image extending across the screen");
+			uiDefButC(block,ROW, REDRAWBUTSEDIT, "3D",   cx+78,cy,37,19, &sd->texrept, 18,SCULPTREPT_3D,  0,0,"Use vertex coords as texture coordinates");
 			cy-= 20;
 
-			uiDefButC(block,ROW,B_NOP, "Drag", cx,   cy,39,19, &sd->texrept, 18,SCULPTREPT_DRAG,0,0,"Move the texture with the brush");
-			uiDefButC(block,ROW,B_NOP, "Tile", cx+39,cy,39,19, &sd->texrept, 18,SCULPTREPT_TILE,0,0,"Treat the texture as a tiled image extending across the screen");
-			uiDefButC(block,ROW,B_NOP, "3D",   cx+78,cy,37,19, &sd->texrept, 18,SCULPTREPT_3D,  0,0,"Use vertex coords as texture coordinates");
-			cy-= 20;
-
-			uiDefButS(block,NUM,B_NOP, "Scale", cx,cy,115,19, &sd->texscale,1,1000,0,0,"Scaling factor for texture axis");
-			cy-= 20;
+			if(sd->texrept != SCULPTREPT_DRAG) {
+				but= uiDefIconButC(block, TOG, REDRAWBUTSEDIT, sd->texsep ? ICON_UNLOCKED : ICON_LOCKED, cx,cy,20,19, &sd->texsep,0,0,0,0, "Locks the texture sizes together");			
+				uiBlockBeginAlign(block);
+				uiDefButF(block,NUM,B_NOP, sd->texsep ? "SizeX" : "Size", cx+20,cy,95,19, &mtex->size[0],1,1000,100,0,"Scaling factor for texture");
+				cy-= 20;
+				if(sd->texsep) {
+					uiDefButF(block,NUM,B_NOP, "SizeY", cx+20,cy,95,19, &mtex->size[1],1,1000,100,0,"Scaling factor for texture");
+					cy-= 20;
+					if(sd->texrept == SCULPTREPT_3D)
+						uiDefButF(block,NUM,B_NOP, "SizeZ", cx+20,cy,95,19, &mtex->size[2],1,1000,100,0,"Scaling factor for texture");
+				}
+			}
 		}
 		else {
 		       uiDefButS(block,TOG,B_SCULPT_TEXBROWSE, "Add New" ,cx, cy, 115, 19, &G.buts->texnr,-1,32767,0,0, "Adds a new texture");
@@ -4553,6 +4567,9 @@ void do_fpaintbuts(unsigned short event)
 				if(sd->mtex[sd->texact]==0) {
 					sd->mtex[sd->texact]= add_mtex();
 					sd->mtex[sd->texact]->texco= TEXCO_VIEW;
+					sd->mtex[sd->texact]->size[0]=
+						sd->mtex[sd->texact]->size[1]=
+						sd->mtex[sd->texact]->size[2]= 100;
 				}
 				sd->mtex[sd->texact]->tex= (Tex *)idtest;
 				id_us_plus(idtest);

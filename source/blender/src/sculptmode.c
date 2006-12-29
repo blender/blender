@@ -196,7 +196,7 @@ void sculptmode_init(Scene *sce)
 	sd->texact= -1;
 	sd->texfade= 1;
 	sd->averaging= 1;
-	sd->texscale= 100;
+	sd->texsep= 0;
 	sd->texrept= SCULPTREPT_DRAG;
 	sd->draw_mode= 0;
 	sd->tablet_size=3;
@@ -1026,9 +1026,10 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 		mtex.projx= 1;
 		mtex.projy= 2;
 		mtex.projz= 3;
-		mtex.size[0]= sd->texscale * factor;
-		mtex.size[1]= sd->texscale * factor;
-		mtex.size[2]= sd->texscale * factor;
+		VecCopyf(mtex.size, sd->mtex[sd->texact]->size);
+		VecMulf(mtex.size, factor);
+		if(!sd->texsep)
+			mtex.size[1]= mtex.size[2]= mtex.size[0];
 		
 		externtex(&mtex,point,&avg,&jnk,&jnk,&jnk,&jnk);
 	}
@@ -1050,13 +1051,14 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 		}
 
 		if(sd->texrept==SCULPTREPT_TILE) {
-			const float scale= sd->texscale;
+			const float sx= sd->mtex[sd->texact]->size[0];
+			const float sy= sd->texsep ? sd->mtex[sd->texact]->size[1] : sx;
 			
 			px= (pv.co[0] + half) * (ri->pr_rectx*1.0f/bsize);
 			py= (pv.co[1] + half) * (ri->pr_recty*1.0f/bsize);
-			px%= (int)scale;
-			py%= (int)scale;
-			p= ri->rect + (int)(ri->pr_recty*py/scale) * ri->pr_rectx + (int)(ri->pr_rectx*px/scale);
+			px%= (int)sx;
+			py%= (int)sy;
+			p= ri->rect + (int)(ri->pr_recty*py/sy) * ri->pr_rectx + (int)(ri->pr_rectx*px/sx);
 		} else {
 			px= (pv.co[0] - e->mouse[0] + half) * (ri->pr_rectx*1.0f/bsize);
 			py= (pv.co[1] - e->mouse[1] + half) * (ri->pr_recty*1.0f/bsize);

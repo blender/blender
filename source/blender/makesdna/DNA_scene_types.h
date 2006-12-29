@@ -404,11 +404,11 @@ typedef struct SculptData
 	short brush_type;
 
 	/* For the Brush Shape */
-	short texscale;
 	short texact, texnr;
 	short spacing;
 	char texrept;
 	char texfade;
+	char texsep;
 
 	char averaging;
 	
@@ -419,7 +419,7 @@ typedef struct SculptData
 	
 	/* Symmetry is separate from the other BrushData because the same
 	   settings are always used for all brush types */
-	char symm, pad[7];
+	char symm;
 } SculptData;
 
 #define SCULPTREPT_DRAG 1
