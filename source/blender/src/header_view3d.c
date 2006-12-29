@@ -4087,11 +4087,11 @@ void do_view3d_sculptmenu(void *arg, int event)
 	case 8:
 		br->airbrush= !br->airbrush; break;
 	case 9:
-		sd->symm_x= !sd->symm_x; break;
+		sd->symm ^= SYMM_X; break;
 	case 10:
-		sd->symm_y= !sd->symm_y; break;
+		sd->symm ^= SYMM_Y; break;
 	case 11:
-		sd->symm_z= !sd->symm_z; break;
+		sd->symm ^= SYMM_Z; break;
 	case 12:
 		if(G.vd)
 			G.vd->pivot_last= !G.vd->pivot_last;
@@ -4166,9 +4166,9 @@ uiBlock *view3d_sculptmenu(void *arg_unused)
 	if(G.vd)
 		uiDefIconTextBut(block, BUTM, 1, (G.vd->pivot_last ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Pivot last", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->symm_z ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry Z|Z", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->symm_y ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry Y|Y", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->symm_x ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry X|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->symm & SYMM_Z ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry Z|Z", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->symm & SYMM_Y ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry Y|Y", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->symm & SYMM_X ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry X|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	if(sd->brush_type!=GRAB_BRUSH)
 		uiDefIconTextBut(block, BUTM, 1, (br->airbrush ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Airbrush|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");

@@ -1287,13 +1287,13 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				update_prop= 1; break;
 			/* Symmetry */
 			case XKEY:
-				sd->symm_x= !sd->symm_x;
+				sd->symm^= SYMM_X;
 				update_prop= 1; break;
 			case YKEY:
-				sd->symm_y= !sd->symm_y;
+				sd->symm^= SYMM_Y;
 				update_prop= 1; break;
 			case ZKEY:
-				sd->symm_z= !sd->symm_z;
+				sd->symm^= SYMM_Z;
 				update_prop= 1; break;
 			/* Interface */
 			case NKEY:

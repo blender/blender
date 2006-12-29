@@ -403,10 +403,6 @@ typedef struct SculptData
 	BrushData drawbrush, smoothbrush, pinchbrush, inflatebrush, grabbrush, layerbrush;
 	short brush_type;
 
-	/* Symmetry is separate from the other BrushData because the same
-	   settings are always used for all brush types */
-	short symm_x, symm_y, symm_z;
-
 	/* For the Brush Shape */
 	short texscale;
 	short texact, texnr;
@@ -419,7 +415,11 @@ typedef struct SculptData
 	char draw_mode;
 	
 	/* Control tablet input */
-	char tablet_size, tablet_strength, pad[2];
+	char tablet_size, tablet_strength;
+	
+	/* Symmetry is separate from the other BrushData because the same
+	   settings are always used for all brush types */
+	char symm, pad[7];
 } SculptData;
 
 #define SCULPTREPT_DRAG 1
@@ -632,6 +632,10 @@ typedef struct Scene {
 #define INFLATE_BRUSH 4
 #define GRAB_BRUSH 5
 #define LAYER_BRUSH 6
+
+#define SYMM_X 1
+#define SYMM_Y 2
+#define SYMM_Z 4
 
 /* toolsettings->imagepaint_flag */
 #define IMAGEPAINT_DRAWING				1

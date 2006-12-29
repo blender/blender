@@ -145,6 +145,8 @@ typedef struct EditData {
 	
 	char clip[3];
 	float cliptol[3];
+	
+	char symm;
 } EditData;
 
 typedef struct RectNode {
@@ -996,6 +998,16 @@ float simple_strength(float p, const float len)
 	return 0.5f * (cos(M_PI*p/len) + 1);
 }
 
+void flip_coord(float co[3], const char symm)
+{
+	if(symm & SYMM_X)
+		co[0]= -co[0];
+	if(symm & SYMM_Y)
+		co[1]= -co[1];
+	if(symm & SYMM_Z)
+		co[2]= -co[2];
+}
+
 float tex_strength(EditData *e, float *point, const float len,const unsigned vindex)
 {
 	SculptData *sd= sculpt_data();
@@ -1019,63 +1031,35 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 		
 		externtex(&mtex,point,&avg,&jnk,&jnk,&jnk,&jnk);
 	} else {
-		vec3f t2;
-		float theta, magn;
-		float cx;
+		const short bsize= sculptmode_brush()->size * 2;
+		const short half= sculptmode_brush()->size;
 		int px, py;
-		unsigned i;
-		unsigned int *p;
+		unsigned i, *p;
 		RenderInfo *ri= ss->texrndr;
-
-		/* If no texture or Default, use smooth curve */
-		if(sd->texact == -1 || !sd->mtex[sd->texact] ||
-		   !sd->mtex[sd->texact]->tex->type)
-			return simple_strength(len,e->size);
-
-		/* Find direction from center to point */
-		VecSubf(&t2.x,point,&e->center.x);
-		Normalise(&t2.x);
-
-		theta= e->right.x*t2.x+e->right.y*t2.y+e->right.z*t2.z;
-
-		/* Avoid NaN errors */
-		if( theta < -1 )
-			theta = -1;
-		else if( theta > 1 )
-			theta = 1;
-
-		theta = acos( theta );
-
-		/* Checks whether theta should be in the III/IV quadrants using the
-		   dot product with the Up vector */
-		if(e->up.x*t2.x+e->up.y*t2.y+e->up.z*t2.z > 0)
-			theta = 2 * M_PI - theta;
-
-		magn= len/e->size;
-
-		/* XXX: This code assumes that the texture can be treated as a square */
-
-		/* Find alpha's center, we assume a square */
-		cx= ri->pr_rectx/2.0f;
-
-		/* Scale the magnitude to match the size of the tex */
-		magn*= cx;
-	
-		/* XXX: not sure if this +c business is correct....
-	   
-		Find the pixel in the tex */
-		px= magn * cos(theta) + cx;
-		py= magn * sin(theta) + cx;
+		ProjVert pv;
+		
+		if(!e->symm)
+			pv= projverts[vindex];
+		else {
+			float co[3];
+			VecCopyf(co, point);
+			flip_coord(co, e->symm);
+			project(co, pv.co);
+		}
 
 		if(sd->texrept==SCULPTREPT_TILE) {
 			const float scale= sd->texscale;
-			px+= e->mouse[0];
-			py+= e->mouse[1];
+			
+			px= (pv.co[0] + half) * (ri->pr_rectx*1.0f/bsize);
+			py= (pv.co[1] + half) * (ri->pr_recty*1.0f/bsize);
 			px%= (int)scale;
 			py%= (int)scale;
 			p= ri->rect + (int)(ri->pr_recty*py/scale) * ri->pr_rectx + (int)(ri->pr_rectx*px/scale);
+		} else {
+			px= (pv.co[0] - e->mouse[0] + half) * (ri->pr_rectx*1.0f/bsize);
+			py= (pv.co[1] - e->mouse[1] + half) * (ri->pr_recty*1.0f/bsize);
+			p= ri->rect + py * ri->pr_rectx + px;
 		}
-		else p= ri->rect + py * ri->pr_rectx + px;
 		
 		for(i=0; i<3; ++i)
 			avg+= ((unsigned char*)(p))[i] / 255.0f;
@@ -1180,39 +1164,24 @@ void do_brush_action(float *vertexcosnos, EditData e,
 	}
 }
 
-EditData flip_editdata(EditData *e, short x, short y, short z)
+EditData flip_editdata(EditData *e, const char symm)
 {
 	EditData fe= *e;
 	GrabData *gd= fe.grabdata;
-	if(x) {
-		fe.center.x= -fe.center.x;
-		fe.up.x= -fe.up.x;
-		fe.right.x= -fe.right.x;
-		fe.out.x= -fe.out.x;
-	}
+	
+	flip_coord(&fe.center.x, symm);
+	flip_coord(&fe.up.x, symm);
+	flip_coord(&fe.right.x, symm);
+	flip_coord(&fe.out.x, symm);
+	
+	fe.symm= symm;
 
-	if(y) {
-		fe.center.y= -fe.center.y;
-		fe.up.y= -fe.up.y;
-		fe.right.y= -fe.right.y;
-		fe.out.y= -fe.out.y;
-	}
-
-	if(z) {
-		fe.center.z= -fe.center.z;
-		fe.up.z= -fe.up.z;
-		fe.right.z= -fe.right.z;
-		fe.out.z= -fe.out.z;
-	}
-
-	project(&fe.center.x,fe.mouse);
+	project(&e->center.x,fe.mouse);
 
 	if(gd) {
-		gd->index= x + y*2 + z*4;
+		gd->index= symm;
 		gd->delta_symm= gd->delta;
-		if(x) gd->delta_symm.x= -gd->delta_symm.x;
-		if(y) gd->delta_symm.y= -gd->delta_symm.y;
-		if(z) gd->delta_symm.z= -gd->delta_symm.z;
+		flip_coord(&gd->delta_symm.x, symm);
 	}
 
 	return fe;
@@ -1221,24 +1190,24 @@ EditData flip_editdata(EditData *e, short x, short y, short z)
 void do_symmetrical_brush_actions(float *vertexcosnos, EditData *e,
 				  ListBase *damaged_verts, ListBase *damaged_rects)
 {
-	const SculptData *sd= &G.scene->sculptdata;
-
-	do_brush_action(vertexcosnos,flip_editdata(e,0,0,0),damaged_verts,damaged_rects);
-
-	if(sd->symm_x)
-		do_brush_action(vertexcosnos,flip_editdata(e,1,0,0),damaged_verts,damaged_rects);
-	if(sd->symm_y)
-		do_brush_action(vertexcosnos,flip_editdata(e,0,1,0),damaged_verts,damaged_rects);
-	if(sd->symm_z)
-		do_brush_action(vertexcosnos,flip_editdata(e,0,0,1),damaged_verts,damaged_rects);
-	if(sd->symm_x && sd->symm_y)
-		do_brush_action(vertexcosnos,flip_editdata(e,1,1,0),damaged_verts,damaged_rects);
-	if(sd->symm_x && sd->symm_z)
-		do_brush_action(vertexcosnos,flip_editdata(e,1,0,1),damaged_verts,damaged_rects);
-	if(sd->symm_y && sd->symm_z)
-		do_brush_action(vertexcosnos,flip_editdata(e,0,1,1),damaged_verts,damaged_rects);
-	if(sd->symm_x && sd->symm_y && sd->symm_z)
-		do_brush_action(vertexcosnos,flip_editdata(e,1,1,1),damaged_verts,damaged_rects);
+	const char symm= sculpt_data()->symm;
+	
+	do_brush_action(vertexcosnos, flip_editdata(e, 0), damaged_verts, damaged_rects);
+	
+	if(symm & SYMM_X)
+		do_brush_action(vertexcosnos, flip_editdata(e, SYMM_X), damaged_verts, damaged_rects);
+	if(symm & SYMM_Y)
+		do_brush_action(vertexcosnos, flip_editdata(e, SYMM_Y), damaged_verts, damaged_rects);
+	if(symm & SYMM_Z)
+		do_brush_action(vertexcosnos, flip_editdata(e, SYMM_Z), damaged_verts, damaged_rects);
+	if(symm & SYMM_X && symm & SYMM_Y)
+		do_brush_action(vertexcosnos, flip_editdata(e, SYMM_X | SYMM_Y), damaged_verts, damaged_rects);
+	if(symm & SYMM_X && symm & SYMM_Z)
+		do_brush_action(vertexcosnos, flip_editdata(e, SYMM_X | SYMM_Z), damaged_verts, damaged_rects);
+	if(symm & SYMM_Y && symm & SYMM_Z)
+		do_brush_action(vertexcosnos, flip_editdata(e, SYMM_Y | SYMM_Z), damaged_verts, damaged_rects);
+	if(symm & SYMM_X && symm & SYMM_Y && symm & SYMM_Z)
+		do_brush_action(vertexcosnos, flip_editdata(e, SYMM_X | SYMM_Y | SYMM_Z), damaged_verts, damaged_rects);
 }
 
 void add_face_normal(vec3f *norm, const MFace* face)

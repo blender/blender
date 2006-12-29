@@ -4261,9 +4261,9 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	uiDefBut( block,LABEL,B_NOP,"Symmetry",cx,cy,90,19,NULL,0,0,0,0,"");
 	cy-= 20;
 	uiBlockBeginAlign(block);
-	uiDefButS(block,TOG,B_NOP,"X",cx,cy,67,19,&sd->symm_x,0,0,0,0,"Mirror brush across X axis");
-	uiDefButS(block,TOG,B_NOP,"Y",cx+67,cy,67,19,&sd->symm_y,0,0,0,0,"Mirror brush across Y axis");
-	uiDefButS(block,TOG,B_NOP,"Z",cx+134,cy,66,19,&sd->symm_z,0,0,0,0,"Mirror brush across Z axis");
+	uiDefButBitC(block, TOG, SYMM_X, 0, "X", cx,cy,67,19, &sd->symm, 0,0,0,0, "Mirror brush across X axis");
+	uiDefButBitC(block, TOG, SYMM_Y, 0, "Y", cx+67,cy,67,19, &sd->symm, 0,0,0,0, "Mirror brush across Y axis");
+	uiDefButBitC(block, TOG, SYMM_Z, 0, "Z", cx+134,cy,67,19, &sd->symm, 0,0,0,0, "Mirror brush across Z axis");
 	
 	uiBlockEndAlign(block);
 
