@@ -800,11 +800,12 @@ void sculpt_clip(const EditData *e, float *co, const float val[3])
 
 /* Currently only for the draw brush; finds average normal for all active
    vertices */
-vec3f calc_area_normal(const vec3f *outdir, const int view, const ListBase* active_verts)
+vec3f calc_area_normal(const vec3f *outdir, const ListBase* active_verts)
 {
 	Mesh *me= get_mesh(OBACT);
 	vec3f area_normal= {0,0,0};
 	ActiveData *node= active_verts->first;
+	const int view= sculpt_data()->brush_type==DRAW_BRUSH ? sculptmode_brush()->view : 0;
 
 	while(node){
 		area_normal.x+= me->mvert[node->Index].no[0];
@@ -814,9 +815,9 @@ vec3f calc_area_normal(const vec3f *outdir, const int view, const ListBase* acti
 	}
 	Normalise(&area_normal.x);
 	if(outdir) {
-		area_normal.x= outdir->x * view + area_normal.x * (100-view);
-		area_normal.y= outdir->y * view + area_normal.y * (100-view);
-		area_normal.z= outdir->z * view + area_normal.z * (100-view);
+		area_normal.x= outdir->x * view + area_normal.x * (10-view);
+		area_normal.y= outdir->y * view + area_normal.y * (10-view);
+		area_normal.z= outdir->z * view + area_normal.z * (10-view);
 	}
 	Normalise(&area_normal.x);
 	return area_normal;
@@ -824,7 +825,7 @@ vec3f calc_area_normal(const vec3f *outdir, const int view, const ListBase* acti
 void do_draw_brush(const EditData *e, const ListBase* active_verts)
 {
 	Mesh *me= get_mesh(OBACT);
-	const vec3f area_normal= calc_area_normal(&e->out, sculptmode_brush()->view, active_verts);
+	const vec3f area_normal= calc_area_normal(&e->out, active_verts);
 	ActiveData *node= active_verts->first;
 
 	while(node){
@@ -937,7 +938,7 @@ void do_grab_brush(EditData *e)
 void do_layer_brush(EditData *e, const ListBase *active_verts)
 {
 	Mesh *me= get_mesh(OBACT);
-	vec3f area_normal= calc_area_normal(NULL, 0, active_verts);
+	vec3f area_normal= calc_area_normal(NULL, active_verts);
 	ActiveData *node= active_verts->first;
 	const float bstr= brush_strength(e);
 

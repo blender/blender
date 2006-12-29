@@ -4280,7 +4280,21 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 	uiBut *but;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block,LABEL,B_NOP,"Texture",cx,cy,200,20,0,0,0,0,0,"");
+	uiDefBut(block,LABEL,B_NOP,"Common",cx,cy,80,20,0,0,0,0,0,"");
+	cy-= 20;
+	
+	uiBlockBeginAlign(block);
+	uiDefButC(block,TOG,B_NOP, "Fade", cx,cy,80,19, &sd->texfade, 0,0,0,0,"Smooth the edges of the texture");
+	cy-= 20;
+	uiDefButS(block,NUM,B_NOP, "Space", cx,cy,80,19, &sd->spacing, 0,500,20,0,"Non-zero inserts N pixels between dots");
+	cy-= 20;
+	if(sd->brush_type == DRAW_BRUSH)
+		uiDefButC(block,NUM,B_NOP, "View", cx,cy,80,19, &sculptmode_brush()->view, 0,10,20,0,"Pulls brush direction towards view");
+	
+	cy= orig_y;
+	cx+= 85;
+	uiBlockBeginAlign(block);
+	uiDefBut(block,LABEL,B_NOP,"Texture",cx,cy,80,20,0,0,0,0,0,"");
 	cy-= 20;
 
 	/* TEX CHANNELS */
@@ -4330,12 +4344,6 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 
 			uiDefButS(block,NUM,B_NOP, "Scale", cx,cy,115,19, &sd->texscale,1,1000,0,0,"Scaling factor for texture axis");
 			cy-= 20;
-			
-			uiDefButC(block,TOG,B_NOP, "Fade", cx,cy,50,19, &sd->texfade, 0,0,0,0,"Smooth the edges of the texture");
-			uiDefButS(block,NUM,B_NOP, "Space", cx+50,cy,65,19, &sd->spacing, 0,500,20,0,"Non-zero inserts N pixels between dots");
-			cy-= 20;
-			if(sd->brush_type == DRAW_BRUSH)
-				uiDefButC(block,NUM,B_NOP, "View", cx+50,cy,65,19, &sculptmode_brush()->view, 0,100,20,0,"Pulls brush direction towards view");
 		}
 		else {
 		       uiDefButS(block,TOG,B_SCULPT_TEXBROWSE, "Add New" ,cx, cy, 115, 19, &G.buts->texnr,-1,32767,0,0, "Adds a new texture");
@@ -4343,14 +4351,6 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 		}
 
 		MEM_freeN(strp);
-	}
-	else {
-		uiBlockBeginAlign(block);
-		uiDefButC(block,TOG,B_NOP, "Fade", cx,cy,50,19, &sd->texfade, 0,0,0,0,"Smooth the edges of the texture");
-		uiDefButS(block,NUM,B_NOP, "Space", cx+50,cy,65,19, &sd->spacing, 0,500,20,0,"Non-zero inserts N pixels between dots");
-		cy-= 20;
-		if(sd->brush_type == DRAW_BRUSH)
-			uiDefButC(block,NUM,B_NOP, "View", cx+50,cy,65,19, &sculptmode_brush()->view, 0,100,20,0,"Pulls brush direction towards view");
 	}
 	
 	uiBlockEndAlign(block);
