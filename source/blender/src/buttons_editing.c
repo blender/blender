@@ -4346,7 +4346,14 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 			uiDefButC(block,ROW, REDRAWBUTSEDIT, "3D",   cx+78,cy,37,19, &sd->texrept, 18,SCULPTREPT_3D,  0,0,"Use vertex coords as texture coordinates");
 			cy-= 20;
 
+			if(sd->texrept == SCULPTREPT_DRAG) {
+				uiBlockBeginAlign(block);
+				uiDefButF(block,NUM,0, "Rot", cx,cy,115,19, &mtex->warpfac, 0,360,100,0, "Rotate texture clockwise");
+			}
+			cy-= 20;
+
 			if(sd->texrept != SCULPTREPT_DRAG) {
+				uiBlockBeginAlign(block);
 				but= uiDefIconButC(block, TOG, REDRAWBUTSEDIT, sd->texsep ? ICON_UNLOCKED : ICON_LOCKED, cx,cy,20,19, &sd->texsep,0,0,0,0, "Locks the texture sizes together");			
 				uiBlockBeginAlign(block);
 				uiDefButF(block,NUM,B_NOP, sd->texsep ? "SizeX" : "Size", cx+20,cy,95,19, &mtex->size[0],1,1000,100,0,"Scaling factor for texture");
@@ -4356,6 +4363,7 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 					cy-= 20;
 					if(sd->texrept == SCULPTREPT_3D)
 						uiDefButF(block,NUM,B_NOP, "SizeZ", cx+20,cy,95,19, &mtex->size[2],1,1000,100,0,"Scaling factor for texture");
+					cy-= 20;
 				}
 			}
 		}
@@ -4570,6 +4578,7 @@ void do_fpaintbuts(unsigned short event)
 					sd->mtex[sd->texact]->size[0]=
 						sd->mtex[sd->texact]->size[1]=
 						sd->mtex[sd->texact]->size[2]= 100;
+					sd->mtex[sd->texact]->warpfac= 0;
 				}
 				sd->mtex[sd->texact]->tex= (Tex *)idtest;
 				id_us_plus(idtest);

@@ -1009,6 +1009,15 @@ void flip_coord(float co[3], const char symm)
 		co[2]= -co[2];
 }
 
+unsigned *get_ri_pixel(const RenderInfo *ri, int px, int py)
+{
+	if(px < 0) px= 0;
+	if(py < 0) py= 0;
+	if(px > ri->pr_rectx) px= ri->pr_rectx;
+	if(py > ri->pr_recty) py= ri->pr_recty;
+	return ri->rect + py * ri->pr_rectx + px;
+}
+
 float tex_strength(EditData *e, float *point, const float len,const unsigned vindex)
 {
 	SculptData *sd= sculpt_data();
@@ -1060,9 +1069,18 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 			py%= (int)sy;
 			p= ri->rect + (int)(ri->pr_recty*py/sy) * ri->pr_rectx + (int)(ri->pr_rectx*px/sx);
 		} else {
-			px= (pv.co[0] - e->mouse[0] + half) * (ri->pr_rectx*1.0f/bsize);
-			py= (pv.co[1] - e->mouse[1] + half) * (ri->pr_recty*1.0f/bsize);
-			p= ri->rect + py * ri->pr_rectx + px;
+			const float rot= sd->mtex[sd->texact]->warpfac * (M_PI/180.0f);
+		
+			float fx= (pv.co[0] - e->mouse[0] + half) * (ri->pr_rectx*1.0f/bsize) - ri->pr_rectx/2;
+			float fy= (pv.co[1] - e->mouse[1] + half) * (ri->pr_recty*1.0f/bsize) - ri->pr_recty/2;
+			
+			float angle= atan2(fy, fx) + rot;
+			float len= sqrtf(fx*fx + fy*fy);
+			
+			px= ri->pr_rectx/2 + len * cos(angle);
+			py= ri->pr_recty/2 + len * sin(angle);
+			
+			p= get_ri_pixel(ri, px, py);
 		}
 		
 		for(i=0; i<3; ++i)
