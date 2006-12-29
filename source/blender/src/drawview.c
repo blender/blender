@@ -2147,6 +2147,10 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	else if(ob->flag & OB_POSEMODE) {
 		v3d_posearmature_buts(block, ob, lim);
 	}
+	else if(G.f & G_WEIGHTPAINT) {
+		uiNewPanelTitle(block, "Weight Paint Properties");
+		weight_paint_buttons(block);
+	}
 	else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT)) {
 		extern VPaint Gvp;         /* from vpaint */
 		static float hsv[3], old[3];	// used as temp mem for picker
@@ -2160,10 +2164,6 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		if (rgb)
 			/* 'f' is for floating panel */
 			uiBlockPickerButtons(block, rgb, hsv, old, hexcol, 'f', REDRAWBUTSEDIT);
-	}
-	else if(G.f & G_WEIGHTPAINT) {
-		uiNewPanelTitle(block, "Weight Paint Properties");
-		weight_paint_buttons(block);
 	}
 	else if(G.f & G_SCULPTMODE) {
 		uiNewPanelTitle(block, "Sculpt Properties");
