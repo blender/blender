@@ -1299,6 +1299,7 @@ void sculptmode_update_tex()
 	ri->pr_rectx = 128; /* FIXME: might want to allow higher/lower sizes */
 	ri->pr_recty = 128;
 
+	BKE_image_get_ibuf(sd->mtex[sd->texact]->tex->ima, NULL);
 	BIF_previewrender(&sd->mtex[sd->texact]->tex->id, ri, NULL, PR_ICON_RENDER);
 }
 
