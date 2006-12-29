@@ -46,6 +46,7 @@ argv=__script__['arg']
 
 if argv=='SVG':
   from svg2obj import *
+  fonctionSELECT = functionSELECT # can they all be called function?
 
 elif argv=='AI':
   from ai2obj import *
@@ -58,6 +59,7 @@ elif argv=='Gimp_1_0':
 
 elif argv=='Gimp_2_0':
   from svg2obj import *
+  fonctionSELECT = functionSELECT # can they all be called function?
 
 text = 'Import %s' % argv
 Blender.Window.FileSelector (fonctionSELECT, text)

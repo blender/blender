@@ -1,7 +1,7 @@
 # -*- coding: latin-1 -*-
 """
-SVG 2 OBJ translater, 0.5.0
-Copyright (c) jm soler juillet/novembre 2004-juillet 2006, 
+SVG 2 OBJ translater, 0.5.5
+Copyright (c) jm soler juillet/novembre 2004-decembre 2006, 
 # ---------------------------------------------------------------
     released under GNU Licence 
     for the Blender 2.42 Python Scripts Bundle.
@@ -82,17 +82,17 @@ Yet done:
    h : relative horizontal line to 
    v : relative vertical line to 
 
-   A : courbe_vers_a, 
-   V : ligne_tracee_v,
-   H : ligne_tracee_h, 
-   Z : boucle_z,
-   Q : courbe_vers_q,
-   T : courbe_vers_t,
-   a : courbe_vers_a, 
-   v : ligne_tracee_v,
-   h : ligne_tracee_h, 
-   z : boucle_z,
-   q : courbe_vers_q,
+   A : curve_to_a, 
+   V : draw_line_v,
+   H : draw_line_h, 
+   Z : close_z,
+   Q : curve_to_q,
+   T : curve_to_t,
+   a : curve_to_a, 
+   v : draw_line_v,
+   h : draw_line_h, 
+   z : close_z,
+   q : curve_to_q,
 
    transfrom for <g> tag 
    transform for <path> tag
@@ -135,7 +135,7 @@ Changelog:
               - The last modications does not work with gimp 2.0 svg export . 
                 corrected too .
       0.3.9 : - Path's A,a  command for ellipse's arc  .
-      0.4.0 : - To speed up the function filtre_DATA was removed and text
+      0.4.0 : - To speed up the function filter_DATA was removed and text
                 variables are changed into numeric variables               
       0.4.1 : - svg, groups and shapes hierarchy  added
               - now transform properties are computed  using a stack  with all
@@ -192,8 +192,30 @@ Changelog:
               - in b2.42, several successive	imports seem to be added to 
                 the same original curve . So now the script automaticaly 
                 renames the  last group of imported curve with the original 
-                name file . 
+                name file .
+                
+      0.5.1 : - without join option in the internal curve creation function
+       
+      0.5.2 : - the createCURVES() function has been cleanded . Now it works
+                fine but all bezier curves are joined in the same curve object .
 
+      0.5.3 : - removed two things :
+                  1/ the ajustement function to increase speed . 35 % faster :
+                      5690 curves and 30254 points in 11 seconds . User should do 
+                      a ctrl-a on the object .
+                  2/ the import method menu . No reason to choose between the
+                     old extern curve creat and the new intern curve creation 
+                     this last one is largely faster .
+                     
+     0.5.4 : - translation of the functions' name + improvment in the dict lookup .
+               Quite 15% faster . 9.75 seconds instead of 11 to load the file test . 
+               A test was also added  to find the fill style so now the script closes
+               these curves even if they are not defined as closed  in the strict path
+               commands .  
+               The old non used functions have been completely removed .
+
+     0.5.5 : - Modifs for architect users .
+     
 ==================================================================================   
 =================================================================================="""
 
@@ -247,13 +269,16 @@ os.isdir=isdir
 os.split=split
 os.join=join
 
-def filtreFICHIER(nom):
+def filterFILE(nom):
      """
-     Function  filtreFICHIER
+     Function  filterFILE
 
      in  : string  nom , filename
-     out : string  t   , if correct filecontaint 
-
+     out : string  t   , if correct filecontaint
+     
+     read the file's content and try to see if the format
+     is correct .
+     
      Lit le contenu du fichier et en fait une pre-analyse 
      pour savoir s'il merite d'etre traite .
      """
@@ -295,17 +320,6 @@ def filtreFICHIER(nom):
      else:
           return t
 
-     """
-     elif  t.upper().find('<PATH')==-1 and\
-           t.upper().find('<RECT')==-1 and\
-           t.upper().find('<LINE')==-1 and\
-           t.upper().find('<POLYLINE')==-1 	:
-         name = "ERROR: there's no Path in this file ... "  # if no %xN int is set, indices start from 1
-         result = Blender.Draw.PupMenu(name)
-         return "false"
-     """
-
-
 #===============================
 # Data
 #===============================
@@ -322,7 +336,7 @@ typBEZIER2D=9  #2D
 class Bez:
       def __init__(self):
            self.co=[]
-           self.ha=[0,0]
+           self.ha=['C','C']
            self.tag=''
 
 class ITEM:
@@ -334,11 +348,12 @@ class ITEM:
                self.flagUV      =  [0,0]              
                self.Origine     =  [0.0,0.0]
                self.beziers_knot = []
+               self.beziers_handler = []
                self.fill=0
                self.closed=0
                self.color=[0.0,0.0,0.0]
 
-class COURBE:
+class CURVE:
       def __init__(self):
               self.magic_number='3DG3'              
               self.type            =  objBEZIER        
@@ -351,9 +366,10 @@ class COURBE:
               self.ITEM = {}
 
 
-courbes=COURBE()
+curves=CURVE()
 PATTERN={}
 BOUNDINGBOX={'rec':[],'coef':1.0}
+
 npat=0
 #=====================================================================
 #======== name of the curve in the curves dictionnary ===============
@@ -370,87 +386,25 @@ CP=[0.0,0.0] #currentPoint
 #===== to compare last position to the original move to displacement =
 #=====  needed for cyclic definition inAI, EPS forma  ================
 #=====================================================================
-def test_egalitedespositions(f1,f2):
-    if f1[0]==f2[0] and f1[1]==f2[1]:
-       return Blender.TRUE
+def test_samelocations(f1,f2):
+    EPSILON=0.0001
+    if abs(f1[4])- abs(f2[4])< EPSILON and abs(f1[4])- abs(f2[4])>= 0.0\
+       and abs(f1[5])-abs(f2[5])< EPSILON and abs(f1[5])-abs(f2[5])>= 0.0 :
+       return 1
     else:
-       return Blender.FALSE
-
-
-def Open_GEOfile(dir,nom):
-    global SCALE,BOUNDINGBOX, scale_
-    #print 'test', dir+nom+'OOO.obj'
-    if BLversion>=233:
-       Blender.Load(dir+'O.obj', 1)
-       BO=Blender.Object.Get()
-
-       BO[-1].RotY=3.1416
-       BO[-1].RotZ=3.1416
-       BO[-1].RotX=3.1416/2.0
-       
-       if scale_==1:
-          BO[-1].LocY+=BOUNDINGBOX['rec'][3]
-       else:
-         BO[-1].LocY+=BOUNDINGBOX['rec'][3]/SCALE
- 
-       BO[-1].makeDisplayList() 
-       Blender.Window.RedrawAll()
-    else:
-       print "Not yet implemented"
-
-def create_GEOtext(courbes):
-    global SCALE, B, BOUNDINGBOX,scale_
-
-    r=BOUNDINGBOX['rec']
-    if scale_==1:
-       SCALE=1.0
-    elif scale_==2:
-       SCALE=r[2]-r[0]
-    elif scale_==3:
-       SCALE=r[3]-r[1]
- 
-    t=[]
-    t.append(courbes.magic_number+'\n')
-    t.append(str(courbes.type)+'\n')
-    t.append(str(courbes.number_of_items)+'\n')
-    t.append(str(courbes.ext1_ext2[0])+' '+str(courbes.ext1_ext2[1])+'\n')
-    t.append(courbes.matrix+'\n')
-    
-    for k in courbes.ITEM.keys():
-        t.append("%s\n"%courbes.ITEM[k].type)
-        t.append("%s %s \n"%(courbes.ITEM[k].pntsUV[0],courbes.ITEM[k].pntsUV[1]))
-        t.append("%s %s \n"%(courbes.ITEM[k].resolUV[0],courbes.ITEM[k].resolUV[1]))
-        t.append("%s %s \n"%(courbes.ITEM[k].orderUV[0],courbes.ITEM[k].orderUV[1]))
-        t.append("%s %s \n"%(courbes.ITEM[k].flagUV[0],courbes.ITEM[k].flagUV[1]))
-
-        flag =0#courbes.ITEM[k].flagUV[0]
-        courbes.ITEM[k]
-        for k2 in range(flag,len(courbes.ITEM[k].beziers_knot)):
-           #k1 =courbes.ITEM[k].beziers_knot[k2]
-           k1=ajustement(courbes.ITEM[k].beziers_knot[k2], SCALE)
-           
-           t.append("%4f 0.0 %4f\n"%(k1[4],k1[5]))
-           t.append("%4f 0.0 %4f\n"%(k1[0],k1[1]))
-           t.append("%4f 0.0 %4f\n"%(k1[2],k1[3]))
-           t.append(str(courbes.ITEM[k].beziers_knot[k2].ha[0])+' '+str(courbes.ITEM[k].beziers_knot[k2].ha[1])+'\n')
-
-    return t
-
-def save_GEOfile(dir,nom,t):
-#     f=open(dir+nom+'OOO.obj','w')
-     f=open(dir+'O.obj','w')
-     f.writelines(t)
-     f.close()
-    
+       return 0
 
 
 #--------------------
 # 0.4.5 : for blender cvs 2.38 ....
 #--------------------
-def createCURVES(courbes, name):
+def createCURVES(curves, name):
+    """
+    internal curves creation 
+    """
     global SCALE, B, BOUNDINGBOX,scale_
     from Blender import Curve, Object, Scene, BezTriple
-
+    HANDLE={'C':BezTriple.HandleTypes.FREE,'L':BezTriple.HandleTypes.VECT}
     r=BOUNDINGBOX['rec']
     if scale_==1:
        SCALE=1.0
@@ -459,53 +413,52 @@ def createCURVES(courbes, name):
     elif scale_==3:
        SCALE=r[3]-r[1]
 
-    #[o.select(0) for o in Object.Get()]
-    OBJECT_LIST=[]
+    if Blender.Get('version')<243 :
+       scene = Scene.getCurrent()
+    else :
+      scene = Scene.GetCurrent()
 
-    for I in courbes.ITEM:
-        c = Curve.New()
-        # ----------
-        # 0.4.7 
-        # ----------
-        c.setResolu(24)  
-        scene = Scene.getCurrent()
-        ob = Object.New('Curve',name+str(I))
-        ob.link(c)
-        scene.link(ob)
-        ob.select(1)
-        OBJECT_LIST.append(ob)
-     
+    ob = Object.New('Curve',name)
+    c = Curve.New()
+    c.setResolu(24)  
+
+    print "total curves : ", len(curves.ITEM)
+    for I,val in curves.ITEM.iteritems():
         bzn=0
-        #for b in courbes.ITEM[I].beziers_knot:
-        for k2 in range(0,len(courbes.ITEM[I].beziers_knot)):
-            bz=ajustement(courbes.ITEM[I].beziers_knot[k2], SCALE)
+        if test_samelocations(val.beziers_knot[-1].co,val.beziers_knot[0].co)\
+           and val.beziers_knot[-1].tag in ['L','l','V','v','H','h']:
+           del val.beziers_knot[-1]
+            
+        #for b in curves.ITEM[I].beziers_knot:
+        for k2 in xrange(0,len(val.beziers_knot)):
+            bz= [co for co in val.beziers_knot[k2].co] #ajustement(curves.ITEM[I].beziers_knot[k2], SCALE)
             #bz=k1
+            
             if bzn==0:
               cp1 =  bz[4],bz[5],0.0 , bz[0],bz[1],0.0, bz[2],bz[3],0.0, 
               beztriple1 = BezTriple.New(cp1)
+              beztriple1.handleTypes= (HANDLE[val.beziers_knot[k2].ha[0]],HANDLE[val.beziers_knot[k2].ha[1]])              
               bez = c.appendNurb(beztriple1)
-              
               bzn = 1
             else:
               cp2 =  bz[4],bz[5],0.0 , bz[0],bz[1],0.0, bz[2],bz[3],0.0
               beztriple2 = BezTriple.New(cp2)
+              #beztriple2.handleTypes= (BezTriple.HandleTypes.FREE, BezTriple.HandleTypes.FREE)
+              beztriple2.handleTypes= (HANDLE[val.beziers_knot[k2].ha[0]],HANDLE[val.beziers_knot[k2].ha[1]])
               bez.append(beztriple2)
-    
-        if courbes.ITEM[I].flagUV[0]==1 :
+            # print beztriple1.handleTypes
+            
+        if val.flagUV[0]==1 or val.fill==1:
           #--------------------
           # 0.4.6 : cyclic flag ...
           #--------------------
            bez.flagU += 1
-    print 'done'
-    OB_JOIN=OBJECT_LIST.pop()
-    print 'done 2'
-    
-    OB_JOIN.join(OBJECT_LIST)
-    print 'done 3'
-    for OBJ_DEL in OBJECT_LIST:
-         scene.unlink(OBJ_DEL)
-     
 
+    # print len(c)
+    ob.link(c)
+    scene.link(ob)
+    ob.setSize(1.0/SCALE,1.0/-SCALE,1.0)
+    c.update()
 
 #=====================================================================
 #=====      SVG format   :  DEBUT             =========================
@@ -519,10 +472,13 @@ OTHERSSHAPES=['rect','line', 'polyline', 'polygon','circle','ellipse']
 # 0.4.2
 #--------------------
 def rect(prp):
+  """
+  build rectangle paths
+  """
   D=[]
-  if 'x' not in prp.keys(): x=0.0
+  if 'x' not in prp: x=0.0
   else	: x=float(prp['x'])
-  if 'y' not in prp.keys(): y=0.0
+  if 'y' not in prp: y=0.0
   else	: y=float(prp['y'])
 		
   height=float(prp['height'])
@@ -540,15 +496,15 @@ def rect(prp):
        *----------* v1
        h2
   """
-  if 'rx' not in prp.keys() or 'rx' not in prp.keys(): 
+  if 'rx' not in prp or 'rx' not in prp: 
      exec   """D=['M','%s','%s','h','%s','v','%s','h','%s','z']"""%(x,y,width,height,-width)	
   else :
      rx=float(prp['rx'])
-     if 'ry' not in prp.keys()  : 
+     if 'ry' not in prp : 
 	    ry=float(prp['rx'])
      else :	ry=float(prp['ry'])
-     if 'rx' in prp.keys() and prp['rx']<0.0: rx*=-1
-     if 'ry' in prp.keys() and prp['ry']<0.0: ry*=-1
+     if 'rx' in prp and prp['rx']<0.0: rx*=-1
+     if 'ry' in prp and prp['ry']<0.0: ry*=-1
 	
      """
    rounded corner
@@ -593,9 +549,9 @@ def rect(prp):
 # 0.4.2
 #--------------------
 def circle(prp):
-   if 'cx' not in prp.keys(): cx=0.0	
+   if 'cx' not in prp: cx=0.0	
    else : cx =float(prp['cx'])
-   if 'cy' not in prp.keys(): cy=0.0
+   if 'cy' not in prp: cy=0.0
    else : cy =float(prp['cy'])
    r = float(prp['r'])
    exec """D=['M','%s','%s',                  
@@ -616,9 +572,9 @@ def circle(prp):
 # 0.4.2
 #--------------------
 def ellipse(prp):
-   if 'cx' not in prp.keys(): cx=0.0	
+   if 'cx' not in prp: cx=0.0	
    else : cx =float(prp['cx'])
-   if 'cy' not in prp.keys(): cy=0.0
+   if 'cy' not in prp: cy=0.0
    else : cy =float(prp['cy'])
    ry = float(prp['rx'])
    rx = float(prp['ry'])
@@ -647,7 +603,7 @@ def line(prp):
 # 0.4.2
 #--------------------    
 def polyline(prp):
- if 'points' in  prp.keys():
+ if 'points' in  prp:
     #print prp['points']
     points=prp['points'].split(' ')
     #print points
@@ -679,6 +635,9 @@ def polygon(prp):
 # 0.3.9
 #--------------------
 def calc_arc (cpx,cpy, rx, ry,  ang, fa , fs , x, y) :
+    """
+    Calc arc paths
+    """
     rx=abs(rx)
     ry=abs(ry)
     px=abs((cos(ang)*(cpx-x)+sin(ang)*(cpy-y))*0.5)**2.0
@@ -707,7 +666,7 @@ def calc_arc (cpx,cpy, rx, ry,  ang, fa , fs , x, y) :
         ang_arc-=2.0*PI
     n_segs=int(ceil(abs(ang_arc*2.0/(PI*0.5+0.001))))
     P=[]
-    for i in range(n_segs):
+    for i in xrange(n_segs):
         ang0=ang_0+i*ang_arc/n_segs
         ang1=ang_0+(i+1)*ang_arc/n_segs
         ang_demi=0.25*(ang1-ang0)
@@ -730,7 +689,7 @@ def calc_arc (cpx,cpy, rx, ry,  ang, fa , fs , x, y) :
 #--------------------
 # 0.3.9
 #--------------------
-def courbe_vers_a(c,D,n0,CP):  #A,a
+def curve_to_a(c,D,n0,CP):  #A,a
     global SCALE
 
     l=[float(D[c[1]+1]),float(D[c[1]+2]),float(D[c[1]+3]),
@@ -741,7 +700,7 @@ def courbe_vers_a(c,D,n0,CP):  #A,a
 
     B=Bez()
     B.co=[ CP[0], CP[1], CP[0], CP[1], CP[0], CP[1] ]             
-    B.ha=[0,0]
+    B.ha=['C','C']
     B.tag=c[0]
  
     POINTS= calc_arc (CP[0],CP[1], 
@@ -754,80 +713,80 @@ def courbe_vers_a(c,D,n0,CP):  #A,a
     for p in POINTS :
         B=Bez()
         B.co=[ p[2][0],p[2][1], p[0][0],p[0][1], p[1][0],p[1][1]]             
-        B.ha=[0,0]
+        B.ha=['C','C']
         B.tag=c[0]
-        BP=courbes.ITEM[n0].beziers_knot[-1]
+        BP=curves.ITEM[n0].beziers_knot[-1]
         BP.co[2]=B.co[2]
         BP.co[3]=B.co[3]
-        courbes.ITEM[n0].beziers_knot.append(B)
+        curves.ITEM[n0].beziers_knot.append(B)
            
-    BP=courbes.ITEM[n0].beziers_knot[-1]
+    BP=curves.ITEM[n0].beziers_knot[-1]
     BP.co[2]=BP.co[0]
     BP.co[3]=BP.co[1]
 
     CP=[l[5], l[6]]
-    return  courbes,n0,CP    
+    return  curves,n0,CP    
 
-def mouvement_vers(c, D, n0,CP, proprietes):
+def move_to(c, D, n0,CP, proprietes):
     global DEBUG,TAGcourbe
 
-    #l=filtre_DATA(c,D,2)
+    #l=filter_DATA(c,D,2)
     l=[float(D[c[1]+1]),float(D[c[1]+2])]
 
     if c[0]=='m':
        l=[l[0]+CP[0],
            l[1] + CP[1]]
 
-    if n0 in courbes.ITEM.keys():
+    if n0 in curves.ITEM:
        n0+=1
 
     CP=[l[0],l[1]] 
-    courbes.ITEM[n0]=ITEM() 
-    courbes.ITEM[n0].Origine=[l[0],l[1]] 
+    curves.ITEM[n0]=ITEM() 
+    curves.ITEM[n0].Origine=[l[0],l[1]] 
 
     proprietes['n'].append(n0)
-    #print 'prop et item',proprietes['n'], courbes.ITEM.keys()
+    #print 'prop et item',proprietes['n'], curves.ITEM.keys()
 
     B=Bez()
     B.co=[CP[0],CP[1],CP[0],CP[1],CP[0],CP[1]]
-    B.ha=[0,0]
+    #B.ha=[0,0]
     B.tag=c[0]
-    courbes.ITEM[n0].beziers_knot.append(B)
+    curves.ITEM[n0].beziers_knot.append(B)
     
-    if DEBUG==1: print courbes.ITEM[n0], CP    
+    if DEBUG==1: print curves.ITEM[n0], CP    
 
-    return  courbes,n0,CP     
+    return  curves,n0,CP     
     
-def boucle_z(c,D,n0,CP): #Z,z
+def close_z(c,D,n0,CP): #Z,z
     #print c, 'close'
-    #print courbes.ITEM[n0].beziers_knot
-    courbes.ITEM[n0].flagUV[0]=1
-    #print 'len(courbes.ITEM[n0].beziers_knot)',len(courbes.ITEM[n0].beziers_knot)
-    if len(courbes.ITEM[n0].beziers_knot)>1:
-        BP=courbes.ITEM[n0].beziers_knot[-1]
-        BP0=courbes.ITEM[n0].beziers_knot[0]
+    #print curves.ITEM[n0].beziers_knot
+    curves.ITEM[n0].flagUV[0]=1
+    #print 'len(curves.ITEM[n0].beziers_knot)',len(curves.ITEM[n0].beziers_knot)
+    if len(curves.ITEM[n0].beziers_knot)>1:
+        BP=curves.ITEM[n0].beziers_knot[-1]
+        BP0=curves.ITEM[n0].beziers_knot[0]
         if BP.tag in ['c','C','s','S']: 
            BP.co[2]=BP0.co[2]  #4-5 point prec
            BP.co[3]=BP0.co[3]
-           del courbes.ITEM[n0].beziers_knot[0]
+           del curves.ITEM[n0].beziers_knot[0]
     else:
-     del courbes.ITEM[n0]
+     del curves.ITEM[n0]
 
      n0-=1 
-    return  courbes,n0,CP    
+    return  curves,n0,CP    
 
-def courbe_vers_q(c,D,n0,CP):  #Q,q
+def curve_to_q(c,D,n0,CP):  #Q,q
     l=[float(D[c[1]+1]),float(D[c[1]+2]),float(D[c[1]+3]),float(D[c[1]+4])]
     if c[0]=='q':
        l=[l[0]+CP[0], l[1]+CP[1], l[2]+CP[0], l[3]+CP[1]]
     B=Bez()
     B.co=[l[2],  l[3],  l[2],  l[3], l[0], l[1]] #plus toucher au 2-3
-    B.ha=[0,0]
+    B.ha=['C','C']
     B.tag=c[0]
-    BP=courbes.ITEM[n0].beziers_knot[-1]
+    BP=curves.ITEM[n0].beziers_knot[-1]
     BP.co[2]=BP.co[0]
     BP.co[3]=BP.co[1]
-    courbes.ITEM[n0].beziers_knot.append(B)
+    curves.ITEM[n0].beziers_knot.append(B)
     if DEBUG==1: print B.co,BP.co
 
     CP=[l[2],l[3]]
@@ -835,45 +794,45 @@ def courbe_vers_q(c,D,n0,CP):  #Q,q
        pass 
     if len(D)>c[1]+5 and D[c[1]+5] not in TAGcourbe :
         c[1]+=4
-        courbe_vers_q(c, D, n0,CP)
-    return  courbes,n0,CP          
+        curve_to_q(c, D, n0,CP)
+    return  curves,n0,CP          
 
-def courbe_vers_t(c,D,n0,CP):  #T,t 
+def curve_to_t(c,D,n0,CP):  #T,t 
     l=[float(D[c[1]+1]),float(D[c[1]+2])]
     if c[0]=='t':
        l=[l[0]+CP[0], l[1]+CP[1]]
           
     B=Bez()
     B.co=[l[0], l[1], l[0], l[1], l[0], l[1]] #plus toucher au 2-3
-    B.ha=[0,0]
+    B.ha=['C','C']
     B.tag=c[0]
 
-    BP=courbes.ITEM[n0].beziers_knot[-1]
+    BP=curves.ITEM[n0].beziers_knot[-1]
 
-    l0=contruit_SYMETRIC([BP.co[0],BP.co[1],BP.co[4],BP.co[5]])
+    l0=build_SYMETRIC([BP.co[0],BP.co[1],BP.co[4],BP.co[5]])
 
     if BP.tag in ['q','Q','t','T','m','M']:
        BP.co[2]=l0[2]
        BP.co[3]=l0[3]
 
-    courbes.ITEM[n0].beziers_knot.append(B)
+    curves.ITEM[n0].beziers_knot.append(B)
     if DEBUG==1: print B.co,BP.co
 
     CP=[l[0],l[1]]
     if len(D)>c[1]+3 and D[c[1]+3] not in TAGcourbe :
         c[1]+=4
-        courbe_vers_t(c, D, n0,CP)    
-    return  courbes,n0,CP     
+        curve_to_t(c, D, n0,CP)    
+    return  curves,n0,CP     
 
 #--------------------
 # 0.4.3 : rewritten
 #--------------------
-def contruit_SYMETRIC(l):
+def build_SYMETRIC(l):
     X=l[2]-(l[0]-l[2])
     Y=l[3]-(l[1]-l[3])
     return X,Y
 
-def courbe_vers_s(c,D,n0,CP):  #S,s
+def curve_to_s(c,D,n0,CP):  #S,s
     l=[float(D[c[1]+1]),
        float(D[c[1]+2]),
        float(D[c[1]+3]),
@@ -883,14 +842,14 @@ def courbe_vers_s(c,D,n0,CP):  #S,s
           l[2]+CP[0], l[3]+CP[1]]
     B=Bez()
     B.co=[l[2],l[3],l[2],l[3],l[0],l[1]] #plus toucher au 2-3
-    B.ha=[0,0]
+    B.ha=['C','C']
     B.tag=c[0]
-    BP=courbes.ITEM[n0].beziers_knot[-1]
+    BP=curves.ITEM[n0].beziers_knot[-1]
     #--------------------
     # 0.4.3
     #--------------------
-    BP.co[2],BP.co[3]=contruit_SYMETRIC([BP.co[4],BP.co[5],BP.co[0],BP.co[1]])
-    courbes.ITEM[n0].beziers_knot.append(B)
+    BP.co[2],BP.co[3]=build_SYMETRIC([BP.co[4],BP.co[5],BP.co[0],BP.co[1]])
+    curves.ITEM[n0].beziers_knot.append(B)
     if DEBUG==1: print B.co,BP.co
     #--------------------
     # 0.4.3
@@ -898,10 +857,10 @@ def courbe_vers_s(c,D,n0,CP):  #S,s
     CP=[l[2],l[3]]    
     if len(D)>c[1]+5 and D[c[1]+5] not in TAGcourbe :
         c[1]+=4
-        courbe_vers_c(c, D, n0,CP)       
-    return  courbes,n0,CP
+        curve_to_c(c, D, n0,CP)       
+    return  curves,n0,CP
        
-def courbe_vers_c(c, D, n0,CP): #c,C
+def curve_to_c(c, D, n0,CP): #c,C
     l=[float(D[c[1]+1]),float(D[c[1]+2]),float(D[c[1]+3]),
        float(D[c[1]+4]),float(D[c[1]+5]),float(D[c[1]+6])]
     if c[0]=='c':
@@ -918,42 +877,48 @@ def courbe_vers_c(c, D, n0,CP): #c,C
           l[5],
           l[2],
           l[3]] #plus toucher au 2-3
-    B.ha=[0,0]
+    B.ha=['C','C']
     B.tag=c[0]
-    BP=courbes.ITEM[n0].beziers_knot[-1]
+    BP=curves.ITEM[n0].beziers_knot[-1]
     BP.co[2]=l[0]
     BP.co[3]=l[1]
-    courbes.ITEM[n0].beziers_knot.append(B)
+    curves.ITEM[n0].beziers_knot.append(B)
     if DEBUG==1: print B.co,BP.co
     CP=[l[4],l[5]]
     if len(D)>c[1]+7 and D[c[1]+7] not in TAGcourbe :
         c[1]+=6
-        courbe_vers_c(c, D, n0,CP)
-    return  courbes,n0,CP
+        curve_to_c(c, D, n0,CP)
+    return  curves,n0,CP
     
     
-def ligne_tracee_l(c, D, n0,CP): #L,l
+def draw_line_l(c, D, n0,CP): #L,l
     l=[float(D[c[1]+1]),float(D[c[1]+2])]
     if c[0]=='l':
        l=[l[0]+CP[0],
           l[1]+CP[1]]
     B=Bez()
     B.co=[l[0],l[1],l[0],l[1],l[0],l[1]]
-    B.ha=[0,0]
+    #B.ha=[0,0]
+    B.ha[1]='L'
     B.tag=c[0]
-    BP=courbes.ITEM[n0].beziers_knot[-1]
-    if BP.tag in ['c','C','s','S','m','M']:
+    BP=curves.ITEM[n0].beziers_knot[-1]
+    
+    #if BP.tag in ['c','C','s','S','m','M']:
+    if BP.tag in ['c','C','s','S']:
        BP.co[2]=B.co[4]
        BP.co[3]=B.co[5]
-    courbes.ITEM[n0].beziers_knot.append(B)    
+    elif BP.tag in ['v','V','l','L','H','h']:
+       BP.ha[0]='L'
+       
+    curves.ITEM[n0].beziers_knot.append(B)    
     CP=[B.co[0],B.co[1]]
     if len(D)>c[1]+3 and D[c[1]+3] not in TAGcourbe :
         c[1]+=2
-        ligne_tracee_l(c, D, n0,CP) #L
-    return  courbes,n0,CP    
+        draw_line_l(c, D, n0,CP) #L
+    return  curves,n0,CP    
     
     
-def ligne_tracee_h(c,D,n0,CP): #H,h
+def draw_line_h(c,D,n0,CP): #H,h
     if c[0]=='h':
        l=[float(D[c[1]+1])+float(CP[0]),CP[1]]
     else:
@@ -961,54 +926,60 @@ def ligne_tracee_h(c,D,n0,CP): #H,h
 
     B=Bez()
     B.co=[l[0],l[1],l[0],l[1],l[0],l[1]]
-    B.ha=[0,0]
+    B.ha[1]='L'
     B.tag=c[0]
-    BP=courbes.ITEM[n0].beziers_knot[-1]
+    BP=curves.ITEM[n0].beziers_knot[-1]
     if BP.tag in ['c','C','s','S','m','M']:
         BP.co[2]=B.co[4]
         BP.co[3]=B.co[5]
-    courbes.ITEM[n0].beziers_knot.append(B)    
-    CP=[l[0],l[1]]
-    return  courbes,n0,CP    
+    elif BP.tag in ['v','V','l','L','H','h']:
+       BP.ha[0]='L'
 
-def ligne_tracee_v(c,D,n0,CP): #V, v    
+    curves.ITEM[n0].beziers_knot.append(B)    
+    CP=[l[0],l[1]]
+    return  curves,n0,CP    
+
+def draw_line_v(c,D,n0,CP): #V, v    
     if c[0]=='v':
        l=[CP[0], float(D[c[1]+1])+CP[1]]
     else:
        l=[CP[0], float(D[c[1]+1])]               
     B=Bez()
     B.co=[l[0],l[1],l[0],l[1],l[0],l[1]]
-    B.ha=[0,0]
+    B.ha[1]='L'
     B.tag=c[0]
-    BP=courbes.ITEM[n0].beziers_knot[-1]
+    BP=curves.ITEM[n0].beziers_knot[-1]
     if BP.tag in ['c','C','s','S','m','M']:
         BP.co[2]=B.co[4]
         BP.co[3]=B.co[5]
-    courbes.ITEM[n0].beziers_knot.append(B)    
-    CP=[l[0],l[1]]
-    return  courbes,n0,CP    
-     
-Actions=   {     "C" : courbe_vers_c,
-                 "A" : courbe_vers_a, 
-                 "S" : courbe_vers_s,
-                 "M" : mouvement_vers,
-                 "V" : ligne_tracee_v,
-                 "L" : ligne_tracee_l,
-                 "H" : ligne_tracee_h,                
-                 "Z" : boucle_z,
-                 "Q" : courbe_vers_q,
-                 "T" : courbe_vers_t,
+    elif BP.tag in ['v','V','l','L','H','h']:
+       BP.ha[0]='L'
 
-                 "c" : courbe_vers_c,
-                 "a" : courbe_vers_a, 
-                 "s" : courbe_vers_s,
-                 "m" : mouvement_vers,
-                 "v" : ligne_tracee_v,
-                 "l" : ligne_tracee_l,
-                 "h" : ligne_tracee_h,                
-                 "z" : boucle_z,
-                 "q" : courbe_vers_q,
-                 "T" : courbe_vers_t
+    curves.ITEM[n0].beziers_knot.append(B)    
+    CP=[l[0],l[1]]
+    return  curves,n0,CP    
+     
+Actions=   {     "C" : curve_to_c,
+                 "A" : curve_to_a, 
+                 "S" : curve_to_s,
+                 "M" : move_to,
+                 "V" : draw_line_v,
+                 "L" : draw_line_l,
+                 "H" : draw_line_h,                
+                 "Z" : close_z,
+                 "Q" : curve_to_q,
+                 "T" : curve_to_t,
+
+                 "c" : curve_to_c,
+                 "a" : curve_to_a, 
+                 "s" : curve_to_s,
+                 "m" : move_to,
+                 "v" : draw_line_v,
+                 "l" : draw_line_l,
+                 "h" : draw_line_h,                
+                 "z" : close_z,
+                 "q" : curve_to_q,
+                 "T" : curve_to_t
 }
      
 TAGcourbe=Actions.keys()
@@ -1016,9 +987,9 @@ TAGtransform=['M','L','C','S','H','V','T','Q']
 tagTRANSFORM=0
  
 def wash_DATA(ndata):
-	
+   
    if ndata!='':
-       print ndata
+       if DEBUG==1: print ndata
        while ndata[0]==' ': 
            ndata=ndata[1:]
        while ndata[-1]==' ': 
@@ -1038,33 +1009,32 @@ def wash_DATA(ndata):
    return ndata
 
 #--------------------             
-# 0.3.4 : - reading data rewrittten
+# 0.3.4 : - read data rewrittten
 #--------------------
 def list_DATA(DATA):
     """
-    cette fonction doit retourner une liste proposant
-    une suite correcte de commande avec le nombre de valeurs
-    attendu pour chacune d'entres-elles .
-    Par exemple :
-    d="'M0,14.0 z" devient ['M','0.0','14.0','z'] 
+    This function return a list of correct commands
+    with the right number of waited values
+    for each of them .  For example  :
+    d="'M0,14.0 z" becomes ['M','0.0','14.0','z'] 
     """
     # ----------------------------------------
-    # 1 / reprer la position des differents tag 
+    # 1 / repre la position des differents tag 
     # ----------------------------------------
     tagplace=[]
 
     # ----------------------------------------
     #     construire une liste avec chaque emplacement
     # ----------------------------------------
-    for d in Actions.keys():
+    for d in Actions.iterkeys():
         b1=0
         b2=len(DATA)
         while DATA.find(d,b1,b2)!=-1 :
             tagplace.append(DATA.find(d,b1,b2))
             b1=DATA.find(d,b1,b2)+1
     # ----------------------------------------
-    #     remettre la liste dans l'ordre de presentation
-    #     des donnes 
+    #     reset the list in the presentation order
+    #     of the  data 
     # ----------------------------------------	
     tagplace.sort()
 
@@ -1120,8 +1090,8 @@ def matrix(a,b,c,d,e,f):
 # 0.4.2 : rewritten 
 def control_CONTAINT(txt):
     """
-    les descriptions de transformation peuvent être seules ou plusieurs et
-    les séparateurs peuvent avoir été oubliés
+    the transforms' descriptions can be sole or several
+    and separators might be forgotten
     """
     t0=0
     tlist=[]
@@ -1150,10 +1120,15 @@ def control_CONTAINT(txt):
         t0=t1+1
     return tlist
 
+def curve_FILL(Courbe,proprietes):
+   for n in proprietes['n']:
+     if n in Courbe and proprietes['style'].find('fill:#')>-1:
+         Courbe[n].fill=1
+
 # 0.4.1 : apply transform stack
-def courbe_TRANSFORM(Courbe,proprietes):
-    # 1/ deplier le STACK
-    #   créer une matrice pour chaque transformation    
+def curve_TRANSFORM(Courbe,proprietes):
+    # 1/ unpack the STACK
+    #   create a matrix for each transform    
     ST=[]
     #print proprietes['stack'] 
     for st in proprietes['stack'] :
@@ -1164,14 +1139,14 @@ def courbe_TRANSFORM(Courbe,proprietes):
         elif st :
            exec "a,b,c=%s;T=Mathutils.Matrix(a,b,c)"%control_CONTAINT(st)[0]
            ST.append(T)              
-    if 'transform' in proprietes.keys():
+    if 'transform' in proprietes:
         for trans in control_CONTAINT(proprietes['transform']):
            exec """a,b,c=%s;T=Mathutils.Matrix(a,b,c)"""%trans
            ST.append(T)
            #print ST
     ST.reverse()
     for n in proprietes['n']:
-     if n in Courbe.keys():
+     if n in Courbe:
         for bez0 in Courbe[n].beziers_knot:
           bez=bez0.co
           for b in [0,2,4]:
@@ -1182,17 +1157,17 @@ def courbe_TRANSFORM(Courbe,proprietes):
                  bez[b]=v[0]
                  bez[b+1]=v[1]          
 
-def filtre(d):
+def filter(d):
     for nn in d:
        if '0123456789.'.find(nn)==-1:
           d=d.replace(nn,"")
     return d
 
 def get_BOUNDBOX(BOUNDINGBOX,SVG):
-    if 'viewbox' not in SVG.keys():
-        h=float(filtre(SVG['height']))
+    if 'viewbox' not in SVG:
+        h=float(filter(SVG['height']))
         if DEBUG==1 : print 'h : ',h
-        w=float(filtre(SVG['width']))
+        w=float(filter(SVG['width']))
         if DEBUG==1 : print 'w :',w
         BOUNDINGBOX['rec']=[0.0,0.0,w,h]
         r=BOUNDINGBOX['rec']
@@ -1205,7 +1180,7 @@ def get_BOUNDBOX(BOUNDINGBOX,SVG):
     return BOUNDINGBOX
 
 # 0.4.1 : attributs ex : 'id=', 'transform=', 'd=' ...
-def collecte_ATTRIBUTS(data):
+def collect_ATTRIBUTS(data):
     #----------------------------------------------
     # 0.4.8 : short modif for a fantasy font case  
     #         in the OOo svg format ('viewbox'  is 
@@ -1232,8 +1207,8 @@ def collecte_ATTRIBUTS(data):
 # 0.4.1 : to avoid to use sax and ths xml  
 #         tools of the complete python
 # --------------------------------------------
-def contruit_HIERARCHIE(t):
-    global CP, courbes, SCALE, DEBUG, BOUNDINGBOX, scale_, tagTRANSFORM
+def build_HIERARCHY(t):
+    global CP, curves, SCALE, DEBUG, BOUNDINGBOX, scale_, tagTRANSFORM
     TRANSFORM=0
     t=t.replace('\t',' ')
     while t.find('  ')!=-1:
@@ -1281,8 +1256,8 @@ def contruit_HIERARCHIE(t):
             else:
                balise=BALISES[-2]
           if balise=='E' or balise=='O':
-             proprietes=collecte_ATTRIBUTS(t[t0:t1+ouvrante])
-             if  balise=='O' and 'transform' in proprietes.keys():
+             proprietes=collect_ATTRIBUTS(t[t0:t1+ouvrante])
+             if  balise=='O' and 'transform' in proprietes:
                  STACK.append(proprietes['transform'])
                  TRANSFORM+=1   
              elif balise=='O' : 
@@ -1301,11 +1276,14 @@ def contruit_HIERARCHIE(t):
                    if len(cell)>=1 and cell[0] in TAGcourbe:
                        prop=''
                        if cell[0] in ['m','M']: 
-	                             prop=',proprietes'
-                       exec """courbes,n0,CP=Actions[cell]([cell,cursor], D, n0,CP%s)"""%prop
+                             prop=',proprietes'
+                       exec """curves,n0,CP=Actions[cell]([cell,cursor], D, n0,CP%s)"""%prop
                    cursor+=1
-                 if TRANSFORM>0 or 'transform' in proprietes.keys() :
-                     courbe_TRANSFORM(courbes.ITEM,proprietes)
+                 if TRANSFORM>0 or 'transform' in proprietes :
+                     curve_TRANSFORM(curves.ITEM,proprietes)
+                 if 'style' in proprietes :
+                     curve_FILL(curves.ITEM,proprietes)
+                     
              elif proprietes['TYPE'] in ['svg'] :
                    #print  'proprietes.keys()',proprietes.keys()
                    BOUNDINGBOX = get_BOUNDBOX(BOUNDINGBOX,proprietes)          
@@ -1318,19 +1296,22 @@ def contruit_HIERARCHIE(t):
       t0=t1             
                         
 def scan_FILE(nom):
-  global CP, courbes, SCALE, DEBUG, BOUNDINGBOX, scale_, tagTRANSFORM
+  global CP, curves, SCALE, DEBUG, BOUNDINGBOX, scale_, tagTRANSFORM
   dir,name=split(nom)
   name=name.split('.')
   result=0
-  t=filtreFICHIER(nom)
+  Choise=1
+  t1=Blender.sys.time()
+  t=filterFILE(nom)
   if t!='false':
      Blender.Window.EditMode(0)
      if not SHARP_IMPORT:
-         warning = "Select Size : %t| As is %x1 | Scale on Height %x2| Scale on Width %x3" 
-         scale_ = Blender.Draw.PupMenu(warning)
+          warning = "Select Size : %t| As is %x1 | Scale on Height %x2| Scale on Width %x3" 
+          scale_ = Blender.Draw.PupMenu(warning)
+     t1=Blender.sys.time()
      # 0.4.1 : to avoid to use sax and the xml  
      #         tools of the complete python
-     contruit_HIERARCHIE(t)
+     build_HIERARCHY(t)
      r=BOUNDINGBOX['rec']
      if scale_==1:
         SCALE=1.0
@@ -1338,53 +1319,29 @@ def scan_FILE(nom):
         SCALE=r[2]-r[0]
      elif scale_==3:
         SCALE=r[3]-r[1]
-  courbes.number_of_items=len(courbes.ITEM.keys())
-  for k in courbes.ITEM.keys():
-     courbes.ITEM[k].pntsUV[0] =len(courbes.ITEM[k].beziers_knot)
 
-  #--------------------
-  # 0.4.5
-  #--------------------
-  CVS=2
-  if BLversion>=238 : 
-     warning = "CVS version you can import as : %t| Blender internal, experimental ? %x1 |  Old proofed method, import using Blender OBJ format  %x2" 
-     CVS=Blender.Draw.PupMenu(warning)
+  curves.number_of_items=len(curves.ITEM)
+  for k, val in curves.ITEM.iteritems():
+     val.pntsUV[0] =len(val.beziers_knot)
 
-  if courbes.number_of_items>0 and CVS==2:
-     if len(PATTERN.keys() )>0:
-        if DEBUG == 3 : print len(PATTERN.keys() )
-     t=create_GEOtext(courbes)
-     save_GEOfile(dir,name[0],t)
-     Open_GEOfile(dir,name[0])
-
-     # 0.4.9  ----------------------
-     Blender.Object.Get()[-1].setName(name[0])
-     # 0.4.9  ----------------------
-
-  elif courbes.number_of_items>0 and CVS==1 :
-	   #--------------------
+  if curves.number_of_items>0 and Choise==1 :
+     #--------------------
      # 0.4.5 and 0.4.9 
      #--------------------
-	   createCURVES(courbes, name[0])
-	
+     createCURVES(curves, name[0])
   else:
-     pass      
+     pass
     
-def  ajustement(v,s):
-     
-     a,b,c,d,e,f=float(v.co[0]),float(v.co[1]),float(v.co[2]),float(v.co[3]),float(v.co[4]),float(v.co[5])
-     return [a/s,-b/s,c/s,-d/s,e/s,-f/s]
+  print ' elapsed time : ',Blender.sys.time()-t1
+  Blender.Redraw()
+
 
 #=====================================================================
 #====================== SVG format mouvements ========================
 #=====================================================================
-
-#=====================================================================
-# une sorte de contournement qui permet d'utiliser la fonction
-# et de documenter les variables Window.FileSelector
-#=====================================================================
-def fonctionSELECT(nom):
+def functionSELECT(nom):
     scan_FILE(nom)
 
+
 if __name__=='__main__':
-   Blender.Window.FileSelector (fonctionSELECT, 'SELECT a .SVG FILE')
+   Blender.Window.FileSelector (functionSELECT, 'SELECT a .SVG FILE')
