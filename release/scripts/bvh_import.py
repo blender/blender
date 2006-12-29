@@ -261,7 +261,7 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0):
 				
 				while anim_data[-1][5] - rz >  180: rz+=360
 				while anim_data[-1][5] - rz < -180: rz-=360
-			
+				
 			# Done importing motion data #
 			anim_data.append( (lx, ly, lz, rx, ry, rz) )
 		lineIdx += 1
@@ -484,12 +484,12 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 	
 	
 	# KEYFRAME METHOD, SLOW, USE IPOS DIRECT
-	'''
+	
 	# Animate the data, the last used bvh_node will do since they all have the same number of frames
 	for current_frame in xrange(len(bvh_node.anim_data)):
 		
-		if current_frame==40:
-			break
+		#if current_frame==40: # debugging
+		#	break
 		
 		# Dont neet to set the current frame
 		for bvh_node in bvh_nodes.itervalues():
@@ -516,9 +516,9 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 				# Insert the keyframe from the loc/quat
 				pose_bone.insertKey(arm_ob, current_frame+IMPORT_START_FRAME, xformConstants)
 	# END KEYFRAME METHOD
-	'''
 	
 	
+	"""
 	# IPO KEYFRAME SETTING
 	# Add in the IPOs by adding keyframes, AFAIK theres no way to add IPOs to an action so I do this :/
 	for bvh_node in bvh_nodes.itervalues():
@@ -646,7 +646,7 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 					w,x,y,z=		nw,nx,ny,nz
 
 	# IPO KEYFRAME SETTING
-	
+	"""
 	pose.update()
 	return arm_ob
 
@@ -677,7 +677,7 @@ for f in ('/d/staggered_walk.bvh',):
 		bvh_node_dict2armature(bvh_nodes, 1)
 '''
 
-def load_bvh_ui(file):
+def load_bvh_ui(file, PREF_UI= True):
 	
 	if BPyMessages.Error_NoFile(file):
 		return
@@ -690,15 +690,16 @@ def load_bvh_ui(file):
 	IMPORT_AS_EMPTIES = Draw.Create(0)
 	
 	# Get USER Options
-	pup_block = [\
-	('As Armature', IMPORT_AS_ARMATURE, 'Imports the BVH as an armature'),\
-	('As Empties', IMPORT_AS_EMPTIES, 'Imports the BVH as empties'),\
-	('Scale: ', IMPORT_SCALE, 0.001, 100.0, 'Scale the BVH, Use 0.01 when 1.0 is 1 metre'),\
-	('Start Frame: ', IMPORT_START_FRAME, 1, 30000, 'Frame to start BVH motion'),\
-	]
-	
-	if not Draw.PupBlock('BVH Import...', pup_block):
-		return
+	if PREF_UI:
+		pup_block = [\
+		('As Armature', IMPORT_AS_ARMATURE, 'Imports the BVH as an armature'),\
+		('As Empties', IMPORT_AS_EMPTIES, 'Imports the BVH as empties'),\
+		('Scale: ', IMPORT_SCALE, 0.001, 100.0, 'Scale the BVH, Use 0.01 when 1.0 is 1 metre'),\
+		('Start Frame: ', IMPORT_START_FRAME, 1, 30000, 'Frame to start BVH motion'),\
+		]
+		
+		if not Draw.PupBlock('BVH Import...', pup_block):
+			return
 	
 	print 'Attempting import BVH', file
 	
@@ -724,10 +725,13 @@ def load_bvh_ui(file):
 	print 'Done in %.4f\n' % (Blender.sys.time()-t1)
 	Blender.Window.WaitCursor(0)
 
-
 def main():
 	Blender.Window.FileSelector(load_bvh_ui, 'Import BVH', '*.bvh')
-	
+
 if __name__ == '__main__':
 	main()
-
+	'''
+	scn = Blender.Scene.GetCurrent()
+	for ob in list(scn.objects): scn.objects.unlink(ob)
+	load_bvh_ui('/test.bvh', False)
+	'''

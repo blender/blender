@@ -96,6 +96,7 @@ static PyObject *M_Scene_New( PyObject * self, PyObject * args,
 			      PyObject * keywords );
 static PyObject *M_Scene_Get( PyObject * self, PyObject * args );
 static PyObject *M_Scene_GetCurrent( PyObject * self );
+static PyObject *M_Scene_getCurrent_deprecated( PyObject * self );
 static PyObject *M_Scene_Unlink( PyObject * self, PyObject * arg );
 /*-----------------------Scene module doc strings-----------------------------*/
 static char M_Scene_doc[] = "The Blender.Scene submodule";
@@ -115,7 +116,7 @@ struct PyMethodDef M_Scene_methods[] = {
 	{"get", M_Scene_Get, METH_VARARGS, M_Scene_Get_doc},
 	{"GetCurrent", ( PyCFunction ) M_Scene_GetCurrent,
 	 METH_NOARGS, M_Scene_GetCurrent_doc},
-	{"getCurrent", ( PyCFunction ) M_Scene_GetCurrent,
+	{"getCurrent", ( PyCFunction ) M_Scene_getCurrent_deprecated,
 	 METH_NOARGS, M_Scene_GetCurrent_doc},
 	{"Unlink", M_Scene_Unlink, METH_VARARGS, M_Scene_Unlink_doc},
 	{"unlink", M_Scene_Unlink, METH_VARARGS, M_Scene_Unlink_doc},
@@ -534,6 +535,12 @@ static PyObject *M_Scene_GetCurrent( PyObject * self )
 {
 	return Scene_CreatePyObject( ( Scene * ) G.scene );
 }
+static PyObject *M_Scene_getCurrent_deprecated( PyObject * self )
+{
+	printf("Blender.Scene.getCurrent() is deprecated,\n\tuse Blender.Scene.GetCurrent() instead.\n");
+	return Scene_CreatePyObject( ( Scene * ) G.scene );
+}
+
 
 /*-----------------------Scene.Unlink()----------------------------------*/
 static PyObject *M_Scene_Unlink( PyObject * self, PyObject * args )
