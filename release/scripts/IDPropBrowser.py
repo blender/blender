@@ -363,9 +363,7 @@ class IDPropertyBrowser:
 			
 			IDTypeModules[self.IDList][1] = self.idindex
 			self.IDList = self.idmenu.val-1
-			self.idindex = IDTypeModules[self.IDList][1]
-			
-			val = self.idindex = self.menubut.val - 1
+			val = self.idindex = IDTypeModules[self.IDList][1]
 			i = self.IDList
 			block = IDTypeModules[i][0].Get()[val]
 			self.idblock = block
