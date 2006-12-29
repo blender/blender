@@ -1012,7 +1012,7 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 {
 	SculptData *sd= sculpt_data();
 	SculptSession *ss= sculpt_session();
-	float avg= 0;
+	float avg= 1;
 
 	if(sd->texact==-1)
 		avg= 1;
@@ -1030,7 +1030,8 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 		mtex.size[2]= sd->texscale * factor;
 		
 		externtex(&mtex,point,&avg,&jnk,&jnk,&jnk,&jnk);
-	} else {
+	}
+	else if(ss->texrndr) {
 		const short bsize= sculptmode_brush()->size * 2;
 		const short half= sculptmode_brush()->size;
 		int px, py;
