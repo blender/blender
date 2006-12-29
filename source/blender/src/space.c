@@ -1266,6 +1266,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.qual==LR_SHIFTKEY)
 					sculptmode_propset_init(PropsetStrength);	
 				break;
+			case VKEY:
+				br->dir= br->dir==1 ? 2 : 1;
+				update_prop= 1; break;
 			/* Set brush */
 			case DKEY:
 				sd->brush_type= DRAW_BRUSH;

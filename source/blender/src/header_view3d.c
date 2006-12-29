@@ -4081,9 +4081,9 @@ void do_view3d_sculptmenu(void *arg, int event)
 		sd->brush_type= event+1;
 		break;
 	case 6:
-		br->dir= 1; break;
+		br->dir= br->dir==1 ? 2 : 1; break;
 	case 7:
-		br->dir= 0; break;
+		break; /* Remove */
 	case 8:
 		br->airbrush= !br->airbrush; break;
 	case 9:
@@ -4169,12 +4169,10 @@ uiBlock *view3d_sculptmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, (sd->symm & SYMM_Z ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry Z|Z", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
 	uiDefIconTextBut(block, BUTM, 1, (sd->symm & SYMM_Y ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry Y|Y", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, (sd->symm & SYMM_X ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Symmetry X|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	if(sd->brush_type!=GRAB_BRUSH)
 		uiDefIconTextBut(block, BUTM, 1, (br->airbrush ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Airbrush|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
 	if(sd->brush_type!=SMOOTH_BRUSH && sd->brush_type!=GRAB_BRUSH) {
-		uiDefIconTextBut(block, BUTM, 1, (br->dir==0 ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Sub", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-		uiDefIconTextBut(block, BUTM, 1, (br->dir==1 ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Add", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+		uiDefIconTextBut(block, BUTM, 1, (br->dir==1 ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Add|V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	}
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==LAYER_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Layer|L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
