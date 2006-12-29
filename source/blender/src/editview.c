@@ -59,6 +59,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_ipo_types.h" /* for fly mode recording */
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -2116,6 +2117,11 @@ void fly(void)
 	persp_backup; /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
 	short xlock=0, zlock=0;
 	
+	/* for recording */
+	int cfra = G.scene->r.cfra;
+	char *actname="";
+	
+	
 	if(curarea->spacetype!=SPACE_VIEW3D) return;
 	if(G.vd->persp==2 && G.vd->camera->id.lib) return;
 	
@@ -2132,6 +2138,11 @@ void fly(void)
 		
 		G.vd->dist=0.0;
 		G.vd->viewbut=0;
+		
+		/* used for recording */
+		if(G.vd->camera->ipoflag & OB_ACTION_OB)
+			actname= "Object";
+		
 	} else {
 		/* perspective or ortho */
 		if (G.vd->persp==0)
@@ -2363,16 +2374,33 @@ void fly(void)
 
 			VecAddf(G.vd->ofs, G.vd->ofs, dvec);
 			headerprint("FlyKeys  Speed:(+/- | Wheel),  MouseLook:Alt,  Upright Axis:X/Z,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Cancel:RMB");
-
+			
+			do_screenhandlers(G.curscreen); /* advance the next frame */
+			
 			/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to teh view */
 			if (G.vd->persp==2) {
 				G.vd->persp= 1; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
 				setviewmatrixview3d();
 				setcameratoview3d();
 				G.vd->persp= 2;
+				
+				/* record the motion */
+				if (G.flags & G_RECORDKEYS && G.vd->camera->ipo && cfra != G.scene->r.cfra) {
+					cfra = G.scene->r.cfra;
+					
+					if (xlock || zlock || moffset[0] || moffset[1]) {
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_X);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_Y);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_Z);
+					}
+					if (speed) {
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_X);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Y);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Z);
+					}
+				}
 				DAG_object_flush_update(G.scene, G.vd->camera, OB_RECALC_OB);
 			}
-
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
 		} else 
@@ -2401,6 +2429,13 @@ void fly(void)
 		float mat3[3][3];
 		Mat3CpyMat4(mat3, G.vd->camera->obmat);
 		Mat3ToCompatibleEul(mat3, G.vd->camera->rot, rot_backup);
+		
+		if (G.flags & G_RECORDKEYS && G.vd->camera->ipo) {
+			allqueue(REDRAWIPO, 0);
+			allspace(REMAKEIPO, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWTIME, 0);
+		}
 	}
 	else { /* not camera */
 		/* Apply the fly mode view */
