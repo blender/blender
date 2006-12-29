@@ -1092,7 +1092,7 @@ static void draw_ipovertices(int sel)
 	
 	if(G.f & G_PICKSEL) return;
 	
-	glPointSize(3.0);
+	glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 	
 	ei= G.sipo->editipo;
 	for(nr=0; nr<G.sipo->totipo; nr++, ei++) {
@@ -2624,4 +2624,3 @@ EditIpo *select_proj_ipo(rctf *rectf, int event)
 	}
 	return 0;
 }
-

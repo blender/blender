@@ -421,6 +421,7 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tipo.vertex, 0xff, 0x70, 0xff, 255);
 	SETCOL(btheme->tipo.vertex_select, 0xff, 0xff, 0x70, 255);
 	SETCOL(btheme->tipo.hilite, 0x60, 0xc0, 0x40, 255); 
+	btheme->tipo.vertex_size= 3;
 
 	/* space file */
 	/* to have something initialized */
@@ -597,6 +598,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Ipo Channels %%x%d|", TH_SHADE2);
 			str += sprintf(str, "Vertex %%x%d|", TH_VERTEX);
 			str += sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT);
+			str += sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE);
 			break;
 		case SPACE_FILE:
 			str += sprintf(str, "Selected file %%x%d", TH_HILITE);

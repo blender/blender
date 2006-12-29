@@ -345,6 +345,14 @@ static void init_userdef_file(void)
 			}
 		}
 	}
+	if (G.main->versionfile <= 242) {
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			if(btheme->tipo.vertex_size == 0) {
+				btheme->tipo.vertex_size= 3;
+			}
+		}
+	}
 	
 	if (U.undosteps==0) U.undosteps=32;
 	
