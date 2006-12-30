@@ -47,7 +47,7 @@
 #define EXPP_THEME_DRAWTYPE_MIN 1
 #define EXPP_THEME_DRAWTYPE_MAX 4
 
-#define EXPP_THEME_NUMBEROFTHEMES 15
+#define EXPP_THEME_NUMBEROFTHEMES 16
 static const EXPP_map_pair themes_map[] = {
 	{"ui", -1},
 	{"buts", SPACE_BUTS},
@@ -64,6 +64,7 @@ static const EXPP_map_pair themes_map[] = {
 	{"text", SPACE_TEXT},
 	{"oops", SPACE_OOPS},
 	{"time", SPACE_TIME},
+	{"node", SPACE_NODE},
 	{NULL, 0}
 };
 
@@ -159,9 +160,11 @@ static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name )
 		ELSEIF_TSP_RGBA( hilite )
 		ELSEIF_TSP_RGBA( grid )
 		ELSEIF_TSP_RGBA( wire )
-		ELSEIF_TSP_RGBA( lamp )
 		ELSEIF_TSP_RGBA( select )
+		ELSEIF_TSP_RGBA( lamp )
 		ELSEIF_TSP_RGBA( active )
+		ELSEIF_TSP_RGBA( group )
+		ELSEIF_TSP_RGBA( group_active )
 		ELSEIF_TSP_RGBA( transform )
 		ELSEIF_TSP_RGBA( vertex )
 		ELSEIF_TSP_RGBA( vertex_select )
@@ -195,17 +198,19 @@ static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name )
 		else if( !strcmp( name, "facedot_size" ) )
 		attrib = Py_BuildValue( "i", tsp->facedot_size );
 	else if( !strcmp( name, "__members__" ) )
-		attrib = Py_BuildValue("[sssssssssssssssssssssssssssssssssssssssssss]", "theme",
+		attrib = Py_BuildValue("[ssssssssssssssssssssssssssssssssssssssssssssss]", "theme",
 					"back", "text", "text_hi", "header",
 					"panel", "shade1", "shade2", "hilite",
-					"grid", "wire", "lamp", "select", "active",
+					"grid", "wire", "select", "lamp", "active",
+					"group", "group_active",
 					"transform", "vertex", "vertex_select",
 					"edge", "edge_select", "edge_seam",
 					"edge_facesel", "face", "face_select",
 					"face_dot", "normal", "bone_solid", "bone_pose",
 					"strip", "strip_select",
 					"syntaxl", "syntaxn", "syntaxb", "syntaxv", "syntaxc",
-					"movie", "image", "scene", "audio", "effect", "plugin", "transition", "meta", 
+					"movie", "image", "scene", "audio", "effect", "plugin",
+					"transition", "meta", 
 					"vertex_size", "facedot_size" );
 
 	if( attrib != Py_None )
@@ -233,9 +238,11 @@ static int ThemeSpace_setAttr( BPy_ThemeSpace * self, char *name,
 		ELSEIF_TSP_RGBA( hilite )
 		ELSEIF_TSP_RGBA( grid )
 		ELSEIF_TSP_RGBA( wire )
-		ELSEIF_TSP_RGBA( lamp )
 		ELSEIF_TSP_RGBA( select )
+		ELSEIF_TSP_RGBA( lamp )
 		ELSEIF_TSP_RGBA( active )
+		ELSEIF_TSP_RGBA( group )
+		ELSEIF_TSP_RGBA( group_active )
 		ELSEIF_TSP_RGBA( transform )
 		ELSEIF_TSP_RGBA( vertex )
 		ELSEIF_TSP_RGBA( vertex_select )
@@ -740,6 +747,9 @@ static PyObject *Theme_get( BPy_Theme * self, PyObject * args )
 		break;
 	case SPACE_TIME:
 		tsp = &btheme->ttime;
+		break;
+	case SPACE_NODE:
+		tsp = &btheme->tnode;
 		break;
 	}
 

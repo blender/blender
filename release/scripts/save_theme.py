@@ -2,14 +2,14 @@
 
 """
 Name: 'Save Current Theme...'
-Blender: 240
+Blender: 242
 Group: 'Export'
 Tooltip: 'Save current theme as a BPython script'
 """
 
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "elysiun")
-__version__ = "2.41 2006/01/16"
+__version__ = "2.43 2006/12/30"
 
 __bpydoc__ = """\
 This script saves the current Theme in Blender as a Blender Python script.
@@ -76,6 +76,7 @@ default_fname = Blender.Get("scriptsdir")
 default_fname = Blender.sys.join(default_fname, theme.name + '_theme.py')
 default_fname = default_fname.replace(' ','_')
 type_str = type('')
+
 def write_theme(filename):
 	"Write the current theme as a bpython script"
 
@@ -87,13 +88,13 @@ def write_theme(filename):
 
 # \"\"\"
 # Name: '%s'
-# Blender: 243
+# Blender: 242
 # Group: 'Themes'
 # Tooltip: 'Change current theme'
 # \"\"\"
 
 __%s__ = "????"
-__%s__ = "2.41"
+__%s__ = "2.43"
 __%s__ = ["blender"]
 __%s__ = \"\"\"\\
 You can edit this section to write something about your script that can

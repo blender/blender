@@ -1374,6 +1374,7 @@ PyObject *Window_Init( void )
 		PyConstant_Insert( d, "NLA", PyInt_FromLong( SPACE_NLA ) );
 		PyConstant_Insert( d, "SCRIPT", PyInt_FromLong( SPACE_SCRIPT ) );
 		PyConstant_Insert( d, "TIME", PyInt_FromLong( SPACE_TIME ) );
+		PyConstant_Insert( d, "NODE", PyInt_FromLong( SPACE_NODE ) );
 
 		PyModule_AddObject( submodule, "Types", Types );
 	}
