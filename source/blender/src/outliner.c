@@ -3303,6 +3303,7 @@ static void restrictbutton_rend_cb(void *poin, void *poin2)
 static void restrictbutton_r_lay_cb(void *poin, void *poin2)
 {
 	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWNODE, 0);
 	allqueue(REDRAWBUTSSCENE, 0);
 }
 
