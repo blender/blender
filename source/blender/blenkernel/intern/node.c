@@ -59,7 +59,7 @@
 /* not very important, but the stack solver likes to know a maximum */
 #define MAX_SOCKET	64
 
-#pragma mark /* ************** Type stuff **********  */
+/* ************** Type stuff **********  */
 
 static bNodeType *node_get_type(bNodeTree *ntree, int type, bNodeTree *ngroup)
 {
@@ -226,7 +226,7 @@ void ntreeVerifyTypes(bNodeTree *ntree)
 	
 }
 
-#pragma mark /* ************** Group stuff ********** */
+/* ************** Group stuff ********** */
 
 bNodeType node_group_typeinfo= {
 	/* type code   */	NODE_GROUP,
@@ -734,7 +734,7 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 	return 1;
 }
 
-#pragma mark /* ************** Add stuff ********** */
+/* ************** Add stuff ********** */
 
 bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 {
@@ -1050,7 +1050,7 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 	return newtree;
 }
 
-#pragma mark /* ************** Free stuff ********** */
+/* ************** Free stuff ********** */
 
 /* goes over entire tree */
 static void node_unlink_node(bNodeTree *ntree, bNode *node)
@@ -1274,7 +1274,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 }
 
 
-#pragma mark /* ************ find stuff *************** */
+/* ************ find stuff *************** */
 
 static int ntreeHasType(bNodeTree *ntree, int type)
 {
@@ -1393,7 +1393,7 @@ void ntreeSocketUseFlags(bNodeTree *ntree)
 	}
 }
 
-#pragma mark /* ************** dependency stuff *********** */
+/* ************** dependency stuff *********** */
 
 /* node is guaranteed to be not checked before */
 static int node_recurs_check(bNode *node, bNode ***nsort, int level)
@@ -1541,7 +1541,7 @@ void NodeTagIDChanged(bNodeTree *ntree, ID *id)
 }
 
 
-#pragma mark /* *************** preview *********** */
+/* *************** preview *********** */
 
 /* if node->preview, then we assume the rect to exist */
 
@@ -1631,7 +1631,7 @@ void nodeAddToPreview(bNode *node, float *col, int x, int y)
 
 
 
-#pragma mark /* ******************* executing ************* */
+/* ******************* executing ************* */
 
 /* see notes at ntreeBeginExecTree */
 static void group_node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in, bNodeStack **out, bNodeStack **gin, bNodeStack **gout)
