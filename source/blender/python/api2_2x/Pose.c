@@ -947,6 +947,30 @@ static PyObject *PoseBone_getParent(BPy_PoseBone *self, void *closure)
         Py_RETURN_NONE;
 }
 
+//------------------------PoseBone.displayObject (getter)
+//Gets the pose bones selection
+static PyObject *PoseBone_getDisplayObject(BPy_PoseBone *self, void *closure)
+{
+	if (self->posechannel->custom)
+		return Object_CreatePyObject(self->posechannel->custom);
+	else
+        Py_RETURN_NONE;
+}
+
+//------------------------PoseBone.displayObject (setter)
+//Gets the pose bones selection
+static int PoseBone_setDisplayObject(BPy_PoseBone *self, PyObject *value, void *closure)
+{
+	if (value == Py_None) {
+		self->posechannel->custom = NULL;
+	} else if (BPy_Object_Check(value)) {
+		self->posechannel->custom = Object_FromPyObject(value);
+	} else {
+		return EXPP_ReturnIntError(PyExc_AttributeError, "can only assign a Blender Object or None");
+	}
+	return 0;
+}
+
 //------------------TYPE_OBECT IMPLEMENTATION---------------------------
 //------------------------tp_getset
 //This contains methods for attributes that require checking
@@ -977,6 +1001,8 @@ static PyGetSetDef BPy_PoseBone_getset[] = {
 		"The list of contraints that pertain to this pose bone", NULL},
 	{"parent", (getter)PoseBone_getParent, (setter)NULL, 
 		"The bones parent (read only for posebones)", NULL},
+	{"displayObject", (getter)PoseBone_getDisplayObject, (setter)PoseBone_setDisplayObject, 
+		"The poseMode object to draw in place of this bone", NULL},
 	{NULL, NULL, NULL, NULL, NULL}
 };
 //------------------------tp_dealloc

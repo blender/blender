@@ -85,6 +85,8 @@ class PoseBone:
   @type sel: Boolean
   @ivar parent: The parent of this posebone (not settable)
   @type parent: posebone or None
+  @ivar displayObject: The object to display in place of the bone. (custom bones)
+  @type displayObject: Object or None
   @ivar localMatrix: The matrix combination of rot/quat/loc.
   @type localMatrix: Matrix object
   @ivar poseMatrix: The total transformation of this PoseBone including constraints.
