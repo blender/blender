@@ -141,6 +141,8 @@ class ThemeUI:
   @ivar menu_text_hi: theme rgba var.
   @type drawType: int
   @ivar drawType: the draw type (minimal, rounded, etc) in the range [1, 4].
+  @type iconTheme: string
+  @ivar iconTheme: the filename (without path) for the icon theme PNG in .blender/icons/
   """
 
 class ThemeSpace:

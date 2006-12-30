@@ -477,7 +477,23 @@ static PyObject *Blender_Get( PyObject * self, PyObject * args )
 				ret = PyString_FromString( tempdir );
 		}
 		if (!ret) ret = EXPP_incr_ret(Py_None);
-	}	
+	}
+	/* icondir */
+	else if( StringEqual( str, "icondir" ) ) {
+		
+		char icondirstr[FILE_MAXDIR];
+
+		#ifdef WIN32
+			BLI_make_file_string("/", icondirstr, BLI_gethome(), "icons");
+		#else
+			BLI_make_file_string("/", icondirstr, BLI_gethome(), ".blender/icons");
+		#endif
+
+		if( BLI_exists( icondirstr ) )
+			ret = PyString_FromString( icondirstr );
+		
+		if (!ret) ret = EXPP_incr_ret(Py_None);
+	}
 	/* According to the old file (opy_blender.c), the following if
 	   statement is a quick hack and needs some clean up. */
 	else if( StringEqual( str, "vrmloptions" ) ) {

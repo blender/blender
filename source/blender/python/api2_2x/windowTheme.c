@@ -33,9 +33,12 @@
 #include "windowTheme.h" /*This must come first*/
 
 #include "BLI_blenlib.h"
+#include "BIF_interface_icons.h"
+#include "BIF_resources.h"
 #include "MEM_guardedalloc.h"
 #include "charRGBA.h"
 #include "gen_utils.h"
+
 
 #define EXPP_THEME_VTX_SIZE_MIN 1
 #define EXPP_THEME_VTX_SIZE_MAX 10
@@ -398,14 +401,16 @@ static PyObject *ThemeUI_getAttr( BPy_ThemeUI * self, char *name )
 		ELSEIF_TUI_RGBA( menu_text_hi )
 		else if( !strcmp( name, "drawType" ) )
 		attrib = PyInt_FromLong( ( char ) tui->but_drawtype );
+		else if( !strcmp( name, "iconTheme" ) )
+		attrib = PyString_FromString( tui->iconfile );
 	else if( !strcmp( name, "__members__" ) )
-		attrib = Py_BuildValue( "[ssssssssssssssssss]", "theme",
+		attrib = Py_BuildValue( "[ssssssssssssssssssss]", "theme",
 					"outline", "neutral", "action",
 					"setting", "setting1", "setting2",
 					"num", "textfield", "textfield_hi", "popup", "text",
 					"text_hi", "menu_back", "menu_item",
 					"menu_hilite", "menu_text",
-					"menu_text_hi", "drawType" );
+					"menu_text_hi", "drawType", "iconTheme" );
 
 	if( attrib != Py_None )
 		return attrib;
@@ -448,6 +453,16 @@ static int ThemeUI_setAttr( BPy_ThemeUI * self, char *name, PyObject * value )
 		tui->but_drawtype = (char)EXPP_ClampInt( val,
 						   EXPP_THEME_DRAWTYPE_MIN,
 						   EXPP_THEME_DRAWTYPE_MAX );
+		ret = 0;
+	} else if ( !strcmp( name, "iconTheme" ) ) {
+		if ( !PyString_Check(value) )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+						    "expected string value" );
+		BLI_strncpy(tui->iconfile, PyString_AsString(value), 80);
+		
+		BIF_icons_free();
+		BIF_icons_init(BIFICONID_LAST+1);
+		
 		ret = 0;
 	} else
 		return EXPP_ReturnIntError( PyExc_AttributeError,

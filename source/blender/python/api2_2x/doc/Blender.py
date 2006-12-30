@@ -94,6 +94,7 @@ def Get (request):
             we recommend scripts check this dir first and use it, if available.
       - 'scriptsdir': the path to the main dir where scripts are stored.
       - 'uscriptsdir': the path to the user defined dir for scripts. (*)
+      - 'icondir': the path to blenders icon theme files.
       - 'yfexportdir': the path to the user defined dir for yafray export. (*)
       - 'fontsdir': the path to the user defined dir for fonts. (*)
       - 'texturesdir': the path to the user defined dir for textures. (*)
