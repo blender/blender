@@ -340,4 +340,9 @@ uiBlock *editmode_undohistorymenu(void *arg_unused)
 	return block;
 }
 
-
+void *undo_editmode_get_prev()
+{
+	UndoElem *ue= undobase.last;
+	if(ue && ue->prev) return ue->prev->undodata;
+	return NULL;
+}

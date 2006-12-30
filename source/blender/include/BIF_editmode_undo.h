@@ -51,5 +51,8 @@ extern void undo_editmode_clear(void);		// free & clear all data
 extern void undo_editmode_menu(void);		// history menu
 extern struct uiBlock *editmode_undohistorymenu(void *arg_unused);
 
+/* Hack to avoid multires undo data taking up insane amounts of memory */
+void *undo_editmode_get_prev();
+
 #endif
 
