@@ -58,8 +58,8 @@ void draw_cfra_action(void);
 int count_action_levels (struct bAction *act);
 
 /* Channel Drawing */
-void draw_icu_channel(struct gla2DDrawInfo *di, IpoCurve *icu, float ypos);
-void draw_ipo_channel(struct gla2DDrawInfo *di, Ipo *ipo, float ypos);
+void draw_icu_channel(struct gla2DDrawInfo *di, struct IpoCurve *icu, float ypos);
+void draw_ipo_channel(struct gla2DDrawInfo *di, struct Ipo *ipo, float ypos);
 void draw_action_channel(struct gla2DDrawInfo *di, bAction *act, float ypos);
 void draw_object_channel(struct gla2DDrawInfo *di, Object *ob, float ypos);
 
