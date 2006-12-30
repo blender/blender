@@ -56,21 +56,14 @@ def polysFromMesh(me):
 	polyLines = []
 	
 	# Get edges not used by a face
-	edgeDict= dict([ edkey(ed) for ed in me.edges ])
+	edgeDict= dict([ (ed.key, ed) for ed in me.edges ])
 	for f in me.faces:
-		fvi = [v.index for v in f]
-		for i in xrange(len(fvi)):
-			i1 = fvi[i]
-			i2 = fvi[i-1]
-			if i1>i2:
-				key = i2,i1
-			else:
-				key = i1,i2
-				
+		for key in f.edge_keys:
 			try:
 				del edgeDict[key]
 			except:
 				pass
+	
 	edges= edgeDict.values()
 	
 	
@@ -112,7 +105,7 @@ def polysFromMesh(me):
 					del edges[i]
 					#break
 		polyLines.append((polyLine, polyLine[0]==polyLine[-1]))
-		print len(edges), len(polyLines)
+		# print len(edges), len(polyLines)
 	return polyLines
 
 
@@ -133,7 +126,7 @@ def mesh2polys():
 	cu.name = me.name
 	cu.setFlag(1)
 	
-	ob = scn.objects.new(cu)
+	ob = scn.objects.active = scn.objects.new(cu)
 	ob.setMatrix(meshOb.matrixWorld)
 	
 	i=0
