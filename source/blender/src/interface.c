@@ -106,6 +106,10 @@
 #include "blendef.h"
 #include "winlay.h"
 
+#define INSIDE_BLOCK		1
+#define INSIDE_PANEL_HEADER	2
+#define INSIDE_PANEL_SCALE	3
+
 /* naming conventions:
  * 
  * uiBlahBlah()		external function
@@ -4303,31 +4307,35 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 
 	/* check boundbox and panel events */
 	if( block->minx <= uevent->mval[0] && block->maxx >= uevent->mval[0] ) {
+		
 		// inside block
-		if( block->miny <= uevent->mval[1] && block->maxy >= uevent->mval[1] ) inside= 1;
+		if( block->miny <= uevent->mval[1] && block->maxy >= uevent->mval[1] ) inside= INSIDE_BLOCK;
 		
 		if(block->panel && block->panel->paneltab==NULL) {
 			
 			/* clicked at panel header? */
 			if( block->panel->flag & PNL_CLOSEDX) {
 				if(block->minx <= uevent->mval[0] && block->minx+PNL_HEADER >= uevent->mval[0]) 
-					inside= 2;
+					inside= INSIDE_PANEL_HEADER;
 			}
-			else if( (block->maxy <= uevent->mval[1]) && (block->maxy+PNL_HEADER >= uevent->mval[1]) )
-				inside= 2;
+			else if( (block->maxy <= uevent->mval[1]) && (block->maxy+PNL_HEADER >= uevent->mval[1]) ) {
+				inside= INSIDE_PANEL_HEADER;
+			}
 			else if( block->panel->control & UI_PNL_SCALE) {
 				if( (block->maxx-PNL_HEADER <= uevent->mval[0]))
 					if( (block->miny+PNL_HEADER >= uevent->mval[1]) && inside )
-						inside= 3;
+						inside= INSIDE_PANEL_SCALE;
 			}
 			
-			if(inside) {	// this stuff should move to do_panel
+			if (inside) {	// this stuff should move to do_panel
 				
 				if(uevent->event==LEFTMOUSE) {
-					if(inside>=2) {
+					if(ELEM(inside, INSIDE_PANEL_HEADER, INSIDE_PANEL_SCALE)) {
 						uiPanelPop(block); 	// pop matrix; no return without pop!
-						if(inside==2) ui_do_panel(block, uevent);
-						else ui_scale_panel(block);
+						if(inside==INSIDE_PANEL_HEADER)
+							ui_do_panel(block, uevent);
+						else
+							ui_scale_panel(block);
 						return UI_EXIT_LOOP;	// exit loops because of moving panels
 					}
 				}
@@ -4338,16 +4346,28 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 					}
 				}
 				else if(uevent->event==PADPLUSKEY || uevent->event==PADMINUS) {
-					SpaceLink *sl= curarea->spacedata.first;
-					if(curarea->spacetype!=SPACE_BUTS) {
-						if(!(block->panel->control & UI_PNL_SCALE)) {
-							if(uevent->event==PADPLUSKEY) sl->blockscale+= 0.1;
-							else sl->blockscale-= 0.1;
-							CLAMP(sl->blockscale, 0.6, 1.0);
-							addqueue(block->winq, REDRAW, 1);
-							retval= UI_RETURN_OK;
-						}						
+					int zoom=0;
+				
+					/* if panel is closed, only zoom if mouse is over the header */
+					if ((block->panel->flag & PNL_CLOSEDX) || (block->panel->flag & PNL_CLOSEDY)) {
+						if (inside == INSIDE_PANEL_HEADER)
+							zoom=1;
+					} else if (inside >= INSIDE_BLOCK)
+						zoom=1;
+
+					if(zoom) {
+						SpaceLink *sl= curarea->spacedata.first;
+						if(curarea->spacetype!=SPACE_BUTS) {
+							if(!(block->panel->control & UI_PNL_SCALE)) {
+								if(uevent->event==PADPLUSKEY) sl->blockscale+= 0.1;
+								else sl->blockscale-= 0.1;
+								CLAMP(sl->blockscale, 0.6, 1.0);
+								addqueue(block->winq, REDRAW, 1);
+								retval= UI_RETURN_OK;
+							}						
+						}
 					}
+					
 				}
 			}
 		}
