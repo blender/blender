@@ -374,22 +374,6 @@ static uiBlock *node_add_convertermenu(void *arg_unused)
 	
 	return block;
 }
-static uiBlock *node_add_groupmenu(void *arg_unused)
-{
-	SpaceNode *snode= curarea->spacedata.first;
-	uiBlock *block;
-	
-	block= uiNewBlock(&curarea->uiblocks, "node_add_groupmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
-	
-	node_make_addmenu(snode, NODE_CLASS_GROUP, block);
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	
-	return block;
-}
-
 static uiBlock *node_add_mattemenu(void *arg_unused)
 {
 	SpaceNode *snode= curarea->spacedata.first;
@@ -399,6 +383,36 @@ static uiBlock *node_add_mattemenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
 	
 	node_make_addmenu(snode, NODE_CLASS_MATTE, block);
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+static uiBlock *node_add_distortmenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_add_distortmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
+	
+	node_make_addmenu(snode, NODE_CLASS_DISTORT, block);
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+static uiBlock *node_add_groupmenu(void *arg_unused)
+{
+	SpaceNode *snode= curarea->spacedata.first;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "node_add_groupmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_node_addmenu, NULL);
+	
+	node_make_addmenu(snode, NODE_CLASS_GROUP, block);
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -431,8 +445,10 @@ static uiBlock *node_addmenu(void *arg_unused)
 		uiDefIconTextBlockBut(block, node_add_vectormenu, NULL, ICON_RIGHTARROW_THIN, "Vector", 0, yco-=20, 120, 19, "");
 		uiDefIconTextBlockBut(block, node_add_filtermenu, NULL, ICON_RIGHTARROW_THIN, "Filter", 0, yco-=20, 120, 19, "");
 		uiDefIconTextBlockBut(block, node_add_convertermenu, NULL, ICON_RIGHTARROW_THIN, "Convertor", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_mattemenu, NULL, ICON_RIGHTARROW_THIN, "Matte", 0, yco-=20, 120, 19, "");
+		uiDefIconTextBlockBut(block, node_add_distortmenu, NULL, ICON_RIGHTARROW_THIN, "Distort", 0, yco-=20, 120, 19, "");
 		uiDefIconTextBlockBut(block, node_add_groupmenu, NULL, ICON_RIGHTARROW_THIN, "Group", 0, yco-=20, 120, 19, "");
-		uiDefIconTextBlockBut(block, node_add_mattemenu, NULL, ICON_RIGHTARROW_THIN, "Mattes", 0, yco-=20, 120, 19, "");
+
 	} else
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 	

@@ -1534,8 +1534,8 @@ static TBitem tb_node_addsh[]= {
 	{	0, "Output",		2, NULL},
 	{	0, "Color",			3, NULL},
 	{	0, "Vector",		4, NULL},
-	{	0, "Convertors",	5, NULL},
-	{	0, "Groups",		6, NULL},
+	{	0, "Convertor",	5, NULL},
+	{	0, "Group",		6, NULL},
 	{  -1, "", 			0, NULL}};
 
 static TBitem tb_node_addcomp[]= {
@@ -1543,10 +1543,11 @@ static TBitem tb_node_addcomp[]= {
 	{	0, "Output",		2, NULL},
 	{	0, "Color",			3, NULL},
 	{	0, "Vector",		4, NULL},
-	{	0, "Filters",		5, NULL},
-	{	0, "Convertors",	6, NULL},
-	{	0, "Groups",		7, NULL},
-	{ 	0, "Mattes",		8, NULL},
+	{	0, "Filter",		5, NULL},
+	{	0, "Convertor",	6, NULL},
+	{ 	0, "Matte",		7, NULL},
+	{	0, "Distort",	8, NULL},
+	{	0, "Group",		9, NULL},
 	{  	-1, "", 		0, NULL}};
 
 /* do_node_addmenu() in header_node.c, prototype in BSE_headerbuttons.h */
@@ -1554,7 +1555,7 @@ static TBitem tb_node_addcomp[]= {
 /* dynamic toolbox sublevel */
 static TBitem *node_add_sublevel(ListBase *storage, bNodeTree *ntree, int nodeclass)
 {
-	static TBitem _addmenu[]= { {	0, "Empty", 	0, NULL}, {  -1, "", 			0, NULL}};
+	static TBitem _addmenu[]= { {	0, " ", 	0, NULL}, {  -1, "", 			0, NULL}};
 	Link *link;
 	bNodeType **typedefs;
 	TBitem *addmenu;
@@ -2038,8 +2039,10 @@ void toolbox_n(void)
 			menu1[3].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_VECTOR);
 			menu1[4].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_OP_FILTER);
 			menu1[5].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_CONVERTOR);
-			menu1[6].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_GROUP);
-			menu1[7].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_MATTE);
+			menu1[6].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_MATTE);
+			menu1[7].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_DISTORT);
+			menu1[8].poin= node_add_sublevel(&storage, snode->nodetree, NODE_CLASS_GROUP);
+
 		}
 		
 		dx= 96;
