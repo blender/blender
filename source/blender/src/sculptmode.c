@@ -1063,11 +1063,11 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 			const float sx= sd->mtex[sd->texact]->size[0];
 			const float sy= sd->texsep ? sd->mtex[sd->texact]->size[1] : sx;
 			
-			px= (pv.co[0] + half) * (ri->pr_rectx*1.0f/bsize);
-			py= (pv.co[1] + half) * (ri->pr_recty*1.0f/bsize);
+			px= pv.co[0];
+			py= pv.co[1];
 			px%= (int)sx;
 			py%= (int)sy;
-			p= ri->rect + (int)(ri->pr_recty*py/sy) * ri->pr_rectx + (int)(ri->pr_rectx*px/sx);
+			p= get_ri_pixel(ri, ri->pr_rectx*px/sx, ri->pr_recty*py/sy);
 		} else {
 			const float rot= sd->mtex[sd->texact]->warpfac * (M_PI/180.0f);
 		
