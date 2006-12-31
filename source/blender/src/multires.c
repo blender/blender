@@ -82,10 +82,18 @@ CustomDataMask vdata_mask= CD_MASK_MDEFORMVERT;
 /* editmesh.h */
 int multires_test()
 {
-	Mesh *me= get_mesh(
-		OBACT);
+	Mesh *me= get_mesh(OBACT);
 	if(me && me->mr) {
 		error("Unable to complete action with multires enabled.");
+		return 1;
+	}
+	return 0;
+}
+int multires_level1_test()
+{
+	Mesh *me= get_mesh(OBACT);
+	if(me && me->mr && me->mr->current != 1) {
+		error("Operation only available for multires level 1.");
 		return 1;
 	}
 	return 0;

@@ -61,6 +61,8 @@
 
 #include "BSE_edit.h"
 
+#include "multires.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -493,6 +495,8 @@ void assign_verts_defgroup (void)
 	MDeformWeight *newdw;
 	MDeformVert *dvert;
 	int	i, done;
+	
+	if(multires_level1_test()) return;
 
 	ob= G.obedit;
 
@@ -604,6 +608,8 @@ void remove_verts_defgroup (int allverts)
 	MDeformWeight *newdw;
 	bDeformGroup *dg, *eg;
 	int	i;
+	
+	if(multires_level1_test()) return;
 
 	ob= G.obedit;
 

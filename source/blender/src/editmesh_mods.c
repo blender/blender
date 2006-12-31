@@ -2576,6 +2576,8 @@ void editmesh_mark_seam(int clear)
 {
 	EditMesh *em= G.editMesh;
 	EditEdge *eed;
+	
+	if(multires_level1_test()) return;
 
 	/* auto-enable seams drawing */
 	if(clear==0) {
