@@ -2837,6 +2837,28 @@ static int early_out_speed(struct Sequence *seq,
 	return 1;
 }
 
+static void store_icu_yrange_speed(struct Sequence * seq,
+				   short adrcode, float * ymin, float * ymax)
+{
+	SpeedControlVars * v = (SpeedControlVars *)seq->effectdata;
+
+	/* if not already done, load / initialize data */
+	get_sequence_effect(seq);
+
+	if ((v->flags & SEQ_SPEED_INTEGRATE) != 0) {
+		*ymin = -100.0;
+		*ymax = 100.0;
+	} else {
+		if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
+			*ymin = 0.0;
+			*ymax = 1.0;
+		} else {
+			*ymin = 0.0;
+			*ymax = seq->len;
+		}
+	}	
+}
+
 void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 {
 	float facf0 = seq->facf0;
@@ -3016,6 +3038,12 @@ static int early_out_mul_input2(struct Sequence *seq,
 	return 0;
 }
 
+static void store_icu_yrange_noop(struct Sequence * seq,
+				  short adrcode, float * ymin, float * ymax)
+{
+	/* defaults are fine */
+}
+
 static void get_default_fac_noop(struct Sequence *seq, int cfra,
 				 float * facf0, float * facf1)
 {
@@ -3056,6 +3084,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 	rval.free = free_noop;
 	rval.early_out = early_out_noop;
 	rval.get_default_fac = get_default_fac_noop;
+	rval.store_icu_yrange = store_icu_yrange_noop;
 	rval.execute = NULL;
 	rval.copy = NULL;
 
@@ -3127,6 +3156,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 		rval.copy = copy_speed_effect;
 		rval.execute = do_cross_effect;
 		rval.early_out = early_out_speed;
+		rval.store_icu_yrange = store_icu_yrange_speed;
 		break;
 	case SEQ_COLOR:
 		rval.init = init_solid_color;

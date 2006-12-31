@@ -55,6 +55,7 @@
 #include "IMB_imbuf.h"
 
 #include "DNA_ipo_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -274,6 +275,26 @@ void update_seq_ipo_rect(Sequence * seq)
 
 	seq->ipo->cur.xmin= start;
 	seq->ipo->cur.xmax= end;
+}
+
+void update_seq_icu_rects(Sequence * seq)
+{
+	IpoCurve *icu= NULL;
+	struct SeqEffectHandle sh;
+
+	if (!seq || !seq->ipo) {
+		return;
+	}
+
+	if(!(seq->type & SEQ_EFFECT)) {
+		return;
+	}
+
+	sh = get_sequence_effect(seq);
+
+	for(icu= seq->ipo->curve.first; icu; icu= icu->next) {
+		sh.store_icu_yrange(seq, icu->adrcode, &icu->ymin, &icu->ymax);
+	}
 }
 
 static int test_overlap_seq(Sequence *test)

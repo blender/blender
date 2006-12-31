@@ -41,6 +41,7 @@ void				borderselect_seq(void);
 void				boundbox_seq(void);
 void				change_sequence(void);
 void				update_seq_ipo_rect(struct Sequence * seq);
+void				update_seq_icu_rects(struct Sequence * seq);
 struct Sequence*	get_last_seq();
 void				set_last_seq(struct Sequence * seq);
 void				clear_last_seq();

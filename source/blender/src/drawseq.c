@@ -1014,6 +1014,7 @@ void seq_viewmove(SpaceSeq *sseq)
 #define SEQ_BUT_PLUGIN	1
 #define SEQ_BUT_RELOAD	2
 #define SEQ_BUT_EFFECT	3
+#define SEQ_BUT_RELOAD_ALL 4
 
 void do_seqbuttons(short val)
 {
@@ -1026,11 +1027,20 @@ void do_seqbuttons(short val)
 		break;
 
 	case SEQ_BUT_RELOAD:
+	case SEQ_BUT_RELOAD_ALL:
+		update_seq_ipo_rect(last_seq);
+		update_seq_icu_rects(last_seq);
+
 		free_imbuf_seq();	// frees all
+
 		break;
 	}
 
-	allqueue(REDRAWSEQ, 0);
+	if (val == SEQ_BUT_RELOAD_ALL) {
+		allqueue(REDRAWALL, 0);
+	} else {
+		allqueue(REDRAWSEQ, 0);
+	}
 }
 
 static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
@@ -1065,7 +1075,7 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 			}
 		}
 		uiDefButBitS(block, TOG, SEQ_IPO_FRAME_LOCKED,
-			     SEQ_BUT_RELOAD, "IPO Frame locked",
+			     SEQ_BUT_RELOAD_ALL, "IPO Frame locked",
 			     10,-40,150,19, &last_seq->flag,
 			     0.0, 1.0, 0, 0,
 			     "Lock the IPO coordinates to the "
@@ -1122,7 +1132,7 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, SEQ_IPO_FRAME_LOCKED,
-			     SEQ_BUT_RELOAD, "IPO Frame locked",
+			     SEQ_BUT_RELOAD_ALL, "IPO Frame locked",
 			     10,90,150,19, &last_seq->flag, 
 			     0.0, 1.0, 0, 0, 
 			     "Lock the IPO coordinates to the "
@@ -1138,7 +1148,7 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 		
 		uiDefButBitS(block, TOG, SEQ_IPO_FRAME_LOCKED,
-			     SEQ_BUT_RELOAD, "IPO Frame locked",
+			     SEQ_BUT_RELOAD_ALL, "IPO Frame locked",
 			     10,90,150,19, &last_seq->flag, 
 			     0.0, 1.0, 0, 0, 
 			     "Lock the IPO coordinates to the "
@@ -1195,10 +1205,10 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 			SpeedControlVars *sp = 
 				(SpeedControlVars *)last_seq->effectdata;
 
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Global Speed:", 	10,70,150,19, &sp->globalSpeed, 0.0, 100.0, 0, 0, "Global Speed");
+			uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Global Speed:", 	10,70,150,19, &sp->globalSpeed, 0.0, 100.0, 0, 0, "Global Speed");
 
 			uiDefButBitI(block, TOG, SEQ_SPEED_INTEGRATE,
-				     SEQ_BUT_EFFECT, 
+				     SEQ_BUT_RELOAD, 
 				     "IPO is velocity",
 				     10,50,150,19, &sp->flags, 
 				     0.0, 1.0, 0, 0, 
@@ -1206,7 +1216,7 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 				     "velocity instead of a frame number");
 
 			uiDefButBitI(block, TOG, SEQ_SPEED_BLEND,
-				     SEQ_BUT_EFFECT, 
+				     SEQ_BUT_RELOAD, 
 				     "Enable frame blending",
 				     10,30,150,19, &sp->flags, 
 				     0.0, 1.0, 0, 0, 
@@ -1214,7 +1224,7 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 				     "target for a smoother result");
 
 			uiDefButBitI(block, TOG, SEQ_SPEED_COMPRESS_IPO_Y,
-				     SEQ_BUT_EFFECT, 
+				     SEQ_BUT_RELOAD, 
 				     "IPO value runs from [0..1]",
 				     10,10,150,19, &sp->flags, 
 				     0.0, 1.0, 0, 0, 

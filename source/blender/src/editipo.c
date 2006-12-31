@@ -1861,8 +1861,17 @@ IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constn
 			icu->adrcode= adrcode;
 			
 			set_icu_vars(icu);
-			
+
 			BLI_addtail( &(ipo->curve), icu);
+
+			switch (GS(from->name)) {
+			case ID_SEQ: {
+				Sequence *seq= (Sequence *)from;
+
+				update_seq_icu_rects(seq);
+				break;
+			}
+			}
 		}
 	}
 
