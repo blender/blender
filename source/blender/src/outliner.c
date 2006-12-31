@@ -424,6 +424,10 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	te->name= "Normal";
 	te->directdata= &srl->passflag;
 	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_UV);
+	te->name= "UV";
+	te->directdata= &srl->passflag;
+	
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_INDEXOB);
 	te->name= "Index Object";
 	te->directdata= &srl->passflag;
@@ -448,12 +452,16 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	te->name= "AO";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_REFRACT);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_REFLECT);
 	te->name= "Reflection";
 	te->directdata= &srl->passflag;
 	
-	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_REFLECT);
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_REFRACT);
 	te->name= "Refraction";
+	te->directdata= &srl->passflag;
+	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_RADIO);
+	te->name= "Radiosity";
 	te->directdata= &srl->passflag;
 	
 }

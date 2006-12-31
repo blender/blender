@@ -1840,7 +1840,7 @@ static void render_panel_layers(void)
 	uiDefButBitI(block, TOG, SCE_LAY_EDGE, B_NOP,"Edge",	260, 85, 50, 20, &srl->layflag, 0, 0, 0, 0, "Render Edge-enhance in this Layer (only works for Solid faces)");	
 	
 	uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_SET_PASS, "Light:",	10, 65, 150, 20, &(srl->light_override), "Name of Group to use as Lamps instead");
-	uiDefIDPoinBut(block, test_matpoin_but, ID_MA, B_SET_PASS, "Mat:",	160, 65, 150, 20, &(srl->mat_override), "Name of Material to use as Lamps instead");
+	uiDefIDPoinBut(block, test_matpoin_but, ID_MA, B_SET_PASS, "Mat:",	160, 65, 150, 20, &(srl->mat_override), "Name of Material to use as Materials instead");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
