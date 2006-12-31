@@ -1045,6 +1045,7 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 	else if(ss->texrndr) {
 		const short bsize= sculptmode_brush()->size * 2;
 		const short half= sculptmode_brush()->size;
+		const float rot= sd->mtex[sd->texact]->warpfac * (M_PI/180.0f);
 		int px, py;
 		unsigned i, *p;
 		RenderInfo *ri= ss->texrndr;
@@ -1063,14 +1064,23 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 			const float sx= sd->mtex[sd->texact]->size[0];
 			const float sy= sd->texsep ? sd->mtex[sd->texact]->size[1] : sx;
 			
-			px= pv.co[0];
-			py= pv.co[1];
+			float fx= pv.co[0];
+			float fy= pv.co[1];
+			
+			float angle= atan2(fy, fx) + rot;
+			float len= sqrtf(fx*fx + fy*fy);
+			
+			if(rot<0.001 && rot>-0.001) {
+				px= pv.co[0];
+				py= pv.co[1];
+			} else {
+				px= len * cos(angle) + 2000;
+				py= len * sin(angle) + 2000;
+			}
 			px%= (int)sx;
 			py%= (int)sy;
 			p= get_ri_pixel(ri, ri->pr_rectx*px/sx, ri->pr_recty*py/sy);
 		} else {
-			const float rot= sd->mtex[sd->texact]->warpfac * (M_PI/180.0f);
-		
 			float fx= (pv.co[0] - e->mouse[0] + half) * (ri->pr_rectx*1.0f/bsize) - ri->pr_rectx/2;
 			float fy= (pv.co[1] - e->mouse[1] + half) * (ri->pr_recty*1.0f/bsize) - ri->pr_recty/2;
 			
