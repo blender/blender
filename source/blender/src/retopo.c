@@ -60,6 +60,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
+#include "BSE_drawview.h"
 #include "BSE_edit.h"
 #include "BSE_view.h"
 
@@ -425,6 +426,25 @@ void retopo_paint_view_update(struct View3D *v3d)
 					   (GLint *)v3d->retopo_view_data->viewport, &ux, &uy, &uz);
 				p->loc.x= ux;
 				p->loc.y= uy;
+			}
+		}
+	}
+}
+
+void retopo_force_update()
+{
+	RetopoPaintData *rpd= get_retopo_paint_data();
+	
+	if(rpd) {
+		View3D *vd= rpd->paint_v3d;
+		
+		if(vd) {
+			if(vd->depths) vd->depths->damaged= 1;
+			retopo_queue_updates(vd);
+			if(retopo_mesh_paint_check() && vd->retopo_view_data) {
+				/* Force redraw */
+				drawview3dspace(vd->area, vd);
+				retopo_paint_view_update(vd);
 			}
 		}
 	}

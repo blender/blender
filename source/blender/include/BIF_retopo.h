@@ -90,6 +90,7 @@ void retopo_free_paint();
 
 char retopo_mesh_paint_check();
 void retopo_paint_view_update(struct View3D *v3d);
+void retopo_force_update();
 void retopo_paint_toggle(void*,void*);
 char retopo_paint(const unsigned short event);
 void retopo_draw_paint_lines();

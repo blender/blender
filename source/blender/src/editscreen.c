@@ -92,6 +92,7 @@
 #include "BIF_mywindow.h"
 #include "BIF_previewrender.h"
 #include "BIF_renderwin.h"
+#include "BIF_retopo.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toets.h"
@@ -2377,6 +2378,9 @@ void area_fullscreen(void)	/* with curarea */
 		setscreen(sc);
 		wich_cursor(newa);
 	}
+	
+	if(curarea->full)
+		retopo_force_update();
 
 	/* there's also events in queue for this, but we call fullscreen for render output
 	now, and that doesn't go back to queue. Bad code, but doesn't hurt... (ton) */
@@ -2386,6 +2390,9 @@ void area_fullscreen(void)	/* with curarea */
 	}
 	/* bad code #2: setscreen() ends with first area active. fullscreen render assumes this too */
 	curarea= sc->areabase.first;
+	
+	if(!curarea->full)
+		retopo_force_update();
 }
 
 static void area_autoplayscreen(void)
