@@ -1425,6 +1425,7 @@ void sculptmode_propset_calctex()
 	if(pd) {
 		int i, j;
 		const int tsz = 128;
+		const int hsz = 64;
 		float *d;
 		if(!pd->texdata) {
 			pd->texdata= MEM_mallocN(sizeof(float)*tsz*tsz, "Brush preview");
@@ -1439,9 +1440,21 @@ void sculptmode_propset_calctex()
 						pd->texdata[i*tsz+j]= magn < tsz/2 ? 1 : 0;
 				}
 			if(sd->texact != -1 && ss->texrndr) {
+				const float rot= sd->mtex[sd->texact]->warpfac * (M_PI/180.0f);
+				
 				for(i=0; i<tsz; ++i)
 					for(j=0; j<tsz; ++j) {
-						const int col= ss->texrndr->rect[i*tsz+j];
+						const float fx= j-hsz;
+						const float fy= i-hsz;
+						const float angle= atan2(fy, fx) + rot;
+						const float dist= sqrt(fx*fx + fy*fy);
+						int px= dist * cos(angle) + hsz;
+						int py= dist * sin(angle) + hsz;
+						if(px<0) px= 0;
+						if(py<0) py= 0;
+						if(px>tsz) px= tsz;
+						if(py>tsz) py= tsz;
+						const int col= ss->texrndr->rect[py*tsz+px];
 						pd->texdata[i*tsz+j]*= (((char*)&col)[0]+((char*)&col)[1]+((char*)&col)[2])/3.0f/255.0f;
 					}
 			}
