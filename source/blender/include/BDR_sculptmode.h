@@ -48,7 +48,8 @@ struct SculptUndo;
 typedef enum PropsetMode {
 	PropsetNone = 0,
 	PropsetSize,
-	PropsetStrength
+	PropsetStrength,
+	PropsetTexRot
 } PropsetMode;
 typedef struct PropsetData {
 	PropsetMode mode;
@@ -58,6 +59,7 @@ typedef struct PropsetData {
 	
 	short origsize;
 	char origstrength;
+	float origtexrot;
 	
 	NumInput num;
 } PropsetData;
@@ -122,6 +124,7 @@ void sculptmode_draw_mesh(int);
 void sculpt_paint_brush(char clear);
 
 struct BrushData *sculptmode_brush();
+float *get_tex_angle();
 
 void sculptmode_update_tex();
 void sculpt();

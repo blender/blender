@@ -1264,7 +1264,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.qual==0)
 					sculptmode_propset_init(PropsetSize);
 				if(G.qual==LR_SHIFTKEY)
-					sculptmode_propset_init(PropsetStrength);	
+					sculptmode_propset_init(PropsetStrength);
+				if(G.qual==LR_CTRLKEY)
+					sculptmode_propset_init(PropsetTexRot);
 				break;
 			case VKEY:
 				br->dir= br->dir==1 ? 2 : 1;

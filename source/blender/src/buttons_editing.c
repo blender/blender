@@ -4348,7 +4348,7 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 
 			if(sd->texrept != SCULPTREPT_3D) {
 				uiBlockBeginAlign(block);
-				uiDefButF(block,NUM,0, "Rot", cx,cy,115,19, &mtex->warpfac, 0,360,100,0, "Rotate texture clockwise");
+				uiDefButF(block,NUM,0, "Angle", cx,cy,115,19, &mtex->warpfac, 0,360,100,0, "Rotate texture counterclockwise");
 			}
 			cy-= 20;
 

@@ -2748,6 +2748,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	if(!G.obedit && (G.f & G_SCULPTMODE) && area_is_active_area(v3d->area) && sculpt_session()) {
 		PropsetData *pd= sculpt_session()->propset;
 		short r1=100, r2=100, r3=100;
+		short mouse[2];
 		if(pd) {
 			if(pd->mode == PropsetSize) {
 				r1= sculptmode_brush()->size;
@@ -2756,6 +2757,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			} else if(pd->mode == PropsetStrength) {
 				r1= 200 - sculptmode_brush()->strength * 2;
 				r2= 200;
+				r3= 200;
+			} else if(pd->mode == PropsetTexRot) {
+				r1= r2= 200;
 				r3= 200;
 			}
 		
@@ -2768,24 +2772,38 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			
+			glPushMatrix();
+			glTranslatef(pd->origloc[0], pd->origloc[1], 0);
+			glRotatef(*get_tex_angle(), 0, 0, 1);
 
 			glEnable(GL_TEXTURE_2D);
 			glBegin(GL_QUADS);
 			glColor4f(0,0,0,1);
 			glTexCoord2f(0,0);
-			glVertex2f(pd->origloc[0]-r3, pd->origloc[1]-r3);
+			glVertex2f(-r3, -r3);
 			glTexCoord2f(1,0);
-			glVertex2f(pd->origloc[0]+r3, pd->origloc[1]-r3);
+			glVertex2f(r3, -r3);
 			glTexCoord2f(1,1);
-			glVertex2f(pd->origloc[0]+r3, pd->origloc[1]+r3);
+			glVertex2f(r3, r3);
 			glTexCoord2f(0,1);
-			glVertex2f(pd->origloc[0]-r3, pd->origloc[1]+r3);
+			glVertex2f(-r3, r3);
 			glEnd();
 			glDisable(GL_TEXTURE_2D);
+			
+			glPopMatrix();
 
 			if(r1 != r2)
 				fdrawXORcirc(pd->origloc[0], pd->origloc[1], r1);
 			fdrawXORcirc(pd->origloc[0], pd->origloc[1], r2);
+			
+			if(pd->mode == PropsetTexRot) {
+				const float ang= pd->origtexrot * (M_PI/180.0f);
+				getmouseco_areawin(mouse);
+				sdrawXORline(pd->origloc[0], pd->origloc[1],
+				             pd->origloc[0]+200*cos(ang), pd->origloc[1]+200*sin(ang));
+				sdrawXORline(pd->origloc[0], pd->origloc[1], mouse[0], mouse[1]);
+			}
 		} else {
 			sculpt_paint_brush(1);
 		}
