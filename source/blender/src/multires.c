@@ -112,6 +112,11 @@ typedef struct MultiresMapNode {
 	unsigned Index;
 } MultiresMapNode;
 
+MultiresLevel *current_level(Multires *mr)
+{
+	return BLI_findlink(&mr->levels, mr->current - 1);
+}
+
 void Vec3fAvg3(float *out, float *v1, float *v2, float *v3)
 {
 	out[0]= (v1[0]+v2[0]+v3[0])/3;
@@ -562,14 +567,18 @@ void multires_get_face(MultiresFace *f, EditFace *efa, MFace *m)
 	}
 }
 
-void multires_get_edge(MultiresEdge *e, EditEdge *eed, MEdge *m)
+void multires_get_edge(MultiresEdge *e, EditEdge *eed, MEdge *m, short *flag)
 {
 	if(eed) {
 		e->v[0]= eed->v1->tmp.l;
 		e->v[1]= eed->v2->tmp.l;
+		*flag= 0;
+		if(eed->seam)
+			*flag |= ME_SEAM;
 	} else {		
 		e->v[0]= m->v1;
 		e->v[1]= m->v2;
+		*flag= m->flag;
 	}
 }
 
@@ -646,9 +655,10 @@ void multires_make(void *ob, void *me_v)
 	/* Load edges */
 	lvl->totedge= em ? BLI_countlist(&em->edges) : me->totedge;
 	lvl->edges= MEM_callocN(sizeof(MultiresEdge)*lvl->totedge,"multires edges");
+	me->mr->edge_flags= MEM_callocN(sizeof(short)*lvl->totedge, "multires edge flags");
 	if(em) eed= em->edges.first;
 	for(i=0; i<lvl->totedge; ++i) {
-		multires_get_edge(&lvl->edges[i], eed, &me->medge[i]);
+		multires_get_edge(&lvl->edges[i], eed, &me->medge[i], &me->mr->edge_flags[i]);
 		if(em) eed= eed->next;
 	}
 
@@ -706,8 +716,10 @@ Multires *multires_copy(Multires *orig)
 			BLI_addtail(&mr->levels, multires_level_copy(lvl));
 		
 		lvl= mr->levels.first;
-		if(lvl)
+		if(lvl) {
 			CustomData_copy(&orig->vdata, &mr->vdata, vdata_mask, CD_DUPLICATE, lvl->totvert);
+			mr->edge_flags= MEM_dupallocN(orig->edge_flags);
+		}
 		
 		return mr;
 	}
@@ -720,8 +732,10 @@ void multires_free(Multires *mr)
 		MultiresLevel* lvl= mr->levels.first;
 
 		/* Free the first-level data */
-		if(lvl)
+		if(lvl) {
 			CustomData_free(&mr->vdata, lvl->totvert);
+			MEM_freeN(mr->edge_flags);
+		}
 
 		while(lvl) {
 			multires_free_level(lvl);			
@@ -1055,6 +1069,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 	int i;
 	EditMesh *em= G.obedit ? G.editMesh : NULL;
 	EditVert **eves= NULL, *eve;
+	EditEdge *eed= NULL;
 	
 	if(em) {
 		/* Remove editmesh elements */
@@ -1119,6 +1134,33 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 			me->mface[i].flag= lvl->faces[i].flag;
 			me->mface[i].flag &= ~ME_HIDE;
 			me->mface[i].mat_nr= lvl->faces[i].mat_nr;
+		}
+	}
+	
+	/* Edge flags */
+	if(em) eed= em->edges.first;
+	if(lvl==me->mr->levels.first) {
+		for(i=0; i<lvl->totedge; ++i) {
+			if(em) {
+				if(me->mr->edge_flags[i] & ME_SEAM)
+					eed->seam= 1;
+				eed= eed->next;
+			}
+			else
+				me->medge[i].flag= me->mr->edge_flags[i];
+		}
+	} else {
+		MultiresLevel *lvl1= me->mr->levels.first;
+		const int last= lvl1->totedge * pow(2, me->mr->current-1);
+		for(i=0; i<last; ++i) {
+			const int ndx= i / pow(2, me->mr->current-1);
+			if(me->mr->edge_flags[ndx] & ME_SEAM) {
+				if(em)
+					eed->seam= 1;
+				else
+					me->medge[i].flag |= ME_SEAM;
+			}
+			if(em) eed= eed->next;
 		}
 	}
 
@@ -1349,10 +1391,29 @@ void multires_update_colors(Mesh *me)
 	}
 }
 
+void multires_update_edge_flags(Multires *mr, Mesh *me, EditMesh *em)
+{
+	MultiresLevel *lvl= current_level(mr);
+	EditEdge *eed= NULL;
+	int i;
+	
+	if(em) eed= em->edges.first;
+	for(i=0; i<lvl->totvert; ++i) {
+		if(em) {
+			mr->edge_flags[i]= 0;
+			if(eed->seam)
+				mr->edge_flags[i] |= ME_SEAM;
+			eed= eed->next;
+		}
+		else
+			mr->edge_flags[i]= me->medge[i].flag;
+	}
+}
+
 void multires_update_levels(Mesh *me)
 {
 	/* cr=current, pr=previous, or=original */
-	MultiresLevel *cr_lvl= BLI_findlink(&me->mr->levels,me->mr->current-1), *pr_lvl;
+	MultiresLevel *cr_lvl= current_level(me->mr), *pr_lvl;
 	MultiresLevel *or_lvl= cr_lvl;
 	vec3f *pr_deltas= NULL, *cr_deltas= NULL;
 	char *pr_flag_damaged= NULL, *cr_flag_damaged= NULL, *pr_mat_damaged= NULL, *cr_mat_damaged= NULL;
@@ -1364,8 +1425,10 @@ void multires_update_levels(Mesh *me)
 	unsigned i,j,curf;
 
 	/* Update special first-level data */
-	if(cr_lvl==me->mr->levels.first)
+	if(cr_lvl==me->mr->levels.first) {
 		multires_update_deformverts(me->mr, (em ? &em->vdata : &me->vdata));
+		multires_update_edge_flags(me->mr, me, em);
+	}
 
 	/* Prepare deltas */
 	cr_deltas= MEM_callocN(sizeof(vec3f)*cr_lvl->totvert,"initial deltas");
@@ -1610,9 +1673,9 @@ void multires_edge_level_update(void *ob, void *me_v)
 			const int ndx= me->pv ? me->pv->edge_map[i] : i;
 			if(ndx != -1) { /* -1= hidden edge */
 				if(me->mr->edgelvl >= me->mr->current || i<threshold)
-					me->medge[ndx].flag= ME_EDGEDRAW;
+					me->medge[ndx].flag |= ME_EDGEDRAW;
 				else
-					me->medge[ndx].flag= 0;
+					me->medge[ndx].flag &= ~ME_EDGEDRAW;
 			}
 		}
 

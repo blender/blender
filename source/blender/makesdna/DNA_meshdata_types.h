@@ -129,9 +129,9 @@ typedef struct Multires {
 	unsigned char level_count, current, newlvl, edgelvl, pinlvl, renderlvl;
 	unsigned char use_col, use_tex;
 
-	/* Vertex groups are stored only for the level 1 mesh, for all other
-	 * levels it's calculated when multires_level_to_mesh() is called */
+	/* Special level 1 data that cannot be modified from other levels */
 	struct CustomData vdata;
+	short *edge_flags;
 } Multires;
 
 typedef struct PartialVisibility {
