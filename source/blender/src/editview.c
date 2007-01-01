@@ -2088,6 +2088,9 @@ void fly(void)
 	float speed=0.0, /* the speed the view is moving per redraw */
 	mat[3][3], /* 3x3 copy of the view matrix so we can move allong the view axis */
 	dvec[3]={0,0,0}, /* this is the direction thast added to the view offset per redraw */
+	dvec_old[3]={0,0,0}, /* old for some lag */
+	dvec_tmp[3]={0,0,0}, /* old for some lag */
+	dvec_lag=0.0, /* old for some lag */
 	
 	/* Camera Uprighting variables */
 	roll, /* similar to the angle between the camera's up and the Z-up, but its very rough so just roll*/
@@ -2115,10 +2118,19 @@ void fly(void)
 	apply_rotation= 1, /* if the user presses shift they can look about without movinf the direction there looking*/
 	axis= 2, /* Axis index to move allong by default Z to move allong the view */
 	persp_backup; /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
+	
+	
+	/* relative view axis locking - xlock, zlock
+	0; disabled
+	1; enabled but not checking because mouse hasnt moved outside the margin since locking was checked an not needed
+	   when the mouse moves, locking is set to 2 so checks are done.
+	2; mouse moved and checking needed, if no view altering is donem its changed back to 1 */
 	short xlock=0, zlock=0;
+	float xlock_momentum=0.0f, zlock_momentum=0.0f; /* nicer dynamics */
 	
 	/* for recording */
-	int cfra = G.scene->r.cfra;
+	int playing_anim = has_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM);
+	int cfra = -1; /*so the first frame always has a key added */
 	char *actname="";
 	
 	
@@ -2183,7 +2195,7 @@ void fly(void)
 	
 	time_lastdraw= PIL_check_seconds_timer();
 	
-	G.vd->flag2 |= V3D_FLYMODE;
+	G.vd->flag2 |= V3D_FLYMODE; /* so we draw the corner margins */
 	scrarea_do_windraw(curarea);
 	screen_swapbuffers();
 	
@@ -2206,6 +2218,11 @@ void fly(void)
 					if (speed>0) speed=0;
 					else speed-= G.vd->grid;
 				
+				} else if (toets==MIDDLEMOUSE) {
+					/* make it so the camera direction dosent follow the view
+					good for flying backwards! - Only when MMB is held */
+					apply_rotation=0;
+					
 				/* impliment WASD keys */
 				} else if(toets==WKEY) {
 					if (speed<0) speed=-speed; /* flip speed rather then stopping, game like motion */
@@ -2231,11 +2248,24 @@ void fly(void)
 				
 				/* axis locking */
 				} else if(toets==XKEY) {
-					xlock= !xlock;
+					if (xlock) xlock=0;
+					else {
+						xlock = 2;
+						xlock_momentum = 0.0;
+					}
 				} else if(toets==ZKEY) {
-					zlock= !zlock;
+					if (zlock) zlock=0;
+					else {
+						zlock = 2;
+						zlock_momentum = 0.0;
+					}
 				}
 				
+			} else {
+				/* mouse buttons lifted */
+				if (toets==MIDDLEMOUSE) {
+					apply_rotation=1;
+				}
 			}
 		}
 		if(action != 0) break;
@@ -2266,23 +2296,6 @@ void fly(void)
 		/* Should we redraw? */
 		if(speed!=0.0 || moffset[0] || moffset[1] || zlock || xlock ) {
 			
-			/* Set the view direction usine the current axis */
-			if ((G.qual & LR_ALTKEY) && speed!=0.0 && (moffset[0]||moffset[1]))
-				/* make it so the camera direction dosent follow the view
-				good for flying backwards! - Only when Alt is held */
-			
-				/*(Above IF) We need to make sure we have some mouse offset
-				and are moving before we ignore the rotation code, otherwise the view spins out */
-				apply_rotation=0;
-			else {
-				/* Normal operation */
-				apply_rotation=1;
-				/* define dvec, view direction vector */
-				dvec[0]= dvec[1]= dvec[2]= 0;
-				/* move along the current axis */
-				dvec[axis]= 1.0f;
-			}
-			
 			time_current= PIL_check_seconds_timer();
 			time_redraw= (float)(time_current-time_lastdraw);
 			time_redraw_clamped= MIN2(0.05, time_redraw); /* clamt the redraw time to avoid jitter in roll correction */
@@ -2295,10 +2308,7 @@ void fly(void)
 				speed= speed * (1-time_redraw_clamped);
 			
 			Mat3CpyMat4(mat, G.vd->viewinv);
-			if (apply_rotation) {
-				Normalise(dvec);
-				Mat3MulVecfl(mat, dvec);
-			}
+
 			/* rotate about the X axis- look up/down */
 			if (moffset[1]) {
 				upvec[0]=1;
@@ -2307,6 +2317,10 @@ void fly(void)
 				Mat3MulVecfl(mat, upvec);
 				VecRotToQuat( upvec, (float)moffset[1]*-time_redraw*20, tmp_quat); /* Rotate about the relative up vec */
 				QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
+				
+				if (xlock) xlock = 2; /*check for rotation*/
+				if (zlock) zlock = 2;
+				xlock_momentum= 0.0;
 			}
 			
 			/* rotate about the Y axis- look left/right */
@@ -2317,9 +2331,12 @@ void fly(void)
 				Mat3MulVecfl(mat, upvec);
 				VecRotToQuat( upvec, (float)moffset[0]*time_redraw*20, tmp_quat); /* Rotate about the relative up vec */
 				QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
+				
+				if (xlock) xlock = 2;/*check for rotation*/
+				if (zlock) zlock = 2;
 			}
 			
-			if (zlock) {
+			if (zlock==2) {
 				upvec[0]=1;
 				upvec[1]=0;
 				upvec[2]=0;
@@ -2327,53 +2344,68 @@ void fly(void)
 
 				/*make sure we have some z rolling*/
 				if (fabs(upvec[2]) > 0.00001) {
-					roll= upvec[2]*180;
+					roll= upvec[2]*5;
 					upvec[0]=0; /*rotate the view about this axis*/
 					upvec[1]=0;
 					upvec[2]=1;
 					
-					/*clamp teh max roll speed - hides the fact that the roll calculation
-					only realy detects if we're rolling, but not by how much */
-					if (roll>4) roll= 4;
-					else if (roll<-4) roll= -4;
-					
 					Mat3MulVecfl(mat, upvec);
-					VecRotToQuat( upvec, roll*time_redraw_clamped*0.1, tmp_quat); /* Rotate about the relative up vec */
+					VecRotToQuat( upvec, roll*time_redraw_clamped*zlock_momentum*0.1, tmp_quat); /* Rotate about the relative up vec */
 					QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
+					
+					zlock_momentum += 0.05;
+				} else {
+					zlock=1; /* dont check until the view rotates again */
+					zlock_momentum= 0.0;
 				}
 			}
 			
-			if (xlock && moffset[1]==0) { /*only apply xcorrect when mouse isnt applying x rot*/
+			if (xlock==2 && moffset[1]==0) { /*only apply xcorrect when mouse isnt applying x rot*/
 				upvec[0]=0;
 				upvec[1]=0;
 				upvec[2]=1;
 				Mat3MulVecfl(mat, upvec);
 				/*make sure we have some z rolling*/
 				if (fabs(upvec[2]) > 0.00001) {
-					roll= upvec[2]*-360;
+					roll= upvec[2]*-5;
 					
 					upvec[0]=1; /*rotate the view about this axis*/
 					upvec[1]=0;
 					upvec[2]=0;
 					
-					/*clamp teh max roll speed - hides the fact that the roll calculation
-					only realy detects if we're rolling, but not by how much */
-					if (roll>4) roll= 4;
-					else if (roll<-4) roll= -4;
-					
 					Mat3MulVecfl(mat, upvec);
 					
-					VecRotToQuat( upvec, roll*time_redraw_clamped*0.1, tmp_quat); /* Rotate about the relative up vec */
+					VecRotToQuat( upvec, roll*time_redraw_clamped*xlock_momentum*0.1, tmp_quat); /* Rotate about the relative up vec */
 					QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
+					
+					xlock_momentum += 0.05;
+				} else {
+					xlock=1; /* see above */
+					xlock_momentum= 0.0;
 				}
 			}
 
 
-			if (apply_rotation)
-				VecMulf(dvec, speed*time_redraw*0.5);
-
+			if (apply_rotation) {
+				/* Normal operation */
+				/* define dvec, view direction vector */
+				dvec_tmp[0]= dvec_tmp[1]= dvec_tmp[2]= 0;
+				/* move along the current axis */
+				dvec_tmp[axis]= 1.0f;
+				
+				Mat3MulVecfl(mat, dvec_tmp);
+				
+				VecMulf(dvec_tmp, speed*time_redraw*0.5);
+			}
+			
+			/* impose a directional lag */
+			dvec_lag = 1.0/(1+(time_redraw*5));
+			dvec[0] = dvec_tmp[0]*(1-dvec_lag) + dvec_old[0]*dvec_lag;
+			dvec[1] = dvec_tmp[1]*(1-dvec_lag) + dvec_old[1]*dvec_lag;
+			dvec[2] = dvec_tmp[2]*(1-dvec_lag) + dvec_old[2]*dvec_lag;
+			
 			VecAddf(G.vd->ofs, G.vd->ofs, dvec);
-			headerprint("FlyKeys  Speed:(+/- | Wheel),  MouseLook:Alt,  Upright Axis:X/Z,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Cancel:RMB");
+			headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X/Z,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  MouseLook:MMB,  Cancel:RMB");
 			
 			do_screenhandlers(G.curscreen); /* advance the next frame */
 			
@@ -2385,7 +2417,7 @@ void fly(void)
 				G.vd->persp= 2;
 				
 				/* record the motion */
-				if (G.flags & G_RECORDKEYS && G.vd->camera->ipo && cfra != G.scene->r.cfra) {
+				if (G.flags & G_RECORDKEYS && (!playing_anim || cfra != G.scene->r.cfra)) {
 					cfra = G.scene->r.cfra;
 					
 					if (xlock || zlock || moffset[0] || moffset[1]) {
@@ -2407,6 +2439,7 @@ void fly(void)
 			/*were not redrawing but we need to update the time else the view will jump */
 			time_lastdraw= PIL_check_seconds_timer();
 		/* end drawing */
+		VECCOPY(dvec_old, dvec);
 	}
 	
 	G.vd->dist= dist_backup;
@@ -2430,7 +2463,7 @@ void fly(void)
 		Mat3CpyMat4(mat3, G.vd->camera->obmat);
 		Mat3ToCompatibleEul(mat3, G.vd->camera->rot, rot_backup);
 		
-		if (G.flags & G_RECORDKEYS && G.vd->camera->ipo) {
+		if (G.flags & G_RECORDKEYS) {
 			allqueue(REDRAWIPO, 0);
 			allspace(REMAKEIPO, 0);
 			allqueue(REDRAWNLA, 0);
