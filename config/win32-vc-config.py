@@ -47,7 +47,7 @@ BF_FMOD = LIBDIR + '/fmod'
 WITH_BF_OPENEXR = 'true'
 BF_OPENEXR = LIBDIR + '/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/IlmImf ${BF_OPENEXR}/include/Iex ${BF_OPENEXR}/include/Imath '
-BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IThread '
+BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread '
 BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib_msvc'
 
 WITH_BF_JPEG = 'true'
