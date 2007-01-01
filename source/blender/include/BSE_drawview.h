@@ -55,7 +55,7 @@ void backdrawview3d(int test);
 void check_backbuf(void);
 unsigned int sample_backbuf(int x, int y);
 struct ImBuf *read_backbuf(short xmin, short ymin, short xmax, short ymax);
-unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int min, unsigned int max, int *dist);;
+unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int min, unsigned int max, int *dist, short strict, unsigned int (*indextest)(unsigned int index));
 
 void drawview3dspace(struct ScrArea *sa, void *spacedata);
 void drawview3d_render(struct View3D *v3d, int winx, int winy);

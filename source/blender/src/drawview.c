@@ -1198,7 +1198,7 @@ ImBuf *read_backbuf(short xmin, short ymin, short xmax, short ymax)
 }
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
-unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int min, unsigned int max, int *dist)
+unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int min, unsigned int max, int *dist, short strict, unsigned int (*indextest)(unsigned int index))
 {
 	struct ImBuf *buf;
 	unsigned int *bufmin, *bufmax, *tbuf;
@@ -1206,7 +1206,8 @@ unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int min, unsi
 	int a, b, rc, nr, amount, dirvec[4][2];
 	int distance=0;
 	unsigned int index = 0;
-	
+	short indexok = 0;	
+
 	amount= (size-1)/2;
 
 	minx = mval[0]-(amount+1);
@@ -1230,10 +1231,20 @@ unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int min, unsi
 		
 		for(a=0; a<2; a++) {
 			for(b=0; b<nr; b++, distance++) {
-				if (*tbuf && *tbuf>=min && *tbuf<max) {
-					*dist= (short) sqrt( (float)distance ); // XXX, this distance is wrong - zr
-					index = *tbuf - min+1; // messy yah, but indices start at 1
-					goto exit;
+				if (*tbuf && *tbuf>=min && *tbuf<max) { //we got a hit
+					if(strict){
+						indexok =  indextest(*tbuf - min+1);
+						if(indexok){
+							*dist= (short) sqrt( (float)distance   );
+							index = *tbuf - min+1;
+							goto exit; 
+						}						
+					}
+					else{
+						*dist= (short) sqrt( (float)distance ); // XXX, this distance is wrong - 
+						index = *tbuf - min+1; // messy yah, but indices start at 1
+						goto exit;
+					}			
 				}
 				
 				tbuf+= (dirvec[rc][0]+dirvec[rc][1]);

@@ -134,7 +134,7 @@ int facesel_face_pick(Mesh *me, short *mval, unsigned int *index, short rect)
 		/* sample rect to increase changes of selecting, so that when clicking
 		   on an edge in the backbuf, we can still select a face */
 		int dist;
-		*index = sample_backbuf_rect(mval, 3, 1, me->totface+1, &dist);
+		*index = sample_backbuf_rect(mval, 3, 1, me->totface+1, &dist,0,NULL);
 	}
 	else
 		/* sample only on the exact position */
@@ -163,7 +163,7 @@ static int facesel_edge_pick(Mesh *me, short *mval, unsigned int *index)
 		persp(PERSP_VIEW);
 	}
 
-	*index = sample_backbuf_rect(mval, 50, min, max, &dist);
+	*index = sample_backbuf_rect(mval, 50, min, max, &dist,0,NULL);
 
 	if (*index == 0)
 		return 0;

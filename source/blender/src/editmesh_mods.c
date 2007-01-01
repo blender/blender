@@ -358,6 +358,14 @@ static void findnearestvert__doClosest(void *userData, EditVert *eve, int x, int
 	}
 }
 
+
+
+
+static unsigned int findnearestvert__backbufIndextest(unsigned int index){
+		EditVert *eve = BLI_findlink(&G.editMesh->verts, index-1);
+		if(eve && (eve->f & SELECT)) return 0;
+		return 1; 
+}
 /**
  * findnearestvert
  * 
@@ -372,23 +380,22 @@ EditVert *findnearestvert(int *dist, short sel, short strict)
 	short mval[2];
 
 	getmouseco_areawin(mval);
-		
-	/**
-	 *  FIXME
-	 *  Strict bypasses the openGL select buffer
-	 *  someone with more knowledge of this should fix it -- theeth
-	 */
-	if(strict == 0 && G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)){
 		int distance;
-		unsigned int index = sample_backbuf_rect(mval, 50, em_wireoffs, 0xFFFFFF, &distance);
+		unsigned int index;
+		
+		if(strict) index = sample_backbuf_rect(mval, 50, em_wireoffs, 0xFFFFFF, &distance, strict, findnearestvert__backbufIndextest); 
+		else index = sample_backbuf_rect(mval, 50, em_wireoffs, 0xFFFFFF, &distance, 0, NULL); 
+		
 		EditVert *eve = BLI_findlink(&G.editMesh->verts, index-1);
-
-		if (eve && distance < *dist) {
+		
+		if(eve && distance < *dist) {
 			*dist = distance;
 			return eve;
 		} else {
 			return NULL;
 		}
+			
 	}
 	else {
 		struct { short mval[2], pass, select, strict; int dist, lastIndex, closestIndex; EditVert *closest; } data;
@@ -483,7 +490,7 @@ EditEdge *findnearestedge(int *dist)
 
 	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
 		int distance;
-		unsigned int index = sample_backbuf_rect(mval, 50, em_solidoffs, em_wireoffs, &distance);
+		unsigned int index = sample_backbuf_rect(mval, 50, em_solidoffs, em_wireoffs, &distance,0, NULL);
 		EditEdge *eed = BLI_findlink(&G.editMesh->edges, index-1);
 
 		if (eed && distance<*dist) {
@@ -2641,6 +2648,18 @@ void editmesh_mark_sharp(int set)
 	}
 
 	allqueue(REDRAWVIEW3D, 0);
+}
+
+void BME_Menu()	{
+	short ret;
+	ret= pupmenu("BME modeller%t|Select Edges of Vert%x1");
+	
+	switch(ret)
+	{
+		case 1:
+		//BME_edges_of_vert();
+		break;
+	}
 }
 
 void Edge_Menu() {
