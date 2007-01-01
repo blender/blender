@@ -3108,8 +3108,6 @@ static float measure_facepair(EditVert *v1, EditVert *v2, EditVert *v3, EditVert
 
 #define T2QUV_LIMIT 0.005
 #define T2QCOL_LIMIT 3
-#define T2QVCOL_OK	1
-#define T2QUV_OK	2
 static int compareFaceAttribs(EditFace *f1, EditFace *f2, EditEdge *eed) 
 {
 	/*Test to see if the per-face attributes for the joining edge match within limit*/	
@@ -3187,6 +3185,7 @@ static int fplcmp(const void *v1, const void *v2)
 #define T2QDELETE	1
 #define T2QCOMPLEX	2
 #define T2QJOIN		4
+#define T2QPAIR		8
 void join_triangles(void)
 {
 	EditMesh *em=G.editMesh;
@@ -3222,22 +3221,36 @@ void join_triangles(void)
 	for(eed=em->edges.first; eed; eed=eed->next) eed->f2 = eed->f1 = 0;
 	for(efa=em->faces.first; efa; efa=efa->next) efa->f1 = efa->tmp.l = 0;
 
-	/*For every 2 manifold edge, create pointers to its two faces.*/
+	/*For every selected 2 manifold edge, create pointers to its two faces.*/
 	efaar= (EVPTuple *) MEM_callocN(totseledge * sizeof(EVPTuple), "Tri2Quad");
 	ok = collect_quadedges(efaar, em->edges.first, em->faces.first);
 	complexedges = 0;
 	
 	if(ok){
+		
+		
 		/*clear tmp.l flag and store number of faces that are selected and coincident to current face here.*/  
 		for(eed=em->edges.first; eed; eed=eed->next){
 			if(eed->f2 == 2){
+				eed->f1 |= T2QPAIR; /*tells us that an EVPtuple has been assigned for this face.*/
 				efaa= (EVPtr *) eed->tmp.p;
 				efaa[0]->tmp.l++;
 				efaa[1]->tmp.l++;
 			}
+			eed->f2 = 0; /*needed to store actual face count, not just selected*/
 		}
+		
+		/*count actual number of edges for each face.*/
+		for(efa=em->faces.first; efa; efa=efa->next){
+			efa->e1->f2++;
+			efa->e2->f2++;
+			efa->e3->f2++;
+			if(efa->v4)
+				efa->e4->f2++;
+		}
+		
 		for(eed=em->edges.first; eed; eed=eed->next){
-			if(eed->f2 == 2){
+			if(eed->f2 == 2 && (eed->f1 & T2QPAIR)){
 				efaa= (EVPtr *) eed->tmp.p;
 				v1 = v2 = v3 = v4 = NULL;
 				givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, vindex);
@@ -3290,7 +3303,7 @@ void join_triangles(void)
 		if(complexedges){
 			edsortblock = edb = MEM_callocN(sizeof(EditEdge*) * complexedges, "Face Pairs quicksort Array");
 			for(eed = em->edges.first; eed; eed=eed->next){
-				if((eed->f2 == 2) && (eed->f1 & T2QCOMPLEX)){
+				if(eed->f1 & T2QCOMPLEX){
 					*edb = eed;
 					edb++;
 				}
@@ -3309,7 +3322,7 @@ void join_triangles(void)
 		
 		/*finally go through all edges marked for join (simple and complex) and create new faces*/ 
 		for(eed=em->edges.first; eed; eed=eed->next){
-			if((eed->f2 == 2) && (eed->f1 & T2QJOIN)){
+			if(eed->f1 & T2QJOIN){
 				efaa= (EVPtr *)eed->tmp.p;
 				v1 = v2 = v3 = v4 = NULL;
 				givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, vindex);
