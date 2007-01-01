@@ -744,41 +744,42 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 	CfraElem *ce;
 	ActKeyBlock *ab;
 	
-	if ((keys==NULL) || (blocks==NULL))
-		return;
-
 	glEnable(GL_BLEND);
 	
 	/* draw keyblocks */
-	for (ab= blocks->first; ab; ab= ab->next) {
-		/* only draw keyblock if it appears in all curves sampled */
-		if (ab->totcurve == totcurve) {
-			int sc_xa, sc_ya;
-			int sc_xb, sc_yb;
-			
-			/* get co-ordinates of block */
-			gla2DDrawTranslatePt(di, ab->start, ypos, &sc_xa, &sc_ya);
-			gla2DDrawTranslatePt(di, ab->end, ypos, &sc_xb, &sc_yb);
-			
-			/* draw block */
-			if (ab->sel & 1)
-				BIF_ThemeColor4(TH_STRIP_SELECT);
-			else
-				BIF_ThemeColor4(TH_STRIP);
-			glRectf(sc_xa,  sc_ya-3,  sc_xb,  sc_yb+5);
+	if (blocks) {
+		for (ab= blocks->first; ab; ab= ab->next) {
+			/* only draw keyblock if it appears in all curves sampled */
+			if (ab->totcurve == totcurve) {
+				int sc_xa, sc_ya;
+				int sc_xb, sc_yb;
+				
+				/* get co-ordinates of block */
+				gla2DDrawTranslatePt(di, ab->start, ypos, &sc_xa, &sc_ya);
+				gla2DDrawTranslatePt(di, ab->end, ypos, &sc_xb, &sc_yb);
+				
+				/* draw block */
+				if (ab->sel & 1)
+					BIF_ThemeColor4(TH_STRIP_SELECT);
+				else
+					BIF_ThemeColor4(TH_STRIP);
+				glRectf(sc_xa,  sc_ya-3,  sc_xb,  sc_yb+5);
+			}
 		}
 	}
 	
 	/* draw keys */
-	for (ce= keys->first; ce; ce= ce->next) {
-		int sc_x, sc_y;
-		
-		/* get co-ordinate to draw at */
-		gla2DDrawTranslatePt(di, ce->cfra, ypos, &sc_x, &sc_y);
-		
-		if(ce->sel & 1) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
-		else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
-	}	
+	if (keys) {
+		for (ce= keys->first; ce; ce= ce->next) {
+			int sc_x, sc_y;
+			
+			/* get co-ordinate to draw at */
+			gla2DDrawTranslatePt(di, ce->cfra, ypos, &sc_x, &sc_y);
+			
+			if(ce->sel & 1) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
+			else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
+		}	
+	}
 	
 	glDisable(GL_BLEND);
 }
@@ -824,18 +825,9 @@ void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, float ypos)
 void draw_action_channel(gla2DDrawInfo *di, bAction *act, float ypos)
 {
 	ListBase keys = {0, 0};
-	ListBase blocks = {0, 0};
 
-	action_to_keylist(act, &keys, &blocks);
-	
-	/* Keyblocks need to be freed here, otherwise, 
-	 * they will draw in the nla editor as keyframes
-	 * for the active strip. We don't want this as
-	 * it could get confusing...
-	 */
-	BLI_freelistN(&blocks);
-	
-	draw_keylist(di, &keys, &blocks, ypos, 0);
+	action_to_keylist(act, &keys, NULL);
+	draw_keylist(di, &keys, NULL, ypos, 0);
 	BLI_freelistN(&keys);
 }
 
@@ -918,18 +910,20 @@ void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks)
 		
 		for (v=0; v<icu->totvert; v++, bezt++) {
 			add_to_cfra_elem(keys, bezt);
-			if (v) add_bezt_to_keyblockslist(bezt, prev, blocks);
+			if (blocks && v) add_bezt_to_keyblockslist(bezt, prev, blocks);
 			
 			prev= bezt;
 		}
 		
 		/* update the number of curves the blocks have appeared in */
-		for (ab= blocks->first; ab; ab= abn) {
-			abn= ab->next;
-			
-			if (ab->modified) {
-				ab->modified = 0;
-				ab->totcurve += 1;
+		if (blocks) {
+			for (ab= blocks->first; ab; ab= abn) {
+				abn= ab->next;
+				
+				if (ab->modified) {
+					ab->modified = 0;
+					ab->totcurve += 1;
+				}
 			}
 		}
 	}
