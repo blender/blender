@@ -76,10 +76,13 @@ typedef struct bArmature {
 	ListBase	chainbase;
 	int			flag;
 	int			drawtype;			
-	short		deformflag, pad1;
+	short		deformflag; 
+	short		pathflag;
 	short		layer, layer_protected;		/* for buttons to work, both variables in this order together */
-	short		ghostep, ghostsize;
-	int			pad2;
+	short		ghostep, ghostsize;		/*number of frames to ghosts to show, and step between them  */
+	short		ghosttype, pathsize;		/* ghost drawing options and number of frames between points of path */
+	int			ghostsf, ghostef;		/* start and end frames of ghost-drawing range */
+	int 		pathsf, pathef;			/* start and end frames of path-calculation range for all bones */	
 }bArmature;
 
 /* armature->flag */
@@ -99,6 +102,7 @@ typedef struct bArmature {
 #define		ARM_AUTO_IK		0x200
 			/* made option negative, for backwards compat */
 #define		ARM_NO_CUSTOM	0x400
+#define		ARM_COL_CUSTOM	0x800
 
 /* armature->drawtype */
 #define		ARM_OCTA		0
@@ -110,6 +114,13 @@ typedef struct bArmature {
 #define		ARM_DEF_VGROUP		1
 #define		ARM_DEF_ENVELOPE	2
 
+/* armature->pathflag */
+#define		ARM_PATH_FNUMS	0x001
+#define		ARM_PATH_KFRAS	0x002
+
+/* armature->ghosttype */
+#define 	ARM_GHOST_CUR	0
+#define		ARM_GHOST_RANGE	1
 
 /* bone->flag */
 #define		BONE_SELECTED	1

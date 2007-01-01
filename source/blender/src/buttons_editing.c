@@ -145,6 +145,8 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_poseobject.h"
+
 #include "BDR_drawobject.h"
 #include "BDR_editcurve.h"
 #include "BDR_editface.h"
@@ -3090,6 +3092,14 @@ void do_armbuts(unsigned short event)
 			allqueue(REDRAWBUTSEDIT, 0);
 		}
 		break;
+	case B_ARM_CALCPATHS:
+		if (ob && ob->pose) 
+			pose_calculate_path(ob);
+		break;
+	case B_ARM_CLEARPATHS:
+		if (ob && ob->pose)
+			pose_clear_paths(ob);
+		break;
 	}
 }
 
@@ -3291,8 +3301,6 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Draw Names", 110,80,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
 	uiDefButBitI(block, TOGN, ARM_NO_CUSTOM, REDRAWVIEW3D, "Draw Shapes", 210,80,100,20, &arm->flag, 0, 0, 0, 0, "Draw custom bone shapes");
 	
-	uiDefButS(block, NUM, REDRAWVIEW3D, "Ghost: ", 10,60,150,20, &arm->ghostep, 0.0f, 30.0f, 0, 0, "Draw Ghosts around current frame, for current Action");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "Step: ", 160,60,150,20, &arm->ghostsize, 1.0f, 20.0f, 0, 0, "How many frames between Ghost instances");
 	uiBlockEndAlign(block);
 	
 	uiDefBut(block, LABEL, 0, "Deform Options", 10,40,150,20, 0, 0, 0, 0, 0, "");
@@ -3301,7 +3309,67 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiDefButBitS(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	160,20,150,20, &arm->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform (not for Modifiers)");
 	uiDefButBitI(block, TOG, ARM_RESTPOS, B_ARM_RECALCDATA,"Rest Position",		10,0,150,20, &arm->flag, 0, 0, 0, 0, "Show armature rest position, no posing possible");
 	uiDefButBitI(block, TOG, ARM_DELAYDEFORM, REDRAWVIEW3D, "Delay Deform",		160,0,150,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
+	uiBlockEndAlign(block);
+}
+
+static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
+{
+	uiBlock	*block;
 	
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_armature_visuals", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Armature Visualisations", "Editing");
+	if(uiNewPanel(curarea, block, "Armature Visualisations", "Editing", 320, 0, 318, 204)==0) return;
+
+	/* version patch for older files here (do_versions patch too complicated) */
+	if ((arm->ghostsf == 0) || (arm->ghostef == 0)) {
+		arm->ghostsf = CFRA - arm->ghostep;
+		arm->ghostef = CFRA + arm->ghostep;
+	}
+	if ((arm->pathsf == 0) || (arm->pathef == 0)) {
+		arm->pathsf = SFRA;
+		arm->pathef = EFRA;
+	}
+	
+	/* Ghost Drawing Options */
+	uiDefBut(block, LABEL, 0, "Ghost Options", 10,180,150,20, 0, 0, 0, 0, 0, "");
+
+	uiBlockBeginAlign(block);
+	uiDefButS(block, MENU, REDRAWVIEW3D, "Ghosts %t|Around Current Frame %x0|In Range %x1", 
+												10, 160, 150, 20, &arm->ghosttype, 0, 0, 0, 0, "Choose range of Ghosts to draw for current Action");	
+	
+	uiDefButS(block, NUM, REDRAWVIEW3D, "GStep: ", 10,140,150,20, &arm->ghostsize, 1.0f, 20.0f, 0, 0, "How many frames between Ghost instances");
+	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block);
+	if (arm->ghosttype == ARM_GHOST_CUR) {
+		/* range is around current frame */
+		uiDefButS(block, NUM, REDRAWVIEW3D, "Ghost: ", 10,110,150,20, &arm->ghostep, 0.0f, 30.0f, 0, 0, "Draw Ghosts around current frame, for current Action");
+	}
+	else if (arm->ghosttype == ARM_GHOST_RANGE) {
+		/* range is defined by start+end frame below */
+		uiDefButI(block, NUM,REDRAWVIEW3D,"GSta:",10,110,150,20, &arm->ghostsf,1.0,MAXFRAMEF, 0, 0, "The start frame for Ghost display range");
+		uiDefButI(block, NUM,REDRAWVIEW3D,"GEnd:",10,90,150,20, &arm->ghostef,arm->ghostsf,MAXFRAMEF, 0, 0, "The end frame for Ghost display range");	
+	}
+	uiBlockEndAlign(block);
+	
+	/* Bone Path Drawing Options */
+	uiDefBut(block, LABEL, 0, "Bone Paths", 165,180,150,20, 0, 0, 0, 0, 0, "");
+	
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, ARM_PATH_FNUMS, REDRAWVIEW3D, "Frame Nums", 170, 160, 80, 20, &arm->pathflag, 0, 0, 0, 0, "Show frame numbers on path");
+	uiDefButBitS(block, TOG, ARM_PATH_KFRAS, REDRAWVIEW3D, "Show Keys", 250, 160, 80, 20, &arm->pathflag, 0, 0, 0, 0, "Show key frames on path");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "PStep:",170,140,160,20, &arm->pathsize,1,100, 10, 50, "Frames between highlighted points on bone path");
+	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block);
+	uiDefButI(block, NUM,REDRAWVIEW3D,"PSta:",170,100,160,20, &arm->pathsf, 1.0, MAXFRAMEF, 0, 0, "The start frame for Bone Path display range");
+	uiDefButI(block, NUM,REDRAWVIEW3D,"PEnd:",170,80,160,20, &arm->pathef, arm->pathsf, MAXFRAMEF, 0, 0, "The end frame for Bone Path display range");	
+	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block);
+	uiDefBut(block, BUT, B_ARM_CALCPATHS, "Calculate Paths", 170,40,160,20, 0, 0, 0, 0, 0, "(Re)calculates the paths of the selected bones");
+	uiDefBut(block, BUT, B_ARM_CLEARPATHS, "Clear All Paths", 170,20,160,20, 0, 0, 0, 0, 0, "Clears all bone paths");
+	uiBlockEndAlign(block);
 }
 
 /* autocomplete callback for editbones */
@@ -5112,6 +5180,7 @@ void editing_panels()
 			editing_panel_armature_bones(ob, arm);
 		}
 		else if(ob->flag & OB_POSEMODE) {
+			editing_panel_armature_visuals(ob, arm);
 			editing_panel_pose_bones(ob, arm);
 			object_panel_constraint("Editing");
 		}		

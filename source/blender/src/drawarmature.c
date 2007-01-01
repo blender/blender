@@ -61,8 +61,10 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_ipo.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_editaction.h"
 #include "BIF_editarmature.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -75,6 +77,7 @@
 
 #include "BDR_editobject.h"
 #include "BDR_drawobject.h"
+#include "BDR_drawaction.h"
 
 #include "BSE_edit.h"
 #include "BSE_view.h"
@@ -1731,18 +1734,32 @@ static void draw_pose_paths(Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
+	bAction *act;
+	bActionChannel *achan;
+	CfraElem *ce;
+	ListBase ak;
 	float *fp;
 	int a;
+	int stepsize, sfra;
 	
 	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	glPushMatrix();
 	glLoadMatrixf(G.vd->viewmat);
 	
+	stepsize = arm->pathsize;
+	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if(pchan->bone->layer & arm->layer) {
 			if(pchan->path) {
+				/* version patch here - cannot access frame info from file reading */
+				if ((pchan->pathsf == 0) || (pchan->pathef == 0)) {
+					pchan->pathsf= SFRA;
+					pchan->pathef= EFRA;
+				}
+				sfra= pchan->pathsf;
 				
+				/* draw curve-line of path */
 				BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
 				glBegin(GL_LINE_STRIP);
 				for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3)
@@ -1750,23 +1767,136 @@ static void draw_pose_paths(Object *ob)
 				glEnd();
 				
 				glPointSize(1.0);
-				BIF_ThemeColor(TH_WIRE);
+				
+				/* draw little black point at each frame */
 				glBegin(GL_POINTS);
-				for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3)
+				for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3) 
 					glVertex3fv(fp);
 				glEnd();
 				
+				/* Draw little white dots at each framestep value */
 				BIF_ThemeColor(TH_TEXT_HI);
 				glBegin(GL_POINTS);
-				for(a=0, fp= pchan->path; a<pchan->pathlen; a+=10, fp+=30)
+				for(a=0, fp= pchan->path; a<pchan->pathlen; a+=stepsize, fp+=(stepsize*3)) 
 					glVertex3fv(fp);
 				glEnd();
+				
+				/* Draw frame numbers at each framestep value */
+				if (arm->pathflag & ARM_PATH_FNUMS) {
+					for(a=0, fp= pchan->path; a<pchan->pathlen; a+=stepsize, fp+=(stepsize*3)) {
+						char str[32];
+						
+						glRasterPos3fv(fp);
+						sprintf(str, "  %d\n", (a+sfra));
+						BMF_DrawString(G.font, str);
+					}
+				}
+				
+				/* Keyframes - dots and numbers */
+				if (arm->pathflag & ARM_PATH_KFRAS) {
+					/* build list of all keyframes in active action for pchan */
+					ak.first = ak.last = NULL;	
+					act= ob_get_action(ob);
+					if (act) {
+						achan= get_action_channel(act, pchan->name);
+						if (achan) 
+							ipo_to_keylist(achan->ipo, &ak, NULL);
+					}
+					
+					/* Draw little yellow dots at each keyframe */
+					BIF_ThemeColor(TH_VERTEX_SELECT);
+					glBegin(GL_POINTS);
+					for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3) {
+						for (ce= ak.first; ce; ce= ce->next) {
+							if (ce->cfra == (a+sfra))
+								glVertex3fv(fp);
+						}
+					}
+					glEnd();
+					
+					/* Draw frame numbers of keyframes  */
+					if (arm->pathflag & ARM_PATH_FNUMS) {
+						for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3) {
+							for (ce= ak.first; ce; ce= ce->next) {
+								if (ce->cfra == (a+sfra)) {
+									char str[32];
+									
+									glRasterPos3fv(fp);
+									sprintf(str, "  %d\n", (a+sfra));
+									BMF_DrawString(G.font, str);
+								}
+							}
+						}
+					}
+					
+					BLI_freelistN(&ak);
+				}
 			}
 		}
 	}
 	
 	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 	glPopMatrix();
+}
+
+/* draw ghosts that occur within a frame range 
+ * 	note: object should be in posemode */
+static void draw_ghost_poses_range(Base *base)
+{
+	Object *ob= base->object;
+	bArmature *arm= ob->data;
+	bPose *posen, *poseo;
+	float start, end, stepsize, range, colfac;
+	int cfrao, flago, ipoflago;
+	
+	start = arm->ghostsf;
+	end = arm->ghostef;
+	if (end<=start)
+		return;
+	
+	stepsize= (float)(arm->ghostsize);
+	range= (float)(end - start);
+	
+	/* store values */
+	ob->flag &= ~OB_POSEMODE;
+	cfrao= CFRA;
+	flago= arm->flag;
+	arm->flag &= ~(ARM_DRAWNAMES|ARM_DRAWAXES);
+	ipoflago= ob->ipoflag; 
+	ob->ipoflag |= OB_DISABLE_PATH;
+	
+	/* copy the pose */
+	poseo= ob->pose;
+	copy_pose(&posen, ob->pose, 1);
+	ob->pose= posen;
+	armature_rebuild_pose(ob, ob->data);	/* child pointers for IK */
+	
+	glEnable(GL_BLEND);
+	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+	
+	/* draw from first frame of range to last */
+	for(CFRA= start; CFRA<end; CFRA+=stepsize) {
+		colfac = (end-CFRA)/range;
+		BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
+		
+		do_all_pose_actions(ob);
+		where_is_pose(ob);
+		draw_pose_channels(base, OB_WIRE);
+	}
+	glDisable(GL_BLEND);
+	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+
+	free_pose_channels(posen);
+	MEM_freeN(posen);
+	
+	/* restore */
+	CFRA= cfrao;
+	ob->pose= poseo;
+	arm->flag= flago;
+	armature_rebuild_pose(ob, ob->data);
+	ob->flag |= OB_POSEMODE;
+	ob->ipoflag= ipoflago; 
+
 }
 
 /* object is supposed to be armature in posemode */
@@ -1904,9 +2034,12 @@ int draw_armature(Base *base, int dt)
 						arm->flag |= ARM_POSEMODE;
 				}
 				else if(ob->flag & OB_POSEMODE) {
-		
-					if(arm->ghostep) {
-						draw_ghost_poses(base);
+					if (arm->ghosttype == ARM_GHOST_RANGE){
+						draw_ghost_poses_range(base);
+					}
+					else {
+						if (arm->ghostep)
+							draw_ghost_poses(base);
 					}
 					
 					if(ob==OBACT) 

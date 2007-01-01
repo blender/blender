@@ -229,12 +229,17 @@ void pose_calculate_path(Object *ob)
 	Base *base;
 	float *fp;
 	int cfra;
+	int sfra, efra;
 	
 	if(ob==NULL || ob->pose==NULL)
 		return;
 	arm= ob->data;
 	
-	if(EFRA<=SFRA) return;
+	/* set frame values */
+	cfra= CFRA;
+	sfra = arm->pathsf;
+	efra = arm->pathef;
+	if (efra<=sfra) return;
 	
 	DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
 	
@@ -242,7 +247,9 @@ void pose_calculate_path(Object *ob)
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
 			if(arm->layer & pchan->bone->layer) {
-				pchan->pathlen= EFRA-SFRA+1;
+				pchan->pathlen= efra-sfra+1;
+				pchan->pathsf= sfra;
+				pchan->pathef= efra+1;
 				if(pchan->path)
 					MEM_freeN(pchan->path);
 				pchan->path= MEM_callocN(3*pchan->pathlen*sizeof(float), "pchan path");
@@ -250,8 +257,7 @@ void pose_calculate_path(Object *ob)
 		}
 	}
 	
-	cfra= CFRA;
-	for(CFRA=SFRA; CFRA<=EFRA; CFRA++) {
+	for(CFRA=sfra; CFRA<=efra; CFRA++) {
 		
 		/* do all updates */
 		for(base= FIRSTBASE; base; base= base->next) {
@@ -266,7 +272,7 @@ void pose_calculate_path(Object *ob)
 			if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
 				if(arm->layer & pchan->bone->layer) {
 					if(pchan->path) {
-						fp= pchan->path+3*(CFRA-SFRA);
+						fp= pchan->path+3*(CFRA-sfra);
 						VECCOPY(fp, pchan->pose_tail);
 						Mat4MulVecfl(ob->obmat, fp);
 					}
