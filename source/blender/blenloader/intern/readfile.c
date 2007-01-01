@@ -2532,6 +2532,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		link_list(fd, &mesh->mr->levels);
 		lvl= mesh->mr->levels.first;
 		direct_link_customdata(fd, &mesh->mr->vdata, lvl->totvert);
+		mesh->mr->edge_flags= newdataadr(fd, mesh->mr->edge_flags);
 		for(; lvl; lvl= lvl->next) {
 			lvl->verts= newdataadr(fd, lvl->verts);
 			lvl->faces= newdataadr(fd, lvl->faces);

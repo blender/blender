@@ -1174,8 +1174,10 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 			writestruct(wd, DATA, "Multires", 1, mesh->mr);
 			if(mesh->mr) {
 				lvl= mesh->mr->levels.first;
-				if(lvl)
+				if(lvl) {
 					write_customdata(wd, lvl->totvert, &mesh->mr->vdata);
+					writedata(wd, DATA, sizeof(short)*lvl->totedge, mesh->mr->edge_flags);
+				}
 				for(; lvl; lvl= lvl->next) {
 					writestruct(wd, DATA, "MultiresLevel", 1, lvl);
 					writestruct(wd, DATA, "MVert", lvl->totvert, lvl->verts);
