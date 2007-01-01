@@ -3322,8 +3322,8 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 
 	/* version patch for older files here (do_versions patch too complicated) */
 	if ((arm->ghostsf == 0) || (arm->ghostef == 0)) {
-		arm->ghostsf = CFRA - arm->ghostep;
-		arm->ghostef = CFRA + arm->ghostep;
+		arm->ghostsf = CFRA - (arm->ghostep * arm->ghostsize);
+		arm->ghostef = CFRA + (arm->ghostep * arm->ghostsize);
 	}
 	if ((arm->pathsf == 0) || (arm->pathef == 0)) {
 		arm->pathsf = SFRA;
@@ -3357,13 +3357,14 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 	
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, ARM_PATH_FNUMS, REDRAWVIEW3D, "Frame Nums", 170, 160, 80, 20, &arm->pathflag, 0, 0, 0, 0, "Show frame numbers on path");
-	uiDefButBitS(block, TOG, ARM_PATH_KFRAS, REDRAWVIEW3D, "Show Keys", 250, 160, 80, 20, &arm->pathflag, 0, 0, 0, 0, "Show key frames on path");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "PStep:",170,140,160,20, &arm->pathsize,1,100, 10, 50, "Frames between highlighted points on bone path");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "PStep:",250,160,80,20, &arm->pathsize,1,100, 10, 50, "Frames between highlighted points on bone path");
+	uiDefButBitS(block, TOG, ARM_PATH_KFRAS, REDRAWVIEW3D, "Show Keys", 170, 140, 160, 20, &arm->pathflag, 0, 0, 0, 0, "Show key frames on path");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButI(block, NUM,REDRAWVIEW3D,"PSta:",170,100,160,20, &arm->pathsf, 1.0, MAXFRAMEF, 0, 0, "The start frame for Bone Path display range");
-	uiDefButI(block, NUM,REDRAWVIEW3D,"PEnd:",170,80,160,20, &arm->pathef, arm->pathsf, MAXFRAMEF, 0, 0, "The end frame for Bone Path display range");	
+	uiDefButI(block, NUM,REDRAWVIEW3D,"PSta:",170,100,80,20, &arm->pathsf, 1.0, MAXFRAMEF, 0, 0, "The start frame for Bone Path display range");
+	uiDefButI(block, NUM,REDRAWVIEW3D,"PEnd:",250,100,80,20, &arm->pathef, arm->pathsf, MAXFRAMEF, 0, 0, "The end frame for Bone Path display range");	
+	uiDefButBitS(block, TOG, ARM_PATH_HEADS, REDRAWVIEW3D, "Bone-Head Path", 170, 80, 160, 20, &arm->pathflag, 0, 0, 0, 0, "Calculate the Path travelled by the Bone's Head instead of Tail");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);

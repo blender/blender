@@ -117,6 +117,7 @@ typedef struct bArmature {
 /* armature->pathflag */
 #define		ARM_PATH_FNUMS	0x001
 #define		ARM_PATH_KFRAS	0x002
+#define		ARM_PATH_HEADS	0x004
 
 /* armature->ghosttype */
 #define 	ARM_GHOST_CUR	0

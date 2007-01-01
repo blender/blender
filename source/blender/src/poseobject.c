@@ -273,7 +273,14 @@ void pose_calculate_path(Object *ob)
 				if(arm->layer & pchan->bone->layer) {
 					if(pchan->path) {
 						fp= pchan->path+3*(CFRA-sfra);
-						VECCOPY(fp, pchan->pose_tail);
+						
+						if (arm->pathflag & ARM_PATH_HEADS) { 
+							VECCOPY(fp, pchan->pose_head);
+						}
+						else {
+							VECCOPY(fp, pchan->pose_tail);
+						}
+						
 						Mat4MulVecfl(ob->obmat, fp);
 					}
 				}
