@@ -383,11 +383,12 @@ EditVert *findnearestvert(int *dist, short sel, short strict)
 	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)){
 		int distance;
 		unsigned int index;
+		EditVert *eve;
 		
 		if(strict) index = sample_backbuf_rect(mval, 50, em_wireoffs, 0xFFFFFF, &distance, strict, findnearestvert__backbufIndextest); 
 		else index = sample_backbuf_rect(mval, 50, em_wireoffs, 0xFFFFFF, &distance, 0, NULL); 
 		
-		EditVert *eve = BLI_findlink(&G.editMesh->verts, index-1);
+		eve = BLI_findlink(&G.editMesh->verts, index-1);
 		
 		if(eve && distance < *dist) {
 			*dist = distance;
