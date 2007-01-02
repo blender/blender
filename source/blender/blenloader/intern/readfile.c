@@ -2539,7 +2539,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		if(mesh->mr->edge_flags)
 			mesh->mr->edge_flags= newdataadr(fd, mesh->mr->edge_flags);
 		else
-			mesh->mr->edge_flags= MEM_callocN(sizeof(short)*lvl->totvert, "Multires Edge Flags");
+			mesh->mr->edge_flags= MEM_callocN(sizeof(short)*lvl->totedge, "Multires Edge Flags");
 			
 		for(; lvl; lvl= lvl->next) {
 			lvl->verts= newdataadr(fd, lvl->verts);

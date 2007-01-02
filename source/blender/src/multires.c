@@ -790,12 +790,22 @@ void multires_free_level(MultiresLevel *lvl)
 void multires_del_lower(void *ob, void *me)
 {
 	Multires *mr= ((Mesh*)me)->mr;
-	MultiresLevel *lvl= BLI_findlink(&mr->levels,mr->current-1);
+	MultiresLevel *lvl= mr->levels.first;
 	MultiresLevel *lvlprev;
+	short *edgeflags= NULL;
+	int i, last;
 	
 	multires_check_state();
 	
-	lvl= lvl->prev;
+	/* Subdivide the edge flags to the current level */
+	edgeflags= MEM_callocN(sizeof(short)*current_level(mr)->totedge, "Multires Edge Flags");
+	last= lvl->totedge * pow(2, mr->current-1);
+	for(i=0; i<last; ++i)
+		edgeflags[i] = mr->edge_flags[(int)(i / pow(2, mr->current-1))];
+	MEM_freeN(mr->edge_flags);
+	mr->edge_flags= edgeflags;
+	
+	lvl= current_level(mr)->prev;
 	while(lvl) {
 		lvlprev= lvl->prev;
 		
