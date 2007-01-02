@@ -2536,8 +2536,11 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		direct_link_customdata(fd, &mesh->mr->vdata, lvl->totvert);
 		direct_link_dverts(fd, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
 		
-		mesh->mr->edge_flags= newdataadr(fd, mesh->mr->edge_flags);
-		
+		if(mesh->mr->edge_flags)
+			mesh->mr->edge_flags= newdataadr(fd, mesh->mr->edge_flags);
+		else
+			mesh->mr->edge_flags= MEM_callocN(sizeof(short)*lvl->totvert, "Multires Edge Flags");
+			
 		for(; lvl; lvl= lvl->next) {
 			lvl->verts= newdataadr(fd, lvl->verts);
 			lvl->faces= newdataadr(fd, lvl->faces);
