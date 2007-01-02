@@ -601,8 +601,12 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		break;
 	
 	case B_ADDKEY:
-		insert_shapekey(ob);
-		set_sculpt_object(ob);
+		if(get_mesh(ob) && get_mesh(ob)->mr) {
+			error("Cannot create shape keys on a multires mesh.");
+		} else {
+			insert_shapekey(ob);
+			set_sculpt_object(ob);
+		}
 		break;
 	case B_SETKEY:
 		ob->shapeflag |= OB_SHAPE_TEMPLOCK;

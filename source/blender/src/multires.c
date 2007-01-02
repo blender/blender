@@ -37,6 +37,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -48,6 +49,7 @@
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 
@@ -616,13 +618,26 @@ void multires_update_deformverts(Multires *mr, CustomData *src)
 void multires_make(void *ob, void *me_v)
 {
 	Mesh *me= me_v;
-	MultiresLevel *lvl= MEM_callocN(sizeof(MultiresLevel), "multires level");
+	MultiresLevel *lvl;
 	EditMesh *em= G.obedit ? G.editMesh : NULL;
 	EditVert *eve= NULL;
 	EditFace *efa= NULL;
 	EditEdge *eed= NULL;
-	
+	Key *key;
 	int i;
+	
+	/* Check for shape keys */
+	key= me->key;
+	if(key) {
+		int ret= okee("Adding multires will delete all shape keys, proceed?");
+		if(ret) {
+			free_key(key);
+			me->key= NULL;
+		} else
+			return;
+	}
+	
+	lvl= MEM_callocN(sizeof(MultiresLevel), "multires level");
 
 	waitcursor(1);
 	
