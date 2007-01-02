@@ -716,6 +716,7 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 		ImBuf *ibuf;
 		CompBuf *cbuf, *buf1, *buf2, *mask;
 		int x, y;
+		float offset;
 		
 		buf1= typecheck_compbuf(in[0]->data, CB_RGBA);
 		buf2= typecheck_compbuf(in[1]->data, CB_RGBA);
@@ -747,10 +748,31 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 		
 		/* mask buf */
 		mask= alloc_compbuf(buf1->x, buf1->y, CB_VAL, 1);
-		for(y=0; y<buf1->y; y++) {
-			float *fac= mask->rect + y*buf1->x;
-			for(x=buf1->x/2; x>0; x--, fac++)
-				*fac= 1.0f;
+		
+		
+		/* Check which offset mode is selected and limit offset if needed */
+		if(node->custom2 == 0) {
+			offset = buf1->x / 100.0f * node->custom1;
+			CLAMP(offset, 0, buf1->x);
+		}
+		else {
+			offset = buf1->y / 100.0f * node->custom1;
+			CLAMP(offset, 0, buf1->y);
+		}
+		
+		if(node->custom2 == 0) {
+			for(y=0; y<buf1->y; y++) {
+				float *fac= mask->rect + y*buf1->x;
+				for(x=offset; x>0; x--, fac++)
+					*fac= 1.0f;
+			}
+		}
+		else {
+			for(y=0; y<offset; y++) {
+				float *fac= mask->rect + y*buf1->x;
+				for(x=buf1->x; x>0; x--, fac++)
+					*fac= 1.0f;
+			}
 		}
 		
 		composit3_pixel_processor(node, cbuf, buf1, in[0]->vec, buf2, in[1]->vec, mask, NULL, do_copy_split_rgba, CB_RGBA, CB_RGBA, CB_VAL);
@@ -769,8 +791,8 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 static bNodeType cmp_node_splitviewer= {
 	/* type code   */	CMP_NODE_SPLITVIEWER,
 	/* name        */	"SplitViewer",
-	/* width+range */	80, 60, 200,
-	/* class+opts  */	NODE_CLASS_OUTPUT, NODE_PREVIEW,
+	/* width+range */	140, 100, 320,
+	/* class+opts  */	NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS,
 	/* input sock  */	cmp_node_splitviewer_in,
 	/* output sock */	NULL,
 	/* storage     */	"ImageUser",

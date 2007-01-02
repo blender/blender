@@ -982,21 +982,21 @@ static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node
 	if(block) {
 		NodeBlurData *nbd= node->storage;
 		uiBut *bt;
-		short dy= butr->ymin+19;
+		short dy= butr->ymin+38;
 		short dx= (butr->xmax-butr->xmin)/2;
-		short dx3=(butr->xmax-butr->xmin)/3;
 		char str[256];
 		
 		uiBlockBeginAlign(block);
 		sprintf(str, "Filter Type%%t|Flat %%x%d|Tent %%x%d|Quad %%x%d|Cubic %%x%d|Gauss %%x%d|CatRom %%x%d|Mitch %%x%d", R_FILTER_BOX, R_FILTER_TENT, R_FILTER_QUAD, R_FILTER_CUBIC, R_FILTER_GAUSS, R_FILTER_CATROM, R_FILTER_MITCH);
 		uiDefButS(block, MENU, B_NODE_EXEC+node->nr,str,		
-				  butr->xmin, dy, dx3, 19, 
+				  butr->xmin, dy, dx*2, 19, 
 				  &nbd->filtertype, 0, 0, 0, 0, "Set sampling filter for blur");
+		dy-=19;		  
 		uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Bokeh",		
-				  butr->xmin+dx3, dy, dx3, 19, 
+				  butr->xmin, dy, dx, 19, 
 				  &nbd->bokeh, 0, 0, 0, 0, "Uses circular filter, warning it's slow!");
 		uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Gamma",		
-				  butr->xmin+2*dx3, dy, dx3, 19, 
+				  butr->xmin+dx, dy, dx, 19, 
 				  &nbd->gamma, 0, 0, 0, 0, "Applies filter on gamma corrected values");
 		
 		dy-=19;
@@ -1007,7 +1007,7 @@ static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node
 					 butr->xmin+dx, dy, dx, 19, 
 					 &nbd->sizey, 0, 256, 0, 0, "");
 	}
-	return 38;
+	return 57;
 }
 
 /* qdn: defocus node */
@@ -1114,6 +1114,24 @@ static int node_composit_buts_flip(uiBlock *block, bNodeTree *ntree, bNode *node
 		uiButSetFunc(bt, node_but_title_cb, node, bt);
 	}
 	return 20;	
+}
+
+static int node_composit_buts_splitviewer(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {	
+		uiBlockBeginAlign(block);
+		
+		uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "X",
+				  butr->xmin, butr->ymin+19, (butr->xmax-butr->xmin)/2, 20, 
+				  &node->custom2, 0.0, 0.0, 0, 0, "");
+		uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Y",
+				  butr->xmin+(butr->xmax-butr->xmin)/2, butr->ymin+19, (butr->xmax-butr->xmin)/2, 20, 
+				  &node->custom2, 0.0, 1.0, 0, 0, "");
+				  
+		uiDefButS(block, NUMSLI, B_NODE_EXEC+node->nr, "Split %: ",
+				butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, &node->custom1, 0, 100, 10, 0, "");
+	}
+	return 40;
 }
 
 static int node_composit_buts_map_value(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
@@ -1482,6 +1500,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_FLIP:
 			ntype->butfunc= node_composit_buts_flip;
 			break;
+		case CMP_NODE_SPLITVIEWER:
+			ntype->butfunc= node_composit_buts_splitviewer;
+			break;
 		case CMP_NODE_MIX_RGB:
 			ntype->butfunc= node_buts_mix_rgb;
 			break;
@@ -1728,27 +1749,38 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 {
 	float xscale= (prv->xmax-prv->xmin)/((float)preview->xsize);
 	float yscale= (prv->ymax-prv->ymin)/((float)preview->ysize);
-	float centx= prv->xmin + 0.5*(prv->xmax-prv->xmin);
-	float centy= prv->ymin + 0.5*(prv->ymax-prv->ymin);
+	float tile= (prv->xmax - prv->xmin) / 10.0;
+	float x, y;
 	
-	/* draw standard bacdrop to show alpha */
-	glBegin(GL_TRIANGLES);
-	glColor3f(0.625f, 0.625f, 0.625f);
-	glVertex2f(prv->xmin, prv->ymin);
-	glVertex2f(prv->xmax, prv->ymin);
-	glVertex2f(centx, centy);
-	glVertex2f(prv->xmin, prv->ymax);
-	glVertex2f(prv->xmax, prv->ymax);
-	glVertex2f(centx, centy);
+	/* draw checkerboard backdrop to show alpha */
+	glColor3ub(120, 120, 120);
+	glRectf(prv->xmin, prv->ymin, prv->xmax, prv->ymax);
+	glColor3ub(160, 160, 160);
 	
-	glColor3f(0.25f, 0.25f, 0.25f);
-	glVertex2f(prv->xmin, prv->ymin);
-	glVertex2f(prv->xmin, prv->ymax);
-	glVertex2f(centx, centy);
-	glVertex2f(prv->xmax, prv->ymin);
-	glVertex2f(prv->xmax, prv->ymax);
-	glVertex2f(centx, centy);
-	glEnd();
+	for(y=prv->ymin; y<prv->ymax; y+=tile*2) {
+		for(x=prv->xmin; x<prv->xmax; x+=tile*2) {
+			float tilex= tile, tiley= tile;
+
+			if(x+tile > prv->xmax)
+				tilex= prv->xmax-x;
+			if(y+tile > prv->ymax)
+				tiley= prv->ymax-y;
+
+			glRectf(x, y, x + tilex, y + tiley);
+		}
+	}
+	for(y=prv->ymin+tile; y<prv->ymax; y+=tile*2) {
+		for(x=prv->xmin+tile; x<prv->xmax; x+=tile*2) {
+			float tilex= tile, tiley= tile;
+
+			if(x+tile > prv->xmax)
+				tilex= prv->xmax-x;
+			if(y+tile > prv->ymax)
+				tiley= prv->ymax-y;
+
+			glRectf(x, y, x + tilex, y + tiley);
+		}
+	}
 	
 	glPixelZoom(xscale, yscale);
 	glEnable(GL_BLEND);
@@ -1759,6 +1791,9 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	glDisable(GL_BLEND);
 	glPixelZoom(1.0f, 1.0f);
+
+	BIF_ThemeColorShadeAlpha(TH_BACK, -15, +100);
+	fdrawbox(prv->xmin, prv->ymin, prv->xmax, prv->ymax);
 	
 }
 

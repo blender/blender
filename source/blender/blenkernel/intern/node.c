@@ -833,6 +833,10 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 			iuser->sfra= 1;
 			iuser->fie_ima= 2;
 			iuser->ok= 1;
+			
+			if(type==CMP_NODE_SPLITVIEWER){
+				node->custom1= 50;	/* default 50% split */
+			}
 		}
 		else if(type==CMP_NODE_HUE_SAT) {
 			NodeHueSat *nhs= MEM_callocN(sizeof(NodeHueSat), "node hue sat");
