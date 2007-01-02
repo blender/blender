@@ -2760,6 +2760,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		PropsetData *pd= sculpt_session()->propset;
 		short r1=100, r2=100, r3=100;
 		short mouse[2];
+		float *ang= get_tex_angle();
 		if(pd) {
 			if(pd->mode == PropsetSize) {
 				r1= sculptmode_brush()->size;
@@ -2786,7 +2787,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			
 			glPushMatrix();
 			glTranslatef(pd->origloc[0], pd->origloc[1], 0);
-			glRotatef(*get_tex_angle(), 0, 0, 1);
+			if(ang) glRotatef(*ang, 0, 0, 1);
 
 			glEnable(GL_TEXTURE_2D);
 			glBegin(GL_QUADS);
