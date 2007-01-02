@@ -1167,3 +1167,10 @@ class Mesh:
     @param direction: specifies outward (0) or inward (1) normals.  Outward
     is the default.  Value must be in the range [0,1].
     """
+
+  def __copy__ ():
+    """
+    Make a copy of this mesh
+    @rtype: Mesh
+    @return:  a copy of this mesh
+    """

@@ -154,7 +154,7 @@ class Metaball:
   @type materials: list
   """
 
-  def copy():
+  def __copy__():
     """
     Return a copy of this metaball object data.
     @rtype: Metaball

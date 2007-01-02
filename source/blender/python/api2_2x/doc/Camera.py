@@ -247,3 +247,10 @@ class Camera:
            -CLIPPING
     @return: py_none
     """  
+
+  def __copy__ ():
+    """
+    Make a copy of this camera
+    @rtype: Camera
+    @return:  a copy of this camera
+    """

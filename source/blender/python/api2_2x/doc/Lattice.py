@@ -202,5 +202,11 @@ class Lattice:
     @param frame: the frame at which the Lattice will be set as a keyframe
     """
 
+  def __copy__ ():
+    """
+    Make a copy of this lattice
+    @rtype: Lattice
+    @return:  a copy of this lattice
+    """
 
 

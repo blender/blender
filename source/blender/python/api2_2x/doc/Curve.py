@@ -489,6 +489,12 @@ class Curve:
       @rtype: L{Key<Key.Key>} object or None
       """
 
+  def __copy__ ():
+    """
+    Make a copy of this curve
+    @rtype: Curve
+    @return:  a copy of this curve
+    """
 
 class CurNurb:
     """

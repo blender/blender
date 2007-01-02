@@ -340,3 +340,10 @@ class World:
            -SIZE
     @return: py_none
     """   
+
+  def __copy__ ():
+    """
+    Make a copy of this world
+    @rtype: World
+    @return:  a copy of this world
+    """

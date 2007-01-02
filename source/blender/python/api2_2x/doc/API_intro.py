@@ -35,11 +35,11 @@ The Blender Python API Reference
   - L{Mathutils} (*)
   - L{Mesh} (*)
     - L{MeshPrimitives} (*)
-  - L{Metaball}
-  - L{Modifier} (*)
+  - L{Metaball} (*)
   - L{NMesh} (*)
   - L{Noise}
   - L{Object} (*)
+     - L{Modifier} (*)
      - L{Pose}
      - L{Constraint} (*)
      - L{ActionStrips<NLA>} (*)
@@ -226,7 +226,7 @@ A note to newbie script writers:
 @version: 2.42
 @see: U{www.blender3d.org<http://www.blender3d.org>}: main site
 @see: U{www.blender.org<http://www.blender.org>}: documentation and forum
-@see: U{www.elysiun.com<http://www.elysiun.com>}: user forum
+@see: U{blenderartists.org<http://blenderartists.org>}: user forum
 @see: U{projects.blender.org<http://projects.blender.org>}
 @see: U{blender architecture<http://www.blender3d.org/cms/Blender_Architecture.336.0.html>}: blender architecture document
 @see: U{www.python.org<http://www.python.org>}

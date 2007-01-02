@@ -141,7 +141,7 @@ def env_from_group(ob_act, grp, PREF_UPDATE_ACT=True):
 	
 	if PREF_UPDATE_ACT:
 		act_group = me.activeGroup
-		if act_group == 'None':
+		if act_group == None:
 			Draw.PupMenu('Error%t|No active vertex group.')
 			return
 		

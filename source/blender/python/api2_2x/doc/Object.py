@@ -1795,11 +1795,18 @@ class Property:
 	"""
 
   def copyNLA(obj):
-	"""
-	Copies all NLA strips from another object to this object.
+    """
+    Copies all NLA strips from another object to this object.
     @param obj: an object to copy NLA strips from.
     @type obj: L{Object}
-	"""
+    """
+
+  def __copy__ ():
+    """
+    Make a copy of this object
+    @rtype: Object
+    @return:  a copy of this object
+    """
 
   def convertActionToStrip():
 	"""

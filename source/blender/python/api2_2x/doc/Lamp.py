@@ -513,3 +513,10 @@ class Lamp:
            -SIZE
     @return: py_none
     """    
+
+  def __copy__ ():
+    """
+    Make a copy of this lamp
+    @rtype: Lamp
+    @return:  a copy of this lamp
+    """

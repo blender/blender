@@ -993,3 +993,10 @@ class Material:
     @type event: string
     @param event: "FrameChanged" or "Redraw".
     """
+
+  def __copy__ ():
+    """
+    Make a copy of this material
+    @rtype: Material
+    @return:  a copy of this material
+    """

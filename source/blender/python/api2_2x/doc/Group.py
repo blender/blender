@@ -122,3 +122,9 @@ class Group:
   @type objects: custom object sequence
   """
 
+  def __copy__ ():
+    """
+    Make a copy of this group
+    @rtype: Group
+    @return:  a copy of this group
+    """
