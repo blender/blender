@@ -4695,9 +4695,8 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 
 	NodeChroma *c;
 	float x, z, alpha;
-	
+
 	c=node->storage;
-	
 	switch(node->custom1)
 	{
 		case 1:  /*green*/
@@ -4707,22 +4706,24 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 			break;
 		}
 		case 2:  /*blue*/
-		{
+		{	
 			x=(atanf((c->t1*in[1])-(c->t1*c->t2))+1)/2;
 			z=(atanf((c->t3*in[2])-(c->t3*c->fsize))+1)/2;
 			x=1-x;
 			break;
 		}
 		default:
+		{
 			x= z= 0.0f;
 			break;
+		}
 	}
-	
+
 	/*clamp to zero so that negative values don' affect the other channels input */
 	if(x<0.0) x=0.0;
 	if(z<0.0) z=0.0;
 
-	/*if chroma values (addes are less than strength then it is a key value */
+	/*if chroma values added are less than strength then it is a key value */
 	if((x+z) < c->fstrength) {
 		alpha=(x+z);
 		alpha=in[0]+alpha; /*add in the luminence for detail */
@@ -4730,7 +4731,11 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 		if(alpha < in[3]) { /* is it less than the previous alpha */
 			out[3]=alpha;
 		}
+		else {
+			out[3]=in[3];
+		}
 	}
+	
 }
 
 static void node_composit_exec_chroma(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
@@ -5012,6 +5017,75 @@ static bNodeType cmp_node_combyuva= {
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_combyuva
 };
+
+/* **************** COMBINE HSVA ******************** */
+static bNodeSocketType cmp_node_combhsva_in[]= {
+	{	SOCK_VALUE, 1, "H",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "S",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "V",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "A",			1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketType cmp_node_combhsva_out[]= {
+	{	SOCK_RGBA, 0, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static void do_comb_hsva(bNode *node, float *out, float *in1, float *in2, float *in3, float *in4)
+{
+	float r,g,b;
+	hsv_to_rgb(in1[0], in2[0], in3[0], &r, &g, &b);
+	
+	out[0] = r;
+	out[1] = g;
+	out[2] = b;
+	out[3] = in4[0];
+}
+
+static void node_composit_exec_combhsva(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order out: 1 rgba channels */
+	/* stack order in: 4 value channels */
+	
+	/* input no image? then only color operation */
+	if((in[0]->data==NULL) && (in[1]->data==NULL) && (in[2]->data==NULL) && (in[3]->data==NULL)) {
+		out[0]->vec[0] = in[0]->vec[0];
+		out[0]->vec[1] = in[1]->vec[0];
+		out[0]->vec[2] = in[2]->vec[0];
+		out[0]->vec[3] = in[3]->vec[0];
+	}
+	else {
+		/* make output size of first available input image */
+		CompBuf *cbuf;
+		CompBuf *stackbuf;
+
+		/* allocate a CompBuf the size of the first available input */
+		if (in[0]->data) cbuf = in[0]->data;
+		else if (in[1]->data) cbuf = in[1]->data;
+		else if (in[2]->data) cbuf = in[2]->data;
+		else cbuf = in[3]->data;
+		
+		stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		
+		composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, 
+								  in[2]->data, in[2]->vec, in[3]->data, in[3]->vec, 
+								  do_comb_hsva, CB_VAL, CB_VAL, CB_VAL, CB_VAL);
+
+		out[0]->data= stackbuf;
+	}	
+}
+
+static bNodeType cmp_node_combhsva= {
+	/* type code   */	CMP_NODE_COMBHSVA,
+	/* name        */	"Combine HSVA",
+	/* width+range */	80, 40, 140,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_combhsva_in,
+	/* output sock */	cmp_node_combhsva_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_combhsva
+};
+
 
 
 /* **************** Rotate  ******************** */
@@ -5555,6 +5629,7 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_seprgba,
 	&cmp_node_combrgba,
 	&cmp_node_sephsva,
+	&cmp_node_combhsva,
 	&cmp_node_sepyuva,
 	&cmp_node_combyuva,
 	&cmp_node_sepycca,
