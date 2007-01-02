@@ -2135,7 +2135,17 @@ void fly(void)
 	
 	
 	if(curarea->spacetype!=SPACE_VIEW3D) return;
-	if(G.vd->persp==2 && G.vd->camera->id.lib) return;
+		
+	if(G.vd->persp==2 && G.vd->camera->id.lib) {
+		error("Cannot fly a camera from an external library");
+		return;
+	}
+	
+	if(G.vd->ob_centre) {
+		error("Cannot fly when the view is locked to an object");
+		return;
+	}
+	
 	
 	persp_backup= G.vd->persp;
 	dist_backup= G.vd->dist;
@@ -2325,10 +2335,18 @@ void fly(void)
 			
 			/* rotate about the Y axis- look left/right */
 			if (moffset[0]) {
-				upvec[0]=0;
-				upvec[1]=1;
-				upvec[2]=0;
-				Mat3MulVecfl(mat, upvec);
+				
+				if (zlock) {
+					upvec[0]=0;
+					upvec[1]=0;
+					upvec[2]=1;
+				} else {
+					upvec[0]=0;
+					upvec[1]=1;
+					upvec[2]=0;
+					Mat3MulVecfl(mat, upvec);
+				}
+					
 				VecRotToQuat( upvec, (float)moffset[0]*time_redraw*20, tmp_quat); /* Rotate about the relative up vec */
 				QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
 				
@@ -2431,7 +2449,6 @@ void fly(void)
 						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Z);
 					}
 				}
-				DAG_object_flush_update(G.scene, G.vd->camera, OB_RECALC_OB);
 			}
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
@@ -2462,6 +2479,8 @@ void fly(void)
 		float mat3[3][3];
 		Mat3CpyMat4(mat3, G.vd->camera->obmat);
 		Mat3ToCompatibleEul(mat3, G.vd->camera->rot, rot_backup);
+		
+		DAG_object_flush_update(G.scene, G.vd->camera, OB_RECALC_OB);
 		
 		if (G.flags & G_RECORDKEYS) {
 			allqueue(REDRAWIPO, 0);
