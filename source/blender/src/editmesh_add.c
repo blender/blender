@@ -242,7 +242,7 @@ void add_click_mesh(void)
 		eve->f= SELECT;
 	}
 	
-	retopo_do_all(NULL, NULL);
+	retopo_do_all();
 	
 	countall();
 

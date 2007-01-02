@@ -758,7 +758,7 @@ void retopo_do_vert(View3D *v3d, float *v)
 	retopo_do_2d(v3d,proj,v,0);
 }
 
-void retopo_do_all(void *j1,void *j2)
+void retopo_do_all()
 {
 	RetopoViewData *rvd= G.vd->retopo_view_data;
 	if(retopo_mesh_check()) {
@@ -800,6 +800,12 @@ void retopo_do_all(void *j1,void *j2)
 			allqueue(REDRAWVIEW3D, 0);			
 		}
 	}
+}
+
+void retopo_do_all_cb(void *j1, void *j2)
+{
+	retopo_do_all();
+	BIF_undo_push("Retopo all");
 }
 
 void retopo_queue_updates(View3D *v3d)

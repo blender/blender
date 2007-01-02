@@ -2671,7 +2671,7 @@ void addvert_Nurb(int mode)
 		}
 	}
 
-	retopo_do_all(0,0);
+	retopo_do_all();
 
 	test2DNurb(nu);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);

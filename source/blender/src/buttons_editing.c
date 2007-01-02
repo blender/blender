@@ -795,7 +795,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 			but= uiDefButBitC(block,TOG,2,B_NOP,"Paint", 10,110,55,19, &G.editMesh->retopo_mode,0,0,0,0, "");
 			uiButSetFunc(but,retopo_paint_toggle,ob,me);
 			but= uiDefBut(block,BUT,B_NOP,"Retopo All", 65,110,115,19, 0,0,0,0,0, "Apply the re-topology tool to all selected vertices");
-			uiButSetFunc(but,retopo_do_all,ob,me);
+			uiButSetFunc(but,retopo_do_all_cb,ob,me);
 		}
 		uiBlockEndAlign(block);
 	}
@@ -2677,7 +2677,7 @@ static void editing_panel_curve_tools1(Object *ob, Curve *cu)
 		uiButSetFunc(but,retopo_toggle,0,0);
 		if(cu->flag & CU_RETOPO) {
 			but= uiDefBut(block,BUT,B_NOP,"Retopo All", 560,160,100,19, 0,0,0,0,0, "Apply the re-topology tool to all selected vertices");
-			uiButSetFunc(but,retopo_do_all,0,0);
+			uiButSetFunc(but,retopo_do_all_cb,0,0);
 		}
 	}
 }

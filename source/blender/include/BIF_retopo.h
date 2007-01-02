@@ -98,7 +98,8 @@ RetopoPaintData *retopo_paint_data_copy(RetopoPaintData *rpd);
 
 void retopo_toggle(void*,void*);
 void retopo_do_vert(struct View3D *v3d, float *v);
-void retopo_do_all(void*,void*);
+void retopo_do_all();
+void retopo_do_all_cb(void *, void *);
 void retopo_queue_updates(struct View3D *v3d);
 
 void retopo_matrix_update(struct View3D *v3d);
