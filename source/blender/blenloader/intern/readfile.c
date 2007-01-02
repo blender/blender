@@ -2529,10 +2529,15 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->mr= newdataadr(fd, mesh->mr);
 	if(mesh->mr) {
 		MultiresLevel *lvl;
+		
 		link_list(fd, &mesh->mr->levels);
 		lvl= mesh->mr->levels.first;
+		
 		direct_link_customdata(fd, &mesh->mr->vdata, lvl->totvert);
+		direct_link_dverts(fd, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
+		
 		mesh->mr->edge_flags= newdataadr(fd, mesh->mr->edge_flags);
+		
 		for(; lvl; lvl= lvl->next) {
 			lvl->verts= newdataadr(fd, lvl->verts);
 			lvl->faces= newdataadr(fd, lvl->faces);
