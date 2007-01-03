@@ -1879,7 +1879,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 	}
 	
 	if(G.f & G_DRAWSHARP) {
-		glColor3ub(255, 32, 32); /* todo, make theme-able */
+		BIF_ThemeColor(TH_EDGE_SHARP);
 		glLineWidth(2);
 
 		draw_dm_edges_sharp(cageDM);

@@ -250,6 +250,8 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->edge_select; break;
 			case TH_EDGE_SEAM:
 				cp= ts->edge_seam; break;
+			case TH_EDGE_SHARP:
+				cp= ts->edge_sharp; break;
 			case TH_EDGE_FACESEL:
 				cp= ts->edge_facesel; break;
 			case TH_FACE:
@@ -581,6 +583,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE);
 			str += sprintf(str, "Edge Selected %%x%d|", TH_EDGE_SELECT);
 			str += sprintf(str, "Edge Seam %%x%d|", TH_EDGE_SEAM);
+			str += sprintf(str, "Edge Sharp %%x%d|", TH_EDGE_SHARP);
 			str += sprintf(str, "Edge UV Face Select %%x%d|", TH_EDGE_FACESEL);
 			str += sprintf(str, "Face (transp) %%x%d|", TH_FACE);
 			str += sprintf(str, "Face Selected (transp) %%x%d|", TH_FACE_SELECT);

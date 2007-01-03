@@ -524,6 +524,7 @@ enum {
 	TH_SEQ_TRANSITION,
 	TH_SEQ_META,
 	
+	TH_EDGE_SHARP,
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

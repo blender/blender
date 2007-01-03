@@ -86,7 +86,7 @@ typedef struct ThemeSpace {
 	char active[4], group[4], group_active[4], transform[4];
 	char vertex[4], vertex_select[4];
 	char edge[4], edge_select[4];
-	char edge_seam[4], edge_facesel[4];
+	char edge_seam[4], edge_sharp[4], edge_facesel[4];
 	char face[4], face_select[4];	// solid faces
 	char face_dot[4];				// selected color
 	char normal[4];
@@ -94,13 +94,14 @@ typedef struct ThemeSpace {
 	char strip[4], strip_select[4];
 	
 	char vertex_size, facedot_size;
-	char bpad[2];
+	char bpad[2]; 
 
 	char syntaxl[4], syntaxn[4], syntaxb[4]; // syntax for textwindow and nodes
 	char syntaxv[4], syntaxc[4];
 	
 	char movie[4], image[4], scene[4], audio[4];		// for sequence editor
 	char effect[4], plugin[4], transition[4], meta[4];
+	char bpad1[4]; 
 	
 } ThemeSpace;
 
