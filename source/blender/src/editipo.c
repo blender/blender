@@ -2020,30 +2020,25 @@ static void *get_context_ipo_poin(ID *id, int blocktype, char *actname, IpoCurve
 #define KEYNEEDED_DONTADD	0
 #define	KEYNEEDED_JUSTADD	1
 #define KEYNEEDED_DELPREV	2
+#define KEYNEEDED_DELNEXT 	3
 
 static int new_key_needed(IpoCurve *icu, float cFrame, float nValue) 
 {
 	/* This function determines whether a new keyframe is needed */
 	/* Cases where keyframes should not be added:
 	 *	1. Keyframe to be added bewteen two keyframes with similar values
-	 *	2. Keyframe to be added between two keyframes with similar times
+	 *	2. Keyframe to be added on frame where two keyframes are already situated
 	 *	3. Keyframe lies at point that intersects the linear line between two keyframes
-	 *	4. Curve without keyframes, and current value for curve is default
 	 */
 	
 	BezTriple *bezt=NULL, *prev=NULL;
 	int totCount, i;
-	float valsDiff, oldVal;
-	float thresh;
-	
+	float valA = 0.0f, valB = 0.0f;
 	
 	/* safety checking */
 	if (!icu) return KEYNEEDED_JUSTADD;
 	totCount= icu->totvert;
 	if (totCount==0) return KEYNEEDED_JUSTADD;
-	
-	/* get threshold */
-	thresh= 0.000001f; // for now
 	
 	/* loop through checking if any are the same */
 	bezt= icu->bezt;
@@ -2051,76 +2046,89 @@ static int new_key_needed(IpoCurve *icu, float cFrame, float nValue)
 		float prevPosi=0.0f, prevVal=0.0f;
 		float beztPosi=0.0f, beztVal=0.0f;
 			
+		/* get current time+value */	
 		beztPosi= bezt->vec[1][0];
 		beztVal= bezt->vec[1][1];
 			
 		if (prev) {
-			/* there is previous */
-			float timePN, timePC, timeCN; 
-			float valPN, valPC, valCN;
-		
-			/* get previous time+value*/
+			/* there is a keyframe before the one currently being examined */		
+			
+			/* get previous time+value */
 			prevPosi= prev->vec[1][0];
 			prevVal= prev->vec[1][1];
 			
-			/* precalculate several differences */
-			timePN= sqrt((prevPosi-cFrame)*(prevPosi-cFrame));
-			timePC= sqrt((prevPosi-beztPosi)*(prevPosi-beztPosi));
-			timeCN= sqrt((beztPosi-cFrame)*(beztPosi-cFrame));
-			valPN= sqrt((prevVal-nValue)*(prevVal-nValue));
-			valPC= sqrt((prevVal-beztVal)*(prevVal-beztVal));
-			valCN= sqrt((beztVal-nValue)*(beztVal-nValue));
-			
-			
 			/* keyframe to be added at point where there are already two similar points? */
-			if ((timePN<=thresh) && (timePC<=thresh) && (timeCN<=thresh))
+			if (IS_EQ(prevPosi, cFrame) && IS_EQ(beztPosi, cFrame) && IS_EQ(beztPosi, prevPosi)) {
 				return KEYNEEDED_DONTADD;
-				
-			/* keyframe to be added between 2 similar keyframes? */
-			if ((valPN<=thresh) && (valPC<=thresh) && (valCN<=thresh)) 
-				return KEYNEEDED_DONTADD;
-				
-			/* keyframe lies on line between prev+current points? */
+			}
+			
+			/* keyframe between prev+current points ? */
 			if ((prevPosi <= cFrame) && (cFrame <= beztPosi)) {
-				float realVal, valDiff;
-				
-				/* get real value at that point */
-				realVal= eval_icu(icu, cFrame);
-				
-				/* compare whether it's the same as proposed */
-				valDiff= sqrt((realVal-nValue)*(realVal-nValue));
-				if (valDiff <= thresh)
+				/* is the value of keyframe to be added the same as keyframes on either side ? */
+				if (IS_EQ(prevVal, nValue) && IS_EQ(beztVal, nValue) && IS_EQ(prevVal, beztVal)) {
 					return KEYNEEDED_DONTADD;
+				}
+				else {
+					float realVal;
+					
+					/* get real value of curve at that point */
+					realVal= eval_icu(icu, cFrame);
+				
+					/* compare whether it's the same as proposed */
+					if (IS_EQ(realVal, nValue)) 
+						return KEYNEEDED_DONTADD;
+					else 
+						return KEYNEEDED_JUSTADD;
+				}
+			}
+			
+			/* new keyframe before prev beztriple? */
+			if (cFrame < prevPosi) {
+				/* A new keyframe will be added. However, whether the previous beztriple
+				 * stays around or not depends on whether the values of previous/current
+				 * beztriples and new keyframe are the same.
+				 */
+				if (IS_EQ(prevVal, nValue) && IS_EQ(beztVal, nValue) && IS_EQ(prevVal, beztVal))
+					return KEYNEEDED_DELNEXT;
+				else 
+					return KEYNEEDED_JUSTADD;
 			}
 		}
 		else {
-			/* no previous, but is insert frame before frame of this bezt */
-			if (cFrame < beztPosi) 
-				/* position already past frame to add at */
+			/* just add a keyframe if there's only one keyframe 
+			 * and the new one occurs before the exisiting one does.
+			 */
+			if ((cFrame < beztPosi) && (totCount==1))
 				return KEYNEEDED_JUSTADD;
-			if ((cFrame-beztPosi) <= thresh) 
-				/* only ok if not same position */
-				return ((nValue-beztVal) > thresh); 
 		}
 		
 		/* continue. frame to do not yet passed (or other conditions not met) */
-		prev= bezt;
-		if (i < (totCount-1))
+		if (i < (totCount-1)) {
+			prev= bezt;
 			bezt++;
+		}
 		else
 			break;
 	}
 	
-	/* frame comes after end of curve (no points after) 
-	 * 	now, check whether the new value equals the old one or not 
+	/* Frame in which to add a new-keyframe occurs after all other keys
+	 * -> If there are at least two existing keyframes, then if the values of the
+	 *	 last two keyframes and the new-keyframe match, the last existing keyframe
+	 *	 gets deleted as it is no longer required.
+	 * -> Otherwise, a keyframe is just added. 1.0 is added so that fake-2nd-to-last
+	 *	 keyframe is not equal to last keyframe.
 	 */
 	bezt= (icu->bezt + (icu->totvert - 1));
-	oldVal= bezt->vec[1][1];
-	valsDiff= sqrt((nValue-oldVal)*(nValue-oldVal));
+	valA= bezt->vec[1][1];
 	
-	if (valsDiff <= thresh)
+	if (prev)
+		valB= prev->vec[1][1];
+	else 
+		valB= bezt->vec[1][1] + 1.0f; 
+		
+	if (IS_EQ(valA, nValue) && IS_EQ(valA, valB)) 
 		return KEYNEEDED_DELPREV;
-	else
+	else 
 		return KEYNEEDED_JUSTADD;
 }
 
@@ -2194,16 +2202,22 @@ void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, in
 				}
 			}
 			
-			/* check whether this curve really need a new keyframe */
+			/* check whether this curve really needs a new keyframe */
 			insert_mode= new_key_needed(icu, cfra, curval);
 			
 			/* insert new keyframe at current frame */
 			if (insert_mode) 
 				insert_vert_ipo(icu, cfra, curval);
 			
-			/* delete keyframe before newly added */
-			if (insert_mode == KEYNEEDED_DELPREV)
-				delete_icu_key(icu, icu->totvert-2); 
+			/* delete keyframe immediately before/after newly added */
+			switch (insert_mode) {
+				case KEYNEEDED_DELPREV:
+					delete_icu_key(icu, icu->totvert-2);
+					break;
+				case KEYNEEDED_DELNEXT:
+					delete_icu_key(icu, 1);
+					break;
+			}
 		}
 	}
 }
