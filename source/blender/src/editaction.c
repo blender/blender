@@ -2241,11 +2241,13 @@ void snap_keys_to_frame(int snap_mode)
 	}
 	
 	/* snap to frame */
-	if (key)
+	if (key) {
 		set_snap_meshchannels(key, snap_mode);
-	else
+	}
+	else {
 		set_snap_actionchannels(act, snap_mode);
-	remake_action_ipos (act);
+		remake_action_ipos (act);
+	}
 	
 	BIF_undo_push(str);
 	allspace(REMAKEIPO, 0);
@@ -2334,11 +2336,13 @@ void mirror_action_keys(short mirror_mode)
 	}
 	
 	/* mirror */
-	if (key)
+	if (key) {
 		mirror_meshchannels(key, mirror_mode);
-	else
+	}
+	else {
 		mirror_actionchannels(act, mirror_mode);
-	remake_action_ipos (act);
+		remake_action_ipos (act);
+	}
 	
 	BIF_undo_push(str);
 	allspace(REMAKEIPO, 0);
