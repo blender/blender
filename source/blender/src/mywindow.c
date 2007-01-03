@@ -74,7 +74,7 @@ typedef struct {
 /* globals */
 static Window *winlay_mainwindow;
 static int curswin=0;
-static bWindow *swinarray[MAXWIN]= {0};
+static bWindow *swinarray[MAXWIN]= {NULL};
 static bWindow mainwindow, renderwindow;
 static int mainwin_color_depth;
 
@@ -174,11 +174,12 @@ void bwin_qadd(int winid, BWinEvent *evt)
 void bwin_get_rect(int winid, rcti *rect_r)
 {
 	bWindow *win= bwin_from_winid(winid);
-
-	rect_r->xmin= win->xmin;
-	rect_r->ymin= win->ymin;
-	rect_r->xmax= win->xmax;
-	rect_r->ymax= win->ymax;
+	if(win) {
+		rect_r->xmin= win->xmin;
+		rect_r->ymin= win->ymin;
+		rect_r->xmax= win->xmax;
+		rect_r->ymax= win->ymax;
+	}
 }
 
 void bwin_getsize(int win, int *x, int *y) 
@@ -218,7 +219,7 @@ void bwin_getsinglematrix(int winid, float mat[][4])
 	float matview[4][4], matproj[4][4];
 
 	win= swinarray[winid];
-	if(win==0) {
+	if(win==NULL) {
 		glGetFloatv(GL_PROJECTION_MATRIX, (float *)matproj);
 		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)matview);
 		Mat4MulMat4(mat, matview, matproj);
@@ -233,43 +234,50 @@ void bwin_getsinglematrix(int winid, float mat[][4])
 void bwin_load_viewmatrix(int winid, float mat[][4])
 {
 	bWindow *win= bwin_from_winid(winid);
-	
-	glLoadMatrixf(mat);
-	Mat4CpyMat4(win->viewmat, mat);
+	if(win) {
+		glLoadMatrixf(mat);
+		Mat4CpyMat4(win->viewmat, mat);
+	}
 }
 void bwin_load_winmatrix(int winid, float mat[][4])
 {
 	bWindow *win= bwin_from_winid(winid);
-
-	glLoadMatrixf(mat);
-	Mat4CpyMat4(win->winmat, mat);
+	if(win) {
+		glLoadMatrixf(mat);
+		Mat4CpyMat4(win->winmat, mat);
+	}
 }
 
 void bwin_get_viewmatrix(int winid, float mat[][4])
 {
 	bWindow *win= bwin_from_winid(winid);
-	Mat4CpyMat4(mat, win->viewmat);
+	if(win)
+		Mat4CpyMat4(mat, win->viewmat);
 }
 void bwin_get_winmatrix(int winid, float mat[][4])
 {
 	bWindow *win= bwin_from_winid(winid);
-	Mat4CpyMat4(mat, win->winmat);
+	if(win)
+		Mat4CpyMat4(mat, win->winmat);
 }
 
 void bwin_multmatrix(int winid, float mat[][4])
 {
 	bWindow *win= bwin_from_winid(winid);
 
-	glMultMatrixf((float*) mat);
-	glGetFloatv(GL_MODELVIEW_MATRIX, (float *)win->viewmat);
+	if(win) {
+		glMultMatrixf((float*) mat);
+		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)win->viewmat);
+	}
 }
 
 void bwin_scalematrix(int winid, float x, float y, float z)
 {
 	bWindow *win= bwin_from_winid(winid);
-
-	glScalef(x, y, z);
-	glGetFloatv(GL_MODELVIEW_MATRIX, (float *)win->viewmat);
+	if(win) {
+		glScalef(x, y, z);
+		glGetFloatv(GL_MODELVIEW_MATRIX, (float *)win->viewmat);
+	}
 }
 
 void bwin_clear_viewmat(int swin)
@@ -277,7 +285,7 @@ void bwin_clear_viewmat(int swin)
 	bWindow *win;
 
 	win= swinarray[swin];
-	if(win==0) return;
+	if(win==NULL) return;
 
 	memset(win->viewmat, 0, sizeof(win->viewmat));
 	win->viewmat[0][0]= 1.0;
@@ -325,7 +333,7 @@ void mywinset(int wid)
 	bWindow *win;
 
 	win= swinarray[wid];
-	if(win==0) {
+	if(win==NULL) {
 		printf("mywinset %d: doesn't exist\n", wid);
 		return;
 	}
@@ -438,32 +446,35 @@ void mywinclose(int winid)
 		}
 	}
 
-	swinarray[winid]= 0;
+	swinarray[winid]= NULL;
 	if (curswin==winid) curswin= 0;
 }
 
 void mywinposition(int winid, int xmin, int xmax, int ymin, int ymax) /* watch: syntax differs from iris */
 {
 	bWindow *win= bwin_from_winid(winid);
-	
-	win->xmin= xmin;
-	win->ymin= ymin;
-	win->xmax= xmax;
-	win->ymax= ymax;
+	if(win) {
+		win->xmin= xmin;
+		win->ymin= ymin;
+		win->xmax= xmax;
+		win->ymax= ymax;
+	}
 }
 
 
 void bwin_ortho(int winid, float x1, float x2, float y1, float y2, float n, float f)
 {
 	bWindow *bwin= bwin_from_winid(winid);
-	
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	if(bwin) {
+		
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
 
-	glOrtho(x1, x2, y1, y2, n, f);
+		glOrtho(x1, x2, y1, y2, n, f);
 
-	glGetFloatv(GL_PROJECTION_MATRIX, (float *)bwin->winmat);
-	glMatrixMode(GL_MODELVIEW);
+		glGetFloatv(GL_PROJECTION_MATRIX, (float *)bwin->winmat);
+		glMatrixMode(GL_MODELVIEW);
+	}
 }
 
 void bwin_ortho2(int win, float x1, float x2, float y1, float y2)
@@ -474,13 +485,15 @@ void bwin_ortho2(int win, float x1, float x2, float y1, float y2)
 void bwin_frustum(int winid, float x1, float x2, float y1, float y2, float n, float f)
 {
 	bWindow *win= bwin_from_winid(winid);
+	if(win) {
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glFrustum(x1, x2, y1, y2, n, f);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glFrustum(x1, x2, y1, y2, n, f);
 
-	glGetFloatv(GL_PROJECTION_MATRIX, (float *)win->winmat);
-	glMatrixMode(GL_MODELVIEW);
+		glGetFloatv(GL_PROJECTION_MATRIX, (float *)win->winmat);
+		glMatrixMode(GL_MODELVIEW);
+	}
 }
 
 void myortho(float x1, float x2, float y1, float y2, float n, float f)
