@@ -1768,7 +1768,9 @@ static void draw_pose_paths(Object *ob)
 				
 				glPointSize(1.0);
 				
-				/* draw little black point at each frame */
+				/* draw little black point at each frame
+				 * NOTE: this is not really visible/noticable
+				 */
 				glBegin(GL_POINTS);
 				for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3) 
 					glVertex3fv(fp);
@@ -1786,9 +1788,19 @@ static void draw_pose_paths(Object *ob)
 					for(a=0, fp= pchan->path; a<pchan->pathlen; a+=stepsize, fp+=(stepsize*3)) {
 						char str[32];
 						
-						glRasterPos3fv(fp);
-						sprintf(str, "  %d\n", (a+sfra));
-						BMF_DrawString(G.font, str);
+						/* only draw framenum if several consecutive highlighted points occur on same point */
+						if (a == 0) {
+							glRasterPos3fv(fp);
+							sprintf(str, "  %d\n", (a+sfra));
+							BMF_DrawString(G.font, str);
+						}
+						else if ((a > stepsize) && (a < pchan->pathlen-stepsize)) { 
+							if ((VecEqual(fp, fp-(stepsize*3))==0) || (VecEqual(fp, fp+(stepsize*3))==0)) {
+								glRasterPos3fv(fp);
+								sprintf(str, "  %d\n", (a+sfra));
+								BMF_DrawString(G.font, str);
+							}
+						}
 					}
 				}
 				
