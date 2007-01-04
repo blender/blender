@@ -129,11 +129,10 @@ SZ_SHORT = 2
 SZ_INT   = 4
 SZ_FLOAT = 4
 
-class _3ds_short:
+class _3ds_short(object):
 	'''Class representing a short (2-byte integer) for a 3ds file.
 	*** This looks like an unsigned short H is unsigned from the struct docs - Cam***'''
-	value=0
-	
+	__slots__ = 'value'
 	def __init__(self, val=0):
 		self.value=val
 	
@@ -141,16 +140,14 @@ class _3ds_short:
 		return SZ_SHORT
 
 	def write(self,file):
-		data=struct.pack("<H", self.value)
-		file.write(data)
+		file.write(struct.pack("<H", self.value))
 		
 	def __str__(self):
 		return str(self.value)
 
-class _3ds_int:
+class _3ds_int(object):
 	'''Class representing an int (4-byte integer) for a 3ds file.'''
-	value=0
-	
+	__slots__ = 'value'
 	def __init__(self, val=0):
 		self.value=val
 	
@@ -158,16 +155,14 @@ class _3ds_int:
 		return SZ_INT
 
 	def write(self,file):
-		data=struct.pack("<I", self.value)
-		file.write(data)
+		file.write(struct.pack("<I", self.value))
 	
 	def __str__(self):
 		return str(self.value)
 
-class _3ds_float:
+class _3ds_float(object):
 	'''Class representing a 4-byte IEEE floating point number for a 3ds file.'''
-	value=0.0
-	
+	__slots__ = 'value'
 	def __init__(self, val=0.0):
 		self.value=val
 	
@@ -175,18 +170,15 @@ class _3ds_float:
 		return SZ_FLOAT
 
 	def write(self,file):
-		data=struct.pack("<f", self.value)
-		file.write(data)
-		
+		file.write(struct.pack("<f", self.value))
 	
 	def __str__(self):
 		return str(self.value)
 
 
-class _3ds_string:
+class _3ds_string(object):
 	'''Class representing a zero-terminated string for a 3ds file.'''
-	value=""
-	
+	__slots__ = 'value'
 	def __init__(self, val=""):
 		self.value=val
 	
@@ -195,17 +187,15 @@ class _3ds_string:
 
 	def write(self,file):
 		binary_format = "<%ds" % (len(self.value)+1)
-		data=struct.pack(binary_format, self.value)
-		file.write(data)
+		file.write(struct.pack(binary_format, self.value))
 		
 	
 	def __str__(self):
 		return self.value
 
-class _3ds_point_3d:
+class _3ds_point_3d(object):
 	'''Class representing a three-dimensional point for a 3ds file.'''
-	x=y=z=0.0
-	
+	__slots__ = 'x','y','z'
 	def __init__(self, point=(0.0,0.0,0.0)):
 		self.x, self.y, self.z = point
 		
@@ -213,16 +203,14 @@ class _3ds_point_3d:
 		return 3*SZ_FLOAT
 
 	def write(self,file):
-		data=struct.pack('<3f', self.x, self.y, self.z)
-		file.write(data)
+		file.write(struct.pack('<3f', self.x, self.y, self.z))
 	
 	def __str__(self):
 		return '(%f, %f, %f)' % (self.x, self.y, self.z)
 
-class _3ds_point_4d:
+class _3ds_point_4d(object):
 	'''Class representing a four-dimensional point for a 3ds file, for instance a quaternion.'''
-	x=y=z=w=0.0
-	
+	__slots__ = 'x','y','z','w'
 	def __init__(self, point=(0.0,0.0,0.0,0.0)):
 		self.x, self.y, self.z, self.w = point	
 	
@@ -236,10 +224,9 @@ class _3ds_point_4d:
 	def __str__(self):
 		return '(%f, %f, %f, %f)' % (self.x, self.y, self.z, self.w)
 	
-class _3ds_point_uv:
+class _3ds_point_uv(object):
 	'''Class representing a UV-coordinate for a 3ds file.'''
-	uv=(0.0, 0.0)
-	
+	__slots__ = 'uv'
 	def __init__(self, point=(0.0,0.0)):
 		self.uv = point
 	
@@ -256,10 +243,9 @@ class _3ds_point_uv:
 	def __str__(self):
 		return '(%g, %g)' % self.uv
 
-class _3ds_rgb_color:
+class _3ds_rgb_color(object):
 	'''Class representing a (24-bit) rgb color for a 3ds file.'''
-	r=g=b=0
-	
+	__slots__ = 'r','g','b'
 	def __init__(self, col=(0,0,0)):
 		self.r, self.g, self.b = col
 	
@@ -267,19 +253,14 @@ class _3ds_rgb_color:
 		return 3
 	
 	def write(self,file):
-		file.write( struct.pack('<c', chr(int(255*self.r))) )
-		file.write( struct.pack('<c', chr(int(255*self.g))) )
-		file.write( struct.pack('<c', chr(int(255*self.b))) )
+		file.write( struct.pack('<3c', chr(int(255*self.r)), chr(int(255*self.g)), chr(int(255*self.b)) ) )
 	
 	def __str__(self):
 		return '{%f, %f, %f}' % (self.r, self.g, self.b)
 
-class _3ds_face:
+class _3ds_face(object):
 	'''Class representing a face for a 3ds file.'''
-
-	# vertex index tuple:
-	vindex=(0,0,0)
-	
+	__slots__ = 'vindex'
 	def __init__(self, vindex):
 		self.vindex = vindex
 	
@@ -288,20 +269,17 @@ class _3ds_face:
 	
 	def write(self,file):
 		# The last zero is only used by 3d studio
-		data=struct.pack("<4H", self.vindex[0],self.vindex[1], self.vindex[2], 0) 
-		file.write(data)
+		file.write(struct.pack("<4H", self.vindex[0],self.vindex[1], self.vindex[2], 0))
 	
 	def __str__(self):
 		return '[%d %d %d]' % (self.vindex[0],self.vindex[1], self.vindex[2])
 
-class _3ds_array:
+class _3ds_array(object):
 	'''Class representing an array of variables for a 3ds file.
 
 	Consists of a _3ds_short to indicate the number of items, followed by the items themselves.
 	'''
-	values=[]
-	size=0
-	
+	__slots__ = 'values', 'size'
 	def __init__(self):
 		self.values=[]
 		self.size=SZ_SHORT
@@ -325,12 +303,10 @@ class _3ds_array:
 	def __str__(self):
 		return '(%d items)' % len(self.values)
 
-class _3ds_named_variable:
+class _3ds_named_variable(object):
 	'''Convenience class for named variables.'''
 	
-	name=""
-	value=None
-	
+	__slots__ = 'value', 'name'
 	def __init__(self, name, val=None):
 		self.name=name
 		self.value=val
@@ -357,21 +333,12 @@ class _3ds_named_variable:
 
 
 #the chunk class
-class _3ds_chunk:
+class _3ds_chunk(object):
 	'''Class representing a chunk in a 3ds file.
 
 	Chunks contain zero or more variables, followed by zero or more subchunks.
 	'''
-
-	# The chunk ID:
-	ID=_3ds_short()
-	# The total chunk size (including the size of the chunk ID and chunk size!):
-	size=_3ds_int()
-	# Variables:
-	variables=[]
-	# Sub chunks:
-	subchunks=[]
-
+	__slots__ = 'ID', 'size', 'variables', 'subchunks'
 	def __init__(self, id=0):
 		self.ID=_3ds_short(id)
 		self.size=_3ds_int(0)
@@ -507,18 +474,12 @@ def make_material_chunk(material, image):
 	
 	return material_chunk
 
-class tri_wrapper:
+class tri_wrapper(object):
 	'''Class representing a triangle.
 	
 	Used when converting faces to triangles'''
 	
-	# vertex indices:
-	vertex_index=(0,0,0)
-	# material index:
-	mat_index=None
-	# uv coordinates (used on blender faces that have face-uv)
-	faceuvs=None
-	
+	__slots__ = 'vertex_index', 'mat', 'image', 'faceuvs', 'offset'
 	def __init__(self, vindex=(0,0,0), mat=None, image=None, faceuvs=None):
 		self.vertex_index= vindex
 		self.mat= mat
@@ -618,9 +579,12 @@ def remove_face_uv(verts, tri_list):
 	index_list = []
 	for i,vert in enumerate(verts):
 		index_list.append(vert_index)
+		
+		pt = _3ds_point_3d(vert.co) # reuse, should be ok
+		
 		for ii, uv_3ds in unique_uvs[i].itervalues():
 			# add a vertex duplicate to the vertex_array for every uv associated with this vertex:
-			vert_array.add(_3ds_point_3d(vert.co))
+			vert_array.add(pt)
 			# add the uv coordinate to the uv array:
 			uv_array.add(uv_3ds)
 		vert_index += len(unique_uvs[i])
@@ -639,6 +603,8 @@ def make_faces_chunk(tri_list, mesh, materialDict):
 	Also adds subchunks assigning materials to all faces.'''
 	
 	materials = mesh.materials
+	if not materials:
+		mat = None
 	
 	face_chunk = _3ds_chunk(OBJECT_FACES)
 	face_list = _3ds_array()
@@ -651,10 +617,9 @@ def make_faces_chunk(tri_list, mesh, materialDict):
 			
 			face_list.add(_3ds_face(tri.vertex_index))
 			
-			# obj_material_faces[tri.mat].add(_3ds_short(i))
-			
-			mat = materials[tri.mat]
-			if mat: mat = mat.name
+			if materials:
+				mat = materials[tri.mat]
+				if mat: mat = mat.name
 			
 			img = tri.image
 			
@@ -914,10 +879,16 @@ def save_3ds(filename):
 		# get material/image tuples.
 		if data.faceUV:
 			mat_ls = data.materials
+			
+			if not mat_ls:
+				mat = mat_name = None
+			
 			for f in data.faces:
-				mat = mat_ls[f.mat]
-				if mat:	mat_name = mat.name
-				else:	mat_name = None
+				if mat_ls:
+					mat = mat_ls[f.mat]
+					if mat:	mat_name = mat.name
+					else:	mat_name = None
+				# else there alredy set to none
 					
 				img = f.image
 				if img:	img_name = img.name
@@ -929,9 +900,6 @@ def save_3ds(filename):
 					materialDict[mat_name, img_name]
 				except:
 					materialDict[mat_name, img_name]= mat, img
-				
-				
-			
 			
 		else:
 			for mat in data.materials:

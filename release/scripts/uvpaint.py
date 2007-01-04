@@ -261,13 +261,17 @@ def transface(f,x,y,u=0.0, v=0.0):
     if len(f.v)>=3:
         a[0]=int((f.uv[0][0]-LIM[1])*x+u)
         a[1]=int((f.uv[0][1]-LIM[3])*y+v)
-
+        
         if a[0]>xlimit:
                xlimit=a[0]
+        
+        if  f.col : 
+            a[2]=f.col[0].r/255.0
+            a[3]=f.col[0].g/255.0
+            a[4]=f.col[0].b/255.0
 
-        a[2]=f.col[0].r/255.0
-        a[3]=f.col[0].g/255.0
-        a[4]=f.col[0].b/255.0
+        else :  
+            a[2],a[3],a[4]=1.0,1.0,1.0 
 
         c[0]=int((f.uv[2][0]-LIM[1])*x+u)
         c[1]=int((f.uv[2][1]-LIM[3])*y+v)
@@ -275,10 +279,12 @@ def transface(f,x,y,u=0.0, v=0.0):
         if c[0]>xlimit:
                xlimit=c[0]
 
-        c[2]=f.col[2].r/255.0
-        c[3]=f.col[2].g/255.0
-        c[4]=f.col[2].b/255.0
-
+        if  f.col :
+            c[2]=f.col[2].r/255.0
+            c[3]=f.col[2].g/255.0
+            c[4]=f.col[2].b/255.0
+        else   :
+            c[2],c[3],c[4]=1.0,1.0,1.0 
      
         b[0]=int((f.uv[1][0]-LIM[1])*x+u)
         b[1]=int((f.uv[1][1]-LIM[3])*y+v)
@@ -286,10 +292,12 @@ def transface(f,x,y,u=0.0, v=0.0):
         if b[0]>xlimit:
                xlimit=b[0]
 
-        b[2]=f.col[1].r/255.0
-        b[3]=f.col[1].g/255.0
-        b[4]=f.col[1].b/255.0
-
+        if  f.col :
+            b[2]=f.col[1].r/255.0
+            b[3]=f.col[1].g/255.0
+            b[4]=f.col[1].b/255.0
+        else   :
+            b[2],b[3],b[4]=1.0,1.0,1.0 
 
     if  len(f.v)==4:     
         d[0]=int((f.uv[3][0]-LIM[1])*x+u)
@@ -297,13 +305,14 @@ def transface(f,x,y,u=0.0, v=0.0):
 
         if d[0]>xlimit:
                xlimit=d[0]
-
-        d[2]=f.col[3].r/255.0
-        d[3]=f.col[3].g/255.0
-        d[4]=f.col[3].b/255.0
+        if  f.col :
+            d[2]=f.col[3].r/255.0
+            d[3]=f.col[3].g/255.0
+            d[4]=f.col[3].b/255.0
+        else   :
+            d[2],d[3],d[4]=1.0,1.0,1.0 
     else:
         d=0
-
 
     #print a,b,c
     return a,b,c,d
@@ -322,8 +331,8 @@ def affiche_mesh(ME,x,y):
     global LINE,xlimit,MMENU,XLIMIT,xwin,xlimit,LC
     global LIM, EMPTY,TRANSP
     if not NOLIM : LIM=[-1.0,1.0,-1.0,1.0]
-	
-    if ME.getType()=='Mesh':
+	   
+    if ME.getType()=='Mesh' and ME.getData().hasFaceUV():
        me=ME.getData()
        if MMENU.val==1:
           se=me.faces
@@ -353,7 +362,7 @@ def affiche_mesh(ME,x,y):
                Ttriangle(a,c,d)
            elif len(f.v)==3:
                Ttriangle(a,b,c)
-
+          
        if LINE.val==1 or EMPTY:
          for f in se:
            a,b,c,d=transface(f,x,y)
@@ -365,6 +374,7 @@ def affiche_mesh(ME,x,y):
             Lcarre([1,1],[1,y-2],[xlimit+2,y-2],[xlimit+2,1]) 
          else:
             Lcarre([1,1],[1,y-2],[xwin-2,y-2],[xwin-2,1]) 
+        
         
 def write_tgafile(loc2,bitmap,width,height,profondeur): 
 

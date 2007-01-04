@@ -1,7 +1,7 @@
 #!BPY
 
 """ Registration info for Blender menus:
-Name: 'Texture Baker'
+Name: 'UV Texture Baker'
 Blender: 239
 Group: 'UV'
 Tooltip: 'Procedural to uvmapped texture baker'
@@ -11,7 +11,7 @@ __author__ = "Jean-Michel Soler (jms)"
 __url__ = ("blender", "elysiun",
 "Official Page, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_mesh3d2uv2d_en.htm",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "0.3.2 2005/12/28"
+__version__ = "0.3.3 2005/09/10"
 
 __bpydoc__ = """\
 This script "bakes" Blender procedural materials (including textures): it saves
@@ -28,7 +28,7 @@ a) Enter face mode and define uv coordinates for your mesh;<br>
 b) Define its materials and textures ;
 c) Run this script and check the console.
 
-Global variables 
+Global variables print
 
 a)  FRAME  integer, the last frame of the animation, autodocumented .
 b)  LIMIT  integer, 0 or 1, uvcoords may exceed limits 0.0 to 1.0 , this variable
@@ -39,7 +39,7 @@ Notes:<br>
 """
 
 #---------------------------------------------
-# Last release : 0.3.1 ,  2005/10/21 , 20h23
+# Last release : 0.3.3 ,  2006/09/10 , 15h20
 #---------------------------------------------
 #---------------------------------------------
 # (c) jm soler  07/2004 : 'Procedural Texture Baker'
@@ -49,6 +49,10 @@ Notes:<br>
 #
 #     Released under Blender Artistic Licence
 #
+#   0.3.3
+#     blender 2.40 update to deal with the object module refactory
+#     some probleme with the relatif render directory
+# 
 #   0.3.2
 #     blender 2.40 update to deal with the new shape  
 #     key system . 
@@ -161,13 +165,13 @@ from Blender import NMesh, Draw, Object, Scene, Camera
 # poses a problem when the memory is too much encumbered 
 #----------------------------------- 
 try:
-  import nt
-  os = nt
-  os.sep='\\'
+	import nt
+	os = nt
+	os.sep='\\'
 except:
-  import posix
-  os = posix
-  os.sep='/'
+	import posix
+	os = posix
+	os.sep='/'
 DIRNAME=Blender.Get('filename')
 #----------------------------------- 
 #  decoupage de la chaine en fragment
@@ -179,9 +183,9 @@ DIRNAME=Blender.Get('filename')
 #----------------------------------- 
 
 if DIRNAME.find(os.sep)!=-1:
-    k0=DIRNAME.split(os.sep)
+	k0=DIRNAME.split(os.sep)
 else:
-    k0=DIRNAME.split('/')   
+	k0=DIRNAME.split('/')   
 DIRNAME=DIRNAME.replace(k0[-1],'')
 #----------------------------------- 
 # Last release : 0.2.5 ,  2005/05/22 , end
@@ -217,7 +221,24 @@ DEBUG=1
 RENDERLAYER=20
 SCENELAYERS=[]
 
+BLOCK={'limit': [Blender.Draw.Create(0),""],
+			'ObjPos' : [Blender.Draw.Create(100.0),""],
+			'RenderLayer' : [Blender.Draw.Create(20),""],
+			'DisplayRes' : [Blender.Draw.Create(1024),""],
+			'ImageName' : [Blender.Draw.Create("uvtext"),""],
+			'NoReplaceImag' : [Blender.Draw.Create(0),""],
+			'RemoveMorphMesh' : [Blender.Draw.Create(0),""],
+			'RemoveShootCamera' : [Blender.Draw.Create(0),""],
+			'Debug'  : [Blender.Draw.Create(0),""]}
 
+block = []
+block.append(("limit",BLOCK['limit'][0],""))
+block.append(("Obj Pos :",BLOCK['ObjPos'][0], 0.0, 1000.0))
+block.append(("Render Layer :",BLOCK['RenderLayer'][0],1, 20))
+block.append(("Display Res :",BLOCK['DisplayRes'][0],16, 4096))
+block.append(("Replace Img Name",BLOCK['NoReplaceImag'][0],""))
+block.append(("Remove Morph Mesh",BLOCK['RemoveMorphMesh'][0],""))
+block.append(("Remove Shoot Camera",BLOCK['RemoveShootCamera'][0],""))
 
 helpmsg = """
 Texture Baker:
@@ -236,7 +257,7 @@ Basic instructions:
 """
 
 def GET_newobject (TYPE,NAME):
-   """
+	"""
 # ---------------------------
 # Function  GET_newobject 
 # 
@@ -246,14 +267,14 @@ def GET_newobject (TYPE,NAME):
 #       SCENE   Blender current scene object
 # ---------------------------   
     Return and object and the current scene
-   """
-   SCENE = Blender.Scene.getCurrent()
-   OBJECT = Blender.Object.New(TYPE,NAME)
-   SCENE.link(OBJECT)
-   return OBJECT, SCENE
+	"""
+	SCENE = Blender.Scene.getCurrent()
+	OBJECT = Blender.Object.New(TYPE,NAME)
+	SCENE.link(OBJECT)
+	return OBJECT, SCENE
 
 def RenameImage(RDIR, MYDIR, FILENAME, name):
-    """
+	"""
 # ---------------------------
 # Function  RenameImage
 #
@@ -265,18 +286,18 @@ def RenameImage(RDIR, MYDIR, FILENAME, name):
 # ---------------------------
      Rename the file pointed by the string name
      recall the  function if the file yet exists
-    """
-    newfname = RDIR + MYDIR + name
-    if newfname.find('.png', -4) < 0 : newfname += '.png'
-	
-    if not Blender.sys.exists(newfname):
-       os.rename(FILENAME, newfname)
-    else:
-        name = Draw.PupStrInput ('ReName Image, please :', name, 32)
-        RenameImage(RDIR, MYDIR, FILENAME, name)
+	"""
+	newfname = RDIR + MYDIR + name
+	if newfname.find('.png', -4) < 0 : newfname += '.png'
+
+	if not Blender.sys.exists(newfname):
+		os.rename(FILENAME, newfname)
+	else:
+		name = Draw.PupStrInput ('ReName Image, please :', name, 32)
+		RenameImage(RDIR, MYDIR, FILENAME, name)
 
 def SAVE_image (rc, name, FRAME, result):
-   """  
+	"""  
 # ---------------------------
 # Function  SAVE_image
 #
@@ -285,43 +306,50 @@ def SAVE_image (rc, name, FRAME, result):
 #       FRAME  integer, last numbre of the curent animation  
 #  OUT: nothing  
 # ---------------------------   
-   """
-   rc.enableExtensions(1)   
-   MYDIR = ''
-   RENDERDIR = rc.getRenderPath().replace('\\','/')
-   if RENDERDIR.find('//')==0 : 
-      print 'filename', Blender.Get('filename'),'/n', Blender.sys.dirname(Blender.Get('filename')) 
-      RDIR=RENDERDIR.replace('//',DIRNAME)
-   else:
-        RDIR=RENDERDIR[:]
-   if DEBUG : print  'RDIR : ', RDIR
-    
-   HOMEDIR=Blender.Get('homedir')
-   if DEBUG : print  'HOMEDIR', HOMEDIR
-   rc.setRenderPath(RENDERDIR + MYDIR)
-   if DEBUG : print "Render folder:", RENDERDIR + MYDIR
-   IMAGETYPE = Blender.Scene.Render.PNG
-   if DEBUG : print  'IMAGETYPE : ',IMAGETYPE
-   rc.setImageType(IMAGETYPE)
-   NEWFRAME = FRAME
-   OLDEFRAME = rc.endFrame()
-   OLDSFRAME = rc.startFrame()
-   rc.startFrame(NEWFRAME)
-   rc.endFrame(NEWFRAME)
-   rc.renderAnim()
-   if result!=2 : 
-      Blender.Scene.Render.CloseRenderWindow()
-      FILENAME = "%04d" % NEWFRAME
-      FILENAME = FILENAME.replace (' ', '0')
-      FILENAME = RDIR + MYDIR + FILENAME + '.png'
-      RenameImage(RDIR, MYDIR, FILENAME, name)
+	"""
+	rc.enableExtensions(1)   
+	MYDIR = ''
+	RENDERDIR = rc.getRenderPath()
+	if RENDERDIR.find('//')==0 : 
+			print 'filename', Blender.Get('filename'),'/n', Blender.sys.dirname(Blender.Get('filename')) 
+			RDIR=RENDERDIR.replace('//',DIRNAME)
+	elif len(RENDERDIR)==1 and RENDERDIR.find('/')==0: 
+			print 'filename', Blender.Get('filename'),'/n', Blender.sys.dirname(Blender.Get('filename')) 
+			RDIR=RENDERDIR.replace('/',DIRNAME)
+			print 'RDIR=',RDIR
+			
+	else:
+			RDIR=RENDERDIR[:]
+	
+	RDIR = RDIR.replace('\\','/')
+	if DEBUG : print  'RDIR : ', RDIR
+		
+	HOMEDIR=Blender.Get('homedir')
+	if DEBUG : print  'HOMEDIR', HOMEDIR
+	rc.setRenderPath(RDIR + MYDIR)
+	if DEBUG : print "Render folder:", RDIR + MYDIR
+	IMAGETYPE = Blender.Scene.Render.PNG
+	if DEBUG : print  'IMAGETYPE : ',IMAGETYPE
+	rc.setImageType(IMAGETYPE)
+	NEWFRAME = FRAME
+	OLDEFRAME = rc.endFrame()
+	OLDSFRAME = rc.startFrame()
+	rc.startFrame(NEWFRAME)
+	rc.endFrame(NEWFRAME)
+	rc.renderAnim()
+	if result==1 : 
+		Blender.Scene.Render.CloseRenderWindow()
+		FILENAME = "%04d" % NEWFRAME
+		FILENAME = FILENAME.replace (' ', '0')
+		FILENAME = RDIR + MYDIR + FILENAME + '.png'
+		RenameImage(RDIR, MYDIR, FILENAME, name)
 
-   rc.endFrame(OLDEFRAME)
-   rc.startFrame(OLDSFRAME)
-   rc.setRenderPath(RENDERDIR)
+	rc.endFrame(OLDEFRAME)
+	rc.startFrame(OLDSFRAME)
+	rc.setRenderPath(RDIR)
 
 def SHOOT (XYlimit, frame, obj, name, FRAME, result):
-   """
+	"""
 # ---------------------------
 # Function  SHOOT
 #
@@ -334,86 +362,75 @@ def SHOOT (XYlimit, frame, obj, name, FRAME, result):
 #  OUT:  nothing 
 # ---------------------------   
       render and save the baked textures picture 
-   """
-   try:
-      CAM = Blender.Object.Get('UVCAMERA')
-      Cam = CAM.getData()
-      SC = Blender.Scene.getCurrent()
-   except:
-      Cam = Blender.Camera.New()
-      Cam.name = 'UVCamera'
-      CAM, SC = GET_newobject('Camera','UVCAMERA')
-      CAM.link(Cam)
-      CAM.setName('UVCAMERA')
-      CAM.layers=[RENDERLAYER]
-      Cam.lens = 30
-      Cam.name = 'UVCamera'
+	"""
+	global BLOCK
+	#----------------------------------------------
+	# Create the object CAM only if it does not
+	# exist already . Get the current scene in the
+	# same time .
+	#----------------------------------------------
+	try:
+		CAM = Blender.Object.Get('UVCAMERA')
+		Cam = CAM.getData()
+		SC = Blender.Scene.getCurrent()
+	except:
+		Cam = Blender.Camera.New()
+		Cam.name = 'UVCamera'
+		CAM, SC = GET_newobject('Camera','UVCAMERA')
+		CAM.link(Cam)
+		CAM.setName('UVCAMERA')
+		CAM.layers=[RENDERLAYER]
+		Cam.lens = 30
+		Cam.name = 'UVCamera'
+	Cam.setType('ortho')
+	Cam.setScale(1.0)
+	CAM.setLocation(obj.getLocation())
+	CAM.LocX += XYlimit[2] * 0.500
+	CAM.LocY += XYlimit[3] * 0.500
+	CAM.LocZ += max (XYlimit[2], XYlimit[3])
+	CAM.RotX=0.0 #setEuler ((0.0, 0.0, 0.0)) 
+	CAM.RotY=0.0
+	CAM.RotZ=0.0
+	context = SC.getRenderingContext()
+	Camold = SC.getCurrentCamera()
+	SC.setCurrentCamera(CAM)
+	OLDy = context.imageSizeY()
+	OLDx = context.imageSizeX()
+	res=BLOCK['DisplayRes'][0].val
+	SCENELAYERS=SC.layers
+	SC.layers = [20]
+	
+	Blender.Window.EditMode(1)
+	Blender.Window.EditMode(0)
+	
+	context.imageSizeY(res)
+	context.imageSizeX(res)
+	SAVE_image (context, name, FRAME, result)
+	context.imageSizeY(OLDy)
+	context.imageSizeX(OLDx)
+	SC.layers = SCENELAYERS
+	if Camold : SC.setCurrentCamera(Camold)
 
-   Cam.setType('ortho')
-   Cam.setScale(1.0)
-
-   CAM.setLocation(obj.getLocation())
-   CAM.LocX += XYlimit[2] * 0.500
-   CAM.LocY += XYlimit[3] * 0.500
-   CAM.LocZ += max (XYlimit[2], XYlimit[3])
-   CAM.setEuler (0.0, 0.0, 0.0)
-
-   context = SC.getRenderingContext()
-   Camold = SC.getCurrentCamera()
-   SC.setCurrentCamera(CAM)
-
-   OLDy = context.imageSizeY()
-   OLDx = context.imageSizeX()
-
-   TAILLEIMAGE='TEXTURE OUT RESOLUTION : %t |'
-   TAILLEIMAGE+='256 %x1 |'
-   TAILLEIMAGE+='512 %x2 |'
-   TAILLEIMAGE+='768 %x3 |'
-   TAILLEIMAGE+='1024 %x4 |'
-   TAILLEIMAGE+='2048 %x5 '
-   #TAILLEIMAGE+='| 4096 %x6 ' 
-   tres = Draw.PupMenu(TAILLEIMAGE)
-
-   if (tres) == 1: res = 256
-   elif (tres) == 2: res = 512
-   elif (tres) == 3: res = 768
-   elif (tres) == 4: res = 1024
-   elif (tres) == 5: res = 2048
-   # elif (tres) == 6: res = 4096
-   else: res = 512
-   #...
- 
-
-   SCENELAYERS=SC.layers
-   SC.layers = [20]
-   context.imageSizeY(res)
-   context.imageSizeX(res)
-   SAVE_image (context, name, FRAME, result)
-   context.imageSizeY(OLDy)
-   context.imageSizeX(OLDx)
-   SC.layers = SCENELAYERS
-   if Camold : SC.setCurrentCamera(Camold)
-
-   Blender.Set ('curframe', frame)
+	Blender.Set ('curframe', frame)
 
 
 #----------------------------------- 
 # release : 0.2.6 ,  2005/05/29 , 00h00
 #----------------------------------- 
 def PROV_Shadeless(MATList):
-    """
+	"""
 # ---------------------------
 # Function  PROV_Shadeless
 #
 #  IN : MATList  a list of the mesh's materials
 #  OUT: SHADEDict  a dictionnary  of the materials' shadeles value
 # ---------------------------   
-    """
-    SHADEDict={}
-    for mat in MATList:
-       SHADEDict[mat.name]=mat.mode
-       mat.mode |= Blender.Material.Modes.SHADELESS
-    return SHADEDict
+	"""
+	SHADEDict={}
+	for mat in MATList:
+		SHADEDict[mat.name]=mat.mode
+		mat.mode |= Blender.Material.Modes.SHADELESS
+	return SHADEDict
 #----------------------------------- 
 # Last release : 0.2.6 ,  2005/05/29 , end
 #----------------------------------- 
@@ -422,17 +439,17 @@ def PROV_Shadeless(MATList):
 # release : 0.2.6 ,  2005/05/29 , 00h00
 #----------------------------------- 
 def REST_Shadeless(SHADEDict):
-    """
+	"""
 # ---------------------------
 # Function  REST_Shadeless
 #
 #  IN : SHADEDict   a dictionnary  of the materials' shadeles value
 #  OUT : nothing
 # ---------------------------   
-    """
-    for m in SHADEDict.keys():
-       mat=Blender.Material.Get(m)
-       mat.mode=SHADEDict[m]
+"""
+	for m in SHADEDict.keys():
+		 mat=Blender.Material.Get(m)
+		 mat.mode=SHADEDict[m]
 #----------------------------------- 
 # release : 0.2.6 ,  2005/05/29 , end
 #----------------------------------- 
@@ -442,7 +459,7 @@ def REST_Shadeless(SHADEDict):
 # release : 0.3.2 ,  2005/12/28 , 13h00
 #----------------------------------- 
 def Blender240update(MESH2,FRAME):
-     """ 
+	""" 
 # ---------------------------
 # Function  Blender240update
 #        
@@ -454,192 +471,213 @@ def Blender240update(MESH2,FRAME):
 #        
 #  OUT : nothing
 # ---------------------------   
-     """
-     # ---------------------------   
-     #  recuperation des clef de morphing pour ce mesh
-     # ---------------------------   
-     key = MESH2.getKey()
-     # ---------------------------   
-     #  recuperation de l'Ipo
-     # ---------------------------   
-     ipo = key.ipo
-     # ---------------------------   
-     #  si l'ipo n'existe pas on la cree 
-     # ---------------------------   
-     if ipo == None:
-        noipo = Blender.Ipo.New("Key","keyipo")
-        key.ipo = noipo
-     # ---------------------------   
-     #   raccourci de l'expression
-     # ---------------------------   
-     ipo = key.ipo
-     # ---------------------------   
-     #   identification de la clef de morphing
-     # ---------------------------   
-     keyidentity = "Key 1"
-     # ---------------------------   
-     #   recuperation de la courbe correspondante
-     #  c'est toujours la courbe 0
-     # ---------------------------   
-     ipocurve = ipo.getCurve(0)
-     # ---------------------------   
-     #  si la courbe n'existe pas (normalement, elle n'existe pas mais
-     # on gère le risque pour faciliter une eventuelle récupération de
-     # cette fonction dans un autre script ou pour les cas , certe peu
-     # probable, ou blender viendrait a etre modifie pour les ajouter 
-     # automatiquement ) on la cree ...
-     # ---------------------------   
-     if ipocurve == None:
-        ipocurve = ipo.addCurve(keyidentity)
-     # ---------------------------   
-     #  On applique l'attribut d'inetrpolation qui permet d'avoir
-     # une ligne droite
-     # ---------------------------   
-     ipocurve.setInterpolation("Linear")
-     # ---------------------------   
-     #  On retire tous les sommets qui pourraient se trouver sur la 
-     #  courbe (dans l'état actuel, cette opération est une sécurité 
-     #  superflue ) .
-     # ---------------------------   
-     while len(ipocurve.getPoints()) > 0:
-        ipocurve.delBezier(0)
-        ipocurve.recalc()
-     # ---------------------------   
-     #  On ajouter les sommets necessaires ...
-     # ---------------------------   
-     ipocurve.append((-1,1))
-     # ---------------------------   
-     #   ... ce dernire n'est peut-être pas absolument obligatoire .
-     # ---------------------------   
-     ipocurve.append((FRAME+1,1))
+"""
+	# ---------------------------   
+	#  recuperation des clef de morphing pour ce mesh
+	# ---------------------------   
+	key = MESH2.getKey()
+	# ---------------------------   
+	#  recuperation de l'Ipo
+	# ---------------------------   
+	ipo = key.ipo
+	# ---------------------------   
+	#  si l'ipo n'existe pas on la cree 
+	# ---------------------------   
+	if ipo == None:
+		noipo = Blender.Ipo.New("Key","keyipo")
+		key.ipo = noipo
+	# ---------------------------   
+	#   raccourci de l'expression
+	# ---------------------------   
+	ipo = key.ipo
+	# ---------------------------   
+	#   identification de la clef de morphing
+	# ---------------------------   
+	keyidentity = "Key 1"
+	# ---------------------------   
+	#   recuperation de la courbe correspondante
+	#  c'est toujours la courbe 0
+	# ---------------------------   
+	ipocurve = ipo.getCurve(0)
+	# ---------------------------   
+	#  si la courbe n'existe pas (normalement, elle n'existe pas mais
+	# on gère le risque pour faciliter une eventuelle récupération de
+	# cette fonction dans un autre script ou pour les cas , certe peu
+	# probable, ou blender viendrait a etre modifie pour les ajouter 
+	# automatiquement ) on la cree ...
+	# ---------------------------   
+	if ipocurve == None:
+		ipocurve = ipo.addCurve(keyidentity)
+	# ---------------------------   
+	#  On applique l'attribut d'inetrpolation qui permet d'avoir
+	# une ligne droite
+	# ---------------------------   
+	ipocurve.setInterpolation("Linear")
+	# ---------------------------   
+	#  On retire tous les sommets qui pourraient se trouver sur la 
+	#  courbe (dans l'état actuel, cette opération est une sécurité 
+	#  superflue ) .
+	# ---------------------------   
+	while len(ipocurve.getPoints()) > 0:
+		ipocurve.delBezier(0)
+		ipocurve.recalc()
+	# ---------------------------   
+	#  On ajouter les sommets necessaires ...
+	# ---------------------------   
+	ipocurve.addBezier((-1,1))
+	# ---------------------------   
+	#   ... ce dernire n'est peut-être pas absolument obligatoire .
+	# ---------------------------   
+	ipocurve.addBezier((FRAME+1,1))
 #----------------------------------- 
 # release : 0.3.2 ,  2005/12/28 , end
 #----------------------------------- 
          
 def Mesh2UVCoord (LIMIT):
-   """
+		"""
 # ---------------------------
 # Function  Mesh2UVCoord
 #
 #  IN : LIMIT  integer, create or not a new framing for uvcoords 
 #  OUT:  nothing
 # ---------------------------   
-   """
-   global PUTRAW, FRAME, SCENELAYERS
+		"""
+		global PUTRAW, FRAME, SCENELAYERS, BLOCK, block
+		if Object.GetSelected() and Object.GetSelected()[0].getType()=='Mesh':
+			
+			retval = Blender.Draw.PupBlock("PupBlock test", block)
+			
+			if retval==1 : 
+				LIMIT = BLOCK['limit'][0].val
+				imagename = BLOCK['ImageName'][0].val
+				result = BLOCK['NoReplaceImag'][0].val
+				
+				MESH3D = Object.GetSelected()[0]
+				[O.select(0) for O in Object.GetSelected()]
+				MESH = MESH3D.getData()
+				if MESH.hasFaceUV():
+					try:
+							NewOBJECT=Blender.Object.Get('UVOBJECT')
+							CurSCENE=Blender.Scene.getCurrent()            
+					except:
+							NewOBJECT, CurSCENE = GET_newobject('Mesh','UVOBJECT')
+							
+					MESH2 = NewOBJECT.getData()
+					MESH2.edges=[] 
+					NewOBJECT.layers=[RENDERLAYER]
+			
+					MESH2.faces=[]
+					for f in MESH.faces:
+							f1 = Blender.NMesh.Face()
+			
+							for v in f.v:
+								 v1 = Blender.NMesh.Vert (v.co[0], v.co[1], v.co[2])
+								 MESH2.verts.append(v1)
+								 f1.v.append(MESH2.verts[len(MESH2.verts) - 1])
+			
+							MESH2.faces.append(f1)
+							f1.uv = f.uv[:]
+							f1.col = f.col[:]
+							f1.smooth = f.smooth
+							f1.mode = f.mode
+							f1.flag = f.flag
+							f1.mat = f.mat
+							#----------------------------------- 
+							# release : 0.2.8 ,  2005/07/19 , end
+							#----------------------------------- 
+							try:
+								f1.image=f.image
+							except :
+								pass
+			
+					MESH2.materials = MESH.materials[:]
+			
+					NewOBJECT.setLocation (OBJPOS, OBJPOS, 0.0)
+					#NewOBJECT.setEuler ((0.0, 0.0, 0.0))
+					
+					NewOBJECT.RotX=0.0 #setEuler ((0.0, 0.0, 0.0))
+					NewOBJECT.RotY=0.0
+					NewOBJECT.RotZ=0.0
+					
+					MESH2.removeAllKeys()
+			
+					MESH2.update()
+					MESH2.insertKey (1, 'absolute')
+					MESH2.update()
+					
+					NewOBJECT.select(1)
+					NewOBJECT.makeDisplayList()
 
-   try:
-      MESH3D = Object.GetSelected()[0]
-      if MESH3D.getType() == 'Mesh':
-         MESH = MESH3D.getData()
+					for f in MESH2.faces:
+							for v in f.v:
+								for n in [0,1]:
+										v.co[n] = f.uv[f.v.index(v)][n]
+										exec "if v.co[%s] > XYLIMIT[%s]: XYLIMIT[%s] = v.co[%s]" % (n, n+2, n+2, n)
+										exec "if v.co[%s] < XYLIMIT[%s]: XYLIMIT[%s] = v.co[%s]" % (n, n, n, n)
+								v.co[2] = 0.0
+			
+					#print XYLIMIT
+			
+					MESH2.update()
+					MESH2.insertKey (FRAME, 'absolute')
+					MESH2.update()
 
-         try:
-            NewOBJECT=Blender.Object.Get('UVOBJECT')
-            CurSCENE=Blender.Scene.getCurrent()            
-         except:
-            NewOBJECT, CurSCENE = GET_newobject('Mesh','UVOBJECT')
-         MESH2 = NewOBJECT.getData()
-         MESH2.edges=[] 
-         NewOBJECT.layers=[RENDERLAYER]
+			
+					#----------------------------------- 
+					# release : 0.3.2 ,  2005/12/28 , 13h00
+					#-----------------------------------            
+					Blender240update(MESH2,FRAME)       
+					#----------------------------------- 
+					# release : 0.3.2 ,  2005/12/28 , end
+					#-----------------------------------            
+					
 
-         MESH2.faces=[]
-         for f in MESH.faces:
-            f1 = Blender.NMesh.Face()
-
-            for v in f.v:
-               v1 = Blender.NMesh.Vert (v.co[0], v.co[1], v.co[2])
-               MESH2.verts.append(v1)
-               f1.v.append(MESH2.verts[len(MESH2.verts) - 1])
-
-            MESH2.faces.append(f1)
-            f1.uv = f.uv[:]
-            f1.col = f.col[:]
-            f1.smooth = f.smooth
-            f1.mode = f.mode
-            f1.flag = f.flag
-            f1.mat = f.mat
-            #----------------------------------- 
-            # release : 0.2.8 ,  2005/07/19 , end
-            #----------------------------------- 
-            try:
-              f1.image=f.image
-            except :
-              pass
-
-         MESH2.materials = MESH.materials[:]
-
-         NewOBJECT.setLocation (OBJPOS, OBJPOS, 0.0)
-         NewOBJECT.setEuler (0.0, 0.0, 0.0)
-         MESH2.removeAllKeys()
-
-         MESH2.update()
-         MESH2.insertKey (1, 'absolute')
-         MESH2.update()
-  
-         for f in MESH2.faces:
-            for v in f.v:
-               for n in [0,1]:
-                  v.co[n] = f.uv[f.v.index(v)][n]
-                  exec "if v.co[%s] > XYLIMIT[%s]: XYLIMIT[%s] = v.co[%s]" % (n, n+2, n+2, n)
-                  exec "if v.co[%s] < XYLIMIT[%s]: XYLIMIT[%s] = v.co[%s]" % (n, n, n, n)
-               v.co[2] = 0.0
-
-         print XYLIMIT
-
-         MESH2.update()
-         MESH2.insertKey (FRAME, 'absolute')
-         MESH2.update()
-
-         #----------------------------------- 
-         # release : 0.3.2 ,  2005/12/28 , 13h00
-         #-----------------------------------            
-         Blender240update(MESH2,FRAME)       
-         #----------------------------------- 
-         # release : 0.3.2 ,  2005/12/28 , end
-         #-----------------------------------            
-         
-         imagename = 'uvtext'
-
-         name = "CHANGE IMAGE NAME ? %t | Replace it | No replace | Script help"
-         result = Draw.PupMenu(name)
-
-         if result == 1:
-            imagename = Draw.PupStrInput ('Image Name:', imagename, 32)
-
-         if result != 3:
-            #----------------------------------- 
-            # release : 0.2.6 ,  2005/05/29 , 00h00
-            #----------------------------------- 
-            SHADEDict=PROV_Shadeless(MESH2.materials)
-            #----------------------------------- 
-            # release : 0.2.6 ,  2005/05/29 , end
-            #----------------------------------- 
-
-            if LIMIT :
-                 SHOOT(XYLIMIT, FRAME, NewOBJECT, imagename, FRAME,result)
-            else :
-                 SHOOT([0.0,0.0,1.0,1.0], FRAME, NewOBJECT, imagename, FRAME, result)
-            #----------------------------------- 
-            # release : 0.2.6,  2005/05/29 , 00h00
-            #----------------------------------- 
-            REST_Shadeless(SHADEDict)
-            #----------------------------------- 
-            # release : 0.2.6 ,  2005/05/29 , end
-            #----------------------------------- 
-
-            Blender.Redraw()
-
-         else:
-            Draw.PupMenu("Ready%t|Please check console for instructions")
-            print helpmsg
-
-      else:
-         name = "Error%t|Active object is not a mesh or has no UV coordinates"
-         result = Draw.PupMenu(name)
-         print 'problem : no object selected or not mesh'
-
-   except:
-      name = "Error%t|Active object is not a mesh or has no UV coordinates"
-      result = Draw.PupMenu(name)
-      print 'problem : no object selected or not mesh'
+					 
+					#imagename = 'uvtext'
+					#name = "CHANGE IMAGE NAME ? %t | Replace it | No replace | Script help"
+					#result = Draw.PupMenu(name)
+			
+					#if result == 1:
+					#		imagename = Draw.PupStrInput ('Image Name:', imagename, 32)
+							
+					if result != 3:
+							#----------------------------------- 
+							# release : 0.2.6 ,  2005/05/29 , 00h00
+							#----------------------------------- 
+							SHADEDict=PROV_Shadeless(MESH2.materials)
+							#----------------------------------- 
+							# release : 0.2.6 ,  2005/05/29 , end
+							#----------------------------------- 
+			
+							if LIMIT :
+									 SHOOT(XYLIMIT, FRAME, NewOBJECT, imagename, FRAME,result)
+							else :
+									 SHOOT([0.0,0.0,1.0,1.0], FRAME, NewOBJECT, imagename, FRAME, result)
+							#----------------------------------- 
+							# release : 0.2.6,  2005/05/29 , 00h00
+							#----------------------------------- 
+							REST_Shadeless(SHADEDict)
+							#----------------------------------- 
+							# release : 0.2.6 ,  2005/05/29 , end
+							#----------------------------------- 
+			
+							Blender.Redraw()
+			
+					else:
+							Draw.PupMenu("Ready%t|Please check console for instructions")
+							print helpmsg
+			
+				else:
+					name = "Error%t|Active object is not a mesh or has no UV coordinates"
+					result = Draw.PupMenu(name)
+					print 'problem : Active object is not a mesh or has no UV coordinates'
+			else:
+				name = "Error%t| nothing do . Push << OK >> button ."
+				result = Draw.PupMenu(name)
+		#except:
+		else :      
+			name = "Error%t|No Active object or it is not a mesh "
+			result = Draw.PupMenu(name)
+			print 'problem : no object selected or not mesh'
 
 Mesh2UVCoord(LIMIT) 
