@@ -581,6 +581,9 @@ static void init_iconfile_list(struct ListBase *list)
 {
 	char icondirstr[FILE_MAXDIR];
 	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
+	char olddir[FILE_MAXDIR+FILE_MAXFILE];
+	int restoredir = 1; /* restore to current directory */
+
 	IconFile *ifile;
 	ImBuf *bbuf;
 	struct direntry *dir;
@@ -594,9 +597,14 @@ static void init_iconfile_list(struct ListBase *list)
 #else
 	BLI_make_file_string("/", icondirstr, BLI_gethome(), ".blender/icons");
 #endif
-	
+	/* since BLI_getdir changes the current working directory, restore it 
+	   back to old value afterwards */
+	if(!BLI_getwdN(olddir)) 
+		restoredir = 0;
 	totfile = BLI_getdir(icondirstr, &dir);
-	
+	if (restoredir) 
+		chdir(olddir);
+
 	for(i=0; i<totfile; i++) {
 		if( (dir[i].type & S_IFREG) ) {
 			char *filename = dir[i].relname;
