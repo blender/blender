@@ -261,19 +261,16 @@ void add_click_mesh(void)
 }
 
 /* selected faces get hidden edges */
-static void make_fgon(void)
+static void make_fgon(int make)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	EditEdge *eed;
 	EditVert *eve;
 	float *nor=NULL;	// reference
-	int done=0, ret;
+	int done=0;
 	
-	ret= pupmenu("FGon %t|Make|Clear");
-	if(ret<1) return;
-	
-	if(ret==2) {
+	if(!make) {
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			if(efa->f & SELECT) {
 				efa->fgonf= 0;
@@ -677,7 +674,10 @@ void addedgeface_mesh(void)
 		return;
 	}
 	else if(amount > 4) {
-		make_fgon();
+		int ret= pupmenu("Make Faces %t|Auto|Make FGon|Clear FGon");
+		if(ret==1) addfaces_from_edgenet();
+		else if(ret==2) make_fgon(1);
+		else if(ret==3) make_fgon(0);
 		return;
 	}
 	else if(amount<2) {
