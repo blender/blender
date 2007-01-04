@@ -467,6 +467,21 @@ class Curve:
       @raise AttributeError:  throws exception if curve_num is out of range.
       """
 
+  def switchDirection( ):
+      """
+      Reverse the direction of a curve.
+      @return: None
+
+
+      I{B{Example:}}
+      # This example switches the direction of all curves on the active object.
+      from Blender import *
+      scn = Scene.GetCurrent()
+      ob = scn.objects.active # must be a curve
+      data = ob.data
+      for cu in data: cu.switchDirection()
+      """
+
   def getNumCurves():
       """
       Get the number of curves in this Curve Data object.

@@ -62,6 +62,7 @@ PyObject *CurNurb_append( BPy_CurNurb * self, PyObject * args );
 static PyObject *CurNurb_isNurb( BPy_CurNurb * self );
 static PyObject *CurNurb_isCyclic( BPy_CurNurb * self );
 static PyObject *CurNurb_dump( BPy_CurNurb * self );
+static PyObject *CurNurb_switchDirection( BPy_CurNurb * self );
 
 char M_CurNurb_doc[] = "CurNurb";
 
@@ -130,6 +131,8 @@ static PyMethodDef BPy_CurNurb_methods[] = {
 	 "( ) - boolean function tests if this spline is cyclic (closed) or not (open)"},
 	{"dump", ( PyCFunction ) CurNurb_dump, METH_NOARGS,
 	 "( ) - dumps Nurb data)"},
+	{"switchDirection", ( PyCFunction ) CurNurb_switchDirection, METH_NOARGS,
+	 "( ) - swaps curve beginning and end)"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1060,3 +1063,16 @@ PyObject *CurNurb_dump( BPy_CurNurb * self )
 
 	Py_RETURN_NONE;
 }
+
+PyObject *CurNurb_switchDirection( BPy_CurNurb * self ) {
+	Nurb *nurb = self->nurb;
+	if( ! self->nurb ){  /* bail on error */
+		printf("\n no Nurb in this CurNurb");
+		Py_RETURN_NONE;
+	}
+	
+	switchdirectionNurb( nurb );
+	
+	Py_RETURN_NONE;
+}
+
