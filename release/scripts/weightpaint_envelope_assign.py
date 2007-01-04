@@ -211,12 +211,12 @@ def main():
 	PREF_ENV_GROUPNAME= Draw.Create('')	
 	PREF_UPDATE_ACT= Draw.Create(True)
 	pup_block= [\
-	('Update Active', PREF_UPDATE_ACT, 'Only apply envalope weights to the active group.'),\
-	'or initialize from group',\
-	('GR:', PREF_ENV_GROUPNAME, 0, 21, 'The name of an existing groups to '),\
+	('Update Active', PREF_UPDATE_ACT, 'Only apply envelope weights to the active group.'),\
+	'...or initialize from group',\
+	('GR:', PREF_ENV_GROUPNAME, 0, 21, 'The name of an existing groups, each member will be used as a weight envelope'),\
 	]
 	
-	if not Draw.PupBlock('Envalope From Group...', pup_block):
+	if not Draw.PupBlock('Envelope From Group...', pup_block):
 		return
 	
 	PREF_UPDATE_ACT= PREF_UPDATE_ACT.val

@@ -563,10 +563,15 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 			uiDefBut(block, TEX, 0,	varstr->name,(short)((x1+15) + (sizex*xi)),(short)(y2-55- 20*yi),(short)(sizex), 19, numbpoin[a], varstr->min, varstr->max, 0, 0, varstr->tip);
 		}
 		else  {
-			if(varstr->type==LABEL) /* dont include the label when rounding the buttons */
+			if(varstr->type==LABEL) {/* dont include the label when rounding the buttons */
 				uiBlockEndAlign(block);
 			
-			uiDefBut(block, varstr->type, 0, varstr->name,(short)((x1+15) + (sizex*xi)),(short)(y2-55-20*yi), (short)(sizex), 19, &(numbdata[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
+				/* using the tip for the name, this is incorrect lets us get around the 16 char limit of name */
+				/* Changed from the line below to use the tip since the tip isnt used for a label */
+				uiDefBut(block, varstr->type, 0, varstr->tip,(short)((x1+15) + (sizex*xi)),(short)(y2-55-20*yi), (short)(sizex), 19, &(numbdata[a]), varstr->min, varstr->max, 100, 0, "");
+			} else {
+				uiDefBut(block, varstr->type, 0, varstr->name,(short)((x1+15) + (sizex*xi)),(short)(y2-55-20*yi), (short)(sizex), 19, &(numbdata[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
+			}
 			
 			if(varstr->type==LABEL)
 				uiBlockBeginAlign(block);
@@ -598,14 +603,6 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 			if(varstr->type==TEX);
 			else if ELEM( (varstr->type & BUTPOIN), FLO, INT ) memcpy(numbpoin[a], numbdata+a, 4);
 			else if((varstr->type & BUTPOIN)==SHO ) *((short *)(numbpoin[a]))= *( (short *)(numbdata+a));
-			
-			/*
-			if( strncmp(varstr->name, "Rot", 3)==0 ) {
-				float *fp;
-				
-				fp= numbpoin[a];
-				fp[0]= M_PI*fp[0]/180.0;
-			}*/
 		}
 		
 		if(winevent) {
@@ -628,14 +625,21 @@ void add_numbut(int nr, int type, char *str, float min, float max, void *poin, c
 	if(nr>=MAXNUMBUTS) return;
 
 	numbuts[nr].type= type;
-	strcpy(numbuts[nr].name, str);
+	
 	numbuts[nr].min= min;
 	numbuts[nr].max= max;
-	if(tip) 
-		strcpy(numbuts[nr].tip, tip);
-	else
-		strcpy(numbuts[nr].tip, "");
 	
+	if (type==LABEL) {
+		/* evil use it tooltip for the label string to get around the 16 char limit of "name" */
+		strcpy(numbuts[nr].tip, str);
+	} else {
+		/* for all other types */
+		strcpy(numbuts[nr].name, str);
+		if(tip) 
+			strcpy(numbuts[nr].tip, tip);
+		else
+			strcpy(numbuts[nr].tip, "");
+	}
 	
 	/*WATCH: TEX BUTTON EXCEPTION */
 	
