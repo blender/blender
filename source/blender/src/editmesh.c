@@ -1918,7 +1918,7 @@ static void *editMesh_to_undoMesh(void)
 	
 	{
 		Multires *mr= get_mesh(G.obedit)->mr;
-		UndoMesh *prev= undo_editmode_get_prev();
+		UndoMesh *prev= undo_editmode_get_prev(G.obedit);
 		
 		um->mru= NULL;
 		
