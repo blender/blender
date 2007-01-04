@@ -3078,11 +3078,11 @@ void remove_doubles_ipo(void)
 }
 
 
-void clean_ipo(Ipo *ipo, short mode) 
+void clean_ipo(void) 
 {
-	/* fixme: this should probably work on editipo's as well... - aligorith*/
-	IpoCurve *icu;
-	int ok;
+	EditIpo *ei;
+	short ok;
+	int b;
 	
 	if (G.scene->toolsettings->clean_thresh==0) 
 		G.scene->toolsettings->clean_thresh= 0.1f;
@@ -3091,24 +3091,26 @@ void clean_ipo(Ipo *ipo, short mode)
 				"Clean Threshold");
 	if (!ok) return;
 	
-	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		switch (mode) {
-			case 1: /* only selected curves get affected */
-				if ((icu->flag & IPO_SELECT)||(icu->flag & IPO_ACTIVE)) {
-					clean_ipo_curve(icu);
-				}
-				break;
-			default: /* any curve gets affected */
-				clean_ipo_curve(icu);
-				break;
+	get_status_editipo();
+
+	ei= G.sipo->editipo;
+	for(b=0; b<G.sipo->totipo; b++, ei++) {
+		if (ISPOIN3(ei, flag & IPO_VISIBLE, icu, icu->bezt)) {
+		
+			ok= 0;
+			if(G.sipo->showkey) ok= 1;
+			else if(totipo_vert && (ei->flag & IPO_EDIT)) ok= 2;
+			else if(totipo_vert==0 && (ei->flag & IPO_SELECT)) ok= 3;
+			
+			if(ok) {
+				/* only clean if ok */
+				clean_ipo_curve(ei->icu);
+			}
 		}
 	}
 	
+	editipo_changed(G.sipo, 1);
 	BIF_undo_push("Clean IPO");
-	allqueue(REMAKEIPO, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
 }
 
 void clean_ipo_curve(IpoCurve *icu)
@@ -3131,7 +3133,7 @@ void clean_ipo_curve(IpoCurve *icu)
 		thresh= 0.1f;
 	
 	/* pointers to points */
-	newb = newbs = MEM_mallocN(sizeof(BezTriple)*totCount, "NewBeztriples");
+	newb = newbs = MEM_callocN(sizeof(BezTriple)*totCount, "NewBeztriples");
 	bezt= icu->bezt;
 	*newb= *bezt;
 	bezt++;
@@ -3200,7 +3202,7 @@ void clean_ipo_curve(IpoCurve *icu)
 	}
 
 	/* make better sized list */
-	newbz= MEM_mallocN(sizeof(BezTriple)*newCount, "BezTriples");
+	newbz= MEM_callocN(sizeof(BezTriple)*newCount, "BezTriples");
 	for (i=0; i<newCount; i++) {
 		BezTriple *atar, *bsrc;
 		atar= (newbz + i);

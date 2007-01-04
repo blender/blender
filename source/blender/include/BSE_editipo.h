@@ -92,7 +92,7 @@ void insert_vert_ipo(struct IpoCurve *icu, float x, float y);
 void add_vert_ipo(void);
 void add_duplicate_editipo(void);
 void remove_doubles_ipo(void);
-void clean_ipo(struct Ipo *ipo, short mode);
+void clean_ipo(void);
 void clean_ipo_curve(struct IpoCurve *icu);
 void smooth_ipo(void);
 void join_ipo_menu(void);

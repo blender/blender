@@ -581,10 +581,7 @@ static void do_ipo_editmenu(void *arg, int event)
 		sethandles_ipo(HD_AUTO_ANIM);
 		break;
 	case 8: /* clean ipo */
-	{
-		SpaceIpo *sipo= curarea->spacedata.first;
-		clean_ipo(sipo->ipo, 1);
-	}
+		clean_ipo();
 		break;
 	case 9: /* smooth ipo */
 		smooth_ipo();

@@ -2606,7 +2606,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (G.qual==LR_SHIFTKEY) 
 				smooth_ipo();
 			else
-				clean_ipo(sipo->ipo, 1);
+				clean_ipo();
 			break;
 		case RKEY:
 			if (G.qual==0)
