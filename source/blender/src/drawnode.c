@@ -381,6 +381,17 @@ static int node_buts_texture(uiBlock *block, bNodeTree *ntree, bNode *node, rctf
 	return 19;
 }
 
+static int node_buts_math(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr) 
+{ 
+	if(block) { 
+		uiBut *bt; 
+
+		bt=uiDefButS(block, MENU, B_NODE_EXEC,  "Add %x0|Subtract %x1|Multiply %x2|Divide %x3|Sine %x4|Cosine %x5|Tangent %x6|Arcsine %x7|Arccosine %x8|Arctangent %x9|Power %x10|Logarithm %x11|Minimum %x12|Maximum %x13|Round %x14", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, &node->custom1, 0, 0, 0, 0, ""); 
+		uiButSetFunc(bt, node_but_title_cb, node, bt); 
+	} 
+	return 20; 
+}
+
 
 /* ****************** BUTTON CALLBACKS FOR SHADER NODES ***************** */
 
@@ -577,17 +588,6 @@ static int node_shader_buts_mapping(uiBlock *block, bNodeTree *ntree, bNode *nod
 	return 5*19 + 6;
 }
 
-static int node_shader_buts_math(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr) 
-{ 
-	if(block) { 
-		uiBut *bt; 
-
-		bt=uiDefButS(block, MENU, B_NODE_EXEC,  "Add %x0|Subtract %x1|Multiply %x2|Divide %x3|Sine %x4|Cosine %x5|Tangent %x6|Arcsine %x7|Arccosine %x8|Arctangent %x9|Power %x10|Logarithm %x11|Minimum %x12|Maximum %x13|Round %x14", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, &node->custom1, 0, 0, 0, 0, ""); 
-		uiButSetFunc(bt, node_but_title_cb, node, bt); 
-	} 
-	return 20; 
-}
-
 static int node_shader_buts_vect_math(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr) 
 { 
 	if(block) { 
@@ -660,7 +660,7 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			ntype->butfunc= node_buts_valtorgb;
 			break;
 		case SH_NODE_MATH: 
-			ntype->butfunc= node_shader_buts_math;
+			ntype->butfunc= node_buts_math;
 			break; 
 		case SH_NODE_VECT_MATH: 
 			ntype->butfunc= node_shader_buts_vect_math;
@@ -1564,6 +1564,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_ID_MASK:
 			ntype->butfunc= node_composit_buts_id_mask;
+			break;
+		case CMP_NODE_MATH:
+			ntype->butfunc= node_buts_math;
 			break;
 		default:
 			ntype->butfunc= NULL;

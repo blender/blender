@@ -5588,6 +5588,144 @@ static bNodeType cmp_node_displace= {
 	/* execfunc    */	node_composit_exec_displace
 };
 
+/* **************** SCALAR MATH ******************** */ 
+static bNodeSocketType cmp_node_math_in[]= { 
+	{ SOCK_VALUE, 1, "Value", 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f}, 
+	{ SOCK_VALUE, 1, "Value", 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f}, 
+	{ -1, 0, "" } 
+};
+
+static bNodeSocketType cmp_node_math_out[]= { 
+	{ SOCK_VALUE, 0, "Value", 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f}, 
+	{ -1, 0, "" } 
+};
+
+static void do_math(bNode *node, float *out, float *in, float *in2)
+{
+	switch(node->custom1)
+	{
+	case 0: /* Add */
+		out[0]= in[0] + in2[0]; 
+		break; 
+	case 1: /* Subtract */
+		out[0]= in[0] - in2[0];
+		break; 
+	case 2: /* Multiply */
+		out[0]= in[0] * in2[0]; 
+		break; 
+	case 3: /* Divide */
+		{
+			if(in[1]==0)	/* We don't want to divide by zero. */
+				out[0]= 0.0;
+			else
+				out[0]= in[0] / in2[0];
+			}
+		break;
+	case 4: /* Sine */
+		out[0]= sin(in[0]);
+		break;
+	case 5: /* Cosine */
+		out[0]= cos(in[0]);
+		break;
+	case 6: /* Tangent */
+		out[0]= tan(in[0]);
+		break;
+	case 7: /* Arc-Sine */
+		{
+			/* Can't do the impossible... */
+			if(in[0] <= 1 && in[0] >= -1 )
+				out[0]= asin(in[0]);
+			else
+				out[0]= 0.0;
+		}
+		break;
+	case 8: /* Arc-Cosine */
+		{
+			/* Can't do the impossible... */
+			if( in[0] <= 1 && in[0] >= -1 )
+				out[0]= acos(in[0]);
+			else
+				out[0]= 0.0;
+		}
+		break;
+	case 9: /* Arc-Tangent */
+		out[0]= atan(in[0]);
+		break;
+	case 10: /* Power */
+		{
+			/* Don't want any imaginary numbers... */
+			if( in[0] >= 0 )
+				out[0]= pow(in[0], in2[0]);
+			else
+				out[0]= 0.0;
+		}
+		break;
+	case 11: /* Logarithm */
+		{
+			/* Don't want any imaginary numbers... */
+			if( in[0] > 0  && in2[0] > 0 )
+				out[0]= log(in[0]) / log(in2[0]);
+			else
+				out[0]= 0.0;
+		}
+		break;
+	case 12: /* Minimum */
+		{
+			if( in[0] < in2[0] )
+				out[0]= in2[0];
+			else
+				out[0]= in[0];
+		}
+		break;
+	case 13: /* Maximum */
+		{
+			if( in[0] > in2[0] )
+				out[0]= in2[0];
+			else
+				out[0]= in[0];
+		}
+		break;
+	case 14: /* Round */
+		{
+				out[0]= (int)(in[0] + 0.5f);
+		}
+		break; 
+	}
+}
+
+static void node_composit_exec_math(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	/* stack order out: bw */
+	/* stack order in: col */
+	
+	if(out[0]->hasoutput==0)
+		return;
+	
+	/* input no image? then only color operation */
+	if(in[0]->data==NULL) {
+		do_math(node, out[0]->vec, in[0]->vec, in[1]->vec);
+	}
+	else {
+		/* make output size of input image */
+		CompBuf *cbuf= in[0]->data;
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); // allocs
+		
+		composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_math, CB_VAL, CB_VAL);
+		
+		out[0]->data= stackbuf;
+	}
+}
+
+static bNodeType cmp_node_math= {
+	/* type code   */	CMP_NODE_MATH,
+	/* name        */	"Math",
+	/* width+range */	120, 110, 160,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_math_in,
+	/* output sock */	cmp_node_math_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_math
+};
 
 /* ****************** types array for all shaders ****************** */
 
@@ -5626,6 +5764,7 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_rgbtobw,	
 	&cmp_node_setalpha,
 	&cmp_node_idmask,
+	&cmp_node_math,
 	&cmp_node_seprgba,
 	&cmp_node_combrgba,
 	&cmp_node_sephsva,
