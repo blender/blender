@@ -1215,6 +1215,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			BrushData *br= sculptmode_brush();
 			Mesh *me= get_mesh(OBACT);
 			char update_prop= 0;
+			
+			if(U.flag & USER_NONUMPAD) {
+				event= convert_for_nonumpad(event);
+			}
+			
 			switch(event) {
 			case LEFTMOUSE:
 				if(G.qual==LR_SHIFTKEY+LR_CTRLKEY)
