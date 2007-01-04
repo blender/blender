@@ -516,6 +516,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			#print 'elif (new_chunk.ID==MAT_TEXTURE_MAP):'
 			new_texture= Blender.Texture.New('Diffuse')
 			new_texture.setType('Image')
+			img = None
 			while (new_chunk.bytes_read<new_chunk.length):
 				#print 'MAT_TEXTURE_MAP..while', new_chunk.bytes_read, new_chunk.length
 				read_chunk(file, temp_chunk)
@@ -531,12 +532,14 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 				new_chunk.bytes_read+= temp_chunk.bytes_read
 			
 			#add the map to the material in the right channel
-			add_texture_to_material(img, new_texture, contextMaterial, 'DIFFUSE')
+			if img:
+				add_texture_to_material(img, new_texture, contextMaterial, 'DIFFUSE')
 			
 		elif (new_chunk.ID==MAT_SPECULAR_MAP):
 			#print 'elif (new_chunk.ID==MAT_SPECULAR_MAP):'
 			new_texture= Blender.Texture.New('Specular')
 			new_texture.setType('Image')
+			img = None
 			while (new_chunk.bytes_read<new_chunk.length):
 				read_chunk(file, temp_chunk)
 				
@@ -550,12 +553,14 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 				new_chunk.bytes_read+= temp_chunk.bytes_read
 				
 			#add the map to the material in the right channel
-			add_texture_to_material(img, new_texture, contextMaterial, 'SPECULAR')
+			if img:
+				add_texture_to_material(img, new_texture, contextMaterial, 'SPECULAR')
 	
 		elif (new_chunk.ID==MAT_OPACITY_MAP):
 			#print 'new_texture=Blender.Texture.New('Opacity')'
 			new_texture= Blender.Texture.New('Opacity')
 			new_texture.setType('Image')
+			img = None
 			while (new_chunk.bytes_read<new_chunk.length):
 				read_chunk(file, temp_chunk)
 				
@@ -567,14 +572,15 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 					skip_to_end(file, temp_chunk)
 				
 				new_chunk.bytes_read+= temp_chunk.bytes_read
-
 			#add the map to the material in the right channel
-			add_texture_to_material(img, new_texture, contextMaterial, 'OPACITY')
+			if img:
+				add_texture_to_material(img, new_texture, contextMaterial, 'OPACITY')
 
 		elif (new_chunk.ID==MAT_BUMP_MAP):
 			#print 'elif (new_chunk.ID==MAT_BUMP_MAP):'
 			new_texture= Blender.Texture.New('Bump')
 			new_texture.setType('Image')
+			img = None
 			while (new_chunk.bytes_read<new_chunk.length):
 				read_chunk(file, temp_chunk)
 				
@@ -588,7 +594,8 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 				new_chunk.bytes_read+=temp_chunk.bytes_read
 				
 			#add the map to the material in the right channel
-			add_texture_to_material(img, new_texture, contextMaterial, 'BUMP')
+			if img:
+				add_texture_to_material(img, new_texture, contextMaterial, 'BUMP')
 			
 		elif (new_chunk.ID==MAT_TRANSPARENCY):
 			#print 'elif (new_chunk.ID==MAT_TRANSPARENCY):'

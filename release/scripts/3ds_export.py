@@ -436,6 +436,17 @@ class _3ds_chunk:
 # EXPORT
 ######################################################
 
+def get_material_images(material):
+	# blender utility func.
+	images = []
+	if material:
+		for mtex in material.getTextures():
+			if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
+				image = mtex.tex.image
+				if image:
+					images.append(image) # maye want to include info like diffuse, spec here.
+	return images
+
 def make_material_subchunk(id, color):
 	'''Make a material subchunk.
 	
@@ -450,31 +461,50 @@ def make_material_subchunk(id, color):
 #	mat_sub.add_subchunk(col2)
 	return mat_sub
 
-def make_material_texture_chunk(id, material):
+def make_material_texture_chunk(id, images):
 	'''Make Material Map texture chunk
-	TODO - texface
 	'''
 	mat_sub = _3ds_chunk(id)
-	for mtex in material.getTextures():
-		if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
-			image = mtex.tex.image
-			if image:
-				filename = image.filename.split('\\')[-1].split('/')[-1]
-				mat_sub_file = _3ds_chunk(MATMAPFILE)
-				mat_sub_file.add_variable("mapfile", _3ds_string(filename))
-				mat_sub.add_subchunk(mat_sub_file)
+	
+	def add_image(img):
+		filename = image.filename.split('\\')[-1].split('/')[-1]
+		mat_sub_file = _3ds_chunk(MATMAPFILE)
+		mat_sub_file.add_variable("mapfile", _3ds_string(filename))
+		mat_sub.add_subchunk(mat_sub_file)
+	
+	for image in images:
+		add_image(image)
+	
 	return mat_sub
 
-def make_material_chunk(material):
+def make_material_chunk(material, image):
 	'''Make a material chunk out of a blender material.'''
 	material_chunk = _3ds_chunk(MATERIAL)
 	name = _3ds_chunk(MATNAME)
-	name.add_variable("name", _3ds_string(material.name))
+	
+	if material:	name_str = material.name
+	else:			name_str = 'None'
+	if image:	name_str += image.name
+		
+	name.add_variable("name", _3ds_string(name_str))
 	material_chunk.add_subchunk(name)
-	material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, [a*material.amb for a in material.rgbCol] ))
-	material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.rgbCol))
-	material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specCol))
-	material_chunk.add_subchunk(make_material_texture_chunk(MATMAP, material))
+	
+	if material:
+		material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, [a*material.amb for a in material.rgbCol] ))
+		material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.rgbCol))
+		material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specCol))
+	else:
+		material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, (0,0,0) ))
+		material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, (.8, .8, .8) ))
+		material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, (1,1,1) ))
+	
+	
+	images = get_material_images(material) # can be None
+	if image: images.append(image)
+	
+	if images:
+		material_chunk.add_subchunk(make_material_texture_chunk(MATMAP, images))
+	
 	return material_chunk
 
 class tri_wrapper:
@@ -489,9 +519,10 @@ class tri_wrapper:
 	# uv coordinates (used on blender faces that have face-uv)
 	faceuvs=None
 	
-	def __init__(self, vindex=(0,0,0), mat=None, faceuvs=None):
+	def __init__(self, vindex=(0,0,0), mat=None, image=None, faceuvs=None):
 		self.vertex_index= vindex
 		self.mat= mat
+		self.image= image
 		self.faceuvs= faceuvs
 		self.offset= [0, 0, 0] # offset indicies
 
@@ -499,11 +530,20 @@ def split_into_tri(face, do_uv=False):
 	'''Split a quad face into two triangles'''
 	v = face.v
 	uv = face.uv
-	first_tri = tri_wrapper((v[0].index, v[1].index, v[2].index), face.mat)
-	second_tri = tri_wrapper((v[0].index, v[2].index, v[3].index), face.mat)
+	mat = face.mat
+	if (do_uv):
+		img = face.image
+		if img: img = img.name
+	
+	first_tri = tri_wrapper((v[0].index, v[1].index, v[2].index), mat, img)
+	second_tri = tri_wrapper((v[0].index, v[2].index, v[3].index), mat, img)
+	
 	if (do_uv):
 		first_tri.faceuvs= uv_key(uv[0]), uv_key(uv[1]), uv_key(uv[2])
 		second_tri.faceuvs= uv_key(uv[0]), uv_key(uv[2]), uv_key(uv[3])
+	
+
+
 	return [first_tri, second_tri]
 	
 	
@@ -513,13 +553,20 @@ def extract_triangles(mesh):
 	If the mesh contains quads, they will be split into triangles.'''
 	tri_list = []
 	do_uv = mesh.faceUV
-	
+	img = None
 	for face in mesh.faces: 
 			num_fv = len(face)
 			if num_fv==3:
-				new_tri = tri_wrapper((face.v[0].index, face.v[1].index, face.v[2].index), face.mat)
+				
+				if (do_uv):
+					img = face.image
+					if img: img = img.name
+				
+				new_tri = tri_wrapper((face.v[0].index, face.v[1].index, face.v[2].index), face.mat, img)
+				
 				if (do_uv):
 					new_tri.faceuvs= uv_key(face.uv[0]), uv_key(face.uv[1]), uv_key(face.uv[2])
+
 				tri_list.append(new_tri)
 				
 			else: #it's a quad
@@ -586,35 +633,74 @@ def remove_face_uv(verts, tri_list):
 	
 	return vert_array, uv_array, tri_list
 
-def make_faces_chunk(tri_list, materials):
+def make_faces_chunk(tri_list, mesh, materialDict):
 	'''Make a chunk for the faces.
 	
 	Also adds subchunks assigning materials to all faces.'''
 	
+	materials = mesh.materials
+	
 	face_chunk = _3ds_chunk(OBJECT_FACES)
 	face_list = _3ds_array()
 	
-	obj_material_faces=[]
-	obj_material_names=[]
-	for m in materials:
-		if m:
-			obj_material_names.append(_3ds_string(m.name))
-			obj_material_faces.append(_3ds_array())
-	n_materials = len(obj_material_names)
 	
-	for i,tri in enumerate(tri_list):
-		face_list.add(_3ds_face(tri.vertex_index))
-		if (tri.mat < n_materials):
-			obj_material_faces[tri.mat].add(_3ds_short(i))
-			pass
+	if mesh.faceUV:
+		# Gather materials used in this mesh - mat/image pairs
+		unique_mats = {}
+		for i,tri in enumerate(tri_list):
 			
-	
-	face_chunk.add_variable("faces", face_list)
-	for i in xrange(n_materials):
-		obj_material_chunk=_3ds_chunk(OBJECT_MATERIAL)
-		obj_material_chunk.add_variable("name", obj_material_names[i])
-		obj_material_chunk.add_variable("face_list", obj_material_faces[i])
-		face_chunk.add_subchunk(obj_material_chunk)
+			face_list.add(_3ds_face(tri.vertex_index))
+			
+			# obj_material_faces[tri.mat].add(_3ds_short(i))
+			
+			mat = materials[tri.mat]
+			if mat: mat = mat.name
+			
+			img = tri.image
+			
+			try:
+				context_mat_face_array = unique_mats[mat, img][1]
+			except:
+				
+				if mat:	name_str = mat
+				else:	name_str = 'None'
+				if img: name_str += img
+				
+				context_mat_face_array = _3ds_array()
+				unique_mats[mat, img] = _3ds_string(name_str), context_mat_face_array
+				
+			
+			context_mat_face_array.add(_3ds_short(i))
+			# obj_material_faces[tri.mat].add(_3ds_short(i))
+		
+		face_chunk.add_variable("faces", face_list)
+		for mat_name, mat_faces in unique_mats.itervalues():
+			obj_material_chunk=_3ds_chunk(OBJECT_MATERIAL)
+			obj_material_chunk.add_variable("name", mat_name)
+			obj_material_chunk.add_variable("face_list", mat_faces)
+			face_chunk.add_subchunk(obj_material_chunk)
+			
+	else:
+		
+		obj_material_faces=[]
+		obj_material_names=[]
+		for m in materials:
+			if m:
+				obj_material_names.append(_3ds_string(m.name))
+				obj_material_faces.append(_3ds_array())
+		n_materials = len(obj_material_names)
+		
+		for i,tri in enumerate(tri_list):
+			face_list.add(_3ds_face(tri.vertex_index))
+			if (tri.mat < n_materials):
+				obj_material_faces[tri.mat].add(_3ds_short(i))
+		
+		face_chunk.add_variable("faces", face_list)
+		for i in xrange(n_materials):
+			obj_material_chunk=_3ds_chunk(OBJECT_MATERIAL)
+			obj_material_chunk.add_variable("name", obj_material_names[i])
+			obj_material_chunk.add_variable("face_list", obj_material_faces[i])
+			face_chunk.add_subchunk(obj_material_chunk)
 	
 	# asas
 	return face_chunk
@@ -631,7 +717,7 @@ def make_uv_chunk(uv_array):
 	uv_chunk.add_variable("uv coords", uv_array)
 	return uv_chunk
 
-def make_mesh_chunk(mesh):
+def make_mesh_chunk(mesh, materialDict):
 	'''Make a chunk out of a Blender mesh.'''
 	
 	# Extract the triangles from the mesh:
@@ -661,7 +747,7 @@ def make_mesh_chunk(mesh):
 	mesh_chunk.add_subchunk(make_vert_chunk(vert_array))
 	# add faces chunk:
 	
-	mesh_chunk.add_subchunk(make_faces_chunk(tri_list, mesh.materials))
+	mesh_chunk.add_subchunk(make_faces_chunk(tri_list, mesh, materialDict))
 	
 	# if available, add uv chunk:
 	if uv_array:
@@ -822,18 +908,42 @@ def save_3ds(filename):
 	
 	# Make a list of all materials used in the selected meshes (use a dictionary,
 	# each material is added once):
-	materials = {}
+	materialDict = {}
+	
 	for ob, data in mesh_objects:
-		for m in data.materials:
-			if m: # material may be None so check its not.
+		# get material/image tuples.
+		if data.faceUV:
+			mat_ls = data.materials
+			for f in data.faces:
+				mat = mat_ls[f.mat]
+				if mat:	mat_name = mat.name
+				else:	mat_name = None
+					
+				img = f.image
+				if img:	img_name = img.name
+				else:	img_name = None
+					
+					
+				
 				try:
-					materials[m.name]
+					materialDict[mat_name, img_name]
 				except:
-					materials[m.name]= m
+					materialDict[mat_name, img_name]= mat, img
+				
+				
+			
+			
+		else:
+			for mat in data.materials:
+				if mat: # material may be None so check its not.
+					try:
+						materialDict[mat.name, None]
+					except:
+						materialDict[mat.name, None]= mat, None
 	
 	# Make material chunks for all materials used in the meshes:
-	for material in materials.itervalues():
-		object_info.add_subchunk(make_material_chunk(material))
+	for mat_and_image in materialDict.itervalues():
+		object_info.add_subchunk(make_material_chunk(*mat_and_image))
 	
 	# Give all objects a unique ID and build a dictionary from object name to object id:
 	name_to_id = {}
@@ -854,7 +964,7 @@ def save_3ds(filename):
 		object_chunk.add_variable("name", _3ds_string(ob.name))
 		
 		# make a mesh chunk out of the mesh:
-		object_chunk.add_subchunk(make_mesh_chunk(blender_mesh))
+		object_chunk.add_subchunk(make_mesh_chunk(blender_mesh, materialDict))
 		object_info.add_subchunk(object_chunk)
 		
 		''' # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
