@@ -103,7 +103,7 @@ typedef struct MultiresEdge {
 
 typedef struct MultiresTexColFace {
 	/* vertex colors and texfaces */
-	void *tex_page;
+	struct Image *tex_page;
 	MultiresCol col[4];
 	short tex_mode, tex_tile, tex_unwrap;
 	char tex_flag, tex_transp;
