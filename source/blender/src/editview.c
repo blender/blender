@@ -1266,7 +1266,9 @@ void mouse_select(void)
 	/* This block uses the control key to make the object selected by its centre point rather then its contents */
 	if(G.obedit==0 && (G.qual & LR_CTRLKEY)) {
 		
-		if(G.qual & LR_ALTKEY) basact= mouse_select_menu(NULL, 0, mval);
+		/* note; shift+alt goes to group-flush-selecting */
+		if(G.qual == (LR_ALTKEY|LR_CTRLKEY)) 
+			basact= mouse_select_menu(NULL, 0, mval);
 		else {
 			base= startbase;
 			while(base) {
@@ -1300,7 +1302,8 @@ void mouse_select(void)
 			
 			for(a=0; a<hits; a++) if(buffer[4*a+3] & 0xFFFF0000) has_bones= 1;
 
-			if(has_bones==0 && (G.qual & LR_ALTKEY)) 
+			/* note; shift+alt goes to group-flush-selecting */
+			if(has_bones==0 && (G.qual == LR_ALTKEY)) 
 				basact= mouse_select_menu(buffer, hits, mval);
 			else {
 				static short lastmval[2]={-100, -100};
