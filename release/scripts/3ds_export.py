@@ -450,6 +450,20 @@ def make_material_subchunk(id, color):
 #	mat_sub.add_subchunk(col2)
 	return mat_sub
 
+def make_material_texture_chunk(id, material):
+	'''Make Material Map texture chunk
+	TODO - texface
+	'''
+	mat_sub = _3ds_chunk(id)
+	for mtex in material.getTextures():
+		if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
+			image = mtex.tex.image
+			if image:
+				filename = image.filename.split('\\')[-1].split('/')[-1]
+				mat_sub_file = _3ds_chunk(MATMAPFILE)
+				mat_sub_file.add_variable("mapfile", _3ds_string(filename))
+				mat_sub.add_subchunk(mat_sub_file)
+	return mat_sub
 
 def make_material_chunk(material):
 	'''Make a material chunk out of a blender material.'''
@@ -460,6 +474,7 @@ def make_material_chunk(material):
 	material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, [a*material.amb for a in material.rgbCol] ))
 	material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.rgbCol))
 	material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specCol))
+	material_chunk.add_subchunk(make_material_texture_chunk(MATMAP, material))
 	return material_chunk
 
 class tri_wrapper:
@@ -482,11 +497,13 @@ class tri_wrapper:
 
 def split_into_tri(face, do_uv=False):
 	'''Split a quad face into two triangles'''
-	first_tri = tri_wrapper((face.v[0].index, face.v[1].index, face.v[2].index), face.mat)
-	second_tri = tri_wrapper((face.v[0].index, face.v[2].index, face.v[3].index), face.mat)
+	v = face.v
+	uv = face.uv
+	first_tri = tri_wrapper((v[0].index, v[1].index, v[2].index), face.mat)
+	second_tri = tri_wrapper((v[0].index, v[2].index, v[3].index), face.mat)
 	if (do_uv):
-		first_tri.faceuvs= uv_key(face.uv[0]), uv_key(face.uv[1]), uv_key(face.uv[2])
-		second_tri.faceuvs= uv_key(face.uv[0]), uv_key(face.uv[2]), uv_key(face.uv[3])
+		first_tri.faceuvs= uv_key(uv[0]), uv_key(uv[1]), uv_key(uv[2])
+		second_tri.faceuvs= uv_key(uv[0]), uv_key(uv[2]), uv_key(uv[3])
 	return [first_tri, second_tri]
 	
 	
@@ -529,11 +546,18 @@ def remove_face_uv(verts, tri_list):
 			# offset.append(uv_list[tri.vertex_index[i]].add(_3ds_point_uv(tri.faceuvs[i])))
 			context_uv_vert= unique_uvs[tri.vertex_index[i]]
 			uvkey= tri.faceuvs[i]
+			
 			try:
 				offset_index, uv_3ds= context_uv_vert[uvkey]
 			except:
 				offset_index= len(context_uv_vert)
 				context_uv_vert[tri.faceuvs[i]]= offset_index, _3ds_point_uv(uvkey)
+			
+			# No optimizing the array!!! buggy atm
+			# offset_index= len(context_uv_vert)
+			# context_uv_vert[tri.faceuvs[i]]= offset_index, _3ds_point_uv(uvkey)
+			
+			
 			tri.offset[i]= offset_index
 		
 	# At this point, each vertex has a UniqueList containing every uv coordinate that is associated with it
@@ -544,7 +568,7 @@ def remove_face_uv(verts, tri_list):
 	vert_index = 0
 	vert_array = _3ds_array()
 	uv_array = _3ds_array()
-	index_list=[]
+	index_list = []
 	for i,vert in enumerate(verts):
 		index_list.append(vert_index)
 		for ii, uv_3ds in unique_uvs[i].itervalues():
@@ -552,7 +576,7 @@ def remove_face_uv(verts, tri_list):
 			vert_array.add(_3ds_point_3d(vert.co))
 			# add the uv coordinate to the uv array:
 			uv_array.add(uv_3ds)
-			vert_index+=1
+		vert_index += len(unique_uvs[i])
 	
 	# Make sure the triangle vertex indices now refer to the new vertex list:
 	for tri in tri_list:
