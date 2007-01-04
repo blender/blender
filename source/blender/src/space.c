@@ -1074,7 +1074,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if(event!=LEFTMOUSE && event!=MIDDLEMOUSE && (event==MOUSEY || event==MOUSEX)) {
 					if(!bwin_qtest(sa->win))
-						sculpt_paint_brush(0);
+						allqueue(REDRAWVIEW3D, 0);
 				}
 			}
 

@@ -1970,7 +1970,9 @@ void sculpt()
 				glEnable(GL_SCISSOR_TEST);
 				
 				/* Draw cursor */
-				sculpt_paint_brush(1);
+				persp(PERSP_WIN);
+				glDisable(GL_DEPTH_TEST);
+				fdrawXORcirc((float)mouse[0],(float)mouse[1],sculptmode_brush()->size);
 				
 				myswapbuffers();
 			}
