@@ -2543,10 +2543,17 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 			mesh->mr->edge_flags= MEM_callocN(sizeof(short)*lvl->totedge, "Multires Edge Flags");
 			
 		for(; lvl; lvl= lvl->next) {
+			int i;
+			
 			lvl->verts= newdataadr(fd, lvl->verts);
 			lvl->faces= newdataadr(fd, lvl->faces);
 			lvl->edges= newdataadr(fd, lvl->edges);
 			lvl->texcolfaces= newdataadr(fd, lvl->texcolfaces);
+			
+			if(lvl->texcolfaces) {
+				for(i=0; i<lvl->totface; ++i)
+					lvl->texcolfaces[i].tex_page= newdataadr(fd, lvl->texcolfaces[i].tex_page);
+			}
 
 			/* Recalculating the maps is faster than reading them from the file */
 			multires_calc_level_maps(lvl);
