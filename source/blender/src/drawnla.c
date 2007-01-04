@@ -134,10 +134,12 @@ static void draw_nla_channels(void)
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
 			
 			/* icon to indicate expanded or collapsed */
-			if (ob->nlaflag & OB_NLA_COLLAPSED)
-				BIF_icon_draw(x+1, y-8, ICON_TRIA_RIGHT);
-			else
-				BIF_icon_draw(x+1, y-8, ICON_TRIA_DOWN);
+			if ((ob->nlastrips.first) || (ob->action)) {
+				if (ob->nlaflag & OB_NLA_COLLAPSED)
+					BIF_icon_draw(x+1, y-8, ICON_TRIA_RIGHT);
+				else
+					BIF_icon_draw(x+1, y-8, ICON_TRIA_DOWN);
+			}
 			
 			/* icon to indicate nla or action  */
 			if(ob->nlastrips.first && ob->action) {
