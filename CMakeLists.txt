@@ -237,7 +237,7 @@ IF(WIN32)
   
   SET(OPENEXR ${LIBDIR}/openexr)
   SET(OPENEXR_INC ${OPENEXR}/include ${OPENEXR}/include/IlmImf ${OPENEXR}/include/Iex ${OPENEXR}/include/Imath)
-  SET(OPENEXR_LIB Iex Half IlmImf Imath)
+  SET(OPENEXR_LIB Iex Half IlmImf Imath IlmThread)
   SET(OPENEXR_LIBPATH ${OPENEXR}/lib_msvc)
   
   SET(QUICKTIME ${LIBDIR}/QTDevWin)
