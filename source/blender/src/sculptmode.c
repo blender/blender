@@ -493,8 +493,8 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 	
 	set_sculpt_object(ob);
 	
-	if(!sculpt_data()->draw_mode || modifiers_getVirtualModifierList(ob))
-		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	if(!sculpt_data()->draw_mode || sculpt_modifiers_active(ob))
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
 	if(G.vd->depths) G.vd->depths->damaged= 1;
 	allqueue(REDRAWVIEW3D, 0);
@@ -1796,6 +1796,19 @@ void sculptmode_correct_state()
 	if(!sculpt_session()->undo) sculptmode_undo_init();
 }
 
+/* Checks whether full update mode (slower) needs to be used to work with modifiers */
+char sculpt_modifiers_active(Object *ob)
+{
+	ModifierData *md;
+	
+	for(md= modifiers_getVirtualModifierList(ob); md; md= md->next) {
+		if(md->mode & eModifierMode_Realtime)
+			return 1;
+	}
+	
+	return 0;
+}
+
 void sculpt()
 {
 	SculptData *sd= sculpt_data();
@@ -1856,7 +1869,7 @@ void sculpt()
 	/* If modifier_calculations is true, then extra time must be spent
 	   updating the mesh. This takes a *lot* longer, so it's worth
 	   skipping if the modifier stack is empty. */
-	modifier_calculations= modifiers_getVirtualModifierList(ob) != NULL;
+	modifier_calculations= sculpt_modifiers_active(ob);
 
 	init_sculptmatrices();
 
