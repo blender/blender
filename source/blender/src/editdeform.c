@@ -61,6 +61,7 @@
 
 #include "BSE_edit.h"
 
+#include "editmesh.h"
 #include "multires.h"
 
 #ifdef HAVE_CONFIG_H
