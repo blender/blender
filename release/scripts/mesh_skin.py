@@ -67,7 +67,8 @@ def AngleBetweenVecs(a1,a2):
 	except:
 		return 180.0
 
-class edge:
+class edge(object):
+	__slots__ = 'v1', 'v2', 'co1', 'co2', 'length', 'removed', 'match', 'cent', 'angle', 'next', 'prev', 'normal', 'fake'
 	def __init__(self, v1,v2):
 		self.v1 = v1
 		self.v2 = v2
@@ -82,21 +83,26 @@ class edge:
 		
 		self.cent= MidpointVecs(co1, co2)
 		self.angle= 0.0
+		self.fake= False
 
-class edgeLoop:
-	def __init__(self, loop): # Vert loop
+class edgeLoop(object):
+	__slots__ = 'centre', 'edges', 'normal', 'closed', 'backup_edges'
+	def __init__(self, loop, me, closed): # Vert loop
 		# Use next and prev, nextDist, prevDist
 		
 		# Get Loops centre.
 		fac= len(loop)
-		self.centre= reduce(lambda a,b: a+b.co/fac, loop, Vector())
+		verts = me.verts
+		self.centre= reduce(lambda a,b: a+verts[b].co/fac, loop, Vector())
 		
 		# Convert Vert loop to Edges.
-		self.edges = []
-		vIdx = 0
-		while vIdx < len(loop):
-			self.edges.append( edge(loop[vIdx-1], loop[vIdx]) )
-			vIdx += 1
+		self.edges = [edge(verts[loop[vIdx-1]], verts[loop[vIdx]]) for vIdx in xrange(len(loop))]
+		
+		if not closed:
+			self.edges[0].fake = True # fake edge option
+			
+		self.closed = closed
+			
 		
 		# Assign linked list
 		for eIdx in xrange(len(self.edges)-1):
@@ -165,18 +171,19 @@ class edgeLoop:
 		
 	def backup(self):
 		# Keep a backup of the edges
-		self.backupEdges = self.edges[:]
+		self.backup_edges = self.edges[:]
 			
 	def restore(self):
-		self.edges = self.backupEdges[:]
+		self.edges = self.backup_edges[:]
 		for e in self.edges:
 			e.removed = 0
 		
 	def reverse(self):
 		self.edges.reverse()
 		for e in self.edges:
-			e.normal = -e.normal
+			e.normal.negate()
 			e.v1, e.v2 = e.v2, e.v1
+			e.next, e.prev = e.prev, e.next
 		self.normal.negate()
 	
 	def removeSmallest(self, cullNum, otherLoopLen):
@@ -216,7 +223,7 @@ class edgeLoop:
 				smallestEdge= None
 				while step_count<=step or smallestEdge==None:
 					step_count+=1
-					if not currentEdge.removed:
+					if not currentEdge.removed: # 0 or -1 will not be accepted
 						if currentEdge.angle<bestAng:
 							smallestEdge= currentEdge
 							bestAng= currentEdge.angle
@@ -265,50 +272,86 @@ def getSelectedEdges(me, ob):
 		Blender.Mesh.Mode(MESH_MODE)
 		return [ ed_data[0] for ed_data in edge_dict.itervalues() if ed_data[1] == 1 ]
 	
-	
-	
-# Like vert loops 
-def getVertLoops(selEdges):
+
+def getVertLoops(selEdges, me):
+	'''
+	return a list of vert loops, closed and open [(loop, closed)...]
+	'''
 	
 	mainVertLoops = []
-	while selEdges:
-		e = selEdges.pop()
-		contextVertLoop= [e.v1, e.v2] # start the vert loop
+	# second method
+	tot = len(me.verts)
+	vert_siblings = [[] for i in xrange(tot)]
+	vert_used = [False] * tot
+	
+	for ed in selEdges:
+		i1, i2 = ed.key
+		vert_siblings[i1].append(i2)
+		vert_siblings[i2].append(i1)
 		
-		eIdx = 1 # Get us into the loop. dummy var.
-		
-		# if eIdx == 0 then it means we searched and found no matches... 
-		# time for a new vert loop,
-		while eIdx:
-			eIdx = len(selEdges)
-			while eIdx:
-				eIdx-=1
+	
+	
+	# remove any triple points
+	for i in xrange(tot):
+		if len(vert_siblings[i]) > 2:
+			vert_siblings[i] = [] # clear
+	
+	# find the first used vert and keep looping.
+	for i in xrange(tot):
+		if vert_siblings[i] and not vert_used[i]:
+			sbl = vert_siblings[i] # siblings
+			vert_used[i] = True
+			
+			# do an edgeloop seek
+			if len(vert_siblings[i]) == 2:
+				contextVertLoop= [sbl[0], i, sbl[1]] # start the vert loop
+				vert_used[contextVertLoop[ 0]] = True
+				vert_used[contextVertLoop[-1]] = True
+			else:
+				contextVertLoop= [i, sbl[0]]
+				vert_used[contextVertLoop[ 1]] = True
+			
+			# Always seek up
+			ok = True
+			while ok:
+				ok = False
+				closed = False
+				sbl = vert_siblings[contextVertLoop[-1]]
+				if len(sbl) == 2:
+					next = sbl[not sbl.index( contextVertLoop[-2] )]
+					if vert_used[next]:
+						closed = True
+						# break
+					else:
+						contextVertLoop.append( next ) # get the vert that isnt the second last
+						vert_used[next] = True
+						ok = True
+			
+			# Seek down as long as the starting vert was not at the edge.
+			if not closed and len(vert_siblings[i]) == 2:
 				
-				# Check for edge attached at the head of the loop.
-				if contextVertLoop[0] == selEdges[eIdx].v1:
-					contextVertLoop.insert(0, selEdges.pop(eIdx).v2)
-				elif contextVertLoop[0] == selEdges[eIdx].v2:
-					contextVertLoop.insert(0, selEdges.pop(eIdx).v1)
-					
-				# Chech for edge vert at the tail.
-				elif contextVertLoop[-1] == selEdges[eIdx].v1:
-					contextVertLoop.append(selEdges.pop(eIdx).v2)
-				elif contextVertLoop[-1] == selEdges[eIdx].v2:
-					contextVertLoop.append(selEdges.pop(eIdx).v1)
-				else:
-					# None found? Keep looking
-					continue
-				
-				# Once found we.
-				break
-		
-		# Is this a loop? if so then its forst and last vert must be teh same.
-		if contextVertLoop[0].index == contextVertLoop[-1].index:
-			contextVertLoop.pop() # remove double vert
-			mainVertLoops.append(contextVertLoop)
-		
-		# Build context vert loops
+				ok = True
+				while ok:
+					ok = False
+					sbl = vert_siblings[contextVertLoop[0]]
+					if len(sbl) == 2:
+						next = sbl[not sbl.index( contextVertLoop[1] )]
+						if vert_used[next]:
+							closed = True
+						else:
+							contextVertLoop.insert(0, next) # get the vert that isnt the second last
+							vert_used[next] = True
+							ok = True
+			
+			mainVertLoops.append((contextVertLoop, closed))
+	
+	
+	verts = me.verts
+	# convert from indicies to verts
+	# mainVertLoops = [([verts[i] for i in contextVertLoop], closed) for contextVertLoop, closed in  mainVertLoops]
+	
 	return mainVertLoops
+	
 
 
 def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
@@ -333,17 +376,14 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 	loopDist = skinVector.length
 	
 	
-	# IS THE LOOP FLIPPED, IF SO FLIP BACK.
+	# IS THE LOOP FLIPPED, IF SO FLIP BACK. we keep it flipped, its ok,
 	angleBetweenLoopNormals = AngleBetweenVecs(eloop1.normal, eloop2.normal)
-	print eloop1.normal, eloop2.normal
-	print "angleBetweenLoopNormals ", angleBetweenLoopNormals 
-	#if abs(angleBetweenLoopNormals-90) > 90:
 	if angleBetweenLoopNormals > 90:
 		eloop2.reverse()
 	
 	DIR= eloop1.centre - eloop2.centre
 	
-	
+	# if eloop2.closed:
 	bestEloopDist = BIG_NUM
 	bestOffset = 0
 	# Loop rotation offset to test.1
@@ -394,7 +434,9 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 		
 		# Remember the pairs for fan filling culled edges.
 		e1.match = e2; e2.match = e1
-		new_faces.append([e1.v1, e1.v2, e2.v2, e2.v1])
+		
+		if not (e1.fake or e2.fake):
+			new_faces.append([e1.v1, e1.v2, e2.v2, e2.v1])
 	
 	# FAN FILL MISSING FACES.
 	if CULL_FACES:
@@ -409,6 +451,7 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 			vertFanPivot = contextEdge.match.v2
 			
 			while contextEdge.next.removed == 1:
+				#if not contextEdge.next.fake:
 				new_faces.append([contextEdge.next.v1, contextEdge.next.v2, vertFanPivot])
 				
 				# Should we use another var?, this will work for now.
@@ -417,12 +460,11 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 				contextEdge = contextEdge.next
 				FAN_FILLED_FACES += 1
 		
+		# may need to fan fill backwards 1 for non closed loops.
+		
 		eloop1.restore() # Add culled back into the list.
 	
 	me.faces.extend(new_faces)
-
-	#if angleBetweenLoopNormals > 90:
-	#	eloop2.reverse()
 
 
 def main():
@@ -435,9 +477,11 @@ def main():
 		return
 	
 	me = ob.getData(mesh=1)
-	
+	time1 = Blender.sys.time()
 	selEdges = getSelectedEdges(me, ob)
-	vertLoops = getVertLoops(selEdges) # list of lists of edges.
+	vertLoops = getVertLoops(selEdges, me) # list of lists of edges.
+	# print len(vertLoops)
+	
 	
 	if len(vertLoops) > 2:
 		choice = PupMenu('Loft '+str(len(vertLoops))+' edge loops%t|loop|segment')
@@ -453,7 +497,7 @@ def main():
 	
 	
 	# The line below checks if any of the vert loops are differenyt in length.
-	if False in [len(v) == len(vertLoops[0]) for v in vertLoops]:
+	if False in [len(v[0]) == len(vertLoops[0][0]) for v in vertLoops]:
 		CULL_METHOD = PupMenu('Small to large edge loop distrobution method%t|remove edges evenly|remove smallest edges')
 		if CULL_METHOD == -1:
 			if is_editmode: Window.EditMode(1)
@@ -468,8 +512,8 @@ def main():
 	time1 = Blender.sys.time()
 	# Convert to special edge data.
 	edgeLoops = []
-	for vloop in vertLoops:
-		edgeLoops.append(edgeLoop(vloop))
+	for vloop, closed in vertLoops:
+		edgeLoops.append(edgeLoop(vloop, me, closed))
 		
 	
 	# VERT LOOP ORDERING CODE
