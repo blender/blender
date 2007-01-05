@@ -3,7 +3,7 @@
  #"""
  #Name: 'Load MDD to Mesh RVKs'
  #Blender: 242
- #Group: 'Animation'
+ #Group: 'Import'
  #Tooltip: 'baked vertex animation to active mesh object.'
  #"""
 __author__ = "Bill L.Nieuwendorp"
