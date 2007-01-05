@@ -126,38 +126,45 @@
 
 #define AN_INIT an_stringdec = stringdec; an_stringenc = stringenc;
 
+#define IB_MIPMAP_LEVELS	10
+
 struct MEM_CacheLimiterHandle_s;
 
-typedef struct ImBuf{
-	short	x,y;		/* width in pixels, height in scanlines */
-	short	skipx;		/* width in ints to get to the next scanline */
-	unsigned char	depth;		/* active amount of bits/bitplanes */
-	unsigned char	cbits;		/* amount of active bits in cmap */
-	unsigned short	mincol;
-	unsigned short	maxcol;
-	int	type;		/* 0=abgr, 1=bitplanes */
-	int	ftype;
-	unsigned int	*cmap;		/* int array van kleuren */
-	unsigned int	*rect;		/* databuffer */
-	unsigned int	**planes;	/* bitplanes */
-	int	flags;
-	int	mall;		/* what is malloced internal, and can be freed */
-	short	xorig, yorig;
-	char	name[1023];
-	char	namenull;
-	int	userflags;
-	int	*zbuf;
-	float *zbuf_float;	/**< z buffer data, camera coordinates */
-	void *userdata;
-	unsigned char *encodedbuffer;
-	unsigned int   encodedsize;
-	unsigned int   encodedbuffersize;
+typedef struct ImBuf {
+	struct ImBuf *next, *prev;	/**< allow lists of ImBufs, for caches or flipbooks */
+	short	x, y;				/**< width and Height of our image buffer */
+	short	skipx;				/**< Width in ints to get to the next scanline */
+	unsigned char	depth;		/**< Active amount of bits/bitplanes */
+	unsigned char	cbits;		/**< Amount of active bits in cmap */
+	unsigned short	mincol;		/**< smallest color in colormap */
+	unsigned short	maxcol;		/**< Largest color in colormap */
+	int	type;					/**< 0=abgr, 1=bitplanes */
+	int	ftype;					/**< File type we are going to save as */
+	unsigned int	*cmap;		/**< Color map data. */
+	unsigned int	*rect;		/**< pixel values stored here */
+	unsigned int	**planes;	/**< bitplanes */
+	int	flags;				/**< Controls which components should exist. */
+	int	mall;				/**< what is malloced internal, and can be freed */
+	short	xorig, yorig;		/**< Cordinates of first pixel of an image used in some formats (example: targa) */
+	char	name[1023];		/**< The file name assocated with this image */
+	char	namenull;		/**< Unused don't want to remove it thought messes things up */
+	int	userflags;			/**< Used to set imbuf to Dirty and other stuff */
+	int	*zbuf;				/**< z buffer data, original zbuffer */
+	float *zbuf_float;		/**< z buffer data, camera coordinates */
+	void *userdata;	
+	unsigned char *encodedbuffer;     /**< Compressed image only used with png currently */
+	unsigned int   encodedsize;       /**< Size of data written to encodedbuffer */
+	unsigned int   encodedbuffersize; /**< Size of encodedbuffer */
 
-	float *rect_float;
+	float *rect_float;		/**< floating point Rect equivilant */
+	int channels;			/**< amount of channels in rect_float (0 = 4 channel default) */
 	float dither;			/**< random dither value, for conversion from float -> byte rect */
-
-	struct MEM_CacheLimiterHandle_s * c_handle;
-        int refcounter;
+	
+	struct MEM_CacheLimiterHandle_s * c_handle; /**< handle for cache limiter */
+	int refcounter;			/**< Refcounter for multiple users */
+	int index;				/**< reference index for ImBuf lists */
+	
+	struct ImBuf *mipmap[IB_MIPMAP_LEVELS]; /**< MipMap levels, a series of halved images */
 } ImBuf;
 
 LIBEXPORT struct ImBuf *allocImBuf(short,short,uchar,uint,uchar);
