@@ -103,8 +103,7 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 
 		if (version != 0) {
 			pis->version= version();
-			if (pis->version==2 || pis->version==3
-			    || pis->version==4) {
+			if (pis->version >= 2 && pis->version <= 5) {
 				int (*info_func)(PluginInfo *);
 				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info");;
 
@@ -222,6 +221,14 @@ static void copy_plugin(Sequence * dst, Sequence * src)
 	}
 }
 
+static ImBuf * IMB_cast_away_list(ImBuf * i)
+{
+	if (!i) {
+		return 0;
+	}
+	return (ImBuf*) (((void**) i) + 2);
+}
+
 static void do_plugin_effect(Sequence * seq,int cfra,
 			     float facf0, float facf1, int x, int y, 
 			     struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
@@ -281,9 +288,18 @@ static void do_plugin_effect(Sequence * seq,int cfra,
 			if(ibuf3) IMB_convert_rgba_to_abgr(ibuf3);
 		}
 
-		((SeqDoit)seq->plugin->doit)(
-			seq->plugin->data, facf0, facf1, x, y,
-			ibuf1, ibuf2, out, ibuf3);
+		if (seq->plugin->version<=4) {
+			((SeqDoit)seq->plugin->doit)(
+				seq->plugin->data, facf0, facf1, x, y,
+				IMB_cast_away_list(ibuf1), 
+				IMB_cast_away_list(ibuf2), 
+				IMB_cast_away_list(out), 
+				IMB_cast_away_list(ibuf3));
+		} else {
+			((SeqDoit)seq->plugin->doit)(
+				seq->plugin->data, facf0, facf1, x, y,
+				ibuf1, ibuf2, out, ibuf3);
+		}
 
 		if (seq->plugin->version<=2) {
 			if (!use_temp_bufs) {

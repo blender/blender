@@ -36,7 +36,7 @@
 #include "util.h"
 #include "floatpatch.h"
 
-#define B_PLUGIN_VERSION	3
+#define B_PLUGIN_VERSION	5
 
 typedef	int (*TexDoit)(int, void*, float*, float*, float*);
 typedef void (*SeqDoit)(void*, float, float, int, int, ImBuf*, ImBuf*, ImBuf*, ImBuf*);
