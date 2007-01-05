@@ -329,6 +329,7 @@ void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float
 	btTransform xform  = m_body->getCenterOfMassTransform();
 	xform.setRotation(btQuaternion(quatImag0,quatImag1,quatImag2,quatReal));
 	m_body->setCenterOfMassTransform(xform);
+	m_bulletMotionState->setWorldTransform(xform);
 
 }
 
@@ -339,10 +340,13 @@ void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 	{
 		m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 	}
+	
 	m_MotionState->setWorldPosition(posX,posY,posZ);
 	btTransform xform  = m_body->getCenterOfMassTransform();
 	xform.setOrigin(btVector3(posX,posY,posZ));
 	m_body->setCenterOfMassTransform(xform);
+	m_bulletMotionState->setWorldTransform(xform);
+
 
 }
 void		CcdPhysicsController::resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ)
