@@ -2541,6 +2541,11 @@ void view3d_edit_clipping(View3D *v3d)
 		glGetIntegerv(GL_VIEWPORT, viewport);
 		glGetDoublev(GL_MODELVIEW_MATRIX, mvmatrix);
 		glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
+
+		/* near zero floating point values can give issues with gluUnProject
+		   in side view on some implementations */
+		if(fabs(mvmatrix[0]) < 1e-6) mvmatrix[0]= 0.0;
+		if(fabs(mvmatrix[5]) < 1e-6) mvmatrix[5]= 0.0;
 		
 		/* Set up viewport so that gluUnProject will give correct values */
 		viewport[0] = 0;
