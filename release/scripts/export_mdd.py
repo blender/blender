@@ -3,7 +3,7 @@
 """
  Name: 'Save Mesh as MDD'
  Blender: 242
- Group: 'Animation'
+ Group: 'Export'
  Tooltip: 'Animated mesh to MDD vertex keyframe file.'
 """
 
