@@ -1170,6 +1170,7 @@ static void initialize_posetree(struct Object *ob, bPoseChannel *pchan_tip)
 	if(data->flag & CONSTRAINT_IK_AUTO);
 	else {
 		if(con->flag & CONSTRAINT_DISABLE) return;	/* checked in editconstraint.c */
+		if(con->enforce == 0.0f) return;
 		if(data->tar==NULL) return;
 		if(data->tar->type==OB_ARMATURE && data->subtarget[0]==0) return;
 	}
