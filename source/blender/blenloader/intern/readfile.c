@@ -4322,6 +4322,11 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
 			}
 		}
 	}
+	else if(ntree->type==NTREE_SHADER) {
+		for(node= ntree->nodes.first; node; node= node->next)
+			if(node->type == SH_NODE_GEOMETRY && node->storage == NULL)
+				node->storage= MEM_callocN(sizeof(NodeGeometry), "NodeGeometry");
+	}
 }
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
@@ -6322,6 +6327,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 			for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next)
 				do_version_ntree_242_2(ntree);
+			for(ma = main->mat.first; ma; ma= ma->id.next)
+				if(ma->nodetree)
+					do_version_ntree_242_2(ma->nodetree);
 			
 			for(sc= main->screen.first; sc; sc= sc->id.next) {
 				ScrArea *sa;
