@@ -26,6 +26,9 @@
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
+# development
+#import dxfImportObjects
+#reload(dxfImportObjects)
 
 from dxfImportObjects import *
 
@@ -141,9 +144,9 @@ def handleObject(infile):
 
 def handleTable(table, infile):
     """Special handler for dealing with nested table objects."""
-    item, name = get_name(table.data)
+    item, name, item_index = get_name(table.data)
     if name: # We should always find a name
-        table.data.remove(item)
+        del table.data[item_index]
         table.name = name.lower()
     # This next bit is from handleObject
     # handleObject should be generalized to work with any section like object
@@ -162,9 +165,9 @@ def handleTable(table, infile):
 
 def handleBlock(block, infile):
     """Special handler for dealing with nested table objects."""
-    item, name = get_name(block.data)
+    item, name, item_index = get_name(block.data)
     if name: # We should always find a name
-        block.data.remove(item)
+        del block.data[item_index]
         block.name = name.lower()
     # This next bit is from handleObject
     # handleObject should be generalized to work with any section like object
@@ -302,9 +305,9 @@ def readDXF(filename):
         if drawing:
             drawing.name = filename
             for obj in drawing.data:
-                item, name = get_name(obj.data)
+                item, name, item_index = get_name(obj.data)
                 if name:
-                    obj.data.remove(item)
+                    del obj.data[item_index]
                     obj.name = name.lower()
                     setattr(drawing, name.lower(), obj)
                     # Call the objectify function from dxfImportObjects to cast

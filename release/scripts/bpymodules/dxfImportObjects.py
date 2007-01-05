@@ -162,8 +162,9 @@ class Line:
         else:
             self.color_index = BYLAYER
         
-        discard, self.layer = get_layer(obj.data)
-        obj.data.remove(discard)
+        discard, self.layer, discard_index = get_layer(obj.data)
+        del obj.data[discard_index]
+        
         self.points = self.get_points(obj.data)
     
     
@@ -238,8 +239,8 @@ class LWpolyline:
             self.flags = 0
         
         self.closed = self.flags&1 # byte coded, 1 = closed, 128 = plinegen
-        discard, self.layer = get_layer(obj.data)
-        obj.data.remove(discard)
+        discard, self.layer, discard_index = get_layer(obj.data)
+        del obj.data[discard_index]
         self.points = self.get_points(obj.data)
         self.extrusion = self.get_extrusion(obj.data)
     
@@ -341,8 +342,8 @@ class Polyline:
         
         self.closed = self.flags&1 # byte coded, 1 = closed, 128 = plinegen
             
-        discard, self.layer = get_layer(obj.data)
-        obj.data.remove(discard)
+        discard, self.layer, discard_index = get_layer(obj.data)
+        del obj.data[discard_index]
         self.extrusion = self.get_extrusion(obj.data)
     
     
@@ -531,8 +532,8 @@ class Text:
         else:
             self.valignment = self.valignment[0]
             
-        discard, self.layer = get_layer(obj.data)
-        obj.data.remove(discard)
+        discard, self.layer, discard_index = get_layer(obj.data)
+        del obj.data[discard_index]
         self.loc = self.get_loc(obj.data, self.halignment, self.valignment)
         self.extrusion = self.get_extrusion(obj.data)
     
@@ -638,8 +639,8 @@ class Mtext:
         else:
             self.line_space = self.line_space[0]
             
-        discard, self.layer = get_layer(obj.data)
-        obj.data.remove(discard)
+        discard, self.layer, discard_index = get_layer(obj.data)
+        del obj.data[discard_index]
         self.loc = self.get_loc(obj.data)
         self.extrusion = self.get_extrusion(obj.data)
     
@@ -730,8 +731,8 @@ class Circle:
         else:
             self.color_index = BYLAYER
             
-        discard, self.layer = get_layer(obj.data)
-        obj.data.remove(discard)
+        discard, self.layer, discard_index = get_layer(obj.data)
+        del obj.data[discard_index]
         self.loc = self.get_loc(obj.data)
         self.extrusion = self.get_extrusion(obj.data)
     
@@ -805,8 +806,8 @@ class Arc:
         else:
             self.color_index = BYLAYER
             
-        discard, self.layer = get_layer(obj.data)
-        obj.data.remove(discard)
+        discard, self.layer, discard_index = get_layer(obj.data)
+        del obj.data[discard_index]
         self.loc = self.get_loc(obj.data)
         self.extrusion = self.get_extrusion(obj.data)
     
@@ -923,8 +924,8 @@ class Block:
         else:
             self.discription = ''
             
-        discard, self.layer = get_layer(obj.data)
-        obj.data.remove(discard)
+        discard, self.layer, discard_index = get_layer(obj.data)
+        del obj.data[discard_index]
         self.loc = self.get_loc(obj.data)
     
     
@@ -984,9 +985,9 @@ class Insert:
             self.color_index = self.color_index[0]
         else:
             self.color_index = BYLAYER
-            
-        discard, self.layer = get_layer(obj.data)
-        obj.data.remove(discard)
+        
+        discard, self.layer, discard_index = get_layer(obj.data)
+        del obj.data[discard_index]
         self.loc = self.get_loc(obj.data)
         self.scale = self.get_scale(obj.data)
         self.rows, self.columns = self.get_array(obj.data)
@@ -1097,8 +1098,8 @@ class Ellipse:
         else:
             self.color_index = BYLAYER
             
-        discard, self.layer = get_layer(obj.data)
-        obj.data.remove(discard)
+        discard, self.layer, discard_index = get_layer(obj.data)
+        del obj.data[discard_index]
         self.loc = self.get_loc(obj.data)
         self.major = self.get_major(obj.data)
         self.extrusion = self.get_extrusion(obj.data)
@@ -1185,8 +1186,8 @@ class Face:
         else:
             self.color_index = BYLAYER
         
-        discard, self.layer = get_layer(obj.data)
-        obj.data.remove(discard)
+        discard, self.layer, discard_index = get_layer(obj.data)
+        del obj.data[discard_index]
         self.points = self.get_points(obj.data)
     
     
@@ -1242,7 +1243,6 @@ class Face:
         return "%s: layer - %s, points - %s" %(self.__class__.__name__, self.layer, self.points)
     
 
-
 def get_name(data):
     """Get the name of an object from its object data.
     
@@ -1251,23 +1251,23 @@ def get_name(data):
     name not None before using the returned values!
     """
     value = None
-    for item in data:
+    for i, item in enumerate(data):
         if item[0] == 2:
             value = item[1]
             break
-    return item, value
+    return item, value, i
 
 def get_layer(data):
     """Expects object data as input.
     
-    Returns (entry, layer_name) where entry is the data item that provided the layer name.
+    Returns (entry, layer_name, entry_index) where entry is the data item that provided the layer name.
     """
     value = None
-    for item in data:
+    for i, item in enumerate(data):
         if item[0] == 8:
             value = item[1]
             break
-    return item, value
+    return item, value, i
 
 
 # type to object map

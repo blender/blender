@@ -78,9 +78,16 @@ except ImportError:
     import sys
     curdir = Sys.dirname(Blender.Get('filename'))
     sys.path.append(curdir)
+
+# development
+#import dxfReader
+#reload(dxfReader)
+
 from dxfReader import readDXF
 from dxfColorMap import color_map
 from math import *
+
+
 
 try:
     import os
@@ -137,7 +144,7 @@ class MatColors:
                 self.map[color] = layer
                 color = 0
         color = abs(color)
-        if color not in self.colors.keys():
+        if color not in self.colors: # .keys()
             self.add(color)
         return self.colors[color]
     
@@ -179,7 +186,7 @@ class Blocks:
         """
         if not name:
             return self.blocks
-        if name not in self.blocks.keys():
+        if name not in self.blocks: # .keys():
             self.add(name)
         return self.blocks[name]
     
@@ -223,17 +230,17 @@ class Settings:
         
         # The header section may be omited
         if self.optimization <= self.MID:
-            if 'header' in sections.keys():
+            if 'header' in sections: #.keys():
                 print "Found header!"
             else:
                 print "File contains no header!"
                 
         # The tables section may be partialy or completely missing.
-        if 'tables' in sections.keys():
+        if 'tables' in sections: # .keys():
             if self.optimization <= self.MID:
                 print "Found tables!"
             tables = dict([(item.name, item) for item in sections["tables"].data])
-            if 'layer' in tables.keys():
+            if 'layer' in tables: # .keys():
                 if self.optimization <= self.MID:
                     print "Found layers!"
                 # Read the layers table and get the layer colors
@@ -251,7 +258,7 @@ class Settings:
             self.colors = MatColors({})
             
         # The blocks section may be omited
-        if 'blocks' in sections.keys():
+        if 'blocks' in sections: #.keys():
             if self.optimization <= self.MID:
                 print "Found blocks!"
             # Read the block definitions and build our block object
@@ -347,11 +354,11 @@ class Drawer:
             
             # Set the visability
             if settings.isOff(entity.layer):
-                ob.layers = [20]
+                ob.Layers = 1<<19 # [20]
             elif block_def:
-                ob.layers = [19]
+                ob.Layers = (1<<18) # [19]
             else:
-                ob.layers = [i+1 for i in range(20)]
+                ob.Layers = (1<<20)-1 # [i+1 for i in xrange(20)] # all layers
             
             # # Set the visability
             # if settings.isOff(entity.layer) or block_def:
@@ -500,7 +507,7 @@ def drawDrawing(drawing):
     drawEntities(drawing.entities, settings)
     
     # Set the visable layers
-    SCENE.setLayers([i+1 for i in range(18)])
+    SCENE.setLayers([i+1 for i in xrange(18)]) # SCENE.Layers = 262143 or (1<<18) 
     Blender.Redraw(-1)
     if settings.optimization <= settings.MID:
         print "Done!"
@@ -509,7 +516,7 @@ def drawEntities(entities, settings, group=None):
     
     If provided 'group' is the Blender group new entities are to be added to.
     """
-    for _type, drawer in type_map.items():
+    for _type, drawer in type_map.iteritems():
         # for each known type get a list of that type and call the associated draw function
         drawer(entities.get_type(_type), settings, group)
     
@@ -539,7 +546,7 @@ def drawLWpolyline(pline, curves=False):
     """Do all the specific things needed to import plines into Blender."""
     # Generate the geometery
     points = []
-    for i in range(len(pline.points)):
+    for i in xrange(len(pline.points)):
         point = pline.points[i]
         if not point.bulge:
             points.append(point.loc)
@@ -552,7 +559,7 @@ def drawLWpolyline(pline, curves=False):
             if point.bulge >= 0:
                 verts.reverse()
             points.extend(verts)
-    edges = [[num, num+1] for num in range(len(points)-1)]
+    edges = [[num, num+1] for num in xrange(len(points)-1)]
     if pline.closed:
         edges.append([len(pline.points)-1, 0])
 
@@ -575,7 +582,7 @@ def drawPolyline(pline, curves=False):
     """Do all the specific things needed to import plines into Blender."""
     # Generate the geometery
     points = []
-    for i in range(len(pline.points)):
+    for i in xrange(len(pline.points)):
         point = pline.points[i]
         if not point.bulge:
             points.append(point.loc)
@@ -588,7 +595,7 @@ def drawPolyline(pline, curves=False):
             if point.bulge >= 0:
                 verts.reverse()
             points.extend(verts)
-    edges = [[num, num+1] for num in range(len(points)-1)]
+    edges = [[num, num+1] for num in xrange(len(points)-1)]
     if pline.closed:
         edges.append([len(pline.points)-1, 0])
 
@@ -817,14 +824,14 @@ def drawArc(center, radius, start, end, step=0.5):
     
     stepmatrix = Mathutils.RotationMatrix(step, 3, "Z")
     point = Mathutils.Vector(startpoint)
-    for i in range(int(pieces)):
+    for i in xrange(int(pieces)):
         point = stepmatrix * point
         points.append(point)
     points.append(endpoint)
     
     if center:
         points = [[point[0]+center[0], point[1]+center[1], point[2]+center[2]] for point in points]
-    edges = [[num, num+1] for num in range(len(points)-1)]
+    edges = [[num, num+1] for num in xrange(len(points)-1)]
     
     return points, edges
 drawEllipses = Drawer()
@@ -1003,3 +1010,34 @@ type_map = {
 
 if __name__ == "__main__":
     Window.FileSelector(main, 'Import a DXF file', '*.dxf')
+
+
+"""
+# For testing compatibility
+if 1:
+	# DEBUG ONLY
+	TIME= Blender.sys.time()
+	import os
+	print 'Searching for files'
+	os.system('find /metavr/ -iname "*.dxf" > /tmp/tempdxf_list')
+	print '...Done'
+	file= open('/tmp/tempdxf_list', 'r')
+	lines= file.readlines()
+	file.close()
+
+	def between(v,a,b):
+		if v <= max(a,b) and v >= min(a,b):
+			return True		
+		return False
+		
+	for i, _file in enumerate(lines):
+		if between(i, 50,60):
+			_file= _file[:-1]
+			print 'Importing', _file, '\nNUMBER', i, 'of', len(lines)
+			_file_name= _file.split('/')[-1].split('\\')[-1]
+			newScn= Scene.New(_file_name)
+			newScn.makeCurrent()
+			main(_file)
+
+	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
+"""
