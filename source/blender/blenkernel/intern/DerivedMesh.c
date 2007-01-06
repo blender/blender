@@ -1986,6 +1986,8 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r,
 		MEM_freeN(deformedVerts);
 	} else if (dm) {
 		*final_r = dm;
+	} else if (cage_r && *cage_r) {
+		*final_r = *cage_r;
 	} else {
 		*final_r = getEditMeshDerivedMesh(em, ob, deformedVerts);
 	}
