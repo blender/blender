@@ -706,7 +706,7 @@ void multires_delete(void *ob, void *me_v)
 
 	allqueue(REDRAWBUTSEDIT, 0);
 
-	multires_undo_push("Delete multires");
+	multires_undo_push("Apply multires");
 }
 
 MultiresLevel *multires_level_copy(MultiresLevel *orig)

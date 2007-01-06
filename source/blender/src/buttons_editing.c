@@ -5027,7 +5027,7 @@ void editing_panel_mesh_multires()
 		but= uiDefBut(block,BUT,B_NOP,"Add Multires", cx,cy,120,19,0,0,0,0,0,"");
 		uiButSetFunc(but,multires_make,ob,me);
 	} else {
-		but= uiDefBut(block,BUT,B_NOP,"Delete Multires", cx,cy,120,19,0,0,0,0,0,"");
+		but= uiDefBut(block,BUT,B_NOP,"Apply Multires", cx,cy,120,19,0,0,0,0,0,"Apply current multires level to mesh and the delete other levels");
 		uiButSetFunc(but,multires_delete,ob,me);
 		cy-= 24;
 
