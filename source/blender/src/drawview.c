@@ -2570,7 +2570,8 @@ void view3d_update_depths(View3D *v3d)
 	if(v3d->depths) {
 		ViewDepths *d= v3d->depths;
 		if(d->w != v3d->area->winx ||
-		   d->h != v3d->area->winy) {
+		   d->h != v3d->area->winy ||
+		   !d->depths) {
 			d->w= v3d->area->winx;
 			d->h= v3d->area->winy;
 			if(d->depths)
@@ -2596,6 +2597,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	Base *base;
 	Object *ob;
 	Scene *sce;
+	char retopo;
 	
 	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
 	   no layer check here, gets correct flushed */
@@ -2717,7 +2719,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 	}
 
-	if(retopo_mesh_check() || retopo_curve_check())
+	retopo= retopo_mesh_check() || retopo_curve_check();
+	if(retopo)
 		view3d_update_depths(v3d);
 
 	/* draw selected and editmode */
@@ -2727,6 +2730,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				draw_object(base, 0);
 		}
 	}
+
+	if(!retopo && (G.f & G_SCULPTMODE) && !(sculpt_session()->active_ob->dtx & OB_DRAWXRAY))
+		view3d_update_depths(v3d);
 
 	if(G.moving) {
 		BIF_drawConstraint();
@@ -2740,7 +2746,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
 	view3d_draw_transp(v3d, 0);
 	
-	if(!(retopo_mesh_check() || retopo_curve_check()) && (G.f & G_SCULPTMODE))
+	if(!retopo && (G.f & G_SCULPTMODE) && (sculpt_session()->active_ob->dtx & OB_DRAWXRAY))
 		view3d_update_depths(v3d);
 	
 	if(v3d->flag & V3D_CLIPPING)
