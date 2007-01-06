@@ -1355,6 +1355,8 @@ void separate_material(void)
 	unsigned char curr_mat;
 	Mesh *me;
 	
+	if(multires_test()) return;
+	
 	me= get_mesh(G.obedit);
 	if(me->key) {
 		error("Can't separate with vertex keys");
@@ -1395,7 +1397,8 @@ void separate_mesh(void)
 	struct VNode *vnode = NULL;
 #endif
 	
-	TEST_EDITMESH	
+	TEST_EDITMESH
+	if(multires_test()) return;
 
 	waitcursor(1);
 	
@@ -1578,6 +1581,7 @@ void separate_mesh_loose(void)
 	}
 	
 	TEST_EDITMESH
+	if(multires_test()) return;
 	waitcursor(1);	
 	
 	/* we are going to abuse the system as follows:
