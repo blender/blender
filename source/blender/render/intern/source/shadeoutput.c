@@ -347,8 +347,11 @@ void renderspothalo(ShadeInput *shi, float *col, float alpha)
 		
 		if(lar->type==LA_SPOT && (lar->mode & LA_HALO) && lar->haint>0) {
 			
-			if(lar->mode & LA_LAYER) if((lar->lay & shi->vlr->lay)==0) continue;
-			if((lar->lay & shi->lay)==0) continue;
+			if(lar->mode & LA_LAYER) 
+				if(shi->vlr && (lar->lay & shi->vlr->lay)==0) 
+					continue;
+			if((lar->lay & shi->lay)==0) 
+				continue;
 			
 			spothalo(lar, shi, &i);
 			if(i>0.0f) {
