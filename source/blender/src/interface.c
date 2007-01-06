@@ -4185,10 +4185,15 @@ static void ui_but_next_edittext(uiBlock *block)
 	uiBut *but, *actbut;
 
 	for(actbut= block->buttons.first; actbut; actbut= actbut->next) {
-		if(actbut->flag & UI_ACTIVE) break;
+		/* label and roundbox can overlap real buttons (backdrops...) */
+		if(actbut->type!=LABEL && actbut->type!=ROUNDBOX)
+			if(actbut->flag & UI_ACTIVE) break;
 	}
 	if(actbut) {
-		actbut->flag &= ~(UI_ACTIVE|UI_SELECT);
+		/* ensure all buttons are cleared, label/roundbox overlap */
+		for(but= block->buttons.first; but; but= but->next)
+			but->flag &= ~(UI_ACTIVE|UI_SELECT);
+		
 		for(but= actbut->next; but; but= but->next) {
 			if(ELEM4(but->type, TEX, NUM, NUMSLI, HSVSLI)) {
 				but->flag |= UI_ACTIVE;
@@ -4209,10 +4214,15 @@ static void ui_but_prev_edittext(uiBlock *block)
 	uiBut *but, *actbut;
 	
 	for(actbut= block->buttons.first; actbut; actbut= actbut->next) {
-		if(actbut->flag & UI_ACTIVE) break;
+		/* label and roundbox can overlap real buttons (backdrops...) */
+		if(actbut->type!=LABEL && actbut->type!=ROUNDBOX)
+			if(actbut->flag & UI_ACTIVE) break;
 	}
 	if(actbut) {
-		actbut->flag &= ~(UI_ACTIVE|UI_SELECT);
+		/* ensure all buttons are cleared, label/roundbox overlap */
+		for(but= block->buttons.first; but; but= but->next)
+			but->flag &= ~(UI_ACTIVE|UI_SELECT);
+		
 		for(but= actbut->prev; but; but= but->prev) {
 			if(ELEM4(but->type, TEX, NUM, NUMSLI, HSVSLI)) {
 				but->flag |= UI_ACTIVE;

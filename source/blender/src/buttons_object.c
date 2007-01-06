@@ -1152,95 +1152,89 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			{
 				bRigidBodyJointConstraint *data = con->data;
-				int togButWidth = 70;
-				int offsetY = 150;
 				float extremeLin = 999.f;
 				float extremeAngX = 180.f;
 				float extremeAngY = 45.f;
 				float extremeAngZ = 45.f;
-
+				int togButWidth = 70;
+				int offsetY = 150;
 				int textButWidth = ((width/2)-togButWidth);
 
 				uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Generic (experimental)%x12",//|Extra Force%x6",
 												*xco, *yco-25, 150, 18, &data->type, 0, 0, 0, 0, "Choose the joint type");
                 height = 140;
-				if (data->type==CONSTRAINT_RB_GENERIC6DOF){
+				if (data->type==CONSTRAINT_RB_GENERIC6DOF)
 					height = 270;
-				}
-                uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, "");
-				{
-				    //uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, "");
-                    uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "toObject:", *xco, *yco-50, 130, 18, &data->tar, "Child Object");
-                    uiDefButBitS(block, TOG, CONSTRAINT_DRAW_PIVOT, B_CONSTRAINT_TEST, "ShowPivot", *xco+135, *yco-50, 130, 18, &data->flag, 0, 24, 0, 0, "Show pivot position and rotation"); 				
-                    //if (data->tar)
-                    //    uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "Child:", *xco+135, *yco-50, 130, 18, &data->child, "Child2 Object (if this exist then this object will be the pivot Only)");
-                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot X:", *xco, *yco-75, 130, 18, &data->pivX, -1000, 1000, 100, 0.0, "Offset pivot on X");
-                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Y:", *xco, *yco-100, 130, 18, &data->pivY, -1000, 1000, 100, 0.0, "Offset pivot on Y");
-                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Z:", *xco, *yco-125, 130, 18, &data->pivZ, -1000, 1000, 100, 0.0, "Offset pivot on z");
-					
-                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax X:", *xco+135, *yco-75, 130, 18, &data->axX, -360, 360, 1500, 0.0, "Rotate pivot on X Axis (in degrees)");
-                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax Y:", *xco+135, *yco-100, 130, 18, &data->axY, -360, 360, 1500, 0.0, "Rotate pivot on Y Axis (in degrees)");
-                    uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax Z:", *xco+135, *yco-125, 130, 18, &data->axZ, -360, 360, 1500, 0.0, "Rotate pivot on Z Axis (in degrees)");
-					
-					if (data->type==CONSTRAINT_RB_GENERIC6DOF){
-						/* Draw Pairs of LimitToggle+LimitValue */
-						uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "LinMinX", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[0]), -extremeLin, extremeLin, 0.1,0.5,"min x limit"); 
-						uiBlockEndAlign(block); 
-						uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "LinMaxX", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum x limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[0]), -extremeLin, extremeLin, 0.1,0.5,"max x limit"); 
-						uiBlockEndAlign(block); 
-						offsetY += 20;
-						uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 2, B_CONSTRAINT_TEST, "LinMinY", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[1]), -extremeLin, extremeLin, 0.1,0.5,"min y limit"); 
-						uiBlockEndAlign(block); 
-						uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 2, B_CONSTRAINT_TEST, "LinMaxY", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum y limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[1]), -extremeLin, extremeLin, 0.1,0.5,"max y limit"); 
-						uiBlockEndAlign(block); 
-						offsetY += 20;
-						uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 4, B_CONSTRAINT_TEST, "LinMinZ", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[2]), -extremeLin, extremeLin, 0.1,0.5,"min z limit"); 
-						uiBlockEndAlign(block); 
-						uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 4, B_CONSTRAINT_TEST, "LinMaxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum z limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[2]), -extremeLin, extremeLin, 0.1,0.5,"max z limit"); 
-						uiBlockEndAlign(block);
-						offsetY += 20;
 				
-						/* Draw Pairs of LimitToggle+LimitValue */
-						uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 8, B_CONSTRAINT_TEST, "AngMinX", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[3]), -extremeAngX, extremeAngX, 0.1,0.5,"min x limit"); 
-						uiBlockEndAlign(block); 
-						uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 8, B_CONSTRAINT_TEST, "AngMaxX", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum x limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[3]), -extremeAngX, extremeAngX, 0.1,0.5,"max x limit"); 
-						uiBlockEndAlign(block); 
-						offsetY += 20;
-						uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 16, B_CONSTRAINT_TEST, "AngMinY", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[4]), -extremeAngY, extremeAngY, 0.1,0.5,"min y limit"); 
-						uiBlockEndAlign(block); 
-						uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 16, B_CONSTRAINT_TEST, "AngMaxY", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum y limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[4]), -extremeAngY, extremeAngY, 0.1,0.5,"max y limit"); 
-						uiBlockEndAlign(block); 
-						offsetY += 20;
-						uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 32, B_CONSTRAINT_TEST, "AngMinZ", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[5]), -extremeAngZ, extremeAngZ, 0.1,0.5,"min z limit"); 
-						uiBlockEndAlign(block); 
-						uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 32, B_CONSTRAINT_TEST, "AngMaxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum z limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[5]), -extremeAngZ, extremeAngZ, 0.1,0.5,"max z limit"); 
-						uiBlockEndAlign(block);
-					}
-                }				
+                uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, "");
+
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "toObject:", *xco, *yco-50, 130, 18, &data->tar, "Child Object");
+				uiDefButBitS(block, TOG, CONSTRAINT_DRAW_PIVOT, B_CONSTRAINT_TEST, "ShowPivot", *xco+135, *yco-50, 130, 18, &data->flag, 0, 24, 0, 0, "Show pivot position and rotation"); 				
+
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot X:", *xco, *yco-75, 130, 18, &data->pivX, -1000, 1000, 100, 0.0, "Offset pivot on X");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Y:", *xco, *yco-100, 130, 18, &data->pivY, -1000, 1000, 100, 0.0, "Offset pivot on Y");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Z:", *xco, *yco-125, 130, 18, &data->pivZ, -1000, 1000, 100, 0.0, "Offset pivot on z");
+				
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax X:", *xco+135, *yco-75, 130, 18, &data->axX, -360, 360, 1500, 0.0, "Rotate pivot on X Axis (in degrees)");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax Y:", *xco+135, *yco-100, 130, 18, &data->axY, -360, 360, 1500, 0.0, "Rotate pivot on Y Axis (in degrees)");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Ax Z:", *xco+135, *yco-125, 130, 18, &data->axZ, -360, 360, 1500, 0.0, "Rotate pivot on Z Axis (in degrees)");
+				
+				if (data->type==CONSTRAINT_RB_GENERIC6DOF){
+					/* Draw Pairs of LimitToggle+LimitValue */
+					uiBlockBeginAlign(block); 
+					uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "LinMinX", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[0]), -extremeLin, extremeLin, 0.1,0.5,"min x limit"); 
+
+					uiBlockBeginAlign(block); 
+					uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "LinMaxX", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum x limit"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[0]), -extremeLin, extremeLin, 0.1,0.5,"max x limit"); 
+
+					offsetY += 20;
+					uiBlockBeginAlign(block); 
+					uiDefButBitS(block, TOG, 2, B_CONSTRAINT_TEST, "LinMinY", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y limit"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[1]), -extremeLin, extremeLin, 0.1,0.5,"min y limit"); 
+
+					uiBlockBeginAlign(block); 
+					uiDefButBitS(block, TOG, 2, B_CONSTRAINT_TEST, "LinMaxY", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum y limit"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[1]), -extremeLin, extremeLin, 0.1,0.5,"max y limit"); 
+
+					offsetY += 20;
+					uiBlockBeginAlign(block); 
+					uiDefButBitS(block, TOG, 4, B_CONSTRAINT_TEST, "LinMinZ", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z limit"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[2]), -extremeLin, extremeLin, 0.1,0.5,"min z limit"); 
+
+					uiBlockBeginAlign(block); 
+					uiDefButBitS(block, TOG, 4, B_CONSTRAINT_TEST, "LinMaxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum z limit"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[2]), -extremeLin, extremeLin, 0.1,0.5,"max z limit"); 
+					offsetY += 20;
+			
+					/* Draw Pairs of LimitToggle+LimitValue */
+					uiBlockBeginAlign(block); 
+					uiDefButBitS(block, TOG, 8, B_CONSTRAINT_TEST, "AngMinX", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[3]), -extremeAngX, extremeAngX, 0.1,0.5,"min x limit"); 
+					uiBlockBeginAlign(block); 
+					uiDefButBitS(block, TOG, 8, B_CONSTRAINT_TEST, "AngMaxX", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum x limit"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[3]), -extremeAngX, extremeAngX, 0.1,0.5,"max x limit"); 
+
+					offsetY += 20;
+					uiBlockBeginAlign(block); 
+					uiDefButBitS(block, TOG, 16, B_CONSTRAINT_TEST, "AngMinY", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y limit"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[4]), -extremeAngY, extremeAngY, 0.1,0.5,"min y limit"); 
+
+					uiBlockBeginAlign(block); 
+					uiDefButBitS(block, TOG, 16, B_CONSTRAINT_TEST, "AngMaxY", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum y limit"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[4]), -extremeAngY, extremeAngY, 0.1,0.5,"max y limit"); 
+
+					offsetY += 20;
+					uiBlockBeginAlign(block); 
+					uiDefButBitS(block, TOG, 32, B_CONSTRAINT_TEST, "AngMinZ", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z limit"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[5]), -extremeAngZ, extremeAngZ, 0.1,0.5,"min z limit"); 
+
+					uiBlockBeginAlign(block); 
+					uiDefButBitS(block, TOG, 32, B_CONSTRAINT_TEST, "AngMaxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum z limit"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[5]), -extremeAngZ, extremeAngZ, 0.1,0.5,"max z limit"); 
+					uiBlockEndAlign(block);
+				}
 			}
 			break;
 		case CONSTRAINT_TYPE_NULL:
@@ -1258,7 +1252,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		(*yco)-=(24+height);
 	}
 
-	if ((con->type!=CONSTRAINT_TYPE_NULL)&&(con->type!=CONSTRAINT_TYPE_RIGIDBODYJOINT)) {
+	if ((con->type != CONSTRAINT_TYPE_NULL) && (con->type!=CONSTRAINT_TYPE_RIGIDBODYJOINT)) {
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_CONSTRAINT_INF, "Influence ", *xco, *yco, 197, 20, &(con->enforce), 0.0, 1.0, 0.0, 0.0, "Amount of influence this constraint will have on the final solution");
 		but = uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Show", *xco+200, *yco, 45, 20, 0, 0.0, 1.0, 0.0, 0.0, "Show constraint's ipo in the Ipo window, adds a channel if not there");
@@ -1269,10 +1263,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		uiButSetFunc (but, add_influence_key_to_constraint_func, ob, con);
 		uiBlockEndAlign(block);
 		(*yco)-=24;
-	} else {
+	} 
+	else {
 		(*yco)-=3;
 	}
-	
 }
 
 static uiBlock *add_constraintmenu(void *arg_unused)
