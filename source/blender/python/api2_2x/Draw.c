@@ -68,6 +68,8 @@ current image frame, some images change frame if they are a sequence */
 #define EXPP_BUTTON_EVENTS_MIN 0
 #define EXPP_BUTTON_EVENTS_MAX 15382 /* 16384 - 1 - OFFSET */
 
+#define ButtonObject_Check(v) ((v)->ob_type == &Button_Type)
+
 /* pointer to main dictionary defined in Blender.c */
 extern PyObject *g_blenderdict;
 
@@ -78,6 +80,7 @@ int EXPP_disable_force_draw = 0;
 static void Button_dealloc( PyObject * self );
 static PyObject *Button_getattr( PyObject * self, char *name );
 static PyObject *Button_repr( PyObject * self );
+static PyObject *Button_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type);
 static int Button_setattr( PyObject * self, char *name, PyObject * v );
 
 static Button *newbutton( void );
@@ -112,8 +115,8 @@ static PyObject *Method_PupMenu( PyObject * self, PyObject * args );
 static PyObject *Method_PupIntInput( PyObject * self, PyObject * args );
 static PyObject *Method_PupFloatInput( PyObject * self, PyObject * args );
 static PyObject *Method_PupStrInput( PyObject * self, PyObject * args );
-static PyObject *Method_BeginAlign( PyObject * self );
-static PyObject *Method_EndAlign( PyObject * self );
+static PyObject *Method_BeginAlign( PyObject * self, PyObject * args  );
+static PyObject *Method_EndAlign( PyObject * self, PyObject * args  );
 /* next by Jonathan Merritt (lancelet): */
 static PyObject *Method_Image( PyObject * self, PyObject * args);
 /* CLEVER NUMBUT */
@@ -367,8 +370,8 @@ static struct PyMethodDef Draw_methods[] = {
 	MethodDef( Draw ),
 	MethodDef( Register ),
 	{"PushButton", Method_Button, METH_VARARGS, Method_Button_doc},
-	{"BeginAlign", Method_BeginAlign, METH_NOARGS, Method_BeginAlign_doc},
-	{"EndAlign", Method_EndAlign, METH_NOARGS, Method_EndAlign_doc},
+	MethodDef( BeginAlign ),
+	MethodDef( EndAlign),
 	{NULL, NULL, 0, NULL}
 };
 
@@ -381,10 +384,72 @@ PyTypeObject Button_Type = {
 	( printfunc ) 0,	/*tp_print */
 	( getattrfunc ) Button_getattr,	/*tp_getattr */
 	( setattrfunc ) Button_setattr,	/*tp_setattr */
-	( cmpfunc ) 0,		/*tp_cmp */
+	NULL,		/*tp_cmp */
 	( reprfunc ) Button_repr,	/*tp_repr */
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	(richcmpfunc)Button_richcmpr,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	NULL,           /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	NULL,         /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
 };
 
 static void Button_dealloc( PyObject * self )
@@ -489,6 +554,16 @@ static PyObject *Button_repr( PyObject * self )
 {
 	return PyObject_Repr( Button_getattr( self, "val" ) );
 }
+
+static PyObject *Button_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
+{
+	if (ButtonObject_Check(objectA))
+		objectA = Button_getattr( objectA, "val" );
+	if (ButtonObject_Check(objectB))
+		objectB = Button_getattr( objectB, "val" );
+	return PyObject_RichCompare(objectA, objectB, comparison_type);
+}
+
 
 static Button *newbutton( void )
 {
@@ -879,7 +954,7 @@ static PyObject *Method_Button( PyObject * self, PyObject * args )
 
 
 
-static PyObject *Method_BeginAlign( PyObject * self )
+static PyObject *Method_BeginAlign( PyObject * self, PyObject * args )
 {
 	uiBlock *block = Get_uiBlock(  );
 	
@@ -889,7 +964,7 @@ static PyObject *Method_BeginAlign( PyObject * self )
 	return EXPP_incr_ret( Py_None );
 }
 
-static PyObject *Method_EndAlign( PyObject * self )
+static PyObject *Method_EndAlign( PyObject * self, PyObject * args )
 {
 	uiBlock *block = Get_uiBlock(  );
 	
