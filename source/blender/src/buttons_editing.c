@@ -754,10 +754,10 @@ static int customdata_buttons(uiBlock *block, Mesh *me, CustomData *data, int ty
 		if(layer->type == type) {
 			*activep= layer->active + 1;
 
-			uiDefButI(block, ROW, setevt, "", x,y,25,19, activep, 1.0, count, 0, 0, "Set active UV texture layer");
-			but=uiDefBut(block, TEX, setevt, "", x+25,y,170,19, layer->name, 0.0, 31.0, 0, 0, "UV texture layer name");
+			uiDefButI(block, ROW, setevt, "", x,y,25,19, activep, 1.0, count, 0, 0, browsetip);
+			but=uiDefBut(block, TEX, setevt, "", x+25,y,170,19, layer->name, 0.0, 31.0, 0, 0, label);
 			uiButSetFunc(but, verify_customdata_name_func, data, layer);
-			but= uiDefIconBut(block, BUT, B_NOP, VICON_X, x+195,y,25,19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete UV texture layer");
+			but= uiDefIconBut(block, BUT, B_NOP, VICON_X, x+195,y,25,19, NULL, 0.0, 0.0, 0.0, 0.0, deltip);
 			uiButSetFunc(but, delete_customdata_layer, me, layer);
 
 
