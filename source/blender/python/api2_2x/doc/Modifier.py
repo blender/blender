@@ -59,10 +59,10 @@ Example::
 
 @type Settings: readonly dictionary
 @var Settings: Constant Modifier dict used for changing modifier settings.
-	- RENDER - Used for all modifiers (bool)
-	- REALTIME - Used for all modifiers (bool)
-	- EDITMODE - Used for all modifiers (bool)
-	- ONCAGE - Used for all modifiers (bool)
+	- RENDER - Used for all modifiers (bool) If true, the modifier is enabled for rendering.
+	- REALTIME - Used for all modifiers (bool) If true, the modifier is enabled for interactive display.
+	- EDITMODE - Used for all modifiers (bool) If both REALTIME and EDITMODE are true, the modifier is enabled for interactive display while the object is in edit mode.
+	- ONCAGE - Used for all modifiers (bool) If true, the modifier is enabled for the editing cage during edit mode.
 
 	- OBJECT - Used for Armature, Lattice, Curve, Boolean and Array (Object)
 	- VERTGROUP - Used for Armature, Lattice and Curve (String)
@@ -71,11 +71,11 @@ Example::
 	- COUNT - Decimator Polycount (readonly) and Array (int)
 	- LENGTH - Build [1.0-300000.0] and Array [0.0 - 10000.0] (float)
 	
-	- TYPES - Used for Subsurf only
-	- LEVELS - Used for Subsurf only (int [0 - 6])
-	- RENDLEVELS - Used for Subsurf only (int [0 - 6])
-	- OPTIMAL - Used for Subsurf only (bool)
-	- UV - Used for Subsurf only (bool)
+	- TYPES - Used for Subsurf only. Determines the subdivision algorithm. Integer: 0 = Catmull-Clark; 1 = simple subdivision.
+	- LEVELS - Used for Subsurf only (int [0 - 6]). The number of subdivision levels used for interactive display.
+	- RENDLEVELS - Used for Subsurf only (int [0 - 6]). The number of subdivision levels used for rendering.
+	- OPTIMAL - Used for Subsurf only (bool). Enables Optimal Draw.
+	- UV - Used for Subsurf only (bool). Enables Subsurf UV.
 
 	- OBJECT_OFFSET - Used for Array only (Object)
 	- OBJECT_CURVE - Used for Array only (Curve Object)
