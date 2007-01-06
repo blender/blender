@@ -178,7 +178,10 @@ class Armature:
   
   def makeEditable():
     """
-    Put the armature into EditMode for editing purposes.
+    Put the armature into EditMode for editing purposes. (Enters Editmode)
+    @warning: Using Window.Editmode() to switch the editmode manually will cause problems and possibly even crash Blender.
+    @warning: This is only needed for operations such as adding and removing bones.
+    @warning: Do access pose data until you have called update() or settings will be lost. 
     @warning: The armature should not be in manual editmode
     prior to calling this method. The armature must be parented
     to an object prior to editing.
@@ -187,7 +190,7 @@ class Armature:
 
   def update():
     """
-    Save all changes and update the armature.
+    Save all changes and update the armature. (Leaves Editmode)
     @note: Must have called makeEditable() first.
     @rtype: None
     """
