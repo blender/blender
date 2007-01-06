@@ -652,13 +652,13 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 {
 	bPoseChannel *pchan, **defnrToPC = NULL;
 	MDeformVert *dverts = NULL;
+	bDeformGroup *dg;
 	float obinv[4][4], premat[4][4], postmat[4][4];
 	int use_envelope = deformflag & ARM_DEF_ENVELOPE;
 	int numGroups = 0;		/* safety for vertexgroup index overflow */
 	int i, target_totvert = 0;	/* safety for vertexgroup overflow */
 	int use_dverts = 0;
 	int armature_def_nr = -1;
-	bDeformGroup *dg;
 
 	if(armOb == G.obedit) return;
 	
@@ -723,16 +723,13 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	for(i = 0; i < numVerts; i++) {
 		MDeformVert *dvert;
 		float *co = vertexCos[i];
-		float	vec[3];
-		float	contrib = 0.0;
-		int		j;
-		float armature_weight = 1; /* default to 1 if no overall def group */
+		float vec[3];
+		float contrib = 0.0f;
+		float armature_weight = 1.0f; /* default to 1 if no overall def group */
+		int	  j;
 
-		vec[0] = vec[1] = vec[2] = 0;
+		vec[0] = vec[1] = vec[2] = 0.0f;
 
-		/* Apply the object's matrix */
-		Mat4MulVecfl(premat, co);
-		
 		if(use_dverts || armature_def_nr >= 0) {
 			if(dm) dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
 			else if(i < target_totvert) dvert = dverts + i;
@@ -741,7 +738,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 			dvert = NULL;
 
 		if(armature_def_nr >= 0 && dvert) {
-			armature_weight = 0; /* a def group was given, so default to 0 */
+			armature_weight = 0.0f; /* a def group was given, so default to 0 */
 			for(j = 0; j < dvert->totweight; j++) {
 				if(dvert->dw[j].def_nr == armature_def_nr) {
 					armature_weight = dvert->dw[j].weight;
@@ -751,7 +748,10 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 		}
 
 		/* check if there's any  point in calculating for this vert */
-		if(armature_weight == 0) continue;
+		if(armature_weight == 0.0f) continue;
+		
+		/* Apply the object's matrix */
+		Mat4MulVecfl(premat, co);
 		
 		if(use_dverts && dvert && dvert->totweight) { // use weight groups ?
 			int deformed = 0;
@@ -762,7 +762,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 				if(pchan) {
 					float weight = dvert->dw[j].weight;
 					Bone *bone = pchan->bone;
-					
+
 					deformed = 1;
 					
 					if(bone && bone->flag & BONE_MULT_VG_ENV) {
@@ -794,10 +794,12 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 			}
 		}
 
-		if(contrib > 0.0)
+		/* actually should be EPSILON. weight values and contrib can be like 10e-39 small */
+		if(contrib > 0.01f) {
 			VecMulf(vec, armature_weight / contrib);
-
-		VecAddf(co, vec, co);
+			VecAddf(co, vec, co);
+		}
+		/* always, check above code */
 		Mat4MulVecfl(postmat, co);
 	}
 
