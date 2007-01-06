@@ -378,9 +378,9 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 		face_it->Step(face_it->it);
 
 		// find the original mesh and data
-		orig_me = (csgface.orig_face < me1->totface)? me1: me2;
-		orig_ob = (orig_me == me1)? ob1: ob2;
-		orig_index = (orig_me == me1)? csgface.orig_face: csgface.orig_face - me1->totface;
+		orig_ob = (csgface.orig_face < me1->totface)? ob1: ob2;
+		orig_me = (orig_ob == ob1)? me1: me2;
+		orig_index = (orig_ob == ob1)? csgface.orig_face: csgface.orig_face - me1->totface;
 
 		// copy all face layers, including mface
 		CustomData_copy_data(&orig_me->fdata, &dm->faceData, orig_index, i, 1);
