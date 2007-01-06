@@ -87,7 +87,7 @@ class PoseBone:
   @type parent: posebone or None
   @ivar displayObject: The object to display in place of the bone. (custom bones)
   @type displayObject: Object or None
-  @ivar localMatrix: The matrix combination of rot/quat/loc.
+  @ivar localMatrix: The matrix combination of rot/size/loc.
   @type localMatrix: Matrix object
   @ivar poseMatrix: The total transformation of this PoseBone including constraints.
 
@@ -117,8 +117,8 @@ class PoseBone:
     @type type: Constant object
     @param type: Can be any combination of 3 Module constants:
        - Pose.LOC
-       - Pose.ROT
-       - Pose.QUAT
+       - Pose.ROT (This adds keyframes to the quat ipo, since quaternions are used for pose bone rotation)
+       - Pose.SIZE
     @rtype: None
     """
 
