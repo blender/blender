@@ -567,6 +567,9 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 	int size = typeInfo->size * totelem, flag = 0, index = data->totlayer;
 	void *newlayerdata;
 
+	if (!typeInfo->defaultname && CustomData_has_layer(data, type))
+		return &data->layers[CustomData_get_layer_index(data, type)];
+
 	if((alloctype == CD_ASSIGN) || (alloctype == CD_REFERENCE)) {
 		newlayerdata = layerdata;
 	}
@@ -644,7 +647,6 @@ void *CustomData_add_layer_named(CustomData *data, int type, int alloctype,
                            void *layerdata, int totelem, char *name)
 {
 	CustomDataLayer *layer;
-	const LayerTypeInfo *typeInfo= layerType_getInfo(type);
 	
 	layer = customData_add_layer__internal(data, type, alloctype, layerdata,
 	                                       totelem, name);
@@ -1287,5 +1289,31 @@ void CustomData_set_layer_unique_name(CustomData *data, int index)
 			return;
 		}
 	}	
+}
+
+int CustomData_verify_versions(struct CustomData *data, int index)
+{
+	const LayerTypeInfo *typeInfo;
+	CustomDataLayer *layer = &data->layers[index];
+	int i, keeplayer = 1;
+
+	if (layer->type >= CD_NUMTYPES) {
+		keeplayer = 0; /* unknown layer type from future version */
+	}
+	else {
+		typeInfo = layerType_getInfo(layer->type);
+
+		if (!typeInfo->defaultname && (index > 0) &&
+			data->layers[index-1].type == layer->type)
+			keeplayer = 0; /* multiple layers of which we only support one */
+	}
+
+	if (!keeplayer) {
+	    for (i=index+1; i < data->totlayer; ++i)
+    	    data->layers[i-1] = data->layers[i];
+		data->totlayer--;
+	}
+
+	return keeplayer;
 }
 

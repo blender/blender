@@ -2487,14 +2487,9 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 	while (i < data->totlayer) {
 		CustomDataLayer *layer = &data->layers[i];
 
-		if (layer->type < CD_NUMTYPES) {
+		if (CustomData_verify_versions(data, i)) {
 			layer->data = newdataadr(fd, layer->data);
 			i++;
-		}
-		else {
-			/* delete layers with unknown type */
-			layer->data = NULL;
-			CustomData_free_layers(data, layer->type, 0);
 		}
 	}
 }
