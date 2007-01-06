@@ -3321,7 +3321,7 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 	uiBlock	*block;
 	
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_armature_visuals", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Armature Visualisations", "Editing");
+	uiNewPanelTabbed("Armature", "Editing");
 	if(uiNewPanel(curarea, block, "Armature Visualisations", "Editing", 320, 0, 318, 204)==0) return;
 
 	/* version patch for older files here (do_versions patch too complicated) */
