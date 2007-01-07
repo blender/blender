@@ -90,6 +90,7 @@ void sort_faces(void);
 #include "BDR_drawmesh.h" 
 #include "BDR_editobject.h" 
 #include "BDR_editface.h" 
+#include "BDR_sculptmode.h"
 
 #include "BLI_editVert.h"
 #include "BLI_threads.h"
@@ -794,7 +795,9 @@ void objects_bake_render(void)
 		ScrArea *area= biggest_image_area();
 		ListBase threads;
 		BakeRender bkr;
-		int timer=0, tot;
+		int timer=0, tot, sculptmode= G.f & G_SCULPTMODE;
+		
+		if(sculptmode) set_sculptmode();
 		
 		if(event==1) event= RE_BAKE_ALL;
 		else if(event==2) event= RE_BAKE_AO;
@@ -862,6 +865,9 @@ void objects_bake_render(void)
 		
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWVIEW3D, 0);
+		
+		if(sculptmode) set_sculptmode();
+		
 	}
 }
 
