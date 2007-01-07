@@ -64,7 +64,9 @@ class vertList:
 		Lambada based sort
 		'''
 		# self.verts.sort(lambda A, B: cmp(max(A.x+w, A.y+h) , max(B.x+w, B.y+h))) # Reverse area sort
-		self.verts.sort(key = lambda b: max(b.x+w, b.y+h) ) # Reverse area sort
+		try:	self.verts.sort(key = lambda b: max(b.x+w, b.y+h) ) # Reverse area sort
+		except:	self.verts.sort(lambda A, B: cmp(max(A.x+w, A.y+h) , max(B.x+w, B.y+h))) # Reverse area sort
+		
 		
 
 class box:
