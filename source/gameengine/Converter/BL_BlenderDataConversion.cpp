@@ -136,6 +136,9 @@
 #include "BKE_mesh.h"
 #include "MT_Point3.h"
 
+extern "C" {
+	#include "BKE_customdata.h"
+}
 
 #include "BKE_material.h" /* give_current_material */
 /* end of blender include block */
@@ -297,8 +300,22 @@ static void GetRGB(short type,
 	}
 }
 
+typedef struct MTF_localLayer
+{
+	MTFace *face;
+	char *name;
+}MTF_localLayer;
+
 // ------------------------------------
-BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, MTFace* tface,  MFace* mface, MCol* mmcol, int lightlayer, Object* blenderobj )
+BL_Material* ConvertMaterial(
+	Mesh* mesh, 
+	Material *mat, 
+	MTFace* tface,  
+	MFace* mface, 
+	MCol* mmcol, 
+	int lightlayer, 
+	Object* blenderobj,
+	MTF_localLayer *layers)
 {
 	//this needs some type of manager
 	BL_Material *material = new BL_Material();
@@ -344,6 +361,7 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, MTFace* tface,  MFace*
 		// foreach MTex
 		for(int i=0; i<numchan; i++) {
 			// use face tex
+
 			if(i==0 && facetex ) {
 				Image*tmp = (Image*)(tface->tpage);
 				if(tmp) {
@@ -355,7 +373,20 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, MTFace* tface,  MFace*
 					if(material->img[i]->flag & IMA_REFLECT)
 						material->mapping[i].mapping |= USEREFL;
 					else
+					{
+						mttmp = getImageFromMaterial( mat, i );
+						if(mttmp && mttmp->texco &TEXCO_UV)
+						{
+							STR_String uvName = mttmp->uvname;
+
+							if (!uvName.IsEmpty())
+								material->mapping[i].uvCoName = mttmp->uvname;
+							else
+								material->mapping[i].uvCoName = "";
+						}
 						material->mapping[i].mapping |= USEUV;
+					}
+
 					if(material->ras_mode & USE_LIGHT)
 						material->ras_mode &= ~USE_LIGHT;
 					if(tface->mode & TF_LIGHT)
@@ -433,7 +464,15 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, MTFace* tface,  MFace*
 					else if(mttmp->texco &(TEXCO_ORCO|TEXCO_GLOB))
 						material->mapping[i].mapping |= USEORCO;
 					else if(mttmp->texco &TEXCO_UV)
+					{
+						STR_String uvName = mttmp->uvname;
+
+						if (!uvName.IsEmpty())
+							material->mapping[i].uvCoName = mttmp->uvname;
+						else
+							material->mapping[i].uvCoName = "";
 						material->mapping[i].mapping |= USEUV;
+					}
 					else if(mttmp->texco &TEXCO_NORM)
 						material->mapping[i].mapping |= USENORM;
 					else if(mttmp->texco &TEXCO_TANGENT)
@@ -550,6 +589,7 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, MTFace* tface,  MFace*
 		material->ref			= 0.8f;
 	}
 	MT_Point2 uv[4];
+	MT_Point2 uv2[4];
 
 	if( validface ) {
 
@@ -581,10 +621,68 @@ BL_Material* ConvertMaterial(  Mesh* mesh, Material *mat, MTFace* tface,  MFace*
 		material->transp	= TF_SOLID;
 		material->tile		= 0;
 	}
+
+
+
+	// get uv sets
+	if(validmat) 
+	{
+		bool isFirstSet = true;
+
+		// only two sets implemented, but any of the eight 
+		// sets can make up the two layers
+		for (int vind = 0; vind<material->num_enabled; vind++)
+		{
+			BL_Mapping &map = material->mapping[vind];
+			if (map.uvCoName.IsEmpty())
+				isFirstSet = false;
+			else
+			{
+				MT_Point2 uvSet[4];
+				for (int lay=0; lay<MAX_MTFACE; lay++)
+				{
+					MTF_localLayer& layer = layers[lay];
+					if (layer.face == 0) break;
+
+
+					bool processed = false;
+					if (strcmp(map.uvCoName.ReadPtr(), layer.name)==0)
+					{
+						uvSet[0]	= MT_Point2(layer.face->uv[0]);
+						uvSet[1]	= MT_Point2(layer.face->uv[1]);
+						uvSet[2]	= MT_Point2(layer.face->uv[2]);
+
+						if (mface->v4) 
+							uvSet[3]	= MT_Point2(layer.face->uv[3]);
+
+						processed = true;
+					}
+
+					if (!processed) continue;
+
+					if (isFirstSet)
+					{
+						uv[0] = uvSet[0]; uv[1] = uvSet[1];
+						uv[2] = uvSet[2]; uv[3] = uvSet[3];
+						isFirstSet = false;
+					}
+					else
+					{
+						uv2[0] = uvSet[0]; uv2[1] = uvSet[1];
+						uv2[2] = uvSet[2]; uv2[3] = uvSet[3];
+						map.mapping |= USECUSTOMUV;
+					}
+				}
+			}
+		}
+	}
+
 	unsigned int rgb[4];
 	GetRGB(type,mface,mmcol,mat,rgb[0],rgb[1],rgb[2], rgb[3]);
 	material->SetConversionRGB(rgb);
 	material->SetConversionUV(uv);
+	material->SetConversionUV2(uv2);
+
 
 	material->ras_mode |= (mface->v4==0)?TRIANGLE:0;
 	if(validmat)
@@ -688,7 +786,8 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	MTFace* tface = static_cast<MTFace*>(mesh->mtface);
 	MCol* mmcol = mesh->mcol;
 	MT_assert(mface || mesh->totface == 0);
-	
+
+
 	// Determine if we need to make a skinned mesh
 	if (mesh->dvert){
 		meshobj = new BL_SkinMeshObject(lightlayer);
@@ -701,10 +800,32 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	if (tface)
 		tangent = BL_ComputeMeshTangentSpace(mesh);
 	
+
+	// Extract avaiable layers
+	MTF_localLayer *layers =  new MTF_localLayer[MAX_MTFACE];
+	for (int lay=0; lay<MAX_MTFACE; lay++)
+	{
+		layers[lay].face = 0;
+		layers[lay].name = "";
+	}
+
+
+	int validLayers = 0;
+	for (int i=0; i<mesh->fdata.totlayer; i++)
+	{
+		if (mesh->fdata.layers[i].type == CD_MTFACE)
+		{
+			assert(validLayers <= 8);
+
+			layers[validLayers].face = (MTFace*)mesh->fdata.layers[i].data;;
+			layers[validLayers].name = mesh->fdata.layers[i].name;
+			validLayers++;
+		}
+	}
+
+
 	meshobj->SetName(mesh->id.name);
-	
 	meshobj->m_xyz_index_to_vertex_index_mapping.resize(mesh->totvert);
-	
 	for (int f=0;f<mesh->totface;f++,mface++)
 	{
 		
@@ -714,6 +835,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 		if (mface->v3)
 		{
 			MT_Point2 uv0(0.0,0.0),uv1(0.0,0.0),uv2(0.0,0.0),uv3(0.0,0.0);
+			MT_Point2 uv20(0.0,0.0),uv21(0.0,0.0),uv22(0.0,0.0),uv23(0.0,0.0);
 			// rgb3 is set from the adjoint face in a square
 			unsigned int rgb0,rgb1,rgb2,rgb3 = 0;
 			MT_Vector3	no0(mesh->mvert[mface->v1].no[0], mesh->mvert[mface->v1].no[1], mesh->mvert[mface->v1].no[2]),
@@ -761,7 +883,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					else 
 						ma = give_current_material(blenderobj, 1);
 
-					BL_Material *bl_mat = ConvertMaterial(mesh, ma, tface, mface, mmcol, lightlayer, blenderobj);
+					BL_Material *bl_mat = ConvertMaterial(mesh, ma, tface, mface, mmcol, lightlayer, blenderobj, layers);
 					// set the index were dealing with
 					bl_mat->material_index =  (int)mface->mat_nr;
 
@@ -773,16 +895,17 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					
 					unsigned int rgb[4];
 					bl_mat->GetConversionRGB(rgb);
-					rgb0 = rgb[0];
-					rgb1 = rgb[1];
-					rgb2 = rgb[2];
-					rgb3 = rgb[3];
+					rgb0 = rgb[0]; rgb1 = rgb[1];
+					rgb2 = rgb[2]; rgb3 = rgb[3];
 					MT_Point2 uv[4];
 					bl_mat->GetConversionUV(uv);
-					uv0 = uv[0];
-					uv1 = uv[1];
-					uv2 = uv[2];
-					uv3 = uv[3];
+					uv0 = uv[0]; uv1 = uv[1];
+					uv2 = uv[2]; uv3 = uv[3];
+
+					bl_mat->GetConversionUV2(uv);
+					uv20 = uv[0]; uv21 = uv[1];
+					uv22 = uv[2]; uv23 = uv[3];
+
 					if(tangent){
 						tan0 = tangent[mface->v1];
 						tan1 = tangent[mface->v2];
@@ -923,19 +1046,19 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					d3=((BL_SkinMeshObject*)meshobj)->FindOrAddDeform(vtxarray, mface->v3, &mesh->dvert[mface->v3], polymat);
 					if (nverts==4)
 						d4=((BL_SkinMeshObject*)meshobj)->FindOrAddDeform(vtxarray, mface->v4, &mesh->dvert[mface->v4], polymat);
-					poly->SetVertex(0,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt0,uv0,tan0,rgb0,no0,d1,flat, polymat));
-					poly->SetVertex(1,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt1,uv1,tan1,rgb1,no1,d2,flat, polymat));
-					poly->SetVertex(2,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt2,uv2,tan2,rgb2,no2,d3,flat, polymat));
+					poly->SetVertex(0,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt0,uv0,uv20,tan0,rgb0,no0,d1,flat, polymat));
+					poly->SetVertex(1,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt1,uv1,uv21,tan1,rgb1,no1,d2,flat, polymat));
+					poly->SetVertex(2,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt2,uv2,uv22,tan2,rgb2,no2,d3,flat, polymat));
 					if (nverts==4)
-						poly->SetVertex(3,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt3,uv3,tan3,rgb3,no3,d4, flat,polymat));
+						poly->SetVertex(3,((BL_SkinMeshObject*)meshobj)->FindOrAddVertex(vtxarray,pt3,uv3,uv23,tan3,rgb3,no3,d4, flat,polymat));
 				}
 				else
 				{
-					poly->SetVertex(0,meshobj->FindOrAddVertex(vtxarray,pt0,uv0,tan0,rgb0,no0,polymat,mface->v1));
-					poly->SetVertex(1,meshobj->FindOrAddVertex(vtxarray,pt1,uv1,tan1,rgb1,no1,polymat,mface->v2));
-					poly->SetVertex(2,meshobj->FindOrAddVertex(vtxarray,pt2,uv2,tan2,rgb2,no2,polymat,mface->v3));
+					poly->SetVertex(0,meshobj->FindOrAddVertex(vtxarray,pt0,uv0,uv20,tan0,rgb0,no0,polymat,mface->v1));
+					poly->SetVertex(1,meshobj->FindOrAddVertex(vtxarray,pt1,uv1,uv21,tan1,rgb1,no1,polymat,mface->v2));
+					poly->SetVertex(2,meshobj->FindOrAddVertex(vtxarray,pt2,uv2,uv22,tan2,rgb2,no2,polymat,mface->v3));
 					if (nverts==4)
-						poly->SetVertex(3,meshobj->FindOrAddVertex(vtxarray,pt3,uv3,tan3,rgb3,no3,polymat,mface->v4));
+						poly->SetVertex(3,meshobj->FindOrAddVertex(vtxarray,pt3,uv3,uv23,tan3,rgb3,no3,polymat,mface->v4));
 				}
 				meshobj->AddPolygon(poly);
 				if (poly->IsCollider())
@@ -964,6 +1087,14 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 			tface++;
 		if (mmcol)
 			mmcol+=4;
+
+		for (int lay=0; lay<MAX_MTFACE; lay++)
+		{
+			MTF_localLayer &layer = layers[lay];
+			if (layer.face == 0) break;
+
+			layer.face++;
+		}
 	}
 	meshobj->UpdateMaterialList();
 
@@ -979,6 +1110,8 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	if(tangent)
 		delete [] tangent;
 
+	if (layers)
+		delete []layers;
 
 	return meshobj;
 }

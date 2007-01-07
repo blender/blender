@@ -437,7 +437,15 @@ void KX_BlenderMaterial::ActivateTexGen(RAS_IRasterizer *ras) const
 
 	for(int i=0; i<mMaterial->num_enabled; i++) {
 		int mode = mMaterial->mapping[i].mapping;
-		
+
+		if (mode &USECUSTOMUV)
+		{
+			STR_String str = mMaterial->mapping[i].uvCoName;
+			if (!str.IsEmpty())
+				ras->SetTexCoords(RAS_IRasterizer::RAS_TEXCO_UV2, i);
+			continue;
+		}
+
 		if( mode &(USEREFL|USEOBJ))
 			ras->SetTexCoords(RAS_IRasterizer::RAS_TEXCO_GEN, i);
 		else if(mode &USEORCO)

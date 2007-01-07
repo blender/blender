@@ -52,7 +52,7 @@ class RAS_TexVert
 	
 	float			m_localxyz[3];	// 3*4 = 12
 	float			m_uv1[2];		// 2*4 =  8
-	float			m_uv2[2];		// 2*4 =  8	... python access to this set
+	float			m_uv2[2];		// 2*4 =  8
 	unsigned int	m_rgba;			//        4
 	float			m_tangent[4];   // 4*2 =  8
 	float			m_normal[3];	// 3*2 =  6 
@@ -62,7 +62,6 @@ class RAS_TexVert
 									//       52
 	//32 bytes total size, fits nice = 52 = not fit nice.
 	// We'll go for 64 bytes total size - 24 bytes left.
-
 public:
 	short getFlag() const;
 	unsigned int getUnit() const;
@@ -71,6 +70,7 @@ public:
 	{}
 	RAS_TexVert(const MT_Point3& xyz,
 				const MT_Point2& uv,
+				const MT_Point2& uv2,
 				const MT_Vector4& tangent,
 				const unsigned int rgba,
 				const MT_Vector3& normal,

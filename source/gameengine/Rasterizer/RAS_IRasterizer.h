@@ -114,6 +114,7 @@ public:
 		RAS_TEXCO_WINDOW,	//< Window coordinates
 		RAS_TEXCO_NORM,		//< Normal coordinates 
 		RAS_TEXTANGENT,		//<
+		RAS_TEXCO_UV2,		//<
 		RAS_TEXCO_DISABLE	//< Disable this texture unit (cached)
 	};
 

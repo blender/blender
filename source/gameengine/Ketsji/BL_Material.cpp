@@ -59,7 +59,10 @@ BL_Material::BL_Material()
 
 	int i;
 	for(i=0; i<4; i++)
+	{
 		uv[i] = MT_Point2(0.f,1.f);
+		uv2[i] = MT_Point2(0.f, 1.f);
+	}
 
 	for(i=0; i<MAXTEX; i++) // :(
 	{
@@ -113,6 +116,19 @@ void BL_Material::GetConversionUV(MT_Point2 *nuv){
 	*nuv++ = uv[1];
 	*nuv++ = uv[2];
 	*nuv   = uv[3];
+}
+void BL_Material::SetConversionUV2(MT_Point2 *nuv) {
+	uv2[0] = *nuv++;
+	uv2[1] = *nuv++;
+	uv2[2] = *nuv++;
+	uv2[3] = *nuv;
+}
+
+void BL_Material::GetConversionUV2(MT_Point2 *nuv){
+	*nuv++ = uv2[0];
+	*nuv++ = uv2[1];
+	*nuv++ = uv2[2];
+	*nuv   = uv2[3];
 }
 
 

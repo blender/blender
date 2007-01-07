@@ -39,6 +39,7 @@
 
 RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 						 const MT_Point2& uv,
+						 const MT_Point2& uv2,
 						 const MT_Vector4& tangent,
 						 const unsigned int rgba,
 						 const MT_Vector3& normal,
@@ -46,7 +47,7 @@ RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 {
 	xyz.getValue(m_localxyz);
 	uv.getValue(m_uv1);
-	uv.getValue(m_uv2); // ..py access
+	uv2.getValue(m_uv2);
 	SetRGBA(rgba);
 	SetNormal(normal);
 	tangent.getValue(m_tangent);
@@ -154,8 +155,8 @@ bool RAS_TexVert::closeTo(const RAS_TexVert* other)
 		m_rgba == other->m_rgba &&
 		MT_fuzzyEqual(MT_Vector3(m_normal), MT_Vector3(other->m_normal)) &&
 		MT_fuzzyEqual(MT_Vector2(m_uv1), MT_Vector2(other->m_uv1)) &&
+		MT_fuzzyEqual(MT_Vector2(m_uv2), MT_Vector2(other->m_uv2)) && // p --
 		MT_fuzzyEqual(MT_Vector3(m_localxyz), MT_Vector3(other->m_localxyz))) ;
-	
 }
 
 short RAS_TexVert::getFlag() const

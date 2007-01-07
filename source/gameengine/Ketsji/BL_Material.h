@@ -31,6 +31,7 @@ public:
 	float offsets[3];
 	int projplane[3];
 	STR_String objconame;
+	STR_String uvCoName;
 };
 
 // base material struct
@@ -79,12 +80,16 @@ public:
 
 	unsigned int rgb[4];
 	MT_Point2 uv[4];
-	
+	MT_Point2 uv2[4];
+
 	void SetConversionRGB(unsigned int *rgb);
 	void GetConversionRGB(unsigned int *rgb);
 
 	void SetConversionUV(MT_Point2 *uv);
 	void GetConversionUV(MT_Point2 *uv);
+
+	void SetConversionUV2(MT_Point2 *uv);
+	void GetConversionUV2(MT_Point2 *uv);
 
 	void SetSharedMaterial(bool v);
 	bool IsShared();
@@ -148,7 +153,8 @@ enum BL_MappingFlag
 	USEORCO =16,
 	USEUV	=32,
 	USETANG	=64,
-	DISABLE =128
+	DISABLE =128,
+	USECUSTOMUV=256
 };
 
 // BL_Material::BL_Mapping::projplane
