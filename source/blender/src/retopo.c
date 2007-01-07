@@ -40,6 +40,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BDR_editobject.h"
@@ -459,7 +460,7 @@ char retopo_paint(const unsigned short event)
 	if(rpd) {
 		RetopoPaintLine *l;
 		short mouse[2];
-		char lbut= get_mbut() & L_MOUSE;
+		char lbut= get_mbut() & (U.flag & USER_LMOUSESELECT ? R_MOUSE : L_MOUSE);
 		
 		if(rpd->paint_v3d && rpd->paint_v3d!=G.vd) return 1;
 	
