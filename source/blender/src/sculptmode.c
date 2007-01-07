@@ -604,10 +604,16 @@ void calc_vertex_users()
 	}
 }
 
+/* bad function... what is this supposed to do, and why is it called all over? (ton) */
+/* its really time to add some comments in code... */
 void set_sculpt_object(Object *ob)
 {
 	SculptSession *ss= sculpt_session();
 
+	/* return when no sculptmode, temporal for now because this call breaks switching shapes */
+	if(!(G.f & G_SCULPTMODE))
+		return;
+	
 	if(ss) {
 		if(ss->keyblock) {
 			Mesh *me= get_mesh(ss->active_ob);
