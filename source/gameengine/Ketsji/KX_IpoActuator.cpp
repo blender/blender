@@ -204,8 +204,8 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		for (vector<CValue*>::iterator i=m_events.end(); !(i==m_events.begin());)
 		{
 			--i;
-			if ((*i)->GetNumber() == 0.0f)
-				bNegativeEvent = true;
+//			if ((*i)->GetNumber() == 0.0f)
+//				bNegativeEvent = true;
 			
 			(*i)->Release();
 		}

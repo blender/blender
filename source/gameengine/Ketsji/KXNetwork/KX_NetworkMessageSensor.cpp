@@ -90,7 +90,7 @@ bool KX_NetworkMessageSensor::Evaluate(CValue* event)
 	bool result = false;
 	bool WasUp = m_IsUp;
 
-//	m_IsUp = false;
+	m_IsUp = false;
 
 	if (m_BodyList) {
 		m_BodyList->Release();
@@ -153,7 +153,7 @@ bool KX_NetworkMessageSensor::IsPositiveTrigger()
 	//attempt to fix [ #3809 ] IPO Actuator does not work with some Sensors
 	//a better solution is to properly introduce separate Edge and Level triggering concept
 
-	return true;//m_IsUp;
+	return m_IsUp;
 }
 
 /* --------------------------------------------------------------------- */
