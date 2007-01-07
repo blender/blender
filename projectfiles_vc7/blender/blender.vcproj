@@ -25,7 +25,7 @@
 				AdditionalIncludeDirectories="..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\source\blender;..\..\source\blender\imbuf;..\..\source\blender\misc;..\..\source\blender\blenlib;..\..\source\blender\python;..\..\source\blender\include;..\..\source\blender\renderui;..\..\source\blender\makesdna;..\..\source\blender\blenkernel;..\..\source\blender\blenloader;..\..\source\blender\renderconverter;..\..\source\blender\render\extern\include;..\..\source\blender\radiosity\extern\include;..\..\source\kernel\gen_system;..\..\source\kernel\gen_messaging"
 				PreprocessorDefinitions="NDEBUG;WIN32;_CONSOLE;WITH_QUICKTIME;GAMEBLENDER=1;USE_SUMO_SOLID;FTGL_LIBRARY_STATIC;WITH_VERSE"
 				StringPooling="TRUE"
-				RuntimeLibrary="4"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
@@ -41,14 +41,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib Bullet.lib python24.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib verse.lib Half.lib Iex.lib IlmImf.lib Imath.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib Bullet.lib python24.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib verse.lib Half.lib Iex.lib IlmImf.lib Imath.lib IlmThread.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\blender.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\python\lib;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\tiff\lib;..\..\..\lib\windows\pthreads\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\openexr\lib;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\build\msvc_7\libs\intern;..\..\..\build\msvc_7\libs\extern"
 				IgnoreAllDefaultLibraries="FALSE"
-				IgnoreDefaultLibraryNames="libc.lib, msvcrt.lib, libcd.lib, libcmtd.lib, msvcrtd.lib, odbc32.lib, odbccp32.lib"
+				IgnoreDefaultLibraryNames="msvcprt.lib;glut32.lib;libc.lib;libcd.lib;libcpd.lib;libcp.lib;libcmtd.lib;odbc32.lib;odbccp32.lib"
 				ProgramDatabaseFile="..\..\..\build\msvc_7\libs\blender.pdb"
 				SubSystem="1"/>
 			<Tool
@@ -123,7 +123,7 @@ ECHO Done
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386
 "
-				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib Bullet.lib python24_d.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib verse.lib Half.lib Iex.lib Imath.lib IlmImf.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib Bullet.lib python24_d.lib libelbeem.lib libboolop.lib pthreadVSE2.lib pthreadVC2.lib libtiff.lib broad.lib complex.lib convex.lib memutil.lib verse.lib Half.lib Iex.lib Imath.lib IlmImf.lib IlmThread.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\debug\blender.exe"
 				LinkIncremental="2"
