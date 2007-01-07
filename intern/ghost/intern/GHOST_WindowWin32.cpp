@@ -217,11 +217,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 				}
 			}
 
-			lc.lcInOrgX = 0;
-			lc.lcInOrgY = 0;
-			lc.lcInExtX = TabletX.axMax;
-			lc.lcInExtY = TabletY.axMax;
-
 			if (fpWTOpen) {
 				m_tablet = fpWTOpen( m_hWnd, &lc, TRUE );
 				if (m_tablet) {
