@@ -4183,6 +4183,23 @@ static void ntree_version_241(bNodeTree *ntree)
 	}
 }
 
+static void ntree_version_242(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	if(ntree->type==NTREE_COMPOSIT) {
+		for(node= ntree->nodes.first; node; node= node->next) {
+			if(node->type==CMP_NODE_HUE_SAT) {
+				if(node->storage) {
+					NodeHueSat *nhs= node->storage;
+					if(nhs->val==0.0f) nhs->val= 1.0f;
+				}
+			}
+		}
+	}
+}
+
+
 /* somehow, probably importing via python, keyblock adrcodes are not in order */
 static void sort_shape_fix(Main *main)
 {
@@ -6124,6 +6141,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Nurb *nu;
 		BezTriple *bezt;
 		BPoint *bp;
+		bNodeTree *ntree;
 		int a;
 		
 		for(sc= main->screen.first; sc; sc= sc->id.next) {
@@ -6152,7 +6170,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				else
 					sce->r.threads= 1;
 			}
+			if(sce->nodetree)
+				ntree_version_242(sce->nodetree);
 		}
+		
+		for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next)
+			ntree_version_242(ntree);
 		
 		/* add default radius values to old curve points */
 		for(cu= main->curve.first; cu; cu= cu->id.next) {
@@ -6271,14 +6294,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		/* History fix (python?), shape key adrcode numbers have to be sorted */
 		sort_shape_fix(main);
-		
+				
 		/* now, subversion control! */
 		if(main->subversionfile < 3) {
 			bScreen *sc;
 			Image *ima;
 			Tex *tex;
-			Scene *sce;
-			bNodeTree *ntree;
 			
 			/* Image refactor initialize */
 			for(ima= main->image.first; ima; ima= ima->id.next) {
