@@ -838,7 +838,10 @@ void armature_mat_world_to_pose(Object *ob, float inmat[][4], float outmat[][4])
 	Mat4MulMat4(outmat, obmat, inmat);
 }
 
-/* Convert Pose-Space Matrix to Bone-Space Matrix */
+/* Convert Pose-Space Matrix to Bone-Space Matrix 
+ * NOTE: this cannot be used to convert to pose-space transforms of the supplied
+ * 		pose-channel into its local space (i.e. 'visual'-keyframing)
+ */
 void armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[][4], float outmat[][4])
 {
 	float pc_trans[4][4], inv_trans[4][4];
@@ -866,7 +869,10 @@ void armature_mat_pose_to_bone(bPoseChannel *pchan, float inmat[][4], float outm
 	Mat4MulMat4(outmat, inmat, inv_posemat);
 }
 
-/* Convert Pose-Space Location to Bone-Space Location */
+/* Convert Pose-Space Location to Bone-Space Location
+ * NOTE: this cannot be used to convert to pose-space location of the supplied
+ * 		pose-channel into its local space (i.e. 'visual'-keyframing) 
+ */
 void armature_loc_pose_to_bone(bPoseChannel *pchan, float *inloc, float *outloc) 
 {
 	float xLocMat[4][4];
