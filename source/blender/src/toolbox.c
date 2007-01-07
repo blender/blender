@@ -622,7 +622,10 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 
 void add_numbut(int nr, int type, char *str, float min, float max, void *poin, char *tip)
 {
-	if(nr>=MAXNUMBUTS) return;
+	int tip_max = sizeof(numbuts[nr].tip);
+	int name_max = sizeof(numbuts[nr].name);
+
+	if(nr >= MAXNUMBUTS || (nr < 0)) return;
 
 	numbuts[nr].type= type;
 	
@@ -631,14 +634,26 @@ void add_numbut(int nr, int type, char *str, float min, float max, void *poin, c
 	
 	if (type==LABEL) {
 		/* evil use it tooltip for the label string to get around the 16 char limit of "name" */
-		strcpy(numbuts[nr].tip, str);
+		if (str) {
+			strncpy(numbuts[nr].tip, str, tip_max);
+			numbuts[nr].tip[tip_max-1] = 0;
+		} else {
+			strcpy(numbuts[nr].tip, "");
+		}
 	} else {
 		/* for all other types */
-		strcpy(numbuts[nr].name, str);
-		if(tip) 
-			strcpy(numbuts[nr].tip, tip);
-		else
+		if (str) {
+			strncpy(numbuts[nr].name, str, name_max);
+			numbuts[nr].name[name_max-1] = 0;
+		} else {
+			strcpy(numbuts[nr].name, "");
+		}
+		if (tip) {
+			strncpy(numbuts[nr].tip, tip, tip_max);
+			numbuts[nr].tip[tip_max-1] = 0;
+		} else {
 			strcpy(numbuts[nr].tip, "");
+		}
 	}
 	
 	/*WATCH: TEX BUTTON EXCEPTION */
