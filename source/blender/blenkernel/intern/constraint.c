@@ -205,6 +205,14 @@ void relink_constraints (struct ListBase *list)
 				ID_NEW(data->tar);
 			}
 				break;
+			case CONSTRAINT_TYPE_RIGIDBODYJOINT:
+			{
+				bRigidBodyJointConstraint *data;
+				data = con->data;
+				
+				ID_NEW(data->tar);
+			}
+				break;
 			case CONSTRAINT_TYPE_LOCLIMIT:
 			{
 				bLocLimitConstraint *data;
@@ -340,6 +348,13 @@ char constraint_has_target (bConstraint *con)
 				return 1;
 		}
 		break;
+	case CONSTRAINT_TYPE_RIGIDBODYJOINT:
+		{
+			bRigidBodyJointConstraint *data = con->data;
+			if (data->tar)
+				return 1;
+		}
+		break;
 	}
 	// Unknown types or CONSTRAINT_TYPE_NULL or no target
 	return 0;
@@ -422,6 +437,13 @@ Object *get_constraint_target(bConstraint *con, char **subtarget)
 			return (data->tar);
 		}
 		break;
+	case CONSTRAINT_TYPE_RIGIDBODYJOINT: 
+		{
+			bRigidBodyJointConstraint *data = con->data;
+			*subtarget= NULL;
+			return data->tar;
+		}
+		break;
 	default:
 		*subtarget= NULL;
 		break;
@@ -496,6 +518,12 @@ void set_constraint_target(bConstraint *con, Object *ob, char *subtarget)
 			bStretchToConstraint *data = con->data;
 			data->tar= ob;
 			if(subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
+		}
+			break;
+		case CONSTRAINT_TYPE_RIGIDBODYJOINT: 
+		{
+			bRigidBodyJointConstraint *data = con->data;
+			data->tar= ob;
 		}
 			break;
 		case CONSTRAINT_TYPE_MINMAX:

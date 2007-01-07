@@ -3664,15 +3664,6 @@ void drawRBpivot(bRigidBodyJointConstraint *data){
 			v[2] += dir[2];
 			glVertex3fv(v1);
 			glVertex3fv(v);			
-/*			v1[axis]= size*0.8;
-			v1[arrow_axis]= -size*0.125;
-			glVertex3fv(v1);
-			glVertex3fv(v2);
-				
-			v1[arrow_axis]= size*0.125;
-			glVertex3fv(v1);
-			glVertex3fv(v2);
-*/
 			glEnd();
 			glRasterPos3fv(v);
 			if (axis==0)
@@ -3681,7 +3672,6 @@ void drawRBpivot(bRigidBodyJointConstraint *data){
 				BMF_DrawString(G.font, "py");
 			else
 				BMF_DrawString(G.font, "pz");			
-					
 	}
 	glLineWidth (1.0f);
 	setlinestyle(0);

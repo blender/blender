@@ -602,6 +602,10 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 
 				// start the engine
 				ketsjiengine->StartEngine(false);
+				
+				ketsjiengine->SetUseFixedTime(true);
+				
+				ketsjiengine->SetTicRate(blscene->r.frs_sec);
 
 				// the mainloop
 				while ((blscene->r.cfra<=blscene->r.efra)&&(!exitrequested))
@@ -609,14 +613,6 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
                     printf("frame %i\n",blscene->r.cfra);
                     // first check if we want to exit
 					exitrequested = ketsjiengine->GetExitCode();
-					/*for (int ix=0;i<geobjs->GetCount();ix++){
-						KX_GameObject* gameobj = (KX_GameObject*) geobjs->GetValue(ix);
-						if (!gameobj->IsDynamic()){
-							//gameobj->UpdateNonDynas();//UpdateIPO((float)blscene->r.cfra,true, true, true);
-							struct Object* blenderobject = sceneconverter->FindBlenderObject(gameobj);
-						}
-					}*/
-	
 	
 					// kick the engine
 					ketsjiengine->NextFrame();

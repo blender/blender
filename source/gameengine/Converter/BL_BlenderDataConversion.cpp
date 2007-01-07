@@ -1868,8 +1868,15 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 										rendertools, 
 										converter,
 										blenderscene);
-											
-		if (gameobj)
+										
+		bool isInActiveLayer = (blenderobject->lay & activeLayerBitInfo) !=0;
+		bool addobj=true;
+		
+		if (converter->addInitFromFrame)
+			if (!isInActiveLayer)
+				addobj=false;
+										
+		if (gameobj&&addobj)
 		{
 			MT_Point3 posPrev;			
 			MT_Matrix3x3 angor;			
@@ -1919,8 +1926,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			// TODO: expand to multiple ipos per mesh
 			Material *mat = give_current_material(blenderobject, 1);
 			if(mat) BL_ConvertMaterialIpos(mat, gameobj, converter);	
-	
-			bool isInActiveLayer = (blenderobject->lay & activeLayerBitInfo) !=0;
 	
 			sumolist->Add(gameobj->AddRef());
 			
