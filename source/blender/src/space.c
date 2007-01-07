@@ -1358,6 +1358,19 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				BIF_view3d_previewrender(sa);
 				break;
 				
+			case TABKEY:
+				// Shift-Tabe handling (other cases are in toets)
+				if (G.qual == LR_SHIFTKEY)
+				{
+					// Snap toggle (only edit mesh right now)
+					if (G.obedit && G.obedit->type==OB_MESH)
+					{
+						G.vd->flag2 ^= V3D_TRANSFORM_SNAP;
+						allqueue(REDRAWHEADERS, 0);
+					}					
+				}
+				break;
+				
 			/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
 			 * based on user preference USER_LMOUSESELECT
 			 */

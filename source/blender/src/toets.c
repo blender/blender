@@ -681,20 +681,6 @@ int blenderqread(unsigned short event, short val)
 				}
 			}
 		}
-		else if(G.qual==LR_SHIFTKEY) {	// ??
-			if(G.obedit)
-				exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); // freedata, and undo
-			if(G.f & G_FACESELECT)
-				set_faceselect();
-			if(G.f & G_VERTEXPAINT)
-				set_vpaint();
-			if(G.f & G_TEXTUREPAINT)
-				set_texturepaint();
-			if(G.f & G_WEIGHTPAINT)
-				set_wpaint();
-			if(G.f & G_SCULPTMODE)
-				set_sculptmode();
-		}
 		break;
 
 	case BACKSPACEKEY:

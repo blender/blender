@@ -137,7 +137,9 @@ typedef struct View3D {
 	
 	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
 	
-	short pad2[2];
+	short snap_target;
+	
+	short pad2;
 	
 	void *properties_storage;	/* Nkey panel stores stuff here, not in file */
 
@@ -166,10 +168,11 @@ typedef struct View3D {
 #define V3D_OPP_DIRECTION_NAME	1
 #define V3D_FLYMODE				2
 #define V3D_TRANSFORM_SNAP		4
-#define V3D_SNAP_TARGET			(8|16)
+
+/* View3d->snap_target */
 #define V3D_SNAP_TARGET_CLOSEST	0
-#define V3D_SNAP_TARGET_CENTER	8
-#define V3D_SNAP_TARGET_MEDIAN	16
+#define V3D_SNAP_TARGET_CENTER	1
+#define V3D_SNAP_TARGET_MEDIAN	2
 
 
 /* View3D->around */

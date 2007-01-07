@@ -173,7 +173,7 @@ void setSnappingCallback(TransInfo *t)
 	t->tsnap.calcSnap = CalcSnapGeometry;
 
 	
-	switch(G.vd->flag2 & V3D_SNAP_TARGET)
+	switch(G.vd->snap_target)
 	{
 		case V3D_SNAP_TARGET_CLOSEST:
 			t->tsnap.modeTarget = SNAP_CLOSEST;
@@ -200,7 +200,7 @@ void setSnappingCallback(TransInfo *t)
 		t->tsnap.distance = RotationBetween;
 		
 		// Can't do TARGET_CENTER with rotation, use TARGET_MEDIAN instead
-		if ((G.vd->flag2 & V3D_SNAP_TARGET) == V3D_SNAP_TARGET_CENTER) {
+		if (G.vd->snap_target == V3D_SNAP_TARGET_CENTER) {
 			t->tsnap.modeTarget = SNAP_MEDIAN;
 			t->tsnap.targetSnap = TargetSnapMedian;
 		}
