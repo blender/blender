@@ -125,11 +125,6 @@ typedef struct GrabData {
 	float depth;
 } GrabData;
 
-typedef struct ProjVert {
-	short co[2];
-	char inside;
-} ProjVert;
-
 typedef struct EditData {
 	vec3f center;
 	float size;
@@ -154,6 +149,14 @@ typedef struct RectNode {
 	rcti r;
 } RectNode;
 
+/* Used to store to 2D screen coordinates of each vertex in the mesh. */
+typedef struct ProjVert {
+	short co[2];
+	
+	/* Used to mark whether a vertex is inside a rough bounding box
+	   containing the brush. */
+	char inside;
+} ProjVert;
 static ProjVert *projverts= NULL;
 
 SculptData *sculpt_data()
@@ -174,6 +177,8 @@ SculptSession *sculpt_session()
  * Allocate/initialize/free data
  */
 
+/* Initialize 'permanent' sculpt data that is saved with file kept after
+   switching out of sculptmode. */
 void sculptmode_init(Scene *sce)
 {
 	SculptData *sd;
@@ -210,7 +215,6 @@ void sculpt_init_session()
 	sculptmode_undo_init();
 }
 
-/* Free G.sculptdata->vertexusers */
 void sculptmode_free_vertexusers(SculptSession *ss)
 {
 	if(ss && ss->vertex_users){
@@ -580,6 +584,8 @@ void sculptmode_free_all(Scene *sce)
 	}
 }
 
+/* vertex_users is an array of Lists that store all the faces that use a
+   particular vertex. vertex_users is in the same order as mesh.mvert */
 void calc_vertex_users()
 {
 	SculptSession *ss= sculpt_session();
@@ -589,7 +595,8 @@ void calc_vertex_users()
 
 	sculptmode_free_vertexusers(ss);
 	
-	/* Allocate an array of ListBases, one per vertex */
+	/* For efficiency, use vertex_users_mem as a memory pool (may be larger
+	   than necessary if mesh has triangles, but only one alloc is needed.) */
 	ss->vertex_users= MEM_callocN(sizeof(ListBase) * me->totvert, "vertex_users");
 	ss->vertex_users_size= me->totvert;
 	ss->vertex_users_mem= MEM_callocN(sizeof(IndexNode)*me->totface*4, "vertex_users_mem");
@@ -615,6 +622,7 @@ void set_sculpt_object(Object *ob)
 		return;
 	
 	if(ss) {
+		/* Copy any sculpted changes back into the old shape key. */
 		if(ss->keyblock) {
 			Mesh *me= get_mesh(ss->active_ob);
 			if(me) {
@@ -627,7 +635,8 @@ void set_sculpt_object(Object *ob)
 			Mesh *me= get_mesh(ob);
 			calc_vertex_users();
 			
-			/* Load in key */
+			/* Copy current shape key (if any) to mesh. Sculptmode
+			   sculpts only one shape key at a time. */
 			ss->keyblock= ob_get_keyblock(ob);
 			if(ss->keyblock)
 				key_to_mesh(ss->keyblock, me);
@@ -660,6 +669,7 @@ void sculptmode_rem_tex(void *junk0,void *junk1)
  * Simple functions to get data from the GL
  */
 
+/* Store the modelview and projection matrices and viewport. */
 void init_sculptmatrices()
 {
 	SculptSession *ss= sculpt_session();
@@ -690,7 +700,9 @@ void init_sculptmatrices()
 
 }
 
-/* Uses window coordinates (x,y) to find the depth in the GL depth buffer */
+/* Uses window coordinates (x,y) to find the depth in the GL depth buffer. If
+   available, G.vd->depths is used so that the brush doesn't sculpt on top of
+   itself (G.vd->depths is only updated at the end of a brush stroke.) */
 float get_depth(short x, short y)
 {
 	float depth;
@@ -725,6 +737,7 @@ vec3f unproject(const short x, const short y, const float z)
 	return p;
 }
 
+/* Convert a point in model coordinates to 2D screen coordinates. */
 void project(const float v[3], short p[2])
 {
 	SculptSession *ss= sculpt_session();
@@ -739,7 +752,11 @@ void project(const float v[3], short p[2])
 /* ===== Sculpting =====
  *
  */
- 
+
+/* Return modified brush size. Uses current tablet pressure (if available) to
+   shrink the brush. Skipped for grab brush because only the first mouse down
+   size is used, which is small if the user has just touched the pen to the
+   tablet */
 char brush_size()
 {
 	const BrushData *b= sculptmode_brush();
@@ -756,6 +773,9 @@ char brush_size()
 	return size;
 }
 
+/* Return modified brush strength. Includes the direction of the brush, positive
+   values pull vertices, negative values push. Uses tablet pressure and a
+   special multiplier found experimentally to scale the strength factor. */
 float brush_strength(EditData *e)
 {
 	const BrushData* b= sculptmode_brush();
@@ -845,6 +865,9 @@ void do_draw_brush(const EditData *e, const ListBase* active_verts)
 	}
 }
 
+/* For the smooth brush, uses the neighboring vertices around vert to calculate
+   a smoothed location for vert. Skips corner vertices (used by only one
+   polygon.) */
 vec3f neighbor_average(const int vert)
 {
 	SculptSession *ss= sculpt_session();
@@ -999,12 +1022,15 @@ void do_inflate_brush(const EditData *e, const ListBase *active_verts)
 	}
 }
 
+/* Creates a smooth curve for the brush shape. This is the cos(x) curve from
+   [0,PI] scaled to [0,len]. The range is scaled to [0,1]. */
 float simple_strength(float p, const float len)
 {
 	if(p > len) p= len;
 	return 0.5f * (cos(M_PI*p/len) + 1);
 }
 
+/* Uses symm to selectively flip any axis of a coordinate. */
 void flip_coord(float co[3], const char symm)
 {
 	if(symm & SYMM_X)
@@ -1015,6 +1041,7 @@ void flip_coord(float co[3], const char symm)
 		co[2]= -co[2];
 }
 
+/* Get a pixel from a RenderInfo at (px, py) */
 unsigned *get_ri_pixel(const RenderInfo *ri, int px, int py)
 {
 	if(px < 0) px= 0;
@@ -1024,6 +1051,7 @@ unsigned *get_ri_pixel(const RenderInfo *ri, int px, int py)
 	return ri->rect + py * ri->pr_rectx + px;
 }
 
+/* Use the warpfac field in MTex to store a rotation value for sculpt textures. */
 float *get_tex_angle()
 {
 	SculptData *sd= sculpt_data();
@@ -1042,6 +1070,7 @@ float to_deg(const float rad)
 	return rad * (180.0f/M_PI);
 }
 
+/* Return a multiplier for brush strength on a particular vertex. */
 float tex_strength(EditData *e, float *point, const float len,const unsigned vindex)
 {
 	SculptData *sd= sculpt_data();
@@ -1051,6 +1080,8 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 	if(sd->texact==-1)
 		avg= 1;
 	else if(sd->texrept==SCULPTREPT_3D) {
+		/* Get strength by feeding the vertex location directly
+		   into a texture */
 		float jnk;
 		const float factor= 0.01;
 		MTex mtex;
@@ -1075,6 +1106,9 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 		RenderInfo *ri= ss->texrndr;
 		ProjVert pv;
 		
+		/* If the active area is being applied for symmetry, flip it
+		   across the symmetry axis in order to project it. This insures
+		   that the brush texture will be oriented correctly. */
 		if(!e->symm)
 			pv= projverts[vindex];
 		else {
@@ -1084,6 +1118,8 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 			project(co, pv.co);
 		}
 
+		/* For Tile and Drag modes, get the 2D screen coordinates of the
+		   and scale them up or down to the texture size. */
 		if(sd->texrept==SCULPTREPT_TILE) {
 			const float sx= sd->mtex[sd->texact]->size[0];
 			const float sy= sd->texsep ? sd->mtex[sd->texact]->size[1] : sx;
@@ -1129,6 +1165,9 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 	return avg;
 }
 
+/* Mark area around the brush as damaged. projverts are marked if they are
+   inside the area and the damaged rectangle in 2D screen coordinates is 
+   added to damaged_rects. */
 void sculptmode_add_damaged_rect(EditData *e, ListBase *damaged_rects)
 {
 	short p[2];
@@ -1170,17 +1209,19 @@ void do_brush_action(float *vertexcosnos, EditData e,
 
 	sculptmode_add_damaged_rect(&e,damaged_rects);
 
+	/* Build a list of all vertices that are potentially within the brush's
+	   area of influence. Only do this once for the grab brush. */
 	if(!e.grabdata || (e.grabdata && e.grabdata->firsttime)) {
-		/* Find active vertices */
-		for(i=0; i<me->totvert; ++i)
-		{
+		for(i=0; i<me->totvert; ++i) {
+			/* Projverts.inside provides a rough bounding box */
 			if(projverts[i].inside) {
 				vert= vertexcosnos ? &vertexcosnos[i*6] : me->mvert[i].co;
 				av_dist= VecLenf(&e.center.x,vert);
-				if( av_dist < e.size )
-				{
+				if(av_dist < e.size) {
 					adata= (ActiveData*)MEM_mallocN(sizeof(ActiveData), "ActiveData");
 					adata->Index = i;
+					/* Fade is used to store the final strength at which the brush
+					   should modify a particular vertex. */
 					adata->Fade= tex_strength(&e,vert,av_dist,i) * bstrength;
 					if(e.grabdata && e.grabdata->firsttime)
 						BLI_addtail(&e.grabdata->active_verts[e.grabdata->index], adata);
@@ -1191,6 +1232,7 @@ void do_brush_action(float *vertexcosnos, EditData e,
 		}
 	}
 
+	/* Apply one type of brush action */
 	switch(G.scene->sculptdata.brush_type){
 	case DRAW_BRUSH:
 		do_draw_brush(&e, &active_verts);
@@ -1220,6 +1262,8 @@ void do_brush_action(float *vertexcosnos, EditData e,
 	}
 }
 
+/* Flip all the editdata across the axis/axes specified by symm. Used to
+   calculate multiple modifications to the mesh when symmetry is enabled. */
 EditData flip_editdata(EditData *e, const char symm)
 {
 	EditData fe= *e;
