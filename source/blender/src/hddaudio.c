@@ -52,7 +52,9 @@
 
 #include "blendef.h"
 
+#ifdef WITH_FFMPEG
 extern void do_init_ffmpeg();
+#endif
 
 struct hdaudio {
 	int sample_rate;
@@ -75,6 +77,8 @@ struct hdaudio {
 	int decode_cache_size;
 	int target_channels;
 	int target_rate;
+	int resample_samples_written;
+	int resample_samples_in;
 	ReSampleContext *resampler;
 #else
 	
@@ -173,11 +177,14 @@ struct hdaudio * sound_open_hdaudio(char * filename)
 		rval->decode_cache_size * sizeof(short)
 		+ AVCODEC_MAX_AUDIO_FRAME_SIZE, 
 		"hdaudio decode cache");
+	rval->decode_cache_zero = rval->decode_cache;
 	rval->decode_pos = 0;
 	rval->target_channels = -1;
 	rval->target_rate = -1;
 	rval->resampler = 0;
 	rval->resample_cache = 0;
+	rval->resample_samples_written = 0;
+	rval->resample_samples_in = 0;
 	return rval;
 #else
 	return 0;
@@ -250,12 +257,15 @@ static void sound_hdaudio_extract_small_block(
 				* frame_size * 2
 				* sizeof(short), 
 				"hdaudio resample cache");
-
 			if (frame_position == hdaudio->frame_position) {
-				audio_resample(hdaudio->resampler,
-					       hdaudio->resample_cache,
-					       hdaudio->decode_cache_zero,
-					       in_frame_size * 7 / 4);
+				hdaudio->resample_samples_in = 
+					in_frame_size * 7 / 4;
+				hdaudio->resample_samples_written
+					= audio_resample(
+						hdaudio->resampler,
+						hdaudio->resample_cache,
+						hdaudio->decode_cache_zero,
+						in_frame_size * 7 / 4);
 			}
 		}
 	}
@@ -267,9 +277,9 @@ static void sound_hdaudio_extract_small_block(
 	       
 		hdaudio->frame_position = frame_position;
 
-		memcpy(hdaudio->decode_cache,
-		       hdaudio->decode_cache + bl_size,
-		       (decode_pos - bl_size) * sizeof(short));
+		memmove(hdaudio->decode_cache,
+			hdaudio->decode_cache + bl_size,
+			(decode_pos - bl_size) * sizeof(short));
 		
 		decode_pos -= bl_size;
 
@@ -328,10 +338,32 @@ static void sound_hdaudio_extract_small_block(
 		}
 
 		if (rate_conversion) {
-			audio_resample(hdaudio->resampler,
-				       hdaudio->resample_cache,
-				       hdaudio->decode_cache_zero,
-				       in_frame_size * 7 / 4);
+			int written = hdaudio->resample_samples_written
+				* target_channels;
+			int ofs = target_channels * frame_size;
+			int recycle = written - ofs;
+			int next_in = in_frame_size 
+				+ (3.0/4.0 
+				   - (double) recycle / (double) 
+				   (frame_size * target_channels)
+					) * in_frame_size;
+
+			memmove(hdaudio->resample_cache,
+				hdaudio->resample_cache + ofs,
+			        recycle * sizeof(short));
+
+			hdaudio->resample_samples_written
+			       = audio_resample(
+				       hdaudio->resampler,
+				       hdaudio->resample_cache + recycle,
+				       hdaudio->decode_cache_zero
+				       + hdaudio->resample_samples_in
+				       * hdaudio->channels
+				       - bl_size,
+				       next_in)
+				+ recycle / target_channels;
+
+			hdaudio->resample_samples_in = next_in;
 		}
 
 		hdaudio->decode_pos = decode_pos;
@@ -472,10 +504,13 @@ static void sound_hdaudio_extract_small_block(
 			}
 		}
 		if (rate_conversion) {
-			audio_resample(hdaudio->resampler,
-				       hdaudio->resample_cache,
-				       hdaudio->decode_cache_zero,
-				       in_frame_size * 7 / 4);
+			hdaudio->resample_samples_written
+				= audio_resample(hdaudio->resampler,
+						 hdaudio->resample_cache,
+						 hdaudio->decode_cache_zero,
+						 in_frame_size * 7 / 4);
+			hdaudio->resample_samples_in = 
+				in_frame_size * 7 / 4;
 		}
 		hdaudio->decode_pos = decode_pos;
 	}
@@ -539,3 +574,4 @@ void sound_close_hdaudio(struct hdaudio * hdaudio)
 
 #endif
 }
+
