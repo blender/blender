@@ -48,7 +48,11 @@ from the lib3ds project (http://lib3ds.sourceforge.net/) sourcecode.
 
 import Blender
 from Blender import Object, Material
+
 import BPyMesh
+getMeshFromObject = BPyMesh.getMeshFromObject
+import BPyObject
+getDerivedObjects= BPyObject.getDerivedObjects
 import struct
 
 
@@ -490,16 +494,18 @@ class tri_wrapper(object):
 def split_into_tri(face, do_uv=False):
 	'''Split a quad face into two triangles'''
 	v = face.v
-	uv = face.uv
 	mat = face.mat
 	if (do_uv):
 		img = face.image
 		if img: img = img.name
+	else:
+		img = None
 	
 	first_tri = tri_wrapper((v[0].index, v[1].index, v[2].index), mat, img)
 	second_tri = tri_wrapper((v[0].index, v[2].index, v[3].index), mat, img)
 	
 	if (do_uv):
+		uv = face.uv
 		first_tri.faceuvs= uv_key(uv[0]), uv_key(uv[1]), uv_key(uv[2])
 		second_tri.faceuvs= uv_key(uv[0]), uv_key(uv[2]), uv_key(uv[3])
 	
@@ -782,7 +788,7 @@ def make_track_chunk(ID, obj):
 			track_chunk.add_variable("scale", _3ds_point_3d((1.0, 1.0, 1.0)))
 	
 	return track_chunk
-
+"""
 def make_kf_obj_node(obj, name_to_id):
 	'''Make a node chunk for a Blender object.
 	
@@ -842,12 +848,13 @@ def make_kf_obj_node(obj, name_to_id):
 	kf_obj_node.add_subchunk(make_track_chunk(SCL_TRACK_TAG, obj))
 
 	return kf_obj_node
-
+"""
 
 def save_3ds(filename):
 	'''Save the Blender scene to a 3ds file.'''
 	# Time the export
 	time1= Blender.sys.time()
+	Blender.Window.WaitCursor(1)
 	scn= Blender.Scene.GetCurrent()
 	
 	# Initialize the main chunk (primary):
@@ -866,70 +873,75 @@ def save_3ds(filename):
 	'''
 	
 	# Get all the supported objects selected in this scene:
-	ob_sel= list(scn.objects.context)
-	
-	mesh_objects = [ (ob, me) for ob in ob_sel   for me in (BPyMesh.getMeshFromObject(ob, None, True, False, scn),) if me ]
-	empty_objects = [ ob for ob in ob_sel if ob.type == 'Empty' ]
+	# ob_sel= list(scn.objects.context)
+	# mesh_objects = [ (ob, me) for ob in ob_sel   for me in (BPyMesh.getMeshFromObject(ob, None, True, False, scn),) if me ]
+	# empty_objects = [ ob for ob in ob_sel if ob.type == 'Empty' ]
 	
 	# Make a list of all materials used in the selected meshes (use a dictionary,
 	# each material is added once):
 	materialDict = {}
-	
-	for ob, data in mesh_objects:
-		# get material/image tuples.
-		if data.faceUV:
-			mat_ls = data.materials
-			
-			if not mat_ls:
-				mat = mat_name = None
-			
-			for f in data.faces:
-				if mat_ls:
-					mat = mat_ls[f.mat]
-					if mat:	mat_name = mat.name
-					else:	mat_name = None
-				# else there alredy set to none
-					
-				img = f.image
-				if img:	img_name = img.name
-				else:	img_name = None
-					
-					
+	mesh_objects = []
+	for ob in scn.objects.context:
+		for ob_derived, mat in getDerivedObjects(ob, False):
+			data = getMeshFromObject(ob_derived, None, True, False, scn)
+			if data:
+				data.transform(mat)
+				mesh_objects.append((ob_derived, data))
 				
-				try:
-					materialDict[mat_name, img_name]
-				except:
-					materialDict[mat_name, img_name]= mat, img
-			
-		else:
-			for mat in data.materials:
-				if mat: # material may be None so check its not.
-					try:
-						materialDict[mat.name, None]
-					except:
-						materialDict[mat.name, None]= mat, None
+				# get material/image tuples.
+				if data.faceUV:
+					mat_ls = data.materials
+					
+					if not mat_ls:
+						mat = mat_name = None
+					
+					for f in data.faces:
+						if mat_ls:
+							mat = mat_ls[f.mat]
+							if mat:	mat_name = mat.name
+							else:	mat_name = None
+						# else there alredy set to none
+							
+						img = f.image
+						if img:	img_name = img.name
+						else:	img_name = None
+							
+							
+						
+						try:
+							materialDict[mat_name, img_name]
+						except:
+							materialDict[mat_name, img_name]= mat, img
+					
+				else:
+					for mat in data.materials:
+						if mat: # material may be None so check its not.
+							try:
+								materialDict[mat.name, None]
+							except:
+								materialDict[mat.name, None]= mat, None
 	
 	# Make material chunks for all materials used in the meshes:
 	for mat_and_image in materialDict.itervalues():
 		object_info.add_subchunk(make_material_chunk(*mat_and_image))
 	
 	# Give all objects a unique ID and build a dictionary from object name to object id:
+	"""
 	name_to_id = {}
 	for ob, data in mesh_objects:
 		name_to_id[ob.name]= len(name_to_id)
-	for ob in empty_objects:
-		name_to_id[ob.name]= len(name_to_id)
+	#for ob in empty_objects:
+	#	name_to_id[ob.name]= len(name_to_id)
+	"""
 	
 	# Create object chunks for all meshes:
+	i = 0
 	for ob, blender_mesh in mesh_objects:
 		# create a new object chunk
 		object_chunk = _3ds_chunk(OBJECT)
 		
-		# transform the mesh:
-		blender_mesh.transform(ob.matrixWorld)
-		
 		# set the object name
-		object_chunk.add_variable("name", _3ds_string(ob.name))
+		object_chunk.add_variable("name", _3ds_string(str(i) + ob.name))
 		
 		# make a mesh chunk out of the mesh:
 		object_chunk.add_subchunk(make_mesh_chunk(blender_mesh, materialDict))
@@ -939,6 +951,8 @@ def save_3ds(filename):
 		# make a kf object node for the object:
 		kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
 		'''
+		blender_mesh.verts = None
+		i+=i
 
 	# Create chunks for all empties:
 	''' # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
@@ -970,15 +984,18 @@ def save_3ds(filename):
 	file.close()
 	
 	# Free memory
+	"""
 	for ob, blender_mesh in mesh_objects:
 		blender_mesh.verts= None
-	
+	"""
 	
 	# Debugging only: report the exporting time:
+	Blender.Window.WaitCursor(0)
 	print "3ds export time: %.2f" % (Blender.sys.time() - time1)
 	
 	# Debugging only: dump the chunk hierarchy:
 	#primary.dump()
+	
 	
 if __name__=='__main__':
 	Blender.Window.FileSelector(save_3ds, "Export 3DS", Blender.sys.makename(ext='.3ds'))

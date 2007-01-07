@@ -8,23 +8,22 @@ This module provides access to B{Metaball} data in Blender and the elements they
 
 Example::
  import Blender
- ob =  Blender.Object.New("Mball","mb")
  mb = Blender.Metaball.New()
  for i in xrange(20):
    element= mb.elements.add()
-   element.loc= Blender.Mathutils.Vector(i, 0, 0) 
- ob.link(mb)
- sc = Blender.Scene.GetCurrent()
- sc.link(ob)
+   element.co = Blender.Mathutils.Vector(i, 0, 0) 
+ sce = Blender.Scene.GetCurrent()
+ sce.objects.new(mb)
 
-from Blender import *
+
 
 Example::
     # Converts the active armature into metaballs
+    from Blender import *
     def main():
 
             scn= Scene.GetCurrent()
-            ob_arm= scn.getActiveObject()
+            ob_arm= scn.objects.active
             if not ob_arm or ob_arm.type!='Armature':
                     Draw.PupMenu('No Armature Selected')
                     return
@@ -35,14 +34,11 @@ Example::
                     return
 
             # Make a metaball
-            ob_mb= Object.New('Mball')
             mb= Metaball.New()
             mb.wiresize= res
 
             # Link to the Scene
-            ob_mb.link(mb)
-            scn.link(ob_mb)
-            ob_mb.sel=1
+            ob_mb = scn.objects.new(ob_mb)
             ob_arm.sel= 0
             ob_mb.setMatrix(ob_arm.matrixWorld)
 

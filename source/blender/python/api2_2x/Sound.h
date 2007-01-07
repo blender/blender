@@ -37,6 +37,7 @@
 #include "DNA_sound_types.h"
 
 #define BPy_Sound_Check(v)       ((v)->ob_type == &Sound_Type)
+extern PyTypeObject Sound_Type;
 
 /*****************************************************************************/
 /* Python BPy_Sound structure definition                                     */
