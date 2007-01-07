@@ -2111,7 +2111,8 @@ void fly(void)
 	double time_current, time_lastdraw;
 	
 	short val, /* used for toets to see if a buttons pressed */
-	cent[2], /* view center */
+	cent_orig[2], /* view center */
+	cent[2], /* view center modified */
 	mval[2], /* mouse location */
 	action=0, /* while zero stay in fly mode and wait for action, also used to see if we accepted or canceled 1:ok 2:Cancel */
 	xmargin, ymargin; /* x and y margin are define the safe area where the mouses movement wont rotate the view */
@@ -2120,8 +2121,8 @@ void fly(void)
 	unsigned char
 	apply_rotation= 1, /* if the user presses shift they can look about without movinf the direction there looking*/
 	axis= 2, /* Axis index to move allong by default Z to move allong the view */
-	persp_backup; /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
-	
+	persp_backup, /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
+	pan_view=0; /* if true, pan the view instead of rotating */
 	
 	/* relative view axis locking - xlock, zlock
 	0; disabled
@@ -2193,10 +2194,10 @@ void fly(void)
 	xmargin= (short)((float)(curarea->winx)/20.0);
 	ymargin= (short)((float)(curarea->winy)/20.0);
 	
-	cent[0]= curarea->winrct.xmin+(curarea->winx)/2;
-	cent[1]= curarea->winrct.ymin+(curarea->winy)/2;
+	cent_orig[0]= curarea->winrct.xmin+(curarea->winx)/2;
+	cent_orig[1]= curarea->winrct.ymin+(curarea->winy)/2;
 	
-	warp_pointer(cent[0], cent[1]);
+	warp_pointer(cent_orig[0], cent_orig[1]);
 
 	/* we have to rely on events to give proper mousecoords after a warp_pointer */
 	mval[0]= cent[0]=  (curarea->winx)/2;
@@ -2234,7 +2235,9 @@ void fly(void)
 				} else if (toets==MIDDLEMOUSE) {
 					/* make it so the camera direction dosent follow the view
 					good for flying backwards! - Only when MMB is held */
-					apply_rotation=0;
+					
+					/*apply_rotation=0;*/
+					pan_view= 1;
 					
 				/* impliment WASD keys */
 				} else if(toets==WKEY) {
@@ -2276,8 +2279,10 @@ void fly(void)
 				
 			} else {
 				/* mouse buttons lifted */
-				if (toets==MIDDLEMOUSE) {
-					apply_rotation=1;
+				if (toets==MIDDLEMOUSE && pan_view) {
+					/*apply_rotation=1;*/
+					warp_pointer(cent_orig[0], cent_orig[1]);
+					pan_view= 0;
 				}
 			}
 		}
@@ -2307,7 +2312,7 @@ void fly(void)
 		}
 		
 		/* Should we redraw? */
-		if(speed!=0.0 || moffset[0] || moffset[1] || zlock || xlock ) {
+		if(speed!=0.0 || moffset[0] || moffset[1] || zlock || xlock || dvec[0] || dvec[1] || dvec[2] ) {
 			
 			time_current= PIL_check_seconds_timer();
 			time_redraw= (float)(time_current-time_lastdraw);
@@ -2321,102 +2326,114 @@ void fly(void)
 				speed= speed * (1-time_redraw_clamped);
 			
 			Mat3CpyMat4(mat, G.vd->viewinv);
-
-			/* rotate about the X axis- look up/down */
-			if (moffset[1]) {
-				upvec[0]=1;
-				upvec[1]=0;
-				upvec[2]=0;
-				Mat3MulVecfl(mat, upvec);
-				VecRotToQuat( upvec, (float)moffset[1]*-time_redraw*20, tmp_quat); /* Rotate about the relative up vec */
-				QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
-				
-				if (xlock) xlock = 2; /*check for rotation*/
-				if (zlock) zlock = 2;
-				xlock_momentum= 0.0;
-			}
 			
-			/* rotate about the Y axis- look left/right */
-			if (moffset[0]) {
-				
-				if (zlock) {
-					upvec[0]=0;
-					upvec[1]=0;
-					upvec[2]=1;
-				} else {
-					upvec[0]=0;
-					upvec[1]=1;
-					upvec[2]=0;
-					Mat3MulVecfl(mat, upvec);
-				}
-					
-				VecRotToQuat( upvec, (float)moffset[0]*time_redraw*20, tmp_quat); /* Rotate about the relative up vec */
-				QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
-				
-				if (xlock) xlock = 2;/*check for rotation*/
-				if (zlock) zlock = 2;
-			}
-			
-			if (zlock==2) {
-				upvec[0]=1;
-				upvec[1]=0;
-				upvec[2]=0;
-				Mat3MulVecfl(mat, upvec);
-
-				/*make sure we have some z rolling*/
-				if (fabs(upvec[2]) > 0.00001) {
-					roll= upvec[2]*5;
-					upvec[0]=0; /*rotate the view about this axis*/
-					upvec[1]=0;
-					upvec[2]=1;
-					
-					Mat3MulVecfl(mat, upvec);
-					VecRotToQuat( upvec, roll*time_redraw_clamped*zlock_momentum*0.1, tmp_quat); /* Rotate about the relative up vec */
-					QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
-					
-					zlock_momentum += 0.05;
-				} else {
-					zlock=1; /* dont check until the view rotates again */
-					zlock_momentum= 0.0;
-				}
-			}
-			
-			if (xlock==2 && moffset[1]==0) { /*only apply xcorrect when mouse isnt applying x rot*/
-				upvec[0]=0;
-				upvec[1]=0;
-				upvec[2]=1;
-				Mat3MulVecfl(mat, upvec);
-				/*make sure we have some z rolling*/
-				if (fabs(upvec[2]) > 0.00001) {
-					roll= upvec[2]*-5;
-					
-					upvec[0]=1; /*rotate the view about this axis*/
-					upvec[1]=0;
-					upvec[2]=0;
-					
-					Mat3MulVecfl(mat, upvec);
-					
-					VecRotToQuat( upvec, roll*time_redraw_clamped*xlock_momentum*0.1, tmp_quat); /* Rotate about the relative up vec */
-					QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
-					
-					xlock_momentum += 0.05;
-				} else {
-					xlock=1; /* see above */
-					xlock_momentum= 0.0;
-				}
-			}
-
-
-			if (apply_rotation) {
-				/* Normal operation */
-				/* define dvec, view direction vector */
-				dvec_tmp[0]= dvec_tmp[1]= dvec_tmp[2]= 0;
-				/* move along the current axis */
-				dvec_tmp[axis]= 1.0f;
+			if (pan_view) {
+				/* pan only */
+				dvec_tmp[0]= -moffset[0];
+				dvec_tmp[1]= -moffset[1];
+				dvec_tmp[2]= 0;
+				/* z axis can stay teh same, just keep costing */
 				
 				Mat3MulVecfl(mat, dvec_tmp);
+				VecMulf(dvec_tmp, time_redraw*200.0 * G.vd->grid);
 				
-				VecMulf(dvec_tmp, speed*time_redraw*0.5);
+			} else {
+				/* rotate about the X axis- look up/down */
+				if (moffset[1]) {
+					upvec[0]=1;
+					upvec[1]=0;
+					upvec[2]=0;
+					Mat3MulVecfl(mat, upvec);
+					VecRotToQuat( upvec, (float)moffset[1]*-time_redraw*20, tmp_quat); /* Rotate about the relative up vec */
+					QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
+					
+					if (xlock) xlock = 2; /*check for rotation*/
+					if (zlock) zlock = 2;
+					xlock_momentum= 0.0;
+				}
+				
+				/* rotate about the Y axis- look left/right */
+				if (moffset[0]) {
+					
+					if (zlock) {
+						upvec[0]=0;
+						upvec[1]=0;
+						upvec[2]=1;
+					} else {
+						upvec[0]=0;
+						upvec[1]=1;
+						upvec[2]=0;
+						Mat3MulVecfl(mat, upvec);
+					}
+						
+					VecRotToQuat( upvec, (float)moffset[0]*time_redraw*20, tmp_quat); /* Rotate about the relative up vec */
+					QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
+					
+					if (xlock) xlock = 2;/*check for rotation*/
+					if (zlock) zlock = 2;
+				}
+				
+				if (zlock==2) {
+					upvec[0]=1;
+					upvec[1]=0;
+					upvec[2]=0;
+					Mat3MulVecfl(mat, upvec);
+
+					/*make sure we have some z rolling*/
+					if (fabs(upvec[2]) > 0.00001) {
+						roll= upvec[2]*5;
+						upvec[0]=0; /*rotate the view about this axis*/
+						upvec[1]=0;
+						upvec[2]=1;
+						
+						Mat3MulVecfl(mat, upvec);
+						VecRotToQuat( upvec, roll*time_redraw_clamped*zlock_momentum*0.1, tmp_quat); /* Rotate about the relative up vec */
+						QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
+						
+						zlock_momentum += 0.05;
+					} else {
+						zlock=1; /* dont check until the view rotates again */
+						zlock_momentum= 0.0;
+					}
+				}
+				
+				if (xlock==2 && moffset[1]==0) { /*only apply xcorrect when mouse isnt applying x rot*/
+					upvec[0]=0;
+					upvec[1]=0;
+					upvec[2]=1;
+					Mat3MulVecfl(mat, upvec);
+					/*make sure we have some z rolling*/
+					if (fabs(upvec[2]) > 0.00001) {
+						roll= upvec[2]*-5;
+						
+						upvec[0]=1; /*rotate the view about this axis*/
+						upvec[1]=0;
+						upvec[2]=0;
+						
+						Mat3MulVecfl(mat, upvec);
+						
+						VecRotToQuat( upvec, roll*time_redraw_clamped*xlock_momentum*0.1, tmp_quat); /* Rotate about the relative up vec */
+						QuatMul(G.vd->viewquat, G.vd->viewquat, tmp_quat);
+						
+						xlock_momentum += 0.05;
+					} else {
+						xlock=1; /* see above */
+						xlock_momentum= 0.0;
+					}
+				}
+
+
+				if (apply_rotation) {
+					/* Normal operation */
+					/* define dvec, view direction vector */
+					dvec_tmp[0]= dvec_tmp[1]= dvec_tmp[2]= 0;
+					/* move along the current axis */
+					dvec_tmp[axis]= 1.0f;
+					
+					Mat3MulVecfl(mat, dvec_tmp);
+					
+					VecMulf(dvec_tmp, speed*time_redraw*0.5);
+				}
 			}
 			
 			/* impose a directional lag */
@@ -2426,7 +2443,7 @@ void fly(void)
 			dvec[2] = dvec_tmp[2]*(1-dvec_lag) + dvec_old[2]*dvec_lag;
 			
 			VecAddf(G.vd->ofs, G.vd->ofs, dvec);
-			headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X/Z,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  MouseLook:MMB,  Cancel:RMB");
+			headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X/Z,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
 			
 			do_screenhandlers(G.curscreen); /* advance the next frame */
 			
@@ -2507,7 +2524,6 @@ void fly(void)
 	allqueue(REDRAWVIEW3D, 0);
 	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT); /* not working at the moment not sure why */
 }
-
 
 void view3d_edit_clipping(View3D *v3d)
 {
