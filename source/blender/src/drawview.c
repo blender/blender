@@ -2523,20 +2523,26 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 			}
 			/* generate displist */
 			if(use_displist == -1) {
-				/* disable boundbox check for list creation */
-				object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
-				/* need this for next part of code */
-				bb= object_get_boundbox(dob->ob);
 				
-				Mat4One(dob->ob->obmat);	/* obmat gets restored */
-				
-				displist= glGenLists(1);
-				glNewList(displist, GL_COMPILE);
-				draw_object(&tbase, DRAW_CONSTCOLOR);
-				glEndList();
-				
-				use_displist= 1;
-				object_boundbox_flag(dob->ob, OB_BB_DISABLED, 0);
+				/* lamp drawing messes with matrices, could be handled smarter... but this works */
+				if(dob->ob->type==OB_LAMP)
+					use_displist= 0;
+				else {
+					/* disable boundbox check for list creation */
+					object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
+					/* need this for next part of code */
+					bb= object_get_boundbox(dob->ob);
+					
+					Mat4One(dob->ob->obmat);	/* obmat gets restored */
+					
+					displist= glGenLists(1);
+					glNewList(displist, GL_COMPILE);
+					draw_object(&tbase, DRAW_CONSTCOLOR);
+					glEndList();
+					
+					use_displist= 1;
+					object_boundbox_flag(dob->ob, OB_BB_DISABLED, 0);
+				}
 			}
 			if(use_displist) {
 				mymultmatrix(dob->mat);
