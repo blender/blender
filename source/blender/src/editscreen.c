@@ -2481,6 +2481,8 @@ static void copy_screen(bScreen *to, bScreen *from)
 		sa->spacedata.first= sa->spacedata.last= NULL;
 		sa->uiblocks.first= sa->uiblocks.last= NULL;
 		sa->panels.first= sa->panels.last= NULL;
+		sa->scriptlink.totscript= 0;
+		
 		copy_areadata(sa, saf, 0);
 		
 		sa= sa->next;
