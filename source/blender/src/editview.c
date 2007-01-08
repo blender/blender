@@ -2154,6 +2154,11 @@ void fly(void)
 	persp_backup= G.vd->persp;
 	dist_backup= G.vd->dist;
 	if (G.vd->persp==2) { /* Camera */
+		if(G.vd->camera->constraints.first) {
+			error("Cannot fly an object with constraints");
+			return;
+		}
+		
 		/* store the origoinal camera loc and rot */
 		VECCOPY(ofs_backup, G.vd->camera->loc);
 		VECCOPY(rot_backup, G.vd->camera->rot);
