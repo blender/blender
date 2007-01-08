@@ -1206,7 +1206,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 				                  CustomData_get(&me->mr->vdata, i, CD_MDEFORMVERT));
 		} else {
 			CustomData_merge(&me->mr->vdata, &me->vdata, vdata_mask, CD_DUPLICATE, lvl->totvert);
-			me->dvert= CustomData_get(&me->mr->vdata, 0, CD_MDEFORMVERT);
+			CustomData_get(&me->mr->vdata, 0, CD_MDEFORMVERT);
 		}
 	}
 	else if(CustomData_has_layer(&me->mr->vdata, CD_MDEFORMVERT)) {
@@ -1311,6 +1311,8 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		if(G.f & G_SCULPTMODE)
 			set_sculpt_object(ob);
 	}
+	
+	mesh_update_customdata_pointers(me);
 
 	countall();
 
