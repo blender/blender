@@ -325,6 +325,10 @@ void RAS_VAOpenGLRasterizer::TexCoordPtr(const RAS_TexVert *tv, int enabled)
 				break;
 			case RAS_TEXTANGENT:
 				glTexCoordPointer(4, GL_FLOAT, sizeof(RAS_TexVert),tv->getTangent());
+				break;
+			case RAS_TEXCO_UV2:
+				glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert),tv->getUV2());
+				break;
 			}
 		}
 	}

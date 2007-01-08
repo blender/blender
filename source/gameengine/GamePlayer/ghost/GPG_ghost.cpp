@@ -60,6 +60,7 @@ extern "C"
 {
 #endif  // __cplusplus
 #include "BKE_global.h"	
+#include "BKE_icons.h"	
 #include "BLI_blenlib.h"
 #include "DNA_scene_types.h"
 #include "BLO_readfile.h"
@@ -621,6 +622,9 @@ int main(int argc, char** argv)
 						char *startscenename = scene->id.name + 2;
 						G.fileflags  = bfd->fileflags;
 
+						//Seg Fault; icon.c gIcons == 0
+						BKE_icons_init(1);
+						
 						titlename = maggie->name;
 						
 						// Check whether the game should be displayed full-screen
@@ -753,6 +757,10 @@ int main(int argc, char** argv)
 					}
 				} while (exitcode == KX_EXIT_REQUEST_RESTART_GAME || exitcode == KX_EXIT_REQUEST_START_OTHER_GAME);
 			}
+
+			// Seg Fault; icon.c gIcons == 0
+			BKE_icons_free();
+
 			// Dispose the system
 			GHOST_ISystem::disposeSystem();
 		} else {
