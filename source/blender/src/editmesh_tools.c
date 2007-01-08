@@ -111,8 +111,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 
 /* local prototypes ---------------*/
 void bevel_menu(void);
-static void free_tagged_edgelist(EditEdge *eed);
-static void free_tagged_facelist(EditFace *efa);
+static void free_tagged_edges_faces(EditEdge *eed, EditFace *efa);
 
 /********* qsort routines *********/
 
@@ -2609,9 +2608,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 		}	
 	}
 	
-	// Delete Old Faces
-	free_tagged_facelist(em->faces.first);	 
-	//Delete Old Edges
+	// Delete Old Edges and Faces
 	for(eed = em->edges.first;eed;eed = eed->next) {
 		if(BLI_ghash_haskey(gh,eed)) {
 			eed->f1 = SELECT; 
@@ -2619,7 +2616,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 			eed->f1 = 0;   
 		}
 	} 
-	free_tagged_edgelist(em->edges.first); 
+	free_tagged_edges_faces(em->edges.first, em->faces.first); 
 	
 	if(seltype == SUBDIV_SELECT_ORIG  && G.qual  != LR_CTRLKEY) {
 		for(eed = em->edges.first;eed;eed = eed->next) {
@@ -2735,35 +2732,40 @@ static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
 
 	while(efa) {
 		efa->f1= 0;
-		if(efa->v4==0) {  /* if triangle */
-			if(efa->f & SELECT) {
-				
-				e1= efa->e1;
-				e2= efa->e2;
-				e3= efa->e3;
-				if(e1->f2<3 && e1->tmp.p) {
-					if(e1->f2<2) {
-						evp= (EVPtr *) e1->tmp.p;
-						evp[(int)e1->f2] = efa;
-					}
-					e1->f2+= 1;
+		if(efa->v4==0 && (efa->f & SELECT)) {  /* if selected triangle */
+			e1= efa->e1;
+			e2= efa->e2;
+			e3= efa->e3;
+			if(e1->f2<3 && e1->tmp.p) {
+				if(e1->f2<2) {
+					evp= (EVPtr *) e1->tmp.p;
+					evp[(int)e1->f2] = efa;
 				}
-				if(e2->f2<3 && e2->tmp.p) {
-					if(e2->f2<2) {
-						evp= (EVPtr *) e2->tmp.p;
-						evp[(int)e2->f2]= efa;
-					}
-					e2->f2+= 1;
+				e1->f2+= 1;
+			}
+			if(e2->f2<3 && e2->tmp.p) {
+				if(e2->f2<2) {
+					evp= (EVPtr *) e2->tmp.p;
+					evp[(int)e2->f2]= efa;
 				}
-				if(e3->f2<3 && e3->tmp.p) {
-					if(e3->f2<2) {
-						evp= (EVPtr *) e3->tmp.p;
-						evp[(int)e3->f2]= efa;
-					}
-					e3->f2+= 1;
+				e2->f2+= 1;
+			}
+			if(e3->f2<3 && e3->tmp.p) {
+				if(e3->f2<2) {
+					evp= (EVPtr *) e3->tmp.p;
+					evp[(int)e3->f2]= efa;
 				}
+				e3->f2+= 1;
 			}
 		}
+		else {
+			/* set to 3 to make sure these are not flipped or joined */
+			efa->e1->f2= 3;
+			efa->e2->f2= 3;
+			efa->e3->f2= 3;
+			if (efa->e4) efa->e4->f2= 3;
+		}
+
 		efa= efa->next;
 	}
 	return i;
@@ -2831,16 +2833,30 @@ static void givequadverts(EditFace *efa, EditFace *efa1, EditVert **v1, EditVert
 /* Helper functions for edge/quad edit features*/
 static void untag_edges(EditFace *f)
 {
-	f->e1->f2 = 0;
-	f->e2->f2 = 0;
-	if (f->e3) f->e3->f2 = 0;
-	if (f->e4) f->e4->f2 = 0;
+	f->e1->f1 = 0;
+	f->e2->f1 = 0;
+	f->e3->f1 = 0;
+	if (f->e4) f->e4->f1 = 0;
 }
 
-/** remove and free list of tagged edges */
-static void free_tagged_edgelist(EditEdge *eed)
+/** remove and free list of tagged edges and faces */
+static void free_tagged_edges_faces(EditEdge *eed, EditFace *efa)
 {
+	EditMesh *em= G.editMesh;
 	EditEdge *nexted;
+	EditFace *nextvl;
+
+	while(efa) {
+		nextvl= efa->next;
+		if(efa->f1) {
+			BLI_remlink(&em->faces, efa);
+			free_editface(efa);
+		}
+		else
+			/* avoid deleting edges that are still in use */
+			untag_edges(efa);
+		efa= nextvl;
+	}
 
 	while(eed) {
 		nexted= eed->next;
@@ -2850,22 +2866,6 @@ static void free_tagged_edgelist(EditEdge *eed)
 		}
 		eed= nexted;
 	}	
-}	
-/** remove and free list of tagged faces */
-
-static void free_tagged_facelist(EditFace *efa)
-{	
-	EditMesh *em = G.editMesh;
-	EditFace *nextvl;
-
-	while(efa) {
-		nextvl= efa->next;
-		if(efa->f1) {
-			BLI_remlink(&em->faces, efa);
-			free_editface(efa);
-		}
-		efa= nextvl;
-	}
 }	
 
 /* note; the EM_selectmode_set() calls here illustrate how badly constructed it all is... from before the
@@ -3024,8 +3024,7 @@ void beauty_fill(void)
 			eed= nexted;
 		}
 
-		free_tagged_edgelist(em->edges.first);
-		free_tagged_facelist(em->faces.first);
+		free_tagged_edges_faces(em->edges.first, em->faces.first);
 
 		if(onedone==0) break;
 		
@@ -3185,7 +3184,6 @@ static int fplcmp(const void *v1, const void *v2)
 #define T2QDELETE	1
 #define T2QCOMPLEX	2
 #define T2QJOIN		4
-#define T2QPAIR		8
 void join_triangles(void)
 {
 	EditMesh *em=G.editMesh;
@@ -3231,26 +3229,17 @@ void join_triangles(void)
 		
 		/*clear tmp.l flag and store number of faces that are selected and coincident to current face here.*/  
 		for(eed=em->edges.first; eed; eed=eed->next){
+			/* eed->f2 is 2 only if this edge is part of exactly two
+			   triangles, and both are selected, and it has EVPTuple assigned */
 			if(eed->f2 == 2){
-				eed->f1 |= T2QPAIR; /*tells us that an EVPtuple has been assigned for this face.*/
 				efaa= (EVPtr *) eed->tmp.p;
 				efaa[0]->tmp.l++;
 				efaa[1]->tmp.l++;
 			}
-			eed->f2 = 0; /*needed to store actual face count, not just selected*/
-		}
-		
-		/*count actual number of edges for each face.*/
-		for(efa=em->faces.first; efa; efa=efa->next){
-			efa->e1->f2++;
-			efa->e2->f2++;
-			efa->e3->f2++;
-			if(efa->v4)
-				efa->e4->f2++;
 		}
 		
 		for(eed=em->edges.first; eed; eed=eed->next){
-			if(eed->f2 == 2 && (eed->f1 & T2QPAIR)){
+			if(eed->f2 == 2){
 				efaa= (EVPtr *) eed->tmp.p;
 				v1 = v2 = v3 = v4 = NULL;
 				givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, vindex);
@@ -3350,8 +3339,7 @@ void join_triangles(void)
 		if(eed->f1 & T2QDELETE) eed->f1 = 1;
 		else eed->f1 = 0;
 	}
-	free_tagged_facelist(em->faces.first);
-	free_tagged_edgelist(em->edges.first);
+	free_tagged_edges_faces(em->edges.first, em->faces.first);
 	if(efaar) MEM_freeN(efaar);
 	if(edsortblock) MEM_freeN(edsortblock);
 		
@@ -3437,14 +3425,12 @@ void edge_flip(void)
 								vindex[1], 4+vindex[2], -1);
 
 							EM_select_face(w, 1);
-							untag_edges(w);
 
 							/* outch this may break seams */
 							w= EM_face_from_faces(efaa[0], efaa[1], vindex[0],
 								4+vindex[2], 4+vindex[3], -1);
 
 							EM_select_face(w, 1);
-							untag_edges(w);
 						}
 						/* tag as to-be-removed */
 						FACE_MARKCLEAR(efaa[1]);
@@ -3459,8 +3445,7 @@ void edge_flip(void)
 	}
 
 	/* clear tagged edges and faces: */
-	free_tagged_edgelist(em->edges.first);
-	free_tagged_facelist(em->faces.first);
+	free_tagged_edges_faces(em->edges.first, em->faces.first);
 	
 	MEM_freeN(efaar);
 	
@@ -6481,3 +6466,4 @@ void loop_to_region(void)
 	allqueue(REDRAWVIEW3D, 0);
 	BIF_undo_push("Edge Loop to Face Region");
 }
+
