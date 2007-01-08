@@ -280,7 +280,6 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 			if(shademodel == GL_FLAT) {
 				if (nors) {
 					glNormal3fv(nors);
-					nors += 3;
 				}
 				else {
 					/* TODO make this better (cache facenormals as layer?) */
@@ -304,6 +303,8 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 				PASSVERT(mface->v4);
 			}
 		}
+
+		if(nors) nors += 3;
 	}
 	glEnd();
 
@@ -413,7 +414,6 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		if(!(mf->flag&ME_SMOOTH)) {
 			if (nors) {
 				glNormal3fv(nors);
-				nors += 3;
 			}
 			else {
 				/* TODO make this better (cache facenormals as layer?) */
@@ -457,6 +457,8 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			glVertex3fv(mvert->co);
 		}
 		glEnd();
+
+		if(nors) nors += 3;
 	}
 }
 
@@ -496,7 +498,6 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			if (!drawSmooth) {
 				if (nors) {
 					glNormal3fv(nors);
-					nors += 3;
 				}
 				else {
 					/* TODO make this better (cache facenormals as layer?) */
@@ -541,6 +542,8 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 
 			glEnd();
 		}
+		
+		if (nors) nors += 3;
 	}
 }
 
