@@ -4913,7 +4913,7 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 
 static bNodeType cmp_node_channel_matte={
    /* type code   */       CMP_NODE_CHANNEL_MATTE,
-   /* name        */       "Channel Keyer",
+   /* name        */       "Channel Key",
    /* width+range */       200, 80, 250,
    /* class+opts  */       NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
    /* input sock  */       cmp_node_channel_matte_in,
