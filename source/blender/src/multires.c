@@ -432,7 +432,7 @@ void multires_add_dvert(MDeformVert *out, const MDeformVert *in, const float w)
 			found= 0;
 			for(j=0; j<out->totweight; ++j) {
 				if(out->dw[j].def_nr==in->dw[i].def_nr) {
-					out->dw[j].weight += w;
+					out->dw[j].weight += in->dw[i].weight * w;
 					found= 1;
 				}
 			}
@@ -445,7 +445,7 @@ void multires_add_dvert(MDeformVert *out, const MDeformVert *in, const float w)
 				}
 
 				out->dw= newdw;
-				out->dw[out->totweight].weight= w;
+				out->dw[out->totweight].weight= in->dw[i].weight * w;
 				out->dw[out->totweight].def_nr= in->dw[i].def_nr;
 
 				++out->totweight;
@@ -1204,9 +1204,10 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 			for(i=0, eve= em->verts.first; eve; ++i, eve= eve->next)
 				CustomData_em_set(&em->vdata, eve->data, CD_MDEFORMVERT,
 				                  CustomData_get(&me->mr->vdata, i, CD_MDEFORMVERT));
-		} else
-			CustomData_merge(&me->mr->vdata, (em ? &em->vdata : &me->vdata),
-			                 vdata_mask, CD_DUPLICATE, lvl->totvert);
+		} else {
+			CustomData_merge(&me->mr->vdata, &me->vdata, vdata_mask, CD_DUPLICATE, lvl->totvert);
+			me->dvert= CustomData_get(&me->mr->vdata, 0, CD_MDEFORMVERT);
+		}
 	}
 	else if(CustomData_has_layer(&me->mr->vdata, CD_MDEFORMVERT)) {
 		MultiresLevel *dlvl, *lvl1= me->mr->levels.first;
