@@ -1243,7 +1243,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 				for(j=0; j<(dlvl->prev->faces[i].v[3]?4:3); ++j)
 					multires_add_dvert(&lvl_dverts[dlvl_ndx][dlvl->prev->totvert+dlvl->prev->totedge+i],
 							   &source[dlvl->prev->faces[i].v[j]],
-							   dlvl->prev->faces[i].v[3]?0.25:(1/3));
+							   dlvl->prev->faces[i].v[3]?0.25:(1.0f/3.0f));
 			}
 
 			++dlvl_ndx;
