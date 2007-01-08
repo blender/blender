@@ -1366,7 +1366,7 @@ static int node_composit_buts_channel_matte(uiBlock *block, bNodeTree *ntree, bN
       else if(node->custom1==3){
          c1="Y"; c2="U"; c3="V";
       }
-      else if(node->custom1==4){
+      else { // if(node->custom1==4){
          c1="Y"; c2="Cb"; c3="Cr";
       }
 

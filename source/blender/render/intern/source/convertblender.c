@@ -473,7 +473,7 @@ static void calc_tangent_vector(Render *re, VlakRen *vlr)
 	tangv[1] = (s1*e2[1] - s2*e1[1])*det;
 	tangv[2] = (s1*e2[2] - s2*e1[2])*det;
 	Crossf(ct, tang, tangv);
-	/* qdn: check flip */
+	/* check flip */
 	if ((ct[0]*vlr->n[0] + ct[1]*vlr->n[1] + ct[2]*vlr->n[2]) < 0.f)
 		VecMulf(tang, -1.f);
 	
@@ -591,7 +591,7 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 			
 		}
 		if(do_tangent) {
-			/* qdn: tangents still need to be calculated for flat faces too */
+			/* tangents still need to be calculated for flat faces too */
 			/* weighting removed, they are not vertexnormals */
 			calc_tangent_vector(re, vlr);
 		}
@@ -621,7 +621,7 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 		if(do_tangent) {
 			float *tav= RE_vertren_get_tangent(re, ver, 0);
 			if (tav) {
-				/* qdn: orthonorm. */
+				/* orthonorm. */
 				float tdn = tav[0]*ver->n[0] + tav[1]*ver->n[1] + tav[2]*ver->n[2];
 				tav[0] -= ver->n[0]*tdn;
 				tav[1] -= ver->n[1]*tdn;
@@ -706,7 +706,7 @@ static void calc_fluidsimnormals(Render *re, int startvert, int startvlak, int d
 			//	calc_tangent_vector(re, vlr, fac1, fac2, fac3, fac4);
 		}
 		if(do_tangent) {
-			/* qdn: tangents still need to be calculated for flat faces too */
+			/* tangents still need to be calculated for flat faces too */
 			/* weighting removed, they are not vertexnormals */
 			calc_tangent_vector(re, vlr);
 		}
@@ -1811,8 +1811,8 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 				need_orco= 1;
 			if(ma->texco & TEXCO_STRESS)
 				need_stress= 1;
-			/* qdn: normalmaps, test if tangents needed, separated from shading */
-			if ((ma->mode & MA_TANGENT_V) || (ma->mode & MA_NORMAP_TANG)) {
+			/* normalmaps, test if tangents needed, separated from shading */
+			if ((ma->mode_l & MA_TANGENT_V) || (ma->mode_l & MA_NORMAP_TANG)) {
 				need_tangent= 1;
 				if(me->mtface==NULL)
 					need_orco= 1;
