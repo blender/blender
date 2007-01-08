@@ -470,13 +470,12 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 	void *poin;
 	
 	if(mode=='v' && but->lock) return 0;
-	if(but->poin==NULL) return 0;
-	
 	poin= but->poin;
 		
 	if ELEM3(but->type, NUM, NUMSLI, HSVSLI) {
-	
-		if(mode=='c') {
+		
+		if(poin==NULL);
+		else if(mode=='c') {
 			but_copypaste_val= ui_get_but_val(but);
 		}
 		else {
@@ -487,7 +486,8 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 	}
 	else if(but->type==COL) {
 		
-		if(mode=='c') {
+		if(poin==NULL);
+		else if(mode=='c') {
 			if(but->pointype==FLO) {
 				float *fp= (float *) poin;
 				but_copypaste_rgb[0]= fp[0];
@@ -523,7 +523,8 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 	}
 	else if(but->type==TEX) {
 		
-		if(mode=='c') {
+		if(poin==NULL);
+		else if(mode=='c') {
 			strncpy(but_copypaste_str, but->poin, but->max);
 		}
 		else {
