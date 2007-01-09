@@ -2005,7 +2005,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;				
 			case RKEY:
-				if((G.obedit==0) && (G.f & G_FACESELECT) && (G.qual==0))
+				if((G.obedit==0) && (G.f & G_FACESELECT) && (G.qual==0) && !(G.f & G_WEIGHTPAINT))
 					rotate_uv_tface();
 				else if(G.qual==LR_ALTKEY) {
 					if(okee("Clear rotation")) {
