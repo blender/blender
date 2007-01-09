@@ -57,7 +57,11 @@ void b_verse_push_object(struct VerseSession *session, struct Object *ob);
 void b_verse_delete_object(struct Object *ob);
 void b_verse_ms_get(void);
 
-void post_transform(struct VNode *vnode);
+void post_transform_pos(struct VNode *vnode);
+void post_transform_rot(struct VNode *vnode);
+void post_transform_scale(struct VNode *vnode);
+
+/*void post_transform(struct VNode *vnode);*/
 void post_link_set(struct VLink *vlink);
 void post_link_destroy(struct VLink *vlink);
 void post_object_free_constraint(struct VNode *vnode);

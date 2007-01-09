@@ -474,8 +474,55 @@ void post_link_destroy(VLink *vlink)
 }
 
 /*
+ * update position of blender object
+ */
+void post_transform_pos(VNode *vnode)
+{
+	struct VObjectData *obj_data = (VObjectData*)vnode->data;
+	struct Object *ob = (Object*)obj_data->object;
+
+	VECCOPY(ob->loc, obj_data->pos);
+	
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+	
+	allqueue(REDRAWVIEW3D, 1);
+}
+
+/*
+ * update rotation of blender object
+ */
+void post_transform_rot(VNode *vnode)
+{
+	struct VObjectData *obj_data = (VObjectData*)vnode->data;
+	struct Object *ob = (Object*)obj_data->object;
+
+	/* convert quaternion to euler rotation */
+	QuatToEul(obj_data->rot, ob->rot);
+
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+	
+	allqueue(REDRAWVIEW3D, 1);
+}
+
+/*
+ * update scale of blender object
+ */
+void post_transform_scale(VNode *vnode)
+{
+	struct VObjectData *obj_data = (VObjectData*)vnode->data;
+	struct Object *ob = (Object*)obj_data->object;
+
+	VECCOPY(ob->size, obj_data->scale);
+
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+	
+	allqueue(REDRAWVIEW3D, 1);
+}
+
+/*
  * recalculate transformation matrix of object
  */
+#if 0
 void post_transform(VNode *vnode)
 {
 	struct VObjectData *obj_data = (VObjectData*)vnode->data;
@@ -513,6 +560,7 @@ void post_transform(VNode *vnode)
 	
 	allqueue(REDRAWVIEW3D, 1);
 }
+#endif
 
 /*
  * send transformation of Object to verse server

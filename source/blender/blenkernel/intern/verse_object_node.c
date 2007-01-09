@@ -28,6 +28,7 @@
 #ifdef WITH_VERSE
 
 #include <string.h>
+#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -109,6 +110,8 @@ void send_verse_object_position(VNode *vnode)
 	
 	((VObjectData*)vnode->data)->flag &= ~POS_SEND_READY;
 
+	/* we have to do rotation around x axis (+pi/2) to be
+	   compatible with other verse applications */
 	tmp = -((VObjectData*)vnode->data)->pos[1];
 	((VObjectData*)vnode->data)->pos[1] = ((VObjectData*)vnode->data)->pos[2];
 	((VObjectData*)vnode->data)->pos[2] = tmp;
@@ -129,32 +132,18 @@ void send_verse_object_position(VNode *vnode)
  */
 void send_verse_object_rotation(VNode *vnode)
 {
-/*	float quat[4];
-	float bvec[3], vvec[3];*/
-	VNQuat32 rot;
+	VNQuat32 quat;
+	float q[4] = {cos(-M_PI/4), -sin(-M_PI/4), 0, 0}, v[4], tmp[4];
 
-	rot.x = ((VObjectData*)vnode->data)->rot[0];
-	rot.y = ((VObjectData*)vnode->data)->rot[1];
-	rot.z = ((VObjectData*)vnode->data)->rot[2];
-	rot.w = ((VObjectData*)vnode->data)->rot[3];
+	/* inverse transformation to transformation in function cb_o_transform_rot_real32 */
+	QuatMul(v, ((VObjectData*)vnode->data)->rot, q);
+	q[1]= sin(-M_PI/4);
+	QuatMul(tmp, q, v);
 
-/*	
-	quat[0] = ((VObjectData*)vnode->data)->rot[0];
-	quat[1] = ((VObjectData*)vnode->data)->rot[1];
-	quat[2] = ((VObjectData*)vnode->data)->rot[2];
-	quat[3] = ((VObjectData*)vnode->data)->rot[3];
-	
-	QuatToEul(quat, bvec);
-	vvec[0] = bvec[0];
-	vvec[1] = bvec[1];
-	vvec[2] = bvec[2];
-	EulToQuat(vvec, quat);
-
-	rot.x = quat[0];
-	rot.y = quat[1];
-	rot.z = quat[2];
-	rot.w = quat[3];
-*/
+	quat.x = tmp[1];
+	quat.y = tmp[2];
+	quat.z = tmp[3];
+	quat.w = tmp[0];
 	
 	((VObjectData*)vnode->data)->flag &= ~ROT_SEND_READY;
 
@@ -162,7 +151,7 @@ void send_verse_object_rotation(VNode *vnode)
 			vnode->id,	/* node id */
 			0,              /* time_s ... no interpolation */
 			0,              /* time_f ... no interpolation */
-			&rot,
+			&quat,
 			NULL,		/* speed ... no interpolation */
 			NULL,           /* accelerate  ... no interpolation */
 			NULL,           /* drag normal ... no interpolation */
@@ -174,13 +163,21 @@ void send_verse_object_rotation(VNode *vnode)
  */
 void send_verse_object_scale(VNode *vnode)
 {
+	float tmp;
+
 	((VObjectData*)vnode->data)->flag &= ~SCALE_SEND_READY;
+
+	/* we have to do rotation around x axis (+pi/2) to be
+	   compatible with other verse applications */
+	tmp = ((VObjectData*)vnode->data)->scale[1];
+	((VObjectData*)vnode->data)->scale[1] = ((VObjectData*)vnode->data)->scale[2];
+	((VObjectData*)vnode->data)->scale[2] = tmp;
 
 	verse_send_o_transform_scale_real32(
 			vnode->id,
 			((VObjectData*)vnode->data)->scale[0],
-			((VObjectData*)vnode->data)->scale[2],
-			((VObjectData*)vnode->data)->scale[1]);
+			((VObjectData*)vnode->data)->scale[1],
+			((VObjectData*)vnode->data)->scale[2]);
 }
 
 /*
@@ -314,7 +311,10 @@ VObjectData *create_object_data(void)
 	obj->flag |= SCALE_SEND_READY;
 
 	/* set up pointers at post callback functions */
-	obj->post_transform = post_transform;
+/*	obj->post_transform = post_transform;*/
+	obj->post_transform_pos = post_transform_pos;
+	obj->post_transform_rot = post_transform_rot;
+	obj->post_transform_scale = post_transform_scale;
 	obj->post_object_free_constraint = post_object_free_constraint;
 
 	return obj;
@@ -353,8 +353,6 @@ static void cb_o_transform_pos_real32(
 
 	dt = time_s + time_f/(0xffff);
 
-	/* we have to flip z and y coordinates, because verse and blender use different axis
-	 * orientation */
 	if(pos) {
 		vec[0] = pos[0];
 		vec[1] = pos[1];
@@ -378,7 +376,8 @@ static void cb_o_transform_pos_real32(
 		vec[2] += accelerate[2]*dt*dt/2;
 	}
 
-	/* flip axis (due to verse spec) */
+	/* we have to do rotation around x axis (+pi/2) to be
+	   compatible with other verse applications */
 	tmp = vec[1];
 	vec[1] = -vec[2];
 	vec[2] = tmp;
@@ -391,7 +390,7 @@ static void cb_o_transform_pos_real32(
 		((VObjectData*)vnode->data)->pos[1] = vec[1];
 		((VObjectData*)vnode->data)->pos[2] = vec[2];
 
-		((VObjectData*)vnode->data)->post_transform(vnode);
+		((VObjectData*)vnode->data)->post_transform_pos(vnode);
 	}
 }
 
@@ -411,8 +410,9 @@ static void cb_o_transform_rot_real32(
 {
 	struct VerseSession *session = (VerseSession*)current_verse_session();
 	struct VNode *vnode;
-	float quat[4]={0, 0, 0, 0}, dt;
-/*	float vvec[3], bvec[3];*/
+	float quat[4]={0, 0, 0, 0}, v[4], dt;		/* temporary quaternions */
+	float q[4]={cos(M_PI/4), -sin(M_PI/4), 0, 0};	/* conjugate quaternion (represents rotation
+							   around x-axis +90 degrees) */
 
 	if(!session) return;
 
@@ -430,32 +430,36 @@ static void cb_o_transform_rot_real32(
 	dt = time_s + time_f/(0xffff);
 
 	if(rot) {
-		quat[0] = rot->x;
-		quat[1] = rot->y;
-		quat[2] = rot->z;
-		quat[3] = rot->w;
+		quat[1] = rot->x;
+		quat[2] = rot->y;
+		quat[3] = rot->z;
+		quat[0] = rot->w;
 	}
 
 	if(speed) {
-		quat[0] += speed->x*dt;
-		quat[1] += speed->y*dt;
-		quat[2] += speed->z*dt;
-		quat[3] += speed->w*dt;
+		quat[1] += speed->x*dt;
+		quat[2] += speed->y*dt;
+		quat[3] += speed->z*dt;
+		quat[0] += speed->w*dt;
 	}
 
 	if(accelerate) {
-		quat[0] += accelerate->x*dt*dt/2;
-		quat[1] += accelerate->y*dt*dt/2;
-		quat[2] += accelerate->z*dt*dt/2;
-		quat[3] += accelerate->w*dt*dt/2;
+		quat[1] += accelerate->x*dt*dt/2;
+		quat[2] += accelerate->y*dt*dt/2;
+		quat[3] += accelerate->z*dt*dt/2;
+		quat[0] += accelerate->w*dt*dt/2;
 	}
 
-/*	QuatToEul(quat, vvec);
-	bvec[0] = vvec[0];
-	bvec[1] = vvec[1];
-	bvec[2] = vvec[2];
-	EulToQuat(bvec, quat);*/
-	
+	/* following matematical operation transform rotation:
+	 *
+	 * v' = quaternion * v * conjugate_quaternion
+	 *
+	 *, where v is original representation of rotation */
+
+	QuatMul(v, quat, q);
+	q[1]= sin(M_PI/4);	/* normal quaternion */
+	QuatMul(quat, q, v);
+
 	if( (((VObjectData*)vnode->data)->rot[0] != quat[0]) ||
 			(((VObjectData*)vnode->data)->rot[1] != quat[1]) ||
 			(((VObjectData*)vnode->data)->rot[2] != quat[2]) ||
@@ -466,7 +470,7 @@ static void cb_o_transform_rot_real32(
 		((VObjectData*)vnode->data)->rot[2] = quat[2];
 		((VObjectData*)vnode->data)->rot[3] = quat[3];
 
-		((VObjectData*)vnode->data)->post_transform(vnode);
+		((VObjectData*)vnode->data)->post_transform_rot(vnode);
 	}
 }
 
@@ -511,7 +515,7 @@ static void cb_o_transform_scale_real32(
 		((VObjectData*)vnode->data)->scale[1] = scale_y;
 		((VObjectData*)vnode->data)->scale[2] = scale_z;
 
-		((VObjectData*)vnode->data)->post_transform(vnode);
+		((VObjectData*)vnode->data)->post_transform_scale(vnode);
 	}
 }
 

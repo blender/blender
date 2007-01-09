@@ -627,8 +627,8 @@ void send_verse_vertex(VerseVert *vvert)
 			vvert->vlayer->id,
 			vvert->id,
 			vvert->co[0],
-			-vvert->co[2],
-			vvert->co[1]);
+			vvert->co[2],
+			-vvert->co[1]);
 }
 
 /*
@@ -1411,8 +1411,8 @@ static void cb_g_vertex_set_xyz_real32(
 	if(!vlayer) return;
 
 	/* switch axis orientation */
-	tmp = -y;
-	y = z;
+	tmp = y;
+	y = -z;
 	z = tmp;
 	
 	if(vlayer->id == 0) {

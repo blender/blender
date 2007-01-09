@@ -262,7 +262,10 @@ typedef struct VObjectData {
 	void *object;			/* pointer at object */
 	short flag;			/* flag: POS_RECEIVE_READY, ROT_RECEIVE_READY. SCALE_RECEIVE_READY */
 	/* client dependent methods */
-	void (*post_transform)(struct VNode *vnode);
+/*	void (*post_transform)(struct VNode *vnode);*/
+	void (*post_transform_pos)(struct VNode *vnode);
+	void (*post_transform_rot)(struct VNode *vnode);
+	void (*post_transform_scale)(struct VNode *vnode);
 	void (*post_object_free_constraint)(struct VNode *vnode);
 } VObjectData;
 
