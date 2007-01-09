@@ -95,7 +95,7 @@ RetopoPaintData *get_retopo_paint_data()
 
 char retopo_mesh_paint_check()
 {
-	return retopo_mesh_check() && G.editMesh->retopo_mode==3;
+	return retopo_mesh_check() && G.editMesh->retopo_mode & 2;
 }
 
 void retopo_free_paint_data(RetopoPaintData *rpd)
@@ -384,17 +384,16 @@ void retopo_paint_add_ellipse(RetopoPaintData *rpd, short mouse[2])
 
 void retopo_end_okee()
 {
-	if(G.editMesh->retopo_mode==3) {
-		if(okee("Apply retopo paint?"))
-			retopo_paint_apply();
-		else
-			retopo_free_paint();
-		G.editMesh->retopo_mode= 1;
-	}
+	if(okee("Apply retopo paint?"))
+		retopo_paint_apply();
+	else
+		retopo_free_paint();
+	G.editMesh->retopo_mode &= ~2;
 }
 
 void retopo_paint_toggle(void *a, void *b)
 {
+	/* Note that these operations are reversed because mode bit has already been set! */
 	if(retopo_mesh_paint_check()) { /* Activate retopo paint */
 		RetopoPaintData *rpd= MEM_callocN(sizeof(RetopoPaintData),"RetopoPaintData");
 		
@@ -696,7 +695,7 @@ RetopoPaintData *retopo_paint_data_copy(RetopoPaintData *rpd)
 
 char retopo_mesh_check()
 {
-	return G.obedit && G.obedit->type==OB_MESH && G.editMesh->retopo_mode;
+	return G.obedit && G.obedit->type==OB_MESH && (G.editMesh->retopo_mode & 1);
 }
 char retopo_curve_check()
 {
@@ -709,6 +708,9 @@ void retopo_toggle(void *j1,void *j2)
 	if(retopo_mesh_check() || retopo_curve_check()) {
 		if(G.vd->depths) G.vd->depths->damaged= 1;
 		retopo_queue_updates(G.vd);
+	} else {
+		if(G.editMesh && G.editMesh->retopo_mode & 2)
+			retopo_end_okee();
 	}
 
 	allqueue(REDRAWBUTSEDIT, 0);

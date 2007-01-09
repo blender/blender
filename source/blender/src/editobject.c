@@ -1683,7 +1683,8 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 		/* temporal */
 		countall();
 
-		retopo_end_okee();
+		if(retopo_mesh_paint_check())
+			retopo_end_okee();
 
 		if(G.totvert>MESH_MAX_VERTS) {
 			error("Too many vertices");
