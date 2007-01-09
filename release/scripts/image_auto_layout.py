@@ -285,7 +285,7 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 	render_scn.link(render_cam_ob)
 	render_scn.setCurrentCamera(render_cam_ob)
 	
-	render_cam_data.type= 1 # ortho
+	render_cam_data.type= 'ortho'
 	render_cam_data.scale= 1.0
 	
 	
@@ -346,11 +346,6 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 			uv_rot= ((uv-fg.cent) * fg.rot_mat[1]) + fg.cent
 			uv.x= uv_rot.x
 			uv.y= uv_rot.y
-			
-		# VCOLS
-		# Set them white.
-		for c in target_face.col:
-			c.r= c.g= c.b= 255
 	
 	render_context.render()
 	Render.CloseRenderWindow()

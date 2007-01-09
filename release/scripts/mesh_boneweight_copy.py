@@ -198,14 +198,19 @@ def main():
 		Blender.Draw.PupMenu('Error%t|2 or more mesh objects need to be selected.|aborting.')
 		return
 	
-	PREF_QUALITY= Blender.Draw.Create(3)
+	PREF_QUALITY= Blender.Draw.Create(0)
 	PREF_NO_XCROSS= Blender.Draw.Create(0)
 	PREF_SEL_ONLY= Blender.Draw.Create(0)
 	
 	pup_block = [\
 	('Quality:', PREF_QUALITY, 0, 4, 'Generate interpolated verts for a higher quality result.'),\
 	('No X Crossing', PREF_NO_XCROSS, 'Do not snap across the zero X axis'),\
-	('Copy to Selected', PREF_SEL_ONLY, 'Only copy new weights to selected verts on the target mesh. (use active object as source)'),\
+	'',\
+	'"Update Selected" copies',\
+	'active object weights to',\
+	'selected verts on the other',\
+	'selected mesh objects.',\
+	('Update Selected', PREF_SEL_ONLY, 'Only copy new weights to selected verts on the target mesh. (use active object as source)'),\
 	]
 	
 	
