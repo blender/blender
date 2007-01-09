@@ -180,11 +180,14 @@ class edgeLoop(object):
 		
 	def reverse(self):
 		self.edges.reverse()
+		self.normal.negate()
+		
 		for e in self.edges:
 			e.normal.negate()
 			e.v1, e.v2 = e.v2, e.v1
+			e.co1, e.co2 = e.co2, e.co1
 			e.next, e.prev = e.prev, e.next
-		self.normal.negate()
+		
 	
 	def removeSmallest(self, cullNum, otherLoopLen):
 		'''
@@ -203,10 +206,16 @@ class edgeLoop(object):
 			# Dont use atm
 			#eloopCopy.sort(lambda e1, e2: cmp(e1.angle*e1.length, e2.angle*e2.length)) # Length sort, smallest first
 			#eloopCopy.sort(lambda e1, e2: cmp(e1.angle, e2.angle)) # Length sort, smallest first
-			eloopCopy = eloopCopy[:cullNum]
-			for e in eloopCopy:
-				e.removed = 1
-				self.edges.remove( e ) # Remove from own list, still in linked list.
+			
+			remNum = 0
+			for i, e in enumerate(eloopCopy):
+				if not e.fake:
+					e.removed = 1
+					self.edges.remove( e ) # Remove from own list, still in linked list.
+					remNum += 1
+				
+					if not remNum < cullNum:
+						break
 			
 		else: # CULL METHOD is even
 				
@@ -288,8 +297,6 @@ def getVertLoops(selEdges, me):
 		i1, i2 = ed.key
 		vert_siblings[i1].append(i2)
 		vert_siblings[i2].append(i1)
-		
-	
 	
 	# remove any triple points
 	for i in xrange(tot):
@@ -349,7 +356,7 @@ def getVertLoops(selEdges, me):
 	verts = me.verts
 	# convert from indicies to verts
 	# mainVertLoops = [([verts[i] for i in contextVertLoop], closed) for contextVertLoop, closed in  mainVertLoops]
-	
+	print len(mainVertLoops)
 	return mainVertLoops
 	
 
@@ -377,54 +384,90 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 	
 	
 	# IS THE LOOP FLIPPED, IF SO FLIP BACK. we keep it flipped, its ok,
-	angleBetweenLoopNormals = AngleBetweenVecs(eloop1.normal, eloop2.normal)
-	if angleBetweenLoopNormals > 90:
-		eloop2.reverse()
-	
-	DIR= eloop1.centre - eloop2.centre
-	
-	# if eloop2.closed:
-	bestEloopDist = BIG_NUM
-	bestOffset = 0
-	# Loop rotation offset to test.1
-	eLoopIdxs = range(len(eloop1.edges))
-	for offset in xrange(len(eloop1.edges)):
-		totEloopDist = 0 # Measure this total distance for thsi loop.
+	if eloop1.closed or eloop2.closed:
+		angleBetweenLoopNormals = AngleBetweenVecs(eloop1.normal, eloop2.normal)
+		if angleBetweenLoopNormals > 90:
+			eloop2.reverse()
+			
+
+		DIR= eloop1.centre - eloop2.centre
 		
-		offsetIndexLs = eLoopIdxs[offset:] + eLoopIdxs[:offset] # Make offset index list
-		
-		
-		# e1Idx is always from 0uu to N, e2Idx is offset.
-		for e1Idx, e2Idx in enumerate(offsetIndexLs):
-			e1= eloop1.edges[e1Idx]
-			e2= eloop2.edges[e2Idx]
+		# if eloop2.closed:
+		bestEloopDist = BIG_NUM
+		bestOffset = 0
+		# Loop rotation offset to test.1
+		eLoopIdxs = range(len(eloop1.edges))
+		for offset in xrange(len(eloop1.edges)):
+			totEloopDist = 0 # Measure this total distance for thsi loop.
+			
+			offsetIndexLs = eLoopIdxs[offset:] + eLoopIdxs[:offset] # Make offset index list
 			
 			
-			# Include fan connections in the measurement.
-			OK= True
-			while OK or e1.removed:
-				OK= False
+			# e1Idx is always from 0uu to N, e2Idx is offset.
+			for e1Idx, e2Idx in enumerate(offsetIndexLs):
+				e1= eloop1.edges[e1Idx]
+				e2= eloop2.edges[e2Idx]
 				
-				# Measure the vloop distance ===============
-				diff= ((e1.cent - e2.cent).length) #/ nangle1
 				
-				ed_dir= e1.cent-e2.cent
-				a_diff= AngleBetweenVecs(DIR, ed_dir)/18 # 0 t0 18
+				# Include fan connections in the measurement.
+				OK= True
+				while OK or e1.removed:
+					OK= False
+					
+					# Measure the vloop distance ===============
+					diff= ((e1.cent - e2.cent).length) #/ nangle1
+					
+					ed_dir= e1.cent-e2.cent
+					a_diff= AngleBetweenVecs(DIR, ed_dir)/18 # 0 t0 18
+					
+					totEloopDist += (diff * (1+a_diff)) / (1+loopDist)
+					
+					# Premeture break if where no better off
+					if totEloopDist > bestEloopDist:
+						break
+					
+					e1=e1.next
+					
+			if totEloopDist < bestEloopDist:
+				bestOffset = offset
+				bestEloopDist = totEloopDist
+		
+		# Modify V2 LS for Best offset
+		eloop2.edges = eloop2.edges[bestOffset:] + eloop2.edges[:bestOffset]
+			
+	else:
+		# Both are open loops, easier to calculate.
+		
+		
+		# Make sure the fake edges are at the start.
+		for i, edloop in enumerate((eloop1, eloop2)):
+			if edloop.edges[0].fake:
+				# alredy at the start
+				pass
+			elif edloop.edges[-1].fake:
+				# put the end at the start
+				edloop.edges.insert(0, edloop.edges.pop())
 				
-				totEloopDist += (diff * (1+a_diff)) / (1+loopDist)
-				
-				# Premeture break if where no better off
-				if totEloopDist > bestEloopDist:
-					break
-				
-				e1=e1.next
-				
-		if totEloopDist < bestEloopDist:
-			bestOffset = offset
-			bestEloopDist = totEloopDist
+			else:
+				for j, ed in enumerate(edloop.edges):
+					if ed.fake:
+						edloop.edges = edloop.edges = edloop.edges[j:] + edloop.edges[:j]
+						break
+		
+		ed1, ed2 = eloop1.edges[0], eloop2.edges[0]
+		
+		if not ed1.fake or not ed2.fake:
+			raise "Error"
+		
+		# Find the join that isnt flipped (juts like detecting a bow-tie face)
+		a1 = (ed1.co1 - ed2.co1).length + (ed1.co2 - ed2.co2).length
+		a2 = (ed1.co1 - ed2.co2).length + (ed1.co2 - ed2.co1).length
+		
+		if a1 > a2:
+			eloop2.reverse()
+			# make the first edge the start edge still
+			eloop2.edges.insert(0, eloop2.edges.pop())
 	
-	# Modify V2 LS for Best offset
-	eloop2.edges = eloop2.edges[bestOffset:] + eloop2.edges[:bestOffset]
 	
 	
 	
