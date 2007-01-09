@@ -154,6 +154,7 @@ void add_click_mesh(void)
 	int done= 0;
 	
 	TEST_EDITMESH
+	if(multires_test()) return;
 	
 	INIT_MINMAX(min, max);
 	
