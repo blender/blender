@@ -454,6 +454,57 @@ void multires_add_dvert(MDeformVert *out, const MDeformVert *in, const float w)
 	}
 }
 
+/* Takes an input array of dverts and subdivides them (linear) using the topology of lvl */
+MDeformVert *subdivide_dverts(MDeformVert *src, MultiresLevel *lvl)
+{
+	if(lvl && lvl->prev) {
+		MDeformVert *out = MEM_callocN(sizeof(MDeformVert)*lvl->totvert, "dvert prop array");
+		int i, j;
+		
+		/* Copy lower level */
+		for(i=0; i<lvl->prev->totvert; ++i)
+			multires_add_dvert(&out[i], &src[i], 1);
+		/* Edge verts */
+		for(i=0; i<lvl->prev->totedge; ++i) {
+			for(j=0; j<2; ++j)
+			multires_add_dvert(&out[lvl->prev->totvert+i], &src[lvl->prev->edges[i].v[j]],0.5);
+		}
+		
+		/* Face verts */
+		for(i=0; i<lvl->prev->totface; ++i) {
+			for(j=0; j<(lvl->prev->faces[i].v[3]?4:3); ++j)
+				multires_add_dvert(&out[lvl->prev->totvert + lvl->prev->totedge + i],
+				                   &src[lvl->prev->faces[i].v[j]],
+				                   lvl->prev->faces[i].v[3]?0.25:(1.0f/3.0f));
+		}
+		
+		return out;
+	}
+	
+	return NULL;
+}
+
+/* Uses subdivide_dverts to subdivide src to match lvl_end. Does not free src. */
+MDeformVert *subdivide_dverts_to_level(MDeformVert *src, MultiresLevel *lvl_start, MultiresLevel *lvl_end)
+{
+	MultiresLevel *lvl;
+	MDeformVert *cr_dverts= NULL, *pr_dverts= NULL;
+	
+	pr_dverts= src;
+	for(lvl= lvl_start->next; lvl && lvl != lvl_end->next; lvl= lvl->next) {
+		cr_dverts= subdivide_dverts(pr_dverts, lvl);
+		
+		/* Free previous dvert subdivision level */
+		if(lvl->prev != lvl_start)
+			free_dverts(pr_dverts, lvl->prev->totvert);
+			
+		pr_dverts= cr_dverts;
+		cr_dverts= NULL;
+	}
+	
+	return pr_dverts;
+}
+
 void multires_load_cols(Mesh *me)
 {
 	MultiresLevel *lvl= BLI_findlink(&me->mr->levels,me->mr->current-1), *cur;
@@ -787,25 +838,38 @@ void multires_free_level(MultiresLevel *lvl)
 	}
 }
 
+/* Delete all multires levels beneath current level. Subdivide special
+   first-level data up to the new lowest level. */
 void multires_del_lower(void *ob, void *me)
 {
 	Multires *mr= ((Mesh*)me)->mr;
-	MultiresLevel *lvl= mr->levels.first;
-	MultiresLevel *lvlprev;
+	MultiresLevel *lvl1= mr->levels.first, *cr_lvl= current_level(mr);
+	MultiresLevel *lvl= NULL, *lvlprev= NULL;
 	short *edgeflags= NULL;
+	MDeformVert *dverts= NULL;
 	int i, last;
+	
+	if(cr_lvl == lvl1) return;
 	
 	multires_check_state();
 	
 	/* Subdivide the edge flags to the current level */
 	edgeflags= MEM_callocN(sizeof(short)*current_level(mr)->totedge, "Multires Edge Flags");
-	last= lvl->totedge * pow(2, mr->current-1);
+	last= lvl1->totedge * pow(2, mr->current-1);
 	for(i=0; i<last; ++i)
 		edgeflags[i] = mr->edge_flags[(int)(i / pow(2, mr->current-1))];
 	MEM_freeN(mr->edge_flags);
 	mr->edge_flags= edgeflags;
 	
-	lvl= current_level(mr)->prev;
+	/* Subdivide the dverts to the current level */
+	dverts= subdivide_dverts_to_level(CustomData_get(&mr->vdata, 0, CD_MDEFORMVERT),
+		mr->levels.first, cr_lvl);
+	if(dverts) {
+		CustomData_free_layers(&mr->vdata, CD_MDEFORMVERT, lvl1->totvert);
+		CustomData_add_layer(&mr->vdata, CD_MDEFORMVERT, CD_ASSIGN, dverts, cr_lvl->totvert);
+	}
+	
+	lvl= cr_lvl->prev;
 	while(lvl) {
 		lvlprev= lvl->prev;
 		
@@ -1206,63 +1270,22 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 				                  CustomData_get(&me->mr->vdata, i, CD_MDEFORMVERT));
 		} else {
 			CustomData_merge(&me->mr->vdata, &me->vdata, vdata_mask, CD_DUPLICATE, lvl->totvert);
-			CustomData_get(&me->mr->vdata, 0, CD_MDEFORMVERT);
 		}
 	}
 	else if(CustomData_has_layer(&me->mr->vdata, CD_MDEFORMVERT)) {
-		MultiresLevel *dlvl, *lvl1= me->mr->levels.first;
-		MDeformVert **lvl_dverts;
-		MDeformVert *source;
-		int dlvl_ndx= 0;
-		int j;
-
-		lvl_dverts= MEM_callocN(sizeof(MDeformVert*) * (me->mr->current-1), "dvert prop array");
+		MDeformVert *dverts= subdivide_dverts_to_level(CustomData_get(&me->mr->vdata, 0, CD_MDEFORMVERT),
+			me->mr->levels.first, lvl);
 		
-		/* dverts are not (yet?) propagated with catmull-clark  */
-		for(dlvl= lvl1->next; dlvl && dlvl != lvl->next; dlvl= dlvl->next) {
-			lvl_dverts[dlvl_ndx]= MEM_callocN(sizeof(MDeformVert)*dlvl->totvert, "dvert prop data");
-
-			if(dlvl->prev==lvl1)
-				source= CustomData_get(&me->mr->vdata, 0, CD_MDEFORMVERT);
-			else
-				source= lvl_dverts[dlvl_ndx-1];
-
-			/* Copy lower level */
-			for(i=0; i<dlvl->prev->totvert; ++i)
-				multires_add_dvert(&lvl_dverts[dlvl_ndx][i],
-						   &source[i], 1);
-			/* Edge verts */
-			for(i=0; i<dlvl->prev->totedge; ++i) {
-				multires_add_dvert(&lvl_dverts[dlvl_ndx][dlvl->prev->totvert+i],
-						   &source[dlvl->prev->edges[i].v[0]],0.5);
-				multires_add_dvert(&lvl_dverts[dlvl_ndx][dlvl->prev->totvert+i],
-						   &source[dlvl->prev->edges[i].v[1]],0.5);
-			}
-			/* Face verts */
-			for(i=0; i<dlvl->prev->totface; ++i) {
-				for(j=0; j<(dlvl->prev->faces[i].v[3]?4:3); ++j)
-					multires_add_dvert(&lvl_dverts[dlvl_ndx][dlvl->prev->totvert+dlvl->prev->totedge+i],
-							   &source[dlvl->prev->faces[i].v[j]],
-							   dlvl->prev->faces[i].v[3]?0.25:(1.0f/3.0f));
-			}
-
-			++dlvl_ndx;
+		if(dverts) {
+			if(em) {
+				EM_add_data_layer(&em->vdata, CD_MDEFORMVERT);
+				for(i=0, eve= em->verts.first; eve; ++i, eve= eve->next)
+					CustomData_em_set(&em->vdata, eve->data, CD_MDEFORMVERT, &dverts[i]);
+				free_dverts(dverts, lvl->totvert);
+			} else
+				CustomData_add_layer(&me->vdata, CD_MDEFORMVERT,
+				                     CD_ASSIGN, dverts, me->totvert);
 		}
-
-		dlvl= lvl1->next;
-		for(i=0; i<(dlvl_ndx-1); ++i, dlvl= dlvl->next)
-			free_dverts(lvl_dverts[i], dlvl->totvert);
-
-		if(em) {
-			EM_add_data_layer(&em->vdata, CD_MDEFORMVERT);
-			for(i=0, eve= em->verts.first; eve; ++i, eve= eve->next)
-				CustomData_em_set(&em->vdata, eve->data, CD_MDEFORMVERT, &lvl_dverts[dlvl_ndx-1][i]);
-			free_dverts(lvl_dverts[dlvl_ndx-1], dlvl->totvert);
-		} else
-			me->dvert= CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, 0,
-			                                lvl_dverts[dlvl_ndx-1], me->totvert);
-
-		MEM_freeN(lvl_dverts);
 	}
 
 	/* Colors and UVs */
