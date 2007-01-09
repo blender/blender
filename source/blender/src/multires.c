@@ -1457,7 +1457,7 @@ void multires_update_edge_flags(Multires *mr, Mesh *me, EditMesh *em)
 	int i;
 	
 	if(em) eed= em->edges.first;
-	for(i=0; i<lvl->totvert; ++i) {
+	for(i=0; i<lvl->totedge; ++i) {
 		if(em) {
 			mr->edge_flags[i]= 0;
 			if(eed->seam)
