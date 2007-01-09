@@ -1270,13 +1270,22 @@ void action_buttons(void)
 
 	uiClearButLock();
 
-	/* draw LOCK */
+	/* draw AUTOSNAP */
 	xco+= 8;
+	
+	uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_PROP_OFF, 
+						"Auto-Snap Keys %t|Off %x0|Frame Step %x1|Nearest Frame %x2", 
+						xco,0,XIC+10,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
+						"Auto-snapping mode for keys when transforming");
+	
+	xco+= (XIC + 18);
+	
+	/* draw LOCK*/
+		
 	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco, 0, XIC, YIC, 
 				  &(G.saction->lock), 0, 0, 0, 0, 
 				  "Updates other affected window spaces automatically "
 				  "to reflect changes in real time");
-
 
 	/* always as last  */
 	curarea->headbutlen = xco + 2*XIC;

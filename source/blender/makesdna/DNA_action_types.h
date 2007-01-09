@@ -116,7 +116,7 @@ typedef struct SpaceAction {
 
 	View2D v2d;	
 	bAction		*action;
-	int	flag;
+	short flag, autosnap;	
 	short pin, actnr, lock, actwidth;
 	float timeslide;
 } SpaceAction;
@@ -131,6 +131,11 @@ typedef struct SpaceAction {
 /* SpaceAction flag */
 #define SACTION_MOVING		1	/* during transform */
 #define SACTION_SLIDERS		2	/* show sliders (if relevant) - limited to shape keys for now */
+
+/* SpaceAction AutoSnap Settings */
+#define SACTSNAP_OFF	0	/* no auto-snap */
+#define SACTSNAP_STEP	1	/* snap to 1.0 frame intervals */
+#define SACTSNAP_FRAME	2	/* snap to actual frames (nla-action time) */
 
 /* Pose->flag */
 #define POSE_RECALC		1

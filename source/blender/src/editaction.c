@@ -1092,6 +1092,27 @@ void transform_actionchannel_keys(int mode, int dummy)
 			if (!firsttime && lastcval[0]==cval[0] && lastcval[1]==cval[1]) {
 				PIL_sleep_ms(1);
 			} else {
+				short autosnap= 0;
+				
+				/* determine mode of keyframe snapping/autosnap */
+				if (mode != 't') {
+					switch (G.saction->autosnap) {
+					case SACTSNAP_OFF:
+						if (G.qual == LR_CTRLKEY) 
+							autosnap= SACTSNAP_STEP;
+						else if (G.qual == LR_SHIFTKEY)
+							autosnap= SACTSNAP_FRAME;
+						else
+							autosnap= SACTSNAP_OFF;
+						break;
+					case SACTSNAP_STEP:
+						autosnap= (G.qual==LR_CTRLKEY)? SACTSNAP_OFF: SACTSNAP_STEP;
+						break;
+					case SACTSNAP_FRAME:
+						autosnap= (G.qual==LR_SHIFTKEY)? SACTSNAP_OFF: SACTSNAP_FRAME;
+						break;
+					}
+				}
 				
 				for (i=0; i<tvtot; i++){
 					tv[i].loc[0]=tv[i].oldloc[0];
@@ -1113,11 +1134,14 @@ void transform_actionchannel_keys(int mode, int dummy)
 						}
 						break;
 					case 'g':
-						deltax = cval[0]-sval[0];
+						deltax = cval[0] - sval[0];
 						fac= deltax;
 						
-						apply_keyb_grid(&fac, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
-
+						if (autosnap == SACTSNAP_STEP) {
+							/* NOTE: this doesn't take into account NLA scaling */
+							fac= 1.0f*floor(fac/1.0f + 0.5f);
+						}
+						
 						tv[i].loc[0]+=fac;
 						break;
 					case 's':
@@ -1125,8 +1149,11 @@ void transform_actionchannel_keys(int mode, int dummy)
 						deltax=mvalc[0]-(ACTWIDTH/2+(curarea->winrct.xmax-curarea->winrct.xmin)/2);
 						fac= fabs(deltax/startx);
 						
-						apply_keyb_grid(&fac, 0.0, 0.2, 0.1, U.flag & USER_AUTOSIZEGRID);
-		
+						if (autosnap == SACTSNAP_STEP) {
+							/* NOTE: this doesn't take into account NLA scaling */
+							fac= 1.0f*floor(fac/1.0f + 0.5f);
+						}
+						
 						if (invert){
 							if (i % 03 == 0){
 								memcpy (tv[i].loc, tv[i].oldloc, sizeof(tv[i+2].oldloc));
@@ -1146,6 +1173,26 @@ void transform_actionchannel_keys(int mode, int dummy)
 						tv[i].loc[0]+= startx;
 		
 						break;
+					}
+					
+					/* snap key to nearest frame? */
+					if (autosnap == SACTSNAP_FRAME) {
+						float snapval;
+						
+						/* convert frame to nla-action time (if needed) */
+						if (G.saction->pin==0 && OBACT) 
+							snapval= get_action_frame_inv(OBACT, tv[i].loc[0]);
+						else
+							snapval= tv[i].loc[0];
+						
+						/* snap to nearest frame */
+						snapval= (float)(floor(snapval+0.5));
+							
+						/* convert frame out of nla-action time */
+						if (G.saction->pin==0 && OBACT)
+							tv[i].loc[0]= get_action_frame(OBACT, snapval);
+						else
+							tv[i].loc[0]= snapval;
 					}
 				}
 	
@@ -1308,6 +1355,28 @@ void transform_meshchannel_keys(char mode, Key *key)
             if (!firsttime && lastcval[0]==cval[0] && lastcval[1]==cval[1]) {
                 PIL_sleep_ms(1);
             } else {
+				short autosnap= 0;
+				
+				/* determine mode of keyframe snapping/autosnap */
+				if (mode != 't') {
+					switch (G.saction->autosnap) {
+					case SACTSNAP_OFF:
+						if (G.qual == LR_CTRLKEY) 
+							autosnap= SACTSNAP_STEP;
+						else if (G.qual == LR_SHIFTKEY)
+							autosnap= SACTSNAP_FRAME;
+						else
+							autosnap= SACTSNAP_OFF;
+						break;
+					case SACTSNAP_STEP:
+						autosnap= (G.qual==LR_CTRLKEY)? SACTSNAP_OFF: SACTSNAP_FRAME;
+						break;
+					case SACTSNAP_FRAME:
+						autosnap= (G.qual==LR_SHIFTKEY)? SACTSNAP_OFF: SACTSNAP_FRAME;
+						break;
+					}
+				}
+			
                 for (i=0; i<tvtot; i++){
                     tv[i].loc[0]=tv[i].oldloc[0];
 
@@ -1316,8 +1385,10 @@ void transform_meshchannel_keys(char mode, Key *key)
                         deltax = cval[0]-sval[0];
                         fac= deltax;
 						
-                        apply_keyb_grid(&fac, 0.0, 1.0, 0.1, 
-                                        U.flag & USER_AUTOGRABGRID);
+						if (autosnap == SACTSNAP_STEP) {
+							/* NOTE: this doesn't take into account NLA scaling */
+							fac= 1.0f*floor(fac/1.0f + 0.5f);
+						}
 
                         tv[i].loc[0]+=fac;
                         break;
@@ -1328,8 +1399,10 @@ void transform_meshchannel_keys(char mode, Key *key)
                                                      -curarea->winrct.xmin)/2);
                         fac= fabs(deltax/startx);
 						
-                        apply_keyb_grid(&fac, 0.0, 0.2, 0.1, 
-                                        U.flag & USER_AUTOSIZEGRID);
+						if (autosnap == SACTSNAP_FRAME) {
+							/* NOTE: this doesn't take into account NLA scaling */
+							fac= 1.0f*floor(fac/1.0f + 0.5f);
+						}
 		
                         if (invert){
                             if (i % 03 == 0){
@@ -1351,6 +1424,11 @@ void transform_meshchannel_keys(char mode, Key *key)
 		
                         break;
                     }
+					
+					/* auto-snap key to nearest frame? */
+					if (autosnap == SACTSNAP_FRAME) {
+						tv[i].loc[0]= (float)(floor(tv[i].loc[0]+0.5));
+					}	
                 }
             }
 			/* Display a message showing the magnitude of
