@@ -1153,6 +1153,7 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 			p= get_ri_pixel(ri, px, py);
 		}
 		
+		avg= 0;
 		for(i=0; i<3; ++i)
 			avg+= ((unsigned char*)(p))[i] / 255.0f;
 
