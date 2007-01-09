@@ -1488,7 +1488,8 @@ static int get_next_bake_face(BakeShade *bs)
 					if(ibuf->rect_float)
 						imb_freerectImBuf(ibuf);
 					/* clear image */
-					IMB_rectfill(ibuf, vec);
+					if(R.r.bake_flag & R_BAKE_CLEAR)
+						IMB_rectfill(ibuf, vec);
 				
 					/* might be read by UI to set active image for display */
 					R.bakebuf= ima;
@@ -1626,8 +1627,8 @@ int RE_bake_shade_all_selected(Render *re, int type)
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if((ima->id.flag & LIB_DOIT)==0) {
 			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-			IMB_filter_extend(ibuf);
-			IMB_filter_extend(ibuf);	/* 2nd pixel extra */
+			for(a=0; a<re->r.bake_filter; a++)
+				IMB_filter_extend(ibuf);
 			ibuf->userflags |= IB_BITMAPDIRTY;
 		}
 	}

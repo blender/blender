@@ -1683,7 +1683,7 @@ static void do_info_rendermenu(void *arg, int event)
 		extern_set_butspace(F10KEY, 0);
 		break;
 	case 8:
-		objects_bake_render();
+		objects_bake_render(1);
 		break;
 	}
 	allqueue(REDRAWINFO, 0);

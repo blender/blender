@@ -785,11 +785,15 @@ static void *do_bake_render(void *bake_v)
 }
 
 /* all selected meshes with UV maps are rendered for current scene visibility */
-void objects_bake_render(void)
+void objects_bake_render(int use_menu)
 {
 	short event;
 	
-	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4");
+	if(use_menu)
+		event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4");
+	else
+		event= G.scene->r.bake_mode;
+	
 	if(event>0) {
 		Render *re= RE_NewRender("_Bake View_");
 		ScrArea *area= biggest_image_area();

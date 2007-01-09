@@ -88,13 +88,13 @@ typedef struct QuicktimeCodecData {
 } QuicktimeCodecData;
 
 typedef struct FFMpegCodecData {
-        int type;
-        int codec;
-        int audio_codec;
-        int video_bitrate;
-        int audio_bitrate;
-        int gop_size;
-        int flags;
+	int type;
+	int codec;
+	int audio_codec;
+	int video_bitrate;
+	int audio_bitrate;
+	int gop_size;
+	int flags;
 
 	int rc_min_rate;
 	int rc_max_rate;
@@ -157,13 +157,14 @@ typedef struct SceneRenderLayer {
 
 
 typedef struct RenderData {
+	
 	struct AviCodecData *avicodecdata;
 	struct QuicktimeCodecData *qtcodecdata;
-        struct FFMpegCodecData ffcodecdata;
+	struct FFMpegCodecData ffcodecdata;
 
 	int cfra, sfra, efra;	/* fames as in 'images' */
 
-	int images, framapto, pad3;
+	int images, framapto;
 	short flag, threads;
 
 	float ctime;			/* use for calcutions */
@@ -217,34 +218,11 @@ typedef struct RenderData {
 	
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
-	 * 0: enable sequence output rendering                                   
-	 * 1: render daemon                                                      
-	 * 4: add extensions to filenames
 	 */
 	short scemode;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
-	 * The bits have these meanings:
-	 * 0: do oversampling
-	 * 1: do shadows
-	 * 2: do gamma correction
-	 * 3: ortho (not used?)
-	 * 4: do envmap
-	 * 5: edge shading
-	 * 6: field rendering
-	 * 7: Disables time difference in field calculations
-	 * 8: radio rendering
-	 * 9: borders
-	 * 10: panorama
-	 * 11: crop
-	 * 12: save SGI movies with Cosmo hardware
-	 * 13: odd field first rendering
-	 * 14: motion blur
-	 * 15: use unified renderer for this pic
-	 * 16: enable raytracing
-	 * 17: gauss sampling for subpixels
-	 * 18: keep float buffer after render
 	 */
 	int mode;
 
@@ -256,21 +234,14 @@ typedef struct RenderData {
 	 * blending for the background
 	 */
 	short alphamode;
-	/**
-	 * Toggles whether to apply a gamma correction for subpixel to
-	 * pixel blending
-	 */
-	short dogamma;
+
 	/**
 	 * The number of samples to use per pixel.
 	 */
 	short osa;
+	
 	short frs_sec, edgeint;
 
-	/** For unified renderer: reduce intensity on boundaries with
-	 * identical materials with this number.*/
-	short same_mat_redux;
-	
 	/* safety, border and display rect */
 	rctf safety, border;
 	rcti disprect;
@@ -281,18 +252,15 @@ typedef struct RenderData {
 	int pad2;
 	
 	/**
-	 * The gamma for the normal rendering. Used when doing
-	 * oversampling, to correctly blend subpixels to pixels.  */
-	float gamma, gauss;
-	/** post-production settings. */
-	float postmul, postgamma, postadd, postigamma, posthue, postsat;
+	 * Value used to define filter size for all filter options  */
+	float gauss;
 	
 	/* Dither noise intensity */
 	float dither_intensity;
 	
-	/* Zblur settings */
-	float zmin, focus, zgamma, zsigma, zblur;
-
+	/* Bake Render options */
+	short bake_osa, bake_filter, bake_mode, bake_flag;
+	
 	/* yafray: global panel params. TODO: move elsewhere */
 	short GIquality, GIcache, GImethod, GIphotons, GIdirect;
 	short YF_AA, YFexportxml, YF_nobump, YF_clamprgb, yfpad1;
@@ -303,6 +271,7 @@ typedef struct RenderData {
 	float GIshadowquality, GIrefinement, GIpower, GIindirpower;
 	float YF_gamma, YF_exposure, YF_raybias, YF_AApixelsize, YF_AAthreshold;
 
+	/* paths to backbufffer, output, ftype */
 	char backbuf[160], pic[160], ftype[160];
 
 } RenderData;
@@ -504,7 +473,7 @@ typedef struct Scene {
 #define R_COSMO			0x1000
 #define R_ODDFIELD		0x2000
 #define R_MBLUR			0x4000
-#define R_UNIFIED       0x8000
+		/* unified was here */
 #define R_RAYTRACE      0x10000
 		/* R_GAUSS is obsolete, but used to retrieve setting from old files */
 #define R_GAUSS      	0x20000
@@ -584,6 +553,10 @@ typedef struct Scene {
 #define R_OPENEXR_ZBUF	2
 #define R_PREVIEW_JPG	4
 
+/* bake_mode: same as RE_BAKE_xxx defines */
+/* bake_flag: */
+#define R_BAKE_CLEAR	1
+#define R_BAKE_OSA		2
 
 /* **************** SCENE ********************* */
 #define RAD_PHASE_PATCHES	1

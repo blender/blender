@@ -4875,16 +4875,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* have to check the exact multiplier */
 	}
 
-	if(main->versionfile <= 210) {
-		Scene *sce= main->scene.first;
-
-		while(sce) {
-			if(sce->r.postmul== 0.0) sce->r.postmul= 1.0;
-			if(sce->r.postgamma== 0.0) sce->r.postgamma= 1.0;
-			sce= sce->id.next;
-		}
-	}
-
 	if(main->versionfile <= 211) {
 		/* Render setting: per scene, the applicable gamma value
 		 * can be set. Default is 1.0, which means no
@@ -4892,11 +4882,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bActuator *act;
 		bObjectActuator *oa;
 		Object *ob;
-		Scene *sce= main->scene.first;
-		while(sce) {
-			sce->r.gamma = 2.0;
-			sce= sce->id.next;
-		}
 
 		/* added alpha in obcolor */
 		ob= main->object.first;
@@ -5636,7 +5621,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			tex= tex->id.next;
 		}
 		while(sce) {
-			sce->r.postsat= 1.0;
 			ed= sce->ed;
 			if(ed) {
 				WHILE_SEQ(&ed->seqbase) {
@@ -5656,16 +5640,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bScreen *sc;
 
 		while(sce) {
-			
-			if(sce->r.postsat==0.0) sce->r.postsat= 1.0f;
-			
-			if(sce->r.zgamma==0.0) {
-				sce->r.focus= 0.9f;
-				sce->r.zgamma= 1.0f;
-				sce->r.zsigma= 4.0f;
-				sce->r.zblur= 10.0f;
-				sce->r.zmin= 0.8f;
-			}
 			if(sce->editbutsize==0.0) sce->editbutsize= 0.1f;
 			
 			sce= sce->id.next;
@@ -6363,8 +6337,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 			
-			/*improved triangle to quad conversion settings*/
-			for(sce= main->scene.first; sce; sce=sce->id.next) sce->toolsettings->jointrilimit = 0.8f;
+			/* improved triangle to quad conversion settings */
+			for(sce= main->scene.first; sce; sce=sce->id.next) 
+				sce->toolsettings->jointrilimit = 0.8f;
+		}
+		
+		if(main->subversionfile < 4) {
+			for(sce= main->scene.first; sce; sce= sce->id.next) {
+				sce->r.bake_mode= 1;	/* prevent to include render stuff here */
+				sce->r.bake_filter= 2;
+				sce->r.bake_osa= 5;
+				sce->r.bake_flag= R_BAKE_CLEAR;
+			}
 		}
 	}
 

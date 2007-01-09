@@ -1562,7 +1562,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 				else if(G.qual== (LR_ALTKEY|LR_CTRLKEY))
-					objects_bake_render();
+					objects_bake_render(1);
 				else if(G.qual==0)
 					borderselect();
 				break;

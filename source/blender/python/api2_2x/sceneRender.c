@@ -87,11 +87,7 @@ enum rend_constants {
 #define EXPP_RENDER_ATTR_QUALITY             11
 #define EXPP_RENDER_ATTR_GAUSS               13
 #define EXPP_RENDER_ATTR_BLURFAC             14
-#define EXPP_RENDER_ATTR_POSTADD             15
-#define EXPP_RENDER_ATTR_POSTGAMMA           16
-#define EXPP_RENDER_ATTR_POSTMUL             17
-#define EXPP_RENDER_ATTR_POSTHUE             18
-#define EXPP_RENDER_ATTR_POSTSAT             19
+
 #define EXPP_RENDER_ATTR_YF_EXPOSURE         20
 #define EXPP_RENDER_ATTR_YF_GAMMA            21
 #define EXPP_RENDER_ATTR_YF_GIDEPTH          22
@@ -368,15 +364,6 @@ PyObject *M_Render_EnableDispWin( PyObject * self )
 	return EXPP_incr_ret( Py_None );
 }
 
-PyObject *M_Render_EnableEdgeShift( PyObject * self, PyObject * args )
-{
-	return M_Render_BitToggleInt( args, 1, &G.compat );
-}
-
-PyObject *M_Render_EnableEdgeAll( PyObject * self, PyObject * args )
-{
-	return M_Render_BitToggleInt( args, 1, &G.notonlysolid );
-}
 
 /***************************************************************************/
 /* BPy_RenderData Function Definitions                                     */
@@ -608,13 +595,6 @@ PyObject *RenderData_GetEdgeColor( BPy_RenderData * self )
 	sprintf( rgb, "[%.3f,%.3f,%.3f]", self->renderContext->edgeR,
 		 self->renderContext->edgeG, self->renderContext->edgeB );
 	return PyString_FromString( rgb );
-}
-
-PyObject *RenderData_EdgeAntiShift( BPy_RenderData * self, PyObject * args )
-{
-	return M_Render_GetSetAttributeShort( args,
-					      &self->renderContext->
-					      same_mat_redux, 0, 255 );
 }
 
 PyObject *RenderData_EnableOversampling( BPy_RenderData * self,
@@ -1053,13 +1033,6 @@ PyObject *RenderData_SizePreset( BPy_RenderData * self, PyObject * args )
 	return EXPP_incr_ret( Py_None );
 }
 
-PyObject *RenderData_EnableUnifiedRenderer( BPy_RenderData * self,
-					    PyObject * args )
-{
-	return M_Render_BitToggleInt( args, R_UNIFIED,
-				      &self->renderContext->mode );
-}
-
 PyObject *RenderData_SetYafrayGIQuality( BPy_RenderData * self,
 					 PyObject * args )
 {
@@ -1352,51 +1325,6 @@ PyObject *RenderData_GetGameFrameColor( BPy_RenderData * self )
 	return PyString_FromString( rgb );
 }
 
-PyObject *RenderData_GammaLevel( BPy_RenderData * self, PyObject * args )
-{
-	if( self->renderContext->mode & R_UNIFIED ) {
-		return M_Render_GetSetAttributeFloat( args,
-						      &self->renderContext->
-						      gamma, 0.2f, 5.0f );
-	} else
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"Unified Render must be enabled" ) );
-}
-
-PyObject *RenderData_PostProcessAdd( BPy_RenderData * self, PyObject * args )
-{
-	if( self->renderContext->mode & R_UNIFIED ) {
-		return M_Render_GetSetAttributeFloat( args,
-						      &self->renderContext->
-						      postadd, -1.0f, 1.0f );
-	} else
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"Unified Render must be enabled" ) );
-}
-
-PyObject *RenderData_PostProcessMultiply( BPy_RenderData * self,
-					  PyObject * args )
-{
-	if( self->renderContext->mode & R_UNIFIED ) {
-		return M_Render_GetSetAttributeFloat( args,
-						      &self->renderContext->
-						      postmul, 0.01f, 4.0f );
-	} else
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"Unified Render must be enabled" ) );
-}
-
-PyObject *RenderData_PostProcessGamma( BPy_RenderData * self, PyObject * args )
-{
-	if( self->renderContext->mode & R_UNIFIED ) {
-		return M_Render_GetSetAttributeFloat( args,
-						      &self->renderContext->
-						      postgamma, 0.2f, 2.0f );
-	} else
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"Unified Render must be enabled" ) );
-}
-
 #ifdef __sgi
 PyObject *RenderData_SGIMaxsize( BPy_RenderData * self, PyObject * args )
 {
@@ -1655,7 +1583,7 @@ static int RenderData_setModeBit( BPy_RenderData* self, PyObject *value,
 
 #define MODE_MASK ( R_OSA | R_SHADOW | R_GAMMA | R_ENVMAP | R_EDGE | \
 	R_FIELDS | R_FIELDSTILL | R_RADIO | R_BORDER | R_PANORAMA | R_CROP | \
-	R_ODDFIELD | R_MBLUR | R_UNIFIED | R_RAYTRACE | R_THREADS )
+	R_ODDFIELD | R_MBLUR | R_RAYTRACE | R_THREADS )
 
 static PyObject *RenderData_getMode( BPy_RenderData *self )
 {
@@ -2082,10 +2010,6 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getModeBit, (setter)RenderData_setModeBit,
 	 "Motion blur enabled",
 	 (void *)R_MBLUR},
-	{"unified",
-	 (getter)RenderData_getModeBit, (setter)RenderData_setModeBit,
-	 "Unified Renderer enabled",
-	 (void *)R_UNIFIED},
 	{"rayTracing",
 	 (getter)RenderData_getModeBit, (setter)RenderData_setModeBit,
 	 "Ray tracing enabled",
@@ -2135,7 +2059,7 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 NULL},
 	{"edgeColor",
 	 (getter)RenderData_getEdgeColor, (setter)RenderData_setEdgeColor,
-	 "RGB color triplet for edges in Toon shading (unified renderer)",
+	 "RGB color triplet for edges in Toon shading",
 	 NULL},
 	{"OSALevel",
 	 (getter)RenderData_getOSALevel, (setter)RenderData_setOSALevel,
@@ -2299,9 +2223,6 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	 "(f,f,f) - set the edge color for toon shading - Red,Green,Blue expected."},
 	{"getEdgeColor", ( PyCFunction ) RenderData_GetEdgeColor, METH_NOARGS,
 	 "() - get the edge color for toon shading - Red,Green,Blue expected."},
-	{"edgeAntiShift", ( PyCFunction ) RenderData_EdgeAntiShift,
-	 METH_VARARGS,
-	 "(int) - with the unified renderer to reduce intensity on boundaries."},
 	{"enableOversampling", ( PyCFunction ) RenderData_EnableOversampling,
 	 METH_VARARGS,
 	 "(bool) - enable/disable oversampling (anit-aliasing)."},
@@ -2362,9 +2283,6 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	 "(bool) - enable/disable small cut-out rendering"},
 	{"setBorder", ( PyCFunction ) RenderData_SetBorder, METH_VARARGS,
 	 "(f,f,f,f) - set the border for border rendering"},
-	{"enableGammaCorrection",
-	 ( PyCFunction ) RenderData_EnableGammaCorrection, METH_VARARGS,
-	 "(bool) - enable/disable gamma correction"},
 	{"gaussFilterSize", ( PyCFunction ) RenderData_GaussFilterSize,
 	 METH_VARARGS,
 	 "(float) - get/sets the Gauss filter size"},
@@ -2406,9 +2324,6 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	 "() - images are saved with RGB and Alpha data (if supported)"},
 	{"sizePreset", ( PyCFunction ) RenderData_SizePreset, METH_VARARGS,
 	 "(enum) - get/set the render to one of a few preget/sets"},
-	{"enableUnifiedRenderer",
-	 ( PyCFunction ) RenderData_EnableUnifiedRenderer, METH_VARARGS,
-	 "(bool) - use the unified renderer"},
 	{"setYafrayGIQuality", ( PyCFunction ) RenderData_SetYafrayGIQuality,
 	 METH_VARARGS,
 	 "(enum) - get/set yafray global Illumination quality"},
@@ -2483,17 +2398,6 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	{"getGameFrameColor", ( PyCFunction ) RenderData_GetGameFrameColor,
 	 METH_NOARGS,
 	 "() - get the red, green, blue component of the bars"},
-	{"gammaLevel", ( PyCFunction ) RenderData_GammaLevel, METH_VARARGS,
-	 "(float) - get/set the gamma value for blending oversampled images (1.0 = no correction"},
-	{"postProcessAdd", ( PyCFunction ) RenderData_PostProcessAdd,
-	 METH_VARARGS,
-	 "(float) - get/set post processing add"},
-	{"postProcessMultiply", ( PyCFunction ) RenderData_PostProcessMultiply,
-	 METH_VARARGS,
-	 "(float) - get/set post processing multiply"},
-	{"postProcessGamma", ( PyCFunction ) RenderData_PostProcessGamma,
-	 METH_VARARGS,
-	 "(float) - get/set post processing gamma"},
 	{"SGIMaxsize", ( PyCFunction ) RenderData_SGIMaxsize, METH_VARARGS,
 	 "(int) - get/set maximum size per frame to save in an SGI movie"},
 	{"enableSGICosmo", ( PyCFunction ) RenderData_EnableSGICosmo,
@@ -2604,11 +2508,6 @@ struct PyMethodDef M_Render_methods[] = {
 	{"SetRenderWinPos", ( PyCFunction ) M_Render_SetRenderWinPos,
 	 METH_VARARGS,
 	 "([string list]) - position the rendering window in around the edge of the screen"},
-	{"EnableEdgeShift", ( PyCFunction ) M_Render_EnableEdgeShift,
-	 METH_VARARGS,
-	 "(bool) - with the unified renderer the outlines are shifted a bit."},
-	{"EnableEdgeAll", ( PyCFunction ) M_Render_EnableEdgeAll, METH_VARARGS,
-	 "(bool) - also consider transparent faces for edge-rendering with the unified renderer"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2631,7 +2530,6 @@ static PyObject *M_Render_ModesDict( void )
 		PyConstant_Insert( d, "CROP", PyInt_FromLong( R_CROP ) );
 		PyConstant_Insert( d, "ODDFIELD", PyInt_FromLong( R_ODDFIELD ) );
 		PyConstant_Insert( d, "MBLUR", PyInt_FromLong( R_MBLUR ) );
-		PyConstant_Insert( d, "UNIFIED", PyInt_FromLong( R_UNIFIED ) );
 		PyConstant_Insert( d, "RAYTRACING", PyInt_FromLong( R_RAYTRACE ) );
 		PyConstant_Insert( d, "THREADS", PyInt_FromLong( R_THREADS ) );
 	}

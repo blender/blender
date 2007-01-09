@@ -64,6 +64,7 @@
 #include "BIF_keyval.h"
 #include "BIF_mainqueue.h"
 #include "BIF_mywindow.h"
+#include "BIF_meshtools.h"
 #include "BIF_resources.h"
 #include "BIF_renderwin.h"
 #include "BIF_screen.h"
@@ -92,6 +93,7 @@
 #include "BSE_seqaudio.h"
 #include "BSE_headerbuttons.h"
 
+#include "RE_pipeline.h"
 
 #include "butspace.h" // own module
 
@@ -1208,6 +1210,42 @@ static void render_panel_output(void)
 	uiBlockEndAlign(block);
 }
 
+static void do_bake_func(void *unused_v, void *unused_p)
+{
+	objects_bake_render(0);
+}
+
+static void render_panel_bake(void)
+{
+	uiBlock *block;
+	uiBut *but;
+	
+	block= uiNewBlock(&curarea->uiblocks, "render_panel_bake", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Anim", "Render");
+	if(uiNewPanel(curarea, block, "Bake", "Render", 320, 0, 318, 204)==0) return;
+	
+	but= uiDefBut(block, BUT, B_NOP, "BAKE",	10, 150, 190,40, 0, 0, 0, 0, 0, "Start the bake render");
+	uiButSetFunc(but, do_bake_func, NULL, NULL);
+#if 0	
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, R_BAKE_OSA, B_DIFF, "OSA",		10,120,190,20, &G.scene->r.bake_flag, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
+	uiDefButS(block, ROW,B_DIFF,"5",			10,100,50,20,&G.scene->r.bake_osa,2.0,5.0, 0, 0, "Sets oversample level to 5");
+	uiDefButS(block, ROW,B_DIFF,"8",			60,100,45,20,&G.scene->r.bake_osa,2.0,8.0, 0, 0, "Sets oversample level to 8");
+	uiDefButS(block, ROW,B_DIFF,"11",			105,100,45,20,&G.scene->r.bake_osa,2.0,11.0, 0, 0, "Sets oversample level to 11");
+	uiDefButS(block, ROW,B_DIFF,"16",			150,100,50,20,&G.scene->r.bake_osa,2.0,16.0, 0, 0, "Sets oversample level to 16");
+#endif	
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW,B_DIFF,"Full Render",		210,170,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_ALL, 0, 0, "");
+	uiDefButS(block, ROW,B_DIFF,"Ambient Occlusion",210,150,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_AO, 0, 0, "");
+	uiDefButS(block, ROW,B_DIFF,"Normals",		210,130,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_NORMALS, 0, 0, "");
+	uiDefButS(block, ROW,B_DIFF,"Textures",		210,110,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_TEXTURE, 0, 0, "");
+	uiBlockEndAlign(block);
+	
+	uiDefButBitS(block, TOG, R_BAKE_CLEAR, B_DIFF, "Clear",		210,80,120,20,&G.scene->r.bake_flag, 0.0, 0, 0, 0, "Clear Images before baking");
+	
+	uiDefButS(block, NUM, B_DIFF,"Margin:",				210,50,120,20,&G.scene->r.bake_filter, 0.0, 32.0, 0, 0, "Amount of pixels to extend the baked result with, as post process filter");
+}
+
 static void render_panel_render(void)
 {
 	uiBlock *block;
@@ -1228,7 +1266,7 @@ static void render_panel_render(void)
 #endif /* disable yafray */
 
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_OSA, 0, "OSA",		369,109,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
+	uiDefButBitI(block, TOG, R_OSA, B_DIFF, "OSA",	369,109,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
 	uiDefButS(block, ROW,B_DIFF,"5",			369,88,29,20,&G.scene->r.osa,2.0,5.0, 0, 0, "Sets oversample level to 5");
 	uiDefButS(block, ROW,B_DIFF,"8",			400,88,29,20,&G.scene->r.osa,2.0,8.0, 0, 0, "Sets oversample level to 8 (Recommended)");
 	uiDefButS(block, ROW,B_DIFF,"11",			431,88,29,20,&G.scene->r.osa,2.0,11.0, 0, 0, "Sets oversample level to 11");
@@ -1363,110 +1401,111 @@ static void set_ffmpeg_preset(int preset)
 
 static void render_panel_ffmpeg_video(void)
 {
-       int yofs;
-       int xcol1;
-       int xcol2;
-       uiBlock *block;
-       block = uiNewBlock(&curarea->uiblocks, "render_panel_ffmpeg_video", 
-			  UI_EMBOSS, UI_HELV, curarea->win);
-	   uiNewPanelTabbed("Format", "Render");
-       if (uiNewPanel(curarea, block, "Video", "Render", 960, 0, 318, 204) 
-	   == 0) return;
-
-       if (ffmpeg_preset_sel != 0) {
-	       set_ffmpeg_preset(ffmpeg_preset_sel);
-	       ffmpeg_preset_sel = 0;
-	       allqueue(REDRAWBUTSSCENE, 0);
-       }
-
-       xcol1 = 872;
-       xcol2 = 1002;
-
-       yofs = 54;
-       uiDefBut(block, LABEL, B_DIFF, "Format", xcol1, yofs+88, 
-		110, 20, 0, 0, 0, 0, 0, "");
-       uiDefBut(block, LABEL, B_DIFF, "Preset", xcol2, yofs+88, 
-		110, 20, 0, 0, 0, 0, 0, "");
-       uiDefButI(block, MENU, B_DIFF, ffmpeg_format_pup(), 
-		 xcol1, yofs+66, 110, 20, &G.scene->r.ffcodecdata.type, 
-		 0,0,0,0, "output file format");
-       uiDefButI(block, NUM, B_DIFF, "Bitrate", 
-		 xcol1, yofs+44, 110, 20, 
-		 &G.scene->r.ffcodecdata.video_bitrate, 
-		 1, 14000, 0, 0, "Video bitrate(kb/s)");
-       uiDefButI(block, NUM, B_DIFF, "Min Rate", 
-		 xcol1, yofs+22, 110, 20, &G.scene->r.ffcodecdata.rc_min_rate, 
-		 0, 14000, 0, 0, "Rate control: min rate(kb/s)");
-       uiDefButI(block, NUM, B_DIFF, "Max Rate", 
-		 xcol1, yofs, 110, 20, &G.scene->r.ffcodecdata.rc_max_rate, 
-		 1, 14000, 0, 0, "Rate control: max rate(kb/s)");
-
-       uiDefButI(block, NUM, B_DIFF, "Mux Rate", 
-		 xcol1, yofs-22, 110, 20, 
-		 &G.scene->r.ffcodecdata.mux_rate, 
-		 0, 100000000, 0, 0, "Mux rate (bits/s(!))");
-
-
-       uiDefButI(block, MENU, B_REDR, ffmpeg_preset_pup(), 
-		 xcol2, yofs+66, 110, 20, &ffmpeg_preset_sel, 
-		 0,0,0,0, "Output file format preset selection");
-       uiDefButI(block, NUM, B_DIFF, "GOP Size", 
-		 xcol2, yofs+44, 110, 20, &G.scene->r.ffcodecdata.gop_size, 
-		 0, 100, 0, 0, "Distance between key frames");
-       uiDefButI(block, NUM, B_DIFF, "Buffersize", 
-		 xcol2, yofs+22, 110, 20,
-		 &G.scene->r.ffcodecdata.rc_buffer_size, 
-		 0, 2000, 0, 0, "Rate control: buffer size (kb)");
-       uiDefButI(block, NUM, B_DIFF, "Mux PSize", 
-		 xcol2, yofs, 110, 20, 
-		 &G.scene->r.ffcodecdata.mux_packet_size, 
-		 0, 16384, 0, 0, "Mux packet size (byte)");
-
-       uiDefButBitI(block, TOG, FFMPEG_AUTOSPLIT_OUTPUT, B_NOP,
-		    "Autosplit Output", 
-		    xcol2, yofs-22, 110, 20, 
-		    &G.scene->r.ffcodecdata.flags, 
-		    0, 1, 0,0, "Autosplit output at 2GB boundary.");
-
-
-       if (G.scene->r.ffcodecdata.type == FFMPEG_AVI 
-	   || G.scene->r.ffcodecdata.type == FFMPEG_MOV) {
-               uiDefBut(block, LABEL, 0, "Codec", 
-			xcol1, yofs-44, 110, 20, 0, 0, 0, 0, 0, "");
-               uiDefButI(block, MENU,B_REDR, ffmpeg_codec_pup(), 
-			 xcol1, yofs-66, 110, 20, 
-			 &G.scene->r.ffcodecdata.codec, 
-			 0,0,0,0, "FFMpeg codec to use");
-       }
-
-
+	uiBlock *block;
+	int yofs;
+	int xcol1;
+	int xcol2;
+	
+	block = uiNewBlock(&curarea->uiblocks, "render_panel_ffmpeg_video", 
+					   UI_EMBOSS, UI_HELV, curarea->win);
+	
+	uiNewPanelTabbed("Format", "Render");
+	if (uiNewPanel(curarea, block, "Video", "Render", 960, 0, 318, 204)== 0) 
+		return;
+	
+	if (ffmpeg_preset_sel != 0) {
+		set_ffmpeg_preset(ffmpeg_preset_sel);
+		ffmpeg_preset_sel = 0;
+		allqueue(REDRAWBUTSSCENE, 0);
+	}
+	
+	xcol1 = 872;
+	xcol2 = 1002;
+	
+	yofs = 54;
+	uiDefBut(block, LABEL, B_DIFF, "Format", xcol1, yofs+88, 
+			 110, 20, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, B_DIFF, "Preset", xcol2, yofs+88, 
+			 110, 20, 0, 0, 0, 0, 0, "");
+	uiDefButI(block, MENU, B_DIFF, ffmpeg_format_pup(), 
+			  xcol1, yofs+66, 110, 20, &G.scene->r.ffcodecdata.type, 
+			  0,0,0,0, "output file format");
+	uiDefButI(block, NUM, B_DIFF, "Bitrate", 
+			  xcol1, yofs+44, 110, 20, 
+			  &G.scene->r.ffcodecdata.video_bitrate, 
+			  1, 14000, 0, 0, "Video bitrate(kb/s)");
+	uiDefButI(block, NUM, B_DIFF, "Min Rate", 
+			  xcol1, yofs+22, 110, 20, &G.scene->r.ffcodecdata.rc_min_rate, 
+			  0, 14000, 0, 0, "Rate control: min rate(kb/s)");
+	uiDefButI(block, NUM, B_DIFF, "Max Rate", 
+			  xcol1, yofs, 110, 20, &G.scene->r.ffcodecdata.rc_max_rate, 
+			  1, 14000, 0, 0, "Rate control: max rate(kb/s)");
+	
+	uiDefButI(block, NUM, B_DIFF, "Mux Rate", 
+			  xcol1, yofs-22, 110, 20, 
+			  &G.scene->r.ffcodecdata.mux_rate, 
+			  0, 100000000, 0, 0, "Mux rate (bits/s(!))");
+	
+	
+	uiDefButI(block, MENU, B_REDR, ffmpeg_preset_pup(), 
+			  xcol2, yofs+66, 110, 20, &ffmpeg_preset_sel, 
+			  0,0,0,0, "Output file format preset selection");
+	uiDefButI(block, NUM, B_DIFF, "GOP Size", 
+			  xcol2, yofs+44, 110, 20, &G.scene->r.ffcodecdata.gop_size, 
+			  0, 100, 0, 0, "Distance between key frames");
+	uiDefButI(block, NUM, B_DIFF, "Buffersize", 
+			  xcol2, yofs+22, 110, 20,
+			  &G.scene->r.ffcodecdata.rc_buffer_size, 
+			  0, 2000, 0, 0, "Rate control: buffer size (kb)");
+	uiDefButI(block, NUM, B_DIFF, "Mux PSize", 
+			  xcol2, yofs, 110, 20, 
+			  &G.scene->r.ffcodecdata.mux_packet_size, 
+			  0, 16384, 0, 0, "Mux packet size (byte)");
+	
+	uiDefButBitI(block, TOG, FFMPEG_AUTOSPLIT_OUTPUT, B_NOP,
+				 "Autosplit Output", 
+				 xcol2, yofs-22, 110, 20, 
+				 &G.scene->r.ffcodecdata.flags, 
+				 0, 1, 0,0, "Autosplit output at 2GB boundary.");
+	
+	
+	if (ELEM(G.scene->r.ffcodecdata.type, FFMPEG_AVI, FFMPEG_MOV)) {
+		uiDefBut(block, LABEL, 0, "Codec", 
+				xcol1, yofs-44, 110, 20, 0, 0, 0, 0, 0, "");
+		uiDefButI(block, MENU,B_REDR, ffmpeg_codec_pup(), 
+				  xcol1, yofs-66, 110, 20, 
+				  &G.scene->r.ffcodecdata.codec, 
+				  0,0,0,0, "FFMpeg codec to use");
+	}
 }
+
 static void render_panel_ffmpeg_audio(void)
 {
-       int yofs;
-       int xcol;
-       uiBlock *block;
-       block = uiNewBlock(&curarea->uiblocks, "render_panel_ffmpeg_audio", UI_EMBOSS, UI_HELV, curarea->win);
-	   uiNewPanelTabbed("Format", "Render");
-       if (uiNewPanel(curarea, block, "Audio", "Render", 960, 0, 318, 204) 
-	   == 0) return;
-       yofs = 54;
-       xcol = 892;
-
-       uiDefButBitI(block, TOG, FFMPEG_MULTIPLEX_AUDIO, B_NOP,
-		    "Multiplex audio", xcol, yofs, 225, 20, 
-		    &G.scene->r.ffcodecdata.flags, 
-		    0, 1, 0,0, "Interleave audio with the output video");
-       uiDefBut(block, LABEL, 0, "Codec", 
-		xcol, yofs-22, 225, 20, 0, 0, 0, 0, 0, "");
-       uiDefButI(block, MENU,B_NOP, ffmpeg_audio_codec_pup(), 
-		 xcol, yofs-44, 225, 20, 
-		 &G.scene->r.ffcodecdata.audio_codec, 
-		 0,0,0,0, "FFMpeg codec to use");
-       uiDefButI(block, NUM, B_DIFF, "Bitrate", 
-		 xcol, yofs-66, 110, 20, 
-		 &G.scene->r.ffcodecdata.audio_bitrate, 
-		 32, 384, 0, 0, "Audio bitrate(kb/s)");
+	uiBlock *block;
+	int yofs;
+	int xcol;
+	
+	block = uiNewBlock(&curarea->uiblocks, "render_panel_ffmpeg_audio", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Format", "Render");
+	if (uiNewPanel(curarea, block, "Audio", "Render", 960, 0, 318, 204) == 0) return;
+	
+	yofs = 54;
+	xcol = 892;
+	
+	uiDefButBitI(block, TOG, FFMPEG_MULTIPLEX_AUDIO, B_NOP,
+				 "Multiplex audio", xcol, yofs, 225, 20, 
+				 &G.scene->r.ffcodecdata.flags, 
+				 0, 1, 0,0, "Interleave audio with the output video");
+	uiDefBut(block, LABEL, 0, "Codec", 
+			 xcol, yofs-22, 225, 20, 0, 0, 0, 0, 0, "");
+	uiDefButI(block, MENU,B_NOP, ffmpeg_audio_codec_pup(), 
+			  xcol, yofs-44, 225, 20, 
+			  &G.scene->r.ffcodecdata.audio_codec, 
+			  0,0,0,0, "FFMpeg codec to use");
+	uiDefButI(block, NUM, B_DIFF, "Bitrate", 
+			  xcol, yofs-66, 110, 20, 
+			  &G.scene->r.ffcodecdata.audio_bitrate, 
+			  32, 384, 0, 0, "Audio bitrate(kb/s)");
 }
 #endif
 
@@ -1865,10 +1904,10 @@ void render_panels()
 {
 
 	render_panel_output();
-//	render_panel_sfx();
 	render_panel_layers();
 	render_panel_render();
 	render_panel_anim();
+	render_panel_bake();
 
 	render_panel_format();
 #ifdef WITH_FFMPEG

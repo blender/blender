@@ -197,21 +197,17 @@ Scene *add_scene(char *name)
 	sce->r.images= 100;
 	sce->r.framelen= 1.0;
 	sce->r.frs_sec= 25;
-
-	sce->r.postgamma= 1.0;
-	sce->r.postsat= 1.0;
-	sce->r.postmul= 1.0;
 	
-	sce->r.focus= 0.9;
-	sce->r.zgamma= 1.0;
-	sce->r.zsigma= 4.0;
-	sce->r.zblur= 10.0;
-	sce->r.zmin= 0.8;
+	sce->r.bake_mode= 1;	/* prevent to include render stuff here */
+	sce->r.bake_filter= 2;
+	sce->r.bake_osa= 5;
+	sce->r.bake_flag= R_BAKE_CLEAR;
 	
 	sce->r.xplay= 640;
 	sce->r.yplay= 480;
 	sce->r.freqplay= 60;
 	sce->r.depth= 32;
+	
 	sce->r.threads= 1;
 	
 	sce->r.stereomode = 1;  // no stereo
