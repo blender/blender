@@ -408,11 +408,9 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 		Dont apply modifiers, copy the mesh. 
 		So we can transform the data. its easiest just to get a copy of the mesh. 
 		'''
-		tempob= Blender.Object.New('Mesh')
-		tempob.shareFrom(ob)
-		scn.link(tempob)
+		tempob= scn.objects.new(ob.getData(mesh=1))
 		mesh.getFromObject(tempob)
-		scn.unlink(tempob)
+		scn.objects.unlink(tempob)
 	
 	if type == 'Mesh':
 		if vgroups:
