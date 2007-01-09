@@ -443,6 +443,7 @@ void IMB_exr_begin_write(void *handle, char *filename, int width, int height, in
 		header.channels().insert (echan->name, Channel (FLOAT));
 	
 	openexr_header_compression(&header, compress);
+	header.lineOrder() = DECREASING_Y;
 	
 	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.43"));
 	
@@ -464,7 +465,7 @@ void IMB_exrtile_begin_write(void *handle, char *filename, int width, int height
 		header.channels().insert (echan->name, Channel (FLOAT));
 	
 	header.setTileDescription (TileDescription (tilex, tiley, ONE_LEVEL));
-	header.lineOrder() = RANDOM_Y,
+	header.lineOrder() = RANDOM_Y;
 	header.compression() = RLE_COMPRESSION;
 	
 	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.43"));
