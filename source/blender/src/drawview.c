@@ -2604,6 +2604,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	Object *ob;
 	Scene *sce;
 	char retopo, sculpt;
+	Object *obact = OBACT;
 	
 	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
 	   no layer check here, gets correct flushed */
@@ -2738,7 +2739,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 	}
 
-	if(!retopo && sculpt && !(sculpt_session()->active_ob->dtx & OB_DRAWXRAY))
+	if(!retopo && sculpt && !(obact && (obact->dtx & OB_DRAWXRAY)))
 		view3d_update_depths(v3d);
 
 	if(G.moving) {
@@ -2753,7 +2754,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
 	view3d_draw_transp(v3d, 0);
 	
-	if(!retopo && sculpt && (sculpt_session()->active_ob->dtx & OB_DRAWXRAY))
+	if(!retopo && sculpt && (obact && (OBACT->dtx & OB_DRAWXRAY)))
 		view3d_update_depths(v3d);
 	
 	if(v3d->flag & V3D_CLIPPING)
