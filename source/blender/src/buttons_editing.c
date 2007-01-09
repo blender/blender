@@ -3276,19 +3276,19 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiDefButBitI(block, TOG, ARM_AUTO_IK, B_DIFF, "Auto IK",			210,160,100,20, &arm->flag, 0, 0, 0, 0, "Adds temporal IK chains while grabbing Bones");
 	uiBlockEndAlign(block);
 	
-	uiDefBut(block, LABEL, 0, "Display Options", 10,141,150,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Display Options", 10,135,150,19, 0, 0, 0, 0, 0, "");
 	
 	/* layers */
 	uiBlockBeginAlign(block);
 	for(a=0; a<8; a++) {
 		short dx= 18;
-		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 10+a*dx, 123, dx, 15, &arm->layer, 0, 0, 0, 0, "");
+		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 10+a*dx, 112, dx, 15, &arm->layer, 0, 0, 0, 0, "");
 		uiButSetFunc(but, armature_layer_cb, &arm->layer, (void *)(1<<a));
 	}
 	uiBlockBeginAlign(block);
 	for(a=8; a<16; a++) {
 		short dx= 18;
-		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 18+a*dx, 123, dx, 15, &arm->layer, 0, 0, 0, 0, "");
+		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 18+a*dx, 112, dx, 15, &arm->layer, 0, 0, 0, 0, "");
 		uiButSetFunc(but, armature_layer_cb, &arm->layer, (void *)(1<<a));
 	}
 	/* quite bad here, but I don't know a better place for copy... */
@@ -3296,14 +3296,14 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 		ob->pose->proxy_layer= arm->layer;
 	
 	uiBlockBeginAlign(block);
-	uiDefButI(block, ROW, REDRAWVIEW3D, "Octahedron", 10, 100,90,20, &arm->drawtype, 0, ARM_OCTA, 0, 0, "Draw bones as octahedra");
-	uiDefButI(block, ROW, REDRAWVIEW3D, "Stick",	100, 100,55,20, &arm->drawtype, 0, ARM_LINE, 0, 0, "Draw bones as simple 2d lines with dots");
-	uiDefButI(block, ROW, REDRAWVIEW3D, "B-Bone",	155, 100,70,20, &arm->drawtype, 0, ARM_B_BONE, 0, 0, "Draw bones as boxes, showing subdivision and b-splines");
-	uiDefButI(block, ROW, REDRAWVIEW3D, "Envelope",	225, 100,85,20, &arm->drawtype, 0, ARM_ENVELOPE, 0, 0, "Draw bones as extruded spheres, showing deformation influence volume");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Octahedron", 10, 87,90,20, &arm->drawtype, 0, ARM_OCTA, 0, 0, "Draw bones as octahedra");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Stick",	100, 87,55,20, &arm->drawtype, 0, ARM_LINE, 0, 0, "Draw bones as simple 2d lines with dots");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "B-Bone",	155, 87,70,20, &arm->drawtype, 0, ARM_B_BONE, 0, 0, "Draw bones as boxes, showing subdivision and b-splines");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Envelope",	225, 87,85,20, &arm->drawtype, 0, ARM_ENVELOPE, 0, 0, "Draw bones as extruded spheres, showing deformation influence volume");
 
-	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Draw Axes", 10, 80,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
-	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Draw Names", 110,80,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
-	uiDefButBitI(block, TOGN, ARM_NO_CUSTOM, REDRAWVIEW3D, "Draw Shapes", 210,80,100,20, &arm->flag, 0, 0, 0, 0, "Draw custom bone shapes");
+	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Draw Axes", 10, 67,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
+	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Draw Names", 110,67,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
+	uiDefButBitI(block, TOGN, ARM_NO_CUSTOM, REDRAWVIEW3D, "Draw Shapes", 210,67,100,20, &arm->flag, 0, 0, 0, 0, "Draw custom bone shapes");
 	
 	uiBlockEndAlign(block);
 	
