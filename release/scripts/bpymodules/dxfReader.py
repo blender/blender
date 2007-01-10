@@ -5,7 +5,7 @@
 """
 
 # --------------------------------------------------------------------------
-# DXF Reader v0.8 by Ed Blake (AKA Kitsu)
+# DXF Reader v0.9 by Ed Blake (AKA Kitsu)
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -26,11 +26,40 @@
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-# development
-#import dxfImportObjects
-#reload(dxfImportObjects)
 
-from dxfImportObjects import *
+#from dxfImportObjects import *
+
+class Object:
+    """Empty container class for dxf objects"""
+    
+    def __init__(self, _type='', block=False):
+        """_type expects a string value."""
+        self.type = _type
+        self.name = ''
+        self.data = []
+    
+    def __str__(self):
+        if self.name:
+            return self.name
+        else:
+            return self.type
+    
+    def __repr__(self):
+        return str(self.data)
+    
+    def get_type(self, kind=''):
+        """Despite the name, this method actually returns all objects of type 'kind' from self.data."""
+        if type:
+            objects = []
+            for item in self.data:
+                if type(item) != list and item.type == kind:
+                    # we want this type of object
+                    objects.append(item)
+                elif type(item) == list and item[0] == kind:
+                    # we want this type of data
+                    objects.append(item[1])
+            return objects
+    
 
 class InitializationError(Exception): pass
 
@@ -71,6 +100,33 @@ class StateMachine:
                 raise RuntimeError, "Invalid target %s" % newState
             else:
                 handler = newState
+
+def get_name(data):
+    """Get the name of an object from its object data.
+    
+    Returns a pair of (data_item, name) where data_item is the list entry where the name was found
+    (the data_item can be used to remove the entry from the object data).  Be sure to check 
+    name not None before using the returned values!
+    """
+    value = None
+    for item in data:
+        if item[0] == 2:
+            value = item[1]
+            break
+    return item, value
+
+def get_layer(data):
+    """Expects object data as input.
+    
+    Returns (entry, layer_name) where entry is the data item that provided the layer name.
+    """
+    value = None
+    for item in data:
+        if item[0] == 8:
+            value = item[1]
+            break
+    return item, value
+
 
 def convert(code, value):
     """Convert a string to the correct Python type based on its dxf code.
@@ -144,9 +200,9 @@ def handleObject(infile):
 
 def handleTable(table, infile):
     """Special handler for dealing with nested table objects."""
-    item, name, item_index = get_name(table.data)
+    item, name = get_name(table.data)
     if name: # We should always find a name
-        del table.data[item_index]
+        table.data.remove(item)
         table.name = name.lower()
     # This next bit is from handleObject
     # handleObject should be generalized to work with any section like object
@@ -165,10 +221,10 @@ def handleTable(table, infile):
 
 def handleBlock(block, infile):
     """Special handler for dealing with nested table objects."""
-    item, name, item_index = get_name(block.data)
+    item, name = get_name(block.data)
     if name: # We should always find a name
-        del block.data[item_index]
-        block.name = name.lower()
+        block.data.remove(item)
+        block.name = name
     # This next bit is from handleObject
     # handleObject should be generalized to work with any section like object
     while 1:
@@ -271,7 +327,7 @@ def error(cargo):
     print err
     return False
 
-def readDXF(filename):
+def readDXF(filename, objectify):
     """Given a file name try to read it as a dxf file.
     
     Output is an object with the following structure
@@ -305,12 +361,12 @@ def readDXF(filename):
         if drawing:
             drawing.name = filename
             for obj in drawing.data:
-                item, name, item_index = get_name(obj.data)
+                item, name = get_name(obj.data)
                 if name:
-                    del obj.data[item_index]
+                    obj.data.remove(item)
                     obj.name = name.lower()
                     setattr(drawing, name.lower(), obj)
-                    # Call the objectify function from dxfImportObjects to cast
+                    # Call the objectify function to cast
                     # raw objects into the right types of object
                     obj.data = objectify(obj.data)
                 #print obj.name
