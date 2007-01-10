@@ -272,6 +272,9 @@ void post_tag_change(struct VTag *vtag) {}
 void post_taggroup_create(struct VTagGroup *vtaggroup) {}
 char *verse_client_name(void) { return NULL; }
 void post_transform(struct VNode *vnode) {}
+void post_transform_pos(struct VNode *vnode) {}
+void post_transform_rot(struct VNode *vnode) {}
+void post_transform_scale(struct VNode *vnode) {}
 void post_object_free_constraint(struct VNode *vnode) {}
 void post_link_set(struct VLink *vlink) {}
 void post_link_destroy(struct VLink *vlink) {}
