@@ -992,6 +992,7 @@ void multires_set_level(void *ob, void *me_v)
 	waitcursor(0);
 }
 
+/* note, function is called in background render too, without UI */
 void multires_level_to_mesh(Object *ob, Mesh *me)
 {
 	MultiresLevel *lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
@@ -1135,11 +1136,14 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 	
 	mesh_update_customdata_pointers(me);
 
-	countall();
-
-	if(G.vd->depths) G.vd->depths->damaged= 1;
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
+	/* friendly check for background render */
+	if(G.background==0) {
+		countall();
+		
+		if(G.vd && G.vd->depths) G.vd->depths->damaged= 1;
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIMAGE, 0);
+	}
 }
 
 void multires_update_colors(Mesh *me)
