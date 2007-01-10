@@ -30,11 +30,13 @@
 #ifndef MULTIRES_H
 #define MULTIRES_H
 
-struct uiBlock;
+struct CustomData;
 struct Object;
+struct MDeformVert;
 struct Mesh;
 struct MultiresLevel;
 struct Multires;
+struct uiBlock;
 
 void multires_draw_interface(struct uiBlock *block, unsigned short cx, unsigned short cy);
 void multires_disp_map(void *, void*);
@@ -42,16 +44,28 @@ void multires_disp_map(void *, void*);
 void multires_make(void *ob, void *me);
 void multires_delete(void *ob, void *me);
 struct Multires *multires_copy(struct Multires *orig);
-void multires_free(Multires *mr);
-void multires_free_level(MultiresLevel *lvl);
+void multires_free(struct Multires *mr);
+void multires_free_level(struct MultiresLevel *lvl);
 void multires_del_lower(void *ob, void *me);
 void multires_del_higher(void *ob, void *me);
 void multires_add_level(void *ob, void *me);
 void multires_set_level(void *ob, void *me);
-void multires_update_levels(Mesh *me);
-void multires_level_to_mesh(Object *ob, Mesh *me);
-void multires_calc_level_maps(MultiresLevel *lvl);
+void multires_update_levels(struct Mesh *me);
+void multires_level_to_mesh(struct Object *ob, struct Mesh *me);
+void multires_calc_level_maps(struct MultiresLevel *lvl);
 void multires_edge_level_update(void *ob, void *me);
 int multires_modifier_warning();
+
+/* multires-firstlevel.c */
+/* Generic */
+typedef enum FirstLevelType {
+	FirstLevelType_Vert, FirstLevelType_Face
+} FirstLevelType;
+
+void multires_update_customdata(struct MultiresLevel *lvl1, struct CustomData *src,
+                                struct CustomData *dst, const FirstLevelType type);
+void multires_customdata_to_mesh(struct Mesh *me, struct EditMesh *em, struct MultiresLevel *lvl,
+                                 struct CustomData *src, struct CustomData *dst, const FirstLevelType type);
+void multires_del_lower_customdata(struct Multires *mr, struct MultiresLevel *cr_lvl);
 
 #endif

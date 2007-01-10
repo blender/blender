@@ -76,10 +76,8 @@
 #include "parametrizer.h"
 
 #include <math.h>
-#include <string.h>
 
-/* Only do deformverts */
-CustomDataMask vdata_mask= CD_MASK_MDEFORMVERT;
+const CustomDataMask vdata_mask= CD_MASK_MDEFORMVERT;
 
 /* editmesh.h */
 int multires_test()
@@ -335,8 +333,8 @@ void boundary_edges_average(MultiApplyData *data, MultiresLevel *lvl,
 	for(j=0; j<3; ++j) out[j]/= count;
 }
 
-/* For manipulating MultiresTexColFace */
-void mcol_to_multires(MultiresTexColFace *mrf, MCol *mcol)
+/* For manipulating vertex colors / uvs */
+void mcol_to_multires(MultiresColFace *mrf, MCol *mcol)
 {
 	char i;
 	for(i=0; i<4; ++i) {
@@ -346,19 +344,7 @@ void mcol_to_multires(MultiresTexColFace *mrf, MCol *mcol)
 		mrf->col[i].b= mcol[i].b;
 	}
 }
-void tface_to_multires(MultiresTexColFace *mrf, MTFace *t)
-{
-	char i;
-	mrf->tex_page= t->tpage;
-	mrf->tex_transp= t->transp;
-	mrf->tex_mode= t->mode;
-	mrf->tex_tile= t->tile;
-	mrf->tex_unwrap= t->unwrap;
-	for(i=0; i<4; ++i) {
-		mrf->col[i].u= t->uv[i][0];
-		mrf->col[i].v= t->uv[i][1];
-	}
-}
+
 float clamp_component(const float c)
 {
 	if(c<0) return 0;
@@ -366,7 +352,7 @@ float clamp_component(const float c)
 	else return c;
 }
 
-void multires_to_mcol(MultiresTexColFace *f, MCol mcol[4])
+void multires_to_mcol(MultiresColFace *f, MCol mcol[4])
 {
 	unsigned char j;
 	for(j=0; j<4; ++j) {
@@ -378,40 +364,25 @@ void multires_to_mcol(MultiresTexColFace *f, MCol mcol[4])
 	}
 }
 
-void multires_to_mtface(MultiresTexColFace *f, MTFace *t)
-{
-	unsigned i;
-	for(i=0; i<4; ++i) {
-		t->uv[i][0]= f->col[i].u;
-		t->uv[i][1]= f->col[i].v;
-	}
-	t->tpage= f->tex_page;
-	t->flag= f->tex_flag;
-	t->transp= f->tex_transp;
-	t->mode= f->tex_mode;
-	t->tile= f->tex_tile;
-	t->unwrap= f->tex_unwrap;
-}
-
 /* 1 <= count <= 4 */
 void multires_col_avg(MultiresCol *avg, MultiresCol cols[4], char count)
 {
 	unsigned i;
-	avg->a= avg->r= avg->g= avg->b= avg->u= avg->v= 0;
+	avg->a= avg->r= avg->g= avg->b= /*avg->u= avg->v=*/ 0;
 	for(i=0; i<count; ++i) {
 		avg->a+= cols[i].a;
 		avg->r+= cols[i].r;
 		avg->g+= cols[i].g;
 		avg->b+= cols[i].b;
-		avg->u+= cols[i].u;
-		avg->v+= cols[i].v;
+		//avg->u+= cols[i].u;
+		//avg->v+= cols[i].v;
 	}
 	avg->a/= count;
 	avg->r/= count;
 	avg->g/= count;
 	avg->b/= count;
-	avg->u/= count;
-	avg->v/= count;
+	//avg->u/= count;
+	//avg->v/= count;
 }
 
 void multires_col_avg2(MultiresCol *avg, MultiresCol *c1, MultiresCol *c2)
@@ -420,89 +391,6 @@ void multires_col_avg2(MultiresCol *avg, MultiresCol *c1, MultiresCol *c2)
 	in[0]= *c1;
 	in[1]= *c2;
 	multires_col_avg(avg,in,2);
-}
-
-void multires_add_dvert(MDeformVert *out, const MDeformVert *in, const float w)
-{
-	if(out && in) {
-		int i, j;
-		char found;
-
-		for(i=0; i<in->totweight; ++i) {
-			found= 0;
-			for(j=0; j<out->totweight; ++j) {
-				if(out->dw[j].def_nr==in->dw[i].def_nr) {
-					out->dw[j].weight += in->dw[i].weight * w;
-					found= 1;
-				}
-			}
-			if(!found) {
-				MDeformWeight *newdw= MEM_callocN(sizeof(MDeformWeight)*(out->totweight+1),
-				                                  "multires dvert");
-				if(out->dw) {
-					memcpy(newdw, out->dw, sizeof(MDeformWeight)*out->totweight);
-					MEM_freeN(out->dw);
-				}
-
-				out->dw= newdw;
-				out->dw[out->totweight].weight= in->dw[i].weight * w;
-				out->dw[out->totweight].def_nr= in->dw[i].def_nr;
-
-				++out->totweight;
-			}
-		}
-	}
-}
-
-/* Takes an input array of dverts and subdivides them (linear) using the topology of lvl */
-MDeformVert *subdivide_dverts(MDeformVert *src, MultiresLevel *lvl)
-{
-	if(lvl && lvl->prev) {
-		MDeformVert *out = MEM_callocN(sizeof(MDeformVert)*lvl->totvert, "dvert prop array");
-		int i, j;
-		
-		/* Copy lower level */
-		for(i=0; i<lvl->prev->totvert; ++i)
-			multires_add_dvert(&out[i], &src[i], 1);
-		/* Edge verts */
-		for(i=0; i<lvl->prev->totedge; ++i) {
-			for(j=0; j<2; ++j)
-			multires_add_dvert(&out[lvl->prev->totvert+i], &src[lvl->prev->edges[i].v[j]],0.5);
-		}
-		
-		/* Face verts */
-		for(i=0; i<lvl->prev->totface; ++i) {
-			for(j=0; j<(lvl->prev->faces[i].v[3]?4:3); ++j)
-				multires_add_dvert(&out[lvl->prev->totvert + lvl->prev->totedge + i],
-				                   &src[lvl->prev->faces[i].v[j]],
-				                   lvl->prev->faces[i].v[3]?0.25:(1.0f/3.0f));
-		}
-		
-		return out;
-	}
-	
-	return NULL;
-}
-
-/* Uses subdivide_dverts to subdivide src to match lvl_end. Does not free src. */
-MDeformVert *subdivide_dverts_to_level(MDeformVert *src, MultiresLevel *lvl_start, MultiresLevel *lvl_end)
-{
-	MultiresLevel *lvl;
-	MDeformVert *cr_dverts= NULL, *pr_dverts= NULL;
-	
-	pr_dverts= src;
-	for(lvl= lvl_start->next; lvl && lvl != lvl_end->next; lvl= lvl->next) {
-		cr_dverts= subdivide_dverts(pr_dverts, lvl);
-		
-		/* Free previous dvert subdivision level */
-		if(lvl->prev != lvl_start)
-			free_dverts(pr_dverts, lvl->prev->totvert);
-			
-		pr_dverts= cr_dverts;
-		cr_dverts= NULL;
-	}
-	
-	return pr_dverts;
 }
 
 void multires_load_cols(Mesh *me)
@@ -517,20 +405,20 @@ void multires_load_cols(Mesh *me)
 
 	/* Add texcol data */
 	for(cur= me->mr->levels.first; cur; cur= cur->next)
-		if(!cur->texcolfaces)
-			cur->texcolfaces= MEM_callocN(sizeof(MultiresTexColFace)*cur->totface,"TexColFaces");
+		if(!cur->colfaces)
+			cur->colfaces= MEM_callocN(sizeof(MultiresColFace)*cur->totface,"ColFaces");
 
 	me->mr->use_col= CustomData_has_layer(src, CD_MCOL);
 	me->mr->use_tex= CustomData_has_layer(src, CD_MTFACE);
 
 	if(em) efa= em->faces.first;
 	for(i=0; i<lvl->totface; ++i) {
-		MultiresTexColFace *f= &lvl->texcolfaces[i];
+		MultiresColFace *f= &lvl->colfaces[i];
 
 		if(me->mr->use_col)
 			mcol_to_multires(f, em ? CustomData_em_get(src, efa->data, CD_MCOL) : &me->mcol[i*4]);
-		if(me->mr->use_tex)
-			tface_to_multires(f, em ? CustomData_em_get(src, efa->data, CD_MTFACE) : &me->mtface[i]);
+		//if(me->mr->use_tex)
+		//	tface_to_multires(f, em ? CustomData_em_get(src, efa->data, CD_MTFACE) : &me->mtface[i]);
 		
 		if(em) efa= efa->next;
 	}
@@ -538,16 +426,16 @@ void multires_load_cols(Mesh *me)
 	/* Update higher levels */
 	lvl= lvl->next;
 	while(lvl) {
-		MultiresTexColFace *cf= lvl->texcolfaces;
+		MultiresColFace *cf= lvl->colfaces;
 		for(i=0; i<lvl->prev->totface; ++i) {
 			const char sides= lvl->prev->faces[i].v[3]?4:3;
 			MultiresCol cntr;
 			
 			/* Find average color of 4 (or 3 for triangle) verts */
-			multires_col_avg(&cntr,lvl->prev->texcolfaces[i].col,sides);
+			multires_col_avg(&cntr,lvl->prev->colfaces[i].col,sides);
 			
 			for(j=0; j<sides; ++j) {
-				MultiresTexColFace *pf= &lvl->prev->texcolfaces[i];
+				MultiresColFace *pf= &lvl->prev->colfaces[i];
 
 				multires_col_avg2(&cf->col[0],
 						  &pf->col[j],
@@ -558,12 +446,12 @@ void multires_load_cols(Mesh *me)
 						  &pf->col[j==sides-1?0:j+1]);
 				cf->col[3]= cntr;
 
-				cf->tex_page= pf->tex_page;
+				/*cf->tex_page= pf->tex_page;
 				cf->tex_flag= pf->tex_flag;
 				cf->tex_transp= pf->tex_transp;
 				cf->tex_mode= pf->tex_mode;
 				cf->tex_tile= pf->tex_tile;
-				cf->tex_unwrap= pf->tex_unwrap;
+				cf->tex_unwrap= pf->tex_unwrap;*/
 				
 				++cf;
 			}
@@ -579,7 +467,7 @@ void multires_load_cols(Mesh *me)
 		for(i=0; i<lvl->totface; ++i) {
 			MultiresFace *f= &lvl->faces[i];
 			for(j=0; j<(f->v[3]?4:3); ++j) {
-				lvl->texcolfaces[i].col[j]= lvl->next->texcolfaces[curf].col[1];
+				lvl->colfaces[i].col[j]= lvl->next->colfaces[curf].col[1];
 				++curf;
 			}
 		}
@@ -643,29 +531,6 @@ void multires_get_edge(MultiresEdge *e, EditEdge *eed, MEdge *m, short *flag)
 	}
 }
 
-void multires_update_deformverts(Multires *mr, CustomData *src)
-{
-	MultiresLevel *lvl= mr->levels.first;
-	if(lvl) {
-		int i;
-		
-		CustomData_free(&mr->vdata, lvl->totvert);
-				
-		if(CustomData_has_layer(src, CD_MDEFORMVERT)) {
-			if(G.obedit) {
-				EditVert *eve= G.editMesh->verts.first;
-				CustomData_add_layer(&mr->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, lvl->totvert);
-				for(i=0; i<lvl->totvert; ++i) {
-					CustomData_from_em_block(&G.editMesh->vdata, &mr->vdata, eve->data, i);
-					eve= eve->next;
-				}
-			}
-			else
-				CustomData_copy(src, &mr->vdata, vdata_mask, CD_DUPLICATE, lvl->totvert);
-		}
-	}
-}
-
 void multires_make(void *ob, void *me_v)
 {
 	Mesh *me= me_v;
@@ -707,26 +572,29 @@ void multires_make(void *ob, void *me_v)
 	
 	/* Load mesh (or editmesh) into multires data */
 
-	/* Load vertices */
+	/* Load vertices and vdata (MDeformVerts) */
 	lvl->totvert= em ? BLI_countlist(&em->verts) : me->totvert;
 	lvl->verts= MEM_callocN(sizeof(MVert)*lvl->totvert,"multires verts");
-	multires_update_deformverts(me->mr, em ? &em->vdata : &me->vdata);
+	multires_update_customdata(me->mr->levels.first, em ? &em->vdata : &me->vdata,
+	                           &me->mr->vdata, FirstLevelType_Vert);
 	if(em) eve= em->verts.first;
 	for(i=0; i<lvl->totvert; ++i) {
 		multires_get_vert(&lvl->verts[i], eve, &me->mvert[i], i);
 		if(em) eve= eve->next;
 	}
 
-	/* Load faces */
+	/* Load faces and fdata (MTFaces) */
 	lvl->totface= em ? BLI_countlist(&em->faces) : me->totface;
 	lvl->faces= MEM_callocN(sizeof(MultiresFace)*lvl->totface,"multires faces");
+	multires_update_customdata(me->mr->levels.first, em ? &em->fdata : &me->fdata,
+	                           &me->mr->fdata, FirstLevelType_Face);
 	if(em) efa= em->faces.first;
 	for(i=0; i<lvl->totface; ++i) {
 		multires_get_face(&lvl->faces[i], efa, &me->mface[i]);
 		if(em) efa= efa->next;
 	}
 
-	/* Load edges */
+	/* Load edges and edge_flags */
 	lvl->totedge= em ? BLI_countlist(&em->edges) : me->totedge;
 	lvl->edges= MEM_callocN(sizeof(MultiresEdge)*lvl->totedge,"multires edges");
 	me->mr->edge_flags= MEM_callocN(sizeof(short)*lvl->totedge, "multires edge flags");
@@ -768,7 +636,7 @@ MultiresLevel *multires_level_copy(MultiresLevel *orig)
 		lvl->next= lvl->prev= NULL;
 		lvl->verts= MEM_dupallocN(orig->verts);
 		lvl->faces= MEM_dupallocN(orig->faces);
-		lvl->texcolfaces= MEM_dupallocN(orig->texcolfaces);
+		lvl->colfaces= MEM_dupallocN(orig->colfaces);
 		lvl->edges= MEM_dupallocN(orig->edges);
 		lvl->vert_edge_map= lvl->vert_face_map= NULL;
 		multires_calc_level_maps(lvl);
@@ -792,6 +660,7 @@ Multires *multires_copy(Multires *orig)
 		lvl= mr->levels.first;
 		if(lvl) {
 			CustomData_copy(&orig->vdata, &mr->vdata, vdata_mask, CD_DUPLICATE, lvl->totvert);
+			CustomData_copy(&orig->fdata, &mr->fdata, CD_MASK_MTFACE, CD_DUPLICATE, lvl->totface);
 			mr->edge_flags= MEM_dupallocN(orig->edge_flags);
 		}
 		
@@ -808,6 +677,7 @@ void multires_free(Multires *mr)
 		/* Free the first-level data */
 		if(lvl) {
 			CustomData_free(&mr->vdata, lvl->totvert);
+			CustomData_free(&mr->fdata, lvl->totface);
 			MEM_freeN(mr->edge_flags);
 		}
 
@@ -829,7 +699,7 @@ void multires_free_level(MultiresLevel *lvl)
 		if(lvl->verts) MEM_freeN(lvl->verts);
 		if(lvl->faces) MEM_freeN(lvl->faces);
 		if(lvl->edges) MEM_freeN(lvl->edges);
-		if(lvl->texcolfaces) MEM_freeN(lvl->texcolfaces);
+		if(lvl->colfaces) MEM_freeN(lvl->colfaces);
 		
 		/* Free all vertex maps */
 		MEM_freeN(lvl->vert_edge_map);
@@ -846,7 +716,6 @@ void multires_del_lower(void *ob, void *me)
 	MultiresLevel *lvl1= mr->levels.first, *cr_lvl= current_level(mr);
 	MultiresLevel *lvl= NULL, *lvlprev= NULL;
 	short *edgeflags= NULL;
-	MDeformVert *dverts= NULL;
 	int i, last;
 	
 	if(cr_lvl == lvl1) return;
@@ -861,13 +730,7 @@ void multires_del_lower(void *ob, void *me)
 	MEM_freeN(mr->edge_flags);
 	mr->edge_flags= edgeflags;
 	
-	/* Subdivide the dverts to the current level */
-	dverts= subdivide_dverts_to_level(CustomData_get(&mr->vdata, 0, CD_MDEFORMVERT),
-		mr->levels.first, cr_lvl);
-	if(dverts) {
-		CustomData_free_layers(&mr->vdata, CD_MDEFORMVERT, lvl1->totvert);
-		CustomData_add_layer(&mr->vdata, CD_MDEFORMVERT, CD_ASSIGN, dverts, cr_lvl->totvert);
-	}
+	multires_del_lower_customdata(mr, cr_lvl);
 	
 	lvl= cr_lvl->prev;
 	while(lvl) {
@@ -1085,31 +948,31 @@ void multires_add_level(void *ob, void *me_v)
 	   ============= */
 	curf= 0;
 	if(me->mr->use_col || me->mr->use_tex) {
-		MultiresTexColFace *cf= MEM_callocN(sizeof(MultiresTexColFace)*lvl->totface,"MultiresTexColFaces");
-		lvl->texcolfaces= cf;
+		MultiresColFace *cf= MEM_callocN(sizeof(MultiresColFace)*lvl->totface,"Multirescolfaces");
+		lvl->colfaces= cf;
 		for(i=0; i<lvl->prev->totface; ++i) {
 			const char sides= lvl->prev->faces[i].v[3]?4:3;
 			MultiresCol cntr;
 
 			/* Find average color of 4 (or 3 for triangle) verts */
-			multires_col_avg(&cntr,lvl->prev->texcolfaces[i].col,sides);
+			multires_col_avg(&cntr,lvl->prev->colfaces[i].col,sides);
 
 			for(j=0; j<sides; ++j) {
 				multires_col_avg2(&cf->col[0],
-						  &lvl->prev->texcolfaces[i].col[j],
-						  &lvl->prev->texcolfaces[i].col[j==0?sides-1:j-1]);
-				cf->col[1]= lvl->prev->texcolfaces[i].col[j];
+						  &lvl->prev->colfaces[i].col[j],
+						  &lvl->prev->colfaces[i].col[j==0?sides-1:j-1]);
+				cf->col[1]= lvl->prev->colfaces[i].col[j];
 				multires_col_avg2(&cf->col[2],
-						  &lvl->prev->texcolfaces[i].col[j],
-						  &lvl->prev->texcolfaces[i].col[j==sides-1?0:j+1]);
+						  &lvl->prev->colfaces[i].col[j],
+						  &lvl->prev->colfaces[i].col[j==sides-1?0:j+1]);
 				cf->col[3]= cntr;
 				
-				cf->tex_page= lvl->prev->texcolfaces[i].tex_page;
-				cf->tex_flag= lvl->prev->texcolfaces[i].tex_flag;
-				cf->tex_transp= lvl->prev->texcolfaces[i].tex_transp;
-				cf->tex_mode= lvl->prev->texcolfaces[i].tex_mode;
-				cf->tex_tile= lvl->prev->texcolfaces[i].tex_tile;
-				cf->tex_unwrap= lvl->prev->texcolfaces[i].tex_unwrap;
+				/*cf->tex_page= lvl->prev->colfaces[i].tex_page;
+				cf->tex_flag= lvl->prev->colfaces[i].tex_flag;
+				cf->tex_transp= lvl->prev->colfaces[i].tex_transp;
+				cf->tex_mode= lvl->prev->colfaces[i].tex_mode;
+				cf->tex_tile= lvl->prev->colfaces[i].tex_tile;
+				cf->tex_unwrap= lvl->prev->colfaces[i].tex_unwrap;*/
 
 				++cf;
 			}
@@ -1261,8 +1124,9 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		}
 	}
 
-	/* Vertex groups */
-	if(lvl==me->mr->levels.first && CustomData_has_layer(&me->mr->vdata, CD_MDEFORMVERT)) {
+	multires_customdata_to_mesh(me, em, lvl, &me->mr->vdata, em ? &em->vdata : &me->vdata, FirstLevelType_Vert);
+	multires_customdata_to_mesh(me, em, lvl, &me->mr->fdata, em ? &em->fdata : &me->fdata, FirstLevelType_Face);
+	/*if(lvl==me->mr->levels.first && CustomData_has_layer(&me->mr->vdata, CD_MDEFORMVERT)) {
 		if(em) {
 			EM_add_data_layer(&em->vdata, CD_MDEFORMVERT);
 			for(i=0, eve= em->verts.first; eve; ++i, eve= eve->next)
@@ -1286,7 +1150,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 				CustomData_add_layer(&me->vdata, CD_MDEFORMVERT,
 				                     CD_ASSIGN, dverts, me->totvert);
 		}
-	}
+	}*/
 
 	/* Colors and UVs */
 	if(me->mr->use_col || me->mr->use_tex) {
@@ -1296,29 +1160,29 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		CustomData *src= em ? &em->fdata : &me->fdata;
 		if(em) {
 			if(me->mr->use_col) EM_add_data_layer(src, CD_MCOL);
-			if(me->mr->use_tex) EM_add_data_layer(src, CD_MTFACE);
+			//if(me->mr->use_tex) EM_add_data_layer(src, CD_MTFACE);
 			efa= em->faces.first;
 		}
 		else {
 			if(me->mr->use_col) me->mcol= CustomData_add_layer(src, CD_MCOL, CD_CALLOC, NULL, me->totface);
-			if(me->mr->use_tex) me->mtface= CustomData_add_layer(src, CD_MTFACE, CD_CALLOC, NULL, me->totface);
+			//if(me->mr->use_tex) me->mtface= CustomData_add_layer(src, CD_MTFACE, CD_CALLOC, NULL, me->totface);
 		}
 		
 		for(i=0; i<lvl->totface; ++i) {
 			if(em) {
 				if(me->mr->use_col) {
-					multires_to_mcol(&lvl->texcolfaces[i], c);
+					multires_to_mcol(&lvl->colfaces[i], c);
 					CustomData_em_set(src, efa->data, CD_MCOL, c);
 				}
-				if(me->mr->use_tex) {
-					multires_to_mtface(&lvl->texcolfaces[i], &f);
-					CustomData_em_set(src, efa->data, CD_MTFACE, &f);
-				}
+				//if(me->mr->use_tex) {
+				//	multires_to_mtface(&lvl->colfaces[i], &f);
+				//	CustomData_em_set(src, efa->data, CD_MTFACE, &f);
+				//}
 				efa= efa->next;
 			}
 			else {
-				if(me->mr->use_col) multires_to_mcol(&lvl->texcolfaces[i], &me->mcol[i*4]);
-				if(me->mr->use_tex) multires_to_mtface(&lvl->texcolfaces[i], &me->mtface[i]);
+				if(me->mr->use_col) multires_to_mcol(&lvl->colfaces[i], &me->mcol[i*4]);
+				//if(me->mr->use_tex) multires_to_mtface(&lvl->colfaces[i], &me->mtface[i]);
 			}
 		}
 			
@@ -1341,6 +1205,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 
 	if(G.vd->depths) G.vd->depths->damaged= 1;
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
 }
 
 void multires_update_colors(Mesh *me)
@@ -1361,15 +1226,15 @@ void multires_update_colors(Mesh *me)
 			MTFace *mtf= em ? CustomData_em_get(src, efa->data, CD_MTFACE) : &me->mtface[i];
 			MCol *col= em ? CustomData_em_get(src, efa->data, CD_MCOL) : &me->mcol[i*4];
 			for(j=0; j<4; ++j) {
-				if(me->mr->use_tex) {					
-					cr_deltas[i*4+j].u= mtf->uv[j][0] - lvl->texcolfaces[i].col[j].u;
-					cr_deltas[i*4+j].v= mtf->uv[j][1] - lvl->texcolfaces[i].col[j].v;
-				}
+				//if(me->mr->use_tex) {					
+				//	cr_deltas[i*4+j].u= mtf->uv[j][0] - lvl->colfaces[i].col[j].u;
+				//	cr_deltas[i*4+j].v= mtf->uv[j][1] - lvl->colfaces[i].col[j].v;
+				//}
 				if(me->mr->use_col) {
-					cr_deltas[i*4+j].a= col[j].a - lvl->texcolfaces[i].col[j].a;
-					cr_deltas[i*4+j].r= col[j].r - lvl->texcolfaces[i].col[j].r;
-					cr_deltas[i*4+j].g= col[j].g - lvl->texcolfaces[i].col[j].g;
-					cr_deltas[i*4+j].b= col[j].b - lvl->texcolfaces[i].col[j].b;
+					cr_deltas[i*4+j].a= col[j].a - lvl->colfaces[i].col[j].a;
+					cr_deltas[i*4+j].r= col[j].r - lvl->colfaces[i].col[j].r;
+					cr_deltas[i*4+j].g= col[j].g - lvl->colfaces[i].col[j].g;
+					cr_deltas[i*4+j].b= col[j].b - lvl->colfaces[i].col[j].b;
 				}
 			}
 			if(em) efa= efa->next;
@@ -1378,12 +1243,12 @@ void multires_update_colors(Mesh *me)
 		/* Update current level */
 		if(em) efa= em->faces.first;
 		for(i=0; i<lvl->totface; ++i) {
-			MultiresTexColFace *f= &lvl->texcolfaces[i];
+			MultiresColFace *f= &lvl->colfaces[i];
 
 			if(me->mr->use_col)
 				mcol_to_multires(f, em ? CustomData_em_get(src, efa->data, CD_MCOL) : &me->mcol[i*4]);
-			if(me->mr->use_tex)
-				tface_to_multires(f, em ? CustomData_em_get(src, efa->data, CD_MTFACE) : &me->mtface[i]);
+			//if(me->mr->use_tex)
+			//	tface_to_multires(f, em ? CustomData_em_get(src, efa->data, CD_MTFACE) : &me->mtface[i]);
 			
 			if(em) efa= efa->next;
 		}
@@ -1419,12 +1284,12 @@ void multires_update_colors(Mesh *me)
 
 			for(i=0; i<lvl->totface; ++i) {
 				for(j=0; j<4; ++j) {
-					lvl->texcolfaces[i].col[j].a+= cr_deltas[i*4+j].a;
-					lvl->texcolfaces[i].col[j].r+= cr_deltas[i*4+j].r;
-					lvl->texcolfaces[i].col[j].g+= cr_deltas[i*4+j].g;
-					lvl->texcolfaces[i].col[j].b+= cr_deltas[i*4+j].b;
-					lvl->texcolfaces[i].col[j].u+= cr_deltas[i*4+j].u;
-					lvl->texcolfaces[i].col[j].v+= cr_deltas[i*4+j].v;
+					lvl->colfaces[i].col[j].a+= cr_deltas[i*4+j].a;
+					lvl->colfaces[i].col[j].r+= cr_deltas[i*4+j].r;
+					lvl->colfaces[i].col[j].g+= cr_deltas[i*4+j].g;
+					lvl->colfaces[i].col[j].b+= cr_deltas[i*4+j].b;
+					//lvl->colfaces[i].col[j].u+= cr_deltas[i*4+j].u;
+					//lvl->colfaces[i].col[j].v+= cr_deltas[i*4+j].v;
 				}
 			}
 
@@ -1437,11 +1302,11 @@ void multires_update_colors(Mesh *me)
 		lvl= me->mr->levels.last;
 		lvl= lvl->prev;
 		while(lvl) {
-			MultiresTexColFace *nf= lvl->next->texcolfaces;
+			MultiresColFace *nf= lvl->next->colfaces;
 			for(i=0; i<lvl->totface; ++i) {
 				MultiresFace *f= &lvl->faces[i];
 				for(j=0; j<(f->v[3]?4:3); ++j) {
-					lvl->texcolfaces[i].col[j]= nf->col[1];
+					lvl->colfaces[i].col[j]= nf->col[1];
 					++nf;
 				}
 			}
@@ -1485,7 +1350,10 @@ void multires_update_levels(Mesh *me)
 
 	/* Update special first-level data */
 	if(cr_lvl==me->mr->levels.first) {
-		multires_update_deformverts(me->mr, (em ? &em->vdata : &me->vdata));
+		multires_update_customdata(me->mr->levels.first, em ? &em->vdata : &me->vdata,
+		                           &me->mr->vdata, FirstLevelType_Vert);
+		multires_update_customdata(me->mr->levels.first, em ? &em->fdata : &me->fdata,
+		                           &me->mr->fdata, FirstLevelType_Face);
 		multires_update_edge_flags(me->mr, me, em);
 	}
 

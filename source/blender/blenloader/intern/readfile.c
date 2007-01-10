@@ -2530,6 +2530,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		
 		direct_link_customdata(fd, &mesh->mr->vdata, lvl->totvert);
 		direct_link_dverts(fd, lvl->totvert, CustomData_get(&mesh->mr->vdata, 0, CD_MDEFORMVERT));
+		direct_link_customdata(fd, &mesh->mr->fdata, lvl->totface);
 		
 		if(mesh->mr->edge_flags)
 			mesh->mr->edge_flags= newdataadr(fd, mesh->mr->edge_flags);
@@ -2538,17 +2539,10 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 			mesh->mr->edge_flags= MEM_callocN(sizeof(short)*lvl->totedge, "Multires Edge Flags");
 			
 		for(; lvl; lvl= lvl->next) {
-			int i;
-			
 			lvl->verts= newdataadr(fd, lvl->verts);
 			lvl->faces= newdataadr(fd, lvl->faces);
 			lvl->edges= newdataadr(fd, lvl->edges);
-			lvl->texcolfaces= newdataadr(fd, lvl->texcolfaces);
-			
-			if(lvl->texcolfaces) {
-				for(i=0; i<lvl->totface; ++i)
-					lvl->texcolfaces[i].tex_page= newdataadr(fd, lvl->texcolfaces[i].tex_page);
-			}
+			lvl->colfaces= newdataadr(fd, lvl->colfaces);
 
 			/* Recalculating the maps is faster than reading them from the file */
 			multires_calc_level_maps(lvl);

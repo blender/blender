@@ -1176,6 +1176,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				lvl= mesh->mr->levels.first;
 				if(lvl) {
 					write_customdata(wd, lvl->totvert, &mesh->mr->vdata);
+					write_customdata(wd, lvl->totface, &mesh->mr->fdata);
 					writedata(wd, DATA, sizeof(short)*lvl->totedge, mesh->mr->edge_flags);
 				}
 				for(; lvl; lvl= lvl->next) {
@@ -1183,7 +1184,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 					writestruct(wd, DATA, "MVert", lvl->totvert, lvl->verts);
 					writestruct(wd, DATA, "MultiresFace", lvl->totface, lvl->faces);
 					writestruct(wd, DATA, "MultiresEdge", lvl->totedge, lvl->edges);
-					writestruct(wd, DATA, "MultiresTexColFace", lvl->totface, lvl->texcolfaces);
+					writestruct(wd, DATA, "MultiresColFace", lvl->totface, lvl->colfaces);
 				}
 			}
 

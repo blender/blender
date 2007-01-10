@@ -169,6 +169,7 @@ void CustomData_swap(struct CustomData *data, int index, int *corner_indices);
  */
 void *CustomData_get(const struct CustomData *data, int index, int type);
 void *CustomData_em_get(const struct CustomData *data, void *block, int type);
+void *CustomData_em_get_n(const struct CustomData *data, void *block, int type, int n);
 
 /* gets a pointer to the active or first layer of type
  * returns NULL if there is no layer of type
@@ -188,11 +189,14 @@ void CustomData_set(const struct CustomData *data, int index, int type,
                     void *source);
 void CustomData_em_set(struct CustomData *data, void *block, int type,
                        void *source);
+void CustomData_em_set_n(struct CustomData *data, void *block, int type, int n,
+                         void *source);
 
 /* set the pointer of to the first layer of type. the old data is not freed.
  * returns the value of ptr if the layer is found, NULL otherwise
  */
 void *CustomData_set_layer(const struct CustomData *data, int type, void *ptr);
+void *CustomData_set_layer_n(const struct CustomData *data, int type, int n, void *ptr);
 
 /* sets the nth layer of type as active */
 void CustomData_set_layer_active(struct CustomData *data, int type, int n);

@@ -88,8 +88,12 @@ typedef struct MTFace {
 
 /* Multiresolution modeling */
 typedef struct MultiresCol {
-	float a, r, g, b, u, v;
+	float a, r, g, b;
 } MultiresCol;
+typedef struct MultiresColFace {
+	/* vertex colors */
+	MultiresCol col[4];
+} MultiresColFace;
 typedef struct MultiresFace {
 	unsigned int v[4];
        	unsigned int mid;
@@ -101,21 +105,13 @@ typedef struct MultiresEdge {
 	unsigned int mid;
 } MultiresEdge;
 
-typedef struct MultiresTexColFace {
-	/* vertex colors and texfaces */
-	struct Image *tex_page;
-	MultiresCol col[4];
-	short tex_mode, tex_tile, tex_unwrap;
-	char tex_flag, tex_transp;
-} MultiresTexColFace;
-
 struct MultiresMapNode;
 typedef struct MultiresLevel {
 	struct MultiresLevel *next, *prev;
 
 	MVert *verts;
 	MultiresFace *faces;
-	MultiresTexColFace *texcolfaces;
+	MultiresColFace *colfaces;
 	MultiresEdge *edges;
 	struct ListBase *vert_edge_map;
 	struct ListBase *vert_face_map;
@@ -130,7 +126,8 @@ typedef struct Multires {
 	unsigned char use_col, use_tex;
 
 	/* Special level 1 data that cannot be modified from other levels */
-	struct CustomData vdata;
+	CustomData vdata;
+	CustomData fdata;
 	short *edge_flags;
 } Multires;
 

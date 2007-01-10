@@ -965,6 +965,17 @@ void *CustomData_set_layer(const CustomData *data, int type, void *ptr)
 	return ptr;
 }
 
+void *CustomData_set_layer_n(const struct CustomData *data, int type, int n, void *ptr)
+{
+	/* get the layer index of the first layer of type */
+	int layer_index = CustomData_get_layer_index(data, type);
+	if(layer_index < 0) return NULL;
+
+	data->layers[layer_index+n].data = ptr;
+
+	return ptr;
+}
+
 void CustomData_set(const CustomData *data, int index, int type, void *source)
 {
 	void *dest = CustomData_get(data, index, type);
@@ -1070,9 +1081,33 @@ void *CustomData_em_get(const CustomData *data, void *block, int type)
 	return (char *)block + data->layers[layer_index].offset;
 }
 
+void *CustomData_em_get_n(const CustomData *data, void *block, int type, int n)
+{
+	int layer_index;
+	
+	/* get the layer index of the first layer of type */
+	layer_index = CustomData_get_active_layer_index(data, type);
+	if(layer_index < 0) return NULL;
+
+	return (char *)block + data->layers[layer_index+n].offset;
+}
+
 void CustomData_em_set(CustomData *data, void *block, int type, void *source)
 {
 	void *dest = CustomData_em_get(data, block, type);
+	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+	if(!dest) return;
+
+	if(typeInfo->copy)
+		typeInfo->copy(source, dest, 1);
+	else
+		memcpy(dest, source, typeInfo->size);
+}
+
+void CustomData_em_set_n(CustomData *data, void *block, int type, int n, void *source)
+{
+	void *dest = CustomData_em_get_n(data, block, type, n);
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
 
 	if(!dest) return;
