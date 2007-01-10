@@ -3983,13 +3983,33 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 		/* OB_DONE means the object itself got duplicated, so was already converted */
 		if(ob->flag & OB_DONE);
 		else if( (base->lay & lay) || ((base->lay & re->scene->lay)) ) {
-			if(ob->type==OB_LAMP) {
-				if( ELEM(type, RE_BAKE_LIGHT, RE_BAKE_ALL) )
-					init_render_object(re, ob, NULL, 0, 0);
+			
+			/* check for dupli lamps */
+			if(ob->transflag & OB_DUPLI) {
+				DupliObject *dob;
+				ListBase *lb= object_duplilist(sce, ob);
+				
+				for(dob= lb->first; dob; dob= dob->next) {
+					Object *obd= dob->ob;
+					
+					if(obd->type==OB_LAMP) {
+						Mat4CpyMat4(obd->obmat, dob->mat);
+						
+						if( ELEM(type, RE_BAKE_LIGHT, RE_BAKE_ALL) )
+							init_render_object(re, obd, ob, dob->index, 0);
+					}
+				}
+				free_object_duplilist(lb);
 			}
-			else if(type!=RE_BAKE_LIGHT) {
-				if( !ELEM(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE) || (ob->flag & SELECT))
-					init_render_object(re, ob, NULL, 0, 0);
+			else {
+				if(ob->type==OB_LAMP) {
+					if( ELEM(type, RE_BAKE_LIGHT, RE_BAKE_ALL) )
+						init_render_object(re, ob, NULL, 0, 0);
+				}
+				else if(type!=RE_BAKE_LIGHT) {
+					if( !ELEM(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE) || (ob->flag & SELECT))
+						init_render_object(re, ob, NULL, 0, 0);
+				}
 			}
 		}
 	}
