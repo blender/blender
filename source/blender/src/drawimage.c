@@ -154,7 +154,7 @@ static int image_preview_active(ScrArea *sa, float *xim, float *yim)
 	SpaceImage *sima= sa->spacedata.first;
 	
 	/* only when compositor shows, and image handler set */
-	if(sima->image == (Image *)find_id("IM", "Viewer Node")) {
+	if(sima->image && sima->image->type==IMA_TYPE_COMPOSITE) {
 		short a;
 	
 		for(a=0; a<SPACE_MAXHANDLER; a+=2) {
@@ -1195,14 +1195,20 @@ static void preview_cb(struct ScrArea *sa, struct uiBlock *block)
 
 static int is_preview_allowed(ScrArea *cur)
 {
+	SpaceImage *sima= cur->spacedata.first;
 	ScrArea *sa;
 
+	/* check if another areawindow has preview set */
 	for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
 		if(sa!=cur && sa->spacetype==SPACE_IMAGE) {
 			if(image_preview_active(sa, NULL, NULL))
 			   return 0;
 		}
 	}
+	/* check image type */
+	if(sima->image==NULL || sima->image->type!=IMA_TYPE_COMPOSITE)
+		return 0;
+	
 	return 1;
 }
 

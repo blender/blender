@@ -1224,7 +1224,7 @@ static void render_panel_bake(void)
 	uiNewPanelTabbed("Anim", "Render");
 	if(uiNewPanel(curarea, block, "Bake", "Render", 320, 0, 318, 204)==0) return;
 	
-	but= uiDefBut(block, BUT, B_NOP, "BAKE",	10, 150, 190,40, 0, 0, 0, 0, 0, "Start the bake render");
+	but= uiDefBut(block, BUT, B_NOP, "BAKE",	10, 150, 190,40, 0, 0, 0, 0, 0, "Start the bake render for selected Objects");
 	uiButSetFunc(but, do_bake_func, NULL, NULL);
 #if 0	
 	uiBlockBeginAlign(block);
