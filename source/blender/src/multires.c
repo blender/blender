@@ -70,7 +70,6 @@
 #include "IMB_imbuf_types.h"
 
 #include "blendef.h"
-#include "editmesh.h"
 #include "multires.h"
 #include "mydevice.h"
 #include "parametrizer.h"
@@ -79,7 +78,6 @@
 
 const CustomDataMask vdata_mask= CD_MASK_MDEFORMVERT;
 
-/* editmesh.h */
 int multires_test()
 {
 	Mesh *me= get_mesh(OBACT);

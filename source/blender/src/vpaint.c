@@ -91,6 +91,7 @@
 #include "BSE_trans_types.h"
 #include "BSE_view.h"
 
+#include "multires.h"
 #include "mydevice.h"
 #include "blendef.h"
 
@@ -1091,6 +1092,7 @@ void weight_paint(void)
 
 	if((G.f & G_WEIGHTPAINT)==0) return;
 	if(G.obedit) return;
+	if(multires_level1_test()) return;
 	
 	ob= OBACT;
 	if(!ob || ob->id.lib) return;

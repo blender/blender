@@ -85,8 +85,9 @@
 #include "BSE_view.h"
 #include "BSE_edit.h"
 
-#include "mydevice.h"
 #include "blendef.h"
+#include "multires.h"
+#include "mydevice.h"
 
 #include "editmesh.h"
 

@@ -38,6 +38,10 @@ struct MultiresLevel;
 struct Multires;
 struct uiBlock;
 
+/* For canceling operations that don't work with multires on or on a non-base level */
+int multires_test();
+int multires_level1_test();
+
 void multires_draw_interface(struct uiBlock *block, unsigned short cx, unsigned short cy);
 void multires_disp_map(void *, void*);
 
