@@ -702,12 +702,18 @@ static void delete_customdata_layer(void *data1, void *data2)
 
 	CustomData_set_layer_active(data, type, layer - &data->layers[index]);
 
-	if(G.obedit) {
-		EM_free_data_layer(data, type);
-	}
-	else if(me) {
-		CustomData_free_layer_active(data, type, me->totface);
-		mesh_update_customdata_pointers(me);
+	/* Multires is handled seperately because the display data is separate
+	   from the data stored in multires */
+	if(me && me->mr) {
+		multires_delete_layer(me, &me->mr->fdata, CD_MTFACE, layer - &data->layers[index]);
+	} else {
+		if(G.obedit) {
+			EM_free_data_layer(data, type);
+		}
+		else if(me) {
+			CustomData_free_layer_active(data, type, me->totface);
+			mesh_update_customdata_pointers(me);
+		}
 	}
 
 	if(!CustomData_has_layer(data, type)) {

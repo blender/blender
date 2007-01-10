@@ -71,5 +71,6 @@ void multires_update_customdata(struct MultiresLevel *lvl1, struct CustomData *s
 void multires_customdata_to_mesh(struct Mesh *me, struct EditMesh *em, struct MultiresLevel *lvl,
                                  struct CustomData *src, struct CustomData *dst, const FirstLevelType type);
 void multires_del_lower_customdata(struct Multires *mr, struct MultiresLevel *cr_lvl);
+void multires_delete_layer(struct Mesh *me, struct CustomData *cd, const int type, int n);
 
 #endif

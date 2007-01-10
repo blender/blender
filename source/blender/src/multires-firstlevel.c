@@ -1,6 +1,8 @@
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BIF_editmesh.h"
 
@@ -12,6 +14,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "blendef.h"
 #include "multires.h"
 
 #include <string.h>
@@ -327,4 +330,16 @@ MTFace *subdivide_mtfaces(MTFace *src, MultiresLevel *lvl)
 	}
 	
 	return NULL;
+}
+
+void multires_delete_layer(Mesh *me, CustomData *cd, const int type, int n)
+{
+	if(me && me->mr && cd) {
+		MultiresLevel *lvl1= me->mr->levels.first;
+		
+		CustomData_set_layer_active(cd, type, n);
+		CustomData_free_layer_active(cd, type, lvl1->totface);
+		
+		multires_level_to_mesh(OBACT, me);
+	}
 }
