@@ -1916,7 +1916,7 @@ void insert_vert_ipo(IpoCurve *icu, float x, float y)
 		for(a=0; a<=icu->totvert; a++, bezt++) {
 			
 			/* no double points */
-			if(a<icu->totvert && (bezt->vec[1][0]>x-IPOTHRESH && bezt->vec[1][0]<x+IPOTHRESH)) {
+			if(a<icu->totvert && IS_EQ(bezt->vec[1][0], x)) {
 				*(bezt)= beztr;
 				break;
 			}
