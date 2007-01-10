@@ -70,6 +70,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "blendef.h"
+#include "editmesh.h"
 #include "multires.h"
 #include "mydevice.h"
 #include "parametrizer.h"
