@@ -123,7 +123,7 @@ typedef struct MultiresLevel {
 typedef struct Multires {
 	ListBase levels;
 	unsigned char level_count, current, newlvl, edgelvl, pinlvl, renderlvl;
-	unsigned char use_col, use_tex;
+	unsigned char use_col, pad;
 
 	/* Special level 1 data that cannot be modified from other levels */
 	CustomData vdata;
