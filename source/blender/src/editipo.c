@@ -3089,8 +3089,6 @@ void clean_ipo(void)
 	short ok;
 	int b;
 	
-	if (G.scene->toolsettings->clean_thresh==0) 
-		G.scene->toolsettings->clean_thresh= 0.1f;
 	ok= fbutton(&G.scene->toolsettings->clean_thresh, 
 				0.0000001f, 1.0, 0.001, 0.1,
 				"Clean Threshold");

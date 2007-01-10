@@ -1963,8 +1963,6 @@ void clean_shapekeys(Key *key)
 
 	/* don't proceed if user refuses */
 	if (!key) return;
-	if (G.scene->toolsettings->clean_thresh==0) 
-		G.scene->toolsettings->clean_thresh= 0.1f;
 	ok= fbutton(&G.scene->toolsettings->clean_thresh, 
 				0.0000001f, 1.0, 0.001, 0.1,
 				"Clean Threshold");
@@ -1998,8 +1996,6 @@ void clean_actionchannels(bAction *act)
 	
 	/* don't proceed any further if no action or user refuses */
 	if (!act) return;
-	if (G.scene->toolsettings->clean_thresh==0) 
-		G.scene->toolsettings->clean_thresh= 0.1f;
 	ok= fbutton(&G.scene->toolsettings->clean_thresh, 
 				0.0000001f, 1.0, 0.001, 0.1,
 				"Clean Threshold");

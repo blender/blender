@@ -6132,6 +6132,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if (sce->toolsettings->select_thresh == 0.0f)
 				sce->toolsettings->select_thresh= 0.01f;
+			if (sce->toolsettings->clean_thresh == 0.0f) 
+				sce->toolsettings->clean_thresh = 0.1f;
+				
 			if (sce->r.threads==0) {
 				if (sce->r.mode & R_THREADS)
 					sce->r.threads= 2;

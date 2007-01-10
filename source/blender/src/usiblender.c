@@ -336,19 +336,17 @@ static void init_userdef_file(void)
 	}
 	if (G.main->versionfile <= 242) {
 		bTheme *btheme;
-		/* long keyframe colour */
+		
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* long keyframe colour */
 			/* check for alpha==0 is safe, then color was never set */
 			if(btheme->tact.strip[3]==0) {
 				SETCOL(btheme->tv3d.edge_sharp, 255, 32, 32, 255);
 				SETCOL(btheme->tact.strip_select, 	0xff, 0xff, 0xaa, 204);
 				SETCOL(btheme->tact.strip, 0xe4, 0x9c, 0xc6, 204);
 			}
-		}
-	}
-	if (G.main->versionfile <= 242) {
-		bTheme *btheme;
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			
+			/* IPO-Editor - Vertex Size*/
 			if(btheme->tipo.vertex_size == 0) {
 				btheme->tipo.vertex_size= 3;
 			}
