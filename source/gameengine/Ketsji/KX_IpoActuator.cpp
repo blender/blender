@@ -204,8 +204,8 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		for (vector<CValue*>::iterator i=m_events.end(); !(i==m_events.begin());)
 		{
 			--i;
-//			if ((*i)->GetNumber() == 0.0f)
-//				bNegativeEvent = true;
+			if ((*i)->GetNumber() == 0.0f)
+				bNegativeEvent = true;
 			
 			(*i)->Release();
 		}
@@ -227,6 +227,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 	case KX_ACT_IPO_PLAY:
 	{
 		// Check if playing forwards.  result = ! finished
+		bNegativeEvent = false;  // quick fix for message IPO issue
 		if (start_smaller_then_end > 0.0)
 			result = (m_localtime < m_endframe && !(m_localtime == m_startframe && bNegativeEvent));
 		else
