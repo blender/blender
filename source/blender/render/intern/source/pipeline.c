@@ -2096,6 +2096,11 @@ static int is_rendering_allowed(Render *re)
 		return 0;
 	}
 	
+	/* renderer */
+	if(!ELEM(re->r.renderer, R_INTERN, R_YAFRAY)) {
+		re->error("Unknown render engine set");
+		return 0;
+	}
 	return 1;
 }
 
