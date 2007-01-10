@@ -2327,11 +2327,19 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 			break;
 		case DL_POLY:
 			if(ob->type==OB_SURF) {
+				int nr;
+				
 				BIF_ThemeColor(TH_WIRE);
 				glDisable(GL_LIGHTING);
 				
-				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-				glDrawArrays(GL_LINE_LOOP, 0, dl->nr);
+				/* for some reason glDrawArrays crashes here in half of the platforms (not osx) */
+				//glVertexPointer(3, GL_FLOAT, 0, dl->verts);
+				//glDrawArrays(GL_LINE_LOOP, 0, dl->nr);
+				
+				glBegin(GL_LINE_LOOP);
+				for(nr= dl->nr; nr; nr--, data+=3)
+					glVertex3fv(data);
+				glEnd();
 				
 				glEnable(GL_LIGHTING);
 				break;
