@@ -58,14 +58,8 @@ for each texture);<br>
 ####################################
 
 import Blender
-from Blender import Object, NMesh, Lamp, Draw, BGL, Image, Text, sys, Mathutils
+from Blender import Object, NMesh, Lamp, Draw, Image, Text, sys
 from Blender.Scene import Render
-try:
-    from os.path import exists, join
-    pytinst = 1
-except:
-    print "No Python installed, for full features install Python (http://www.python.org/)."
-    pytinst = 0
 import math
 
 ####################################
@@ -73,7 +67,7 @@ import math
 ####################################
 
 scene = Blender.Scene.getCurrent()
-world = Blender.World.Get() 
+world = Blender.World.GetCurrent() 
 worldmat = Blender.Texture.Get()
 filename = Blender.Get('filename')
 _safeOverwrite = True
@@ -137,7 +131,7 @@ class VRML2Export:
                              "CoordinateInterpolator2D","Cylinder","CylinderSensor","DirectionalLight","Disk2D",
                              "ElevationGrid","EspduTransform","EXPORT","ExternProtoDeclare","Extrusion","field",
                              "fieldValue","FillProperties","Fog","FontStyle","GeoCoordinate","GeoElevationGrid",
-                             "GeoLocation","GeoLOD","GeoMetadata","GeoOrigin","GeoPositionInterpolator",
+                             "GeoLocationLocation","GeoLOD","GeoMetadata","GeoOrigin","GeoPositionInterpolator",
                              "GeoTouchSensor","GeoViewpoint","Group","HAnimDisplacer","HAnimHumanoid","HAnimJoint",
                              "HAnimSegment","HAnimSite","head","ImageTexture","IMPORT","IndexedFaceSet",
                              "IndexedLineSet","IndexedTriangleFanSet","IndexedTriangleSet","IndexedTriangleStripSet",
@@ -185,8 +179,8 @@ class VRML2Export:
         if scene != inlines[0]:
             return
         else:
-            for i in range(allinlines):
-                nameinline=inlines[i].getName()
+            for i in xrange(allinlines):
+                nameinline=inlines[i].name
                 if (nameinline not in self.namesStandard) and (i > 0):
                     self.file.write("<Inline DEF=\"%s\" " % (self.cleanStr(nameinline)))
                     nameinline = nameinline+".x3d"
@@ -196,20 +190,20 @@ class VRML2Export:
     def writeScript(self):
         textEditor = Blender.Text.Get() 
         alltext = len(textEditor)
-        for i in range(alltext):
+        for i in xrange(alltext):
             nametext = textEditor[i].getName()
             nlines = textEditor[i].getNLines()
             if (self.proto == 1):
                 if (nametext == "proto" or nametext == "proto.js" or nametext == "proto.txt") and (nlines != None):
                     nalllines = len(textEditor[i].asLines())
                     alllines = textEditor[i].asLines()
-                    for j in range(nalllines):
+                    for j in xrange(nalllines):
                         self.writeIndented(alllines[j] + "\n")
             elif (self.proto == 0):
                 if (nametext == "route" or nametext == "route.js" or nametext == "route.txt") and (nlines != None):
                     nalllines = len(textEditor[i].asLines())
                     alllines = textEditor[i].asLines()
-                    for j in range(nalllines):
+                    for j in xrange(nalllines):
                         self.writeIndented(alllines[j] + "\n")
         self.writeIndented("\n")
 
@@ -235,10 +229,10 @@ class VRML2Export:
         self.file.write("fieldOfView=\"%.3f\" />\n\n" % (lens))
 
     def writeFog(self):
-        if len(world) > 0:
-            mtype = world[0].getMistype()
-            mparam = world[0].getMist()
-            grd = world[0].getHor()
+        if world:
+            mtype = world.getMistype()
+            mparam = world.getMist()
+            grd = world.getHor()
             grd0, grd1, grd2 = grd[0], grd[1], grd[2]
         else:
             return
@@ -257,17 +251,17 @@ class VRML2Export:
         for thisObj in allObj:
             objType=thisObj.type
             if objType == "Camera":
-                vislimit = thisObj.data.getClipEnd()
+                vislimit = thisObj.data.clipEnd
             elif objType == "Lamp":
                 headlight = "FALSE"
         self.file.write("<NavigationInfo headlight=\"%s\" " % headlight)
         self.file.write("visibilityLimit=\"%s\" " % (round(vislimit,self.cp)))
         self.file.write("type=\"EXAMINE, ANY\" avatarSize=\"0.25, 1.75, 0.75\" />\n\n")
 
-    def writeSpotLight(self, object, lamp):
-        safeName = self.cleanStr(object.name)
-        if len(world) > 0:
-            ambi = world[0].getAmb()
+    def writeSpotLight(self, ob, lamp):
+        safeName = self.cleanStr(ob.name)
+        if world:
+            ambi = world.amb
             ambientIntensity = ((float(ambi[0] + ambi[1] + ambi[2]))/3)/2.5
         else:
             ambi = 0
@@ -278,13 +272,12 @@ class VRML2Export:
         beamWidth=((lamp.spotSize*math.pi)/180.0)*.37;
         cutOffAngle=beamWidth*1.3
 
-        (dx,dy,dz)=self.computeDirection(object)
+        dx,dy,dz=self.computeDirection(ob)
         # note -dx seems to equal om[3][0]
         # note -dz seems to equal om[3][1]
         # note  dy seems to equal om[3][2]
-        om = object.getMatrix()
-            
-        location=self.rotVertex(om, (0,0,0));
+
+        location=ob.getLocation('worldspace')
         radius = lamp.dist*math.cos(beamWidth)
         self.file.write("<SpotLight DEF=\"%s\" " % safeName)
         self.file.write("radius=\"%s\" " % (round(radius,self.cp)))
@@ -296,33 +289,33 @@ class VRML2Export:
         self.file.write("direction=\"%s %s %s\" " % (round(dx,3),round(dy,3),round(dz,3)))
         self.file.write("location=\"%s %s %s\" />\n\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
         
-    def writeDirectionalLight(self, object, lamp):
-        safeName = self.cleanStr(object.name)
-        if len(world) > 0:
-            ambi = world[0].getAmb()
+    def writeDirectionalLight(self, ob, lamp):
+        safeName = self.cleanStr(ob.name)
+        if world:
+            ambi = world.amb
             ambientIntensity = ((float(ambi[0] + ambi[1] + ambi[2]))/3)/2.5
         else:
             ambi = 0
             ambientIntensity = 0
 
         intensity=min(lamp.energy/1.75,1.0) 
-        (dx,dy,dz)=self.computeDirection(object)
+        (dx,dy,dz)=self.computeDirection(ob)
         self.file.write("<DirectionalLight DEF=\"%s\" " % safeName)
         self.file.write("ambientIntensity=\"%s\" " % (round(ambientIntensity,self.cp)))
         self.file.write("color=\"%s %s %s\" " % (round(lamp.col[0],self.cp), round(lamp.col[1],self.cp), round(lamp.col[2],self.cp)))
         self.file.write("intensity=\"%s\" " % (round(intensity,self.cp)))
         self.file.write("direction=\"%s %s %s\" />\n\n" % (round(dx,4),round(dy,4),round(dz,4)))
 
-    def writePointLight(self, object, lamp):
-        safeName = self.cleanStr(object.name)
-        if len(world) > 0:
-            ambi = world[0].getAmb()
+    def writePointLight(self, ob, lamp):
+        safeName = self.cleanStr(ob.name)
+        if world:
+            ambi = world.amb
             ambientIntensity = ((float(ambi[0] + ambi[1] + ambi[2]))/3)/2.5
         else:
             ambi = 0
             ambientIntensity = 0
-        om = object.getMatrix()
-        location=self.rotVertex(om, (0,0,0));
+        
+        location=ob.getLocation('worldspace')
         intensity=min(lamp.energy/1.75,1.0) 
         radius = lamp.dist
         self.file.write("<PointLight DEF=\"%s\" " % safeName)
@@ -333,14 +326,13 @@ class VRML2Export:
         self.file.write("location=\"%s %s %s\" />\n\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
 
     def writeNode(self, thisObj):
-        objectname=str(thisObj.getName())
-        if objectname in self.namesStandard:
+        obname=str(thisObj.getName())
+        if obname in self.namesStandard:
             return
         else:
-            (dx,dy,dz)=self.computeDirection(thisObj)
-            om = thisObj.getMatrix()
-            location=self.rotVertex(om, (0,0,0));
-            self.writeIndented("<%s\n" % objectname,1)
+            dx,dy,dz = self.computeDirection(thisObj)
+            location = thisObj.getLocation('worldspace')
+            self.writeIndented("<%s\n" % obname,1)
             self.writeIndented("# direction %s %s %s\n" % (round(dx,3),round(dy,3),round(dz,3)))
             self.writeIndented("# location %s %s %s\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
             self.writeIndented("/>\n",-1)
@@ -365,15 +357,14 @@ class VRML2Export:
                 newname = name
                 return "%s" % (newname)
 
-    def writeIndexedFaceSet(self, object, normals = 0):
+    def writeIndexedFaceSet(self, ob, normals = 0):
         imageMap={}   # set of used images
         sided={}      # 'one':cnt , 'two':cnt
         vColors={}    # 'multi':1
-        meshName = self.cleanStr(object.name)
-        mesh=object.getData()
+        meshName = self.cleanStr(ob.name)
+        mesh=ob.data
         meshME = self.cleanStr(mesh.name)
-        if len(mesh.faces) == 0:
-					return
+        if len(mesh.faces) == 0: return
         for face in mesh.faces:
             if face.mode & Blender.NMesh.FaceModes['HALO'] and self.halonode == 0:
                 self.writeIndented("<Billboard axisOfRotation=\"0 0 0\">\n",1)
@@ -400,8 +391,8 @@ class VRML2Export:
             bTwoSided=1
         else:
             bTwoSided=0
-        om = object.getMatrix();
-        location=self.rotVertex(om, (0,0,0));
+        
+        location= ob.getLocation('worldspace')
         self.writeIndented("<Transform DEF=\"%s\" translation=\"%s %s %s\">\n" % (meshName, round(location[0],3), round(location[1],3), round(location[2],3)),1)
         self.writeIndented("<Shape>\n",1)
             
@@ -425,7 +416,7 @@ class VRML2Export:
             if mesh.hasFaceUV():
                 for face in mesh.faces:
                     if (hasImageTexture == 0) and (face.image):
-                        self.writeImageTexture(face.image.name)
+                        self.writeImageTexture(face.image)
                         hasImageTexture=1  # keep track of face texture
             if self.tilenode == 1:
                 self.writeIndented("<TextureTransform	scale=\"%s %s\" />\n" % (face.image.xrep, face.image.yrep))
@@ -435,7 +426,7 @@ class VRML2Export:
         #-- IndexedFaceSet or IndexedLineSet
 
         # check if object is wireframe only
-        if object.drawType == Blender.Object.DrawTypes.WIRE:
+        if ob.drawType == Blender.Object.DrawTypes.WIRE:
             # user selected WIRE=2 on the Drawtype=Wire on (F9) Edit page
             ifStyle="IndexedLineSet"
             self.wire = 1
@@ -452,7 +443,7 @@ class VRML2Export:
                 self.meshNames[meshME]=1
             else:
                 self.writeIndented("<%s " % ifStyle, 1)
-            if object.drawType != Blender.Object.DrawTypes.WIRE:
+            if ob.drawType != Blender.Object.DrawTypes.WIRE:
                 if bTwoSided == 1:
                     self.file.write("solid=\"false\" ")
                 else:
@@ -468,7 +459,7 @@ class VRML2Export:
             #--- output vertexColors
             if self.share == 1 and self.matonly == 0:
                 self.writeVertexColors(mesh)
-            if object.drawType != Blender.Object.DrawTypes.WIRE:
+            if ob.drawType != Blender.Object.DrawTypes.WIRE:
                 #--- output textureCoordinates if UV texture used
                 if mesh.hasFaceUV():
                     if self.matonly == 1 and self.share == 1:
@@ -476,14 +467,14 @@ class VRML2Export:
                     elif hasImageTexture == 1:
                         self.writeTextureCoordinates(mesh)
             #--- output coordinates
-            self.writeCoordinates(object, mesh, meshName)
+            self.writeCoordinates(ob, mesh, meshName)
 
             self.writingcoords = 1
             self.writingtexture = 1
             self.writingcolor = 1
-            self.writeCoordinates(object, mesh, meshName)
+            self.writeCoordinates(ob, mesh, meshName)
        
-            if object.drawType != Blender.Object.DrawTypes.WIRE:
+            if ob.drawType != Blender.Object.DrawTypes.WIRE:
                 #--- output textureCoordinates if UV texture used
                 if mesh.hasFaceUV():
                     if hasImageTexture == 1:
@@ -521,29 +512,26 @@ class VRML2Export:
 
         self.file.write("\n")
 
-    def writeCoordinates(self, object, mesh, meshName):
+    def writeCoordinates(self, ob, mesh, meshName):
         meshVertexList = mesh.verts
 
         # create vertex list and pre rotate -90 degrees X for VRML
-        mm=object.getMatrix()
-        location=self.rotVertex(mm, (0,0,0));
+        location= ob.getLocation('worldspace')
         if self.writingcoords == 0:
-            self.file.write("coordIndex=\"")
-            coordIndexList=[]  
+            self.file.write('coordIndex="')
             for face in mesh.faces:
-                cordStr=""
-                for i in range(len(face)):
-                    indx=meshVertexList.index(face[i])
-                    cordStr = cordStr + "%s " % indx
-                self.file.write(cordStr + "-1, ")
+                for i in xrange(len(face)):
+                    indx=face[i].index
+                    self.file.write("%s " % indx)
+                self.file.write("-1, ")
             self.file.write("\">\n")
         else:
             #-- vertices
+            mesh.transform(ob.matrixWorld)
             self.writeIndented("<Coordinate DEF=\"%s%s\" \n" % ("coord_",meshName), 1)
             self.file.write("\t\t\t\tpoint=\"")
-            for vertex in meshVertexList:
-                v=self.rotVertex(mm, vertex);
-                self.file.write("%s %s %s, " % (round((v[0]-location[0]),self.vp), round((v[1]-location[1]),self.vp), round((v[2]-location[2]),self.vp)))
+            for v in meshVertexList:
+                self.file.write("%.6f %.6f %.6f, " % tuple(v.co))
             self.file.write("\" />")
             self.writeIndented("\n", -1)
 
@@ -553,7 +541,7 @@ class VRML2Export:
         j=0
 
         for face in mesh.faces:
-            for i in range(len(face)):
+            for i in xrange(len(face)):
                 texIndexList.append(j)
                 texCoordList.append(face.uv[i])
                 j=j+1
@@ -561,7 +549,7 @@ class VRML2Export:
         if self.writingtexture == 0:
             self.file.write("\n\t\t\ttexCoordIndex=\"")
             texIndxStr=""
-            for i in range(len(texIndexList)):
+            for i in xrange(len(texIndexList)):
                 texIndxStr = texIndxStr + "%d, " % texIndexList[i]
                 if texIndexList[i]==-1:
                     self.file.write(texIndxStr)
@@ -569,7 +557,7 @@ class VRML2Export:
             self.file.write("\"\n\t\t\t")
         else:
             self.writeIndented("<TextureCoordinate point=\"", 1)
-            for i in range(len(texCoordList)):
+            for i in xrange(len(texCoordList)):
                 self.file.write("%s %s, " % (round(texCoordList[i][0],self.tp), round(texCoordList[i][1],self.tp)))
             self.file.write("\" />")
             self.writeIndented("\n", -1)
@@ -594,7 +582,7 @@ class VRML2Export:
             self.file.write("colorPerVertex=\"false\" ")
         else:
             self.writeIndented("<Color color=\"", 1)
-            for i in range(len(mesh.verts)):
+            for i in xrange(len(mesh.verts)):
                 c=self.getVertexColorByIndx(mesh,i)
                 if self.verbose > 2:
                     print "Debug: vertex[%d].col r=%d g=%d b=%d" % (i, c.r, c.g, c.b)
@@ -615,8 +603,8 @@ class VRML2Export:
 
         ambient = mat.amb/3
         diffuseR, diffuseG, diffuseB = mat.rgbCol[0], mat.rgbCol[1],mat.rgbCol[2]
-        if len(world) > 0:
-            ambi = world[0].getAmb()
+        if world:
+            ambi = world.getAmb()
             ambi0, ambi1, ambi2 = (ambi[0]*mat.amb)*2, (ambi[1]*mat.amb)*2, (ambi[2]*mat.amb)*2
         else:
             ambi0, ambi1, ambi2 = 0, 0, 0
@@ -643,7 +631,9 @@ class VRML2Export:
         self.file.write("transparency=\"%s\" />" % (round(transp,self.cp)))
         self.writeIndented("\n",-1)
 
-    def writeImageTexture(self, name):
+    def writeImageTexture(self, image):
+        name = image.name
+        filename = image.filename.split('/')[-1].split('\\')[-1]
         if self.texNames.has_key(name):
             self.writeIndented("<ImageTexture USE=\"%s\" />\n" % self.cleanStr(name))
             self.texNames[name] += 1
@@ -655,14 +645,12 @@ class VRML2Export:
             self.texNames[name] = 1
 
     def writeBackground(self):
-        if len(world) > 0:
-            worldname = world[0].getName()
-        else:
-            return
-        blending = world[0].getSkytype()	
-        grd = world[0].getHor()
+        if world:	worldname = world.name
+        else:		return
+        blending = world.getSkytype()	
+        grd = world.getHor()
         grd0, grd1, grd2 = grd[0], grd[1], grd[2]
-        sky = world[0].getZen()
+        sky = world.getZen()
         sky0, sky1, sky2 = sky[0], sky[1], sky[2]
         mix0, mix1, mix2 = grd[0]+sky[0], grd[1]+sky[1], grd[2]+sky[2]
         mix0, mix1, mix2 = mix0/2, mix1/2, mix2/2
@@ -700,7 +688,7 @@ class VRML2Export:
             self.file.write("groundColor=\"%s %s %s\" " % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
             self.file.write("skyColor=\"%s %s %s\" " % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
         alltexture = len(worldmat)
-        for i in range(alltexture):
+        for i in xrange(alltexture):
             namemat = worldmat[i].getName()
             pic = worldmat[i].getImage()	
             if (namemat == "back") and (pic != None):
@@ -818,14 +806,7 @@ class VRML2Export:
                 sidename='two'
             else:
                 sidename='one'
-
-            if not vColors.has_key('multi'):
-                for face in mesh.faces:
-                    if face.col:
-                        c=face.col[0]
-                        if c.r != 255 and c.g != 255 and c.b !=255:
-                            vColors['multi']=1
-
+            
             if sided.has_key(sidename):
                 sided[sidename]+=1
             else:
@@ -834,18 +815,18 @@ class VRML2Export:
             if face.image:
                 faceName="%s_%s" % (face.image.name, sidename);
 
-                if imageMap.has_key(faceName):
+                try:
                     imageMap[faceName].append(face)
-                else:
+                except:
                     imageMap[faceName]=[face.image.name,sidename,face]
 
         if self.verbose > 2:
-            for faceName in imageMap.keys():
+            for faceName in imageMap.iterkeys():
                 ifs=imageMap[faceName]
                 print "Debug: faceName=%s image=%s, solid=%s facecnt=%d" % \
                       (faceName, ifs[0], ifs[1], len(ifs)-2)
 
-        return len(imageMap.keys())
+        return len(imageMap)
     
     def faceToString(self,face):
 
@@ -866,12 +847,15 @@ class VRML2Export:
         print "Debug: face.materialIndex=%d" % face.materialIndex 
 
     def getVertexColorByIndx(self, mesh, indx):
+        c = None
         for face in mesh.faces:
             j=0
             for vertex in face.v:
                 if vertex.index == indx:
                     c=face.col[j]
+                    break
                 j=j+1
+            if c: break
         return c
 
     def meshToString(self,mesh):
@@ -889,9 +873,9 @@ class VRML2Export:
             round(c.b/255.0,self.cp))
         return s
 
-    def computeDirection(self, object):
+    def computeDirection(self, ob):
         x,y,z=(0,-1.0,0) # point down
-        ax,ay,az = (object.RotX,object.RotZ,object.RotY)
+        ax,ay,az = (ob.RotX,ob.RotZ,ob.RotY)
 
         # rot X
         x1=x
@@ -920,14 +904,6 @@ class VRML2Export:
         
         vrmlPoint=[x, y, z]
         return vrmlPoint
-    
-    def rotVertex(self, mm, v):
-        lx,ly,lz=v[0],v[1],v[2]
-        gx=(mm[0][0]*lx + mm[1][0]*ly + mm[2][0]*lz) + mm[3][0]
-        gy=((mm[0][2]*lx + mm[1][2]*ly+ mm[2][2]*lz) + mm[3][2])
-        gz=-((mm[0][1]*lx + mm[1][1]*ly + mm[2][1]*lz) + mm[3][1])
-        rotatedv=[gx,gy,gz]
-        return rotatedv
 
     # For writing well formed VRML code
     #------------------------------------------------------------------------
@@ -989,14 +965,14 @@ class VRML2Export:
 
 def select_file(filename):
   if pytinst == 1:
-    if exists(filename) and _safeOverwrite:
+    if sys.exists(filename) and _safeOverwrite:
       result = Draw.PupMenu("File Already Exists, Overwrite?%t|Yes%x1|No%x0")
       if(result != 1):
         return
 
   if not filename.endswith(extension):
     filename += extension
-		
+
   wrlexport=VRML2Export(filename)
   wrlexport.export(scene, world, worldmat)
 
