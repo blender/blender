@@ -104,6 +104,7 @@
 #include "RE_pipeline.h"
 
 #include "blendef.h"
+#include "multires.h"
 #include "mydevice.h"
 
 /* local prototypes */
@@ -135,6 +136,7 @@ int is_uv_tface_editing_allowed_silent(void)
 	if(!(G.f & G_FACESELECT)) return 0;  
 	me= get_mesh(OBACT);
 	if(me==0 || me->mtface==0) return 0;
+	if(multires_level1_test()) return 0;
 	
 	return 1;
 }
