@@ -2151,6 +2151,13 @@ void fly(void)
 	}
 	
 	
+	/* detect weather to start with Z locking */
+	upvec[0]=1; upvec[1]=0; upvec[2]=0;
+	Mat3MulVecfl(G.vd->viewinv, upvec);
+	if (fabs(upvec[2]) < 0.1)
+		zlock = 1;
+	upvec[0]=0; upvec[1]=0; upvec[2]=0;
+	
 	persp_backup= G.vd->persp;
 	dist_backup= G.vd->dist;
 	if (G.vd->persp==2) { /* Camera */
@@ -2448,7 +2455,14 @@ void fly(void)
 			dvec[2] = dvec_tmp[2]*(1-dvec_lag) + dvec_old[2]*dvec_lag;
 			
 			VecAddf(G.vd->ofs, G.vd->ofs, dvec);
-			headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X/Z,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
+			if (zlock && xlock)
+				headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X  on/Z on,   Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
+			else if (zlock) 
+				headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X off/Z on,   Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
+			else if (xlock)
+				headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X  on/Z off,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
+			else
+				headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X off/Z off,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
 			
 			do_screenhandlers(G.curscreen); /* advance the next frame */
 			
