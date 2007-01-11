@@ -28,7 +28,7 @@
  *
  * Implements the multiresolution modeling tools.
  *
- * BIF_multires.h
+ * multires.h
  *
  */
 
@@ -561,7 +561,7 @@ void multires_make(void *ob, void *me_v)
 	lvl->totvert= em ? BLI_countlist(&em->verts) : me->totvert;
 	lvl->verts= MEM_callocN(sizeof(MVert)*lvl->totvert,"multires verts");
 	multires_update_customdata(me->mr->levels.first, em ? &em->vdata : &me->vdata,
-	                           &me->mr->vdata, FirstLevelType_Vert);
+	                           &me->mr->vdata, CD_MDEFORMVERT);
 	if(em) eve= em->verts.first;
 	for(i=0; i<lvl->totvert; ++i) {
 		multires_get_vert(&lvl->verts[i], eve, &me->mvert[i], i);
@@ -572,7 +572,7 @@ void multires_make(void *ob, void *me_v)
 	lvl->totface= em ? BLI_countlist(&em->faces) : me->totface;
 	lvl->faces= MEM_callocN(sizeof(MultiresFace)*lvl->totface,"multires faces");
 	multires_update_customdata(me->mr->levels.first, em ? &em->fdata : &me->fdata,
-	                           &me->mr->fdata, FirstLevelType_Face);
+	                           &me->mr->fdata, CD_MTFACE);
 	if(em) efa= em->faces.first;
 	for(i=0; i<lvl->totface; ++i) {
 		multires_get_face(&lvl->faces[i], efa, &me->mface[i]);
@@ -1007,7 +1007,8 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		free_edgelist(&em->edges);
 		free_facelist(&em->faces);
 		
-		EM_free_data_layer(&G.editMesh->vdata, CD_MDEFORMVERT);
+		CustomData_free(&G.editMesh->vdata, 0);
+		CustomData_free(&G.editMesh->fdata, 0);
 		
 		eves= MEM_callocN(sizeof(EditVert)*lvl->totvert, "editvert pointers");
 	} else {
@@ -1035,6 +1036,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 			eves[i]= addvertlist(lvl->verts[i].co, NULL); /* TODO */
 			if(lvl->verts[i].flag & 1) eves[i]->f |= SELECT;
 			if(lvl->verts[i].flag & ME_HIDE) eves[i]->h= 1;
+			eves[i]->data= NULL;
 		}
 		else
 			me->mvert[i]= lvl->verts[i];
@@ -1055,6 +1057,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 			               eves[lvl->faces[i].v[2]], eve4, NULL, NULL); /* TODO */
 			efa->flag= lvl->faces[i].flag;
 			efa->mat_nr= lvl->faces[i].mat_nr;
+			efa->data= NULL;
 		}
 		else {
 			me->mface[i].v1= lvl->faces[i].v[0];
@@ -1094,8 +1097,8 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 		}
 	}
 
-	multires_customdata_to_mesh(me, em, lvl, &me->mr->vdata, em ? &em->vdata : &me->vdata, FirstLevelType_Vert);
-	multires_customdata_to_mesh(me, em, lvl, &me->mr->fdata, em ? &em->fdata : &me->fdata, FirstLevelType_Face);
+	multires_customdata_to_mesh(me, em, lvl, &me->mr->vdata, em ? &em->vdata : &me->vdata, CD_MDEFORMVERT);
+	multires_customdata_to_mesh(me, em, lvl, &me->mr->fdata, em ? &em->fdata : &me->fdata, CD_MTFACE);
 
 	/* Colors */
 	if(me->mr->use_col) {
@@ -1280,9 +1283,9 @@ void multires_update_levels(Mesh *me)
 	/* Update special first-level data */
 	if(cr_lvl==me->mr->levels.first) {
 		multires_update_customdata(me->mr->levels.first, em ? &em->vdata : &me->vdata,
-		                           &me->mr->vdata, FirstLevelType_Vert);
+		                           &me->mr->vdata, CD_MDEFORMVERT);
 		multires_update_customdata(me->mr->levels.first, em ? &em->fdata : &me->fdata,
-		                           &me->mr->fdata, FirstLevelType_Face);
+		                           &me->mr->fdata, CD_MTFACE);
 		multires_update_edge_flags(me->mr, me, em);
 	}
 

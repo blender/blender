@@ -706,14 +706,13 @@ static void delete_customdata_layer(void *data1, void *data2)
 	   from the data stored in multires */
 	if(me && me->mr) {
 		multires_delete_layer(me, &me->mr->fdata, CD_MTFACE, layer - &data->layers[index]);
-	} else {
-		if(G.obedit) {
-			EM_free_data_layer(data, type);
-		}
-		else if(me) {
-			CustomData_free_layer_active(data, type, me->totface);
-			mesh_update_customdata_pointers(me);
-		}
+	}
+	else if(G.obedit) {
+		EM_free_data_layer(data, type);
+	}
+	else if(me) {
+		CustomData_free_layer_active(data, type, me->totface);
+		mesh_update_customdata_pointers(me);
 	}
 
 	if(!CustomData_has_layer(data, type)) {
@@ -3810,14 +3809,19 @@ void do_meshbuts(unsigned short event)
 			break;
 
 		case B_NEWTFACE:
-			if(G.obedit) {
+			if(me)
+				layernum= CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+			else
 				layernum= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
+
+			if(me && me->mr) {
+				multires_add_layer(me, &me->mr->fdata, CD_MTFACE, layernum);
+			}
+			else if(G.obedit) {
 				EM_add_data_layer(&em->fdata, CD_MTFACE);
 				CustomData_set_layer_active(&em->fdata, CD_MTFACE, layernum);
 			}
 			else if(me) {
-				layernum= CustomData_number_of_layers(&me->fdata, CD_MTFACE);
-
 				if(me->mtface)
 					CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DUPLICATE,
 					                     me->mtface, me->totface);

@@ -1,3 +1,37 @@
+/*
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2006 by Nicholas Bishop
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ * Deals with the first-level data in multires (edge flags, weights, and UVs)
+ *
+ * multires.h
+ *
+ */
+
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -24,50 +58,40 @@ MTFace *subdivide_mtfaces(MTFace *src, MultiresLevel *lvl);
 
 /***********    Generic     ***********/
 
-int cdtype(const FirstLevelType type)
+CustomDataMask cdmask(const int type)
 {
-	if(type == FirstLevelType_Vert)
-		return CD_MDEFORMVERT;
-	else if(type == FirstLevelType_Face)
-		return CD_MTFACE;
-	return -1;
-}
-
-CustomDataMask cdmask(const FirstLevelType type)
-{
-	if(type == FirstLevelType_Vert)
+	if(type == CD_MDEFORMVERT)
 		return CD_MASK_MDEFORMVERT;
-	else if(type == FirstLevelType_Face)
+	else if(type == CD_MTFACE)
 		return CD_MASK_MTFACE;
 	return -1;
 }
 
-char type_ok(const FirstLevelType type)
+char type_ok(const int type)
 {
-	return (type == FirstLevelType_Vert) || (type == FirstLevelType_Face);
+	return (type == CD_MDEFORMVERT) || (type == CD_MTFACE);
 }
 
 /* Copy vdata or fdata from Mesh or EditMesh to Multires. */
-void multires_update_customdata(MultiresLevel *lvl1, CustomData *src,
-                                CustomData *dst, const FirstLevelType type)
+void multires_update_customdata(MultiresLevel *lvl1, CustomData *src, CustomData *dst, const int type)
 {
-	if(lvl1 && src && dst && type_ok(type)) {
-		const int tot= (type == FirstLevelType_Vert ? lvl1->totvert : lvl1->totface);
+	if(src && dst && type_ok(type)) {
+		const int tot= (type == CD_MDEFORMVERT ? lvl1->totvert : lvl1->totface);
 		int i;
 		
 		CustomData_free(dst, tot);
 		
-		if(CustomData_has_layer(src, cdtype(type))) {
+		if(CustomData_has_layer(src, type)) {
 			if(G.obedit) {
 				EditVert *eve= G.editMesh->verts.first;
 				EditFace *efa= G.editMesh->faces.first;
 				CustomData_copy(src, dst, cdmask(type), CD_CALLOC, tot);
 				for(i=0; i<tot; ++i) {
-					if(type == FirstLevelType_Vert) {
+					if(type == CD_MDEFORMVERT) {
 						CustomData_from_em_block(&G.editMesh->vdata, dst, eve->data, i);
 						eve= eve->next;
 					}
-					else if(type == FirstLevelType_Face) {
+					else if(type == CD_MTFACE) {
 						CustomData_from_em_block(&G.editMesh->fdata, dst, efa->data, i);
 						efa= efa->next;
 					}
@@ -81,7 +105,7 @@ void multires_update_customdata(MultiresLevel *lvl1, CustomData *src,
 
 /* Uses subdivide_dverts or subdivide_mtfaces to subdivide src to match lvl_end. Does not free src. */
 void *subdivide_customdata_to_level(void *src, MultiresLevel *lvl_start,
-                                    MultiresLevel *lvl_end, const FirstLevelType type)
+                                    MultiresLevel *lvl_end, const int type)
 {
 	if(src && lvl_start && lvl_end && type_ok(type)) {
 		MultiresLevel *lvl;
@@ -89,16 +113,16 @@ void *subdivide_customdata_to_level(void *src, MultiresLevel *lvl_start,
 		
 		pr_data= src;
 		for(lvl= lvl_start; lvl && lvl != lvl_end; lvl= lvl->next) {
-			if(type == FirstLevelType_Vert)
+			if(type == CD_MDEFORMVERT)
 				cr_data= subdivide_dverts(pr_data, lvl);
-			else if(type == FirstLevelType_Face)
+			else if(type == CD_MTFACE)
 				cr_data= subdivide_mtfaces(pr_data, lvl);
 			
 			/* Free previous subdivision level's data */
 			if(lvl != lvl_start) {
-				if(type == FirstLevelType_Vert)
+				if(type == CD_MDEFORMVERT)
 					free_dverts(pr_data, lvl->totvert);
-				else if(type == FirstLevelType_Face)
+				else if(type == CD_MTFACE)
 					MEM_freeN(pr_data);
 			}
 
@@ -112,72 +136,57 @@ void *subdivide_customdata_to_level(void *src, MultiresLevel *lvl_start,
 	return NULL;
 }
 
-/* Copy vdata or fdata from Multires to either Mesh or EditMesh. */
-void multires_customdata_to_mesh(Mesh *me, EditMesh *em, MultiresLevel *lvl, CustomData *src,
-                                 CustomData *dst, const FirstLevelType type)
-{	
-	if(me->mr && lvl && src && dst && type_ok(type) &&
-	   CustomData_has_layer(src, cdtype(type))) {
-		const int tot= (type == FirstLevelType_Vert ? lvl->totvert : lvl->totface);
-	   	int i;
-	   
-		if(lvl == me->mr->levels.first) {
-			if(em) {
-				EditVert *eve= em->verts.first;
-				EditFace *efa= em->faces.first;
-				CustomData_copy(src, dst, cdmask(type), CD_CALLOC, tot);
-				
-				for(i=0; i<tot; ++i) {
-					if(type == FirstLevelType_Vert) {
-						CustomData_to_em_block(&em->vdata, dst, i, &eve->data);
-						eve= eve->next;
-					}
-					else if(type == FirstLevelType_Face) {
-						CustomData_to_em_block(&em->fdata, dst, i, &efa->data);
-						efa= efa->next;
-					}
+/* Directly copy src into dst (handles both Mesh and EditMesh) */
+void customdata_to_mesh(Mesh *me, EditMesh *em, CustomData *src, CustomData *dst, const int tot, const int type)
+{
+	if(me && me->mr && src && dst && type_ok(type)) {
+		if(em) {
+			int i;
+			EditVert *eve= em->verts.first;
+			EditFace *efa= em->faces.first;
+			CustomData_copy(src, dst, cdmask(type), CD_CALLOC, 0);
+			
+			for(i=0; i<tot; ++i) {
+				if(type == CD_MDEFORMVERT) {
+					CustomData_to_em_block(src, dst, i, &eve->data);
+					eve= eve->next;
 				}
-			} else {
-				CustomData_merge(src, dst, cdmask(type), CD_DUPLICATE, tot);
+				else if(type == CD_MTFACE) {
+					CustomData_to_em_block(src, dst, i, &efa->data);
+					efa= efa->next;
+				}
 			}
+		} else {
+			CustomData_merge(src, dst, cdmask(type), CD_DUPLICATE, tot);
+		}
+	}
+}
+
+/* Subdivide vdata or fdata from Multires into either Mesh or EditMesh. */
+void multires_customdata_to_mesh(Mesh *me, EditMesh *em, MultiresLevel *lvl, CustomData *src,
+                                 CustomData *dst, const int type)
+{	
+	if(me && me->mr && lvl && src && dst && type_ok(type) &&
+	   CustomData_has_layer(src, type)) {
+		const int tot= (type == CD_MDEFORMVERT ? lvl->totvert : lvl->totface);
+		if(lvl == me->mr->levels.first) {
+			customdata_to_mesh(me, em, src, dst, tot, type);
 		}
 		else {
-			if(type == FirstLevelType_Vert) {
-				MDeformVert *dverts= subdivide_customdata_to_level(CustomData_get(src, 0, cdtype(type)),
-					me->mr->levels.first, lvl, type);
-				
-				if(dverts) {
-					if(em) {
-						EditVert *eve;
-						EM_add_data_layer(&em->vdata, cdtype(type));
-						for(i=0, eve= em->verts.first; eve; ++i, eve= eve->next)
-							CustomData_em_set(&em->vdata, eve->data, cdtype(type), &dverts[i]);
-						free_dverts(dverts, lvl->totvert);
-					} else
-						CustomData_add_layer(&me->vdata, cdtype(type),
-						                     CD_ASSIGN, dverts, me->totvert);
-				}
+			CustomData cdf;
+			const int count = CustomData_number_of_layers(src, type);
+			int i;
+			
+			/* Construct a new CustomData containing the subdivided data */
+			CustomData_copy(src, &cdf, cdmask(type), CD_ASSIGN, tot);
+			for(i=0; i<count; ++i) {
+				void *layer= CustomData_get_layer_n(&cdf, type, i);
+				CustomData_set_layer_n(&cdf, type, i,
+					subdivide_customdata_to_level(layer, me->mr->levels.first, lvl, type));
 			}
-			else if(type == FirstLevelType_Face) {
-				const int count = CustomData_number_of_layers(src, CD_MTFACE);
-				int i, j;
-				
-				CustomData_merge(src, dst, CD_MASK_MTFACE, CD_ASSIGN, lvl->totface);
-				for(i=0; i<count; ++i) {
-					void *layer = CustomData_get_layer_n(src, CD_MTFACE, i);
-					MTFace *mtfaces= subdivide_customdata_to_level(layer, me->mr->levels.first, lvl, type);
-					
-					if(mtfaces) {
-						if(em) {
-							EditFace *efa;
-							for(j=0, efa= em->faces.first; efa; ++j, efa= efa->next)
-								CustomData_em_set_n(&em->fdata, efa->data, cdtype(type), i, &mtfaces[j]);
-							MEM_freeN(mtfaces);
-						} else
-							CustomData_set_layer_n(dst, CD_MTFACE, i, mtfaces);
-					}
-				}
-			}
+			
+			customdata_to_mesh(me, em, &cdf, dst, tot, type);
+			CustomData_free(&cdf, tot);
 		}
 	}
 }
@@ -192,7 +201,7 @@ void multires_del_lower_customdata(Multires *mr, MultiresLevel *cr_lvl)
 
 	/* dverts */
 	dverts= subdivide_customdata_to_level(CustomData_get(&mr->vdata, 0, CD_MDEFORMVERT),
-	                                      lvl1, cr_lvl, FirstLevelType_Vert);
+	                                      lvl1, cr_lvl, CD_MDEFORMVERT);
 	if(dverts) {
 		CustomData_free_layers(&mr->vdata, CD_MDEFORMVERT, lvl1->totvert);
 		CustomData_add_layer(&mr->vdata, CD_MDEFORMVERT, CD_ASSIGN, dverts, cr_lvl->totvert);
@@ -203,7 +212,7 @@ void multires_del_lower_customdata(Multires *mr, MultiresLevel *cr_lvl)
 	for(i=0; i<CustomData_number_of_layers(&mr->fdata, CD_MTFACE); ++i) {
 		MTFace *mtfaces=
 			subdivide_customdata_to_level(CustomData_get_layer_n(&mr->fdata, CD_MTFACE, i),
-			                           lvl1, cr_lvl, FirstLevelType_Face);
+			                              lvl1, cr_lvl, CD_MTFACE);
 		if(mtfaces)
 			CustomData_set_layer_n(&cdf, CD_MTFACE, i, mtfaces);
 	}
@@ -340,6 +349,21 @@ void multires_delete_layer(Mesh *me, CustomData *cd, const int type, int n)
 		CustomData_set_layer_active(cd, type, n);
 		CustomData_free_layer_active(cd, type, lvl1->totface);
 		
+		multires_level_to_mesh(OBACT, me);
+	}
+}
+
+MultiresLevel *current_level(Multires *mr);
+void multires_add_layer(Mesh *me, CustomData *cd, const int type, const int n)
+{
+	if(me && me->mr && cd) {
+		if(CustomData_has_layer(cd, type))
+			CustomData_add_layer(cd, type, CD_DUPLICATE, CustomData_get_layer(cd, type),
+			                     current_level(me->mr)->totface);
+		else
+			CustomData_add_layer(cd, type, CD_DEFAULT, NULL, current_level(me->mr)->totface);
+
+		CustomData_set_layer_active(cd, type, n);
 		multires_level_to_mesh(OBACT, me);
 	}
 }

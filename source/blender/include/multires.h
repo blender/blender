@@ -62,15 +62,13 @@ int multires_modifier_warning();
 
 /* multires-firstlevel.c */
 /* Generic */
-typedef enum FirstLevelType {
-	FirstLevelType_Vert, FirstLevelType_Face
-} FirstLevelType;
-
 void multires_update_customdata(struct MultiresLevel *lvl1, struct CustomData *src,
-                                struct CustomData *dst, const FirstLevelType type);
+                                struct CustomData *dst, const int type);
 void multires_customdata_to_mesh(struct Mesh *me, struct EditMesh *em, struct MultiresLevel *lvl,
-                                 struct CustomData *src, struct CustomData *dst, const FirstLevelType type);
+                                 struct CustomData *src, struct CustomData *dst, const int type);
 void multires_del_lower_customdata(struct Multires *mr, struct MultiresLevel *cr_lvl);
+
+void multires_add_layer(struct Mesh *me, struct CustomData *cd, const int type, const int n);
 void multires_delete_layer(struct Mesh *me, struct CustomData *cd, const int type, int n);
 
 #endif
