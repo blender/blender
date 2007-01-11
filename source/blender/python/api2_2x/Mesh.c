@@ -5770,7 +5770,8 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 			Mesh *origmesh= ob->data;
 			self->mesh->flag= origmesh->flag;
 			self->mesh->mat = MEM_dupallocN(origmesh->mat);
-			self->mesh->totcol = origmesh->totcol;		
+			self->mesh->totcol = origmesh->totcol;
+			self->mesh->smoothresh= origmesh->smoothresh;
 			if( origmesh->mat ) {
 				for( i = origmesh->totcol; i-- > 0; ) {
 					/* are we an object material or data based? */
