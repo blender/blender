@@ -18,20 +18,24 @@ Example::
   import Blender
   from Blender import Scene, Object, Camera
   #
-  camdata = Camera.New('ortho')           # create new camera data
-  camdata.setName('newCam')
-  camdata.setLens(16.0)
+  camdata = Camera.New('persp')           # create new camera data
+  camdata.name = 'newCam'
+  camdata.lens = 16.0
   scene = Scene.New('NewScene')           # create a new scene
-  camobj = Object.New('Camera')           # create a new camera object
-  camobj.link(camdata)                    # (*) link data to object first
-  scene.link(camobj)                      # and then link object to scene
+  scene.objects.new(camdata,'Camera')     # add a new object to the scene with newly-created data
   scene.makeCurrent()                     # make this the current scene
 
-@warn: as done in the example (*), it's recommended to first link object data to
-    objects and only after that link objects to scene.  This is because if
-    there is no object data linked to an object ob, scene.link(ob) will
+@warn: B{scene.objects.new} is the preferred way to add new objects to a scene.
+    The older way is to create an object with B{Object.New()}, link the
+    data to the new object, then link the object to the scene.  This way is
+    not recommended since a forgotten step or run-time error in the script can 
+    cause bad things to be done to Blender's database.
+
+    If you use this older method, it's recommended to always perform the
+    operations in this order.  This is because if
+    there is no object data linked to an object B{ob}, B{scene.link(ob)} will
     automatically create the missing data.  This is OK on its own, but I{if
-    after that} this object is linked to obdata, the automatically created one
+    after that} object B{ob} is linked to obdata, the automatically created one
     will be discarded -- as expected -- but will stay in Blender's memory
     space until the program is exited, since Blender doesn't really get rid of
     most kinds of data.  So first linking ObData to object, then object to
