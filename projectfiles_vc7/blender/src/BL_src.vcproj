@@ -428,6 +428,9 @@
 				RelativePath="..\..\..\source\blender\src\meshtools.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\multires-firstlevel.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\multires.c">
 			</File>
 			<File
