@@ -40,7 +40,7 @@ Run this script from "File->Import" and select the desired PLY file.
 # Portions of this code are taken from mod_meshtools.py in Blender
 # 2.32.
 
-import Blender, meshtools
+import Blender
 try:
 	import re, struct, StringIO
 except:
@@ -268,14 +268,16 @@ def filesel_callback(filename):
 			varr.append(vmap[vkey])
 	
 	verts = obj['vertex']
-	for f in obj['face']:
-		ind = f[findex]
-		nind = len(ind)
-		if nind <= 4:
-			mesh.faces.append(add_face(verts, varr, ind, uvindices, colindices))
-		else:
-			for j in xrange(nind - 2):
-				mesh.faces.append(add_face(verts, varr, (ind[0], ind[j + 1], ind[j + 2]), uvindices, colindices))
+	
+	if 'face' in obj:
+		for f in obj['face']:
+			ind = f[findex]
+			nind = len(ind)
+			if nind <= 4:
+				mesh.faces.append(add_face(verts, varr, ind, uvindices, colindices))
+			else:
+				for j in xrange(nind - 2):
+					mesh.faces.append(add_face(verts, varr, (ind[0], ind[j + 1], ind[j + 2]), uvindices, colindices))
 
 	
 	del obj # Reclaim memory
@@ -289,20 +291,15 @@ def filesel_callback(filename):
 	
 	objname = Blender.sys.splitext(Blender.sys.basename(filename))[0]
 	scn= Blender.Scene.GetCurrent()
-	for obj in scn.objects:
-		obj.sel= 0
+	scn.objects.selected = []
 	
-	obj= Blender.Object.New('Mesh', objname)
 	mesh.name= objname
-	obj.link(mesh)
-	scn.link(obj)
-	obj.sel= 1
-	obj.Layers= scn.Layers
+	scn.objects.new(mesh)
 	
 	Blender.Redraw()
 	Blender.Window.DrawProgressBar(1.0, '')
-	message = 'Successfully imported ' + Blender.sys.basename(filename) + ' ' + str(Blender.sys.time()-t)
-	meshtools.print_boxed(message)
+	print '\nSuccessfully imported ' + Blender.sys.basename(filename) + ' ' + str(Blender.sys.time()-t)
+	
 
 
 
