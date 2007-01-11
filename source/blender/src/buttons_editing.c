@@ -3848,6 +3848,10 @@ void do_meshbuts(unsigned short event)
 
 				CustomData_set_layer_active(fdata, CD_MTFACE, acttface-1);
 				mesh_update_customdata_pointers(me);
+				
+				/* Update first-level face data in multires */
+				if(me && me->mr && me->mr->current != 1)
+					CustomData_set_layer_active(&me->mr->fdata, CD_MTFACE, acttface-1);
 
 				if (G.f & G_FACESELECT)
 					select_tface_from_mface(me);
