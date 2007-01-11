@@ -1503,7 +1503,8 @@ void separate_mesh(void)
 		G.obedit->vnode = NULL;
 	}
 #endif
-	adduplicate(1, 0); /* notrans and a linked duplicate*/
+	adduplicate(1, 0); /* notrans and a linked duplicate */
+	
 #ifdef WITH_VERSE
 	if(vnode) {
 		G.obedit->vnode = vnode;
@@ -1511,7 +1512,14 @@ void separate_mesh(void)
 #endif
 	
 	G.obedit= BASACT->object;	/* basact was set in adduplicate()  */
-
+	
+	/* blender crashes in derivedmesh drawing if I don't do this... but why? 
+		Anyhoo, this function is horrible anyway (ton) */
+	if(G.obedit->fluidsimSettings) {
+		fluidsimSettingsFree(G.obedit->fluidsimSettings);
+		G.obedit->fluidsimSettings= NULL;
+	}
+	
 	men= copy_mesh(me);
 	set_mesh(G.obedit, men);
 	/* because new mesh is a copy: reduce user count */
