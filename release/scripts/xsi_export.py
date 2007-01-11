@@ -109,7 +109,7 @@ FD  = []                # file handle
 NORMALS = []			# normal list
 mats = []
 EXPORT_DIR = ''
-WORLD = Blender.World.Get() 
+WORLD = Blender.World.GetCurrent() 
 
 # ---------------------------------------------------------------------------
 # get_path returns the path portion o/wf the supplied filename.
@@ -167,26 +167,11 @@ def get_materials(obj):
 
   # now drop down to the mesh level
   #mesh = Blender.NMesh.GetRaw(obj.data.name)
-  mesh = obj.data
 
-  if mesh.materials:
-    for mat in mesh.materials:
-      mats.append(mat)
+  mats.extend(obj.getData(mesh=1).materials)
 
   # return the materials list
   return mats
-
-
-
-# ---------------------------------------------------------------------------
-# apply_transform converts a vertex to co-ords
-# ---------------------------------------------------------------------------
-def apply_transform(vert, matrix):
-  vc = Mathutils.CopyVec(vert)
-  vc.resize4D()
-  return Mathutils.VecMultMat(vc, matrix)
-
-
 
 # ---------------------------------------------------------------------------
 # do_header writes out the header data
@@ -230,7 +215,8 @@ def do_header():
   FD.write("}\n\n")
 
   # static ambience block 
-  ambient = WORLD[0].getAmb()
+  if WORLD:	ambient = WORLD.getAmb()
+  else:		ambient = 0,0,0
 
   FD.write("SI_Ambience  {\n")
   FD.write("	%f,\n" % ambient[0])
@@ -413,11 +399,11 @@ def do_texture(mtex):
   # mapping type  ? uv  map wrapped is 4, how to detect?
   # start with a simple xy mapping ie 0
   FD.write("			4,\n")
-
-  print img.getSize ()
+  
+  if img.has_data:	ix, iy = img.getSize()
+  else: 			ix, iy = 512,512
 
   # image width, and height
-  ix, iy = img.getSize()
   FD.write("			%d,\n" % ix)
   FD.write("			%d,\n" % iy)
   # u crop min/max, v crop min/max
@@ -432,9 +418,12 @@ def do_texture(mtex):
     uvs = 1
   FD.write("			%d,\n" % uvs )
   # u/v repeat
-  iru = img.getXRep()
+  if img.has_data:	iru = img.getXRep()
+  else:			iru = 1
   FD.write("			%d,\n" % iru )
-  irv = img.getYRep()
+  if img.has_data:	irv = img.getYRep()
+  else:			irv = 1
+
   FD.write("			%d,\n" % irv )
   # u/v alt - 0, 0
   FD.write("			0,\n" ) 
@@ -564,15 +553,6 @@ def do_model_material(obj):
     FD.write("		}\n\n" )
 
 
-
-def meshHasUV ( mesh ):
-  if mesh.hasFaceUV():
-    return TRUE
-#  materials = mesh.materials
-#    if len(materials) > 0:
-	  
-  return FALSE
-
 # ---------------------------------------------------------------------------
 # do_collect_uv, makes an easy to use list out of the uv data
 # todo, remove duplicates and compress the list size, xsi supports this.
@@ -598,9 +578,9 @@ def do_collect_uv(mesh):
   # run through all the faces
   j = 0
   for f in mesh.faces:
-    for i in range(len(f)):
+    for uv in f.uv:
       UVI.append(j)
-      UVC.append(f.uv[i])
+      UVC.append(uv)
       j+=1
     UVI.append(-1)
 
@@ -625,9 +605,9 @@ def do_collect_colour(mesh):
   # run through all the faces
   j = 0
   for f in mesh.faces:
-    for i in range(len(f)):
+    for c in f.col:
       VCI.append(j)
-      VCC.append(f.col[i])
+      VCC.append(c)
       j+=1
     VCI.append(-1)
 
@@ -1168,9 +1148,8 @@ def do_camera(obj):
 # ---------------------------------------------------------------------------
 
 def do_light_ambient():
-  ambient = WORLD[0].getAmb()
-  if ambient == [0.0,0.0,0.0]:
-    ambient = [0.5,0.5,0.5]
+  if WORLD:	ambient = WORLD.getAmb()
+  else:		ambient = 0,0,0
 
   FD.write("	SI_Light ambient_sw3d {\n")
 

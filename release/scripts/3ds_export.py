@@ -887,16 +887,18 @@ def save_3ds(filename):
 			if data:
 				data.transform(mat)
 				mesh_objects.append((ob_derived, data))
-				
+				mat_ls = data.materials
+				mat_ls_len = len(mat_ls)
 				# get material/image tuples.
 				if data.faceUV:
-					mat_ls = data.materials
-					
 					if not mat_ls:
 						mat = mat_name = None
 					
 					for f in data.faces:
 						if mat_ls:
+							mat_index = f.mat
+							if mat_index >= mat_ls_len:
+								mat_index = f.mat = 0
 							mat = mat_ls[f.mat]
 							if mat:	mat_name = mat.name
 							else:	mat_name = None
@@ -914,12 +916,17 @@ def save_3ds(filename):
 							materialDict[mat_name, img_name]= mat, img
 					
 				else:
-					for mat in data.materials:
+					for mat in mat_ls:
 						if mat: # material may be None so check its not.
 							try:
 								materialDict[mat.name, None]
 							except:
 								materialDict[mat.name, None]= mat, None
+					
+					# Why 0 Why!
+					for f in data.faces:
+						if f.mat >= mat_ls_len:
+							f.mat = 0 
 	
 	# Make material chunks for all materials used in the meshes:
 	for mat_and_image in materialDict.itervalues():

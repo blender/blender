@@ -87,6 +87,11 @@ def write(filename):
 	objname = objects[0].name
 	meshname = objects[0].getData(name_only=1)
 	mesh = Blender.NMesh.GetRaw(meshname)
+	
+	if not mesh:
+		Blender.Draw.PupMenu("Nendo Export Error%t|no active mesh")
+		return
+	
 	obj = objects[0]
 
 	numedges = len(mesh.verts)+len(mesh.faces)-2

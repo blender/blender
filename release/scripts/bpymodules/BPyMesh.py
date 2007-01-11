@@ -300,7 +300,6 @@ def mesh2linkedFaces(me):
 	return [fg for fg in face_groups if fg]
 
 
-
 def getFaceLoopEdges(faces, seams=[]):
 	'''
 	Takes me.faces or a list of faces and returns the edge loops
@@ -321,8 +320,7 @@ def getFaceLoopEdges(faces, seams=[]):
 		if len(f) == 4:
 			edge_keys = f.edge_keys
 			for i, edkey in enumerate(f.edge_keys):
-				try:	edges[edkey].append(edge_keys[OTHER_INDEX[i]])
-				except:	edges[edkey] =  [ edge_keys[OTHER_INDEX[i]] ]
+				edges.setdefault(edkey, []).append(edge_keys[OTHER_INDEX[i]])
 	
 	for edkey in seams:
 		edges[edkey] = []
@@ -1058,8 +1056,7 @@ def meshCalcNormals(me, vertNormals=None):
 	for f in me.faces:
 		f_v = f.v
 		for edkey in f.edge_keys:
-			try:	edges[edkey].append(f.no)
-			except:	edges[edkey]= [f.no]
+			edges.setdefault(edkey, []).append(f.no)
 	
 	# Weight the edge normals by total angle difference
 	for fnos in edges.itervalues():

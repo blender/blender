@@ -188,8 +188,7 @@ def mesh_edge_dict(me):
 	for f in me.faces:
 		if not f.hide:
 			for edkey in f.edge_keys:
-				try:	ed_dict[edkey].append(f)
-				except:	ed_dict[edkey]= [f]
+				ed_dict.setdefault(edkey, []).append(f)
 	
 	return ed_dict
 
@@ -328,11 +327,8 @@ def terrain_cut_2d(t, c, PREF_Z_LOC):
 			faces= []
 		
 		for f in faces:
-			try:
-				faces_intersecting[f.index].append(ed_isect)
-			except:
-				faces_intersecting[f.index]= [ed_isect]
-				
+			faces_intersecting.setdefault(f.index, []).append(ed_isect)
+	
 	# this list is used to store edges that are totaly inside a face ( no intersections with terrain)
 	# we can remove these as we
 	face_containing_edges= [[] for i in xrange(len(me_t.faces))]
@@ -542,9 +538,6 @@ def terrain_cut_2d(t, c, PREF_Z_LOC):
 				uv= f_uv[ii]
 				uv.x= new_uv.x
 				uv.y= new_uv.y
-			
-			for col in f.col:
-				col.r= col.g= col.b= 255
 	
 	me_t.faces.delete(1, faces_intersecting.keys())
 	me_t.sel= 1
