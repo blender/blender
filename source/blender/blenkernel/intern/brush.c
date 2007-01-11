@@ -807,7 +807,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 		/* compute brush spacing adapted to brush size, spacing may depend
 		   on pressure, so update it */
 		brush_apply_pressure(painter, brush, painter->lastpressure);
-		spacing= MAX2(1.0, brush->size)*brush->spacing*0.01f;
+		spacing= MAX2(1.0f, brush->size)*brush->spacing*0.01f;
 
 		/* setup starting distance, direction vector and accumulated distance */
 		startdistance= painter->accumdistance;
@@ -816,15 +816,15 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 		painter->accumdistance += len;
 
 		/* do paint op over unpainted distance */
-		while (painter->accumdistance >= spacing) {
+		while ((len > 0.0f) && (painter->accumdistance >= spacing)) {
 			step= spacing - startdistance;
 			paintpos[0]= painter->lastmousepos[0] + dmousepos[0]*step;
 			paintpos[1]= painter->lastmousepos[1] + dmousepos[1]*step;
 
 			t = step/len;
-			press= (1.0-t)*painter->lastpressure + t*pressure;
+			press= (1.0f-t)*painter->lastpressure + t*pressure;
 			brush_apply_pressure(painter, brush, press);
-			spacing= MAX2(1.0, brush->size)*brush->spacing*0.01f;
+			spacing= MAX2(1.0f, brush->size)*brush->spacing*0.01f;
 
 			if (painter->cache.enabled)
 				brush_painter_refresh_cache(painter, paintpos);
