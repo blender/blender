@@ -111,7 +111,7 @@ void spaceipo_assign_ipo(SpaceIpo *si, Ipo *ipo)
 		bActionChannel *achan;
 		
 		if(ob->action) {
-			achan= get_action_channel(ob->action, si->actname);
+			achan= verify_action_channel(ob->action, si->actname);
 		
 			if(achan) {
 				/* constraint exception */

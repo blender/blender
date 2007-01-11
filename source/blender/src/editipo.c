@@ -1662,7 +1662,7 @@ void do_ipo_selectbuttons(void)
 
 /* ********************************* Inserting keys ********************************************* */
 
-/* depending type, it returns ipo, if neded it creates one */
+/* depending type, it returns ipo, if needed it creates one */
 /* returns either action ipo or "real" ipo */
 /* arguments define full context;
    - *from has to be set always, to Object in case of Actions
