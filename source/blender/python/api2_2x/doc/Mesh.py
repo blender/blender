@@ -191,7 +191,7 @@ class MVert:
     vector will not effect the verts normal. The result is only visible
     when faces have the smooth option enabled.
     Example::
-      # This wont work.
+      # This won't work.
       for v in me.verts:
         v.no.x= 0
         v.no.y= 0
@@ -668,11 +668,12 @@ class MFaceSeq:
     True, the method will return a list representing the new index for each
     face in the input list.  If faces are removed as duplicates, None is
     inserted in place of the index.
-    @warning: Faces using the first vertex at the 3rd or 4th location in the faces vertex list
-    will have their order rotated so that the zero index on in the first or second location in the face
-    When creating face data with UV's or vertex colors, you may need to work around this,
-    either by checking for zero indicies yourself or by adding a dummy first vertex to the mesh
-    that can be removed when your script has finished
+    @warning: Faces using the first vertex at the 3rd or 4th location in the
+    face's vertex list will have their order rotated so that the zero index
+    on in the first or second location in the face. When creating face data
+    with UVs or vertex colors, you may need to work around this, either by
+    checking for zero indices yourself or by adding a dummy first vertex to
+    the mesh that can be removed when your script has finished.
     """
 
   def delete(deledges, faces):
@@ -884,7 +885,7 @@ class Mesh:
     place for using a directed acyclic graph (DAG) for scene and object
     updating, this method may be only temporary and may be removed in future
     releases.
-    @warn: Since Blender 2.42 this function has changed, now it wont recalculate
+    @warn: Since Blender 2.42 this function has changed; now it won't recalculate
     vertex normals (seen when faces are smooth). See L{Mesh.calcNormals()}.
     """
 
