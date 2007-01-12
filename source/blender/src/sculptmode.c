@@ -1851,6 +1851,12 @@ void sculpt()
 		return;
 	if(!(ob->lay & G.vd->lay))
 		error("Active object is not in this layer");
+	if(ob_get_keyblock(ob)) {
+		if(!(ob->shapeflag & OB_SHAPE_LOCK)) {
+			error("Cannot sculpt on unlocked shape key");
+			return;
+		}
+	}
 	
 	if(!ss) {
 		sculpt_init_session();
