@@ -39,7 +39,8 @@ struct EditVert;
 extern int join_mesh(void);
 
 extern void sort_faces(void);
-extern void objects_bake_render(int use_menu);
+extern void objects_bake_render_menu(void);
+extern void objects_bake_render(short event);
 
 extern long mesh_octree_table(struct Object *ob, float *co, char mode);
 extern int mesh_get_x_mirror_vert(struct Object *ob, int index);

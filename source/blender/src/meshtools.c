@@ -784,15 +784,20 @@ static void *do_bake_render(void *bake_v)
 	return NULL;
 }
 
-/* all selected meshes with UV maps are rendered for current scene visibility */
-void objects_bake_render(int use_menu)
+
+void objects_bake_render_menu(void)
 {
 	short event;
+
+	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4");
 	
-	if(use_menu)
-		event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4");
-	else
-		event= G.scene->r.bake_mode;
+	objects_bake_render(event);
+}
+
+/* all selected meshes with UV maps are rendered for current scene visibility */
+void objects_bake_render(short event)
+{
+	if(event==0) event= G.scene->r.bake_mode;
 	
 	if(event>0) {
 		Render *re= RE_NewRender("_Bake View_");

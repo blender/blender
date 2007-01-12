@@ -1640,6 +1640,33 @@ static uiBlock *info_timelinemenu(void *arg_unused)
 
 /************************** RENDER *****************************/
 
+void do_info_render_bakemenu(void *arg, int event)
+{
+
+	objects_bake_render(event);
+	
+	allqueue(REDRAWINFO, 0);
+}
+
+static uiBlock *info_render_bakemenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0;
+	
+	block= uiNewBlock(&curarea->uiblocks, "render_bakemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_info_render_bakemenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Full Render|Ctrl Alt B, 1",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Ambient Occlusion|Ctrl Alt B, 2",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Normals|Ctrl Alt B, 3",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Texture Only|Ctrl Alt B, 4",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
+		
+	return block;
+}
+
 static void do_info_rendermenu(void *arg, int event)
 {
 
@@ -1682,9 +1709,6 @@ static void do_info_rendermenu(void *arg, int event)
 	case 7:
 		extern_set_butspace(F10KEY, 0);
 		break;
-	case 8:
-		objects_bake_render(1);
-		break;
 	}
 	allqueue(REDRAWINFO, 0);
 }
@@ -1701,7 +1725,10 @@ static uiBlock *info_rendermenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Render Current Frame|F12",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Render Animation|Ctrl F12",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bake-Render Meshes|ALT+Ctrl B",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBlockBut(block, info_render_bakemenu, NULL, ICON_RIGHTARROW_THIN, "Bake Render Meshes", 0, yco-=20, 120, 19, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
