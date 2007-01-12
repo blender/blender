@@ -472,7 +472,6 @@ class Curve:
       Reverse the direction of a curve.
       @return: None
 
-
       I{B{Example:}}
       # This example switches the direction of all curves on the active object.
       from Blender import *
@@ -502,6 +501,12 @@ class Curve:
       Return the L{Key<Key.Key>} object containing the keyframes for this
       curve, if any.
       @rtype: L{Key<Key.Key>} object or None
+      """
+
+  def recalc():
+      """
+      Recalculate control point handles after a curve has been changed.
+      @rtype: None
       """
 
   def __copy__ ():

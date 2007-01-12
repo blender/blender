@@ -63,6 +63,7 @@ static PyObject *CurNurb_isNurb( BPy_CurNurb * self );
 static PyObject *CurNurb_isCyclic( BPy_CurNurb * self );
 static PyObject *CurNurb_dump( BPy_CurNurb * self );
 static PyObject *CurNurb_switchDirection( BPy_CurNurb * self );
+static PyObject *CurNurb_recalc( BPy_CurNurb * self );
 
 char M_CurNurb_doc[] = "CurNurb";
 
@@ -133,6 +134,8 @@ static PyMethodDef BPy_CurNurb_methods[] = {
 	 "( ) - dumps Nurb data)"},
 	{"switchDirection", ( PyCFunction ) CurNurb_switchDirection, METH_NOARGS,
 	 "( ) - swaps curve beginning and end)"},
+	{"recalc", ( PyCFunction ) CurNurb_recalc, METH_NOARGS,
+	 "( ) - recalc Nurb data)"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -992,7 +995,6 @@ PyObject *CurNurb_Init( void )
 	return ( submodule );
 }
 
-
 /*
   dump nurb
 */
@@ -1064,6 +1066,16 @@ PyObject *CurNurb_dump( BPy_CurNurb * self )
 	Py_RETURN_NONE;
 }
 
+/*
+  recalc nurb
+*/
+
+static PyObject *CurNurb_recalc( BPy_CurNurb * self )
+{
+	calchandlesNurb ( self->nurb );
+	Py_RETURN_NONE;
+}
+
 PyObject *CurNurb_switchDirection( BPy_CurNurb * self ) {
 	Nurb *nurb = self->nurb;
 	if( ! self->nurb ){  /* bail on error */
@@ -1075,4 +1087,3 @@ PyObject *CurNurb_switchDirection( BPy_CurNurb * self ) {
 	
 	Py_RETURN_NONE;
 }
-
