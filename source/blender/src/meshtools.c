@@ -797,6 +797,8 @@ void objects_bake_render_menu(void)
 /* all selected meshes with UV maps are rendered for current scene visibility */
 void objects_bake_render(short event)
 {
+	short prev_r_raytrace, prev_wo_amb_occ;
+	
 	if(event==0) event= G.scene->r.bake_mode;
 	
 	if(event>0) {
@@ -813,10 +815,16 @@ void objects_bake_render(short event)
 		else if(event==3) event= RE_BAKE_NORMALS;
 		else event= RE_BAKE_TEXTURE;
 		
+		prev_r_raytrace = G.scene->r.mode & R_RAYTRACE;
+		prev_wo_amb_occ = G.scene->world->mode & WO_AMB_OCC;
+		
 		if(event==RE_BAKE_AO) {
-			if((G.scene->r.mode & R_RAYTRACE)==0 || G.scene->world==NULL
-			   || (G.scene->world->mode & WO_AMB_OCC)==0) {
-				error("No ray-trace or AO set up");
+			/* If raytracing or AO is disabled, switch it on temporarily for baking. */
+			if (prev_r_raytrace == 0) G.scene->r.mode |= R_RAYTRACE;
+			if (prev_wo_amb_occ == 0) G.scene->world->mode |= WO_AMB_OCC;
+
+			if(G.scene->world==NULL) {
+				error("No world set up");
 				return;
 			}
 		}
@@ -870,6 +878,12 @@ void objects_bake_render(short event)
 						free_realtime_image(ima); 
 				}
 			}
+		}
+		
+		if(event==RE_BAKE_AO) {
+			/* switch off temporary raytrace and AO */
+			if (prev_r_raytrace == 0) G.scene->r.mode &= ~R_RAYTRACE;
+			if (prev_wo_amb_occ == 0) G.scene->world->mode &= ~WO_AMB_OCC;
 		}
 		
 		allqueue(REDRAWIMAGE, 0);
