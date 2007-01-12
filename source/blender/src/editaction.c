@@ -1134,15 +1134,26 @@ void transform_actionchannel_keys(int mode, int dummy)
 						}
 						break;
 					case 'g':
-						deltax = cval[0] - sval[0];
-						fac= deltax;
-						
-						if (autosnap == SACTSNAP_STEP) {
-							/* NOTE: this doesn't take into account NLA scaling */
-							fac= 1.0f*floor(fac/1.0f + 0.5f);
+						if (G.saction->pin==0 && OBACT) {
+							deltax = get_action_frame_inv(OBACT, cval[0]);
+							deltax -= get_action_frame_inv(OBACT, sval[0]);
+							
+							if (autosnap == SACTSNAP_STEP) 
+								deltax= 1.0f*floor(deltax/1.0f + 0.5f);
+							
+							fac = get_action_frame_inv(OBACT, tv[i].loc[0]);
+							fac += deltax;
+							tv[i].loc[0] = get_action_frame(OBACT, fac);
 						}
-						
-						tv[i].loc[0]+=fac;
+						else {
+							deltax = cval[0] - sval[0];
+							fac= deltax;
+							
+							if (autosnap == SACTSNAP_STEP)
+								fac= 1.0f*floor(fac/1.0f + 0.5f);
+							
+							tv[i].loc[0]+=fac;
+						}
 						break;
 					case 's':
 						startx=mvals[0]-(ACTWIDTH/2+(curarea->winrct.xmax-curarea->winrct.xmin)/2);
@@ -1150,7 +1161,6 @@ void transform_actionchannel_keys(int mode, int dummy)
 						fac= fabs(deltax/startx);
 						
 						if (autosnap == SACTSNAP_STEP) {
-							/* NOTE: this doesn't take into account NLA scaling */
 							fac= 1.0f*floor(fac/1.0f + 0.5f);
 						}
 						
