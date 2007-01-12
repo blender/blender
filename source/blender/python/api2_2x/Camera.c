@@ -1150,7 +1150,7 @@ static PyGetSetDef BPy_Camera_getseters[] = {
 	{"scale",
 	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
 	 "scale for ortho cameras",
-	 NULL},
+	 EXPP_CAM_ATTR_SCALE},
 	{"clipStart",
 	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
 	 "the cameras clip start",
