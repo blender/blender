@@ -890,9 +890,6 @@ void BIF_undo(void)
 		else {
 			/* now also in faceselect mode */
 			if(U.uiflag & USER_GLOBALUNDO) {
-				if(G.f & G_SCULPTMODE)
-					set_sculpt_object(NULL);
-
 				BKE_undo_step(1);
 				sound_initialize_sounds();
 			}
