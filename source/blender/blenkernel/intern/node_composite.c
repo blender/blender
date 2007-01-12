@@ -5904,7 +5904,7 @@ void ntreeCompositForceHidden(bNodeTree *ntree)
 						force_hidden_passes(node, 0);
 				}
 				else if(ima->type!=IMA_TYPE_MULTILAYER) {	/* if ->rr not yet read we keep inputs */
-					force_hidden_passes(node, 0);
+					force_hidden_passes(node, RRES_OUT_Z);
 				}
 			}
 			else
