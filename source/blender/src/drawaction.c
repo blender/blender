@@ -130,7 +130,7 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 
 	if (!(G.saction->flag & SACTION_SLIDERS)) {
 		ACTWIDTH = NAMEWIDTH;
-		but=uiDefIconButBitI(block, TOG, SACTION_SLIDERS, B_REDR, 
+		but=uiDefIconButBitS(block, TOG, SACTION_SLIDERS, B_REDR, 
 					  ICON_DISCLOSURE_TRI_RIGHT,
 					  NAMEWIDTH - XIC - 5, y + CHANNELHEIGHT,
 					  XIC,YIC-2,
@@ -141,7 +141,7 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 
 	}
 	else {
-		but= uiDefIconButBitI(block, TOG, SACTION_SLIDERS, B_REDR, 
+		but= uiDefIconButBitS(block, TOG, SACTION_SLIDERS, B_REDR, 
 					  ICON_DISCLOSURE_TRI_DOWN,
 					  NAMEWIDTH - XIC - 5, y + CHANNELHEIGHT,
 					  XIC,YIC-2,

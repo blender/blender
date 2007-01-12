@@ -3084,7 +3084,7 @@ void clean_ipo(void)
 	
 	ok= fbutton(&G.scene->toolsettings->clean_thresh, 
 				0.0000001f, 1.0, 0.001, 0.1,
-				"Clean Threshold");
+				"Threshold");
 	if (!ok) return;
 	
 	get_status_editipo();

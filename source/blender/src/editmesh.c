@@ -104,6 +104,8 @@
 #include "BDR_editface.h"
 #include "BDR_vpaint.h"
 
+#include "LBM_fluidsim.h"
+
 #include "multires.h"
 #include "mydevice.h"
 #include "blendef.h"

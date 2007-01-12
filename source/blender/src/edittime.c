@@ -122,17 +122,17 @@ void rename_marker(void)
 {
 	TimeMarker *marker;
 	char name[64];
-		
+			
 	for(marker= G.scene->markers.first; marker; marker= marker->next) {
 		if(marker->flag & SELECT) {
-			sprintf(name, marker->name);
+			strcpy(name, marker->name);
 			if (sbutton(name, 0, sizeof(name)-1, "Name: "))
 				BLI_strncpy(marker->name, name, sizeof(marker->name));
 			break;
 		}
 	}
 	
-	BIF_undo_push("Rename Marker");
+//	BIF_undo_push("Rename Marker");
 }
 
 /* duplicate selected TimeMarkers */

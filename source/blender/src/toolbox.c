@@ -275,7 +275,7 @@ short button(short *var, short min, short max, char *str)
 	y1=mval[1]-20; 
 	
 	uiDefButS(block, NUM, 0, str,	(short)(x1+5),(short)(y1+10),125,20, var,(float)min,(float)max, 0, 0, "");
-	uiDefBut(block, BUT, 1, "OK",	(short)(x1+136),(short)(y1+10),25,20, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT, 32767, "OK",	(short)(x1+136),(short)(y1+10),25,20, NULL, 0, 0, 0, 0, "");
 
 	uiBoundsBlock(block, 5);
 
@@ -307,12 +307,12 @@ short sbutton(char *var, float min, float max, char *str)
 	x1=mval[0]-150; 
 	y1=mval[1]-20; 
 	
-	uiDefButC(block, TEX, 2, str,	x1+5,y1+10,125,20, var,(float)min,(float)max, 0, 0, "");
-	uiDefBut(block, BUT, 1, "OK",	x1+136,y1+10,25,20, NULL, 0, 0, 0, 0, "");
+	uiDefButC(block, TEX, 32766, str,	x1+5,y1+10,125,20, var,(float)min,(float)max, 0, 0, "");
+	uiDefBut(block, BUT, 32767, "OK",	x1+136,y1+10,25,20, NULL, 0, 0, 0, 0, "");
 
 	uiBoundsBlock(block, 5);
 	
-	mainqenter_ext(BUT_ACTIVATE, 2, 0);	/* note, button id '2' is asking for errors some day! */
+	mainqenter_ext(BUT_ACTIVATE, 32766, 0);	/* note, button id '32766' is asking for errors some day! */
 	ret= uiDoBlocks(&listb, 0);
 
 	if(ret==UI_RETURN_OK) return 1;
@@ -342,7 +342,7 @@ short fbutton(float *var, float min, float max, float a1, float a2, char *str)
 	y1=mval[1]-20; 
 	
 	uiDefButF(block, NUM, 0, str,(short)(x1+5),(short)(y1+10),125,20, var, min, max, a1, a2, "");
-	uiDefBut(block, BUT, 1, "OK",(short)(x1+136),(short)(y1+10), 35, 20, NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT, 32767, "OK",(short)(x1+136),(short)(y1+10), 35, 20, NULL, 0, 0, 0, 0, "");
 
 	uiBoundsBlock(block, 2);
 
@@ -402,7 +402,7 @@ int movetolayer_buts(unsigned int *lay, char *title)
 	uiBlockEndAlign(block);
 
 	x1-= 5;
-	uiDefBut(block, BUT, 1, "OK", (short)(x1+10*dx+10), (short)y1, (short)(3*dx), (short)(2*dy), NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT, 32767, "OK", (short)(x1+10*dx+10), (short)y1, (short)(3*dx), (short)(2*dy), NULL, 0, 0, 0, 0, "");
 
 	uiBoundsBlock(block, 2);
 
@@ -452,7 +452,7 @@ int movetolayer_short_buts(short *lay, char *title)
 	uiBlockEndAlign(block);
 	
 	x1-= 5;
-	uiDefBut(block, BUT, 1, "OK", (short)(x1+8*dx+10), (short)y1, (short)(3*dx), (short)(2*dy), NULL, 0, 0, 0, 0, "");
+	uiDefBut(block, BUT, 32767, "OK", (short)(x1+8*dx+10), (short)y1, (short)(3*dx), (short)(2*dy), NULL, 0, 0, 0, 0, "");
 	
 	uiBoundsBlock(block, 2);
 	

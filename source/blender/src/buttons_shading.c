@@ -1224,7 +1224,7 @@ static void texture_panel_image_map(Tex *tex)
 	uiDefButBitS(block, TOG, TEX_NEGALPHA, B_TEXPRV, "NegAlpha",	210, 160, 100, 20, &tex->flag, 0, 0, 0, 0, "Click to invert the alpha values");
 	uiBlockEndAlign(block);
 
-	uiDefButF(block, NUM, B_TEXPRV, "Filter :",						10,120,150,20, &tex->filtersize, 0.1, 25.0, 0, 3, "Sets the filter size used by mipmap and interpol");
+	uiDefButF(block, NUM, B_TEXPRV, "Filter :",						10,120,150,20, &tex->filtersize, 0.1, 25.0, 10, 3, "Sets the filter size used by mipmap and interpol");
 	
 	uiDefButBitS(block, TOG, TEX_NORMALMAP, B_NOP, "Normal Map",	160,120,150,20, &tex->imaflag,
 					0, 0, 0, 0, "Use image RGB values for normal mapping");

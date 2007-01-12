@@ -945,7 +945,7 @@ void do_textedit(unsigned short event, short val, unsigned long _ascii)
 
 void paste_unicodeText(char *filename)
 {
-	Curve *cu;
+	Curve *cu= G.obedit->data;
 	int filelen, doit= 0;
 	char *strp;
 	FILE *fp = NULL;
@@ -953,7 +953,6 @@ void paste_unicodeText(char *filename)
 	fp= fopen(filename, "r");
 
 	if(fp) {
-		cu= G.obedit->data;
 
 		fseek( fp, 0L, SEEK_END );
 		filelen = ftell( fp );
@@ -993,7 +992,7 @@ void paste_unicodeText(char *filename)
 
 void paste_editText(void)
 {
-	Curve *cu;
+	Curve *cu= G.obedit->data;
 	int filelen, doit= 0;
 	char *strp;
 	FILE *fp = NULL;
@@ -1020,7 +1019,6 @@ void paste_editText(void)
 #endif
 
 	if(fp) {
-		cu= G.obedit->data;
 		
 		fseek(fp, 0L, SEEK_END);		
 		filelen = ftell( fp );
