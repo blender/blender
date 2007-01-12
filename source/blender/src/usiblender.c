@@ -209,6 +209,7 @@ static void init_userdef_file(void)
 		bTheme *btheme;
 		
 		U.uiflag |= USER_GLOBALUNDO;
+		if (U.undosteps==0) U.undosteps=32;
 		
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
 			/* check for alpha==0 is safe, then color was never set */
@@ -352,8 +353,6 @@ static void init_userdef_file(void)
 			}
 		}
 	}
-	
-	if (U.undosteps==0) U.undosteps=32;
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
