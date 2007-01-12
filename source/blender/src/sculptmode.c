@@ -615,37 +615,17 @@ void calc_vertex_users()
 /* its really time to add some comments in code... */
 void set_sculpt_object(Object *ob)
 {
-	SculptSession *ss= sculpt_session();
-
+	SculptSession *ss;
+	
 	/* return when no sculptmode, temporal for now because this call breaks switching shapes */
 	if(!(G.f & G_SCULPTMODE))
 		return;
 	
-	if(ss) {
-		/* Copy any sculpted changes back into the old shape key. */
-		if(ss->keyblock) {
-			Mesh *me= get_mesh(ss->active_ob);
-			if(me) {
-				mesh_to_key(me, ss->keyblock);
-				DAG_object_flush_update(G.scene, ss->active_ob, OB_RECALC_DATA);
-			}
-		}
+	ss= sculpt_session();
 
-		if(ob) {
-			Mesh *me= get_mesh(ob);
-			calc_vertex_users();
-			
-			/* Copy current shape key (if any) to mesh. Sculptmode
-			   sculpts only one shape key at a time. */
-			ss->keyblock= ob_get_keyblock(ob);
-			if(ss->keyblock)
-				key_to_mesh(ss->keyblock, me);
-			
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		}	
-		
-		ss->active_ob= ob;
-	}
+	if(ss && ob)
+		calc_vertex_users();
+
 }
 
 /* ===== INTERFACE =====
@@ -856,9 +836,11 @@ void do_draw_brush(const EditData *e, const ListBase* active_verts)
 
 	while(node){
 		float *co= me->mvert[node->Index].co;
+		
 		const float val[3]= {co[0]+area_normal.x*node->Fade,
 		                     co[1]+area_normal.y*node->Fade,
 		                     co[2]+area_normal.z*node->Fade};
+		                     
 		sculpt_clip(e, co, val);
 		
 		node= node->next;
@@ -1207,6 +1189,7 @@ void do_brush_action(float *vertexcosnos, EditData e,
 	float *vert;
 	Mesh *me= get_mesh(OBACT);
 	const float bstrength= brush_strength(&e);
+	KeyBlock *keyblock= ob_get_keyblock(OBACT);
 
 	sculptmode_add_damaged_rect(&e,damaged_rects);
 
@@ -1253,6 +1236,16 @@ void do_brush_action(float *vertexcosnos, EditData e,
 	case LAYER_BRUSH:
 		do_layer_brush(&e, &active_verts);
 		break;
+	}
+	
+	/* Copy the modified vertices from mesh to the active key */
+	if(keyblock) {
+		float *co= keyblock->data;
+		if(co) {
+			for(adata= active_verts.first; adata; adata= adata->next)
+				if(adata->Index < keyblock->totelem)
+					VecCopyf(&co[adata->Index*3], me->mvert[adata->Index].co);
+		}
 	}
 
 	if(vertexcosnos)
@@ -1837,9 +1830,6 @@ void sculptmode_correct_state()
 	if(!sculpt_session())
 		sculpt_init_session();
 
-	if(get_mesh(sculpt_session()->active_ob) != get_mesh(OBACT))
-		set_sculpt_object(OBACT);
-
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	
@@ -1975,8 +1965,8 @@ void sculpt()
 				do_symmetrical_brush_actions(vertexcosnos,&e,&damaged_verts,&damaged_rects);
 			}
 			
-			if(modifier_calculations)
-				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+			if(modifier_calculations || ob_get_keyblock(ob))
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
 			if(modifier_calculations || sd->brush_type == GRAB_BRUSH || !sd->draw_mode) {
 				calc_damaged_verts(&damaged_verts,e.grabdata);

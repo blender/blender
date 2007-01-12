@@ -65,8 +65,6 @@ typedef struct PropsetData {
 } PropsetData;
 
 typedef struct SculptSession {
-	struct Object *active_ob;
-
 	/* Cache of the OpenGL matrices */
 	double modelviewmat[16];
 	double projectionmat[16];
@@ -89,8 +87,6 @@ typedef struct SculptSession {
 	
 	/* For rotating around a pivot point */
 	vec3f pivot;
-	
-	struct KeyBlock *keyblock;
 } SculptSession;
 
 SculptSession *sculpt_session();
