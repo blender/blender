@@ -2149,7 +2149,8 @@ void fly(void)
 	
 	/* detect weather to start with Z locking */
 	upvec[0]=1; upvec[1]=0; upvec[2]=0;
-	Mat3MulVecfl(G.vd->viewinv, upvec);
+	Mat3CpyMat4(mat, G.vd->viewinv);
+	Mat3MulVecfl(mat, upvec);
 	if (fabs(upvec[2]) < 0.1)
 		zlock = 1;
 	upvec[0]=0; upvec[1]=0; upvec[2]=0;
@@ -2186,7 +2187,6 @@ void fly(void)
 		G.vd->dist= 0.0;
 		
 		upvec[2]=dist_backup; /*x and y are 0*/
-		Mat3CpyMat4(mat, G.vd->viewinv);
 		Mat3MulVecfl(mat, upvec);
 		VecSubf(G.vd->ofs, G.vd->ofs, upvec);
 		/*Done with correcting for the dist*/
