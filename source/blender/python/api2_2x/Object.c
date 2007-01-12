@@ -5617,7 +5617,7 @@ static PyObject *Object_SetMatrix( BPy_Object * self, PyObject * args )
 
 static PyObject *Object_SetEuler( BPy_Object * self, PyObject * args )
 {
-	return EXPP_setterWrapperTuple( (void *)self, args,
+	return EXPP_setterWrapper( (void *)self, args,
 			(setter)Object_setEuler );
 }
 
