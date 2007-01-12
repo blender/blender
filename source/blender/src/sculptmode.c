@@ -1847,7 +1847,7 @@ void sculpt()
 	RectNode *rn= NULL;
 	short spacing= 32000;
 
-	if(!(G.f & G_SCULPTMODE) || G.obedit || !ob || !ob->id.lib || !get_mesh(OBACT) || get_mesh(OBACT)->totface == 0)
+	if(!(G.f & G_SCULPTMODE) || G.obedit || !ob || ob->id.lib || !get_mesh(ob) || (get_mesh(ob)->totface == 0))
 		return;
 	if(!(ob->lay & G.vd->lay))
 		error("Active object is not in this layer");
@@ -2092,7 +2092,6 @@ void sculptmode_revert_pmv(Mesh *me)
 	if(me->pv) {
 		unsigned i;
 		MVert *nve, *old_verts;
-		Object *ob= OBACT;
 		
 		active_ob= NULL;
 
@@ -2334,7 +2333,14 @@ rcti sculptmode_pmv_box()
 void sculptmode_pmv(int mode)
 {
 	Object *ob= OBACT;
-	rcti hb_2d= sculptmode_pmv_box(); /* Get 2D hide box */
+	rcti hb_2d;
+	
+	if(ob_get_key(ob)) {
+		error("Cannot hide mesh with shape keys enabled");
+		return;
+	}
+	
+	hb_2d= sculptmode_pmv_box(); /* Get 2D hide box */
 	
 	sculptmode_correct_state();
 

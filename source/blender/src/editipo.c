@@ -203,8 +203,6 @@ EditIpo *get_active_editipo(void)
 
 static void set_active_key(int index)
 {
-	extern void set_sculpt_object(Object *ob);
-	
 	if(G.sipo->blocktype==ID_KE && G.sipo->from) {
 		Object *ob= (Object *)G.sipo->from;
 		Key *key= ob_get_key(ob);
@@ -216,11 +214,6 @@ static void set_active_key(int index)
 			if(curkb) {
 				ob->shapenr= index;
 				ob->shapeflag |= OB_SHAPE_TEMPLOCK;
-				
-				/* only meshes have sculptmode */
-				if (ob->type==OB_MESH) {
-					set_sculpt_object(ob);
-				}
 				
 				/* calc keypos */
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
