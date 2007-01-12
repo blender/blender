@@ -1258,6 +1258,19 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						view3d_border_zoom();
 				}
 				break;
+			case PADSLASHKEY:
+				if(!G.qual) {
+					if(G.vd->localview) {
+						G.vd->localview= 0;
+						endlocalview(curarea);
+					}
+					else {
+						G.vd->localview= 1;
+						initlocalview();
+					}
+					allqueue(REDRAWVIEW3D, 1);
+				}
+				break;
 			/* Brush properties */
 			case AKEY:
 				br->airbrush= !br->airbrush;
