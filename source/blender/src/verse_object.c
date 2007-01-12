@@ -99,7 +99,7 @@ void b_verse_duplicate_object(VerseSession *session, Object *ob, Object *n_ob)
 
 	/* set up object node transformation */
 	VECCOPY(((VObjectData*)obj_vnode->data)->pos, n_ob->loc);
-	EulToQuat(n_ob->rot, ((VObjectData*)obj_vnode->data)->rot);
+	EulToQuat(n_ob->rot, ((VObjectData*)obj_vnode->data)->quat);
 	VECCOPY(((VObjectData*)obj_vnode->data)->scale, n_ob->size);
 
 	/* set up pointers between Object and VerseNode */
@@ -156,7 +156,7 @@ void b_verse_push_object(VerseSession *session, Object *ob)
 
 	/* set up object node transformation */
 	VECCOPY(((VObjectData*)obj_vnode->data)->pos, ob->loc);
-	EulToQuat(ob->rot, ((VObjectData*)obj_vnode->data)->rot);
+	EulToQuat(ob->rot, ((VObjectData*)obj_vnode->data)->quat);
 	VECCOPY(((VObjectData*)obj_vnode->data)->scale, ob->size);
 
 	/* set up pointers between Object and VerseNode */
@@ -323,10 +323,10 @@ void unsubscribe_from_obj_node(VNode *vnode)
 	((VObjectData*)vnode->data)->pos[1] = 0.0f;
 	((VObjectData*)vnode->data)->pos[2] = 0.0f;
 	
-	((VObjectData*)vnode->data)->rot[0] = 0.0f;
-	((VObjectData*)vnode->data)->rot[1] = 0.0f;
-	((VObjectData*)vnode->data)->rot[2] = 0.0f;
-	((VObjectData*)vnode->data)->rot[3] = 0.0f;
+	((VObjectData*)vnode->data)->quat[0] = 0.0f;
+	((VObjectData*)vnode->data)->quat[1] = 0.0f;
+	((VObjectData*)vnode->data)->quat[2] = 0.0f;
+	((VObjectData*)vnode->data)->quat[3] = 0.0f;
 
 	((VObjectData*)vnode->data)->scale[0] = 0.0f;
 	((VObjectData*)vnode->data)->scale[1] = 0.0f;
@@ -497,7 +497,7 @@ void post_transform_rot(VNode *vnode)
 	struct Object *ob = (Object*)obj_data->object;
 
 	/* convert quaternion to euler rotation */
-	QuatToEul(obj_data->rot, ob->rot);
+	QuatToEul(obj_data->quat, ob->rot);
 
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 	
@@ -518,49 +518,6 @@ void post_transform_scale(VNode *vnode)
 	
 	allqueue(REDRAWVIEW3D, 1);
 }
-
-/*
- * recalculate transformation matrix of object
- */
-#if 0
-void post_transform(VNode *vnode)
-{
-	struct VObjectData *obj_data = (VObjectData*)vnode->data;
-	struct Object *ob = (Object*)obj_data->object;
-	float mat_s[4][4];
-	float mat_r[4][4];
-	float mat_p[4][4];
-	float mat[4][4];
-
-	if(!obj_data->object) return;
-
-	Mat4One(mat_s);
-	Mat4One(mat_r);
-	Mat4One(mat_p);
-
-	/* scale */
-	mat_s[0][0] = ob->size[0] = obj_data->scale[0];
-	mat_s[1][1] = ob->size[1] = obj_data->scale[1];
-	mat_s[2][2] = ob->size[2] = obj_data->scale[2];
-
-	/* rotate */
-	QuatToEul(obj_data->rot, ob->rot);
-	QuatToMat4(obj_data->rot, mat_r);
-
-	/* position */
-	mat_p[3][0] = ob->loc[0] = obj_data->pos[0];
-	mat_p[3][1] = ob->loc[1] = obj_data->pos[1];
-	mat_p[3][2] = ob->loc[2] = obj_data->pos[2];
-
-	/* matrix multiplication */
-	Mat4MulMat4(mat, mat_r, mat_p);
-	Mat4MulMat4(ob->obmat, mat_s, mat);
-
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
-	
-	allqueue(REDRAWVIEW3D, 1);
-}
-#endif
 
 /*
  * send transformation of Object to verse server
@@ -588,11 +545,11 @@ void b_verse_send_transformation(Object *ob)
 	if( ((VObjectData*)vnode->data)->flag & ROT_SEND_READY ) {
 		EulToQuat(ob->rot, quat);
 
-		if((((VObjectData*)vnode->data)->rot[0] != quat[0]) ||
-				(((VObjectData*)vnode->data)->rot[1] != quat[1]) ||
-				(((VObjectData*)vnode->data)->rot[2] != quat[2]) ||
-				(((VObjectData*)vnode->data)->rot[3] != quat[3])) {
-			QUATCOPY(((VObjectData*)vnode->data)->rot, quat);
+		if((((VObjectData*)vnode->data)->quat[0] != quat[0]) ||
+				(((VObjectData*)vnode->data)->quat[1] != quat[1]) ||
+				(((VObjectData*)vnode->data)->quat[2] != quat[2]) ||
+				(((VObjectData*)vnode->data)->quat[3] != quat[3])) {
+			QUATCOPY(((VObjectData*)vnode->data)->quat, quat);
 			send_verse_object_rotation(vnode);
 		}
 	}

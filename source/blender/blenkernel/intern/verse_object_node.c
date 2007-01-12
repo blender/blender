@@ -41,6 +41,7 @@
 #include "BIF_verse.h"
 
 #include "BKE_verse.h"
+#include "BKE_utildefines.h"
 
 #include "verse.h"
 
@@ -48,7 +49,7 @@
 
 /* callback functions */
 static void cb_o_transform_pos_real32(void *user_data, VNodeID node_id, uint32 time_s, uint32 time_f, const real32 *pos, const real32 *speed, const real32 *accelerate, const real32 *drag_normal, real32 drag);
-static void cb_o_transform_rot_real32(void *user_data, VNodeID node_id, uint32 time_s, uint32 time_f, const VNQuat32 *rot, const VNQuat32 *speed, const VNQuat32 *accelerate, const VNQuat32 *drag_normal, real32 drag);
+static void cb_o_transform_rot_real32(void *user_data, VNodeID node_id, uint32 time_s, uint32 time_f, const VNQuat32 *temp, const VNQuat32 *speed, const VNQuat32 *accelerate, const VNQuat32 *drag_normal, real32 drag);
 static void cb_o_transform_scale_real32(void *user_data, VNodeID node_id, real32 scale_x, real32 scale_y, real32 scale_z);
 static void cb_o_link_set(void *user_data, VNodeID node_id, uint16 link_id, VNodeID link, const char *label, uint32 target_id);
 static void cb_o_link_destroy(void *user_data, VNodeID node_id,uint16 link_id);
@@ -136,7 +137,7 @@ void send_verse_object_rotation(VNode *vnode)
 	float q[4] = {cos(-M_PI/4), -sin(-M_PI/4), 0, 0}, v[4], tmp[4];
 
 	/* inverse transformation to transformation in function cb_o_transform_rot_real32 */
-	QuatMul(v, ((VObjectData*)vnode->data)->rot, q);
+	QuatMul(v, ((VObjectData*)vnode->data)->quat, q);
 	q[1]= sin(-M_PI/4);
 	QuatMul(tmp, q, v);
 
@@ -302,7 +303,7 @@ VObjectData *create_object_data(void)
 
 	/* transformation matrix */
 	obj->pos[0] = obj->pos[1] = obj->pos[2] = 0.0;
-	obj->rot[0] = obj->rot[1] = obj->rot[2] = 0.0; obj->rot[3] = 1;
+	obj->quat[0] = obj->quat[1] = obj->quat[2] = 0.0; obj->quat[3] = 1;
 	obj->scale[0] = obj->scale[1] = obj->scale[2] = 1.0;
 
 	/* transformation flags */
@@ -402,7 +403,7 @@ static void cb_o_transform_rot_real32(
 		VNodeID node_id,
 		uint32 time_s,
 		uint32 time_f,
-		const VNQuat32 *rot,
+		const VNQuat32 *quat,
 		const VNQuat32 *speed,
 		const VNQuat32 *accelerate,
 		const VNQuat32 *drag_normal,
@@ -410,7 +411,7 @@ static void cb_o_transform_rot_real32(
 {
 	struct VerseSession *session = (VerseSession*)current_verse_session();
 	struct VNode *vnode;
-	float quat[4]={0, 0, 0, 0}, v[4], dt;		/* temporary quaternions */
+	float temp[4]={0, 0, 0, 0}, v[4], dt;		/* temporary quaternions */
 	float q[4]={cos(M_PI/4), -sin(M_PI/4), 0, 0};	/* conjugate quaternion (represents rotation
 							   around x-axis +90 degrees) */
 
@@ -429,25 +430,25 @@ static void cb_o_transform_rot_real32(
 
 	dt = time_s + time_f/(0xffff);
 
-	if(rot) {
-		quat[1] = rot->x;
-		quat[2] = rot->y;
-		quat[3] = rot->z;
-		quat[0] = rot->w;
+	if(quat) {
+		temp[1] = quat->x;
+		temp[2] = quat->y;
+		temp[3] = quat->z;
+		temp[0] = quat->w;
 	}
 
 	if(speed) {
-		quat[1] += speed->x*dt;
-		quat[2] += speed->y*dt;
-		quat[3] += speed->z*dt;
-		quat[0] += speed->w*dt;
+		temp[1] += speed->x*dt;
+		temp[2] += speed->y*dt;
+		temp[3] += speed->z*dt;
+		temp[0] += speed->w*dt;
 	}
 
 	if(accelerate) {
-		quat[1] += accelerate->x*dt*dt/2;
-		quat[2] += accelerate->y*dt*dt/2;
-		quat[3] += accelerate->z*dt*dt/2;
-		quat[0] += accelerate->w*dt*dt/2;
+		temp[1] += accelerate->x*dt*dt/2;
+		temp[2] += accelerate->y*dt*dt/2;
+		temp[3] += accelerate->z*dt*dt/2;
+		temp[0] += accelerate->w*dt*dt/2;
 	}
 
 	/* following matematical operation transform rotation:
@@ -456,19 +457,16 @@ static void cb_o_transform_rot_real32(
 	 *
 	 *, where v is original representation of rotation */
 
-	QuatMul(v, quat, q);
+	QuatMul(v, temp, q);
 	q[1]= sin(M_PI/4);	/* normal quaternion */
-	QuatMul(quat, q, v);
+	QuatMul(temp, q, v);
 
-	if( (((VObjectData*)vnode->data)->rot[0] != quat[0]) ||
-			(((VObjectData*)vnode->data)->rot[1] != quat[1]) ||
-			(((VObjectData*)vnode->data)->rot[2] != quat[2]) ||
-			(((VObjectData*)vnode->data)->rot[3] != quat[3]))
+	if( (((VObjectData*)vnode->data)->quat[0] != temp[0]) ||
+			(((VObjectData*)vnode->data)->quat[1] != temp[1]) ||
+			(((VObjectData*)vnode->data)->quat[2] != temp[2]) ||
+			(((VObjectData*)vnode->data)->quat[3] != temp[3]))
 	{
-		((VObjectData*)vnode->data)->rot[0] = quat[0];
-		((VObjectData*)vnode->data)->rot[1] = quat[1];
-		((VObjectData*)vnode->data)->rot[2] = quat[2];
-		((VObjectData*)vnode->data)->rot[3] = quat[3];
+		QUATCOPY(((VObjectData*)vnode->data)->quat, temp);
 
 		((VObjectData*)vnode->data)->post_transform_rot(vnode);
 	}

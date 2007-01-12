@@ -257,7 +257,7 @@ typedef struct VObjectData {
 	struct DynamicList links;	/* dynamic list with access array of links between other nodes */
 	struct ListBase queue;		/* queue of links waiting for sending and receiving from verse server */
 	float pos[3];			/* position of object VerseNode */
-	float rot[4];			/* rotation of object VerseNode stored in quat */
+	float quat[4];			/* rotation of object VerseNode stored in quat */
 	float scale[3];			/* scale of object VerseNode */
 	void *object;			/* pointer at object */
 	short flag;			/* flag: POS_RECEIVE_READY, ROT_RECEIVE_READY. SCALE_RECEIVE_READY */
