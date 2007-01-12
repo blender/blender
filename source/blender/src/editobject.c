@@ -1602,8 +1602,6 @@ void enter_editmode(int wc)
 	if(wc) waitcursor(1);
 	
 	if(ob->type==OB_MESH) {
-		if(G.f & G_SCULPTMODE) set_sculpt_object(NULL);
-
 		me= get_mesh(ob);
 		if( me==0 ) return;
 		if(me->id.lib) {
@@ -1740,9 +1738,6 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 	
 	/* also flush ob recalc, doesn't take much overhead, but used for particles */
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
-
-	if(G.f & G_SCULPTMODE)
-		set_sculpt_object(ob);
 
 	if(freedata) {
 		setcursor_space(SPACE_VIEW3D, CURSOR_STD);

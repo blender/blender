@@ -1097,10 +1097,6 @@ void set_active_base(Base *base)
 				DAG_object_flush_update(G.scene, tbase->object, OB_RECALC_DATA);
 			}
 		}
-
-		if(base->object->type==OB_MESH && G.f & G_SCULPTMODE) {
-			set_sculpt_object(base->object);
-		}
 	}
 }
 

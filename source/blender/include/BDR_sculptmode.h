@@ -125,7 +125,6 @@ float *get_tex_angle();
 void sculptmode_update_tex();
 char sculpt_modifiers_active(struct Object *ob);
 void sculpt();
-void set_sculpt_object(struct Object *ob);
 void set_sculptmode();
 
 /* Partial Mesh Visibility */

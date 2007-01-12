@@ -157,7 +157,9 @@ typedef struct ProjVert {
 	   containing the brush. */
 	char inside;
 } ProjVert;
+
 static ProjVert *projverts= NULL;
+static Object *active_ob= NULL;
 
 SculptData *sculpt_data()
 {
@@ -421,7 +423,7 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 	for(sus= oldcur; sus && sus != newcur; sus= sus->next);
 	if(sus == newcur) forward= 1;
 	
-	set_sculpt_object(NULL);
+	active_ob= NULL;
 
 	/* Verts */
 	if(newcur->verts) {
@@ -494,8 +496,6 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 			}
 
 	ss->undo->cur= newcur;
-	
-	set_sculpt_object(ob);
 	
 	if(!sculpt_data()->draw_mode || sculpt_modifiers_active(ob))
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
@@ -609,23 +609,6 @@ void calc_vertex_users()
 			BLI_addtail(&ss->vertex_users[((unsigned int*)(&me->mface[i]))[j]], node);
 		}
 	}
-}
-
-/* bad function... what is this supposed to do, and why is it called all over? (ton) */
-/* its really time to add some comments in code... */
-void set_sculpt_object(Object *ob)
-{
-	SculptSession *ss;
-	
-	/* return when no sculptmode, temporal for now because this call breaks switching shapes */
-	if(!(G.f & G_SCULPTMODE))
-		return;
-	
-	ss= sculpt_session();
-
-	if(ss && ob)
-		calc_vertex_users();
-
 }
 
 /* ===== INTERFACE =====
@@ -1864,28 +1847,25 @@ void sculpt()
 	RectNode *rn= NULL;
 	short spacing= 32000;
 
-	if((G.f & G_SCULPTMODE)==0) return;
-	if(G.obedit) return;
-	
-	ob= OBACT;
-	if(ob->id.lib) return;
+	if(!(G.f & G_SCULPTMODE) || G.obedit || !ob || !ob->id.lib || !get_mesh(OBACT) || get_mesh(OBACT)->totface == 0)
+		return;
+	if(!(ob->lay & G.vd->lay))
+		error("Active object is not in this layer");
 	
 	if(!ss) {
 		sculpt_init_session();
 		ss= sd->session;
 	}
 
-	/* Make sure that the active mesh is set correctly */
-	if(get_mesh(OBACT) != get_mesh(ob))
-		set_sculpt_object(ob);
+	/* Check that vertex users are up-to-date */
+	if(ob != active_ob || ss->vertex_users_size != get_mesh(ob)->totvert) {
+		sculptmode_free_vertexusers(ss);
+		calc_vertex_users();
+		active_ob= ob;
+	}
 		
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
-
-	if(!OBACT || !get_mesh(OBACT) ||
-	   get_mesh(OBACT)->totface==0) return;
-
-	if(ob->lay & G.vd->lay); else error("Active object is not in this layer");
 
 	persp(PERSP_VIEW);
 	
@@ -2068,8 +2048,6 @@ void set_sculptmode()
 	if(G.f & G_SCULPTMODE) {
 		G.f &= ~G_SCULPTMODE;
 
-		set_sculpt_object(NULL);
-
 		sculptmode_free_session(G.scene);
 	} else {
 		G.f |= G_SCULPTMODE;
@@ -2077,14 +2055,13 @@ void set_sculptmode()
 		if(!sculptmode_brush())
 			sculptmode_init(G.scene);
 
-		if(G.vd->twflag) G.vd->twflag= 0;
-
 		sculpt_init_session();
-		set_sculpt_object(OBACT);
 		
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glEnableClientState(GL_NORMAL_ARRAY);
 	}
+	
+	active_ob= NULL;
 
 	allqueue(REDRAWVIEW3D, 1);
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -2116,9 +2093,8 @@ void sculptmode_revert_pmv(Mesh *me)
 		unsigned i;
 		MVert *nve, *old_verts;
 		Object *ob= OBACT;
-
-		/* Temporarily exit sculptmode */
-		set_sculpt_object(NULL);
+		
+		active_ob= NULL;
 
 		/* Reorder vertices */
 		nve= me->mvert;
@@ -2148,8 +2124,6 @@ void sculptmode_revert_pmv(Mesh *me)
 		me->pv->edge_map= NULL;
 		MEM_freeN(me->pv->vert_map);
 		me->pv->vert_map= NULL;
-		
-		set_sculpt_object(ob);
 
 		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 	}
@@ -2210,7 +2184,7 @@ void sculptmode_do_pmv(Object *ob, rcti *hb_2d, int mode)
 	}
 	
 	/* Kill sculpt data */
-	set_sculpt_object(NULL);
+	active_ob= NULL;
 	
 	/* Initalize map with which verts are to be hidden */
 	me->pv->vert_map= MEM_mallocN(sizeof(unsigned)*me->totvert, "PMV vertmap");
@@ -2319,8 +2293,6 @@ void sculptmode_do_pmv(Object *ob, rcti *hb_2d, int mode)
 	}
 	me->totedge= edge_cnt_show;
 	CustomData_set_layer(&me->edata, CD_MEDGE, me->medge);
-	
-	set_sculpt_object(ob);
 
 	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 }
