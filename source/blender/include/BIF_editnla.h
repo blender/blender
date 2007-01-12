@@ -54,6 +54,7 @@ void reset_action_strips(int val);
 void synchronize_action_strips(void);
 void snap_action_strips(int snap_mode);
 void add_nlablock(void);
+void add_empty_nlablock(void);
 void convert_nla(void);
 void copy_action_modifiers(void);
 

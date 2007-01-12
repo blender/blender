@@ -382,6 +382,60 @@ static void add_nla_block(short event)
 	BIF_undo_push("Add NLA strip");
 }
 
+static void add_nla_block_by_name(char name[32], Object *ob, short hold, short add, float repeat)
+{
+	bAction *act=NULL;
+	bActionStrip *strip;
+	int		cur;
+
+	if (name){
+		for (cur = 1, act=G.main->action.first; act; act=act->id.next, cur++){
+			if (strcmp(name,act->id.name)==0) {
+				break;
+			}
+		}
+	}
+	
+	/* Bail out if no action was chosen */
+	if (!act){
+		return;
+	}
+	
+	/* Initialize the new action block */
+	strip = MEM_callocN(sizeof(bActionStrip), "bActionStrip");
+	
+	deselect_nlachannel_keys(0);
+	
+	/* Link the action to the strip */
+	strip->act = act;
+	calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
+	strip->start = G.scene->r.cfra;		/* could be mval[0] another time... */
+	strip->end = strip->start + (strip->actend-strip->actstart);
+		/* simple prevention of zero strips */
+	if(strip->start>strip->end-2) 
+		strip->end= strip->start+100;
+	
+	strip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION; //|ACTSTRIP_USEMATCH;
+	
+	if (hold==1)
+		strip->flag = strip->flag|ACTSTRIP_HOLDLASTFRAME;
+		
+	if (add==1)
+		strip->mode = ACTSTRIPMODE_ADD;
+	
+	find_stridechannel(ob, strip);
+	
+	set_active_strip(ob, strip);
+	
+	strip->repeat = repeat;
+	
+	act->id.us++;
+	
+	BLI_addtail(&ob->nlastrips, strip);
+
+	BIF_undo_push("Add NLA strip");
+}
+
 static void add_nla_databrowse_callback(unsigned short val)
 {
 	/* val is not used, databrowse needs it to optional pass an event */
@@ -425,6 +479,26 @@ void add_nlablock(void)
 		MEM_freeN(str);
 		add_nla_block(event);
 	}
+}
+
+/* Creates a new action, and makes a new actionstrip of that */
+void add_empty_nlablock(void)
+{
+	Object *ob= OBACT;
+	bAction *act= NULL;
+	
+	/* check for active object first - will add strip to active object */
+	if (ob == NULL) 
+		return;
+		
+	/* make new action */
+	if ((ob->type == OB_ARMATURE) && (ob->flag & OB_POSEMODE))
+		act= add_empty_action(ID_AR);
+	else
+		act= add_empty_action(ID_OB);
+		
+	/* make a new strip for it */
+	add_nla_block_by_name(act->id.name, ob, 0, 1, 1.0f);
 }
 
 /* Adds strip to to active Object */
@@ -1811,6 +1885,9 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					toggle_blockhandler(curarea, NLA_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 					scrarea_queue_winredraw(curarea);
 				}
+				else if (G.qual & LR_SHIFTKEY) {
+					add_empty_nlablock();
+				}
 				break;
 			case LKEY:
 				relink_active_strip();
@@ -1914,60 +1991,6 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	}
 	
 	if(doredraw) scrarea_queue_winredraw(curarea);
-}
-
-static void add_nla_block_by_name(char name[32], Object *ob, short hold, short add, float repeat)
-{
-	bAction *act=NULL;
-	bActionStrip *strip;
-	int		cur;
-
-	if (name){
-		for (cur = 1, act=G.main->action.first; act; act=act->id.next, cur++){
-			if (strcmp(name,act->id.name)==0) {
-				break;
-			}
-		}
-	}
-	
-	/* Bail out if no action was chosen */
-	if (!act){
-		return;
-	}
-	
-	/* Initialize the new action block */
-	strip = MEM_callocN(sizeof(bActionStrip), "bActionStrip");
-	
-	deselect_nlachannel_keys(0);
-	
-	/* Link the action to the strip */
-	strip->act = act;
-	calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
-	strip->start = G.scene->r.cfra;		/* could be mval[0] another time... */
-	strip->end = strip->start + (strip->actend-strip->actstart);
-		/* simple prevention of zero strips */
-	if(strip->start>strip->end-2) 
-		strip->end= strip->start+100;
-	
-	strip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION; //|ACTSTRIP_USEMATCH;
-	
-	if (hold==1)
-		strip->flag = strip->flag|ACTSTRIP_HOLDLASTFRAME;
-		
-	if (add==1)
-		strip->mode = ACTSTRIPMODE_ADD;
-	
-	find_stridechannel(ob, strip);
-	
-	set_active_strip(ob, strip);
-	
-	strip->repeat = repeat;
-	
-	act->id.us++;
-	
-	BLI_addtail(&ob->nlastrips, strip);
-
-	BIF_undo_push("Add NLA strip");
 }
 
 void bake_all_to_action(void)

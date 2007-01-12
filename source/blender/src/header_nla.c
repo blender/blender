@@ -318,6 +318,9 @@ static void do_nla_stripmenu(void *arg, int event)
 	case 9:	/* reset start/end of action */
 		reset_action_strips(2);
 		break;
+	case 10: /* add new action as new action strip */
+		add_empty_nlablock();
+		break;
 	}
 }
 
@@ -331,13 +334,15 @@ static uiBlock *nla_stripmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Strip Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, nla_strip_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 20, "");
+	uiDefIconTextBlockBut(block, nla_strip_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap To Frame", 0, yco-=20, 120, 20, "");
+	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Strip Size|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Action Start/End|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
-	uiDefIconTextBlockBut(block, nla_strip_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap To Frame", 0, yco-=20, 120, 20, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Action Strip|Shift A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Blank Action Strip|Shift N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Convert Action to NLA Strip|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
