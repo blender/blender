@@ -17,13 +17,10 @@ Example::
   from Blender import *
 
   me = Mesh.Primitives.Cube(2.0)   # create a new cube of size 2
-  ob = Object.New('Mesh')          # create a new mesh-type object
-  ob.link(me)                      # link mesh datablock with object
   sc = Scene.GetCurrent()          # get current scene
-  sc.link(ob)                      # add object to the scene
+  sc.objects.new(me,'Mesh')        # add a new mesh-type object to the scene
   Window.RedrawAll()               # update windows
 """
-
 
 def Plane(size=2.0):
   """
