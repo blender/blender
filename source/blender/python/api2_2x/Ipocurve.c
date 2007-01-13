@@ -89,6 +89,9 @@ static int IpoCurve_setDriverObject( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_getDriverChannel( C_IpoCurve * self);
 static int IpoCurve_setDriverChannel( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_getDriverExpression( C_IpoCurve * self);
+static PyObject *IpoCurve_getFlag( C_IpoCurve * self, void *type);
+static int IpoCurve_setFlag( C_IpoCurve * self, PyObject *value, void *type);
+
 static int IpoCurve_setDriverExpression( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_getCurval( C_IpoCurve * self, PyObject * args );
 static int IpoCurve_setCurval( C_IpoCurve * self, PyObject * key, 
@@ -143,7 +146,7 @@ static PyGetSetDef C_IpoCurve_getseters[] = {
 	NULL},
 	{"driver",
 	 (getter)IpoCurve_getDriver, (setter)IpoCurve_setDriver,
-	 "The status of the driver 1-on, 0-off",
+	 "The status of the driver 1-object, 2-py expression, 0-off",
 	 NULL},
 	{"driverObject",
 	 (getter)IpoCurve_getDriverObject, (setter)IpoCurve_setDriverObject,
@@ -165,6 +168,12 @@ static PyGetSetDef C_IpoCurve_getseters[] = {
 	 (getter)IpoCurve_newgetExtend, (setter)IpoCurve_newsetExtend,
 	 "The extend mode of the curve",
 	 NULL},
+	
+	{"sel",
+	 (getter)IpoCurve_getFlag, (setter)IpoCurve_setFlag,
+	 "the selection state of the curve",
+	 (void *)IPO_SELECT},
+	 
 	 {NULL,NULL,NULL,NULL,NULL}
 };
 
@@ -942,7 +951,7 @@ static int IpoCurve_setDriverExpression( C_IpoCurve * self, PyObject * arg )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 					      "string is too long, use 127 characters or less" );
 
-	strcpy(&ipo->driver->name, exp);
+	strcpy(ipo->driver->name, exp);
 	return 0;
 }
 
@@ -1045,6 +1054,27 @@ static int IpoCurve_newsetExtend( C_IpoCurve * self, PyObject * value )
 	return EXPP_setIValueRange( value, &self->ipocurve->extrap,
 			IPO_HORIZ, IPO_CYCLX, 'h' );
 }
+
+static PyObject *IpoCurve_getFlag( C_IpoCurve * self, void *type )
+{
+	if (self->ipocurve->flag & (int)type)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+static int IpoCurve_setFlag( C_IpoCurve * self, PyObject *value, void *type )
+{
+	int param = PyObject_IsTrue( value );
+	
+	if (param)
+		self->ipocurve->flag |= (int)type;
+	else
+		self->ipocurve->flag &= ~(int)type;
+	
+	return 0;
+}
+
 
 /* #####DEPRECATED###### */
 

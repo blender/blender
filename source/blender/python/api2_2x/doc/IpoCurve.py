@@ -54,6 +54,8 @@ class IpoCurve:
   @type driverObject:  Blender Object or None
   @ivar driverExpression:  Python expression used to drive the Ipo curve. [0 - 127 chars]
   @type driverExpression:  string
+  @ivar sel:  The selection state of this curve.
+  @type sel:  bool
   @ivar driverChannel:  Object channel used to drive the Ipo curve.
   Use module constants: IpoCurve.LOC_X, IpoCurve.LOC_Y, IpoCurve.LOC_Z,
   IpoCurve.ROT_X, IpoCurve.ROT_Y, IpoCurve.ROT_Z, IpoCurve.SIZE_X,
