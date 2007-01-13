@@ -38,13 +38,15 @@ It removes very low weighted verts from the current group with a weight option.
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-from Blender import Scene, Draw
+from Blender import Scene, Draw, Object
 import BPyMesh
 SMALL_NUM= 0.000001
 def weightClean(me, PREF_THRESH, PREF_KEEP_SINGLE, PREF_OTHER_GROUPS):
 	
 	groupNames, vWeightDict= BPyMesh.meshWeight2Dict(me)
 	act_group= me.activeGroup
+	
+	rem_count = 0
 	
 	if PREF_OTHER_GROUPS:
 		for wd in vWeightDict:
@@ -55,6 +57,7 @@ def weightClean(me, PREF_THRESH, PREF_KEEP_SINGLE, PREF_OTHER_GROUPS):
 					if w <= PREF_THRESH:
 						# small weight, remove.
 						del wd[group]
+						rem_count +=1
 					l-=1
 					
 					if PREF_KEEP_SINGLE and l == 1:
@@ -68,11 +71,13 @@ def weightClean(me, PREF_THRESH, PREF_KEEP_SINGLE, PREF_OTHER_GROUPS):
 					if w <= PREF_THRESH:
 						# small weight, remove.
 						del wd[act_group]
+						rem_count +=1
 				except:
 					pass
 	
 	# Copy weights back to the mesh.
 	BPyMesh.dict2MeshWeight(me, groupNames, vWeightDict)
+	return rem_count
 
 
 def main():
@@ -98,7 +103,19 @@ def main():
 	if not Draw.PupBlock('Clean Selected Meshes...', pup_block):
 		return
 	
-	weightClean(me, PREF_PEAKWEIGHT.val, PREF_KEEP_SINGLE.val, PREF_OTHER_GROUPS.val)
+	rem_count = weightClean(me, PREF_PEAKWEIGHT.val, PREF_KEEP_SINGLE.val, PREF_OTHER_GROUPS.val)
+	
+	# Run on entire blend file. usefull sometimes but dont let users do it.
+	'''
+	rem_count = 0
+	for ob in Object.Get():
+		if ob.type != 'Mesh':
+			continue
+		me= ob.getData(mesh=1)
+		
+		rem_count += weightClean(me, PREF_PEAKWEIGHT.val, PREF_KEEP_SINGLE.val, PREF_OTHER_GROUPS.val)
+	'''
+	Draw.PupMenu('Removed %i verts from groups' % rem_count)
 	
 if __name__=='__main__':
 	main()

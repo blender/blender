@@ -207,16 +207,30 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 			mtl.close()
 
 
-def split_mesh(verts_loc, faces, unique_materials, SPLIT_OBJECTS, SPLIT_MATERIALS):
+
+	
+def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OBJECTS, SPLIT_MATERIALS):
 	'''
 	Takes vert_loc and faces, and seperates into multiple sets of 
-	(verts_loc, faces, unique_materials)
+	(verts_loc, faces, unique_materials, dataname)
 	This is done so objects do not overload the 16 material limit.
 	'''
 	
-	if not SPLIT_OBJECTS and not SPLIT_MATERIALS:
-		return [(verts_loc, faces, unique_materials)]
+	filename = stripExt(stripPath(filepath))
 	
+	if not SPLIT_OBJECTS and not SPLIT_MATERIALS:
+		# use the filename for the object name since we arnt chopping up the mesh.
+		return [(verts_loc, faces, unique_materials, filename)]
+	
+	
+	def key_to_name(key):
+		# if the key is a tuple, join it to make a string
+		if type(key) == tuple:
+			return '%s_%s' % key
+		elif not key:
+			return filename # assume its a string. make sure this is true if the splitting code is changed
+		else:
+			return key
 	
 	# Return a key that makes the faces unique.
 	if SPLIT_OBJECTS and not SPLIT_MATERIALS:
@@ -229,7 +243,7 @@ def split_mesh(verts_loc, faces, unique_materials, SPLIT_OBJECTS, SPLIT_MATERIAL
 	
 	else: # Both
 		def face_key(face):
-			return face[2], face[4] # material		
+			return face[4], face[2] # object,material		
 	
 	
 	face_split_dict= {}
@@ -243,14 +257,14 @@ def split_mesh(verts_loc, faces, unique_materials, SPLIT_OBJECTS, SPLIT_MATERIAL
 		if oldkey != key:
 			# Check the key has changed.
 			try:
-				faces_split, verts_split, unique_materials_split, vert_remap= face_split_dict[key]
+				verts_split, faces_split, unique_materials_split, vert_remap= face_split_dict[key]
 			except KeyError:
 				faces_split= []
 				verts_split= []
 				unique_materials_split= {}
 				vert_remap= [-1]*len(verts_loc)
 				
-				face_split_dict[key]= (faces_split, verts_split, unique_materials_split, vert_remap)
+				face_split_dict[key]= (verts_split, faces_split, unique_materials_split, vert_remap)
 			
 			oldkey= key
 			
@@ -275,10 +289,10 @@ def split_mesh(verts_loc, faces, unique_materials, SPLIT_OBJECTS, SPLIT_MATERIAL
 	
 	
 	# remove one of the itemas and reorder
-	return [(verts_split, faces_split, unique_materials_split) for faces_split, verts_split, unique_materials_split, vert_remap in face_split_dict.itervalues()]
+	return [(value[0], value[1], value[2], key_to_name(key)) for key, value in face_split_dict.iteritems()]
 
 
-def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups):
+def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups, dataname):
 	'''
 	Takes all the data gathered and generates a mesh, adding the new object to new_objects
 	deals with fgons, sharp edges and assigning materials
@@ -391,10 +405,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 	for name, index in material_mapping.iteritems():
 		materials[index]= unique_materials[name]
 	
-	try:
-		me= Mesh.New(faces[0][5]) # object name from first face
-	except:
-		me= Mesh.New()
+	me= Mesh.New(dataname)
 	
 	me.materials= materials[0:16] # make sure the list isnt too big.
 	#me.verts.extend([(0,0,0)]) # dummy vert
@@ -672,9 +683,9 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	
 	print '\tbuilding geometry;\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % ( len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups) ),
 	# Split the mesh by objects/materials, may 
-	for verts_loc_split, faces_split, unique_materials_split in split_mesh(verts_loc, faces, unique_materials, SPLIT_OBJECTS, SPLIT_MATERIALS):
+	for verts_loc_split, faces_split, unique_materials_split, dataname in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OBJECTS, SPLIT_MATERIALS):
 		# Create meshes from the data
-		create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups)
+		create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, dataname)
 	
 	axis_min= [ 1000000000]*3
 	axis_max= [-1000000000]*3

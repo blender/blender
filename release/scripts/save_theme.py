@@ -75,7 +75,6 @@ theme = Theme.Get()[0] # get current theme
 default_fname = Blender.Get("scriptsdir")
 default_fname = Blender.sys.join(default_fname, theme.name + '_theme.py')
 default_fname = default_fname.replace(' ','_')
-type_str = type('')
 
 def write_theme(filename):
 	"Write the current theme as a bpython script"
@@ -125,7 +124,7 @@ theme = Theme.New('%s')
 		for var in vars:
 			v = "%s.%s" % (tsp, var)
 			exec("value = %s" % v)
-			if type(value) == type_str:
+			if type(value) == str:
 				fout.write("%s = '%s'\n" % (v, value))
 			else:
 				fout.write("%s = %s\n" % (v, value))
