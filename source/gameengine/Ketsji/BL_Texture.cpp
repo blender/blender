@@ -12,6 +12,7 @@
 #endif
 
 #include <iostream>
+#include <map>
 
 #include "BL_Material.h"
 #include "BL_Texture.h"
@@ -30,6 +31,7 @@
 
 #include "KX_GameObject.h"
 
+
 using namespace bgl;
 
 #define spit(x) std::cout << x << std::endl;
@@ -39,7 +41,7 @@ using namespace bgl;
 extern "C" {
 	// envmaps
 	#include "IMB_imbuf.h"
-	void my_envmap_split_ima(EnvMap *env);
+	void my_envmap_split_ima(EnvMap *env, ImBuf *ibuf);
 	void my_free_envmapdata(EnvMap *env);
 }
 
@@ -53,9 +55,20 @@ static int smaller_pow2(int num) {
 	return num;	
 }
 
+// Place holder for a full texture manager
+class BL_TextureObject
+{
+public:
+	unsigned int	gl_texture;
+	void*			ref_buffer;
+};
+
+typedef std::map<char*, BL_TextureObject> BL_TextureMap;
+static BL_TextureMap g_textureManager;
+
+
 BL_Texture::BL_Texture()
 :	mTexture(0),
-	mError(0),
 	mOk(0),
 	mNeedsDeleted(0),
 	mType(0),
@@ -87,31 +100,37 @@ void BL_Texture::DeleteTex()
 		glDeleteLists((GLuint)mDisableState, 1);
 		mDisableState =0;
 	}
+
+	g_textureManager.clear();
 }
 
 
 bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 {
-	ImBuf *ibuf;
-	
-	if(!img || img->ok==0 ) {
-		mError = true;
-		mOk = false;
-		return mOk;
-	}
-	ibuf= BKE_image_get_ibuf(img, NULL);
-	if( ibuf==NULL ) {
-		img->ok = 0;
-		mError = true;
-		mOk = false;
-		return mOk;
-	}
-	mTexture = img->bindcode;
 
+	ImBuf *ibuf;
+	if (!img || img->ok==0) 
+	{
+		mOk = false;
+		return mOk;
+	}
+
+	ibuf= BKE_image_get_ibuf(img, NULL);
+	if (ibuf==NULL)
+	{
+		img->ok = 0;
+		mOk = false;
+		return mOk;
+	}
+
+
+	mTexture = img->bindcode;
 	mType = GL_TEXTURE_2D;
 	mUnit = unit;
 
-	// smoke em if we got em
+	ActivateUnit(mUnit);
+
+
 	if (mTexture != 0) {
 		glBindTexture(GL_TEXTURE_2D, mTexture );
 		Validate();
@@ -120,6 +139,11 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 	mNeedsDeleted = 1;
 	glGenTextures(1, (GLuint*)&mTexture);
 	InitGLTex(ibuf->rect, ibuf->x, ibuf->y, mipmap);
+	
+
+
+	glDisable(GL_TEXTURE_2D);
+	ActivateUnit(0);
 	Validate();
 	return mOk;
 }
@@ -172,68 +196,88 @@ void BL_Texture::InitNonPow2Tex(unsigned int *pix,int x,int y,bool mipmap)
 }
 
 
-bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap )
+bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap)
 {
 #ifdef GL_ARB_texture_cube_map
-	if(!RAS_EXT_support._ARB_texture_cube_map) {
+
+	if (!RAS_EXT_support._ARB_texture_cube_map)
+	{
 		spit("cubemaps not supported");
-		mError = true;
 		mOk = false;
 		return mOk;
 	}
-	
-	else if(!cubemap || cubemap->ima->ok==0 ) {
-		mError = true;
-		mOk = false;
-		return mOk;
-	}
-	ImBuf *ibuf= BKE_image_get_ibuf(cubemap->ima, NULL);
-	if( ibuf==0 )  {
-		cubemap->ima->ok = 0;
-		mError = true;
+	else if (!cubemap || cubemap->ima->ok==0) 
+	{
 		mOk = false;
 		return mOk;
 	}
 
-	EnvMap *CubeMap = cubemap;
+	ImBuf *ibuf= BKE_image_get_ibuf(cubemap->ima, NULL);
+	if (ibuf==0)
+	{
+		cubemap->ima->ok = 0;
+		mOk = false;
+		return mOk;
+	}
+
 	mNeedsDeleted =	1;
 	mType = GL_TEXTURE_CUBE_MAP_ARB;
 	mTexture = 0;
 	mUnit = unit;
 
+	ActivateUnit(mUnit);
 
-	glGenTextures(1, (GLuint*)&mTexture);
-	glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, mTexture );
-	bool needs_split = false;
-
-	if(!CubeMap->cube[0]) needs_split = true; 
-
-	if(needs_split){
-		// split it
-		my_envmap_split_ima(CubeMap);
+	BL_TextureMap::iterator mapLook = g_textureManager.find(cubemap->ima->id.name);
+	if (mapLook != g_textureManager.end())
+	{
+		if (mapLook->second.gl_texture != 0 && mapLook->second.ref_buffer == cubemap->ima)
+		{
+			mTexture = mapLook->second.gl_texture;
+			glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, mTexture);
+			mOk = IsValid();
+			return mOk;
+		}
 	}
 
-	// -----------------------------------
-	int x	= CubeMap->cube[0]->x;
-	int y	= CubeMap->cube[0]->y;
 
-	// check the first image, and assume the rest
-	if (!is_pow2(x) || !is_pow2(y)) {
+	glGenTextures(1, (GLuint*)&mTexture);
+	glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, mTexture);
+
+
+	// track created units
+	BL_TextureObject obj;
+	obj.gl_texture = mTexture;
+	obj.ref_buffer = cubemap->ima;
+	g_textureManager.insert(std::make_pair(cubemap->ima->id.name, obj));
+
+
+	bool needs_split = false;
+	if (!cubemap->cube[0]) 
+	{
+		needs_split = true;
+		spit ("Re-Generating texture buffer");
+	}
+
+	if (needs_split)
+		my_envmap_split_ima(cubemap, ibuf);
+
+
+	if (!is_pow2(cubemap->cube[0]->x) || !is_pow2(cubemap->cube[0]->y))
+	{
 		spit("invalid envmap size please render with CubeRes @ power of two");
-		my_free_envmapdata(CubeMap);
-		mError = true;
+
+		my_free_envmapdata(cubemap);
 		mOk = false;
 		return mOk;
 	}
-	/* 
-	*/
 
-#define SetCubeMapFace(face, num)	\
+
+#define SetCubeMapFace(face, num)   \
 	glTexImage2D(face, 0,GL_RGBA,	\
-	CubeMap->cube[num]->x,	\
-	CubeMap->cube[num]->y,	\
-	0, GL_RGBA, GL_UNSIGNED_BYTE,	\
-	CubeMap->cube[num]->rect)
+	cubemap->cube[num]->x,          \
+	cubemap->cube[num]->y,          \
+	0, GL_RGBA, GL_UNSIGNED_BYTE,   \
+	cubemap->cube[num]->rect)
 
 	SetCubeMapFace(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB, 5);
 	SetCubeMapFace(GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB, 3);
@@ -246,19 +290,23 @@ bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap )
 	glTexParameteri( GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_S,	 GL_CLAMP_TO_EDGE );
 	glTexParameteri( GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_T,	 GL_CLAMP_TO_EDGE );
-	
-		
-	if(needs_split) {
-		cubemap->ima = CubeMap->ima;
-		my_free_envmapdata(CubeMap);
-	}
+	#ifdef GL_VERSION_1_2
+	glTexParameteri( GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_R,	 GL_CLAMP_TO_EDGE );
+	#endif
+
+	if (needs_split)
+		my_free_envmapdata(cubemap);
+
+
+
+	glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+	ActivateUnit(0);
 
 	mOk = IsValid();
 	return mOk;
 
 #else
 
-	mError = true;
 	mOk = false;
 	return mOk;
 
@@ -303,26 +351,17 @@ int BL_Texture::GetMaxUnits()
 void BL_Texture::ActivateFirst()
 {
 #ifdef GL_ARB_multitexture
-	if(RAS_EXT_support._ARB_multitexture) {
+	if(RAS_EXT_support._ARB_multitexture)
 		bgl::blActiveTextureARB(GL_TEXTURE0_ARB);
-		//if(mVertexArray)
-		//	bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB);
-	}
-
 #endif
 }
 
 void BL_Texture::ActivateUnit(int unit)
 {
 #ifdef GL_ARB_multitexture
-	if(RAS_EXT_support._ARB_multitexture) {
+	if(RAS_EXT_support._ARB_multitexture)
 		if(unit <= MAXTEX)
-		{
 			bgl::blActiveTextureARB(GL_TEXTURE0_ARB+unit);
-			//if(mVertexArray)
-			//	bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB+unit);
-		}
-	}
 #endif
 }
 
@@ -330,21 +369,26 @@ void BL_Texture::ActivateUnit(int unit)
 void BL_Texture::DisableUnit()
 {
 #ifdef GL_ARB_multitexture
-	if(RAS_EXT_support._ARB_multitexture){
+	if(RAS_EXT_support._ARB_multitexture)
 		bgl::blActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
-		//if(mVertexArray)
-		//	bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
-	}
+
 #endif
+
+
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 
-#ifdef GL_ARB_texture_cube_map
-	if(RAS_EXT_support._ARB_texture_cube_map)
+	#ifdef GL_ARB_texture_cube_map
+	if(RAS_EXT_support._ARB_texture_cube_map && glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
 		glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-#endif
-	glDisable(GL_TEXTURE_2D);
+	else
+	#endif
+	{
+		if (glIsEnabled(GL_TEXTURE_2D))
+			glDisable(GL_TEXTURE_2D);
+	}
+
 	glDisable(GL_TEXTURE_GEN_S);
 	glDisable(GL_TEXTURE_GEN_T);
 	glDisable(GL_TEXTURE_GEN_R);
@@ -356,30 +400,14 @@ void BL_Texture::DisableUnit()
 void BL_Texture::DisableAllTextures()
 {
 #ifdef GL_ARB_multitexture
-	if(mDisableState != 0 && glIsList(mDisableState)) {
-		glCallList(mDisableState);
-		return;
-	}
-	if(!mDisableState)
-		mDisableState = glGenLists(1);
-
-	glNewList(mDisableState, GL_COMPILE_AND_EXECUTE);
-
 	glDisable(GL_BLEND);
 	for(int i=0; i<MAXTEX; i++) {
 		if(RAS_EXT_support._ARB_multitexture)
-		{
 			bgl::blActiveTextureARB(GL_TEXTURE0_ARB+i);
-			//if(mVertexArray)
-			//	bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB+i);
-		}
+
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
-#ifdef GL_ARB_texture_cube_map
-		if(RAS_EXT_support._ARB_texture_cube_map)
-			glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-#endif//GL_ARB_texture_cube_map
 		glDisable(GL_TEXTURE_2D);	
 		glDisable(GL_TEXTURE_GEN_S);
 		glDisable(GL_TEXTURE_GEN_T);
@@ -387,8 +415,9 @@ void BL_Texture::DisableAllTextures()
 		glDisable(GL_TEXTURE_GEN_Q);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
 	}
+	if(RAS_EXT_support._ARB_multitexture)
+		bgl::blActiveTextureARB(GL_TEXTURE0_ARB);
 
-	glEndList();
 #endif
 }
 
@@ -397,23 +426,23 @@ void BL_Texture::ActivateTexture()
 {
 #ifdef GL_ARB_multitexture
 	if(RAS_EXT_support._ARB_multitexture)
-	{
 		bgl::blActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
-	//	if(mVertexArray)
-	//		bgl::blClientActiveTextureARB(GL_TEXTURE0_ARB+mUnit);
-	}
+
 #ifdef GL_ARB_texture_cube_map
-	if(mType == GL_TEXTURE_CUBE_MAP_ARB && RAS_EXT_support._ARB_texture_cube_map ) {
-		glDisable(GL_TEXTURE_2D);
+	if (mType == GL_TEXTURE_CUBE_MAP_ARB && RAS_EXT_support._ARB_texture_cube_map)
+	{
 		glBindTexture( GL_TEXTURE_CUBE_MAP_ARB, mTexture );	
 		glEnable(GL_TEXTURE_CUBE_MAP_ARB);
-	} else
+	}
+	else
 #endif
 	{
-#ifdef GL_ARB_texture_cube_map
+
+		#ifdef GL_ARB_texture_cube_map
 		if(RAS_EXT_support._ARB_texture_cube_map )
 			glDisable(GL_TEXTURE_CUBE_MAP_ARB);
-#endif
+		#endif
+
 		glBindTexture( GL_TEXTURE_2D, mTexture );	
 		glEnable(GL_TEXTURE_2D);
 	}
@@ -611,14 +640,20 @@ int BL_Texture::GetPow2(int n)
 	return n;
 }
 
+void BL_Texture::SplitEnvMap(EnvMap *map)
+{
+	if (!map || !map->ima || map->ima && !map->ima->ok) return;
+	ImBuf *ibuf= BKE_image_get_ibuf(map->ima, NULL);
+	if (ibuf)
+		my_envmap_split_ima(map, ibuf);
+}
 
 unsigned int BL_Texture::mDisableState = 0;
 
 extern "C" {
 
-void my_envmap_split_ima(EnvMap *env)
+void my_envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 {
-	ImBuf *ibuf;
 	int dx, part;
 	
 	my_free_envmapdata(env);	
@@ -635,19 +670,19 @@ void my_envmap_split_ima(EnvMap *env)
 			env->cube[part]= ibuf= IMB_allocImBuf(dx, dx, 24, IB_rect, 0);
 		}
 		IMB_rectcpy(env->cube[0], ibuf, 
-					0, 0, 0, 0, dx, dx);
+			0, 0, 0, 0, dx, dx);
 		IMB_rectcpy(env->cube[1], ibuf, 
-					0, 0, dx, 0, dx, dx);
+			0, 0, dx, 0, dx, dx);
 		IMB_rectcpy(env->cube[2], ibuf, 
-					0, 0, 2*dx, 0, dx, dx);
+			0, 0, 2*dx, 0, dx, dx);
 		IMB_rectcpy(env->cube[3], ibuf, 
-					0, 0, 0, dx, dx, dx);
+			0, 0, 0, dx, dx, dx);
 		IMB_rectcpy(env->cube[4], ibuf, 
-					0, 0, dx, dx, dx, dx);
+			0, 0, dx, dx, dx, dx);
 		IMB_rectcpy(env->cube[5], ibuf, 
-					0, 0, 2*dx, dx, dx, dx);
-		
-		env->ok= 2;
+			0, 0, 2*dx, dx, dx, dx);
+
+		env->ok= 2;// ENV_OSA
 	}
 }
 

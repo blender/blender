@@ -20,16 +20,13 @@ class RAS_ICanvas;
 class BL_Texture
 {
 private:
-	// -----------------------------------
 	unsigned int		mTexture;		// Bound texture unit data
-	bool				mError;			// Errors
 	bool				mOk;			// ...
 	bool				mNeedsDeleted;	// If generated
 	unsigned int		mType;			// enum TEXTURE_2D | CUBE_MAP 
 	int					mUnit;			// Texture unit associated with mTexture
 	unsigned int		mEnvState;		// cache textureEnv
 	static unsigned int	mDisableState;	// speed up disabling calls
-	// -----------------------------------
 
 	void InitNonPow2Tex(unsigned int *p,int x,int y,bool mipmap );
 	void InitGLTex(unsigned int *p,int x,int y,bool mipmap );
@@ -55,24 +52,13 @@ public:
 	static void ActivateUnit(int unit);
 	static int GetMaxUnits();
 	static int GetPow2(int x);
+	static void SplitEnvMap(EnvMap *map);
 
-	/** todo
-	void CreateRenderTexture(RAS_Rect r, RTData d);
-	void ReadDepth(RAS_Rect r, RTData d);
-	static void BeginDepth(RAS_ICanvas *can, RTData d);
-	static void EndDepth(RAS_ICanvas *can,RTData d);
-	void SetDepthMapping(MT_Matrix4x4& p, MT_Matrix4x4& m);
-	*/
 
 	void ActivateTexture();
 	void SetMapping(int mode);
 	void DisableUnit();
 	void setTexEnv(BL_Material *mat, bool modulate=false);
 };
-
-/* Render to texture support, managed by the scene
-	TODO
-*/
-
 
 #endif//__BL_TEXTURE_H__

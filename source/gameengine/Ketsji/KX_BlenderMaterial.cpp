@@ -136,7 +136,6 @@ void KX_BlenderMaterial::OnConstruction()
 	// for each unique material...
 	int i;
 	for(i=0; i<mMaterial->num_enabled; i++) {
-		BL_Texture::ActivateUnit(i);
 		if( mMaterial->mapping[i].mapping & USEENV ) {
 			if(!RAS_EXT_support._ARB_texture_cube_map) {
 				spit("CubeMap textures not supported");

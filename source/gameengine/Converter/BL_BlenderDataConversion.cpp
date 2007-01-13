@@ -432,20 +432,18 @@ BL_Material* ConvertMaterial(
 					else if(mttmp->tex->type == TEX_ENVMAP) {
 						if( mttmp->tex->env->stype == ENV_LOAD ) {
 					
-							material->mtexname[i]= mttmp->tex->id.name;
-							material->cubemap[i] = mttmp->tex->env;
-							if(material->cubemap[i]->ima) {
-								material->texname[i] = material->cubemap[i]->ima->id.name;
+							material->mtexname[i]     = mttmp->tex->id.name;
+							EnvMap *env = mttmp->tex->env;
+							env->ima = mttmp->tex->ima;
+							material->cubemap[i] = env;
+
+							if (material->cubemap[i])
+							{
+								if (!material->cubemap[i]->cube[0])
+									BL_Texture::SplitEnvMap(material->cubemap[i]);
+
+								material->texname[i]= material->cubemap[i]->ima->id.name;
 								material->mapping[i].mapping |= USEENV;
-							}
-							else {
-								// in the player, we need to split it our self
-								material->cubemap[i]->ima = mttmp->tex->ima;
-								if(material->cubemap[i]->ima) {
-									material->texname[i] = material->cubemap[i]->ima->id.name;
-									material->mapping[i].mapping |= USEENV;
-								}
-								//
 							}
 						}
 					}
@@ -1098,9 +1096,6 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	}
 	meshobj->UpdateMaterialList();
 
-
-
-	// -----------------------------------
 	// pre calculate texture generation
 	for(RAS_MaterialBucket::Set::iterator mit = meshobj->GetFirstMaterial();
 		mit != meshobj->GetLastMaterial(); ++ mit) {
