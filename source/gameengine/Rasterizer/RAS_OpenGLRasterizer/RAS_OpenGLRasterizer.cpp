@@ -1243,8 +1243,10 @@ void RAS_OpenGLRasterizer::TexCoord(const RAS_TexVert &tv, int enabled)
 				break;
 			case RAS_TEXTANGENT:
 				bgl::blMultiTexCoord4fvARB(GL_TEXTURE0_ARB+unit, tv.getTangent());
+				break;
 			case RAS_TEXCO_UV2:
 				bgl::blMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV2());
+				break;
 			}
 		}
 	}
