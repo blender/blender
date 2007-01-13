@@ -450,6 +450,9 @@ void IMB_rectblend_torus(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 {
 	int origw, origh, w, h;
 
+	if (dbuf->x == 0 || dbuf->y == 0 || sbuf->x == 0 || sbuf->y == 0)
+		return;
+
 	/* convert destination and source coordinates too be withing image */
 	destx = destx % dbuf->x;
 	if (destx < 0) destx += dbuf->x;
