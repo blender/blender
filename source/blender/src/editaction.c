@@ -3049,9 +3049,10 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case DELKEY:
 		case XKEY:
-			nr= pupmenu("Erase selected%t|Keys %x1|Markers %x2|Both %x3");
-			if (nr>0) {
-				if (nr==1||nr==3) {
+			nr= pupmenu("Erase selected%t|Keys %x1|Markers %x2");
+			switch (nr) {
+				case 1:
+				{
 					if (key) {
 						delete_meshchannel_keys(key);
 					}
@@ -3062,7 +3063,9 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							delete_actionchannel_keys();
 					}
 				}
-				if (nr==2) {
+					break;
+				case 2:
+				{
 					remove_marker();
 					
 					allqueue(REDRAWTIME, 0);
