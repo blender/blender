@@ -432,8 +432,6 @@ static void add_nla_block_by_name(char name[32], Object *ob, short hold, short a
 	act->id.us++;
 	
 	BLI_addtail(&ob->nlastrips, strip);
-
-	BIF_undo_push("Add NLA strip");
 }
 
 static void add_nla_databrowse_callback(unsigned short val)
@@ -486,6 +484,7 @@ void add_empty_nlablock(void)
 {
 	Object *ob= OBACT;
 	bAction *act= NULL;
+	bActionStrip *strip;
 	
 	/* check for active object first - will add strip to active object */
 	if (ob == NULL) 
@@ -499,6 +498,27 @@ void add_empty_nlablock(void)
 		
 	/* make a new strip for it */
 	add_nla_block_by_name(act->id.name, ob, 0, 1, 1.0f);
+	strip= ob->nlastrips.last; 
+	
+	/* change some settings of the strip - try to avoid bad scaling */
+	if ((EFRA-CFRA) < 100) {
+		strip->flag &= ~ACTSTRIP_LOCK_ACTION;
+		strip->actstart = CFRA;
+		strip->actend = CFRA + 100;
+		
+		strip->start = CFRA;
+		strip->end = CFRA + 100;
+	}
+	else {
+		strip->flag &= ~ACTSTRIP_LOCK_ACTION;
+		strip->actstart = CFRA;
+		strip->actend = EFRA;
+		
+		strip->start = CFRA;
+		strip->end = EFRA;
+	}
+	
+	BIF_undo_push("Add NLA strip");
 }
 
 /* Adds strip to to active Object */
@@ -853,8 +873,9 @@ void transform_nlachannel_keys(int mode, int dummy)
 					if(strip->act==base->object->action)
 						break;
 			}
+			
+			/* can include - no selected strip is action */
 			if(strip==NULL) {
-				
 				for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
 					if (EDITABLE_ACHAN(chan))
 						tvtot=add_trans_ipo_keys(chan->ipo, tv, tvtot);
@@ -2023,6 +2044,7 @@ void bake_all_to_action(void)
 				repeat=1.0;
 				printf("about to add nla block...\n");
 				add_nla_block_by_name(newAction->id.name, ob, hold, add, repeat);
+				BIF_undo_push("Add NLA strip");
 			}
 		}
 	}
