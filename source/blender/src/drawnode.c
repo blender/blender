@@ -1391,6 +1391,29 @@ static int node_composit_buts_channel_matte(uiBlock *block, bNodeTree *ntree, bN
 	return 80;
 }
 
+static int node_composit_buts_luma_matte(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeChroma *c=node->storage;
+	
+		/*tolerance sliders */
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "High ", 
+			butr->xmin, butr->ymin+20.0, butr->xmax-butr->xmin, 20,
+			&c->t1, 0.0f, 1.0f, 100, 0, "Values higher than this setting are 100% opaque");
+		uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Low ", 
+			butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
+			&c->t2, 0.0f, 1.0f, 100, 0, "Values lower than this setting are 100% keyed");
+		uiBlockEndAlign(block);
+	
+		/*keep t2 (low) less than t1 (high) */
+		if(c->t2 > c->t1) {
+			c->t2=c->t1;
+		}
+	}
+	return 40;
+}
+
+
 static int node_composit_buts_map_uv(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
@@ -1594,6 +1617,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_CHANNEL_MATTE:
 			ntype->butfunc= node_composit_buts_channel_matte;
+			break;
+		case CMP_NODE_LUMA_MATTE:
+			ntype->butfunc= node_composit_buts_luma_matte;
 			break;
 		case CMP_NODE_MAP_UV:
 			ntype->butfunc= node_composit_buts_map_uv;

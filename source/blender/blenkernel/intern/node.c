@@ -896,6 +896,12 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
          node->custom1= 1; /* RGB channel */
          node->custom2= 2; /* Green Channel */
       }
+      else if(type==CMP_NODE_LUMA_MATTE){
+         NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
+         node->storage=c;
+         c->t1= 0.0f;
+         c->t2= 0.0f;
+      }
 	}
 	
 	return node;

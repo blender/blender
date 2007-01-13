@@ -1311,7 +1311,7 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 	
 	if(node->id) {
 		/* first make the preview image */
-		CompBuf *prevbuf= alloc_compbuf(140, 140, CB_RGBA, 1); // alloc
+		CompBuf *prevbuf= alloc_compbuf(140, 140, CB_RGBA, 1); /* alloc */
 		
 		prevbuf->rect_procedural= texture_procedural;
 		prevbuf->node= node;
@@ -1320,7 +1320,7 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 		free_compbuf(prevbuf);
 		
 		if(out[0]->hasoutput) {
-			CompBuf *stackbuf= alloc_compbuf(140, 140, CB_VAL, 1); // alloc
+			CompBuf *stackbuf= alloc_compbuf(140, 140, CB_VAL, 1); /* alloc */
 			
 			stackbuf->rect_procedural= texture_procedural;
 			stackbuf->node= node;
@@ -1328,7 +1328,7 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 			out[0]->data= stackbuf;
 		}
 		if(out[1]->hasoutput) {
-			CompBuf *stackbuf= alloc_compbuf(140, 140, CB_RGBA, 1); // alloc
+			CompBuf *stackbuf= alloc_compbuf(140, 140, CB_RGBA, 1); /* alloc */
 			
 			stackbuf->rect_procedural= texture_procedural;
 			stackbuf->node= node;
@@ -1387,7 +1387,7 @@ static void node_composit_exec_normal(void *data, bNode *node, bNodeStack **in, 
 	else if(out[1]->hasoutput) {
 		/* make output size of input image */
 		CompBuf *cbuf= in[0]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); /* allocs */
 		
 		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_normal, CB_VEC3);
 		
@@ -1521,7 +1521,7 @@ static void node_composit_exec_curve_rgb(void *data, bNode *node, bNodeStack **i
 	else {
 		/* make output size of input image */
 		CompBuf *cbuf= in[1]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
 		if(in[0]->data)
 			composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, in[0]->vec, do_curves_fac, CB_RGBA, CB_VAL);
@@ -1645,7 +1645,7 @@ static void node_composit_exec_hue_sat(void *data, bNode *node, bNodeStack **in,
 	else {
 		/* make output size of input image */
 		CompBuf *cbuf= in[1]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
 		composit2_pixel_processor(node, stackbuf, cbuf, in[1]->vec, in[0]->data, in[0]->vec, do_hue_sat_fac, CB_RGBA, CB_VAL);
 
@@ -1705,7 +1705,7 @@ static void node_composit_exec_mix_rgb(void *data, bNode *node, bNodeStack **in,
 	else {
 		/* make output size of first available input image */
 		CompBuf *cbuf= in[1]->data?in[1]->data:in[2]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
 		composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, fac, do_mix_rgb, CB_RGBA, CB_RGBA, CB_VAL);
 		
@@ -1876,7 +1876,7 @@ static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, 
 	if(in[1]->data) {
 		/* make output size of first available input image */
 		CompBuf *cbuf= in[1]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 1); /* allocs */
 		
 		/* warning note: xof and yof are applied in pixelprocessor, but should be copied otherwise? */
 		stackbuf->xof= cbuf->xof;
@@ -1956,7 +1956,7 @@ static void node_composit_exec_valtorgb(void *data, bNode *node, bNodeStack **in
 		else {
 			/* make output size of input image */
 			CompBuf *cbuf= in[0]->data;
-			CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+			CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 			
 			composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_colorband_composit, CB_VAL);
 			
@@ -2012,7 +2012,7 @@ static void node_composit_exec_rgbtobw(void *data, bNode *node, bNodeStack **in,
 	else {
 		/* make output size of input image */
 		CompBuf *cbuf= in[0]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); /* allocs */
 		
 		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_rgbtobw, CB_RGBA);
 		
@@ -2134,7 +2134,7 @@ static void node_composit_exec_sephsva(void *data, bNode *node, bNodeStack **in,
 		/* make output size of input image */
 		CompBuf *cbuf= in[0]->data;
 
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 
 		/* convert the RGB stackbuf to an HSV representation */
 		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_sephsva, CB_RGBA);
@@ -2209,7 +2209,7 @@ static void node_composit_exec_combrgba(void *data, bNode *node, bNodeStack **in
 		else if (in[2]->data) cbuf = in[2]->data;
 		else cbuf = in[3]->data;
 		
-		stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
 		composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, 
 								  in[2]->data, in[2]->vec, in[3]->data, in[3]->vec, 
@@ -2257,7 +2257,7 @@ static void node_composit_exec_setalpha(void *data, bNode *node, bNodeStack **in
 	else {
 		/* make output size of input image */
 		CompBuf *cbuf= in[0]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
 		if(in[1]->data==NULL && in[1]->vec[0]==1.0f) {
 			/* pass on image */
@@ -2351,7 +2351,7 @@ static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **i
 	else {
 		/* make output size of input image */
 		CompBuf *cbuf= in[1]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
 		if(node->custom1)
 			composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, in[0]->vec, do_alphaover_key, CB_RGBA, CB_RGBA, CB_VAL);
@@ -2424,7 +2424,7 @@ static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in
 	else {
 		/* make output size of first input image */
 		CompBuf *cbuf= in[0]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		CompBuf *zbuf, *mbuf;
 		float *fp;
 		int x;
@@ -2529,7 +2529,7 @@ static void node_composit_exec_map_value(void *data, bNode *node, bNodeStack **i
 	else {
 		/* make output size of input image */
 		CompBuf *cbuf= in[0]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); /* allocs */
 		
 		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_map_value, CB_VAL);
 		
@@ -2613,7 +2613,7 @@ static void blur_single_image(CompBuf *new, CompBuf *img, float scale, NodeBlurD
 	float *src, *dest;
 
 	/* helper image */
-	work= alloc_compbuf(imgx, imgy, img->type, 1); // allocs
+	work= alloc_compbuf(imgx, imgy, img->type, 1); /* allocs */
 	
 	/* horizontal */
 	rad = scale*(float)nbd->sizex;
@@ -3103,7 +3103,7 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 	if(in[1]->data) {
 		
 		/* make output size of input image */
-		new= alloc_compbuf(img->x, img->y, img->type, 1); // allocs
+		new= alloc_compbuf(img->x, img->y, img->type, 1); /* allocs */
 		
 		blur_with_reference(new, img, in[1]->data, node->storage);
 		
@@ -3119,7 +3119,7 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 			CompBuf *gammabuf;
 			
 			/* make output size of input image */
-			new= alloc_compbuf(img->x, img->y, img->type, 1); // allocs
+			new= alloc_compbuf(img->x, img->y, img->type, 1); /* allocs */
 			
 			if(nbd->gamma) {
 				gammabuf= dupalloc_compbuf(img);
@@ -4253,7 +4253,7 @@ static void node_composit_exec_sepyuva(void *data, bNode *node, bNodeStack **in,
 		/* make output size of input image */
 		CompBuf *cbuf= in[0]->data;
 	
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 	
 		/* convert the RGB stackbuf to an YUV representation */
 		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_sepyuva, CB_RGBA);
@@ -4327,7 +4327,7 @@ static void node_composit_exec_sepycca(void *data, bNode *node, bNodeStack **in,
 		/* make output size of input image */
 		CompBuf *cbuf= in[0]->data;
 	
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 	
 		/* convert the RGB stackbuf to an HSV representation */
 		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_sepycca, CB_RGBA);
@@ -4828,7 +4828,7 @@ static void do_channel_matte(bNode *node, float *out, float *in)
 	/*flip because 0.0 is transparent, not 1.0*/
 	alpha=1-alpha;
 	
-	//test range
+	/* test range*/
 	if(alpha>c->t1) {
 		alpha=in[3]; /*whatever it was prior */
 	}
@@ -4838,6 +4838,7 @@ static void do_channel_matte(bNode *node, float *out, float *in)
 	else {/*blend */
 		alpha=(alpha-c->t2)/(c->t1-c->t2);
 	}
+
 	
 	/* don't make something that was more transparent less transparent */
 	if (alpha<in[3]) {
@@ -4922,6 +4923,85 @@ static bNodeType cmp_node_channel_matte={
 	/* execfunc    */       node_composit_exec_channel_matte
 };
 
+/* ******************* Luma Matte Node ********************************* */
+static bNodeSocketType cmp_node_luma_matte_in[]={
+	{SOCK_RGBA,1,"Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{-1,0,""}
+};
+
+static bNodeSocketType cmp_node_luma_matte_out[]={
+	{SOCK_RGBA,0,"Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{SOCK_VALUE,0,"Matte",0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{-1,0,""}
+};
+
+static void do_luma_matte(bNode *node, float *out, float *in)
+{
+	NodeChroma *c=(NodeChroma *)node->storage;
+	float alpha;
+
+	alpha=0.0;
+
+	/* test range*/
+	if(in[0]>c->t1) {
+		alpha=1.0;
+	}
+	else if(in[1]<c->t2){
+		alpha=0.0;
+	}
+	else {/*blend */
+		alpha=(in[0]-c->t2)/(c->t1-c->t2);
+	}
+	
+	/* don't make something that was more transparent less transparent */
+	if (alpha<in[3]) {
+		out[3]=alpha;
+	}
+	else {
+		out[3]=in[3];
+	}
+
+}
+
+static void node_composit_exec_luma_matte(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+{
+	CompBuf *cbuf;
+	CompBuf *outbuf;
+	
+	if(in[0]->hasinput==0)  return;
+	if(in[0]->data==NULL) return;
+	if(out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
+	
+	cbuf=in[0]->data;
+	/*is it an RGBA image?*/
+	if(cbuf->type==CB_RGBA) {
+	
+		outbuf=dupalloc_compbuf(cbuf);
+	
+ 		composit1_pixel_processor(node, outbuf, cbuf, in[1]->vec, do_rgba_to_yuva, CB_RGBA);
+		composit1_pixel_processor(node, outbuf, outbuf, in[1]->vec, do_luma_matte, CB_RGBA);
+		composit1_pixel_processor(node, outbuf, outbuf, in[1]->vec, do_yuva_to_rgba, CB_RGBA);
+	
+		generate_preview(node, outbuf);
+		out[0]->data=outbuf;
+		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
+	
+	}
+	else {
+		return;
+	}
+}
+
+static bNodeType cmp_node_luma_matte={
+	/* type code   */       CMP_NODE_LUMA_MATTE,
+	/* name        */       "Luminence Key",
+	/* width+range */       200, 80, 250,
+	/* class+opts  */       NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
+	/* input sock  */       cmp_node_luma_matte_in,
+	/* output sock */       cmp_node_luma_matte_out,
+	/* storage     */       "NodeChroma",
+	/* execfunc    */       node_composit_exec_luma_matte
+};
 
 
 /* **************** COMBINE YCCA ******************** */
@@ -4978,7 +5058,7 @@ static void node_composit_exec_combycca(void *data, bNode *node, bNodeStack **in
 		else if (in[2]->data) cbuf = in[2]->data;
 		else cbuf = in[3]->data;
 		
-		stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
 		composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, 
 								  in[2]->data, in[2]->vec, in[3]->data, in[3]->vec, 
@@ -5047,7 +5127,7 @@ static void node_composit_exec_combyuva(void *data, bNode *node, bNodeStack **in
 		else if (in[2]->data) cbuf = in[2]->data;
 		else cbuf = in[3]->data;
 		
-		stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
 		composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, 
 								  in[2]->data, in[2]->vec, in[3]->data, in[3]->vec, 
@@ -5115,7 +5195,7 @@ static void node_composit_exec_combhsva(void *data, bNode *node, bNodeStack **in
 		else if (in[2]->data) cbuf = in[2]->data;
 		else cbuf = in[3]->data;
 		
-		stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
 		composit4_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, 
 								  in[2]->data, in[2]->vec, in[3]->data, in[3]->vec, 
@@ -5423,7 +5503,7 @@ static void node_composit_exec_mapuv(void *data, bNode *node, bNodeStack **in, b
 		
 		cbuf= typecheck_compbuf(cbuf, CB_RGBA);
 		uvbuf= typecheck_compbuf(uvbuf, CB_VEC3);
-		stackbuf= alloc_compbuf(uvbuf->x, uvbuf->y, CB_RGBA, 1); // allocs;
+		stackbuf= alloc_compbuf(uvbuf->x, uvbuf->y, CB_RGBA, 1); /* allocs */;
 		
 		do_mapuv(stackbuf, cbuf, uvbuf, 0.05f*(float)node->custom1);
 		
@@ -5493,7 +5573,7 @@ static void node_composit_exec_idmask(void *data, bNode *node, bNodeStack **in, 
 		if(cbuf->type!=CB_VAL)
 			return;
 		
-		stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); // allocs;
+		stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); /* allocs */;
 		
 		do_idmask(stackbuf, cbuf, (float)node->custom1);
 		
@@ -5613,7 +5693,7 @@ static void node_composit_exec_displace(void *data, bNode *node, bNodeStack **in
 		
 		cbuf= typecheck_compbuf(cbuf, CB_RGBA);
 		vecbuf= typecheck_compbuf(vecbuf, CB_VEC3);
-		stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); // allocs
+		stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 
 		do_displace(stackbuf, cbuf, vecbuf, in[1]->vec, in[2]->vec, in[3]->vec);
 		
@@ -5758,7 +5838,7 @@ static void node_composit_exec_math(void *data, bNode *node, bNodeStack **in, bN
 	else {
 		/* make output size of input image */
 		CompBuf *cbuf= in[0]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); // allocs
+		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); /* allocs */
 		
 		composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_math, CB_VAL, CB_VAL);
 		
@@ -5828,6 +5908,7 @@ bNodeType *node_all_composit[]= {
 	&cmp_node_chroma,
 	&cmp_node_channel_matte,
 	&cmp_node_color_spill,
+	&cmp_node_luma_matte,
 	
 	&cmp_node_translate,
 	&cmp_node_rotate,
