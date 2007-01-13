@@ -720,17 +720,19 @@ def bevent(evt):
        OK,MESH=on_MESH()
        if OK and MESH.hasFaceUV():
           for f in MESH.faces:
-              if f.image:
-                 im=Blender.Image.Get(f.image.name)
+              im = f.image
+              if im:
                  break
-          imX,imY = im.getMaxXY()
-          for f in MESH.faces:  
-              for uv in  f.uv:
-                 color=[int(c*255.0) for c in im.getPixelF(abs(uv[0]*imX%imX), abs(uv[1]*imY%imY))]
-                 f.col[f.uv.index(uv)].r=color[0]
-                 f.col[f.uv.index(uv)].g=color[1]
-                 f.col[f.uv.index(uv)].b=color[2]
-                 f.col[f.uv.index(uv)].a=color[3]
+          if im and im.has_data:
+             imX,imY = im.getMaxXY()
+             for f in MESH.faces:  
+                 col = f.col
+                 for uv_index, uv in enumerate(f.uv):
+                    color=[int(c*255.0) for c in im.getPixelF(abs(uv[0]*imX%imX), abs(uv[1]*imY%imY))]
+                    col[uv_index].r=color[0]
+                    col[uv_index].g=color[1]
+                    col[uv_index].b=color[2]
+                    col[uv_index].a=color[3]
           MESH.update()
     elif (evt == E_SAVECOLORS):
           OK,MESH=on_MESH()

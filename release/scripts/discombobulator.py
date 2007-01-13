@@ -80,7 +80,7 @@ You can find more information at the Link above.
 #     > Using the arrow keys will scroll the gui.
 # 
 # --------------------------------------------------------------------------
-# Discombobulator v2.1
+# Discombobulator v2.1b
 # by Evan J. Rosky, 2005
 # This plugin is protected by the GPL: Gnu Public Licence
 # GPL - http://www.gnu.org/copyleft/gpl.html
@@ -109,7 +109,7 @@ You can find more information at the Link above.
 #Hit Alt-P to run
 
 import Blender
-from Blender import NMesh,Object,Material,Window,Types
+from Blender import NMesh,Object,Material,Window,Types,Scene
 from Blender.NMesh import Vert,Face
 from Blender.Mathutils import *
 
@@ -126,10 +126,7 @@ def randnum(low,high):
 	return num
 
 #Object Vars
-origmesh = NMesh.GetRaw()
 newmesh = NMesh.GetRaw()
-origobj = Object.Get()
-newobj = Object.Get()
 materialArray = [0]
 
 #Material Vars
@@ -189,20 +186,6 @@ doodadArray = [1,2,3,4,5,6]
 
 SEL = NMesh.FaceFlags['SELECT']
 
-def isselectedface(theface):
-	for vertic in theface.v:
-		if vertic.sel == 0:
-			return 0
-	return 1
-
-def arrayInInclusive(start,end):
-	arr = []
-	i = start
-	while i <= end:
-		arr.append(i)
-		i = i + 1
-	return arr
-
 def makeSubfaceArray():
 	global subfaceArray
 	global subface1
@@ -243,52 +226,36 @@ def makeDoodadArray():
 	if doodad6 > 0:
 		doodadArray.append(6)
 
-def copyObjStuff(startObj,endObj):
-	endObj.setDeltaLocation(startObj.getDeltaLocation())
-	endObj.setDrawMode(startObj.getDrawMode())
-	endObj.setDrawType(startObj.getDrawType())
-	endObj.setEuler(startObj.getEuler())
-	if(startObj.getIpo() != None):
-		endObj.setIpo(startObj.getIpo())
-	endObj.setLocation(startObj.getLocation())
-	endObj.setMaterials(startObj.getMaterials())
-	endObj.setMatrix(startObj.getMatrix())
-	endObj.setSize(startObj.getSize())
-	endObj.setTimeOffset(startObj.getTimeOffset())
-	
-
 def extrude(mid,nor,protrusion,v1,v2,v3,v4,tosel=1,flipnor=0):
 	taper = 1 - randnum(minimumtaperpercent,maximumtaperpercent)
+	newmesh_verts = newmesh.verts
+	newmesh_faces = newmesh.faces
 	
-	vert = newmesh.verts[v1]
+	vert = newmesh_verts[v1]
 	point = (vert.co - mid)*taper + mid + protrusion*Vector(nor)
 	ver = Vert(point[0],point[1],point[2])
 	ver.sel = tosel
-	newmesh.verts.append(ver)
-	vert = newmesh.verts[v2]
+	newmesh_verts.append(ver)
+	vert = newmesh_verts[v2]
 	point = (vert.co - mid)*taper + mid + protrusion*Vector(nor)
 	ver = Vert(point[0],point[1],point[2])
 	ver.sel = tosel
-	newmesh.verts.append(ver)
-	vert = newmesh.verts[v3]
+	newmesh_verts.append(ver)
+	vert = newmesh_verts[v3]
 	point = (vert.co - mid)*taper + mid + protrusion*Vector(nor)
 	ver = Vert(point[0],point[1],point[2])
 	ver.sel = tosel
-	newmesh.verts.append(ver)
-	vert = newmesh.verts[v4]
+	newmesh_verts.append(ver)
+	vert = newmesh_verts[v4]
 	point = (vert.co - mid)*taper + mid + protrusion*Vector(nor)
 	ver = Vert(point[0],point[1],point[2])
 	ver.sel = tosel
-	newmesh.verts.append(ver)
+	newmesh_verts.append(ver)
 	
-	faceindex = len(newmesh.verts) - 4
+	faceindex = len(newmesh_verts) - 4
 	
 	#side face 1
-	face = Face()
-	face.v.append(newmesh.verts[v1])
-	face.v.append(newmesh.verts[v2])
-	face.v.append(newmesh.verts[faceindex+1])
-	face.v.append(newmesh.verts[faceindex])
+	face = Face([newmesh_verts[v1], newmesh_verts[v2], newmesh_verts[faceindex+1], newmesh_verts[faceindex]])
 	if flipnor != 0:
 		face.v.reverse()
 	if thereAreMats == 1:
@@ -296,14 +263,10 @@ def extrude(mid,nor,protrusion,v1,v2,v3,v4,tosel=1,flipnor=0):
 			face.materialIndex = currmat
 		else:
 			face.materialIndex = protSideMat-1
-	newmesh.faces.append(face)
+	newmesh_faces.append(face)
 	
 	#side face 2
-	face = Face()
-	face.v.append(newmesh.verts[v2])
-	face.v.append(newmesh.verts[v3])
-	face.v.append(newmesh.verts[faceindex+2])
-	face.v.append(newmesh.verts[faceindex+1])
+	face = Face([newmesh_verts[v2], newmesh_verts[v3], newmesh_verts[faceindex+2], newmesh_verts[faceindex+1]])
 	if flipnor != 0:
 		face.v.reverse()
 	if thereAreMats == 1:
@@ -311,14 +274,10 @@ def extrude(mid,nor,protrusion,v1,v2,v3,v4,tosel=1,flipnor=0):
 			face.materialIndex = currmat
 		else:
 			face.materialIndex = protSideMat-1
-	newmesh.faces.append(face)
+	newmesh_faces.append(face)
 	
 	#side face 3
-	face = Face()
-	face.v.append(newmesh.verts[v3])
-	face.v.append(newmesh.verts[v4])
-	face.v.append(newmesh.verts[faceindex+3])
-	face.v.append(newmesh.verts[faceindex+2])
+	face = Face([newmesh_verts[v3], newmesh_verts[v4], newmesh_verts[faceindex+3], newmesh_verts[faceindex+2]])
 	if flipnor != 0:
 		face.v.reverse()
 	if thereAreMats == 1:
@@ -326,14 +285,10 @@ def extrude(mid,nor,protrusion,v1,v2,v3,v4,tosel=1,flipnor=0):
 			face.materialIndex = currmat
 		else:
 			face.materialIndex = protSideMat-1
-	newmesh.faces.append(face)
+	newmesh_faces.append(face)
 	
 	#side face 4
-	face = Face()
-	face.v.append(newmesh.verts[v4])
-	face.v.append(newmesh.verts[v1])
-	face.v.append(newmesh.verts[faceindex])
-	face.v.append(newmesh.verts[faceindex+3])
+	face = Face([newmesh_verts[v4], newmesh_verts[v1], newmesh_verts[faceindex], newmesh_verts[faceindex+3]])
 	if flipnor != 0:
 		face.v.reverse()
 	if thereAreMats == 1:
@@ -341,11 +296,10 @@ def extrude(mid,nor,protrusion,v1,v2,v3,v4,tosel=1,flipnor=0):
 			face.materialIndex = currmat
 		else:
 			face.materialIndex = protSideMat-1
-	newmesh.faces.append(face)
+	newmesh_faces.append(face)
 	
 	#top face	
-	face = Face()
-	face.v = newmesh.verts[-4:]
+	face = Face(newmesh_verts[-4:])
 	if flipnor != 0:
 		face.v.reverse()
 	if tosel == 1:
@@ -355,7 +309,7 @@ def extrude(mid,nor,protrusion,v1,v2,v3,v4,tosel=1,flipnor=0):
 			face.materialIndex = currmat
 		else:
 			face.materialIndex = protTopMat-1
-	newmesh.faces.append(face)
+	newmesh_faces.append(face)
 	return face
 
 #Sets the global protrusion values
@@ -551,9 +505,8 @@ def discombobulate():
 	global thereAreMats
 	global currmat
 	
-	try:
-		origobj = Object.GetSelected()[0]
-	except:
+	origobj = Scene.GetCurrent().objects.active
+	if not origobj:
 		glRasterPos2d(10,50)
 		errortext = "YOU MUST SELECT AN OBJECT!"
 		messagetext = ErrorText(errortext)
@@ -565,16 +518,17 @@ def discombobulate():
 	if editmode: Window.EditMode(0)
 
 	#Get Major Variables
-	newobj = Object.Get()
+	
 	origmesh = origobj.getData()
-	if type(origmesh) != Types.NMeshType:
+	
+	if origobj.type != 'Mesh':
 		glRasterPos2d(10,50)
 		errortext = "OBJECT MUST BE MESH!"
 		messagetext = ErrorText(errortext)
 		Blender.Redraw()
 		return
+	
 	newmesh = NMesh.GetRaw()
-	newmesh.verts = []
 	materialArray = origmesh.getMaterials()
 	if len(materialArray) < 1:
 		thereAreMats = 0
@@ -597,7 +551,7 @@ def discombobulate():
 		#This only does something if there are less than 4 verts
 		for matind in [protSideMat,protTopMat,doodSideMat,doodTopMat]:
 			if matind > len(materialArray) and matind <= 4:
-				for i in arrayInInclusive(len(materialArray),matind):
+				for i in xrange(len(materialArray),matind+1):
 					materialArray.append(Material.New("AddedMat " + str(i)))
 					
 	#Sets the materials
@@ -617,8 +571,7 @@ def discombobulate():
 		
 		#Check if it is a triangle
 		if len(currface.v)<4:
-			face = Face()
-			face.v.extend([newmesh.verts[currface.v[0].index],newmesh.verts[currface.v[1].index],newmesh.verts[currface.v[2].index]])
+			face = Face([newmesh.verts[currface.v[0].index],newmesh.verts[currface.v[1].index],newmesh.verts[currface.v[2].index]])
 			if thereAreMats == 1:
 				face.materialIndex = currmat
 			newmesh.faces.append(face)
@@ -626,8 +579,7 @@ def discombobulate():
 		
 		#Check whether or not to make protrusions
 		if makeprots == 0:
-			face = Face()
-			face.v.extend([newmesh.verts[currface.v[0].index],newmesh.verts[currface.v[1].index],newmesh.verts[currface.v[2].index],newmesh.verts[currface.v[3].index]])
+			face = Face([newmesh.verts[currface.v[0].index],newmesh.verts[currface.v[1].index],newmesh.verts[currface.v[2].index],newmesh.verts[currface.v[3].index]])
 			if thereAreMats == 1:
 				face.materialIndex = currmat
 			newmesh.faces.append(face)
@@ -651,8 +603,7 @@ def discombobulate():
 			if currface.sel:
 				a = 1
 			else:
-				face = Face()
-				face.v.extend([newmesh.verts[currface.v[0].index],newmesh.verts[currface.v[1].index],newmesh.verts[currface.v[2].index],newmesh.verts[currface.v[3].index]])
+				face = Face([newmesh.verts[currface.v[0].index],newmesh.verts[currface.v[1].index],newmesh.verts[currface.v[2].index],newmesh.verts[currface.v[3].index]])
 				if thereAreMats == 1:
 					face.materialIndex = currmat
 				newmesh.faces.append(face)
@@ -665,8 +616,7 @@ def discombobulate():
 				continue
 		#Check if face should be modified by random chance
 		if randnum(0,1)>faceschangedpercent: 
-			face = Face()
-			face.v.extend([newmesh.verts[currface.v[0].index],newmesh.verts[currface.v[1].index],newmesh.verts[currface.v[2].index],newmesh.verts[currface.v[3].index]])
+			face = Face([newmesh.verts[currface.v[0].index],newmesh.verts[currface.v[1].index],newmesh.verts[currface.v[2].index],newmesh.verts[currface.v[3].index]])
 			if thereAreMats == 1:
 				face.materialIndex = currmat
 			newmesh.faces.append(face)
@@ -687,7 +637,7 @@ def discombobulate():
 		center = Vector([0,0,0])
 		for pt in currface.v:
 			center = center + pt.co
-		center = divideVectorByInt(center,len(currface.v))
+		center = center / len(currface.v)
 		
 		#Determine amount of subfaces
 		subfaces = round(randnum(1,len(subfaceArray)),0)
@@ -715,7 +665,7 @@ def discombobulate():
 			orientation = int(round(randnum(0,1)))
 			p1 = currface.v[orientation]
 			p2 = currface.v[orientation + 1]
-			p3 = divideVectorByInt((p2.co - p1.co),2) + p1.co
+			p3 = ((p2.co - p1.co)/2) + p1.co
 			ve1 = Vert(p3[0],p3[1],p3[2])
 			ve1.sel = 0
 			p1 = currface.v[2 + orientation]
@@ -723,7 +673,7 @@ def discombobulate():
 				p2 = currface.v[3]
 			else:
 				p2 = currface.v[0]
-			p3 = divideVectorByInt((p2.co - p1.co),2) + p1.co
+			p3 = ((p2.co - p1.co)/2) + p1.co
 			ve2 = Vert(p3[0],p3[1],p3[2])
 			ve2.sel = 0
 			if orientation < 0.5:
@@ -747,8 +697,8 @@ def discombobulate():
 			v3 = index
 			center = Vector([0, 0, 0])
 			for pt in [newmesh.verts[v1],newmesh.verts[v2],newmesh.verts[v3],newmesh.verts[v4]]:
-				center = center + pt.co
-			center = divideVectorByInt(center,4)
+				center += pt.co
+			center = center/4
 			prot = randnum(minimumheight,maximumheight)
 			tempface = extrude(center,currface.no,prot,v1,v2,v3,v4,selectface2)
 			if makedoodads == 1:
@@ -779,8 +729,8 @@ def discombobulate():
 				v2 = p3
 			center = Vector([0]*3)
 			for pt in [newmesh.verts[v1],newmesh.verts[v2],newmesh.verts[v3],newmesh.verts[v4]]:
-				center = center + pt.co
-			center = divideVectorByInt(center,4)
+				center += pt.co
+			center = center/4
 			prot = randnum(minimumheight,maximumheight)
 			tempface = extrude(center,currface.no,prot,v1,v2,v4,v3,selectface2)
 			if makedoodads == 1:
@@ -796,16 +746,14 @@ def discombobulate():
 					newmesh.verts.extend(tempmesh.verts)
 					newmesh.faces.extend(tempmesh.faces)
 			if orientation < 0.5:
-				face = Face()
-				face.v.extend([newmesh.verts[p0],newmesh.verts[p1],newmesh.verts[v3]])
+				face = Face([newmesh.verts[p0],newmesh.verts[p1],newmesh.verts[v3]])
 				if thereAreMats == 1:
 					if reassignMats == 0 or protSideMat == 0:
 						face.materialIndex = currmat
 					else:
 						face.materialIndex = protSideMat-1
 				newmesh.faces.append(face)
-				face = Face()
-				face.v.extend([newmesh.verts[p2],newmesh.verts[p3],newmesh.verts[v4]])
+				face = Face([newmesh.verts[p2],newmesh.verts[p3],newmesh.verts[v4]])
 				if thereAreMats == 1:
 					if reassignMats == 0 or protSideMat == 0:
 						face.materialIndex = currmat
@@ -813,16 +761,14 @@ def discombobulate():
 						face.materialIndex = protSideMat-1
 				newmesh.faces.append(face)
 			else:
-				face = Face()
-				face.v.extend([newmesh.verts[p1],newmesh.verts[p2],newmesh.verts[v3]])
+				face = Face([newmesh.verts[p1],newmesh.verts[p2],newmesh.verts[v3]])
 				if thereAreMats == 1:
 					if reassignMats == 0 or protSideMat == 0:
 						face.materialIndex = currmat
 					else:
 						face.materialIndex = protSideMat-1
 				newmesh.faces.append(face)
-				face = Face()
-				face.v.extend([newmesh.verts[p3],newmesh.verts[p0],newmesh.verts[v4]])
+				face = Face([newmesh.verts[p3],newmesh.verts[p0],newmesh.verts[v4]])
 				if thereAreMats == 1:
 					if reassignMats == 0 or protSideMat == 0:
 						face.materialIndex = currmat
@@ -837,7 +783,7 @@ def discombobulate():
 			rotation = int(round(randnum(0,1)))
 			p1 = currface.v[orientation]
 			p2 = currface.v[orientation + 1]
-			p3 = divideVectorByInt((p2.co - p1.co),2) + p1.co
+			p3 = ((p2.co - p1.co)/2) + p1.co
 			ve1 = Vert(p3[0],p3[1],p3[2])
 			ve1.sel = 0
 			p1 = currface.v[2 + orientation]
@@ -845,7 +791,7 @@ def discombobulate():
 				p2 = currface.v[3]
 			else:
 				p2 = currface.v[0]
-			p3 = divideVectorByInt((p2.co - p1.co),2) + p1.co
+			p3 = ((p2.co - p1.co)/2) + p1.co
 			ve2 = Vert(p3[0],p3[1],p3[2])
 			ve2.sel = 0
 			fp = []
@@ -875,8 +821,8 @@ def discombobulate():
 				v3 = index
 				center = Vector([0]*3)
 				for pt in [newmesh.verts[v1],newmesh.verts[v2],newmesh.verts[v3],newmesh.verts[v4]]:
-					center = center + pt.co
-				center = divideVectorByInt(center,4)
+					center += pt.co
+				center = center/4
 				prot = randnum(minimumheight,maximumheight)
 				layer2inds.extend([v3,v4])
 				tempface = extrude(center,currface.no,prot,v1,v2,v3,v4,selectface3)
@@ -917,8 +863,8 @@ def discombobulate():
 				v3 = index + 1
 				center = Vector([0]*3)
 				for pt in [newmesh.verts[v1],newmesh.verts[v2],newmesh.verts[v3],newmesh.verts[v4]]:
-					center = center + pt.co
-				center = divideVectorByInt(center,4)
+					center += pt.co
+				center = center/4
 				prot = randnum(minimumheight,maximumheight)
 				layer2inds.extend([index, index +1])
 				tempface = extrude(center,currface.no,prot,v1,v2,v4,v3,selectface3)
@@ -938,12 +884,12 @@ def discombobulate():
 			#split next rect(pre-arranged, no orientation crud)--make flag in extruder for only one existing vert in mesh
 			p1 = newmesh.verts[layer2inds[0]]
 			p2 = newmesh.verts[layer2inds[1]]
-			p3 = divideVectorByInt((p2.co - p1.co),2) + p1.co
+			p3 = ((p2.co - p1.co)/2) + p1.co
 			ve3 = Vert(p3[0],p3[1],p3[2])
 			ve3.sel = 0
 			p1 = layer2verts[0]
 			p2 = layer2verts[1]
-			p3 = divideVectorByInt((p2.co - p1.co),2) + p1.co
+			p3 = ((p2.co - p1.co)/2) + p1.co
 			ve4 = Vert(p3[0],p3[1],p3[2])
 			ve4.sel = 0
 			newmesh.verts.append(ve3)
@@ -955,8 +901,8 @@ def discombobulate():
 			t0 = verti.index
 			center = Vector([0]*3)
 			for pt in [newmesh.verts[v5],newmesh.verts[v6],newmesh.verts[t0],newmesh.verts[v3]]:
-				center = center + pt.co
-			center = divideVectorByInt(center,4)
+				center += pt.co
+			center = center/4
 			prot = randnum(minimumheight,maximumheight)
 			if rotation < 0.5: flino = 1
 			else: flino = 0
@@ -973,9 +919,8 @@ def discombobulate():
 					newmesh.verts.extend(tempmesh.verts)
 					newmesh.faces.extend(tempmesh.faces)
 			if rotation < 0.5:
-				face = Face()
 				fpt = t0
-				face.v.extend([newmesh.verts[fp[1]],newmesh.verts[fpt],newmesh.verts[v3]])
+				face = Face([newmesh.verts[fp[1]],newmesh.verts[fpt],newmesh.verts[v3]])
 				if thereAreMats == 1:
 					if reassignMats == 0 or protSideMat == 0:
 						face.materialIndex = currmat
@@ -983,9 +928,8 @@ def discombobulate():
 						face.materialIndex = protSideMat-1
 				newmesh.faces.append(face)
 			else:
-				face = Face()
 				fpt = t0
-				face.v.extend([newmesh.verts[fp[0]],newmesh.verts[v3],newmesh.verts[fpt]])
+				face = Face([newmesh.verts[fp[0]],newmesh.verts[v3],newmesh.verts[fpt]])
 				if thereAreMats == 1:
 					if reassignMats == 0 or protSideMat == 0:
 						face.materialIndex = currmat
@@ -996,8 +940,8 @@ def discombobulate():
 			tempindex = verti.index
 			center = Vector([0]*3)
 			for pt in [newmesh.verts[v5],newmesh.verts[v6],newmesh.verts[tempindex],newmesh.verts[v4]]:
-				center = center + pt.co
-			center = divideVectorByInt(center,4)
+				center += pt.co
+			center = center/4
 			prot = randnum(minimumheight,maximumheight)
 			tempface = extrude(center,currface.no,prot,v6,v5,v4,tempindex,selectface3,flino)
 			if makedoodads == 1:
@@ -1013,16 +957,14 @@ def discombobulate():
 					newmesh.verts.extend(tempmesh.verts)
 					newmesh.faces.extend(tempmesh.faces)
 			if rotation < 0.5:
-				face = Face()
-				face.v.extend([newmesh.verts[tempindex],newmesh.verts[fp[0]],newmesh.verts[v4]])
+				face = Face([newmesh.verts[tempindex],newmesh.verts[fp[0]],newmesh.verts[v4]])
 				if thereAreMats == 1:
 					if reassignMats == 0 or protSideMat == 0:
 						face.materialIndex = currmat
 					else:
 						face.materialIndex = protSideMat-1
 				newmesh.faces.append(face)
-				face = Face()
-				face.v.extend([newmesh.verts[fpt],newmesh.verts[tempindex],newmesh.verts[v6]])
+				face = Face([newmesh.verts[fpt],newmesh.verts[tempindex],newmesh.verts[v6]])
 				if thereAreMats == 1:
 					if reassignMats == 0 or protSideMat == 0:
 						face.materialIndex = currmat
@@ -1030,16 +972,14 @@ def discombobulate():
 						face.materialIndex = protSideMat-1
 				newmesh.faces.append(face)
 			else:
-				face = Face()
-				face.v.extend([newmesh.verts[tempindex],newmesh.verts[v4],newmesh.verts[fp[1]]])
+				face = Face([newmesh.verts[tempindex],newmesh.verts[v4],newmesh.verts[fp[1]]])
 				if thereAreMats == 1:
 					if reassignMats == 0 or protSideMat == 0:
 						face.materialIndex = currmat
 					else:
 						face.materialIndex = protSideMat-1
 				newmesh.faces.append(face)
-				face = Face()
-				face.v.extend([newmesh.verts[tempindex],newmesh.verts[fpt],newmesh.verts[v6]])
+				face = Face([newmesh.verts[tempindex],newmesh.verts[fpt],newmesh.verts[v6]])
 				if thereAreMats == 1:
 					if reassignMats == 0 or protSideMat == 0:
 						face.materialIndex = currmat
@@ -1055,29 +995,29 @@ def discombobulate():
 			verti = currface.v[1]
 			p1 = verti.index
 		
-			pt = divideVectorByInt((newmesh.verts[p1].co - newmesh.verts[p0].co),2) + newmesh.verts[p0].co
+			pt = ((newmesh.verts[p1].co - newmesh.verts[p0].co)/2) + newmesh.verts[p0].co
 			v1 = Vert(pt[0],pt[1],pt[2])
 			v1.sel = 0
 	
 			verti = currface.v[2]
 			p2 = verti.index
 
-			pt =  divideVectorByInt((newmesh.verts[p2].co - newmesh.verts[p1].co),2) + newmesh.verts[p1].co
+			pt =  ((newmesh.verts[p2].co - newmesh.verts[p1].co)/2) + newmesh.verts[p1].co
 			v2 = Vert(pt[0],pt[1],pt[2])
 			v2.sel = 0
 
 			verti = currface.v[3]
 			p3 = verti.index
 
-			pt =  divideVectorByInt((newmesh.verts[p3].co - newmesh.verts[p2].co),2) + newmesh.verts[p2].co
+			pt =  ((newmesh.verts[p3].co - newmesh.verts[p2].co)/2) + newmesh.verts[p2].co
 			v3 = Vert(pt[0],pt[1],pt[2])
 			v3.sel = 0
 
-			pt =  divideVectorByInt((newmesh.verts[p0].co - newmesh.verts[p3].co),2) + newmesh.verts[p3].co
+			pt =  ((newmesh.verts[p0].co - newmesh.verts[p3].co)/2) + newmesh.verts[p3].co
 			v4 = Vert(pt[0],pt[1],pt[2])
 			v4.sel = 0
 
-			pt =  divideVectorByInt((v3.co - v1.co),2) + v1.co
+			pt =  ((v3.co - v1.co)/2) + v1.co
 			m = Vert(pt[0],pt[1],pt[2])
 			m.sel = 0
 			
@@ -1089,8 +1029,8 @@ def discombobulate():
 			v4 = index + 2
 			center = Vector([0]*3)
 			for pt in [newmesh.verts[p0],newmesh.verts[v1],newmesh.verts[m],newmesh.verts[v4]]:
-				center = center + pt.co
-			center = divideVectorByInt(center,4)
+				center += pt.co
+			center = center/4
 			prot = randnum(minimumheight,maximumheight)
 			tempface = extrude(center,currface.no,prot,p0,v1,m,v4,selectface4)
 			if makedoodads == 1:
@@ -1112,8 +1052,8 @@ def discombobulate():
 			v2 = index
 			center = Vector([0]*3)
 			for pt in [newmesh.verts[m],newmesh.verts[v1],newmesh.verts[p1],newmesh.verts[v2]]:
-				center = center + pt.co
-			center = divideVectorByInt(center,4)
+				center += pt.co
+			center = center/4
 			prot = randnum(minimumheight,maximumheight)
 			tempface = extrude(center,currface.no,prot,m,v1,p1,v2,selectface4)
 			if makedoodads == 1:
@@ -1135,8 +1075,8 @@ def discombobulate():
 			v3 = index
 			center = Vector([0]*3)
 			for pt in [newmesh.verts[m],newmesh.verts[v2],newmesh.verts[p2],newmesh.verts[v3]]:
-				center = center + pt.co
-			center = divideVectorByInt(center,4)
+				center += pt.co
+			center = center/4
 			prot = randnum(minimumheight,maximumheight)
 			tempface = extrude(center,currface.no,prot,m,v2,p2,v3,selectface4)
 			if makedoodads == 1:
@@ -1155,8 +1095,8 @@ def discombobulate():
 			#extrusion 4
 			center = Vector([0]*3)
 			for pt in [newmesh.verts[m],newmesh.verts[v3],newmesh.verts[p3],newmesh.verts[v4]]:
-				center = center + pt.co
-			center = divideVectorByInt(center,4)
+				center += pt.co
+			center = center/4
 			prot = randnum(minimumheight,maximumheight)
 			tempface = extrude(center,currface.no,prot,v4,m,v3,p3,selectface4)
 			if makedoodads == 1:
@@ -1172,32 +1112,28 @@ def discombobulate():
 					newmesh.verts.extend(tempmesh.verts)
 					newmesh.faces.extend(tempmesh.faces)
 			
-			face = Face()
-			face.v.extend([newmesh.verts[p0],newmesh.verts[p1],newmesh.verts[v1]])
+			face = Face([newmesh.verts[p0],newmesh.verts[p1],newmesh.verts[v1]])
 			if thereAreMats == 1:
 				if reassignMats == 0 or protSideMat == 0:
 					face.materialIndex = currmat
 				else:
 					face.materialIndex = protSideMat-1
 			newmesh.faces.append(face)
-			face = Face()
-			face.v.extend([newmesh.verts[p1],newmesh.verts[p2],newmesh.verts[v2]])
+			face = Face([newmesh.verts[p1],newmesh.verts[p2],newmesh.verts[v2]])
 			if thereAreMats == 1:
 				if reassignMats == 0 or protSideMat == 0:
 					face.materialIndex = currmat
 				else:
 					face.materialIndex = protSideMat-1
 			newmesh.faces.append(face)
-			face = Face()
-			face.v.extend([newmesh.verts[p2],newmesh.verts[p3],newmesh.verts[v3]])
+			face = Face([newmesh.verts[p2],newmesh.verts[p3],newmesh.verts[v3]])
 			if thereAreMats == 1:
 				if reassignMats == 0 or protSideMat == 0:
 					face.materialIndex = currmat
 				else:
 					face.materialIndex = protSideMat-1
 			newmesh.faces.append(face)
-			face = Face()
-			face.v.extend([newmesh.verts[p3],newmesh.verts[p0],newmesh.verts[v4]])
+			face = Face([newmesh.verts[p3],newmesh.verts[p0],newmesh.verts[v4]])
 			if thereAreMats == 1:
 				if reassignMats == 0 or protSideMat == 0:
 					face.materialIndex = currmat
@@ -1210,24 +1146,16 @@ def discombobulate():
 		for unvert in origmesh.verts:
 			newmesh.verts[unvert.index].sel = 0
 	if makenewobj == 1:
-		newobj = Object.New('Mesh')
+		newobj = origobj.__copy__()
 		newobj.link(newmesh)
-		copyObjStuff(origobj,newobj)
-		scene = Blender.Scene.getCurrent()
-		scene.link(newobj)
-		origobj.select(0)
-		newobj.select(1)
+		scene = Blender.Scene.GetCurrent()
+		scene.objects.link(newobj)
+		origobj.sel = 0
 	else:
 		origobj.link(newmesh)
 	
 	#Return to Editmode if previously in it
 	if editmode: Window.EditMode(1)
-
-def divideVectorByInt(thevect,theint):
-	thevect.x = thevect.x/theint
-	thevect.y = thevect.y/theint
-	thevect.z = thevect.z/theint
-	return thevect
 
 ####################### gui ######################
 from Blender.BGL import *
@@ -1410,7 +1338,7 @@ def draw():
 	glClear(GL_COLOR_BUFFER_BIT)
 	glColor3f(0.0,0.0,0.0)
 	glRasterPos2d(8+wadd, thadd+hadd)
-	Text("Discombobulator v2.1")
+	Text("Discombobulator v2.1b")
 	
 	#Protrusion
 	colorbox(8+pwadd+wadd,150+phadd+hadd,312+pwadd+wadd,phadd-5+hadd)
@@ -1426,34 +1354,45 @@ def draw():
 	glColor3f(0.0,0.0,0.0)
 	glRasterPos2d(12+pwadd+wadd, 80+phadd+hadd)
 	Text("Protrusion Properties:")
+	BeginAlign()
 	minheight = Number("Min Height: ",EVENT_NONE,12+pwadd+wadd,57+phadd+hadd,145,18,minheight.val,-100.0,100.0,"Minimum height of any protrusion")
 	maxheight = Number("Max Height: ",EVENT_NONE,162+pwadd+wadd,57+phadd+hadd,145,18,maxheight.val,-100.0,100.0,"Maximum height of any protrusion")
+	EndAlign()
+	BeginAlign()
 	mintaper = Number("Min Taper %: ",EVENT_NONE,12+pwadd+wadd,37+phadd+hadd,145,18,mintaper.val,0,100,"Minimum taper percentage of protrusion")
 	maxtaper = Number("Max Taper %: ",EVENT_NONE,162+pwadd+wadd,37+phadd+hadd,145,18,maxtaper.val,0,100,"Maximum taper percentage of protrusion")
+	EndAlign()
 	glRasterPos2d(19+pwadd+wadd, 22+phadd+hadd)
 	Text("Number of protrusions:")
+	BeginAlign()
 	sub1 = Toggle("1",EVENT_NONE,12+pwadd+wadd,phadd+hadd,34,18,sub1.val,"One Protrusion")
 	sub2 = Toggle("2",EVENT_NONE,48+pwadd+wadd,phadd+hadd,34,18,sub2.val,"Two Protrusions")
 	sub3 = Toggle("3",EVENT_NONE,84+pwadd+wadd,phadd+hadd,34,18,sub3.val,"Three Protrusions")
 	sub4 = Toggle("4",EVENT_NONE,120+pwadd+wadd,phadd+hadd,34,18,sub4.val,"Four Protrusions")
+	EndAlign()
 	glRasterPos2d(195+pwadd+wadd, 22+phadd+hadd)
 	Text("Select tops of:")
+	BeginAlign()
 	selface1 = Toggle("1",EVENT_NONE,165+pwadd+wadd,phadd+hadd,34,18,selface1.val,"Select the tip of the protrusion when it is created")
 	selface2 = Toggle("2",EVENT_NONE,201+pwadd+wadd,phadd+hadd,34,18,selface2.val,"Select the tips of each protrusion when they are created")
 	selface3 = Toggle("3",EVENT_NONE,237+pwadd+wadd,phadd+hadd,34,18,selface3.val,"Select the tips of each protrusion when they are created")
 	selface4 = Toggle("4",EVENT_NONE,273+pwadd+wadd,phadd+hadd,34,18,selface4.val,"Select the tips of each protrusion when they are created")
-	
+	EndAlign()
 	#Doodads
 	colorbox(8+dwadd+wadd,175+dhadd+hadd,312+dwadd+wadd,dhadd-5+hadd)
 	glColor3f(0.0,0.0,0.0)
 	glRasterPos2d(12+dwadd+wadd, 165+dhadd+hadd)
 	Text("Doodads:")
+	BeginAlign()
 	dood1 = Toggle("1 Box",EVENT_NONE,12+dwadd+wadd,142+dhadd+hadd,45,18,dood1.val,"Creates a rectangular box")
 	dood2 = Toggle("2 Box",EVENT_NONE,61+dwadd+wadd,142+dhadd+hadd,45,18,dood2.val,"Creates 2 side-by-side rectangular boxes")
 	dood3 = Toggle("3 Box",EVENT_NONE,110+dwadd+wadd,142+dhadd+hadd,45,18,dood3.val,"Creates 3 side-by-side rectangular boxes")
+	EndAlign()
+	BeginAlign()
 	dood4 = Toggle("\"L\"",EVENT_NONE,164+dwadd+wadd,142+dhadd+hadd,45,18,dood4.val,"Creates a Tetris-style \"L\" shape")
 	dood5 = Toggle("\"T\"",EVENT_NONE,213+dwadd+wadd,142+dhadd+hadd,45,18,dood5.val,"Creates a Tetris-style \"T\" shape")
 	dood6 = Toggle("\"S\"",EVENT_NONE,262+dwadd+wadd,142+dhadd+hadd,45,18,dood6.val,"Creates a sort-of \"S\" or \"Z\" shape")
+	EndAlign()
 	dodoodads = Toggle("Make Doodads",EVENT_NONE,12+dwadd+wadd,120+dhadd+hadd,145,18,dodoodads.val,"Make Doodads?")
 	doodadfacechange = Number("Face %: ",EVENT_NONE,162+dwadd+wadd,120+dhadd+hadd,145,18,doodadfacechange.val,0,100,"Percentage of faces that will gain doodads")
 	seldoodad = Toggle("Select Doodads",EVENT_NONE,12+dwadd+wadd,100+dhadd+hadd,145,18,seldoodad.val,"Selects doodads when they are created")
@@ -1465,12 +1404,18 @@ def draw():
 	glColor3f(0.0,0.0,0.0)
 	glRasterPos2d(12+dwadd+wadd, 63+dhadd+hadd)
 	Text("Doodad Properties:")
+	BeginAlign()
 	doodadminamount = Number("Min Amount: ",EVENT_NONE,12+dwadd+wadd,40+dhadd+hadd,145,18,doodadminamount.val,0,100,"Minimum number of doodads per face")
 	doodadmaxamount = Number("Max Amount: ",EVENT_NONE,162+dwadd+wadd,40+dhadd+hadd,145,18,doodadmaxamount.val,0,100,"Maximum number of doodads per face")
+	EndAlign()
+	BeginAlign()
 	doodheightmin = Number("Min Height: ",EVENT_NONE,12+dwadd+wadd,20+dhadd+hadd,145,18,doodheightmin.val,0.0,100.0,"Minimum height of any doodad")
 	doodheightmax = Number("Max Height: ",EVENT_NONE,162+dwadd+wadd,20+dhadd+hadd,145,18,doodheightmax.val,0.0,100.0,"Maximum height of any doodad")
+	EndAlign()
+	BeginAlign()
 	doodsizemin = Number("Min Size %: ",EVENT_NONE,12+dwadd+wadd,dhadd+hadd,145,18,doodsizemin.val,0.0,100.0,"Minimum size of any doodad in percentage of face")
 	doodsizemax = Number("Max Size %: ",EVENT_NONE,162+dwadd+wadd,dhadd+hadd,145,18,doodsizemax.val,0.0,100.0,"Maximum size of any doodad in percentage of face")
+	EndAlign()
 	
 	#Materials
 	colorbox(8+mwadd+wadd,93+mhadd+hadd,312+mwadd+wadd,mhadd-5+hadd)

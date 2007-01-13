@@ -33,7 +33,7 @@ This script randomizes the selected objects location/size/rotation.
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-from Blender import Object, Draw
+from Blender import Draw, Scene
 from Blender.Mathutils import Rand
 
 def rnd():
@@ -76,8 +76,8 @@ def randomize(sel, PREF_LOC, PREF_SIZE, PREF_ROT, PREF_LINK_AXIS, PREF_X_AXIS, P
 	
 
 def main():
-	sel= Object.GetSelected()
-	if not sel:
+	scn = Scene.GetCurrent()
+	if not scn.objects.context:
 		return
 	
 	PREF_LOC= Draw.Create(0.0)
@@ -89,13 +89,11 @@ def main():
 	PREF_Z_AXIS= Draw.Create(1)
 	
 	pup_block = [\
-	'Randomize...',\
 	('loc:', PREF_LOC, 0.0, 10.0, 'Amount to randomize the location'),\
 	('size:', PREF_SIZE, 0.0, 10.0,  'Amount to randomize the size'),\
 	('rot:', PREF_ROT, 0.0, 10.0, 'Amount to randomize the rotation'),\
 	'',\
 	('Link Axis', PREF_LINK_AXIS, 'Use the same random value for each objects XYZ'),\
-	'',\
 	('X Axis', PREF_X_AXIS, 'Enable X axis randomization'),\
 	('Y Axis', PREF_Y_AXIS, 'Enable Y axis randomization'),\
 	('Z Axis', PREF_Z_AXIS, 'Enable Z axis randomization'),\
@@ -104,7 +102,7 @@ def main():
 	if not Draw.PupBlock('Object Randomize', pup_block):
 		return
 	
-	randomize(sel, PREF_LOC.val, PREF_SIZE.val, PREF_ROT.val, PREF_LINK_AXIS.val, PREF_X_AXIS.val, PREF_Y_AXIS.val, PREF_Z_AXIS.val)
+	randomize(scn.objects.context, PREF_LOC.val, PREF_SIZE.val, PREF_ROT.val, PREF_LINK_AXIS.val, PREF_X_AXIS.val, PREF_Y_AXIS.val, PREF_Z_AXIS.val)
 	
 if __name__ == '__main__':
 	main()
