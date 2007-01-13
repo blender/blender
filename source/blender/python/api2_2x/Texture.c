@@ -1113,6 +1113,8 @@ static PyObject *M_Texture_TexCoDict( void )
 		PyConstant_Insert(d, "WIN", PyInt_FromLong(TEXCO_WINDOW));
 		PyConstant_Insert(d, "VIEW", PyInt_FromLong(TEXCO_VIEW));
 		PyConstant_Insert(d, "STICK", PyInt_FromLong(TEXCO_STICKY));
+		PyConstant_Insert(d, "STRESS", PyInt_FromLong(TEXCO_STRESS));
+		PyConstant_Insert(d, "TANGENT", PyInt_FromLong(TEXCO_TANGENT));
 	}
 	return TexCo;
 }

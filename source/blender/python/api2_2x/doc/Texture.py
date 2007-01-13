@@ -200,6 +200,8 @@ Example::
     - WIN - Use screen coordinates as texture coordinates
     - VIEW - Pass camera view vector on to the texture (World texture only!)
     - STICK - Use mesh sticky coordinates for the texture coordinates
+    - STRESS - Use mesh stress coordinates for the texture coordinates
+    - TANGENT - Use mesh tangent coordinates for the texture coordinates
 @type TexCo: readonly dictionary
 
 @var MapTo: Flags for MTex.mapto.

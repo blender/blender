@@ -373,7 +373,8 @@ static int MTex_setTexCo( BPy_MTex *self, PyObject *value, void *closure)
 
 	if (texco != TEXCO_ORCO && texco != TEXCO_REFL && texco != TEXCO_NORM &&
 		texco != TEXCO_GLOB && texco != TEXCO_UV && texco != TEXCO_OBJECT &&
-		texco != TEXCO_WINDOW && texco != TEXCO_VIEW && texco != TEXCO_STICKY )
+		texco != TEXCO_STRESS && texco != TEXCO_TANGENT && texco != TEXCO_WINDOW &&
+		texco != TEXCO_VIEW && texco != TEXCO_STICKY )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 			"Value must be a member of Texture.TexCo dictionary" );
 
