@@ -3112,7 +3112,7 @@ void clean_ipo(void)
 void clean_ipo_curve(IpoCurve *icu)
 {
 	BezTriple *bezt=NULL, *beztn=NULL;
-	BezTriple *newb, *newbs, *newbz;
+	BezTriple *newb, *newbs;
 	int totCount, newCount, i;
 	float thresh;
 	
@@ -3123,94 +3123,88 @@ void clean_ipo_curve(IpoCurve *icu)
 	if (totCount<=1) return;
 	
 	/* get threshold for match-testing */
-	if ((G.scene) && (G.scene->toolsettings))
-		thresh= G.scene->toolsettings->clean_thresh;
-	else 
-		thresh= 0.1f;
+	thresh= G.scene->toolsettings->clean_thresh;
 	
-	/* pointers to points */
+	/* add first keyframe and setup tempolary array of beztriples */
 	newb = newbs = MEM_callocN(sizeof(BezTriple)*totCount, "NewBeztriples");
 	bezt= icu->bezt;
 	*newb= *bezt;
 	bezt++;
-	if (totCount > 2) beztn= (bezt + 1); 
 	
 	/* loop through beztriples, comparing them */
-	for (i=0; i<totCount; i++) {
-		float timeAB, valAB, valAC;
-		short hasC, hasD;
-			
-		/* precalculate the differences in values */
-		timeAB= fabs(bezt->vec[1][0] - newb->vec[1][0]);
-		valAB= fabs(bezt->vec[1][1] - newb->vec[1][1]);
-		if (beztn!=NULL) {
-			valAC= fabs(beztn->vec[1][1] - newb->vec[1][1]);
-			hasC= 1;
+	for (i=0; i<totCount && newCount<totCount; i++, bezt++) {	
+		float prev[2], cur[2], next[2];
+		
+		/* get references for quicker access */
+		memcpy(prev, newb->vec[1], 8);
+		memcpy(cur, bezt->vec[1], 8);
+		
+		if (i < (totCount - 1)) {
+			beztn = (bezt + 1);
+			memcpy(next, beztn->vec[1], 8);
 		}
 		else {
-			valAC= 0.0f;
-			hasC= 0;
+			beztn = NULL;
+			next[0] = next[1] = 0.0f;
 		}
-		hasD= ((i+2) < totCount)?1:0;
-			
-		/* determine what to do with bezt */
-		if ((timeAB <= thresh) && (valAB <= thresh)) {
-			/* same time and value - set bezt to beztn */
-			if (hasC) 
-				bezt++;
-			else
-				break;
-			if (hasD)
-				beztn++;
-			else
-				beztn= NULL;
+		
+		/* check if current bezt occurs at same time as last ok */
+		if ((cur[0] - prev[0]) <= thresh) {
+			/* only add if values are a considerable distance apart */
+			if (IS_EQT(cur[1], prev[1], thresh) == 0) {
+					/* add new keyframe */
+					newCount++;
+					newb++;
+					*newb = *bezt;
+			}
 		}
-		else if ((valAB <= thresh) && (hasC) && (valAC <= thresh)) {
-			/* three consecutive values - set bezt to beztn */
-			if (hasC) 
-				bezt++;
-			else
-				break;
-			if (hasD)
-				beztn++;
-			else
-				beztn= NULL;
-		}
-		else if (hasC) {
-			/* fine to add */
-			newb++;
-			*newb= *bezt;
-			newCount++;
-			
-			if (hasC)
-				bezt++;
-			else
-				break;
-			if (hasD)
-				beztn++;
-			else
-				beztn= NULL;
-		}	
 		else {
-			/* no more */
-			break;
+			/* checks required are dependent on whether this is last keyframe or not */
+			if (beztn) {
+				/* does current have same value as previous and next? */
+				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
+					/* add new keyframe*/
+					newb++;
+					*newb = *bezt;
+					newCount++;
+				}
+				else if (IS_EQT(cur[1], next[1], thresh) == 0) {
+					/* add new keyframe */
+					newb++;
+					*newb = *bezt;
+					newCount++;
+				}
+			}
+			else {	
+				/* add if value doesn't equal that of previous */
+				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
+					/* add new keyframe */
+					newb++;
+					*newb = *bezt;
+					newCount++;
+				}
+			}
 		}
 	}
 
-	/* make better sized list */
-	newbz= MEM_callocN(sizeof(BezTriple)*newCount, "BezTriples");
-	for (i=0; i<newCount; i++) {
-		BezTriple *atar, *bsrc;
-		atar= (newbz + i);
-		bsrc= (newbs + i);
-		*atar= *bsrc;
+	/* we only need to free stuff if the number of verts changed */
+	if (totCount != newCount) {
+		BezTriple *newbz;
+		
+		/* make better sized list */	
+		newbz= MEM_callocN(sizeof(BezTriple)*newCount, "BezTriples");
+		memcpy(newbz, newbs, sizeof(BezTriple)*newCount);
+		
+		/* free and assign new */
+		MEM_freeN(icu->bezt);
+		MEM_freeN(newbs);
+		icu->bezt= newbz;
+		icu->totvert= newCount;
 	}
-	
-	/* free and assign new */
-	MEM_freeN(icu->bezt);
-	MEM_freeN(newbs);
-	icu->bezt= newbz;
-	icu->totvert= newCount;
+	else {
+		/* free memory we used */
+		MEM_freeN(newbs);
+	}
 	
 	/* fix up handles and make sure points are in order */
 	sort_time_ipocurve(icu);
