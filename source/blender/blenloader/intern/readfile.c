@@ -4247,10 +4247,10 @@ static void customdata_version_242(Mesh *me)
 	if (!me->fdata.totlayer) {
 		CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, me->mface, me->totface);
 
-		if (me->mcol) {
-			me->mcol= CustomData_add_layer(&me->fdata, CD_MCOL, CD_ASSIGN, me->mcol, me->totface);
-		}
-		else if (me->tface) {
+		if (me->tface) {
+			if (me->mcol)
+				MEM_freeN(me->mcol);
+
 			me->mcol= CustomData_add_layer(&me->fdata, CD_MCOL, CD_CALLOC, NULL, me->totface);
 			me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, me->totface);
 
@@ -4272,6 +4272,9 @@ static void customdata_version_242(Mesh *me)
 
 			MEM_freeN(me->tface);
 			me->tface= NULL;
+		}
+		else if (me->mcol) {
+			me->mcol= CustomData_add_layer(&me->fdata, CD_MCOL, CD_ASSIGN, me->mcol, me->totface);
 		}
 	}
 
