@@ -1240,8 +1240,10 @@ static void texture_panel_image_map(Tex *tex)
 
 	if(tex->extend==TEX_REPEAT) {
 		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM, B_TEXPRV, "Xrepeat:",	10,60,150,19, &tex->xrepeat, 1.0, 512.0, 0, 0, "Sets a repetition multiplier in the X direction");
-		uiDefButS(block, NUM, B_TEXPRV, "Yrepeat:",	160,60,150,19, &tex->yrepeat, 1.0, 512.0, 0, 0, "Sets a repetition multiplier in the Y direction");
+		uiDefButBitS(block, TOG, TEX_REPEAT_XMIR, B_TEXPRV, "Mirr",	10,60,30,19, &tex->flag, 0.0, 0.0, 0, 0, "Mirrors X direction repeat");
+		uiDefButS(block, NUM, B_TEXPRV, "Xrepeat:",	40,60,120,19, &tex->xrepeat, 1.0, 512.0, 0, 0, "Sets a repetition multiplier in the X direction");
+		uiDefButBitS(block, TOG, TEX_REPEAT_YMIR, B_TEXPRV, "Mirr",	160,60,30,19, &tex->flag, 0.0, 0.0, 0, 0, "Mirrors Y direction repeat");
+		uiDefButS(block, NUM, B_TEXPRV, "Yrepeat:",	190,60,120,19, &tex->yrepeat, 1.0, 512.0, 0, 0, "Sets a repetition multiplier in the Y direction");
 	}
 	else if(tex->extend==TEX_CHECKER) {
 		uiBlockBeginAlign(block);

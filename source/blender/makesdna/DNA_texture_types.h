@@ -262,6 +262,8 @@ typedef struct TexMapping {
 #define TEX_CHECKER_EVEN	16
 #define TEX_PRV_ALPHA		32
 #define TEX_PRV_NOR			64
+#define TEX_REPEAT_XMIR		128
+#define TEX_REPEAT_YMIR		256
 
 /* extend (starts with 1 because of backward comp.) */
 #define TEX_EXTEND		1

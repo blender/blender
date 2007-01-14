@@ -493,7 +493,7 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 {
 	/* Sample box, performs clip. minx etc are in range 0.0 - 1.0 .
      * Enlarge with antialiased edges of pixels.
-     * If global variable 'imaprepeat' has been set, the
+     * If variable 'imaprepeat' has been set, the
      *  clipped-away parts are sampled as well.
      */
 	/* note: actually minx etc isnt in the proper range... this due to filter size and offset vectors for bump */
@@ -711,6 +711,13 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *dxt, f
 	imaprepeat= (tex->extend==TEX_REPEAT);
 	imapextend= (tex->extend==TEX_EXTEND);
 
+	if(tex->extend == TEX_REPEAT) {
+		if(tex->flag & (TEX_REPEAT_XMIR|TEX_REPEAT_YMIR)) {
+			imaprepeat= 0;
+			imapextend= 1;
+		}
+	}
+
 	if(tex->extend == TEX_CHECKER) {
 		int xs, ys, xs1, ys1, xs2, ys2, boundary;
 		
@@ -779,7 +786,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *dxt, f
 		}
 	}
 	else {
-		if(tex->extend==TEX_EXTEND) {
+		if(imapextend) {
 			if(fx>1.0) fx = 1.0;
 			else if(fx<0.0) fx= 0.0;
 		}
@@ -788,7 +795,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *dxt, f
 			else if(fx<0.0) fx+= 1-(int)(fx);
 		}
 		
-		if(tex->extend==TEX_EXTEND) {
+		if(imapextend) {
 			if(fy>1.0) fy = 1.0;
 			else if(fy<0.0) fy= 0.0;
 		}

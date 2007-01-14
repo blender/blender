@@ -915,14 +915,28 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 		/* repeat */
 		if(tex->extend==TEX_REPEAT) {
 			if(tex->xrepeat>1) {
-				fx *= tex->xrepeat;
+				float origf= fx *= tex->xrepeat;
+				
 				if(fx>1.0) fx -= (int)(fx);
 				else if(fx<0.0) fx+= 1-(int)(fx);
+				
+				if(tex->flag & TEX_REPEAT_XMIR) {
+					int orig= (int)floor(origf);
+					if(orig & 1) 
+						fx= 1.0-fx;
+				}
 			}
 			if(tex->yrepeat>1) {
-				fy *= tex->yrepeat;
+				float origf= fy *= tex->yrepeat;
+				
 				if(fy>1.0) fy -= (int)(fy);
 				else if(fy<0.0) fy+= 1-(int)(fy);
+				
+				if(tex->flag & TEX_REPEAT_YMIR) {
+					int orig= (int)floor(origf);
+					if(orig & 1) 
+						fy= 1.0-fy;
+				}
 			}
 		}
 		/* crop */
@@ -1024,21 +1038,39 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 		if(tex->extend==TEX_REPEAT) {
 			float max= 1.0f;
 			if(tex->xrepeat>1) {
+				float origf= fx *= tex->xrepeat;
+				
+				if(fx>1.0f) fx -= (int)(fx);
+				else if(fx<0.0f) fx+= 1-(int)(fx);
+				
+				if(tex->flag & TEX_REPEAT_XMIR) {
+					int orig= (int)floor(origf);
+					if(orig & 1) 
+						fx= 1.0f-fx;
+				}
+				
 				max= tex->xrepeat;
-				fx *= tex->xrepeat;
+				
 				dxt[0]*= tex->xrepeat;
 				dyt[0]*= tex->xrepeat;
-				if(fx>1.0) fx -= (int)(fx);
-				else if(fx<0.0) fx+= 1-(int)(fx);
 			}
 			if(tex->yrepeat>1) {
+				float origf= fy *= tex->yrepeat;
+				
+				if(fy>1.0f) fy -= (int)(fy);
+				else if(fy<0.0f) fy+= 1-(int)(fy);
+				
+				if(tex->flag & TEX_REPEAT_YMIR) {
+					int orig= (int)floor(origf);
+					if(orig & 1) 
+						fy= 1.0f-fy;
+				}
+				
 				if(max<tex->yrepeat)
 					max= tex->yrepeat;
-				fy *= tex->yrepeat;
+
 				dxt[1]*= tex->yrepeat;
 				dyt[1]*= tex->yrepeat;
-				if(fy>1.0) fy -= (int)(fy);
-				else if(fy<0.0) fy+= 1-(int)(fy);
 			}
 			if(max!=1.0f) {
 				dxt[2]*= max;
