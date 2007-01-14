@@ -2617,6 +2617,11 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		tface = dm->getFaceDataArray(dm, CD_MTFACE);
 		new_tfaces = 1;
 	}
+	else {
+		/* make sure we are not modifying the original layer */
+		CustomData_duplicate_referenced_layer(&dm->faceData, CD_MTFACE);
+		tface = dm->getFaceDataArray(dm, CD_MTFACE);
+	}
 
 	numVerts = dm->getNumVerts(dm);
 
