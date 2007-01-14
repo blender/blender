@@ -102,6 +102,7 @@ editmesh_mods.c, UI level access, no geometry changes
 
 #include "RE_render_ext.h"  /* externtex */
 
+#include "multires.h"
 #include "mydevice.h"
 #include "blendef.h"
 
