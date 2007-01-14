@@ -1819,14 +1819,28 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 		{
 			bFollowPathConstraint *data;
 			float obmat[4][4];
+			float size[3], obsize[3];
 
 			data=(bFollowPathConstraint*)constraint->data;			
 
 			if (data->tar) {
-				// weird, this is needed? doesnt work for workob (ton)
-				object_to_mat4(ob, obmat);
-
-				Mat4MulSerie(ob->obmat, targetmat, obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+				/* get Object local transform (loc/rot/size) to determine transformation from path */
+ 				object_to_mat4(ob, obmat);
+				
+				/* get scaling of object before applying constraint */
+				Mat4ToSize(ob->obmat, size);
+ 
+				/* apply targetmat - containing location on path, and rotation */
+ 				Mat4MulSerie(ob->obmat, targetmat, obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+				
+				/* un-apply scaling caused by path */
+				Mat4ToSize(ob->obmat, obsize);
+				if (obsize[0] != 0)
+	 				VecMulf(ob->obmat[0], size[0] / obsize[0]);
+	 			if (obsize[1] != 0)
+	 				VecMulf(ob->obmat[1], size[1] / obsize[1]);
+	 			if (obsize[2] != 0)
+	 				VecMulf(ob->obmat[2], size[2] / obsize[2]);
 			}
 		}
 		break;
