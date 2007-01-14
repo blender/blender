@@ -4663,6 +4663,7 @@ static bNodeType cmp_node_color_spill={
 /* ******************* Chroma Key ********************************************************** */
 static bNodeSocketType cmp_node_chroma_in[]={
 	{SOCK_RGBA,1,"Image", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{SOCK_RGBA,1,"Key Color", 0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{-1,0,""}
 };
 
@@ -4674,69 +4675,83 @@ static bNodeSocketType cmp_node_chroma_out[]={
 
 static void do_rgba_to_ycca_normalized(bNode *node, float *out, float *in)
 {
+	/*normalize to the range -1.0 to 1.0) */
 	rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
-	out[0]=(out[0])/255;
-	out[1]=(out[1])/256;
-	out[2]=(out[2])/256;
+	out[0]=((out[0])-16)/255.0;
+	out[1]=((out[1])-128)/255.0;
+	out[2]=((out[2])-128)/255.0;
 	out[3]=in[3];
 }
 
 static void do_normalized_ycca_to_rgba(bNode *node, float *out, float *in)
 {
-	in[0]=in[0]*255;  
-	in[1]=in[1]*256;
-	in[2]=in[2]*256;
+	/*un-normalize the normalize from above */
+	in[0]=(in[0]*255.0)+16;
+	in[1]=(in[1]*255.0)+128;
+	in[2]=(in[2]*255.0)+128;
 	ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
 	out[3]=in[3];
 }
 
 static void do_chroma_key(bNode *node, float *out, float *in)
 {
-	/* Algorithm of my own design-Bob Holcomb */
-
 	NodeChroma *c;
 	float x, z, alpha;
+	float theta, beta, angle;
+	float kfg, newY, newCb, newCr;
 
 	c=node->storage;
-	switch(node->custom1)
-	{
-		case 1:  /*green*/
-		{
-			x=(atanf((c->t1*in[1])-(c->t1*c->t2))+1)/2;
-			z=(atanf((c->t3*in[2])-(c->t3*c->fsize))+1)/2;
-			break;
-		}
-		case 2:  /*blue*/
-		{	
-			x=(atanf((c->t1*in[1])-(c->t1*c->t2))+1)/2;
-			z=(atanf((c->t3*in[2])-(c->t3*c->fsize))+1)/2;
-			x=1-x;
-			break;
-		}
-		default:
-		{
-			x= z= 0.0f;
-			break;
-		}
-	}
 
-	/*clamp to zero so that negative values don' affect the other channels input */
-	if(x<0.0) x=0.0;
-	if(z<0.0) z=0.0;
+	/* Algorithm from book "Video Demistified" */
 
-	/*if chroma values added are less than strength then it is a key value */
-	if((x+z) < c->fstrength) {
-		alpha=(x+z);
-		alpha=in[0]+alpha; /*add in the luminence for detail */
-		if(alpha > c->falpha) alpha=0;  /* if below the threshold */
-		if(alpha < in[3]) { /* is it less than the previous alpha */
+	/* find theta, the angle that the color space should be rotated based on key*/
+	theta=atan2f(c->key[2],c->key[1]);
+
+	/*rotate the cb and cr into x/z space */
+	x=in[1]*cosf(theta)+in[2]*sinf(theta);
+	z=in[2]*cosf(theta)-in[1]*sinf(theta);
+
+	/*if within the acceptance angle */
+	angle=c->t1*M_PI/180.0; /* convert to radians */
+	
+	/* if kfg is <0 then the pixel is outside of the key color */
+	kfg=x-(fabsf(z)/tanf(angle/2.0));
+
+	if(kfg>0.0) {  /* found a pixel that is within key color */
+
+		newY=in[0]-(1-c->t3)*kfg;
+		newCb=in[1]-kfg*cosf(theta);
+		newCr=in[2]-kfg*sinf(theta);
+		alpha=(kfg+c->fsize)*(c->fstrength);
+
+		beta=atan2f(newCr,newCb);
+		beta=beta*180.0/M_PI; /* convert to degrees for compare*/
+
+		/* if beta is within the clippin angle */
+		if(fabsf(beta)<(c->t2/2.0)) {
+			newCb=0.0;
+			newCr=0.0;
+			alpha=0.0;
+		}
+
+		out[0]=newY;
+		out[1]=newCb;
+		out[2]=newCr;
+
+		/* don't make something that was more transparent less transparent */
+		if (alpha<in[3]) {
 			out[3]=alpha;
 		}
 		else {
 			out[3]=in[3];
 		}
 	}
-	
+	else { /*pixel is outside key color */
+		out[0]=in[0];
+		out[1]=in[1];
+		out[2]=in[2];
+		out[3]=in[3]; /* make pixel just as transparent as it was before */
+	}
 }
 
 static void node_composit_exec_chroma(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
@@ -4758,6 +4773,8 @@ static void node_composit_exec_chroma(void *data, bNode *node, bNodeStack **in, 
 	
 	/*convert rgbbuf to normalized chroma space*/
 	composit1_pixel_processor(node, chromabuf, inbuf, in[0]->vec, do_rgba_to_ycca_normalized, CB_RGBA);
+	/*convert key to normalized chroma color space */
+	do_rgba_to_ycca_normalized(node, c->key, in[1]->vec);
 	
 	/*per pixel chroma key*/
 	composit1_pixel_processor(node, chromabuf, chromabuf, in[0]->vec, do_chroma_key, CB_RGBA);

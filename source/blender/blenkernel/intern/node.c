@@ -868,11 +868,11 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 		else if(type==CMP_NODE_COLOR_SPILL){
 			NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
 			node->storage=c;
-			c->t1= 0.0f;
-			c->t2= 0.0f;
+			c->t1= 30.0f;
+			c->t2= 10.0f;
 			c->t3= 0.0f;
 			c->fsize= 0.0f;
-			c->fstrength= 0.0f;
+			c->fstrength= 1.0f;
 			node->custom1= 1; /* red channel */
 		}
 		else if(type==CMP_NODE_CHROMA){
@@ -883,7 +883,6 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 			c->t3= 0.0f;
 			c->fsize= 0.0f;
 			c->fstrength= 0.0f;
-			node->custom1= 1; /* green */
 		}
       else if(type==CMP_NODE_CHANNEL_MATTE){
          NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
