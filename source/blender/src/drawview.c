@@ -2830,7 +2830,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				             pd->origloc[0]+200*cos(ang), pd->origloc[1]+200*sin(ang));
 				sdrawXORline(pd->origloc[0], pd->origloc[1], mouse[0], mouse[1]);
 			}
-		} else {
+		}
+		else if(sculpt_data()->draw_flag & SCULPTDRAW_BRUSH) {
 			short c[2];
 			getmouseco_areawin(c);
 			fdrawXORcirc((float)c[0], (float)c[1], sculptmode_brush()->size);

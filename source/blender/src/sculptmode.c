@@ -205,7 +205,7 @@ void sculptmode_init(Scene *sce)
 	sd->averaging= 1;
 	sd->texsep= 0;
 	sd->texrept= SCULPTREPT_DRAG;
-	sd->draw_mode= 0;
+	sd->draw_flag= SCULPTDRAW_BRUSH;
 	sd->tablet_size=3;
 	sd->tablet_strength=10;
 }
@@ -497,7 +497,7 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 
 	ss->undo->cur= newcur;
 	
-	if(!sculpt_data()->draw_mode || sculpt_modifiers_active(ob))
+	if(!(sculpt_data()->draw_flag & SCULPTDRAW_FAST) || sculpt_modifiers_active(ob))
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
 	if(G.vd->depths) G.vd->depths->damaged= 1;
@@ -1605,20 +1605,22 @@ void sculptmode_propset_init(PropsetMode mode)
 
 void sculpt_paint_brush(char clear)
 {
-	static short mvalo[2];
-	short mval[2];
-	const short rad= sculptmode_brush()->size;
+	if(sculpt_data()->draw_flag & SCULPTDRAW_BRUSH) {
+		static short mvalo[2];
+		short mval[2];
+		const short rad= sculptmode_brush()->size;
 
-	getmouseco_areawin(mval);
-	
-	persp(PERSP_WIN);
-	if(clear)
-		fdrawXORcirc(mval[0], mval[1], rad);
-	else
-		draw_sel_circle(mval, mvalo, rad, rad, 0);
-	
-	mvalo[0]= mval[0];
-	mvalo[1]= mval[1];
+		getmouseco_areawin(mval);
+		
+		persp(PERSP_WIN);
+		if(clear)
+			fdrawXORcirc(mval[0], mval[1], rad);
+		else
+			draw_sel_circle(mval, mvalo, rad, rad, 0);
+		
+		mvalo[0]= mval[0];
+		mvalo[1]= mval[1];
+	}
 }
 
 void sculptmode_propset(unsigned short event)
@@ -1907,7 +1909,7 @@ void sculpt()
 	e.layer_store= NULL;
 
 	/* Capture original copy */
-	if(sd->draw_mode)
+	if(sd->draw_flag & SCULPTDRAW_FAST)
 		glAccum(GL_LOAD, 1);
 
 	while (get_mbut() & mousebut) {
@@ -1954,7 +1956,7 @@ void sculpt()
 			if(modifier_calculations || ob_get_keyblock(ob))
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
-			if(modifier_calculations || sd->brush_type == GRAB_BRUSH || !sd->draw_mode) {
+			if(modifier_calculations || sd->brush_type == GRAB_BRUSH || !(sd->draw_flag & SCULPTDRAW_FAST)) {
 				calc_damaged_verts(&damaged_verts,e.grabdata);
 				scrarea_do_windraw(curarea);
 				screen_swapbuffers();
@@ -1997,9 +1999,11 @@ void sculpt()
 				glEnable(GL_SCISSOR_TEST);
 				
 				/* Draw cursor */
-				persp(PERSP_WIN);
-				glDisable(GL_DEPTH_TEST);
-				fdrawXORcirc((float)mouse[0],(float)mouse[1],sculptmode_brush()->size);
+				if(sculpt_data()->draw_flag & SCULPTDRAW_BRUSH) {
+					persp(PERSP_WIN);
+					glDisable(GL_DEPTH_TEST);
+					fdrawXORcirc((float)mouse[0],(float)mouse[1],sculptmode_brush()->size);
+				}
 				
 				myswapbuffers();
 			}

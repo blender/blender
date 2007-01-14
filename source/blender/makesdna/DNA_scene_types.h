@@ -381,7 +381,7 @@ typedef struct SculptData
 
 	char averaging;
 	
-	char draw_mode;
+	char draw_flag;
 	
 	/* Control tablet input */
 	char tablet_size, tablet_strength;
@@ -390,10 +390,6 @@ typedef struct SculptData
 	   settings are always used for all brush types */
 	char symm;
 } SculptData;
-
-#define SCULPTREPT_DRAG 1
-#define SCULPTREPT_TILE 2
-#define SCULPTREPT_3D   3
 
 typedef struct Scene {
 	ID id;
@@ -598,13 +594,20 @@ typedef struct Scene {
 #define FFMPEG_MULTIPLEX_AUDIO  1
 #define FFMPEG_AUTOSPLIT_OUTPUT 2
 
-/* SculptData brushtype */
+/* SculptData.brushtype */
 #define DRAW_BRUSH 1
 #define SMOOTH_BRUSH 2
 #define PINCH_BRUSH 3
 #define INFLATE_BRUSH 4
 #define GRAB_BRUSH 5
 #define LAYER_BRUSH 6
+/* SculptData.texrept */
+#define SCULPTREPT_DRAG 1
+#define SCULPTREPT_TILE 2
+#define SCULPTREPT_3D   3
+/* SculptData.draw_flag */
+#define SCULPTDRAW_FAST  1
+#define SCULPTDRAW_BRUSH 2
 
 #define SYMM_X 1
 #define SYMM_Y 2
