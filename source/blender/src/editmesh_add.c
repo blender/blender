@@ -601,8 +601,8 @@ void addfaces_from_edgenet()
 	for(eve1= em->verts.first; eve1; eve1= eve1->next) {
 		for(eve2= em->verts.first; (eve1->f & 1) && eve2; eve2= eve2->next) {
 			if(findedgelist(eve1,eve2)) {
-				for(eve3= em->verts.first; eve3; eve3= eve3->next) {
-					if((eve2!=eve3 && findedgelist(eve1,eve3))) {
+				for(eve3= em->verts.first; (eve2->f & 1) && eve3; eve3= eve3->next) {
+					if((eve2!=eve3 && (eve3->f & 1) && findedgelist(eve1,eve3))) {
 						EditEdge *sh_edge= NULL;
 						EditVert *sh_vert= NULL;
 						
@@ -614,7 +614,7 @@ void addfaces_from_edgenet()
 						}
 						else { /* Check for a shared vertex */
 							for(eve4= em->verts.first; eve4; eve4= eve4->next) {
-								if(eve4!=eve1 && eve4!=eve2 && eve4!=eve3 &&
+								if(eve4!=eve1 && eve4!=eve2 && eve4!=eve3 && (eve4->f & 1) &&
 								   !findedgelist(eve1,eve4) && findedgelist(eve2,eve4) &&
 								   findedgelist(eve3,eve4)) {
 									sh_vert= eve4;
