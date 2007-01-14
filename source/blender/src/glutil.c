@@ -238,7 +238,6 @@ static int get_cached_work_texture(int *w_r, int *h_r)
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 		tbuf= MEM_callocN(tex_w*tex_h*4, "tbuf");
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tbuf);
@@ -264,6 +263,7 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *
 	int nsubparts_x= (img_w+(tex_w-1))/tex_w;
 	int nsubparts_y= (img_h+(tex_h-1))/tex_h;
 
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, img_w);
 	glBindTexture(GL_TEXTURE_2D, texid);
 
@@ -300,6 +300,7 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *
 
 	glBindTexture(GL_TEXTURE_2D, ltexid);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, lrowlength);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 
 #define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
