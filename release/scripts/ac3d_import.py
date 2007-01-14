@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus:
 Name: 'AC3D (.ac)...'
-Blender: 236
+Blender: 242
 Group: 'Import'
 Tip: 'Import an AC3D (.ac) file.'
 """
@@ -10,7 +10,7 @@ Tip: 'Import an AC3D (.ac) file.'
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "elysiun", "AC3D's homepage, http://www.ac3d.org",
 	"PLib 3d gaming lib, http://plib.sf.net")
-__version__ = "2.36a 2005-12-04"
+__version__ = "2.43 2007-01-14"
 
 __bpydoc__ = """\
 This script imports AC3D models into Blender.
@@ -29,8 +29,6 @@ Known issues:<br>
     None.
 
 Config Options:<br>
-    - group (toggle): if "on", grouped objects in the .ac file are parented to
-Empties.
     - textures dir (string): if non blank, when imported texture paths are
 wrong in the .ac file, Blender will also look for them at this dir.
 
@@ -43,13 +41,13 @@ users can configure (see config options above).
 # $Id$
 #
 # --------------------------------------------------------------------------
-# AC3DImport version 2.36a Dec 04, 2005
-# Program versions: Blender 2.36+ and AC3Db files (means version 0xb)
-# changed: fixed a bug: error on 1 vertex "closed" polylines
+# AC3DImport version 2.43 Jan 04, 2007
+# Program versions: Blender 2.43 and AC3Db files (means version 0xb)
+# changed: updated for new Blender version, Mesh module
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
-# Copyright (C) 2005: Willian P. Germano, wgermano _at_ ig.com.br
+# Copyright (C) 2004-2007: Willian P. Germano, wgermano _at_ ig.com.br
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -74,33 +72,30 @@ users can configure (see config options above).
 #  fixing. Avoiding or triangulating concave n-gons in AC3D is a simple way to
 #  avoid problems.
 
+from math import radians
+
 import Blender
-from Blender import Registry
+from Blender import Scene, Object, Mesh, Lamp, Registry, sys as bsys, Window, Image, Material
 from Blender.sys import dirsep
+from Blender.Mathutils import Vector, Matrix, Euler
 
 # Default folder for AC3D textures, to override wrong paths, change to your
 # liking or leave as "":
 TEXTURES_DIR = ""
 
-# Set 'GROUP' to True to make Blender group imported objects using Empties,
-# to reproduce the object hierarchy in the .ac file
-GROUP = False
-
 tooltips = {
-	'TEXTURES_DIR': 'additional dir to look for missing textures',
-	'GROUP': 'mimick grouping information by parenting grouped meshes to empties'
+	'TEXTURES_DIR': 'additional dir to look for missing textures'
 }
 
 def update_registry():
-	global GROUP, TEXTURES_DIR
-	rd = dict([('GROUP', GROUP), ('TEXTURES_DIR', TEXTURES_DIR)])
+	global TEXTURES_DIR
+	rd = dict([('TEXTURES_DIR', TEXTURES_DIR)])
 	Registry.SetKey('ac3d_import', rd, True)
 
 rd = Registry.GetKey('ac3d_import', True)
 
 if rd:
 	TEXTURES_DIR = rd['TEXTURES_DIR']
-	GROUP = rd['GROUP']
 else: update_registry()
 
 if TEXTURES_DIR:
@@ -119,11 +114,31 @@ if rd:
 	
 errmsg = ""
 
+# Matrix to align ac3d's coordinate system with Blender's one,
+# it's a -90 degrees rotation around the x axis:
+AC_TO_BLEND_MATRIX = Matrix([1, 0, 0], [0, 0, 1], [0, -1, 0])
+
+AC_WORLD = 0
+AC_GROUP = 1
+AC_POLY = 2
+AC_LIGHT = 3
+AC_OB_TYPES = {
+	'world': AC_WORLD,
+	'group': AC_GROUP,
+	'poly':  AC_POLY,
+	'light':  AC_LIGHT
+	}
 
 def inform(msg):
 	global VERBOSE
 	if VERBOSE: print msg
 
+def euler_in_radians(eul):
+	"Used while there's a bug in the BPY API"
+	eul.x = radians(eul.x)
+	eul.y = radians(eul.y)
+	eul.z = radians(eul.z)
+	return eul
 
 class Obj:
 	
@@ -135,13 +150,19 @@ class Obj:
 		self.tex = ''
 		self.texrep = [1,1]
 		self.texoff = None
-		self.loc = [0, 0, 0]
+		self.loc = []
 		self.rot = []
+		self.size = []
 		self.crease = 30
 		self.vlist = []
-		self.flist = []
+		self.flist_cfg = []
+		self.flist_v = []
+		self.flist_uv = []
+		self.elist = []
 		self.matlist = []
 		self.kids = 0
+
+		self.bl_obj = None # the actual Blender object created from this data
 
 class AC3DImport:
 
@@ -149,9 +170,11 @@ class AC3DImport:
 
 		global errmsg
 
+		self.scene = Scene.GetCurrent()
+
 		self.i = 0
 		errmsg = ''
-		self.importdir = Blender.sys.dirname(filename)
+		self.importdir = bsys.dirname(filename)
 		try:
 			file = open(filename, 'r')
 		except IOError, (errno, strerror):
@@ -187,8 +210,7 @@ class AC3DImport:
 
 		self.objlist = []
 		self.mlist = []
-		self.dads = []
-		self.kids = []
+		self.kidsnumlist = []
 		self.dad = None
 
 		self.lines = file.readlines()
@@ -199,12 +221,12 @@ class AC3DImport:
 		self.testAC3DImport()
 				
 	def parse_obj(self, value):
-		if self.kids:
-			while not self.kids[-1]:
-				self.kids.pop()
+		if self.kidsnumlist:
+			while not self.kidsnumlist[-1]:
+				self.kidsnumlist.pop()
 				self.dad = self.dad.dad
-			self.kids[-1] -= 1
-		new = Obj(value)
+			self.kidsnumlist[-1] -= 1
+		new = Obj(AC_OB_TYPES[value])
 		new.dad = self.dad
 		new.name = value
 		self.objlist.append(new)
@@ -212,7 +234,7 @@ class AC3DImport:
 	def parse_kids(self, value):
 		kids = int(value)
 		if kids:
-			self.kids.append(kids)
+			self.kidsnumlist.append(kids)
 			self.dad = self.objlist[-1]
 		self.objlist[-1].kids = kids
 
@@ -269,23 +291,24 @@ class AC3DImport:
 
 	def parse_rot(self, trash):
 		i = self.i - 1
+		ob = self.objlist[-1]
 		rot = self.lines[i].split(' ', 1)[1]
 		rot = map(float, rot.split())
-		self.objlist[-1].rot = rot
+		matrix = Matrix(rot[:3], rot[3:6], rot[6:])
+		ob.rot = matrix
+		size = matrix.scalePart() # vector
+		ob.size = size
 
 	def parse_loc(self, trash):
 		i = self.i - 1
 		loc = self.lines[i].split(' ', 1)[1]
 		loc = map(float, loc.split())
-		self.objlist[-1].loc = loc
+		self.objlist[-1].loc = Vector(loc)
 
 	def parse_crease(self, value):
 		# AC3D: range is [0.0, 180.0]; Blender: [1, 80]
-		try:
-			value = int(value)
-		except ValueError:
-			value = int(float(value)) # duh
-		self.objlist[-1].crease = value
+		value = float(value)
+		self.objlist[-1].crease = int(value)
 
 	def parse_vert(self, value):
 		i = self.i
@@ -303,28 +326,6 @@ class AC3DImport:
 
 		self.i = i
 
-		rot = obj.rot
-		if rot:
-			nv = len(vlist)
-			for j in range(nv):
-				v = vlist[j]
-				t = [0,0,0]
-				t[0] = rot[0]*v[0] + rot[3]*v[1] + rot[6]*v[2]
-				t[1] = rot[1]*v[0] + rot[4]*v[1] + rot[7]*v[2]
-				t[2] = rot[2]*v[0] + rot[5]*v[1] + rot[8]*v[2]
-				vlist[j] = t
-
-		loc = obj.loc
-		dad = obj.dad
-		while dad:
-			for j in [0, 1, 2]:
-				loc[j] += dad.loc[j]
-			dad = dad.dad
-
-		for v in vlist:
-			for j in [0, 1, 2]:
-				v[j] += loc[j]
-
 	def parse_surf(self, value):
 		i = self.i
 		is_smooth = 0
@@ -333,6 +334,7 @@ class AC3DImport:
 		obj = self.objlist[-1]
 		matlist = obj.matlist
 		numsurf = int(value)
+		NUMSURF = numsurf
 
 		while numsurf:
 			flags = lines[i].split()
@@ -349,45 +351,51 @@ class AC3DImport:
 			i += 3
 			face = []
 			faces = []
+			edges = []
 			fuv = []
+			fuvs = []
 			rfs = refs
 
 			while rfs:
 				line = lines[i].split()
 				v = int(line[0])
 				uv = [float(line[1]), float(line[2])]
-				face.append([v, uv])
+				face.append(v)
+				fuv.append(Vector(uv))
 				rfs -= 1
 				i += 1
 				
-			if flaglow:
+			if flaglow: # it's a line or closed line, not a polygon
 				while len(face) >= 2:
 					cut = face[:2]
-					faces.append(cut)
+					edges.append(cut)
 					face = face[1:]
 
-				if flaglow == 1 and faces:
-					face = [faces[-1][-1], faces[0][0]]
-					faces.append(face)
+				if flaglow == 1 and edges:
+					face = [edges[-1][-1], edges[0][0]]
+					edges.append(face)
 
 			else:
 				while len(face) > 4:
 					cut = face[:4]
+					cutuv = fuv[:4]
 					face = face[3:]
+					fuv = fuv[3:]
 					face.insert(0, cut[0])
-					faces.append(cut)	 
+					fuv.insert(0, cutuv[0])
+					faces.append(cut)
+					fuvs.append(cutuv)
 
 				faces.append(face)
+				fuvs.append(fuv)
 
-			for f in faces:
-				f.append(mat)
-				f.append(is_smooth)
-				f.append(twoside)
-				self.objlist[-1].flist.append(f)
+			obj.flist_cfg.extend([[mat, is_smooth, twoside]] * len(faces))
+			obj.flist_v.extend(faces)
+			obj.flist_uv.extend(fuvs)
+			obj.elist.extend(edges) # loose edges
 
 			numsurf -= 1	  
 
-							
 		self.i = i
 
 	def parse_file(self):
@@ -408,14 +416,86 @@ class AC3DImport:
 				i = self.i
 			line = lines[i].split()
 
+	# for each group of meshes we try to find one that can be used as
+	# parent of the group in Blender.
+	# If not found, we can use an Empty as parent.
+	def found_parent(self, groupname, olist):
+		l = [o for o in olist if o.type == AC_POLY \
+				and not o.kids and not o.rot and not o.loc]
+		if l:
+			if len(l) > 1:
+				for o in l:
+					if o.name == groupname:
+						return o
+			return l[0]
+		return None
+
+	def build_hierarchy(self):
+		blmatrix = AC_TO_BLEND_MATRIX
+
+		olist = self.objlist[1:]
+		olist.reverse()
+
+		newlist = []
+
+		for o in olist:
+			kids = o.kids
+			if kids:
+				children = newlist[-kids:]
+				newlist = newlist[:-kids]
+				if o.type == AC_GROUP:
+					parent = self.found_parent(o.name, children)
+					if parent:
+						children.remove(parent)
+						o.bl_obj = parent.bl_obj
+					else: # not found, use an empty
+						empty = Object.New('Empty', o.name)
+						self.scene.link(empty)
+						empty.select(True)
+						o.bl_obj = empty
+
+				bl_children = [c.bl_obj for c in children]
+				o.bl_obj.makeParent(bl_children, 0, 1)
+				for child in children:
+					if child.loc:
+						child.bl_obj.setLocation(child.loc)
+					if child.rot:
+						eul = euler_in_radians(child.rot.toEuler())
+						child.bl_obj.setEuler(eul)
+					if child.size:
+						child.bl_obj.size = child.size
+
+			newlist.append(o)
+
+		for o in newlist: # newlist now only has objs w/o parents
+			blob = o.bl_obj
+			if o.loc:
+				blob.setLocation(o.loc * blmatrix)
+			if o.size:
+				o.bl_obj.size = o.size
+			if not o.rot:
+				blob.setEuler([1.5707963267948966, 0, 0])
+			else:
+				matrix = o.rot * blmatrix
+				eul = euler_in_radians(matrix.toEuler())
+				blob.setEuler(eul)
+
 	def testAC3DImport(self):
-		global GROUP
-		scene = Blender.Scene.GetCurrent()
+
+		FACE_TWOSIDE = Mesh.FaceModes['TWOSIDE']
+		FACE_TEX = Mesh.FaceModes['TEX']
+		MESH_AUTOSMOOTH = Mesh.Modes['AUTOSMOOTH']
+
+		scene = self.scene
+
+		bl_images = {} # loaded texture images
+
+		objlist = self.objlist[1:] # skip 'world'
 
 		bmat = []
 		for mat in self.mlist:
 			name = mat[0]
-			m = Blender.Material.New(name)
+			m = Material.New(name)
 			m.rgbCol = (mat[1][0], mat[1][1], mat[1][2])
 			m.amb = mat[2]
 			m.emit = mat[3]
@@ -424,102 +504,133 @@ class AC3DImport:
 			m.alpha = mat[6]
 			bmat.append(m)
 
-		for obj in self.objlist:
-			if obj.type == 'world':
+		obj_idx = 0 # index of current obj in loop
+		for obj in objlist:
+			if obj.type == AC_GROUP:
 				continue
-			elif obj.type == 'group':
-				if not GROUP: continue
-				empty = Blender.Object.New('Empty')
-				empty.name = obj.name
-				scene.link(empty)
-				if self.dads:
-					dadobj = Blender.Object.get(self.dads.pop())
-					dadobj.makeParent([empty])
-				while obj.kids:
-					self.dads.append(empty.name)
-					obj.kids -= 1
+			elif obj.type == AC_LIGHT:
+				light = Lamp.New('Lamp')
+				object = scene.objects.new(light, obj.name)
+				object.select(True)
+				obj.bl_obj = object
+				if obj.data:
+					light.name = obj.data
 				continue
-			mesh = Blender.NMesh.New()
+
+			# type AC_POLY:
+
+			# old .ac files used empty meshes as groups, convert to a real ac group
+			if not obj.vlist:
+				obj.type = AC_GROUP
+				continue
+
+			mesh = Mesh.New()
+			object = scene.objects.new(mesh, obj.name)
+			object.select(True)
+			obj.bl_obj = object
 			if obj.data: mesh.name = obj.data
-			mesh.setMaxSmoothAngle(obj.crease) # will clamp to [1, 80]
-			mesh.hasFaceUV(1)
+			mesh.degr = obj.crease # will auto clamp to [1, 80]
 
-			tex = None
-			if obj.tex != '':
-				try:
-					tex = Blender.Image.Load(obj.tex)
-					# Commented because it's unnecessary:
-					#tex.xrep = int(obj.texrep[0])
-					#tex.yrep = int(obj.texrep[1])
-				except:
-					basetexname = Blender.sys.basename(obj.tex)
-					try:
-						obj.tex = self.importdir + '/' + basetexname
-						tex = Blender.Image.Load(obj.tex)
-					except:
-						try:
-							obj.tex = TEXTURES_DIR + basetexname
-							tex = Blender.Image.Load(obj.tex)
-						except:
-							inform("Couldn't load texture: %s" % basetexname)
-
-			for v in obj.vlist:
-				bvert = Blender.NMesh.Vert(v[0],v[1],v[2])
-				mesh.verts.append(bvert)
+			mesh.verts.extend(obj.vlist)
 
 			objmat_indices = []
 			for mat in bmat:
 				if bmat.index(mat) in obj.matlist:
 					objmat_indices.append(bmat.index(mat))
-					mesh.materials.append(mat)
-			for f in obj.flist:
-				twoside = f[-1]
-				is_smooth = f[-2]
-				fmat = f[-3]
-				f=f[:-3]
-				bface = Blender.NMesh.Face()
+					mesh.materials += [mat]
+
+			for e in obj.elist:
+				mesh.edges.extend(e)
+
+			mesh.faces.extend(obj.flist_v)
+
+			# checking if the .ac file had duplicate faces (Blender ignores them):
+			if len(mesh.faces) != len(obj.flist_v):
+				# it has, ugh. Let's clean the uv list:
+				lenfl = len(obj.flist_v)
+				flist = obj.flist_v
+				uvlist = obj.flist_uv
+				cfglist = obj.flist_cfg
+				for f in flist:
+					f.sort()
+				for fi in range(lenfl - 1):
+					if flist[fi] in flist[fi+1:]:
+						uvlist.pop(fi)
+						cfglist.pop(fi)
+
+			if obj.flist_v: mesh.faceUV = True
+
+			img = None
+			tex = None
+			if obj.tex != '' and mesh.faceUV:
+				baseimgname = bsys.basename(obj.tex)
+				if obj.tex in bl_images.keys():
+					img = bl_images[obj.txt]
+					tex = bl_textures[img]
+				else:
+					try:
+						img = Image.Load(obj.tex)
+						# Commented because it's unnecessary:
+						#img.xrep = int(obj.texrep[0])
+						#img.yrep = int(obj.texrep[1])
+					except:
+						try:
+							obj.tex = self.importdir + '/' + baseimgname
+							img = Image.Load(obj.tex)
+						except:
+							try:
+								obj.tex = TEXTURES_DIR + baseimgname
+								img = Image.Load(obj.tex)
+							except:
+								inform("Couldn't load texture: %s" % baseimgname)
+					if img:
+						bl_images[obj.tex] = img
+
+			i = 0
+			for f in obj.flist_cfg:
+				fmat = f[0]
+				is_smooth = f[1]
+				twoside = f[2]
+				bface = mesh.faces[i]
 				bface.smooth = is_smooth
-				if twoside: bface.mode |= Blender.NMesh.FaceModes['TWOSIDE']
-				if tex:
-					bface.mode |= Blender.NMesh.FaceModes['TEX']
-					bface.image = tex
-				bface.materialIndex = objmat_indices.index(fmat)
+				if twoside: bface.mode |= FACE_TWOSIDE
+				if img:
+					bface.mode |= FACE_TEX
+					bface.image = img
+				bface.mat = objmat_indices.index(fmat)
+				fuv = obj.flist_uv[i]
 				if obj.texoff:
 					uoff = obj.texoff[0]
 					voff = obj.texoff[1]
 					urep = obj.texrep[0]
 					vrep = obj.texrep[1]
-					for vi in range(len(f)):
-						f[vi][1][0] *= urep
-						f[vi][1][1] *= vrep
-						f[vi][1][0] += uoff
-						f[vi][1][1] += voff
+					for uv in fuv:
+						uv[0] *= urep
+						uv[1] *= vrep
+						uv[0] += uoff
+						uv[1] += voff
 
-				for vi in range(len(f)):
-					bface.v.append(mesh.verts[f[vi][0]])
-					bface.uv.append((f[vi][1][0], f[vi][1][1]))
-				#mesh.faces.append(bface)
-				# quick hack, will switch from NMesh to Mesh later:
-				if len(bface.v) > 1: mesh.addFace(bface)
+				mesh.faces[i].uv = fuv
 
-			mesh.mode = 0
-			object = Blender.NMesh.PutRaw(mesh)
-			object.setName(obj.name)
-			object.setEuler([1.5707963,0,0]) # align ac3d w/ Blender
-			if self.dads:
-				dadobj = Blender.Object.get(self.dads.pop())
-				dadobj.makeParent([object])
+				i += 1
+
+			mesh.mode = MESH_AUTOSMOOTH
+
+			obj_idx += 1
+
+		self.build_hierarchy()
+		scene.update()
 
 # End of class AC3DImport
 
 def filesel_callback(filename):
 
-	inform("Trying to import AC3D model(s) from %s ..." % filename)
-	Blender.Window.WaitCursor(1)
-	starttime = Blender.sys.time()
+	inform("\nTrying to import AC3D model(s) from:\n%s ..." % filename)
+	Window.WaitCursor(1)
+	starttime = bsys.time()
 	test = AC3DImport(filename)
-	Blender.Window.WaitCursor(0)
-	endtime = Blender.sys.time() - starttime
-	inform('... done!  Data imported in %.3f seconds.\n' % endtime)
+	Window.WaitCursor(0)
+	endtime = bsys.time() - starttime
+	inform('Done! Data imported in %.3f seconds.\n' % endtime)
 
-Blender.Window.FileSelector(filesel_callback, "Import AC3D", "*.ac")
+Window.FileSelector(filesel_callback, "Import AC3D", "*.ac")

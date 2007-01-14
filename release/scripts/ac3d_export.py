@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus:
 Name: 'AC3D (.ac)...'
-Blender: 236
+Blender: 242
 Group: 'Export'
 Tip: 'Export selected meshes to AC3D (.ac) format'
 """
@@ -10,7 +10,7 @@ Tip: 'Export selected meshes to AC3D (.ac) format'
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "elysiun", "AC3D's homepage, http://www.ac3d.org",
 	"PLib 3d gaming lib, http://plib.sf.net")
-__version__ = "2.41a 2006-06-16"
+__version__ = "2.43 2007-01-14"
 
 __bpydoc__ = """\
 This script exports selected Blender meshes to AC3D's .ac file format.
@@ -37,6 +37,7 @@ Config Options:<br>
     toggle:<br>
     - AC3D 4 mode: unset it to export without the 'crease' tag that was
 introduced with AC3D 4.0 and with the old material handling;<br>
+    - global coords: transform all vertices of all meshes to global coordinates;<br>
     - skip data: set it if you don't want mesh names (ME:, not OB: field)
 to be exported as strings for AC's "data" tags (19 chars max);<br>
     - rgb mirror color can be exported as ambient and/or emissive if needed,
@@ -56,10 +57,13 @@ to export (read notes below about tokens, too);<br>
 toggle is "on".
 
 Notes:<br>
-    This version is considerably faster than previous ones for large meshes;<br>
+	This version updates:<br>
+    - modified meshes are correctly exported, no need to apply the modifiers in Blender;<br>
+    - correctly export each used material, be it assigned to the object or to its mesh data;<br>
+    - exporting lines (edges) is again supported;<br>
+    - there's a new option to choose between exporting meshes with transformed (global) coordinates or local ones;<br>
     Multiple textures per mesh are supported (mesh gets split);<br>
-    Parenting with meshes or empties as parents is converted to AC3D group
-information;<br>
+	Parents are exported as a group containing both the parent and its children;<br>
     Start mesh object names (OB: field) with "!" or "#" if you don't want them to be exported;<br>
     Start mesh object names (OB: field) with "=" or "$" to prevent them from being split (meshes with multiple textures or both textured and non textured faces are split unless this trick is used or the "no split" option is set.
 """
@@ -67,17 +71,20 @@ information;<br>
 # $Id$
 #
 # --------------------------------------------------------------------------
-# AC3DExport version 2.41
-# Program versions: Blender 2.36+ and AC3Db files (means version 0xb)
-# new: faster, supports multiple textures per object and parenting is
-# properly exported as group info, adapted to work with the Config Editor
+# AC3DExport version 2.43
+# Program versions: Blender 2.42+ and AC3Db files (means version 0xb)
+# new: updated for new Blender version and Mesh module; supports lines (edges) again;
+# option to export vertices transformed to global coordinates or not; now the modified
+# (by existing mesh modifiers) mesh is exported; materials are properly exported, no
+# matter if each of them is linked to the mesh or to the object.
 # --------------------------------------------------------------------------
 # Thanks: Steve Baker for discussions and inspiration; for testing, bug
-# reports, suggestions: David Megginson, Filippo di Natale, Franz Melchior
+# reports, suggestions, patches: David Megginson, Filippo di Natale,
+# Franz Melchior, Campbell Barton, Josh Babcock, Ralf Gerlich
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
-# Copyright (C) 2004: Willian P. Germano, wgermano _at_ ig.com.br
+# Copyright (C) 2004-2007: Willian P. Germano, wgermano _at_ ig.com.br
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -94,8 +101,8 @@ information;<br>
 # --------------------------------------------------------------------------
 
 import Blender
+from Blender import Object, Mesh, Material, Image, Mathutils, Registry
 from Blender import sys as bsys
-from Blender import Mathutils
 
 # Globals
 ERROR_MSG = '' # popup error msg
@@ -108,11 +115,18 @@ REPORT_DATA = {
 }
 TOKENS_DONT_EXPORT = ['!', '#']
 TOKENS_DONT_SPLIT  = ['=', '$']
-MATIDX_ERROR = False
+
+MATIDX_ERROR = 0
+
+# flags:
+LOOSE = Mesh.EdgeFlags['LOOSE']
+FACE_TWOSIDED = Mesh.FaceModes['TWOSIDE']
+MESH_TWOSIDED = Mesh.Modes['TWOSIDED']
 
 REG_KEY = 'ac3d_export'
 
 # config options:
+GLOBAL_COORDS = True
 SKIP_DATA = False
 MIRCOL_AS_AMB = False
 MIRCOL_AS_EMIS = False
@@ -126,6 +140,7 @@ EXPORT_DIR = ''
 PER_FACE_1_OR_2_SIDED = True
 
 tooltips = {
+	'GLOBAL_COORDS': "transform all vertices of all meshes to global coordinates",
 	'SKIP_DATA': "don't export mesh names as data fields",
 	'MIRCOL_AS_AMB': "export mirror color as ambient color",
 	'MIRCOL_AS_EMIS': "export mirror color as emissive color",
@@ -153,10 +168,11 @@ def update_RegistryInfo():
 	d['ONLY_SELECTED'] = ONLY_SELECTED
 	d['PER_FACE_1_OR_2_SIDED'] = PER_FACE_1_OR_2_SIDED
 	d['tooltips'] = tooltips
-	Blender.Registry.SetKey(REG_KEY, d, True)
+	d['GLOBAL_COORDS'] = GLOBAL_COORDS
+	Registry.SetKey(REG_KEY, d, True)
 
 # Looking for a saved key in Blender.Registry dict:
-rd = Blender.Registry.GetKey(REG_KEY, True)
+rd = Registry.GetKey(REG_KEY, True)
 
 if rd:
 	try:
@@ -171,6 +187,7 @@ if rd:
 		ONLY_SELECTED = rd['ONLY_SELECTED']
 		NO_SPLIT = rd['NO_SPLIT']
 		PER_FACE_1_OR_2_SIDED = rd['PER_FACE_1_OR_2_SIDED']
+		GLOBAL_COORDS = rd['GLOBAL_COORDS']
 	except KeyError: update_RegistryInfo()
 
 else:
@@ -180,7 +197,7 @@ VERBOSE = True
 CONFIRM_OVERWRITE = True
 
 # check General scripts config key for default behaviors
-rd = Blender.Registry.GetKey('General', True)
+rd = Registry.GetKey('General', True)
 if rd:
 	try:
 		VERBOSE = rd['verbose']
@@ -194,9 +211,10 @@ DEFAULT_MAT = \
 spec 0.5 0.5 0.5  shi 64  trans 0'
 
 # This transformation aligns Blender and AC3D coordinate systems:
-acmatrix = Mathutils.Matrix([1,0,0,0], [0,0,-1,0], [0,1,0,0], [0,0,0,1])
+BLEND_TO_AC3D_MATRIX = Mathutils.Matrix([1,0,0,0], [0,0,-1,0], [0,1,0,0], [0,0,0,1])
 
-def Round(f):
+def Round_s(f):
+	"Round to default precision and turn value to a string"
 	r = round(f,6) # precision set to 10e-06
 	if r == int(r):
 		return str(int(r))
@@ -206,10 +224,14 @@ def Round(f):
 def transform_verts(verts, m):
 	vecs = []
 	for v in verts:
-		vec = Mathutils.Vector([v[0],v[1],v[2], 1])
-		#vecs.append(Mathutils.VecMultMat(vec, m))
+		x, y, z = v.co
+		vec = Mathutils.Vector([x, y, z, 1])
 		vecs.append(vec*m)
 	return vecs
+
+def get_loose_edges(mesh):
+	loose = LOOSE
+	return [e for e in mesh.edges if e.flag & loose]
 
 # ---
 
@@ -242,29 +264,27 @@ class FooMesh:
 	def __init__(self, tex, faces, mesh):
 		self.name = mesh.name
 		self.mesh = mesh
-		self.faces = []
-		self.verts = verts = []
+		self.looseEdges = []
+		self.faceUV = mesh.faceUV
+		self.degr = mesh.degr
 		vidxs = [0]*len(mesh.verts)
-		faces2 = [0]*len(faces)
+		foofaces = []
 		for f in faces:
-			self.faces.append(self.FooFace(self, f))
+			foofaces.append(self.FooFace(self, f))
 			for v in f.v:
 				if v: vidxs[v.index] = 1
 		i = 0
+		fooverts = []
 		for v in mesh.verts:
 			if vidxs[v.index]:
-				verts.append(v)
+				fooverts.append(v)
 				vidxs[v.index] = i
 				i += 1
-		for f in self.faces:
+		for f in foofaces:
 			for v in f.v:
 				if v: v.index = vidxs[v.v.index]
-
-	def hasFaceUV(self):
-		return self.mesh.hasFaceUV()
-
-	def getMaxSmoothAngle(self):
-		return self.mesh.getMaxSmoothAngle()
+		self.faces = foofaces
+		self.verts = fooverts
 
 
 class AC3DExport: # the ac3d exporter part
@@ -272,15 +292,14 @@ class AC3DExport: # the ac3d exporter part
 	def __init__(self, scene_objects, filename):
 
 		global ARG, SKIP_DATA, ADD_DEFAULT_MAT, DEFAULT_MAT
-		global ERROR_MSG, MATIDX_ERROR
-
-		MATIDX_ERROR = 0
+		global ERROR_MSG
 
 		header = 'AC3Db'
 		self.buf = ''
 		self.mbuf = ''
 		self.mlist = []
 		world_kids = 0
+		parents_list = self.parents_list = []
 		kids_dict = self.kids_dict = {}
 		objs = []
 		exp_objs = self.exp_objs = []
@@ -299,36 +318,49 @@ class AC3DExport: # the ac3d exporter part
 		objs = \
 			[o for o in scene_objects if o.type in ['Mesh', 'Empty']]
 
+		# create a tree from parents to children objects
+
 		for obj in objs[:]:
 			parent = obj.parent
-			list = [obj]
+			lineage = [obj]
 
 			while parent:
+				parents_list.append(parent.name)
 				obj = parent
 				parent = parent.getParent()
-				list.insert(0, obj)
+				lineage.insert(0, obj)
 
-			dict = tree
-			for i in xrange(len(list)):
-				lname = list[i].getType()[:2] + list[i].name
-				if lname not in dict.keys():
-					dict[lname] = {}
-				dict = dict[lname]
+			d = tree
+			for i in xrange(len(lineage)):
+				lname = lineage[i].getType()[:2] + lineage[i].name
+				if lname not in d.keys():
+					d[lname] = {}
+				d = d[lname]
 
+		# traverse the tree to get an ordered list of names of objects to export
 		self.traverse_dict(tree)
 
 		world_kids = len(tree.keys())
 
-		objlist = [Blender.Object.Get(name) for name in exp_objs]
+		# get list of objects to export, start writing the .ac file
+
+		objlist = [Object.Get(name) for name in exp_objs]
 
 		meshlist = [o for o in objlist if o.type == 'Mesh']
 
-		self.MATERIALS(meshlist)
+		# create a temporary mesh to hold actual (modified) mesh data
+		TMP_mesh = Mesh.New('tmp_for_ac_export')
+
+		# write materials
+
+		self.MATERIALS(meshlist, TMP_mesh)
 		if not self.mbuf or ADD_DEFAULT_MAT:
-			self.mbuf = DEFAULT_MAT + '\n' + self.mbuf
+			self.mbuf = "%s\n%s" % (DEFAULT_MAT, self.mbuf)
 		file.write(self.mbuf)
 
 		file.write('OBJECT world\nkids %s\n' % world_kids)
+
+		# write the objects
 
 		for obj in objlist:
 			self.obj = obj
@@ -337,21 +369,33 @@ class AC3DExport: # the ac3d exporter part
 			objname = obj.name
 			kidsnum = kids_dict[objname]
 
+			# A parent plus its children are exported as a group.
+			# If the parent is a mesh, its rot and loc are exported as the
+			# group rot and loc and the mesh (w/o rot and loc) is added to the group.
 			if kidsnum:
 				self.OBJECT('group')
-				parent_is_mesh = 0
+				self.name(objname)
 				if objtype == 'Mesh':
 					kidsnum += 1
-					parent_is_mesh = 1
-				self.name(objname)
+				if not GLOBAL_COORDS:
+					localmatrix = obj.getMatrix('localspace')
+					if not obj.getParent():
+						localmatrix *= BLEND_TO_AC3D_MATRIX
+					self.rot(localmatrix.rotationPart()) 
+					self.loc(localmatrix.translationPart())
 				self.kids(kidsnum)
 
 			if objtype == 'Mesh':
-				mesh = self.mesh = obj.getData()
-				meshes = self.split_mesh(mesh)
+				mesh = TMP_mesh # temporary mesh to hold actual (modified) mesh data
+				mesh.getFromObject(objname)
+				self.mesh = mesh
+				if mesh.faceUV:
+					meshes = self.split_mesh(mesh)
+				else:
+					meshes = [mesh]
 				if len(meshes) > 1:
 					if NO_SPLIT or self.dont_split(objname):
-						self.export_mesh(mesh, obj)
+						self.export_mesh(mesh, ob)
 						REPORT_DATA['nosplit'].append(objname)
 					else:
 						self.OBJECT('group')
@@ -370,27 +414,27 @@ class AC3DExport: # the ac3d exporter part
 		file.close()
 		REPORT_DATA['main'].append("Done. Saved to: %s" % filename)
 
-	def traverse_dict(self, dict):
+	def traverse_dict(self, d):
 		kids_dict = self.kids_dict
 		exp_objs = self.exp_objs
-		keys = dict.keys()
+		keys = d.keys()
 		for k in keys:
 			objname = k[2:]
-			klen = len(dict[k])
+			klen = len(d[k])
 			kids_dict[objname] = klen
 			if self.dont_export(objname):
-				dict.pop(k)
-				parent = Blender.Object.Get(objname).getParent()
+				d.pop(k)
+				parent = Object.Get(objname).getParent()
 				if parent: kids_dict[parent.name] -= 1
 				REPORT_DATA['noexport'].append(objname)
 				continue
 			if klen:
-				self.traverse_dict(dict[k])
+				self.traverse_dict(d[k])
 				exp_objs.insert(0, objname)
 			else:
 				if k.find('Em', 0) == 0: # Empty w/o children
-					dict.pop(k)
-					parent = Blender.Object.Get(objname).getParent()
+					d.pop(k)
+					parent = Object.Get(objname).getParent()
 					if parent: kids_dict[parent.name] -= 1
 				else:
 					exp_objs.insert(0, objname)
@@ -440,6 +484,7 @@ class AC3DExport: # the ac3d exporter part
 			for k in keys:
 				faces = tex_dict[k]
 				foo_meshes.append(FooMesh(k, faces, mesh))
+			foo_meshes[0].edges = get_loose_edges(mesh)
 			return foo_meshes
 		return [mesh]
 
@@ -449,17 +494,37 @@ class AC3DExport: # the ac3d exporter part
 		if not name: name = obj.name
 		self.name(name)
 		if not SKIP_DATA:
-			self.data(len(mesh.name), mesh.name)
-		texline = self.texture(mesh.faces)
-		if texline: file.write(texline)
+			meshname = obj.getData(name_only = True)
+			self.data(len(meshname), meshname)
+		if mesh.faceUV:
+			texline = self.texture(mesh.faces)
+			if texline: file.write(texline)
 		if AC3D_4:
-			self.crease(mesh.getMaxSmoothAngle())
-		self.numvert(mesh.verts, obj.getMatrix())
-		self.numsurf(mesh.faces, mesh.hasFaceUV(), foomesh)
+			self.crease(mesh.degr)
 
-	def MATERIALS(self, meshlist):
+		# If exporting using local coordinates, children object coordinates should not be
+		# transformed to ac3d's coordinate system, since that will be accounted for in
+		# their topmost parents (the parents w/o parents) transformations.
+		if not GLOBAL_COORDS:
+			# We hold parents in a list, so they also don't get transformed,
+			# because for each parent we create an ac3d group to hold both the
+			# parent and its children.
+			if obj.name not in self.parents_list:
+				localmatrix = obj.getMatrix('localspace')
+				if not obj.getParent():
+					localmatrix *= BLEND_TO_AC3D_MATRIX
+				self.rot(localmatrix.rotationPart())
+				self.loc(localmatrix.translationPart())
+			matrix = None
+		else:
+			matrix = obj.getMatrix() * BLEND_TO_AC3D_MATRIX
+
+		self.numvert(mesh.verts, matrix)
+		self.numsurf(mesh, foomesh)
+
+	def MATERIALS(self, meshlist, me):
 		for meobj in meshlist:
-			me = meobj.getData()
+			me.getFromObject(meobj)
 			mat = me.materials
 			mbuf = []
 			mlist = self.mlist
@@ -469,23 +534,24 @@ class AC3DExport: # the ac3d exporter part
 					mlist.index(name)
 				except ValueError:
 					mlist.append(name)
-					M = Blender.Material.Get(name)
+					M = Material.Get(name)
 					material = 'MATERIAL "%s"' % name
-					mirCol = "%s %s %s" % (Round(M.mirCol[0]), Round(M.mirCol[1]),
-						Round(M.mirCol[2]))
-					rgb = "rgb %s %s %s" % (Round(M.R), Round(M.G), Round(M.B))
-					amb = "amb %s %s %s" % (Round(M.amb), Round(M.amb), Round(M.amb))
-					spec = "spec %s %s %s" % (Round(M.specCol[0]),
-						 Round(M.specCol[1]), Round(M.specCol[2]))
+					mirCol = "%s %s %s" % (Round_s(M.mirCol[0]), Round_s(M.mirCol[1]),
+						Round_s(M.mirCol[2]))
+					rgb = "rgb %s %s %s" % (Round_s(M.R), Round_s(M.G), Round_s(M.B))
+					ambval = Round_s(M.amb)
+					amb = "amb %s %s %s" % (ambval, ambval, ambval)
+					spec = "spec %s %s %s" % (Round_s(M.specCol[0]),
+						 Round_s(M.specCol[1]), Round_s(M.specCol[2]))
 					if AC3D_4:
-						emit = Round(M.emit)
+						emit = Round_s(M.emit)
 						emis = "emis %s %s %s" % (emit, emit, emit)
 						shival = int(M.spec * 64)
 					else:
 						emis = "emis 0 0 0"
 						shival = 72
 					shi = "shi %s" % shival
-					trans = "trans %s" % (Round(1 - M.alpha))
+					trans = "trans %s" % (Round_s(1 - M.alpha))
 					if MIRCOL_AS_AMB:
 						amb = "amb %s" % mirCol 
 					if MIRCOL_AS_EMIS:
@@ -516,12 +582,12 @@ class AC3DExport: # the ac3d exporter part
 				tex = f.image.name
 				break
 		if tex:
-			image = Blender.Image.Get(tex)
+			image = Image.Get(tex)
 			texfname = image.filename
 			if SET_TEX_DIR:
-				texfname = Blender.sys.basename(texfname)
+				texfname = bsys.basename(texfname)
 				if TEX_DIR:
-					texfname = Blender.sys.join(TEX_DIR, texfname)
+					texfname = bsys.join(TEX_DIR, texfname)
 			buf = 'texture "%s"\n' % texfname
 			xrep = image.xrep
 			yrep = image.yrep
@@ -530,41 +596,65 @@ class AC3DExport: # the ac3d exporter part
 
 	def rot(self, matrix):
 		rot = ''
-		not_I = 0
+		not_I = 0 # not identity
+		matstr = []
 		for i in [0, 1, 2]:
-			r = map(Round, matrix[i])
-			not_I += (r[0] != '0.0')+(r[1] != '0.0')+(r[2] != '0.0')
-			not_I -= (r[i] == '1.0')
+			r = map(Round_s, matrix[i])
+			not_I += (r[0] != '0')+(r[1] != '0')+(r[2] != '0')
+			not_I -= (r[i] == '1')
 			for j in [0, 1, 2]:
-				rot = "%s %s" % (rot, r[j])
-		if not_I:
-			self.file.write('rot %s\n' % rot.strip())
+				matstr.append(' %s' % r[j])
+		if not_I: # no need to write identity
+			self.file.write('rot%s\n' % "".join(matstr))
 				
 	def loc(self, loc):
-		loc = map(Round, loc)
-		if loc[0] or loc[1] or loc[2]:
+		loc = map(Round_s, loc)
+		if loc != ['0', '0', '0']: # no need to write default
 			self.file.write('loc %s %s %s\n' % (loc[0], loc[1], loc[2]))
 
 	def crease(self, crease):
-		self.file.write('crease %s\n' % crease)
+		self.file.write('crease %f\n' % crease)
 
 	def numvert(self, verts, matrix):
 		file = self.file
-		file.write("numvert %s\n" % len(verts))
-		m = matrix * acmatrix
-		verts = transform_verts(verts, m)
-		for v in verts:
-			v0, v1, v2 = Round(v[0]), Round(v[1]), Round(v[2])
-			file.write("%s %s %s\n" % (v0, v1, v2))
+		nvstr = []
+		nvstr.append("numvert %s\n" % len(verts))
 
-	def numsurf(self, faces, hasFaceUV, foomesh = False):
+		if matrix:
+			verts = transform_verts(verts, matrix)
+			for v in verts:
+				v = map (Round_s, v)
+				nvstr.append("%s %s %s\n" % (v[0], v[1], v[2]))
+		else:
+			for v in verts:
+				v = map(Round_s, v.co)
+				nvstr.append("%s %s %s\n" % (v[0], v[1], v[2]))
 
-		global ADD_DEFAULT_MAT, MATIDX_ERROR
+		file.write("".join(nvstr))
+
+	def numsurf(self, mesh, foomesh = False):
+
+		global MATIDX_ERROR
+
+		# local vars are faster and so better in tight loops
+		lc_ADD_DEFAULT_MAT = ADD_DEFAULT_MAT
+		lc_MATIDX_ERROR = MATIDX_ERROR
+		lc_PER_FACE_1_OR_2_SIDED = PER_FACE_1_OR_2_SIDED
+		lc_FACE_TWOSIDED = FACE_TWOSIDED
+		lc_MESH_TWOSIDED = MESH_TWOSIDED
+
+		faces = mesh.faces
+		hasFaceUV = mesh.faceUV
+		if foomesh:
+			looseEdges = mesh.looseEdges
+		else:
+			looseEdges = get_loose_edges(mesh)
+
 		file = self.file
  
-		file.write("numsurf %s\n" % len(faces))
+		file.write("numsurf %s\n" % (len(faces) + len(looseEdges)))
 
-		if not foomesh: verts = self.mesh.verts
+		if not foomesh: verts = list(self.mesh.verts)
 
 		mlist = self.mlist
 		omlist = {}
@@ -573,33 +663,33 @@ class AC3DExport: # the ac3d exporter part
 		for i in range(len(objmats)):
 			objmats[i] = objmats[i].name
 		for f in faces:
-			m_idx = f.materialIndex
+			m_idx = f.mat
 			try:
 				m_idx = mlist.index(objmats[m_idx])
 			except IndexError:
-				if not MATIDX_ERROR:
+				if not lc_MATIDX_ERROR:
 					rdat = REPORT_DATA['warns']
 					rdat.append("Object %s" % self.obj.name)
 					rdat.append("has at least one material *index* assigned but not")
 					rdat.append("defined (not linked to an existing material).")
 					rdat.append("Result: some faces may be exported with a wrong color.")
-					rdat.append("You can link materials in the Edit Buttons window (F9).")
+					rdat.append("You can assign materials in the Edit Buttons window (F9).")
 				elif not matidx_error_told:
 					midxmsg = "- Same for object %s." % self.obj.name
 					REPORT_DATA['warns'].append(midxmsg)
-				MATIDX_ERROR += 1
+				lc_MATIDX_ERROR += 1
 				matidx_error_told = 1
 				m_idx = 0
 			refs = len(f)
-			flaglow = (refs == 2) << 1
-			if PER_FACE_1_OR_2_SIDED: # per face attribute
-				two_side = f.mode & Blender.NMesh.FaceModes['TWOSIDE']
+			flaglow = 0 # polygon
+			if lc_PER_FACE_1_OR_2_SIDED and hasFaceUV: # per face attribute
+				two_side = f.mode & lc_FACE_TWOSIDED
 			else: # global, for the whole mesh
-				two_side = self.mesh.mode & Blender.NMesh.Modes['TWOSIDED']
+				two_side = self.mesh.mode & lc_MESH_TWOSIDED
 			two_side = (two_side > 0) << 1
 			flaghigh = f.smooth | two_side
 			surfstr = "SURF 0x%d%d\n" % (flaghigh, flaglow)
-			if ADD_DEFAULT_MAT and objmats: m_idx += 1
+			if lc_ADD_DEFAULT_MAT and objmats: m_idx += 1
 			matstr = "mat %s\n" % m_idx
 			refstr = "refs %s\n" % refs
 			u, v, vi = 0, 0, 0
@@ -624,6 +714,24 @@ class AC3DExport: # the ac3d exporter part
 			fvstr = "".join(fvstr)
 
 			file.write("%s%s%s%s" % (surfstr, matstr, refstr, fvstr))
+
+		for e in looseEdges:
+			fvstr = []
+			#flaglow = 2 # 1 = closed line, 2 = line
+			#flaghigh = 0
+			#surfstr = "SURF 0x%d%d\n" % (flaghigh, flaglow)
+			surfstr = "SURF 0x02\n"
+
+			fvstr.append("%d 0 0\n" % verts.index(e.v1))
+			fvstr.append("%d 0 0\n" % verts.index(e.v2))
+			fvstr = "".join(fvstr)
+
+			matstr = "mat 0\n" # for now, use first material 
+			refstr = "refs 2\n" # 2 verts
+
+			file.write("%s%s%s%s" % (surfstr, matstr, refstr, fvstr))
+
+		MATIDX_ERROR = lc_MATIDX_ERROR
 
 # End of Class AC3DExport
 
@@ -687,7 +795,9 @@ def fs_callback(filename):
 
 
 # -- End of definitions
+
 scn = Blender.Scene.GetCurrent()
+
 if ONLY_SELECTED:
 	OBJS = list(scn.objects.context)
 else:
