@@ -171,6 +171,7 @@ static bNodeType sh_node_output= {
 #define GEOM_OUT_ORCO	3
 #define GEOM_OUT_UV		4
 #define GEOM_OUT_NORMAL	5
+#define GEOM_OUT_VCOL	6
 
 /* output socket type definition */
 static bNodeSocketType sh_node_geom_out[]= {
@@ -180,6 +181,7 @@ static bNodeSocketType sh_node_geom_out[]= {
 	{	SOCK_VECTOR, 0, "Orco",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	SOCK_VECTOR, 0, "UV",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	SOCK_VECTOR, 0, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_RGBA,   0, "Vertex Color", 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -188,11 +190,13 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNod
 {
 	if(data) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
-		ShadeInputUV *suv= &shi->uv[0];
 		NodeGeometry *ngeo= (NodeGeometry*)node->storage;
+		ShadeInputUV *suv= &shi->uv[0];
+		static float defaultvcol[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 		int i;
 
 		if(ngeo->uvname[0]) {
+			/* find uv layer by name */
 			for(i = 0; i < shi->totuv; i++) {
 				if(strcmp(shi->uv[i].name, ngeo->uvname)==0) {
 					suv= &shi->uv[i];
@@ -200,14 +204,33 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNod
 				}
 			}
 		}
-		
-		/* out: global, local, view, orco, uv, normal */
+
+		/* out: global, local, view, orco, uv, normal, vertex color */
 		VECCOPY(out[GEOM_OUT_GLOB]->vec, shi->gl);
 		VECCOPY(out[GEOM_OUT_LOCAL]->vec, shi->co);
 		VECCOPY(out[GEOM_OUT_VIEW]->vec, shi->view);
 		VECCOPY(out[GEOM_OUT_ORCO]->vec, shi->lo);
 		VECCOPY(out[GEOM_OUT_UV]->vec, suv->uv);
 		VECCOPY(out[GEOM_OUT_NORMAL]->vec, shi->vno);
+
+		if (shi->totcol) {
+			/* find vertex color layer by name */
+			ShadeInputCol *scol= &shi->col[0];
+
+			if(ngeo->colname[0]) {
+				for(i = 0; i < shi->totcol; i++) {
+					if(strcmp(shi->col[i].name, ngeo->colname)==0) {
+						scol= &shi->col[i];
+						break;
+					}
+				}
+			}
+
+			VECCOPY(out[GEOM_OUT_VCOL]->vec, scol->col);
+			out[GEOM_OUT_VCOL]->vec[3]= 1.0f;
+		}
+		else
+			memcpy(out[GEOM_OUT_VCOL]->vec, defaultvcol, sizeof(defaultvcol));
 		
 		if(shi->osatex) {
 			out[GEOM_OUT_GLOB]->data= shi->dxgl;
@@ -1069,51 +1092,6 @@ static bNodeType sh_node_rgbtobw= {
 	
 };
 
-/* **************** VERTEX COLOR  ******************** */
-
-/* output socket type definition */
-static bNodeSocketType sh_node_vertexcol_out[]= {
-	{	SOCK_RGBA, 0, "Color",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
-};
-
-/* node execute callback */
-static void node_shader_exec_vertexcol(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	if(data) {
-		ShadeInput *shi= ((ShaderCallData *)data)->shi;
-		ShadeInputCol *scol= &shi->col[0];
-		NodeVertexCol *nvcol= (NodeVertexCol*)node->storage;
-		int i;
-
-		if(nvcol->name[0]) {
-			for(i = 0; i < shi->totcol; i++) {
-				if(strcmp(shi->col[i].name, nvcol->name)==0) {
-					scol= &shi->col[i];
-					break;
-				}
-			}
-		}
-
-		VECCOPY(out[0]->vec, scol->col);
-		out[0]->vec[3]= 1.0f;
-	}
-}
-
-/* node type definition */
-static bNodeType sh_node_vertexcol= {
-	/* type code   */	SH_NODE_VERTEX_COL,
-	/* name        */	"Vertex Color",
-	/* width+range */	120, 80, 160,
-	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS,
-	/* input sock  */	NULL,
-	/* output sock */	sh_node_vertexcol_out,
-	/* storage     */	"NodeVertexCol",
-	/* execfunc    */	node_shader_exec_vertexcol
-	
-};
-
-
 /* ****************** types array for all shaders ****************** */
 
 bNodeType *node_all_shaders[]= {
@@ -1135,7 +1113,6 @@ bNodeType *node_all_shaders[]= {
 	&sh_node_math,
 	&sh_node_vect_math,
 	&sh_node_squeeze,
-	&sh_node_vertexcol,
 	NULL
 };
 
@@ -1162,20 +1139,20 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 
 /* go over all used Geometry and Texture nodes, and return a texco flag */
 /* no group inside needed, this function is called for groups too */
-int ntreeShaderGetTexco(bNodeTree *ntree, int r_mode)
+void ntreeShaderGetTexcoMode(bNodeTree *ntree, int r_mode, short *texco, int *mode)
 {
 	bNode *node;
 	bNodeSocket *sock;
-	int texco= 0, a;
+	int a;
 	
 	ntreeSocketUseFlags(ntree);
-	
+
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->type==SH_NODE_TEXTURE) {
 			if((r_mode & R_OSA) && node->id) {
 				Tex *tex= (Tex *)node->id;
 				if ELEM3(tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) 
-					texco |= TEXCO_OSA|NEED_UV;
+					*texco |= TEXCO_OSA|NEED_UV;
 			}
 		}
 		else if(node->type==SH_NODE_GEOMETRY) {
@@ -1184,22 +1161,22 @@ int ntreeShaderGetTexco(bNodeTree *ntree, int r_mode)
 				if(sock->flag & SOCK_IN_USE) {
 					switch(a) {
 						case GEOM_OUT_GLOB: 
-							texco |= TEXCO_GLOB|NEED_UV; break;
+							*texco |= TEXCO_GLOB|NEED_UV; break;
 						case GEOM_OUT_VIEW: 
-							texco |= TEXCO_VIEW|NEED_UV; break;
+							*texco |= TEXCO_VIEW|NEED_UV; break;
 						case GEOM_OUT_ORCO: 
-							texco |= TEXCO_ORCO|NEED_UV; break;
+							*texco |= TEXCO_ORCO|NEED_UV; break;
 						case GEOM_OUT_UV: 
-							texco |= TEXCO_UV|NEED_UV; break;
+							*texco |= TEXCO_UV|NEED_UV; break;
 						case GEOM_OUT_NORMAL: 
-							texco |= TEXCO_NORM|NEED_UV; break;
+							*texco |= TEXCO_NORM|NEED_UV; break;
+						case GEOM_OUT_VCOL:
+							*texco |= NEED_UV; *mode |= MA_VERTEXCOL; break;
 					}
 				}
 			}
 		}
 	}
-	
-	return texco;
 }
 
 /* nodes that use ID data get synced with local data */

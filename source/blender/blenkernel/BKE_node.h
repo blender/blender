@@ -183,7 +183,6 @@ struct ShadeResult;
 #define SH_NODE_MATH		115
 #define SH_NODE_VECT_MATH	116
 #define SH_NODE_SQUEEZE	    117
-#define SH_NODE_VERTEX_COL	118
 /* custom defines: options for Material node */
 #define SH_NODE_MAT_DIFF	1
 #define SH_NODE_MAT_SPEC	2
@@ -195,7 +194,7 @@ extern bNodeType *node_all_shaders[];
 /* API */
 
 void			ntreeShaderExecTree(struct bNodeTree *ntree, struct ShadeInput *shi, struct ShadeResult *shr);
-int				ntreeShaderGetTexco(struct bNodeTree *ntree, int osa);
+void			ntreeShaderGetTexcoMode(struct bNodeTree *ntree, int osa, short *texco, int *mode);
 void			nodeShaderSynchronizeID(struct bNode *node, int copyto);
 
 				/* switch material render loop */

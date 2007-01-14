@@ -650,7 +650,7 @@ static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode
 		}
 	}
 	/* parses the geom+tex nodes */
-	basemat->texco |= ntreeShaderGetTexco(ntree, r_mode);
+	ntreeShaderGetTexcoMode(ntree, r_mode, &basemat->texco, &basemat->mode_l);
 }
 
 void init_render_material(Material *mat, int r_mode, float *amb)

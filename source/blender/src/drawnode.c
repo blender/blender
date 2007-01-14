@@ -604,23 +604,12 @@ static int node_shader_buts_geometry(uiBlock *block, bNodeTree *ntree, bNode *no
 	if(block) {
 		NodeGeometry *ngeo= (NodeGeometry*)node->storage;
 
-		uiDefBut(block, TEX, B_NODE_EXEC+node->nr, "UV:", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, ngeo->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
+		uiDefBut(block, TEX, B_NODE_EXEC+node->nr, "UV:", butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20, ngeo->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
+		uiDefBut(block, TEX, B_NODE_EXEC+node->nr, "Col:", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, ngeo->colname, 0, 31, 0, 0, "Set name of vertex color layer to use, default is active vertex color layer");
 	}
 
-	return 20;
+	return 40;
 }
-
-static int node_shader_buts_vertexcol(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-	if(block) {
-		NodeVertexCol *nvcol= (NodeVertexCol*)node->storage;
-
-		uiDefBut(block, TEX, B_NODE_EXEC+node->nr, "Name:", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, nvcol->name, 0, 31, 0, 0, "Set name of vertex color layer to use, default is active vertex color layer");
-	}
-
-	return 20;
-}
-
 
 /* only once called */
 static void node_shader_set_butfunc(bNodeType *ntype)
@@ -667,9 +656,6 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break; 
 		case SH_NODE_GEOMETRY:
 			ntype->butfunc= node_shader_buts_geometry;
-			break;
-		case SH_NODE_VERTEX_COL:
-			ntype->butfunc= node_shader_buts_vertexcol;
 			break;
 		default:
 			ntype->butfunc= NULL;
