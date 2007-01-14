@@ -4547,7 +4547,8 @@ static void node_composit_exec_diff_matte(void *data, bNode *node, bNodeStack **
 	free_compbuf(colorbuf);
 	
 	out[0]->data=outbuf;
-	out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
+	if(out[1]->hasoutput)
+		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
 	generate_preview(node, outbuf);
 }
 
@@ -4904,7 +4905,8 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 	
 		generate_preview(node, outbuf);
 		out[0]->data=outbuf;
-		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
+		if(out[1]->hasoutput)
+			out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
 	
 	}
 	else {
@@ -4984,7 +4986,8 @@ static void node_composit_exec_luma_matte(void *data, bNode *node, bNodeStack **
 	
 		generate_preview(node, outbuf);
 		out[0]->data=outbuf;
-		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
+		if (out[1]->hasoutput)
+			out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
 	
 	}
 	else {
@@ -4994,7 +4997,7 @@ static void node_composit_exec_luma_matte(void *data, bNode *node, bNodeStack **
 
 static bNodeType cmp_node_luma_matte={
 	/* type code   */       CMP_NODE_LUMA_MATTE,
-	/* name        */       "Luminence Key",
+	/* name        */       "Luminance Key",
 	/* width+range */       200, 80, 250,
 	/* class+opts  */       NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
 	/* input sock  */       cmp_node_luma_matte_in,
