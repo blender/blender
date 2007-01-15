@@ -530,9 +530,9 @@ static void init_internal_icons()
 {
 	bTheme *btheme= U.themes.first;
 	ImBuf *bbuf;
+	int x, y;
 	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
 	char filenamestr[FILE_MAXFILE+16];	// 16 == strlen(".blender/icons/")+1
-	int x, y;
 	
 	if ((btheme!=NULL) && (strlen(btheme->tui.iconfile) > 0)) {
 	
@@ -579,16 +579,15 @@ static void init_internal_icons()
 
 static void init_iconfile_list(struct ListBase *list)
 {
+	IconFile *ifile;
+	ImBuf *bbuf= NULL;
+	struct direntry *dir;
+	int restoredir = 1; /* restore to current directory */
+	int totfile, i, index=1;
+	int ifilex, ifiley;
 	char icondirstr[FILE_MAXDIR];
 	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
 	char olddir[FILE_MAXDIR+FILE_MAXFILE];
-	int restoredir = 1; /* restore to current directory */
-
-	IconFile *ifile;
-	ImBuf *bbuf;
-	struct direntry *dir;
-	int totfile, i, index=1;
-	int ifilex, ifiley;
 	
 	list->first = list->last = NULL;
 
@@ -597,6 +596,10 @@ static void init_iconfile_list(struct ListBase *list)
 #else
 	BLI_make_file_string("/", icondirstr, BLI_gethome(), ".blender/icons");
 #endif
+	
+	if(BLI_exists(icondirstr)==0)
+		return;
+	
 	/* since BLI_getdir changes the current working directory, restore it 
 	   back to old value afterwards */
 	if(!BLI_getwdN(olddir)) 
