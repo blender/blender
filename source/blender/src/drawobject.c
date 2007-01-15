@@ -3951,7 +3951,7 @@ void draw_object(Base *base, int flag)
 						else
 							BIF_ThemeColor(TH_WIRE);
 						vec1[0] = cu->tb[i].x;
-						vec1[1] = cu->tb[i].y + cu->linedist*cu->fsize;
+						vec1[1] = cu->tb[i].y + cu->fsize;
 						vec1[2] = 0.001;
 						glBegin(GL_LINE_STRIP);
 						glVertex3fv(vec1);
