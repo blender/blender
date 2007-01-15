@@ -2799,14 +2799,33 @@ void common_insertkey(void)
  					}
  					if(event==12 || event==13) {
  						float obSpaceBoneMat[4][4];
- 						float localQuat[4];
+ 						float localQuat[4], oldQuat[4];
  						
+						/* obtain rotation caused by constraints/IK*/
  						bone2objectspace(obSpaceBoneMat, pchan->pose_mat, pchan->bone->arm_mat);
  						Mat4ToQuat(obSpaceBoneMat, localQuat);
- 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, localQuat[0]);
- 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, localQuat[1]);
- 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, localQuat[2]);
- 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, localQuat[2]);
+						
+						/* bad hack warning:
+						 * Write the 'visual' rotation onto the
+						 * bone's quat/rotation values and use standard 
+						 * keyframing method to insert a keyframe with this
+						 * value. 
+						 *
+						 * Needed, as rotation wouldn't get keyed correctly
+						 * otherwise for some strange reason. As a side-effect,
+						 * sometimes there may be slightly un-updated bones, but
+						 * still, it is better that this worked.
+						 */
+						 
+						QUATCOPY(oldQuat, pchan->quat);
+						QUATCOPY(pchan->quat, localQuat);
+						
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+						
+						QUATCOPY(pchan->quat, oldQuat);
  					}
 					if (event==15 && ob->action) {
 						bActionChannel *achan;
