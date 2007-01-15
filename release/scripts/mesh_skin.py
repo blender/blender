@@ -258,6 +258,7 @@ def getSelectedEdges(me, ob):
 	if MESH_MODE==Blender.Mesh.SelectModes.EDGE or MESH_MODE==Blender.Mesh.SelectModes.VERTEX:
 		Blender.Mesh.Mode(Blender.Mesh.SelectModes.EDGE)
 		edges= [ ed for ed in me.edges if ed.sel ]
+		# print len(edges), len(me.edges)
 		Blender.Mesh.Mode(MESH_MODE)
 		return edges
 	
@@ -298,19 +299,18 @@ def getVertLoops(selEdges, me):
 		vert_siblings[i1].append(i2)
 		vert_siblings[i2].append(i1)
 	
-	# remove any triple points
-	for i in xrange(tot):
-		if len(vert_siblings[i]) > 2:
-			vert_siblings[i] = [] # clear
-	
 	# find the first used vert and keep looping.
 	for i in xrange(tot):
 		if vert_siblings[i] and not vert_used[i]:
 			sbl = vert_siblings[i] # siblings
+			
+			if len(sbl) > 2:
+				return None
+			
 			vert_used[i] = True
 			
 			# do an edgeloop seek
-			if len(vert_siblings[i]) == 2:
+			if len(sbl) == 2:
 				contextVertLoop= [sbl[0], i, sbl[1]] # start the vert loop
 				vert_used[contextVertLoop[ 0]] = True
 				vert_used[contextVertLoop[-1]] = True
@@ -356,7 +356,7 @@ def getVertLoops(selEdges, me):
 	verts = me.verts
 	# convert from indicies to verts
 	# mainVertLoops = [([verts[i] for i in contextVertLoop], closed) for contextVertLoop, closed in  mainVertLoops]
-	print len(mainVertLoops)
+	# print len(mainVertLoops)
 	return mainVertLoops
 	
 
@@ -381,7 +381,6 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 	skinVector = eloop1.centre - eloop2.centre
 	
 	loopDist = skinVector.length
-	
 	
 	# IS THE LOOP FLIPPED, IF SO FLIP BACK. we keep it flipped, its ok,
 	if eloop1.closed or eloop2.closed:
@@ -516,13 +515,17 @@ def main():
 	is_editmode = Window.EditMode()
 	if is_editmode: Window.EditMode(0)
 	ob = Blender.Scene.GetCurrent().objects.active
-	if ob == None or ob.getType() != 'Mesh':
+	if ob == None or ob.type != 'Mesh':
 		return
 	
 	me = ob.getData(mesh=1)
 	time1 = Blender.sys.time()
 	selEdges = getSelectedEdges(me, ob)
 	vertLoops = getVertLoops(selEdges, me) # list of lists of edges.
+	if vertLoops == None:
+		PupMenu('Error%t|Selection includes verts that are a part of more then 1 loop')
+		if is_editmode: Window.EditMode(1)
+		return
 	# print len(vertLoops)
 	
 	
