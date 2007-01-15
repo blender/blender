@@ -88,7 +88,7 @@ char *wo_ic_names[WO_TOTNAM] = { "HorR", "HorG", "HorB", "ZenR", "ZenG", "ZenB",
 char *la_ic_names[LA_TOTNAM] = { "Energ", "R", "G", "B", "Dist", "SpoSi", "SpoBl",
 	"Quad1", "Quad2", "HaInt" };
 /* yafray: two curve names added, 'Apert' for aperture, and 'FDist' for focal distance */
-char *cam_ic_names[CAM_TOTNAM] = { "Lens", "ClSta", "ClEnd", "Apert", "FDist" };
+char *cam_ic_names[CAM_TOTNAM] = { "Lens", "ClSta", "ClEnd", "Apert", "FDist", "ShiftX", "ShiftY" };
 char *snd_ic_names[SND_TOTNAM] = { "Vol", "Pitch", "Pan", "Atten" };
 char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "ScaleX", "ScaleY",
 	"ScaleZ", "QuatW", "QuatX", "QuatY", "QuatZ"};
@@ -187,9 +187,7 @@ char *getname_la_ei(int nr)
 
 char *getname_cam_ei(int nr)
 {
-	/* yafray: curves extended to CAM_YF_FDIST */
-	//if(nr>=CAM_LENS && nr<=CAM_END) return cam_ic_names[nr-1];
-	if(nr>=CAM_LENS && nr<=CAM_YF_FDIST) return cam_ic_names[nr-1];
+	if(nr>=CAM_LENS && nr<=CAM_SHIFT_Y) return cam_ic_names[nr-1];
 	return ic_name_empty[0];
 }
 

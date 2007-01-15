@@ -1847,8 +1847,13 @@ void save_image_sequence_sima(void)
 		
 		for(ibuf= G.sima->image->ibufs.first; ibuf; ibuf= ibuf->next) {
 			if(ibuf->userflags & IB_BITMAPDIRTY) {
-				if(0 == IMB_saveiff(ibuf, ibuf->name, IB_rect | IB_zbuf | IB_zbuffloat)) {
-					error("Could not write image", ibuf->name);
+				char name[FILE_MAX];
+				BLI_strncpy(name, ibuf->name, sizeof(name));
+				
+				BLI_convertstringcode(name, G.sce, 0);
+
+				if(0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
+					error("Could not write image", name);
 					break;
 				}
 				printf("Saved: %s\n", ibuf->name);

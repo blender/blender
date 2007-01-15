@@ -1072,7 +1072,7 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 	
 	/* read ibuf */
 	ibuf = IMB_loadiffname(name, IB_rect|IB_multilayer);
-	printf("loaded %s\n", name);
+	if(G.f & G_DEBUG) printf("loaded %s\n", name);
 	
 	if (ibuf) {
 #ifdef WITH_OPENEXR

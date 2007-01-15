@@ -166,7 +166,7 @@ int la_ar[LA_TOTIPO]= {
 /* yafray: aperture & focal distance curves added */
 /* qdn: FDIST now available to Blender as well for defocus node */
 int cam_ar[CAM_TOTIPO]= {
-	CAM_LENS, CAM_STA, CAM_END, CAM_YF_APERT, CAM_YF_FDIST
+	CAM_LENS, CAM_STA, CAM_END, CAM_YF_APERT, CAM_YF_FDIST, CAM_SHIFT_X, CAM_SHIFT_Y
 };
 
 int snd_ar[SND_TOTIPO]= {
@@ -1476,6 +1476,10 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			poin= &(ca->YF_aperture); break;
 		case CAM_YF_FDIST:
 			poin= &(ca->YF_dofdist); break;
+		case CAM_SHIFT_X:
+			poin= &(ca->shiftx); break;
+		case CAM_SHIFT_Y:
+			poin= &(ca->shifty); break;
 		}
 	}
 	else if(GS(id->name)==ID_SO) {
@@ -1757,6 +1761,13 @@ void set_icu_vars(IpoCurve *icu)
 		case CAM_YF_FDIST:
 			icu->ymin = 0.0;
 			icu->ymax = 5000.0;
+			break;
+			
+		case CAM_SHIFT_X:
+		case CAM_SHIFT_Y:
+			icu->ymin= -2.0f;
+			icu->ymax= 2.0f;
+			break;
 		}
 	}
 	else if(icu->blocktype==ID_SO) {
