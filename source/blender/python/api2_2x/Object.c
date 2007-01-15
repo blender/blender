@@ -109,7 +109,6 @@ struct rctf;
 #include "NLA.h"
 #include "logic.h"
 #include "Effect.h"
-#include "Pose.h"
 #include "Group.h"
 #include "Modifier.h"
 #include "Constraint.h"
@@ -378,8 +377,6 @@ static PyObject *Object_SetIpo( BPy_Object * self, PyObject * args );
 static PyObject *Object_insertIpoKey( BPy_Object * self, PyObject * args );
 static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args );
 static PyObject *Object_insertCurrentPoseKey( BPy_Object * self, PyObject * args );
-static PyObject *Object_insertMatrixKey( BPy_Object * self, PyObject * args );
-static PyObject *Object_bake_to_action( void );
 static PyObject *Object_setConstraintInfluenceForBone( BPy_Object * self, PyObject * args );
 static PyObject *Object_setLocation( BPy_Object * self, PyObject * args );
 static PyObject *Object_setMaterials( BPy_Object * self, PyObject * args );
@@ -726,10 +723,6 @@ works only if self and the object specified are of the same type."},
 	 "( Object Pose type ) - Inserts a key into Action"},
 	 {"insertCurrentPoseKey", ( PyCFunction ) Object_insertCurrentPoseKey, METH_VARARGS,
 	 "( Object Pose type ) - Inserts a key into Action based on current pose"},
-	 {"insertMatrixKey", ( PyCFunction ) Object_insertMatrixKey, METH_VARARGS,
-	 "(  ) - Inserts a key into Action based on current/giventime object matrix"},
-	 {"bake_to_action", ( PyCFunction ) Object_bake_to_action, METH_NOARGS,
-	 "(  ) - creates a new action with the information from object animations"},
 	 {"setConstraintInfluenceForBone", ( PyCFunction ) Object_setConstraintInfluenceForBone, METH_VARARGS,
 	  "(  ) - sets a constraint influence for a certain bone in this (armature)object."},
 	 {"copyNLA", ( PyCFunction ) Object_copyNLA, METH_VARARGS,
@@ -2401,9 +2394,6 @@ static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args )
 	char *chanName;
 	int actframe;
 
-	/*for debug prints*/
-	bActionChannel *achan;
-	bPoseChannel *pchan;
 
 	/* for doing the time trick, similar to editaction bake_action_with_client() */
 	int oldframe;
@@ -2419,16 +2409,8 @@ static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args )
 	oldframe = G.scene->r.cfra;
 	G.scene->r.cfra = curframe;
 
-	/*debug*/
-	pchan = get_pose_channel(ob->pose, chanName);
-	printquat(pchan->name, pchan->quat);
-
-	achan = get_action_channel(sourceact->action, chanName);
-	if( achan->ipo ) {
-		IpoCurve* icu;
-		for( icu = achan->ipo->curve.first; icu; icu=icu->next )
-	    	printvecf("bezt", icu->bezt->vec[1]);
-	}
+	/* XXX: must check chanName actually exists, otherwise segfaults! */
+	//achan = get_action_channel(sourceact->action, chanName);
 
 	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X);
 	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y);
@@ -2458,15 +2440,14 @@ static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Object_insertCurrentPoseKey( BPy_Object * self,
-		PyObject * args )
+static PyObject *Object_insertCurrentPoseKey( BPy_Object * self, PyObject * args )
 {
 	Object *ob= self->object;
 	char *chanName;
 
-  /* for doing the time trick, similar to editaction bake_action_with_client() */
-int oldframe;
-int curframe;
+	/* for doing the time trick, similar to editaction bake_action_with_client() */
+	int oldframe;
+	int curframe;
 
 	if( !PyArg_ParseTuple( args, "si", &chanName, &curframe ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -2474,6 +2455,8 @@ int curframe;
 
 	oldframe = G.scene->r.cfra;
 	G.scene->r.cfra = curframe;
+
+	/* XXX: must check chanName actually exists, otherwise segfaults! */
 
 	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X);
 	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y);
@@ -2502,82 +2485,6 @@ int curframe;
 
 	Py_RETURN_NONE;
 }  
-
-static PyObject *Object_insertMatrixKey( BPy_Object * self, PyObject * args )
-{
-	Object *ob= self->object;
-	char *chanName;
-
-	/*
-	 * for doing the time trick, similar to editaction
-	 * bake_action_with_client()
-	 */
-	int oldframe;
-	int curframe;
-
-	/* for copying the current object/bone matrices to the new action */
-	float localQuat[4];
-	float tmat[4][4], startpos[4][4];
-
-	/*to get the matrix*/
-	bArmature *arm;
-	Bone      *bone;
-	        
-	if( !PyArg_ParseTuple( args, "si", &chanName,  &curframe ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expects a string for chan/bone name and an int for the frame where to put the new key" );
-	
-	oldframe = G.scene->r.cfra;
-	G.scene->r.cfra = curframe;
-
-	/*just to get the armaturespace mat*/
-	arm = get_armature(ob);
-	for( bone = arm->bonebase.first; bone; bone=bone->next )
-		  if( bone->name == chanName ) break;
-
-	if( !bone )
-		return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"bone not found for named channel" );
-
-	where_is_object(ob);
-	world2bonespace(tmat, ob->obmat, bone->arm_mat, startpos);
-	Mat4ToQuat(tmat, localQuat);
-
-	insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X, tmat[3][0]);
-	insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y, tmat[3][1]);
-	insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Z, tmat[3][2]);
-	insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_W, localQuat[0]);
-	insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X, localQuat[1]);
-	insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y, localQuat[2]);
-	insertmatrixkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z, localQuat[3]);
-
-	allspace(REMAKEIPO, 0);
-	EXPP_allqueue(REDRAWIPO, 0);
-	EXPP_allqueue(REDRAWVIEW3D, 0);
-	EXPP_allqueue(REDRAWACTION, 0);
-	EXPP_allqueue(REDRAWNLA, 0);
-
-	G.scene->r.cfra = oldframe;
-
-	/* restore, but now with the new action in place */
-	extract_pose_from_action(ob->pose, ob->action, (float)G.scene->r.cfra);
-	where_is_pose(ob);
-	
-	EXPP_allqueue(REDRAWACTION, 1);
-
-	Py_RETURN_NONE;
-}
-
-/*
- * since this doesn't depend on self, but on the active object, it should
- * be moved to function Object.BakeToAction()
- */
-
-static PyObject *Object_bake_to_action( void )
-{
-	bake_all_to_action(); 
-	Py_RETURN_NONE;
-}
 
 static PyObject *Object_setConstraintInfluenceForBone( BPy_Object * self,
 		PyObject * args )
