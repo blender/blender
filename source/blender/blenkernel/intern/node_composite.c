@@ -64,10 +64,6 @@
 #include "RE_shader_ext.h"		/* <- TexResult */
 #include "RE_render_ext.h"		/* <- ibuf_sample() */
 
-#ifndef atanf
-	#define atanf(a)	atan((double)(a))
-#endif
-
 
 /* *************************** operations support *************************** */
 
@@ -4715,7 +4711,7 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 	angle=c->t1*M_PI/180.0; /* convert to radians */
 	
 	/* if kfg is <0 then the pixel is outside of the key color */
-	kfg=x-(fabsf(z)/tanf(angle/2.0));
+	kfg=x-(fabsf(z)/tan(angle/2.0));
 
 	if(kfg>0.0) {  /* found a pixel that is within key color */
 
