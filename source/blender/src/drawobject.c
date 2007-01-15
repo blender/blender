@@ -3957,11 +3957,11 @@ void draw_object(Base *base, int flag)
 						glVertex3fv(vec1);
 						vec1[0] += cu->tb[i].w;
 						glVertex3fv(vec1);
-						vec1[1] -= (cu->tb[i].h + cu->linedist*cu->fsize);
+						vec1[1] -= cu->tb[i].h;
 						glVertex3fv(vec1);
 						vec1[0] -= cu->tb[i].w;
 						glVertex3fv(vec1);
-						vec1[1] += cu->tb[i].h + cu->linedist*cu->fsize;
+						vec1[1] += cu->tb[i].h;
 						glVertex3fv(vec1);
 						glEnd();
 					}
