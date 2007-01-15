@@ -1,20 +1,20 @@
-Arabic:ar
-Catalan:ca_ES
-Czech:cs_CZ
-German:de_DE
 English:en_US
-Spanish:es_ES
-Finnish:fi_FI
-French:fr_FR
-Croatian:hr_HR
-Italian:it_IT
 Japanese:ja_JP
 Dutch:nl_NL
-Polish:pl_PL
-Brazilian Portuguese:pt_br
+Italian:it_IT
+German:de_DE
+Finnish:fi_FI
 Swedish:sv_SE
-Romanian:ro
+French:fr_FR
+Spanish:es_ES
+Catalan:ca_ES
+Czech:cs_CZ
+Brazilian Portuguese:pt_br
+Simplified Chinese:zh_CN
 Russian:ru_RU
+Croatian:hr_HR
 Serbian:sr
 Ukrainian:uk
-Simplified Chinese:zh_CN
+Polish:pl_PL
+Romanian:ro
+Arabic:ar
