@@ -233,7 +233,7 @@ class edgeLoop(object):
 				while step_count<=step or smallestEdge==None:
 					step_count+=1
 					if not currentEdge.removed: # 0 or -1 will not be accepted
-						if currentEdge.angle<bestAng:
+						if currentEdge.angle<bestAng and not currentEdge.fake:
 							smallestEdge= currentEdge
 							bestAng= currentEdge.angle
 					
@@ -440,19 +440,23 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 		
 		# Make sure the fake edges are at the start.
 		for i, edloop in enumerate((eloop1, eloop2)):
+			# print "LOOPO"
 			if edloop.edges[0].fake:
 				# alredy at the start
+				#print "A"
 				pass
 			elif edloop.edges[-1].fake:
 				# put the end at the start
 				edloop.edges.insert(0, edloop.edges.pop())
+				#print "B"
 				
 			else:
 				for j, ed in enumerate(edloop.edges):
 					if ed.fake:
+						#print "C"
 						edloop.edges = edloop.edges = edloop.edges[j:] + edloop.edges[:j]
 						break
-		
+		# print "DONE"
 		ed1, ed2 = eloop1.edges[0], eloop2.edges[0]
 		
 		if not ed1.fake or not ed2.fake:
