@@ -691,7 +691,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				
 				suv->uv[0]= -1.0f + 2.0f*(l*uv3[0]-u*uv1[0]-v*uv2[0]);
 				suv->uv[1]= -1.0f + 2.0f*(l*uv3[1]-u*uv1[1]-v*uv2[1]);
-				suv->uv[2]= 1.0f;	/* texture.c assumes there are 3 coords, also to indicate it is real UV for passes */
+				suv->uv[2]= 0.0f;	/* texture.c assumes there are 3 coords */
 
 				if(shi->osatex) {
 					float duv[2];
@@ -727,7 +727,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 
 				suv->uv[0]= 2.0f*(u+.5f);
 				suv->uv[1]= 2.0f*(v+.5f);
-				suv->uv[2]= 0.0f;	/* texture.c assumes there are 3 coords, also to indicate it is no real UV for passes */
+				suv->uv[2]= 0.0f;	/* texture.c assumes there are 3 coords */
 				
 				if(mode & MA_FACETEXTURE) {
 					/* no tface? set at 1.0f */

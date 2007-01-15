@@ -404,7 +404,7 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 				break;
 			case SCE_PASS_UV:
 				/* box filter only, gauss will screwup UV too much */
-				if(shi->uv[0].uv[2]!=0.0f) {
+				if(shi->totuv) {
 					float mult= (float)count_mask(curmask)/(float)R.osa;
 					fp= rpass->rect + 3*offset;
 					fp[0]+= mult*(0.5f + 0.5f*shi->uv[0].uv[0]);
@@ -481,10 +481,12 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 				col= shr->nor;
 				break;
 			case SCE_PASS_UV:
-				uvcol[0]= 0.5f + 0.5f*shi->uv[0].uv[0];
-				uvcol[1]= 0.5f + 0.5f*shi->uv[0].uv[1];
-				uvcol[2]= 1.0f;
-				col= uvcol;
+				if(shi->totuv) {
+					uvcol[0]= 0.5f + 0.5f*shi->uv[0].uv[0];
+					uvcol[1]= 0.5f + 0.5f*shi->uv[0].uv[1];
+					uvcol[2]= 1.0f;
+					col= uvcol;
+				}
 				break;
 			case SCE_PASS_VECTOR:
 				col= shr->winspeed;
