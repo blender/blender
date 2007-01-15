@@ -2320,6 +2320,9 @@ void snap_keys_to_frame(int snap_mode)
 		case 2:
 			strcpy(str, "Snap Keys To Current Frame");
 			break;
+		case 3:
+			strcpy(str, "Snap Keys To Nearest Marker");
+			break;
 		default:
 			return;
 	}
@@ -2414,6 +2417,12 @@ void mirror_action_keys(short mirror_mode)
 			break;
 		case 2:
 			strcpy(str, "Mirror Keys Over Y-Axis");
+			break;
+		case 3:
+			strcpy(str, "Mirror Keys Over X-Axis");
+			break;
+		case 4:
+			strcpy(str, "Mirror Keys Over Marker");
 			break;
 		default:
 			return;
@@ -2946,7 +2955,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case MKEY:
 			if (G.qual & LR_SHIFTKEY) {
 				/* mirror keyframes */
-				val = pupmenu("Mirror Keys Over%t|Current Frame%x1|Vertical Axis%x2");
+				val = pupmenu("Mirror Keys Over%t|Current Frame%x1|Vertical Axis%x2|Horizontal Axis %x3|Selected Marker %x4");
 				mirror_action_keys(val);
 			}
 			else {
@@ -2985,7 +2994,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case SKEY: 
 			if (mval[0]>=ACTWIDTH) {
 				if(G.qual & LR_SHIFTKEY) {
-					val = pupmenu("Snap Keys To%t|Nearest Frame%x1|Current Frame%x2");
+					val = pupmenu("Snap Keys To%t|Nearest Frame%x1|Current Frame%x2|Nearest Marker %x3");
 					snap_keys_to_frame(val);
 				}
 				else {

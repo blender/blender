@@ -564,6 +564,14 @@ static int snap_bezier_cframe(BezTriple *bezt)
 	return 0;
 }
 
+static int snap_bezier_nearmarker(BezTriple *bezt)
+{
+	if(bezt->f2 & SELECT)
+		bezt->vec[1][0]= (float)find_nearest_marker_time(bezt->vec[1][0]);
+	
+	return 0;
+}
+
 void snap_ipo_keys(Ipo *ipo, short snaptype)
 {
 	switch (snaptype) {
@@ -572,6 +580,9 @@ void snap_ipo_keys(Ipo *ipo, short snaptype)
 			break;
 		case 2: /* snap to current frame */
 			ipo_keys_bezier_loop(ipo, snap_bezier_cframe, calchandles_ipocurve);
+			break;
+		case 3: /* snap to nearest marker */
+			ipo_keys_bezier_loop(ipo, snap_bezier_nearmarker, calchandles_ipocurve);
 			break;
 		default: /* just in case */
 			ipo_keys_bezier_loop(ipo, snap_bezier_nearest, calchandles_ipocurve);
@@ -603,14 +614,79 @@ static int mirror_bezier_yaxis(BezTriple *bezt)
 	return 0;
 }
 
+static int mirror_bezier_xaxis(BezTriple *bezt)
+{
+	float diff;
+	
+	if(bezt->f2 & SELECT) {
+		diff= (0.0f - bezt->vec[1][1]);
+		bezt->vec[1][1]= (0.0f + diff);
+	}
+	
+	return 0;
+}
+
+static int mirror_bezier_marker(BezTriple *bezt)
+{
+	static TimeMarker *marker;
+	static short initialised = 0;
+	float diff;
+	
+	/* In order for this mirror function to work without
+	 * any extra arguments being added, we use the case
+	 * of bezt==NULL to denote that we should find the 
+	 * marker to mirror over. The static pointer is safe
+	 * to use this way, as it will be set to null after 
+	 * each cycle in which this is called.
+	 */
+	
+	if (bezt) {
+		/* mirroring time */
+		if((bezt->f2 & SELECT) && (marker)) {
+			diff= (marker->frame - bezt->vec[1][0]);
+			bezt->vec[1][0]= (marker->frame + diff);
+		}
+	}
+	else {
+		/* initialisation time */
+		if (initialised) {
+			/* reset everything for safety */
+			marker = NULL;
+			initialised = 0;
+		}
+		else {
+			/* try to find a marker */
+			for (marker= G.scene->markers.first; marker; marker=marker->next) {
+				if (marker->flag & SELECT) {
+					initialised = 1;
+					break;
+				}
+			}
+			
+			if (initialised == 0) 
+				marker = NULL;
+		}
+	}
+	
+	return 0;
+}
+
 void mirror_ipo_keys(Ipo *ipo, short mirror_type)
 {
 	switch (mirror_type) {
 		case 1: /* mirror over current frame */
 			ipo_keys_bezier_loop(ipo, mirror_bezier_cframe, calchandles_ipocurve);
 			break;
-		case 2: /* snap over frame 0 */
+		case 2: /* mirror over frame 0 */
 			ipo_keys_bezier_loop(ipo, mirror_bezier_yaxis, calchandles_ipocurve);
+			break;
+		case 3: /* mirror over value 0 */
+			ipo_keys_bezier_loop(ipo, mirror_bezier_xaxis, calchandles_ipocurve);
+			break;
+		case 4: /* mirror over marker */
+			mirror_bezier_marker(NULL);
+			ipo_keys_bezier_loop(ipo, mirror_bezier_marker, calchandles_ipocurve);
+			mirror_bezier_marker(NULL);
 			break;
 		default: /* just in case */
 			ipo_keys_bezier_loop(ipo, mirror_bezier_yaxis, calchandles_ipocurve);

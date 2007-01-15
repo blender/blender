@@ -131,9 +131,12 @@
 
 #define ACTMENU_KEY_SNAP_NEARFRAME  1
 #define ACTMENU_KEY_SNAP_CURFRAME 2
+#define ACTMENU_KEY_SNAP_NEARMARK 3
 
 #define ACTMENU_KEY_MIRROR_CURFRAME 1
 #define ACTMENU_KEY_MIRROR_YAXIS 2
+#define ACTMENU_KEY_MIRROR_XAXIS 3
+#define ACTMENU_KEY_MIRROR_MARKER 4
 
 #define ACTMENU_MARKERS_ADD 0
 #define ACTMENU_MARKERS_DUPLICATE 1
@@ -906,6 +909,7 @@ static void do_action_keymenu_snapmenu(void *arg, int event)
 	{
 		case ACTMENU_KEY_SNAP_NEARFRAME:
 		case ACTMENU_KEY_SNAP_CURFRAME:
+		case ACTMENU_KEY_SNAP_NEARMARK:
 			snap_keys_to_frame(event);
 			break;
 	}
@@ -930,6 +934,10 @@ static uiBlock *action_keymenu_snapmenu(void *arg_unused)
 					 "Current Frame|Shift S, 2", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_SNAP_CURFRAME, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Nearest Marker|Shift S, 3", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_SNAP_NEARMARK, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -967,6 +975,14 @@ static uiBlock *action_keymenu_mirrormenu(void *arg_unused)
 					 "Vertical Axis|Shift M, 2", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_MIRROR_YAXIS, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Horizontal Axis|Shift M, 3", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_MIRROR_XAXIS, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Selected Marker|Shift M, 4", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_MIRROR_MARKER, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);

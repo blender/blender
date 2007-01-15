@@ -537,9 +537,7 @@ void make_marker_cfra_list(ListBase *lb, short only_sel)
 	}
 }
 
-/* *********** End Markers - Markers API *************** */
-
-static int find_nearest_timeline_marker(float dx)
+int find_nearest_marker_time(float dx)
 {
 	TimeMarker *marker, *nearest= NULL;
 	float dist, min_dist= 1000000;
@@ -556,6 +554,7 @@ static int find_nearest_timeline_marker(float dx)
 	else return (int)floor(dx);
 }
 
+/* *********** End Markers - Markers API *************** */
 /* select/deselect TimeMarker at current frame */
 static void select_timeline_marker_frame(int frame, unsigned char shift)
 {
@@ -799,7 +798,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			getmouseco_areawin(mval);
 			areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
 
-			cfra= find_nearest_timeline_marker(dx);
+			cfra= find_nearest_marker_time(dx);
 
 			if (G.qual && LR_SHIFTKEY)
 				select_timeline_marker_frame(cfra, 1);
