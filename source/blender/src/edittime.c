@@ -106,9 +106,10 @@ void add_marker(int frame)
 /* remove selected TimeMarkers */
 void remove_marker(void)
 {
-	TimeMarker *marker;
+	TimeMarker *marker, *nmarker;
 		
-	for(marker= G.scene->markers.first; marker; marker= marker->next) {
+	for(marker= G.scene->markers.first; marker; marker= nmarker) {
+		nmarker= marker->next;
 		if(marker->flag & SELECT){
 			BLI_freelinkN(&(G.scene->markers), marker);
 		}
