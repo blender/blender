@@ -65,4 +65,6 @@ objects.
 @var rgbTupleType: Blender rgbTuple. A (red, green, blue) triplet.
 @var TextureType: Blender Texture.
 @var MTexType: Blender MTex.  Links materials to a texture.
+@var IDGroupType: Blender IDProperty Group type.
+@var IDArrayType: Blender IDProperty Array type.
 """

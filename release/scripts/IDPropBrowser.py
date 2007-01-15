@@ -20,6 +20,7 @@ etc.
 
 from Blender import *
 from Blender.BGL import *
+from Blender.Types import IDGroupType, IDArrayType
 import Blender
 
 def IsInRectWH(mx, my, x, y, wid, hgt):

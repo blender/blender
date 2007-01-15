@@ -24,6 +24,18 @@ class IDGroup:
 	
 	del group['property']
 	
+	To get the type of a property, use the type() operator, for example::
+	
+		if type(group['bleh']) == str: pass
+	
+	To tell if the property is a group or array type, import the Blender.Types module and test
+	against IDGroupType and IDArrayType, like so::
+	
+	from Blender.Types import IDGroupType, IDArrayType.
+	
+	if type(group['bleghr']) == IDGroupType:
+		(do something)
+	
 	@ivar name: The name of the property
 	@type name: string
 	"""

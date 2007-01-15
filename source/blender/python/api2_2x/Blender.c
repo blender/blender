@@ -932,7 +932,7 @@ extern PyTypeObject IDGroup_Iter_Type;
 void M_Blender_Init(void)
 {
 	PyObject *module;
-	PyObject *dict, *smode, *SpaceHandlers, *UnpackModes, *PropertyTypes;
+	PyObject *dict, *smode, *SpaceHandlers, *UnpackModes;
 	
 	/* G.scene should only aver be NULL if blender is executed in 
 	background mode, not loading a blend file and executing a python script eg.
@@ -965,18 +965,6 @@ void M_Blender_Init(void)
 		PyModule_AddObject(module, "SpaceHandlers", SpaceHandlers);
 	}
 
-	PropertyTypes = PyConstant_New();
-	if (PropertyTypes) {
-		BPy_constant *d = (BPy_constant*)PropertyTypes;
-		PyConstant_Insert(d,"STRING",PyInt_FromLong(IDP_STRING));
-		PyConstant_Insert(d,"INT",PyInt_FromLong(IDP_INT));
-		PyConstant_Insert(d,"FLOAT",PyInt_FromLong(IDP_FLOAT));
-		PyConstant_Insert(d,"ARRAY",PyInt_FromLong(IDP_ARRAY));
-		PyConstant_Insert(d,"GROUP",PyInt_FromLong(IDP_GROUP));
-		
-		PyModule_AddObject(module, "PropertyTypes", PropertyTypes);
-	}
-	
 	if (G.background)
 		smode = PyString_FromString("background");
 	else

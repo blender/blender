@@ -36,6 +36,7 @@
    is only need here now
 */
 
+extern PyTypeObject IDGroup_Type, IDArray_Type;
 extern PyTypeObject Action_Type, Armature_Type;
 extern PyTypeObject Pose_Type;
 extern PyTypeObject BezTriple_Type, Bone_Type, Button_Type;
@@ -249,6 +250,9 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &ThemeSpace_Type);
 	PyDict_SetItemString( dict, "ThemeUI_Type",
 			      ( PyObject * ) &ThemeUI_Type);
-
+	PyDict_SetItemString( dict, "IDGroupType",
+			      ( PyObject * ) &IDGroup_Type);
+	PyDict_SetItemString( dict, "IDArrayType",
+			      ( PyObject * ) &IDArray_Type);
 	return submodule;
 }
