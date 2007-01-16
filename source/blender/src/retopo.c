@@ -607,6 +607,9 @@ char retopo_paint(const unsigned short event)
 		case MIDDLEMOUSE:
 		case WHEELUPMOUSE:
 		case WHEELDOWNMOUSE:
+		case PAD0: case PAD1: case PAD2: case PAD3: case PAD4:
+		case PAD5: case PAD6: case PAD7: case PAD8: case PAD9:
+		case PADMINUS: case PADPLUSKEY:
 			return 1;
 		}
 		return 0;

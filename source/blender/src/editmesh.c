@@ -618,6 +618,8 @@ void free_editMesh(EditMesh *em)
 	G.totvert= G.totface= 0;
 
 	if(em->retopo_paint_data) retopo_free_paint_data(em->retopo_paint_data);
+	em->retopo_paint_data= NULL;
+	em->retopo_mode= 0;
 }
 
 /* on G.editMesh */
