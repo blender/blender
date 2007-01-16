@@ -1159,9 +1159,9 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 			writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
 
-			write_customdata(wd, mesh->pv?mesh->pv->totvert:mesh->totvert, &mesh->vdata);
-			write_customdata(wd, mesh->totedge, &mesh->edata);
-			write_customdata(wd, mesh->totface, &mesh->fdata);
+			write_customdata(wd, mesh->pv ? mesh->pv->totvert : mesh->totvert, &mesh->vdata);
+			write_customdata(wd, mesh->pv ? mesh->pv->totedge : mesh->totedge, &mesh->edata);
+			write_customdata(wd, mesh->pv ? mesh->pv->totface : mesh->totface, &mesh->fdata);
 
 			/* temporary upward compatibility until 2.43 release */
 			if(mesh->mtface) {

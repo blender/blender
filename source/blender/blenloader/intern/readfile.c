@@ -2507,14 +2507,23 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->mcol= newdataadr(fd, mesh->mcol);
 	mesh->msticky= newdataadr(fd, mesh->msticky);
 	mesh->dvert= newdataadr(fd, mesh->dvert);
+	
+	/* Partial-mesh visibility (do this before using totvert, totface, or totedge!) */
+	mesh->pv= newdataadr(fd, mesh->pv);
+	if(mesh->pv) {
+		mesh->pv->vert_map= newdataadr(fd, mesh->pv->vert_map);
+		mesh->pv->edge_map= newdataadr(fd, mesh->pv->edge_map);
+		mesh->pv->old_faces= newdataadr(fd, mesh->pv->old_faces);
+		mesh->pv->old_edges= newdataadr(fd, mesh->pv->old_edges);
+	}
 
 	/* normally direct_link_dverts should be called in direct_link_customdata,
 	   but for backwards compat in do_versions to work we do it here */
-	direct_link_dverts(fd, mesh->totvert, mesh->dvert);
+	direct_link_dverts(fd, mesh->pv ? mesh->pv->totvert : mesh->totvert, mesh->dvert);
 
-	direct_link_customdata(fd, &mesh->vdata, mesh->totvert);
-	direct_link_customdata(fd, &mesh->edata, mesh->totedge);
-	direct_link_customdata(fd, &mesh->fdata, mesh->totface);
+	direct_link_customdata(fd, &mesh->vdata, mesh->pv ? mesh->pv->totvert : mesh->totvert);
+	direct_link_customdata(fd, &mesh->edata, mesh->pv ? mesh->pv->totedge : mesh->totedge);
+	direct_link_customdata(fd, &mesh->fdata, mesh->pv ? mesh->pv->totface : mesh->totface);
 
 	mesh->bb= NULL;
 	mesh->oc= 0;
@@ -2548,21 +2557,12 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 			multires_calc_level_maps(lvl);
 		}
 	}
-
-	/* PMV */
-	mesh->pv= newdataadr(fd, mesh->pv);
-	if(mesh->pv) {
-		mesh->pv->vert_map= newdataadr(fd, mesh->pv->vert_map);
-		mesh->pv->edge_map= newdataadr(fd, mesh->pv->edge_map);
-		mesh->pv->old_faces= newdataadr(fd, mesh->pv->old_faces);
-		mesh->pv->old_edges= newdataadr(fd, mesh->pv->old_edges);
-	}
 	
 	if((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
 		TFace *tf= mesh->tface;
 		int i;
 
-		for (i=0; i<mesh->totface; i++, tf++) {
+		for (i=0; i< (mesh->pv ? mesh->pv->totface : mesh->totface); i++, tf++) {
 			SWITCH_INT(tf->col[0]);
 			SWITCH_INT(tf->col[1]);
 			SWITCH_INT(tf->col[2]);
