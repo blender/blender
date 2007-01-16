@@ -107,6 +107,8 @@ extern	float centre[3], centroid[3];	/* Originally defined in editobject.c */
 /*	Macros	*/
 #define TEST_EDITARMATURE {if(G.obedit==0) return; if( (G.vd->lay & G.obedit->lay)==0 ) return;}
 
+/* prototypes for later */
+static EditBone *editbone_name_exists (ListBase *ebones, char *name);	// proto for below
 
 /* **************** tools on Editmode Armature **************** */
 
@@ -426,12 +428,93 @@ void docentre_armature (Object *ob, int centremode)
 	}
 }
 
+/* Helper function for armature joining - link fixing */
+static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChannel *pchan, EditBone *curbone)
+{
+	Object *ob;
+	bPose *pose;
+	bPoseChannel *pchant;
+	bConstraint *con;
+	
+	/* let's go through all objects in database */
+	for (ob= G.main->object.first; ob; ob= ob->id.next) {
+		/* do some object-type specific things */
+		if (ob->type == OB_ARMATURE) {
+			pose= ob->pose;
+			for (pchant= pose->chanbase.first; pchant; pchant= pchant->next) {
+				for (con= pchant->constraints.first; con; con= con->next) {
+					Object *conOb;
+					char *subtarget;
+					
+					/* constraint targets */
+					conOb= get_constraint_target(con, &subtarget);
+					if (conOb == srcArm) {
+						if (strcmp(subtarget, "")==0)
+							set_constraint_target(con, tarArm, "");
+						else if (strcmp(pchan->name, subtarget)==0)
+							set_constraint_target(con, tarArm, curbone->name);
+					}
+					
+					/* action constraint? */
+					if (con->type == CONSTRAINT_TYPE_ACTION) {
+						bActionConstraint *data= con->data;
+						bAction *act;
+						bActionChannel *achan;
+						
+						if (data->act) {
+							act= data->act;
+							
+							for (achan= act->chanbase.first; achan; achan= achan->next) {
+								if (strcmp(achan->name, pchan->name)==0)
+									BLI_strncpy(achan->name, curbone->name, 32);
+							}
+						}
+					}
+					
+				}
+			}
+		}
+			
+		/* fix object-level constraints */
+		if (ob != srcArm) {
+			for (con= ob->constraints.first; con; con= con->next) {
+				Object *conOb;
+				char *subtarget;
+				
+				conOb= get_constraint_target(con, &subtarget);
+				if (conOb == srcArm) {
+					if (strcmp(subtarget, "")==0)
+						set_constraint_target(con, tarArm, "");
+					else if (strcmp(pchan->name, subtarget)==0)
+						set_constraint_target(con, tarArm, curbone->name);
+				}
+			}
+		}
+		
+		/* See if an object is parented to this armature */
+		if (ob->parent && (ob->parent == srcArm)) {
+			/* Is object parented to a bone of this src armature? */
+			if (ob->partype==PARBONE) {
+				/* bone name in object */
+				if (!strcmp(ob->parsubstr, pchan->name))
+					BLI_strncpy(ob->parsubstr, curbone->name, 32);
+			}
+			
+			/* make tar armature be new parent */
+			ob->parent = tarArm;
+		}
+	}	
+}
+
 int join_armature(void)
 {
 	Object	*ob;
+	bArmature *arm;
 	Base	*base, *nextbase;
-	ListBase eblist;
-	EditBone *curbone, *next;
+	bPose *pose, *opose;
+	bPoseChannel *pchan, *pchann;
+	ListBase ebbase, eblist;
+	EditBone *curbone;
 	float	mat[4][4], imat[4][4];
 	
 	/*	Ensure we're not in editmode and that the active object is an armature*/
@@ -439,27 +522,35 @@ int join_armature(void)
 	
 	ob= OBACT;
 	if(ob->type!=OB_ARMATURE) return 0;
+	arm= get_armature(ob);
 	
-	/*	Put the active armature into editmode and join the bones from the other one*/
-
-	enter_editmode(EM_WAITCURSOR);
+	/* Get editbones of active armature to add editbones to */
+	ebbase.first=ebbase.last= NULL;
+	make_boneList(&ebbase, &arm->bonebase, NULL);
+	pose= ob->pose;
 	
 	for (base=FIRSTBASE; base; base=nextbase) {
 		nextbase = base->next;
 		if (TESTBASE(base)){
 			if ((base->object->type==OB_ARMATURE) && (base->object!=ob)){
-				/* Make a list of editbones */
+				/* Make a list of editbones in current armature */
 				eblist.first=eblist.last= NULL;
 				make_boneList (&eblist, &((bArmature*)base->object->data)->bonebase,NULL);
+				
+				/* Get Pose of current armature */
+				opose= base->object->pose;
+				
 				/* Find the difference matrix */
 				Mat4Invert(imat, ob->obmat);
 				Mat4MulMat4(mat, base->object->obmat, imat);
 				
-				/* Copy bones from the object to the edit armature */
-				for (curbone=eblist.first; curbone; curbone=next){
-					next = curbone->next;
-
-					unique_editbone_name (curbone->name);
+				/* Copy bones and posechannels from the object to the edit armature */
+				for (pchan=opose->chanbase.first; pchan; pchan=pchann) {
+					pchann= pchan->next;
+					curbone= editbone_name_exists(&eblist, pchan->name);
+					
+					/* Get new name */
+					unique_editbone_name (&ebbase, curbone->name);
 					
 					/* Transform the bone */
 					{
@@ -491,8 +582,19 @@ int join_armature(void)
 						curbone->roll -= atan2(difmat[2][0], difmat[2][2]);
 						
 					}
+					
+					/* Fix Constraints and Other Links to this Bone and Armature */
+					joined_armature_fix_links(ob, base->object, pchan, curbone);
+					
+					/* Rename pchan */
+					sprintf(pchan->name, curbone->name);
+					
+					/* Jump Ship! */
 					BLI_remlink(&eblist, curbone);
-					BLI_addtail(&G.edbo, curbone);
+					BLI_addtail(&ebbase, curbone);
+					
+					BLI_remlink(&opose->chanbase, pchan);
+					BLI_addtail(&pose->chanbase, pchan);
 				}
 				
 				free_and_unlink_base(base);
@@ -502,7 +604,9 @@ int join_armature(void)
 	
 	DAG_scene_sort(G.scene);	// because we removed object(s)
 	
-	exit_editmode(EM_FREEDATA|EM_WAITCURSOR);
+	editbones_to_armature(&ebbase, ob);
+	if (ebbase.first) BLI_freelistN(&ebbase);
+	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	return 1;
@@ -925,8 +1029,6 @@ static void delete_bone(EditBone* exBone)
 	BLI_freelinkN (&G.edbo,exBone);
 }
 
-static EditBone *editbone_name_exists (char *name);	// proto for below
-
 /* only editmode! */
 void delete_armature(void)
 {
@@ -942,7 +1044,7 @@ void delete_armature(void)
 		bPoseChannel *chan, *next;
 		for (chan=G.obedit->pose->chanbase.first; chan; chan=next) {
 			next= chan->next;
-			curBone = editbone_name_exists (chan->name);
+			curBone = editbone_name_exists (&G.edbo, chan->name);
 			
 			if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
 				free_constraints(&chan->constraints);
@@ -952,7 +1054,7 @@ void delete_armature(void)
 				for(con= chan->constraints.first; con; con= con->next) {
 					char *subtarget = get_con_subtarget_name(con, G.obedit);
 					if (subtarget) {
-						curBone = editbone_name_exists (subtarget);
+						curBone = editbone_name_exists (&G.edbo, subtarget);
 						if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
 							con->flag |= CONSTRAINT_DISABLE;
 							subtarget[0]= 0;
@@ -1266,7 +1368,7 @@ static EditBone *add_editbone(char *name)
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
 	BLI_strncpy (bone->name, name, 32);
-	unique_editbone_name (bone->name);
+	unique_editbone_name(&G.edbo, bone->name);
 	
 	BLI_addtail(&G.edbo, bone);
 	
@@ -1451,7 +1553,7 @@ void adduplicate_armature(void)
 				curBone->temp = eBone;
 				eBone->temp = curBone;
 				
-				unique_editbone_name (eBone->name);
+				unique_editbone_name (&G.edbo, eBone->name);
 				BLI_addtail (&G.edbo, eBone);
 				if (!firstDup)
 					firstDup=eBone;
@@ -1698,11 +1800,13 @@ void clear_bone_parent(void)
 }
 	
 
-static EditBone *editbone_name_exists (char *name)
+static EditBone *editbone_name_exists (ListBase *ebones, char *name)
 {
 	EditBone	*eBone;
 	
-	for (eBone=G.edbo.first; eBone; eBone=eBone->next){
+	if (ebones == NULL) ebones = &G.edbo;
+	
+	for (eBone=ebones->first; eBone; eBone=eBone->next){
 		if (!strcmp (name, eBone->name))
 			return eBone;
 	}
@@ -1710,14 +1814,14 @@ static EditBone *editbone_name_exists (char *name)
 }
 
 /* note: there's a unique_bone_name() too! */
-void unique_editbone_name (char *name)
+void unique_editbone_name (ListBase *ebones, char *name)
 {
 	char		tempname[64];
 	int			number;
 	char		*dot;
 	
 	
-	if (editbone_name_exists(name)) {
+	if (editbone_name_exists(ebones, name)) {
 		
 		/*	Strip off the suffix, if it's a number */
 		number= strlen(name);
@@ -1729,7 +1833,7 @@ void unique_editbone_name (char *name)
 		
 		for (number = 1; number <=999; number++){
 			sprintf (tempname, "%s.%03d", name, number);
-			if (!editbone_name_exists(tempname)){
+			if (!editbone_name_exists(ebones, tempname)){
 				BLI_strncpy (name, tempname, 32);
 				return;
 			}
@@ -1837,7 +1941,7 @@ void extrude_armature(int forked)
 							else strcat(newbone->name, "_R");
 						}
 					}
-					unique_editbone_name(newbone->name);
+					unique_editbone_name(&G.edbo, newbone->name);
 					
 					/* Add the new bone to the list */
 					BLI_addtail(&G.edbo, newbone);
@@ -1903,7 +2007,7 @@ void subdivide_armature(void)
 
 						newbone->flag |= BONE_CONNECTED;
 						
-						unique_editbone_name (newbone->name);
+						unique_editbone_name (&G.edbo, newbone->name);
 						
 						/* correct parent bones */
 						for (tbone = G.edbo.first; tbone; tbone=tbone->next){
@@ -2535,9 +2639,9 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 		if(G.obedit && G.obedit->data==arm) {
 			EditBone	*eBone;
 
-			eBone= editbone_name_exists(oldname);
+			eBone= editbone_name_exists(&G.edbo, oldname);
 			if(eBone) {
-				unique_editbone_name (newname);
+				unique_editbone_name (&G.edbo, newname);
 				BLI_strncpy(eBone->name, newname, MAXBONENAME);
 			}
 			else return;
