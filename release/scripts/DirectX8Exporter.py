@@ -304,19 +304,14 @@ class xExport:
 			return parent_list
 		
 	def getChildren(self,obj):	
-		children_list = []	
-		for object in Blender.Scene.GetCurrent().objects: #Object.Get():
-			pare = object.parent
-			if pare == obj :
-				children_list.append(object)
-		return children_list
+		obs = Blender.Scene.GetCurrent().objects
+		return children_list = [ ob for ob in obs if ob.parent == obj ]
 	
 	def getArmChildren(self,obj):		
-		for object in Blender.Scene.GetCurrent().objects: #Object.Get():
-			pare = object.parent
-			if pare == obj :	
-				return object
-				
+		for ob in Blender.Scene.GetCurrent().objects: #Object.Get():
+			if ob.parent == obj :
+				return ob
+	
 	def getLocMat(self, obj):
 		pare = obj.parent
 		mat = obj.matrixWorld
