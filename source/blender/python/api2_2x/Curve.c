@@ -31,6 +31,7 @@
 
 #include "Curve.h" /*This must come first*/
 
+#include "BLI_blenlib.h"
 #include "BKE_main.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
@@ -329,7 +330,6 @@ PyTypeObject Curve_Type = {
 /*****************************************************************************/
 static PyObject *M_Curve_New( PyObject * self, PyObject * args )
 {
-	char buf[24];
 	char *name = NULL;
 	BPy_Curve *pycurve;	/* for Curve Data object wrapper in Python */
 	Curve *blcurve = 0;	/* for actual Curve Data we create in Blender */
@@ -1153,34 +1153,31 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
 
 
 /****
-  appendNurb( new_point )
-  create a new nurb in the Curve and add the point param to it.
-  returns a refernce to the newly created nurb.
-*****/
+ *
+ * appendNurb( new_point )
+ *
+ * create a new nurb in the Curve and add the point param to it.
+ * returns a refernce to the newly created nurb.
+ *
+ *****/
 
 static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
 {
-	Nurb *nurb_ptr = self->curve->nurb.first;
-	Nurb **pptr = ( Nurb ** ) & ( self->curve->nurb.first );
+	ListBase *nurb_ptr = &(self->curve->nurb);
+
 	Nurb *new_nurb;
-
-
-	/* walk to end of nurblist */
-	if( nurb_ptr ) {
-		while( nurb_ptr->next ) {
-			nurb_ptr = nurb_ptr->next;
-		}
-		pptr = &nurb_ptr->next;
-	}
 
 	/* malloc new nurb */
 	new_nurb = ( Nurb * ) MEM_callocN( sizeof( Nurb ), "appendNurb" );
+
 	if( !new_nurb )
 		return EXPP_ReturnPyObjError
 			( PyExc_MemoryError, "unable to malloc Nurb" );
 
 	if( CurNurb_appendPointToNurb( new_nurb, args ) ) {
-		*pptr = new_nurb;
+		// add nurb to curve
+		BLI_addtail( nurb_ptr, new_nurb);
+
 		new_nurb->resolu = self->curve->resolu;
 		new_nurb->resolv = self->curve->resolv;
 		new_nurb->hide = 0;
