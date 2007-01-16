@@ -543,7 +543,7 @@ char retopo_paint(const unsigned short event)
 			BIF_undo_push("Retopo toggle");
 		
 			allqueue(REDRAWVIEW3D, 1);
-			allqueue(REDRAWBUTSEDIT,0);
+			allqueue(REDRAWBUTSEDIT, 0);
 			break;
 		case CKEY:
 			retopo_paint_toggle_cyclic(rpd->lines.last);
@@ -551,11 +551,19 @@ char retopo_paint(const unsigned short event)
 			break;
 		case EKEY:
 			G.scene->toolsettings->retopo_mode= RETOPO_ELLIPSE;
-			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWVIEW3D, 1);
+			break;
+		case HKEY:
+			G.scene->toolsettings->retopo_hotspot= !G.scene->toolsettings->retopo_hotspot;
+			allqueue(REDRAWVIEW3D, 1);
+			break;
+		case LKEY:
+			G.scene->toolsettings->retopo_mode= RETOPO_LINE;
+			allqueue(REDRAWVIEW3D, 1);
 			break;
 		case PKEY:
 			G.scene->toolsettings->retopo_mode= RETOPO_PEN;
-			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWVIEW3D, 1);
 			break;
 		case XKEY:
 		case DELKEY:
