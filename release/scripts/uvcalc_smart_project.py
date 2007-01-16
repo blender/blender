@@ -869,13 +869,14 @@ def main():
 	USER_ISLAND_MARGIN = Draw.Create(0.0) # Only for hole filling.
 	USER_FILL_HOLES = Draw.Create(0)
 	USER_FILL_HOLES_QUALITY = Draw.Create(50) # Only for hole filling.
+	USER_VIEW_INIT = Draw.Create(0) # Only for hole filling.
 	
 	
 	pup_block = [\
 	'Projection',\
 	('Angle Limit:', USER_PROJECTION_LIMIT, 1, 89, 'lower for more projection groups, higher for less distortion.'),\
 	('Selected Faces Only', USER_ONLY_SELECTED_FACES, 'Use only selected faces from all selected meshes.'),\
-	'',\
+	('Init from view', USER_VIEW_INIT, 'The first projection will be from the view vector.'),\
 	'UV Layout',\
 	('Share Tex Space', USER_SHARE_SPACE, 'Objects Share texture space, map all objects into 1 uvmap.'),\
 	('Stretch to bounds', USER_STRETCH_ASPECT, 'Stretch the final output to texture bounds.'),\
@@ -913,7 +914,7 @@ def main():
 	USER_ISLAND_MARGIN = USER_ISLAND_MARGIN.val * 10
 	USER_FILL_HOLES = USER_FILL_HOLES.val
 	USER_FILL_HOLES_QUALITY = USER_FILL_HOLES_QUALITY.val
-	
+	USER_VIEW_INIT = USER_VIEW_INIT.val
 	
 	USER_PROJECTION_LIMIT_CONVERTED = cos(USER_PROJECTION_LIMIT * DEG_TO_RAD)
 	USER_PROJECTION_LIMIT_HALF_CONVERTED = cos((USER_PROJECTION_LIMIT/2) * DEG_TO_RAD)
@@ -952,8 +953,7 @@ def main():
 		#print '\n\n\nArchimap UV Unwrapper, mapping "%s", %i faces.' % (me.name, len(meshFaces))
 		Window.DrawProgressBar(0.1, 'Archimap UV Unwrapper, mapping "%s", %i faces.' % (me.name, len(meshFaces)))
 		
-		# Generate Projection
-		projectVecs = [] # We add to this allong the way
+
 		
 		# =======
 		# Generate a projection list from face normals, this is ment to be smart :)
@@ -963,7 +963,7 @@ def main():
 		# meshFaces = []
 		
 		# meshFaces.sort( lambda a, b: cmp(b.area , a.area) ) # Biggest first.
-		try:	meshFaces.sort( lambda a: -a.area ) 
+		try:	meshFaces.sort( key = lambda a: -a.area ) 
 		except:	meshFaces.sort( lambda a, b: cmp(b.area , a.area) )
 			
 		# remove all zero area faces
@@ -981,6 +981,12 @@ def main():
 		
 		
 		# Initialize projectVecs
+		if USER_VIEW_INIT:
+			# Generate Projection
+			projectVecs = [Vector(Window.GetViewVector()) * ob.matrixWorld.copy().invert().rotationPart()] # We add to this allong the way
+		else:
+			projectVecs = []
+		
 		newProjectVec = meshFaces[0].no
 		newProjectMeshFaces = [meshFaces[0]]	# Popping stuffs it up.
 		
@@ -991,17 +997,26 @@ def main():
 		# This is popped
 		tempMeshFaces = meshFaces[:]
 		
+		
+		
+		# This while only gathers projection vecs, faces are assigned later on.
 		while 1:
 			# If theres none there then start with the largest face
+			
+			# add all the faces that are close.
+			for fIdx in xrange(len(tempMeshFaces)-1, -1, -1):
+				# Use half the angle limit so we dont overweight faces towards this
+				# normal and hog all the faces.
+				#print newProjectVec
+				if DotVecs(newProjectVec, tempMeshFaces[fIdx].no) > USER_PROJECTION_LIMIT_HALF_CONVERTED:
+					newProjectMeshFaces.append(tempMeshFaces.pop(fIdx))
+			
 			
 			# Pick the face thats most different to all existing angles :)
 			mostUniqueAngle = 1.0 # 1.0 is 0d. no difference.
 			mostUniqueIndex = 0 # fake
 			
-			fIdx = len(tempMeshFaces)
-			
-			while fIdx:
-				fIdx-=1
+			for fIdx in xrange(len(tempMeshFaces)-1, -1, -1):
 				angleDifference = -1.0 # 180d difference.
 				
 				# Get the closest vec angle we are to.
@@ -1015,40 +1030,28 @@ def main():
 					# We have a new most different angle
 					mostUniqueIndex = fIdx
 					mostUniqueAngle = angleDifference
-				
 			
 			if mostUniqueAngle < USER_PROJECTION_LIMIT_CONVERTED:
 				#print 'adding', mostUniqueAngle, USER_PROJECTION_LIMIT, len(newProjectMeshFaces)
 				newProjectVec = tempMeshFaces[mostUniqueIndex].no
-				newProjectMeshFaces = [tempMeshFaces.pop(mostUniqueIndex)]				
+				newProjectMeshFaces = [tempMeshFaces.pop(mostUniqueIndex)]
+				
+				
+				# Now weight the vector to all its faces, will give a more direct projection
+				# if the face its self was not representive of the normal from surrounding faces.
+				averageVec = Vector(0,0,0)
+				for fprop in newProjectMeshFaces:
+					averageVec += (fprop.no * fprop.area)
+				
+				if averageVec.x != 0 or averageVec.y != 0 or averageVec.z != 0: # Avoid NAN
+					projectVecs.append(averageVec.normalize())
+			
 			else:
 				if len(projectVecs) >= 1: # Must have at least 2 projections
 					break
 			
 			
-			# Now we have found the most different vector, add all the faces that are close.
-			fIdx = len(tempMeshFaces)
-			while fIdx:
-				fIdx -= 1
-				
-				# Use half the angle limit so we dont overweight faces towards this
-				# normal and hog all the faces.
-				if DotVecs(newProjectVec, tempMeshFaces[fIdx].no) > USER_PROJECTION_LIMIT_HALF_CONVERTED:
-					newProjectMeshFaces.append(tempMeshFaces.pop(fIdx))
 			
-			
-			# Now weight the vector to all its faces, will give a more direct projection
-			# if the face its self was not representive of the normal from surrounding faces.
-			averageVec = Vector(0,0,0)
-			for fprop in newProjectMeshFaces:
-				averageVec += (fprop.no * fprop.area)
-			
-			if averageVec.x != 0 or averageVec.y != 0 or averageVec.z != 0: # Avoid NAN
-				averageVec.normalize()				
-				projectVecs.append(averageVec)
-			
-			# Now we have used it, ignore it.
-			newProjectMeshFaces = []
 			
 		# If there are only zero area faces then its possible
 		# there are no projectionVecs
@@ -1059,9 +1062,8 @@ def main():
 		faceProjectionGroupList =[[] for i in xrange(len(projectVecs)) ]
 		
 		# MAP and Arrange # We know there are 3 or 4 faces here 
-		fIdx = len(meshFaces)
-		while fIdx:
-			fIdx-=1
+		
+		for fIdx in xrange(len(meshFaces)-1, -1, -1):
 			fvec = meshFaces[fIdx].no
 			i = len(projectVecs)
 			
@@ -1097,8 +1099,9 @@ def main():
 			
 			# Get the faces UV's from the projected vertex.
 			for f in faceProjectionGroupList[i]:
+				f_uv = f.uv
 				for j, v in enumerate(f.v):
-					f.uv[j][:] = (MatProj * v.co)[:2]
+					f_uv[j][:] = (MatProj * v.co)[:2]
 		
 		
 		if USER_SHARE_SPACE:
