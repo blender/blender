@@ -2832,9 +2832,14 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			}
 		}
 		else if(sculpt_data()->draw_flag & SCULPTDRAW_BRUSH) {
-			short c[2];
-			getmouseco_areawin(c);
-			fdrawXORcirc((float)c[0], (float)c[1], sculptmode_brush()->size);
+			short csc[2], car[2];
+			getmouseco_sc(csc);
+			getmouseco_areawin(car);
+			if(csc[0] > v3d->area->winrct.xmin && 
+			   csc[1] > v3d->area->winrct.ymin &&
+			   csc[0] < v3d->area->winrct.xmax &&
+			   csc[1] < v3d->area->winrct.ymax)
+				fdrawXORcirc((float)car[0], (float)car[1], sculptmode_brush()->size);
 		}
 	}
 	retopo_draw_paint_lines();
