@@ -557,6 +557,18 @@ char retopo_paint(const unsigned short event)
 			G.scene->toolsettings->retopo_mode= RETOPO_PEN;
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
+		case XKEY:
+		case DELKEY:
+			l= rpd->lines.last;
+			if(l) {
+				BLI_freelistN(&l->points);
+				BLI_freelistN(&l->hitlist);
+				BLI_freelinkN(&rpd->lines, l);
+				if(rpd->nearest.line == l)
+					rpd->nearest.line= NULL;
+				allqueue(REDRAWVIEW3D, 0);
+			}
+			break;
 		case LEFTMOUSE:
 			if(!rpd->in_drag) { /* Start new drag */
 				rpd->in_drag= 1;
@@ -603,6 +615,7 @@ char retopo_paint(const unsigned short event)
 				case RETOPO_ELLIPSE:
 					break;
 				}
+				allqueue(REDRAWVIEW3D, 0);
 			}
 			break;
 		case MIDDLEMOUSE:
