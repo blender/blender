@@ -113,8 +113,8 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width,
 		
 		if (!ibuf1) return;
 
-		dest= (char *) out->rect;
-		src1= (char *) ibuf1->rect;
+		dest= (unsigned char *) out->rect;
+		src1= (unsigned char *) ibuf1->rect;
 
 		make_gamma_table(cast->setup_m, cast->gain_m, cast->gamma_m,
 				 gamma_table_m);
