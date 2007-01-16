@@ -1476,12 +1476,10 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	/* AO pass */
 	if(R.wrld.mode & WO_AMB_OCC) {
 		if(passflag & (SCE_PASS_COMBINED|SCE_PASS_AO)) {
-			if(ma->mode & MA_SHADOW) {
-				/* AO was calculated for scanline already */
-				if(shi->depth)
-					ambient_occlusion(shi);
-				VECCOPY(shr->ao, shi->ao);
-			}
+			/* AO was calculated for scanline already */
+			if(shi->depth)
+				ambient_occlusion(shi);
+			VECCOPY(shr->ao, shi->ao);
 		}
 	}
 	
@@ -1551,14 +1549,12 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	/* add AO in combined? */
 	if(R.wrld.mode & WO_AMB_OCC) {
 		if(shi->combinedflag & SCE_PASS_AO) {
-			if(ma->mode & MA_SHADOW) {
-				float aodiff[3];
-				ambient_occlusion_to_diffuse(shi, aodiff);
-				
-				shr->combined[0] += shi->r*aodiff[0];
-				shr->combined[1] += shi->g*aodiff[1];
-				shr->combined[2] += shi->b*aodiff[2];
-			}
+			float aodiff[3];
+			ambient_occlusion_to_diffuse(shi, aodiff);
+			
+			shr->combined[0] += shi->r*aodiff[0];
+			shr->combined[1] += shi->g*aodiff[1];
+			shr->combined[2] += shi->b*aodiff[2];
 		}
 	}
 	

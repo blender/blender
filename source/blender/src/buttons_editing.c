@@ -2808,7 +2808,7 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 	uiBlockEndAlign(block);
 			
 	uiDefButF(block, NUM,REDRAWVIEW3D, "Size:",
-			  170, 25, 150, 20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "The size that the camera is displayed in the 3D View (different to the object's scale)");
+			  170, 25, 150, 20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "The size that the camera is displayed in the 3D View (different from the object's scale)");
 
 	uiDefBut(block, LABEL, 0, "Shift:", 10, 25, 150, 20, 0, 0.0, 0.0, 0, 0, "");
 				  
