@@ -403,6 +403,7 @@ void retopo_paint_toggle(void *a, void *b)
 		rpd->nearest.line= NULL;
 		G.scene->toolsettings->line_div= 25;
 		G.scene->toolsettings->ellipse_div= 25;
+		G.scene->toolsettings->retopo_hotspot= 1;
 	} else retopo_end_okee();
 
 	BIF_undo_push("Retopo toggle");
@@ -496,7 +497,7 @@ char retopo_paint(const unsigned short event)
 					rpd->nearest.line= NULL;
 					
 					break;
-				} else { /* Find nearest endpoint */
+				} else if(G.scene->toolsettings->retopo_hotspot) { /* Find nearest endpoint */
 					float sdist;
 					RetopoPaintLine *l= rpd->lines.first;
 					RetopoPaintSel n= {NULL,NULL,l,1};

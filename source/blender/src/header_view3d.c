@@ -4994,18 +4994,29 @@ void view3d_buttons(void)
 	if(retopo_mesh_paint_check()) {
  		RetopoPaintData *rpd= get_retopo_paint_data();
  		if(rpd) {
- 			uiDefButC(block,ROW,B_NOP,"Pen",xco,0,40,20,&G.scene->toolsettings->retopo_mode,6.0,RETOPO_PEN,0,0,"");
+ 			ToolSettings *ts= G.scene->toolsettings;
+ 			
+ 			uiDefButC(block,ROW,B_REDR,"Pen",xco,0,40,20,&ts->retopo_mode,6.0,RETOPO_PEN,0,0,"");
  			xco+=40;
- 			uiDefButC(block,ROW,B_NOP,"Line",xco,0,40,20,&G.scene->toolsettings->retopo_mode,6.0,RETOPO_LINE,0,0,"");
+ 			uiDefButC(block,ROW,B_REDR,"Line",xco,0,40,20,&ts->retopo_mode,6.0,RETOPO_LINE,0,0,"");
  			xco+=40;
- 			uiDefButC(block,ROW,B_NOP,"Ellipse",xco,0,60,20,&G.scene->toolsettings->retopo_mode,6.0,RETOPO_ELLIPSE,0,0,"");
+ 			uiDefButC(block,ROW,B_REDR,"Ellipse",xco,0,60,20,&ts->retopo_mode,6.0,RETOPO_ELLIPSE,0,0,"");
  			xco+=65;
 			
  			uiBlockBeginAlign(block);
- 			uiDefButC(block,NUM,B_NOP,"LineDiv",xco,0,80,20,&G.scene->toolsettings->line_div,1,50,0,0,"Subdivisions per retopo line");
- 			xco+=80;
- 			uiDefButC(block,NUM,B_NOP,"EllDiv",xco,0,80,20,&G.scene->toolsettings->ellipse_div,3,50,0,0,"Subdivisions per retopo ellipse");
- 			xco+=85;
+ 			if(ts->retopo_mode == RETOPO_PEN) {
+ 				uiDefButC(block,TOG,B_NOP,"Hotspot",xco,0,60,20, &ts->retopo_hotspot, 0,0,0,0,"Show hotspots at line ends to allow line continuation");
+	 			xco+=80;
+ 			}
+ 			else if(ts->retopo_mode == RETOPO_LINE) {
+	 			uiDefButC(block,NUM,B_NOP,"LineDiv",xco,0,80,20,&ts->line_div,1,50,0,0,"Subdivisions per retopo line");
+	 			xco+=80;
+	 		}
+			else if(ts->retopo_mode == RETOPO_ELLIPSE) {
+	 			uiDefButC(block,NUM,B_NOP,"EllDiv",xco,0,80,20,&ts->ellipse_div,3,50,0,0,"Subdivisions per retopo ellipse");
+	 			xco+=80;
+	 		}
+ 			xco+=5;
  			
  			uiBlockEndAlign(block);
  		}
