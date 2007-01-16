@@ -26,14 +26,14 @@ Missing:<br>
     The url tag is irrelevant for Blender.
 
 Known issues:<br>
-    None.
-
+    - Some objects may be imported with wrong normals due to wrong information in the model itself. This can be noticed by strange shading, like darker than expected parts in the model. To fix this, select the mesh with wrong normals, enter edit mode and tell Blender to recalculate the normals, either to make them point outside (the usual case) or inside.<br>
+ 
 Config Options:<br>
     - textures dir (string): if non blank, when imported texture paths are
 wrong in the .ac file, Blender will also look for them at this dir.
 
 Notes:<br>
-    - when looking for assigned textures, Blender tries in order: the actual
+   - When looking for assigned textures, Blender tries in order: the actual
 paths from the .ac file, the .ac file's dir and the default textures dir path
 users can configure (see config options above).
 """
@@ -95,6 +95,8 @@ def update_registry():
 rd = Registry.GetKey('ac3d_import', True)
 
 if rd:
+	if 'GROUP' in rd:
+		update_registry()
 	TEXTURES_DIR = rd['TEXTURES_DIR']
 else: update_registry()
 
@@ -454,16 +456,19 @@ class AC3DImport:
 						empty.select(True)
 						o.bl_obj = empty
 
-				bl_children = [c.bl_obj for c in children]
+				bl_children = [c.bl_obj for c in children if c.bl_obj != None]
+				
 				o.bl_obj.makeParent(bl_children, 0, 1)
 				for child in children:
+					blob = child.bl_obj
+					if not blob: continue
 					if child.loc:
-						child.bl_obj.setLocation(child.loc)
+						blob.setLocation(child.loc)
 					if child.rot:
 						eul = euler_in_radians(child.rot.toEuler())
-						child.bl_obj.setEuler(eul)
+						blob.setEuler(eul)
 					if child.size:
-						child.bl_obj.size = child.size
+						blob.size = child.size
 
 			newlist.append(o)
 
@@ -542,79 +547,81 @@ class AC3DImport:
 			for e in obj.elist:
 				mesh.edges.extend(e)
 
-			mesh.faces.extend(obj.flist_v)
+			if obj.flist_v:
+				mesh.faces.extend(obj.flist_v)
+				mesh.faceUV = True
 
-			# checking if the .ac file had duplicate faces (Blender ignores them):
-			if len(mesh.faces) != len(obj.flist_v):
-				# it has, ugh. Let's clean the uv list:
-				lenfl = len(obj.flist_v)
-				flist = obj.flist_v
-				uvlist = obj.flist_uv
-				cfglist = obj.flist_cfg
-				for f in flist:
-					f.sort()
-				for fi in range(lenfl - 1):
-					if flist[fi] in flist[fi+1:]:
-						uvlist.pop(fi)
-						cfglist.pop(fi)
+				# checking if the .ac file had duplicate faces (Blender ignores them):
+				if len(mesh.faces) != len(obj.flist_v):
+					# it has, ugh. Let's clean the uv list:
+					lenfl = len(obj.flist_v)
+					flist = obj.flist_v
+					uvlist = obj.flist_uv
+					cfglist = obj.flist_cfg
+					for f in flist:
+						f.sort()
+					for fi in range(lenfl - 1):
+						if flist[fi] in flist[fi+1:]:
+							uvlist.pop(fi)
+							cfglist.pop(fi)
 
-			if obj.flist_v: mesh.faceUV = True
-
-			img = None
-			tex = None
-			if obj.tex != '' and mesh.faceUV:
-				baseimgname = bsys.basename(obj.tex)
-				if obj.tex in bl_images.keys():
-					img = bl_images[obj.txt]
-					tex = bl_textures[img]
-				else:
-					try:
-						img = Image.Load(obj.tex)
-						# Commented because it's unnecessary:
-						#img.xrep = int(obj.texrep[0])
-						#img.yrep = int(obj.texrep[1])
-					except:
+				img = None
+				tex = None
+				if obj.tex != '':
+					baseimgname = bsys.basename(obj.tex)
+					if obj.tex in bl_images.keys():
+						img = bl_images[obj.txt]
+						tex = bl_textures[img]
+					else:
 						try:
-							obj.tex = self.importdir + '/' + baseimgname
 							img = Image.Load(obj.tex)
+							# Commented because it's unnecessary:
+							#img.xrep = int(obj.texrep[0])
+							#img.yrep = int(obj.texrep[1])
 						except:
 							try:
-								obj.tex = TEXTURES_DIR + baseimgname
+								obj.tex = self.importdir + '/' + baseimgname
 								img = Image.Load(obj.tex)
 							except:
-								inform("Couldn't load texture: %s" % baseimgname)
+								try:
+									obj.tex = TEXTURES_DIR + baseimgname
+									img = Image.Load(obj.tex)
+								except:
+									inform("Couldn't load texture: %s" % baseimgname)
+						if img:
+							bl_images[obj.tex] = img
+
+				i = 0
+				for f in obj.flist_cfg:
+					fmat = f[0]
+					is_smooth = f[1]
+					twoside = f[2]
+					bface = mesh.faces[i]
+					bface.smooth = is_smooth
+					if twoside: bface.mode |= FACE_TWOSIDE
 					if img:
-						bl_images[obj.tex] = img
+						bface.mode |= FACE_TEX
+						bface.image = img
+					bface.mat = objmat_indices.index(fmat)
+					fuv = obj.flist_uv[i]
+					if obj.texoff:
+						uoff = obj.texoff[0]
+						voff = obj.texoff[1]
+						urep = obj.texrep[0]
+						vrep = obj.texrep[1]
+						for uv in fuv:
+							uv[0] *= urep
+							uv[1] *= vrep
+							uv[0] += uoff
+							uv[1] += voff
 
-			i = 0
-			for f in obj.flist_cfg:
-				fmat = f[0]
-				is_smooth = f[1]
-				twoside = f[2]
-				bface = mesh.faces[i]
-				bface.smooth = is_smooth
-				if twoside: bface.mode |= FACE_TWOSIDE
-				if img:
-					bface.mode |= FACE_TEX
-					bface.image = img
-				bface.mat = objmat_indices.index(fmat)
-				fuv = obj.flist_uv[i]
-				if obj.texoff:
-					uoff = obj.texoff[0]
-					voff = obj.texoff[1]
-					urep = obj.texrep[0]
-					vrep = obj.texrep[1]
-					for uv in fuv:
-						uv[0] *= urep
-						uv[1] *= vrep
-						uv[0] += uoff
-						uv[1] += voff
+					mesh.faces[i].uv = fuv
 
-				mesh.faces[i].uv = fuv
+					i += 1
 
-				i += 1
+				mesh.calcNormals()
 
-			mesh.mode = MESH_AUTOSMOOTH
+				mesh.mode = MESH_AUTOSMOOTH
 
 			obj_idx += 1
 
@@ -632,5 +639,7 @@ def filesel_callback(filename):
 	Window.WaitCursor(0)
 	endtime = bsys.time() - starttime
 	inform('Done! Data imported in %.3f seconds.\n' % endtime)
+
+Window.EditMode(0)
 
 Window.FileSelector(filesel_callback, "Import AC3D", "*.ac")
