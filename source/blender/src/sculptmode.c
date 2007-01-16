@@ -2059,6 +2059,7 @@ void set_sculptmode()
 		G.f &= ~G_SCULPTMODE;
 
 		sculptmode_free_session(G.scene);
+		if(get_mesh(OBACT)->pv) sculptmode_pmv_off(get_mesh(OBACT));
 	} else {
 		G.f |= G_SCULPTMODE;
 
