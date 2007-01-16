@@ -255,14 +255,14 @@ class edgeLoop(object):
 def getSelectedEdges(me, ob):	
 	MESH_MODE= Blender.Mesh.Mode()
 	
-	if MESH_MODE==Blender.Mesh.SelectModes.EDGE or MESH_MODE==Blender.Mesh.SelectModes.VERTEX:
+	if MESH_MODE & Blender.Mesh.SelectModes.EDGE or MESH_MODE & Blender.Mesh.SelectModes.VERTEX:
 		Blender.Mesh.Mode(Blender.Mesh.SelectModes.EDGE)
 		edges= [ ed for ed in me.edges if ed.sel ]
 		# print len(edges), len(me.edges)
 		Blender.Mesh.Mode(MESH_MODE)
 		return edges
 	
-	elif MESH_MODE==Blender.Mesh.SelectModes.FACE:
+	elif MESH_MODE & Blender.Mesh.SelectModes.FACE:
 		Blender.Mesh.Mode(Blender.Mesh.SelectModes.EDGE)
 		
 		# value is [edge, face_sel_user_in]
@@ -281,6 +281,7 @@ def getSelectedEdges(me, ob):
 		
 		Blender.Mesh.Mode(MESH_MODE)
 		return [ ed_data[0] for ed_data in edge_dict.itervalues() if ed_data[1] == 1 ]
+	
 	
 
 def getVertLoops(selEdges, me):
