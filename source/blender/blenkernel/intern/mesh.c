@@ -174,6 +174,9 @@ void free_mesh(Mesh *me)
 		if(me->pv->edge_map) MEM_freeN(me->pv->edge_map);
 		if(me->pv->old_faces) MEM_freeN(me->pv->old_faces);
 		if(me->pv->old_edges) MEM_freeN(me->pv->old_edges);
+		me->totvert= me->pv->totvert;
+		me->totedge= me->pv->totedge;
+		me->totface= me->pv->totface;
 		MEM_freeN(me->pv);
 	}
 
