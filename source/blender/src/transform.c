@@ -169,26 +169,29 @@ float InputScaleRatio(TransInfo *t, short mval[2]) {
 }
 
 float InputHorizontalRatio(TransInfo *t, short mval[2]) {
-	int y, pad;
+	float x, pad;
 
 	pad = curarea->winx / 10;
 
 	if (t->flag & T_SHIFT_MOD) {
 		/* deal with Shift key by adding motion / 10 to motion before shift press */
-		y = t->shiftmval[0] + (mval[0] - t->shiftmval[0]) / 10;
+		x = t->shiftmval[0] + (float)(mval[0] - t->shiftmval[0]) / 10.0f;
 	}
 	else {
-		y = mval[0];
+		x = mval[0];
 	}
-	return (float)(y - pad) / (float)(curarea->winx - 2 * pad);
+	return (x - pad) / (curarea->winx - 2 * pad);
 }
 
 float InputHorizontalAbsolute(TransInfo *t, short mval[2]) {
 	float vec[3];
 	if(t->flag & T_SHIFT_MOD) {
-		short dx = t->shiftmval[0] + (mval[0] - t->shiftmval[0]) / 10 - t->imval[0];
-		short dy = t->shiftmval[1] + (mval[1] - t->shiftmval[1]) / 10 - t->imval[1];
-		convertViewVec(t, t->vec, dx, dy);
+		float dvec[3];
+		/* calculate the main translation and the precise one separate */
+		convertViewVec(t, dvec, (short)(mval[0] - t->shiftmval[0]), (short)(mval[1] - t->shiftmval[1]));
+		VecMulf(dvec, 0.1f);
+		convertViewVec(t, t->vec, (short)(t->shiftmval[0] - t->imval[0]), (short)(t->shiftmval[1] - t->imval[1]));
+		VecAddf(t->vec, t->vec, dvec);
 	}
 	else {
 		convertViewVec(t, t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
@@ -197,12 +200,30 @@ float InputHorizontalAbsolute(TransInfo *t, short mval[2]) {
 	return Inpf(t->viewinv[0], vec) * 2.0f;
 }
 
+float InputVerticalRatio(TransInfo *t, short mval[2]) {
+	float y, pad;
+
+	pad = curarea->winy / 10;
+
+	if (t->flag & T_SHIFT_MOD) {
+		/* deal with Shift key by adding motion / 10 to motion before shift press */
+		y = t->shiftmval[1] + (float)(mval[1] - t->shiftmval[1]) / 10.0f;
+	}
+	else {
+		y = mval[0];
+	}
+	return (y - pad) / (curarea->winy - 2 * pad);
+}
+
 float InputVerticalAbsolute(TransInfo *t, short mval[2]) {
 	float vec[3];
 	if(t->flag & T_SHIFT_MOD) {
-		short dx = t->shiftmval[0] + (mval[0] - t->shiftmval[0]) / 10 - t->imval[0];
-		short dy = t->shiftmval[1] + (mval[1] - t->shiftmval[1]) / 10 - t->imval[1];
-		convertViewVec(t, t->vec, dx, dy);
+		float dvec[3];
+		/* calculate the main translation and the precise one separate */
+		convertViewVec(t, dvec, (short)(mval[0] - t->shiftmval[0]), (short)(mval[1] - t->shiftmval[1]));
+		VecMulf(dvec, 0.1f);
+		convertViewVec(t, t->vec, (short)(t->shiftmval[0] - t->imval[0]), (short)(t->shiftmval[1] - t->imval[1]));
+		VecAddf(t->vec, t->vec, dvec);
 	}
 	else {
 		convertViewVec(t, t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
@@ -1185,9 +1206,8 @@ int Warp(TransInfo *t, short mval[2])
 	Mat4MulVecfl(t->viewmat, cursor);
 	VecSubf(cursor, cursor, t->viewmat[3]);
 
-	// amount of degrees for warp, 450 = allow to create 360 degree warp
-	circumfac= 450.0f*(mval[1] - t->imval[1]) / (float)(curarea->winy);
-	circumfac+= 90.0f;
+	// amount of degrees for warp
+	circumfac= 360.0f * InputHorizontalRatio(t, mval);
 
 	snapGrid(t, &circumfac);
 	applyNumInput(&t->num, &circumfac);
