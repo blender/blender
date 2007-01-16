@@ -164,6 +164,16 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, cam
 		#print xlen, ylen, 'xlen, ylen'
 		
 	else:
+		if width > height:
+			min_asp = int((float(height) / width) * 200)
+			render_context.aspectX= min_asp
+			render_context.aspectY= 200
+		else:
+			min_asp = int((float(width) / height) * 200)
+			render_context.aspectX= 200
+			render_context.aspectY= min_asp
+		
+		
 		render_cam_data.scale= 1.0
 		render_cam_ob.LocZ= 1.0
 		render_cam_ob.LocX= 0.5
