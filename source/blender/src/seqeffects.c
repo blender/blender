@@ -105,7 +105,7 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 			pis->version= version();
 			if (pis->version >= 2 && pis->version <= 5) {
 				int (*info_func)(PluginInfo *);
-				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info");;
+				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info");
 
 				info_func= (int (*)(PluginInfo *))PIL_dynlib_find_symbol(pis->handle, "plugin_getinfo");
 
@@ -871,7 +871,7 @@ static float invGammaCorrect(float col)
 	else if (i >= RE_GAMMA_TABLE_SIZE) res = pow(col, valid_inv_gamma);
 	else res = inv_gamma_range_table[i] + 
   			 ( (col - colour_domain_table[i]) * inv_gamfactor_table[i]);
-			   
+ 
 	return res;
 } /* end of float invGammaCorrect(float col) */
 
@@ -1162,8 +1162,8 @@ static void do_add_effect(Sequence * seq,int cfra,
 	} else {
 		do_add_effect_byte(
 			facf0, facf1, x, y,
-			(char*) ibuf1->rect, (char*) ibuf2->rect,
-			(char*) out->rect);
+			(unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
+			(unsigned char*) out->rect);
 	}
 }
 
@@ -1383,8 +1383,8 @@ static void do_drop_effect(Sequence * seq,int cfra,
 	} else {
 		do_drop_effect_byte(
 			facf0, facf1, x, y,
-			(char*) ibuf1->rect, (char*) ibuf2->rect,
-			(char*) out->rect);
+			(unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
+			(unsigned char*) out->rect);
 	}
 }
 
@@ -1396,7 +1396,7 @@ static void do_mul_effect_byte(float facf0, float facf1, int x, int y,
 			       unsigned char *rect1, unsigned char *rect2, 
 			       unsigned char *out)
 {
-	int  xo, fac1, fac3;
+	int xo, fac1, fac3;
 	char *rt1, *rt2, *rt;
 
 	xo= x;
@@ -1445,7 +1445,7 @@ static void do_mul_effect_float(float facf0, float facf1, int x, int y,
 			        float *rect1, float *rect2, 
 			        float *out)
 {
-	int  xo;
+	int xo;
 	float fac1, fac3;
 	float *rt1, *rt2, *rt;
 
@@ -1503,8 +1503,8 @@ static void do_mul_effect(Sequence * seq,int cfra,
 	} else {
 		do_mul_effect_byte(
 			facf0, facf1, x, y,
-			(char*) ibuf1->rect, (char*) ibuf2->rect,
-			(char*) out->rect);
+			(unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
+			(unsigned char*) out->rect);
 	}
 }
 
@@ -1542,16 +1542,16 @@ static float in_band(float width,float dist, float perc,int side,int dir){
 static float check_zone(int x, int y, int xo, int yo, 
 			Sequence *seq, float facf0) 
 {
-   float posx, posy,hyp,hyp2,angle,hwidth,b1,b2,b3,pointdist;
-   /*some future stuff
-   float hyp3,hyp4,b4,b5	   
-   */
-   float temp1,temp2,temp3,temp4; //some placeholder variables
-   float halfx = xo/2;
-   float halfy = yo/2;
-   float widthf,output=0;
-   WipeVars *wipe = (WipeVars *)seq->effectdata;
-   int width;
+	float posx, posy,hyp,hyp2,angle,hwidth,b1,b2,b3,pointdist;
+/*some future stuff
+float hyp3,hyp4,b4,b5	   
+*/
+	float temp1,temp2,temp3,temp4; //some placeholder variables
+	float halfx = xo/2;
+	float halfy = yo/2;
+	float widthf,output=0;
+	WipeVars *wipe = (WipeVars *)seq->effectdata;
+	int width;
 
  	angle = wipe->angle;
  	if(angle < 0){
@@ -1568,212 +1568,193 @@ static float check_zone(int x, int y, int xo, int yo,
 		posx = xo - facf0 * xo;
 		posy = yo - facf0 * yo;
 	}
-   switch (wipe->wipetype) {
-       case DO_SINGLE_WIPE:
-         width = (int)(wipe->edgeWidth*((xo+yo)/2.0));
-         hwidth = (float)width/2.0;       
-                
-         if (angle == 0.0)angle = 0.000001;
-         b1 = posy - (-angle)*posx;
-         b2 = y - (-angle)*x;
-         hyp  = fabs(angle*x+y+(-posy-angle*posx))/sqrt(angle*angle+1);
-         if(angle < 0){
-         	 temp1 = b1;
-         	 b1 = b2;
-         	 b2 = temp1;
-         }
-         if(wipe->forward){	 
-		     if(b1 < b2)
-				output = in_band(width,hyp,facf0,1,1);
-	         else
-				output = in_band(width,hyp,facf0,0,1);
-		 }
-		 else{	 
-	         if(b1 < b2)
-				output = in_band(width,hyp,facf0,0,1);
-	         else
-				output = in_band(width,hyp,facf0,1,1);
-		 }
-		 break;
+	switch (wipe->wipetype) {
+		case DO_SINGLE_WIPE:
+			width = (int)(wipe->edgeWidth*((xo+yo)/2.0));
+			hwidth = (float)width/2.0;
+
+			if (angle == 0.0)angle = 0.000001;
+			b1 = posy - (-angle)*posx;
+			b2 = y - (-angle)*x;
+			hyp = fabs(angle*x+y+(-posy-angle*posx))/sqrt(angle*angle+1);
+			if(angle < 0){
+				temp1 = b1;
+				b1 = b2;
+				b2 = temp1;
+			}
+			if(wipe->forward){	 
+				if(b1 < b2)
+					output = in_band(width,hyp,facf0,1,1);
+				else
+					output = in_band(width,hyp,facf0,0,1);
+		 	} else{	 
+				if(b1 < b2)
+					output = in_band(width,hyp,facf0,0,1);
+				else
+					output = in_band(width,hyp,facf0,1,1);
+		 	}
+		break;
 	 
 	 
-	  case DO_DOUBLE_WIPE:
-		 if(!wipe->forward)facf0 = 1-facf0;   // Go the other direction
+		case DO_DOUBLE_WIPE:
+			if(!wipe->forward)facf0 = 1-facf0;   // Go the other direction
 
-	     width = (int)(wipe->edgeWidth*((xo+yo)/2.0));  // calculate the blur width
-	     hwidth = (float)width/2.0;       
-	     if (angle == 0)angle = 0.000001;
-	     b1 = posy/2 - (-angle)*posx/2;
-	     b3 = (yo-posy/2) - (-angle)*(xo-posx/2);
-	     b2 = y - (-angle)*x;
+			width = (int)(wipe->edgeWidth*((xo+yo)/2.0));  // calculate the blur width
+			hwidth = (float)width/2.0;
+			if (angle == 0)angle = 0.000001;
+			b1 = posy/2 - (-angle)*posx/2;
+			b3 = (yo-posy/2) - (-angle)*(xo-posx/2);
+			b2 = y - (-angle)*x;
 
-	     hyp = abs(angle*x+y+(-posy/2-angle*posx/2))/sqrt(angle*angle+1);
-	     hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))/sqrt(angle*angle+1);
-	     
-	     temp1 = xo*(1-facf0/2)-xo*facf0/2;
-	     temp2 = yo*(1-facf0/2)-yo*facf0/2;
-		 pointdist = sqrt(temp1*temp1 + temp2*temp2);
+			hyp = abs(angle*x+y+(-posy/2-angle*posx/2))/sqrt(angle*angle+1);
+			hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))/sqrt(angle*angle+1);
 
-			 if(b2 < b1 && b2 < b3 ){
+			temp1 = xo*(1-facf0/2)-xo*facf0/2;
+			temp2 = yo*(1-facf0/2)-yo*facf0/2;
+			pointdist = sqrt(temp1*temp1 + temp2*temp2);
+
+			if(b2 < b1 && b2 < b3 ){
 				if(hwidth < pointdist)
 					output = in_band(hwidth,hyp,facf0,0,1);
-			}
-			 else if(b2 > b1 && b2 > b3 ){
+			} else if(b2 > b1 && b2 > b3 ){
 				if(hwidth < pointdist)
 					output = in_band(hwidth,hyp2,facf0,0,1);	
-			} 
-		     else{
-		     	 if(  hyp < hwidth && hyp2 > hwidth )
-		     	 	 output = in_band(hwidth,hyp,facf0,1,1);
-		     	 else if(  hyp > hwidth && hyp2 < hwidth )
+			} else {
+				if(  hyp < hwidth && hyp2 > hwidth )
+					output = in_band(hwidth,hyp,facf0,1,1);
+				else if( hyp > hwidth && hyp2 < hwidth )
 				 	 output = in_band(hwidth,hyp2,facf0,1,1);
-				 else
+				else
 				 	 output = in_band(hwidth,hyp2,facf0,1,1) * in_band(hwidth,hyp,facf0,1,1);
-		     }
-		     if(!wipe->forward)output = 1-output;
-	 break;     
-	 case DO_CLOCK_WIPE:
+			}
+			if(!wipe->forward)output = 1-output;
+	 	break;
+	 	case DO_CLOCK_WIPE:
 	 	 	/*
 	 	 		temp1: angle of effect center in rads
 	 	 		temp2: angle of line through (halfx,halfy) and (x,y) in rads
 	 	 		temp3: angle of low side of blur
 	 	 		temp4: angle of high side of blur
 	 	 	*/
-	  	 	output = 1-facf0;
-	 	 	widthf = wipe->edgeWidth*2*3.14159;
-	 	 	temp1 = 2 * 3.14159 * facf0;
+		 	output = 1-facf0;
+	 		widthf = wipe->edgeWidth*2*3.14159;
+ 	 		temp1 = 2 * 3.14159 * facf0;
 	 	 	
- 	 		if(wipe->forward){
- 	 			temp1 = 2*3.14159-temp1;
- 	 		}
+ 			if(wipe->forward){
+ 				temp1 = 2*3.14159-temp1;
+ 			}
  	 		
-	 	 	x = x - halfx;
-	 	 	y = y - halfy;
+ 	 		x = x - halfx;
+ 	 		y = y - halfy;
 
-	 	 	temp2 = asin(abs(y)/sqrt(x*x + y*y));
-	 	 	if(x <= 0 && y >= 0)
-	 	 		temp2 = 3.14159 - temp2;
-	 	 	else if(x<=0 && y <= 0)
-	 	 		temp2 += 3.14159;
-	 	 	else if(x >= 0 && y <= 0)
-	 	 		temp2 = 2*3.14159 - temp2;
-	 	  	
+ 	 		temp2 = asin(abs(y)/sqrt(x*x + y*y));
+ 	 		if(x <= 0 && y >= 0) temp2 = 3.14159 - temp2;
+ 	 		else if(x<=0 && y <= 0) temp2 += 3.14159;
+ 	 		else if(x >= 0 && y <= 0) temp2 = 2*3.14159 - temp2;
+
  	 		if(wipe->forward){
 	 	 		temp3 = temp1-(widthf/2)*facf0;
 	 	 		temp4 = temp1+(widthf/2)*(1-facf0);
- 	 		}
- 	 		else{
+ 	 		} else{
 	 	 		temp3 = temp1-(widthf/2)*(1-facf0);
 	 	 		temp4 = temp1+(widthf/2)*facf0;
 			}
- 	 		if (temp3 < 0)  temp3 = 0;
+ 	 		if (temp3 < 0) temp3 = 0;
  	 		if (temp4 > 2*3.14159) temp4 = 2*3.14159;
  	 		
  	 		
- 	 		if(temp2 < temp3)
-				output = 0;
- 	 		else if (temp2 > temp4)
- 	 			output = 1;
- 	 		else
- 	 			output = (temp2-temp3)/(temp4-temp3);
-	 	 	if(x == 0 && y == 0){
-	 	 		output = 1;
-	 	 	}
-			if(output != output)
-				output = 1;
-			if(wipe->forward)
-				output = 1 - output;
-  	break;
+ 	 		if(temp2 < temp3) output = 0;
+ 	 		else if (temp2 > temp4) output = 1;
+ 	 		else output = (temp2-temp3)/(temp4-temp3);
+	 	 	if(x == 0 && y == 0) output = 1;
+			if(output != output) output = 1;
+			if(wipe->forward) output = 1 - output;
+		break;
 	/* BOX WIPE IS NOT WORKING YET */
-     /* case DO_CROSS_WIPE: */
+	/* case DO_CROSS_WIPE: */
 	/* BOX WIPE IS NOT WORKING YET */
-     /* case DO_BOX_WIPE: 
-		 if(invert)facf0 = 1-facf0;
+	/* 
+		case DO_BOX_WIPE: 
+			if(invert)facf0 = 1-facf0;
 
-	     width = (int)(wipe->edgeWidth*((xo+yo)/2.0));
-	     hwidth = (float)width/2.0;       
-	     if (angle == 0)angle = 0.000001;
-	     b1 = posy/2 - (-angle)*posx/2;
-	     b3 = (yo-posy/2) - (-angle)*(xo-posx/2);
-	     b2 = y - (-angle)*x;
+			width = (int)(wipe->edgeWidth*((xo+yo)/2.0));
+			hwidth = (float)width/2.0;
+			if (angle == 0)angle = 0.000001;
+			b1 = posy/2 - (-angle)*posx/2;
+			b3 = (yo-posy/2) - (-angle)*(xo-posx/2);
+			b2 = y - (-angle)*x;
 
-	     hyp = abs(angle*x+y+(-posy/2-angle*posx/2))/sqrt(angle*angle+1);
-	     hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))/sqrt(angle*angle+1);
-	     
-	     temp1 = xo*(1-facf0/2)-xo*facf0/2;
-	     temp2 = yo*(1-facf0/2)-yo*facf0/2;
-		 pointdist = sqrt(temp1*temp1 + temp2*temp2);
+			hyp = abs(angle*x+y+(-posy/2-angle*posx/2))/sqrt(angle*angle+1);
+			hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))/sqrt(angle*angle+1);
 
-			 if(b2 < b1 && b2 < b3 ){
+			temp1 = xo*(1-facf0/2)-xo*facf0/2;
+			temp2 = yo*(1-facf0/2)-yo*facf0/2;
+			pointdist = sqrt(temp1*temp1 + temp2*temp2);
+
+			if(b2 < b1 && b2 < b3 ){
 				if(hwidth < pointdist)
 					output = in_band(hwidth,hyp,facf0,0,1);
-			}
-			 else if(b2 > b1 && b2 > b3 ){
+			} else if(b2 > b1 && b2 > b3 ){
 				if(hwidth < pointdist)
 					output = in_band(hwidth,hyp2,facf0,0,1);	
-			} 
-		     else{
-		     	 if(  hyp < hwidth && hyp2 > hwidth )
-		     	 	 output = in_band(hwidth,hyp,facf0,1,1);
-		     	 else if(  hyp > hwidth && hyp2 < hwidth )
-				 	 output = in_band(hwidth,hyp2,facf0,1,1);
-				 else
-				 	 output = in_band(hwidth,hyp2,facf0,1,1) * in_band(hwidth,hyp,facf0,1,1);
-		     }
-		 if(invert)facf0 = 1-facf0;
-	     angle = -1/angle;
-	     b1 = posy/2 - (-angle)*posx/2;
-	     b3 = (yo-posy/2) - (-angle)*(xo-posx/2);
-	     b2 = y - (-angle)*x;
+			} else {
+				if( hyp < hwidth && hyp2 > hwidth )
+					output = in_band(hwidth,hyp,facf0,1,1);
+				else if( hyp > hwidth && hyp2 < hwidth )
+				 	output = in_band(hwidth,hyp2,facf0,1,1);
+				else
+				 	output = in_band(hwidth,hyp2,facf0,1,1) * in_band(hwidth,hyp,facf0,1,1);
+			}
 
-	     hyp = abs(angle*x+y+(-posy/2-angle*posx/2))/sqrt(angle*angle+1);
-	     hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))/sqrt(angle*angle+1);
-	   
-	   	 if(b2 < b1 && b2 < b3 ){
+			if(invert)facf0 = 1-facf0;
+			angle = -1/angle;
+			b1 = posy/2 - (-angle)*posx/2;
+			b3 = (yo-posy/2) - (-angle)*(xo-posx/2);
+			b2 = y - (-angle)*x;
+
+			hyp = abs(angle*x+y+(-posy/2-angle*posx/2))/sqrt(angle*angle+1);
+			hyp2 = abs(angle*x+y+(-(yo-posy/2)-angle*(xo-posx/2)))/sqrt(angle*angle+1);
+
+			if(b2 < b1 && b2 < b3 ){
 				if(hwidth < pointdist)
 					output *= in_band(hwidth,hyp,facf0,0,1);
-			}
-			 else if(b2 > b1 && b2 > b3 ){
+			} else if(b2 > b1 && b2 > b3 ){
 				if(hwidth < pointdist)
 					output *= in_band(hwidth,hyp2,facf0,0,1);	
-			} 
-		     else{
-		     	 if(  hyp < hwidth && hyp2 > hwidth )
-		     	 	 output *= in_band(hwidth,hyp,facf0,1,1);
-		     	 else if(  hyp > hwidth && hyp2 < hwidth )
-				 	 output *= in_band(hwidth,hyp2,facf0,1,1);
-				 else
-				 	 output *= in_band(hwidth,hyp2,facf0,1,1) * in_band(hwidth,hyp,facf0,1,1);
-		     }
-		     
-	 break;*/
-      case DO_IRIS_WIPE:
-      	 if(xo > yo) yo = xo;
-      	 else xo = yo;
-      	 
-		if(!wipe->forward)
-			facf0 = 1-facf0;
+			} else {
+				if( hyp < hwidth && hyp2 > hwidth )
+					output *= in_band(hwidth,hyp,facf0,1,1);
+				else if( hyp > hwidth && hyp2 < hwidth )
+					output *= in_band(hwidth,hyp2,facf0,1,1);
+				else
+					output *= in_band(hwidth,hyp2,facf0,1,1) * in_band(hwidth,hyp,facf0,1,1);
+			}
 
-	     width = (int)(wipe->edgeWidth*((xo+yo)/2.0));
-	     hwidth = (float)width/2.0; 
-	     
-      	 temp1 = (halfx-(halfx)*facf0);     
-		 pointdist = sqrt(temp1*temp1 + temp1*temp1);
+		break;
+*/
+		case DO_IRIS_WIPE:
+			if(xo > yo) yo = xo;
+			else xo = yo;
+
+			if(!wipe->forward) facf0 = 1-facf0;
+
+			width = (int)(wipe->edgeWidth*((xo+yo)/2.0));
+			hwidth = (float)width/2.0; 
+
+			temp1 = (halfx-(halfx)*facf0);
+		 	pointdist = sqrt(temp1*temp1 + temp1*temp1);
 		 
-		 temp2 = sqrt((halfx-x)*(halfx-x)  +  (halfy-y)*(halfy-y));
-		 if(temp2 > pointdist)
-		 	 output = in_band(hwidth,fabs(temp2-pointdist),facf0,0,1);
-		 else
-		 	 output = in_band(hwidth,fabs(temp2-pointdist),facf0,1,1);
+		 	temp2 = sqrt((halfx-x)*(halfx-x) + (halfy-y)*(halfy-y));
+		 	if(temp2 > pointdist) output = in_band(hwidth,fabs(temp2-pointdist),facf0,0,1);
+		 	else output = in_band(hwidth,fabs(temp2-pointdist),facf0,1,1);
 		 
-		if(!wipe->forward)
-			output = 1-output;
+			if(!wipe->forward) output = 1-output;
 			
-	 break;
-   }
-   if     (output < 0) output = 0;
-   else if(output > 1) output = 1;
-   return output;
+		break;
+	}
+	if (output < 0) output = 0;
+	else if(output > 1) output = 1;
+	return output;
 }
 
 static void init_wipe_effect(Sequence *seq)
@@ -1917,8 +1898,8 @@ static void do_wipe_effect(Sequence * seq,int cfra,
 	} else {
 		do_wipe_effect_byte(seq,
 				    facf0, facf1, x, y,
-				    (char*) ibuf1->rect, (char*) ibuf2->rect,
-				    (char*) out->rect);
+				    (unsigned char*) ibuf1->rect, (unsigned char*) ibuf2->rect,
+				    (unsigned char*) out->rect);
 	}
 }
 /* **********************************************************************
@@ -2258,7 +2239,7 @@ static void RVBlurBitmap2_byte ( unsigned char* map, int width,int height,
 	k = -1.0/(2.0*3.14159*blur*blur);
 	fval=0;
 	for (ix = 0;ix< halfWidth;ix++){
-          	weight = (float)exp(k*(ix*ix));
+		weight = (float)exp(k*(ix*ix));
 		filter[halfWidth - ix] = weight;
 		filter[halfWidth + ix] = weight;
 	}
@@ -2282,17 +2263,17 @@ static void RVBlurBitmap2_byte ( unsigned char* map, int width,int height,
 			curColor2[0]=curColor2[1]=curColor2[2]=0;
 
 			for (i=x-halfWidth;i<x+halfWidth;i++){
-			   if ((i>=0)&&(i<width)){
-				curColor[0]+=map[(i+y*width)*4+GlowR]*filter[fx];
-				curColor[1]+=map[(i+y*width)*4+GlowG]*filter[fx];
-				curColor[2]+=map[(i+y*width)*4+GlowB]*filter[fx];
+				if ((i>=0)&&(i<width)){
+					curColor[0]+=map[(i+y*width)*4+GlowR]*filter[fx];
+					curColor[1]+=map[(i+y*width)*4+GlowG]*filter[fx];
+					curColor[2]+=map[(i+y*width)*4+GlowB]*filter[fx];
 
-				curColor2[0]+=map[(width-1-i+y*width)*4+GlowR] *
-                                   filter[fx];
-				curColor2[1]+=map[(width-1-i+y*width)*4+GlowG] *
-                                   filter[fx];
-				curColor2[2]+=map[(width-1-i+y*width)*4+GlowB] *
-                                   filter[fx];
+					curColor2[0]+=map[(width-1-i+y*width)*4+GlowR] *
+						filter[fx];
+					curColor2[1]+=map[(width-1-i+y*width)*4+GlowG] *
+						filter[fx];
+					curColor2[2]+=map[(width-1-i+y*width)*4+GlowB] *
+						filter[fx];
 				}
 				fx++;
 			}
@@ -2336,18 +2317,18 @@ static void RVBlurBitmap2_byte ( unsigned char* map, int width,int height,
 			curColor2[0]=curColor2[1]=curColor2[2]=0;
 			for (i=y-halfWidth;i<y+halfWidth;i++){
 				if ((i>=0)&&(i<height)){
-				   /*	Bottom */
-				   curColor[0]+=map[(x+i*width)*4+GlowR]*filter[fy];
-				   curColor[1]+=map[(x+i*width)*4+GlowG]*filter[fy];
-				   curColor[2]+=map[(x+i*width)*4+GlowB]*filter[fy];
+					/*	Bottom */
+					curColor[0]+=map[(x+i*width)*4+GlowR]*filter[fy];
+					curColor[1]+=map[(x+i*width)*4+GlowG]*filter[fy];
+					curColor[2]+=map[(x+i*width)*4+GlowB]*filter[fy];
 
-				   /*	Top */
-				   curColor2[0]+=map[(x+(height-1-i)*width) *
-                                      4+GlowR]*filter[fy];
-				   curColor2[1]+=map[(x+(height-1-i)*width) *
-                                      4+GlowG]*filter[fy];
-				   curColor2[2]+=map[(x+(height-1-i)*width) *
-                                      4+GlowB]*filter[fy];
+					/*	Top */
+					curColor2[0]+=map[(x+(height-1-i)*width) *
+						4+GlowR]*filter[fy];
+					curColor2[1]+=map[(x+(height-1-i)*width) *
+						4+GlowG]*filter[fy];
+					curColor2[2]+=map[(x+(height-1-i)*width) *
+						4+GlowB]*filter[fy];
 				}
 				fy++;
 			}
@@ -2428,7 +2409,7 @@ static void RVBlurBitmap2_float ( float* map, int width,int height,
 	k = -1.0/(2.0*3.14159*blur*blur);
 	fval=0;
 	for (ix = 0;ix< halfWidth;ix++){
-          	weight = (float)exp(k*(ix*ix));
+		weight = (float)exp(k*(ix*ix));
 		filter[halfWidth - ix] = weight;
 		filter[halfWidth + ix] = weight;
 	}
@@ -2452,17 +2433,17 @@ static void RVBlurBitmap2_float ( float* map, int width,int height,
 			curColor2[0]=curColor2[1]=curColor2[2]=0.0f;
 
 			for (i=x-halfWidth;i<x+halfWidth;i++){
-			   if ((i>=0)&&(i<width)){
-				curColor[0]+=map[(i+y*width)*4+GlowR]*filter[fx];
-				curColor[1]+=map[(i+y*width)*4+GlowG]*filter[fx];
-				curColor[2]+=map[(i+y*width)*4+GlowB]*filter[fx];
+				if ((i>=0)&&(i<width)){
+					curColor[0]+=map[(i+y*width)*4+GlowR]*filter[fx];
+					curColor[1]+=map[(i+y*width)*4+GlowG]*filter[fx];
+					curColor[2]+=map[(i+y*width)*4+GlowB]*filter[fx];
 
-				curColor2[0]+=map[(width-1-i+y*width)*4+GlowR] *
-                                   filter[fx];
-				curColor2[1]+=map[(width-1-i+y*width)*4+GlowG] *
-                                   filter[fx];
-				curColor2[2]+=map[(width-1-i+y*width)*4+GlowB] *
-                                   filter[fx];
+					curColor2[0]+=map[(width-1-i+y*width)*4+GlowR] *
+						filter[fx];
+					curColor2[1]+=map[(width-1-i+y*width)*4+GlowG] *
+						filter[fx];
+					curColor2[2]+=map[(width-1-i+y*width)*4+GlowB] *
+						filter[fx];
 				}
 				fx++;
 			}
@@ -2506,18 +2487,18 @@ static void RVBlurBitmap2_float ( float* map, int width,int height,
 			curColor2[0]=curColor2[1]=curColor2[2]=0;
 			for (i=y-halfWidth;i<y+halfWidth;i++){
 				if ((i>=0)&&(i<height)){
-				   /*	Bottom */
-				   curColor[0]+=map[(x+i*width)*4+GlowR]*filter[fy];
-				   curColor[1]+=map[(x+i*width)*4+GlowG]*filter[fy];
-				   curColor[2]+=map[(x+i*width)*4+GlowB]*filter[fy];
+					/*	Bottom */
+					curColor[0]+=map[(x+i*width)*4+GlowR]*filter[fy];
+					curColor[1]+=map[(x+i*width)*4+GlowG]*filter[fy];
+					curColor[2]+=map[(x+i*width)*4+GlowB]*filter[fy];
 
-				   /*	Top */
-				   curColor2[0]+=map[(x+(height-1-i)*width) *
-                                      4+GlowR]*filter[fy];
-				   curColor2[1]+=map[(x+(height-1-i)*width) *
-                                      4+GlowG]*filter[fy];
-				   curColor2[2]+=map[(x+(height-1-i)*width) *
-                                      4+GlowB]*filter[fy];
+					/*	Top */
+					curColor2[0]+=map[(x+(height-1-i)*width) *
+						4+GlowR]*filter[fy];
+					curColor2[1]+=map[(x+(height-1-i)*width) *
+						4+GlowG]*filter[fy];
+					curColor2[2]+=map[(x+(height-1-i)*width) *
+						4+GlowB]*filter[fy];
 				}
 				fy++;
 			}
@@ -2602,17 +2583,16 @@ static void RVIsolateHighlights_byte (unsigned char* in, unsigned char* out,
 
 	for(y=0;y< height;y++) {
 		for (x=0;x< width;x++) {
-	 	   index= (x+y*width)*4;
+	 		index= (x+y*width)*4;
 
-		   /*	Isolate the intensity */
-		   intensity=(in[index+GlowR]+in[index+GlowG]+in[index+GlowB]-threshold);
-		   if (intensity>0){
-			out[index+GlowR]=MIN2(255*clamp, (in[index+GlowR]*boost*intensity)/255);
-			out[index+GlowG]=MIN2(255*clamp, (in[index+GlowG]*boost*intensity)/255);
-			out[index+GlowB]=MIN2(255*clamp, (in[index+GlowB]*boost*intensity)/255);
-			out[index+GlowA]=MIN2(255*clamp, (in[index+GlowA]*boost*intensity)/255);
-			}
-			else{
+			/*	Isolate the intensity */
+			intensity=(in[index+GlowR]+in[index+GlowG]+in[index+GlowB]-threshold);
+			if (intensity>0){
+				out[index+GlowR]=MIN2(255*clamp, (in[index+GlowR]*boost*intensity)/255);
+				out[index+GlowG]=MIN2(255*clamp, (in[index+GlowG]*boost*intensity)/255);
+				out[index+GlowB]=MIN2(255*clamp, (in[index+GlowB]*boost*intensity)/255);
+				out[index+GlowA]=MIN2(255*clamp, (in[index+GlowA]*boost*intensity)/255);
+			} else{
 				out[index+GlowR]=0;
 				out[index+GlowG]=0;
 				out[index+GlowB]=0;
@@ -2632,17 +2612,16 @@ static void RVIsolateHighlights_float (float* in, float* out,
 
 	for(y=0;y< height;y++) {
 		for (x=0;x< width;x++) {
-	 	   index= (x+y*width)*4;
+	 		index= (x+y*width)*4;
 
-		   /*	Isolate the intensity */
-		   intensity=(in[index+GlowR]+in[index+GlowG]+in[index+GlowB]-threshold);
-		   if (intensity>0){
-			out[index+GlowR]=MIN2(clamp, (in[index+GlowR]*boost*intensity));
-			out[index+GlowG]=MIN2(clamp, (in[index+GlowG]*boost*intensity));
-			out[index+GlowB]=MIN2(clamp, (in[index+GlowB]*boost*intensity));
-			out[index+GlowA]=MIN2(clamp, (in[index+GlowA]*boost*intensity));
-			}
-			else{
+			/*	Isolate the intensity */
+			intensity=(in[index+GlowR]+in[index+GlowG]+in[index+GlowB]-threshold);
+			if (intensity>0){
+				out[index+GlowR]=MIN2(clamp, (in[index+GlowR]*boost*intensity));
+				out[index+GlowG]=MIN2(clamp, (in[index+GlowG]*boost*intensity));
+				out[index+GlowB]=MIN2(clamp, (in[index+GlowB]*boost*intensity));
+				out[index+GlowA]=MIN2(clamp, (in[index+GlowA]*boost*intensity));
+			} else{
 				out[index+GlowR]=0;
 				out[index+GlowG]=0;
 				out[index+GlowB]=0;
@@ -3069,7 +3048,7 @@ static void get_default_fac_noop(struct Sequence *seq, int cfra,
 static void get_default_fac_fade(struct Sequence *seq, int cfra,
 				 float * facf0, float * facf1)
 {
-	*facf0  = (float)(cfra - seq->startdisp);
+	*facf0 = (float)(cfra - seq->startdisp);
 	*facf1 = (float)(*facf0 + 0.5);
 	*facf0 /= seq->len;
 	*facf1 /= seq->len;

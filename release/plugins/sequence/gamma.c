@@ -63,7 +63,7 @@ float cfra;
 
 void plugin_seq_doit(Cast *, float, float, int, int, ImBuf *, ImBuf *, ImBuf *, ImBuf *);
 
-int plugin_seq_getversion(void) { return 4; /* float images are supported */}
+int plugin_seq_getversion(void) { return B_PLUGIN_VERSION; }
 void plugin_but_changed(int but) {}
 void plugin_init() {}
 
