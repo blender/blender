@@ -826,7 +826,7 @@ static int bpymenu_ParseDir(char *dirname, char *parentdir, int is_userdir )
 	char path[FILE_MAXDIR];
 	char subdir[FILE_MAXDIR];
 	char *s = NULL;
-
+	
 	dir = opendir(dirname);
 
 	if (dir != NULL) {
@@ -838,7 +838,7 @@ static int bpymenu_ParseDir(char *dirname, char *parentdir, int is_userdir )
 			}
 
 			BLI_make_file_string("/", path, dirname, de->d_name);
-
+			
 			if (stat(path, &status) != 0) {
 				if (DEBUG)
 					fprintf(stderr, "stat %s failed: %s\n", path, strerror(errno));
@@ -854,7 +854,15 @@ static int bpymenu_ParseDir(char *dirname, char *parentdir, int is_userdir )
 					if (file) {
 						s = de->d_name;
 						if (parentdir) {
-							BLI_make_file_string(NULL, subdir, parentdir, de->d_name);
+							/* Join parentdir and de->d_name */
+							short a = strlen(parentdir);
+							strcpy(subdir, parentdir);
+							strcpy(subdir + a+1, de->d_name);
+#ifdef WIN32
+							subdir[a] = '\\';
+#else
+							subdir[a] = '/';
+#endif
 							s = subdir;
 						}
 						bpymenu_ParseFile(file, s, is_userdir);
