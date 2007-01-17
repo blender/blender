@@ -337,6 +337,8 @@ void persptoetsen(unsigned short event)
 		if(G.vd->persp<2) perspo= G.vd->persp;
 	}
 
+	if(G.vd->depths) G.vd->depths->damaged= 1;
+	retopo_queue_updates(G.vd);
 	retopo_force_update();
 	
 	if(preview3d_event) 
