@@ -4290,8 +4290,10 @@ static int Object_setLayers( BPy_Object * self, PyObject *value )
 		layers |= 1 << ( val - 1 );
 	}
 
+	/* do this, to ensure layers are set for objects not in current scene */
+	self->object->lay= layers;
+	
 	/* update any bases pointing to our object */
-
 	base = FIRSTBASE;  /* first base in current scene */
 	while( base ) {
 		if( base->object == self->object ) {
@@ -4302,6 +4304,8 @@ static int Object_setLayers( BPy_Object * self, PyObject *value )
 		}
 		base = base->next;
 	}
+	
+	/* these to calls here are overkill! (ton) */
 	countall();
 	DAG_scene_sort( G.scene );
 	return 0;
