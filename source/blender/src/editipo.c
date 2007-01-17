@@ -2790,20 +2790,20 @@ void common_insertkey(void)
 						}
 					}
  					if(event==11 || event==13) {
- 						float obSpaceBoneMat[4][4]; 
+ 						float delta_mat[4][4]; 
  						
- 						bone2objectspace(obSpaceBoneMat, pchan->pose_mat, pchan->bone->arm_mat);
- 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, obSpaceBoneMat[3][0]);
- 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, obSpaceBoneMat[3][1]);
- 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, obSpaceBoneMat[3][2]);
+ 						armature_mat_pose_to_delta(delta_mat, pchan->pose_mat, pchan->bone->arm_mat);
+ 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, delta_mat[3][0]);
+ 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, delta_mat[3][1]);
+ 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, delta_mat[3][2]);
  					}
  					if(event==12 || event==13) {
- 						float obSpaceBoneMat[4][4];
+ 						float delta_mat[4][4];
  						float localQuat[4], oldQuat[4];
  						
 						/* obtain rotation caused by constraints/IK*/
- 						bone2objectspace(obSpaceBoneMat, pchan->pose_mat, pchan->bone->arm_mat);
- 						Mat4ToQuat(obSpaceBoneMat, localQuat);
+ 						armature_mat_pose_to_delta(delta_mat, pchan->pose_mat, pchan->bone->arm_mat);
+ 						Mat4ToQuat(delta_mat, localQuat);
 						
 						/* bad hack warning:
 						 * Write the 'visual' rotation onto the
@@ -5288,12 +5288,3 @@ void move_to_frame(void)
 	}
 	BIF_undo_push("Set frame to selected Ipo vertex");
 }
-
-void bone2objectspace(float obSpaceBoneMat[][4], float obSpace[][4], float restPos[][4])
-{
- 	float imat[4][4];
- 
- 	Mat4Invert(imat, restPos);
- 	Mat4MulMat4(obSpaceBoneMat, obSpace, imat);
-}
-

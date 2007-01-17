@@ -887,6 +887,18 @@ void armature_loc_pose_to_bone(bPoseChannel *pchan, float *inloc, float *outloc)
 	VECCOPY(outloc, nLocMat[3]);
 }
 
+/* Remove rest-position effects from pose-transform for obtaining
+ * 'visual' transformation of pose-channel. 
+ * (used by the Visual-Keyframing stuff)
+ */
+void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float arm_mat[][4])
+{
+ 	float imat[4][4];
+ 
+ 	Mat4Invert(imat, arm_mat);
+ 	Mat4MulMat4(delta_mat, pose_mat, imat);
+}
+
 
 /* **************** The new & simple (but OK!) armature evaluation ********* */ 
 
