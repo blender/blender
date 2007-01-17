@@ -511,22 +511,31 @@ void curvemapping_changed(CurveMapping *cumap, int rem_doubles)
 	CurveMapPoint *cmp= cuma->curve;
 	rctf *clipr= &cumap->clipr;
 	float thresh= 0.01f*(clipr->xmax - clipr->xmin);
-	float dx, dy;
+	float dx= 0.0f, dy= 0.0f;
 	int a;
 	
 	/* clamp with clip */
 	if(cumap->flag & CUMA_DO_CLIP) {
 		for(a=0; a<cuma->totpoint; a++) {
-			if(cmp[a].x < clipr->xmin)
-				cmp[a].x= clipr->xmin;
-			else if(cmp[a].x > clipr->xmax)
-				cmp[a].x= clipr->xmax;
-			if(cmp[a].y < clipr->ymin)
-				cmp[a].y= clipr->ymin;
-			else if(cmp[a].y > clipr->ymax)
-				cmp[a].y= clipr->ymax;
+			if(cmp[a].flag & CUMA_SELECT) {
+				if(cmp[a].x < clipr->xmin)
+					dx= MIN2(dx, cmp[a].x - clipr->xmin);
+				else if(cmp[a].x > clipr->xmax)
+					dx= MAX2(dx, cmp[a].x - clipr->xmax);
+				if(cmp[a].y < clipr->ymin)
+					dy= MIN2(dy, cmp[a].y - clipr->ymin);
+				else if(cmp[a].y > clipr->ymax)
+					dy= MAX2(dy, cmp[a].y - clipr->ymax);
+			}
+		}
+		for(a=0; a<cuma->totpoint; a++) {
+			if(cmp[a].flag & CUMA_SELECT) {
+				cmp[a].x -= dx;
+				cmp[a].y -= dy;
+			}
 		}
 	}
+	
 	
 	qsort(cmp, cuma->totpoint, sizeof(CurveMapPoint), sort_curvepoints);
 	
