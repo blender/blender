@@ -114,11 +114,14 @@ static void do_nla_viewmenu(void *arg, int event)
 	case 4: /* Maximize Window */
 		/* using event B_FULL */
 		break;
-	case 5:
+	case 5: /* Update automatically */
 		G.v2d->flag ^= V2D_VIEWLOCK;
 		if(G.v2d->flag & V2D_VIEWLOCK)
 			view2d_do_locks(curarea, 0);
-		break;			
+		break;	
+	case 6: /* Show all objects that have keyframes? */
+		G.snla->flag ^= SNLA_ALLKEYED;
+		break;
 	}
 }
 
@@ -130,6 +133,11 @@ static uiBlock *nla_viewmenu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "nla_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_nla_viewmenu, NULL);
+		
+	uiDefIconTextBut(block, BUTM, 1, (G.snla->flag & SNLA_ALLKEYED)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
+					 "Only Objects On Visible Layers|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+		
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		
 	if(BTST(G.snla->lock, 0)) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Update Automatically|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");

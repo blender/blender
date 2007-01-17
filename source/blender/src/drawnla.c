@@ -761,7 +761,7 @@ int nla_filter (Base *base)
 {
 	Object *ob = base->object;
 	
-	if(base->lay & G.scene->lay) {
+	if ((G.snla->flag & SNLA_ALLKEYED) || (base->lay & G.scene->lay)) {
 		if(ob->action || ob->nlastrips.first) 
 			return 1;
 

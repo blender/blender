@@ -251,7 +251,7 @@ typedef struct SpaceNla{
 	short blockhandler[8];
 
 	short menunr, lock;
-	int pad;
+	int flag;
 	
 	View2D v2d;	
 } SpaceNla;
@@ -580,6 +580,10 @@ typedef struct SpaceImaSel {
 #define IMS_INDIRSLI		2
 #define IMS_INFILE			3
 #define IMS_INFILESLI		4
+
+/* nla->flag */
+#define SNLA_ALLKEYED		1
+#define SNLA_ACTIVELAYERS	2
 
 /* time->flag */
 #define TIME_DRAWFRAMES		1
