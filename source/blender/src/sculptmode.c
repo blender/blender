@@ -636,29 +636,13 @@ void sculptmode_rem_tex(void *junk0,void *junk1)
 void init_sculptmatrices()
 {
 	SculptSession *ss= sculpt_session();
-	const double badvalue= 1.0e-6;
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glMultMatrixf(OBACT->obmat);
 
-	glGetDoublev(GL_MODELVIEW_MATRIX, ss->modelviewmat);
-	glGetDoublev(GL_PROJECTION_MATRIX, ss->projectionmat);
-	glGetIntegerv(GL_VIEWPORT, (GLint *)ss->viewport);
+	bgl_get_mats(&ss->mats);
 	
-	/* Very strange code here - it seems that certain bad values in the
-	   modelview matrix can cause gluUnProject to give bad results. */
-	if(ss->modelviewmat[0] < badvalue &&
-	   ss->modelviewmat[0] > -badvalue)
-		ss->modelviewmat[0]= 0;
-	if(ss->modelviewmat[5] < badvalue &&
-	   ss->modelviewmat[5] > -badvalue)
-		ss->modelviewmat[5]= 0;
-	
-	/* Set up viewport so that gluUnProject will give correct values */
-	ss->viewport[0] = 0;
-	ss->viewport[1] = 0;
-
 	glPopMatrix();
 
 }
@@ -692,8 +676,8 @@ vec3f unproject(const short x, const short y, const float z)
 	double ux, uy, uz;
 	vec3f p;
 
-        gluUnProject(x,y,z, ss->modelviewmat, ss->projectionmat,
-		     (GLint *)ss->viewport, &ux, &uy, &uz );
+        gluUnProject(x,y,z, ss->mats.modelview, ss->mats.projection,
+		     (GLint *)ss->mats.viewport, &ux, &uy, &uz );
 	p.x= ux;
 	p.y= uy;
 	p.z= uz;
@@ -706,8 +690,8 @@ void project(const float v[3], short p[2])
 	SculptSession *ss= sculpt_session();
 	double ux, uy, uz;
 
-	gluProject(v[0],v[1],v[2], ss->modelviewmat, ss->projectionmat,
-		   (GLint *)ss->viewport, &ux, &uy, &uz);
+	gluProject(v[0],v[1],v[2], ss->mats.modelview, ss->mats.projection,
+		   (GLint *)ss->mats.viewport, &ux, &uy, &uz);
 	p[0]= ux;
 	p[1]= uy;
 }

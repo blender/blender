@@ -32,14 +32,15 @@
 
 #include "DNA_vec_types.h"
 
+/* For bglMats */
+#include "BIF_glutil.h"
+
 struct EditVert;
 struct Mesh;
 struct View3D;
 
 typedef struct RetopoViewData {
-	/* OpenGL matrices */
-	double modelviewmat[16], projectionmat[16];
-	int viewport[4];
+	bglMats mats;
 
 	char queue_matrix_update;
 } RetopoViewData;

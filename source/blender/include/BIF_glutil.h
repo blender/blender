@@ -213,5 +213,13 @@ void set_inverted_drawing(int enable);
 /* own working polygon offset */
 void bglPolygonOffset(float dist);
 
+/* For caching opengl matrices (gluProject/gluUnProject) */
+typedef struct bglMats {
+	double modelview[16];
+	double projection[16];
+	int viewport[4];
+} bglMats;
+void bgl_get_mats(bglMats *mats);
+
 #endif /* BIF_GLUTIL_H */
 

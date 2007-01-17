@@ -292,7 +292,7 @@ void retopo_paint_apply()
 
 		for(i=0; i<hitcount; ++i) {
 			RetopoPaintPoint *intersection= BLI_findlink(&rpd->intersections,i);
-			retopo_do_2d(G.vd,&intersection->loc.x, hitco, 1);
+			retopo_do_2d(rpd->paint_v3d,&intersection->loc.x, hitco, 1);
 			intersection->eve= addvertlist(hitco, NULL);
 			intersection->eve->f= SELECT;
 		}
@@ -322,7 +322,7 @@ void add_rppoint(RetopoPaintLine *l, short x, short y)
 	BLI_addtail(&l->points,p);
 	p->index= p->prev?p->prev->index+1:0;
 
-	retopo_do_2d(G.vd, &p->loc.x, p->co, 1);
+	retopo_do_2d(G.editMesh->retopo_paint_data->paint_v3d, &p->loc.x, p->co, 1);
 }
 RetopoPaintLine *add_rpline(RetopoPaintData *rpd)
 {
@@ -422,9 +422,9 @@ void retopo_paint_view_update(struct View3D *v3d)
 		
 		for(l= rpd->lines.first; l; l= l->next) {
 			for(p= l->points.first; p; p= p->next) {
-				gluProject(p->co[0],p->co[1],p->co[2], v3d->retopo_view_data->modelviewmat,
-					   v3d->retopo_view_data->projectionmat,
-					   (GLint *)v3d->retopo_view_data->viewport, &ux, &uy, &uz);
+				gluProject(p->co[0],p->co[1],p->co[2], v3d->retopo_view_data->mats.modelview,
+					   v3d->retopo_view_data->mats.projection,
+					   (GLint *)v3d->retopo_view_data->mats.viewport, &ux, &uy, &uz);
 				p->loc.x= ux;
 				p->loc.y= uy;
 			}
@@ -753,18 +753,18 @@ void retopo_do_2d(View3D *v3d, short proj[2], float *v, char adj)
 		if(depth==v3d->depths->depth_range[1]) {
 			if(adj) {
 				/* Find the depth of (0,0,0); */
-				gluProject(0,0,0,v3d->retopo_view_data->modelviewmat,
-					   v3d->retopo_view_data->projectionmat,
-					   (GLint *)v3d->retopo_view_data->viewport,&px,&py,&pz);
+				gluProject(0,0,0,v3d->retopo_view_data->mats.modelview,
+					   v3d->retopo_view_data->mats.projection,
+					   (GLint *)v3d->retopo_view_data->mats.viewport,&px,&py,&pz);
 				depth= pz;
 			}
 			else return;
 		}
 		
 		/* Find 3D location with new depth (unproject) */
-		gluUnProject(proj[0],proj[1],depth,v3d->retopo_view_data->modelviewmat,
-			     v3d->retopo_view_data->projectionmat,
-			     (GLint *)v3d->retopo_view_data->viewport,&px,&py,&pz);
+		gluUnProject(proj[0],proj[1],depth,v3d->retopo_view_data->mats.modelview,
+			     v3d->retopo_view_data->mats.projection,
+			     (GLint *)v3d->retopo_view_data->mats.viewport,&px,&py,&pz);
 		
 		v[0]= px;
 		v[1]= py;
@@ -778,8 +778,8 @@ void retopo_do_vert(View3D *v3d, float *v)
 	double px, py, pz;
 
 	/* Find 2D location (project) */
-	gluProject(v[0],v[1],v[2],v3d->retopo_view_data->modelviewmat,v3d->retopo_view_data->projectionmat,
-		   (GLint *)v3d->retopo_view_data->viewport,&px,&py,&pz);
+	gluProject(v[0],v[1],v[2],v3d->retopo_view_data->mats.modelview,v3d->retopo_view_data->mats.projection,
+		   (GLint *)v3d->retopo_view_data->mats.viewport,&px,&py,&pz);
 	proj[0]= px;
 	proj[1]= py;
 	
@@ -859,10 +859,7 @@ void retopo_matrix_update(View3D *v3d)
 			rvd->queue_matrix_update= 1;
 		}
 		if(rvd && rvd->queue_matrix_update) {
-			glGetDoublev(GL_MODELVIEW_MATRIX, rvd->modelviewmat);
-			glGetDoublev(GL_PROJECTION_MATRIX, rvd->projectionmat);
-			glGetIntegerv(GL_VIEWPORT, (GLint *)rvd->viewport);
-			rvd->viewport[0]= rvd->viewport[1]= 0;
+			bgl_get_mats(&rvd->mats);
 
 			rvd->queue_matrix_update= 0;
 		}

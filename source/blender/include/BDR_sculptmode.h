@@ -30,6 +30,9 @@
 #ifndef BDR_SCULPTMODE_H
 #define BDR_SCULPTMODE_H
 
+/* For bglMats */
+#include "BIF_glutil.h"
+
 #include "transform.h"
 
 struct uiBlock;
@@ -65,10 +68,7 @@ typedef struct PropsetData {
 } PropsetData;
 
 typedef struct SculptSession {
-	/* Cache of the OpenGL matrices */
-	double modelviewmat[16];
-	double projectionmat[16];
-	int viewport[4];
+	bglMats mats;
 	
 	/* An array of lists; array is sized as
 	   large as the number of verts in the mesh,
