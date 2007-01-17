@@ -2061,6 +2061,11 @@ static void undoMesh_to_editMesh(void *umv)
 	retopo_free_paint();
 	em->retopo_paint_data= retopo_paint_data_copy(um->retopo_paint_data);
 	em->retopo_mode= um->retopo_mode;
+	if(em->retopo_mode) {
+		if(G.vd->depths) G.vd->depths->damaged= 1;
+		retopo_queue_updates(G.vd);
+		retopo_paint_view_update(G.vd);
+	}
 	
 	{
 		Mesh *me= get_mesh(G.obedit);
