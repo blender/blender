@@ -2440,6 +2440,7 @@ void buttons_ketsji(uiBlock *block, Object *ob)
 	//if (!(ob->gameflag & OB_GHOST)) 
 	//Ghost can be any bound type in Bullet
 	{
+		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, OB_BOUNDS, B_REDR, "Bounds", 10, 125, 75, 19,
 				&ob->gameflag, 0, 0,0, 0,
 				"Specify a bounds object for physics");
@@ -2451,6 +2452,7 @@ void buttons_ketsji(uiBlock *block, Object *ob)
 					  &ob->gameflag, 0, 0, 0, 0, 
 					  "Add Children");
 		}
+		uiBlockEndAlign(block);
 	}
 }
 
@@ -2508,7 +2510,7 @@ void logic_buts(void)
 	prop= ob->prop.first;
 //	uiBlockBeginAlign(block);
 	while(prop) {
-		
+		uiBlockBeginAlign(block);
 		but= uiDefBut(block, BUT, 1, "Del",		10, (short)(70-20*a), 40, 19, NULL, 0.0, 0.0, 1, (float)a, "");
 		uiButSetFunc(but, del_property, prop, NULL);
 		uiDefButS(block, MENU, B_CHANGE_PROP, pupstr,		50, (short)(70-20*a), 60, 19, &prop->type, 0, 0, 0, 0, "");
@@ -2535,9 +2537,11 @@ void logic_buts(void)
 			uiDefButF(block, NUM, butreturn, "",			215, (short)(70-20*a), 110, 19, (float*) &prop->data, -10000, 10000, 0, 0, "");
 		
 		uiDefButBitS(block, TOG, PROP_DEBUG, 0, "D",		325, (short)(70-20*a), 20, 19, &prop->flag, 0, 0, 0, 0, "Print Debug info");
+		uiBlockEndAlign(block);
 		
 		a++;
 		prop= prop->next;
+		
 	}
 //	uiBlockEndAlign(block);
 //  Note: something is wrong with alignment... it attempts to align the next buttons now? will check later...
@@ -2551,9 +2555,12 @@ void logic_buts(void)
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco+35, 80, 19, "");
 	uiBlockSetEmboss(block, UI_EMBOSS);
+	
+	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, BUTS_SENS_SEL, B_REDR, "Sel", xco+110, yco+35, (width-100)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show all selected Objects");
 	uiDefButBitS(block, TOG, BUTS_SENS_ACT, B_REDR, "Act", xco+110+(width-100)/3, yco+35, (width-100)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show active Object");
 	uiDefButBitS(block, TOG, BUTS_SENS_LINK, B_REDR, "Link", xco+110+2*(width-100)/3, yco+35, (width-100)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show linked Objects to Controller");
+	uiBlockEndAlign(block);
 	
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
@@ -2564,10 +2571,12 @@ void logic_buts(void)
 		
 		/* presume it is only objects for now */
 		uiBlockSetEmboss(block, UI_EMBOSS);
+		uiBlockBeginAlign(block);
 		if(ob->sensors.first) uiSetCurFont(block, UI_HELVB);
 		uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), 19, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
 		if(ob->sensors.first) uiSetCurFont(block, UI_HELV);
 		uiDefButBitS(block, TOG, OB_ADDSENS, B_ADD_SENS, "Add",(short)(xco+width-40), yco, 50, 19, &ob->scaflag, 0, 0, 0, 0, "Add a new Sensor");
+		uiBlockEndAlign(block);
 		yco-=20;
 		
 		if(ob->scaflag & OB_SHOWSENS) {
@@ -2615,9 +2624,12 @@ void logic_buts(void)
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco+35, 100, 19, "");
 	uiBlockSetEmboss(block, UI_EMBOSS);
+	
+	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, BUTS_CONT_SEL,  B_REDR, "Sel", xco+110, yco+35, (width-100)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show all selected Objects");
 	uiDefButBitS(block, TOG, BUTS_CONT_ACT, B_REDR, "Act", xco+110+(width-100)/3, yco+35, (width-100)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show active Object");
 	uiDefButBitS(block, TOG, BUTS_CONT_LINK, B_REDR, "Link", xco+110+2*(width-100)/3, yco+35, (width-100)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show linked Objects to Sensor/Actuator");
+	uiBlockEndAlign(block);
 	
 	ob= OBACT;
 	
@@ -2629,10 +2641,12 @@ void logic_buts(void)
 
 		/* presume it is only objects for now */
 		uiBlockSetEmboss(block, UI_EMBOSS);
-		uiDefButBitS(block, TOG, OB_ADDCONT, B_ADD_CONT, "Add",(short)(xco+width-40), yco, 50, 19, &ob->scaflag, 0, 0, 0, 0, "Add a new Controller");
+		uiBlockBeginAlign(block);
 		if(ob->controllers.first) uiSetCurFont(block, UI_HELVB);
 		uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2,(short)(xco-10), yco, (short)(width-30), 19, &ob->scaflag, 0, 0, 0, 0, "Active Object name");
 		if(ob->controllers.first) uiSetCurFont(block, UI_HELV);
+		uiDefButBitS(block, TOG, OB_ADDCONT, B_ADD_CONT, "Add",(short)(xco+width-40), yco, 50, 19, &ob->scaflag, 0, 0, 0, 0, "Add a new Controller");
+		uiBlockEndAlign(block);
 		yco-=20;
 		
 		if(ob->scaflag & OB_SHOWCONT) {
@@ -2682,10 +2696,11 @@ void logic_buts(void)
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	uiDefBlockBut(block, actuator_menu, NULL, "Actuators", xco-10, yco+35, 100, 19, "");
 	uiBlockSetEmboss(block, UI_EMBOSS);
+	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, BUTS_ACT_SEL, B_REDR, "Sel", xco+110, yco+35, (width-110)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show all selected Objects");
 	uiDefButBitS(block, TOG, BUTS_ACT_ACT, B_REDR, "Act", xco+110+(width-110)/3, yco+35, (width-110)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show active Object");
 	uiDefButBitS(block, TOG, BUTS_ACT_LINK, B_REDR, "Link", xco+110+2*(width-110)/3, yco+35, (width-110)/3, 19, &G.buts->scaflag, 0, 0, 0, 0, "Show linked Objects to Controller");
-	
+	uiBlockEndAlign(block);
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		uiClearButLock();
@@ -2694,10 +2709,12 @@ void logic_buts(void)
 
 		/* presume it is only objects for now */
 		uiBlockSetEmboss(block, UI_EMBOSS);
+		uiBlockBeginAlign(block);
 		if(ob->actuators.first) uiSetCurFont(block, UI_HELVB);
 		uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2,(short)(xco-10), yco,(short)(width-30), 19, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
 		if(ob->actuators.first) uiSetCurFont(block, UI_HELV);
 		uiDefButBitS(block, TOG, OB_ADDACT, B_ADD_ACT, "Add",(short)(xco+width-40), yco, 50, 19, &ob->scaflag, 0, 0, 0, 0, "Add a new Actuator");
+		uiBlockEndAlign(block);
 		yco-=20;
 		
 		if(ob->scaflag & OB_SHOWACT) {

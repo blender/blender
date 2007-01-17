@@ -1976,11 +1976,11 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 
 			if(driver->type == IPO_DRIVER_TYPE_PYTHON) {
 				uiDefBut(block, TEX, B_IPO_REDR, "",				35,240,275,20, driver->name, 0, 127, 0, 0, "Python Expression");
+				uiBlockEndAlign(block);
 	 			if(driver->flag & IPO_DRIVER_FLAG_INVALID) {
 					uiDefBut(block, LABEL, 0, "Error: invalid Python expression",
 							5,215,230,19, NULL, 0, 0, 0, 0, "");
 				}
-				uiBlockEndAlign(block);
 			}
 			else {
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_IPO_DEPCHANGE, "OB:",	35, 240, 125, 20, &(driver->ob), "Driver Object");
