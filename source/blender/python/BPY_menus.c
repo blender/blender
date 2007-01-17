@@ -836,7 +836,7 @@ static int bpymenu_ParseDir(char *dirname, char *parentdir, int is_userdir )
 			if ((de->d_name[0] == '.') || !strncmp(de->d_name, "bpy", 3)) {
 				continue;
 			}
-
+			
 			BLI_make_file_string("/", path, dirname, de->d_name);
 			
 			if (stat(path, &status) != 0) {
