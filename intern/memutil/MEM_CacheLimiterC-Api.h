@@ -37,6 +37,9 @@ struct MEM_CacheLimiterHandle_s;
 typedef struct MEM_CacheLimiter_s MEM_CacheLimiterC;
 typedef struct MEM_CacheLimiterHandle_s MEM_CacheLimiterHandleC;
 
+/* function used to remove data from memory */
+typedef void(*MEM_CacheLimiter_Destruct_Func)(void*);
+
 #ifndef __MEM_cache_limiter_h_included__
 extern void MEM_CacheLimiter_set_maximum(int m);
 extern int MEM_CacheLimiter_get_maximum();
@@ -50,7 +53,7 @@ extern int MEM_CacheLimiter_get_maximum();
  */
 
 extern MEM_CacheLimiterC * new_MEM_CacheLimiter(
-	void (*data_destructor) (void * data));
+	MEM_CacheLimiter_Destruct_Func data_destructor);
 
 /** 
  * Delete MEM_CacheLimiter

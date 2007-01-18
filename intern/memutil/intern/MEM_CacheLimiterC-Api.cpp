@@ -53,7 +53,7 @@ typedef std::list<MEM_CacheLimiterHandleCClass*,
 
 class MEM_CacheLimiterCClass {
 public:
-	MEM_CacheLimiterCClass(void (*data_destructor_) (void * data))
+	MEM_CacheLimiterCClass(MEM_CacheLimiter_Destruct_Func data_destructor_)
 		: data_destructor(data_destructor_) { 
 	}
         ~MEM_CacheLimiterCClass();
@@ -67,7 +67,7 @@ public:
 		return &cache;
 	}
 private:
-	void (*data_destructor) (void * data);
+	MEM_CacheLimiter_Destruct_Func data_destructor;
 
 	MEM_CacheLimiter<MEM_CacheLimiterHandleCClass> cache;
 	
@@ -141,7 +141,7 @@ static inline handle_t* cast(MEM_CacheLimiterHandleC * l)
 }
 
 MEM_CacheLimiterC * new_MEM_CacheLimiter(
-	void (*data_destructor) (void * data))
+	MEM_CacheLimiter_Destruct_Func data_destructor)
 {
 	return (MEM_CacheLimiterC*) new MEM_CacheLimiterCClass(
 		data_destructor);
