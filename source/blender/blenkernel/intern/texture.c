@@ -37,10 +37,6 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "PIL_dynlib.h"
@@ -84,7 +80,7 @@
 /* ------------------------------------------------------------------------- */
 
 /* All support for plugin textures: */
-int test_dlerr(const char *name,  const char *symbol)
+int test_dlerr(const char *name, const char *symbol)
 {
 	char *err;
 	
@@ -130,7 +126,7 @@ void open_plugin_tex(PluginTex *pit)
 		
 		if (version != 0) {
 			pit->version= version();
-			if (pit->version==2 || pit->version==3) {
+			if (pit->version==2 || pit->version==5) {
 				int (*info_func)(PluginInfo *);
 				PluginInfo *info= (PluginInfo*) MEM_mallocN(sizeof(PluginInfo), "plugin_info"); 
 
@@ -690,7 +686,7 @@ void make_local_texture(Tex *tex)
 
 void autotexname(Tex *tex)
 {
-/*  	extern char texstr[20][12];	 *//* buttons.c, already in bad lev calls*/
+/*	extern char texstr[20][12];	 *//* buttons.c, already in bad lev calls*/
 	Image *ima;
 	char di[FILE_MAXDIR], fi[FILE_MAXFILE];
 	
