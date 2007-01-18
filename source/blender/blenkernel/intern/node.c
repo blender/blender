@@ -2003,11 +2003,23 @@ static void *exec_composite_node(void *node_v)
 	return 0;
 }
 
-/* should become a type? these are nodes without input, only giving values */
+/* these are nodes without input, only giving values */
+/* or nodes with only value inputs */
 static int node_only_value(bNode *node)
 {
+	bNodeSocket *sock;
+	
 	if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_VALUE, CMP_NODE_RGB))
 		return 1;
+	
+	if(node->inputs.first) {
+		int retval= 1;
+		for(sock= node->inputs.first; sock; sock= sock->next) {
+			if(sock->link)
+				retval &= node_only_value(sock->link->fromnode);
+		}
+		return retval;
+	}
 	return 0;
 }
 
@@ -2055,7 +2067,7 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 				bNodeLink *link= sock->link;
 				/* this is the test for a cyclic case */
 				if(link->fromnode->level >= link->tonode->level && link->tonode->level!=0xFFF) {
-					if(sock->link->fromnode->need_exec) {
+					if(link->fromnode->need_exec) {
 						node->need_exec= 1;
 						break;
 					}
