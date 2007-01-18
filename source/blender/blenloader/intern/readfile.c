@@ -2607,6 +2607,9 @@ static void lib_link_modifiers__linkModifiers(void *userData, Object *ob,
 	FileData *fd = userData;
 
 	*idpoin = newlibadr(fd, ob->id.lib, *idpoin);
+	/* hardcoded bad exception; non-object modifier data gets user count (texture, displace) */
+	if(*idpoin && GS((*idpoin)->name)!=ID_OB)
+		(*idpoin)->us++;
 }
 static void lib_link_modifiers(FileData *fd, Object *ob)
 {
