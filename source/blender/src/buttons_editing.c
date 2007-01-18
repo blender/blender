@@ -1184,6 +1184,10 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 			error("Modifier changes topology; cannot apply with multires active");
 			return;
 		}
+		if(me->key) {
+			error("Modifier cannot be applied to Mesh with Shape Keys");
+			return;
+		}
 	
 		sculptmode_pmv_off(me);
 	
