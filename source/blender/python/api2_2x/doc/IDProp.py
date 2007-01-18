@@ -15,7 +15,7 @@ class IDGroup:
 		
 		group['a subgroup!] = {"float": 0.0, "an int": 1.0, "an array": [1, 2],
 		  "another subgroup": {"a": 0.0, "str": "bleh"}}
-	 
+	
 	Note that for arrays, the array type defaults to int unless a float is found
 	while scanning the template list; if any floats are found, then the whole
 	array is float.
@@ -31,16 +31,16 @@ class IDGroup:
 	To tell if the property is a group or array type, import the Blender.Types module and test
 	against IDGroupType and IDArrayType, like so::
 	
-	from Blender.Types import IDGroupType, IDArrayType.
+		from Blender.Types import IDGroupType, IDArrayType.
 	
-	if type(group['bleghr']) == IDGroupType:
-		(do something)
+		if type(group['bleghr']) == IDGroupType:
+			(do something)
 	
 	@ivar name: The name of the property
 	@type name: string
 	"""
 	
-	def pop(self, item):
+	def pop(item):
 		"""
 		Pop an item from the group property.
 		@type item: string
@@ -49,7 +49,7 @@ class IDGroup:
 		@return: The removed property.	
 		"""
 		
-	def update(self, updatedict):
+	def update(updatedict):
 		"""
 		Updates items in the dict, similar to normal python
 		dictionary method .update().
@@ -59,14 +59,14 @@ class IDGroup:
 		@return: None
 		"""
 	
-	def keys(self):
+	def keys():
 		"""
 		Returns a list of the keys in this property group.
 		@rtype: list of strings.
 		@return: a list of the keys in this property group.	
 		"""
 	
-	def values(self):
+	def values():
 		"""
 		Returns a list of the values in this property group.
 		
@@ -89,7 +89,7 @@ class IDGroup:
 		@return: a list of the values in this property group.
 		"""
 	
-	def iteritems(self):
+	def iteritems():
 		"""
 		Implements the python dictionary iteritmes method.
 		
@@ -103,7 +103,7 @@ class IDGroup:
 		@return: an iterator.	
 		"""
 	
-	def convert_to_pyobject(self):
+	def convert_to_pyobject():
 		"""
 		Converts the entire property group to a purely python form.
 		
@@ -119,12 +119,12 @@ class IDArray:
 	@ivar type: returns the type of the array, can be either IDP_Int or IDP_Float
 	"""
 	
-	def __getitem__(self):
+	def __getitem__(index):
 		pass
 	
-	def __setitem__(self):
+	def __setitem__(index, value):
 		pass
 	
-	def __len__(self):
+	def __len__():
 		pass
 	

@@ -1259,14 +1259,14 @@ class Object:
 
   def getAllProperties ():
     """
-    Return a list of properties from this object.
+    Return a list of all game properties from this object.
     @rtype: PyList
     @return: List of Property objects.
     """
 
   def getProperty (name):
     """
-    Return a properties from this object based on name.
+    Return a game property from this object matching the name argument.
     @type name: string
     @param name: the name of the property to get.
     @rtype: Property object
@@ -1275,7 +1275,7 @@ class Object:
 
   def addProperty (name_or_property, data, type):
     """
-    Add or create a property for an object.  If called with only a
+    Add or create a game property for an object.  If called with only a
     property object, the property is assigned to the object.  If called
     with a property name string and data object, a new property is
     created and added to the object.
@@ -1305,19 +1305,19 @@ class Object:
 
   def removeProperty (property):
     """
-    Remove a property from an object.
+    Remove a game property from an object.
     @type property: Property object or string
     @param property: Property object or property name to be removed.
     """
 
   def removeAllProperties():
     """
-    Removes all properties from an object. 
+    Removes all game properties from an object. 
     """
 
   def copyAllPropertiesTo (object):
     """
-    Copies all properties from one object to another.
+    Copies all game properties from one object to another.
     @type object: Object object
     @param object: Object that will receive the properties.
     """
@@ -1701,7 +1701,7 @@ class Property:
   """
   The Property object
   ===================
-    This property gives access to object property data in Blender.
+    This property gives access to object property data in Blender, used by the game engine.
     @ivar name: The property name.
     @ivar data: Data for this property. Depends on property type.
     @ivar type: The property type.
@@ -1746,72 +1746,4 @@ class Property:
     Get the type for this property.
     @rtype: string
     """
-
-  def insertPoseKey(action,chanName,actframe,curframe):
-	"""
-	Inserts a key into Action.
-    @param action: action to copy poses from
-    @type action: L{Action<NLA.Action>} object
-    @param chanName: channel or bone name
-    @type chanName: string
-    @param actframe: frame to extract action from
-    @type actframe: int
-    @param curframe: frame at which to insert action key
-    @type curframe: int
-	"""
-
-  def insertCurrentPoseKey(chanName,curframe):
-	"""
-	Inserts a key into Action based on current pose.
-    @param chanName: channel or bone name
-    @type chanName: string
-    @param curframe: frame at which to insert action key
-    @type curframe: int
-	"""
-
-  def insertMatrixKey(chanName,curframe):
-	"""
-	Inserts a key into Action based on current/giventime object matrix.
-    @param chanName: channel or bone name
-    @type chanName: string
-    @param curframe: frame at which to insert action key
-    @type curframe: int
-	"""
-
-  def bake_to_action():
-	"""
-	Creates a new action with the information from object animations.
-	"""
-
-  def setConstraintInfluenceForBone(boneName, constName, influence):
-	"""
-	Sets a constraint influence for a certain bone in this (armature) object.
-    @param boneName: bone name
-    @type boneName: string
-    @param constName: constraint name
-    @type constName: string
-    @param influence: influence value
-    @type influence: float
-	"""
-
-  def copyNLA(obj):
-    """
-    Copies all NLA strips from another object to this object.
-    @param obj: an object to copy NLA strips from.
-    @type obj: L{Object}
-    """
-
-  def __copy__ ():
-    """
-    Make a copy of this object
-    @rtype: Object
-    @return:  a copy of this object
-    """
-
-  def convertActionToStrip():
-	"""
-	Convert an object's action into an action strip.
-    @rtype: L{ActionStrips<NLA.ActionStrip>}
-    @return: the new action strip
-	"""
 
