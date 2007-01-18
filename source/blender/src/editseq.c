@@ -1656,6 +1656,7 @@ void del_seq(void)
 static void recurs_dupli_seq(ListBase *old, ListBase *new)
 {
 	Sequence *seq, *seqn;
+	Sequence *last_seq = get_last_seq();
 	StripElem *se;
 	int a;
 
@@ -1803,7 +1804,9 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 				
 				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
 			}
-
+			if (seq == last_seq) {
+				set_last_seq(seqn);
+			}
 		}
 		seq= seq->next;
 	}
