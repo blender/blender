@@ -1087,6 +1087,8 @@ static void modifier_testTexture(char *name, ID **idpp)
 	for(id = G.main->tex.first; id; id = id->next) {
 		if(strcmp(name, id->name + 2) == 0) {
 			*idpp = id;
+			/* texture gets user, objects not: delete object = clear modifier */
+			id_us_plus(id);
 			return;
 		}
 	}
