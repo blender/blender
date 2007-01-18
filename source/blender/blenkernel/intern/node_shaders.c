@@ -1154,6 +1154,10 @@ void ntreeShaderGetTexcoMode(bNodeTree *ntree, int r_mode, short *texco, int *mo
 				if ELEM3(tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) 
 					*texco |= TEXCO_OSA|NEED_UV;
 			}
+			/* usability exception... without input we still give the node orcos */
+			sock= node->inputs.first;
+			if(sock==NULL || sock->link==NULL)
+				*texco |= TEXCO_ORCO|NEED_UV;
 		}
 		else if(node->type==SH_NODE_GEOMETRY) {
 			/* note; sockets always exist for the given type! */

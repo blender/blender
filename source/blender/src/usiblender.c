@@ -529,17 +529,17 @@ static void get_autosave_location(char buf[FILE_MAXDIR+FILE_MAXFILE])
 
 void BIF_read_autosavefile(void)
 {
-	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
+	char tstr[FILE_MAX], scestr[FILE_MAX];
 	int save_over;
 
-	strcpy(scestr, G.sce);	/* temporal store */
+	BLI_strncpy(scestr, G.sce, FILE_MAX);	/* temporal store */
 	
 	get_autosave_location(tstr);
 
 	save_over = G.save_over;
 	BKE_read_file(tstr, NULL);
 	G.save_over = save_over;
-	strcpy(G.sce, scestr);
+	BLI_strncpy(G.sce, scestr, FILE_MAX);
 }
 
 /* free strings of open recent files */
