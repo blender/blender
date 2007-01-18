@@ -574,6 +574,7 @@ char retopo_paint(const unsigned short event)
 				BLI_freelinkN(&rpd->lines, l);
 				if(rpd->nearest.line == l)
 					rpd->nearest.line= NULL;
+				BIF_undo_push("Erase line");
 				allqueue(REDRAWVIEW3D, 0);
 			}
 			break;
