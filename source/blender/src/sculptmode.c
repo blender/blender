@@ -211,8 +211,11 @@ void sculptmode_init(Scene *sce)
 }
 
 void sculptmode_undo_init();
+void sculptmode_free_session(Scene *);
 void sculpt_init_session()
 {
+	if(sculpt_data()->session)
+		sculptmode_free_session(G.scene);
 	sculpt_data()->session= MEM_callocN(sizeof(SculptSession), "SculptSession");
 	sculptmode_undo_init();
 }

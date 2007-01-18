@@ -186,7 +186,7 @@ void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff 
 {
 	Object *ob;
 	
-	G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT);
+	G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE);
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 
 	if ELEM3(curarea->spacetype, SPACE_VIEW3D, SPACE_BUTS, SPACE_INFO) {
