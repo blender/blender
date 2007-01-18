@@ -4,7 +4,7 @@
 Name: 'Unwrap (smart projections)'
 Blender: 240
 Group: 'UVCalculation'
-Tooltip: 'ArchiMap UV Unwrap mesh faces for all select mesh objects'
+Tooltip: 'UV Unwrap mesh faces for all select mesh objects'
 """
 
 
@@ -20,7 +20,7 @@ selected faces, or all faces.
 """
 
 # -------------------------------------------------------------------------- 
-# Archimap UV Projection Unwrapper v1.1 by Campbell Barton (AKA Ideasman) 
+# Smart Projection UV Projection Unwrapper v1.1 by Campbell Barton (AKA Ideasman) 
 # -------------------------------------------------------------------------- 
 # ***** BEGIN GPL LICENSE BLOCK ***** 
 # 
@@ -870,6 +870,7 @@ def main():
 	USER_FILL_HOLES = Draw.Create(0)
 	USER_FILL_HOLES_QUALITY = Draw.Create(50) # Only for hole filling.
 	USER_VIEW_INIT = Draw.Create(0) # Only for hole filling.
+	USER_AREA_WEIGHT = Draw.Create(1) # Only for hole filling.
 	
 	
 	pup_block = [\
@@ -877,14 +878,14 @@ def main():
 	('Angle Limit:', USER_PROJECTION_LIMIT, 1, 89, 'lower for more projection groups, higher for less distortion.'),\
 	('Selected Faces Only', USER_ONLY_SELECTED_FACES, 'Use only selected faces from all selected meshes.'),\
 	('Init from view', USER_VIEW_INIT, 'The first projection will be from the view vector.'),\
+	('Area Weight', USER_AREA_WEIGHT, 'Weight projections vector by face area.'),\
+	'',\
+	'',\
+	'',\
 	'UV Layout',\
 	('Share Tex Space', USER_SHARE_SPACE, 'Objects Share texture space, map all objects into 1 uvmap.'),\
 	('Stretch to bounds', USER_STRETCH_ASPECT, 'Stretch the final output to texture bounds.'),\
 	('Island Margin:', USER_ISLAND_MARGIN, 0.0, 0.25, 'Margin to reduce bleed from adjacent islands.'),\
-	'',\
-	'',\
-	'',\
-	'',\
 	'Fill in empty areas',\
 	('Fill Holes', USER_FILL_HOLES, 'Fill in empty areas reduced texture waistage (slow).'),\
 	('Fill Quality:', USER_FILL_HOLES_QUALITY, 1, 100, 'Depends on fill holes, how tightly to fill UV holes, (higher is slower)'),\
@@ -911,10 +912,11 @@ def main():
 	USER_ONLY_SELECTED_FACES = USER_ONLY_SELECTED_FACES.val
 	USER_SHARE_SPACE = USER_SHARE_SPACE.val
 	USER_STRETCH_ASPECT = USER_STRETCH_ASPECT.val
-	USER_ISLAND_MARGIN = USER_ISLAND_MARGIN.val * 10
+	USER_ISLAND_MARGIN = USER_ISLAND_MARGIN.val
 	USER_FILL_HOLES = USER_FILL_HOLES.val
 	USER_FILL_HOLES_QUALITY = USER_FILL_HOLES_QUALITY.val
 	USER_VIEW_INIT = USER_VIEW_INIT.val
+	USER_AREA_WEIGHT = USER_AREA_WEIGHT.val
 	
 	USER_PROJECTION_LIMIT_CONVERTED = cos(USER_PROJECTION_LIMIT * DEG_TO_RAD)
 	USER_PROJECTION_LIMIT_HALF_CONVERTED = cos((USER_PROJECTION_LIMIT/2) * DEG_TO_RAD)
@@ -950,11 +952,9 @@ def main():
 		if not meshFaces:
 			continue
 		
-		#print '\n\n\nArchimap UV Unwrapper, mapping "%s", %i faces.' % (me.name, len(meshFaces))
-		Window.DrawProgressBar(0.1, 'Archimap UV Unwrapper, mapping "%s", %i faces.' % (me.name, len(meshFaces)))
+		Window.DrawProgressBar(0.1, 'SmartProj UV Unwrapper, mapping "%s", %i faces.' % (me.name, len(meshFaces)))
 		
 
-		
 		# =======
 		# Generate a projection list from face normals, this is ment to be smart :)
 		
@@ -988,7 +988,7 @@ def main():
 			projectVecs = []
 		
 		newProjectVec = meshFaces[0].no
-		newProjectMeshFaces = [meshFaces[0]]	# Popping stuffs it up.
+		newProjectMeshFaces = []	# Popping stuffs it up.
 		
 		
 		# Predent that the most unique angke is ages away to start the loop off
@@ -1007,14 +1007,26 @@ def main():
 			for fIdx in xrange(len(tempMeshFaces)-1, -1, -1):
 				# Use half the angle limit so we dont overweight faces towards this
 				# normal and hog all the faces.
-				#print newProjectVec
 				if DotVecs(newProjectVec, tempMeshFaces[fIdx].no) > USER_PROJECTION_LIMIT_HALF_CONVERTED:
 					newProjectMeshFaces.append(tempMeshFaces.pop(fIdx))
 			
+			# Add the average of all these faces normals as a projectionVec
+			averageVec = Vector(0,0,0)
+			if USER_AREA_WEIGHT:
+				for fprop in newProjectMeshFaces:
+					averageVec += (fprop.no * fprop.area)
+			else:
+				for fprop in newProjectMeshFaces:
+					averageVec += fprop.no
+					
+			if averageVec.x != 0 or averageVec.y != 0 or averageVec.z != 0: # Avoid NAN
+				projectVecs.append(averageVec.normalize())
 			
+			
+			# Get the next vec!
 			# Pick the face thats most different to all existing angles :)
 			mostUniqueAngle = 1.0 # 1.0 is 0d. no difference.
-			mostUniqueIndex = 0 # fake
+			mostUniqueIndex = 0 # dummy
 			
 			for fIdx in xrange(len(tempMeshFaces)-1, -1, -1):
 				angleDifference = -1.0 # 180d difference.
@@ -1033,21 +1045,16 @@ def main():
 			
 			if mostUniqueAngle < USER_PROJECTION_LIMIT_CONVERTED:
 				#print 'adding', mostUniqueAngle, USER_PROJECTION_LIMIT, len(newProjectMeshFaces)
+				# Now weight the vector to all its faces, will give a more direct projection
+				# if the face its self was not representive of the normal from surrounding faces.
+				
 				newProjectVec = tempMeshFaces[mostUniqueIndex].no
 				newProjectMeshFaces = [tempMeshFaces.pop(mostUniqueIndex)]
 				
-				
-				# Now weight the vector to all its faces, will give a more direct projection
-				# if the face its self was not representive of the normal from surrounding faces.
-				averageVec = Vector(0,0,0)
-				for fprop in newProjectMeshFaces:
-					averageVec += (fprop.no * fprop.area)
-				
-				if averageVec.x != 0 or averageVec.y != 0 or averageVec.z != 0: # Avoid NAN
-					projectVecs.append(averageVec.normalize())
 			
 			else:
 				if len(projectVecs) >= 1: # Must have at least 2 projections
+					print len(projectVecs)
 					break
 			
 			
@@ -1087,13 +1094,11 @@ def main():
 		
 		
 		# Now faceProjectionGroupList is full of faces that face match the project Vecs list
-		i= len(projectVecs)
-		while i:
-			i-=1
+		for i in xrange(len(projectVecs)):
 			# Account for projectVecs having no faces.
 			if not faceProjectionGroupList[i]:
 				continue
-					
+			
 			# Make a projection matrix from a unit length vector.
 			MatProj = VectoMat(projectVecs[i])
 			
@@ -1113,7 +1118,6 @@ def main():
 			# Should we pack the islands for this 1 object?
 			islandList = getUvIslands(faceProjectionGroupList, me)
 			packIslands(islandList)
-			
 		
 		
 		# update the mesh here if we need to.
@@ -1123,8 +1127,8 @@ def main():
 		Window.DrawProgressBar(0.9, "Box Packing for all objects...")
 		packIslands(collected_islandList)
 	
-	print "ArchiMap time: %.2f" % (sys.time() - time1)
-	Window.DrawProgressBar(0.9, "ArchiMap Done, time: %.2f sec." % (sys.time() - time1))
+	print "Smart Projection time: %.2f" % (sys.time() - time1)
+	# Window.DrawProgressBar(0.9, "Smart Projections done, time: %.2f sec." % (sys.time() - time1))
 	
 	Window.DrawProgressBar(1.0, "")
 	Window.WaitCursor(0)
