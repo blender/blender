@@ -225,18 +225,20 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[12]= &(main->latt);
 	lb[13]= &(main->lamp);
 	lb[14]= &(main->camera);
-
-	lb[15]= &(main->world);
-	lb[16]= &(main->screen);
-	lb[17]= &(main->object);
-	lb[18]= &(main->scene);
-	lb[19]= &(main->library);
-	lb[20]= &(main->text);
-	lb[21]= &(main->sound);
-	lb[22]= &(main->group);
-	lb[23]= &(main->nodetree);
-	lb[24]= &(main->brush);
-	lb[25]= &(main->script);
+	
+	lb[15]= &(main->text);
+	lb[16]= &(main->sound);
+	lb[17]= &(main->group);
+	lb[18]= &(main->nodetree);
+	lb[19]= &(main->brush);
+	lb[20]= &(main->script);
+	
+	lb[21]= &(main->world);
+	lb[22]= &(main->screen);
+	lb[23]= &(main->object);
+	lb[24]= &(main->scene);
+	lb[25]= &(main->library);
+	
 	lb[26]= NULL;
 
 	return 26;
