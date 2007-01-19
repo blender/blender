@@ -1035,9 +1035,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 	btVector3 pivotInB = rb1 ? rb1->getCenterOfMassTransform().inverse()(rb0->getCenterOfMassTransform()(pivotInA)) : 
 		rb0->getCenterOfMassTransform() * pivotInA;
 	btVector3 axisInA(axisX,axisY,axisZ);
-	btVector3 axisInB = rb1 ? 
-		(rb1->getCenterOfMassTransform().getBasis().inverse()*(rb0->getCenterOfMassTransform().getBasis() * axisInA)) : 
-	rb0->getCenterOfMassTransform().getBasis() * axisInA;
+
 
 	bool angularOnly = false;
 
@@ -1087,16 +1085,14 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 				frameInA.getBasis().setValue( axisInA.x(), axis1.x(), axis2.x(),
 					                          axisInA.y(), axis1.y(), axis2.y(),
 											  axisInA.z(), axis1.z(), axis2.z() );
-
-	
-				btPlaneSpace1( axisInB, axis1, axis2 );
-				frameInB.getBasis().setValue( axisInB.x(), axis1.x(), axis2.x(),
-					                          axisInB.y(), axis1.y(), axis2.y(),
-											  axisInB.z(), axis1.z(), axis2.z() );
-
 				frameInA.setOrigin( pivotInA );
-				frameInB.setOrigin( pivotInB );
 
+				btTransform inv = rb1->getCenterOfMassTransform().inverse();
+
+				btTransform globalFrameA = rb0->getCenterOfMassTransform() * frameInA;
+				
+				frameInB = inv  * globalFrameA;
+				
 				genericConstraint = new btGeneric6DofConstraint(
 					*rb0,*rb1,
 					frameInA,frameInB);
@@ -1105,7 +1101,7 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 			} else
 			{
 				static btRigidBody s_fixedObject2( 0,0,0);
-					btTransform frameInA;
+				btTransform frameInA;
 				btTransform frameInB;
 				
 				btVector3 axis1, axis2;
@@ -1115,15 +1111,10 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 					                          axisInA.y(), axis1.y(), axis2.y(),
 											  axisInA.z(), axis1.z(), axis2.z() );
 
-	
-				btPlaneSpace1( axisInB, axis1, axis2 );
-				frameInB.getBasis().setValue( axisInB.x(), axis1.x(), axis2.x(),
-					                          axisInB.y(), axis1.y(), axis2.y(),
-											  axisInB.z(), axis1.z(), axis2.z() );
-
 				frameInA.setOrigin( pivotInA );
-				frameInB.setOrigin( pivotInB );
 
+				///frameInB in worldspace
+				frameInB = rb0->getCenterOfMassTransform() * frameInA;
 
 				genericConstraint = new btGeneric6DofConstraint(
 					*rb0,s_fixedObject2,
@@ -1152,6 +1143,10 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 
 			if (rb1)
 			{
+				btVector3 axisInB = rb1 ? 
+				(rb1->getCenterOfMassTransform().getBasis().inverse()*(rb0->getCenterOfMassTransform().getBasis() * axisInA)) : 
+				rb0->getCenterOfMassTransform().getBasis() * axisInA;
+
 				hinge = new btHingeConstraint(
 					*rb0,
 					*rb1,pivotInA,pivotInB,axisInA,axisInB);

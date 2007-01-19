@@ -2166,22 +2166,25 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 								(float)axis1.x(),(float)axis1.y(),(float)axis1.z(),
 								(float)axis2.x(),(float)axis2.y(),(float)axis2.z()
 											);
-								//if it is a generic 6DOF constraint, set all the limits accordingly
-								if (dat->type == PHY_GENERIC_6DOF_CONSTRAINT)
+								if (constraintId)
 								{
-									int dof;
-									int dofbit=1;
-									for (dof=0;dof<6;dof++)
+									//if it is a generic 6DOF constraint, set all the limits accordingly
+									if (dat->type == PHY_GENERIC_6DOF_CONSTRAINT)
 									{
-										if (dat->flag & dofbit)
+										int dof;
+										int dofbit=1;
+										for (dof=0;dof<6;dof++)
 										{
-											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,dat->minLimit[dof],dat->maxLimit[dof]);
-										} else
-										{
-											//minLimit > maxLimit means free(disabled limit) for this degree of freedom
-											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
+											if (dat->flag & dofbit)
+											{
+												kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,dat->minLimit[dof],dat->maxLimit[dof]);
+											} else
+											{
+												//minLimit > maxLimit means free(disabled limit) for this degree of freedom
+												kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
+											}
+											dofbit<<=1;
 										}
-										dofbit<<=1;
 									}
 								}
 							}
