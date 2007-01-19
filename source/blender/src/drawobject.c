@@ -2316,11 +2316,18 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 		switch(dl->type) {
 		case DL_SEGM:
 			if(ob->type==OB_SURF) {
+				int nr;
+
 				glDisable(GL_LIGHTING);
 				glColor3fv(curcol);
 				
-				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
-				glDrawArrays(GL_LINE_STRIP, 0, dl->nr);
+				// glVertexPointer(3, GL_FLOAT, 0, dl->verts);
+				// glDrawArrays(GL_LINE_STRIP, 0, dl->nr);
+
+				glBegin(GL_LINE_STRIP);
+				for(nr= dl->nr; nr; nr--, data+=3)
+					glVertex3fv(data);
+				glEnd();
 
 				glEnable(GL_LIGHTING);
 			}
