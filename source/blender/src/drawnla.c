@@ -589,9 +589,18 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
 	uiDefButBitS(block, TOG, ACTSTRIP_HOLDLASTFRAME, B_NLA_PANEL, "Hold",	160,60,75,19, &strip->flag, 0, 0, 0, 0, "Toggles whether to continue displaying the last frame past the end of the strip");
 	uiDefButS(block, TOG, B_NLA_PANEL, "Add",								235,60,75,19, &strip->mode, 0, 0, 0, 0, "Toggles additive blending mode");
+
 	uiBlockEndAlign(block);
-	
+
 	uiDefButBitS(block, TOG, ACTSTRIP_USESTRIDE, B_NLA_PANEL, "Stride Path",	10, 30,140,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride");
+	
+	if (strip->offs_bone[0]) {
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, ACTSTRIP_CYCLIC_USEX, B_NLA_PANEL, "Use X",	160,30,50,19, &strip->flag, 0, 0, 0, 0, "Turn off automatic single-axis cycling and use X as an offset axis.  Note that you can use multiple axes at once.");
+		uiDefButBitS(block, TOG, ACTSTRIP_CYCLIC_USEY, B_NLA_PANEL, "Use Y",	210,30,50,19, &strip->flag, 0, 0, 0, 0, "Turn off automatic single-axis cycling and use Y as an offset axis.  Note that you can use multiple axes at once.");
+		uiDefButBitS(block, TOG, ACTSTRIP_CYCLIC_USEZ, B_NLA_PANEL, "Use Z",	260,30,50,19, &strip->flag, 0, 0, 0, 0, "Turn off automatic single-axis cycling and use Z as an offset axis.  Note that you can use multiple axes at once.");
+		uiBlockEndAlign(block);
+	}
 	
 	if(ob->dup_group)
 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_NLA_PANEL, "Target:",	160,30, 150, 19, &strip->object, "Target Object in this group"); 

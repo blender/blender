@@ -91,7 +91,9 @@ typedef struct bActionStrip {
 #define ACTSTRIP_LOCK_ACTION	0x20
 #define ACTSTRIP_MUTE			0x40
 #define ACTSTRIP_REVERSE		0x80
-
+#define ACTSTRIP_CYCLIC_USEX	0x100
+#define ACTSTRIP_CYCLIC_USEY	0x200
+#define ACTSTRIP_CYCLIC_USEZ	0x400
 
 #endif
 
