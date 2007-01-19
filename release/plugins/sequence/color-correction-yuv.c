@@ -119,6 +119,8 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width,
 	float yuv[3];
 	float gamma_table[256];
 	float uv_table[256];
+	float *destf = out->rect_float;
+	float *src1f = ibuf1->rect_float;
 	
 	if (!ibuf1) return;
 
@@ -155,9 +157,15 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width,
 	for (y = 0; y < height; y++) {
 		for (x = 0; x < width; x++) {
 			float fac;
-			rgb[0]= (float)src1[0]/255.0;
-			rgb[1]= (float)src1[1]/255.0;
-			rgb[2]= (float)src1[2]/255.0;
+			if (out->rect_float) {
+				rgb[0]= (float)src1f[0]/255.0;
+				rgb[1]= (float)src1f[1]/255.0;
+				rgb[2]= (float)src1f[2]/255.0;
+			} else {
+				rgb[0]= (float)src1[0]/255.0;
+				rgb[1]= (float)src1[1]/255.0;
+				rgb[2]= (float)src1[2]/255.0;
+			}
 			rgb_to_yuv(rgb, yuv);
 
 			yuv[0] = gamma_table[(int) (yuv[0] * 255.0)] / 255.0;
@@ -179,12 +187,19 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width,
 			}
 			yuv_to_rgb(yuv, rgb);
 			
-			*dest++ = rgb[0]*255.0;
-			*dest++ = rgb[1]*255.0;
-			*dest++ = rgb[2]*255.0;
-			dest++;
-
-			src1 += 4;
+			if (out->rect_float) {
+				*destf++ = rgb[0];
+				*destf++ = rgb[1];
+				*destf++ = rgb[2];
+				destf++;
+				src1f += 4;
+			} else {
+				*dest++ = rgb[0]*255.0;
+				*dest++ = rgb[1]*255.0;
+				*dest++ = rgb[2]*255.0;
+				dest++;
+				src1 += 4;
+			}
 		}
 	}
 

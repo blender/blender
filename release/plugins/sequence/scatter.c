@@ -99,20 +99,17 @@ void plugin_getinfo(PluginInfo *info)
 /* ************************************************************
 	Scatter
 	
-	with usage of ImBuf rect operation.
-	
    ************************************************************ */
 
-static void ibufrectop(ImBuf *dbuf, ImBuf *sbuf,	
+static void rectcpy(ImBuf *dbuf, ImBuf *sbuf,	
 				int destx, int desty, 
-				int srcx, int srcy, int width, int height,
-				void (*operation)(), 
-				int value)
+				int srcx, int srcy, int width, int height)
 {
 	uint *drect,*srect;
+	float *dfrect, *sfrect;
+	int tmp;
 
 	if (dbuf == 0) return;
-	if (operation == 0) return;
 
 	if (destx < 0){
 		srcx -= destx ;
@@ -140,41 +137,71 @@ static void ibufrectop(ImBuf *dbuf, ImBuf *sbuf,
 	if (sbuf){
 		if (width > sbuf->x - srcx) width = sbuf->x - srcx;
 		if (height > sbuf->y - srcy) height = sbuf->y - srcy;
+		srect = sbuf->rect;
+		sfrect = sbuf->rect_float;
 	}
 
 	if (width <= 0) return;
 	if (height <= 0) return;
 
 	drect = dbuf->rect;
-	if (sbuf) srect = sbuf->rect;
+	dfrect = dbuf->rect_float;
 
-	drect += desty * dbuf->x;
-	drect += destx;
+	tmp = desty * dbuf->x + destx;
+
+	if (dbuf->rect_float) dfrect += tmp;
+	else drect += tmp;
+
 	destx = dbuf->x;
 
 	if (sbuf) {
-		srect += srcy * sbuf->x;
-		srect += srcx;
+		tmp = srcy * sbuf->x + srcx;
+		if (dbuf->rect_float) sfrect += tmp;
+		else srect += tmp;
 		srcx = sbuf->x;
 	} else{
-		srect = drect;
+		if (dbuf->rect_float) sfrect = dfrect;
+		else srect = drect;
 		srcx = destx;
 	}
 
 	for (;height > 0; height--){
-		operation(drect, srect, width, value);
-		drect += destx;
-		srect += srcx;
+		if (dbuf->rect_float) {
+			memcpy(dfrect,sfrect, srcx * sizeof(float));
+			dfrect += destx;
+			sfrect += srcx;
+		} else {
+			memcpy(drect,srect, srcx * sizeof(int));
+			drect += destx;
+			srect += srcx;
+		}
 	}
 }
 
-static void rectcpy(uint *drect, uint *srect, int x) {
-	memcpy(drect,srect, x * sizeof(int));
-}
-
-static void rectfill(uint *drect, uint *srect, int x, int value)
+static void fill_out(ImBuf *out, float r, float g, float b, float a)
 {
-	for (;x > 0; x--) *drect++ = value;
+	int tot,x;
+	float *rectf = out->rect_float;
+	unsigned char *rect = (unsigned char *)out->rect;
+
+	tot = out->x * out->y;
+	if (out->rect_float) {
+		for (x = 0;x < tot; x++) {
+			rectf[0] = r;
+			rectf[1] = g;
+			rectf[2] = b;
+			rectf[3] = a;
+			rectf = rectf + 4;
+		}
+	} else {
+		for (x=0;x < tot;x++) {
+			rect[0] = (int)(r * 255);
+	       		rect[1] = (int)(g * 255);
+       	 		rect[2] = (int)(b * 255);
+       	 		rect[3] = (int)(a * 255);
+			rect += 4;
+		}
+	}
 }
 
 
@@ -184,7 +211,7 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int sx, int sy, ImBuf
 	int x, y, lr;
 	
 	/* fill imbuf 'out' with black */
-	ibufrectop(out, ibuf1,0,0,0,0,32767,32767,rectfill, 0);
+	fill_out(out, 0,0,0,0);
 
 	switch (cast->type) {
 		case 0:
@@ -223,12 +250,12 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int sx, int sy, ImBuf
 				break;
 		}
 		
-		ibufrectop(out, ibuf1, 0, y, x, y, 32767, 1, rectcpy, 0);
+		rectcpy(out, ibuf1, 0, y, x, y, 32767, 1);
 		if (cast->wrap) {
-			ibufrectop(out, ibuf1, 0, y, x + sx, y, 32767, 1, rectcpy, 0);
-			ibufrectop(out, ibuf1, 0, y, x + sx + sx, y, 32767, 1, rectcpy, 0);
-			ibufrectop(out, ibuf1, 0, y, x - sx, y, 32767, 1, rectcpy, 0);
-			ibufrectop(out, ibuf1, 0, y, x - sx - sx, y, 32767, 1, rectcpy, 0);
+			rectcpy(out, ibuf1, 0, y, x + sx, y, 32767, 1);
+			rectcpy(out, ibuf1, 0, y, x + sx + sx, y, 32767, 1);
+			rectcpy(out, ibuf1, 0, y, x - sx, y, 32767, 1);
+			rectcpy(out, ibuf1, 0, y, x - sx - sx, y, 32767, 1);
 		}
 	}
 }

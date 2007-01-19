@@ -182,10 +182,12 @@ static void rgb_to_hsv (double  r, double  g, double  b,
 
 void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width, 
 	int height, ImBuf *ibuf1, ImBuf *ibuf2, ImBuf *out, ImBuf *use) {
-	char *dest, *src1, *src2;
+	char *dest, *src1;
 	int x, y, c;
 	double gamma_table[256];
 	double uv_table[256];
+	float *destf = out->rect_float;
+	float *src1f = ibuf1->rect_float;
 	
 	if (!ibuf1) return;
 
@@ -224,7 +226,9 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width,
 			double h,s,v,r,g,b;
 			double fac;
 
-			rgb_to_hsv((double) src1[0]/255.0,
+			if (ibuf1->rect_float) rgb_to_hsv(src1f[0], src1f[1],
+				src1f[2],&h,&s,&v);
+			else rgb_to_hsv((double) src1[0]/255.0,
 				   (double) src1[1]/255.0,
 				   (double) src1[2]/255.0,
 				   &h, &s, &v);
@@ -238,10 +242,18 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width,
 			}
 			hsv_to_rgb(h,s,v, &r, &g, &b);
 			
-			*dest++ = r*255.0;
-			*dest++ = g*255.0;
-			*dest++ = b*255.0;
-			dest++;
+			if (out->rect_float) {
+				destf[0] = r;
+				destf[1] = g;
+				destf[2] = b;
+				destf = destf + 4;
+				src1f +=4;
+			} else {
+				dest[0] = r*255.0;
+				dest[1] = g*255.0;
+				dest[2] = b*255.0;
+				dest += 4;
+			}
 
 			src1 += 4;
 		}

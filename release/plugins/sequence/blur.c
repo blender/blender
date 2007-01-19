@@ -138,8 +138,13 @@ void blurbuf(struct ImBuf *ibuf, int nr, Cast *cast)
 	if(cast->gamma != 1.0) gamwarp(tbuf, 1.0 / cast->gamma);
 
 	/* Very bad code warning! This fails badly with float-buffers!!! */
-	freeN(ibuf->rect);
-	ibuf->rect= tbuf->rect;
+	if (ibuf->rect_float) {
+		freeN(ibuf->rect_float);
+		ibuf->rect_float= tbuf->rect_float;
+	} else {
+		freeN(ibuf->rect);
+		ibuf->rect= tbuf->rect;
+	}
 	freeN(tbuf);
 	
 }
@@ -153,6 +158,7 @@ void doblur(struct ImBuf *mbuf, float fac, Cast *cast)
 	float ifac, pfac;
 	int n, b1, b2;
 	char *irect, *prect, *mrect;
+	float *irectf, *prectf, *mrectf;
 	
 	/* wich buffers ? */
 				
@@ -178,30 +184,55 @@ void doblur(struct ImBuf *mbuf, float fac, Cast *cast)
 	blurbuf(ibuf, n, cast);
 	blurbuf(ibuf, n, cast);
 	
-	fac= 255.0*(fac-pfac)/(ifac-pfac);
-	b1= fac;
+	fac = (fac-pfac)/(ifac-pfac);
+	b1= 255.0*fac;
 	if(b1>255) b1= 255;
 	b2= 255-b1;
 	
 	if(b1==255) {
-		memcpy(mbuf->rect, ibuf->rect, 4*ibuf->x*ibuf->y);
+		if (mbuf->rect_float) 
+			memcpy(mbuf->rect_float, ibuf->rect_float, 4*ibuf->x*ibuf->y * sizeof(float));
+		else
+			memcpy(mbuf->rect_float, ibuf->rect_float, 4*ibuf->x*ibuf->y);
 	}
 	else if(b1==0) {
-		memcpy(mbuf->rect, pbuf->rect, 4*pbuf->x*pbuf->y);
+		if (mbuf->rect_float)
+			memcpy(mbuf->rect_float, pbuf->rect_float, 4*pbuf->x*pbuf->y * sizeof(float));
+		else
+			memcpy(mbuf->rect, pbuf->rect, 4*pbuf->x*pbuf->y);
 	}
 	else {	/* interpolate */
 		n= ibuf->x*ibuf->y;
-		irect= (char *)ibuf->rect;
-		prect= (char *)pbuf->rect;
-		mrect= (char *)mbuf->rect;
-		while(n--) {
-			mrect[0]= (irect[0]*b1+ prect[0]*b2)>>8;
-			mrect[1]= (irect[1]*b1+ prect[1]*b2)>>8;
-			mrect[2]= (irect[2]*b1+ prect[2]*b2)>>8;
-			mrect[3]= (irect[3]*b1+ prect[3]*b2)>>8;
-			mrect+= 4;
-			irect+= 4;
-			prect+= 4;
+		if (mbuf->rect_float) {
+			irectf= ibuf->rect_float;
+			prectf= pbuf->rect_float;
+			mrectf= mbuf->rect_float;
+			while(n--) {
+				mrectf[0]= (irectf[0]*fac+ prectf[0]*(1-fac))/2;
+				mrectf[1]= (irectf[1]*fac+ prectf[1]*(1-fac))/2;
+				mrectf[2]= (irectf[2]*fac+ prectf[2]*(1-fac))/2;
+				mrectf[3]= (irectf[3]*fac+ prectf[3]*(1-fac))/2;
+				mrectf[0]= 1;
+				mrectf[1]= 1;
+				mrectf[2]= 1;
+				mrectf[3]= 1;
+				mrectf+= 4;
+				irectf+= 4;
+				prectf+= 4;
+			}
+		} else {
+			irect= (char *)ibuf->rect;
+			prect= (char *)pbuf->rect;
+			mrect= (char *)mbuf->rect;
+			while(n--) {
+				mrect[0]= (irect[0]*b1+ prect[0]*b2)>>8;
+				mrect[1]= (irect[1]*b1+ prect[1]*b2)>>8;
+				mrect[2]= (irect[2]*b1+ prect[2]*b2)>>8;
+				mrect[3]= (irect[3]*b1+ prect[3]*b2)>>8;
+				mrect+= 4;
+				irect+= 4;
+				prect+= 4;
+			}
 		}
 	}
 	freeImBuf(ibuf);
@@ -221,7 +252,8 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int x, int y, ImBuf *
 		bfacf1 = (facf1 * 6.0) + 1.0;
 	}
 
-	memcpy(out->rect, ibuf1->rect, 4*out->x*out->y);
+	if (out->rect_float) memcpy(out->rect_float, ibuf1->rect_float, 4*out->x*out->y * sizeof(float));
+	else memcpy(out->rect, ibuf1->rect, 4*out->x*out->y);
 
 	/* it blurs interlaced, only tested with even fields */
 	de_interlace(out);
@@ -231,11 +263,14 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int x, int y, ImBuf *
 	
 	doblur(out, bfacf0, cast); /*fieldA*/
 
-	out->rect += out->x * out->y;
+	if (out->rect_float) out->rect_float += out->x * out->y;
+	else out->rect += out->x * out->y;
 
 	doblur(out, bfacf1, cast); /*fieldB*/
 
-	out->rect -= out->x * out->y;
+	if (out->rect_float) out->rect_float -= out->x * out->y;
+	else out->rect -= out->x * out->y;
+
 	out->flags |= IB_fields;
 
 	interlace(out);
