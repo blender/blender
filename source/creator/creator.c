@@ -229,6 +229,12 @@ int main(int argc, char **argv)
 	SYS_SystemHandle syshandle;
 	Scene *sce;
 
+#if defined(WIN32) || defined (__linux__)
+	int audio = 1;
+#else
+	int audio = 0;
+#endif
+
 	/* temporary: prevent people to make/use 64 bits versions without them knowing it might be
 		risky. I don't know for sure yet if we get problems, but I rather not get the burden of
 		having to fix all faulty saved 64 bits files (ton) */
@@ -236,12 +242,7 @@ int main(int argc, char **argv)
 		printf("64 bits compiles will give incorrectly saved .blend files. Do not use it. For testing purposes please remove this line from creator.c\n"); 
 		exit(0);
 	}
-	
-#if defined(WIN32) || defined (__linux__)
-	int audio = 1;
-#else
-	int audio = 0;
-#endif
+
 	setCallbacks();
 #ifdef __APPLE__
 		/* patch to ignore argument finder gives us (pid?) */
