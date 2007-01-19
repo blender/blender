@@ -638,6 +638,10 @@ void addfaces_from_edgenet()
 	countall();
 
 	EM_select_flush();
+	
+	BIF_undo_push("Add faces");
+	allqueue(REDRAWVIEW3D, 0);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 }
 
 void addedgeface_mesh(void)
