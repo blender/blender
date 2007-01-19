@@ -830,7 +830,6 @@ void objects_bake_render(short event)
 		}
 		
 		waitcursor(1);
-		RE_timecursor_cb(re, set_timecursor);
 		RE_test_break_cb(re, thread_break);
 		g_break= 0;
 		G.afbreek= 0;	/* blender_test_break uses this global */

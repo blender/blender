@@ -1497,11 +1497,6 @@ static int get_next_bake_face(BakeShade *bs)
 					R.bakebuf= ima;
 				}				
 				
-				/* do time cursor */
-				vdone++;
-				if((vdone & 1023)==1)
-					R.timecursor(vdone>>10);
-				
 				bs->vlr= vlr;
 				
 				bs->vdone++;	/* only for error message if nothing was rendered */
