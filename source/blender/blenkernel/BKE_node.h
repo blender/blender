@@ -43,6 +43,7 @@ struct uiBlock;
 struct rctf;
 struct ListBase;
 struct RenderData;
+struct Scene;
 
 #define SOCK_IN		1
 #define SOCK_OUT	2
@@ -275,7 +276,7 @@ extern bNodeType *node_all_composit[];
 
 /* API */
 struct CompBuf;
-void ntreeCompositTagRender(struct bNodeTree *ntree);
+void ntreeCompositTagRender(struct Scene *sce);
 void ntreeCompositTagAnimated(struct bNodeTree *ntree);
 void ntreeCompositTagGenerators(struct bNodeTree *ntree);
 void ntreeCompositForceHidden(struct bNodeTree *ntree);

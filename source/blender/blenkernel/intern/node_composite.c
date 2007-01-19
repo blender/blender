@@ -48,6 +48,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_node.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -5997,15 +5998,20 @@ void ntreeCompositForceHidden(bNodeTree *ntree)
 }
 
 /* called from render pipeline, to tag render input and output */
-void ntreeCompositTagRender(bNodeTree *ntree)
+/* need to do all scenes, to prevent errors when you re-render 1 scene */
+void ntreeCompositTagRender(Scene *curscene)
 {
-	bNode *node;
+	Scene *sce;
 	
-	if(ntree==NULL) return;
+	for(sce= G.main->scene.first; sce; sce= sce->id.next) {
+		if(sce->nodetree) {
+			bNode *node;
 	
-	for(node= ntree->nodes.first; node; node= node->next) {
-		if( ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE))
-			NodeTagChanged(ntree, node);
+			for(node= sce->nodetree->nodes.first; node; node= node->next) {
+				if(node->id==(ID *)curscene || node->type==CMP_NODE_COMPOSITE)
+					NodeTagChanged(sce->nodetree, node);
+			}
+		}
 	}
 }
 

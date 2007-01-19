@@ -1889,7 +1889,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 		pop_render_result(re);
 	
 	if(!re->test_break() && ntree) {
-		ntreeCompositTagRender(ntree);
+		ntreeCompositTagRender(re->scene);
 		ntreeCompositTagAnimated(ntree);
 		
 		if(re->r.scemode & R_DOCOMP) {
@@ -2062,8 +2062,8 @@ static int is_rendering_allowed(Render *re)
 				return 0;
 			}
 		
-			/* do it here, so stack gets freed omn esc */
-			ntreeCompositTagRender(ntree);
+			/* do it here, so stack gets freed on esc */
+			ntreeCompositTagRender(re->scene);
 			
 			for(node= ntree->nodes.first; node; node= node->next)
 				if(node->type==CMP_NODE_COMPOSITE)

@@ -1900,12 +1900,12 @@ void node_read_renderlayers(SpaceNode *snode)
 			if(id==NULL) id= (ID *)G.scene;
 			if(id->flag & LIB_DOIT) {
 				RE_ReadRenderResult(G.scene, (Scene *)id);
+				ntreeCompositTagRender((Scene *)id);
 				id->flag &= ~LIB_DOIT;
 			}
 		}
 	}
 	
-	ntreeCompositTagRender(snode->edittree);
 	snode_handle_recalc(snode);
 }
 

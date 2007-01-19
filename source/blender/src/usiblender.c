@@ -861,7 +861,7 @@ void BIF_init(void)
 	
 	init_gl_stuff();	/* drawview.c, after homefile */
 	readBlog();
-	strcpy(G.lib, G.sce);
+	BLI_strncpy(G.lib, G.sce, FILE_MAX);
 }
 
 /***/
