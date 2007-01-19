@@ -85,7 +85,7 @@ typedef struct Global {
 	struct BMF_Font *font, *fonts, *fontss;
     
 	/* strings: lastsaved */
-	char ima[160], sce[160], lib[160];
+	char ima[256], sce[256], lib[256];
 
 	/* flag: if != 0 G.sce contains valid relative base path */
 	int relbase_valid;

@@ -555,7 +555,7 @@ static void free_openrecent(void)
 
 static void readBlog(void)
 {
-	char name[FILE_MAXDIR+FILE_MAXFILE], filename[FILE_MAXFILE];
+	char name[FILE_MAX], filename[FILE_MAX];
 	LinkNode *l, *lines;
 	struct RecentFile *recent;
 	char *line;
@@ -570,11 +570,14 @@ static void readBlog(void)
 	for (l= lines, num= 0; l && (num<10); l= l->next, num++) {
 		line = l->link;
 		if (!BLI_streq(line, "")) {
-			if (num==0) strcpy(G.sce, line);
+			if (num==0) 
+				strcpy(G.sce, line);
+			
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
 			BLI_addtail(&(G.recent_files), recent);
 			recent->filename = (char*)MEM_mallocN(sizeof(char)*(strlen(line)+1), "name of file");
 			recent->filename[0] = '\0';
+			
 			strcpy(recent->filename, line);
 		}
 	}
