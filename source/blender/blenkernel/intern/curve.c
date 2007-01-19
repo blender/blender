@@ -1471,7 +1471,7 @@ void makeBevelList(Object *ob)
 	/* STEP 1: MAKE POLYS  */
 
 	BLI_freelistN(&(cu->bev));
-	if(ob==G.obedit) nu= editNurb.first;
+	if(ob==G.obedit && ob->type!=OB_FONT) nu= editNurb.first;
 	else nu= cu->nurb.first;
 	
 	while(nu) {
