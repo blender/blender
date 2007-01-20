@@ -340,8 +340,11 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	case PKEY:
 		if(G.qual & LR_SHIFTKEY) {
 			extern char bprogname[];	/* usiblender.c */
-			
+#ifdef WIN32			
 			sprintf(name, "%s -a \"%s%s\"", bprogname, simasel->dir, simasel->file);
+#else
+			sprintf(name, "\"%s\" -a \"%s%s\"", bprogname, simasel->dir, simasel->file);
+#endif
 			system(name);
 		}
 		if(G.qual & LR_CTRLKEY) {

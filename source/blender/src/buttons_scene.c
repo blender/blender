@@ -505,8 +505,11 @@ static void run_playanim(char *file)
 	/* use current settings for defining position of window. it actually should test image size */
 	calc_renderwin_rectangle((G.scene->r.xsch*G.scene->r.size)/100, 
 							 (G.scene->r.ysch*G.scene->r.size)/100, G.winpos, pos, size);
-
+#ifdef WIN32
 	sprintf(str, "%s -a -p %d %d \"%s\"", bprogname, pos[0], pos[1], file);
+#else
+	sprintf(str, "\"%s\" -a -p %d %d \"%s\"", bprogname, pos[0], pos[1], file);
+#endif
 	system(str);
 }
 

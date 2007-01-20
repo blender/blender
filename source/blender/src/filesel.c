@@ -2222,8 +2222,11 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case PKEY:
 			if(G.qual & LR_SHIFTKEY) {
 				extern char bprogname[];	/* usiblender.c */
-			
+#ifdef WIN32			
 				sprintf(str, "%s -a \"%s%s\"", bprogname, sfile->dir, sfile->file);
+#else
+				sprintf(str, "\"%s\" -a \"%s%s\"", bprogname, sfile->dir, sfile->file);
+#endif
 				system(str);
 			}
 			else 
