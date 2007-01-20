@@ -704,7 +704,11 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	prevmval[1]= mval[1];
 	s.blend = (td && td->Active == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
 
-	imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
+	/* special exception here for too high pressure values on first touch in
+	   windows for some tablets */
+    if (!((s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|
+		BRUSH_SPACING_PRESSURE|BRUSH_RAD_PRESSURE)) && td && pressure >= 0.99f))
+		imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
 
 	/* paint loop */
 	do {
