@@ -2249,7 +2249,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 			tsktsk= 1;
 		}
 	}
-	if(tsktsk) printf("tsk tsk! PASS_VECTOR_MAX left in buffer...\n");
+	if(tsktsk) printf("Found uninitialized speed in vector buffer... fixed.\n");
 	
 	/* min speed? then copy speedbuffer to recalculate speed vectors */
 	if(nbd->minspeed) {
@@ -2716,10 +2716,6 @@ static void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 				col= shr->col;
 				pixsize= 4;
 				break;
-			case SCE_PASS_VECTOR:
-				col= shr->winspeed;
-				pixsize= 4;
-				break;
 			case SCE_PASS_DIFFUSE:
 				col= shr->diff;
 				break;
@@ -2972,6 +2968,27 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 	return retval;
 }
 
+static void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl)
+{
+	/* speed vector exception... if solid render was done, sky pixels are set to zero already */
+	/* for all pixels with alpha zero, we re-initialize speed again then */
+	float *fp, *col;
+	int a;
+	
+	fp= RE_RenderLayerGetPass(rl, SCE_PASS_VECTOR);
+	if(fp==NULL) return;
+	col= rl->rectf+3;
+	
+	for(a= 4*pa->rectx*pa->recty -4; a>=0; a-=4) {
+		if(col[a]==0.0f) {
+			fp[a]= PASS_VECTOR_MAX;
+			fp[a+1]= PASS_VECTOR_MAX;
+			fp[a+2]= PASS_VECTOR_MAX;
+			fp[a+3]= PASS_VECTOR_MAX;
+		}
+	}
+}
+
 #define MAX_ZROW	2000
 /* main render call to fill in pass the full transparent layer */
 /* returns a mask, only if a) transp rendered and b) solid was rendered */
@@ -2993,14 +3010,14 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	if(R.test_break())
 		return NULL;
 	
-	APixbuf= MEM_callocN(pa->rectx*pa->recty*sizeof(APixstr), "APixbuf");
-	
 	if(R.osa>16) { /* MAX_OSA */
 		printf("zbuffer_transp_shade: osa too large\n");
 		G.afbreek= 1;
 		return NULL;
 	}
 	
+	APixbuf= MEM_callocN(pa->rectx*pa->recty*sizeof(APixstr), "APixbuf");
+
 	/* general shader info, passes */
 	shade_sample_initialize(&ssamp, pa, rl);
 	addpassflag= rl->passflag & ~(SCE_PASS_Z|SCE_PASS_COMBINED);
@@ -3015,9 +3032,10 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	if(0 == zbuffer_abuf(pa, APixbuf, &apsmbase, rl->lay)) {
 		/* nothing filled in */
 		MEM_freeN(APixbuf);
-		freepsA(&apsmbase);	
+		freepsA(&apsmbase);
 		return NULL;
 	}
+
 	aprect= APixbuf;
 	rdrect= pa->rectdaps;
 	
@@ -3028,6 +3046,11 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	/* masks, to have correct alpha combine */
 	if(R.osa && (rl->layflag & SCE_LAY_SOLID))
 		ztramask= MEM_callocN(pa->rectx*pa->recty*sizeof(short), "ztramask");
+
+	/* zero alpha pixels get speed vector max again */
+	if(addpassflag & SCE_PASS_VECTOR)
+		if(rl->layflag & SCE_LAY_SOLID)
+			reset_sky_speedvectors(pa, rl);
 
 	/* filtered render, for now we assume only 1 filter size */
 	if(pa->crop) {

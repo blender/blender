@@ -343,27 +343,6 @@ static void lamphalo_tile(RenderPart *pa, RenderLayer *rl)
 
 /* ********************* MAINLOOPS ******************** */
 
-static void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl)
-{
-	/* speed vector exception... if solid render was done, sky pixels are set to zero already */
-	/* for all pixels with alpha zero, we re-initialize speed again then */
-	float *fp, *col;
-	int a;
-	
-	fp= RE_RenderLayerGetPass(rl, SCE_PASS_VECTOR);
-	if(fp==NULL) return;
-	col= rl->rectf+3;
-	
-	for(a= 4*pa->rectx*pa->recty -4; a>=0; a-=4) {
-		if(col[a]==0.0f) {
-			fp[a]= PASS_VECTOR_MAX;
-			fp[a+1]= PASS_VECTOR_MAX;
-			fp[a+2]= PASS_VECTOR_MAX;
-			fp[a+3]= PASS_VECTOR_MAX;
-		}
-	}
-}
-
 /* osa version */
 static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset, ShadeInput *shi, ShadeResult *shr)
 {
@@ -782,6 +761,20 @@ static void edge_enhance_tile(RenderPart *pa, float *rectf)
 	
 }
 
+static void reset_sky_speed(RenderPart *pa, RenderLayer *rl)
+{
+	/* for all pixels with max speed, set to zero */
+	float *fp;
+	int a;
+	
+	fp= RE_RenderLayerGetPass(rl, SCE_PASS_VECTOR);
+	if(fp==NULL) return;
+	
+	for(a= 4*pa->rectx*pa->recty; a>0; a--)
+		if(fp[a] == PASS_VECTOR_MAX) fp[a]= 0.0f;
+}
+
+
 static unsigned short *make_solid_mask(RenderPart *pa)
 { 
  	long *rd= pa->rectdaps;
@@ -900,10 +893,6 @@ void zbufshadeDA_tile(RenderPart *pa)
 				/* allocate, but not free here, for asynchronous display of this rect in main thread */
 				rl->acolrect= MEM_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
 				
-				if(rl->passflag & SCE_PASS_VECTOR)
-					if(rl->layflag & SCE_LAY_SOLID)
-						reset_sky_speedvectors(pa, rl);
-				
 				/* swap for live updates */
 				SWAP(float *, rl->acolrect, rl->rectf);
 				ztramask= zbuffer_transp_shade(pa, rl, rl->rectf);
@@ -948,6 +937,9 @@ void zbufshadeDA_tile(RenderPart *pa)
 		
 		if(rl->passflag & SCE_PASS_Z)
 			convert_zbuf_to_distbuf(pa, rl);
+		
+		if(rl->passflag & SCE_PASS_VECTOR)
+			reset_sky_speed(pa, rl);
 		
 		/* de-premul alpha */
 		if(R.r.alphamode & R_ALPHAKEY)
@@ -1075,10 +1067,6 @@ void zbufshade_tile(RenderPart *pa)
 				/* allocate, but not free here, for asynchronous display of this rect in main thread */
 				rl->acolrect= MEM_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
 				
-				if(addpassflag & SCE_PASS_VECTOR)
-					if(rl->layflag & SCE_LAY_SOLID)
-						reset_sky_speedvectors(pa, rl);
-				
 				/* swap for live updates */
 				SWAP(float *, rl->acolrect, rl->rectf);
 				zbuffer_transp_shade(pa, rl, rl->rectf);
@@ -1103,6 +1091,9 @@ void zbufshade_tile(RenderPart *pa)
 		
 		if(rl->passflag & SCE_PASS_Z)
 			convert_zbuf_to_distbuf(pa, rl);
+		
+		if(rl->passflag & SCE_PASS_VECTOR)
+			reset_sky_speed(pa, rl);
 		
 		/* de-premul alpha */
 		if(R.r.alphamode & R_ALPHAKEY)
