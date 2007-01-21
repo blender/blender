@@ -6350,10 +6350,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->r.bake_filter= 2;
 				sce->r.bake_osa= 5;
 				sce->r.bake_flag= R_BAKE_CLEAR;
+			}
+		}
 
+		if(main->subversionfile < 5) {
+			for(sce= main->scene.first; sce; sce= sce->id.next) {
 				/* improved triangle to quad conversion settings */
 				if(sce->toolsettings->jointrilimit==0.0f)
-					sce->toolsettings->jointrilimit = 0.8f;
+					sce->toolsettings->jointrilimit= 0.8f;
 			}
 		}
 	}
