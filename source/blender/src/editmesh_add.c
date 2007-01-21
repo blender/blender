@@ -749,7 +749,8 @@ void addedgeface_mesh(void)
 		EM_select_face(efa, 1);
 
 		fix_new_face(efa);
-
+		
+		recalc_editnormals();
 		BIF_undo_push("Add face");
 	}
 	
