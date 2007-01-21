@@ -2,16 +2,16 @@
 
 """ Registration info for Blender menus:
 Name: 'HotKey and MouseAction Reference'
-Blender: 241
+Blender: 242
 Group: 'Help'
 Tip: 'All the hotkeys/short keys'
 """ 
 
 __author__ = "Jean-Michel Soler (jms)"
-__url__ = ("blender", "elysiun",
+__url__ = ("blender", "blenderartist",
 "Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_hotkeyscript.htm",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "18/07/2006"
+__version__ = "21/01/2007"
 
 __bpydoc__ = """\
 This script is a reference about all hotkeys and mouse actions in Blender.
@@ -22,13 +22,13 @@ Open the script from the Help menu and select group of keys to browse.
 
 Notes:<br>
     Additional entries in the database (c) 2004 by Bart.
-    Additional entries in the database for blender 2.37 --> 2.42 (c) 2005/06 by jms.
+    Additional entries in the database for blender 2.37 --> 2.43 (c) 2003-2007/01 by jms.
     
 """
 
 #------------------------
 #  Hotkeys script
-#         jm soler (2003-->12/2006)
+#        (c) jm soler (2003-->01/2007)
 # -----------------------
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_hotkeyscript.htm
@@ -67,6 +67,9 @@ import Blender
 from Blender.Draw import *
 from Blender.BGL import *
 
+# INTERNATIONAL={0:'English','1':'French'}
+# LANGUAGE=0
+
 hotkeys={
 'Search ':[['', '']],
 'Specials 1 ':[
@@ -81,14 +84,16 @@ hotkeys={
 ['HOME', 'Outliner :  to show the entire Object hierarchy. '],
 ['SHIFT+BACKSPACE',' Text edit mode: Clear text '],
 ['SPACE', 'Popup menu'],
-['SPACE', '3D View: camera selected + fly mode, accept'],
+['SPACE', '3D View: camera selected'],
 ['Ctrl-SPACE', 'Manipulator (transform widget) Menu'],
 ['TAB', 'Enter/exit Edit Mode'],
 ['TAB', 'Edit Mode and Numerical Edit (see N key) : move to next input value'],
 ['TAB', 'Sequencer: Edit meta strip'],
 ['TAB', 'IPO: Edit selected'],
 ['TAB', 'Text Editor : indent'],
+['TAB', 'NODE window : Edit group'], #243	
 ['Shift-TAB', 'Text Editor : unindent'],
+['Shift-TAB', 'Edit Mode: Toggle snaping'],
 ['Ctrl-TAB', 'ARMATURE : Enter/exit Pose Mode'],
 ['Ctrl-TAB','MESH : all views, enter exit weight paint mode.'],
 ['Shift-TAB', 'Edit Mode : Enter Object Mode'],
@@ -100,7 +105,7 @@ hotkeys={
 'Mouse ':[
 ['Actions:', ''],
 ['LMB', '3D View: Set 3D Cursor'],
-['LMB', '3D View: camera selected + fly mode, move forward'],
+['LMB', '3D View: camera selected'],
 ['LMB drag', 'Border select circle: add to selection'],
 ['LMB hold down', 'Popup menu'],
 ['LMB hold down drag', 'Gesture'],
@@ -219,7 +224,7 @@ hotkeys={
 ],
 
 'Arrows ':[
-['Home/Pos1', 'View all'],
+['Home/Pos1', 'View all',''],
 ['Home', 'OutLiner Windows, Show hierarchy'],
 ['PgUp', 'Edit Mode and Proportionnal Editing Tools, increase influence'],
 ['PgUp', 'Strip Editor, Move Down'],
@@ -253,6 +258,8 @@ hotkeys={
 "A":[ 
 ['A', 'Select all/Deselect all'],
 ['A', 'Outliner : Select all/Deselect all'],
+['A', 'Ipo Editor : Object mode, Select all/Deselect all displayed Curves'],  #243
+['A', 'Ipo Editor : Edit mode, Select all/Deselect all vertices'], #243
 ['A', 'Render window (F12) : Display alpha plane'],
 ['Alt-A', 'Play animation in current window'],
 ['Ctrl-A', 'Apply objects size/rotation to object data'],
@@ -268,18 +275,24 @@ hotkeys={
 "B":[ 
 ['B', 'Border select'],
 ['BB', 'Circle select'],
-['Alt+B', 'Object Mode: Select visiblme view section in 3D space'],
+['Alt+B', 'Object Mode: Select visible view section in 3D space'],
 ['Shift-B', 'Set render border (in active camera view)'],
+['Ctrl-Alt+B', 'Object Mode: in 3D view, Bake (on an image in the uv editor window) the selected Meshes'], #243
+['Ctrl-Alt+B', 'Object Mode: in 3D view, Bake Full render of selected Meshes'],	 #243
+['Ctrl-Alt+B', 'Object Mode: in 3D view, Bake Ambient Occlusion of selected Meshes'],  #243	
+['Ctrl-Alt+B', 'Object Mode: in 3D view, Bake Normals of the selected Meshes'],	 #243
+['Ctrl-Alt+B', 'Object Mode: in 3D view, Bake Texture Only of selected Meshes'],	#243
 ['.', '...']
 ],
 
 "C":[ 
 ['C', 'Center view on cursor'],
 ['C', 'UV Image Editor: Active Face Select toggle'],
-['C', 'Sequencer: Change images'],
+['C', 'Sequencer: Change content of the strip '], #243
 ['C', 'IPO: Snap current frame to selected key'],
 ['C', 'TimeLine: Center View'],	
-['C', 'File Selector : Copy file'],		
+['C', 'File Selector : Copy file'],
+['C', 'NODE window : Show cyclic referencies'], #243				
 ['Alt-C', 'Object Mode: Convert menu'],
 ['Alt-C', 'Text Editor: Copy '],
 ['Ctrl-Shift-C', 'Text Editor: Copy selection to clipboard'],
@@ -298,13 +311,18 @@ hotkeys={
 ['Ctrl-D', 'Display alpha of image texture as wire'],
 ['Ctrl-D', 'Text Editor : uncomment'],
 ['Shift-D', 'Create full copy of object'],
+['Shift-D', 'NODE window : duplicate'], #243	
+['CTRL-SHIFT-D', 'NLA editor : Duplicate markers'],
+['CTRL-SHIFT-D', 'Action editor : Duplicate markers'],	
+['CTRL-SHIFT-D', 'IPO editor : Duplicate markers'],		
 ['.', '...']
 ],
 
 "E":[ 
 ['E', 'Edit Mode: Extrude'],
 ['E', 'UV Image Editor: LSCM Unwrap'],
-['E', 'TimeLine: Set End'],	
+['E', 'TimeLine: Set current frame as End '],	
+['E', 'NODE window : Execute composite'], #243		
 ['ER', 'Edit Mode: Extrude Rotate'],
 ['ES', 'Edit Mode: Extrude Scale'],
 ['ESX', 'Edit Mode: Extrude Scale X axis'],
@@ -335,15 +353,19 @@ hotkeys={
 ['Ctrl-F', 'Object Mode: Sort faces in Z direction'],
 ['Ctrl-F', 'Edit Mode: Flip triangle edges'],
 ['Shift-F', 'Edit Mode: Fill with triangles'],
-['Shift-F', 'Object Mode: active camera in fly mode (use LMB, RMB, Alt, Ctrl and Space too)'],
+['Shift-F', 'Object Mode: fly mode (see header for fly mode keys)'],
 ['.', '...']
 ],
 
 "G":[ 
 ['G', 'Grab (move)'],
+['G', 'Timeline : Grab (move) Marker'],
 ['Alt-G', 'Clear location (this does only make sense in Object mode)'],
+['Alt-G', 'NODE window : ungroup'], #243
 ['Shift-ALT-G', 'Object mode: Remove selected objects from group'],
+['Ctrl-G', 'NODE window : group'], #243	
 ['Ctrl-G', 'Add selected objects to group'],
+['Ctrl-G', 'IPO editor, Grab/move marker'],
 ['Ctrl-Alt-G', 'MANIPULATOR (transform widget): set in Grab Mode'],
 ['Shift-G', 'Object mode: Selected Group menu'],
 ['Shift-G', 'Object mode: Selected Group menu 1, Children'],
@@ -361,6 +383,7 @@ hotkeys={
 ['H', 'Curves: Set handle type'],
 ['H', 'Action editor: Handle type aligned'],
 ['H', 'Action editor: Handle type free'],		
+['H', 'NODE window : hide/unhide'], #243		
 ['Alt-H', 'Edit Mode : Show Hidden vertices/faces'],
 ['Shift-H', 'Curves: Automatic handle calculation'],
 ['Shift-H', 'Action editor: Handle type auto'],	
@@ -392,6 +415,7 @@ hotkeys={
 ['K', 'Edit Mode: Loop/Cut menu'],
 ['K', 'IPO: Show keyframe positions'],
 ['K', 'Nurbs: Print knots'],
+['K', 'VIDEO editor : cut at current frame'], #243		
 ['Ctrl-K', 'Make skeleton from armature'],
 ['Shift-K', 'Show and select all keyframes for object'],
 ['Shift-K', 'Edit Mode: Knife Mode select'],
@@ -403,30 +427,39 @@ hotkeys={
 "L":[ 
 ['L', 'Make local menu'],
 ['L', 'Edit Mode: Select linked vertices (near mouse pointer)'],
+['L', 'NODE window: Select linked from '], #243	
 ['L', 'OOPS window: Select linked objects'],
 ['L', 'UV Face Select: Select linked faces'],
 ['Ctrl-L', 'Make links menu (for instance : to scene...)'],
 ['Shift-L', 'Select links menu'],
+['Shift-L', 'NODE window: Select linked to '], #243
 ['.', '...']
 ],
 
 "M":[ 
-['M', 'Move object to different layer'],
+['M', 'Object mode : Move object to different layer'],
 ['M', 'Sequencer: Make meta strip (group) from selected strips'],
 ['M', 'Edit Mode: Mirros Axis menu'],
 ['M', 'File Selector: rename file'],
 ['M', 'Video Sequence Editor : Make Meta strip...'],		
+['M', 'NLA editor: Add marker'],	
+['M', 'Action editor: Add marker'],		
+['M', 'IPO editor: Add marker'],	
 ['M', 'TimeLine: Add marker'],	
 ['Alt-M', 'Edit Mode: Merge vertices menu'],
 ['Alt-M', 'Video Sequence Editor : Separate Meta strip...'],	
 ['Ctrl-M', 'Object Mode: Mirros Axis menu'],
-['Ctrl-M', 'TimeLine: Name marker'],
+['Shift-M', 'TimeLine: Name marker'],
+['Shift-M', 'IPO editor : Name marker'],
+['Shift-M', 'NLA editor : Name marker'],
+['Shift-M', 'Actions editor : Name marker'],	
 ['.', '...']
 ],
 
 "N":[ 
 ['N', 'Transform Properties panel'] ,
-['N', 'OOPS window: Rename object/linked objects'] ,
+['N', 'OOPS window: Rename object'],
+['N', 'VIDEO SEQUENCE editor : display strip properties '], #243	
 ['Alt-N', 'Text Editor : New text '],
 ['Ctrl-N', 'Armature: Recalculate bone roll angles'] ,
 ['Ctrl-N', 'Edit Mode: Recalculate normals to outside'] ,
@@ -436,12 +469,14 @@ hotkeys={
 
 "O":[ 
 ['O', 'Edit Mode/UV Image Editor: Toggle proportional vertex editing'],
+['O', 'IPO editor: Clean ipo curves (beware to the thresold needed value)'], #243
 ['Alt-O', 'Clear object origin'],
 ['Alt-O', 'Edit mode, 3dview with prop-edit-mode, enables/disables connected'],
 ['Alt-O', 'Text Editor : Open file '],
-['Ctrl-O', 'Revert current file to last saved'],
+['Ctrl-O', 'Open a panel with the ten most recent projets files'], #243
 ['Shift-O', 'Proportional vertex Edit Mode: Toggle smooth/steep falloff'],
 ['Shift-O', 'Object Mode: Add a subsurf modifier to the selected mesh'],
+['Shift-O', 'IPO editor: Smooth ipo curves'],	#243
 ['.', '...']
 ],
 
@@ -461,7 +496,7 @@ hotkeys={
 ['.', '...']
 ],
 
-"Q":[['Q', 'Quit'],
+"Q":[['Ctrl-Q', 'Quit'],
      ['.', '...']
      ],
 
@@ -470,6 +505,8 @@ hotkeys={
 ['R', 'Rotate'],
 ['R', 'IPO: Record mouse movement as IPO curve'],
 ['R', 'UV Face Select: Rotate menu uv coords or vertex colour'],
+['R', 'NODE window : read saved render result'], #243	
+['R', 'SEQUENCER window : re-assign entries to another strip '], #243			
 ['RX', 'Rotate around X axis'],
 ['RXX', "Rotate around object's local X axis"],
 ['RY', 'Rotate around Y axis'],
@@ -504,18 +541,21 @@ hotkeys={
 ['Alt-Shift-S,','Text editor : Select the line '],
 ['Ctrl-Alt-G', 'MANIPULATOR (transform widget): set in Size Mode'],
 ['Shift-S', 'Cursor/Grid snap menu'],
+['Shift-S+1', 'VIDEO SEQUENCE editor : jump to the current frame '],
 ['.', '...']
 ],
 
 "T":[ 
-['T', 'Sequencer: Touch and print selected movies'] ,
-['T', 'Adjust texture space'] ,
-['T', 'Edit mode: Flip 3d curve'] ,
-['T', 'IPO: Change IPO type'] ,
+['T', 'Adjust texture space'],
+['T', 'Edit mode: Flip 3d curve'],
+['T', 'IPO: Menu Change IPO type, 1 Constant'],
+['T', 'IPO: Menu Change IPO type, 2 Linear'],
+['T', 'IPO: Menu Change IPO type, 3 Bezier'],	
 ['T', 'TimeLine: Show second'],	
-['Alt-T', 'Clear tracking of object'] ,
-['Ctrl-T', 'Make selected object track active object'] ,
-['Ctrl-T', 'Edit Mode: Convert to triangles'] ,
+['T', 'VIDEO SEQUENCE editor : toggle between show second andd show frame'], #243	
+['Alt-T', 'Clear tracking of object'],
+['Ctrl-T', 'Make selected object track active object'],
+['Ctrl-T', 'Edit Mode: Convert to triangles'],
 ['Ctrl-ALT-T', 'Benchmark'],
 ['.', '...']
 ],
@@ -590,7 +630,10 @@ hotkeys={
 
 "X":[ 
 ['X', 'Delete menu'] ,
-['X', 'TimeLine: Remove marker'],
+['X', 'TimeLine : Remove marker'],
+['X', 'NLA : Remove marker'],
+['X', 'IPO : Remove marker'],	
+['X', 'NODE window : delete'], #243		
 ['Alt-X', 'Text Editor : Cut '],
 ['Ctrl-X', 'Restore default state (Erase all)'],
 ['.', '...']
@@ -712,12 +755,11 @@ def draw():
     size[3]=size[3]-18
 
     BeginAlign()
-    for k in hot:
-       #hotkeys[k][-1]=Toggle(k, hot.index(k)+10, 4+(20*26)/6*hot.index(k), size[3]-(42), len(k)*8, 20, hotkeys[k][-1].val )
-       hotkeys[k][-1]=Toggle(k, hot.index(k)+10, 78*hot.index(k), size[3]-(47), 78, 24, hotkeys[k][-1].val )
+    for i, k in enumerate(hot):
+       hotkeys[k][-1]=Toggle(k, i+10, 78*i, size[3]-(47), 78, 24, hotkeys[k][-1].val )
        l+=len(k)
        if hotkeys[k][-1].val==1.0:
-           listed=hot.index(k)
+           listed= i
     EndAlign()
     l=0
     size[3]=size[3]-4
@@ -786,9 +828,8 @@ def draw():
              l+=1
     else:
        BeginAlign()
-       for k in hotL:
-            pos=hotL.index(k)
-            hotkeys['Letters '][0][k][-1]=Toggle(k,pos+20,hotL.index(k)*21, size[3]-(52+18), 21, 18, hotkeys['Letters '][0][k][-1].val )
+       for pos, k in enumerate(hotL):
+            hotkeys['Letters '][0][k][-1]=Toggle(k,pos+20,pos*21, size[3]-(52+18), 21, 18, hotkeys['Letters '][0][k][-1].val )
             if hotkeys['Letters '][0][k][-1].val==1.0:
                Llisted=pos
        EndAlign()
@@ -848,16 +889,16 @@ def bevent(evt):
     if   (evt== 1):
         Exit()
 
-    elif (evt in range(10,20,1)):
-        for k in hot:
-           if hot.index(k)+10!=evt:
+    elif 9 < evt < 20:
+        for i, k in enumerate(hot):
+           if i+10!=evt:
                  hotkeys[k][-1].val=0
                  UP=0 
         Blender.Window.Redraw()
 
-    elif (evt in range(20,46,1)):
-        for k in hotL:
-           if hotL.index(k)+20!=evt:
+    elif 19 < evt < 46:
+        for i, k in enumerate(hotL):
+           if i+20!=evt:
                  hotkeys['Letters '][0][k][-1].val=0
                  UP=0 
         Blender.Window.Redraw()
@@ -876,5 +917,5 @@ def bevent(evt):
           FINDED=searchfor(OLDSEARCHLINE)
           Blender.Window.Redraw()
 
-
-Register(draw, event, bevent)
+if __name__ == '__main__':
+	Register(draw, event, bevent)
