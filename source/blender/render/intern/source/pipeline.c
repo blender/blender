@@ -1419,9 +1419,10 @@ static void threaded_tile_processor(Render *re)
 		hasdrawn= 0;
 		for(pa= re->parts.first; pa; pa= pa->next) {
 			if(pa->ready) {
+				
+				BLI_remove_thread(&threads, pa);
+				
 				if(pa->result) {
-					BLI_remove_thread(&threads, pa);
-
 					re->display_draw(pa->result, NULL);
 					print_part_stats(re, pa);
 					
