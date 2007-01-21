@@ -3651,7 +3651,7 @@ void drawscredge_area(ScrArea *sa)
 unsigned int screen_view3d_layers(void)
 {
 	ScrArea *sa;
-	int layer= 0;
+	int layer= G.scene->lay;	/* as minimum this */
 	
 	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
 		if(sa->spacetype==SPACE_VIEW3D)

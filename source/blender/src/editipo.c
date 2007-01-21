@@ -2729,7 +2729,7 @@ void common_insertkey(void)
 		else {
 			base= FIRSTBASE;
 			while(base) {
-				if TESTBASELIB(base) break;
+				if (TESTBASELIB(base)) break;
 				base= base->next;
 			}
 			if(base==NULL) return;
@@ -2852,12 +2852,12 @@ void common_insertkey(void)
 		else {
 			base= FIRSTBASE;
 			while(base) {
-				if TESTBASELIB(base) {
+				if (TESTBASELIB(base)) {
 					char *actname= NULL;
 
 					id= (ID *)(base->object);
 
-					if(ob->ipoflag & OB_ACTION_OB)
+					if(base->object->ipoflag & OB_ACTION_OB)
 						actname= "Object";
 
 					/* all curves in ipo deselect */
