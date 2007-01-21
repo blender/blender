@@ -481,11 +481,13 @@ static float *make_orco_mesh_internal(Object *ob, int render)
 	int a, totvert;
 	float loc[3], size[3];
 	DerivedMesh *dm;
-	float (*vcos)[3] = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
+	float (*vcos)[3] = NULL;
 
 		/* Get appropriate vertex coordinates */
 
 	if(me->key && me->texcomesh==0 && me->key->refkey) {
+		vcos = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
+	
 		KeyBlock *kb= me->key->refkey;
 		float *fp= kb->data;
 		totvert= MIN2(kb->totelem, me->totvert);
@@ -497,9 +499,21 @@ static float *make_orco_mesh_internal(Object *ob, int render)
 		}
 	}
 	else {
-		Mesh *tme = me->texcomesh?me->texcomesh:me;
-		MVert *mvert = tme->mvert;
-		totvert = MIN2(tme->totvert, me->totvert);
+		MultiresLevel *lvl = NULL;
+		MVert *mvert = NULL;
+		
+		if(me->mr) {
+			lvl = multires_level_n(me->mr, me->mr->pinlvl);
+			vcos = MEM_callocN(sizeof(*vcos)*lvl->totvert, "orco mr mesh");
+			mvert = lvl->verts;
+			totvert = lvl->totvert;
+		}
+		else {
+			vcos = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
+			Mesh *tme = me->texcomesh?me->texcomesh:me;
+			mvert = tme->mvert;
+			totvert = MIN2(tme->totvert, me->totvert);
+		}
 
 		for(a=0; a<totvert; a++, mvert++) {
 			vcos[a][0]= mvert->co[0];

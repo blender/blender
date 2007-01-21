@@ -1766,7 +1766,7 @@ static void use_mesh_edge_lookup(Render *re, DerivedMesh *dm, MEdge *medge, Vlak
 
 static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts)
 {
-	Mesh *me, *me_store= NULL;
+	Mesh *me;
 	MVert *mvert = NULL;
 	MFace *mface;
 	VlakRen *vlr; //, *vlr1;
@@ -1834,23 +1834,8 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 	if(!only_verts)
 		if(need_orco) orco = get_object_orco(re, ob);
 
-	/* If multires is enabled, a copy is made of the mesh
-	   to allow multires to be applied with modifiers. */
-	if(me->mr) {
-		me_store= me;
-		me= copy_mesh(me);
-		ob->data= me;
-	}
-
 	dm = mesh_create_derived_render(ob,
 	                    CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL);
-
-	/* (Multires) Now switch the meshes back around */
-	if(me->mr) {
-		ob->data= me_store;
-		me_store= me;
-		me= ob->data;
-	}
 	
 	if(dm==NULL) return;	/* in case duplicated object fails? */
 
@@ -2087,9 +2072,6 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 	}
 
 	dm->release(dm);
-	if(me_store) {
-		free_libblock(&G.main->mesh, &me_store->id);
-	}
 }
 
 /* ------------------------------------------------------------------------- */

@@ -199,6 +199,7 @@ void post_server_add(void);
 /* multires.c */
 struct Multires;
 struct MultiresLevel;
+struct MultiresLevel *multires_level_n(struct Multires *mr, int n);
 void multires_free(struct Multires *mr);
 void multires_set_level(void *ob, void *me_v);
 void multires_calc_level_maps(struct MultiresLevel *lvl);

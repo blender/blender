@@ -124,6 +124,14 @@ MultiresLevel *current_level(Multires *mr)
 	return BLI_findlink(&mr->levels, mr->current - 1);
 }
 
+MultiresLevel *multires_level_n(Multires *mr, int n)
+{
+	if(mr)
+		return BLI_findlink(&mr->levels, n - 1);
+	else
+		return NULL;
+}
+
 void Vec3fAvg3(float *out, float *v1, float *v2, float *v3)
 {
 	out[0]= (v1[0]+v2[0]+v3[0])/3;
@@ -693,6 +701,24 @@ void multires_free_level(MultiresLevel *lvl)
 	}
 }
 
+/* Make sure that all level indices are clipped to [1, mr->level_count] */
+void multires_clip_levels(Multires *mr)
+{
+	if(mr) {
+		const int cnt = mr->level_count;
+	
+		if(mr->current < 1) mr->current = 1;
+		if(mr->edgelvl < 1) mr->edgelvl = 1;
+		if(mr->pinlvl < 1) mr->pinlvl = 1;
+		if(mr->renderlvl < 1) mr->renderlvl = 1;
+		
+		if(mr->current > cnt) mr->current = cnt;
+		if(mr->edgelvl > cnt) mr->edgelvl = cnt;
+		if(mr->pinlvl > cnt) mr->pinlvl = cnt;
+		if(mr->renderlvl > cnt) mr->renderlvl = cnt;
+	}
+}
+
 /* Delete all multires levels beneath current level. Subdivide special
    first-level data up to the new lowest level. */
 void multires_del_lower(void *ob, void *me)
@@ -730,6 +756,8 @@ void multires_del_lower(void *ob, void *me)
 		lvl= lvlprev;
 	}
 	mr->newlvl= mr->current;
+	
+	multires_clip_levels(mr);
 
 	allqueue(REDRAWBUTSEDIT, 0);
 
@@ -755,6 +783,8 @@ void multires_del_higher(void *ob, void *me)
 		
 		lvl= lvlnext;
 	}
+	
+	multires_clip_levels(mr);
 
 	allqueue(REDRAWBUTSEDIT, 0);
 

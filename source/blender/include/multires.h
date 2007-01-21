@@ -42,6 +42,8 @@ struct uiBlock;
 int multires_test();
 int multires_level1_test();
 
+struct MultiresLevel *multires_level_n(struct Multires *mr, int n);
+
 void multires_draw_interface(struct uiBlock *block, unsigned short cx, unsigned short cy);
 void multires_disp_map(void *, void*);
 
