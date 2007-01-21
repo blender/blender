@@ -119,6 +119,7 @@ KX_IpoActuator::KX_IpoActuator(SCA_IObject* gameobj,
 	m_type((IpoActType)acttype)
 {
 	m_starttime = -2.0*fabs(m_endframe - m_startframe) - 1.0;
+	m_bIpoPlaying = false;
 }
 
 void KX_IpoActuator::SetStart(float starttime) 
@@ -211,27 +212,43 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 		}
 		m_events.clear();
 	
-		if (bNegativeEvent)
-			RemoveAllEvents();
+		if (m_type != KX_ACT_IPO_PLAY)
+		{
+			if (bNegativeEvent)
+				RemoveAllEvents();
+		}
 	}
 	
 	double  start_smaller_then_end = ( m_startframe < m_endframe ? 1.0 : -1.0);
 
 	bool result=true;
-	if (m_starttime < -2.0*start_smaller_then_end*(m_endframe - m_startframe))
-		m_starttime = curtime - KX_KetsjiEngine::GetSuspendedDelta();
-	
+	if (!bNegativeEvent)
+	{
+		if (m_starttime < -2.0*start_smaller_then_end*(m_endframe - m_startframe))
+		{
+			m_starttime = curtime - KX_KetsjiEngine::GetSuspendedDelta();
+			m_bIpoPlaying = true;
+		}
+	}	
+
 	switch (m_type)
 	{
 		
 	case KX_ACT_IPO_PLAY:
 	{
 		// Check if playing forwards.  result = ! finished
-		bNegativeEvent = false;  // quick fix for message IPO issue
-		if (start_smaller_then_end > 0.0)
-			result = (m_localtime < m_endframe && !(m_localtime == m_startframe && bNegativeEvent));
+		
+		if (!bNegativeEvent)
+		{
+			if (start_smaller_then_end > 0.0)
+				result = (m_localtime < m_endframe && !(m_localtime == m_startframe && bNegativeEvent));
+			else
+				result = (m_localtime > m_endframe && !(m_localtime == m_startframe && bNegativeEvent));
+		}
 		else
-			result = (m_localtime > m_endframe && !(m_localtime == m_startframe && bNegativeEvent));
+		{
+			result = (m_bIpoPlaying && (m_localtime < m_endframe));
+		}
 		
 		if (result)
 		{

@@ -81,6 +81,8 @@ protected:
 	/** Apply a force-ipo locally? */
 	bool    m_force_ipo_local;
 
+	bool	m_bIpoPlaying;
+
 public:
 	enum IpoActType
 	{
