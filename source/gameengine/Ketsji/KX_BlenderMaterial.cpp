@@ -245,7 +245,7 @@ void KX_BlenderMaterial::setTexData( bool enable, RAS_IRasterizer *ras)
 	}
 
 	int mode = 0,i=0;
-	for(i=0; (i<mMaterial->num_enabled); i++) {
+	for(i=0; (i<mMaterial->num_enabled && i<MAXTEX); i++) {
 		if( !mTextures[i].Ok() ) continue;
 
 		mTextures[i].ActivateTexture();

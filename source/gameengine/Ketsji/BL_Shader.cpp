@@ -30,6 +30,7 @@
 
 #define SORT_UNIFORMS 1
 #define UNIFORM_MAX_LEN sizeof(float)*16
+#define MAX_LOG_LEN 262144 // bounds
 
 BL_Uniform::BL_Uniform(int data_size)
 :	mLoc(-1),
@@ -265,6 +266,7 @@ bool BL_Shader::LinkProgram()
 	int vertstatus=0, fragstatus=0, progstatus=0;
 	unsigned int tmpVert=0, tmpFrag=0, tmpProg=0;
 	int char_len=0;
+	char *logInf =0;
 
 	if(mError)
 		goto programError;
@@ -289,14 +291,15 @@ bool BL_Shader::LinkProgram()
 	bgl::blGetObjectParameterivARB(tmpVert, GL_OBJECT_INFO_LOG_LENGTH_ARB,(GLint*) &vertlen);
 	
 	// print info if any
-	if( vertlen > 0){
-		STR_String str("",vertlen);
-		bgl::blGetInfoLogARB(tmpVert, vertlen, (GLsizei*)&char_len, str.Ptr());
+	if( vertlen > 0 && vertlen < MAX_LOG_LEN){
+		logInf = (char*)MEM_mallocN(vertlen, "vert-log");
+		bgl::blGetInfoLogARB(tmpVert, vertlen, (GLsizei*)&char_len, logInf);
 		if(char_len >0) {
 			spit("---- Vertex Shader Error ----");
-			spit(str.ReadPtr());
+			spit(logInf);
 		}
-		str.Clear();
+		MEM_freeN(logInf);
+		logInf=0;
 	}
 	// check for compile errors
 	bgl::blGetObjectParameterivARB(tmpVert, GL_OBJECT_COMPILE_STATUS_ARB,(GLint*)&vertstatus);
@@ -310,14 +313,15 @@ bool BL_Shader::LinkProgram()
 	bgl::blShaderSourceARB(tmpFrag, 1,(const char**)&fragProg, 0);
 	bgl::blCompileShaderARB(tmpFrag);
 	bgl::blGetObjectParameterivARB(tmpFrag, GL_OBJECT_INFO_LOG_LENGTH_ARB, (GLint*) &fraglen);
-	if(fraglen >0 ){
-		STR_String str("",fraglen);
-		bgl::blGetInfoLogARB(tmpFrag, fraglen,(GLsizei*) &char_len, str.Ptr());
+	if(fraglen >0 && fraglen < MAX_LOG_LEN){
+		logInf = (char*)MEM_mallocN(fraglen, "frag-log");
+		bgl::blGetInfoLogARB(tmpFrag, fraglen,(GLsizei*) &char_len, logInf);
 		if(char_len >0) {
 			spit("---- Fragment Shader Error ----");
-			spit(str.ReadPtr());
+			spit(logInf);
 		}
-		str.Clear();
+		MEM_freeN(logInf);
+		logInf=0;
 	}
 
 	bgl::blGetObjectParameterivARB(tmpFrag, GL_OBJECT_COMPILE_STATUS_ARB, (GLint*) &fragstatus);
@@ -337,14 +341,15 @@ bool BL_Shader::LinkProgram()
 	bgl::blGetObjectParameterivARB(tmpProg, GL_OBJECT_LINK_STATUS_ARB, (GLint*) &progstatus);
 	
 
-	if(proglen > 0) {
-		STR_String str("",proglen);
-		bgl::blGetInfoLogARB(tmpProg, proglen, (GLsizei*)&char_len, str.Ptr());
+	if(proglen > 0 && proglen < MAX_LOG_LEN) {
+		logInf = (char*)MEM_mallocN(proglen, "prog-log");
+		bgl::blGetInfoLogARB(tmpProg, proglen, (GLsizei*)&char_len, logInf);
 		if(char_len >0) {
 			spit("---- GLSL Program ----");
-			spit(str.ReadPtr());
+			spit(logInf);
 		}
-		str.Clear();
+		MEM_freeN(logInf);
+		logInf=0;
 	}
 
 	if(!progstatus){
@@ -911,15 +916,18 @@ KX_PYMETHODDEF_DOC( BL_Shader, validate, "validate()")
 	bgl::blValidateProgramARB(mShader);
 	bgl::blGetObjectParameterivARB(mShader, GL_OBJECT_VALIDATE_STATUS_ARB,(GLint*) &stat);
 
-	if(stat > 0) {
+
+	if(stat > 0 && stat < MAX_LOG_LEN) {
 		int char_len=0;
-		STR_String str("",stat);
-		bgl::blGetInfoLogARB(mShader, stat,(GLsizei*) &char_len, str.Ptr());
+		char *logInf = (char*)MEM_mallocN(stat, "validate-log");
+
+		bgl::blGetInfoLogARB(mShader, stat,(GLsizei*) &char_len, logInf);
 		if(char_len >0) {
 			spit("---- GLSL Validation ----");
-			spit(str.ReadPtr());
+			spit(logInf);
 		}
-		str.Clear();
+		MEM_freeN(logInf);
+		logInf=0;
 	}
 #endif//GL_ARB_shader_objects
 	Py_Return;
@@ -1188,7 +1196,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv , "setUniformfv( float (list2 or lis
 			{
 				unsigned int list_size = PySequence_Size(listPtr);
 				
-				for(unsigned int i=0; (i<list_size && i<=4); i++)
+				for(unsigned int i=0; (i<list_size && i<4); i++)
 				{
 					PyObject *item = PySequence_GetItem(listPtr, i);
 					array_data[i] = (float)PyFloat_AsDouble(item);
@@ -1258,7 +1266,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( int (list2 or list3 
 			{
 				unsigned int list_size = PySequence_Size(listPtr);
 				
-				for(unsigned int i=0; (i<list_size && i<=4); i++)
+				for(unsigned int i=0; (i<list_size && i<4); i++)
 				{
 					PyObject *item = PySequence_GetItem(listPtr, i);
 					array_data[i] = PyInt_AsLong(item);

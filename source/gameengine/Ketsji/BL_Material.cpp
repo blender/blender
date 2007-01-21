@@ -11,7 +11,7 @@ MTex* getImageFromMaterial(Material *mat, int index)
 {
 	if(!mat) return 0;
 	
-	if(!(index >=0 && index <=10) ) return 0;
+	if(!(index >=0 && index < MAX_MTEX) ) return 0;
 	
 	MTex *m = mat->mtex[index];
 	return m?m:0;

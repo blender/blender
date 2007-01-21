@@ -192,15 +192,18 @@ static void bglInitEntryPoints (void)
 		if (!libGL)
 		{
 			libGL = dlopen("libGL.so", RTLD_GLOBAL);
-			bglGetProcAddress = (PFNBGLXGETPROCADDRESSARBPROC) (dlsym(libGL, "glXGetProcAddressARB"));
+			if (libGL)
+				bglGetProcAddress = (PFNBGLXGETPROCADDRESSARBPROC) (dlsym(libGL, "glXGetProcAddressARB"));
+			else
+				std::cout << "Error: " << dlerror() << std::endl;
 
 			// dlclose(libGL);
 			if (!bglGetProcAddress)
 				bglGetProcAddress = (PFNBGLXGETPROCADDRESSARBPROC) _getProcAddress;
 			
 			// --
-			if( !libGL && !bglGetProcAddress)
-				std::cout << "Error: " << dlerror() << std::endl;
+			if(!bglGetProcAddress)
+				std::cout << "Error: unable to find _getProcAddress in libGL" << std::endl;
 		}
 	}
 }

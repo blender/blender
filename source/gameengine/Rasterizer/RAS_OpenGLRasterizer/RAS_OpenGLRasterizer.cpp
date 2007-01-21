@@ -1205,7 +1205,7 @@ void RAS_OpenGLRasterizer::IndexPrimitives_3DText(const vecVertexArray & vertexa
 void RAS_OpenGLRasterizer::SetTexCoords(TexCoGen coords,int unit)
 {
 	// this changes from material to material
-	if(unit <= RAS_MAX)
+	if(unit < RAS_MAX)
 		m_texco[unit] = coords;
 }
 
