@@ -6342,10 +6342,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
-			
-			/* improved triangle to quad conversion settings */
-			for(sce= main->scene.first; sce; sce=sce->id.next) 
-				sce->toolsettings->jointrilimit = 0.8f;
 		}
 		
 		if(main->subversionfile < 4) {
@@ -6354,6 +6350,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->r.bake_filter= 2;
 				sce->r.bake_osa= 5;
 				sce->r.bake_flag= R_BAKE_CLEAR;
+
+				/* improved triangle to quad conversion settings */
+				if(sce->toolsettings->jointrilimit==0.0f)
+					sce->toolsettings->jointrilimit = 0.8f;
 			}
 		}
 	}
