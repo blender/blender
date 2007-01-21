@@ -1215,6 +1215,9 @@ void transform_actionchannel_keys(int mode, int dummy)
 						/* recalculate the delta based on 'visual' times */
 						fac = get_action_frame_inv(OBACT, cval[0]);
 						fac -= get_action_frame_inv(OBACT, sval[0]);
+						
+						if (autosnap == SACTSNAP_STEP) 
+							fac= 1.0f*floor(fac/1.0f + 0.5f);
 					}
 					sprintf(str, "deltaX: %.3f", fac);
 					headerprint(str);
