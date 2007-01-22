@@ -1565,7 +1565,8 @@ void multires_edge_level_update(void *ob, void *me_v)
 					me->medge[ndx].flag &= ~ME_EDGEDRAW;
 			}
 		}
-
+		
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 	}
 }
