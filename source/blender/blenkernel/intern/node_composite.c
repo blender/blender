@@ -3405,9 +3405,12 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 	// if 'no_zbuf' flag set (which is always set if input is not an image),
 	// values are instead interpreted directly as blur radius values
 	if (nqd->no_zbuf) {
+		// to prevent *reaaallly* big radius values and impossible calculation times,
+		// limit the maximum to half the image width or height, whichever is smaller
+		float maxr = 0.5f*(float)MIN2(img->x, img->y);
 		for (p=0; p<(unsigned int)(img->x*img->y); p++) {
 			crad->rect[p] = zbuf ? (zbuf->rect[p]*nqd->scale) : inpval;
-			if (crad->rect[p] < 0.01f) crad->rect[p] = 0.01f;
+			crad->rect[p] = MIN2(crad->rect[p], maxr);
 			// if maxblur!=0, limit maximum
 			if (nqd->maxblur != 0.f) crad->rect[p] = MIN2(crad->rect[p], nqd->maxblur);
 		}
@@ -3451,13 +3454,16 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 			p = y*img->x;
 			for (x=0; x<img->x; x++) {
 				px = p + x;
-				iZ = (zbuf->rect[px]==0.f) ? 0.f : (1.f/zbuf->rect[px]);
-				bcrad = 0.5f*fabs(aperture*(dof_sp*(cam_invfdist - iZ) - 1.f));
-				// scale crad back to original maximum and blend
-				crad->rect[px] = bcrad + wts->rect[px]*(scf*crad->rect[px] - bcrad);
-				if (crad->rect[px] < 0.01f) crad->rect[px] = 0.01f;
-				// if maxblur!=0, limit maximum
-				if (nqd->maxblur != 0.f) crad->rect[px] = MIN2(crad->rect[px], nqd->maxblur);
+				if (zbuf->rect[px]!=0.f) {
+					iZ = (zbuf->rect[px]==0.f) ? 0.f : (1.f/zbuf->rect[px]);
+					bcrad = 0.5f*fabs(aperture*(dof_sp*(cam_invfdist - iZ) - 1.f));
+					// scale crad back to original maximum and blend
+					crad->rect[px] = bcrad + wts->rect[px]*(scf*crad->rect[px] - bcrad);
+					if (crad->rect[px] < 0.01f) crad->rect[px] = 0.01f;
+					// if maxblur!=0, limit maximum
+					if (nqd->maxblur != 0.f) crad->rect[px] = MIN2(crad->rect[px], nqd->maxblur);
+				}
+				else crad->rect[px] = 0.f;
 				// clear weights for next part
 				wts->rect[px] = 0.f;
 			}
@@ -3481,6 +3487,8 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 
 			// Circle of Confusion radius for current pixel
 			cR2 = ct_crad = crad->rect[cp];
+			// skip if zero (border render)
+			if (ct_crad==0.f) continue;
 			cR2 *= cR2;
 			
 			// pixel color
@@ -3777,19 +3785,15 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 			else {
 				// sampled, simple rejection sampling here, good enough
 				unsigned int maxsam, s, ui = BLI_rand()*BLI_rand();
-				float cpr = BLI_frand();
-				float wcor;
-				
+				float wcor, cpr = BLI_frand();
 				if (nqd->no_zbuf)
 					maxsam = nqd->samples;	// no zbuffer input, use sample value directly
 				else {
-				  // depth adaptive sampling hack, the more out of focus, the more samples taken, 16 minimum.
+					// depth adaptive sampling hack, the more out of focus, the more samples taken, 16 minimum.
 					maxsam = (int)(0.5f + nqd->samples*(1.f-(float)exp(-fabs(zbuf->rect[cp] - cam_fdist))));
 					if (maxsam < 16) maxsam = 16;
 				}
-				
 				wcor = 1.f/(float)maxsam;
-				
 				for (s=0; s<maxsam; ++s) {
 					u = ct_crad*(2.f*RI_vdC(s, ui) - 1.f);
 					v = ct_crad*(2.f*(s + cpr)/(float)maxsam - 1.f);
