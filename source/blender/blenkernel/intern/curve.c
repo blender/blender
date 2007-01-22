@@ -126,7 +126,7 @@ Curve *add_curve(int type)
 	cu->size[0]= cu->size[1]= cu->size[2]= 1.0;
 	cu->flag= CU_FRONT+CU_BACK;
 	cu->pathlen= 100;
-	cu->resolu= cu->resolv= 6;
+	cu->resolu= cu->resolv= 12;
 	cu->width= 1.0;
 	cu->wordspace = 1.0;
 	cu->spacing= cu->linedist= 1.0;
