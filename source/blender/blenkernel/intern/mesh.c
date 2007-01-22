@@ -486,11 +486,10 @@ static float *make_orco_mesh_internal(Object *ob, int render)
 		/* Get appropriate vertex coordinates */
 
 	if(me->key && me->texcomesh==0 && me->key->refkey) {
-		vcos = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
-	
 		KeyBlock *kb= me->key->refkey;
 		float *fp= kb->data;
 		totvert= MIN2(kb->totelem, me->totvert);
+		vcos = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
 
 		for(a=0; a<totvert; a++, fp+=3) {
 			vcos[a][0]= fp[0];
@@ -509,8 +508,8 @@ static float *make_orco_mesh_internal(Object *ob, int render)
 			totvert = lvl->totvert;
 		}
 		else {
-			vcos = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
 			Mesh *tme = me->texcomesh?me->texcomesh:me;
+			vcos = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
 			mvert = tme->mvert;
 			totvert = MIN2(tme->totvert, me->totvert);
 		}
