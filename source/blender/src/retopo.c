@@ -40,6 +40,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
@@ -852,6 +853,9 @@ void retopo_do_all()
 
 void retopo_do_all_cb(void *j1, void *j2)
 {
+	/* This is called from editbuttons, so user needs to specify view */
+	if(!select_area(SPACE_VIEW3D)) return;
+
 	if(G.vd->drawtype == OB_WIRE) {
 		error("Cannot apply retopo in wireframe mode");
 		return;
