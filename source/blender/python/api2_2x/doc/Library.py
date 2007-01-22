@@ -46,9 +46,9 @@ def Open (filename):
   Open an existing .blend file.  If there was already one open file, it is
   closed first.
   @type filename: string
-  @param filename: The filename of a Blender file. Filenames starting with // will be loaded relative to the blend files location.
+  @param filename: The filename of a Blender file. Filenames starting with "//" will be loaded relative to the blend file's location.
   @rtype: bool
-  @return: 1 if successful, 0 otherwise.
+  @return: 1 if successful.  An IOError exception is thrown if the file cannot be opened.
   """
 
 def Close ():

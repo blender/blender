@@ -158,7 +158,7 @@ PyObject *M_Library_Open( PyObject * self, PyObject * args )
 		Py_DECREF( Py_None );	/* incref'ed by above function */
 	}
 	
-	/* copy the name to make it absolute so BLO_blendhandle_from_file dosnt complain */
+	/* copy the name to make it absolute so BLO_blendhandle_from_file doesn't complain */
 	BLI_strncpy(fname1, fname, sizeof(fname1)); 
 	BLI_convertstringcode(fname1, G.sce, 0); /* make absolute */
 	
@@ -167,10 +167,9 @@ PyObject *M_Library_Open( PyObject * self, PyObject * args )
 	bpy_openlib = BLO_blendhandle_from_file( fname1 );
 	BLI_strncpy(G.sce, filename, sizeof(filename)); 
 	
-	
 	if( !bpy_openlib )
-		return Py_BuildValue( "i", 0 );
-	
+		return EXPP_ReturnPyObjError( PyExc_IOError, "file not found" );
+
 	/* "//someblend.blend" enables relative paths */
 	if (sizeof(fname) > 2 && fname[0] == '/' && fname[1] == '/')
 		bpy_relative= 1; /* global that makes the library relative on loading */ 
@@ -200,8 +199,7 @@ PyObject *M_Library_Close( PyObject * self )
 		bpy_openlibname = NULL;
 	}
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /**
