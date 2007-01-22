@@ -189,7 +189,10 @@ short imb_savepng(struct ImBuf *ibuf, char *name, int flags)
 			 Flush);
 	} else {
 		fp = fopen(name, "wb");
-                if (!fp) return 0;
+        if (!fp) {
+			MEM_freeN(pixels);
+			return 0;
+		}
 		png_init_io(png_ptr, fp);
 	}
 
@@ -222,8 +225,9 @@ short imb_savepng(struct ImBuf *ibuf, char *name, int flags)
 	// allocate memory for an array of row-pointers
 	row_pointers = (png_bytepp) MEM_mallocN(ibuf->y * sizeof(png_bytep), "row_pointers");
 	if (row_pointers == NULL) {
-			printf("Cannot allocate row-pointers array\n");
-			return 0;
+		printf("Cannot allocate row-pointers array\n");
+		MEM_freeN(pixels);
+		return 0;
 	}
 
 	// set the individual row-pointers to point at the correct offsets
