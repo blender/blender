@@ -116,7 +116,7 @@ struct ImBuf *IMB_double_fast_x(struct ImBuf *ibuf1)
 {
 	struct ImBuf *ibuf2;
 	int *p1,*dest, i, col, do_rect, do_float;
-	float *p1f, *destf, colf;
+	float *p1f, *destf;
 
 	if (ibuf1==NULL) return (0);
 	if (ibuf1->rect==NULL && ibuf1->rect_float==NULL) return (0);
@@ -129,8 +129,8 @@ struct ImBuf *IMB_double_fast_x(struct ImBuf *ibuf1)
 
 	p1 = (int *) ibuf1->rect;
 	dest=(int *) ibuf2->rect;
-	p1f = ibuf1->rect_float;
-	destf = ibuf2->rect_float;
+	p1f = (float *)ibuf1->rect_float;
+	destf = (float *)ibuf2->rect_float;
 
 	for(i = ibuf1->y * ibuf1->x ; i>0 ; i--) {
 		if (do_rect) {
@@ -139,9 +139,12 @@ struct ImBuf *IMB_double_fast_x(struct ImBuf *ibuf1)
 			*dest++ = col;
 		}
 		if (do_float) {
-			colf = *p1f++;
-			*destf++ = colf;
-			*destf++ = colf;
+			destf[0]= destf[4] =p1f[0];
+			destf[1]= destf[5] =p1f[1];
+			destf[2]= destf[6] =p1f[2];
+			destf[3]= destf[7] =p1f[3];
+			destf+= 8;
+			p1f+= 4;
 		}
 	}
 
@@ -184,8 +187,8 @@ struct ImBuf *IMB_half_y(struct ImBuf *ibuf1)
 
 	_p1 = (uchar *) ibuf1->rect;
 	dest=(uchar *) ibuf2->rect;
-	_p1f = ibuf1->rect_float;
-	destf= ibuf2->rect_float;
+	_p1f = (float *) ibuf1->rect_float;
+	destf= (float *) ibuf2->rect_float;
 
 	for(y=ibuf2->y ; y>0 ; y--){
 		if (do_rect) {
@@ -251,9 +254,9 @@ struct ImBuf *IMB_double_fast_y(struct ImBuf *ibuf1)
 	if (ibuf2==NULL) return (0);
 
 	p1 = (int *) ibuf1->rect;
-	dest1=(int *) ibuf2->rect;
-	p1f = ibuf1->rect_float;
-	dest1f= ibuf2->rect_float;
+	dest1= (int *) ibuf2->rect;
+	p1f = (float *) ibuf1->rect_float;
+	dest1f= (float *) ibuf2->rect_float;
 
 	for(y = ibuf1->y ; y>0 ; y--){
 		if (do_rect) {
@@ -262,8 +265,8 @@ struct ImBuf *IMB_double_fast_y(struct ImBuf *ibuf1)
 			dest1 = dest2;
 		}
  		if (do_float) {
-			dest2f = dest1f + ibuf2->x;
-			for(x = ibuf2->x ; x>0 ; x--) *dest1f++ = *dest2f++ = *p1f++;
+			dest2f = dest1f + (4*ibuf2->x);
+			for(x = ibuf2->x*4 ; x>0 ; x--) *dest1f++ = *dest2f++ = *p1f++;
 			dest1f = dest2f;
 		}
 	}

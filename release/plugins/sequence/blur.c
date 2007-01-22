@@ -30,6 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <stdio.h>
 #include "plugin.h"
 
 /* ******************** GLOBAL VARIABLES ***************** */
@@ -46,6 +47,9 @@ VarStruct varstr[]= {
  	NUMSLI|FLO,		"Blur",		0.5,	0.0,	10.0, "Maximum filtersize", 
 	NUMSLI|FLO,		"Gamma",	1.0,	0.4,	2.0, "Gamma correction", 
 	TOG|INT,		"Animated",	0.0,	0.0,	1.0, "For (Ipo) animated blur", 
+	NUM|INT,        	"debug",        0.0,    0.0,    2.0,
+		"0:off 1: show primary blur buffer 2: show 2nd blur buffer", 
+
 };
 
 /* The cast struct is for input in the main doit function
@@ -56,6 +60,7 @@ typedef struct Cast {
 	float blur;
 	float gamma;
 	float use_ipo;
+	int show;
 } Cast;
 
 
@@ -76,7 +81,7 @@ void plugin_but_changed(int but)
 {
 }
 
-void plugin_init()
+void plugin_init(void)
 {
 }
 
@@ -104,6 +109,7 @@ void blurbuf(struct ImBuf *ibuf, int nr, Cast *cast)
 	tbuf= dupImBuf(ibuf);
 	x4= ibuf->x/4;
 	
+	/* This doesn't seem to work... paprmh */
 	if(cast->gamma != 1.0) gamwarp(tbuf, cast->gamma);
 
 	/* reduce */
@@ -113,7 +119,10 @@ void blurbuf(struct ImBuf *ibuf, int nr, Cast *cast)
 			freeImBuf(tbuf);
 			tbuf = ttbuf;
 		}
-		if(tbuf->x<4 || tbuf->y<4) break;
+		if (tbuf->x > x4) {
+			scaleImBuf(tbuf, ibuf->x, ibuf->y);
+			break;
+		}
 	}
 
 	/* enlarge */
@@ -128,24 +137,21 @@ void blurbuf(struct ImBuf *ibuf, int nr, Cast *cast)
 			freeImBuf(tbuf);
 			tbuf = ttbuf;
 		}
-		
 		if(tbuf->x > x4) {
 			scaleImBuf(tbuf, ibuf->x, ibuf->y);
 			break;
 		}
 	}
 	
+	/* this doesn't seem to work...paprmh*/
 	if(cast->gamma != 1.0) gamwarp(tbuf, 1.0 / cast->gamma);
 
-	/* Very bad code warning! This fails badly with float-buffers!!! */
-	if (ibuf->rect_float) {
-		freeN(ibuf->rect_float);
-		ibuf->rect_float= tbuf->rect_float;
-	} else {
-		freeN(ibuf->rect);
-		ibuf->rect= tbuf->rect;
-	}
-	freeN(tbuf);
+	if(ibuf->rect)memcpy(ibuf->rect, tbuf->rect, 4*ibuf->x*ibuf->y);
+
+	if(ibuf->rect_float) 
+		memcpy(ibuf->rect_float, tbuf->rect_float, 4*ibuf->x*ibuf->y*sizeof(float));
+
+	freeImBuf(tbuf);
 	
 }
 
@@ -155,7 +161,7 @@ void doblur(struct ImBuf *mbuf, float fac, Cast *cast)
 	 * fac is filtersize in pixels
 	 */
 	struct ImBuf *ibuf, *pbuf;
-	float ifac, pfac;
+	float ifac, pfac, infac;
 	int n, b1, b2;
 	char *irect, *prect, *mrect;
 	float *irectf, *prectf, *mrectf;
@@ -166,7 +172,6 @@ void doblur(struct ImBuf *mbuf, float fac, Cast *cast)
 	if(fac<=1.0) return;
 	
 	pfac= 2.0;
-
 	pbuf= dupImBuf(mbuf);
 	n= 1;
 	while(pfac < fac) {
@@ -184,43 +189,47 @@ void doblur(struct ImBuf *mbuf, float fac, Cast *cast)
 	blurbuf(ibuf, n, cast);
 	blurbuf(ibuf, n, cast);
 	
-	fac = (fac-pfac)/(ifac-pfac);
-	b1= 255.0*fac;
-	if(b1>255) b1= 255;
-	b2= 255-b1;
+	fac= (fac-pfac)/(ifac-pfac);
+	n= mbuf->x*mbuf->y;
 	
-	if(b1==255) {
-		if (mbuf->rect_float) 
-			memcpy(mbuf->rect_float, ibuf->rect_float, 4*ibuf->x*ibuf->y * sizeof(float));
-		else
-			memcpy(mbuf->rect_float, ibuf->rect_float, 4*ibuf->x*ibuf->y);
-	}
-	else if(b1==0) {
-		if (mbuf->rect_float)
-			memcpy(mbuf->rect_float, pbuf->rect_float, 4*pbuf->x*pbuf->y * sizeof(float));
-		else
-			memcpy(mbuf->rect, pbuf->rect, 4*pbuf->x*pbuf->y);
-	}
-	else {	/* interpolate */
-		n= ibuf->x*ibuf->y;
-		if (mbuf->rect_float) {
-			irectf= ibuf->rect_float;
-			prectf= pbuf->rect_float;
-			mrectf= mbuf->rect_float;
+	if(cast->show) fac=cast->show-1;
+	
+	if(mbuf->rect_float){
+		if(fac>=1) {
+			memcpy(mbuf->rect_float, ibuf->rect_float, 4*n*sizeof(float));
+		}
+		else if(fac<=0) {
+			memcpy(mbuf->rect_float, pbuf->rect_float, 4*n*sizeof(float));
+		}
+		else {	/* interpolate */
+			infac= 1-fac;
+			
+			irectf= (float *)ibuf->rect_float;
+			prectf= (float *)pbuf->rect_float;
+			mrectf= (float *)mbuf->rect_float;
 			while(n--) {
-				mrectf[0]= (irectf[0]*fac+ prectf[0]*(1-fac))/2;
-				mrectf[1]= (irectf[1]*fac+ prectf[1]*(1-fac))/2;
-				mrectf[2]= (irectf[2]*fac+ prectf[2]*(1-fac))/2;
-				mrectf[3]= (irectf[3]*fac+ prectf[3]*(1-fac))/2;
-				mrectf[0]= 1;
-				mrectf[1]= 1;
-				mrectf[2]= 1;
-				mrectf[3]= 1;
+				mrectf[0]= irectf[0]*fac+ prectf[0]*infac;
+				mrectf[1]= irectf[1]*fac+ prectf[1]*infac;
+				mrectf[2]= irectf[2]*fac+ prectf[2]*infac;
+				mrectf[3]= irectf[3]*fac+ prectf[3]*infac;
 				mrectf+= 4;
 				irectf+= 4;
 				prectf+= 4;
 			}
-		} else {
+		}
+	}	
+	else if(mbuf->rect){
+		b1= (int)fac*255.0;
+		if(b1>255) b1= 255;
+		b2= 255-b1;
+	
+		if(b1==255) {
+			memcpy(mbuf->rect, ibuf->rect, 4*n);
+		}
+		else if(b1==0) {
+			memcpy(mbuf->rect, pbuf->rect, 4*n);
+		}
+		else {	/* interpolate */
 			irect= (char *)ibuf->rect;
 			prect= (char *)pbuf->rect;
 			mrect= (char *)mbuf->rect;
@@ -235,6 +244,7 @@ void doblur(struct ImBuf *mbuf, float fac, Cast *cast)
 			}
 		}
 	}
+
 	freeImBuf(ibuf);
 	freeImBuf(pbuf);
 }
@@ -252,28 +262,30 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int x, int y, ImBuf *
 		bfacf1 = (facf1 * 6.0) + 1.0;
 	}
 
-	if (out->rect_float) memcpy(out->rect_float, ibuf1->rect_float, 4*out->x*out->y * sizeof(float));
-	else memcpy(out->rect, ibuf1->rect, 4*out->x*out->y);
+	if(out->rect) memcpy(out->rect, ibuf1->rect, 4*out->x*out->y);
+	if(out->rect_float) memcpy(out->rect_float, ibuf1->rect_float, 4*out->x*out->y*sizeof(float));
+	
+/****************I can't get this field code to work... works ok without...paprmh****************/
+
 
 	/* it blurs interlaced, only tested with even fields */
-	de_interlace(out);
 
+/*	de_interlace(out);*/
 	/* otherwise scaling goes wrong */
-	out->flags &= ~IB_fields;
+/*	out->flags &= ~IB_fields;*/
 	
 	doblur(out, bfacf0, cast); /*fieldA*/
 
-	if (out->rect_float) out->rect_float += out->x * out->y;
-	else out->rect += out->x * out->y;
+/*	if(out->rect)out->rect += out->x * out->y;
+	if(out->rect_float)out->rect_float += out->x * out->y;
+		
+	doblur(out, bfacf1, cast);*/ /*fieldB*/
 
-	doblur(out, bfacf1, cast); /*fieldB*/
-
-	if (out->rect_float) out->rect_float -= out->x * out->y;
-	else out->rect -= out->x * out->y;
-
+/*	if(out->rect)out->rect -= out->x * out->y;
+	if(out->rect_float)out->rect_float -= out->x * out->y;
 	out->flags |= IB_fields;
 
-	interlace(out);
+	interlace(out);*/
 	
 }
 
