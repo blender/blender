@@ -394,6 +394,7 @@ def mergeUvIslands(islandList):
 	global USER_FILL_HOLES
 	global USER_FILL_HOLES_QUALITY
 	
+	
 	# Pack islands to bottom LHS
 	# Sync with island
 	
@@ -462,7 +463,6 @@ def mergeUvIslands(islandList):
 	BREAK= False
 	while areaIslandIdx < len(decoratedIslandListAreaSort) and not BREAK:
 		sourceIsland = decoratedIslandListAreaSort[areaIslandIdx]
-		
 		# Alredy packed?
 		if not sourceIsland[0]:
 			areaIslandIdx+=1
@@ -515,17 +515,9 @@ def mergeUvIslands(islandList):
 						testHeight = targetIsland[5] - sourceIsland[5]
 						
 						# Increment we move each test. x/y
-						#xIncrement = (testWidth / (blockTestXUnit * USER_STEP_QUALITY))
-						#yIncrement = (testHeight / (blockTestYUnit * USER_STEP_QUALITY))
-						#xIncrement= testWidth/USER_STEP_QUALITY
-						#yIncrement= testHeight/USER_STEP_QUALITY
-						# USER_STEP_QUALITY is 5.0 when quality is 100 and 1.0 when quality is 1
-						xIncrement = (sourceIsland[4] / targetIsland[4]) * ((6 - USER_STEP_QUALITY)*50)
-						yIncrement = (sourceIsland[5] / targetIsland[5]) * ((6 - USER_STEP_QUALITY)*50)
-						
-						
-						#~ print xIncrement, yIncrement, USER_STEP_QUALITY
-						
+						xIncrement = (testWidth / (blockTestXUnit * ((USER_STEP_QUALITY/50)+0.1)))
+						yIncrement = (testHeight / (blockTestYUnit * ((USER_STEP_QUALITY/50)+0.1)))
+
 						# Make sure were not moving less then a 3rg of our width/height
 						if xIncrement<sourceIsland[4]/3:
 							xIncrement= sourceIsland[4]
@@ -611,7 +603,6 @@ def mergeUvIslands(islandList):
 								sourceIsland[2] = 0 # No area if anyone wants to know
 								
 								break
-							
 							
 							
 							# INCREMENR NEXT LOCATION
@@ -1054,12 +1045,9 @@ def main():
 			
 			else:
 				if len(projectVecs) >= 1: # Must have at least 2 projections
-					print len(projectVecs)
 					break
-			
-			
-			
-			
+		
+		
 		# If there are only zero area faces then its possible
 		# there are no projectionVecs
 		if not len(projectVecs):
