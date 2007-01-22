@@ -62,4 +62,7 @@ typedef struct {
 PyObject *PyArmature_FromArmature(struct bArmature *armature);
 struct bArmature *PyArmature_AsArmature(BPy_Armature *py_armature);
 
+int Armature_CheckPyObject( PyObject * pyobj );
+struct bArmature  *Armature_FromPyObject( PyObject * py_obj );
+
 #endif				

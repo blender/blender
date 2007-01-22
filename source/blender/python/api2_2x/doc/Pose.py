@@ -10,6 +10,90 @@ This module provides access to B{Pose} objects in Blender.  This Pose is the
 current object-level (as opposed to armature-data level) transformation.
 
 Example::
+	import Blender
+	from Blender import *
+
+
+	scn= Scene.GetCurrent()
+
+	# New Armature
+	arm_data= Armature.New('myArmature')
+	print arm_data
+	arm_ob = scn.objects.new(arm_data)
+	arm_data.makeEditable()
+
+
+	# Add 4 bones
+	ebones = [Armature.Editbone(), Armature.Editbone(), Armature.Editbone(), Armature.Editbone()]
+
+	# Name the editbones
+	ebones[0].name = 'Bone.001'
+	ebones[1].name = 'Bone.002'
+	ebones[2].name = 'Bone.003'
+	ebones[3].name = 'Bone.004'
+
+	# Assign the editbones to the armature
+	for eb in ebones:
+		arm_data.bones[eb.name]= eb
+
+	# Set the locations of the bones
+	ebones[0].head= Mathutils.Vector(0,0,0)
+	ebones[0].tail= Mathutils.Vector(0,0,1)
+	ebones[1].head= Mathutils.Vector(0,0,1)
+	ebones[1].tail= Mathutils.Vector(0,0,2)
+	ebones[2].head= Mathutils.Vector(0,0,2)
+	ebones[2].tail= Mathutils.Vector(0,0,3)
+	ebones[3].head= Mathutils.Vector(0,0,3)
+	ebones[3].tail= Mathutils.Vector(0,0,4)
+
+	ebones[1].parent= ebones[0]
+	ebones[2].parent= ebones[1]
+	ebones[3].parent= ebones[2]
+
+	arm_data.update()
+	# Done with editing the armature
+
+
+	# Assign the pose animation
+	pose = arm_ob.getPose()
+
+	act = arm_ob.getAction()
+	if not act: # Add a pose action if we dont have one
+		act = Armature.NLA.NewAction()
+		act.setActive(arm_ob)
+
+	xbones=arm_ob.data.bones.values()
+	pbones = pose.bones.values()
+	print xbones
+	print pbones
+
+
+	frame = 1
+	for pbone in pbones: # set bones to no rotation
+		pbone.quat[:] = 1.000,0.000,0.000,0.0000
+		pbone.insertKey(arm_ob, frame, Object.Pose.ROT)
+
+	# Set a different rotation at frame 25
+	pbones[0].quat[:] = 1.000,0.1000,0.2000,0.20000
+	pbones[1].quat[:] = 1.000,0.6000,0.5000,0.40000
+	pbones[2].quat[:] = 1.000,0.1000,0.3000,0.40000
+	pbones[3].quat[:] = 1.000,-0.2000,-0.3000,0.30000
+
+	frame = 25
+	for i in xrange(4):
+		pbones[i].insertKey(arm_ob, frame, Object.Pose.ROT)
+
+	pbones[0].quat[:] = 1.000,0.000,0.000,0.0000
+	pbones[1].quat[:] = 1.000,0.000,0.000,0.0000
+	pbones[2].quat[:] = 1.000,0.000,0.000,0.0000
+	pbones[3].quat[:] = 1.000,0.000,0.000,0.0000
+
+
+	frame = 50	
+	for pbone in pbones: # set bones to no rotation
+		pbone.quat[:] = 1.000,0.000,0.000,0.0000
+		pbone.insertKey(arm_ob, frame, Object.Pose.ROT)
+
 
 
 @var ROT: 

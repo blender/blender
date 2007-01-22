@@ -1384,7 +1384,8 @@ static PyObject *SceneObSeq_link( BPy_SceneObSeq * self, PyObject *pyobj )
 
 /* This is buggy with new object data not already linked to an object, for now use the above code */
 static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
-{	
+{
+	
 	void *data = NULL;
 	char *name = NULL;
 	char *desc = NULL;
@@ -1404,7 +1405,10 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected an object and optionally a string as arguments" );
 
-	if( Camera_CheckPyObject( py_data ) ) {
+	if( Armature_CheckPyObject( py_data ) ) {
+		data = ( void * ) Armature_FromPyObject( py_data );
+		type = OB_ARMATURE;
+	} else if( Camera_CheckPyObject( py_data ) ) {
 		data = ( void * ) Camera_FromPyObject( py_data );
 		type = OB_CAMERA;
 	} else if( Lamp_CheckPyObject( py_data ) ) {
