@@ -363,7 +363,7 @@ void pose_special_editmenu(void)
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
-	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear All Paths%x4|Clear Pose %x5");
+	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear All Paths%x4|Clear User Transform %x5");
 	if(nr==1) {
 		pose_select_constraint_target();
 	}
@@ -379,7 +379,7 @@ void pose_special_editmenu(void)
 	else if(nr==5) {
 		rest_pose(ob->pose);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		BIF_undo_push("Clear Pose");
+		BIF_undo_push("Clear User Transform Pose");
 	}
 }
 

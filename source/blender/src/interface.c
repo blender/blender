@@ -5359,7 +5359,8 @@ uiBlock *uiNewBlock(ListBase *lb, char *name, short dt, short font, short win)
 	uiSetCurFont(block, font);
 
 	UIbuttip= NULL;	
-	
+	UIlock= 0;
+
 	return block;
 }
 

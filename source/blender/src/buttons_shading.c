@@ -1050,19 +1050,20 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 		
 		if(ima->type==IMA_TYPE_COMPOSITE) {
 			iuser= ntree_get_active_iuser(G.scene->nodetree);
-			
-			uiBlockBeginAlign(block);
-			uiDefIconTextBut(block, BUT, B_SIMA_RECORD, ICON_REC, "Record",	10,120,100,20, 0, 0, 0, 0, 0, "");
-			uiDefIconTextBut(block, BUT, B_SIMA_PLAY, ICON_PLAY, "Play",	110,120,100,20, 0, 0, 0, 0, 0, "");
-			but= uiDefBut(block, BUT, B_NOP, "Free Cache",	210,120,100,20, 0, 0, 0, 0, 0, "");
-			uiButSetFunc(but, image_freecache_cb, ima, NULL);
-			
-			if(iuser->frames)
-				sprintf(str, "(%d) Frames:", iuser->framenr);
-			else strcpy(str, "Frames:");
-			uiBlockBeginAlign(block);
-			uiDefButI(block, NUM, imagechanged, str,		10, 90,150, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
-			uiDefButI(block, NUM, imagechanged, "StartFr:",	160,90,150,20, &iuser->sfra, 1.0, MAXFRAMEF, 0, 0, "Sets the global starting frame of the movie");
+			if(iuser) {
+				uiBlockBeginAlign(block);
+				uiDefIconTextBut(block, BUT, B_SIMA_RECORD, ICON_REC, "Record",	10,120,100,20, 0, 0, 0, 0, 0, "");
+				uiDefIconTextBut(block, BUT, B_SIMA_PLAY, ICON_PLAY, "Play",	110,120,100,20, 0, 0, 0, 0, 0, "");
+				but= uiDefBut(block, BUT, B_NOP, "Free Cache",	210,120,100,20, 0, 0, 0, 0, 0, "");
+				uiButSetFunc(but, image_freecache_cb, ima, NULL);
+				
+				if(iuser->frames)
+					sprintf(str, "(%d) Frames:", iuser->framenr);
+				else strcpy(str, "Frames:");
+				uiBlockBeginAlign(block);
+				uiDefButI(block, NUM, imagechanged, str,		10, 90,150, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
+				uiDefButI(block, NUM, imagechanged, "StartFr:",	160,90,150,20, &iuser->sfra, 1.0, MAXFRAMEF, 0, 0, "Sets the global starting frame of the movie");
+			}
 		}
 		else if(ima->type==IMA_TYPE_R_RESULT) {
 			/* browse layer/passes */

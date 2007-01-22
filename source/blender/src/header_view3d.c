@@ -3644,10 +3644,10 @@ static void do_view3d_pose_armature_transformmenu(void *arg, int event)
 	case 3: /* clear location */
 		clear_object('g');
 		break;
-	case 4: /* clear pose */
+	case 4: /* clear user transform */
 		rest_pose(ob->pose);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		BIF_undo_push("Clear Pose");
+		BIF_undo_push("Pose, Clear User Transform");
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -3661,7 +3661,7 @@ static uiBlock *view3d_pose_armature_transformmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_pose_armature_transformmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_pose_armature_transformmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Pose|W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear User Transform|W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Location|Alt G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Rotation|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
