@@ -119,10 +119,7 @@ void blurbuf(struct ImBuf *ibuf, int nr, Cast *cast)
 			freeImBuf(tbuf);
 			tbuf = ttbuf;
 		}
-		if (tbuf->x > x4) {
-			scaleImBuf(tbuf, ibuf->x, ibuf->y);
-			break;
-		}
+		if(tbuf->x<4 || tbuf->y<4) break;
 	}
 
 	/* enlarge */
