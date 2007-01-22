@@ -2635,6 +2635,8 @@ void editmesh_mark_sharp(int set)
 	}
 #endif
 
+	if(multires_level1_test()) return;
+
 	if(set) {
 		eed= em->edges.first;
 		while(eed) {

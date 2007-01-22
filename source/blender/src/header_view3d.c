@@ -124,6 +124,7 @@
 #include "BPY_menus.h"
 
 #include "blendef.h"
+#include "multires.h"
 #include "mydevice.h"
 #include "butspace.h"
 
@@ -2545,8 +2546,10 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 		editmesh_mark_seam(1);
 		break;
 	case 9: /* Cease SubSurf */
-		initTransform(TFM_CREASE, CTX_EDGE);
-		Transform();
+		if(!multires_level1_test()) {
+			initTransform(TFM_CREASE, CTX_EDGE);
+			Transform();
+		}
 		break;
 	case 10: /* Rotate Edge */
 		edge_rotate_selected(2);

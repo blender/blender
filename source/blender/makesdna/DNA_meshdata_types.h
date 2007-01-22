@@ -129,6 +129,7 @@ typedef struct Multires {
 	CustomData vdata;
 	CustomData fdata;
 	short *edge_flags;
+	char *edge_creases;
 } Multires;
 
 typedef struct PartialVisibility {

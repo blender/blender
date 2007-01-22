@@ -1658,7 +1658,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						seam_mark_clear_tface(0);
 				}
 				else if (G.qual==LR_SHIFTKEY) {
-					if (G.obedit && G.obedit->type==OB_MESH) {
+					if (G.obedit && G.obedit->type==OB_MESH &&
+					    !multires_level1_test()) {
 						initTransform(TFM_CREASE, CTX_EDGE);
 						Transform();
 					}

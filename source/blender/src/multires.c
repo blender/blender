@@ -509,18 +509,33 @@ void multires_get_face(MultiresFace *f, EditFace *efa, MFace *m)
 	}
 }
 
-void multires_get_edge(MultiresEdge *e, EditEdge *eed, MEdge *m, short *flag)
+void eed_to_medge_flag(EditEdge *eed, short *flag, char *crease)
+{
+	if(!eed || !flag) return;
+
+	/* Would be nice if EditMesh edge flags could be unified with Mesh flags! */
+	*flag= (eed->f & SELECT) | ME_EDGERENDER;
+	if(eed->f2<2) *flag |= ME_EDGEDRAW;
+	if(eed->f2==0) *flag |= ME_LOOSEEDGE;
+	if(eed->sharp) *flag |= ME_SHARP;
+	if(eed->seam) *flag |= ME_SEAM;
+	if(eed->h & EM_FGON) *flag |= ME_FGON;
+	if(eed->h & 1) *flag |= ME_HIDE;
+	
+	*crease= (char)(255.0*eed->crease);
+}
+
+void multires_get_edge(MultiresEdge *e, EditEdge *eed, MEdge *m, short *flag, char *crease)
 {
 	if(eed) {
 		e->v[0]= eed->v1->tmp.l;
 		e->v[1]= eed->v2->tmp.l;
-		*flag= 0;
-		if(eed->seam)
-			*flag |= ME_SEAM;
+		eed_to_medge_flag(eed, flag, crease);
 	} else {		
 		e->v[0]= m->v1;
 		e->v[1]= m->v2;
 		*flag= m->flag;
+		*crease= m->crease;
 	}
 }
 
@@ -591,9 +606,10 @@ void multires_make(void *ob, void *me_v)
 	lvl->totedge= em ? BLI_countlist(&em->edges) : me->totedge;
 	lvl->edges= MEM_callocN(sizeof(MultiresEdge)*lvl->totedge,"multires edges");
 	me->mr->edge_flags= MEM_callocN(sizeof(short)*lvl->totedge, "multires edge flags");
+	me->mr->edge_creases= MEM_callocN(sizeof(short)*lvl->totedge, "multires edge creases");
 	if(em) eed= em->edges.first;
 	for(i=0; i<lvl->totedge; ++i) {
-		multires_get_edge(&lvl->edges[i], eed, &me->medge[i], &me->mr->edge_flags[i]);
+		multires_get_edge(&lvl->edges[i], eed, &me->medge[i], &me->mr->edge_flags[i], &me->mr->edge_creases[i]);
 		if(em) eed= eed->next;
 	}
 
@@ -655,6 +671,7 @@ Multires *multires_copy(Multires *orig)
 			CustomData_copy(&orig->vdata, &mr->vdata, vdata_mask, CD_DUPLICATE, lvl->totvert);
 			CustomData_copy(&orig->fdata, &mr->fdata, CD_MASK_MTFACE, CD_DUPLICATE, lvl->totface);
 			mr->edge_flags= MEM_dupallocN(orig->edge_flags);
+			mr->edge_creases= MEM_dupallocN(orig->edge_creases);
 		}
 		
 		return mr;
@@ -672,6 +689,7 @@ void multires_free(Multires *mr)
 			CustomData_free(&mr->vdata, lvl->totvert);
 			CustomData_free(&mr->fdata, lvl->totface);
 			MEM_freeN(mr->edge_flags);
+			MEM_freeN(mr->edge_creases);
 		}
 
 		while(lvl) {
@@ -727,6 +745,7 @@ void multires_del_lower(void *ob, void *me)
 	MultiresLevel *lvl1= mr->levels.first, *cr_lvl= current_level(mr);
 	MultiresLevel *lvl= NULL, *lvlprev= NULL;
 	short *edgeflags= NULL;
+	char *edgecreases= NULL;
 	int i, last;
 	
 	if(cr_lvl == lvl1) return;
@@ -735,11 +754,16 @@ void multires_del_lower(void *ob, void *me)
 	
 	/* Subdivide the edge flags to the current level */
 	edgeflags= MEM_callocN(sizeof(short)*current_level(mr)->totedge, "Multires Edge Flags");
+	edgecreases= MEM_callocN(sizeof(char)*current_level(mr)->totedge, "Multires Edge Creases");
 	last= lvl1->totedge * pow(2, mr->current-1);
-	for(i=0; i<last; ++i)
+	for(i=0; i<last; ++i) {
 		edgeflags[i] = mr->edge_flags[(int)(i / pow(2, mr->current-1))];
+		edgecreases[i] = mr->edge_creases[(int)(i / pow(2, mr->current-1))];
+	}
 	MEM_freeN(mr->edge_flags);
+	MEM_freeN(mr->edge_creases);
 	mr->edge_flags= edgeflags;
+	mr->edge_creases= edgecreases;
 	
 	multires_del_lower_customdata(mr, cr_lvl);
 	
@@ -1022,6 +1046,20 @@ void multires_set_level(void *ob, void *me_v)
 	waitcursor(0);
 }
 
+
+void medge_flag_to_eed(const short flag, const char crease, EditEdge *eed)
+{
+	if(!eed) return;
+	
+	if(flag & ME_SEAM) eed->seam= 1;
+	if(flag & ME_SHARP) eed->sharp = 1;
+	if(flag & SELECT) eed->f |= SELECT;
+	if(flag & ME_FGON) eed->h= EM_FGON;
+	if(flag & ME_HIDE) eed->h |= 1;
+	
+	eed->crease= ((float)crease)/255.0;
+}
+
 /* note, function is called in background render too, without UI */
 void multires_level_to_mesh(Object *ob, Mesh *me)
 {
@@ -1105,25 +1143,28 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 	if(lvl==me->mr->levels.first) {
 		for(i=0; i<lvl->totedge; ++i) {
 			if(em) {
-				if(me->mr->edge_flags[i] & ME_SEAM)
-					eed->seam= 1;
+				medge_flag_to_eed(me->mr->edge_flags[i], me->mr->edge_creases[i], eed);
 				eed= eed->next;
 			}
-			else
+			else {
 				me->medge[i].flag= me->mr->edge_flags[i];
+				me->medge[i].crease= me->mr->edge_creases[i];
+			}
 		}
 	} else {
 		MultiresLevel *lvl1= me->mr->levels.first;
 		const int last= lvl1->totedge * pow(2, me->mr->current-1);
 		for(i=0; i<last; ++i) {
 			const int ndx= i / pow(2, me->mr->current-1);
-			if(me->mr->edge_flags[ndx] & ME_SEAM) {
-				if(em)
-					eed->seam= 1;
-				else
-					me->medge[i].flag |= ME_SEAM;
+			
+			if(em) {
+				medge_flag_to_eed(me->mr->edge_flags[ndx], me->mr->edge_creases[ndx], eed);
+				eed= eed->next;
 			}
-			if(em) eed= eed->next;
+			else {
+				me->medge[i].flag= me->mr->edge_flags[ndx];
+				me->medge[i].crease= me->mr->edge_creases[ndx];
+			}
 		}
 	}
 
@@ -1285,12 +1326,13 @@ void multires_update_edge_flags(Multires *mr, Mesh *me, EditMesh *em)
 	for(i=0; i<lvl->totedge; ++i) {
 		if(em) {
 			mr->edge_flags[i]= 0;
-			if(eed->seam)
-				mr->edge_flags[i] |= ME_SEAM;
+			eed_to_medge_flag(eed, &mr->edge_flags[i], &mr->edge_creases[i]);
 			eed= eed->next;
 		}
-		else
+		else {
 			mr->edge_flags[i]= me->medge[i].flag;
+			mr->edge_creases[i]= me->medge[i].crease;
+		}
 	}
 }
 
