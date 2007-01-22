@@ -406,7 +406,7 @@ class _3ds_chunk(object):
 ######################################################
 # EXPORT
 ######################################################
-
+'''
 def get_material_images(material):
 	# blender utility func.
 	images = []
@@ -417,7 +417,7 @@ def get_material_images(material):
 				if image:
 					images.append(image) # maye want to include info like diffuse, spec here.
 	return images
-
+'''	
 def make_material_subchunk(id, color):
 	'''Make a material subchunk.
 	
@@ -432,9 +432,10 @@ def make_material_subchunk(id, color):
 #	mat_sub.add_subchunk(col2)
 	return mat_sub
 
+'''
 def make_material_texture_chunk(id, images):
-	'''Make Material Map texture chunk
-	'''
+	"""Make Material Map texture chunk
+	"""
 	mat_sub = _3ds_chunk(id)
 	
 	def add_image(img):
@@ -447,7 +448,7 @@ def make_material_texture_chunk(id, images):
 		add_image(image)
 	
 	return mat_sub
-
+'''
 def make_material_chunk(material, image):
 	'''Make a material chunk out of a blender material.'''
 	material_chunk = _3ds_chunk(MATERIAL)
@@ -469,13 +470,14 @@ def make_material_chunk(material, image):
 		material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, (.8, .8, .8) ))
 		material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, (1,1,1) ))
 	
-	
+	# CANT READ IN MAX!!!! SEEMS LIKE THE FILE IS VALID FROM 3DSDUMP :/
+	'''
 	images = get_material_images(material) # can be None
 	if image: images.append(image)
 	
 	if images:
 		material_chunk.add_subchunk(make_material_texture_chunk(MATMAP, images))
-	
+	'''
 	return material_chunk
 
 class tri_wrapper(object):
@@ -587,12 +589,21 @@ def remove_face_uv(verts, tri_list):
 		index_list.append(vert_index)
 		
 		pt = _3ds_point_3d(vert.co) # reuse, should be ok
-		
+		uvmap = [None] * len(unique_uvs[i])
 		for ii, uv_3ds in unique_uvs[i].itervalues():
 			# add a vertex duplicate to the vertex_array for every uv associated with this vertex:
 			vert_array.add(pt)
 			# add the uv coordinate to the uv array:
+			# This for loop does not give uv's ordered by ii, so we create a new map
+			# and add the uv's later
+			# uv_array.add(uv_3ds)
+			uvmap[ii] = uv_3ds
+		
+		# Add the uv's in the correct order
+		for uv_3ds in uvmap:
+			# add the uv coordinate to the uv array:
 			uv_array.add(uv_3ds)
+		
 		vert_index += len(unique_uvs[i])
 	
 	# Make sure the triangle vertex indices now refer to the new vertex list:
@@ -850,9 +861,17 @@ def make_kf_obj_node(obj, name_to_id):
 	return kf_obj_node
 """
 
+import BPyMessages
 def save_3ds(filename):
 	'''Save the Blender scene to a 3ds file.'''
 	# Time the export
+	
+	if not filename.lower().endswith('.3ds'):
+		filename += '.3ds'
+	
+	if not BPyMessages.Warning_SaveOver(filename):
+		return
+	
 	time1= Blender.sys.time()
 	Blender.Window.WaitCursor(1)
 	scn= Blender.Scene.GetCurrent()
