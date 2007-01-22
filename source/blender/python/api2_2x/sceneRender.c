@@ -168,7 +168,7 @@ static PyObject *M_Render_BitToggleInt( PyObject * args, int setting,
 		*structure &= ~setting;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 
 }
 
@@ -193,7 +193,7 @@ static PyObject *M_Render_BitToggleShort( PyObject * args, short setting,
 		*structure &= ~setting;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 
 }
 
@@ -218,9 +218,9 @@ static PyObject *M_Render_GetSetAttributeFloat( PyObject * args,
 
 		*structure = property;
 		EXPP_allqueue( REDRAWBUTSSCENE, 0 );
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 	} else
-		return Py_BuildValue( "f", *structure );
+		return PyFloat_FromDouble( *structure );
 }
 
 static PyObject *M_Render_GetSetAttributeShort( PyObject * args,
@@ -244,9 +244,9 @@ static PyObject *M_Render_GetSetAttributeShort( PyObject * args,
 
 		*structure = property;
 		EXPP_allqueue( REDRAWBUTSSCENE, 0 );
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 	} else
-		return Py_BuildValue( "h", *structure );
+		return PyInt_FromLong( (long int)*structure );
 }
 
 static PyObject *M_Render_GetSetAttributeInt( PyObject * args, int *structure,
@@ -268,10 +268,21 @@ static PyObject *M_Render_GetSetAttributeInt( PyObject * args, int *structure,
 		}
 
 		*structure = property;
+		
+		/* compare memory locations, not values */
+		if (&G.scene->r.cfra == structure) {
+			/* are we changing the current frame?
+			update all objects, so python scripts can export all objects
+			in a scene without worrying about the view layers */
+			scene_update_for_newframe(G.scene, (1<<20) - 1);
+		}
+		
+		/*I dont think this should be here, whatif the scene is not the current scene - campbell*/
 		EXPP_allqueue( REDRAWBUTSSCENE, 0 );
-		return EXPP_incr_ret( Py_None );
+		
+		Py_RETURN_NONE;
 	} else
-		return Py_BuildValue( "i", *structure );
+		return  PyInt_FromLong( *structure );
 }
 
 
@@ -302,7 +313,7 @@ static void M_Render_DoSizePreset( BPy_RenderData * self, short xsch,
 PyObject *M_Render_CloseRenderWindow( PyObject * self )
 {
 	BIF_close_render_display(  );
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *M_Render_SetRenderWinPos( PyObject * self, PyObject * args )
@@ -345,7 +356,7 @@ PyObject *M_Render_SetRenderWinPos( PyObject * self, PyObject * args )
 	}
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *M_Render_EnableDispView( PyObject * self )
@@ -353,7 +364,7 @@ PyObject *M_Render_EnableDispView( PyObject * self )
 	G.displaymode = R_DISPLAYIMAGE;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *M_Render_EnableDispWin( PyObject * self )
@@ -361,7 +372,7 @@ PyObject *M_Render_EnableDispWin( PyObject * self )
 	G.displaymode = R_DISPLAYWIN;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 
@@ -396,7 +407,7 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 		G.scene->r.efra = (short)end_frame;
 	}
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 /* 
@@ -434,7 +445,7 @@ PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 		}
 		BIF_save_rendered_image(filepath);
 	}
-	return EXPP_incr_ret(Py_None);
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_RenderAnim( BPy_RenderData * self )
@@ -460,7 +471,7 @@ PyObject *RenderData_RenderAnim( BPy_RenderData * self )
 		
 		RE_BlenderAnim(re, G.scene, G.scene->r.sfra, G.scene->r.efra);
 	}
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_Play( BPy_RenderData * self )
@@ -520,7 +531,7 @@ PyObject *RenderData_Play( BPy_RenderData * self )
 			sprintf( "Can't find image: %s", file );
 	}
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_EnableBackbuf( BPy_RenderData * self, PyObject * args )
@@ -590,7 +601,7 @@ PyObject *RenderData_SetEdgeColor( BPy_RenderData * self, PyObject * args )
 	self->renderContext->edgeG = green;
 	self->renderContext->edgeB = blue;
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_GetEdgeColor( BPy_RenderData * self )
@@ -661,7 +672,7 @@ PyObject *RenderData_EnableSky( BPy_RenderData * self )
 	self->renderContext->alphamode = R_ADDSKY;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_EnablePremultiply( BPy_RenderData * self )
@@ -669,7 +680,7 @@ PyObject *RenderData_EnablePremultiply( BPy_RenderData * self )
 	self->renderContext->alphamode = R_ALPHAPREMUL;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_EnableKey( BPy_RenderData * self )
@@ -677,7 +688,7 @@ PyObject *RenderData_EnableKey( BPy_RenderData * self )
 	self->renderContext->alphamode = R_ALPHAKEY;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_EnableShadow( BPy_RenderData * self, PyObject * args )
@@ -947,7 +958,7 @@ PyObject *RenderData_EnableGrayscale( BPy_RenderData * self )
 	self->renderContext->planes = R_PLANESBW;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_EnableRGBColor( BPy_RenderData * self )
@@ -955,7 +966,7 @@ PyObject *RenderData_EnableRGBColor( BPy_RenderData * self )
 	self->renderContext->planes = R_PLANES24;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_EnableRGBAColor( BPy_RenderData * self )
@@ -963,7 +974,7 @@ PyObject *RenderData_EnableRGBAColor( BPy_RenderData * self )
 	self->renderContext->planes = R_PLANES32;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_SizePreset( BPy_RenderData * self, PyObject * args )
@@ -1035,7 +1046,7 @@ PyObject *RenderData_SizePreset( BPy_RenderData * self, PyObject * args )
 						"unknown constant - see modules dict for help" ) );
 
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_SetYafrayGIQuality( BPy_RenderData * self,
@@ -1056,7 +1067,7 @@ PyObject *RenderData_SetYafrayGIQuality( BPy_RenderData * self,
 						"unknown constant - see modules dict for help" ) );
 
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_SetYafrayGIMethod( BPy_RenderData * self,
@@ -1075,7 +1086,7 @@ PyObject *RenderData_SetYafrayGIMethod( BPy_RenderData * self,
 						"unknown constant - see modules dict for help" ) );
 
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_YafrayGIPower( BPy_RenderData * self, PyObject * args )
@@ -1278,19 +1289,19 @@ PyObject *RenderData_YafrayProcessorCount( BPy_RenderData * self,
 PyObject *RenderData_EnableGameFrameStretch( BPy_RenderData * self )
 {
 	self->scene->framing.type = SCE_GAMEFRAMING_SCALE;
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_EnableGameFrameExpose( BPy_RenderData * self )
 {
 	self->scene->framing.type = SCE_GAMEFRAMING_EXTEND;
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_EnableGameFrameBars( BPy_RenderData * self )
 {
 	self->scene->framing.type = SCE_GAMEFRAMING_BARS;
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_SetGameFrameColor( BPy_RenderData * self,
@@ -1318,7 +1329,7 @@ PyObject *RenderData_SetGameFrameColor( BPy_RenderData * self,
 	self->scene->framing.col[1] = green;
 	self->scene->framing.col[2] = blue;
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 PyObject *RenderData_GetGameFrameColor( BPy_RenderData * self )
