@@ -55,6 +55,8 @@
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 
+#include "BKE_curve.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 
@@ -803,6 +805,7 @@ void retopo_do_all()
 				eve= eve->next;
 			}
 			
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
@@ -815,7 +818,20 @@ void retopo_do_all()
 
 			for(nu= editNurb.first; nu; nu= nu->next)
 			{
-				if((nu->type & 7)!=CU_BEZIER) {
+				if(nu->type & CU_2D) {
+					/* Can't wrap a 2D curve onto a 3D surface */
+				}
+				else if(nu->type & CU_BEZIER) {
+					for(i=0; i<nu->pntsu; ++i) {
+						if(nu->bezt[i].f1 & 1)
+							retopo_do_vert(G.vd, nu->bezt[i].vec[0]);
+						if(nu->bezt[i].f2 & 1)
+							retopo_do_vert(G.vd, nu->bezt[i].vec[1]);
+						if(nu->bezt[i].f3 & 1)
+							retopo_do_vert(G.vd, nu->bezt[i].vec[2]);
+					}
+				}
+				else {
 					bp= nu->bp;
 					for(i=0; i<nu->pntsv; ++i) {
 						for(j=0; j<nu->pntsu; ++j, ++bp) {
@@ -824,8 +840,11 @@ void retopo_do_all()
 						}
 					}
 				}
+				
+				testhandlesNurb(nu);
 			}
-
+			
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);			
 		}
 	}

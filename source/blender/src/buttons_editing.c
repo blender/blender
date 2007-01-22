@@ -790,7 +790,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 		but= uiDefButBitC(block,TOG,1,B_NOP, "Retopo", 10,130,170,19, &G.editMesh->retopo_mode, 0,0,0,0, "Turn on the re-topology tool");
 		uiButSetFunc(but,retopo_toggle,ob,me);
 		if(G.editMesh->retopo_mode) {
-			but= uiDefButBitC(block,TOG,2,B_NOP,"Paint", 10,110,55,19, &G.editMesh->retopo_mode,0,0,0,0, "");
+			but= uiDefButBitC(block,TOG,2,B_NOP,"Paint", 10,110,55,19, &G.editMesh->retopo_mode,0,0,0,0, "Draw intersecting lines in the 3d view, ENTER creates quad or tri faces, wrapped onto other objects in the 3d view.");
 			uiButSetFunc(but,retopo_paint_toggle,ob,me);
 			but= uiDefBut(block,BUT,B_NOP,"Retopo All", 65,110,115,19, 0,0,0,0,0, "Apply the re-topology tool to all selected vertices");
 			uiButSetFunc(but,retopo_do_all_cb,ob,me);
