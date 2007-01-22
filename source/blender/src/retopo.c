@@ -852,6 +852,11 @@ void retopo_do_all()
 
 void retopo_do_all_cb(void *j1, void *j2)
 {
+	if(G.vd->drawtype == OB_WIRE) {
+		error("Cannot apply retopo in wireframe mode");
+		return;
+	}
+
 	retopo_do_all();
 	BIF_undo_push("Retopo all");
 }

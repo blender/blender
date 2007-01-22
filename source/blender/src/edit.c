@@ -1774,6 +1774,10 @@ void toggle_shading(void)
 		if(G.vd->drawtype==OB_SOLID || G.vd->drawtype==OB_SHADED) G.vd->drawtype= OB_WIRE;
 		else G.vd->drawtype= OB_SOLID;
 	}
+	
+	if(G.vd->drawtype != OB_WIRE && G.vd->depths) {
+		G.vd->depths->damaged= 1;
+	}
 }
 
 void minmax_verts(float *min, float *max)
