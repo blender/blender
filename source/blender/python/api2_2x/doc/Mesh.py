@@ -567,7 +567,7 @@ class MFace:
       Setting this attribute will create UV faces if they do not exist.
       Getting this attribute throw an exception if the mesh does not have 
       UV faces; use L{Mesh.faceUV} to test.  
-  @type uv: list of vectors (WRAPPED DATA)
+  @type uv: tuple of vectors (WRAPPED DATA)
   @ivar uvSel: The face's UV coordinates selection state; a 1 indicates the
       vertex is selected.  Each vertex has its own UV coordinate select state
       (this is not the same as the vertex's edit mode selection state).
