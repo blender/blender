@@ -82,10 +82,8 @@ Example::\n\
   from Blender import Camera, Object, Scene\n\
   c = Camera.New('ortho')      # create new ortho camera data\n\
   c.scale = 6.0                # set scale value\n\
-  cur = Scene.getCurrent()     # get current Scene\n\
-  ob = Object.New('Camera')    # make camera object\n\
-  ob.link(c)                   # link camera data with this object\n\
-  cur.link(ob)                 # link object into scene\n\
+  scn = Scene.GetCurrent()     # get current Scene\n\
+  ob = scn.objects.new(c)      # Make an object from this data in the scene\n\
   cur.setCurrentCamera(ob)     # make this camera the active";
 
 static char M_Camera_New_doc[] =
@@ -1146,11 +1144,11 @@ static PyGetSetDef BPy_Camera_getseters[] = {
 	{"lens",
 	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
 	 "lens angle for perspective cameras",
-	 EXPP_CAM_ATTR_LENS},
+	 (void *)EXPP_CAM_ATTR_LENS},
 	{"scale",
 	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
 	 "scale for ortho cameras",
-	 EXPP_CAM_ATTR_SCALE},
+	 (void *)EXPP_CAM_ATTR_SCALE},
 	{"clipStart",
 	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
 	 "the cameras clip start",
@@ -1195,8 +1193,6 @@ static PyGetSetDef BPy_Camera_getseters[] = {
 	 (void *)CAM_SHOWPASSEPARTOUT},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
-
-
 
 
 /*****************************************************************************/
