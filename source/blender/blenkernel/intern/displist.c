@@ -628,10 +628,13 @@ void shadeDispList(Base *base)
 
 	if(ob->type==OB_MESH) {
 		dl= MEM_callocN(sizeof(DispList), "displistshade");
-		BLI_addtail(&ob->disp, dl);
 		dl->type= DL_VERTCOL;
 
 		mesh_create_shadedColors(re, ob, 0, &dl->col1, &dl->col2);
+
+		/* add dl to ob->disp after mesh_create_shadedColors, because it
+		   might indirectly free ob->disp */
+		BLI_addtail(&ob->disp, dl);
 	}
 	else {
 

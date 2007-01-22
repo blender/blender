@@ -1955,7 +1955,7 @@ static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmoot
 	return 1;
 }
 
-static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, int dt, int flag)
+static void draw_mesh_fancy(Base *base, int dt, int flag)
 {
 	Object *ob= base->object;
 	Mesh *me = ob->data;
@@ -1964,6 +1964,10 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 	int draw_wire = ob->dtx&OB_DRAWWIRE;
 	int totvert, totedge, totface;
 	DispList *dl;
+	DerivedMesh *dm= mesh_get_derived_final(ob, get_viewedit_datamask());
+
+	if(!dm)
+		return;
 
 #ifdef WITH_VERSE
 	if(me->vnode) {
@@ -2068,8 +2072,12 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 		if(do_draw) {
 			dl = ob->disp.first;
 			if (!dl || !dl->col1) {
+				/* release and reload derivedmesh because it might be freed in
+				   shadeDispList due to a different datamask */
+				dm->release(dm);
 				shadeDispList(base);
 				dl = find_displist(&ob->disp, DL_VERTCOL);
+			    dm= mesh_get_derived_final(ob, get_viewedit_datamask());
 			}
 
 			if ((G.vd->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire) {
@@ -2132,6 +2140,8 @@ static void draw_mesh_fancy(Base *base, DerivedMesh *baseDM, DerivedMesh *dm, in
 			bglPolygonOffset(0.0);
 		}
 	}
+
+	dm->release(dm);
 }
 
 /* returns 1 if nothing was drawn, for detecting to draw an object center */
@@ -2170,18 +2180,10 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
 		
 		if(me->totface<=4 || boundbox_clip(ob->obmat, me->bb)) {
-			DerivedMesh *baseDM
-			    = mesh_get_derived_deform(ob, get_viewedit_datamask());
-			DerivedMesh *realDM
-			    = mesh_get_derived_final(ob, get_viewedit_datamask());
-
 			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob, (base->flag & OB_FROMDUPLI)==0);
-			if(baseDM && realDM) draw_mesh_fancy(base, baseDM, realDM, dt, flag);
+			draw_mesh_fancy(base, dt, flag);
 			
 			if(me->totvert==0) retval= 1;
-
-			baseDM->release(baseDM);
-			realDM->release(realDM);
 		}
 	}
 	
