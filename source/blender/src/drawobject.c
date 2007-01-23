@@ -1991,7 +1991,10 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 	totedge = me->totedge;
 	totface = me->totface;
 #endif
-	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+	
+	/* vertexpaint, faceselect wants this, but it doesnt work for shaded? */
+	if(dt!=OB_SHADED)
+		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
 	if (ob==OBACT && (G.f&G_FACESELECT)) draw_wire = 0;
