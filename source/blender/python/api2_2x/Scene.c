@@ -1452,68 +1452,19 @@ typeError:
 		else
 			name = ((ID *)data)->name + 2;
 	}
-	object = alloc_libblock( &( G.main->object ), ID_OB, name );
+	
+	object = add_only_object(type, name);
+	
 	if( data ) {
 		object->data = data;
 		id_us_plus((ID *)data);
 	}
 	
 	object->flag = SELECT;
-	object->type = type;
-
-	/* Object properties copied from M_Object_New */
 	
 	/* creates the curve for the text object */
 	if (type == OB_FONT) 
 		text_to_curve(object, 0);
-	
-	/* transforms */
-	QuatOne( object->quat );
-	QuatOne( object->dquat );
-
-	object->col[3] = 1.0;	/* alpha */
-
-	object->size[0] = object->size[1] = object->size[2] = 1.0;
-	object->loc[0] = object->loc[1] = object->loc[2] = 0.0;
-	Mat4One( object->parentinv );
-	Mat4One( object->obmat );
-	object->dt = OB_SHADED;	/* drawtype*/
-	object->empty_drawsize= 1.0;
-	object->empty_drawtype= OB_ARROWS;
-	
-	if( U.flag & USER_MAT_ON_OB ) {
-		object->colbits = -1;
-	}
-	switch ( object->type ) {
-	case OB_CAMERA:	/* fall through. */
-	case OB_LAMP:
-		object->trackflag = OB_NEGZ;
-		object->upflag = OB_POSY;
-		break;
-	default:
-		object->trackflag = OB_POSY;
-		object->upflag = OB_POSZ;
-	}
-	object->ipoflag = OB_OFFS_OB + OB_OFFS_PARENT;
-
-	/* duplivert settings */
-	object->dupon = 1;
-	object->dupoff = 0;
-	object->dupsta = 1;
-	object->dupend = 100;
-
-	/* Gameengine defaults */
-	object->mass = 1.0;
-	object->inertia = 1.0;
-	object->formfactor = 0.4f;
-	object->damping = 0.04f;
-	object->rdamping = 0.1f;
-	object->anisotropicFriction[0] = 1.0;
-	object->anisotropicFriction[1] = 1.0;
-	object->anisotropicFriction[2] = 1.0;
-	object->gameflag = OB_PROP;
-
-	G.totobj++;
 	
 	/* link to scene */
 	base = MEM_callocN( sizeof( Base ), "pynewbase" );
@@ -1522,7 +1473,6 @@ typeError:
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
 						  "couldn't allocate new Base for object" );
 
-	
 	base->object = object;	/* link object to the new base */
 	base->lay= object->lay = scene->lay & ((1<<20)-1);	/* Layer, by default visible*/
 	
