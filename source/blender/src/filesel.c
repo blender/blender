@@ -148,6 +148,8 @@ int fnmatch(const char *pattern, const char *string, int flags)
 #define B_FS_CANCEL	6
 #define B_FS_LIBNAME	7
 
+/* max length of library group name within filesel */
+#define GROUP_MAX 32
 
 static int is_a_library(SpaceFile *sfile, char *dir, char *group);
 static void do_library_append(SpaceFile *sfile);
@@ -1309,7 +1311,7 @@ static void activate_fileselect_(int type, char *title, char *file, short *menup
 										 void *arg1, void *arg2)
 {
 	SpaceFile *sfile;
-	char group[24], name[FILE_MAX], temp[FILE_MAX];
+	char group[GROUP_MAX], name[FILE_MAX], temp[FILE_MAX];
 	
 	if(curarea==0) return;
 	if(curarea->win==0) return;
@@ -2319,10 +2321,10 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 static int groupname_to_code(char *group)
 {
-	char buf[32];
+	char buf[GROUP_MAX];
 	char *lslash;
 	
-	BLI_strncpy(buf, group, 31);
+	BLI_strncpy(buf, group, GROUP_MAX);
 	lslash= BLI_last_slash(buf);
 	if (lslash)
 		lslash[0]= '\0';
@@ -2342,7 +2344,7 @@ static int is_a_library(SpaceFile *sfile, char *dir, char *group)
 	len= strlen(dir);
 	if(len<7) return 0;
 	if( dir[len-1] != '/' && dir[len-1] != '\\') return 0;
-		
+	
 	group[0]= 0;
 	dir[len-1]= 0;
 
@@ -2352,14 +2354,19 @@ static int is_a_library(SpaceFile *sfile, char *dir, char *group)
 	if(fd==0) return 0;
 	*fd= 0;
 	if(BLO_has_bfile_extension(fd+1)) {
-		*fd= '/';
+		/* the last part of the dir is a .blend file, no group follows */
+		*fd= '/'; /* put back the removed slash separating the dir and the .blend file name */
 	}
-	else {
-		strcpy(group, fd+1);
-			
+	else {		
+		char *gp = fd+1; // in case we have a .blend file, gp points to the group
+
 		/* Find the last slash */
 		fd= (strrchr(dir, '/')>strrchr(dir, '\\'))?strrchr(dir, '/'):strrchr(dir, '\\');
 		if (!fd || !BLO_has_bfile_extension(fd+1)) return 0;
+
+		/* now we know that we are in a blend file and it is safe to 
+		   assume that gp actually points to a group */
+		BLI_strncpy(group, gp, GROUP_MAX);
 	}
 	return 1;
 }
@@ -2367,7 +2374,7 @@ static int is_a_library(SpaceFile *sfile, char *dir, char *group)
 static void do_library_append(SpaceFile *sfile)
 {
 	Library *lib;
-	char dir[FILE_MAX], group[32];
+	char dir[FILE_MAX], group[GROUP_MAX];
 	
 	if ( is_a_library(sfile, dir, group)==0 ) {
 		error("Not a library");
@@ -2415,7 +2422,7 @@ static void library_to_filelist(SpaceFile *sfile)
 	LinkNode *l, *names;
 	int ok, i, nnames, idcode;
 	char filename[FILE_MAX];
-	char dir[FILE_MAX], group[24];
+	char dir[FILE_MAX], group[GROUP_MAX];
 	
 	/* name test */
 	ok= is_a_library(sfile, dir, group);
