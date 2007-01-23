@@ -940,6 +940,8 @@ void initManipulator(int mode)
 	if (Trans.total == 0)
 		return;
 
+	initSnapping(&Trans); // Initialize snapping data AFTER mode flags
+
 	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
 	/* EVIL2: we gave as argument also texture space context bit... was cleared */
 	mode= Trans.mode;
@@ -963,8 +965,6 @@ void initManipulator(int mode)
 	}
 
 	Trans.flag |= T_USES_MANIPULATOR;
-	
-	Trans.tsnap.modePoint = SNAP_GRID; // Always use snap to grid with manipulators
 }
 
 void ManipulatorTransform() 
