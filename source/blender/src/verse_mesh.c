@@ -1425,8 +1425,8 @@ void create_meshdata_from_geom_node(Mesh *me, VNode *vnode)
 		me->mselect = NULL;
 	}
 
-	me->totvert = vert_vlayer->dl.da.count;
-	me->totface = face_vlayer->dl.da.count;
+	me->totvert = vert_vlayer ? vert_vlayer->dl.da.count : 0;
+	me->totface = face_vlayer ? face_vlayer->dl.da.count : 0;
 	me->totselect = 0;
 
 	CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
@@ -1437,7 +1437,7 @@ void create_meshdata_from_geom_node(Mesh *me, VNode *vnode)
 	mface = me->mface;
 
 	index = 0;
-	vvert = vert_vlayer->dl.lb.first;
+	vvert = vert_vlayer ? vert_vlayer->dl.lb.first : NULL;
 	while(vvert) {
 		VECCOPY(mvert->co, vvert->co);
 		VECCOPY(mvert->no, vvert->no);
@@ -1449,7 +1449,7 @@ void create_meshdata_from_geom_node(Mesh *me, VNode *vnode)
 	}
 
 	edges = BLI_edgehash_new();
-	vface = face_vlayer->dl.lb.first;
+	vface = face_vlayer ? face_vlayer->dl.lb.first : NULL;
 	while(vface) {
 		mface->v1 = vface->vvert0->tmp.index;
 		mface->v2 = vface->vvert1->tmp.index;
