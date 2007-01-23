@@ -66,6 +66,7 @@ OPTION(WITH_QUICKTIME		"Enable Quicktime Support"				OFF)
 OPTION(WITH_OPENEXR		"Enable OpenEXR Support (http://www.openexr.com)"	OFF)
 OPTION(WITH_FFMPEG		"Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)"	OFF)
 OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"	ON)
+OPTION(YESIAMSTUPID		"Enable execution on 64-bit platforms"					OFF)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
   MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
