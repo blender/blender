@@ -191,7 +191,7 @@ static void bglInitEntryPoints (void)
 	{
 		if (!libGL)
 		{
-			libGL = dlopen("libGL.so", RTLD_GLOBAL);
+			libGL = dlopen("libGL.so", RTLD_LAZY|RTLD_GLOBAL);
 			if (libGL)
 				bglGetProcAddress = (PFNBGLXGETPROCADDRESSARBPROC) (dlsym(libGL, "glXGetProcAddressARB"));
 			else

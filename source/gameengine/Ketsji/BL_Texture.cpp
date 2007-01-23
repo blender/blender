@@ -248,7 +248,7 @@ bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap)
 	BL_TextureObject obj;
 	obj.gl_texture = mTexture;
 	obj.ref_buffer = cubemap->ima;
-	g_textureManager.insert(std::make_pair(cubemap->ima->id.name, obj));
+	g_textureManager.insert(std::pair<char*, BL_TextureObject>((char*)cubemap->ima->id.name, obj));
 
 
 	bool needs_split = false;
