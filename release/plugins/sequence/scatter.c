@@ -147,16 +147,16 @@ static void rectcpy(ImBuf *dbuf, ImBuf *sbuf,
 	drect = dbuf->rect;
 	dfrect = dbuf->rect_float;
 
-	tmp = desty * dbuf->x + destx;
+	tmp = (desty * dbuf->x + destx);
 
-	if (dbuf->rect_float) dfrect += tmp;
+	if (dbuf->rect_float) dfrect += 4 * tmp;
 	else drect += tmp;
 
 	destx = dbuf->x;
 
 	if (sbuf) {
-		tmp = srcy * sbuf->x + srcx;
-		if (dbuf->rect_float) sfrect += tmp;
+		tmp = (srcy * sbuf->x + srcx );
+		if (dbuf->rect_float) sfrect += 4 * tmp; 
 		else srect += tmp;
 		srcx = sbuf->x;
 	} else{
@@ -167,11 +167,11 @@ static void rectcpy(ImBuf *dbuf, ImBuf *sbuf,
 
 	for (;height > 0; height--){
 		if (dbuf->rect_float) {
-			memcpy(dfrect,sfrect, srcx * sizeof(float));
+			memcpy(dfrect,sfrect, 4 * width * sizeof(float));
 			dfrect += destx;
 			sfrect += srcx;
 		} else {
-			memcpy(drect,srect, srcx * sizeof(int));
+			memcpy(drect,srect, width * sizeof(int));
 			drect += destx;
 			srect += srcx;
 		}
@@ -191,7 +191,7 @@ static void fill_out(ImBuf *out, float r, float g, float b, float a)
 			rectf[1] = g;
 			rectf[2] = b;
 			rectf[3] = a;
-			rectf = rectf + 4;
+			rectf += 4;
 		}
 	} else {
 		for (x=0;x < tot;x++) {
@@ -212,6 +212,7 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int sx, int sy, ImBuf
 	
 	/* fill imbuf 'out' with black */
 	fill_out(out, 0,0,0,0);
+
 
 	switch (cast->type) {
 		case 0:
