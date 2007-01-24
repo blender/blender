@@ -41,6 +41,7 @@
 #include <unistd.h>
 #else
 #include <io.h>
+#include <direct.h>
 #endif   
 #include "MEM_guardedalloc.h"
 
@@ -605,7 +606,7 @@ static void init_iconfile_list(struct ListBase *list)
 	if(!BLI_getwdN(olddir)) 
 		restoredir = 0;
 	totfile = BLI_getdir(icondirstr, &dir);
-	if (restoredir) 
+	if (restoredir)
 		chdir(olddir);
 
 	for(i=0; i<totfile; i++) {
@@ -1012,4 +1013,3 @@ void BIF_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, i
 	if(shade < 0)
 		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 }
-
