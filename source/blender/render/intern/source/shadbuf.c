@@ -1530,22 +1530,18 @@ static int viewpixel_to_lampbuf(ShadBuf *shb, VlakRen *vlr, float x, float y, fl
 	
 	/* clip We can test for -1.0/1.0 because of the properties of the
 	 * coordinate transformations. */
-	if(hoco[0]<-hoco[3] || hoco[0]>hoco[3])
+	fac= fabs(hoco[3]);
+	if(hoco[0]<-fac || hoco[0]>fac)
 		return 0;
-	if(hoco[1]<-hoco[3] || hoco[1]>hoco[3])
+	if(hoco[1]<-fac || hoco[1]>fac)
+		return 0;
+	if(hoco[2]<-fac || hoco[2]>fac)
 		return 0;
 	
 	siz= 0.5f*(float)shb->size;
 	co[0]= siz*(1.0f+hoco[0]/hoco[3]) -0.5f;
 	co[1]= siz*(1.0f+hoco[1]/hoco[3]) -0.5f;
-	
-	/* Clip for z: clipsta and clipend clip values of the shadow buffer */
-	fac= (hoco[2]/hoco[3]);
-	
-	if(fac >= 1.0f || fac <= -1.0f)
-		return 0;
-	else
-		co[2]= ((float)0x7FFFFFFF)*fac;
+	co[2]= ((float)0x7FFFFFFF)*(hoco[2]/hoco[3]);
 	
 	/* XXXX bias, much less than normal shadbuf, or do we need a constant? */
 	co[2] -= 0.05f*shb->bias;
