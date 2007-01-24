@@ -443,7 +443,7 @@ void IMB_exr_begin_write(void *handle, char *filename, int width, int height, in
 		header.channels().insert (echan->name, Channel (FLOAT));
 	
 	openexr_header_compression(&header, compress);
-	header.lineOrder() = DECREASING_Y;
+	/* header.lineOrder() = DECREASING_Y; this crashes in windows for file read! */
 	
 	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.43"));
 	
