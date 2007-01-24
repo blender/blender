@@ -70,6 +70,7 @@ void free_camera(struct Camera *ca);
 void free_lamp(struct Lamp *la);
 void *add_wave(void);
 
+struct Object *add_only_object(int type, char *name);
 struct Object *add_object(int type);
 void base_init_from_view3d(struct Base *base, struct View3D *v3d);
 

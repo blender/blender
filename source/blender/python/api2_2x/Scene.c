@@ -43,6 +43,7 @@ struct View3D;
 #include "DNA_object_types.h" /* SceneObSeq_new */
 #include "BKE_depsgraph.h"
 #include "BKE_library.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_font.h"
 #include "BKE_idprop.h"
