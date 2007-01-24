@@ -2088,7 +2088,14 @@ static int is_rendering_allowed(Render *re)
 			return 0;
 		}
 	}
+	
 	/* layer flag tests */
+	if(re->r.scemode & R_SINGLE_LAYER) {
+		srl= BLI_findlink(&re->scene->r.layers, re->r.actlay);
+		/* force layer to be enabled */
+		srl->layflag &= ~SCE_LAY_DISABLE;
+	}
+	
 	for(srl= re->scene->r.layers.first; srl; srl= srl->next)
 		if(!(srl->layflag & SCE_LAY_DISABLE))
 			break;
