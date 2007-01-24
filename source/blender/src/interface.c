@@ -1109,7 +1109,11 @@ static MenuData *decompose_menu_string(char *str)
 					menudata_set_title(md, nitem, nicon);
 					nitem_is_title= 0;
 				} else {
-					menudata_add_item(md, nitem, nretval, nicon);
+					/* prevent separator to get a value */
+					if(nitem[0]=='%' && nitem[1]=='l')
+						menudata_add_item(md, nitem, -1, nicon);
+					else
+						menudata_add_item(md, nitem, nretval, nicon);
 					nretval= md->nitems+1;
 				} 
 				
@@ -1137,6 +1141,7 @@ static void ui_set_name_menu(uiBut *but, int value)
 	for (i=0; i<md->nitems; i++)
 		if (md->items[i].retval==value)
 			strcpy(but->drawstr, md->items[i].str);
+	
 	menudata_free(md);
 }
 
