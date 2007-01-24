@@ -2221,6 +2221,9 @@ float *multires_render_pin(Object *ob, Mesh *me, int *orig_lvl)
 	if(me->mr) {
 		MultiresLevel *lvl= NULL;
 		int i;
+		
+		/* Make sure all mesh edits are properly stored in the multires data*/
+		multires_update_levels(me);
 	
 		/* Copy the highest level of multires verts */
 		*orig_lvl= me->mr->current;
