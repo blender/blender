@@ -1043,11 +1043,24 @@ static void drawviewborder(void)
 
 }
 
-
 void backdrawview3d(int test)
 {
 	struct Base *base;
 
+/*disable FSAA for backbuffer selection.  Do it only for windows
+  for now.
+  
+  hopefully calling glDisable won't cause horrible things to happen on
+  those cards that don't support the arb_multisample protocol.*/
+#ifdef WIN32
+	/*got this from ogl extension page.  rather bad though.*/
+	#ifndef MULTISAMPLE_ARB
+	#define MULTISAMPLE_ARB	0x809D
+	#endif
+
+	int m;
+#endif
+	
 	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT));
 	else if(G.obedit && G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT));
 	else {
@@ -1064,6 +1077,11 @@ void backdrawview3d(int test)
 		}
 	}
 	persp(PERSP_VIEW);
+
+#ifdef WIN32
+	m = glIsEnabled(MULTISAMPLE_ARB);
+	if (m) glDisable(MULTISAMPLE_ARB);
+#endif
 
 #ifdef __APPLE__
 	glDrawBuffer(GL_AUX0);
@@ -1106,7 +1124,11 @@ void backdrawview3d(int test)
 
 	if(G.vd->flag & V3D_CLIPPING)
 		view3d_clr_clipping();
-	
+
+#ifdef WIN32
+	if (m) glEnable(MULTISAMPLE_ARB);
+#endif
+
 	/* it is important to end a view in a transform compatible with buttons */
 	persp(PERSP_WIN);  // set ortho
 	bwin_scalematrix(curarea->win, G.vd->blockscale, G.vd->blockscale, G.vd->blockscale);
@@ -2890,6 +2912,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			!during_script()) {
 		BPY_do_pyscript((ID *)G.scene, SCRIPT_REDRAW);
 	}
+	
 }
 
 
