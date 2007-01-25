@@ -68,6 +68,7 @@ struct rctf;
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_idprop.h"
+#include "BKE_object.h"
 
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
@@ -793,7 +794,6 @@ PyObject *M_Object_New( PyObject * self_unused, PyObject * args )
 	int type;
 	char *str_type;
 	char *name = NULL;
-	Object *add_only_object(int type, char *name);
 	PyObject *py_object;
 	BPy_Object *blen_object;
 
