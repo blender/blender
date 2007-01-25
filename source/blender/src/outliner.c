@@ -3176,7 +3176,7 @@ static void outliner_draw_tree(SpaceOops *soops)
 {
 	TreeElement *te;
 	int starty, startx;
-	char col[4];
+	float col[4];
 	
 #ifdef INTERNATIONAL
 	FTF_SetFontSize('l');
@@ -3186,8 +3186,8 @@ static void outliner_draw_tree(SpaceOops *soops)
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
 	
 	// selection first
-	BIF_GetThemeColor3ubv(TH_BACK, col);
-	glColor3ub(col[0]+15, col[1]+20, col[2]+25);
+	BIF_GetThemeColor3fv(TH_BACK, col);
+	glColor3f(col[0]+0.06f, col[1]+0.08f, col[2]+0.10f);
 	starty= soops->v2d.tot.ymax-OL_H;
 	outliner_draw_selection(soops, &soops->tree, &starty);
 	

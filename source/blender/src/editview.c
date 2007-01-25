@@ -1076,15 +1076,14 @@ void set_active_base(Base *base)
 	/* activating a non-mesh, should end a couple of modes... */
 	if(base) {
 		if(base->object->type!=OB_MESH) {
-			if(G.f & G_SCULPTMODE) {
-				set_sculptmode();
-			}
-			if(G.f & G_WEIGHTPAINT) {
+			if(G.f & G_SCULPTMODE)
+				set_sculptmode(); /* toggle */
+			if(G.f & G_WEIGHTPAINT)
 				set_wpaint();	/* toggle */
-			}
-			if(G.f & G_VERTEXPAINT) {
+			if(G.f & G_VERTEXPAINT)
 				set_vpaint();	/* toggle */
-			}
+			if(G.f & G_TEXTUREPAINT) 
+				set_texturepaint(); /* Switch off tex paint */
 		}
 		/* always end this */
 		if(G.f & G_FACESELECT) {
