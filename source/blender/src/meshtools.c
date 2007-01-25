@@ -801,6 +801,10 @@ void objects_bake_render(short event)
 	
 	if(event==0) event= G.scene->r.bake_mode;
 	
+	if(G.scene->r.renderer!=R_INTERN) {
+		error("Bake only supported for Internal Renderer");
+		return;
+	}
 	if(event>0) {
 		Render *re= RE_NewRender("_Bake View_");
 		ScrArea *area= biggest_image_area();
