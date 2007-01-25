@@ -56,11 +56,14 @@ typedef struct {
 	PyObject_HEAD 
 	struct bArmature * armature;
 	BPy_BonesDict *Bones;          //BPy_BonesDict
+	PyObject *weaklist;
 } BPy_Armature;
 
 //-------------------VISIBLE PROTOTYPES-------------------------
 PyObject *PyArmature_FromArmature(struct bArmature *armature);
 struct bArmature *PyArmature_AsArmature(BPy_Armature *py_armature);
+PyObject * Armature_RebuildEditbones(PyObject *pyarmature);
+PyObject *Armature_RebuildBones(PyObject *pyarmature);
 
 int Armature_CheckPyObject( PyObject * pyobj );
 struct bArmature  *Armature_FromPyObject( PyObject * py_obj );

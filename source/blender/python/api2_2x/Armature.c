@@ -1111,6 +1111,8 @@ static PyObject *Armature_repr(BPy_Armature *self)
 ///tp_dealloc
 static void Armature_dealloc(BPy_Armature * self)
 {
+	if (self->weaklist != NULL)
+        PyObject_ClearWeakRefs((PyObject *) self);
 	Py_DECREF(self->Bones);
 	Armature_Type.tp_free(self);
 	return;
@@ -1137,12 +1139,12 @@ PyTypeObject Armature_Type = {
 	0,								//tp_getattro
 	0,								//tp_setattro
 	0,								//tp_as_buffer
-	Py_TPFLAGS_DEFAULT,				//tp_flags
+	Py_TPFLAGS_DEFAULT| Py_TPFLAGS_HAVE_WEAKREFS,				//tp_flags
 	BPy_Armature_doc,				//tp_doc
 	0,								//tp_traverse
 	0,								//tp_clear
 	0, 								//tp_richcompare
-	0,								//tp_weaklistoffset
+	offsetof(BPy_Armature, weaklist),	//tp_weaklistoffset
 	0,								//tp_iter
 	0,								//tp_iternext
 	BPy_Armature_methods,			//tp_methods
@@ -1328,14 +1330,27 @@ struct PyMethodDef M_Armature_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 //------------------VISIBLE PROTOTYPE IMPLEMENTATION-----------------------
+//------------------------Armature_RebuildEditbones (internal)
+PyObject * Armature_RebuildEditbones(PyObject *pyarmature)
+{
+	return Armature_makeEditable((BPy_Armature*)pyarmature);
+}
+
+//------------------------Armature_RebuildBones (internal)
+PyObject *Armature_RebuildBones(PyObject *pyarmature)
+{
+	return Armature_update((BPy_Armature*)pyarmature);
+}
 //-----------------(internal)
 //Converts a bArmature to a PyArmature
 PyObject *PyArmature_FromArmature(struct bArmature *armature)
 {
 	BPy_Armature *py_armature = NULL;
+	PyObject *maindict = NULL, *armdict = NULL, *weakref = NULL;
 
 	//create armature type
 	py_armature = (BPy_Armature*)Armature_Type.tp_alloc(&Armature_Type, 0); //*new*
+	py_armature->weaklist = NULL; //init the weaklist
 	if (!py_armature)
 		goto RuntimeError;
 	py_armature->armature = armature;
@@ -1344,6 +1359,14 @@ PyObject *PyArmature_FromArmature(struct bArmature *armature)
 	py_armature->Bones = (BPy_BonesDict*)PyBonesDict_FromPyArmature(py_armature);
 	if (!py_armature->Bones)
 		goto RuntimeError;
+
+	//put a weakreference in __main__
+	maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
+	armdict = PyDict_GetItemString(maindict, "armatures");
+	weakref = PyWeakref_NewProxy((PyObject*)py_armature, Py_None);
+	if (PyList_Append(armdict, weakref) == -1){
+		goto RuntimeError;
+	}
 
 	return (PyObject *) py_armature; 
 

@@ -57,7 +57,7 @@
 #include "Mathutils.h"
 #include "constant.h"
 #include "gen_utils.h"
-
+#include "Armature.h"
 
 /* See Draw.c */
 extern int EXPP_disable_force_draw;
@@ -890,6 +890,9 @@ static PyObject *M_Window_EditMode( PyObject * self, PyObject * args )
 	char *undo_str = "From script";
 	int undo_str_len = 11;
 	int do_undo = 1;
+	PyObject *maindict = NULL, *armlist = NULL;
+	PyObject *pyarmature = NULL;
+	int x;
 
 	if( !PyArg_ParseTuple( args,
 				"|hs#i", &status, &undo_str, &undo_str_len, &do_undo ) )
@@ -899,14 +902,31 @@ static PyObject *M_Window_EditMode( PyObject * self, PyObject * args )
 	if( status >= 0 ) {
 		if( status ) {
 			if( !G.obedit )
+				//update armatures
+				maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
+				armlist = PyDict_GetItemString(maindict, "armatures");
+				for (x = 0; x < PySequence_Size(armlist); x++){
+					pyarmature = PyWeakref_GetObject(PySequence_GetItem(	armlist, x));
+					if (pyarmature != Py_None)
+						Armature_RebuildEditbones(pyarmature);
+				}
+				//enter editmode
 				enter_editmode(0);
 		} else if( G.obedit ) {
-			
 			if( undo_str_len > 63 )
 				undo_str[63] = '\0';	/* 64 is max */
-			
 			BIF_undo_push( undo_str ); /* This checks user undo settings */
 			exit_editmode( EM_FREEDATA );
+
+			//update armatures
+			maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
+			armlist = PyDict_GetItemString(maindict, "armatures");
+			for (x = 0; x < PySequence_Size(armlist); x++){
+				pyarmature = PyWeakref_GetObject(PySequence_GetItem(	armlist, x));
+				if (pyarmature != Py_None)
+					Armature_RebuildBones(pyarmature);
+			}
+
 		}
 	}
 

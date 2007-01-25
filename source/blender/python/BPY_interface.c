@@ -478,6 +478,7 @@ void BPY_Err_Handle( char *script_name )
 *****************************************************************************/
 int BPY_txt_do_python_Text( struct Text *text )
 {
+	PyObject *maindict = NULL;
 	PyObject *py_dict, *py_result;
 	BPy_constant *info;
 	char textname[24];
@@ -523,6 +524,12 @@ int BPY_txt_do_python_Text( struct Text *text )
 	script->py_browsercallback = NULL;
 
 	py_dict = CreateGlobalDictionary(  );
+
+	//setup a weakref dictionary on __main__
+	maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
+	if (PyDict_SetItemString(maindict, "armatures", PyList_New(0)) == -1){
+		return 0;
+	}
 
 	script->py_globaldict = py_dict;
 
