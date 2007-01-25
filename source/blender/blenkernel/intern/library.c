@@ -940,6 +940,8 @@ static void lib_indirect_test_id(ID *id)
 			LIBTAG(paf->group);
 	
 		LIBTAG(ob->dup_group);
+		LIBTAG(ob->proxy);
+		
 		me= ob->data;
 		LIBTAG(me);
 	}
