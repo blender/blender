@@ -28,6 +28,8 @@ typedef struct {
 	unsigned int	layer_count;
 } VSNodeBitmap;
 
+static unsigned long	tile_counter = 0;
+
 VSNodeBitmap * vs_b_create_node(unsigned int owner)
 {
 	VSNodeBitmap *node;
@@ -83,7 +85,7 @@ void vs_b_unsubscribe(VSNodeBitmap *node)
 static void callback_send_b_dimensions_set(void *user, VNodeID node_id, uint16 width, uint16 height, uint16 depth)
 {
 	VSNodeBitmap *node;
-	unsigned int i, j, k, count, tiles[2], read, write, end;
+	unsigned int i, j, k, count, tiles[2], read, write, end = 0;
 
 	if((node = (VSNodeBitmap *)vs_get_node(node_id, V_NT_BITMAP)) == NULL)
 		return;
@@ -271,12 +273,13 @@ static void callback_send_b_layer_create(void *user, VNodeID node_id, VLayerID l
 {
 	VSNodeBitmap *node;
 	unsigned int i, count;
+
 	if((node = (VSNodeBitmap *)vs_get_node(node_id, V_NT_BITMAP)) == NULL)
 		return;
-
 	if(node->layer_count <= layer_id || node->layers[layer_id].name[0] == 0)
 	{
-		for(layer_id = 0; layer_id < node->layer_count && node->layers[layer_id].name[0] != 0; layer_id++);
+		for(layer_id = 0; layer_id < node->layer_count && node->layers[layer_id].name[0] != 0; layer_id++)
+			;
 		if(layer_id == node->layer_count)
 		{
 			node->layers = realloc(node->layers, (sizeof *node->layers) * (node->layer_count + 16));
@@ -472,11 +475,22 @@ static void callback_send_b_tile_set(void *user, VNodeID node_id, VLayerID layer
 	unsigned int i, count, tile[3];
 
 	if((node = (VSNodeBitmap *)vs_get_node(node_id, V_NT_BITMAP)) == NULL)
+	{
+		printf("got tile for unknown bitmpa node %u, aborting\n", node_id);
 		return;
+	}
 	if(layer_id >= node->layer_count || node->layers[layer_id].layer == NULL || node->layers[layer_id].type != type)
+	{
+		printf("node %u got tile for bad layer %u (have %u) %p\n", node_id, layer_id, node->layer_count, layer_id < node->layer_count ? node->layers[layer_id].layer : NULL);
 		return;
+	}
 	if(tile_x >= ((node->size[0] + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE) || tile_y >= ((node->size[1] + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE) || tile_z >= node->size[2])
+	{
+		printf("got tile that is outside image, at (%u,%u,%u)\n", tile_x, tile_y, tile_z);
 		return;
+	}
+
+	tile_counter++;
 
 	tile[0] = ((node->size[0] + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE);
 	tile[1] = ((node->size[1] + VN_B_TILE_SIZE - 1) / VN_B_TILE_SIZE);

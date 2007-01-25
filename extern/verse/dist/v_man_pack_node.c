@@ -66,6 +66,7 @@ void verse_send_b_tile_set(VNodeID node_id, VLayerID layer_id, uint16 tile_x, ui
 	uint8 *buf;
 	unsigned int buffer_pos = 0;
 	VCMDBufHead *head;
+
 	switch(type)
 	{
 		case VN_B_LAYER_UINT1 :
@@ -98,6 +99,8 @@ void verse_send_b_tile_set(VNodeID node_id, VLayerID layer_id, uint16 tile_x, ui
 			buffer_pos += pack_b_tile_set_head(head, node_id, layer_id, tile_x, tile_y, z, type, tile);
 			buffer_pos += vnp_raw_pack_real64_vector(&buf[buffer_pos], tile->vreal64, VN_B_TILE_SIZE * VN_B_TILE_SIZE);
 		break;
+		default:
+			head = NULL;
 	}
 	v_cmd_buf_set_address_size(head, 13);
 	v_cmd_buf_set_size(head, buffer_pos);

@@ -70,10 +70,10 @@ static void callback_send_m_fragment_create(void *user, VNodeID node_id, VNMFrag
 			;
 	if(frag_id >= node->frag_count)
 	{
-		node->frag = realloc(node->frag, (sizeof *node->frag) * (node->frag_count + 16));
-		for(i = node->frag_count; i < (node->frag_count + 16); i++)
+		node->frag = realloc(node->frag, (sizeof *node->frag) * (node->frag_count + 32));
+		for(i = node->frag_count; i < (node->frag_count + 32); i++)
 			node->frag[i].type = 255;
-		node->frag_count += 16;
+		node->frag_count += 32;
 	}	
 	node->frag[frag_id].type = type;
 	node->frag[frag_id].frag = *fragment;

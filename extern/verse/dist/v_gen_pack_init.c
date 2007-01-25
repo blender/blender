@@ -27,10 +27,10 @@ extern void verse_send_packet_nak(uint32 packet_id);
 
 void init_pack_and_unpack(void)
 {
-	v_fs_add_func(0, v_unpack_connect, verse_send_connect, NULL);
-	v_fs_add_func(1, v_unpack_connect_accept, verse_send_connect_accept, NULL);
-	v_fs_add_func(2, v_unpack_connect_terminate, verse_send_connect_terminate, NULL);
-	v_fs_add_func(5, v_unpack_ping, verse_send_ping, NULL);
+	v_fs_add_func(0, v_unpack_connect, (void *) verse_send_connect, NULL);
+	v_fs_add_func(1, v_unpack_connect_accept, (void *) verse_send_connect_accept, NULL);
+	v_fs_add_func(2, v_unpack_connect_terminate, (void *) verse_send_connect_terminate, NULL);
+	v_fs_add_func(5, v_unpack_ping, (void *) verse_send_ping, NULL);
 	v_fs_add_func(7, v_unpack_packet_ack, verse_send_packet_ack, NULL);
 	v_fs_add_func(8, v_unpack_packet_nak, verse_send_packet_nak, NULL);
 	v_fs_add_func(9, v_unpack_node_index_subscribe, verse_send_node_index_subscribe, NULL);
@@ -76,14 +76,14 @@ void init_pack_and_unpack(void)
 	v_fs_add_func(80, v_unpack_b_dimensions_set, verse_send_b_dimensions_set, NULL);
 	v_fs_add_func(81, v_unpack_b_layer_create, verse_send_b_layer_create, verse_send_b_layer_destroy);
 	v_fs_add_func(82, v_unpack_b_layer_subscribe, verse_send_b_layer_subscribe, verse_send_b_layer_unsubscribe);
-	v_fs_add_func(83, v_unpack_b_tile_set, verse_send_b_tile_set, NULL);
+	v_fs_add_func(83, v_unpack_b_tile_set, (void *) verse_send_b_tile_set, NULL);
 	v_fs_add_func(96, v_unpack_t_language_set, verse_send_t_language_set, NULL);
 	v_fs_add_func(97, v_unpack_t_buffer_create, verse_send_t_buffer_create, verse_send_t_buffer_destroy);
 	v_fs_add_func(98, v_unpack_t_buffer_subscribe, verse_send_t_buffer_subscribe, verse_send_t_buffer_unsubscribe);
-	v_fs_add_func(99, v_unpack_t_text_set, verse_send_t_text_set, NULL);
+	v_fs_add_func(99, v_unpack_t_text_set, (void *) verse_send_t_text_set, NULL);
 	v_fs_add_func(128, v_unpack_c_curve_create, verse_send_c_curve_create, verse_send_c_curve_destroy);
 	v_fs_add_func(129, v_unpack_c_curve_subscribe, verse_send_c_curve_subscribe, verse_send_c_curve_unsubscribe);
-	v_fs_add_func(130, v_unpack_c_key_set, verse_send_c_key_set, verse_send_c_key_destroy);
+	v_fs_add_func(130, v_unpack_c_key_set, (void *) verse_send_c_key_set, (void *) verse_send_c_key_destroy);
 	v_fs_add_func(160, v_unpack_a_buffer_create, verse_send_a_buffer_create, verse_send_a_buffer_destroy);
 	v_fs_add_func(161, v_unpack_a_buffer_subscribe, verse_send_a_buffer_subscribe, verse_send_a_buffer_unsubscribe);
 	v_fs_add_func(162, v_unpack_a_block_set, verse_send_a_block_set, verse_send_a_block_clear);

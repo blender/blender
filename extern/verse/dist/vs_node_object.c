@@ -161,6 +161,8 @@ void vs_o_subscribe(VSNodeObject *node)
 		if(node->groups[i].name[0] != 0)
 			verse_send_o_method_group_create(node->head.id, i, node->groups[i].name);
 	}
+	if(node->hidden)
+		verse_send_o_hide(node->head.id, TRUE);
 }
 
 void vs_o_unsubscribe(VSNodeObject *node)

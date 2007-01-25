@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "verse_header.h"
 #include "v_cmd_buf.h"
@@ -11,8 +12,9 @@
 #include "v_cmd_gen.h"
 
 #if defined _WIN32
-#define chdir _chdir
-#define snprintf _snprintf
+#include <direct.h>
+#define chdir		_chdir
+#define	snprintf	_snprintf
 #endif
 
 #if defined V_GENERATE_FUNC_MODE
@@ -50,7 +52,7 @@ extern void v_gen_audio_cmd_def(void);
 
 static int v_cg_init(const char *src_path)
 {
-    char	buf[1024];
+	char	buf[1024];
 	int	i;
 	FILE	*f;
 
@@ -122,7 +124,7 @@ static int v_cg_init(const char *src_path)
 	else
 	{
 		fprintf(stderr, "mkprot: Couldn't find \"%s\" input file\n", buf);
-        return 0;
+		return 0;
 	}
 	fprintf(VCGData.verse_h, "\n/* Command sending functions begin. ----------------------------------------- */\n\n");
 	return 1;
@@ -158,9 +160,9 @@ void v_cg_new_manual_cmd(unsigned int cmd_id, const char *name, const char *def,
 	fprintf(VCGData.verse_h, "extern %s;\n", def);
 	if(alias_def != NULL)
 		fprintf(VCGData.verse_h, "extern %s;\n", alias_def);
-	fprintf(VCGData.init, "\tv_fs_add_func(%i, v_unpack_%s, verse_send_%s, ", cmd_id, name, name);
+	fprintf(VCGData.init, "\tv_fs_add_func(%i, v_unpack_%s, (void *) verse_send_%s, ", cmd_id, name, name);
 	if(alias_name != NULL)
-		fprintf(VCGData.init, "verse_send_%s);\n", alias_name);
+		fprintf(VCGData.init, "(void *) verse_send_%s);\n", alias_name);
 	else
 		fprintf(VCGData.init, "NULL);\n");
 	fprintf(VCGData.unpack, "extern unsigned int v_unpack_%s(const char *data, size_t length);\n", name);
@@ -881,36 +883,37 @@ void v_cg_end_cmd(void)
 
 int main(int argc, char *argv[])
 {
-	const char 	*src = "";
-	int				i;
-    
-    for(i = 1; argv[i] != NULL; i++)
-    {
-        if(strcmp(argv[i], "-h") == 0)
-        {
-            printf("Verse protocol generation tool.\nUsage:\n");
-            printf(" -h\t\tPrint this usage information, and exit.\n");
-            printf(" -src=PATH\tSets source path prefix to PATH. It must be possible to find\n");
-            printf("\t\tthe \"verse_header.h\" input file by appending that name to PATH.\n");
-            printf("\t\tThus, PATH must end with a proper directory separator character.\n");
-            printf(" -dst=PATH\tSets output directory, where all output files are written.\n");
-            printf("\t\tIf used, use -src to point to where \"verse_header.h\" is.\n");
-            return EXIT_SUCCESS;
-        }
-        else if(strncmp(argv[i], "-src=", 5) == 0)
-            src = argv[i] + 5;
-        else if(strncmp(argv[i], "-dst=", 5) == 0)
-        {
-            if(chdir(argv[i] + 5) != 0)
-                fprintf(stderr, "%s: Couldn't set output directory to \"%s\"\n", argv[0], argv[i]+5);
-        }
-        else
-            fprintf(stderr, "%s: Ignoring unknown uption \"%s\"\n", argv[0], argv[i]);
-    }
-    
+	const char	*src = "";
+	int		i;
+
+	for(i = 1; argv[i] != NULL; i++)
+	{
+		if(strcmp(argv[i], "-h") == 0)
+		{
+			printf("Verse protocol generation tool.\nUsage:\n");
+			printf(" -h\t\tPrint this usage information, and exit.\n");
+			printf(" -src=PATH\tSets source path prefix to PATH. It must be possible to find\n");
+			printf("\t\tthe \"verse_header.h\" input file by appending that name to PATH.\n");
+			printf("\t\tThus, PATH must end with a proper directory separator character.\n");
+			printf(" -dst=PATH\tSets output directory, where all output files are written.\n");
+			printf("\t\tIf used, use -src to point to where \"verse_header.h\" is.\n");
+			printf("\nThe -src and -dst options were added to simplify building of Verse-Blender.\n");
+			return EXIT_SUCCESS;
+		}
+		else if(strncmp(argv[i], "-src=", 5) == 0)
+			src = argv[i] + 5;
+		else if(strncmp(argv[i], "-dst=", 5) == 0)
+		{
+			if(chdir(argv[i] + 5) != 0)
+				fprintf(stderr, "%s: Couldn't set output directory to \"%s\"\n", argv[0], argv[i] + 5);
+		}
+		else
+			fprintf(stderr, "%s: Ignoring unknown option \"%s\"\n", argv[0], argv[i]);
+	}
+
 	printf("start\n");
 	if(!v_cg_init(src))
-        return EXIT_FAILURE;
+		return EXIT_FAILURE;
 	v_gen_system_cmd_def();
 	fprintf(VCGData.verse_h, "\n");
 	v_gen_object_cmd_def();
