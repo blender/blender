@@ -1966,7 +1966,8 @@ void BIF_image_update_frame(void)
 			}
 			else if(sa->spacetype==SPACE_NODE) {
 				SpaceNode *snode= sa->spacedata.first;
-				if(snode->treetype==NTREE_COMPOSIT) {
+				if (!snode) return;
+				if((snode->treetype==NTREE_COMPOSIT) && (snode->nodetree)) {
 					bNode *node;
 					for(node= snode->nodetree->nodes.first; node; node= node->next) {
 						if(node->id && node->type==CMP_NODE_IMAGE) {
