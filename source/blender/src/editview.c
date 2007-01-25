@@ -1073,6 +1073,26 @@ void set_active_base(Base *base)
 {
 	Base *tbase;
 	
+	/* activating a non-mesh, should end a couple of modes... */
+	if(base) {
+		if(base->object->type!=OB_MESH) {
+			if(G.f & G_SCULPTMODE) {
+				set_sculptmode();
+			}
+			if(G.f & G_WEIGHTPAINT) {
+				set_wpaint();	/* toggle */
+			}
+			if(G.f & G_VERTEXPAINT) {
+				set_vpaint();	/* toggle */
+			}
+		}
+		/* always end this */
+		if(G.f & G_FACESELECT) {
+			set_faceselect();	/* toggle */
+		}
+	}
+	
+	/* sets scene->basact */
 	BASACT= base;
 	
 	if(base) {
@@ -1439,7 +1459,7 @@ void mouse_select(void)
 			basact->object->flag= basact->flag;
 			
 			if(oldbasact != basact) {
-					set_active_base(basact);
+				set_active_base(basact);
 			}
 
 			/* for visual speed, only in wire mode */
@@ -1452,23 +1472,6 @@ void mouse_select(void)
 						draw_object_ext(oldbasact);
 					draw_object_ext(basact);
 				}
-			}
-			
-			/* selecting a non-mesh, should end a couple of modes... */
-			if(basact->object->type!=OB_MESH) {
-				if(G.f & G_SCULPTMODE) {
-					set_sculptmode();
-				}
-				if(G.f & G_WEIGHTPAINT) {
-					set_wpaint();	/* toggle */
-				}
-				if(G.f & G_VERTEXPAINT) {
-					set_vpaint();	/* toggle */
-				}
-			}
-			/* always end this */
-			if(G.f & G_FACESELECT) {
-				set_faceselect();	/* toggle */
 			}
 			
 			allqueue(REDRAWBUTSLOGIC, 0);
