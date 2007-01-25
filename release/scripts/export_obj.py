@@ -264,19 +264,18 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 				# Add a dummy object to it.
 				oldmode = Mesh.Mode()
 				Mesh.Mode(Mesh.SelectModes['FACE'])
-				quadcount = 0
+				has_quads = False
 				for f in me.faces:
 					if len(f) == 4:
-						f.sel = True
-						quadcount +=1
+						has_quads = True
+						break
 				
-				if quadcount:
-					tempob = Blender.Object.New('Mesh')
-					tempob.link(me)
-					scn.link(tempob)
+				if has_quads:
+					me.sel = True
+					tempob = scn.objects.new(me)
 					me.quadToTriangle(0) # more=0 shortest length
 					oldmode = Mesh.Mode(oldmode)
-					scn.unlink(tempob)
+					scn.objects.unlink(tempob)
 				Mesh.Mode(oldmode)
 			
 			# Make our own list so it can be sorted to reduce context switching
@@ -321,13 +320,15 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 			# Sort by Material, then images
 			# so we dont over context switch in the obj file.
 			if faceuv and EXPORT_UV:
-				faces.sort(lambda a,b: cmp((a.mat, a.image, a.smooth), (b.mat, b.image, b.smooth)))
+				try:	faces.sort(key = lambda a: (a.mat, a.image, a.smooth))
+				except:	faces.sort(lambda a,b: cmp((a.mat, a.image, a.smooth), (b.mat, b.image, b.smooth)))
 			elif len(materials) > 1:
-				faces.sort(lambda a,b: cmp((a.mat, a.smooth), (b.mat, b.smooth)))
+				try:	faces.sort(key = lambda a: (a.mat, a.smooth))
+				except:	faces.sort(lambda a,b: cmp((a.mat, a.smooth), (b.mat, b.smooth)))
 			else:
 				# no materials
-				faces.sort(lambda a,b: cmp(a.smooth, b.smooth))
-				
+				try:	faces.sort(key = lambda a: a.smooth)
+				except:	faces.sort(lambda a,b: cmp(a.smooth, b.smooth))
 			
 			# Set the default mat to no material and no image.
 			contextMat = (0, 0) # Can never be this, so we will label a new material teh first chance we get.
@@ -505,6 +506,13 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 
 def write_ui(filename):
 	
+	if not filename.lower().endswith('.obj'):
+		filename += '.obj'
+	
+	#if not BPyMessages.Warning_SaveOver(filename):
+	#	return
+	
+	
 	EXPORT_APPLY_MODIFIERS = Draw.Create(1)
 	EXPORT_ROTX90 = Draw.Create(1)
 	EXPORT_TRI = Draw.Create(0)
@@ -608,7 +616,7 @@ def write_ui(filename):
 				export_objects = scn.objects
 			
 			full_path= ''.join(context_name)
-			
+			print "ass", full_path
 			if BPyMessages.Warning_SaveOver(full_path):
 				# EXPORT THE FILE.
 				write(full_path, export_objects,\
