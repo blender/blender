@@ -26,6 +26,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+#include <stddef.h>
+
 #include "Armature.h" //This must come first
 
 #include "BKE_main.h"
