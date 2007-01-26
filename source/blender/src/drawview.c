@@ -147,6 +147,14 @@
 
 #include "multires.h"
 
+/* For MULTISAMPLE_ARB #define.
+   Note that older systems like irix 
+   may not have this, and will need a #ifdef
+   to disable it.*/
+/* #include "GL/glext.h" Disabled for release, to avoid possibly breaking platforms.
+   Instead, the define we need will just be #defined if it's not in the platform opengl.h.
+*/
+
 /* Modules used */
 #include "radio.h"
 
@@ -1047,20 +1055,16 @@ void backdrawview3d(int test)
 {
 	struct Base *base;
 
-/*disable FSAA for backbuffer selection.  Do it only for windows
-  for now.
-  
-  hopefully calling glDisable won't cause horrible things to happen on
-  those cards that don't support the arb_multisample protocol.*/
-#ifdef WIN32
-	/*got this from ogl extension page.  rather bad though.*/
-	#ifndef MULTISAMPLE_ARB
-	#define MULTISAMPLE_ARB	0x809D
-	#endif
+/*for 2.43 release, don't use glext and just define the constant.
+  this to avoid possibly breaking platforms before release.*/
+#ifndef GL_MULTISAMPLE_ARB
+	#define GL_MULTISAMPLE_ARB	0x809D
+#endif
 
+#ifdef GL_MULTISAMPLE_ARB
 	int m;
 #endif
-	
+
 	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT));
 	else if(G.obedit && G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT));
 	else {
@@ -1078,9 +1082,14 @@ void backdrawview3d(int test)
 	}
 	persp(PERSP_VIEW);
 
-#ifdef WIN32
-	m = glIsEnabled(MULTISAMPLE_ARB);
-	if (m) glDisable(MULTISAMPLE_ARB);
+	/*Disable FSAA for backbuffer selection.  
+	
+	Only works if GL_MULTISAMPLE_ARB is defined by the header
+	file, which is should be for every OS that supports FSAA.*/
+
+#ifdef GL_MULTISAMPLE_ARB
+	m = glIsEnabled(GL_MULTISAMPLE_ARB);
+	if (m) glDisable(GL_MULTISAMPLE_ARB);
 #endif
 
 #ifdef __APPLE__
@@ -1125,8 +1134,8 @@ void backdrawview3d(int test)
 	if(G.vd->flag & V3D_CLIPPING)
 		view3d_clr_clipping();
 
-#ifdef WIN32
-	if (m) glEnable(MULTISAMPLE_ARB);
+#ifdef GL_MULTISAMPLE_ARB
+	if (m) glEnable(GL_MULTISAMPLE_ARB);
 #endif
 
 	/* it is important to end a view in a transform compatible with buttons */
