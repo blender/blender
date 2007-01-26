@@ -1167,6 +1167,8 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 			}
 		}
 	}
+	
+	EM_select_flush();
 
 	multires_customdata_to_mesh(me, em, lvl, &me->mr->vdata, em ? &em->vdata : &me->vdata, CD_MDEFORMVERT);
 	multires_customdata_to_mesh(me, em, lvl, &me->mr->fdata, em ? &em->fdata : &me->fdata, CD_MTFACE);
