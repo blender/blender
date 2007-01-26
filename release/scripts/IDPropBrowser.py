@@ -77,10 +77,10 @@ class IDArrayBrowser:
 		y -= itemhgt + pad
 		
 		self.buts = []
-		
+		Draw.BeginAlign()
 		for i in xrange(len(self.array)):
 			st = ""
-			if type(self.array[0]) == type(0.0):
+			if type(self.array[0]) == float:
 				st = "%.5f" % self.array[i]
 			else: st = str(self.array[i])
 			
@@ -90,7 +90,7 @@ class IDArrayBrowser:
 			if x + cellwid + pad > width:
 				x = 0
 				y -= itemhgt + pad
-				
+		Draw.EndAlign()
 	def Button(self, bval):
 		if bval == Button_Back:
 			self.parentbrowser.state = State_Normal
@@ -102,12 +102,12 @@ class IDArrayBrowser:
 			i = bval - ButStart
 			st = self.buts[i].val
 			n = 0
-			if type(self.array[0]) == type(0.0):
+			if type(self.array[0]) == float:
 				try:
 					n = int(st)
 				except:
 					return
-			elif type(self.array[0]) == type(0):
+			elif type(self.array[0]) == int:
 				try:
 					n = float(st)
 				except:
@@ -191,6 +191,7 @@ class IDPropertyBrowser:
 			plist.append(p)
 		
 		#-------do top buttons----------#
+		Draw.BeginAlign()
 		Draw.PushButton("New", Button_New, x, y, 40, 20)
 		x += 40 + pad
 		#do the menu button for all materials
@@ -219,6 +220,8 @@ class IDPropertyBrowser:
 		self.idmenu = Draw.Menu(st, Button_TypeMenu, x, y, 100, 20, cur)
 		x = self.x
 		y -= self.itemhgt + self.pad
+		Draw.EndAlign()
+		
 		
 		#-----------do property items---------#
 		i = 0
@@ -232,22 +235,30 @@ class IDPropertyBrowser:
 			glColor3f(0, 0, 0)	
 			self.DrawBox(GL_LINE_LOOP, x+pad, y, self.width-pad*2, itemhgt)
 			
-			glRasterPos2f(x+pad*2, y+3)
+			glRasterPos2f(x+pad*2, y+5)
 			Draw.Text(str(k)) #str(self.mousecursor) + " " + str(self.active_item)) #p.name)
 			tlen = Draw.GetStringWidth(str(k))
 			
-			if type(p) == type(""):
+			type_p = type(p)
+			if type_p == str:
 				b = Draw.String("", ButStart+i, x+pad*5+tlen, y, 200, itemhgt, p, strmax)
 				self.buts.append(b)
-			elif type(p) in [type(0), type(0.0)]:
+			elif type_p in [int, float]:
 				#only do precision to 5 points on floats
 				st = ""
-				if type(p) == type(0.0):
+				if type_p == float:
 					st = "%.5f" % p
 				else: st = str(p)
 				b = Draw.String("", ButStart+i, x+pad*5+tlen, y, 75, itemhgt, st, strmax)
 				self.buts.append(b)
 			else:
+				glRasterPos2f(x+pad*2  +tlen+10, y+5)
+				if type_p == Types.IDArrayType:
+					Draw.Text('(array, click to edit)')
+				elif type_p == Types.IDGroupType:	
+					Draw.Text('(group, click to edit)')
+					
+				
 				self.buts.append(None)
 				
 			Draw.PushButton("Del", ButDelStart+i, x+self.width-35, y, 30, 20)
@@ -301,17 +312,15 @@ class IDPropertyBrowser:
 			if self._i == 5:
 				Draw.Draw()
 				self._i = 0
-				
-		plist = []
-		for p in self.group.iteritems():
-			plist.append(p)
+
 		
 		if evt == Draw.LEFTMOUSE and val == 1:
+			plist = list(self.group.iteritems())
 			a = self.active_item
 			if a >= 0 and a < len(plist):
 				p = plist[a]
 			
-				basictypes = [IDGroupType, type(0.0), type(""), type(0)]
+				basictypes = [IDGroupType, float, str, int]
 				if type(p[1]) == IDGroupType:
 					self.parents.append(self.group)
 					self.group = p[1]
@@ -375,24 +384,20 @@ class IDPropertyBrowser:
 			Draw.Draw()
 			
 		if bval >= ButDelStart:
-			plist = []
-			for p in self.group:
-				plist.append(p)
+			plist = [p for p in self.group]
 			prop = plist[bval - ButDelStart]
 			del self.group[prop]
 			Draw.Draw()
 			
 		elif bval >= ButStart:
-			plist = []
-			for p in self.group.iteritems():
-				plist.append(p)
+			plist = list(self.group.iteritems())
 			
 			prop = plist[bval - ButStart]
 			print prop
 			
-			if self.type(prop[1]) == self.type(""):
+			if self.type(prop[1]) == str:
 				self.group[prop[0]] = self.buts[bval - ButStart].val
-			elif self.type(prop[1]) == self.type(0):
+			elif self.type(prop[1]) == int:
 				i = self.buts[bval - ButStart].val
 				try:
 					i = int(i)
@@ -401,7 +406,7 @@ class IDPropertyBrowser:
 					Draw.Draw()
 					return
 				Draw.Draw()
-			elif self.type(prop[1]) == self.type(0.0):
+			elif self.type(prop[1]) == float:
 				f = self.buts[bval - ButStart].val
 				try:
 					f = float(f)
@@ -460,7 +465,7 @@ class IDPropertyBrowser:
 			elif itype.val: 
 				self.group[name] = 0 #newProperty("Int", name, 0)
 			elif atype.val: 
-				arrfloat = Draw.Create(0)
+				arrfloat = Draw.Create(1)
 				arrint = Draw.Create(0)
 				arrlen = Draw.Create(3)
 				block = []
@@ -468,16 +473,16 @@ class IDPropertyBrowser:
 				block.append(("Float", arrfloat, "Make a float array"))
 				block.append(("Int", arrint, "Make an integer array"))
 				block.append(("Len", arrlen, 2, 200))
-				retval = Blender.Draw.PupBlock("Array Properties", block)
 				
-				if retval:
-					tmpl = "Float"
+				if Blender.Draw.PupBlock("Array Properties", block):
 					if arrfloat.val:
 						tmpl = 0.0
 					elif arrint.val:
 						tmpl = 0
-					arr = [tmpl for x in xrange(arrlen.val)]
-					self.group[name] = arr
+					else:
+						return
+					
+					self.group[name] = [tmpl] * arrlen.val
 
 				
 	def Go(self):
