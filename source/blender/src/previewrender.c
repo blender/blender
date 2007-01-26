@@ -206,6 +206,8 @@ void BIF_preview_changed(short id_code)
 					addafterqueue(sa->win, RENDERPREVIEW, 1);
 				}
 			}
+			else if (sbuts->ri) 
+				sbuts->ri->curtile= 0;	/* ensure changes always result in re-render when context is restored */
 		}
 		else if(sa->spacetype==SPACE_NODE) {
 			SpaceNode *snode= sa->spacedata.first;
