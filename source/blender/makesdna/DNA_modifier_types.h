@@ -7,6 +7,8 @@
 
 #define MODSTACK_DEBUG 1
 
+struct MemArena;
+
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE! */
 
 typedef enum ModifierType {
@@ -26,7 +28,6 @@ typedef enum ModifierType {
 	eModifierType_EdgeSplit,
 	eModifierType_Displace,
 	eModifierType_UVProject,
-
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -179,6 +180,7 @@ typedef struct DisplaceModifierData {
 	float midlevel;
 	int texmapping;
 	struct Object *map_object;
+	char uvlayer_name[32];
 } DisplaceModifierData;
 
 /* DisplaceModifierData->direction */

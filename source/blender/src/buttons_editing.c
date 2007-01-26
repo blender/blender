@@ -690,15 +690,25 @@ static void delete_customdata_layer(void *data1, void *data2)
 	Mesh *me= (Mesh*)data1;
 	CustomData *data= (G.obedit)? &G.editMesh->fdata: &me->fdata;
 	CustomDataLayer *layer= (CustomDataLayer*)data2;
+	void *actlayerdata, *layerdata=layer->data;
 	int type= layer->type;
 	int index= CustomData_get_layer_index(data, type);
-
+	int i, actindex;
+	
+	/*ok, deleting a non-active layer needs to preserve the active layer indices.
+	  to do this, we store a pointer to the .data member of both layer and the active layer,
+	  (to detect if we're deleting the active layer or not), then use the active
+	  layer data pointer to find where the active layer has ended up.
+	  
+	  this is necassary because the deletion functions only support deleting the active
+	  layer. */
+	actlayerdata = data->layers[CustomData_get_active_layer_index(data, type)].data;
 	CustomData_set_layer_active(data, type, layer - &data->layers[index]);
 
 	/* Multires is handled seperately because the display data is separate
 	   from the data stored in multires */
 	if(me && me->mr) {
-		multires_delete_layer(me, &me->mr->fdata, CD_MTFACE, layer - &data->layers[index]);
+		multires_delete_layer(me, &me->mr->fdata, type, layer - &data->layers[index]);
 	}
 	else if(G.obedit) {
 		EM_free_data_layer(data, type);
@@ -715,8 +725,23 @@ static void delete_customdata_layer(void *data1, void *data2)
 			set_faceselect();  /* get out of faceselect mode */
 	}
 
+	/*reconstruct active layer*/
+	if (actlayerdata != layerdata) {
+		/*find index. . .*/
+		actindex = CustomData_get_layer_index(data, type);
+		for (i=actindex; i<data->totlayer; i++) {
+			if (data->layers[i].data == actlayerdata) {
+				actindex = i - actindex;
+				break;
+			}
+		}
+		
+		/*set index. . .*/
+		CustomData_set_layer_active(data, type, actindex);
+	}
+	
 	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
-
+	
 	if(type == CD_MTFACE)
 		BIF_undo_push("Delete UV Texture");
 	else if(type == CD_MCOL)
@@ -1355,6 +1380,21 @@ static void modifiers_convertToReal(void *ob_v, void *md_v)
 	BIF_undo_push("Modifier convert to real");
 }
 
+int stupid_uvmenu_var=0;
+
+void set_displace_uvlayer(void *arg1, void *arg2)
+{
+	DisplaceModifierData *dmd=arg1;
+	CustomDataLayer *layer = arg2;
+	int i;
+	
+	/*check we have UV layers*/
+	if (stupid_uvmenu_var < 1) return;
+	layer = layer + (stupid_uvmenu_var-1);
+	
+	strcpy(dmd->uvlayer_name, layer->name);
+}
+
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1461,7 +1501,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Displace) {
 			DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 			height = 124;
-			if(dmd->texmapping == MOD_DISP_MAP_OBJECT) height += 19;
+			if(dmd->texmapping == MOD_DISP_MAP_OBJECT || dmd->texmapping == MOD_DISP_MAP_UV) height += 19;
 		} else if (md->type==eModifierType_UVProject) {
 			height = 86 + ((UVProjectModifierData *)md)->num_projectors * 19;
 		} else if (md->type==eModifierType_Decimate) {
@@ -1483,8 +1523,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 48;
 		} else if (md->type==eModifierType_Array) {
 			height = 182;
-		}
-
+		} 
+		
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
 
@@ -1603,6 +1643,49 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			          lx, (cy -= 19), buttonWidth, 19, &dmd->texmapping,
 			          0.0, 1.0, 0, 0,
 			          "Texture coordinates used for displacement input");
+			if (dmd->texmapping == MOD_DISP_MAP_UV) {
+				char strtmp[1024], strtmp2[38];
+				int totuv, i;
+				CustomData *fdata = G.obedit?&G.editMesh->fdata:&((Mesh*)ob->data)->fdata;
+				CustomDataLayer *layer = &fdata->layers[CustomData_get_layer_index(fdata, CD_MTFACE)];
+				
+				stupid_uvmenu_var = -1;
+				
+				totuv=CustomData_number_of_layers(fdata, CD_MTFACE);
+				sprintf(strtmp, "UV Layer%%t");
+				for (i=0; i<totuv; i++) {
+					/*assign first layer as uvlayer_name if uvlayer_name is null.*/
+					if (strcmp(layer->name, dmd->uvlayer_name)==0) stupid_uvmenu_var = i+1;
+					sprintf(strtmp2, "|%s%%x%d", layer->name, i+1);
+					strcat(strtmp, strtmp2);
+					layer++;
+				}
+				
+				/*there is no uvlayer defined, or else it was deleted.  Assign active layer,
+				  then recalc modifiers.*/
+				if (stupid_uvmenu_var == -1) {
+					if (CustomData_get_active_layer_index(fdata, CD_MTFACE) != -1) {
+						stupid_uvmenu_var = 1;					
+						layer = fdata->layers;
+						for (i=0; i<CustomData_get_active_layer_index(fdata, CD_MTFACE); i++, layer++) {
+							if (layer->type==CD_MTFACE) stupid_uvmenu_var++;
+						}
+						strcpy(dmd->uvlayer_name, layer->name);
+						
+						/*update the modifiers*/
+						do_modifier_panels(B_MODIFIER_RECALC);
+					} else {
+						/* ok we have no uv layers, so make sure menu button knows that.*/
+						stupid_uvmenu_var = 0;
+					}
+				}
+				
+				but = uiDefButI(block, MENU, B_MODIFIER_RECALC, strtmp,
+			          lx, (cy -= 19), buttonWidth, 19, &stupid_uvmenu_var,
+			          0.0, 1.0, 0, 0, "Set the UV layer to use");
+				
+				uiButSetFunc(but, set_displace_uvlayer, dmd, &fdata->layers[CustomData_get_layer_index(fdata, CD_MTFACE)]);
+			}
 			if(dmd->texmapping == MOD_DISP_MAP_OBJECT) {
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP,
 				               "Ob: ", lx, (cy -= 19), buttonWidth, 19,

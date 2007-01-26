@@ -2301,9 +2301,22 @@ static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
 			MFace *mf;
 			char *done = MEM_callocN(sizeof(*done) * numVerts,
 			                         "get_texture_coords done");
-			MTFace *tf = dm->getFaceDataArray(dm, CD_MTFACE);
-			int numFaces = dm->getNumFaces(dm);
-
+			MTFace *tf = NULL;
+			int numFaces = dm->getNumFaces(dm), itf;
+			
+			if (dmd->uvlayer_name[0]) {
+				itf = CustomData_get_named_layer_index(&dm->faceData, CD_MTFACE, dmd->uvlayer_name);
+				if (itf != -1)
+					tf = dm->faceData.layers[itf].data;
+				else {
+					/*looks like the layer we want has been deleted, so assign the 
+					  first layer to dmd.*/
+					itf = CustomData_get_active_layer_index(&dm->faceData, CD_MTFACE);
+					tf = dm->faceData.layers[itf].data;
+					strcpy(dmd->uvlayer_name, dm->faceData.layers[itf].name);
+				}
+			}
+			
 			/* verts are given the UV from the first face that uses them */
 			for(i = 0, mf = mface; i < numFaces; ++i, ++mf, ++tf) {
 				if(!done[mf->v1]) {
@@ -2652,7 +2665,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				float pixsize = cam->clipsta * 32.0 / cam->lens;
 
 				if(aspect > 1.0f) {
-					xmax = 0.5f * pixsize; 
+					xmax = 0.5f * pixsize;
 					ymax = xmax / aspect;
 				} else {
 					ymax = 0.5f * pixsize;
@@ -3479,7 +3492,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsMesh
 		             | eModifierTypeFlag_AcceptsCVs;
 		mti->isDisabled = noneModifier_isDisabled;
-
+		
 		mti = INIT_TYPE(Curve);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsCVs
