@@ -801,10 +801,6 @@ void objects_bake_render(short event)
 	
 	if(event==0) event= G.scene->r.bake_mode;
 	
-	if(G.scene->r.renderer!=R_INTERN) {
-		error("Bake only supported for Internal Renderer");
-		return;
-	}
 	if(event>0) {
 		Render *re= RE_NewRender("_Bake View_");
 		ScrArea *area= biggest_image_area();
@@ -818,19 +814,19 @@ void objects_bake_render(short event)
 		else if(event==2) event= RE_BAKE_AO;
 		else if(event==3) event= RE_BAKE_NORMALS;
 		else event= RE_BAKE_TEXTURE;
-		
-		prev_r_raytrace = G.scene->r.mode & R_RAYTRACE;
-		prev_wo_amb_occ = G.scene->world->mode & WO_AMB_OCC;
-		
-		if(event==RE_BAKE_AO) {
-			/* If raytracing or AO is disabled, switch it on temporarily for baking. */
-			if (prev_r_raytrace == 0) G.scene->r.mode |= R_RAYTRACE;
-			if (prev_wo_amb_occ == 0) G.scene->world->mode |= WO_AMB_OCC;
 
+		if(event==RE_BAKE_AO) {
 			if(G.scene->world==NULL) {
 				error("No world set up");
 				return;
 			}
+
+			/* If raytracing or AO is disabled, switch it on temporarily for baking. */
+			prev_r_raytrace = (G.scene->r.mode & R_RAYTRACE) != 0;
+			prev_wo_amb_occ = (G.scene->world->mode & WO_AMB_OCC) != 0;
+
+			G.scene->r.mode |= R_RAYTRACE;
+			G.scene->world->mode |= WO_AMB_OCC;
 		}
 		
 		waitcursor(1);
@@ -883,10 +879,10 @@ void objects_bake_render(short event)
 			}
 		}
 		
+			/* restore raytrace and AO */
 		if(event==RE_BAKE_AO) {
-			/* switch off temporary raytrace and AO */
-			if (prev_r_raytrace == 0) G.scene->r.mode &= ~R_RAYTRACE;
-			if (prev_wo_amb_occ == 0) G.scene->world->mode &= ~WO_AMB_OCC;
+			if( prev_wo_amb_occ == 0) G.scene->world->mode &= ~WO_AMB_OCC;
+			if( prev_r_raytrace == 0) G.scene->r.mode &= ~R_RAYTRACE;
 		}
 		
 		allqueue(REDRAWIMAGE, 0);
