@@ -3102,6 +3102,10 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 		/* make output size of input image */
 		new= alloc_compbuf(img->x, img->y, img->type, 1); /* allocs */
 		
+		/* accept image offsets from other nodes */
+		new->xof = img->xof;
+		new->yof = img->yof;
+		
 		blur_with_reference(new, img, in[1]->data, node->storage);
 		
 		out[0]->data= new;
