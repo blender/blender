@@ -110,7 +110,12 @@ enum mod_constants {
 	EXPP_MOD_TIMEOFFS,
 	
 	/*BOOLEAN SPESIFIC*/
-	EXPP_MOD_OPERATION
+	EXPP_MOD_OPERATION,
+
+	/*EDGE SPLIT SPESIFIC */
+	EXPP_MOD_EDGESPLIT_ANGLE,
+	EXPP_MOD_EDGESPLIT_FROM_ANGLE,
+	EXPP_MOD_EDGESPLIT_FROM_SHARP
 
 	/* yet to be implemented */
 	/* EXPP_MOD_HOOK_,*/
@@ -717,6 +722,48 @@ static int boolean_setter( BPy_Modifier *self, int type, PyObject *value )
 	return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 }
 
+
+static PyObject *edgesplit_getter( BPy_Modifier * self, int type )
+{
+	EdgeSplitModifierData *md = (EdgeSplitModifierData *)(self->md);
+
+	switch( type ) {
+	case EXPP_MOD_EDGESPLIT_ANGLE:
+		return PyFloat_FromDouble( (double)md->split_angle );
+	case EXPP_MOD_EDGESPLIT_FROM_ANGLE:
+		return PyBool_FromLong( ( long ) 
+				( md->flags & MOD_EDGESPLIT_FROMANGLE ) ) ;
+	case EXPP_MOD_EDGESPLIT_FROM_SHARP:
+		return PyBool_FromLong( ( long ) 
+				( md->flags & MOD_EDGESPLIT_FROMFLAG ) ) ;
+	
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static int edgesplit_setter( BPy_Modifier *self, int type, PyObject *value )
+{
+	EdgeSplitModifierData *md = (EdgeSplitModifierData *)(self->md);
+
+	switch( type ) {
+	case EXPP_MOD_EDGESPLIT_ANGLE:
+		return EXPP_setFloatClamped( value, &md->split_angle, 0.0, 180.0 );
+	case EXPP_MOD_EDGESPLIT_FROM_ANGLE:
+		return EXPP_setBitfield( value, &md->flags,
+				MOD_EDGESPLIT_FROMANGLE, 'h' );
+	case EXPP_MOD_EDGESPLIT_FROM_SHARP:
+		return EXPP_setBitfield( value, &md->flags,
+				MOD_EDGESPLIT_FROMFLAG, 'h' );
+	
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
+
+
+
+
 /*
  * get data from a modifier
  */
@@ -763,6 +810,8 @@ static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 				return boolean_getter( self, setting );
 			case eModifierType_Array:
 				return array_getter( self, setting );
+			case eModifierType_EdgeSplit:
+				return edgesplit_getter( self, setting );
 			case eModifierType_Hook:
 			case eModifierType_Softbody:
 			case eModifierType_None:
@@ -823,6 +872,8 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 			return wave_setter( self, key_int, arg );
 		case eModifierType_Boolean:
 			return boolean_setter( self, key_int, arg );
+		case eModifierType_EdgeSplit:
+			return edgesplit_setter( self, key_int, arg );
 		case eModifierType_Hook:
 		case eModifierType_Softbody:
 		case eModifierType_None:
@@ -1235,9 +1286,12 @@ static PyObject *M_Modifier_TypeDict( void )
 				PyInt_FromLong( eModifierType_Boolean ) );
 		PyConstant_Insert( d, "ARRAY",
 				PyInt_FromLong( eModifierType_Array ) );
+		PyConstant_Insert( d, "EDGESPLIT",
+				PyInt_FromLong( eModifierType_EdgeSplit ) );
 	}
 	return S;
 }
+
 
 static PyObject *M_Modifier_SettingsDict( void )
 {
@@ -1346,6 +1400,12 @@ for var in st.replace(',','').split('\n'):
 				PyInt_FromLong( EXPP_MOD_TIMEOFFS ) );
 			PyConstant_Insert( d, "OPERATION", 
 				PyInt_FromLong( EXPP_MOD_OPERATION ) );
+			PyConstant_Insert( d, "EDGESPLIT_ANGLE", 
+				PyInt_FromLong( EXPP_MOD_EDGESPLIT_ANGLE ) );
+			PyConstant_Insert( d, "EDGESPLIT_FROM_ANGLE", 
+				PyInt_FromLong( EXPP_MOD_EDGESPLIT_FROM_ANGLE ) );
+			PyConstant_Insert( d, "EDGESPLIT_FROM_SHARP", 
+				PyInt_FromLong( EXPP_MOD_EDGESPLIT_FROM_SHARP ) );
 			/*End Auto generated code*/
 	}
 	return S;
@@ -1367,8 +1427,10 @@ PyObject *Modifier_Init( void )
 	submodule = Py_InitModule3( "Blender.Modifier", NULL,
 			"Modifer module for accessing and creating object modifier data" );
 
-	if( TypeDict )
-		PyModule_AddObject( submodule, "Type", TypeDict );
+	if( TypeDict ) {
+		PyModule_AddObject( submodule, "Type", TypeDict ); /* deprecated */
+		PyModule_AddObject( submodule, "Types", TypeDict );
+	}
 	
 	if( SettingsDict )
 		PyModule_AddObject( submodule, "Settings", SettingsDict );

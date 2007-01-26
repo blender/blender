@@ -15,7 +15,7 @@ Example::
   mods = ob.modifiers            # get the object's modifiers
   for mod in mods:
     print mod,mod.name           # print each modifier and its name
-  mod = mods.append(Modifier.Type.SUBSURF) # add a new subsurf modifier
+  mod = mods.append(Modifier.Types.SUBSURF) # add a new subsurf modifier
   mod[Modifier.Settings.LEVELS] = 3     # set subsurf subdivision levels to 3
 
 
@@ -28,7 +28,7 @@ Example::
 	ob_lattice= Object.Get('Lattice')
 
 	myMeshMod = ob_mesh.modifiers
-	mod = myMeshMod.append(Modifier.Type.LATTICE)
+	mod = myMeshMod.append(Modifier.Types.LATTICE)
 	mod[Modifier.Settings.OBJECT] = ob_lattice
 
 	ob_mesh.makeDisplayList() # Needed to apply the modifier
@@ -45,8 +45,8 @@ Example::
 
 
 
-@type Type: readonly dictionary
-@var Type: Constant Modifier dict used for  L{ModSeq.append()} to a
+@type Types: readonly dictionary
+@var Types: Constant Modifier dict used for  L{ModSeq.append()} to a
   modifier sequence and comparing with L{Modifier.type}:
     - ARMATURE - type value for Armature modifiers
     - BOOLEAN - type value for Boolean modifiers
@@ -104,6 +104,10 @@ Example::
 	- TIMEOFFS - Used for Wave only (float [-1000.0 - 1000.0])
 	
 	- OPERATION - Used for boolean only (int 0,1,2 : Intersect, Union, Difference)
+	
+	- EDGESPLIT_ANGLE - Used for edge split only (float 0.0 - 180)
+	- EDGESPLIT_FROM_ANGLE - Used for edge split only, should the modifier use the edge angle (bool)
+	- EDGESPLIT_FROM_SHARP - Used for edge split only, should the modifier use the edge sharp flag (bool)
 """
 
 class ModSeq:
