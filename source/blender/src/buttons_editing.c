@@ -4322,6 +4322,7 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Grab", cx+67,cy,67,19,&sd->brush_type,14,GRAB_BRUSH,0,0,"Grabs a group of vertices and moves them with the mouse");
 	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Layer", cx+134,cy,66,19,&sd->brush_type,14, LAYER_BRUSH,0,0,"Adds a layer of depth");
 	cy-= 25;
+	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block,LABEL,B_NOP,"Shape",cx,cy,90,19,NULL,0,0,0,0,"");
@@ -4339,6 +4340,7 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	if(sd->brush_type!=GRAB_BRUSH)
 		uiDefButC(block,NUMSLI,B_NOP,"Strength: ",cx,cy,200,19,&sculptmode_brush()->strength,1.0,100.0,0,0,"Set brush strength");
 	cy-= 25;
+	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
 	uiDefBut( block,LABEL,B_NOP,"Symmetry",cx,cy,90,19,NULL,0,0,0,0,"");
@@ -4347,7 +4349,6 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	uiDefButBitC(block, TOG, SYMM_X, 0, "X", cx,cy,67,19, &sd->symm, 0,0,0,0, "Mirror brush across X axis");
 	uiDefButBitC(block, TOG, SYMM_Y, 0, "Y", cx+67,cy,67,19, &sd->symm, 0,0,0,0, "Mirror brush across Y axis");
 	uiDefButBitC(block, TOG, SYMM_Z, 0, "Z", cx+134,cy,67,19, &sd->symm, 0,0,0,0, "Mirror brush across Z axis");
-	
 	uiBlockEndAlign(block);
 
 	cx+= 210;
@@ -4373,6 +4374,7 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 	cy-= 20;
 	if(sd->brush_type == DRAW_BRUSH)
 		uiDefButC(block,NUM,B_NOP, "View", cx,cy,80,19, &sculptmode_brush()->view, 0,10,20,0,"Pulls brush direction towards view");
+	uiBlockEndAlign(block);
 	
 	cy= orig_y;
 	cx+= 85;
@@ -4381,6 +4383,7 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 	cy-= 20;
 
 	/* TEX CHANNELS */
+	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	for(i=-1; i<8; i++) {
 		char str[64];
@@ -5049,25 +5052,26 @@ void editing_panel_mesh_multires()
 		cy-= 20;
 
 		if(me->mr->level_count>1) {
-			but= uiDefButC(block,NUM,B_NOP,"Level: ",cx,cy,200,19,&me->mr->newlvl,1.0,me->mr->level_count,0,0,"");
-			uiButSetFunc(but,multires_set_level,ob,me);
-			cy-= 20;
-
 			but= uiDefBut(block,BUT,B_NOP,"Del Lower", cx,cy,100,19,0,0,0,0,0,"Remove all levels of subdivision below the current one");
 			uiButSetFunc(but,multires_del_lower,ob,me);
 			but= uiDefBut(block,BUT,B_NOP,"Del Higher", cx+100,cy,100,19,0,0,0,0,0,"Remove all levels of subdivision above the current one");
 			uiButSetFunc(but,multires_del_higher,ob,me);
 			cy-= 20;
+		
+			but= uiDefButC(block,NUM,B_NOP,"Level: ",cx,cy,200,19,&me->mr->newlvl,1.0,me->mr->level_count,0,0,"");
+			uiButSetFunc(but,multires_set_level,ob,me);
+			cy-= 20;
 
 			but= uiDefButC(block,NUM,B_NOP,"Edges: ",cx,cy,200,19,&me->mr->edgelvl,1.0,me->mr->level_count,0,0,"Set level of edges to display");
 			uiButSetFunc(but,multires_edge_level_update,ob,me);
 			cy-= 20;
-
-			uiBlockBeginAlign(block);
+			uiBlockEndAlign(block);
+			
 			cy-= 5;
 			uiDefBut(block,LABEL,B_NOP,"Rendering",cx,cy,100,19,0,0,0,0,0,"");
 			cy-= 20;
 
+			uiBlockBeginAlign(block);
 			uiDefButC(block,NUM,B_NOP,"Pin: ",cx,cy,200,19,&me->mr->pinlvl,1.0,me->mr->level_count,0,0,"Set level to apply modifiers to during render");
 			cy-= 20;
 
