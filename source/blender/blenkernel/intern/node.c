@@ -2012,7 +2012,8 @@ static int node_only_value(bNode *node)
 	if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_VALUE, CMP_NODE_RGB))
 		return 1;
 	
-	if(node->inputs.first) {
+	/* doing this for all node types goes wrong. memory free errors */
+	if(node->inputs.first && node->type==CMP_NODE_MAP_VALUE) {
 		int retval= 1;
 		for(sock= node->inputs.first; sock; sock= sock->next) {
 			if(sock->link)
