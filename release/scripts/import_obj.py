@@ -723,31 +723,41 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 	if BPyMessages.Error_NoFile(filepath):
 		return
 	
+	
 	CREATE_SMOOTH_GROUPS= Draw.Create(0)
 	CREATE_FGONS= Draw.Create(1)
 	CREATE_EDGES= Draw.Create(1)
 	SPLIT_OBJECTS= Draw.Create(1)
 	SPLIT_GROUPS= Draw.Create(1)
 	SPLIT_MATERIALS= Draw.Create(1)
+	MORPH_TARGET= Draw.Create(0)
 	CLAMP_SIZE= Draw.Create(10.0)
 	IMAGE_SEARCH= Draw.Create(1)
 	
 	
 	# Get USER Options
 	pup_block= [\
+	'Import...',\
 	('Smooth Groups', CREATE_SMOOTH_GROUPS, 'Surround smooth groups by sharp edges'),\
 	('Create FGons', CREATE_FGONS, 'Import faces with more then 4 verts as fgons.'),\
 	('Lines', CREATE_EDGES, 'Import lines and faces with 2 verts as edges'),\
-	('Split by Object', SPLIT_OBJECTS, 'Import OBJ Objects into Blender Objects'),\
-	('Split by Groups', SPLIT_GROUPS, 'Import OBJ Groups into Blender Objects'),\
-	('Split by Material', SPLIT_MATERIALS, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)'),\
+	'Seperate objects from obj...',\
+	('Object', SPLIT_OBJECTS, 'Import OBJ Objects into Blender Objects'),\
+	('Group', SPLIT_GROUPS, 'Import OBJ Groups into Blender Objects'),\
+	('Material', SPLIT_MATERIALS, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)'),\
+	'Options...',\
+	('Morph Target', MORPH_TARGET, 'Keep vert and face order, disables some other options.'),\
 	('Clamp Scale:', CLAMP_SIZE, 0.0, 1000.0, 'Clamp the size to this maximum (Zero to Disable)'),\
 	('Image Search', IMAGE_SEARCH, 'Search subdirs for any assosiated images (Warning, may be slow)'),\
 	]
 	
-	
 	if not Draw.PupBlock('Import OBJ...', pup_block):
 		return
+	
+	if MORPH_TARGET.val:
+		SPLIT_OBJECTS.val = False
+		SPLIT_GROUPS.val = False
+		SPLIT_MATERIALS.val = False
 	
 	Window.WaitCursor(1)
 	
@@ -755,10 +765,12 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 		try:
 			files= [ f for f in os.listdir(filepath) if f.lower().endswith('.obj') ]
 		except:
+			Window.WaitCursor(0)
 			Draw.PupMenu('Error%t|Could not open path ' + filepath)
 			return
 		
 		if not files:
+			Window.WaitCursor(0)
 			Draw.PupMenu('Error%t|No files at path ' + filepath)
 			return
 		
@@ -824,7 +836,7 @@ else:
 		return False
 		
 	for i, _obj in enumerate(lines):
-		if between(i, 440,600):
+		if between(i, 0,20):
 			_obj= _obj[:-1]
 			print 'Importing', _obj, '\nNUMBER', i, 'of', len(lines)
 			_obj_file= _obj.split('/')[-1].split('\\')[-1]
@@ -834,6 +846,5 @@ else:
 
 	print 'TOTAL TIME: %.6f' % (sys.time() - TIME)
 '''
-
 #load_obj('/test.obj')
 #load_obj('/fe/obj/mba1.obj')
