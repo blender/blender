@@ -2,7 +2,7 @@
 
 """
 Name: 'LightWave (.lwo)...'
-Blender: 232
+Blender: 243
 Group: 'Export'
 Tooltip: 'Export selected meshes to LightWave File Format (.lwo)'
 """
@@ -67,58 +67,65 @@ v5.5 format.
 #
 # ***** END GPL LICENCE BLOCK *****
 
-import Blender, meshtools
-import struct, chunk, os, cStringIO, time, operator
+import Blender
+import struct, cStringIO, operator
+import BPyMesh
 
+VCOL_NAME = "\251 Per-Face Vertex Colors"
+DEFAULT_NAME = "\251 Blender Default"
 # ==============================
 # === Write LightWave Format ===
 # ==============================
 def write(filename):
-	start = time.clock()
+	start = Blender.sys.time()
 	file = open(filename, "wb")
-
-	objects = Blender.Object.GetSelected()
-	objects.sort(lambda a,b: cmp(a.name, b.name))
+	
+	scn = Blender.Scene.GetCurrent()
+	objects = list(scn.objects.context)
+	
 	if not objects:
-		meshtools.print_boxed("No mesh objects are selected.")
+		Blender.Draw.PupMenu('Error%t|No Objects selected')
 		return
-
-	if len(objects) > 20 and meshtools.show_progress:
-		meshtools.show_progress = 0
+	
+	try:	objects.sort( key = lambda a: a.name )
+	except:	objects.sort(lambda a,b: cmp(a.name, b.name))
 
 	text = generate_text()
 	desc = generate_desc()
 	icon = "" #generate_icon()
 
-	material_names = get_used_material_names(objects)
+	meshes = []
+	for obj in objects:
+		mesh = BPyMesh.getMeshFromObject(obj, None, True, False, scn)
+		if mesh:
+			mesh.transform(obj.matrixWorld)
+			meshes.append(mesh)
+
+	material_names = get_used_material_names(meshes)
 	tags = generate_tags(material_names)
 	surfs = generate_surfs(material_names)
 	chunks = [text, desc, icon, tags]
 
 	meshdata = cStringIO.StringIO()
+	
 	layer_index = 0
-	for object in objects:
-		if object.type != 'Mesh': continue
-		objname = object.name
-		mesh = object.data
-		obj = Blender.Object.Get(objname)
-		
-		mesh.transform(obj.matrixWorld)
-		layr = generate_layr(objname, layer_index)
+	
+	for mesh in meshes:
+		layr = generate_layr(obj.name, layer_index)
 		pnts = generate_pnts(mesh)
 		bbox = generate_bbox(mesh)
 		pols = generate_pols(mesh)
 		ptag = generate_ptag(mesh, material_names)
 		clip = generate_clip(mesh, material_names)
 
-		if mesh.hasFaceUV():
+		if mesh.faceUV:
 			vmad_uv = generate_vmad_uv(mesh)  # per face
 
-		if meshtools.has_vertex_colors(mesh):
-			if meshtools.average_vcols:
-				vmap_vc = generate_vmap_vc(mesh)  # per vert
-			else:
-				vmad_vc = generate_vmad_vc(mesh)  # per face
+		if mesh.vertexColors:
+			#if meshtools.average_vcols:
+			#	vmap_vc = generate_vmap_vc(mesh)  # per vert
+			#else:
+			vmad_vc = generate_vmad_vc(mesh)  # per face
 
 		write_chunk(meshdata, "LAYR", layr); chunks.append(layr)
 		write_chunk(meshdata, "PNTS", pnts); chunks.append(pnts)
@@ -126,21 +133,22 @@ def write(filename):
 		write_chunk(meshdata, "POLS", pols); chunks.append(pols)
 		write_chunk(meshdata, "PTAG", ptag); chunks.append(ptag)
 
-		if meshtools.has_vertex_colors(mesh):
-			if meshtools.average_vcols:
-				write_chunk(meshdata, "VMAP", vmap_vc)
-				chunks.append(vmap_vc)
-			else:
-				write_chunk(meshdata, "VMAD", vmad_vc)
-				chunks.append(vmad_vc)
+		if mesh.vertexColors:
+			#if meshtools.average_vcols:
+			#	write_chunk(meshdata, "VMAP", vmap_vc)
+			#	chunks.append(vmap_vc)
+			#else:
+			write_chunk(meshdata, "VMAD", vmad_vc)
+			chunks.append(vmad_vc)
 
-		if mesh.hasFaceUV():
+		if mesh.faceUV:
 			write_chunk(meshdata, "VMAD", vmad_uv)
 			chunks.append(vmad_uv)
 			write_chunk(meshdata, "CLIP", clip)
 			chunks.append(clip)
 		
 		layer_index += 1
+		mesh.verts = None # save some ram
 
 	for surf in surfs:
 		chunks.append(surf)
@@ -158,10 +166,8 @@ def write(filename):
 	Blender.Window.DrawProgressBar(1.0, "")    # clear progressbar
 	file.close()
 	print '\a\r',
-	end = time.clock()
-	seconds = " in %.2f %s" % (end-start, "seconds")
-	message = "Successfully exported " + os.path.basename(filename) + seconds
-	meshtools.print_boxed(message)
+	print "Successfully exported %s in %.3f seconds" % (filename.split('\\')[-1].split('/')[-1], Blender.sys.time() - start)
+	
 
 # =======================================
 # === Generate Null-Terminated String ===
@@ -176,27 +182,25 @@ def generate_nstring(string):
 # ===============================
 # === Get Used Material Names ===
 # ===============================
-def get_used_material_names(objects):
+def get_used_material_names(meshes):
 	matnames = {}
-	for object in objects:
-		if object.type == 'Mesh':
-			mesh = object.getData(mesh=1)
-			if (not mesh.materials) and (meshtools.has_vertex_colors(mesh)):
-				# vcols only
-				if meshtools.average_vcols:
-					matnames["\251 Per-Vert Vertex Colors"] = None
-				else:
-					matnames["\251 Per-Face Vertex Colors"] = None
-			elif (mesh.materials) and (not meshtools.has_vertex_colors(mesh)):
-				# materials only
-				for material in mesh.materials:
+	for mesh in meshes:
+		if (not mesh.materials) and mesh.vertexColors:
+			# vcols only
+			matnames[VCOL_NAME] = None
+			
+		elif mesh.materials and (not mesh.vertexColors):
+			# materials only
+			for material in mesh.materials:
+				if material:
 					matnames[material.name] = None
-			elif (not mesh.materials) and (not meshtools.has_vertex_colors(mesh)):
-				# neither
-				matnames["\251 Blender Default"] = None
-			else:
-				# both
-				for material in mesh.materials:
+		elif (not mesh.materials) and (not mesh.vertexColors):
+			# neither
+			matnames[DEFAULT_NAME] = None
+		else:
+			# both
+			for material in mesh.materials:
+				if material:
 					matnames[material.name] = None
 	return matnames.keys()
 
@@ -204,8 +208,11 @@ def get_used_material_names(objects):
 # === Generate Tag Strings (TAGS Chunk) ===
 # =========================================
 def generate_tags(material_names):
-	material_names = map(generate_nstring, material_names)
-	tags_data = reduce(operator.add, material_names)
+	if material_names:
+		material_names = map(generate_nstring, material_names)
+		tags_data = reduce(operator.add, material_names)
+	else:
+		tags_data = generate_nstring('');
 	return tags_data
 
 # ========================
@@ -214,7 +221,7 @@ def generate_tags(material_names):
 def generate_surface(name):
 	#if name.find("\251 Per-") == 0:
 	#	return generate_vcol_surf(mesh)
-	if name == "\251 Blender Default":
+	if name == DEFAULT_NAME:
 		return generate_default_surf()
 	else:
 		return generate_surf(name)
@@ -242,7 +249,7 @@ def generate_layr(name, idx):
 def generate_pnts(mesh):
 	data = cStringIO.StringIO()
 	for i, v in enumerate(mesh.verts):
-		if not i%100 and meshtools.show_progress:
+		if not i%100:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Writing Verts")
 		x, y, z = v.co
 		data.write(struct.pack(">fff", x, z, y))
@@ -256,9 +263,9 @@ def generate_bbox(mesh):
 	# need to transform verts here
 	if mesh.verts:
 		nv = [v.co for v in mesh.verts]
-		xx = map(operator.getitem, nv, [0]*len(nv))
-		yy = map(operator.getitem, nv, [1]*len(nv))
-		zz = map(operator.getitem, nv, [2]*len(nv))
+		xx = [ co[0] for co in nv ]
+		yy = [ co[1] for co in nv ]
+		zz = [ co[2] for co in nv ]
 	else:
 		xx = yy = zz = [0.0,]
 	
@@ -268,12 +275,13 @@ def generate_bbox(mesh):
 # ========================================
 # === Average All Vertex Colors (Fast) ===
 # ========================================
+'''
 def average_vertexcolors(mesh):
 	vertexcolors = {}
 	vcolor_add = lambda u, v: [u[0]+v[0], u[1]+v[1], u[2]+v[2], u[3]+v[3]]
 	vcolor_div = lambda u, s: [u[0]/s, u[1]/s, u[2]/s, u[3]/s]
 	for i, f in enumerate(mesh.faces):	# get all vcolors that share this vertex
-		if not i%100 and meshtools.show_progress:
+		if not i%100:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Finding Shared VColors")
 		col = f.col
 		for j in xrange(len(f)):
@@ -283,7 +291,7 @@ def average_vertexcolors(mesh):
 			vertexcolors.setdefault(index, []).append([r,g,b,255])
 	i = 0
 	for index, value in vertexcolors.iteritems():	# average them
-		if not i%100 and meshtools.show_progress:
+		if not i%100:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Averaging Vertex Colors")
 		vcolor = [0,0,0,0]	# rgba
 		for v in value:
@@ -292,10 +300,13 @@ def average_vertexcolors(mesh):
 		value[:] = vcolor_div(vcolor, shared)
 		i+=1
 	return vertexcolors
+'''
 
 # ====================================================
 # === Generate Per-Vert Vertex Colors (VMAP Chunk) ===
 # ====================================================
+# Blender now has all vcols per face
+"""
 def generate_vmap_vc(mesh):
 	data = cStringIO.StringIO()
 	data.write("RGB ")                                      # type
@@ -308,6 +319,7 @@ def generate_vmap_vc(mesh):
 		data.write(struct.pack(">H", i)) # vertex index
 		data.write(struct.pack(">fff", r/255.0, g/255.0, b/255.0))
 	return data.getvalue()
+"""
 
 # ====================================================
 # === Generate Per-Face Vertex Colors (VMAD Chunk) ===
@@ -318,15 +330,13 @@ def generate_vmad_vc(mesh):
 	data.write(struct.pack(">H", 3))                        # dimension
 	data.write(generate_nstring("Blender's Vertex Colors")) # name
 	for i, f in enumerate(mesh.faces):
-		if not i%100 and meshtools.show_progress:
+		if not i%100:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Vertex Colors")
 		col = f.col
+		f_v = f.v
 		for j in xrange(len(f)-1, -1, -1): 			# Reverse order
-			r = col.r
-			g = col.g
-			b = col.b
-			v = f[j].index
-			data.write(struct.pack(">H", v)) # vertex index
+			r,g,b, dummy = tuple(col[j])
+			data.write(struct.pack(">H", f_v[j].index)) # vertex index
 			data.write(struct.pack(">H", i)) # face index
 			data.write(struct.pack(">fff", r/255.0, g/255.0, b/255.0))
 	return data.getvalue()
@@ -341,13 +351,14 @@ def generate_vmad_uv(mesh):
 	data.write(generate_nstring("Blender's UV Coordinates")) # name
 	
 	for i, f in enumerate(mesh.faces):
-		if not i%100 and meshtools.show_progress:
+		if not i%100:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing UV Coordinates")
 		
 		uv = f.uv
+		f_v = f.v
 		for j in xrange(len(f)-1, -1, -1): 			# Reverse order
 			U,V = uv[j]
-			v = f[j].index
+			v = f_v[j].index
 			data.write(struct.pack(">H", v)) # vertex index
 			data.write(struct.pack(">H", i)) # face index
 			data.write(struct.pack(">ff", U, V))
@@ -370,41 +381,59 @@ def generate_pols(mesh):
 	data = cStringIO.StringIO()
 	data.write("FACE")  # polygon type
 	for i,f in enumerate(mesh.faces):
-		if not i%100 and meshtools.show_progress:
+		if not i%100:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Faces")
 		data.write(struct.pack(">H", len(f))) # numfaceverts
 		numfaceverts = len(f)
+		f_v = f.v
 		for j in xrange(numfaceverts-1, -1, -1): 			# Reverse order
-			data.write(generate_vx(f[j].index))
+			data.write(generate_vx(f_v[j].index))
 	return data.getvalue()
 
 # =================================================
 # === Generate Polygon Tag Mapping (PTAG Chunk) ===
 # =================================================
 def generate_ptag(mesh, material_names):
+	
+	def surf_indicies(mat):
+		try:
+			if mat:
+				return material_names.index(mat.name)
+		except:
+			pass
+		
+		return 0
+		
+	
 	data = cStringIO.StringIO()
 	data.write("SURF")  # polygon tag type
 	mesh_materials = mesh.materials
+	mesh_surfindicies = [surf_indicies(mat) for mat in mesh_materials]
+	
+	try:	VCOL_NAME_SURF_INDEX = material_names.index(VCOL_NAME)
+	except:	VCOL_NAME_SURF_INDEX = 0
+	
+	try:	DEFAULT_NAME_SURF_INDEX = material_names.index(DEFAULT_NAME)
+	except:	DEFAULT_NAME_SURF_INDEX = 0
+	len_mat = len(mesh_materials)
 	for i, f in enumerate(mesh.faces): # numfaces
-		if not i%100 and meshtools.show_progress:
-			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Surface Indices")
-		data.write(generate_vx(i))
-		if (not mesh_materials) and (meshtools.has_vertex_colors(mesh)):		# vcols only
-			if meshtools.average_vcols:
-				name = "\251 Per-Vert Vertex Colors"
-			else:
-				name = "\251 Per-Face Vertex Colors"
-		elif (mesh_materials) and (not meshtools.has_vertex_colors(mesh)):		# materials only
-			idx = f.mat	#erialIndex
-			name = mesh_materials[idx].name
-		elif (not mesh_materials) and (not meshtools.has_vertex_colors(mesh)):	# neither
-			name = "\251 Blender Default"
-		else:																		# both
-			idx = f.mat
-			if idx >= len(mesh_materials): idx = 0
-			name = mesh_materials[idx].name
+		f_mat = f.mat
+		if f_mat >= len_mat: f_mat = 0 # Rare annoying eror
+			
 		
-		surfidx = material_names.index(name)
+		if not i%100:
+			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Surface Indices")
+		
+		data.write(generate_vx(i))
+		if (not mesh_materials) and mesh.vertexColors:		# vcols only
+			surfidx = VCOL_NAME_SURF_INDEX
+		elif mesh_materials and not mesh.vertexColors:		# materials only
+			surfidx = mesh_surfindicies[f_mat]
+		elif (not mesh_materials) and (not mesh.vertexColors):	# neither
+			surfidx = DEFAULT_NAME_SURF_INDEX
+		else:												# both
+			surfidx = mesh_surfindicies[f_mat]
+		
 		data.write(struct.pack(">H", surfidx)) # surface index
 	return data.getvalue()
 
@@ -413,10 +442,8 @@ def generate_ptag(mesh, material_names):
 # ===================================================
 def generate_vcol_surf(mesh):
 	data = cStringIO.StringIO()
-	if meshtools.average_vcols and meshtools.has_vertex_colors(mesh):
-		surface_name = generate_nstring("\251 Per-Vert Vertex Colors")
-	else:
-		surface_name = generate_nstring("\251 Per-Face Vertex Colors")
+	if mesh.vertexColors:
+		surface_name = generate_nstring(VCOL_NAME)
 	data.write(surface_name)
 	data.write("\0\0")
 
@@ -438,7 +465,7 @@ def generate_vcol_surf(mesh):
 	data.write(generate_nstring("Blender's Vertex Colors")) # name
 
 	data.write("CMNT")  # material comment
-	comment = "Vertex Colors: Exported from Blender\256 " + meshtools.blender_version_str
+	comment = "Vertex Colors: Exported from Blender\256 243"
 	comment = generate_nstring(comment)
 	data.write(struct.pack(">H", len(comment)))
 	data.write(comment)
@@ -451,75 +478,92 @@ def generate_surf(material_name):
 	data = cStringIO.StringIO()
 	data.write(generate_nstring(material_name))
 	data.write("\0\0")
-
-	material = Blender.Material.Get(material_name)
-	R,G,B = material.R, material.G, material.B
+	
+	try:
+		material = Blender.Material.Get(material_name)
+		R,G,B = material.R, material.G, material.B
+		ref = material.ref
+		emit = material.emit
+		spec = material.spec
+		hard = material.hard
+		
+	except:
+		material = None
+		
+		R=G=B = 1.0
+		ref = 1.0
+		emit = 0.0
+		spec = 0.2
+		hard = 0.0
+	
+		
 	data.write("COLR")
 	data.write(struct.pack(">H", 14))
 	data.write(struct.pack(">fffH", R, G, B, 0))
 
 	data.write("DIFF")
 	data.write(struct.pack(">H", 6))
-	data.write(struct.pack(">fH", material.ref, 0))
+	data.write(struct.pack(">fH", ref, 0))
 
 	data.write("LUMI")
 	data.write(struct.pack(">H", 6))
-	data.write(struct.pack(">fH", material.emit, 0))
+	data.write(struct.pack(">fH", emit, 0))
 
 	data.write("SPEC")
 	data.write(struct.pack(">H", 6))
-	data.write(struct.pack(">fH", material.spec, 0))
+	data.write(struct.pack(">fH", spec, 0))
 
 	data.write("GLOS")
 	data.write(struct.pack(">H", 6))
-	gloss = material.hard / (255/2.0)
+	gloss = hard / (255/2.0)
 	gloss = round(gloss, 1)
 	data.write(struct.pack(">fH", gloss, 0))
 
 	data.write("CMNT")  # material comment
-	comment = material_name + ": Exported from Blender\256 " + meshtools.blender_version_str
+	comment = material_name + ": Exported from Blender\256 243"
 	comment = generate_nstring(comment)
 	data.write(struct.pack(">H", len(comment)))
 	data.write(comment)
-
+	
 	# Check if the material contains any image maps
-	mtextures = material.getTextures()									# Get a list of textures linked to the material
-	for mtex in mtextures:
-		if (mtex) and (mtex.tex.type == Blender.Texture.Types.IMAGE):	# Check if the texture is of type "IMAGE"
-			data.write("BLOK")                  # Surface BLOK header
-			data.write(struct.pack(">H", 104))  # Hardcoded and ugly! Will only handle 1 image per material
+	if material:
+		mtextures = material.getTextures()									# Get a list of textures linked to the material
+		for mtex in mtextures:
+			if (mtex) and (mtex.tex.type == Blender.Texture.Types.IMAGE):	# Check if the texture is of type "IMAGE"
+				data.write("BLOK")                  # Surface BLOK header
+				data.write(struct.pack(">H", 104))  # Hardcoded and ugly! Will only handle 1 image per material
 
-			# IMAP subchunk (image map sub header)
-			data.write("IMAP")                  
-			data_tmp = cStringIO.StringIO()
-			data_tmp.write(struct.pack(">H", 0))  # Hardcoded - not sure what it represents
-			data_tmp.write("CHAN")
-			data_tmp.write(struct.pack(">H", 4))
-			data_tmp.write("COLR")
-			data_tmp.write("OPAC")                # Hardcoded texture layer opacity
-			data_tmp.write(struct.pack(">H", 8))
-			data_tmp.write(struct.pack(">H", 0))
-			data_tmp.write(struct.pack(">f", 1.0))
-			data_tmp.write(struct.pack(">H", 0))
-			data_tmp.write("ENAB")
-			data_tmp.write(struct.pack(">HH", 2, 1))  # 1 = texture layer enabled
-			data_tmp.write("NEGA")
-			data_tmp.write(struct.pack(">HH", 2, 0))  # Disable negative image (1 = invert RGB values)
-			data_tmp.write("AXIS")
-			data_tmp.write(struct.pack(">HH", 2, 1))
-			data.write(struct.pack(">H", len(data_tmp.getvalue())))
-			data.write(data_tmp.getvalue())
+				# IMAP subchunk (image map sub header)
+				data.write("IMAP")                  
+				data_tmp = cStringIO.StringIO()
+				data_tmp.write(struct.pack(">H", 0))  # Hardcoded - not sure what it represents
+				data_tmp.write("CHAN")
+				data_tmp.write(struct.pack(">H", 4))
+				data_tmp.write("COLR")
+				data_tmp.write("OPAC")                # Hardcoded texture layer opacity
+				data_tmp.write(struct.pack(">H", 8))
+				data_tmp.write(struct.pack(">H", 0))
+				data_tmp.write(struct.pack(">f", 1.0))
+				data_tmp.write(struct.pack(">H", 0))
+				data_tmp.write("ENAB")
+				data_tmp.write(struct.pack(">HH", 2, 1))  # 1 = texture layer enabled
+				data_tmp.write("NEGA")
+				data_tmp.write(struct.pack(">HH", 2, 0))  # Disable negative image (1 = invert RGB values)
+				data_tmp.write("AXIS")
+				data_tmp.write(struct.pack(">HH", 2, 1))
+				data.write(struct.pack(">H", len(data_tmp.getvalue())))
+				data.write(data_tmp.getvalue())
 
-			# IMAG subchunk
-			data.write("IMAG")
-			data.write(struct.pack(">HH", 2, 1))
-			data.write("PROJ")
-			data.write(struct.pack(">HH", 2, 5)) # UV projection
+				# IMAG subchunk
+				data.write("IMAG")
+				data.write(struct.pack(">HH", 2, 1))
+				data.write("PROJ")
+				data.write(struct.pack(">HH", 2, 5)) # UV projection
 
-			data.write("VMAP")
-			uvname = generate_nstring("Blender's UV Coordinates")
-			data.write(struct.pack(">H", len(uvname)))
-			data.write(uvname)
+				data.write("VMAP")
+				uvname = generate_nstring("Blender's UV Coordinates")
+				data.write(struct.pack(">H", len(uvname)))
+				data.write(uvname)
 
 	return data.getvalue()
 
@@ -528,7 +572,7 @@ def generate_surf(material_name):
 # =============================================
 def generate_default_surf():
 	data = cStringIO.StringIO()
-	material_name = "\251 Blender Default"
+	material_name = DEFAULT_NAME
 	data.write(generate_nstring(material_name))
 	data.write("\0\0")
 
@@ -555,7 +599,7 @@ def generate_default_surf():
 	data.write(struct.pack(">fH", gloss, 0))
 
 	data.write("CMNT")  # material comment
-	comment = material_name + ": Exported from Blender\256 " + meshtools.blender_version_str
+	comment = material_name + ": Exported from Blender\256 243"
 
 	# vals = map(chr, xrange(164,255,1))
 	# keys = xrange(164,255,1)
@@ -573,11 +617,7 @@ def generate_default_surf():
 # === Generate Object Comment (TEXT Chunk) ===
 # ============================================
 def generate_text():
-	comment  = "Lightwave Export Script for Blender "
-	comment +=	meshtools.blender_version_str + "\n"
-	comment += "by Anthony D'Agostino\n"
-	comment += "scorpius@netzero.com\n"
-	comment += "http://ourworld.compuserve.com/homepages/scorpius\n"
+	comment  = "Lightwave Export Script for Blender by Anthony D'Agostino"
 	return generate_nstring(comment)
 
 # ==============================================
@@ -607,19 +647,19 @@ def generate_icon():
 def generate_clip(mesh, material_names):
 	data = cStringIO.StringIO()
 	clipid = 1
-	for i in xrange(len(mesh.materials)):									# Run through list of materials used by mesh
-		material = Blender.Material.Get(mesh.materials[i].name)
-		mtextures = material.getTextures()									# Get a list of textures linked to the material
-		for mtex in mtextures:
-			if (mtex) and (mtex.tex.type == Blender.Texture.Types.IMAGE):	# Check if the texture is of type "IMAGE"
-				pathname = mtex.tex.image.filename							# If full path is needed use filename in place of name
-				pathname = pathname[0:2] + pathname.replace("\\", "/")[3:]  # Convert to Modo standard path
-				imagename = generate_nstring(pathname)
-				data.write(struct.pack(">L", clipid))                       # CLIP sequence/id
-				data.write("STIL")                                          # STIL image
-				data.write(struct.pack(">H", len(imagename)))               # Size of image name
-				data.write(imagename)
-				clipid += 1
+	for i, material in enumerate(mesh.materials):									# Run through list of materials used by mesh
+		if material:
+			mtextures = material.getTextures()									# Get a list of textures linked to the material
+			for mtex in mtextures:
+				if (mtex) and (mtex.tex.type == Blender.Texture.Types.IMAGE):	# Check if the texture is of type "IMAGE"
+					pathname = mtex.tex.image.filename							# If full path is needed use filename in place of name
+					pathname = pathname[0:2] + pathname.replace("\\", "/")[3:]  # Convert to Modo standard path
+					imagename = generate_nstring(pathname)
+					data.write(struct.pack(">L", clipid))                       # CLIP sequence/id
+					data.write("STIL")                                          # STIL image
+					data.write(struct.pack(">H", len(imagename)))               # Size of image name
+					data.write(imagename)
+					clipid += 1
 	return data.getvalue()
 
 # ===================
