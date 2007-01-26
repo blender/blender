@@ -3122,6 +3122,10 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 			/* make output size of input image */
 			new= alloc_compbuf(img->x, img->y, img->type, 1); /* allocs */
 			
+			/* accept image offsets from other nodes */
+			new->xof = img->xof;
+			new->yof = img->yof;
+				
 			if(nbd->gamma) {
 				gammabuf= dupalloc_compbuf(img);
 				gamma_correct_compbuf(gammabuf, 0);
