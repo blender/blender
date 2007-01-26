@@ -248,7 +248,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OBJECTS, SPLI
 	
 	face_split_dict= {}
 	
-	oldkey= -1 # initialize to a value what will never match the key
+	oldkey= -1 # initialize to a value that will never match the key
 	
 	for face in faces:
 		
@@ -326,17 +326,17 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 		if len_face_vert_loc_indicies==1:
 			faces.pop(f_idx)# cant add single vert faces
 		
-		elif not face_vert_tex_indicies: # images that are -1 are lines, a bit obscure but works.
+		elif not face_vert_tex_indicies or len_face_vert_loc_indicies == 2: # faces that have no texture coords are lines
 			if CREATE_EDGES:
 				# generators are better in python 2.4+ but can't be used in 2.3
 				# edges.extend( (face_vert_loc_indicies[i], face_vert_loc_indicies[i+1]) for i in xrange(len_face_vert_loc_indicies-1) )
 				edges.extend( [(face_vert_loc_indicies[i], face_vert_loc_indicies[i+1]) for i in xrange(len_face_vert_loc_indicies-1)] )
 
-				faces.pop(f_idx)
+			faces.pop(f_idx)
 		else:
 			
 			# Smooth Group
-			if unique_smooth_groups and context_smooth_group and len_face_vert_loc_indicies > 3:
+			if unique_smooth_groups and context_smooth_group:
 				# Is a part of of a smooth group and is a face
 				if context_smooth_group_old is not context_smooth_group:
 					edge_dict= smooth_group_users[context_smooth_group]
@@ -423,19 +423,23 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 	ALPHA= Mesh.FaceTranspModes.ALPHA
 	
 	for i, face in enumerate(faces):
+		if len(face[0]) < 2:
+			raise "Fooo"
 		if len(face[0])==2:
 			if CREATE_EDGES:
 				edges.append(face[0])
 		else:
 			face_index_map= face_mapping[i]
 			if face_index_map!=None: # None means the face wasnt added
-				blender_face= me.faces[face_index_map]
+				blender_face= me_faces[face_index_map]
 				
 				face_vert_loc_indicies,\
 				face_vert_tex_indicies,\
 				context_material,\
 				context_smooth_group,\
 				context_object= face
+				
+				
 				
 				if context_smooth_group:
 					blender_face.smooth= True
@@ -488,18 +492,17 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 			if ed!=None:
 				me_edges[ed].flag |= SHARP
 		del SHARP
-	del me_edges
 	
 	if CREATE_EDGES:
-		me.edges.extend( edges )
+		me_edges.extend( edges )
+	
+	del me_edges
 	
 	me.calcNormals()
 	
 	scn= Scene.GetCurrent()
 	ob= scn.objects.new(me)
 	new_objects.append(ob)
-	ob.sel= 1
-	
 
 def get_float_func(filepath):
 	'''
@@ -593,7 +596,6 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 				context_smooth_group,\
 				context_object\
 				))
-				
 			
 			if line_split[-1][-1]== '\\':
 				multi_line_face= True
@@ -681,7 +683,7 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	Scene.GetCurrent().objects.selected = []
 	new_objects= [] # put new objects here
 	
-	print '\tbuilding geometry;\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % ( len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups) ),
+	print '\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % ( len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups) ),
 	# Split the mesh by objects/materials, may 
 	for verts_loc_split, faces_split, unique_materials_split, dataname in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OBJECTS, SPLIT_MATERIALS):
 		# Create meshes from the data

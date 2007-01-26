@@ -2,7 +2,7 @@
 
 """ 
 Name: '3D Studio (.3ds)...'
-Blender: 241
+Blender: 243
 Group: 'Export'
 Tooltip: 'Export to 3DS file format (.3ds).'
 """

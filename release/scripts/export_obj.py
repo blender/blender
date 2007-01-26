@@ -2,14 +2,14 @@
 
 """
 Name: 'Wavefront (.obj)...'
-Blender: 232
+Blender: 243
 Group: 'Export'
 Tooltip: 'Save a Wavefront OBJ File'
 """
 
 __author__ = "Campbell Barton, Jiri Hnidek"
-__url__ = ["blender", "elysiun"]
-__version__ = "1.0"
+__url__ = ['www.blender.org', 'blenderartists.org']
+__version__ = "1.1"
 
 __bpydoc__ = """\
 This script is an exporter to OBJ file format.
@@ -50,7 +50,6 @@ import Blender
 from Blender import Mesh, Scene, Window, sys, Image, Draw
 import BPyMesh
 import BPyObject
-reload(BPyObject)
 
 import BPyMessages
 
@@ -112,11 +111,11 @@ def write_mtl(filename):
 		else:
 			mat = Blender.Material.Get(key[0])
 			file.write('Ns %.6f\n' % ((mat.getHardness()-1) * 1.9607843137254901) ) # Hardness, convert blenders 1-511 to MTL's 
-			file.write('Ka %.6f %.6f %.6f\n' %  tuple([c*mat.getAmb() for c in worldAmb])  ) # Ambient, uses mirror colour,
-			file.write('Kd %.6f %.6f %.6f\n' % tuple([c*mat.getRef() for c in mat.getRGBCol()]) ) # Diffuse
-			file.write('Ks %.6f %.6f %.6f\n' % tuple([c*mat.getSpec() for c in mat.getSpecCol()]) ) # Specular
-			file.write('Ni %.6f\n' % mat.getIOR()) # Refraction index
-			file.write('d %.6f\n' % mat.getAlpha()) # Alpha (obj uses 'd' for dissolve)
+			file.write('Ka %.6f %.6f %.6f\n' %  tuple([c*mat.amb for c in worldAmb])  ) # Ambient, uses mirror colour,
+			file.write('Kd %.6f %.6f %.6f\n' % tuple([c*mat.ref for c in mat.rgbCol]) ) # Diffuse
+			file.write('Ks %.6f %.6f %.6f\n' % tuple([c*mat.spec for c in mat.specCol]) ) # Specular
+			file.write('Ni %.6f\n' % mat.IOR) # Refraction index
+			file.write('d %.6f\n' % mat.alpha) # Alpha (obj uses 'd' for dissolve)
 			
 			# 0 to disable lighting, 1 for ambient & diffuse only (specular color set to black), 2 for full lighting.
 			if mat.getMode() & Blender.Material.Modes['SHADELESS']:
@@ -246,7 +245,8 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 	# Initialize totals, these are updated each object
 	totverts = totuvco = totno = 1
 	
-	globalUVCoords = {}
+	face_vert_index = 1 # used for uvs now
+	
 	globalNormals = {}
 	
 	# Get all meshs
@@ -262,8 +262,6 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 			# We have a valid mesh
 			if EXPORT_TRI and me.faces:
 				# Add a dummy object to it.
-				oldmode = Mesh.Mode()
-				Mesh.Mode(Mesh.SelectModes['FACE'])
 				has_quads = False
 				for f in me.faces:
 					if len(f) == 4:
@@ -271,12 +269,16 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 						break
 				
 				if has_quads:
+					oldmode = Mesh.Mode()
+					Mesh.Mode(Mesh.SelectModes['FACE'])
+					
 					me.sel = True
 					tempob = scn.objects.new(me)
 					me.quadToTriangle(0) # more=0 shortest length
 					oldmode = Mesh.Mode(oldmode)
 					scn.objects.unlink(tempob)
-				Mesh.Mode(oldmode)
+					
+					Mesh.Mode(oldmode)
 			
 			# Make our own list so it can be sorted to reduce context switching
 			faces = [ f for f in me.faces ]
@@ -349,12 +351,8 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 			# UV
 			if faceuv and EXPORT_UV:
 				for f in faces:
-					for uvKey in f.uv:
-						uvKey = veckey2d(uvKey)
-						if not globalUVCoords.has_key(uvKey):
-							globalUVCoords[uvKey] = totuvco
-							totuvco +=1
-							file.write('vt %.6f %.6f 0.0\n' % uvKey)
+					for uv in f.uv:
+						file.write('vt %.6f %.6f 0.0\n' % tuple(uv))
 			
 			# NORMAL, Smooth/Non smoothed.
 			if EXPORT_NORMALS:
@@ -374,7 +372,6 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 							totno +=1
 							file.write('vn %.6f %.6f %.6f\n' % noKey)
 			
-			uvIdx = 0
 			for f in faces:
 				f_v= f.v
 				if faceuv:
@@ -425,10 +422,10 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 				if f.smooth != contextSmooth:
 					if contextSmooth: # on now off
 						file.write('s off\n')
+						contextSmooth = True
 					else: # was off now on
 						file.write('s 1\n')
-						
-					contextSmooth = f.smooth
+						contextSmooth = False
 				
 				file.write('f')
 				if faceuv and EXPORT_UV:
@@ -437,22 +434,24 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False):
 							for vi, v in enumerate(f_v):
 								file.write( ' %d/%d/%d' % (\
 								  v.index+totverts,\
-								  globalUVCoords[ veckey2d(f_uv[vi]) ],\
+								  face_vert_index + vi,\
 								  globalNormals[ veckey3d(v.no) ])) # vert, uv, normal
+							
 						else: # No smoothing, face normals
 							no = globalNormals[ veckey3d(f.no) ]
 							for vi, v in enumerate(f_v):
 								file.write( ' %d/%d/%d' % (\
 								  v.index+totverts,\
-								  globalUVCoords[ veckey2d(f_uv[vi]) ],\
+								  face_vert_index + vi,\
 								  no)) # vert, uv, normal
 					
 					else: # No Normals
 						for vi, v in enumerate(f_v):
 							file.write( ' %d/%d' % (\
 							  v.index+totverts,\
-							  globalUVCoords[ veckey2d(f_uv[vi])])) # vert, uv
-				
+							  face_vert_index + vi)) # vert, uv
+					
+					face_vert_index += len(f_v)
 				
 				else: # No UV's
 					if EXPORT_NORMALS:
@@ -616,7 +615,7 @@ def write_ui(filename):
 				export_objects = scn.objects
 			
 			full_path= ''.join(context_name)
-			print "ass", full_path
+			
 			if BPyMessages.Warning_SaveOver(full_path):
 				# EXPORT THE FILE.
 				write(full_path, export_objects,\
