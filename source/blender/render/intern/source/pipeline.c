@@ -2062,9 +2062,6 @@ static int is_rendering_allowed(Render *re)
 				re->error("No Nodetree in Scene");
 				return 0;
 			}
-		
-			/* do it here, so stack gets freed on esc */
-			ntreeCompositTagRender(re->scene);
 			
 			for(node= ntree->nodes.first; node; node= node->next)
 				if(node->type==CMP_NODE_COMPOSITE)
@@ -2157,6 +2154,9 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 		push_render_result(re);
 	
 	RE_InitState(re, &scene->r, winx, winy, &disprect);
+	
+	/* initstate makes new result, have to send changed tags around */
+	ntreeCompositTagRender(re->scene);
 	
 	re->scene= scene;
 	if(!is_rendering_allowed(re))

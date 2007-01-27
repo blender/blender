@@ -273,15 +273,17 @@ static int node_buts_mix_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf
 {
 	if(block) {
 		uiBut *bt;
+		int a_but= (ntree->type==NTREE_COMPOSIT);
 		
 		/* blend type */
 		uiBlockBeginAlign(block);
 		bt=uiDefButS(block, MENU, B_NODE_EXEC+node->nr, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Overlay %x9|Divide %x5|Difference %x6|Darken %x7|Lighten %x8|Dodge %x10|Burn %x11|Color %x15|Value %x14|Saturation %x13|Hue %x12",
-					 butr->xmin, butr->ymin, butr->xmax-butr->xmin-20, 20, 
+					 butr->xmin, butr->ymin, butr->xmax-butr->xmin -(a_but?20:0), 20, 
 					 &node->custom1, 0, 0, 0, 0, "");
 		uiButSetFunc(bt, node_but_title_cb, node, bt);
-		/* Alpha option */
-		uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "A",
+		/* Alpha option, composite */
+		if(a_but)
+			uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "A",
 				  butr->xmax-20, butr->ymin, 20, 20, 
 				  &node->custom2, 0, 0, 0, 0, "Include Alpha of 2nd input in this operation");
 	}
