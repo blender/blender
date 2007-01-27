@@ -156,7 +156,7 @@ def read_ObjectName(data):
 def read_LocalAxes(data):
 	location = struct.unpack("<fff", data.read(12))
 	rotation_matrix=[]
-	for i in range(3):
+	for i in xrange(3):
 		row = struct.unpack("<fff", data.read(12))
 		#print "% f % f % f" % row
 		rotation_matrix.append(list(row))
@@ -166,7 +166,7 @@ def read_LocalAxes(data):
 # === Read Current Position ===
 def read_CurrentPosition(data):
 	transformation_matrix=[]
-	for i in range(3):
+	for i in xrange(3):
 		row = struct.unpack("<ffff", data.read(16))
 		#print "% f % f % f % f" % row
 		transformation_matrix.append(list(row))
@@ -176,7 +176,7 @@ def read_CurrentPosition(data):
 def read_VertexList(data):
 	verts = []
 	numverts, = struct.unpack("<l", data.read(4))
-	for i in range(numverts):
+	for i in xrange(numverts):
 		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numverts, "Reading Verts")
 		x, y, z = struct.unpack("<fff", data.read(12))
@@ -187,7 +187,7 @@ def read_VertexList(data):
 def read_UVCoords(data):
 	uvcoords = []
 	numuvcoords, = struct.unpack("<l", data.read(4))
-	for i in range(numuvcoords):
+	for i in xrange(numuvcoords):
 		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numuvcoords, "Reading UV Coords")
 		uv = struct.unpack("<ff", data.read(8))
@@ -201,7 +201,7 @@ def read_UVCoords(data):
 def read_FaceList(data, chunk):
 	faces = []				   ; facesuv = []
 	numfaces, = struct.unpack("<l", data.read(4))
-	for i in range(numfaces):
+	for i in xrange(numfaces):
 		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/numfaces, "Reading Faces")
 
@@ -214,7 +214,7 @@ def read_FaceList(data, chunk):
 			data.read(2)  # Material Index
 
 		facev = []			   ; faceuv = []
-		for j in range(numfaceverts):
+		for j in xrange(numfaceverts):
 			index, uvidx = struct.unpack("<ll", data.read(8))
 			facev.append(index); faceuv.append(uvidx)
 		facev.reverse() 	   ; faceuv.reverse()
@@ -274,5 +274,6 @@ def read(filename):
 def fs_callback(filename):
 	read(filename)
 
-Blender.Window.FileSelector(fs_callback, "Import COB")
+if __name__ == '__main__':
+	Blender.Window.FileSelector(fs_callback, "Import COB", '*.cob')
 

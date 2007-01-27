@@ -46,14 +46,11 @@ def lengthFromAngle(angle):
 
 def main():
 	scn = Scene.GetCurrent()
-	ob = scn.getActiveObject()
+	ob = scn.objects.active
+	
 	if not ob or ob.type != 'Mesh':
 		Draw.PupMenu('ERROR: Active object is not a mesh, aborting.')
 		return
-	
-	is_editmode = Window.EditMode() 
-	if is_editmode:
-		Window.EditMode(0)
 	
 	# Create the variables.
 	PREF_THICK = Draw.Create(-0.1)
@@ -73,19 +70,21 @@ def main():
 	PREF_SKIN_SIDES= PREF_SKIN_SIDES.val
 	PREF_REM_ORIG= PREF_REM_ORIG.val
 	
-	
-	
 	Window.WaitCursor(1)
 	
-	# Main code function	
-	me = ob.getData(mesh=1)
+	is_editmode = Window.EditMode() 
+	if is_editmode: Window.EditMode(0)
 	
-	faces_sel= [f for f in me.faces if f.sel]
+	# Main code function	
+	me = ob.getData(mesh=True)
+	me_faces = me.faces
+	faces_sel= [f for f in me_faces if f.sel]
+	
 	
 	BPyMesh.meshCalcNormals(me)
 	normals= [v.no for v in me.verts]
 	vertFaces= [[] for i in xrange(len(me.verts))]
-	for f in me.faces:
+	for f in me_faces:
 		no=f.no
 		for v in f:
 			vertFaces[v.index].append(no)
@@ -111,7 +110,7 @@ def main():
 			normals[i]= (normals[i] * length) * PREF_THICK
 	
 	len_verts = len( me.verts )
-	len_faces = len( me.faces )
+	len_faces = len( me_faces )
 	
 	vert_mapping= [-1] * len(me.verts)
 	verts= []
@@ -125,20 +124,20 @@ def main():
 	#verts= [v.co + normals[v.index] for v in me.verts]
 	
 	me.verts.extend( verts )
-	#faces= [tuple([ me.verts[v.index+len_verts] for v in reversed(f.v)]) for f in me.faces ]
+	#faces= [tuple([ me.verts[v.index+len_verts] for v in reversed(f.v)]) for f in me_faces ]
 	faces= [ tuple([vert_mapping[v.index] for v in reversed(f.v)]) for f in faces_sel ]
-	me.faces.extend( faces )
+	me_faces.extend( faces )
 	
 	has_uv = me.faceUV
 	has_vcol = me.vertexColors
 	
 	for i, orig_f in enumerate(faces_sel):
-		new_f= me.faces[len_faces + i]
+		new_f= me_faces[len_faces + i]
 		new_f.mat = orig_f.mat
 		new_f.smooth = orig_f.smooth
 		orig_f.sel=False
 		new_f.sel= True
-		new_f = me.faces[i+len_faces]
+		new_f = me_faces[i+len_faces]
 		if has_uv:
 			new_f.uv = [c for c in reversed(orig_f.uv)]
 			new_f.mode = orig_f.mode
@@ -169,16 +168,16 @@ def main():
 				v1i,v2i= f_v[i1].index, f_v[i2].index
 				# Now make a new Face
 				skin_side_faces.append( (v1i, v2i, vert_mapping[v2i], vert_mapping[v1i]) )
-				skin_side_faces_orig.append((f, len(me.faces) + len(skin_side_faces_orig), i1, i2))
+				skin_side_faces_orig.append((f, len(me_faces) + len(skin_side_faces_orig), i1, i2))
 		
-		me.faces.extend(skin_side_faces)
+		me_faces.extend(skin_side_faces)
 		
 		
 		
 		# Now assign properties.
 		for i, origfData in enumerate(skin_side_faces_orig):
 			orig_f, new_f_idx, i1, i2 = origfData
-			new_f= me.faces[new_f_idx]
+			new_f= me_faces[new_f_idx]
 			
 			new_f.mat= orig_f.mat
 			new_f.smooth= orig_f.smooth
@@ -198,12 +197,11 @@ def main():
 				new_f.col= (col1, col2, col2, col1)
 	
 	if PREF_REM_ORIG:
-		me.faces.delete(0, faces_sel)
+		me_faces.delete(0, faces_sel)
 	
 	
 	Window.WaitCursor(0)
-	if is_editmode:
-		Window.EditMode(1)
+	if is_editmode:	Window.EditMode(1)
 	
 	Window.RedrawAll()
 

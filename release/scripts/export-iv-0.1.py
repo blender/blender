@@ -1,7 +1,7 @@
 #!BPY
 
 """
-Name: 'OpenInventor (.iv)'
+Name: 'OpenInventor (.iv)...'
 Blender: 236
 Group: 'Export'
 Tip: 'Export to OpenInventor file format. (.iv)'
@@ -54,12 +54,12 @@ def WriteHeader(file):
 def WriteFooter(file):
 	file.write("}\n")
 
-def WriteMesh(file, object):
+def WriteMesh(file, ob):
 	file.write("  Separator\n")
 	file.write("  {\n")
-	file.write("    # %s\n" % object.getName())
-	WriteMatrix(file, object)
-	mesh = object.getData()
+	file.write("    # %s\n" % ob.name)
+	WriteMatrix(file, ob)
+	mesh = ob.getData()
 	WriteMaterials(file, mesh)
 	WriteTexture(file, mesh)
 	WriteNormals(file, mesh)
@@ -67,8 +67,8 @@ def WriteMesh(file, object):
 	WriteFaces(file, mesh)
 	file.write("  }\n")
 
-def WriteMatrix(file, object):
-	matrix = object.getMatrix()
+def WriteMatrix(file, ob):
+	matrix = ob.getMatrix()
 	file.write("    MatrixTransform\n")
 	file.write("    {\n")
 	file.write("      matrix\n")
@@ -233,8 +233,8 @@ def WriteFaces(file, mesh):
 	file.write("    }\n")
 
 
-def WriteCamera(file, object):
-	camera = object.getData();
+def WriteCamera(file, ob):
+	camera = ob.getData();
 	# perspective camera
 	if camera.type == 0:
 		file.write("  PerspectiveCamera\n")
@@ -246,15 +246,14 @@ def WriteCamera(file, object):
 	else:
 		print camera.type
 
-def WriteLamp(file, object):
-	lamp = object.getData();
+def WriteLamp(file, ob):
+	lamp = ob.getData();
 	# spot lamp
 	if lamp.type == 2:
 		file.write("    SpotLight\n")
 		file.write("    {\n")
 		file.write("      intensity %s\n" % (lamp.energy / 10.0))
-		file.write("      color %s %s %s\n" % (lamp.col[0], lamp.col[1],
-			lamp.col[2]))
+		file.write("      color %s %s %s\n" % (lamp.col[0], lamp.col[1], lamp.col[2]))
 		#file.write("      location %s\n" % ())
 		#file.write("      direction %s\n" % ())
 		file.write("      dropOffRate %s\n" % (lamp.spotBlend))
@@ -266,22 +265,22 @@ def ExportToIv(file_name):
 	scene = Blender.Scene.GetCurrent()
 	file = open(file_name, "w")
 
-	# make lists of individual object types
+	# make lists of individual ob types
 	meshes = []
 	lamps = []
 	cameras = []
-	for object in scene.objects:
-		obtype= object.type
+	for ob in scene.objects:
+		obtype= ob.type
 		if obtype == "Mesh":
-			meshes.append(object);
+			meshes.append(ob);
 		#elif obtype == "Lamp":
-		#	lamps.append(object);
+		#	lamps.append(ob);
 		#elif obtype == "Camera":
-		#	cameras.append(object);
+		#	cameras.append(ob);
 		#else:
-		#	print "Exporting %s objects isn't supported!" % object.type
+		#	print "Exporting %s objects isn't supported!" % ob.type
 
-	# write header, footer and groups of object types
+	# write header, footer and groups of ob types
 	WriteHeader(file);
 	#for camera in cameras:
 	#  WriteCamera(file, camera);
@@ -298,4 +297,5 @@ def FileSelectorCB(file_name):
 		file_name += '.iv'
 	ExportToIv(file_name)
 
-Blender.Window.FileSelector(FileSelectorCB, "Export IV", Blender.sys.makename(ext='.iv'))
+if __name__ == '__main__':
+	Blender.Window.FileSelector(FileSelectorCB, "Export IV", Blender.sys.makename(ext='.iv'))

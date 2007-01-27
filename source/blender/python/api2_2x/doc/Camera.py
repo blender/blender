@@ -17,7 +17,7 @@ Example::
   cam.scale = 6.0             # set scale value for ortho view
   scn = Scene.GetCurrent()    # get current scene
   ob = scn.objects.new(cam)   # add a new camera object from the data
-  cur.setCurrentCamera(ob)    # make this camera the active
+  scn.setCurrentCamera(ob)    # make this camera the active
 """
 
 def New (type = 'persp', name = 'CamData'):

@@ -64,6 +64,7 @@ except:
 # ===============================
 def read(filename):
 	start = Blender.sys.time()
+	Blender.Window.WaitCursor(1)
 	file = open(filename, "rb")
 	mesh = Blender.NMesh.GetRaw()
 	#mesh.addMaterial(Blender.Material.New())
@@ -122,21 +123,18 @@ def read(filename):
 		mesh.faces.append(face)
 
 	scn= Blender.Scene.GetCurrent()
-	for obj in scn.objects:
-		obj.sel= 0
+	scn.objects.selected = []
 	
-	obj= Blender.Object.New('Mesh', objname)
 	mesh.name= objname
-	obj.link(mesh)
-	scn.link(obj)
-	obj.sel= 1
-	obj.Layers= scn.Layers
+	scn.objects.new(mesh)
 	
 	Blender.Window.DrawProgressBar(1.0, '')  # clear progressbar
 	file.close()
 	end = Blender.sys.time()
 	message = 'Successfully imported "%s" in %.2f seconds' % (Blender.sys.basename(filename), end-start)
 	meshtools.print_boxed(message)
+	Blender.Window.WaitCursor(0)
+	Blender.Window.RedrawAll()
 
 
 def main():
@@ -144,7 +142,7 @@ def main():
 		Blender.Draw.PupMenu('ERROR%t|Error: you need a full Python install to run this script')
 		return
 	
-	Blender.Window.FileSelector(read, "Import Radio", Blender.sys.makename(ext='.radio'))
+	Blender.Window.FileSelector(read, 'Import Radio', '*.radio')
 
 if __name__ == '__main__':
 	main()

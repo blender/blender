@@ -68,14 +68,14 @@ def read(filename):
 	file = open(filename, "rb")
 
 	raw = []
-	for line in file.readlines():
+	for line in file.xreadlines():
 		data = line.split()
 		if data[0] == "vertex":
 			vert = map(float, data[1:])
 			raw.append(vert)
-
+	
 	tri = []
-	for i in range(0, len(raw), 3):
+	for i in xrange(0, len(raw), 3):
 		tri.append(raw[i] + raw[i+1] + raw[i+2])
 
 	#$import pprint; pprint.pprint(tri)
@@ -90,8 +90,8 @@ def read(filename):
 	verts = []
 	coords = {}
 	index = 0
-	for i in range(len(faces)):
-		for j in range(len(faces[i])):
+	for i in xrange(len(faces)):
+		for j in xrange(len(faces[i])):
 			vertex = faces[i][j]
 			if not coords.has_key(vertex):
 				coords[vertex] = index
@@ -112,4 +112,5 @@ def read(filename):
 def fs_callback(filename):
 	read(filename)
 
-Blender.Window.FileSelector(fs_callback, "Import SLP")
+if __name__ == '__main__':
+	Blender.Window.FileSelector(fs_callback, "Import SLP", "*.slp")

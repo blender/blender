@@ -78,7 +78,7 @@ how to handle it.
 # ***** END GPL LICENCE BLOCK *****
 
 import Blender, meshtools
-import struct, os, cStringIO, time
+import struct, cStringIO, time
 
 # ==============================
 # === Write trueSpace Format ===
@@ -91,20 +91,20 @@ def write(filename):
 	write_header(file)
 
 	G,P,V,U,M = 1000,2000,3000,4000,5000
-	for object in objects:
-		objname = object.name
-		meshname = object.getData(name_only=1)
+	for obj_index, obj in enumerate(objects):
+		objname = obj.name
+		meshname = obj.getData(name_only=1)
 		mesh = Blender.NMesh.GetRaw(meshname)
-		obj = object
+		
 		if not mesh: continue
 
-		grou = generate_grou('Group ' + `objects.index(object)+1`)
+		grou = generate_grou('Group ' + `obj_index+1`)
 		polh = generate_polh(objname, obj, mesh)
 		if meshtools.has_vertex_colors(mesh): vcol = generate_vcol(mesh)
 		unit = generate_unit()
 		mat1 = generate_mat1(mesh)
 
-		if objects.index(object) == 0: X = 0
+		if obj_index == 0: X = 0
 
 		write_chunk(file, "Grou", 0, 1, G, X, grou)
 		write_chunk(file, "PolH", 0, 4, P, G, polh)
@@ -122,7 +122,7 @@ def write(filename):
 	file.close()
 	end = time.clock()
 	seconds = " in %.2f %s" % (end-start, "seconds")
-	message = "Successfully exported " + os.path.basename(filename) + seconds
+	message = "Successfully exported " + filename.split('\\')[-1].split('/')[-1] + seconds
 	meshtools.print_boxed(message)
 
 # =============================
@@ -162,24 +162,26 @@ def write_ObjectName(data, objname):
 
 # === Write Local Axes ===
 def write_LocalAxes(data, obj):
-	data.write(struct.pack("<fff", obj.mat[3][0], obj.mat[3][1], obj.mat[3][2]))
-	data.write(struct.pack("<fff", obj.mat[0][0]/obj.SizeX, obj.mat[1][0]/obj.SizeX, obj.mat[2][0]/obj.SizeX))
-	data.write(struct.pack("<fff", obj.mat[0][1]/obj.SizeY, obj.mat[1][1]/obj.SizeY, obj.mat[2][1]/obj.SizeY))
-	data.write(struct.pack("<fff", obj.mat[0][2]/obj.SizeZ, obj.mat[1][2]/obj.SizeZ, obj.mat[2][2]/obj.SizeZ))
+	mat = obj.mat
+	data.write(struct.pack("<fff", mat[3][0], mat[3][1], mat[3][2]))
+	data.write(struct.pack("<fff", mat[0][0]/obj.SizeX, mat[1][0]/obj.SizeX, mat[2][0]/obj.SizeX))
+	data.write(struct.pack("<fff", mat[0][1]/obj.SizeY, mat[1][1]/obj.SizeY, mat[2][1]/obj.SizeY))
+	data.write(struct.pack("<fff", mat[0][2]/obj.SizeZ, mat[1][2]/obj.SizeZ, mat[2][2]/obj.SizeZ))
 
 # === Write Current Position ===
 def write_CurrentPosition(data, obj):
-	data.write(struct.pack("<ffff", obj.mat[0][0], obj.mat[0][1], obj.mat[0][2], obj.mat[3][0]))
-	data.write(struct.pack("<ffff", obj.mat[1][0], obj.mat[1][1], obj.mat[1][2], obj.mat[3][1]))
-	data.write(struct.pack("<ffff", obj.mat[2][0], obj.mat[2][1], obj.mat[2][2], obj.mat[3][2]))
+	mat = obj.mat
+	data.write(struct.pack("<ffff", mat[0][0], mat[0][1], mat[0][2], mat[3][0]))
+	data.write(struct.pack("<ffff", mat[1][0], mat[1][1], mat[1][2], mat[3][1]))
+	data.write(struct.pack("<ffff", mat[2][0], mat[2][1], mat[2][2], mat[3][2]))
 
 # === Write Vertex List ===
 def write_VertexList(data, mesh):
 	data.write(struct.pack("<l", len(mesh.verts)))
-	for i in range(len(mesh.verts)):
+	for i, v in enumerate(mesh.verts):
 		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.verts), "Writing Verts")
-		x, y, z = mesh.verts[i].co
+		x, y, z = v.co
 		data.write(struct.pack("<fff", -y, x, z))
 
 # === Write UV Vertex List ===
@@ -198,12 +200,12 @@ def write_UVCoordsList(data, mesh):
 	uvdata = cStringIO.StringIO()
 	uvcoords = {}
 	uvidx = 0
-	for i in range(len(mesh.faces)):
+	for i, f in enumerate(mesh.faces):
 		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing UV Coords")
-		numfaceverts = len(mesh.faces[i].v)
-		for j in range(numfaceverts-1, -1, -1): 	# Reverse order
-			u,v = mesh.faces[i].uv[j]
+		numfaceverts = len(f)
+		for j in xrange(numfaceverts-1, -1, -1): 	# Reverse order
+			u,v = f.uv[j]
 			if not uvcoords.has_key((u,v)):
 				uvcoords[(u,v)] = uvidx
 				uvidx += 1
@@ -219,14 +221,14 @@ def write_UVCoordsList(data, mesh):
 # === Write Face List ===
 def write_FaceList(data, mesh, uvcoords):
 	data.write(struct.pack("<l", len(mesh.faces)))
-	for i in range(len(mesh.faces)):
+	for i in xrange(len(mesh.faces)):
 		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Faces")
 		numfaceverts = len(mesh.faces[i].v)
 		data.write(struct.pack("<B", 0x10))         # Cull Back Faces Flag
 		data.write(struct.pack("<h", numfaceverts))
 		data.write(struct.pack("<h", 0))            # Material Index
-		for j in range(numfaceverts-1, -1, -1): 	# Reverse order
+		for j in xrange(numfaceverts-1, -1, -1): 	# Reverse order
 			index = mesh.faces[i].v[j].index
 			if mesh.hasFaceUV():
 				uv = mesh.faces[i].uv[j]
@@ -243,12 +245,12 @@ def generate_vcol(mesh):
 	data.write(struct.pack("<l", len(mesh.faces)))
 	uniquecolors = {}
 	unique_alpha = {}
-	for i in range(len(mesh.faces)):
+	for i in xrange(len(mesh.faces)):
 		if not i%100 and meshtools.show_progress:
 			Blender.Window.DrawProgressBar(float(i)/len(mesh.faces), "Writing Vertex Colors")
 		numfaceverts = len(mesh.faces[i].v)
 		data.write(struct.pack("<ll", i, numfaceverts))
-		for j in range(numfaceverts-1, -1, -1): 	# Reverse order
+		for j in xrange(numfaceverts-1, -1, -1): 	# Reverse order
 			r = mesh.faces[i].col[j].r
 			g = mesh.faces[i].col[j].g
 			b = mesh.faces[i].col[j].b
@@ -276,13 +278,25 @@ def generate_unit():
 # === Generate Mat1 (Material) Chunk ===
 # ======================================
 def generate_mat1(mesh):
+	
+	def get_crufty_mesh_image():
+		'''Crufty because it only uses 1 image
+		'''
+		if mesh.hasFaceUV():
+			for f in me.faces:
+				i = f.image
+				if i:
+					return i.filename
+	
 	data = cStringIO.StringIO()
 	data.write(struct.pack("<h", 0))
 	data.write(struct.pack("<ccB", "p", "a", 0))
 	data.write(struct.pack("<fff", 1.0, 1.0, 1.0))  # rgb (0.0 - 1.0)
 	data.write(struct.pack("<fffff", 1, 1, 0, 0, 1))
-	if mesh.hasFaceUV():
-		tex_mapname = r"c:\image\maps\one-dot.tga"
+	
+	tex_mapname = get_crufty_mesh_image()
+	
+	if tex_mapname:
 		data.write("t:")
 		data.write(struct.pack("<B", 0x00))
 		data.write(struct.pack("<h", len(tex_mapname)))
@@ -301,10 +315,11 @@ def generate_grou(name):
 	return data.getvalue()
 
 def fs_callback(filename):
-	if filename.find('.cob', -4) <= 0: filename += '.cob'
+	if not filename.lower().endswith('.cob'): filename += '.cob'
 	write(filename)
 
-Blender.Window.FileSelector(fs_callback, "Export COB")
+if __name__ == '__main__':
+	Blender.Window.FileSelector(fs_callback, "Export COB", Blender.sys.makename(ext='.cob'))
 
 # === Matrix Differences between Blender & trueSpace ===
 #
