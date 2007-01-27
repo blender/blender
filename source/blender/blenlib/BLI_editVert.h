@@ -169,7 +169,6 @@ typedef struct EditMesh
 	 */
 	int lastDataMask;
 
-	char retopo_mode; /* 0=OFF, 1=ON, 2=PAINT */
 	struct RetopoPaintData *retopo_paint_data;
 
 	CustomData vdata, fdata;

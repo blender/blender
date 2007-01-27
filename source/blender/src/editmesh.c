@@ -619,7 +619,7 @@ void free_editMesh(EditMesh *em)
 
 	if(em->retopo_paint_data) retopo_free_paint_data(em->retopo_paint_data);
 	em->retopo_paint_data= NULL;
-	em->retopo_mode= 0;
+	G.scene->toolsettings->retopo_mode&= ~RETOPO_PAINT;
 }
 
 /* on G.editMesh */
@@ -1930,7 +1930,7 @@ static void *editMesh_to_undoMesh(void)
 	}
 
 	um->retopo_paint_data= retopo_paint_data_copy(em->retopo_paint_data);
-	um->retopo_mode= em->retopo_mode;
+	um->retopo_mode= G.scene->toolsettings->retopo_mode;
 	
 	{
 		Multires *mr= get_mesh(G.obedit)->mr;
@@ -2060,8 +2060,8 @@ static void undoMesh_to_editMesh(void *umv)
 
 	retopo_free_paint();
 	em->retopo_paint_data= retopo_paint_data_copy(um->retopo_paint_data);
-	em->retopo_mode= um->retopo_mode;
-	if(em->retopo_mode) {
+	G.scene->toolsettings->retopo_mode= um->retopo_mode;
+	if(G.scene->toolsettings->retopo_mode) {
 		if(G.vd->depths) G.vd->depths->damaged= 1;
 		retopo_queue_updates(G.vd);
 		retopo_paint_view_update(G.vd);

@@ -342,9 +342,10 @@ typedef struct ToolSettings {
 	
 	/* Retopo */
 	char retopo_mode;
+	char retopo_paint_tool;
 	char line_div, ellipse_div, retopo_hotspot;
 	
-	int  pad4;
+	char  pad4[3];
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set
@@ -619,6 +620,10 @@ typedef struct Scene {
 #define IMAGEPAINT_DRAW_TOOL_DRAWING	4
 
 /* toolsettings->retopo_mode */
+#define RETOPO 1
+#define RETOPO_PAINT 2
+
+/* toolsettings->retopo_paint_tool */
 #define RETOPO_PEN 1
 #define RETOPO_LINE 2
 #define RETOPO_ELLIPSE 4

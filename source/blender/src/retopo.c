@@ -98,7 +98,7 @@ RetopoPaintData *get_retopo_paint_data()
 
 char retopo_mesh_paint_check()
 {
-	return retopo_mesh_check() && G.editMesh->retopo_mode & 2;
+	return retopo_mesh_check() && G.scene->toolsettings->retopo_mode & RETOPO_PAINT;
 }
 
 void retopo_free_paint_data(RetopoPaintData *rpd)
@@ -391,7 +391,7 @@ void retopo_end_okee()
 		retopo_paint_apply();
 	else
 		retopo_free_paint();
-	G.editMesh->retopo_mode &= ~2;
+	G.scene->toolsettings->retopo_mode &= ~RETOPO_PAINT;
 }
 
 void retopo_paint_toggle(void *a, void *b)
@@ -401,7 +401,7 @@ void retopo_paint_toggle(void *a, void *b)
 		RetopoPaintData *rpd= MEM_callocN(sizeof(RetopoPaintData),"RetopoPaintData");
 		
 		G.editMesh->retopo_paint_data= rpd;
-		G.scene->toolsettings->retopo_mode= RETOPO_PEN;
+		G.scene->toolsettings->retopo_paint_tool= RETOPO_PEN;
 		rpd->seldist= 15;
 		rpd->nearest.line= NULL;
 		G.scene->toolsettings->line_div= 25;
@@ -472,7 +472,7 @@ char retopo_paint(const unsigned short event)
 		if(rpd->in_drag && !lbut) { /* End drag */
 			rpd->in_drag= 0;
 
-			switch(G.scene->toolsettings->retopo_mode) {
+			switch(G.scene->toolsettings->retopo_paint_tool) {
 			case RETOPO_PEN:
 				break;
 			case RETOPO_LINE:
@@ -488,7 +488,7 @@ char retopo_paint(const unsigned short event)
 		switch(event) {
 		case MOUSEX:
 		case MOUSEY:
-			switch(G.scene->toolsettings->retopo_mode) {
+			switch(G.scene->toolsettings->retopo_paint_tool) {
 			case RETOPO_PEN:
 				if(rpd->in_drag && rpd->lines.last) {
 					l= rpd->lines.last;
@@ -540,7 +540,7 @@ char retopo_paint(const unsigned short event)
 		case PADENTER:
 			retopo_paint_apply();
 		case ESCKEY:
-			G.editMesh->retopo_mode= 1;
+			G.scene->toolsettings->retopo_mode&= ~RETOPO_PAINT;
 			retopo_free_paint();
 
 			BIF_undo_push("Retopo toggle");
@@ -553,7 +553,7 @@ char retopo_paint(const unsigned short event)
 			allqueue(REDRAWVIEW3D, 0);
 			break;
 		case EKEY:
-			G.scene->toolsettings->retopo_mode= RETOPO_ELLIPSE;
+			G.scene->toolsettings->retopo_paint_tool= RETOPO_ELLIPSE;
 			allqueue(REDRAWVIEW3D, 1);
 			break;
 		case HKEY:
@@ -561,11 +561,11 @@ char retopo_paint(const unsigned short event)
 			allqueue(REDRAWVIEW3D, 1);
 			break;
 		case LKEY:
-			G.scene->toolsettings->retopo_mode= RETOPO_LINE;
+			G.scene->toolsettings->retopo_paint_tool= RETOPO_LINE;
 			allqueue(REDRAWVIEW3D, 1);
 			break;
 		case PKEY:
-			G.scene->toolsettings->retopo_mode= RETOPO_PEN;
+			G.scene->toolsettings->retopo_paint_tool= RETOPO_PEN;
 			allqueue(REDRAWVIEW3D, 1);
 			break;
 		case XKEY:
@@ -592,7 +592,7 @@ char retopo_paint(const unsigned short event)
 				rpd->sloc[0]= mouse[0];
 				rpd->sloc[1]= mouse[1];
 				
-				switch(G.scene->toolsettings->retopo_mode) {
+				switch(G.scene->toolsettings->retopo_paint_tool) {
 				case RETOPO_PEN:
 					if(rpd->nearest.line) {
 						RetopoPaintPoint *p, *pt;
@@ -664,7 +664,7 @@ void retopo_draw_paint_lines()
 		}
 
 		/* Draw ellipse */
-		if(G.scene->toolsettings->retopo_mode==RETOPO_ELLIPSE && rpd->in_drag) {
+		if(G.scene->toolsettings->retopo_paint_tool==RETOPO_ELLIPSE && rpd->in_drag) {
 			short mouse[2];
 			getmouseco_areawin(mouse);
 		
@@ -672,7 +672,7 @@ void retopo_draw_paint_lines()
 			fdrawXORellipse(rpd->sloc[0],rpd->sloc[1],abs(mouse[0]-rpd->sloc[0]),abs(mouse[1]-rpd->sloc[1]));
 			setlinestyle(0);
 		}
-		else if(G.scene->toolsettings->retopo_mode==RETOPO_LINE && rpd->in_drag) {
+		else if(G.scene->toolsettings->retopo_paint_tool==RETOPO_LINE && rpd->in_drag) {
 			short mouse[2];
 			getmouseco_areawin(mouse);
 
@@ -724,7 +724,7 @@ RetopoPaintData *retopo_paint_data_copy(RetopoPaintData *rpd)
 
 char retopo_mesh_check()
 {
-	return G.obedit && G.obedit->type==OB_MESH && (G.editMesh->retopo_mode & 1);
+	return G.obedit && G.obedit->type==OB_MESH && (G.scene->toolsettings->retopo_mode & RETOPO);
 }
 char retopo_curve_check()
 {
@@ -738,7 +738,7 @@ void retopo_toggle(void *j1,void *j2)
 		if(G.vd->depths) G.vd->depths->damaged= 1;
 		retopo_queue_updates(G.vd);
 	} else {
-		if(G.editMesh && G.editMesh->retopo_mode & 2)
+		if(G.editMesh && G.scene->toolsettings->retopo_mode & RETOPO_PAINT)
 			retopo_end_okee();
 	}
 

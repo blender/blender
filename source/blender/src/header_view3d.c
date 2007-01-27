@@ -4999,23 +4999,23 @@ void view3d_buttons(void)
  		if(rpd) {
  			ToolSettings *ts= G.scene->toolsettings;
  			
- 			uiDefButC(block,ROW,B_REDR,"Pen",xco,0,40,20,&ts->retopo_mode,6.0,RETOPO_PEN,0,0,"");
+ 			uiDefButC(block,ROW,B_REDR,"Pen",xco,0,40,20,&ts->retopo_paint_tool,6.0,RETOPO_PEN,0,0,"");
  			xco+=40;
- 			uiDefButC(block,ROW,B_REDR,"Line",xco,0,40,20,&ts->retopo_mode,6.0,RETOPO_LINE,0,0,"");
+ 			uiDefButC(block,ROW,B_REDR,"Line",xco,0,40,20,&ts->retopo_paint_tool,6.0,RETOPO_LINE,0,0,"");
  			xco+=40;
- 			uiDefButC(block,ROW,B_REDR,"Ellipse",xco,0,60,20,&ts->retopo_mode,6.0,RETOPO_ELLIPSE,0,0,"");
+ 			uiDefButC(block,ROW,B_REDR,"Ellipse",xco,0,60,20,&ts->retopo_paint_tool,6.0,RETOPO_ELLIPSE,0,0,"");
  			xco+=65;
 			
  			uiBlockBeginAlign(block);
- 			if(ts->retopo_mode == RETOPO_PEN) {
+ 			if(ts->retopo_paint_tool == RETOPO_PEN) {
  				uiDefButC(block,TOG,B_NOP,"Hotspot",xco,0,60,20, &ts->retopo_hotspot, 0,0,0,0,"Show hotspots at line ends to allow line continuation");
 	 			xco+=80;
  			}
- 			else if(ts->retopo_mode == RETOPO_LINE) {
+ 			else if(ts->retopo_paint_tool == RETOPO_LINE) {
 	 			uiDefButC(block,NUM,B_NOP,"LineDiv",xco,0,80,20,&ts->line_div,1,50,0,0,"Subdivisions per retopo line");
 	 			xco+=80;
 	 		}
-			else if(ts->retopo_mode == RETOPO_ELLIPSE) {
+			else if(ts->retopo_paint_tool == RETOPO_ELLIPSE) {
 	 			uiDefButC(block,NUM,B_NOP,"EllDiv",xco,0,80,20,&ts->ellipse_div,3,50,0,0,"Subdivisions per retopo ellipse");
 	 			xco+=80;
 	 		}
