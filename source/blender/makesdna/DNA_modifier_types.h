@@ -7,8 +7,6 @@
 
 #define MODSTACK_DEBUG 1
 
-struct MemArena;
-
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE! */
 
 typedef enum ModifierType {
