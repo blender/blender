@@ -46,7 +46,7 @@ Example::
 
 
 @type Types: readonly dictionary
-@var Types: Constant Modifier dict used for  L{ModSeq.append()} to a
+@var Types: Constant Modifier dict used for  L{ModSeq.append} to a
   modifier sequence and comparing with L{Modifier.type}:
     - ARMATURE - type value for Armature modifiers
     - BOOLEAN - type value for Boolean modifiers
@@ -137,7 +137,7 @@ class ModSeq:
   def append(type):
     """
     Appends a new modifier to the end of the object's modifier stack.
-    @type type: a constant specifying the type of modifier to create. as from L{Type}
+    @type type: a constant specifying the type of modifier to create. as from L{Types}
     @rtype: Modifier
     @return: the new Modifier
     """
@@ -178,7 +178,7 @@ class Modifier:
   @ivar name: The name of this modifier. 31 chars max.
   @type name: string
   @ivar type: The type of this modifier. Read-only.  The returned value
-  matches the types in L{Type}.
+  matches the types in L{Types}.
   @type type: int
   """  
 

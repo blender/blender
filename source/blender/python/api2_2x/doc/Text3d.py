@@ -11,12 +11,9 @@ This module provides access to B{Font} objects in Blender.
 Example::
   import Blender
   from Blender import Curve, Object, Scene, Text3d
-  #
   txt = Text3d.New("MyText")  # create a new Text3d object called MyText
-  cur = Scene.getCurrent()    # get current scene
-  ob = Object.New('Text')     # make curve object
-  ob.link(txt)                # link curve data with this object
-  cur.link(ob)                # link object into scene
+  scn = Scene.GetCurrent()    # get current scene
+  ob = scn.objects.new(txt)   # create an object from the obdata in the current scene
   ob.makeDisplayList()        # rebuild the display list for this object
   Window.RedrawAll()
 """

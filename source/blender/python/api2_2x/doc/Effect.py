@@ -557,16 +557,14 @@ class Effect:
           # Check that particles are points only (not static and not vectors)
           if not effect.getFlag() & Effect.Flags.STATIC or not effect.getStype():
             for pt in particles: 
-              ob_empty= Object.New('Empty')
+              ob_empty= scn.objects.new('Empty')
               ob_empty.setLocation(pt)
-              scn.link(ob_empty)
           
           else: # Particles will be a list
             for pt in particles:
               for pt_item in pt:
-                ob_empty= Object.New('Empty')
+                ob_empty= scn.objects.new('Empty')
                 ob_empty.setLocation(pt_item)
-                scn.link(ob_empty)
 
     Example::
           # Converts particles into a mesh with edges for strands
@@ -588,7 +586,5 @@ class Effect:
                           me.edges.extend( edges )
           
           print len(me.verts)
-          ob= Object.New('Mesh')
-          ob.link(me)
-          scn.link(ob)
+          ob= scn.objects.new(me)
     """

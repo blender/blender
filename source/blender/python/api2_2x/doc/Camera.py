@@ -13,13 +13,11 @@ This module provides access to B{Camera Data} objects in Blender.
 Example::
 
   from Blender import Camera, Object, Scene
-  c = Camera.New('ortho')     # create new ortho camera data
-  c.scale = 6.0               # set scale value
-  cur = Scene.GetCurrent()    # get current scene
-  ob = Object.New('Camera')   # make camera object
-  ob.link(c)                  # link camera data with this object
-  cur.link(ob)                # link object into scene
-  cur.setCurrentCamera(ob)    # make this camera the active"
+  cam = Camera.New('ortho')   # create new ortho camera data
+  cam.scale = 6.0             # set scale value for ortho view
+  scn = Scene.GetCurrent()    # get current scene
+  ob = scn.objects.new(cam)   # add a new camera object from the data
+  cur.setCurrentCamera(ob)    # make this camera the active
 """
 
 def New (type = 'persp', name = 'CamData'):

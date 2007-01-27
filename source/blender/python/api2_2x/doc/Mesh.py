@@ -36,11 +36,8 @@ Example::
  me.faces[1].col[1].g = 255
  me.faces[1].col[2].b = 255
 
- ob = Object.New('Mesh','myObj')  # link mesh to an object
- ob.link(me)
-
- sc = Scene.GetCurrent()          # link object to current scene
- sc.link(ob)
+ scn = Scene.GetCurrent()          # link object to current scene
+ ob = scn.objects.new(me, 'myObj')
 
  if editmode: Window.EditMode(1)  # optional, just being nice
 

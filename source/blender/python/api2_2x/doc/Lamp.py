@@ -12,11 +12,11 @@ This module provides control over B{Lamp Data} objects in Blender.
 
 Example::
 
-  from Blender import Lamp
+  from Blender import Lamp, Scene
   l = Lamp.New('Spot')            # create new 'Spot' lamp data
   l.setMode('Square', 'Shadow')   # set these two lamp mode flags
-  ob = Object.New('Lamp')         # create new lamp object
-  ob.link(l)                      # link lamp obj with lamp data
+  scn = Scene.GetCurrent()
+  ob = scn.objects.new(l)
 
 @type Types: read-only dictionary
 @var Types: The lamp types.

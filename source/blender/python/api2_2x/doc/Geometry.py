@@ -36,11 +36,8 @@ def PolyFill(polylines):
     me.verts.extend(polyline2)
     me.faces.extend(fill) # Add the faces, they reference the verts in polyline 1 and 2
 
-    ob= Blender.Object.New('Mesh')
-    ob.link(me)
     scn = Blender.Scene.GetCurrent()
-    scn.link(ob)
-
+    ob = scn.objects.new(me)
     Blender.Redraw()
   """
 

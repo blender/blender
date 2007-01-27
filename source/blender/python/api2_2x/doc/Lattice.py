@@ -13,7 +13,6 @@ Example::
 	from Blender import Lattice, Object, Scene, Modifier
 
 	# Make new lattice data
-	ob_lattice = Object.New('Lattice')
 	lattice_data = Lattice.New()
 	lattice_data.setPartitions(5,5,5)
 	lattice_data.setKeyTypes(Lattice.LINEAR, Lattice.CARDINAL, Lattice.BSPLINE)
@@ -25,15 +24,13 @@ Example::
 		co2 = vec[1] - vec[2] * 0.3
 		co3 = vec[2] * 3
 		lattice_data.setPoint(y,[co1,co2,co3])
-
-	# Link the data to an object
-	ob_lattice.link(lattice_data) 
-
+	
+	# Create a new object from the lattice in the current scene
+	scn = Scene.GetCurrent()
+	ob_lattice = scn.objects.new(lattice_data)
+	
 	# Get an object to deform with this lattice
 	mySphere = Object.Get('Sphere')
-
-	scn = Scene.getCurrent()
-	scn.link(ob_lattice)
 
 	# Apply lattice modifier
 	mod= mySphere.modifiers.append(Modifier.Type.LATTICE)

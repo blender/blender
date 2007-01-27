@@ -8,29 +8,31 @@ Curve Data
 
 This module provides access to B{Curve Data} objects in Blender.
 
-A Blender Curve can consist of multiple curves. Try converting a Text object to a Curve to see an example of this.   Each curve is of
-type Bezier or Nurb.  The underlying curves can be accessed with
-the [] operator.  Operator [] returns an object of type CurNurb.
+A Blender Curve Data consists of multiple L{CurNurb}(s). Try converting a Text object to a Curve to see an example of this.   Each curve is of
+type Bezier or Nurb.  The underlying L{CurNurb}(s) can be accessed with
+the [] operator.  Operator [] returns an object of type L{CurNurb}.
+
+Note that L{CurNurb} can be used to acces a curve of any type (Poly, Bezier or Nurb)
 
 The Curve module also supports the Python iterator interface.  This means you
-can access the curves in a Curve and the control points in a CurNurb using a
+can access the L{CurNurb}(s) in a Curve and the control points in a L{CurNurb} using a
 Python B{for} statement.
 
 
 Add a Curve to a Scene Example::
   from Blender import Curve, Object, Scene
-  c = Curve.New()             # create new  curve data
-  cur = Scene.getCurrent()    # get current scene
-  ob = Object.New('Curve')    # make curve object
-  ob.link(c)                  # link curve data with this object
-  cur.link(ob)                # link object into scene
+  cu = Curve.New()             # create new  curve data
+  scn = Scene.GetCurrent()    # get current scene
+  ob = scn.objects.new(cu)     # make a new curve from the curve data
 
 Iterator Example::
-  ob = Object.GetSelected()[0]
-  curve = ob.getData()
-  for cur in curve:
-    print type( cur ), cur
-    for point in cur:
+  from Blender import Curve, Object, Scene
+  scn = Scene.GetCurrent()    # get current scene
+  ob = scn.objects.active
+  curvedata = ob.data
+  for curnurb in curvedata:
+    print type( curnurb ), curnurb
+    for point in curnurb:
       print type( point ), point
 
 Creating a Curve from a list of Vec triples Examples::
@@ -67,11 +69,8 @@ Creating a Curve from a list of Vec triples Examples::
     	i+=1
     
     # Add the Curve into the scene
-    ob= Object.New('Curve')
-    ob.link(cu)
     scn= Scene.GetCurrent()
-    scn.link(ob)
-    ob.Layers= scn.Layers
+    ob = scn.objects.new(cu)
   	return ob
 """
 
@@ -99,24 +98,24 @@ class Curve:
   """
   The Curve Data object
   =====================
-  This object gives access to Curve-specific data in Blender.
+  This object gives access to Curve and Surface data linked from Blender Objects.
   
   @ivar name: The Curve Data name.
   @type name: string
-  @ivar pathlen: The Curve Data path length.
+  @ivar pathlen: The Curve Data path length, used to set the number of frames for an animation (not the physical length).
   @type pathlen: int
   @ivar totcol: The Curve Data maximal number of linked materials. Read-only.
   @type totcol: int
   @ivar flag: The Curve Data flag value; see L{getFlag()} for the semantics.
-  @ivar bevresol: The Curve Data bevel resolution.
-  @type bevresol: float
-  @ivar resolu: The Curve Data U-resolution.
-  @type resolu: float
-  @ivar resolv: The Curve Data V-resolution.
-  @type resolv: float
-  @ivar width: The Curve Data width.
+  @ivar bevresol: The Curve Data bevel resolution. [0 - 32]
+  @type bevresol: int
+  @ivar resolu: The Curve Data U-resolution (used for curve and surface resolution) [0 - 1024].
+  @type resolu: int
+  @ivar resolv: The Curve Data V-resolution (used for surface resolution) [0 - 1024].
+  @type resolv: int
+  @ivar width: The Curve Data width [0 - 2].
   @type width: float
-  @ivar ext1: The Curve Data extent 1(for bevels).
+  @ivar ext1: The Curve Data extent1 (for bevels).
   @type ext1: float
   @ivar ext2: The Curve Data extent2 (for bevels).
   @type ext2: float
@@ -157,7 +156,7 @@ class Curve:
 
   def getPathLen():
     """
-    Get this Curve's path length.
+    Get this Curve's path frame length, used for an animated path.
     @rtype: int
     @return: the path length.
     """
@@ -233,7 +232,8 @@ class Curve:
 
   def setResolu(resolu):
     """
-    Set the Curve's U-resolution value.
+    Set the Curve's U-resolution value. [0 - 1024]
+    This is used for surfaces and curves.
     @rtype: None
     @type resolu: float
     @param resolu: The new Curve's U-resolution value.
@@ -247,7 +247,8 @@ class Curve:
 
   def setResolv(resolv):
     """
-    Set the Curve's V-resolution value.
+    Set the Curve's V-resolution value. [0 - 1024].
+    This is used for surfaces only.
     @rtype: None
     @type resolv: float
     @param resolv: The new Curve's V-resolution value.
@@ -520,11 +521,13 @@ class CurNurb:
     """
     The CurNurb Object
     ==================
-    This object provides access to the control points of the curves that make up a Blender Curve.
+    This object provides access to the control points of the curves that make up a Blender Curve ObData.
 
     The CurNurb supports the python iterator protocol which means you can use a python for statement to access the points in a curve.
 
     The CurNurb also supports the sequence protocol which means you can access the control points of a CurNurb using the [] operator.
+
+    Note that CurNurb is used for accesing poly, bezier and nurbs type curves.
 
     @ivar flagU: The CurNurb knot flag U.  See L{setFlagU} for description.
     @type flagU: int
@@ -533,10 +536,10 @@ class CurNurb:
     @ivar type: The type of the curve (Poly: 0, Bezier: 1, NURBS: 4)
     @type type: int
     """
-	
+
     def __setitem__( n, point ):
       """
-	  Replace the Nth point in the curve. The type of the argument must match the type of the curve. List of 4 floats (optional 5th float is the tilt value in radians) for Nurbs or BezTriple for Bezier.
+      Replace the Nth point in the curve. The type of the argument must match the type of the curve. List of 4 floats (optional 5th float is the tilt value in radians) for Nurbs or BezTriple for Bezier.
       @rtype: None
       @return: None
       @type n: integer
@@ -547,7 +550,7 @@ class CurNurb:
 
     def __getitem__( n ):
       """
-	  Get the Nth element in the curve. For Bezier curves, that element is a BezTriple. For the rest (Poly and Nurbs), it is a list of 5 floats: x, y, z, weight, tilt (in radians). NOTE 1: This element is independent on the curve, modifying it will not affect the curve. NOTE 2: Each successive call returns a new object.
+      Get the Nth element in the curve. For Bezier curves, that element is a BezTriple. For the rest (Poly and Nurbs), it is a list of 5 floats: x, y, z, weight, tilt (in radians). NOTE 1: This element is independent on the curve, modifying it will not affect the curve. NOTE 2: Each successive call returns a new object.
       @rtype: BezTriple (Bezier Curve) or List of 5 floats [x, y, z, w, t] for Poly or Nurbs
       @return: The Nth element in the curve
       @type n: integer
@@ -591,7 +594,7 @@ class CurNurb:
       Boolean method checks whether a CurNurb is cyclic (a closed curve) or not.
       @rtype: boolean
       @return: True or False
-	  """
+      """
 
     def getFlagU():
       """
@@ -685,7 +688,7 @@ class SurfNurb:
 
   def __setitem__( n, point ):
       """
-	  Set the Nth control point in the surface. 
+      Set the Nth control point in the surface. 
       @rtype: None
       @return: None
       @type n: integer
@@ -699,7 +702,7 @@ class SurfNurb:
 
   def __getitem__( n ):
       """
-	  Get the Nth control point in the surface. 
+      Get the Nth control point in the surface. 
       @rtype: List of 5 floats [x, y, z, w, t] for Poly or Nurbs
       @return: The Nth point in the curve
       @type n: integer

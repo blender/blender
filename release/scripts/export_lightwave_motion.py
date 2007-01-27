@@ -50,20 +50,24 @@ import Blender as B
 TotalCanales = 9
 #------------------------------------
 
-# Change the extension of the file path
-def NuevoNombre(ext):
-	return B.Get('filename')[: -len(B.Get('filename').split('.', -1)[-1]) -1 ] + ext
-
-ObjSelect = B.Object.GetSelected()
-
 def FuncionPrincipal (Dir):
 	B.Window.WaitCursor(1)
+	ObjSelect = B.Object.GetSelected()
+	
+	if not ObjSelect:
+		B.Draw.PupMenu('Select 1 or more objects, aborting.')
+		return
+	
+	if not Dir.lower().endswith('.mot'):
+		Dir += '.mot'
+		
+	
+	SC = B.Scene.GetCurrent()
+	SCR = SC.getRenderingContext()
+	
 	for ob in ObjSelect:
 		origName= NombreObjeto= ob.name
 		print '----\nExporting Object "%s" motion file...' % origName
-
-		SC = B.Scene.getCurrent()
-		SCR = SC.getRenderingContext()
 
 		FrameA = B.Get('curframe')
 		FrameP = B.Get('staframe')
@@ -78,11 +82,11 @@ def FuncionPrincipal (Dir):
 			NombreObjeto = NombreObjeto.replace(ch, '_')
 
 		# Check for file path extension
-		if Dir.lower().endswith('.mot'):
+		if len(ObjSelect) > 1:
 			DirN= '%s_%s.mot' % (Dir[:-4], NombreObjeto)
 		else:
-			DirN= '%s_%s.mot' % (Dir, NombreObjeto)
-
+			DirN= Dir
+		
 		# Open the file
 		File = open(DirN,'w')
 		File.write ('LWMO\n3\n\n') # 3 is the version number.
@@ -96,7 +100,7 @@ def FuncionPrincipal (Dir):
 		def CicloPrimario(NumCanal):
 			B.Set('curframe', FrameP)
 
-			File.write ('Channel %i\n{ Envelope\n %i\n' % (NumCanal, (FrameF - FrameP + 1)))
+			File.write ('Channel %i\n{ Envelope\n  %i\n' % (NumCanal, (FrameF - FrameP + 1)))
 
 			FrameA = FrameP
 			while FrameA < (FrameF + 1):
@@ -123,8 +127,7 @@ def FuncionPrincipal (Dir):
 					Val = mat.scalePart().z
 				elif NumCanal == 8:
 					Val = mat.scalePart().y
-
-				File.write (' Key %f %f 3 0 0 0 0 0 0\n' % (Val, (FrameA/FrameRate)))
+				File.write ('  Key %f %f 3 0 0 0 0 0 0\n' % (Val, (FrameA/FrameRate)))
 
 				FrameA += 1
 			# Ending Stuff
@@ -143,14 +146,11 @@ def FuncionPrincipal (Dir):
 			
 		B.Window.DrawProgressBar(1.0, '') # Done
 		print '\nDone, %s motion file location is:\n%s\n' % (origName, DirN)
+	B.Window.WaitCursor(0)
 
 # Check if there are selected objects
 def main():
-	if len(ObjSelect) == 0:
-		B.Draw.PupMenu('Select 1 or more objects, aborting.')
-	else:
-		# Call File Selector
-		B.Window.FileSelector(FuncionPrincipal, "Write .mot File", NuevoNombre('.mot'))
+	B.Window.FileSelector(FuncionPrincipal, "Write .mot File", B.sys.makename(ext='.mot'))
 
 if __name__=='__main__':
 	main()

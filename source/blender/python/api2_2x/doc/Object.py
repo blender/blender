@@ -26,11 +26,9 @@ This module provides access to the B{Objects} in Blender.
 Example::
 
   import Blender
-  scene = Blender.Scene.getCurrent ()   # get the current scene
-  ob = Blender.Object.New ('Camera')    # make camera object
-  cam = Blender.Camera.New ('ortho')    # make ortho camera data object
-  ob.link (cam)                         # link camera data with the object
-  scene.link (ob)                       # link the object into the scene
+  scn = Blender.Scene.GetCurrent()      # get the current scene
+  cam = Blender.Camera.New('ortho')     # make ortho camera data object
+  ob = scn.objects.new(cam)             # make a new object in this scene using the camera data
   ob.setLocation (0.0, -5.0, 1.0)       # position the object in the scene
 
   Blender.Redraw()                      # redraw the scene to show the updates.
@@ -223,17 +221,16 @@ def Duplicate (mesh=0, surface=0, curve=0, text=0, metaball=0, armature=0, lamp=
     import Blender
 
     scn = Scene.GetCurrent()
-    activeObject = scn.getActiveObject()
+    ob_act = scn.objects.active
     
     # Unselect all
-    for ob in Blender.Object.GetSelected():
-        ob.sel = 0
-    activeObject.sel = 1
+    scn.objects.selected = []
+    ob_act.sel = 1
     
     for x in xrange(10):
         Blender.Object.Duplicate() # Duplicate linked
-        activeObject = scn.getActiveObject()
-        activeObject.LocX += 1
+        ob_act = scn.objects.active
+        ob_act.LocX += 1
     Blender.Redraw()
   """
 
@@ -400,8 +397,7 @@ class Object:
          scn= Scene.GetCurrent()
          for dupe_ob, dupe_matrix in dupe_obs:
            print dupe_ob.name
-           empty_ob= Object.New('Empty')
-           scn.link(empty_ob)
+           empty_ob = scn.objects.new('Empty')
            empty_ob.setMatrix(dupe_matrix)
          Blender.Redraw()
     @type DupObjects: list of tuples containing (object, matrix)
@@ -1193,8 +1189,8 @@ class Object:
     Example::
       import Blender
 
-      scene = Blender.Scene.GetCurrent()
-      object = scene.getActiveObject()
+      scn = Blender.Scene.GetCurrent()
+      object = scn.objects.active
       object.modifiers.append(Blender.Modifier.Type.SUBSURF)
       object.makeDisplayList()
       Blender.Window.RedrawAll()

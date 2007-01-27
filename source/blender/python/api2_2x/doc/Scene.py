@@ -7,7 +7,6 @@ B{New}:
   - L{Scene.clearScriptLinks<Scene.Scene.clearScriptLinks>} accepts a parameter now.
   - acess methods L{Scene.getLayers<Scene.Scene.getLayers>}, L{Scene.setLayers<Scene.Scene.setLayers>} via lists to complement the layers and
     Layers Scene attributes which use bitmasks. 
-  - L{Scene.getActiveObject<Scene.Scene.getActiveObject>} method.
 
 Scene
 =====
