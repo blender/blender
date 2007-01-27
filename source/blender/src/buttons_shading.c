@@ -3635,10 +3635,10 @@ static void material_panel_links(Object *ob, Material *ma)
 	uiDefBlockBut(block, strand_menu, ma, "Strands",			160,30,75, 19, "Display strand settings for static particles");
 	uiDefButBitI(block, TOG, MA_ZINV, B_MATPRV,	"ZInvert",			236,30,75,19, &(ma->mode), 0, 0, 0, 0, "Renders material's faces with inverted Z Buffer");
 				  
-	uiDefButBitI(block, TOG, MA_RADIO, B_NOP,	"Radio",		10,10,75,19, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosity rendering");
-	uiDefButBitI(block, TOG, MA_ONLYCAST, B_MATPRV,"OnlyCast",		85,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes faces only cast shadows, not rendered");
-	uiDefButBitI(block, TOG, MA_TRACEBLE, B_NOP,"Traceable",	160,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes material to being detected by ray tracing");
-	uiDefButBitI(block, TOG, MA_SHADBUF, B_MATPRV,	"Shadbuf",		235,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes material to cast shadows with shadow buffers");
+	uiDefButBitI(block, TOG, MA_RADIO, B_NOP,	"Radio",		10,10,75,19, &(ma->mode), 0, 0, 0, 0, "Enables radiosity rendering for material");
+	uiDefButBitI(block, TOG, MA_ONLYCAST, B_MATPRV,"OnlyCast",		85,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes faces cast shadows only, not rendered");
+	uiDefButBitI(block, TOG, MA_TRACEBLE, B_NOP,"Traceable",	160,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes material detectable by ray tracing");
+	uiDefButBitI(block, TOG, MA_SHADBUF, B_MATPRV,	"Shadbuf",		235,10,75,19, &(ma->mode), 0, 0, 0, 0, "Makes material cast shadows from shadow buffer lamps");
 				  
 	
 }
