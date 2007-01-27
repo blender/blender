@@ -2315,6 +2315,11 @@ static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
 					tf = dm->faceData.layers[itf].data;
 					strcpy(dmd->uvlayer_name, dm->faceData.layers[itf].name);
 				}
+			} else {
+				/* no uv layer specified, use the active one */
+				itf = CustomData_get_active_layer_index(&dm->faceData, CD_MTFACE);
+				tf = dm->faceData.layers[itf].data;
+				strcpy(dmd->uvlayer_name, dm->faceData.layers[itf].name);
 			}
 			
 			/* verts are given the UV from the first face that uses them */
