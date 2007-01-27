@@ -1199,16 +1199,17 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 			
 	}
 	
+	mesh_update_customdata_pointers(me);
+	
 	if(em) {
 		MEM_freeN(eves);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		recalc_editnormals();
 	} else {
 		multires_edge_level_update(ob,me);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 	}
-	
-	mesh_update_customdata_pointers(me);
 
 	/* friendly check for background render */
 	if(G.background==0) {
