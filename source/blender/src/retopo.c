@@ -550,6 +550,7 @@ char retopo_paint(const unsigned short event)
 			break;
 		case CKEY:
 			retopo_paint_toggle_cyclic(rpd->lines.last);
+			BIF_undo_push("Retopo toggle cyclic");
 			allqueue(REDRAWVIEW3D, 0);
 			break;
 		case EKEY:
