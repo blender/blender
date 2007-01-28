@@ -14,7 +14,7 @@ elif env['OURPLATFORM']=='win32-mingw':
 elif sys.platform=='sunos5':
    cflags += ['-O2', '-ansi']
 elif sys.platform=='darwin':
-   cflags += ['-O2', '-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc' , '-mtune=G4']
+   cflags += ['-O2', '-pipe', '-fPIC', '-funsigned-char', '-ffast-math']
 
 sources = ['src/geom.c',
     'src/geom2.c',

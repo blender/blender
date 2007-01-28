@@ -16,7 +16,7 @@ Import('env')
 #elif sys.platform=='sunos':
 #	ftgl_env.Append (CCFLAGS = ['Xc', '-v', '-fast'])
 #elif sys.platform=='darwin':
-#	ftgl_env.Append (CCFLAGS = ['-O2', '-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc' , '-mtune=G4'])
+#	ftgl_env.Append (CCFLAGS = ['-O2', '-pipe', '-fPIC', '-funsigned-char', '-ffast-math'])
 #else:
 #	ftgl_env.Append (CCFLAGS = cflags)
 

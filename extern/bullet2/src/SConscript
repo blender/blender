@@ -19,7 +19,7 @@ elif sys.platform=='linux2' or sys.platform=='linux-i386' or sys.platform=='free
     cflags += ['-O2']
 elif sys.platform=='darwin':
     defs += ' NDEBUG'
-    cflags += ['-O2','-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc' , '-mtune=G4']
+    cflags += ['-O2','-pipe', '-fPIC', '-funsigned-char', '-ffast-math']
 
 linearmath_src = env.Glob("LinearMath/*.cpp")
 bulletdyn_src = ["BulletDynamics/ConstraintSolver/btContactConstraint.cpp",
