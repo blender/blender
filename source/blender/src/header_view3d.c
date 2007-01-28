@@ -5098,14 +5098,14 @@ void view3d_buttons(void)
 
 			if (G.vd->flag2 & V3D_TRANSFORM_SNAP)
 				{
-				uiDefIconButBitS(block, TOG, V3D_TRANSFORM_SNAP, B_REDR, ICON_SNAP_GEO,xco,0,XIC,YIC, &G.vd->flag2, 0, 0, 0, 0, "Use Snapping or Gears (Shift Tab)");	
+				uiDefIconButBitS(block, TOG, V3D_TRANSFORM_SNAP, B_REDR, ICON_SNAP_GEO,xco,0,XIC,YIC, &G.vd->flag2, 0, 0, 0, 0, "Use Snap or Grid (Shift Tab)");	
 				xco+= XIC;
 				uiDefButS(block, MENU, B_NOP, "Mode%t|Closest%x0|Center%x1|Median%x2",xco,0,70,YIC, &G.vd->snap_target, 0, 0, 0, 0, "Snap Target Mode");
 				xco+= 70;
 				}
 			else
 				{
-				uiDefIconButBitS(block, TOG, V3D_TRANSFORM_SNAP, B_REDR, ICON_SNAP_GEAR,xco,0,XIC,YIC, &G.vd->flag2, 0, 0, 0, 0, "Use Snapping or Gears (Shift Tab)");	
+				uiDefIconButBitS(block, TOG, V3D_TRANSFORM_SNAP, B_REDR, ICON_SNAP_GEAR,xco,0,XIC,YIC, &G.vd->flag2, 0, 0, 0, 0, "Use Snap or Grid (Shift Tab)");	
 				xco+= XIC;
 				}
 
