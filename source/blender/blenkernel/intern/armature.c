@@ -794,8 +794,8 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 			}
 		}
 
-		/* actually should be EPSILON. weight values and contrib can be like 10e-39 small */
-		if(contrib > 0.01f) {
+		/* actually should be EPSILON? weight values and contrib can be like 10e-39 small */
+		if(contrib > 0.0001f) {
 			VecMulf(vec, armature_weight / contrib);
 			VecAddf(co, vec, co);
 		}

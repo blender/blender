@@ -4350,6 +4350,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
 
+	if(G.f & G_DEBUG)
+		printf("read file %s\n  Version %d sub %d\n", fd->filename, main->versionfile, main->subversionfile);
+	
 	if(main->versionfile == 100) {
 		/* tex->extend and tex->imageflag have changed: */
 		Tex *tex = main->tex.first;
