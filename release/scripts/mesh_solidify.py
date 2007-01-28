@@ -18,6 +18,13 @@ Optionaly you can skin between the original and new faces to make a watertight s
 
 from Blender import *
 import BPyMesh
+
+# python 2.3 has no reversed() iterator. this will only work on lists and tuples
+try:
+	reversed
+except:
+	def reversed(l): return l[::-1]
+
 Ang= Mathutils.AngleBetweenVecs
 SMALL_NUM=0.00001
 
@@ -28,20 +35,23 @@ SMALL_NUM=0.00001
 # down at Y0 is a unit length line point up at (angle) from X0,Y0 (LINEB)
 # This function returns the length of LINEB at the point it would intersect LINEA
 # - Use this for working out how long to make the vector - differencing it from surrounding faces,
-import math
+# import math
+from math import pi, sin, cos, sqrt
 
 def lengthFromAngle(angle):
+	''' # Alredy accounted for
 	if angle < SMALL_NUM:
 		return 1.0
-	angle = 2*math.pi*angle/360
-	x,y = math.cos(angle), math.sin(angle)
+	'''
+	angle = 2*pi*angle/360
+	x,y = cos(angle), sin(angle)
 	# print "YX", x,y
 	# 0 d is hoz to the right.
 	# 90d is vert upward.
 	fac=1/x
 	x=x*fac
 	y=y*fac
-	return math.sqrt((x*x)+(y*y))
+	return sqrt((x*x)+(y*y))
 
 
 def main():
@@ -76,7 +86,7 @@ def main():
 	if is_editmode: Window.EditMode(0)
 	
 	# Main code function	
-	me = ob.getData(mesh=True)
+	me = ob.getData(mesh=1)
 	me_faces = me.faces
 	faces_sel= [f for f in me_faces if f.sel]
 	
@@ -107,7 +117,10 @@ def main():
 			
 			length= length/len(vertFaces[i])
 			#print 'LENGTH %.6f' % length
-			normals[i]= (normals[i] * length) * PREF_THICK
+			# normals[i]= (normals[i] * length) * PREF_THICK
+			normals[i] *= length * PREF_THICK
+			
+			
 	
 	len_verts = len( me.verts )
 	len_faces = len( me_faces )
