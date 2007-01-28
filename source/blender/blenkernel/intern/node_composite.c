@@ -1641,12 +1641,16 @@ static void node_composit_exec_hue_sat(void *data, bNode *node, bNodeStack **in,
 	}
 	else {
 		/* make output size of input image */
-		CompBuf *cbuf= in[1]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
+		CompBuf *cbuf= dupalloc_compbuf(in[1]->data);
+		CompBuf *stackbuf=typecheck_compbuf(cbuf,CB_RGBA);
 		
-		composit2_pixel_processor(node, stackbuf, cbuf, in[1]->vec, in[0]->data, in[0]->vec, do_hue_sat_fac, CB_RGBA, CB_VAL);
+		composit2_pixel_processor(node, stackbuf, stackbuf, in[1]->vec, in[0]->data, in[0]->vec, do_hue_sat_fac, CB_RGBA, CB_VAL);
 
 		out[0]->data= stackbuf;
+
+		/* get rid of intermediary cbuf if it's extra */		
+		if(stackbuf!=cbuf)
+			free_compbuf(cbuf);
 	}
 }
 
@@ -2129,24 +2133,23 @@ static void node_composit_exec_sephsva(void *data, bNode *node, bNodeStack **in,
 	}
 	else if ((out[0]->hasoutput) || (out[1]->hasoutput) || (out[2]->hasoutput) || (out[3]->hasoutput)) {
 		/* make output size of input image */
-		CompBuf *cbuf= in[0]->data;
-
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
+		CompBuf *cbuf= typecheck_compbuf(in[0]->data,CB_RGBA);
 
 		/* convert the RGB stackbuf to an HSV representation */
-		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_sephsva, CB_RGBA);
+		composit1_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, do_sephsva, CB_RGBA);
 
 		/* separate each of those channels */
 		if(out[0]->hasoutput)
-			out[0]->data= valbuf_from_rgbabuf(stackbuf, CHAN_R);
+			out[0]->data= valbuf_from_rgbabuf(cbuf, CHAN_R);
 		if(out[1]->hasoutput)
-			out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_G);
+			out[1]->data= valbuf_from_rgbabuf(cbuf, CHAN_G);
 		if(out[2]->hasoutput)
-			out[2]->data= valbuf_from_rgbabuf(stackbuf, CHAN_B);
+			out[2]->data= valbuf_from_rgbabuf(cbuf, CHAN_B);
 		if(out[3]->hasoutput)
-			out[3]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
+			out[3]->data= valbuf_from_rgbabuf(cbuf, CHAN_A);
 			
-		free_compbuf(stackbuf);
+		if(cbuf!=in[0]->data)		
+			free_compbuf(cbuf);
 	}
 }
 
@@ -4260,24 +4263,23 @@ static void node_composit_exec_sepyuva(void *data, bNode *node, bNodeStack **in,
 	}
 	else if ((out[0]->hasoutput) || (out[1]->hasoutput) || (out[2]->hasoutput) || (out[3]->hasoutput)) {
 		/* make output size of input image */
-		CompBuf *cbuf= in[0]->data;
-	
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
+		CompBuf *cbuf= typecheck_compbuf(in[0]->data,CB_RGBA);
 	
 		/* convert the RGB stackbuf to an YUV representation */
-		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_sepyuva, CB_RGBA);
+		composit1_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, do_sepyuva, CB_RGBA);
 	
 		/* separate each of those channels */
 		if(out[0]->hasoutput)
-			out[0]->data= valbuf_from_rgbabuf(stackbuf, CHAN_R);
+			out[0]->data= valbuf_from_rgbabuf(cbuf, CHAN_R);
 		if(out[1]->hasoutput)
-			out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_G);
+			out[1]->data= valbuf_from_rgbabuf(cbuf, CHAN_G);
 		if(out[2]->hasoutput)
-			out[2]->data= valbuf_from_rgbabuf(stackbuf, CHAN_B);
+			out[2]->data= valbuf_from_rgbabuf(cbuf, CHAN_B);
 		if(out[3]->hasoutput)
-			out[3]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
+			out[3]->data= valbuf_from_rgbabuf(cbuf, CHAN_A);
 	
-		free_compbuf(stackbuf);
+		if(cbuf!=in[0]->data)
+			free_compbuf(cbuf);
 	}
 }
 
@@ -4334,24 +4336,23 @@ static void node_composit_exec_sepycca(void *data, bNode *node, bNodeStack **in,
 	}
 	else if ((out[0]->hasoutput) || (out[1]->hasoutput) || (out[2]->hasoutput) || (out[3]->hasoutput)) {
 		/* make output size of input image */
-		CompBuf *cbuf= in[0]->data;
-	
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
+		CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 	
 		/* convert the RGB stackbuf to an HSV representation */
-		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_sepycca, CB_RGBA);
+		composit1_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, do_sepycca, CB_RGBA);
 	
 		/* separate each of those channels */
 		if(out[0]->hasoutput)
-			out[0]->data= valbuf_from_rgbabuf(stackbuf, CHAN_R);
+			out[0]->data= valbuf_from_rgbabuf(cbuf, CHAN_R);
 		if(out[1]->hasoutput)
-			out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_G);
+			out[1]->data= valbuf_from_rgbabuf(cbuf, CHAN_G);
 		if(out[2]->hasoutput)
-			out[2]->data= valbuf_from_rgbabuf(stackbuf, CHAN_B);
+			out[2]->data= valbuf_from_rgbabuf(cbuf, CHAN_B);
 		if(out[3]->hasoutput)
-			out[3]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
+			out[3]->data= valbuf_from_rgbabuf(cbuf, CHAN_A);
 	
-		free_compbuf(stackbuf);
+		if(cbuf!=in[0]->data)
+			free_compbuf(cbuf);
 	}
 }
 
