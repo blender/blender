@@ -778,6 +778,8 @@ class Mesh:
   @ivar texMesh: The mesh's texMesh setting, used so coordinates from another
     mesh can be used for rendering textures.
   @type texMesh: Mesh or None
+  @ivar key: The L{Key<Key.Key>} object containing the keyframes for this mesh, if any.
+  @type key: Key or None
 
   @ivar activeUVLayer: The mesh's active UV/Image layer. None if there is no UV/Image layers.
   @type activeUVLayer: string

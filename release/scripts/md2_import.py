@@ -8,7 +8,7 @@ Tooltip: 'Import from Quake file format (.md2).'
 """
 
 __author__ = 'Bob Holcomb'
-__version__ = '0.15'
+__version__ = '0.16'
 __url__ = ["Bob's site, http://bane.servebeer.com",
      "Support forum, http://scourage.servebeer.com/phpbb/", "blender", "elysiun"]
 __email__ = ["Bob Holcomb, bob_holcomb:hotmail*com", "scripts"]
@@ -16,7 +16,7 @@ __bpydoc__ = """\
 This script imports a Quake 2 file (MD2), textures, 
 and animations into blender for editing.  Loader is based on MD2 loader from www.gametutorials.com-Thanks DigiBen! and the md3 blender loader by PhaethonH <phaethon@linux.ucla.edu><br>
 
- Additional help from: Shadwolf, Skandal, Rojo, Cambo<br>
+ Additional help from: Shadwolf, Skandal, Rojo and Campbell Barton<br>
  Thanks Guys!
 """
 
@@ -43,16 +43,13 @@ and animations into blender for editing.  Loader is based on MD2 loader from www
 
 
 import Blender
-from Blender import NMesh, Object, sys
+from Blender import Mesh, Object, sys
 from Blender.BGL import *
 from Blender.Draw import *
 from Blender.Window import *
-from Blender.Image import *
-
-import struct, string
+from Blender.Mathutils import Vector
+import struct
 from types import *
-
-
 
 
 ######################################################
@@ -80,10 +77,8 @@ MD2_MAX_FRAMESIZE=(MD2_MAX_VERTICES * 4 + 128)
 ######################################################
 # MD2 data structures
 ######################################################
-class md2_alias_triangle:
-	vertices=[]
-	lightnormalindex=0
-
+class md2_alias_triangle(object):
+	__slots__ = 'vertices', 'lightnormalindex'
 	binary_format="<3BB" #little-endian (<), 3 Unsigned char
 	
 	def __init__(self):
@@ -107,11 +102,11 @@ class md2_alias_triangle:
 		print "lightnormalindex: ",self.lightnormalindex
 		print ""
 
-class md2_face:
-	vertex_index=[]
-	texture_index=[]
-
+class md2_face(object):
+	
 	binary_format="<3h3h" #little-endian (<), 3 short, 3 short
+	
+	__slots__ = 'vertex_index', 'texture_index'
 	
 	def __init__(self):
 		self.vertex_index = [ 0, 0, 0 ]
@@ -138,12 +133,10 @@ class md2_face:
 		print "texture index: ", self.texture_index[2]
 		print ""
 
-class md2_tex_coord:
-	u=0
-	v=0
-
+class md2_tex_coord(object):
+	__slots__ = 'u', 'v'
 	binary_format="<2h" #little-endian (<), 2 unsigned short
-
+	
 	def __init__(self):
 		self.u=0
 		self.v=0
@@ -162,9 +155,8 @@ class md2_tex_coord:
 		print ""
 
 
-class md2_skin:
-	name=""
-
+class md2_skin(object):
+	__slots__ = 'name'
 	binary_format="<64s" #little-endian (<), char[64]
 
 	def __init__(self):
@@ -181,12 +173,8 @@ class md2_skin:
 		print "skin name: ",self.name
 		print ""
 
-class md2_alias_frame:
-	scale=[]
-	translate=[]
-	name=[]
-	vertices=[]
-
+class md2_alias_frame(object):
+	__slots__ = 'scale', 'translate', 'name', 'vertices'
 	binary_format="<3f3f16s" #little-endian (<), 3 float, 3 float char[16]
 	#did not add the "3bb" to the end of the binary format
 	#because the alias_vertices will be read in through
@@ -222,7 +210,17 @@ class md2_alias_frame:
 		print "name: ",self.name
 		print ""
 
-class md2_obj:
+class md2_obj(object):
+	__slots__ =\
+	'tex_coords', 'faces', 'frames',\
+	'skins', 'ident', 'version',\
+	'skin_width', 'skin_height',\
+	'frame_size', 'num_skins', 'num_vertices',\
+	'num_tex_coords', 'num_faces', 'num_GL_commands',\
+	'num_frames', 'offset_skins', 'offset_tex_coords',\
+	'offset_faces', 'offset_frames', 'offset_GL_commands'
+	
+	'''
 	#Header Structure
 	ident=0				#int 0	This is used to identify the file
 	version=0			#int 1	The version number of the file (Must be 8)
@@ -241,14 +239,10 @@ class md2_obj:
 	offset_frames=0		#int 14	The offset in the file for the frames data
 	offset_GL_commands=0#int 15	The offset in the file for the gl commands data
 	offset_end=0		#int 16	The end of the file offset
-
+	'''
 	binary_format="<17i"  #little-endian (<), 17 integers (17i)
 
 	#md2 data objects
-	tex_coords=[]
-	faces=[]
-	frames=[]
-	skins=[]
 
 	def __init__ (self):
 		self.tex_coords=[]
@@ -356,133 +350,162 @@ class md2_obj:
 ######################################################
 def load_textures(md2, texture_filename):
 	#did the user specify a texture they wanted to use?
-	if (texture_filename!="texture"):
+	if texture_filename:
 		if (Blender.sys.exists(texture_filename)):
-			mesh_image=Blender.Image.Load(texture_filename)
-			return mesh_image
-		else:
-			result=Blender.Draw.PupMenu("Cannot find texture: "+texture_filename+"-Continue?%t|OK")
-			if(result==1):
-				return -1
+			try:	return Blender.Image.Load(texture_filename)
+			except:	return -1 # could not load?
+			
 	#does the model have textures specified with it?
 	if int(md2.num_skins) > 0:
 		for i in xrange(0,md2.num_skins):
 			#md2.skins[i].dump()
 			if (Blender.sys.exists(md2.skins[i].name)):
-				mesh_image=Blender.Image.Load(md2.skins[i].name)
-			else:
-				result=Blender.Draw.PupMenu("Cannot find texture: "+md2.skins[i].name+"-Continue?%t|OK")
-				if(result==1):
-					return -1
-		return mesh_image 
-	else:
-		result=Blender.Draw.PupMenu("There will be no Texutre"+"-Continue?%t|OK")
-		if(result==1):
-			return -1
+				try:	return Blender.Image.Load(md2.skins[i].name)
+				except:	return -1
 	
 
-def animate_md2(md2, mesh_obj):
+def animate_md2(md2, mesh):
 	######### Animate the verts through keyframe animation
-	mesh=mesh_obj.getData()
+	
+	# Fast access to the meshes vertex coords
+	verts = [v.co for v in mesh.verts] 
+	scale = g_scale.val
+	
 	for i in xrange(1, md2.num_frames):
+		frame = md2.frames[i]
 		#update the vertices
-		for j in xrange(0,md2.num_vertices):
-			x=(md2.frames[i].scale[0]*md2.frames[i].vertices[j].vertices[0]+md2.frames[i].translate[0])*g_scale.val
-			y=(md2.frames[i].scale[1]*md2.frames[i].vertices[j].vertices[1]+md2.frames[i].translate[1])*g_scale.val
-			z=(md2.frames[i].scale[2]*md2.frames[i].vertices[j].vertices[2]+md2.frames[i].translate[2])*g_scale.val
-
+		for j in xrange(md2.num_vertices):
+			x=(frame.scale[0] * frame.vertices[j].vertices[0] + frame.translate[0]) * scale
+			y=(frame.scale[1] * frame.vertices[j].vertices[1] + frame.translate[1]) * scale
+			z=(frame.scale[2] * frame.vertices[j].vertices[2] + frame.translate[2]) * scale
+			
 			#put the vertex in the right spot
-			mesh.verts[j].co[0]=y
-			mesh.verts[j].co[1]=-x
-			mesh.verts[j].co[2]=z
-
-		mesh.update()
-		NMesh.PutRaw(mesh, mesh_obj.name)
-		#absolute keys, need to figure out how to get them working around the 100 frame limitation
+			verts[j][:] = y,-x,z
+			
 		mesh.insertKey(i,"absolute")
+		# mesh.insertKey(i)
 		
 		#not really necissary, but I like playing with the frame counter
 		Blender.Set("curframe", i)
+	
+	
+	# Make the keys animate in the 3d view.
+	key = mesh.key
+	key.relative = False
+	
+	# Add an IPO to teh Key
+	ipo = Blender.Ipo.New('Key', 'md2')
+	key.ipo = ipo
+	# Add a curve to the IPO
+	curve = ipo.addCurve('Basis')
+	
+	# Add 2 points to cycle through the frames.
+	curve.append((1, 0))
+	curve.append((md2.num_frames, (md2.num_frames-1)/10.0))
+	curve.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
+	
 
 
-def load_md2 (md2_filename, texture_filename):
+def load_md2(md2_filename, texture_filename):
 	#read the file in
 	file=open(md2_filename,"rb")
+	WaitCursor(1)
+	DrawProgressBar(0.0, 'Loading MD2')
 	md2=md2_obj()
 	md2.load(file)
 	#md2.dump()
 	file.close()
 
 	######### Creates a new mesh
-	mesh = NMesh.New()
+	mesh = Mesh.New()
 
 	uv_coord=[]
-	uv_list=[]
-
+	#uv_list=[]
+	verts_extend = []
 	#load the textures to use later
 	#-1 if there is no texture to load
 	mesh_image=load_textures(md2, texture_filename)
+	if mesh_image == -1 and texture_filename:
+		print 'MD2 Import, Warning, texture "%s" could not load'
 
 	######### Make the verts
 	DrawProgressBar(0.25,"Loading Vertex Data")
-	for i in xrange(0,md2.num_vertices):
+	frame = md2.frames[0]
+	scale = g_scale.val
+	
+	def tmp_get_vertex(i):
 		#use the first frame for the mesh vertices
-		x=(md2.frames[0].scale[0]*md2.frames[0].vertices[i].vertices[0]+md2.frames[0].translate[0])*g_scale.val
-		y=(md2.frames[0].scale[1]*md2.frames[0].vertices[i].vertices[1]+md2.frames[0].translate[1])*g_scale.val
-		z=(md2.frames[0].scale[2]*md2.frames[0].vertices[i].vertices[2]+md2.frames[0].translate[2])*g_scale.val
-		vertex=NMesh.Vert(y,-x,z)
-		mesh.verts.append(vertex)
-
+		x=(frame.scale[0]*frame.vertices[i].vertices[0]+frame.translate[0])*scale
+		y=(frame.scale[1]*frame.vertices[i].vertices[1]+frame.translate[1])*scale
+		z=(frame.scale[2]*frame.vertices[i].vertices[2]+frame.translate[2])*scale
+		return y,-x,z
+	
+	mesh.verts.extend( [tmp_get_vertex(i) for i in xrange(0,md2.num_vertices)] )
+	del tmp_get_vertex
+	
 	######## Make the UV list
 	DrawProgressBar(0.50,"Loading UV Data")
-	mesh.hasFaceUV(1)  #turn on face UV coordinates for this mesh
-	for i in xrange(0, md2.num_tex_coords):
-		u=(float(md2.tex_coords[i].u)/float(md2.skin_width))
-		v=(float(md2.tex_coords[i].v)/float(md2.skin_height))
-		#for some reason quake2 texture maps are upside down, flip that
-		uv_coord=(u,1-v)
-		uv_list.append(uv_coord)
-
+	
+	w = float(md2.skin_width)
+	h = float(md2.skin_height)
+	#for some reason quake2 texture maps are upside down, flip that
+	uv_list = [Vector(co.u/w, 1-(co.v/h)) for co in md2.tex_coords]
+	del w, h
+	
 	######### Make the faces
 	DrawProgressBar(0.75,"Loading Face Data")
-	for i in xrange(0,md2.num_faces):
-		face = NMesh.Face()
-		#draw the triangles in reverse order so they show up
-		face.v.append(mesh.verts[md2.faces[i].vertex_index[0]])
-		face.v.append(mesh.verts[md2.faces[i].vertex_index[2]])
-		face.v.append(mesh.verts[md2.faces[i].vertex_index[1]])
-		#append the list of UV
-		#ditto in reverse order with the texture verts
-		face.uv.append(uv_list[md2.faces[i].texture_index[0]])
-		face.uv.append(uv_list[md2.faces[i].texture_index[2]])
-		face.uv.append(uv_list[md2.faces[i].texture_index[1]])
-
-		#set the texture that this face uses if it has one
-		if (mesh_image!=-1):
-			face.image=mesh_image
+	faces = []
+	face_uvs = []
+	for md2_face in md2.faces:
+		f = md2_face.vertex_index[0], md2_face.vertex_index[2], md2_face.vertex_index[1]
+		uv = uv_list[md2_face.texture_index[0]], uv_list[md2_face.texture_index[2]], uv_list[md2_face.texture_index[1]]
 		
-		#add the face
-		mesh.faces.append(face)
-
-	mesh_obj=NMesh.PutRaw(mesh)
-	animate_md2(md2, mesh_obj)
-	DrawProgressBar(0.999,"Loading Animation Data")
+		if f[2] == 0:
+			# EEKADOODLE :/
+			f= f[1], f[2], f[0]
+			uv= uv[1], uv[2], uv[0]
+		
+		#ditto in reverse order with the texture verts
+		faces.append(f)
+		face_uvs.append(uv)
+	
+	
+	face_mapping = mesh.faces.extend(faces, indexList=True)
+	print len(faces)
+	print len(mesh.faces)
+	mesh.faceUV= True  #turn on face UV coordinates for this mesh
+	mesh_faces = mesh.faces
+	for i, uv in enumerate(face_uvs):
+		if face_mapping[i] != None:
+			f = mesh_faces[face_mapping[i]]
+			f.uv = uv
+			if (mesh_image!=-1):
+				f.image=mesh_image
+	
+	scn= Blender.Scene.GetCurrent()
+	mesh_obj= scn.objects.new(mesh)
+	animate_md2(md2, mesh)
+	DrawProgressBar(0.98,"Loading Animation Data")
 	
 	#locate the Object containing the mesh at the cursor location
 	cursor_pos=Blender.Window.GetCursorPos()
 	mesh_obj.setLocation(float(cursor_pos[0]),float(cursor_pos[1]),float(cursor_pos[2]))
-	DrawProgressBar (1.0, "Finished") 
+	DrawProgressBar (1.0, "") 
+	WaitCursor(0)
 
 #***********************************************
 # MAIN
 #***********************************************
 
 # Import globals
-g_md2_filename=Create("model")
-g_texture_filename=Create("texture")
+g_md2_filename=Create("*.md2")
+#g_md2_filename=Create("/d/warvet/tris.md2")
+g_texture_filename=Create('')
+# g_texture_filename=Create("/d/warvet/warvet.jpg")
 
-g_filename_search=Create("model")
-g_texture_search=Create("texture")
+g_filename_search=Create("*.md2")
+g_texture_search=Create('')
+# g_texture_search=Create("/d/warvet/warvet.jpg")
 
 #Globals
 g_scale=Create(1.0)
@@ -523,23 +546,27 @@ def draw_gui():
 	Text("MD2 loader")
 
 	######### Parameters GUI Buttons
+	BeginAlign()
 	g_md2_filename = String("MD2 file to load: ", EVENT_NOEVENT, 10, 55, 210, 18,
-                            g_md2_filename.val, 255, "MD2 file to load")
+							g_md2_filename.val, 255, "MD2 file to load")
 	########## MD2 File Search Button
-	Button("Search",EVENT_CHOOSE_FILENAME,220,55,80,18)
+	Button("Browse",EVENT_CHOOSE_FILENAME,220,55,80,18)
+	EndAlign()
 
+	BeginAlign()
 	g_texture_filename = String("Texture file to load: ", EVENT_NOEVENT, 10, 35, 210, 18,
-                                g_texture_filename.val, 255, "Texture file to load-overrides MD2 file")
+								g_texture_filename.val, 255, "Texture file to load-overrides MD2 file")
 	########## Texture Search Button
-	Button("Search",EVENT_CHOOSE_TEXTURE,220,35,80,18)
+	Button("Browse",EVENT_CHOOSE_TEXTURE,220,35,80,18)
+	EndAlign()
 
 	########## Scale slider-default is 1/8 which is a good scale for md2->blender
 	g_scale= Slider("Scale Factor: ", EVENT_NOEVENT, 10, 75, 210, 18,
-                    1.0, 0.001, 10.0, 1, "Scale factor for obj Model");
+					1.0, 0.001, 10.0, 1, "Scale factor for obj Model");
 
 	######### Draw and Exit Buttons
 	Button("Load",EVENT_LOAD_MD2 , 10, 10, 80, 18)
- 	Button("Exit",EVENT_EXIT , 170, 10, 80, 18)
+	Button("Exit",EVENT_EXIT , 170, 10, 80, 18)
 
 def event(evt, val):	
 	if (evt == QKEY and not val):
@@ -558,14 +585,14 @@ def bevent(evt):
 	elif (evt==EVENT_CHOOSE_TEXTURE):
 		FileSelector(texture_callback, "Texture Selection")
 	elif (evt==EVENT_LOAD_MD2):
-		if (g_md2_filename.val == "model"):
-			Blender.Draw.Exit()
+		if not Blender.sys.exists(g_md2_filename.val):
+			PupMenu('Model file does not exist')
 			return
 		else:
 			load_md2(g_md2_filename.val, g_texture_filename.val)
- 			Blender.Redraw()
+			Blender.Redraw()
 			Blender.Draw.Exit()
 			return
 
-
-Register(draw_gui, event, bevent)
+if __name__ == '__main__':
+	Register(draw_gui, event, bevent)
