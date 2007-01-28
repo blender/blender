@@ -600,12 +600,12 @@ static PBool p_edge_implicit_seam(PEdge *e, PEdge *ep)
 		uvp2 = ep->orig_uv;
 	}
 
-	if((fabs(uv1[0]-uvp1[0]) > limit[0]) && (fabs(uv1[1]-uvp1[1]) > limit[1])) {
+	if((fabs(uv1[0]-uvp1[0]) > limit[0]) || (fabs(uv1[1]-uvp1[1]) > limit[1])) {
 		e->flag |= PEDGE_SEAM;
 		ep->flag |= PEDGE_SEAM;
 		return P_TRUE;
 	}
-	if((fabs(uv2[0]-uvp2[0]) > limit[0]) && (fabs(uv2[1]-uvp2[1]) > limit[1])) {
+	if((fabs(uv2[0]-uvp2[0]) > limit[0]) || (fabs(uv2[1]-uvp2[1]) > limit[1])) {
 		e->flag |= PEDGE_SEAM;
 		ep->flag |= PEDGE_SEAM;
 		return P_TRUE;
