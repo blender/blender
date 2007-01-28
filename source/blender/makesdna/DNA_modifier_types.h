@@ -179,6 +179,7 @@ typedef struct DisplaceModifierData {
 	int texmapping;
 	struct Object *map_object;
 	char uvlayer_name[32];
+	int uvlayer_tmp, pad;
 } DisplaceModifierData;
 
 /* DisplaceModifierData->direction */

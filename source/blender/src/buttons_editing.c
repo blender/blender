@@ -1380,16 +1380,14 @@ static void modifiers_convertToReal(void *ob_v, void *md_v)
 	BIF_undo_push("Modifier convert to real");
 }
 
-int stupid_uvmenu_var=0;
-
 void set_displace_uvlayer(void *arg1, void *arg2)
 {
 	DisplaceModifierData *dmd=arg1;
 	CustomDataLayer *layer = arg2;
-	
+
 	/*check we have UV layers*/
-	if (stupid_uvmenu_var < 1) return;
-	layer = layer + (stupid_uvmenu_var-1);
+	if (dmd->uvlayer_tmp < 1) return;
+	layer = layer + (dmd->uvlayer_tmp-1);
 	
 	strcpy(dmd->uvlayer_name, layer->name);
 }
@@ -1648,13 +1646,13 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				CustomData *fdata = G.obedit?&G.editMesh->fdata:&((Mesh*)ob->data)->fdata;
 				CustomDataLayer *layer = &fdata->layers[CustomData_get_layer_index(fdata, CD_MTFACE)];
 				
-				stupid_uvmenu_var = -1;
+				dmd->uvlayer_tmp = -1;
 				
 				totuv=CustomData_number_of_layers(fdata, CD_MTFACE);
 				sprintf(strtmp, "UV Layer%%t");
 				for (i=0; i<totuv; i++) {
 					/*assign first layer as uvlayer_name if uvlayer_name is null.*/
-					if (strcmp(layer->name, dmd->uvlayer_name)==0) stupid_uvmenu_var = i+1;
+					if (strcmp(layer->name, dmd->uvlayer_name)==0) dmd->uvlayer_tmp = i+1;
 					sprintf(strtmp2, "|%s%%x%d", layer->name, i+1);
 					strcat(strtmp, strtmp2);
 					layer++;
@@ -1662,12 +1660,12 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				
 				/*there is no uvlayer defined, or else it was deleted.  Assign active layer,
 				  then recalc modifiers.*/
-				if (stupid_uvmenu_var == -1) {
+				if (dmd->uvlayer_tmp == -1) {
 					if (CustomData_get_active_layer_index(fdata, CD_MTFACE) != -1) {
-						stupid_uvmenu_var = 1;					
+						dmd->uvlayer_tmp = 1;					
 						layer = fdata->layers;
 						for (i=0; i<CustomData_get_active_layer_index(fdata, CD_MTFACE); i++, layer++) {
-							if (layer->type==CD_MTFACE) stupid_uvmenu_var++;
+							if (layer->type==CD_MTFACE) dmd->uvlayer_tmp++;
 						}
 						strcpy(dmd->uvlayer_name, layer->name);
 						
@@ -1675,12 +1673,12 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 						do_modifier_panels(B_MODIFIER_RECALC);
 					} else {
 						/* ok we have no uv layers, so make sure menu button knows that.*/
-						stupid_uvmenu_var = 0;
+						dmd->uvlayer_tmp = 0;
 					}
 				}
 				
 				but = uiDefButI(block, MENU, B_MODIFIER_RECALC, strtmp,
-			          lx, (cy -= 19), buttonWidth, 19, &stupid_uvmenu_var,
+			          lx, (cy -= 19), buttonWidth, 19, &dmd->uvlayer_tmp,
 			          0.0, 1.0, 0, 0, "Set the UV layer to use");
 				
 				uiButSetFunc(but, set_displace_uvlayer, dmd, &fdata->layers[CustomData_get_layer_index(fdata, CD_MTFACE)]);
