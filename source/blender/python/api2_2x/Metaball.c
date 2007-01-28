@@ -467,61 +467,41 @@ static PyObject *M_Metaball_New( PyObject * self, PyObject * args )
 /*****************************************************************************/
 static PyObject *M_Metaball_Get( PyObject * self, PyObject * args )
 {
-	char error_msg[64];
 	char *name = NULL;
-	MetaBall *mball_iter;
+	MetaBall *mball_iter = NULL;
 
 	if( !PyArg_ParseTuple( args, "|s", &name ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument (or nothing)" ) );
 
-	mball_iter = G.main->mball.first;
-
 	if( name ) {		/* (name) - Search mball by name */
-
-		BPy_Metaball *wanted_mball = NULL;
-
-		while( ( mball_iter ) && ( wanted_mball == NULL ) ) {
-			if( strcmp( name, mball_iter->id.name + 2 ) == 0 ) {
-				wanted_mball =
-					( BPy_Metaball * )
-					PyObject_NEW( BPy_Metaball,
-						      &Metaball_Type );
-				if( wanted_mball )
-					wanted_mball->metaball = mball_iter;
-			}
-			mball_iter = mball_iter->id.next;
-		}
-
-		if( wanted_mball == NULL ) {	/* Requested mball doesn't exist */
+		mball_iter = ( MetaBall * ) GetIdFromList( &( G.main->mball ), name );
+		
+		if (!mball_iter) {
+			char error_msg[64];
 			PyOS_snprintf( error_msg, sizeof( error_msg ),
 				       "MetaBall \"%s\" not found", name );
 			return ( EXPP_ReturnPyObjError
 				 ( PyExc_NameError, error_msg ) );
 		}
-
-		return ( PyObject * ) wanted_mball;
-	}
-
-	else {			/* () - return a list of all mballs in the scene */
-		PyObject *mballlist;
-
-		mballlist = PyList_New( 0 );
-
+		return Metaball_CreatePyObject(mball_iter);
+	
+	} else {			/* () - return a list of all mballs in the scene */
+		
+		PyObject *mballlist = PyList_New( BLI_countlist( &( G.main->mball ) ) );
+		int index=0;
+		
 		if( mballlist == NULL )
 			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 							"couldn't create PyList" ) );
-
+		
+		mball_iter = G.main->mball.first;
 		while( mball_iter ) {
-			BPy_Metaball *found_mball =
-				( BPy_Metaball * ) PyObject_NEW( BPy_Metaball,
-								 &Metaball_Type );
-			found_mball->metaball = mball_iter;
-			PyList_Append( mballlist, ( PyObject * ) found_mball );
+			PyList_SetItem( mballlist, index, Metaball_CreatePyObject(mball_iter) );
+			index++;
 			mball_iter = mball_iter->id.next;
 		}
-
-		return ( mballlist );
+		return mballlist;
 	}
 
 }

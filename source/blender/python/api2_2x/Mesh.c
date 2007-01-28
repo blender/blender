@@ -7801,9 +7801,13 @@ static PyObject *M_Mesh_Get( PyObject * self_unused, PyObject * args )
 	if( name ) {
 		mesh = ( Mesh * ) GetIdFromList( &( G.main->mesh ), name );
 
-		if( !mesh )
-			return EXPP_incr_ret( Py_None );
-
+		if( !mesh ) {
+			char error_msg[64];
+			PyOS_snprintf( error_msg, sizeof( error_msg ),
+				       "Mesh \"%s\" not found", name );
+			return ( EXPP_ReturnPyObjError
+				 ( PyExc_NameError, error_msg ) );
+		}
 		return Mesh_CreatePyObject( mesh, NULL );
 	} else {			/* () - return a list with all meshes in the scene */
 		PyObject *meshlist;
