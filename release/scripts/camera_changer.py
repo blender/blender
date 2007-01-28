@@ -74,47 +74,48 @@ import Blender
 from Blender import *
 import string
 
-sc=Scene.GetCurrent()
+header = '# camera.py 1.3 scriptlink'
 
-#import du texte
-lestext=Blender.Text.Get()
-Ntexts=[]
-for txt in lestext:
-	Ntexts.append(txt.getName())
-ecrire=0
+camera_change_scriptlink = header + \
+'''
+import Blender
+def main():
+	scn = Blender.Scene.GetCurrent()
+	frame = str(Blender.Get('curframe'))
 
-if 'camera.py' not in Ntexts:
-	ecrire=1
-else :
-	if lestext[Ntexts.index('camera.py')].asLines()[0] != "# camera.py 1.2 link python #":
-		reecrire=Blender.Draw.PupMenu("WARNING: Text camera.py already exists but is outdated%t|Overwrite|Rename old version text")
-		if reecrire == 1:
-			Text.unlink(lestext[Ntexts.index('camera.py')])
-			ecrire=1
-		if reecrire == 2:
-			lestext[Ntexts.index('camera.py')].name="old_camera.txt"
-			ecrire=1
+	# change the camera if it has the current frame
+	for ob_cam in [ob for ob in scn.objects if ob.type == 'Camera']:
+		for number in ob_cam.name.split(','):
+			if number == frame:
+				scn.setCurrentCamera(ob_cam)
+				return
+main()
+'''
 
+def main():
+	
+	# Get the text
+	try:	cam_text = Blender.Text.Get('camera.py')
+	except:	cam_text = None
+	
+	if cam_text:
+		if cam_text.asLines()[0] != header:
+			ret = Blender.Draw.PupMenu("WARNING: An old camera.py exists%t|Overwrite|Rename old version text")
+			if ret == -1:			return # EXIT DO NOTHING
+			elif ret == 1:		Text.unlink(cam_text)
+			elif ret == 2:		cam_text.name = 'old_camera.txt'
+			cam_text = None
 
+	if not cam_text:
+		scripting=Blender.Text.New('camera.py')
+		scripting.write(camera_change_scriptlink)
+	
+	scn=Scene.GetCurrent()
+	scriptlinks = scn.getScriptLinks('FrameChanged')
+	if not scriptlinks or ('camera.py' not in scriptlinks):
+		scn.addScriptLink('camera.py','FrameChanged')
+		Blender.Draw.PupMenu('FrameChange Scriptlink Added%t|Name camera objects to their activation frame numbers(s) seperated by commas|valid names are "1,10,46" or "1,10,200" or "200" (without quotation marks)')
+		Blender.Window.RedrawAll()
 
-if ecrire == 1:
-	scripting=Blender.Text.New('camera.py')
-	scripting.write("# camera.py 1.2 link python #\nimport Blender\nfrom Blender import *\nfrom math import *\nimport string\n")
-	scripting.write("sc=Scene.GetCurrent()\n#Changement camera\nlescam=[]\nobjets=Blender.Object.Get()\n")
-	scripting.write("for ob in objets:\n	if type(ob.getData())==Blender.Types.CameraType:\n		try:")
-	scripting.write("\n			lesfram=string.split(ob.name,',')\n			for fr in lesfram:\n				lescam.append(ob.name)\n				lescam.append(int(fr))\n		except:\n			pass")
-	scripting.write("\nframe = Blender.Get('curframe')\nif frame in lescam:\n	nom=lescam.index(frame)\n	sc.setCurrentCamera(Blender.Object.Get(lescam[nom-1]))\n")
-
-
-#Linkage
-list=[]
-try:
-	for script in sc.getScriptLinks('FrameChanged'):
-		list.append(script)
-except:
-	pass
-if 'camera.py' not in list:
-	sc.addScriptLink('camera.py','FrameChanged')
-	Blender.Draw.PupMenu("Done! Remember:%t|Name cameras as (a comma separated list of) their activation frame number(s)")
-	Blender.Redraw(-1)
-
+if __name__ == '__main__':
+	main()
