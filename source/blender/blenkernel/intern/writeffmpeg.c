@@ -143,7 +143,7 @@ static int write_audio_frame(void)
 
 	pkt.stream_index = audio_stream->index;
 	pkt.flags |= PKT_FLAG_KEY;
-	if (av_write_frame(outfile, &pkt) != 0) {
+	if (av_interleaved_write_frame(outfile, &pkt) != 0) {
 		error("Error writing audio packet");
 		return -1;
 	}
@@ -246,7 +246,7 @@ static void write_video_frame(AVFrame* frame)
 		packet.stream_index = video_stream->index;
 		packet.data = video_buffer;
 		packet.size = outsize;
-		ret = av_write_frame(outfile, &packet);
+		ret = av_interleaved_write_frame(outfile, &packet);
 	} else ret = 0;
 	if (ret != 0) {
 		G.afbreek = 1;
@@ -452,7 +452,14 @@ static AVStream* alloc_audio_stream(int codec_id, AVFormatContext* of)
 	}
 
 	/* FIXME: Should be user configurable */
-	audio_outbuf_size = 10000;
+	if (ffmpeg_type == FFMPEG_DV) {
+		/* this is a hack around the poor ffmpeg dv multiplexer. */
+		/* only fixes PAL for now 
+		   (NTSC is a lot more complicated here...)! */
+		audio_outbuf_size = 7680;
+	} else {
+		audio_outbuf_size = 10000;
+	}
 	audio_output_buffer = (uint8_t*)MEM_mallocN(
 		audio_outbuf_size, "FFMPEG audio encoder input buffer");
 
@@ -696,20 +703,33 @@ void start_ffmpeg(RenderData *rd, int rectx, int recty)
 
 void end_ffmpeg(void);
 
+static void write_audio_frames()
+{
+	int finished = 0;
+
+	while (ffmpeg_multiplex_audio && !finished) {
+		double a_pts = ((double)audio_stream->pts.val 
+				* audio_stream->time_base.num 
+				/ audio_stream->time_base.den);
+		double v_pts = ((double)video_stream->pts.val 
+				* video_stream->time_base.num 
+				/ video_stream->time_base.den);
+		
+		if (a_pts < v_pts) {
+			write_audio_frame();
+		} else {
+			finished = 1;
+		}
+	}
+}
+
 void append_ffmpeg(int frame, int *pixels, int rectx, int recty) 
 {
 	fprintf(stderr, "Writing frame %i, "
 		"render width=%d, render height=%d\n", frame,
 		rectx, recty);
-	while (ffmpeg_multiplex_audio && 
-	       (((double)audio_stream->pts.val 
-		 * audio_stream->time_base.num / audio_stream->time_base.den)
-		< 
-		((double)video_stream->pts.val 
-		 * video_stream->time_base.num / video_stream->time_base.den)
-		       )) {
-		write_audio_frame();
-	}
+
+	write_audio_frames();
 	write_video_frame(generate_video_frame((unsigned char*) pixels));
 
 	if (ffmpeg_autosplit) {
@@ -728,6 +748,8 @@ void end_ffmpeg(void)
 	int i;
 	
 	fprintf(stderr, "Closing ffmpeg...\n");
+
+	write_audio_frames();
 
 	if (outfile) {
 		av_write_trailer(outfile);
