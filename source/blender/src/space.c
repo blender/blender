@@ -2433,6 +2433,26 @@ static void changeview2dspace(ScrArea *sa, void *spacedata)
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 }
 
+static int get_cfra_from_dx(SpaceIpo * sipo, int dx)
+{
+	if (sipo->blocktype == ID_SEQ) {
+		Sequence * seq = (Sequence*) sipo->from;
+		if (!seq) {
+			return dx;
+		}
+		if ((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
+			return dx;
+		} else {
+			float m= (seq->enddisp - seq->startdisp)/100.0f;
+			float cfra = dx * m + seq->startdisp;
+
+			return (int) cfra;
+		}
+	} else {
+		return dx;
+	}
+}
+
 static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	extern void do_ipobuts(unsigned short event); 	/* drawipo.c */
@@ -2480,7 +2500,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					getmouseco_areawin(mval);
 					areamouseco_to_ipoco(v2d, mval, &dx, &dy);
 					
-					cfra= (int)dx;
+					cfra = get_cfra_from_dx(sipo, (int)dx);
 					if(cfra< 1) cfra= 1;
 					
 					if( cfra!=CFRA ) {

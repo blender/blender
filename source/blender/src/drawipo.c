@@ -1463,13 +1463,39 @@ static void draw_ipocurves(int sel)
 	}
 }
 
+static int get_ipo_cfra_from_cfra(SpaceIpo * sipo, int cfra)
+{
+	if (sipo->blocktype==ID_SEQ) {
+		Sequence * seq = (Sequence*) sipo->from;
+
+		if (!seq) {
+			return cfra;
+		}
+
+		if ((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
+			return cfra;
+		} else {
+			float ctime= frame_to_float(cfra - seq->startdisp);
+			float div= (seq->enddisp - seq->startdisp)/100.0f;
+
+			if(div == 0.0) {
+				return 0;
+			} else {
+				return ctime / div; 
+			}
+		}
+	} else {
+		return cfra;
+	}
+}
+
 static void draw_cfra(SpaceIpo *sipo)
 {
 	View2D *v2d= &sipo->v2d;
 	Object *ob;
 	float vec[2];
 	
-	vec[0]= (G.scene->r.cfra);
+	vec[0] = get_ipo_cfra_from_cfra(sipo, G.scene->r.cfra);
 	vec[0]*= G.scene->r.framelen;
 	
 	vec[1]= v2d->cur.ymin;
