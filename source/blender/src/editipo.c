@@ -920,6 +920,9 @@ static void make_editipo(void)
 	}
 	editipo_changed(G.sipo, 0);
 	
+	/* sets globals, bad stuff but we need these variables in other parts of code */
+	get_status_editipo();
+	
 	if(G.sipo->ipo) {
 
 		if (G.sipo->pin)
@@ -1136,7 +1139,7 @@ void test_editipo(int doit)
 
 /* ****************** EditIpo ************************ */
 
-int totipo_edit, totipo_sel, totipo_curve, totipo_vis, totipo_vert, totipo_vertsel, totipo_key, totipo_keysel;
+int totipo_edit=0, totipo_sel=0, totipo_curve=0, totipo_vis=0, totipo_vert=0, totipo_vertsel=0, totipo_key=0, totipo_keysel=0;
 
 void get_status_editipo(void)
 {
