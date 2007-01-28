@@ -10,7 +10,7 @@ Tip: 'Import an AC3D (.ac) file.'
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "elysiun", "AC3D's homepage, http://www.ac3d.org",
 	"PLib 3d gaming lib, http://plib.sf.net")
-__version__ = "2.43 2007-01-14"
+__version__ = "2.43 2007-01-28"
 
 __bpydoc__ = """\
 This script imports AC3D models into Blender.
@@ -425,11 +425,10 @@ class AC3DImport:
 		l = [o for o in olist if o.type == AC_POLY \
 				and not o.kids and not o.rot and not o.loc]
 		if l:
-			if len(l) > 1:
-				for o in l:
-					if o.name == groupname:
-						return o
-			return l[0]
+			for o in l:
+				if o.name == groupname:
+					return o
+				#return l[0]
 		return None
 
 	def build_hierarchy(self):
@@ -462,20 +461,21 @@ class AC3DImport:
 				for child in children:
 					blob = child.bl_obj
 					if not blob: continue
-					if child.loc:
-						blob.setLocation(child.loc)
 					if child.rot:
 						eul = euler_in_radians(child.rot.toEuler())
 						blob.setEuler(eul)
 					if child.size:
 						blob.size = child.size
+					if not child.loc:
+						child.loc = Vector(0.0, 0.0, 0.0)
+					blob.setLocation(child.loc)
 
 			newlist.append(o)
 
 		for o in newlist: # newlist now only has objs w/o parents
 			blob = o.bl_obj
-			if o.loc:
-				blob.setLocation(o.loc * blmatrix)
+			if not blob:
+				continue
 			if o.size:
 				o.bl_obj.size = o.size
 			if not o.rot:
@@ -484,12 +484,20 @@ class AC3DImport:
 				matrix = o.rot * blmatrix
 				eul = euler_in_radians(matrix.toEuler())
 				blob.setEuler(eul)
+			if o.loc:
+				o.loc *= blmatrix
+			else:
+				o.loc = Vector(0.0, 0.0, 0.0)
+			blob.setLocation(o.loc) # forces DAG update, so we do it even for 0, 0, 0
 
 	def testAC3DImport(self):
 
 		FACE_TWOSIDE = Mesh.FaceModes['TWOSIDE']
 		FACE_TEX = Mesh.FaceModes['TEX']
 		MESH_AUTOSMOOTH = Mesh.Modes['AUTOSMOOTH']
+
+		MAT_MODE_ZTRANSP = Material.Modes['ZTRANSP']
+		MAT_MODE_TRANSPSHADOW = Material.Modes['TRANSPSHADOW']
 
 		scene = self.scene
 
@@ -498,6 +506,7 @@ class AC3DImport:
 		objlist = self.objlist[1:] # skip 'world'
 
 		bmat = []
+		has_transp_mats = False
 		for mat in self.mlist:
 			name = mat[0]
 			m = Material.New(name)
@@ -507,7 +516,14 @@ class AC3DImport:
 			m.specCol = (mat[4][0], mat[4][1], mat[4][2])
 			m.spec = mat[5]
 			m.alpha = mat[6]
+			if m.alpha < 1.0:
+				m.mode |= MAT_MODE_ZTRANSP
+				has_transp_mats = True
 			bmat.append(m)
+
+		if has_transp_mats:
+			for mat in bmat:
+				mat.mode |= MAT_MODE_TRANSPSHADOW
 
 		obj_idx = 0 # index of current obj in loop
 		for obj in objlist:
@@ -525,7 +541,7 @@ class AC3DImport:
 			# type AC_POLY:
 
 			# old .ac files used empty meshes as groups, convert to a real ac group
-			if not obj.vlist:
+			if not obj.vlist and obj.kids:
 				obj.type = AC_GROUP
 				continue
 
@@ -535,6 +551,9 @@ class AC3DImport:
 			obj.bl_obj = object
 			if obj.data: mesh.name = obj.data
 			mesh.degr = obj.crease # will auto clamp to [1, 80]
+
+			if not obj.vlist: # no vertices? nothing more to do
+				continue
 
 			mesh.verts.extend(obj.vlist)
 
@@ -551,8 +570,10 @@ class AC3DImport:
 				mesh.faces.extend(obj.flist_v)
 				mesh.faceUV = True
 
+				facesnum = len(mesh.faces)
+
 				# checking if the .ac file had duplicate faces (Blender ignores them):
-				if len(mesh.faces) != len(obj.flist_v):
+				if facesnum != len(obj.flist_v):
 					# it has, ugh. Let's clean the uv list:
 					lenfl = len(obj.flist_v)
 					flist = obj.flist_v
@@ -560,18 +581,18 @@ class AC3DImport:
 					cfglist = obj.flist_cfg
 					for f in flist:
 						f.sort()
-					for fi in range(lenfl - 1):
-						if flist[fi] in flist[fi+1:]:
+					fi = lenfl
+					while fi > 0:
+						fi -= 1
+						if flist[fi] in flist[:fi]:
 							uvlist.pop(fi)
 							cfglist.pop(fi)
 
 				img = None
-				tex = None
 				if obj.tex != '':
 					baseimgname = bsys.basename(obj.tex)
 					if obj.tex in bl_images.keys():
-						img = bl_images[obj.txt]
-						tex = bl_textures[img]
+						img = bl_images[obj.tex]
 					else:
 						try:
 							img = Image.Load(obj.tex)
@@ -591,8 +612,8 @@ class AC3DImport:
 						if img:
 							bl_images[obj.tex] = img
 
-				i = 0
-				for f in obj.flist_cfg:
+				for i in range(facesnum):
+					f = obj.flist_cfg[i]
 					fmat = f[0]
 					is_smooth = f[1]
 					twoside = f[2]
@@ -616,8 +637,6 @@ class AC3DImport:
 							uv[1] += voff
 
 					mesh.faces[i].uv = fuv
-
-					i += 1
 
 				mesh.calcNormals()
 
