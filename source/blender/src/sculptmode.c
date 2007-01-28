@@ -1052,7 +1052,8 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 	else if(ss->texrndr) {
 		const short bsize= sculptmode_brush()->size * 2;
 		const short half= sculptmode_brush()->size;
-		const float rot= to_rad(*get_tex_angle());
+		const float *ang= get_tex_angle();
+		const float rot= ang?to_rad(*ang):0.0f;
 		int px, py;
 		unsigned i, *p;
 		RenderInfo *ri= ss->texrndr;
@@ -1512,8 +1513,9 @@ void sculptmode_propset_header()
 			val= sculptmode_brush()->strength;
 		}
 		else if(pd->mode == PropsetTexRot) {
+			float *ang= get_tex_angle();
 			name= "Texture Angle";
-			val= *get_tex_angle();
+			val= ang?*get_tex_angle():0.0f;
 		}
 		sprintf(str, "Brush %s: %d", name, val);
 		headerprint(str);

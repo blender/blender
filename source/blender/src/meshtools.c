@@ -797,9 +797,14 @@ void objects_bake_render_menu(void)
 /* all selected meshes with UV maps are rendered for current scene visibility */
 void objects_bake_render(short event)
 {
-	short prev_r_raytrace, prev_wo_amb_occ;
+	short prev_r_raytrace= 0, prev_wo_amb_occ= 0;
 	
 	if(event==0) event= G.scene->r.bake_mode;
+	
+	if(G.scene->r.renderer!=R_INTERN) {	 
+		error("Bake only supported for Internal Renderer");	 
+		return;	 
+	}	 
 	
 	if(event>0) {
 		Render *re= RE_NewRender("_Bake View_");
