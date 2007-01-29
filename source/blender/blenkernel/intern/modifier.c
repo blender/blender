@@ -2279,6 +2279,23 @@ static void displaceModifier_updateDepgraph(
 	}
 }
 
+static void validate_layer_name(const CustomData *data, int type, char *name)
+{
+	int index = -1;
+
+	/* if a layer name was given, try to find that layer */
+	if(name[0])
+		index = CustomData_get_named_layer_index(data, CD_MTFACE, name);
+
+	if(index < 0) {
+		/* either no layer was specified, or the layer we want has been
+		 * deleted, so assign the active layer to name
+		 */
+		index = CustomData_get_active_layer_index(data, CD_MTFACE);
+		strcpy(name, data->layers[index].name);
+	}
+}
+
 static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
                                DerivedMesh *dm,
                                float (*co)[3], float (*texco)[3],
@@ -2301,27 +2318,14 @@ static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
 			MFace *mf;
 			char *done = MEM_callocN(sizeof(*done) * numVerts,
 			                         "get_texture_coords done");
-			MTFace *tf = NULL;
-			int numFaces = dm->getNumFaces(dm), itf;
-			
-			if (dmd->uvlayer_name[0]) {
-				itf = CustomData_get_named_layer_index(&dm->faceData, CD_MTFACE, dmd->uvlayer_name);
-				if (itf != -1)
-					tf = dm->faceData.layers[itf].data;
-				else {
-					/*looks like the layer we want has been deleted, so assign the 
-					  first layer to dmd.*/
-					itf = CustomData_get_active_layer_index(&dm->faceData, CD_MTFACE);
-					tf = dm->faceData.layers[itf].data;
-					strcpy(dmd->uvlayer_name, dm->faceData.layers[itf].name);
-				}
-			} else {
-				/* no uv layer specified, use the active one */
-				itf = CustomData_get_active_layer_index(&dm->faceData, CD_MTFACE);
-				tf = dm->faceData.layers[itf].data;
-				strcpy(dmd->uvlayer_name, dm->faceData.layers[itf].name);
-			}
-			
+			int numFaces = dm->getNumFaces(dm);
+			MTFace *tf;
+
+			validate_layer_name(&dm->faceData, CD_MTFACE, dmd->uvlayer_name);
+
+			tf = CustomData_get_layer_named(&dm->faceData, CD_MTFACE,
+			                                dmd->uvlayer_name);
+
 			/* verts are given the UV from the first face that uses them */
 			for(i = 0, mf = mface; i < numFaces; ++i, ++mf, ++tf) {
 				if(!done[mf->v1]) {
@@ -2531,7 +2535,7 @@ static void uvprojectModifier_initData(ModifierData *md)
 	for(i = 0; i < MOD_UVPROJECT_MAXPROJECTORS; ++i)
 		umd->projectors[i] = NULL;
 	umd->image = NULL;
-	umd->flags = MOD_UVPROJECT_ADDUVS;
+	umd->flags = 0;
 	umd->num_projectors = 1;
 	umd->aspectx = umd->aspecty = 1.0f;
 }
@@ -2624,22 +2628,18 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		if(umd->projectors[i])
 			projectors[num_projectors++].ob = umd->projectors[i];
 
-	tface = dm->getFaceDataArray(dm, CD_MTFACE);
-
 	if(num_projectors == 0) return dm;
 
-	if(!tface) {
-		if(!(umd->flags & MOD_UVPROJECT_ADDUVS)) return dm;
+	/* make sure there are UV layers available */
+	if(!dm->getFaceDataArray(dm, CD_MTFACE)) return dm;
 
-		DM_add_face_layer(dm, CD_MTFACE, CD_CALLOC, NULL);
-		tface = dm->getFaceDataArray(dm, CD_MTFACE);
-		new_tfaces = 1;
-	}
-	else {
-		/* make sure we are not modifying the original layer */
-		CustomData_duplicate_referenced_layer(&dm->faceData, CD_MTFACE);
-		tface = dm->getFaceDataArray(dm, CD_MTFACE);
-	}
+	/* make sure we're using an existing layer */
+	validate_layer_name(&dm->faceData, CD_MTFACE, umd->uvlayer_name);
+
+	/* make sure we are not modifying the original UV layer */
+	tface = CustomData_duplicate_referenced_layer_named(&dm->faceData,
+	                                                    CD_MTFACE,
+	                                                    umd->uvlayer_name);
 
 	numVerts = dm->getNumVerts(dm);
 

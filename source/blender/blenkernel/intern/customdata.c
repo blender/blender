@@ -741,6 +741,26 @@ void *CustomData_duplicate_referenced_layer(struct CustomData *data, int type)
 	return layer->data;
 }
 
+void *CustomData_duplicate_referenced_layer_named(struct CustomData *data,
+                                                  int type, char *name)
+{
+	CustomDataLayer *layer;
+	int layer_index;
+
+	/* get the layer index of the desired layer */
+	layer_index = CustomData_get_named_layer_index(data, type, name);
+	if(layer_index < 0) return NULL;
+
+	layer = &data->layers[layer_index];
+
+	if (layer->flag & CD_FLAG_NOFREE) {
+		layer->data = MEM_dupallocN(layer->data);
+		layer->flag &= ~CD_FLAG_NOFREE;
+	}
+
+	return layer->data;
+}
+
 void CustomData_free_temporary(CustomData *data, int totelem)
 {
 	CustomDataLayer *layer;
@@ -951,6 +971,15 @@ void *CustomData_get_layer_n(const CustomData *data, int type, int n)
 	if(layer_index < 0) return NULL;
 
 	return data->layers[layer_index+n].data;
+}
+
+void *CustomData_get_layer_named(const struct CustomData *data, int type,
+                                 char *name)
+{
+	int layer_index = CustomData_get_named_layer_index(data, type, name);
+	if(layer_index < 0) return NULL;
+
+	return data->layers[layer_index].data;
 }
 
 void *CustomData_set_layer(const CustomData *data, int type, void *ptr)

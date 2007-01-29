@@ -208,12 +208,11 @@ typedef struct UVProjectModifierData {
 	int flags;
 	int num_projectors;
 	float aspectx, aspecty;
+	char uvlayer_name[32];
+	int uvlayer_tmp, pad;
 } UVProjectModifierData;
 
 #define MOD_UVPROJECT_MAXPROJECTORS 10
-
-/* UVProjectModifierData->flags */
-#define MOD_UVPROJECT_ADDUVS 1<<0
 
 typedef struct DecimateModifierData {
 	ModifierData modifier;
