@@ -525,11 +525,14 @@ int BPY_txt_do_python_Text( struct Text *text )
 
 	py_dict = CreateGlobalDictionary(  );
 
+#if 0
+/* bug 5000 */
 	//setup a weakref dictionary on __main__
 	maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
 	if (PyDict_SetItemString(maindict, "armatures", PyList_New(0)) == -1){
 		return 0;
 	}
+#endif
 
 	script->py_globaldict = py_dict;
 
