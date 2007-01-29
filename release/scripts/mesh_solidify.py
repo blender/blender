@@ -1,14 +1,14 @@
 #!BPY
 """
 Name: 'Solidify Selection'
-Blender: 240
+Blender: 243
 Group: 'Mesh'
 Tooltip: 'Makes the mesh solid by creating a second skin.'
 """
 
 __author__ = "Campbell Barton"
 __url__ = ("www.blender.org", "blenderartists.org")
-__version__ = "1.0"
+__version__ = "1.1"
 
 __bpydoc__ = """\
 This script makes a skin from the selected faces.
@@ -25,6 +25,48 @@ try:
 	reversed
 except:
 	def reversed(l): return l[::-1]
+
+def copy_facedata_multilayer(me, from_faces, to_faces):
+	'''
+	Tkes 2 lists of faces and copies multilayer data from 1 to another
+	make sure they are aligned, cant copy from a quad to a tri, used for solidify selection.
+	'''
+	
+	def copy_default_face(data):
+		face_from, face_to = data
+		face_to.mat = face_from.mat
+		face_to.smooth = face_from.smooth
+		face_to.sel = True
+		face_from.sel = False
+	
+	def copy_tex_face(data):
+		face_from, face_to = data
+		face_to.uv = [c for c in reversed(face_from.uv)]
+		face_to.mode = face_from.mode
+		face_to.flag = face_from.flag
+		face_to.image = face_from.image
+	
+	def copy_col_face(data):
+		face_from, face_to = data
+		face_to.col = [c for c in reversed(face_from.col)]
+	
+	# make a list of face_from, face_to pairs
+	#face_pairs = zip(faces_sel, [me_faces[len_faces + i] for i in xrange(len(faces_sel))])
+	face_pairs = zip(from_faces, to_faces)
+	
+	# Copy properties from 1 set of faces to another.
+	map(copy_default_face, face_pairs)
+	
+	for uvlayer in me.getUVLayerNames():
+		me.activeUVLayer = uvlayer
+		map(copy_tex_face, face_pairs)
+	
+	for collayer in me.getColorLayerNames():
+		me.activeColorLayer = collayer
+		map(copy_col_face, face_pairs)
+	
+	# Now add quads between if we wants
+
 
 Ang= Mathutils.AngleBetweenVecs
 SMALL_NUM=0.00001
@@ -169,7 +211,7 @@ def main():
 		if has_vcol:
 			new_f.col = [c for c in reversed(orig_f.col)]
 	"""
-	BPyMesh.copy_facedata_multilayer(me, faces_sel, [me_faces[len_faces + i] for i in xrange(len(faces_sel))])
+	copy_facedata_multilayer(me, faces_sel, [me_faces[len_faces + i] for i in xrange(len(faces_sel))])
 	
 	if PREF_SKIN_SIDES:
 		skin_side_faces= []
