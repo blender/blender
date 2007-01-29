@@ -3387,7 +3387,7 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 	
 	// get some required params from the current scene camera
 	Object* camob = G.scene->camera;
-	if (camob->type==OB_CAMERA) {
+	if (camob && camob->type==OB_CAMERA) {
 		Camera* cam = (Camera*)camob->data;
 		cam_lens = cam->lens;
 		cam_fdist = (cam->YF_dofdist==0.f) ? 1e10f : cam->YF_dofdist;
