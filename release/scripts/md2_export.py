@@ -2,15 +2,15 @@
 
 """
 Name: 'MD2 (.md2)'
-Blender: 241
+Blender: 243
 Group: 'Export'
 Tooltip: 'Export to Quake file format (.md2).'
 """
 
 __author__ = 'Bob Holcomb'
-__version__ = '0.17.5'
+__version__ = '0.18'
 __url__ = ["Bob's site, http://bane.servebeer.com",
-     "Support forum, http://scourage.servebeer.com/phpbb/", "blender", "elysiun"]
+     "Support forum, http://bane.servebeer.com", "blender", "elysiun"]
 __email__ = ["Bob Holcomb, bob_holcomb:hotmail*com", "scripts"]
 __bpydoc__ = """\
 This script Exports a Quake 2 file (MD2).
@@ -120,7 +120,7 @@ def draw_gui():
 
 	########## Scale slider-default is 1/8 which is a good scale for md2->blender
 	g_scale= Slider("Scale Factor: ", EVENT_NOEVENT, 10, 95, 210, 18,
-                    1.0, 0.001, 10.0, 1, "Scale factor for obj Model");
+                    1.0, 0.001, 10.0, 1, "Scale factor for object Model");
 
 	######### Draw and Exit Buttons
 	Button("Export",EVENT_SAVE_MD2 , 10, 10, 80, 18)
@@ -615,21 +615,22 @@ def validation(object):
 	global user_frame_list
 
 	#move the object to the origin if it's not already there
-	if object.loc!=(0.0, 0.0, 0.0):
+	if object.getLocation('worldspace')!=(0.0, 0.0, 0.0):
 		object.setLocation(0.0,0.0,0.0)
 		print "Model not centered at origin-Centering"
-		result=Blender.Draw.PupMenu("Model not centered at origin-Centering")
+		result=Blender.Draw.PupMenu("Model not centered at origin-Centering for you")
 
 	#resize the object in case it is not the right size
-	if object.size!=(1.0,1.0,1.0):
+	if object.getSize('worldspace')!=(1.0,1.0,1.0):
 		object.setSize(1.0,1.0,1.0)
 		print "Object is scaled-You should scale the mesh verts, not the object"
-		result=Blender.Draw.PupMenu("Object is scaled-You should scale the mesh verts, not the object")
+		result=Blender.Draw.PupMenu("Object is scaled-You should scale the mesh verts, not the object-fixing for you")
 		
-	if object.rot!=(0.0,0.0,0.0):
-		object.rot=(0.0,0.0,0.0)
+	if object.getEuler('worldspace')!=Blender.Mathutils.Euler(0.0,0.0,0.0):
+		print "object.rot: ", object.getEuler('worldspace')
+		object.setEuler([0.0,0.0,0.0])
 		print "Object is rotated-You should rotate the mesh verts, not the object"
-		result=Blender.Draw.PupMenu("Object is rotated-You should rotate the mesh verts, not the object")
+		result=Blender.Draw.PupMenu("Object is rotated-You should rotate the mesh verts, not the object-fixing for you")
 	
 	#get access to the mesh data
 	mesh=object.getData(False, True) #get the object (not just name) and the Mesh, not NMesh
@@ -806,7 +807,7 @@ def fill_md2(md2, object):
 	Blender.Window.DrawProgressBar(0.5, "Computing GL Commands")
 
 	#compute GL commands
-	md2.num_GL_commands=build_GL_commands(md2)
+	md2.num_GL_commands=build_GL_commands(md2, mesh)
 
 	#get the frame data
 	#calculate 1 frame size  + (1 vert size*num_verts)
@@ -841,24 +842,26 @@ def fill_md2(md2, object):
 #to figure this out once per frame
 		
 		#we need to start with the bounding box
-		bounding_box=object.getBoundBox() #uses the object, not the mesh data
+		#bounding_box=object.getBoundBox() #uses the object, not the mesh data
 		#initialize with the first vertex for both min and max.  X and Y are swapped for MD2 format
-		point=bounding_box[0]
-		frame_min_x=point[1]
-		frame_max_x=point[1]
-		frame_min_y=point[0]
-		frame_max_y=point[0]
-		frame_min_z=point[2]
-		frame_max_z=point[2]
-		#find min/max values
-		for point in bounding_box:
-			if frame_min_x>point[1]: frame_min_x=point[1]
-			if frame_max_x<point[1]: frame_max_x=point[1]
-			if frame_min_y>point[0]: frame_min_y=point[0]
-			if frame_max_y<point[0]: frame_max_y=point[0]
-			if frame_min_z>point[2]: frame_min_z=point[2]
-			if frame_max_z<point[2]: frame_max_z=point[2]
-
+	
+		#initialize 
+		frame_min_x=100000.0
+		frame_max_x=-100000.0
+		frame_min_y=100000.0
+		frame_max_y=-100000.0
+		frame_min_z=100000.0
+		frame_max_z=-100000.0
+	
+		for face in mesh.faces:
+			for vert in face.verts:					
+				if frame_min_x>vert.co[1]: frame_min_x=vert.co[1]
+				if frame_max_x<vert.co[1]: frame_max_x=vert.co[1]
+				if frame_min_y>vert.co[0]: frame_min_y=vert.co[0]
+				if frame_max_y<vert.co[0]: frame_max_y=vert.co[0]
+				if frame_min_z>vert.co[2]: frame_min_z=vert.co[2]
+				if frame_max_z<vert.co[2]: frame_max_z=vert.co[2]
+		
 		#the scale is the difference between the min and max (on that axis) / 255
 		frame_scale_x=(frame_max_x-frame_min_x)/255
 		frame_scale_y=(frame_max_y-frame_min_y)/255
@@ -880,6 +883,7 @@ def fill_md2(md2, object):
 			#figure out the new coords based on scale and transform
 			#then translates the point so it's not less than 0
 			#then scale it so it's between 0..255
+			#print "frame scale : ", frame_scale_x, " ", frame_scale_y, " ", frame_scale_z
 			new_x=int((mesh.verts[vert_counter].co[1]-frame_trans_x)/frame_scale_x)
 			new_y=int((mesh.verts[vert_counter].co[0]-frame_trans_y)/frame_scale_y)
 			new_z=int((mesh.verts[vert_counter].co[2]-frame_trans_z)/frame_scale_z)
@@ -890,9 +894,10 @@ def fill_md2(md2, object):
 			maxdot = -999999.0;
 			maxdotindex = -1;
 
+			
 			for j in range(0,162):
-				#dot = (x[0]*y[0]+x[1]*y[1]+x[2]*y[2])
-				#swap y and x for difference in axis orientation 
+				dot = (x[0]*y[0]+x[1]*y[1]+x[2]*y[2])
+				swap y and x for difference in axis orientation 
 				x1=-mesh.verts[vert_counter].no[1]
 				y1=mesh.verts[vert_counter].no[0]
 				z1=mesh.verts[vert_counter].no[2]
@@ -903,7 +908,7 @@ def fill_md2(md2, object):
 					maxdot = dot;
 					maxdotindex = j;
 			
-			md2.frames[frame_counter].vertices[vert_counter].lightnormalindex=maxdotindex
+			md2.frames[frame_counter].vertices[vert_counter].lightnormalindex=maxdotindex+2
 			
 			del maxdot, maxdotindex
 			del new_x, new_y, new_z
@@ -951,7 +956,7 @@ def get_frame_list():
 			file.close()
 
 			#check header (first line)
-			if lines[0]<>"# MD2 Frame Name List":
+			if lines[0].stip()<>"# MD2 Frame Name List":
 				print "its not a valid file"
 				result=Blender.Draw.PupMenu("This is not a valid frame definition file-using default%t|OK")
 				return MD2_FRAME_NAME_LIST
@@ -959,7 +964,7 @@ def get_frame_list():
 				#read in the data
 				num_frames=0
 				for counter in range(1, len(lines)):
-					current_line=lines[counter]
+					current_line=lines[counter].strip()
 					if current_line[0]=="#":
 						#found a comment
 						pass
@@ -977,225 +982,203 @@ def get_frame_list():
 # Globals for GL command list calculations
 ######################################################
 used_tris=[]
+edge_dict={}
 strip_verts=[]
 strip_st=[]
 strip_tris=[]
-strip_count=0
+strip_first_run=True
+odd=False
 
 ######################################################
-# Tri-Strip/Tri-Fan functions
+# Find Strip length function
 ######################################################
-def find_strip_length(md2, start_tri, start_vert):
-	print "Finding strip length"
+def find_strip_length(mesh, start_tri, edge_key):
+	#print "Finding strip length"
 	
-	global used
-	global strip_verts
-	global strip_st
-	global strip_tris
-
-	m1=m2=0
-
-	used[start_tri]=2
-	
-	strip_verts=[0]*0
-	strip_tris=[0]*0
-	strip_st=[0]*0
-	
-	
-	strip_verts.append(md2.faces[start_tri].vertex_index[start_vert%3])
-	strip_verts.append(md2.faces[start_tri].vertex_index[(start_vert+2)%3])
-	strip_verts.append(md2.faces[start_tri].vertex_index[(start_vert+1)%3])
-	
-	strip_st.append(md2.faces[start_tri].texture_index[start_vert%3])
-	strip_st.append(md2.faces[start_tri].texture_index[(start_vert+2)%3])
-	strip_st.append(md2.faces[start_tri].texture_index[(start_vert+1)%3])
-
-	strip_count=1
-	strip_tris.append(start_tri)
-
-	m1=md2.faces[start_tri].vertex_index[(start_vert+2)%3]
-	m2=md2.faces[start_tri].vertex_index[(start_vert+1)%3]
-
-	for tri_counter in range(start_tri+1, md2.num_faces):
-		for k in range(0,3):
-			if(md2.faces[tri_counter].vertex_index[k]!=m1) or (md2.faces[tri_counter].vertex_index[(k+1)%3]!=m2):
-				pass
-			else: 
-				#found a matching edge
-				print "Found a triangle with a matching edge: ", tri_counter
-				if(used[tri_counter]!=0):
-					print "Poop! I can't use it!"
-				else:
-					print "Yeah! I can use it"
-				
-					if(strip_count%2==1):  #is this an odd tri
-						print "odd triangle"
-						m2=md2.faces[tri_counter].vertex_index[(k+2)%3]
-					else:
-						print "even triangle"
-						m1=md2.faces[tri_counter].vertex_index[(k+2)%3]
-	
-					strip_verts.append(md2.faces[tri_counter].vertex_index[(k+2)%3])
-					strip_st.append(md2.faces[tri_counter].texture_index[(k+2)%3])
-					strip_count+=1
-					strip_tris.append(tri_counter)
-	
-					used[tri_counter]=2
-					tri_counter=start_tri+1 # restart looking
-
-	#clear used counter
-	for used_counter in range(0, md2.num_faces):
-		if used[used_counter]==2:
-			used[used_counter]=0
-
-	return strip_count
-
-#***********************************************
-def find_fan_length(md2, start_tri, start_vert):
-	print "Finding fan length"
-	
-	global used
-	global strip_verts
+	global used_tris
+	global edge_dict
 	global strip_tris
 	global strip_st
+	global strip_verts
+	global strip_first_run
+	global odd
 	
-	strip_verts=[0]*0
-	strip_tris=[0]*0
-	strip_st=[0]*0
-
-	m1=m2=0
-
-	used[start_tri]=2
+	used_tris[start_tri]=2
 	
-	strip_verts.append(md2.faces[start_tri].vertex_index[start_vert%3])
-	strip_verts.append(md2.faces[start_tri].vertex_index[(start_vert+2)%3])
-	strip_verts.append(md2.faces[start_tri].vertex_index[(start_vert+1)%3])
+	strip_tris.append(start_tri) #add this tri to the potential list of tri-strip						
 	
-	strip_st.append(md2.faces[start_tri].texture_index[start_vert%3])
-	strip_st.append(md2.faces[start_tri].texture_index[(start_vert+2)%3])
-	strip_st.append(md2.faces[start_tri].texture_index[(start_vert+1)%3])
-
-	strip_count=1
-	strip_tris.append(start_tri)
-
-	m1=md2.faces[start_tri].vertex_index[(start_vert)]
-	m2=md2.faces[start_tri].vertex_index[(start_vert+1)%3]
-
-	for tri_counter in range(start_tri+1, md2.num_faces):
-		for k in range(0,3):
-			if (md2.faces[tri_counter].vertex_index[k]!=m1) or (md2.faces[tri_counter].vertex_index[(k+1)%3]!=m2):
+	#print "I am face: ", start_tri
+	#print "Using edge Key: ", edge_key
+	
+	faces=edge_dict[edge_key] #get list of face indexes that share this edge
+	if (len(faces)==0):
+		#print "Cant find edge with key: ", edge_key
+		
+	#print "Faces sharing this edge: ", faces
+	for face_index in faces:
+		face=mesh.faces[face_index]
+		if face_index==start_tri: #don't want to check myself
+			#print "I found myself, continuing"
+			pass
+		else:
+			if used_tris[face_index]!=0: #found a used tri-move along
+				#print "Found a used tri: ", face_index
 				pass
 			else:
-				#found a matching edge
-				print "Found a triangle with a matching edge: ", tri_counter
-				if(used[tri_counter]!=0):
-					print "Poop! I can't use it!"
+				#find non-shared vert
+				for vert_counter in range(0,3):
+					if (face.verts[vert_counter].index!=edge_key[0] and face.verts[vert_counter].index!=edge_key[1]):
+						next_vert=vert_counter
+						
+				if(odd==False):
+					#print "Found a suitable even connecting tri: ", face_index			
+					used_tris[face_index]=2 #mark as dirty for this rum
+					odd=True
+									
+					#find the new edge
+					if(face.verts[next_vert].index < face.verts[(next_vert+2)%3].index):
+						temp_key=(face.verts[next_vert].index,face.verts[(next_vert+2)%3].index)
+					else:
+						temp_key=(face.verts[(next_vert+2)%3].index, face.verts[next_vert].index)
+					#print "temp key: ", temp_key
+					temp_faces=edge_dict[temp_key]
+					if(len(temp_faces)==0):
+						print "Can't find any other faces with key: ", temp_key
+					else:
+						#search the new edge	
+						#print "found other faces, searching them"	
+						find_strip_length(mesh, face_index, temp_key) #recursive greedy-takes first tri it finds as best 
+						break;
 				else:
-					print "Yeah! I can use it"
-				
-					m2=md2.faces[tri_counter].vertex_index[(k+1)%3]
+					#print "Found a suitable odd connecting tri: ", face_index			
+					used_tris[face_index]=2 #mark as dirty for this rum
+					odd=False
+								
+					#find the new edge
+					if(face.verts[next_vert].index < face.verts[(next_vert+1)%3].index):
+						temp_key=(face.verts[next_vert].index,face.verts[(next_vert+1)%3].index)
+					else:
+						temp_key=(face.verts[(next_vert+1)%3].index, face.verts[next_vert].index)
+					#print "temp key: ", temp_key
+					temp_faces=edge_dict[temp_key]
+					if(len(temp_faces)==0):
+						print "Can't find any other faces with key: ", temp_key
+					else:
+						#search the new edge	
+						#print "found other faces, searching them"	
+						find_strip_length(mesh, face_index, temp_key) #recursive greedy-takes first tri it finds as best 
+						break;
+
+	return len(strip_tris)
+
+
+######################################################
+# Tri-Stripify function
+######################################################
+def stripify_tri_list(mesh, edge_key):
+	global edge_dict
+	global strip_tris
+	global strip_st
+	global strip_verts
 	
-					strip_verts.append(md2.faces[tri_counter].vertex_index[(k+1)%3])
-					strip_st.append(md2.faces[tri_counter].texture_index[(k+1)%3])
-					
-					strip_count+=1
-					strip_tris.append(tri_counter)
+	shared_edge=[]
+	key=[]
 	
-					used[tri_counter]=2
-					tri_counter=start_tri+1 #restart looking
-				
-	#clear used counter
-	for used_counter in range(0, md2.num_faces):
-		if used[used_counter]==2:
-			used[used_counter]=0
+	#print "*****Stripify the triangle list*******"
+	#print "strip tris: ", strip_tris
+	#print "strip_tri length: ", len(strip_tris)
+		
+	for tri_counter in range(0, len(strip_tris)):
+		face=mesh.faces[strip_tris[tri_counter]]
+		if (tri_counter==0): #first one only 
+			#find non-edge vert
+			for vert_counter in range(0,3):
+				if (face.verts[vert_counter].index!=edge_key[0] and face.verts[vert_counter].index!=edge_key[1]):
+					start_vert=vert_counter
+			strip_verts.append(face.verts[start_vert].index)
+			strip_st.append(face.uv[start_vert])
+			
+			strip_verts.append(face.verts[(start_vert+2)%3].index)
+			strip_st.append(face.uv[(start_vert+2)%3])
+
+			strip_verts.append(face.verts[(start_vert+1)%3].index)
+			strip_st.append(face.uv[(start_vert+1)%3])
+		else:
+			for vert_counter in range(0,3):
+				if(face.verts[vert_counter].index!=strip_verts[-1] and face.verts[vert_counter].index!=strip_verts[-2]):
+					strip_verts.append(face.verts[vert_counter].index)
+					strip_st.append(face.uv[vert_counter])
+					break
+		
 	
-	return strip_count
-	
+
 ######################################################
 # Build GL command List
 ######################################################
-def build_GL_commands(md2):
+def build_GL_commands(md2, mesh):
 	print "Building GL Commands"
 	
-	global used
+	global used_tris
+	global edge_dict
 	global strip_verts
 	global strip_tris
 	global strip_st
 	
 	#globals initialization
-	used=[0]*md2.num_faces
-	print "Used: ", used
+	used_tris=[0]*len(mesh.faces)
+	#print "Used: ", used_tris
 	num_commands=0
+	
+	#edge dictionary generation
+	edge_dict=dict([(ed.key,[]) for ed in mesh.edges])
+	for face in (mesh.faces):
+		for key in face.edge_keys:
+			edge_dict[key].append(face.index)
+	
+	#print "edge Dict: ", edge_dict
 
-	for tri_counter in range(0,md2.num_faces):
-		if used[tri_counter]!=0: 
-			print "Found a used triangle: ", tri_counter
+	for tri_counter in range(0,len(mesh.faces)):
+		if used_tris[tri_counter]!=0: 
+			#print "Found a used triangle: ", tri_counter
+			pass
 		else:
-			print "Found an unused triangle: ", tri_counter
+			#print "Found an unused triangle: ", tri_counter
 
 			#intialization
-			best_length=0
-			best_type=0
-			best_verts=[0]*0
-			best_tris=[0]*0
-			best_st=[0]*0
+			strip_tris=[0]*0
+			strip_verts=[0]*0
+			strip_st=[0]*0
+			strip_first_run=True
+			odd=True
 			
-
-			for start_vert in range(0,3):
-				fan_length=find_fan_length(md2, tri_counter, start_vert)
-				#fan_length=0
-				print "Triangle: ", tri_counter, " Vertex: ", start_vert, " Fan Length: ", fan_length
-
-				if (fan_length>best_length):
-					best_type=1
-					best_length=fan_length
-					best_verts=strip_verts
-					best_tris=strip_tris
-					best_st=strip_st
-				
-				#strip_length=find_strip_length(md2, tri_counter, start_vert)
-				strip_length=0
-				print "Triangle: ", tri_counter, " Vertex: ", start_vert, " Strip Length: ", strip_length
-		
-				if (strip_length>best_length): 
-					best_type=0
-					best_length=strip_length
-					best_verts=strip_verts
-					best_tris=strip_tris
-					best_st=strip_st
-
-			print "Best length for this triangle is: ", best_length
-			print "Best type is: ", best_type
-			print "Best Tris are: ", best_tris
-			print "Best Verts are: ", best_verts
-			print "Best ST are: ", best_st
-
+			#find the strip length
+			strip_length=find_strip_length(mesh, tri_counter, mesh.faces[tri_counter].edge_keys[0])
 
 			#mark tris as used
-			for used_counter in range(0,best_length):
-				used[best_tris[used_counter]]=1
+			for used_counter in range(0,strip_length):
+				used_tris[strip_tris[used_counter]]=1
+				
+			stripify_tri_list(mesh, mesh.faces[tri_counter].edge_keys[0])
 
 			#create command list
 			cmd_list=md2_GL_cmd_list()
-			if best_type==0:
-				cmd_list.num=(-(best_length+2))
-			else:	
-				cmd_list.num=best_length+2
-
+			#number of commands in this list			
+			print "strip length: ", strip_length
+			cmd_list.num=(len(strip_tris)+2) #positive for strips, fans would be negative, but not supported yet
 			num_commands+=1
-			for command_counter in range(0,best_length+2):
-				cmd=md2_GL_command()										
-				s=md2.tex_coords[best_st[command_counter]].u
-				t=md2.tex_coords[best_st[command_counter]].v
-				cmd.s=s/float(md2.skin_width)
-				cmd.t=t/float(md2.skin_height)
-				cmd.vert_index=best_verts[command_counter]
+			
+			#add s,t,vert for this command list
+			for command_counter in range(0, len(strip_tris)+2):
+				cmd=md2_GL_command()
+				cmd.s=strip_st[command_counter][0]
+				cmd.t=1.0-strip_st[command_counter][1] #flip upside down
+				cmd.vert_index=strip_verts[command_counter]
 				num_commands+=3
 				cmd_list.cmd_list.append(cmd)
-			cmd_list.dump()
-			md2.GL_commands.append(cmd_list)
-		
-		print "Used: ", used			
+			print "Cmd List length: ", len(cmd_list.cmd_list)
+			print "Cmd list num: ", cmd_list.num
+			print "Cmd List: ", cmd_list.dump()
+			md2.GL_commands.append(cmd_list)		
 
 	#add the null command at the end
 	temp_cmdlist=md2_GL_cmd_list()	
@@ -1204,7 +1187,7 @@ def build_GL_commands(md2):
 	num_commands+=1		
 
 	#cleanup and return
-	used=best_vert=best_st=best_tris=strip_vert=strip_st=strip_tris=0
+	used=strip_vert=strip_st=strip_tris=0
 	return num_commands
 		
 
