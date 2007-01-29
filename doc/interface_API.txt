@@ -277,7 +277,7 @@ type:		see below
 retval:		return value, which is put back in queue
 *str:		button name
 x1, y1:		coordinates of left-lower corner
-x1, y2:		width, height
+x2, y2:		width, height
 *poin:		pointer to char, short, int, float
 min, max	used for slider buttons
 a1, a2		extra info for some buttons
