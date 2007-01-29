@@ -2045,11 +2045,15 @@ void sculpt()
 void set_sculptmode()
 {
 	if(G.f & G_SCULPTMODE) {
+		Mesh *me= get_mesh(OBACT);
+		
 		G.f &= ~G_SCULPTMODE;
 
 		sculptmode_free_session(G.scene);
-		if(get_mesh(OBACT)->pv) sculptmode_pmv_off(get_mesh(OBACT));
-	} else {
+		if(me && me->pv) 
+			sculptmode_pmv_off(me);
+	} 
+	else {
 		G.f |= G_SCULPTMODE;
 
 		if(!sculptmode_brush())
