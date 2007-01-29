@@ -275,7 +275,7 @@ static void imapaint_redraw(int final, int texpaint, Image *image)
 void imagepaint_undo()
 {
 	Image *ima= imapaintundo.image;
-	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, G.sima?&G.sima->iuser:NULL);
 	int x, y, tile;
 
 	if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float))
@@ -509,7 +509,7 @@ static int texpaint_break_stroke(float *prevuv, float *fwuv, float *bkuv, float 
 
 static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+	ImBuf *ibuf= BKE_image_get_ibuf(ima, G.sima?&G.sima->iuser:NULL);
 	
 	/* verify that we can paint and set canvas */
 	if(ima->packedfile && ima->rr) {
@@ -529,7 +529,7 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 	/* set clone canvas */
 	if(s->tool == PAINT_TOOL_CLONE) {
 		ima= s->brush->clone.image;
-		ibuf= BKE_image_get_ibuf(ima, &G.sima->iuser);
+		ibuf= BKE_image_get_ibuf(ima, G.sima?&G.sima->iuser:NULL);
 		
 		if(!ima || !ibuf || !(ibuf->rect || ibuf->rect_float))
 			return 0;
@@ -556,7 +556,7 @@ static void imapaint_canvas_free(ImagePaintState *s)
 
 static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, Image *image, short texpaint, float *uv, double time, int update, float pressure)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf(image, &G.sima->iuser);
+	ImBuf *ibuf= BKE_image_get_ibuf(image, G.sima?&G.sima->iuser:NULL);
 	float pos[2];
 
 	pos[0] = uv[0]*ibuf->x;
@@ -586,7 +586,7 @@ static void imapaint_paint_stroke(ImagePaintState *s, BrushPainter *painter, sho
 			ImBuf *ibuf;
 			
 			newimage = (Image*)((s->me->mtface+newfaceindex)->tpage);
-			ibuf= BKE_image_get_ibuf(newimage, &G.sima->iuser);
+			ibuf= BKE_image_get_ibuf(newimage, G.sima?&G.sima->iuser:NULL);
 
 			if(ibuf && ibuf->rect)
 				texpaint_pick_uv(s->ob, s->me, newfaceindex, mval, newuv);
