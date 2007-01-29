@@ -214,6 +214,9 @@ typedef struct UVProjectModifierData {
 
 #define MOD_UVPROJECT_MAXPROJECTORS 10
 
+/* UVProjectModifierData->flags */
+#define MOD_UVPROJECT_OVERRIDEIMAGE 1<<0
+
 typedef struct DecimateModifierData {
 	ModifierData modifier;
 

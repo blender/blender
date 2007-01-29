@@ -2616,7 +2616,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	int i, numVerts, numFaces;
 	Image *image = umd->image;
 	MFace *mface, *mf;
-	int new_tfaces = 0;
+	int override_image = ((umd->flags & MOD_UVPROJECT_OVERRIDEIMAGE) != 0);
 	Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
 	int num_projectors = 0;
 	float aspect;
@@ -2729,7 +2729,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
 	/* apply coords as UVs, and apply image if tfaces are new */
 	for(i = 0, mf = mface; i < numFaces; ++i, ++mf, ++tface) {
-		if(new_tfaces || !image || tface->tpage == image) {
+		if(override_image || !image || tface->tpage == image) {
 			if(num_projectors == 1) {
 				/* apply transformed coords as UVs */
 				tface->uv[0][0] = coords[mf->v1][0];
@@ -2799,10 +2799,9 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 			}
 		}
 
-		if(new_tfaces) {
+		if(override_image) {
 			tface->mode = TF_TEX;
-			if(image)
-				tface->tpage = image;
+			tface->tpage = image;
 		}
 	}
 

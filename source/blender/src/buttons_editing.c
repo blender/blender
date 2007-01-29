@@ -1559,7 +1559,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			   dmd->texmapping == MOD_DISP_MAP_UV)
 				height += 19;
 		} else if (md->type==eModifierType_UVProject) {
-			height = 105 + ((UVProjectModifierData *)md)->num_projectors * 19;
+			height = 114 + ((UVProjectModifierData *)md)->num_projectors * 19;
 		} else if (md->type==eModifierType_Decimate) {
 			height = 48;
 		} else if (md->type==eModifierType_Wave) {
@@ -1759,6 +1759,12 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			               "Image to project (only faces with this image "
 			               "will be altered");
 			uiButSetCompleteFunc(but, autocomplete_image, (void *)ob);
+			uiDefButBitI(block, TOG, MOD_UVPROJECT_OVERRIDEIMAGE,
+			             B_MODIFIER_RECALC, "Override Image",
+			             lx, (cy -= 19), buttonWidth, 19,
+			             &umd->flags, 0, 0, 0, 0,
+			             "Override faces' current images with the "
+			             "given image");
 		} else if (md->type==eModifierType_Decimate) {
 			DecimateModifierData *dmd = (DecimateModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Ratio:",	lx,(cy-=19),buttonWidth,19, &dmd->percent, 0.0, 1.0, 10, 0, "Defines the percentage of triangles to reduce to");
