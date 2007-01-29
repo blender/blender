@@ -18,6 +18,7 @@ Optionaly you can skin between the original and new faces to make a watertight s
 
 from Blender import *
 import BPyMesh
+# reload(BPyMesh)
 
 # python 2.3 has no reversed() iterator. this will only work on lists and tuples
 try:
@@ -52,6 +53,10 @@ def lengthFromAngle(angle):
 	x=x*fac
 	y=y*fac
 	return sqrt((x*x)+(y*y))
+
+
+
+
 
 
 def main():
@@ -141,9 +146,13 @@ def main():
 	faces= [ tuple([vert_mapping[v.index] for v in reversed(f.v)]) for f in faces_sel ]
 	me_faces.extend( faces )
 	
+
+	
+	
+	# Old method before multi UVs
+	"""
 	has_uv = me.faceUV
 	has_vcol = me.vertexColors
-	
 	for i, orig_f in enumerate(faces_sel):
 		new_f= me_faces[len_faces + i]
 		new_f.mat = orig_f.mat
@@ -159,20 +168,31 @@ def main():
 				new_f.image = orig_f.image
 		if has_vcol:
 			new_f.col = [c for c in reversed(orig_f.col)]
-	# Now add quads between if we wants
+	"""
+	BPyMesh.copy_facedata_multilayer(me, faces_sel, [me_faces[len_faces + i] for i in xrange(len(faces_sel))])
 	
 	if PREF_SKIN_SIDES:
 		skin_side_faces= []
 		skin_side_faces_orig= []
 		# Get edges of faces that only have 1 user - so we can make walls
 		edges = {}
+		
+		# So we can reference indicies that wrap back to the start.
+		ROT_TRI_INDEX = 0,1,2,0
+		ROT_QUAD_INDEX = 0,1,2,3,0
+		
 		for f in faces_sel:
 			f_v= f.v
 			for i, edgekey in enumerate(f.edge_keys):
 				if edges.has_key(edgekey):
 					edges[edgekey]= None
 				else:
-					edges[edgekey] = f, f_v, i, i-1
+					if len(f_v) == 3:
+						edges[edgekey] = f, f_v, i, ROT_TRI_INDEX[i+1]
+					else:
+						edges[edgekey] = f, f_v, i, ROT_QUAD_INDEX[i+1]
+		del ROT_QUAD_INDEX, ROT_TRI_INDEX
+		
 		
 		# Edges are done. extrude the single user edges.
 		for edge_face_data in edges.itervalues():
@@ -180,7 +200,8 @@ def main():
 				f, f_v, i1, i2 = edge_face_data
 				v1i,v2i= f_v[i1].index, f_v[i2].index
 				# Now make a new Face
-				skin_side_faces.append( (v1i, v2i, vert_mapping[v2i], vert_mapping[v1i]) )
+				# skin_side_faces.append( (v1i, v2i, vert_mapping[v2i], vert_mapping[v1i]) )
+				skin_side_faces.append( (v2i, v1i, vert_mapping[v1i], vert_mapping[v2i]) )
 				skin_side_faces_orig.append((f, len(me_faces) + len(skin_side_faces_orig), i1, i2))
 		
 		me_faces.extend(skin_side_faces)
@@ -188,6 +209,8 @@ def main():
 		
 		
 		# Now assign properties.
+		"""
+		# Before MultiUVs
 		for i, origfData in enumerate(skin_side_faces_orig):
 			orig_f, new_f_idx, i1, i2 = origfData
 			new_f= me_faces[new_f_idx]
@@ -208,6 +231,39 @@ def main():
 				col1= orig_f.col[i1]
 				col2= orig_f.col[i2]
 				new_f.col= (col1, col2, col2, col1)
+		"""
+		
+		for i, origfData in enumerate(skin_side_faces_orig):
+			orig_f, new_f_idx, i2, i1 = origfData
+			new_f= me_faces[new_f_idx]
+			
+			new_f.mat= orig_f.mat
+			new_f.smooth= orig_f.smooth
+		
+		for uvlayer in me.getUVLayerNames():
+			me.activeUVLayer = uvlayer
+			for i, origfData in enumerate(skin_side_faces_orig):
+				orig_f, new_f_idx, i2, i1 = origfData
+				new_f= me_faces[new_f_idx]
+				
+				new_f.mode= orig_f.mode
+				new_f.flag= orig_f.flag
+				new_f.image= orig_f.image
+				
+				uv1= orig_f.uv[i1]
+				uv2= orig_f.uv[i2]
+				new_f.uv= (uv1, uv2, uv2, uv1)
+		
+		for collayer in me.getColorLayerNames():
+			me.activeColorLayer = collayer
+			for i, origfData in enumerate(skin_side_faces_orig):
+				orig_f, new_f_idx, i2, i1 = origfData
+				new_f= me_faces[new_f_idx]
+				
+				col1= orig_f.col[i1]
+				col2= orig_f.col[i2]
+				new_f.col= (col1, col2, col2, col1)
+	
 	
 	if PREF_REM_ORIG:
 		me_faces.delete(0, faces_sel)
