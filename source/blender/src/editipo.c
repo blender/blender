@@ -4452,7 +4452,7 @@ void transform_ipo(int mode)
 	EditIpo *ei;
 	BezTriple *bezt;
 	TransVert *transmain = NULL, *tv;
-	float xref=1.0, yref=1.0, dx, dy, dvec[2], min[3], max[3], vec[2], div, cent[2], size[2], sizefac;
+	float dx, dy, dvec[2], min[3], max[3], vec[2], div, cent[2], size[2], sizefac;
 	int tot=0, a, b, firsttime=1, afbreek=0, dosort, clampAxis=CLAMP_OFF;
 	unsigned short event = 0;
 	short mval[2], val, xo, yo, xn, yn, xc, yc;
@@ -4635,8 +4635,6 @@ void transform_ipo(int mode)
 				size[0]=size[1]=(float)( (sqrt( (float)((yc-mval[1])*(yc-mval[1])+(mval[0]-xc)*(mval[0]-xc)) ))/sizefac);
 				
 				if(clampAxis) size[clampAxis-1]= 1.0;
-				size[0]*= xref;
-				size[1]*= yref;
 				
 				apply_keyb_grid(size, 0.0, (float)0.2, (float)0.1, U.flag & USER_AUTOSIZEGRID);
 				apply_keyb_grid(size+1, 0.0, (float)0.2, (float)0.1, U.flag & USER_AUTOSIZEGRID);
@@ -4756,37 +4754,23 @@ void transform_ipo(int mode)
 					}
 					break;
 				case XKEY:
-					/* clampAxis is the axis that will be Zeroed out, which is which we clamp
+					/* clampAxis is the axis that will be Zeroed out, which is why we clamp
 					 * on Y when pressing X
 					 */
-					if(mode=='g') {  
-						/* grab */
-						if (clampAxis == CLAMP_Y) 
-							clampAxis = CLAMP_OFF; // Clamp Off if already on Y
-						else 
-							clampAxis = CLAMP_Y; // On otherwise
-					}
-					else {
-						/* assume to be scaling */
-						xref= -xref;  
-					}
+					if (clampAxis == CLAMP_Y) 
+						clampAxis = CLAMP_OFF; // Clamp Off if already on Y
+					else 
+						clampAxis = CLAMP_Y; // On otherwise
 					firsttime= 1;
 					break;
 				case YKEY:
-					/* clampAxis is the axis that will be Zeroed out, which is which we clamp
+					/* clampAxis is the axis that will be Zeroed out, which is why we clamp
 					 * on X when pressing Y
 					 */
-					if(mode=='g') {  
-						/* grab */
-						if (clampAxis == CLAMP_X) 
-							clampAxis = CLAMP_OFF; // Clamp Off if already on X
-						else 
-							clampAxis = CLAMP_X; // On otherwise
-					}
-					else {
-						/* assume to be scaling */
-						if (G.sipo->showkey==0) yref= -yref; 
-					}
+					if (clampAxis == CLAMP_X) 
+						clampAxis = CLAMP_OFF; // Clamp Off if already on X
+					else 
+						clampAxis = CLAMP_X; // On otherwise
 					firsttime= 1;
 					break;
 				case LEFTCTRLKEY:
