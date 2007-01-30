@@ -540,12 +540,6 @@ PyObject *RenderData_EnableBackbuf( BPy_RenderData * self, PyObject * args )
 					&self->renderContext->bufflag );
 }
 
-PyObject *RenderData_EnableThreads( BPy_RenderData * self, PyObject * args )
-{
-	return M_Render_BitToggleInt( args, R_THREADS,
-					&self->renderContext->mode );
-}
-
 PyObject *RenderData_EnableExtensions( BPy_RenderData * self, PyObject * args )
 {
 	return M_Render_BitToggleShort( args, R_EXTENSION,
@@ -1968,6 +1962,28 @@ static int RenderData_setSet( BPy_RenderData *self, PyObject *value )
 	return 0;
 }
 
+
+PyObject *RenderData_getThreads( BPy_RenderData * self )
+{
+	return PyInt_FromLong( (long) self->renderContext->threads );
+}
+
+static int RenderData_setThreads( BPy_RenderData *self, PyObject *value )
+{
+	int threads;
+
+	if( !PyInt_CheckExact( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "Error, threads must be an int" );
+
+	threads = PyInt_AsLong( value );
+	if (threads<1) threads = 1;
+	else if (threads>8) threads = 8;
+	
+	self->renderContext->threads = (short)threads;
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
+	return 0;
+}
+
 /***************************************************************************/
 /* BPy_RenderData attribute def                                            */
 /***************************************************************************/
@@ -2032,24 +2048,47 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (void *)R_RAYTRACE},
 /* R_GAUSS unused */
 /* R_FBUF unused */
+/* R_THREADS unused */
 	{"threads",
-	 (getter)RenderData_getModeBit, (setter)RenderData_setModeBit,
-	 "Render in two threads enabled",
-	 (void *)R_THREADS},
+	 (getter)RenderData_getThreads, (setter)RenderData_setThreads,
+	 "Number of threads used to render",
+	 NULL},
 /* R_SPEED unused */
 	{"mode",
 	 (getter)RenderData_getMode, (setter)RenderData_setMode,
 	 "Mode bitfield",
 	 NULL},
 
-	{"extensions",
-     (getter)RenderData_getSceModeBits, (setter)RenderData_setSceModeBits,
-     "Add extensions to output (when rendering animations) enabled",
-     (void *)R_EXTENSION},
+	/* scene modes */
 	{"sequencer",
      (getter)RenderData_getSceModeBits, (setter)RenderData_setSceModeBits,
      "'Do Sequence' enabled",
      (void *)R_DOSEQ},
+	{"extensions",
+     (getter)RenderData_getSceModeBits, (setter)RenderData_setSceModeBits,
+     "Add extensions to output (when rendering animations) enabled",
+     (void *)R_EXTENSION},
+	{"compositor",
+     (getter)RenderData_getSceModeBits, (setter)RenderData_setSceModeBits,
+     "'Do Compositor' enabled.",
+     (void *)R_DOCOMP},
+	{"freeImages",
+     (getter)RenderData_getSceModeBits, (setter)RenderData_setSceModeBits,
+     "Free texture images after render.",
+     (void *)R_FREE_IMAGE},
+	{"singleLayer",
+     (getter)RenderData_getSceModeBits, (setter)RenderData_setSceModeBits,
+     "Only render the active layer.",
+     (void *)R_SINGLE_LAYER},
+	{"saveBuffers",
+     (getter)RenderData_getSceModeBits, (setter)RenderData_setSceModeBits,
+     "Save render buffers to disk while rendering, saves memory.",
+     (void *)R_EXR_TILE_FILE},
+	{"compositeFree",
+     (getter)RenderData_getSceModeBits, (setter)RenderData_setSceModeBits,
+     "Free nodes that are not used while composite.",
+     (void *)R_COMP_FREE},
+
 	{"sceneMode",
      (getter)RenderData_getSceMode, (setter)RenderData_setSceMode,
      "Scene mode bitfield",
@@ -2213,9 +2252,6 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	{"enableBackbuf", ( PyCFunction ) RenderData_EnableBackbuf,
 	 METH_VARARGS,
 	 "(bool) - enable/disable the backbuf image"},
-	{"enableThreads", ( PyCFunction ) RenderData_EnableThreads,
-	 METH_VARARGS,
-	 "(bool) - enable/disable threaded rendering"},
 	{"setFtypePath", ( PyCFunction ) RenderData_SetFtypePath, METH_VARARGS,
 	 "(string) - get/set the path to output the Ftype file"},
 	{"getFtypePath", ( PyCFunction ) RenderData_getFtypePath, METH_NOARGS,

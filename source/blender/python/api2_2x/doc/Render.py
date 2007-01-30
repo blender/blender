@@ -54,7 +54,7 @@ boolean attributes.
   - MBLUR: Motion blur enabled
   - UNIFIED: Unified Renderer enabled
   - RAYTRACING: Ray tracing enabled
-  - THREADS: Render in two threads enabled
+  - THREADS: Render in two threads enabled (Deprecated, use L{RenderData.threads})
 
 @type SceModes: readonly dictionary
 @var SceModes: Constant dict used for with L{RenderData.sceneMode} bitfield attribute.  
@@ -62,6 +62,8 @@ Values can be ORed together.  Individual bits can also be set/cleared with
 boolean attributes.
   - SEQUENCER: Enables sequencer output rendering.
   - EXTENSION: Adds extensions to the output when rendering animations.
+  - SAVE_BUFFERS: Save render tiles to disk to save memory.
+  - FREE_IMAGES: Free images used by textures after each render.
 
 @type FramingModes: readonly dictionary
 @var FramingModes: Constant dict used for with L{RenderData.gameFrame}
@@ -215,9 +217,8 @@ class RenderData:
   Valid values are 0 (display in image editor view), 1 (display in render
   window), or 2 (display full screen).
   @type displayMode: int
-  @ivar threads: Render in two threads enabled. 
-  Also see B{THREADS} in L{Modes} constant dict.
-  @type threads: boolean
+  @ivar threads: Number of threads to render, clamed [1-8]
+  @type threads: int 
   @ivar backbufPath: Path to a background image (setting loads image).
   @type backbufPath: string
   @ivar toonShading: Toon edge shading enabled. 
@@ -229,18 +230,33 @@ class RenderData:
   @ivar gameFrameColor: RGB color triplet for bars.  
   Values are clamped in the range [0.0,1.0].
   @type gameFrameColor: list of RGB 3 floats
-  @ivar extensions: Add extensions to output (when rendering animations).
-  Also see B{EXTENSION} in L{SceModes} constant dict.
-  @type extensions: boolean
+  @ivar saveBuffers: Save tiles for all renderlayers to disk saving memory.
+  Also see B{SAVE_BUFFERS} in L{SceModes} constant dict.
+  @type saveBuffers: boolean
   @ivar sizeY: Image height (in pixels).
   Values are clamped to the range [4,10000].
   @type sizeY: int
   @ivar renderer: Rendering engine choice.  
   Valid values are 0 (internal) or 1 (Yafray).
   @type renderer: int
+  
   @ivar sequencer: Enables sequencer output rendering.
   Also see B{SEQUENCER} in L{SceModes} constant dict.
   @type sequencer: boolean
+  @ivar extensions: Add extensions to output (when rendering animations).
+  Also see B{EXTENSION} in L{SceModes} constant dict.
+  @type extensions: boolean
+  @ivar compositor: 'Do Compositor' enabled.
+  @type compositor: boolean
+  @ivar freeImages: 'Do Compositor' enabled.
+  @type freeImages: boolean
+  @ivar singleLayer: Only render the active layer.
+  @type singleLayer: boolean
+  @ivar saveBuffers: Save render buffers to disk while rendering, saves memory.
+  @type saveBuffers: boolean
+  @ivar compositeFree: Free nodes that are not used while composite.
+  @type compositeFree: boolean
+  
   @ivar panorama: Panorama rendering enabled. 
   Also see B{PANORAMA} in L{Modes} constant dict.
   @type panorama: boolean
