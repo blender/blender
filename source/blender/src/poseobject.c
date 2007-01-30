@@ -235,6 +235,15 @@ void pose_calculate_path(Object *ob)
 		return;
 	arm= ob->data;
 	
+	/* version patch for older files here (do_versions patch too complicated) */
+	if ((arm->pathsf == 0) || (arm->pathef == 0)) {
+		arm->pathsf = SFRA;
+		arm->pathef = EFRA;
+	}
+	if (arm->pathsize == 0) {
+		arm->pathsize = 1;
+	}
+	
 	/* set frame values */
 	cfra= CFRA;
 	sfra = arm->pathsf;
@@ -258,7 +267,6 @@ void pose_calculate_path(Object *ob)
 	}
 	
 	for(CFRA=sfra; CFRA<=efra; CFRA++) {
-		
 		/* do all updates */
 		for(base= FIRSTBASE; base; base= base->next) {
 			if(base->object->recalc) {
@@ -290,6 +298,7 @@ void pose_calculate_path(Object *ob)
 	
 	CFRA= cfra;
 	allqueue(REDRAWVIEW3D, 0);	/* recalc tags are still there */
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 
@@ -500,9 +509,9 @@ void pose_copy_menu(void)
 	
 	i= BLI_countlist(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
 	if (i<25)
-		nr= pupmenu("Copy Pose Attributes %t|Location%x1|Rotation%x2|Size%x3|Constraints (All)%x4|Constraints...%x5|Transform Locks%x6|IK Limits%x7|Bone Shape%x8");
+		nr= pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4|Constraints...%x5|%l|Transform Locks%x6|IK Limits%x7|Bone Shape%x8");
 	else
-		nr= pupmenu("Copy Pose Attributes %t|Location%x1|Rotation%x2|Size%x3|Constraints (All)%x4|Transform Locks%x6|IK Limits%x7|Bone Shape%x8");
+		nr= pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4|%l|Transform Locks%x6|IK Limits%x7|Bone Shape%x8");
 	
 	if(nr==-1) return;
 	if(nr!=5)  {
@@ -543,6 +552,26 @@ void pose_copy_menu(void)
 					case 8:
 						pchan->custom = pchanact->custom;
 						break;
+					case 9:
+						armature_loc_pose_to_bone(pchan, pchanact->pose_mat[3], pchan->loc);
+						break;
+					case 10:
+					{
+						float delta_mat[4][4], quat[4];
+						
+						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
+						Mat4ToQuat(delta_mat, quat);
+						QUATCOPY(pchan->quat, quat);
+					}
+						break;
+					case 11:
+					{
+						float delta_mat[4][4], size[4];
+						
+						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
+						Mat4ToSize(delta_mat, size);
+						VECCOPY(pchan->size, size);
+					}
 				}
 			}
 		}
