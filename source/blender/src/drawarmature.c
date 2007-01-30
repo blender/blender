@@ -1747,6 +1747,8 @@ static void draw_pose_paths(Object *ob)
 	glPushMatrix();
 	glLoadMatrixf(G.vd->viewmat);
 	
+	/* version patch here - cannot access frame info from file reading */
+	if (arm->pathsize == 0) arm->pathsize= 1;
 	stepsize = arm->pathsize;
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
