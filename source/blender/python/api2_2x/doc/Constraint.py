@@ -15,7 +15,7 @@ Examples::
   if len(ob.constraints) > 0:
     const = ob.constraints[0]
     if const.type == Constraint.Type.FLOOR:
-      offs = const[Constrint.Settings.OFFSET]
+      offs = const[Constraint.Settings.OFFSET]
   
 Or to print all the constraints attached to each bone in a pose::
   from Blender import *
