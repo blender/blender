@@ -346,6 +346,8 @@ void multires_delete_layer(Mesh *me, CustomData *cd, const int type, int n)
 	if(me && me->mr && cd) {
 		MultiresLevel *lvl1= me->mr->levels.first;
 		
+		multires_update_levels(me);
+		
 		CustomData_set_layer_active(cd, type, n);
 		CustomData_free_layer_active(cd, type, lvl1->totface);
 		
@@ -357,6 +359,8 @@ MultiresLevel *current_level(Multires *mr);
 void multires_add_layer(Mesh *me, CustomData *cd, const int type, const int n)
 {
 	if(me && me->mr && cd) {
+		multires_update_levels(me);
+	
 		if(CustomData_has_layer(cd, type))
 			CustomData_add_layer(cd, type, CD_DUPLICATE, CustomData_get_layer(cd, type),
 			                     current_level(me->mr)->totface);

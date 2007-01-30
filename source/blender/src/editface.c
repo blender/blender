@@ -90,6 +90,7 @@
 #include "mydevice.h"
 #include "blendef.h"
 #include "butspace.h"
+#include "multires.h"
 
 #include "BSE_trans_types.h"
 
@@ -610,9 +611,16 @@ void default_uv(float uv[][2], float size)
 
 void make_tfaces(Mesh *me) 
 {
-	if(!me->mtface)
-		me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT,
-			NULL, me->totface);
+	if(!me->mtface) {
+		if(me->mr) {
+			multires_add_layer(me, &me->mr->fdata, CD_MTFACE,
+			                   CustomData_number_of_layers(&me->fdata, CD_MTFACE));
+		}
+		else {
+			me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT,
+				NULL, me->totface);
+		}
+	}
 }
 
 void reveal_tface()
