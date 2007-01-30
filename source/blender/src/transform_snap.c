@@ -419,6 +419,8 @@ void TargetSnapClosest(TransInfo *t)
 				Object *ob= G.obedit?G.obedit:t->poseobj;
 				Mat4MulVecfl(ob->obmat, t->tsnap.snapTarget);
 			}
+
+			t->tsnap.dist = t->tsnap.distance(t, t->tsnap.snapTarget, t->tsnap.snapPoint);
 		}
 		// More than one selected item
 		else
