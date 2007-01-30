@@ -151,19 +151,27 @@ void resetSnapping(TransInfo *t)
 void initSnapping(TransInfo *t)
 {
 	resetSnapping(t);
-	setSnappingCallback(t);
 	
-	if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-		(G.obedit != NULL && G.obedit->type==OB_MESH) && // Temporary limited to edit mode meshes
-		(t->spacetype == SPACE_VIEW3D) && // Only 3D view (not UV)
-		(G.vd->flag2 & V3D_TRANSFORM_SNAP) && // Only if the snap flag is on
-		(t->flag & T_PROP_EDIT) == 0) // No PET, obviously
-	{
-		t->tsnap.status |= SNAP_ON;
-		t->tsnap.modePoint = SNAP_GEO;
+	if (t->spacetype == SPACE_VIEW3D) { // Only 3D view (not UV)
+		setSnappingCallback(t);
+
+		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
+			(G.obedit != NULL && G.obedit->type==OB_MESH) && // Temporary limited to edit mode meshes
+			(G.vd->flag2 & V3D_TRANSFORM_SNAP) && // Only if the snap flag is on
+			(t->flag & T_PROP_EDIT) == 0) // No PET, obviously
+		{
+			t->tsnap.status |= SNAP_ON;
+			t->tsnap.modePoint = SNAP_GEO;
+		}
+		else
+		{	
+			/* Grid if snap is not possible */
+			t->tsnap.modePoint = SNAP_GRID;
+		}
 	}
 	else
 	{
+		/* Always grid outside of 3D view */
 		t->tsnap.modePoint = SNAP_GRID;
 	}
 }
@@ -172,7 +180,6 @@ void setSnappingCallback(TransInfo *t)
 {
 	t->tsnap.calcSnap = CalcSnapGeometry;
 
-	
 	switch(G.vd->snap_target)
 	{
 		case V3D_SNAP_TARGET_CLOSEST:
@@ -204,9 +211,6 @@ void setSnappingCallback(TransInfo *t)
 			t->tsnap.modeTarget = SNAP_MEDIAN;
 			t->tsnap.targetSnap = TargetSnapMedian;
 		}
-		break;
-	case TFM_RESIZE:
-		t->tsnap.applySnap = NULL;
 		break;
 	default:
 		t->tsnap.applySnap = NULL;
@@ -465,7 +469,7 @@ void snapGridAction(TransInfo *t, float *val, GearsType action) {
 void snapGrid(TransInfo *t, float *val) {
 	int invert;
 	GearsType action;
-	
+
 	// Only do something if using Snap to Grid
 	if (t->tsnap.modePoint != SNAP_GRID)
 		return;
