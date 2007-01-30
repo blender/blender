@@ -1351,12 +1351,12 @@ PyObject *PyArmature_FromArmature(struct bArmature *armature)
 	PyObject *maindict = NULL, *armdict = NULL, *weakref = NULL;
 
 	//create armature type
-	py_armature = (BPy_Armature*)Armature_Type.tp_alloc(&Armature_Type, 0); //*new*
+	py_armature = (BPy_Armature*)PyObject_New(BPy_Armature, &Armature_Type); //Armature_Type.tp_alloc(&Armature_Type, 0); //*new*
 	py_armature->weaklist = NULL; //init the weaklist
 	if (!py_armature)
 		goto RuntimeError;
 	py_armature->armature = armature;
-
+	
 	//create armature.bones
 	py_armature->Bones = (BPy_BonesDict*)PyBonesDict_FromPyArmature(py_armature);
 	if (!py_armature->Bones)
@@ -1364,13 +1364,21 @@ PyObject *PyArmature_FromArmature(struct bArmature *armature)
 
 	//put a weakreference in __main__
 	maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
+	
 	armdict = PyDict_GetItemString(maindict, "armatures");
+	/*armature list doesn't exist  for pydrivers. . .so check.
+	  by the way, why is the var called armatures? what if a script author has
+	  a similar var in his script? won't they conflict?.
+	  
+	  joeedh*/
+	if (!armdict) return (PyObject *) py_armature;
+	
 	weakref = PyWeakref_NewProxy((PyObject*)py_armature, Py_None);
 	if (PyList_Append(armdict, weakref) == -1){
 		goto RuntimeError;
 	}
 
-	return (PyObject *) py_armature; 
+	return (PyObject *) py_armature;
 
 RuntimeError:
 	return EXPP_objError(PyExc_RuntimeError, "%s%s%s", 
