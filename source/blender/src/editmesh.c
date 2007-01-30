@@ -619,7 +619,6 @@ void free_editMesh(EditMesh *em)
 
 	if(em->retopo_paint_data) retopo_free_paint_data(em->retopo_paint_data);
 	em->retopo_paint_data= NULL;
-	G.scene->toolsettings->retopo_mode&= ~RETOPO_PAINT;
 }
 
 /* on G.editMesh */
