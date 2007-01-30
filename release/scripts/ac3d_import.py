@@ -339,10 +339,14 @@ class AC3DImport:
 		NUMSURF = numsurf
 
 		while numsurf:
-			flags = lines[i].split()
-			flaglow = 0
-			if len(flags[1]) > 3: flaglow = int(flags[1][3])
-			flaghigh = int(flags[1][2])
+			flags = lines[i].split()[1][2:]
+			if len(flags) > 1:
+				flaghigh = int(flags[0])
+				flaglow = int(flags[1])
+			else:
+				flaghigh = 0
+				flaglow = int(flags[0])
+
 			is_smooth = flaghigh & 1
 			twoside = flaghigh & 2
 			mat = lines[i+1].split()
@@ -366,14 +370,14 @@ class AC3DImport:
 				fuv.append(Vector(uv))
 				rfs -= 1
 				i += 1
-				
+
 			if flaglow: # it's a line or closed line, not a polygon
 				while len(face) >= 2:
 					cut = face[:2]
 					edges.append(cut)
 					face = face[1:]
 
-				if flaglow == 1 and edges:
+				if flaglow == 1 and edges: # closed line
 					face = [edges[-1][-1], edges[0][0]]
 					edges.append(face)
 
@@ -568,9 +572,13 @@ class AC3DImport:
 
 			if obj.flist_v:
 				mesh.faces.extend(obj.flist_v)
-				mesh.faceUV = True
 
 				facesnum = len(mesh.faces)
+
+				if facesnum == 0: # shouldn't happen, of course
+					continue
+
+				mesh.faceUV = True
 
 				# checking if the .ac file had duplicate faces (Blender ignores them):
 				if facesnum != len(obj.flist_v):
