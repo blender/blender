@@ -1775,7 +1775,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, WAV_X, B_MODIFIER_RECALC, "X",		lx,(cy-=19),45,19, &wmd->flag, 0, 0, 0, 0, "Enable X axis motion");
 			uiDefButBitS(block, TOG, WAV_Y, B_MODIFIER_RECALC, "Y",		lx+45,cy,45,19, &wmd->flag, 0, 0, 0, 0, "Enable Y axis motion");
 			uiDefButBitS(block, TOG, WAV_CYCL, B_MODIFIER_RECALC, "Cycl",	lx+90,cy,buttonWidth-90,19, &wmd->flag, 0, 0, 0, 0, "Enable cyclic wave effect");
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time sta:",	lx,(cy-=19),buttonWidth,19, &wmd->timeoffs, -1000.0, 1000.0, 100, 0, "Specify startingframe of the wave");
+			if(wmd->speed >= 0)
+				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time sta:",	lx,(cy-=19),buttonWidth,19, &wmd->timeoffs, -1000.0, 1000.0, 100, 0, "Specify starting frame of the wave");
+			else
+				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time end:",	lx,(cy-=19),buttonWidth,19, &wmd->timeoffs, -1000.0, 1000.0, 100, 0, "Specify ending frame of the wave");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lifetime:",	lx,(cy-=19),buttonWidth,19, &wmd->lifetime,  -1000.0, 1000.0, 100, 0, "Specify the lifespan of the wave");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Damptime:",	lx,(cy-=19),buttonWidth,19, &wmd->damp,  -1000.0, 1000.0, 100, 0, "Specify the dampingtime of the wave");
 			cy -= 19;
