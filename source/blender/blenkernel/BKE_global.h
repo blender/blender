@@ -94,8 +94,8 @@ typedef struct Global {
 	struct ListBase recent_files;
     
 	/* totals */
-	short totobj, totlamp, totobjsel, totcurve, totmesh;
-	short totbone, totbonesel;
+	int totobj, totlamp, totobjsel, totcurve, totmesh;
+	int totbone, totbonesel;
 	int totvert, totedge, totface, totvertsel, totedgesel, totfacesel;
     
 	short afbreek, moving;
