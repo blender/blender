@@ -884,18 +884,42 @@ static PyObject *M_Window_GetPerspMatrix( PyObject * self )
 	return perspmat;
 }
 
+
+/* update_armature_weakrefs()
+ * helper function used in M_Window_EditMode.
+ * rebuilds list of Armature weakrefs in __main__
+ */
+
+static int update_armature_weakrefs()
+{
+	/* stuff for armature weak refs */
+	char *list_name = ARM_WEAKREF_LIST_NAME;
+	PyObject *maindict = NULL, *armlist = NULL;
+	PyObject *pyarmature = NULL;
+	int x;
+
+	maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
+	armlist = PyDict_GetItemString(maindict, list_name);
+	if( !armlist){
+		printf("Oops - update_armature_weakrefs()\n");
+		return 0;
+	}
+
+	for (x = 0; x < PySequence_Size(armlist); x++){
+		pyarmature = PyWeakref_GetObject(PySequence_GetItem(	armlist, x));
+		if (pyarmature != Py_None)
+			Armature_RebuildEditbones(pyarmature);
+	}
+	return 1;
+}
+
+
 static PyObject *M_Window_EditMode( PyObject * self, PyObject * args )
 {
 	short status = -1;
 	char *undo_str = "From script";
 	int undo_str_len = 11;
 	int do_undo = 1;
-#if 0
-/* bug 5000 */
-	PyObject *maindict = NULL, *armlist = NULL;
-	PyObject *pyarmature = NULL;
-	int x;
-#endif
 
 	if( !PyArg_ParseTuple( args,
 				"|hs#i", &status, &undo_str, &undo_str_len, &do_undo ) )
@@ -905,17 +929,14 @@ static PyObject *M_Window_EditMode( PyObject * self, PyObject * args )
 	if( status >= 0 ) {
 		if( status ) {
 			if( !G.obedit ){
-#if 0
-/* bug 5000 */
+
 				//update armatures
-				maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
-				armlist = PyDict_GetItemString(maindict, "armatures");
-				for (x = 0; x < PySequence_Size(armlist); x++){
-					pyarmature = PyWeakref_GetObject(PySequence_GetItem(	armlist, x));
-					if (pyarmature != Py_None)
-						Armature_RebuildEditbones(pyarmature);
+				if(! update_armature_weakrefs()){
+					return EXPP_ReturnPyObjError( 
+						PyExc_RuntimeError,
+						"internal error -  update_armature_weakrefs");
 				}
-#endif
+
 				//enter editmode
 				enter_editmode(0);
 			}
@@ -925,17 +946,13 @@ static PyObject *M_Window_EditMode( PyObject * self, PyObject * args )
 			BIF_undo_push( undo_str ); /* This checks user undo settings */
 			exit_editmode( EM_FREEDATA );
 
-#if 0
-/* bug 5000 */
 			//update armatures
-			maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
-			armlist = PyDict_GetItemString(maindict, "armatures");
-			for (x = 0; x < PySequence_Size(armlist); x++){
-				pyarmature = PyWeakref_GetObject(PySequence_GetItem(	armlist, x));
-				if (pyarmature != Py_None)
-					Armature_RebuildBones(pyarmature);
+			if(! update_armature_weakrefs()){
+				return EXPP_ReturnPyObjError( 
+					PyExc_RuntimeError,
+					"internal error -  update_armature_weakrefs");
 			}
-#endif
+
 		}
 	}
 

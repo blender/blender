@@ -59,6 +59,9 @@
 #define Py_RETURN_TRUE  return PyBool_FromLong(1)
 #endif
 
+/* name of list of Armature weak refs built into __main__ */
+#define ARM_WEAKREF_LIST_NAME "__arm_weakrefs"
+
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 

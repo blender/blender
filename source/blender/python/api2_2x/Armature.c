@@ -1348,36 +1348,38 @@ PyObject *Armature_RebuildBones(PyObject *pyarmature)
 PyObject *PyArmature_FromArmature(struct bArmature *armature)
 {
 	BPy_Armature *py_armature = NULL;
-	PyObject *maindict = NULL, *armdict = NULL, *weakref = NULL;
+	PyObject *maindict = NULL, *weakref = NULL;
+	PyObject *armlist = NULL;  /* list of armature weak refs */
+	char *list_name = ARM_WEAKREF_LIST_NAME;
 
 	//create armature type
-	py_armature = (BPy_Armature*)PyObject_New(BPy_Armature, &Armature_Type); //Armature_Type.tp_alloc(&Armature_Type, 0); //*new*
-	py_armature->weaklist = NULL; //init the weaklist
-	if (!py_armature)
+	py_armature = (BPy_Armature*)Armature_Type.tp_alloc(&Armature_Type, 0); /*new*/
+	if (!py_armature){
+		printf("Oops - can't create py armature\n");
 		goto RuntimeError;
+	}
+
+	py_armature->weaklist = NULL; //init the weaklist
 	py_armature->armature = armature;
 	
 	//create armature.bones
 	py_armature->Bones = (BPy_BonesDict*)PyBonesDict_FromPyArmature(py_armature);
-	if (!py_armature->Bones)
-		goto RuntimeError;
-
-	//put a weakreference in __main__
-	maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
-	
-	armdict = PyDict_GetItemString(maindict, "armatures");
-	/*armature list doesn't exist  for pydrivers. . .so check.
-	  by the way, why is the var called armatures? what if a script author has
-	  a similar var in his script? won't they conflict?.
-	  
-	  joeedh*/
-	if (!armdict) return (PyObject *) py_armature;
-	
-	weakref = PyWeakref_NewProxy((PyObject*)py_armature, Py_None);
-	if (PyList_Append(armdict, weakref) == -1){
+	if (!py_armature->Bones){
+		printf("Oops - creating armature.bones\n");
 		goto RuntimeError;
 	}
 
+	//put a weakreference in __main__
+	maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
+
+	armlist = PyDict_GetItemString(maindict, list_name);
+	if( armlist){
+		weakref = PyWeakref_NewProxy((PyObject*)py_armature, Py_None);
+		if (PyList_Append(armlist, weakref) == -1){
+			printf("Oops - list-append failed\n");
+			goto RuntimeError;
+		}
+	}
 	return (PyObject *) py_armature;
 
 RuntimeError:

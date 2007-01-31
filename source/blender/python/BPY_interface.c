@@ -77,6 +77,32 @@
 /* for pydrivers (ipo drivers defined by one-line Python expressions) */
 PyObject *bpy_pydriver_Dict = NULL;
 
+
+/*
+ * set up a weakref list for Armatures
+ *    creates list in __main__ module dict 
+ */
+  
+int setup_armature_weakrefs()
+{
+	PyObject *maindict;
+	PyObject *main_module;
+	char *list_name = ARM_WEAKREF_LIST_NAME;
+
+	main_module = PyImport_AddModule( "__main__");
+	if(main_module){
+		maindict= PyModule_GetDict(main_module);
+		if (PyDict_SetItemString(maindict, 
+								 list_name, 
+								 PyList_New(0)) == -1){
+			printf("Oops - setup_armature_weakrefs()\n");
+			
+			return 0;
+		}
+	}
+	return 1;
+}
+
 /*Declares the modules and their initialization functions
 *These are TOP-LEVEL modules e.g. import `module` - there is no
 *support for packages here e.g. import `package.module` */
@@ -478,7 +504,6 @@ void BPY_Err_Handle( char *script_name )
 *****************************************************************************/
 int BPY_txt_do_python_Text( struct Text *text )
 {
-	PyObject *maindict = NULL;
 	PyObject *py_dict, *py_result;
 	BPy_constant *info;
 	char textname[24];
@@ -525,14 +550,10 @@ int BPY_txt_do_python_Text( struct Text *text )
 
 	py_dict = CreateGlobalDictionary(  );
 
-#if 0
-/* bug 5000 */
-	//setup a weakref dictionary on __main__
-	maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
-	if (PyDict_SetItemString(maindict, "armatures", PyList_New(0)) == -1){
+	if( !setup_armature_weakrefs()){
+		printf("Oops - weakref dict\n");
 		return 0;
 	}
-#endif
 
 	script->py_globaldict = py_dict;
 
@@ -825,6 +846,12 @@ int BPY_menu_do_python( short menutype, int event )
 	}
 
 	fclose( fp );
+
+
+	if( !setup_armature_weakrefs()){
+		printf("Oops - weakref dict\n");
+		return 0;
+	}
 
 	/* run the string buffer */
 
@@ -1132,6 +1159,12 @@ float BPY_pydriver_eval(IpoDriver *driver)
 		}
 	}
 
+/* sds*/
+	if( !setup_armature_weakrefs()){
+		fprintf( stderr, "Oops - weakref dict setup\n");
+		return result;
+	}
+
 	retval = PyRun_String(expr, Py_eval_input, bpy_pydriver_Dict,
 		bpy_pydriver_Dict);
 
@@ -1200,6 +1233,12 @@ int BPY_button_eval(char *expr, double *value)
 				"Button Python Eval error: couldn't create Python dictionary");
 			return -1;
 		}
+	}
+
+/* sds*/
+	if( !setup_armature_weakrefs()){
+		fprintf(stderr, "Oops - weakref dict\n");
+		return -1;
 	}
 
 	retval = PyRun_String(expr, Py_eval_input, bpy_pydriver_Dict,
