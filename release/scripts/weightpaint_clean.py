@@ -40,7 +40,6 @@ It removes very low weighted verts from the current group with a weight option.
 
 from Blender import Scene, Draw, Object
 import BPyMesh
-SMALL_NUM= 0.000001
 def weightClean(me, PREF_THRESH, PREF_KEEP_SINGLE, PREF_OTHER_GROUPS):
 	
 	groupNames, vWeightDict= BPyMesh.meshWeight2Dict(me)

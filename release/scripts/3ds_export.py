@@ -406,7 +406,7 @@ class _3ds_chunk(object):
 ######################################################
 # EXPORT
 ######################################################
-'''
+
 def get_material_images(material):
 	# blender utility func.
 	images = []
@@ -417,7 +417,7 @@ def get_material_images(material):
 				if image:
 					images.append(image) # maye want to include info like diffuse, spec here.
 	return images
-'''	
+
 def make_material_subchunk(id, color):
 	'''Make a material subchunk.
 	
@@ -432,7 +432,7 @@ def make_material_subchunk(id, color):
 #	mat_sub.add_subchunk(col2)
 	return mat_sub
 
-'''
+
 def make_material_texture_chunk(id, images):
 	"""Make Material Map texture chunk
 	"""
@@ -448,8 +448,8 @@ def make_material_texture_chunk(id, images):
 		add_image(image)
 	
 	return mat_sub
-'''
-def make_material_chunk(material, image):
+
+def make_material_chunk(material, image, PREF_TEXTURES):
 	'''Make a material chunk out of a blender material.'''
 	material_chunk = _3ds_chunk(MATERIAL)
 	name = _3ds_chunk(MATNAME)
@@ -471,13 +471,13 @@ def make_material_chunk(material, image):
 		material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, (1,1,1) ))
 	
 	# CANT READ IN MAX!!!! SEEMS LIKE THE FILE IS VALID FROM 3DSDUMP :/
-	'''
-	images = get_material_images(material) # can be None
-	if image: images.append(image)
+	if PREF_TEXTURES:
+		images = get_material_images(material) # can be None
+		if image: images.append(image)
+		
+		if images:
+			material_chunk.add_subchunk(make_material_texture_chunk(MATMAP, images))
 	
-	if images:
-		material_chunk.add_subchunk(make_material_texture_chunk(MATMAP, images))
-	'''
 	return material_chunk
 
 class tri_wrapper(object):
@@ -872,6 +872,9 @@ def save_3ds(filename):
 	if not BPyMessages.Warning_SaveOver(filename):
 		return
 	
+	PREF_TEXTURES = Blender.Draw.PupMenu('Texture (Breaks some importers)%t| YES %x1 | NO %x0')
+	if PREF_TEXTURES ==-1: return
+	
 	time1= Blender.sys.time()
 	Blender.Window.WaitCursor(1)
 	scn= Blender.Scene.GetCurrent()
@@ -949,7 +952,7 @@ def save_3ds(filename):
 	
 	# Make material chunks for all materials used in the meshes:
 	for mat_and_image in materialDict.itervalues():
-		object_info.add_subchunk(make_material_chunk(*mat_and_image))
+		object_info.add_subchunk(make_material_chunk(mat_and_image[0], mat_and_image[1], PREF_TEXTURES))
 	
 	# Give all objects a unique ID and build a dictionary from object name to object id:
 	"""

@@ -3,7 +3,7 @@
 Name: 'Grow/Shrink Weight...'
 Blender: 241
 Group: 'WeightPaint'
-Tooltip: 'Removed verts from groups below a weight limit.'
+Tooltip: 'Grow/Shrink active vertex group.'
 """
 
 __author__ = ["Campbell Barton"]
@@ -40,7 +40,6 @@ It grows/shrinks the bounds of the weight painted area
 
 from Blender import Scene, Draw, Window
 import BPyMesh
-SMALL_NUM= 0.000001
 def actWeightNormalize(me, PREF_MODE, PREF_MAX_DIST, PREF_STRENGTH, PREF_ITERATIONS):
 	Window.WaitCursor(1)
 	groupNames, vWeightDict= BPyMesh.meshWeight2Dict(me)
@@ -102,9 +101,9 @@ def actWeightNormalize(me, PREF_MODE, PREF_MAX_DIST, PREF_STRENGTH, PREF_ITERATI
 
 def main():
 	scn= Scene.GetCurrent()
-	ob= scn.getActiveObject()
+	ob= scn.objects.active
 	
-	if not ob or ob.getType() != 'Mesh':
+	if not ob or ob.type != 'Mesh':
 		Draw.PupMenu('Error, no active mesh object, aborting.')
 		return
 	
@@ -125,12 +124,7 @@ def main():
 	if not Draw.PupBlock('Grow/Shrink...', pup_block):
 		return
 	
-	PREF_MAXDIST= PREF_MAXDIST.val
-	PREF_STRENGTH= PREF_STRENGTH.val
-	PREF_MODE= PREF_MODE.val
-	PREF_ITERATIONS= PREF_ITERATIONS.val
-	
-	actWeightNormalize(me, PREF_MODE, PREF_MAXDIST, PREF_STRENGTH, PREF_ITERATIONS)
+	actWeightNormalize(me, PREF_MODE.val, PREF_MAXDIST.val, PREF_STRENGTH.val, PREF_ITERATIONS.val)
 
 
 if __name__=='__main__':

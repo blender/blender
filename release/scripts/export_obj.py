@@ -340,7 +340,13 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 			contextSmooth = None # Will either be true or false,  set bad to force initialization switch.
 			
 			if EXPORT_BLEN_OBS or EXPORT_GROUP_BY_OB:
-				obnamestring = '%s_%s' % (fixName(ob.name), fixName(ob.getData(1)))
+				name1 = ob.name
+				name2 = ob.getData(1)
+				if name1 == name2:
+					obnamestring = fixName(name1)
+				else:
+					obnamestring = '%s_%s' % (fixName(name1), fixName(name2))
+				
 				if EXPORT_BLEN_OBS:
 					file.write('o %s\n' % obnamestring) # Write Object name
 				else: # if EXPORT_GROUP_BY_OB:

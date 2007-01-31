@@ -230,9 +230,6 @@ class RenderData:
   @ivar gameFrameColor: RGB color triplet for bars.  
   Values are clamped in the range [0.0,1.0].
   @type gameFrameColor: list of RGB 3 floats
-  @ivar saveBuffers: Save tiles for all renderlayers to disk saving memory.
-  Also see B{SAVE_BUFFERS} in L{SceModes} constant dict.
-  @type saveBuffers: boolean
   @ivar sizeY: Image height (in pixels).
   Values are clamped to the range [4,10000].
   @type sizeY: int

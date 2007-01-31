@@ -308,7 +308,7 @@ def add_texture_to_material(image, texture, material, mapto):
 		material.setTexture(free_tex_slots[0],texture,Texture.TexCo.UV,map)
 
 
-def process_next_chunk(file, previous_chunk, importedObjects):
+def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 	#print previous_chunk.bytes_read, 'BYTES READ'
 	contextObName= None
 	contextLamp= [None, None] # object, Data
@@ -441,7 +441,7 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 		elif (new_chunk.ID==OBJECTINFO):
 			#print 'elif (new_chunk.ID==OBJECTINFO):'
 			# print 'found an OBJECTINFO chunk'
-			process_next_chunk(file, new_chunk, importedObjects)
+			process_next_chunk(file, new_chunk, importedObjects, IMAGE_SEARCH)
 			
 			#keep track of how much we read in the main chunk
 			new_chunk.bytes_read+=temp_chunk.bytes_read
@@ -523,7 +523,8 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 				
 				if (temp_chunk.ID==MAT_MAP_FILENAME):
 					texture_name=read_string(file)
-					img= TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
+					#img= TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
+					img= TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILENAME, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
 					new_chunk.bytes_read += (len(texture_name)+1) #plus one for the null character that gets removed
 					
 				else:
@@ -545,7 +546,8 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 				
 				if (temp_chunk.ID==MAT_MAP_FILENAME):
 					texture_name= read_string(file)
-					img= BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
+					#img= BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
+					img= BPyImage.comprehensiveImageLoad(texture_name, FILENAME, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
 					new_chunk.bytes_read+= (len(texture_name)+1) #plus one for the null character that gets removed
 				else:
 					skip_to_end(file, temp_chunk)
@@ -566,7 +568,8 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 				
 				if (temp_chunk.ID==MAT_MAP_FILENAME):
 					texture_name= read_string(file)
-					img= BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
+					#img= BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
+					img= BPyImage.comprehensiveImageLoad(texture_name, FILENAME, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
 					new_chunk.bytes_read += (len(texture_name)+1) #plus one for the null character that gets removed
 				else:
 					skip_to_end(file, temp_chunk)
@@ -586,7 +589,8 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 				
 				if (temp_chunk.ID==MAT_MAP_FILENAME):
 					texture_name= read_string(file)
-					img= BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
+					#img= BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
+					img= BPyImage.comprehensiveImageLoad(texture_name, FILENAME, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
 					new_chunk.bytes_read += (len(texture_name)+1) #plus one for the null character that gets removed
 				else:
 					skip_to_end(file, temp_chunk)
@@ -729,7 +733,8 @@ def process_next_chunk(file, previous_chunk, importedObjects):
 			try:
 				TEXTURE_DICT[contextMaterial.name]
 			except:
-				img= TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
+				#img= TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
+				img= TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILENAME, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
 			
 			new_chunk.bytes_read+= len(texture_name)+1 #plus one for the null character that gets removed
 		
@@ -776,12 +781,14 @@ def load_3ds(filename, PREF_UI= True):
 		return
 	
 	
-	IMPORT_AS_INSTANCE= Blender.Draw.Create(0)
+	# IMPORT_AS_INSTANCE= Blender.Draw.Create(0)
 	IMPORT_CONSTRAIN_BOUNDS= Blender.Draw.Create(10.0)
+	IMAGE_SEARCH= Blender.Draw.Create(1)
 	
 	# Get USER Options
 	pup_block= [\
 	('Size Constraint:', IMPORT_CONSTRAIN_BOUNDS, 0.0, 1000.0, 'Scale the model by 10 until it reacehs the size constraint. Zero Disables.'),\
+	('Image Search', IMAGE_SEARCH, 'Search subdirs for any assosiated images (Warning, may be slow)'),\
 	#('Group Instance', IMPORT_AS_INSTANCE, 'Import objects into a new scene and group, creating an instance in the current scene.'),\
 	]
 	
@@ -792,19 +799,22 @@ def load_3ds(filename, PREF_UI= True):
 	Blender.Window.WaitCursor(1)
 	
 	IMPORT_CONSTRAIN_BOUNDS= IMPORT_CONSTRAIN_BOUNDS.val
-	IMPORT_AS_INSTANCE= IMPORT_AS_INSTANCE.val
+	# IMPORT_AS_INSTANCE= IMPORT_AS_INSTANCE.val
+	IMAGE_SEARCH = IMAGE_SEARCH.val
 	
 	if IMPORT_CONSTRAIN_BOUNDS:
 		BOUNDS_3DS[:]= [1<<30, 1<<30, 1<<30, -1<<30, -1<<30, -1<<30]
 	else:
 		BOUNDS_3DS[:]= []
 	
+	##IMAGE_SEARCH
+	
 	scn= Scene.GetCurrent()
 	SCN_OBJECTS = scn.objects
 	SCN_OBJECTS.selected = [] # de select all
 	
 	importedObjects= [] # Fill this list with objects
-	process_next_chunk(file, current_chunk, importedObjects)
+	process_next_chunk(file, current_chunk, importedObjects, IMAGE_SEARCH)
 	
 	
 	# Link the objects into this scene.
