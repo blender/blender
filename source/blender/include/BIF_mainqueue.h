@@ -35,7 +35,7 @@
 #ifndef BIF_MAINQUEUE_H
 #define BIF_MAINQUEUE_H
 
-#define MAXQUEUE 256
+#define MAXQUEUE 4096
 
 unsigned short	mainqtest		(void);
 unsigned short	mainqread		(short *val, char *ascii);
