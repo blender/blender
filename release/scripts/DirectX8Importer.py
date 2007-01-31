@@ -47,7 +47,7 @@ class xImport:
 			words = line_uv.split()																																																	
 			if l and words[0] == "MeshTextureCoords" :
 				nr_uv_ind = lines.index(line_uv)	
-		 
+		
 		
 				
 		#Get Materials		

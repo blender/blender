@@ -305,7 +305,7 @@ class xExport:
 		
 	def getChildren(self,obj):	
 		obs = Blender.Scene.GetCurrent().objects
-		return children_list = [ ob for ob in obs if ob.parent == obj ]
+		return [ ob for ob in obs if ob.parent == obj ]
 	
 	def getArmChildren(self,obj):		
 		for ob in Blender.Scene.GetCurrent().objects: #Object.Get():
@@ -340,7 +340,7 @@ class xExport:
 			chld_obj = obj
 			ch_list.append(Child_obj)
 			self.writeRootBone(obj, Child_obj)	
-		if type(mesh) == Types.NMeshType and obj not in ch_list:
+		if obj.type == 'Mesh' and obj not in ch_list:
 			self.exportMesh(obj)
 			
 			
@@ -445,8 +445,8 @@ class xExport:
 		tex = []
 		objs = Object.GetSelected()
 		for obj in objs:
-			mesh = obj.getData()
-			if type(mesh) == Types.NMeshType :
+			if obj.type == 'Mesh':
+				mesh = obj.data
 				self.writeTextures(obj, tex)		
 				self.writeMeshcoordArm(obj, arm_ob = None)
 				self.writeMeshMaterialList(obj, mesh, tex)
