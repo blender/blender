@@ -2639,9 +2639,13 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	
 	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, 
 	   no layer check here, gets correct flushed */
-	for(SETLOOPER(G.scene, base)) {
-		object_handle_update(base->object);   // bke_object.h
+	/* sets first, we allow per definition current scene to have dependencies on sets */
+	if(G.scene->set) {
+		for(SETLOOPER(G.scene->set, base))
+			object_handle_update(base->object);   // bke_object.h
 	}
+	for(base= G.scene->base.first; base; base= base->next)
+		object_handle_update(base->object);   // bke_object.h
 	
 	setwinmatrixview3d(sa->winx, sa->winy, NULL);	/* 0= no pick rect */
 	setviewmatrixview3d();	/* note: calls where_is_object for camera... */

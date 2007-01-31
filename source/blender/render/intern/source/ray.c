@@ -427,12 +427,12 @@ void freeoctree(Render *re)
 {
 	Octree *oc= &re->oc;
 	
-	if(G.f & G_DEBUG) {
-		printf("branches %d nodes %d\n", oc->branchcount, oc->nodecount);
-		printf("raycount %d \n", raycount);	
-		printf("ray coherent %d \n", coherent_ray);
-		printf("accepted %d rejected %d\n", accepted, rejected);
-	}
+#if 0
+	printf("branches %d nodes %d\n", oc->branchcount, oc->nodecount);
+	printf("raycount %d \n", raycount);	
+	printf("ray coherent %d \n", coherent_ray);
+	printf("accepted %d rejected %d\n", accepted, rejected);
+#endif
 	
 	if(oc->adrbranch) {
 		int a= 0;

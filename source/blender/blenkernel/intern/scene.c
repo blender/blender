@@ -501,35 +501,44 @@ int scene_check_setscene(Scene *sce)
 	return 1;
 }
 
-/* applies changes right away */
-void scene_update_for_newframe(Scene *sce, unsigned int lay)
+static void scene_update(Scene *sce, unsigned int lay)
 {
 	Base *base;
 	Object *ob;
+	
+	if(sce->theDag==NULL)
+		DAG_scene_sort(sce);
+	
+	DAG_scene_update_flags(sce, lay);   // only stuff that moves or needs display still
+	
+	for(base= sce->base.first; base; base= base->next) {
+		ob= base->object;
+		
+		object_handle_update(ob);   // bke_object.h
+		
+		/* only update layer when an ipo */
+		if(ob->ipo && has_ipo_code(ob->ipo, OB_LAY) ) {
+			base->lay= ob->lay;
+		}
+	}
+}
+
+/* applies changes right away, does all sets too */
+void scene_update_for_newframe(Scene *sce, unsigned int lay)
+{
+	Scene *scene= sce;
 	
 	/* object ipos are calculated in where_is_object */
 	do_all_data_ipos();
 	
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	
-	while(sce) {
-		if(sce->theDag==NULL)
-			DAG_scene_sort(sce);
-		
-		DAG_scene_update_flags(sce, lay);   // only stuff that moves or needs display still
-		
-		for(base= sce->base.first; base; base= base->next) {
-			ob= base->object;
-			
-			object_handle_update(ob);   // bke_object.h
-			
-			/* only update layer when an ipo */
-			if(ob->ipo && has_ipo_code(ob->ipo, OB_LAY) ) {
-				base->lay= ob->lay;
-			}
-		}
-		sce= sce->set;
-	}
+	/* sets first, we allow per definition current scene to have dependencies on sets */
+	for(sce= sce->set; sce; sce= sce->set)
+		scene_update(sce, lay);
+
+	scene_update(scene, lay);
+	
 }
 
 /* return default layer, also used to patch old files */
