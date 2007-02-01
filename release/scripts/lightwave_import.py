@@ -106,8 +106,6 @@ except:
 # ===========================================================
 
 textname = None
-type_list = type(list())
-type_dict = type(dict())
 #uncomment the following line to enable logging facility to the named text object
 #textname = "lwo_log"
 
@@ -187,9 +185,9 @@ class dotext:
 	def pprint(self, parg, where = _NO):
 		if parg == None:
 			self.pstring("_None_", where)
-		elif type(parg) == type_list:
+		elif type(parg) == list:
 			self.plist(parg, where)
-		elif type(parg) == type_dict:
+		elif type(parg) == dict:
 			self.pdict(parg, where)
 		else:
 			self.pstring(safestring(str(parg)), where)

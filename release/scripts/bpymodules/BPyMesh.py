@@ -392,10 +392,10 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 		mesh.verts= None
 	
 	
-	type = ob.type
+	ob_type = ob.type
 	dataname = ob.getData(1)
 	tempob= None
-	if apply_modifiers or type != 'Mesh':
+	if apply_modifiers or ob_type != 'Mesh':
 		try:
 			mesh.getFromObject(ob)
 		except:
@@ -410,10 +410,11 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 		mesh.getFromObject(tempob)
 		scn.objects.unlink(tempob)
 	
-	if type == 'Mesh':
+	if ob_type == 'Mesh':
 		if vgroups:
 			if tempob==None:
 				tempob= Blender.Object.New('Mesh')
+			
 			tempob.link(mesh)
 			try:
 				# Copy the influences if possible.
@@ -784,10 +785,6 @@ def getUvPixelLoc(face, pxLoc, img_size = None, uvArea = None):
 	return None
 
 
-type_tuple= type( (0,) )
-type_list= type( [] )
-
-
 # Used for debugging ngon
 """
 def draw_loops(loops):
@@ -867,7 +864,7 @@ def ngon(from_data, indices, PREF_FIX_LOOPS= True):
 		'''
 		Normal single concave loop filling
 		'''
-		if type(from_data) in (type_tuple, type_list):
+		if type(from_data) in (tuple, list):
 			verts= [Vector(from_data[i]) for ii, i in enumerate(indices)]
 		else:
 			verts= [from_data.verts[i].co for ii, i in enumerate(indices)]
@@ -884,7 +881,7 @@ def ngon(from_data, indices, PREF_FIX_LOOPS= True):
 		This is used by lightwave LWO files a lot
 		'''
 		
-		if type(from_data) in (type_tuple, type_list):
+		if type(from_data) in (tuple, list):
 			verts= [vert_treplet(Vector(from_data[i]), ii) for ii, i in enumerate(indices)]
 		else:
 			verts= [vert_treplet(from_data.verts[i].co, ii) for ii, i in enumerate(indices)]
