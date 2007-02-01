@@ -4127,9 +4127,9 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	uiDefBut(block, BUT,B_EXTR,"Extrude",			10,105,315,24, 0, 0, 0, 0, 0, "Converts selected edges to faces and selects the new vertices");
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_SCREW,"Screw",			10,75,100,24, 0, 0, 0, 0, 0, "Activates the screw tool");  // Bish - This could use some more definition
-	uiDefBut(block, BUT,B_SPIN, "Spin",				110,75,100,24, 0, 0, 0, 0, 0, "Extrudes the selected vertices in a circle around the cursor in the indicated viewport");
-	uiDefBut(block, BUT,B_SPINDUP,"Spin Dup",		210,75,115,24, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a circle around the cursor in the indicated viewport");
+	uiDefBut(block, BUT,B_SPIN, "Spin",			10,75,100,24, 0, 0, 0, 0, 0, "Extrudes the selected vertices in a circle around the cursor in the indicated viewport");
+	uiDefBut(block, BUT,B_SPINDUP,"Spin Dup",		110,75,100,24, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a circle around the cursor in the indicated viewport");
+	uiDefBut(block, BUT,B_SCREW,"Screw",			210,75,115,24, 0, 0, 0, 0, 0, "Activates the screw tool");  // Bish - This could use some more definition
 	
 	uiDefButF(block, NUM, B_DIFF, "Degr:",			10,55,100,19, &G.scene->toolsettings->degr,-360.0,360.0, 1000, 0, "Specifies the number of degrees 'Spin' revolves");
 	uiDefButS(block, NUM, B_DIFF, "Steps:",			110,55,100,19, &G.scene->toolsettings->step,1.0,180.0, 0, 0, "Specifies the total number of 'Spin' slices");
