@@ -186,8 +186,37 @@ def normalize_vweight(me, groupNames, vWeightDict):
 			for group, weight in vertexWeight.iteritems():
 				vertexWeight[group]= weight/unit
 
+def isnan(f):
+	fstring = str(f).lower()
+	if 'nan' in fstring:
+		return True
+	if 'inf' in fstring:
+		return True
+	
+	return False
 
+def fix_nan_verts(me):
+	rem_nan = 0
+	for v in me.verts:
+		co = v.co
+		for i in (0,1,2):
+			if isnan(co[i]):
+				co[i] = 0.0
+				rem_nan += 1
+	return rem_nan
 
+def fix_nan_uvs(me):
+	rem_nan = 0
+	if me.faceUV:
+		for uvlayer in me.getUVLayerNames():
+			me.activeUVLayer = uvlayer
+			for f in me.faces:
+				for uv in f.uv:
+					for i in (0,1):
+						if isnan(uv[i]):
+							uv[i] = 0.0
+							rem_nan += 1
+	return rem_nan
 def main():	
 	scn= Scene.GetCurrent()
 	obsel= list(scn.objects.context)
@@ -216,6 +245,10 @@ def main():
 	CLEAN_VWEIGHT= Draw.Create(0)
 	CLEAN_WEIGHT_NORMALIZE= Draw.Create(0)
 	limit= Draw.Create(0.01)
+	
+	CLEAN_NAN_VERTS= Draw.Create(0)
+	CLEAN_NAN_UVS= Draw.Create(0)
+	
 	# Get USER Options
 	
 	pup_block= [\
@@ -224,14 +257,15 @@ def main():
 	('Edges: short', CLEAN_EDGE_SMALL, 'Remove edges that are below the length limit.'),\
 	('Faces: small perimeter', CLEAN_FACE_PERIMETER, 'Remove faces below the perimeter limit.'),\
 	('Faces: small area', CLEAN_FACE_SMALL, 'Remove faces below the area limit (may remove faces stopping T-face artifacts).'),\
+	('limit: ', limit, 0.001, 1.0, 'Limit for the area and length tests above (a higher limit will remove more data).'),\
 	'Materials',\
 	('Material Clean', CLEAN_MATERIALS, 'Remove unused materials.'),\
-	'VGroups',\
-	('Group Clean', CLEAN_GROUP, 'Remove vertex groups that have no verts using them.'),\
+	('VGroup Clean', CLEAN_GROUP, 'Remove vertex groups that have no verts using them.'),\
 	('Weight Clean', CLEAN_VWEIGHT, 'Remove zero weighted verts from groups (limit is zero threshold).'),\
-	('Weight Normalize', CLEAN_WEIGHT_NORMALIZE, 'Make the sum total of vertex weights accross vgroups 1.0 for each vertex.'),\
-	'',\
-	('limit: ', limit, 0.001, 1.0, 'Limit used for the area and length tests above (a higher limit will remove more data).'),\
+	('WeightNormalize', CLEAN_WEIGHT_NORMALIZE, 'Make the sum total of vertex weights accross vgroups 1.0 for each vertex.'),\
+	'Clean NAN values',\
+	('NAN Verts', CLEAN_NAN_VERTS, 'Make NAN or INF verts (0,0,0)'),\
+	('NAN UVs', CLEAN_NAN_UVS, 'Make NAN or INF UVs (0,0)'),\
 	'',\
 	('All Mesh Data', CLEAN_ALL_DATA, 'Warning! Operate on ALL mesh objects in your Blend file. Use with care'),\
 	]
@@ -250,6 +284,8 @@ def main():
 	CLEAN_WEIGHT_NORMALIZE= CLEAN_WEIGHT_NORMALIZE.val
 	limit= limit.val
 	CLEAN_ALL_DATA= CLEAN_ALL_DATA.val
+	CLEAN_NAN_VERTS= CLEAN_NAN_VERTS.val
+	CLEAN_NAN_UVS= CLEAN_NAN_UVS.val
 	
 	if is_editmode: Window.EditMode(0)
 	
@@ -262,8 +298,13 @@ def main():
 	else:
 		meshes= [ob.getData(mesh=1) for ob in obsel if ob.type == 'Mesh']
 	
-	rem_face_count= rem_edge_count= rem_vert_count= rem_material_count= rem_group_count= rem_vweight_count= 0
 	
+	rem_face_count= rem_edge_count= rem_vert_count= rem_material_count= rem_group_count= rem_vweight_count= fix_nan_vcount= fix_nan_uvcount= 0
+	if not meshes:
+		if is_editmode: Window.EditMode(1)
+		Draw.PupMenu('No meshes to clean')
+	
+	Blender.Window.WaitCursor(1)
 	for me in meshes:
 		if CLEAN_FACE_SMALL:
 			rem_face_count += rem_area_faces(me, limit)
@@ -298,8 +339,14 @@ def main():
 			
 			# Copy back to mesh vertex groups.
 			dict2MeshWeight(me, groupNames, vWeightDict)
-			
 		
+		if CLEAN_NAN_VERTS:
+			fix_nan_vcount = fix_nan_verts(me)
+			
+		if CLEAN_NAN_UVS:
+			fix_nan_uvcount = fix_nan_uvs(me)
+	
+	Blender.Window.WaitCursor(0)
 	if is_editmode: Window.EditMode(0)
 	stat_string= 'Removed from ' + str(len(meshes)) + ' Mesh(es)%t|'
 	
@@ -309,7 +356,8 @@ def main():
 	if CLEAN_MATERIALS:								stat_string+= 'Materials: %i|' % rem_material_count
 	if CLEAN_VWEIGHT:								stat_string+= 'VWeights: %i|' % rem_vweight_count
 	if CLEAN_GROUP:									stat_string+= 'VGroups: %i|' % rem_group_count
-	
+	if CLEAN_NAN_VERTS:								stat_string+= 'Vert Nan Fix: %i|' % fix_nan_vcount
+	if CLEAN_NAN_UVS:								stat_string+= 'UV Nan Fix: %i|' % fix_nan_uvcount
 	Draw.PupMenu(stat_string)
 	
 	
