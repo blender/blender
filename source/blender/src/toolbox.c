@@ -1758,6 +1758,7 @@ static void tag_groups_for_toolbox(void)
 }
 
 /* helper for create group menu */
+/* note that group id.flag was set */
 static int count_group_libs(void)
 {
 	Group *group;
@@ -1768,9 +1769,11 @@ static int count_group_libs(void)
 		lib->id.flag |= LIB_DOIT;
 	
 	for(group= G.main->group.first; group; group= group->id.next) {
-		if(group->id.lib && (group->id.lib->id.flag & LIB_DOIT)) {
-			group->id.lib->id.flag &= ~LIB_DOIT;
-			tot++;
+		if(group->id.flag & LIB_DOIT) {
+			if(group->id.lib && (group->id.lib->id.flag & LIB_DOIT)) {
+				group->id.lib->id.flag &= ~LIB_DOIT;
+				tot++;
+			}
 		}
 	}
 	return tot;
@@ -1816,13 +1819,16 @@ static TBitem *create_group_all_sublevels(ListBase *storage)
 	Link *link;
 	TBitem *groupmenu, *gm;
 	int a;
-	int totlevel= count_group_libs();
+	int totlevel= 0;
 	int totlocal= 0;
 	
 	/* we add totlevel + local groups entries */
 	
 	/* let's skip group-in-group */
 	tag_groups_for_toolbox();
+	
+	/* this call checks for skipped group-in-groups */
+	totlevel= count_group_libs();
 	
 	for(group= G.main->group.first; group; group= group->id.next)
 		if(group->id.flag & LIB_DOIT)
