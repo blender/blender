@@ -1422,7 +1422,8 @@ static void node_composit_exec_time(void *data, bNode *node, bNodeStack **in, bN
 	if(node->custom1 < node->custom2)
 		fac= (G.scene->r.cfra - node->custom1)/(float)(node->custom2-node->custom1);
 	
-	out[0]->vec[0]= curvemapping_evaluateF(node->storage, 0, fac);
+	fac= curvemapping_evaluateF(node->storage, 0, fac);
+	out[0]->vec[0]= CLAMPIS(fac, 0.0f, 1.0f);
 }
 
 static bNodeType cmp_node_time= {
