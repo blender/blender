@@ -381,19 +381,22 @@ class AC3DImport:
 					face = [edges[-1][-1], edges[0][0]]
 					edges.append(face)
 
-			else:
-				while len(face) > 4:
-					cut = face[:4]
-					cutuv = fuv[:4]
-					face = face[3:]
-					fuv = fuv[3:]
-					face.insert(0, cut[0])
-					fuv.insert(0, cutuv[0])
-					faces.append(cut)
-					fuvs.append(cutuv)
+			else: # polygon
 
-				faces.append(face)
-				fuvs.append(fuv)
+				# check for bad face, that references same vertex more than once
+				if sum(map(face.count, face)) == len(face):
+					while len(face) > 4:
+						cut = face[:4]
+						cutuv = fuv[:4]
+						face = face[3:]
+						fuv = fuv[3:]
+						face.insert(0, cut[0])
+						fuv.insert(0, cutuv[0])
+						faces.append(cut)
+						fuvs.append(cutuv)
+
+					faces.append(face)
+					fuvs.append(fuv)
 
 			obj.flist_cfg.extend([[mat, is_smooth, twoside]] * len(faces))
 			obj.flist_v.extend(faces)
@@ -580,7 +583,7 @@ class AC3DImport:
 
 				mesh.faceUV = True
 
-				# checking if the .ac file had duplicate faces (Blender ignores them):
+				# checking if the .ac file had duplicate faces (Blender ignores them)
 				if facesnum != len(obj.flist_v):
 					# it has, ugh. Let's clean the uv list:
 					lenfl = len(obj.flist_v)
@@ -590,7 +593,7 @@ class AC3DImport:
 					for f in flist:
 						f.sort()
 					fi = lenfl
-					while fi > 0:
+					while fi > 0: # remove data related to duplicates
 						fi -= 1
 						if flist[fi] in flist[:fi]:
 							uvlist.pop(fi)
