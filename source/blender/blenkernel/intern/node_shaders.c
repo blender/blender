@@ -672,17 +672,17 @@ bNodeStack **out)
 	case 12: /* Minimum */
 		{
 			if( in[0]->vec[0] < in[1]->vec[0] )
-				out[0]->vec[0]= in[1]->vec[0];
-			else
 				out[0]->vec[0]= in[0]->vec[0];
+			else
+				out[0]->vec[0]= in[1]->vec[0];
 		}
 		break;
 	case 13: /* Maximum */
 		{
 			if( in[0]->vec[0] > in[1]->vec[0] )
-				out[0]->vec[0]= in[1]->vec[0];
-			else
 				out[0]->vec[0]= in[0]->vec[0];
+			else
+				out[0]->vec[0]= in[1]->vec[0];
 		}
 		break;
 	case 14: /* Round */

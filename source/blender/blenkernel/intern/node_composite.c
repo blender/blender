@@ -5848,17 +5848,17 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 	case 12: /* Minimum */
 		{
 			if( in[0] < in2[0] )
-				out[0]= in2[0];
-			else
 				out[0]= in[0];
+			else
+				out[0]= in2[0];
 		}
 		break;
 	case 13: /* Maximum */
 		{
 			if( in[0] > in2[0] )
-				out[0]= in2[0];
-			else
 				out[0]= in[0];
+			else
+				out[0]= in2[0];
 		}
 		break;
 	case 14: /* Round */
