@@ -42,6 +42,12 @@
 #include <io.h>
 #endif   
 
+#ifdef WIN32
+#ifndef snprintf
+#define snprintf _snprintf
+#endif
+#endif
+
 #include "MEM_guardedalloc.h"
 
 #include "PIL_time.h"
@@ -1535,7 +1541,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			for (i=0; i<dvert->totweight; i++){
 				dg = BLI_findlink (&ob->defbase, dvert->dw[i].def_nr);
 				if(dg) {
-					max+= sprintf(str, "%s %%x%d|", dg->name, dvert->dw[i].def_nr); 
+					max+= snprintf(str, sizeof(str), "%s %%x%d|", dg->name, dvert->dw[i].def_nr); 
 					if(max<320) strcat(defstr, str);
 				}
 				else printf("oh no!\n");
