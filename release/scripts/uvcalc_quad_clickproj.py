@@ -164,14 +164,20 @@ def main():
 	project_mat = Matrix([0,0,0], [0,0,0], [0,0,0])
 	
 	
-	SELECT_FLAG = Blender.Mesh.FaceFlags['SELECT']
-	
 	def get_face_coords(f):
 		f_uv = f.uv
 		return [(v.co-face_corner_main, f_uv[i]) for i,v in enumerate(f.v)]
 		
-	coords = [ (co,uv) for f in me.faces if f.flag & SELECT_FLAG  for co, uv in get_face_coords(f)]
-	del SELECT_FLAG
+		
+		
+	SELECT_FLAG = Blender.Mesh.FaceFlags.SELECT
+	HIDE_FLAG = Blender.Mesh.FaceFlags.HIDE
+	def use_face(f_flag):
+		if f_flag & HIDE_FLAG:		return False
+		elif f_flag & SELECT_FLAG:	return True
+		else:						return False
+	
+	coords = [ (co,uv) for f in me.faces if use_face(f.flag) for co, uv in get_face_coords(f)]
 	
 	coords_orig = [uv.copy() for co, uv in coords]
 	USE_MODIFIER = using_modifier(ob)

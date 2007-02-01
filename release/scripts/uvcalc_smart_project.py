@@ -927,7 +927,7 @@ def main():
 		collected_islandList= []
 	
 	Window.WaitCursor(1)
-	SELECT_FLAG = Mesh.FaceFlags['SELECT']
+
 	time1 = sys.time()
 	for ob in obList:
 		me = ob.getData(mesh=1)
@@ -936,7 +936,14 @@ def main():
 			me.faceUV= True
 		
 		if USER_ONLY_SELECTED_FACES:
-			meshFaces = [thickface(f) for f in me.faces if f.flag & SELECT_FLAG]
+			SELECT_FLAG = Mesh.FaceFlags.SELECT
+			HIDE_FLAG = Mesh.FaceFlags.HIDE
+			def use_face(f_flag):
+				if f_flag & HIDE_FLAG:		return False
+				elif f_flag & SELECT_FLAG:	return True
+				else:						return False
+				
+			meshFaces = [thickface(f) for f in me.faces if use_face(f.flag)]
 		else:
 			meshFaces = map(thickface, me.faces)
 		

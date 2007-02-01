@@ -150,8 +150,6 @@ def extend():
 	if not me.faceUV:
 		Draw.PupMenu('ERROR: Mesh has no face UV coords.')
 		return
-
-	SEL_FLAG = Mesh.FaceFlags['SELECT']
 	
 	face_act = 	me.activeFace
 	if face_act == -1:
@@ -159,7 +157,14 @@ def extend():
 		return
 	
 	
-	face_sel= [f for f in me.faces if len(f) == 4 if f.flag & SEL_FLAG]
+	SELECT_FLAG = Mesh.FaceFlags.SELECT
+	HIDE_FLAG = Mesh.FaceFlags.HIDE
+	def use_face(f_flag):
+		if f_flag & HIDE_FLAG:		return False
+		elif f_flag & SELECT_FLAG:	return True
+		else:						return False
+	
+	face_sel= [f for f in me.faces if len(f) == 4 and use_face(f.flag)]
 	
 	face_act_local_index = -1
 	for i, f in enumerate(face_sel):
