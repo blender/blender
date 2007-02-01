@@ -1749,8 +1749,7 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 
 				seqn->strip= MEM_dupallocN(seq->strip);
 				seqn->anim= 0;
-				seqn->hdaudio
-					= sound_copy_hdaudio(seq->hdaudio);
+				seqn->hdaudio = 0;
 				if(seqn->ipo) seqn->ipo->id.us++;
 
 				if(seqn->len>0) {
