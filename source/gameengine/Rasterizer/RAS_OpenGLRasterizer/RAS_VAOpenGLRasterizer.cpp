@@ -332,6 +332,12 @@ void RAS_VAOpenGLRasterizer::TexCoordPtr(const RAS_TexVert *tv, int enabled)
 			}
 		}
 	}
+
+#ifdef GL_ARB_vertex_program
+	if(m_useTang && bgl::RAS_EXT_support._ARB_vertex_program)
+		bgl::blVertexAttrib4fvARB(1/*tangent*/, tv->getTangent());
+#endif
+
 #endif
 }
 
