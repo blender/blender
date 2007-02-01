@@ -1874,22 +1874,26 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitI(block, TOG, MOD_ARR_OFF_CONST, B_MODIFIER_RECALC,
 			             "Constant Offset", lx, (cy-=19), halfwidth, 19,
 			             &amd->offset_type, 0, 0, 0, 0,
-			             "Constant offset between duplicates");
+			             "Constant offset between duplicates "
+			             "(local coordinates)");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "X:",
 			          lx, (cy-=19), halfwidth, 19,
 			          &amd->offset[0],
 			          -range, range, 10, 3,
-			          "Constant component for duplicate offsets");
+			          "Constant component for duplicate offsets "
+			          "(local coordinates)");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Y:",
 			          lx, (cy-=19), halfwidth, 19,
 			          &amd->offset[1],
 			          -range, range, 10, 3,
-			          "Constant component for duplicate offsets");
+			          "Constant component for duplicate offsets "
+			          "(local coordinates)");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Z:",
 			          lx, (cy-=19), halfwidth, 19,
 			          &amd->offset[2],
 			          -range, range, 10, 3,
-			          "Constant component for duplicate offsets");
+			          "Constant component for duplicate offsets "
+			          "(local coordinates)");
 			uiBlockEndAlign(block);
 
 			cy= cytop;
@@ -1897,22 +1901,26 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitI(block, TOG, MOD_ARR_OFF_RELATIVE, B_MODIFIER_RECALC,
 			             "Relative Offset", halflx, (cy-=19), halfwidth, 19,
 			             &amd->offset_type, 0, 0, 0, 0,
-			             "Offset between duplicates relative to object width");
+			             "Offset between duplicates relative to object width "
+			             "(local coordinates)");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "X:",
 			          halflx, (cy-=19), halfwidth, 19,
 			          &amd->scale[0],
 			          -range, range, 10, 3,
-			          "Component for duplicate offsets relative to object width");
+			          "Component for duplicate offsets relative to object "
+			          "width (local coordinates)");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Y:",
 			          halflx, (cy-=19), halfwidth, 19,
 			          &amd->scale[1],
 			          -range, range, 10, 3,
-			          "Component for duplicate offsets relative to object width");
+			          "Component for duplicate offsets relative to object "
+			          "width (local coordinates)");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Z:",
 			          halflx, (cy-=19), halfwidth, 19,
 			          &amd->scale[2],
 			          -range, range, 10, 3,
-			          "Component for duplicate offsets relative to object width");
+			          "Component for duplicate offsets relative to object "
+			          "width (local coordinates)");
 			uiBlockEndAlign(block);
 
 			/* vertex merging parameters */
