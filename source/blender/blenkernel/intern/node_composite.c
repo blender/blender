@@ -2132,11 +2132,11 @@ static void node_composit_exec_sephsva(void *data, bNode *node, bNodeStack **in,
 		out[3]->vec[0] = in[0]->vec[3];
 	}
 	else if ((out[0]->hasoutput) || (out[1]->hasoutput) || (out[2]->hasoutput) || (out[3]->hasoutput)) {
-		/* make output size of input image */
-		CompBuf *cbuf= typecheck_compbuf(in[0]->data,CB_RGBA);
+		/* create new buffer so input buffer doesn't get corrupted */
+		CompBuf *cbuf= dupalloc_compbuf(in[0]->data);
 
 		/* convert the RGB stackbuf to an HSV representation */
-		composit1_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, do_sephsva, CB_RGBA);
+		composit1_pixel_processor(node, cbuf, cbuf, in[0]->vec, do_sephsva, CB_RGBA);
 
 		/* separate each of those channels */
 		if(out[0]->hasoutput)
@@ -2147,9 +2147,9 @@ static void node_composit_exec_sephsva(void *data, bNode *node, bNodeStack **in,
 			out[2]->data= valbuf_from_rgbabuf(cbuf, CHAN_B);
 		if(out[3]->hasoutput)
 			out[3]->data= valbuf_from_rgbabuf(cbuf, CHAN_A);
-			
-		if(cbuf!=in[0]->data)		
-			free_compbuf(cbuf);
+
+		/*not used anymore */
+		free_compbuf(cbuf);	
 	}
 }
 
@@ -4262,8 +4262,8 @@ static void node_composit_exec_sepyuva(void *data, bNode *node, bNodeStack **in,
 		out[3]->vec[0] = in[0]->vec[3];
 	}
 	else if ((out[0]->hasoutput) || (out[1]->hasoutput) || (out[2]->hasoutput) || (out[3]->hasoutput)) {
-		/* make output size of input image */
-		CompBuf *cbuf= typecheck_compbuf(in[0]->data,CB_RGBA);
+		/* make copy of buffer so input image doesn't get corrupted */
+		CompBuf *cbuf= dupalloc_compbuf(in[0]->data);
 	
 		/* convert the RGB stackbuf to an YUV representation */
 		composit1_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, do_sepyuva, CB_RGBA);
@@ -4277,9 +4277,8 @@ static void node_composit_exec_sepyuva(void *data, bNode *node, bNodeStack **in,
 			out[2]->data= valbuf_from_rgbabuf(cbuf, CHAN_B);
 		if(out[3]->hasoutput)
 			out[3]->data= valbuf_from_rgbabuf(cbuf, CHAN_A);
-	
-		if(cbuf!=in[0]->data)
-			free_compbuf(cbuf);
+
+		free_compbuf(cbuf);
 	}
 }
 
@@ -4335,8 +4334,8 @@ static void node_composit_exec_sepycca(void *data, bNode *node, bNodeStack **in,
 		out[3]->vec[0] = in[0]->vec[3];
 	}
 	else if ((out[0]->hasoutput) || (out[1]->hasoutput) || (out[2]->hasoutput) || (out[3]->hasoutput)) {
-		/* make output size of input image */
-		CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
+		/* make copy of buffer so input buffer doesn't get corrupted */
+		CompBuf *cbuf= dupalloc_compbuf(in[0]->data);
 	
 		/* convert the RGB stackbuf to an HSV representation */
 		composit1_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, do_sepycca, CB_RGBA);
@@ -4350,9 +4349,9 @@ static void node_composit_exec_sepycca(void *data, bNode *node, bNodeStack **in,
 			out[2]->data= valbuf_from_rgbabuf(cbuf, CHAN_B);
 		if(out[3]->hasoutput)
 			out[3]->data= valbuf_from_rgbabuf(cbuf, CHAN_A);
-	
-		if(cbuf!=in[0]->data)
-			free_compbuf(cbuf);
+
+		/* not needed anymore */
+		free_compbuf(cbuf);
 	}
 }
 
