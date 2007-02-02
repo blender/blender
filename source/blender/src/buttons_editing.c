@@ -3411,19 +3411,19 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiDefButBitI(block, TOG, ARM_AUTO_IK, B_DIFF, "Auto IK",			210,160,100,20, &arm->flag, 0, 0, 0, 0, "Adds temporal IK chains while grabbing Bones");
 	uiBlockEndAlign(block);
 	
-	uiDefBut(block, LABEL, 0, "Display Options", 10,135,150,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Display Options", 10,133,150,19, 0, 0, 0, 0, 0, "");
 	
 	/* layers */
 	uiBlockBeginAlign(block);
 	for(a=0; a<8; a++) {
 		short dx= 18;
-		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 10+a*dx, 112, dx, 15, &arm->layer, 0, 0, 0, 0, "");
+		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 10+a*dx, 115, dx, 15, &arm->layer, 0, 0, 0, 0, "");
 		uiButSetFunc(but, armature_layer_cb, &arm->layer, (void *)(1<<a));
 	}
 	uiBlockBeginAlign(block);
 	for(a=8; a<16; a++) {
 		short dx= 18;
-		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 18+a*dx, 112, dx, 15, &arm->layer, 0, 0, 0, 0, "");
+		but= uiDefButBitS(block, BUT_TOGDUAL, 1<<a, REDRAWVIEW3D, "", 18+a*dx, 115, dx, 15, &arm->layer, 0, 0, 0, 0, "");
 		uiButSetFunc(but, armature_layer_cb, &arm->layer, (void *)(1<<a));
 	}
 	/* quite bad here, but I don't know a better place for copy... */
