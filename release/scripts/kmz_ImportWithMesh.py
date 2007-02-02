@@ -655,7 +655,7 @@ TAG4=1
 eps=0.0000001
 npoly=0
 nedge=0
-gt1=Blender.sys.time()
+
 
 def create_LINE(BROKEN_LINE,tv):
 	global TAG4,nedge 
@@ -683,7 +683,7 @@ def cree_POLYGON(ME,TESSEL):
 
 	if TAG5 and npoly %TAG5 == 1 : 
 		Blender.Window.Redraw(Blender.Window.Types.VIEW3D)
-		g2= Blender.sys.time()-gt1
+		# g2= Blender.sys.time()-gt1
 		# print int(g2/60),':',int(g2%60)      
 	
 	ME_verts = ME.verts
@@ -762,9 +762,10 @@ def active_FORME():
 	if len(ME.verts)>0:
 		ME.sel = True
 		ME.remDoubles(0.0)
-				
+
+WW = [0.0]
 def wash_DATA(ndata):
-	if ndata!='':
+	if ndata:
 		ndata=ndata.replace('\n',',')
 		ndata=ndata.replace('\r','') 
 		while ndata[-1]=='  ': 
@@ -778,10 +779,7 @@ def wash_DATA(ndata):
 		ndata=ndata.replace(',,',',')    
 		ndata=ndata.replace(' ',',')
 		ndata=ndata.split(',')
-		for i in xrange(len(ndata)-1, -1, -1):
-			if not ndata[i]:
-				ndata.pop(i)
-		
+		ndata = [i for i in ndata if i]
 	return  ndata 
 
 def collecte_ATTRIBUTS(data):
@@ -974,7 +972,7 @@ def contruit_HIERARCHIE(t,tv0=0,tv=0):
 	
 def scan_FILE(nom):
 		global NUMBER, PLACEMARK, SC, OB, ME, POLYGON_NUMBER, TAG3, TAG4, TAG5
- 		
+
 		dir,name=split(nom)
 		name=name.split('.')
 		result=0
@@ -985,7 +983,10 @@ def scan_FILE(nom):
 		print 'Number of Polygons :  ', POLYGON_NUMBER
 		EDGES_NUMBER=t.count('<LineString')
 		print 'Number of Edges :  ', EDGES_NUMBER
-							
+		
+		gt2= 0.0 # so as not to raise an error if the script dosnt run
+		SC = Blender.Scene.GetCurrent()
+		
 		tag1 = Blender.Draw.Create(1)
 		tag2 = Blender.Draw.Create(1)
 		tag3 = Blender.Draw.Create(100)
@@ -1028,7 +1029,6 @@ def scan_FILE(nom):
 				print '# the Google Earth 4 .'
 				print '#----------------------------------------------'
 			elif EDGES_NUMBER:
-				SC = Blender.Scene.GetCurrent()
 				print 'Number of Placemark   :  ', PLACEMARK_NUMBER
 				if PLACEMARK_NUMBER!=POLYGON_NUMBER :
 					NUMBER=1
@@ -1037,22 +1037,26 @@ def scan_FILE(nom):
 					TAG4=tag4.val
 					TAG5=tag5.val					
 				if t!='false':
+					gt1=Blender.sys.time()
 					contruit_HIERARCHIE(t,tag1.val,tag2.val)
+					gt2=Blender.sys.time()-gt1
 		else:
 			retval = Blender.Draw.PupBlock("KML/KMZ import", block)
-			if retval :
-				SC = Blender.Scene.GetCurrent()
+			if retval:
 				if PLACEMARK_NUMBER!=POLYGON_NUMBER :
 					NUMBER=1
 					PLACEMARK=0
 				if t!='false':
 					TAG3=tag3.val 
 					TAG4=tag4.val
-					TAG5=tag5.val					
+					TAG5=tag5.val
+					gt1=Blender.sys.time()
 					contruit_HIERARCHIE(t,tag1.val,tag2.val)
 					active_FORME()
-		gt2=Blender.sys.time()-gt1
-		print 'Import time', int(gt2/60),':',int(gt2%60) 
+					gt2=Blender.sys.time()-gt1
+		if gt2: # None means we didnt import
+			print 'Import time', int(gt2/60),':',int(gt2%60) 
+		
 
 if __name__ == '__main__':
 	Blender.Window.FileSelector (fonctionSELECT, 'SELECT a .KMZ FILE')
