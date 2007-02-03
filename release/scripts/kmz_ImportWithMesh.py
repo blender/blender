@@ -8,7 +8,7 @@ Tip: 'Import geometry of .kml or .kmz 3D models'
 """
 
 __author__ = "Jean-Michel Soler (jms)"
-__version__ = "0.1.9f, january, 25th, 2007"
+__version__ = "0.1.9g, february, 03th, 2007"
 __bpydoc__ = """\
        To read 3d geometry .kmz and .kml file 
 
@@ -32,7 +32,7 @@ __bpydoc__ = """\
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
-# Copyright (C) 2006: jm soler, jmsoler_at_free.fr
+# Copyright (C) 2006-2007: jm soler, jmsoler_at_free.fr
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -655,7 +655,7 @@ TAG4=1
 eps=0.0000001
 npoly=0
 nedge=0
-
+gt1=Blender.sys.time()
 
 def create_LINE(BROKEN_LINE,tv):
 	global TAG4,nedge 
@@ -670,7 +670,11 @@ def create_LINE(BROKEN_LINE,tv):
 		nedge+=1
 		v.extend(bl)
 		e.extend(v[-2],v[-1])
-	me.sel = True
+		v[-2].sel=1
+		v[-1].sel=1	
+		if TAG4 and nedge %TAG4 == 1 : 
+			print 'Pedg: ', nedge
+
 	if tv :
 		me.remDoubles(0.0001)
 
@@ -678,59 +682,53 @@ def cree_POLYGON(ME,TESSEL):
 	global  OB, npoly, UPDATE_V, UPDATE_F, POS,TAG3,TAG4, TAG5
 	npoly+=1 
 	for T in TESSEL: del T[-1]
-	#if TAG3 and npoly %TAG3 == 1 : 
-	#	print 'Pgon: ', npoly, 'verts:',[len(T) for T in TESSEL]
+	if TAG3 and npoly %TAG3 == 1 : 
+		print 'Pgon: ', npoly, 'verts:',[len(T) for T in TESSEL]
 
 	if TAG5 and npoly %TAG5 == 1 : 
-		Blender.Window.Redraw(Blender.Window.Types.VIEW3D)
-		# g2= Blender.sys.time()-gt1
-		# print int(g2/60),':',int(g2%60)      
-	
-	ME_verts = ME.verts
-	ME_edges = ME.edges
-	ME_faces = ME.faces
-	if len(TESSEL)==1 and 2 < len(TESSEL[0]) < 5: # 3 or 4
-		if not UPDATE_F:
-					POS=len(ME_verts)
+		Blender.Window.RedrawAll()
+		g2= Blender.sys.time()-gt1
+		print int(g2/60),':',int(g2%60)      
 
-		UPDATE_V.extend(TESSEL[0])
-		
+	if len(TESSEL)==1 and len(TESSEL[0]) in [3,4] :
+		if not UPDATE_F:
+					POS=len(ME.verts)
+
+		for VE in TESSEL[0]:
+						UPDATE_V.append(VE)
+
 		if len(TESSEL[0])==3:
 					UPDATE_F.append([POS,POS+1,POS+2])
 					POS+=3
 		else :
 					UPDATE_F.append([POS,POS+1,POS+2,POS+3])
 					POS+=4
-	
 	else :
-		if UPDATE_V : ME_verts.extend(UPDATE_V)
-		FACES=[]
+		if UPDATE_V : ME.verts.extend(UPDATE_V)
 		if UPDATE_F:
-			ME_faces.extend(UPDATE_F)
-		
+			ME.faces.extend(UPDATE_F)
 		UPDATE_F=[]
 		UPDATE_V=[]
 		EDGES=[]
 		for T in TESSEL: 
-			ME_verts.extend(T)
-			for t in xrange(len(T),1,-1):
+			ME.verts.extend(T)
+			ME_verts=ME.verts
+			for t in range(len(T),1,-1):
 						ME_verts[-t].sel=1
-						EDGES.append([ME_verts[-t], ME_verts[-t+1]])
+						EDGES.append([ME_verts[-t],ME_verts[-t+1]])
 			ME_verts[-1].sel=1
 			EDGES.append([ME_verts[-1],ME_verts[-len(T)]])
-		ME_edges.extend(EDGES)
+		ME.edges.extend(EDGES)
 		ME.fill()
 		if npoly %500 == 1 :
 			ME.sel = True
 			ME.remDoubles(0.0)
-		
 		ME.sel = False
 	TESSEL=[] 
 	return ME,TESSEL
 
 X_COEF=85331.2  # old value
 Y_COEF=110976.0 # old value
-
 
 def XY_COEFF(DOCUMENTORIGINE):
 	"""
@@ -750,20 +748,16 @@ def cree_FORME(v,TESSEL):
 
 def active_FORME():
 	global ME, UPDATE_V, UPDATE_F, POS, OB
-	
 	if len(UPDATE_V)>2 :
-		#print UPDATE_V
 		ME.verts.extend(UPDATE_V)
-		if UPDATE_F:
-			ME.faces.extend(UPDATE_F)
+	if UPDATE_F: ME.faces.extend(UPDATE_F)
 	UPDATE_V=[]
 	UPDATE_F=[]
 	POS=0
 	if len(ME.verts)>0:
-		ME.sel = True
+		ME.sel=1
 		ME.remDoubles(0.0)
-
-WW = [0.0]
+				
 def wash_DATA(ndata):
 	if ndata:
 		ndata=ndata.replace('\n',',')
@@ -778,8 +772,9 @@ def wash_DATA(ndata):
 		if ndata[-1]==',':ndata=ndata[:-1]
 		ndata=ndata.replace(',,',',')    
 		ndata=ndata.replace(' ',',')
-		ndata=ndata.split(',')
-		ndata = [i for i in ndata if i]
+		ndata=ndata.split(',')	
+		for n in ndata :
+			if n=='' : ndata.remove(n)
 	return  ndata 
 
 def collecte_ATTRIBUTS(data):
@@ -808,7 +803,6 @@ def contruit_HIERARCHIE(t,tv0=0,tv=0):
 	TESSEL=[]
 	BROKEN_LINE=[]
 	
-	# SC.objects.selected = [] 
 	ME= Blender.Mesh.New()
 	OB = SC.objects.new(ME)
 
@@ -859,7 +853,6 @@ def contruit_HIERARCHIE(t,tv0=0,tv=0):
 				if t[t0+2]=='-': 
 						b=balisetype.index(t[t0+1])+1
 				balise=BALISES[b]
-				#print STACK
 				if b==2 and t[t0:t1].find(STACK[-1])>-1:
 								parent=STACK.pop(-1)
 			elif t[t1-1] in balisetype:
@@ -889,15 +882,12 @@ def contruit_HIERARCHIE(t,tv0=0,tv=0):
 					if not PLACEMARK :
 						if NOM.find('Style')==0:
 							proprietes=collecte_ATTRIBUTS(t[t0:t1+ouvrante])
-							#print proprietes
 						if NOM.find('PolyStyle')==0:	 
 								GETMAT=1
 								
 						if NOM.find('color')==0 and GETMAT:
 								COLOR=t[t2+1:t.find('</color',t2)]
-								#print COLOR
 								COLOR=[eval('0x'+COLOR[0:2]), eval('0x'+COLOR[2:4]), eval('0x'+COLOR[4:6]), eval('0x'+COLOR[6:])]
-								#print COLOR 
 								if 'id' in proprietes.keys() and proprietes['id'] not in MATERIALS:
 									MAT=Blender.Material.New(proprietes['id'])
 									MAT.rgbCol = [COLOR[3]/255.0,COLOR[2]/255.0,COLOR[1]/255.0]  
@@ -911,16 +901,14 @@ def contruit_HIERARCHIE(t,tv0=0,tv=0):
 						
 					if NOM.find('LineString')>-1:
 						VAL=t[t2+2:t.find('</LineString',t2)]
-						#n=VAL.count('<outerBoundaryIs>')+VAL.count('<innerBoundaryIs>')
-						#print STACK
 						
 					if NUMBER and NOM.find('Placemark')>-1 :
 						PLACEMARK=1
 						if t[t2:t.find('</Placemark',t2)].find('Polygon')>-1 and len(ME.verts)>0:
 							active_FORME()
-							#OB.sel = False
 							ME = Blender.Mesh.New()
 							OB = SC.objects.new(ME)
+
 					if NOM.find('styleUrl')>-1:
 							material= t[t2+2:t.find('</styleUrl',t2)]
 							if material in MATERIALS :
@@ -934,7 +922,6 @@ def contruit_HIERARCHIE(t,tv0=0,tv=0):
 										COLOR=t[SMat:SMatF][t[SMat:SMatF].find('<color>',SPolSt)+7:t[SMat:SMatF].find('</color>',SPolSt)]
 										if len(COLOR)>0 : COLOR=[eval('0x'+COLOR[0:2]), eval('0x'+COLOR[2:4]), eval('0x'+COLOR[4:6]), eval('0x'+COLOR[6:])]
 									else :
-										#print material,'\n\n'
 										COLOR=[255,255,255,255]
 									MAT=Blender.Material.New(material)
 									MAT.rgbCol = [COLOR[3]/255.0,COLOR[2]/255.0,COLOR[1]/255.0]  
@@ -955,7 +942,6 @@ def contruit_HIERARCHIE(t,tv0=0,tv=0):
 							del VAL
 							if n==0: ME,TESSEL= cree_POLYGON(ME,TESSEL)
 						if tv0 and STACK[-2]=='LineString'   :
-							#print STACK, STACK[-2]						
 							BROKEN_LINE.append([])
 							VAL=wash_DATA(VAL) 
 							vv=[[float(VAL[a+ii]) for ii in xrange(3)] for a in xrange(0,len(VAL),3)]
@@ -966,13 +952,12 @@ def contruit_HIERARCHIE(t,tv0=0,tv=0):
 					break
 		t1+=1
 		t0=t1 
-	#print 'BROKEN_LINE', BROKEN_LINE   	
 	if tv0 and BROKEN_LINE :
 		create_LINE(BROKEN_LINE,tv)
 	
 def scan_FILE(nom):
-		global NUMBER, PLACEMARK, SC, OB, ME, POLYGON_NUMBER, TAG3, TAG4, TAG5
-
+		global NUMBER, PLACEMARK, SC, OB, ME, POLYGON_NUMBER, TAG3, TAG4, TAG5, gt1
+ 		
 		dir,name=split(nom)
 		name=name.split('.')
 		result=0
@@ -983,15 +968,12 @@ def scan_FILE(nom):
 		print 'Number of Polygons :  ', POLYGON_NUMBER
 		EDGES_NUMBER=t.count('<LineString')
 		print 'Number of Edges :  ', EDGES_NUMBER
-		
-		gt2= 0.0 # so as not to raise an error if the script dosnt run
-		SC = Blender.Scene.GetCurrent()
-		
+							
 		tag1 = Blender.Draw.Create(1)
 		tag2 = Blender.Draw.Create(1)
-		tag3 = Blender.Draw.Create(100)
-		tag4 = Blender.Draw.Create(100)
-		tag5 = Blender.Draw.Create(1)		
+		tag3 = Blender.Draw.Create(0)
+		tag4 = Blender.Draw.Create(0)
+		tag5 = Blender.Draw.Create(0)		
 		
 		block = []
 		block.append("Import Edges only")
@@ -1029,6 +1011,7 @@ def scan_FILE(nom):
 				print '# the Google Earth 4 .'
 				print '#----------------------------------------------'
 			elif EDGES_NUMBER:
+				SC = Blender.Scene.GetCurrent()
 				print 'Number of Placemark   :  ', PLACEMARK_NUMBER
 				if PLACEMARK_NUMBER!=POLYGON_NUMBER :
 					NUMBER=1
@@ -1039,10 +1022,10 @@ def scan_FILE(nom):
 				if t!='false':
 					gt1=Blender.sys.time()
 					contruit_HIERARCHIE(t,tag1.val,tag2.val)
-					gt2=Blender.sys.time()-gt1
 		else:
 			retval = Blender.Draw.PupBlock("KML/KMZ import", block)
-			if retval:
+			if retval :
+				SC = Blender.Scene.GetCurrent()
 				if PLACEMARK_NUMBER!=POLYGON_NUMBER :
 					NUMBER=1
 					PLACEMARK=0
@@ -1053,10 +1036,7 @@ def scan_FILE(nom):
 					gt1=Blender.sys.time()
 					contruit_HIERARCHIE(t,tag1.val,tag2.val)
 					active_FORME()
-					gt2=Blender.sys.time()-gt1
-		if gt2: # None means we didnt import
-			print 'Import time', int(gt2/60),':',int(gt2%60) 
-		
-
-if __name__ == '__main__':
-	Blender.Window.FileSelector (fonctionSELECT, 'SELECT a .KMZ FILE')
+		gt2=Blender.sys.time()-gt1
+		print int(gt2/60),':',int(gt2%60) 
+				
+Blender.Window.FileSelector (fonctionSELECT, 'SELECT a .KMZ FILE')
