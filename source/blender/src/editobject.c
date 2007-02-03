@@ -2496,6 +2496,8 @@ static void curvetomesh(Object *ob)
 	if(dl==0) makeDispListCurveTypes(ob, 0);		/* force creation */
 
 	nurbs_to_mesh(ob); /* also does users */
+	
+	object_free_modifiers(ob);
 }
 
 void convertmenu(void)
