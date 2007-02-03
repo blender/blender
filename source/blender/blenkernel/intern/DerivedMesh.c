@@ -1982,15 +1982,17 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r,
 
 		CDDM_apply_vert_coords(*final_r, deformedVerts);
 		CDDM_calc_normals(*final_r);
-
-		MEM_freeN(deformedVerts);
 	} else if (dm) {
 		*final_r = dm;
 	} else if (cage_r && *cage_r) {
 		*final_r = *cage_r;
 	} else {
 		*final_r = getEditMeshDerivedMesh(em, ob, deformedVerts);
+		deformedVerts = NULL;
 	}
+
+	if(deformedVerts)
+		MEM_freeN(deformedVerts);
 }
 
 /***/
