@@ -1240,6 +1240,27 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.qual==LR_SHIFTKEY+LR_CTRLKEY)
 					sculptmode_pmv(1);
 				break;
+			case CKEY:
+				if(G.qual==LR_SHIFTKEY) {
+					view3d_home(1);
+					curs= give_cursor();
+					curs[0]=curs[1]=curs[2]= 0.0;
+					allqueue(REDRAWVIEW3D, 0);
+				}
+				else if(G.qual==0) {
+					if (G.vd->persp==2)
+						/* center the camera offset */
+						G.vd->camdx= G.vd->camdy= 0.0;
+					else {
+						/*non camera center*/
+						curs= give_cursor();
+						G.vd->ofs[0]= -curs[0];
+						G.vd->ofs[1]= -curs[1];
+						G.vd->ofs[2]= -curs[2];
+					}
+				}
+				doredraw= 1;
+				break;
 			case PAD0: case PAD1: case PAD2: case PAD3: case PAD4:
 			case PAD5: case PAD6: case PAD7: case PAD8: case PAD9:
 			case PADPLUSKEY:
