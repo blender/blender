@@ -219,6 +219,7 @@ void recalcData(TransInfo *t)
 		
 	if (G.obedit) {
 		if (G.obedit->type == OB_MESH) {
+			retopo_do_all();
 
 			/* mirror modifier clipping? */
 			if(t->state != TRANS_CANCEL)
@@ -226,8 +227,6 @@ void recalcData(TransInfo *t)
 			
 			if(G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR)
 				editmesh_apply_to_mirror(t);
-
-			retopo_do_all();
 			
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			
