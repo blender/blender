@@ -33,6 +33,7 @@
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
+#include "MEM_CacheLimiterC-Api.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -463,34 +464,45 @@ static void do_effect(int cfra, Sequence *seq, StripElem *se)
 		return;
 	}
 
-	if(se->se1==0 || se->se2==0 || se->se3==0) {
-		make_black_ibuf(se->ibuf);
-		return;
-	}
-	
-	/* if metastrip: other se's */
-	if(se->se1->ok==2) se1= se->se1->se1;
-	else se1= se->se1;
-	
-	if(se->se2->ok==2) se2= se->se2->se1;
-	else se2= se->se2;
-	
-	if(se->se3->ok==2) se3= se->se3->se1;
-	else se3= se->se3;
-	
-	if(se1==0 || se2==0 || se3==0) {
-		make_black_ibuf(se->ibuf);
-		return;
-	}
-
 	switch (early_out) {
 	case 0:
-		break;
-	case 1:
-		if (se1->ibuf==0) {
+		if (se->se1==0 || se->se2==0 || se->se3==0) {
 			make_black_ibuf(se->ibuf);
 			return;
 		}
+
+		/* if metastrip: other se's */
+		if(se->se1->ok==2) se1= se->se1->se1;
+		else se1= se->se1;
+		
+		if(se->se2->ok==2) se2= se->se2->se1;
+		else se2= se->se2;
+		
+		if(se->se3->ok==2) se3= se->se3->se1;
+		else se3= se->se3;
+
+		if (   (se1==0 || se2==0 || se3==0)
+		    || (se1->ibuf==0 || se2->ibuf==0 || se3->ibuf==0)) {
+			make_black_ibuf(se->ibuf);
+			return;
+		}
+
+		break;
+	case 1:
+		if (se->se1 == 0) {
+			make_black_ibuf(se->ibuf);
+			return;
+		}
+
+		/* if metastrip: other se's */
+		if(se->se1->ok==2) se1= se->se1->se1;
+		else se1= se->se1;
+
+		if (se1 == 0 || se1->ibuf == 0) {
+			make_black_ibuf(se->ibuf);
+			return;
+		}
+
 		if (se->ibuf != se1->ibuf) {
 			IMB_freeImBuf(se->ibuf);
 			se->ibuf = se1->ibuf;
@@ -498,7 +510,16 @@ static void do_effect(int cfra, Sequence *seq, StripElem *se)
 		}
 		return;
 	case 2:
-		if (se2->ibuf==0) {
+		if (se->se2 == 0) {
+			make_black_ibuf(se->ibuf);
+			return;
+		}
+
+		/* if metastrip: other se's */
+		if(se->se2->ok==2) se2= se->se2->se1;
+		else se2= se->se2;
+
+		if (se2 == 0 || se2->ibuf == 0) {
 			make_black_ibuf(se->ibuf);
 			return;
 		}
@@ -508,9 +529,7 @@ static void do_effect(int cfra, Sequence *seq, StripElem *se)
 			IMB_refImBuf(se->ibuf);
 		}
 		return;
-	}
-
-	if (se1->ibuf==0 || se2->ibuf==0 || se3->ibuf==0) {
+	default:
 		make_black_ibuf(se->ibuf);
 		return;
 	}
@@ -909,6 +928,9 @@ static void do_effect_seq_recursively(int cfra, Sequence * seq, StripElem *se)
 	case 0:
 		do_build_seq_recursively(seq->seq1, cfra);
 		do_build_seq_recursively(seq->seq2, cfra);
+		if (seq->seq3) {
+			do_build_seq_recursively(seq->seq3, cfra);
+		}
 		break;
 	case 1:
 		do_build_seq_recursively(seq->seq1, cfra);
@@ -918,9 +940,6 @@ static void do_effect_seq_recursively(int cfra, Sequence * seq, StripElem *se)
 		break;
 	}
 
-	if (seq->seq3) {
-		do_build_seq_recursively(seq->seq3, cfra);
-	}
 
 	do_build_seq_ibuf(seq, cfra);
 
@@ -932,6 +951,11 @@ static void do_effect_seq_recursively(int cfra, Sequence * seq, StripElem *se)
 			IMB_cache_limiter_unref(seq->seq1->curelem->ibuf);
 		if (seq->seq2->curelem && seq->seq2->curelem->ibuf)
 			IMB_cache_limiter_unref(seq->seq2->curelem->ibuf);
+		if (seq->seq3) {
+			if (seq->seq3->curelem && seq->seq3->curelem->ibuf)
+				IMB_cache_limiter_unref(
+					seq->seq3->curelem->ibuf);
+		}
 		break;
 	case 1:
 		if (seq->seq1->curelem && seq->seq1->curelem->ibuf)
@@ -941,10 +965,6 @@ static void do_effect_seq_recursively(int cfra, Sequence * seq, StripElem *se)
 		if (seq->seq2->curelem && seq->seq2->curelem->ibuf)
 			IMB_cache_limiter_unref(seq->seq2->curelem->ibuf);
 		break;
-	}
-	if (seq->seq3) {
-		if (seq->seq3->curelem && seq->seq3->curelem->ibuf)
-			IMB_cache_limiter_unref(seq->seq3->curelem->ibuf);
 	}
 }
 
@@ -1338,8 +1358,29 @@ void do_render_seq(RenderResult *rr, int cfra)
 		}
 		
 		/* Let the cache limitor take care of this (schlaile) */
-		/* While render let's keep all memory available for render (ton) */
-		free_imbuf_seq_except(cfra);
+		/* While render let's keep all memory available for render 
+		   (ton)
+		   At least if free memory is tight...
+		   This can make a big difference in encoding speed
+		   (it is around 4 times(!) faster, if we do not waste time
+		   on freeing _all_ buffers every time on long timelines...)
+		   (schlaile)
+		*/
+		{
+			extern int mem_in_use;
+
+			int max = MEM_CacheLimiter_get_maximum();
+			if (max != 0 && mem_in_use > max) {
+				fprintf(stderr, "mem_in_use = %d, max = %d\n",
+					mem_in_use, max);
+				fprintf(stderr, "Cleaning up, please wait...\n"
+					"If this happens very often,\n"
+					"consider "
+					"raising the memcache limit in the "
+					"user preferences.\n");
+				free_imbuf_seq();
+			}
+		}
 	}
 	else {
 		/* render result is delivered empty in most cases, nevertheless we handle all cases */
