@@ -113,28 +113,10 @@ void makewavstring (char *string)
 	}
 }
 
-static void do_sound_ipos(Sequence * seq)
-{
-	while(seq) {
-		if (seq->type == SEQ_META) {
-			do_sound_ipos(seq->seqbase.first);
-		}
-		if ((seq->type == SEQ_RAM_SOUND
-		     || seq->type == SEQ_HD_SOUND) 
-		    && (seq->ipo)
-		    && (seq->startdisp<=G.scene->r.cfra+2) 
-		    && (seq->enddisp>G.scene->r.cfra)) {
-			do_seq_ipo(seq);
-		}
-		seq = seq->next;
-	}
-}
-
 void audio_mixdown()
 {
 	int file, c, totlen, totframe, i, oldcfra;
 	char *buf;
-	Editing *ed= G.scene->ed;
 
 	buf = MEM_mallocN(65536, "audio_mixdown");
 	makewavstring(buf);
@@ -196,13 +178,8 @@ void audio_mixdown()
 		
 		memset(buf+i, 0, 64);
 		
-		if (ed) {
-			/* retrieve current frame for ipos */
-			CFRA=(int) ( ((float)(audio_pos-64)/( G.scene->audio.mixrate*4 ))*(float)G.scene->r.frs_sec );
+		CFRA=(int) ( ((float)(audio_pos-64)/( G.scene->audio.mixrate*4 ))*(float)G.scene->r.frs_sec );
 			
-			do_sound_ipos(ed->seqbasep->first);
-		}
-		
 		audio_fill(buf+i, NULL, 64);
 		if (G.order == B_ENDIAN) {
 			char tbuf[64];
@@ -228,7 +205,6 @@ void audio_mixdown()
 void audiostream_fill(Uint8 *mixdown, int len)
 {    
 	int oldcfra = CFRA;
-	Editing *ed;
 	int i;
 
 	memset(mixdown, 0, len);
@@ -238,11 +214,6 @@ void audiostream_fill(Uint8 *mixdown, int len)
 				/( G.scene->audio.mixrate*4 ))
 			       *(float)G.scene->r.frs_sec );
 
-		ed = G.scene->ed;
-		if (ed) {
-			do_sound_ipos(ed->seqbasep->first);
-		}		
-	
 		audio_fill(mixdown + i, NULL, 
 			   (len - i) > 64 ? 64 : (len - i));
 	}
@@ -326,7 +297,12 @@ static void audio_fill_ram_sound(Sequence *seq, void * mixdown,
 	if ((seq->curpos<sound->streamlen -len) && (seq->curpos>=0) &&
 	    (seq->startdisp <= CFRA) && ((seq->enddisp) > CFRA))
 	{
-		if(seq->ipo && seq->ipo->curve.first) facf = seq->facf0; else facf = 1.0;
+		if(seq->ipo && seq->ipo->curve.first) {
+			do_seq_ipo(seq);
+			facf = seq->facf0;
+		} else {
+			facf = 1.0;
+		}
 		cvtbuf = malloc(len);					
 		memcpy(cvtbuf, ((Uint8*)sound->stream)+(seq->curpos & (~3)), len);
 		audio_levels(cvtbuf, len, seq->level, facf, seq->pan);
@@ -350,8 +326,12 @@ static void audio_fill_hd_sound(Sequence *seq,
 	if ((seq->curpos >= 0) &&
 	    (seq->startdisp <= CFRA) && ((seq->enddisp) > CFRA))
 	{
-		if(seq->ipo && seq->ipo->curve.first) 
-			facf = seq->facf0; else facf = 1.0;
+		if(seq->ipo && seq->ipo->curve.first) {
+			do_seq_ipo(seq);
+			facf = seq->facf0; 
+		} else {
+			facf = 1.0;
+		}
 		cvtbuf = malloc(len);
 		
 		sound_hdaudio_extract(seq->hdaudio, (short*) cvtbuf,
@@ -359,7 +339,6 @@ static void audio_fill_hd_sound(Sequence *seq,
 				      G.scene->audio.mixrate,
 				      2,
 				      len / 4);
-		
 		audio_levels(cvtbuf, len, seq->level, facf, seq->pan);
 		if (!mixdown) {
 			SDL_MixAudio(sstream, 
