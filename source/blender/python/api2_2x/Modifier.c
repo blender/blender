@@ -1429,6 +1429,9 @@ PyObject *Modifier_Init( void )
 
 	if( TypeDict ) {
 		PyModule_AddObject( submodule, "Type", TypeDict ); /* deprecated */
+		/* since PyModule_AddObject() steals a reference, we need to
+		   incref TypeDict to use it again */
+		Py_INCREF( TypeDict);
 		PyModule_AddObject( submodule, "Types", TypeDict );
 	}
 	
