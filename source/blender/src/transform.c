@@ -1753,66 +1753,68 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 		else VecAddf(td->loc, td->iloc, vec);
 
 		/* rotation */
+		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
 		
-		if(td->flag & TD_USEQUAT) {
-			Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
-			Mat3ToQuat(fmat, quat);	// Actual transform
-			
-			QuatMul(td->ext->quat, quat, td->ext->iquat);
-			/* this function works on end result */
-			protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
-		}
-		else if ((t->flag & T_V3D_ALIGN)==0) {	// align mode doesn't rotate objects itself
-			float obmat[3][3];
-			
-			/* are there ipo keys? */
-			if(td->tdi) {
-				TransDataIpokey *tdi= td->tdi;
-				float rot[3];
+			if(td->flag & TD_USEQUAT) {
+				Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
+				Mat3ToQuat(fmat, quat);	// Actual transform
 				
-				/* calculate the total rotatation in eulers */
-				VecAddf(eul, td->ext->irot, td->ext->drot);
-				EulToMat3(eul, obmat);
-				/* mat = transform, obmat = object rotation */
-				Mat3MulMat3(fmat, mat, obmat);
-				
-				Mat3ToCompatibleEul(fmat, eul, td->ext->irot);
-				
-				/* correct back for delta rot */
-				if(tdi->flag & TOB_IPODROT) {
-					VecSubf(rot, eul, td->ext->irot);
-				}
-				else {
-					VecSubf(rot, eul, td->ext->drot);
-				}
-				
-				VecMulf(rot, (float)(9.0/M_PI_2));
-				VecSubf(rot, rot, tdi->oldrot);
-				
-				protectedRotateBits(td->protectflag, rot, tdi->oldrot);
-				
-				add_tdi_poin(tdi->rotx, tdi->oldrot, rot[0]);
-				add_tdi_poin(tdi->roty, tdi->oldrot+1, rot[1]);
-				add_tdi_poin(tdi->rotz, tdi->oldrot+2, rot[2]);
+				QuatMul(td->ext->quat, quat, td->ext->iquat);
+				/* this function works on end result */
+				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
 			}
 			else {
-				Mat3MulMat3(totmat, mat, td->mtx);
-				Mat3MulMat3(smat, td->smtx, totmat);
+				float obmat[3][3];
 				
-				/* calculate the total rotatation in eulers */
-				VecAddf(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
-				EulToMat3(eul, obmat);
-				/* mat = transform, obmat = object rotation */
-				Mat3MulMat3(fmat, smat, obmat);
-				
-				Mat3ToCompatibleEul(fmat, eul, td->ext->irot);
-				
-				/* correct back for delta rot */
-				VecSubf(eul, eul, td->ext->drot);
-				
-				/* and apply */
-				protectedRotateBits(td->protectflag, eul, td->ext->irot);
-				VECCOPY(td->ext->rot, eul);
+				/* are there ipo keys? */
+				if(td->tdi) {
+					TransDataIpokey *tdi= td->tdi;
+					float rot[3];
+					
+					/* calculate the total rotatation in eulers */
+					VecAddf(eul, td->ext->irot, td->ext->drot);
+					EulToMat3(eul, obmat);
+					/* mat = transform, obmat = object rotation */
+					Mat3MulMat3(fmat, mat, obmat);
+					
+					Mat3ToCompatibleEul(fmat, eul, td->ext->irot);
+					
+					/* correct back for delta rot */
+					if(tdi->flag & TOB_IPODROT) {
+						VecSubf(rot, eul, td->ext->irot);
+					}
+					else {
+						VecSubf(rot, eul, td->ext->drot);
+					}
+					
+					VecMulf(rot, (float)(9.0/M_PI_2));
+					VecSubf(rot, rot, tdi->oldrot);
+					
+					protectedRotateBits(td->protectflag, rot, tdi->oldrot);
+					
+					add_tdi_poin(tdi->rotx, tdi->oldrot, rot[0]);
+					add_tdi_poin(tdi->roty, tdi->oldrot+1, rot[1]);
+					add_tdi_poin(tdi->rotz, tdi->oldrot+2, rot[2]);
+				}
+				else {
+					Mat3MulMat3(totmat, mat, td->mtx);
+					Mat3MulMat3(smat, td->smtx, totmat);
+					
+					/* calculate the total rotatation in eulers */
+					VecAddf(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
+					EulToMat3(eul, obmat);
+					/* mat = transform, obmat = object rotation */
+					Mat3MulMat3(fmat, smat, obmat);
+					
+					Mat3ToCompatibleEul(fmat, eul, td->ext->irot);
+					
+					/* correct back for delta rot */
+					VecSubf(eul, eul, td->ext->drot);
+					
+					/* and apply */
+					protectedRotateBits(td->protectflag, eul, td->ext->irot);
+					VECCOPY(td->ext->rot, eul);
+				}
 			}
 		}
 	}
