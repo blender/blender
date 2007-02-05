@@ -677,6 +677,16 @@ BL_Material* ConvertMaterial(
 
 	unsigned int rgb[4];
 	GetRGB(type,mface,mmcol,mat,rgb[0],rgb[1],rgb[2], rgb[3]);
+
+	// swap the material color, so MCol on TF_BMFONT works
+	if (validmat && type==1 && tface->mode & TF_BMFONT)
+	{
+		rgb[0] = KX_rgbaint2uint_new(rgb[0]);
+		rgb[1] = KX_rgbaint2uint_new(rgb[1]);
+		rgb[2] = KX_rgbaint2uint_new(rgb[2]);
+		rgb[3] = KX_rgbaint2uint_new(rgb[3]);
+	}
+
 	material->SetConversionRGB(rgb);
 	material->SetConversionUV(uv);
 	material->SetConversionUV2(uv2);
