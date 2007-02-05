@@ -122,15 +122,7 @@ static void helpline(TransInfo *t, float *vec)
 	}
 	else if(t->flag & T_POSE) {
 		Object *ob=t->poseobj;
-		float tmat[4][4];
-		
-		Mat4One(tmat);
-		VECCOPY(tmat[3], vecrot);
-		
-		if(ob) {
-			Mat4MulMat4(tmat, ob->obmat, tmat);
-			VECCOPY(vecrot, tmat[3]);
-		}
+		if(ob) Mat4MulVecfl(ob->obmat, vecrot);
 	}
 	
 	getmouseco_areawin(mval);
