@@ -838,6 +838,24 @@ void armature_mat_world_to_pose(Object *ob, float inmat[][4], float outmat[][4])
 	Mat4MulMat4(outmat, obmat, inmat);
 }
 
+/* Convert Wolrd-Space Location to Pose-Space Location
+ * NOTE: this cannot be used to convert to pose-space location of the supplied
+ * 		pose-channel into its local space (i.e. 'visual'-keyframing) 
+ */
+void armature_loc_world_to_pose(Object *ob, float *inloc, float *outloc) 
+{
+	float xLocMat[4][4];
+	float nLocMat[4][4];
+	
+	/* build matrix for location */
+	Mat4One(xLocMat);
+	VECCOPY(xLocMat[3], inloc);
+
+	/* get bone-space cursor matrix and extract location */
+	armature_mat_world_to_pose(ob, xLocMat, nLocMat);
+	VECCOPY(outloc, nLocMat[3]);
+}
+
 /* Convert Pose-Space Matrix to Bone-Space Matrix 
  * NOTE: this cannot be used to convert to pose-space transforms of the supplied
  * 		pose-channel into its local space (i.e. 'visual'-keyframing)

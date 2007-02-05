@@ -640,13 +640,23 @@ void restoreTransObjects(TransInfo *t)
 
 void calculateCenter2D(TransInfo *t)
 {
-	if (t->flag & (T_EDIT|T_POSE)) {
-		Object *ob= G.obedit?G.obedit:t->poseobj;
+	if (t->flag & T_EDIT) {
+		Object *ob= G.obedit;
 		float vec[3];
 		
 		VECCOPY(vec, t->center);
 		Mat4MulVecfl(ob->obmat, vec);
 		projectIntView(t, vec, t->center2d);
+	}
+	else if (t->flag & T_POSE) {
+		Object *ob= t->poseobj;
+		float mat[4][4];
+		
+		Mat4One(mat);
+		VECCOPY(mat[3], t->center);
+		
+		Mat4MulMat4(mat, ob->obmat, mat);
+		projectIntView(t, mat[3], t->center2d);
 	}
 	else {
 		projectIntView(t, t->center, t->center2d);
@@ -661,14 +671,18 @@ void calculateCenterCursor(TransInfo *t)
 	VECCOPY(t->center, cursor);
 
 	/* If edit or pose mode, move cursor in local space */
-	if(t->flag & (T_EDIT|T_POSE)) {
-		Object *ob= G.obedit?G.obedit:t->poseobj;
+	if (t->flag & T_EDIT) {
+		Object *ob= G.obedit;
 		float mat[3][3], imat[3][3];
 		
 		VecSubf(t->center, t->center, ob->obmat[3]);
 		Mat3CpyMat4(mat, ob->obmat);
 		Mat3Inv(imat, mat);
 		Mat3MulVecfl(imat, t->center);
+	}
+	else if (t->flag & T_POSE) {
+		Object *ob= t->poseobj;
+		armature_loc_world_to_pose(ob, cursor, t->center);
 	}
 	
 	calculateCenter2D(t);
