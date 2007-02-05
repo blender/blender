@@ -11,11 +11,21 @@ __author__ = "Jean-Michel Soler (jms)"
 __url__ = ("blender", "elysiun",
 "Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_rvk1versrvk2.htm",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "2005/11"
+__version__ = "2007/02"
 
 __bpydoc__ = """\
-"RVK1 to RVK2" copies deform data (except surface subdivision) of the active
-object to the RVK (relative vertex key) of the other selected object.
+"RVK1 to RVK2" copies deform data (except EDGESPLIT,DECIMATE,SUBSURF,BOOLEAN, 
+BUILD,MIRROR,ARRAY) of the active object to the RVK (relative vertex key) of
+the other selected object.
+
+It is presupposed that the second mesh object is built exactly like the first
+one. In fact, it is better to use a true copy with at least one basic shape
+key.
+
+The new version of this scrit (Blender 2.43) manages the modifier changes.
+There are a lot of modifiers but only the ones which just deforms the shape
+can be used : LATTICE, CURVE, WAVE, ARMATURE. You can unset these modifiers
+from the script. 
 
 Usage:
 
@@ -24,12 +34,12 @@ object, enter Edit Mode and run this script from the "Mesh->Scripts" menu of
 the 3d View.  If the active object has subsurf turned on and nonzero subdiv
 level, the script will ask if it should change that.  Before copying data to
 the rvk it will also ask whether it should replace or add a new vertex group.
+
+ 
 """
 
-# $Id$
-#
 #----------------------------------------------
-# jm soler (c) 05/2004 : 'Rvk1toRvk2'  release under blender artistic licence
+# jm soler (c) 04/02/2007 : 'Rvk1toRvk2'  release under blender artistic licence
 #----------------------------------------------
 # Blender Artistic License
 # http://download.blender.org/documentation/html/x21254.html 
@@ -52,79 +62,189 @@ the rvk it will also ask whether it should replace or add a new vertex group.
 # Communiquer les problemes et erreurs sur:
 #   http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender
 #---------------------------------------------
-#  changelog : 
-#        - a test on mesh parity between getraw and getrawfromobject  
-#          when there is active subsurf division. 
-#        - can copy, or not, vertex groups from the original mesh.    
 #---------------------------------------------
 
 import Blender
-from Blender import NMesh,Draw,Object
+from Blender import NMesh,Draw,Object,Modifier
 
-def rvk2rvk():
-  try:
-    SUBMODIF=0
-    RVK2=Object.GetSelected()[0]
-    RVK1=Object.GetSelected()[1]
-    
-    FRAME=Blender.Get('curframe')
-  
-    DATA2=RVK2.getData()
-    if Blender.Get('version')<239:
-      if DATA2.getMode() & NMesh.Modes['SUBSURF'] :
-         SUBSURF2=DATA2.getSubDivLevels()
-         if SUBSURF2[0]!=0:
-             name = "The active object has a subsurf level different from 0 ... %t| Let script do the the modification for you ? %x1| you prefer do it yourself ? %x2 " 
-             result = Draw.PupMenu(name)
-             if result==1:      
-                DATA2.mode=DATA2.mode-NMesh.Modes['SUBSURF']
-                SUBMODIF=1 
-                DATA2.update()
-                RVK2.makeDisplayList() 
-                Blender.Redraw()
-             else:
-               return
-              
-    RVK2NAME=Object.GetSelected()[0].getName()
-    mesh=RVK1.getData()
-    meshrvk2=NMesh.GetRawFromObject(RVK2NAME)
-    
-    name = "Do you want to replace or add vertex groups ? %t| YES %x1| NO ? %x2 " 
-    result = Draw.PupMenu(name)
+def Value(t):
+	exec "t=Modifier.Types.%s"%t
+ 	return t
 
-    if result==1:
-       GROUPNAME1=mesh.getVertGroupNames() 
-       if len(GROUPNAME1)!=0:
-          for GROUP1 in GROUPNAME1:
-              mesh.removeVertGroup(GROUP1)
+def rvk2rvk():  
+	POSSMOD_list=['EDGESPLIT',
+	              'DECIMATE',
+		            'SUBSURF', 
+             	  'BOOLEAN', 
+	              'BUILD',
+		            'MIRROR', 
+			          'ARRAY']
+			
+	AUTHMOD_list=['LATTICE',
+	              'CURVE', 
+	              'WAVE',
+	              'ARMATURE']
+	
+	MODIFIERS=0
+	BMOD=[['Possible Modifiers'],
+        ['Allowed Modifiers']]
 
-       GROUPNAME2=DATA2.getVertGroupNames()
-       if len(GROUPNAME2)!=0:
-          for GROUP2 in GROUPNAME2:
-              mesh.addVertGroup(GROUP2)
-              mesh.assignVertsToGroup(GROUP2,DATA2.getVertsFromGroup(GROUP2),1.0,'replace')
-
-    for v in meshrvk2.verts:
-       i= meshrvk2.verts.index(v)
-       v1=mesh.verts[i]
-       for n in range(len(v.co)):
-            v1.co[n]=v.co[n]
-    
-    mesh.update() 
-    mesh.insertKey(FRAME,'relative')
-    mesh.update()
-    RVK1.makeDisplayList() 
-
-    if SUBMODIF==1:
-         DATA2.mode=DATA2.mode+NMesh.Modes['SUBSURF']
-         SUBMODIF=0
-         DATA2.update()
-         RVK2.makeDisplayList() 
-
-    Blender.Redraw()
-  except:
-    Draw.PupMenu('Error%t|You need to select two meshes.') 
-  
-
+	#	=================================================================
+	# at leat 2 objects ===============================================
+	#	=================================================================
+	if len(Object.GetSelected())>1 :
+			RVK1=Object.GetSelected()[0]
+			RVK2=Object.GetSelected()[1]
+			# =============================================================
+			# must be 2 meshes ============================================
+			# =============================================================
+			if RVK1.getType()=='Mesh' and RVK2.getType()=='Mesh': 
+				FRAME=Blender.Get('curframe') 
+				DATA2=RVK2.getData()
+				print DATA2.getKey()
+				# ============================================================
+				# at least the second must have a shape key ==================
+				# ============================================================
+				if DATA2.getKey():
+							# ======================================================
+							# in case of modifiers use =============================
+							# ======================================================
+							if RVK1.modifiers:
+									MODIFIERS=1
+									POSSMOD=[Value(t) for t in POSSMOD_list]
+									AUTHMOD=[Value(t) for t in AUTHMOD_list]
+									print 'POSSMOD:',POSSMOD,'\nAUTHMOD:', AUTHMOD
+									MODRVK1=RVK1.modifiers
+									block = []
+									
+									# ===================================================
+									# ===  Bloc Menu Modifiers ===1 doc =================
+									# ===================================================
+									m=0
+									for mod in  MODRVK1: 
+										print mod.type
+										if mod.type in POSSMOD:
+											BMOD[0].append([Draw.Create(0),mod.type,
+																					m,
+																					POSSMOD_list[POSSMOD.index(mod.type)],
+											                    mod[Modifier.Settings.RENDER]==1,
+											                    mod[Modifier.Settings.EDITMODE]==1
+											  									])
+										elif mod.type in AUTHMOD:
+											BMOD[1].append([Draw.Create(1),
+											               mod.type,
+											                    m,
+																					AUTHMOD_list[AUTHMOD.index(mod.type)],
+											                    mod[Modifier.Settings.RENDER]==1,
+											                    mod[Modifier.Settings.EDITMODE]==1
+											                    ])
+										m+=1
+									
+									# ===================================================
+									# ===  Bloc Menu Modifiers ===2 display =============
+									# ===================================================
+									block.append(BMOD[1][0])
+									for	B in BMOD[1][1:]:
+										block.append((B[3],B[0],""))
+									
+									block.append(BMOD[0][0])
+									block.append("not alredy implemented")
+									block.append("in this script.")
+									for	B in BMOD[0][1:]:
+										block.append((B[3],B[0],""))
+									retval = Blender.Draw.PupBlock("MESH 2 RVK", block)
+									
+									# ===================================================
+									# ===  unset Modifiers  =============================
+									# ===================================================	
+									for	B in BMOD[0][1:]:
+										print B[2]
+										MODRVK1[B[2]][Modifier.Settings.RENDER]=0
+									for	B in BMOD[1]:
+										if not B[1]:
+											MODRVK1[B[2]][Modifier.Settings.RENDER]=0
+																	
+									# ===================================================
+									# ===  update Modifiers =============================
+									# ===================================================
+									RVK1.makeDisplayList()									
+									
+							# =======================================================
+							# ===  get deformed mesh ================================
+							# =======================================================
+							RVK1NAME=Object.GetSelected()[0].getName()
+							meshrvk1=NMesh.GetRawFromObject(RVK1NAME)  
+							print len(meshrvk1.verts)
+							
+							# =======================================================
+							# ===  get normal mesh for vertex group =================
+							# =======================================================
+							DATA1=RVK1.getData()
+							
+							# =======================================================
+							# ===  get destination mesh  ============================
+							# =======================================================
+							DATA2=RVK2.getData()
+							print len(meshrvk1.verts)
+							print len(DATA2.verts)							
+							# ========================================================
+							# ===== is there the same number of vertices =============
+							# ========================================================
+							if len(meshrvk1.verts)==len(DATA2.verts): 
+								name = "Do you want to replace or add vertex groups ? %t| YES %x1| NO ? %x2 " 
+								result = Draw.PupMenu(name)
+								if result==1:       
+									# =====================================================
+									# ===== Do we save vertex groups ?  ===================
+									# =====================================================
+									GROUPNAME2=DATA2.getVertGroupNames() 
+									if len(GROUPNAME2)!=0:
+										for GROUP2 in GROUPNAME2:
+											DATA2.removeVertGroup(GROUP2)
+									GROUPNAME1=DATA1.getVertGroupNames()
+									if len(GROUPNAME1)!=0:
+										for GROUP1 in GROUPNAME1:
+											DATA2.addVertGroup(GROUP1)
+											DATA2.assignVertsToGroup(GROUP1,DATA1.getVertsFromGroup(GROUP1),1.0,'replace')
+								# ========================================================
+								# ===== now copy the vertices coords =====================
+								# ========================================================
+								for v in meshrvk1.verts:
+									i= meshrvk1.verts.index(v) 
+									v1=DATA2.verts[i]
+									for n in [0,1,2]:
+										v1.co[n]=v.co[n]
+								DATA2.update() 
+								DATA2.insertKey(FRAME,'relative')
+								DATA2.update()
+								RVK2.makeDisplayList()
+								if MODIFIERS:
+									# ===================================================
+									# ===  unset Modifiers  =============================
+									# ===================================================
+									for	B in BMOD[0][1:]:
+										MODRVK1[B[2]][Modifier.Settings.RENDER]|=B[-2]
+									for	B in BMOD[1]:
+										if not B[1]:
+											MODRVK1[B[2]][Modifier.Settings.RENDER]|=B[-2]
+							else:
+								name = "Meshes Objects must the same number of vertices %t| Ok. %x1" 
+								result = Draw.PupMenu(name)
+								return
+				else:
+							name = "Second Object must have  at least a shape key %t| Ok. %x1" 
+							result = Draw.PupMenu(name)
+							return
+			else:	
+				name = "Object must be Meshes %t| Ok. %x1" 
+				result = Draw.PupMenu(name)
+				return 
+	else :
+		name = "At least 2 Meshes as to be selected %t| Ok. %x1" 
+		result = Draw.PupMenu(name)
+		return
+	Blender.Redraw()  
+EDITMODE=Blender.Window.EditMode()
 Blender.Window.EditMode(0)
 rvk2rvk()
+Blender.Window.EditMode(EDITMODE)
