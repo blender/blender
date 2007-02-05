@@ -378,7 +378,7 @@ static void do_action_selectmenu_columnmenu(void *arg, int event)
 	else if (ELEM(event, ACTMENU_SEL_COLUMN_KEYS, ACTMENU_SEL_COLUMN_MARKERSCOLUMN)) {
 		if (key)
 			column_select_shapekeys(key, event);
-		else
+		else if (act)
 			column_select_actionkeys(act, event);
 	}
 	else
