@@ -338,6 +338,8 @@ class AC3DImport:
 		numsurf = int(value)
 		NUMSURF = numsurf
 
+		badface_notpoly = badface_multirefs = 0
+
 		while numsurf:
 			flags = lines[i].split()[1][2:]
 			if len(flags) > 1:
@@ -384,7 +386,14 @@ class AC3DImport:
 			else: # polygon
 
 				# check for bad face, that references same vertex more than once
-				if sum(map(face.count, face)) == len(face):
+				lenface = len(face)
+				if lenface < 3:
+					# less than 3 vertices, not a face
+					badface_notpoly += 1
+				elif sum(map(face.count, face)) != lenface:
+					# multiple references to the same vertex
+					badface_multirefs += 1
+				else: # ok, seems fine
 					while len(face) > 4:
 						cut = face[:4]
 						cutuv = fuv[:4]
@@ -404,6 +413,13 @@ class AC3DImport:
 			obj.elist.extend(edges) # loose edges
 
 			numsurf -= 1	  
+
+		if badface_notpoly or badface_multirefs:
+			inform('Object "%s" - ignoring bad faces:' % obj.name)
+			if badface_notpoly:
+				inform('\t%d face(s) with less than 3 vertices.' % badface_notpoly)
+			if badface_multirefs:
+				inform('\t%d face(s) with multiple references to a same vertex.' % badface_multirefs)
 
 		self.i = i
 
