@@ -484,7 +484,7 @@ static void make_sel_cfra_list(Ipo *ipo, ListBase *elems)
  */
 void column_select_shapekeys(Key *key, int mode)
 {
-	if(key->ipo) {
+	if(key && key->ipo) {
 		IpoCurve *icu;
 		ListBase elems= {NULL, NULL};
 		CfraElem *ce;
@@ -535,6 +535,9 @@ void column_select_actionkeys(bAction *act, int mode)
 	bActionChannel *achan;
 	bConstraintChannel *conchan;
 
+	if (!act)
+		return;
+	
 	/* build list of columns */
 	switch (mode) {
 		case 1:
@@ -2334,7 +2337,7 @@ void snap_keys_to_frame(int snap_mode)
 	if (key) {
 		set_snap_meshchannels(key, snap_mode);
 	}
-	else {
+	else if (act) {
 		set_snap_actionchannels(act, snap_mode);
 		remake_action_ipos (act);
 	}
@@ -2435,7 +2438,7 @@ void mirror_action_keys(short mirror_mode)
 	if (key) {
 		mirror_meshchannels(key, mirror_mode);
 	}
-	else {
+	else if (act) {
 		mirror_actionchannels(act, mirror_mode);
 		remake_action_ipos (act);
 	}
@@ -3282,7 +3285,7 @@ void markers_selectkeys_between(void)
 		if (key->ipo) 
 			borderselect_ipo_key(key->ipo, min, max, SELECT_ADD);
 	}
-	else {
+	else if (act) {
 		bActionChannel *achan;
 		bConstraintChannel *conchan;
 		
