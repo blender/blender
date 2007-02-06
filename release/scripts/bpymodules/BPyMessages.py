@@ -1,14 +1,17 @@
 from Blender import Draw, sys
 def Error_NoMeshSelected():
-	Draw.PupMenu('ERROR%t|No mesh objects selected')
+	Draw.PupMenu('Error%t|No mesh objects selected')
 def Error_NoActive():
-	Draw.PupMenu('ERROR%t|No active object')
+	Draw.PupMenu('Error%t|No active object')
 def Error_NoMeshActive():
-	Draw.PupMenu('ERROR%t|Active object is not a mesh')
+	Draw.PupMenu('Error%t|Active object is not a mesh')
 def Error_NoMeshUvSelected():
-	Draw.PupMenu('ERROR%t|No mesh objects with texface selected')
+	Draw.PupMenu('Error%t|No mesh objects with texface selected')
 def Error_NoMeshUvActive():
-	Draw.PupMenu('ERROR%t|Active object is not a mesh with texface')
+	Draw.PupMenu('Error%t|Active object is not a mesh with texface')
+def Error_NoMeshMultiresEdit():
+	Draw.PupMenu('Error%t|Unable to complete action with multires enabled')
+
 
 # File I/O messages
 def Error_NoFile(path):

@@ -306,20 +306,26 @@ def main():
 	
 	Blender.Window.WaitCursor(1)
 	for me in meshes:
-		if CLEAN_FACE_SMALL:
-			rem_face_count += rem_area_faces(me, limit)
+		
+		if me.multires:
+			multires_level_orig = me.multiresDrawLevel
+			me.multiresDrawLevel = 1
+			print 'Warning, cannot perform destructive operations on multires mesh:', me.name
+		else:
+			if CLEAN_FACE_SMALL:
+				rem_face_count += rem_area_faces(me, limit)
+				
+			if CLEAN_FACE_PERIMETER:
+				rem_face_count += rem_perimeter_faces(me, limit)
 			
-		if CLEAN_FACE_PERIMETER:
-			rem_face_count += rem_perimeter_faces(me, limit)
-		
-		if CLEAN_EDGE_SMALL: # for all use 2- remove all edges.
-			rem_edge_count += rem_free_edges(me, limit)
-		
-		if CLEAN_EDGE_NOFACE:
-			rem_edge_count += rem_free_edges(me)
-		
-		if CLEAN_VERTS_FREE:
-			rem_vert_count += rem_free_verts(me)
+			if CLEAN_EDGE_SMALL: # for all use 2- remove all edges.
+				rem_edge_count += rem_free_edges(me, limit)
+			
+			if CLEAN_EDGE_NOFACE:
+				rem_edge_count += rem_free_edges(me)
+			
+			if CLEAN_VERTS_FREE:
+				rem_vert_count += rem_free_verts(me)
 		
 		if CLEAN_MATERIALS:
 			rem_material_count += rem_unused_materials(me)
@@ -345,7 +351,11 @@ def main():
 			
 		if CLEAN_NAN_UVS:
 			fix_nan_uvcount = fix_nan_uvs(me)
-	
+		
+		# restore multires.
+		if me.multires:
+			me.multiresDrawLevel = multires_level_orig
+		
 	Blender.Window.WaitCursor(0)
 	if is_editmode: Window.EditMode(0)
 	stat_string= 'Removed from ' + str(len(meshes)) + ' Mesh(es)%t|'

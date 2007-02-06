@@ -19,6 +19,8 @@ Optionaly you can skin between the original and new faces to make a watertight s
 from Blender import *
 import BPyMesh
 # reload(BPyMesh)
+import BPyMessages
+# reload(BPyMessages)
 
 # python 2.3 has no reversed() iterator. this will only work on lists and tuples
 try:
@@ -97,16 +99,17 @@ def lengthFromAngle(angle):
 	return sqrt((x*x)+(y*y))
 
 
-
-
-
-
 def main():
 	scn = Scene.GetCurrent()
 	ob = scn.objects.active
 	
 	if not ob or ob.type != 'Mesh':
-		Draw.PupMenu('ERROR: Active object is not a mesh, aborting.')
+		BPyMessages.Error_NoMeshActive()
+		return
+	
+	me = ob.getData(mesh=1)
+	if me.multires:
+		BPyMessages.Error_NoMeshMultiresEdit()
 		return
 	
 	# Create the variables.
@@ -132,7 +135,7 @@ def main():
 	is_editmode = Window.EditMode() 
 	if is_editmode: Window.EditMode(0)
 	
-	# Main code function	
+	# Main code function
 	me = ob.getData(mesh=1)
 	me_faces = me.faces
 	faces_sel= [f for f in me_faces if f.sel]

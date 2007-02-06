@@ -1,7 +1,7 @@
 #!BPY
 """
 Name: 'Bone Weight Copy'
-Blender: 241
+Blender: 243
 Group: 'Object'
 Tooltip: 'Copy Bone Weights from 1 mesh, to all other selected meshes.'
 """
@@ -257,12 +257,16 @@ def main():
 			else:
 				data= (ob, me, worldspace_verts(me, ob), groups)
 				sel.append(data)
-		
-	if not sel or from_data==None:
-		Blender.Draw.PupMenu('Select 2 or more mesh objects, aborting.')
-		if not sel and quality:
-			from_data[1].verts= None
+	
+	if not from_data:
+		Blender.Draw.PupMenu('Error%t|No mesh with vertex groups found.')
 		return
+	
+	if not sel:
+		Blender.Draw.PupMenu('Error%t|Select 2 or more mesh objects, aborting.')
+		if quality:	from_data[1].verts= None
+		return
+	
 	t= Blender.sys.time()
 	Window.WaitCursor(1)
 	

@@ -2,7 +2,7 @@
 
 """
 Name: 'Bridge Faces/Edge-Loops'
-Blender: 237
+Blender: 243
 Group: 'Mesh'
 Tooltip: 'Select 2 vert loops, then run this script.'
 """
@@ -53,6 +53,7 @@ import Blender
 from Blender import Window
 from Blender.Mathutils import MidpointVecs, Vector, CrossVecs
 from Blender.Mathutils import AngleBetweenVecs as _AngleBetweenVecs_
+import BPyMessages
 
 from Blender.Draw import PupMenu
 
@@ -521,9 +522,15 @@ def main():
 	if is_editmode: Window.EditMode(0)
 	ob = Blender.Scene.GetCurrent().objects.active
 	if ob == None or ob.type != 'Mesh':
+		BPyMessages.Error_NoMeshActive()
 		return
 	
 	me = ob.getData(mesh=1)
+	
+	if me.multires:
+		BPyMessages.Error_NoMeshMultiresEdit()
+		return
+	
 	time1 = Blender.sys.time()
 	selEdges = getSelectedEdges(me, ob)
 	vertLoops = getVertLoops(selEdges, me) # list of lists of edges.

@@ -1,7 +1,7 @@
 #!BPY
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'Unweld vertex/ices'
-Blender: 234
+Blender: 243
 Group: 'Mesh'
 Tip: 'Unweld all faces from a (or several) selected and common vertex. Made vertex bevelling'
 """
@@ -86,7 +86,7 @@ import Blender
 from Blender import Noise
 from Blender.Draw import *
 from Blender.BGL import *
-
+import BPyMessages
 # $Id$
 
 NR=Noise.random
@@ -213,30 +213,33 @@ def collecte_edge(listf2v,me,thegood):
 	if DEBUG : print 'number of edges : ',edges," Edge list : " ,edgelist    
 	return edges, edgelist     
 
-OBJECT=Blender.Scene.getCurrent().getActiveObject()
+OBJECT=Blender.Scene.GetCurrent().getActiveObject()
 
 if OBJECT and OBJECT.getType()=='Mesh':
-	EDITMODE=Blender.Window.EditMode()
-	Blender.Window.EditMode(0)
-	name = "Unweld %t|Unbind Points %x1|With Noise %x2|Middle Face %x3"
-	result = Blender.Draw.PupMenu(name)
-	if result:
-		me=OBJECT.getData()
-		sole=0
-		vSelection=[]
-		for v in me.verts:
-			if v.sel==1:
-				vSelection.append(v)
-		for v in  vSelection:
-				thegood=v    
-				if DEBUG : print thegood
-				listf2v=connectedFacesList(me,thegood)
-				me=createAdditionalFace(me,thegood,listf2v)
-				#OBJECT.link(me)
-				me.update()
-				OBJECT.makeDisplayList()
-		
-	Blender.Window.EditMode(EDITMODE)
+	if OBJECT.getData(mesh=1).multires:
+		BPyMessages.Error_NoMeshMultiresEdit()
+	else:
+		EDITMODE=Blender.Window.EditMode()
+		Blender.Window.EditMode(0)
+		name = "Unweld %t|Unbind Points %x1|With Noise %x2|Middle Face %x3"
+		result = Blender.Draw.PupMenu(name)
+		if result:
+			me=OBJECT.getData()
+			sole=0
+			vSelection=[]
+			for v in me.verts:
+				if v.sel==1:
+					vSelection.append(v)
+			for v in  vSelection:
+					thegood=v    
+					if DEBUG : print thegood
+					listf2v=connectedFacesList(me,thegood)
+					me=createAdditionalFace(me,thegood,listf2v)
+					#OBJECT.link(me)
+					me.update()
+					OBJECT.makeDisplayList()
+			
+		Blender.Window.EditMode(EDITMODE)
 	
 else:
 	name = "Nothing to do! Did you select at least one vertex?"

@@ -1,7 +1,7 @@
 #!BPY
 """
 Name: 'Poly Reducer'
-Blender: 241
+Blender: 243
 Group: 'Mesh'
 Tooltip: 'Removed polygons from a mesh while maintaining the shape, textures and weights.'
 """
@@ -17,6 +17,7 @@ This script simplifies the mesh by removing faces, keeping the overall shape of 
 from Blender import Draw, Window, Scene, Mesh, Mathutils, sys, Object
 import BPyMesh
 # reload(BPyMesh)
+import BPyMessages
 
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -42,13 +43,17 @@ import BPyMesh
 
 def main():
 	scn = Scene.GetCurrent()
-	act_ob= scn.getActiveObject()
-	if not act_ob or act_ob.getType()!='Mesh':
-		Draw.PupMenu('Error, select a mesh as your active object')
+	act_ob= scn.objects.active
+	if not act_ob or act_ob.type != 'Mesh':
+		BPyMessages.Error_NoMeshActive()
 		return
 	
-	
 	act_me= act_ob.getData(mesh=1)
+	
+	if act_me.multires:
+		BPyMessages.Error_NoMeshMultiresEdit()
+		return
+	
 	act_group= act_me.activeGroup
 	if not act_group: act_group= ''
 	

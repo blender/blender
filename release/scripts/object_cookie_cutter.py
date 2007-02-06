@@ -29,9 +29,8 @@ This script supports UV coordinates and images.
 
 
 import Blender
-import BPyMathutils
 from math import sqrt
-reload(BPyMathutils)
+import BPyMesh
 Vector= Blender.Mathutils.Vector
 LineIntersect2D= Blender.Geometry.LineIntersect2D
 
@@ -80,14 +79,10 @@ def point_in_bounds(pt, bounds):
 	each tuple is
 	xmin, ymin, xmax, ymax
 	'''	
-	if\
-	pt.x<bounds[0] or\
-	pt.y<bounds[1] or\
-	pt.x>bounds[2] or\
-	pt.y>bounds[3]:
-		return False
-	else:
+	if bounds[0] < pt.x < bounds[2] and bounds[1] < pt.y < bounds[3]:
 		return True
+	else:
+		return False
 	
 	
 def point_in_poly2d(pt, fvco):
@@ -555,9 +550,9 @@ def main():
 	
 	print '\nRunning Cookie Cutter'
 	time= Blender.sys.time()
-	
-	obs= [ob for ob in Blender.Object.GetSelected() if ob.getType()=='Mesh']
-	
+	scn = Blender.Scene.GetCurrent()
+	obs= [ob for ob in scn.objects.context if ob.type in ('Mesh', 'Curve')]
+	MULTIRES_ERROR = False
 	
 	# Divide into 2 lists- 1 with faces, one with only edges
 	terrains=	[] #[me for me in mes if me.faces]
@@ -566,29 +561,34 @@ def main():
 	terrain_type= auto_class(['mesh', 'bounds', 'face_bounds', 'edge_bounds', 'edge_dict', 'cutters', 'matrix'])
 	
 	for ob in obs:
-		me= ob.getData(mesh=1)
+		if ob.type == 'Mesh':
+			me= ob.getData(mesh=1)
+		else:
+			me= BPyMesh.getMeshFromObject(ob)
 		
 		# a new terrain instance
-		t= terrain_type()
-		
-		t.matrix= ob.matrixWorld * Blender.Window.GetViewMatrix()
-		
-		# Transform the object by its matrix
-		me.transform(t.matrix)
-		
-		# Set the terrain bounds
-		t.bounds=		bounds_xy(me.verts)
-		t.edge_bounds= 	[bounds_xy(ed) for ed in me.edges]
-		t.mesh=			me
-
-		
-		if me.faces: # Terrain.
-			t.edge_dict=					mesh_edge_dict(me)
-			t.face_bounds=					[bounds_xy(f) for f in me.faces]
-			t.cutters= 						[] # Store cutting objects that cut us here
-			terrains.append(t)
-		elif len(me.edges)>2: # Cutter
-			cutters.append(t)
+		if me.multires:
+			MULTIRES_ERROR = True		
+		else:
+			t= terrain_type()
+			
+			t.matrix= ob.matrixWorld * Blender.Window.GetViewMatrix()
+			
+			# Transform the object by its matrix
+			me.transform(t.matrix)
+			
+			# Set the terrain bounds
+			t.bounds=		bounds_xy(me.verts)
+			t.edge_bounds= 	[bounds_xy(ed) for ed in me.edges]
+			t.mesh=			me
+			
+			if me.faces: # Terrain.
+				t.edge_dict=					mesh_edge_dict(me)
+				t.face_bounds=					[bounds_xy(f) for f in me.faces]
+				t.cutters= 						[] # Store cutting objects that cut us here
+				terrains.append(t)
+			elif len(me.edges)>2: # Cutter
+				cutters.append(t)
 	
 	totcuts= len(terrains)*len(cutters)
 	if not totcuts:
@@ -631,13 +631,17 @@ def main():
 							f.sel= 1
 	Blender.Mesh.Mode(Blender.Mesh.SelectModes['FACE'])
 	
-	
 	# Restore the transformation
 	for data in (terrains, cutters):
 		for t in data:
-			t.mesh.transform(t.matrix.copy().invert())
+			if t.mesh.users: # it may have been a temp mesh from a curve.
+				t.mesh.transform(t.matrix.copy().invert())
 	
 	Blender.Window.WaitCursor(0)
+	
+	if MULTIRES_ERROR:
+		Blender.Draw.PupMenu('Error%t|One or more meshes meshes not cut because they are multires.')
+	
 	print 'terrains:%i cutters %i  %.2f secs taken' % (len(terrains), len(cutters), Blender.sys.time()-time)
 
 

@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus
 Name: 'Bevel Center'
-Blender: 240
+Blender: 243
 Group: 'Mesh'
 Tip: 'Bevel selected faces, edges, and vertices'
 """
@@ -50,7 +50,7 @@ from Blender import NMesh, Window, Scene
 from Blender.Draw import *
 from Blender.Mathutils import *
 from Blender.BGL import *
-
+import BPyMessages
 #PY23 NO SETS#
 '''
 try:
@@ -72,8 +72,13 @@ def act_mesh_ob():
 	scn = Scene.GetCurrent()
 	ob = scn.objects.active
 	if ob == None or ob.type != 'Mesh': 
-		PupMenu('ERROR%t|Select a mesh object.')
+		BPyMessages.Error_NoMeshActive()
 		return
+	
+	if ob.getData(mesh=1).multires:
+		BPyMessages.Error_NoMeshMultiresEdit()
+		return
+	
 	return ob
 
 def make_sel_vert(*co):
@@ -356,10 +361,14 @@ def draw():
 
 	glClear(GL_COLOR_BUFFER_BIT)
 	Button("Bevel",EVENT_BEVEL,10,100,280,25)
+	
+	BeginAlign()
 	left=Number('',  EVENT_NOEVENT,10,70,45, 20,left.val,0,right.val,'Set the minimum of the slider')
-	right = Number("",EVENT_NOEVENT,245,70,45,20,right.val,left.val,200,"Set the maximum of the slider")
 	dist=Slider("Thickness  ",EVENT_UPDATE,60,70,180,20,dist.val,left.val,right.val,0, \
 			"Thickness of the bevel, can be changed even after bevelling")
+	right = Number("",EVENT_NOEVENT,245,70,45,20,right.val,left.val,200,"Set the maximum of the slider")
+
+	EndAlign()
 	glRasterPos2d(8,40)
 	Text('To finish, you can use recursive bevel to smooth it')
 	
@@ -396,7 +405,7 @@ def bevel():
 	is_editmode = Window.EditMode() 
 	if is_editmode: Window.EditMode(0)
 	
-	me = ob.getData()
+	me = ob.data
 
 	NV = {}
 	#PY23 NO SETS# NV_ext = set()
@@ -420,11 +429,13 @@ def bevel():
 def bevel_update():
 	""" Use NV to update the bevel """
 	global dist, old_dist
-	is_editmode = Window.EditMode()
-	if is_editmode: Window.EditMode(0)
 	
 	if old_dist == None:
-		PupMenu('ERROR%t|Must bevel first.')
+		# PupMenu('Error%t|Must bevel first.')
+		return
+	
+	is_editmode = Window.EditMode()
+	if is_editmode: Window.EditMode(0)
 	
 	fac = dist.val - old_dist
 	old_dist = dist.val
