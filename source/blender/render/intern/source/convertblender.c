@@ -3966,7 +3966,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 		if(ob->flag & OB_DONE);
 		else if( (base->lay & lay) || ((base->lay & re->scene->lay)) ) {
 			
-			/* check for dupli lamps */
+			/* check for dupli lamps or non selected groups */
 			if(ob->transflag & OB_DUPLI) {
 				DupliObject *dob;
 				ListBase *lb= object_duplilist(sce, ob);
@@ -3975,10 +3975,16 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 					Object *obd= dob->ob;
 					
 					if(obd->type==OB_LAMP) {
-						Mat4CpyMat4(obd->obmat, dob->mat);
-						
-						if( ELEM(type, RE_BAKE_LIGHT, RE_BAKE_ALL) )
+						if( ELEM(type, RE_BAKE_LIGHT, RE_BAKE_ALL) ) {
+							Mat4CpyMat4(obd->obmat, dob->mat);
 							init_render_object(re, obd, ob, dob->index, 0);
+						}
+					}
+					else if( ELEM(type, RE_BAKE_AO, RE_BAKE_ALL) ) {
+						if((base->flag & SELECT)==0) {
+							Mat4CpyMat4(obd->obmat, dob->mat);
+							init_render_object(re, obd, ob, dob->index, 0);
+						}
 					}
 				}
 				free_object_duplilist(lb);
