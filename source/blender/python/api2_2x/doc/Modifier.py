@@ -56,6 +56,7 @@ Example::
     - LATTICE - type value for Lattice modifiers
     - SUBSURF - type value for Subsurf modifiers
     - WAVE - type value for Wave modifiers
+    - EDGESPLIT - type value for Edge Split modifiers
 
 @type Settings: readonly dictionary
 @var Settings: Constant Modifier dict used for changing modifier settings.
