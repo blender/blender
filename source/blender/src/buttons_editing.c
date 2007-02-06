@@ -3300,6 +3300,7 @@ static void parnr_to_editbone_cb(void *bonev, void *arg2_unused)
 
 static void build_bonestring (char *string, EditBone *bone)
 {
+	bArmature *arm= G.obedit->data;
 	EditBone *curBone;
 	EditBone *pBone;
 	int		skip=0;
@@ -3330,6 +3331,9 @@ static void build_bonestring (char *string, EditBone *bone)
 					skip=1;
 					break;
 				}
+			}
+			if ((arm->layer & curBone->layer) == 0) {
+				skip= 1;
 			}
 
 			if (skip)
