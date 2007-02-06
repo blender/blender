@@ -3425,6 +3425,8 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 		float maxr = 0.5f*(float)MIN2(img->x, img->y);
 		for (p=0; p<(unsigned int)(img->x*img->y); p++) {
 			crad->rect[p] = zbuf ? (zbuf->rect[p]*nqd->scale) : inpval;
+			// bug #5921, limit minimum
+			crad->rect[p] = MAX2(1e-5f, crad->rect[p]);
 			crad->rect[p] = MIN2(crad->rect[p], maxr);
 			// if maxblur!=0, limit maximum
 			if (nqd->maxblur != 0.f) crad->rect[p] = MIN2(crad->rect[p], nqd->maxblur);
@@ -3503,7 +3505,16 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 			// Circle of Confusion radius for current pixel
 			cR2 = ct_crad = crad->rect[cp];
 			// skip if zero (border render)
-			if (ct_crad==0.f) continue;
+			if (ct_crad==0.f) {
+				// related to bug #5921, forgot output image when skipping 0 radius values
+				new->rect[cp4] = img->rect[cp4];
+				if (new->type != CB_VAL) {
+					new->rect[cp4+1] = img->rect[cp4+1];
+					new->rect[cp4+2] = img->rect[cp4+2];
+					new->rect[cp4+3] = img->rect[cp4+3];
+				}
+				continue;
+			}
 			cR2 *= cR2;
 			
 			// pixel color
@@ -3812,8 +3823,7 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 				for (s=0; s<maxsam; ++s) {
 					u = ct_crad*(2.f*RI_vdC(s, ui) - 1.f);
 					v = ct_crad*(2.f*(s + cpr)/(float)maxsam - 1.f);
-					// should use extra 0.5 offset here, but will cause gap around focal point...
-					sx = (int)(x + u), sy = (int)(y + v);
+					sx = (int)(x + u + 0.5f), sy = (int)(y + v + 0.5f);
 					if ((sx<0) || (sx >= new->x) || (sy<0) || (sy >= new->y)) continue;
 					p = sx + sy*new->x;
 					p4 = p * new->type;
