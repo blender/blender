@@ -3721,7 +3721,7 @@ static PyObject *MFace_getImage( BPy_MFace *self )
 	if( face->tpage )
 		return Image_CreatePyObject( face->tpage );
 	else
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 }
 
 /*
@@ -5201,7 +5201,7 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 	/* clean up and return */
 	MEM_freeN( face_table );
 	mesh_update ( mesh );
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *MFaceSeq_selected( BPy_MFaceSeq * self )
@@ -5359,7 +5359,7 @@ static PyObject *Mesh_calcNormals( BPy_Mesh * self )
 
 	mesh_calc_normals( mesh->mvert, mesh->totvert, mesh->mface,
 			mesh->totface, NULL );
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Mesh_vertexShade( BPy_Mesh * self )
@@ -5377,7 +5377,7 @@ static PyObject *Mesh_vertexShade( BPy_Mesh * self )
 			set_active_base( base );
 			make_vertexcol(1);
 			countall();
-			return EXPP_incr_ret( Py_None );
+			Py_RETURN_NONE;
 		}
 		base = base->next;
 	}
@@ -5392,7 +5392,7 @@ static PyObject *Mesh_vertexShade( BPy_Mesh * self )
 static PyObject *Mesh_Update( BPy_Mesh * self )
 {
 	mesh_update( self->mesh );
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 /*
@@ -5431,7 +5431,7 @@ static PyObject *Mesh_findEdge( BPy_Mesh * self, PyObject *args )
 		}
 		++edge;
 	}
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 /*
@@ -5804,7 +5804,7 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 	test_object_materials( ( ID * ) self->mesh );
 
 	mesh_update( self->mesh );
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 /*
@@ -5870,7 +5870,7 @@ static PyObject *Mesh_transform( BPy_Mesh *self, PyObject *args )
 		}
 	}
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Mesh_addVertGroup( PyObject * self, PyObject * args )
@@ -5897,7 +5897,7 @@ static PyObject *Mesh_addVertGroup( PyObject * self, PyObject * args )
 
 	EXPP_allqueue( REDRAWBUTSALL, 1 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Mesh_removeVertGroup( PyObject * self, PyObject * args )
@@ -5933,7 +5933,7 @@ static PyObject *Mesh_removeVertGroup( PyObject * self, PyObject * args )
 
 	EXPP_allqueue( REDRAWBUTSALL, 1 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 extern void add_vert_defnr( Object * ob, int def_nr, int vertnum, float weight,
@@ -6000,7 +6000,7 @@ static PyObject *Mesh_assignVertsToGroup( BPy_Mesh * self, PyObject * args )
 		add_vert_defnr( object, nIndex, tempInt, weight, assignmode );
 	}
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Mesh_removeVertsFromGroup( BPy_Mesh * self, PyObject * args )
@@ -6069,7 +6069,7 @@ static PyObject *Mesh_removeVertsFromGroup( BPy_Mesh * self, PyObject * args )
 			remove_vert_def_nr( object, nIndex, tempInt );
 		}
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Mesh_getVertsFromGroup( BPy_Mesh* self, PyObject * args )
@@ -6215,7 +6215,7 @@ static PyObject *Mesh_renameVertGroup( BPy_Mesh * self, PyObject * args )
 	PyOS_snprintf( defGroup->name, 32, newGr );
 	unique_vertexgroup_name( defGroup, object );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 
@@ -6410,6 +6410,18 @@ static PyObject *Mesh_removeLayer_internal( BPy_Mesh * self, PyObject * args, in
 				
 	CustomData_free_layer(data, type, me->totface, i);
 	mesh_update_customdata_pointers(me);
+	
+	/*	No more Color or UV layers left ?
+		switch modes if this is the active object */	
+	if (!CustomData_has_layer(data, type)) {
+		if (me == get_mesh(OBACT)) {
+			if(type == CD_MCOL && (G.f & G_VERTEXPAINT))
+				G.f &= ~G_VERTEXPAINT; /* get out of vertexpaint mode */
+			if(type == CD_MTFACE && (G.f & G_FACESELECT))
+				set_faceselect();  /* get out of faceselect mode */
+		}
+	}
+	
 	Py_RETURN_NONE;
 }
 
@@ -6452,7 +6464,7 @@ static PyObject *Mesh_renameLayer_internal( BPy_Mesh * self, PyObject * args, in
 	layer = &data->layers[i];
 	strcpy(layer->name, name_to); /* we alredy know the string sizes are under 32 */
 	CustomData_set_layer_unique_name(data, i);
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Mesh_renameUVLayer( BPy_Mesh * self, PyObject * args )
@@ -6706,7 +6718,7 @@ static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 	if( attr )
 		return attr;
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 /*
@@ -7365,7 +7377,7 @@ static PyObject *Mesh_getActiveFace( BPy_Mesh * self )
 					"PyInt_FromLong() failed" );
 		}
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static int Mesh_setActiveFace( BPy_Mesh * self, PyObject * value )

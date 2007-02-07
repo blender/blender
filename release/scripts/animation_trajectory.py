@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus: <- these words are ignored
 Name: 'Trajectory'
-Blender: 242
+Blender: 243
 Group: 'Animation'
 Tip: 'See Trajectory of selected object'
 """
@@ -91,7 +91,8 @@ def write_script(name, script):
 	scripting= None
 	for text in Blender.Text.Get():
 		if text.name==name and text.asLines()[1] != "#"+str(__version__):
-			scripting= Blender.Text.Get(name)
+			scripting = text
+			scripting.clear()
 			scripting.write(script)
 			break
 	
@@ -99,13 +100,10 @@ def write_script(name, script):
 		scripting= Blender.Text.New(name)
 		scripting.write(script)
 
-
-#Linking			
 def link_script(name, type):
 	global scene
-	try:
-		scene.getScriptLinks(type).index(name) # Does nothing. just fails of the script isnt there.
-	except:
+	scriptlinks = scene.getScriptLinks(type) # none or list
+	if not scriptlinks or name not in scriptlinks:
 		scene.addScriptLink(name, type)
 
 
@@ -145,8 +143,8 @@ if ask_modif==0:
 	width= Blender.Draw.Create(2)
 
 	block= []
-	block.append(("Use Space Handlers", handle_mode, "You have to activate for each area by View>>SpaceHandler")) #You can delete this option...
-	block.append(("Always draw for sel.", selection_mode, "Selected object will have their trajectory always shown"))
+	block.append(("Space Handlers", handle_mode, "You have to activate for each area by View>>SpaceHandler")) #You can delete this option...
+	block.append(("Always Draw", selection_mode, "Selected object will have their trajectory always shown"))
 	block.append(("Past :", past, 1, 900))
 	block.append(("Futur:", future, 1, 900))
 	block.append(("Width:", width, 1,5))
@@ -163,7 +161,7 @@ if ask_modif==0:
 
 #put names of selected objects in objects_select if option choosen by user
 if selection_mode==1:
-	objects_select= [ob.name for ob in Blender.Object.GetSelected()]
+	objects_select= [ob.name for ob in scene.objects.context]
 else:
 	objects_select= []
 	
@@ -197,7 +195,8 @@ from Blender.Mathutils import Vector
 
 #take actual frame
 frameC=Blender.Get('curframe')
-render_context=Blender.Scene.getCurrent().getRenderingContext()
+scene = Blender.Scene.GetCurrent()
+render_context=scene.getRenderingContext()
 #ajust number of frames with NewMap and OldMapvalue values
 k=1.00*render_context.oldMapValue()/render_context.newMapValue()
 if k<1:
@@ -212,11 +211,9 @@ frameC=int(round(frameC*k, 0))
 
 #List objects that we have to show trajectory in $objects
 # In this case, using a dict for unique objects is the fastest way.
-object_dict= dict([(ob.name, ob) for ob in Blender.Object.GetSelected()])
+object_dict= dict([(ob.name, ob) for ob in scene.objects.context])
 for obname in object_init_names:
-	try: # checking if its alredy there.
-		object_dict[obname] 
-	except: # Object is not there.
+	if not object_dict.has_key(obname):
 		try: # Object may be removed.
 			object_dict[obname]= Blender.Object.Get(obname)
 		except:
