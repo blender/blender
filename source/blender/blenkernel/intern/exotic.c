@@ -4183,32 +4183,7 @@ static void dxf_read_polyline(int noob) {
 			dxf_close_2dpoly();
 
 		if (p2dmhold==NULL) {
-			if (noob) {
-				ob= NULL;
-				me= add_mesh(); G.totmesh++;
-				((ID *)me)->us=0;
-				if (strlen(entname)) new_id(&G.main->mesh, (ID *)me, entname);
-				else if (strlen(layname)) new_id(&G.main->mesh, (ID *)me, layname);
-		
-				vcenter= zerovec;
-			} else {
-				ob= add_object(OB_MESH);
-				if (strlen(entname)) new_id(&G.main->object, (ID *)ob, entname);
-				else if (strlen(layname)) new_id(&G.main->object, (ID *)ob, layname);
-			
-				if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
-				else ob->lay= G.scene->lay;
-				// not nice i know... but add_object() sets active base, which needs layer setting too (ton)
-				G.scene->basact->lay= ob->lay;
-				
-				me= ob->data;
-				
-				vcenter= ob->loc;
-			}
-			me->totvert=0;
-			me->totface=0;
-			me->mvert=NULL;
-			me->mface=NULL;
+			dxf_get_mesh(&me, &ob, noob);
 
 			strcpy(oldplay, layname);
 				
@@ -4284,34 +4259,8 @@ static void dxf_read_polyline(int noob) {
 		lwasp2d=1;
 	} 
 	else if (flag&64) {
-		if (noob) {
-			ob= NULL;
-			me= add_mesh(); G.totmesh++;
-			((ID *)me)->us=0;
-	
-			if (strlen(entname)) new_id(&G.main->mesh, (ID *)me, entname);
-			else if (strlen(layname)) new_id(&G.main->mesh, (ID *)me, layname);
-	
-			vcenter= zerovec;
-		} else {
-			ob= add_object(OB_MESH);
-			if (strlen(entname)) new_id(&G.main->object, (ID *)ob, entname);
-			else if (strlen(layname)) new_id(&G.main->object, (ID *)ob, layname);
+		dxf_get_mesh(&me, &ob, noob);
 		
-			if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
-			else ob->lay= G.scene->lay;
-			// not nice i know... but add_object() sets active base, which needs layer setting too (ton)
-			G.scene->basact->lay= ob->lay;
-	
-			me= ob->data;
-			
-			vcenter= ob->loc;
-		}
-		me->totvert=0;
-		me->totface=0;
-		me->mvert=NULL;
-		me->mface=NULL;
-			
 		if(ob) VECCOPY(ob->loc, cent);
 	
 		dxf_add_mat (ob, me, color, layname);
@@ -4631,33 +4580,7 @@ static void dxf_read_3dface(int noob)
 	}
 
 	if (f3dmhold==NULL) {
-		if (noob) {
-			ob= NULL;
-			me= add_mesh(); G.totmesh++;
-			((ID *)me)->us=0;
-
-			if (strlen(entname)) new_id(&G.main->mesh, (ID *)me, entname);
-			else if (strlen(layname)) new_id(&G.main->mesh, (ID *)me, layname);
-	
-			vcenter= zerovec;
-		} else {
-			ob= add_object(OB_MESH);
-			if (strlen(entname)) new_id(&G.main->object, (ID *)ob, entname);
-			else if (strlen(layname)) new_id(&G.main->object, (ID *)ob, layname);
-	
-			if (strlen(layname)) ob->lay= dxf_get_layer_num(layname);
-			else ob->lay= G.scene->lay;
-			// not nice i know... but add_object() sets active base, which needs layer setting too (ton)
-			G.scene->basact->lay= ob->lay;
-
-			me= ob->data;
-		
-			vcenter= ob->loc;
-		}
-		me->totvert=0;
-		me->totface=0;
-		me->mvert=NULL;
-		me->mface=NULL;
+		dxf_get_mesh(&me, &ob, noob);
 		
 		strcpy(oldflay, layname);
 		
