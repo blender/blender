@@ -4708,7 +4708,7 @@ static void do_rgba_to_ycca_normalized(bNode *node, float *out, float *in)
 	out[3]=in[3];
 }
 
-static void do_normalized_ycca_to_rgba(bNode *node, float *out, float *in)
+static void do_ycca_to_rgba_normalized(bNode *node, float *out, float *in)
 {
 	/*un-normalize the normalize from above */
 	in[0]=(in[0]*255.0)+16;
@@ -4740,7 +4740,7 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 	angle=c->t1*M_PI/180.0; /* convert to radians */
 	
 	/* if kfg is <0 then the pixel is outside of the key color */
-	kfg=x-(fabsf(z)/tan(angle/2.0));
+	kfg=x-(fabsf(z)/tanf(angle/2.0));
 
 	if(kfg>0.0) {  /* found a pixel that is within key color */
 
@@ -4785,8 +4785,9 @@ static void node_composit_exec_chroma(void *data, bNode *node, bNodeStack **in, 
 	CompBuf *chromabuf;
 	NodeChroma *c;
 	
-	if(out[0]->hasoutput==0 || in[0]->hasinput==0) return;
+	if(in[0]->hasinput==0) return;
 	if(in[0]->data==NULL) return;
+	if(out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
 	
 	cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 	
@@ -4803,7 +4804,7 @@ static void node_composit_exec_chroma(void *data, bNode *node, bNodeStack **in, 
 	composit1_pixel_processor(node, chromabuf, chromabuf, in[0]->vec, do_chroma_key, CB_RGBA);
 	
 	/*convert back*/
-	composit1_pixel_processor(node, chromabuf, chromabuf, in[0]->vec, do_normalized_ycca_to_rgba, CB_RGBA);
+	composit1_pixel_processor(node, chromabuf, chromabuf, in[0]->vec, do_ycca_to_rgba_normalized, CB_RGBA);
 	
 	out[0]->data= chromabuf;
 	if(out[1]->hasoutput)
