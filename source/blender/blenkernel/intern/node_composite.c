@@ -324,7 +324,7 @@ static CompBuf *typecheck_compbuf(CompBuf *inbuf, int type)
 					outrf[0]= inrf[0];
 					outrf[1]= inrf[0];
 					outrf[2]= inrf[0];
-					outrf[3]= inrf[0];
+					outrf[3]= 1.0f;
 				}
 			}
 			else if(inbuf->type==CB_VEC2) {
