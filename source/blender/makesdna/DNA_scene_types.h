@@ -255,7 +255,10 @@ typedef struct RenderData {
 	 * Value used to define filter size for all filter options  */
 	float gauss;
 	
-	/* Dither noise intensity */
+	/** post-production settings. Depricated, but here for upwards compat (initialized to 1) */	 
+	float postmul, postgamma, posthue, postsat;	 
+	
+ 	/* Dither noise intensity */
 	float dither_intensity;
 	
 	/* Bake Render options */
