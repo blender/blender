@@ -1391,27 +1391,6 @@ static int node_composit_buts_luma_matte(uiBlock *block, bNodeTree *ntree, bNode
 	return 40;
 }
 
-static int node_composit_buts_view_levels(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-	if(block) {
-		short sx= (butr->xmax-butr->xmin)/5;
-	
-		/*channel space selectors*/
-		uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"C",
-			butr->xmin,butr->ymin,sx,20,&node->custom1,1,1, 0, 0, "All Channels");
-		uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"R",
-			butr->xmin+sx,butr->ymin,sx,20,&node->custom1,1,2, 0, 0, "Red Channel");
-		uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"G",
-			butr->xmin+2*sx,butr->ymin,sx,20,&node->custom1,1,3, 0, 0, "Green Channel");
-		uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"B",
-			butr->xmin+3*sx,butr->ymin,sx,20,&node->custom1,1,4, 0, 0, "Blue Channel");
-		uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"Y",
-			butr->xmin+4*sx,butr->ymin,sx,20,&node->custom1,1,5, 0, 0, "Luminence Channel");
-	}
-	return 20;
-}
-
-
 static int node_composit_buts_map_uv(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
@@ -1627,9 +1606,6 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_MATH:
 			ntype->butfunc= node_buts_math;
-			break;
-		case CMP_NODE_VIEW_LEVELS:
-			ntype->butfunc=node_composit_buts_view_levels;
 			break;
 		default:
 			ntype->butfunc= NULL;
