@@ -1732,6 +1732,54 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 			QuatMul(td->ext->quat, quat, td->ext->iquat);
 		}
 	}
+	/**
+	 * HACK WARNING
+	 * 
+	 * This is some VERY ugly special case to deal with pose mode.
+	 * 
+	 * The problem is that mtx and smtx include each bone orientation.
+	 * 
+	 * That is needed to rotate each bone properly, HOWEVER, to calculate
+	 * the translation component, we only need the actual armature object's
+	 * matrix (and inverse). That is not all though. Once the proper translation
+	 * has been computed, it has to be converted back into the bone's space.
+	 */
+	else if (t->flag & T_POSE) {
+		float pmtx[3][3], imtx[3][3];
+
+		// Extract and invert armature object matrix		
+		Mat3CpyMat4(pmtx, t->poseobj->obmat);
+		Mat3Inv(imtx, pmtx);
+		
+		VecSubf(vec, td->center, t->center);
+		
+		Mat3MulVecfl(pmtx, vec);	// To Global space
+		Mat3MulVecfl(mat, vec);		// Applying rotation
+		Mat3MulVecfl(imtx, vec);	// To Local space
+
+		VecAddf(vec, vec, t->center);
+		/* vec now is the location where the object has to be */
+		
+		VecSubf(vec, vec, td->center); // Translation needed from the initial location
+		
+		Mat3MulVecfl(pmtx, vec);	// To Global space
+		Mat3MulVecfl(td->smtx, vec);// To Pose space
+
+		protectedTransBits(td->protectflag, vec);
+
+		VecAddf(td->loc, td->iloc, vec);
+		
+		/* rotation */
+		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
+			Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
+
+			Mat3ToQuat(fmat, quat);	// Actual transform
+			
+			QuatMul(td->ext->quat, quat, td->ext->iquat);
+			/* this function works on end result */
+			protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
+		}
+	}
 	else {
 		/* translation */
 		
@@ -1832,7 +1880,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 	}
 
 	VecRotToMat3(axis, angle, mat);
-
+	
 	for(i = 0 ; i < t->total; i++, td++) {
 
 		if (td->flag & TD_NOACTION)
@@ -1869,7 +1917,6 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 
 int Rotation(TransInfo *t, short mval[2]) 
 {
-	TransData *td = t->data;
 	char str[64];
 
 	float final;
@@ -1947,7 +1994,7 @@ int Rotation(TransInfo *t, short mval[2])
 		sprintf(str, "Rot: %.2f%s %s", 180.0*final/M_PI, t->con.text, t->proptext);
 	}
 
-	VecRotToMat3(axis, final * td->factor, mat);
+	VecRotToMat3(axis, final, mat);
 
 	t->val = final;				// used in manipulator
 	Mat3CpyMat3(t->mat, mat);	// used in manipulator
