@@ -1069,31 +1069,35 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 		G.vd->xray= TRUE;	// otherwise it postpones drawing
 		for(base= G.scene->base.first; base; base= base->next) {
 			if(base->lay & G.vd->lay) {
-				base->selcol= code;
-				glLoadName(code);
-				draw_object(base, DRAW_PICKING|DRAW_CONSTCOLOR);
 				
-				/* we draw group-duplicators for selection too */
-				if((base->object->transflag & OB_DUPLI) && base->object->dup_group) {
-					ListBase *lb;
-					DupliObject *dob;
-					Base tbase;
+				if (base->object->restrictflag & OB_RESTRICT_SELECT)
+					base->selcol= 0;
+				else {
+					base->selcol= code;
+					glLoadName(code);
+					draw_object(base, DRAW_PICKING|DRAW_CONSTCOLOR);
 					
-					tbase.flag= OB_FROMDUPLI;
-					lb= object_duplilist(G.scene, base->object);
-					
-					for(dob= lb->first; dob; dob= dob->next) {
-						tbase.object= dob->ob;
-						Mat4CpyMat4(dob->ob->obmat, dob->mat);
+					/* we draw group-duplicators for selection too */
+					if((base->object->transflag & OB_DUPLI) && base->object->dup_group) {
+						ListBase *lb;
+						DupliObject *dob;
+						Base tbase;
 						
-						draw_object(&tbase, DRAW_PICKING|DRAW_CONSTCOLOR);
+						tbase.flag= OB_FROMDUPLI;
+						lb= object_duplilist(G.scene, base->object);
 						
-						Mat4CpyMat4(dob->ob->obmat, dob->omat);
+						for(dob= lb->first; dob; dob= dob->next) {
+							tbase.object= dob->ob;
+							Mat4CpyMat4(dob->ob->obmat, dob->mat);
+							
+							draw_object(&tbase, DRAW_PICKING|DRAW_CONSTCOLOR);
+							
+							Mat4CpyMat4(dob->ob->obmat, dob->omat);
+						}
+						free_object_duplilist(lb);
 					}
-					free_object_duplilist(lb);
-				}
-				
-				code++;
+					code++;
+				}				
 			}
 		}
 		G.vd->xray= FALSE;	// restore
