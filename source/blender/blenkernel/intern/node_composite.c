@@ -4730,17 +4730,17 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 	/* Algorithm from book "Video Demistified" */
 
 	/* find theta, the angle that the color space should be rotated based on key*/
-	theta=atan2f(c->key[2],c->key[1]);
+	theta=atan2(c->key[2],c->key[1]);
 
 	/*rotate the cb and cr into x/z space */
-	x=in[1]*cosf(theta)+in[2]*sinf(theta);
-	z=in[2]*cosf(theta)-in[1]*sinf(theta);
+	x=in[1]*cos(theta)+in[2]*sin(theta);
+	z=in[2]*cos(theta)-in[1]*sin(theta);
 
 	/*if within the acceptance angle */
 	angle=c->t1*M_PI/180.0; /* convert to radians */
 	
 	/* if kfg is <0 then the pixel is outside of the key color */
-	kfg=x-(fabsf(z)/tanf(angle/2.0));
+	kfg=x-(fabs(z)/tan(angle/2.0));
 
 	if(kfg>0.0) {  /* found a pixel that is within key color */
 
@@ -4749,11 +4749,11 @@ static void do_chroma_key(bNode *node, float *out, float *in)
 		newCr=in[2]-kfg*sinf(theta);
 		alpha=(kfg+c->fsize)*(c->fstrength);
 
-		beta=atan2f(newCr,newCb);
+		beta=atan2(newCr,newCb);
 		beta=beta*180.0/M_PI; /* convert to degrees for compare*/
 
 		/* if beta is within the clippin angle */
-		if(fabsf(beta)<(c->t2/2.0)) {
+		if(fabs(beta)<(c->t2/2.0)) {
 			newCb=0.0;
 			newCr=0.0;
 			alpha=0.0;
