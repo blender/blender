@@ -1,4 +1,4 @@
-#!BPY
+	#!BPY
 
 """
 Name: 'MD2 (.md2)'
@@ -8,7 +8,7 @@ Tooltip: 'Export to Quake file format (.md2).'
 """
 
 __author__ = 'Bob Holcomb'
-__version__ = '0.18'
+__version__ = '0.18.1'
 __url__ = ["Bob's site, http://bane.servebeer.com",
      "Support forum, http://bane.servebeer.com", "blender", "elysiun"]
 __email__ = ["Bob Holcomb, bob_holcomb:hotmail*com", "scripts"]
@@ -649,10 +649,8 @@ def validation(object):
 	if result==1:
 		#selecting face mode
 		Blender.Mesh.Mode(3)
-		
 		editmode = Window.EditMode()    # are we in edit mode?  If so ...
 		if editmode: Window.EditMode(0) # leave edit mode before getting the mesh
-			
 		mesh.quadToTriangle(0) #use closest verticies in breaking a quad
 	elif result==2:
 		return False #user will fix (I guess)
@@ -896,7 +894,7 @@ def fill_md2(md2, object):
 
 			
 			for j in range(0,162):
-				dot = (x[0]*y[0]+x[1]*y[1]+x[2]*y[2])
+				#dot = (x[0]*y[0]+x[1]*y[1]+x[2]*y[2])
 				#swap y and x for difference in axis orientation 
 				x1=-mesh.verts[vert_counter].no[1]
 				y1=mesh.verts[vert_counter].no[0]
@@ -1013,6 +1011,7 @@ def find_strip_length(mesh, start_tri, edge_key):
 	faces=edge_dict[edge_key] #get list of face indexes that share this edge
 	if (len(faces)==0):
 		#print "Cant find edge with key: ", edge_key
+		pass
 		
 	#print "Faces sharing this edge: ", faces
 	for face_index in faces:
@@ -1030,44 +1029,46 @@ def find_strip_length(mesh, start_tri, edge_key):
 					if (face.verts[vert_counter].index!=edge_key[0] and face.verts[vert_counter].index!=edge_key[1]):
 						next_vert=vert_counter
 						
-				if(odd==False):
-					#print "Found a suitable even connecting tri: ", face_index			
-					used_tris[face_index]=2 #mark as dirty for this rum
-					odd=True
-									
-					#find the new edge
-					if(face.verts[next_vert].index < face.verts[(next_vert+2)%3].index):
-						temp_key=(face.verts[next_vert].index,face.verts[(next_vert+2)%3].index)
-					else:
-						temp_key=(face.verts[(next_vert+2)%3].index, face.verts[next_vert].index)
-					#print "temp key: ", temp_key
-					temp_faces=edge_dict[temp_key]
-					if(len(temp_faces)==0):
-						print "Can't find any other faces with key: ", temp_key
-					else:
-						#search the new edge	
-						#print "found other faces, searching them"	
-						find_strip_length(mesh, face_index, temp_key) #recursive greedy-takes first tri it finds as best 
-						break;
-				else:
-					#print "Found a suitable odd connecting tri: ", face_index			
-					used_tris[face_index]=2 #mark as dirty for this rum
-					odd=False
+						if(odd==False):
+							#print "Found a suitable even connecting tri: ", face_index			
+							used_tris[face_index]=2 #mark as dirty for this rum
+							odd=True
+										
+							#find the new edge
+							if(face.verts[next_vert].index < face.verts[(next_vert+2)%3].index):
+								temp_key=(face.verts[next_vert].index,face.verts[(next_vert+2)%3].index)
+							else:
+								temp_key=(face.verts[(next_vert+2)%3].index, face.verts[next_vert].index)
+							
+							#print "temp key: ", temp_key
+							temp_faces=edge_dict[temp_key]
+							
+							if(len(temp_faces)==0):
+								print "Can't find any other faces with key: ", temp_key
+							else:
+								#search the new edge	
+								#print "found other faces, searching them"	
+								find_strip_length(mesh, face_index, temp_key) #recursive greedy-takes first tri it finds as best 
+								break;
+						else:
+							#print "Found a suitable odd connecting tri: ", face_index			
+							used_tris[face_index]=2 #mark as dirty for this rum
+							odd=False
 								
-					#find the new edge
-					if(face.verts[next_vert].index < face.verts[(next_vert+1)%3].index):
-						temp_key=(face.verts[next_vert].index,face.verts[(next_vert+1)%3].index)
-					else:
-						temp_key=(face.verts[(next_vert+1)%3].index, face.verts[next_vert].index)
-					#print "temp key: ", temp_key
-					temp_faces=edge_dict[temp_key]
-					if(len(temp_faces)==0):
-						print "Can't find any other faces with key: ", temp_key
-					else:
-						#search the new edge	
-						#print "found other faces, searching them"	
-						find_strip_length(mesh, face_index, temp_key) #recursive greedy-takes first tri it finds as best 
-						break;
+							#find the new edge
+							if(face.verts[next_vert].index < face.verts[(next_vert+1)%3].index):
+								temp_key=(face.verts[next_vert].index,face.verts[(next_vert+1)%3].index)
+							else:
+								temp_key=(face.verts[(next_vert+1)%3].index, face.verts[next_vert].index)
+							#print "temp key: ", temp_key
+							temp_faces=edge_dict[temp_key]
+							if(len(temp_faces)==0):
+								print "Can't find any other faces with key: ", temp_key
+							else:
+								#search the new edge	
+								#print "found other faces, searching them"	
+								find_strip_length(mesh, face_index, temp_key) #recursive greedy-takes first tri it finds as best 
+								break;
 
 	return len(strip_tris)
 
