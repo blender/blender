@@ -897,7 +897,7 @@ def fill_md2(md2, object):
 			
 			for j in range(0,162):
 				dot = (x[0]*y[0]+x[1]*y[1]+x[2]*y[2])
-				swap y and x for difference in axis orientation 
+				#swap y and x for difference in axis orientation 
 				x1=-mesh.verts[vert_counter].no[1]
 				y1=mesh.verts[vert_counter].no[0]
 				z1=mesh.verts[vert_counter].no[2]
