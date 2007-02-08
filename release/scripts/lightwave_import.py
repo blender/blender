@@ -89,6 +89,7 @@ import Blender
 
 # use for comprehensiveImageLoad
 import BPyImage
+reload(BPyImage)
 
 # Use this ngon function
 import BPyMesh
@@ -177,8 +178,8 @@ class dotext:
 
 	def pdict(self, pdict, where = _NO):
 		self.pprint ("dict:{", where)
-		for pp in pdict.iterkeys():
-			self.pprint ("[%s] -> %s" % (pp, pdict[pp]), where)
+		for pp, pdict_val in pdict.iteritems():
+			self.pprint ("[%s] -> %s" % (pp, pdict_val), where)
 		self.pprint ("}")
 	# end def pdict
 
@@ -227,8 +228,13 @@ def read(filename):
 	
 	editmode = Blender.Window.EditMode()    # are we in edit mode?  If so ...
 	if editmode: Blender.Window.EditMode(0) # leave edit mode before getting the mesh    # === LWO header ===
-
-	form_id, form_size, form_type = struct.unpack(">4s1L4s",  file.read(12))
+	
+	try:
+		form_id, form_size, form_type = struct.unpack(">4s1L4s",  file.read(12))
+	except:
+		Blender.Draw.PupMenu('Error%t|This is not a lightwave file')
+		return
+	
 	if (form_type == "LWOB"):
 		read_lwob(file, filename)
 	elif (form_type == "LWO2"):
@@ -479,7 +485,7 @@ def read_lwo2(file, filename, typ="LWO2"):
 		elif lwochunk.chunkname == "PTAG":                         # PTags
 			tobj.pprint("---- PTAG")
 			polytag_dict = read_ptags(lwochunk, tag_list)
-			for kk in polytag_dict.iterkeys(): objspec_list[5][kk] = polytag_dict[kk]
+			for kk, polytag_dict_val in polytag_dict.iteritems(): objspec_list[5][kk] = polytag_dict_val
 		else:                                                       # Misc Chunks
 			tobj.pprint("---- %s: skipping (definitely!)" % lwochunk.chunkname)
 			lwochunk.skip()
@@ -599,6 +605,7 @@ def read_vmap(uvcoords_dict, maxvertnum, lwochunk):
 	tobj.pprint ("TXUV %d %s" % (dimension, name))
 	#note if there is already a VMAD it will be lost
 	#it is assumed that VMAD will follow the corresponding VMAP
+	Vector = Blender.Mathutils.Vector
 	try: #if uvcoords_dict.has_key(name):
 		my_uv_dict = uvcoords_dict[name]          #update existing
 	except: #else:
@@ -609,7 +616,7 @@ def read_vmap(uvcoords_dict, maxvertnum, lwochunk):
 		if vertnum >= maxvertnum:
 			tobj.pprint ("Hem: more uvmap than vertexes? ignoring uv data for vertex %d" % vertnum)
 		else:
-			my_uv_dict[vertnum] = uv
+			my_uv_dict[vertnum] = Vector(uv)
 		i += 8 + vnum_size
 	#end loop on uv pairs
 	uvcoords_dict[name] = my_uv_dict
@@ -639,6 +646,7 @@ def read_vmad(uvcoords_dict, facesuv_dict, maxfacenum, maxvertnum, lwochunk):
 	my_facesuv_list = []
 	newindex = maxvertnum + 10 #why +10? Why not?
 	#end variable initialization
+	Vector = Blender.Mathutils.Vector
 	while (i < lwochunk.chunksize - 6):  #4+2 header bytes already read
 		vertnum, vnum_size = read_vx(data)
 		i += vnum_size
@@ -648,7 +656,7 @@ def read_vmad(uvcoords_dict, facesuv_dict, maxfacenum, maxvertnum, lwochunk):
 		if polynum >= maxfacenum or vertnum >= maxvertnum:
 			tobj.pprint ("Hem: more uvmap than vertexes? ignorig uv data for vertex %d" % vertnum)
 		else:
-			my_uv_dict[newindex] = uv
+			my_uv_dict[newindex] = Vector(uv)
 			my_facesuv_list.append([polynum, vertnum, newindex])
 			newindex += 1
 		i += 8
@@ -708,8 +716,8 @@ def read_ptags(lwochunk, tag_list):
 		except: #if not(ptag_dict.has_key(tag_key)):
 			ptag_dict[tag_list[tag_index]] = [poln]
 	
-	for i in ptag_dict.iterkeys():
-		tobj.pprint ("read %d polygons belonging to TAG %s" % (len(ptag_dict[i]), i))
+	for i, ptag_dict_val in ptag_dict.iteritems():
+		tobj.pprint ("read %d polygons belonging to TAG %s" % (len(ptag_dict_val ), i))
 	return ptag_dict
 
 
@@ -772,14 +780,12 @@ def read_clip(lwochunk, dir_part):
 	except:
 		clip_dict['g_IMG'] = None
 		return
-	
-	img = BPyImage.comprehensiveImageLoad('', NAME)
+	# print 'test', NAME, BASENAME
+	img = BPyImage.comprehensiveImageLoad(NAME, dir_part, PLACE_HOLDER= False, RECURSIVE= True)
 	if not img:
 		tobj.pprint (  "***No image %s found: trying LWO file subdir" % NAME)
-		img = BPyImage.comprehensiveImageLoad(dir_part, BASENAME)
-	if not img:
-		tobj.pprint (  "***No image %s found: trying alternate Images subdir" % BASENAME)
-		img = BPyImage.comprehensiveImageLoad(dir_part+Blender.sys.sep+".."+Blender.sys.sep+"Images", BASENAME)
+		img = BPyImage.comprehensiveImageLoad(BASENAME, dir_part, PLACE_HOLDER= False, RECURSIVE= True)
+	
 	if not img:
 		tobj.pprint (  "***No image %s found: giving up" % BASENAME)
 	#lucky we are: we have an image
@@ -1165,199 +1171,177 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 	store_edge = 0
 	
 	scn= Blender.Scene.GetCurrent()
-	obj= Blender.Object.New('Mesh', objname)
-	scn.link(obj) # bad form but object data is created.
-	obj.sel= 1
-	obj.Layers= scn.Layers
-	msh = obj.getData()
-	mat_index = len(msh.getMaterials(1))
+	#obj= Blender.Object.New('Mesh', objname)
+	#scn.link(obj) # bad form but object data is created.
+	#obj.sel= 1
+	#obj.Layers= scn.Layers
+	#msh = obj.getData()
+	#mat_index = len(msh.getMaterials(1))
+	
+	msh = Blender.Mesh.New()
+	obj = scn.objects.new(msh)
 	
 	mat = None
 	try:
-		msh.addMaterial(surf['g_MAT'])
+		msh.materials = [surf['g_MAT']]
 	except:
 		pass
-		
-	msh.mode |= Blender.NMesh.Modes.AUTOSMOOTH #smooth it anyway
+	
+	msh.mode |= Blender.Mesh.Modes.AUTOSMOOTH #smooth it anyway
 	if surf.has_key('SMAN'):
 		#not allowed mixed mode mesh (all the mesh is smoothed and all with the same angle)
 		#only one smoothing angle will be active! => take the max one
-		s = int(surf['SMAN']/3.1415926535897932384626433832795*180.0)     #lwo in radians - blender in degrees
-		if msh.getMaxSmoothAngle() < s: msh.setMaxSmoothAngle(s)
+		msh.degr = min(80, int(surf['SMAN']/3.1415926535897932384626433832795*180.0))     #lwo in radians - blender in degrees
 	
 	try:
-		ima= lookup_imag(clip_list, surf['g_IMAG'])
-		img= ima['g_IMG'] # If its none then 
+		img= lookup_imag(clip_list, surf['g_IMAG'])['g_IMG']
 	except:
 		img= None
 	
 	
 	#uv_flag = ((surf.has_key('UVNAME')) and (uvcoords_dict.has_key(surf['UVNAME'])) and (img != None))
 	uv_flag = ((surf.has_key('UVNAME')) and (uvcoords_dict.has_key(surf['UVNAME'])))
-
-	if uv_flag:        #assign uv-data; settings at mesh level
-		msh.hasFaceUV(1)
 	
-	msh.update(1) # CAN WE REMOVE THIS???- Cam
+	
+	
 
 	tobj.pprint ("\n#===================================================================#")
 	tobj.pprint("Processing Object: %s" % objname)
 	tobj.pprint ("#===================================================================#")
-
-	jj = 0
-	vertlen = len(vertex_map)
-	maxvert = len(complete_vertlist)
-	Vert= Blender.NMesh.Vert
-	for i in vertex_map.iterkeys():
-		#if not jj%1000 and my_meshtools.show_progress: Blender.Window.DrawProgressBar(float(i)/vertlen, "Generating Verts")
-		if i >= maxvert:
-			tobj.logcon("Non existent vertex addressed: Giving up with this object")
-			return obj, not_used_faces              #return the created object
-		x, y, z = complete_vertlist[i]
-		msh.verts.append(Vert(x, y, z))
-		vertex_map[i] = jj
-		jj += 1
-	del Vert
+	
+	if uv_flag:
+		msh.verts.extend([(0.0,0.0,0.0),])
+		j = 1
+	else:
+		j = 0
+	
+	def tmp_get_vert(k, i):
+		vertex_map[k] = i+j # j is the dummy vert
+		# print complete_vertlist[i]
+		return complete_vertlist[k]
+	
+	
+	
+	msh.verts.extend([tmp_get_vert(k, i) for i, k in enumerate(vertex_map.iterkeys())])
+	
 	#end sweep over vertexes
 
 	#append faces
-	FACE_TEX= Blender.NMesh.FaceModes['TEX']
-	FACE_ALPHA= Blender.NMesh.FaceTranspModes['ALPHA']
-	EDGE_DRAW_FLAG= Blender.NMesh.EdgeFlags.EDGEDRAW | Blender.NMesh.EdgeFlags.EDGERENDER
+	FACE_TEX= Blender.Mesh.FaceModes.TEX
+	FACE_ALPHA= Blender.Mesh.FaceTranspModes.ALPHA
+	EDGE_DRAW_FLAG= Blender.Mesh.EdgeFlags.EDGEDRAW | Blender.Mesh.EdgeFlags.EDGERENDER
 	
-	Face= Blender.NMesh.Face
-	jj = 0
+	
+	edges = []
+	face_data = [] # [(indicies, material, uvs, image), ]
+	face_uvs = []
+	edges_fgon = []
+	
+	if uv_flag:
+		uvcoords_dict_context = uvcoords_dict[surf['UVNAME']]
+		try:	current_uvdict = facesuv_dict[surf['UVNAME']]
+		except:	current_uvdict = None
+	
+	default_uv = Blender.Mathutils.Vector(0,0)
+	def tmp_get_face_uvs(cur_face, i):
+		uvs = []
+		if current_uvdict:
+			uvface = get_uvface(current_uvdict,i)
+			for vi in cur_face:
+				ni = get_newindex(uvface, vi)
+				if ni == -1: ni = vi
+				
+				try:
+					uvs.append(uvcoords_dict_context[ ni ])
+				except:
+					print '\tWarning, Corrupt UVs'
+					uvs.append(default_uv)
+		else:
+			for vi in cur_face:
+				uvs.append(uvcoords_dict_context[ vi ])
+		
+		return uvs
+	
 	for i in cur_ptag_faces_indexes:
-		#if not jj%1000 and my_meshtools.show_progress: Blender.Window.DrawProgressBar(float(jj)/len(cur_ptag_faces_indexes), "Generating Faces")
 		cur_face = complete_facelist[i]
 		numfaceverts = len(cur_face)
-		vmad_list = []    #empty VMAD in any case
-		if uv_flag:    #settings at original face level
-			if facesuv_dict.has_key(surf['UVNAME']): #yes = has VMAD; no = has VMAP only
-				vmad_list = get_uvface(facesuv_dict[surf['UVNAME']],i)  #this for VMAD
-
-		if numfaceverts == 2:
-			#This is not a face is an edge
-			store_edge = 1
-			if msh.edges == None:  #first run
-				msh.addEdgeData()
-			i1 = vertex_map[cur_face[1]]
-			i2 = vertex_map[cur_face[0]]
-			if i1 != i2:
-				ee = msh.addEdge(msh.verts[i1],msh.verts[i2])
-				ee.flag |= EDGE_DRAW_FLAG
-
-		elif numfaceverts == 3:
-			#This face is a triangle skip face reduction
-			face = Face()
-			msh.faces.append(face)
-			# Associate face properties => from create materials
-			if mat != None: face.materialIndex = mat_index
-			#face.smooth = 1 #smooth it anyway
-
-			rev_face= [cur_face[2], cur_face[1], cur_face[0]]
-
-			for vi in rev_face:
-				index= vertex_map[vi]
-				face.v.append(msh.verts[index])
-
-				if uv_flag:
-					ni= get_newindex(vmad_list, vi)
-					if ni > -1:
-						uv_index= ni
-					else: #VMAP - uses the same criteria as face
-						uv_index= vi
-					try: #if uvcoords_dict[surf['UVNAME']].has_key(uv_index):
-						uv_tuple= uvcoords_dict[surf['UVNAME']][uv_index]
-					except: # else:
-						uv_tuple= (0,0)
-					face.uv.append(uv_tuple)
-
-			if uv_flag and img != None:
-				face.mode |= FACE_TEX
-				face.image= img
-				if surf.has_key('TRAN') or (mat and mat.getAlpha()<1.0):
-					face.transp= FACE_ALPHA
-
+		
+		if numfaceverts == 2:		edges.append((vertex_map[cur_face[0]], vertex_map[cur_face[1]]))
+		elif numfaceverts == 3:	
+			rev_face = (cur_face[2], cur_face[1], cur_face[0])
+			face_data.append( [vertex_map[j] for j in rev_face] )
+			if uv_flag: face_uvs.append(tmp_get_face_uvs(rev_face, i))
+		
 		elif numfaceverts > 3:
-			#Reduce all the faces with more than 3 vertexes (& test if the quad is concave .....)
-			
-			#meta_faces= reduce_face_old(complete_vertlist, cur_face)        # Indices of triangles.
-			meta_faces= reduce_face(complete_vertlist, cur_face)        # Indices of triangles.
-			
-			if len(meta_faces) > 1:
-				USE_FGON= True
-				edge_face_count= {}
-			else:
-				USE_FGON= False
-			
+			meta_faces= reduce_face(complete_vertlist, cur_face)        # Indices of triangles
+			edge_face_count = {}
 			for mf in meta_faces:
 				# print meta_faces
-				face= Face()
-				msh.faces.append(face)
-
+				
 				if len(mf) == 3: #triangle
-					rev_face= [cur_face[mf[2]], cur_face[mf[1]], cur_face[mf[0]]]
-					if USE_FGON:
+					mf = cur_face[mf[2]], cur_face[mf[1]], cur_face[mf[0]]
+					face_data.append( [vertex_map[j] for j in mf] )
+					
+					if uv_flag: face_uvs.append(tmp_get_face_uvs(mf, i))
+					
+					#if USE_FGON:
+					if len(meta_faces) > 1:
+						mf = face_data[-1] # reuse mf
 						for i in xrange(3):
-							v1= vertex_map[rev_face[i]]
-							v2= vertex_map[rev_face[i-1]]
+							v1= mf[i]
+							v2= mf[i-1]
 							if v1!=v2:
 								if v1>v2:
 									v2,v1= v1,v2
 								try:
-									edge_face_count[v1,v2]+=1
+									edge_face_count[v1,v2]+= 1
 								except:
-									edge_face_count[v1,v2]= 1
-						
-					
-				else:        #quads
-					rev_face= [cur_face[mf[3]], cur_face[mf[2]], cur_face[mf[1]], cur_face[mf[0]]]
-
-				# Associate face properties => from create materials
-				if mat != None: face.materialIndex = mat_index
-				#face.smooth = 1 #smooth it anyway
-
-				for vi in rev_face:
-					index = vertex_map[vi]
-					face.v.append(msh.verts[index])
-
-					if uv_flag:
-						ni = get_newindex(vmad_list, vi)
-						if ni > -1:
-							uv_index = ni
-						else: #VMAP - uses the same criteria as face
-							uv_index = vi
-						try: #if uvcoords_dict[surf['UVNAME']].has_key(uv_index):
-							uv_tuple = uvcoords_dict[surf['UVNAME']][uv_index]
-						except: #else:
-							uv_tuple = (0,0)
-						face.uv.append(uv_tuple)
-
-				if uv_flag and img != None:
-					face.mode |= FACE_TEX
-					face.image = img
-					if surf.has_key('TRAN') or (mat and mat.getAlpha()<1.0): # incase mat is null
-						face.transp= FACE_ALPHA
+									edge_face_count[v1,v2]= 0
+				
+				else: #quads
+					mf= cur_face[mf[3]], cur_face[mf[2]], cur_face[mf[1]], cur_face[mf[0]]
+					face_data.append( [vertex_map[j] for j in mf] )
+					if uv_flag: face_uvs.append(tmp_get_face_uvs(mf, i))
 			
-			# Tag edges for FGONS
-			if USE_FGON:
-				for vert_key, count in edge_face_count.iteritems():
-					if count > 1: # we are used by more then 1 face
-						nm_edge= msh.addEdge( msh.verts[vert_key[0]], msh.verts[vert_key[1]] )
-						if nm_edge:
-							nm_edge.flag |=Blender.NMesh.EdgeFlags.FGON
-			
-		jj += 1
-
+			if edge_face_count:
+				edges_fgon.extend( [vert_key for vert_key, count in edge_face_count.iteritems() if count] )
+				
+	
+	msh.edges.extend(edges)
+	face_mapping_removed = msh.faces.extend(face_data, indexList=True)
+	if surf.has_key('TRAN') or (mat and mat.alpha<1.0): # incase mat is null
+		transp_flag = True
+	else:
+		transp_flag = False
+	
+	if uv_flag:
+		msh.faceUV = True
+		msh_faces= msh.faces
+		for i, uvs in enumerate(face_uvs):
+			i_mapped = face_mapping_removed[i]
+			if i_mapped != None:
+				f = msh_faces[i_mapped]
+				f.uv = uvs
+				if img:
+					f.image = img
+				
+				if transp_flag: f.transp |= FACE_ALPHA
+	
+	if edges_fgon:
+		msh_edges = msh.edges
+		FGON= Blender.Mesh.EdgeFlags.FGON
+		edges_fgon = msh.findEdges( edges_fgon )
+		if type(edges_fgon) != list: edges_fgon = [edges_fgon]
+		for ed in edges_fgon:
+			if ed!=None:
+				msh_edges[ed].flag |= FGON
+	
 	if not(uv_flag):        #clear eventual UV data
-		msh.hasFaceUV(0)
-	msh.update(1,store_edge)
-	obj.sel= 1
-	# Cycle editmode to render a nice wire frame.
-	# Blender.Window.EditMode(1)
-	# Blender.Window.EditMode(0)
-	# Blender.Redraw()
+		msh.faceUV = False
+	
+	if uv_flag:
+		msh.verts.delete([0,])
+	
 	return obj, not_used_faces              #return the created object
 
 
@@ -1398,10 +1382,10 @@ def create_objects(clip_list, objspec_list, surf_list):
 	endchar = ""
 	if (objspec_list[6] == 1):
 		middlechar = endchar = "#"
-	for cur_tag in ptag_dict.iterkeys():
-		if ptag_dict[cur_tag] != []:
+	for cur_tag, ptag_dict_val in ptag_dict.iteritems():
+		if ptag_dict_val != []:
 			cur_surf = get_surf(surf_list, cur_tag)
-			cur_obj, not_used_faces=  my_create_mesh(clip_list, cur_surf, objspec_list, ptag_dict[cur_tag], objspec_list[0][:9]+middlechar+cur_tag[:9], not_used_faces)
+			cur_obj, not_used_faces=  my_create_mesh(clip_list, cur_surf, objspec_list, ptag_dict_val, objspec_list[0][:9]+middlechar+cur_tag[:9], not_used_faces)
 			# Works now with new modifiers
 			if objspec_list[6] == 1:
 				set_subsurf(cur_obj)
@@ -1680,7 +1664,7 @@ def update_material(clip_list, objspec, surf_list):
 	uvcoords_dict = objspec[7]
 	facesuv_dict = objspec[8]
 	for surf in surf_list:
-		if (surf and surf['NAME'] in ptag_dict.iterkeys()):
+		if surf and surf['NAME'] in ptag_dict: # in ptag_dict.keys()
 			tobj.pprint ("#-------------------------------------------------------------------#")
 			tobj.pprint ("Processing surface (material): %s" % surf['NAME'])
 			tobj.pprint ("#-------------------------------------------------------------------#")
@@ -1785,7 +1769,7 @@ if __name__=='__main__':
 TIME= Blender.sys.time()
 import os
 print 'Searching for files'
-os.system('find /metavr/ -iname "*.lwo" > /tmp/templwo_list')
+os.system('find /fe/ -iname "*.lwo" > /tmp/templwo_list')
 # os.system('find /storage/ -iname "*.lwo" > /tmp/templwo_list')
 print '...Done'
 file= open('/tmp/templwo_list', 'r')
@@ -1799,10 +1783,14 @@ def between(v,a,b):
 	return False
 size= 0.0
 for i, _lwo in enumerate(lines):
-	if i==425:	 # SCANFILL
-		#if i==520:	 # SCANFILL CRASH
-		#if i==47:	 # SCANFILL CRASH
-		#if between(i, 0, 1800):
+	#if i==425:	 # SCANFILL
+	#if 1:
+	#if i==520:	 # SCANFILL CRASH
+	#if i==47:	 # SCANFILL CRASH
+	#if between(i, 525, 550):
+	#if i > 1635:
+	#if i != 1519: # 730
+	if 1:
 		_lwo= _lwo[:-1]
 		print 'Importing', _lwo, '\nNUMBER', i, 'of', len(lines)
 		_lwo_file= _lwo.split('/')[-1].split('\\')[-1]

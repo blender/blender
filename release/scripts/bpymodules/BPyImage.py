@@ -101,7 +101,6 @@ def comprehensiveImageLoad(imagePath, filePath, PLACE_HOLDER= True, RECURSIVE=Tr
 		#if path.endswith('\\') or path.endswith('/'):
 		#	raise 'INVALID PATH'
 		try:
-			
 			img = Blender.Image.Load(path)
 			if VERBOSE: print '\t\tImage loaded "%s"' % path
 			return img
@@ -252,7 +251,10 @@ def comprehensiveImageLoad(imagePath, filePath, PLACE_HOLDER= True, RECURSIVE=Tr
 		if VERBOSE: print '\t\tImage Not Found in any of the dirs, doing a recusrive search'
 		for path in paths.iterkeys():
 			# Were not going to use files
+			if path == '/' or len(path) == 3 and path[1:] == ':\\':
+				continue
 			
+			# print path , 'ASS'
 			
 			#------------------
 			# finds the file starting at the root.
