@@ -583,9 +583,9 @@ static void init_iconfile_list(struct ListBase *list)
 	int restoredir = 1; /* restore to current directory */
 	int totfile, i, index=1;
 	int ifilex, ifiley;
-	char icondirstr[FILE_MAXDIR];
-	char iconfilestr[FILE_MAXDIR+FILE_MAXFILE];
-	char olddir[FILE_MAXDIR+FILE_MAXFILE];
+	char icondirstr[FILE_MAX];
+	char iconfilestr[FILE_MAX+16]; /* allow 256 chars for file+dir */
+	char olddir[FILE_MAX];
 	
 	list->first = list->last = NULL;
 
@@ -613,6 +613,8 @@ static void init_iconfile_list(struct ListBase *list)
 			if(BLI_testextensie(filename, ".png")) {
 			
 				/* check to see if the image is the right size, continue if not */
+				/* copying strings here should go ok, assuming that we never get back
+				   a complete path to file longer than 256 chars */
 				sprintf(iconfilestr, "%s/%s", icondirstr, filename);
 				if(BLI_exists(iconfilestr)) bbuf = IMB_loadiffname(iconfilestr, IB_rect);
 				
