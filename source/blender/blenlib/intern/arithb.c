@@ -2139,9 +2139,14 @@ void MinMax3(float *min, float *max, float *vec)
 	if(max[2]<vec[2]) max[2]= vec[2];
 }
 
-static void BarycentricWeights(float *v1, float *v2, float *v3, float *co, float *n, float *w)
+static float TriSignedArea(float *v1, float *v2, float *v3, int i, int j)
 {
-	float t00, t01, t10, t11, det, detinv, xn, yn, zn;
+	return 0.5f*((v1[i]-v2[i])*(v2[j]-v3[j]) + (v1[j]-v2[j])*(v3[i]-v2[i]));
+}
+
+static int BarycentricWeights(float *v1, float *v2, float *v3, float *co, float *n, float *w)
+{
+	float xn, yn, zn, a1, a2, a3, asum;
 	short i, j;
 
 	/* find best projection of face XY, XZ or YZ: barycentric weights of
@@ -2153,28 +2158,30 @@ static void BarycentricWeights(float *v1, float *v2, float *v3, float *co, float
 	else if(yn>=xn && yn>=zn) {i= 0; j= 2;}
 	else {i= 1; j= 2;} 
 
-	/* compute determinant */
-	t00= v3[i]-v1[i]; t01= v3[j]-v1[j];
-	t10= v3[i]-v2[i]; t11= v3[j]-v2[j];
+	a1= TriSignedArea(v2, v3, co, i, j);
+	a2= TriSignedArea(v3, v1, co, i, j);
+	a3= TriSignedArea(v1, v2, co, i, j);
 
-	det= t00*t11 - t10*t01;
+	asum= a1 + a2 + a3;
 
-	if(det == 0.0f) {
+	if (fabs(asum) < FLT_EPSILON) {
 		/* zero area triangle */
 		w[0]= w[1]= w[2]= 1.0f/3.0f;
-		return;
+		return 1;
 	}
 
-	/* compute weights */
-	detinv= 1.0/det;
+	asum= 1.0f/asum;
+	w[0]= a1*asum;
+	w[1]= a2*asum;
+	w[2]= a3*asum;
 
-	w[0]= ((co[j]-v3[j])*t10 - (co[i]-v3[i])*t11)*detinv;
-	w[1]= ((co[i]-v3[i])*t01 - (co[j]-v3[j])*t00)*detinv; 
-	w[2]= 1.0f - w[0] - w[1];
+	return 0;
 }
 
 void InterpWeightsQ3Dfl(float *v1, float *v2, float *v3, float *v4, float *co, float *w)
 {
+	float w2[3];
+
 	w[0]= w[1]= w[2]= w[3]= 0.0f;
 
 	/* first check for exact match */
@@ -2189,6 +2196,7 @@ void InterpWeightsQ3Dfl(float *v1, float *v2, float *v3, float *v4, float *co, f
 	else {
 		/* otherwise compute barycentric interpolation weights */
 		float n1[3], n2[3], n[3];
+		int degenerate;
 
 		VecSubf(n1, v1, v3);
 		if (v4) {
@@ -2201,16 +2209,20 @@ void InterpWeightsQ3Dfl(float *v1, float *v2, float *v3, float *v4, float *co, f
 
 		/* OpenGL seems to split this way, so we do too */
 		if (v4) {
-			BarycentricWeights(v1, v2, v4, co, n, w);
+			degenerate= BarycentricWeights(v1, v2, v4, co, n, w);
+			SWAP(float, w[2], w[3]);
 
-			if(w[0] < 0.0f) {
+			if(degenerate || (w[0] < 0.0f)) {
 				/* if w[1] is negative, co is on the other side of the v1-v3 edge,
 				   so we interpolate using the other triangle */
-				w[0]= 0.0f;
-				BarycentricWeights(v2, v3, v4, co, n, w+1);
-			}
-			else {
-				SWAP(float, w[2], w[3]);
+				degenerate= BarycentricWeights(v2, v3, v4, co, n, w2);
+
+				if(!degenerate) {
+					w[0]= 0.0f;
+					w[1]= w2[0];
+					w[2]= w2[1];
+					w[3]= w2[2];
+				}
 			}
 		}
 		else
