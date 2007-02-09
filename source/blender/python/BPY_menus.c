@@ -823,8 +823,8 @@ static int bpymenu_ParseDir(char *dirname, char *parentdir, int is_userdir )
 	struct dirent *de;
 	struct stat status;
 	char *file_extension;
-	char path[FILE_MAXDIR];
-	char subdir[FILE_MAXDIR];
+	char path[FILE_MAX];
+	char subdir[FILE_MAX];
 	char *s = NULL;
 	
 	dir = opendir(dirname);

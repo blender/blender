@@ -332,11 +332,11 @@ that dir info is available.
 ****************************************************************************/
 void BPY_post_start_python( void )
 {
-	char dirpath[FILE_MAXDIR];
+	char dirpath[FILE_MAX];
 	char *sdir = NULL;
 
 	if(U.pythondir[0] != '\0' ) {
-		char modpath[FILE_MAXDIR];
+		char modpath[FILE_MAX];
 		int upyslen = strlen(U.pythondir);
 
 		/* check if user pydir ends with a slash and, if so, remove the slash
@@ -349,7 +349,7 @@ void BPY_post_start_python( void )
 				U.pythondir[upyslen - 1] = '\0';
 		}
 
-		BLI_strncpy(dirpath, U.pythondir, FILE_MAXDIR);
+		BLI_strncpy(dirpath, U.pythondir, FILE_MAX);
 		BLI_convertstringcode(dirpath, G.sce, 0);
 		syspath_append(dirpath);	/* append to module search path */
 
