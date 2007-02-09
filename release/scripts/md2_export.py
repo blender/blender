@@ -1,4 +1,4 @@
-	#!BPY
+#!BPY
 
 """
 Name: 'MD2 (.md2)'
