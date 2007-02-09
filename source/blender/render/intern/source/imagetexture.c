@@ -514,7 +514,8 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 		CLAMP(rf->xmin, 0.0f, ibuf->x-1);
 		CLAMP(rf->xmax, 0.0f, ibuf->x-1);
 	}
-	else if(imaprepeat) clipx_rctf_swap(stack, &count, 0.0, (float)(ibuf->x));
+	else if(imaprepeat) 
+		clipx_rctf_swap(stack, &count, 0.0, (float)(ibuf->x));
 	else {
 		alphaclip= clipx_rctf(rf, 0.0, (float)(ibuf->x));
 
@@ -528,7 +529,8 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 		CLAMP(rf->ymin, 0.0f, ibuf->y-1);
 		CLAMP(rf->ymax, 0.0f, ibuf->y-1);
 	}
-	else if(imaprepeat) clipy_rctf_swap(stack, &count, 0.0, (float)(ibuf->y));
+	else if(imaprepeat) 
+		clipy_rctf_swap(stack, &count, 0.0, (float)(ibuf->y));
 	else {
 		alphaclip*= clipy_rctf(rf, 0.0, (float)(ibuf->y));
 

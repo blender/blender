@@ -1542,6 +1542,17 @@ void do_material_tex(ShadeInput *shi)
 					dyt[0]= mtex->size[0]*dyt[0];
 					dyt[1]= mtex->size[1]*dyt[1];
 				}
+				
+				/* problem: repeat-mirror is not a 'repeat' but 'extend' in imagetexture.c */
+				if(tex->flag & TEX_REPEAT_XMIR) {
+					if(texvec[0]>1.0f) texvec[0] -= (int)(texvec[0]);
+					else if(texvec[0]<0.0f) texvec[0]+= 1-(int)(texvec[0]);
+				}
+				if(tex->flag & TEX_REPEAT_YMIR) {
+					if(texvec[1]>1.0f) texvec[1] -= (int)(texvec[1]);
+					else if(texvec[1]<0.0f) texvec[1]+= 1-(int)(texvec[1]);
+				}
+				
 			}
 			else {
 
