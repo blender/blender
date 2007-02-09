@@ -2471,7 +2471,7 @@ static void select_all_keys_frames(bAction *act, short *mval,
 		return;
 
 	if (selectmode == SELECT_REPLACE) {
-		deselect_actionchannel_keys(act, 0, 1);
+		deselect_actionchannel_keys(act, 0, 0);
 		selectmode = SELECT_ADD;
 	}
 
@@ -2551,7 +2551,7 @@ static void select_all_keys_channels(bAction *act, short *mval,
 		return;
 
 	if (selectmode == SELECT_REPLACE) {
-		deselect_actionchannel_keys(act, 0, 1);
+		deselect_actionchannel_keys(act, 0, 0);
 		selectmode = SELECT_ADD;
 	}
 
