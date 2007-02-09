@@ -85,15 +85,16 @@
 #include "BKE_material.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_editview.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
-#include "BIF_toolbox.h"
+#include "BIF_language.h"
 #include "BIF_mywindow.h"
-#include "BIF_editview.h"
+#include "BIF_resources.h"
 #include "BIF_space.h"
 #include "BIF_screen.h"
-#include "BIF_resources.h"
-#include "BIF_language.h"
+#include "BIF_toolbox.h"
+#include "BIF_usiblender.h"
 
 #include "BLO_readfile.h"
 
@@ -1667,16 +1668,9 @@ static void filesel_execute(SpaceFile *sfile)
 			strcat(name, sfile->file);
 			
 			if(sfile->flag & FILE_STRINGCODE) {
-				if (!G.relbase_valid) {
-					/* skip save */
-					if(strncmp(sfile->title, "Save", 4)) {
-						okee("You have to save the .blend file before using relative paths! Using absolute path instead.");
-						sfile->flag &= ~FILE_STRINGCODE;
-					}
-				}
-				else {
+				/* still weak, but we don't want saving .blends to make relative paths */
+				if(sfile->returnfunc!=BIF_write_file)
 					BLI_makestringcode(G.sce, name);
-				}
 			}
 			if(sfile->returnfunc)
 				sfile->returnfunc(name);
