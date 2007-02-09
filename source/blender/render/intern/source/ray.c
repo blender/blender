@@ -2187,7 +2187,7 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 	float *vec, *nrm, div, bias, sh=0.0f;
 	float maxdist = R.wrld.aodist;
 	float dxyview[3];
-	int j= -1, tot, actual=0, skyadded=0;
+	int j= -1, tot, actual=0, skyadded=0, aocolor;
 
 	isec.vlrorig= shi->vlr;
 	isec.vlr_last= NULL;
@@ -2196,7 +2196,7 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 
 	shadfac[0]= shadfac[1]= shadfac[2]= 0.0f;
 
-	// bias prevents smoothed faces to appear flat
+	/* bias prevents smoothed faces to appear flat */
 	if(shi->vlr->flag & R_SMOOTH) {
 		bias= G.scene->world->aobias;
 		nrm= shi->vn;
@@ -2206,12 +2206,17 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 		nrm= shi->facenor;
 	}
 
+	/* prevent sky colors to be added for only shadow (shadow becomes alpha) */
+	aocolor= R.wrld.aocolor;
+	if(shi->mat->mode & MA_ONLYSHADOW)
+		aocolor= WO_AOPLAIN;
+	
 	vec= sphere_sampler(R.wrld.aomode, R.wrld.aosamp, shi->thread, shi->xs, shi->ys);
 	
 	// warning: since we use full sphere now, and dotproduct is below, we do twice as much
 	tot= 2*R.wrld.aosamp*R.wrld.aosamp;
 
-	if(R.wrld.aocolor == WO_AOSKYTEX) {
+	if(aocolor == WO_AOSKYTEX) {
 		dxyview[0]= 1.0f/(float)R.wrld.aosamp;
 		dxyview[1]= 1.0f/(float)R.wrld.aosamp;
 		dxyview[2]= 0.0f;
@@ -2243,7 +2248,7 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 				if (R.wrld.aomode & WO_AODIST) sh+= exp(-isec.labda*R.wrld.aodistfac); 
 				else sh+= 1.0f;
 			}
-			else if(R.wrld.aocolor!=WO_AOPLAIN) {
+			else if(aocolor!=WO_AOPLAIN) {
 				float skycol[4];
 				float fac, view[3];
 				
@@ -2252,7 +2257,7 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 				view[2]= -vec[2];
 				Normalise(view);
 				
-				if(R.wrld.aocolor==WO_AOSKYCOL) {
+				if(aocolor==WO_AOSKYCOL) {
 					fac= 0.5*(1.0f+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
 					shadfac[0]+= (1.0f-fac)*R.wrld.horr + fac*R.wrld.zenr;
 					shadfac[1]+= (1.0f-fac)*R.wrld.horg + fac*R.wrld.zeng;
@@ -2274,7 +2279,7 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 	if(actual==0) sh= 1.0f;
 	else sh = 1.0f - sh/((float)actual);
 	
-	if(R.wrld.aocolor!=WO_AOPLAIN && skyadded) {
+	if(aocolor!=WO_AOPLAIN && skyadded) {
 		div= sh/((float)skyadded);
 		
 		shadfac[0]*= div;	// average color times distances/hits formula
