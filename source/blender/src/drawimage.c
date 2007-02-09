@@ -913,8 +913,10 @@ static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	if(uiNewPanel(curarea, block, "Properties", "Image", 10, 10, 318, 204)==0)
 		return;
 	
+	/* note, it draws no bottom half in facemode, for vertex buttons */
 	uiblock_image_panel(block, &G.sima->image, &G.sima->iuser, B_REDR, B_REDR);
 
+	image_editvertex_buts(block);
 }	
 
 static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPERTIES
@@ -947,8 +949,6 @@ static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPE
 		uiDefButS(block, NUM, B_SIMAGEDRAW, "Y:",		230,130,70,19, &G.sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
 		uiBlockBeginAlign(block);
 	}
-
-	image_editvertex_buts(block);
 }
 
 static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PAINT

@@ -1148,6 +1148,9 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 			 uiDefBut(block, LABEL, 0, str,		10, 107, 300, 20, NULL, 1, 0, 0, 0, "");
 		 }
 		 
+		 /* exception, let's do because we only use this panel 3 times in blender... but not real good code! */
+		 if( (G.f & G_FACESELECT) && G.sima && &G.sima->iuser==iuser)
+			 return;
 		 /* left side default per-image options, right half the additional options */
 		 
 		 /* fields */
