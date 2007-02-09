@@ -385,6 +385,9 @@ EditFace *addfacelist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 	EditFace *efa;
 	EditEdge *e1, *e2=0, *e3=0, *e4=0;
 
+	/* added sanity check... seems to happen for some tools, or for enter editmode for corrupted meshes */
+	if(v1==v4 || v2==v4 || v3==v4) v4= NULL;
+	
 	/* add face to list and do the edges */
 	if(exampleEdges) {
 		e1= addedgelist(v1, v2, exampleEdges->e1);
