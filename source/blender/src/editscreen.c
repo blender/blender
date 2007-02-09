@@ -174,8 +174,8 @@ static int choose_cursor(ScrArea *sa)
 {
 	if (sa->spacetype==SPACE_VIEW3D) {
 		if(G.obedit) return CURSOR_EDIT;
-		else if(G.f & G_VERTEXPAINT) return CURSOR_VPAINT;
-		else if(G.f & G_WEIGHTPAINT) return CURSOR_VPAINT;
+		else if(G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))
+				return CURSOR_VPAINT;
 		else if(G.f & G_FACESELECT) return CURSOR_FACESEL;
 		else if(G.f & G_SCULPTMODE) return CURSOR_EDIT;
 		else return CURSOR_STD;
@@ -1854,12 +1854,15 @@ static void copy_areadata(ScrArea *sa1, ScrArea *sa2, int swap_space)
 
 	if(swap_space) {
 		SWAP(ListBase, sa1->spacedata, sa2->spacedata);
+		/* exception: ensure preview is reset */
+		if(sa1->spacetype==SPACE_VIEW3D)
+			BIF_view3d_previewrender_free(sa1->spacedata.first);
 	}
 	else {
 		freespacelist(sa1);
 		duplicatespacelist(sa1, &sa1->spacedata, &sa2->spacedata);
 	}
-
+	
 	BLI_freelistN(&sa1->panels);
 	duplicatelist(&sa1->panels, &sa2->panels);
 
