@@ -336,6 +336,8 @@ RetopoPaintLine *add_rpline(RetopoPaintData *rpd)
 
 void retopo_paint_toggle_cyclic(RetopoPaintLine *l)
 {
+	if(l==NULL)
+		return;
 	if(!l->cyclic) {
 		RetopoPaintPoint *pf= l->points.first;
 
