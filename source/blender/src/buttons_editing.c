@@ -5020,6 +5020,8 @@ static void editing_panel_mesh_paint(void)
 		uiBlockSetCol(block, TH_AUTO);
 
 		if(brush && !brush->id.lib) {
+			MTex *mtex= brush->mtex[brush->texact];
+
 			butw= 320-(xco+10);
 
 			uiDefButS(block, MENU, B_NOP, "Mix %x0|Add %x1|Subtract %x2|Multiply %x3|Lighten %x4|Darken %x5|Erase Alpha %x6|Add Alpha %x7", xco+10,yco,butw,19, &brush->blend, 0, 0, 0, 0, "Blending method for applying brushes");
@@ -5048,7 +5050,7 @@ static void editing_panel_mesh_paint(void)
 			yco -= 110;
 
 			uiBlockSetCol(block, TH_BUT_SETTING2);
-			id= (brush->mtex[0])? (ID*)brush->mtex[0]->tex: NULL;
+			id= (mtex)? (ID*)mtex->tex: NULL;
 			xco= std_libbuttons(block, 0, yco, 0, NULL, B_BTEXBROWSE, ID_TE, 0, id, NULL, &(G.buts->menunr), 0, 0, B_BTEXDELETE, 0, 0);
 			/*uiDefButBitS(block, TOG|BIT, BRUSH_FIXED_TEX, B_BRUSHCHANGE, "Fixed",	xco+5,yco,butw,19, &brush->flag, 0, 0, 0, 0, "Keep texture origin in fixed position");*/
 			uiBlockSetCol(block, TH_AUTO);

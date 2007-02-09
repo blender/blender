@@ -330,7 +330,9 @@ float brush_sample_falloff(Brush *brush, float dist)
 
 void brush_sample_tex(Brush *brush, float *xy, float *rgba)
 {
-	if (brush->mtex[0] && brush->mtex[0]->tex) {
+	MTex *mtex= brush->mtex[brush->texact];
+
+	if (mtex && mtex->tex) {
 		float co[3], tin, tr, tg, tb, ta;
 		int hasrgb;
 		
@@ -338,7 +340,7 @@ void brush_sample_tex(Brush *brush, float *xy, float *rgba)
 		co[1]= xy[1]/(brush->size >> 1);
 		co[2]= 0.0f;
 
-		hasrgb= externtex(brush->mtex[0], co, &tin, &tr, &tg, &tb, &ta);
+		hasrgb= externtex(mtex, co, &tin, &tr, &tg, &tb, &ta);
 
 		if (hasrgb) {
 			rgba[0]= tr;
@@ -686,6 +688,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 {
 	Brush *brush= painter->brush;
 	BrushPainterCache *cache= &painter->cache;
+	MTex *mtex= brush->mtex[brush->texact];
 	int size;
 	short flt;
 
@@ -703,7 +706,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 		flt= cache->flt;
 		size= (cache->size)? cache->size: brush->size;
 
-		if (!(brush->mtex[0] && brush->mtex[0]->tex) || (brush->mtex[0]->tex->type==0)) {
+		if (!(mtex && mtex->tex) || (mtex->tex->type==0)) {
 			brush_imbuf_new(brush, flt, 0, size, &cache->ibuf);
 		}
 		else if (brush->flag & BRUSH_FIXED_TEX) {
@@ -717,7 +720,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 		cache->lastalpha= brush->alpha;
 		cache->lastinnerradius= brush->innerradius;
 	}
-	else if ((brush->flag & BRUSH_FIXED_TEX) && brush->mtex[0] && brush->mtex[0]->tex) {
+	else if ((brush->flag & BRUSH_FIXED_TEX) && mtex && mtex->tex) {
 		int dx = (int)painter->lastpaintpos[0] - (int)pos[0];
 		int dy = (int)painter->lastpaintpos[1] - (int)pos[1];
 

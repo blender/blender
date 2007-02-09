@@ -270,6 +270,8 @@ void do_texbuts(unsigned short event)
 		scrarea_queue_headredraw(curarea);
 		BIF_preview_changed(ID_TE);
 		allqueue(REDRAWBUTSSHADING, 0);
+		if(G.buts->texfrom == 3) /* brush texture */
+			allqueue(REDRAWIMAGE, 0);
 		break;
 	case B_TEXTYPE:
 		if(tex==NULL) return;
