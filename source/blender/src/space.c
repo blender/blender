@@ -1732,7 +1732,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							select_mesh_group_menu();
 					} else
 						select_object_grouped_menu();
-				else if(G.qual==LR_ALTKEY) {
+				else if((G.obedit==0) && G.qual==LR_ALTKEY) {
 					if(okee("Clear location")) {
 						clear_object('g');
 					}
@@ -2039,7 +2039,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case RKEY:
 				if((G.obedit==0) && (G.f & G_FACESELECT) && (G.qual==0) && !(G.f & G_WEIGHTPAINT))
 					rotate_uv_tface();
-				else if(G.qual==LR_ALTKEY) {
+				else if((G.obedit==0) && G.qual==LR_ALTKEY) {
 					if(okee("Clear rotation")) {
 						clear_object('r');
 					}
