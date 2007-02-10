@@ -1661,7 +1661,7 @@ void hide_unselected_armature_bones(void)
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-	BIF_undo_push("Reveal Bones");
+	BIF_undo_push("Hide Unselected Bones");
 }
 
 void show_all_armature_bones(void)
@@ -1680,6 +1680,7 @@ void show_all_armature_bones(void)
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	BIF_undo_push("Reveal Bones");
 }
 
 void make_bone_parent(void)
@@ -2523,6 +2524,7 @@ void hide_selected_pose_bones(void)
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	BIF_undo_push("Hide Bones");
 }
 
 static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr) 
@@ -2552,7 +2554,7 @@ void hide_unselected_pose_bones(void)
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-	BIF_undo_push("Hide Bone");
+	BIF_undo_push("Hide Unselected Bone");
 }
 
 static int show_pose_bone(Object *ob, Bone *bone, void *ptr) 
@@ -2584,7 +2586,7 @@ void show_all_pose_bones(void)
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-	BIF_undo_push("Show Bone");
+	BIF_undo_push("Reveal Bones");
 }
 
 
