@@ -1246,7 +1246,7 @@ static void do_view3d_select_armaturemenu(void *arg, int event)
 			borderselect();
 			break;
 		case 2: /* Select/Deselect all */
-			deselectall_armature(1);
+			deselectall_armature(1, 1);
 			break;
 		case 3: /* Select Parent(s) */	
 			select_bone_parent();
@@ -1292,7 +1292,7 @@ static void do_view3d_select_pose_armaturemenu(void *arg, int event)
 		borderselect();
 		break;
 	case 2: /* Select/Deselect all */
-		deselectall_posearmature(OBACT, 1);
+		deselectall_posearmature(OBACT, 1, 1);
 		break;
 	case 3:
 		pose_select_constraint_target();

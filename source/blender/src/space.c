@@ -1556,10 +1556,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else if(G.obedit->type==OB_LATTICE)
 							deselectall_Latt();
 						else if(G.obedit->type==OB_ARMATURE)
-							deselectall_armature(1);	/* 1 == toggle */
+							deselectall_armature(1, 1);	/* 1 == toggle */
 					}
 					else if (ob && (ob->flag & OB_POSEMODE)){
-						deselectall_posearmature(ob, 1);
+						deselectall_posearmature(ob, 1, 1);
 					}
 					else {
 						if(G.f & G_FACESELECT) deselectall_tface();

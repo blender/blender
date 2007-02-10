@@ -1093,7 +1093,7 @@ void mouse_armature(void)
 	if (nearBone) {
 		
 		if (!(G.qual & LR_SHIFTKEY)) {
-			deselectall_armature(0);
+			deselectall_armature(0, 0);
 		}
 		
 		/* by definition the non-root connected bones have no root point drawn,
@@ -1214,7 +1214,7 @@ void load_editArmature(void)
    toggle==1: swap 
    toggle==2: only active tag
 */
-void deselectall_armature(int toggle)
+void deselectall_armature(int toggle, int doundo)
 {
 	bArmature *arm= G.obedit->data;
 	EditBone	*eBone;
@@ -1255,6 +1255,10 @@ void deselectall_armature(int toggle)
 	allqueue(REDRAWOOPS, 0);
 	
 	countall(); // flushes selection!
+	if (doundo) {
+		if (sel==1) BIF_undo_push("Select All");
+		else BIF_undo_push("Deselect All");
+	}
 }
 
 void auto_align_armature(void)
@@ -1403,7 +1407,7 @@ static void add_primitive_bone(Object *ob)
 	Mat3MulMat3(totmat, obmat, viewmat);
 	Mat3Inv(imat, totmat);
 	
-	deselectall_armature(0);
+	deselectall_armature(0, 0);
 	
 	/*	Create a bone	*/
 	bone= add_editbone("Bone");
@@ -1472,7 +1476,7 @@ void addvert_armature(void)
 		to_root= 1;
 	}
 	
-	deselectall_armature(0);
+	deselectall_armature(0, 0);
 	
 	/* we re-use code for mirror editing... */
 	flipbone= NULL;
@@ -1637,6 +1641,7 @@ void hide_selected_armature_bones(void)
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	BIF_undo_push("Hide Bones");
 }
 
 void hide_unselected_armature_bones(void)
@@ -1656,6 +1661,7 @@ void hide_unselected_armature_bones(void)
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	BIF_undo_push("Reveal Bones");
 }
 
 void show_all_armature_bones(void)
@@ -2020,6 +2026,7 @@ void subdivide_armature(void)
 			}
 		}
 	}
+	BIF_undo_push("Subdivide");
 }
 
 /* ***************** Pose tools ********************* */
@@ -2081,7 +2088,7 @@ int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 	if (nearBone) {
 		/* since we do unified select, we don't shift+select a bone if the armature object was not active yet */
 		if (!(G.qual & LR_SHIFTKEY) || base!=BASACT){
-			deselectall_posearmature(ob, 0);
+			deselectall_posearmature(ob, 0, 0);
 			nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
 			select_actionchannel_by_name(ob->action, nearBone->name, 1);
 		}
@@ -2132,7 +2139,7 @@ int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
    test==1: swap select
    test==2: only clear active tag 
 */
-void deselectall_posearmature (Object *ob, int test)
+void deselectall_posearmature (Object *ob, int test, int doundo)
 {
 	bArmature *arm;
 	bPoseChannel *pchan;
@@ -2176,6 +2183,11 @@ void deselectall_posearmature (Object *ob, int test)
 	allqueue(REDRAWACTION, 0);
 	
 	countall();
+	
+	if (doundo) {
+		if (selectmode==1) BIF_undo_push("Select All");
+		else BIF_undo_push("Deselect All");
+	}
 }
 
 
@@ -2540,6 +2552,7 @@ void hide_unselected_pose_bones(void)
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	BIF_undo_push("Hide Bone");
 }
 
 static int show_pose_bone(Object *ob, Bone *bone, void *ptr) 
@@ -2571,6 +2584,7 @@ void show_all_pose_bones(void)
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	BIF_undo_push("Show Bone");
 }
 
 

@@ -1600,8 +1600,8 @@ static int tree_element_active_posechannel(TreeElement *te, TreeStoreElem *tsele
 	if(set) {
 		if(!(pchan->bone->flag & BONE_HIDDEN_P)) {
 			
-			if(G.qual & LR_SHIFTKEY) deselectall_posearmature(ob, 2);	// 2 = clear active tag
-			else deselectall_posearmature(ob, 0);	// 0 = deselect 
+			if(G.qual & LR_SHIFTKEY) deselectall_posearmature(ob, 2, 0);	// 2 = clear active tag
+			else deselectall_posearmature(ob, 0, 0);	// 0 = deselect 
 			pchan->bone->flag |= BONE_SELECTED|BONE_ACTIVE;
 			
 			allqueue(REDRAWVIEW3D, 0);
@@ -1624,8 +1624,8 @@ static int tree_element_active_bone(TreeElement *te, TreeStoreElem *tselem, int 
 	
 	if(set) {
 		if(!(bone->flag & BONE_HIDDEN_P)) {
-			if(G.qual & LR_SHIFTKEY) deselectall_posearmature(OBACT, 2);	// 2 is clear active tag
-			else deselectall_posearmature(OBACT, 0);
+			if(G.qual & LR_SHIFTKEY) deselectall_posearmature(OBACT, 2, 0);	// 2 is clear active tag
+			else deselectall_posearmature(OBACT, 0, 0);
 			bone->flag |= BONE_SELECTED|BONE_ACTIVE;
 			
 			allqueue(REDRAWVIEW3D, 0);
@@ -1652,8 +1652,8 @@ static int tree_element_active_ebone(TreeElement *te, TreeStoreElem *tselem, int
 	if(set) {
 		if(!(ebone->flag & BONE_HIDDEN_A)) {
 			
-			if(G.qual & LR_SHIFTKEY) deselectall_armature(2);	// only clear active tag
-			else deselectall_armature(0);	// deselect
+			if(G.qual & LR_SHIFTKEY) deselectall_armature(2, 0);	// only clear active tag
+			else deselectall_armature(0, 0);	// deselect
 
 			ebone->flag |= BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL|BONE_ACTIVE;
 			// flush to parent?
