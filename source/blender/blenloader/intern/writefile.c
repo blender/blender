@@ -1071,7 +1071,7 @@ static void write_dverts(WriteData *wd, int count, MDeformVert *dvlist)
 	}
 }
 
-static void write_customdata(WriteData *wd, int count, CustomData *data)
+static void write_customdata(WriteData *wd, int count, CustomData *data, int partial_type, int partial_count)
 {
 	int i;
 
@@ -1080,7 +1080,7 @@ static void write_customdata(WriteData *wd, int count, CustomData *data)
 	for (i=0; i<data->totlayer; i++) {
 		CustomDataLayer *layer= &data->layers[i];
 		char *structname;
-		int structnum;
+		int structnum, datasize;
 
 		if (layer->type == CD_MDEFORMVERT) {
 			/* layer types that allocate own memory need special handling */
@@ -1088,43 +1088,19 @@ static void write_customdata(WriteData *wd, int count, CustomData *data)
 		}
 		else {
 			CustomData_file_write_info(layer->type, &structname, &structnum);
-			if (structnum)
-				writestruct(wd, DATA, structname, structnum*count, layer->data);
+			if (structnum) {
+				/* when using partial visibility, the MEdge and MFace layers
+				   are smaller than the original, so their type and count is
+				   passed to make this work */
+				if (layer->type != partial_type) datasize= structnum*count;
+				else datasize= structnum*partial_count;
+
+				writestruct(wd, DATA, structname, datasize, layer->data);
+			}
 			else
 				printf("error: this CustomDataLayer must not be written to file\n");
 		}
 	}
-}
-
-static void write_oldstyle_tface_242(WriteData *wd, Mesh *me)
-{
-	MTFace *mtf;
-	MCol *mcol;
-	TFace *tf;
-	int a;
-
-	mtf= me->mtface;
-	mcol= me->mcol;
-	tf= me->tface;
-
-	for (a=0; a < me->totface; a++, mtf++, tf++) {
-		if (me->mcol) {
-			memcpy(tf->col, mcol, sizeof(tf->col));
-			mcol+=4;
-		}
-		else
-			memset(tf->col, 255, sizeof(tf->col));
-		memcpy(tf->uv, mtf->uv, sizeof(tf->uv));
-
-		tf->flag= mtf->flag;
-		tf->unwrap= mtf->unwrap;
-		tf->mode= mtf->mode;
-		tf->tile= mtf->tile;
-		tf->tpage= mtf->tpage;
-		tf->transp= mtf->transp;
-	}
-
-	writestruct(wd, DATA, "TFace", me->totface, me->tface);
 }
 
 static void write_meshs(WriteData *wd, ListBase *idbase)
@@ -1145,9 +1121,6 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				mesh->vnode = NULL;
 			}
 #endif
-			/* temporary upward compatibility until 2.43 release */
-			if(mesh->mtface)
-				mesh->tface= MEM_callocN(sizeof(TFace)*mesh->totface, "Oldstyle TFace");
 
 			writestruct(wd, ID_ME, "Mesh", 1, mesh);
 #ifdef WITH_VERSE
@@ -1159,15 +1132,17 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 			writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
 
-			write_customdata(wd, mesh->pv ? mesh->pv->totvert : mesh->totvert, &mesh->vdata);
-			write_customdata(wd, mesh->pv ? mesh->pv->totedge : mesh->totedge, &mesh->edata);
-			write_customdata(wd, mesh->pv ? mesh->pv->totface : mesh->totface, &mesh->fdata);
-
-			/* temporary upward compatibility until 2.43 release */
-			if(mesh->mtface) {
-				write_oldstyle_tface_242(wd, mesh);
-				MEM_freeN(mesh->tface);
-				mesh->tface = NULL;
+			if(mesh->pv) {
+				write_customdata(wd, mesh->pv->totvert, &mesh->vdata, -1, 0);
+				write_customdata(wd, mesh->pv->totedge, &mesh->edata,
+					CD_MEDGE, mesh->totedge);
+				write_customdata(wd, mesh->pv->totface, &mesh->fdata,
+					CD_MFACE, mesh->totface);
+			}
+			else {
+				write_customdata(wd, mesh->totvert, &mesh->vdata, -1, 0);
+				write_customdata(wd, mesh->totedge, &mesh->edata, -1, 0);
+				write_customdata(wd, mesh->totface, &mesh->fdata, -1, 0);
 			}
 
 			/* Multires data */
@@ -1175,8 +1150,8 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 			if(mesh->mr) {
 				lvl= mesh->mr->levels.first;
 				if(lvl) {
-					write_customdata(wd, lvl->totvert, &mesh->mr->vdata);
-					write_customdata(wd, lvl->totface, &mesh->mr->fdata);
+					write_customdata(wd, lvl->totvert, &mesh->mr->vdata, -1, 0);
+					write_customdata(wd, lvl->totface, &mesh->mr->fdata, -1, 0);
 					writedata(wd, DATA, sizeof(short)*lvl->totedge, mesh->mr->edge_flags);
 					writedata(wd, DATA, sizeof(char)*lvl->totedge, mesh->mr->edge_creases);
 				}
