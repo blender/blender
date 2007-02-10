@@ -1441,6 +1441,7 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 				if(ima->gen_y==0) ima->gen_y= 256;
 				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, ima->gen_type);
 				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+				ima->ok= IMA_OK_LOADED;
 			}
 		}
 	}
