@@ -460,6 +460,8 @@ class AC3DImport:
 		olist = self.objlist[1:]
 		olist.reverse()
 
+		scene = self.scene
+
 		newlist = []
 
 		for o in olist:
@@ -473,9 +475,7 @@ class AC3DImport:
 						children.remove(parent)
 						o.bl_obj = parent.bl_obj
 					else: # not found, use an empty
-						empty = Object.New('Empty', o.name)
-						self.scene.link(empty)
-						empty.select(True)
+						empty = scene.objects.new('Empty', o.name)
 						o.bl_obj = empty
 
 				bl_children = [c.bl_obj for c in children if c.bl_obj != None]
@@ -512,6 +512,13 @@ class AC3DImport:
 			else:
 				o.loc = Vector(0.0, 0.0, 0.0)
 			blob.setLocation(o.loc) # forces DAG update, so we do it even for 0, 0, 0
+
+		# XXX important: until we fix the BPy API so it doesn't increase user count
+		# when wrapping a Blender object, this piece of code is needed for proper
+		# object (+ obdata) deletion in Blender:
+		for o in self.objlist:
+			if o.bl_obj:
+				o.bl_obj = None
 
 	def testAC3DImport(self):
 
@@ -555,7 +562,7 @@ class AC3DImport:
 			elif obj.type == AC_LIGHT:
 				light = Lamp.New('Lamp')
 				object = scene.objects.new(light, obj.name)
-				object.select(True)
+				#object.select(True)
 				obj.bl_obj = object
 				if obj.data:
 					light.name = obj.data
@@ -570,7 +577,7 @@ class AC3DImport:
 
 			mesh = Mesh.New()
 			object = scene.objects.new(mesh, obj.name)
-			object.select(True)
+			#object.select(True)
 			obj.bl_obj = object
 			if obj.data: mesh.name = obj.data
 			mesh.degr = obj.crease # will auto clamp to [1, 80]
