@@ -4706,7 +4706,7 @@ void adduplicate(int mode, int dupflag)
 						if(object_in_group(ob, group))
 							add_to_group(group, obn);
 					}
-					obn->flag &= OB_FROMGROUP; /* this flag is unset with copy_object() */
+					obn->flag |= OB_FROMGROUP; /* this flag is unset with copy_object() */
 				}
 				
 				if(BASACT==base) BASACT= basen;
