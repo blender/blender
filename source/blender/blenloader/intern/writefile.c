@@ -1947,9 +1947,9 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 
 		
 	} else {
+		*error_r= strerror(errno);
 		remove(tempname);
 
-		*error_r= "Not enough diskspace";
 		return 0;
 	}
 
