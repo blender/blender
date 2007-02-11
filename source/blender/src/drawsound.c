@@ -189,7 +189,6 @@ static void draw_cfra_sound(SpaceSound *ssound)
 
 void drawsoundspace(ScrArea *sa, void *spacedata)
 {
-	SpaceSound *ssound;
 	float col[3];
 	short ofsx, ofsy;
 	
@@ -219,9 +218,8 @@ void drawsoundspace(ScrArea *sa, void *spacedata)
 		draw_sample(G.ssound->sound->sample);
 	}
 	
-	ssound= spacedata;
-	draw_cfra_sound(ssound);
-	draw_markers_timespace(&(ssound->v2d));
+	draw_cfra_sound(spacedata);
+	draw_markers_timespace();
 
 	/* restore viewport */
 	mywinset(curarea->win);

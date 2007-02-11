@@ -673,7 +673,6 @@ static void nla_blockhandlers(ScrArea *sa)
 
 void drawnlaspace(ScrArea *sa, void *spacedata)
 {
-	SpaceNla *snla= G.snla;
 	float col[3];
 	short ofsx = 0, ofsy = 0;
 	
@@ -719,7 +718,7 @@ void drawnlaspace(ScrArea *sa, void *spacedata)
 	draw_cfra_action();
 	
 	/* draw markers */
-	draw_markers_timespace(&(snla->v2d));
+	draw_markers_timespace();
 
 	/* Draw scroll */
 	mywinset(curarea->win);	// reset scissor too

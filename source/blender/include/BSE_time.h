@@ -54,8 +54,7 @@ int find_nearest_marker_time(float dx);
 void add_marker_to_cfra_elem(struct ListBase *lb, struct TimeMarker *marker, short only_sel);
 void make_marker_cfra_list(struct ListBase *lb, short only_sel);
 
-/* ******** Markers - Space Specific ************* */
-void draw_markers_timespace(struct View2D *v2d);
+void draw_markers_timespace(void);
 
 /* *********** TimeLine Specific  ***************/
 void timeline_frame_to_center(void);

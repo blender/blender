@@ -181,17 +181,17 @@ static void draw_markers_time(void)
 	}
 }
 
-void draw_markers_timespace(View2D *v2d)
+void draw_markers_timespace()
 {
 	TimeMarker *marker;
 	float yspace, ypixels;
 	
 	/* move ortho view to align with slider in bottom */
-	glTranslatef(0.0f, v2d->cur.ymin, 0.0f);
+	glTranslatef(0.0f, G.v2d->cur.ymin, 0.0f);
 	
 	/* bad hacks in drawing markers... inverse correct that as well */
-	yspace= v2d->cur.ymax - v2d->cur.ymin;
-	ypixels= v2d->mask.ymax - v2d->mask.ymin;
+	yspace= G.v2d->cur.ymax - G.v2d->cur.ymin;
+	ypixels= G.v2d->mask.ymax - G.v2d->mask.ymin;
 	glTranslatef(0.0f, -11.0*yspace/ypixels, 0.0f);
 		
 	/* unselected markers are drawn at the first time */
@@ -205,7 +205,7 @@ void draw_markers_timespace(View2D *v2d)
 		if(marker->flag & SELECT) draw_marker(marker);
 	}
 
-	glTranslatef(0.0f, -v2d->cur.ymin, 0.0f);
+	glTranslatef(0.0f, -G.v2d->cur.ymin, 0.0f);
 	glTranslatef(0.0f, 11.0*yspace/ypixels, 0.0f);
 
 }

@@ -2163,7 +2163,7 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		draw_ipovertices(1);
 		
 		/* draw markers */
-		draw_markers_timespace(&(sipo->v2d));
+		draw_markers_timespace();
 		
 		/* restore viewport */
 		mywinset(sa->win);
