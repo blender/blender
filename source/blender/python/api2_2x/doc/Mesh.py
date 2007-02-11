@@ -787,6 +787,7 @@ class Mesh:
   @type activeColorLayer: string
 
   @ivar multires: The mesh has multires data, set True to add multires data.
+    Will throw an exception if the mesh has shape keys; use L{key} to test.
   @type multires: bool
   @ivar multiresLevelCount: The mesh has multires data. (read only)
   @type multiresLevelCount: int
@@ -1057,6 +1058,7 @@ class Mesh:
         seems that 'frame' should be kept in the range [1, 100]
         (the curves can be manually tweaked in the Ipo Curve Editor window in
         Blender itself later).
+    @warn: Will throw an error if the mesh has multires. use L{multires} to check.
     """
 
   def addUVLayer(name):

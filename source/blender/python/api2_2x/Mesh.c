@@ -6323,6 +6323,10 @@ static PyObject *Mesh_insertKey( BPy_Mesh * self, PyObject * args )
 	char *type = NULL;
 	short typenum;
 	
+	if (mesh->mr)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Shape Keys cannot be added to meshes with multires" );
+	
 	if( !PyArg_ParseTuple( args, "|is", &fra, &type ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected nothing or an int and optionally a string as arguments" );
@@ -7301,6 +7305,9 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 			}
 		} else {
 			if ( !mesh->mr ) {
+				if (mesh->key)
+					return EXPP_ReturnIntError( PyExc_RuntimeError,
+						"Cannot enable multires for a mesh with shape keys" ); 
 				multires_make(self->object, mesh);
 			}
 		}
