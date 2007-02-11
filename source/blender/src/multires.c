@@ -1071,12 +1071,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me)
 	
 	if(em) {
 		/* Remove editmesh elements */
-		free_vertlist(&em->verts);
-		free_edgelist(&em->edges);
-		free_facelist(&em->faces);
-		
-		CustomData_free(&G.editMesh->vdata, 0);
-		CustomData_free(&G.editMesh->fdata, 0);
+		free_editMesh(em);
 		
 		eves= MEM_callocN(sizeof(EditVert)*lvl->totvert, "editvert pointers");
 	} else {
