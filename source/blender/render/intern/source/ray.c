@@ -1403,8 +1403,7 @@ static int d3dda(Isect *is)
 static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 {
 	VlakRen *vlr= is->vlr;
-	float l;
-	int osatex= 0;
+	int osatex= 0, norflip;
 	
 	/* set up view vector */
 	VECCOPY(shi->view, is->vec);
@@ -1421,20 +1420,6 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
 	shi->har= shi->mat->har;
 	
-	/* face normal, check for flip */
-	l= vlr->n[0]*shi->view[0]+vlr->n[1]*shi->view[1]+vlr->n[2]*shi->view[2];
-	if(l<0.0f) {	
-		shi->facenor[0]= -vlr->n[0];
-		shi->facenor[1]= -vlr->n[1];
-		shi->facenor[2]= -vlr->n[2];
-		// only flip lower 4 bits
-		shi->puno= vlr->puno ^ 15;
-	}
-	else {
-		VECCOPY(shi->facenor, vlr->n);
-		shi->puno= vlr->puno;
-	}
-	
 	// Osa structs we leave unchanged now
 	SWAP(int, osatex, shi->osatex);
 	
@@ -1447,6 +1432,14 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 		shi->dyno[0]= shi->dyno[1]= shi->dyno[2]= 0.0f;
 	}
 
+	/* face normal, check for flip, need to set puno here */
+	norflip= (vlr->n[0]*shi->view[0]+vlr->n[1]*shi->view[1]+vlr->n[2]*shi->view[2]) < 0.0f;
+	
+	if(norflip)
+		shi->puno= vlr->puno ^ 15;// only flip lower 4 bits
+	else
+		shi->puno= vlr->puno;
+	
 	if(vlr->v4) {
 		if(is->isect==2) 
 			shade_input_set_triangle_i(shi, vlr, 2, 1, 3);
@@ -1456,6 +1449,14 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	else {
 		shade_input_set_triangle_i(shi, vlr, 0, 1, 2);
 	}
+	
+	/* shade_input_set_triangle_i() sets facenor, now we flip */
+	if(norflip) {
+		shi->facenor[0]= -vlr->n[0];
+		shi->facenor[1]= -vlr->n[1];
+		shi->facenor[2]= -vlr->n[2];
+	}	
+	
 	shi->u= is->u;
 	shi->v= is->v;
 	shi->dx_u= shi->dx_v= shi->dy_u= shi->dy_v=  0.0f;
