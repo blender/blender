@@ -10,7 +10,7 @@ Tip: 'Import an AC3D (.ac) file.'
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "elysiun", "AC3D's homepage, http://www.ac3d.org",
 	"PLib 3d gaming lib, http://plib.sf.net")
-__version__ = "2.43 2007-01-28"
+__version__ = "2.43 2007-02-12"
 
 __bpydoc__ = """\
 This script imports AC3D models into Blender.
@@ -41,9 +41,13 @@ users can configure (see config options above).
 # $Id$
 #
 # --------------------------------------------------------------------------
-# AC3DImport version 2.43 Jan 04, 2007
+# AC3DImport version 2.43 Feb 12, 2007
 # Program versions: Blender 2.43 and AC3Db files (means version 0xb)
 # changed: updated for new Blender version, Mesh module
+# --------------------------------------------------------------------------
+# Thanks: Melchior Franz for extensive bug testing and reporting, making this
+# version cope much better with old or bad .ac files, among other improvements;
+# Stewart Andreason for reporting a serious crash.
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -223,11 +227,16 @@ class AC3DImport:
 		self.testAC3DImport()
 				
 	def parse_obj(self, value):
-		if self.kidsnumlist:
-			while not self.kidsnumlist[-1]:
-				self.kidsnumlist.pop()
-				self.dad = self.dad.dad
-			self.kidsnumlist[-1] -= 1
+		kidsnumlist = self.kidsnumlist
+		if kidsnumlist:
+			while not kidsnumlist[-1]:
+				kidsnumlist.pop()
+				if kidsnumlist:
+					self.dad = self.dad.dad
+				else:
+					inform('Ignoring unexpected data at end of file.')
+					return -1 # bad file with more objects than reported
+			kidsnumlist[-1] -= 1
 		new = Obj(AC_OB_TYPES[value])
 		new.dad = self.dad
 		new.name = value
@@ -249,7 +258,8 @@ class AC3DImport:
 		self.objlist[-1].data = data
 
 	def parse_tex(self, value):
-		texture = value.split('"')[1]
+		line = self.lines[self.i - 1] # parse again to properly get paths with spaces
+		texture = line.split('"')[1]
 		self.objlist[-1].tex = texture
 
 	def parse_texrep(self, trash):
@@ -437,7 +447,9 @@ class AC3DImport:
 			i += 1
 			if kw:
 				self.i = i
-				self.token[kw](line[1])
+				result = self.token[kw](line[1])
+				if result:
+					break # bad .ac file, stop parsing
 				i = self.i
 			line = lines[i].split()
 
@@ -532,6 +544,7 @@ class AC3DImport:
 		scene = self.scene
 
 		bl_images = {} # loaded texture images
+		missing_textures = [] # textures we couldn't find
 
 		objlist = self.objlist[1:] # skip 'world'
 
@@ -624,27 +637,37 @@ class AC3DImport:
 
 				img = None
 				if obj.tex != '':
-					baseimgname = bsys.basename(obj.tex)
 					if obj.tex in bl_images.keys():
 						img = bl_images[obj.tex]
-					else:
-						try:
-							img = Image.Load(obj.tex)
-							# Commented because it's unnecessary:
-							#img.xrep = int(obj.texrep[0])
-							#img.yrep = int(obj.texrep[1])
-						except:
+					elif obj.tex not in missing_textures:
+						texfname = None
+						objtex = obj.tex
+						baseimgname = bsys.basename(objtex)
+						if bsys.exists(objtex) == 1:
+							texfname = objtex
+						else:
+							if baseimgname.find('\\') > 0:
+								baseimgname = bsys.basename(objtex.replace('\\','/'))
+							objtex = bsys.join(self.importdir, baseimgname)
+							if bsys.exists(objtex) == 1:
+								texfname = objtex
+							else:
+								objtex = bsys.join(TEXTURES_DIR, baseimgname)
+								if bsys.exists(objtex):
+									texfname = objtex
+						if texfname:
 							try:
-								obj.tex = self.importdir + '/' + baseimgname
-								img = Image.Load(obj.tex)
+								img = Image.Load(texfname)
+								# Commented because it's unnecessary:
+								#img.xrep = int(obj.texrep[0])
+								#img.yrep = int(obj.texrep[1])
+								if img:
+									bl_images[obj.tex] = img
 							except:
-								try:
-									obj.tex = TEXTURES_DIR + baseimgname
-									img = Image.Load(obj.tex)
-								except:
-									inform("Couldn't load texture: %s" % baseimgname)
-						if img:
-							bl_images[obj.tex] = img
+								inform("Couldn't load texture: %s" % baseimgname)
+						else:
+							missing_textures.append(obj.tex)
+							inform("Couldn't find texture: %s" % baseimgname)
 
 				for i in range(facesnum):
 					f = obj.flist_cfg[i]
