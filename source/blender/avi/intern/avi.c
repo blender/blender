@@ -229,7 +229,6 @@ AviError AVI_open_movie (char *name, AviMovie *movie) {
 		return AVI_ERROR_FORMAT;
 
 	movie->header = (AviMainHeader *) MEM_mallocN (sizeof (AviMainHeader), "movieheader");
-/*  	movie->header = (AviMainHeader *) malloc (sizeof (AviMainHeader)); */
 
 	if (GET_FCC (movie->fp) != FCC("AVI ") ||
 	    GET_FCC (movie->fp) != FCC("LIST") ||
@@ -264,8 +263,6 @@ AviError AVI_open_movie (char *name, AviMovie *movie) {
 	}
 	
 	movie->streams = (AviStreamRec *) MEM_callocN (sizeof(AviStreamRec) * movie->header->Streams, "moviestreams");
-/*  	movie->streams = (AviStreamRec *) */
-/*  		malloc (sizeof(AviStreamRec) * movie->header->Streams); */
 
 	for (temp=0; temp < movie->header->Streams; temp++) {
 
@@ -327,7 +324,6 @@ AviError AVI_open_movie (char *name, AviMovie *movie) {
 				AviBitmapInfoHeader *bi;
 				
 				movie->streams[temp].sf= MEM_mallocN(sizeof(AviBitmapInfoHeader), "streamformat");
-/*  				movie->streams[temp].sf= malloc(sizeof(AviBitmapInfoHeader)); */
 				
 				bi= (AviBitmapInfoHeader *) movie->streams[temp].sf;
 				
@@ -420,8 +416,6 @@ AviError AVI_open_movie (char *name, AviMovie *movie) {
 		}
 
 		movie->entries = (AviIndexEntry *) MEM_mallocN (movie->index_entries * sizeof(AviIndexEntry),"movieentries");
-/*  		movie->entries = (AviIndexEntry *) */
-/*  			malloc (movie->index_entries * sizeof(AviIndexEntry)); */
 
 		for (temp=0; temp < movie->index_entries; temp++) {
 			movie->entries[temp].ChunkId = GET_FCC (movie->fp);
@@ -530,7 +524,6 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...) {
 		return AVI_ERROR_OPEN;
 
 	movie->offset_table = (long *) MEM_mallocN ((1+streams*2) * sizeof (long),"offsettable");
-/*  	movie->offset_table = (long *) malloc ((1+streams*2) * sizeof (long)); */
 	
 	for (i=0; i < 1 + streams*2; i++)
 		movie->offset_table[i] = -1L;
@@ -538,7 +531,6 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...) {
 	movie->entries = NULL;
 
 	movie->header = (AviMainHeader *) MEM_mallocN (sizeof(AviMainHeader),"movieheader");
-/*  	movie->header = (AviMainHeader *) malloc (sizeof(AviMainHeader)); */
 
 	movie->header->fcc = FCC("avih");
 	movie->header->size = 56;
@@ -558,7 +550,6 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...) {
 	movie->header->Reserved[3] = 0;
 
 	movie->streams = (AviStreamRec *) MEM_mallocN (sizeof(AviStreamRec) * movie->header->Streams,"moviestreams");
-/*  	movie->streams = (AviStreamRec *) malloc (sizeof(AviStreamRec) * movie->header->Streams); */
 
 	va_start (ap, streams);
 
@@ -592,17 +583,16 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...) {
 		movie->streams[i].sh.bottom = 0;
 
 		if (movie->streams[i].sh.Type == FCC("vids")) {	
+/*
 			if (movie->streams[i].format == AVI_FORMAT_MJPEG) {
 				movie->streams[i].sf = MEM_mallocN (sizeof(AviBitmapInfoHeader) 
 										+ sizeof(AviMJPEGUnknown),"moviestreamformatL");
-/*  				movie->streams[i].sf = malloc (sizeof(AviBitmapInfoHeader)  */
-/*  											   + sizeof(AviMJPEGUnknown)); */
 				movie->streams[i].sf_size = sizeof(AviBitmapInfoHeader) + sizeof(AviMJPEGUnknown);
 			} else {
-				movie->streams[i].sf = MEM_mallocN (sizeof(AviBitmapInfoHeader),  "moviestreamformatS");
-/*  				movie->streams[i].sf = malloc (sizeof(AviBitmapInfoHeader)); */
-				movie->streams[i].sf_size = sizeof(AviBitmapInfoHeader);
-			}
+*/
+			movie->streams[i].sf = MEM_mallocN (sizeof(AviBitmapInfoHeader),  "moviestreamformatS");
+			movie->streams[i].sf_size = sizeof(AviBitmapInfoHeader);
+
 			((AviBitmapInfoHeader *) movie->streams[i].sf)->fcc = FCC ("strf");
 			((AviBitmapInfoHeader *) movie->streams[i].sf)->size = movie->streams[i].sf_size - 8;
 			((AviBitmapInfoHeader *) movie->streams[i].sf)->Size = movie->streams[i].sf_size - 8;
@@ -617,6 +607,7 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...) {
 			((AviBitmapInfoHeader *) movie->streams[i].sf)->ClrUsed = 0;
 			((AviBitmapInfoHeader *) movie->streams[i].sf)->ClrImportant = 0;
 
+/*
 			if (movie->streams[i].format == AVI_FORMAT_MJPEG) {
 				AviMJPEGUnknown *tmp;
 				
@@ -632,6 +623,7 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...) {
 			}
 		} else if (movie->streams[i].sh.Type == FCC("auds")) {
 			;
+*/
 		}
 	}
 
