@@ -336,6 +336,9 @@ class AC3DImport:
 			n -= 1
 			i += 1
 
+		if vlist: # prepend a vertex at 1st position to deal with vindex 0 issues
+			vlist.insert(0, line)
+
 		self.i = i
 
 	def parse_surf(self, value):
@@ -376,7 +379,7 @@ class AC3DImport:
 
 			while rfs:
 				line = lines[i].split()
-				v = int(line[0])
+				v = int(line[0]) + 1 # + 1 to avoid vindex == 0
 				uv = [float(line[1]), float(line[2])]
 				face.append(v)
 				fuv.append(Vector(uv))
@@ -694,6 +697,9 @@ class AC3DImport:
 							uv[1] += voff
 
 					mesh.faces[i].uv = fuv
+
+				# finally, delete the 1st vertex we added to prevent vindices == 0
+				mesh.verts.delete(0)
 
 				mesh.calcNormals()
 
