@@ -3,7 +3,7 @@
 Name: 'Cookie Cut from View'
 Blender: 234
 Group: 'Object'
-Tooltip: 'Cut from the view axis, (Sel Meshes (only edges) into other meshes with faces)'
+Tooltip: 'Cut from the view axis, (Sel 3d Curves and Meshes (only edges) into other meshes with faces)'
 """ 
 __author__= "Campbell Barton"
 __url__= ["blender", "blenderartist"]
@@ -27,6 +27,26 @@ You can choose to make the cut verts lie on the face that they were cut from or 
 This script supports UV coordinates and images.
 """
 
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# Script copyright (C) Campbell Barton
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ***** END GPL LICENCE BLOCK *****
+# --------------------------------------------------------------------------
 
 import Blender
 from math import sqrt
@@ -563,9 +583,11 @@ def main():
 	for ob in obs:
 		if ob.type == 'Mesh':
 			me= ob.getData(mesh=1)
+		elif ob.data.flag & 1: # Is the curve 3D? else dont use.
+			me= BPyMesh.getMeshFromObject(ob) # get the curve
 		else:
-			me= BPyMesh.getMeshFromObject(ob)
-		
+			continue
+			
 		# a new terrain instance
 		if me.multires:
 			MULTIRES_ERROR = True		

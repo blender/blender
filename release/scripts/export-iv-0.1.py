@@ -21,7 +21,10 @@ Run this script from "File->Export" menu.
 
 Note:
 """
-
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# Script copyright (C) Radek Barton
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
