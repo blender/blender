@@ -998,8 +998,8 @@ unsigned *get_ri_pixel(const RenderInfo *ri, int px, int py)
 {
 	if(px < 0) px= 0;
 	if(py < 0) py= 0;
-	if(px > ri->pr_rectx) px= ri->pr_rectx;
-	if(py > ri->pr_recty) py= ri->pr_recty;
+	if(px > ri->pr_rectx-1) px= ri->pr_rectx-1;
+	if(py > ri->pr_recty-1) py= ri->pr_recty-1;
 	return ri->rect + py * ri->pr_rectx + px;
 }
 
