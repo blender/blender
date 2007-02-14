@@ -4652,9 +4652,19 @@ static PyObject *Object_getData( BPy_Object *self, PyObject *args,
 
 	/* if there's no obdata, try to create it */
 	if( object->data == NULL ) {
+		int tmptype = object->type;			/* save current type */
+
+			/* if we have no data and are faking an empty, set the type */
+		if( self->realtype != OB_EMPTY )	
+			object->type = self->realtype;
+
 		if( EXPP_add_obdata( object ) != 0 ) {	/* couldn't create obdata */
+			object->type = tmptype;			/* restore previous type */
 			Py_RETURN_NONE;
 		}
+
+			/* if we set data successfully, clear the fake type */
+		self->realtype = OB_EMPTY;
 	}
 
 	/* user wants only the name of the data object */
