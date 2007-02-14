@@ -2985,14 +2985,54 @@ static void copymenu_modifiers(Object *ob)
 	BIF_undo_push("Copy modifiers");
 }
 
+/* both pointers should exist */
+static void copy_texture_space(Object *to, Object *ob)
+{
+	float *poin1= NULL, *poin2= NULL;
+	int texflag= 0;
+	
+	if(ob->type==OB_MESH) {
+		texflag= ((Mesh *)ob->data)->texflag;
+		poin2= ((Mesh *)ob->data)->loc;
+	}
+	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+		texflag= ((Curve *)ob->data)->texflag;
+		poin2= ((Curve *)ob->data)->loc;
+	}
+	else if(ob->type==OB_MBALL) {
+		texflag= ((MetaBall *)ob->data)->texflag;
+		poin2= ((MetaBall *)ob->data)->loc;
+	}
+	else
+		return;
+		
+	if(to->type==OB_MESH) {
+		((Mesh *)ob->data)->texflag= texflag;
+		poin2= ((Mesh *)to->data)->loc;
+	}
+	else if (ELEM3(to->type, OB_CURVE, OB_SURF, OB_FONT)) {
+		((Curve *)ob->data)->texflag= texflag;
+		poin2= ((Curve *)to->data)->loc;
+	}
+	else if(to->type==OB_MBALL) {
+		((MetaBall *)ob->data)->texflag= texflag;
+		poin2= ((MetaBall *)to->data)->loc;
+	}
+	
+	memcpy(poin1, poin2, 9*sizeof(float));	/* this was noted in DNA_mesh, curve, mball */
+	
+	if(to->type==OB_MESH) ;
+	else if(to->type==OB_MBALL) tex_space_mball(to);
+	else tex_space_curve(to->data);
+	
+}
 
 void copy_attr(short event)
 {
-	Object *ob, *obt;
+	Object *ob;
 	Base *base;
 	Curve *cu, *cu1;
 	Nurb *nu;
-	void *poin1, *poin2=0;
 	int do_scene_sort= 0;
 	
 	if(G.scene->id.lib) return;
@@ -3003,13 +3043,6 @@ void copy_attr(short event)
 		/* obedit_copymenu(); */
 		return;
 	}
-	
-	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) {
-		if(ob->type==OB_MESH) poin2= &(((Mesh *)ob->data)->texflag);
-		else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) poin2= &(((Curve *)ob->data)->texflag);
-		else if(ob->type==OB_MBALL) poin2= &(((MetaBall *)ob->data)->texflag);
-	}	
-
 	if(event==9) {
 		copymenu_properties(ob);
 		return;
@@ -3073,19 +3106,7 @@ void copy_attr(short event)
 					base->object->rdamping= ob->rdamping;
 				}
 				else if(event==17) {	/* tex space */
-					obt= base->object;
-					poin1= 0;
-					if(obt->type==OB_MESH) poin1= &(((Mesh *)obt->data)->texflag);
-					else if ELEM3(obt->type, OB_CURVE, OB_SURF, OB_FONT) poin1= &(((Curve *)obt->data)->texflag);
-					else if(obt->type==OB_MBALL) poin1= &(((MetaBall *)obt->data)->texflag);					
-					
-					if(poin1) {
-						memcpy(poin1, poin2, 4+12+12+12);
-					
-						if(obt->type==OB_MESH) ;
-						else if(obt->type==OB_MBALL) tex_space_mball(obt);
-						else tex_space_curve(obt->data);
-					}
+					copy_texture_space(base->object, ob);
 				}
 				else if(event==18) {	/* font settings */
 					

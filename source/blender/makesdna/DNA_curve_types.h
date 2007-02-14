@@ -147,6 +147,7 @@ typedef struct Curve {
 	
 	ListBase bev;
 	
+	/* texture space, copied as one block in editobject.c */
 	float loc[3];
 	float size[3];
 	float rot[3];

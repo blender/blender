@@ -80,6 +80,7 @@ typedef struct Mesh {
 	int totvert, totedge, totface, totselect, pad2;
 	int texflag;
 	
+	/* texture space, copied as one block in editobject.c */
 	float loc[3];
 	float size[3];
 	float rot[3];

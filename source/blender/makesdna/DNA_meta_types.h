@@ -76,7 +76,7 @@ typedef struct MetaBall {
 	short flag, totcol;
 	int texflag; /* used to store MB_AUTOSPACE */
 	
-	/* These temporary values are only used for polygonization */
+	/* texture space, copied as one block in editobject.c */
 	float loc[3];
 	float size[3];
 	float rot[3];
