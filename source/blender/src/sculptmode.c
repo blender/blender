@@ -1074,8 +1074,8 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 		/* For Tile and Drag modes, get the 2D screen coordinates of the
 		   and scale them up or down to the texture size. */
 		if(sd->texrept==SCULPTREPT_TILE) {
-			const float sx= sd->mtex[sd->texact]->size[0];
-			const float sy= sd->texsep ? sd->mtex[sd->texact]->size[1] : sx;
+			const int sx= (const int)sd->mtex[sd->texact]->size[0];
+			const int sy= (const int)sd->texsep ? sd->mtex[sd->texact]->size[1] : sx;
 			
 			float fx= pv.co[0];
 			float fy= pv.co[1];
@@ -1090,8 +1090,8 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 				px= len * cos(angle) + 2000;
 				py= len * sin(angle) + 2000;
 			}
-			px%= (int)sx;
-			py%= (int)sy;
+			px %= sx;
+			py %= sy;
 			p= get_ri_pixel(ri, ri->pr_rectx*px/sx, ri->pr_recty*py/sy);
 		} else {
 			float fx= (pv.co[0] - e->mouse[0] + half) * (ri->pr_rectx*1.0f/bsize) - ri->pr_rectx/2;
