@@ -1376,9 +1376,11 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 					continue;
 				}
 				inpr= INPR(shi->vn, lv);
-				if(inpr <= 0.0f)
+				if(inpr <= 0.0f) {
+					ir+= 1.0f;
+					accum+= 1.0f;
 					continue;
-				
+				}				
 				lamp_get_shadow(lar, shi, inpr, shadfac, shi->depth);
 
 				ir+= 1.0f;
