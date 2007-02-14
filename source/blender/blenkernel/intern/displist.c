@@ -403,8 +403,6 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 	shi.mat= ma;	/* set each time... node shaders change it */
 	RE_shade_external(NULL, &shi, &shr);
 	
-	VECADD(shr.combined, shr.diff, shr.spec);
-	
 	a= 256.0f*(shr.combined[0]);
 	col1[0]= CLAMPIS(a, 0, 255);
 	a= 256.0f*(shr.combined[1]);
@@ -419,8 +417,6 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 		
 		shi.mat= ma;	/* set each time... node shaders change it */
 		RE_shade_external(NULL, &shi, &shr);
-		
-		VECADD(shr.combined, shr.diff, shr.spec);
 		
 		a= 256.0f*(shr.combined[0]);
 		col2[0]= CLAMPIS(a, 0, 255);
