@@ -323,9 +323,7 @@ static int endwrite(WriteData *wd)
 	
 	err= wd->error;
 	writedata_free(wd);
-/* blender gods may live forever but this parent pointer died in the statement above
-if(wd->current) printf("undo size %d\n", wd->current->size);
-*/
+
 	return err;
 }
 

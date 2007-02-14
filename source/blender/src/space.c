@@ -2962,6 +2962,9 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	/* smaller buttons make no sense */
+	if(curarea->winx<320) return;
+	
 	if(curarea->winx<=1280.0) {
 		fac= ((float)curarea->winx)/1280.0f;
 		myortho2(0.375f, 1280.375f, 0.375f, curarea->winy/fac + 0.375f);

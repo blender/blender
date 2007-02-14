@@ -2430,9 +2430,10 @@ static void object_softbodies_II(Object *ob)
 {
 	uiBlock *block;
 	static int val;
-	//uiBut *but;
+
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_II", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Soft Body II", "Physics", 651, 0, 318, 204)==0) return;
+	uiNewPanelTabbed("Soft Body", "Physics");
+	if(uiNewPanel(curarea, block, "Soft Body Collision", "Physics", 651, 0, 318, 204)==0) return;
 
 	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
 
@@ -2500,7 +2501,7 @@ static void object_softbodies_II(Object *ob)
 		}
 		uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 	}
-		uiBlockEndAlign(block);
+	uiBlockEndAlign(block);
 }
 
 static void object_softbodies(Object *ob)
@@ -2794,7 +2795,6 @@ static void object_panel_fluidsim(Object *ob)
 	const int objHeight = 20;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_fluidsim", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Soft Body", "Physics");
 	if(uiNewPanel(curarea, block, "Fluid Simulation", "Physics", 1060, 0, 318, 204)==0) return;
 
 	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
