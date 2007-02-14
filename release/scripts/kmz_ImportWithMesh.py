@@ -2,13 +2,13 @@
 
 """ Registration info for Blender menus
 Name: 'Google Earth 3 (.kml / .kmz)...'
-Blender: 242
+Blender: 243
 Group: 'Import'
-Tip: 'Import geometry of .kml or .kmz 3D models'
+Tip: 'Import geometry of a .kml or .kmz 3D model'
 """
 
 __author__ = "Jean-Michel Soler (jms)"
-__version__ = "0.1.9g, february, 03th, 2007"
+__version__ = "0.1.9h, february, 13th, 2007"
 __bpydoc__ = """\
        To read 3d geometry .kmz and .kml file 
 
@@ -622,10 +622,14 @@ def filtreFICHIER(nom):
 	if nom.upper().find('.KMZ')!=-1:
 		#from zipfile import ZipFile, ZIP_DEFLATED
 		tz=ZipFile(nom,'r',ZIP_DEFLATED)
-		t = tz.read(tz.namelist()[0])
-		tz.close()
-		t=t.replace('<br>','') 
-		return t
+		if 'models/' in tz.namelist():
+			return ''
+		else:
+			t = tz.read(tz.namelist()[0])
+			tz.close()
+			t=t.replace('<br>','') 
+			return t		
+		
 	elif nom.upper().find('.KML')!=-1:
 		tz=open(nom,'r')
 		t = tz.read()
@@ -670,11 +674,11 @@ def create_LINE(BROKEN_LINE,tv):
 		nedge+=1
 		v.extend(bl)
 		e.extend(v[-2],v[-1])
-		v[-2].sel=1
-		v[-1].sel=1	
-		if TAG4 and nedge %TAG4 == 1 : 
-			print 'Pedg: ', nedge
-
+		#v[-2].sel=1
+		#v[-1].sel=1	
+		#if TAG4 and nedge %TAG4 == 1 : 
+		#	print 'Pedg: ', nedge
+	me.sel = True
 	if tv :
 		me.remDoubles(0.0001)
 
@@ -682,13 +686,13 @@ def cree_POLYGON(ME,TESSEL):
 	global  OB, npoly, UPDATE_V, UPDATE_F, POS,TAG3,TAG4, TAG5
 	npoly+=1 
 	for T in TESSEL: del T[-1]
-	if TAG3 and npoly %TAG3 == 1 : 
-		print 'Pgon: ', npoly, 'verts:',[len(T) for T in TESSEL]
+	#if TAG3 and npoly %TAG3 == 1 : 
+	#	print 'Pgon: ', npoly, 'verts:',[len(T) for T in TESSEL]
 
 	if TAG5 and npoly %TAG5 == 1 : 
-		Blender.Window.RedrawAll()
-		g2= Blender.sys.time()-gt1
-		print int(g2/60),':',int(g2%60)      
+		Blender.Window.Redraw(Blender.Window.Types.VIEW3D) # Blender.Window.RedrawAll()
+		# g2= Blender.sys.time()-gt1
+		# print int(g2/60),':',int(g2%60)      
 
 	if len(TESSEL)==1 and len(TESSEL[0]) in [3,4] :
 		if not UPDATE_F:
@@ -954,7 +958,19 @@ def contruit_HIERARCHIE(t,tv0=0,tv=0):
 		t0=t1 
 	if tv0 and BROKEN_LINE :
 		create_LINE(BROKEN_LINE,tv)
-	
+def WARNING_nodata():
+			name = "WARNING %t| Sorry, these data are perhaps in Google Earth 4.0 format and are not managed for the moement."  # if no %xN int is set, indices start from 1
+			result = Blender.Draw.PupMenu(name)
+			print '#----------------------------------------------'
+			print '# Sorry the script can\'t find any geometry in this' 
+			print '# file .'
+			print '#  '				
+			print '# If you have exported this data from Sketchup '
+			print '# select the simple Google Earth format instead of' 
+			print '# the Google Earth 4 .'
+			print '#----------------------------------------------'
+			return
+					
 def scan_FILE(nom):
 		global NUMBER, PLACEMARK, SC, OB, ME, POLYGON_NUMBER, TAG3, TAG4, TAG5, gt1
  		
@@ -962,81 +978,76 @@ def scan_FILE(nom):
 		name=name.split('.')
 		result=0
 		t=filtreFICHIER(nom)
-		PLACEMARK_NUMBER=t.count('<Placemark>')
-		print 'Number of Placemark   :  ', PLACEMARK_NUMBER
-		POLYGON_NUMBER=t.count('<Polygon')
-		print 'Number of Polygons :  ', POLYGON_NUMBER
-		EDGES_NUMBER=t.count('<LineString')
-		print 'Number of Edges :  ', EDGES_NUMBER
-							
-		tag1 = Blender.Draw.Create(1)
-		tag2 = Blender.Draw.Create(1)
-		tag3 = Blender.Draw.Create(0)
-		tag4 = Blender.Draw.Create(0)
-		tag5 = Blender.Draw.Create(0)		
-		
-		block = []
-		block.append("Import Edges only")
-		block.append("-> Placemarker : %s"%PLACEMARK_NUMBER)			
-		block.append("-> Polygons : %s"%POLYGON_NUMBER)
-		block.append("-> Edges : %s"%EDGES_NUMBER)				
-		block.append(("Polys count: ", tag3, 0, 1000,"a progression indicator can be displayed, 0 for none"))					
-		block.append(("Force Edges import", tag1, "if no polygon found in the file"))
-		block.append(("Edges count: ", tag4, 0, 1000,"a progression indicator can be displayed, 0 for none"))					
-		block.append(("Remove double ", tag2, " "))
-		block.append(("display time ", tag5, "see progression time in the dos consle "))
-				
-		if POLYGON_NUMBER==0 :
-			retval = Blender.Draw.PupBlock("KML/KMZ import", block)
-			if tag1.val==0: tag4.val==0  
-				
-			if not tag1.val or EDGES_NUMBER==0 and PLACEMARK_NUMBER==0:
-				name = "WARNING %t| Sorry, the script can\'t find any geometry in this file ."  # if no %xN int is set, indices start from 1
-				result = Blender.Draw.PupMenu(name)
-				print '#----------------------------------------------'
-				print '#  Sorry the script can\'t find any geometry in this' 
-				print '#  file .'
-				print '#----------------------------------------------'
-				Blender.Window.RedrawAll()
-				return
-			elif not tag1.val or EDGES_NUMBER==0 and PLACEMARK_NUMBER==1:
-				name = "WARNING %t| Sorry, these data are perhaps in Google Earth 4.0 format and are not managed for the moement."  # if no %xN int is set, indices start from 1
-				result = Blender.Draw.PupMenu(name)
-				print '#----------------------------------------------'
-				print '# Sorry the script can\'t find any geometry in this' 
-				print '# file .'
-				print '#  '				
-				print '# If you have exported this data from Sketchup '
-				print '# select the simple Google Earth format instead of' 
-				print '# the Google Earth 4 .'
-				print '#----------------------------------------------'
-			elif EDGES_NUMBER:
-				SC = Blender.Scene.GetCurrent()
-				print 'Number of Placemark   :  ', PLACEMARK_NUMBER
-				if PLACEMARK_NUMBER!=POLYGON_NUMBER :
-					NUMBER=1
-					PLACEMARK=0
-					TAG3=tag3.val 
-					TAG4=tag4.val
-					TAG5=tag5.val					
-				if t!='false':
-					gt1=Blender.sys.time()
-					contruit_HIERARCHIE(t,tag1.val,tag2.val)
+		# print len(t)
+		if t:
+			PLACEMARK_NUMBER=t.count('<Placemark>')
+			print 'Number of Placemark   :  ', PLACEMARK_NUMBER
+			POLYGON_NUMBER=t.count('<Polygon')
+			print 'Number of Polygons :  ', POLYGON_NUMBER
+			EDGES_NUMBER=t.count('<LineString')
+			print 'Number of Edges :  ', EDGES_NUMBER
+								
+			tag1 = Blender.Draw.Create(1)
+			tag2 = Blender.Draw.Create(1)
+			tag3 = Blender.Draw.Create(0)
+			tag4 = Blender.Draw.Create(0)
+			tag5 = Blender.Draw.Create(0)		
+			
+			block = []
+			block.append("Import Edges only")
+			block.append("-> Placemarker : %s"%PLACEMARK_NUMBER)			
+			block.append("-> Polygons : %s"%POLYGON_NUMBER)
+			block.append("-> Edges : %s"%EDGES_NUMBER)				
+			block.append(("Polys count: ", tag3, 0, 1000,"a progression indicator can be displayed, 0 for none"))					
+			block.append(("Force Edges import", tag1, "if no polygon found in the file"))
+			block.append(("Edges count: ", tag4, 0, 1000,"a progression indicator can be displayed, 0 for none"))					
+			block.append(("Remove double ", tag2, " "))
+			block.append(("display time ", tag5, "see progression time in the dos consle "))
+					
+			if POLYGON_NUMBER==0 :
+				retval = Blender.Draw.PupBlock("KML/KMZ import", block)
+				if tag1.val==0: tag4.val==0  
+					
+				if not tag1.val or EDGES_NUMBER==0 and PLACEMARK_NUMBER==0:
+					name = "WARNING %t| Sorry, the script can\'t find any geometry in this file ."  # if no %xN int is set, indices start from 1
+					result = Blender.Draw.PupMenu(name)
+					print '#----------------------------------------------'
+					print '#  Sorry the script can\'t find any geometry in this' 
+					print '#  file .'
+					print '#----------------------------------------------'
+					Blender.Window.RedrawAll()
+					return
+				elif not tag1.val or EDGES_NUMBER==0 and PLACEMARK_NUMBER==1:
+					WARNING_nodata()
+				elif EDGES_NUMBER:
+					SC = Blender.Scene.GetCurrent()
+					print 'Number of Placemark   :  ', PLACEMARK_NUMBER
+					if PLACEMARK_NUMBER!=POLYGON_NUMBER :
+						NUMBER=1
+						PLACEMARK=0
+						TAG3=tag3.val 
+						TAG4=tag4.val
+						TAG5=tag5.val					
+					if t!='false':
+						gt1=Blender.sys.time()
+						contruit_HIERARCHIE(t,tag1.val,tag2.val)
+			else:
+				retval = Blender.Draw.PupBlock("KML/KMZ import", block)
+				if retval :
+					SC = Blender.Scene.GetCurrent()
+					if PLACEMARK_NUMBER!=POLYGON_NUMBER :
+						NUMBER=1
+						PLACEMARK=0
+					if t!='false':
+						TAG3=tag3.val 
+						TAG4=tag4.val
+						TAG5=tag5.val
+						gt1=Blender.sys.time()
+						contruit_HIERARCHIE(t,tag1.val,tag2.val)
+						active_FORME()
+			gt2=Blender.sys.time()-gt1
+			print "KML Imported, duration", int(gt2/60),':',int(gt2%60) 
 		else:
-			retval = Blender.Draw.PupBlock("KML/KMZ import", block)
-			if retval :
-				SC = Blender.Scene.GetCurrent()
-				if PLACEMARK_NUMBER!=POLYGON_NUMBER :
-					NUMBER=1
-					PLACEMARK=0
-				if t!='false':
-					TAG3=tag3.val 
-					TAG4=tag4.val
-					TAG5=tag5.val
-					gt1=Blender.sys.time()
-					contruit_HIERARCHIE(t,tag1.val,tag2.val)
-					active_FORME()
-		gt2=Blender.sys.time()-gt1
-		print int(gt2/60),':',int(gt2%60) 
-				
+			WARNING_nodata()
+	
 Blender.Window.FileSelector (fonctionSELECT, 'SELECT a .KMZ FILE')
