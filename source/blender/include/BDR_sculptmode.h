@@ -89,13 +89,13 @@ typedef struct SculptSession {
 	vec3f pivot;
 } SculptSession;
 
-SculptSession *sculpt_session();
-struct SculptData *sculpt_data();
+SculptSession *sculpt_session(void);
+struct SculptData *sculpt_data(void);
 
 /* Memory */
 void sculptmode_init(struct Scene *);
 void sculptmode_free_all(struct Scene *);
-void sculptmode_correct_state();
+void sculptmode_correct_state(void);
 
 /* Undo */
 typedef enum SculptUndoType {
@@ -105,9 +105,10 @@ typedef enum SculptUndoType {
 	SUNDO_MRES= 8  /* Mesh.mr changed */
 } SculptUndoType;
 void sculptmode_undo_push(char *str, SculptUndoType type);
-void sculptmode_undo();
-void sculptmode_redo();
-void sculptmode_undo_menu();
+void sculptmode_undo(void);
+void sculptmode_redo(void);
+void sculptmode_undo_menu(void);
+void sculptmode_undo_free(struct Scene *sce);
 
 /* Interface */
 void sculptmode_draw_interface_tools(struct uiBlock *block,unsigned short cx, unsigned short cy);
@@ -115,17 +116,17 @@ void sculptmode_draw_interface_textures(struct uiBlock *block,unsigned short cx,
 void sculptmode_rem_tex(void*,void*);
 void sculptmode_propset_init(PropsetMode mode);
 void sculptmode_propset(const unsigned short event);
-void sculptmode_selectbrush_menu();
+void sculptmode_selectbrush_menu(void);
 void sculptmode_draw_mesh(int);
 void sculpt_paint_brush(char clear);
 
-struct BrushData *sculptmode_brush();
-float *get_tex_angle();
+struct BrushData *sculptmode_brush(void);
+float *get_tex_angle(void);
 
-void sculptmode_update_tex();
+void sculptmode_update_tex(void);
 char sculpt_modifiers_active(struct Object *ob);
-void sculpt();
-void set_sculptmode();
+void sculpt(void);
+void set_sculptmode(void);
 
 /* Partial Mesh Visibility */
 struct PartialVisibility *sculptmode_copy_pmv(struct PartialVisibility *);

@@ -161,13 +161,14 @@ typedef struct ProjVert {
 static ProjVert *projverts= NULL;
 static Object *active_ob= NULL;
 
-SculptData *sculpt_data()
+SculptData *sculpt_data(void)
 {
 	return &G.scene->sculptdata;
 }
 
-void sculpt_init_session();
-SculptSession *sculpt_session()
+void sculpt_init_session(void);
+
+SculptSession *sculpt_session(void)
 {
 	if(!sculpt_data()->session)
 		sculpt_init_session();
@@ -212,7 +213,7 @@ void sculptmode_init(Scene *sce)
 
 void sculptmode_undo_init();
 void sculptmode_free_session(Scene *);
-void sculpt_init_session()
+void sculpt_init_session(void)
 {
 	if(sculpt_data()->session)
 		sculptmode_free_session(G.scene);
@@ -336,6 +337,7 @@ void sculptmode_undo_pull_chopped(SculptUndoStep *sus)
 		}
 }
 
+/* also called now after leave mesh editmode. prevent crashing when data amount changes */
 void sculptmode_undo_free(Scene *sce)
 {
 	SculptSession *ss= sce->sculptdata.session;
@@ -508,7 +510,7 @@ void sculptmode_undo_update(SculptUndoStep *newcur)
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
-void sculptmode_undo()
+void sculptmode_undo(void)
 {
 	SculptUndo *su= sculpt_session()->undo;
 
@@ -516,7 +518,7 @@ void sculptmode_undo()
 		sculptmode_undo_update(su->cur->prev);
 }
 
-void sculptmode_redo()
+void sculptmode_redo(void)
 {
 	SculptUndo *su= sculpt_session()->undo;
 
@@ -524,7 +526,7 @@ void sculptmode_redo()
 		sculptmode_undo_update(su->cur->next);
 }
 
-void sculptmode_undo_menu()
+void sculptmode_undo_menu(void)
 {
 	SculptUndo *su= sculpt_session()->undo;
 	SculptUndoStep *sus;
@@ -1004,7 +1006,7 @@ unsigned *get_ri_pixel(const RenderInfo *ri, int px, int py)
 }
 
 /* Use the warpfac field in MTex to store a rotation value for sculpt textures. */
-float *get_tex_angle()
+float *get_tex_angle(void)
 {
 	SculptData *sd= sculpt_data();
 	if(sd->texact!=-1 && sd->mtex[sd->texact])
@@ -1326,7 +1328,7 @@ void calc_damaged_verts(ListBase *damaged_verts, GrabData *grabdata)
 	}
 }
 
-BrushData *sculptmode_brush()
+BrushData *sculptmode_brush(void)
 {
 	SculptData *sd= &G.scene->sculptdata;
 	return (sd->brush_type==DRAW_BRUSH ? &sd->drawbrush :
@@ -1694,7 +1696,7 @@ void sculptmode_propset(unsigned short event)
 	sculptmode_propset_header();
 }
 
-void sculptmode_selectbrush_menu()
+void sculptmode_selectbrush_menu(void)
 {
 	SculptData *sd= sculpt_data();
 	int val;
@@ -1745,7 +1747,8 @@ void sculptmode_draw_wires(int only_damaged, Mesh *me)
 	bglPolygonOffset(0.0);
 }
 
-void sculptmode_draw_mesh(int only_damaged) {
+void sculptmode_draw_mesh(int only_damaged) 
+{
 	Mesh *me= get_mesh(OBACT);
 	int i, j, dt, drawCurrentMat = 1, matnr= -1;
 
@@ -1799,7 +1802,7 @@ void sculptmode_draw_mesh(int only_damaged) {
 	glDisable(GL_DEPTH_TEST);
 }
 
-void sculptmode_correct_state()
+void sculptmode_correct_state(void)
 {
 	if(!sculpt_session())
 		sculpt_init_session();
@@ -1824,7 +1827,7 @@ char sculpt_modifiers_active(Object *ob)
 	return 0;
 }
 
-void sculpt()
+void sculpt(void)
 {
 	SculptData *sd= sculpt_data();
 	SculptSession *ss= sculpt_session();
@@ -2042,7 +2045,7 @@ void sculpt()
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-void set_sculptmode()
+void set_sculptmode(void)
 {
 	if(G.f & G_SCULPTMODE) {
 		Mesh *me= get_mesh(OBACT);
