@@ -50,6 +50,9 @@ __bpydoc__ = """\
 
 # This script has been modified on Feb 15, 2007 by the Blender Foundation
 # changes include text in the user interface and text output.
+# This is not the authors original work, but a modified copy.
+# the original script can be found at the author site
+# http://jmsoler.free.fr/util/blenderfile/py/kmz_ImportWithMesh_Z019h.py
 
 import Blender
 from Blender  import Window
