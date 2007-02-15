@@ -385,13 +385,7 @@ PyObject *M_Window_Redraw( PyObject * self, PyObject * args )
 						scrarea_queue_redraw(sa);
 				}
 				else {
-					if( sa->spacetype == SPACE_TEXT ) {
-						st = sa->spacedata.first;
-						if( st->text ) {
-							if( st->text->flags & TXT_FOLLOW )	/* follow cursor display */
-								pop_space_text( st );
-						}
-					}
+					/* do not call fancy hacks here like pop_space_text(st); (ton) */
 					scrarea_do_windraw( sa );
 					if( sa->headwin ) scrarea_do_headdraw( sa );
 				}
