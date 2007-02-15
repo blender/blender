@@ -489,18 +489,21 @@ void IMB_rectblend_torus(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 void IMB_rectfill(struct ImBuf *drect, float col[4])
 {
 	int num;
-	unsigned int *rrect = drect->rect;
-	char ccol[4];
 
-	ccol[0]= (int)(col[0]*255);
-	ccol[1]= (int)(col[1]*255);
-	ccol[2]= (int)(col[2]*255);
-	ccol[3]= (int)(col[3]*255);
-
-	num = drect->x * drect->y;
-	for (;num > 0; num--)
-		*rrect++ = *((unsigned int*)ccol);
-
+	if(drect->rect) {
+		unsigned int *rrect = drect->rect;
+		char ccol[4];
+		
+		ccol[0]= (int)(col[0]*255);
+		ccol[1]= (int)(col[1]*255);
+		ccol[2]= (int)(col[2]*255);
+		ccol[3]= (int)(col[3]*255);
+		
+		num = drect->x * drect->y;
+		for (;num > 0; num--)
+			*rrect++ = *((unsigned int*)ccol);
+	}
+	
 	if(drect->rect_float) {
 		float *rrectf = drect->rect_float;
 		
