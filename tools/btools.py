@@ -73,7 +73,7 @@ def print_targets(targs, bc):
 def validate_targets(targs, bc):
     valid_list = ['.', 'blender', 'blenderstatic', 'blenderplayer', 'webplugin',
             'blendernogame', 'blenderstaticnogame', 'release',
-            'everything', 'clean', 'install-bin', 'install']
+            'everything', 'clean', 'install-bin', 'install', 'nsis']
     oklist = []
     for t in targs:
         if t in valid_list:

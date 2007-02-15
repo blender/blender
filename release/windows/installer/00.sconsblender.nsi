@@ -248,6 +248,8 @@ Section "Blender-VERSION (required)" SecCopyUI
   [SCRIPTCONTS]
   SetOutPath $BLENDERHOME\.blender\scripts\bpymodules
   [SCRIPTMODCONTS]
+  SetOutPath $BLENDERHOME\.blender\scripts\bpymodules\colladaImEx
+  [SCRIPTMODCOLLADACONT]
   SetOutPath $BLENDERHOME\.blender\scripts\bpydata
   [SCRIPTDATACONTS]
   SetOutPath $BLENDERHOME\.blender\scripts\bpydata\config
