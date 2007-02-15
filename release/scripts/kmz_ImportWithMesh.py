@@ -676,8 +676,8 @@ def create_LINE(BROKEN_LINE,tv):
 		e.extend(v[-2],v[-1])
 		#v[-2].sel=1
 		#v[-1].sel=1	
-		#if TAG4 and nedge %TAG4 == 1 : 
-		#	print 'Pedg: ', nedge
+		if TAG4 and nedge %TAG4 == 1 : 
+			print 'Pedg: ', nedge
 	me.sel = True
 	if tv :
 		me.remDoubles(0.0001)
@@ -686,13 +686,13 @@ def cree_POLYGON(ME,TESSEL):
 	global  OB, npoly, UPDATE_V, UPDATE_F, POS,TAG3,TAG4, TAG5
 	npoly+=1 
 	for T in TESSEL: del T[-1]
-	#if TAG3 and npoly %TAG3 == 1 : 
-	#	print 'Pgon: ', npoly, 'verts:',[len(T) for T in TESSEL]
+	if TAG3 and npoly %TAG3 == 1 : 
+		print 'Pgon: ', npoly, 'verts:',[len(T) for T in TESSEL]
 
 	if TAG5 and npoly %TAG5 == 1 : 
 		Blender.Window.Redraw(Blender.Window.Types.VIEW3D) # Blender.Window.RedrawAll()
-		# g2= Blender.sys.time()-gt1
-		# print int(g2/60),':',int(g2%60)      
+		g2= Blender.sys.time()-gt1
+		print int(g2/60),':',int(g2%60)      
 
 	if len(TESSEL)==1 and len(TESSEL[0]) in [3,4] :
 		if not UPDATE_F:
@@ -999,10 +999,14 @@ def scan_FILE(nom):
 			block.append("-> Polygons : %s"%POLYGON_NUMBER)
 			block.append("-> Edges : %s"%EDGES_NUMBER)				
 			block.append(("Polys count: ", tag3, 0, 1000,"a progression indicator can be displayed, 0 for none"))					
-			block.append(("Force Edges import", tag1, "if no polygon found in the file"))
+			block.append(("Force Edges", tag1, "force edge import if no polygon found"))
 			block.append(("Edges count: ", tag4, 0, 1000,"a progression indicator can be displayed, 0 for none"))					
 			block.append(("Remove double ", tag2, " "))
-			block.append(("display time ", tag5, "see progression time in the dos consle "))
+			block.append("Display Update;")
+			block.append("Updates the 3d view and")
+			block.append("prints progress to the")
+			block.append("console while importing")
+			block.append(("Display Update", tag5, "Update progress and time in the console"))
 					
 			if POLYGON_NUMBER==0 :
 				retval = Blender.Draw.PupBlock("KML/KMZ import", block)
@@ -1033,7 +1037,7 @@ def scan_FILE(nom):
 						contruit_HIERARCHIE(t,tag1.val,tag2.val)
 			else:
 				retval = Blender.Draw.PupBlock("KML/KMZ import", block)
-				if retval :
+				if retval:
 					SC = Blender.Scene.GetCurrent()
 					if PLACEMARK_NUMBER!=POLYGON_NUMBER :
 						NUMBER=1
@@ -1045,6 +1049,7 @@ def scan_FILE(nom):
 						gt1=Blender.sys.time()
 						contruit_HIERARCHIE(t,tag1.val,tag2.val)
 						active_FORME()
+			
 			gt2=Blender.sys.time()-gt1
 			print "KML Imported, duration", int(gt2/60),':',int(gt2%60) 
 		else:
