@@ -1,15 +1,15 @@
 #!BPY
 
 """
-Name: 'Auto Image Layout'
-Blender: 241
+Name: 'Consolidate into one image'
+Blender: 243
 Group: 'Image'
 Tooltip: 'Pack all texture images into 1 image and remap faces.'
 """
 
 __author__ = "Campbell Barton"
 __url__ = ("blender", "blenderartists.org")
-__version__ = "1.0 2005/05/20"
+__version__ = "1.1 2007/02/15"
 
 __bpydoc__ = """\
 This script makes a new image from the used areas of all the images mapped to the selected mesh objects.
@@ -47,6 +47,7 @@ from Blender.Mathutils import Vector, RotationMatrix
 from Blender.Scene import Render
 import BPyMathutils
 BIGNUM= 1<<30
+TEXMODE= B.Mesh.FaceModes.TEX
 
 def pointBounds(points):
 	'''
@@ -131,7 +132,7 @@ class faceGroup(object):
 	def __init__(self, mesh_list, image, size, PREF_IMAGE_MARGIN):
 		self.image= image
 		self.size= size
-		self.faces= [f for me in mesh_list for f in me.faces if f.image == image]
+		self.faces= [f for me in mesh_list for f in me.faces if f.mode & TEXMODE and f.image == image]
 		
 		# Find the best rotation.
 		all_points= [uv for f in self.faces for uv in f.uv]
@@ -202,24 +203,25 @@ class faceGroup(object):
 				uv.x= offset_x+ (((uv_rot.x-self.xmin) * self.size[0])/width)
 				uv.y= offset_y+ (((uv_rot.y-self.ymin) * self.size[1])/height)
 
-def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_ASPECT, PREF_IMAGE_MARGIN): #, PREF_SIZE_FROM_UV=True):
+def consolidate_mesh_images(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_ASPECT, PREF_IMAGE_MARGIN): #, PREF_SIZE_FROM_UV=True):
 	'''Main packing function'''
 	face_groups= {}
 	
 	for me in mesh_list:
 		for f in me.faces:
-			image= f.image
-			if image:
-				try:
-					face_groups[image.name] # will fail if teh groups not added.
-				except:
+			if f.mode & TEXMODE:
+				image= f.image
+				if image:
 					try:
-						size= image.size
+						face_groups[image.name] # will fail if teh groups not added.
 					except:
-						B.Draw.PupMenu('Aborting: Image cold not be loaded|' + image.name)
-						return
-						
-					face_groups[image.name]= faceGroup(mesh_list, image, size, PREF_IMAGE_MARGIN)
+						try:
+							size= image.size
+						except:
+							B.Draw.PupMenu('Aborting: Image cold not be loaded|' + image.name)
+							return
+							
+						face_groups[image.name]= faceGroup(mesh_list, image, size, PREF_IMAGE_MARGIN)
 	
 	if not face_groups:
 		B.Draw.PupMenu('No Images found in mesh. aborting.')
@@ -249,7 +251,7 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 		f= open(PREF_IMAGE_PATH_EXPAND, 'w')
 		f.close()
 	except:
-		B.Draw.PupMenu('Error: Could not write to path|' + PREF_IMAGE_PATH_EXPAND)
+		B.Draw.PupMenu('Error%t|Could not write to path|' + PREF_IMAGE_PATH_EXPAND)
 		return
 	
 	render_context.imageSizeX(PREF_IMAGE_SIZE)
@@ -261,6 +263,7 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 	render_context.enableExtensions(True) 
 	render_context.enableSky() # No alpha needed.
 	render_context.enableRGBColor()
+	render_context.threads = 2
 	
 	#Render.EnableDispView() # Broken??
 	
@@ -333,7 +336,7 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 		
 		target_face= render_me.faces[-1]
 		target_face.image= fg.image
-		target_face.mode |= B.Mesh.FaceModes.TEX
+		target_face.mode |= TEXMODE
 		
 		# Set the UV's, we need to flip them HOZ?
 		target_face.uv[0].x= target_face.uv[1].x= fg.xmax
@@ -366,7 +369,7 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 	# Set to the 1 image.
 	for me in mesh_list:
 		for f in me.faces:
-			if f.image:
+			if f.mode & TEXMODE and f.image:
 				f.image= target_image
 	
 	for fg in face_groups.itervalues():
@@ -379,7 +382,8 @@ def auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_
 
 def main():
 	scn= B.Scene.GetCurrent()
-	ob= scn.objects.active
+	scn_objects = scn.objects
+	ob= scn_objects.active
 	
 	if not ob or ob.type != 'Mesh':
 		B.Draw.PupMenu('Error, no active mesh object, aborting.')
@@ -400,13 +404,13 @@ def main():
 	('', PREF_IMAGE_PATH, 3, 100, 'Path to new Image. "//" for curent blend dir.'),\
 	'Image Options',
 	('Pixel Size:', PREF_IMAGE_SIZE, 64, 4096, 'Image Width and Height.'),\
-	('Pixel Margin:', PREF_IMAGE_MARGIN, 0, 64, 'Image Width and Height.'),\
-	('Keep Image Aspect', PREF_KEEP_ASPECT, 'If disabled, will stretch the images to the bounds of the texture'),\
+	('Pixel Margin:', PREF_IMAGE_MARGIN, 0, 64, 'Use a margin to stop mipmapping artifacts.'),\
+	('Keep Aspect', PREF_KEEP_ASPECT, 'If disabled, will stretch the images to the bounds of the texture'),\
 	'Texture Source',\
-	('All Sel Objects', PREF_ALL_SEL_OBS, 'Combine and replace textures from all objects into 1 texture.'),\
+	('All Sel Objects', PREF_ALL_SEL_OBS, 'Combine all selected objects into 1 texture, otherwise active object only.'),\
 	]
 	
-	if not B.Draw.PupBlock('Auto Texture Layout', pup_block):
+	if not B.Draw.PupBlock('Consolidate images...', pup_block):
 		return
 	
 	PREF_IMAGE_PATH= PREF_IMAGE_PATH.val
@@ -416,14 +420,14 @@ def main():
 	PREF_ALL_SEL_OBS= PREF_ALL_SEL_OBS.val
 	
 	if PREF_ALL_SEL_OBS:
-		mesh_list= [ob.getData(mesh=1) for ob in B.Object.GetSelected() if ob.getType()=='Mesh']
+		mesh_list= [ob.getData(mesh=1) for ob in scn_objects.context if ob.type=='Mesh']
 		# Make sure we have no doubles- dict by name, then get the values back.
-		mesh_list= dict([(me.name, me) for me in mesh_list])
-		mesh_list= mesh_list.values()
+		mesh_list= dict([(me.name, me) for me in mesh_list]).values()
+		
 	else:
 		mesh_list= [ob.getData(mesh=1)]
 	
-	auto_layout_tex(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_ASPECT, PREF_IMAGE_MARGIN)
+	consolidate_mesh_images(mesh_list, scn, PREF_IMAGE_PATH, PREF_IMAGE_SIZE, PREF_KEEP_ASPECT, PREF_IMAGE_MARGIN)
 	B.Window.RedrawAll()
 	
 if __name__=='__main__':
