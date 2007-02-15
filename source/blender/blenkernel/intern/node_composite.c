@@ -1249,8 +1249,8 @@ static bNodeType cmp_node_rlayers= {
 
 /* **************** TEXTURE ******************** */
 static bNodeSocketType cmp_node_texture_in[]= {
-	{	SOCK_VECTOR, 0, "Offset",		0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f},
-	{	SOCK_VECTOR, 0, "Scale",		1.0f, 1.0f, 1.0f, 1.0f, -10.0f, 10.0f},
+	{	SOCK_VECTOR, 1, "Offset",		0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f},
+	{	SOCK_VECTOR, 1, "Scale",		1.0f, 1.0f, 1.0f, 1.0f, -10.0f, 10.0f},
 	{	-1, 0, ""	}
 };
 static bNodeSocketType cmp_node_texture_out[]= {
@@ -2290,7 +2290,7 @@ static bNodeType cmp_node_setalpha= {
 
 /* **************** ALPHAOVER ******************** */
 static bNodeSocketType cmp_node_alphaover_in[]= {
-	{	SOCK_VALUE, 0, "Fac",			1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Fac",			1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
