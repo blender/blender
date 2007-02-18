@@ -35,5 +35,24 @@
 //#define USE_DL_EXPORT
 #include "Python.h"
 
+#ifdef __FreeBSD__
+#include <osreldate.h>
+#if __FreeBSD_version > 500039
+#undef isalnum
+#undef isalpha
+#undef iscntrl
+#undef isdigit
+#undef isgraph
+#undef islower
+#undef isprint
+#undef ispunct
+#undef isspace
+#undef isupper
+#undef isxdigit
+#undef tolower
+#undef toupper
+#endif
+#endif
+
 #endif // KX_PYTHON_H
 
