@@ -49,7 +49,6 @@ ENDIF(WIN32)
 
 ADD_DEPENDENCIES(blenderplayer makesdna)
 
-SETUP_LIBLINKS(blenderplayer)
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
 SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} gp_common gp_ghost blenkernel_blc)
@@ -121,3 +120,4 @@ ELSE(UNIX)
   TARGET_LINK_LIBRARIES(blenderplayer ${BLENDER_LINK_LIBS})
 ENDIF(UNIX)
 
+SETUP_LIBLINKS(blenderplayer)

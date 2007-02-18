@@ -186,7 +186,6 @@ ENDIF(WIN32)
 
 ADD_DEPENDENCIES(blender makesdna)
 
-SETUP_LIBLINKS(blender)
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
 SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} src blender_python blender_render blender_radiosity blender_IK bf_elbeem)
@@ -272,3 +271,4 @@ ELSE(UNIX)
   TARGET_LINK_LIBRARIES(blender ${BLENDER_LINK_LIBS})
 ENDIF(UNIX)
 
+SETUP_LIBLINKS(blender)
