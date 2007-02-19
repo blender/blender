@@ -364,7 +364,7 @@ void brush_sample_tex(Brush *brush, float *xy, float *rgba)
 void brush_imbuf_new(Brush *brush, short flt, short texfall, int size, ImBuf **outbuf)
 {
 	ImBuf *ibuf;
-	float xy[2], dist, rgba[3], *dstf;
+	float xy[2], dist, rgba[4], *dstf;
 	int x, y, rowbytes, xoff, yoff, imbflag;
 	char *dst, crgb[3];
 
