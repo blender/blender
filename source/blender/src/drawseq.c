@@ -1060,6 +1060,8 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		VarStruct *varstr;
 		int a, xco, yco;
 
+		get_sequence_effect(last_seq);/* make sure, plugin is loaded */
+
 		uiDefBut(block, LABEL, 0, "Type: Plugin", 10,50,70,20, 0, 0, 0, 0, 0, "");
 
 		pis= last_seq->plugin;
