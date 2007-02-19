@@ -237,9 +237,9 @@ bool KX_RaySensor::Evaluate(CValue* event)
 
 	result = KX_RayCast::RayTest(spc, physics_environment, frompoint, topoint, resultpoint, resultnormal, KX_RayCast::Callback<KX_RaySensor>(this));
 
-	
 	/* now pass this result to some controller */
-    if (m_rayHit) 
+
+    if (m_rayHit)
 	{
 		if (!m_bTriggered)
 		{
@@ -248,19 +248,23 @@ bool KX_RaySensor::Evaluate(CValue* event)
 			m_bTriggered = true;
 		}
 		else
-		{
-			
-		}
+		  {
+			// notify logicsystem that ray is STILL hitting ...
+			result = false;
+		    
+		  }
 	}
-	else
-	{
+    else
+      {
 		if (m_bTriggered)
 		{
 			m_bTriggered = false;
-			// notify logicsystem that ray is not hitting anymore
+			// notify logicsystem that ray JUST left the Object
 			result = true;
 		}
-	}
+	
+      }
+    
 
 	return result;
 }
