@@ -184,11 +184,38 @@ class PoseBone:
   @type poseMatrix: Matrix object
   @type constraints: BPy_ConstraintSeq
   @ivar constraints: a sequence of constraints for the object
-  @type limitmin: A 3-item sequence
+  @type limitmin: 3-item sequence
   @ivar limitmin: The x,y,z minimum limits on rotation when part of an IK
-  @type limitmax: A 3-item sequence
+  @type limitmax: 3-item sequence
   @ivar limitmax: The x,y,z maximum limits on rotation when part of an IK
 
+  @type ik: bool
+  @ivar ik: True if this pose bone is a part of an IK (readonly), when False, other IK related values have no affect.
+
+  @type stretch: float
+  @ivar stretch: The amount to stretch to the ik target when part of an IK [0.0 - 1.0]
+
+  @type stiffX: float
+  @ivar stiffX: The x stiffness when part of an IK [0.0 - 0.990]
+  @type stiffY: float
+  @ivar stiffY: The x stiffness when part of an IK [0.0 - 0.990]
+  @type stiffZ: float
+  @ivar stiffZ: The x stiffness when part of an IK [0.0 - 0.990]
+  
+  @type limitX: bool
+  @ivar limitX: Limit rotation over X axis when part of an IK.
+  @type limitY: bool
+  @ivar limitY: Limit rotation over Y axis when part of an IK.
+  @type limitZ: bool
+  @ivar limitZ: Limit rotation over Z axis when part of an IK.
+  
+  @type lockXRot: bool
+  @ivar lockXRot: Disable X DoF when part of an IK.
+  @type lockYRot: bool
+  @ivar lockYRot: Disable Y DoF when part of an IK.
+  @type lockZRot: bool
+  @ivar lockZRot: Disable Z DoF when part of an IK.
+  
   """
 
   def insertKey(parentObject, frameNumber, type):

@@ -289,6 +289,8 @@ class Material:
   @type zOffset:  float
   @ivar lightGroup:  Limits lights that affect this material to a group.
   @type lightGroup:  Group or None
+  @ivar uvlayer:  The uv layer name to use, when UV mapping is enabled.
+  @type uvlayer:  string
   @warning: Most member variables assume values in some [Min, Max] interval.
    When trying to set them, the given parameter will be clamped to lie in
    that range: if val < Min, then val = Min, if val > Max, then val = Max.

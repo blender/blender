@@ -32,6 +32,7 @@
 #include "MTex.h" /*This must come first*/
 
 #include "BKE_utildefines.h"
+#include "BLI_blenlib.h"
 #include "Texture.h"
 #include "Object.h"
 #include "gen_utils.h"
@@ -78,6 +79,7 @@ static PyObject *MTex_repr( BPy_MTex * self );
 MTEXGETSET(Tex)
 MTEXGETSET(TexCo)
 MTEXGETSET(Object)
+MTEXGETSET(UVLayer)
 MTEXGETSET(MapTo)
 MTEXGETSET(Col)
 MTEXGETSET(DVar)
@@ -107,6 +109,8 @@ static PyGetSetDef MTex_getseters[] = {
 		"Texture coordinate space (UV, Global, etc.)", NULL },
 	{ "object", (getter) MTex_getObject, (setter) MTex_setObject,
 		"Object whose space to use when texco is Object", NULL },
+	{ "uvlayer", (getter) MTex_getUVLayer, (setter) MTex_setUVLayer,
+		"Name of the UV layer to use", NULL },
 	{ "mapto", (getter) MTex_getMapTo, (setter) MTex_setMapTo,
 		"What values the texture affects", NULL },
 	{ "col", (getter) MTex_getCol, (setter) MTex_setCol,
@@ -413,6 +417,20 @@ static int MTex_setObject( BPy_MTex *self, PyObject *value, void *closure)
 	if( self->mtex->object )
 		self->mtex->object->id.us++;
 
+	return 0;
+}
+
+static PyObject *MTex_getUVLayer( BPy_MTex *self, void *closure )
+{
+	return PyString_FromString(self->mtex->uvname);
+}
+
+static int MTex_setUVLayer( BPy_MTex *self, PyObject *value, void *closure)
+{
+	if ( !PyString_Check(value) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					    "expected string value" );
+	BLI_strncpy(self->mtex->uvname, PyString_AsString(value), 31);
 	return 0;
 }
 

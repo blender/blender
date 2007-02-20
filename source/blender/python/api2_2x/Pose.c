@@ -938,7 +938,7 @@ static int PoseBone_setSelect(BPy_PoseBone *self, PyObject *value, void *closure
 
 
 //------------------------PoseBone.parent (getter)
-//Gets the pose bones selection
+//Gets the bones parent if any
 static PyObject *PoseBone_getParent(BPy_PoseBone *self, void *closure)
 {
 	if (self->posechannel->parent)
@@ -948,7 +948,7 @@ static PyObject *PoseBone_getParent(BPy_PoseBone *self, void *closure)
 }
 
 //------------------------PoseBone.displayObject (getter)
-//Gets the pose bones selection
+//Gets the pose bones object used for display
 static PyObject *PoseBone_getDisplayObject(BPy_PoseBone *self, void *closure)
 {
 	if (self->posechannel->custom)
@@ -958,7 +958,7 @@ static PyObject *PoseBone_getDisplayObject(BPy_PoseBone *self, void *closure)
 }
 
 //------------------------PoseBone.displayObject (setter)
-//Gets the pose bones selection
+//Sets the pose bones object used for display
 static int PoseBone_setDisplayObject(BPy_PoseBone *self, PyObject *value, void *closure)
 {
 	if (value == Py_None) {
@@ -970,6 +970,115 @@ static int PoseBone_setDisplayObject(BPy_PoseBone *self, PyObject *value, void *
 	}
 	return 0;
 }
+
+//------------------------PoseBone.ik (getter)
+//Returns True/False if the bone has IK's
+static PyObject *PoseBone_getIK(BPy_PoseBone *self, void *closure)
+{
+	Object *obj = NULL;
+	
+	obj = Object_FromPoseChannel(self->posechannel);
+	if (obj==NULL)
+		Py_RETURN_FALSE;
+	
+	if( pose_channel_in_IK_chain(obj, self->posechannel) )
+		Py_RETURN_TRUE;
+	
+	Py_RETURN_FALSE;
+}
+
+//------------------------PoseBone.stretch (getter)
+//Gets the pose bones IK Stretch value
+static PyObject *PoseBone_getStretch(BPy_PoseBone *self, void *closure)
+{
+	return PyFloat_FromDouble( self->posechannel->ikstretch );
+}
+
+//------------------------PoseBone.stretch (setter)
+//Sets the pose bones IK Stretch value
+static int PoseBone_setStretch(BPy_PoseBone *self, PyObject *value, void *closure)
+{
+	float ikstretch;
+	
+	if( !PyNumber_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected float argument" );
+	
+	ikstretch = PyFloat_AsDouble(value);
+	if (ikstretch<0) ikstretch = 0.0;
+	if (ikstretch>1) ikstretch = 1.0;
+	self->posechannel->ikstretch = ikstretch;
+	return 0;
+}
+
+//------------------------PoseBone.stiffX/Y/Z (getter)
+//Gets the pose bones IK stiffness
+static PyObject *PoseBone_getStiff(BPy_PoseBone *self, void *axis)
+{
+	return PyFloat_FromDouble( self->posechannel->stiffness[(int)axis] );
+}
+
+//------------------------PoseBone.stiffX/Y/Z (setter)
+//Sets the pose bones IK stiffness
+static int PoseBone_setStiff(BPy_PoseBone *self, PyObject *value, void *axis)
+{
+	float stiff;
+	
+	if( !PyNumber_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected float argument" );
+	
+	stiff = PyFloat_AsDouble(value);
+	if (stiff<0) stiff = 0;
+	if (stiff>0.990) stiff = 0.990;
+	self->posechannel->stiffness[(int)axis] = stiff;
+	return 0;
+}
+
+//------------------------PoseBone.* (getter)
+//Gets the pose bones flag
+static PyObject *PoseBone_getFlag(BPy_PoseBone *self, void *flag)
+{
+	if (self->posechannel->ikflag & (int)flag)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+		
+}
+
+//------------------------PoseBone.* (setter)
+//Gets the pose bones flag
+static int PoseBone_setFlag(BPy_PoseBone *self, PyObject *value, void *flag)
+{
+	if ( PyObject_IsTrue(value) )
+		self->posechannel->ikflag |= (int)flag;
+	else
+		self->posechannel->ikflag &= ~(int)flag;
+	return 0;
+}
+
+//------------------------PoseBone.* (getter)
+//Gets the pose bones ikflag
+static PyObject *PoseBone_getIKFlag(BPy_PoseBone *self, void *flag)
+{
+	if (self->posechannel->ikflag & (int)flag)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+		
+}
+
+//------------------------PoseBone.* (setter)
+//Sets the pose bones ikflag
+static int PoseBone_setIKFlag(BPy_PoseBone *self, PyObject *value, void *flag)
+{
+	if ( PyObject_IsTrue(value) )
+		self->posechannel->ikflag |= (int)flag;
+	else
+		self->posechannel->ikflag &= ~(int)flag;
+	return 0;
+}
+
 
 //------------------TYPE_OBECT IMPLEMENTATION---------------------------
 //------------------------tp_getset
@@ -1003,6 +1112,34 @@ static PyGetSetDef BPy_PoseBone_getset[] = {
 		"The bones parent (read only for posebones)", NULL},
 	{"displayObject", (getter)PoseBone_getDisplayObject, (setter)PoseBone_setDisplayObject, 
 		"The poseMode object to draw in place of this bone", NULL},
+	
+	{"ik", (getter)PoseBone_getIK, (setter)NULL, 
+		"True if the pose bone has IK (readonly)", NULL },
+	
+	{"stretch", (getter)PoseBone_getStretch, (setter)PoseBone_setStretch, 
+		"Stretch the bone to the IK Target", NULL },
+		
+	{"stiffX", (getter)PoseBone_getStiff, (setter)PoseBone_setStiff, 
+		"bones stiffness on the X axis", (void *)0 },
+	{"stiffY", (getter)PoseBone_getStiff, (setter)PoseBone_setStiff, 
+		"bones stiffness on the Y axis", (void *)1 },
+	{"stiffZ", (getter)PoseBone_getStiff, (setter)PoseBone_setStiff, 
+		"bones stiffness on the Z axis", (void *)2 },
+		
+	{"limitX", (getter)PoseBone_getIKFlag, (setter)PoseBone_setIKFlag, 
+		"limit rotation over X axis when part of an IK", (void *)BONE_IK_XLIMIT },
+	{"limitY", (getter)PoseBone_getIKFlag, (setter)PoseBone_setIKFlag, 
+		"limit rotation over Y axis when part of an IK", (void *)BONE_IK_YLIMIT },
+	{"limitZ", (getter)PoseBone_getIKFlag, (setter)PoseBone_setIKFlag, 
+		"limit rotation over Z axis when part of an IK", (void *)BONE_IK_ZLIMIT },
+	
+	{"lockXRot", (getter)PoseBone_getIKFlag, (setter)PoseBone_setIKFlag,
+		"disable X DoF when part of an IK", (void *)BONE_IK_NO_XDOF },
+	{"lockYRot", (getter)PoseBone_getIKFlag, (setter)PoseBone_setIKFlag, 
+		"disable Y DoF when part of an IK", (void *)BONE_IK_NO_YDOF },
+	{"lockZRot", (getter)PoseBone_getIKFlag, (setter)PoseBone_setIKFlag,
+		"disable Z DoF when part of an IK", (void *)BONE_IK_NO_ZDOF },
+	
 	{NULL, NULL, NULL, NULL, NULL}
 };
 //------------------------tp_dealloc
