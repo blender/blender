@@ -56,7 +56,7 @@ Example::
 @var ParentTypes: Constant dict used for with L{Object.parentType} attribute.
       - OBJECT: Object parent type.
       - CURVE: Curve deform parent type.
-      - LATTICE: Lattice deform parent type.
+      - LATTICE: Lattice deform parent type. Note: This is the same as ARMATURE, 2.43 was released with LATTICE as an invalid value.
       - ARMATURE: Armature deform parent type.
       - VERT1: 1 mesh vert parent type.
       - VERT3: 1 mesh verts parent type.

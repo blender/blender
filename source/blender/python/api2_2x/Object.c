@@ -5351,7 +5351,11 @@ static PyObject *M_Object_ParentTypesDict( void )
 		BPy_constant *d = ( BPy_constant * ) M;
 		PyConstant_Insert( d, "OBJECT", PyInt_FromLong( PAROBJECT ) );
 		PyConstant_Insert( d, "CURVE", PyInt_FromLong( PARCURVE ) );
-		PyConstant_Insert( d, "LATTICE", PyInt_FromLong( PARKEY ) );
+		
+		/*	2.43 was released as LATTICE as PARKEY, my bad,
+			lattice uses PARSKEL also - Campbell */
+		PyConstant_Insert( d, "LATTICE", PyInt_FromLong( PARSKEL ) ); 
+		
 		PyConstant_Insert( d, "ARMATURE", PyInt_FromLong( PARSKEL ) );
 		PyConstant_Insert( d, "VERT1", PyInt_FromLong( PARVERT1 ) );
 		PyConstant_Insert( d, "VERT3", PyInt_FromLong( PARVERT3 ) );
