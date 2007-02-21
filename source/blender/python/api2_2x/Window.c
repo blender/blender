@@ -363,7 +363,6 @@ struct PyMethodDef M_Window_methods[] = {
 PyObject *M_Window_Redraw( PyObject * self, PyObject * args )
 {
 	ScrArea *tempsa, *sa;
-	SpaceText *st;
 	int wintype = SPACE_VIEW3D;
 	short redraw_all = 0;
 

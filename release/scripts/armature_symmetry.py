@@ -3,8 +3,8 @@
 """
 Name: 'Armature Symmetry'
 Blender: 242
-Group: 'Animation'
-Tooltip: 'Make an Armature symetrical'
+Group: 'Armature'
+Tooltip: 'Make an Armature symmetrical'
 """
 
 __author__ = "Campbell Barton"

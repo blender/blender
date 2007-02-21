@@ -105,6 +105,10 @@ static int bpymenu_group_atoi( char *str )
 		return PYMENU_VERTEXPAINT;
 	else if( !strcmp( str, "UVCalculation" ) )
 		return PYMENU_UVCALCULATION;
+	else if( !strcmp( str, "Armature" ) )
+		return PYMENU_ARMATURE;
+	else if( !strcmp( str, "ScriptTemplate" ) )
+		return PYMENU_SCRIPTTEMPLATE;
 	/* "Misc" or an inexistent group name: use misc */
 	else
 		return PYMENU_MISC;
@@ -173,6 +177,12 @@ char *BPyMenu_group_itoa( short menugroup )
 	case PYMENU_UVCALCULATION:
 		return "UVCalculation";
 		break;
+	case PYMENU_ARMATURE:
+		return "Armature";
+		break;
+	case PYMENU_SCRIPTTEMPLATE:
+		return "ScriptTemplate";
+		break;	
 	case PYMENU_MISC:
 		return "Misc";
 		break;

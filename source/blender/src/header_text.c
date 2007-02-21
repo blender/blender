@@ -67,6 +67,7 @@
 #include "BSE_filesel.h"
 
 #include "BPY_extern.h"
+#include "BPY_menus.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -195,6 +196,37 @@ void do_text_buttons(unsigned short event)
 		allqueue(REDRAWHEADERS, 0);
 		break;
 	}
+}
+
+static void do_text_template_scriptsmenu(void *arg, int event)
+{
+	BPY_menu_do_python(PYMENU_SCRIPTTEMPLATE, event);
+	
+	allqueue(REDRAWIMAGE, 0);
+}
+
+static uiBlock *text_template_scriptsmenu (void *args_unused)
+{
+	uiBlock *block;
+	BPyMenu *pym;
+	int i= 0;
+	short yco = 20, menuwidth = 120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "text_template_scriptsmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_text_template_scriptsmenu, NULL);
+	
+	/* note that we acount for the N previous entries with i+20: */
+	for (pym = BPyMenuTable[PYMENU_SCRIPTTEMPLATE]; pym; pym = pym->next, i++) {
+		
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, 
+						 NULL, 0.0, 0.0, 1, i, 
+						 pym->tooltip?pym->tooltip:pym->filename);
+	}
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
 }
 
 /* action executed after clicking in File menu */
@@ -577,13 +609,15 @@ static uiBlock *text_filemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "New|Alt N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|Alt O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	if(text) {
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reopen|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reopen|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save As...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Run Python Script|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	}
+	
+	uiDefIconTextBlockBut(block, text_template_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Script Templates", 0, yco-=20, 120, 19, "");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

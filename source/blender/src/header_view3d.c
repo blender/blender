@@ -3576,6 +3576,40 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
+
+
+static void do_view3d_scripts_armaturemenu(void *arg, int event)
+{
+	BPY_menu_do_python(PYMENU_SCRIPTTEMPLATE, event);
+	
+	allqueue(REDRAWIMAGE, 0);
+}
+
+static uiBlock *view3d_scripts_armaturemenu(void *args_unused)
+{
+	uiBlock *block;
+	BPyMenu *pym;
+	int i= 0;
+	short yco = 20, menuwidth = 120;
+	
+	block= uiNewBlock(&curarea->uiblocks, "view3d_scripts_armaturemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_scripts_armaturemenu, NULL);
+	
+	/* note that we acount for the N previous entries with i+20: */
+	for (pym = BPyMenuTable[PYMENU_ARMATURE]; pym; pym = pym->next, i++) {
+		
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, 
+						 NULL, 0.0, 0.0, 1, i, 
+						 pym->tooltip?pym->tooltip:pym->filename);
+	}
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	
+	return block;
+}
+
+
 static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 {
 	bArmature *arm= G.obedit->data;
@@ -3613,7 +3647,11 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBlockBut(block, view3d_edit_armature_parentmenu, NULL, ICON_RIGHTARROW_THIN, "Parent", 0, yco-=20, 120, 19, "");
-
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBlockBut(block, view3d_scripts_armaturemenu, NULL, ICON_RIGHTARROW_THIN, "Scripts", 0, yco-=20, 120, 19, "");
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
