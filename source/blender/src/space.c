@@ -2611,7 +2611,9 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case CKEY:
-			if (G.qual==0)
+			if (G.qual == LR_SHIFTKEY)
+				center_currframe();
+			else
 				move_to_frame();
 			break;
 		case DKEY:
