@@ -760,6 +760,7 @@ int BPY_menu_do_python( short menutype, int event )
 	case PYMENU_HELP:
 	case PYMENU_RENDER:
 	case PYMENU_WIZARDS:
+	case PYMENU_SCRIPTTEMPLATE:
 		break;
 
 	default:

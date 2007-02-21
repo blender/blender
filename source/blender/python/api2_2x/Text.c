@@ -538,7 +538,6 @@ static PyObject *Text_asLines( BPy_Text * self )
 
 static PyObject *Text_makeCurrent( BPy_Text * self )
 {
-	/*
 	SpaceText *st= curarea->spacedata.first;
 	
 	if( !self->text )
@@ -549,7 +548,6 @@ static PyObject *Text_makeCurrent( BPy_Text * self )
 		Py_RETURN_NONE;
 	
 	st->text = self->text;
-	*/
 	Py_RETURN_NONE;
 }
 
