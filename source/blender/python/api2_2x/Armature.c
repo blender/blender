@@ -511,7 +511,7 @@ static PyObject *Armature_copy(BPy_Armature *self)
 	bArmature *bl_armature;
 	bl_armature= copy_armature(self->armature);
 	bl_armature->id.us= 0;
-	py_armature= PyArmature_FromArmature( bl_armature );
+	py_armature= Armature_CreatePyObject( bl_armature );
 	return py_armature;
 }
 
@@ -1225,7 +1225,7 @@ static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 		if(size == 0){	//GET ALL ARMATURES
 			data = G.main->armature.first; //get the first data ID from the armature library
 			while (data){
-				py_armature = PyArmature_FromArmature(data); //*new*
+				py_armature = Armature_CreatePyObject(data); //*new*
 				sprintf(buffer, "%s", ((bArmature*)data)->id.name +2);
 				if(PyDict_SetItemString(dict, buffer, py_armature) == -1){ //add to dictionary
 					EXPP_decr3(seq, dict, py_armature);
@@ -1242,7 +1242,7 @@ static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 				Py_DECREF(item);
 				data = find_id("AR", name); //get data from library
 				if (data != NULL){
-					py_armature = PyArmature_FromArmature(data); //*new*
+					py_armature = Armature_CreatePyObject(data); //*new*
 					if(PyDict_SetItemString(dict, name, py_armature) == -1){ //add to dictionary
 						EXPP_decr3(seq, dict, py_armature);
 						goto RuntimeError;
@@ -1270,7 +1270,7 @@ static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 		Py_DECREF(seq);
 		data = find_id("AR", name); //get data from library
 		if (data != NULL){
-			return PyArmature_FromArmature(data); //*new*
+			return Armature_CreatePyObject(data); //*new*
 		}else{
 			char buffer[128];
 			PyOS_snprintf( buffer, sizeof(buffer),
@@ -1304,7 +1304,7 @@ static PyObject *M_Armature_New(PyObject * self, PyObject * args)
 
 	armature= add_armature();
 	armature->id.us = 0;
-	obj = (BPy_Armature *)PyArmature_FromArmature(armature); /*new*/
+	obj = (BPy_Armature *)Armature_CreatePyObject(armature); /*new*/
 
 	if( !obj )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -1345,7 +1345,7 @@ PyObject *Armature_RebuildBones(PyObject *pyarmature)
 }
 //-----------------(internal)
 //Converts a bArmature to a PyArmature
-PyObject *PyArmature_FromArmature(struct bArmature *armature)
+PyObject *Armature_CreatePyObject(struct bArmature *armature)
 {
 	BPy_Armature *py_armature = NULL;
 	PyObject *maindict = NULL, *weakref = NULL;
@@ -1384,7 +1384,7 @@ PyObject *PyArmature_FromArmature(struct bArmature *armature)
 
 RuntimeError:
 	return EXPP_objError(PyExc_RuntimeError, "%s%s%s", 
-		sModuleError, "PyArmature_FromArmature: ", "Internal Error Ocurred");
+		sModuleError, "Armature_CreatePyObject: ", "Internal Error Ocurred");
 }
 //-----------------(internal)
 //Converts a PyArmature to a bArmature

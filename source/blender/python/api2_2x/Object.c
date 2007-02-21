@@ -4582,7 +4582,7 @@ static PyObject *get_obj_data( BPy_Object *self, int mesh )
 
 	switch ( object->type ) {
 	case OB_ARMATURE:
-		data_object = PyArmature_FromArmature( object->data );
+		data_object = Armature_CreatePyObject( object->data );
 		break;
 	case OB_CAMERA:
 		data_object = Camera_CreatePyObject( object->data );

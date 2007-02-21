@@ -971,9 +971,9 @@ static int PoseBone_setDisplayObject(BPy_PoseBone *self, PyObject *value, void *
 	return 0;
 }
 
-//------------------------PoseBone.ik (getter)
+//------------------------PoseBone.hasIK (getter)
 //Returns True/False if the bone has IK's
-static PyObject *PoseBone_getIK(BPy_PoseBone *self, void *closure)
+static PyObject *PoseBone_hasIK(BPy_PoseBone *self, void *closure)
 {
 	Object *obj = NULL;
 	
@@ -1037,25 +1037,29 @@ static int PoseBone_setStiff(BPy_PoseBone *self, PyObject *value, void *axis)
 
 //------------------------PoseBone.* (getter)
 //Gets the pose bones flag
+/*
 static PyObject *PoseBone_getFlag(BPy_PoseBone *self, void *flag)
 {
-	if (self->posechannel->ikflag & (int)flag)
+	if (self->posechannel->flag & (int)flag)
 		Py_RETURN_TRUE;
 	else
 		Py_RETURN_FALSE;
 		
 }
+*/
 
 //------------------------PoseBone.* (setter)
 //Gets the pose bones flag
+/*
 static int PoseBone_setFlag(BPy_PoseBone *self, PyObject *value, void *flag)
 {
 	if ( PyObject_IsTrue(value) )
-		self->posechannel->ikflag |= (int)flag;
+		self->posechannel->flag |= (int)flag;
 	else
-		self->posechannel->ikflag &= ~(int)flag;
+		self->posechannel->flag &= ~(int)flag;
 	return 0;
 }
+*/
 
 //------------------------PoseBone.* (getter)
 //Gets the pose bones ikflag
@@ -1113,7 +1117,7 @@ static PyGetSetDef BPy_PoseBone_getset[] = {
 	{"displayObject", (getter)PoseBone_getDisplayObject, (setter)PoseBone_setDisplayObject, 
 		"The poseMode object to draw in place of this bone", NULL},
 	
-	{"ik", (getter)PoseBone_getIK, (setter)NULL, 
+	{"hasIK", (getter)PoseBone_hasIK, (setter)NULL, 
 		"True if the pose bone has IK (readonly)", NULL },
 	
 	{"stretch", (getter)PoseBone_getStretch, (setter)PoseBone_setStretch, 

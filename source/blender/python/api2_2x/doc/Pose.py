@@ -189,8 +189,8 @@ class PoseBone:
   @type limitmax: 3-item sequence
   @ivar limitmax: The x,y,z maximum limits on rotation when part of an IK
 
-  @type ik: bool
-  @ivar ik: True if this pose bone is a part of an IK (readonly), when False, other IK related values have no affect.
+  @type hasIK: bool
+  @ivar hasIK: True if this pose bone is a part of an IK (readonly), when False, other IK related values have no affect.
 
   @type stretch: float
   @ivar stretch: The amount to stretch to the ik target when part of an IK [0.0 - 1.0]
