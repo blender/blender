@@ -759,13 +759,27 @@ void BLI_makestringcode(const char *relfile, char *file)
 	/* also bail out if relative path is not set */
 	if (relfile[0] == 0) return;
 
-	strcpy(temp, relfile);
-	
-#ifdef WIN32
+#ifdef WIN32 
+	if (strlen(relfile) > 2 && relfile[1] != ':') {
+		char* ptemp;
+		/* fix missing volume name in relative base,
+		   can happen with old .Blog files */
+		get_default_root(temp);
+		ptemp = &temp[2];
+		if (relfile[0] != '\\' && relfile[0] != '/') {
+			ptemp++;
+		}
+		BLI_strncpy(ptemp, relfile, FILE_MAXDIR + FILE_MAXFILE-3);
+	} else {
+		BLI_strncpy(temp, relfile, FILE_MAXDIR + FILE_MAXFILE);
+	}
+
 	if (strlen(file) > 2) {
 		if ( temp[1] == ':' && file[1] == ':' && temp[0] != file[0] )
 			return;
 	}
+#else
+	BLI_strncpy(temp, relfile, FILE_MAX);
 #endif
 
 	BLI_char_switch(temp, '\\', '/');
