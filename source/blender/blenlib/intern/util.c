@@ -50,6 +50,8 @@
 #include "BLI_dynamiclist.h"
 
 #include "BLI_util.h"
+#include "BKE_utildefines.h"
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -73,16 +75,6 @@
 #ifdef __APPLE__
 #include <sys/param.h>
 #include <CoreFoundation/CoreFoundation.h>
-#endif
-
-
-// copies from BKE_utildefines
-#ifndef FILE_MAXDIR
-#define FILE_MAXDIR  160
-#endif
-
-#ifndef FILE_MAXFILE
-#define FILE_MAXFILE 80
 #endif
 
 /* local */
