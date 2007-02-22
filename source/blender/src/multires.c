@@ -1600,9 +1600,9 @@ void multires_edge_level_update(void *ob, void *me_v)
 			const int ndx= me->pv ? me->pv->edge_map[i] : i;
 			if(ndx != -1) { /* -1= hidden edge */
 				if(me->mr->edgelvl >= me->mr->current || i<threshold)
-					me->medge[ndx].flag |= ME_EDGEDRAW;
+					me->medge[ndx].flag |= ME_EDGEDRAW | ME_EDGERENDER;
 				else
-					me->medge[ndx].flag &= ~ME_EDGEDRAW;
+					me->medge[ndx].flag &= ~ME_EDGEDRAW | ~ME_EDGERENDER;
 			}
 		}
 		
