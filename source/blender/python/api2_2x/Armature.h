@@ -60,7 +60,7 @@ typedef struct {
 } BPy_Armature;
 
 //-------------------VISIBLE PROTOTYPES-------------------------
-PyObject *PyArmature_FromArmature(struct bArmature *armature);
+PyObject *Armature_CreatePyObject(struct bArmature *armature);
 struct bArmature *PyArmature_AsArmature(BPy_Armature *py_armature);
 PyObject * Armature_RebuildEditbones(PyObject *pyarmature);
 PyObject *Armature_RebuildBones(PyObject *pyarmature);
