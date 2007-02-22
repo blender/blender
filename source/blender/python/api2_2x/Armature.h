@@ -67,6 +67,5 @@ PyObject *Armature_RebuildBones(PyObject *pyarmature);
 
 int Armature_CheckPyObject( PyObject * pyobj );
 struct bArmature  *Armature_FromPyObject( PyObject * py_obj );
-PyObject *Armature_CreatePyObject(struct bArmature *armature);
 
 #endif				
