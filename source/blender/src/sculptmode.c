@@ -1005,13 +1005,20 @@ unsigned *get_ri_pixel(const RenderInfo *ri, int px, int py)
 	return ri->rect + py * ri->pr_rectx + px;
 }
 
-/* Use the warpfac field in MTex to store a rotation value for sculpt textures. */
-float *get_tex_angle(void)
+/* Use the warpfac field in MTex to store a rotation value for sculpt textures. Value is in degrees */
+float tex_angle(void)
 {
 	SculptData *sd= sculpt_data();
 	if(sd->texact!=-1 && sd->mtex[sd->texact])
-		return &sd->mtex[sd->texact]->warpfac;
-	return NULL;
+		return sd->mtex[sd->texact]->warpfac;
+	return 0;
+}
+
+void set_tex_angle(const float f)
+{
+	SculptData *sd = sculpt_data();
+	if(sd->texact != -1 && sd->mtex[sd->texact])
+		sd->mtex[sd->texact]->warpfac = f;
 }
 	
 float to_rad(const float deg)
@@ -1054,8 +1061,7 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 	else if(ss->texrndr) {
 		const short bsize= sculptmode_brush()->size * 2;
 		const short half= sculptmode_brush()->size;
-		const float *ang= get_tex_angle();
-		const float rot= ang?to_rad(*ang):0.0f;
+		const float rot= to_rad(tex_angle());
 		int px, py;
 		unsigned i, *p;
 		RenderInfo *ri= ss->texrndr;
@@ -1099,7 +1105,7 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 			float fx= (pv.co[0] - e->mouse[0] + half) * (ri->pr_rectx*1.0f/bsize) - ri->pr_rectx/2;
 			float fy= (pv.co[1] - e->mouse[1] + half) * (ri->pr_recty*1.0f/bsize) - ri->pr_recty/2;
 			
-			float angle= atan2(fy, fx) + rot;
+			float angle= atan2(fy, fx) - rot;
 			float len= sqrtf(fx*fx + fy*fy);
 			
 			px= ri->pr_rectx/2 + len * cos(angle);
@@ -1515,9 +1521,8 @@ void sculptmode_propset_header()
 			val= sculptmode_brush()->strength;
 		}
 		else if(pd->mode == PropsetTexRot) {
-			float *ang= get_tex_angle();
 			name= "Texture Angle";
-			val= ang?*get_tex_angle():0.0f;
+			val= tex_angle();
 		}
 		sprintf(str, "Brush %s: %d", name, val);
 		headerprint(str);
@@ -1528,19 +1533,18 @@ void sculptmode_propset_end(int cancel)
 {
 	SculptSession *ss= sculpt_session();
 	PropsetData *pd= ss ? ss->propset : NULL;
-	float *ang= get_tex_angle();
 	if(pd) {
 		if(cancel) {
 			sculptmode_brush()->size= pd->origsize;
 			sculptmode_brush()->strength= pd->origstrength;
-			if(ang) *ang= pd->origtexrot;
+			set_tex_angle(pd->origtexrot);
 		} else {	
 			if(pd->mode != PropsetSize)
 				sculptmode_brush()->size= pd->origsize;
 			if(pd->mode != PropsetStrength)
 				sculptmode_brush()->strength= pd->origstrength;
 			if(pd->mode != PropsetTexRot)
-				if(ang) *ang= pd->origtexrot;
+				set_tex_angle(pd->origtexrot);
 		}
 		glDeleteTextures(1, &pd->tex);
 		MEM_freeN(pd->texdata);
@@ -1555,12 +1559,10 @@ void sculptmode_propset_init(PropsetMode mode)
 {
 	SculptSession *ss= sculpt_session();
 	PropsetData *pd= ss->propset;
-	float *ang= get_tex_angle();
+	const float ang= tex_angle();
 	
 	if(!pd) {
 		short mouse[2];
-		
-		if(mode == PropsetTexRot && !ang) return;
 		
 		pd= MEM_callocN(sizeof(PropsetData),"PropsetSize");
 		ss->propset= pd;
@@ -1574,14 +1576,13 @@ void sculptmode_propset_init(PropsetMode mode)
 		else if(mode == PropsetStrength)
 			pd->origloc[0]-= 200 - 2*sculptmode_brush()->strength;
 		else if(mode == PropsetTexRot) {
-			pd->origloc[0]-= 200 * cos(to_rad(*ang));
-			pd->origloc[1]-= 200 * sin(to_rad(*ang));
+			pd->origloc[0]-= 200 * cos(to_rad(ang));
+			pd->origloc[1]-= 200 * sin(to_rad(ang));
 		}
 		
 		pd->origsize= sculptmode_brush()->size;
 		pd->origstrength= sculptmode_brush()->strength;
-		if(ang)
-			pd->origtexrot= *ang;
+		pd->origtexrot= ang;
 		
 		sculptmode_propset_calctex();
 		
@@ -1622,7 +1623,6 @@ void sculptmode_propset(unsigned short event)
 	float dist;
 	BrushData *brush= sculptmode_brush();
 	char valset= 0;
-	float *ang= get_tex_angle();
 	
 	handleNumInput(&pd->num, event);
 	
@@ -1634,7 +1634,7 @@ void sculptmode_propset(unsigned short event)
 		else if(pd->mode==PropsetStrength)
 			brush->strength= val;
 		else if(pd->mode==PropsetTexRot)
-			*ang= val;
+			set_tex_angle(val);
 		valset= 1;
 		allqueue(REDRAWVIEW3D, 0);
 	}
@@ -1656,8 +1656,9 @@ void sculptmode_propset(unsigned short event)
 				brush->strength= fin>=0 ? fin : 0;
 				if(ctrl) brush->strength= (brush->strength+5)/10*10;
 			} else if(pd->mode == PropsetTexRot) {
-				*ang= (int)to_deg(atan2(tmp[1], tmp[0])) + 180;
-				if(ctrl) *ang= ((int)(*ang)+5)/10*10;
+				set_tex_angle((int)to_deg(atan2(tmp[1], tmp[0])) + 180);
+				if(ctrl)
+					set_tex_angle(((int)(tex_angle())+5)/10*10);
 			}
 			valset= 1;
 			allqueue(REDRAWVIEW3D, 0);
@@ -1667,7 +1668,7 @@ void sculptmode_propset(unsigned short event)
 	case RIGHTMOUSE:
 		brush->size= pd->origsize;
 		brush->strength= pd->origstrength;
-		if(ang) *ang= pd->origtexrot;
+		set_tex_angle(pd->origtexrot);
 	case LEFTMOUSE:
 		while(get_mbut()==L_MOUSE);
 	case RETKEY:
@@ -1688,8 +1689,10 @@ void sculptmode_propset(unsigned short event)
 			sculptmode_propset_calctex();
 		}
 		else if(pd->mode == PropsetTexRot) {
-			if(*ang<0) *ang= 0;
-			if(*ang>360) *ang= 360;
+			if(tex_angle() < 0)
+				set_tex_angle(0);
+			else if(tex_angle() > 360)
+				set_tex_angle(360);
 		}
 	}
 	

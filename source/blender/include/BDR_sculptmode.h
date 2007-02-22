@@ -121,7 +121,7 @@ void sculptmode_draw_mesh(int);
 void sculpt_paint_brush(char clear);
 
 struct BrushData *sculptmode_brush(void);
-float *get_tex_angle(void);
+float tex_angle(void);
 
 void sculptmode_update_tex(void);
 char sculpt_modifiers_active(struct Object *ob);
