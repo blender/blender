@@ -1892,6 +1892,7 @@ void new_image_sima(void)
 		return;
 
 	G.sima->image= BKE_add_image_size(width, height, name, uvtestgrid);
+	BKE_image_signal(G.sima->image, &G.sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
 	image_changed(G.sima, 0);
 
 	BIF_undo_push("Add image");
