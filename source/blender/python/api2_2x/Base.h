@@ -25,28 +25,31 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Campbell Barton
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_TEXT_H
-#define EXPP_TEXT_H
+#ifndef EXPP_BASE_H
+#define EXPP_BASE_H
 
 #include <Python.h>
-#include "DNA_text_types.h"
 
-extern PyTypeObject Text_Type;
+/* The Base PyType Object defined in Base.c */
+extern PyTypeObject BaseSeq_Type;
 
-/* Type checking for EXPP PyTypes */
-#define BPy_Text_Check(v)       ((v)->ob_type == &Text_Type)
+#define BPy_BaseSeq_Check(v) \
+    ((v)->ob_type == &BaseSeq_Type)
 
+/* Base sequence, iterate on the libdatas listbase*/
 typedef struct {
-	PyObject_HEAD
-	Text * text;
-} BPy_Text;
+	PyObject_VAR_HEAD /* required python macro   */
+	Link *iter; /* so we can iterate over the listbase */
+	
+	short type; /* store the ID type such as ID_ME */
+} BPy_BaseSeq;
 
-PyObject *Text_Init( void );
-PyObject *Text_CreatePyObject( Text * txt );
 
-#endif				/* EXPP_TEXT_H */
+PyObject *Base_Init( void );
+
+#endif				/* EXPP_BASE_H */

@@ -92,6 +92,7 @@ struct ID; /*keep me up here */
 #include "Window.h"
 #include "World.h"
 #include "Types.h"
+#include "Base.h"
 
 //for the removefakeuser hack
 #include "NLA.h" /*This must come first*/
@@ -1018,5 +1019,6 @@ void M_Blender_Init(void)
 	PyDict_SetItemString(dict, "Texture", Texture_Init());
 	PyDict_SetItemString(dict, "Window", Window_Init());
 	PyDict_SetItemString(dict, "World", World_Init());
+	PyDict_SetItemString(dict, "Base", Base_Init());
 
 }

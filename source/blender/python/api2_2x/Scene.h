@@ -64,7 +64,7 @@ typedef struct {
 
 
 PyObject *Scene_Init( void );
-PyObject *Scene_CreatePyObject( Scene * cam );
+PyObject *Scene_CreatePyObject( Scene * scene );
 /*Scene *Scene_FromPyObject( PyObject * pyobj );*/  /* not used yet */
 int Scene_CheckPyObject( PyObject * pyobj );
 Scene *GetSceneByName( char *name );

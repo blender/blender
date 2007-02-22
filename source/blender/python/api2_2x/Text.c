@@ -90,14 +90,6 @@ struct PyMethodDef M_Text_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-/*****************************************************************************/
-/* Python BPy_Text structure definition:                                     */
-/*****************************************************************************/
-typedef struct {
-	PyObject_HEAD Text * text;
-
-} BPy_Text;
-
 static int Text_IsLinked( BPy_Text * self );
 
 /*****************************************************************************/
