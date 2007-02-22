@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus:
 Name: 'AC3D (.ac)...'
-Blender: 242
+Blender: 243
 Group: 'Import'
 Tip: 'Import an AC3D (.ac) file.'
 """
@@ -10,7 +10,7 @@ Tip: 'Import an AC3D (.ac) file.'
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "elysiun", "AC3D's homepage, http://www.ac3d.org",
 	"PLib 3d gaming lib, http://plib.sf.net")
-__version__ = "2.43 2007-02-12"
+__version__ = "2.43.1 2007-02-21"
 
 __bpydoc__ = """\
 This script imports AC3D models into Blender.
@@ -29,6 +29,8 @@ Known issues:<br>
     - Some objects may be imported with wrong normals due to wrong information in the model itself. This can be noticed by strange shading, like darker than expected parts in the model. To fix this, select the mesh with wrong normals, enter edit mode and tell Blender to recalculate the normals, either to make them point outside (the usual case) or inside.<br>
  
 Config Options:<br>
+    - display transp (toggle): if "on", objects that have materials with alpha < 1.0 are shown with translucency (transparency) in the 3D View.<br>
+    - subdiv (toggle): if "on", ac3d objects meant to be subdivided receive a SUBSURF modifier in Blender.<br>
     - textures dir (string): if non blank, when imported texture paths are
 wrong in the .ac file, Blender will also look for them at this dir.
 
@@ -41,9 +43,10 @@ users can configure (see config options above).
 # $Id$
 #
 # --------------------------------------------------------------------------
-# AC3DImport version 2.43 Feb 12, 2007
+# AC3DImport version 2.43.1 Feb 21, 2007
 # Program versions: Blender 2.43 and AC3Db files (means version 0xb)
-# changed: updated for new Blender version, Mesh module
+# changed: better triangulation of ngons, more fixes to support bad .ac files,
+# option to display transp mats in 3d view, support "subdiv" tag (via SUBSURF modifier)
 # --------------------------------------------------------------------------
 # Thanks: Melchior Franz for extensive bug testing and reporting, making this
 # version cope much better with old or bad .ac files, among other improvements;
@@ -70,30 +73,31 @@ users can configure (see config options above).
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-# Note:
-# Blender doesn't handle n-gons (polygons with more than 4 vertices):
-#  The script triangulates them, but concave polygons come out wrong and need
-#  fixing. Avoiding or triangulating concave n-gons in AC3D is a simple way to
-#  avoid problems.
-
 from math import radians
 
 import Blender
-from Blender import Scene, Object, Mesh, Lamp, Registry, sys as bsys, Window, Image, Material
+from Blender import Scene, Object, Mesh, Lamp, Registry, sys as bsys, Window, Image, Material, Modifier
 from Blender.sys import dirsep
 from Blender.Mathutils import Vector, Matrix, Euler
+from Blender.Geometry import PolyFill
 
 # Default folder for AC3D textures, to override wrong paths, change to your
 # liking or leave as "":
 TEXTURES_DIR = ""
 
+DISPLAY_TRANSP = True
+
+SUBDIV = True
+
 tooltips = {
-	'TEXTURES_DIR': 'additional dir to look for missing textures'
+	'DISPLAY_TRANSP': 'Turn transparency on in the 3d View for objects using materials with alpha < 1.0.',
+	'SUBDIV': 'Apply a SUBSURF modifier to objects meant to appear subdivided.',
+	'TEXTURES_DIR': 'Additional folder to look for missing textures.'
 }
 
 def update_registry():
-	global TEXTURES_DIR
-	rd = dict([('TEXTURES_DIR', TEXTURES_DIR)])
+	global TEXTURES_DIR, DISPLAY_TRANSP
+	rd = dict([('tooltips', tooltips), ('TEXTURES_DIR', TEXTURES_DIR), ('DISPLAY_TRANSP', DISPLAY_TRANSP), ('SUBDIV', SUBDIV)])
 	Registry.SetKey('ac3d_import', rd, True)
 
 rd = Registry.GetKey('ac3d_import', True)
@@ -101,7 +105,12 @@ rd = Registry.GetKey('ac3d_import', True)
 if rd:
 	if 'GROUP' in rd:
 		update_registry()
-	TEXTURES_DIR = rd['TEXTURES_DIR']
+	try:
+		TEXTURES_DIR = rd['TEXTURES_DIR']
+		DISPLAY_TRANSP = rd['DISPLAY_TRANSP']
+		SUBDIV = rd['SUBDIV']
+	except:
+		update_registry()
 else: update_registry()
 
 if TEXTURES_DIR:
@@ -135,6 +144,8 @@ AC_OB_TYPES = {
 	'light':  AC_LIGHT
 	}
 
+AC_OB_BAD_TYPES_LIST = [] # to hold references to unknown (wrong) ob types
+
 def inform(msg):
 	global VERBOSE
 	if VERBOSE: print msg
@@ -160,6 +171,7 @@ class Obj:
 		self.rot = []
 		self.size = []
 		self.crease = 30
+		self.subdiv = 0
 		self.vlist = []
 		self.flist_cfg = []
 		self.flist_v = []
@@ -212,6 +224,7 @@ class AC3DImport:
 					  'texture':	self.parse_tex,
 					  'texrep':		self.parse_texrep,
 					  'texoff':		self.parse_texoff,
+					  'subdiv':		self.parse_subdiv,
 					  'crease':		self.parse_crease}
 
 		self.objlist = []
@@ -237,7 +250,13 @@ class AC3DImport:
 					inform('Ignoring unexpected data at end of file.')
 					return -1 # bad file with more objects than reported
 			kidsnumlist[-1] -= 1
-		new = Obj(AC_OB_TYPES[value])
+		if value in AC_OB_TYPES:
+			new = Obj(AC_OB_TYPES[value])
+		else:
+			if value not in AC_OB_BAD_TYPES_LIST:
+				AC_OB_BAD_TYPES_LIST.append(value)
+				inform('Unexpected object type keyword: "%s". Assuming it is of type: "poly".' % value)
+			new = Obj(AC_OB_TYPES['poly'])
 		new.dad = self.dad
 		new.name = value
 		self.objlist.append(new)
@@ -322,6 +341,9 @@ class AC3DImport:
 		value = float(value)
 		self.objlist[-1].crease = int(value)
 
+	def parse_subdiv(self, value):
+		self.objlist[-1].subdiv = int(value)
+
 	def parse_vert(self, value):
 		i = self.i
 		lines = self.lines
@@ -347,6 +369,7 @@ class AC3DImport:
 		double_sided = 0
 		lines = self.lines
 		obj = self.objlist[-1]
+		vlist = obj.vlist
 		matlist = obj.matlist
 		numsurf = int(value)
 		NUMSURF = numsurf
@@ -364,12 +387,17 @@ class AC3DImport:
 
 			is_smooth = flaghigh & 1
 			twoside = flaghigh & 2
-			mat = lines[i+1].split()
-			mat = int(mat[1])
-			if not mat in matlist: matlist.append(mat)
-			refs = lines[i+2].split()
-			refs = int(refs[1])
-			i += 3
+			nextline = lines[i+1].split()
+			if nextline[0] != 'mat': # the "mat" line may be missing (found in one buggy .ac file)
+				matid = 0
+				if not matid in matlist: matlist.append(matid)
+				i += 2
+			else:
+				matid = int(nextline[1])
+				if not matid in matlist: matlist.append(matid)
+				nextline = lines[i+2].split()
+				i += 3
+			refs = int(nextline[1])
 			face = []
 			faces = []
 			edges = []
@@ -407,20 +435,21 @@ class AC3DImport:
 					# multiple references to the same vertex
 					badface_multirefs += 1
 				else: # ok, seems fine
-					while len(face) > 4:
-						cut = face[:4]
-						cutuv = fuv[:4]
-						face = face[3:]
-						fuv = fuv[3:]
-						face.insert(0, cut[0])
-						fuv.insert(0, cutuv[0])
-						faces.append(cut)
-						fuvs.append(cutuv)
+					if len(face) > 4: # ngon, triangulate it
+						polyline = []
+						for vi in face:
+							polyline.append(Vector(vlist[vi]))
+						tris = PolyFill([polyline])
+						for t in tris:
+							tri = [face[t[0]], face[t[1]], face[t[2]]]
+							triuvs = [fuv[t[0]], fuv[t[1]], fuv[t[2]]]
+							faces.append(tri)
+							fuvs.append(triuvs)
+					else: # tri or quad
+						faces.append(face)
+						fuvs.append(fuv)
 
-					faces.append(face)
-					fuvs.append(fuv)
-
-			obj.flist_cfg.extend([[mat, is_smooth, twoside]] * len(faces))
+			obj.flist_cfg.extend([[matid, is_smooth, twoside]] * len(faces))
 			obj.flist_v.extend(faces)
 			obj.flist_uv.extend(fuvs)
 			obj.elist.extend(edges) # loose edges
@@ -608,6 +637,8 @@ class AC3DImport:
 				if bmat.index(mat) in obj.matlist:
 					objmat_indices.append(bmat.index(mat))
 					mesh.materials += [mat]
+					if DISPLAY_TRANSP and mat.alpha < 1.0:
+						object.transp = True
 
 			for e in obj.elist:
 				mesh.edges.extend(e)
@@ -704,6 +735,17 @@ class AC3DImport:
 				mesh.calcNormals()
 
 				mesh.mode = MESH_AUTOSMOOTH
+
+				# subdiv: create SUBSURF modifier in Blender
+				if SUBDIV and obj.subdiv > 0:
+					subdiv = obj.subdiv
+					subdiv_render = subdiv
+					# just to be safe:
+					if subdiv_render > 6: subdiv_render = 6
+					if subdiv > 3: subdiv = 3
+					modif = object.modifiers.append(Modifier.Types.SUBSURF)
+					modif[Modifier.Settings.LEVELS] = subdiv
+					modif[Modifier.Settings.RENDLEVELS] = subdiv_render
 
 			obj_idx += 1
 

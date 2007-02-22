@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus:
 Name: 'AC3D (.ac)...'
-Blender: 242
+Blender: 243
 Group: 'Export'
 Tip: 'Export selected meshes to AC3D (.ac) format'
 """
@@ -10,7 +10,7 @@ Tip: 'Export selected meshes to AC3D (.ac) format'
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "elysiun", "AC3D's homepage, http://www.ac3d.org",
 	"PLib 3d gaming lib, http://plib.sf.net")
-__version__ = "2.43 2007-01-14"
+__version__ = "2.43.1 2007-02-22"
 
 __bpydoc__ = """\
 This script exports selected Blender meshes to AC3D's .ac file format.
@@ -29,6 +29,7 @@ file, if needed.
 Known issues:<br>
     The ambient and emit data we can retrieve from Blender are single values,
 that this script copies to R, G, B, giving shades of gray.<br>
+    Loose edges (lines) receive the first material found in the mesh, if any, or a default white material.<br>
     In AC3D 4 "compatibility mode":<br>
     - shininess of materials is taken from the shader specularity value in Blender, mapped from [0.0, 2.0] to [0, 128];<br>
     - crease angle is exported, but in Blender it is limited to [1, 80], since there are other more powerful ways to control surface smoothing.  In AC3D 4.0 crease's range is [0.0, 180.0];
@@ -60,7 +61,7 @@ Notes:<br>
 	This version updates:<br>
     - modified meshes are correctly exported, no need to apply the modifiers in Blender;<br>
     - correctly export each used material, be it assigned to the object or to its mesh data;<br>
-    - exporting lines (edges) is again supported;<br>
+    - exporting lines (edges) is again supported; color comes from first material found in the mesh, if any, or a default white one.<br>
     - there's a new option to choose between exporting meshes with transformed (global) coordinates or local ones;<br>
     Multiple textures per mesh are supported (mesh gets split);<br>
 	Parents are exported as a group containing both the parent and its children;<br>
@@ -71,16 +72,17 @@ Notes:<br>
 # $Id$
 #
 # --------------------------------------------------------------------------
-# AC3DExport version 2.43
+# AC3DExport version 2.43.1
 # Program versions: Blender 2.42+ and AC3Db files (means version 0xb)
 # new: updated for new Blender version and Mesh module; supports lines (edges) again;
 # option to export vertices transformed to global coordinates or not; now the modified
 # (by existing mesh modifiers) mesh is exported; materials are properly exported, no
-# matter if each of them is linked to the mesh or to the object.
+# matter if each of them is linked to the mesh or to the object. New (2.43.1): loose
+# edges use color of first material found in the mesh, if any.
 # --------------------------------------------------------------------------
 # Thanks: Steve Baker for discussions and inspiration; for testing, bug
 # reports, suggestions, patches: David Megginson, Filippo di Natale,
-# Franz Melchior, Campbell Barton, Josh Babcock, Ralf Gerlich
+# Franz Melchior, Campbell Barton, Josh Babcock, Ralf Gerlich, Stewart Andreason.
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -530,9 +532,7 @@ class AC3DExport: # the ac3d exporter part
 			mlist = self.mlist
 			for m in xrange(len(mat)):
 				name = mat[m].name
-				try:
-					mlist.index(name)
-				except ValueError:
+				if name not in mlist:
 					mlist.append(name)
 					M = Material.Get(name)
 					material = 'MATERIAL "%s"' % name
@@ -656,17 +656,15 @@ class AC3DExport: # the ac3d exporter part
 
 		if not foomesh: verts = list(self.mesh.verts)
 
+		materials = self.mesh.materials
 		mlist = self.mlist
 		omlist = {}
-		objmats = self.mesh.materials[:]
 		matidx_error_told = 0
-		for i in range(len(objmats)):
-			objmats[i] = objmats[i].name
+		objmats = [omat.name for omat in materials]
 		for f in faces:
-			m_idx = f.mat
-			try:
-				m_idx = mlist.index(objmats[m_idx])
-			except IndexError:
+			if objmats[f.mat] in mlist:
+				m_idx = mlist.index(objmats[f.mat])
+			else:
 				if not lc_MATIDX_ERROR:
 					rdat = REPORT_DATA['warns']
 					rdat.append("Object %s" % self.obj.name)
@@ -715,6 +713,14 @@ class AC3DExport: # the ac3d exporter part
 
 			file.write("%s%s%s%s" % (surfstr, matstr, refstr, fvstr))
 
+		# material for loose edges
+		edges_mat = 0 # default to first material
+		for omat in objmats: # but look for a material from this mesh
+			if omat in mlist:
+				edges_mat = mlist.index(omat)
+				if lc_ADD_DEFAULT_MAT: edges_mat += 1
+				break
+
 		for e in looseEdges:
 			fvstr = []
 			#flaglow = 2 # 1 = closed line, 2 = line
@@ -726,7 +732,7 @@ class AC3DExport: # the ac3d exporter part
 			fvstr.append("%d 0 0\n" % verts.index(e.v2))
 			fvstr = "".join(fvstr)
 
-			matstr = "mat 0\n" # for now, use first material 
+			matstr = "mat %d\n" % edges_mat # for now, use first material 
 			refstr = "refs 2\n" # 2 verts
 
 			file.write("%s%s%s%s" % (surfstr, matstr, refstr, fvstr))
