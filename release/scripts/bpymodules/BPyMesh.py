@@ -384,7 +384,7 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 	'''
 	
 	if not scn:
-		scn= Blender.Scene.GetCurrent()
+		scn= Blender.Main.scenes.active
 	if not container_mesh:
 		mesh = Blender.Mesh.New()	
 	else:

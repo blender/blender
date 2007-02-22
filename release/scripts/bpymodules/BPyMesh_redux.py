@@ -642,8 +642,8 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 # Example usage
 def main():
 	Blender.Window.EditMode(0)
-	scn= Blender.Scene.GetCurrent()
-	active_ob= scn.getActiveObject()
+	scn= Blender.Main.scenes.active
+	active_ob= scn.objects.active
 	t= Blender.sys.time()
 	redux(active_ob, 0.5)
 	print '%.4f' % (Blender.sys.time()-t)

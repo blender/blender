@@ -74,7 +74,7 @@ def mousedown_wait():
 
 def main():
 	
-	scn = Scene.GetCurrent()
+	scn = Blender.Main.scenes.active
 	ob = scn.objects.active
 	if not ob or ob.type!='Mesh':
 		return

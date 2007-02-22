@@ -70,7 +70,7 @@ def mostUsedImage(imageList): # Returns the image most used in the list.
 
 
 def main():
-	scn = Scene.GetCurrent()
+	scn = Main.scenes.active
 	ob = scn.objects.active
 	if ob == None or ob.type != 'Mesh':
 		Draw.PupMenu('ERROR: No mesh object in face select mode.')

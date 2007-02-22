@@ -877,7 +877,7 @@ def save_3ds(filename):
 	
 	time1= Blender.sys.time()
 	Blender.Window.WaitCursor(1)
-	scn= Blender.Scene.GetCurrent()
+	scn= Blender.Main.scenes.active
 	
 	# Initialize the main chunk (primary):
 	primary = _3ds_chunk(PRIMARY)

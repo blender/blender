@@ -46,7 +46,7 @@ from Blender import *
 
 global renameCount
 renameCount = 0
-obsel = Scene.GetCurrent().objects.context
+obsel = Main.scenes.active.objects.context
 
 def setDataNameWrapper(ob, newname):
 	if ob.getData(name_only=1) == newname:

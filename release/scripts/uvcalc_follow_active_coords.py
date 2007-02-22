@@ -43,7 +43,7 @@ import BPyMesh
 reload(BPyMesh)
 
 def extend():
-	scn = Scene.GetCurrent()
+	scn = Main.scenes.active
 	ob = scn.objects.active
 	
 	# print ob, ob.type

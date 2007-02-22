@@ -466,7 +466,7 @@ def lightmap_uvpack(me, BOX_DIV = 8, MARGIN_DIV = 512):
 
 
 def main():
-	scn = Scene.GetCurrent()
+	scn = Main.scenes.active
 	ob = scn.objects.active
 	
 	# print ob, ob.type

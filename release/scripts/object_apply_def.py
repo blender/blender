@@ -85,7 +85,7 @@ def copy_vgroups(source_ob, target_ob):
 
 
 def apply_deform():
-	scn= Blender.Scene.GetCurrent()
+	scn= Blender.Main.scenes.active
 	#Blender.Window.EditMode(0)
 	
 	NAME_LENGTH = 19

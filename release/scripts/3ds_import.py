@@ -117,7 +117,7 @@ Loader is based on 3ds loader from www.gametutorials.com (Thanks DigiBen).
 # Importing modules
 
 import Blender
-from Blender import Mesh, Scene, Object, Material, Image, Texture, Lamp, Mathutils
+from Blender import Mesh, Main, Object, Material, Image, Texture, Lamp, Mathutils
 from Blender.Mathutils import Vector
 import BPyImage
 
@@ -809,7 +809,7 @@ def load_3ds(filename, PREF_UI= True):
 	
 	##IMAGE_SEARCH
 	
-	scn= Scene.GetCurrent()
+	scn= Main.scenes.active
 	SCN_OBJECTS = scn.objects
 	SCN_OBJECTS.selected = [] # de select all
 	

@@ -39,7 +39,7 @@ Hidden bones are ignored, and optionally only operate on selected bones.
 # --------------------------------------------------------------------------
 
 import Blender
-from Blender import Scene
+from Blender import Main
 Vector= Blender.Mathutils.Vector
 
 
@@ -248,7 +248,7 @@ def main():
 	User interface function that gets the options and calls armature_symetry()
 	'''
 	
-	scn= Scene.GetCurrent()
+	scn= Main.scenes.active
 	arm_ob= scn.objects.active
 	
 	if not arm_ob or arm_ob.type!='Armature':

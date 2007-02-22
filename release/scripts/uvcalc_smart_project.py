@@ -42,7 +42,7 @@ selected faces, or all faces.
 # -------------------------------------------------------------------------- 
 
 
-from Blender import Object, Scene, Draw, Window, sys, Mesh, Geometry
+from Blender import Object, Draw, Window, sys, Mesh, Geometry
 from Blender.Mathutils import CrossVecs, Matrix, Vector, RotationMatrix, DotVecs
 
 from math import cos
@@ -833,11 +833,10 @@ def main():
 	global USER_STRETCH_ASPECT
 	global USER_ISLAND_MARGIN
 	
-	objects= Scene.GetCurrent().objects
+	objects= Main.scenes.active.objects
 	
 	# Use datanames as kesy so as not to unwrap a mesh more then once.
 	obList =  dict([(ob.getData(name_only=1), ob) for ob in objects.context if ob.type == 'Mesh'])
-	
 	
 	# Face select object may not be selected.
 	ob = objects.active

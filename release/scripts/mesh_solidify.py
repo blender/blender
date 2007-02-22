@@ -100,7 +100,7 @@ def lengthFromAngle(angle):
 
 
 def main():
-	scn = Scene.GetCurrent()
+	scn = Main.scenes.active
 	ob = scn.objects.active
 	
 	if not ob or ob.type != 'Mesh':
