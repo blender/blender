@@ -893,7 +893,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 				/* allocate, but not free here, for asynchronous display of this rect in main thread */
 				rl->acolrect= MEM_callocN(4*sizeof(float)*pa->rectx*pa->recty, "alpha layer");
 				
-				/* swap for live updates */
+				/* swap for live updates, and it is used in zbuf.c!!! */
 				SWAP(float *, rl->acolrect, rl->rectf);
 				ztramask= zbuffer_transp_shade(pa, rl, rl->rectf);
 				SWAP(float *, rl->acolrect, rl->rectf);

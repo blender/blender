@@ -2699,6 +2699,22 @@ static void add_transp_speed(RenderLayer *rl, int offset, float *speed, float al
 	}
 }
 
+static void add_transp_obindex(RenderLayer *rl, int offset, int facenr)
+{
+	VlakRen *vlr= RE_findOrAddVlak(&R, (facenr-1) & RE_QUAD_MASK);
+	if(vlr && vlr->ob) {
+		RenderPass *rpass;
+		
+		for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
+			if(rpass->passtype == SCE_PASS_INDEXOB) {
+				float *fp= rpass->rect + offset;
+				*fp= (float)vlr->ob->index;
+				break;
+			}
+		}
+	}
+}
+
 /* ONLY OSA! merge all shaderesult samples to one */
 /* target should have been cleared */
 static void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
@@ -3110,9 +3126,14 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 					qsort(zrow, totface, sizeof(int)*3, vergzvlak);
 				}
 				
+				/* zbuffer and index pass for transparent, no AA or filters */
 				if(addzbuf)
 					if(pa->rectz[od]>zrow[totface-1][0])
 						pa->rectz[od]= zrow[totface-1][0];
+				
+				if(addpassflag & SCE_PASS_INDEXOB)
+					add_transp_obindex(rl, od, zrow[totface-1][1]);
+				
 				
 				if(R.osa==0) {
 					while(totface>0) {
