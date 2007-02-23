@@ -1604,6 +1604,7 @@ static uiBlock *info_timelinemenu(void *arg_unused)
 {
 /*		static short tog=0; */
 	uiBlock *block;
+	char str[26];
 	short yco= 0;
 	short menuwidth=120;
 
@@ -1624,8 +1625,11 @@ static uiBlock *info_timelinemenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Next Frame|RightArrow",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Previous Frame|LeftArrow",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Forward 10 Frames|UpArrow",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Back 10 Frames|DownArrow",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+	
+	sprintf(str, "Forward %d Frames|UpArrow", G.scene->jumpframe);
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, str,	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	sprintf(str, "Back %d Frames|DownArrow", G.scene->jumpframe);
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, str,	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
