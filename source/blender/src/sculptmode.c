@@ -1221,7 +1221,8 @@ void do_brush_action(float *vertexcosnos, EditData e,
 	if(keyblock) {
 		float *co= keyblock->data;
 		if(co) {
-			for(adata= active_verts.first; adata; adata= adata->next)
+			adata = e.grabdata ? e.grabdata->active_verts[e.grabdata->index].first : active_verts.first;
+			for(; adata; adata= adata->next)
 				if(adata->Index < keyblock->totelem)
 					VecCopyf(&co[adata->Index*3], me->mvert[adata->Index].co);
 		}
