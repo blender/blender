@@ -551,6 +551,8 @@ static PyObject *Sound_getAttr( BPy_Sound * self, char *name )
 		attr = PyString_FromString( self->sound->id.name + 2 );
 	else if( strcmp( name, "filename" ) == 0 )
 		attr = PyString_FromString( self->sound->name );
+	else if( strcmp( name, "lib" ) == 0 )
+		return EXPP_GetIdLib((ID *)self->sound);
 	else if( strcmp( name, "packed" ) == 0 ) {
 		if (!sound_sample_is_null(self->sound))
 		{
@@ -563,7 +565,7 @@ static PyObject *Sound_getAttr( BPy_Sound * self, char *name )
 		else
 			attr = EXPP_incr_ret_False();
 	} else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s,s]", "name", "filename" );
+		attr = Py_BuildValue( "[s,s,s]", "name", "filename", "lib", "packed" );
 	
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,

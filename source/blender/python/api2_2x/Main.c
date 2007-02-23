@@ -36,6 +36,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h" /* MainSeq_new */
 #include "DNA_texture_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_group_types.h"
 #include "DNA_world_types.h"
@@ -74,7 +75,8 @@
 #include "Camera.h"
 #include "Armature.h"
 #include "Lamp.h"
-#include "CurNurb.h"
+/*#include " CurNurb.h" do we need this ? */
+#include "Curve.h"
 #include "NMesh.h"
 #include "Mesh.h"
 #include "Lattice.h"

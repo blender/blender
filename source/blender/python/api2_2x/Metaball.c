@@ -107,6 +107,7 @@ static PyObject *M_MetaElem_TypesDict( void )
 /*****************************************************************************/
 static PyObject *Metaball_getElements( BPy_Metaball * self );
 static PyObject *Metaball_getName( BPy_Metaball * self );
+static PyObject *Metaball_getLib( BPy_Metaball * self );
 static int Metaball_setName( BPy_Metaball * self, PyObject * value );
 static PyObject *Metaball_getMaterials( BPy_Metaball * self );
 static int Metaball_setMaterials( BPy_Metaball * self, PyObject * value );
@@ -175,6 +176,10 @@ static PyGetSetDef BPy_Metaball_getseters[] = {
 	{"name",
 	 (getter)Metaball_getName, (setter)Metaball_setName,
 	 "Metaball name",
+	 NULL},
+	{"lib",
+	 (getter)Metaball_getLib, (setter)NULL,
+	 "Metaballs external library",
 	 NULL},
 	{"users",
 	 (getter)Metaball_getUsers, (setter)NULL,
@@ -557,8 +562,6 @@ static PyObject *Metaball_getName( BPy_Metaball * self )
 					"couldn't get Metaball.name attribute" ) );
 }
 
-
-
 static int Metaball_setName( BPy_Metaball * self, PyObject * value )
 {
 	char *name = NULL;
@@ -569,6 +572,11 @@ static int Metaball_setName( BPy_Metaball * self, PyObject * value )
 						"expected string argument" ) );
 	rename_id( &self->metaball->id, name );
 	return 0;
+}
+
+static PyObject *Metaball_getLib( BPy_Metaball * self )
+{
+	return EXPP_GetIdLib((ID *)self->metaball);
 }
 
 static PyObject *Metaball_getMaterials( BPy_Metaball *self )

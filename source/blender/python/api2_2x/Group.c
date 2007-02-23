@@ -245,6 +245,13 @@ static PyObject *Group_getName( BPy_Group * self )
 					"couldn't get Group.name attribute" ) );
 }
 
+static PyObject *Group_getLib( BPy_Group * self )
+{
+	GROUP_DEL_CHECK_PY(self);
+	return EXPP_GetIdLib((ID *)self->group);
+	
+}
+
 static PyObject *Group_getUsers( BPy_Group * self )
 {
 	GROUP_DEL_CHECK_PY(self);
@@ -305,6 +312,10 @@ static PyGetSetDef BPy_Group_getseters[] = {
 	{"name",
 	 (getter)Group_getName, (setter)Group_setName,
 	 "Group name",
+	 NULL},
+	{"lib",
+	 (getter)Group_getLib, (setter)NULL,
+	 "Group linked library",
 	 NULL},
 	{"users",
 	 (getter)Group_getUsers, (setter)NULL,

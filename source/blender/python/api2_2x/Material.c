@@ -533,6 +533,7 @@ static PyObject *Material_getColorComponent( BPy_Material * self,
 							void * closure );
 static PyObject *Material_getOopsLoc( BPy_Material * self );
 static PyObject *Material_getOopsSel( BPy_Material * self );
+static PyObject *Material_getLib( BPy_Material * self );
 static PyObject *Material_getUsers( BPy_Material * self );
 static PyObject *Material_getFakeUser( BPy_Material * self );
 /*static int Material_setSeptex( BPy_Material * self, PyObject * value );
@@ -1091,6 +1092,10 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	{"fakeUser",
 	 (getter)Material_getFakeUser, (setter)Material_setFakeUser,
 	 "The fake user status of this material",
+	 NULL},
+	{"lib",
+	 (getter)Material_getLib, (setter)NULL,
+	 "Materials external library",
 	 NULL},
 	 {"properties", (getter) Material_getProperties, (setter)NULL,
 	 "Get material's ID properties"},
@@ -2843,6 +2848,11 @@ static int Material_setOopsSel ( BPy_Material * self, PyObject * value )
 		}
 	}
 	return 0;
+}
+
+static PyObject *Material_getLib(BPy_Material *self)
+{
+	return EXPP_GetIdLib((ID *)self->material);
 }
 
 static PyObject *Material_getUsers( BPy_Material * self )

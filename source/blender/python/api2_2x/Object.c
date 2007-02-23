@@ -347,6 +347,7 @@ static PyObject *Object_getLocation( BPy_Object * self, PyObject * args );
 static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args );
 static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args );
 static PyObject *Object_getName( BPy_Object * self );
+static PyObject *Object_getLib( BPy_Object * self );
 static PyObject *Object_getParent( BPy_Object * self );
 static PyObject *Object_getParentBoneName( BPy_Object * self );
 static int Object_setParentBoneName( BPy_Object * self, PyObject * value );
@@ -1321,6 +1322,11 @@ static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args )
 static PyObject *Object_getName( BPy_Object * self )
 {
 	return PyString_FromString( self->object->id.name + 2 );
+}
+
+static PyObject *Object_getLib( BPy_Object * self )
+{
+	return EXPP_GetIdLib((ID *)self->object);
 }
 
 static PyObject *Object_getParent( BPy_Object * self )
@@ -4920,6 +4926,10 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	{"name",
 	 (getter)Object_getName, (setter)Object_setName,
 	 "Object data name",
+	 NULL},
+	{"lib",
+	 (getter)Object_getLib, (setter)NULL,
+	 "Objects linked library",
 	 NULL},
 	{"oopsLoc",
 	 (getter)Object_getOopsLoc, (setter)Object_setOopsLoc,

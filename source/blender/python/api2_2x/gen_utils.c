@@ -185,7 +185,17 @@ int SetIdFakeUser( ID * id, PyObject *value)
 	return 0;
 }
 
-
+/*****************************************************************************/
+/* Description: This function sets the fake user status of the ID            */
+/* returns an int error, so from getsetattrs                                 */
+/*****************************************************************************/
+PyObject *EXPP_GetIdLib( ID * id )
+{
+	if (id->lib)
+		return PyString_FromString(id->lib->name);
+	else
+		return EXPP_incr_ret( Py_None );
+}
 
 /*****************************************************************************/
 /* Description: These functions set an internal string with the given type   */

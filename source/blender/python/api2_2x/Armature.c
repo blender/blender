@@ -960,6 +960,14 @@ AttributeError:
 	return EXPP_intError(PyExc_AttributeError, "%s%s", 
 		sArmatureBadArgs, "Expects string");
 }
+
+//------------------------Armature.name (getter)
+//Gets the name of the armature
+static PyObject *Armature_getLib(BPy_Armature *self, void *closure)
+{
+	return EXPP_GetIdLib((ID *)self->armature);
+}
+
 //------------------------Armature.bones (getter)
 //Gets the name of the armature
 static PyObject *Armature_getBoneDict(BPy_Armature *self, void *closure)
@@ -998,6 +1006,8 @@ static PyMethodDef BPy_Armature_methods[] = {
 static PyGetSetDef BPy_Armature_getset[] = {
 	{"name", (getter)Armature_getName, (setter)Armature_setName, 
 		"The armature's name", NULL},
+	{"lib", (getter)Armature_getLib, (setter)NULL, 
+		"The armature's library or None", NULL},
 	{"bones", (getter)Armature_getBoneDict, (setter)Armature_setBoneDict, 
 		"The armature's Bone dictionary", NULL},
 	{"vertexGroups", (getter)Armature_getVertexGroups, (setter)Armature_setVertexGroups, 

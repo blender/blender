@@ -242,6 +242,11 @@ static int Font_setFilename( BPy_Font * self, PyObject * value )
 }
 
 
+static PyObject *Font_getLib( BPy_Font * self )
+{
+	return EXPP_GetIdLib((ID *)self->font);
+}
+
 /*--------------- BPy_Font.pack()---------------------------------*/
 static PyObject *Font_pack( BPy_Font * self ) 
 {
@@ -291,13 +296,17 @@ static PyGetSetDef BPy_Font_getseters[] = {
 	 (getter)Font_getName, (setter)Font_setName,
 	 "Font name",
 	 NULL},
-	{"filename",
-	 (getter)Font_getFilename, (setter)Font_setFilename,
-	 "Font filepath",
+	{"lib",
+	 (getter)Font_getLib, (setter)NULL,
+	 "Font linked library",
 	 NULL},
 	{"users",
 	 (getter)Font_getUsers, (setter)NULL,
 	 "Number of font users",
+	 NULL},
+	{"filename",
+	 (getter)Font_getFilename, (setter)Font_setFilename,
+	 "Font filepath",
 	 NULL},
 	{"packed",
 	 (getter)Font_getPacked, (setter)NULL,

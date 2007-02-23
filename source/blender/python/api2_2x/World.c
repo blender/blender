@@ -934,6 +934,8 @@ static PyObject *World_GetAttr( BPy_World * self, char *name )
 
 	if( strcmp( name, "name" ) == 0 )
 		return World_getName( self );
+	if( strcmp( name, "lib" ) == 0 )
+		return EXPP_GetIdLib((ID *)self->world);
 	if( strcmp( name, "skytype" ) == 0 )
 		return World_getSkytype( self );
 	if( strcmp( name, "mode" ) == 0 )

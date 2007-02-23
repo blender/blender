@@ -848,6 +848,10 @@ static int Camera_setName( BPy_Camera * self, PyObject * value )
 	return 0;
 }
 
+static PyObject *Camera_getLib( BPy_Camera * self )
+{
+	return EXPP_GetIdLib((ID *)self->camera);
+}
 
 static PyObject *Camera_getUsers( BPy_Camera * self )
 {
@@ -1118,6 +1122,10 @@ static PyGetSetDef BPy_Camera_getseters[] = {
 	{"name",
 	 (getter)Camera_getName, (setter)Camera_setName,
 	 "Camera name",
+	 NULL},
+	{"lib",
+	 (getter)Camera_getLib, (setter)NULL,
+	 "Camera libname",
 	 NULL},
 	{"users",
 	 (getter)Camera_getUsers, (setter)NULL,

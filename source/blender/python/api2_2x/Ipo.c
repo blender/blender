@@ -101,6 +101,8 @@ static PyObject *Ipo_getRctf( BPy_Ipo * self );
 static PyObject *Ipo_oldsetRctf( BPy_Ipo * self, PyObject * args );
 static int Ipo_setRctf( BPy_Ipo * self, PyObject * args );
 
+static PyObject *Ipo_getLib( BPy_Ipo * self );
+static PyObject *Ipo_getUsers( BPy_Ipo * self );
 static PyObject *Ipo_getCurve( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getCurves( BPy_Ipo * self );
 static PyObject *Ipo_getCurveNames( BPy_Ipo * self );
@@ -118,6 +120,9 @@ static PyObject *Ipo_getCurveBeztriple( BPy_Ipo * self, PyObject * args );
 
 static PyObject *Ipo_getChannel( BPy_Ipo * self );
 static int Ipo_setChannel( BPy_Ipo * self, PyObject * args );
+
+static PyObject *Ipo_getFakeUser( BPy_Ipo * self );
+static int Ipo_setFakeUser( BPy_Ipo * self, PyObject * value );
 
 static int Ipo_length( BPy_Ipo * inst );
 static PyObject *Ipo_getIpoCurveByName( BPy_Ipo * self, PyObject * key );
@@ -177,6 +182,18 @@ static PyGetSetDef BPy_Ipo_getseters[] = {
 	 (getter)Ipo_getName, (setter)Ipo_setName,
 	 "Ipo data name",
 	 NULL},
+	{"lib",
+	 (getter)Ipo_getLib, (setter)NULL,
+	 "Ipos linked library",
+	 NULL},
+	{"users",
+	 (getter)Ipo_getUsers, (setter)NULL,
+	 "Number of Ipo users",
+	 NULL},
+	{"fakeUser",
+	 (getter)Ipo_getFakeUser, (setter)Ipo_setFakeUser,
+	 "Ipos fake user state",
+	 NULL},
 	{"curves",
 	 (getter)Ipo_getCurves, (setter)NULL,
 	 "Ipo curves",
@@ -227,7 +244,7 @@ static PySequenceMethods Ipo_as_sequence = {
 /* Python Ipo_Type callback function prototypes:                             */
 /*****************************************************************************/
 static void Ipo_dealloc( BPy_Ipo * self );
-//static int IpoPrint (BPy_Ipo *self, FILE *fp, int flags);
+/*static int IpoPrint (BPy_Ipo *self, FILE *fp, int flags);*/
 static int Ipo_compare( BPy_Ipo * a, BPy_Ipo * b );
 static PyObject *Ipo_repr( BPy_Ipo * self );
 static PyObject *Ipo_getIter( BPy_Ipo * self );
@@ -829,6 +846,33 @@ static int Ipo_setName( BPy_Ipo * self, PyObject * args )
 
 	return 0;
 }
+
+
+static PyObject *Ipo_getLib( BPy_Ipo * self )
+{
+	return EXPP_GetIdLib((ID *)self->ipo);
+	
+}
+
+static PyObject *Ipo_getUsers( BPy_Ipo * self )
+{
+	return PyInt_FromLong( self->ipo->id.us );
+}
+
+static PyObject *Ipo_getFakeUser( BPy_Ipo * self )
+{
+	if (self->ipo->id.flag & LIB_FAKEUSER)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+static int Ipo_setFakeUser( BPy_Ipo * self, PyObject * value )
+{
+	return SetIdFakeUser(&self->ipo->id, value);
+}
+
+
 
 static PyObject *Ipo_getBlocktype( BPy_Ipo * self )
 {
@@ -1631,7 +1675,7 @@ static PyObject *Ipo_nextIter( BPy_Ipo * self )
 /*****************************************************************************/
 PyObject *Ipo_Init( void )
 {
-	// PyObject *submodule;
+	/* PyObject *submodule; */
 
 	if( PyType_Ready( &Ipo_Type ) < 0 )
 		return NULL;
@@ -1822,7 +1866,7 @@ static PyObject *Ipo_getCurvecurval( BPy_Ipo * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "No IPO curve" ) );
 
-	if( PyNumber_Check( PyTuple_GetItem( args, 0 ) ) )	// args is an integer
+	if( PyNumber_Check( PyTuple_GetItem( args, 0 ) ) )	/* args is an integer */
 	{
 		if( !PyArg_ParseTuple( args, "i", &numcurve ) )
 			return ( EXPP_ReturnPyObjError
@@ -1837,7 +1881,7 @@ static PyObject *Ipo_getCurvecurval( BPy_Ipo * self, PyObject * args )
 		}
 	}
 
-	else			// args is a string
+	else			/* args is a string */
 	{
 		if( !PyArg_ParseTuple( args, "s", &stringname ) )
 			return ( EXPP_ReturnPyObjError

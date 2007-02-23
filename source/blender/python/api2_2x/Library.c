@@ -66,6 +66,7 @@ static PyObject *M_Library_Update( PyObject * self );
 static PyObject *M_Library_Datablocks( PyObject * self, PyObject * args );
 static PyObject *M_Library_Load( PyObject * self, PyObject * args );
 static PyObject *M_Library_LinkableGroups( PyObject * self );
+static PyObject *M_Library_LinkedLibs( PyObject * self );
 
 PyObject *Library_Init( void );
 void EXPP_Library_Close( void );
@@ -112,6 +113,9 @@ for each loaded object.";
 static char Library_LinkableGroups_doc[] =
 	"() - Get all linkable groups from the open .blend library file.";
 
+static char Library_LinkedLibs_doc[] =
+	"() - Get all libs used in the the open .blend file.";
+	
 /**
  * Python method structure definition for Blender.Library submodule.
  */
@@ -128,6 +132,8 @@ struct PyMethodDef M_Library_methods[] = {
 	{"Load", M_Library_Load, METH_VARARGS, Library_Load_doc},
 	{"LinkableGroups", ( PyCFunction ) M_Library_LinkableGroups,
 	 METH_NOARGS, Library_LinkableGroups_doc},
+	{"LinkedLibs", ( PyCFunction ) M_Library_LinkedLibs,
+	 METH_NOARGS, Library_LinkedLibs_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -293,22 +299,36 @@ PyObject *M_Library_LinkableGroups( PyObject * self )
 	}
 
 	names = BLO_blendhandle_get_linkable_groups( bpy_openlib );
-
+	list = PyList_New( BLI_linklist_length( names ) );
+	
 	if( names ) {
 		int counter = 0;
-		list = PyList_New( BLI_linklist_length( names ) );
+		
 		for( l = names; l; l = l->next ) {
-			PyList_SET_ITEM( list, counter,
-					 Py_BuildValue( "s",
-							( char * ) l->link ) );
+			PyList_SET_ITEM( list, counter, PyString_FromString( ( char * ) l->link  ) );
 			counter++;
 		}
 		BLI_linklist_free( names, free );	/* free linklist *and* each node's data */
 		return list;
 	}
+	return list;
+}
 
-	Py_INCREF( Py_None );
-	return Py_None;
+/**
+ * Return a list with the names of all externally linked libs used in the current Blend file
+ */
+PyObject *M_Library_LinkedLibs( PyObject * self )
+{
+	int counter = 0;
+	Library *li;
+	PyObject *list;
+
+	list = PyList_New( BLI_countlist( &( G.main->library ) ) );
+	for (li= G.main->library.first; li; li= li->id.next) {
+		PyList_SET_ITEM( list, counter, PyString_FromString( li->name ));
+		counter++;
+	}
+	return list;
 }
 
 /**

@@ -747,7 +747,12 @@ static PyObject *Lattice_getAttr( BPy_Lattice * self, char *name )
 	
 	if( strcmp( name, "name" ) == 0 )
 		attr = PyString_FromString( self->Lattice->id.name + 2 );
-	else if( strcmp( name, "width" ) == 0 )
+	else if ( strcmp( name, "lib" ) == 0 ) {
+		/* WARNING - Not standard, until we move to get/setattrs
+		   at the moment we cant return None at the end because it raises an error */
+		attr = EXPP_GetIdLib((ID *)self->Lattice);
+		if (attr) return attr;
+	} else if( strcmp( name, "width" ) == 0 )
 		attr = PyInt_FromLong( self->Lattice->pntsu );
 	else if( strcmp( name, "height" ) == 0 )
 		attr = PyInt_FromLong( self->Lattice->pntsv );
@@ -800,10 +805,10 @@ static PyObject *Lattice_getAttr( BPy_Lattice * self, char *name )
 	} else if( strcmp( name, "key" ) == 0 ) {
 		return Lattice_getKey(self);
 	} else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s]", "name", "width",
+		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s]", "name", "width",
 				      "height", "depth", "widthType",
 				      "heightType", "depthType", "mode",
-				      "latSize", "users", "key" );
+				      "latSize", "users", "key", "lib" );
 	
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,

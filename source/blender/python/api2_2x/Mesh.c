@@ -7195,6 +7195,11 @@ static PyObject *Mesh_getUsers( BPy_Mesh * self )
 					"couldn't get Mesh.users attribute" );
 }
 
+static PyObject *Mesh_getLib(BPy_Mesh *self)
+{
+	return EXPP_GetIdLib((ID *)self->mesh);
+}
+
 static PyObject *Mesh_getFakeUser( BPy_Mesh * self )
 {
 	if (self->mesh->id.flag & LIB_FAKEUSER)
@@ -7660,6 +7665,10 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	{"users",
 	 (getter)Mesh_getUsers, (setter)NULL,
 	 "Number of users of the mesh",
+	 NULL},
+	{"lib",
+	 (getter)Mesh_getLib, (setter)NULL,
+	 "Meshes external library",
 	 NULL},
 	{"fakeUser",
 	 (getter)Mesh_getFakeUser, (setter)Mesh_setFakeUser,

@@ -1140,35 +1140,39 @@ static PyObject *Image_getAttr( BPy_Image * self, char *name )
 	else if( strcmp( name, "packed" ) == 0 ) {
 		if (self->image->packedfile) attr = Py_True;
 		else attr = Py_False;
-		EXPP_incr_ret(attr);
+		Py_INCREF(attr);
 	} else if( strcmp( name, "has_data" ) == 0 ) {
 		if (self->image->ibufs.first) attr = Py_True;
 		else attr = Py_False;
-		EXPP_incr_ret(attr);
+		Py_INCREF(attr);
 	} else if( strcmp( name, "fields" ) == 0 ) {
 		if (self->image->flag & IMA_FIELDS) attr = Py_True;
 		else attr = Py_False;
-		EXPP_incr_ret(attr);
+		Py_INCREF(attr);
 	} else if( strcmp( name, "fields_odd" ) == 0 ) {
 		if (self->image->flag & IMA_STD_FIELD) attr = Py_True;
 		else attr = Py_False;
-		EXPP_incr_ret(attr);
+		Py_INCREF(attr);
 	} else if( strcmp( name, "antialias" ) == 0 ) {
 		if (self->image->flag & IMA_ANTIALI) attr = Py_True;
 		else attr = Py_False;
-		EXPP_incr_ret(attr);
-		
+		Py_INCREF(attr);
+	} else if ( strcmp( name, "lib" ) == 0 ) {
+		/* WARNING - Not standard, until we move to get/setattrs
+		   at the moment we cant return None at the end because it raises an error */
+		attr = EXPP_GetIdLib((ID *)self->image);
+		if (attr) return attr; 
 	} else if( strcmp( name, "bindcode" ) == 0 )
 		attr = PyInt_FromLong( self->image->bindcode );
 	else if( strcmp( name, "users" ) == 0 )
 		attr = PyInt_FromLong( self->image->id.us );
 	else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
+		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
 				      "name", "filename", "size", "depth",
 				      "xrep", "yrep", "start", "end",
 				      "speed", "packed", "has_data"
 				      "fields", "odd", "antialias",
-					  "bindcode", "users" );
+					  "bindcode", "users", "lib" );
 
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,

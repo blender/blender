@@ -294,7 +294,10 @@ static PyObject *Scene_getAttr( BPy_Scene * self, char *name )
 
 	else if ( strcmp( name, "properties" ) == 0 )
 		return BPy_Wrap_IDProperty( (ID*)self->scene, IDP_GetProperties((ID*)self->scene, 1), NULL );
-
+	
+	else if ( strcmp( name, "lib" ) == 0 )
+		return EXPP_GetIdLib((ID *)self->scene);
+	
 	/* accept both Layer (for compatibility with ob.Layer) and Layers */
 	else if( strncmp( name, "Layer", 5 ) == 0 )
 		attr = PyInt_FromLong( self->scene->lay & ((1<<20)-1) );
@@ -305,7 +308,7 @@ static PyObject *Scene_getAttr( BPy_Scene * self, char *name )
 		return Scene_getObjects(self);
 
 	else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[sss]", "name", "Layers", "layers", "objects");
+		attr = Py_BuildValue( "[ssssss]", "name", "Layers", "layers", "objects", "properties", "lib");
 
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
