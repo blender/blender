@@ -751,8 +751,9 @@ void spin_mesh(int steps, float degr, float *dvec, int mode)
 	cent[2]-= G.obedit->obmat[3][2];
 	Mat3MulVecfl(imat, cent);
 
-	phi= degr*M_PI/(-360.0);
+	phi= degr*M_PI/360.0;
 	phi/= steps;
+	if(G.scene->toolsettings->editbutflag & B_CLOCKWISE) phi= -phi;
 
 	if(dvec) {
 		n[0]=n[1]= 0.0;
@@ -819,7 +820,7 @@ void screw_mesh(int steps, int turns)
 	EditMesh *em = G.editMesh;
 	EditVert *eve,*v1=0,*v2=0;
 	EditEdge *eed;
-	float dvec[3], nor[3],deg=(-360);
+	float dvec[3], nor[3];
 
 	TEST_EDITMESH
 	if(multires_test()) return;
@@ -878,9 +879,8 @@ void screw_mesh(int steps, int turns)
 		dvec[1]= -dvec[1];
 		dvec[2]= -dvec[2];
 	}
-	if(G.scene->toolsettings->editbutflag & B_CLOCKWISE) deg= -deg;
 
-	spin_mesh(turns*steps, turns*deg, dvec, 0);
+	spin_mesh(turns*steps, turns*360, dvec, 0);
 
 	BIF_undo_push("Spin");
 }
