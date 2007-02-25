@@ -133,38 +133,8 @@ static PyMethodDef BPy_Text_methods[] = {
 /* Python Text_Type callback function prototypes:                            */
 /*****************************************************************************/
 static void Text_dealloc( BPy_Text * self );
-static int Text_setAttr( BPy_Text * self, char *name, PyObject * v );
-static PyObject *Text_getAttr( BPy_Text * self, char *name );
 static int Text_compare( BPy_Text * a, BPy_Text * b );
 static PyObject *Text_repr( BPy_Text * self );
-
-/*****************************************************************************/
-/* Python Text_Type structure definition:                                    */
-/*****************************************************************************/
-PyTypeObject Text_Type = {
-	PyObject_HEAD_INIT( NULL ) 
-	0,	/* ob_size */
-	"Blender Text",		/* tp_name */
-	sizeof( BPy_Text ),	/* tp_basicsize */
-	0,			/* tp_itemsize */
-	/* methods */
-	( destructor ) Text_dealloc,	/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) Text_getAttr,	/* tp_getattr */
-	( setattrfunc ) Text_setAttr,	/* tp_setattr */
-	( cmpfunc ) Text_compare,	/* tp_compare */
-	( reprfunc ) Text_repr,	/* tp_repr */
-	0,			/* tp_as_number */
-	0,			/* tp_as_sequence */
-	0,			/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_doc */
-	0, 0, 0, 0, 0, 0,
-	BPy_Text_methods,	/* tp_methods */
-	0,			/* tp_members */
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-};
 
 /*****************************************************************************/
 /* Function:              M_Text_New                                         */
@@ -350,7 +320,8 @@ PyObject *Text_Init( void )
 {
 	PyObject *submodule;
 
-	Text_Type.ob_type = &PyType_Type;
+	if( PyType_Ready( &Text_Type ) < 0 )
+		return NULL;
 
 	submodule =
 		Py_InitModule3( "Blender.Text", M_Text_methods, M_Text_doc );
@@ -528,88 +499,6 @@ static void Text_dealloc( BPy_Text * self )
 }
 
 /*****************************************************************************/
-/* Function:    Text_getAttr                                                 */
-/* Description: This is a callback function for the BPy_Text type. It is     */
-/*              the function that accesses BPy_Text member variables and     */
-/*              methods.                                                     */
-/*****************************************************************************/
-static PyObject *Text_getAttr( BPy_Text * self, char *name )
-{
-	PyObject *attr = Py_None;
-
-	if( !self->text || !Text_IsLinked( self ) )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "Text was already deleted!" );
-
-	if( strcmp( name, "name" ) == 0 )
-		attr = PyString_FromString( self->text->id.name + 2 );
-	else if( strcmp( name, "filename" ) == 0 )
-		return Text_getFilename( self );	/* special: can be null */
-	else if( strcmp( name, "mode" ) == 0 )
-		attr = PyInt_FromLong( self->text->flags );
-	else if( strcmp( name, "nlines" ) == 0 )
-		attr = Text_getNLines( self );
-
-	else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s,s,s,s]",
-				      "name", "filename", "mode", "nlines" );
-
-	if( !attr )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create PyObject" ) );
-
-	if( attr != Py_None )
-		return attr;	/* attribute found, return its value */
-
-	/* not an attribute, search the methods table */
-	return Py_FindMethod( BPy_Text_methods, ( PyObject * ) self, name );
-}
-
-/*****************************************************************************/
-/* Function:    Text_setAttr                                                 */
-/* Description: This is a callback function for the BPy_Text type. It is the */
-/*              function that changes Text Data members values. If this      */
-/*              data is linked to a Blender Text, it also gets updated.      */
-/*****************************************************************************/
-static int Text_setAttr( BPy_Text * self, char *name, PyObject * value )
-{
-	PyObject *valtuple;
-	PyObject *error = NULL;
-
-	if( !self->text || !Text_IsLinked( self ) )
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-					    "Text was already deleted!" );
-
-/* We're playing a trick on the Python API users here.  Even if they use
- * Text.member = val instead of Text.setMember(value), we end up using the
- * function anyway, since it already has error checking, clamps to the right
- * interval and updates the Blender Text structure when necessary. */
-
-	valtuple = Py_BuildValue( "(O)", value );	/* the set* functions expect a tuple */
-
-	if( !valtuple )
-		return EXPP_ReturnIntError( PyExc_MemoryError,
-					    "TextSetAttr: couldn't create PyTuple" );
-
-	if( strcmp( name, "name" ) == 0 )
-		error = GenericLib_setName_with_method( self, valtuple );
-	else {			/* Error: no such member in the Text Data structure */
-		Py_DECREF( value );
-		Py_DECREF( valtuple );
-		return ( EXPP_ReturnIntError( PyExc_KeyError,
-					      "attribute not found or immutable" ) );
-	}
-
-	Py_DECREF( valtuple );
-
-	if( error != Py_None )
-		return -1;
-
-	Py_DECREF( Py_None );	/* incref'ed by the called set* function */
-	return 0;		/* normal exit */
-}
-
-/*****************************************************************************/
 /* Function:    Text_compare                                                 */
 /* Description: This is a callback function for the BPy_Text type. It        */
 /*              compares two Text_Type objects. Only the "==" and "!="       */
@@ -653,3 +542,108 @@ static int Text_IsLinked( BPy_Text * self )
 	self->text = NULL;	/* so we invalidate the pointer */
 	return 0;
 }
+
+
+/*****************************************************************************/
+/* Python attributes get/set functions:                                      */
+/*****************************************************************************/
+static PyObject *Text_getMode(BPy_Text * self)
+{
+	return PyInt_FromLong( self->text->flags );
+}
+
+/*****************************************************************************/
+/* Python attributes get/set structure:                                      */
+/*****************************************************************************/
+static PyGetSetDef BPy_Text_getseters[] = {
+	GENERIC_LIB_GETSETATTR,
+	{"filename", (getter)Text_getFilename, (setter)NULL,
+	 "text filename", NULL},
+	{"mode", (getter)Text_getMode, (setter)NULL,
+	 "text mode flag", NULL},
+	{"nlines", (getter)Text_getNLines, (setter)NULL,
+	 "number of lines", NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+/*****************************************************************************/
+/* Python Text_Type structure definition:                                    */
+/*****************************************************************************/
+PyTypeObject Text_Type = {
+	PyObject_HEAD_INIT( NULL ) 
+	NULL,	/* ob_size */
+	"Blender Text",		/* tp_name */
+	sizeof( BPy_Text ),	/* tp_basicsize */
+	NULL,			/* tp_itemsize */
+	/* methods */
+	( destructor ) Text_dealloc,	/* tp_dealloc */
+	NULL,			/* tp_print */
+	NULL,	/* tp_getattr */
+	NULL,	/* tp_setattr */
+	( cmpfunc ) Text_compare,	/* tp_compare */
+	( reprfunc ) Text_repr,	/* tp_repr */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_Text_methods,           /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_Text_getseters,         /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
+};

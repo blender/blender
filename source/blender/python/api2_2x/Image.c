@@ -62,6 +62,15 @@ current image frame, some images change frame if they are a sequence */
 #define EXPP_IMAGE_REP_MAX 16
 
 
+enum img_consts {
+	EXPP_IMAGE_ATTR_XREP = 0,
+	EXPP_IMAGE_ATTR_YREP,
+	EXPP_IMAGE_ATTR_START,
+	EXPP_IMAGE_ATTR_END,
+	EXPP_IMAGE_ATTR_SPEED,
+	EXPP_IMAGE_ATTR_BINDCODE,
+};
+
 /************************/
 /*** The Image Module ***/
 /************************/
@@ -87,7 +96,8 @@ static PyObject *Image_getBindCode( BPy_Image * self );
 static PyObject *Image_getStart( BPy_Image * self );
 static PyObject *Image_getEnd( BPy_Image * self );
 static PyObject *Image_getSpeed( BPy_Image * self );
-static PyObject *Image_setFilename( BPy_Image * self, PyObject * args );
+static int Image_setFilename( BPy_Image * self, PyObject * args );
+static PyObject *Image_oldsetFilename( BPy_Image * self, PyObject * args );
 static PyObject *Image_setXRep( BPy_Image * self, PyObject * args );
 static PyObject *Image_setYRep( BPy_Image * self, PyObject * args );
 static PyObject *Image_setStart( BPy_Image * self, PyObject * args );
@@ -155,7 +165,7 @@ static PyMethodDef BPy_Image_methods[] = {
 		see also image.glLoad()."},
 	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 "(str) - Change Image object name"},
-	{"setFilename", ( PyCFunction ) Image_setFilename, METH_VARARGS,
+	{"setFilename", ( PyCFunction ) Image_oldsetFilename, METH_VARARGS,
 	 "(str) - Change Image file name"},
 	{"setXRep", ( PyCFunction ) Image_setXRep, METH_VARARGS,
 	 "(int) - Change Image object x repetition value"},
@@ -707,7 +717,8 @@ PyObject *Image_Init( void )
 {
 	PyObject *submodule;
 
-	Image_Type.ob_type = &PyType_Type;
+	if( PyType_Ready( &Image_Type ) < 0 )
+		return NULL;
 
 	submodule =
 		Py_InitModule3( "Blender.Image", M_Image_methods,
@@ -720,38 +731,8 @@ PyObject *Image_Init( void )
 /* Python Image_Type callback function prototypes:	 */
 /*****************************************************************************/
 static void Image_dealloc( BPy_Image * self );
-static int Image_setAttr( BPy_Image * self, char *name, PyObject * v );
 static int Image_compare( BPy_Image * a, BPy_Image * b );
-static PyObject *Image_getAttr( BPy_Image * self, char *name );
 static PyObject *Image_repr( BPy_Image * self );
-
-/*****************************************************************************/
-/* Python Image_Type structure definition:   */
-/*****************************************************************************/
-PyTypeObject Image_Type = {
-	PyObject_HEAD_INIT( NULL ) /*     required macro. ( no comma needed )  */ 
-	0,	/* ob_size */
-	"Blender Image",	/* tp_name */
-	sizeof( BPy_Image ),	/* tp_basicsize */
-	0,			/* tp_itemsize */
-	/* methods */
-	( destructor ) Image_dealloc,	/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) Image_getAttr,	/* tp_getattr */
-	( setattrfunc ) Image_setAttr,	/* tp_setattr */
-	( cmpfunc ) Image_compare,	/* tp_compare */
-	( reprfunc ) Image_repr,	/* tp_repr */
-	0,			/* tp_as_number */
-	0,			/* tp_as_sequence */
-	0,			/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_doc */
-	0, 0, 0, 0, 0, 0,
-	BPy_Image_methods,	/* tp_methods */
-	0,			/* tp_members */
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* up to tp_del, to avoid a warning */
-};
 
 /*****************************************************************************/
 /* Function:		Image_dealloc		 */
@@ -825,9 +806,7 @@ static PyObject *Image_getSize( BPy_Image * self )
 	
 	PyList_SetItem( attr, 0, PyInt_FromLong(ibuf->x));
 	PyList_SetItem( attr, 1, PyInt_FromLong(ibuf->y));
-	return attr;	
-
-
+	return attr;
 }
 
 static PyObject *Image_getDepth( BPy_Image * self )
@@ -972,25 +951,28 @@ static PyObject *Image_glLoad( BPy_Image * self )
 	return PyLong_FromUnsignedLong( image->bindcode );
 }
 
-static PyObject *Image_setFilename( BPy_Image * self, PyObject * args )
+static int Image_setFilename( BPy_Image * self, PyObject * value )
 {
 	char *name;
-	int namelen = 0;
 
-	/* max len is FILE_MAXDIR == 160, FILE_MAXFILE == 80 chars like done in DNA_image_types.h */
+	name = PyString_AsString(value);
 
-	if( !PyArg_ParseTuple( args, "s#", &name, &namelen ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+	if( !name )
+		return ( EXPP_ReturnIntError( PyExc_TypeError,
 						"expected a string argument" ) );
 
-	if( namelen >= FILE_MAXDIR + FILE_MAXFILE )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+	/* max len is FILE_MAXDIR == 160, FILE_MAXFILE == 80 chars like done in DNA_image_types.h */
+	if( strlen(name) >= FILE_MAXDIR + FILE_MAXFILE )
+		return ( EXPP_ReturnIntError( PyExc_TypeError,
 						"string argument is limited to 240 chars at most" ) );
 
-	PyOS_snprintf( self->image->name, (FILE_MAXDIR + FILE_MAXFILE) * sizeof( char ), "%s",
-		       name );
+	strcpy( self->image->name, name );
+	return 0;
+}
 
-	Py_RETURN_NONE;
+static PyObject *Image_oldsetFilename( BPy_Image * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Image_setFilename );
 }
 
 static PyObject *Image_setXRep( BPy_Image * self, PyObject * args )
@@ -1080,166 +1062,6 @@ static PyObject *Image_setSpeed( BPy_Image * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-/*****************************************************************************/
-/* Function:		Image_getAttr		 */
-/* Description: This is a callback function for the BPy_Image type. It is */
-/*		the function that accesses BPy_Image member variables and   */
-/*		methods.	 */
-/*****************************************************************************/
-static PyObject *Image_getAttr( BPy_Image * self, char *name )
-{
-	PyObject *attr = Py_None;
-
-	if( strcmp( name, "name" ) == 0 )
-		attr = PyString_FromString( self->image->id.name + 2 );
-	else if ( strcmp( name, "properties" ) == 0 )
-		return BPy_Wrap_IDProperty( (ID*)self->image, IDP_GetProperties((ID*)self->image, 1), NULL );
-	else if( strcmp( name, "filename" ) == 0 )
-		attr = PyString_FromString( self->image->name );
-	else if( strcmp( name, "size" ) == 0 )
-		return Image_getSize( self );
-	else if( strcmp( name, "depth" ) == 0 )
-		return Image_getDepth( self );
-	else if( strcmp( name, "xrep" ) == 0 )
-		attr = PyInt_FromLong( self->image->xrep );
-	else if( strcmp( name, "yrep" ) == 0 )
-		attr = PyInt_FromLong( self->image->yrep );
-	else if( strcmp( name, "start" ) == 0 )
-		attr = PyInt_FromLong( self->image->twsta );
-	else if( strcmp( name, "end" ) == 0 )
-		attr = PyInt_FromLong( self->image->twend );
-	else if( strcmp( name, "speed" ) == 0 )
-		attr = PyInt_FromLong( self->image->animspeed );
-	else if( strcmp( name, "packed" ) == 0 ) {
-		if (self->image->packedfile) attr = Py_True;
-		else attr = Py_False;
-		Py_INCREF(attr);
-	} else if( strcmp( name, "has_data" ) == 0 ) {
-		if (self->image->ibufs.first) attr = Py_True;
-		else attr = Py_False;
-		Py_INCREF(attr);
-	} else if( strcmp( name, "fields" ) == 0 ) {
-		if (self->image->flag & IMA_FIELDS) attr = Py_True;
-		else attr = Py_False;
-		Py_INCREF(attr);
-	} else if( strcmp( name, "fields_odd" ) == 0 ) {
-		if (self->image->flag & IMA_STD_FIELD) attr = Py_True;
-		else attr = Py_False;
-		Py_INCREF(attr);
-	} else if( strcmp( name, "antialias" ) == 0 ) {
-		if (self->image->flag & IMA_ANTIALI) attr = Py_True;
-		else attr = Py_False;
-		Py_INCREF(attr);
-	} else if ( strcmp( name, "lib" ) == 0 ) {
-		/* WARNING - Not standard, until we move to get/setattrs
-		   at the moment we cant return None at the end because it raises an error */
-		attr = EXPP_GetIdLib((ID *)self->image);
-		if (attr) return attr; 
-	} else if( strcmp( name, "bindcode" ) == 0 )
-		attr = PyInt_FromLong( self->image->bindcode );
-	else if( strcmp( name, "users" ) == 0 )
-		attr = PyInt_FromLong( self->image->id.us );
-	else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
-				      "name", "filename", "size", "depth",
-				      "xrep", "yrep", "start", "end",
-				      "speed", "packed", "has_data"
-				      "fields", "odd", "antialias",
-					  "bindcode", "users", "lib" );
-
-	if( !attr )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create PyObject" ) );
-
-	if( attr != Py_None )
-		return attr;	/* attribute found, return its value */
-
-	/* not an attribute, search the methods table */
-	return Py_FindMethod( BPy_Image_methods, ( PyObject * ) self, name );
-}
-
-/*****************************************************************************/
-/* Function:		Image_setAttr		 */
-/* Description: This is a callback function for the BPy_Image type. It is the*/
-/*		function that changes Image object members values. If this  */
-/*		data is linked to a Blender Image, it also gets updated.  */
-/*****************************************************************************/
-static int Image_setAttr( BPy_Image * self, char *name, PyObject * value )
-{
-	PyObject *valtuple;
-	PyObject *error = NULL;
-
-/* We're playing a trick on the Python API users here.	Even if they use
- * Image.member = val instead of Image.setMember(value), we end up using the
- * function anyway, since it already has error checking, clamps to the right
- * interval and updates the Blender Image structure when necessary. */
-
-	valtuple = Py_BuildValue( "(O)", value );	/*the set* functions expect a tuple */
-
-	if( !valtuple )
-		return EXPP_ReturnIntError( PyExc_MemoryError,
-					    "ImageSetAttr: couldn't create PyTuple" );
-
-	if( strcmp( name, "name" ) == 0 )
-		error = GenericLib_setName_with_method( self, valtuple );
-	else if( strcmp( name, "filename" ) == 0 )
-		error = Image_setFilename( self, valtuple );
-	else if( strcmp( name, "xrep" ) == 0 )
-		error = Image_setXRep( self, valtuple );
-	else if( strcmp( name, "yrep" ) == 0 )
-		error = Image_setYRep( self, valtuple );
-	else if( strcmp( name, "start" ) == 0 )
-		error = Image_setStart( self, valtuple );
-	else if( strcmp( name, "end" ) == 0 )
-		error = Image_setEnd( self, valtuple );
-	else if( strcmp( name, "speed" ) == 0 )
-		error = Image_setSpeed( self, valtuple );
-	
-	else if( strcmp( name, "fields" ) == 0 ) {
-		int param = PyObject_IsTrue( value );
-		if( param == -1 )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected true/false argument" );
-		
-		if (param) self->image->flag |= IMA_FIELDS;
-		else self->image->flag &= ~IMA_FIELDS;
-		Py_INCREF( Py_None );
-		error = Py_None;
-	} else if( strcmp( name, "fields_odd" ) == 0 ) {
-		int param = PyObject_IsTrue( value );
-		if( param == -1 )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected true/false argument" );
-		
-		if (param) self->image->flag |= IMA_STD_FIELD;
-		else self->image->flag &= ~IMA_STD_FIELD;
-		Py_INCREF( Py_None );
-		error = Py_None;
-	} else if( strcmp( name, "antialias" ) == 0 ) {
-		int param = PyObject_IsTrue( value );
-		if( param == -1 )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected true/false argument" );
-		
-		if (param) self->image->flag |= IMA_ANTIALI;
-		else self->image->flag &= ~IMA_ANTIALI;
-		Py_INCREF( Py_None );
-		error = Py_None;
-	} else {			/* Error: no such member in the Image object structure */
-		/*Py_DECREF( value ); borrowed ref, no need to decref */
-		Py_DECREF( valtuple );
-		return ( EXPP_ReturnIntError( PyExc_KeyError,
-					      "attribute not found or immutable" ) );
-	}
-
-	Py_DECREF( valtuple );
-
-	if( error != Py_None )
-		return -1;
-
-	Py_DECREF( Py_None );	/* incref'ed by the called set* function */
-	return 0;		/* normal exit */
-}
 
 /*****************************************************************************/
 /* Function:	Image_compare			 */
@@ -1264,3 +1086,255 @@ static PyObject *Image_repr( BPy_Image * self )
 	return PyString_FromFormat( "[Image \"%s\"]",
 				    self->image->id.name + 2 );
 }
+
+static PyObject *Image_getPacked(BPy_Image *self, void *closure)
+{
+	if (self->image->packedfile)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+static PyObject *Image_hasData(BPy_Image *self, void *closure)
+{
+	if (self->image->ibufs.first)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+static PyObject *Image_getFlag(BPy_Image *self, void *flag)
+{
+	if (self->image->flag & (int)flag)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+		
+}
+
+static int Image_setFlag(BPy_Image *self, PyObject *value, void *flag)
+{
+	if ( PyObject_IsTrue(value) )
+		self->image->flag |= (int)flag;
+	else
+		self->image->flag &= ~(int)flag;
+	return 0;
+}
+
+
+/*
+ * get integer attributes
+ */
+static PyObject *getIntAttr( BPy_Image *self, void *type )
+{
+	PyObject *attr = NULL;
+	int param;
+	struct Image *image = self->image;
+
+	switch( (int)type ) {
+	case EXPP_IMAGE_ATTR_XREP:
+		param = image->xrep;
+		break;
+	case EXPP_IMAGE_ATTR_YREP:
+		param = image->xrep;
+		break;
+	case EXPP_IMAGE_ATTR_START:
+		param = image->twsta;
+		break;	
+	case EXPP_IMAGE_ATTR_END:
+		param = image->twend;
+		break;
+	case EXPP_IMAGE_ATTR_SPEED:
+		param = image->animspeed;
+		break;
+	case EXPP_IMAGE_ATTR_BINDCODE:
+		param = image->bindcode;
+		break;
+	default:
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"undefined type in getIntAttr" );
+	}
+
+	attr = PyInt_FromLong( param );
+	
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_MemoryError,
+				"PyInt_FromLong() failed!" );
+}
+
+
+/*
+ * set integer attributes which require clamping
+ */
+
+static int setIntAttrClamp( BPy_Image *self, PyObject *value, void *type )
+{
+	void *param;
+	struct Image *image = self->image;
+	int min, max, size;
+
+	switch( (int)type ) {
+	case EXPP_IMAGE_ATTR_XREP:
+		min = EXPP_IMAGE_REP_MIN;
+		max = EXPP_IMAGE_REP_MAX;
+		size = 'h';
+		param = (void *)&image->xrep;
+		break;
+	case EXPP_IMAGE_ATTR_YREP:
+		min = EXPP_IMAGE_REP_MIN;
+		max = EXPP_IMAGE_REP_MAX;
+		size = 'h';
+		param = (void *)&image->yrep;
+		break;
+	case EXPP_IMAGE_ATTR_START:
+		min = 0;
+		max = 128;
+		size = 'h';
+		param = (void *)&image->twsta;
+		break;
+	case EXPP_IMAGE_ATTR_END:
+		min = 0;
+		max = 128;
+		size = 'h';
+		param = (void *)&image->twend;
+		break;
+	case EXPP_IMAGE_ATTR_SPEED:
+		min = 0;
+		max = 100;
+		size = 'h';
+		param = (void *)&image->animspeed;
+		break;
+	
+	default:
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"undefined type in setIntAttrClamp");
+	}
+	return EXPP_setIValueClamped( value, param, min, max, size );
+}
+
+/*****************************************************************************/
+/* Python attributes get/set structure:                                      */
+/*****************************************************************************/
+static PyGetSetDef BPy_Image_getseters[] = {
+	GENERIC_LIB_GETSETATTR,
+	{"filename", (getter)Image_getFilename, (setter)Image_setFilename,
+	 "image path", NULL},
+	/* readonly */
+	{"depth", (getter)Image_getDepth, (setter)NULL,
+	 "image depth", NULL},
+	{"size", (getter)Image_getSize, (setter)NULL,
+	 "image size", NULL},
+	{"packed", (getter)Image_getPacked, (setter)NULL,
+	 "image packed state", NULL },
+	{"has_data", (getter)Image_hasData, (setter)NULL,
+	 "is image data loaded", NULL },
+	/* ints */
+	{"xrep", (getter)getIntAttr, (setter)setIntAttrClamp,
+	 "image xrep", (void *)EXPP_IMAGE_ATTR_XREP },
+	{"yrep", (getter)getIntAttr, (setter)setIntAttrClamp,
+	 "image yrep", (void *)EXPP_IMAGE_ATTR_YREP },
+	{"start", (getter)getIntAttr, (setter)setIntAttrClamp,
+	 "image start frame", (void *)EXPP_IMAGE_ATTR_START },
+	{"end", (getter)getIntAttr, (setter)setIntAttrClamp,
+	 "image end frame", (void *)EXPP_IMAGE_ATTR_END },
+	{"speed", (getter)getIntAttr, (setter)setIntAttrClamp,
+	 "image end frame", (void *)EXPP_IMAGE_ATTR_SPEED },
+	{"bindcode", (getter)getIntAttr, (setter)NULL,
+	 "openGL bindcode", (void *)EXPP_IMAGE_ATTR_BINDCODE },
+	/* flags */
+	{"fields", (getter)Image_getFlag, (setter)Image_setFlag,
+	 "image fields toggle", (void *)IMA_FIELDS },
+	{"fields_odd", (getter)Image_getFlag, (setter)Image_setFlag,
+	 "image fields toggle", (void *)IMA_STD_FIELD },
+	{"antialias", (getter)Image_getFlag, (setter)Image_setFlag,
+	 "image fields toggle", (void *)IMA_ANTIALI },
+	{"reflect", (getter)Image_getFlag, (setter)Image_setFlag,
+	 "image fields toggle", (void *)IMA_REFLECT },
+
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+
+/*****************************************************************************/
+/* Python Image_Type structure definition:   */
+/*****************************************************************************/
+PyTypeObject Image_Type = {
+	PyObject_HEAD_INIT( NULL ) /*     required macro. ( no comma needed )  */ 
+	0,	/* ob_size */
+	"Blender Image",	/* tp_name */
+	sizeof( BPy_Image ),	/* tp_basicsize */
+	0,			/* tp_itemsize */
+	/* methods */
+	( destructor ) Image_dealloc,	/* tp_dealloc */
+	0,			/* tp_print */
+	NULL,	/* tp_getattr */
+	NULL,	/* tp_setattr */
+	( cmpfunc ) Image_compare,	/* tp_compare */
+	( reprfunc ) Image_repr,	/* tp_repr */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_Image_methods,           /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_Image_getseters,         /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
+};

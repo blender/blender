@@ -1556,8 +1556,13 @@ static int Ipo_contains( BPy_Ipo *self, PyObject *key )
 
 static PyObject *Ipo_getIter( BPy_Ipo * self )
 {
-	self->iter = 0;
-	return EXPP_incr_ret ( (PyObject *) self );
+	/* return a new IPO object if we are looping on the existing one
+	   This allows nested loops */
+	if (self->iter==0) {
+		return EXPP_incr_ret ( (PyObject *) self );
+	} else {
+		return Ipo_CreatePyObject(self->ipo);
+	}
 }
 
 /*
@@ -1589,6 +1594,7 @@ static PyObject *Ipo_nextIter( BPy_Ipo * self )
 		}
 	}
 
+	self->iter = 0; /* allow iter use again */
 	/* ran out of curves */
 	return EXPP_ReturnPyObjError( PyExc_StopIteration,
 			"iterator at end" );

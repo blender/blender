@@ -94,11 +94,6 @@ struct ID; /*keep me up here */
 #include "Types.h"
 #include "Main.h"
 
-/*for the removefakeuser hack*/
-#include "NLA.h" /*This must come first*/
-#include "BKE_action.h"
-
-
 /**********************************************************/
 /* Python API function prototypes for the Blender module.	*/
 /**********************************************************/
@@ -175,10 +170,6 @@ static char Blender_Run_doc[] =
 	"(script) - Run the given Python script.\n\
 (script) - the path to a file or the name of an available Blender Text.";
 
-static char Blender_RemoveFakeuser_doc[] =
-	"(datablock) - remove the fake user from a datablock. useful for deleting actions.\n\
-(datablock) - the datablock that has a fakeuser. currently only action object accepted.";
-
 static char Blender_ShowHelp_doc[] =
 "(script) - Show help for the given Python script.\n\
   This will try to open the 'Scripts Help Browser' script, so to have\n\
@@ -214,7 +205,6 @@ static struct PyMethodDef Blender_methods[] = {
 	{"Load", Blender_Load, METH_VARARGS, Blender_Load_doc},
 	{"Save", Blender_Save, METH_VARARGS, Blender_Save_doc},
 	{"Run", Blender_Run, METH_VARARGS, Blender_Run_doc},
-	{"RemoveFakeuser", Blender_RemoveFakeuser, METH_VARARGS, Blender_RemoveFakeuser_doc},
 	{"ShowHelp", Blender_ShowHelp, METH_VARARGS, Blender_ShowHelp_doc},
 	{"CountPackedFiles", ( PyCFunction ) Blender_CountPackedFiles, METH_NOARGS, Blender_CountPackedFiles_doc},
 	{"PackAll", ( PyCFunction ) Blender_PackAll, METH_NOARGS, Blender_PackAll_doc},
@@ -843,32 +833,6 @@ static PyObject * Blender_UpdateMenus( PyObject * self )
 	if (BPyMenu_Init(1) == -1)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 			"invalid scripts dir");
-
-	Py_RETURN_NONE;
-}
-
-static PyObject *Blender_RemoveFakeuser(PyObject *self, PyObject *args)
-{
-	ID *id;
-	BPy_Action *py_thing; /*lousy coder antont did not know how to accept any bpy thing with ID..*/
-
-	if( !PyArg_ParseTuple( args, "O!", &Action_Type, &py_thing ) )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				       "expected python action type" );
-	
-	id= (ID *)py_thing->action;
-	
-	if(id) {
-		if( id->flag & LIB_FAKEUSER) {
-					id->flag -= LIB_FAKEUSER;
-					id->us--;
-				}
-		else
-			return EXPP_ReturnPyObjError( PyExc_AttributeError,
-						      "given datablock has no fakeusers");
-	} else
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "given object does not have a Blender ID");
 
 	Py_RETURN_NONE;
 }
