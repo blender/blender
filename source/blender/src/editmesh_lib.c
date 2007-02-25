@@ -1480,18 +1480,11 @@ short extrudeflag_vert(short flag, float *nor)
 			if(eed->dir != del_old) 
 				efa2 = addfacelist(eed->v1, eed->v2, 
 								  eed->v2->tmp.v, eed->v1->tmp.v, 
-								  NULL, NULL);
+								  eed->tmp.f, NULL);
 			else 
 				efa2 = addfacelist(eed->v2, eed->v1, 
 								   eed->v1->tmp.v, eed->v2->tmp.v, 
-								   NULL, NULL);
-			
-			if(eed->tmp.f) {
-				efa = eed->tmp.f;
-				efa2->mat_nr= efa->mat_nr;
-				efa2->flag= efa->flag;
-				CustomData_em_copy_data(&em->fdata, &em->fdata, &efa->data, &efa2->data);
-			}
+								   eed->tmp.f, NULL);
 			
 			/* Needs smarter adaption of existing creases.
 			 * If addedgelist is used, make sure seams are set to 0 on these
