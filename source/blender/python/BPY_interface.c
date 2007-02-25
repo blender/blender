@@ -171,7 +171,7 @@ void BPY_start_python( int argc, char **argv )
 	 * rest of our init msgs.
 	 */
 	// Py_GetVersion() returns a ptr to astatic string
-	printf( "Compiled with Python version %.3s.\n", Py_GetVersion() );
+	printf( "Compiled with Python version %.5s.\n", Py_GetVersion() );
 
 	//Initialize the TOP-LEVEL modules
 	PyImport_ExtendInittab(BPy_Inittab_Modules);
