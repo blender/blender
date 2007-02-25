@@ -88,6 +88,8 @@ void drawSnapping(TransInfo *t)
 		float size;
 		char col[4];
 		
+		glDisable(GL_DEPTH_TEST);
+
 		size = get_drawsize(G.vd);
 		
 		size *= 0.5f * BIF_GetThemeValuef(TH_VERTEX_SIZE);
@@ -101,10 +103,13 @@ void drawSnapping(TransInfo *t)
 		
 		/* sets view screen aligned */
 		glRotatef( -360.0f*saacos(G.vd->viewquat[0])/(float)M_PI, G.vd->viewquat[1], G.vd->viewquat[2], G.vd->viewquat[3]);
-
+		
 		Mat4One(unitmat);
 		drawcircball(GL_LINE_LOOP, unitmat[3], size, unitmat);
+		
 		glPopMatrix();
+		
+		if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);		
 	}
 }
 
