@@ -453,15 +453,16 @@ PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
 	char *eventname = NULL;
 	int i, event = 0;
 
-	/* actually !scriptlink shouldn't happen ... */
-	if( !slink || !slink->totscript )
-		return EXPP_incr_ret( Py_None );
+	list = PyList_New( 0 );
 
 	if( !PyArg_ParseTuple( args, "s", &eventname ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected event name (string) as argument" );
 
-	list = PyList_New( 0 );
+	/* actually !scriptlink shouldn't happen ... */
+	if( !slink || !slink->totscript )
+		return list;
+	
 	if( !list )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
 					      "couldn't create PyList!" );

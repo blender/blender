@@ -40,7 +40,7 @@ extern PyTypeObject Font_Type;
 
 typedef struct {
 	PyObject_HEAD		/* required py macro */
-	VFont * font;
+	VFont * font;		/* libdata must be second */
 } BPy_Font;
 
 /*------------------------------visible prototypes----------------------*/

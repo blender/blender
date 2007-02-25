@@ -67,6 +67,7 @@ struct View3D;
 #include "Curve.h"
 #include "NMesh.h"
 #include "Mesh.h"
+#include "World.h"
 #include "Lattice.h"
 #include "Metaball.h"
 #include "IDProp.h"
@@ -124,11 +125,10 @@ struct PyMethodDef M_Scene_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 /*-----------------------BPy_Scene  method declarations--------------------*/
-static PyObject *Scene_getName( BPy_Scene * self );
-static PyObject *Scene_setName( BPy_Scene * self, PyObject * arg );
-static PyObject *Scene_getLayers( BPy_Scene * self );
-static PyObject *Scene_setLayers( BPy_Scene * self, PyObject * arg );
-static PyObject *Scene_setLayersMask( BPy_Scene * self, PyObject * arg );
+static PyObject *Scene_oldgetName( BPy_Scene * self );
+static PyObject *Scene_oldsetName( BPy_Scene * self, PyObject * arg );
+static PyObject *Scene_getLayerList( BPy_Scene * self );
+static PyObject *Scene_oldsetLayers( BPy_Scene * self, PyObject * arg );
 static PyObject *Scene_copy( BPy_Scene * self, PyObject * arg );
 static PyObject *Scene_makeCurrent( BPy_Scene * self );
 static PyObject *Scene_update( BPy_Scene * self, PyObject * args );
@@ -145,14 +145,11 @@ static PyObject *Scene_addScriptLink( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_clearScriptLinks( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_play( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_getTimeLine( BPy_Scene * self );
-static PyObject *Scene_getObjects( BPy_Scene * self );
 
 
 /*internal*/
 static void Scene_dealloc( BPy_Scene * self );
-static int Scene_setAttr( BPy_Scene * self, char *name, PyObject * v );
 static int Scene_compare( BPy_Scene * a, BPy_Scene * b );
-static PyObject *Scene_getAttr( BPy_Scene * self, char *name );
 static PyObject *Scene_repr( BPy_Scene * self );
 
 /*object seq*/
@@ -161,13 +158,13 @@ static PyObject *SceneObSeq_CreatePyObject( BPy_Scene *self, Base *iter, int mod
 /*-----------------------BPy_Scene method def------------------------------*/
 static PyMethodDef BPy_Scene_methods[] = {
 	/* name, method, flags, doc */
-	{"getName", ( PyCFunction ) Scene_getName, METH_NOARGS,
+	{"getName", ( PyCFunction ) Scene_oldgetName, METH_NOARGS,
 	 "() - Return Scene name"},
-	{"setName", ( PyCFunction ) Scene_setName, METH_VARARGS,
+	{"setName", ( PyCFunction ) Scene_oldsetName, METH_VARARGS,
 	 "(str) - Change Scene name"},
-	{"getLayers", ( PyCFunction ) Scene_getLayers, METH_NOARGS,
+	{"getLayers", ( PyCFunction ) Scene_getLayerList, METH_NOARGS,
 	 "() - Return a list of layers int indices which are set in this scene "},
-	{"setLayers", ( PyCFunction ) Scene_setLayers, METH_VARARGS,
+	{"setLayers", ( PyCFunction ) Scene_oldsetLayers, METH_VARARGS,
 	 "(layers) - Change layers which are set in this scene\n"
 	 "(layers) - list of integers in the range [1, 20]."},
 	{"copy", ( PyCFunction ) Scene_copy, METH_VARARGS,
@@ -230,6 +227,289 @@ static PyMethodDef BPy_Scene_methods[] = {
 	"() - Get time line of this Scene"},
 	{NULL, NULL, 0, NULL}
 };
+
+
+/*****************************************************************************/
+/* Python BPy_Scene methods:                                                  */
+/*****************************************************************************/
+static PyObject *Scene_getName( BPy_Scene * self )
+{
+	PyObject *attr;
+	SCENE_DEL_CHECK_PY(self);
+	
+	attr = PyString_FromString( self->scene->id.name + 2 );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Scene.name attribute" ) );
+}
+
+static int Scene_setName( BPy_Scene * self, PyObject * value )
+{
+	char *name = NULL;
+	
+	SCENE_DEL_CHECK_INT(self);
+	
+	name = PyString_AsString ( value );
+	if( !name )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected string argument" );
+
+	rename_id( &self->scene->id, name );
+
+	return 0;
+}
+
+static PyObject *Scene_getLib( BPy_Scene * self )
+{
+	SCENE_DEL_CHECK_PY(self);
+	return EXPP_GetIdLib((ID *)self->scene);
+	
+}
+
+static PyObject *Scene_getUsers( BPy_Scene * self )
+{
+	SCENE_DEL_CHECK_PY(self);
+	return PyInt_FromLong( self->scene->id.us );
+}
+
+static PyObject *Scene_getFakeUser( BPy_Scene * self )
+{
+	SCENE_DEL_CHECK_PY(self);
+	if (self->scene->id.flag & LIB_FAKEUSER)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+static int Scene_setFakeUser( BPy_Scene * self, PyObject * value )
+{
+	SCENE_DEL_CHECK_INT(self);
+	return SetIdFakeUser(&self->scene->id, value);
+}
+
+static PyObject *Scene_getLayerMask( BPy_Scene * self )
+{
+	SCENE_DEL_CHECK_PY(self);
+	return PyInt_FromLong( self->scene->lay & ((1<<20)-1) );
+}
+
+static int Scene_setLayerMask( BPy_Scene * self, PyObject * value )
+{
+	int laymask = 0;
+	
+	SCENE_DEL_CHECK_INT(self);
+	
+	if (!PyInt_CheckExact(value)) {
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+			"expected an integer (bitmask) as argument" );
+	}
+	
+	laymask = PyInt_AsLong(value);
+
+	if (laymask <= 0 || laymask > (1<<20) - 1) /* binary: 1111 1111 1111 1111 1111 */
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+			"bitmask must have from 1 up to 20 bits set");
+
+	self->scene->lay = laymask;
+	/* if this is the current scene then apply the scene layers value
+	 * to the view layers value: */
+	if (G.vd && (self->scene == G.scene)) {
+		int val, bit = 0;
+		G.vd->lay = laymask;
+
+		while( bit < 20 ) {
+			val = 1 << bit;
+			if( laymask & val ) {
+				G.vd->layact = val;
+				break;
+			}
+			bit++;
+		}
+	}
+
+	return 0;
+}
+
+static PyObject *Scene_getLayerList( BPy_Scene * self )
+{
+	PyObject *laylist = PyList_New( 0 ), *item;
+	int layers, bit = 0, val = 0;
+	
+	SCENE_DEL_CHECK_PY(self);
+	
+	if( !laylist )
+		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+			"couldn't create pylist!" ) );
+
+	layers = self->scene->lay;
+
+	while( bit < 20 ) {
+		val = 1 << bit;
+		if( layers & val ) {
+			item = Py_BuildValue( "i", bit + 1 );
+			PyList_Append( laylist, item );
+			Py_DECREF( item );
+		}
+		bit++;
+	}
+	return laylist;
+}
+
+static int Scene_setLayerList( BPy_Scene * self, PyObject * value )
+{
+	PyObject *item = NULL;
+	int layers = 0, val, i, len_list;
+	
+	SCENE_DEL_CHECK_INT(self);
+	
+	if( !PySequence_Check( value ) )
+		return ( EXPP_ReturnIntError( PyExc_TypeError,
+			"expected a list of integers in the range [1, 20]" ) );
+
+	len_list = PySequence_Size(value);
+
+	if (len_list == 0)
+		return ( EXPP_ReturnIntError( PyExc_AttributeError,
+			"list can't be empty, at least one layer must be set" ) );
+
+	for( i = 0; i < len_list; i++ ) {
+		item = PySequence_GetItem( value, i );
+		
+		if( !PyInt_Check( item ) ) {
+			Py_DECREF( item );
+			return EXPP_ReturnIntError
+				( PyExc_AttributeError,
+				  "list must contain only integer numbers" );
+		}
+		
+		val = ( int ) PyInt_AsLong( item );
+		if( val < 1 || val > 20 )
+			return EXPP_ReturnIntError
+				( PyExc_AttributeError,
+				  "layer values must be in the range [1, 20]" );
+
+		layers |= 1 << ( val - 1 );
+	}
+	self->scene->lay = layers;
+
+	if (G.vd && (self->scene == G.scene)) {
+		int bit = 0;
+		G.vd->lay = layers;
+
+		while( bit < 20 ) {
+			val = 1 << bit;
+			if( layers & val ) {
+				G.vd->layact = val;
+				break;
+			}
+			bit++;
+		}
+	}
+
+	return 0;
+}
+
+static PyObject *Scene_getWorld( BPy_Scene * self )
+{
+	SCENE_DEL_CHECK_PY(self);
+	
+	if (!self->scene->world)
+		Py_RETURN_NONE;
+	return World_CreatePyObject(self->scene->world);
+}
+
+static int Scene_setWorld( BPy_Scene * self, PyObject * value )
+{
+	World *world=NULL;
+	
+	SCENE_DEL_CHECK_INT(self);
+	
+	if (!BPy_World_Check(value))
+		return ( EXPP_ReturnIntError( PyExc_TypeError,
+			"expected a world object" ) );
+	
+	world = World_FromPyObject(value);
+	/* If there is a world then it now has one less user */
+	if( self->scene->world )
+		self->scene->world->id.us--;
+	world->id.us++;
+	G.scene->world = world;
+	return 0;
+}
+
+/* accessed from scn.objects */
+static PyObject *Scene_getObjects( BPy_Scene *self) 
+{
+	SCENE_DEL_CHECK_PY(self);
+	return SceneObSeq_CreatePyObject(self, NULL, 0);
+}
+
+static PyObject *Scene_GetProperties(BPy_Scene * self)
+{
+	SCENE_DEL_CHECK_PY(self);
+	return BPy_Wrap_IDProperty( (ID*)self->scene, IDP_GetProperties((ID*)self->scene, 1), NULL );	
+}
+
+/*****************************************************************************/
+/* Python attributes get/set structure:                                      */
+/*****************************************************************************/
+static PyGetSetDef BPy_Scene_getseters[] = {
+	{"name",
+	 (getter)Scene_getName, (setter)Scene_setName,
+	 "Scene name",
+	 NULL},
+	{"lib",
+	 (getter)Scene_getLib, (setter)NULL,
+	 "Scenes external library path",
+	 NULL},
+	{"users",
+	 (getter)Scene_getUsers, (setter)NULL,
+	 "Scenes user count",
+	 NULL},
+	{"fakeUser",
+	 (getter)Scene_getFakeUser, (setter)Scene_setFakeUser,
+	 "Scene fake user state",
+	 NULL},
+	{"properties",
+	 (getter)Scene_GetProperties, (setter)NULL,
+	 "Scene properties",
+	 NULL},
+	{"Layer",
+	 (getter)Scene_getLayerMask, (setter)Scene_setLayerMask,
+	 "Scene layer bitmask",
+	 NULL},
+	{"layers",
+	 (getter)Scene_getLayerList, (setter)Scene_setLayerList,
+	 "Scene layer list",
+	 NULL},
+	{"world",
+	 (getter)Scene_getWorld, (setter)Scene_setWorld,
+	 "Scene layer bitmask",
+	 NULL},
+	{"timeline",
+	 (getter)Scene_getTimeLine, (setter)NULL,
+	 "Scenes timeline (read only)",
+	 NULL},
+	{"render",
+	 (getter)Scene_getRenderingContext, (setter)NULL,
+	 "Scenes rendering context (read only)",
+	 NULL},
+	{"radiosity",
+	 (getter)Scene_getRadiosityContext, (setter)NULL,
+	 "Scenes radiosity context (read only)",
+	 NULL},
+	{"objects",
+	 (getter)Scene_getObjects, (setter)NULL,
+	 "Scene object iterator",
+	 NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+
+
 /*-----------------------BPy_Scene method def------------------------------*/
 PyTypeObject Scene_Type = {
 	PyObject_HEAD_INIT( NULL ) 
@@ -239,22 +519,77 @@ PyTypeObject Scene_Type = {
 	0,			/* tp_itemsize */
 	/* methods */
 	( destructor ) Scene_dealloc,	/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) Scene_getAttr,	/* tp_getattr */
-	( setattrfunc ) Scene_setAttr,	/* tp_setattr */
+	NULL,                       /* printfunc tp_print; */
+	NULL,                       /* getattrfunc tp_getattr; */
+	NULL,                       /* setattrfunc tp_setattr; */
 	( cmpfunc ) Scene_compare,	/* tp_compare */
 	( reprfunc ) Scene_repr,	/* tp_repr */
-	0,			/* tp_as_number */
-	0,			/* tp_as_sequence */
-	0,			/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_doc */
-	0, 0, 0, 0, 0, 0,
-	BPy_Scene_methods,	/* tp_methods */
-	0,			/* tp_members */
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_Scene_methods,           /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_Scene_getseters,         /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
 };
+
 /*-----------------------Scene module Init())-----------------------------*/
 PyObject *Scene_Init( void )
 {
@@ -281,91 +616,6 @@ PyObject *Scene_Init( void )
 static void Scene_dealloc( BPy_Scene * self )
 {
 	PyObject_DEL( self );
-}
-
-/*-----------------------getAttr----------------------------------------*/
-static PyObject *Scene_getAttr( BPy_Scene * self, char *name )
-{
-	PyObject *attr = Py_None;
-	SCENE_DEL_CHECK_PY(self);
-	
-	if( strcmp( name, "name" ) == 0 )
-		attr = PyString_FromString( self->scene->id.name + 2 );
-
-	else if ( strcmp( name, "properties" ) == 0 )
-		return BPy_Wrap_IDProperty( (ID*)self->scene, IDP_GetProperties((ID*)self->scene, 1), NULL );
-	
-	else if ( strcmp( name, "lib" ) == 0 )
-		return EXPP_GetIdLib((ID *)self->scene);
-	
-	/* accept both Layer (for compatibility with ob.Layer) and Layers */
-	else if( strncmp( name, "Layer", 5 ) == 0 )
-		attr = PyInt_FromLong( self->scene->lay & ((1<<20)-1) );
-	/* Layers returns a bitmask, layers returns a list of integers */
-	else if( strcmp( name, "layers") == 0)
-		return Scene_getLayers(self);
-	else if( strcmp( name, "objects") == 0)
-		return Scene_getObjects(self);
-
-	else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[ssssss]", "name", "Layers", "layers", "objects", "properties", "lib");
-
-	if( !attr )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create PyObject" ) );
-
-	if( attr != Py_None )
-		return attr;	/* member attribute found, return it */
-
-	/* not an attribute, search the methods table */
-	return Py_FindMethod( BPy_Scene_methods, ( PyObject * ) self, name );
-}
-
-/*-----------------------setAttr----------------------------------------*/
-static int Scene_setAttr( BPy_Scene * self, char *name, PyObject * value )
-{
-	PyObject *valtuple;
-	PyObject *error = NULL;
-
-	SCENE_DEL_CHECK_INT(self);
-	
-/* We're playing a trick on the Python API users here.	Even if they use
- * Scene.member = val instead of Scene.setMember(val), we end up using the
- * function anyway, since it already has error checking, clamps to the right
- * interval and updates the Blender Scene structure when necessary. */
-
-/* First we put "value" in a tuple, because we want to pass it to functions
- * that only accept PyTuples. Using "N" doesn't increment value's ref count */
-	valtuple = Py_BuildValue( "(O)", value );
-
-	if( !valtuple )		/* everything OK with our PyObject? */
-		return EXPP_ReturnIntError( PyExc_MemoryError,
-					    "SceneSetAttr: couldn't create PyTuple" );
-
-/* Now we just compare "name" with all possible BPy_Scene member variables */
-	if( strcmp( name, "name" ) == 0 )
-		error = Scene_setName( self, valtuple );
-	else if (strncmp(name, "Layer", 5) == 0)
-		error = Scene_setLayersMask(self, valtuple);	
-	else if (strcmp(name, "layers") == 0)
-		error = Scene_setLayers(self, valtuple);
-
-	else { /* Error: no member with the given name was found */
-		Py_DECREF( valtuple );
-		return ( EXPP_ReturnIntError( PyExc_AttributeError, name ) );
-	}
-
-/* valtuple won't be returned to the caller, so we need to DECREF it */
-	Py_DECREF( valtuple );
-
-	if( error != Py_None )
-		return -1;
-
-/* Py_None was incref'ed by the called Scene_set* function. We probably
- * don't need to decref Py_None (!), but since Python/C API manual tells us
- * to treat it like any other PyObject regarding ref counting ... */
-	Py_DECREF( Py_None );
-	return 0;		/* normal exit */
 }
 
 /*-----------------------compare----------------------------------------*/
@@ -411,28 +661,6 @@ Scene *Scene_FromPyObject( PyObject * pyobj )
 {
 	return ( ( BPy_Scene * ) pyobj )->scene;
 }
-
-/*-----------------------GetSceneByName()-------------------------------*/
-/* Description: Returns the object with the name specified by the argument	name. 
-Note that the calling function has to remove the first two characters of the object name. 
-These two characters	specify the type of the object (OB, ME, WO, ...)The function 
-will return NULL when no object with the given  name is found.	 */
-Scene *GetSceneByName( char *name )
-{
-	Scene *scene_iter;
-
-	scene_iter = G.main->scene.first;
-	while( scene_iter ) {
-		if( StringEqual( name, GetIdName( &( scene_iter->id ) ) ) ) {
-			return ( scene_iter );
-		}
-		scene_iter = scene_iter->id.next;
-	}
-
-	/* There is no object with the given name */
-	return ( NULL );
-}
-
 
 /*-----------------------Scene module function defintions---------------*/
 /*-----------------------Scene.New()------------------------------------*/
@@ -572,9 +800,10 @@ static PyObject *M_Scene_Unlink( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
+/* DEPRECATE ME !!! */
 /*-----------------------BPy_Scene function defintions-------------------*/
 /*-----------------------Scene.getName()---------------------------------*/
-static PyObject *Scene_getName( BPy_Scene * self )
+static PyObject *Scene_oldgetName( BPy_Scene * self )
 {
 	PyObject *attr;
 	
@@ -590,7 +819,7 @@ static PyObject *Scene_getName( BPy_Scene * self )
 }
 
 /*-----------------------Scene.setName()---------------------------------*/
-static PyObject *Scene_setName( BPy_Scene * self, PyObject * args )
+static PyObject *Scene_oldsetName( BPy_Scene * self, PyObject * args )
 {
 	char *name;
 	
@@ -605,34 +834,8 @@ static PyObject *Scene_setName( BPy_Scene * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-/*-----------------------Scene.getLayers()---------------------------------*/
-static PyObject *Scene_getLayers( BPy_Scene * self )
-{
-	PyObject *laylist = PyList_New( 0 ), *item;
-	int layers, bit = 0, val = 0;
-	
-	SCENE_DEL_CHECK_PY(self);
-	
-	if( !laylist )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-			"couldn't create pylist!" ) );
-
-	layers = self->scene->lay;
-
-	while( bit < 20 ) {
-		val = 1 << bit;
-		if( layers & val ) {
-			item = Py_BuildValue( "i", bit + 1 );
-			PyList_Append( laylist, item );
-			Py_DECREF( item );
-		}
-		bit++;
-	}
-	return laylist;
-}
-
 /*-----------------------Scene.setLayers()---------------------------------*/
-static PyObject *Scene_setLayers( BPy_Scene * self, PyObject * args )
+static PyObject *Scene_oldsetLayers( BPy_Scene * self, PyObject * args )
 {
 	PyObject *list = NULL, *item = NULL;
 	int layers = 0, val, i, len_list;
@@ -682,42 +885,8 @@ static PyObject *Scene_setLayers( BPy_Scene * self, PyObject * args )
 
 	Py_RETURN_NONE;
 }
+/* END DEPRECATE CODE */
 
-/* only used by setAttr */
-static PyObject *Scene_setLayersMask(BPy_Scene *self, PyObject *args)
-{
-	int laymask = 0;
-	
-	SCENE_DEL_CHECK_PY(self);
-	
-	if (!PyArg_ParseTuple(args , "i", &laymask)) {
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"expected an integer (bitmask) as argument" );
-	}
-
-	if (laymask <= 0 || laymask > (1<<20) - 1) /* binary: 1111 1111 1111 1111 1111 */
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"bitmask must have from 1 up to 20 bits set");
-
-	self->scene->lay = laymask;
-	/* if this is the current scene then apply the scene layers value
-	 * to the view layers value: */
-	if (G.vd && (self->scene == G.scene)) {
-		int val, bit = 0;
-		G.vd->lay = laymask;
-
-		while( bit < 20 ) {
-			val = 1 << bit;
-			if( laymask & val ) {
-				G.vd->layact = val;
-				break;
-			}
-			bit++;
-		}
-	}
-
-	Py_RETURN_NONE;
-}
 
 /*-----------------------Scene.copy()------------------------------------*/
 static PyObject *Scene_copy( BPy_Scene * self, PyObject * args )
@@ -741,6 +910,8 @@ static PyObject *Scene_makeCurrent( BPy_Scene * self )
 	
 	SCENE_DEL_CHECK_PY(self);
 	
+	printf("scene.makeCurrent() deprecated!\n\tuse Blender.Main.scenes.active = scene instead\n");
+	
 	if( scene && scene != G.scene) {
 		set_scene( scene );
 		scene_update_for_newframe(scene, scene->lay);
@@ -756,7 +927,6 @@ static PyObject *Scene_update( BPy_Scene * self, PyObject * args )
 	int full = 0;
 	
 	SCENE_DEL_CHECK_PY(self);
-
 	if( !PyArg_ParseTuple( args, "|i", &full ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected nothing or int (0 or 1) argument" );
@@ -789,6 +959,8 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 
 	SCENE_DEL_CHECK_PY(self);
 
+	printf("scene.link(ob) deprecated!\n\tuse scene.objects.link(ob) instead\n");
+	
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &bpy_obj ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected Object argument" );
@@ -859,6 +1031,8 @@ static PyObject *Scene_unlink( BPy_Scene * self, PyObject * args )
 
 	SCENE_DEL_CHECK_PY(self);
 
+	printf("scene.unlink(ob) deprecated!\n\tuse scene.objects.unlink(ob) instead\n");
+	
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &bpy_obj ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected Object as argument" );
@@ -887,6 +1061,8 @@ static PyObject *Scene_getChildren( BPy_Scene * self )
 	Base *base;
 
 	SCENE_DEL_CHECK_PY(self);
+
+	printf("scene.getChildren() deprecated!\n\tuse scene.objects instead\n");
 
 	base = scene->base.first;
 
@@ -917,6 +1093,8 @@ static PyObject *Scene_getActiveObject(BPy_Scene *self)
 
 	SCENE_DEL_CHECK_PY(self);
 
+	printf("scene.getActiveObject() deprecated!\n\tuse scene.objects.active instead\n");
+	
 	ob = ((scene->basact) ? (scene->basact->object) : 0);
 
 	if (ob) {
@@ -940,6 +1118,8 @@ static PyObject *Scene_getCurrentCamera( BPy_Scene * self )
 	Scene *scene = self->scene;
 	
 	SCENE_DEL_CHECK_PY(self);
+	
+	printf("scene.getCurrentCamera() deprecated!\n\tGet scene.objects.camera instead\n");
 
 	cam_obj = scene->camera;
 
@@ -963,6 +1143,8 @@ static PyObject *Scene_setCurrentCamera( BPy_Scene * self, PyObject * args )
 
 	SCENE_DEL_CHECK_PY(self);
 
+	printf("scene.setCurrentCamera(ob) deprecated!\n\tSet scene.objects.camera = ob instead\n");
+	
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &cam_obj ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected Camera Object as argument" );
@@ -1113,12 +1295,6 @@ static PyObject *Scene_getTimeLine( BPy_Scene *self )
 	tm->efra= (int) self->scene->r.efra;
 
 	return (PyObject *)tm;
-}
-/* accessed from scn.objects */
-static PyObject *Scene_getObjects( BPy_Scene *self) 
-{
-	SCENE_DEL_CHECK_PY(self);
-	return SceneObSeq_CreatePyObject(self, NULL, 0);
 }
 
 /************************************************************************
@@ -1588,6 +1764,58 @@ static int SceneObSeq_setActive(BPy_SceneObSeq *self, PyObject *value)
 	return 0;
 }
 
+PyObject *SceneObSeq_getCamera(BPy_SceneObSeq *self)
+{
+	PyObject *pyob;
+	Object *ob;
+	
+	SCENE_DEL_CHECK_PY(self->bpyscene);
+	
+	if (self->mode!=EXPP_OBSEQ_NORMAL)
+			return (EXPP_ReturnPyObjError( PyExc_TypeError,
+						"cannot get camera from objects.selected or objects.context" ));
+	
+	ob= self->bpyscene->scene->camera;
+	if (!ob)
+		Py_RETURN_NONE;
+	
+	pyob = Object_CreatePyObject( ob );
+	
+	if (!pyob)
+		return EXPP_ReturnPyObjError(PyExc_MemoryError,
+					"couldn't create new object wrapper!");
+	
+	return pyob;
+}
+
+static int SceneObSeq_setCamera(BPy_SceneObSeq *self, PyObject *value)
+{
+	SCENE_DEL_CHECK_INT(self->bpyscene);
+	
+	if (self->mode!=EXPP_OBSEQ_NORMAL)
+			return (EXPP_ReturnIntError( PyExc_TypeError,
+						"cannot set camera from objects.selected or objects.context" ));
+	
+	if (value==Py_None) {
+		self->bpyscene->scene->camera= NULL;
+		return 0;
+	}
+	
+	if (!BPy_Object_Check(value))
+		return (EXPP_ReturnIntError( PyExc_ValueError,
+					      "Object or None types can only be assigned to camera!" ));
+	
+	self->bpyscene->scene->camera= ((BPy_Object *)value)->object;
+	
+	/* if this is the current scene, update its window now */
+	if( !G.background && self->bpyscene->scene == G.scene ) /* Traced a crash to redrawing while in background mode -Campbell */
+		copy_view3d_lock( REDRAW );
+
+/* XXX copy_view3d_lock(REDRAW) prints "bad call to addqueue: 0 (18, 1)".
+ * The same happens in bpython. */
+	
+	return 0;
+}
 
 
 static struct PyMethodDef BPy_SceneObSeq_methods[] = {
@@ -1649,6 +1877,10 @@ static PyGetSetDef SceneObSeq_getseters[] = {
 	{"active",
 	 (getter)SceneObSeq_getActive, (setter)SceneObSeq_setActive,
 	 "active object",
+	 NULL},
+	{"camera",
+	 (getter)SceneObSeq_getCamera, (setter)SceneObSeq_setCamera,
+	 "camera object",
 	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };

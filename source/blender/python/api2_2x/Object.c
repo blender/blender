@@ -3121,10 +3121,8 @@ PyObject *Object_CreatePyObject( struct Object * obj )
 {
 	BPy_Object *blen_object;
 
-	if( !obj ) {
-		Py_RETURN_NONE;
-	}
-
+	if( !obj ) Py_RETURN_NONE;
+	
 	blen_object =
 		( BPy_Object * ) PyObject_NEW( BPy_Object, &Object_Type );
 
@@ -4624,9 +4622,6 @@ static PyObject *get_obj_data( BPy_Object *self, int mesh )
 		data_object = Object_CreatePyObject( object->data );
 		break;
 	case ID_SCE:
-		break;
-	case ID_TXT:
-		data_object = Text_CreatePyObject( object->data );
 		break;
 	case OB_FONT:
 		data_object = Text3d_CreatePyObject( object->data );

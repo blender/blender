@@ -43,7 +43,7 @@ extern PyTypeObject Curve_Type;
 /* Python BPy_Curve structure definition */
 typedef struct {
 	PyObject_HEAD		/* required py macro */
-	Curve * curve;
+	Curve * curve;		/* libdata must be second */
 	/* pointer for iterator:  does not point to owned memory */
 	Nurb *iter_pointer;
 } BPy_Curve;

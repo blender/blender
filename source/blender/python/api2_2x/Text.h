@@ -43,7 +43,7 @@ extern PyTypeObject Text_Type;
 
 typedef struct {
 	PyObject_HEAD
-	Text * text;
+	Text * text; /* libdata must be second */
 } BPy_Text;
 
 PyObject *Text_Init( void );

@@ -116,7 +116,7 @@ typedef struct {
 
 typedef struct {
 	PyObject_HEAD		/* required python macro   */
-	Mesh * mesh;
+	Mesh * mesh;		/* libdata must be second */
 	Object *object;		/* for vertex grouping info, since it's stored on the object */
 	PyObject *name;
 	PyObject *materials;

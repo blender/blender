@@ -45,7 +45,7 @@ extern PyTypeObject Metaball_Type;
 /* Python BPy_Metaball structure definition */
 typedef struct {
 	PyObject_HEAD		/* required py macro */
-	MetaBall * metaball;
+	MetaBall * metaball; /* libdata must be second */
 } BPy_Metaball;
 
 

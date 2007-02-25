@@ -199,6 +199,7 @@ class Scene:
        scripts, for example), it's probably better to use this
        scene.GetChildren instead, since it will only access objects from this
        particular scene.
+    @warn: Depricated! use scene.objects instead.
     """
 
   def getActiveObject():
@@ -213,6 +214,7 @@ class Scene:
       return the active object even when no objects are selected.
     @rtype: Blender Object or None
     @return: the active object or None if not available.
+    @warn: Depricated! use scene.objects.active instead.
     """
 
   def getCurrentCamera():

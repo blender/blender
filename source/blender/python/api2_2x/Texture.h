@@ -44,7 +44,7 @@
 
 typedef struct {
 	PyObject_HEAD 
-	Tex * texture;
+	Tex * texture; /* libdata must be second */
 } BPy_Texture;
 
 extern PyTypeObject Texture_Type;

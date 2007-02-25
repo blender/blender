@@ -41,7 +41,7 @@
 /* Python BPy_World structure definition */
 typedef struct {
 	PyObject_HEAD		/* required py macro */
-	World * world;
+	World * world;		/* Libdata must be second */
 } BPy_World;
 
 extern PyTypeObject World_Type;

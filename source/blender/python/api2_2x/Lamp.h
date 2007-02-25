@@ -45,7 +45,7 @@ extern PyTypeObject Lamp_Type;
 /* Python BPy_Lamp structure definition */
 typedef struct {
 	PyObject_HEAD		/* required py macro */
-	Lamp * lamp;
+	Lamp * lamp;		/* libdata must be second */
 	BPy_rgbTuple *color;
 } BPy_Lamp;
 

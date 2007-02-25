@@ -42,7 +42,7 @@ extern PyTypeObject SurfNurb_Type;
 /* Python BPy_SurfNurb structure definition */
 typedef struct {
 	PyObject_HEAD		/* required py macro */
-	Nurb * nurb;		/* pointer to Blender data */
+	Nurb * nurb;		/* pointer to Blender data, libdata must be second */ */
 
 	/* iterator stuff */
 	/* internal ptrs to point data.  do not free */

@@ -515,8 +515,7 @@ PyObject *Action_CreatePyObject( struct bAction * act )
 {
 	BPy_Action *blen_action;
 
-	if(!act)
-		return EXPP_incr_ret(Py_None);
+	if(!act) Py_RETURN_NONE;
 
 	blen_action =
 		( BPy_Action * ) PyObject_NEW( BPy_Action, &Action_Type );

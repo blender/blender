@@ -49,7 +49,7 @@ extern PyTypeObject ActionStrips_Type;
 /** Python BPy_NLA structure definition. */
 typedef struct {
 	PyObject_HEAD 
-	bAction * action;
+	bAction * action; /* libdata must be second */
 } BPy_Action;
 
 typedef struct {

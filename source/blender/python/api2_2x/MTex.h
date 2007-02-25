@@ -42,7 +42,8 @@
 /*****************************************************************************/
 
 typedef struct {
-	PyObject_HEAD MTex * mtex;
+	PyObject_HEAD
+	MTex * mtex;
 } BPy_MTex;
 
 extern PyTypeObject MTex_Type;

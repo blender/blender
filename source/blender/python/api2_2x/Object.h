@@ -47,7 +47,7 @@ extern PyTypeObject Object_Type;
 /*****************************************************************************/
 typedef struct {
 	PyObject_HEAD 
-	struct Object *object;
+	struct Object *object; /* libdata must be second */
 	short realtype;
 } BPy_Object;
 

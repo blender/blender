@@ -43,7 +43,7 @@
 /*****************************************************************************/
 typedef struct {
 	PyObject_HEAD 
-	Material * material;
+	Material * material; /* libdata must be second */
 	BPy_rgbTuple *col, *amb, *spec, *mir;
 
 } BPy_Material;

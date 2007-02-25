@@ -64,7 +64,7 @@ static void TimeLine_dealloc (PyObject *self) {
 
 static PyObject *TimeLine_repr (BPy_TimeLine *self) {
 
-	return PyString_FromFormat ("TimeLine:)");
+	return PyString_FromFormat ("[TimeLine]");
 }
 
 static PyMethodDef BPy_TimeLine_methods[] = {

@@ -41,7 +41,7 @@
 /*****************************************************************************/
 typedef struct {
 	PyObject_HEAD		/* required macro */
-	Ipo * ipo;
+	Ipo * ipo;		/* libdata must be second */
 	short iter;
 	short mtex; 
 } BPy_Ipo;

@@ -43,7 +43,7 @@
 /*****************************************************************************/
 typedef struct {
 	PyObject_HEAD 
-	Lattice * Lattice;
+	Lattice * Lattice; /* libdata must be second */
 } BPy_Lattice;
 
 

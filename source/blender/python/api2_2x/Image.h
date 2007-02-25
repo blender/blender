@@ -42,7 +42,7 @@
 /*****************************************************************************/
 typedef struct {
 	PyObject_HEAD 
-	Image * image;
+	Image * image; /* libdata must be second */
 
 } BPy_Image;
 

@@ -214,6 +214,20 @@ static int Group_compare( BPy_Group * a, BPy_Group * b );
 /*****************************************************************************/
 /* Python BPy_Group methods:                                                  */
 /*****************************************************************************/
+static PyObject *Group_getName( BPy_Group * self )
+{
+	PyObject *attr;
+	GROUP_DEL_CHECK_PY(self);
+	
+	attr = PyString_FromString( self->group->id.name + 2 );
+
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Group.name attribute" ) );
+}
+
 static int Group_setName( BPy_Group * self, PyObject * value )
 {
 	char *name = NULL;
@@ -228,21 +242,6 @@ static int Group_setName( BPy_Group * self, PyObject * value )
 	rename_id( &self->group->id, name );
 
 	return 0;
-}
-
-
-static PyObject *Group_getName( BPy_Group * self )
-{
-	PyObject *attr;
-	GROUP_DEL_CHECK_PY(self);
-	
-	attr = PyString_FromString( self->group->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Group.name attribute" ) );
 }
 
 static PyObject *Group_getLib( BPy_Group * self )
@@ -273,6 +272,11 @@ static int Group_setFakeUser( BPy_Group * self, PyObject * value )
 	return SetIdFakeUser(&self->group->id, value);
 }
 
+static PyObject *Group_getProperties( BPy_Group * self )
+{
+	/*sanity check, we set parent property type to Group here*/
+	return BPy_Wrap_IDProperty( (ID*)self->group, IDP_GetProperties((ID*)self->group, 1), NULL );
+}
 
 
 /*****************************************************************************/
@@ -325,6 +329,9 @@ static PyGetSetDef BPy_Group_getseters[] = {
 	 (getter)Group_getFakeUser, (setter)Group_setFakeUser,
 	 "Groups fake user state",
 	 NULL},
+	{"properties", 
+	 (getter)Group_getProperties, NULL,
+	"get the ID properties associated with this group"},
 	{"layers",
 	 (getter)Group_getLayers, (setter)Group_setLayers,
 	 "Number of group users",
