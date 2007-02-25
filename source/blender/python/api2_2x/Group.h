@@ -47,8 +47,8 @@ extern PyTypeObject GroupObSeq_Type;
 /* Python BPy_Group structure definition.                                  */
 /*****************************************************************************/
 typedef struct {
-	PyObject_HEAD /* required python macro   */
-	struct Group *group; /* Blender group type, can be NULL when unlinkedm, libdata must be second */*/
+	PyObject_HEAD
+	struct Group *group; 
 } BPy_Group;
 
 
