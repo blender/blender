@@ -389,7 +389,6 @@ struct PyMethodDef M_Texture_methods[] = {
 #if 0
 GETFUNC( getExtend );
 GETFUNC( getImage );
-GETFUNC( getName );
 GETFUNC( getType );
 GETFUNC( getSType );
 GETFUNC( clearIpo );
@@ -402,7 +401,6 @@ SETFUNC( setAnimMontage );
 GETFUNC( oldgetSType );
 GETFUNC( oldgetType );
 
-GETFUNC(getProperties);
 GETFUNC( clearIpo );
 GETFUNC( getAnimFrames );
 GETFUNC( getAnimOffset );
@@ -423,7 +421,6 @@ GETFUNC( getImage );
 GETFUNC( getIpo );
 GETFUNC( getIScale );
 GETFUNC( getLacunarity );
-GETFUNC( getName );
 GETFUNC( getNoiseBasis );
 GETFUNC( getNoiseDepth );
 GETFUNC( getNoiseSize );
@@ -447,7 +444,6 @@ OLDSETFUNC( setFlags );
 OLDSETFUNC( setImage );
 OLDSETFUNC( setImageFlags );
 OLDSETFUNC( setIpo );
-OLDSETFUNC( setName );
 OLDSETFUNC( setNoiseBasis );
 OLDSETFUNC( setSType );
 OLDSETFUNC( setType );
@@ -470,7 +466,6 @@ SETFUNC( setImage );
 SETFUNC( setIpo );
 SETFUNC( setIScale );
 SETFUNC( setLacunarity );
-SETFUNC( setName );
 SETFUNC( setNoiseBasis );
 SETFUNC( setNoiseDepth );
 SETFUNC( setNoiseSize );
@@ -502,7 +497,7 @@ static PyMethodDef BPy_Texture_methods[] = {
 	 "() - Return Texture extend mode"},
 	{"getImage", ( PyCFunction ) Texture_getImage, METH_NOARGS,
 	 "() - Return Texture Image"},
-	{"getName", ( PyCFunction ) Texture_getName, METH_NOARGS,
+	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
 	 "() - Return Texture name"},
 	{"getSType", ( PyCFunction ) Texture_oldgetSType, METH_NOARGS,
 	 "() - Return Texture stype as string"},
@@ -522,7 +517,7 @@ static PyMethodDef BPy_Texture_methods[] = {
 	 "(Blender Image) - Set Texture Image"},
 	{"setImageFlags", ( PyCFunction ) Texture_oldsetImageFlags, METH_VARARGS,
 	 "(s,s,s,s,...) - Set Texture image flags"},
-	{"setName", ( PyCFunction ) Texture_oldsetName, METH_VARARGS,
+	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 "(s) - Set Texture name"},
 	{"setSType", ( PyCFunction ) Texture_oldsetSType, METH_VARARGS,
 	 "(s) - Set Texture stype"},
@@ -541,9 +536,7 @@ static PyMethodDef BPy_Texture_methods[] = {
 /* Python Texture_Type attributes get/set structure:                         */
 /*****************************************************************************/
 static PyGetSetDef BPy_Texture_getseters[] = {
-	{"properties",
-	 (getter)Texture_getProperties, NULL,
-	 "Get this texture's ID Properties"},
+	GENERIC_LIB_GETSETATTR,
 	{"animFrames",
 	 (getter)Texture_getAnimFrames, (setter)Texture_setAnimFrames,
 	 "Number of frames of a movie to use",
@@ -629,10 +622,6 @@ static PyGetSetDef BPy_Texture_getseters[] = {
 	{"lacunarity",
 	 (getter)Texture_getLacunarity, (setter)Texture_setLacunarity,
 	 "Gap between succesive frequencies (for Musgrave textures)",
-	 NULL},
-	{"name",
-	 (getter)Texture_getName, (setter)Texture_setName,
-	 "Texture data name",
 	 NULL},
 	{"noiseBasis",
 	 (getter)Texture_getNoiseBasis, (setter)Texture_setNoiseBasis,
@@ -1332,12 +1321,6 @@ int Texture_CheckPyObject( PyObject * pyobj )
 /* Python BPy_Texture methods:                                               */
 /*****************************************************************************/
 
-static PyObject *Texture_getProperties( BPy_Texture * self )
-{
-	/*sanity check, we set parent property type to Group here*/
-	return BPy_Wrap_IDProperty( (ID*)self->texture, IDP_GetProperties((ID*)self->texture, 1), NULL );
-}
-
 static PyObject *Texture_getExtend( BPy_Texture * self )
 {
 	PyObject *attr = NULL;
@@ -1363,17 +1346,6 @@ static PyObject *Texture_getImage( BPy_Texture * self )
 		return Image_CreatePyObject( self->texture->ima );
 
 	Py_RETURN_NONE;
-}
-
-
-static PyObject *Texture_getName( BPy_Texture * self )
-{
-	PyObject *attr = PyString_FromString( self->texture->id.name + 2 );
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "couldn't get Texture.name attribute" );
-
-	return attr;
 }
 
 static PyObject *Texture_oldgetSType( BPy_Texture * self )
@@ -1632,23 +1604,6 @@ static int Texture_setImageFlags( BPy_Texture * self, PyObject * value,
 	/* everything is OK; save the new flag setting */
 
 	self->texture->imaflag = param;
-	return 0;
-}
-
-static int Texture_setName( BPy_Texture * self, PyObject * value )
-{
-	char *name;
-	char buf[21];
-
-	name = PyString_AsString ( value );
-	if( !name )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-					      "expected string argument" );
-
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-
-	rename_id( &self->texture->id, buf );
-
 	return 0;
 }
 
@@ -2451,12 +2406,6 @@ static PyObject *Texture_oldsetImage( BPy_Texture * self, PyObject * args )
 {
 	return EXPP_setterWrapper( (void *)self, args,
 										(setter)Texture_setImage );
-}
-
-static PyObject *Texture_oldsetName( BPy_Texture * self, PyObject * args )
-{
-	return EXPP_setterWrapper( (void *)self, args,
-										(setter)Texture_setName );
 }
 
 static PyObject *Texture_oldsetIpo( BPy_Texture * self, PyObject * args )

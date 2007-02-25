@@ -263,23 +263,11 @@ static PyObject *M_Material_Get( PyObject * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument (or nothing)" ) );
 
-	mat_iter = G.main->mat.first;
-
 	if( name ) {		/* (name) - Search material by name */
 
-		BPy_Material *wanted_mat = NULL;
+		mat_iter = ( Material * ) GetIdFromList( &( G.main->mat ), name );
 
-		while( mat_iter ) {
-			if( strcmp( name, mat_iter->id.name + 2 ) == 0 ) {
-				wanted_mat =
-					( BPy_Material * )
-					Material_CreatePyObject( mat_iter );
-				break;
-			}
-			mat_iter = mat_iter->id.next;
-		}
-
-		if( wanted_mat == NULL ) { /* Requested material doesn't exist */
+		if( mat_iter == NULL ) { /* Requested material doesn't exist */
 			char error_msg[64];
 			PyOS_snprintf( error_msg, sizeof( error_msg ),
 				       "Material \"%s\" not found", name );
@@ -287,19 +275,20 @@ static PyObject *M_Material_Get( PyObject * self, PyObject * args )
 						      error_msg );
 		}
 
-		return ( PyObject * ) wanted_mat;
+		return Material_CreatePyObject( mat_iter );
 	}
 
 	else {			/* () - return a list with all materials in the scene */
 		int index = 0;
 		PyObject *matlist, *pyobj;
-
+	
 		matlist = PyList_New( BLI_countlist( &( G.main->mat ) ) );
 
 		if( !matlist )
 			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 							"couldn't create PyList" ) );
-
+		
+		mat_iter = G.main->mat.first;
 		while( mat_iter ) {
 			pyobj = Material_CreatePyObject( mat_iter );
 
@@ -443,7 +432,6 @@ static PyObject *Matr_oldsetHaloSeed( BPy_Material * self, PyObject * args );
 static PyObject *Matr_oldsetHaloSize( BPy_Material * self, PyObject * args );
 static PyObject *Matr_oldsetHardness( BPy_Material * self, PyObject * args );
 static PyObject *Matr_oldsetIOR( BPy_Material * self, PyObject * args );
-static PyObject *Matr_oldsetName( BPy_Material * self, PyObject * args );
 static PyObject *Matr_oldsetNFlares( BPy_Material * self, PyObject * args );
 static PyObject *Matr_oldsetNLines( BPy_Material * self, PyObject * args );
 static PyObject *Matr_oldsetNRings( BPy_Material * self, PyObject * args );
@@ -474,7 +462,7 @@ static PyObject *Matr_oldsetRms( BPy_Material * self, PyObject * args );
 static PyObject *Matr_oldsetTranslucency( BPy_Material * self, PyObject * args );
 
 static int Material_setIpo( BPy_Material * self, PyObject * value );
-static int Material_setName( BPy_Material * self, PyObject * value );
+
 static int Material_setMode( BPy_Material * self, PyObject * value );
 static int Material_setRGBCol( BPy_Material * self, PyObject * value );
 static int Material_setSpecCol( BPy_Material * self, PyObject * value );
@@ -527,15 +515,11 @@ static int Material_setRefracIndex( BPy_Material * self, PyObject * value );
 static int Material_setRms( BPy_Material * self, PyObject * value );
 static int Material_setFilter( BPy_Material * self, PyObject * value );
 static int Material_setTranslucency( BPy_Material * self, PyObject * value );
-static int Material_setFakeUser( BPy_Material * self, PyObject * value );
 
 static PyObject *Material_getColorComponent( BPy_Material * self,
 							void * closure );
 static PyObject *Material_getOopsLoc( BPy_Material * self );
 static PyObject *Material_getOopsSel( BPy_Material * self );
-static PyObject *Material_getLib( BPy_Material * self );
-static PyObject *Material_getUsers( BPy_Material * self );
-static PyObject *Material_getFakeUser( BPy_Material * self );
 /*static int Material_setSeptex( BPy_Material * self, PyObject * value );
   static PyObject *Material_getSeptex( BPy_Material * self );*/
 
@@ -543,7 +527,6 @@ static PyObject *Material_getFakeUser( BPy_Material * self );
 /* Python BPy_Material methods declarations: */
 /*****************************************************************************/
 static PyObject *Material_getIpo( BPy_Material * self );
-static PyObject *Material_getName( BPy_Material * self );
 static PyObject *Material_getMode( BPy_Material * self );
 static PyObject *Material_getRGBCol( BPy_Material * self );
 /*static PyObject *Material_getAmbCol(BPy_Material *self);*/
@@ -608,7 +591,6 @@ static PyObject *Material_clearScriptLinks(BPy_Material *self, PyObject *args);
 
 static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args );
 static PyObject *Material_copy( BPy_Material * self );
-static PyObject *Material_getProperties( BPy_Material * self );
 
 
 /*****************************************************************************/
@@ -616,9 +598,7 @@ static PyObject *Material_getProperties( BPy_Material * self );
 /*****************************************************************************/
 static PyMethodDef BPy_Material_methods[] = {
 	/* name, method, flags, doc */
-	{"getProperties", ( PyCFunction) Material_getProperties, METH_NOARGS, 
-	"() Return Material's ID Properties"},
-	{"getName", ( PyCFunction ) Material_getName, METH_NOARGS,
+	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
 	 "() - Return Material's name"},
 	{"getIpo", ( PyCFunction ) Material_getIpo, METH_NOARGS,
 	 "() - Return Material's ipo or None if not found"},
@@ -716,7 +696,7 @@ static PyMethodDef BPy_Material_methods[] = {
 
 	{"getTextures", ( PyCFunction ) Material_getTextures, METH_NOARGS,
 	 "() - Return Material's texture list as a tuple"},
-	{"setName", ( PyCFunction ) Matr_oldsetName, METH_VARARGS,
+	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 "(s) - Change Material's name"},
 	{"setIpo", ( PyCFunction ) Matr_oldsetIpo, METH_VARARGS,
 	 "(Blender Ipo) - Change Material's Ipo"},
@@ -844,6 +824,7 @@ static PyMethodDef BPy_Material_methods[] = {
 /*****************************************************************************/
 
 static PyGetSetDef BPy_Material_getseters[] = {
+	GENERIC_LIB_GETSETATTR,
 	{"add",
 	 (getter)Material_getAdd, (setter)Material_setAdd,
 	 "Strength of the add effect",
@@ -960,10 +941,6 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	{"mode",
 	 (getter)Material_getMode, (setter)Material_setMode,
 	 "Material mode bitmask",
-	 NULL},
-	{"name",
-	 (getter)Material_getName, (setter)Material_setName,
-	 "Material data name",
 	 NULL},
 	{"nFlares",
 	 (getter)Material_getNFlares, (setter)Material_setNFlares,
@@ -1085,20 +1062,6 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
 	 "Diffuse color blue component",
 	 (void *) EXPP_MAT_COMP_B },
-	{"users",
-	 (getter)Material_getUsers, (setter)NULL,
-	 "Number of material users",
-	 NULL},
-	{"fakeUser",
-	 (getter)Material_getFakeUser, (setter)Material_setFakeUser,
-	 "The fake user status of this material",
-	 NULL},
-	{"lib",
-	 (getter)Material_getLib, (setter)NULL,
-	 "Materials external library",
-	 NULL},
-	 {"properties", (getter) Material_getProperties, (setter)NULL,
-	 "Get material's ID properties"},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -1271,40 +1234,6 @@ Material *Material_FromPyObject( PyObject * pyobj )
 	return ( ( BPy_Material * ) pyobj )->material;
 }
 
-/*****************************************************************************/
-/* Description: Returns the object with the name specified by the argument  */
-/*		name. Note that the calling function has to remove the first */
-/*		two characters of the object name. These two characters	 */
-/*		specify the type of the object (OB, ME, WO, ...)	 */
-/*		The function will return NULL when no object with the given  */
-/*		name is found.						 */
-/*****************************************************************************/
-Material *GetMaterialByName( char *name )
-{
-	Material *mat_iter;
-
-	mat_iter = G.main->mat.first;
-	while( mat_iter ) {
-		if( StringEqual( name, GetIdName( &( mat_iter->id ) ) ) ) {
-			return ( mat_iter );
-		}
-		mat_iter = mat_iter->id.next;
-	}
-
-	/* There is no material with the given name */
-	return ( NULL );
-}
-
-/*****************************************************************************/
-/* Python BPy_Material methods:		 */
-/*****************************************************************************/
-
-static PyObject *Material_getProperties( BPy_Material * self )
-{
-	/*sanity check, we set parent property type to Group here*/
-	return BPy_Wrap_IDProperty( (ID*)self->material, IDP_GetProperties((ID*)self->material, 1), NULL );
-}
-
 static PyObject *Material_getIpo( BPy_Material * self )
 {
 	Ipo *ipo = self->material->ipo;
@@ -1313,17 +1242,6 @@ static PyObject *Material_getIpo( BPy_Material * self )
 		Py_RETURN_NONE;
 
 	return Ipo_CreatePyObject( ipo );
-}
-
-static PyObject *Material_getName( BPy_Material * self )
-{
-	PyObject *attr = PyString_FromString( self->material->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Material.name attribute" ) );
 }
 
 static PyObject *Material_getMode( BPy_Material * self )
@@ -2008,20 +1926,6 @@ static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args )
 	EXPP_allqueue(REDRAWNLA, 0);
 
 	Py_RETURN_NONE;
-}
-
-static int Material_setName( BPy_Material * self, PyObject * value )
-{
-	char *name;
-
-	name = PyString_AsString ( value );
-	if( !name )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-					      "expected string argument" );
-
-	rename_id( &self->material->id, name );
-
-	return 0;
 }
 
 static int Material_setMode( BPy_Material * self, PyObject * value )
@@ -2850,30 +2754,6 @@ static int Material_setOopsSel ( BPy_Material * self, PyObject * value )
 	return 0;
 }
 
-static PyObject *Material_getLib(BPy_Material *self)
-{
-	return EXPP_GetIdLib((ID *)self->material);
-}
-
-static PyObject *Material_getUsers( BPy_Material * self )
-{
-	return PyInt_FromLong( self->material->id.us );
-}
-
-static PyObject *Material_getFakeUser( BPy_Material * self )
-{
-	if (self->material->id.flag & LIB_FAKEUSER)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-static int Material_setFakeUser( BPy_Material * self, PyObject * value )
-{
-	return SetIdFakeUser(&self->material->id, value);
-}
-
-
 /* #####DEPRECATED###### */
 
 static PyObject *Matr_oldsetAdd( BPy_Material * self, PyObject * args )
@@ -2977,11 +2857,6 @@ static PyObject *Matr_oldsetHardness( BPy_Material * self, PyObject * args )
 static PyObject *Matr_oldsetIOR( BPy_Material * self, PyObject * args )
 {
 	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setIOR );
-}
-
-static PyObject *Matr_oldsetName( BPy_Material * self, PyObject * args )
-{
-	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setName );
 }
 
 static PyObject *Matr_oldsetNFlares( BPy_Material * self, PyObject * args )
@@ -3234,3 +3109,4 @@ static PyObject *Material_clearIpo( BPy_Material * self )
 	}
 	return EXPP_incr_ret_False(); /* no ipo found */
 }
+

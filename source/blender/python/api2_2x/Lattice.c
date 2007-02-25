@@ -86,8 +86,6 @@ struct PyMethodDef M_Lattice_methods[] = {
 /*****************************************************************************/
 /* Python BPy_Lattice methods declarations:	*/
 /*****************************************************************************/
-static PyObject *Lattice_getName( BPy_Lattice * self );
-static PyObject *Lattice_setName( BPy_Lattice * self, PyObject * args );
 static PyObject *Lattice_setPartitions( BPy_Lattice * self, PyObject * args );
 static PyObject *Lattice_getPartitions( BPy_Lattice * self );
 static PyObject *Lattice_getKey( BPy_Lattice * self );
@@ -146,9 +144,9 @@ static char Lattice_copy_doc[] =
 /*****************************************************************************/
 static PyMethodDef BPy_Lattice_methods[] = {
 	/* name, method, flags, doc */
-	{"getName", ( PyCFunction ) Lattice_getName, METH_NOARGS,
+	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
 	 Lattice_getName_doc},
-	{"setName", ( PyCFunction ) Lattice_setName, METH_VARARGS,
+	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 Lattice_setName_doc},
 	{"setPartitions", ( PyCFunction ) Lattice_setPartitions, METH_VARARGS,
 	 Lattice_setPartitions_doc},
@@ -371,33 +369,6 @@ PyObject *Lattice_Init( void )
 	EXPP_ADDCONST( BSPLINE );
 
 	return ( mod );
-}
-
-//***************************************************************************
-// Python BPy_Lattice methods:                      
-//***************************************************************************
-static PyObject *Lattice_getName( BPy_Lattice * self )
-{
-	PyObject *attr = PyString_FromString( self->Lattice->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Lattice.name attribute" );
-}
-
-static PyObject *Lattice_setName( BPy_Lattice * self, PyObject * args )
-{
-	char *name;
-
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected string argument" ) );
-
-	rename_id( &self->Lattice->id, name );
-
-	Py_RETURN_NONE;
 }
 
 static PyObject *Lattice_setPartitions( BPy_Lattice * self, PyObject * args )
@@ -839,7 +810,7 @@ static int Lattice_setAttr( BPy_Lattice * self, char *name, PyObject * value )
 					    "LatticeSetAttr: couldn't create PyTuple" );
 
 	if( strcmp( name, "name" ) == 0 )
-		error = Lattice_setName( self, valtuple );
+		error = GenericLib_setName_with_method( self, valtuple );
 	else {			// Error: no such member in the Lattice Data structure 
 		/*Py_DECREF( value ); borrowed reference, no need to decref */
 		Py_DECREF( valtuple );

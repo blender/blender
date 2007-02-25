@@ -84,8 +84,6 @@ struct PyMethodDef M_NLA_methods[] = {
 /*****************************************************************************/
 /* Python BPy_Action methods declarations:				*/
 /*****************************************************************************/
-static PyObject *Action_getName( BPy_Action * self );
-static PyObject *Action_setName( BPy_Action * self, PyObject * args );
 static PyObject *Action_setActive( BPy_Action * self, PyObject * args );
 static PyObject *Action_getFrameNumbers(BPy_Action *self);
 static PyObject *Action_getChannelIpo( BPy_Action * self, PyObject * args );
@@ -98,9 +96,9 @@ static PyObject *Action_getAllChannelIpos( BPy_Action * self );
 /*****************************************************************************/
 static PyMethodDef BPy_Action_methods[] = {
 	/* name, method, flags, doc */
-	{"getName", ( PyCFunction ) Action_getName, METH_NOARGS,
+	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
 	 "() - return Action name"},
-	{"setName", ( PyCFunction ) Action_setName, METH_VARARGS,
+	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 "(str) - rename Action"},
 	{"setActive", ( PyCFunction ) Action_setActive, METH_VARARGS,
 	 "(str) -set this action as the active action for an object"},
@@ -235,44 +233,6 @@ static PyObject *M_NLA_GetActions( PyObject * self_unused )
 		}
 	}
 	return dict;
-}
-
-
-/*----------------------------------------------------------------------*/
-static PyObject *Action_getName( BPy_Action * self )
-{
-	PyObject *attr = NULL;
-
-	if( !self->action )
-		( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					 "couldn't get attribute from a NULL action" ) );
-
-	attr = PyString_FromString( self->action->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Action.name attribute" ) );
-}
-
-/*----------------------------------------------------------------------*/
-static PyObject *Action_setName( BPy_Action * self, PyObject * args )
-{
-	char *name;
-
-	if( !self->action )
-		( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					 "couldn't get attribute from a NULL action" ) );
-
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected string argument" ) );
-
-	/*change name*/
-	rename_id( &self->action->id, name);
-
-	Py_RETURN_NONE;
 }
 
 static PyObject *Action_getFrameNumbers(BPy_Action *self)
@@ -446,7 +406,7 @@ static PyObject *Action_getAttr( BPy_Action * self, char *name )
 	PyObject *attr = Py_None;
 
 	if( strcmp( name, "name" ) == 0 )
-		attr = Action_getName( self );
+		attr = GenericLib_getName( self );
 	else if( strcmp( name, "__members__" ) == 0 ) {
 		attr = Py_BuildValue( "[s]", "name" );
 	}
@@ -475,7 +435,7 @@ static int Action_setAttr( BPy_Action * self, char *name, PyObject * value )
 					    "ActionSetAttr: couldn't create tuple" );
 
 	if( strcmp( name, "name" ) == 0 )
-		error = Action_setName( self, valtuple );
+		error = GenericLib_setName_with_method( self, valtuple );
 	else {			/* Error */
 		Py_DECREF( valtuple );
 

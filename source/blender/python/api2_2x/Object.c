@@ -346,8 +346,6 @@ static PyObject *Object_getIpo( BPy_Object * self );
 static PyObject *Object_getLocation( BPy_Object * self, PyObject * args );
 static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args );
 static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args );
-static PyObject *Object_getName( BPy_Object * self );
-static PyObject *Object_getLib( BPy_Object * self );
 static PyObject *Object_getParent( BPy_Object * self );
 static PyObject *Object_getParentBoneName( BPy_Object * self );
 static int Object_setParentBoneName( BPy_Object * self, PyObject * value );
@@ -382,7 +380,6 @@ static PyObject *Object_insertCurrentPoseKey( BPy_Object * self, PyObject * args
 static PyObject *Object_setConstraintInfluenceForBone( BPy_Object * self, PyObject * args );
 static PyObject *Object_setLocation( BPy_Object * self, PyObject * args );
 static PyObject *Object_setMaterials( BPy_Object * self, PyObject * args );
-static PyObject *Object_SetName( BPy_Object * self, PyObject * args );
 static PyObject *Object_setSize( BPy_Object * self, PyObject * args );
 static PyObject *Object_setTimeOffset( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeTrack( BPy_Object * self, PyObject * args );
@@ -514,7 +511,7 @@ or old_worldspace.\n\
 matrix is not updated for changes made by the script itself\n\
 (like obj.LocX = 10) until a redraw happens, either called by the script or\n\
 automatic when the script finishes."},
-	{"getName", ( PyCFunction ) Object_getName, METH_NOARGS,
+	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
 	 "Returns the name of the object"},
 	{"getParent", ( PyCFunction ) Object_getParent, METH_NOARGS,
 	 "Returns the object's parent object"},
@@ -695,7 +692,7 @@ triple."},
 	{"setMaterials", ( PyCFunction ) Object_setMaterials, METH_VARARGS,
 	 "Sets materials. The argument must be a list of valid material\n\
 objects."},
-	{"setName", ( PyCFunction ) Object_SetName, METH_VARARGS,
+	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 "Sets the name of the object"},
 	{"setSize", ( PyCFunction ) Object_setSize, METH_VARARGS,
 	 "Set the object's size. The first argument must be a vector\n\
@@ -866,7 +863,7 @@ PyObject *M_Object_Get( PyObject * self_unused, PyObject * args )
 	PyArg_ParseTuple( args, "|s", &name );
 
 	if( name != NULL ) {
-		object = GetObjectByName( name );
+		object = ( Object * ) GetIdFromList( &( G.main->object ), name );
 
 			/* No object exists with the name specified in the argument name. */
 		if( !object ){
@@ -1317,16 +1314,6 @@ static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args )
 
 	return EXPP_PyList_fromMaterialList( self->object->mat,
 					       self->object->totcol, all );
-}
-
-static PyObject *Object_getName( BPy_Object * self )
-{
-	return PyString_FromString( self->object->id.name + 2 );
-}
-
-static PyObject *Object_getLib( BPy_Object * self )
-{
-	return EXPP_GetIdLib((ID *)self->object);
 }
 
 static PyObject *Object_getParent( BPy_Object * self )
@@ -2620,20 +2607,6 @@ static PyObject *Object_setMaterials( BPy_Object * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static int Object_setName( BPy_Object * self, PyObject * args )
-{
-	char *name;
-
-	name = PyString_AsString ( args );
-	if( !name )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected a string argument" );
-	
-	rename_id( &self->object->id, name );
-
-	return 0;
-}
-
 static PyObject *Object_setSize( BPy_Object * self, PyObject * args )
 {
 	float sizex;
@@ -3156,30 +3129,6 @@ struct Object *Object_FromPyObject( PyObject * py_obj )
 
 	blen_obj = ( BPy_Object * ) py_obj;
 	return ( blen_obj->object );
-}
-
-/*****************************************************************************/
-/* Description: Returns the object with the name specified by the argument  */
-/*		name. Note that the calling function has to remove the first */
-/*		two characters of the object name. These two characters	   */
-/*		specify the type of the object (OB, ME, WO, ...)	 */
-/*		The function will return NULL when no object with the given  */
-/*		name is found.						 */
-/*****************************************************************************/
-Object *GetObjectByName( char *name )
-{
-	Object *obj_iter;
-
-	obj_iter = G.main->object.first;
-	while( obj_iter ) {
-		if( StringEqual( name, GetIdName( &( obj_iter->id ) ) ) ) {
-			return ( obj_iter );
-		}
-		obj_iter = obj_iter->id.next;
-	}
-
-	/* There is no object with the given name */
-	return ( NULL );
 }
 
 /*****************************************************************************/
@@ -4499,24 +4448,6 @@ static int Object_setTracked( BPy_Object * self, PyObject * value )
 	return 0;
 }
 
-static PyObject *Object_getUsers( BPy_Object * self )
-{
-	return PyInt_FromLong( self->object->id.us );
-}
-
-static PyObject *Object_getFakeUser( BPy_Object * self )
-{
-	if (self->object->id.flag & LIB_FAKEUSER)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-static int Object_setFakeUser( BPy_Object * self, PyObject * value )
-{
-	return SetIdFakeUser(&self->object->id, value);
-}
-
 /* Localspace matrix */
 
 static PyObject *Object_getMatrixLocal( BPy_Object * self )
@@ -4745,6 +4676,7 @@ static PyObject *Object_getRBHalfExtents( BPy_Object * self )
 }
 
 static PyGetSetDef BPy_Object_getseters[] = {
+	GENERIC_LIB_GETSETATTR,
 	{"LocX",
 	 (getter)getFloatAttr, (setter)setFloatAttr,
 	 "The X location coordinate of the object",
@@ -4918,14 +4850,6 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getMatrixOldWorld, (setter)NULL,
 	 "old-type worldspace matrix (prior to Blender 2.34)",
 	 NULL},
-	{"name",
-	 (getter)Object_getName, (setter)Object_setName,
-	 "Object data name",
-	 NULL},
-	{"lib",
-	 (getter)Object_getLib, (setter)NULL,
-	 "Objects linked library",
-	 NULL},
 	{"oopsLoc",
 	 (getter)Object_getOopsLoc, (setter)Object_setOopsLoc,
 	 "Object OOPs location",
@@ -4973,14 +4897,6 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	{"game_properties",
 	 (getter)Object_getAllProperties, (setter)NULL,
 	 "The object's properties",
-	 NULL},
-	{"users",
-	 (getter)Object_getUsers, (setter)NULL,
-	 "The number of object users",
-	 NULL},
-	{"fakeUser",
-	 (getter)Object_getFakeUser, (setter)Object_setFakeUser,
-	 "The fake user status of this object",
 	 NULL},
 	 
 	{"piFalloff",
@@ -5531,12 +5447,6 @@ static PyObject *Object_SetDrawType( BPy_Object * self, PyObject * args )
 {
 	return EXPP_setterWrapper( (void *)self, args,
 			(setter)Object_setDrawType );
-}
-
-static PyObject *Object_SetName( BPy_Object * self, PyObject * args )
-{
-	return EXPP_setterWrapper( (void *)self, args,
-			(setter)Object_setName );
 }
 
 static PyObject *Object_SetMatrix( BPy_Object * self, PyObject * args )

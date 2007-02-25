@@ -95,10 +95,8 @@ static int Text_IsLinked( BPy_Text * self );
 /*****************************************************************************/
 /* Python BPy_Text methods declarations:                                     */
 /*****************************************************************************/
-static PyObject *Text_getName( BPy_Text * self );
 static PyObject *Text_getFilename( BPy_Text * self );
 static PyObject *Text_getNLines( BPy_Text * self );
-static PyObject *Text_setName( BPy_Text * self, PyObject * args );
 static PyObject *Text_clear( BPy_Text * self );
 static PyObject *Text_write( BPy_Text * self, PyObject * args );
 static PyObject *Text_set( BPy_Text * self, PyObject * args );
@@ -110,13 +108,13 @@ static PyObject *Text_makeCurrent( BPy_Text * self );
 /*****************************************************************************/
 static PyMethodDef BPy_Text_methods[] = {
 	/* name, method, flags, doc */
-	{"getName", ( PyCFunction ) Text_getName, METH_NOARGS,
+	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
 	 "() - Return Text Object name"},
 	{"getFilename", ( PyCFunction ) Text_getFilename, METH_VARARGS,
 	 "() - Return Text Object filename"},
 	{"getNLines", ( PyCFunction ) Text_getNLines, METH_VARARGS,
 	 "() - Return number of lines in text buffer"},
-	{"setName", ( PyCFunction ) Text_setName, METH_VARARGS,
+	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 "(str) - Change Text Object name"},
 	{"clear", ( PyCFunction ) Text_clear, METH_NOARGS,
 	 "() - Clear Text buffer"},
@@ -381,17 +379,6 @@ PyObject *Text_CreatePyObject( Text * txt )
 /*****************************************************************************/
 /* Python BPy_Text methods:                                                  */
 /*****************************************************************************/
-static PyObject *Text_getName( BPy_Text * self )
-{
-	PyObject *attr = PyString_FromString( self->text->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Text.name attribute" );
-}
-
 static PyObject *Text_getFilename( BPy_Text * self )
 {
 	PyObject *attr;
@@ -431,19 +418,6 @@ static PyObject *Text_getNLines( BPy_Text * self )
 
 	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				      "couldn't get Text.nlines attribute" );
-}
-
-static PyObject *Text_setName( BPy_Text * self, PyObject * args )
-{
-	char *name;
-
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected string argument" ) );
-
-	rename_id( &self->text->id, name );
-
-	Py_RETURN_NONE;
 }
 
 static PyObject *Text_clear( BPy_Text * self)
@@ -618,7 +592,7 @@ static int Text_setAttr( BPy_Text * self, char *name, PyObject * value )
 					    "TextSetAttr: couldn't create PyTuple" );
 
 	if( strcmp( name, "name" ) == 0 )
-		error = Text_setName( self, valtuple );
+		error = GenericLib_setName_with_method( self, valtuple );
 	else {			/* Error: no such member in the Text Data structure */
 		Py_DECREF( value );
 		Py_DECREF( valtuple );

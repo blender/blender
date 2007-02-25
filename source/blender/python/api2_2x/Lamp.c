@@ -178,9 +178,6 @@ struct PyMethodDef M_Lamp_methods[] = {
 /*****************************************************************************/
 /* Python BPy_Lamp methods declarations:                                     */
 /*****************************************************************************/
-static PyObject *Lamp_getName( BPy_Lamp * self );
-static PyObject *Lamp_getLib( BPy_Lamp * self );
-static PyObject *Lamp_getFakeUser( BPy_Lamp * self );
 static PyObject *Lamp_getType( BPy_Lamp * self );
 static PyObject *Lamp_getTypesConst( void );
 static PyObject *Lamp_getMode( BPy_Lamp * self );
@@ -206,11 +203,9 @@ static PyObject *Lamp_getQuad2( BPy_Lamp * self );
 static PyObject *Lamp_getCol( BPy_Lamp * self );
 static PyObject *Lamp_getIpo( BPy_Lamp * self );
 static PyObject *Lamp_getComponent( BPy_Lamp * self, void * closure );
-static PyObject *Lamp_getUsers( BPy_Lamp * self );
 static PyObject *Lamp_clearIpo( BPy_Lamp * self );
 static PyObject *Lamp_insertIpoKey( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetIpo( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_oldsetName( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetType( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetMode( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetSamples( BPy_Lamp * self, PyObject * args );
@@ -233,8 +228,6 @@ static PyObject *Lamp_oldsetQuad1( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetQuad2( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetCol( BPy_Lamp * self, PyObject * args );
 static int Lamp_setIpo( BPy_Lamp * self, PyObject * args );
-static int Lamp_setName( BPy_Lamp * self, PyObject * args );
-static int Lamp_setFakeUser( BPy_Lamp * self, PyObject * args );
 static int Lamp_setType( BPy_Lamp * self, PyObject * args );
 static int Lamp_setMode( BPy_Lamp * self, PyObject * args );
 static int Lamp_setSamples( BPy_Lamp * self, PyObject * args );
@@ -266,8 +259,7 @@ static int Lamp_setComponent( BPy_Lamp * self, PyObject * value, void * closure 
 /*****************************************************************************/
 static PyMethodDef BPy_Lamp_methods[] = {
 	/* name, method, flags, doc */
-	{"getName", ( PyCFunction ) Lamp_getName, METH_NOARGS,
-	 "() - return Lamp name"},
+	
 	{"getType", ( PyCFunction ) Lamp_getType, METH_NOARGS,
 	 "() - return Lamp type - 'Lamp':0, 'Sun':1, 'Spot':2, 'Hemi':3, 'Area':4, 'Photon':5"},
 	{"getMode", ( PyCFunction ) Lamp_getMode, METH_NOARGS,
@@ -310,7 +302,7 @@ static PyMethodDef BPy_Lamp_methods[] = {
 	 "() - return light intensity value #2 for a Quad Lamp"},
 	{"getCol", ( PyCFunction ) Lamp_getCol, METH_NOARGS,
 	 "() - return light rgb color triplet"},
-	{"setName", ( PyCFunction ) Lamp_oldsetName, METH_VARARGS,
+	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 "(str) - rename Lamp"},
 	{"setType", ( PyCFunction ) Lamp_oldsetType, METH_VARARGS,
 	 "(str) - change Lamp type, which can be 'Lamp', 'Sun', 'Spot', 'Hemi', 'Area', 'Photon'"},
@@ -382,22 +374,7 @@ static PyMethodDef BPy_Lamp_methods[] = {
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef BPy_Lamp_getseters[] = {
-	{"name",
-	 (getter)Lamp_getName, (setter)Lamp_setName,
-	 "Lamp data name",
-	 NULL},
-	{"lib",
-	 (getter)Lamp_getLib, (setter)NULL,
-	 "Lamps linked library",
-	 NULL},
-	{"users",
-	 (getter)Lamp_getUsers, (setter)NULL,
-	 "Number of lamp users",
-	 NULL},
-	{"fakeUser",
-	 (getter)Lamp_getFakeUser, (setter)Lamp_setFakeUser,
-	 "Lamps fake user state",
-	 NULL},
+	GENERIC_LIB_GETSETATTR,
 	{"bias",
 	 (getter)Lamp_getBias, (setter)Lamp_setBias,
 	 "Lamp shadow map sampling bias",
@@ -880,56 +857,8 @@ Lamp *Lamp_FromPyObject( PyObject * pyobj )
 }
 
 /*****************************************************************************/
-/* Description: Returns the lamp with the name specified by the argument     */
-/*              name. Note that the calling function has to remove the first */
-/*              two characters of the lamp name. These two characters        */
-/*              specify the type of the object (OB, ME, WO, ...)             */
-/*              The function will return NULL when no lamp with the given    */
-/*              name is found.                                               */
-/*****************************************************************************/
-Lamp *GetLampByName( char *name )
-{
-	Lamp *lamp_iter;
-
-	lamp_iter = G.main->lamp.first;
-	while( lamp_iter ) {
-		if( StringEqual( name, GetIdName( &( lamp_iter->id ) ) ) ) {
-			return lamp_iter;
-		}
-		lamp_iter = lamp_iter->id.next;
-	}
-
-	/* There is no lamp with the given name */
-	return NULL;
-}
-
-/*****************************************************************************/
 /* Python BPy_Lamp methods:                                                  */
 /*****************************************************************************/
-static PyObject *Lamp_getName( BPy_Lamp * self )
-{
-	PyObject *attr = PyString_FromString( self->lamp->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.name attribute" ) );
-}
-
-static PyObject *Lamp_getLib( BPy_Lamp * self )
-{
-	return EXPP_GetIdLib((ID *)self->lamp);
-}
-
-static PyObject *Lamp_getFakeUser( BPy_Lamp * self )
-{
-	if (self->lamp->id.flag & LIB_FAKEUSER)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
 static PyObject *Lamp_getType( BPy_Lamp * self )
 {
 	PyObject *attr = PyInt_FromLong( self->lamp->type );
@@ -1152,28 +1081,6 @@ static PyObject *Lamp_getQuad2( BPy_Lamp * self )
 static PyObject *Lamp_getCol( BPy_Lamp * self )
 {
 	return rgbTuple_getCol( self->color );
-}
-
-static int Lamp_setName( BPy_Lamp * self, PyObject * value )
-{
-	char *name = NULL;
-	char buf[21];
-
-	name = PyString_AsString ( value );
-	if( !name )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-					      "expected string argument" );
-
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-
-	rename_id( &self->lamp->id, buf );
-
-	return 0;
-}
-
-static int Lamp_setFakeUser( BPy_Lamp * self, PyObject * value )
-{
-	return SetIdFakeUser(&self->lamp->id, value);
 }
 
 static int Lamp_setType( BPy_Lamp * self, PyObject * value )
@@ -1613,17 +1520,7 @@ static PyObject *Lamp_getTypesConst( void )
 	return attr;
 }
 
-static PyObject *Lamp_getUsers( BPy_Lamp * self )
-{
-	return PyInt_FromLong( self->lamp->id.us );
-}
-
 /* #####DEPRECATED###### */
-
-static PyObject *Lamp_oldsetName( BPy_Lamp * self, PyObject * args )
-{
-	return EXPP_setterWrapper ( (void *)self, args, (setter)Lamp_setName );
-}
 
 static PyObject *Lamp_oldsetSamples( BPy_Lamp * self, PyObject * args )
 {

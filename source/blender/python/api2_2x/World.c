@@ -73,8 +73,6 @@ static PyObject *World_getIpo( BPy_World * self );
 static PyObject *World_setIpo( BPy_World * self, PyObject * args );
 static PyObject *World_clearIpo( BPy_World * self );
 static PyObject *World_insertIpoKey( BPy_World * self, PyObject * args );
-static PyObject *World_getName( BPy_World * self );
-static PyObject *World_setName( BPy_World * self, PyObject * args );
 static PyObject *World_getMode( BPy_World * self );
 static PyObject *World_setMode( BPy_World * self, PyObject * args );
 static PyObject *World_getSkytype( BPy_World * self );
@@ -169,9 +167,9 @@ static PyMethodDef BPy_World_methods[] = {
 	 "() - Change this World's ipo"},
 	{"clearIpo", ( PyCFunction ) World_clearIpo, METH_VARARGS,
 	 "() - Unlink Ipo from this World"},
-	{"getName", ( PyCFunction ) World_getName, METH_NOARGS,
+	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
 	 "() - Return World Data name"},
-	{"setName", ( PyCFunction ) World_setName, METH_VARARGS,
+	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 "() - Set World Data name"},
 	{"getMode", ( PyCFunction ) World_getMode, METH_NOARGS,
 	 "() - Return World Data mode"},
@@ -500,43 +498,6 @@ static PyObject *World_clearIpo( BPy_World * self )
 
 	return EXPP_incr_ret_False(); /* no ipo found */
 }
-
-/**
- * \brief World PyMethod getName
- *
- * \return string: The World Data name.
- */
-
-static PyObject *World_getName( BPy_World * self )
-{
-	PyObject *attr = PyString_FromString( self->world->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get World.name attribute" ) );
-}
-
-/**
- * \brief World PyMethod setName
- * \param name - string: The new World Data name.
- */
-
-static PyObject *World_setName( BPy_World * self, PyObject * args )
-{
-	char *name = 0;
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected string argument" ) );
-	rename_id( &self->world->id, name );
-
-	Py_RETURN_NONE;
-}
-
-
-
-
 
 /**
  * \brief World PyMethod getSkytype
@@ -935,7 +896,7 @@ static PyObject *World_GetAttr( BPy_World * self, char *name )
 {
 
 	if( strcmp( name, "name" ) == 0 )
-		return World_getName( self );
+		return GenericLib_getName( self );
 	if( strcmp( name, "lib" ) == 0 )
 		return EXPP_GetIdLib((ID *)self->world);
 	if( strcmp( name, "skytype" ) == 0 )
@@ -975,7 +936,7 @@ static int World_SetAttr( BPy_World * self, char *name, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_MemoryError,
 					    "WorldSetAttr: couldn't parse args" );
 	else if( strcmp( name, "name" ) == 0 )
-		error = World_setName( self, valtuple );
+		error = GenericLib_setName_with_method( self, valtuple );
 	else if( strcmp( name, "skytype" ) == 0 )
 		error = World_setSkytype( self, valtuple );
 	else if( strcmp( name, "mode" ) == 0 )
@@ -1087,29 +1048,6 @@ World *World_FromPyObject( PyObject * py_obj )
 
 }
 
-/*****************************************************************************/
-/* Description: Returns the object with the name specified by the argument   */
-/*		name. Note that the calling function has to remove the first */
-/*		two characters of the object name. These two characters	     */
-/*		specify the type of the object (OB, ME, WO, ...)           */
-/*		The function will return NULL when no object with the given  */
-/*		 name is found.						*/
-/*****************************************************************************/
-World *GetWorldByName( char *name )
-{
-	World *world_iter;
-
-	world_iter = G.main->world.first;
-	while( world_iter ) {
-		if( StringEqual( name, GetIdName( &( world_iter->id ) ) ) ) {
-			return ( world_iter );
-		}
-		world_iter = world_iter->id.next;
-	}
-
-	/* There is no object with the given name */
-	return ( NULL );
-}
 /*
  * World_insertIpoKey()
  *  inserts World IPO key for ZENITH,HORIZON,MIST,STARS,OFFSET,SIZE

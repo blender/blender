@@ -94,7 +94,7 @@ struct ID; /*keep me up here */
 #include "Types.h"
 #include "Main.h"
 
-//for the removefakeuser hack
+/*for the removefakeuser hack*/
 #include "NLA.h" /*This must come first*/
 #include "BKE_action.h"
 
@@ -850,7 +850,7 @@ static PyObject * Blender_UpdateMenus( PyObject * self )
 static PyObject *Blender_RemoveFakeuser(PyObject *self, PyObject *args)
 {
 	ID *id;
-	BPy_Action *py_thing; //lousy coder antont did not know how to accept any bpy thing with ID..
+	BPy_Action *py_thing; /*lousy coder antont did not know how to accept any bpy thing with ID..*/
 
 	if( !PyArg_ParseTuple( args, "O!", &Action_Type, &py_thing ) )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -940,9 +940,9 @@ void M_Blender_Init(void)
 	blender -P somescript.py -b
 	The if below solves the segfaults that happen when python runs and
 	G.scene is NULL */
-	if(G.background && G.main->scene.first==0) {
+	if(G.background && G.main->scene.first==NULL) {
 		Scene *sce= add_scene("1");
-		//set_scene(sce); /* causes a crash */
+		/*set_scene(sce);*/ /* causes a crash */
 		G.scene= sce;
 	}
 	
@@ -951,7 +951,7 @@ void M_Blender_Init(void)
 
 	types_InitAll();	/* set all our pytypes to &PyType_Type */
 
-	// constants for packed files
+	/* constants for packed files*/
 	UnpackModes = Blender_UnpackModesDict(  );
 	if( UnpackModes )
 		PyModule_AddObject( module, "UnpackModes", UnpackModes );

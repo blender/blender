@@ -610,28 +610,6 @@ AttributeError:
 			"expected a list of integers" );
 }
 
-//------------------------Armature.users (getter)
-static PyObject *Armature_getUsers( BPy_Armature * self )
-{
-	return PyInt_FromLong( self->armature->id.us );
-}
-
-
-//------------------------Armature.fakeUser (getter)
-static PyObject *Armature_getFakeUser( BPy_Armature * self )
-{
-	if (self->armature->id.flag & LIB_FAKEUSER)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-//------------------------Armature.fakeUser (setter)
-static int Armature_setFakeUser( BPy_Armature * self, PyObject * value )
-{
-	return SetIdFakeUser(&self->armature->id, value);
-}
-
-
 //------------------------Armature.mirrorEdit (getter)
 static PyObject *Armature_getMirrorEdit(BPy_Armature *self, void *closure)
 {
@@ -935,38 +913,6 @@ AttributeError:
 	return EXPP_intError(PyExc_AttributeError, "%s%s", 
 		sArmatureBadArgs, "Expects True or False");
 }
-//------------------------Armature.name (getter)
-//Gets the name of the armature
-static PyObject *Armature_getName(BPy_Armature *self, void *closure)
-{
-    return PyString_FromString(self->armature->id.name +2); //*new*
-}
-//------------------------Armature.name (setter)
-//Sets the name of the armature
-static int Armature_setName(BPy_Armature *self, PyObject *value, void *closure)
-{
-	char *name;
-
-	if(value){
-		if(PyString_Check(value)){
-			name = PyString_AsString(value);
-			rename_id(&self->armature->id, name);
-			return 0; 
-		}
-	}
-	goto AttributeError;
-
-AttributeError:
-	return EXPP_intError(PyExc_AttributeError, "%s%s", 
-		sArmatureBadArgs, "Expects string");
-}
-
-//------------------------Armature.name (getter)
-//Gets the name of the armature
-static PyObject *Armature_getLib(BPy_Armature *self, void *closure)
-{
-	return EXPP_GetIdLib((ID *)self->armature);
-}
 
 //------------------------Armature.bones (getter)
 //Gets the name of the armature
@@ -1004,10 +950,7 @@ static PyMethodDef BPy_Armature_methods[] = {
 //------------------------tp_getset
 //This contains methods for attributes that require checking
 static PyGetSetDef BPy_Armature_getset[] = {
-	{"name", (getter)Armature_getName, (setter)Armature_setName, 
-		"The armature's name", NULL},
-	{"lib", (getter)Armature_getLib, (setter)NULL, 
-		"The armature's library or None", NULL},
+	GENERIC_LIB_GETSETATTR,
 	{"bones", (getter)Armature_getBoneDict, (setter)Armature_setBoneDict, 
 		"The armature's Bone dictionary", NULL},
 	{"vertexGroups", (getter)Armature_getVertexGroups, (setter)Armature_setVertexGroups, 
@@ -1034,10 +977,6 @@ static PyGetSetDef BPy_Armature_getset[] = {
 		"Adds temporal IK chains while grabbing bones", NULL},
 	{"layers", (getter)Armature_getLayers, (setter)Armature_setLayers, 
 		"List of layers for the armature", NULL},
-	{"users", (getter)Armature_getUsers, (setter)NULL, 
-		"The number of object users", NULL},
-	{"fakeUser", (getter)Armature_getFakeUser, (setter)Armature_setFakeUser, 
-		"The fake user status of this object", NULL},
 	{NULL, NULL, NULL, NULL, NULL}
 };
 //------------------------tp_new

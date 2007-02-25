@@ -125,8 +125,6 @@ struct PyMethodDef M_Scene_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 /*-----------------------BPy_Scene  method declarations--------------------*/
-static PyObject *Scene_oldgetName( BPy_Scene * self );
-static PyObject *Scene_oldsetName( BPy_Scene * self, PyObject * arg );
 static PyObject *Scene_getLayerList( BPy_Scene * self );
 static PyObject *Scene_oldsetLayers( BPy_Scene * self, PyObject * arg );
 static PyObject *Scene_copy( BPy_Scene * self, PyObject * arg );
@@ -158,9 +156,9 @@ static PyObject *SceneObSeq_CreatePyObject( BPy_Scene *self, Base *iter, int mod
 /*-----------------------BPy_Scene method def------------------------------*/
 static PyMethodDef BPy_Scene_methods[] = {
 	/* name, method, flags, doc */
-	{"getName", ( PyCFunction ) Scene_oldgetName, METH_NOARGS,
+	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
 	 "() - Return Scene name"},
-	{"setName", ( PyCFunction ) Scene_oldsetName, METH_VARARGS,
+	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 "(str) - Change Scene name"},
 	{"getLayers", ( PyCFunction ) Scene_getLayerList, METH_NOARGS,
 	 "() - Return a list of layers int indices which are set in this scene "},
@@ -230,66 +228,8 @@ static PyMethodDef BPy_Scene_methods[] = {
 
 
 /*****************************************************************************/
-/* Python BPy_Scene methods:                                                  */
+/* Python BPy_Scene getsetattr funcs:                                        */
 /*****************************************************************************/
-static PyObject *Scene_getName( BPy_Scene * self )
-{
-	PyObject *attr;
-	SCENE_DEL_CHECK_PY(self);
-	
-	attr = PyString_FromString( self->scene->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Scene.name attribute" ) );
-}
-
-static int Scene_setName( BPy_Scene * self, PyObject * value )
-{
-	char *name = NULL;
-	
-	SCENE_DEL_CHECK_INT(self);
-	
-	name = PyString_AsString ( value );
-	if( !name )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-					      "expected string argument" );
-
-	rename_id( &self->scene->id, name );
-
-	return 0;
-}
-
-static PyObject *Scene_getLib( BPy_Scene * self )
-{
-	SCENE_DEL_CHECK_PY(self);
-	return EXPP_GetIdLib((ID *)self->scene);
-	
-}
-
-static PyObject *Scene_getUsers( BPy_Scene * self )
-{
-	SCENE_DEL_CHECK_PY(self);
-	return PyInt_FromLong( self->scene->id.us );
-}
-
-static PyObject *Scene_getFakeUser( BPy_Scene * self )
-{
-	SCENE_DEL_CHECK_PY(self);
-	if (self->scene->id.flag & LIB_FAKEUSER)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-static int Scene_setFakeUser( BPy_Scene * self, PyObject * value )
-{
-	SCENE_DEL_CHECK_INT(self);
-	return SetIdFakeUser(&self->scene->id, value);
-}
-
 static PyObject *Scene_getLayerMask( BPy_Scene * self )
 {
 	SCENE_DEL_CHECK_PY(self);
@@ -447,36 +387,11 @@ static PyObject *Scene_getObjects( BPy_Scene *self)
 	return SceneObSeq_CreatePyObject(self, NULL, 0);
 }
 
-static PyObject *Scene_GetProperties(BPy_Scene * self)
-{
-	SCENE_DEL_CHECK_PY(self);
-	return BPy_Wrap_IDProperty( (ID*)self->scene, IDP_GetProperties((ID*)self->scene, 1), NULL );	
-}
-
 /*****************************************************************************/
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef BPy_Scene_getseters[] = {
-	{"name",
-	 (getter)Scene_getName, (setter)Scene_setName,
-	 "Scene name",
-	 NULL},
-	{"lib",
-	 (getter)Scene_getLib, (setter)NULL,
-	 "Scenes external library path",
-	 NULL},
-	{"users",
-	 (getter)Scene_getUsers, (setter)NULL,
-	 "Scenes user count",
-	 NULL},
-	{"fakeUser",
-	 (getter)Scene_getFakeUser, (setter)Scene_setFakeUser,
-	 "Scene fake user state",
-	 NULL},
-	{"properties",
-	 (getter)Scene_GetProperties, (setter)NULL,
-	 "Scene properties",
-	 NULL},
+	GENERIC_LIB_GETSETATTR,
 	{"Layer",
 	 (getter)Scene_getLayerMask, (setter)Scene_setLayerMask,
 	 "Scene layer bitmask",
@@ -802,88 +717,11 @@ static PyObject *M_Scene_Unlink( PyObject * self, PyObject * args )
 
 /* DEPRECATE ME !!! */
 /*-----------------------BPy_Scene function defintions-------------------*/
-/*-----------------------Scene.getName()---------------------------------*/
-static PyObject *Scene_oldgetName( BPy_Scene * self )
-{
-	PyObject *attr;
-	
-	SCENE_DEL_CHECK_PY(self);
-	
-	attr= PyString_FromString( self->scene->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Scene.name attribute" ) );
-}
-
-/*-----------------------Scene.setName()---------------------------------*/
-static PyObject *Scene_oldsetName( BPy_Scene * self, PyObject * args )
-{
-	char *name;
-	
-	SCENE_DEL_CHECK_PY(self);
-	
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected string argument" ) );
-
-	rename_id( &self->scene->id, name );
-
-	Py_RETURN_NONE;
-}
 
 /*-----------------------Scene.setLayers()---------------------------------*/
 static PyObject *Scene_oldsetLayers( BPy_Scene * self, PyObject * args )
 {
-	PyObject *list = NULL, *item = NULL;
-	int layers = 0, val, i, len_list;
-	
-	SCENE_DEL_CHECK_PY(self);
-	
-	if( !PyArg_ParseTuple( args, "O!", &PyList_Type, &list ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-			"expected a list of integers in the range [1, 20]" ) );
-
-	len_list = PyList_Size(list);
-
-	if (len_list == 0)
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"list can't be empty, at least one layer must be set" ) );
-
-	for( i = 0; i < len_list; i++ ) {
-		item = PyList_GetItem( list, i );
-		if( !PyInt_Check( item ) )
-			return EXPP_ReturnPyObjError
-				( PyExc_AttributeError,
-				  "list must contain only integer numbers" );
-
-		val = ( int ) PyInt_AsLong( item );
-		if( val < 1 || val > 20 )
-			return EXPP_ReturnPyObjError
-				( PyExc_AttributeError,
-				  "layer values must be in the range [1, 20]" );
-
-		layers |= 1 << ( val - 1 );
-	}
-	self->scene->lay = layers;
-
-	if (G.vd && (self->scene == G.scene)) {
-		int bit = 0;
-		G.vd->lay = layers;
-
-		while( bit < 20 ) {
-			val = 1 << bit;
-			if( layers & val ) {
-				G.vd->layact = val;
-				break;
-			}
-			bit++;
-		}
-	}
-
-	Py_RETURN_NONE;
+	return EXPP_setterWrapper( (void *)self, args, (setter)Scene_setLayerList );
 }
 /* END DEPRECATE CODE */
 

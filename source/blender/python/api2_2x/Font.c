@@ -174,23 +174,10 @@ PyObject *M_Font_Load( PyObject * self, PyObject * args )
 	return ( PyObject * ) py_font;
 }
 
-/*--------------- Python BPy_Font methods---------------------------*/
+/*--------------- Python BPy_Font getsetattr funcs ---------------------*/
 
-/*--------------- BPy_Font.getName()--------------------------------*/
-static PyObject *Font_getName( BPy_Font * self )
-{
-	PyObject *attr = NULL;
 
-	if( self->font )
-		attr = PyString_FromString( self->font->id.name+2 );
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Font.name attribute" ) );
-}
-
-/*--------------- BPy_Font.getFilename()--------------------------------*/
+/*--------------- BPy_Font.filename-------------------------------------*/
 static PyObject *Font_getFilename( BPy_Font * self )
 {
 	PyObject *attr = NULL;
@@ -203,26 +190,6 @@ static PyObject *Font_getFilename( BPy_Font * self )
 	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"couldn't get Font.filename attribute" ) );
 }
-
-static int Font_setName( BPy_Font * self, PyObject * value )
-{
-	char *name = NULL;
-	
-	if( !(self->font) )
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-					      "Blender Font was deleted!" );
-	
-	name = PyString_AsString ( value );
-	if( !name )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-					      "expected string argument" );
-
-	rename_id( &self->font->id, name );
-
-	return 0;
-}
-
-
 
 static int Font_setFilename( BPy_Font * self, PyObject * value )
 {
@@ -239,12 +206,6 @@ static int Font_setFilename( BPy_Font * self, PyObject * value )
 		       name );
 
 	return 0;
-}
-
-
-static PyObject *Font_getLib( BPy_Font * self )
-{
-	return EXPP_GetIdLib((ID *)self->font);
 }
 
 /*--------------- BPy_Font.pack()---------------------------------*/
@@ -283,27 +244,11 @@ static PyObject *Font_getPacked( BPy_Font * self )
 		return EXPP_incr_ret_False();
 }
 
-static PyObject *Font_getUsers( BPy_Font* self )
-{
-	return PyInt_FromLong( self->font->id.us );
-}
-
 /*****************************************************************************/
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef BPy_Font_getseters[] = {
-	{"name",
-	 (getter)Font_getName, (setter)Font_setName,
-	 "Font name",
-	 NULL},
-	{"lib",
-	 (getter)Font_getLib, (setter)NULL,
-	 "Font linked library",
-	 NULL},
-	{"users",
-	 (getter)Font_getUsers, (setter)NULL,
-	 "Number of font users",
-	 NULL},
+	GENERIC_LIB_GETSETATTR,
 	{"filename",
 	 (getter)Font_getFilename, (setter)Font_setFilename,
 	 "Font filepath",

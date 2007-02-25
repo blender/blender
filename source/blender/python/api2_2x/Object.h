@@ -55,7 +55,6 @@ PyObject *Object_Init( void );
 PyObject *Object_CreatePyObject( struct Object *obj );
 Object *Object_FromPyObject( PyObject * py_obj );
 int Object_CheckPyObject( PyObject * py_obj );
-Object *GetObjectByName( char *name );
 
 void Object_updateDag( void *data );
 

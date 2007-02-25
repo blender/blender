@@ -91,9 +91,6 @@ struct PyMethodDef M_Ipo_methods[] = {
 /*****************************************************************************/
 /* Python BPy_Ipo methods declarations:                                     */
 /*****************************************************************************/
-static PyObject *Ipo_getName( BPy_Ipo * self );
-static PyObject *Ipo_oldsetName( BPy_Ipo * self, PyObject * args );
-static int Ipo_setName( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getBlocktype( BPy_Ipo * self );
 static PyObject *Ipo_oldsetBlocktype( BPy_Ipo * self, PyObject * args );
 static int Ipo_setBlocktype( BPy_Ipo * self, PyObject * args );
@@ -101,8 +98,6 @@ static PyObject *Ipo_getRctf( BPy_Ipo * self );
 static PyObject *Ipo_oldsetRctf( BPy_Ipo * self, PyObject * args );
 static int Ipo_setRctf( BPy_Ipo * self, PyObject * args );
 
-static PyObject *Ipo_getLib( BPy_Ipo * self );
-static PyObject *Ipo_getUsers( BPy_Ipo * self );
 static PyObject *Ipo_getCurve( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getCurves( BPy_Ipo * self );
 static PyObject *Ipo_getCurveNames( BPy_Ipo * self );
@@ -121,9 +116,6 @@ static PyObject *Ipo_getCurveBeztriple( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getChannel( BPy_Ipo * self );
 static int Ipo_setChannel( BPy_Ipo * self, PyObject * args );
 
-static PyObject *Ipo_getFakeUser( BPy_Ipo * self );
-static int Ipo_setFakeUser( BPy_Ipo * self, PyObject * value );
-
 static int Ipo_length( BPy_Ipo * inst );
 static PyObject *Ipo_getIpoCurveByName( BPy_Ipo * self, PyObject * key );
 static int Ipo_setIpoCurveByName( BPy_Ipo * self, PyObject * key, 
@@ -135,9 +127,9 @@ static int Ipo_contains( BPy_Ipo * self, PyObject * key );
 /*****************************************************************************/
 static PyMethodDef BPy_Ipo_methods[] = {
 	/* name, method, flags, doc */
-	{"getName", ( PyCFunction ) Ipo_getName, METH_NOARGS,
+	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
 	 "() - Return Ipo Data name"},
-	{"setName", ( PyCFunction ) Ipo_oldsetName, METH_VARARGS,
+	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 "(str) - Change Ipo Data name"},
 	{"getBlocktype", ( PyCFunction ) Ipo_getBlocktype, METH_NOARGS,
 	 "() - Return Ipo blocktype"},
@@ -178,22 +170,7 @@ static PyMethodDef BPy_Ipo_methods[] = {
 /* Python BPy_Ipo attributes get/set structure:                              */
 /*****************************************************************************/
 static PyGetSetDef BPy_Ipo_getseters[] = {
-	{"name",
-	 (getter)Ipo_getName, (setter)Ipo_setName,
-	 "Ipo data name",
-	 NULL},
-	{"lib",
-	 (getter)Ipo_getLib, (setter)NULL,
-	 "Ipos linked library",
-	 NULL},
-	{"users",
-	 (getter)Ipo_getUsers, (setter)NULL,
-	 "Number of Ipo users",
-	 NULL},
-	{"fakeUser",
-	 (getter)Ipo_getFakeUser, (setter)Ipo_setFakeUser,
-	 "Ipos fake user state",
-	 NULL},
+	GENERIC_LIB_GETSETATTR,
 	{"curves",
 	 (getter)Ipo_getCurves, (setter)NULL,
 	 "Ipo curves",
@@ -821,59 +798,6 @@ static PyObject *M_Ipo_Recalc( PyObject * self_unused, PyObject * args )
 /*****************************************************************************/
 /* Python BPy_Ipo methods:                                                   */
 /*****************************************************************************/
-
-static PyObject *Ipo_getName( BPy_Ipo * self )
-{
-	PyObject *attr = PyString_FromString( self->ipo->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Ipo.name attribute" );
-}
-
-static int Ipo_setName( BPy_Ipo * self, PyObject * args )
-{
-	char *name;
-
-	name = PyString_AsString( args );
-	if( !name )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected string argument" );
-
-	rename_id( &self->ipo->id, name );
-
-	return 0;
-}
-
-
-static PyObject *Ipo_getLib( BPy_Ipo * self )
-{
-	return EXPP_GetIdLib((ID *)self->ipo);
-	
-}
-
-static PyObject *Ipo_getUsers( BPy_Ipo * self )
-{
-	return PyInt_FromLong( self->ipo->id.us );
-}
-
-static PyObject *Ipo_getFakeUser( BPy_Ipo * self )
-{
-	if (self->ipo->id.flag & LIB_FAKEUSER)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-static int Ipo_setFakeUser( BPy_Ipo * self, PyObject * value )
-{
-	return SetIdFakeUser(&self->ipo->id, value);
-}
-
-
-
 static PyObject *Ipo_getBlocktype( BPy_Ipo * self )
 {
 	PyObject *attr = PyInt_FromLong( self->ipo->blocktype );
@@ -1909,12 +1833,6 @@ static PyObject *Ipo_oldsetRctf( BPy_Ipo * self, PyObject * args )
 {
 	return EXPP_setterWrapperTuple( (void *)self, args,
 			(setter)Ipo_setRctf );
-}
-
-static PyObject *Ipo_oldsetName( BPy_Ipo * self, PyObject * args )
-{
-	return EXPP_setterWrapperTuple( (void *)self, args,
-			(setter)Ipo_setName );
 }
 
 static PyObject *Ipo_oldsetBlocktype( BPy_Ipo * self, PyObject * args )

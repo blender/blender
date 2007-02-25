@@ -110,7 +110,6 @@ struct PyMethodDef M_Camera_methods[] = {
 /* Python BPy_Camera methods declarations:                                   */
 /*****************************************************************************/
 static PyObject *Camera_oldgetIpo( BPy_Camera * self );
-static PyObject *Camera_oldgetName( BPy_Camera * self );
 static PyObject *Camera_oldgetType( BPy_Camera * self );
 static PyObject *Camera_oldgetMode( BPy_Camera * self );
 static PyObject *Camera_oldgetLens( BPy_Camera * self );
@@ -119,7 +118,6 @@ static PyObject *Camera_oldgetClipEnd( BPy_Camera * self );
 static PyObject *Camera_oldgetDrawSize( BPy_Camera * self );
 static PyObject *Camera_oldgetScale( BPy_Camera * self );
 static PyObject *Camera_oldsetIpo( BPy_Camera * self, PyObject * args );
-static PyObject *Camera_oldsetName( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_oldsetType( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_oldsetMode( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_oldsetLens( BPy_Camera * self, PyObject * args );
@@ -134,8 +132,6 @@ static PyObject *Camera_clearScriptLinks( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_insertIpoKey( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_copy( BPy_Camera * self );
 
-Camera *GetCameraByName( char *name );
-
 
 /*****************************************************************************/
 /* Python BPy_Camera methods table:                                          */
@@ -144,7 +140,7 @@ static PyMethodDef BPy_Camera_methods[] = {
 	/* name, method, flags, doc */
 	{"getIpo", ( PyCFunction ) Camera_oldgetIpo, METH_NOARGS,
 	 "() - Return Camera Data Ipo"},
-	{"getName", ( PyCFunction ) Camera_oldgetName, METH_NOARGS,
+	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
 	 "() - Return Camera Data name"},
 	{"getType", ( PyCFunction ) Camera_oldgetType, METH_NOARGS,
 	 "() - Return Camera type - 'persp':0, 'ortho':1"},
@@ -167,7 +163,7 @@ static PyMethodDef BPy_Camera_methods[] = {
 	 "() - Unlink Ipo from this Camera."},
 	 {"insertIpoKey", ( PyCFunction ) Camera_insertIpoKey, METH_VARARGS,
 	 "( Camera IPO type ) - Inserts a key into IPO"},
-	{"setName", ( PyCFunction ) Camera_oldsetName, METH_VARARGS,
+	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 "(s) - Set Camera Data name"},
 	{"setType", ( PyCFunction ) Camera_oldsetType, METH_VARARGS,
 	 "(s) - Set Camera type, which can be 'persp' or 'ortho'"},
@@ -208,54 +204,6 @@ static void Camera_dealloc( BPy_Camera * self );
 static int Camera_compare( BPy_Camera * a, BPy_Camera * b );
 //static PyObject *Camera_getAttr( BPy_Camera * self, char *name );
 static PyObject *Camera_repr( BPy_Camera * self );
-
-
-//~ /*****************************************************************************/
-//~ /* Python Camera_Type structure definition:	                             */
-//~ /*****************************************************************************/
-//~ PyTypeObject Camera_Type = {
-	//~ PyObject_HEAD_INIT( NULL ) /* required macro */ 
-	//~ NULL,	/* ob_size */
-	//~ "Blender Camera",	/* tp_name */
-	//~ sizeof( BPy_Camera ),	/* tp_basicsize */
-	//~ NULL,			/* tp_itemsize */
-	//~ /* methods */
-	//~ ( destructor ) Camera_dealloc,	/* tp_dealloc */
-	//~ NULL,			/* tp_print */
-	//~ NULL,	/* tp_getattr */
-	//~ NULL,	/* tp_setattr */
-	//~ ( cmpfunc ) Camera_compare,	/* tp_compare */
-	//~ ( reprfunc ) Camera_repr,	/* tp_repr */
-	//~ NULL,			/* tp_as_number */
-	//~ NULL,			/* tp_as_sequence */
-	//~ NULL,			/* tp_as_mapping */
-	//~ NULL,			/* tp_as_hash */
-	//~ 0, 0, 0, 0, 0, 0,
-	//~ 0,			/* tp_doc */
-	//~ 0, 0, 0, 0, 0, 0,
-	//~ BPy_Camera_methods,	/* tp_methods */
-	//~ 0,			/* tp_members */
-	//~ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-//~ };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 static PyObject *M_Camera_New( PyObject * self, PyObject * args,
 			       PyObject * kwords )
@@ -392,25 +340,6 @@ PyObject *Camera_Init( void )
 	return submodule;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* Three Python Camera_Type helper functions needed by the Object module: */
 
 PyObject *Camera_CreatePyObject( Camera * cam )
@@ -424,7 +353,6 @@ PyObject *Camera_CreatePyObject( Camera * cam )
 					      "couldn't create BPy_Camera PyObject" );
 
 	pycam->camera = cam;
-
 	return ( PyObject * ) pycam;
 }
 
@@ -439,30 +367,6 @@ Camera *Camera_FromPyObject( PyObject * pyobj )
 }
 
 /*****************************************************************************/
-/* Description: Returns the object with the name specified by the argument  */
-/*	name. Note that the calling function has to remove the first */
-/*	two characters of the object name. These two characters		 */
-/*	specify the type of the object (OB, ME, WO, ...)		 */
-/*	The function will return NULL when no object with the given  */
-/*	name is found.							    */
-/*****************************************************************************/
-Camera *GetCameraByName( char *name )
-{
-	Camera *cam_iter;
-
-	cam_iter = G.main->camera.first;
-	while( cam_iter ) {
-		if( StringEqual( name, GetIdName( &( cam_iter->id ) ) ) ) {
-			return ( cam_iter );
-		}
-		cam_iter = cam_iter->id.next;
-	}
-
-	/* There is no camera with the given name */
-	return ( NULL );
-}
-
-/*****************************************************************************/
 /* Python BPy_Camera methods:                                               */
 /*****************************************************************************/
 
@@ -474,19 +378,6 @@ static PyObject *Camera_oldgetIpo( BPy_Camera * self )
 		Py_RETURN_NONE;
 
 	return Ipo_CreatePyObject( ipo );
-}
-
-
-static PyObject *Camera_oldgetName( BPy_Camera * self )
-{
-
-	PyObject *attr = PyString_FromString( self->camera->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Camera.name attribute" );
 }
 
 static PyObject *Camera_oldgetType( BPy_Camera * self )
@@ -617,19 +508,6 @@ static PyObject *Camera_oldclearIpo( BPy_Camera * self )
 	}
 
 	return EXPP_incr_ret_False(); /* no ipo found */
-}
-
-static PyObject *Camera_oldsetName( BPy_Camera * self, PyObject * args )
-{
-	char *name;
-
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected string argument" );
-
-	rename_id( &self->camera->id, name );
-
-	Py_RETURN_NONE;
 }
 
 static PyObject *Camera_oldsetType( BPy_Camera * self, PyObject * args )
@@ -828,48 +706,6 @@ static PyObject *Camera_copy( BPy_Camera * self )
 static void Camera_dealloc( BPy_Camera * self )
 {
 	PyObject_DEL( self );
-}
-
-static PyObject *Camera_getName( BPy_Camera * self )
-{
-	return PyString_FromString( self->camera->id.name + 2 );
-}
-
-static int Camera_setName( BPy_Camera * self, PyObject * value )
-{
-	char *name = NULL;
-	
-	name = PyString_AsString ( value );
-	if( !name )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-					      "expected string argument" );
-	
-	rename_id( &self->camera->id, name);
-	return 0;
-}
-
-static PyObject *Camera_getLib( BPy_Camera * self )
-{
-	return EXPP_GetIdLib((ID *)self->camera);
-}
-
-static PyObject *Camera_getUsers( BPy_Camera * self )
-{
-	return PyInt_FromLong( self->camera->id.us );
-}
-
-
-static PyObject *Camera_getFakeUser( BPy_Camera * self )
-{
-	if (self->camera->id.flag & LIB_FAKEUSER)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-static int Camera_setFakeUser( BPy_Camera * self, PyObject * value )
-{
-	return SetIdFakeUser(&self->camera->id, value);
 }
 
 
@@ -1099,8 +935,6 @@ static PyObject *getFlagAttr( BPy_Camera *self, void *type )
 		Py_RETURN_FALSE;
 }
 
-
-
 /*
  * set floating point attributes which require clamping
  */
@@ -1119,22 +953,7 @@ static int setFlagAttr( BPy_Camera *self, PyObject *value, void *type )
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef BPy_Camera_getseters[] = {
-	{"name",
-	 (getter)Camera_getName, (setter)Camera_setName,
-	 "Camera name",
-	 NULL},
-	{"lib",
-	 (getter)Camera_getLib, (setter)NULL,
-	 "Camera libname",
-	 NULL},
-	{"users",
-	 (getter)Camera_getUsers, (setter)NULL,
-	 "Number of camera users",
-	 NULL},
-	{"fakeUser",
-	 (getter)Camera_getFakeUser, (setter)Camera_setFakeUser,
-	 "Cameras fake user state",
-	 NULL},
+	GENERIC_LIB_GETSETATTR,
 	{"type",
 	 (getter)Camera_getType, (setter)Camera_setType,
 	 "camera type \"persp\" or \"ortho\"",

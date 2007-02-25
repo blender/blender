@@ -212,75 +212,7 @@ static PyObject *Group_repr( BPy_Group * obj );
 static int Group_compare( BPy_Group * a, BPy_Group * b );
 
 /*****************************************************************************/
-/* Python BPy_Group methods:                                                  */
-/*****************************************************************************/
-static PyObject *Group_getName( BPy_Group * self )
-{
-	PyObject *attr;
-	GROUP_DEL_CHECK_PY(self);
-	
-	attr = PyString_FromString( self->group->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Group.name attribute" ) );
-}
-
-static int Group_setName( BPy_Group * self, PyObject * value )
-{
-	char *name = NULL;
-	
-	GROUP_DEL_CHECK_INT(self);
-	
-	name = PyString_AsString ( value );
-	if( !name )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-					      "expected string argument" );
-
-	rename_id( &self->group->id, name );
-
-	return 0;
-}
-
-static PyObject *Group_getLib( BPy_Group * self )
-{
-	GROUP_DEL_CHECK_PY(self);
-	return EXPP_GetIdLib((ID *)self->group);
-	
-}
-
-static PyObject *Group_getUsers( BPy_Group * self )
-{
-	GROUP_DEL_CHECK_PY(self);
-	return PyInt_FromLong( self->group->id.us );
-}
-
-static PyObject *Group_getFakeUser( BPy_Group * self )
-{
-	GROUP_DEL_CHECK_PY(self);
-	if (self->group->id.flag & LIB_FAKEUSER)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-static int Group_setFakeUser( BPy_Group * self, PyObject * value )
-{
-	GROUP_DEL_CHECK_INT(self);
-	return SetIdFakeUser(&self->group->id, value);
-}
-
-static PyObject *Group_getProperties( BPy_Group * self )
-{
-	/*sanity check, we set parent property type to Group here*/
-	return BPy_Wrap_IDProperty( (ID*)self->group, IDP_GetProperties((ID*)self->group, 1), NULL );
-}
-
-
-/*****************************************************************************/
-/* Python BPy_Group methods:                                                  */
+/* Python BPy_Group getsetattr funcs:                                        */
 /*****************************************************************************/
 static int Group_setLayers( BPy_Group * self, PyObject * value )
 {
@@ -313,28 +245,10 @@ static PyObject *Group_getLayers( BPy_Group * self )
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef BPy_Group_getseters[] = {
-	{"name",
-	 (getter)Group_getName, (setter)Group_setName,
-	 "Group name",
-	 NULL},
-	{"lib",
-	 (getter)Group_getLib, (setter)NULL,
-	 "Group linked library",
-	 NULL},
-	{"users",
-	 (getter)Group_getUsers, (setter)NULL,
-	 "Number of group users",
-	 NULL},
-	{"fakeUser",
-	 (getter)Group_getFakeUser, (setter)Group_setFakeUser,
-	 "Groups fake user state",
-	 NULL},
-	{"properties", 
-	 (getter)Group_getProperties, NULL,
-	"get the ID properties associated with this group"},
+	GENERIC_LIB_GETSETATTR,
 	{"layers",
 	 (getter)Group_getLayers, (setter)Group_setLayers,
-	 "Number of group users",
+	 "layer mask for this group",
 	 NULL},
 	{"objects",
 	 (getter)Group_getObjects, (setter)Group_setObjects,
@@ -627,30 +541,6 @@ Group *Group_FromPyObject( PyObject * py_grp )
 
 	blen_grp = ( BPy_Group * ) py_grp;
 	return ( blen_grp->group );
-}
-
-/*****************************************************************************/
-/* Description: Returns the object with the name specified by the argument  */
-/*		name. Note that the calling function has to remove the first */
-/*		two characters of the object name. These two characters	   */
-/*		specify the type of the object (OB, ME, WO, ...)	 */
-/*		The function will return NULL when no object with the given  */
-/*		name is found.						 */
-/*****************************************************************************/
-Group *GetGroupByName( char *name )
-{
-	Group *grp_iter;
-
-	grp_iter = G.main->group.first;
-	while( grp_iter ) {
-		if( StringEqual( name, GetIdName( &( grp_iter->id ) ) ) ) {
-			return ( grp_iter );
-		}
-		grp_iter = grp_iter->id.next;
-	}
-
-	/* There is no object with the given name */
-	return ( NULL );
 }
 
 /*****************************************************************************/

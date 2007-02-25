@@ -78,7 +78,6 @@ static PyObject *M_Image_Load( PyObject * self, PyObject * args );
 /*****************************************************************************/
 /* Python BPy_Image methods declarations:	 */
 /*****************************************************************************/
-static PyObject *Image_getName( BPy_Image * self );
 static PyObject *Image_getFilename( BPy_Image * self );
 static PyObject *Image_getSize( BPy_Image * self );
 static PyObject *Image_getDepth( BPy_Image * self );
@@ -88,7 +87,6 @@ static PyObject *Image_getBindCode( BPy_Image * self );
 static PyObject *Image_getStart( BPy_Image * self );
 static PyObject *Image_getEnd( BPy_Image * self );
 static PyObject *Image_getSpeed( BPy_Image * self );
-static PyObject *Image_setName( BPy_Image * self, PyObject * args );
 static PyObject *Image_setFilename( BPy_Image * self, PyObject * args );
 static PyObject *Image_setXRep( BPy_Image * self, PyObject * args );
 static PyObject *Image_setYRep( BPy_Image * self, PyObject * args );
@@ -127,7 +125,7 @@ static PyMethodDef BPy_Image_methods[] = {
 	 "() - Get maximum x & y coordinates of current image as [x, y]"},
 	{"getMinXY", ( PyCFunction ) Image_getMinXY, METH_NOARGS,
 	 "() - Get minimun x & y coordinates of image as [x, y]"},
-	{"getName", ( PyCFunction ) Image_getName, METH_NOARGS,
+	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
 	 "() - Return Image object name"},
 	{"getFilename", ( PyCFunction ) Image_getFilename, METH_NOARGS,
 	 "() - Return Image object filename"},
@@ -155,7 +153,7 @@ static PyMethodDef BPy_Image_methods[] = {
 	{"glFree", ( PyCFunction ) Image_glFree, METH_NOARGS,
 	 "() - Free the image data from OpenGL texture memory only,\n\
 		see also image.glLoad()."},
-	{"setName", ( PyCFunction ) Image_setName, METH_VARARGS,
+	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 "(str) - Change Image object name"},
 	{"setFilename", ( PyCFunction ) Image_setFilename, METH_VARARGS,
 	 "(str) - Change Image file name"},
@@ -679,6 +677,8 @@ static PyObject *Image_pack( BPy_Image * self )
 
 static PyObject *Image_makeCurrent( BPy_Image * self )
 {
+	printf("deprecated! use Blender.Main.images.active = image  instead\n");
+	
 	if (!G.sima)
 		Py_RETURN_FALSE;
 	
@@ -798,20 +798,6 @@ int Image_CheckPyObject( PyObject * pyobj )
 Image *Image_FromPyObject( PyObject * pyobj )
 {
 	return ( ( BPy_Image * ) pyobj )->image;
-}
-
-/*****************************************************************************/
-/* Python BPy_Image methods:		 */
-/*****************************************************************************/
-static PyObject *Image_getName( BPy_Image * self )
-{
-	PyObject *attr = PyString_FromString( self->image->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Image.name attribute" ) );
 }
 
 static PyObject *Image_getFilename( BPy_Image * self )
@@ -984,19 +970,6 @@ static PyObject *Image_glLoad( BPy_Image * self )
 	}
 
 	return PyLong_FromUnsignedLong( image->bindcode );
-}
-
-static PyObject *Image_setName( BPy_Image * self, PyObject * args )
-{
-	char *name;
-
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected string argument" ) );
-
-	rename_id( &self->image->id, name );
-
-	Py_RETURN_NONE;
 }
 
 static PyObject *Image_setFilename( BPy_Image * self, PyObject * args )
@@ -1208,7 +1181,7 @@ static int Image_setAttr( BPy_Image * self, char *name, PyObject * value )
 					    "ImageSetAttr: couldn't create PyTuple" );
 
 	if( strcmp( name, "name" ) == 0 )
-		error = Image_setName( self, valtuple );
+		error = GenericLib_setName_with_method( self, valtuple );
 	else if( strcmp( name, "filename" ) == 0 )
 		error = Image_setFilename( self, valtuple );
 	else if( strcmp( name, "xrep" ) == 0 )

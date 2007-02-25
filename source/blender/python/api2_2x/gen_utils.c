@@ -25,7 +25,8 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Michel Selten, Willian P. Germano, Alex Mole, Ken Hughes
+ * Contributor(s): Michel Selten, Willian P. Germano, Alex Mole, Ken Hughes,
+ * Campbell Barton
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -974,3 +975,96 @@ int EXPP_dict_set_item_str( PyObject *dict, char *key, PyObject *value)
 	Py_DECREF( value ); /* delete original */
 	return ret;
 }
+
+
+
+
+
+
+
+/* Generic get/set attrs */
+PyObject *GenericLib_getName( void *self )
+{	
+	ID *id = ((BPy_GenericLib *)self)->id;
+	if (!id) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "data has been removed" ) );
+	return PyString_FromString( id->name + 2 );
+}
+
+int GenericLib_setName( void *self, PyObject *value )
+{
+	ID *id = ((BPy_GenericLib *)self)->id;
+	char *name = NULL;
+	if (!id) return ( EXPP_ReturnIntError( PyExc_RuntimeError, "data has been removed" ) );
+	
+	name = PyString_AsString ( value );
+	if( !name )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected string argument" );
+
+	rename_id( &id, name );
+
+	return 0;
+}
+
+PyObject *GenericLib_getFakeUser( void *self )
+{	
+	ID *id = ((BPy_GenericLib *)self)->id;
+	if (!id) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "data has been removed" ) );
+	if (id->flag & LIB_FAKEUSER)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+int GenericLib_setFakeUser( void *self, PyObject *value )
+{
+	int param;
+	ID *id = ((BPy_GenericLib *)self)->id;
+	if (!id) return ( EXPP_ReturnIntError( PyExc_RuntimeError, "data has been removed" ) );
+	
+	param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument in range [0,1]" );
+	
+	if (param) {
+		if (!(id->flag & LIB_FAKEUSER)) {
+			id->flag |= LIB_FAKEUSER;
+			id_us_plus(id);
+		}
+	} else {
+		if (id->flag & LIB_FAKEUSER) {
+			id->flag &= ~LIB_FAKEUSER;
+			id->us--;
+		}
+	}	
+}
+
+/* read only */
+PyObject *GenericLib_getLib( void *self )
+{	
+	ID *id = ((BPy_GenericLib *)self)->id;
+	if (!id) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "data has been removed" ) );
+	return EXPP_GetIdLib(id);
+}
+
+PyObject *GenericLib_getUsers( void *self )
+{	
+	ID *id = ((BPy_GenericLib *)self)->id;
+	if (!id) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "data has been removed" ) );
+	return PyInt_FromLong(id->us);
+}
+
+PyObject *GenericLib_getProperties( void *self )
+{	
+	ID *id = ((BPy_GenericLib *)self)->id;
+	if (!id) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "data has been removed" ) );
+	return BPy_Wrap_IDProperty( id, IDP_GetProperties(id, 1), NULL );
+}
+
+/* use for any.setName("name")*/
+PyObject * GenericLib_setName_with_method( void *self, PyObject *args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)GenericLib_setName );
+}
+

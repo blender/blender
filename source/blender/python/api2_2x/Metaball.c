@@ -106,9 +106,6 @@ static PyObject *M_MetaElem_TypesDict( void )
 /* Python BPy_Metaball methods declarations:                                */
 /*****************************************************************************/
 static PyObject *Metaball_getElements( BPy_Metaball * self );
-static PyObject *Metaball_getName( BPy_Metaball * self );
-static PyObject *Metaball_getLib( BPy_Metaball * self );
-static int Metaball_setName( BPy_Metaball * self, PyObject * value );
 static PyObject *Metaball_getMaterials( BPy_Metaball * self );
 static int Metaball_setMaterials( BPy_Metaball * self, PyObject * value );
 static PyObject *Metaball_getWiresize( BPy_Metaball * self );
@@ -118,9 +115,6 @@ static int Metaball_setRendersize( BPy_Metaball * self, PyObject * value);
 static PyObject *Metaball_getThresh( BPy_Metaball * self );
 static int Metaball_setThresh( BPy_Metaball * self, PyObject * args );
 static PyObject *Metaball_copy( BPy_Metaball * self );
-static PyObject *Metaball_getUsers( BPy_Metaball * self );
-static PyObject *Metaball_getFakeUser( BPy_Metaball * self );
-static int Metaball_setFakeUser( BPy_Metaball * self, PyObject * value );
 
 /*****************************************************************************/
 /* Python BPy_Metaball methods table:                                       */
@@ -173,22 +167,7 @@ static int Metaelem_setMFlagBits( BPy_Metaelem * self, PyObject * value, void * 
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef BPy_Metaball_getseters[] = {
-	{"name",
-	 (getter)Metaball_getName, (setter)Metaball_setName,
-	 "Metaball name",
-	 NULL},
-	{"lib",
-	 (getter)Metaball_getLib, (setter)NULL,
-	 "Metaballs external library",
-	 NULL},
-	{"users",
-	 (getter)Metaball_getUsers, (setter)NULL,
-	 "Number of metaball users",
-	 NULL},
-	{"fakeUser",
-	 (getter)Metaball_getFakeUser, (setter)Metaball_setFakeUser,
-	 "The fake user status of this object",
-	 NULL},
+	GENERIC_LIB_GETSETATTR,
 	{"materials",
 	 (getter)Metaball_getMaterials, (setter)Metaball_setMaterials,
 	 "Number of metaball users",
@@ -550,35 +529,6 @@ MetaBall *Metaball_FromPyObject( PyObject * pyobj )
 	return ( ( BPy_Metaball * ) pyobj )->metaball;
 }
 
-static PyObject *Metaball_getName( BPy_Metaball * self )
-{
-
-	PyObject *attr = PyString_FromString( self->metaball->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Metaball.name attribute" ) );
-}
-
-static int Metaball_setName( BPy_Metaball * self, PyObject * value )
-{
-	char *name = NULL;
-	
-	name = PyString_AsString ( value );
-	if( !name )
-		return ( EXPP_ReturnIntError( PyExc_TypeError,
-						"expected string argument" ) );
-	rename_id( &self->metaball->id, name );
-	return 0;
-}
-
-static PyObject *Metaball_getLib( BPy_Metaball * self )
-{
-	return EXPP_GetIdLib((ID *)self->metaball);
-}
-
 static PyObject *Metaball_getMaterials( BPy_Metaball *self )
 {
 	return EXPP_PyList_fromMaterialList( self->metaball->mat,
@@ -682,27 +632,6 @@ static int Metaball_setThresh( BPy_Metaball * self, PyObject * value )
 	self->metaball->thresh = EXPP_ClampFloat(param, 0.0, 5.0);
 	return 0;
 }
-
-
-static PyObject *Metaball_getUsers( BPy_Metaball * self )
-{
-	return PyInt_FromLong( self->metaball->id.us );
-}
-
-static PyObject *Metaball_getFakeUser( BPy_Metaball * self )
-{
-	if (self->metaball->id.flag & LIB_FAKEUSER)
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-static int Metaball_setFakeUser( BPy_Metaball * self, PyObject * value )
-{
-	return SetIdFakeUser(&self->metaball->id, value);
-}
-
-
 
 static PyObject *Metaball_copy( BPy_Metaball * self )
 {
