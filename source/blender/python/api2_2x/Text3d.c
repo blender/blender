@@ -81,9 +81,10 @@ struct PyMethodDef M_Text3d_methods[] = {
 /*****************************************************************************/
 /* int Text3dPrint (BPy_Text3d *msh, FILE *fp, int flags); */
 static void Text3dDeAlloc( BPy_Text3d * self );
-static int Text3dSetAttr( BPy_Text3d * self, char *name, PyObject * value );
-static PyObject *Text3dGetAttr( BPy_Text3d * self, char *name );
-static PyObject *Text3dRepr( BPy_Text3d * self );
+
+
+static PyObject *Text3d_repr( BPy_Text3d * self );
+static int Text3d_compare( BPy_Text3d * a, BPy_Text3d * b );
 
 /*****************************************************************************/
 /* Python BPy_Text3d methods declarations:                                   */
@@ -203,6 +204,14 @@ static PyMethodDef BPy_Text3d_methods[] = {
 };
 
 /*****************************************************************************/
+/* Python attributes get/set structure:                                      */
+/*****************************************************************************/
+static PyGetSetDef BPy_Text3d_getseters[] = {
+	GENERIC_LIB_GETSETATTR, /* didnt have any attributes, at least lets have the standard ID attrs */
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+/*****************************************************************************/
 /* Python Text3d_Type structure definition:                                  */
 /*****************************************************************************/
 PyTypeObject Text3d_Type = {
@@ -213,21 +222,76 @@ PyTypeObject Text3d_Type = {
 	0,			/* tp_itemsize */
 	/* methods */
 	( destructor ) Text3dDeAlloc,	/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) Text3dGetAttr,	/* tp_getattr */
-	( setattrfunc ) Text3dSetAttr,	/* tp_setattr */
-	0,			/* tp_compare */
-	( reprfunc ) Text3dRepr,	/* tp_repr */
-	0,			/* tp_as_number */
-	0,			/* tp_as_sequence */
-	0,			/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_doc */
-	0, 0, 0, 0, 0, 0,
-	BPy_Text3d_methods,	/* tp_methods */
-	0,			/* tp_members */
+	NULL,			/* tp_print */
+	NULL,	/* tp_getattr */
+	NULL,	/* tp_setattr */
+	( cmpfunc ) Text3d_compare,			/* tp_compare */
+	( reprfunc ) Text3d_repr,	/* tp_repr */
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_Text3d_methods,           /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_Text3d_getseters,         /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
 };
+
 
 /* 
  *   Text3d_update( )
@@ -369,7 +433,9 @@ PyObject *Text3d_Init( void )
 	PyObject *submodule, *dict;
 
 	//add module...
-	Text3d_Type.ob_type = &PyType_Type;
+	if( PyType_Ready( &Text3d_Type ) < 0 )
+		return NULL;
+	
 	submodule = Py_InitModule3( "Blender.Text3d", M_Text3d_methods, 
 		M_Text3D_doc);
 
@@ -400,44 +466,31 @@ static void Text3dDeAlloc( BPy_Text3d * self )
 	PyObject_DEL( self );
 }
 
-/*****************************************************************************/
-/* Function:    Text3dGetAttr                                                */
-/* Description: This is a callback function for the BPy_Text3d type. It is   */
-/*              the function that accesses BPy_Text3d "member variables" and */
-/*              methods.                                                     */
-/*****************************************************************************/
-static PyObject *Text3dGetAttr( BPy_Text3d * self, char *name )
-{
-	return Py_FindMethod( BPy_Text3d_methods, ( PyObject * ) self, name );
-}
-
-/*****************************************************************************
- * Function:    Text3dSetAttr                                                
- * Description: Callback function for the BPy_Effect type to  
- *              sets Text3d Data attributes (member variables). 
- * 
- ****************************************************************************/
-
-static int Text3dSetAttr( BPy_Text3d * self, char *name, PyObject * value )
-{
-	return 0;		/* normal exit */
-}
-
-
 /****************************************************************************
- * Function:    Text3dRepr                                                   
+ * Function:    Text3d_repr                                                   
  * Description: Callback function for the BPy_Text3d type to It      
  *               build a meaninful string to represent Text3d objects.      
  *
  ***************************************************************************/
 
-static PyObject *Text3dRepr( BPy_Text3d * self )
+static PyObject *Text3d_repr( BPy_Text3d * self )
 {
 	/* skip over CU in idname.  CUTEXT */
 	return PyString_FromFormat( "[Text3d \"%s\"]",
 								self->curve->id.name + 2 ); 
 }
 
+/****************************************************************************
+ * Function:    Text3d_compare                                                   
+ * Description: Callback function for the BPy_Text3d type to Compare 2 types
+ *
+ ***************************************************************************/
+
+/* mat_a==mat_b or mat_a!=mat_b*/
+static int Text3d_compare( BPy_Text3d * a, BPy_Text3d * b )
+{
+	return ( a->curve == b->curve) ? 0 : -1;
+}
 
 
 int Text3d_CheckPyObject( PyObject * py_obj )
