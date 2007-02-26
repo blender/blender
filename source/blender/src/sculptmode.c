@@ -73,7 +73,6 @@
 #include "BIF_gl.h"
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
-#include "BIF_previewrender.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -563,10 +562,8 @@ void sculptmode_free_session(Scene *sce)
 	SculptSession *ss= sce->sculptdata.session;
 	if(ss) {
 		sculptmode_free_vertexusers(ss);
-		if(ss->texrndr) {
-			if(ss->texrndr->rect) MEM_freeN(ss->texrndr->rect);
-			MEM_freeN(ss->texrndr);
-		}
+		if(ss->texcache)
+			MEM_freeN(ss->texcache);
 		sculptmode_undo_free(sce);
 		sculptmode_propset_end(1);
 		MEM_freeN(ss);
@@ -996,16 +993,6 @@ void flip_coord(float co[3], const char symm)
 		co[2]= -co[2];
 }
 
-/* Get a pixel from a RenderInfo at (px, py) */
-unsigned *get_ri_pixel(const RenderInfo *ri, int px, int py)
-{
-	if(px < 0) px= 0;
-	if(py < 0) py= 0;
-	if(px > ri->pr_rectx-1) px= ri->pr_rectx-1;
-	if(py > ri->pr_recty-1) py= ri->pr_recty-1;
-	return ri->rect + py * ri->pr_rectx + px;
-}
-
 /* Use the warpfac field in MTex to store a rotation value for sculpt textures. Value is in degrees */
 float tex_angle(void)
 {
@@ -1030,6 +1017,16 @@ float to_rad(const float deg)
 float to_deg(const float rad)
 {
 	return rad * (180.0f/M_PI);
+}
+
+/* Get a pixel from the texcache at (px, py) */
+unsigned *get_texcache_pixel(const SculptSession *ss, int px, int py)
+{
+	if(px < 0) px= 0;
+	if(py < 0) py= 0;
+	if(px > ss->texcache_w - 1) px= ss->texcache_w - 1;
+	if(py > ss->texcache_h - 1) py= ss->texcache_h - 1;
+	return ss->texcache + py * ss->texcache_w + px;
 }
 
 /* Return a multiplier for brush strength on a particular vertex. */
@@ -1059,13 +1056,13 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 		
 		externtex(&mtex,point,&avg,&jnk,&jnk,&jnk,&jnk);
 	}
-	else if(ss->texrndr) {
+	else if(ss->texcache) {
 		const short bsize= sculptmode_brush()->size * 2;
 		const short half= sculptmode_brush()->size;
 		const float rot= to_rad(tex_angle());
+		const unsigned tcw = ss->texcache_w, tch = ss->texcache_h;
 		int px, py;
 		unsigned i, *p;
-		RenderInfo *ri= ss->texrndr;
 		ProjVert pv;
 		
 		/* If the active area is being applied for symmetry, flip it
@@ -1101,18 +1098,18 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 			}
 			px %= sx-1;
 			py %= sy-1;
-			p= get_ri_pixel(ri, ri->pr_rectx*px/sx, ri->pr_recty*py/sy);
+			p= get_texcache_pixel(ss, tcw*px/sx, tch*py/sy);
 		} else {
-			float fx= (pv.co[0] - e->mouse[0] + half) * (ri->pr_rectx*1.0f/bsize) - ri->pr_rectx/2;
-			float fy= (pv.co[1] - e->mouse[1] + half) * (ri->pr_recty*1.0f/bsize) - ri->pr_recty/2;
+			float fx= (pv.co[0] - e->mouse[0] + half) * (tcw*1.0f/bsize) - tcw/2;
+			float fy= (pv.co[1] - e->mouse[1] + half) * (tch*1.0f/bsize) - tch/2;
 			
 			float angle= atan2(fy, fx) - rot;
 			float len= sqrtf(fx*fx + fy*fy);
 			
-			px= ri->pr_rectx/2 + len * cos(angle);
-			py= ri->pr_recty/2 + len * sin(angle);
+			px= tcw/2 + len * cos(angle);
+			py= tch/2 + len * sin(angle);
 			
-			p= get_ri_pixel(ri, px, py);
+			p= get_texcache_pixel(ss, px, py);
 		}
 		
 		avg= 0;
@@ -1351,7 +1348,6 @@ void sculptmode_update_tex()
 {
 	SculptData *sd= sculpt_data();
 	SculptSession *ss= sculpt_session();
-	RenderInfo *ri= ss->texrndr;
 	MTex *mtex = sd->mtex[sd->texact];
 	TexResult texres = {0};
 	float x, y, step=2.0/128.0, co[3];
@@ -1360,27 +1356,15 @@ void sculptmode_update_tex()
 	/* Skip Default brush shape and non-textures */
 	if(sd->texact == -1 || !sd->mtex[sd->texact]) return;
 
-	if(!ri) {
-		ri= MEM_callocN(sizeof(RenderInfo),"brush texture render");
-		ss->texrndr= ri;
+	if(ss->texcache) {
+		MEM_freeN(ss->texcache);
+		ss->texcache= NULL;
 	}
-
-	if(ri->rect) {
-		MEM_freeN(ri->rect);
-		ri->rect= NULL;
-	}
-
-	/* For now the renderinfo structure is kept intact, as
-	   other parts of the code uses it. -joeedh */
-	ri->curtile= 0;
-	ri->tottile= 0;
-	if(ri->rect) MEM_freeN(ri->rect);
-	ri->rect = NULL;
-	ri->pr_rectx = 128; /* FIXME: might want to allow higher/lower sizes */
-	ri->pr_recty = 128;
-	ri->rect = MEM_callocN(sizeof(int)*128*128, "ri->rect for sculpt eek!");
 	
-	if (mtex && mtex->tex) {
+	ss->texcache_w = ss->texcache_h = 128;
+	ss->texcache = MEM_callocN(sizeof(int) * ss->texcache_w * ss->texcache_h, "Sculpt Texture cache");
+	
+	if(mtex && mtex->tex) {
 		BKE_image_get_ibuf(sd->mtex[sd->texact]->tex->ima, NULL);
 		
 		/*do normalized cannonical view coords for texture*/
@@ -1391,22 +1375,21 @@ void sculptmode_update_tex()
 				co[2]= 0.0f;
 				
 				/* This is copied from displace modifier code */
-				hasrgb = multitex_ext(mtex->tex, co, NULL,
-										   NULL, 1, &texres);
+				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 1, &texres);
 			
 				/* if the texture gave an RGB value, we assume it didn't give a valid
 				 * intensity, so calculate one (formula from do_material_tex).
 				 * if the texture didn't give an RGB value, copy the intensity across
 				 */
 				if(hasrgb & TEX_RGB)
-					texres.tin = (0.35 * texres.tr + 0.45 * texres.tg
-								   + 0.2 * texres.tb);
+					texres.tin = (0.35 * texres.tr + 0.45 *
+					              texres.tg + 0.2 * texres.tb);
 
 				texres.tin = texres.tin * 255.0;
-				((char*)ri->rect)[(iy*128+ix)*4] = (char)texres.tin;
-				((char*)ri->rect)[(iy*128+ix)*4+1] = (char)texres.tin;
-				((char*)ri->rect)[(iy*128+ix)*4+2] = (char)texres.tin;
-				((char*)ri->rect)[(iy*128+ix)*4+3] = (char)texres.tin;
+				((char*)ss->texcache)[(iy*128+ix)*4] = (char)texres.tin;
+				((char*)ss->texcache)[(iy*128+ix)*4+1] = (char)texres.tin;
+				((char*)ss->texcache)[(iy*128+ix)*4+2] = (char)texres.tin;
+				((char*)ss->texcache)[(iy*128+ix)*4+3] = (char)texres.tin;
 			}
 		}
 	}
@@ -1516,10 +1499,10 @@ void sculptmode_propset_calctex()
 					else
 						pd->texdata[i*tsz+j]= magn < tsz/2 ? 1 : 0;
 				}
-			if(sd->texact != -1 && ss->texrndr) {
+			if(sd->texact != -1 && ss->texcache) {
 				for(i=0; i<tsz; ++i)
 					for(j=0; j<tsz; ++j) {
-						const int col= ss->texrndr->rect[i*tsz+j];
+						const int col= ss->texcache[i*tsz+j];
 						pd->texdata[i*tsz+j]*= (((char*)&col)[0]+((char*)&col)[1]+((char*)&col)[2])/3.0f/255.0f;
 					}
 			}

@@ -42,7 +42,6 @@ struct KeyBlock;
 struct Mesh;
 struct Object;
 struct PartialVisibility;
-struct RenderInfo;
 struct Scene;
 struct ScrArea;
 struct SculptData;
@@ -79,7 +78,7 @@ typedef struct SculptSession {
 	int vertex_users_size;
 	
 	/* Used to cache the render of the active texture */
-	struct RenderInfo *texrndr;
+	unsigned int texcache_w, texcache_h, *texcache;
 	
 	PropsetData *propset;
 	
