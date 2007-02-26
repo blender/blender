@@ -4397,6 +4397,8 @@ void bevel_menu()
 	// while still drawing in the first iteration (and without using another variable)
 	curval[0] = mval[0] + 1; curval[1] = mval[1] + 1;
 
+	// Init grabz for window to vec conversions
+	initgrabz(-G.vd->ofs[0], -G.vd->ofs[1], -G.vd->ofs[2]);
 	window_to_3d(centre, mval[0], mval[1]);
 
 	if(button(&recurs, 1, 4, "Recursion:")==0) return;
@@ -4417,7 +4419,7 @@ void bevel_menu()
 			Recalc = 0;
 			curval[0] = mval[0];
 			curval[1] = mval[1];
-
+			
 			window_to_3d(vec, mval[0]-oval[0], mval[1]-oval[1]);
 			d = Normalise(vec) / 10;
 
