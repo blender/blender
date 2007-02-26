@@ -93,6 +93,7 @@
 #include "mydevice.h"
 
 #include "RE_render_ext.h"
+#include "RE_shader_ext.h" /*for multitex_ext*/
 
 #include <math.h>
 #include <stdlib.h>
@@ -1098,8 +1099,8 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 				px= len * cos(angle) + 2000;
 				py= len * sin(angle) + 2000;
 			}
-			px %= sx;
-			py %= sy;
+			px %= sx-1;
+			py %= sy-1;
 			p= get_ri_pixel(ri, ri->pr_rectx*px/sx, ri->pr_recty*py/sy);
 		} else {
 			float fx= (pv.co[0] - e->mouse[0] + half) * (ri->pr_rectx*1.0f/bsize) - ri->pr_rectx/2;
@@ -1351,7 +1352,11 @@ void sculptmode_update_tex()
 	SculptData *sd= sculpt_data();
 	SculptSession *ss= sculpt_session();
 	RenderInfo *ri= ss->texrndr;
-
+	MTex *mtex = sd->mtex[sd->texact];
+	TexResult texres = {0};
+	float x, y, step=2.0/128.0, co[3];
+	int hasrgb, ix, iy;
+	
 	/* Skip Default brush shape and non-textures */
 	if(sd->texact == -1 || !sd->mtex[sd->texact]) return;
 
@@ -1365,15 +1370,46 @@ void sculptmode_update_tex()
 		ri->rect= NULL;
 	}
 
+	/* For now the renderinfo structure is kept intact, as
+	   other parts of the code uses it. -joeedh */
 	ri->curtile= 0;
 	ri->tottile= 0;
 	if(ri->rect) MEM_freeN(ri->rect);
 	ri->rect = NULL;
 	ri->pr_rectx = 128; /* FIXME: might want to allow higher/lower sizes */
 	ri->pr_recty = 128;
+	ri->rect = MEM_callocN(sizeof(int)*128*128, "ri->rect for sculpt eek!");
+	
+	if (mtex && mtex->tex) {
+		BKE_image_get_ibuf(sd->mtex[sd->texact]->tex->ima, NULL);
+		
+		/*do normalized cannonical view coords for texture*/
+		for (y=-1.0, iy=0; iy<128; iy++, y += step) {
+			for (x=-1.0, ix=0; ix<128; ix++, x += step) {
+				co[0]= x;
+				co[1]= y;
+				co[2]= 0.0f;
+				
+				/* This is copied from displace modifier code */
+				hasrgb = multitex_ext(mtex->tex, co, NULL,
+										   NULL, 1, &texres);
+			
+				/* if the texture gave an RGB value, we assume it didn't give a valid
+				 * intensity, so calculate one (formula from do_material_tex).
+				 * if the texture didn't give an RGB value, copy the intensity across
+				 */
+				if(hasrgb & TEX_RGB)
+					texres.tin = (0.35 * texres.tr + 0.45 * texres.tg
+								   + 0.2 * texres.tb);
 
-	BKE_image_get_ibuf(sd->mtex[sd->texact]->tex->ima, NULL);
-	BIF_previewrender(&sd->mtex[sd->texact]->tex->id, ri, NULL, PR_ICON_RENDER);
+				texres.tin = texres.tin * 255.0;
+				((char*)ri->rect)[(iy*128+ix)*4] = (char)texres.tin;
+				((char*)ri->rect)[(iy*128+ix)*4+1] = (char)texres.tin;
+				((char*)ri->rect)[(iy*128+ix)*4+2] = (char)texres.tin;
+				((char*)ri->rect)[(iy*128+ix)*4+3] = (char)texres.tin;
+			}
+		}
+	}
 }
 
 void init_editdata(SculptData *sd, EditData *e, short *mouse, short *pr_mouse, const char flip)
