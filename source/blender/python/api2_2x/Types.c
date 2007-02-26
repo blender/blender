@@ -66,6 +66,7 @@ extern PyTypeObject Modifier_Type, ModSeq_Type;
 extern PyTypeObject EditBone_Type;
 extern PyTypeObject ThemeSpace_Type;
 extern PyTypeObject ThemeUI_Type;
+extern PyTypeObject TimeLine_Type;
 
 char M_Types_doc[] = "The Blender Types module\n\n\
 This module is a dictionary of all Blender Python types";
@@ -120,6 +121,7 @@ void types_InitAll( void )
 	Text_Type.ob_type = &PyType_Type;
 	Text3d_Type.ob_type = &PyType_Type;
 	Texture_Type.ob_type = &PyType_Type;
+	TimeLine_Type.ob_type = &PyType_Type;
 	World_Type.ob_type = &PyType_Type;
 	buffer_Type.ob_type = &PyType_Type;
 	constant_Type.ob_type = &PyType_Type;

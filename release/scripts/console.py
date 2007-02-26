@@ -53,7 +53,6 @@ import Blender
 from Blender import *
 import sys as python_sys
 import StringIO
-import types
 
 # Constants
 __DELIMETERS__ = '. ,=+-*/%<>&~][{}():\t'
@@ -189,17 +188,24 @@ def insertCmdData(cmdBuffer):
 COLLECTED_VAR_NAMES = {} # a list of keys, each key has a list of absolute paths
 
 # Pain and simple recursice dir(), accepts a string
+unused_types = str, dict, list, float, int, str, type, tuple, type(dir), type(None)
 def rdir(dirString, depth=0):
-	
+	#print ' ' * depth, dirString
 	# MAX DEPTH SET HERE
-	if depth > 4:
-		print 'maxdepoth reached.'
+	if depth > 5:
+		# print 'maxdepoth reached.'
 		return
 		
 	global COLLECTED_VAR_NAMES
 	dirStringSplit = dirString.split('.')
 	
-	exec('dirList = dir(%s)' % dirString) 
+	exec('value=' + dirString)	
+	
+	if type(value) in unused_types:
+		# print 'bad type'
+		return
+	dirList = dir(value)
+	
 	for dirItem in dirList:
 		if dirItem.startswith('_'):
 			continue
@@ -212,16 +218,26 @@ def rdir(dirString, depth=0):
 		except:
 			# Dont bother with this data.
 			continue
+		#print  'HEY', dirData, dirItem
+		#if type(dirItem) != str:
+		#	print dirItem, type(dirItem)
 		
-		if type(dirItem) != types.StringType:
-			print dirItem, type(dirItem)
-		
-		if dirItem not in COLLECTED_VAR_NAMES.keys():
+		if dirItem not in COLLECTED_VAR_NAMES: # .keys()
 			COLLECTED_VAR_NAMES[dirItem] = []
 		
 		# Add the string
-		splitD = dirString.split('"')[-2]
+		# splitD = dirString.split('"')[-2]
+		
+		# Example of dirString
+		# __CONSOLE_VAR_DICT__["Main"].scenes.active.render
+		
+		# Works but can be faster
+		# splitD = dirString.replace('__CONSOLE_VAR_DICT__["', '').replace('"]', '')
+		
+		splitD = dirString[22:].replace('"]', '')
+		
 		if splitD not in COLLECTED_VAR_NAMES[dirItem]:
+			print dirItem, dirString, splitD,
 			COLLECTED_VAR_NAMES[dirItem].append(splitD)
 		
 		
@@ -230,16 +246,7 @@ def rdir(dirString, depth=0):
 		#if type(dirData) == types.ClassType or \
 		#	 type(dirData) == types.ModuleType:
 		type_dirData = type(dirData)
-		if type_dirData != types.StringType and\
-		type_dirData != types.DictType and\
-		type_dirData != types.DictionaryType and\
-		type_dirData != types.FloatType and\
-		type_dirData != types.IntType and\
-		type_dirData != types.NoneType and\
-		type_dirData != types.StringTypes and\
-		type_dirData != types.TypeType and\
-		type_dirData != types.TupleType and\
-		type_dirData != types.BuiltinFunctionType:
+		if type_dirData not in unused_types:
 			# print type(dirData), dirItem
 			# Dont loop up dirs for strings ints etc.
 			if dirItem not in dirStringSplit:
@@ -255,7 +262,7 @@ def rdir(dirString, depth=0):
 def recursive_dir():
 	global COLLECTED_VAR_NAMES
 	
-	for name in __CONSOLE_VAR_DICT__.keys():
+	for name in __CONSOLE_VAR_DICT__: # .keys()
 		if not name.startswith('_'): # Dont pick names like __name__
 			rdir('__CONSOLE_VAR_DICT__["%s"]' % name)
 			#print COLLECTED_VAR_NAMES
@@ -472,7 +479,7 @@ def handle_event(evt, val):
 		if editVar:
 			possibilities = []
 			
-			for __TMP_VAR_NAME__ in RECURSIVE_DIR.keys():
+			for __TMP_VAR_NAME__ in RECURSIVE_DIR: #.keys():
 				#print '\t', __TMP_VAR_NAME__
 				if __TMP_VAR_NAME__ == editVar:
 					# print 'ADITVAR IS A VAR'
@@ -500,14 +507,13 @@ def handle_event(evt, val):
 						# Account for non absolute (variables for eg.)
 						if usage: # not ''
 							absName = '%s.%s' % (usage, __TMP_VAR_NAME__)
-							if absName.find('.'+editVar) != -1 or\
-							absName.startswith(editVar) or\
-							__TMP_VAR_NAME__.startswith(editVar):
-								#print editVar, 'found in', absName
+							
+							if __TMP_VAR_NAME__.startswith(editVar):
 								menuList.append( # Used for names and can be entered when pressing shift.
 								  (absName, # Absolute name
 								  __TMP_VAR_NAME__) # Relative name, non shift
 								  )
+						
 						#else:
 						#	if absName.find(editVar) != -1:
 						#		menuList.append((__TMP_VAR_NAME__, __TMP_VAR_NAME__)) # Used for names and can be entered when pressing shift.

@@ -1247,11 +1247,11 @@ static PyGetSetDef BPy_Image_getseters[] = {
 	{"fields", (getter)Image_getFlag, (setter)Image_setFlag,
 	 "image fields toggle", (void *)IMA_FIELDS },
 	{"fields_odd", (getter)Image_getFlag, (setter)Image_setFlag,
-	 "image fields toggle", (void *)IMA_STD_FIELD },
+	 "image odd fields toggle", (void *)IMA_STD_FIELD },
 	{"antialias", (getter)Image_getFlag, (setter)Image_setFlag,
-	 "image fields toggle", (void *)IMA_ANTIALI },
+	 "image antialiasing toggle", (void *)IMA_ANTIALI },
 	{"reflect", (getter)Image_getFlag, (setter)Image_setFlag,
-	 "image fields toggle", (void *)IMA_REFLECT },
+	 "image reflect toggle", (void *)IMA_REFLECT },
 
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
