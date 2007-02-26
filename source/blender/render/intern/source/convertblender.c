@@ -166,15 +166,22 @@ void RE_make_stars(Render *re, void (*initfunc)(void),
 	extern unsigned char hash[512];
 	World *wrld= NULL;
 	HaloRen *har;
-	Camera * camera;
+	Scene *scene;
+	Camera *camera;
 	double dblrand, hlfrand;
 	float vec[4], fx, fy, fz;
 	float fac, starmindist, clipend;
 	float mat[4][4], stargrid, maxrand, maxjit, force, alpha;
 	int x, y, z, sx, sy, sz, ex, ey, ez, done = 0;
 	
-	if(initfunc) wrld= G.scene->world;
-	else wrld= &(re->wrld);
+	if(initfunc) {
+		scene= G.scene;
+		wrld= G.scene->world;
+	}
+	else {
+		scene= re->scene;
+		wrld= &(re->wrld);
+	}
 	
 	stargrid = wrld->stardist;			/* distance between stars */
 	maxrand = 2.0;						/* amount a star can be shifted (in grid units) */
@@ -199,7 +206,9 @@ void RE_make_stars(Render *re, void (*initfunc)(void),
 		* y = -z | +z
 		*/
 	
-	camera = G.scene->camera->data;
+	if(scene->camera==NULL)
+		return;
+	camera = scene->camera->data;
 	clipend = camera->clipend;
 	
 	/* convert to grid coordinates */
