@@ -15,6 +15,9 @@ WITH_BF_OPENAL = 'true'
 BF_OPENAL = '/usr'
 BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'openal'
+# some distros have a separate libalut
+# if you get linker complaints, you need to uncomment the line below
+# BF_OPENAL_LIB = 'openal alut'  
 
 WITH_BF_SDL = 'true'
 BF_SDL = '/usr' #$(shell sdl-config --prefix)
