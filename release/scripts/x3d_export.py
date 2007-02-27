@@ -964,14 +964,12 @@ class VRML2Export:
 ##########################################################
 
 def select_file(filename):
-  if pytinst == 1:
-    if sys.exists(filename) and _safeOverwrite:
-      result = Draw.PupMenu("File Already Exists, Overwrite?%t|Yes%x1|No%x0")
-      if(result != 1):
-        return
-
   if not filename.endswith(extension):
     filename += extension
+  if _safeOverwrite and sys.exists(filename):
+    result = Draw.PupMenu("File Already Exists, Overwrite?%t|Yes%x1|No%x0")
+    if(result != 1):
+      return
 
   wrlexport=VRML2Export(filename)
   wrlexport.export(scene, world, worldmat)

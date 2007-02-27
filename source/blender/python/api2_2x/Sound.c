@@ -89,9 +89,7 @@ struct PyMethodDef M_Sound_methods[] = {
 /* Python Sound_Type callback function prototypes:			*/
 /*****************************************************************************/
 static void Sound_dealloc( BPy_Sound * self );
-static int Sound_setAttr( BPy_Sound * self, char *name, PyObject * v );
 static int Sound_compare( BPy_Sound * a, BPy_Sound * b );
-static PyObject *Sound_getAttr( BPy_Sound * self, char *name );
 static PyObject *Sound_repr( BPy_Sound * self );
 
 #define SOUND_FLOAT_METHODS(funcname, varname)			\
@@ -126,7 +124,8 @@ static PyObject *Sound_set ## funcname(BPy_Sound *self, PyObject *args) { \
 static PyObject *Sound_getName( BPy_Sound * self );
 static PyObject *Sound_getFilename( BPy_Sound * self );
 static PyObject *Sound_setName( BPy_Sound * self, PyObject * args );
-static PyObject *Sound_setFilename( BPy_Sound * self, PyObject * args );
+static int 		 Sound_setFilename( BPy_Sound * self, PyObject * args );
+static PyObject *Sound_oldsetFilename( BPy_Sound * self, PyObject * args );
 static PyObject *Sound_setCurrent( BPy_Sound * self );
 static PyObject *Sound_play( BPy_Sound * self );
 static PyObject *Sound_unpack( BPy_Sound * self, PyObject * args);
@@ -154,7 +153,7 @@ static PyMethodDef BPy_Sound_methods[] = {
 	 "() - Return Sound object filename"},
 	{"setName", ( PyCFunction ) Sound_setName, METH_VARARGS,
 	 "(name) - Set Sound object name"},
-	{"setFilename", ( PyCFunction ) Sound_setFilename, METH_VARARGS,
+	{"setFilename", ( PyCFunction ) Sound_oldsetFilename, METH_VARARGS,
 	 "(filename) - Set Sound object filename"},
 	{"setCurrent", ( PyCFunction ) Sound_setCurrent, METH_NOARGS,
 	 "() - make this the active sound in the sound buttons win (also redraws)"},
@@ -179,33 +178,6 @@ static PyMethodDef BPy_Sound_methods[] = {
 	SOUND_FLOAT_METHOD_FUNCS( Distance )
 	*/
 	{NULL, NULL, 0, NULL}
-};
-
-/*****************************************************************************/
-/* Python Sound_Type structure definition:				*/
-/*****************************************************************************/
-PyTypeObject Sound_Type = {
-	PyObject_HEAD_INIT( NULL )
-	0,		/* ob_size */
-	"Blender Sound",	/* tp_name */
-	sizeof( BPy_Sound ),	/* tp_basicsize */
-	0,			/* tp_itemsize */
-	/* methods */
-	( destructor ) Sound_dealloc,	/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) Sound_getAttr,	/* tp_getattr */
-	( setattrfunc ) Sound_setAttr,	/* tp_setattr */
-	( cmpfunc ) Sound_compare,	/* tp_compare */
-	( reprfunc ) Sound_repr,	/* tp_repr */
-	0,			/* tp_as_number */
-	0,			/* tp_as_sequence */
-	0,			/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_doc */
-	0, 0, 0, 0, 0, 0,
-	BPy_Sound_methods,	/* tp_methods */
-	0,			/* tp_members */
 };
 
 /* NOTE: these were copied and modified from image.h.  To Be Done TBD:
@@ -332,7 +304,8 @@ PyObject *Sound_Init( void )
 {
 	PyObject *submodule;
 
-	Sound_Type.ob_type = &PyType_Type;
+	if( PyType_Ready( &Sound_Type ) < 0 )
+		return NULL;
 
 	submodule =
 		Py_InitModule3( "Blender.Sound", M_Sound_methods,
@@ -419,6 +392,15 @@ static PyObject *Sound_getFilename( BPy_Sound * self )
 					"couldn't get Sound.filename attribute" ) );
 }
 
+static PyObject *Sound_getPacked( BPy_Sound * self )
+{
+	if (!sound_sample_is_null(self->sound))	{
+		bSample *sample = sound_find_sample(self->sound);
+		if (sample->packedfile)
+			Py_RETURN_TRUE;
+	}
+	Py_RETURN_FALSE;
+}
 
 static PyObject *Sound_setName( BPy_Sound * self, PyObject * args )
 {
@@ -434,25 +416,23 @@ static PyObject *Sound_setName( BPy_Sound * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Sound_setFilename( BPy_Sound * self, PyObject * args )
+static int Sound_setFilename( BPy_Sound * self, PyObject * value )
 {
 	char *name;
-	int namelen = 0;
 
-	/* max len is FILE_MAXDIR = 160 chars like done in DNA_image_types.h */
-
-	if( !PyArg_ParseTuple( args, "s#", &name, &namelen ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected a string argument" ) );
-
-	if( namelen >= FILE_MAXDIR )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+	/* max len is FILE_MAXDIR = 160 chars like in DNA_image_types.h */
+	name = PyString_AsString(value);
+	if (!name || strlen(name) > FILE_MAXDIR)
+		return ( EXPP_ReturnIntError( PyExc_ValueError,
 						"string argument is limited to 160 chars at most" ) );
 
-	PyOS_snprintf( self->sound->name, FILE_MAXDIR * sizeof( char ), "%s",
-		       name );
+	strcpy( self->sound->name, name );
+	return 0;
+}
 
-	Py_RETURN_NONE;
+static PyObject *Sound_oldsetFilename( BPy_Sound * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Sound_setFilename );
 }
 
 
@@ -537,86 +517,6 @@ static PyObject *Sound_reload( BPy_Sound * self)
 }
 */
 
-/*****************************************************************************/
-/* Function:	Sound_getAttr					*/
-/* Description: This is a callback function for the BPy_Sound type. It is  */
-/*		the function that accesses BPy_Sound member variables and  */
-/*		methods.						 */
-/*****************************************************************************/
-static PyObject *Sound_getAttr( BPy_Sound * self, char *name )
-{
-	PyObject *attr = Py_None;
-
-	if( strcmp( name, "name" ) == 0 )
-		attr = PyString_FromString( self->sound->id.name + 2 );
-	else if( strcmp( name, "filename" ) == 0 )
-		attr = PyString_FromString( self->sound->name );
-	else if( strcmp( name, "lib" ) == 0 )
-		return EXPP_GetIdLib((ID *)self->sound);
-	else if( strcmp( name, "packed" ) == 0 ) {
-		if (!sound_sample_is_null(self->sound))
-		{
-			bSample *sample = sound_find_sample(self->sound);
-			if (sample->packedfile)
-				attr = EXPP_incr_ret_True();
-			else
-				attr = EXPP_incr_ret_False();
-		}
-		else
-			attr = EXPP_incr_ret_False();
-	} else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s,s,s]", "name", "filename", "lib", "packed" );
-	
-	if( !attr )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create PyObject" ) );
-
-	if( attr != Py_None )
-		return attr;	/* attribute found, return its value */
-
-	/* not an attribute, search the methods table */
-	return Py_FindMethod( BPy_Sound_methods, ( PyObject * ) self, name );
-}
-
-/*****************************************************************************/
-/* Function:	Sound_setAttr						*/
-/* Description: This is a callback function for the BPy_Sound type. It is the*/
-/*		function that changes Sound object members values. If this  */
-/*		data is linked to a Blender Sound, it also gets updated.    */
-/*****************************************************************************/
-static int Sound_setAttr( BPy_Sound * self, char *name, PyObject * value )
-{
-	PyObject *valtuple, *result=NULL;
-	
-	/* Put the value(s) in a tuple. For some variables, we want to */
-	/* pass the values to a function, and these functions only accept */
-	/* PyTuples. */
-	valtuple = Py_BuildValue( "(O)", value );
-	if( !valtuple )
-		return EXPP_ReturnIntError( PyExc_MemoryError,
-				"Sound_setAttr: couldn't create PyTuple" );
-	
-	if( StringEqual( name, "name" ) )
-		result = Sound_setName( self, valtuple );
-	else if( StringEqual( name, "filename" ) ) {
-		result = Sound_setFilename( self , valtuple );
-	} else { /* if it turns out here, it's not an attribute*/
-		Py_DECREF(valtuple);
-		return EXPP_ReturnIntError( PyExc_KeyError, "attribute not found" );
-	}
-
-/* valtuple won't be returned to the caller, so we need to DECREF it */
-	Py_DECREF(valtuple);
-
-	if( result != Py_None )
-		return -1;	/* error return */
-
-/* Py_None was incref'ed by the called Scene_set* function. We probably
- * don't need to decref Py_None (!), but since Python/C API manual tells us
- * to treat it like any other PyObject regarding ref counting ... */
-	Py_DECREF( Py_None );
-	return 0;		/* normal return */
-}
 
 
 /*****************************************************************************/
@@ -642,5 +542,101 @@ static PyObject *Sound_repr( BPy_Sound * self )
 	return PyString_FromFormat( "[Sound \"%s\"]",
 				    self->sound->id.name + 2 );
 }
+
+/*****************************************************************************/
+/* Python attributes get/set structure:                                      */
+/*****************************************************************************/
+static PyGetSetDef BPy_Sound_getseters[] = {
+	GENERIC_LIB_GETSETATTR,
+	{"filename", (getter)Sound_getFilename, (setter)Sound_setFilename,
+	 "text filename", NULL},
+	{"packed", (getter)Sound_getPacked, (setter)NULL,
+	 "text filename", NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+
+
+/*****************************************************************************/
+/* Python Sound_Type structure definition:				*/
+/*****************************************************************************/
+PyTypeObject Sound_Type = {
+	PyObject_HEAD_INIT( NULL )
+	0,		/* ob_size */
+	"Blender Sound",	/* tp_name */
+	sizeof( BPy_Sound ),	/* tp_basicsize */
+	0,			/* tp_itemsize */
+	/* methods */
+	( destructor ) Sound_dealloc,	/* tp_dealloc */
+	0,			/* tp_print */
+	NULL,	/* tp_getattr */
+	NULL,	/* tp_setattr */
+	( cmpfunc ) Sound_compare,	/* tp_compare */
+	( reprfunc ) Sound_repr,	/* tp_repr */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_Sound_methods,           /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_Sound_getseters,         /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
+};
 
 

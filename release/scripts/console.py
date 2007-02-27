@@ -237,7 +237,7 @@ def rdir(dirString, depth=0):
 		splitD = dirString[22:].replace('"]', '')
 		
 		if splitD not in COLLECTED_VAR_NAMES[dirItem]:
-			print dirItem, dirString, splitD,
+			# print dirItem, dirString, splitD,
 			COLLECTED_VAR_NAMES[dirItem].append(splitD)
 		
 		
