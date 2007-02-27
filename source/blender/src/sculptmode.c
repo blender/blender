@@ -230,7 +230,7 @@ void sculptmode_free_vertexusers(SculptSession *ss)
 	}
 }
 
-void sculptmode_propset_end(int);
+void sculptmode_propset_end(SculptSession *ss, int);
 void sculptmode_free_session(Scene *sce)
 {
 	SculptSession *ss= sce->sculptdata.session;
@@ -238,7 +238,7 @@ void sculptmode_free_session(Scene *sce)
 		sculptmode_free_vertexusers(ss);
 		if(ss->texcache)
 			MEM_freeN(ss->texcache);
-		sculptmode_propset_end(1);
+		sculptmode_propset_end(ss, 1);
 		MEM_freeN(ss);
 		sce->sculptdata.session= NULL;
 	}
@@ -1222,11 +1222,11 @@ void sculptmode_propset_header()
 	}
 }
 
-void sculptmode_propset_end(int cancel)
+void sculptmode_propset_end(SculptSession *ss, int cancel)
 {
-	SculptSession *ss= sculpt_session();
-	PropsetData *pd= ss ? ss->propset : NULL;
-	if(pd) {
+	if(ss && ss->propset) {
+		PropsetData *pd= ss->propset;
+		
 		if(cancel) {
 			sculptmode_brush()->size= pd->origsize;
 			sculptmode_brush()->strength= pd->origstrength;
@@ -1366,7 +1366,7 @@ void sculptmode_propset(unsigned short event)
 		while(get_mbut()==L_MOUSE);
 	case RETKEY:
 	case PADENTER:
-		sculptmode_propset_end(0);
+		sculptmode_propset_end(sculpt_session(), 0);
 		break;
 	default:
 		break;
