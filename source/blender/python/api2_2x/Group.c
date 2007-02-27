@@ -711,13 +711,6 @@ static PyObject *GroupObSeq_link( BPy_GroupObSeq * self, PyObject *args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *GroupObSeq_append( BPy_GroupObSeq * self, PyObject *args )
-{
-	printf("WARNING: grp.objects.append() has been deprecated, use grp.objects.link() instead.\nBlender releases after 2.43 will not support .append()");
-	return GroupObSeq_link(self, args);
-}
-
-
 static PyObject *GroupObSeq_unlink( BPy_GroupObSeq * self, PyObject *args )
 {
 	PyObject *pyobj;
@@ -746,25 +739,11 @@ static PyObject *GroupObSeq_unlink( BPy_GroupObSeq * self, PyObject *args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *GroupObSeq_remove( BPy_GroupObSeq * self, PyObject *args )
-{
-	printf("WARNING: grp.objects.remove() has been deprecated, use grp.objects.unlink() instead.\nBlender releases after 2.43 will not support .remove()");
-	return GroupObSeq_unlink(self, args);
-}
-
-
 static struct PyMethodDef BPy_GroupObSeq_methods[] = {
 	{"link", (PyCFunction)GroupObSeq_link, METH_VARARGS,
 		"make the object a part of this group"},
 	{"unlink", (PyCFunction)GroupObSeq_unlink, METH_VARARGS,
 		"unlink an object from this group"},
-		
-	/* Deprecated! use the above functions */
-	{"append", (PyCFunction)GroupObSeq_append, METH_VARARGS,
-		"make the object a part of this group - deprecated, use link"},
-	{"remove", (PyCFunction)GroupObSeq_remove, METH_VARARGS,
-		"remove an object from this group - deprecated, use unlink"},
-		
 	{NULL, NULL, 0, NULL}	
 };
 

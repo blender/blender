@@ -82,22 +82,6 @@ struct PyMethodDef M_Lattice_methods[] = {
 };
 
 
-
-/*****************************************************************************/
-/* Python BPy_Lattice methods declarations:	*/
-/*****************************************************************************/
-static PyObject *Lattice_setPartitions( BPy_Lattice * self, PyObject * args );
-static PyObject *Lattice_getPartitions( BPy_Lattice * self );
-static PyObject *Lattice_getKey( BPy_Lattice * self );
-static PyObject *Lattice_setKeyTypes( BPy_Lattice * self, PyObject * args );
-static PyObject *Lattice_getKeyTypes( BPy_Lattice * self );
-static PyObject *Lattice_setMode( BPy_Lattice * self, PyObject * args );
-static PyObject *Lattice_getMode( BPy_Lattice * self );
-static PyObject *Lattice_setPoint( BPy_Lattice * self, PyObject * args );
-static PyObject *Lattice_getPoint( BPy_Lattice * self, PyObject * args );
-static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args );
-static PyObject *Lattice_copy( BPy_Lattice * self );
-
 /*****************************************************************************/
 /*  Lattice Strings			 */
 /* The following string definitions are used for documentation strings.	 */
@@ -139,78 +123,6 @@ static char Lattice_insertKey_doc[] =
 static char Lattice_copy_doc[] =
 	"() - Return a copy of the lattice.";
 
-/*****************************************************************************/
-/* Python BPy_Lattice methods table:	*/
-/*****************************************************************************/
-static PyMethodDef BPy_Lattice_methods[] = {
-	/* name, method, flags, doc */
-	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
-	 Lattice_getName_doc},
-	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
-	 Lattice_setName_doc},
-	{"setPartitions", ( PyCFunction ) Lattice_setPartitions, METH_VARARGS,
-	 Lattice_setPartitions_doc},
-	{"getPartitions", ( PyCFunction ) Lattice_getPartitions, METH_NOARGS,
-	 Lattice_getPartitions_doc},
-	{"getKey", ( PyCFunction ) Lattice_getKey, METH_NOARGS,
-	 Lattice_getKey_doc},
-	{"setKeyTypes", ( PyCFunction ) Lattice_setKeyTypes, METH_VARARGS,
-	 Lattice_setKeyTypes_doc},
-	{"getKeyTypes", ( PyCFunction ) Lattice_getKeyTypes, METH_NOARGS,
-	 Lattice_getKeyTypes_doc},
-	{"setMode", ( PyCFunction ) Lattice_setMode, METH_VARARGS,
-	 Lattice_setMode_doc},
-	{"getMode", ( PyCFunction ) Lattice_getMode, METH_NOARGS,
-	 Lattice_getMode_doc},
-	{"setPoint", ( PyCFunction ) Lattice_setPoint, METH_VARARGS,
-	 Lattice_setPoint_doc},
-	{"getPoint", ( PyCFunction ) Lattice_getPoint, METH_VARARGS,
-	 Lattice_getPoint_doc},
-	{"insertKey", ( PyCFunction ) Lattice_insertKey, METH_VARARGS,
-	 Lattice_insertKey_doc},
-	{"__copy__", ( PyCFunction ) Lattice_copy, METH_NOARGS,
-	 Lattice_copy_doc},
-	{NULL, NULL, 0, NULL}
-};
-
-/*****************************************************************************/
-/* Python Lattice_Type callback function prototypes:	*/
-/*****************************************************************************/
-static void Lattice_dealloc( BPy_Lattice * self );
-static int Lattice_setAttr( BPy_Lattice * self, char *name, PyObject * v );
-static PyObject *Lattice_getAttr( BPy_Lattice * self, char *name );
-static PyObject *Lattice_repr( BPy_Lattice * self );
-static int Lattice_compare( BPy_Lattice * a, BPy_Lattice * b );
-
-/*****************************************************************************/
-/* Python Lattice_Type structure definition:		*/
-/*****************************************************************************/
-PyTypeObject Lattice_Type = {
-	PyObject_HEAD_INIT( NULL ) 
-	0,	/* ob_size */
-	"Blender Lattice",	/* tp_name */
-	sizeof( BPy_Lattice ),	/* tp_basicsize */
-	0,			/* tp_itemsize */
-	/* methods */
-	( destructor ) Lattice_dealloc,	/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) Lattice_getAttr,	/* tp_getattr */
-	( setattrfunc ) Lattice_setAttr,	/* tp_setattr */
-	( cmpfunc ) Lattice_compare,			/* tp_compare */
-	( reprfunc ) Lattice_repr,	/* tp_repr */
-	0,			/* tp_as_number */
-	0,			/* tp_as_sequence */
-	0,			/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_doc */
-	0, 0, 0, 0, 0, 0,
-	BPy_Lattice_methods,	/* tp_methods */
-	0,			/* tp_members */
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-};
-
-
 //***************************************************************************
 // Function:      Lattice_CreatePyObject   
 //***************************************************************************
@@ -224,7 +136,7 @@ PyObject *Lattice_CreatePyObject( Lattice * lt )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
 					      "couldn't create BPy_Lattice PyObject" );
 
-	pyLat->Lattice = lt;
+	pyLat->lattice = lt;
 
 	return ( PyObject * ) pyLat;
 }
@@ -235,7 +147,7 @@ PyObject *Lattice_CreatePyObject( Lattice * lt )
 
 Lattice *Lattice_FromPyObject( PyObject * pyobj )
 {
-	return ( ( BPy_Lattice * ) pyobj )->Lattice;
+	return ( ( BPy_Lattice * ) pyobj )->lattice;
 }
 
 //***************************************************************************
@@ -350,12 +262,14 @@ static PyObject *M_Lattice_Get( PyObject * self, PyObject * args )
 //***************************************************************************
 PyObject *Lattice_Init( void )
 {
-	PyObject *mod =
-		Py_InitModule3( "Blender.Lattice", M_Lattice_methods,
+	PyObject *mod;
+	
+	if( PyType_Ready( &Lattice_Type ) < 0 )
+		return NULL;
+	
+	mod = Py_InitModule3( "Blender.Lattice", M_Lattice_methods,
 				M_Lattice_doc );
 	PyObject *dict = PyModule_GetDict( mod );
-
-	Lattice_Type.ob_type = &PyType_Type;
 
 	//Module dictionary
 #define EXPP_ADDCONST(x) EXPP_dict_set_item_str(dict, #x, PyInt_FromLong(LT_##x))
@@ -367,7 +281,7 @@ PyObject *Lattice_Init( void )
 	EXPP_ADDCONST( LINEAR );
 	EXPP_ADDCONST( CARDINAL );
 	EXPP_ADDCONST( BSPLINE );
-
+	
 	return ( mod );
 }
 
@@ -382,7 +296,7 @@ static PyObject *Lattice_setPartitions( BPy_Lattice * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int,int,int argument" ) );
 
-	bl_Lattice = self->Lattice;
+	bl_Lattice = self->lattice;
 
 	if( x < 2 || y < 2 || z < 2 )
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -396,7 +310,7 @@ static PyObject *Lattice_setPartitions( BPy_Lattice * self, PyObject * args )
 static PyObject *Lattice_getPartitions( BPy_Lattice * self )
 {
 	Lattice *bl_Lattice;
-	bl_Lattice = self->Lattice;
+	bl_Lattice = self->lattice;
 
 	return Py_BuildValue( "[i,i,i]", ( int ) bl_Lattice->pntsu,
 			      ( int ) bl_Lattice->pntsv,
@@ -405,7 +319,7 @@ static PyObject *Lattice_getPartitions( BPy_Lattice * self )
 
 static PyObject *Lattice_getKey( BPy_Lattice * self )
 {
-	Key *key = self->Lattice->key;
+	Key *key = self->lattice->key;
 
 	if (key)
 		return Key_CreatePyObject(key);
@@ -421,7 +335,7 @@ static PyObject *Lattice_getKeyTypes( BPy_Lattice * self )
 	char *bspline = "bspline";
 	char *s_x = NULL, *s_y = NULL, *s_z = NULL;
 
-	bl_Lattice = self->Lattice;
+	bl_Lattice = self->lattice;
 
 	if( ( bl_Lattice->typeu ) == KEY_LINEAR )
 		s_x = linear;
@@ -468,7 +382,7 @@ static PyObject *Lattice_setKeyTypes( BPy_Lattice * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int,int,int argument" ) );
 
-	bl_Lattice = self->Lattice;
+	bl_Lattice = self->lattice;
 
 	if( x == KEY_LINEAR )
 		bl_Lattice->typeu = KEY_LINEAR;
@@ -507,11 +421,11 @@ static PyObject *Lattice_setMode( BPy_Lattice * self, PyObject * args )
 {
 	short type;
 	Lattice *bl_Lattice;
-	bl_Lattice = self->Lattice;
+	bl_Lattice = self->lattice;
 
 	if( !PyArg_ParseTuple( args, "h", &type ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected string argument" ) );
+						"expected int argument" ) );
 
 	if( type == LT_GRID )
 		bl_Lattice->flag = LT_GRID;
@@ -525,21 +439,13 @@ static PyObject *Lattice_setMode( BPy_Lattice * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Lattice_getMode( BPy_Lattice * self )
+static PyObject *Lattice_getMode(BPy_Lattice * self)
 {
-	char type[24];
-	Lattice *bl_Lattice;
-	bl_Lattice = self->Lattice;
-
-	if( bl_Lattice->flag & LT_GRID )
-		sprintf( type, "Grid" );
-	else if( bl_Lattice->flag & LT_OUTSIDE )
-		sprintf( type, "Outside" );
-	else
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "bad mode type..." );
-
-	return PyString_FromString( type );
+	if( self->lattice->flag == 1 )
+		return PyString_FromString( "Grid" );
+	else if( self->lattice->flag == 3 )
+		return PyString_FromString( "Outside" );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Lattice_setPoint( BPy_Lattice * self, PyObject * args )
@@ -566,7 +472,7 @@ static PyObject *Lattice_setPoint( BPy_Lattice * self, PyObject * args )
 
 	//init
 	bp = 0;
-	bl_Lattice = self->Lattice;
+	bl_Lattice = self->lattice;
 
 	//get bpoints
 	bp = bl_Lattice->def;
@@ -615,7 +521,7 @@ static PyObject *Lattice_getPoint( BPy_Lattice * self, PyObject * args )
 
 	//init
 	bp = 0;
-	bl_Lattice = self->Lattice;
+	bl_Lattice = self->lattice;
 
 	//get bpoints
 	bp = bl_Lattice->def;
@@ -654,7 +560,7 @@ static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument" ) );
 
-	lt = self->Lattice;
+	lt = self->lattice;
 
 	//set the current frame
 	if( frame > 0 ) {
@@ -681,7 +587,7 @@ static PyObject *Lattice_copy( BPy_Lattice * self )
 	Lattice *bl_Lattice;	// blender Lattice object 
 	PyObject *py_Lattice;	// python wrapper 
 
-	bl_Lattice = copy_lattice( self->Lattice );
+	bl_Lattice = copy_lattice( self->lattice );
 	bl_Lattice->id.us = 0;
 
 	if( bl_Lattice )
@@ -706,129 +612,11 @@ static void Lattice_dealloc( BPy_Lattice * self )
 	PyObject_DEL( self );
 }
 
-//***************************************************************************
-// Function:         Lattice_getAttr   
-// Description: This is a callback function for the BPy_Lattice type. It is 
-//                the function that accesses BPy_Lattice member variables and 
-//                 methods.  
-//***************************************************************************
-static PyObject *Lattice_getAttr( BPy_Lattice * self, char *name )
-{
-	PyObject *attr = Py_None;
-	
-	if( strcmp( name, "name" ) == 0 )
-		attr = PyString_FromString( self->Lattice->id.name + 2 );
-	else if ( strcmp( name, "lib" ) == 0 ) {
-		/* WARNING - Not standard, until we move to get/setattrs
-		   at the moment we cant return None at the end because it raises an error */
-		attr = EXPP_GetIdLib((ID *)self->Lattice);
-		if (attr) return attr;
-	} else if( strcmp( name, "width" ) == 0 )
-		attr = PyInt_FromLong( self->Lattice->pntsu );
-	else if( strcmp( name, "height" ) == 0 )
-		attr = PyInt_FromLong( self->Lattice->pntsv );
-	else if( strcmp( name, "depth" ) == 0 )
-		attr = PyInt_FromLong( self->Lattice->pntsw );
-	else if( strcmp( name, "widthType" ) == 0 ) {
-		if( self->Lattice->typeu == 0 )
-			attr = PyString_FromString( "Linear" );
-		else if( self->Lattice->typeu == 1 )
-			attr = PyString_FromString( "Cardinal" );
-		else if( self->Lattice->typeu == 2 )
-			attr = PyString_FromString( "Bspline" );
-		else
-			return EXPP_ReturnPyObjError( PyExc_ValueError,
-						      "bad widthType..." );
-	} else if( strcmp( name, "heightType" ) == 0 ) {
-		if( self->Lattice->typev == 0 )
-			attr = PyString_FromString( "Linear" );
-		else if( self->Lattice->typev == 1 )
-			attr = PyString_FromString( "Cardinal" );
-		else if( self->Lattice->typev == 2 )
-			attr = PyString_FromString( "Bspline" );
-		else
-			return EXPP_ReturnPyObjError( PyExc_ValueError,
-						      "bad widthType..." );
-	} else if( strcmp( name, "depthType" ) == 0 ) {
-		if( self->Lattice->typew == 0 )
-			attr = PyString_FromString( "Linear" );
-		else if( self->Lattice->typew == 1 )
-			attr = PyString_FromString( "Cardinal" );
-		else if( self->Lattice->typew == 2 )
-			attr = PyString_FromString( "Bspline" );
-		else
-			return EXPP_ReturnPyObjError( PyExc_ValueError,
-						      "bad widthType..." );
-	} else if( strcmp( name, "mode" ) == 0 ) {
-		if( self->Lattice->flag == 1 )
-			attr = PyString_FromString( "Grid" );
-		else if( self->Lattice->flag == 3 )
-			attr = PyString_FromString( "Outside" );
-		else
-			return EXPP_ReturnPyObjError( PyExc_ValueError,
-						      "bad mode..." );
-	} else if( strcmp( name, "latSize" ) == 0 ) {
-		attr = PyInt_FromLong( self->Lattice->pntsu *
-				      self->Lattice->pntsv *
-				      self->Lattice->pntsw );
-	} else if( strcmp( name, "users" ) == 0 ) {
-		attr = PyInt_FromLong( self->Lattice->id.us );
-	} else if( strcmp( name, "key" ) == 0 ) {
-		return Lattice_getKey(self);
-	} else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s]", "name", "width",
-				      "height", "depth", "widthType",
-				      "heightType", "depthType", "mode",
-				      "latSize", "users", "key", "lib" );
-	
-	if( !attr )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create PyObject" ) );
-
-	if( attr != Py_None )
-		return attr;	// attribute found, return its value 
-
-	// not an attribute, search the methods table 
-	return Py_FindMethod( BPy_Lattice_methods, ( PyObject * ) self, name );
-}
-
-//***************************************************************************
-// Function:            Lattice_setAttr  
-// Description: This is a callback function for the BPy_Lattice type. It is the
-//                function that changes Lattice Data members values. If this 
-//                  data is linked to a Blender Lattice, it also gets updated.
-//***************************************************************************
-static int Lattice_setAttr( BPy_Lattice * self, char *name, PyObject * value )
-{
-	PyObject *valtuple;
-	PyObject *error = NULL;
-
-	valtuple = Py_BuildValue( "(O)", value );	// the set* functions expect a tuple 
-
-	if( !valtuple )
-		return EXPP_ReturnIntError( PyExc_MemoryError,
-					    "LatticeSetAttr: couldn't create PyTuple" );
-
-	if( strcmp( name, "name" ) == 0 )
-		error = GenericLib_setName_with_method( self, valtuple );
-	else {			// Error: no such member in the Lattice Data structure 
-		/*Py_DECREF( value ); borrowed reference, no need to decref */
-		Py_DECREF( valtuple );
-		return ( EXPP_ReturnIntError( PyExc_KeyError,
-					      "attribute not found or immutable" ) );
-	}
-	Py_DECREF( valtuple );
-
-	if( error != Py_None )
-		return -1;
-
-	return 0;		// normal exit 
-}
 
 
 static int Lattice_compare( BPy_Lattice * a, BPy_Lattice * b )
 {
-	return ( a->Lattice == b->Lattice ) ? 0 : -1;
+	return ( a->lattice == b->lattice ) ? 0 : -1;
 }
 
 
@@ -839,9 +627,201 @@ static int Lattice_compare( BPy_Lattice * a, BPy_Lattice * b )
 //***************************************************************************
 static PyObject *Lattice_repr( BPy_Lattice * self )
 {
-	if( self->Lattice )
+	if( self->lattice )
 		return PyString_FromFormat( "[Lattice \"%s\"]",
-					    self->Lattice->id.name + 2 );
+					    self->lattice->id.name + 2 );
 	else
 		return PyString_FromString( "[Lattice <deleted>]" );
 }
+
+/*****************************************************************************/
+/* Python BPy_Lattice methods table:	*/
+/*****************************************************************************/
+static PyMethodDef BPy_Lattice_methods[] = {
+	/* name, method, flags, doc */
+	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
+	 Lattice_getName_doc},
+	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
+	 Lattice_setName_doc},
+	{"setPartitions", ( PyCFunction ) Lattice_setPartitions, METH_VARARGS,
+	 Lattice_setPartitions_doc},
+	{"getPartitions", ( PyCFunction ) Lattice_getPartitions, METH_NOARGS,
+	 Lattice_getPartitions_doc},
+	{"getKey", ( PyCFunction ) Lattice_getKey, METH_NOARGS,
+	 Lattice_getKey_doc},
+	{"setKeyTypes", ( PyCFunction ) Lattice_setKeyTypes, METH_VARARGS,
+	 Lattice_setKeyTypes_doc},
+	{"getKeyTypes", ( PyCFunction ) Lattice_getKeyTypes, METH_NOARGS,
+	 Lattice_getKeyTypes_doc},
+	{"setMode", ( PyCFunction ) Lattice_setMode, METH_VARARGS,
+	 Lattice_setMode_doc},
+	{"getMode", ( PyCFunction ) Lattice_getMode, METH_NOARGS,
+	 Lattice_getMode_doc},
+	{"setPoint", ( PyCFunction ) Lattice_setPoint, METH_VARARGS,
+	 Lattice_setPoint_doc},
+	{"getPoint", ( PyCFunction ) Lattice_getPoint, METH_VARARGS,
+	 Lattice_getPoint_doc},
+	{"insertKey", ( PyCFunction ) Lattice_insertKey, METH_VARARGS,
+	 Lattice_insertKey_doc},
+	{"__copy__", ( PyCFunction ) Lattice_copy, METH_NOARGS,
+	 Lattice_copy_doc},
+	{NULL, NULL, 0, NULL}
+};
+
+/*****************************************************************************/
+/* Python attributes get/set functions:                                      */
+/*****************************************************************************/
+static PyObject *Lattice_getWidth(BPy_Lattice * self)
+{
+	return PyInt_FromLong( self->lattice->pntsu );
+}
+static PyObject *Lattice_getHeight(BPy_Lattice * self)
+{
+	return PyInt_FromLong( self->lattice->pntsv );
+}
+static PyObject *Lattice_getDepth(BPy_Lattice * self)
+{
+	return PyInt_FromLong( self->lattice->pntsw );
+}
+static PyObject *Lattice_getLatSize(BPy_Lattice * self)
+{
+	return PyInt_FromLong(
+		self->lattice->pntsu * self->lattice->pntsv * self->lattice->pntsw );
+}
+
+
+static PyObject *Lattice_getAxisType(BPy_Lattice * self, void * type)
+{
+	char interp_type = (char)NULL;
+	switch ( (int)type ) {
+	case 0:
+		interp_type = self->lattice->typeu;
+		break;
+	case 1:
+		interp_type = self->lattice->typev;
+		break;
+	case 2:
+		interp_type = self->lattice->typew;
+		break;
+	}
+	
+	switch (interp_type) {
+	case 0:
+		return PyString_FromString( "Linear" );
+	case 1:
+		return PyString_FromString( "Cardinal" );
+	case 2:
+		return PyString_FromString( "Bspline" );
+	}
+	Py_RETURN_NONE;
+}
+
+/*****************************************************************************/
+/* Python attributes get/set structure:                                      */
+/*****************************************************************************/
+static PyGetSetDef BPy_Lattice_getseters[] = {
+	GENERIC_LIB_GETSETATTR,
+	{"width", (getter)Lattice_getWidth, (setter)NULL,
+	 "lattice U sibdivision ", NULL},
+	{"height", (getter)Lattice_getHeight, (setter)NULL,
+	 "lattice V sibdivision", NULL},
+	{"depth", (getter)Lattice_getDepth, (setter)NULL,
+	 "lattice W sibdivision", NULL},
+	{"latSize", (getter)Lattice_getLatSize, (setter)NULL,
+	 "lattice W sibdivision", NULL},	 
+	 
+	{"widthType", (getter)Lattice_getAxisType, (setter)(void *)0,
+	 "lattice U interpolation type", NULL},
+	{"heightType", (getter)Lattice_getAxisType, (setter)(void *)1,
+	 "lattice V interpolation type", NULL},
+	{"depthType", (getter)Lattice_getAxisType, (setter)(void *)2,
+	 "lattice W interpolation type", NULL},
+
+	{"key", (getter)Lattice_getKey, NULL,
+	 "lattice key", NULL},
+	{"mode", (getter)Lattice_getMode, NULL,
+	 "lattice key", NULL},
+	 {NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+/*****************************************************************************/
+/* Python Lattice_Type structure definition:		*/
+/*****************************************************************************/
+PyTypeObject Lattice_Type = {
+	PyObject_HEAD_INIT( NULL ) 
+	0,	/* ob_size */
+	"Blender Lattice",	/* tp_name */
+	sizeof( BPy_Lattice ),	/* tp_basicsize */
+	0,			/* tp_itemsize */
+	/* methods */
+	( destructor ) Lattice_dealloc,	/* tp_dealloc */
+	0,			/* tp_print */
+	NULL,	/* tp_getattr */
+	NULL,	/* tp_setattr */
+	( cmpfunc ) Lattice_compare,			/* tp_compare */
+	( reprfunc ) Lattice_repr,	/* tp_repr */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_Lattice_methods,           /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_Lattice_getseters,         /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
+};

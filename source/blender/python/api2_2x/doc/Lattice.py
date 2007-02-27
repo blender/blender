@@ -77,7 +77,7 @@ class Lattice:
   @ivar depthType: The z dimension key type.
   @ivar mode: The current mode of the Lattice.
   @ivar latSize: The number of points in this Lattice.
-  @cvar key: The L{Key.Key} object associated with this Lattice.
+  @cvar key: The L{Key.Key} object associated with this Lattice or None.
   """
 
   def getName():

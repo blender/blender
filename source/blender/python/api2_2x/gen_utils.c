@@ -41,14 +41,18 @@
 #include "BKE_main.h"
 #include "BKE_library.h"
 
+/* use for GenericLib_getProperties */
+#include "BKE_idprop.h"
+#include "IDProp.h"
+
 #include "Mathutils.h"
 
 #include "constant.h"
 
-//---------------------- EXPP_FloatsAreEqual -------------------------
-//Floating point comparisons 
-//floatStep = number of representable floats allowable in between
-// float A and float B to be considered equal.
+/*---------------------- EXPP_FloatsAreEqual -------------------------
+  Floating point comparisons 
+  floatStep = number of representable floats allowable in between
+   float A and float B to be considered equal. */
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps)
 {
 	int a, b, delta;
@@ -64,8 +68,8 @@ int EXPP_FloatsAreEqual(float A, float B, int floatSteps)
 		return 1;
     return 0;
 }
-//---------------------- EXPP_VectorsAreEqual -------------------------
-//Builds on EXPP_FloatsAreEqual to test vectors
+/*---------------------- EXPP_VectorsAreEqual -------------------------
+  Builds on EXPP_FloatsAreEqual to test vectors */
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps){
 
 	int x;
@@ -75,8 +79,8 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps){
 	}
 	return 1;
 }
-//---------------------- EXPP_GetModuleConstant -------------------------
-//Helper function for returning a module constant
+/*---------------------- EXPP_GetModuleConstant -------------------------
+  Helper function for returning a module constant */
 PyObject *EXPP_GetModuleConstant(char *module, char *constant)
 {
 	PyObject *py_module = NULL, *py_dict = NULL, *py_constant = NULL;
@@ -84,14 +88,14 @@ PyObject *EXPP_GetModuleConstant(char *module, char *constant)
 	/*Careful to pass the correct Package.Module string here or
 	* else you add a empty module somewhere*/
 	py_module = PyImport_AddModule(module);
-	if(!py_module){   //null = error returning module
+	if(!py_module){   /*null = error returning module*/
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 			"error encountered with returning module constant..." ) );
 	}
-	py_dict = PyModule_GetDict(py_module); //never fails
+	py_dict = PyModule_GetDict(py_module); /*never fails*/
 
 	py_constant = PyDict_GetItemString(py_dict, constant);
-	if(!py_constant){   //null = key not found
+	if(!py_constant){   /*null = key not found*/
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 			"error encountered with returning module constant..." ) );
 	}
@@ -164,32 +168,6 @@ ID *GetIdFromList( ListBase * list, char *name )
 /* Description: This function sets the fake user status of the ID            */
 /* returns an int error, so from getsetattrs                                 */
 /*****************************************************************************/
-int SetIdFakeUser( ID * id, PyObject *value)
-{
-	int param;
-	param = PyObject_IsTrue( value );
-	if( param == -1 )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected int argument in range [0,1]" );
-	
-	if (param) {
-		if (!(id->flag & LIB_FAKEUSER)) {
-			id->flag |= LIB_FAKEUSER;
-			id_us_plus(id);
-		}
-	} else {
-		if (id->flag & LIB_FAKEUSER) {
-			id->flag &= ~LIB_FAKEUSER;
-			id->us--;
-		}
-	}
-	return 0;
-}
-
-/*****************************************************************************/
-/* Description: This function sets the fake user status of the ID            */
-/* returns an int error, so from getsetattrs                                 */
-/*****************************************************************************/
 PyObject *EXPP_GetIdLib( ID * id )
 {
 	if (id->lib)
@@ -229,7 +207,7 @@ int EXPP_intError(PyObject *type, const char *format, ...)
 	Py_DECREF(error);
 	return -1;
 }
-//Like EXPP_ReturnPyObjError but takes a printf format string and multiple arguments
+/*Like EXPP_ReturnPyObjError but takes a printf format string and multiple arguments*/
 PyObject *EXPP_objError(PyObject *type, const char *format, ...)
 {
 	PyObject *error;
@@ -1001,7 +979,7 @@ int GenericLib_setName( void *self, PyObject *value )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected string argument" );
 
-	rename_id( &id, name );
+	rename_id( id, name );
 
 	return 0;
 }
@@ -1037,7 +1015,8 @@ int GenericLib_setFakeUser( void *self, PyObject *value )
 			id->flag &= ~LIB_FAKEUSER;
 			id->us--;
 		}
-	}	
+	}
+	return 0;
 }
 
 /* read only */
