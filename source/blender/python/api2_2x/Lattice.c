@@ -732,12 +732,12 @@ static PyGetSetDef BPy_Lattice_getseters[] = {
 	{"latSize", (getter)Lattice_getLatSize, (setter)NULL,
 	 "lattice W sibdivision", NULL},	 
 	 
-	{"widthType", (getter)Lattice_getAxisType, (setter)(void *)0,
-	 "lattice U interpolation type", NULL},
-	{"heightType", (getter)Lattice_getAxisType, (setter)(void *)1,
-	 "lattice V interpolation type", NULL},
-	{"depthType", (getter)Lattice_getAxisType, (setter)(void *)2,
-	 "lattice W interpolation type", NULL},
+	{"widthType", (getter)Lattice_getAxisType, NULL,
+	 "lattice U interpolation type", (void *)0},
+	{"heightType", (getter)Lattice_getAxisType, NULL,
+	 "lattice V interpolation type", (void *)1},
+	{"depthType", (getter)Lattice_getAxisType, NULL,
+	 "lattice W interpolation type", (void *)2},
 
 	{"key", (getter)Lattice_getKey, NULL,
 	 "lattice key", NULL},
