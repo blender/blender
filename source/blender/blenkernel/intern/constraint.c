@@ -129,10 +129,6 @@ void relink_constraints (struct ListBase *list)
 				ID_NEW(data->tar);
 			}
 				break;
-			case CONSTRAINT_TYPE_NULL:
-			{
-			}
-				break;
 			case CONSTRAINT_TYPE_TRACKTO:
 			{
 				bTrackToConstraint *data;
@@ -211,24 +207,6 @@ void relink_constraints (struct ListBase *list)
 				data = con->data;
 				
 				ID_NEW(data->tar);
-			}
-				break;
-			case CONSTRAINT_TYPE_LOCLIMIT:
-			{
-				bLocLimitConstraint *data;
-				data = con->data;
-			}
-				break;
-			case CONSTRAINT_TYPE_ROTLIMIT:
-			{
-				bRotLimitConstraint *data;
-				data = con->data;
-			}
-				break;
-			case CONSTRAINT_TYPE_SIZELIMIT:
-			{
-				bSizeLimitConstraint *data;
-				data = con->data;
 			}
 				break;
 		}
@@ -706,16 +684,6 @@ void *new_constraint_data (short type)
 		{
 			bLocLimitConstraint *data;
 			data = MEM_callocN(sizeof(bLocLimitConstraint), "LocLimitConstraint");
-			
-			data->flag = 0;
-			data->flag2 = 0;
-			data->xmin = 0.0f;
-			data->xmax = 0.0f;
-			data->ymin = 0.0f;
-			data->ymax = 0.0f;
-			data->zmin = 0.0f;
-			data->zmax = 0.0f;
-			
 			result = data;
 		}
 		break;
@@ -723,15 +691,6 @@ void *new_constraint_data (short type)
 		{
 			bRotLimitConstraint *data;
 			data = MEM_callocN(sizeof(bRotLimitConstraint), "RotLimitConstraint");
-			
-			data->flag = 0;
-			data->xmin = 0.0f;
-			data->xmax = 0.0f;
-			data->ymin = 0.0f;
-			data->ymax = 0.0f;
-			data->zmin = 0.0f;
-			data->zmax = 0.0f;
-			
 			result = data;
 		}
 		break;
@@ -739,15 +698,6 @@ void *new_constraint_data (short type)
 		{
 			bSizeLimitConstraint *data;
 			data = MEM_callocN(sizeof(bSizeLimitConstraint), "SizeLimitConstraint");
-			
-			data->flag = 0;
-			data->xmin = 0.0f;
-			data->xmax = 0.0f;
-			data->ymin = 0.0f;
-			data->ymax = 0.0f;
-			data->zmin = 0.0f;
-			data->zmax = 0.0f;
-			
 			result = data;
 		}
 		break;
@@ -1300,6 +1250,10 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 	Mat4One (M_identity);
 	
 	switch (constraint->type){
+	case CONSTRAINT_TYPE_NULL:
+	case CONSTRAINT_TYPE_KINEMATIC: /* removed */
+		break;
+	
 	case CONSTRAINT_TYPE_ACTION:
 		{
 			float temp[4][4];
@@ -1368,10 +1322,6 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
  				VecMulf(ob->obmat[2], size[2] / obsize[2]);
   		}
   		break;
-	case CONSTRAINT_TYPE_NULL:
-		{
-		}
-		break;
 	case CONSTRAINT_TYPE_MINMAX:
 		{
 			float val1, val2;
@@ -1489,11 +1439,6 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 				
 				Mat4MulMat34(ob->obmat, totmat, tmat);
 			}
-		}
-		break;
-	case CONSTRAINT_TYPE_KINEMATIC:
-		{
-			/* removed */
 		}
 		break;
 	case CONSTRAINT_TYPE_LOCKTRACK:
