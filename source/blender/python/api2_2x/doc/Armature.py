@@ -114,249 +114,245 @@ def Get (name = None):
   """
 
 def New (name = None):
-  """
-  Return a new armature.
-  @type name: string or nothing
-  @param name: The string name of the new armature.
-  @rtype: Blender Armature.
-  @return: A new armature.
-  """
+	"""
+	Return a new armature.
+	@type name: string or nothing
+	@param name: The string name of the new armature.
+	@rtype: Blender Armature.
+	@return: A new armature.
+	"""
 
 class Armature:
-  """
-  The Armature object
-  ===================
-    This object gives access to Armature-specific data in Blender.
-  @ivar name: The Armature name.
-  @type name: String
-  @ivar bones: A Dictionary of Bones (BonesDict) that make up this armature.
-  @type bones: BonesDict Object
-  @ivar vertexGroups: Whether vertex groups define deformation
-  @type vertexGroups: Bool
-  @ivar envelopes: Whether bone envelopes define deformation
-  @type envelopes: Bool
-  @ivar restPosition: Show rest position (no posing possible)
-  @type restPosition: Bool
-  @ivar delayDeform: Don't deform children when manipulating bones
-  @type delayDeform: Bool
-  @ivar drawAxes: Draw bone axes
-  @type drawAxes: Bool
-  @ivar drawNames: Draw bone names
-  @type drawNames: Bool
-  @ivar ghost: Draw ghosts around frame for current Action
-  @type ghost: Bool
-  @ivar ghostStep: Number of frames between ghosts
-  @type ghostStep: Int
-  @ivar drawType: The drawing type that is used to display the armature
-  Acceptable values are:
-      - Armature.OCTAHEDRON: bones drawn as octahedrons
-      - Armature.STICK: bones drawn as sticks
-      - Armature.BBONE: bones drawn as b-bones
-      - Armature.ENVELOPE: bones drawn as sticks with envelopes
-  @type drawType: Constant Object
-  @ivar mirrorEdit: X-axis mirrored editing
-  @type mirrorEdit: Bool
-  @ivar autoIK: Adds temporary IK chains while grabbing bones
-  @type autoIK: Bool
-  @ivar users: The number of users of the armature.  Read-only.
-  @type users: int
-  @ivar fakeUser: The fake user status.
-    Enabling this will keep it in the blend even if there are no users.
-  @type fakeUser: bool
-  """
+	"""
+	The Armature object
+	===================
+		This object gives access to Armature-specific data in Blender.
+	@ivar bones: A Dictionary of Bones (BonesDict) that make up this armature.
+	@type bones: BonesDict Object
+	@ivar vertexGroups: Whether vertex groups define deformation
+	@type vertexGroups: Bool
+	@ivar envelopes: Whether bone envelopes define deformation
+	@type envelopes: Bool
+	@ivar restPosition: Show rest position (no posing possible)
+	@type restPosition: Bool
+	@ivar delayDeform: Don't deform children when manipulating bones
+	@type delayDeform: Bool
+	@ivar drawAxes: Draw bone axes
+	@type drawAxes: Bool
+	@ivar drawNames: Draw bone names
+	@type drawNames: Bool
+	@ivar ghost: Draw ghosts around frame for current Action
+	@type ghost: Bool
+	@ivar ghostStep: Number of frames between ghosts
+	@type ghostStep: Int
+	@ivar drawType: The drawing type that is used to display the armature
+	Acceptable values are:
+			- Armature.OCTAHEDRON: bones drawn as octahedrons
+			- Armature.STICK: bones drawn as sticks
+			- Armature.BBONE: bones drawn as b-bones
+			- Armature.ENVELOPE: bones drawn as sticks with envelopes
+	@type drawType: Constant Object
+	@ivar mirrorEdit: X-axis mirrored editing
+	@type mirrorEdit: Bool
+	@ivar autoIK: Adds temporary IK chains while grabbing bones
+	@type autoIK: Bool
+	"""
 
-  def __init__(name = 'myArmature'):
-    """
-    Initializer for the Armature TypeObject.
-    Example::
-        myNewArmature = Blender.Armature.Armature('AR_1')
-    @param name: The name for the new armature
-    @type name: string
-    @return: New Armature Object
-    @rtype: Armature Object
-    """
-  
-  def makeEditable():
-    """
-    Put the armature into EditMode for editing purposes. (Enters Editmode)
-    @warning: Using Window.Editmode() to switch the editmode manually will cause problems and possibly even crash Blender.
-    @warning: This is only needed for operations such as adding and removing bones.
-    @warning: Do access pose data until you have called update() or settings will be lost. 
-    @warning: The armature should not be in manual editmode
-    prior to calling this method. The armature must be parented
-    to an object prior to editing.
-    @rtype: None
-    """
+	def __init__(name = 'myArmature'):
+		"""
+		Initializer for the Armature TypeObject.
+		Example::
+			  myNewArmature = Blender.Armature.Armature('AR_1')
+		@param name: The name for the new armature
+		@type name: string
+		@return: New Armature Object
+		@rtype: Armature Object
+		"""
+	
+	def makeEditable():
+		"""
+		Put the armature into EditMode for editing purposes. (Enters Editmode)
+		@warning: Using Window.Editmode() to switch the editmode manually will cause problems and possibly even crash Blender.
+		@warning: This is only needed for operations such as adding and removing bones.
+		@warning: Do access pose data until you have called update() or settings will be lost. 
+		@warning: The armature should not be in manual editmode
+		prior to calling this method. The armature must be parented
+		to an object prior to editing.
+		@rtype: None
+		"""
 
-  def update():
-    """
-    Save all changes and update the armature. (Leaves Editmode)
-    @note: Must have called makeEditable() first.
-    @rtype: None
-    """
+	def update():
+		"""
+		Save all changes and update the armature. (Leaves Editmode)
+		@note: Must have called makeEditable() first.
+		@rtype: None
+		"""
+
+import id_generics
+Armature.__doc__ += id_generics.attributes 
 
 class BonesDict:
-  """
-  The BonesDict object
-  ====================
-    This object gives gives dictionary like access to the bones in an armature. 
-    It is internal to blender but is called as 'Armature.bones'
+	"""
+	The BonesDict object
+	====================
+		This object gives gives dictionary like access to the bones in an armature. 
+		It is internal to blender but is called as 'Armature.bones'
 
-    Removing a bone: 
-    Example::
-      del myArmature.bones['bone_name']
-    Adding a bone:
-    Example::
-      myEditBone = Armature.Editbone()
-      myArmature.bones['bone_name'] = myEditBone
-  """
+		Removing a bone: 
+		Example::
+			del myArmature.bones['bone_name']
+		Adding a bone:
+		Example::
+			myEditBone = Armature.Editbone()
+			myArmature.bones['bone_name'] = myEditBone
+	"""
 
-  def items():
-    """
-    Return the key, value pairs in this dictionary
-    @rtype: string, BPy_bone
-    @return: All strings, and py_bones in the armature (in that order)
-    """
+	def items():
+		"""
+		Return the key, value pairs in this dictionary
+		@rtype: string, BPy_bone
+		@return: All strings, and py_bones in the armature (in that order)
+		"""
 
-  def keys():
-    """
-    Return the keys in this dictionary
-    @rtype: string
-    @return: All strings representing the bone names
-    """
+	def keys():
+		"""
+		Return the keys in this dictionary
+		@rtype: string
+		@return: All strings representing the bone names
+		"""
 
-  def values():
-    """
-    Return the values in this dictionary
-    @rtype: BPy_bone
-    @return: All BPy_bones in this dictionary
-    """
+	def values():
+		"""
+		Return the values in this dictionary
+		@rtype: BPy_bone
+		@return: All BPy_bones in this dictionary
+		"""
 
 class Bone:
-  """
-  The Bone object
-  ===============
-    This object gives access to Bone-specific data in Blender. This object
-    cannot be instantiated but is returned by BonesDict when the armature is not in editmode.
-  @ivar name: The name of this Bone.
-  @type name: String
-  @ivar roll: This Bone's roll value.
-    Keys are:
-       - 'ARMATURESPACE' - this roll in relation to the armature
-       - 'BONESPACE' - the roll in relation to itself 
-  @type roll: Dictionary
-  @ivar head: This Bone's "head" ending position when in rest state.
-    Keys are:
-       - 'ARMATURESPACE' - this head position in relation to the armature
-       - 'BONESPACE' - the head position in relation to itself 
-  @type head: Dictionary
-  @ivar tail: This Bone's "tail" ending position when in rest state.
-    Keys are:
-       - 'ARMATURESPACE' - this tail position in relation to the armature
-       - 'BONESPACE' - the tail position in relation to itself 
-  @type tail: Dictionary
-  @ivar matrix: This Bone's matrix. This cannot be set.
-    Keys are:
-       - 'ARMATURESPACE' - this matrix of the bone in relation to the armature
-       - 'BONESPACE' - the matrix of the bone in relation to itself 
-  @type matrix: Matrix Object
-  @ivar parent: The parent Bone.
-  @type parent: Bone Object
-  @ivar children: The children directly attached to this bone.
-  @type children: List of Bone Objects
-  @ivar weight: The bone's weight.
-  @type weight: Float
-  @ivar options: Various bone options which can be:
-       - Armature.CONNECTED: IK to parent
-       - Armature.HINGE: No parent rotation or scaling
-       - Armature.NO_DEFORM: The bone does not deform geometry
-       - Armature.MULTIPLY: Multiply vgroups by envelope
-       - Armature.HIDDEN_EDIT: Hide bones in editmode
-       - Armature.ROOT_SELECTED: Selection of root ball of bone
-       - Armature.BONE_SELECTED: Selection of bone
-       - Armature.TIP_SELECTED: Selection of tip ball of bone
-  @type options: List of Constants
-  @ivar subdivision: The number of bone subdivisions.
-  @type subdivision: Int
-  @ivar deformDist: The deform distance of the bone
-  @type deformDist: Float
-  @ivar length: The length of the bone. This cannot be set.
-  @type length: Float
-  @ivar headRadius: The radius of this bones head (used for envalope bones)
-  @type headRadius: Float
-  @ivar tailRadius: The radius of this bones head (used for envalope bones)
-  @type tailRadius: Float
-  """
+	"""
+	The Bone object
+	===============
+		This object gives access to Bone-specific data in Blender. This object
+		cannot be instantiated but is returned by BonesDict when the armature is not in editmode.
+	@ivar name: The name of this Bone.
+	@type name: String
+	@ivar roll: This Bone's roll value.
+		Keys are:
+			 - 'ARMATURESPACE' - this roll in relation to the armature
+			 - 'BONESPACE' - the roll in relation to itself 
+	@type roll: Dictionary
+	@ivar head: This Bone's "head" ending position when in rest state.
+		Keys are:
+			 - 'ARMATURESPACE' - this head position in relation to the armature
+			 - 'BONESPACE' - the head position in relation to itself 
+	@type head: Dictionary
+	@ivar tail: This Bone's "tail" ending position when in rest state.
+		Keys are:
+			 - 'ARMATURESPACE' - this tail position in relation to the armature
+			 - 'BONESPACE' - the tail position in relation to itself 
+	@type tail: Dictionary
+	@ivar matrix: This Bone's matrix. This cannot be set.
+		Keys are:
+			 - 'ARMATURESPACE' - this matrix of the bone in relation to the armature
+			 - 'BONESPACE' - the matrix of the bone in relation to itself 
+	@type matrix: Matrix Object
+	@ivar parent: The parent Bone.
+	@type parent: Bone Object
+	@ivar children: The children directly attached to this bone.
+	@type children: List of Bone Objects
+	@ivar weight: The bone's weight.
+	@type weight: Float
+	@ivar options: Various bone options which can be:
+			 - Armature.CONNECTED: IK to parent
+			 - Armature.HINGE: No parent rotation or scaling
+			 - Armature.NO_DEFORM: The bone does not deform geometry
+			 - Armature.MULTIPLY: Multiply vgroups by envelope
+			 - Armature.HIDDEN_EDIT: Hide bones in editmode
+			 - Armature.ROOT_SELECTED: Selection of root ball of bone
+			 - Armature.BONE_SELECTED: Selection of bone
+			 - Armature.TIP_SELECTED: Selection of tip ball of bone
+	@type options: List of Constants
+	@ivar subdivision: The number of bone subdivisions.
+	@type subdivision: Int
+	@ivar deformDist: The deform distance of the bone
+	@type deformDist: Float
+	@ivar length: The length of the bone. This cannot be set.
+	@type length: Float
+	@ivar headRadius: The radius of this bones head (used for envalope bones)
+	@type headRadius: Float
+	@ivar tailRadius: The radius of this bones head (used for envalope bones)
+	@type tailRadius: Float
+	"""
 
-  def hasParent():
-    """
-    Whether or not this bone has a parent
-    @rtype: Bool
-    """
+	def hasParent():
+		"""
+		Whether or not this bone has a parent
+		@rtype: Bool
+		"""
 
-  def hasChildren():
-    """
-    Whether or not this bone has children
-    @rtype: Bool
-    """
+	def hasChildren():
+		"""
+		Whether or not this bone has children
+		@rtype: Bool
+		"""
 
-  def getAllChildren():
-    """
-    Gets all the children under this bone including the children's children.
-    @rtype: List of Bone object
-    @return: all bones under this one
-    """
+	def getAllChildren():
+		"""
+		Gets all the children under this bone including the children's children.
+		@rtype: List of Bone object
+		@return: all bones under this one
+		"""
 
 class Editbone:
-  """
-  The Editbone Object
-  ===================
-    This object is a wrapper for editbone data and is used only in the manipulation
-    of the armature in editmode.
-  @ivar name: The name of this Bone.
-  @type name: String
-  @ivar roll: This Bone's roll value (armaturespace).
-  @type roll: Float
-  @ivar head: This Bone's "head" ending position when in rest state (armaturespace).
-  @type head: Vector Object
-  @ivar tail: This Bone's "tail" ending position when in rest state (armaturespace).
-  @type tail: Vector Object
-  @ivar matrix: This Bone's matrix. (armaturespace)
-  @type matrix: Matrix Object
-  @ivar parent: The parent Bone.
-  @type parent: Editbone Object
-  @ivar weight: The bone's weight.
-  @type weight: Float
-  @ivar options: Various bone options which can be:
-       - Armature.CONNECTED: IK to parent
-       - Armature.HINGE: No parent rotation or scaling
-       - Armature.NO_DEFORM: The bone does not deform geometry
-       - Armature.MULTIPLY: Multiply vgroups by envelope
-       - Armature.HIDDEN_EDIT: Hide bones in editmode
-       - Armature.ROOT_SELECTED: Selection of root ball of bone
-       - Armature.BONE_SELECTED: Selection of bone
-       - Armature.TIP_SELECTED: Selection of tip ball of bone
-  @type options: List of Constants
-  @ivar subdivision: The number of bone subdivisions.
-  @type subdivision: Int
-  @ivar deformDist: The deform distance of the bone
-  @type deformDist: Float
-  @ivar length: The length of the bone. This cannot be set.
-  @type length: Float
-  @ivar headRadius: The radius of this bones head (used for envalope bones)
-  @type headRadius: Float
-  @ivar tailRadius: The radius of this bones head (used for envalope bones)
-  @type tailRadius: Float
-  """
+	"""
+	The Editbone Object
+	===================
+		This object is a wrapper for editbone data and is used only in the manipulation
+		of the armature in editmode.
+	@ivar name: The name of this Bone.
+	@type name: String
+	@ivar roll: This Bone's roll value (armaturespace).
+	@type roll: Float
+	@ivar head: This Bone's "head" ending position when in rest state (armaturespace).
+	@type head: Vector Object
+	@ivar tail: This Bone's "tail" ending position when in rest state (armaturespace).
+	@type tail: Vector Object
+	@ivar matrix: This Bone's matrix. (armaturespace)
+	@type matrix: Matrix Object
+	@ivar parent: The parent Bone.
+	@type parent: Editbone Object
+	@ivar weight: The bone's weight.
+	@type weight: Float
+	@ivar options: Various bone options which can be:
+			 - Armature.CONNECTED: IK to parent
+			 - Armature.HINGE: No parent rotation or scaling
+			 - Armature.NO_DEFORM: The bone does not deform geometry
+			 - Armature.MULTIPLY: Multiply vgroups by envelope
+			 - Armature.HIDDEN_EDIT: Hide bones in editmode
+			 - Armature.ROOT_SELECTED: Selection of root ball of bone
+			 - Armature.BONE_SELECTED: Selection of bone
+			 - Armature.TIP_SELECTED: Selection of tip ball of bone
+	@type options: List of Constants
+	@ivar subdivision: The number of bone subdivisions.
+	@type subdivision: Int
+	@ivar deformDist: The deform distance of the bone
+	@type deformDist: Float
+	@ivar length: The length of the bone. This cannot be set.
+	@type length: Float
+	@ivar headRadius: The radius of this bones head (used for envalope bones)
+	@type headRadius: Float
+	@ivar tailRadius: The radius of this bones head (used for envalope bones)
+	@type tailRadius: Float
+	"""
 
-  def hasParent():
-    """
-    Whether or not this bone has a parent
-    @rtype: Bool
-    """
+	def hasParent():
+		"""
+		Whether or not this bone has a parent
+		@rtype: Bool
+		"""
 
-  def clearParent():
-    """
-    Set the parent to None
-    @rtype: None
-    """
+	def clearParent():
+		"""
+		Set the parent to None
+		@rtype: None
+		"""
