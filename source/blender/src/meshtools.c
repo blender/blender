@@ -107,6 +107,9 @@ void sort_faces(void);
 
 #include "IMB_imbuf_types.h"
 
+/* from rendercode.c */
+#define VECMUL(dest, f)                  dest[0]*= f; dest[1]*= f; dest[2]*= f
+
 /* * ********************** no editmode!!! *********** */
 
 /* join selected meshes into the active mesh, context sensitive
@@ -465,6 +468,22 @@ static int verg_mface(const void *v1, const void *v2)
 	return 0;
 }
 
+/* sort faces on view axis */
+static float *face_sort_floats;
+static int vert_mface_floats(const void *v1, const void *v2)
+{
+	float x1, x2;
+	int i1, i2;
+
+	i1 = ((int *) v1)[0];
+	i2 = ((int *) v2)[0];
+	x1 = face_sort_floats[i1];
+	x2 = face_sort_floats[i2];
+	
+	if( x1 > x2 ) return 1;
+	else if( x1 < x2 ) return -1;
+	return 0;
+}
 
 void sort_faces(void)
 {
@@ -472,12 +491,15 @@ void sort_faces(void)
 	Mesh *me;
 	CustomDataLayer *layer;
 	int i, *index;
+	short event;
 	
-	if(ob==0) return;
+	if(!ob) return;
 	if(G.obedit) return;
 	if(ob->type!=OB_MESH) return;
 	
-	if(okee("Sort faces in Z axis")==0) return;
+	event = pupmenu("Soft Faces by%t|View Axis (back to front)%x1|View Axis (front to back)%x2|Z Axis%x3");
+	if (event==-1) return;
+	
 	me= ob->data;
 	if(me->totface==0) return;
 
@@ -491,8 +513,43 @@ void sort_faces(void)
 
 /* sort index list instead of faces itself 
    and apply this permutation to all face layers */
-	qsort(index, me->totface, sizeof(int), verg_mface);
-
+	if (event == 3) {
+		qsort(index, me->totface, sizeof(int), verg_mface);
+	} else { /* event is 1 or 2*/
+		MFace *mf;
+		float vec[3];
+		float mat[4][4];
+		
+		if (!G.vd) return;
+		
+		Mat4MulMat4(mat, OBACT->obmat, G.vd->viewmat); /* apply the view matrix to the object matrix */
+		
+		face_sort_floats = (float *) MEM_mallocN(sizeof(float) * me->totface, "sort faces float");
+		
+		mf= me->mface;
+		for(i=0; i<me->totface; i++, mf++) {
+			/* find the faces center */
+			VECADD(vec, (me->mvert+mf->v1)->co, (me->mvert+mf->v2)->co);
+			if (mf->v4) {
+				VECADD(vec, vec, (me->mvert+mf->v3)->co);
+				VECADD(vec, vec, (me->mvert+mf->v4)->co);
+				VECMUL(vec, 0.25f);
+			} else {
+				VECADD(vec, vec, (me->mvert+mf->v3)->co);
+				VECMUL(vec, 1.0f/3.0f);
+			} /* done */
+			
+			Mat4MulVecfl(mat, vec);
+			if (event==2)
+				face_sort_floats[i] = -vec[2]; /* front to back */
+			else
+				face_sort_floats[i] = vec[2]; /* back to front */
+			
+		}
+		qsort(index, me->totface, sizeof(int), vert_mface_floats);
+		MEM_freeN(face_sort_floats);
+	}
+	
 	for(i = 0; i < me->fdata.totlayer; i++) {
 		layer = &me->fdata.layers[i];
 		permutate(layer->data, me->totface, CustomData_sizeof(layer->type), index);
