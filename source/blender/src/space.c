@@ -866,8 +866,6 @@ void BIF_undo_push(char *str)
 		else if (G.obedit->type==OB_ARMATURE)
 			undo_push_armature(str);
 	}
-	else if(G.f & G_SCULPTMODE) {
-	}
 	else {
 		if(U.uiflag & USER_GLOBALUNDO) 
 			BKE_write_undo(str);
@@ -883,8 +881,6 @@ void BIF_undo(void)
 	else {
 		if(G.f & G_TEXTUREPAINT)
 			imagepaint_undo();
-		else if(G.f & G_SCULPTMODE)
-			sculptmode_undo();
 		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL))
 			imagepaint_undo();
 		else {
@@ -906,8 +902,6 @@ void BIF_redo(void)
 	else {
 		if(G.f & G_TEXTUREPAINT)
 			imagepaint_undo();
-		else if(G.f & G_SCULPTMODE)
-			sculptmode_redo();
 		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL))
 			imagepaint_undo();
 		else {
@@ -928,16 +922,12 @@ void BIF_undo_menu(void)
 		allqueue(REDRAWALL, 0);
 	}
 	else {
-		if(G.f & G_SCULPTMODE)
-			sculptmode_undo_menu();
-		else {
-			if(U.uiflag & USER_GLOBALUNDO) {
-				char *menu= BKE_undo_menu_string();
-				if(menu) {
-					short event= pupmenu_col(menu, 20);
-					MEM_freeN(menu);
-					if(event>0) BKE_undo_number(event);
-				}
+		if(U.uiflag & USER_GLOBALUNDO) {
+			char *menu= BKE_undo_menu_string();
+			if(menu) {
+				short event= pupmenu_col(menu, 20);
+				MEM_freeN(menu);
+				if(event>0) BKE_undo_number(event);
 			}
 		}
 	}

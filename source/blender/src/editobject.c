@@ -1696,9 +1696,6 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 			allqueue(REDRAWIMAGE, 0);
 		if(G.f & G_WEIGHTPAINT)
 			mesh_octree_table(G.obedit, NULL, 'e');
-		/* to be sure, adding/removing data crashes undo for sculpt (ton) */
-		if(G.f & G_SCULPTMODE)
-			sculptmode_undo_free(G.scene);
 	}
 	else if (G.obedit->type==OB_ARMATURE){	
 		load_editArmature();

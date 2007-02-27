@@ -106,14 +106,6 @@ void multires_check_state()
 		sculptmode_correct_state();
 }
 
-void multires_undo_push(char *str)
-{
-	if(G.f & G_SCULPTMODE && !G.obedit)
-		sculptmode_undo_push(str, SUNDO_VERT | SUNDO_TOPO | SUNDO_PVIS | SUNDO_MRES);
-	else
-		BIF_undo_push(str);
-}
-
 typedef struct MultiresMapNode {
 	struct MultiresMapNode *next, *prev;
 	unsigned Index;
@@ -619,7 +611,7 @@ void multires_make(void *ob, void *me_v)
 	
 	allqueue(REDRAWBUTSEDIT, 0);
 
-	multires_undo_push("Make multires");
+	BIF_undo_push("Make multires");
 
 	waitcursor(0);
 }
@@ -634,7 +626,7 @@ void multires_delete(void *ob, void *me_v)
 
 	allqueue(REDRAWBUTSEDIT, 0);
 
-	multires_undo_push("Apply multires");
+	BIF_undo_push("Apply multires");
 }
 
 MultiresLevel *multires_level_copy(MultiresLevel *orig)
@@ -785,7 +777,7 @@ void multires_del_lower(void *ob, void *me)
 
 	allqueue(REDRAWBUTSEDIT, 0);
 
-	multires_undo_push("Multires delete lower");
+	BIF_undo_push("Multires delete lower");
 }
 
 void multires_del_higher(void *ob, void *me)
@@ -812,7 +804,7 @@ void multires_del_higher(void *ob, void *me)
 
 	allqueue(REDRAWBUTSEDIT, 0);
 
-	multires_undo_push("Multires delete higher");
+	BIF_undo_push("Multires delete higher");
 }
 
 unsigned int find_mid_edge(ListBase *vert_edge_map,
@@ -1014,7 +1006,7 @@ void multires_add_level(void *ob, void *me_v)
 	
 	allqueue(REDRAWBUTSEDIT, 0);
 
-	multires_undo_push("Add multires level");
+	BIF_undo_push("Add multires level");
 
 	waitcursor(0);
 }
@@ -1039,7 +1031,7 @@ void multires_set_level(void *ob, void *me_v)
 	multires_level_to_mesh(ob,me);
 	
 	if(G.obedit || G.f & G_SCULPTMODE)
-		multires_undo_push("Multires set level");
+		BIF_undo_push("Multires set level");
 
 	allqueue(REDRAWBUTSEDIT, 0);
 	

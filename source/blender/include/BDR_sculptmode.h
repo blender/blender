@@ -45,7 +45,6 @@ struct PartialVisibility;
 struct Scene;
 struct ScrArea;
 struct SculptData;
-struct SculptUndo;
 
 typedef enum PropsetMode {
 	PropsetNone = 0,
@@ -82,8 +81,6 @@ typedef struct SculptSession {
 	
 	PropsetData *propset;
 	
-	struct SculptUndo *undo;
-	
 	/* For rotating around a pivot point */
 	vec3f pivot;
 } SculptSession;
@@ -95,19 +92,6 @@ struct SculptData *sculpt_data(void);
 void sculptmode_init(struct Scene *);
 void sculptmode_free_all(struct Scene *);
 void sculptmode_correct_state(void);
-
-/* Undo */
-typedef enum SculptUndoType {
-	SUNDO_VERT= 1, /* Vertex locations modified */
-	SUNDO_TOPO= 2, /* Any face/edge change, different # of verts, etc. */
-	SUNDO_PVIS= 4, /* Mesh.pv changed */
-	SUNDO_MRES= 8  /* Mesh.mr changed */
-} SculptUndoType;
-void sculptmode_undo_push(char *str, SculptUndoType type);
-void sculptmode_undo(void);
-void sculptmode_redo(void);
-void sculptmode_undo_menu(void);
-void sculptmode_undo_free(struct Scene *sce);
 
 /* Interface */
 void sculptmode_draw_interface_tools(struct uiBlock *block,unsigned short cx, unsigned short cy);
