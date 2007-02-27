@@ -263,13 +263,15 @@ static PyObject *M_Lattice_Get( PyObject * self, PyObject * args )
 PyObject *Lattice_Init( void )
 {
 	PyObject *mod;
+	PyObject *dict;
 	
 	if( PyType_Ready( &Lattice_Type ) < 0 )
 		return NULL;
 	
 	mod = Py_InitModule3( "Blender.Lattice", M_Lattice_methods,
 				M_Lattice_doc );
-	PyObject *dict = PyModule_GetDict( mod );
+	
+	dict = PyModule_GetDict( mod );
 
 	//Module dictionary
 #define EXPP_ADDCONST(x) EXPP_dict_set_item_str(dict, #x, PyInt_FromLong(LT_##x))
