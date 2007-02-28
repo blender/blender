@@ -420,7 +420,7 @@ def makeText(name):
 	txt.setAlignment(Text3d.MIDDLE)
 	txt.setText(name)
 	ob.link(txt)
-	ob.setEuler(3.14159/2,0,0)
+	ob.setEuler((3.14159/2,0,0))
 	return ob
 	
 
@@ -548,7 +548,7 @@ def makeRange(type,name):
 		l = [(v[0],v[1],v[2],v[3])]
 		me.edges.extend(l)
 		ob.link(me)
-		ob.setEuler(0,-0.78539,0)	
+		ob.setEuler((0,-0.78539,0))
 
 	elif type == SHAPE3_INVT:
 		me.verts.extend(-1,0,0)
@@ -586,7 +586,7 @@ def makeRange(type,name):
 		l = [(v[0],v[1]),(v[1],v[2]),(v[2],v[3]),(v[3],v[4]),(v[4],v[5]),(v[5],v[6]),(v[6],v[7]),(v[7],v[0])]
 		me.edges.extend(l)
 		ob.link(me)	
-		ob.setEuler(0,-0.78539,0)
+		ob.setEuler((0,-0.78539,0))
 	
 	return ob
 
@@ -620,7 +620,7 @@ def shapeMenuText():
 	blocks = key.blocks
 	menu = "Choose Shape %t|"
 	for i, block in enumerate(blocks):
-		menu = menu + block.name + " %x" + str(n) + "|"
+		menu = menu + block.name + " %x" + str(i) + "|"
 	return menu
 
 
