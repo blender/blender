@@ -487,13 +487,9 @@ int findNearestVertFromObjects(int *dist, float *loc) {
 		if ( TESTBASE(base) && base != BASACT ) {
 			Object *ob = base->object;
 			
-			printf("object\n");
-			
 			if (ob->type == OB_MESH) {
 				Mesh *me = ob->data;
 				int i;
-				
-				printf("mesh\n");
 				
 				for( i = 0; i < me->totvert; i++) {
 					MVert vert = me->mvert[i];
@@ -509,8 +505,6 @@ int findNearestVertFromObjects(int *dist, float *loc) {
 					sloc[1] -= mval[1];
 					
 					curdist = abs(sloc[0]) + abs(sloc[1]);
-					
-					printf("dist = %d\n", curdist);
 					
 					if (curdist < *dist) {
 						*dist = curdist;
