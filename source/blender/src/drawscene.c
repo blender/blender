@@ -48,6 +48,7 @@
 
 #include "BDR_editobject.h"
 #include "BDR_editface.h"
+#include "BDR_sculptmode.h"
 #include "BDR_vpaint.h"
 
 #include "BIF_space.h"
@@ -81,6 +82,8 @@ void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 		set_texturepaint();
 	if(G.f & G_WEIGHTPAINT)
 		set_wpaint();
+	if(G.f & G_SCULPTMODE)
+		set_sculptmode();
 	
 	G.scene= sce;
 
