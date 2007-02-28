@@ -151,14 +151,17 @@ bool yafrayRender_t::getAllMatTexObs()
 
 	// now remove any objects from dupliMtx_list which are not in the renderlist
 	for (map<string, vector<float> >::iterator dL=dupliMtx_list.begin();
-				dL!=dupliMtx_list.end();++dL)
+				dL!=dupliMtx_list.end();)
 	{
 		string ro_name = dL->first;
 		if (renderobs.find(ro_name)==renderobs.end()) {
 			cout << "Object " << ro_name << " not in renderlist, removing from dupliMtx_list" << endl;
 			dL->second.clear();
+			++dL;
 			dupliMtx_list.erase(ro_name);
 		}
+		else
+			++dL;
 	}
 
 	// in case dupliMtx_list not empty, make sure that there is at least one source object
