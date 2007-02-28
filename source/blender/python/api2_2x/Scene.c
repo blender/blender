@@ -392,7 +392,7 @@ static PyObject *Scene_getObjects( BPy_Scene *self)
 /*****************************************************************************/
 static PyGetSetDef BPy_Scene_getseters[] = {
 	GENERIC_LIB_GETSETATTR,
-	{"Layer",
+	{"Layers",
 	 (getter)Scene_getLayerMask, (setter)Scene_setLayerMask,
 	 "Scene layer bitmask",
 	 NULL},
