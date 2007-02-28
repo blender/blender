@@ -5,7 +5,7 @@ WITH_BF_VERSE = 'false'
 BF_VERSE_INCLUDE = "#extern/verse/dist"
 
 BF_PYTHON = '/System/Library/Frameworks/Python.framework/Versions/'
-BF_PYTHON_VERSION = '2.3'
+BF_PYTHON_VERSION = '2.5'
 BF_PYTHON_INC = '${BF_PYTHON}${BF_PYTHON_VERSION}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
 BF_PYTHON_LIB = ''

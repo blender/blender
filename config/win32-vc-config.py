@@ -12,10 +12,10 @@ BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 BF_FFMPEG_LIB = 'avformat-51.lib avcodec-51.lib avutil-49.lib postproc-51.lib'
 
 BF_PYTHON = LIBDIR + '/python'
-BF_PYTHON_VERSION = '2.4'
+BF_PYTHON_VERSION = '2.5'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
-BF_PYTHON_LIB = 'python24'
+BF_PYTHON_LIB = 'python25'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 
 WITH_BF_OPENAL = 'true'
