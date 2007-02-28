@@ -53,6 +53,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h" 
 
@@ -186,7 +187,9 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	fss->iniVely = 
 	fss->iniVelz = 0.0;
 
-	strcpy(fss->surfdataPath,""); // leave blank, init upon first bake
+	/*  elubie: changed this to default to the same dir as the render output
+		to prevent saving to C:\ on Windows */
+	BLI_strncpy(fss->surfdataPath, U.tempdir, FILE_MAX); 
 	fss->orgMesh = (Mesh *)srcob->data;
 	fss->meshSurface = NULL;
 	fss->meshBB = NULL;

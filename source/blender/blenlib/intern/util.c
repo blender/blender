@@ -1014,7 +1014,7 @@ void BLI_make_exist(char *dir) {
 		}
 		if (a >= 0) dir[a+1] = 0;
 		else {
-			/* defaulting to first valid drive hoping it's not empty CD and DVD drives */
+			/* defaulting to drive (usually 'C:') of Windows installation */
 			get_default_root(dir);
 			break;
 		}
