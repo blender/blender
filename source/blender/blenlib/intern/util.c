@@ -1255,7 +1255,24 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 	}
 #endif
 }
- 
+
+/* simple appending of filename to dir, does not check for valid path! */
+void BLI_join_dirfile(char *string, const char *dir, const char *file)
+{
+	int sl_dir = strlen(dir);
+	BLI_strncpy(string, dir, FILE_MAX);
+	if (sl_dir > FILE_MAX-1) sl_dir = FILE_MAX-1;
+#ifdef WIN32
+	string[sl_dir] = '\\';
+#else
+	string[sl_dir] = '/';
+#endif
+	sl_dir++;
+	if (sl_dir <FILE_MAX) {
+		BLI_strncpy(string + sl_dir, file, FILE_MAX-sl_dir);
+	}
+}
+
 static int add_win32_extension(char *name)
 {
 	int retval = 0;
