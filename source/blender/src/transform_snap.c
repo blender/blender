@@ -38,6 +38,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_meshdata_types.h" // Temporary, for snapping to other unselected meshes
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
@@ -53,9 +54,12 @@
 #include "BIF_glutil.h"
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
+#include "BIF_screen.h"
 
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
+
+#include "BSE_view.h"
 
 #include "transform.h"
 #include "mydevice.h"		/* for KEY defines	*/
@@ -77,6 +81,9 @@ void TargetSnapClosest(TransInfo *t);
 
 float RotationBetween(TransInfo *t, float p1[3], float p2[3]);
 float TranslationBetween(TransInfo *t, float p1[3], float p2[3]);
+
+// Trickery
+int findNearestVertFromObjects(int *dist, float *loc);
 
 /****************** IMPLEMENTATIONS *********************/
 
@@ -318,15 +325,25 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 		/*if (G.scene->selectmode & B_SEL_VERT)*/
 		{
 			EditVert *nearest=NULL;
+			float vec[3];
+			int found = 0;
 			int dist = 40; // Use a user defined value here
 			
 			// use findnearestverts in vert mode, others in other modes
 			nearest = findnearestvert(&dist, SELECT, 1);
 			
-			if (nearest != NULL)
+			found = findNearestVertFromObjects(&dist, vec);
+			if (found == 1)
+			{
+				VECCOPY(t->tsnap.snapPoint, vec);
+				
+				t->tsnap.status |=  POINT_INIT;
+			}
+			/* If there's no outside vertex nearer, but there's one in this mesh
+			 */
+			else if (nearest != NULL)
 			{
 				VECCOPY(t->tsnap.snapPoint, nearest->co);
-				
 				Mat4MulVecfl(G.obedit->obmat, t->tsnap.snapPoint);
 				
 				t->tsnap.status |=  POINT_INIT;
@@ -455,6 +472,57 @@ void TargetSnapClosest(TransInfo *t)
 		
 		t->tsnap.status |= TARGET_INIT;
 	}
+}
+/*================================================================*/
+
+int findNearestVertFromObjects(int *dist, float *loc) {
+	Base *base;
+	int retval = 0;
+	short mval[2];
+	
+	getmouseco_areawin(mval);
+
+	base= FIRSTBASE;
+	for ( base = FIRSTBASE; base != NULL; base = base->next ) {
+		if ( TESTBASE(base) && base != BASACT ) {
+			Object *ob = base->object;
+			
+			printf("object\n");
+			
+			if (ob->type == OB_MESH) {
+				Mesh *me = ob->data;
+				int i;
+				
+				printf("mesh\n");
+				
+				for( i = 0; i < me->totvert; i++) {
+					MVert vert = me->mvert[i];
+					float gloc[3];
+					int sloc[2];
+					int curdist;
+					
+					VECCOPY(gloc, vert.co);
+					Mat4MulVecfl(ob->obmat, gloc);
+					project_int(gloc, sloc);
+					
+					sloc[0] -= mval[0];
+					sloc[1] -= mval[1];
+					
+					curdist = abs(sloc[0]) + abs(sloc[1]);
+					
+					printf("dist = %d\n", curdist);
+					
+					if (curdist < *dist) {
+						*dist = curdist;
+						retval = 1;
+						VECCOPY(loc, gloc);
+					}
+				}
+			}
+		}
+	}
+	
+	return retval;
 }
 
 /*================================================================*/
