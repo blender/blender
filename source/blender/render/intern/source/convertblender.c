@@ -3971,6 +3971,9 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
 		
+		/* if the object has been restricted from rendering in the outliner, ignore it */
+		if (ob->restrictflag & OB_RESTRICT_RENDER) continue;
+		
 		/* OB_DONE means the object itself got duplicated, so was already converted */
 		if(ob->flag & OB_DONE);
 		else if( (base->lay & lay) || ((base->lay & re->scene->lay)) ) {
