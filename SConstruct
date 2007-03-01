@@ -563,15 +563,15 @@ allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, t
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
     dllsources = ['${LCGDIR}/gettext/lib/gnu_gettext.dll',
                         '${LCGDIR}/png/lib/libpng.dll',
-                        '#release/windows/extra/python24.zip',
-                        '#release/windows/extra/zlib.pyd',
+#                        '#release/windows/extra/python24.zip',
+#                        '#release/windows/extra/zlib.pyd',
                         '${LCGDIR}/sdl/lib/SDL.dll',
                         '${LCGDIR}/zlib/lib/zlib.dll',
                         '${LCGDIR}/tiff/lib/libtiff.dll']
     if env['BF_DEBUG']:
-        dllsources.append('${LCGDIR}/python/lib/python24_d.dll')
+        dllsources.append('${LCGDIR}/python/lib/python25_d.dll')
     else:
-        dllsources.append('${LCGDIR}/python/lib/python24.dll')
+        dllsources.append('${LCGDIR}/python/lib/python25.dll')
     if env['OURPLATFORM'] == 'win32-mingw':
         dllsources += ['${LCGDIR}/pthreads/lib/pthreadGC2.dll']
     else:
