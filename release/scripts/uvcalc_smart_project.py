@@ -42,7 +42,7 @@ selected faces, or all faces.
 # -------------------------------------------------------------------------- 
 
 
-from Blender import Object, Draw, Window, sys, Mesh, Geometry
+from Blender import Object, Draw, Window, sys, Mesh, Geometry, Main
 from Blender.Mathutils import CrossVecs, Matrix, Vector, RotationMatrix, DotVecs
 
 from math import cos
