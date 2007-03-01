@@ -1550,12 +1550,12 @@ static PyObject *CurveGetAttr( BPy_Curve * self, char *name )
 
 	if( strcmp( name, "name" ) == 0 )
 		attr = PyString_FromString( self->curve->id.name + 2 );
-	else if( strcmp( name, "lib" ) == 0 )
+	else if( strcmp( name, "lib" ) == 0 ) {
 		/* WARNING - Not standard, until we move to get/setattrs
 		   at the moment we cant return None at the end because it raises an error */
 		attr = EXPP_GetIdLib((ID *)self->curve);
 		if (attr) return attr; 
-	else if( strcmp( name, "pathlen" ) == 0 )
+	} else if( strcmp( name, "pathlen" ) == 0 )
 		attr = PyInt_FromLong( self->curve->pathlen );
 	else if( strcmp( name, "totcol" ) == 0 )
 		attr = PyInt_FromLong( self->curve->totcol );
