@@ -211,7 +211,7 @@ PyObject *BPy_IDGroup_Map_GetItem(BPy_IDProperty *self, PyObject *item)
 char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObject *ob)
 {
 	IDProperty *prop = NULL, *prop2=NULL, *prev=NULL;
-	IDPropertyTemplate val;
+	IDPropertyTemplate val = {0};
 	
 	if (PyFloat_Check(ob)) {
 		val.f = (float) PyFloat_AsDouble(ob);

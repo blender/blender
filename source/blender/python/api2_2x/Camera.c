@@ -887,12 +887,12 @@ static int setFloatAttrClamp( BPy_Camera *self, PyObject *value, void *type )
 		param = &cam->clipend;
 		break;
 	case EXPP_CAM_ATTR_DRAWSIZE:
-		min = 0.1;
+		min = 0.1f;
 		max = 10.0;
 		param = &cam->drawsize;
 		break;
 	case EXPP_CAM_ATTR_SCALE:
-		min = 0.01;
+		min = 0.01f;
 		max = 1000.0;
 		param = &cam->ortho_scale;
 		break;

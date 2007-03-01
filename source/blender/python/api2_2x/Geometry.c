@@ -225,7 +225,7 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 			return newVectorObject(newvec, 2, Py_NEW);
 		}
 		
-		yi = ((b1y / fabs(b1x - b2x)) * fabs(b2x - a1x)) + ((b2y / fabs(b1x - b2x)) * fabs(b1x - a1x));
+		yi = (float)(((b1y / fabs(b1x - b2x)) * fabs(b2x - a1x)) + ((b2y / fabs(b1x - b2x)) * fabs(b1x - a1x)));
 		
 		if (yi > MAX2(a1y, a2y)) {/* New point above seg1's vert line */
 			Py_RETURN_NONE;
@@ -241,7 +241,7 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 		}
 		
 		/* Can skip vert line check for seg 2 since its covered above. */
-		xi = ((b1x / fabs(b1y - b2y)) * fabs(b2y - a1y)) + ((b2x / fabs(b1y - b2y)) * fabs(b1y - a1y));
+		xi = (float)(((b1x / fabs(b1y - b2y)) * fabs(b2y - a1y)) + ((b2x / fabs(b1y - b2y)) * fabs(b1y - a1y)));
 		if (xi > MAX2(a1x, a2x)) { /* New point right of hoz line1's */
 			Py_RETURN_NONE;
 		} else if (xi < MIN2(a1x, a2x)) { /*New point left of seg1's hoz line */

@@ -466,9 +466,9 @@ static int kinematic_setter( BPy_Constraint *self, int type, PyObject *value )
 	case EXPP_CONSTR_CHAINLEN:
 		return EXPP_setIValueClamped( value, &con->rootbone, 0, 255, 'i' );
 	case EXPP_CONSTR_POSWEIGHT:
-		return EXPP_setFloatClamped( value, &con->weight, 0.01, 1.0 );
+		return EXPP_setFloatClamped( value, &con->weight, 0.01f, 1.0 );
 	case EXPP_CONSTR_ROTWEIGHT:
-		return EXPP_setFloatClamped( value, &con->orientweight, 0.01, 1.0 );
+		return EXPP_setFloatClamped( value, &con->orientweight, 0.01f, 1.0 );
 	case EXPP_CONSTR_ROTATE:
 		return EXPP_setBitfield( value, &con->flag, CONSTRAINT_IK_ROT, 'h' );
 	case EXPP_CONSTR_USETIP:

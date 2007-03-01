@@ -1318,7 +1318,7 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 		min = (float)PyFloat_AsDouble( mino );
 		max = (float)PyFloat_AsDouble( maxo );
 		
-		range= fabs(max-min); /* Click step will be a 10th of the range. */
+		range= (float)fabs(max-min); /* Click step will be a 10th of the range. */
 		if (!range) range= 1.0f; /* avoid any odd errors */
 		
 		/* set the precission to display*/

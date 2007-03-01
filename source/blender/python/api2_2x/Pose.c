@@ -1004,7 +1004,7 @@ static int PoseBone_setStretch(BPy_PoseBone *self, PyObject *value, void *closur
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected float argument" );
 	
-	ikstretch = PyFloat_AsDouble(value);
+	ikstretch = (float)PyFloat_AsDouble(value);
 	if (ikstretch<0) ikstretch = 0.0;
 	if (ikstretch>1) ikstretch = 1.0;
 	self->posechannel->ikstretch = ikstretch;
@@ -1028,9 +1028,9 @@ static int PoseBone_setStiff(BPy_PoseBone *self, PyObject *value, void *axis)
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected float argument" );
 	
-	stiff = PyFloat_AsDouble(value);
+	stiff = (float)PyFloat_AsDouble(value);
 	if (stiff<0) stiff = 0;
-	if (stiff>0.990) stiff = 0.990;
+	if (stiff>0.990) stiff = 0.990f;
 	self->posechannel->stiffness[(int)axis] = stiff;
 	return 0;
 }

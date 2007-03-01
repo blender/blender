@@ -571,10 +571,10 @@ static PyGetSetDef BPy_Text_getseters[] = {
 /*****************************************************************************/
 PyTypeObject Text_Type = {
 	PyObject_HEAD_INIT( NULL ) 
-	NULL,	/* ob_size */
+	0,	/* ob_size */
 	"Blender Text",		/* tp_name */
 	sizeof( BPy_Text ),	/* tp_basicsize */
-	NULL,			/* tp_itemsize */
+	0,			/* tp_itemsize */
 	/* methods */
 	( destructor ) Text_dealloc,	/* tp_dealloc */
 	NULL,			/* tp_print */

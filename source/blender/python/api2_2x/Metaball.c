@@ -589,9 +589,9 @@ static int Metaball_setWiresize( BPy_Metaball * self, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected float argument" );
 
-	param = PyFloat_AsDouble( value );
+	param = (float)PyFloat_AsDouble( value );
 
-	self->metaball->wiresize = EXPP_ClampFloat(param, 0.05, 1.0);
+	self->metaball->wiresize = EXPP_ClampFloat(param, 0.05f, 1.0);
 	return 0;
 
 }
@@ -608,9 +608,9 @@ static int Metaball_setRendersize( BPy_Metaball * self, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected float argument" );
 
-	param = PyFloat_AsDouble( value );
+	param = (float)PyFloat_AsDouble( value );
 
-	self->metaball->rendersize = EXPP_ClampFloat(param, 0.05, 1.0);
+	self->metaball->rendersize = EXPP_ClampFloat(param, 0.05f, 1.0);
 	return 0;
 }
 
@@ -627,7 +627,7 @@ static int Metaball_setThresh( BPy_Metaball * self, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected float argument" );
 
-	param = PyFloat_AsDouble( value );
+	param = (float)PyFloat_AsDouble( value );
 
 	self->metaball->thresh = EXPP_ClampFloat(param, 0.0, 5.0);
 	return 0;
@@ -862,7 +862,7 @@ static int Metaelem_setStiffness( BPy_Metaelem *self, PyObject *value)
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected float argument" );
 
-	self->metaelem->s = EXPP_ClampFloat(PyFloat_AsDouble( value ), 0.0, 10.0);
+	self->metaelem->s = EXPP_ClampFloat((float)PyFloat_AsDouble( value ), 0.0, 10.0);
 	return 0;
 }
 
@@ -881,7 +881,7 @@ static int Metaelem_setRadius( BPy_Metaelem *self, PyObject *value)
 					"expected float argument" );
 
 	self->metaelem->rad = /* is 5000 too small? */
-			EXPP_ClampFloat(PyFloat_AsDouble( value ), 0.0, 5000.0);
+			EXPP_ClampFloat((float)PyFloat_AsDouble( value ), 0.0, 5000.0);
 	
 	return 0;
 }

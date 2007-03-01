@@ -683,7 +683,7 @@ static int ActionStrip_setRepeat( BPy_ActionStrip * self, PyObject * value )
 				"This strip has been removed!" );
 
 	return EXPP_setFloatClamped( value, &self->strip->repeat,
-			0.001, 1000.0f );
+			0.001f, 1000.0f );
 }
 
 /*
@@ -862,7 +862,7 @@ static int ActionStrip_setStrideLength( BPy_ActionStrip * self, PyObject * value
 				"This strip has been removed!" );
 
 	return EXPP_setFloatClamped( value, &self->strip->stridelen,
-			0.0001, 1000.0 );
+			0.0001f, 1000.0 );
 }
 
 /*
@@ -1027,8 +1027,8 @@ static PyObject *ActionStrip_snapToFrame( BPy_ActionStrip *self )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"This strip has been removed!" );
 	
-	strip->start= floor(strip->start+0.5);
-	strip->end= floor(strip->end+0.5);
+	strip->start= (float)floor(strip->start+0.5);
+	strip->end= (float)floor(strip->end+0.5);
 
 	Py_RETURN_NONE;
 }
@@ -1398,7 +1398,7 @@ static PyObject *ActionStrips_append( BPy_ActionStrips *self, PyObject * args )
 
     strip->act = act;
     calc_action_range( strip->act, &strip->actstart, &strip->actend, 1 );
-    strip->start = G.scene->r.cfra;
+    strip->start = (float)G.scene->r.cfra;
     strip->end = strip->start + ( strip->actend - strip->actstart );
         /* simple prevention of zero strips */
     if( strip->start > strip->end-2 )

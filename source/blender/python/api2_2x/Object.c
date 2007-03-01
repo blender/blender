@@ -3283,7 +3283,7 @@ static int Object_setRBMass( BPy_Object * self, PyObject * args )
 	if( !flt )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected float argument" );
-	value = PyFloat_AS_DOUBLE( flt );
+	value = (float)PyFloat_AS_DOUBLE( flt );
 	Py_DECREF( flt );
 
 	if( value < 0.0f )
@@ -3983,7 +3983,7 @@ static int setFloatAttr( BPy_Object *self, PyObject *value, void *type )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected float argument" );
 
-	param = PyFloat_AsDouble( value );
+	param = (float)PyFloat_AsDouble( value );
 
 	switch( (int)type ) {
 	case EXPP_OBJ_ATTR_LOC_X: 
@@ -4654,7 +4654,7 @@ static int Object_setRBRadius( BPy_Object * self, PyObject * args )
     if( !flt )
         return EXPP_ReturnIntError( PyExc_TypeError,
                 "expected float argument" );
-    value = PyFloat_AS_DOUBLE( flt );
+    value = (float)PyFloat_AS_DOUBLE( flt );
 	Py_DECREF( flt );
 
     if( value < 0.0f )

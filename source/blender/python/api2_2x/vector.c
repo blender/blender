@@ -1061,7 +1061,7 @@ static int Vector_setLength( VectorObject * self, PyObject * value )
 	dot= dot/param;
 	
 	for(i = 0; i < self->size; i++){
-		self->vec[i]= self->vec[i] / dot;
+		self->vec[i]= self->vec[i] / (float)dot;
 	}
 	
 	return 0;
