@@ -497,7 +497,7 @@ void sort_faces(void)
 	if(G.obedit) return;
 	if(ob->type!=OB_MESH) return;
 	
-	event = pupmenu("Soft Faces by%t|View Axis (back to front)%x1|View Axis (front to back)%x2|Z Axis%x3");
+	event = pupmenu("Soft Faces by%t|View Axis (back to front)%x1|View Axis (front to back)%x2|Cursor Distance (near to far)%x3|Cursor Distance (far to near)%x4|Z Axis%x5");
 	if (event==-1) return;
 	
 	me= ob->data;
@@ -513,16 +513,27 @@ void sort_faces(void)
 
 /* sort index list instead of faces itself 
    and apply this permutation to all face layers */
-	if (event == 3) {
+	if (event == 5) {
 		qsort(index, me->totface, sizeof(int), verg_mface);
 	} else { /* event is 1 or 2*/
 		MFace *mf;
 		float vec[3];
 		float mat[4][4];
+		float cur[3];
 		
 		if (!G.vd) return;
 		
-		Mat4MulMat4(mat, OBACT->obmat, G.vd->viewmat); /* apply the view matrix to the object matrix */
+		if (event == 1 || event == 2)
+			Mat4MulMat4(mat, OBACT->obmat, G.vd->viewmat); /* apply the view matrix to the object matrix */
+		else if (event == 3 || event == 4) { /* sort from cursor */
+			if( G.vd && G.vd->localview ) {
+				VECCOPY(cur, G.vd->cursor);
+			} else {
+				VECCOPY(cur, G.scene->cursor);
+			}
+			Mat4Invert(mat, OBACT->obmat);
+			Mat4MulVecfl(mat, cur);
+		}
 		
 		face_sort_floats = (float *) MEM_mallocN(sizeof(float) * me->totface, "sort faces float");
 		
@@ -539,12 +550,18 @@ void sort_faces(void)
 				VECMUL(vec, 1.0f/3.0f);
 			} /* done */
 			
-			Mat4MulVecfl(mat, vec);
-			if (event==2)
-				face_sort_floats[i] = -vec[2]; /* front to back */
-			else
-				face_sort_floats[i] = vec[2]; /* back to front */
-			
+			if (event == 1 || event == 2) { /* sort on view axis */
+				Mat4MulVecfl(mat, vec);
+				if (event==2)
+					face_sort_floats[i] = -vec[2]; /* front to back */
+				else
+					face_sort_floats[i] = vec[2]; /* back to front */
+			} else { /* distance from cursor*/
+				if (event==3)
+					face_sort_floats[i] = VecLenf(cur, vec); /* back to front */
+				else if (event==4)
+					face_sort_floats[i] = -VecLenf(cur, vec); /* front to back*/
+			}
 		}
 		qsort(index, me->totface, sizeof(int), vert_mface_floats);
 		MEM_freeN(face_sort_floats);
