@@ -105,6 +105,16 @@ class Scene:
 			print scene.layers # will print: [1, 3]
 	@type objects: sequence of objects
 	@ivar objects: The scene's objects. The sequence supports the methods .link(ob), .unlink(ob), and .new(obdata), and can be iterated over.
+	@type cursor: Vector (wrapped)
+	@ivar cursor: the 3d cursor location for this scene.
+	@type world: World or None
+	@ivar world: The world that this scene uses (if any)
+	@type timeline: Timeline
+	@ivar timeline: The L{timeline<TimeLine.TimeLine>} for this scene, named markers are stored here. (read only)
+	@type render: RenderData
+	@ivar render: The scenes L{render<Render>} settings. (read only)
+	@type radiosity: RenderData
+	@ivar radiosity: The scenes L{radiosity<Radio>} settings. (read only)
 	"""
 
 	def getName():

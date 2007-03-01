@@ -497,7 +497,7 @@ void sort_faces(void)
 	if(G.obedit) return;
 	if(ob->type!=OB_MESH) return;
 	
-	event = pupmenu("Soft Faces by%t|View Axis (back to front)%x1|View Axis (front to back)%x2|Cursor Distance (near to far)%x3|Cursor Distance (far to near)%x4|Z Axis%x5");
+	event = pupmenu("Sort Faces by%t|View Axis (back to front)%x1|View Axis (front to back)%x2|Cursor Distance (near to far)%x3|Cursor Distance (far to near)%x4|Z Axis%x5");
 	if (event==-1) return;
 	
 	me= ob->data;

@@ -78,6 +78,8 @@ struct View3D;
 #include "sceneRadio.h"
 #include "sceneTimeLine.h"
 
+#include "BKE_utildefines.h" /* vec copy */
+#include "vector.h"
 
 PyObject *M_Object_Get( PyObject * self, PyObject * args ); /* from Object.c */
 
@@ -367,15 +369,21 @@ static int Scene_setWorld( BPy_Scene * self, PyObject * value )
 	
 	SCENE_DEL_CHECK_INT(self);
 	
-	if (!BPy_World_Check(value))
+	/* accepts a World or None */
+	if (BPy_World_Check(value)) {
+		world = World_FromPyObject(value);
+	} else if (value != Py_None) {
 		return ( EXPP_ReturnIntError( PyExc_TypeError,
 			"expected a world object" ) );
+	}
 	
-	world = World_FromPyObject(value);
 	/* If there is a world then it now has one less user */
 	if( self->scene->world )
 		self->scene->world->id.us--;
-	world->id.us++;
+	
+	if (world)
+		world->id.us++;
+	
 	G.scene->world = world;
 	return 0;
 }
@@ -385,6 +393,32 @@ static PyObject *Scene_getObjects( BPy_Scene *self)
 {
 	SCENE_DEL_CHECK_PY(self);
 	return SceneObSeq_CreatePyObject(self, NULL, 0);
+}
+
+
+
+static PyObject *Scene_getCursor( BPy_Scene * self )
+{
+	SCENE_DEL_CHECK_PY(self);
+	return newVectorObject( self->scene->cursor, 3, Py_WRAP );
+}
+
+static int Scene_setCursor( BPy_Scene * self, PyObject * value )
+{	
+	VectorObject *bpy_vec;
+	SCENE_DEL_CHECK_INT(self);
+	if (!VectorObject_Check(value))
+		return ( EXPP_ReturnIntError( PyExc_TypeError,
+			"expected a vector" ) );
+	
+	bpy_vec = (VectorObject *)value;
+	
+	if (bpy_vec->size != 3)
+		return ( EXPP_ReturnIntError( PyExc_ValueError,
+			"can only assign a 3D vector" ) );
+	
+	VECCOPY(self->scene->cursor, bpy_vec->vec);
+	return 0;
 }
 
 /*****************************************************************************/
@@ -402,6 +436,10 @@ static PyGetSetDef BPy_Scene_getseters[] = {
 	 NULL},
 	{"world",
 	 (getter)Scene_getWorld, (setter)Scene_setWorld,
+	 "Scene layer bitmask",
+	 NULL},
+	{"cursor",
+	 (getter)Scene_getCursor, (setter)Scene_setCursor,
 	 "Scene layer bitmask",
 	 NULL},
 	{"timeline",
