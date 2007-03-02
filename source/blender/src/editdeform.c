@@ -691,6 +691,13 @@ void unique_vertexgroup_name (bDeformGroup *dg, Object *ob)
 	
 	if (!ob)
 		return;
+		
+	/* See if we are given an empty string */
+	if (dg->name[0] == '\0') {
+		/* give it default name first */
+		strcpy (dg->name, "Group");
+	}	
+		
 	/* See if we even need to do this */
 	for (curdef = ob->defbase.first; curdef; curdef=curdef->next){
 		if (dg!=curdef){

@@ -522,6 +522,12 @@ void unique_constraint_name (bConstraint *con, ListBase *list)
 	int exists = 0;
 	bConstraint *curcon;
 	
+	/* See if we are given an empty string */
+	if (con->name[0] == '\0') {
+		/* give it default name first */
+		strcpy (con->name, "Const");
+	}
+	
 	/* See if we even need to do this */
 	for (curcon = list->first; curcon; curcon=curcon->next){
 		if (curcon!=con){
