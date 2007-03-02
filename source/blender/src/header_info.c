@@ -828,7 +828,7 @@ static void do_info_filemenu(void *arg, int event)
 	switch(event) {
 	case 0:
 		if (okee("Erase All")) {
-			if (!BIF_read_homefile())
+			if (!BIF_read_homefile(0))
 				error("No file ~/.B.blend");
 		}
 		break;
@@ -907,7 +907,12 @@ static void do_info_filemenu(void *arg, int event)
 	case 31: /* save default settings */
 		BIF_write_homefile();
 		break;
-
+	case 32:
+		if (okee("Erase All")) {
+			if (!BIF_read_homefile(1))
+				error("Can't read data from memory!");
+		}
+		break;
 	case 35: /* compress toggle */
 		U.flag ^= (USER_FILECOMPRESS);
 		break;
@@ -996,6 +1001,7 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Default Settings|Ctrl U",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 31, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Load Factory Settings",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 32, "");
 
 
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

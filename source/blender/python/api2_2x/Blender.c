@@ -640,7 +640,7 @@ static PyObject *Blender_Load( PyObject * self, PyObject * args )
 		 * enough here.  Note: the default file requires extra clean-up done by
 		 * BIF_read_homefile: freeing the user theme data. */
 		if( !fname || ( strstr( fname, ".B.blend" ) && is_blend_file ) )
-			BIF_read_homefile(  );
+			BIF_read_homefile(0);
 		else
 			BIF_read_file( fname );
 

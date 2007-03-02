@@ -884,7 +884,7 @@ int blenderqread(unsigned short event, short val)
 		if(textspace==0 && textediting==0) {
 			if(G.qual==LR_CTRLKEY) {
 				if(okee("Erase all")) {
-					if( BIF_read_homefile()==0) error("No file ~/.B.blend");
+					if( BIF_read_homefile(0)==0) error("No file ~/.B.blend");
 				}
 				return 0;
 			}

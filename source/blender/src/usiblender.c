@@ -470,7 +470,7 @@ static void outliner_242_patch(void)
 }
 
 /* only here settings for fullscreen */
-int BIF_read_homefile(void)
+int BIF_read_homefile(int from_memory)
 {
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	char *home= BLI_gethome();
@@ -490,13 +490,13 @@ int BIF_read_homefile(void)
 	BLI_freelistN(&G.ttfdata);
 		
 	G.relbase_valid = 0;
-	BLI_make_file_string(G.sce, tstr, home, ".B.blend");
+	if (!from_memory) BLI_make_file_string(G.sce, tstr, home, ".B.blend");
 	strcpy(scestr, G.sce);	/* temporal store */
 	
 	/* prevent loading no UI */
 	G.fileflags &= ~G_FILE_NO_UI;
 	
-	if (BLI_exists(tstr)) {
+	if (!from_memory && BLI_exists(tstr)) {
 		success = BKE_read_file(tstr, NULL);
 	} else {
 		success = BKE_read_file_from_memory(datatoc_B_blend, datatoc_B_blend_size, NULL);
@@ -858,7 +858,7 @@ void BIF_init(void)
 	init_node_butfuncs();
 	
 	BIF_preview_init_dbase();
-	BIF_read_homefile();
+	BIF_read_homefile(0);
 
 	BIF_resources_init();	/* after homefile, to dynamically load an icon file based on theme settings */
 	
