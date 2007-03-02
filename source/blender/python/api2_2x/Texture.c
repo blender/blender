@@ -53,6 +53,9 @@
 #include "blendef.h"
 #include "gen_utils.h"
 
+#include "vector.h" /* for Texture_evaluate(vec) */
+#include "RE_shader_ext.h"
+
 /*****************************************************************************/
 /* Blender.Texture constants                                                 */
 /*****************************************************************************/
@@ -487,6 +490,8 @@ static int Texture_setImageFlags( BPy_Texture *self, PyObject *args,
 								void *type );
 static int Texture_setNoiseBasis2( BPy_Texture *self, PyObject *args,
 								void *type );
+								
+static PyObject *Texture_evaluate( BPy_Texture *self, PyObject *args );
 
 /*****************************************************************************/
 /* Python BPy_Texture methods table:                                         */
@@ -529,6 +534,8 @@ static PyMethodDef BPy_Texture_methods[] = {
 	 "(s) - Set Dist Noise"},
 	{"setDistMetric", ( PyCFunction ) Texture_oldsetDistMetric, METH_VARARGS,
 	 "(s) - Set Dist Metric"},
+	{"evaluate", ( PyCFunction ) Texture_evaluate, METH_VARARGS,
+	 "(vector) - evaluate the texture at this position"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2642,5 +2649,27 @@ static PyObject *Texture_oldsetImageFlags( BPy_Texture * self, PyObject * args )
 	self->texture->imaflag = (short)flag;
 
 	Py_RETURN_NONE;
+}
+
+static PyObject *Texture_evaluate( BPy_Texture * self, PyObject * args )
+{
+	VectorObject *vec_in = NULL;
+	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
+	float vec[4];
+	/* int rgbnor; dont use now */
+	
+	if(!PyArg_ParseTuple(args, "O!", &vector_Type, &vec_in) || vec_in->size < 3)
+		return EXPP_ReturnPyObjError(PyExc_TypeError, 
+			"expects a 3D vector object\n");
+	
+	/* rgbnor = .. we dont need this now */
+	multitex_ext(self->texture, vec_in->vec, 1, 1, 1, &texres);
+	
+	vec[0] = texres.tr;
+	vec[1] = texres.tg;
+	vec[2] = texres.tb;
+	vec[3] = texres.tin;
+	
+	return newVectorObject(vec, 4, Py_NEW);
 }
 

@@ -959,7 +959,7 @@ static PyObject *Vector_getAxis( VectorObject * self, void *type )
 			return EXPP_ReturnPyObjError(PyExc_AttributeError,
 				"vector.w: error, cannot get this axis for a 3D vector\n");
 	
-		return PyFloat_FromDouble(self->vec[4]);
+		return PyFloat_FromDouble(self->vec[3]);
 	default:
 		{
 			char errstr[1024];
