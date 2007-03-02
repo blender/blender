@@ -1150,21 +1150,23 @@ static int node_composit_buts_time(uiBlock *block, bNodeTree *ntree, bNode *node
 	if(block) {
 		CurveMapping *cumap= node->storage;
 		short dx= (butr->xmax-butr->xmin)/2;
+		rctf *curvebutr;
+		
+		memcpy(&curvebutr, &butr, sizeof(rctf));
+		curvebutr->ymin += 26;
+		
+		curvemap_buttons(block, node->storage, 's', B_NODE_EXEC+node->nr, B_REDR, curvebutr);
 		
 		cumap->flag |= CUMA_DRAW_CFRA;
 		if(node->custom1<node->custom2)
 			cumap->black[0]= (float)(CFRA - node->custom1)/(float)(node->custom2-node->custom1);
 		
-		uiDefBut(block, BUT_CURVE, B_NODE_EXEC+node->nr, "", 
-				 butr->xmin, butr->ymin+24, butr->xmax-butr->xmin, butr->ymax-butr->ymin-24, 
-				 node->storage, 0.0f, 1.0f, 0, 0, "");
-		
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Sta:",
-				  butr->xmin, butr->ymin, dx, 19, 
+				  butr->xmin, butr->ymin-22, dx, 19, 
 				  &node->custom1, 1.0, 20000.0, 0, 0, "Start frame");
 		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "End:",
-				  butr->xmin+dx, butr->ymin, dx, 19, 
+				  butr->xmin+dx, butr->ymin-22, dx, 19, 
 				  &node->custom2, 1.0, 20000.0, 0, 0, "End frame");
 		
 	}
