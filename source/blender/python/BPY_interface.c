@@ -59,12 +59,31 @@
 #include "api2_2x/Blender.h"
 #include "api2_2x/Camera.h"
 #include "api2_2x/Draw.h"
-#include "api2_2x/Lamp.h"
-#include "api2_2x/NMesh.h"
-#include "api2_2x/Object.h"
 #include "api2_2x/Registry.h"
-#include "api2_2x/Scene.h"
+
+/* ID_asPyObject */
+#include "api2_2x/Object.h"
+#include "api2_2x/Camera.h"
+#include "api2_2x/Armature.h"
+#include "api2_2x/Lamp.h"
+/*#include "api2_2x/ CurNurb.h" do we need this ? */
+#include "api2_2x/Curve.h"
+#include "api2_2x/NMesh.h"
+#include "api2_2x/Mesh.h"
+#include "api2_2x/Lattice.h"
+#include "api2_2x/Metaball.h"
+#include "api2_2x/Text3d.h"
+#include "api2_2x/Font.h"
+#include "api2_2x/Group.h"
 #include "api2_2x/World.h"
+#include "api2_2x/Texture.h"
+#include "api2_2x/Ipo.h"
+#include "api2_2x/Text.h"
+#include "api2_2x/Sound.h"
+#include "api2_2x/NLA.h"
+#include "api2_2x/Main.h"
+#include "api2_2x/Scene.h"
+
 
 /* bpy_registryDict is declared in api2_2x/Registry.h and defined
  * in api2_2x/Registry.c
@@ -1334,25 +1353,68 @@ static ScriptLink *ID_getScriptlink( ID * id )
 	}
 }
 
-static PyObject *ID_asPyObject( ID * id )
+PyObject *ID_asPyObject( ID * id )
 {
 	switch ( MAKE_ID2( id->name[0], id->name[1] ) ) {
-	case ID_OB:
-		return Object_CreatePyObject( ( Object * ) id );
-	case ID_LA:
-		return Lamp_CreatePyObject( ( Lamp * ) id );
-	case ID_CA:
-		return Camera_CreatePyObject( ( Camera * ) id );
-	case ID_MA:
-		return Material_CreatePyObject( ( Material * ) id );
-	case ID_WO:
-		return World_CreatePyObject( ( World * ) id );
 	case ID_SCE:
-		return Scene_CreatePyObject( ( Scene * ) id );
-	default:
-		Py_INCREF( Py_None );
-		return Py_None;
+		return Scene_CreatePyObject( ( Scene *) id );
+		break;
+	case ID_OB:
+		return Object_CreatePyObject( (Object *) id );
+		break;
+	case ID_ME:
+		return Mesh_CreatePyObject( (Mesh *)id, NULL );
+		break;
+	case ID_CU: /*todo, support curnurbs?*/
+		return Curve_CreatePyObject((Curve *)id);
+		break;
+	case ID_MB:
+		return Metaball_CreatePyObject((MetaBall *)id);
+		break;
+	case ID_MA:
+		return Material_CreatePyObject((Material *)id);
+		break;
+	case ID_TE:
+		return Texture_CreatePyObject((Tex *)id);
+		break;
+	case ID_IM:
+		return Image_CreatePyObject((Image *)id);
+		break;
+	case ID_LT:
+		return Lattice_CreatePyObject((Lattice *)id);
+		break;
+	case ID_LA:
+		return Lamp_CreatePyObject((Lamp *)id);
+		break;
+	case ID_CA:
+		return Camera_CreatePyObject((Camera *)id);
+		break;
+	case ID_IP:
+		return Ipo_CreatePyObject((Ipo *)id);
+		break;
+	case ID_WO:
+		return World_CreatePyObject((World *)id);
+		break;
+	case ID_VF:
+		return Font_CreatePyObject((VFont *)id);
+		break;
+	case ID_TXT:
+		return Text_CreatePyObject((Text *)id);
+		break;
+	case ID_SO:
+		return Sound_CreatePyObject((bSound *)id);
+		break;
+	case ID_GR:
+		return Group_CreatePyObject((Group *)id);
+		break;
+	case ID_AR:
+		return Armature_CreatePyObject((bArmature *)id);
+		break;
+	case ID_AC:
+		return Action_CreatePyObject((bAction *)id);
+		break;
 	}
+	Py_RETURN_NONE;
 }
 
 int BPY_has_onload_script( void )

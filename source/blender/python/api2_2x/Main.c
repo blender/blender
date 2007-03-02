@@ -67,7 +67,7 @@
 #include "BIF_drawtext.h" /* unlink_text */
 
 /* python types */
-#include "../BPY_extern.h" /* clearing scriptlinks */
+#include "../BPY_extern.h" /* clearing scriptlinks and ID_asPyObject */
 
 #include "gen_utils.h"
 
@@ -101,69 +101,6 @@ static PyObject *MainSeq_CreatePyObject( Link *iter, int type )
 	return (PyObject *)seq;
 }
 
-static PyObject *Link_as_BPyData( Link *link, short type )
-{
-	switch (type) {
-	case ID_SCE:
-		return Scene_CreatePyObject( ( Scene *) link );
-		break;
-	case ID_OB:
-		return Object_CreatePyObject( (Object *) link );
-		break;
-	case ID_ME:
-		return Mesh_CreatePyObject( (Mesh *)link, NULL );
-		break;
-	case ID_CU: /*todo, support curnurbs?*/
-		return Curve_CreatePyObject((Curve *)link);
-		break;
-	case ID_MB:
-		return Metaball_CreatePyObject((MetaBall *)link);
-		break;
-	case ID_MA:
-		return Material_CreatePyObject((Material *)link);
-		break;
-	case ID_TE:
-		return Texture_CreatePyObject((Tex *)link);
-		break;
-	case ID_IM:
-		return Image_CreatePyObject((Image *)link);
-		break;
-	case ID_LT:
-		return Lattice_CreatePyObject((Lattice *)link);
-		break;
-	case ID_LA:
-		return Lamp_CreatePyObject((Lamp *)link);
-		break;
-	case ID_CA:
-		return Camera_CreatePyObject((Camera *)link);
-		break;
-	case ID_IP:
-		return Ipo_CreatePyObject((Ipo *)link);
-		break;
-	case ID_WO:
-		return World_CreatePyObject((World *)link);
-		break;
-	case ID_VF:
-		return Font_CreatePyObject((VFont *)link);
-		break;
-	case ID_TXT:
-		return Text_CreatePyObject((Text *)link);
-		break;
-	case ID_SO:
-		return Sound_CreatePyObject((bSound *)link);
-		break;
-	case ID_GR:
-		return Group_CreatePyObject((Group *)link);
-		break;
-	case ID_AR:
-		return Armature_CreatePyObject((bArmature *)link);
-		break;
-	case ID_AC:
-		return Action_CreatePyObject((bAction *)link);
-		break;
-	}
-	Py_RETURN_NONE;
-}
 
 static int MainSeq_len( BPy_MainSeq * self )
 {
@@ -221,7 +158,7 @@ static PyObject * MainSeq_subscript(BPy_MainSeq * self, PyObject *key)
 				(lib && use_lib && id->lib && (!strcmp( id->lib->name, lib))) /* only external lib */
 			)
 			{
-				return Link_as_BPyData((Link *)id, self->type);
+				return ID_asPyObject(id);
 			}
 		}
 	}
@@ -280,7 +217,7 @@ static PyObject *MainSeq_nextIter( BPy_MainSeq * self )
 				"iterator at end" );
 	}
 	
-	object = Link_as_BPyData(self->iter, self->type);
+	object = ID_asPyObject((ID *)self->iter);
 	
 	link= self->iter->next;
 	self->iter= link;

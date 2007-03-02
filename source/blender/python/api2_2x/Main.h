@@ -38,6 +38,9 @@
 /* The Main PyType Object defined in Main.c */
 extern PyTypeObject MainSeq_Type;
 
+ /* BPY_interface.c */
+extern PyObject *ID_asPyObject( ID * id );
+
 #define BPy_MainSeq_Check(v) \
     ((v)->ob_type == &MainSeq_Type)
 
