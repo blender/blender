@@ -27,6 +27,7 @@
  *
  * Contributor(s): Joilnen Leite
  *                 Johnny Matthews
+ *                 Campbell BArton
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -45,7 +46,16 @@
 #include "Font.h"
 #include "gen_utils.h"
 
-//no prototypes declared in header files - external linkage outside of python
+
+enum t3d_consts {
+	EXPP_T3D_ATTR_FRAME_WIDTH = 0,
+	EXPP_T3D_ATTR_FRAME_HEIGHT,
+	EXPP_T3D_ATTR_FRAME_X,
+	EXPP_T3D_ATTR_FRAME_Y
+};
+
+
+/*no prototypes declared in header files - external linkage outside of python*/
 extern VFont *get_builtin_font(void);  
 extern void freedisplist(struct ListBase *lb);
 extern VFont *give_vfontpointer(int);
@@ -124,6 +134,8 @@ static PyObject *Text3d_getAlignment( BPy_Text3d * self );
 static PyObject *Text3d_setAlignment( BPy_Text3d * self, PyObject * args );
 static PyObject *Text3d_getFont( BPy_Text3d * self );
 static PyObject *Text3d_setFont( BPy_Text3d * self, PyObject * args );
+static PyObject *Text3d_addFrame( BPy_Text3d * self );
+static PyObject *Text3d_removeFrame( BPy_Text3d * self, PyObject * args );
 
 /*****************************************************************************/
 /* Python BPy_Text3d methods table:                                            */
@@ -200,14 +212,139 @@ static PyMethodDef BPy_Text3d_methods[] = {
 	METH_NOARGS, "() - Gets font list for Text3d"},
  	{"setFont", ( PyCFunction ) Text3d_setFont,
  	METH_VARARGS, "() - Sets font for Text3d"},
+ 	{"addFrame", ( PyCFunction ) Text3d_addFrame,
+ 	METH_NOARGS, "() - adds a new text frame"},
+ 	{"removeFrame", ( PyCFunction ) Text3d_removeFrame,
+ 	METH_VARARGS, "(index) - remove this frame"},
 	{NULL, NULL, 0, NULL}
 };
+
+
+static PyObject *Text3d_getTotalFrames( BPy_Text3d * self )
+{
+	return PyInt_FromLong( (long)(self->curve->totbox ) );
+}
+
+static PyObject *Text3d_getActiveFrame( BPy_Text3d * self )
+{
+	return PyInt_FromLong( (long)(self->curve->actbox-1) );
+}
+
+static int Text3d_setActiveFrame( BPy_Text3d * self, PyObject * value )
+{
+	struct Curve *curve= self->curve;	
+	PyObject* frame_int = PyNumber_Int( value );
+	int index;
+	
+
+	if( !frame_int )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected integer argument" );
+	
+	index = ( int )PyInt_AS_LONG( frame_int );
+	index ++;
+	if (index < 1 || index > curve->totbox)
+		return EXPP_ReturnIntError( PyExc_IndexError,
+				"index out of range" );
+	
+	curve->actbox = index;
+	
+	return 0;
+}
+
+
+static PyObject *getFloatAttr( BPy_Text3d *self, void *type )
+{
+	float param;
+	struct Curve *curve= self->curve;
+	
+	switch( (int)type ) {
+	case EXPP_T3D_ATTR_FRAME_WIDTH: 
+		param = curve->tb[curve->actbox-1].w;
+		break;
+	case EXPP_T3D_ATTR_FRAME_HEIGHT: 
+		param = curve->tb[curve->actbox-1].h;
+		break;
+	case EXPP_T3D_ATTR_FRAME_X: 
+		param = curve->tb[curve->actbox-1].x;
+		break;
+	case EXPP_T3D_ATTR_FRAME_Y: 
+		param = curve->tb[curve->actbox-1].y;
+		break;
+	
+	default:
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
+				"undefined type in getFloatAttr" );
+	}
+	return PyFloat_FromDouble( param );
+}
+
+static int setFloatAttrClamp( BPy_Text3d *self, PyObject *value, void *type )
+{
+	float *param;
+	struct Curve *curve= self->curve;
+	float min, max;
+
+	switch( (int)type ) {
+	case EXPP_T3D_ATTR_FRAME_WIDTH:
+		min = 0.0;
+		max = 50.0;
+		param = &(curve->tb[curve->actbox-1].w);
+		break;
+	case EXPP_T3D_ATTR_FRAME_HEIGHT:
+		min = 0.0;
+		max = 50.0;
+		param = &(curve->tb[curve->actbox-1].h);
+		break;
+	case EXPP_T3D_ATTR_FRAME_X:
+		min = 0.0;
+		max = 50.0;
+		param = &(curve->tb[curve->actbox-1].x);
+		break;
+	case EXPP_T3D_ATTR_FRAME_Y:
+		min = 0.0;
+		max = 50.0;
+		param = &(curve->tb[curve->actbox-1].y);
+		break;
+	
+	default:
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"undefined type in setFloatAttrClamp" );
+	}
+
+	return EXPP_setFloatClamped( value, param, min, max );
+}
 
 /*****************************************************************************/
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef BPy_Text3d_getseters[] = {
 	GENERIC_LIB_GETSETATTR, /* didnt have any attributes, at least lets have the standard ID attrs */
+	{"activeFrame",
+	 (getter)Text3d_getActiveFrame, (setter)Text3d_setActiveFrame,
+	 "the index of the active text frame",
+	 NULL},
+	{"totalFrames",
+	 (getter)Text3d_getTotalFrames, (setter)NULL,
+	 "the total number of text frames",
+	 NULL},
+
+	{"frameWidth",
+	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
+	 "the width of the active text frame",
+	 (void *)EXPP_T3D_ATTR_FRAME_WIDTH},
+	{"frameHeight",
+	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
+	 "the height of the active text frame",
+	 (void *)EXPP_T3D_ATTR_FRAME_HEIGHT},
+	{"frameX",
+	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
+	 "the X position of the active text frame",
+	 (void *)EXPP_T3D_ATTR_FRAME_X},
+	{"frameY",
+	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
+	 "the Y position of the active text frame",
+	 (void *)EXPP_T3D_ATTR_FRAME_Y},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -1003,6 +1140,45 @@ static PyObject *Text3d_setFont( BPy_Text3d * self, PyObject * args )
 	}
 	Py_RETURN_NONE;
 }
+
+static PyObject *Text3d_addFrame( BPy_Text3d * self )
+{
+	Curve *cu = self->curve;
+	
+	if (cu->totbox >= 256)	
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"limited to 256 frames" );
+	
+	cu->totbox++;	
+	cu->tb[cu->totbox-1]= cu->tb[cu->totbox-2];
+	Py_RETURN_NONE;
+}
+
+static PyObject *Text3d_removeFrame( BPy_Text3d * self, PyObject * args )
+{
+	Curve *cu = self->curve;
+	int index, i;
+	
+	if (cu->totbox == 1)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"cannot remove the last frame" );
+	
+	index = cu->totbox-1;
+	
+	if( !PyArg_ParseTuple( args, "|i", &index ) )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"expected an int" );
+	
+	if (index < 0 || index >= cu->totbox )
+		return EXPP_ReturnPyObjError( PyExc_IndexError,
+			"index out of range" );
+	
+	for (i = index; i < cu->totbox; i++) cu->tb[i]= cu->tb[i+1];
+	cu->totbox--;
+	cu->actbox--;
+	Py_RETURN_NONE;
+}
+
 
 PyObject *M_Text3d_LoadFont( PyObject * self, PyObject * args )
 {

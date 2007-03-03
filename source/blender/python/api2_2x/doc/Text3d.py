@@ -42,9 +42,13 @@ class Text3d:
 	The Text3d object
 	=================
 		This object gives access  Blender's B{Font} objects
-	@ivar filename: The filename of the file loaded into this Text.
-	@ivar mode: The follow_mode flag: if 1 it is 'on'; if 0, 'off'.
-	@ivar nlines: The number of lines in this Text.
+	@ivar frameWidth: The width of the active frame [0.0 - 50.0]
+	@ivar frameHeight: The height of the active frame [0.0 - 50.0]
+	@ivar frameX: The X position of the active frame [0.0 - 50.0]
+	@ivar frameY: The Y position of the active frame [0.0 - 50.0]
+	
+	@ivar totalFrames: The total number of text frames (read only)
+	@ivar activeFrame: The active frame for this text data.
 	"""
 
 	def getName():
@@ -282,6 +286,17 @@ class Text3d:
 		@type align: module constant
 		@param align: The new text3d's Alignment value. 
 		"""
+	
+	def addFrame():
+		"""
+		Adds a text frame. maximum number of frames is 255.
+		@rtype: None 
+		"""
 
+	def removeFrame(index):
+		"""
+		Removed the frame at this index
+		@rtype: None 
+		"""
 import id_generics
 Text3d.__doc__ += id_generics.attributes
