@@ -171,8 +171,8 @@ ECHO Done
 		</Configuration>
 		<Configuration
 			Name="3D Plugin Debug|Win32"
-			OutputDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug"
-			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -186,10 +186,10 @@ ECHO Done
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug\Bullet.pch"
-				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug\"
-				ObjectFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug\"
-				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug\"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug\Bullet.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -198,7 +198,7 @@ ECHO Done
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\extern\mtdll\debug\Bullet.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\extern\mtdll\debug\Bullet.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -249,8 +249,8 @@ ECHO Done
 		</Configuration>
 		<Configuration
 			Name="3D Plugin Release|Win32"
-			OutputDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\mtdll"
-			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\mtdll"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll"
 			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -266,10 +266,10 @@ ECHO Done
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\Bullet.pch"
-				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\"
-				ObjectFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\"
-				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\Bullet.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\extern\bullet\mtdll\"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="2"
@@ -278,7 +278,7 @@ ECHO Done
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\extern\mtdll\Bullet.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\extern\mtdll\Bullet.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>

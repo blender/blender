@@ -240,6 +240,8 @@ Global
 		BlenderPlayer Debug = BlenderPlayer Debug
 		BlenderPlayer Release = BlenderPlayer Release
 	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
 		{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
 		{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}.3D Plugin Release.ActiveCfg = Blender Release|Win32
@@ -500,9 +502,7 @@ Global
 		{3648FB9A-C36F-43AB-AED0-1F1361E67FC7}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{3648FB9A-C36F-43AB-AED0-1F1361E67FC7}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
 		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
-		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
-		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.3D Plugin Release.Build.0 = 3D Plugin Release|Win32
 		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.Blender Debug.ActiveCfg = BlenderPlayer Debug|Win32
 		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.Blender Release.ActiveCfg = BlenderPlayer Release|Win32
 		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.BlenderPlayer Debug.ActiveCfg = BlenderPlayer Debug|Win32
