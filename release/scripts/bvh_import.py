@@ -305,7 +305,7 @@ def read_bvh(file_path, GLOBAL_SCALE=1.0):
 
 
 
-def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1):
+def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 	
 	if IMPORT_START_FRAME<1:
 		IMPORT_START_FRAME= 1
@@ -318,6 +318,7 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1):
 	def add_ob(name):
 		ob = scn.objects.new('Empty')
 		objects.append(ob)
+		return ob
 	
 	# Add objects
 	for name, bvh_node in bvh_nodes.iteritems():
@@ -360,7 +361,7 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1):
 
 
 #TODO, armature loading
-def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
+def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 	
 	if IMPORT_START_FRAME<1:
 		IMPORT_START_FRAME= 1
@@ -486,7 +487,8 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 	# KEYFRAME METHOD, SLOW, USE IPOS DIRECT
 	
 	# Animate the data, the last used bvh_node will do since they all have the same number of frames
-	for current_frame in xrange(len(bvh_node.anim_data)):
+	for current_frame in xrange(len(bvh_node.anim_data)-1): # skip the first frame (rest frame)
+		# print current_frame
 		
 		#if current_frame==40: # debugging
 		#	break
@@ -494,7 +496,7 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 		# Dont neet to set the current frame
 		for bvh_node in bvh_nodes.itervalues():
 			pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv= bvh_node.temp
-			lx,ly,lz,rx,ry,rz= bvh_node.anim_data[current_frame]
+			lx,ly,lz,rx,ry,rz= bvh_node.anim_data[current_frame+1]
 			
 			if bvh_node.has_rot:
 				# Set the rotation, not so simple			
@@ -514,7 +516,20 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1):
 			
 			if xformConstants:
 				# Insert the keyframe from the loc/quat
-				pose_bone.insertKey(arm_ob, current_frame+IMPORT_START_FRAME, xformConstants)
+				pose_bone.insertKey(arm_ob, current_frame+IMPORT_START_FRAME, xformConstants, True )
+		
+		# First time, set the IPO's to linear
+		if current_frame==0:
+			for ipo in action.getAllChannelIpos().itervalues():
+				if ipo:
+					for cur in ipo:
+						cur.interpolation = Blender.IpoCurve.InterpTypes.LINEAR
+						if IMPORT_LOOP:
+							cur.extend = Blender.IpoCurve.ExtendTypes.CYCLIC
+							
+						
+		
+		
 	# END KEYFRAME METHOD
 	
 	
@@ -684,10 +699,11 @@ def load_bvh_ui(file, PREF_UI= True):
 	
 	Draw= Blender.Draw
 	
-	IMPORT_SCALE = Draw.Create(0.01)
+	IMPORT_SCALE = Draw.Create(0.1)
 	IMPORT_START_FRAME = Draw.Create(1)
 	IMPORT_AS_ARMATURE = Draw.Create(1)
 	IMPORT_AS_EMPTIES = Draw.Create(0)
+	IMPORT_LOOP = Draw.Create(0)
 	
 	# Get USER Options
 	if PREF_UI:
@@ -696,6 +712,7 @@ def load_bvh_ui(file, PREF_UI= True):
 		('As Empties', IMPORT_AS_EMPTIES, 'Imports the BVH as empties'),\
 		('Scale: ', IMPORT_SCALE, 0.001, 100.0, 'Scale the BVH, Use 0.01 when 1.0 is 1 metre'),\
 		('Start Frame: ', IMPORT_START_FRAME, 1, 30000, 'Frame to start BVH motion'),\
+		('Loop Animation', IMPORT_LOOP, 'Enable cyclic IPOs'),\
 		]
 		
 		if not Draw.PupBlock('BVH Import...', pup_block):
@@ -707,6 +724,7 @@ def load_bvh_ui(file, PREF_UI= True):
 	IMPORT_START_FRAME = IMPORT_START_FRAME.val
 	IMPORT_AS_ARMATURE = IMPORT_AS_ARMATURE.val
 	IMPORT_AS_EMPTIES = IMPORT_AS_EMPTIES.val
+	IMPORT_LOOP = IMPORT_LOOP.val
 	
 	if not IMPORT_AS_ARMATURE and not IMPORT_AS_EMPTIES:
 		Blender.Draw.PupMenu('No import option selected')
@@ -719,8 +737,8 @@ def load_bvh_ui(file, PREF_UI= True):
 	print '%.4f' % (Blender.sys.time()-t1)
 	t1= Blender.sys.time()
 	print '\timporting to blender...',
-	if IMPORT_AS_ARMATURE:	bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME)
-	if IMPORT_AS_EMPTIES:	bvh_node_dict2objects(bvh_nodes,  IMPORT_START_FRAME)
+	if IMPORT_AS_ARMATURE:	bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME, IMPORT_LOOP)
+	if IMPORT_AS_EMPTIES:	bvh_node_dict2objects(bvh_nodes,  IMPORT_START_FRAME, IMPORT_LOOP)
 	
 	print 'Done in %.4f\n' % (Blender.sys.time()-t1)
 	Blender.Window.WaitCursor(0)

@@ -407,11 +407,11 @@ static PyObject *PoseBone_insertKey(BPy_PoseBone *self, PyObject *args)
 {
 	PyObject *parent_object = NULL;
 	PyObject *constants = NULL, *item = NULL;
-	int frame = 1, oldframe, length, x, numeric_value = 0, oldflag;
+	int frame = 1, oldframe, length, x, numeric_value = 0, oldflag, no_ipo_update = 0;
 	bPoseChannel *pchan = NULL;
 	
 
-	if (!PyArg_ParseTuple(args, "O!i|O", &Object_Type, &parent_object, &frame, &constants ))
+	if (!PyArg_ParseTuple(args, "O!i|Oi", &Object_Type, &parent_object, &frame, &constants, &no_ipo_update ))
 		goto AttributeError;
 
 	//verify that this pchannel is part of the object->pose
@@ -511,7 +511,8 @@ static PyObject *PoseBone_insertKey(BPy_PoseBone *self, PyObject *args)
 	G.scene->r.cfra = oldframe;
 
 	//update the IPOs
-	remake_action_ipos (((BPy_Object*)parent_object)->object->action);
+	if (!no_ipo_update)
+		remake_action_ipos (((BPy_Object*)parent_object)->object->action);
 
 	Py_RETURN_NONE;
 

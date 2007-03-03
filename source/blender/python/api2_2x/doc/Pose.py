@@ -105,131 +105,135 @@ Example::
 """
 
 class Pose:
-  """
-  The Pose object
-  ===============
-    This object gives access to Pose-specific data in Blender.
-  @ivar bones: A Dictionary of PosePoseBones (PoseDict) that make up this Pose.
-  @type bones: PoseDict Object
-  """
+	"""
+	The Pose object
+	===============
+		This object gives access to Pose-specific data in Blender.
+	@ivar bones: A Dictionary of PosePoseBones (PoseDict) that make up this Pose.
+	@type bones: PoseDict Object
+	"""
 
-  def update():
-    """
-    Save all changes and update the Pose.
-    @rtype: None
-    """
+	def update():
+		"""
+		Save all changes and update the Pose.
+		@rtype: None
+		"""
 
 class PoseBonesDict:
-  """
-  The PoseBonesDict object
-  ========================
-    This object gives dictionary like access to the PoseBones in a Pose. 
-    It is internal to blender but is called as 'Pose.bones'
-  """
+	"""
+	The PoseBonesDict object
+	========================
+		This object gives dictionary like access to the PoseBones in a Pose. 
+		It is internal to blender but is called as 'Pose.bones'
+	"""
 
-  def items():
-    """
-    Return the key, value pairs in this dictionary
-    @rtype: string, PosePoseBone
-    @return: All strings, and PosePoseBones in the Pose (in that order)
-    """
+	def items():
+		"""
+		Return the key, value pairs in this dictionary
+		@rtype: string, PosePoseBone
+		@return: All strings, and PosePoseBones in the Pose (in that order)
+		"""
 
-  def keys():
-    """
-    Return the keys in this dictionary
-    @rtype: string
-    @return: All strings representing the PosePoseBone names
-    """
+	def keys():
+		"""
+		Return the keys in this dictionary
+		@rtype: string
+		@return: All strings representing the PosePoseBone names
+		"""
 
-  def values():
-    """
-    Return the values in this dictionary
-    @rtype: BPy_PoseBone
-    @return: All PosePoseBones in this dictionary
-    """
+	def values():
+		"""
+		Return the values in this dictionary
+		@rtype: BPy_PoseBone
+		@return: All PosePoseBones in this dictionary
+		"""
 
 class PoseBone:
-  """
-  The PoseBone object
-  ===================
-    This object gives access to PoseBone-specific data in Blender. 
-  @ivar name: The name of this PoseBone.
-  @type name: String
-  @ivar loc: The change in location for this PoseBone.
-  @type loc: Vector object
-  @ivar size: The change in size for this PoseBone (no change is 1,1,1)
-  @type size: Vector object
-  @ivar quat: The change in rotation for this PoseBone.
-  @type quat: Quaternion object
-  @ivar head: The final head location for this PoseBone. (not settable)
-  @type head: Vector object
-  @ivar tail: The final tail location for this PoseBone. (not settable)
-  @type tail: Vector object
-  @ivar sel: The selection state of this bone
-  @type sel: Boolean
-  @ivar parent: The parent of this posebone (not settable)
-  @type parent: posebone or None
-  @ivar displayObject: The object to display in place of the bone. (custom bones)
-  @type displayObject: Object or None
-  @ivar localMatrix: The matrix combination of rot/size/loc.
-  @type localMatrix: Matrix object
-  @ivar poseMatrix: The total transformation of this PoseBone including constraints.
+	"""
+	The PoseBone object
+	===================
+		This object gives access to PoseBone-specific data in Blender. 
+	@ivar name: The name of this PoseBone.
+	@type name: String
+	@ivar loc: The change in location for this PoseBone.
+	@type loc: Vector object
+	@ivar size: The change in size for this PoseBone (no change is 1,1,1)
+	@type size: Vector object
+	@ivar quat: The change in rotation for this PoseBone.
+	@type quat: Quaternion object
+	@ivar head: The final head location for this PoseBone. (not settable)
+	@type head: Vector object
+	@ivar tail: The final tail location for this PoseBone. (not settable)
+	@type tail: Vector object
+	@ivar sel: The selection state of this bone
+	@type sel: Boolean
+	@ivar parent: The parent of this posebone (not settable)
+	@type parent: posebone or None
+	@ivar displayObject: The object to display in place of the bone. (custom bones)
+	@type displayObject: Object or None
+	@ivar localMatrix: The matrix combination of rot/size/loc.
+	@type localMatrix: Matrix object
+	@ivar poseMatrix: The total transformation of this PoseBone including constraints.
 
-  (not settable).
+	(not settable).
 
-  This matrix is in armature space, for the current worldspace location of this pose bone, multiply
-  it with its objects worldspace matrix
+	This matrix is in armature space, for the current worldspace location of this pose bone, multiply
+	it with its objects worldspace matrix
 
-  eg. pose_bone.poseMatrix * object.matrixWorld
-  @type poseMatrix: Matrix object
-  @type constraints: BPy_ConstraintSeq
-  @ivar constraints: a sequence of constraints for the object
-  @type limitmin: 3-item sequence
-  @ivar limitmin: The x,y,z minimum limits on rotation when part of an IK
-  @type limitmax: 3-item sequence
-  @ivar limitmax: The x,y,z maximum limits on rotation when part of an IK
+	eg. pose_bone.poseMatrix * object.matrixWorld
+	@type poseMatrix: Matrix object
+	@type constraints: BPy_ConstraintSeq
+	@ivar constraints: a sequence of constraints for the object
+	@type limitmin: 3-item sequence
+	@ivar limitmin: The x,y,z minimum limits on rotation when part of an IK
+	@type limitmax: 3-item sequence
+	@ivar limitmax: The x,y,z maximum limits on rotation when part of an IK
 
-  @type hasIK: bool
-  @ivar hasIK: True if this pose bone is a part of an IK (readonly), when False, other IK related values have no affect.
+	@type hasIK: bool
+	@ivar hasIK: True if this pose bone is a part of an IK (readonly), when False, other IK related values have no affect.
 
-  @type stretch: float
-  @ivar stretch: The amount to stretch to the ik target when part of an IK [0.0 - 1.0]
+	@type stretch: float
+	@ivar stretch: The amount to stretch to the ik target when part of an IK [0.0 - 1.0]
 
-  @type stiffX: float
-  @ivar stiffX: The x stiffness when part of an IK [0.0 - 0.990]
-  @type stiffY: float
-  @ivar stiffY: The x stiffness when part of an IK [0.0 - 0.990]
-  @type stiffZ: float
-  @ivar stiffZ: The x stiffness when part of an IK [0.0 - 0.990]
-  
-  @type limitX: bool
-  @ivar limitX: Limit rotation over X axis when part of an IK.
-  @type limitY: bool
-  @ivar limitY: Limit rotation over Y axis when part of an IK.
-  @type limitZ: bool
-  @ivar limitZ: Limit rotation over Z axis when part of an IK.
-  
-  @type lockXRot: bool
-  @ivar lockXRot: Disable X DoF when part of an IK.
-  @type lockYRot: bool
-  @ivar lockYRot: Disable Y DoF when part of an IK.
-  @type lockZRot: bool
-  @ivar lockZRot: Disable Z DoF when part of an IK.
-  
-  """
+	@type stiffX: float
+	@ivar stiffX: The x stiffness when part of an IK [0.0 - 0.990]
+	@type stiffY: float
+	@ivar stiffY: The x stiffness when part of an IK [0.0 - 0.990]
+	@type stiffZ: float
+	@ivar stiffZ: The x stiffness when part of an IK [0.0 - 0.990]
+	
+	@type limitX: bool
+	@ivar limitX: Limit rotation over X axis when part of an IK.
+	@type limitY: bool
+	@ivar limitY: Limit rotation over Y axis when part of an IK.
+	@type limitZ: bool
+	@ivar limitZ: Limit rotation over Z axis when part of an IK.
+	
+	@type lockXRot: bool
+	@ivar lockXRot: Disable X DoF when part of an IK.
+	@type lockYRot: bool
+	@ivar lockYRot: Disable Y DoF when part of an IK.
+	@type lockZRot: bool
+	@ivar lockZRot: Disable Z DoF when part of an IK.
+	
+	"""
 
-  def insertKey(parentObject, frameNumber, type):
-    """
-    Insert a pose key for this PoseBone at a frame.
-    @type parentObject: Object object
-    @param parentObject: The object the pose came from.
-    @type frameNumber: integer
-    @param frameNumber: The frame number to insert the pose key on.
-    @type type: Constant object
-    @param type: Can be any combination of 3 Module constants:
-       - Pose.LOC
-       - Pose.ROT (This adds keyframes to the quat ipo, since quaternions are used for pose bone rotation)
-       - Pose.SIZE
-    @rtype: None
-    """
+	def insertKey(parentObject, frameNumber, type = "[Pose.LOC, Pose.ROT, Pose.SIZE]", fast = False):
+		"""
+		Insert a pose key for this PoseBone at a frame.
+		@type parentObject: Object object
+		@param parentObject: The object the pose came from.
+		@type frameNumber: integer
+		@param frameNumber: The frame number to insert the pose key on.
+		@type type: Constant object
+		@param type: Optional argumentm.
+		Can be any combination of 3 Module constants:
+			- Pose.LOC
+			- Pose.ROT (This adds keyframes to the quat ipo, since quaternions are used for pose bone rotation)
+			- Pose.SIZE
+		If this argument is omitted all keys will be added.
+		@type fast: Bool
+		@param fast: If enabled, the IPOs will not be recalculated, speeds up adding many keyframes at once.
+		@rtype: None
+		"""
 
