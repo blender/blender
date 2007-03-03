@@ -1006,6 +1006,7 @@ static int testnode(Isect *is, Node *no, OcVal ocval)
 			if(is->vlrorig != vlr) {
 				/* I now... cpu cycle waste, might do smarter once */
 				if(is->mode==DDA_MIRROR && (vlr->mat->mode & MA_ONLYCAST));
+				else if(is->mode==DDA_SHADOW_TRA && !(is->lay & vlr->lay));
 				else {
 					ov= no->ov+nr;
 					if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) { 
