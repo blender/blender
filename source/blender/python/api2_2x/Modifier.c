@@ -48,6 +48,7 @@
 #include "mydevice.h"
 
 #include "Object.h"
+#include "Texture.h"
 #include "Mathutils.h"
 #include "gen_utils.h"
 
@@ -115,8 +116,16 @@ enum mod_constants {
 	/*EDGE SPLIT SPESIFIC */
 	EXPP_MOD_EDGESPLIT_ANGLE,
 	EXPP_MOD_EDGESPLIT_FROM_ANGLE,
-	EXPP_MOD_EDGESPLIT_FROM_SHARP
-
+	EXPP_MOD_EDGESPLIT_FROM_SHARP,
+	
+	/* DISPLACE */
+	EXPP_MOD_UVLAYER,
+	EXPP_MOD_MID_LEVEL,
+	EXPP_MOD_STRENGTH,
+	EXPP_MOD_TEXTURE,
+	EXPP_MOD_MAPPING,
+	EXPP_MOD_DIRECTION
+	
 	/* yet to be implemented */
 	/* EXPP_MOD_HOOK_,*/
 	/* , */
@@ -254,6 +263,32 @@ PyTypeObject Modifier_Type = {
 	NULL
 };
 
+/*
+static int Modifier_set_object__internal(BPy_Modifier *self, PyObject *value, Object *ob, short type, short assign_self)
+{
+	Object *ob_new=NULL;
+	if (value == Py_None) {
+		ob = NULL;
+	} else if (BPy_Object_Check( value )) {
+		ob = ((( BPy_Object * )value)->object);
+		if( type != -1 && ob_new->type != type) {
+			return EXPP_ReturnIntError( PyExc_TypeError, 
+				"this object is not a supported type" );
+		}
+		
+		if( !assign_self && ob == self->object )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+				"Cannot assign the object to its self" );
+		*ob = *ob_new;
+	} else {
+		return EXPP_ReturnIntError( PyExc_TypeError,
+			"Expected an Object or None value" );
+	}
+	
+	return 0;	
+}
+*/
+
 /*****************************************************************************/
 /* Python BPy_Modifier methods:                                              */
 /*****************************************************************************/
@@ -364,16 +399,26 @@ static int armature_setter( BPy_Modifier *self, int type, PyObject *value )
 
 	switch( type ) {
 	case EXPP_MOD_OBJECT: {
-		Object *ob = (( BPy_Object * )value)->object;
-		if( !BPy_Object_Check( value ) || ob->type != OB_ARMATURE )
-			return EXPP_ReturnIntError( PyExc_TypeError, 
-					"expected BPy armature object argument" );
-		if(ob == self->object )
+		Object *ob_new=NULL;
+		if (value == Py_None) {
+			md->object = NULL;
+		} else if (BPy_Object_Check( value )) {
+			ob_new = ((( BPy_Object * )value)->object);
+			if( ob_new->type != OB_ARMATURE) {
+				return EXPP_ReturnIntError( PyExc_TypeError, 
+					"this object is not a supported type" );
+			}
+			
+			if( ob_new == self->object )
+				return EXPP_ReturnIntError( PyExc_TypeError,
+					"Cannot assign the object to its self" );
+			md->object = ob_new;
+		} else {
 			return EXPP_ReturnIntError( PyExc_TypeError,
-					"Cannot lattice deform an object with its self" );
-		md->object = ob;
-		return 0;
+				"Expected an Object or None value" );
 		}
+		return 0;
+	}
 	case EXPP_MOD_VERTGROUP:
 		return EXPP_setBitfield( value, &md->deformflag, 1, 'h' );
 	case EXPP_MOD_ENVELOPES:
@@ -403,16 +448,26 @@ static int lattice_setter( BPy_Modifier *self, int type, PyObject *value )
 
 	switch( type ) {
 	case EXPP_MOD_OBJECT: {
-		Object *ob = (( BPy_Object * )value)->object;
-		if( !BPy_Object_Check( value ) || ob->type != OB_LATTICE )
-			return EXPP_ReturnIntError( PyExc_TypeError, 
-					"expected BPy lattice object argument" );
-		if(ob == self->object )
+		Object *ob_new=NULL;
+		if (value == Py_None) {
+			md->object = NULL;
+		} else if (BPy_Object_Check( value )) {
+			ob_new = ((( BPy_Object * )value)->object);
+			if( ob_new->type != OB_LATTICE) {
+				return EXPP_ReturnIntError( PyExc_TypeError, 
+					"this object is not a supported type" );
+			}
+			
+			if( ob_new == self->object )
+				return EXPP_ReturnIntError( PyExc_TypeError,
+					"Cannot assign the object to its self" );
+			md->object = ob_new;
+		} else {
 			return EXPP_ReturnIntError( PyExc_TypeError,
-					"Cannot curve deform an object with its self" );
-		md->object = ob;
-		break;
+				"Expected an Object or None value" );
 		}
+		return 0;
+	}
 	case EXPP_MOD_VERTGROUP: {
 		char *name = PyString_AsString( value );
 		if( !name )
@@ -447,16 +502,25 @@ static int curve_setter( BPy_Modifier *self, int type, PyObject *value )
 
 	switch( type ) {
 	case EXPP_MOD_OBJECT: {
-		Object *ob = (( BPy_Object * )value)->object;
-		if( !BPy_Object_Check( value ) || ob->type != OB_CURVE )
+		Object *ob_new=NULL;
+		if (value == Py_None) {
+			md->object = NULL;
+		} else if (BPy_Object_Check( value )) {
+			ob_new = ((( BPy_Object * )value)->object);
+			if( ob_new->type != OB_CURVE) {
+				return EXPP_ReturnIntError( PyExc_TypeError, 
+					"this object is not a supported type" );
+			}
+			if( ob_new == self->object )
+				return EXPP_ReturnIntError( PyExc_TypeError,
+					"Cannot assign the object to its self" );
+			md->object = ob_new;
+		} else {
 			return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected BPy lattice object argument" );
-		if(ob == self->object )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					"Cannot curve deform an object with its self" );
-		md->object = ob;
-		break;
+				"Expected an Object or None value" );
 		}
+		return 0;
+	}
 	case EXPP_MOD_VERTGROUP: {
 		char *name = PyString_AsString( value );
 		if( !name )
@@ -652,25 +716,37 @@ static int array_setter( BPy_Modifier *self, int type, PyObject *value )
 	ArrayModifierData *md = (ArrayModifierData *)(self->md);
 	switch( type ) {
 	case EXPP_MOD_OBJECT_OFFSET: {
-		Object *ob = (( BPy_Object * )value)->object;
-		if( !BPy_Object_Check( value ) )
-			return EXPP_ReturnIntError( PyExc_TypeError, 
-					"expected BPy object argument" );
-		if(ob == self->object )
+		Object *ob_new=NULL;
+		if (value == Py_None) {
+			md->offset_ob = NULL;
+		} else if (BPy_Object_Check( value )) {
+			ob_new = ((( BPy_Object * )value)->object);
+			
+			if( ob_new == self->object )
+				return EXPP_ReturnIntError( PyExc_TypeError,
+					"Cannot assign the object to its self" );
+			md->offset_ob = ob_new;
+		} else {
 			return EXPP_ReturnIntError( PyExc_TypeError,
-					"Cannot lattice deform an object with its self" );
-		md->offset_ob = ob;
+				"Expected an Object or None value" );
+		}
 		return 0;
 	}
 	case EXPP_MOD_OBJECT_CURVE: {
-		Object *ob = (( BPy_Object * )value)->object;
-		if( !BPy_Object_Check( value ) || ob->type != OB_CURVE )
-			return EXPP_ReturnIntError( PyExc_TypeError, 
-					"expected BPy object argument" );
-		if(ob == self->object )
+		Object *ob_new=NULL;
+		if (value == Py_None) {
+			md->curve_ob = NULL;
+		} else if (BPy_Object_Check( value )) {
+			ob_new = ((( BPy_Object * )value)->object);
+			
+			if( ob_new == self->object )
+				return EXPP_ReturnIntError( PyExc_TypeError,
+					"Cannot assign the object to its self" );
+			md->curve_ob = ob_new;
+		} else {
 			return EXPP_ReturnIntError( PyExc_TypeError,
-					"Cannot lattice deform an object with its self" );
-		md->curve_ob = ob;
+				"Expected an Object or None value" );
+		}
 		return 0;
 	}
 	case EXPP_MOD_COUNT:
@@ -761,7 +837,125 @@ static int edgesplit_setter( BPy_Modifier *self, int type, PyObject *value )
 	}
 }
 
+static PyObject *displace_getter( BPy_Modifier * self, int type )
+{
+	DisplaceModifierData *md = (DisplaceModifierData *)(self->md);
 
+	switch( type ) {
+	case EXPP_MOD_TEXTURE:
+		if (md->texture)	Texture_CreatePyObject( md->texture );
+		else				Py_RETURN_NONE;
+	case EXPP_MOD_STRENGTH:
+		return PyFloat_FromDouble( (double)md->strength );
+	case EXPP_MOD_DIRECTION:
+		PyInt_FromLong( md->direction );
+	case EXPP_MOD_VERTGROUP:
+		return PyString_FromString( md->defgrp_name ) ;
+	case EXPP_MOD_MID_LEVEL:
+		return PyFloat_FromDouble( (double)md->midlevel );
+	case EXPP_MOD_MAPPING:
+		PyInt_FromLong( md->texmapping );
+	case EXPP_MOD_OBJECT:
+		return Object_CreatePyObject( md->map_object );
+	case EXPP_MOD_UVLAYER:
+		return PyString_FromString( md->uvlayer_name );
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static int displace_setter( BPy_Modifier *self, int type, PyObject *value )
+{
+	DisplaceModifierData *md = (DisplaceModifierData *)(self->md);
+
+	switch( type ) {
+	case EXPP_MOD_TEXTURE:
+		if (md->texture)
+			md->texture->id.us--;
+		
+		if (value == Py_None) {
+			md->texture = NULL;
+		} else if (Texture_CheckPyObject(value)) {
+			BPy_Texture *bpytex = (BPy_Texture *)value;
+			md->texture = bpytex->texture;
+			md->texture->id.us--;
+			
+		} else {
+			if (md->texture)
+				md->texture->id.us++;
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"Texture must be of Texture or None type" );
+		}
+		return 0;
+	case EXPP_MOD_STRENGTH:
+		return EXPP_setFloatClamped( value, &md->strength, -1000.0, 1000.0 );
+	
+	case EXPP_MOD_DIRECTION:
+		return EXPP_setIValueClamped( value, &md->direction,
+				MOD_DISP_DIR_X, MOD_DISP_DIR_RGB_XYZ, 'i' );
+	
+	case EXPP_MOD_VERTGROUP: {
+		char *name = PyString_AsString( value );
+		if( !name ) return EXPP_ReturnIntError( PyExc_TypeError, "expected string arg" );
+		BLI_strncpy( md->defgrp_name, name, sizeof( md->defgrp_name ) );
+		return 0;
+	}
+	case EXPP_MOD_MID_LEVEL:
+		return EXPP_setFloatClamped( value, &md->midlevel, 0.0, 1.0 );
+	
+	case EXPP_MOD_MAPPING:
+		return EXPP_setIValueClamped( value, &md->texmapping,
+				MOD_DISP_MAP_LOCAL, MOD_DISP_MAP_UV, 'i' );
+	
+	case EXPP_MOD_OBJECT: {
+		Object *ob_new=NULL;
+		if (value == Py_None) {
+			md->map_object = NULL;
+		} else if (BPy_Object_Check( value )) {
+			ob_new = ((( BPy_Object * )value)->object);
+			md->map_object = ob_new;
+		} else {
+			return EXPP_ReturnIntError( PyExc_TypeError,
+				"Expected an Object or None value" );
+		}
+		return 0;
+	}
+	
+	case EXPP_MOD_UVLAYER: {
+		char *name = PyString_AsString( value );
+		if( !name ) return EXPP_ReturnIntError( PyExc_TypeError, "expected string arg" );
+		BLI_strncpy( md->uvlayer_name, name, sizeof( md->uvlayer_name ) );
+		return 0;
+	}
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
+
+
+/* static PyObject *uvproject_getter( BPy_Modifier * self, int type )
+{
+	DisplaceModifierData *md = (DisplaceModifierData *)(self->md);
+
+	switch( type ) {
+	case EXPP_MOD_MID_LEVEL:
+		return PyFloat_FromDouble( (double)md->midlevel );
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static int uvproject_setter( BPy_Modifier *self, int type, PyObject *value )
+{
+	DisplaceModifierData *md = (DisplaceModifierData *)(self->md);
+
+	switch( type ) {
+	case EXPP_MOD_TEXTURE:
+		return 0;
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+} */
 
 
 /*
@@ -812,6 +1006,10 @@ static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 				return array_getter( self, setting );
 			case eModifierType_EdgeSplit:
 				return edgesplit_getter( self, setting );
+			case eModifierType_Displace:
+				return displace_getter( self, setting );
+			/*case eModifierType_UVProject:
+				return uvproject_getter( self, setting );*/
 			case eModifierType_Hook:
 			case eModifierType_Softbody:
 			case eModifierType_None:
@@ -874,6 +1072,10 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 			return boolean_setter( self, key_int, arg );
 		case eModifierType_EdgeSplit:
 			return edgesplit_setter( self, key_int, arg );
+		case eModifierType_Displace:
+			return displace_setter( self, key_int, arg );
+		/*case eModifierType_UVProject:
+			return uvproject_setter( self, key_int, arg );*/
 		case eModifierType_Hook:
 		case eModifierType_Softbody:
 		case eModifierType_None:
@@ -1406,6 +1608,12 @@ for var in st.replace(',','').split('\n'):
 				PyInt_FromLong( EXPP_MOD_EDGESPLIT_FROM_ANGLE ) );
 			PyConstant_Insert( d, "EDGESPLIT_FROM_SHARP", 
 				PyInt_FromLong( EXPP_MOD_EDGESPLIT_FROM_SHARP ) );
+			PyConstant_Insert( d, "UVLAYER",
+				PyInt_FromLong( EXPP_MOD_UVLAYER ) );
+			PyConstant_Insert( d, "MID_LEVEL",
+				PyInt_FromLong( EXPP_MOD_MID_LEVEL ) );
+			PyConstant_Insert( d, "STRENGTH",
+				PyInt_FromLong( EXPP_MOD_STRENGTH ) );
 			/*End Auto generated code*/
 	}
 	return S;
