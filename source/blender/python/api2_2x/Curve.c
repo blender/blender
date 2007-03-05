@@ -31,7 +31,6 @@
 
 #include "Curve.h" /*This must come first*/
 
-#include "BLI_blenlib.h"
 #include "BKE_main.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
@@ -110,7 +109,6 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args );
 
 static PyObject *Curve_getMaterials( BPy_Curve * self );
-static PyObject *Curve_setMaterials( BPy_Curve * self, PyObject * args );
 
 static PyObject *Curve_getBevOb( BPy_Curve * self );
 static PyObject *Curve_setBevOb( BPy_Curve * self, PyObject * args );
@@ -127,7 +125,1317 @@ static int Curve_length( PyInstanceObject * inst );
 
 
 struct chartrans *text_to_curve( Object * ob, int mode );
+/*****************************************************************************/
+/* Python BPy_Curve methods:                                                 */
+/* gives access to                                                           */
+/* name, pathlen totcol flag bevresol                                        */
+/* resolu resolv width ext1 ext2                                             */
+/* controlpoint loc rot size                                                 */
+/* numpts                                                                    */
+/*****************************************************************************/
 
+
+PyObject *Curve_getName( BPy_Curve * self )
+{
+	PyObject *attr = PyString_FromString( self->curve->id.name + 2 );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Curve.name attribute" );
+}
+
+static int Curve_newsetName( BPy_Curve * self, PyObject * args )
+{
+	char *name;
+
+	name = PyString_AsString( args );
+	if( !name )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected string argument" );
+
+	rename_id( &self->curve->id, name );	/* proper way in Blender */
+	Curve_update( self );
+
+	return 0;
+}
+
+static PyObject *Curve_getPathLen( BPy_Curve * self )
+{
+	PyObject *attr = PyInt_FromLong( ( long ) self->curve->pathlen );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Curve.pathlen attribute" );
+}
+
+
+static int Curve_newsetPathLen( BPy_Curve * self, PyObject * args )
+{
+	PyObject *num;
+
+	if( !PyNumber_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument" );
+
+	num = PyNumber_Int( args );
+	self->curve->pathlen = (short)PyInt_AS_LONG( num );
+	Py_DECREF( num );
+
+	return 0;
+}
+
+static PyObject *Curve_getTotcol( BPy_Curve * self )
+{
+	PyObject *attr = PyInt_FromLong( ( long ) self->curve->totcol );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Curve.totcol attribute" );
+}
+
+
+PyObject *Curve_getMode( BPy_Curve * self )
+{
+	PyObject *attr = PyInt_FromLong( ( long ) self->curve->flag );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Curve.flag attribute" );
+}
+
+
+static int Curve_newsetMode( BPy_Curve * self, PyObject * args )
+{
+	PyObject *num;
+
+	if( !PyNumber_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument" );
+
+	num = PyNumber_Int( args );
+	self->curve->flag = (short)PyInt_AS_LONG( num );
+	Py_DECREF( num );
+
+	return 0;
+}
+
+PyObject *Curve_getBevresol( BPy_Curve * self )
+{
+	PyObject *attr = PyInt_FromLong( ( long ) self->curve->bevresol );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Curve.bevresol attribute" );
+}
+
+static int Curve_newsetBevresol( BPy_Curve * self, PyObject * args )
+{
+	short value;
+	PyObject *num;
+
+	if( !PyNumber_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument" );
+
+	num = PyNumber_Int( args );
+	value = (short)PyInt_AS_LONG( num );
+	Py_DECREF( num );
+
+	if( value > 10 || value < 0 )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"acceptable values are between 0 and 10" );
+
+	self->curve->bevresol = value;
+	return 0;
+}
+
+
+PyObject *Curve_getResolu( BPy_Curve * self )
+{
+	PyObject *attr = PyInt_FromLong( ( long ) self->curve->resolu );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Curve.resolu attribute" );
+}
+
+
+static int Curve_newsetResolu( BPy_Curve * self, PyObject * args )
+{
+	short value;
+	Nurb *nu;
+	PyObject *num;
+
+	if( !PyNumber_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument" );
+
+	num = PyNumber_Int( args );
+	value = (short)PyInt_AS_LONG( num );
+	Py_DECREF( num );
+
+	if( value > 128 || value < 1 )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"acceptable values are between 1 and 128" );
+
+	self->curve->resolu = value;
+	/* propagate the change through all the curves */
+	for( nu = self->curve->nurb.first; nu; nu = nu->next )
+		nu->resolu = value;
+
+	return 0;
+}
+
+PyObject *Curve_getResolv( BPy_Curve * self )
+{
+	PyObject *attr = PyInt_FromLong( ( long ) self->curve->resolv );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Curve.resolv attribute" );
+}
+
+static int Curve_newsetResolv( BPy_Curve * self, PyObject * args )
+{
+	short value;
+	PyObject *num;
+
+	if( !PyNumber_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument" );
+
+	num = PyNumber_Int( args );
+	value = (short)PyInt_AS_LONG( num );
+	Py_DECREF( num );
+
+	if(value > 128 || value < 1)
+		return EXPP_ReturnIntError( PyExc_ValueError,
+			"acceptable values are between 1 and 128" );
+	self->curve->resolv = value;
+
+	return 0;
+}
+
+PyObject *Curve_getWidth( BPy_Curve * self )
+{
+	PyObject *attr = PyFloat_FromDouble( ( double ) self->curve->width );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Curve.width attribute" );
+}
+
+
+static int Curve_newsetWidth( BPy_Curve * self, PyObject * args )
+{
+	float value;
+	PyObject *num;
+
+	if( !PyNumber_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected float argument" );
+
+	num = PyNumber_Float( args );
+	value = (float)PyFloat_AS_DOUBLE( num );
+	Py_DECREF( num );
+
+	if(value > 2.0f || value < 0.0f)
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"acceptable values are between 2.0 and 0.0" );
+	self->curve->width = value;
+
+	return 0;
+}
+
+
+PyObject *Curve_getExt1( BPy_Curve * self )
+{
+	PyObject *attr = PyFloat_FromDouble( ( double ) self->curve->ext1 );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Curve.ext1 attribute" );
+}
+
+
+static int Curve_newsetExt1( BPy_Curve * self, PyObject * args )
+{
+	float value;
+	PyObject *num;
+
+	if( !PyNumber_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected float argument" );
+
+	num = PyNumber_Float( args );
+	value = (float)PyFloat_AS_DOUBLE( num );
+	Py_DECREF( num );
+
+	if(value > 5.0f || value < 0.0f)
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"acceptable values are between 0.0 and 5.0" );
+	self->curve->ext1 = value;
+
+	return 0;
+}
+
+PyObject *Curve_getExt2( BPy_Curve * self )
+{
+	PyObject *attr = PyFloat_FromDouble( ( double ) self->curve->ext2 );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Curve.ext2 attribute" );
+}
+
+
+static int Curve_newsetExt2( BPy_Curve * self, PyObject * args )
+{
+	float value;
+	PyObject *num;
+
+	if( !PyNumber_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected float argument" );
+
+	num = PyNumber_Float( args );
+	value = (float)PyFloat_AS_DOUBLE( num );
+	Py_DECREF( num );
+
+	if(value > 2.0f || value < 0.0f)
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"acceptable values are between 0.0 and 2.0" );
+	self->curve->ext2 = value;
+
+	return 0;
+}
+
+/*
+ * Curve_setControlPoint
+ * this function sets an EXISTING control point.
+ * it does NOT add a new one.
+ */
+
+static PyObject *Curve_setControlPoint( BPy_Curve * self, PyObject * args )
+{
+	PyObject *listargs = 0;
+	Nurb *ptrnurb = self->curve->nurb.first;
+	int numcourbe = 0, numpoint = 0, i, j;
+
+	if( !ptrnurb )
+		Py_RETURN_NONE;
+
+	if( ptrnurb->bp )
+		if( !PyArg_ParseTuple
+		    ( args, "iiO", &numcourbe, &numpoint, &listargs ) )
+			return ( EXPP_ReturnPyObjError
+				 ( PyExc_TypeError,
+				   "expected int, int, list arguments" ) );
+	if( ptrnurb->bezt )
+		if( !PyArg_ParseTuple
+		    ( args, "iiO", &numcourbe, &numpoint, &listargs ) )
+			return ( EXPP_ReturnPyObjError
+				 ( PyExc_TypeError,
+				   "expected int, int, list arguments" ) );
+
+	for( i = 0; i < numcourbe; i++ )
+		ptrnurb = ptrnurb->next;
+
+	if( ptrnurb->bp )
+		for( i = 0; i < 4; i++ )
+			ptrnurb->bp[numpoint].vec[i] =
+				(float)PyFloat_AsDouble( PyList_GetItem ( listargs, i ) );
+
+	if( ptrnurb->bezt )
+		for( i = 0; i < 3; i++ )
+			for( j = 0; j < 3; j++ )
+				ptrnurb->bezt[numpoint].vec[i][j] =
+					(float)PyFloat_AsDouble( PyList_GetItem
+							  ( listargs,
+							    i * 3 + j ) );
+
+	Py_RETURN_NONE;
+}
+
+
+static PyObject *Curve_getControlPoint( BPy_Curve * self, PyObject * args )
+{
+	PyObject *liste = PyList_New( 0 );	/* return values */
+	PyObject *item;
+
+	Nurb *ptrnurb;
+	int i, j;
+	/* input args: requested curve and point number on curve */
+	int numcourbe, numpoint;
+
+	if( !PyArg_ParseTuple( args, "ii", &numcourbe, &numpoint ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected int int arguments" ) );
+	if( ( numcourbe < 0 ) || ( numpoint < 0 ) )
+		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+						"arguments must be non-negative" ) );
+
+	/* if no nurbs in this curve obj */
+	if( !self->curve->nurb.first )
+		return liste;
+
+	/* walk the list of nurbs to find requested numcourbe */
+	ptrnurb = self->curve->nurb.first;
+	for( i = 0; i < numcourbe; i++ ) {
+		ptrnurb = ptrnurb->next;
+		if( !ptrnurb )	/* if zero, we ran just ran out of curves */
+			return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+							"curve index out of range" ) );
+	}
+
+	/* check numpoint param against pntsu */
+	if( numpoint >= ptrnurb->pntsu )
+		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+						"point index out of range" ) );
+
+	if( ptrnurb->bp ) {	/* if we are a nurb curve, you get 4 values */
+		for( i = 0; i < 4; i++ ) {
+			item = PyFloat_FromDouble( ptrnurb->bp[numpoint].vec[i] );
+			PyList_Append( liste, item );
+			Py_DECREF(item);
+		}
+	} else if( ptrnurb->bezt ) {	/* if we are a bezier, you get 9 values */
+		for( i = 0; i < 3; i++ )
+			for( j = 0; j < 3; j++ ) {
+				item = PyFloat_FromDouble( ptrnurb->bezt[numpoint].vec[i][j] );
+				PyList_Append( liste, item );
+				Py_DECREF(item);
+			}
+	}
+
+	return liste;
+}
+
+static PyObject *Curve_getLoc( BPy_Curve * self )
+{
+	PyObject *attr = Py_BuildValue( "[f,f,f]", self->curve->loc[0],
+				self->curve->loc[1], self->curve->loc[2] );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Curve.loc attribute" );
+}
+
+static int Curve_newsetLoc( BPy_Curve * self, PyObject * args )
+{
+	float loc[3];
+	int i;
+
+	if( ( !PyList_Check( args ) && !PyTuple_Check( args ) ) ||
+			PySequence_Size( args ) != 3 ) {
+TypeError:
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected a sequence of three floats" );
+	}
+
+	for( i = 0; i < 3; i++ ) {
+		PyObject *item = PySequence_GetItem( args, i );
+		PyObject *num = PyNumber_Float( item );
+		Py_DECREF( item );
+		if( !num )
+			goto TypeError;
+		loc[i] = PyFloat_AS_DOUBLE( num );
+		Py_DECREF( num );
+	}
+	memcpy( self->curve->loc, loc, sizeof( loc ) );
+
+	return 0;
+}
+
+static PyObject *Curve_getRot( BPy_Curve * self )
+{
+	PyObject *attr = Py_BuildValue( "[f,f,f]", self->curve->rot[0],
+				self->curve->rot[1], self->curve->rot[2] );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Curve.rot attribute" );
+}
+
+static int Curve_newsetRot( BPy_Curve * self, PyObject * args )
+{
+	float rot[3];
+	int i;
+
+	if( ( !PyList_Check( args ) && !PyTuple_Check( args ) ) ||
+			PySequence_Size( args ) != 3 ) {
+TypeError:
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected a sequence of three floats" );
+	}
+
+	for( i = 0; i < 3; i++ ) {
+		PyObject *item = PySequence_GetItem( args, i );
+		PyObject *num = PyNumber_Float( item );
+		Py_DECREF( item );
+		if( !num )
+			goto TypeError;
+		rot[i] = PyFloat_AS_DOUBLE( num );
+		Py_DECREF( num );
+	}
+	memcpy( self->curve->rot, rot, sizeof( rot ) );
+
+	return 0;
+}
+
+static PyObject *Curve_getSize( BPy_Curve * self )
+{
+	PyObject *attr = Py_BuildValue( "[f,f,f]", self->curve->size[0],
+				self->curve->size[1], self->curve->size[2] );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Curve.size attribute" );
+}
+
+static int Curve_newsetSize( BPy_Curve * self, PyObject * args )
+{
+	float size[3];
+	int i;
+
+	if( ( !PyList_Check( args ) && !PyTuple_Check( args ) ) ||
+			PySequence_Size( args ) != 3 ) {
+TypeError:
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected a sequence of three floats" );
+	}
+
+	for( i = 0; i < 3; i++ ) {
+		PyObject *item = PySequence_GetItem( args, i );
+		PyObject *num = PyNumber_Float( item );
+		Py_DECREF( item );
+		if( !num )
+			goto TypeError;
+		size[i] = PyFloat_AS_DOUBLE( num );
+		Py_DECREF( num );
+	}
+	memcpy( self->curve->size, size, sizeof( size ) );
+
+	return 0;
+}
+
+/*
+ * Count the number of splines in a Curve Object
+ * int getNumCurves()
+ */
+
+static PyObject *Curve_getNumCurves( BPy_Curve * self )
+{
+	Nurb *ptrnurb;
+	PyObject *ret_val;
+	int num_curves = 0;	/* start with no splines */
+
+	/* get curve */
+	ptrnurb = self->curve->nurb.first;
+	if( ptrnurb ) {		/* we have some nurbs in this curve */
+		for(;;) {
+			++num_curves;
+			ptrnurb = ptrnurb->next;
+			if( !ptrnurb )	/* no more curves */
+				break;
+		}
+	}
+
+	ret_val = PyInt_FromLong( ( long ) num_curves );
+
+	if( ret_val )
+		return ret_val;
+
+	/* oops! */
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get number of curves" );
+}
+
+/*
+ * get the key object linked to this curve
+ */
+
+static PyObject *Curve_getKey( BPy_Curve * self )
+{
+	PyObject *keyObj;
+
+	if (self->curve->key)
+		keyObj = Key_CreatePyObject(self->curve->key);
+	else keyObj = EXPP_incr_ret(Py_None);
+
+	return keyObj;
+}
+
+/*
+ * count the number of points in a given spline
+ * int getNumPoints( curve_num=0 )
+ *
+ */
+
+static PyObject *Curve_getNumPoints( BPy_Curve * self, PyObject * args )
+{
+	Nurb *ptrnurb;
+	PyObject *ret_val;
+	int curve_num = 0;	/* default spline number */
+	int i;
+
+	/* parse input arg */
+	if( !PyArg_ParseTuple( args, "|i", &curve_num ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected int argument" ) );
+
+	/* check arg - must be non-negative */
+	if( curve_num < 0 )
+		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+						"argument must be non-negative" ) );
+
+
+	/* walk the list of curves looking for our curve */
+	ptrnurb = self->curve->nurb.first;
+	if( !ptrnurb ) {	/* no splines in this Curve */
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"no splines in this Curve" ) );
+	}
+
+	for( i = 0; i < curve_num; i++ ) {
+		ptrnurb = ptrnurb->next;
+		if( !ptrnurb )	/* if zero, we ran just ran out of curves */
+			return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+							"curve index out of range" ) );
+	}
+
+	/* pntsu is the number of points in curve */
+	ret_val = PyInt_FromLong( ( long ) ptrnurb->pntsu );
+
+	if( ret_val )
+		return ret_val;
+
+	/* oops! */
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get number of points for curve" );
+}
+
+/*
+ * Test whether a given spline of a Curve is a nurb
+ *  as opposed to a bezier
+ * int isNurb( curve_num=0 )
+ */
+
+static PyObject *Curve_isNurb( BPy_Curve * self, PyObject * args )
+{
+	int curve_num = 0;	/* default value */
+	int is_nurb;
+	Nurb *ptrnurb;
+	PyObject *ret_val;
+	int i;
+
+	/* parse and check input args */
+	if( !PyArg_ParseTuple( args, "|i", &curve_num ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected int argument" ) );
+	}
+	if( curve_num < 0 ) {
+		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+						"curve number must be non-negative" ) );
+	}
+
+	ptrnurb = self->curve->nurb.first;
+
+	if( !ptrnurb )		/* no splines in this curve */
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"no splines in this Curve" ) );
+
+	for( i = 0; i < curve_num; i++ ) {
+		ptrnurb = ptrnurb->next;
+		if( !ptrnurb )	/* if zero, we ran just ran out of curves */
+			return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+							"curve index out of range" ) );
+	}
+
+	/* right now, there are only two curve types, nurb and bezier. */
+	is_nurb = ptrnurb->bp ? 1 : 0;
+
+	ret_val = PyInt_FromLong( ( long ) is_nurb );
+	if( ret_val )
+		return ret_val;
+
+	/* oops */
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get curve type" ) );
+}
+
+/* trying to make a check for closedness (cyclic), following on isNurb (above) 
+   copy-pasting done by antont@kyperjokki.fi */
+
+static PyObject *Curve_isCyclic( BPy_Curve * self, PyObject * args )
+{
+	int curve_num = 0;	/* default value */
+	/* unused:*/
+	/* int is_cyclic;
+	 * PyObject *ret_val;*/
+	Nurb *ptrnurb;
+	int i;
+
+	/* parse and check input args */
+	if( !PyArg_ParseTuple( args, "|i", &curve_num ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected int argument" ) );
+	}
+	if( curve_num < 0 ) {
+		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+						"curve number must be non-negative" ) );
+	}
+
+	ptrnurb = self->curve->nurb.first;
+
+	if( !ptrnurb )		/* no splines in this curve */
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"no splines in this Curve" ) );
+
+	for( i = 0; i < curve_num; i++ ) {
+		ptrnurb = ptrnurb->next;
+		if( !ptrnurb )	/* if zero, we ran just ran out of curves */
+			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+							"curve index out of range" ) );
+	}
+
+	if(  ptrnurb->flagu & CU_CYCLIC ){
+		return EXPP_incr_ret_True();
+	} else {
+		return EXPP_incr_ret_False();
+	}
+}
+
+
+/*
+ * Curve_appendPoint( numcurve, new_point )
+ * append a new point to indicated spline
+ */
+
+static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
+{
+	int i;
+	int nurb_num;		/* index of curve we append to */
+	PyObject *coord_args;	/* coords for new point */
+	PyObject *retval = NULL;
+	PyObject *valtuple;
+	Nurb *nurb = self->curve->nurb.first;	/* first nurb in Curve */
+
+/* fixme - need to malloc new Nurb */
+	if( !nurb )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_AttributeError, "no nurbs in this Curve" ) );
+
+	if( !PyArg_ParseTuple( args, "iO", &nurb_num, &coord_args ) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError,
+			   "expected int, coords as arguments" ) );
+
+	/* 
+	   chase down the list of Nurbs looking for our curve.
+	 */
+	for( i = 0; i < nurb_num; i++ ) {
+		nurb = nurb->next;
+		if( !nurb )	/* we ran off end of list */
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"curve index out of range" );
+	}
+
+	/* rebuild our arg tuple for appendPointToNurb() */
+	valtuple = Py_BuildValue( "(O)", coord_args );
+	
+	retval =  CurNurb_appendPointToNurb( nurb, valtuple );
+	Py_DECREF( valtuple );
+
+	return retval;
+}
+
+
+/****
+  appendNurb( new_point )
+  create a new nurb in the Curve and add the point param to it.
+  returns a refernce to the newly created nurb.
+*****/
+
+static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
+{
+	Nurb *nurb_ptr = self->curve->nurb.first;
+	Nurb **pptr = ( Nurb ** ) & ( self->curve->nurb.first );
+	Nurb *new_nurb;
+
+
+	/* walk to end of nurblist */
+	if( nurb_ptr ) {
+		while( nurb_ptr->next ) {
+			nurb_ptr = nurb_ptr->next;
+		}
+		pptr = &nurb_ptr->next;
+	}
+
+	/* malloc new nurb */
+	new_nurb = ( Nurb * ) MEM_callocN( sizeof( Nurb ), "appendNurb" );
+	if( !new_nurb )
+		return EXPP_ReturnPyObjError
+			( PyExc_MemoryError, "unable to malloc Nurb" );
+
+	if( CurNurb_appendPointToNurb( new_nurb, args ) ) {
+		*pptr = new_nurb;
+		new_nurb->resolu = self->curve->resolu;
+		new_nurb->resolv = self->curve->resolv;
+		new_nurb->hide = 0;
+		new_nurb->flag = 1;
+
+
+		if( new_nurb->bezt ) {	/* do setup for bezt */
+			new_nurb->type = CU_BEZIER;
+			new_nurb->bezt->h1 = HD_ALIGN;
+			new_nurb->bezt->h2 = HD_ALIGN;
+			new_nurb->bezt->f1 = 1;
+			new_nurb->bezt->f2 = 1;
+			new_nurb->bezt->f3 = 1;
+			new_nurb->bezt->hide = 0;
+			/* calchandlesNurb( new_nurb ); */
+		} else {	/* set up bp */
+			new_nurb->pntsv = 1;
+			new_nurb->type = CU_NURBS;
+			new_nurb->orderu = 4;
+			new_nurb->flagu = 0;
+			new_nurb->flagv = 0;
+			new_nurb->bp->f1 = 0;
+			new_nurb->bp->hide = 0;
+			new_nurb->knotsu = 0;
+			/*makenots( new_nurb, 1, new_nurb->flagu >> 1); */
+		}
+
+	} else {
+		freeNurb( new_nurb );
+		return NULL;	/* with PyErr already set */
+	}
+
+	return CurNurb_CreatePyObject( new_nurb );
+}
+
+
+/* 
+ *   Curve_update( )
+ *   method to update display list for a Curve.
+ *   used. after messing with control points
+ */
+
+PyObject *Curve_update( BPy_Curve * self )
+{
+	Nurb *nu = self->curve->nurb.first;
+
+	/* recalculate handles for each curve: calchandlesNurb() will make
+	 * sure curves are bezier first */
+	while( nu ) {
+		calchandlesNurb ( nu );
+		nu = nu->next;
+	}
+
+	Object_updateDag( (void*) self->curve );
+
+	Py_RETURN_NONE;
+}
+
+/*
+ * Curve_getMaterials
+ *
+ */
+
+static PyObject *Curve_getMaterials( BPy_Curve * self )
+{
+	return EXPP_PyList_fromMaterialList( self->curve->mat,
+			self->curve->totcol, 1 );
+}
+
+static int Curve_setMaterials( BPy_Curve *self, PyObject * value )
+{
+	Material **matlist;
+	int len;
+
+	if( !PySequence_Check( value ) ||
+			!EXPP_check_sequence_consistency( value, &Material_Type ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"sequence should only contain materials or None)" );
+
+	len = PySequence_Size( value );
+	if( len > 16 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+			"list can't have more than 16 materials" );
+
+	/* free old material list (if it exists) and adjust user counts */
+	if( self->curve->mat ) {
+		Curve *cur = self->curve;
+		int i;
+		for( i = cur->totcol; i-- > 0; )
+			if( cur->mat[i] )
+           		cur->mat[i]->id.us--;
+		MEM_freeN( cur->mat );
+	}
+
+	/* build the new material list, increment user count, store it */
+
+	matlist = EXPP_newMaterialList_fromPyList( value );
+	EXPP_incr_mats_us( matlist, len );
+	self->curve->mat = matlist;
+	self->curve->totcol = (short)len;
+
+/**@ This is another ugly fix due to the weird material handling of blender.
+    * it makes sure that object material lists get updated (by their length)
+    * according to their data material lists, otherwise blender crashes.
+    * It just stupidly runs through all objects...BAD BAD BAD.
+    */
+
+	test_object_materials( ( ID * ) self->curve );
+
+	return 0;
+}
+
+/*****************************************************************************/
+/* Function:    Curve_getBevOb                                               */
+/* Description: Get the bevel object assign to the curve.                    */
+/*****************************************************************************/
+static PyObject *Curve_getBevOb( BPy_Curve * self)
+{
+	if( self->curve->bevobj ) {
+		return Object_CreatePyObject( self->curve->bevobj );
+	}
+
+	return EXPP_incr_ret( Py_None );
+}
+
+/*****************************************************************************/
+/* Function:    Curve_newsetBevOb                                            */
+/* Description: Assign a bevel object to the curve.                          */
+/*****************************************************************************/
+static int Curve_newsetBevOb( BPy_Curve * self, PyObject * args )
+{
+	BPy_Object *pybevobj = (BPy_Object *) args;
+
+	if( args == Py_None ) { /* Accept None */
+		self->curve->bevobj = (Object *)NULL;
+	} else { /* Accept Object with type 'Curve' */
+		if( !Object_CheckPyObject( args ) || 
+				pybevobj->object->type != OB_CURVE )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected Curve object type or None argument" );
+		if( pybevobj->object->data == self->curve )
+			return EXPP_ReturnIntError( PyExc_ValueError,
+					"Can't bevel an object to itself" );
+		self->curve->bevobj = Object_FromPyObject( args );
+	}
+
+	return 0;
+}
+
+/*****************************************************************************/
+/* Function:    Curve_getTaperOb                                             */
+/* Description: Get the taper object assign to the curve.                    */
+/*****************************************************************************/
+
+static PyObject *Curve_getTaperOb( BPy_Curve * self)
+{
+	if( self->curve->taperobj )
+		return Object_CreatePyObject( self->curve->taperobj );
+
+	Py_RETURN_NONE;
+}
+
+/*****************************************************************************/
+/* Function:    Curve_newsetTaperOb                                          */
+/* Description: Assign a taper object to the curve.                          */
+/*****************************************************************************/
+
+static int Curve_newsetTaperOb( BPy_Curve * self, PyObject * args )
+{
+	BPy_Object *pytaperobj = (BPy_Object *) args;
+
+	if( args == Py_None ) { /* Accept None */
+		self->curve->taperobj = (Object *)NULL;
+	} else { /* Accept Object with type 'Curve' */
+		if( !Object_CheckPyObject( args ) || 
+				pytaperobj->object->type != OB_CURVE )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected Curve object type or None argument" );
+		if( pytaperobj->object->data == self->curve )
+			return EXPP_ReturnIntError( PyExc_ValueError,
+					"Can't bevel an object to itself" );
+		self->curve->taperobj = Object_FromPyObject( args );
+	}
+
+	return 0;
+}
+
+/*****************************************************************************/
+/* Function:    Curve_copy                                                   */
+/* Description: Return a copy of this curve data.                            */
+/*****************************************************************************/
+
+PyObject *Curve_copy( BPy_Curve * self )
+{
+	BPy_Curve *pycurve;	/* for Curve Data object wrapper in Python */
+	Curve *blcurve = 0;	/* for actual Curve Data we create in Blender */
+
+	/* copies the data */
+	blcurve = copy_curve( self->curve );	/* first create the Curve Data in Blender */
+
+	if( blcurve == NULL )	/* bail out if add_curve() failed */
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_RuntimeError,
+			   "couldn't create Curve Data in Blender" ) );
+
+	/* return user count to zero because add_curve() inc'd it */
+	blcurve->id.us = 0;
+	
+	/* create python wrapper obj */
+	pycurve = ( BPy_Curve * ) PyObject_NEW( BPy_Curve, &Curve_Type );
+
+	if( pycurve == NULL )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_MemoryError,
+			   "couldn't create Curve Data object" ) );
+
+	pycurve->curve = blcurve;	/* link Python curve wrapper to Blender Curve */
+	return ( PyObject * ) pycurve;
+}
+
+
+/*
+ * Curve_getIter
+ *
+ * create an iterator for our Curve.
+ * this iterator returns the Nurbs for this Curve.
+ * the iter_pointer always points to the next available item or null
+ */
+
+static PyObject *Curve_getIter( BPy_Curve * self )
+{
+	self->iter_pointer = self->curve->nurb.first;
+
+	Py_INCREF( self );
+	return ( PyObject * ) self;
+
+}
+
+
+/*
+ * Curve_iterNext
+ *  get the next item.
+ *  iter_pointer always points to the next available element
+ *   or NULL if at the end of the list.
+ */
+
+static PyObject *Curve_iterNext( BPy_Curve * self )
+{
+	Nurb *pnurb;
+
+	if( self->iter_pointer ) {
+		pnurb = self->iter_pointer;
+		self->iter_pointer = pnurb->next;	/* advance iterator */
+		if( (pnurb->type & 7) == CU_BEZIER || pnurb->pntsv <= 1 )
+			return CurNurb_CreatePyObject( pnurb ); /* make a bpy_curnurb */
+		else
+			return SurfNurb_CreatePyObject( pnurb ); /* make a bpy_surfnurb */
+	}
+
+	/* if iter_pointer was null, we are at end */
+	return EXPP_ReturnPyObjError( PyExc_StopIteration,
+			"iterator at end" );
+}
+
+/* tp_sequence methods */
+
+/*
+ * Curve_length
+ * returns the number of curves in a Curve
+ * this is a tp_as_sequence method, not a regular instance method.
+ */
+
+static int Curve_length( PyInstanceObject * inst )
+{
+	if( Curve_CheckPyObject( ( PyObject * ) inst ) )
+		return ( ( int ) PyInt_AsLong
+			 ( Curve_getNumCurves( ( BPy_Curve * ) inst ) ) );
+
+	return EXPP_ReturnIntError( PyExc_RuntimeError,
+				    "arg is not a BPy_Curve" );
+
+}
+
+/*
+ * Curve_getNurb
+ * returns the Nth nurb in a Curve.
+ * this is one of the tp_as_sequence methods, hence the int N argument.
+ * it is called via the [] operator, not as a usual instance method.
+ */
+
+PyObject *Curve_getNurb( BPy_Curve * self, int n )
+{
+	Nurb *pNurb;
+	int i;
+
+	/* bail if index < 0 */
+	if( n < 0 )
+		return ( EXPP_ReturnPyObjError( PyExc_IndexError,
+						"index less than 0" ) );
+	/* bail if no Nurbs in Curve */
+	if( self->curve->nurb.first == 0 )
+		return ( EXPP_ReturnPyObjError( PyExc_IndexError,
+						"no Nurbs in this Curve" ) );
+	/* set pointer to nth Nurb */
+	for( pNurb = self->curve->nurb.first, i = 0;
+	     pNurb != 0 && i < n; pNurb = pNurb->next, ++i )
+		/**/;
+
+	if( !pNurb )		/* we came to the end of the list */
+		return ( EXPP_ReturnPyObjError( PyExc_IndexError,
+						"index out of range" ) );
+
+	/* until there is a Surface BPyType, distinquish between a curve and a
+	 * surface based on whether it's a Bezier and the v size */
+	if( (pNurb->type & 7) == CU_BEZIER || pNurb->pntsv <= 1 )
+		return CurNurb_CreatePyObject( pNurb );	/* make a bpy_curnurb */
+	else
+		return SurfNurb_CreatePyObject( pNurb );	/* make a bpy_surfnurb */
+
+}
+
+/*****************************************************************************/
+/* Function:    Curve_dealloc                                                */
+/* Description: This is a callback function for the BPy_Curve type. It is    */
+/*              the destructor function.                                     */
+/*****************************************************************************/
+static void Curve_dealloc( BPy_Curve * self )
+{
+	PyObject_DEL( self );
+}
+
+/*****************************************************************************/
+/* Function:    Curve_compare		                                         */
+/* Description: This compares 2 curve python types, == or != only.			 */
+/*****************************************************************************/
+static int Curve_compare( BPy_Curve * a, BPy_Curve * b )
+{
+	return ( a->curve == b->curve ) ? 0 : -1;
+}
+
+/*****************************************************************************/
+/* Function:    Curve_repr                                                   */
+/* Description: This is a callback function for the BPy_Curve type. It       */
+/*              builds a meaninful string to represent curve objects.        */
+/*****************************************************************************/
+static PyObject *Curve_repr( BPy_Curve * self )
+{				/* used by 'repr' */
+
+	return PyString_FromFormat( "[Curve \"%s\"]",
+				    self->curve->id.name + 2 );
+}
+
+/* attributes for curves */
+
+static PyGetSetDef Curve_getseters[] = {
+	GENERIC_LIB_GETSETATTR,
+	{"pathlen",
+	 (getter)Curve_getPathLen, (setter)Curve_newsetPathLen,
+	 "",
+	NULL},
+	{"totcol",
+	 (getter)Curve_getTotcol, (setter)NULL,
+	 "",
+	NULL},
+	{"flag",
+	 (getter)Curve_getMode, (setter)Curve_newsetMode,
+	 "",
+	NULL},
+	{"bevresol",
+	 (getter)Curve_getBevresol, (setter)Curve_newsetBevresol,
+	 "",
+	NULL},
+	{"resolu",
+	 (getter)Curve_getResolu, (setter)Curve_newsetResolu,
+	 "",
+	NULL},
+	{"resolv",
+	 (getter)Curve_getResolv, (setter)Curve_newsetResolv,
+	 "",
+	NULL},
+	{"width",
+	 (getter)Curve_getWidth, (setter)Curve_newsetWidth,
+	 "",
+	NULL},
+	{"ext1",
+	 (getter)Curve_getExt1, (setter)Curve_newsetExt1,
+	 "",
+	NULL},
+	{"ext2",
+	 (getter)Curve_getExt2, (setter)Curve_newsetExt2,
+	 "",
+	NULL},
+	{"loc",
+	 (getter)Curve_getLoc, (setter)Curve_newsetLoc,
+	 "",
+	NULL},
+	{"rot",
+	 (getter)Curve_getRot, (setter)Curve_newsetRot,
+	 "",
+	NULL},
+	{"size",
+	 (getter)Curve_getSize, (setter)Curve_newsetSize,
+	 "",
+	NULL},
+	{"bevob",
+	 (getter)Curve_getBevOb, (setter)Curve_newsetBevOb,
+	 "",
+	NULL},
+	{"taperob",
+	 (getter)Curve_getTaperOb, (setter)Curve_newsetTaperOb,
+	 "",
+	NULL},
+	{"key",
+	 (getter)Curve_getKey, (setter)NULL,
+	 "",
+	NULL},
+	{"materials",
+	 (getter)Curve_getMaterials, (setter)Curve_setMaterials,
+	 "",
+	NULL}
+};
+
+/*****************************************************************************/
+/* Function:              M_Curve_New                                       */
+/* Python equivalent:     Blender.Curve.New                                 */
+/*****************************************************************************/
+static PyObject *M_Curve_New( PyObject * self, PyObject * args )
+{
+	char buf[24];
+	char *name = NULL;
+	BPy_Curve *pycurve;	/* for Curve Data object wrapper in Python */
+	Curve *blcurve = 0;	/* for actual Curve Data we create in Blender */
+
+	if( !PyArg_ParseTuple( args, "|s", &name ) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError,
+			   "expected string argument or no argument" ) );
+
+	blcurve = add_curve( OB_CURVE );	/* first create the Curve Data in Blender */
+
+	if( blcurve == NULL )	/* bail out if add_curve() failed */
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_RuntimeError,
+			   "couldn't create Curve Data in Blender" ) );
+
+	/* return user count to zero because add_curve() inc'd it */
+	blcurve->id.us = 0;
+	/* create python wrapper obj */
+	pycurve = ( BPy_Curve * ) PyObject_NEW( BPy_Curve, &Curve_Type );
+
+	if( pycurve == NULL )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_MemoryError,
+			   "couldn't create Curve Data object" ) );
+
+	pycurve->curve = blcurve;	/* link Python curve wrapper to Blender Curve */
+	if( name ) {
+		PyOS_snprintf( buf, sizeof( buf ), "%s", name );
+		rename_id( &blcurve->id, buf );
+	}
+
+	return ( PyObject * ) pycurve;
+}
+
+/*****************************************************************************/
+/* Function:              M_Curve_Get                                       */
+/* Python equivalent:     Blender.Curve.Get                                 */
+/*****************************************************************************/
+static PyObject *M_Curve_Get( PyObject * self, PyObject * args )
+{
+
+	char *name = NULL;
+	Curve *curv_iter;
+	BPy_Curve *wanted_curv;
+
+	if( !PyArg_ParseTuple( args, "|s", &name ) )	/* expects nothing or a string */
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected string argument" ) );
+	if( name ) {		/*a name has been given */
+		/* Use the name to search for the curve requested */
+		wanted_curv = NULL;
+		curv_iter = G.main->curve.first;
+
+		while( ( curv_iter ) && ( wanted_curv == NULL ) ) {
+
+			if( strcmp( name, curv_iter->id.name + 2 ) == 0 ) {
+				wanted_curv = ( BPy_Curve * )
+					PyObject_NEW( BPy_Curve, &Curve_Type );
+				if( wanted_curv )
+					wanted_curv->curve = curv_iter;
+			}
+
+			curv_iter = curv_iter->id.next;
+		}
+
+		if( wanted_curv == NULL ) {	/* Requested curve doesn't exist */
+			char error_msg[64];
+			PyOS_snprintf( error_msg, sizeof( error_msg ),
+				       "Curve \"%s\" not found", name );
+			return ( EXPP_ReturnPyObjError
+				 ( PyExc_NameError, error_msg ) );
+		}
+
+
+		return ( PyObject * ) wanted_curv;
+	} /* end  of if(name) */
+	else {
+		/* no name has been given; return a list of all curves by name.  */
+		PyObject *curvlist;
+
+		curv_iter = G.main->curve.first;
+		curvlist = PyList_New( 0 );
+
+		if( curvlist == NULL )
+			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
+							"couldn't create PyList" ) );
+
+		while( curv_iter ) {
+			BPy_Curve *found_cur =
+				( BPy_Curve * ) PyObject_NEW( BPy_Curve,
+							      &Curve_Type );
+			found_cur->curve = curv_iter;
+			PyList_Append( curvlist, ( PyObject * ) found_cur );
+
+			curv_iter = curv_iter->id.next;
+		}
+
+		return ( curvlist );
+	}			/* end of else */
+}
 
 /*****************************************************************************/
 /*  Python method definitions for Blender.Curve module:             */
@@ -240,12 +1548,9 @@ Sets a control point "},
 /*****************************************************************************/
 /*  Python Curve_Type callback function prototypes:                         */
 /*****************************************************************************/
-static void CurveDeAlloc( BPy_Curve * msh );
-/* static int CurvePrint (BPy_Curve *msh, FILE *fp, int flags); */
-static int CurveSetAttr( BPy_Curve * msh, char *name, PyObject * v );
-static PyObject *CurveGetAttr( BPy_Curve * msh, char *name );
-static int CurveCopmpare( BPy_Curve * a, BPy_Curve * b );
-static PyObject *CurveRepr( BPy_Curve * msh );
+static void Curve_dealloc( BPy_Curve * msh );
+static int Curve_compare( BPy_Curve * a, BPy_Curve * b );
+static PyObject *Curve_repr( BPy_Curve * msh );
 
 static PySequenceMethods Curve_as_sequence = {
 	( inquiry ) Curve_length,	/* sq_length   */
@@ -260,175 +1565,87 @@ static PySequenceMethods Curve_as_sequence = {
 	0
 };
 
-
 /*****************************************************************************/
 /* Python Curve_Type structure definition:                                   */
 /*****************************************************************************/
 PyTypeObject Curve_Type = {
-	PyObject_HEAD_INIT( NULL ) /* required macro */ 
-	0,	/* ob_size */
-	"Curve",		/* tp_name - for printing */
-	sizeof( BPy_Curve ),	/* tp_basicsize - for allocation */
-	0,			/* tp_itemsize  - for allocation */
-	/* methods for standard operations */
-	( destructor ) CurveDeAlloc,	/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) CurveGetAttr,	/* tp_getattr */
-	( setattrfunc ) CurveSetAttr,	/* tp_setattr */
-	( cmpfunc ) CurveCopmpare,		/* tp_compare */
-	( reprfunc ) CurveRepr,	/* tp_repr */
-	/* methods for standard classes */
-	0,			/* tp_as_number */
-	&Curve_as_sequence,	/* tp_as_sequence */
-	0,			/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0,			/* tp_call */
-	0,			/* tp_str */
-	0,			/* tp_getattro */
-	0,			/* tp_setattro */
-	0,			/* tp_as_buffer */
-	/* Flags to define presence of optional/expaned features */
-	Py_TPFLAGS_HAVE_ITER,	/* tp_flags */
-	0,			/* tp_doc - documentation string */
-	0,			/* tp_traverse */
+	PyObject_HEAD_INIT( NULL )          /* required macro */ 
+	0,                                  /* ob_size */
+	"Curve",                            /* tp_name */
+	sizeof( BPy_Curve ),                /* tp_basicsize */
+	0,                                  /* tp_itemsize */
+	/* methods */
+	( destructor ) Curve_dealloc,       /* tp_dealloc */
+	0,                                  /* tp_print */
+	( getattrfunc ) NULL,	            /* tp_getattr */
+	( setattrfunc ) NULL,	            /* tp_setattr */
+	( cmpfunc ) Curve_compare,          /* tp_compare */
+	( reprfunc ) Curve_repr,            /* tp_repr */
+	/* Method suites for standard classes */
+
+	NULL,                               /* PyNumberMethods *tp_as_number; */
+	&Curve_as_sequence,                 /* PySequenceMethods *tp_as_sequence; */
+	NULL,                               /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       	    /* hashfunc tp_hash; */
+	NULL,                       	    /* ternaryfunc tp_call; */
+	NULL,                       	    /* reprfunc tp_str; */
+	NULL,                       	    /* getattrofunc tp_getattro; */
+	NULL,                      	    /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       	    /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,                 /* long tp_flags; */
+
+	NULL,                               /*  char *tp_doc;  */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                               /* traverseproc tp_traverse; */
 
 	/* delete references to contained objects */
-	0,			/* tp_clear */
+	NULL,                       	    /* inquiry tp_clear; */
 
-	0,			/* tp_richcompare - rich comparisions */
-	0,			/* tp_weaklistoffset - weak reference enabler */
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       	    /* richcmpfunc tp_richcompare; */
 
-	/* new release 2.2 stuff - Iterators */
-	( getiterfunc ) Curve_getIter,	/* tp_iter */
-	( iternextfunc ) Curve_iterNext,	/* tp_iternext */
+  /***  weak reference enabler ***/
+	0,                          	    /* long tp_weaklistoffset; */
 
-	/*  Attribute descriptor and subclassing stuff */
-	BPy_Curve_methods,	/* tp_methods */
-	0,			/* tp_members */
-	0,			/* tp_getset; */
-	0,			/* tp_base; */
-	0,			/* tp_dict; */
-	0,			/* tp_descr_get; */
-	0,			/* tp_descr_set; */
-	0,			/* tp_dictoffset; */
-	0,			/* tp_init; */
-	0,			/* tp_alloc; */
-	0,			/* tp_new; */
-	0,			/* tp_free;  Low-level free-memory routine */
-	0,			/* tp_is_gc */
-	0,			/* tp_bases; */
-	0,			/* tp_mro;  method resolution order */
-	0,			/* tp_defined; */
-	0,			/* tp_weakllst */
-	0,
-	0
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	( getiterfunc ) Curve_getIter,	    /* getiterfunc tp_iter; */
+	( iternextfunc ) Curve_iterNext,	/* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_Curve_methods,           	    /* struct PyMethodDef *tp_methods; */
+	NULL,                       	    /* struct PyMemberDef *tp_members; */
+	Curve_getseters,                    /* struct PyGetSetDef *tp_getset; */
+	NULL,                       	    /* struct _typeobject *tp_base; */
+	NULL,                       	    /* PyObject *tp_dict; */
+	NULL,                       	    /* descrgetfunc tp_descr_get; */
+	NULL,                       	    /* descrsetfunc tp_descr_set; */
+	0,                          	    /* long tp_dictoffset; */
+	NULL,                       	    /* initproc tp_init; */
+	NULL,                       	    /* allocfunc tp_alloc; */
+	NULL,                       	    /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       	    /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       	    /* inquiry tp_is_gc;  */
+	NULL,                       	    /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       	    /* PyObject *tp_mro;  */
+	NULL,                       	    /* PyObject *tp_cache; */
+	NULL,                       	    /* PyObject *tp_subclasses; */
+	NULL,                       	    /* PyObject *tp_weaklist; */
+	NULL
 };
 
-/*****************************************************************************/
-/* Function:              M_Curve_New                                       */
-/* Python equivalent:     Blender.Curve.New                                 */
-/*****************************************************************************/
-static PyObject *M_Curve_New( PyObject * self, PyObject * args )
-{
-	char *name = NULL;
-	BPy_Curve *pycurve;	/* for Curve Data object wrapper in Python */
-	Curve *blcurve = 0;	/* for actual Curve Data we create in Blender */
-
-	if( !PyArg_ParseTuple( args, "|s", &name ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError,
-			   "expected string argument or no argument" ) );
-
-	blcurve = add_curve( OB_CURVE );	/* first create the Curve Data in Blender */
-
-	if( blcurve == NULL )	/* bail out if add_curve() failed */
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_RuntimeError,
-			   "couldn't create Curve Data in Blender" ) );
-
-	/* return user count to zero because add_curve() inc'd it */
-	blcurve->id.us = 0;
-	/* create python wrapper obj */
-	pycurve = ( BPy_Curve * ) PyObject_NEW( BPy_Curve, &Curve_Type );
-
-	if( pycurve == NULL )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_MemoryError,
-			   "couldn't create Curve Data object" ) );
-
-	pycurve->curve = blcurve;	/* link Python curve wrapper to Blender Curve */
-	if( name )
-		rename_id( &blcurve->id, name );
-
-	return ( PyObject * ) pycurve;
-}
-
-/*****************************************************************************/
-/* Function:              M_Curve_Get                                       */
-/* Python equivalent:     Blender.Curve.Get                                 */
-/*****************************************************************************/
-static PyObject *M_Curve_Get( PyObject * self, PyObject * args )
-{
-
-	char *name = NULL;
-	Curve *curv_iter;
-	BPy_Curve *wanted_curv;
-
-	if( !PyArg_ParseTuple( args, "|s", &name ) )	/* expects nothing or a string */
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected string argument" ) );
-	if( name ) {		/*a name has been given */
-		/* Use the name to search for the curve requested */
-		wanted_curv = NULL;
-		curv_iter = G.main->curve.first;
-
-		while( ( curv_iter ) && ( wanted_curv == NULL ) ) {
-
-			if( strcmp( name, curv_iter->id.name + 2 ) == 0 ) {
-				wanted_curv = ( BPy_Curve * )
-					PyObject_NEW( BPy_Curve, &Curve_Type );
-				if( wanted_curv )
-					wanted_curv->curve = curv_iter;
-			}
-
-			curv_iter = curv_iter->id.next;
-		}
-
-		if( wanted_curv == NULL ) {	/* Requested curve doesn't exist */
-			char error_msg[64];
-			PyOS_snprintf( error_msg, sizeof( error_msg ),
-				       "Curve \"%s\" not found", name );
-			return ( EXPP_ReturnPyObjError
-				 ( PyExc_NameError, error_msg ) );
-		}
-
-
-		return ( PyObject * ) wanted_curv;
-	} /* end  of if(name) */
-	else {
-		/* no name has been given; return a list of all curves by name.  */
-		PyObject *curvlist;
-
-		curv_iter = G.main->curve.first;
-		curvlist = PyList_New( 0 );
-
-		if( curvlist == NULL )
-			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-							"couldn't create PyList" ) );
-
-		while( curv_iter ) {
-			BPy_Curve *found_cur =
-				( BPy_Curve * ) PyObject_NEW( BPy_Curve,
-							      &Curve_Type );
-			found_cur->curve = curv_iter;
-			PyList_Append( curvlist, ( PyObject * ) found_cur );
-
-			curv_iter = curv_iter->id.next;
-		}
-
-		return ( curvlist );
-	}			/* end of else */
-}
 
 /*****************************************************************************/
 /* Function:              Curve_Init                                         */
@@ -444,1253 +1661,6 @@ PyObject *Curve_Init( void )
 		Py_InitModule3( "Blender.Curve", M_Curve_methods,
 				M_Curve_doc );
 	return ( submodule );
-}
-
-/*****************************************************************************/
-/* Python BPy_Curve methods:                                                 */
-/* gives access to                                                           */
-/* name, pathlen totcol flag bevresol                                        */
-/* resolu resolv width ext1 ext2                                             */
-/* controlpoint loc rot size                                                 */
-/* numpts                                                                    */
-/*****************************************************************************/
-
-
-PyObject *Curve_getName( BPy_Curve * self )
-{
-	PyObject *attr = PyString_FromString( self->curve->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Curve.name attribute" ) );
-}
-
-PyObject *Curve_setName( BPy_Curve * self, PyObject * args )
-{
-	char *name;
-
-	if( !PyArg_ParseTuple( args, "s", &( name ) ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected string argument" ) );
-
-	rename_id( &self->curve->id, name );	/* proper way in Blender */
-
-	Curve_update( self );
-	Py_RETURN_NONE;
-}
-
-static PyObject *Curve_getPathLen( BPy_Curve * self )
-{
-	PyObject *attr = PyInt_FromLong( ( long ) self->curve->pathlen );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Curve.pathlen attribute" ) );
-}
-
-
-static PyObject *Curve_setPathLen( BPy_Curve * self, PyObject * args )
-{
-
-	if( !PyArg_ParseTuple( args, "i", &( self->curve->pathlen ) ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected int argument" ) );
-
-	Py_RETURN_NONE;
-}
-
-
-static PyObject *Curve_getTotcol( BPy_Curve * self )
-{
-	PyObject *attr = PyInt_FromLong( ( long ) self->curve->totcol );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Curve.totcol attribute" ) );
-}
-
-
-static PyObject *Curve_setTotcol( BPy_Curve * self, PyObject * args )
-{
-
-	if( !PyArg_ParseTuple( args, "i", &( self->curve->totcol ) ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected int argument" ) );
-
-	Py_RETURN_NONE;
-}
-
-
-PyObject *Curve_getMode( BPy_Curve * self )
-{
-	PyObject *attr = PyInt_FromLong( ( long ) self->curve->flag );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Curve.flag attribute" ) );
-}
-
-
-PyObject *Curve_setMode( BPy_Curve * self, PyObject * args )
-{
-
-	if( !PyArg_ParseTuple( args, "i", &( self->curve->flag ) ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected int argument" ) );
-
-	Py_RETURN_NONE;
-}
-
-
-PyObject *Curve_getBevresol( BPy_Curve * self )
-{
-	PyObject *attr = PyInt_FromLong( ( long ) self->curve->bevresol );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Curve.bevresol attribute" ) );
-}
-
-
-PyObject *Curve_setBevresol( BPy_Curve * self, PyObject * args )
-{
-	short value;
-
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"expected integer argument" ) );
-
-	if(value > 10 || value < 0)
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"acceptable values are between 10 and 0" ) );
-	self->curve->bevresol = value;
-
-	return EXPP_incr_ret( Py_None );
-}
-
-
-PyObject *Curve_getResolu( BPy_Curve * self )
-{
-	PyObject *attr = PyInt_FromLong( ( long ) self->curve->resolu );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Curve.resolu attribute" ) );
-}
-
-
-PyObject *Curve_setResolu( BPy_Curve * self, PyObject * args )
-{
-	short value;
-	Nurb *nu;
-
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"expected integer argument" ) );
-
-	if(value > 128 || value < 1)
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"acceptable values are between 128 and 1" ) );
-	self->curve->resolu = value;
-
-	/* propagate the change through all the curves */
-	for ( nu = self->curve->nurb.first; nu; nu = nu->next )
-		nu->resolu = value;
-
-	return EXPP_incr_ret( Py_None );
-}
-
-
-
-PyObject *Curve_getResolv( BPy_Curve * self )
-{
-	PyObject *attr = PyInt_FromLong( ( long ) self->curve->resolv );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Curve.resolv attribute" ) );
-}
-
-
-PyObject *Curve_setResolv( BPy_Curve * self, PyObject * args )
-{
-	short value;
-
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"expected integer argument" ) );
-
-	if(value > 128 || value < 1)
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"acceptable values are between 128 and 1" ) );
-	self->curve->resolv = value;
-
-	return EXPP_incr_ret( Py_None );
-}
-
-
-
-PyObject *Curve_getWidth( BPy_Curve * self )
-{
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->curve->width );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Curve.width attribute" ) );
-}
-
-
-PyObject *Curve_setWidth( BPy_Curve * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"expected float argument" ) );
-
-	if(value > 2.0f || value < 0.0f)
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"acceptable values are between 2.0 and 0.0" ) );
-	self->curve->width = value;
-
-	return EXPP_incr_ret( Py_None );
-}
-
-
-PyObject *Curve_getExt1( BPy_Curve * self )
-{
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->curve->ext1 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Curve.ext1 attribute" ) );
-}
-
-
-PyObject *Curve_setExt1( BPy_Curve * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"expected float argument" ) );
-
-	if(value > 5.0f || value < 0.0f)
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"acceptable values are between 5.0 and 0.0" ) );
-	self->curve->ext1 = value;
-
-	return EXPP_incr_ret( Py_None );
-}
-
-
-
-PyObject *Curve_getExt2( BPy_Curve * self )
-{
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->curve->ext2 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Curve.ext2 attribute" ) );
-}
-
-
-PyObject *Curve_setExt2( BPy_Curve * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"expected float argument" ) );
-
-	if(value > 2.0f || value < 0.0f)
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"acceptable values are between 2.0 and 0.0" ) );
-	self->curve->ext2 = value;
-
-	return EXPP_incr_ret( Py_None );
-}
-
-
-/*
- * Curve_setControlPoint
- * this function sets an EXISTING control point.
- * it does NOT add a new one.
- */
-
-static PyObject *Curve_setControlPoint( BPy_Curve * self, PyObject * args )
-{
-	PyObject *listargs = 0;
-	Nurb *ptrnurb = self->curve->nurb.first;
-	int numcourbe = 0, numpoint = 0, i, j;
-
-	if( !ptrnurb )
-		Py_RETURN_NONE;
-
-	if( ptrnurb->bp )
-		if( !PyArg_ParseTuple
-		    ( args, "iiO", &numcourbe, &numpoint, &listargs ) )
-			return ( EXPP_ReturnPyObjError
-				 ( PyExc_AttributeError,
-				   "expected int int list arguments" ) );
-	if( ptrnurb->bezt )
-		if( !PyArg_ParseTuple
-		    ( args, "iiO", &numcourbe, &numpoint, &listargs ) )
-			return ( EXPP_ReturnPyObjError
-				 ( PyExc_AttributeError,
-				   "expected int int list arguments" ) );
-
-	for( i = 0; i < numcourbe; i++ )
-		ptrnurb = ptrnurb->next;
-
-	if( ptrnurb->bp )
-		for( i = 0; i < 4; i++ )
-			ptrnurb->bp[numpoint].vec[i] =
-				(float)PyFloat_AsDouble( PyList_GetItem
-						  ( listargs, i ) );
-
-	if( ptrnurb->bezt )
-		for( i = 0; i < 3; i++ )
-			for( j = 0; j < 3; j++ )
-				ptrnurb->bezt[numpoint].vec[i][j] =
-					(float)PyFloat_AsDouble( PyList_GetItem
-							  ( listargs,
-							    i * 3 + j ) );
-
-	Py_RETURN_NONE;
-}
-
-static PyObject *Curve_getControlPoint( BPy_Curve * self, PyObject * args )
-{
-	PyObject *liste = PyList_New( 0 );	/* return values */
-	PyObject *item;
-
-	Nurb *ptrnurb;
-	int i, j;
-	/* input args: requested curve and point number on curve */
-	int numcourbe, numpoint;
-
-	if( !PyArg_ParseTuple( args, "ii", &numcourbe, &numpoint ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected int int arguments" ) );
-	if( ( numcourbe < 0 ) || ( numpoint < 0 ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						" arguments must be non-negative" ) );
-
-	/* if no nurbs in this curve obj */
-	if( !self->curve->nurb.first )
-		return liste;
-
-	/* walk the list of nurbs to find requested numcourbe */
-	ptrnurb = self->curve->nurb.first;
-	for( i = 0; i < numcourbe; i++ ) {
-		ptrnurb = ptrnurb->next;
-		if( !ptrnurb )	/* if zero, we ran just ran out of curves */
-			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-							"curve index out of range" ) );
-	}
-
-	/* check numpoint param against pntsu */
-	if( numpoint >= ptrnurb->pntsu )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"point index out of range" ) );
-
-	if( ptrnurb->bp ) {	/* if we are a nurb curve, you get 4 values */
-		for( i = 0; i < 4; i++ ) {
-			item = PyFloat_FromDouble( ptrnurb->bp[numpoint].vec[i] );
-			PyList_Append( liste, item );
-			Py_DECREF(item);
-		}
-	} else if( ptrnurb->bezt ) {	/* if we are a bezier, you get 9 values */
-		for( i = 0; i < 3; i++ )
-			for( j = 0; j < 3; j++ ) {
-				item = PyFloat_FromDouble( ptrnurb->bezt[numpoint].vec[i][j] );
-				PyList_Append( liste, item );
-				Py_DECREF(item);
-			}
-	}
-
-	return liste;
-}
-
-
-
-static PyObject *Curve_getLoc( BPy_Curve * self )
-{
-	int i;
-	PyObject *liste = PyList_New( 3 );
-	for( i = 0; i < 3; i++ )
-		PyList_SetItem( liste, i,
-				PyFloat_FromDouble( self->curve->loc[i] ) );
-	return liste;
-}
-
-static PyObject *Curve_setLoc( BPy_Curve * self, PyObject * args )
-{
-	PyObject *listargs = 0;
-	int i;
-	if( !PyArg_ParseTuple( args, "O", &listargs ) )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "expected list argument" );
-	if( !PyList_Check( listargs ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected a list" ) );
-	for( i = 0; i < 3; i++ ) {
-		PyObject *xx = PyList_GetItem( listargs, i );
-		self->curve->loc[i] = (float)PyFloat_AsDouble( xx );
-	}
-	Py_RETURN_NONE;
-}
-
-static PyObject *Curve_getRot( BPy_Curve * self )
-{
-
-	int i;
-	PyObject *liste = PyList_New( 3 );
-	for( i = 0; i < 3; i++ )
-		PyList_SetItem( liste, i,
-				PyFloat_FromDouble( self->curve->rot[i] ) );
-	return liste;
-
-}
-
-static PyObject *Curve_setRot( BPy_Curve * self, PyObject * args )
-{
-	PyObject *listargs = 0;
-	int i;
-	if( !PyArg_ParseTuple( args, "O", &listargs ) )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "expected list argument" );
-	if( !PyList_Check( listargs ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected a list" ) );
-	for( i = 0; i < 3; i++ ) {
-		PyObject *xx = PyList_GetItem( listargs, i );
-		self->curve->rot[i] = (float)PyFloat_AsDouble( xx );
-	}
-	Py_RETURN_NONE;
-}
-static PyObject *Curve_getSize( BPy_Curve * self )
-{
-	int i;
-	PyObject *liste = PyList_New( 3 );
-	for( i = 0; i < 3; i++ )
-		PyList_SetItem( liste, i,
-				PyFloat_FromDouble( self->curve->size[i] ) );
-	return liste;
-
-}
-
-static PyObject *Curve_setSize( BPy_Curve * self, PyObject * args )
-{
-	PyObject *listargs = 0;
-	int i;
-	if( !PyArg_ParseTuple( args, "O", &listargs ) )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "expected list argument" );
-	if( !PyList_Check( listargs ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected a list" ) );
-	for( i = 0; i < 3; i++ ) {
-		PyObject *xx = PyList_GetItem( listargs, i );
-		self->curve->size[i] = (float)PyFloat_AsDouble( xx );
-	}
-	Py_RETURN_NONE;
-}
-
-
-/*
- * Count the number of splines in a Curve Object
- * int getNumCurves()
- */
-
-static PyObject *Curve_getNumCurves( BPy_Curve * self )
-{
-	Nurb *ptrnurb;
-	PyObject *ret_val;
-	int num_curves = 0;	/* start with no splines */
-
-	/* get curve */
-	ptrnurb = self->curve->nurb.first;
-	if( ptrnurb ) {		/* we have some nurbs in this curve */
-		for(;;) {
-			++num_curves;
-			ptrnurb = ptrnurb->next;
-			if( !ptrnurb )	/* no more curves */
-				break;
-		}
-	}
-
-	ret_val = PyInt_FromLong( ( long ) num_curves );
-
-	if( ret_val )
-		return ret_val;
-
-	/* oops! */
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get number of curves" ) );
-}
-
-/*
- * get the key object linked to this curve
- */
-
-static PyObject *Curve_getKey( BPy_Curve * self )
-{
-	PyObject *keyObj;
-
-	if (self->curve->key)
-		keyObj = Key_CreatePyObject(self->curve->key);
-	else keyObj = EXPP_incr_ret(Py_None);
-
-	return keyObj;
-}
-
-/*
- * count the number of points in a given spline
- * int getNumPoints( curve_num=0 )
- *
- */
-
-static PyObject *Curve_getNumPoints( BPy_Curve * self, PyObject * args )
-{
-	Nurb *ptrnurb;
-	PyObject *ret_val;
-	int curve_num = 0;	/* default spline number */
-	int i;
-
-	/* parse input arg */
-	if( !PyArg_ParseTuple( args, "|i", &curve_num ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected int argument" ) );
-
-	/* check arg - must be non-negative */
-	if( curve_num < 0 )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"argument must be non-negative" ) );
-
-
-	/* walk the list of curves looking for our curve */
-	ptrnurb = self->curve->nurb.first;
-	if( !ptrnurb ) {	/* no splines in this Curve */
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"no splines in this Curve" ) );
-	}
-
-	for( i = 0; i < curve_num; i++ ) {
-		ptrnurb = ptrnurb->next;
-		if( !ptrnurb )	/* if zero, we ran just ran out of curves */
-			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-							"curve index out of range" ) );
-	}
-
-	/* pntsu is the number of points in curve */
-	ret_val = PyInt_FromLong( ( long ) ptrnurb->pntsu );
-
-	if( ret_val )
-		return ret_val;
-
-	/* oops! */
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get number of points for curve" ) );
-}
-
-/*
- * Test whether a given spline of a Curve is a nurb
- *  as opposed to a bezier
- * int isNurb( curve_num=0 )
- */
-
-static PyObject *Curve_isNurb( BPy_Curve * self, PyObject * args )
-{
-	int curve_num = 0;	/* default value */
-	int is_nurb;
-	Nurb *ptrnurb;
-	PyObject *ret_val;
-	int i;
-
-	/* parse and check input args */
-	if( !PyArg_ParseTuple( args, "|i", &curve_num ) ) {
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected int argument" ) );
-	}
-	if( curve_num < 0 ) {
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"curve number must be non-negative" ) );
-	}
-
-	ptrnurb = self->curve->nurb.first;
-
-	if( !ptrnurb )		/* no splines in this curve */
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"no splines in this Curve" ) );
-
-	for( i = 0; i < curve_num; i++ ) {
-		ptrnurb = ptrnurb->next;
-		if( !ptrnurb )	/* if zero, we ran just ran out of curves */
-			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-							"curve index out of range" ) );
-	}
-
-	/* right now, there are only two curve types, nurb and bezier. */
-	is_nurb = ptrnurb->bp ? 1 : 0;
-
-	ret_val = PyInt_FromLong( ( long ) is_nurb );
-	if( ret_val )
-		return ret_val;
-
-	/* oops */
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get curve type" ) );
-}
-
-/* trying to make a check for closedness (cyclic), following on isNurb (above) 
-   copy-pasting done by antont@kyperjokki.fi */
-
-static PyObject *Curve_isCyclic( BPy_Curve * self, PyObject * args )
-{
-	int curve_num = 0;	/* default value */
-	/* unused:*/
-	/* int is_cyclic;
-	 * PyObject *ret_val;*/
-	Nurb *ptrnurb;
-	int i;
-
-	/* parse and check input args */
-	if( !PyArg_ParseTuple( args, "|i", &curve_num ) ) {
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected int argument" ) );
-	}
-	if( curve_num < 0 ) {
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"curve number must be non-negative" ) );
-	}
-
-	ptrnurb = self->curve->nurb.first;
-
-	if( !ptrnurb )		/* no splines in this curve */
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"no splines in this Curve" ) );
-
-	for( i = 0; i < curve_num; i++ ) {
-		ptrnurb = ptrnurb->next;
-		if( !ptrnurb )	/* if zero, we ran just ran out of curves */
-			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-							"curve index out of range" ) );
-	}
-
-	if(  ptrnurb->flagu & CU_CYCLIC ){
-		return EXPP_incr_ret_True();
-	} else {
-		return EXPP_incr_ret_False();
-	}
-}
-
-
-/*
- * Curve_appendPoint( numcurve, new_point )
- * append a new point to indicated spline
- */
-
-static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
-{
-	int i;
-	int nurb_num;		/* index of curve we append to */
-	PyObject *coord_args;	/* coords for new point */
-	PyObject *retval = NULL;
-	PyObject *valtuple;
-	Nurb *nurb = self->curve->nurb.first;	/* first nurb in Curve */
-
-/* fixme - need to malloc new Nurb */
-	if( !nurb )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError, "no nurbs in this Curve" ) );
-
-	if( !PyArg_ParseTuple( args, "iO", &nurb_num, &coord_args ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError,
-			   "expected int, coords as arguments" ) );
-
-	/* 
-	   chase down the list of Nurbs looking for our curve.
-	 */
-	for( i = 0; i < nurb_num; i++ ) {
-		nurb = nurb->next;
-		if( !nurb )	/* we ran off end of list */
-			return ( EXPP_ReturnPyObjError
-				 ( PyExc_AttributeError,
-				   "curve index out of range" ) );
-	}
-
-	/* rebuild our arg tuple for appendPointToNurb() */
-	valtuple = Py_BuildValue( "(O)", coord_args );
-	
-	retval =  CurNurb_appendPointToNurb( nurb, valtuple );
-	Py_DECREF( valtuple );
-
-	return retval;
-}
-
-
-/****
- *
- * appendNurb( new_point )
- *
- * create a new nurb in the Curve and add the point param to it.
- * returns a refernce to the newly created nurb.
- *
- *****/
-
-static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
-{
-	ListBase *nurb_ptr = &(self->curve->nurb);
-
-	Nurb *new_nurb;
-
-	/* malloc new nurb */
-	new_nurb = ( Nurb * ) MEM_callocN( sizeof( Nurb ), "appendNurb" );
-
-	if( !new_nurb )
-		return EXPP_ReturnPyObjError
-			( PyExc_MemoryError, "unable to malloc Nurb" );
-
-	if( CurNurb_appendPointToNurb( new_nurb, args ) ) {
-		// add nurb to curve
-		BLI_addtail( nurb_ptr, new_nurb);
-
-		new_nurb->resolu = self->curve->resolu;
-		new_nurb->resolv = self->curve->resolv;
-		new_nurb->hide = 0;
-		new_nurb->flag = 1;
-
-
-		if( new_nurb->bezt ) {	/* do setup for bezt */
-			new_nurb->type = CU_BEZIER;
-			new_nurb->bezt->h1 = HD_ALIGN;
-			new_nurb->bezt->h2 = HD_ALIGN;
-			new_nurb->bezt->f1 = 1;
-			new_nurb->bezt->f2 = 1;
-			new_nurb->bezt->f3 = 1;
-			new_nurb->bezt->hide = 0;
-			/* calchandlesNurb( new_nurb ); */
-		} else {	/* set up bp */
-			new_nurb->pntsv = 1;
-			new_nurb->type = CU_NURBS;
-			new_nurb->orderu = 4;
-			new_nurb->flagu = 0;
-			new_nurb->flagv = 0;
-			new_nurb->bp->f1 = 0;
-			new_nurb->bp->hide = 0;
-			new_nurb->knotsu = 0;
-			/*makenots( new_nurb, 1, new_nurb->flagu >> 1); */
-		}
-
-	} else {
-		freeNurb( new_nurb );
-		return NULL;	/* with PyErr already set */
-	}
-
-	return CurNurb_CreatePyObject( new_nurb );
-}
-
-
-/* 
- *   Curve_update( )
- *   method to update display list for a Curve.
- *   used. after messing with control points
- */
-
-PyObject *Curve_update( BPy_Curve * self )
-{
-	Nurb *nu = self->curve->nurb.first;
-
-	/* recalculate handles for each curve: calchandlesNurb() will make
-	 * sure curves are bezier first */
-	while( nu ) {
-		calchandlesNurb ( nu );
-		nu = nu->next;
-	}
-
-	Object_updateDag( (void*) self->curve );
-
-	Py_RETURN_NONE;
-}
-
-/*
- * Curve_getMaterials
- *
- */
-
-static PyObject *Curve_getMaterials( BPy_Curve * self )
-{
-	return EXPP_PyList_fromMaterialList( self->curve->mat,
-			self->curve->totcol, 1 );
-}
-
-static PyObject *Curve_setMaterials( BPy_Curve *self, PyObject * value )
-{
-	Material **matlist;
-	int len;
-
-	if( !PySequence_Check( value ) ||
-			!EXPP_check_sequence_consistency( value, &Material_Type ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"sequence should only contain materials or None)" );
-
-	len = PySequence_Size( value );
-	if( len > 16 )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"list can't have more than 16 materials" );
-
-	/* free old material list (if it exists) and adjust user counts */
-	if( self->curve->mat ) {
-		Curve *cur = self->curve;
-		int i;
-		for( i = cur->totcol; i-- > 0; )
-			if( cur->mat[i] )
-           		cur->mat[i]->id.us--;
-		MEM_freeN( cur->mat );
-	}
-
-	/* build the new material list, increment user count, store it */
-
-	matlist = EXPP_newMaterialList_fromPyList( value );
-	EXPP_incr_mats_us( matlist, len );
-	self->curve->mat = matlist;
-	self->curve->totcol = (short)len;
-
-/**@ This is another ugly fix due to the weird material handling of blender.
-    * it makes sure that object material lists get updated (by their length)
-    * according to their data material lists, otherwise blender crashes.
-    * It just stupidly runs through all objects...BAD BAD BAD.
-    */
-
-	test_object_materials( ( ID * ) self->curve );
-
-	Py_RETURN_NONE;
-}
-
-/*****************************************************************************/
-/* Function:    Curve_getBevOb                                               */
-/* Description: Get the bevel object assign to the curve.                    */
-/*****************************************************************************/
-static PyObject *Curve_getBevOb( BPy_Curve * self)
-{
-	if( self->curve->bevobj ) {
-		return Object_CreatePyObject( self->curve->bevobj );
-	}
-
-	return EXPP_incr_ret( Py_None );
-}
-
-/*****************************************************************************/
-/* Function:    Curve_setBevOb                                               */
-/* Description: Assign a bevel object to the curve.                          */
-/*****************************************************************************/
-PyObject *Curve_setBevOb( BPy_Curve * self, PyObject * args )
-{
-	BPy_Object *pybevobj;
-
-	/* Parse and check input args */
-	if( !PyArg_ParseTuple( args, "O", &pybevobj) ) {
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-					"expected object or None argument" ) );
-	}
-
-	/* Accept None */
-	if( (PyObject *)pybevobj == Py_None ) {
-		self->curve->bevobj = (Object *)NULL;
-	} else {
-	/* Accept Object with type 'Curve' */
-		if( Object_CheckPyObject( ( PyObject * ) pybevobj ) && 
-				pybevobj->object->type == OB_CURVE) {
-			if(self->curve == pybevobj->object->data )
-				return EXPP_ReturnPyObjError( PyExc_ValueError,
-							"objects cannot bevel themselves" );
-
-			self->curve->bevobj = 
-				Object_FromPyObject( ( PyObject * ) pybevobj );
-		} else {
-			return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected Curve object type or None argument" ) );
-		}
-	}
-
-	return EXPP_incr_ret( Py_None );
-}
-
-/*****************************************************************************/
-/* Function:    Curve_getTaperOb                                               */
-/* Description: Get the taper object assign to the curve.                    */
-/*****************************************************************************/
-
-
-static PyObject *Curve_getTaperOb( BPy_Curve * self)
-{
-	if( self->curve->taperobj ) {
-		return Object_CreatePyObject( self->curve->taperobj );
-	}
-
-	return EXPP_incr_ret( Py_None );
-}
-
-/*****************************************************************************/
-/* Function:    Curve_setTaperOb                                               */
-/* Description: Assign a taper object to the curve.                          */
-/*****************************************************************************/
-
-PyObject *Curve_setTaperOb( BPy_Curve * self, PyObject * args )
-{
-	BPy_Object *pytaperobj;
-
-	/* Parse and check input args */
-	if( !PyArg_ParseTuple( args, "O", &pytaperobj) ) {
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-					"expected object or None argument" ) );
-	}
-
-	/* Accept None */
-	if( (PyObject *)pytaperobj == Py_None ) {
-		self->curve->taperobj = (Object *)NULL;
-	} else {
-	/* Accept Object with type 'Curve' */
-		if( Object_CheckPyObject( ( PyObject * ) pytaperobj ) && 
-				pytaperobj->object->type == OB_CURVE) {
-			if(self->curve == pytaperobj->object->data )
-				return EXPP_ReturnPyObjError( PyExc_ValueError,
-							"objects cannot taper themselves" );
-			self->curve->taperobj = 
-				Object_FromPyObject( ( PyObject * ) pytaperobj );
-		} else {
-			return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected Curve object type or None argument" ) );
-		}
-	}
-
-	return EXPP_incr_ret( Py_None );
-}
-
-/*****************************************************************************/
-/* Function:    Curve_copy                                                   */
-/* Description: Return a copy of this curve data.                            */
-/*****************************************************************************/
-
-PyObject *Curve_copy( BPy_Curve * self )
-{
-	BPy_Curve *pycurve;	/* for Curve Data object wrapper in Python */
-	Curve *blcurve = 0;	/* for actual Curve Data we create in Blender */
-
-	/* copies the data */
-	blcurve = copy_curve( self->curve );	/* first create the Curve Data in Blender */
-
-	if( blcurve == NULL )	/* bail out if add_curve() failed */
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_RuntimeError,
-			   "couldn't create Curve Data in Blender" ) );
-
-	/* return user count to zero because add_curve() inc'd it */
-	blcurve->id.us = 0;
-	
-	/* create python wrapper obj */
-	pycurve = ( BPy_Curve * ) PyObject_NEW( BPy_Curve, &Curve_Type );
-
-	if( pycurve == NULL )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_MemoryError,
-			   "couldn't create Curve Data object" ) );
-
-	pycurve->curve = blcurve;	/* link Python curve wrapper to Blender Curve */
-	return ( PyObject * ) pycurve;
-}
-
-
-/*
- * Curve_getIter
- *
- * create an iterator for our Curve.
- * this iterator returns the Nurbs for this Curve.
- * the iter_pointer always points to the next available item or null
- */
-
-static PyObject *Curve_getIter( BPy_Curve * self )
-{
-	self->iter_pointer = self->curve->nurb.first;
-
-	Py_INCREF( self );
-	return ( PyObject * ) self;
-
-}
-
-
-/*
- * Curve_iterNext
- *  get the next item.
- *  iter_pointer always points to the next available element
- *   or NULL if at the end of the list.
- */
-
-static PyObject *Curve_iterNext( BPy_Curve * self )
-{
-	Nurb *pnurb;
-
-	if( self->iter_pointer ) {
-		pnurb = self->iter_pointer;
-		self->iter_pointer = pnurb->next;	/* advance iterator */
-		if( (pnurb->type & 7) == CU_BEZIER || pnurb->pntsv <= 1 )
-			return CurNurb_CreatePyObject( pnurb ); /* make a bpy_curnurb */
-		else
-			return SurfNurb_CreatePyObject( pnurb ); /* make a bpy_surfnurb */
-	}
-
-	/* if iter_pointer was null, we are at end */
-	return EXPP_ReturnPyObjError( PyExc_StopIteration,
-			"iterator at end" );
-}
-
-/* tp_sequence methods */
-
-/*
- * Curve_length
- * returns the number of curves in a Curve
- * this is a tp_as_sequence method, not a regular instance method.
- */
-
-static int Curve_length( PyInstanceObject * inst )
-{
-	if( Curve_CheckPyObject( ( PyObject * ) inst ) )
-		return ( ( int ) PyInt_AsLong
-			 ( Curve_getNumCurves( ( BPy_Curve * ) inst ) ) );
-
-	return EXPP_ReturnIntError( PyExc_RuntimeError,
-				    "arg is not a BPy_Curve" );
-
-}
-
-
-
-/*
- * Curve_getNurb
- * returns the Nth nurb in a Curve.
- * this is one of the tp_as_sequence methods, hence the int N argument.
- * it is called via the [] operator, not as a usual instance method.
- */
-
-PyObject *Curve_getNurb( BPy_Curve * self, int n )
-{
-	Nurb *pNurb;
-	int i;
-
-	/* bail if index < 0 */
-	if( n < 0 )
-		return ( EXPP_ReturnPyObjError( PyExc_IndexError,
-						"index less than 0" ) );
-	/* bail if no Nurbs in Curve */
-	if( self->curve->nurb.first == 0 )
-		return ( EXPP_ReturnPyObjError( PyExc_IndexError,
-						"no Nurbs in this Curve" ) );
-	/* set pointer to nth Nurb */
-	for( pNurb = self->curve->nurb.first, i = 0;
-	     pNurb != 0 && i < n; pNurb = pNurb->next, ++i )
-		/**/;
-
-	if( !pNurb )		/* we came to the end of the list */
-		return ( EXPP_ReturnPyObjError( PyExc_IndexError,
-						"index out of range" ) );
-
-	/* until there is a Surface BPyType, distinquish between a curve and a
-	 * surface based on whether it's a Bezier and the v size */
-	if( (pNurb->type & 7) == CU_BEZIER || pNurb->pntsv <= 1 )
-		return CurNurb_CreatePyObject( pNurb );	/* make a bpy_curnurb */
-	else
-		return SurfNurb_CreatePyObject( pNurb );	/* make a bpy_surfnurb */
-
-}
-
-
-
-/*****************************************************************************/
-/* Function:    CurveDeAlloc                                                 */
-/* Description: This is a callback function for the BPy_Curve type. It is    */
-/*              the destructor function.                                     */
-/*****************************************************************************/
-static void CurveDeAlloc( BPy_Curve * self )
-{
-	PyObject_DEL( self );
-}
-
-/*****************************************************************************/
-/* Function:    CurveGetAttr                                                 */
-/* Description: This is a callback function for the BPy_Curve type. It is    */
-/*              the function that accesses BPy_Curve "member variables" and  */
-/*              methods.                                                     */
-/*****************************************************************************/
-static PyObject *CurveGetAttr( BPy_Curve * self, char *name )
-{				/* getattr */
-	PyObject *attr = Py_None;
-
-	if( strcmp( name, "name" ) == 0 )
-		attr = PyString_FromString( self->curve->id.name + 2 );
-	else if( strcmp( name, "lib" ) == 0 ) {
-		/* WARNING - Not standard, until we move to get/setattrs
-		   at the moment we cant return None at the end because it raises an error */
-		attr = EXPP_GetIdLib((ID *)self->curve);
-		if (attr) return attr; 
-	} else if( strcmp( name, "pathlen" ) == 0 )
-		attr = PyInt_FromLong( self->curve->pathlen );
-	else if( strcmp( name, "totcol" ) == 0 )
-		attr = PyInt_FromLong( self->curve->totcol );
-	else if( strcmp( name, "flag" ) == 0 )
-		attr = PyInt_FromLong( self->curve->flag );
-	else if( strcmp( name, "bevresol" ) == 0 )
-		attr = PyInt_FromLong( self->curve->bevresol );
-	else if( strcmp( name, "resolu" ) == 0 )
-		attr = PyInt_FromLong( self->curve->resolu );
-	else if( strcmp( name, "resolv" ) == 0 )
-		attr = PyInt_FromLong( self->curve->resolv );
-	else if( strcmp( name, "width" ) == 0 )
-		attr = PyFloat_FromDouble( self->curve->width );
-	else if( strcmp( name, "ext1" ) == 0 )
-		attr = PyFloat_FromDouble( self->curve->ext1 );
-	else if( strcmp( name, "ext2" ) == 0 )
-		attr = PyFloat_FromDouble( self->curve->ext2 );
-	else if( strcmp( name, "loc" ) == 0 )
-		return Curve_getLoc( self );
-	else if( strcmp( name, "rot" ) == 0 )
-		return Curve_getRot( self );
-	else if( strcmp( name, "size" ) == 0 )
-		return Curve_getSize( self );
-	else if( strcmp( name, "bevob" ) == 0 )
-		return Curve_getBevOb( self );
-	else if( strcmp( name, "taperob" ) == 0 )
-		return Curve_getTaperOb( self );
-	else if( strcmp( name, "key" ) == 0 )
-		return Curve_getKey( self );
-	else if( strcmp( name, "materials" ) == 0 )
-		return Curve_getMaterials( self );
-#if 0
-	else if( strcmp( name, "numpts" ) == 0 )
-		return Curve_getNumPoints( self );
-#endif
-
-
-	if( !attr )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create PyObject" ) );
-
-	if( attr != Py_None )
-		return attr;	/* member attribute found, return it */
-
-	/* not an attribute, search the methods table */
-	return Py_FindMethod( BPy_Curve_methods, ( PyObject * ) self, name );
-}
-
-/*****************************************************************************/
-/* Function:    CurveSetAttr                                                 */
-/* Description: This is a callback function for the BPy_Curve type. It      */
-/*              sets Curve Data attributes (member variables). */
-/*****************************************************************************/
-static int CurveSetAttr( BPy_Curve * self, char *name, PyObject * value )
-{
-	PyObject *valtuple;
-	PyObject *error = NULL;
-	valtuple = Py_BuildValue( "(O)", value );
-	/* resolu resolv width ext1 ext2  */
-	if( !valtuple )
-		return EXPP_ReturnIntError( PyExc_MemoryError,
-					    "CurveSetAttr: couldn't create PyTuple" );
-
-	if( strcmp( name, "name" ) == 0 )
-		error = Curve_setName( self, valtuple );
-	else if( strcmp( name, "pathlen" ) == 0 )
-		error = Curve_setPathLen( self, valtuple );
-	else if( strcmp( name, "bevresol" ) == 0 )
-		error = Curve_setBevresol( self, valtuple );
-	else if( strcmp( name, "resolu" ) == 0 )
-		error = Curve_setResolu( self, valtuple );
-	else if( strcmp( name, "resolv" ) == 0 )
-		error = Curve_setResolv( self, valtuple );
-	else if( strcmp( name, "width" ) == 0 )
-		error = Curve_setWidth( self, valtuple );
-	else if( strcmp( name, "ext1" ) == 0 )
-		error = Curve_setExt1( self, valtuple );
-	else if( strcmp( name, "ext2" ) == 0 )
-		error = Curve_setExt2( self, valtuple );
-	else if( strcmp( name, "loc" ) == 0 )
-		error = Curve_setLoc( self, valtuple );
-	else if( strcmp( name, "rot" ) == 0 )
-		error = Curve_setRot( self, valtuple );
-	else if( strcmp( name, "size" ) == 0 )
-		error = Curve_setSize( self, valtuple );
-	else if( strcmp( name, "bevob" ) == 0 )
-		error = Curve_setBevOb( self, valtuple );
-	else if( strcmp( name, "taperob" ) == 0 )
-		error = Curve_setTaperOb( self, valtuple );
-	else if( strcmp( name, "materials" ) == 0 )
-		error = Curve_setMaterials( self, value );
-
-	else {			/* Error */
-		Py_DECREF( valtuple );
-
-		if( ( strcmp( name, "Types" ) == 0 )
-		    || ( strcmp( name, "Modes" ) == 0 ) )
-			return ( EXPP_ReturnIntError
-				 ( PyExc_AttributeError,
-				   "constant dictionary -- cannot be changed" ) );
-
-		else
-			return ( EXPP_ReturnIntError
-				 ( PyExc_KeyError, "attribute not found" ) );
-	}
-
-	Py_DECREF( valtuple );
-
-	if( error != Py_None )
-		return -1;
-	Py_DECREF( Py_None );
-	return 0;
-}
-
-
-/*****************************************************************************/
-/* Function:    CurveCopmpare		                                         */
-/* Description: This compares 2 curve python types, == or != only.			 */
-/*****************************************************************************/
-static int CurveCopmpare( BPy_Curve * a, BPy_Curve * b )
-{
-	return ( a->curve == b->curve ) ? 0 : -1;
-}
-
-
-/*****************************************************************************/
-/* Function:    CurveRepr                                                    */
-/* Description: This is a callback function for the BPy_Curve type. It       */
-/*              builds a meaninful string to represent curve objects.        */
-/*****************************************************************************/
-static PyObject *CurveRepr( BPy_Curve * self )
-{				/* used by 'repr' */
-
-	return PyString_FromFormat( "[Curve \"%s\"]",
-				    self->curve->id.name + 2 );
 }
 
 
@@ -1726,5 +1696,98 @@ struct Curve *Curve_FromPyObject( PyObject * py_obj )
 	blen_obj = ( BPy_Curve * ) py_obj;
 	return ( blen_obj->curve );
 
+}
+
+/* #####DEPRECATED###### */
+
+PyObject *Curve_setName( BPy_Curve * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Curve_newsetName );
+}
+
+static PyObject *Curve_setPathLen( BPy_Curve * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)Curve_newsetPathLen );
+}
+
+static PyObject *Curve_setTotcol( BPy_Curve * self, PyObject * args )
+{
+	if( !PyArg_ParseTuple( args, "i", &( self->curve->totcol ) ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected int argument" );
+	Py_RETURN_NONE;
+}
+
+PyObject *Curve_setMode( BPy_Curve * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)Curve_newsetMode );
+}
+
+PyObject *Curve_setBevresol( BPy_Curve * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)Curve_newsetBevresol);
+}
+
+PyObject *Curve_setResolu( BPy_Curve * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)Curve_newsetResolu );
+}
+
+PyObject *Curve_setResolv( BPy_Curve * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)Curve_newsetResolv );
+}
+
+PyObject *Curve_setWidth( BPy_Curve * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)Curve_newsetWidth );
+}
+
+PyObject *Curve_setExt1( BPy_Curve * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)Curve_newsetExt1 );
+}
+
+PyObject *Curve_setExt2( BPy_Curve * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)Curve_newsetExt2 );
+}
+
+static PyObject *Curve_setLoc( BPy_Curve * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)Curve_newsetLoc );
+}
+
+static PyObject *Curve_setRot( BPy_Curve * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)Curve_newsetRot );
+}
+
+static PyObject *Curve_setSize( BPy_Curve * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)Curve_newsetSize );
+}
+
+PyObject *Curve_setBevOb( BPy_Curve * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)Curve_newsetBevOb );
+}
+
+PyObject *Curve_setTaperOb( BPy_Curve * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)Curve_newsetTaperOb );
 }
 
