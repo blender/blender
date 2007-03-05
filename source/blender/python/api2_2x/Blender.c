@@ -104,7 +104,6 @@ static PyObject *Blender_Quit( PyObject * self );
 static PyObject *Blender_Load( PyObject * self, PyObject * args );
 static PyObject *Blender_Save( PyObject * self, PyObject * args );
 static PyObject *Blender_Run( PyObject * self, PyObject * args );
-static PyObject *Blender_RemoveFakeuser(PyObject *self, PyObject *args);
 static PyObject *Blender_ShowHelp( PyObject * self, PyObject * args );
 static PyObject *Blender_UpdateMenus( PyObject * self);
 static PyObject *Blender_PackAll( PyObject * self);
