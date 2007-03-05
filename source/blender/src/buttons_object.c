@@ -2793,6 +2793,7 @@ static void object_panel_fluidsim(Object *ob)
 	const int lineHeight = 20;
 	const int separateHeight = 3;
 	const int objHeight = 20;
+	char *msg = NULL;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_fluidsim", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Fluid Simulation", "Physics", 1060, 0, 318, 204)==0) return;
@@ -2800,12 +2801,16 @@ static void object_panel_fluidsim(Object *ob)
 	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
 	
 	if(ob->type==OB_MESH) {
+		if(((Mesh *)ob->data)->totvert == 0) {
+			msg = "Mesh has no vertices.";
+			goto errMessage;
+		}
 		uiDefButBitS(block, TOG, OB_FLUIDSIM_ENABLE, REDRAWBUTSOBJECT, "Enable",	 0,yline, 75,objHeight, 
 				&ob->fluidsimFlag, 0, 0, 0, 0, "Sets object to participate in fluid simulation");
 
 		if(ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) {
 			FluidsimSettings *fss= ob->fluidsimSettings;
-			
+	
 			if(fss==NULL) {
 				fss = ob->fluidsimSettings = fluidsimSettingsNew(ob);
 			}
@@ -3084,17 +3089,19 @@ static void object_panel_fluidsim(Object *ob)
 				uiDefBut(block, LABEL, 0, "Select object type for simulation",		0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
 				yline -= lineHeight;
 			}
+			return;
 
 		} else {
-			yline -= lineHeight + 5;
-			uiDefBut(block, LABEL, 0, "Object not enabled for fluid simulation...", 0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
-			yline -= lineHeight;
+			msg = "Object not enabled for fluid simulation...";
 		}
 	} else {
-		yline -= lineHeight + 5;
-		uiDefBut(block, LABEL, 0, "Only Mesh Objects can participate", 0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
-		yline -= lineHeight;
+		msg = "Only Mesh Objects can participate.";
 	}
+errMessage:
+	yline -= lineHeight + 5;
+	uiDefBut(block, LABEL, 0, msg, 0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
+	yline -= lineHeight;
+
 #endif // DISABLE_ELBEEM
 }
 
