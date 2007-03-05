@@ -77,6 +77,8 @@ struct View3D;
 #include "sceneRender.h"
 #include "sceneRadio.h"
 #include "sceneTimeLine.h"
+#include "sceneSequence.h"
+
 
 #include "BKE_utildefines.h" /* vec copy */
 #include "vector.h"
@@ -141,6 +143,7 @@ static PyObject *Scene_setCurrentCamera( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_getRenderingContext( BPy_Scene * self );
 static PyObject *Scene_getRadiosityContext( BPy_Scene * self );
 static PyObject *Scene_getScriptLinks( BPy_Scene * self, PyObject * args );
+static PyObject *Scene_getSequence( BPy_Scene * self );
 static PyObject *Scene_addScriptLink( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_clearScriptLinks( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_play( BPy_Scene * self, PyObject * args );
@@ -454,6 +457,11 @@ static PyGetSetDef BPy_Scene_getseters[] = {
 	 (getter)Scene_getRadiosityContext, (setter)NULL,
 	 "Scenes radiosity context (read only)",
 	 NULL},
+	{"sequence",
+	 (getter)Scene_getSequence, (setter)NULL,
+	 "Scene sequencer data (read only)",
+	 NULL},
+	 
 	{"objects",
 	 (getter)Scene_getObjects, (setter)NULL,
 	 "Scene object iterator",
@@ -560,6 +568,7 @@ PyObject *Scene_Init( void )
 	dict = PyModule_GetDict( submodule );
 	PyDict_SetItemString( dict, "Render", Render_Init(  ) );
 	PyDict_SetItemString( dict, "Radio", Radio_Init(  ) );
+	PyDict_SetItemString( dict, "Sequence", Sequence_Init(  ) );
 	
 	return submodule;
 }
@@ -1053,6 +1062,15 @@ static PyObject *Scene_getRadiosityContext( BPy_Scene * self )
 {
 	SCENE_DEL_CHECK_PY(self);
 	return Radio_CreatePyObject( self->scene );
+}
+
+static PyObject *Scene_getSequence( BPy_Scene * self )
+{
+	SCENE_DEL_CHECK_PY(self);
+	if (self->scene->ed) /* we should create this if its not there :/ */
+		return SceneSeq_CreatePyObject( self->scene, NULL );
+	else
+		Py_RETURN_NONE;
 }
 
 /* scene.addScriptLink */
