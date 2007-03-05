@@ -2660,10 +2660,10 @@ static PyObject *Texture_evaluate( BPy_Texture * self, PyObject * args )
 	
 	if(!PyArg_ParseTuple(args, "O!", &vector_Type, &vec_in) || vec_in->size < 3)
 		return EXPP_ReturnPyObjError(PyExc_TypeError, 
-			"expects a 3D vector object\n");
+			"expects a 3D vector object");
 	
-	/* rgbnor = .. we dont need this now */
-	multitex_ext(self->texture, vec_in->vec, 1, 1, 1, &texres);
+	/* rgbnor = .. we don't need this now */
+	multitex_ext(self->texture, vec_in->vec, NULL, NULL, 1, &texres);
 	
 	vec[0] = texres.tr;
 	vec[1] = texres.tg;
