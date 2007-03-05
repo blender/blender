@@ -11,7 +11,7 @@ source_files = ['makesdna.c', '#intern/guardedalloc/intern/mallocn.c']
 
 makesdna_tool = env.Copy()
 dna = env.Copy()
-makesdna_tool.Append(CCFLAGS = ' -DBASE_HEADER="\\"source/blender/makesdna/\\"" ')
+makesdna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesdna/\\"" ')
 
 makesdna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
                                  '../../makesdna'])
