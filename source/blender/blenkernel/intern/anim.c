@@ -323,7 +323,8 @@ static void group_duplilist(ListBase *lb, Object *ob, int level)
 			Mat4MulMat4(mat, go->ob->obmat, ob->obmat);
 			dob= new_dupli_object(lb, go->ob, mat, ob->lay, 0);
 			dob->no_draw= (dob->origlay & group->layer)==0;
-			if(go->ob->dup_group) {
+			
+			if(go->ob->dup_group && (go->ob->transflag & OB_DUPLIGROUP)) {
 				Mat4CpyMat4(dob->ob->obmat, dob->mat);
 				group_duplilist(lb, go->ob, level+1);
 				Mat4CpyMat4(dob->ob->obmat, dob->omat);
