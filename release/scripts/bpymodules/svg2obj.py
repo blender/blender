@@ -1,7 +1,7 @@
 # -*- coding: latin-1 -*-
 """
-SVG 2 OBJ translater, 0.5.5
-Copyright (c) jm soler juillet/novembre 2004-decembre 2006, 
+SVG 2 OBJ translater, 0.5.6
+Copyright (c) jm soler juillet/novembre 2004-mars 2007, 
 # ---------------------------------------------------------------
     released under GNU Licence 
     for the Blender 2.42 Python Scripts Bundle.
@@ -216,6 +216,9 @@ Changelog:
 
      0.5.5 : - Modifs for architect users .
      
+     0.5.6 : -  Exec was removed from the collect_ATTRIBUTS function .
+	              Other uses was evaluated.
+	   
 ==================================================================================   
 =================================================================================="""
 
@@ -422,7 +425,7 @@ def createCURVES(curves, name):
     c = Curve.New()
     c.setResolu(24)  
 
-    print "total curves : ", len(curves.ITEM)
+    #print "total curves : ", len(curves.ITEM)
     for I,val in curves.ITEM.iteritems():
         bzn=0
         if test_samelocations(val.beziers_knot[-1].co,val.beziers_knot[0].co)\
@@ -430,7 +433,7 @@ def createCURVES(curves, name):
            del val.beziers_knot[-1]
             
         #for b in curves.ITEM[I].beziers_knot:
-        for k2 in xrange(0,len(val.beziers_knot)):
+        for k2 in range(0,len(val.beziers_knot)):
             bz= [co for co in val.beziers_knot[k2].co] #ajustement(curves.ITEM[I].beziers_knot[k2], SCALE)
             #bz=k1
             
@@ -446,7 +449,7 @@ def createCURVES(curves, name):
               #beztriple2.handleTypes= (BezTriple.HandleTypes.FREE, BezTriple.HandleTypes.FREE)
               beztriple2.handleTypes= (HANDLE[val.beziers_knot[k2].ha[0]],HANDLE[val.beziers_knot[k2].ha[1]])
               bez.append(beztriple2)
-            # print beztriple1.handleTypes
+            #print beztriple1.handleTypes
             
         if val.flagUV[0]==1 or val.fill==1:
           #--------------------
@@ -454,7 +457,7 @@ def createCURVES(curves, name):
           #--------------------
            bez.flagU += 1
 
-    # print len(c)
+    #print len(c)
     ob.link(c)
     scene.link(ob)
     ob.setSize(1.0/SCALE,1.0/-SCALE,1.0)
@@ -497,6 +500,9 @@ def rect(prp):
        h2
   """
   if 'rx' not in prp or 'rx' not in prp: 
+     # -------------------------------------
+     # is this exec safe ?
+     # -------------------------------------
      exec   """D=['M','%s','%s','h','%s','v','%s','h','%s','z']"""%(x,y,width,height,-width)	
   else :
      rx=float(prp['rx'])
@@ -523,6 +529,9 @@ def rect(prp):
           *----------*  
           h2         c2
      """
+     # -------------------------------------
+     # is this exec safe
+     # -------------------------------------
      exec   """D=['M','%s','%s',
                   'h','%s',
                   'c','%s','%s','%s','%s','%s','%s',
@@ -554,6 +563,9 @@ def circle(prp):
    if 'cy' not in prp: cy=0.0
    else : cy =float(prp['cy'])
    r = float(prp['r'])
+   # -------------------------------------
+   # is this exec safe
+   # -------------------------------------
    exec """D=['M','%s','%s',                  
               'C','%s','%s','%s','%s','%s','%s',
               'C','%s','%s','%s','%s','%s','%s',
@@ -578,7 +590,9 @@ def ellipse(prp):
    else : cy =float(prp['cy'])
    ry = float(prp['rx'])
    rx = float(prp['ry'])
-
+   # -------------------------------------
+   # is this exec safe
+   # -------------------------------------
    exec """D=['M','%s','%s',                  
               'C','%s','%s','%s','%s','%s','%s',
               'C','%s','%s','%s','%s','%s','%s',
@@ -596,6 +610,9 @@ def ellipse(prp):
 # 0.4.2
 #--------------------
 def line(prp):
+  # -------------------------------------
+  # is this exec safe
+  # -------------------------------------	
   exec   """D=['M','%s','%s',
                   'L','%s','%s']"""%(prp['x1'],prp['y1'], prp['x2'],prp['y2'])
   return D
@@ -612,9 +629,15 @@ def polyline(prp):
      if p!='':
         p=p.split(',')
         if np==0:
+           # -------------------------------------
+           # is this exec safe
+           # -------------------------------------
            exec "D=['M','%s','%s']"%(p[0],p[1])
            np+=1
-        else: 
+        else:
+           # -------------------------------------
+           # is this exec safe
+           # ------------------------------------- 
            exec """D.append('L');D.append('%s');D.append('%s')"""%(p[0],p[1])
     #print D
     return D
@@ -666,7 +689,7 @@ def calc_arc (cpx,cpy, rx, ry,  ang, fa , fs , x, y) :
         ang_arc-=2.0*PI
     n_segs=int(ceil(abs(ang_arc*2.0/(PI*0.5+0.001))))
     P=[]
-    for i in xrange(n_segs):
+    for i in range(n_segs):
         ang0=ang_0+i*ang_arc/n_segs
         ang1=ang_0+(i+1)*ang_arc/n_segs
         ang_demi=0.25*(ang1-ang0)
@@ -987,7 +1010,7 @@ TAGtransform=['M','L','C','S','H','V','T','Q']
 tagTRANSFORM=0
  
 def wash_DATA(ndata):
-   
+	
    if ndata!='':
        if DEBUG==1: print ndata
        while ndata[0]==' ': 
@@ -1026,7 +1049,7 @@ def list_DATA(DATA):
     # ----------------------------------------
     #     construire une liste avec chaque emplacement
     # ----------------------------------------
-    for d in Actions.iterkeys():
+    for d in Actions.keys():
         b1=0
         b2=len(DATA)
         while DATA.find(d,b1,b2)!=-1 :
@@ -1134,13 +1157,22 @@ def curve_TRANSFORM(Courbe,proprietes):
     for st in proprietes['stack'] :
         if st and  type(st)==list:
           for t in st:
+               # -------------------------------------
+               # this exec is safe, control_CONTAINT can't return a python function
+               # -------------------------------------
                exec "a,b,c=%s;T=Mathutils.Matrix(a,b,c)"%control_CONTAINT(t)[0]
                ST.append(T)
         elif st :
+           # -------------------------------------
+           # this exec is safe, control_CONTAINT can't return a python function
+           # -------------------------------------
            exec "a,b,c=%s;T=Mathutils.Matrix(a,b,c)"%control_CONTAINT(st)[0]
            ST.append(T)              
     if 'transform' in proprietes:
         for trans in control_CONTAINT(proprietes['transform']):
+           # -------------------------------------
+           # this exec is safe, control_CONTAINT can't return a python function
+           # -------------------------------------
            exec """a,b,c=%s;T=Mathutils.Matrix(a,b,c)"""%trans
            ST.append(T)
            #print ST
@@ -1197,9 +1229,12 @@ def collect_ATTRIBUTS(data):
         id=data[t2:t0]
         t2=data.find('"',t0+2)
         if id!='d':
-           exec "ELEM[id]=\"\"\"%s\"\"\""%(data[t0+2:t2].replace('\\','/'))
+           ELEM[id]=data[t0+2:t2].replace('\\','/')
         else:
-              exec "ELEM[id]=[%s,%s]"%(t0+2,t2) 
+           #print 	ELEM, id
+           ELEM[id]=[]
+           ELEM[id].append(t0+2)
+           ELEM[id].append(t2)
         ct=data.count('="',t2)
     return ELEM
 
@@ -1267,6 +1302,10 @@ def build_HIERARCHY(t):
              if proprietes['TYPE'] in ['path'] and (proprietes['d'][1]-proprietes['d'][0]>1):
                  D=list_DATA(t[proprietes['d'][0]+t0:proprietes['d'][1]+t0])
              elif proprietes['TYPE'] in OTHERSSHAPES:
+                 # ----------------------------------------------------------
+                 # Use of exec is safe prop can only be 'rect','line', 'polyline', 
+                 # 'polygon','circle' or 'ellipse'
+                 # ----------------------------------------------------------
                  exec "D=%s(proprietes)"% proprietes['TYPE']
              if len(D)>0:
                  cursor=0
@@ -1277,6 +1316,9 @@ def build_HIERARCHY(t):
                        prop=''
                        if cell[0] in ['m','M']: 
                              prop=',proprietes'
+                       # ----------------------------------------------------------
+                       # Use of exec is safe prop can only be :'' or  ',proprietes'
+                       # ----------------------------------------------------------
                        exec """curves,n0,CP=Actions[cell]([cell,cursor], D, n0,CP%s)"""%prop
                    cursor+=1
                  if TRANSFORM>0 or 'transform' in proprietes :
