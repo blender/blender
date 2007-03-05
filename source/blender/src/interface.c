@@ -4389,6 +4389,12 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		}
 	}
 	
+	/* inside menus, scrollwheel acts as arrow */
+	if(block->flag & UI_BLOCK_LOOP) {
+		if(uevent->event==WHEELUPMOUSE) uevent->event= UPARROWKEY;
+		if(uevent->event==WHEELDOWNMOUSE) uevent->event= DOWNARROWKEY;
+	}
+	
 	switch(uevent->event) {
 	case LEFTARROWKEY:	/* closing sublevels of pulldowns */
 		if(uevent->val && (block->flag & UI_BLOCK_LOOP) && block->parent) {
