@@ -537,6 +537,12 @@ class CurNurb:
 	@type flagV: int
 	@ivar type: The type of the curve (Poly: 0, Bezier: 1, NURBS: 4)
 	@type type: int
+	@ivar knotsU: The knot vector in the U direction. The tuple will be empty
+	if the curve isn't a NURB or doesn't have knots in this direction.
+	@type knotsU: tuple of floats
+	@ivar knotsV: The knot vector in the V direction. The tuple will be empty
+	if the curve isn't a NURB or doesn't have knots in this direction.
+	@type knotsV: tuple of floats
 	"""
 
 	def __setitem__( n, point ):
@@ -686,12 +692,6 @@ class SurfNurb:
 	@ivar orderV: The order setting for the V direction.  Values are clamped
 	to the range [2:6] and not greater than the V dimension.
 	@type orderV: int
-	@ivar knotsU: The knot vector in the U direction. The tuple will be empty
-	if the curve isn't a NURB or doesn't have knots in this direction.
-	@type knotsU: tuple of floats
-	@ivar knotsV: The knot vector in the V direction. The tuple will be empty
-	if the curve isn't a NURB or doesn't have knots in this direction.
-	@type knotsV: tuple of floats
 	"""
 
 	def __setitem__( n, point ):

@@ -24,7 +24,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Stephen Swaney
+ * Contributor(s): Stephen Swaney, Campbell Barton, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -37,21 +37,26 @@
 #include "gen_utils.h"
 #include "BezTriple.h"
 
-
 /*
  * forward declarations go here
  */
 
-
 static PyObject *M_CurNurb_New( PyObject * self, PyObject * args );
-static PyObject *CurNurb_setMatIndex( BPy_CurNurb * self, PyObject * args );
+static PyObject *CurNurb_oldsetMatIndex( BPy_CurNurb * self, PyObject * args );
+static int CurNurb_setMatIndex( BPy_CurNurb * self, PyObject * args );
 static PyObject *CurNurb_getMatIndex( BPy_CurNurb * self );
 static PyObject *CurNurb_getFlagU( BPy_CurNurb * self );
-static PyObject *CurNurb_setFlagU( BPy_CurNurb * self, PyObject * args );
+static PyObject *CurNurb_oldsetFlagU( BPy_CurNurb * self, PyObject * args );
+static int CurNurb_setFlagU( BPy_CurNurb * self, PyObject * args );
 static PyObject *CurNurb_getFlagV( BPy_CurNurb * self );
-static PyObject *CurNurb_setFlagV( BPy_CurNurb * self, PyObject * args );
+static PyObject *CurNurb_oldsetFlagV( BPy_CurNurb * self, PyObject * args );
+static int CurNurb_setFlagV( BPy_CurNurb * self, PyObject * args );
 static PyObject *CurNurb_getType( BPy_CurNurb * self );
-static PyObject *CurNurb_setType( BPy_CurNurb * self, PyObject * args );
+static PyObject *CurNurb_oldsetType( BPy_CurNurb * self, PyObject * args );
+static int CurNurb_setType( BPy_CurNurb * self, PyObject * args );
+static PyObject *CurNurb_getKnotsU( BPy_CurNurb * self );
+static PyObject *CurNurb_getKnotsV( BPy_CurNurb * self );
+static PyObject *CurNurb_getPoints( BPy_CurNurb * self );
 /* static PyObject* CurNurb_setXXX( BPy_CurNurb* self, PyObject* args ); */
 static int CurNurb_setPoint( BPy_CurNurb * self, int index, PyObject * ob );
 static int CurNurb_length( PyInstanceObject * inst );
@@ -74,11 +79,7 @@ char M_CurNurb_doc[] = "CurNurb";
 
 static void CurNurb_dealloc( BPy_CurNurb * self );
 static int CurNurb_compare( BPy_CurNurb * a, BPy_CurNurb * b );
-static PyObject *CurNurb_getAttr( BPy_CurNurb * self, char *name );
-static int CurNurb_setAttr( BPy_CurNurb * self, char *name, PyObject * v );
 static PyObject *CurNurb_repr( BPy_CurNurb * self );
-
-
 
 /*
    table of module methods
@@ -108,19 +109,19 @@ static PyMethodDef M_CurNurb_methods[] = {
 static PyMethodDef BPy_CurNurb_methods[] = {
 /*   name,     method,                    flags,         doc               */
 /*  {"method", (PyCFunction) CurNurb_method, METH_NOARGS, " () - doc string"} */
-	{"setMatIndex", ( PyCFunction ) CurNurb_setMatIndex, METH_VARARGS,
+	{"setMatIndex", ( PyCFunction ) CurNurb_oldsetMatIndex, METH_VARARGS,
 	 "( index ) - set index into materials list"},
 	{"getMatIndex", ( PyCFunction ) CurNurb_getMatIndex, METH_NOARGS,
 	 "( ) - get current material index"},
-	{"setFlagU", ( PyCFunction ) CurNurb_setFlagU, METH_VARARGS,
+	{"setFlagU", ( PyCFunction ) CurNurb_oldsetFlagU, METH_VARARGS,
 	 "( index ) - set flagU and recalculate the knots (0: uniform, 1: endpoints, 2: bezier)"},
 	{"getFlagU", ( PyCFunction ) CurNurb_getFlagU, METH_NOARGS,
 	 "( ) - get flagU of the knots"},
-	{"setFlagV", ( PyCFunction ) CurNurb_setFlagV, METH_VARARGS,
+	{"setFlagV", ( PyCFunction ) CurNurb_oldsetFlagV, METH_VARARGS,
 	 "( index ) - set flagV and recalculate the knots (0: uniform, 1: endpoints, 2: bezier)"},
 	{"getFlagV", ( PyCFunction ) CurNurb_getFlagV, METH_NOARGS,
 	 "( ) - get flagV of the knots"},
-	{"setType", ( PyCFunction ) CurNurb_setType, METH_VARARGS,
+	{"setType", ( PyCFunction ) CurNurb_oldsetType, METH_VARARGS,
 	 "( type ) - change the type of the curve (Poly: 0, Bezier: 1, NURBS: 4)"},
 	{"getType", ( PyCFunction ) CurNurb_getType, METH_NOARGS,
 	 "( ) - get the type of the curve (Poly: 0, Bezier: 1, NURBS: 4)"},
@@ -156,7 +157,38 @@ static PySequenceMethods CurNurb_as_sequence = {
 	0
 };
 
+static PyGetSetDef BPy_CurNurb_getseters[] = {
+	{"mat_index",
+	 (getter)CurNurb_getMatIndex, (setter)CurNurb_setMatIndex,
+	 "CurNurb's material index",
+	 NULL},
+	{"points",
+	 (getter)CurNurb_getPoints, (setter)NULL,
+	 "The number of curve points",
+	 NULL},
+	{"flagU",
+	 (getter)CurNurb_getFlagU, (setter)CurNurb_setFlagU,
+	 "The knot type in the U direction",
+	 NULL},
+	{"flagV",
+	 (getter)CurNurb_getFlagV, (setter)CurNurb_setFlagV,
+	 "The knot type in the V direction",
+	 NULL},
+	{"type",
+	 (getter)CurNurb_getType, (setter)CurNurb_setType,
+	 "The curve type (poly: bezier, or NURBS)",
+	 NULL},
+	{"knotsU",
+	 (getter)CurNurb_getKnotsU, (setter)NULL,
+	 "The The knot vector in the U direction",
+	 NULL},
+	{"knotsV",
+	 (getter)CurNurb_getKnotsV, (setter)NULL,
+	 "The The knot vector in the V direction",
+	 NULL},
 
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
 
 /*
   Object Type definition
@@ -176,9 +208,9 @@ PyTypeObject CurNurb_Type = {
 	/* Methods to implement standard operations */
 
 	( destructor ) CurNurb_dealloc,	/*    destructor tp_dealloc; */
-	0,			/*    printfunc tp_print; */
-	( getattrfunc ) CurNurb_getAttr,	/*    getattrfunc tp_getattr; */
-	( setattrfunc ) CurNurb_setAttr,	/*    setattrfunc tp_setattr; */
+	NULL,			/*    printfunc tp_print; */
+	NULL,					/*    getattrfunc tp_getattr; */
+	NULL,					/*    setattrfunc tp_setattr; */
 	( cmpfunc ) CurNurb_compare,	/*    cmpfunc tp_compare; */
 	( reprfunc ) CurNurb_repr,	/*    reprfunc tp_repr; */
 
@@ -225,7 +257,7 @@ PyTypeObject CurNurb_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_CurNurb_methods,	/*    struct PyMethodDef *tp_methods; */
 	0,			/*    struct PyMemberDef *tp_members; */
-	0,			/*    struct PyGetSetDef *tp_getset; */
+	BPy_CurNurb_getseters,			/*    struct PyGetSetDef *tp_getset; */
 	0,			/*    struct _typeobject *tp_base; */
 	0,			/*    PyObject *tp_dict; */
 	0,			/*    descrgetfunc tp_descr_get; */
@@ -247,98 +279,9 @@ PyTypeObject CurNurb_Type = {
 	0
 };
 
-
-
-
 void CurNurb_dealloc( BPy_CurNurb * self )
 {
 	PyObject_DEL( self );
-}
-
-
-
-static PyObject *CurNurb_getAttr( BPy_CurNurb * self, char *name )
-{
-	PyObject *attr = Py_None;
-
-	if( strcmp( name, "mat_index" ) == 0 )
-		attr = PyInt_FromLong( self->nurb->mat_nr );
-
-	else if( strcmp( name, "points" ) == 0 )
-		attr = PyInt_FromLong( self->nurb->pntsu );
-
-	else if( strcmp( name, "flagU" ) == 0 )
-		attr = CurNurb_getFlagU( self );
-
-	else if( strcmp( name, "flagV" ) == 0 )
-		attr = CurNurb_getFlagV( self );
-
-	else if( strcmp( name, "type" ) == 0 )
-		attr = CurNurb_getType( self );
-
-	else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s,s,s,s,s]", "mat_index", "points", "flagU", "flagV", "type" );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "couldn't create PyObject" );
-
-	/* member attribute found, return it */
-	if( attr != Py_None )
-		return attr;
-
-	/* not an attribute, search the methods table */
-	return Py_FindMethod( BPy_CurNurb_methods, ( PyObject * ) self, name );
-}
-
-
-/*
-  setattr
-*/
-
-static int CurNurb_setAttr( BPy_CurNurb * self, char *name, PyObject * value )
-{
-	PyObject *valtuple;
-	PyObject *error = NULL;
-
-	/* make a tuple to pass to our type methods */
-	valtuple = Py_BuildValue( "(O)", value );
-
-	if( !valtuple )
-		return EXPP_ReturnIntError( PyExc_MemoryError,
-					    "CurNurb.setAttr: cannot create pytuple" );
-
-	if( strcmp( name, "mat_index" ) == 0 )
-		error = CurNurb_setMatIndex( self, valtuple );
-
-	else if( strcmp( name, "flagU" ) == 0 )
-		error = CurNurb_setFlagU( self, valtuple );
-
-	else if( strcmp( name, "flagV" ) == 0 )
-		error = CurNurb_setFlagV( self, valtuple );
-
-	else if( strcmp( name, "type" ) == 0 )
-		error = CurNurb_setType( self, valtuple );
-
-	else {			/* error - no match for name */
-		Py_DECREF( valtuple );
-
-		if( ( strcmp( name, "ZZZZ" ) == 0 ) ||	/* user tried to change a */
-		    ( strcmp( name, "ZZZZ" ) == 0 ) )	/* constant dict type ... */
-			return EXPP_ReturnIntError( PyExc_AttributeError,
-						    "constant dictionary -- cannot be changed" );
-		else
-			return EXPP_ReturnIntError( PyExc_KeyError,
-						    "attribute not found" );
-	}
-
-
-	Py_DECREF( valtuple );	/* since it is not being returned */
-	if( error != Py_None )
-		return -1;
-
-	Py_DECREF( Py_None );
-	return 0;		/* normal exit */
 }
 
 /*
@@ -405,32 +348,92 @@ static PyObject *CurNurb_getType( BPy_CurNurb * self )
  *
  *	Convert the curve using Blender's convertspline fonction
  */
-static PyObject *CurNurb_setType( BPy_CurNurb * self, PyObject * args )
+static int CurNurb_setType( BPy_CurNurb * self, PyObject * args )
 {
-	Nurb *nurb = self->nurb;
-	short type;
+	PyObject* integer = PyNumber_Int( args );
+	short value;
 
-	/* parameter type checking */
-	if( !PyArg_ParseTuple( args, "h", &type ) )
-		return EXPP_ReturnPyObjError
-			( PyExc_TypeError, "expected integer argument" );
+	if( !integer )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected integer argument" );
+
+	value = ( short )PyInt_AS_LONG( integer );
+	Py_DECREF( integer );
 
 	/* parameter value checking */
-	if (type != CU_POLY &&
-		type != CU_BEZIER &&
-		type != CU_NURBS)
-		return EXPP_ReturnPyObjError
-			 ( PyExc_ValueError, "expected integer argument" );
+	if (value != CU_POLY && value != CU_BEZIER && value != CU_NURBS)
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"expected integer argument" );
 
 	/* convert and raise error if impossible */
-	if (convertspline(type, nurb))
-		return EXPP_ReturnPyObjError
-			 ( PyExc_ValueError, "Conversion Impossible" );
+	if (convertspline(value, self->nurb))
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"Conversion Impossible" );
 
-	return EXPP_incr_ret( Py_None );
+	return 0;
 }
 
+/*
+ * CurNurb_getKnotsU
+ *
+ * returns curve's knotsU in a tuple. Empty tuple is returned if curve
+ * isn't Nurbs or it doesn't have knots in U
+ */
 
+static PyObject *CurNurb_getKnotsU( BPy_CurNurb * self )
+{
+	if(self->nurb->knotsu) {
+		int len = KNOTSU(self->nurb);
+		int i;
+		PyObject *knotsu = PyTuple_New(len);
+		if( !knotsu )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"could not get CurNurb.knotsU attribute" );
+
+		for(i = 0; i < len; ++i)
+			PyTuple_SetItem(knotsu, i,
+					PyFloat_FromDouble(self->nurb->knotsu[i]));
+
+		return knotsu;
+	}
+	return PyTuple_New(0);
+}
+
+/*
+ * CurNurb_getKnotsV
+ *
+ * returns curve's knotsV in a tuple. Empty tuple is returned if curve doesn't have knots in V
+ */
+
+static PyObject *CurNurb_getKnotsV( BPy_CurNurb * self )
+{
+	if(self->nurb->knotsv) {
+		int len = KNOTSV(self->nurb);
+		int i;
+		PyObject *knotsv = PyTuple_New(len);
+		if( !knotsv )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"could not get CurNurb.knotsV index" );
+
+		for(i = 0; i < len; ++i)
+			PyTuple_SetItem(knotsv, i,
+					PyFloat_FromDouble(self->nurb->knotsv[i] ));
+	
+		return knotsv;
+	}
+	return PyTuple_New(0);
+}
+
+static PyObject *CurNurb_getPoints( BPy_CurNurb * self )
+{
+	PyObject *attr = PyInt_FromLong( ( long ) self->nurb->pntsu );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"could not get number of points" );
+}
 
 /*
  * CurNurb_append( point )
@@ -577,7 +580,7 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * args )
 
 	}
 
-	return ( EXPP_incr_ret( Py_None ) );
+	Py_RETURN_NONE;
 }
 
 
@@ -587,20 +590,10 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * args )
  *  set index into material list
  */
 
-static PyObject *CurNurb_setMatIndex( BPy_CurNurb * self, PyObject * args )
+static int CurNurb_setMatIndex( BPy_CurNurb * self, PyObject * args )
 {
-	int index;
-
-	if( !PyArg_ParseTuple( args, "i", &( index ) ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError,
-			   "expected integer argument" ) );
-
-	/* fixme:  some range checking would be nice! */
-	self->nurb->mat_nr = (short)index;
-
-	Py_INCREF( Py_None );
-	return Py_None;
+	printf ("%d\n", self->nurb->mat_nr);
+	return EXPP_setIValueRange( args, &self->nurb->mat_nr, 0, 15, 'h' );
 }
 
 /*
@@ -616,8 +609,8 @@ static PyObject *CurNurb_getMatIndex( BPy_CurNurb * self )
 	if( index )
 		return index;
 
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"could not get material index" ) );
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"could not get material index" );
 }
 
 /*
@@ -646,25 +639,28 @@ static PyObject *CurNurb_getFlagU( BPy_CurNurb * self )
  *    bit 0 controls CU_CYCLIC
  */
 
-static PyObject *CurNurb_setFlagU( BPy_CurNurb * self, PyObject * args )
+static int CurNurb_setFlagU( BPy_CurNurb * self, PyObject * args )
 {
-	int flagu;
+	PyObject* integer = PyNumber_Int( args );
+	short value;
 
-	if( !PyArg_ParseTuple( args, "i", &( flagu ) ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
+	if( !integer )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected integer argument" );
+
+	value = ( short )PyInt_AS_LONG( integer );
+	Py_DECREF( integer );
+
+	if( value < 0 || value > 5 )
+		return EXPP_ReturnIntError( PyExc_ValueError,
 				"expected integer argument in range [0,5]" );
 
-	if( flagu < 0 || flagu > 5 )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"expected integer argument in range [0,5]" );
-
-	if( self->nurb->flagu != flagu ) {
-		self->nurb->flagu = (short)flagu;
+	if( self->nurb->flagu != value ) {
+		self->nurb->flagu = (short)value;
 		makeknots( self->nurb, 1, self->nurb->flagu >> 1 );
 	}
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	return 0;
 }
 
 /*
@@ -692,25 +688,28 @@ static PyObject *CurNurb_getFlagV( BPy_CurNurb * self )
  *  Possible values: 0 - uniform, 1 - endpoints, 2 - bezier
  */
 
-static PyObject *CurNurb_setFlagV( BPy_CurNurb * self, PyObject * args )
+static int CurNurb_setFlagV( BPy_CurNurb * self, PyObject * args )
 {
-	int flagv;
+	PyObject* integer = PyNumber_Int( args );
+	short value;
 
-	if( !PyArg_ParseTuple( args, "i", &( flagv ) ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
+	if( !integer )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected integer argument" );
+
+	value = ( short )PyInt_AS_LONG( integer );
+	Py_DECREF( integer );
+
+	if( value < 0 || value > 5 )
+		return EXPP_ReturnIntError( PyExc_ValueError,
 				"expected integer argument in range [0,5]" );
 
-	if( flagv < 0 || flagv > 5 )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"expected integer argument in range [0,5]" );
-
-	if( self->nurb->flagv != flagv ) {
-		self->nurb->flagv = (short)flagv;
+	if( self->nurb->flagv != value ) {
+		self->nurb->flagv = (short)value;
 		makeknots( self->nurb, 2, self->nurb->flagv >> 1 );
 	}
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	return 0;
 }
 
 /*
@@ -734,7 +733,6 @@ static PyObject *CurNurb_getIter( BPy_CurNurb * self )
 	Py_INCREF( self );
 	return ( PyObject * ) self;
 }
-
 
 
 static PyObject *CurNurb_iterNext( BPy_CurNurb * self )
@@ -822,7 +820,6 @@ static int CurNurb_length( PyInstanceObject * inst )
 				    "arg is not a BPy_CurNurb" );
 }
 
-
 /*
  * CurNurb_getPoint
  * returns the Nth point in a Nurb
@@ -877,7 +874,7 @@ static int CurNurb_setPoint( BPy_CurNurb * self, int index, PyObject * pyOb )
 	/* check index limits */
 	if( index < 0 || index >= nurb->pntsu )
 		return EXPP_ReturnIntError( PyExc_IndexError,
-					    "array assignment index out of range\n" );
+					    "array assignment index out of range" );
 
 
 	/* branch by curve type */
@@ -885,7 +882,7 @@ static int CurNurb_setPoint( BPy_CurNurb * self, int index, PyObject * pyOb )
 		/* check parameter type */
 		if( !BezTriple_CheckPyObject( pyOb ) )
 			return EXPP_ReturnIntError( PyExc_TypeError,
-							"expected a BezTriple\n" );
+							"expected a BezTriple" );
 
 		/* copy bezier in array */
 		memcpy( nurb->bezt + index,
@@ -899,14 +896,14 @@ static int CurNurb_setPoint( BPy_CurNurb * self, int index, PyObject * pyOb )
 		/* check parameter type */
 		if (!PySequence_Check( pyOb ))
 			return EXPP_ReturnIntError( PyExc_TypeError,
-							"expected a list of 4 (or optionaly 5 if the curve is 3D) floats\n" );
+							"expected a list of 4 (or optionally 5 if the curve is 3D) floats" );
 
 		size = PySequence_Size( pyOb );
 
 		/* check sequence size */
 		if( size != 4 && size != 5 ) 
 			return EXPP_ReturnIntError( PyExc_TypeError,
-							"expected a list of 4 (or optionaly 5 if the curve is 3D) floats\n" );
+							"expected a list of 4 (or optionally 5 if the curve is 3D) floats" );
 
 		/* copy x, y, z, w */
 		for( i = 0; i < 4; ++i ) {
@@ -970,29 +967,10 @@ PyObject *CurNurb_pointAtIndex( Nurb * nurb, int index )
 
 	} else			/* something is horribly wrong */
 		/* neither bp or bezt is set && pntsu != 0 */
-		return ( EXPP_ReturnPyObjError( PyExc_SystemError,
-						"inconsistant structure found" ) );
+		return EXPP_ReturnPyObjError( PyExc_SystemError,
+						"inconsistant structure found" );
 
-	return ( pyo );
-}
-
-
-int CurNurb_CheckPyObject( PyObject * py_obj )
-{
-	return ( py_obj->ob_type == &CurNurb_Type );
-}
-
-
-PyObject *CurNurb_Init( void )
-{
-	PyObject *submodule;
-
-	CurNurb_Type.ob_type = &PyType_Type;
-
-	submodule =
-		Py_InitModule3( "Blender.CurNurb", M_CurNurb_methods,
-				M_CurNurb_doc );
-	return ( submodule );
+	return pyo;
 }
 
 /*
@@ -1006,10 +984,9 @@ PyObject *CurNurb_dump( BPy_CurNurb * self )
 	Nurb *nurb = self->nurb;
 	int npoints = 0;
 
-	if( ! self->nurb ){  /* bail on error */
-		printf("\n no Nurb in this CurNurb");
-		Py_RETURN_NONE;
-	}
+	if( !self->nurb )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"no Nurb in this CurNurb");
 
 	printf(" type: %d, mat_nr: %d hide: %d flag: %d",
 		   nurb->type, nurb->mat_nr, nurb->hide, nurb->flag);
@@ -1076,14 +1053,53 @@ static PyObject *CurNurb_recalc( BPy_CurNurb * self )
 	Py_RETURN_NONE;
 }
 
-PyObject *CurNurb_switchDirection( BPy_CurNurb * self ) {
-	Nurb *nurb = self->nurb;
-	if( ! self->nurb ){  /* bail on error */
-		printf("\n no Nurb in this CurNurb");
-		Py_RETURN_NONE;
-	}
+PyObject *CurNurb_switchDirection( BPy_CurNurb * self )
+{
+	if( !self->nurb )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"no Nurb in this CurNurb");
 	
-	switchdirectionNurb( nurb );
+	switchdirectionNurb( self->nurb );
 	
 	Py_RETURN_NONE;
+}
+
+int CurNurb_CheckPyObject( PyObject * py_obj )
+{
+	return ( py_obj->ob_type == &CurNurb_Type );
+}
+
+PyObject *CurNurb_Init( void )
+{
+	if( PyType_Ready( &CurNurb_Type ) < 0)
+		return NULL;
+
+	return Py_InitModule3( "Blender.CurNurb", M_CurNurb_methods,
+				M_CurNurb_doc );
+}
+
+/* #####DEPRECATED###### */
+
+static PyObject *CurNurb_oldsetType( BPy_CurNurb * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)CurNurb_setType );
+}
+
+static PyObject *CurNurb_oldsetMatIndex( BPy_CurNurb * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)CurNurb_setMatIndex );
+}
+
+static PyObject *CurNurb_oldsetFlagU( BPy_CurNurb * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)CurNurb_setFlagU );
+}
+
+static PyObject *CurNurb_oldsetFlagV( BPy_CurNurb * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)CurNurb_setFlagV );
 }
