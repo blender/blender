@@ -1656,10 +1656,14 @@ void borderselect(void)
 		face_borderselect();
 		return;
 	}
-	
-	setlinestyle(2);
+
+	a = 0;
+#ifdef __APPLE__
+	a = is_a_really_crappy_intel_card();
+#endif
+	if (!a) setlinestyle(2);
 	val= get_border(&rect, 3);
-	setlinestyle(0);
+	if (!a) setlinestyle(0);
 	
 	if(val==0)
 		return;

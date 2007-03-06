@@ -661,7 +661,7 @@ void bglPolygonOffset(float dist)
 	}
 }
 
-static int is_a_really_crappy_intel_card(void)
+int is_a_really_crappy_intel_card(void)
 {
 	static int well_is_it= -1;
 

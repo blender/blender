@@ -168,7 +168,7 @@ int get_border(rcti *rect, short flag)
 		/* draws the selection initial cross */
 		sdrawXORline4(0, 0,  mvalo[1],  curarea->winx,  mvalo[1]);
 		sdrawXORline4(1, mvalo[0],  0,  mvalo[0],  curarea->winy); 
-		glFlush();
+		bglFlush();
 		
 		while(TRUE) {
 		
@@ -180,7 +180,7 @@ int get_border(rcti *rect, short flag)
 				/* aiming cross */
 				sdrawXORline4(0, 0,  mval[1],  curarea->winx,  mval[1]);
 				sdrawXORline4(1, mval[0],  0,  mval[0],  curarea->winy);
-				glFlush();
+				bglFlush();
 
 				mvalo[0]= mval[0];
 				mvalo[1]= mval[1];
@@ -227,7 +227,7 @@ int get_border(rcti *rect, short flag)
 		sdrawXORline4(1, x1, mvalo[1], mvalo[0], mvalo[1]); 
 		sdrawXORline4(2, mvalo[0], mvalo[1], mvalo[0], y1); 
 		sdrawXORline4(3,  mvalo[0], y1, x1, y1); 
-		glFlush();
+		bglFlush();
 			
 		while(TRUE) {
 			getmouseco_areawin(mval);
@@ -294,7 +294,7 @@ int get_border(rcti *rect, short flag)
 					BMF_DrawString(G.fonts, str);
 				}
 
-				glFlush();
+				bglFlush();
 
 				mvalo[0]= mval[0];
 				mvalo[1]= mval[1];
@@ -344,7 +344,7 @@ int get_border(rcti *rect, short flag)
 		}
 	}
 	
-	glFlush();
+	bglFlush();
 	glReadBuffer(GL_BACK);
 	glDrawBuffer(GL_BACK);
 
@@ -399,7 +399,7 @@ void draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selec
 	}
 	//setlinestyle(0);
 
-	glFlush();
+	bglFlush();
 	persp(PERSP_VIEW);
 	glDrawBuffer(GL_BACK);
 	glReadBuffer(GL_BACK);
