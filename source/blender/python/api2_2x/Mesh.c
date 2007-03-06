@@ -5618,10 +5618,9 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 	Object *tmpobj = NULL;
 	int cage = 0, render = 0, i;
 
-	if( !PyArg_ParseTuple( args, "O|i", &object_arg, &cage, &render ) ) {
+	if( !PyArg_ParseTuple( args, "O|ii", &object_arg, &cage, &render ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected object or string and optional integer arguments" );
-	}
 	
 	if ( PyString_Check( object_arg ) ) {
 		char *name;
