@@ -127,6 +127,8 @@ class Curve:
 	@type size: list of 3 floats
 	@ivar bevob: The Curve Bevel Object
 	@type bevob: Blender L{Object<Object.Object>} or None
+	@ivar taperob: The Curve Taper Object
+	@type taperob: Blender L{Object<Object.Object>} or None
 	@ivar key: The Key object associated with this Curve, if any.
 	@type key: Blender L{Key<Key.Key>}
 	@ivar materials: The curves's materials.  Each curve can reference up to
@@ -684,6 +686,12 @@ class SurfNurb:
 	@ivar orderV: The order setting for the V direction.  Values are clamped
 	to the range [2:6] and not greater than the V dimension.
 	@type orderV: int
+	@ivar knotsU: The knot vector in the U direction. The tuple will be empty
+	if the curve isn't a NURB or doesn't have knots in this direction.
+	@type knotsU: tuple of floats
+	@ivar knotsV: The knot vector in the V direction. The tuple will be empty
+	if the curve isn't a NURB or doesn't have knots in this direction.
+	@type knotsV: tuple of floats
 	"""
 
 	def __setitem__( n, point ):
