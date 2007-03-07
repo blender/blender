@@ -493,15 +493,15 @@ void mouse_select_seq(void)
 	std_rmouse_transform(transform_seq);
 }
 
-static Sequence *alloc_sequence(int cfra, int machine)
+
+Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
 {
-	Editing *ed;
 	Sequence *seq;
 
-	ed= G.scene->ed;
+	/*ed= G.scene->ed;*/
 
 	seq= MEM_callocN( sizeof(Sequence), "addseq");
-	BLI_addtail(ed->seqbasep, seq);
+	BLI_addtail(lb, seq);
 
 	set_last_seq(seq);
 
@@ -542,7 +542,7 @@ static Sequence *sfile_to_sequence(SpaceFile *sfile, int cfra, int machine, int 
 	if(totsel==0) return 0;
 
 	/* make seq */
-	seq= alloc_sequence(cfra, machine);
+	seq= alloc_sequence(((Editing *)G.scene->ed)->seqbasep, cfra, machine);
 	seq->len= totsel;
 
 	if(totsel==1) {
@@ -610,11 +610,11 @@ static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
 		      "FFMPEG-support not compiled in!");
 		return;
 	}
-
+	
 	totframe= IMB_anim_get_duration(anim);
 
 	/* make seq */
-	seq= alloc_sequence(cfra, machine);
+	seq= alloc_sequence(((Editing *)G.scene->ed)->seqbasep, cfra, machine);
 	seq->len= totframe;
 	seq->type= SEQ_MOVIE;
 	seq->anim= anim;
@@ -682,7 +682,7 @@ static Sequence *sfile_to_ramsnd_sequence(SpaceFile *sfile,
 	totframe= (int) ( ((float)(sound->streamlen-1)/( (float)G.scene->audio.mixrate*4.0 ))* (float)G.scene->r.frs_sec);
 
 	/* make seq */
-	seq= alloc_sequence(cfra, machine);
+	seq= alloc_sequence(((Editing *)G.scene->ed)->seqbasep, cfra, machine);
 	seq->len= totframe;
 	seq->type= SEQ_RAM_SOUND;
 	seq->sound = sound;
@@ -745,7 +745,7 @@ static void sfile_to_hdsnd_sequence(SpaceFile *sfile, int cfra, int machine)
 	totframe= sound_hdaudio_get_duration(hdaudio, G.scene->r.frs_sec);
 
 	/* make seq */
-	seq= alloc_sequence(cfra, machine);
+	seq= alloc_sequence(((Editing *)G.scene->ed)->seqbasep, cfra, machine);
 	seq->len= totframe;
 	seq->type= SEQ_HD_SOUND;
 	seq->hdaudio= hdaudio;
@@ -1158,7 +1158,7 @@ static int add_seq_effect(int type, char *str)
 	machine= (int)(y+0.5);
 
 	/* allocate and initialize */
-	newseq= alloc_sequence(cfra, machine);
+	newseq= alloc_sequence(((Editing *)G.scene->ed)->seqbasep, cfra, machine);
 	newseq->type= event_to_efftype(type);
 
 	sh = get_sequence_effect(newseq);
@@ -1373,7 +1373,7 @@ void add_sequence(int type)
 				cfra= (int)(x+0.5);
 				machine= (int)(y+0.5);
 
-				seq= alloc_sequence(cfra, machine);
+				seq= alloc_sequence(((Editing *)G.scene->ed)->seqbasep, cfra, machine);
 				seq->type= SEQ_SCENE;
 				seq->scene= sce;
 				seq->sfra= sce->r.sfra;
@@ -1990,7 +1990,7 @@ void make_meta(void)
 
 	/* remove all selected from main list, and put in meta */
 
-	seqm= alloc_sequence(1, 1);
+	seqm= alloc_sequence(((Editing *)G.scene->ed)->seqbasep, 1, 1);
 	seqm->type= SEQ_META;
 	seqm->flag= SELECT;
 

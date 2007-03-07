@@ -62,6 +62,7 @@ void				transform_seq(int mode, int context);
 void				un_meta(void);
 void				seq_cut(int cutframe);
 void				reassign_inputs_seq_effect(void);
+struct Sequence*	alloc_sequence(ListBase *lb, int cfra, int machine); /*used from python*/
 
 /* drawseq.c */
 void do_seqbuttons(short);

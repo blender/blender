@@ -106,37 +106,24 @@ static PyMethodDef BPy_SceneSeq_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-
-static Sequence *alloc_sequence_internal(ListBase *lb)
-{
-	Sequence *seq;
-	seq= MEM_callocN( sizeof(Sequence), "addseq");
-	BLI_addtail(lb, seq);
-	*( (short *)seq->name )= ID_SEQ;
-	seq->name[2]= 0;
-	seq->flag= SELECT;
-	seq->mul= 1.0; /*start and machine must be set later */
-	
-	return seq;
-}
-
-
 /* use to add a sequence to a scene or its listbase */
 static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 {
 	PyObject *py_data = NULL;
 	
-	Sequence *seq = alloc_sequence_internal(seqbase);
+	Sequence *seq;
 	int a;
 	Strip *strip;
 	StripElem *se;
-
+	int start, machine;
 	
-	if( !PyArg_ParseTuple( args, "Oii", &py_data, &seq->start, &seq->machine ) )
+	if( !PyArg_ParseTuple( args, "Oii", &py_data, &start, &machine ) )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 			"expects a string for chan/bone name and an int for the frame where to put the new key" );
 	
-	if (PyTuple_Check(py_data)) {
+	seq = alloc_sequence(seqbase, start, machine); /* warning, this sets last */
+	
+	if (PyList_Check(py_data)) {
 		/* Image */
 		PyObject *list;
 		char *name;
@@ -227,6 +214,7 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 		seq->type= SEQ_MOVIE;
 	}
 	
+	intern_pos_update(seq);
 	return Sequence_CreatePyObject(seq, NULL, sce);
 }
 
