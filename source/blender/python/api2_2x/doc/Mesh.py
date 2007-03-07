@@ -816,7 +816,13 @@ class Mesh:
 		"""
 		Recalculates the vertex normals using face data.
 		"""
-
+	
+	def pointInside(vector):
+		"""
+		Returns true if vector is inside the mesh.
+		@note: Only returns a valid result for mesh data that has no holes.
+		"""
+	
 	def transform(matrix, recalc_normals = False):
 		"""
 		Transforms the mesh by the specified 4x4 matrix (such as returned by

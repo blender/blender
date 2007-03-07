@@ -6848,6 +6848,84 @@ static PyObject *Mesh_fill( BPy_Mesh * self )
 
 
 /*
+ * "pointInside" function
+ */
+
+static short pointInside_internal(float *vec, float *v1, float *v2, float  *v3 )
+{	
+	float a,a1,a2,a3, /*areas, used for point in tri test */
+	z,w1,w2,w3,wtot;
+	float bounds[5];
+	
+	/*min,max*/
+	bounds[0] = MIN3(v1[0], v2[0], v3[0]);
+	bounds[1] = MAX3(v1[0], v2[0], v3[0]);
+	bounds[2] = MIN3(v1[1], v2[1], v3[1]);
+	bounds[3] = MAX3(v1[1], v2[1], v3[1]);
+	/*bounds[4] = MIN3(v1[2], v2[2], v3[2]); - ZMIN isnt used*/ 
+	bounds[4] = MAX3(v1[2], v2[2], v3[2]);  /* reuse 4 index as the max */
+	
+	if ( /* is the vertex in the bounds of the face? */
+		(bounds[0] < vec[0] && vec[0] < bounds[1]) &&
+		(bounds[2] < vec[1] && vec[1] < bounds[3]) &&
+		(bounds[4] < vec[2]) /* the vector must be above the face on the Z axis */
+	)
+	{
+		/* these areas are used for calculating the Z value where the vector is over the face */
+		a =		AreaF2Dfl(v1, v2, v3);
+		w1=a1=	AreaF2Dfl(vec, v2, v3);
+		if (a1>a) return 0; /*outside*/
+		w2=a2=	AreaF2Dfl(v1, vec, v3);
+		if (a1+a2>a) return 0; /*outside*/
+		w3=a3=	AreaF2Dfl(v1, v2, vec);
+		if ((a1+a2+a3) - 0.000001 > a) return 0; /*outside*/
+		
+		wtot = w1+w2+w3;
+		if (!wtot) return 0;
+		w1/=wtot; w2/=wtot; w3/=wtot;
+		z =((v1[2] * (w2+w3)) +
+			(v2[2] * (w1+w3)) +
+			(v3[2] * (w1+w2))) * 0.5;
+		
+		/* only return true if the face is above vec*/
+		if (vec[2] > z )
+			return 1;
+	}
+	return 0;
+}
+
+static PyObject *Mesh_pointInside( BPy_Mesh * self, PyObject *args )
+{
+	VectorObject *vec = NULL;
+	Mesh *mesh = self->mesh;
+	MFace *mf = mesh->mface;
+	MVert *mvert = mesh->mvert;
+	int i;
+	int isect_count=0;
+	
+	if(!PyArg_ParseTuple(args, "O!", &vector_Type, &vec))
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected one or 2 vector types" );
+	
+	if(vec->size < 3)
+		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
+			"Mesh.pointInside(vec) expects a 3D vector objects\n");
+	
+	for( i = 0; i < mesh->totface; ++mf, ++i ) {
+		if (pointInside_internal(vec->vec, mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co))
+			isect_count++;
+		else if (mf->v4 && pointInside_internal(vec->vec,mvert[mf->v1].co, mvert[mf->v3].co, mvert[mf->v4].co))
+			isect_count++;
+	}
+	
+	if (isect_count % 2)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+
+/*
  * "__copy__" return a copy of the mesh
  */
 
@@ -6921,6 +6999,8 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 	{"remDoubles", (PyCFunction)Mesh_removeDoubles, METH_VARARGS,
 		"Removes duplicates from selected vertices (experimental)"},
 	{"recalcNormals", (PyCFunction)Mesh_recalcNormals, METH_VARARGS,
+		"Recalculates inside or outside normals (experimental)"},
+	{"pointInside", (PyCFunction)Mesh_pointInside, METH_VARARGS,
 		"Recalculates inside or outside normals (experimental)"},
 	
 	/* mesh custom data layers */

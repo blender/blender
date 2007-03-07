@@ -419,7 +419,7 @@ static uiBlock *seq_editmenu(void *arg_unused)
 
 		if(last_seq->type >= SEQ_EFFECT) {
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Change Effect...|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reassing Inputs|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reassign Inputs|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
 		}
 		else if(last_seq->type == SEQ_IMAGE) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Change Image...|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 		else uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Change Scene...|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
