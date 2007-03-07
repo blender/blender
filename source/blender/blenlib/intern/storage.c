@@ -387,7 +387,12 @@ void BLI_adddirstrings()
 		strftime(files[num].time, 8, "%H:%M", tm);
 		strftime(files[num].date, 16, "%d-%b-%y", tm);
 
-		st_size= files[num].s.st_size;
+		/*
+		 * Seems st_size is signed 32-bit value in *nix and Windows.  This
+		 * will buy us some time until files get bigger than 4GB or until
+		 * everyone starts using __USE_FILE_OFFSET64 or equivalent.
+		 */
+		st_size= (unsigned int)files[num].s.st_size;
 		
 		num1= st_size % 1000;
 		num2= st_size/1000;
