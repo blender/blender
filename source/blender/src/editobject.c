@@ -3007,17 +3007,19 @@ static void copy_texture_space(Object *to, Object *ob)
 		return;
 		
 	if(to->type==OB_MESH) {
-		((Mesh *)ob->data)->texflag= texflag;
-		poin2= ((Mesh *)to->data)->loc;
+		((Mesh *)to->data)->texflag= texflag;
+		poin1= ((Mesh *)to->data)->loc;
 	}
 	else if (ELEM3(to->type, OB_CURVE, OB_SURF, OB_FONT)) {
-		((Curve *)ob->data)->texflag= texflag;
-		poin2= ((Curve *)to->data)->loc;
+		((Curve *)to->data)->texflag= texflag;
+		poin1= ((Curve *)to->data)->loc;
 	}
 	else if(to->type==OB_MBALL) {
-		((MetaBall *)ob->data)->texflag= texflag;
-		poin2= ((MetaBall *)to->data)->loc;
+		((MetaBall *)to->data)->texflag= texflag;
+		poin1= ((MetaBall *)to->data)->loc;
 	}
+	else
+		return;
 	
 	memcpy(poin1, poin2, 9*sizeof(float));	/* this was noted in DNA_mesh, curve, mball */
 	
