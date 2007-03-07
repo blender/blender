@@ -102,6 +102,21 @@ static PyObject *M_MetaElem_TypesDict( void )
 	return Types;
 }
 
+static PyObject *M_MetaElem_UpdateDict( void )
+{
+	PyObject *Update = PyConstant_New(  );
+
+	if( Update ) {
+		BPy_constant *d = ( BPy_constant * ) Update;
+		PyConstant_Insert( d, "ALWAYS",	PyInt_FromLong( MB_UPDATE_ALWAYS ) );
+		PyConstant_Insert( d, "HALFRES",PyInt_FromLong( MB_UPDATE_HALFRES ) );
+		PyConstant_Insert( d, "FAST",	PyInt_FromLong( MB_UPDATE_FAST ) );
+		PyConstant_Insert( d, "NEVER",	PyInt_FromLong( MB_UPDATE_NEVER ) );
+	}
+
+	return Update;
+}
+
 /*****************************************************************************/
 /* Python BPy_Metaball methods declarations:                                */
 /*****************************************************************************/
@@ -114,6 +129,8 @@ static PyObject *Metaball_getRendersize( BPy_Metaball * self );
 static int Metaball_setRendersize( BPy_Metaball * self, PyObject * value);
 static PyObject *Metaball_getThresh( BPy_Metaball * self );
 static int Metaball_setThresh( BPy_Metaball * self, PyObject * args );
+static PyObject *Metaball_getUpdate( BPy_Metaball * self );
+static int Metaball_setUpdate( BPy_Metaball * self, PyObject * args );
 static PyObject *Metaball_copy( BPy_Metaball * self );
 
 /*****************************************************************************/
@@ -187,6 +204,10 @@ static PyGetSetDef BPy_Metaball_getseters[] = {
 	{"thresh",
 	 (getter)Metaball_getThresh, (setter)Metaball_setThresh,
 	 "The density to render wire",
+	 NULL},
+	{"update",
+	 (getter)Metaball_getUpdate, (setter)Metaball_setUpdate,
+	 "The setting for updating this metaball data",
 	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
@@ -413,7 +434,7 @@ static PyObject *M_Metaball_New( PyObject * self, PyObject * args )
 	
 	if( !PyArg_ParseTuple( args, "|s", &name ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected string argument (or nothing)" ) );
+						"Metaball.New() - expected string argument (or nothing)" ) );
 
 	blmball = add_mball(  );	/* first create the MetaBall Data in Blender */
 
@@ -426,7 +447,7 @@ static PyObject *M_Metaball_New( PyObject * self, PyObject * args )
 							 &Metaball_Type );
 	} else
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						"couldn't create MetaBall Data in Blender" ) );
+						"Metaball.New() - couldn't create data in Blender" ) );
 
 	if( pymball == NULL )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
@@ -456,15 +477,15 @@ static PyObject *M_Metaball_Get( PyObject * self, PyObject * args )
 
 	if( !PyArg_ParseTuple( args, "|s", &name ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected string argument (or nothing)" ) );
+						"Metaball.Get() - expected string argument (or nothing)" ) );
 
 	if( name ) {		/* (name) - Search mball by name */
 		mball_iter = ( MetaBall * ) GetIdFromList( &( G.main->mball ), name );
 		
 		if (!mball_iter) {
-			char error_msg[64];
+			char error_msg[128];
 			PyOS_snprintf( error_msg, sizeof( error_msg ),
-				       "MetaBall \"%s\" not found", name );
+				       "Metaball.Get(\"%s\") - not found", name );
 			return ( EXPP_ReturnPyObjError
 				 ( PyExc_NameError, error_msg ) );
 		}
@@ -477,7 +498,7 @@ static PyObject *M_Metaball_Get( PyObject * self, PyObject * args )
 		
 		if( mballlist == NULL )
 			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-							"couldn't create PyList" ) );
+							"MetaBall.Get() - couldn't create PyList" ) );
 		
 		mball_iter = G.main->mball.first;
 		while( mball_iter ) {
@@ -497,7 +518,8 @@ static PyObject *M_Metaball_Get( PyObject * self, PyObject * args )
 PyObject *Metaball_Init( void )
 {
 	PyObject *submodule;
-	PyObject *Types= M_MetaElem_TypesDict( );
+	PyObject *Types=	M_MetaElem_TypesDict( );
+	PyObject *Update=	M_MetaElem_UpdateDict( );
 	
 	if( PyType_Ready( &Metaball_Type ) < 0 )
 		return NULL;
@@ -510,6 +532,7 @@ PyObject *Metaball_Init( void )
 
 	if( Types )
 		PyModule_AddObject( submodule, "Types", Types );
+		PyModule_AddObject( submodule, "Update", Update );
 	
 	/*Add SUBMODULES to the module*/
 	/*PyDict_SetItemString(dict, "Constraint", Constraint_Init()); */ /*creates a *new* module*/
@@ -542,12 +565,12 @@ static int Metaball_setMaterials( BPy_Metaball *self, PyObject * value )
     if( !PySequence_Check( value ) ||
 			!EXPP_check_sequence_consistency( value, &Material_Type ) )
         return EXPP_ReturnIntError( PyExc_TypeError,
-                  "list should only contain materials or None)" );
+                  "metaball.materials - list should only contain materials or None)" );
 
     len = PyList_Size( value );
     if( len > 16 )
         return EXPP_ReturnIntError( PyExc_TypeError,
-                          "list can't have more than 16 materials" );
+                          "metaball.materials - list can't have more than 16 materials" );
 
 	/* free old material list (if it exists) and adjust user counts */
 	if( self->metaball->mat ) {
@@ -587,7 +610,7 @@ static int Metaball_setWiresize( BPy_Metaball * self, PyObject * value )
 	float param;
 	if( !PyNumber_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected float argument" );
+					"metaball.wiresize - expected float argument" );
 
 	param = (float)PyFloat_AsDouble( value );
 
@@ -606,7 +629,7 @@ static int Metaball_setRendersize( BPy_Metaball * self, PyObject * value )
 	float param;
 	if( !PyNumber_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected float argument" );
+					"metaball.rendersize - expected float argument" );
 
 	param = (float)PyFloat_AsDouble( value );
 
@@ -625,11 +648,30 @@ static int Metaball_setThresh( BPy_Metaball * self, PyObject * value )
 	float param;
 	if( !PyNumber_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected float argument" );
+					"metaball.thresh - expected float argument" );
 
 	param = (float)PyFloat_AsDouble( value );
 
 	self->metaball->thresh = EXPP_ClampFloat(param, 0.0, 5.0);
+	return 0;
+}
+
+static PyObject *Metaball_getUpdate( BPy_Metaball * self )
+{
+	return PyInt_FromLong( (long)self->metaball->flag );
+}
+
+static int Metaball_setUpdate( BPy_Metaball * self, PyObject * value )
+{
+
+	int param;
+	if( !PyInt_CheckExact( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					"metaball.update - expected an int argument" );
+
+	param = (int)PyInt_AS_LONG( value );
+
+	self->metaball->flag = EXPP_ClampInt( param, 0, 3 );
 	return 0;
 }
 
@@ -649,11 +691,11 @@ static PyObject *Metaball_copy( BPy_Metaball * self )
 							 &Metaball_Type );
 	} else
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						"couldn't create MetaBall Data in Blender" ) );
+						"metaball.__copy__() - couldn't create data in Blender" ) );
 
 	if( pymball == NULL )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create MetaBall Data object" ) );
+						"metaball.__copy__() - couldn't create data in Blender" ) );
 
 	pymball->metaball = blmball;
 	
@@ -725,7 +767,7 @@ static PyObject *Metaelem_getType( BPy_Metaelem *self )
 		return attr;
 
 	return EXPP_ReturnPyObjError( PyExc_MemoryError,
-				"PyInt_FromLong() failed!" );
+				"metaelem.type - PyInt_FromLong() failed!" );
 }
 static int Metaelem_setType( BPy_Metaelem * self,  PyObject * value )
 {
@@ -733,7 +775,7 @@ static int Metaelem_setType( BPy_Metaelem * self,  PyObject * value )
 	int type;
 	if( !PyInt_CheckExact( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-			"expected an integer (bitmask) as argument" );
+			"metaelem.type - expected an integer (bitmask) as argument" );
 	
 	METAELEM_DEL_CHECK_INT(self);
 	
@@ -741,7 +783,7 @@ static int Metaelem_setType( BPy_Metaelem * self,  PyObject * value )
 	
 	if( (type < 0) || ( type > ( MB_BALL | MB_TUBEX | MB_TUBEY | MB_TUBEZ | MB_TUBE | MB_PLANE | MB_ELIPSOID | MB_CUBE ) ))
 		return EXPP_ReturnIntError( PyExc_ValueError,
-					      "value out of range" );
+					      "metaelem.type - value out of range" );
 	
 	self->metaelem->type= type;
 	return 0;
@@ -767,7 +809,7 @@ static int Metaelem_setCoord( BPy_Metaelem * self,  VectorObject * value )
 
 	if( !VectorObject_Check( value ) || value->size != 3 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected vector argument of size 3" );
+				"metaelem.co - expected vector argument of size 3" );
 	
 	METAELEM_DEL_CHECK_INT(self);
 	
@@ -795,7 +837,7 @@ static int Metaelem_setDims( BPy_Metaelem * self,  VectorObject * value )
 {
 	if( !VectorObject_Check( value ) || value->size != 3 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected vector argument of size 3" );
+				"metaelem.dims - expected vector argument of size 3" );
 
 	METAELEM_DEL_CHECK_INT(self);
 	
@@ -819,7 +861,7 @@ static int Metaelem_setQuat( BPy_Metaelem * self,  QuaternionObject * value )
 	int i;
 	if( !QuaternionObject_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected quat argument" );
+				"metaelem.quat - expected quat argument" );
 	
 	METAELEM_DEL_CHECK_INT(self);
 	
@@ -860,7 +902,7 @@ static int Metaelem_setStiffness( BPy_Metaelem *self, PyObject *value)
 {
 	if( !PyNumber_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected float argument" );
+					"metaelem.stiffness - expected float argument" );
 
 	self->metaelem->s = EXPP_ClampFloat((float)PyFloat_AsDouble( value ), 0.0, 10.0);
 	return 0;
@@ -878,7 +920,7 @@ static int Metaelem_setRadius( BPy_Metaelem *self, PyObject *value)
 {
 	if( !PyNumber_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected float argument" );
+					"metaelem.radius - expected float argument" );
 
 	self->metaelem->rad = /* is 5000 too small? */
 			EXPP_ClampFloat((float)PyFloat_AsDouble( value ), 0.0, 5000.0);
@@ -1043,7 +1085,7 @@ static PyObject *MetaElemSeq_remove( BPy_MetaElemSeq * self, PyObject *args )
 	
 	if( !PyArg_ParseTuple( args, "O!", &Metaelem_Type, &elem) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"expected a Metaball element" );
+			"elements.remove(metaelem) - expected a Metaball element" );
 	
 	METAELEM_DEL_CHECK_PY(elem);
 	

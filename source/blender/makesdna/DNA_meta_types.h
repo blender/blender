@@ -93,8 +93,6 @@ typedef struct MetaBall {
 
 /* **************** METABALL ********************* */
 
-#define MB_MAXELEM		1024
-
 /* texflag */
 #define MB_AUTOSPACE	1
 

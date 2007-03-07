@@ -95,6 +95,14 @@ Example::
     - PLANE
     - ELIPSOID
     - CUBE
+
+@type Update: readonly dictionary
+@var Update: MeteElement types.
+    - ALWAYS
+    - HALFRES
+    - FAST
+    - NEVER
+
 """
 
 
@@ -141,6 +149,8 @@ class Metaball:
 	@ivar materials: List of up to 16 Materials or None types
 		Only the first material of the mother-ball used at the moment.
 	@type materials: list
+	@ivar update: The update method to use for this metaball.
+	@type update: int
 	"""
 	
 	def __copy__():
