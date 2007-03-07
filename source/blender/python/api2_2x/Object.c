@@ -2177,6 +2177,7 @@ static int Object_setDrawMode( BPy_Object * self, PyObject * args )
 				"expected integer argument" );
 
 	value = ( int )PyInt_AS_LONG( integer );
+	Py_DECREF( integer );
 	if( value & ~DTX_MASK )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"undefined bit(s) set in bitfield" );
@@ -3318,6 +3319,7 @@ static int Object_setRBFlags( BPy_Object * self, PyObject * args )
 				"expected integer argument" );
 
 	value = ( int )PyInt_AS_LONG( integer );
+	Py_DECREF( integer );
 	if( value & ~GAMEFLAG_MASK )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"undefined bit(s) set in bitfield" );
@@ -4632,6 +4634,7 @@ static int Object_setProtectFlags( BPy_Object * self, PyObject * args )
 				"expected integer argument" );
 
 	value = ( short )PyInt_AS_LONG( integer );
+	Py_DECREF( integer );
 	if( value & ~PROTFLAGS_MASK )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"undefined bit(s) set in bitfield" );
