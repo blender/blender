@@ -1521,10 +1521,11 @@ static void node_composit_exec_curve_rgb(void *data, bNode *node, bNodeStack **i
 		CompBuf *cbuf= in[1]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
-		if(in[0]->data)
-			composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, in[0]->vec, do_curves_fac, CB_RGBA, CB_VAL);
-		else
+		if(in[0]->vec[0] == 1.0)
 			composit1_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, do_curves, CB_RGBA);
+		else
+			composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, in[0]->vec, do_curves_fac, CB_RGBA, CB_VAL);
+			
 		
 		out[0]->data= stackbuf;
 	}
@@ -1719,7 +1720,7 @@ static void node_composit_exec_mix_rgb(void *data, bNode *node, bNodeStack **in,
 static bNodeType cmp_node_mix_rgb= {
 	/* type code   */	CMP_NODE_MIX_RGB,
 	/* name        */	"Mix",
-	/* width+range */	80, 60, 120,
+	/* width+range */	110, 60, 120,
 	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
 	/* input sock  */	cmp_node_mix_rgb_in,
 	/* output sock */	cmp_node_mix_rgb_out,
@@ -2252,7 +2253,7 @@ static void node_composit_exec_setalpha(void *data, bNode *node, bNodeStack **in
 	/* stack order in: col, alpha */
 	
 	/* input no image? then only color operation */
-	if(in[0]->data==NULL) {
+	if(in[0]->data==NULL && in[1]->data==NULL) {
 		out[0]->vec[0] = in[0]->vec[0];
 		out[0]->vec[1] = in[0]->vec[1];
 		out[0]->vec[2] = in[0]->vec[2];
@@ -2260,7 +2261,7 @@ static void node_composit_exec_setalpha(void *data, bNode *node, bNodeStack **in
 	}
 	else {
 		/* make output size of input image */
-		CompBuf *cbuf= in[0]->data;
+		CompBuf *cbuf= in[0]->data?in[0]->data:in[1]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
 		if(in[1]->data==NULL && in[1]->vec[0]==1.0f) {
@@ -2349,12 +2350,12 @@ static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **i
 		return;
 	
 	/* input no image? then only color operation */
-	if(in[1]->data==NULL) {
+	if(in[1]->data==NULL && in[2]->data==NULL) {
 		do_alphaover_premul(node, out[0]->vec, in[1]->vec, in[2]->vec, in[0]->vec);
 	}
 	else {
 		/* make output size of input image */
-		CompBuf *cbuf= in[1]->data;
+		CompBuf *cbuf= in[1]->data?in[1]->data:in[2]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
 		if(node->custom1)

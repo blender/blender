@@ -753,7 +753,7 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 	node->type= ntype->type;
 	node->flag= NODE_SELECT|ntype->flag;
 	node->width= ntype->width;
-	node->miniwidth= 15.0f;		/* small value only, allows print of first chars */
+	node->miniwidth= 42.0f;		/* small value only, allows print of first chars */
 	
 	if(type==NODE_GROUP)
 		node->id= (ID *)ngroup;
