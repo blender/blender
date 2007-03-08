@@ -42,6 +42,7 @@
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_idprop.h"
+#include "BKE_utildefines.h" /* for CLAMP */
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 #include "BSE_editipo.h"
@@ -520,6 +521,7 @@ static PyObject *Material_getColorComponent( BPy_Material * self,
 							void * closure );
 static PyObject *Material_getOopsLoc( BPy_Material * self );
 static PyObject *Material_getOopsSel( BPy_Material * self );
+
 /*static int Material_setSeptex( BPy_Material * self, PyObject * value );
   static PyObject *Material_getSeptex( BPy_Material * self );*/
 
@@ -590,6 +592,8 @@ static PyObject *Material_addScriptLink(BPy_Material * self, PyObject * args );
 static PyObject *Material_clearScriptLinks(BPy_Material *self, PyObject *args);
 
 static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args );
+static PyObject *Material_getColorband( BPy_Material * self, void * type);
+int Material_setColorband( BPy_Material * self, PyObject * value, void * type);
 static PyObject *Material_copy( BPy_Material * self );
 
 
@@ -1062,6 +1066,14 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
 	 "Diffuse color blue component",
 	 (void *) EXPP_MAT_COMP_B },
+	{"colorbandDiffuse",
+	 (getter)Material_getColorband, (setter)Material_setColorband,
+	 "Set the light group for this material",
+	 (void *) 0},
+	{"colorbandSpecular",
+	 (getter)Material_getColorband, (setter)Material_setColorband,
+	 "Set the light group for this material",
+	 (void *) 1},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -2467,6 +2479,110 @@ static PyObject *Material_repr( BPy_Material * self )
 }
 
 /*****************************************************************************/
+/* These functions are used here and in in Texture.c						*/
+/*****************************************************************************/
+PyObject *EXPP_PyList_fromColorband( ColorBand *coba )
+{
+	short i;
+	PyObject *cbls;
+	PyObject *colls;
+	
+	if (!coba)
+		return PyList_New( 0 );
+	
+	cbls = PyList_New( coba->tot );
+	
+	for (i=0; i < coba->tot; i++) {
+		colls = PyList_New( 5 );
+		PyList_SET_ITEM( colls, 0, PyFloat_FromDouble(coba->data[i].r) );
+		PyList_SET_ITEM( colls, 1, PyFloat_FromDouble(coba->data[i].g) );
+		PyList_SET_ITEM( colls, 2, PyFloat_FromDouble(coba->data[i].b) );
+		PyList_SET_ITEM( colls, 3, PyFloat_FromDouble(coba->data[i].a) );
+		PyList_SET_ITEM( colls, 4, PyFloat_FromDouble(coba->data[i].pos) );
+		PyList_SET_ITEM(cbls, i, colls);
+	}
+	return cbls;
+}
+
+/* make sure you coba is not none before calling this */
+int EXPP_Colorband_fromPyList( ColorBand *coba, PyObject * value )
+{
+	short totcol, i;
+	PyObject *colseq;
+	PyObject *pyflt;
+	float f;
+	
+	if ( !PySequence_Check( value ) )
+		return ( EXPP_ReturnIntError( PyExc_TypeError,
+				"Colorband must be a sequence" ) );
+	
+	totcol = PySequence_Size(value);
+	if (totcol < 1 || totcol > 31)
+		return ( EXPP_ReturnIntError( PyExc_ValueError,
+				"Colorband must be between 1 and 31 in length" ) );
+	
+	for (i=0; i<totcol; i++) {
+		colseq = PySequence_GetItem( value, i );
+		if ( !PySequence_Check( colseq ) || PySequence_Size( colseq ) != 5) {
+			Py_DECREF ( colseq );
+			return ( EXPP_ReturnIntError( PyExc_ValueError,
+				"Colorband colors must be sequences of 5 floats" ) );
+		}
+		for (i=0; i<5; i++) {
+			pyflt = PySequence_GetItem( colseq, i );
+			if (!PyNumber_Check(pyflt)) {
+				return ( EXPP_ReturnIntError( PyExc_ValueError,
+					"Colorband colors must be sequences of 5 floats" ) );
+				Py_DECREF ( pyflt );
+				Py_DECREF ( colseq );
+			}
+			Py_DECREF ( pyflt );
+		}
+		Py_DECREF ( colseq );
+	}
+	
+	/* ok, continue - should check for 5 floats, will ignore non floats for now */
+	coba->tot = totcol;
+	for (i=0; i<totcol; i++) {
+		colseq = PySequence_GetItem( value, i );
+		
+		pyflt = PySequence_GetItem( colseq, 0 ); 
+		f = (float)PyFloat_AsDouble( pyflt );
+		CLAMP(f, 0.0, 1.0);
+		coba->data[i].r = f;
+		Py_DECREF ( pyflt );
+		
+		pyflt = PySequence_GetItem( colseq, 1 ); 
+		f = (float)PyFloat_AsDouble( pyflt );
+		CLAMP(f, 0.0, 1.0);
+		coba->data[i].g = f;
+		Py_DECREF ( pyflt );
+		
+		pyflt = PySequence_GetItem( colseq, 2 ); 
+		f = (float)PyFloat_AsDouble( pyflt );
+		CLAMP(f, 0.0, 1.0);
+		coba->data[i].b = f;
+		Py_DECREF ( pyflt );
+		
+		pyflt = PySequence_GetItem( colseq, 3 ); 
+		f = (float)PyFloat_AsDouble( pyflt );
+		CLAMP(f, 0.0, 1.0);
+		coba->data[i].a = f;
+		Py_DECREF ( pyflt );
+		
+		pyflt = PySequence_GetItem( colseq, 4 ); 
+		f = (float)PyFloat_AsDouble( pyflt );
+		CLAMP(f, 0.0, 1.0);
+		coba->data[i].pos = f;
+		Py_DECREF ( pyflt );
+		
+		Py_DECREF ( colseq );
+	}
+	return 0;
+}
+
+
+/*****************************************************************************/
 /* These functions are used in NMesh.c and Object.c	 */
 /*****************************************************************************/
 PyObject *EXPP_PyList_fromMaterialList( Material ** matlist, int len, int all )
@@ -2681,6 +2797,32 @@ static PyObject *Material_getOopsLoc ( BPy_Material * self )
 		}
 	}
 	Py_RETURN_NONE;
+}
+
+static PyObject *Material_getColorband( BPy_Material * self, void * type)
+{
+	switch( (long)type ) {
+    case 0:	/* these are backwards, but that how it works */
+		return EXPP_PyList_fromColorband( self->material->ramp_col );
+    case 1:
+		return EXPP_PyList_fromColorband( self->material->ramp_spec );
+	}
+	Py_RETURN_NONE;
+}
+
+int Material_setColorband( BPy_Material * self, PyObject * value, void * type)
+{
+	switch( (long)type ) {
+    case 0:	/* these are backwards, but that how it works */
+		if (!self->material->ramp_col)
+			self->material->ramp_col = MEM_callocN( sizeof(ColorBand), "colorband");
+		return EXPP_Colorband_fromPyList( self->material->ramp_col, value );
+    case 1:
+		if (!self->material->ramp_spec)
+			self->material->ramp_spec = MEM_callocN( sizeof(ColorBand), "colorband");
+		return EXPP_Colorband_fromPyList( self->material->ramp_spec, value );
+	}
+	return 0;
 }
 
 static PyObject *Material_getOopsSel ( BPy_Material * self )

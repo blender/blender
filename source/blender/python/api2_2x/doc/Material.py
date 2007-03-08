@@ -282,9 +282,24 @@ class Material:
 	@type lightGroup:  Group or None
 	@ivar uvlayer:  The uv layer name to use, when UV mapping is enabled.
 	@type uvlayer:  string
+	@ivar colorband:  Material colorband, a list of colors, 
+	each color a list of 5 floats [0 - 1], [r,g,b,a,pos].
+	The colorband can have between 1 and 31 colors.
+	@type colorband:  list
+	
+	@ivar colorbandDiffuse:  Material colorband, a list of colors, 
+	each color a list of 5 floats [0 - 1], [r,g,b,a,pos].
+	The colorband can have between 1 and 31 colors.
+	@type colorbandDiffuse:  list
+	@ivar colorbandSpecular:  Material colorband, a list of colors, 
+	each color a list of 5 floats [0 - 1], [r,g,b,a,pos].
+	The colorband can have between 1 and 31 colors.
+	@type colorbandSpecular:  list
+	
 	@warning: Most member variables assume values in some [Min, Max] interval.
-	 When trying to set them, the given parameter will be clamped to lie in
-	 that range: if val < Min, then val = Min, if val > Max, then val = Max.
+		When trying to set them, the given parameter will be clamped to lie in
+		that range: if val < Min, then val = Min, if val > Max, then val = Max.
+
 	"""
 
 	def getName():

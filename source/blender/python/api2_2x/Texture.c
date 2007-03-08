@@ -54,6 +54,7 @@
 #include "gen_utils.h"
 
 #include "vector.h" /* for Texture_evaluate(vec) */
+#include "Material.h" /* for EXPP_Colorband_fromPyList and EXPP_PyList_fromColorband */
 #include "RE_shader_ext.h"
 
 /*****************************************************************************/
@@ -201,9 +202,7 @@ static const EXPP_map_pair tex_type_map[] = {
 
 static const EXPP_map_pair tex_flag_map[] = {
 /* NOTE "CheckerOdd" and "CheckerEven" are new */
-#if 0
     {"ColorBand",  TEX_COLORBAND },
-#endif
 	{"FlipBlend", TEX_FLIPBLEND},
 	{"NegAlpha", TEX_NEGALPHA},
 	{"CheckerOdd",TEX_CHECKER_ODD},
@@ -491,7 +490,10 @@ static int Texture_setImageFlags( BPy_Texture *self, PyObject *args,
 static int Texture_setNoiseBasis2( BPy_Texture *self, PyObject *args,
 								void *type );
 								
+static PyObject *Texture_getColorband( BPy_Texture * self);
+int Texture_setColorband( BPy_Texture * self, PyObject * value);
 static PyObject *Texture_evaluate( BPy_Texture *self, PyObject *args );
+
 
 /*****************************************************************************/
 /* Python BPy_Texture methods table:                                         */
@@ -752,6 +754,10 @@ static PyGetSetDef BPy_Texture_getseters[] = {
 #endif
 	{"normalMap",
 	 (getter)Texture_getImageFlags, (setter)Texture_setImageFlags,
+	 "Use of image RGB values for normal mapping enabled ('ImageFlags')",
+	 (void *)TEX_NORMALMAP},
+	{"colorband",
+	 (getter)Texture_getColorband, (setter)Texture_setColorband,
 	 "Use of image RGB values for normal mapping enabled ('ImageFlags')",
 	 (void *)TEX_NORMALMAP},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
@@ -1517,9 +1523,7 @@ static int Texture_setFlags( BPy_Texture * self, PyObject * value )
 {
 	int param;
 	int bitmask = TEX_FLIPBLEND
-#if 0
 					| TEX_COLORBAND
-#endif
 					| TEX_NEGALPHA
 					| TEX_CHECKER_ODD
 					| TEX_CHECKER_EVEN;
@@ -2651,6 +2655,18 @@ static PyObject *Texture_oldsetImageFlags( BPy_Texture * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
+static PyObject *Texture_getColorband( BPy_Texture * self)
+{
+	return EXPP_PyList_fromColorband( self->texture->coba );
+}
+
+int Texture_setColorband( BPy_Texture * self, PyObject * value)
+{
+	if (!self->texture->coba)
+		self->texture->coba = MEM_callocN( sizeof(ColorBand), "colorband");
+	return EXPP_Colorband_fromPyList( self->texture->coba, value );
+}
+
 static PyObject *Texture_evaluate( BPy_Texture * self, PyObject * args )
 {
 	VectorObject *vec_in = NULL;
@@ -2672,4 +2688,3 @@ static PyObject *Texture_evaluate( BPy_Texture * self, PyObject * args )
 	
 	return newVectorObject(vec, 4, Py_NEW);
 }
-

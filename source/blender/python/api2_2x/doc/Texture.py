@@ -381,6 +381,10 @@ class Texture:
 	@ivar weight4:  Weight 4 (for Voronoi textures).
 	Value is clamped to the range [-2.0,2.0].
 	@type weight4:  float
+	@ivar colorband:  Texture colorband, a list of colors, 
+	each color a list of 5 floats [0 - 1], [r,g,b,a,pos].
+	The colorband can have between 1 and 31 colors.
+	@type colorband:  list
 	"""
 	
 	def getExtend():

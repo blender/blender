@@ -36,6 +36,7 @@
 #include <Python.h>
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
+#include "DNA_texture_types.h" /* colorband */
 #include "rgbTuple.h"
 
 /*****************************************************************************/
@@ -62,6 +63,10 @@ PyObject *Material_Init( void );
 PyObject *Material_CreatePyObject( Material * mat );
 Material *Material_FromPyObject( PyObject * pyobj );
 int Material_CheckPyObject( PyObject * pyobj );
+
+/* colorband tp_getseters */
+PyObject *EXPP_PyList_fromColorband( ColorBand *coba );
+int EXPP_Colorband_fromPyList( ColorBand *coba, PyObject * value );
 
 /* Some functions needed by NMesh, Curve and friends */
 PyObject *EXPP_PyList_fromMaterialList( Material ** matlist, int len,
