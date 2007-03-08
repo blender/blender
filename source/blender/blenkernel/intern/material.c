@@ -166,6 +166,8 @@ Material *copy_material(Material *ma)
 	man= copy_libblock(ma);
 	
 	id_us_plus((ID *)man->ipo);
+	id_us_plus((ID *)man->group);
+	
 	
 	for(a=0; a<MAX_MTEX; a++) {
 		if(ma->mtex[a]) {
