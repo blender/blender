@@ -85,6 +85,7 @@ static PyObject *Sequence_remove( BPy_Sequence * self, PyObject * args );
 
 static PyObject *SceneSeq_new( BPy_SceneSeq * self, PyObject * args );
 static PyObject *SceneSeq_remove( BPy_SceneSeq * self, PyObject * args );
+static void intern_pos_update(Sequence * seq); 
 
 static PyMethodDef BPy_Sequence_methods[] = {
 	/* name, method, flags, doc */
@@ -567,7 +568,7 @@ static PyObject *getIntAttr( BPy_Sequence *self, void *type )
 
 
 /* internal functions for recursivly updating metastrip locatons */
-void intern_pos_update(Sequence * seq) {
+static void intern_pos_update(Sequence * seq) {
 	/* update startdisp and enddisp */
 	seq->startdisp = seq->start + seq->startofs - seq->startstill;
 	seq->enddisp = ((seq->start + seq->len) - seq->endofs )+ seq->endstill;
