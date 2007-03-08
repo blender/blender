@@ -6086,6 +6086,8 @@ void ntreeCompositTagAnimated(bNodeTree *ntree)
 		}
 		else if(node->type==CMP_NODE_TIME)
 			NodeTagChanged(ntree, node);
+		else if(node->type==CMP_NODE_R_LAYERS)
+			NodeTagChanged(ntree, node);
 	}
 }
 
