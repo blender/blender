@@ -2017,7 +2017,7 @@ void build_particle_system(Object *ob)
 			cur= (int)floor(pa->time) + 1 ;		/* + 1 has a reason: (obmat/prevobmat) otherwise comet-tails start too late */
 			
 			if(cur <= paf_end) mcnow= mcache + cur - paf_sta;
-			else mcnow= mcache + paf_end - paf_sta + 1;
+			else mcnow= mcache + paf_end - paf_sta;
 			
 			if(cur > paf_sta) mcprev= mcnow-1;
 			else mcprev= mcache;
