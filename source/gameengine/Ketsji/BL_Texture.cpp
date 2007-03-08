@@ -100,7 +100,6 @@ void BL_Texture::DeleteTex()
 		glDeleteLists((GLuint)mDisableState, 1);
 		mDisableState =0;
 	}
-
 	g_textureManager.clear();
 }
 
@@ -130,16 +129,34 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 
 	ActivateUnit(mUnit);
 
-
 	if (mTexture != 0) {
 		glBindTexture(GL_TEXTURE_2D, mTexture );
 		Validate();
 		return mOk;
 	}
+
+	// look for an existing gl image
+	BL_TextureMap::iterator mapLook = g_textureManager.find(img->id.name);
+	if (mapLook != g_textureManager.end())
+	{
+		if (mapLook->second.gl_texture != 0)
+		{
+			mTexture = mapLook->second.gl_texture;
+			glBindTexture(GL_TEXTURE_2D, mTexture);
+			mOk = IsValid();
+			return mOk;
+		}
+	}
+
 	mNeedsDeleted = 1;
 	glGenTextures(1, (GLuint*)&mTexture);
 	InitGLTex(ibuf->rect, ibuf->x, ibuf->y, mipmap);
-	
+
+	// track created units
+	BL_TextureObject obj;
+	obj.gl_texture = mTexture;
+	obj.ref_buffer = img;
+	g_textureManager.insert(std::pair<char*, BL_TextureObject>((char*)img->id.name, obj));
 
 
 	glDisable(GL_TEXTURE_2D);
