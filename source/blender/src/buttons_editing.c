@@ -5196,7 +5196,7 @@ void editing_panel_mesh_multires()
 			cy-= 20;
 		
 			but= uiDefButC(block,NUM,B_NOP,"Level: ",cx,cy,200,19,&me->mr->newlvl,1.0,me->mr->level_count,0,0,"");
-			uiButSetFunc(but,multires_set_level,ob,me);
+			uiButSetFunc(but,multires_set_level_cb, ob, me);
 			cy-= 20;
 
 			but= uiDefButC(block,NUM,B_NOP,"Edges: ",cx,cy,200,19,&me->mr->edgelvl,1.0,me->mr->level_count,0,0,"Set level of edges to display");

@@ -6618,7 +6618,7 @@ static int Mesh_setMultires( BPy_Mesh * self, PyObject *value, void *type )
 	switch ((int)type) {
 	case MESH_MULTIRES_LEVEL:
 		self->mesh->mr->newlvl = i;
-		multires_set_level(self->object, self->mesh);
+		multires_set_level(self->object, self->mesh, 0);
 		break;
 	case MESH_MULTIRES_EDGE:
 		self->mesh->mr->edgelvl = i;

@@ -994,7 +994,7 @@ void multires_add_level(void *ob, void *me_v)
 		}
 	}
 
-	multires_update_levels(me);
+	multires_update_levels(me, 0);
 	me->mr->newlvl= me->mr->level_count;
 	me->mr->current= me->mr->newlvl;
 	/* Unless the render level has been set to something other than the
@@ -1002,7 +1002,7 @@ void multires_add_level(void *ob, void *me_v)
 	   the highest available level */
 	if(me->mr->renderlvl == me->mr->level_count - 1) me->mr->renderlvl= me->mr->level_count;
 	
-	multires_level_to_mesh(ob,me);
+	multires_level_to_mesh(ob, me, 0);
 	
 	allqueue(REDRAWBUTSEDIT, 0);
 
@@ -1011,10 +1011,13 @@ void multires_add_level(void *ob, void *me_v)
 	waitcursor(0);
 }
 
-void multires_set_level(void *ob, void *me_v)
+void multires_set_level_cb(void *ob, void *me)
 {
-	Mesh *me= me_v;
+	multires_set_level(ob, me, 1);
+}
 
+void multires_set_level(struct Object *ob, struct Mesh *me, const int render)
+{
 	waitcursor(1);
 	
 	multires_check_state();
@@ -1022,15 +1025,15 @@ void multires_set_level(void *ob, void *me_v)
 	if(me->pv) sculptmode_pmv_off(me);
 
 	check_colors(me);
-	multires_update_levels(me);
+	multires_update_levels(me, render);
 
 	me->mr->current= me->mr->newlvl;
 	if(me->mr->current<1) me->mr->current= 1;
 	else if(me->mr->current>me->mr->level_count) me->mr->current= me->mr->level_count;
 
-	multires_level_to_mesh(ob,me);
+	multires_level_to_mesh(ob, me, render);
 	
-	if(G.obedit || G.f & G_SCULPTMODE)
+	if(!render && (G.obedit || G.f & G_SCULPTMODE))
 		BIF_undo_push("Multires set level");
 
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -1053,11 +1056,11 @@ void medge_flag_to_eed(const short flag, const char crease, EditEdge *eed)
 }
 
 /* note, function is called in background render too, without UI */
-void multires_level_to_mesh(Object *ob, Mesh *me)
+void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 {
 	MultiresLevel *lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
 	int i;
-	EditMesh *em= G.obedit ? G.editMesh : NULL;
+	EditMesh *em= (!render && G.obedit) ? G.editMesh : NULL;
 	EditVert **eves= NULL;
 	EditEdge *eed= NULL;
 	
@@ -1326,7 +1329,7 @@ void multires_update_edge_flags(Multires *mr, Mesh *me, EditMesh *em)
 	}
 }
 
-void multires_update_levels(Mesh *me)
+void multires_update_levels(Mesh *me, const int render)
 {
 	/* cr=current, pr=previous, or=original */
 	MultiresLevel *cr_lvl= current_level(me->mr), *pr_lvl;
@@ -1334,7 +1337,7 @@ void multires_update_levels(Mesh *me)
 	vec3f *pr_deltas= NULL, *cr_deltas= NULL;
 	char *pr_flag_damaged= NULL, *cr_flag_damaged= NULL, *pr_mat_damaged= NULL, *cr_mat_damaged= NULL;
 	char *or_flag_damaged= NULL, *or_mat_damaged= NULL;
-	EditMesh *em= G.obedit ? G.editMesh : NULL;
+	EditMesh *em= (!render && G.obedit) ? G.editMesh : NULL;
 	EditVert *eve= NULL;
 	EditFace *efa= NULL;
 	MultiApplyData data;

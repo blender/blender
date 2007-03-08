@@ -2225,7 +2225,7 @@ float *multires_render_pin(Object *ob, Mesh *me, int *orig_lvl)
 		int i;
 		
 		/* Make sure all mesh edits are properly stored in the multires data*/
-		multires_update_levels(me);
+		multires_update_levels(me, 1);
 	
 		/* Copy the highest level of multires verts */
 		*orig_lvl= me->mr->current;
@@ -2236,7 +2236,7 @@ float *multires_render_pin(Object *ob, Mesh *me, int *orig_lvl)
 	
 		/* Goto the pin level for multires */
 		me->mr->newlvl= me->mr->pinlvl;
-		multires_set_level(ob, me);
+		multires_set_level(ob, me, 1);
 	}
 	
 	return vert_copy;
@@ -2256,7 +2256,7 @@ void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_c
 			(*dm)->release(*dm);
 
 			me->mr->newlvl= me->mr->renderlvl;
-			multires_set_level(ob, me);
+			multires_set_level(ob, me, 1);
 			(*dm)= getMeshDerivedMesh(me, ob, NULL);
 
 			/* Some of the data in dm is referenced externally, so make a copy */
@@ -2266,7 +2266,7 @@ void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_c
 
 			/* Restore the original verts */
 			me->mr->newlvl= BLI_countlist(&me->mr->levels);
-			multires_set_level(ob, me);
+			multires_set_level(ob, me, 1);
 			for(i=0; i<lvl->totvert; ++i)
 				VecCopyf(me->mvert[i].co, &vert_copy[i*3]);
 		}
@@ -2275,7 +2275,7 @@ void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_c
 			MEM_freeN(vert_copy);
 			
 		me->mr->newlvl= orig_lvl;
-		multires_set_level(ob, me);
+		multires_set_level(ob, me, 1);
 	}
 }
 
