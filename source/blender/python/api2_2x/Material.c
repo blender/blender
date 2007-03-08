@@ -1818,47 +1818,8 @@ static PyObject *Material_getTextures( BPy_Material * self )
 
 static int Material_setIpo( BPy_Material * self, PyObject * value )
 {
-	Ipo *ipo = NULL;
-	Ipo *oldipo = self->material->ipo;
-	ID *id;
-
-	/* if parameter is not None, check for valid Ipo */
-
-	if ( value != Py_None ) {
-		if ( !Ipo_CheckPyObject( value ) )
-			return EXPP_ReturnIntError( PyExc_RuntimeError,
-					      	"expected an Ipo object" );
-
-		ipo = Ipo_FromPyObject( value );
-
-		if( !ipo )
-			return EXPP_ReturnIntError( PyExc_RuntimeError,
-					      	"null ipo!" );
-
-		if( ipo->blocktype != ID_MA )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					      	"Ipo is not a material data Ipo" );
-	}
-
-	/* if already linked to Ipo, delete link */
-
-	if ( oldipo ) {
-		id = &oldipo->id;
-		if( id->us > 0 )
-			id->us--;
-	}
-
-	/* assign new Ipo and increment user count, or set to NULL if deleting */
-
-	self->material->ipo = ipo;
-	if ( ipo ) {
-		id = &ipo->id;
-		id_us_plus(id);
-	}
-
-	return 0;
+	return GenericLib_assignData(value, (void **) &self->material->ipo, 0, 1, ID_IP, ID_MA);
 }
-
 
 
 /* 
@@ -2084,18 +2045,9 @@ static int Material_setZOffset( BPy_Material * self, PyObject * value )
 								EXPP_MAT_ZOFFS_MAX );
 }
 
-static int Material_setLightGroup( BPy_Material * self, PyObject * value ) {
-	BPy_Group *pygrp=NULL;
-	if ( PyObject_TypeCheck(value, &Group_Type) ) {
-		pygrp= (BPy_Group *)value;
-		self->material->group= pygrp->group;
-	} else if (value==Py_None) {
-		self->material->group= NULL;
-	} else {
-		return EXPP_ReturnIntError( PyExc_TypeError,
-						"expected a group or None" );
-	}
-	return 0;
+static int Material_setLightGroup( BPy_Material * self, PyObject * value )
+{
+	return GenericLib_assignData(value, (void **) &self->material->group, NULL, 1, ID_GR, 0);
 }
 
 static int Material_setAdd( BPy_Material * self, PyObject * value )
@@ -2505,21 +2457,30 @@ PyObject *EXPP_PyList_fromColorband( ColorBand *coba )
 }
 
 /* make sure you coba is not none before calling this */
-int EXPP_Colorband_fromPyList( ColorBand *coba, PyObject * value )
+int EXPP_Colorband_fromPyList( ColorBand **coba, PyObject * value )
 {
 	short totcol, i;
 	PyObject *colseq;
 	PyObject *pyflt;
 	float f;
 	
-	if ( !PySequence_Check( value ) )
+	if ( !PySequence_Check( value )  )
 		return ( EXPP_ReturnIntError( PyExc_TypeError,
 				"Colorband must be a sequence" ) );
 	
 	totcol = PySequence_Size(value);
-	if (totcol < 1 || totcol > 31)
+	if ( totcol > 31)
 		return ( EXPP_ReturnIntError( PyExc_ValueError,
 				"Colorband must be between 1 and 31 in length" ) );
+	
+	if (totcol==0) {
+		MEM_freeN(*coba);
+		*coba = NULL;
+		return 0;
+	}
+	
+	if (!*coba)
+		*coba = MEM_callocN( sizeof(ColorBand), "colorband");
 	
 	for (i=0; i<totcol; i++) {
 		colseq = PySequence_GetItem( value, i );
@@ -2542,38 +2503,38 @@ int EXPP_Colorband_fromPyList( ColorBand *coba, PyObject * value )
 	}
 	
 	/* ok, continue - should check for 5 floats, will ignore non floats for now */
-	coba->tot = totcol;
+	(*coba)->tot = totcol;
 	for (i=0; i<totcol; i++) {
 		colseq = PySequence_GetItem( value, i );
 		
 		pyflt = PySequence_GetItem( colseq, 0 ); 
 		f = (float)PyFloat_AsDouble( pyflt );
 		CLAMP(f, 0.0, 1.0);
-		coba->data[i].r = f;
+		(*coba)->data[i].r = f;
 		Py_DECREF ( pyflt );
 		
 		pyflt = PySequence_GetItem( colseq, 1 ); 
 		f = (float)PyFloat_AsDouble( pyflt );
 		CLAMP(f, 0.0, 1.0);
-		coba->data[i].g = f;
+		(*coba)->data[i].g = f;
 		Py_DECREF ( pyflt );
 		
 		pyflt = PySequence_GetItem( colseq, 2 ); 
 		f = (float)PyFloat_AsDouble( pyflt );
 		CLAMP(f, 0.0, 1.0);
-		coba->data[i].b = f;
+		(*coba)->data[i].b = f;
 		Py_DECREF ( pyflt );
 		
 		pyflt = PySequence_GetItem( colseq, 3 ); 
 		f = (float)PyFloat_AsDouble( pyflt );
 		CLAMP(f, 0.0, 1.0);
-		coba->data[i].a = f;
+		(*coba)->data[i].a = f;
 		Py_DECREF ( pyflt );
 		
 		pyflt = PySequence_GetItem( colseq, 4 ); 
 		f = (float)PyFloat_AsDouble( pyflt );
 		CLAMP(f, 0.0, 1.0);
-		coba->data[i].pos = f;
+		(*coba)->data[i].pos = f;
 		Py_DECREF ( pyflt );
 		
 		Py_DECREF ( colseq );
@@ -2814,13 +2775,9 @@ int Material_setColorband( BPy_Material * self, PyObject * value, void * type)
 {
 	switch( (long)type ) {
     case 0:	/* these are backwards, but that how it works */
-		if (!self->material->ramp_col)
-			self->material->ramp_col = MEM_callocN( sizeof(ColorBand), "colorband");
-		return EXPP_Colorband_fromPyList( self->material->ramp_col, value );
+		return EXPP_Colorband_fromPyList( &self->material->ramp_col, value );
     case 1:
-		if (!self->material->ramp_spec)
-			self->material->ramp_spec = MEM_callocN( sizeof(ColorBand), "colorband");
-		return EXPP_Colorband_fromPyList( self->material->ramp_spec, value );
+		return EXPP_Colorband_fromPyList( &self->material->ramp_spec, value );
 	}
 	return 0;
 }

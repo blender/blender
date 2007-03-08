@@ -522,35 +522,7 @@ static PyObject *World_getIpo( BPy_World * self )
 
 static int World_setIpo( BPy_World * self, PyObject * value )
 {
-	Ipo *ipo = NULL;
-	Ipo *oldipo;
-
-	if( !BPy_Ipo_Check(value) )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-					      "expected Ipo as argument" );
-
-	ipo = Ipo_FromPyObject( value );
-
-	if( !ipo )
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-					      "null ipo!" );
-
-	if( ipo->blocktype != ID_WO )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-					      "this ipo is not a World type ipo" );
-
-	oldipo = self->world->ipo;
-	if( oldipo ) {
-		ID *id = &oldipo->id;
-		if( id->us > 0 )
-			id->us--;
-	}
-
-	id_us_plus(&ipo->id);
-
-	self->world->ipo = ipo;
-
-	return 0;
+	return GenericLib_assignData(value, (void **) &self->world->ipo, 0, 1, ID_IP, ID_WO);
 }
 
 static PyObject *World_oldsetIpo( BPy_World * self, PyObject * args )

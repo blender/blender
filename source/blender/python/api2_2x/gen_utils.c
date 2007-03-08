@@ -49,6 +49,14 @@
 
 #include "constant.h"
 
+/* GenericLib */
+#include "World.h"
+#include "Object.h"
+#include "Texture.h"
+#include "Ipo.h"
+#include "DNA_object_types.h"
+#include "DNA_ipo_types.h"
+
 /*---------------------- EXPP_FloatsAreEqual -------------------------
   Floating point comparisons 
   floatStep = number of representable floats allowable in between
@@ -1039,3 +1047,78 @@ PyObject * GenericLib_setName_with_method( void *self, PyObject *args )
 	return EXPP_setterWrapper( (void *)self, args, (setter)GenericLib_setName );
 }
 
+
+/* returns the Blender lib type code from a PyObject
+   -1 for no match, only give this function libdata */
+short GenericLib_getType(PyObject * pydata)
+{
+	//~ if (BPy_Scene_Check(pydata))	return ID_SCE;
+	if (BPy_Object_Check(pydata))	return ID_OB;
+	//~ if (BPy_Mesh_Check(pydata))		return ID_ME;
+	//~ if (BPy_Curve_Check(pydata))	return ID_CU;
+	//~ if (BPy_Metaball_Check(pydata))	return ID_MB;
+	//~ if (BPy_Material_Check(pydata))	return ID_MA;
+	if (BPy_Texture_Check(pydata))	return ID_TE;
+	//~ if (BPy_Image_Check(pydata))	return ID_IM;
+		//~ //if (BPy_Lattice_Check(pydata))	return ID_LT;
+	//~ if (BPy_Lamp_Check(pydata))		return ID_LA;
+	//~ if (BPy_Camera_Check(pydata))	return ID_CA;
+	if (BPy_Ipo_Check(pydata))		return ID_IP;
+	if (BPy_World_Check(pydata))	return ID_WO;
+		//~ //if (BPy_Font_Check(pydata))		return ID_VF;
+	//~ if (BPy_Text_Check(pydata))		return ID_TXT;
+	//~ if (BPy_Sound_Check(pydata))	return ID_SO;
+	//~ if (BPy_Group_Check(pydata))	return ID_GR;
+	//~ if (BPy_Armature_Check(pydata))	return ID_AR;
+	//~ if (BPy_Action_Check(pydata))	return ID_AC;
+		
+	
+	
+	
+	return -1;
+}
+
+
+int GenericLib_assignData(PyObject *value, void **data, void **ndata, short refcount, short type, short subtype)
+{
+	ID *id=NULL;
+	
+	if (*data && ndata && *data == *ndata) {
+		return EXPP_ReturnIntError( PyExc_TypeError,
+			"Cannot set this data to its self" );
+		
+		id = ((ID*)*data);
+	}
+	if (value == Py_None) {
+		*data = NULL;
+		if (refcount && id) id->us--;
+	} else if (GenericLib_getType(value) == type) {
+		
+		/* object subtypes */
+		if (subtype != 0) {
+			if (type == ID_OB) {
+				Object *ob= ((BPy_GenericLib *)value)->id;
+				if (ob->type != subtype)
+					return EXPP_ReturnIntError( PyExc_TypeError,
+						"Object type not supported" );
+			}
+			
+			if (type == ID_IP) {
+				Ipo *ipo = ((BPy_GenericLib *)value)->id;
+				if (ipo->blocktype != subtype)
+					return EXPP_ReturnIntError( PyExc_TypeError,
+						"Ipo type does is not compatible" );
+			}
+			
+			
+		}
+		if (refcount && id) id->us--;
+		id = ((BPy_GenericLib *)value)->id;
+		id->us++;
+		*data = id;
+	} else {
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"Could not assign Python Type - None or Library Object" );
+	}
+	return 0;
+} 

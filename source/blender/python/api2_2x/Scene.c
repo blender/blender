@@ -368,27 +368,8 @@ static PyObject *Scene_getWorld( BPy_Scene * self )
 
 static int Scene_setWorld( BPy_Scene * self, PyObject * value )
 {
-	World *world=NULL;
-	
 	SCENE_DEL_CHECK_INT(self);
-	
-	/* accepts a World or None */
-	if (BPy_World_Check(value)) {
-		world = World_FromPyObject(value);
-	} else if (value != Py_None) {
-		return ( EXPP_ReturnIntError( PyExc_TypeError,
-			"expected a world object" ) );
-	}
-	
-	/* If there is a world then it now has one less user */
-	if( self->scene->world )
-		self->scene->world->id.us--;
-	
-	if (world)
-		world->id.us++;
-	
-	G.scene->world = world;
-	return 0;
+	return GenericLib_assignData(value, (void **) &self->scene->world, NULL, 1, ID_WO, 0);
 }
 
 /* accessed from scn.objects */
@@ -397,8 +378,6 @@ static PyObject *Scene_getObjects( BPy_Scene *self)
 	SCENE_DEL_CHECK_PY(self);
 	return SceneObSeq_CreatePyObject(self, NULL, 0);
 }
-
-
 
 static PyObject *Scene_getCursor( BPy_Scene * self )
 {
@@ -1685,30 +1664,21 @@ PyObject *SceneObSeq_getCamera(BPy_SceneObSeq *self)
 static int SceneObSeq_setCamera(BPy_SceneObSeq *self, PyObject *value)
 {
 	SCENE_DEL_CHECK_INT(self->bpyscene);
-	
+	int ret;
 	if (self->mode!=EXPP_OBSEQ_NORMAL)
 			return (EXPP_ReturnIntError( PyExc_TypeError,
 						"cannot set camera from objects.selected or objects.context" ));
 	
-	if (value==Py_None) {
-		self->bpyscene->scene->camera= NULL;
-		return 0;
-	}
-	
-	if (!BPy_Object_Check(value))
-		return (EXPP_ReturnIntError( PyExc_ValueError,
-					      "Object or None types can only be assigned to camera!" ));
-	
-	self->bpyscene->scene->camera= ((BPy_Object *)value)->object;
+	ret = GenericLib_assignData(value, (void **) &self->bpyscene->scene->camera, 0, 0, ID_OB, 0);
 	
 	/* if this is the current scene, update its window now */
-	if( !G.background && self->bpyscene->scene == G.scene ) /* Traced a crash to redrawing while in background mode -Campbell */
+	if( ret == 0 && !G.background && self->bpyscene->scene == G.scene ) /* Traced a crash to redrawing while in background mode -Campbell */
 		copy_view3d_lock( REDRAW );
 
 /* XXX copy_view3d_lock(REDRAW) prints "bad call to addqueue: 0 (18, 1)".
  * The same happens in bpython. */
-	
-	return 0;
+
+	return ret;
 }
 
 

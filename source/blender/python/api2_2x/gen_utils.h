@@ -169,7 +169,6 @@ typedef struct {
 } BPy_GenericLib;
 
 
-
 /* ID functions for all libdata */
 #define	GENERIC_LIB_GETSETATTR \
 	{"name",\
@@ -194,8 +193,6 @@ typedef struct {
 	 NULL}
 
 
-
-
 int GenericLib_setName( void *self, PyObject *value );
 PyObject *GenericLib_getName( void *self );
 PyObject *GenericLib_getFakeUser( void *self );
@@ -206,5 +203,8 @@ PyObject *GenericLib_getProperties( void *self );
 
 /* use this for oldstyle somedata.getName("name") */
 PyObject * GenericLib_setName_with_method( void *self, PyObject *value ); 
+
+int GenericLib_assignData(PyObject *value, void **data, void **ndata, short refcount, short type, short subtype);
+short GenericLib_getType(PyObject * pydata);
 
 #endif				/* EXPP_gen_utils_h */

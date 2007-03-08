@@ -66,7 +66,7 @@ int Material_CheckPyObject( PyObject * pyobj );
 
 /* colorband tp_getseters */
 PyObject *EXPP_PyList_fromColorband( ColorBand *coba );
-int EXPP_Colorband_fromPyList( ColorBand *coba, PyObject * value );
+int EXPP_Colorband_fromPyList( ColorBand **coba, PyObject * value );
 
 /* Some functions needed by NMesh, Curve and friends */
 PyObject *EXPP_PyList_fromMaterialList( Material ** matlist, int len,

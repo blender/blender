@@ -962,14 +962,7 @@ static PyObject *PoseBone_getDisplayObject(BPy_PoseBone *self, void *closure)
 //Sets the pose bones object used for display
 static int PoseBone_setDisplayObject(BPy_PoseBone *self, PyObject *value, void *closure)
 {
-	if (value == Py_None) {
-		self->posechannel->custom = NULL;
-	} else if (BPy_Object_Check(value)) {
-		self->posechannel->custom = Object_FromPyObject(value);
-	} else {
-		return EXPP_ReturnIntError(PyExc_AttributeError, "can only assign a Blender Object or None");
-	}
-	return 0;
+	return GenericLib_assignData(value, (void **) &self->posechannel->custom, 0, 0, ID_OB, 0);
 }
 
 //------------------------PoseBone.hasIK (getter)

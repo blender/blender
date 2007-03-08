@@ -65,12 +65,12 @@ static void KeyBlock_dealloc( PyObject * self );
 static int Key_compare( BPy_Key * a, BPy_Key * b );
 static PyObject *Key_repr( BPy_Key * self );
 
-static PyObject *Key_getBlocks( PyObject * self );
+static PyObject *Key_getBlocks( BPy_Key * self );
 static PyObject *Key_getType( BPy_Key * self );
 static PyObject *Key_getRelative( BPy_Key * self );
-static PyObject *Key_getIpo( PyObject * self );
-static int Key_setIpo( PyObject * self, PyObject * args );
-static PyObject *Key_getValue( PyObject * self );
+static PyObject *Key_getIpo( BPy_Key * self );
+static int Key_setIpo( BPy_Key * self, PyObject * args );
+static PyObject *Key_getValue( BPy_Key * self );
 static int Key_setRelative( BPy_Key * self, PyObject * value );
 
 static struct PyMethodDef Key_methods[] = {
@@ -319,69 +319,30 @@ static PyObject *Key_repr( BPy_Key * self )
 	return PyString_FromFormat( "[Key \"%s\"]", self->key->id.name + 2 );
 }
 
-static PyObject *Key_getIpo( PyObject * self )
+static PyObject *Key_getIpo( BPy_Key * self )
 {
-	BPy_Key *k = ( BPy_Key * ) self;
 	BPy_Ipo *new_ipo;
 
-	if (k->key->ipo) {
+	if (self->key->ipo) {
 		new_ipo = ( BPy_Ipo * ) PyObject_NEW( BPy_Ipo, &Ipo_Type );
-		new_ipo->ipo = k->key->ipo;
+		new_ipo->ipo = self->key->ipo;
 		return (PyObject *) new_ipo;
 	} else {
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 	}
 }
 
-static int Key_setIpo( PyObject * self, PyObject * value )
+static int Key_setIpo( BPy_Key * self, PyObject * value )
 {
-	Ipo *ipo = NULL;
-	Ipo *oldipo = (( BPy_Key * )self)->key->ipo;
-	ID *id;
-
-	/* if parameter is not None, check for valid Ipo */
-
-	if ( value != Py_None ) {
-		if ( !Ipo_CheckPyObject( value ) )
-			return EXPP_ReturnIntError( PyExc_RuntimeError,
-					      	"expected an Ipo object" );
-
-		ipo = Ipo_FromPyObject( value );
-
-		if( !ipo )
-			return EXPP_ReturnIntError( PyExc_RuntimeError,
-					      	"null ipo!" );
-
-		if( ipo->blocktype != ID_KE )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					      	"Ipo is not a key data Ipo" );
-	}
-
-	/* if already linked to Ipo, delete link */
-
-	if ( oldipo ) {
-		id = &oldipo->id;
-		if( id->us > 0 )
-			id->us--;
-	}
-
-	/* assign new Ipo and increment user count, or set to NULL if deleting */
-
-	(( BPy_Key * )self)->key->ipo = ipo;
-	if ( ipo ) {
-		id = &ipo->id;
-		id_us_plus(id);
-	}
-
-	return 0;
+	return GenericLib_assignData(value, (void **) &self->key->ipo, 0, 1, ID_IP, ID_KE);
 }
 
 static PyObject *Key_getRelative( BPy_Key * self )
 {
 	if( self->key->type == KEY_RELATIVE )
-		return EXPP_incr_ret(Py_True);
+		Py_RETURN_TRUE;
 	else
-		return EXPP_incr_ret(Py_False);
+		Py_RETURN_FALSE;
 }
 
 static int Key_setRelative( BPy_Key * self, PyObject * value )
@@ -418,16 +379,14 @@ static PyObject *Key_getType( BPy_Key * self )
 	return PyInt_FromLong( type );
 }
 
-static PyObject *Key_getBlocks( PyObject * self )
+static PyObject *Key_getBlocks( BPy_Key * self )
 {
-	BPy_Key *k = ( BPy_Key * ) self;
-	Key *key = k->key;
+	Key *key = self->key;
 	KeyBlock *kb;
 	PyObject *keyblock_object;
 	PyObject *l = PyList_New( 0 );
 
 	for (kb = key->block.first; kb; kb = kb->next) {
-		
 		keyblock_object =  KeyBlock_CreatePyObject( kb, key );
 		PyList_Append( l, keyblock_object );
 	}
@@ -435,7 +394,7 @@ static PyObject *Key_getBlocks( PyObject * self )
 	return l;
 }
 
-static PyObject *Key_getValue( PyObject * self )
+static PyObject *Key_getValue( BPy_Key * self )
 {
 	BPy_Key *k = ( BPy_Key * ) self;
 

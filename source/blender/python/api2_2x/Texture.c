@@ -2662,9 +2662,7 @@ static PyObject *Texture_getColorband( BPy_Texture * self)
 
 int Texture_setColorband( BPy_Texture * self, PyObject * value)
 {
-	if (!self->texture->coba)
-		self->texture->coba = MEM_callocN( sizeof(ColorBand), "colorband");
-	return EXPP_Colorband_fromPyList( self->texture->coba, value );
+	return EXPP_Colorband_fromPyList( &self->texture->coba, value );
 }
 
 static PyObject *Texture_evaluate( BPy_Texture * self, PyObject * args )

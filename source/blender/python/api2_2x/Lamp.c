@@ -1394,45 +1394,7 @@ static PyObject *Lamp_getIpo( BPy_Lamp * self )
 
 static int Lamp_setIpo( BPy_Lamp * self, PyObject * value )
 {
-	Ipo *ipo = NULL;
-	Ipo *oldipo = self->lamp->ipo;
-	ID *id;
-
-	/* if parameter is not None, check for valid Ipo */
-
-	if ( value != Py_None ) {
-		if ( !Ipo_CheckPyObject( value ) )
-			return EXPP_ReturnIntError( PyExc_RuntimeError,
-					      	"expected an Ipo object" );
-
-		ipo = Ipo_FromPyObject( value );
-
-		if( !ipo )
-			return EXPP_ReturnIntError( PyExc_RuntimeError,
-					      	"null ipo!" );
-
-		if( ipo->blocktype != ID_LA )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					      	"Ipo is not a lamp data Ipo" );
-	}
-
-	/* if already linked to Ipo, delete link */
-
-	if ( oldipo ) {
-		id = &oldipo->id;
-		if( id->us > 0 )
-			id->us--;
-	}
-
-	/* assign new Ipo and increment user count, or set to NULL if deleting */
-
-	self->lamp->ipo = ipo;
-	if ( ipo ) {
-		id = &ipo->id;
-		id_us_plus(id);
-	}
-
-	return 0;
+	return GenericLib_assignData(value, (void **) &self->lamp->ipo, 0, 1, ID_IP, ID_LA);
 }
 
 /*

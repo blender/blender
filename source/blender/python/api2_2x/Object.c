@@ -2982,26 +2982,9 @@ static PyObject *Object_getDupliGroup( BPy_Object * self )
 	Py_RETURN_NONE;
 }
 
-static int Object_setDupliGroup( BPy_Object * self, BPy_Group * args )
+static int Object_setDupliGroup( BPy_Object * self, PyObject * value )
 {
-	Object *ob= self->object;
-
-	if( (PyObject *)args == Py_None ) {
-		if (ob->dup_group)
-			ob->dup_group->id.us--;
-		
-		ob->dup_group = NULL;
-	} else if( BPy_Group_Check( args ) ) {
-		if (ob->dup_group)
-			ob->dup_group->id.us--;
-		
-		ob->dup_group = args->group;
-		id_us_plus(&ob->dup_group->id);
-	} else {
-		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected a group or None" );
-	}
-	return 0;
+	return GenericLib_assignData(value, (void **) &self->object->dup_group, 0, 1, ID_GR, 0);
 }
 
 static PyObject *Object_getEffects( BPy_Object * self )
@@ -4307,43 +4290,7 @@ static int Object_setLayersMask( BPy_Object *self, PyObject *value )
 
 static int Object_setIpo( BPy_Object * self, PyObject * value )
 {
-	Ipo *ipo = NULL;
-	Ipo *oldipo = self->object->ipo;
-	ID *id;
-
-	/* if parameter is not None, check for valid Ipo */
-
-	if ( value != Py_None ) {
-		if ( !Ipo_CheckPyObject( value ) )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected an Ipo object" );
-
-		ipo = Ipo_FromPyObject( value );
-
-		if( !ipo )
-			return EXPP_ReturnIntError( PyExc_RuntimeError,
-					"null ipo!" );
-
-		if( ipo->blocktype != ID_OB )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					"Ipo is not a object data Ipo" );
-	}
-
-	/* if already linked to Ipo, delete link */
-
-	if ( oldipo ) {
-		id = &oldipo->id;
-		if( id->us > 0 )
-			id->us--;
-	}
-
-	/* assign new Ipo and increment user count, or set to NULL if deleting */
-
-	self->object->ipo = ipo;
-	if ( ipo )
-		id_us_plus(&ipo->id);
-
-	return 0;
+	return GenericLib_assignData(value, (void **) &self->object->ipo, 0, 1, ID_IP, ID_OB);
 }
 
 static PyObject *Object_getOopsLoc( BPy_Object * self )
@@ -4434,20 +4381,13 @@ static int Object_setOopsSel( BPy_Object * self, PyObject * value )
 
 static int Object_setTracked( BPy_Object * self, PyObject * value )
 {
-	Object *ob = self->object;
-
-	if( value != Py_None && !BPy_Object_Check( value ) )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected an object argument" );
-
-	if( value != Py_None )
-		ob->track = ((BPy_Object *)value)->object;
-	else
-		ob->track = ((BPy_Object *)value)->object;
-	self->object->recalc |= OB_RECALC_OB;  
-	DAG_scene_sort( G.scene );
-
-	return 0;
+	int ret;
+	ret = GenericLib_assignData(value, (void **) &self->object->track, 0, 0, ID_OB, 0);
+	if (ret==0) {
+		self->object->recalc |= OB_RECALC_OB;  
+		DAG_scene_sort( G.scene );
+	}
+	return ret;
 }
 
 /* Localspace matrix */

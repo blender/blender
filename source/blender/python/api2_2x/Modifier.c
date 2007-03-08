@@ -398,27 +398,8 @@ static int armature_setter( BPy_Modifier *self, int type, PyObject *value )
 	ArmatureModifierData *md = (ArmatureModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_OBJECT: {
-		Object *ob_new=NULL;
-		if (value == Py_None) {
-			md->object = NULL;
-		} else if (BPy_Object_Check( value )) {
-			ob_new = ((( BPy_Object * )value)->object);
-			if( ob_new->type != OB_ARMATURE) {
-				return EXPP_ReturnIntError( PyExc_TypeError, 
-					"this object is not a supported type" );
-			}
-			
-			if( ob_new == self->object )
-				return EXPP_ReturnIntError( PyExc_TypeError,
-					"Cannot assign the object to its self" );
-			md->object = ob_new;
-		} else {
-			return EXPP_ReturnIntError( PyExc_TypeError,
-				"Expected an Object or None value" );
-		}
-		return 0;
-	}
+	case EXPP_MOD_OBJECT: 
+		return GenericLib_assignData(value, (void **) &md->object, 0, 0, ID_OB, OB_ARMATURE);
 	case EXPP_MOD_VERTGROUP:
 		return EXPP_setBitfield( value, &md->deformflag, 1, 'h' );
 	case EXPP_MOD_ENVELOPES:
@@ -447,27 +428,8 @@ static int lattice_setter( BPy_Modifier *self, int type, PyObject *value )
 	LatticeModifierData *md = (LatticeModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_OBJECT: {
-		Object *ob_new=NULL;
-		if (value == Py_None) {
-			md->object = NULL;
-		} else if (BPy_Object_Check( value )) {
-			ob_new = ((( BPy_Object * )value)->object);
-			if( ob_new->type != OB_LATTICE) {
-				return EXPP_ReturnIntError( PyExc_TypeError, 
-					"this object is not a supported type" );
-			}
-			
-			if( ob_new == self->object )
-				return EXPP_ReturnIntError( PyExc_TypeError,
-					"Cannot assign the object to its self" );
-			md->object = ob_new;
-		} else {
-			return EXPP_ReturnIntError( PyExc_TypeError,
-				"Expected an Object or None value" );
-		}
-		return 0;
-	}
+	case EXPP_MOD_OBJECT:
+		return GenericLib_assignData(value, (void **) &md->object, (void **) &self->object, 0, ID_OB, OB_LATTICE);
 	case EXPP_MOD_VERTGROUP: {
 		char *name = PyString_AsString( value );
 		if( !name )
@@ -501,26 +463,8 @@ static int curve_setter( BPy_Modifier *self, int type, PyObject *value )
 	CurveModifierData *md = (CurveModifierData *)(self->md);
 
 	switch( type ) {
-	case EXPP_MOD_OBJECT: {
-		Object *ob_new=NULL;
-		if (value == Py_None) {
-			md->object = NULL;
-		} else if (BPy_Object_Check( value )) {
-			ob_new = ((( BPy_Object * )value)->object);
-			if( ob_new->type != OB_CURVE) {
-				return EXPP_ReturnIntError( PyExc_TypeError, 
-					"this object is not a supported type" );
-			}
-			if( ob_new == self->object )
-				return EXPP_ReturnIntError( PyExc_TypeError,
-					"Cannot assign the object to its self" );
-			md->object = ob_new;
-		} else {
-			return EXPP_ReturnIntError( PyExc_TypeError,
-				"Expected an Object or None value" );
-		}
-		return 0;
-	}
+	case EXPP_MOD_OBJECT:
+		return GenericLib_assignData(value, (void **) &md->object, (void **) &self->object, 0, ID_OB, OB_CURVE);
 	case EXPP_MOD_VERTGROUP: {
 		char *name = PyString_AsString( value );
 		if( !name )
@@ -715,40 +659,10 @@ static int array_setter( BPy_Modifier *self, int type, PyObject *value )
 {
 	ArrayModifierData *md = (ArrayModifierData *)(self->md);
 	switch( type ) {
-	case EXPP_MOD_OBJECT_OFFSET: {
-		Object *ob_new=NULL;
-		if (value == Py_None) {
-			md->offset_ob = NULL;
-		} else if (BPy_Object_Check( value )) {
-			ob_new = ((( BPy_Object * )value)->object);
-			
-			if( ob_new == self->object )
-				return EXPP_ReturnIntError( PyExc_TypeError,
-					"Cannot assign the object to its self" );
-			md->offset_ob = ob_new;
-		} else {
-			return EXPP_ReturnIntError( PyExc_TypeError,
-				"Expected an Object or None value" );
-		}
-		return 0;
-	}
-	case EXPP_MOD_OBJECT_CURVE: {
-		Object *ob_new=NULL;
-		if (value == Py_None) {
-			md->curve_ob = NULL;
-		} else if (BPy_Object_Check( value )) {
-			ob_new = ((( BPy_Object * )value)->object);
-			
-			if( ob_new == self->object )
-				return EXPP_ReturnIntError( PyExc_TypeError,
-					"Cannot assign the object to its self" );
-			md->curve_ob = ob_new;
-		} else {
-			return EXPP_ReturnIntError( PyExc_TypeError,
-				"Expected an Object or None value" );
-		}
-		return 0;
-	}
+	case EXPP_MOD_OBJECT_OFFSET:
+		return GenericLib_assignData(value, (void **) &md->offset_ob, (void **) &self->object, 0, ID_OB, 0);
+	case EXPP_MOD_OBJECT_CURVE:
+		return GenericLib_assignData(value, (void **) &md->curve_ob, 0, 0, ID_OB, OB_CURVE);
 	case EXPP_MOD_COUNT:
 		return EXPP_setIValueClamped( value, &md->count, 1, 1000, 'i' );
 	case EXPP_MOD_LENGTH:
@@ -780,17 +694,9 @@ static int boolean_setter( BPy_Modifier *self, int type, PyObject *value )
 {
 	BooleanModifierData *md = (BooleanModifierData *)(self->md);
 
-	if( type == EXPP_MOD_OBJECT ) {
-		Object *ob = (( BPy_Object * )value)->object;
-		if( !BPy_Object_Check( value ) || ob->type != OB_MESH )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected BPy mesh object argument" );
-		if(ob == self->object )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					"Cannot boolean an object with its self" );
-		md->object = ob;
-		return 0;
-	} else if( type == EXPP_MOD_OPERATION )
+	if( type == EXPP_MOD_OBJECT )
+		return GenericLib_assignData(value, (void **) &md->object, (void **) &self->object, 0, ID_OB, OB_MESH);
+	else if( type == EXPP_MOD_OPERATION )
 		return EXPP_setIValueRange( value, &md->operation, 
 				eBooleanModifierOp_Intersect, eBooleanModifierOp_Difference,
 				'h' );
@@ -870,23 +776,7 @@ static int displace_setter( BPy_Modifier *self, int type, PyObject *value )
 
 	switch( type ) {
 	case EXPP_MOD_TEXTURE:
-		if (md->texture)
-			md->texture->id.us--;
-		
-		if (value == Py_None) {
-			md->texture = NULL;
-		} else if (Texture_CheckPyObject(value)) {
-			BPy_Texture *bpytex = (BPy_Texture *)value;
-			md->texture = bpytex->texture;
-			md->texture->id.us--;
-			
-		} else {
-			if (md->texture)
-				md->texture->id.us++;
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					"Texture must be of Texture or None type" );
-		}
-		return 0;
+		return GenericLib_assignData(value, (void **) &md->texture, 0, 1, ID_TE, 0);
 	case EXPP_MOD_STRENGTH:
 		return EXPP_setFloatClamped( value, &md->strength, -1000.0, 1000.0 );
 	

@@ -109,7 +109,6 @@ struct PyMethodDef M_Camera_methods[] = {
 /*****************************************************************************/
 /* Python BPy_Camera methods declarations:                                   */
 /*****************************************************************************/
-static PyObject *Camera_oldgetIpo( BPy_Camera * self );
 static PyObject *Camera_oldgetType( BPy_Camera * self );
 static PyObject *Camera_oldgetMode( BPy_Camera * self );
 static PyObject *Camera_oldgetLens( BPy_Camera * self );
@@ -117,6 +116,8 @@ static PyObject *Camera_oldgetClipStart( BPy_Camera * self );
 static PyObject *Camera_oldgetClipEnd( BPy_Camera * self );
 static PyObject *Camera_oldgetDrawSize( BPy_Camera * self );
 static PyObject *Camera_oldgetScale( BPy_Camera * self );
+static PyObject *Camera_getIpo( BPy_Camera * self );
+static int Camera_setIpo( BPy_Camera * self, PyObject * value );
 static PyObject *Camera_oldsetIpo( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_oldsetType( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_oldsetMode( BPy_Camera * self, PyObject * args );
@@ -138,7 +139,7 @@ static PyObject *Camera_copy( BPy_Camera * self );
 /*****************************************************************************/
 static PyMethodDef BPy_Camera_methods[] = {
 	/* name, method, flags, doc */
-	{"getIpo", ( PyCFunction ) Camera_oldgetIpo, METH_NOARGS,
+	{"getIpo", ( PyCFunction ) Camera_getIpo, METH_NOARGS,
 	 "() - Return Camera Data Ipo"},
 	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
 	 "() - Return Camera Data name"},
@@ -459,36 +460,7 @@ static PyObject *Camera_oldgetDrawSize( BPy_Camera * self )
 
 static PyObject *Camera_oldsetIpo( BPy_Camera * self, PyObject * args )
 {
-	PyObject *pyipo = 0;
-	Ipo *ipo = NULL;
-	Ipo *oldipo;
-
-	if( !PyArg_ParseTuple( args, "O!", &Ipo_Type, &pyipo ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected Ipo as argument" );
-
-	ipo = Ipo_FromPyObject( pyipo );
-
-	if( !ipo )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "null ipo!" );
-
-	if( ipo->blocktype != ID_CA )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "this ipo is not a camera data ipo" );
-
-	oldipo = self->camera->ipo;
-	if( oldipo ) {
-		ID *id = &oldipo->id;
-		if( id->us > 0 )
-			id->us--;
-	}
-
-	id_us_plus(&ipo->id);
-
-	self->camera->ipo = ipo;
-
-	Py_RETURN_NONE;
+	return EXPP_setterWrapper( (void *)self, args, (setter)Camera_setIpo );
 }
 
 static PyObject *Camera_oldclearIpo( BPy_Camera * self )
@@ -767,43 +739,7 @@ static PyObject *Camera_getIpo( BPy_Camera * self )
 
 static int Camera_setIpo( BPy_Camera * self, PyObject * value )
 {
-	Ipo *ipo = NULL;
-	Ipo *oldipo = self->camera->ipo;
-	ID *id;
-
-	/* if parameter is not None, check for valid Ipo */
-
-	if ( value != Py_None ) {
-		if ( !Ipo_CheckPyObject( value ) )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected an Ipo object" );
-
-		ipo = Ipo_FromPyObject( value );
-
-		if( !ipo )
-			return EXPP_ReturnIntError( PyExc_RuntimeError,
-					"null ipo!" );
-
-		if( ipo->blocktype != ID_CA )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					"Ipo is not a camera data Ipo" );
-	}
-
-	/* if already linked to Ipo, delete link */
-
-	if ( oldipo ) {
-		id = &oldipo->id;
-		if( id->us > 0 )
-			id->us--;
-	}
-
-	/* assign new Ipo and increment user count, or set to NULL if deleting */
-
-	self->camera->ipo = ipo;
-	if ( ipo )
-		id_us_plus(&ipo->id);
-
-	return 0;
+	return GenericLib_assignData(value, (void **) &self->camera->ipo, 0, 1, ID_IP, ID_CA);
 }
 
 /*

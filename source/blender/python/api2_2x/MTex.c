@@ -283,27 +283,7 @@ int MTex_CheckPyObject( PyObject * pyobj )
 
 static PyObject *MTex_setTexMethod( BPy_MTex * self, PyObject * args )
 {
-	Tex *tex;
-
-	if( args == Py_None )
-	{
-		tex = NULL;
-	} else if( Texture_CheckPyObject( args ) ) {
-		tex = Texture_FromPyObject( args );
-	} else {
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected Texture argument" );
-	}
-	
-	if( self->mtex->tex )
-		self->mtex->tex->id.us--;
-
-	self->mtex->tex = tex;
-
-	if( self->mtex->tex )
-		self->mtex->tex->id.us++;
-
-	Py_RETURN_NONE;
+	return EXPP_setterWrapper( (void *)self, args, (setter)MTex_setTex );
 }
 
 static void MTex_dealloc( BPy_MTex * self )
@@ -336,27 +316,7 @@ static PyObject *MTex_getTex( BPy_MTex *self, void *closure )
 
 static int MTex_setTex( BPy_MTex *self, PyObject *value, void *closure)
 {
-	Tex *tex;
-
-	if( value == Py_None )
-	{
-		tex = NULL;
-	} else if( Texture_CheckPyObject( value ) ) {
-		tex = Texture_FromPyObject( value );
-	} else {
-		return EXPP_ReturnIntError( PyExc_TypeError,
-					      "expected Texture argument" );
-	}
-	
-	if( self->mtex->tex )
-		self->mtex->tex->id.us--;
-
-	self->mtex->tex = tex;
-
-	if( self->mtex->tex )
-		self->mtex->tex->id.us++;
-
-	return 0;
+	return GenericLib_assignData(value, (void **) &self->mtex->tex, 0, 1, ID_TE, 0);
 }
 
 static PyObject *MTex_getTexCo( BPy_MTex *self, void *closure )
@@ -397,27 +357,7 @@ static PyObject *MTex_getObject( BPy_MTex *self, void *closure )
 
 static int MTex_setObject( BPy_MTex *self, PyObject *value, void *closure)
 {
-	Object *obj;
-
-	if( value == Py_None )
-	{
-		obj = NULL;
-	} else if( Object_CheckPyObject( value ) ) {
-		obj = Object_FromPyObject( value );
-	} else {
-		return EXPP_ReturnIntError( PyExc_TypeError,
-					      "expected Object argument" );
-	}
-	
-	if( self->mtex->object )
-		self->mtex->object->id.us--;
-
-	self->mtex->object = obj;
-
-	if( self->mtex->object )
-		self->mtex->object->id.us++;
-
-	return 0;
+	return GenericLib_assignData(value, (void **) &self->mtex->object, 0, 1, ID_OB, 0);
 }
 
 static PyObject *MTex_getUVLayer( BPy_MTex *self, void *closure )

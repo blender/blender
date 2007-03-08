@@ -1037,22 +1037,12 @@ static PyObject *Curve_getBevOb( BPy_Curve * self)
 /*****************************************************************************/
 static int Curve_newsetBevOb( BPy_Curve * self, PyObject * args )
 {
-	BPy_Object *pybevobj = (BPy_Object *) args;
-
-	if( args == Py_None ) { /* Accept None */
-		self->curve->bevobj = (Object *)NULL;
-	} else { /* Accept Object with type 'Curve' */
-		if( !Object_CheckPyObject( args ) || 
-				pybevobj->object->type != OB_CURVE )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected Curve object type or None argument" );
-		if( pybevobj->object->data == self->curve )
-			return EXPP_ReturnIntError( PyExc_ValueError,
-					"Can't bevel an object to itself" );
-		self->curve->bevobj = Object_FromPyObject( args );
-	}
-
-	return 0;
+	
+	if (Object_CheckPyObject( args ) && ((BPy_Object *)args)->object->data == self->curve )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"Can't bevel an object to itself" );
+	
+	return GenericLib_assignData(args, (void **) &self->curve->bevobj, 0, 0, ID_OB, OB_CURVE);
 }
 
 /*****************************************************************************/
@@ -1075,22 +1065,11 @@ static PyObject *Curve_getTaperOb( BPy_Curve * self)
 
 static int Curve_newsetTaperOb( BPy_Curve * self, PyObject * args )
 {
-	BPy_Object *pytaperobj = (BPy_Object *) args;
-
-	if( args == Py_None ) { /* Accept None */
-		self->curve->taperobj = (Object *)NULL;
-	} else { /* Accept Object with type 'Curve' */
-		if( !Object_CheckPyObject( args ) || 
-				pytaperobj->object->type != OB_CURVE )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected Curve object type or None argument" );
-		if( pytaperobj->object->data == self->curve )
-			return EXPP_ReturnIntError( PyExc_ValueError,
-					"Can't bevel an object to itself" );
-		self->curve->taperobj = Object_FromPyObject( args );
-	}
-
-	return 0;
+	if (Object_CheckPyObject( args ) && ((BPy_Object *)args)->object->data == self->curve )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"Can't taper an object to itself" );
+	
+	return GenericLib_assignData(args, (void **) &self->curve->taperobj, 0, 0, ID_OB, OB_CURVE);
 }
 
 /*****************************************************************************/
