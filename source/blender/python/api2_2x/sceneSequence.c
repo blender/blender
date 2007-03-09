@@ -28,9 +28,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "sceneSequence.h" /* This must come first */
+
+#include "MEM_guardedalloc.h"
 
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h" /* for Base */
@@ -1057,14 +1057,6 @@ struct Sequence *Sequence_FromPyObject( PyObject * py_seq )
 
 	blen_seq = ( BPy_Sequence * ) py_seq;
 	return ( blen_seq->seq );
-}
-
-static struct Scene *SceneSeq_FromPyObject( PyObject * py_seq )
-{
-	BPy_SceneSeq *blen_sceseq;
-
-	blen_sceseq = ( BPy_SceneSeq * ) py_seq;
-	return ( blen_sceseq->scene );
 }
 
 /*****************************************************************************/

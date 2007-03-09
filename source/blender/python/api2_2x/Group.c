@@ -28,9 +28,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "Group.h" /* This must come first */
+
+#include "MEM_guardedalloc.h"
 
 #include "DNA_group_types.h"
 #include "DNA_scene_types.h" /* for Base */
