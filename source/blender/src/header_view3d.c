@@ -2466,6 +2466,7 @@ void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
 		break;
 	case 5: /*merge */
 		mergemenu();
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		break;
 	case 6: /* add hook */
 		add_hook();
