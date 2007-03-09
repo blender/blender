@@ -20,6 +20,13 @@ Example::
 	image.setXRep(4)                               # set x tiling factor
 	image.setYRep(2)                               # set y tiling factor
 	print "All Images available now:", Image.Get()
+
+@type Sources: readonly dictionary
+@var Sources: The available Image Source.
+		- STILL: Single image file
+		- MOVIE: Movie file
+		- SEQUENCE: Multiple image files, as sequence
+		- GENERATED: Generated image
 """
 
 def Load (filename):
@@ -102,6 +109,8 @@ class Image:
 	@type antialias: boolean
 	@ivar bindcode: Texture's bind code (readonly).
 	@type bindcode: int
+	@ivar source: Image source type.  See L{the Sources dictionary<Sources>} .
+	@type source: int
 	"""
 
 	def getName():

@@ -69,6 +69,7 @@ enum img_consts {
 	EXPP_IMAGE_ATTR_END,
 	EXPP_IMAGE_ATTR_SPEED,
 	EXPP_IMAGE_ATTR_BINDCODE,
+	EXPP_IMAGE_ATTR_SOURCE,
 };
 
 /************************/
@@ -710,12 +711,26 @@ static PyObject *Image_save( BPy_Image * self )
 	Py_RETURN_NONE;		/*  normal return, image saved */
 }
 
+static PyObject *M_Image_SourceDict( void )
+{
+	PyObject *Dict = PyConstant_New(  );
+	if( Dict ) {
+		BPy_constant *d = ( BPy_constant * ) Dict;
+		PyConstant_Insert(d, "STILL", PyInt_FromLong(IMA_SRC_FILE));
+		PyConstant_Insert(d, "MOVIE", PyInt_FromLong(IMA_SRC_MOVIE));
+		PyConstant_Insert(d, "SEQUENCE", PyInt_FromLong(IMA_SRC_SEQUENCE));
+		PyConstant_Insert(d, "GENERATED", PyInt_FromLong(IMA_SRC_GENERATED));
+	}
+	return Dict;
+}
+
 /*****************************************************************************/
 /* Function:		Image_Init	 */
 /*****************************************************************************/
 PyObject *Image_Init( void )
 {
 	PyObject *submodule;
+	PyObject *Sources = M_Image_SourceDict( );
 
 	if( PyType_Ready( &Image_Type ) < 0 )
 		return NULL;
@@ -724,7 +739,10 @@ PyObject *Image_Init( void )
 		Py_InitModule3( "Blender.Image", M_Image_methods,
 				M_Image_doc );
 
-	return ( submodule );
+	if( Sources )
+		PyModule_AddObject( submodule, "Sources", Sources );
+
+	return submodule;
 }
 
 /*****************************************************************************/
@@ -1112,6 +1130,26 @@ static PyObject *Image_getFlag(BPy_Image *self, void *flag)
 		
 }
 
+static int Image_setSource( BPy_Image *self, PyObject *args)
+{
+    PyObject* integer = PyNumber_Int( args );
+	short value;
+
+	if( !integer )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected integer argument" );
+
+	value = ( short )PyInt_AS_LONG( integer );
+	Py_DECREF( integer );
+
+	if( value < IMA_SRC_FILE || value > IMA_SRC_GENERATED )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"expected integer argument in range 1-4" );
+
+	self->image->source = value;
+	return 0;
+}
+
 static int Image_setFlag(BPy_Image *self, PyObject *value, void *flag)
 {
 	if ( PyObject_IsTrue(value) )
@@ -1149,6 +1187,9 @@ static PyObject *getIntAttr( BPy_Image *self, void *type )
 		break;
 	case EXPP_IMAGE_ATTR_BINDCODE:
 		param = image->bindcode;
+		break;
+	case EXPP_IMAGE_ATTR_SOURCE:
+		param = image->source;
 		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -1206,7 +1247,6 @@ static int setIntAttrClamp( BPy_Image *self, PyObject *value, void *type )
 		size = 'h';
 		param = (void *)&image->animspeed;
 		break;
-	
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type in setIntAttrClamp");
@@ -1243,6 +1283,8 @@ static PyGetSetDef BPy_Image_getseters[] = {
 	 "image end frame", (void *)EXPP_IMAGE_ATTR_SPEED },
 	{"bindcode", (getter)getIntAttr, (setter)NULL,
 	 "openGL bindcode", (void *)EXPP_IMAGE_ATTR_BINDCODE },
+	{"source", (getter)getIntAttr, (setter)Image_setSource,
+	 "image source type", (void *)EXPP_IMAGE_ATTR_SOURCE },
 	/* flags */
 	{"fields", (getter)Image_getFlag, (setter)Image_setFlag,
 	 "image fields toggle", (void *)IMA_FIELDS },
