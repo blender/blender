@@ -199,11 +199,18 @@ int init_gl_materials(Object *ob, int check_alpha)
 		ma= give_current_material(ob, a);
 		ma= editnode_get_active_material(ma);
 		if(ma==NULL) ma= &defmaterial;
+
 		if(a<MAXMATBUF) {
-			matbuf[a][0][0]= (ma->ref+ma->emit)*ma->r;
-			matbuf[a][0][1]= (ma->ref+ma->emit)*ma->g;
-			matbuf[a][0][2]= (ma->ref+ma->emit)*ma->b;
-			
+			if (ma->mode & MA_SHLESS) {
+				matbuf[a][0][0]= 2*ma->r;
+				matbuf[a][0][1]= 2*ma->g;
+				matbuf[a][0][2]= 2*ma->b;
+			} else {
+				matbuf[a][0][0]= (ma->ref+ma->emit)*ma->r;
+				matbuf[a][0][1]= (ma->ref+ma->emit)*ma->g;
+				matbuf[a][0][2]= (ma->ref+ma->emit)*ma->b;
+			}
+
 			/* draw transparent, not in pick-select, nor editmode */
 			if(check_alpha && !(G.f & G_PICKSEL) && (ob->dtx & OB_DRAWTRANSP) && !(G.obedit && G.obedit->data==ob->data)) {
 				if(G.vd->transp) {	// drawing the transparent pass
@@ -221,10 +228,12 @@ int init_gl_materials(Object *ob, int check_alpha)
 			else
 				matbuf[a][0][3]= 1.0;
 			
-			matbuf[a][1][0]= ma->spec*ma->specr;
-			matbuf[a][1][1]= ma->spec*ma->specg;
-			matbuf[a][1][2]= ma->spec*ma->specb;
-			matbuf[a][1][3]= 1.0;
+			if (!(ma->mode & MA_SHLESS)) {
+				matbuf[a][1][0]= ma->spec*ma->specr;
+				matbuf[a][1][1]= ma->spec*ma->specg;
+				matbuf[a][1][2]= ma->spec*ma->specb;
+				matbuf[a][1][3]= 1.0;
+			}
 		}
 	}
 
