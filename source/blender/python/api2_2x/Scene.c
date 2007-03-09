@@ -1663,11 +1663,12 @@ PyObject *SceneObSeq_getCamera(BPy_SceneObSeq *self)
 
 static int SceneObSeq_setCamera(BPy_SceneObSeq *self, PyObject *value)
 {
-	SCENE_DEL_CHECK_INT(self->bpyscene);
 	int ret;
+
+	SCENE_DEL_CHECK_INT(self->bpyscene);
 	if (self->mode!=EXPP_OBSEQ_NORMAL)
-			return (EXPP_ReturnIntError( PyExc_TypeError,
-						"cannot set camera from objects.selected or objects.context" ));
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"cannot set camera from objects.selected or objects.context" );
 	
 	ret = GenericLib_assignData(value, (void **) &self->bpyscene->scene->camera, 0, 0, ID_OB, 0);
 	
