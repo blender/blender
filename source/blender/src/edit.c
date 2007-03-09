@@ -73,6 +73,7 @@
 #include "BKE_anim.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
@@ -509,34 +510,29 @@ static void count_object(Object *ob, int sel, int totob)
 {
 	Mesh *me;
 	Curve *cu;
+	DerivedMesh *dm;
 	int tot=0, totf=0, subsurf;
-	
+
 	switch(ob->type) {
 	case OB_MESH:
-		G.totmesh+=totob;
-		me= get_mesh(ob);
-		if(me) {
-			ModifierData *md = modifiers_findByType(ob, eModifierType_Subsurf);
-			int totvert, totface;
-			
-			subsurf= 1;
-			if (md) {
-				SubsurfModifierData *smd = (SubsurfModifierData*) md;
-				if(smd->modifier.mode & eModifierMode_Realtime)
-					subsurf= 1<<(2*smd->levels);
+			G.totmesh+=totob;
+			me= get_mesh(ob);
+			if(me) {
+					int totvert, totedge, totface;
+					dm = mesh_get_derived_final(ob, get_viewedit_datamask());
+					totvert = dm->getNumVerts(dm);
+					totedge = dm->getNumEdges(dm);
+					totface = dm->getNumFaces(dm);
+
+					G.totvert+= totvert*totob;
+					G.totedge+= totedge*totob;
+					G.totface+= totface*totob;
+					if(sel) {
+							G.totvertsel+= totvert;
+							G.totfacesel+= totface;
+					}
 			}
-			
-			totvert= subsurf*me->totvert*totob;
-			totface= subsurf*me->totface*totob;
-			
-			G.totvert+= totvert;
-			G.totface+= totface;
-			if(sel) {
-				G.totvertsel+= totvert;
-				G.totfacesel+= totface;
-			}
-		}
-		break;
+			break;
 
 	case OB_LAMP:
 		G.totlamp+=totob;

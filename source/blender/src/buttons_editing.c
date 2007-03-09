@@ -878,8 +878,9 @@ void do_modifier_panels(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWOOPS, 0);
-		countall();
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		object_handle_update(ob);
+		countall();
 		break;
 	}
 }
@@ -900,7 +901,6 @@ static void modifiers_add(void *ob_v, int type)
 	} else {
 		BLI_addtail(&ob->modifiers, modifier_new(type));
 	}
-
 	BIF_undo_push("Add modifier");
 }
 
