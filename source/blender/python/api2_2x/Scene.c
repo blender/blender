@@ -1561,28 +1561,17 @@ static PyObject *SceneObSeq_unlink( BPy_SceneObSeq * self, PyObject *args )
 	blen_ob = ( ( BPy_Object * ) pyobj )->object;
 	
 	scene = self->bpyscene->scene;
-		
+	
 	/* is the object really in the scene? */
 	base = object_in_scene( blen_ob, scene);
-
 	if( base ) { /* if it is, remove it */
-		/* check that there is a data block before decrementing refcount */
-		if( (ID *)base->object->data )
-			((ID *)base->object->data)->us--;
-		else if( blen_ob->type != OB_EMPTY )
-			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						  "Object has no data!" );
-		
 		if (scene->basact==base)
 			scene->basact= NULL;	/* in case the object was selected */
-		
-		BLI_remlink( &scene->base, base );
-		base->object->id.us--;
-		MEM_freeN( base );
+		free_and_unlink_base_from_scene(scene, base);
+		Py_RETURN_TRUE;
 	}
-	Py_RETURN_NONE;
+	Py_RETURN_FALSE;
 }
-
 
 PyObject *SceneObSeq_getActive(BPy_SceneObSeq *self)
 {
