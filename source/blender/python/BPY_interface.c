@@ -60,6 +60,7 @@
 #include "api2_2x/Camera.h"
 #include "api2_2x/Draw.h"
 #include "api2_2x/Registry.h"
+#include "api2_2x/Main.h" /* for the "bpy" default module */
 
 /* ID_asPyObject */
 #include "api2_2x/Object.h"
@@ -2045,6 +2046,10 @@ void init_ourImport( void )
 
 	m = PyImport_AddModule( "__builtin__" );
 	d = PyModule_GetDict( m );
+	
+	/* add in "bpy" as a default module */
+	EXPP_dict_set_item_str( d, "bpy", Main_Init() );
+	
 	EXPP_dict_set_item_str( d, "__import__", import );
 }
 

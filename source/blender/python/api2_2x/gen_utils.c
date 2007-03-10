@@ -51,6 +51,8 @@
 
 /* GenericLib */
 #include "World.h"
+#include "Mesh.h"
+#include "Group.h"
 #include "Object.h"
 #include "Texture.h"
 #include "Ipo.h"
@@ -1054,7 +1056,7 @@ short GenericLib_getType(PyObject * pydata)
 {
 	//~ if (BPy_Scene_Check(pydata))	return ID_SCE;
 	if (BPy_Object_Check(pydata))	return ID_OB;
-	//~ if (BPy_Mesh_Check(pydata))		return ID_ME;
+	if (BPy_Mesh_Check(pydata))		return ID_ME;
 	//~ if (BPy_Curve_Check(pydata))	return ID_CU;
 	//~ if (BPy_Metaball_Check(pydata))	return ID_MB;
 	//~ if (BPy_Material_Check(pydata))	return ID_MA;
@@ -1068,7 +1070,7 @@ short GenericLib_getType(PyObject * pydata)
 		//~ //if (BPy_Font_Check(pydata))		return ID_VF;
 	//~ if (BPy_Text_Check(pydata))		return ID_TXT;
 	//~ if (BPy_Sound_Check(pydata))	return ID_SO;
-	//~ if (BPy_Group_Check(pydata))	return ID_GR;
+	if (BPy_Group_Check(pydata))	return ID_GR;
 	//~ if (BPy_Armature_Check(pydata))	return ID_AR;
 	//~ if (BPy_Action_Check(pydata))	return ID_AC;
 		
