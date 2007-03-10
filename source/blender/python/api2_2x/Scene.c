@@ -1456,7 +1456,7 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 
 	if( !PyArg_ParseTuple( args, "O|s", &py_data, &name ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected an object and optionally a string as arguments" );
+				"scene.objects.new(obdata) - expected obdata to be\n\ta python obdata type or the string 'Empty'" );
 
 	if( Armature_CheckPyObject( py_data ) ) {
 		data = ( void * ) Armature_FromPyObject( py_data );

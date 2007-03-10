@@ -33,7 +33,6 @@
 
 #include "Material.h" /*This must come first*/
 
-#include "DNA_oops_types.h"
 #include "DNA_space_types.h"
 #include "DNA_material_types.h"
 #include "BKE_main.h"
@@ -502,8 +501,6 @@ static int Material_setFresnelTransFac( BPy_Material * self, PyObject * value );
 static int Material_setRigidBodyFriction( BPy_Material * self, PyObject * value );
 static int Material_setRigidBodyRestitution( BPy_Material * self, PyObject * value );
 
-static int Material_setOopsLoc ( BPy_Material * self, PyObject * value );
-static int Material_setOopsSel ( BPy_Material * self, PyObject * value );
 static int Material_setSpecShader( BPy_Material * self, PyObject * value );
 static int Material_setDiffuseShader( BPy_Material * self, PyObject * value );
 static int Material_setRoughness( BPy_Material * self, PyObject * value );
@@ -519,8 +516,6 @@ static int Material_setTranslucency( BPy_Material * self, PyObject * value );
 
 static PyObject *Material_getColorComponent( BPy_Material * self,
 							void * closure );
-static PyObject *Material_getOopsLoc( BPy_Material * self );
-static PyObject *Material_getOopsSel( BPy_Material * self );
 
 /*static int Material_setSeptex( BPy_Material * self, PyObject * value );
   static PyObject *Material_getSeptex( BPy_Material * self );*/
@@ -961,14 +956,6 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	{"nStars",
 	 (getter)Material_getNStars, (setter)Material_setNStars,
 	 "Number of star points with halo",
-	 NULL},
-	{"oopsLoc",
-	 (getter)Material_getOopsLoc, (setter)Material_setOopsLoc,
-	 "Material OOPs location",
-	 NULL},
-	{"oopsSel",
-	 (getter)Material_getOopsSel, (setter)Material_setOopsSel,
-	 "Material OOPs selection flag",
 	 NULL},
 	{"rayMirr",
 	 (getter)Material_getRayMirr, (setter)Material_setRayMirr,
@@ -2747,19 +2734,6 @@ static PyObject *Material_getColorComponent( BPy_Material * self,
 	return attr;
 }
 
-static PyObject *Material_getOopsLoc ( BPy_Material * self )
-{
-	if( G.soops ) { 
-		Oops *oops = G.soops->oops.first;
-		while( oops ) {
-			if( oops->type == ID_MA && (Material *)oops->id == self->material )
-				return Py_BuildValue( "ff", oops->x, oops->y );
-			oops = oops->next;
-		}
-	}
-	Py_RETURN_NONE;
-}
-
 static PyObject *Material_getColorband( BPy_Material * self, void * type)
 {
 	switch( (long)type ) {
@@ -2778,77 +2752,6 @@ int Material_setColorband( BPy_Material * self, PyObject * value, void * type)
 		return EXPP_Colorband_fromPyList( &self->material->ramp_col, value );
     case 1:
 		return EXPP_Colorband_fromPyList( &self->material->ramp_spec, value );
-	}
-	return 0;
-}
-
-static PyObject *Material_getOopsSel ( BPy_Material * self )
-{
-	if( G.soops ) {
-		Oops *oops= G.soops->oops.first;
-		while( oops ) {
-			if( oops->type == ID_MA
-						&& (Material *)oops->id == self->material ) {
-				if( oops->flag & SELECT )
-					return EXPP_incr_ret_True();
-				else
-					return EXPP_incr_ret_False();
-			}
-			oops = oops->next;
-	  	}
-	}
-	Py_RETURN_NONE;
-}
-
-static int Material_setOopsLoc ( BPy_Material * self, PyObject * value )
-{
-	if( G.soops ) {
-		Oops *oops= G.soops->oops.first;
-		while( oops ) {
-			if( oops->type == ID_MA ) {
-				if ( (Material *)oops->id == self->material ) {
-					if ( PyArg_ParseTuple( value, "ff", &(oops->x),&(oops->y)))
-						return 0;
-					else
-						return EXPP_ReturnIntError( PyExc_AttributeError,
-								"expected two floats as arguments" );
-				}
-			}
-			oops = oops->next;
-		}
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-				"couldn't find oopsLoc data for material" );
-	}
-	return 0;
-}
-
-static int Material_setOopsSel ( BPy_Material * self, PyObject * value )
-{
-	int param;
-
-	if( !PyInt_CheckExact ( value ) )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected an integer, 0 or 1" );
-
-	param = PyInt_AS_LONG ( value );
-	if( param < 0 || param > 1 )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected an integer, 0 or 1" );
-
-	if( G.soops ) {
-		Oops *oops = G.soops->oops.first;
-		while( oops ) {
-			if( oops->type==ID_MA ) {
-				if( (Material *)oops->id == self->material ) {
-					if( !param )
-						oops->flag &= ~SELECT;
-					else
-						oops->flag |= SELECT;
-					return 0;
-				}
-			}
-			oops= oops->next;
-		}
 	}
 	return 0;
 }

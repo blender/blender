@@ -451,7 +451,7 @@ PyObject *MainSeq_new(BPy_MainSeq *self, PyObject * args)
 	ID *id = NULL;
 	char *name, *ipo_type;
 	int img_width=256, img_height=256;
-	short ipo_code=NULL;
+	short ipo_code = 0;
 	
 	if (self->type == ID_IM) {
 		/* Image, accepts width and height*/
@@ -522,15 +522,11 @@ PyObject *MainSeq_new(BPy_MainSeq *self, PyObject * args)
 		break;
 	case ID_IM: 
 	{
-		Image *image = BKE_add_image_size(img_width, img_height, name, 0);
-		if( !image )
+		id = (ID *)BKE_add_image_size(img_width, img_height, name, 0);
+		if( !id )
 			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 				"couldn't create PyObject Image_Type" ) );
-
-		/* reset usage count, since BKE_add_image_size() incremented it */
-		/* image->id.us--; */
-		/* Strange, new images have a user count of one???, otherwise it messes up */
-		id = (ID *)image;
+		/* new images have zero user count */
 		break;
 	}
 	case ID_LT:

@@ -175,8 +175,12 @@ static PyObject *M_sys_basename( PyObject * self, PyObject * args )
 					      "expected string argument" );
 
 	len = strlen( name );
-
+	
+#ifdef WIN32
+	p = MAX2(strrchr( name, '/' ), strrchr( name, '\\' ));
+#else
 	p = strrchr( name, DIRSEP );
+#endif
 
 	if( p ) {
 		n = name + len - p - 1;	/* - 1 because we don't want the sep */
@@ -201,7 +205,11 @@ static PyObject *M_sys_dirname( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 
+#ifdef WIN32
+	p = MAX2(strrchr( name, '/' ), strrchr( name, '\\' ));
+#else
 	p = strrchr( name, DIRSEP );
+#endif
 
 	if( p ) {
 		n = p - name;

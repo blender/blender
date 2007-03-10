@@ -39,7 +39,6 @@
 #include "DNA_key_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_oops_types.h"
 #include "DNA_space_types.h"
 #include "DNA_curve_types.h"
 
@@ -1762,45 +1761,11 @@ static PyObject *NMesh_getattr( PyObject * self, char *name )
   {
     return EXPP_incr_ret( me->edges );
   }
-	else if (strcmp(name, "oopsLoc") == 0) {
-    if (G.soops) { 
-			Oops *oops = G.soops->oops.first;
-      while(oops) {
-        if(oops->type==ID_ME) {
-          if ((Mesh *)oops->id == me->mesh) {
-            return (Py_BuildValue ("ff", oops->x, oops->y));
-          }
-        }
-        oops = oops->next;
-      }      
-    }
-    Py_INCREF (Py_None);
-    return (Py_None);
-  }
-  /* Select in the oops view only since it's a mesh */
-  else if (strcmp(name, "oopsSel") == 0) {
-    if (G.soops) {
-      Oops *oops = G.soops->oops.first;
-      while(oops) {
-        if(oops->type==ID_ME) {
-          if ((Mesh *)oops->id == me->mesh) {
-            if (oops->flag & SELECT) {
-							return EXPP_incr_ret_True();
-            } else {
-							return EXPP_incr_ret_False();
-            }
-          }
-        }
-        oops = oops->next;
-      }
-    }
-    return EXPP_incr_ret(Py_None);
-  }	
 	else if( strcmp( name, "__members__" ) == 0 )
 		return Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s]",
 				      "name", "materials", "verts", "users",
 				      "faces", "maxSmoothAngle",
-				      "subdivLevels", "edges", "oopsLoc", "oopsSel", "key" );
+				      "subdivLevels", "edges", "key" );
 
 	return Py_FindMethod( NMesh_methods, ( PyObject * ) self, name );
 }
@@ -1907,41 +1872,6 @@ static int NMesh_setattr( PyObject * self, char *name, PyObject * v )
       Py_DECREF(me->edges);
       me->edges = EXPP_incr_ret( v );
     }
-  }
-  else if (!strcmp(name, "oopsLoc")) {
-    if (G.soops) {
-      Oops *oops = G.soops->oops.first;
-      while(oops) {
-        if(oops->type==ID_ME) {
-          if ((Mesh *)oops->id == me->mesh) {
-            return (!PyArg_ParseTuple  (v, "ff", &(oops->x),&(oops->y)));
-          }
-        }
-        oops = oops->next;
-      }
-    }
-    return 0;
-  }
-  /* Select in the oops view only since its a mesh */
-  else if (!strcmp(name, "oopsSel")) {
-    int sel;
-    if (!PyArg_Parse (v, "i", &sel))
-      return EXPP_ReturnIntError 
-        (PyExc_TypeError, "expected an integer, 0 or 1");
-    if (G.soops) {
-      Oops *oops = G.soops->oops.first;
-      while(oops) {
-        if(oops->type==ID_ME) {
-          if ((Mesh *)oops->id == me->mesh) {
-            if(sel == 0) oops->flag &= ~SELECT;
-            else oops->flag |= SELECT;
-            return 0;
-          }
-        }
-        oops = oops->next;
-      }
-    }
-    return 0;
   }
 	else
 		return EXPP_ReturnIntError( PyExc_AttributeError, name );

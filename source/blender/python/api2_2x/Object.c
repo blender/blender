@@ -44,7 +44,6 @@ struct rctf;
 #include "DNA_view3d_types.h"
 #include "DNA_object_force.h"
 #include "DNA_userdef_types.h"
-#include "DNA_oops_types.h"
 
 #include "BKE_action.h"
 #include "BKE_anim.h" /* used for dupli-objects */
@@ -4293,92 +4292,6 @@ static int Object_setIpo( BPy_Object * self, PyObject * value )
 	return GenericLib_assignData(value, (void **) &self->object->ipo, 0, 1, ID_IP, ID_OB);
 }
 
-static PyObject *Object_getOopsLoc( BPy_Object * self )
-{
-	if( G.soops ) { 
-		Oops *oops = G.soops->oops.first;
-		while( oops ) {
-			if( oops->type == ID_OB && (Object *)oops->id == self->object )
-				return Py_BuildValue( "ff", oops->x, oops->y );
-			oops = oops->next;
-		}
-	}
-	Py_RETURN_NONE;
-}
-
-static PyObject *Object_getOopsSel ( BPy_Object * self )
-{
-	if( G.soops ) {
-		Oops *oops= G.soops->oops.first;
-		while( oops ) {
-			if( oops->type == ID_OB
-						&& (Object *)oops->id == self->object ) {
-				if( oops->flag & SELECT )
-					Py_RETURN_TRUE;
-				else
-					Py_RETURN_FALSE;
-			}
-			oops = oops->next;
-	  	}
-	}
-	Py_RETURN_NONE;
-}
-
-static int Object_setOopsLoc( BPy_Object * self, PyObject * value )
-{
-	if( G.soops ) {
-		Oops *oops= G.soops->oops.first;
-		while( oops ) {
-			if( oops->type == ID_OB && (Object *)oops->id == self->object ) {
-				if( !PyArg_ParseTuple( value, "ff", &oops->x, &oops->y ) )
-					return EXPP_ReturnIntError( PyExc_TypeError,
-							"expected two floats as arguments" );
-				return 0;
-			}
-			oops = oops->next;
-		}
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-				"couldn't find oopsLoc data for object" );
-	}
-	return 0;
-}
-
-static int Object_setOopsSel( BPy_Object * self, PyObject * value )
-{
-	int setting = PyObject_IsTrue( value );
-
-	if( setting == -1 )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected true/false argument" );
-
-	if( G.soops ) {
-		Oops *oops = G.soops->oops.first;
-		while( oops ) {
-			if( oops->type==ID_OB ) {
-				if( (Object *)oops->id == self->object ) {
-#if 0
-	/* this code is what other modules do; it doesn't seem to work */
-					if( !setting )
-						oops->flag &= ~SELECT;
-					else
-						oops->flag |= SELECT;
-#else
-	printf ("warning: Object.oopsSel setter may not be coded correctly\n");
-	/* this code seems to work, but may not be the correct thing to do */
-					if( !setting )
-						self->object->flag &= ~SELECT;
-					else
-						self->object->flag |= SELECT;
-#endif
-					return 0;
-				}
-			}
-			oops= oops->next;
-		}
-	}
-	return 0;
-}
-
 static int Object_setTracked( BPy_Object * self, PyObject * value )
 {
 	int ret;
@@ -4792,14 +4705,6 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	{"matrixOldWorld",
 	 (getter)Object_getMatrixOldWorld, (setter)NULL,
 	 "old-type worldspace matrix (prior to Blender 2.34)",
-	 NULL},
-	{"oopsLoc",
-	 (getter)Object_getOopsLoc, (setter)Object_setOopsLoc,
-	 "Object OOPs location",
-	 NULL},
-	{"oopsSel",
-	 (getter)Object_getOopsSel, (setter)Object_setOopsSel,
-	 "Object OOPs selection flag",
 	 NULL},
 	{"data",
 	 (getter)get_obj_data, (setter)NULL,
