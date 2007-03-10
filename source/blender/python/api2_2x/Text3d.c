@@ -1130,8 +1130,7 @@ static PyObject *Text3d_setFont( BPy_Text3d * self, PyObject * args )
 		self->curve->vfont= vf;
 	}
 	else {
-		load_vfont (pyobj->font->name);
-		vf= exist_vfont(pyobj->font->name);
+		vf= load_vfont (pyobj->font->name);
 		if (vf) {
 			id_us_plus((ID *)vf);
 			self->curve->vfont->id.us--;
