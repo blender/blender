@@ -144,7 +144,6 @@ static PyObject *Text_repr( BPy_Text * self );
 static PyObject *M_Text_New( PyObject * self, PyObject * args)
 {
 	char *name = "Text";
-	char buf[21];
 	int follow = 0;
 	Text *bl_text;		/* blender text object */
 	PyObject *py_text;	/* python wrapper */

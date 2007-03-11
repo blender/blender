@@ -352,7 +352,6 @@ PyTypeObject Group_Type = {
 PyObject *M_Group_New( PyObject * self, PyObject * args )
 {
 	char *name = "Group";
-	char buf[21];
 	BPy_Group *py_group;	/* for Group Data object wrapper in Python */
 	struct Group *bl_group;
 	

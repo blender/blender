@@ -7857,7 +7857,6 @@ static PyObject *M_Mesh_New( PyObject * self_unused, PyObject * args )
 	char *name = "Mesh";
 	Mesh *mesh;
 	BPy_Mesh *obj;
-	char buf[21];
 
 	if( !PyArg_ParseTuple( args, "|s", &name ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,

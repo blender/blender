@@ -213,7 +213,6 @@ static PyObject *M_Camera_New( PyObject * self, PyObject * args,
 	static char *kwlist[] = { "type_str", "name_str", NULL };
 	PyObject *pycam;	/* for Camera Data object wrapper in Python */
 	Camera *blcam;		/* for actual Camera Data we create in Blender */
-	char buf[21];
 
 	/* Parse the arguments passed in by the Python interpreter */
 	if( !PyArg_ParseTupleAndKeywords( args, kwords, "|ss", kwlist,
