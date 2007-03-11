@@ -47,7 +47,7 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int
 	ImBuf *ibuf;
 	LogImageFile *image;
 	int x, y;
-	unsigned short *row;
+	unsigned short *row, *upix;
 	int width, height, depth;
 	float *frow;
 	
@@ -64,6 +64,7 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int
 		logImageClose(image);
 		return NULL;
 	}
+	
 	if (width == 0 && height == 0) {
 		logImageClose(image);
 		return NULL;
@@ -72,23 +73,20 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int
 	ibuf = IMB_allocImBuf(width, height, 32, IB_rectfloat | flags, 0);
 
 	row = MEM_mallocN(sizeof(unsigned short)*width*depth, "row in cineon_dpx.c");
+	frow = ibuf->rect_float+width*height*4;
 	
 	for (y = 0; y < height; y++) {
-		unsigned int index = (width) * (height-y-1);
-		index = index * 4;
-		
-		frow = &ibuf->rect_float[index];
-		
 		logImageGetRowBytes(image, row, y);
+		upix = row;
+		frow -= width*4;
 		
 		for (x=0; x<width; x++) {
-			unsigned short *upix = &row[x*depth];
-			float *fpix = &frow[x*4];
-			fpix[0] = ((float)upix[0]) / 65535.0f;
-			fpix[1] = ((float)upix[1]) / 65535.0f;
-			fpix[2] = ((float)upix[2]) / 65535.0f;
-			fpix[3] = 1.0f;
+			*(frow++) = ((float)*(upix++)) / 65535.0f;
+			*(frow++) = ((float)*(upix++)) / 65535.0f;
+			*(frow++) = ((float)*(upix++)) / 65535.0f;
+			*(frow++) = 1.0f;
 		}
+		frow -= width*4;
 	}
 
 	MEM_freeN(row);

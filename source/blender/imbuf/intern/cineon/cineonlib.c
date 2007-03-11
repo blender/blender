@@ -662,11 +662,12 @@ cineonOpenFromMem(unsigned char *mem, unsigned int size) {
 
 	i = cineon->imageOffset;
 	
-	if (i >= size) {
+	if (logimage_fseek(cineon, cineon->imageOffset, SEEK_SET) != 0) {
 		if (verbose) d_printf("Couldn't seek to image data at %d\n", cineon->imageOffset);
 		cineonClose(cineon);
 		return 0;
 	}
+	
 	cineon->fileYPos = 0;
 
 	logImageGetByteConversionDefaults(&cineon->params);
