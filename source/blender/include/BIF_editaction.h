@@ -106,7 +106,6 @@ void sethandles_actionchannel_keys(int code);
 
 /* Ipo type */ 
 void set_ipotype_actionchannels(int ipotype);
-void set_exprap_action(int mode);
 void set_extendtype_actionchannels(int extendtype);
 
 /* Select */

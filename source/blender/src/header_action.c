@@ -152,18 +152,6 @@ void do_action_buttons(unsigned short event)
 		case B_ACTBAKE:
 			bake_action_with_client (G.saction->action, ob, 0.01);
 			break;
-		case B_ACTCONT:
-			set_exprap_action(IPO_HORIZ);
-			break;
-//	case B_ACTEXTRAP:
-//		set_exprap_ipo(IPO_DIR);
-//		break;
-		case B_ACTCYCLIC:
-			set_exprap_action(IPO_CYCL);
-			break;
-//	case B_ACTCYCLICX:
-//		set_exprap_ipo(IPO_CYCLX);
-//		break;
 		case B_ACTHOME:
 			//	Find X extents
 			//v2d= &(G.saction->v2d);

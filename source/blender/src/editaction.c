@@ -939,13 +939,6 @@ bActionChannel* get_hilighted_action_channel(bAction* action)
 
 }
 
-void set_exprap_action(int mode)
-{
-	if(G.saction->action && G.saction->action->id.lib) return;
-
-	error ("Not yet implemented!");
-}
-
 bAction *add_empty_action(int blocktype)
 {
 	bAction *act;
