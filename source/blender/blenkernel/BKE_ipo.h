@@ -60,6 +60,7 @@ void free_ipo(struct Ipo *ipo);
 void ipo_default_v2d_cur(int blocktype, struct rctf *cur);
 struct Ipo *add_ipo(char *name, int idcode);
 struct Ipo *copy_ipo(struct Ipo *ipo);
+void ipo_idnew(struct Ipo *ipo);
 void make_local_obipo(struct Ipo *ipo);
 void make_local_matipo(struct Ipo *ipo);
 void make_local_keyipo(struct Ipo *ipo);

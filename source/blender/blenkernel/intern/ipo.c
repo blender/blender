@@ -287,6 +287,20 @@ Ipo *copy_ipo(Ipo *ipo)
 	return ipon;
 }
 
+/* uses id->newid to match pointers with other copied data */
+void ipo_idnew(Ipo *ipo)
+{
+	if(ipo) {
+		IpoCurve *icu;
+		
+		for(icu= ipo->curve.first; icu; icu= icu->next) {
+			if(icu->driver) {
+				ID_NEW(icu->driver->ob);
+			}
+		}
+	}
+}
+
 void make_local_obipo(Ipo *ipo)
 {
 	Object *ob;

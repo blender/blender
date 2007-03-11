@@ -4079,7 +4079,7 @@ void single_obdata_users(int flag)
 				
 				switch(ob->type) {
 				case OB_LAMP:
-					if(id && id->us>1 && id->lib==0) {
+					if(id && id->us>1 && id->lib==NULL) {
 						ob->data= la= copy_lamp(ob->data);
 						for(a=0; a<MAX_MTEX; a++) {
 							if(la->mtex[a]) {
@@ -4092,7 +4092,9 @@ void single_obdata_users(int flag)
 					ob->data= copy_camera(ob->data);
 					break;
 				case OB_MESH:
-					ob->data= copy_mesh(ob->data);
+					me= ob->data= copy_mesh(ob->data);
+					if(me && me->key)
+						ipo_idnew(me->key->ipo);	/* drivers */
 					break;
 				case OB_MBALL:
 					ob->data= copy_mball(ob->data);
@@ -4124,7 +4126,7 @@ void single_obdata_users(int flag)
 			}
 			
 			id= (ID *)ob->action;
-			if (id && id->us>1 && id->lib==0){
+			if (id && id->us>1 && id->lib==NULL){
 				if(id->newid){
 					ob->action= (bAction *)id->newid;
 					id_us_plus(id->newid);
@@ -4136,7 +4138,7 @@ void single_obdata_users(int flag)
 				}
 			}
 			id= (ID *)ob->ipo;
-			if(id && id->us>1 && id->lib==0) {
+			if(id && id->us>1 && id->lib==NULL) {
 				if(id->newid) {
 					ob->ipo= (Ipo *)id->newid;
 					id_us_plus(id->newid);
@@ -4146,6 +4148,7 @@ void single_obdata_users(int flag)
 					id->us--;
 					id->newid= (ID *)ob->ipo;
 				}
+				ipo_idnew(ob->ipo);	/* drivers */
 			}
 			/* other ipos */
 			switch(ob->type) {
@@ -4154,6 +4157,7 @@ void single_obdata_users(int flag)
 				if(la->ipo && la->ipo->id.us>1) {
 					la->ipo->id.us--;
 					la->ipo= copy_ipo(la->ipo);
+					ipo_idnew(la->ipo);	/* drivers */
 				}
 				break;
 			case OB_CAMERA:
@@ -4161,6 +4165,7 @@ void single_obdata_users(int flag)
 				if(cam->ipo && cam->ipo->id.us>1) {
 					cam->ipo->id.us--;
 					cam->ipo= copy_ipo(cam->ipo);
+					ipo_idnew(cam->ipo);	/* drivers */
 				}
 				break;
 			}
@@ -4205,6 +4210,7 @@ void single_mat_users(int flag)
 						if(ma->ipo) {
 							man->ipo= copy_ipo(ma->ipo);
 							ma->ipo->id.us--;
+							ipo_idnew(ma->ipo);	/* drivers */
 						}
 						
 						for(b=0; b<MAX_MTEX; b++) {
