@@ -254,18 +254,13 @@ class Texture:
 		specific texture types.
 
 	@ivar animFrames:  Number of frames of a movie to use.
-	Value is clamped to the range [0,30000].
+	Value is clamped to the range [0,300000].
 	@type animFrames:  int
-	@ivar animLength:  Number of frames of a movie to use (0 for all).
-	Value is clamped to the range [0,9000].
-	@type animLength:  int
-	@ivar animMontage: Montage mode, start frames and durations. Example: C{( (fra1,dur1), (fra2,dur2), (fra3,dur3), (fra4,dur4) )}.
-	@type animMontage:  tuple of 4 (int,int)
 	@ivar animOffset:  Offsets the number of the first movie frame to use.
-	Value is clamped to the range [-9000,9000].
+	Value is clamped to the range [-300000,300000].
 	@type animOffset:  int
 	@ivar animStart:  Starting frame of the movie to use.
-	Value is clamped to the range [1,9000].
+	Value is clamped to the range [1,300000].
 	@type animStart:  int
 	@ivar anti:  Image anti-aliasing enabled.  Also see L{ImageFlags}.
 	@type anti:  int
@@ -280,7 +275,7 @@ class Texture:
 	@ivar crop:  Sets the cropping extents (for image textures).
 	@type crop:  tuple of 4 ints
 	@ivar cyclic:  Looping of animated frames enabled. Also see L{ImageFlags}.
-	@type cyclic:  int
+	@type cyclic:  boolean
 	@ivar distAmnt:  Amount of distortion (for distorted noise textures).
 	Value is clamped to the range [0.0,10.0].
 	@type distAmnt:  float
@@ -385,6 +380,8 @@ class Texture:
 	each color a list of 5 floats [0 - 1], [r,g,b,a,pos].
 	The colorband can have between 1 and 31 colors.
 	@type colorband:  list
+	@ivar autoRefresh: Refresh image on frame changes enabled.
+	@type autoRefresh:  boolean
 	"""
 	
 	def getExtend():

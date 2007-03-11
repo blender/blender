@@ -74,10 +74,10 @@
 #define EXPP_TEX_ANIMMONSTART_MAX           ((int)MAXFRAMEF)
 #define EXPP_TEX_ANIMMONDUR_MIN             0
 #define EXPP_TEX_ANIMMONDUR_MAX             250
-#define EXPP_TEX_ANIMOFFSET_MIN             -((int)(MAXFRAMEF)/2)
-#define EXPP_TEX_ANIMOFFSET_MAX             ((int)(MAXFRAMEF)/2)
-#define EXPP_TEX_ANIMSTART_MIN              0
-#define EXPP_TEX_ANIMSTART_MAX              ((int)(MAXFRAMEF)/2)
+#define EXPP_TEX_ANIMOFFSET_MIN             -((int)MAXFRAMEF)
+#define EXPP_TEX_ANIMOFFSET_MAX             ((int)MAXFRAMEF)
+#define EXPP_TEX_ANIMSTART_MIN              1
+#define EXPP_TEX_ANIMSTART_MAX              ((int)MAXFRAMEF)
 #define EXPP_TEX_FIEIMA_MIN                 1
 #define EXPP_TEX_FIEIMA_MAX                 200
 #define EXPP_TEX_NOISEDEPTH_MIN             0
@@ -485,9 +485,14 @@ SETFUNC( setWeight3 );
 SETFUNC( setWeight4 );
 
 static PyObject *Texture_getImageFlags( BPy_Texture *self, void *type );
+static PyObject *Texture_getIUserFlags( BPy_Texture *self, void *type );
+static PyObject *Texture_getIUserCyclic( BPy_Texture *self );
 static PyObject *Texture_getNoiseBasis2( BPy_Texture *self, void *type );
 static int Texture_setImageFlags( BPy_Texture *self, PyObject *args,
 								void *type );
+static int Texture_setIUserFlags( BPy_Texture *self, PyObject *args,
+								void *type );
+static int Texture_setIUserCyclic( BPy_Texture *self, PyObject *args );
 static int Texture_setNoiseBasis2( BPy_Texture *self, PyObject *args,
 								void *type );
 								
@@ -730,16 +735,20 @@ static PyGetSetDef BPy_Texture_getseters[] = {
 	 (getter)Texture_getImageFlags, (setter)Texture_setImageFlags,
 	 "X/Y flip for rendering enabled ('ImageFlags')",
 	 (void *)TEX_IMAROT},
+	{"autoRefresh",
+	 (getter)Texture_getIUserFlags, (setter)Texture_setIUserFlags,
+	 "Refresh image on frame changes enabled",
+	 (void *)IMA_ANIM_ALWAYS},
+	{"cyclic",
+	 (getter)Texture_getIUserCyclic, (setter)Texture_setIUserCyclic,
+	 "Cycling of animated frames enabled",
+	 NULL},
 #if 0
 	/* disabled, moved to image */
 	{"fields",
 	 (getter)Texture_getImageFlags, (setter)Texture_setImageFlags,
 	 "Use of image's fields enabled ('ImageFlags')",
 	 (void *)TEX_FIELDS},
-	{"cyclic",
-	 (getter)Texture_getImageFlags, (setter)Texture_setImageFlags,
-	 "Looping of animated frames enabled ('ImageFlags')",
-	 (void *)TEX_ANIMCYCLIC},
 	{"movie",
 	 (getter)Texture_getImageFlags, (setter)Texture_setImageFlags,
 	 "Movie frames as images enabled ('ImageFlags')",
@@ -1412,6 +1421,15 @@ static int Texture_setAnimFrames( BPy_Texture * self, PyObject * value )
 								EXPP_TEX_ANIMFRAME_MAX, 'h' );
 }
 
+static int Texture_setIUserCyclic( BPy_Texture * self, PyObject * value )
+{
+	if( PyObject_IsTrue( value ) )
+		self->texture->iuser.cycl = 1;
+	else
+		self->texture->iuser.cycl = 0;
+	return 0;
+}
+
 #if 0
 /* this was stupid to begin with! (ton) */
 static int Texture_setAnimLength( BPy_Texture * self, PyObject * value )
@@ -1507,7 +1525,7 @@ static int Texture_setIntExtend( BPy_Texture * self, PyObject * value )
 static int Texture_setFieldsPerImage( BPy_Texture * self,
 					    PyObject * value )
 {
-	return EXPP_setIValueClamped ( value, &self->texture->fie_ima,
+	return EXPP_setIValueClamped ( value, &self->texture->iuser.fie_ima,
 								EXPP_TEX_FIEIMA_MIN,
 								EXPP_TEX_FIEIMA_MAX, 'h' );
 
@@ -1616,6 +1634,16 @@ static int Texture_setImageFlags( BPy_Texture * self, PyObject * value,
 	/* everything is OK; save the new flag setting */
 
 	self->texture->imaflag = param;
+	return 0;
+}
+
+static int Texture_setIUserFlags( BPy_Texture * self, PyObject * value,
+									void *flag )
+{
+	if( PyObject_IsTrue(value) )
+		self->texture->iuser.flag |= (int)flag;
+	else
+		self->texture->iuser.flag &= ~(int)flag;
 	return 0;
 }
 
@@ -1970,13 +1998,21 @@ static int Texture_setIpo( BPy_Texture * self, PyObject * value )
 
 static PyObject *Texture_getAnimFrames( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->frames );
+	PyObject *attr = PyInt_FromLong( self->texture->iuser.frames );
 
 	if( !attr )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"couldn't get attribute" );
 
 	return attr;
+}
+
+static PyObject *Texture_getIUserCyclic( BPy_Texture *self )
+{
+	if( self->texture->iuser.cycl )
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
 }
 
 #if 0
@@ -2181,6 +2217,14 @@ static PyObject *Texture_getImageFlags( BPy_Texture *self, void *type )
 				"couldn't get attribute" );
 
 	return attr;
+}
+
+static PyObject *Texture_getIUserFlags( BPy_Texture *self, void *flag )
+{
+	if( self->texture->iuser.flag & (int)flag )
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
 }
 
 static PyObject *Texture_getIScale( BPy_Texture *self )
