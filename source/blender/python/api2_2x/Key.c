@@ -52,6 +52,7 @@
 #include "blendef.h"
 #include "constant.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 
 #define KEY_TYPE_MESH    0
 #define KEY_TYPE_CURVE   1

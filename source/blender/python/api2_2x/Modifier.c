@@ -51,6 +51,7 @@
 #include "Texture.h"
 #include "Mathutils.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 
 /* checks for the scene being removed */
 #define MODIFIER_DEL_CHECK_PY(bpy_modifier) if (!(bpy_modifier->md)) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "Modifier has been removed" ) )

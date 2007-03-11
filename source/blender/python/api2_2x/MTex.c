@@ -36,6 +36,7 @@
 #include "Texture.h"
 #include "Object.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 
 #include <DNA_material_types.h>
 

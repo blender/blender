@@ -53,6 +53,7 @@
 #include "Constraint.h"
 #include "NLA.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 
 #include "DNA_armature_types.h" /*used for pose bone select*/
 
@@ -352,15 +353,15 @@ static char BPy_Pose_doc[] = "This object wraps a Blender Pose object.";
 PyTypeObject Pose_Type = {
 	PyObject_HEAD_INIT(NULL)   //tp_head
 	0,										//tp_internal
-	"Pose",								//tp_name
-	sizeof(BPy_Pose),					//tp_basicsize
+	"Pose",									//tp_name
+	sizeof(BPy_Pose),						//tp_basicsize
 	0,										//tp_itemsize
-	(destructor)Pose_dealloc,		//tp_dealloc
+	(destructor)Pose_dealloc,				//tp_dealloc
 	0,										//tp_print
 	0,										//tp_getattr
 	0,										//tp_setattr
-	0,										//tp_compare
-	(reprfunc)Pose_repr,				//tp_repr
+	(cmpfunc)Pose_compare,					//tp_compare
+	(reprfunc)Pose_repr,					//tp_repr
 	0,										//tp_as_number
 	0,										//tp_as_sequence
 	0,										//tp_as_mapping
@@ -370,17 +371,17 @@ PyTypeObject Pose_Type = {
 	0,										//tp_getattro
 	0,										//tp_setattro
 	0,										//tp_as_buffer
-	Py_TPFLAGS_DEFAULT,         //tp_flags
-	BPy_Pose_doc,					//tp_doc
+	Py_TPFLAGS_DEFAULT,     			    //tp_flags
+	BPy_Pose_doc,							//tp_doc
 	0,										//tp_traverse
 	0,										//tp_clear
 	0,										//tp_richcompare
 	0,										//tp_weaklistoffset
 	0,										//tp_iter
 	0,										//tp_iternext
-	BPy_Pose_methods,				//tp_methods
+	BPy_Pose_methods,						//tp_methods
 	0,										//tp_members
-	BPy_Pose_getset,					//tp_getset
+	BPy_Pose_getset,						//tp_getset
 	0,										//tp_base
 	0,										//tp_dict
 	0,										//tp_descr_get

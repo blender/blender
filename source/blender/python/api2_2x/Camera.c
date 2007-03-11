@@ -41,6 +41,7 @@
 #include "BIF_space.h"
 #include "mydevice.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 #include "Ipo.h"
 
 
@@ -368,16 +369,6 @@ Camera *Camera_FromPyObject( PyObject * pyobj )
 /*****************************************************************************/
 /* Python BPy_Camera methods:                                               */
 /*****************************************************************************/
-
-static PyObject *Camera_oldgetIpo( BPy_Camera * self )
-{
-	struct Ipo *ipo = self->camera->ipo;
-
-	if( !ipo )
-		Py_RETURN_NONE;
-
-	return Ipo_CreatePyObject( ipo );
-}
 
 static PyObject *Camera_oldgetType( BPy_Camera * self )
 {

@@ -42,6 +42,7 @@
 #include "Bone.h"
 #include "NLA.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 
 #include "DNA_object_types.h" //This must come before BIF_editarmature.h...
 #include "BIF_editarmature.h"

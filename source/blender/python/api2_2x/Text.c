@@ -41,6 +41,7 @@
 #include "BLI_blenlib.h"
 #include "DNA_space_types.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 #include "../BPY_extern.h"
 
 /* used only for makeCurrent, this may be deprecated when Blender.Base is implimented */

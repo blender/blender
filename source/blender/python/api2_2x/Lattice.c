@@ -49,6 +49,7 @@
 #include "BIF_space.h"
 #include "blendef.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 
 #include "Key.h"
 

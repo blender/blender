@@ -35,6 +35,7 @@
 #include "BDR_editcurve.h"	/* for convertspline */
 #include "MEM_guardedalloc.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 #include "BezTriple.h"
 
 /*

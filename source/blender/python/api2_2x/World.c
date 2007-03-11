@@ -56,7 +56,7 @@
 #include "mydevice.h"
 #include "Ipo.h"
 #include "gen_utils.h"
-
+#include "gen_library.h"
 
 #define IPOKEY_ZENITH   0
 #define IPOKEY_HORIZON  1
@@ -406,7 +406,6 @@ static PyObject *M_World_Get( PyObject * self, PyObject * args )
 	char *name = NULL;
 	World *world_iter;
 	PyObject *worldlist;
-	BPy_World *wanted_world = NULL;
 	char error_msg[64];
 
 	if( !PyArg_ParseTuple( args, "|s", &name ) )

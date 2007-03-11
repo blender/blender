@@ -36,6 +36,7 @@
 #include "BKE_library.h" /* for rename_id() */
 #include "BLI_blenlib.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 
 #include "BKE_main.h" /* so we can access G.main->vfont.first */
 #include "DNA_space_types.h" /* for FILE_MAXDIR only */

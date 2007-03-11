@@ -74,6 +74,7 @@ struct View3D;
 #include "Text3d.h"
 
 #include "gen_utils.h"
+#include "gen_library.h"
 #include "sceneRender.h"
 #include "sceneRadio.h"
 #include "sceneTimeLine.h"

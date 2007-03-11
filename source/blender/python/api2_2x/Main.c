@@ -76,9 +76,10 @@
 #include "BIF_editsound.h" /* sound_new_sound */
 
 /* python types */
-#include "../BPY_extern.h" /* clearing scriptlinks and ID_asPyObject */
+#include "../BPY_extern.h" /* clearing scriptlinks */
 
 #include "gen_utils.h"
+#include "gen_library.h" /* generic ID functions */
 
 #include "Object.h"
 #include "Camera.h"
@@ -167,7 +168,7 @@ static PyObject * MainSeq_subscript(BPy_MainSeq * self, PyObject *key)
 				(lib && use_lib && id->lib && (!strcmp( id->lib->name, lib))) /* only external lib */
 			)
 			{
-				return ID_asPyObject(id);
+				return GetPyObjectFromID(id);
 			}
 		}
 	}
@@ -226,7 +227,7 @@ static PyObject *MainSeq_nextIter( BPy_MainSeq * self )
 				"iterator at end" );
 	}
 	
-	object = ID_asPyObject((ID *)self->iter);
+	object = GetPyObjectFromID((ID *)self->iter);
 	
 	link= self->iter->next;
 	self->iter= link;
@@ -564,7 +565,7 @@ PyObject *MainSeq_new(BPy_MainSeq *self, PyObject * args)
 		break;
 	}
 	
-	if (id)	return ID_asPyObject(id);
+	if (id)	return GetPyObjectFromID(id);
 	Py_RETURN_NONE;
 }
 

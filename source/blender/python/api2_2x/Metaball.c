@@ -42,6 +42,7 @@
 #include "Mathutils.h"
 #include "Material.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 
 /* for dealing with materials */
 #include "MEM_guardedalloc.h"

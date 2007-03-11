@@ -44,6 +44,7 @@
 #include "Ipo.h"
 #include "constant.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 
 /*****************************************************************************/
 /* Python BPy_Lamp defaults:                                                 */

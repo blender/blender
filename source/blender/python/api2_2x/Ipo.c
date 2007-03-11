@@ -45,6 +45,7 @@
 #include "mydevice.h"
 #include "Ipocurve.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 
 extern int ob_ar[];
 extern int la_ar[];

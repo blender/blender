@@ -53,6 +53,7 @@
 #include "Ipo.h"
 #include "Group.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 #include "IDProp.h"
 
 /*****************************************************************************/

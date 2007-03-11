@@ -45,6 +45,7 @@
 #include "constant.h"
 #include "Font.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 
 
 enum t3d_consts {

@@ -113,6 +113,7 @@ struct rctf;
 #include "Modifier.h"
 #include "Constraint.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 #include "EXPP_interface.h"
 #include "BIF_editkey.h"
 #include "IDProp.h"

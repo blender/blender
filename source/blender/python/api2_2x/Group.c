@@ -47,6 +47,7 @@
 #include "blendef.h"
 #include "Object.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 
 /* checks for the group being removed */
 #define GROUP_DEL_CHECK_PY(bpy_group) if (!(bpy_group->group)) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "Group has been removed" ) )

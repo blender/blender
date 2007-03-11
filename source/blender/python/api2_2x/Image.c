@@ -44,6 +44,7 @@
 #include "IMB_imbuf_types.h"	/* for the IB_rect define */
 #include "BIF_gl.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 #include "BKE_packedFile.h"
 #include "DNA_packedFile_types.h"
 #include "BKE_icons.h"

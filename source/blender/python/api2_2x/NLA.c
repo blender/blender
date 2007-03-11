@@ -43,6 +43,7 @@
 #include "Object.h"
 #include "Ipo.h"
 #include "gen_utils.h"
+#include "gen_library.h"
 #include "blendef.h"
 #include "MEM_guardedalloc.h"
 

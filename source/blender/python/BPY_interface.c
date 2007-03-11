@@ -43,7 +43,11 @@
 #include "BKE_library.h"
 #include "BKE_object.h"		/* during_scriptlink() */
 #include "BKE_text.h"
+
 #include "DNA_curve_types.h" /* for struct IpoDriver */
+#include "DNA_ID.h" /* ipo driver */
+#include "DNA_object_types.h" /* ipo driver */
+
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"	/* for U.pythondir */
 #include "MEM_guardedalloc.h"
@@ -55,6 +59,7 @@
 #include "api2_2x/EXPP_interface.h"
 #include "api2_2x/constant.h"
 #include "api2_2x/gen_utils.h"
+#include "api2_2x/gen_library.h" /* GetPyObjectFromID */
 #include "api2_2x/BGL.h" 
 #include "api2_2x/Blender.h"
 #include "api2_2x/Camera.h"
@@ -62,29 +67,12 @@
 #include "api2_2x/Registry.h"
 #include "api2_2x/Main.h" /* for the "bpy" default module */
 
-/* ID_asPyObject */
-#include "api2_2x/Object.h"
-#include "api2_2x/Camera.h"
-#include "api2_2x/Armature.h"
-#include "api2_2x/Lamp.h"
-/*#include "api2_2x/ CurNurb.h" do we need this ? */
-#include "api2_2x/Curve.h"
-#include "api2_2x/NMesh.h"
-#include "api2_2x/Mesh.h"
-#include "api2_2x/Lattice.h"
-#include "api2_2x/Metaball.h"
-#include "api2_2x/Text3d.h"
-#include "api2_2x/Font.h"
-#include "api2_2x/Group.h"
-#include "api2_2x/World.h"
-#include "api2_2x/Texture.h"
-#include "api2_2x/Ipo.h"
-#include "api2_2x/Text.h"
-#include "api2_2x/Sound.h"
-#include "api2_2x/NLA.h"
-#include "api2_2x/Main.h"
-#include "api2_2x/Scene.h"
-
+/* for scriptlinks */
+#include "DNA_lamp_types.h"
+#include "DNA_camera_types.h"
+#include "DNA_world_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_material_types.h"
 
 /* bpy_registryDict is declared in api2_2x/Registry.h and defined
  * in api2_2x/Registry.c
@@ -1354,70 +1342,6 @@ static ScriptLink *ID_getScriptlink( ID * id )
 	}
 }
 
-PyObject *ID_asPyObject( ID * id )
-{
-	switch ( MAKE_ID2( id->name[0], id->name[1] ) ) {
-	case ID_SCE:
-		return Scene_CreatePyObject( ( Scene *) id );
-		break;
-	case ID_OB:
-		return Object_CreatePyObject( (Object *) id );
-		break;
-	case ID_ME:
-		return Mesh_CreatePyObject( (Mesh *)id, NULL );
-		break;
-	case ID_CU: /*todo, support curnurbs?*/
-		return Curve_CreatePyObject((Curve *)id);
-		break;
-	case ID_MB:
-		return Metaball_CreatePyObject((MetaBall *)id);
-		break;
-	case ID_MA:
-		return Material_CreatePyObject((Material *)id);
-		break;
-	case ID_TE:
-		return Texture_CreatePyObject((Tex *)id);
-		break;
-	case ID_IM:
-		return Image_CreatePyObject((Image *)id);
-		break;
-	case ID_LT:
-		return Lattice_CreatePyObject((Lattice *)id);
-		break;
-	case ID_LA:
-		return Lamp_CreatePyObject((Lamp *)id);
-		break;
-	case ID_CA:
-		return Camera_CreatePyObject((Camera *)id);
-		break;
-	case ID_IP:
-		return Ipo_CreatePyObject((Ipo *)id);
-		break;
-	case ID_WO:
-		return World_CreatePyObject((World *)id);
-		break;
-	case ID_VF:
-		return Font_CreatePyObject((VFont *)id);
-		break;
-	case ID_TXT:
-		return Text_CreatePyObject((Text *)id);
-		break;
-	case ID_SO:
-		return Sound_CreatePyObject((bSound *)id);
-		break;
-	case ID_GR:
-		return Group_CreatePyObject((Group *)id);
-		break;
-	case ID_AR:
-		return Armature_CreatePyObject((bArmature *)id);
-		break;
-	case ID_AC:
-		return Action_CreatePyObject((bAction *)id);
-		break;
-	}
-	Py_RETURN_NONE;
-}
-
 int BPY_has_onload_script( void )
 {
 	ScriptLink *slink = &G.scene->scriptlink;
@@ -1461,7 +1385,7 @@ void BPY_do_pyscript( ID * id, short event )
 		/* set globals in Blender module to identify scriptlink */
 		EXPP_dict_set_item_str( g_blenderdict, "bylink", EXPP_incr_ret_True() );
 		EXPP_dict_set_item_str( g_blenderdict, "link",
-				      ID_asPyObject( id ) );
+				      GetPyObjectFromID( id ) );
 		EXPP_dict_set_item_str( g_blenderdict, "event",
 				      PyString_FromString( event_to_name
 							   ( event ) ) );

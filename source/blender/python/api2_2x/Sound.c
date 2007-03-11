@@ -41,6 +41,7 @@
 #include "BKE_packedFile.h"
 #include "mydevice.h"		/* redraw defines */
 #include "gen_utils.h"
+#include "gen_library.h"
 #include "DNA_space_types.h" /* for FILE_MAXDIR only */
 
 /*****************************************************************************/
