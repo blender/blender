@@ -112,16 +112,11 @@ void free_curve(Curve *cu)
 	if(cu->tb) MEM_freeN(cu->tb);
 }
 
-Curve *add_curve(int type)
+Curve *add_curve(char *name, int type)
 {
 	Curve *cu;
-	char *str;
-	
-	if(type==OB_CURVE) str= "Curve";
-	else if(type==OB_SURF) str= "Surf";
-	else str= "Text";
 
-	cu= alloc_libblock(&G.main->curve, ID_CU, str);
+	cu= alloc_libblock(&G.main->curve, ID_CU, name);
 	
 	cu->size[0]= cu->size[1]= cu->size[2]= 1.0;
 	cu->flag= CU_FRONT+CU_BACK;

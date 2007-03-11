@@ -71,7 +71,7 @@ typedef struct PoseTree
 #ifdef __cplusplus
 extern "C" {
 #endif
-struct bArmature *add_armature(void);
+struct bArmature *add_armature(char *name);
 void free_boneChildren(struct Bone *bone);
 void free_bones (struct bArmature *arm);
 void unlink_armature(struct bArmature *arm);

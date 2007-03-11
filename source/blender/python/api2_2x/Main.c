@@ -317,7 +317,7 @@ static int MainSeq_setActive(BPy_MainSeq *self, PyObject *value)
 /* New Data, internal functions */
 Mesh *add_mesh__internal(char *name)
 {
-	Mesh *mesh = add_mesh(); /* doesn't return NULL now, but might someday */
+	Mesh *mesh = add_mesh(name); /* doesn't return NULL now, but might someday */
 	
 	/* Bound box set to null needed because a new mesh is initialized
 	with a bounding box of -1 -1 -1 -1 -1 -1
@@ -326,7 +326,6 @@ Mesh *add_mesh__internal(char *name)
 	MEM_freeN(mesh->bb);
 	mesh->bb= NULL;
 	mesh->id.us = 0;
-	rename_id( &mesh->id, name );
 	return mesh;
 }
 
@@ -334,22 +333,20 @@ Curve *add_curve__internal(char *name)
 {
 	Curve *blcurve = NULL;	/* for actual Curve Data we create in Blender */
 	
-	blcurve = add_curve( OB_CURVE );	/* first create the Curve Data in Blender */
+	blcurve = add_curve( name, OB_CURVE );	/* first create the Curve Data in Blender */
 
 	/* null check? */
 
 	/* return user count to zero because add_curve() inc'd it */
 	blcurve->id.us = 0;
-	rename_id( &blcurve->id, name );
 	return blcurve;
 }
 
 MetaBall *add_metaball__internal(char *name)
 {
 	MetaBall *blmball;	/* for actual Data we create in Blender */
-	blmball = add_mball(  );	/* first create the MetaBall Data in Blender */
+	blmball = add_mball( name );	/* first create the MetaBall Data in Blender */
 	blmball->id.us = 0;
-	rename_id( &blmball->id, name );
 	return blmball;
 }
 
@@ -372,27 +369,24 @@ Tex *add_texture__internal(char *name)
 Lattice *add_lattice__internal(char *name)
 {
 	Lattice *blat;
-	blat= add_lattice( );
+	blat= add_lattice(name);
 	blat->id.us = 0;	/* was incref'ed by add_material() above */
-	rename_id( &blat->id, name );
 	return blat;
 }
 
 Lamp *add_lamp__internal(char *name)
 {
 	Lamp *blam;
-	blam= add_lamp( );
+	blam= add_lamp( name );
 	blam->id.us = 0;	/* was incref'ed by add_material() above */
-	rename_id( &blam->id, name );
 	return blam;
 }
 
 Camera *add_camera__internal(char *name)
 {
 	Camera *bcam;
-	bcam= add_camera( );
+	bcam= add_camera( name );
 	bcam->id.us = 0;	/* was incref'ed by add_material() above */
-	rename_id( &bcam->id, name );
 	return bcam;
 }
 
@@ -415,26 +409,23 @@ World *add_world__internal(char *name)
 Text *add_text__internal(char *name)
 {
 	Text *btxt;
-	btxt= add_empty_text( );
-	rename_id( &btxt->id, name );
+	btxt= add_empty_text( name );
 	return btxt;
 }
 
 Group *add_group__internal(char *name)
 {
 	Group *bgrp;
-	bgrp= add_group( );
+	bgrp= add_group( name );
 	bgrp->id.us = 1;
-	rename_id( &bgrp->id, name );
 	return bgrp;
 }
 
 bArmature *add_armature__internal(char *name)
 {
 	bArmature *barm;
-	barm= add_armature( );
+	barm= add_armature( name );
 	barm->id.us = 0;
-	rename_id( &barm->id, name );
 	return barm;
 }
 

@@ -457,7 +457,7 @@ PyObject *M_Text3d_New( PyObject * self, PyObject * args )
 			 ( PyExc_AttributeError,
 			   "expected string argument or no argument" ) );
 
-	bltext3d = add_curve( OB_FONT );	/* first create the Curve Data in Blender */
+	bltext3d = add_curve( "Text", OB_FONT );	/* first create the Curve Data in Blender */
 	bltext3d->vfont= get_builtin_font();
 	bltext3d->vfont->id.us++;
 	bltext3d->str= MEM_mallocN(12, "str");

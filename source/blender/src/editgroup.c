@@ -162,7 +162,7 @@ void group_operation(int mode)
 			break;
 	
 	if(mode>0) {
-		if(group==NULL || mode==1) group= add_group();
+		if(group==NULL || mode==1) group= add_group( "Group" );
 		if(mode==3) {
 			int tot= BLI_countlist(&G.main->group);
 			char *strp= MEM_callocN(tot*32 + 32, "group menu"), *strp1;

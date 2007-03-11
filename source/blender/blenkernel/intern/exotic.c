@@ -3626,7 +3626,7 @@ static void dxf_get_mesh(Mesh** m, Object** o, int noob)
 	} 
 	else {
 		*o = NULL;
-		*m = add_mesh(); G.totmesh++;
+		*m = add_mesh("Mesh"); G.totmesh++;
 
 		me = *m;
 		ob = *o;

@@ -143,7 +143,7 @@ static PyObject *Text_repr( BPy_Text * self );
 /*****************************************************************************/
 static PyObject *M_Text_New( PyObject * self, PyObject * args)
 {
-	char *name = NULL;
+	char *name = "Text";
 	char buf[21];
 	int follow = 0;
 	Text *bl_text;		/* blender text object */
@@ -153,7 +153,7 @@ static PyObject *M_Text_New( PyObject * self, PyObject * args)
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "expected string and int arguments (or nothing)" );
 
-	bl_text = add_empty_text(  );
+	bl_text = add_empty_text( name );
 
 	if( bl_text ) {
 		/* do not set user count because Text is already linked */
@@ -169,11 +169,6 @@ static PyObject *M_Text_New( PyObject * self, PyObject * args)
 
 	if( follow )
 		bl_text->flags |= EXPP_TEXT_MODE_FOLLOW;
-
-	if( name ) {
-		PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-		rename_id( &bl_text->id, buf );
-	}
 
 	return py_text;
 }

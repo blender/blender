@@ -98,15 +98,13 @@ static PyObject *BPy_Group_copy( BPy_Group * self )
 	
 	GROUP_DEL_CHECK_PY(self);
 	
-	bl_group= add_group();
+	bl_group= add_group( self->group->id.name + 2 );
 	
 	if( bl_group )		/* now create the wrapper grp in Python */
 		py_group = ( BPy_Group * ) Group_CreatePyObject( bl_group );
 	else
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"couldn't create Group Data in Blender" ) );
-	
-	rename_id( &bl_group->id, self->group->id.name + 2 );
 	
 	bl_group->id.us = 1;
 	
@@ -362,19 +360,13 @@ PyObject *M_Group_New( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"string expected as argument or nothing" );
 	
-	bl_group= add_group();
+	bl_group= add_group( name );
 	
 	if( bl_group )		/* now create the wrapper grp in Python */
 		py_group = ( BPy_Group * ) Group_CreatePyObject( bl_group );
 	else
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"couldn't create Group Data in Blender" ) );
-	
-	
-	if( strcmp( name, "Group" ) != 0 ) {
-		PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-		rename_id( &bl_group->id, buf );
-	}
 	
 	bl_group->id.us = 1;
 	

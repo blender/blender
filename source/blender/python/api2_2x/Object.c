@@ -1097,30 +1097,30 @@ int EXPP_add_obdata( struct Object *object )
 	switch ( object->type ) {
 	case OB_ARMATURE:
 		/* TODO: Do we need to add something to G? (see the OB_LAMP case) */
-		object->data = add_armature(  );
+		object->data = add_armature( "Armature" );
 		break;
 	case OB_CAMERA:
 		/* TODO: Do we need to add something to G? (see the OB_LAMP case) */
-		object->data = add_camera(  );
+		object->data = add_camera( "Camera" );
 		break;
 	case OB_CURVE:
-		object->data = add_curve( OB_CURVE );
+		object->data = add_curve( "Curve", OB_CURVE );
 		G.totcurve++;
 		break;
 	case OB_LAMP:
-		object->data = add_lamp(  );
+		object->data = add_lamp( "Lamp" );
 		G.totlamp++;
 		break;
 	case OB_MESH:
-		object->data = add_mesh(  );
+		object->data = add_mesh( "Mesh" );
 		G.totmesh++;
 		break;
 	case OB_LATTICE:
-		object->data = ( void * ) add_lattice(  );
+		object->data = ( void * ) add_lattice( "Lattice" );
 		object->dt = OB_WIRE;
 		break;
 	case OB_MBALL:
-		object->data = add_mball(  );
+		object->data = add_mball( "Meta" );
 		break;
 
 		/* TODO the following types will be supported later,

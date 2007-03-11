@@ -105,11 +105,11 @@ void unlink_group(Group *group)
 	group->id.us= 0;
 }
 
-Group *add_group()
+Group *add_group(char *name)
 {
 	Group *group;
 	
-	group = alloc_libblock(&G.main->group, ID_GR, "Group");
+	group = alloc_libblock(&G.main->group, ID_GR, name);
 	group->layer= (1<<20)-1;
 	return group;
 }

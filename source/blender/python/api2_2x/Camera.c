@@ -209,7 +209,7 @@ static PyObject *M_Camera_New( PyObject * self, PyObject * args,
 			       PyObject * kwords )
 {
 	char *type_str = "persp";	/* "persp" is type 0, "ortho" is type 1 */
-	char *name_str = "CamData";
+	char *name_str = "Camera";
 	static char *kwlist[] = { "type_str", "name_str", NULL };
 	PyObject *pycam;	/* for Camera Data object wrapper in Python */
 	Camera *blcam;		/* for actual Camera Data we create in Blender */
@@ -222,7 +222,7 @@ static PyObject *M_Camera_New( PyObject * self, PyObject * args,
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "expected zero, one or two strings as arguments" );
 
-	blcam = add_camera(  );	/* first create the Camera Data in Blender */
+	blcam = add_camera( name_str );	/* first create the Camera Data in Blender */
 
 	if( blcam )		/* now create the wrapper obj in Python */
 		pycam = Camera_CreatePyObject( blcam );
@@ -248,14 +248,7 @@ static PyObject *M_Camera_New( PyObject * self, PyObject * args,
 	else
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "unknown camera type" );
-
-	if( strcmp( name_str, "CamData" ) == 0 )
-		return pycam;
-	else {			/* user gave us a name for the camera, use it */
-		PyOS_snprintf( buf, sizeof( buf ), "%s", name_str );
-		rename_id( &blcam->id, buf );	/* proper way in Blender */
-	}
-
+	
 	return pycam;
 }
 

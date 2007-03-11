@@ -1317,7 +1317,7 @@ static PyGetSetDef Curve_getseters[] = {
 static PyObject *M_Curve_New( PyObject * self, PyObject * args )
 {
 	char buf[24];
-	char *name = NULL;
+	char *name = "Curve";
 	BPy_Curve *pycurve;	/* for Curve Data object wrapper in Python */
 	Curve *blcurve = 0;	/* for actual Curve Data we create in Blender */
 
@@ -1326,7 +1326,7 @@ static PyObject *M_Curve_New( PyObject * self, PyObject * args )
 			 ( PyExc_TypeError,
 			   "expected string argument or no argument" ) );
 
-	blcurve = add_curve( OB_CURVE );	/* first create the Curve Data in Blender */
+	blcurve = add_curve( name, OB_CURVE );	/* first create the Curve Data in Blender */
 
 	if( blcurve == NULL )	/* bail out if add_curve() failed */
 		return ( EXPP_ReturnPyObjError
@@ -1344,11 +1344,7 @@ static PyObject *M_Curve_New( PyObject * self, PyObject * args )
 			   "couldn't create Curve Data object" ) );
 
 	pycurve->curve = blcurve;	/* link Python curve wrapper to Blender Curve */
-	if( name ) {
-		PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-		rename_id( &blcurve->id, buf );
-	}
-
+	
 	return ( PyObject * ) pycurve;
 }
 

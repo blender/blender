@@ -437,7 +437,11 @@ static PyObject *M_Metaball_New( PyObject * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"Metaball.New() - expected string argument (or nothing)" ) );
 
-	blmball = add_mball(  );	/* first create the MetaBall Data in Blender */
+	/* first create the MetaBall Data in Blender */
+	if (name)
+		blmball = add_mball( name );
+	else
+		blmball = add_mball( "Meta" );
 
 	if( blmball ) {
 		/* return user count to zero since add_mball() incref'ed it */
@@ -456,8 +460,6 @@ static PyObject *M_Metaball_New( PyObject * self, PyObject * args )
 
 	pymball->metaball = blmball;
 	/*link Python mballer wrapper to Blender MetaBall */
-	if( name )		/* user gave us a name for the metaball, use it */
-		rename_id( &blmball->id, name );
 	
 	return ( PyObject * ) pymball;
 }

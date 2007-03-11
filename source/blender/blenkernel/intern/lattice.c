@@ -203,11 +203,11 @@ void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 	MEM_freeN(vertexCos);
 }
 
-Lattice *add_lattice()
+Lattice *add_lattice(char *name)
 {
 	Lattice *lt;
 	
-	lt= alloc_libblock(&G.main->latt, ID_LT, "Lattice");
+	lt= alloc_libblock(&G.main->latt, ID_LT, name);
 	
 	lt->flag= LT_GRID;
 	

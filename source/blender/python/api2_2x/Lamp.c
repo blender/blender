@@ -599,7 +599,7 @@ static PyObject *M_Lamp_New( PyObject * self, PyObject * args,
 			     PyObject * keywords )
 {
 	char *type_str = "Lamp";
-	char *name_str = "LampData";
+	char *name_str = "Lamp";
 	static char *kwlist[] = { "type_str", "name_str", NULL };
 	BPy_Lamp *py_lamp;	/* for Lamp Data object wrapper in Python */
 	Lamp *bl_lamp;		/* for actual Lamp Data we create in Blender */
@@ -608,8 +608,9 @@ static PyObject *M_Lamp_New( PyObject * self, PyObject * args,
 					  &type_str, &name_str ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected string(s) or empty argument" ) );
-
-	bl_lamp = add_lamp(  );	/* first create in Blender */
+	
+	bl_lamp = add_lamp( name_str );	/* first create in Blender */
+	
 	if( bl_lamp )		/* now create the wrapper obj in Python */
 		py_lamp = ( BPy_Lamp * ) Lamp_CreatePyObject( bl_lamp );
 	else
@@ -638,11 +639,6 @@ static PyObject *M_Lamp_New( PyObject * self, PyObject * args,
 	else
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"unknown lamp type" ) );
-
-	if( strcmp( name_str, "LampData" ) == 0 )
-		return ( PyObject * ) py_lamp;
-	else			/* user gave us a name for the lamp, use it */
-		rename_id( &bl_lamp->id, name_str );
 
 	return ( PyObject * ) py_lamp;
 }

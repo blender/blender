@@ -48,7 +48,7 @@ struct BevList;
 
 void unlink_curve( struct Curve *cu);
 void free_curve( struct Curve *cu);
-struct Curve *add_curve(int type);
+struct Curve *add_curve(char *name, int type);
 struct Curve *copy_curve( struct Curve *cu);
 void make_local_curve( struct Curve *cu);
 void test_curve_type( struct Object *ob);

@@ -5680,7 +5680,7 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
  	case OB_MBALL:
 		/* metaballs don't have modifiers, so just convert to mesh */
 		ob = find_basis_mball( ob );
-		tmpmesh = add_mesh();
+		tmpmesh = add_mesh("Mesh");
 		mball_to_mesh( &ob->disp, tmpmesh );
 
  		break;
@@ -5699,7 +5699,7 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 			else
 				dm = mesh_create_derived_view( ob, CD_MASK_MESH );
 			
-			tmpmesh = add_mesh(  );
+			tmpmesh = add_mesh( "Mesh" );
 			DM_to_mesh( dm, tmpmesh );
 			dm->release( dm );
 		}
@@ -7869,7 +7869,7 @@ static PyObject *M_Mesh_New( PyObject * self_unused, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				       "PyObject_New() failed" );
 
-	mesh = add_mesh(); /* doesn't return NULL now, but might someday */
+	mesh = add_mesh(name); /* doesn't return NULL now, but might someday */
 	
 	if( !mesh ) {
 		Py_DECREF ( obj );
@@ -7885,9 +7885,6 @@ static PyObject *M_Mesh_New( PyObject * self_unused, PyObject * args )
 	mesh->bb= NULL;
 	
 	mesh->id.us = 0;
-
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-	rename_id( &mesh->id, buf );
 
 	obj->mesh = mesh;
 	obj->object = NULL;

@@ -55,7 +55,7 @@ extern "C" {
 
 void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me);
-struct Mesh *add_mesh(void);
+struct Mesh *add_mesh(char *name);
 struct Mesh *copy_mesh(struct Mesh *me);
 void mesh_update_customdata_pointers(struct Mesh *me);
 void make_local_tface(struct Mesh *me);

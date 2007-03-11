@@ -97,7 +97,7 @@ void do_text_buttons(unsigned short event)
 		id= (ID *)text;
 		
 		if (st->menunr==32767) {
-			st->text= (Text *)add_empty_text();
+			st->text= (Text *)add_empty_text( "Text" );
 
 			st->top= 0;
 			
@@ -238,7 +238,7 @@ static void do_text_filemenu(void *arg, int event)
 
 	switch(event) {
 	case 1:
-		st->text= add_empty_text();
+		st->text= add_empty_text( "Text" );
 		st->top=0;
 
 		allqueue(REDRAWTEXT, 0);

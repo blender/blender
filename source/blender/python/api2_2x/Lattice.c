@@ -173,7 +173,7 @@ static PyObject *M_Lattice_New( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "expected string and int arguments (or nothing)" );
 
-	bl_Lattice = add_lattice(  );
+	bl_Lattice = add_lattice( "Lattice" );
 	bl_Lattice->id.us = 0;
 
 	if( bl_Lattice )

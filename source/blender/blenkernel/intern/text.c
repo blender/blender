@@ -154,7 +154,7 @@ void free_text(Text *text)
 	if (text->compiled) BPY_free_compiled_text(text);
 }
 
-Text *add_empty_text(void) 
+Text *add_empty_text(char *name) 
 {
 	Text *ta;
 	TextLine *tmp;

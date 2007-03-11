@@ -1427,7 +1427,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if (event==RIGHTMOUSE) {
 			switch (pupmenu("File %t|New %x0|Open... %x1")) {
 			case 0:
-				st->text= add_empty_text();
+				st->text= add_empty_text("Text");
 				st->top= 0;
 			
 				allqueue(REDRAWTEXT, 0);
@@ -1442,7 +1442,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (event==FKEY && G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
 				switch (pupmenu("File %t|New %x0|Open... %x1")) {
 				case 0:
-					st->text= add_empty_text();
+					st->text= add_empty_text("Text");
 					st->top= 0;
 				
 					allqueue(REDRAWTEXT, 0);
@@ -1460,7 +1460,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			else if (event==NKEY) {
 				if (G.qual & LR_ALTKEY) {
-					st->text= add_empty_text();
+					st->text= add_empty_text("Text");
 					st->top= 0;
 				
 					allqueue(REDRAWTEXT, 0);
@@ -1499,7 +1499,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 			switch(p) {
 				case 0:
-					st->text= add_empty_text();
+					st->text= add_empty_text("Text");
 					st->top= 0;
 					
 					allqueue(REDRAWTEXT, 0);
@@ -1599,7 +1599,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (G.qual == (LR_ALTKEY|LR_SHIFTKEY)) {
 				switch(pupmenu("File %t|New %x0|Open... %x1|Save %x2|Save As...%x3")) {
 				case 0:
-					st->text= add_empty_text();
+					st->text= add_empty_text("Text");
 					st->top= 0;
 					
 					allqueue(REDRAWTEXT, 0);
@@ -1640,7 +1640,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break; /* BREAK M */
 		case NKEY:
 			if (G.qual == LR_ALTKEY) {
-				st->text= add_empty_text();
+				st->text= add_empty_text("Text");
 				st->top= 0;
 			
 				allqueue(REDRAWTEXT, 0);

@@ -1387,7 +1387,7 @@ Mesh *create_mesh_from_geom_node(VNode *vnode)
 	if(vnode->type != V_NT_GEOMETRY) return NULL;
 
 	/* add new empty mesh*/
-	me = add_mesh();
+	me = add_mesh("Mesh");
 	/* set up bindings between mesh and verse node */
 	me->vnode = (void*)vnode;
 	((VGeomData*)vnode->data)->mesh = (void*)me;

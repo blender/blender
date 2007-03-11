@@ -1531,7 +1531,7 @@ Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh )
 {
 	Mesh *mesh = NULL;
 	
-	mesh = add_mesh(  );
+	mesh = add_mesh( "Mesh" );
 
 	if( !mesh ) {
 		PyErr_SetString( PyExc_RuntimeError,

@@ -45,7 +45,7 @@ struct SpaceText;
 void			free_text		(struct Text *text);
 void 			txt_set_undostate	(int u);
 int 			txt_get_undostate	(void);
-struct Text*	add_empty_text	(void);
+struct Text*	add_empty_text	(char *name);
 int	            reopen_text		(struct Text *text);
 struct Text*	add_text		(char *file); 
 struct Text*	copy_text		(struct Text *ta);

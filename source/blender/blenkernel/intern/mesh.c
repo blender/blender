@@ -228,11 +228,11 @@ void free_dverts(MDeformVert *dvert, int totvert)
 	MEM_freeN (dvert);
 }
 
-Mesh *add_mesh()
+Mesh *add_mesh(char *name)
 {
 	Mesh *me;
 	
-	me= alloc_libblock(&G.main->mesh, ID_ME, "Mesh");
+	me= alloc_libblock(&G.main->mesh, ID_ME, name);
 	
 	me->size[0]= me->size[1]= me->size[2]= 1.0;
 	me->smoothresh= 30;
@@ -852,7 +852,7 @@ void nurbs_to_mesh(Object *ob)
 	}
 
 	/* make mesh */
-	me= add_mesh();
+	me= add_mesh("Mesh");
 	me->totvert= totvert;
 	me->totface= totvlak;
 

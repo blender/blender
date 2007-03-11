@@ -60,10 +60,10 @@ void object_make_proxy(struct Object *ob, struct Object *target, struct Object *
 
 void unlink_object(struct Object *ob);
 int exist_object(struct Object *obtest);
-void *add_camera(void);
+void *add_camera(char *name);
 struct Camera *copy_camera(struct Camera *cam);
 void make_local_camera(struct Camera *cam);
-void *add_lamp(void);
+void *add_lamp(char *name);
 struct Lamp *copy_lamp(struct Lamp *la);
 void make_local_lamp(struct Lamp *la);
 void free_camera(struct Camera *ca);

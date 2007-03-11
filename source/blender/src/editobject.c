@@ -2673,7 +2673,7 @@ void convertmenu(void)
 						mb= ob1->data;
 						mb->id.us--;
 						
-						ob1->data= add_mesh();
+						ob1->data= add_mesh("Mesh");
 						G.totmesh++;
 						ob1->type= OB_MESH;
 						

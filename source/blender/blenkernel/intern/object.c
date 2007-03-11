@@ -489,11 +489,11 @@ int exist_object(Object *obtest)
 	return 0;
 }
 
-void *add_camera()
+void *add_camera(char *name)
 {
 	Camera *cam;
 	
-	cam=  alloc_libblock(&G.main->camera, ID_CA, "Camera");
+	cam=  alloc_libblock(&G.main->camera, ID_CA, name);
 
 	cam->lens= 35.0f;
 	cam->clipsta= 0.1f;
@@ -574,11 +574,11 @@ void make_local_camera(Camera *cam)
 
 
 
-void *add_lamp(void)
+void *add_lamp(char *name)
 {
 	Lamp *la;
 	
-	la=  alloc_libblock(&G.main->lamp, ID_LA, "Lamp");
+	la=  alloc_libblock(&G.main->lamp, ID_LA, name);
 	
 	la->r= la->g= la->b= la->k= 1.0;
 	la->haint= la->energy= 1.0;
@@ -712,16 +712,16 @@ void *add_wave()
 static void *add_obdata_from_type(int type)
 {
 	switch (type) {
-	case OB_MESH: G.totmesh++; return add_mesh();
-	case OB_CURVE: G.totcurve++; return add_curve(OB_CURVE);
-	case OB_SURF: G.totcurve++; return add_curve(OB_SURF);
-	case OB_FONT: return add_curve(OB_FONT);
-	case OB_MBALL: return add_mball();
-	case OB_CAMERA: return add_camera();
-	case OB_LAMP: G.totlamp++; return add_lamp();
-	case OB_LATTICE: return add_lattice();
+	case OB_MESH: G.totmesh++; return add_mesh("Mesh");
+	case OB_CURVE: G.totcurve++; return add_curve("Curve", OB_CURVE);
+	case OB_SURF: G.totcurve++; return add_curve("Surf", OB_SURF);
+	case OB_FONT: return add_curve("Text", OB_FONT);
+	case OB_MBALL: return add_mball("Meta");
+	case OB_CAMERA: return add_camera("Camera");
+	case OB_LAMP: G.totlamp++; return add_lamp("Lamp");
+	case OB_LATTICE: return add_lattice("Lattice");
 	case OB_WAVE: return add_wave();
-	case OB_ARMATURE: return add_armature();
+	case OB_ARMATURE: return add_armature("Armature");
 	case OB_EMPTY: return NULL;
 	default:
 		printf("add_obdata_from_type: Internal error, bad type: %d\n", type);

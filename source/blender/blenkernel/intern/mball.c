@@ -99,11 +99,11 @@ void free_mball(MetaBall *mb)
 	if(mb->disp.first) freedisplist(&mb->disp);
 }
 
-MetaBall *add_mball()
+MetaBall *add_mball(char *name)
 {
 	MetaBall *mb;
 	
-	mb= alloc_libblock(&G.main->mball, ID_MB, "Meta");
+	mb= alloc_libblock(&G.main->mball, ID_MB, name);
 	
 	mb->size[0]= mb->size[1]= mb->size[2]= 1.0;
 	mb->texflag= MB_AUTOSPACE;

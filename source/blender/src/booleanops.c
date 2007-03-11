@@ -273,7 +273,7 @@ static Object *AddNewBlenderMesh(Base *base)
 	basen->flag &= ~SELECT;
 				
 	// Initialize the mesh data associated with this object.						
-	ob_new->data= add_mesh();
+	ob_new->data= add_mesh("Mesh");
 	G.totmesh++;
 
 	// Finally assign the object type.

@@ -162,7 +162,7 @@ float init_meta(struct Object *ob);
 
 void unlink_mball(struct MetaBall *mb);
 void free_mball(struct MetaBall *mb);
-struct MetaBall *add_mball(void);
+struct MetaBall *add_mball(char *name);
 struct MetaBall *copy_mball(struct MetaBall *mb);
 void make_local_mball(struct MetaBall *mb);
 void tex_space_mball( struct Object *ob);

@@ -42,7 +42,7 @@ struct bAction;
 void		free_group_object(struct GroupObject *go);
 void		free_group(struct Group *group);
 void		unlink_group(struct Group *group);
-struct Group *add_group(void);
+struct Group *add_group(char *name);
 void		add_to_group(struct Group *group, struct Object *ob);
 void		rem_from_group(struct Group *group, struct Object *ob);
 struct Group *find_group(struct Object *ob);

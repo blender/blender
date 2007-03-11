@@ -85,7 +85,7 @@ Example::
 			me.faceUV = True					# add UV coords and textures if we dont have them.
 			
 			# Make an image named after the mesh
-			img = bpy.images.new(me.name, 512, 512)
+			img = bpy.images.new(me.name, width, height)
 			
 			for f in me.faces:
 				f.image = img
@@ -93,24 +93,43 @@ Example::
 	Window.RedrawAll()
 
 @var scenes: iterator for L{scene<Scene.Scene>} data
+@type scenes: L{dataIterator}
 @var objects: iterator for L{object<Object.Object>} data
+@type objects: L{dataIterator}
 @var meshes: iterator for L{mesh<Mesh.Mesh>} data
+@type meshes: L{dataIterator}
 @var curves: iterator for L{curve<Curve.Curve>} data
+@type curves: L{dataIterator}
 @var metaballs: iterator for L{metaball<Metaball.Metaball>} data
+@type metaballs: L{dataIterator}
 @var materials: iterator for L{material<Material.Material>} data
+@type materials: L{dataIterator}
 @var textures: iterator for L{texture<Texture.Texture>} data
+@type textures: L{dataIterator}
 @var images: iterator for L{image<Image.Image>} data
+@type images: L{dataIterator}
 @var lattices: iterator for L{lattice<Lattice.Lattice>} data
+@type lattices: L{dataIterator}
 @var lamps: iterator for L{lamp<Lamp.Lamp>} data
+@type lamps: L{dataIterator}
 @var cameras: iterator for L{camera<Camera.Camera>} data
+@type cameras: L{dataIterator}
 @var ipos: iterator for L{ipo<Ipo.Ipo>} data
+@type ipos: L{dataIterator}
 @var worlds: iterator for L{world<World.World>} data
+@type worlds: L{dataIterator}
 @var fonts: iterator for L{font<Font.Font>} data
+@type fonts: L{dataIterator}
 @var texts: iterator for L{text<Text.Text>} data
+@type texts: L{dataIterator}
 @var sounds: iterator for L{sound<Sound.Sound>} data
+@type sounds: L{dataIterator}
 @var groups: iterator for L{group<Group.Group>} data
+@type groups: L{dataIterator}
 @var armatures: iterator for L{armature<Armature.Armature>} data
+@type armatures: L{dataIterator}
 @var actions: iterator for L{action<NLA.Action>} data
+@type actions: L{dataIterator}
 
 """
 
@@ -168,35 +187,46 @@ class dataIterator:
 		>>> ipo_list = list(bpy.ipos)
 		
 	@type active: Datablock or None
-	@ivar active:
+	@ivar active: The active member of the datatype
+	
 		applies to:
 			- L{images}
 			- L{scenes}
 			- L{texts}
 		this can also be used to set the active data.
-		Example::
-			bpy.images.active = bpy.images.load('/home/me/someimage.jpg')
+		
+		>>> bpy.images.active = bpy.images.load('/home/me/someimage.jpg')
+		
 	"""
 
 	def new(name):
 		"""
 		this function returns a new datablock
-		exceptions::
-			Images optionally accept 2 extra arguments: bpy.images.new(name, width=256, height=256)
-				The width and height must br between 4 and 5000 if no args are given they will be 256.
-			
-			Ipos need 2 arguments: bpy.ipos.new(name, type) 
-				type must be a string can be 
-					- 'Camera'
-					- 'World'
-					- 'Material'
-					- 'Texture'
-					- 'Lamp'
-					- 'Action'
-					- 'Constraint'
-					- 'Sequence'
-					- 'Curve'
-					- 'Key'
+		
+		Exceptions
+		==========
+
+		Images optionally accept 2 extra arguments: bpy.images.new(name, width=256, height=256)
+		The width and height must br between 4 and 5000 if no args are given they will be 256.
+		
+		Ipos need 2 arguments: bpy.ipos.new(name, type) type must be a string can be 
+			- 'Camera'
+			- 'World'
+			- 'Material'
+			- 'Texture'
+			- 'Lamp'
+			- 'Action'
+			- 'Constraint'
+			- 'Sequence'
+			- 'Curve'
+			- 'Key'
+		Objects cannot be created from bpy.objects
+		objects must be created from the scene, here are some examples.
+		
+		>>> ob = bpy.scenes.active.objects.new('Empty')
+		
+		>>> scn = bpy.scenes.active
+		... ob = scn.objects.new(bpy.meshes.new('mymesh'))
 			
 		@rtype: datablock
 		"""

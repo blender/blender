@@ -1812,7 +1812,7 @@ static void do_add_groupmenu(void *arg, int event)
 	if(ob) {
 		
 		if(event== -1) {
-			Group *group= add_group();
+			Group *group= add_group( "Group" );
 			add_to_group(group, ob);
 		}
 		else
