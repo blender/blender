@@ -1131,6 +1131,15 @@ static PyObject *Image_getFlag(BPy_Image *self, void *flag)
 		
 }
 
+static PyObject *Image_getFlagTpage(BPy_Image *self, void *flag)
+{
+	if (self->image->tpageflag & (int)flag)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+		
+}
+
 static int Image_setSource( BPy_Image *self, PyObject *args)
 {
     PyObject* integer = PyNumber_Int( args );
@@ -1160,6 +1169,14 @@ static int Image_setFlag(BPy_Image *self, PyObject *value, void *flag)
 	return 0;
 }
 
+static int Image_setFlagTpage(BPy_Image *self, PyObject *value, void *flag)
+{
+	if ( PyObject_IsTrue(value) )
+		self->image->tpageflag |= (int)flag;
+	else
+		self->image->tpageflag &= ~(int)flag;
+	return 0;
+}
 
 /*
  * get integer attributes
@@ -1295,7 +1312,10 @@ static PyGetSetDef BPy_Image_getseters[] = {
 	 "image antialiasing toggle", (void *)IMA_ANTIALI },
 	{"reflect", (getter)Image_getFlag, (setter)Image_setFlag,
 	 "image reflect toggle", (void *)IMA_REFLECT },
-
+	{"noXTile", (getter)Image_getFlagTpage, (setter)Image_setFlagTpage,
+	 "image reflect toggle", (void *)IMA_REFLECT },
+	{"noYTile", (getter)Image_getFlagTpage, (setter)Image_setFlagTpage,
+	 "image reflect toggle", (void *)IMA_REFLECT },
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
