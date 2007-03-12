@@ -2700,13 +2700,17 @@ void convertmenu(void)
 			}
 		}
 		base= base->next;
-		if(basedel != NULL && nr == 2)
+		if(basedel != NULL && nr == 2) {
+			if(basedel==basact)
+				basact= NULL;
 			free_and_unlink_base(basedel);	
+		}
 		basedel = NULL;				
 	}
 	
 	/* texspace and normals */
 	if(!basen) BASACT= base;
+
 	enter_editmode(EM_WAITCURSOR);
 	exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 	BASACT= basact;
