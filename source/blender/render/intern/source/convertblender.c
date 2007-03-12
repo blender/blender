@@ -2873,7 +2873,7 @@ static void set_phong_threshold(Render *re, Object *ob, int startface, int numfa
 	
 	if(tot) {
 		thresh/= (float)tot;
-		ob->smoothresh= cos(0.5*M_PI-acos(thresh));
+		ob->smoothresh= cos(0.5*M_PI-saacos(thresh));
 	}
 }
 
