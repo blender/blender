@@ -70,8 +70,6 @@
 #include <config.h>
 #endif
 
-ListBase duplilist= {0, 0}; 
-
 void free_path(Path *path)
 {
 	if(path->data) MEM_freeN(path->data);
@@ -765,46 +763,41 @@ static void font_duplilist(ListBase *lb, Object *par)
 /* note; group dupli's already set transform matrix. see note in group_duplilist() */
 ListBase *object_duplilist(Scene *sce, Object *ob)
 {
-	static ListBase duplilist={NULL, NULL};
-	
-	if(duplilist.first) {
-		printf("wrong call to object_duplilist\n");
-		return &duplilist;
-	}
-	duplilist.first= duplilist.last= NULL;
+	ListBase *duplilist= MEM_mallocN(sizeof(ListBase), "duplilist");
+	duplilist->first= duplilist->last= NULL;
 	
 	if(ob->transflag & OB_DUPLI) {
 		if(ob->transflag & OB_DUPLIVERTS) {
 			if(ob->type==OB_MESH) {
 				PartEff *paf;
 				if( (paf=give_parteff(ob)) ) 
-					particle_duplilist(&duplilist, sce, ob, paf);
+					particle_duplilist(duplilist, sce, ob, paf);
 				else 
-					vertex_duplilist(&duplilist, sce, ob);
+					vertex_duplilist(duplilist, sce, ob);
 			}
 			else if(ob->type==OB_FONT) {
-				font_duplilist(&duplilist, ob);
+				font_duplilist(duplilist, ob);
 			}
 		}
 		else if(ob->transflag & OB_DUPLIFACES) {
 			if(ob->type==OB_MESH)
-				face_duplilist(&duplilist, sce, ob);
+				face_duplilist(duplilist, sce, ob);
 		}
 		else if(ob->transflag & OB_DUPLIFRAMES) 
-			frames_duplilist(&duplilist, ob);
+			frames_duplilist(duplilist, ob);
 		else if(ob->transflag & OB_DUPLIGROUP) {
 			DupliObject *dob;
 			
-			group_duplilist(&duplilist, ob, 0); /* now recursive */
+			group_duplilist(duplilist, ob, 0); /* now recursive */
 			
 			/* make copy already, because in group dupli's deform displists can be makde, requiring parent matrices */
-			for(dob= duplilist.first; dob; dob= dob->next)
+			for(dob= duplilist->first; dob; dob= dob->next)
 				Mat4CpyMat4(dob->ob->obmat, dob->mat);
 		}
 		
 	}
 	
-	return &duplilist;
+	return duplilist;
 }
 
 void free_object_duplilist(ListBase *lb)
@@ -817,6 +810,7 @@ void free_object_duplilist(ListBase *lb)
 	}
 	
 	BLI_freelistN(lb);
+	MEM_freeN(lb);
 }
 
 int count_duplilist(Object *ob)
