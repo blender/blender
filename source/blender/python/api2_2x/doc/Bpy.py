@@ -6,9 +6,9 @@ The bpy module.
 bpy
 ===
 
-This module is imported by automatically and eventually should provide all the functionality as the Blender module does now.
+This module is imported automatically and eventually should provide all the functionality as the Blender module does now.
 
-This only modifies the way data is accessed, added and removed, the objects, groups, meshes etc are unchanged.
+This only modifies the way data is accessed, added and removed.  The objects, groups, meshes, etc., are unchanged.
 
 At the moment it provides an alternative way to access data from python.
 
@@ -80,9 +80,9 @@ Example::
 	scn= bpy.scenes.active
 	
 	for ob in scn.objects.context:
-		if not ob.lib and ob.type == 'Mesh':	# object isnt from a library and is a mesh
+		if not ob.lib and ob.type == 'Mesh':	# object isn't from a library and is a mesh
 			me = ob.getData(mesh=1)
-			me.faceUV = True					# add UV coords and textures if we dont have them.
+			me.faceUV = True					# add UV coords and textures if we don't have them.
 			
 			# Make an image named after the mesh
 			img = bpy.images.new(me.name, width, height)
@@ -140,60 +140,60 @@ class dataIterator:
 	===================
 		This provides a unified way to access and manipulate data types in Blender
 		(scene, object, mesh, curve, metaball, material, texture, image, lattice,
-		lamp, camera, ipo, world, font, text, sound, groups, armatures, actions)
+		lamp, camera, ipo, world, font, text, sound, groups, armatures, actions).
 		
 	Get Item
 	========
-		To get a datablock by name you can use dictionary like syntax.
+		To get a datablock by name you can use dictionary-like syntax.
 		
 		>>> ob = bpy.objects['myobject']
 		
-		note that this can only be used for getting.
+		Note that this can only be used for getting.
 		
 		>>> bpy.objects['myobject'] = data # will raise an error
 		
 		B{Library distinctions}
 		
-		Blender dosnt allow naming collisions within its own pool of data, however its
+		Blender doesn't allow naming collisions within its own pool of data, but it's
 		possible to run into naming collisions when you have data linked from an external file.
 		
-		you can specify where the data is from by using a (name, library) pair as the key.
+		You can specify where the data is from by using a (name, library) pair as the key.
 		
 		>>> group = bpy.groups['mygroup', '//mylib.blend'] # only return data linked from mylib
 		
-		if you want to get a group from the local data only you can use None
+		If you want to get a group from the local data only you can use None
 		
 		>>> group = bpy.groups['mygroup', None] # always returns local data
 	
 	Iterator
 	========
-		generic_datablock's are not lists, however they can be used like lists.
+		generic_datablock's are not lists; however they can be used like lists.
 		
-		an iterator allows you to loop through data, without waisting recources on a large list.
+		An iterator allows you to loop through data, without wasting resources on a large list.
 
 		>>> for me in bpy.meshes:
 		... 	print me.name
 
-		you can also use len() to see how many datablocks exist
+		You can also use len() to see how many datablocks exist.
 		
 		>>> print len(bpy.scenes)
 		
-		You cannot use indexing to retrieve an item
+		You cannot use indexing to retrieve an item.
 		
 		>>> ob = bpy.objects[-1] # will raise an error
 		
-		if you want to access data as a list simply uset he list() function
+		If you want to access data as a list simply use the list() function.
 		
 		>>> ipo_list = list(bpy.ipos)
 		
 	@type active: Datablock or None
 	@ivar active: The active member of the datatype
 	
-		applies to:
+		Applies to:
 			- L{images}
 			- L{scenes}
 			- L{texts}
-		this can also be used to set the active data.
+		This can also be used to set the active data.
 		
 		>>> bpy.images.active = bpy.images.load('/home/me/someimage.jpg')
 		
@@ -201,7 +201,7 @@ class dataIterator:
 
 	def new(name):
 		"""
-		this function returns a new datablock
+		This function returns a new datablock
 		
 		Exceptions
 		==========
@@ -220,8 +220,8 @@ class dataIterator:
 			- 'Sequence'
 			- 'Curve'
 			- 'Key'
-		Objects cannot be created from bpy.objects
-		objects must be created from the scene, here are some examples.
+		Objects cannot be created from bpy.objects;
+		objects must be created from the scene.  Here are some examples.
 		
 		>>> ob = bpy.scenes.active.objects.new('Empty')
 		
@@ -233,23 +233,23 @@ class dataIterator:
 
 	def load(filename):
 		"""
-		this function loads a new datablock from a file.
+		This function loads a new datablock from a file.
 		applies to:
 			- L{fonts}
 			- L{sounds}
 			- L{images}
-		other types will raise an error.
+		Other types will raise an error.
 		@rtype: datablock
 		"""
 	
 	def unlink(datablock):
 		"""
-		this function removes a datablock.
+		This function removes a datablock.
 		applies to:
 			- L{scenes}
 			- L{groups}
 			- L{texts}
-		other types will raise an error.
+		Other types will raise an error.
 		@rtype: None
 		"""
 	
