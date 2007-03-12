@@ -119,7 +119,7 @@ void select_actionchannel_by_name (struct bAction *act, char *name, int select);
 
 /* Action */
 struct bActionChannel* get_hilighted_action_channel(struct bAction* action);
-struct bAction *add_empty_action(int blocktype);
+struct bAction *add_empty_action(char *name);
 
 void winqreadactionspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 

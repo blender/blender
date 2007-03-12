@@ -1067,7 +1067,7 @@ void do_ipo_buttons(short event)
 					notice("Note: Layer Ipo doesn't work in Actions");
 				
 				if(ob->action==NULL) 
-					ob->action= add_empty_action(ID_OB);
+					ob->action= add_empty_action("ObAction");
 				achan= verify_action_channel(ob->action, "Object");
 				if(achan->ipo==NULL && ob->ipo) {
 					achan->ipo= ob->ipo;
@@ -1114,7 +1114,7 @@ void do_ipo_buttons(short event)
 					bActionChannel *achan;
 					
 					if(ob->action==NULL) 
-						ob->action= add_empty_action(ID_KE);
+						ob->action= add_empty_action("ShapeAction");
 					achan= verify_action_channel(ob->action, "Shape");
 					if(achan->ipo==NULL && key->ipo) {
 						achan->ipo= key->ipo;

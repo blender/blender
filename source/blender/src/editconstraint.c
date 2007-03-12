@@ -90,7 +90,7 @@ ListBase *get_active_constraint_channels (Object *ob, int forcevalid)
 				if (!forcevalid)
 					return NULL;
 				
-				ob->action=add_empty_action(ID_PO);
+				ob->action=add_empty_action("Action");
 			}
 			
 			/* Make sure we have an actionchannel */

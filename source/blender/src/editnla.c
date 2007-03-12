@@ -492,9 +492,9 @@ void add_empty_nlablock(void)
 		
 	/* make new action */
 	if ((ob->type == OB_ARMATURE) && (ob->flag & OB_POSEMODE))
-		act= add_empty_action(ID_AR);
+		act= add_empty_action("ObAction");
 	else
-		act= add_empty_action(ID_OB);
+		act= add_empty_action("Action");
 		
 	/* make a new strip for it */
 	add_nla_block_by_name(act->id.name, ob, 0, 1, 1.0f);

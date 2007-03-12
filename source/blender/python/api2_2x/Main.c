@@ -49,6 +49,7 @@
 
 /* Use the add_* from BKE_* */
 #include "BKE_global.h"
+#include "BKE_utildefines.h" /* clamp */
 #include "BKE_armature.h"
 #include "BKE_ipo.h"
 #include "BKE_image.h"
@@ -74,6 +75,7 @@
 #include "BIF_drawimage.h" /* what image */
 #include "BIF_drawtext.h" /* unlink_text */
 #include "BIF_editsound.h" /* sound_new_sound */
+#include "BIF_editaction.h" /* add_empty_action */
 
 /* python types */
 #include "../BPY_extern.h" /* clearing scriptlinks */
@@ -91,6 +93,7 @@
 #include "Mesh.h"
 #include "Lattice.h"
 #include "Metaball.h"
+#include "Text.h"
 #include "Text3d.h"
 #include "Font.h"
 #include "Group.h"
@@ -102,6 +105,12 @@
 #include "NLA.h"
 #include "Main.h"
 #include "Scene.h"
+
+/* used only for texts.active */
+#include "BIF_screen.h"
+#include "DNA_space_types.h"
+#include "DNA_screen_types.h"
+
 
 static PyObject *MainSeq_CreatePyObject( Link *iter, int type )
 {
@@ -253,6 +262,15 @@ PyObject *MainSeq_getActive(BPy_MainSeq *self)
 			return Image_CreatePyObject( G.sima->image );
 		}
 		break;
+	case ID_TXT: {
+			SpaceText *st= curarea->spacedata.first;
+			
+			if (st->spacetype!=SPACE_TEXT || st->text==NULL) {
+				Py_RETURN_NONE;
+			} else {
+				return Text_CreatePyObject( st->text );
+			}
+		}
 	}
 	
 	return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -306,13 +324,28 @@ static int MainSeq_setActive(BPy_MainSeq *self, PyObject *value)
 				G.sima->image= data;
 		}
 		return 0;
+	
+	case ID_TXT:
+		if (!BPy_Text_Check(value)) {
+			return EXPP_ReturnIntError(PyExc_TypeError,
+					"Must be a text" );
+		} else {
+			SpaceText *st= curarea->spacedata.first;	
+			Text *data = ((BPy_Text *)value)->text;
+			
+			if( !data )
+				return EXPP_ReturnIntError( PyExc_RuntimeError,
+						      "This object isn't linked to a Blender Text Object" );
+			if(st->spacetype!=SPACE_TEXT)
+				return 0;
+			st->text = data;
+		}
+		return 0;
 	}
 	
 	return EXPP_ReturnIntError( PyExc_TypeError,
 			"Only Scene and Image types have the active attribute" );
 }
-
-
 
 /* New Data, internal functions */
 Mesh *add_mesh__internal(char *name)
@@ -325,118 +358,8 @@ Mesh *add_mesh__internal(char *name)
 	when ob.getBoundBox() is called.*/
 	MEM_freeN(mesh->bb);
 	mesh->bb= NULL;
-	mesh->id.us = 0;
 	return mesh;
 }
-
-Curve *add_curve__internal(char *name)
-{
-	Curve *blcurve = NULL;	/* for actual Curve Data we create in Blender */
-	
-	blcurve = add_curve( name, OB_CURVE );	/* first create the Curve Data in Blender */
-
-	/* null check? */
-
-	/* return user count to zero because add_curve() inc'd it */
-	blcurve->id.us = 0;
-	return blcurve;
-}
-
-MetaBall *add_metaball__internal(char *name)
-{
-	MetaBall *blmball;	/* for actual Data we create in Blender */
-	blmball = add_mball( name );	/* first create the MetaBall Data in Blender */
-	blmball->id.us = 0;
-	return blmball;
-}
-
-Material *add_material__internal(char *name)
-{
-	Material *bmat;
-	bmat = add_material( name );
-	bmat->id.us = 0;	/* was incref'ed by add_material() above */
-	return bmat;
-}
-
-Tex *add_texture__internal(char *name)
-{
-	Tex *btex;
-	btex= add_texture( name );
-	btex->id.us = 0;	/* was incref'ed by add_material() above */
-	return btex;
-}
-
-Lattice *add_lattice__internal(char *name)
-{
-	Lattice *blat;
-	blat= add_lattice(name);
-	blat->id.us = 0;	/* was incref'ed by add_material() above */
-	return blat;
-}
-
-Lamp *add_lamp__internal(char *name)
-{
-	Lamp *blam;
-	blam= add_lamp( name );
-	blam->id.us = 0;	/* was incref'ed by add_material() above */
-	return blam;
-}
-
-Camera *add_camera__internal(char *name)
-{
-	Camera *bcam;
-	bcam= add_camera( name );
-	bcam->id.us = 0;	/* was incref'ed by add_material() above */
-	return bcam;
-}
-
-Ipo *add_ipo__internal(char *name, short idcode)
-{
-	Ipo *blipo;
-	blipo = add_ipo( name, idcode );
-	blipo->id.us = 0;
-	return blipo;
-}
-
-World *add_world__internal(char *name)
-{
-	World *bwor;
-	bwor= add_world( name );
-	bwor->id.us = 0;	/* was incref'ed by add_material() above */
-	return bwor;
-}
-
-Text *add_text__internal(char *name)
-{
-	Text *btxt;
-	btxt= add_empty_text( name );
-	return btxt;
-}
-
-Group *add_group__internal(char *name)
-{
-	Group *bgrp;
-	bgrp= add_group( name );
-	bgrp->id.us = 1;
-	return bgrp;
-}
-
-bArmature *add_armature__internal(char *name)
-{
-	bArmature *barm;
-	barm= add_armature( name );
-	barm->id.us = 0;
-	return barm;
-}
-
-bAction *add_action__internal(char *name)
-{
-	bAction *bact;
-	bact = alloc_libblock( &G.main->action, ID_AC, name );
-	bact->id.flag |= LIB_FAKEUSER; /* no need to assign a user because alloc_libblock alredy assigns one */
-	return bact;
-}
-
 
 PyObject *MainSeq_new(BPy_MainSeq *self, PyObject * args)
 {
@@ -444,12 +367,15 @@ PyObject *MainSeq_new(BPy_MainSeq *self, PyObject * args)
 	char *name, *ipo_type;
 	int img_width=256, img_height=256;
 	short ipo_code = 0;
+	int user_count = 0;
 	
 	if (self->type == ID_IM) {
 		/* Image, accepts width and height*/
 		if( !PyArg_ParseTuple( args, "s|ii", &name, &img_width, &img_height ) )
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"one string and two ints expected as arguments" );
+		CLAMP(img_width,  4, 5000);
+		CLAMP(img_height, 4, 5000);
 		
 	} else if (self->type == ID_IP) {
 		/* IPO, needs name and type strings */
@@ -493,6 +419,7 @@ PyObject *MainSeq_new(BPy_MainSeq *self, PyObject * args)
 	switch (self->type) {
 	case ID_SCE:
 		id = (ID *)add_scene( name );
+		user_count = 1;
 		break;
 	case ID_OB:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -501,16 +428,16 @@ PyObject *MainSeq_new(BPy_MainSeq *self, PyObject * args)
 		id = (ID *)add_mesh__internal( name );
 		break;
 	case ID_CU:
-		id = (ID *)add_curve__internal( name );
+		id = (ID *)add_curve( name, OB_CURVE );
 		break;
 	case ID_MB:
-		id = (ID *)add_metaball__internal( name );
+		id = (ID *)add_mball( name );
 		break;
 	case ID_MA:
-		id = (ID *)add_material__internal( name );
+		id = (ID *)add_material( name );
 		break;
 	case ID_TE:
-		id = (ID *)add_texture__internal( name );
+		id = (ID *)add_texture( name );
 		break;
 	case ID_IM: 
 	{
@@ -522,44 +449,51 @@ PyObject *MainSeq_new(BPy_MainSeq *self, PyObject * args)
 		break;
 	}
 	case ID_LT:
-		id = (ID *)add_lattice__internal( name );
+		id = (ID *)add_lattice( name );
 		break;
 	case ID_LA:
-		id = (ID *)add_lamp__internal( name );
+		id = (ID *)add_lamp( name );
 		break;
 	case ID_CA:
-		id = (ID *)add_camera__internal( name );
+		id = (ID *)add_camera( name );
 		break;
 	case ID_IP:
-		id = (ID *)add_ipo__internal( name, ipo_code );
+		id = (ID *)add_ipo( name, ipo_code );
 		break;
 	case ID_WO:
-		id = (ID *)add_world__internal( name );
+		id = (ID *)add_world( name );
 		break;
 	case ID_VF:
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"Cannot create new fonts, use the load() function to load from a file" );
 	case ID_TXT:
-		id = (ID *)add_text__internal( name );
+		id = (ID *)add_empty_text( name );
+		user_count = 1;
 		break;
 	case ID_SO:
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"Cannot create new sounds, use the load() function to load from a file" );
 	case ID_GR:	
-		id = (ID *)add_group__internal( name );
+		id = (ID *)add_group( name );
+		user_count = 1;
 		break;
 	case ID_AR:
-		id = (ID *)add_armature__internal( name );
+		id = (ID *)add_armature( name );
 		break;
 	case ID_AC:
-		id = (ID *)add_action__internal( name );
+		id = (ID *)add_empty_action( name );
+		user_count = 1;
 		break;
 	}
-	
-	if (id)	return GetPyObjectFromID(id);
-	Py_RETURN_NONE;
-}
 
+	if (!id)
+		Py_RETURN_NONE;
+
+	/* set some types user count to 1, otherwise zero */
+	id->us = user_count;
+	
+	return GetPyObjectFromID(id);
+}
 
 PyObject *MainSeq_load(BPy_MainSeq *self, PyObject * args)
 {

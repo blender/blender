@@ -1684,7 +1684,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname)
 		}
 		
 		if(ob->action==NULL)
-			ob->action= add_empty_action(blocktype);
+			ob->action= add_empty_action("Action");
 		
 		achan= verify_action_channel(ob->action, actname);
 		

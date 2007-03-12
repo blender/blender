@@ -159,7 +159,7 @@ Text *add_empty_text(char *name)
 	Text *ta;
 	TextLine *tmp;
 	
-	ta= alloc_libblock(&G.main->text, ID_TXT, "Text");
+	ta= alloc_libblock(&G.main->text, ID_TXT, name);
 	ta->id.us= 1;
 	
 	ta->name= NULL;

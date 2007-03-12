@@ -942,10 +942,15 @@ void do_global_buttons(unsigned short event)
 
 			/* Store current action */
 			if (!idtest){
-				if (act)
+				if (act) {
 					idtest= (ID *)copy_action(act);
-				else 
-					idtest=(ID *)add_empty_action(ob->type==OB_ARMATURE?ID_PO:ID_OB);
+				} else { 
+					if (ID_OB==ob->type) {
+						idtest=(ID *)add_empty_action("ObAction");
+					} else {
+						idtest=(ID *)add_empty_action("Action");
+					}
+				}
 				idtest->us--;
 			}
 			

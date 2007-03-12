@@ -125,12 +125,5 @@ class Text:
 		@return:  A list of strings, one for each line in the buffer
 		"""
 
-	def makeCurrent():
-		"""
-		Display this text in the current 3d view if any
-		@rtype: None
-		@return: None
-		"""
-
 import id_generics
 Text.__doc__ += id_generics.attributes

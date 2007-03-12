@@ -2224,7 +2224,7 @@ void special_aftertrans_update(TransInfo *t)
 			act= ob->action;
 			
 			if (!act)
-				act= ob->action= add_empty_action(ID_PO);
+				act= ob->action= add_empty_action("Action");
 			
 			for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
 				if (pchan->bone->flag & BONE_TRANSFORM){

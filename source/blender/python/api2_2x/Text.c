@@ -44,11 +44,6 @@
 #include "gen_library.h"
 #include "../BPY_extern.h"
 
-/* used only for makeCurrent, this may be deprecated when Blender.Base is implimented */
-#include "BIF_screen.h"
-#include "DNA_space_types.h"
-#include "DNA_screen_types.h"
-
 #define EXPP_TEXT_MODE_FOLLOW TXT_FOLLOW
 
 /*****************************************************************************/
@@ -91,7 +86,6 @@ struct PyMethodDef M_Text_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-static int Text_IsLinked( BPy_Text * self );
 
 /*****************************************************************************/
 /* Python BPy_Text methods declarations:                                     */
@@ -102,7 +96,6 @@ static PyObject *Text_clear( BPy_Text * self );
 static PyObject *Text_write( BPy_Text * self, PyObject * args );
 static PyObject *Text_set( BPy_Text * self, PyObject * args );
 static PyObject *Text_asLines( BPy_Text * self );
-static PyObject *Text_makeCurrent( BPy_Text * self );
 
 /*****************************************************************************/
 /* Python BPy_Text methods table:                                            */
@@ -125,8 +118,6 @@ static PyMethodDef BPy_Text_methods[] = {
 	 "(name, val) - Set attribute 'name' to value 'val'"},
 	{"asLines", ( PyCFunction ) Text_asLines, METH_NOARGS,
 	 "() - Return text buffer as a list of lines"},
-	{"makeCurrent", ( PyCFunction ) Text_makeCurrent, METH_NOARGS,
-	 "() - display this text."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -468,21 +459,6 @@ static PyObject *Text_asLines( BPy_Text * self )
 	return list;
 }
 
-static PyObject *Text_makeCurrent( BPy_Text * self )
-{
-	SpaceText *st= curarea->spacedata.first;
-	
-	if( !self->text )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "This object isn't linked to a Blender Text Object" );
-	
-	if(st->spacetype!=SPACE_TEXT)
-		Py_RETURN_NONE;
-	
-	st->text = self->text;
-	Py_RETURN_NONE;
-}
-
 /*****************************************************************************/
 /* Function:    Text_dealloc                                                 */
 /* Description: This is a callback function for the BPy_Text type. It is     */
@@ -513,31 +489,12 @@ static int Text_compare( BPy_Text * a, BPy_Text * b )
 /*****************************************************************************/
 static PyObject *Text_repr( BPy_Text * self )
 {
-	if( self->text && Text_IsLinked( self ) )
+	if( self->text )
 		return PyString_FromFormat( "[Text \"%s\"]",
 					    self->text->id.name + 2 );
 	else
 		return PyString_FromString( "[Text <deleted>]" );
 }
-
-/* Internal function to confirm if a Text wasn't unlinked.
- * This is necessary because without it, if a script writer
- * referenced an already unlinked Text obj, Blender would crash. */
-static int Text_IsLinked( BPy_Text * self )
-{
-	Text *txt_iter = G.main->text.first;
-
-	while( txt_iter ) {
-		if( self->text == txt_iter )
-			return 1;	/* ok, still linked */
-
-		txt_iter = txt_iter->id.next;
-	}
-/* uh-oh, it was already deleted */
-	self->text = NULL;	/* so we invalidate the pointer */
-	return 0;
-}
-
 
 /*****************************************************************************/
 /* Python attributes get/set functions:                                      */

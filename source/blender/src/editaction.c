@@ -939,17 +939,16 @@ bActionChannel* get_hilighted_action_channel(bAction* action)
 
 }
 
-bAction *add_empty_action(int blocktype)
+bAction *add_empty_action(char *name)
 {
 	bAction *act;
-	char *str= "Action";
-	
+	/*
 	if(blocktype==ID_OB)
 		str= "ObAction";
 	else if(blocktype==ID_KE)
 		str= "ShapeAction";
-	
-	act= alloc_libblock(&G.main->action, ID_AC, str);
+	*/
+	act= alloc_libblock(&G.main->action, ID_AC, name);
 	act->id.flag |= LIB_FAKEUSER;
 	act->id.us++;
 	return act;
@@ -3514,7 +3513,7 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 	}
 	
 	/* Get a new action */
-	result = add_empty_action(ID_PO);
+	result = add_empty_action("Action");
 	id= (ID *)armob;
 
 	/* Assign the new action a unique name */
@@ -3599,7 +3598,7 @@ bAction* bake_obIPO_to_action (Object *ob)
 	if (arm) {	
 	
 		oldframe = CFRA;
-		result = add_empty_action(ID_PO);
+		result = add_empty_action("Action");
 		id = (ID *)ob;
 		
 		sprintf (newname, "TESTOBBAKE");
@@ -3671,7 +3670,7 @@ bAction* bake_everything_to_action (Object *ob)
 	if (arm) {	
 	
 		oldframe = CFRA;
-		result = add_empty_action(ID_PO);
+		result = add_empty_action("Action");
 		id = (ID *)ob;
 		
 		sprintf (newname, "TESTOBBAKE");
