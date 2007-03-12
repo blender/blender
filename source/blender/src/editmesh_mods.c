@@ -3024,6 +3024,27 @@ void faceselect_align_view_to_selected(View3D *v3d, Mesh *me, int axis)
 		view3d_align_axis_to_vector(v3d, axis, norm);
 }
 
+/* helper for below, to survive non-uniform scaled objects */
+static void face_getnormal_obspace(EditFace *efa, float *fno)
+{
+	float vec[4][3];
+	
+	VECCOPY(vec[0], efa->v1->co);
+	Mat4Mul3Vecfl(G.obedit->obmat, vec[0]);
+	VECCOPY(vec[1], efa->v2->co);
+	Mat4Mul3Vecfl(G.obedit->obmat, vec[1]);
+	VECCOPY(vec[2], efa->v3->co);
+	Mat4Mul3Vecfl(G.obedit->obmat, vec[2]);
+	if(efa->v4) {
+		VECCOPY(vec[3], efa->v4->co);
+		Mat4Mul3Vecfl(G.obedit->obmat, vec[3]);
+		
+		CalcNormFloat4(vec[0], vec[1], vec[2], vec[3], fno);
+	}
+	else CalcNormFloat(vec[0], vec[1], vec[2], fno);
+}
+
+
 void editmesh_align_view_to_selected(View3D *v3d, int axis)
 {
 	EditMesh *em = G.editMesh;
@@ -3032,25 +3053,23 @@ void editmesh_align_view_to_selected(View3D *v3d, int axis)
 	
 	if (nselverts==0) {
 		error("No faces or vertices selected.");
-	} else if (EM_nfaces_selected()) {
+	} 
+	else if (EM_nfaces_selected()) {
 		EditFace *efa;
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			if (faceselectedAND(efa, SELECT)) {
 				float fno[3];
-				if (efa->v4) CalcNormFloat4(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co, fno);
-				else CalcNormFloat(efa->v1->co, efa->v2->co, efa->v3->co, fno);
-						/* XXX, fixme, should be flipped intp a 
-						 * consistent direction. -zr
-						 */
+				
+				face_getnormal_obspace(efa, fno);
 				norm[0]+= fno[0];
 				norm[1]+= fno[1];
 				norm[2]+= fno[2];
 			}
 		}
 
-		Mat4Mul3Vecfl(G.obedit->obmat, norm);
 		view3d_align_axis_to_vector(v3d, axis, norm);
-	} else if (nselverts>2) {
+	} 
+	else if (nselverts>2) {
 		float cent[3];
 		EditVert *eve, *leve= NULL;
 
@@ -3074,7 +3093,8 @@ void editmesh_align_view_to_selected(View3D *v3d, int axis)
 
 		Mat4Mul3Vecfl(G.obedit->obmat, norm);
 		view3d_align_axis_to_vector(v3d, axis, norm);
-	} else if (nselverts==2) { /* Align view to edge (or 2 verts) */ 
+	} 
+	else if (nselverts==2) { /* Align view to edge (or 2 verts) */ 
 		EditVert *eve, *leve= NULL;
 
 		for (eve= em->verts.first; eve; eve= eve->next) {
@@ -3090,7 +3110,8 @@ void editmesh_align_view_to_selected(View3D *v3d, int axis)
 		}
 		Mat4Mul3Vecfl(G.obedit->obmat, norm);
 		view3d_align_axis_to_vector(v3d, axis, norm);
-	} else if (nselverts==1) { /* Align view to vert normal */ 
+	} 
+	else if (nselverts==1) { /* Align view to vert normal */ 
 		EditVert *eve;
 
 		for (eve= em->verts.first; eve; eve= eve->next) {
