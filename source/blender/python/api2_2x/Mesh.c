@@ -442,6 +442,31 @@ static void delete_edges( Mesh *mesh, unsigned int *vert_table, int to_delete )
 	}
 }
 
+/*	 
+* Since all faces must have 3 or 4 verts, we can't have v3 or v4 be zero.	 
+* If that happens during the deletion, we have to shuffle the vertices	 
+* around; otherwise it can cause an Eeekadoodle or worse.  If there are	 
+* texture faces as well, they have to be shuffled as well.	 
+*	 
+* (code borrowed from test_index_face() in mesh.c, but since we know the	 
+* faces already have correct number of vertices, this is a little faster)	 
+*/	 
+ 
+static void eeek_fix( MFace *mface, int len4 )
+{
+	/* if 4 verts, then neither v3 nor v4 can be zero */
+	if( len4 ) {
+		if( !mface->v3 || !mface->v4 ) {
+			SWAP( int, mface->v1, mface->v3 );
+			SWAP( int, mface->v2, mface->v4 );
+		}
+	} else if( !mface->v3 ) {
+		/* if 2 verts, then just v3 cannot be zero (v4 MUST be zero) */
+		SWAP( int, mface->v1, mface->v2 );
+		SWAP( int, mface->v2, mface->v3 );
+	}
+}
+
 static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
 {
 	int i;
@@ -4801,7 +4826,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 		 * go through some contortions to guarantee the third and fourth
 		 * vertices are not index 0
 		 */
-		test_index_face( &tmpface, NULL, 0, nverts );
+		eeek_fix( &tmpface, nverts == 4 );
 		vert[0] = tmpface.v1;
 		vert[1] = tmpface.v2;
 		vert[2] = tmpface.v3;
