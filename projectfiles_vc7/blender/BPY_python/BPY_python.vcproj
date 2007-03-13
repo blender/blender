@@ -153,6 +153,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Effect.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\gen_library.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Geometry.c">
 			</File>
 			<File
@@ -223,6 +226,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\sceneRender.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\sceneSequence.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\sceneTimeLine.c">
@@ -353,6 +359,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Effect.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\gen_library.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Group.h">
 			</File>
 			<File
@@ -411,6 +420,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\sceneRender.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\sceneSequence.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\sceneTimeLine.h">
