@@ -1,5 +1,4 @@
 /**
- * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -873,7 +872,11 @@ int blenderqread(unsigned short event, short val)
 				}
 				return 0;
 			}
-			/* python specials here? */
+			/* Python specials? ;)
+			else if(G.qual==LR_ALTKEY) {
+				write_videoscape_fs();
+				return 0;
+			}*/ 
 		}
 		break;
 		

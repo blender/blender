@@ -4,7 +4,6 @@
  * Functions to draw the "User Preferences" window header
  * and handle user events sent to it.
  * 
- * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -640,7 +639,7 @@ static uiBlock *info_file_importmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	for (pym = BPyMenuTable[PYMENU_IMPORT]; pym; pym = pym->next, i++) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+4, pym->tooltip?pym->tooltip:pym->filename);
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+3, pym->tooltip?pym->tooltip:pym->filename);
 	}
 
 	uiBlockSetDirection(block, UI_RIGHT);

@@ -701,6 +701,8 @@ static PyObject *Blender_Save( PyObject * self, PyObject * args )
 		write_stl( fname );
 	else if( BLI_testextensie( fname, ".wrl" ) )
 		write_vrml( fname );
+	else if( BLI_testextensie( fname, ".obj" ) )
+		write_videoscape( fname );
 	else {
 		disable_where_script( 0 );
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
