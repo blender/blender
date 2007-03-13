@@ -277,7 +277,7 @@ extern bNodeType *node_all_composit[];
 /* API */
 struct CompBuf;
 void ntreeCompositTagRender(struct Scene *sce);
-void ntreeCompositTagAnimated(struct bNodeTree *ntree);
+int ntreeCompositTagAnimated(struct bNodeTree *ntree);
 void ntreeCompositTagGenerators(struct bNodeTree *ntree);
 void ntreeCompositForceHidden(struct bNodeTree *ntree);
 

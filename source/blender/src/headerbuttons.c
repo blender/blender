@@ -106,6 +106,7 @@
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_packedFile.h"
 #include "BKE_sca.h"
@@ -418,9 +419,15 @@ static void do_update_for_newframe(int mute, int events)
 	if ( (CFRA>1) && (!mute) && (G.scene->audio.flag & AUDIO_SCRUB)) 
 		audiostream_scrub( CFRA );
 	
+	/* 3d window, preview */
 	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 
+	/* all movie/sequence images */
 	BIF_image_update_frame();
+	
+	/* composite */
+	if(G.scene->use_nodes && G.scene->nodetree)
+		ntreeCompositTagAnimated(G.scene->nodetree);
 }
 
 void update_for_newframe(void)

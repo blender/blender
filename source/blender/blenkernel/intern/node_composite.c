@@ -6072,23 +6072,37 @@ void ntreeCompositTagRender(Scene *curscene)
 }
 
 /* tags nodes that have animation capabilities */
-void ntreeCompositTagAnimated(bNodeTree *ntree)
+int ntreeCompositTagAnimated(bNodeTree *ntree)
 {
 	bNode *node;
+	int tagged= 0;
 	
-	if(ntree==NULL) return;
+	if(ntree==NULL) return 0;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
 		if(node->type==CMP_NODE_IMAGE) {
 			Image *ima= (Image *)node->id;
-			if(ima && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
+			if(ima && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 				NodeTagChanged(ntree, node);
+				tagged= 1;
+			}
 		}
-		else if(node->type==CMP_NODE_TIME)
+		else if(node->type==CMP_NODE_TIME) {
 			NodeTagChanged(ntree, node);
-		else if(node->type==CMP_NODE_R_LAYERS)
+			tagged= 1;
+		}
+		else if(node->type==CMP_NODE_R_LAYERS) {
 			NodeTagChanged(ntree, node);
+			tagged= 1;
+		}
+		else if(node->type==NODE_GROUP) {
+			if( ntreeCompositTagAnimated((bNodeTree *)node->id) ) {
+				NodeTagChanged(ntree, node);
+			}
+		}
 	}
+	
+	return tagged;
 }
 
 
