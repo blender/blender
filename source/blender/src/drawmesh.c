@@ -33,10 +33,6 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -83,6 +79,10 @@
 
 #include "blendef.h"
 #include "nla.h"
+
+#ifndef GL_CLAMP_TO_EDGE
+#define GL_CLAMP_TO_EDGE                        0x812F
+#endif
 
 //#include "glext.h"
 /* some local functions */
