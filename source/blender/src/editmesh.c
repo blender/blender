@@ -1096,9 +1096,14 @@ void load_editMesh(void)
 		
 		mface->flag= efa->flag;
 		/* bit 0 of flag is already taken for smooth... */
-		if(efa->f & 1) mface->flag |= ME_FACE_SEL;
-		else mface->flag &= ~ME_FACE_SEL;
-		if(efa->h) mface->flag |= ME_HIDE;
+		
+		if(efa->h) {
+			mface->flag |= ME_HIDE;
+			mface->flag &= ~ME_FACE_SEL;
+		} else {
+			if(efa->f & 1) mface->flag |= ME_FACE_SEL;
+			else mface->flag &= ~ME_FACE_SEL;
+		}
 		
 		/* mat_nr in vertex */
 		if(me->totcol>1) {
