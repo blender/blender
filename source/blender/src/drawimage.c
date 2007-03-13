@@ -948,10 +948,10 @@ static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPE
 		uiDefButS(block, NUM, B_SIMAGEDRAW, "X:",		160,130,70,19, &G.sima->image->xrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the X direction");
 		uiDefButS(block, NUM, B_SIMAGEDRAW, "Y:",		230,130,70,19, &G.sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
 		uiBlockBeginAlign(block);
-		
+
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, IMA_NOREPEAT_U, B_SIMAGEDRAW, "No XRep",	160,100,70,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating horizontaly");
-		uiDefButBitS(block, TOG, IMA_NOREPEAT_V, B_SIMAGEDRAW, "No YRep",	230,100,70,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating vertically");
+		uiDefButBitS(block, TOG, IMA_CLAMP_U, B_SIMAGEDRAW, "ClampX",	160,100,70,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating horizontaly");
+		uiDefButBitS(block, TOG, IMA_CLAMP_V, B_SIMAGEDRAW, "ClampY",	230,100,70,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating vertically");
 		uiBlockEndAlign(block);		
 	}
 }

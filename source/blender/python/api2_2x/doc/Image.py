@@ -111,10 +111,10 @@ class Image:
 	@type bindcode: int
 	@ivar source: Image source type.  See L{the Sources dictionary<Sources>} .
 	@type source: int
-	@ivar noXTile: When true the image will not tile horizontally.
-	@type noXTile: bool
-	@ivar noYTile: When true the image will not tile vertically.
-	@type noYTile: bool
+	@ivar clampX: When true the image will not tile horizontally.
+	@type clampX: bool
+	@ivar clampY: When true the image will not tile vertically.
+	@type clampY: bool
 	"""
 
 	def getName():

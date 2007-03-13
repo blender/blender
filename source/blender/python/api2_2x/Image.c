@@ -1312,10 +1312,10 @@ static PyGetSetDef BPy_Image_getseters[] = {
 	 "image antialiasing toggle", (void *)IMA_ANTIALI },
 	{"reflect", (getter)Image_getFlag, (setter)Image_setFlag,
 	 "image reflect toggle", (void *)IMA_REFLECT },
-	{"noXTile", (getter)Image_getFlagTpage, (setter)Image_setFlagTpage,
-	 "image reflect toggle", (void *)IMA_REFLECT },
-	{"noYTile", (getter)Image_getFlagTpage, (setter)Image_setFlagTpage,
-	 "image reflect toggle", (void *)IMA_REFLECT },
+	{"clampX", (getter)Image_getFlagTpage, (setter)Image_setFlagTpage,
+	 "disable tiling on the X axis", (void *)IMA_CLAMP_U },
+	{"clampY", (getter)Image_getFlagTpage, (setter)Image_setFlagTpage,
+	 "disable tiling on the Y axis", (void *)IMA_CLAMP_V },
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 

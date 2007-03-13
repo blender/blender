@@ -418,11 +418,11 @@ int set_tpage(MTFace *tface)
 	else glBindTexture( GL_TEXTURE_2D, *bind);
 	
 	/* dont tile x/y as set the the game properties */
-	if (ima->tpageflag & IMA_NOREPEAT_U)
+	if (ima->tpageflag & IMA_CLAMP_U)
 	   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	else
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	if (ima->tpageflag & IMA_NOREPEAT_V)
+	if (ima->tpageflag & IMA_CLAMP_V)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	else
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
