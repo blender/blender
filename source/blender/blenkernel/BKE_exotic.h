@@ -28,7 +28,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- * dxf/vrml/videoscape external file io function prototypes
+ * dxf/vrml/stl external file io function prototypes
  */
 
 #ifndef BKE_EXOTIC_H
@@ -49,7 +49,6 @@ int BKE_read_exotic(char *name);
 
 void write_dxf(char *str);
 void write_vrml(char *str);
-void write_videoscape(char *str);
 void write_stl(char *str);
 
 #endif

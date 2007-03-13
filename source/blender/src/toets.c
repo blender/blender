@@ -873,10 +873,7 @@ int blenderqread(unsigned short event, short val)
 				}
 				return 0;
 			}
-			else if(G.qual==LR_ALTKEY) {
-				write_videoscape_fs();
-				return 0;
-			}
+			/* python specials here? */
 		}
 		break;
 		

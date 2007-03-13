@@ -87,7 +87,7 @@ if __name__ == '__main__':
 	main()
 '''
 
-new_text = Text.New('mesh_template.py')
+new_text = bpy.texts.new('mesh_template.py')
 new_text.write(script_data)
-new_text.makeCurrent()
+bpy.texts.active = new_text
 Window.RedrawAll()

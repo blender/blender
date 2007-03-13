@@ -60,7 +60,6 @@ void update_for_newframe_muted(void);
 void update_for_newframe_nodraw(int nosound);
 void free_matcopybuf(void);
 void clear_matcopybuf(void);
-void write_videoscape_fs(void);
 void write_vrml_fs(void);
 void write_dxf_fs(void);
 void write_stl_fs(void);

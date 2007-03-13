@@ -352,7 +352,7 @@ void rad_collect_meshes()
 		if (!during_script()) error("No vertices");
 		return;
 	}
-	vnc= RG.verts= MEM_callocN(RG.totvert*sizeof(VeNoCo), "readvideoscape1");
+	vnc= RG.verts= MEM_callocN(RG.totvert*sizeof(VeNoCo), "radioverts");
 
 	RG.min[0]= RG.min[1]= RG.min[2]= 1.0e20f;
 	RG.max[0]= RG.max[1]= RG.max[2]= -1.0e20f;
