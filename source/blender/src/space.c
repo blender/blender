@@ -692,13 +692,55 @@ static void select_parent(void)	/* Makes parent active and de-selected OBACT */
 	}
 }
 
+
+#define GROUP_MENU_MAX	24
 static void select_same_group(Object *ob)	/* Select objects in the same group as the active */
 {
 	Base *base;
-	Group *group= find_group(ob);
-	if (!group || !ob)
+	Group *group, *ob_groups[GROUP_MENU_MAX];
+	char str[10 + (24*GROUP_MENU_MAX)];
+	char *p = str;
+	int group_count=0, menu, i;
+
+	if (!ob)
 		return;
 	
+	for (	group=G.main->group.first;
+			group && group_count < GROUP_MENU_MAX;
+			group=group->id.next
+		) {
+		if (object_in_group (ob, group)) {
+			ob_groups[group_count] = group;
+			group_count++;
+		}
+	}
+	
+	if (!group_count)
+		return;
+	
+	else if (group_count == 1) {
+		group = ob_groups[0];
+		for (base= FIRSTBASE; base; base= base->next) {
+			if (!(base->flag & SELECT) && object_in_group(base->object, group)) {
+				base->flag |= SELECT;
+				base->object->flag |= SELECT;
+			}
+		}
+		return;
+	}
+	
+	/* build the menu. */
+	p += sprintf(str, "Groups%%t");	
+	for (i=0; i<group_count; i++) {
+		group = ob_groups[i];
+		p += sprintf (p, "|%s%%x%i", group->id.name+2, i);
+	}
+	
+	menu = pupmenu (str);
+	if (menu == -1)
+		return;
+	
+	group = ob_groups[menu];
 	for (base= FIRSTBASE; base; base= base->next) {
 		if (!(base->flag & SELECT) && object_in_group(base->object, group)) {
 			base->flag |= SELECT;
