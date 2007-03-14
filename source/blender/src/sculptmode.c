@@ -115,6 +115,7 @@ typedef struct ActiveData {
 	struct ActiveData *next, *prev;
 	unsigned int Index;
 	float Fade;
+	float dist;
 } ActiveData;
 
 typedef struct GrabData {
@@ -195,10 +196,17 @@ void sculptmode_init(Scene *sce)
 
 	memset(sd, 0, sizeof(SculptData));
 
-	sd->drawbrush.size=sd->smoothbrush.size=sd->pinchbrush.size=sd->inflatebrush.size=sd->grabbrush.size=sd->layerbrush.size= 50;
-	sd->drawbrush.strength=sd->smoothbrush.strength=sd->pinchbrush.strength=sd->inflatebrush.strength=sd->grabbrush.strength=sd->layerbrush.strength= 25;
-	sd->drawbrush.dir=sd->pinchbrush.dir=sd->inflatebrush.dir=sd->layerbrush.dir= 1;
-	sd->drawbrush.airbrush=sd->smoothbrush.airbrush=sd->pinchbrush.airbrush=sd->inflatebrush.airbrush=sd->layerbrush.airbrush= 0;
+	sd->drawbrush.size = sd->smoothbrush.size = sd->pinchbrush.size =
+		sd->inflatebrush.size = sd->grabbrush.size =
+		sd->layerbrush.size = sd->flattenbrush.size = 50;
+	sd->drawbrush.strength = sd->smoothbrush.strength =
+		sd->pinchbrush.strength = sd->inflatebrush.strength =
+		sd->grabbrush.strength = sd->layerbrush.strength =
+		sd->flattenbrush.strength = 25;
+	sd->drawbrush.dir = sd->pinchbrush.dir = sd->inflatebrush.dir = sd->layerbrush.dir= 1;
+	sd->drawbrush.airbrush = sd->smoothbrush.airbrush =
+		sd->pinchbrush.airbrush = sd->inflatebrush.airbrush =
+		sd->layerbrush.airbrush = sd->flattenbrush.airbrush = 0;
 	sd->drawbrush.view= 0;
 	sd->brush_type= DRAW_BRUSH;
 	sd->texact= -1;
@@ -430,6 +438,8 @@ float brush_strength(EditData *e)
 		return 1;
 	case INFLATE_BRUSH:
 		return b->strength / 5000.0f * dir * pressure * flip;
+	case FLATTEN_BRUSH:
+		return b->strength / 500.0f * pressure;
 	default:
 		return 0;
 	}
@@ -647,6 +657,62 @@ void do_inflate_brush(const EditData *e, const ListBase *active_verts)
 	}
 }
 
+void calc_flatten_center(Mesh *me, ActiveData *node, const EditData *e, float co[3])
+{
+	const int FTOT = 10;
+	ActiveData *outer[FTOT];
+	int i;
+	
+	for(i = 0; i < FTOT; ++i)
+		outer[i] = node;
+		
+	for(; node; node = node->next) {
+		for(i = 0; i < FTOT; ++i) {
+			if(node->dist > outer[i]->dist) {
+				outer[i] = node;
+				break;
+			}
+		}
+	}
+	
+	co[0] = co[1] = co[2] = 0.0f;
+	for(i = 0; i < FTOT; ++i)
+		VecAddf(co, co, me->mvert[outer[i]->Index].co);
+	VecMulf(co, 1.0f / FTOT);
+}
+
+void do_flatten_brush(const EditData *e, const ListBase *active_verts)
+{
+	Mesh *me= get_mesh(OBACT);
+	ActiveData *node= active_verts->first;
+	/* area_normal and cntr define the plane towards which vertices are squashed */
+	vec3f area_normal= calc_area_normal(&e->out, active_verts);
+	float cntr[3];
+	
+	calc_flatten_center(me, node, e, cntr);
+
+	while(node){
+		float *co= me->mvert[node->Index].co;
+		float p1[3], sub1[3], sub2[3], intr[3], val[3];
+		
+		/* Find the intersection between squash-plane and vertex (along the area normal) */
+		VecSubf(p1, co, &area_normal.x);
+		VecSubf(sub1, cntr, p1);
+		VecSubf(sub2, co, p1);
+		VecSubf(intr, co, p1);
+		VecMulf(intr, Inpf(&area_normal.x, sub1) / Inpf(&area_normal.x, sub2));
+		VecAddf(intr, intr, p1);
+		
+		VecSubf(val, intr, co);
+		VecMulf(val, node->Fade);
+		VecAddf(val, val, co);
+		                     
+		sculpt_clip(e, co, val);
+		
+		node= node->next;
+	}
+}
+
 /* Creates a smooth curve for the brush shape. This is the cos(x) curve from
    [0,PI] scaled to [0,len]. The range is scaled to [0,1]. */
 float simple_strength(float p, const float len)
@@ -857,6 +923,7 @@ void do_brush_action(float *vertexcosnos, EditData e,
 					/* Fade is used to store the final strength at which the brush
 					   should modify a particular vertex. */
 					adata->Fade= tex_strength(&e,vert,av_dist,i) * bstrength;
+					adata->dist = av_dist;
 					if(e.grabdata && e.grabdata->firsttime)
 						BLI_addtail(&e.grabdata->active_verts[e.grabdata->index], adata);
 					else
@@ -866,44 +933,50 @@ void do_brush_action(float *vertexcosnos, EditData e,
 		}
 	}
 
-	/* Apply one type of brush action */
-	switch(G.scene->sculptdata.brush_type){
-	case DRAW_BRUSH:
-		do_draw_brush(&e, &active_verts);
-		break;
-	case SMOOTH_BRUSH:
-		do_smooth_brush(&e, &active_verts);
-		break;
-	case PINCH_BRUSH:
-		do_pinch_brush(&e, &active_verts);
-		break;
-	case INFLATE_BRUSH:
-		do_inflate_brush(&e, &active_verts);
-		break;
-	case GRAB_BRUSH:
-		do_grab_brush(&e);
-		break;
-	case LAYER_BRUSH:
-		do_layer_brush(&e, &active_verts);
-		break;
-	}
-	
-	/* Copy the modified vertices from mesh to the active key */
-	if(keyblock) {
-		float *co= keyblock->data;
-		if(co) {
-			adata = e.grabdata ? e.grabdata->active_verts[e.grabdata->index].first : active_verts.first;
-			for(; adata; adata= adata->next)
-				if(adata->Index < keyblock->totelem)
-					VecCopyf(&co[adata->Index*3], me->mvert[adata->Index].co);
+	/* Only act if some verts are inside the brush area */
+	if(active_verts.first || (e.grabdata && e.grabdata->active_verts[e.grabdata->index].first)) {
+		/* Apply one type of brush action */
+		switch(G.scene->sculptdata.brush_type){
+		case DRAW_BRUSH:
+			do_draw_brush(&e, &active_verts);
+			break;
+		case SMOOTH_BRUSH:
+			do_smooth_brush(&e, &active_verts);
+			break;
+		case PINCH_BRUSH:
+			do_pinch_brush(&e, &active_verts);
+			break;
+		case INFLATE_BRUSH:
+			do_inflate_brush(&e, &active_verts);
+			break;
+		case GRAB_BRUSH:
+			do_grab_brush(&e);
+			break;
+		case LAYER_BRUSH:
+			do_layer_brush(&e, &active_verts);
+			break;
+		case FLATTEN_BRUSH:
+			do_flatten_brush(&e, &active_verts);
+			break;
 		}
-	}
+	
+		/* Copy the modified vertices from mesh to the active key */
+		if(keyblock) {
+			float *co= keyblock->data;
+			if(co) {
+				adata = e.grabdata ? e.grabdata->active_verts[e.grabdata->index].first : active_verts.first;
+				for(; adata; adata= adata->next)
+					if(adata->Index < keyblock->totelem)
+						VecCopyf(&co[adata->Index*3], me->mvert[adata->Index].co);
+			}
+		}
 
-	if(vertexcosnos)
-		BLI_freelistN(&active_verts);
-	else {
-		if(!e.grabdata)
-			addlisttolist(damaged_verts, &active_verts);
+		if(vertexcosnos)
+			BLI_freelistN(&active_verts);
+		else {
+			if(!e.grabdata)
+				addlisttolist(damaged_verts, &active_verts);
+		}
 	}
 }
 
@@ -1014,7 +1087,8 @@ BrushData *sculptmode_brush(void)
 		sd->brush_type==PINCH_BRUSH ? &sd->pinchbrush :
 		sd->brush_type==INFLATE_BRUSH ? &sd->inflatebrush :
 		sd->brush_type==GRAB_BRUSH ? &sd->grabbrush :
-		sd->brush_type==LAYER_BRUSH ? &sd->layerbrush : NULL);
+		sd->brush_type==LAYER_BRUSH ? &sd->layerbrush :
+		sd->brush_type==FLATTEN_BRUSH ? &sd->flattenbrush : NULL);
 }
 
 void sculptmode_update_tex()
@@ -1399,7 +1473,7 @@ void sculptmode_selectbrush_menu(void)
 	
 	pupmenu_set_active(sd->brush_type);
 	
-	val= pupmenu("Select Brush%t|Draw|Smooth|Pinch|Inflate|Grab|Layer");
+	val= pupmenu("Select Brush%t|Draw|Smooth|Pinch|Inflate|Grab|Layer|Flatten");
 
 	if(val>0) {
 		sd->brush_type= val;
@@ -1730,6 +1804,8 @@ void sculpt(void)
 		BIF_undo_push("Grab Brush"); break;
 	case LAYER_BRUSH:
 		BIF_undo_push("Layer Brush"); break;
+	case FLATTEN_BRUSH:
+ 		BIF_undo_push("Flatten Brush"); break;
 	default:
 		BIF_undo_push("Sculpting"); break;
 	}

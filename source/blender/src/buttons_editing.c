@@ -4451,11 +4451,12 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	uiBlockBeginAlign(block);	
 	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Draw",cx,cy,67,19,&sd->brush_type,14.0,DRAW_BRUSH,0,0,"Draw lines on the model");
 	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Smooth",cx+67,cy,67,19,&sd->brush_type,14.0,SMOOTH_BRUSH,0,0,"Interactively smooth areas of the model");
-	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Pinch",cx+134,cy,66,19,&sd->brush_type,14.0,PINCH_BRUSH,0,0,"Interactively pinch areas of the model");
+	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Pinch",cx+134,cy,67,19,&sd->brush_type,14.0,PINCH_BRUSH,0,0,"Interactively pinch areas of the model");
+	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Inflate",cx+201,cy,67,19,&sd->brush_type,14,INFLATE_BRUSH,0,0,"Push vertices along the direction of their normals");
 	cy-= 20;
-	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Inflate",cx,cy,67,19,&sd->brush_type,14,INFLATE_BRUSH,0,0,"Push vertices along the direction of their normals");
-	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Grab", cx+67,cy,67,19,&sd->brush_type,14,GRAB_BRUSH,0,0,"Grabs a group of vertices and moves them with the mouse");
-	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Layer", cx+134,cy,66,19,&sd->brush_type,14, LAYER_BRUSH,0,0,"Adds a layer of depth");
+	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Grab", cx,cy,89,19,&sd->brush_type,14,GRAB_BRUSH,0,0,"Grabs a group of vertices and moves them with the mouse");
+	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Layer", cx+89,cy,89,19,&sd->brush_type,14, LAYER_BRUSH,0,0,"Adds a layer of depth");
+	uiDefButS(block,ROW,REDRAWBUTSEDIT,"Flatten", cx+178,cy,90,19,&sd->brush_type,14, FLATTEN_BRUSH,0,0,"Interactively flatten areas of the model");
 	cy-= 25;
 	uiBlockEndAlign(block);
 
@@ -4463,17 +4464,17 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	uiDefBut(block,LABEL,B_NOP,"Shape",cx,cy,90,19,NULL,0,0,0,0,"");
 	cy-= 20;
 	uiBlockBeginAlign(block);
-	if(sd->brush_type!=SMOOTH_BRUSH && sd->brush_type!=GRAB_BRUSH) {
-		uiDefButC(block,ROW,B_NOP,"Add",cx,cy,67,19,&sculptmode_brush()->dir,15.0,1.0,0, 0,"Add depth to model [Shift]");
-		uiDefButC(block,ROW,B_NOP,"Sub",cx+67,cy,67,19,&sculptmode_brush()->dir,15.0,2.0,0, 0,"Subtract depth from model [Shift]");
+	if(sd->brush_type != SMOOTH_BRUSH && sd->brush_type != GRAB_BRUSH && sd->brush_type != FLATTEN_BRUSH) {
+		uiDefButC(block,ROW,B_NOP,"Add",cx,cy,89,19,&sculptmode_brush()->dir,15.0,1.0,0, 0,"Add depth to model [Shift]");
+		uiDefButC(block,ROW,B_NOP,"Sub",cx+89,cy,89,19,&sculptmode_brush()->dir,15.0,2.0,0, 0,"Subtract depth from model [Shift]");
 	}
 	if(sd->brush_type!=GRAB_BRUSH)
-		uiDefButC(block,TOG,B_NOP,"Airbrush",cx+134,cy,66,19,&sculptmode_brush()->airbrush,0,0,0,0,"Brush makes changes without waiting for the mouse to move");
+		uiDefButC(block,TOG,B_NOP,"Airbrush",cx+178,cy,89,19,&sculptmode_brush()->airbrush,0,0,0,0,"Brush makes changes without waiting for the mouse to move");
 	cy-= 20;
-	but= uiDefButS(block,NUMSLI,B_NOP,"Size: ",cx,cy,200,19,&sculptmode_brush()->size,1.0,200.0,0,0,"Set brush radius in pixels");
+	but= uiDefButS(block,NUMSLI,B_NOP,"Size: ",cx,cy,268,19,&sculptmode_brush()->size,1.0,200.0,0,0,"Set brush radius in pixels");
 	cy-= 20;
 	if(sd->brush_type!=GRAB_BRUSH)
-		uiDefButC(block,NUMSLI,B_NOP,"Strength: ",cx,cy,200,19,&sculptmode_brush()->strength,1.0,100.0,0,0,"Set brush strength");
+		uiDefButC(block,NUMSLI,B_NOP,"Strength: ",cx,cy,268,19,&sculptmode_brush()->strength,1.0,100.0,0,0,"Set brush strength");
 	cy-= 25;
 	uiBlockEndAlign(block);
 
@@ -4481,9 +4482,9 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	uiDefBut( block,LABEL,B_NOP,"Symmetry",cx,cy,90,19,NULL,0,0,0,0,"");
 	cy-= 20;
 	uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, SYMM_X, 0, "X", cx,cy,67,19, &sd->symm, 0,0,0,0, "Mirror brush across X axis");
-	uiDefButBitC(block, TOG, SYMM_Y, 0, "Y", cx+67,cy,67,19, &sd->symm, 0,0,0,0, "Mirror brush across Y axis");
-	uiDefButBitC(block, TOG, SYMM_Z, 0, "Z", cx+134,cy,67,19, &sd->symm, 0,0,0,0, "Mirror brush across Z axis");
+	uiDefButBitC(block, TOG, SYMM_X, 0, "X", cx,cy,89,19, &sd->symm, 0,0,0,0, "Mirror brush across X axis");
+	uiDefButBitC(block, TOG, SYMM_Y, 0, "Y", cx+89,cy,89,19, &sd->symm, 0,0,0,0, "Mirror brush across Y axis");
+	uiDefButBitC(block, TOG, SYMM_Z, 0, "Z", cx+178,cy,90,19, &sd->symm, 0,0,0,0, "Mirror brush across Z axis");
 	uiBlockEndAlign(block);
 
 	cx+= 210;

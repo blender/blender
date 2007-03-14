@@ -373,7 +373,7 @@ typedef struct SculptData
 	struct MTex *mtex[10];
 
 	/* Settings for each brush */
-	BrushData drawbrush, smoothbrush, pinchbrush, inflatebrush, grabbrush, layerbrush;
+	BrushData drawbrush, smoothbrush, pinchbrush, inflatebrush, grabbrush, layerbrush, flattenbrush;
 	short brush_type;
 
 	/* For the Brush Shape */
@@ -605,6 +605,7 @@ typedef struct Scene {
 #define INFLATE_BRUSH 4
 #define GRAB_BRUSH 5
 #define LAYER_BRUSH 6
+#define FLATTEN_BRUSH 7
 /* SculptData.texrept */
 #define SCULPTREPT_DRAG 1
 #define SCULPTREPT_TILE 2
