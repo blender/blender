@@ -833,8 +833,15 @@ Object *add_object(int type)
 void base_init_from_view3d(Base *base, View3D *v3d)
 {
 	Object *ob= base->object;
-
-	if (v3d->localview) {
+	
+	if (!v3d) {
+		/* no 3d view, this wont happen often */
+		base->lay = 1;
+		VECCOPY(ob->loc, G.scene->cursor);
+		
+		/* return now because v3d->viewquat isnt available */
+		return;
+	} else if (v3d->localview) {
 		base->lay= ob->lay= v3d->layact + v3d->lay;
 		VECCOPY(ob->loc, v3d->cursor);
 	} else {

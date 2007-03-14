@@ -325,7 +325,7 @@ void separate_nurb()
 	Curve *cu;
 	ListBase editnurbo;
 
-	if( (G.vd->lay & G.obedit->lay)==0 ) return;
+	if( G.vd==0 || (G.vd->lay & G.obedit->lay)==0 ) return;
 
 	if(okee("Separate")==0) return;
 
@@ -970,8 +970,8 @@ void switchdirectionNurb2(void)
 {
 	Nurb *nu;
 	
-	if(G.obedit->lay & G.vd->lay);
-	else return;
+	if(G.vd==0 || !(G.obedit->lay & G.vd->lay))
+		return;
 	
 	for(nu= editNurb.first; nu; nu= nu->next) {
 		if( isNurbsel(nu) ) switchdirectionNurb(nu);
@@ -1033,8 +1033,8 @@ void deselectall_nurb()
 	BPoint *bp;
 	int a, b;
 
-	if(G.obedit->lay & G.vd->lay);
-	else return;
+	if(!G.vd || !(G.obedit->lay & G.vd->lay))
+		return;
 
 	BIF_undo_push("Deselect all");
 	
@@ -2456,8 +2456,8 @@ static void spin_nurb(float *dvec, short mode)
 	float cent[3],bmat[3][3], rotmat[3][3], scalemat1[3][3], scalemat2[3][3];
 	float persmat[3][3], persinv[3][3];
 	short a,ok;
-
-	if(G.obedit==0 || G.obedit->type!=OB_SURF) return;
+	
+	if(G.vd==0 || G.obedit==0 || G.obedit->type!=OB_SURF) return;
 	if( (G.vd->lay & G.obedit->lay)==0 ) return;
 
 	Mat3CpyMat4(persmat, G.vd->viewmat);
@@ -2563,7 +2563,7 @@ void addvert_Nurb(int mode)
 	BPoint *bp, *newbp = NULL;
 	float *curs, mat[3][3],imat[3][3], temp[3];
 
-	if(G.obedit==0) return;
+	if(G.obedit==0 || G.vd == 0) return;
 	if( (G.vd->lay & G.obedit->lay)==0 ) return;
 
 	Mat3CpyMat4(mat, G.obedit->obmat);
@@ -3336,7 +3336,7 @@ void select_less_nurb()
 void adduplicate_nurb()
 {
 
-	if( (G.vd->lay & G.obedit->lay)==0 ) return;
+	if(G.vd==0 || (G.vd->lay & G.obedit->lay)==0 ) return;
 
 	adduplicateflagNurb(1);
 
@@ -3355,7 +3355,7 @@ void delNurb()
 	short event, cut = 0;
 
 	if(G.obedit==0 ) return;
-	if( (G.vd->lay & G.obedit->lay)==0 ) return;
+	if(G.vd==0 || (G.vd->lay & G.obedit->lay)==0 ) return;
 
 	if(G.obedit->type==OB_SURF) event= pupmenu("Erase %t|Selected%x0|All%x2");
 	else event= pupmenu("Erase %t|Selected%x0|Segment%x1|All%x2");
@@ -3655,7 +3655,7 @@ int join_curve(int type)
 	int a;
 	
 	ob= OBACT;
-	if(ob->type!=type) return 0;
+	if(!G.vd || ob->type!=type) return 0;
 	if(ob->lay & G.vd->lay); else return 0;
 	tempbase.first= tempbase.last= 0;
 	
@@ -3737,9 +3737,12 @@ Nurb *addNurbprim(int type, int stype, int newname)
 	BezTriple *bezt;
 	BPoint *bp;
 	float *curs, cent[3],vec[3],imat[3][3],mat[3][3];
-	float fac,cmat[3][3];
+	float fac,cmat[3][3], grid;
 	int a, b;
-
+	
+	if (G.vd)	grid = G.vd->grid;
+	else		grid = 1.0;
+	
 	/* imat and centre and size */
 	if(G.obedit) {
 		
@@ -3749,11 +3752,13 @@ Nurb *addNurbprim(int type, int stype, int newname)
 		cent[0]-= G.obedit->obmat[3][0];
 		cent[1]-= G.obedit->obmat[3][1];
 		cent[2]-= G.obedit->obmat[3][2];
-
-		Mat3CpyMat4(imat, G.vd->viewmat);
-		Mat3MulVecfl(imat, cent);
-		Mat3MulMat3(cmat, imat, mat);
-		Mat3Inv(imat, cmat);
+		
+		if (G.vd) {
+			Mat3CpyMat4(imat, G.vd->viewmat);
+			Mat3MulVecfl(imat, cent);
+			Mat3MulMat3(cmat, imat, mat);
+			Mat3Inv(imat, cmat);
+		}
 		setflagsNurb(0);
 	}
 	else {
@@ -3786,11 +3791,11 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			for(a=0;a<3;a++) {
 				VECCOPY(bezt->vec[a], cent);
 			}
-			bezt->vec[1][0]+= -G.vd->grid;
-			bezt->vec[0][0]+= -1.5*G.vd->grid;
-			bezt->vec[0][1]+= -0.5*G.vd->grid;
-			bezt->vec[2][0]+= -0.5*G.vd->grid;
-			bezt->vec[2][1]+=  0.5*G.vd->grid;
+			bezt->vec[1][0]+= -grid;
+			bezt->vec[0][0]+= -1.5*grid;
+			bezt->vec[0][1]+= -0.5*grid;
+			bezt->vec[2][0]+= -0.5*grid;
+			bezt->vec[2][1]+=  0.5*grid;
 			for(a=0;a<3;a++) Mat3MulVecfl(imat, bezt->vec[a]);
 
 			bezt++;
@@ -3801,12 +3806,13 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			for(a=0;a<3;a++) {
 				VECCOPY(bezt->vec[a], cent);
 			}
-			bezt->vec[1][0]+= G.vd->grid;
+			bezt->vec[1][0]+= grid;
 			for(a=0;a<3;a++) Mat3MulVecfl(imat, bezt->vec[a]);
 
 			calchandlesNurb(nu);
 		}
 		else {
+			
 			nu->pntsu= 4;
 			nu->pntsv= 1;
 			nu->orderu= 4;
@@ -3821,15 +3827,15 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			}
 
 			bp= nu->bp;
-			bp->vec[0]+= -1.5*G.vd->grid; 
+			bp->vec[0]+= -1.5*grid; 
 			bp++;
-			bp->vec[0]+= -G.vd->grid;
-			bp->vec[1]+= G.vd->grid; 
+			bp->vec[0]+= -grid;
+			bp->vec[1]+=  grid; 
 			bp++;
-			bp->vec[0]+= G.vd->grid;
-			bp->vec[1]+= G.vd->grid; 
+			bp->vec[0]+= grid;
+			bp->vec[1]+= grid; 
 			bp++;
-			bp->vec[0]+= 1.5*G.vd->grid;
+			bp->vec[0]+= 1.5*grid;
 
 			bp= nu->bp;
 			for(a=0;a<4;a++, bp++) Mat3MulVecfl(imat,bp->vec);
@@ -3858,13 +3864,13 @@ Nurb *addNurbprim(int type, int stype, int newname)
 		}
 
 		bp= nu->bp;
-		bp->vec[0]+= -2.0*G.vd->grid; 
+		bp->vec[0]+= -2.0*grid; 
 		bp++;
-		bp->vec[0]+= -G.vd->grid;
+		bp->vec[0]+= -grid;
 		bp++; bp++;
-		bp->vec[0]+= G.vd->grid;
+		bp->vec[0]+= grid;
 		bp++;
-		bp->vec[0]+= 2.0*G.vd->grid;
+		bp->vec[0]+= 2.0*grid;
 
 		bp= nu->bp;
 		for(a=0;a<5;a++, bp++) Mat3MulVecfl(imat,bp->vec);
@@ -3891,7 +3897,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			}
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= 1;
-			bezt->vec[1][0]+= -G.vd->grid;
+			bezt->vec[1][0]+= -grid;
 			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 			
@@ -3901,7 +3907,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			}
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= 1;
-			bezt->vec[1][1]+= G.vd->grid;
+			bezt->vec[1][1]+= grid;
 			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 
@@ -3911,7 +3917,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			}
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= 1;
-			bezt->vec[1][0]+= G.vd->grid;
+			bezt->vec[1][0]+= grid;
 			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 
@@ -3921,7 +3927,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			}
 			bezt->h1= bezt->h2= HD_AUTO;
 			bezt->f1= bezt->f2= bezt->f3= 1;
-			bezt->vec[1][1]+= -G.vd->grid;
+			bezt->vec[1][1]+= -grid;
 			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
 
@@ -3940,12 +3946,12 @@ Nurb *addNurbprim(int type, int stype, int newname)
 				VECCOPY(bp->vec, cent);
 
 				if(xzproj==0) {
-					bp->vec[0]+= nurbcircle[a][0]*G.vd->grid;
-					bp->vec[1]+= nurbcircle[a][1]*G.vd->grid;
+					bp->vec[0]+= nurbcircle[a][0]*grid;
+					bp->vec[1]+= nurbcircle[a][1]*grid;
 				}
 				else {
-					bp->vec[0]+= 0.25*nurbcircle[a][0]*G.vd->grid-.75*G.vd->grid;
-					bp->vec[2]+= 0.25*nurbcircle[a][1]*G.vd->grid;
+					bp->vec[0]+= 0.25*nurbcircle[a][0]*grid-.75*grid;
+					bp->vec[2]+= 0.25*nurbcircle[a][1]*grid;
 				}
 				if(a & 1) bp->vec[3]= 0.25*sqrt(2.0);
 				else bp->vec[3]= 1.0;
@@ -3980,11 +3986,11 @@ Nurb *addNurbprim(int type, int stype, int newname)
 					VECCOPY(bp->vec, cent);
 					bp->f1= 1;
 					fac= (float)a -1.5;
-					bp->vec[0]+= fac*G.vd->grid;
+					bp->vec[0]+= fac*grid;
 					fac= (float)b -1.5;
-					bp->vec[1]+= fac*G.vd->grid;
+					bp->vec[1]+= fac*grid;
 					if(a==1 || a==2) if(b==1 || b==2) {
-						bp->vec[2]+= G.vd->grid;
+						bp->vec[2]+= grid;
 					}
 					Mat3MulVecfl(imat,bp->vec);
 					bp->vec[3]= 1.0;
@@ -4008,7 +4014,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(&editNurb, nu); /* temporal for extrude and translate */
 			vec[0]=vec[1]= 0.0;
-			vec[2]= -G.vd->grid;
+			vec[2]= -grid;
 			Mat3MulVecfl(imat, vec);
 			translateflagNurb(1, vec);
 			extrudeflagNurb(1);
@@ -4047,8 +4053,8 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			for(a=0; a<5; a++) {
 				bp->f1= 1;
 				VECCOPY(bp->vec, cent);
-				bp->vec[0]+= nurbcircle[a][0]*G.vd->grid;
-				bp->vec[2]+= nurbcircle[a][1]*G.vd->grid;
+				bp->vec[0]+= nurbcircle[a][0]*grid;
+				bp->vec[2]+= nurbcircle[a][1]*grid;
 				if(a & 1) bp->vec[3]= 0.5*sqrt(2.0);
 				else bp->vec[3]= 1.0;
 				Mat3MulVecfl(imat,bp->vec);
@@ -4148,11 +4154,11 @@ void add_primitiveCurve(int stype)
 	Curve *cu;
 	int type, newname= 0;
 
+	if(G.vd==0) return;
 	if(G.scene->id.lib) return;
 
 	/* this function also comes from an info window */
 	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
-	if(G.vd==0) return;
 
 	if(stype>=10 && stype<20) type= CU_2D+1;
 	else if(stype>=20 && stype<30) type= CU_2D+2;

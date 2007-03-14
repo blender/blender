@@ -4336,6 +4336,9 @@ void movekey_obipo(int dir)		/* only call external from view3d queue */
 	int a;
 	float toframe= CFRA;
 	
+	if (!G.vd)
+		return;
+	
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASE(base) {

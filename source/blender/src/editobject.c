@@ -5148,6 +5148,11 @@ void set_ob_ipoflags(void)
 	Base *base;
 	int set= 1;
 	
+	if (!G.vd) {
+		error("Can't do this! Open a 3D window");
+		return;
+	}
+	
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASE(base) {
@@ -5188,6 +5193,11 @@ void select_select_keys(void)
 	IpoCurve *icu;
 	BezTriple *bezt;
 	int a;
+	
+	if (!G.vd) {
+		error("Can't do this! Open a 3D window");
+		return;
+	}
 	
 	if(G.scene->id.lib) return;
 

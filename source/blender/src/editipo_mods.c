@@ -1020,6 +1020,11 @@ void nextkey_obipo(int dir)		/* only call external from view3d queue */
 	IpoKey *ik;
 	int a;
 	
+	if (!G.vd) {
+		error("Can't do this! Open a 3D window");
+		return;
+	}
+	
 	/* problem: this doesnt work when you mix dLoc keys with Loc keys */
 	
 	base= FIRSTBASE;

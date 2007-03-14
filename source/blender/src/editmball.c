@@ -166,12 +166,14 @@ void add_primitiveMball(int dummy_argument)
 	cent[1]-= G.obedit->obmat[3][1];
 	cent[2]-= G.obedit->obmat[3][2];
 
-	Mat3CpyMat4(imat, G.vd->viewmat);
-	Mat3MulVecfl(imat, cent);
-	Mat3MulMat3(cmat, imat, mat);
-	Mat3Inv(imat,cmat);
+	if (G.vd) {
+		Mat3CpyMat4(imat, G.vd->viewmat);
+		Mat3MulVecfl(imat, cent);
+		Mat3MulMat3(cmat, imat, mat);
+		Mat3Inv(imat,cmat);
 	
-	Mat3MulVecfl(imat, cent);
+		Mat3MulVecfl(imat, cent);
+	}
 
 	ml= MEM_callocN(sizeof(MetaElem), "metaelem");
 	BLI_addtail(&editelems, ml);
