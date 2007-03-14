@@ -987,6 +987,12 @@ static PyObject *M_Object_Duplicate( PyObject * self_unused,
 	static char *kwlist[] = {"mesh", "surface", "curve",
 			"text", "metaball", "armature", "lamp", "material", "texture", "ipo", NULL};
 	
+	/* duplicating in background causes segfaults */
+	if( G.background == 1 )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"cannot duplicate objects in background mode" );
+	
+	
 	if (!PyArg_ParseTupleAndKeywords(args, kwd, "|iiiiiiiiii", kwlist,
 		&mesh_dupe, &surface_dupe, &curve_dupe, &text_dupe, &metaball_dupe,
 		&armature_dupe, &lamp_dupe, &material_dupe, &texture_dupe, &ipo_dupe))

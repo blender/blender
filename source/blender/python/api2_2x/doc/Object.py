@@ -193,6 +193,8 @@ def Duplicate (mesh=0, surface=0, curve=0, text=0, metaball=0, armature=0, lamp=
 	By default no data linked to the object is duplicated; use the keyword arguments to change this.
 	L{Object.GetSelected()<GetSelected>} will return the list of objects resulting from duplication.
 	
+	B{Note}: This command will raise an error if used from the command line (background mode) because it uses the 3D view context.
+	
 	@type mesh: bool
 	@param mesh: When non-zero, mesh object data will be duplicated with the objects.
 	@type surface: bool
