@@ -313,7 +313,8 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 	contextObName= None
 	contextLamp= [None, None] # object, Data
 	contextMaterial= None
-	# contextMatrix= Blender.Mathutils.Matrix(); contextMatrix.identity()
+	contextMatrix_rot= None # Blender.Mathutils.Matrix(); contextMatrix.identity()
+	#contextMatrix_tx= None # Blender.Mathutils.Matrix(); contextMatrix.identity()
 	contextMesh_vertls= None
 	contextMesh_facels= None
 	contextMeshMaterials= {} # matname:[face_idxs]
@@ -329,10 +330,11 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 	STRUCT_SIZE_UNSIGNED_SHORT= calcsize('H')
 	STRUCT_SIZE_4UNSIGNED_SHORT= calcsize('4H')
 	STRUCT_SIZE_4x3MAT= calcsize('ffffffffffff')
-	
+	_STRUCT_SIZE_4x3MAT= calcsize('fffffffffffff')
+	# STRUCT_SIZE_4x3MAT= calcsize('ffffffffffff')
+	# print STRUCT_SIZE_4x3MAT, ' STRUCT_SIZE_4x3MAT'
 	
 	def putContextMesh(myContextMesh_vertls, myContextMesh_facels, myContextMeshMaterials):
-		####contextMesh.transform(contextMatrix.copy().invert())
 		
 		materialFaces= set() # faces that have a material. Can optimize?
 		
@@ -387,7 +389,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 					# BUGGY API - face_mapping is not always the right length
 					map_index= face_mapping[ii]
 					
-					if map_index != None:	
+					if map_index != None:
 						targetFace= bmesh.faces[map_index]
 						if contextMeshUV:
 							# v.index-1 because of the DUMMYVERT
@@ -397,11 +399,19 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			
 			tempName= '%s_%s' % (contextObName, matName) # matName may be None.
 			bmesh.name= tempName
+			
+			# bmesh.transform(contextMatrix)
 			# ob = Object.New('Mesh', tempName)
 			# ob.link(bmesh)
 			ob = SCN_OBJECTS.new(bmesh, tempName)
+			'''
+			if contextMatrix_tx:
+				ob.setMatrix(contextMatrix_tx)
+			'''
 			
-			####ob.setMatrix(contextMatrix)
+			if contextMatrix_rot:
+				ob.setMatrix(contextMatrix_rot)
+			
 			importedObjects.append(ob)
 			
 		
@@ -632,7 +642,8 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			contextLamp[0].setLocation(x,y,z)
 			
 			# Reset matrix
-			####contextMatrix= Mathutils.Matrix(); contextMatrix.identity()	
+			contextMatrix_rot= None
+			#contextMatrix_tx= None
 			#print contextLamp.name, 
 			
 			
@@ -647,7 +658,8 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			contextMeshUV= None
 			#contextMesh.vertexUV= 1 # Make sticky coords.
 			# Reset matrix
-			####contextMatrix= Blender.Mathutils.Matrix(); contextMatrix.identity()
+			contextMatrix_rot= None
+			#contextMatrix_tx= None
 		
 		elif (new_chunk.ID==OBJECT_VERTICES):
 			'''
@@ -717,17 +729,60 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			contextMeshUV= [ getuv() for i in xrange(num_uv) ]
 		
 		elif (new_chunk.ID== OBJECT_TRANS_MATRIX):
+			# How do we know the matrix size? 54 == 4x4 48 == 4x3
 			temp_data=file.read(STRUCT_SIZE_4x3MAT)
-			data= list( unpack('<ffffffffffff', temp_data) )
-			new_chunk.bytes_read += STRUCT_SIZE_4x3MAT 
+			data= list( unpack('<ffffffffffff', temp_data)  )
+			new_chunk.bytes_read += STRUCT_SIZE_4x3MAT
 			
-			"""contextMatrix= Blender.Mathutils.Matrix(\
+			contextMatrix_rot= Blender.Mathutils.Matrix(\
 			 data[:3] + [0],\
 			 data[3:6] + [0],\
 			 data[6:9] + [0],\
 			 data[9:] + [1])
-			"""
-		
+			
+			
+			'''
+			contextMatrix_rot= Blender.Mathutils.Matrix(\
+			 data[:3] + [0],\
+			 data[3:6] + [0],\
+			 data[6:9] + [0],\
+			 [0,0,0,1])
+			'''
+			
+			'''
+			contextMatrix_rot= Blender.Mathutils.Matrix(\
+			 data[:3] ,\
+			 data[3:6],\
+			 data[6:9])
+			'''
+			
+			'''
+			contextMatrix_rot = Blender.Mathutils.Matrix()
+			m = 0
+			for j in xrange(4):
+				for i in xrange(3):
+					contextMatrix_rot[j][i] = data[m]
+					m+=1
+			
+			contextMatrix_rot[0][3]=0;
+			contextMatrix_rot[1][3]=0;
+			contextMatrix_rot[2][3]=0;
+			contextMatrix_rot[3][3]=1;
+			'''
+			
+			#contextMatrix_rot.resize4x4()
+			#print "MTX"
+			#print contextMatrix_rot
+			contextMatrix_rot.invert()
+			#print contextMatrix_rot
+			#contextMatrix_tx = Blender.Mathutils.TranslationMatrix(0.5 * Blender.Mathutils.Vector(data[9:]))
+			#contextMatrix_tx.invert()
+			
+			#tx.invert()
+			
+			#contextMatrix = contextMatrix * tx
+			#contextMatrix = contextMatrix  *tx
+			
 		elif  (new_chunk.ID==MAT_MAP_FILENAME):
 			texture_name=read_string(file)
 			try:
@@ -892,11 +947,12 @@ def load_3ds(filename, PREF_UI= True):
 	
 
 DEBUG= False
-
 if __name__=='__main__' and not DEBUG:
 	Blender.Window.FileSelector(load_3ds, 'Import 3DS', '*.3ds')
 
 # For testing compatibility
+#load_3ds('/metavr/convert/vehicle/truck_002/TruckTanker1.3DS', False)
+#load_3ds('/metavr/archive/convert/old/arranged_3ds_to_hpx-2/only-need-engine-trains/Engine2.3DS', False)
 '''
 else:
 	# DEBUG ONLY
@@ -920,7 +976,7 @@ else:
 			_3ds= _3ds[:-1]
 			print 'Importing', _3ds, '\nNUMBER', i, 'of', len(lines)
 			_3ds_file= _3ds.split('/')[-1].split('\\')[-1]
-			newScn= Scene.New(_3ds_file)
+			newScn= Blender.Scene.New(_3ds_file)
 			newScn.makeCurrent()
 			load_3ds(_3ds, False)
 
