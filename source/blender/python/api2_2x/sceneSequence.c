@@ -95,6 +95,8 @@ static PyMethodDef BPy_Sequence_methods[] = {
 	 "(data) - Remove a strip."},
 	{"__copy__", ( PyCFunction ) Sequence_copy, METH_NOARGS,
 	 "() - Return a copy of the sequence containing the same objects."},
+	{"copy", ( PyCFunction ) Sequence_copy, METH_NOARGS,
+	 "() - Return a copy of the sequence containing the same objects."},
 	{NULL, NULL, 0, NULL}
 };
 

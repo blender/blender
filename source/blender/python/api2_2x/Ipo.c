@@ -36,6 +36,7 @@
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_object.h"
 #include "BKE_ipo.h"
 #include "BLI_blenlib.h"
 #include "BIF_space.h"
@@ -115,6 +116,7 @@ static PyObject *Ipo_setCurveBeztriple( BPy_Ipo * self, PyObject * args );
 static PyObject *Ipo_getCurveBeztriple( BPy_Ipo * self, PyObject * args );
 
 static PyObject *Ipo_getChannel( BPy_Ipo * self );
+static PyObject *Ipo_copy( BPy_Ipo * self );
 static int Ipo_setChannel( BPy_Ipo * self, PyObject * args );
 
 static int Ipo_length( BPy_Ipo * inst );
@@ -164,6 +166,12 @@ static PyMethodDef BPy_Ipo_methods[] = {
 	 "(int,int) - deprecated: see ipocurve.bezierPoints[]"},
 	{"setCurveBeztriple", ( PyCFunction ) Ipo_setCurveBeztriple, METH_VARARGS,
 	 "(int,int,list) - set a BezTriple"},
+
+	{"__copy__", ( PyCFunction ) Ipo_copy, METH_NOARGS,
+	 "() - copy the ipo"},
+	{"copy", ( PyCFunction ) Ipo_copy, METH_NOARGS,
+	 "() - copy the ipo"},
+	 
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1759,6 +1767,14 @@ static PyObject *Ipo_setCurveBeztriple( BPy_Ipo * self, PyObject * args )
 
 	Py_INCREF( Py_None );
 	return Py_None;
+}
+
+/* Ipo.__copy__ */
+static PyObject *Ipo_copy( BPy_Ipo * self )
+{
+	Ipo *ipo = copy_ipo(self->ipo );
+	ipo->id.us = 0;
+	return Ipo_CreatePyObject(ipo);
 }
 
 static PyObject *Ipo_EvaluateCurveOn( BPy_Ipo * self, PyObject * args )

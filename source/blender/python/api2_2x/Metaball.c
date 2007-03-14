@@ -141,6 +141,8 @@ static PyMethodDef BPy_Metaball_methods[] = {
 	/* name, method, flags, doc */
 	{"__copy__", ( PyCFunction ) Metaball_copy,
 	 METH_NOARGS, "() - Return a copy of this metaball"},
+	{"copy", ( PyCFunction ) Metaball_copy,
+	 METH_NOARGS, "() - Return a copy of this metaball"},
 	{NULL, NULL, 0, NULL}
 };
 

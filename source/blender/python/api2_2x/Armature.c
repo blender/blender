@@ -946,6 +946,8 @@ static PyMethodDef BPy_Armature_methods[] = {
 		"() - Rebuilds the armature based on changes to bones since the last call to makeEditable"},
 	{"__copy__", (PyCFunction) Armature_copy, METH_NOARGS, 
 		"() - Return a copy of the armature."},
+	{"copy", (PyCFunction) Armature_copy, METH_NOARGS, 
+		"() - Return a copy of the armature."},
 	{NULL, NULL, 0, NULL}
 };
 //------------------------tp_getset

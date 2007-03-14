@@ -756,10 +756,12 @@ works only if self and the object specified are of the same type."},
 	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this object."},
 	{"insertShapeKey", ( PyCFunction ) Object_insertShapeKey, METH_NOARGS,
 	 "() - Insert a Shape Key in the current object"},
-	{"__copy__", ( PyCFunction ) Object_copy, METH_NOARGS,
-	 "() - Return a copy of this object."},
 	{"getProperties", ( PyCFunction ) Object_GetProperties, METH_NOARGS,
 	 "() return a reference to the ID properties associated with this object."},
+	{"__copy__", ( PyCFunction ) Object_copy, METH_NOARGS,
+	 "() - Return a copy of this object."},
+	{"copy", ( PyCFunction ) Object_copy, METH_NOARGS,
+	 "() - Return a copy of this object."},
 	{NULL, NULL, 0, NULL}
 };
 

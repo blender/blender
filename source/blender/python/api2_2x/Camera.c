@@ -195,6 +195,8 @@ static PyMethodDef BPy_Camera_methods[] = {
 	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this camera."},
 	{"__copy__", ( PyCFunction ) Camera_copy, METH_NOARGS,
 	 "() - Return a copy of the camera."},
+	{"copy", ( PyCFunction ) Camera_copy, METH_NOARGS,
+	 "() - Return a copy of the camera."},
 	{NULL, NULL, 0, NULL}
 };
 

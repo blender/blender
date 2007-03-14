@@ -668,6 +668,8 @@ static PyMethodDef BPy_Lattice_methods[] = {
 	 Lattice_insertKey_doc},
 	{"__copy__", ( PyCFunction ) Lattice_copy, METH_NOARGS,
 	 Lattice_copy_doc},
+	{"copy", ( PyCFunction ) Lattice_copy, METH_NOARGS,
+	 Lattice_copy_doc},
 	{NULL, NULL, 0, NULL}
 };
 

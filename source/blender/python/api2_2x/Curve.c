@@ -1519,6 +1519,8 @@ Sets a control point "},
 	 "() - assign a Taper Object to this Curve"},
 	{"__copy__", ( PyCFunction ) Curve_copy, METH_NOARGS,
 	 "() - make a copy of this curve data"},
+	{"copy", ( PyCFunction ) Curve_copy, METH_NOARGS,
+	 "() - make a copy of this curve data"},
 	{NULL, NULL, 0, NULL}
 };
 

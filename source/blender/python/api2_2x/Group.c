@@ -86,6 +86,8 @@ static PyMethodDef BPy_Group_methods[] = {
 	/* name, method, flags, doc */
 	{"__copy__", ( PyCFunction ) BPy_Group_copy, METH_VARARGS,
 	 "() - Return a copy of the group containing the same objects."},
+	{"copy", ( PyCFunction ) BPy_Group_copy, METH_VARARGS,
+	 "() - Return a copy of the group containing the same objects."},
 	{NULL, NULL, 0, NULL}
 };
 

@@ -499,7 +499,7 @@ static int Texture_setNoiseBasis2( BPy_Texture *self, PyObject *args,
 static PyObject *Texture_getColorband( BPy_Texture * self);
 int Texture_setColorband( BPy_Texture * self, PyObject * value);
 static PyObject *Texture_evaluate( BPy_Texture *self, PyObject *args );
-
+static PyObject *Texture_copy( BPy_Texture *self );
 
 /*****************************************************************************/
 /* Python BPy_Texture methods table:                                         */
@@ -544,6 +544,10 @@ static PyMethodDef BPy_Texture_methods[] = {
 	 "(s) - Set Dist Metric"},
 	{"evaluate", ( PyCFunction ) Texture_evaluate, METH_VARARGS,
 	 "(vector) - evaluate the texture at this position"},
+	{"__copy__", ( PyCFunction ) Texture_copy, METH_NOARGS,
+	 "() - return a copy of the the texture"},
+	{"copy", ( PyCFunction ) Texture_copy, METH_NOARGS,
+	 "() - return a copy of the the texture"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2730,4 +2734,11 @@ static PyObject *Texture_evaluate( BPy_Texture * self, PyObject * args )
 	vec[3] = texres.tin;
 	
 	return newVectorObject(vec, 4, Py_NEW);
+}
+
+static PyObject *Texture_copy( BPy_Texture * self )
+{
+	Tex *tex = copy_texture(self->texture );
+	tex->id.us = 0;
+	return Texture_CreatePyObject(tex);
 }

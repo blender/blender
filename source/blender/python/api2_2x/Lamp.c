@@ -228,6 +228,7 @@ static PyObject *Lamp_oldsetHaloInt( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetQuad1( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetQuad2( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetCol( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_copy( BPy_Lamp * self );
 static int Lamp_setIpo( BPy_Lamp * self, PyObject * args );
 static int Lamp_setType( BPy_Lamp * self, PyObject * args );
 static int Lamp_setMode( BPy_Lamp * self, PyObject * args );
@@ -367,7 +368,10 @@ static PyMethodDef BPy_Lamp_methods[] = {
 	 "( lamp-ipo ) - link an IPO to this lamp"},
 	 {"insertIpoKey", ( PyCFunction ) Lamp_insertIpoKey, METH_VARARGS,
 	 "( Lamp IPO type ) - Inserts a key into IPO"},
-
+	{"__copy__", ( PyCFunction ) Lamp_copy, METH_NOARGS,
+	 "() - Makes a copy of this lamp."},
+	{"copy", ( PyCFunction ) Lamp_copy, METH_NOARGS,
+	 "() - Makes a copy of this lamp."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -856,6 +860,15 @@ Lamp *Lamp_FromPyObject( PyObject * pyobj )
 /*****************************************************************************/
 /* Python BPy_Lamp methods:                                                  */
 /*****************************************************************************/
+
+/* Lamp.__copy__ */
+static PyObject *Lamp_copy( BPy_Lamp * self )
+{
+	Lamp *lamp = copy_lamp(self->lamp );
+	lamp->id.us = 0;
+	return Lamp_CreatePyObject(lamp);
+}
+
 static PyObject *Lamp_getType( BPy_Lamp * self )
 {
 	PyObject *attr = PyInt_FromLong( self->lamp->type );

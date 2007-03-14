@@ -230,6 +230,8 @@ static PyMethodDef BPy_World_methods[] = {
 	 "( World IPO type ) - Inserts a key into the IPO"},
 	{"__copy__", ( PyCFunction ) World_copy, METH_NOARGS,
 	 "() - Makes a copy of this world."},
+	{"copy", ( PyCFunction ) World_copy, METH_NOARGS,
+	 "() - Makes a copy of this world."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -901,28 +903,9 @@ static PyObject *World_setCurrent( BPy_World * self )
 /* world.__copy__ */
 static PyObject *World_copy( BPy_World * self )
 {
-	BPy_World *pyworld;
-	World *blworld;
-
-	blworld = copy_world( self->world );
-
-	if( blworld ) {
-		/* return user count to zero because add_world() inc'd it */
-		blworld->id.us = 0;
-		/* create python wrapper obj */
-		pyworld =
-			( BPy_World * ) PyObject_NEW( BPy_World, &World_Type );
-	} else
-		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						"couldn't create World Data in Blender" ) );
-
-	if( pyworld == NULL )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create World Data object" ) );
-
-	pyworld->world = blworld;
-
-	return ( PyObject * ) pyworld;
+	World *world = copy_world(self->world );
+	world->id.us = 0;
+	return World_CreatePyObject(world);
 }
 
 

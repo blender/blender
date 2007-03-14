@@ -7050,6 +7050,8 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 	/* python standard class functions */
 	{"__copy__", (PyCFunction)Mesh_copy, METH_NOARGS,
 		"Return a copy of the mesh"},
+	{"copy", (PyCFunction)Mesh_copy, METH_NOARGS,
+		"Return a copy of the mesh"},
 	{NULL, NULL, 0, NULL}
 };
 

@@ -816,6 +816,8 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this material."},
 	{"__copy__", ( PyCFunction ) Material_copy, METH_NOARGS,
 	 "() - Return a copy of the material."},
+	{"copy", ( PyCFunction ) Material_copy, METH_NOARGS,
+	 "() - Return a copy of the material."},
 	{NULL, NULL, 0, NULL}
 };
 
