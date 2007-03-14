@@ -59,6 +59,23 @@
 #define Py_RETURN_TRUE  return PyBool_FromLong(1)
 #endif
 
+/* Py 2.5 adds a new Py_ssize_t type for 64 bit support */
+/* #if'ed for your compiling pleasure */
+#if 1
+
+/*  for pre Py 2.5 */
+#if PY_VERSION_HEX < 0x02050000
+typedef int Py_ssize_t;
+#define PY_SSIZE_T_MAX INT_MAX
+#define PY_SSIZE_T_MIN INT_MIN
+#else  
+/* Py 2.5 and later */
+#define  intargfunc  ssizeargfunc
+#define intintargfunc  ssizessizeargfunc 
+#endif
+
+#endif
+
 /* name of list of Armature weak refs built into __main__ */
 #define ARM_WEAKREF_LIST_NAME "__arm_weakrefs"
 
