@@ -52,5 +52,15 @@ void BIF_RasterPos(float x, float y);
 void BIF_SetScale(float aspect);
 void refresh_interface_font(void);
 
+struct LANGMenuEntry {
+	struct LANGMenuEntry *next;
+	char *line;
+	char *language;
+	char *code;
+	int id;
+};
+
+struct LANGMenuEntry *find_language(short langid);
+
 #endif /* BIF_LANGUAGE_H */
 

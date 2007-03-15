@@ -55,17 +55,7 @@
 #ifdef INTERNATIONAL
 #include "FTF_Api.h"
 
-typedef struct _LANGMenuEntry LANGMenuEntry;
-struct _LANGMenuEntry {
-	LANGMenuEntry *next;
-
-	char *line;
-	char *language;
-	char *code;
-	int id;
-};
-
-static LANGMenuEntry *langmenu= 0;
+static struct LANGMenuEntry *langmenu= 0;
 static int tot_lang = 0;
 
 #endif // INTERNATIONAL
@@ -172,7 +162,7 @@ char *fontsize_pup(void)
 
 char *language_pup(void)
 {
-	LANGMenuEntry *lme = langmenu;
+	struct LANGMenuEntry *lme = langmenu;
 	static char string[1024];
 	static char tmp[1024];
 
@@ -191,9 +181,9 @@ char *language_pup(void)
 }
 
 
-static LANGMenuEntry *find_language(short langid)
+struct LANGMenuEntry *find_language(short langid)
 {
-	LANGMenuEntry *lme = langmenu;
+	struct LANGMenuEntry *lme = langmenu;
 
 	while(lme) {
 		if(lme->id == langid)
@@ -207,7 +197,7 @@ static LANGMenuEntry *find_language(short langid)
 
 void lang_setlanguage(void) 
 {
-	LANGMenuEntry *lme;
+	struct LANGMenuEntry *lme;
 
 	lme = find_language(U.language);
 	if(lme) FTF_SetLanguage(lme->code);
@@ -290,7 +280,7 @@ static char *first_dpointchar(char *string)
 }
 
 
-static void splitlangline(char *line, LANGMenuEntry *lme)
+static void splitlangline(char *line, struct LANGMenuEntry *lme)
 {
 	char *dpointchar= first_dpointchar(line);
 
@@ -306,7 +296,7 @@ static void splitlangline(char *line, LANGMenuEntry *lme)
 
 static void puplang_insert_entry(char *line)
 {
-	LANGMenuEntry *lme, *prev;
+	struct LANGMenuEntry *lme, *prev;
 	int sorted = 0;
 
 	prev= NULL;
@@ -393,10 +383,10 @@ int read_languagefile(void)
 
 void free_languagemenu(void)
 {
-	LANGMenuEntry *lme= langmenu;
+	struct LANGMenuEntry *lme= langmenu;
 
 	while (lme) {
-		LANGMenuEntry *n= lme->next;
+		struct LANGMenuEntry *n= lme->next;
 
 		if (lme->line) MEM_freeN(lme->line);
 		if (lme->language) MEM_freeN(lme->language);

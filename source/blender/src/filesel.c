@@ -897,14 +897,15 @@ static void linerect(int id, int x, int y)
 }
 
 #ifdef WITH_ICONV
-static void string_to_utf8(char *original, char *utf_8) 
+static void string_to_utf8(char *original, char *utf_8, char *code) 
 {
 	size_t inbytesleft=strlen(original);
 	size_t outbytesleft=512;
 	size_t rv=0;
 	iconv_t cd;
 	
-	cd=iconv_open("UTF-8", "gb2312");
+	cd=iconv_open("UTF-8", code);
+
 	if (cd == (iconv_t)(-1)) {
 		printf("iconv_open Error");
 		*utf_8='\0';
@@ -970,15 +971,27 @@ static void print_line(SpaceFile *sfile, struct direntry *files, int x, int y)
 		glRasterPos2i(x,  y);
 #ifdef WITH_ICONV
 		{
+			struct LANGMenuEntry *lme;
 			char utf_8[512];
-			string_to_utf8(files->relname, utf_8);
-			BIF_RasterPos((float)x, (float)y);	/* texture fonts */
-			BIF_DrawString(G.font, utf_8, (U.transopts & USER_TR_MENUS));
+
+       		 	lme = find_language(U.language);
+
+       		 	if (lme->code == "ja_JP") { /* japanese */
+				string_to_utf8(files->relname, utf_8, "Shift_JIS");
+				BIF_RasterPos((float)x, (float)y);	/* texture fonts */
+				BIF_DrawString(G.font, utf_8, (U.transopts & USER_TR_MENUS));
+			} else if (lme->code == "zh_CN") { /* chinese */
+				string_to_utf8(files->relname, utf_8, "gb2312");
+				BIF_RasterPos((float)x, (float)y);	/* texture fonts */
+				BIF_DrawString(G.font, utf_8, (U.transopts & USER_TR_MENUS));
+			} else {
+				BMF_DrawString(G.font, files->relname);
+			}
 		}
 #else
-		BMF_DrawString(G.font, files->relname);
+			BMF_DrawString(G.font, files->relname);
 #endif
-		
+
 		x += sfile->maxnamelen + 100;
 
 		glRasterPos2i(x - BMF_GetStringWidth(G.font, files->size),  y);
