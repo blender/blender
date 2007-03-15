@@ -2299,7 +2299,8 @@ void imagewin_store_spare(void)
 		ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
 		sima->spare= IMB_dupImBuf(ibuf);
 		
-		BLI_strncpy(sima->info_spare, sima->info_str, RW_MAXTEXT);
+		if(sima->info_str)
+			BLI_strncpy(sima->info_spare, sima->info_str, RW_MAXTEXT);
 
 	}
 }
