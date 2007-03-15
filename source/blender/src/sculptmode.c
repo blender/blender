@@ -660,7 +660,7 @@ void do_inflate_brush(const EditData *e, const ListBase *active_verts)
 void calc_flatten_center(Mesh *me, ActiveData *node, const EditData *e, float co[3])
 {
 	const int FTOT = 10;
-	ActiveData *outer[FTOT];
+	ActiveData *outer[10];
 	int i;
 	
 	for(i = 0; i < FTOT; ++i)
