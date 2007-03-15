@@ -592,12 +592,6 @@ PyObject *Scene_CreatePyObject( Scene * scene )
 	return ( PyObject * ) pyscene;
 }
 
-/*-----------------------CheckPyObject----------------------------------*/
-int Scene_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Scene_Type );
-}
-
 /*-----------------------FromPyObject-----------------------------------*/
 Scene *Scene_FromPyObject( PyObject * pyobj )
 {
@@ -1459,33 +1453,33 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"scene.objects.new(obdata) - expected obdata to be\n\ta python obdata type or the string 'Empty'" );
 
-	if( Armature_CheckPyObject( py_data ) ) {
+	if( BPy_Armature_Check( py_data ) ) {
 		data = ( void * ) Armature_FromPyObject( py_data );
 		type = OB_ARMATURE;
-	} else if( Camera_CheckPyObject( py_data ) ) {
+	} else if( BPy_Camera_Check( py_data ) ) {
 		data = ( void * ) Camera_FromPyObject( py_data );
 		type = OB_CAMERA;
-	} else if( Lamp_CheckPyObject( py_data ) ) {
+	} else if( BPy_Lamp_Check( py_data ) ) {
 		data = ( void * ) Lamp_FromPyObject( py_data );
 		type = OB_LAMP;
-	} else if( Curve_CheckPyObject( py_data ) ) {
+	} else if( BPy_Curve_Check( py_data ) ) {
 		data = ( void * ) Curve_FromPyObject( py_data );
 		type = OB_CURVE;
-	} else if( NMesh_CheckPyObject( py_data ) ) {
+	} else if( BPy_NMesh_Check( py_data ) ) {
 		data = ( void * ) NMesh_FromPyObject( py_data, NULL );
 		type = OB_MESH;
 		if( !data )		/* NULL means there is already an error */
 			return NULL;
-	} else if( Mesh_CheckPyObject( py_data ) ) {
+	} else if( BPy_Mesh_Check( py_data ) ) {
 		data = ( void * ) Mesh_FromPyObject( py_data, NULL );
 		type = OB_MESH;
-	} else if( Lattice_CheckPyObject( py_data ) ) {
+	} else if( BPy_Lattice_Check( py_data ) ) {
 		data = ( void * ) Lattice_FromPyObject( py_data );
 		type = OB_LATTICE;
-	} else if( Metaball_CheckPyObject( py_data ) ) {
+	} else if( BPy_Metaball_Check( py_data ) ) {
 		data = ( void * ) Metaball_FromPyObject( py_data );
 		type = OB_MBALL;
-	} else if( Text3d_CheckPyObject( py_data ) ) {
+	} else if( BPy_Text3d_Check( py_data ) ) {
 		data = ( void * ) Text3d_FromPyObject( py_data );
 		type = OB_FONT;
 	} else if( ( desc = PyString_AsString( (PyObject *)py_data ) ) != NULL ) {

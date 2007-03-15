@@ -49,7 +49,6 @@ extern PyTypeObject IpoCurve_Type;
 
 PyObject *IpoCurve_Init( void );
 PyObject *IpoCurve_CreatePyObject( IpoCurve * ipo );
-int IpoCurve_CheckPyObject( PyObject * pyobj );
 IpoCurve *IpoCurve_FromPyObject( PyObject * pyobj );
 char *getIpoCurveName( IpoCurve * icu );
 

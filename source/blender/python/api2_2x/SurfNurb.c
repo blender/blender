@@ -105,7 +105,7 @@ static PyObject *SurfNurb_appendPointToNurb( Nurb * nurb, PyObject * args )
 
 	/* if curve is empty, adjust type depending on input type */
 	if (nurb->bezt==NULL && nurb->bp==NULL) {
-		if (BezTriple_CheckPyObject( pyOb ))
+		if (BPy_BezTriple_Check( pyOb ))
 			nurb->type |= CU_BEZIER;
 		else if (PySequence_Check( pyOb ))
 			nurb->type |= CU_NURBS;
@@ -119,7 +119,7 @@ static PyObject *SurfNurb_appendPointToNurb( Nurb * nurb, PyObject * args )
 	if ((nurb->type & 7)==CU_BEZIER) {
 		BezTriple *tmp;
 
-		if( !BezTriple_CheckPyObject( pyOb ) )
+		if( !BPy_BezTriple_Check( pyOb ) )
 			return( EXPP_ReturnPyObjError( PyExc_TypeError,
 					  "Expected a BezTriple\n" ) );
 
@@ -517,7 +517,7 @@ static int SurfNurb_length( PyInstanceObject * inst )
 {
 	Nurb *nurb;
 
-	if( SurfNurb_CheckPyObject( ( PyObject * ) inst ) ) {
+	if( BPy_SurfNurb_Check( ( PyObject * ) inst ) ) {
 		nurb = ( ( BPy_SurfNurb * ) inst )->nurb;
 		return (int)(nurb->pntsu * nurb->pntsu);
 	}
@@ -577,7 +577,7 @@ static int SurfNurb_setPoint( BPy_SurfNurb * self, int index, PyObject * pyOb )
 #if 0
 	if ((nurb->type & 7)==CU_BEZIER) {	/* BEZIER */
 		/* check parameter type */
-		if( !BezTriple_CheckPyObject( pyOb ) )
+		if( !BPy_BezTriple_Check( pyOb ) )
 			return EXPP_ReturnIntError( PyExc_TypeError,
 							"expected a BezTriple\n" );
 
@@ -665,14 +665,6 @@ PyObject *SurfNurb_pointAtIndex( Nurb * nurb, int index )
 		return EXPP_ReturnPyObjError( PyExc_SystemError,
 						"non-NURB surface found" );
 }
-
-
-int SurfNurb_CheckPyObject( PyObject * py_obj )
-{
-	return ( py_obj->ob_type == &SurfNurb_Type );
-}
-
-
 
 /* 
  *   methods for SurfNurb as sequence

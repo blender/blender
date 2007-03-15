@@ -54,6 +54,5 @@ extern PyTypeObject World_Type;
 PyObject *World_Init( void );
 PyObject *World_CreatePyObject( World * world );
 World *World_FromPyObject( PyObject * pyobj );
-int World_CheckPyObject( PyObject * pyobj );
 
 #endif				/* EXPP_WORLD_H */

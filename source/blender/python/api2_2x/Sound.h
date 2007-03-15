@@ -53,6 +53,5 @@ typedef struct {
 PyObject *Sound_Init( void );
 PyObject *Sound_CreatePyObject( bSound * sound );
 bSound *Sound_FromPyObject( PyObject * pyobj );
-int Sound_CheckPyObject( PyObject * pyobj );
 
 #endif				/* EXPP_SOUND_H */

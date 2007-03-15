@@ -1339,11 +1339,6 @@ Tex *Texture_FromPyObject( PyObject * pyobj )
 	return ( ( BPy_Texture * ) pyobj )->texture;
 }
 
-int Texture_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Texture_Type );
-}
-
 /*****************************************************************************/
 /* Python BPy_Texture methods:                                               */
 /*****************************************************************************/
@@ -1966,7 +1961,7 @@ static int Texture_setIpo( BPy_Texture * self, PyObject * value )
 	/* if parameter is not None, check for valid Ipo */
 
 	if ( value != Py_None ) {
-		if ( !Ipo_CheckPyObject( value ) )
+		if ( !BPy_Ipo_Check( value ) )
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
 					      	"expected an Ipo object" );
 

@@ -36,11 +36,12 @@
 #include <Python.h>
 #include "DNA_curve_types.h"
 
+extern PyTypeObject Text3d_Type;
+
 #define BPy_Text3d_Check(v) ((v)->ob_type==&Text3d_Type)
 typedef Curve Text3d; 
 
 /*prototypes*/
-int Text3d_CheckPyObject( PyObject * py_obj );
 PyObject *Text3d_Init( void );
 struct Text3d *Text3d_FromPyObject( PyObject * py_obj );
 PyObject *Text3d_CreatePyObject( Text3d* text3d );

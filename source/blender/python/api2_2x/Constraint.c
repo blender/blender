@@ -531,7 +531,7 @@ static int action_setter( BPy_Constraint *self, int type, PyObject *value )
 		}
 	case EXPP_CONSTR_ACTION: {
 		bAction *act = (( BPy_Action * )value)->action;
-		if( !Action_CheckPyObject( value ) )
+		if( !BPy_Action_Check( value ) )
 			return EXPP_ReturnIntError( PyExc_TypeError, 
 					"expected BPy action argument" );
 		con->act = act;
@@ -1479,16 +1479,6 @@ PyObject *Constraint_CreatePyObject( bPoseChannel *pchan, Object *obj,
 	pycon->obj = obj;	
 	pycon->pchan = pchan;
 	return ( PyObject * ) pycon;
-}
-
-/*****************************************************************************/
-/* Function:    Constraint_CheckPyObject                                     */
-/* Description: This function returns true when the given PyObject is of the */
-/*              type Constraint. Otherwise it will return false.               */
-/*****************************************************************************/
-int Constraint_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Constraint_Type );
 }
 
 /*****************************************************************************/

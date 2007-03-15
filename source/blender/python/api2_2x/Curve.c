@@ -1039,7 +1039,7 @@ static PyObject *Curve_getBevOb( BPy_Curve * self)
 static int Curve_newsetBevOb( BPy_Curve * self, PyObject * args )
 {
 	
-	if (Object_CheckPyObject( args ) && ((BPy_Object *)args)->object->data == self->curve )
+	if (BPy_Object_Check( args ) && ((BPy_Object *)args)->object->data == self->curve )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"Can't bevel an object to itself" );
 	
@@ -1066,7 +1066,7 @@ static PyObject *Curve_getTaperOb( BPy_Curve * self)
 
 static int Curve_newsetTaperOb( BPy_Curve * self, PyObject * args )
 {
-	if (Object_CheckPyObject( args ) && ((BPy_Object *)args)->object->data == self->curve )
+	if (BPy_Object_Check( args ) && ((BPy_Object *)args)->object->data == self->curve )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"Can't taper an object to itself" );
 	
@@ -1160,7 +1160,7 @@ static PyObject *Curve_iterNext( BPy_Curve * self )
 
 static int Curve_length( PyInstanceObject * inst )
 {
-	if( Curve_CheckPyObject( ( PyObject * ) inst ) )
+	if( BPy_Curve_Check( ( PyObject * ) inst ) )
 		return ( ( int ) PyInt_AsLong
 			 ( Curve_getNumCurves( ( BPy_Curve * ) inst ) ) );
 
@@ -1662,12 +1662,6 @@ PyObject *Curve_CreatePyObject( struct Curve * curve )
 	return ( ( PyObject * ) blen_object );
 
 }
-
-int Curve_CheckPyObject( PyObject * py_obj )
-{
-	return ( py_obj->ob_type == &Curve_Type );
-}
-
 
 struct Curve *Curve_FromPyObject( PyObject * py_obj )
 {

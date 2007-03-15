@@ -350,11 +350,6 @@ PyObject *Camera_CreatePyObject( Camera * cam )
 	return ( PyObject * ) pycam;
 }
 
-int Camera_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Camera_Type );
-}
-
 Camera *Camera_FromPyObject( PyObject * pyobj )
 {
 	return ( ( BPy_Camera * ) pyobj )->camera;

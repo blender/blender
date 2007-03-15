@@ -5654,7 +5654,7 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 		ob = ( Object * ) GetIdFromList( &( G.main->object ), name );
 		if( !ob )
 			return EXPP_ReturnPyObjError( PyExc_AttributeError, name );
-	} else if ( Object_CheckPyObject(object_arg) ) {
+	} else if ( BPy_Object_Check(object_arg) ) {
 		ob = (( BPy_Object * ) object_arg)->object;
 	} else {
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -8181,10 +8181,6 @@ PyObject *Mesh_CreatePyObject( Mesh * me, Object *obj )
 	return ( PyObject * ) nmesh;
 }
 
-int Mesh_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Mesh_Type );
-}
 
 Mesh *Mesh_FromPyObject( PyObject * pyobj, Object *obj )
 {

@@ -77,6 +77,5 @@ typedef struct {
 PyObject *Metaball_Init( void );
 PyObject *Metaball_CreatePyObject( MetaBall * mball );
 MetaBall *Metaball_FromPyObject( PyObject * py_obj );
-int Metaball_CheckPyObject( PyObject * py_obj );
 
 #endif				/* EXPP_METABALL_H */

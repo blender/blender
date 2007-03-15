@@ -57,6 +57,5 @@ typedef struct {
 PyObject *Lamp_Init( void );
 PyObject *Lamp_CreatePyObject( struct Lamp *lamp );
 Lamp *Lamp_FromPyObject( PyObject * pyobj );
-int Lamp_CheckPyObject( PyObject * pyobj );
 
 #endif				/* EXPP_LAMP_H */

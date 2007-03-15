@@ -60,7 +60,6 @@ typedef struct {
 
 PyObject *CurNurb_Init( void );
 PyObject *CurNurb_CreatePyObject( Nurb * bzt );
-int CurNurb_CheckPyObject( PyObject * pyobj );
 Nurb *CurNurb_FromPyObject( PyObject * pyobj );
 
 PyObject *CurNurb_getPoint( BPy_CurNurb * self, int index );

@@ -402,12 +402,6 @@ PyObject *Font_CreatePyObject( struct VFont * font )
 	return ( ( PyObject * ) blen_font );
 }
 
-/*--------------- Font_CheckPyObject--------------------------------*/
-int Font_CheckPyObject( PyObject * py_obj )
-{
-	return ( py_obj->ob_type == &Font_Type );
-}
-
 /*--------------- Font_FromPyObject---------------------------------*/
 struct VFont *Font_FromPyObject( PyObject * py_obj )
 {

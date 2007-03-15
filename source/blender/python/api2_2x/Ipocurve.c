@@ -705,16 +705,6 @@ PyObject *IpoCurve_CreatePyObject( IpoCurve * icu )
 }
 
 /*****************************************************************************/
-/* Function:    IpoCurve_CheckPyObject                                      */
-/* Description: This function returns true when the given PyObject is of the */
-/*              type IpoCurve. Otherwise it will return false.               */
-/*****************************************************************************/
-int IpoCurve_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &IpoCurve_Type );
-}
-
-/*****************************************************************************/
 /* Function:    IpoCurve_FromPyObject                                       */
 /* Description: This function returns the Blender ipo from the given         */
 /*              PyObject.                                                    */

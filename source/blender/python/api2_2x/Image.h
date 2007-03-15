@@ -55,7 +55,6 @@ extern PyTypeObject Image_Type;	/* The Image PyType Object */
 /*****************************************************************************/
 PyObject *Image_Init( void );
 PyObject *Image_CreatePyObject( Image * image );
-int Image_CheckPyObject( PyObject * pyobj );
 Image *Image_FromPyObject( PyObject * pyobj );
 
 #endif				/* EXPP_IMAGE_H */

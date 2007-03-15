@@ -2807,7 +2807,7 @@ PyObject *NMesh_assignMaterials_toObject( BPy_NMesh * nmesh, Object * ob )
 		pymat = ( BPy_Material * ) PySequence_GetItem( nmesh->
 							       materials, i );
 
-		if( Material_CheckPyObject( ( PyObject * ) pymat ) ) {
+		if( BPy_Material_Check( ( PyObject * ) pymat ) ) {
 			ma = pymat->material;
 			assign_material( ob, ma, i + 1 );	/*@ XXX don't use this function anymore */
 		} else {
@@ -3355,11 +3355,6 @@ PyObject *NMesh_CreatePyObject( Mesh * me, Object * ob )
 		nmesh->object = ob;	/* linking nmesh and object for vgrouping methods */
 
 	return ( PyObject * ) nmesh;
-}
-
-int NMesh_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &NMesh_Type );
 }
 
 Mesh *NMesh_FromPyObject( PyObject * pyobj, Object * ob )

@@ -57,7 +57,6 @@ extern PyTypeObject MTex_Type;
 
 PyObject *MTex_Init( void );
 PyObject *MTex_CreatePyObject( struct MTex *obj );
-int MTex_CheckPyObject( PyObject * py_obj );
 MTex *MTex_FromPyObject( PyObject * py_obj );
 
 

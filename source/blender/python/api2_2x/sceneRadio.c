@@ -704,11 +704,6 @@ PyObject *Radio_CreatePyObject( struct Scene * scene )
 	return ( ( PyObject * ) py_radio );
 }
 
-int Radio_CheckPyObject( PyObject * pyob )
-{
-	return ( pyob->ob_type == &Radio_Type );
-}
-
 static PyObject *Radio_collectMeshes( BPy_Radio * self )
 {
 	if( !EXPP_check_scene( self->scene ) )

@@ -62,6 +62,5 @@ typedef struct {
 PyObject *Group_Init( void );
 PyObject *Group_CreatePyObject( struct Group *group );
 Group *Group_FromPyObject( PyObject * py_obj );
-int Group_CheckPyObject( PyObject * py_obj );
 
 #endif				/* EXPP_GROUP_H */

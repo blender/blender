@@ -62,7 +62,6 @@ PyObject *M_Material_Init( void );
 PyObject *Material_Init( void );
 PyObject *Material_CreatePyObject( Material * mat );
 Material *Material_FromPyObject( PyObject * pyobj );
-int Material_CheckPyObject( PyObject * pyobj );
 
 /* colorband tp_getseters */
 PyObject *EXPP_PyList_fromColorband( ColorBand *coba );

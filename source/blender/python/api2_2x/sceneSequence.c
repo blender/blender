@@ -462,7 +462,7 @@ static int Sequence_setIpo( BPy_Sequence * self, PyObject * value )
 	/* if parameter is not None, check for valid Ipo */
 
 	if ( value != Py_None ) {
-		if ( !Ipo_CheckPyObject( value ) )
+		if ( !BPy_Ipo_Check( value ) )
 			return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected an Ipo object" );
 
@@ -1031,21 +1031,6 @@ PyObject *SceneSeq_CreatePyObject( struct Scene * scn, struct Sequence * iter)
 	pysceseq->iter = iter;
 	
 	return ( ( PyObject * ) pysceseq );
-}
-
-
-/*****************************************************************************/
-/* Function:	Sequence_CheckPyObject					 */
-/* Description: This function returns true when the given PyObject is of the */
-/*		type Sequence. Otherwise it will return false.		 */
-/*****************************************************************************/
-int Sequence_CheckPyObject( PyObject * py_seq)
-{
-	return ( py_seq->ob_type == &Sequence_Type );
-}
-int SceneSeq_CheckPyObject( PyObject * py_seq)
-{
-	return ( py_seq->ob_type == &SceneSeq_Type );
 }
 
 /*****************************************************************************/

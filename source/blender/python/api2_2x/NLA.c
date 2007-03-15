@@ -406,12 +406,6 @@ PyObject *Action_CreatePyObject( struct bAction * act )
 }
 
 /*----------------------------------------------------------------------*/
-int Action_CheckPyObject( PyObject * py_obj )
-{
-	return ( py_obj->ob_type == &Action_Type );
-}
-
-/*----------------------------------------------------------------------*/
 struct bAction *Action_FromPyObject( PyObject * py_obj )
 {
 	BPy_Action *blen_obj;

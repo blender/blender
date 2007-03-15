@@ -985,12 +985,6 @@ PyObject *World_CreatePyObject( struct World * world )
 	return ( ( PyObject * ) blen_object );
 }
 
-int World_CheckPyObject( PyObject * py_obj )
-{
-	return ( py_obj->ob_type == &World_Type );
-}
-
-
 World *World_FromPyObject( PyObject * py_obj )
 {
 	BPy_World *blen_obj;

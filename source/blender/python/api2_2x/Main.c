@@ -281,7 +281,7 @@ static int MainSeq_setActive(BPy_MainSeq *self, PyObject *value)
 {
 	switch (self->type) {
 	case ID_SCE:
-		if (!Scene_CheckPyObject(value)) {
+		if (!BPy_Scene_Check(value)) {
 			return EXPP_ReturnIntError(PyExc_TypeError,
 					"Must be a scene" );
 		} else {
@@ -303,7 +303,7 @@ static int MainSeq_setActive(BPy_MainSeq *self, PyObject *value)
 		return 0;
 		
 	case ID_IM:
-		if (!Image_CheckPyObject(value)) {
+		if (!BPy_Image_Check(value)) {
 			return EXPP_ReturnIntError(PyExc_TypeError,
 					"Must be a scene" );
 		} else {

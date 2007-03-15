@@ -838,16 +838,6 @@ PyObject *Lamp_CreatePyObject( Lamp * lamp )
 }
 
 /*****************************************************************************/
-/* Function:    Lamp_CheckPyObject                                           */
-/* Description: This function returns true when the given PyObject is of the */
-/*              type Lamp. Otherwise it will return false.                   */
-/*****************************************************************************/
-int Lamp_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Lamp_Type );
-}
-
-/*****************************************************************************/
 /* Function:    Lamp_FromPyObject                                            */
 /* Description: This function returns the Blender lamp from the given        */
 /*              PyObject.                                                    */

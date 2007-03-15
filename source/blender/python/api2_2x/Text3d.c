@@ -630,12 +630,6 @@ static int Text3d_compare( BPy_Text3d * a, BPy_Text3d * b )
 	return ( a->curve == b->curve) ? 0 : -1;
 }
 
-
-int Text3d_CheckPyObject( PyObject * py_obj )
-{
-	return ( py_obj->ob_type == &Text3d_Type );
-}
-
 struct Text3d *Text3d_FromPyObject( PyObject * py_obj )
 {
 	BPy_Text3d *blen_obj;

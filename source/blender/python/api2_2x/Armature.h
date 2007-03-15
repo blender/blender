@@ -35,8 +35,8 @@
 #include "DNA_armature_types.h"
 
 //-------------------TYPE CHECKS---------------------------------
-#define ArmatureObject_Check(v) ((v)->ob_type == &Armature_Type)
-#define BonesDictObject_Check(v) ((v)->ob_type == &BonesDict_Type)
+#define BPy_Armature_Check(v) ((v)->ob_type == &Armature_Type)
+#define BPy_BonesDict_Check(v) ((v)->ob_type == &BonesDict_Type)
 //-------------------MODULE INIT---------------------------------
 PyObject *Armature_Init( void );
 //-------------------TYPEOBJECT----------------------------------
@@ -65,7 +65,6 @@ struct bArmature *PyArmature_AsArmature(BPy_Armature *py_armature);
 PyObject * Armature_RebuildEditbones(PyObject *pyarmature);
 PyObject *Armature_RebuildBones(PyObject *pyarmature);
 
-int Armature_CheckPyObject( PyObject * pyobj );
 struct bArmature  *Armature_FromPyObject( PyObject * py_obj );
 
 #endif				

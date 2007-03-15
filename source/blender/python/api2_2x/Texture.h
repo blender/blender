@@ -58,7 +58,6 @@ extern PyTypeObject Texture_Type;
 
 PyObject *Texture_Init( void );
 PyObject *Texture_CreatePyObject( struct Tex *tex );
-int Texture_CheckPyObject( PyObject * pyobj );
 Tex *Texture_FromPyObject( PyObject * pyobj );
 
 

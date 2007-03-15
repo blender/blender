@@ -69,7 +69,6 @@ typedef struct {
 #define BPy_ActionStrips_Check(v) ((v)->ob_type == &ActionStrips_Type)
 
 PyObject *Action_CreatePyObject( struct bAction *action );
-int Action_CheckPyObject( PyObject * py_obj );
 bAction *Action_FromPyObject( PyObject * py_obj );
 
 PyObject *ActionStrip_CreatePyObject( struct bActionStrip *strip );

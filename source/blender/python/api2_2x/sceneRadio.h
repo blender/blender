@@ -47,6 +47,5 @@ typedef struct {
 PyObject *Radio_Init( void );
 
 PyObject *Radio_CreatePyObject( struct Scene *scene );
-int Radio_CheckPyObject( PyObject * py_obj );
 
 #endif				/* EXPP_SCENERADIO_H */

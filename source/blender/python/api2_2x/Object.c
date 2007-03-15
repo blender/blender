@@ -1587,25 +1587,25 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected an object as argument" );
 
-	if( ArmatureObject_Check( py_data ) )
+	if( BPy_Armature_Check( py_data ) )
 		data = ( void * ) PyArmature_AsArmature((BPy_Armature*)py_data);
-	else if( Camera_CheckPyObject( py_data ) )
+	else if( BPy_Camera_Check( py_data ) )
 		data = ( void * ) Camera_FromPyObject( py_data );
-	else if( Lamp_CheckPyObject( py_data ) )
+	else if( BPy_Lamp_Check( py_data ) )
 		data = ( void * ) Lamp_FromPyObject( py_data );
-	else if( Curve_CheckPyObject( py_data ) )
+	else if( BPy_Curve_Check( py_data ) )
 		data = ( void * ) Curve_FromPyObject( py_data );
-	else if( NMesh_CheckPyObject( py_data ) ) {
+	else if( BPy_NMesh_Check( py_data ) ) {
 		data = ( void * ) NMesh_FromPyObject( py_data, self->object );
 		if( !data )		/* NULL means there is already an error */
 			return NULL;
-	} else if( Mesh_CheckPyObject( py_data ) )
+	} else if( BPy_Mesh_Check( py_data ) )
 		data = ( void * ) Mesh_FromPyObject( py_data, self->object );
-	else if( Lattice_CheckPyObject( py_data ) )
+	else if( BPy_Lattice_Check( py_data ) )
 		data = ( void * ) Lattice_FromPyObject( py_data );
-	else if( Metaball_CheckPyObject( py_data ) )
+	else if( BPy_Metaball_Check( py_data ) )
 		data = ( void * ) Metaball_FromPyObject( py_data );
-	else if( Text3d_CheckPyObject( py_data ) )
+	else if( BPy_Text3d_Check( py_data ) )
 		data = ( void * ) Text3d_FromPyObject( py_data );
 
 	/* have we set data to something good? */
@@ -1988,7 +1988,7 @@ static PyObject *Object_join( BPy_Object * self, PyObject * args )
 	/* Check if the PyObject passed in list is a Blender object. */
 	for( i = 0; i < list_length; i++ ) {
 		py_child = PySequence_GetItem( list, i );
-		if( !Object_CheckPyObject( py_child ) ) {
+		if( !BPy_Object_Check( py_child ) ) {
 			/* Cleanup */
 			free_libblock( &G.main->scene, temp_scene );
 			Py_DECREF( py_child );
@@ -2084,7 +2084,7 @@ static PyObject *internal_makeParent(Object *parent, PyObject *py_child,
 {
 	Object *child = NULL;
 
-	if( Object_CheckPyObject( py_child ) )
+	if( BPy_Object_Check( py_child ) )
 		child = ( Object * ) Object_FromPyObject( py_child );
 
 	if( child == NULL )
@@ -2843,7 +2843,7 @@ static PyObject *Object_removeProperty( BPy_Object * self, PyObject * args )
 	/* we accept either a property stringname or actual object */
 	if( PyTuple_Size( args ) == 1 ) {
 		PyObject *prop = PyTuple_GET_ITEM( args, 0 );
-		if( Property_CheckPyObject( prop ) )
+		if( BPy_Property_Check( prop ) )
 			py_prop = (BPy_Property *)prop;
 		else
 			prop_name = PyString_AsString( prop );
@@ -3098,16 +3098,6 @@ PyObject *Object_CreatePyObject( struct Object * obj )
 	blen_object->realtype = OB_EMPTY;
 	obj->id.us++;
 	return ( ( PyObject * ) blen_object );
-}
-
-/*****************************************************************************/
-/* Function:	Object_CheckPyObject					 */
-/* Description: This function returns true when the given PyObject is of the */
-/*		type Object. Otherwise it will return false.		 */
-/*****************************************************************************/
-int Object_CheckPyObject( PyObject * py_obj )
-{
-	return ( py_obj->ob_type == &Object_Type );
 }
 
 /*****************************************************************************/

@@ -544,14 +544,6 @@ PyObject *Metaball_Init( void )
 	return submodule;
 }
 
-
-
-int Metaball_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Metaball_Type );
-}
-
-
 MetaBall *Metaball_FromPyObject( PyObject * pyobj )
 {
 	return ( ( BPy_Metaball * ) pyobj )->metaball;

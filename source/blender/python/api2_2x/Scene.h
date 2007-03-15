@@ -66,6 +66,5 @@ typedef struct {
 PyObject *Scene_Init( void );
 PyObject *Scene_CreatePyObject( Scene * scene );
 /*Scene *Scene_FromPyObject( PyObject * pyobj );*/  /* not used yet */
-int Scene_CheckPyObject( PyObject * pyobj );
 
 #endif				/* EXPP_SCENE_H */

@@ -515,16 +515,6 @@ PyObject *Group_CreatePyObject( struct Group * grp )
 }
 
 /*****************************************************************************/
-/* Function:	Group_CheckPyObject					 */
-/* Description: This function returns true when the given PyObject is of the */
-/*		type Group. Otherwise it will return false.		 */
-/*****************************************************************************/
-int Group_CheckPyObject( PyObject * py_grp)
-{
-	return ( py_grp->ob_type == &Group_Type );
-}
-
-/*****************************************************************************/
 /* Function:	Group_FromPyObject					 */
 /* Description: This function returns the Blender group from the given	 */
 /*		PyObject.						 */

@@ -58,7 +58,6 @@ extern PyTypeObject Ipo_Type;
 PyObject *Ipo_Init( void );
 PyObject *Ipo_CreatePyObject( struct Ipo *ipo );
 Ipo *Ipo_FromPyObject( PyObject * py_obj );
-int Ipo_CheckPyObject( PyObject * py_obj );
 
 
 #endif				/* EXPP_IPO_H */

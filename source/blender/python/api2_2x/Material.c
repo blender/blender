@@ -1217,16 +1217,6 @@ PyObject *Material_CreatePyObject( struct Material *mat )
 }
 
 /*****************************************************************************/
-/* Function:	Material_CheckPyObject  */
-/* Description: This function returns true when the given PyObject is of the */
-/*		type Material. Otherwise it will return false.	 */
-/*****************************************************************************/
-int Material_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Material_Type );
-}
-
-/*****************************************************************************/
 /* Function:		Material_FromPyObject	 */
 /* Description: This function returns the Blender material from the given */
 /*		PyObject.	 */
@@ -2580,7 +2570,7 @@ Material **EXPP_newMaterialList_fromPyList( PyObject * list )
 
 		pymat = ( BPy_Material * ) PySequence_GetItem( list, i );
 
-		if( Material_CheckPyObject( ( PyObject * ) pymat ) ) {
+		if( BPy_Material_Check( ( PyObject * ) pymat ) ) {
 			mat = pymat->material;
 			matlist[i] = mat;
 		} else if( ( PyObject * ) pymat == Py_None ) {

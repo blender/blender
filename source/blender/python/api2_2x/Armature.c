@@ -1341,13 +1341,6 @@ struct bArmature *PyArmature_AsArmature(BPy_Armature *py_armature)
 	return (py_armature->armature);
 }
 
-// This function returns true when the given PyObject
-// is of the type Sound. Otherwise it will return false
-int Armature_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Armature_Type);
-}
-
 struct bArmature *Armature_FromPyObject( PyObject * py_obj )
 {
 	return PyArmature_AsArmature((BPy_Armature*)py_obj);

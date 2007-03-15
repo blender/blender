@@ -1351,16 +1351,6 @@ PyObject *Ipo_CreatePyObject( Ipo * ipo )
 }
 
 /*****************************************************************************/
-/* Function:    Ipo_CheckPyObject                                            */
-/* Description: This function returns true when the given PyObject is of the */
-/*              type Ipo. Otherwise it will return false.                    */
-/*****************************************************************************/
-int Ipo_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Ipo_Type );
-}
-
-/*****************************************************************************/
 /* Function:    Ipo_FromPyObject                                             */
 /* Description: This function returns the Blender ipo from the given         */
 /*              PyObject.                                                    */

@@ -782,16 +782,6 @@ PyObject *Image_CreatePyObject( Image * image )
 }
 
 /*****************************************************************************/
-/* Function:		Image_CheckPyObject	 */
-/* Description: This function returns true when the given PyObject is of the */
-/*		type Image. Otherwise it will return false.	 */
-/*****************************************************************************/
-int Image_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Image_Type );
-}
-
-/*****************************************************************************/
 /* Function:	Image_FromPyObject	 */
 /* Description: Returns the Blender Image associated with this object  	 */
 /*****************************************************************************/

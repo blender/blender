@@ -152,14 +152,6 @@ Lattice *Lattice_FromPyObject( PyObject * pyobj )
 }
 
 //***************************************************************************
-// Function:    Lattice_CheckPyObject     
-//***************************************************************************
-int Lattice_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Lattice_Type );
-}
-
-//***************************************************************************
 // Function:       M_Lattice_New      
 // Python equivalent:          Blender.Lattice.New 
 //***************************************************************************

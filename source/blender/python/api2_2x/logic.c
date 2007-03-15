@@ -347,12 +347,6 @@ PyObject *Property_CreatePyObject( struct bProperty * Property )
 	return ( ( PyObject * ) py_property );
 }
 
-//--------------- Property_CheckPyObject----------------------------
-int Property_CheckPyObject( PyObject * py_obj )
-{
-	return ( py_obj->ob_type == &property_Type );
-}
-
 //--------------- Property_FromPyObject-----------------------------
 struct bProperty *Property_FromPyObject( PyObject * py_obj )
 {

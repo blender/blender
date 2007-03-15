@@ -77,7 +77,6 @@ typedef struct {
 
 PyObject *Camera_Init( void );
 PyObject *Camera_CreatePyObject( Camera * cam );
-int Camera_CheckPyObject( PyObject * pyobj );
 Camera *Camera_FromPyObject( PyObject * pyobj );
 
 #endif				/* EXPP_CAMERA_H */

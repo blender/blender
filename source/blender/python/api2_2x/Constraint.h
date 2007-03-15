@@ -69,7 +69,6 @@ PyObject *Constraint_Init( void );
 PyObject *Constraint_CreatePyObject( bPoseChannel *pchan, Object *obj,
 		bConstraint *con );
 bConstraint *Constraint_FromPyObject( BPy_Constraint * obj );
-int Constraint_CheckPyObject( PyObject * py_obj );
 
 PyObject *PoseConstraintSeq_CreatePyObject( bPoseChannel *pchan );
 PyObject *ObConstraintSeq_CreatePyObject( Object *obj );

@@ -271,13 +271,6 @@ MTex *MTex_FromPyObject( PyObject * pyobj )
 	return ( ( BPy_MTex * ) pyobj )->mtex;
 }
 
-
-int MTex_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &MTex_Type );
-}
-
-
 /*****************************************************************************/
 /* Python BPy_MTex methods:                                                  */
 /*****************************************************************************/

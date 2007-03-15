@@ -646,16 +646,6 @@ PyObject *BezTriple_CreatePyObject( BezTriple * bzt )
 
 
 /*****************************************************************************/
-/* Function:    BezTriple_CheckPyObject                                     */
-/* Description: This function returns true when the given PyObject is of the */
-/*              type BezTriple. Otherwise it will return false.             */
-/*****************************************************************************/
-int BezTriple_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &BezTriple_Type );
-}
-
-/*****************************************************************************/
 /* Function:    BezTriple_FromPyObject                                      */
 /* Description: This function returns the Blender beztriple from the given   */
 /*              PyObject.                                                    */

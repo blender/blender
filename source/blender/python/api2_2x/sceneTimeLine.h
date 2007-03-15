@@ -53,7 +53,6 @@ typedef struct {
 PyObject *TimeLine_Init (void);
 PyObject *TimeLine_CreatePyObject (BPy_TimeLine *tl);
 BPy_TimeLine *TimeLine_FromPyObject (PyObject * pyobj);
-int TimeLine_CheckPyObject (PyObject * pyobj);
 
 #endif				/* EXPP_TMARKER_H */
 

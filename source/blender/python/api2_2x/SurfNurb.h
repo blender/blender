@@ -60,7 +60,6 @@ typedef struct {
 
 PyObject *SurfNurb_Init( void );
 PyObject *SurfNurb_CreatePyObject( Nurb * bzt );
-int SurfNurb_CheckPyObject( PyObject * pyobj );
 Nurb *SurfNurb_FromPyObject( PyObject * pyobj );
 
 PyObject *SurfNurb_getPoint( BPy_SurfNurb * self, int index );

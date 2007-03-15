@@ -45,7 +45,6 @@ typedef struct {
 
 /*------------------------------visible prototypes----------------------*/
 PyObject *Font_CreatePyObject( struct VFont * font );
-int Font_CheckPyObject( PyObject * py_obj );
 struct VFont *Font_FromPyObject( PyObject * py_obj );
 PyObject *Font_Init( void );
 

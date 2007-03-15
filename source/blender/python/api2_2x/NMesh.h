@@ -145,8 +145,6 @@ typedef struct {
 PyObject *NMesh_Init( void );
 PyObject *NMesh_CreatePyObject( Mesh * me, Object * ob );
 Mesh *NMesh_FromPyObject( PyObject * pyobj, Object * ob );
-int NMesh_CheckPyObject( PyObject * pyobj );
-
 
 void mesh_update( Mesh * mesh , Object * ob );
 PyObject *new_NMesh( Mesh * oldmesh );

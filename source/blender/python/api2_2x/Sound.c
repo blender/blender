@@ -350,16 +350,6 @@ PyObject *Sound_CreatePyObject( bSound * snd )
 }
 
 /*****************************************************************************/
-/* Function:	Sound_CheckPyObject					*/
-/* Description: This function returns true when the given PyObject is of the */
-/*			type Sound. Otherwise it will return false.	*/
-/*****************************************************************************/
-int Sound_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Sound_Type );
-}
-
-/*****************************************************************************/
 /* Function:	Sound_FromPyObject				*/
 /* Description: Returns the Blender Sound associated with this object	 */
 /*****************************************************************************/

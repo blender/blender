@@ -1709,7 +1709,7 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 			"expected a Blender.Image and 2 floats, and " \
 			"optionally 2 floats and 4 ints as arguments" );
 	/* check that the first PyObject is actually a Blender.Image */
-	if( !Image_CheckPyObject( pyObjImage ) )
+	if( !BPy_Image_Check( pyObjImage ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"expected a Blender.Image and 2 floats, and " \
 			"optionally 2 floats and 4 ints as arguments" );

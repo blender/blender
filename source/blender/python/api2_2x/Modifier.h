@@ -68,6 +68,5 @@ PyObject *Modifier_Init( void );
 PyObject *ModSeq_CreatePyObject( Object *obj, ModifierData *iter );
 PyObject *Modifier_CreatePyObject( Object *obj, ModifierData *md );
 ModifierData *Modifier_FromPyObject( PyObject * py_obj );
-int Modifier_CheckPyObject( PyObject * py_obj );
 
 #endif				/* EXPP_MODIFIER_H */

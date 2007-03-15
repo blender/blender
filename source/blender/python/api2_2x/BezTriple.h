@@ -57,7 +57,6 @@ typedef struct {
  */
 
 PyObject *BezTriple_CreatePyObject( BezTriple * bzt );
-int BezTriple_CheckPyObject( PyObject * pyobj );
 BezTriple *BezTriple_FromPyObject( PyObject * pyobj );
 PyObject *newBezTriple( float *args );
 PyObject *BezTriple_Init( void );

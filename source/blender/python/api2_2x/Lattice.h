@@ -39,6 +39,8 @@
 /* The Group PyTypeObject defined in Lattice.c */
 extern PyTypeObject Lattice_Type;
 
+#define BPy_Lattice_Check(v)       ((v)->ob_type == &Lattice_Type)
+
 /*****************************************************************************/
 /* Python BPy_Lattice structure definition:   */
 /*****************************************************************************/
@@ -54,6 +56,5 @@ typedef struct {
 PyObject *Lattice_Init( void );
 PyObject *Lattice_CreatePyObject( Lattice * lt );
 Lattice *Lattice_FromPyObject( PyObject * pyobj );
-int Lattice_CheckPyObject( PyObject * pyobj );
 
 #endif				/* EXPP_LATTICE_H */

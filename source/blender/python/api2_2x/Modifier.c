@@ -1021,16 +1021,6 @@ PyObject *Modifier_CreatePyObject( Object *ob, ModifierData * md )
 }
 
 /*****************************************************************************/
-/* Function:    Modifier_CheckPyObject                                       */
-/* Description: This function returns true when the given PyObject is of the */
-/*              type Modifier. Otherwise it will return false.               */
-/*****************************************************************************/
-int Modifier_CheckPyObject( PyObject * pyobj )
-{
-	return ( pyobj->ob_type == &Modifier_Type );
-}
-
-/*****************************************************************************/
 /* Function:    Modifier_FromPyObject                                        */
 /* Description: This function returns the Blender modifier from the given    */
 /*              PyObject.                                                    */

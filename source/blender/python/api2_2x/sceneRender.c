@@ -2703,11 +2703,6 @@ PyObject *RenderData_CreatePyObject( struct Scene * scene )
 	return ( ( PyObject * ) py_renderdata );
 }
 
-int RenderData_CheckPyObject( PyObject * py_obj )
-{
-	return ( py_obj->ob_type == &RenderData_Type );
-}
-
 /* #####DEPRECATED###### */
 
 static PyObject *RenderData_SetRenderPath( BPy_RenderData *self,

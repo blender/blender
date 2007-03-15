@@ -79,7 +79,5 @@ PyObject *Sequence_Init( void );
 PyObject *Sequence_CreatePyObject( struct Sequence * seq, struct Sequence * iter, struct Scene * scn);
 PyObject *SceneSeq_CreatePyObject( struct Scene * scn, struct Sequence * iter);
 struct Sequence *Sequence_FromPyObject( PyObject * py_obj );
-int Sequence_CheckPyObject( PyObject * py_obj );
-int SceneSeq_CheckPyObject( PyObject * py_obj );
 
 #endif				/* EXPP_SEQUENCE_H */
