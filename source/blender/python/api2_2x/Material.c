@@ -1212,6 +1212,11 @@ PyObject *Material_CreatePyObject( struct Material *mat )
 	pymat->amb = ( BPy_rgbTuple * ) rgbTuple_New( amb );
 	pymat->spec = ( BPy_rgbTuple * ) rgbTuple_New( spec );
 	pymat->mir = ( BPy_rgbTuple * ) rgbTuple_New( mir );
+	
+	Py_INCREF(pymat->col);
+	Py_INCREF(pymat->amb);
+	Py_INCREF(pymat->spec);
+	Py_INCREF(pymat->mir);
 
 	return ( PyObject * ) pymat;
 }
