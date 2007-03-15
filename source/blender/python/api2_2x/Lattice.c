@@ -597,18 +597,6 @@ static PyObject *Lattice_copy( BPy_Lattice * self )
 	return py_Lattice;
 }
 
-//***************************************************************************
-// Function:      Lattice_dealloc  
-// Description: This is a callback function for the BPy_Lattice type. It is 
-//          the destructor function.      
-//***************************************************************************
-static void Lattice_dealloc( BPy_Lattice * self )
-{
-	PyObject_DEL( self );
-}
-
-
-
 static int Lattice_compare( BPy_Lattice * a, BPy_Lattice * b )
 {
 	return ( a->lattice == b->lattice ) ? 0 : -1;
@@ -751,8 +739,8 @@ PyTypeObject Lattice_Type = {
 	sizeof( BPy_Lattice ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	( destructor ) Lattice_dealloc,	/* tp_dealloc */
-	0,			/* tp_print */
+	NULL,	/* tp_dealloc */
+	0,		/* tp_print */
 	NULL,	/* tp_getattr */
 	NULL,	/* tp_setattr */
 	( cmpfunc ) Lattice_compare,			/* tp_compare */

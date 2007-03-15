@@ -1208,16 +1208,6 @@ PyObject *Curve_getNurb( BPy_Curve * self, int n )
 }
 
 /*****************************************************************************/
-/* Function:    Curve_dealloc                                                */
-/* Description: This is a callback function for the BPy_Curve type. It is    */
-/*              the destructor function.                                     */
-/*****************************************************************************/
-static void Curve_dealloc( BPy_Curve * self )
-{
-	PyObject_DEL( self );
-}
-
-/*****************************************************************************/
 /* Function:    Curve_compare		                                         */
 /* Description: This compares 2 curve python types, == or != only.			 */
 /*****************************************************************************/
@@ -1528,7 +1518,6 @@ Sets a control point "},
 /*****************************************************************************/
 /*  Python Curve_Type callback function prototypes:                         */
 /*****************************************************************************/
-static void Curve_dealloc( BPy_Curve * msh );
 static int Curve_compare( BPy_Curve * a, BPy_Curve * b );
 static PyObject *Curve_repr( BPy_Curve * msh );
 
@@ -1555,7 +1544,7 @@ PyTypeObject Curve_Type = {
 	sizeof( BPy_Curve ),                /* tp_basicsize */
 	0,                                  /* tp_itemsize */
 	/* methods */
-	( destructor ) Curve_dealloc,       /* tp_dealloc */
+	NULL, 								/* tp_dealloc */
 	0,                                  /* tp_print */
 	( getattrfunc ) NULL,	            /* tp_getattr */
 	( setattrfunc ) NULL,	            /* tp_setattr */

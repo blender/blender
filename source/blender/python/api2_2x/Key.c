@@ -61,8 +61,6 @@
 /* macro from blenkernel/intern/key.c:98 */
 #define GS(a)	(*((short *)(a)))
 
-static void Key_dealloc( PyObject * self );
-static void KeyBlock_dealloc( PyObject * self );
 static int Key_compare( BPy_Key * a, BPy_Key * b );
 static PyObject *Key_repr( BPy_Key * self );
 
@@ -137,7 +135,7 @@ PyTypeObject Key_Type = {
 	sizeof( BPy_Key ),				/*tp_basicsize */
 	0,								/*tp_itemsize */
 	/* methods */
-	( destructor ) Key_dealloc,		/*tp_dealloc */
+	NULL,							/*tp_dealloc */
 	( printfunc ) 0,				/*tp_print */
 	( getattrfunc ) 0,	/*tp_getattr */
 	( setattrfunc ) 0,			 	/*tp_setattr */
@@ -214,7 +212,7 @@ PyTypeObject KeyBlock_Type = {
 	sizeof( BPy_KeyBlock ),	/*tp_basicsize */
 	0,			/*tp_itemsize */
 	/* methods */
-	( destructor ) KeyBlock_dealloc,	/*tp_dealloc */
+	NULL,				/*tp_dealloc */
 	NULL,				/*tp_print */
 	NULL, 				/*tp_getattr */
 	NULL,				/*tp_setattr */
@@ -284,11 +282,6 @@ PyTypeObject KeyBlock_Type = {
 	NULL,                       /* PyObject *tp_weaklist; */
 	NULL
 };
-
-static void Key_dealloc( PyObject * self )
-{
-	PyObject_DEL( self );
-}
 
 static PyObject *new_Key(Key * oldkey)
 {
@@ -403,11 +396,6 @@ static PyObject *Key_getValue( BPy_Key * self )
 }
 
 /* ------------ Key Block Functions -------------- */
-
-static void KeyBlock_dealloc( PyObject * self )
-{
-	PyObject_DEL( self );
-}
 
 static PyObject *new_KeyBlock( KeyBlock * oldkeyBlock, Key *parentKey)
 {

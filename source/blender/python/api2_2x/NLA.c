@@ -120,7 +120,6 @@ static PyMethodDef BPy_Action_methods[] = {
 /*****************************************************************************/
 /* Python TypeAction callback function prototypes:			    */
 /*****************************************************************************/
-static void Action_dealloc( BPy_Action * bone );
 static int Action_compare( BPy_Action * a, BPy_Action * b );
 static PyObject *Action_repr( BPy_Action * bone );
 
@@ -366,12 +365,6 @@ static PyObject *Action_getAllChannelIpos( BPy_Action * self )
 }
 
 /*----------------------------------------------------------------------*/
-static void Action_dealloc( BPy_Action * self )
-{
-	PyObject_DEL( self );
-}
-
-/*----------------------------------------------------------------------*/
 static int Action_compare( BPy_Action * a, BPy_Action * b )
 {
 	return ( a->action == b->action ) ? 0 : -1;
@@ -432,8 +425,8 @@ PyTypeObject Action_Type = {
 	sizeof( BPy_Action ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	( destructor ) Action_dealloc,	/* tp_dealloc */
-	NULL,			/* tp_print */
+	NULL,	/* tp_dealloc */
+	NULL,	/* tp_print */
 	NULL,	/* tp_getattr */
 	NULL,	/* tp_setattr */
 	( cmpfunc ) Action_compare,		/* tp_compare */
@@ -1055,7 +1048,7 @@ PyTypeObject ActionStrip_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) Action_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -1439,7 +1432,7 @@ PyTypeObject ActionStrips_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) Action_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */

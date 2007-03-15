@@ -89,7 +89,6 @@ struct PyMethodDef M_Sound_methods[] = {
 /*****************************************************************************/
 /* Python Sound_Type callback function prototypes:			*/
 /*****************************************************************************/
-static void Sound_dealloc( BPy_Sound * self );
 static int Sound_compare( BPy_Sound * a, BPy_Sound * b );
 static PyObject *Sound_repr( BPy_Sound * self );
 
@@ -319,15 +318,6 @@ PyObject *Sound_Init( void )
 /*** The Sound PyType ***/
 /************************/
 
-/*****************************************************************************/
-/* Function:		Sound_dealloc			         */
-/* Description: This is a callback function for the BPy_Sound type. It is  */
-/*	       	the destructor function.				*/
-/*****************************************************************************/
-static void Sound_dealloc( BPy_Sound * self )
-{
-	PyObject_DEL( self );
-}
 
 /*****************************************************************************/
 /* Function:	Sound_CreatePyObject					*/
@@ -558,8 +548,8 @@ PyTypeObject Sound_Type = {
 	sizeof( BPy_Sound ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	( destructor ) Sound_dealloc,	/* tp_dealloc */
-	0,			/* tp_print */
+	NULL,	/* tp_dealloc */
+	0,		/* tp_print */
 	NULL,	/* tp_getattr */
 	NULL,	/* tp_setattr */
 	( cmpfunc ) Sound_compare,	/* tp_compare */

@@ -105,7 +105,6 @@ static PyObject *Radio_subdividePatches( BPy_Radio * self );
 static PyObject *Radio_subdivideElems( BPy_Radio * self );
 static PyObject *Radio_removeDoubles( BPy_Radio * self );
 
-static void Radio_dealloc( BPy_Radio * self );
 static PyObject *Radio_repr( BPy_Radio * self );
 
 static PyObject *EXPP_create_ret_PyInt( int value )
@@ -630,7 +629,7 @@ static PyTypeObject Radio_Type = {
 	"Blender Radiosity",	/*tp_name */
 	sizeof( BPy_Radio ),	/*tp_basicsize */
 	0,			/*tp_itemsize */
-	( destructor ) Radio_dealloc,	/*tp_dealloc */
+	NULL,		/*tp_dealloc */
 	0,			/*tp_print */
 	0,			/*tp_getattr */
 	0,			/*tp_setattr */
@@ -666,11 +665,6 @@ static PyTypeObject Radio_Type = {
 	0,			/* tp_new */
 	0, 0, 0, 0, 0, 0, 0, 0,	/* up to tp_del, so we don't get a warning */
 };
-
-static void Radio_dealloc( BPy_Radio * self )
-{
-	PyObject_DEL( self );
-}
 
 static PyObject *Radio_repr( BPy_Radio * self )
 {

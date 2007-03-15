@@ -58,10 +58,6 @@ static PyObject *TimeLine_setNameMarker (BPy_TimeLine *self, PyObject *args);
 static PyObject *TimeLine_getNameMarker (BPy_TimeLine *self, PyObject *args);
 static PyObject *TimeLine_getFramesMarked (BPy_TimeLine *self, PyObject *args);
 
-static void TimeLine_dealloc (PyObject *self) {
-	PyObject_DEL (self);
-}
-
 static PyObject *TimeLine_repr (BPy_TimeLine *self) {
 
 	return PyString_FromFormat ("[TimeLine]");
@@ -118,7 +114,7 @@ PyTypeObject TimeLine_Type = {
 	sizeof (BPy_TimeLine),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	(destructor) TimeLine_dealloc,	/* tp_dealloc */
+	NULL,	/* tp_dealloc */
 	(printfunc) 0,	/* tp_print */
 	(getattrfunc) TimeLine_getattr,	/* tp_getattr */
 	(setattrfunc) TimeLine_setattr,	/* tp_setattr */

@@ -124,7 +124,6 @@ static PyMethodDef BPy_Text_methods[] = {
 /*****************************************************************************/
 /* Python Text_Type callback function prototypes:                            */
 /*****************************************************************************/
-static void Text_dealloc( BPy_Text * self );
 static int Text_compare( BPy_Text * a, BPy_Text * b );
 static PyObject *Text_repr( BPy_Text * self );
 
@@ -460,16 +459,6 @@ static PyObject *Text_asLines( BPy_Text * self )
 }
 
 /*****************************************************************************/
-/* Function:    Text_dealloc                                                 */
-/* Description: This is a callback function for the BPy_Text type. It is     */
-/*              the destructor function.                                     */
-/*****************************************************************************/
-static void Text_dealloc( BPy_Text * self )
-{
-	PyObject_DEL( self );
-}
-
-/*****************************************************************************/
 /* Function:    Text_compare                                                 */
 /* Description: This is a callback function for the BPy_Text type. It        */
 /*              compares two Text_Type objects. Only the "==" and "!="       */
@@ -528,7 +517,7 @@ PyTypeObject Text_Type = {
 	sizeof( BPy_Text ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	( destructor ) Text_dealloc,	/* tp_dealloc */
+	NULL,	/* tp_dealloc */
 	NULL,			/* tp_print */
 	NULL,	/* tp_getattr */
 	NULL,	/* tp_setattr */

@@ -94,7 +94,7 @@ PyObject *M_Object_Get( PyObject * self, PyObject * args ); /* from Object.c */
 enum obj_consts {
 	EXPP_OBSEQ_NORMAL = 0,
 	EXPP_OBSEQ_SELECTED,
-	EXPP_OBSEQ_CONTEXT,
+	EXPP_OBSEQ_CONTEXT
 };
 
 
@@ -152,7 +152,6 @@ static PyObject *Scene_getTimeLine( BPy_Scene * self );
 
 
 /*internal*/
-static void Scene_dealloc( BPy_Scene * self );
 static int Scene_compare( BPy_Scene * a, BPy_Scene * b );
 static PyObject *Scene_repr( BPy_Scene * self );
 
@@ -459,7 +458,7 @@ PyTypeObject Scene_Type = {
 	sizeof( BPy_Scene ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	( destructor ) Scene_dealloc,	/* tp_dealloc */
+	NULL,						/* tp_dealloc */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -551,13 +550,6 @@ PyObject *Scene_Init( void )
 	PyDict_SetItemString( dict, "Sequence", Sequence_Init(  ) );
 	
 	return submodule;
-}
-
-/*-----------------------Scene module internal callbacks------------------
-  -----------------------dealloc------------------------------------------*/
-static void Scene_dealloc( BPy_Scene * self )
-{
-	PyObject_DEL( self );
 }
 
 /*-----------------------compare----------------------------------------*/

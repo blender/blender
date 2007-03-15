@@ -229,7 +229,6 @@ static PySequenceMethods Ipo_as_sequence = {
 /*****************************************************************************/
 /* Python Ipo_Type callback function prototypes:                             */
 /*****************************************************************************/
-static void Ipo_dealloc( BPy_Ipo * self );
 /*static int IpoPrint (BPy_Ipo *self, FILE *fp, int flags);*/
 static int Ipo_compare( BPy_Ipo * a, BPy_Ipo * b );
 static PyObject *Ipo_repr( BPy_Ipo * self );
@@ -365,7 +364,7 @@ PyTypeObject Ipo_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) Ipo_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -1265,16 +1264,6 @@ static int Ipo_setChannel( BPy_Ipo * self, PyObject * value )
 	if( self->mtex != -1 )
 		return EXPP_setIValueRange( value, &self->mtex, 0, 9, 'h' );
 	return 0;
-}
-
-/*****************************************************************************/
-/* Function:    Ipo_dealloc                                                  */
-/* Description: This is a callback function for the BPy_Ipo type. It is      */
-/*              the destructor function.                                     */
-/*****************************************************************************/
-static void Ipo_dealloc( BPy_Ipo * self )
-{
-	PyObject_DEL( self );
 }
 
 /*****************************************************************************/

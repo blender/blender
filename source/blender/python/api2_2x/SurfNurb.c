@@ -716,11 +716,6 @@ static PyGetSetDef BPy_SurfNurb_getseters[] = {
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
-void SurfNurb_dealloc( BPy_SurfNurb * self )
-{
-	PyObject_DEL( self );
-}
-
 /*
  * compare
  * in this case, we consider two SurfNurbs equal, if they point to the same
@@ -752,7 +747,7 @@ PyTypeObject SurfNurb_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) SurfNurb_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */

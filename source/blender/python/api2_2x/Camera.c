@@ -203,7 +203,6 @@ static PyMethodDef BPy_Camera_methods[] = {
 /*****************************************************************************/
 /* Python Camera_Type callback function prototypes:                          */
 /*****************************************************************************/
-static void Camera_dealloc( BPy_Camera * self );
 static int Camera_compare( BPy_Camera * a, BPy_Camera * b );
 static PyObject *Camera_repr( BPy_Camera * self );
 
@@ -653,12 +652,6 @@ static PyObject *Camera_copy( BPy_Camera * self )
 	return pycam;
 }
 
-static void Camera_dealloc( BPy_Camera * self )
-{
-	PyObject_DEL( self );
-}
-
-
 static PyObject *Camera_getType( BPy_Camera * self )
 {
 	if (self->camera->type == EXPP_CAM_TYPE_PERSP)
@@ -949,7 +942,7 @@ PyTypeObject Camera_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) Camera_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */

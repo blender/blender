@@ -80,7 +80,6 @@ static PyMethodDef BPy_Font_methods[] = {
 };
 
 /*--------------- Python TypeFont callback function prototypes----------*/
-static void Font_dealloc( BPy_Font * font );
 static int Font_compare( BPy_Font * a1, BPy_Font * a2 );
 static PyObject *Font_repr( BPy_Font * font );
 
@@ -274,7 +273,7 @@ PyTypeObject Font_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) Font_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -367,12 +366,6 @@ PyObject *Font_Init( void )
 
 /*--------------- Font module internal callbacks-----------------*/
 /*---------------BPy_Font internal callbacks/methods-------------*/
-
-//--------------- dealloc------------------------------------------
-static void Font_dealloc( BPy_Font * self )
-{
-	PyObject_DEL( self );
-}
 
 /*--------------- repr---------------------------------------------*/
 static PyObject *Font_repr( BPy_Font * self )

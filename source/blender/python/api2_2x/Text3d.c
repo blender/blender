@@ -91,7 +91,6 @@ struct PyMethodDef M_Text3d_methods[] = {
 /* Python Text3d_Type callback function prototypes:                          */
 /*****************************************************************************/
 /* int Text3dPrint (BPy_Text3d *msh, FILE *fp, int flags); */
-static void Text3dDeAlloc( BPy_Text3d * self );
 
 
 static PyObject *Text3d_repr( BPy_Text3d * self );
@@ -359,10 +358,10 @@ PyTypeObject Text3d_Type = {
 	sizeof( BPy_Text3d ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	( destructor ) Text3dDeAlloc,	/* tp_dealloc */
+	NULL,			/* tp_dealloc */
 	NULL,			/* tp_print */
-	NULL,	/* tp_getattr */
-	NULL,	/* tp_setattr */
+	NULL,			/* tp_getattr */
+	NULL,			/* tp_setattr */
 	( cmpfunc ) Text3d_compare,			/* tp_compare */
 	( reprfunc ) Text3d_repr,	/* tp_repr */
 	/* Method suites for standard classes */
@@ -597,11 +596,6 @@ PyObject *Text3d_Init( void )
 	dict = PyModule_GetDict( submodule );
 	PyDict_SetItemString( dict, "Font", Font_Init(  ) );
 	return ( submodule );
-}
-
-static void Text3dDeAlloc( BPy_Text3d * self )
-{
-	PyObject_DEL( self );
 }
 
 /****************************************************************************

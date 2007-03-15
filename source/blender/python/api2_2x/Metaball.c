@@ -156,7 +156,6 @@ static PyMethodDef BPy_Metaelem_methods[] = {
 /*****************************************************************************/
 /* Python Metaball_Type callback function prototypes:                       */
 /*****************************************************************************/
-static void Metaball_dealloc( BPy_Metaball * self );
 static PyObject *Metaball_repr( BPy_Metaball * self );
 static int Metaball_compare( BPy_Metaball * a, BPy_Metaball * b );
 
@@ -229,7 +228,7 @@ PyTypeObject Metaball_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) Metaball_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -729,14 +728,6 @@ static PyObject *MetaElemSeq_CreatePyObject(BPy_Metaball *self, MetaElem *iter)
 static PyObject *Metaball_getElements( BPy_Metaball * self )
 {
 	return MetaElemSeq_CreatePyObject(self, NULL);
-}
-
-/*
- * Metaball dealloc - free from memory
- */
-static void Metaball_dealloc( BPy_Metaball * self )
-{
-	PyObject_DEL( self );
 }
 
 /*

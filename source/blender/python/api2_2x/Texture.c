@@ -780,7 +780,6 @@ static PyGetSetDef BPy_Texture_getseters[] = {
 /*****************************************************************************/
 /* Python Texture_Type callback function prototypes:                         */
 /*****************************************************************************/
-static void Texture_dealloc( BPy_Texture * self );
 static int Texture_compare( BPy_Texture * a, BPy_Texture * b );
 static PyObject *Texture_repr( BPy_Texture * self );
 
@@ -797,7 +796,7 @@ PyTypeObject Texture_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) Texture_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -972,11 +971,6 @@ static PyObject *Texture_repr( BPy_Texture * self )
 {
 	return PyString_FromFormat( "[Texture \"%s\"]",
 				    self->texture->id.name + 2 );
-}
-
-static void Texture_dealloc( BPy_Texture * self )
-{
-	PyObject_DEL( self );
 }
 
 static PyObject *M_Texture_TypesDict( void )

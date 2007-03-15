@@ -65,7 +65,6 @@ static PyMethodDef BPy_MTex_methods[] = {
 /*****************************************************************************/
 /* Python MTex_Type callback function prototypes:                            */
 /*****************************************************************************/
-static void MTex_dealloc( BPy_MTex * self );
 static int MTex_compare( BPy_MTex * a, BPy_MTex * b );
 static PyObject *MTex_repr( BPy_MTex * self );
 
@@ -196,7 +195,7 @@ PyTypeObject MTex_Type = {
 	sizeof( BPy_MTex ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	( destructor ) MTex_dealloc,	/* tp_dealloc */
+	NULL,		/* tp_dealloc */
 	0,			/* tp_print */
 	0,	/* tp_getattr */
 	0,	/* tp_setattr */
@@ -278,11 +277,6 @@ MTex *MTex_FromPyObject( PyObject * pyobj )
 static PyObject *MTex_setTexMethod( BPy_MTex * self, PyObject * args )
 {
 	return EXPP_setterWrapper( (void *)self, args, (setter)MTex_setTex );
-}
-
-static void MTex_dealloc( BPy_MTex * self )
-{
-	PyObject_DEL( self );
 }
 
 static int MTex_compare( BPy_MTex * a, BPy_MTex * b )

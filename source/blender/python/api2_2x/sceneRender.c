@@ -130,11 +130,6 @@ static PyObject *RenderData_Render( BPy_RenderData * self );
 
 /* BPy_RenderData Internal Protocols */
 
-static void RenderData_dealloc( BPy_RenderData * self )
-{
-	PyObject_DEL( self );
-}
-
 static PyObject *RenderData_repr( BPy_RenderData * self )
 {
 	if( self->renderContext )
@@ -2473,7 +2468,7 @@ PyTypeObject RenderData_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) RenderData_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */

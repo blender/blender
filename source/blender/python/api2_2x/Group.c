@@ -208,7 +208,6 @@ static int Group_setObjects( BPy_Group * self, PyObject * args )
 /*****************************************************************************/
 /* PythonTypeObject callback function prototypes			 */
 /*****************************************************************************/
-static void Group_dealloc( BPy_Group * obj );
 static PyObject *Group_repr( BPy_Group * obj );
 static int Group_compare( BPy_Group * a, BPy_Group * b );
 
@@ -271,7 +270,7 @@ PyTypeObject Group_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) Group_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -525,16 +524,6 @@ Group *Group_FromPyObject( PyObject * py_grp )
 
 	blen_grp = ( BPy_Group * ) py_grp;
 	return ( blen_grp->group );
-}
-
-/*****************************************************************************/
-/* Function:	Group_dealloc						 */
-/* Description: This is a callback function for the BlenObject type. It is  */
-/*		the destructor function.				 */
-/*****************************************************************************/
-static void Group_dealloc( BPy_Group * grp )
-{
-	PyObject_DEL( grp );
 }
 
 /*****************************************************************************/

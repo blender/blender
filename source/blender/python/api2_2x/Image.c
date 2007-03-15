@@ -749,19 +749,8 @@ PyObject *Image_Init( void )
 /*****************************************************************************/
 /* Python Image_Type callback function prototypes:	 */
 /*****************************************************************************/
-static void Image_dealloc( BPy_Image * self );
 static int Image_compare( BPy_Image * a, BPy_Image * b );
 static PyObject *Image_repr( BPy_Image * self );
-
-/*****************************************************************************/
-/* Function:		Image_dealloc		 */
-/* Description: This is a callback function for the BPy_Image type. It is  */
-/*		the destructor function.	 */
-/*****************************************************************************/
-static void Image_dealloc( BPy_Image * self )
-{
-	PyObject_DEL( self );
-}
 
 /*****************************************************************************/
 /* Function:		Image_CreatePyObject	 */
@@ -1320,8 +1309,8 @@ PyTypeObject Image_Type = {
 	sizeof( BPy_Image ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	( destructor ) Image_dealloc,	/* tp_dealloc */
-	0,			/* tp_print */
+	NULL,	/* tp_dealloc */
+	0,		/* tp_print */
 	NULL,	/* tp_getattr */
 	NULL,	/* tp_setattr */
 	( cmpfunc ) Image_compare,	/* tp_compare */

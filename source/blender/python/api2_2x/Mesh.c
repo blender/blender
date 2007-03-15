@@ -744,11 +744,6 @@ static int MCol_ass_item(BPy_MCol * self, int i, PyObject * value)
  *
  ************************************************************************/
 
-static void MCol_dealloc( BPy_MCol * self )
-{
-	PyObject_DEL( self );
-}
-
 static PyObject *MCol_repr( BPy_MCol * self )
 {
 	return PyString_FromFormat( "[MCol %d %d %d %d]",
@@ -783,7 +778,7 @@ PyTypeObject MCol_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) MCol_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -1976,11 +1971,6 @@ static struct PyMethodDef BPy_MVertSeq_methods[] = {
  *
  ************************************************************************/
 
-static void MVertSeq_dealloc( BPy_MVertSeq * self )
-{
-	PyObject_DEL( self );
-}
-
 /*****************************************************************************/
 /* Python MVertSeq_Type structure definition:                               */
 /*****************************************************************************/
@@ -1994,7 +1984,7 @@ PyTypeObject MVertSeq_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) MVertSeq_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -2440,11 +2430,6 @@ static PyObject *MEdge_nextIter( BPy_MEdge * self )
  *
  ************************************************************************/
 
-static void MEdge_dealloc( BPy_MEdge * self )
-{
-	PyObject_DEL( self );
-}
-
 static int MEdge_compare( BPy_MEdge * a, BPy_MEdge * b )
 {
 	return( a->mesh == b->mesh && a->index == b->index ) ? 0 : -1;
@@ -2483,7 +2468,7 @@ PyTypeObject MEdge_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) MEdge_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -3343,11 +3328,6 @@ static struct PyMethodDef BPy_MEdgeSeq_methods[] = {
  *
  ************************************************************************/
 
-static void MEdgeSeq_dealloc( BPy_MEdgeSeq * self )
-{
-	PyObject_DEL( self );
-}
-
 /*****************************************************************************/
 /* Python MEdgeSeq_Type structure definition:                               */
 /*****************************************************************************/
@@ -3361,7 +3341,7 @@ PyTypeObject MEdgeSeq_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) MEdgeSeq_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -4443,12 +4423,6 @@ static PyObject *MFace_nextIter( BPy_MFace * self )
  * Python MFace_Type standard operations
  *
  ************************************************************************/
-
-static void MFace_dealloc( BPy_MFace * self )
-{
-	PyObject_DEL( self );
-}
-
 static int MFace_compare( BPy_MFace * a, BPy_MFace * b )
 {
 	return( a->mesh == b->mesh && a->index == b->index ) ? 0 : -1;
@@ -4510,7 +4484,7 @@ PyTypeObject MFace_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) MFace_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -5283,11 +5257,6 @@ static struct PyMethodDef BPy_MFaceSeq_methods[] = {
  *
  ************************************************************************/
 
-static void MFaceSeq_dealloc( BPy_MFaceSeq * self )
-{
-	PyObject_DEL( self );
-}
-
 /*****************************************************************************/
 /* Python MFaceSeq_Type structure definition:                               */
 /*****************************************************************************/
@@ -5301,7 +5270,7 @@ PyTypeObject MFaceSeq_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) MFaceSeq_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */

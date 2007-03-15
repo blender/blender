@@ -77,7 +77,6 @@ char M_CurNurb_doc[] = "CurNurb";
   CurNurb_Type callback function prototypes:                          
 */
 
-static void CurNurb_dealloc( BPy_CurNurb * self );
 static int CurNurb_compare( BPy_CurNurb * a, BPy_CurNurb * b );
 static PyObject *CurNurb_repr( BPy_CurNurb * self );
 
@@ -207,8 +206,8 @@ PyTypeObject CurNurb_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) CurNurb_dealloc,	/*    destructor tp_dealloc; */
-	NULL,			/*    printfunc tp_print; */
+	NULL,					/*    destructor tp_dealloc; */
+	NULL,					/*    printfunc tp_print; */
 	NULL,					/*    getattrfunc tp_getattr; */
 	NULL,					/*    setattrfunc tp_setattr; */
 	( cmpfunc ) CurNurb_compare,	/*    cmpfunc tp_compare; */
@@ -278,11 +277,6 @@ PyTypeObject CurNurb_Type = {
 	0,			/*    PyObject *tp_weaklist; */
 	0
 };
-
-void CurNurb_dealloc( BPy_CurNurb * self )
-{
-	PyObject_DEL( self );
-}
 
 /*
   compare

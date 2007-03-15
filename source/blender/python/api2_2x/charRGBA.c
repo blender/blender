@@ -39,7 +39,6 @@
 /*****************************************************************************/
 /* Python charRGBA_Type callback function prototypes:			  */
 /*****************************************************************************/
-static void charRGBA_dealloc( BPy_charRGBA * self );
 static PyObject *charRGBA_getAttr( BPy_charRGBA * self, char *name );
 static int charRGBA_setAttr( BPy_charRGBA * self, char *name, PyObject * v );
 static PyObject *charRGBA_repr( BPy_charRGBA * self );
@@ -88,7 +87,7 @@ PyTypeObject charRGBA_Type = {
 	sizeof( BPy_charRGBA ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	( destructor ) charRGBA_dealloc,	/* tp_dealloc */
+	NULL,		/* tp_dealloc */
 	0,			/* tp_print */
 	( getattrfunc ) charRGBA_getAttr,	/* tp_getattr */
 	( setattrfunc ) charRGBA_setAttr,	/* tp_setattr */
@@ -174,16 +173,6 @@ PyObject *charRGBA_setCol( BPy_charRGBA * self, PyObject * args )
 	*( self->rgba[3] ) = (char)EXPP_ClampInt( a, 0, 255 );
 
 	return EXPP_incr_ret( Py_None );
-}
-
-/*****************************************************************************/
-/* Function:	charRGBA_dealloc 					 */
-/* Description: This is a callback function for the BPy_charRGBA type. It is */
-/*		the destructor function.				 */
-/*****************************************************************************/
-static void charRGBA_dealloc( BPy_charRGBA * self )
-{
-	PyObject_DEL( self );
 }
 
 /*****************************************************************************/

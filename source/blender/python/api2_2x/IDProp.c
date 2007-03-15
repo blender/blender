@@ -46,10 +46,6 @@ extern PyTypeObject IDArray_Type;
 extern PyTypeObject IDGroup_Iter_Type;
 
 /*********************** ID Property Main Wrapper Stuff ***************/
-void IDGroup_dealloc( BPy_IDProperty *self )
-{
-	PyObject_DEL( self );
-}
 
 PyObject *IDGroup_repr( BPy_IDProperty *self )
 {
@@ -554,7 +550,7 @@ PyTypeObject IDGroup_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) IDGroup_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,     /* getattrfunc tp_getattr; */
 	NULL,     /* setattrfunc tp_setattr; */
@@ -624,11 +620,6 @@ PyObject *BPy_Wrap_IDProperty(ID *id, IDProperty *prop, IDProperty *parent)
 
 
 /********Array Wrapper********/
-
-void IDArray_dealloc(void *self)
-{
-	PyObject_DEL(self);
-}
 
 PyObject *IDArray_repr(BPy_IDArray *self)
 {
@@ -741,7 +732,7 @@ PyTypeObject IDArray_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) IDArray_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,     /* getattrfunc tp_getattr; */
 	NULL,     /* setattrfunc tp_setattr; */
@@ -814,10 +805,6 @@ PyTypeObject IDArray_Type = {
 };
 
 /*********** ID Property Group iterator ********/
-void IDGroup_Iter_dealloc(void *self)
-{
-	PyObject_DEL(self);
-}
 
 PyObject *IDGroup_Iter_iterself(PyObject *self)
 {
@@ -858,7 +845,7 @@ PyTypeObject IDGroup_Iter_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) IDGroup_Iter_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,     /* getattrfunc tp_getattr; */
 	NULL,     /* setattrfunc tp_setattr; */

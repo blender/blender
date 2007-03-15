@@ -293,8 +293,6 @@ static PyObject *Sequence_copy( BPy_Sequence * self )
 /*****************************************************************************/
 /* PythonTypeObject callback function prototypes			 */
 /*****************************************************************************/
-static void Sequence_dealloc( BPy_Sequence * obj );
-static void SceneSeq_dealloc( BPy_Sequence * obj );
 static PyObject *Sequence_repr( BPy_Sequence * obj );
 static PyObject *SceneSeq_repr( BPy_SceneSeq * obj );
 static int Sequence_compare( BPy_Sequence * a, BPy_Sequence * b );
@@ -791,7 +789,7 @@ PyTypeObject Sequence_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) Sequence_dealloc,/* destructor tp_dealloc; */
+	NULL,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -878,7 +876,7 @@ PyTypeObject SceneSeq_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) SceneSeq_dealloc,/* destructor tp_dealloc; */
+	NULL,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -1045,21 +1043,6 @@ struct Sequence *Sequence_FromPyObject( PyObject * py_seq )
 	blen_seq = ( BPy_Sequence * ) py_seq;
 	return ( blen_seq->seq );
 }
-
-/*****************************************************************************/
-/* Function:	Sequence_dealloc						 */
-/* Description: This is a callback function for the BlenObject type. It is  */
-/*		the destructor function.				 */
-/*****************************************************************************/
-static void Sequence_dealloc( BPy_Sequence * seq )
-{
-	PyObject_DEL( seq );
-}
-static void SceneSeq_dealloc( BPy_Sequence * seq )
-{
-	PyObject_DEL( seq );
-}
-
 
 /*****************************************************************************/
 /* Function:	Sequence_compare						 */

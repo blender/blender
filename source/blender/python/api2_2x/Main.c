@@ -618,16 +618,6 @@ PyObject *MainSeq_unlink(BPy_MainSeq *self, PyObject * args)
 				      "Only types Scene, Group and Text can unlink" );	
 }
 
-/************************************************************************
- *
- * Python MainSeq_Type standard operations
- *
- ************************************************************************/
-static void MainSeq_dealloc( BPy_MainSeq * self )
-{
-	PyObject_DEL( self );
-}
-
 static int MainSeq_compare( BPy_MainSeq * a, BPy_MainSeq * b )
 {
 	return ( a->type == b->type) ? 0 : -1;	
@@ -673,7 +663,7 @@ PyTypeObject MainSeq_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) MainSeq_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */

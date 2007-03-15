@@ -117,7 +117,6 @@ static PyObject *M_World_GetCurrent( PyObject * self );
 /*****************************************************************************/
 /* Python World_Type callback function prototypes:			*/
 /*****************************************************************************/
-static void World_DeAlloc( BPy_World * self );
 //static int World_Print (BPy_World *self, FILE *fp, int flags);
 static int World_Compare( BPy_World * a, BPy_World * b );
 static PyObject *World_Repr( BPy_World * self );
@@ -267,8 +266,8 @@ PyTypeObject World_Type = {
 	sizeof( BPy_World ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	( destructor ) World_DeAlloc,	/* tp_dealloc */
-	0,			/* tp_print */
+	NULL,	/* tp_dealloc */
+	0,		/* tp_print */
 	NULL,	/* tp_getattr */
 	NULL,	/* tp_setattr */
 	( cmpfunc ) World_Compare,	/* tp_compare */
@@ -906,18 +905,6 @@ static PyObject *World_copy( BPy_World * self )
 	World *world = copy_world(self->world );
 	world->id.us = 0;
 	return World_CreatePyObject(world);
-}
-
-
-/*@{*/
-
-/**
- * \brief The World PyType destructor
- */
-
-static void World_DeAlloc( BPy_World * self )
-{
-	PyObject_DEL( self );
 }
 
 /**

@@ -206,7 +206,6 @@ static PyMappingMethods Constraint_as_mapping = {
 /*****************************************************************************/
 /* Python Constraint_Type callback function prototypes:                      */
 /*****************************************************************************/
-static void Constraint_dealloc( BPy_Constraint * self );
 static PyObject *Constraint_repr( BPy_Constraint * self );
 static int Constraint_compare( BPy_Constraint * a, BPy_Constraint * b );
 
@@ -223,7 +222,7 @@ PyTypeObject Constraint_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) Constraint_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -1417,17 +1416,6 @@ static int Constraint_setData( BPy_Constraint * self, PyObject * key,
 		update_pose_constraint_flags( self->obj->pose );
 	return result;
 }
-
-/*****************************************************************************/
-/* Function:    Constraint_dealloc                                           */
-/* Description: This is a callback function for the BPy_Constraint type. It  */
-/*              destroys data when the object is deleted.                    */
-/*****************************************************************************/
-static void Constraint_dealloc( BPy_Constraint * self )
-{
-	PyObject_DEL( self );
-}
-
 
 /*****************************************************************************/
 /* Function:    Constraint_compare                                           */

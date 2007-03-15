@@ -204,7 +204,6 @@ static PyObject *Effect_oldsetDefvec( BPy_Effect * self, PyObject * a );
 /*****************************************************************************/
 /* Python Effect_Type callback function prototypes:                           */
 /*****************************************************************************/
-static void Effect_dealloc( BPy_Effect * msh );
 static PyObject *Effect_repr( void );
 
 /*****************************************************************************/
@@ -476,7 +475,7 @@ PyTypeObject Effect_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) Effect_dealloc,/* destructor tp_dealloc; */
+	NULL,						/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -1608,16 +1607,6 @@ static PyObject *Effect_getParticlesLoc( BPy_Effect * self )
 	}
 	
 	return list;	
-}
-
-/*****************************************************************************/
-/* Function:    Effect_dealloc                                               */
-/* Description: This is a callback function for the BPy_Effect type. It is   */
-/*              the destructor function.                                     */
-/*****************************************************************************/
-static void Effect_dealloc( BPy_Effect * self )
-{
-	PyObject_DEL( self );
 }
 
 /*****************************************************************************/

@@ -192,7 +192,6 @@ static PyMappingMethods IpoCurve_as_mapping = {
 /*****************************************************************************/
 static int IpoCurve_compare( C_IpoCurve * a, C_IpoCurve * b );
 static PyObject *IpoCurve_repr( C_IpoCurve * self );
-static void IpoCurve_dealloc( C_IpoCurve * self );
 
 /*****************************************************************************/
 /* Python IpoCurve_Type structure definition:                                */
@@ -204,7 +203,7 @@ PyTypeObject IpoCurve_Type = {
 	sizeof( C_IpoCurve ),				/* tp_basicsize */
 	0,									/* tp_itemsize */
 	/* methods */
-	( destructor ) IpoCurve_dealloc,    /* tp_dealloc */
+	NULL,							    /* tp_dealloc */
 	0,									/* tp_print */
 	( getattrfunc ) NULL,	            /* tp_getattr */
 	( setattrfunc ) NULL,	            /* tp_setattr */
@@ -649,17 +648,6 @@ static PyObject *IpoCurve_getPoints( C_IpoCurve * self )
 		PyList_SET_ITEM( list, i, po );
 	}
 	return list;
-}
-
-/*****************************************************************************/
-/* Function:    Ipo_dealloc                                                  */
-/* Description: This is a callback function for the C_IpoCurve type. It is   */
-/*              the destructor function.                                     */
-/*****************************************************************************/
-
-static void IpoCurve_dealloc( C_IpoCurve * self )
-{
-	PyObject_DEL( self );
 }
 
 /*****************************************************************************/
