@@ -417,6 +417,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_DESELVGROUP		2096
 #define B_AUTOVGROUP		2097
 #define B_LINKEDVGROUP		2098
+#define B_COPYVGROUP 2099
 
 
 

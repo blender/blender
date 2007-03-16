@@ -201,6 +201,97 @@ bDeformGroup *add_defgroup_name (Object *ob, char *name)
 	return defgroup;
 }
 
+void duplicate_defgroup ( Object *ob )
+{
+	bDeformGroup *dg, *cdg;
+	char name[32], s[32];
+	MDeformWeight *org, *cpy;
+	MDeformVert *dvert;
+	Mesh *me;
+	int i, idg, icdg;
+
+	if (ob->type != OB_MESH)
+		return;
+
+	dg = BLI_findlink (&ob->defbase, (ob->actdef-1));
+	if (!dg)
+		return;
+
+	snprintf (name, 32, "%s_copy", dg->name);
+	while (get_named_vertexgroup (ob, name)) {
+		if ((strlen (name) + 6) > 32) {
+			error ("Error: the name for the new group is > 32 characters");
+			return;
+		}
+		strcpy (s, name);
+		snprintf (name, 32, "%s_copy", s);
+	}
+
+	cdg = copy_defgroup (dg);
+	strcpy (cdg->name, name);
+	BLI_addtail (&ob->defbase, cdg);
+
+	idg = (ob->actdef-1);
+	ob->actdef = BLI_countlist (&ob->defbase);
+	icdg = (ob->actdef-1);
+
+	me = get_mesh (ob);
+	if (!me->dvert)
+		return;
+
+	for (i = 0; i < me->totvert; i++) {
+		dvert = me->dvert+i;
+		org = get_defweight (dvert, idg);
+		if (org) {
+			cpy = verify_defweight (dvert, icdg);
+			cpy->weight = org->weight;
+		}
+	}
+}
+
+void del_defgroup_in_object_mode ( Object *ob )
+{
+	bDeformGroup *dg;
+	MDeformVert *dvert;
+	Mesh *me;
+	int i, e;
+
+	if ((!ob) || (ob->type != OB_MESH))
+		return;
+
+	dg = BLI_findlink (&ob->defbase, (ob->actdef-1));
+	if (!dg)
+		return;
+
+	me = get_mesh (ob);
+	if (me->dvert) {
+		for (i = 0; i < me->totvert; i++) {
+			dvert = me->dvert + i;
+			if (dvert) {
+				if (get_defweight (dvert, (ob->actdef-1)))
+					remove_vert_defgroup (ob, dg, i);
+			}
+		}
+
+		for (i = 0; i < me->totvert; i++) {
+			dvert = me->dvert+i;
+			if (dvert) {
+				for (e = 0; e < dvert->totweight; e++) {
+					if (dvert->dw[e].def_nr > (ob->actdef-1))
+						dvert->dw[e].def_nr--;
+				}
+			}
+		}
+	}
+
+	/* Update the active deform index if necessary */
+	if (ob->actdef == BLI_countlist(&ob->defbase))
+		ob->actdef--;
+  
+	/* Remove the group */
+	BLI_freelinkN (&ob->defbase, dg);
+}
+
 void del_defgroup (Object *ob)
 {
 	bDeformGroup	*defgroup;

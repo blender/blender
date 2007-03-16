@@ -197,7 +197,7 @@ int progress_bar(float done, char *busy_info)
 }
 /* -- End of progress bar definitions ------- */
 
-extern char temp_dir[];	/* exotic.c */
+extern char temp_dir[];	/* XXXXX BAD BAD BAD from exotic.c */
 
 void write_vrml_fs()
 {

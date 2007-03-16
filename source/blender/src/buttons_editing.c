@@ -3831,7 +3831,10 @@ void do_vgroupbuts(unsigned short event)
 			allqueue(REDRAWOOPS, 0);
 			break;
 		case B_DELVGROUP:
-			del_defgroup (ob);
+			if ((G.obedit) && (G.obedit == ob))
+				del_defgroup (ob);
+			else
+				del_defgroup_in_object_mode (ob);
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
 			BIF_undo_push("Delete vertex group");
@@ -3861,6 +3864,11 @@ void do_vgroupbuts(unsigned short event)
 			break;
 		case B_LINKEDVGROUP:
 			copy_linked_vgroup_channels(ob);
+			break;
+		case B_COPYVGROUP:
+			duplicate_defgroup (ob);
+			scrarea_queue_winredraw (curarea);
+			allqueue (REDRAWOOPS, 0);
 			break;
 	}
 }
@@ -4374,9 +4382,15 @@ static void editing_panel_links(Object *ob)
 			uiBlockEndAlign(block);
 		}
 		else {
+			uiBlockBeginAlign (block);
+			uiDefBut (block, BUT, B_NEWVGROUP, "New", 143, 90, 70, 21, 0, 0, 0, 0, 0, "Creates a new vertex group");
+			uiDefBut (block, BUT, B_DELVGROUP, "Delete", 213, 90, 70, 21, 0, 0, 0, 0, 0, "Removes the current vertex group");
+			uiDefBut (block, BUT, B_COPYVGROUP, "Copy Group", 143, 70, 140, 19, 0, 0, 0, 0, 0, "Copy Group of Vertex");
+			uiBlockEndAlign (block);
+
 			ID *id= ob->data;
 			if(id->us>1)
-				uiDefBut(block, BUT,B_LINKEDVGROUP, "Copy To Linked",	143,69,140,20, 0, 0, 0, 0, 0, "Creates identical vertex group names in other Objects using this Object-data");
+				uiDefBut(block, BUT,B_LINKEDVGROUP, "Copy To Linked",	143,50,140,20, 0, 0, 0, 0, 0, "Creates identical vertex group names in other Objects using this Object-data");
 		}
 	}
 	
