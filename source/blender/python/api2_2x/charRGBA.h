@@ -47,6 +47,8 @@ typedef struct {
 
 } BPy_charRGBA;
 
+extern PyTypeObject charRGBA_Type;
+
 /*****************************************************************************/
 /* Python API function prototypes for the charRGBA helper module.            */
 /*****************************************************************************/
