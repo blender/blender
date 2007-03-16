@@ -833,7 +833,8 @@ PyObject *Lamp_CreatePyObject( Lamp * lamp )
 	rgb[2] = &lamp->b;
 
 	pylamp->color = ( BPy_rgbTuple * ) rgbTuple_New( rgb );
-
+	Py_INCREF(pylamp->color);
+	
 	return ( PyObject * ) pylamp;
 }
 

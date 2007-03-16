@@ -1813,7 +1813,8 @@ PyObject *Draw_Init( void )
 {
 	PyObject *submodule, *dict;
 
-	Button_Type.ob_type = &PyType_Type;
+	if( PyType_Ready( &Button_Type) < 0)
+		Py_RETURN_NONE;
 
 	submodule = Py_InitModule3( "Blender.Draw", Draw_methods, Draw_doc );
 

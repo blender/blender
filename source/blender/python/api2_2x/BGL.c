@@ -1091,8 +1091,9 @@ PyObject *BGL_Init(void)
 {
 	PyObject *mod= Py_InitModule("Blender.BGL", BGL_methods);
 	PyObject *dict= PyModule_GetDict(mod);
-
-	buffer_Type.ob_type = &PyType_Type;
+	
+	if( PyType_Ready( &buffer_Type) < 0)
+		Py_RETURN_NONE;
 
 #define EXPP_ADDCONST(x) EXPP_dict_set_item_str(dict, #x, PyInt_FromLong(x))
 

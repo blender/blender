@@ -637,8 +637,7 @@ PyObject *newQuaternionObject(float *quat, int type)
 {
 	QuaternionObject *self;
 	int x;
-
-	quaternion_Type.ob_type = &PyType_Type;
+	
 	self = PyObject_NEW(QuaternionObject, &quaternion_Type);
 	self->data.blend_data = NULL;
 	self->data.py_data = NULL;

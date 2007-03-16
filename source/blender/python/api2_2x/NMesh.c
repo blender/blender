@@ -398,6 +398,11 @@ static int check_NMeshLists( BPy_NMesh *nmesh )
 /*			Mesh Color Object		 */
 /*****************************/
 
+static void NMCol_dealloc( PyObject * self )
+{
+	PyObject_DEL( self );
+}
+
 static BPy_NMCol *newcol( char r, char g, char b, char a )
 {
 	BPy_NMCol *mc = ( BPy_NMCol * ) PyObject_NEW( BPy_NMCol, &NMCol_Type );
@@ -476,7 +481,7 @@ PyTypeObject NMCol_Type = {
 	sizeof( BPy_NMCol ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	NULL,		/* tp_dealloc */
+	( destructor ) NMCol_dealloc,	/* tp_dealloc */
 	( printfunc ) 0,	/* tp_print */
 	( getattrfunc ) NMCol_getattr,	/* tp_getattr */
 	( setattrfunc ) NMCol_setattr,	/* tp_setattr */
@@ -832,6 +837,11 @@ static PyObject *M_NMesh_Vert( PyObject * self, PyObject * args )
 	return ( PyObject * ) newvert( co );
 }
 
+static void NMVert_dealloc( PyObject * self )
+{
+	PyObject_DEL( self );
+}
+
 static PyObject *NMVert_getattr( PyObject * self, char *name )
 {
 	BPy_NMVert *mv = ( BPy_NMVert * ) self;
@@ -983,7 +993,7 @@ PyTypeObject NMVert_Type = {
 	sizeof( BPy_NMVert ),	/*tp_basicsize */
 	0,			/*tp_itemsize */
 	/* methods */
-	NULL,				/*tp_dealloc */
+	( destructor ) NMVert_dealloc,	/*tp_dealloc */
 	( printfunc ) 0,	/*tp_print */
 	( getattrfunc ) NMVert_getattr,	/*tp_getattr */
 	( setattrfunc ) NMVert_setattr,	/*tp_setattr */
@@ -3345,6 +3355,11 @@ PyObject *NMesh_CreatePyObject( Mesh * me, Object * ob )
 		nmesh->object = ob;	/* linking nmesh and object for vgrouping methods */
 
 	return ( PyObject * ) nmesh;
+}
+
+int NMesh_CheckPyObject( PyObject * pyobj )
+{
+	return ( pyobj->ob_type == &NMesh_Type );
 }
 
 Mesh *NMesh_FromPyObject( PyObject * pyobj, Object * ob )

@@ -906,7 +906,6 @@ PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type)
 			"matrix(): row and column sizes must be between 2 and 4\n");
 	}
 
-	matrix_Type.ob_type = &PyType_Type;
 	self = PyObject_NEW(MatrixObject, &matrix_Type);
 	self->data.blend_data = NULL;
 	self->data.py_data = NULL;

@@ -471,7 +471,6 @@ PyObject *newEulerObject(float *eul, int type)
 	EulerObject *self;
 	int x;
 
-	euler_Type.ob_type = &PyType_Type;
 	self = PyObject_NEW(EulerObject, &euler_Type);
 	self->data.blend_data = NULL;
 	self->data.py_data = NULL;

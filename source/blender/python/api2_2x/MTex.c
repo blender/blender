@@ -242,10 +242,7 @@ PyObject *MTex_Init( void )
 
 	/* call PyType_Ready() to init dictionaries & such */
 	if( PyType_Ready( &MTex_Type) < 0)
-		return NULL;
-
-	/* So do we need this? */
-/*	MTex_Type.ob_type = &PyType_Type;*/
+		Py_RETURN_NONE;
 
 	submodule = Py_InitModule( "Blender.Texture.MTex", M_MTex_methods );
 

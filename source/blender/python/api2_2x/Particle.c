@@ -362,7 +362,10 @@ PyObject *M_Particle_Get( PyObject * self, PyObject * args )
 PyObject *Particle_Init( void )
 {
 	PyObject *submodule;
-	Particle_Type.ob_type = &PyType_Type;
+	
+	if( PyType_Ready( &Particle_Type) < 0)
+		return NULL;
+	
 	submodule =
 		Py_InitModule3( "Blender.Particle", M_Particle_methods,	M_Particle_doc );
 	return ( submodule );

@@ -121,6 +121,12 @@ PyObject *Mathutils_Init(void)
 	/* needed for getseters */
 	if( PyType_Ready( &vector_Type ) < 0 )
 		return NULL;
+	if( PyType_Ready( &matrix_Type ) < 0 )
+		return NULL;	
+	if( PyType_Ready( &euler_Type ) < 0 )
+		return NULL;
+	if( PyType_Ready( &quaternion_Type ) < 0 )
+		return NULL;
 	
 	submodule = Py_InitModule3("Blender.Mathutils",
 				    M_Mathutils_methods, M_Mathutils_doc);
