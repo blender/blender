@@ -1161,11 +1161,11 @@ void blo_end_image_pointer_map(FileData *fd)
 /* undo file support: add all library pointers in lookup */
 void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd)
 {
-	Main *main= mainlist->first;
+	Main *ptr= mainlist->first;
 	ListBase *lbarray[MAX_LIBARRAY];
 	
-	for(main= main->next; main; main= main->next) {
-		int i= set_listbasepointers(main, lbarray);
+	for(ptr= ptr->next; ptr; ptr= ptr->next) {
+		int i= set_listbasepointers(ptr, lbarray);
 		while(i--) {
 			ID *id;
 			for(id= lbarray[i]->first; id; id= id->next)
@@ -6558,16 +6558,16 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				/* ***************************** */
 				/* we read the lib->name directly from the bhead, no DNA, potential danger (64 bits?) */
 				/* ***************************** */
-				Main *main= blo_find_main(&fd->mainlist, lib->name, fd->filename);
+				Main *ptr= blo_find_main(&fd->mainlist, lib->name, fd->filename);
 
-				id= is_yet_read(main, bhead);
+				id= is_yet_read(ptr, bhead);
 
 				if(id==0) {
-					read_libblock(fd, main, bhead, LIB_READ+LIB_INDIRECT, NULL);
+					read_libblock(fd, ptr, bhead, LIB_READ+LIB_INDIRECT, NULL);
 					if(G.f & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
 					
 					/* for outliner dependency only */
-					main->curlib->parent= mainvar->curlib;
+					ptr->curlib->parent= mainvar->curlib;
 				}
 				else {
 					//oldnewmap_insert(fd->libmap, bhead->old, id, 1);
@@ -7280,76 +7280,13 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 	}
 }
 
-/* this is a version of BLO_library_append needed by the BPython API, so
- * scripts can load data from .blend files -- see Blender.Library module.*/
+/* common routine to append/link something from a library */
 
-/* append to G.scene */
-void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcode, short flag)
+static void library_append( SpaceFile *sfile, char *dir, int idcode,
+		int totsel, FileData *fd)
 {
-	ListBase mainlist;
-	Main *mainl;
-	FileData *fd = (FileData *)bh;
-
-	/* make mains */
-	blo_split_main(&mainlist, G.main);
-
-	/* which one do we need? */
-	mainl = blo_find_main(&mainlist, dir, G.sce);
-
-	append_named_part(fd, mainl, G.scene, name, idcode, flag);
-
-	/* make main consistant */
-	expand_main(fd, mainl);
-
-	/* do this when expand found other libs */
-	read_libraries(fd, &mainlist);
-
-	blo_join_main(&mainlist);
-	G.main= mainlist.first;
-
-	lib_link_all(fd, G.main);
-	lib_verify_nodetree(G.main);
-
-	DAG_scene_sort(G.scene);
-}
-
-/* append to G.scene */
-/* dir is a full path */	
-void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
-{
-	FileData *fd= (FileData*) sfile->libfiledata;
 	Main *mainl;
 	Library *curlib;
-	Base *centerbase;
-	Object *ob;
-	int a, totsel=0;
-	
-	/* are there files selected? */
-	for(a=0; a<sfile->totfile; a++) {
-		if(sfile->filelist[a].flags & ACTIVE) {
-			totsel++;
-		}
-	}
-
-	if(totsel==0) {
-		/* is the indicated file in the filelist? */
-		if(sfile->file[0]) {
-			for(a=0; a<sfile->totfile; a++) {
-				if( strcmp(sfile->filelist[a].relname, sfile->file)==0) break;
-			}
-			if(a==sfile->totfile) {
-				error("Wrong indicated name");
-				return;
-			}
-		}
-		else {
-			error("Nothing indicated");
-			return;
-		}
-	}
-	/* now we have or selected, or an indicated file */
-	
-	if(sfile->flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
 
 	/* make mains */
 	blo_split_main(&fd->mainlist, G.main);
@@ -7357,7 +7294,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	/* which one do we need? */
 	mainl = blo_find_main(&fd->mainlist, dir, G.sce);
 	
-	mainl->versionfile= fd->fileversion;	// needed for do_version
+	mainl->versionfile= fd->fileversion;	/* needed for do_version */
 	
 	curlib= mainl->curlib;
 	
@@ -7365,6 +7302,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 		append_named_part(fd, mainl, G.scene, sfile->file, idcode, sfile->flag);
 	}
 	else {
+		int a;
 		for(a=0; a<sfile->totfile; a++) {
 			if(sfile->filelist[a].flags & ACTIVE) {
 				append_named_part(fd, mainl, G.scene, sfile->filelist[a].relname, idcode, sfile->flag);
@@ -7399,16 +7337,78 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	else
 		give_base_to_objects(G.scene, &(G.main->object), NULL);
 	
-	/* has been removed... erm, why? (ton) */
+	/* has been removed... erm, why? s..ton) */
 	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */
 	/* 20041208: put back. It only linked direct, not indirect objects (ton) */
 	
 	/* patch to prevent switch_endian happens twice */
 	if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-		blo_freefiledata((FileData*) sfile->libfiledata);
+		blo_freefiledata( fd );
 		sfile->libfiledata= 0;
 	}	
+}
+
+/* this is a version of BLO_library_append needed by the BPython API, so
+ * scripts can load data from .blend files -- see Blender.Library module.*/
+/* append to G.scene */
+/* this should probably be moved into the Python code anyway */
+
+void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcode, short flag)
+{
+	SpaceFile sfile;
+
+	/* build a minimal "fake" SpaceFile object */
+	sfile.flag = flag;
+	sfile.totfile = 0;
+	strcpy(sfile.file, name);
+
+	/* try to append the requested object */
+
+	library_append( &sfile, dir, idcode, 0, (FileData *)bh );
+
+	/* do we need to do this? */
+	DAG_scene_sort(G.scene);
+}
+
+/* append to G.scene */
+/* dir is a full path */	
+void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
+{
+	FileData *fd= (FileData*) sfile->libfiledata;
+	Library *curlib;
+	Base *centerbase;
+	Object *ob;
+	int a, totsel=0;
 	
+	/* are there files selected? */
+	for(a=0; a<sfile->totfile; a++) {
+		if(sfile->filelist[a].flags & ACTIVE) {
+			totsel++;
+		}
+	}
+
+	if(totsel==0) {
+		/* is the indicated file in the filelist? */
+		if(sfile->file[0]) {
+			for(a=0; a<sfile->totfile; a++) {
+				if( strcmp(sfile->filelist[a].relname, sfile->file)==0) break;
+			}
+			if(a==sfile->totfile) {
+				error("Wrong indicated name");
+				return;
+			}
+		}
+		else {
+			error("Nothing indicated");
+			return;
+		}
+	}
+	/* now we have or selected, or an indicated file */
+	
+	if(sfile->flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
+
+	library_append( sfile, dir, idcode, totsel, fd );
+
 	/* when not linking (appending)... */
 	if((sfile->flag & FILE_LINK)==0) {
 		if(sfile->flag & FILE_ATCURSOR) {
