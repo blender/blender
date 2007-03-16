@@ -1877,8 +1877,8 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem, Re
 	zspan.zofsy= -0.5f;
 	
 	/* the buffers */
-	zspan.rectz= vw->rectz;
-	zspan.rectp= vw->rect;
+	zspan.rectz= (int *)vw->rectz;
+	zspan.rectp= (int *)vw->rect;
 	fillrect(zspan.rectz, vw->rectx, vw->recty, 0x7FFFFFFF);
 	fillrect(zspan.rectp, vw->rectx, vw->recty, 0xFFFFFF);
 	
@@ -3151,7 +3151,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 						add_transp_speed(rl, od, ssamp.shr[0].winspeed, pass[3], rdrect);
 				}
 				else {
-					short filled, *sp= ztramask+od;
+					short filled, *sp= (short *)(ztramask+od);
 					
 					/* for each mask-sample we alpha-under colors. then in end it's added using filter */
 					memset(samp_shr, 0, sizeof(ShadeResult)*R.osa);

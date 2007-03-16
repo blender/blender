@@ -178,7 +178,7 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 	shsample->zbuf= MEM_mallocN( sizeof(unsigned long)*(size*size)/256, "initshadbuf2");
 	shsample->cbuf= MEM_callocN( (size*size)/256, "initshadbuf3");
 	
-	ztile= shsample->zbuf;
+	ztile= (unsigned long *)shsample->zbuf;
 	ctile= shsample->cbuf;
 	
 	/* help buffer */
@@ -433,7 +433,7 @@ void freeshadowbuf(LampRen *lar)
 		v= (shb->size*shb->size)/256;
 		
 		for(shsample= shb->buffers.first; shsample; shsample= shsample->next) {
-			unsigned long *ztile= shsample->zbuf;
+			long *ztile= shsample->zbuf;
 			char *ctile= shsample->cbuf;
 			
 			for(b=0; b<v; b++, ztile++, ctile++)

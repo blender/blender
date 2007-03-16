@@ -778,7 +778,7 @@ static void reset_sky_speed(RenderPart *pa, RenderLayer *rl)
 static unsigned short *make_solid_mask(RenderPart *pa)
 { 
  	long *rd= pa->rectdaps;
- 	short *solidmask, *sp;
+ 	unsigned short *solidmask, *sp;
  	int x;
  	
 	if(rd==NULL) return NULL;

@@ -2200,7 +2200,7 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 			rres.rect32= MEM_mapallocN(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
 			dofree = 1;
 		}
-		RE_ResultGet32(re, rres.rect32);
+		RE_ResultGet32(re, (unsigned int *)rres.rect32);
 		mh->append_movie(scene->r.cfra, rres.rect32, rres.rectx, rres.recty);
 		if(dofree) {
 			MEM_freeN(rres.rect32);
@@ -2221,7 +2221,7 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 			int ok;
 			
 					/* if not exists, BKE_write_ibuf makes one */
-			ibuf->rect= rres.rect32;    
+			ibuf->rect= (unsigned int *)rres.rect32;    
 			ibuf->rect_float= rres.rectf;
 			ibuf->zbuf_float= rres.rectz;
 			

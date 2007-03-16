@@ -907,11 +907,12 @@ static void free_scratch(SoftBody *sb)
 	if(sb->scratch){
 		/* todo make sure everything is cleaned up nicly */
 		if (sb->scratch->colliderhash){
-			BLI_ghash_free(sb->scratch->colliderhash, NULL, ccd_mesh_free); /*this hoepfully will free all caches*/
+			BLI_ghash_free(sb->scratch->colliderhash, NULL,
+					(GHashValFreeFP) ccd_mesh_free); /*this hoepfully will free all caches*/
 			sb->scratch->colliderhash = NULL;
 		}
 		if (sb->scratch->bodyface){
-		MEM_freeN(sb->scratch->bodyface);
+			MEM_freeN(sb->scratch->bodyface);
 		}
 		MEM_freeN(sb->scratch);
 		sb->scratch = NULL;
@@ -1002,16 +1003,17 @@ static int query_external_colliders(Object *me)
 	return(are_there_deflectors(me->lay));
 }
 
+#if 0
 static int query_external_forces(Object *me)
 {
 /* silly but true: we need to create effector cache to see if anything is in it */
-ListBase *ec = pdInitEffectors(me,NULL);
-int result = 0;
-if (ec){
-	result = 1;
-	pdEndEffectors(ec); /* sorry ec, yes i'm an idiot, but i needed to know if you were there */
-}
-return result;
+	ListBase *ec = pdInitEffectors(me,NULL);
+	int result = 0;
+	if (ec){
+		result = 1;
+		pdEndEffectors(ec); /* sorry ec, yes i'm an idiot, but i needed to know if you were there */
+	}
+	return result;
 }
 
 /* 
@@ -1029,6 +1031,7 @@ static int query_internal_time(Object *me)
 	if (me->softflag & OB_SB_GOAL) return 1;
 	return 0;
 }
+#endif
 /* --- dependancy information functions*/
 
 /* +++ the aabb "force" section*/

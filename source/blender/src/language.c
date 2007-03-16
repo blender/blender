@@ -210,7 +210,7 @@ void set_interface_font(char *str)
 
 	/* this test needed because fileselect callback can happen after disable AA fonts */
 	if(U.transopts & USER_DOTRANSLATE) {
-		if(FTF_SetFont(str, 0, U.fontsize)) {
+		if(FTF_SetFont((unsigned char*)str, 0, U.fontsize)) {
 			lang_setlanguage();
 			
 			if(strlen(str) < FILE_MAXDIR) strcpy(U.fontname, str);
@@ -218,7 +218,7 @@ void set_interface_font(char *str)
 		} 
 		else {
 			U.fontname[0]= 0;
-			FTF_SetFont(datatoc_bfont_ttf, datatoc_bfont_ttf_size, U.fontsize);
+			FTF_SetFont((unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size, U.fontsize);
 			G.ui_international = TRUE;	// this case will switch to standard font
 			okee("Invalid font selection - reverting to built-in font.");
 		}
@@ -239,10 +239,10 @@ void start_interface_font(void)
 	if(U.fontsize && U.fontname[0] ) { // we have saved user settings + fontpath
 		
 		// try loading font from U.fontname = full path to font in usersettings
-		result = FTF_SetFont(U.fontname, 0, U.fontsize);
+		result = FTF_SetFont((unsigned char*)U.fontname, 0, U.fontsize);
 	}
 	else if(U.fontsize) {	// user settings, default
-		result = FTF_SetFont(datatoc_bfont_ttf, datatoc_bfont_ttf_size, U.fontsize);
+		result = FTF_SetFont((unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size, U.fontsize);
 	}
 	
 	if(result==0) {		// use default
@@ -250,7 +250,7 @@ void start_interface_font(void)
 		U.fontsize= 11;
 		U.encoding= 0;
 		U.fontname[0]= 0;
-		result = FTF_SetFont(datatoc_bfont_ttf, datatoc_bfont_ttf_size, U.fontsize);
+		result = FTF_SetFont((unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size, U.fontsize);
 	}
 
 	if(result) {
