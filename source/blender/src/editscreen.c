@@ -1370,10 +1370,28 @@ void screenmain(void)
 				towin= 0;
 			}
 		}
-		else if(ELEM(event, LEFTARROWKEY, RIGHTARROWKEY)) {
+		else if (event==RIGHTARROWKEY) {
 			if(textediting==0 && val && (G.qual & LR_CTRLKEY)) {
-				bScreen *sc= (event==LEFTARROWKEY)?G.curscreen->id.prev:G.curscreen->id.next;
-				if(is_allowed_to_change_screen(sc)) setscreen(sc);
+				bScreen *sc= G.curscreen->id.next;
+
+				/* if screen is last, set it to first */
+				if(sc == NULL)
+					sc= G.main->screen.first;
+				
+				setscreen(sc);
+				g_activearea= NULL;
+				towin= 0;
+			}
+		}
+		else if (event==LEFTARROWKEY) {
+			if(textediting==0 && val && (G.qual & LR_CTRLKEY)) {
+				bScreen *sc= G.curscreen->id.prev;
+				
+				/* if screen is first, set it to last */
+				if(sc == NULL)
+					sc= G.main->screen.last;
+				
+				setscreen(sc);
 				g_activearea= NULL;
 				towin= 0;
 			}
@@ -3745,4 +3763,3 @@ void set_timecursor(int nr)
 	window_set_custom_cursor(mainwin, mask, bitmap, 7, 7);
 	BIF_renderwin_set_custom_cursor(mask, bitmap);
 }
-
