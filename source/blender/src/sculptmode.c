@@ -98,6 +98,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Number of vertices to average in order to determine the flatten distance */
+#define FLATTEN_SAMPLE_SIZE 10
+
 /* ===== STRUCTS =====
  *
  */
@@ -659,15 +662,14 @@ void do_inflate_brush(const EditData *e, const ListBase *active_verts)
 
 void calc_flatten_center(Mesh *me, ActiveData *node, const EditData *e, float co[3])
 {
-	const int FTOT = 10;
-	ActiveData *outer[10];
+	ActiveData *outer[FLATTEN_SAMPLE_SIZE];
 	int i;
 	
-	for(i = 0; i < FTOT; ++i)
+	for(i = 0; i < FLATTEN_SAMPLE_SIZE; ++i)
 		outer[i] = node;
 		
 	for(; node; node = node->next) {
-		for(i = 0; i < FTOT; ++i) {
+		for(i = 0; i < FLATTEN_SAMPLE_SIZE; ++i) {
 			if(node->dist > outer[i]->dist) {
 				outer[i] = node;
 				break;
@@ -676,9 +678,9 @@ void calc_flatten_center(Mesh *me, ActiveData *node, const EditData *e, float co
 	}
 	
 	co[0] = co[1] = co[2] = 0.0f;
-	for(i = 0; i < FTOT; ++i)
+	for(i = 0; i < FLATTEN_SAMPLE_SIZE; ++i)
 		VecAddf(co, co, me->mvert[outer[i]->Index].co);
-	VecMulf(co, 1.0f / FTOT);
+	VecMulf(co, 1.0f / FLATTEN_SAMPLE_SIZE);
 }
 
 void do_flatten_brush(const EditData *e, const ListBase *active_verts)
