@@ -1810,22 +1810,22 @@ static void draw_3d_layer_buttons(uiBlock *block, unsigned int *poin, short xco,
 	
 	uiBlockBeginAlign(block);
 	for(a=0; a<5; a++) {
-		bt= uiDefButBitI(block, TOG, 1<<a, B_NOP, "",	(short)(xco+a*(dx/2)), yco+dy/2, (short)(dx/2), (short)(dy/2), poin, 0, 0, 0, 0, "");
+		bt= uiDefButBitI(block, TOG, 1<<a, B_NOP, "",	(short)(xco+a*(dx/2)), yco+dy/2, (short)(dx/2), (short)(dy/2), (int *)poin, 0, 0, 0, 0, "");
 		uiButSetFunc(bt, layer_copy_func, (void *)a, poin);
 	}
 	for(a=0; a<5; a++) {
-		bt=uiDefButBitI(block, TOG, 1<<(a+10), B_NOP, "",	(short)(xco+a*(dx/2)), yco, (short)(dx/2), (short)(dy/2), poin, 0, 0, 0, 0, "");
+		bt=uiDefButBitI(block, TOG, 1<<(a+10), B_NOP, "",	(short)(xco+a*(dx/2)), yco, (short)(dx/2), (short)(dy/2), (int *)poin, 0, 0, 0, 0, "");
 		uiButSetFunc(bt, layer_copy_func, (void *)(a+10), poin);
 	}
 	
 	xco+= 7;
 	uiBlockBeginAlign(block);
 	for(a=5; a<10; a++) {
-		bt=uiDefButBitI(block, TOG, 1<<a, B_NOP, "",	(short)(xco+a*(dx/2)), yco+dy/2, (short)(dx/2), (short)(dy/2), poin, 0, 0, 0, 0, "");
+		bt=uiDefButBitI(block, TOG, 1<<a, B_NOP, "",	(short)(xco+a*(dx/2)), yco+dy/2, (short)(dx/2), (short)(dy/2), (int *)poin, 0, 0, 0, 0, "");
 		uiButSetFunc(bt, layer_copy_func, (void *)a, poin);
 	}
 	for(a=5; a<10; a++) {
-		bt=uiDefButBitI(block, TOG, 1<<(a+10), B_NOP, "",	(short)(xco+a*(dx/2)), yco, (short)(dx/2), (short)(dy/2), poin, 0, 0, 0, 0, "");
+		bt=uiDefButBitI(block, TOG, 1<<(a+10), B_NOP, "",	(short)(xco+a*(dx/2)), yco, (short)(dx/2), (short)(dy/2), (int *)poin, 0, 0, 0, 0, "");
 		uiButSetFunc(bt, layer_copy_func, (void *)(a+10), poin);
 	}
 	

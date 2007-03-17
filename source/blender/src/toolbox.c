@@ -389,16 +389,16 @@ int movetolayer_buts(unsigned int *lay, char *title)
 	/* buttons have 0 as return event, to prevent menu to close on hotkeys */
 	uiBlockBeginAlign(block);
 	for(a=0; a<5; a++) 
-		uiDefButBitI(block, TOGR, 1<<a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
+		uiDefButBitI(block, TOGR, 1<<a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, (int *)lay, 0, 0, 0, 0, "");
 	for(a=0; a<5; a++) 
-		uiDefButBitI(block, TOGR, 1<<(a+10), 0, "",(short)(x1+a*dx),(short)y1,(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
+		uiDefButBitI(block, TOGR, 1<<(a+10), 0, "",(short)(x1+a*dx),(short)y1,(short)dx,(short)dy, (int *)lay, 0, 0, 0, 0, "");
 	x1+= 5;
 	
 	uiBlockBeginAlign(block);
 	for(a=5; a<10; a++) 
-		uiDefButBitI(block, TOGR, 1<<a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
+		uiDefButBitI(block, TOGR, 1<<a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, (int *)lay, 0, 0, 0, 0, "");
 	for(a=5; a<10; a++) 
-		uiDefButBitI(block, TOGR, 1<<(a+10), 0, "",(short)(x1+a*dx),(short)y1,(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
+		uiDefButBitI(block, TOGR, 1<<(a+10), 0, "",(short)(x1+a*dx),(short)y1,(short)dx,(short)dy, (int *)lay, 0, 0, 0, 0, "");
 	uiBlockEndAlign(block);
 
 	x1-= 5;

@@ -4355,7 +4355,7 @@ static void editing_panel_links(Object *ob)
 			
 			uiBlockBeginAlign(block);
 			
-			uiDefButS(block, MENU, B_MAKEDISP, menustr, 143, 132,18,21, &ob->actdef, 1, defCount, 0, 0, "Browses available vertex groups");
+			uiDefButS(block, MENU, B_MAKEDISP, menustr, 143, 132,18,21, (short *)&ob->actdef, 1, defCount, 0, 0, "Browses available vertex groups");
 			MEM_freeN (menustr);
 		
 			if (ob->actdef){
@@ -5210,11 +5210,11 @@ void editing_panel_mesh_multires()
 			uiButSetFunc(but,multires_del_higher,ob,me);
 			cy-= 20;
 		
-			but= uiDefButC(block,NUM,B_NOP,"Level: ",cx,cy,200,19,&me->mr->newlvl,1.0,me->mr->level_count,0,0,"");
+			but= uiDefButC(block,NUM,B_NOP,"Level: ",cx,cy,200,19,(char *)&me->mr->newlvl,1.0,me->mr->level_count,0,0,"");
 			uiButSetFunc(but,multires_set_level_cb, ob, me);
 			cy-= 20;
 
-			but= uiDefButC(block,NUM,B_NOP,"Edges: ",cx,cy,200,19,&me->mr->edgelvl,1.0,me->mr->level_count,0,0,"Set level of edges to display");
+			but= uiDefButC(block,NUM,B_NOP,"Edges: ",cx,cy,200,19,(char *)&me->mr->edgelvl,1.0,me->mr->level_count,0,0,"Set level of edges to display");
 			uiButSetFunc(but,multires_edge_level_update,ob,me);
 			cy-= 20;
 			uiBlockEndAlign(block);
@@ -5224,10 +5224,10 @@ void editing_panel_mesh_multires()
 			cy-= 20;
 
 			uiBlockBeginAlign(block);
-			uiDefButC(block,NUM,B_NOP,"Pin: ",cx,cy,200,19,&me->mr->pinlvl,1.0,me->mr->level_count,0,0,"Set level to apply modifiers to during render");
+			uiDefButC(block,NUM,B_NOP,"Pin: ",cx,cy,200,19,(char *)&me->mr->pinlvl,1.0,me->mr->level_count,0,0,"Set level to apply modifiers to during render");
 			cy-= 20;
 
-			uiDefButC(block,NUM,B_NOP,"Render: ",cx,cy,200,19,&me->mr->renderlvl,1.0,me->mr->level_count,0,0,"Set level to render");
+			uiDefButC(block,NUM,B_NOP,"Render: ",cx,cy,200,19,(char *)&me->mr->renderlvl,1.0,me->mr->level_count,0,0,"Set level to render");
 			cy-= 20;
 			
 			if(multires_modifier_warning()) {

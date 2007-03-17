@@ -500,7 +500,7 @@ static void clear_icon_grid_margins(unsigned char *rect, int w, int h)
 static void prepare_internal_icons(ImBuf *bbuf)
 {
 
-	char *back= (char *)bbuf->rect;
+	unsigned char *back= (unsigned char *)bbuf->rect;
 	
 	/* this sets the icon grid margin area outside of icon to zero alpha */
 	clear_icon_grid_margins(back, bbuf->x, bbuf->y);

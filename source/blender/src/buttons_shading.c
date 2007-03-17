@@ -1361,16 +1361,16 @@ static void texture_panel_envmap(Tex *tex)
 		
 		uiBlockBeginAlign(block);
 		for(a=0; a<5; a++) 
-			uiDefButBitI(block, TOG, 1<<a, 0, "",	(xco+a*(dx/2)), (yco+dy/2), (dx/2), (1+dy/2), &env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
+			uiDefButBitI(block, TOG, 1<<a, 0, "",	(xco+a*(dx/2)), (yco+dy/2), (dx/2), (1+dy/2), (int *)&env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
 		for(a=0; a<5; a++) 
-			uiDefButBitI(block, TOG, 1<<(a+10), 0, "",(xco+a*(dx/2)), yco, (dx/2), (dy/2), &env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
+			uiDefButBitI(block, TOG, 1<<(a+10), 0, "",(xco+a*(dx/2)), yco, (dx/2), (dy/2), (int *)&env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
 		
 		uiBlockBeginAlign(block);
 		xco+= 5;
 		for(a=5; a<10; a++) 
-			uiDefButBitI(block, TOG, 1<<a, 0, "",	(xco+a*(dx/2)), (yco+dy/2), (dx/2), (1+dy/2), &env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
+			uiDefButBitI(block, TOG, 1<<a, 0, "",	(xco+a*(dx/2)), (yco+dy/2), (dx/2), (1+dy/2), (int *)&env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
 		for(a=5; a<10; a++) 
-			uiDefButBitI(block, TOG, 1<<(a+10), 0, "",(xco+a*(dx/2)), yco, (dx/2), (dy/2), &env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
+			uiDefButBitI(block, TOG, 1<<(a+10), 0, "",(xco+a*(dx/2)), yco, (dx/2), (dy/2), (int *)&env->notlay, 0, 0, 0, 0, "Toggles layer visibility to environment map");
 		
 	}
 }
