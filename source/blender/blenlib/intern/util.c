@@ -741,10 +741,9 @@ void BLI_makestringcode(const char *relfile, char *file)
 	char * p;
 	char * q;
 	char * lslash;
-	int len=0;
 	char temp[FILE_MAXDIR+FILE_MAXFILE];
 	char res[FILE_MAXDIR+FILE_MAXFILE];
-	
+
 	/* if file is already relative, bail out */
 	if(file[0]=='/' && file[1]=='/') return;
 	
@@ -823,7 +822,7 @@ void BLI_makestringcode(const char *relfile, char *file)
 
 int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 {
-	int len, wasrelative, is_filepath;
+	int len, wasrelative;
 	char tmp[FILE_MAXDIR+FILE_MAXFILE];
 	char base[FILE_MAXDIR];
 	char vol[3] = {'\0', '\0', '\0'};
@@ -1147,8 +1146,10 @@ int BLI_testextensie(const char *str, const char *ext)
 void BLI_split_dirfile(const char *string, char *dir, char *file)
 {
 	int a;
+#ifdef WIN32
 	int sl;
 	short is_relative = 0;
+#endif
 
 	dir[0]= 0;
 	file[0]= 0;
@@ -1227,7 +1228,7 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 			BLI_getwdN(dir);
 			strcat(dir,"/");
 			strcat(dir,string);
-			strcpy(string,dir);
+			strcpy((char *)string,dir);
 		}
 
 		BLI_make_exist(dir);

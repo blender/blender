@@ -511,7 +511,7 @@ static void count_object(Object *ob, int sel, int totob)
 	Mesh *me;
 	Curve *cu;
 	DerivedMesh *dm;
-	int tot=0, totf=0, subsurf;
+	int tot=0, totf=0;
 
 	switch(ob->type) {
 	case OB_MESH:

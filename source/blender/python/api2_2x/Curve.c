@@ -1306,7 +1306,6 @@ static PyGetSetDef Curve_getseters[] = {
 /*****************************************************************************/
 static PyObject *M_Curve_New( PyObject * self, PyObject * args )
 {
-	char buf[24];
 	char *name = "Curve";
 	BPy_Curve *pycurve;	/* for Curve Data object wrapper in Python */
 	Curve *blcurve = 0;	/* for actual Curve Data we create in Blender */
