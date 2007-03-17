@@ -2215,6 +2215,9 @@ static int Object_setEuler( BPy_Object * self, PyObject * args )
 	float rot1, rot2, rot3;
 	int status = 0;		/* failure */
 
+	if( PyTuple_Check( args ) && PyTuple_Size( args ) == 1 )
+		args = PyTuple_GET_ITEM( args, 0 );
+
 	if( EulerObject_Check( args ) ) {
 		rot1 = ( ( EulerObject * ) args )->eul[0];
 		rot2 = ( ( EulerObject * ) args )->eul[1];
@@ -5304,7 +5307,7 @@ static PyObject *Object_SetMatrix( BPy_Object * self, PyObject * args )
 
 static PyObject *Object_SetEuler( BPy_Object * self, PyObject * args )
 {
-	return EXPP_setterWrapper( (void *)self, args,
+	return EXPP_setterWrapperTuple( (void *)self, args,
 			(setter)Object_setEuler );
 }
 
