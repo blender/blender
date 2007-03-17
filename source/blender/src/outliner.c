@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -2949,7 +2949,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 					}
 					else BIF_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
 					col[3]= 100;
-					glColor4ubv(col);
+					glColor4ubv((GLubyte *)col);
 				}
 
 #ifdef WITH_VERSE

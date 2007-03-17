@@ -1086,11 +1086,11 @@ static void round_button(float x1, float y1, float x2, float y2, float asp,
 	if(col[1]<100) col[1]= 0; else col[1]-= 100;
 	if(col[2]<100) col[2]= 0; else col[2]-= 100;
 	col[3]= 80;
-	glColor4ubv(col);
+	glColor4ubv((GLubyte *)col);
 	gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, rad - asp);
 	gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, rad + asp);
 	col[3]= 180;
-	glColor4ubv(col);
+	glColor4ubv((GLubyte *)col);
 	gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, rad);
 
 	glDisable( GL_BLEND );
@@ -1384,11 +1384,11 @@ void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag)
 		ui_shadowbox(minx, miny, maxx, maxy, 2.0, (100*col[3])>>8);
 		
 		glEnable(GL_BLEND);
-		glColor4ubv(col);
+		glColor4ubv((GLubyte *)col);
 		glRectf(minx-1, miny, minx, maxy);	// 1 pixel on left, to distinguish sublevel menus
 	}
 	glEnable(GL_BLEND);
-	glColor4ubv(col);
+	glColor4ubv((GLubyte *)col);
 	glRectf(minx, miny, maxx, maxy);
 	glDisable(GL_BLEND);
 }

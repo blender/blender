@@ -456,9 +456,9 @@ void draw_tfaces(void)
 					if(tface->flag & TF_SELECT) {
 						if(!(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&
 						   (!mface->v4 || tface->flag & TF_SEL4))
-							glColor4ubv(col2);
+							glColor4ubv((GLubyte *)col2);
 						else
-							glColor4ubv(col1);
+							glColor4ubv((GLubyte *)col1);
 							
 						glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
 							glVertex2fv(tface->uv[0]);
@@ -2037,7 +2037,7 @@ static void imagewindow_progress(ScrArea *sa, RenderResult *rr, volatile rcti *r
 		rectf= rr->rectf;
 	else {
 		if(rr->rect32)
-			rect32= rr->rect32;
+			rect32= (unsigned int *)rr->rect32;
 		else {
 			if(rr->renlay==NULL || rr->renlay->rectf==NULL) return;
 			rectf= rr->renlay->rectf;

@@ -251,12 +251,12 @@ static void drawmeta_contents(Sequence *seqm, float x1, float y1, float x2, floa
 	WHILE_SEQ(&seqm->seqbase) {
 		get_seq_color3ubv(seq, col);
 		
-		glColor3ubv(col);
+		glColor3ubv((GLubyte *)col);
 
 		glRectf(x1,  y1,  x1+0.9*dx,  y2);
 		
 		BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -30);
-		glColor3ubv(col);
+		glColor3ubv((GLubyte *)col);
 
 		fdrawbox(x1,  y1,  x1+0.9*dx,  y2);
 		
@@ -521,7 +521,7 @@ static void draw_seq_extensions(Sequence *seq, SpaceSeq *sseq)
 	if(seq->startstill) {
 		get_seq_color3ubv(seq, col);
 		BIF_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.75, 40);
-		glColor3ubv(col);
+		glColor3ubv((GLubyte *)col);
 		
 		draw_shadedstrip(seq, col, x1, y1, (float)(seq->start), y2);
 		
@@ -530,7 +530,7 @@ static void draw_seq_extensions(Sequence *seq, SpaceSeq *sseq)
 		if (seq->flag & SELECT) BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 24);
 		else BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -16);
 		
-		glColor3ubv(col);
+		glColor3ubv((GLubyte *)col);
 		
 		for(a=y1; a< y2; a+= pixely*2.0 ) {
 			fdrawline(x1,  a,  (float)(seq->start),  a);
@@ -539,7 +539,7 @@ static void draw_seq_extensions(Sequence *seq, SpaceSeq *sseq)
 	if(seq->endstill) {
 		get_seq_color3ubv(seq, col);
 		BIF_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.75, 40);
-		glColor3ubv(col);
+		glColor3ubv((GLubyte *)col);
 		
 		draw_shadedstrip(seq, col, (float)(seq->start+seq->len), y1, x2, y2);
 		
@@ -548,7 +548,7 @@ static void draw_seq_extensions(Sequence *seq, SpaceSeq *sseq)
 		if (seq->flag & SELECT) BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 24);
 		else BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -16);
 		
-		glColor3ubv(col);
+		glColor3ubv((GLubyte *)col);
 		
 		for(a=y1; a< y2; a+= pixely*2.0 ) {
 			fdrawline((float)(seq->start+seq->len),  a,  x2,  a);
@@ -643,7 +643,7 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 	if(seq->flag & SELECT) BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -50);
 	else BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 0);
 	
-	glColor3ubv(col);
+	glColor3ubv((GLubyte *)col);
 	
 	glVertex2f(x1,y1);
 	glVertex2f(x2,y1);
@@ -651,7 +651,7 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 	if(seq->flag & SELECT) BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 5);
 	else BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -5);
 
-	glColor3ubv(col);
+	glColor3ubv((GLubyte *)col);
 	
 	glVertex2f(x2,ymid1);
 	glVertex2f(x1,ymid1);
@@ -668,7 +668,7 @@ static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float
 	if(seq->flag & SELECT) BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -15);
 	else BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 25);
 	
-	glColor3ubv(col);
+	glColor3ubv((GLubyte *)col);
 	
 	glVertex2f(x2,y2);
 	glVertex2f(x1,y2);
@@ -723,7 +723,7 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 	else if (seq->flag & SELECT) BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -150);
 	else BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -60);
 
-	glColor3ubv(col);
+	glColor3ubv((GLubyte *)col);
 	gl_round_box_shade(GL_LINE_LOOP, x1, y1, x2, y2, 0.0, 0.1, 0.0);
 
 	

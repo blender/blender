@@ -663,7 +663,7 @@ void BIF_drawConstraint(void)
 			drawLine(tc->center, tc->mtx[1], 'y', 0);
 			drawLine(tc->center, tc->mtx[2], 'z', 0);
 
-			glColor3ubv(col2);
+			glColor3ubv((GLubyte *)col2);
 			
 			glDisable(GL_DEPTH_TEST);
 			setlinestyle(1);

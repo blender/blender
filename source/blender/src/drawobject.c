@@ -1519,13 +1519,13 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 				
 			if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 				glPointSize(size);
-				glColor4ubv(col);
+				glColor4ubv((GLubyte *)col);
 				draw_dm_verts(cageDM, sel);
 			}
 			
 			if(G.scene->selectmode & SCE_SELECT_FACE) {
 				glPointSize(fsize);
-				glColor4ubv(fcol);
+				glColor4ubv((GLubyte *)fcol);
 				draw_dm_face_centers(cageDM, sel);
 			}
 			
@@ -1543,11 +1543,11 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 static void draw_em_fancy_edges(DerivedMesh *cageDM)
 {
 	int pass;
-	char wire[4], sel[4];
+	unsigned char wire[4], sel[4];
 
 	/* since this function does transparant... */
-	BIF_GetThemeColor3ubv(TH_EDGE_SELECT, sel);
-	BIF_GetThemeColor3ubv(TH_WIRE, wire);
+	BIF_GetThemeColor3ubv(TH_EDGE_SELECT, (char *)sel);
+	BIF_GetThemeColor3ubv(TH_WIRE, (char *)wire);
 
 	for (pass=0; pass<2; pass++) {
 			/* show wires in transparant when no zbuf clipping for select */
@@ -1861,10 +1861,10 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 	}
 	
 	if((G.f & (G_FACESELECT+G_DRAWFACES))) {	/* transp faces */
-		char col1[4], col2[4];
+		unsigned char col1[4], col2[4];
 			
-		BIF_GetThemeColor4ubv(TH_FACE, col1);
-		BIF_GetThemeColor4ubv(TH_FACE_SELECT, col2);
+		BIF_GetThemeColor4ubv(TH_FACE, (char *)col1);
+		BIF_GetThemeColor4ubv(TH_FACE_SELECT, (char *)col2);
 		
 		glEnable(GL_BLEND);
 		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
@@ -4187,7 +4187,7 @@ void draw_object(Base *base, int flag)
 
 			BIF_GetThemeColor3ubv(TH_GRID, col);
 			make_axis_color(col, col2, 'z');
-			glColor3ubv(col2);
+			glColor3ubv((GLubyte *)col2);
 
 			for (curcon = list->first; curcon; curcon=curcon->next){
 				if ((curcon->flag & CONSTRAINT_EXPAND)&&(curcon->type!=CONSTRAINT_TYPE_NULL)&&(constraint_has_target(curcon))){

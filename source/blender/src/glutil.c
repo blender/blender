@@ -232,7 +232,7 @@ static int get_cached_work_texture(int *w_r, int *h_r)
 		GLint ltexid= glaGetOneInteger(GL_TEXTURE_2D);
 		unsigned char *tbuf;
 
-		glGenTextures(1, &texid);
+		glGenTextures(1, (GLuint *)&texid);
 
 		glBindTexture(GL_TEXTURE_2D, texid);
 

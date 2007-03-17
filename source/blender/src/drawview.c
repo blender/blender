@@ -612,13 +612,13 @@ static void drawgrid(void)
 	/* center cross */
 	if(G.vd->view==3) make_axis_color(col, col2, 'y');
 	else make_axis_color(col, col2, 'x');
-	glColor3ubv(col2);
+	glColor3ubv((GLubyte *)col2);
 	
 	fdrawline(0.0,  y,  (float)curarea->winx,  y); 
 	
 	if(G.vd->view==7) make_axis_color(col, col2, 'y');
 	else make_axis_color(col, col2, 'z');
-	glColor3ubv(col2);
+	glColor3ubv((GLubyte *)col2);
 
 	fdrawline(x, 0.0, x, (float)curarea->winy); 
 
@@ -662,7 +662,7 @@ static void drawfloor(void)
 			/* check for the 'show Y axis' preference */
 			if (vd->gridflag & V3D_SHOW_Y) { 
 				make_axis_color(col, col2, 'y');
-				glColor3ubv(col2);
+				glColor3ubv((GLubyte *)col2);
 				
 				draw_line = 1;
 			} else if (vd->gridflag & V3D_SHOW_FLOOR) {
@@ -701,7 +701,7 @@ static void drawfloor(void)
 			/* check for the 'show X axis' preference */
 			if (vd->gridflag & V3D_SHOW_X) { 
 				make_axis_color(col, col2, 'x');
-				glColor3ubv(col2);
+				glColor3ubv((GLubyte *)col2);
 				
 				draw_line = 1;
 			} else if (vd->gridflag & V3D_SHOW_FLOOR) {
@@ -738,7 +738,7 @@ static void drawfloor(void)
 	/* check for the 'show Z axis' preference */
 	if (vd->gridflag & V3D_SHOW_Z) {
 		make_axis_color(col, col2, 'z');
-		glColor3ubv(col2);
+		glColor3ubv((GLubyte *)col2);
 		
 		glBegin(GL_LINE_STRIP);
 		vert[0]= 0;
@@ -1372,14 +1372,14 @@ static void draw_view_axis(void)
 	float dx, dy;
 	float h, s, v;
 	
-	BIF_GetThemeColor3ubv(TH_GRID, gridcol);
+	BIF_GetThemeColor3ubv(TH_GRID, (char *)gridcol);
 	
 	/* X */
 	vec[0] = vec[3] = 1;
 	vec[1] = vec[2] = 0;
 	QuatMulVecf(G.vd->viewquat, vec);
 	
-	make_axis_color(gridcol, col, 'x');
+	make_axis_color((char *)gridcol, (char *)col, 'x');
 	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
 	s = s<0.5 ? s+0.5 : 1.0;
 	v = 0.3;
@@ -1400,7 +1400,7 @@ static void draw_view_axis(void)
 	vec[0] = vec[2] = 0;
 	QuatMulVecf(G.vd->viewquat, vec);
 	
-	make_axis_color(gridcol, col, 'y');
+	make_axis_color((char *)gridcol, (char *)col, 'y');
 	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
 	s = s<0.5 ? s+0.5 : 1.0;
 	v = 0.3;
@@ -1421,7 +1421,7 @@ static void draw_view_axis(void)
 	vec[1] = vec[0] = 0;
 	QuatMulVecf(G.vd->viewquat, vec);
 	
-	make_axis_color(gridcol, col, 'z');
+	make_axis_color((char *)gridcol, (char *)col, 'z');
 	rgb_to_hsv(col[0]/255.0f, col[1]/255.0f, col[2]/255.0f, &h, &s, &v);
 	s = s<0.5 ? s+0.5 : 1.0;
 	v = 0.5;

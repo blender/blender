@@ -430,7 +430,7 @@ void drawLine(float *center, float *dir, char axis, short options)
 		BIF_GetThemeColor3ubv(TH_GRID, col);
 	}
 	make_axis_color(col, col2, axis);
-	glColor3ubv(col2);
+	glColor3ubv((GLubyte *)col2);
 
 	setlinestyle(0);
 	glBegin(GL_LINE_STRIP); 
