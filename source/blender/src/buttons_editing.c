@@ -4382,14 +4382,15 @@ static void editing_panel_links(Object *ob)
 			uiBlockEndAlign(block);
 		}
 		else {
+			ID *id= ob->data;
+
 			uiBlockBeginAlign (block);
 			uiDefBut (block, BUT, B_NEWVGROUP, "New", 143, 90, 70, 21, 0, 0, 0, 0, 0, "Creates a new vertex group");
 			uiDefBut (block, BUT, B_DELVGROUP, "Delete", 213, 90, 70, 21, 0, 0, 0, 0, 0, "Removes the current vertex group");
 			uiDefBut (block, BUT, B_COPYVGROUP, "Copy Group", 143, 70, 140, 19, 0, 0, 0, 0, 0, "Copy Group of Vertex");
 			uiBlockEndAlign (block);
 
-			ID *id= ob->data;
-			if(id->us>1)
+			if(id->us > 1)
 				uiDefBut(block, BUT,B_LINKEDVGROUP, "Copy To Linked",	143,50,140,20, 0, 0, 0, 0, 0, "Creates identical vertex group names in other Objects using this Object-data");
 		}
 	}

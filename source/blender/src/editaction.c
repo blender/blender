@@ -2734,7 +2734,6 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	int doredraw= 0;
 	int	cfra;
 	short	mval[2];
-	short nr;
 	unsigned short event= evt->event;
 	short val= evt->val;
 	short mousebut = L_MOUSE;
