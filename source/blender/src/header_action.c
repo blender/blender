@@ -1004,13 +1004,11 @@ static void do_action_keymenu(void *arg, int event)
  			break;
 
 		case ACTMENU_KEY_DELETE:
-			if (okee("Erase selected keys")) {
-				if (key) {
-					delete_meshchannel_keys(key);
-				}
-				else if (act) {
-					delete_actionchannel_keys ();
-				}
+			if (key) {
+				delete_meshchannel_keys(key);
+			}
+			else if (act) {
+				delete_actionchannel_keys ();
 			}
 			break;
 		case ACTMENU_KEY_BAKE:

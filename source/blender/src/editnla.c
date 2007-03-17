@@ -1937,20 +1937,18 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case DELKEY:
 			case XKEY:
 				if (mval[0]>=NLAWIDTH) {
-					val= pupmenu("Erase selected%t|Strips and/or Keys%x1|Markers%x2");
-					if (val==1) {
+					if (okee("Erase selected?")) {
+						remove_marker();
+						
 						delete_nlachannel_keys();
 						update_for_newframe_muted();
-					}
-					else if (val==2) {
-						remove_marker();
 						
 						allqueue(REDRAWTIME, 0);
 						allqueue(REDRAWIPO, 0);
 						allqueue(REDRAWACTION, 0);
 						allqueue(REDRAWNLA, 0);
 						allqueue(REDRAWSOUND, 0);
-					}				
+					}
 				}
 				break;
 				

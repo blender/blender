@@ -2728,15 +2728,11 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case XKEY:
 		case DELKEY:
-			val= pupmenu("Erase selected%t|Keys %x1|Markers %x2");
-			if (val == 1)
-				del_ipo(0);
-			else if (val == 2) {
+			if (okee("Erase selected")) {
 				remove_marker();
+				del_ipo(0);
+				
 				allqueue(REDRAWTIME, 0);
-				allqueue(REDRAWIPO, 0);
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
 				allqueue(REDRAWSOUND, 0);
 			}
 			break;

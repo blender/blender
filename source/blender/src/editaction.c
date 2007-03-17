@@ -3056,31 +3056,23 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case DELKEY:
 		case XKEY:
-			nr= pupmenu("Erase selected%t|Keys %x1|Markers %x2");
-			switch (nr) {
-				case 1:
-				{
-					if (key) {
-						delete_meshchannel_keys(key);
-					}
-					else {
-						if (mval[0]<NAMEWIDTH)
-							delete_actionchannels();
-						else
-							delete_actionchannel_keys();
-					}
+			if (okee("Erase selected")) {
+				if (key) {
+					delete_meshchannel_keys(key);
 				}
-					break;
-				case 2:
-				{
-					remove_marker();
-					
-					allqueue(REDRAWTIME, 0);
-					allqueue(REDRAWIPO, 0);
-					allqueue(REDRAWACTION, 0);
-					allqueue(REDRAWNLA, 0);
-					allqueue(REDRAWSOUND, 0);
+				else {
+					if (mval[0]<NAMEWIDTH)
+						delete_actionchannels();
+					else
+						delete_actionchannel_keys();
 				}
+				remove_marker();
+				
+				allqueue(REDRAWTIME, 0);
+				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWACTION, 0);
+				allqueue(REDRAWNLA, 0);
+				allqueue(REDRAWSOUND, 0);
 			}
 			break;
 		/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
@@ -3101,7 +3093,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if( cfra!=CFRA ) {
 						CFRA= cfra;
 						update_for_newframe();
-						force_draw_all(0);					}
+						force_draw_all(0);					
+					}
 					else PIL_sleep_ms(30);
 					
 				} while(get_mbut() & mousebut);
