@@ -581,8 +581,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			BIF_ThemeColor(TH_REDALERT);
 			uiBlockSetCol(block, TH_REDALERT);
 		}
-		else
+		else {
 			BIF_ThemeColor(curCol);
+		}
 
 		/*if (type==TARGET_BONE)
 			but = uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Bone Constraint%t|Track To%x2|IK Solver%x3|Copy Rotation%x8|Copy Location%x9|Action%x12|Null%x0", *xco+20, *yco, 100, 20, &con->type, 0.0, 0.0, 0.0, 0.0, "Constraint type"); 
@@ -603,8 +604,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			uiBlockSetCol(block, TH_REDALERT);
 			BIF_ThemeColor(TH_REDALERT);
 		}
-		else
+		else {
 			BIF_ThemeColor(curCol);
+		}
 		
 		uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, *xco+10, *yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 		
@@ -644,8 +646,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
-				else
+				else {
 					strcpy (data->subtarget, "");
+				}
+				
 				uiBlockEndAlign(block);
 
 				/* Draw action button */
@@ -681,17 +685,23 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
-				else
+				else {
 					strcpy (data->subtarget, "");
+				}
+				
 				uiBlockEndAlign(block);
 				
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
 				if (is_armature_target)
 					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco+((width/2)-98), *yco-64, 50, 18, &con->flag, 0, 24, 0, 0, "Work on a Pose's local transform");
+					
 				but=uiDefButBitI(block, TOG, LOCLIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
-				but=uiDefButBitI(block, TOG, LOCLIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
-				but=uiDefButBitI(block, TOG, LOCLIKE_Z, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
+				but=uiDefButBitI(block, TOG, LOCLIKE_X_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert X component");
+				but=uiDefButBitI(block, TOG, LOCLIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
+				but=uiDefButBitI(block, TOG, LOCLIKE_Y_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Y component");
+				but=uiDefButBitI(block, TOG, LOCLIKE_Z, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+96), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
+				but=uiDefButBitI(block, TOG, LOCLIKE_Z_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+128), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Z component");
 				uiBlockEndAlign(block);
 			}
 			break;
@@ -712,17 +722,23 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
-				else
+				else {
 					strcpy (data->subtarget, "");
+				}
+				
 				uiBlockEndAlign(block);
 				
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
 				if (is_armature_target)
 					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco+((width/2)-98), *yco-64, 50, 18, &con->flag, 0, 24, 0, 0, "Work on a Pose's local transform");
+					
 				but=uiDefButBitI(block, TOG, ROTLIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
-				but=uiDefButBitI(block, TOG, ROTLIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
-				but=uiDefButBitI(block, TOG, ROTLIKE_Z, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
+				but=uiDefButBitI(block, TOG, ROTLIKE_X_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert X component");
+				but=uiDefButBitI(block, TOG, ROTLIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
+				but=uiDefButBitI(block, TOG, ROTLIKE_Y_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Y component");
+				but=uiDefButBitI(block, TOG, ROTLIKE_Z, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+96), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
+				but=uiDefButBitI(block, TOG, ROTLIKE_Z_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+128), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Z component");
 				uiBlockEndAlign(block);
 			}
 			break;
@@ -743,8 +759,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
-				else
+				else {
 					strcpy (data->subtarget, "");
+				}
+				
 				uiBlockEndAlign(block);
 
 				/* Draw XYZ toggles */
@@ -776,8 +794,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,19, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
-				else
+				else {
 					strcpy (data->subtarget, "");
+				}
 	
 				uiBlockBeginAlign(block);
 				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tip", *xco, *yco-64, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tip als last element in Chain");
@@ -811,8 +830,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
-				else
+				else {
 					strcpy (data->subtarget, "");
+				}
+				
 				uiBlockEndAlign(block);
 
 				uiBlockBeginAlign(block);
@@ -824,20 +845,20 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockBeginAlign(block);
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "To:", *xco+12, *yco-64, 25, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 				
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+39, *yco-64,17,18, &data->reserved1, 12.0, 0.0, 0, 0, "The axis that points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+56, *yco-64,17,18, &data->reserved1, 12.0, 1.0, 0, 0, "The axis that points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+73, *yco-64,17,18, &data->reserved1, 12.0, 2.0, 0, 0, "The axis that points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-X",	*xco+90, *yco-64,24,18, &data->reserved1, 12.0, 3.0, 0, 0, "The axis that points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Y",	*xco+114, *yco-64,24,18, &data->reserved1, 12.0, 4.0, 0, 0, "The axis that points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Z",	*xco+138, *yco-64,24,18, &data->reserved1, 12.0, 5.0, 0, 0, "The axis that points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+39, *yco-64,17,18, &data->reserved1, 12.0, 0.0, 0, 0, "X axis points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+56, *yco-64,17,18, &data->reserved1, 12.0, 1.0, 0, 0, "Y axis points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+73, *yco-64,17,18, &data->reserved1, 12.0, 2.0, 0, 0, "Z axis points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-X",	*xco+90, *yco-64,24,18, &data->reserved1, 12.0, 3.0, 0, 0, "-X axis points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Y",	*xco+114, *yco-64,24,18, &data->reserved1, 12.0, 4.0, 0, 0, "-Y axis points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Z",	*xco+138, *yco-64,24,18, &data->reserved1, 12.0, 5.0, 0, 0, "-Z axis points to the target object");
 				uiBlockEndAlign(block);
 				
 				uiBlockBeginAlign(block);
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Up:", *xco+174, *yco-64, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
 				
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+204, *yco-64,17,18, &data->reserved2, 13.0, 0.0, 0, 0, "The axis that points upward");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+221, *yco-64,17,18, &data->reserved2, 13.0, 1.0, 0, 0, "The axis that points upward");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+238, *yco-64,17,18, &data->reserved2, 13.0, 2.0, 0, 0, "The axis that points upward");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+204, *yco-64,17,18, &data->reserved2, 13.0, 0.0, 0, 0, "X axis points upward");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+221, *yco-64,17,18, &data->reserved2, 13.0, 1.0, 0, 0, "Y axis points upward");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+238, *yco-64,17,18, &data->reserved2, 13.0, 2.0, 0, 0, "Z axis points upward");
 				uiBlockEndAlign(block);
 			}
 			break;
@@ -860,8 +881,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
-				else
+				else {
 					strcpy (data->subtarget, "");
+				}
+				
 				uiBlockEndAlign(block);
 
 				but=uiDefButI(block, TOG|BIT|0, B_CONSTRAINT_TEST, "Sticky", *xco, *yco-24, 44, 18, &data->flag, 0, 24, 0, 0, "Immobilize object while constrained");
@@ -895,27 +918,29 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
-				else
+				else {
 					strcpy (data->subtarget, "");
+				}
+				
 				uiBlockEndAlign(block);
 				
 				uiBlockBeginAlign(block);
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "To:", *xco+12, *yco-64, 25, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 				
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+39, *yco-64,17,18, &data->trackflag, 12.0, 0.0, 0, 0, "The axis that points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+56, *yco-64,17,18, &data->trackflag, 12.0, 1.0, 0, 0, "The axis that points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+73, *yco-64,17,18, &data->trackflag, 12.0, 2.0, 0, 0, "The axis that points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-X",	*xco+90, *yco-64,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "The axis that points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Y",	*xco+114, *yco-64,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "The axis that points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Z",	*xco+138, *yco-64,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "The axis that points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+39, *yco-64,17,18, &data->trackflag, 12.0, 0.0, 0, 0, "X axis points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+56, *yco-64,17,18, &data->trackflag, 12.0, 1.0, 0, 0, "Y axis points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+73, *yco-64,17,18, &data->trackflag, 12.0, 2.0, 0, 0, "Z axis points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-X",	*xco+90, *yco-64,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "-X axis points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Y",	*xco+114, *yco-64,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "-Y axis points to the target object");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Z",	*xco+138, *yco-64,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "-Z axis points to the target object");
 				uiBlockEndAlign(block);
 				
 				uiBlockBeginAlign(block);
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Lock:", *xco+166, *yco-64, 38, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
 				
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+204, *yco-64,17,18, &data->lockflag, 13.0, 0.0, 0, 0, "The axis that is locked");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+221, *yco-64,17,18, &data->lockflag, 13.0, 1.0, 0, 0, "The axis that is locked");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+238, *yco-64,17,18, &data->lockflag, 13.0, 2.0, 0, 0, "The axis that is locked");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+204, *yco-64,17,18, &data->lockflag, 13.0, 0.0, 0, 0, "X axis is locked");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+221, *yco-64,17,18, &data->lockflag, 13.0, 1.0, 0, 0, "Y axis is locked");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+238, *yco-64,17,18, &data->lockflag, 13.0, 2.0, 0, 0, "Z axis is locked");
 				uiBlockEndAlign(block);
 			}
 			break;
@@ -974,8 +999,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
-				else
+				else {
 					strcpy (data->subtarget, "");
+				}
+				
 				uiBlockEndAlign(block);
 
 				
@@ -1106,6 +1133,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					height = 106; 
 				else
 					height = 78;
+					
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				/* Draw Pairs of LimitToggle+LimitValue */

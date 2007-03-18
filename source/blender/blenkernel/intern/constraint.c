@@ -1241,7 +1241,6 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 	return valid;
 }
 
-
 /* only called during solve_constraints */
 /* bone constraints create a fake object to work on, then ob is a workob */
 /* if ownerdata is set, it's the posechannel */
@@ -1277,12 +1276,21 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 
 			data = constraint->data;
 			
-			if (data->flag & LOCLIKE_X)
+			if (data->flag & LOCLIKE_X) {
 				ob->obmat[3][0] = targetmat[3][0];
-			if (data->flag & LOCLIKE_Y)
+				
+				if(data->flag & LOCLIKE_X_INVERT) ob->obmat[3][0] *= -1;	
+			}
+			if (data->flag & LOCLIKE_Y) {
 				ob->obmat[3][1] = targetmat[3][1];
-			if (data->flag & LOCLIKE_Z)
+				
+				if(data->flag & LOCLIKE_Y_INVERT) ob->obmat[3][1] *= -1;
+			}
+			if (data->flag & LOCLIKE_Z) {
 				ob->obmat[3][2] = targetmat[3][2];
+				
+				if(data->flag & LOCLIKE_Z_INVERT) ob->obmat[3][2] *= -1;
+			}
 		}
 		break;
 	case CONSTRAINT_TYPE_ROTLIKE:
@@ -1301,12 +1309,25 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			Mat4ToEul(ob->obmat, obeul);
 			
 			if(data->flag != (ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z)) {
-				if(!(data->flag & ROTLIKE_X)) eul[0]= obeul[0];
-				if(!(data->flag & ROTLIKE_Y)) eul[1]= obeul[1];
-				if(!(data->flag & ROTLIKE_Z)) eul[2]= obeul[2];
+				if(!(data->flag & ROTLIKE_X)) {
+					eul[0]= obeul[0];
+				}
+				if(!(data->flag & ROTLIKE_Y)) {
+					eul[1]= obeul[1];
+				}
+				if(!(data->flag & ROTLIKE_Z)) {
+					eul[2]= obeul[2];
+				}
 				compatible_eul(eul, obeul);
 			}
-
+						
+			if((data->flag & ROTLIKE_X) && (data->flag & ROTLIKE_X_INVERT))
+				eul[0]*=-1;
+			if((data->flag & ROTLIKE_Y) && (data->flag & ROTLIKE_Y_INVERT))
+				eul[1]*=-1;
+			if((data->flag & ROTLIKE_Z) && (data->flag & ROTLIKE_Z_INVERT))
+				eul[2]*=-1;
+							
 			LocEulSizeToMat4(ob->obmat, loc, eul, size);
 		}
 		break;

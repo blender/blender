@@ -1620,6 +1620,12 @@ static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
 						pchan->loc[1]= FloatLerpf(pchant->loc[1], pchan->loc[1], fac);
 					if (data->flag & LOCLIKE_Z)
 						pchan->loc[2]= FloatLerpf(pchant->loc[2], pchan->loc[2], fac);
+					if (data->flag & LOCLIKE_X_INVERT)
+						pchan->loc[0]= FloatLerpf(pchant->loc[0], pchan->loc[0], -fac);
+					if (data->flag & LOCLIKE_Y_INVERT)
+						pchan->loc[1]= FloatLerpf(pchant->loc[1], pchan->loc[1], -fac);
+					if (data->flag & LOCLIKE_Z_INVERT)
+						pchan->loc[2]= FloatLerpf(pchant->loc[2], pchan->loc[2], -fac);
 				}
 			}
 		}
@@ -1639,6 +1645,9 @@ static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
 						if(data->flag & ROTLIKE_X) euln[0]= FloatLerpf(eult[0], eul[0], fac); 
 						if(data->flag & ROTLIKE_Y) euln[1]= FloatLerpf(eult[1], eul[1], fac);
 						if(data->flag & ROTLIKE_Z) euln[2]= FloatLerpf(eult[2], eul[2], fac);
+						if(data->flag & ROTLIKE_X_INVERT) euln[0]= FloatLerpf(eult[0], eul[0], -fac); 
+						if(data->flag & ROTLIKE_Y_INVERT) euln[1]= FloatLerpf(eult[1], eul[1], -fac);
+						if(data->flag & ROTLIKE_Z_INVERT) euln[2]= FloatLerpf(eult[2], eul[2], -fac);
 						compatible_eul(eul, euln);
 						EulToQuat(euln, pchan->quat);
 					}
