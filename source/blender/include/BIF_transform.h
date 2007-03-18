@@ -37,6 +37,7 @@
 
 /* MODE AND NUMINPUT FLAGS */
 #define TFM_INIT			-1
+#define TFM_DUMMY			0
 #define TFM_TRANSLATION		1
 #define TFM_ROTATION		2
 #define TFM_RESIZE			3
@@ -65,6 +66,9 @@
 void initTransform(int mode, int context);
 void Transform(void);
 void Mirror(short mode);
+
+/* Standalone call to get the transformation center corresponding to the current situation */
+void calculateTransformCenter(int centerMode, float *vec);
 
 struct TransInfo;
 struct ScrArea;

@@ -573,14 +573,13 @@ void viewmove(int mode)
 		obofs[1]= -obofs[1];
 		obofs[2]= -obofs[2];
 	}
-	//else if (G.obedit==NULL && ob && !(ob->flag & OB_POSEMODE) && U.uiflag & USER_ORBIT_SELECTION) {
 	else if (ob && (U.uiflag & USER_ORBIT_SELECTION)) {
 		use_sel = 1;
+		
 		VECCOPY(ofs, G.vd->ofs);
-
-		obofs[0] = -ob->obmat[3][0];
-		obofs[1] = -ob->obmat[3][1];
-		obofs[2] = -ob->obmat[3][2];
+		
+		calculateTransformCenter(V3D_CENTROID, obofs);
+		VecMulf(obofs, -1.0f);
 	}
 	else
 		ofs[0] = ofs[1] = ofs[2] = 0.0f;

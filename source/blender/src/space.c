@@ -3218,10 +3218,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y2,(mpref/2),buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Automatically switch between orthographic and perspective when changing from top/front/side views");
-		uiDefButBitI(block, TOG, USER_ORBIT_SELECTION, B_DRAWINFO, "Around Active",
+		uiDefButBitI(block, TOG, USER_ORBIT_SELECTION, B_DRAWINFO, "Around Selection",
 			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y2,(mpref/2),buth,
 			&(U.uiflag), 0, 0, 0, 0,
-			"Keep the active object in place when orbiting the views (Object Mode)");
+			"Keep the center of selection in place when orbiting the views");
 		uiBlockEndAlign(block);
 		
 

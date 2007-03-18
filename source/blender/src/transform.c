@@ -756,6 +756,33 @@ static void transformEvent(unsigned short event, short val) {
 	}
 }
 
+void calculateTransformCenter(int centerMode, float *vec)
+{
+	checkFirstTime();
+
+	Trans.state = TRANS_RUNNING;
+
+	Trans.context = CTX_NONE;
+
+	initTrans(&Trans);					// internal data, mouse, vectors
+
+	createTransData(&Trans);			// make TransData structs from selection
+
+	initTransModeFlags(&Trans, TFM_DUMMY);	// modal settings in struct Trans
+
+	Trans.around = centerMode; 			// override userdefined mode
+
+	calculateCenter(&Trans);
+
+	// Copy center from constraint center. Transform center can be local	
+	VECCOPY(vec, Trans.con.center);
+	
+	postTrans(&Trans);
+
+	/* aftertrans does insert ipos and action channels, and clears base flags, doesnt read transdata */
+	special_aftertrans_update(&Trans);
+}
+
 void initTransform(int mode, int context) {
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
 	checkFirstTime();
