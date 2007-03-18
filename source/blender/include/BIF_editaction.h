@@ -50,9 +50,19 @@
 #define SLIDERWIDTH    125
 #define ACTWIDTH 		(G.saction->actwidth)
 
+/* Some types for easier type-testing */
+#define ACTTYPE_NONE	0
+#define ACTTYPE_ACHAN	1
+#define ACTTYPE_CONCHAN	2
+
+/* Macros for easier/more consistant state testing */
 #define VISIBLE_ACHAN(achan) ((achan->flag & ACHAN_HIDDEN)==0)
-#define EDITABLE_ACHAN(achan) (((achan->flag & ACHAN_HIDDEN)==0) && ((achan->flag & ACHAN_PROTECTED)==0))
+#define EDITABLE_ACHAN(achan) ((VISIBLE_ACHAN(achan)) && ((achan->flag & ACHAN_PROTECTED)==0))
+//#define EXPANDED_ACHAN(achan) ((VISIBLE_ACHAN(achan)) && (achan->flag & ACHAN_EXPANDED))
+#define SEL_ACHAN(achan) ((achan->flag & ACHAN_SELECTED) || (achan->flag & ACHAN_HILIGHTED))
+
 #define EDITABLE_CONCHAN(conchan) ((conchan->flag & CONSTRAINT_CHANNEL_PROTECTED)==0)
+
 
 #define CHANNEL_FILTER_LOC		0x00000001	/* Show location keys */
 #define CHANNEL_FILTER_ROT		0x00000002	/* Show rotation keys */
@@ -81,8 +91,6 @@ void duplicate_meshchannel_keys(struct Key *key);
 void duplicate_actionchannel_keys(void);
 void transform_actionchannel_keys(int mode, int dummy);
 void transform_meshchannel_keys(char mode, struct Key *key);
-struct Key *get_action_mesh_key(void);
-int get_nearest_key_num(struct Key *key, short *mval, float *x);
 void snap_keys_to_frame(int snap_mode);
 void mirror_action_keys(short mirror_mode);
 void clean_shapekeys(struct Key *key);
@@ -116,6 +124,11 @@ void deselect_actionchannels (struct bAction *act, int test);
 void deselect_meshchannel_keys (struct Key *key, int test, int sel);
 int select_channel(struct bAction *act, struct bActionChannel *chan, int selectmode);
 void select_actionchannel_by_name (struct bAction *act, char *name, int select);
+
+/* */
+struct Key *get_action_mesh_key(void);
+int get_nearest_key_num(struct Key *key, short *mval, float *x);
+void *get_nearest_act_channel(short mval[], short *ret_type);
 
 /* Action */
 struct bActionChannel* get_hilighted_action_channel(struct bAction* action);

@@ -1928,10 +1928,7 @@ static void delete_actionchannels (void)
 
 	if (!chan && !conchan)
 		return;
-
-	if (!okee("Erase selected channels"))
-		return;
-
+	
 	for (chan=act->chanbase.first; chan; chan=next){
 		freechan = 0;
 		next=chan->next;
@@ -2709,19 +2706,83 @@ static void clever_keyblock_names(Key *key, short* mval){
 	
 }
 
+static void clever_achannel_names(short *mval)
+{
+	void *act_channel;
+	bActionChannel *achan= NULL;
+	bConstraintChannel *conchan= NULL;
+	
+	int but=0;
+    char str[64];
+	short protect, chantype;
+	
+	/* figure out what is under cursor */
+	act_channel= get_nearest_act_channel(mval, &chantype);
+	
+	/* create items for clever-numbut */
+	if (chantype == ACTTYPE_ACHAN) {
+		achan= (bActionChannel *)act_channel;
+		
+		strcpy(str, achan->name);
+		protect= (achan->flag & ACHAN_PROTECTED);
+		
+		add_numbut(but++, TEX, "ActChan: ", 0, 24, str, "Name of Action Channel");
+	}
+	else if (chantype == ACTTYPE_CONCHAN) {
+		conchan= (bConstraintChannel *)act_channel;
+		
+		strcpy(str, conchan->name);
+		protect= (conchan->flag & CONSTRAINT_CHANNEL_PROTECTED);
+		
+		add_numbut(but++, TEX, "ConChan: ", 0, 24, str, "Name of Constraint Channel");
+	}
+	else {
+		/* nothing under-cursor */
+		return;
+	}
+	add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Group is expanded");
+	
+	/* draw clever-numbut */
+    if (do_clever_numbuts(str, but, REDRAW)) {
+		/* restore settings based on type */
+		if (conchan) {
+			strcpy(conchan->name, str);
+			
+			if (protect) conchan->flag |= CONSTRAINT_CHANNEL_PROTECTED;
+			else conchan->flag &= ~CONSTRAINT_CHANNEL_PROTECTED;
+		}
+		else if (achan) {
+			strcpy(achan->name, str);
+			
+			//if (expand) achan->flag |= ACHAN_EXPANDED;
+			//else achan->flag &= ~ACHAN_EXPANDED;
+			
+			if (protect) achan->flag |= ACHAN_PROTECTED;
+			else achan->flag &= ~ACHAN_PROTECTED;
+		}
+		
+        allqueue (REDRAWACTION, 0);
+		allqueue (REDRAWVIEW3D, 0);
+	}
+}
+
+/* this gets called when nkey is pressed (no Transform Properties panel yet) */
 static void numbuts_action(void)
 {
 	/* now called from action window event loop, plus reacts on mouseclick */
 	/* removed Hos grunts for that reason! :) (ton) */
     Key *key;
     short mval[2];
-
-    if ( (key = get_action_mesh_key()) ) {
-        getmouseco_areawin (mval);
-		if (mval[0]<NAMEWIDTH) {
+	
+	key = get_action_mesh_key();
+	getmouseco_areawin (mval);
+	
+	if (mval[0] < NAMEWIDTH) {
+	    if (key) 
 			clever_keyblock_names(key, mval);
-		}
-    }
+		else 
+			clever_achannel_names(mval);
+	}
 }
 
 void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
@@ -3065,7 +3126,9 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else
 						delete_actionchannel_keys();
 				}
-				remove_marker();
+				
+				if (mval[0] >= NAMEWIDTH)
+					remove_marker();
 				
 				allqueue(REDRAWTIME, 0);
 				allqueue(REDRAWIPO, 0);
@@ -3244,6 +3307,81 @@ int get_nearest_key_num(Key *key, short *mval, float *x) {
     num = (int) ((ybase - y + CHANNELHEIGHT/2) / (CHANNELHEIGHT+CHANNELSKIP));
 
     return (num + 1);
+}
+
+void *get_nearest_act_channel(short mval[], short *ret_type)
+{
+	/* Returns the 'channel' that is under the mouse cursor.
+	 * This 'channel' can either be an action channel, or a constraint channel.
+	 *
+	 * #ret_type# is used to denote what type of channel was found.
+	 * It should only be one of the ACTTYPE_* constant values.
+	 */
+	 
+	bAction *act= G.saction->action;
+	bActionChannel *achan;
+	bConstraintChannel *conchan;
+	
+	float	x,y;
+	int   clickmin, clickmax;
+	int		wsize;
+	
+	if (act == NULL) {
+		*ret_type= ACTTYPE_NONE;
+		return NULL;
+	}
+	
+	/* wsize is the greatest possible height (in pixels) that would be
+	 * needed to draw all of the groups, action channels and constraint
+	 * channels.
+	 */
+	wsize =  count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
+	wsize += CHANNELHEIGHT/2;
+
+    areamouseco_to_ipoco(G.v2d, mval, &x, &y);
+    clickmin = (int) ((wsize - y) / (CHANNELHEIGHT+CHANNELSKIP));
+	clickmax = clickmin;
+	
+	if (clickmax < 0) {
+		*ret_type= ACTTYPE_NONE;
+		return NULL;
+	}
+	
+	/* try in action channels */
+	for (achan = act->chanbase.first; achan; achan=achan->next) {
+		if(VISIBLE_ACHAN(achan)) {
+			if (clickmax < 0) break;
+
+			if (clickmin <= 0) {
+				/* found match - action channel */
+				*ret_type= ACTTYPE_ACHAN;
+				return achan;
+			}
+			
+			--clickmin;
+			--clickmax;
+		}
+		else {
+			continue;
+		}
+		
+		/* try in constaint channels */
+		for (conchan= achan->constraintChannels.first; conchan; conchan=conchan->next) {
+			if (clickmax < 0) break;
+			
+			if (clickmin <= 0) {
+				/* found match - constraint channel */
+				*ret_type= ACTTYPE_CONCHAN;
+				return conchan;
+			}
+			
+			--clickmin;
+			--clickmax;
+		}
+	}
+	
+	*ret_type= ACTTYPE_NONE;
+	return NULL;
 }
 
 /* ************************************* Action Editor Markers ************************************* */
