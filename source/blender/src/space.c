@@ -3515,6 +3515,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				0, 0, 0, 0, 0,"Open the most recently saved temporary file");
 		}
 
+		uiDefButS(block, NUM, B_DRAWINFO, "Recent Files:",
+			(xpos+edgsp+(2*mpref)+(3*midsp)),y3,(mpref),buth,
+			&U.recent_files, 0, 30, 0, 0,
+			"Maximum number of recently opened files to remember");
+		
 	} else if (U.userpref == 4) { /* system & opengl */
 
 		uiDefBut(block, LABEL,0,"Solid OpenGL lights:",

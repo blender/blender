@@ -353,6 +353,10 @@ static void init_userdef_file(void)
 			}
 		}
 	}
+	if (G.main->versionfile <= 243) {
+		/* set default number of recently-used files (if not set) */
+		if (U.recent_files == 0) U.recent_files = 10;
+	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
@@ -567,7 +571,7 @@ static void readBlog(void)
 	G.recent_files.first = G.recent_files.last = NULL;
 
 	/* read list of recent opend files from .Blog to memory */
-	for (l= lines, num= 0; l && (num<10); l= l->next, num++) {
+	for (l= lines, num= 0; l && (num<U.recent_files); l= l->next, num++) {
 		line = l->link;
 		if (!BLI_streq(line, "")) {
 			if (num==0) 
@@ -666,7 +670,7 @@ static void writeBlog(void)
 			recent = recent->next;
 			i=1;
 			/* write rest of recent opened files to .Blog */
-			while((i<10) && (recent)){
+			while((i<U.recent_files) && (recent)){
 				/* this prevents to have duplicities in list */
 				if (strcmp(recent->filename, G.sce)!=0) {
 					fprintf(fp, "%s\n", recent->filename);

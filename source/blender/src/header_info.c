@@ -924,7 +924,7 @@ static uiBlock *info_openrecentmenu(void *arg_unused)
 				menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	}
 
-	for (recent = G.recent_files.first, i=0; i<10 && recent; recent = recent->next, i++) {
+	for (recent = G.recent_files.first, i=0; i<U.recent_files && recent; recent = recent->next, i++) {
 		if (strcmp(recent->filename, G.sce)!=0) {
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, recent->filename, 0, yco-=20,
 					menuwidth, 19, NULL, 0.0, 0.0, 1, i+1, "");

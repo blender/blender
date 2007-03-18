@@ -377,7 +377,7 @@ char *recent_filelist(void)
 		ofs = 1;
 	} else ofs = 0;
 
-	for (recent = G.recent_files.first, i=0; (i<10) && (recent); recent = recent->next, i++) {
+	for (recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++) {
 		if (strcmp(recent->filename, G.sce)) {
 			p+= sprintf(p, "|%s %%x%d", recent->filename, i+ofs+1);
 		}

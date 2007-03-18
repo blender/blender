@@ -178,7 +178,7 @@ typedef struct UserDef {
 	short rvibright;		/* rotating view icon brightness */
 	char versemaster[160];
 	char verseuser[160];
-	short pad;
+	short recent_files;		/* maximum number of recently used files to remember  */
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */
