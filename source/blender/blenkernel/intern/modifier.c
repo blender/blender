@@ -1432,42 +1432,12 @@ static void edgesplitModifier_copyData(ModifierData *md, ModifierData *target)
 	temd->flags = emd->flags;
 }
 
-typedef struct SmoothMesh {
-	GHash *verts;
-	GHash *edges;
-	GHash *faces;
-	DerivedMesh *dm;
-	float threshold; /* the cosine of the smoothing angle */
-	int flags;
-} SmoothMesh;
-
 /* Mesh data for edgesplit operation */
 typedef struct SmoothVert {
 	LinkNode *faces;     /* all faces which use this vert */
 	int oldIndex; /* the index of the original DerivedMesh vert */
 	int newIndex; /* the index of the new DerivedMesh vert */
 } SmoothVert;
-
-static SmoothVert *smoothvert_copy(SmoothVert *vert, SmoothMesh *mesh)
-{
-	SmoothVert *copy = MEM_callocN(sizeof(*copy), "copy_smoothvert");
-
-	*copy = *vert;
-	copy->faces = NULL;
-	copy->newIndex = BLI_ghash_size(mesh->verts);
-	BLI_ghash_insert(mesh->verts, (void *)copy->newIndex, copy);
-
-#ifdef EDGESPLIT_DEBUG_2
-	printf("copied vert %4d to vert %4d\n", vert->newIndex, copy->newIndex);
-#endif
-	return copy;
-}
-
-static void smoothvert_free(void *vert)
-{
-	BLI_linklist_free(((SmoothVert *)vert)->faces, NULL);
-	MEM_freeN(vert);
-}
 
 #define SMOOTHEDGE_NUM_VERTS 2
 
@@ -1479,20 +1449,60 @@ typedef struct SmoothEdge {
 	short flag; /* the flags from the original DerivedMesh edge */
 } SmoothEdge;
 
-static void smoothedge_free(void *edge)
+#define SMOOTHFACE_MAX_EDGES 4
+
+typedef struct SmoothFace {
+	SmoothEdge *edges[SMOOTHFACE_MAX_EDGES]; /* nonexistent edges == NULL */
+	int flip[SMOOTHFACE_MAX_EDGES]; /* 1 = flip edge dir, 0 = don't flip */
+	float normal[3]; /* the normal of this face */
+	int oldIndex; /* the index of the original DerivedMesh face */
+	int newIndex; /* the index of the new DerivedMesh face */
+} SmoothFace;
+
+typedef struct SmoothMesh {
+	SmoothVert *verts;
+	SmoothEdge *edges;
+	SmoothFace *faces;
+	int num_verts, num_edges, num_faces;
+	int max_verts, max_edges, max_faces;
+	DerivedMesh *dm;
+	float threshold; /* the cosine of the smoothing angle */
+	int flags;
+} SmoothMesh;
+
+static SmoothVert *smoothvert_copy(SmoothVert *vert, SmoothMesh *mesh)
 {
-	BLI_linklist_free(((SmoothEdge *)edge)->faces, NULL);
-	MEM_freeN(edge);
+	SmoothVert *copy = &mesh->verts[mesh->num_verts];
+
+	if(mesh->num_verts >= mesh->max_verts) {
+		printf("Attempted to add a SmoothMesh vert beyond end of array\n");
+		return NULL;
+	}
+
+	*copy = *vert;
+	copy->faces = NULL;
+	copy->newIndex = mesh->num_verts;
+	++mesh->num_verts;
+
+#ifdef EDGESPLIT_DEBUG_2
+	printf("copied vert %4d to vert %4d\n", vert->newIndex, copy->newIndex);
+#endif
+	return copy;
 }
 
 static SmoothEdge *smoothedge_copy(SmoothEdge *edge, SmoothMesh *mesh)
 {
-	SmoothEdge *copy = MEM_callocN(sizeof(*copy), "copy_smoothedge");
+	SmoothEdge *copy = &mesh->edges[mesh->num_edges];
+
+	if(mesh->num_edges >= mesh->max_edges) {
+		printf("Attempted to add a SmoothMesh edge beyond end of array\n");
+		return NULL;
+	}
 
 	*copy = *edge;
 	copy->faces = NULL;
-	copy->newIndex = BLI_ghash_size(mesh->edges);
-	BLI_ghash_insert(mesh->edges, (void *)copy->newIndex, copy);
+	copy->newIndex = mesh->num_edges;
+	++mesh->num_edges;
 
 #ifdef EDGESPLIT_DEBUG_2
 	printf("copied edge %4d to edge %4d\n", edge->newIndex, copy->newIndex);
@@ -1509,37 +1519,95 @@ static int smoothedge_has_vert(SmoothEdge *edge, SmoothVert *vert)
 	return 0;
 }
 
-#define SMOOTHFACE_MAX_EDGES 4
-
-typedef struct SmoothFace {
-	SmoothEdge *edges[SMOOTHFACE_MAX_EDGES]; /* nonexistent edges == NULL */
-	int flip[SMOOTHFACE_MAX_EDGES]; /* 1 = flip edge dir, 0 = don't flip */
-	float normal[3]; /* the normal of this face */
-	int oldIndex; /* the index of the original DerivedMesh face */
-	int newIndex; /* the index of the new DerivedMesh face */
-} SmoothFace;
-
-static void smoothface_free(void *face)
-{
-	MEM_freeN(face);
-}
-
-static SmoothMesh *smoothmesh_new()
+static SmoothMesh *smoothmesh_new(int num_verts, int num_edges, int num_faces,
+                                  int max_verts, int max_edges, int max_faces)
 {
 	SmoothMesh *mesh = MEM_callocN(sizeof(*mesh), "smoothmesh");
-	mesh->verts = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
-	mesh->edges = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
-	mesh->faces = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp);
+	mesh->verts = MEM_callocN(sizeof(*mesh->verts) * max_verts,
+	                          "SmoothMesh.verts");
+	mesh->edges = MEM_callocN(sizeof(*mesh->edges) * max_edges,
+	                          "SmoothMesh.edges");
+	mesh->faces = MEM_callocN(sizeof(*mesh->faces) * max_faces,
+	                          "SmoothMesh.faces");
+
+	mesh->num_verts = num_verts;
+	mesh->num_edges = num_edges;
+	mesh->num_faces = num_faces;
+
+	mesh->max_verts = max_verts;
+	mesh->max_edges = max_edges;
+	mesh->max_faces = max_faces;
 
 	return mesh;
 }
 
 static void smoothmesh_free(SmoothMesh *mesh)
 {
-	BLI_ghash_free(mesh->verts, NULL, smoothvert_free);
-	BLI_ghash_free(mesh->edges, NULL, smoothedge_free);
-	BLI_ghash_free(mesh->faces, NULL, smoothface_free);
+	int i;
+
+	for(i = 0; i < mesh->num_verts; ++i)
+		BLI_linklist_free(mesh->verts[i].faces, NULL);
+
+	for(i = 0; i < mesh->num_edges; ++i)
+		BLI_linklist_free(mesh->edges[i].faces, NULL);
+
+	MEM_freeN(mesh->verts);
+	MEM_freeN(mesh->edges);
+	MEM_freeN(mesh->faces);
 	MEM_freeN(mesh);
+}
+
+static void smoothmesh_resize_verts(SmoothMesh *mesh, int max_verts)
+{
+	int i;
+	SmoothVert *tmp;
+
+	if(max_verts <= mesh->max_verts) return;
+
+	tmp = MEM_callocN(sizeof(*tmp) * max_verts, "SmoothMesh.verts");
+
+	memcpy(tmp, mesh->verts, sizeof(*tmp) * mesh->num_verts);
+
+	/* remap vert pointers in edges */
+	for(i = 0; i < mesh->num_edges; ++i) {
+		int j;
+		SmoothEdge *edge = &mesh->edges[i];
+
+		for(j = 0; j < SMOOTHEDGE_NUM_VERTS; ++j)
+			/* pointer arithmetic to get vert array index */
+			edge->verts[j] = &tmp[edge->verts[j] - mesh->verts];
+	}
+
+	MEM_freeN(mesh->verts);
+	mesh->verts = tmp;
+	mesh->max_verts = max_verts;
+}
+
+static void smoothmesh_resize_edges(SmoothMesh *mesh, int max_edges)
+{
+	int i;
+	SmoothEdge *tmp;
+
+	if(max_edges <= mesh->max_edges) return;
+
+	tmp = MEM_callocN(sizeof(*tmp) * max_edges, "SmoothMesh.edges");
+
+	memcpy(tmp, mesh->edges, sizeof(*tmp) * mesh->num_edges);
+
+	/* remap edge pointers in faces */
+	for(i = 0; i < mesh->num_faces; ++i) {
+		int j;
+		SmoothFace *face = &mesh->faces[i];
+
+		for(j = 0; j < SMOOTHFACE_MAX_EDGES; ++j)
+			if(face->edges[j])
+				/* pointer arithmetic to get edge array index */
+				face->edges[j] = &tmp[face->edges[j] - mesh->edges];
+	}
+
+	MEM_freeN(mesh->edges);
+	mesh->edges = tmp;
+	mesh->max_edges = max_edges;
 }
 
 #ifdef EDGESPLIT_DEBUG_0
@@ -1550,8 +1618,8 @@ static void smoothmesh_print(SmoothMesh *mesh)
 
 	printf("--- SmoothMesh ---\n");
 	printf("--- Vertices ---\n");
-	for(i = 0; i < BLI_ghash_size(mesh->verts); i++) {
-		SmoothVert *vert = BLI_ghash_lookup(mesh->verts, (void *)i);
+	for(i = 0; i < mesh->num_verts; i++) {
+		SmoothVert *vert = &mesh->verts[i];
 		LinkNode *node;
 		MVert mv;
 
@@ -1568,8 +1636,8 @@ static void smoothmesh_print(SmoothMesh *mesh)
 	}
 
 	printf("\n--- Edges ---\n");
-	for(i = 0; i < BLI_ghash_size(mesh->edges); i++) {
-		SmoothEdge *edge = BLI_ghash_lookup(mesh->edges, (void *)i);
+	for(i = 0; i < mesh->num_edges; i++) {
+		SmoothEdge *edge = &mesh->edges[i];
 		LinkNode *node;
 
 		printf("%4d: indices={%4d, %4d}, verts={%4d, %4d}",
@@ -1585,8 +1653,8 @@ static void smoothmesh_print(SmoothMesh *mesh)
 	}
 
 	printf("\n--- Faces ---\n");
-	for(i = 0; i < BLI_ghash_size(mesh->faces); i++) {
-		SmoothFace *face = BLI_ghash_lookup(mesh->faces, (void *)i);
+	for(i = 0; i < mesh->num_faces; i++) {
+		SmoothFace *face = &mesh->faces[i];
 
 		printf("%4d: indices={%4d, %4d}, edges={", i,
 		       face->oldIndex, face->newIndex);
@@ -1607,38 +1675,41 @@ static void smoothmesh_print(SmoothMesh *mesh)
 
 static SmoothMesh *smoothmesh_from_derivedmesh(DerivedMesh *dm)
 {
-	SmoothMesh *mesh = smoothmesh_new();
+	SmoothMesh *mesh;
 	EdgeHash *edges = BLI_edgehash_new();
 	int i;
 	int totvert, totedge, totface;
 
+	totvert = dm->getNumVerts(dm);
+	totedge = dm->getNumEdges(dm);
+	totface = dm->getNumFaces(dm);
+
+	mesh = smoothmesh_new(totvert, totedge, totface,
+	                      totvert, totedge, totface);
+
 	mesh->dm = dm;
 
-	totvert = dm->getNumVerts(dm);
 	for(i = 0; i < totvert; i++) {
-		SmoothVert *vert = MEM_callocN(sizeof(*vert), "smoothvert");
+		SmoothVert *vert = &mesh->verts[i];
 
 		vert->oldIndex = vert->newIndex = i;
-		BLI_ghash_insert(mesh->verts, (void *)i, vert);
 	}
 
-	totedge = dm->getNumEdges(dm);
 	for(i = 0; i < totedge; i++) {
-		SmoothEdge *edge = MEM_callocN(sizeof(*edge), "smoothedge");
+		SmoothEdge *edge = &mesh->edges[i];
 		MEdge med;
 
 		dm->getEdge(dm, i, &med);
-		edge->verts[0] = BLI_ghash_lookup(mesh->verts, (void *)med.v1);
-		edge->verts[1] = BLI_ghash_lookup(mesh->verts, (void *)med.v2);
+		edge->verts[0] = &mesh->verts[med.v1];
+		edge->verts[1] = &mesh->verts[med.v2];
 		edge->oldIndex = edge->newIndex = i;
 		edge->flag = med.flag;
-		BLI_ghash_insert(mesh->edges, (void *)i, edge);
+
 		BLI_edgehash_insert(edges, med.v1, med.v2, edge);
 	}
 
-	totface = dm->getNumFaces(dm);
 	for(i = 0; i < totface; i++) {
-		SmoothFace *face = MEM_callocN(sizeof(*face), "smoothface");
+		SmoothFace *face = &mesh->faces[i];
 		MFace mf;
 		MVert v1, v2, v3;
 		int j;
@@ -1674,7 +1745,6 @@ static SmoothMesh *smoothmesh_from_derivedmesh(DerivedMesh *dm)
 		}
 
 		face->oldIndex = face->newIndex = i;
-		BLI_ghash_insert(mesh->faces, (void *)i, face);
 	}
 
 	BLI_edgehash_free(edges, NULL);
@@ -1685,28 +1755,25 @@ static SmoothMesh *smoothmesh_from_derivedmesh(DerivedMesh *dm)
 static DerivedMesh *CDDM_from_smoothmesh(SmoothMesh *mesh)
 {
 	DerivedMesh *result = CDDM_from_template(mesh->dm,
-	                                         BLI_ghash_size(mesh->verts),
-	                                         BLI_ghash_size(mesh->edges),
-	                                         BLI_ghash_size(mesh->faces));
-	GHashIterator *i;
+	                                         mesh->num_verts,
+	                                         mesh->num_edges,
+	                                         mesh->num_faces);
 	MVert *new_verts = CDDM_get_verts(result);
 	MEdge *new_edges = CDDM_get_edges(result);
 	MFace *new_faces = CDDM_get_faces(result);
+	int i;
 
-	for(i = BLI_ghashIterator_new(mesh->verts); !BLI_ghashIterator_isDone(i);
-	    BLI_ghashIterator_step(i)) {
-		SmoothVert *vert = BLI_ghashIterator_getValue(i);
+	for(i = 0; i < mesh->num_verts; ++i) {
+		SmoothVert *vert = &mesh->verts[i];
 		MVert *newMV = &new_verts[vert->newIndex];
 
 		DM_copy_vert_data(mesh->dm, result,
 		                  vert->oldIndex, vert->newIndex, 1);
 		mesh->dm->getVert(mesh->dm, vert->oldIndex, newMV);
 	}
-	BLI_ghashIterator_free(i);
 
-	for(i = BLI_ghashIterator_new(mesh->edges); !BLI_ghashIterator_isDone(i);
-	    BLI_ghashIterator_step(i)) {
-		SmoothEdge *edge = BLI_ghashIterator_getValue(i);
+	for(i = 0; i < mesh->num_edges; ++i) {
+		SmoothEdge *edge = &mesh->edges[i];
 		MEdge *newME = &new_edges[edge->newIndex];
 
 		DM_copy_edge_data(mesh->dm, result,
@@ -1715,11 +1782,9 @@ static DerivedMesh *CDDM_from_smoothmesh(SmoothMesh *mesh)
 		newME->v1 = edge->verts[0]->newIndex;
 		newME->v2 = edge->verts[1]->newIndex;
 	}
-	BLI_ghashIterator_free(i);
 
-	for(i = BLI_ghashIterator_new(mesh->faces); !BLI_ghashIterator_isDone(i);
-	    BLI_ghashIterator_step(i)) {
-		SmoothFace *face = BLI_ghashIterator_getValue(i);
+	for(i = 0; i < mesh->num_faces; ++i) {
+		SmoothFace *face = &mesh->faces[i];
 		MFace *newMF = &new_faces[face->newIndex];
 
 		DM_copy_face_data(mesh->dm, result,
@@ -1736,7 +1801,6 @@ static DerivedMesh *CDDM_from_smoothmesh(SmoothMesh *mesh)
 			newMF->v4 = 0;
 		}
 	}
-	BLI_ghashIterator_free(i);
 
 	return result;
 }
@@ -2023,53 +2087,19 @@ static int edge_is_loose(SmoothEdge *edge)
 static int edge_is_sharp(SmoothEdge *edge, int flags,
                          float threshold)
 {
-	/* treat all non-manifold edges as sharp */
-	if(edge->faces && edge->faces->next && edge->faces->next->next) {
-#ifdef EDGESPLIT_DEBUG_1
-		printf("edge %d: non-manifold\n", edge->newIndex);
-#endif
-		return 1;
-	}
 #ifdef EDGESPLIT_DEBUG_1
 	printf("edge %d: ", edge->newIndex);
 #endif
-
-	/* if all flags are disabled, edge cannot be sharp */
-	if(!(flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG))) {
-#ifdef EDGESPLIT_DEBUG_1
-		printf("not sharp\n");
-#endif
-		return 0;
-	}
-
-	/* edge can only be sharp if it has at least 2 faces */
-	if(!edge_is_loose(edge)) {
-		LinkNode *node1;
-		LinkNode *node2;
-
-		if((flags & MOD_EDGESPLIT_FROMFLAG) && (edge->flag & ME_SHARP)) {
+	if(edge->flag & ME_SHARP) {
+		/* edge can only be sharp if it has at least 2 faces */
+		if(!edge_is_loose(edge)) {
 #ifdef EDGESPLIT_DEBUG_1
 			printf("sharp\n");
 #endif
 			return 1;
-		}
-
-		if(flags & MOD_EDGESPLIT_FROMANGLE) {
-			/* check angles between all faces */
-			for(node1 = edge->faces; node1; node1 = node1->next) {
-				SmoothFace *face1 = node1->link;
-				for(node2 = node1->next; node2; node2 = node2->next) {
-					SmoothFace *face2 = node2->link;
-					float edge_angle_cos = MTC_dot3Float(face1->normal,
-					                                     face2->normal);
-					if(edge_angle_cos < threshold) {
-#ifdef EDGESPLIT_DEBUG_1
-						printf("sharp\n");
-#endif
-						return 1;
-					}
-				}
-			}
+		} else {
+			/* edge is loose, so it can't be sharp */
+			edge->flag &= ~ME_SHARP;
 		}
 	}
 
@@ -2317,10 +2347,69 @@ static void split_edge(SmoothEdge *edge, SmoothVert *vert, SmoothMesh *mesh)
 #endif
 }
 
+static void tag_and_count_extra_edges(SmoothMesh *mesh, float split_angle,
+                                      int flags, int *extra_edges)
+{
+	/* if normal1 dot normal2 < threshold, angle is greater, so split */
+	/* FIXME not sure if this always works */
+	/* 0.00001 added for floating-point rounding */
+	float threshold = cos((split_angle + 0.00001) * M_PI / 180.0);
+	int i;
+
+	*extra_edges = 0;
+
+	/* loop through edges, counting potential new ones */
+	for(i = 0; i < mesh->num_edges; i++) {
+		SmoothEdge *edge = &mesh->edges[i];
+		int sharp = 0;
+
+		/* treat all non-manifold edges (3 or more faces) as sharp */
+		if(edge->faces && edge->faces->next && edge->faces->next->next) {
+			LinkNode *node;
+
+			/* this edge is sharp */
+			sharp = 1;
+
+			/* add an extra edge for every face beyond the first */
+			*extra_edges += 2;
+			for(node = edge->faces->next->next->next; node; node = node->next)
+				(*extra_edges)++;
+		} else if((flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG))
+		          && !edge_is_loose(edge)) {
+			/* (the edge can only be sharp if we're checking angle or flag,
+			 * and it has at least 2 faces) */
+
+			/* if we're checking the sharp flag and it's set, good */
+			if((flags & MOD_EDGESPLIT_FROMFLAG) && (edge->flag & ME_SHARP)) {
+				/* this edge is sharp */
+				sharp = 1;
+
+				(*extra_edges)++;
+			} else if(flags & MOD_EDGESPLIT_FROMANGLE) {
+				/* we know the edge has 2 faces, so check the angle */
+				SmoothFace *face1 = edge->faces->link;
+				SmoothFace *face2 = edge->faces->next->link;
+				float edge_angle_cos = MTC_dot3Float(face1->normal,
+				                                     face2->normal);
+
+				if(edge_angle_cos < threshold) {
+					/* this edge is sharp */
+					sharp = 1;
+
+					(*extra_edges)++;
+				}
+			}
+		}
+
+		/* set/clear sharp flag appropriately */
+		if(sharp) edge->flag |= ME_SHARP;
+		else edge->flag &= ~ME_SHARP;
+	}
+}
+
 static void split_sharp_edges(SmoothMesh *mesh, float split_angle, int flags)
 {
 	int i;
-	int num_edges = BLI_ghash_size(mesh->edges);
 	/* if normal1 dot normal2 < threshold, angle is greater, so split */
 	/* FIXME not sure if this always works */
 	/* 0.00001 added for floating-point rounding */
@@ -2329,8 +2418,8 @@ static void split_sharp_edges(SmoothMesh *mesh, float split_angle, int flags)
 
 	/* loop through edges, splitting sharp ones */
 	/* can't use an iterator here, because we'll be adding edges */
-	for(i = 0; i < num_edges; i++) {
-		SmoothEdge *edge = BLI_ghash_lookup(mesh->edges, (void *)i);
+	for(i = 0; i < mesh->num_edges; i++) {
+		SmoothEdge *edge = &mesh->edges[i];
 
 		if(edge_is_sharp(edge, flags, mesh->threshold))
 			split_edge(edge, edge->verts[0], mesh);
@@ -2340,11 +2429,10 @@ static void split_sharp_edges(SmoothMesh *mesh, float split_angle, int flags)
 
 static void split_single_verts(SmoothMesh *mesh)
 {
-	int num_faces = BLI_ghash_size(mesh->faces);
 	int i,j;
 
-	for(i = 0; i < num_faces; i++) {
-		SmoothFace *face = BLI_ghash_lookup(mesh->faces, (void *)i);
+	for(i = 0; i < mesh->num_faces; i++) {
+		SmoothFace *face = &mesh->faces[i];
 
 		for(j = 0; j < SMOOTHFACE_MAX_EDGES && face->edges[j]; j++) {
 			SmoothEdge *edge = face->edges[j];
@@ -2376,11 +2464,23 @@ static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
 {
 	SmoothMesh *mesh;
 	DerivedMesh *result;
+	int max_verts, max_edges;
 
 	if(!(emd->flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG)))
 		return dm;
 
+	/* 1. make smoothmesh with initial number of elements */
 	mesh = smoothmesh_from_derivedmesh(dm);
+
+	/* 2. count max number of elements to add */
+	tag_and_count_extra_edges(mesh, emd->split_angle, emd->flags, &max_edges);
+	max_verts = max_edges * 2 + mesh->max_verts;
+	max_edges += mesh->max_edges;
+
+	/* 3. reallocate smoothmesh arrays & copy elements across */
+	/* 4. remap copied elements' pointers to point into the new arrays */
+	smoothmesh_resize_verts(mesh, max_verts);
+	smoothmesh_resize_edges(mesh, max_edges);
 
 #ifdef EDGESPLIT_DEBUG_1
 	printf("********** Pre-split **********\n");
@@ -2399,6 +2499,12 @@ static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
 #ifdef EDGESPLIT_DEBUG_1
 	printf("********** Post-vert-split **********\n");
 	smoothmesh_print(mesh);
+#endif
+
+#ifdef EDGESPLIT_DEBUG_0
+	printf("Edgesplit: Estimated %d verts & %d edges, "
+	       "found %d verts & %d edges\n", max_verts, max_edges,
+	       mesh->num_verts, mesh->num_edges);
 #endif
 
 	result = CDDM_from_smoothmesh(mesh);
