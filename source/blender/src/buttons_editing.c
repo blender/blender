@@ -1170,7 +1170,44 @@ void autocomplete_image(char *str, void *arg_v)
 				if(truncate[0] == 0)
 					BLI_strncpy(truncate, id->name + 2, 24);
 				else {
-					/* remove from truncate what is not in bone->name */
+					/* remove from truncate what is not in id->name */
+					for(a = 0; a < 23; a++) {
+						if(truncate[a] != id->name[a])
+							truncate[a] = 0;
+					}
+				}
+			}
+		}
+		if(truncate[0])
+			BLI_strncpy(str, truncate, 24);
+	}
+}
+
+/* autocomplete callback for ID buttons */
+void autocomplete_meshob(char *str, void *arg_v)
+{
+	char truncate[40] = {0};
+
+	/* search if str matches the beginning of an ID struct */
+	if(str[0]) {
+		ID *id;
+
+		for(id = G.main->object.first; id; id = id->next) {
+			int a;
+
+			if(((Object *)id)->type != OB_MESH) continue;
+
+			for(a = 0; a < 24 - 2; a++) {
+				if(str[a] == 0 || str[a] != id->name[a + 2])
+					break;
+			}
+			/* found a match */
+			if(str[a] == 0) {
+				/* first match */
+				if(truncate[0] == 0)
+					BLI_strncpy(truncate, id->name + 2, 24);
+				else {
+					/* remove from truncate what is not in id->name */
 					for(a = 0; a < 23; a++) {
 						if(truncate[a] != id->name[a])
 							truncate[a] = 0;
@@ -1575,7 +1612,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Boolean) {
 			height = 48;
 		} else if (md->type==eModifierType_Array) {
-			height = 182;
+			height = 211;
 		} 
 		
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
@@ -1954,6 +1991,20 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			               &amd->offset_ob,
 			               "Object from which to take offset transformation");
 			uiBlockEndAlign(block);
+
+			cy -= 10;
+			but = uiDefIDPoinBut(block, test_meshobpoin_but, ID_OB,
+			                     B_CHANGEDEP, "Start cap: ",
+			                     lx, (cy -= 19), halfwidth, 19,
+			                     &amd->start_cap,
+			                     "Mesh object to use as start cap");
+			uiButSetCompleteFunc(but, autocomplete_meshob, (void *)ob);
+			but = uiDefIDPoinBut(block, test_meshobpoin_but, ID_OB,
+			                     B_CHANGEDEP, "End cap: ",
+			                     halflx, cy, halfwidth, 19,
+			                     &amd->end_cap,
+			                     "Mesh object to use as end cap");
+			uiButSetCompleteFunc(but, autocomplete_meshob, (void *)ob);
 		}
 		uiBlockEndAlign(block);
 

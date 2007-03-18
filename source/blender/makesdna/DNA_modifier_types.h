@@ -96,6 +96,10 @@ typedef struct BuildModifierData {
 typedef struct ArrayModifierData {
 	ModifierData modifier;
 
+	/* the object with which to cap the start of the array  */
+	struct Object *start_cap;
+	/* the object with which to cap the end of the array  */
+	struct Object *end_cap;
 	/* the curve object to use for MOD_ARR_FITCURVE */
 	struct Object *curve_ob;
 	/* the object to use for object offset */

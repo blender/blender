@@ -159,6 +159,25 @@ void test_obpoin_but(char *name, ID **idpp)
 	*idpp= NULL;
 }
 
+/* tests for an object of type OB_MESH */
+void test_meshobpoin_but(char *name, ID **idpp)
+{
+	ID *id;
+
+	id = G.main->object.first;
+	while(id) {
+		Object *ob = (Object *)id;
+		if(ob->type == OB_MESH && strcmp(name, id->name + 2) == 0) {
+			*idpp = id;
+			/* checks lib data, sets correct flag for saving then */
+			id_lib_extern(id);
+			return;
+		}
+		id = id->next;
+	}
+	*idpp = NULL;
+}
+
 void test_meshpoin_but(char *name, ID **idpp)
 {
 	ID *id;

@@ -137,6 +137,7 @@ extern void do_ipobuts(unsigned short event);	// drawipo.c (bad! ton)
 /* butspace.c */
 void test_meshpoin_but(char *name, struct ID **idpp);
 void test_obpoin_but(char *name, struct ID **idpp);
+void test_meshobpoin_but(char *name, struct ID **idpp);
 void test_scenepoin_but(char *name, struct ID **idpp);
 void test_matpoin_but(char *name, struct ID **idpp);
 void test_scriptpoin_but(char *name, struct ID **idpp);
