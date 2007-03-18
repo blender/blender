@@ -106,6 +106,9 @@
 #include "Main.h"
 #include "Scene.h"
 
+
+#include "Config.h" /* config pydata */
+
 /* used only for texts.active */
 #include "BIF_screen.h"
 #include "DNA_space_types.h"
@@ -746,9 +749,12 @@ PyObject *Main_Init( void )
 
 	if( PyType_Ready( &MainSeq_Type ) < 0 )
 		return NULL;
-
+	if( PyType_Ready( &Config_Type ) < 0 ) /* see Config.c */
+		return NULL;	
+	
 	submodule = Py_InitModule3( "Blender.Main", NULL, M_Main_doc );
 	
+	/* Python Data Types */
 	PyModule_AddObject( submodule, "scenes", MainSeq_CreatePyObject(NULL, ID_SCE) );
 	PyModule_AddObject( submodule, "objects", MainSeq_CreatePyObject(NULL, ID_OB) );
 	PyModule_AddObject( submodule, "meshes", MainSeq_CreatePyObject(NULL, ID_ME) );
@@ -768,6 +774,9 @@ PyObject *Main_Init( void )
 	PyModule_AddObject( submodule, "groups", MainSeq_CreatePyObject(NULL, ID_GR) );
 	PyModule_AddObject( submodule, "armatures", MainSeq_CreatePyObject(NULL, ID_AR) );
 	PyModule_AddObject( submodule, "actions", MainSeq_CreatePyObject(NULL, ID_AC) );
+	
+	/* Other Types */
+	PyModule_AddObject( submodule, "config", Config_CreatePyObject() );
 	
 	return submodule;
 }
