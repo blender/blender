@@ -159,7 +159,9 @@ typedef struct MirrorModifierData {
 } MirrorModifierData;
 
 /* MirrorModifierData->flag */
-#define MOD_MIR_CLIPPING	1
+#define MOD_MIR_CLIPPING	1<<0
+#define MOD_MIR_MIRROR_U	1<<1
+#define MOD_MIR_MIRROR_V	1<<2
 
 typedef struct EdgeSplitModifierData {
 	ModifierData modifier;

@@ -1349,6 +1349,20 @@ static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 			mf2->v3 += indexMap[inMF.v3][1];
 			if(inMF.v4) mf2->v4 += indexMap[inMF.v4][1];
 
+			/* mirror UVs if enabled */
+			if(mmd->flag & (MOD_MIR_MIRROR_U | MOD_MIR_MIRROR_V)) {
+				MTFace *tf = result->getFaceData(result, numFaces, CD_MTFACE);
+				if(tf) {
+					int j;
+					for(j = 0; j < 4; ++j) {
+						if(mmd->flag & MOD_MIR_MIRROR_U)
+							tf->uv[j][0] = 1.0f - tf->uv[j][0];
+						if(mmd->flag & MOD_MIR_MIRROR_V)
+							tf->uv[j][1] = 1.0f - tf->uv[j][1];
+					}
+				}
+			}
+
 			/* Flip face normal */
 			SWAP(int, mf2->v1, mf2->v3);
 			DM_swap_face_data(result, numFaces, corner_indices);

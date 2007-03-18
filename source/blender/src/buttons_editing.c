@@ -1581,7 +1581,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Build) {
 			height = 86;
 		} else if (md->type==eModifierType_Mirror) {
-			height = 48;
+			height = 67;
 		} else if (md->type==eModifierType_EdgeSplit) {
 			EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
 			height = 48;
@@ -1680,6 +1680,18 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButS(block, ROW, B_MODIFIER_RECALC, "Y",	lx+20, cy, 20,19, &mmd->axis, 1, 1, 0, 0, "Specify the axis to mirror about");
 			uiDefButS(block, ROW, B_MODIFIER_RECALC, "Z",	lx+40, cy, 20,19, &mmd->axis, 1, 2, 0, 0, "Specify the axis to mirror about");
 			uiDefButBitS(block, TOG, MOD_MIR_CLIPPING, B_MODIFIER_RECALC, "Do Clipping",	lx+60, cy, buttonWidth-60,19, &mmd->flag, 1, 2, 0, 0, "Prevents during Transform vertices to go through Mirror");
+			uiDefButBitS(block, TOG, MOD_MIR_MIRROR_U, B_MODIFIER_RECALC,
+			             "Mirror U",
+			             lx, (cy-=19), buttonWidth/2, 19,
+			             &mmd->flag, 0, 0, 0, 0,
+			             "Mirror the U texture coordinate around "
+			             "the 0.5 point");
+			uiDefButBitS(block, TOG, MOD_MIR_MIRROR_V, B_MODIFIER_RECALC,
+			             "Mirror V",
+			             lx + buttonWidth/2 + 1, cy, buttonWidth/2, 19,
+			             &mmd->flag, 0, 0, 0, 0,
+			             "Mirror the V texture coordinate around "
+			             "the 0.5 point");
 		} else if (md->type==eModifierType_EdgeSplit) {
 			EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
 			uiDefButBitI(block, TOG, MOD_EDGESPLIT_FROMANGLE,
