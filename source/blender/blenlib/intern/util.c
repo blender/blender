@@ -40,6 +40,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -65,6 +66,12 @@
 
 #ifdef WIN32
 #include "BLI_winstuff.h"
+
+/* for duplicate_defgroup */
+#if !(defined vsnprintf)
+#define vsnprintf _vsnprintf
+#endif
+
 #endif
 
 
@@ -638,6 +645,24 @@ char *BLI_strncpy(char *dst, const char *src, int maxncpy) {
 	dst[cpylen]= '\0';
 	
 	return dst;
+}
+
+int BLI_snprintf(char *buffer, size_t count, const char *format, ...)
+{
+	int n;
+	va_list arg;
+
+	va_start(arg, format);
+	n = vsnprintf(buffer, count, format, arg);
+	
+	if (n != -1 && n < count) {
+		buffer[n] = '\0';
+	} else {
+		buffer[count-1] = '\0';
+	}
+	
+	va_end(arg);
+	return n;
 }
 
 int BLI_streq(char *a, char *b) {

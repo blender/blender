@@ -217,14 +217,14 @@ void duplicate_defgroup ( Object *ob )
 	if (!dg)
 		return;
 
-	snprintf (name, 32, "%s_copy", dg->name);
+	BLI_snprintf (name, 32, "%s_copy", dg->name);
 	while (get_named_vertexgroup (ob, name)) {
 		if ((strlen (name) + 6) > 32) {
 			error ("Error: the name for the new group is > 32 characters");
 			return;
 		}
 		strcpy (s, name);
-		snprintf (name, 32, "%s_copy", s);
+		BLI_snprintf (name, 32, "%s_copy", s);
 	}
 
 	cdg = copy_defgroup (dg);

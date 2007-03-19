@@ -69,6 +69,8 @@
 	because fillfacebase and fillvertbase are used outside */
 #include "DNA_listBase.h" 
 
+#include <stdlib.h>
+
 extern ListBase fillfacebase;
 extern ListBase fillvertbase;
 /**
@@ -195,6 +197,11 @@ char* BLI_strdupn(char *str, int len);
 	 * @retval Returns dst
 	 */
 char* BLI_strncpy(char *dst, const char *src, int maxncpy);
+
+	/* 
+	 * Replacement for snprintf
+	 */
+int BLI_snprintf(char *buffer, size_t count, const char *format, ...);
 
 	/**
 	 * Compare two strings
