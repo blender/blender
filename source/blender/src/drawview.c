@@ -3116,9 +3116,9 @@ void inner_play_anim_loop(int init, int mode)
 	tottime -= swaptime;
 	while (update_time()) PIL_sleep_ms(1);
 
-	if(CFRA>=EFRA) {
+	if(CFRA>=PEFRA) {
 		if (tottime > 0.0) tottime = 0.0;
-		CFRA= SFRA;
+		CFRA= PSFRA;
 		audiostream_stop();
 		audiostream_start( CFRA );
 	}
@@ -3144,7 +3144,7 @@ int play_anim(int mode)
 	if(SFRA==0) SFRA= 1;
 	if(EFRA==0) EFRA= 250;
 
-	if(SFRA>EFRA) return 0;
+	if(PSFRA>PEFRA) return 0;
 	
 	update_time();
 
@@ -3196,7 +3196,7 @@ int play_anim(int mode)
 		inner_play_anim_loop(0, 0);
 		screen_swapbuffers();
 				
-		if((mode & 2) && CFRA==EFRA) break; /* no replay */	
+		if((mode & 2) && CFRA==PEFRA) break; /* no replay */	
 	}
 
 	if(event==SPACEKEY);

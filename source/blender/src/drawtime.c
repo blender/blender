@@ -210,22 +210,42 @@ void draw_markers_timespace()
 
 }
 
+void draw_anim_preview_timespace()
+{
+	/* only draw this if preview range is set */
+	if (G.scene->r.psfra) {
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		glEnable(GL_BLEND);
+		glColor4f(0, 0, 0, 0.4);
+	
+		if (PSFRA < PEFRA) {
+			glRectf(G.v2d->cur.xmin, G.v2d->cur.ymin, PSFRA, G.v2d->cur.ymax);
+			glRectf(PEFRA, G.v2d->cur.ymin, G.v2d->cur.xmax, G.v2d->cur.ymax);	
+		} 
+		else {
+			glRectf(G.v2d->cur.xmin, G.v2d->cur.ymin, G.v2d->cur.xmax, G.v2d->cur.ymax);
+		}
+		
+		glDisable(GL_BLEND);
+	}
+}
+
 static void draw_sfra_efra()
 {
 	BIF_ThemeColorShade(TH_BACK, -25);
 	
-	if (G.scene->r.sfra < G.scene->r.efra) {
-		glRectf(G.v2d->cur.xmin, G.v2d->cur.ymin, G.scene->r.sfra, G.v2d->cur.ymax);
-		
-		glRectf(G.scene->r.efra, G.v2d->cur.ymin, G.v2d->cur.xmax, G.v2d->cur.ymax);	
-	} else {
+	if (PSFRA < PEFRA) {
+		glRectf(G.v2d->cur.xmin, G.v2d->cur.ymin, PSFRA, G.v2d->cur.ymax);
+		glRectf(PEFRA, G.v2d->cur.ymin, G.v2d->cur.xmax, G.v2d->cur.ymax);	
+	} 
+	else {
 		glRectf(G.v2d->cur.xmin, G.v2d->cur.ymin, G.v2d->cur.xmax, G.v2d->cur.ymax);
 	}
 	
 	BIF_ThemeColorShade(TH_BACK, -60);
 	/* thin lines where the actual frames are */
-	fdrawline(G.scene->r.sfra, G.v2d->cur.ymin, G.scene->r.sfra, G.v2d->cur.ymax);
-	fdrawline(G.scene->r.efra, G.v2d->cur.ymin, G.scene->r.efra, G.v2d->cur.ymax);
+	fdrawline(PSFRA, G.v2d->cur.ymin, PSFRA, G.v2d->cur.ymax);
+	fdrawline(PEFRA, G.v2d->cur.ymin, PEFRA, G.v2d->cur.ymax);
 	
 	glDisable(GL_BLEND);
 }
@@ -325,7 +345,9 @@ void drawtimespace(ScrArea *sa, void *spacedata)
 	
 	myortho2(stime->v2d.cur.xmin, stime->v2d.cur.xmax, stime->v2d.cur.ymin, stime->v2d.cur.ymax);
 
-	/* draw darkened area outside of active timeline */
+	/* draw darkened area outside of active timeline 
+	 *	frame range used is preview range or scene range
+	 */
 	draw_sfra_efra();
 	
 	/* boundbox_seq(); */

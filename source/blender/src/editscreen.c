@@ -1054,8 +1054,8 @@ int has_screenhandler(bScreen *sc, short eventcode)
 static void animated_screen(bScreen *sc, short val)
 {
 	if (U.mixbufsize && (val & TIME_WITH_SEQ_AUDIO)) {
-		if(CFRA>=EFRA) {
-			CFRA= SFRA;
+		if(CFRA>=PEFRA) {
+			CFRA= PSFRA;
 			audiostream_stop();
 			audiostream_start( CFRA );
 		}
@@ -1067,7 +1067,7 @@ static void animated_screen(bScreen *sc, short val)
 	}
 	else {
 		CFRA++;
-		if(CFRA > EFRA) CFRA= SFRA;
+		if(CFRA > PEFRA) CFRA= PSFRA;
 	}
 	
 	update_for_newframe_nodraw(1);

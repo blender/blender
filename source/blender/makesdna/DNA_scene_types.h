@@ -162,7 +162,8 @@ typedef struct RenderData {
 	struct QuicktimeCodecData *qtcodecdata;
 	struct FFMpegCodecData ffcodecdata;
 
-	int cfra, sfra, efra;	/* fames as in 'images' */
+	int cfra, sfra, efra;	/* frames as in 'images' */
+	int psfra, pefra;		/* start+end frames of preview range */
 
 	int images, framapto;
 	short flag, threads;

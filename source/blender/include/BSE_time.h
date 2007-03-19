@@ -56,6 +56,12 @@ void make_marker_cfra_list(struct ListBase *lb, short only_sel);
 
 void draw_markers_timespace(void);
 
+/* ******** Animation - Preview Range ************* */
+void anim_previewrange_set(void);
+void anim_previewrange_clear(void);
+
+void draw_anim_preview_timespace(void);
+
 /* *********** TimeLine Specific  ***************/
 void timeline_frame_to_center(void);
 void nextprev_timeline_key(short dir);

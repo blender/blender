@@ -76,7 +76,7 @@ void do_time_buttons(ScrArea *sa, unsigned short event)
 	switch(event) {
 
 	case B_TL_REW:
-		CFRA= SFRA;
+		CFRA= PSFRA;
 		update_for_newframe();
 		break;
 	case B_TL_PLAY:
@@ -94,7 +94,7 @@ void do_time_buttons(ScrArea *sa, unsigned short event)
 		break;
 	case B_TL_FF:
 		/* end frame */
-		CFRA= EFRA;
+		CFRA= PEFRA;
 		update_for_newframe();
 		break;
 	case B_TL_PREVKEY:
@@ -104,6 +104,21 @@ void do_time_buttons(ScrArea *sa, unsigned short event)
 	case B_TL_NEXTKEY:
 		/* next keyframe */
 		nextprev_timeline_key(1);
+		break;
+		
+	case B_TL_PREVIEWON:
+		if (G.scene->r.psfra) {
+			/* turn on preview range */
+			G.scene->r.psfra= G.scene->r.sfra;
+			G.scene->r.pefra= G.scene->r.efra;
+		}
+		else {
+			/* turn off preview range */
+			G.scene->r.psfra= 0;
+			G.scene->r.pefra= 0;
+		}
+		BIF_undo_push("Set anim-preview range");
+		allqueue(REDRAWALL, 0);
 		break;
 	}
 }
@@ -286,11 +301,22 @@ static void do_time_framemenu(void *arg, int event)
 {
 	switch(event) {
 		case 1: /*Set as Start */
-			G.scene->r.sfra = CFRA;
+			if (G.scene->r.psfra) {
+				G.scene->r.psfra= CFRA;
+				G.scene->r.pefra= (EFRA > CFRA)? (EFRA):(CFRA);
+			}				
+			else
+				G.scene->r.sfra = CFRA;
 			allqueue(REDRAWALL, 1);
 			break;
 		case 2: /* Set as End */
-			G.scene->r.efra = CFRA;
+			if (G.scene->r.psfra) {
+				if (CFRA > G.scene->r.psfra)
+					G.scene->r.psfra= CFRA;
+				G.scene->r.pefra= CFRA;
+			}				
+			else
+				G.scene->r.efra = CFRA;
 			allqueue(REDRAWALL, 1);
 			break;
 		case 3: /* Add Marker */
@@ -424,17 +450,40 @@ void time_buttons(ScrArea *sa)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	uiBlockBeginAlign(block);
-	uiDefButI(block, NUM, REDRAWALL,"Start:",	
-		xco,0, 4.5*XIC, YIC,
-		&G.scene->r.sfra,MINFRAMEF, MAXFRAMEF, 0, 0,
-		"The start frame of the animation");
+	
+	uiDefButI(block, TOG, B_TL_PREVIEWON,"Preview",	
+		xco,0, XIC, YIC,
+		&G.scene->r.psfra,0, 1, 0, 0,
+		"Show settings for frame range of animation preview");
+		
+	xco += XIC;
+	
+	if (G.scene->r.psfra) {
+		uiDefButI(block, NUM, REDRAWALL,"Start:",	
+			xco,0, 4.5*XIC, YIC,
+			&G.scene->r.psfra,MINFRAMEF, MAXFRAMEF, 0, 0,
+			"The start frame of the animation preview");
 
-	xco += 4.5*XIC;
+		xco += 4.5*XIC;
 
-	uiDefButI(block, NUM, REDRAWALL,"End:",	
-		xco,0,4.5*XIC,YIC,
-		&G.scene->r.efra,SFRA,MAXFRAMEF, 0, 0,
-		"The end  frame of the animation");
+		uiDefButI(block, NUM, REDRAWALL,"End:",	
+			xco,0,4.5*XIC,YIC,
+			&G.scene->r.pefra,PSFRA,MAXFRAMEF, 0, 0,
+			"The end frame of the animation preview");
+	}
+	else {
+		uiDefButI(block, NUM, REDRAWALL,"Start:",	
+ 		xco,0, 4.5*XIC, YIC,
+ 		&G.scene->r.sfra,MINFRAMEF, MAXFRAMEF, 0, 0,
+ 		"The start frame of the animation");
+
+		xco += 4.5*XIC;
+
+		uiDefButI(block, NUM, REDRAWALL,"End:",	
+			xco,0,4.5*XIC,YIC,
+			&G.scene->r.efra,SFRA,MAXFRAMEF, 0, 0,
+			"The end frame of the animation");
+	}
 	uiBlockEndAlign(block);
 
 	xco += 4.5*XIC+16;

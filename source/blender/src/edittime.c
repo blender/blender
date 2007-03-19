@@ -577,6 +577,61 @@ static void select_timeline_marker_frame(int frame, unsigned char shift)
 
 /* *********** end Markers - TimeLine *************** */
 
+/* set the animation preview range of scene */
+void anim_previewrange_set()
+{
+	extern float get_action_frame(Object *ob, float cframe);
+	rcti rect;
+	rctf rectf;
+	short val, mval[2];
+	
+	/* set range by drawing border-select rectangle */
+	if ( (val = get_border(&rect, 5)) ) {	
+		/* get frame numbers */
+		mval[0]= rect.xmin;
+		mval[1]= rect.ymin+2;
+		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
+		mval[0]= rect.xmax;
+		mval[1]= rect.ymax-2;
+		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
+		
+		/* check if this is called from the action editor (with scaling) */
+		if (curarea->spacetype == SPACE_ACTION) {
+			/* if action is mapped in NLA, it returns a correction */
+			if(G.saction->pin==0 && OBACT) {
+				rectf.xmin= get_action_frame(OBACT, rectf.xmin);
+				rectf.xmax= get_action_frame(OBACT, rectf.xmax);
+			}
+		}
+			
+		/* set preview-range */
+		G.scene->r.psfra= rectf.xmin;
+		G.scene->r.pefra= rectf.xmax;
+		
+		BIF_undo_push("Set anim-preview range");
+		allqueue(REDRAWTIME, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWBUTSALL, 0);
+	}
+}
+
+/* clear the animation preview range for scene */
+void anim_previewrange_clear()
+{
+	G.scene->r.psfra = 0;
+	G.scene->r.pefra = 0;
+	
+	BIF_undo_push("Clear anim-preview range");
+	allqueue(REDRAWTIME, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWBUTSALL, 0);
+}
+
+/* ************ end Animation Preview Range ********** */
+
+
 static int float_to_frame(float frame) 
 {
 	int to= (int) floor(0.5 + frame/G.scene->r.framelen );
@@ -875,7 +930,13 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			transform_markers('g', 0);
 			break;
 		case EKEY: /* set end frame */
-			G.scene->r.efra = CFRA;
+			if (G.scene->r.psfra) {
+				if (CFRA > G.scene->r.psfra)
+					G.scene->r.psfra= CFRA;
+				G.scene->r.pefra= CFRA;
+			}				
+			else
+				G.scene->r.efra = CFRA;
 			allqueue(REDRAWBUTSALL, 0);
 			allqueue(REDRAWTIME, 1);
 			break;
@@ -890,8 +951,19 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			allqueue(REDRAWNLA, 0);
 			allqueue(REDRAWSOUND, 0);
 			break;
+		case PKEY:	/* preview-range stuff */
+			if (G.qual & LR_CTRLKEY) /* set preview range */
+				anim_previewrange_set();
+			else if (G.qual & LR_ALTKEY) /* clear preview range */
+				anim_previewrange_clear();
+			break;
 		case SKEY: /* set start frame */
-			G.scene->r.sfra = CFRA;
+			if (G.scene->r.psfra) {
+				G.scene->r.psfra= CFRA;
+				G.scene->r.pefra= (EFRA > CFRA)? (EFRA):(CFRA);
+			}				
+			else
+				G.scene->r.sfra = CFRA;
 			allqueue(REDRAWBUTSALL, 0);
 			allqueue(REDRAWTIME, 1);
 			break;

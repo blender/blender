@@ -603,7 +603,7 @@ int blenderqread(unsigned short event, short val)
 				CFRA--;
 			
 			if(G.qual==LR_SHIFTKEY)
-				CFRA= SFRA;
+				CFRA= PSFRA;
 			if(CFRA<1) CFRA=1;
 	
 			update_for_newframe();
@@ -631,7 +631,7 @@ int blenderqread(unsigned short event, short val)
 				CFRA++;
 
 			if(G.qual==LR_SHIFTKEY)
-				CFRA= EFRA;
+				CFRA= PEFRA;
 			
 			update_for_newframe();
 		}

@@ -109,6 +109,8 @@
 #define	F_CFRA			((float)(G.scene->r.cfra))
 #define	SFRA			(G.scene->r.sfra)
 #define	EFRA			(G.scene->r.efra)
+#define PSFRA			((G.scene->r.psfra != 0)? (G.scene->r.psfra): (G.scene->r.sfra))
+#define PEFRA			((G.scene->r.psfra != 0)? (G.scene->r.pefra): (G.scene->r.efra))
 
 #define ISPOIN(a, b, c)			( (a->b) && (a->c) )
 #define ISPOIN3(a, b, c, d)		( (a->b) && (a->c) && (a->d) )
@@ -392,6 +394,7 @@
 #define B_TL_PREVKEY	754
 #define B_TL_NEXTKEY	755
 #define B_TL_STOP		756
+#define B_TL_PREVIEWON	757
 
 /* NLA: 801-850 */
 #define B_NLAHOME		801

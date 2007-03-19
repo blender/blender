@@ -139,7 +139,9 @@ void circle_selectCB(select_CBfunc func);
 /* local protos ---------------*/
 void snap_curs_to_firstsel(void);
 
-/* flag==2 only border, flag==3 cross+border */
+/* flag==2 only border, flag==3 cross+border
+   flag==5 cross + border + start&end frame
+ */
 int get_border(rcti *rect, short flag)
 {
 	float dvec[4], fac1, fac2;
@@ -294,6 +296,49 @@ int get_border(rcti *rect, short flag)
 					glColor3f(0.9, 0.9, 0.9); 
 					BMF_DrawString(G.fonts, str);
 				}
+				else if ((ELEM3(curarea->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_TIME)) && flag==5) {
+					/* only while setting preview range */
+					View2D *v2d;
+					
+					switch (curarea->spacetype) 
+					{
+						case SPACE_ACTION:
+						{
+							SpaceAction *saaction= curarea->spacedata.first;
+							v2d= &saaction->v2d;
+						}
+							break;
+						case SPACE_NLA:
+						{
+							SpaceNla *snla= curarea->spacedata.first;
+							v2d= &snla->v2d;
+						}
+							break;
+						default:
+							v2d= G.v2d;
+							break;
+					}
+					
+					mvalo[2]= x1;
+					mvalo[3]= y1;
+					areamouseco_to_ipoco(v2d, mval, dvec, dvec+1);
+					areamouseco_to_ipoco(v2d, mvalo+2, dvec+2, dvec+3);
+					
+					if (dvec[0] < dvec[2])
+						sprintf(str, "Preview Range: %d to %d", (int)dvec[0], (int)dvec[2]);
+					else
+						sprintf(str, "Preview Range: %d to %d", (int)dvec[2], (int)dvec[0]);
+					
+					BIF_ThemeColor(TH_BACK);
+					glRecti(14, 24, 165, 38);
+					
+					glColor3f(0.0, 0.0, 0.0); 
+					glRasterPos2i(15,  27);
+					BMF_DrawString(G.fonts, str);
+					glColor3f(0.8, 0.8, 0.8); 
+					glRasterPos2i(16,  28);
+					BMF_DrawString(G.fonts, str);
+				}
 
 				bglFlush();
 
@@ -342,6 +387,9 @@ int get_border(rcti *rect, short flag)
 	if(event!=BKEY) {
 		if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_IPO) {
 			scrarea_queue_winredraw(curarea);
+		}
+		else if ELEM3(curarea->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_TIME) {
+			scrarea_queue_winredraw(curarea); // only really needed for 
 		}
 	}
 	

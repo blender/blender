@@ -692,7 +692,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 		draw_mesh_strips(G.saction, key);
 	}
 	
-	/* Draw current frame */
+	/* reset matrices for stuff to be drawn on top of keys*/
 	glViewport(ofsx+G.v2d->mask.xmin,  
              ofsy+G.v2d->mask.ymin, 
              ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, 
@@ -702,10 +702,15 @@ void drawactionspace(ScrArea *sa, void *spacedata)
             ( ofsx+G.v2d->mask.xmax-1)-(ofsx+G.v2d->mask.xmin)+1, 
             ( ofsy+G.v2d->mask.ymax-1)-( ofsy+G.v2d->mask.ymin)+1);
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax,  G.v2d->cur.ymin, G.v2d->cur.ymax);
+	
+	/* Draw current frame */
 	draw_cfra_action();
 	
 	/* Draw markers */
 	draw_markers_timespace();
+	
+	/* Draw 'curtains' for preview */
+	draw_anim_preview_timespace();
 
 	/* Draw scroll */
 	mywinset(curarea->win);	// reset scissor too

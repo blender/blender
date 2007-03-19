@@ -1914,6 +1914,17 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				relink_active_strip();
 				break;
 				
+			case PKEY:
+				if (G.qual & LR_CTRLKEY) /* set preview range */
+					anim_previewrange_set();
+				else if (G.qual & LR_ALTKEY) /* clear preview range */
+					anim_previewrange_clear();
+				allqueue(REDRAWTIME, 0);
+				allqueue(REDRAWBUTSALL, 0);
+				allqueue(REDRAWACTION, 0);
+				allqueue(REDRAWNLA, 0);
+				break;
+				
 			case SKEY:
 				if(G.qual==LR_ALTKEY) {
 					val= pupmenu("Action Strip Scale%t|Clear Strip Scale%x1|Remap Start/End%x2");
