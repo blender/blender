@@ -99,12 +99,12 @@ typedef struct ThreadSlot {
 	int avail;
 } ThreadSlot;
 
-static void BLI_lock_malloc_thread()
+static void BLI_lock_malloc_thread(void)
 {
 	pthread_mutex_lock(&_malloc_lock);
 }
 
-static void BLI_unlock_malloc_thread()
+static void BLI_unlock_malloc_thread(void)
 {
 	pthread_mutex_unlock(&_malloc_lock);
 }

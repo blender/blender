@@ -65,6 +65,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_image_types.h"
+#include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -1341,6 +1342,24 @@ static void draw_selected_name(Object *ob)
 			sprintf(info, "(%d) %s %s", CFRA, ob->id.name+2, name);
 		else
 			sprintf(info, "(%d) %s", CFRA, ob->id.name+2);
+	}
+	if(ob->type==OB_MESH) {
+		Key *key= NULL;
+		KeyBlock *kb = NULL;
+		char shapes[75];
+		
+		shapes[0] = NULL;
+		key = ob_get_key(ob);
+		if(key){
+			kb = BLI_findlink(&key->block, ob->shapenr-1);
+			if(kb){
+				sprintf(shapes, ": %s ", kb->name);		
+				if(ob->shapeflag == OB_SHAPE_LOCK){
+					sprintf(shapes, "%s (Pinned)",shapes);
+				}
+			}
+		}
+		sprintf(info, "(%d) %s %s", CFRA, ob->id.name+2, shapes);
 	}
 	else sprintf(info, "(%d) %s", CFRA, ob->id.name+2);
 
