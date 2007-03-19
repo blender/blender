@@ -343,7 +343,7 @@ static void renderwin_draw(RenderWin *rw, int just_clear)
 		if(rw->showspare) {
 			rres.rectx= rw->sparex;
 			rres.recty= rw->sparey;
-			rres.rect32= rw->rectspare;
+			rres.rect32= (int *)rw->rectspare;
 			rres.rectf= rw->rectsparef;
 		}
 		else
@@ -823,7 +823,7 @@ static void renderwin_progress(RenderWin *rw, RenderResult *rr, volatile rcti *r
 		rectf= rr->rectf;
 	else {
 		if(rr->rect32)
-			rect32= rr->rect32;
+			rect32= (unsigned int *)rr->rect32;
 		else {
 			if(rr->renlay==NULL || rr->renlay->rectf==NULL) return;
 			rectf= rr->renlay->rectf;
@@ -1294,7 +1294,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 				
 				BKE_makepicstring(name, G.scene->r.pic, G.scene->r.cfra, G.scene->r.imtype);
 
-				ibuf->rect= rr->rect32;    
+				ibuf->rect= (unsigned int *)rr->rect32;    
 				ok= BKE_write_ibuf(ibuf, name, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);
 				
 				if(ok==0) {

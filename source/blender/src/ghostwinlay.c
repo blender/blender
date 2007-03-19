@@ -435,13 +435,13 @@ void window_set_custom_cursor(Window *win, unsigned char mask[16][2],
 void window_set_custom_cursor_ex(Window *win, BCursor *cursor, int useBig) {
 	if (useBig) {
 		GHOST_SetCustomCursorShapeEx(win->ghostwin, 
-			cursor->big_bm, cursor->big_mask, 
+			(GHOST_TUns8 *)cursor->big_bm, (GHOST_TUns8 *)cursor->big_mask, 
 			cursor->big_sizex,cursor->big_sizey,
 			cursor->big_hotx,cursor->big_hoty,
 			cursor->fg_color, cursor->bg_color);
 	} else {
 		GHOST_SetCustomCursorShapeEx(win->ghostwin, 
-			cursor->small_bm, cursor->small_mask, 
+			(GHOST_TUns8 *)cursor->small_bm, (GHOST_TUns8 *)cursor->small_mask, 
 			cursor->small_sizex,cursor->small_sizey,
 			cursor->small_hotx,cursor->small_hoty,
 			cursor->fg_color, cursor->bg_color);
