@@ -141,6 +141,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Camera.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Config.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Constraint.c">
 			</File>
 			<File
@@ -345,6 +348,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Camera.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Config.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Constraint.h">
