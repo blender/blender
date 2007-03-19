@@ -193,6 +193,11 @@ static void do_sound_viewmenu(void *arg, int event)
 		case 6: /* jump to previous marker */
 			nextprev_marker(-1);
 			break;
+		case 7:
+			G.v2d->flag ^= V2D_VIEWLOCK;
+			if(G.v2d->flag & V2D_VIEWLOCK)
+				view2d_do_locks(curarea, 0);
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -221,6 +226,9 @@ static uiBlock *sound_viewmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Lock Time to Other Windows|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 		
 	if (!curarea->full) 
 		uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
