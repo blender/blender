@@ -594,15 +594,6 @@ void anim_previewrange_set()
 		mval[0]= rect.xmax;
 		mval[1]= rect.ymax-2;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
-		
-		/* check if this is called from the action editor (with scaling) */
-		if (curarea->spacetype == SPACE_ACTION) {
-			/* if action is mapped in NLA, it returns a correction */
-			if(G.saction->pin==0 && OBACT) {
-				rectf.xmin= get_action_frame(OBACT, rectf.xmin);
-				rectf.xmax= get_action_frame(OBACT, rectf.xmax);
-			}
-		}
 			
 		/* set preview-range */
 		G.scene->r.psfra= rectf.xmin;
