@@ -5007,12 +5007,13 @@ void selectlinks(int nr)
 	Material *mat = NULL, *mat1;
 	Tex *tex=0;
 	int a, b;
-	
+	short changed = 0;
 	/* events (nr):
 	 * Object Ipo: 1
 	 * ObData: 2
 	 * Current Material: 3
 	 * Current Texture: 4
+	 * DupliGroup: 5
 	 */
 	
 	
@@ -5042,12 +5043,14 @@ void selectlinks(int nr)
 	
 	base= FIRSTBASE;
 	while(base) {
-		if(base->lay & G.vd->lay) {
+		if (BASE_SELECTABLE(base) && !(base->flag & SELECT)) {
 			if(nr==1) {
 				if(base->object->ipo==ipo) base->flag |= SELECT;
+				changed = 1;
 			}
 			else if(nr==2) {
 				if(base->object->data==obdata) base->flag |= SELECT;
+				changed = 1;
 			}
 			else if(nr==3 || nr==4) {
 				ob= base->object;
@@ -5056,28 +5059,37 @@ void selectlinks(int nr)
 					mat1= give_current_material(ob, a);
 					if(nr==3) {
 						if(mat1==mat) base->flag |= SELECT;
+						changed = 1;
 					}
 					else if(mat1 && nr==4) {
 						for(b=0; b<MAX_MTEX; b++) {
 							if(mat1->mtex[b]) {
-								if(tex==mat1->mtex[b]->tex) base->flag |= SELECT;
+								if(tex==mat1->mtex[b]->tex) {
+									base->flag |= SELECT;
+									changed = 1;
+								}
 							}
 						}
 					}
 				}
 			}
 			else if(nr==5) {
-				if(base->object->dup_group==ob->dup_group) base->flag |= SELECT;
+				if(base->object->dup_group==ob->dup_group) {
+					 base->flag |= SELECT;
+					 changed = 1;
+				}
 			}
 			base->object->flag= base->flag;
 		}
 		base= base->next;
 	}
 	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWDATASELECT, 0);
-	allqueue(REDRAWOOPS, 0);
-	BIF_undo_push("Select links");
+	if (changed) {
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWDATASELECT, 0);
+		allqueue(REDRAWOOPS, 0);
+		BIF_undo_push("Select linked");
+	}
 }
 
 void image_aspect(void)

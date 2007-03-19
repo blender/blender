@@ -169,7 +169,7 @@
 
 #include "SYS_System.h" /* for the user def menu ... should move elsewhere. */
 
-
+/* maybe we need this defined somewhere else */
 extern void StartKetsjiShell(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);
 extern void StartKetsjiShellSimulation(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);//rcruiz
 
@@ -652,23 +652,33 @@ static void align_view_to_selected(View3D *v3d)
 	}
 }
 
-static void select_children(Object *ob, int recursive)
-{
-	Base *base;
 
-	for (base= FIRSTBASE; base; base= base->next)
+static short select_children(Object *ob, int recursive)
+{
+	short changed = 0;
+	Base *base;
+	
+	for (base= FIRSTBASE; base; base= base->next) {
 		if (ob == base->object->parent) {
-			base->flag |= SELECT;
-			base->object->flag |= SELECT;
-			if (recursive) select_children(base->object, 1);
+			if (BASE_SELECTABLE(base) && !(base->flag & SELECT)) {
+				base->flag |= SELECT;
+				base->object->flag |= SELECT;
+				changed = 1;
+			}
+			
+			if (recursive)
+				changed |= select_children(base->object, 1);
 		}
+	}
+	return changed;
 }
 
-static void select_parent(void)	/* Makes parent active and de-selected OBACT */
+static short select_parent(void)	/* Makes parent active and de-selected OBACT */
 {
+	short changed = 0;
 	Base *base, *startbase, *basact=NULL, *oldbasact;
 	
-	if (!(OBACT) || !(OBACT->parent)) return;
+	if (!(OBACT) || !(OBACT->parent)) return 0;
 	BASACT->flag &= (~SELECT);
 	BASACT->object->flag &= (~SELECT);
 	startbase=  FIRSTBASE;
@@ -689,13 +699,16 @@ static void select_parent(void)	/* Makes parent active and de-selected OBACT */
 		basact->object->flag= basact->flag;
 		
 		set_active_base(basact);
+		changed = 1;
 	}
+	return changed;
 }
 
 
 #define GROUP_MENU_MAX	24
-static void select_same_group(Object *ob)	/* Select objects in the same group as the active */
+static short select_same_group(Object *ob)	/* Select objects in the same group as the active */
 {
+	short changed = 0;
 	Base *base;
 	Group *group, *ob_groups[GROUP_MENU_MAX];
 	char str[10 + (24*GROUP_MENU_MAX)];
@@ -703,7 +716,7 @@ static void select_same_group(Object *ob)	/* Select objects in the same group as
 	int group_count=0, menu, i;
 
 	if (!ob)
-		return;
+		return 0;
 	
 	for (	group=G.main->group.first;
 			group && group_count < GROUP_MENU_MAX;
@@ -716,17 +729,18 @@ static void select_same_group(Object *ob)	/* Select objects in the same group as
 	}
 	
 	if (!group_count)
-		return;
+		return 0;
 	
 	else if (group_count == 1) {
 		group = ob_groups[0];
 		for (base= FIRSTBASE; base; base= base->next) {
-			if (!(base->flag & SELECT) && object_in_group(base->object, group)) {
+			if (BASE_SELECTABLE(base) && !(base->flag & SELECT) && object_in_group(base->object, group)) {
 				base->flag |= SELECT;
 				base->object->flag |= SELECT;
+				changed = 1;
 			}
 		}
-		return;
+		return changed;
 	}
 	
 	/* build the menu. */
@@ -738,94 +752,120 @@ static void select_same_group(Object *ob)	/* Select objects in the same group as
 	
 	menu = pupmenu (str);
 	if (menu == -1)
-		return;
+		return 0;
 	
 	group = ob_groups[menu];
 	for (base= FIRSTBASE; base; base= base->next) {
 		if (!(base->flag & SELECT) && object_in_group(base->object, group)) {
 			base->flag |= SELECT;
 			base->object->flag |= SELECT;
+			changed = 1;
 		}
 	}
+	return changed;
 }
 
-static void select_object_hooks(Object *ob)	/* Select objects in the same group as the active */
+static short select_object_hooks(Object *ob)
 {
+	short changed = 0;
 	Base *base;
 	ModifierData *md;
 	HookModifierData *hmd;
 	
 	if (!ob)
-		return;
+		return 0;
 	
 	for (md = ob->modifiers.first; md; md=md->next) {
 		if (md->type==eModifierType_Hook) {
 			hmd= (HookModifierData*) md;
 			if (hmd->object && !(hmd->object->flag & SELECT)) {
 				base= object_in_scene(hmd->object, G.scene);
-				base->flag |= SELECT;
-				base->object->flag |= SELECT;
+				if (base && BASE_SELECTABLE(base)) {
+					base->flag |= SELECT;
+					base->object->flag |= SELECT;
+					changed = 1;
+				}
 			}
 		}
 	}
+	return changed;
 }
 
-static void select_same_parent(Object *ob)	/* Select objects woth the same parent as the active (siblings), parent can be NULL also */
+/* Select objects woth the same parent as the active (siblings),
+ * parent can be NULL also */
+static short select_same_parent(Object *ob)	
 {
+	short changed = 0;
 	Base *base;
 	if (!ob)
-		return;
+		return 0;
 	
-	for (base= FIRSTBASE; base; base= base->next)
-		if (base->object->parent==ob->parent) {
+	for (base= FIRSTBASE; base; base= base->next) {
+		if (BASE_SELECTABLE(base) && (base->object->parent==ob->parent)  && !(base->flag & SELECT)) {
 			base->flag |= SELECT;
 			base->object->flag |= SELECT;
+			changed = 1;
 		}
+	}
+	return changed;
 }
 
-static void select_same_type(Object *ob)	/* Select objects woth the same parent as the active (siblings), parent can be NULL also */
+static short select_same_type(Object *ob)
 {
+	short changed = 0;
 	Base *base;
 	if (!ob)
-		return;
+		return 0;
 	
-	for (base= FIRSTBASE; base; base= base->next)
-		if (base->object->type==ob->type) {
+	for (base= FIRSTBASE; base; base= base->next) {
+		if (BASE_SELECTABLE(base) && (base->object->type == ob->type) && !(base->flag & SELECT)) {
 			base->flag |= SELECT;
 			base->object->flag |= SELECT;
+			changed = 1;
 		}
+	}
+	return changed;
+}
+
+static short select_same_layer(Object *ob)
+{
+	char changed = 0;
+	Base *base = FIRSTBASE;
+	
+	if (!ob)
+		return 0;
+	
+	while(base) {
+		if (BASE_SELECTABLE(base) && (base->lay & ob->lay) && !(base->flag & SELECT)) {
+			base->flag |= SELECT;
+			base->object->flag |= SELECT;
+			changed = 1;
+		}
+		base= base->next;
+	}
+	return changed;
 }
 
 void select_object_grouped(short nr)
 {
-	Base *base;
+	short changed = 0;
+	if(nr==1)		changed = select_children(OBACT, 1);
+	else if(nr==2)	changed = select_children(OBACT, 0);
+	else if(nr==3)	changed = select_parent();
+	else if(nr==4)	changed = select_same_parent(OBACT);	
+	else if(nr==5)	changed = select_same_type(OBACT);
+	else if(nr==6)	changed = select_same_layer(OBACT);	
+	else if(nr==7)	changed = select_same_group(OBACT);
+	else if(nr==8)	changed = select_object_hooks(OBACT);
 	
-	if(nr==6) {
-		base= FIRSTBASE;
-		while(base) {
-			if (base->lay & OBACT->lay) {
-				base->flag |= SELECT;
-				base->object->flag |= SELECT;
-			}
-			base= base->next;
-		}
+	if (changed) {
+		countall();
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allspace(REMAKEIPO, 0);
+		allqueue(REDRAWIPO, 0);
+		BIF_undo_push("Select Grouped");
 	}
-	else if(nr==1) select_children(OBACT, 1);
-	else if(nr==2) select_children(OBACT, 0);
-	else if(nr==3) select_parent();
-	else if(nr==4) select_same_parent(OBACT);	
-	else if(nr==5) select_same_type(OBACT);	
-	else if(nr==7) select_same_group(OBACT);
-	else if(nr==8) select_object_hooks(OBACT);
-	
-	
-	
-	
-	countall();
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	allspace(REMAKEIPO, 0);
-	allqueue(REDRAWIPO, 0);
 }
 
 static void select_object_grouped_menu(void)

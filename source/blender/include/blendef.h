@@ -97,6 +97,7 @@
 
 #define TESTBASE(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) )
 #define TESTBASELIB(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))
+#define BASE_SELECTABLE(base)	 ((base->lay & G.vd->lay) && !(base->object->restrictflag & OB_RESTRICT_SELECT) && !(base->object->restrictflag & OB_RESTRICT_VIEW))
 #define FIRSTBASE		G.scene->base.first
 #define LASTBASE		G.scene->base.last
 #define BASACT			(G.scene->basact)
