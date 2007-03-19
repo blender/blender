@@ -1462,7 +1462,7 @@ void draw_colorband_buts_small(uiBlock *block, ColorBand *coba, rctf *butr, int 
 {
 	CBData *cbd;
 	uiBut *bt;
-	float unit= (butr->xmax-butr->xmin)/12.0f;
+	float unit= (butr->xmax-butr->xmin)/14.0f;
 	float xs= butr->xmin;
 	
 	cbd= coba->data + coba->cur;
@@ -1470,12 +1470,14 @@ void draw_colorband_buts_small(uiBlock *block, ColorBand *coba, rctf *butr, int 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, COL, event,		"",			xs,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, B_BANDCOL, "");
 	uiDefButF(block, NUM, event,		"A:",		xs+2.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "");
-	bt= uiDefBut(block, BUT, event,	"Del",		xs+6.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Deletes the active position");
+	bt= uiDefBut(block, BUT, event,	"Add",		xs+6.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Adds a new colour position to the colorband");
+	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
+	bt= uiDefBut(block, BUT, event,	"Del",		xs+8.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Deletes the active position");
 	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
-	uiDefButS(block, ROW, event,		"E",		xs+8.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 1.0, 0, 0, "Sets interpolation type 'Ease' (quadratic) ");
-	uiDefButS(block, ROW, event,		"C",		xs+9.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 3.0, 0, 0, "Sets interpolation type Cardinal");
-	uiDefButS(block, ROW, event,		"L",		xs+10.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 0.0, 0, 0, "Sets interpolation type Linear");
-	uiDefButS(block, ROW, event,		"S",		xs+11.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 2.0, 0, 0, "Sets interpolation type B-Spline");
+	uiDefButS(block, ROW, event,		"E",		xs+10.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 1.0, 0, 0, "Sets interpolation type 'Ease' (quadratic) ");
+	uiDefButS(block, ROW, event,		"C",		xs+11.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 3.0, 0, 0, "Sets interpolation type Cardinal");
+	uiDefButS(block, ROW, event,		"L",		xs+12.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 0.0, 0, 0, "Sets interpolation type Linear");
+	uiDefButS(block, ROW, event,		"S",		xs+13.0f*unit,butr->ymin+20.0f,unit,20,		&coba->ipotype, 5.0, 2.0, 0, 0, "Sets interpolation type B-Spline");
 	
 	uiDefBut(block, BUT_COLORBAND, event, "",		xs,butr->ymin,butr->xmax-butr->xmin,20.0f, coba, 0, 0, 0, 0, "");
 	uiBlockEndAlign(block);
@@ -3898,5 +3900,3 @@ void radio_panels()
 
 	
 }
-
-
