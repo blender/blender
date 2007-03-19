@@ -1,9 +1,9 @@
 #!BPY
 
 """
-Name: 'Bridge Faces/Edge-Loops'
+Name: 'Skin Faces/Edge-Loops'
 Blender: 243
-Group: 'Mesh'
+Group: 'MeshFaceKey'
 Tooltip: 'Select 2 vert loops, then run this script.'
 """
 

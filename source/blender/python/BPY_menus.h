@@ -105,7 +105,7 @@ typedef enum {
 	PYMENU_HELP,/*Main Help menu items - prob best to leave for 'official' ones*/
 	PYMENU_HELPSYSTEM,/* Resources, troubleshooting, system tools */
 	PYMENU_HELPWEBSITES,/* Help -> Websites submenu */
-
+	PYMENU_MESHFACEKEY, /* face key in mesh editmode */
 	PYMENU_TOTAL
 } PYMENUHOOKS;
 

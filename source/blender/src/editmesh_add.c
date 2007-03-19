@@ -91,6 +91,10 @@
 
 #include "editmesh.h"
 
+/* bpymenu */
+#include "BPY_extern.h"
+#include "BPY_menus.h"
+
 static float icovert[12][3] = {
 	{0,0,-200}, 
 	{144.72, -105.144,-89.443},
@@ -680,10 +684,39 @@ void addedgeface_mesh(void)
 		return;
 	}
 	else if(amount > 4) {
-		int ret= pupmenu("Make Faces %t|Auto|Make FGon|Clear FGon");
+		
+		/* Python Menu */
+		BPyMenu *pym;
+		char menu_number[3];
+		int i=0, has_pymenu=0, ret;
+		
+		/* facemenu, will add python items */
+		char facemenu[4096]= "Make Faces%t|Auto%x1|Make FGon%x2|Clear FGon%x3";
+		
+		/* note that we account for the 10 previous entries with i+4: */
+		for (pym = BPyMenuTable[PYMENU_MESHFACEKEY]; pym; pym = pym->next, i++) {
+			
+			if (!has_pymenu) {
+				strcat(facemenu, "|%l");
+				has_pymenu = 1;
+			}
+			
+			strcat(facemenu, "|");
+			strcat(facemenu, pym->name);
+			strcat(facemenu, " %x");
+			sprintf(menu_number, "%d", i+4);
+			strcat(facemenu, menu_number);
+		}
+		
+		ret= pupmenu(facemenu);
+		
 		if(ret==1) addfaces_from_edgenet();
 		else if(ret==2) make_fgon(1);
 		else if(ret==3) make_fgon(0);
+		else if (ret >= 4) {
+			BPY_menu_do_python(PYMENU_MESHFACEKEY, ret - 4);
+			return;
+		}
 		return;
 	}
 	else if(amount<2) {

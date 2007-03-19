@@ -769,6 +769,7 @@ int BPY_menu_do_python( short menutype, int event )
 	case PYMENU_RENDER:
 	case PYMENU_WIZARDS:
 	case PYMENU_SCRIPTTEMPLATE:
+	case PYMENU_MESHFACEKEY:
 		break;
 
 	default:
