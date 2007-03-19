@@ -306,8 +306,12 @@ static PyObject *Blender_Get( PyObject * self, PyObject * args )
 		ret = PyInt_FromLong( G.scene->r.sfra );
 	else if( StringEqual( str, "endframe" ) )
 		ret = PyInt_FromLong( G.scene->r.efra );
-	else if( StringEqual( str, "filename" ) )
-		ret = PyString_FromString( G.sce );
+	else if( StringEqual( str, "filename" ) ) {
+		if ( strstr(G.main->name, ".B.blend") != 0)
+			ret = EXPP_incr_ret( Py_None );
+		else
+			ret = PyString_FromString(G.main->name);
+	}
 	else if( StringEqual( str, "homedir" ) ) {
 		char *hdir = bpy_gethome(0);
 		if( hdir && BLI_exists( hdir ))
