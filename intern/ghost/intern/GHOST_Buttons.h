@@ -50,6 +50,8 @@ struct GHOST_Buttons {
      * Constructor.
      */
     GHOST_Buttons();
+
+	virtual ~GHOST_Buttons();
     
     /**
      * Returns the state of a single button.

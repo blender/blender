@@ -51,6 +51,8 @@ struct GHOST_ModifierKeys
      */
     GHOST_ModifierKeys();
 
+	virtual ~GHOST_ModifierKeys();
+
 	/**
 	 * Returns the modifier key's key code from a modifier key mask.
 	 * @param mask The mask of the modifier key.

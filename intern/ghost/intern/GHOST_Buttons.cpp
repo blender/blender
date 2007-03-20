@@ -77,3 +77,5 @@ void GHOST_Buttons::clear()
     m_ButtonMiddle = false;
     m_ButtonRight = false;
 }
+
+GHOST_Buttons::~GHOST_Buttons() {}

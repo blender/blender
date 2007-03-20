@@ -65,11 +65,11 @@ GHOST_WindowX11(
 	const bool stereoVisual
 ) :
 	GHOST_Window(title,left,top,width,height,state,type,stereoVisual),
-	m_display(display),
-	m_valid_setup (false),
-	m_system (system),
-	m_invalid_window(false),
 	m_context(NULL),
+	m_display(display),
+	m_system (system),
+	m_valid_setup (false),
+	m_invalid_window(false),
 	m_empty_cursor(None),
 	m_custom_cursor(None)
 {
@@ -476,7 +476,7 @@ setState(
 ){
 	//TODO
 
-	if (state == getState()) {
+        if (state == (int)getState()) {
 		return GHOST_kSuccess;
 	} else {
 		return GHOST_kFailure;
