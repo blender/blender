@@ -308,7 +308,7 @@ static PyObject *Blender_Get( PyObject * self, PyObject * args )
 		ret = PyInt_FromLong( G.scene->r.efra );
 	else if( StringEqual( str, "filename" ) ) {
 		if ( strstr(G.main->name, ".B.blend") != 0)
-			ret = EXPP_incr_ret( Py_None );
+			ret = PyString_FromString("");
 		else
 			ret = PyString_FromString(G.main->name);
 	}

@@ -56,7 +56,7 @@ global USER_FILL_HOLES_QUALITY
 USER_FILL_HOLES = None
 USER_FILL_HOLES_QUALITY = None
 
-import boxpack2d
+# import boxpack2d
 # reload(boxpack2d) # for developing.
 
 dict_matrix = {}
@@ -718,7 +718,7 @@ def packIslands(islandList):
 	
 	# Make a synchronised list with the islands
 	# so we can box pak the islands.
-	boxes2Pack = []
+	packBoxes = []
 	
 	# Keep a list of X/Y offset so we can save time by writing the 
 	# uv's and packed data in one pass.
@@ -753,17 +753,18 @@ def packIslands(islandList):
 		islandOffsetList.append((minx, miny))
 		
 		# Add to boxList. use the island idx for the BOX id.
-		boxes2Pack.append([islandIdx, w,h])
+		packBoxes.append([0, 0, w, h])
 		islandIdx+=1
-		
+	
 	# Now we have a list of boxes to pack that syncs
 	# with the islands.
 	
 	#print '\tPacking UV Islands...'
-	Window.DrawProgressBar(0.7, 'Packing %i UV Islands...' % len(boxes2Pack) )
+	Window.DrawProgressBar(0.7, 'Packing %i UV Islands...' % len(packBoxes) )
 	
 	time1 = sys.time()
-	packWidth, packHeight, packedLs = boxpack2d.boxPackIter(boxes2Pack)
+	packWidth, packHeight = Geometry.BoxPack2D(packBoxes)
+	
 	# print 'Box Packing Time:', sys.time() - time1
 	
 	#if len(pa	ckedLs) != len(islandList):
@@ -773,9 +774,6 @@ def packIslands(islandList):
 	Window.DrawProgressBar(0.8, 'Writing Packed Data to faces')
 	
 	# Sort by ID, so there in sync again
-	try:	packedLs.sort(lambda key = A: A[0])				
-	except:	packedLs.sort(lambda A, B: cmp(A[0] , B[0]))	
-	
 	islandIdx = len(islandList)
 	# Having these here avoids devide by 0
 	if islandIdx:
@@ -792,9 +790,8 @@ def packIslands(islandList):
 		islandIdx -=1
 		# Write the packed values to the UV's
 		
-		
-		xoffset = packedLs[islandIdx][1] - islandOffsetList[islandIdx][0]
-		yoffset = packedLs[islandIdx][2] - islandOffsetList[islandIdx][1]
+		xoffset = packBoxes[islandIdx][0] - islandOffsetList[islandIdx][0]
+		yoffset = packBoxes[islandIdx][1] - islandOffsetList[islandIdx][1]
 		
 		for f in islandList[islandIdx]: # Offsetting the UV's so they fit in there packed box
 			for uv in f.uv:

@@ -38,7 +38,7 @@ from Blender import *
 import BPyMesh
 # reload(BPyMesh)
 
-import boxpack2d
+# import boxpack2d
 # reload(boxpack2d) # for developing.
 
 from math import sqrt
@@ -437,8 +437,9 @@ def lightmap_uvpack(me, BOX_DIV = 8, MARGIN_DIV = 512):
 	
 	# boxes2Pack.append([islandIdx, w,h])
 	print 'packing boxes', len(pretty_faces), '...',
-	boxes2Pack = [ [i, pf.width, pf.height] for i, pf in enumerate(pretty_faces)]
-	packWidth, packHeight, packedLs = boxpack2d.boxPackIter(boxes2Pack)
+	boxes2Pack = [ [0.0, 0.0, pf.width, pf.height, i] for i, pf in enumerate(pretty_faces)]
+	packWidth, packHeight = Geometry.BoxPack2D(boxes2Pack)
+	
 	# print packWidth, packHeight
 	
 	packWidth = float(packWidth)
@@ -453,9 +454,9 @@ def lightmap_uvpack(me, BOX_DIV = 8, MARGIN_DIV = 512):
 	
 	# Apply the boxes back to the UV coords.
 	print 'writing back UVs',
-	for box in enumerate(packedLs):
-		pf = pretty_faces[box[1][0]]
-		pf.place(box[1][1], box[1][2], packWidth, packHeight, margin_w, margin_h)
+	for i, box in enumerate(boxes2Pack):
+		pretty_faces[i].place(box[0], box[1], packWidth, packHeight, margin_w, margin_h)
+		# pf.place(box[1][1], box[1][2], packWidth, packHeight, margin_w, margin_h)
 	
 	print 'done'
 	Window.WaitCursor(1)
@@ -475,12 +476,12 @@ def main():
 		return
 	me = ob.getData(mesh=1)
 
-	BOX_DIV = Draw.Create(8)
+	BOX_DIV = Draw.Create(12)
 	MARGIN_DIV = Draw.Create(0.1)
 	
 	
 	if not Draw.PupBlock('Lightmap Pack', [\
-	('Pack Quality: ', BOX_DIV, 1, 32, 'Pre Packing before the complex boxpack'),\
+	('Pack Quality: ', BOX_DIV, 1, 48, 'Pre Packing before the complex boxpack'),\
 	('Margin: ', MARGIN_DIV, 0.001, 1.0, 'Size of the margin as a division of the UV')\
 	]):
 		return

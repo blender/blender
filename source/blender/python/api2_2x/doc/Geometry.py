@@ -47,3 +47,15 @@ def LineIntersect2D(vec1, vec2, vec3, vec4):
 	@rtype: Vector
 	@return: a 2D Vector for the intersection or None where there is no intersection.
 	"""
+
+def BoxPack2D(boxlist):
+	"""
+	Takes a list of 2D boxes and packs them into a square.
+	
+	Each box in boxlist must be a list of at least 4 items - [x,y,w,h], after running this script,
+	the X and Y values in each box will be moved to packed, non overlapping locations.
+	
+	@rtype: tuple
+	@return: a tuple pair - (width, height) of all the packed boxes.
+	"""
+	
