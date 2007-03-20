@@ -29,7 +29,7 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
-//Include this file for access to vector, quat, matrix, euler, etc...
+/*Include this file for access to vector, quat, matrix, euler, etc...*/
 
 #ifndef EXPP_Geometry_H
 #define EXPP_Geometry_H

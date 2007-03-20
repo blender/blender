@@ -56,9 +56,6 @@ global USER_FILL_HOLES_QUALITY
 USER_FILL_HOLES = None
 USER_FILL_HOLES_QUALITY = None
 
-# import boxpack2d
-# reload(boxpack2d) # for developing.
-
 dict_matrix = {}
 
 def pointInTri2D(v, v1, v2, v3):

@@ -44,8 +44,7 @@
 
 /* needed for EXPP_ReturnPyObjError and EXPP_check_sequence_consistency */
 #include "gen_utils.h"
-
-//#include "util.h" /* MIN2 and MAX2 */ 
+ 
 #include "BKE_utildefines.h"
 
 #define SWAP_FLOAT(a,b,tmp) tmp=a; a=b; b=tmp
@@ -305,7 +304,7 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 #define SET_BOXTOP(b, f)	b->v[BL]->y = f - b->h; b->v[TR]->y = f; UPDATE_V34Y(b)
 #define BOXINTERSECT(b1, b2) (!(BOXLEFT(b1)+EUL>=BOXRIGHT(b2) || BOXBOTTOM(b1)+EUL>=BOXTOP(b2) || BOXRIGHT(b1)-EUL<=BOXLEFT(b2) || BOXTOP(b1)-EUL<=BOXBOTTOM(b2) ))
 
-#define BOXDEBUG(b) printf("\tBox Debug i %i, w:%.3f h:%.3f x:%.3f y:%.3f\n", b->index, b->w, b->h, b->x, b->y)
+/* #define BOXDEBUG(b) printf("\tBox Debug i %i, w:%.3f h:%.3f x:%.3f y:%.3f\n", b->index, b->w, b->h, b->x, b->y) */
 
 
 static int box_areasort(const void *p1, const void *p2)
@@ -315,7 +314,6 @@ static int box_areasort(const void *p1, const void *p2)
 
 	a1 = BOXAREA(b1);
 	a2 = BOXAREA(b2);
-	/*printf("a1 a2 %f %f\n", a1, a2);*/
 	
 	/* sort largest to smallest */
 	if		( a1 < a2 ) return  1;
@@ -336,19 +334,14 @@ static int vertex_sort(const void *p1, const void *p2)
 	v1 = vertarray + ((int *) p1)[0];
 	v2 = vertarray + ((int *) p2)[0];
 	
-	// self.verts.sort(key = lambda b: max(b.x+w, b.y+h) ) # Reverse area sort
-	
 	a1 = MAX2(v1->x+box_width, v1->y+box_height);
 	a2 = MAX2(v2->x+box_width, v2->y+box_height);
-	
-	/*printf("a1 a2 %f %f\n", a1, a2);*/
 	
 	/* sort largest to smallest */
 	if		( a1 > a2 ) return  1;
 	else if	( a1 < a2 ) return -1;
 	return 0;
 }
-
 
 static void boxPackAll(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 {
@@ -544,14 +537,12 @@ static void boxPackAll(boxPack *boxarray, int len, float *tot_width, float *tot_
 							box->v[BL]->free &= ~(BRF|BLF);
 							box->v[BR]->free &= ~(BRF|BLF);
 						}
+						
 						/* The following block of code does a logical
 						 * check with 2 adjacent boxes, its possible to
 						 * flag verts on one or both of the boxes 
 						 * as being used by checking the width or
 						 * height of both boxes */
-						
-						
-						
 						if (vert->tlb && vert->trb && (box == vert->tlb || box == vert->trb)) {
 							if (vert->tlb->h > vert->trb->h) {
 								vert->trb->v[TL]->free &= ~(TLF|BLF);

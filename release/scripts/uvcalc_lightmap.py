@@ -38,9 +38,6 @@ from Blender import *
 import BPyMesh
 # reload(BPyMesh)
 
-# import boxpack2d
-# reload(boxpack2d) # for developing.
-
 from math import sqrt
 
 class prettyface(object):
