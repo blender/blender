@@ -3456,8 +3456,9 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 		}
 		
 		// fast blur...
-		IIR_gauss(crad, 2.f*maxfgc);
-		IIR_gauss(wts, 2.f*maxfgc);
+		wt = aperture*128.f;
+		IIR_gauss(crad, wt);
+		IIR_gauss(wts, wt);
 		
 		// find new maximum to scale it back to original
 		// (could skip this, not strictly necessary, in general, difference is quite small, but just in case...)
