@@ -4562,11 +4562,12 @@ void make_local(int mode)
 					}
 					
 					matarar= (Material ***)give_matarar(ob);
-					
-					for(a=0; a<ob->totcol; a++) {
-						ma= (*matarar)[a];
-						if(ma)
-							make_local_makelocalmaterial(ma);
+					if (matarar) {
+						for(a=0; a<ob->totcol; a++) {
+							ma= (*matarar)[a];
+							if(ma)
+								make_local_makelocalmaterial(ma);
+						}
 					}
 				}
 			}
