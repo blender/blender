@@ -126,6 +126,7 @@ typedef struct SpaceAction {
 #define ACHAN_HILIGHTED	0x00000002
 #define ACHAN_HIDDEN	0x00000004
 #define ACHAN_PROTECTED 0x00000008
+#define ACHAN_EXPANDED 	0x00000010
 #define ACHAN_MOVED     0x80000000
 
 /* SpaceAction flag */

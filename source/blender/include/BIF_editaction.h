@@ -58,11 +58,11 @@
 /* Macros for easier/more consistant state testing */
 #define VISIBLE_ACHAN(achan) ((achan->flag & ACHAN_HIDDEN)==0)
 #define EDITABLE_ACHAN(achan) ((VISIBLE_ACHAN(achan)) && ((achan->flag & ACHAN_PROTECTED)==0))
-//#define EXPANDED_ACHAN(achan) ((VISIBLE_ACHAN(achan)) && (achan->flag & ACHAN_EXPANDED))
+#define EXPANDED_ACHAN(achan) ((VISIBLE_ACHAN(achan)) && (achan->flag & ACHAN_EXPANDED))
 #define SEL_ACHAN(achan) ((achan->flag & ACHAN_SELECTED) || (achan->flag & ACHAN_HILIGHTED))
 
 #define EDITABLE_CONCHAN(conchan) ((conchan->flag & CONSTRAINT_CHANNEL_PROTECTED)==0)
-
+#define SEL_CONCHAN(conchan) (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
 
 #define CHANNEL_FILTER_LOC		0x00000001	/* Show location keys */
 #define CHANNEL_FILTER_ROT		0x00000002	/* Show rotation keys */
@@ -96,7 +96,6 @@ void mirror_action_keys(short mirror_mode);
 void clean_shapekeys(struct Key *key);
 void clean_actionchannels(struct bAction *act);
 
-
 /* Marker Operations */
 void column_select_shapekeys(struct Key *key, int mode);
 void column_select_actionkeys(struct bAction *act, int mode);
@@ -122,7 +121,7 @@ void borderselect_action(void);
 void deselect_actionchannel_keys(struct bAction *act, int test, int sel);
 void deselect_actionchannels (struct bAction *act, int test);
 void deselect_meshchannel_keys (struct Key *key, int test, int sel);
-int select_channel(struct bAction *act, struct bActionChannel *chan, int selectmode);
+int select_channel(struct bAction *act, struct bActionChannel *achan, int selectmode);
 void select_actionchannel_by_name (struct bAction *act, char *name, int select);
 
 /* */

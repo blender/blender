@@ -209,15 +209,15 @@ void draw_cfra_action(void)
 /* left hand */
 static void draw_action_channel_names(bAction	*act) 
 {
-    bActionChannel *chan;
+    bActionChannel *achan;
     bConstraintChannel *conchan;
     float	x, y;
 
     x = 0.0;
 	y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
 
-	for (chan=act->chanbase.first; chan; chan=chan->next){
-		if((chan->flag & ACHAN_HIDDEN)==0) {
+	for (achan=act->chanbase.first; achan; achan= achan->next) {
+		if(VISIBLE_ACHAN(achan)) {
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
 			
@@ -225,37 +225,51 @@ static void draw_action_channel_names(bAction	*act)
 			BIF_ThemeColorShade(TH_HEADER, 20);
 			glRectf(x,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
 			
-			/* draw 'lock' indicating whether channel is protected */
-			if (chan->flag & ACHAN_PROTECTED) 
-				BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_LOCKED);
-			else 
-				BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_UNLOCKED);
+			/* draw expand/collapse triangle for action-channel */
+			if (achan->constraintChannels.first) { /* until we get ipo-channels */
+				if (EXPANDED_ACHAN(achan))
+					BIF_icon_draw(x+1, y-CHANNELHEIGHT/2, ICON_TRIA_DOWN);
+				else
+					BIF_icon_draw(x+1, y-CHANNELHEIGHT/2, ICON_TRIA_RIGHT);
+			}
 			
 			/* draw name of action channel */
-			if (chan->flag & ACHAN_SELECTED)
+			if (SEL_ACHAN(achan))
 				BIF_ThemeColor(TH_TEXT_HI);
 			else
 				BIF_ThemeColor(TH_TEXT);
-			glRasterPos2f(x+8,  y-4);
-			BMF_DrawString(G.font, chan->name);
+			glRasterPos2f(x+18,  y-4);
+			BMF_DrawString(G.font, achan->name);
+			
+			/* draw 'lock' indicating whether channel is protected */
+			if (EDITABLE_ACHAN(achan)==0) 
+				BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_LOCKED);
+			else 
+				BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_UNLOCKED);
 			y-=CHANNELHEIGHT+CHANNELSKIP;
-		
-			/* Draw constraint channels */
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
-				/* draw 'lock' to indicate if constraint channel is protected */
-				if (conchan->flag & CONSTRAINT_CHANNEL_PROTECTED) 
-					BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_LOCKED);
-				else 
-					BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_UNLOCKED);	
-				
-				/* draw name of constraint channel */
-				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
-					BIF_ThemeColor(TH_TEXT_HI);
-				else
-					BIF_ThemeColor(TH_TEXT);
-				glRasterPos2f(x+32,  y-4);
-				BMF_DrawString(G.font, conchan->name);
-				y-=CHANNELHEIGHT+CHANNELSKIP;
+			
+			if (EXPANDED_ACHAN(achan)) {
+				/* Draw constraint channels */
+				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+					/* draw backing strip behind constraint channel*/
+					BIF_ThemeColorShade(TH_HEADER, -20);
+					glRectf(x+7,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
+					
+					/* draw name of constraint channel */
+					if (SEL_CONCHAN(conchan))
+						BIF_ThemeColor(TH_TEXT_HI);
+					else
+						BIF_ThemeColor(TH_TEXT);
+					glRasterPos2f(x+18,  y-4);
+					BMF_DrawString(G.font, conchan->name);
+					
+					/* draw 'lock' to indicate if constraint channel is protected */
+					if (EDITABLE_CONCHAN(conchan)==0) 
+						BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_LOCKED);
+					else 
+						BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_UNLOCKED);	
+					y-=CHANNELHEIGHT+CHANNELSKIP;
+				}
 			}
 			
 			glDisable(GL_BLEND);
@@ -354,16 +368,18 @@ static void draw_channel_names(void)
 
 int count_action_levels(bAction *act)
 {
-	int y=0;
 	bActionChannel *achan;
+	int y= 0;
 
 	if (!act)
 		return 0;
 
-	for (achan=act->chanbase.first; achan; achan=achan->next){
-		if((achan->flag & ACHAN_HIDDEN)==0) {
-			y+=1;
-			y+=BLI_countlist(&achan->constraintChannels);
+	for (achan=act->chanbase.first; achan; achan=achan->next) {
+		if(VISIBLE_ACHAN(achan)) {
+			y+= 1;
+			
+			if (EXPANDED_ACHAN(achan))
+				y+= BLI_countlist(&achan->constraintChannels);
 		}
 	}
 
@@ -399,7 +415,7 @@ static void draw_channel_strips(SpaceAction *saction)
 	rcti scr_rct;
 	gla2DDrawInfo *di;
 	bAction	*act;
-	bActionChannel *chan;
+	bActionChannel *achan;
 	bConstraintChannel *conchan;
 	float y, sta, end;
 	int act_start, act_end, dummy;
@@ -433,17 +449,17 @@ static void draw_channel_strips(SpaceAction *saction)
 	/* first backdrop strips */
 	y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
 	glEnable(GL_BLEND);
-	for (chan=act->chanbase.first; chan; chan=chan->next){
-		if((chan->flag & ACHAN_HIDDEN)==0) {
+	for (achan=act->chanbase.first; achan; achan= achan->next) {
+		if(VISIBLE_ACHAN(achan)) {
 			int frame1_x, channel_y;
 			
 			gla2DDrawTranslatePt(di, G.v2d->cur.xmin, y, &frame1_x, &channel_y);
 			
-			if (chan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+			if (SEL_ACHAN(achan)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
 			else glColor4ub(col2[0], col2[1], col2[2], 0x22);
 			glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
 			
-			if (chan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+			if (SEL_ACHAN(achan)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
 			else glColor4ub(col2[0], col2[1], col2[2], 0x22);
 			glRectf(act_start,  channel_y-CHANNELHEIGHT/2,  act_end,  channel_y+CHANNELHEIGHT/2);
 			
@@ -451,18 +467,20 @@ static void draw_channel_strips(SpaceAction *saction)
 			y-=CHANNELHEIGHT+CHANNELSKIP;
 			
 			/* Draw constraint channels */
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
-				gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
-				
-				if (conchan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
-				else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-				glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
-				
-				if (conchan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
-				else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-				glRectf(act_start,  channel_y-CHANNELHEIGHT/2+4,  act_end,  channel_y+CHANNELHEIGHT/2-4);
-				
-				y-=CHANNELHEIGHT+CHANNELSKIP;
+			if (EXPANDED_ACHAN(achan)) {
+				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+					gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
+					
+					if (SEL_CONCHAN(conchan)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+					else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+					glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
+					
+					if (SEL_CONCHAN(conchan)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+					else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+					glRectf(act_start,  channel_y-CHANNELHEIGHT/2+4,  act_end,  channel_y+CHANNELHEIGHT/2-4);
+					
+					y-=CHANNELHEIGHT+CHANNELSKIP;
+				}
 			}
 		}
 	}		
@@ -473,16 +491,18 @@ static void draw_channel_strips(SpaceAction *saction)
 	
 	/* dot thingies */
 	y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
-	for (chan=act->chanbase.first; chan; chan=chan->next){
-		if((chan->flag & ACHAN_HIDDEN)==0) {
+	for (achan= act->chanbase.first; achan; achan= achan->next) {
+		if(VISIBLE_ACHAN(achan)) {
 			
-			draw_ipo_channel(di, chan->ipo, y);
+			draw_ipo_channel(di, achan->ipo, y);
 			y-=CHANNELHEIGHT+CHANNELSKIP;
 
 			/* Draw constraint channels */
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
-				draw_ipo_channel(di, conchan->ipo, y);
-				y-=CHANNELHEIGHT+CHANNELSKIP;
+			if (EXPANDED_ACHAN(achan)) {
+				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+					draw_ipo_channel(di, conchan->ipo, y);
+					y-=CHANNELHEIGHT+CHANNELSKIP;
+				}
 			}
 		}
 	}
