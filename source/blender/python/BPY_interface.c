@@ -1973,8 +1973,8 @@ void init_ourImport( void )
 	d = PyModule_GetDict( m );
 	
 	/* add in "bpy" as a default module */
-	EXPP_dict_set_item_str( d, "bpy", Main_Init() );
-	
+	PyDict_SetItemString(d, "bpy", Main_Init() );
+
 	EXPP_dict_set_item_str( d, "__import__", import );
 }
 
