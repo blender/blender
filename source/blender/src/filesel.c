@@ -976,11 +976,11 @@ static void print_line(SpaceFile *sfile, struct direntry *files, int x, int y)
 
        		 	lme = find_language(U.language);
 
-       		 	if (lme->code == "ja_JP") { /* japanese */
+       		 	if (!strcmp(lme->code, "ja_JP")) { /* japanese */
 				string_to_utf8(files->relname, utf_8, "Shift_JIS");
 				BIF_RasterPos((float)x, (float)y);	/* texture fonts */
 				BIF_DrawString(G.font, utf_8, (U.transopts & USER_TR_MENUS));
-			} else if (lme->code == "zh_CN") { /* chinese */
+			} else if (!strcmp(lme->code, "zh_CN")) { /* chinese */
 				string_to_utf8(files->relname, utf_8, "gb2312");
 				BIF_RasterPos((float)x, (float)y);	/* texture fonts */
 				BIF_DrawString(G.font, utf_8, (U.transopts & USER_TR_MENUS));
