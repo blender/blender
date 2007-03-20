@@ -368,7 +368,7 @@ Material ***give_matarar(Object *ob)
 		mb= ob->data;
 		return &(mb->mat);
 	}
-	return 0;
+	return NULL;
 }
 
 short *give_totcolp(Object *ob)
@@ -389,15 +389,19 @@ short *give_totcolp(Object *ob)
 		mb= ob->data;
 		return &(mb->totcol);
 	}
-	return 0;
+	return NULL;
 }
 
 Material *give_current_material(Object *ob, int act)
 {
 	Material ***matarar, *ma;
+	short *totcolp;
 	
-	if(ob==NULL) return 0;
-	if(ob->totcol==0) return 0;
+	if(ob==NULL) return NULL;
+	
+	/* if object cannot have material, totcolp==NULL */
+	totcolp= give_totcolp(ob);
+	if(totcolp==NULL || ob->totcol==0) return NULL;
 	
 	if(act>ob->totcol) act= ob->totcol;
 	else if(act<=0) act= 1;
@@ -406,7 +410,6 @@ Material *give_current_material(Object *ob, int act)
 		ma= ob->mat[act-1];
 	}
 	else {								/* in data */
-		short *totcolp= give_totcolp(ob);
 
 		/* check for inconsistancy */
 		if(*totcolp < ob->totcol)
