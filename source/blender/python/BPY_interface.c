@@ -159,7 +159,6 @@ void BPY_start_python( int argc, char **argv )
 	static int argc_copy = 0;
 	static char **argv_copy = NULL;
 	int first_time = argc;
-	char *str, version[16];
 
 	/* we keep a copy of the values of argc and argv so that the game engine
 	 * can call BPY_start_python(0, NULL) whenever a game ends, without having
@@ -179,8 +178,8 @@ void BPY_start_python( int argc, char **argv )
 	 * print an error if not found.  See init_syspath() for the
 	 * rest of our init msgs.
 	 */
-
-	printf( "Compiled with Python version %s.\n", PY_VERSION );
+	// Py_GetVersion() returns a ptr to astatic string
+	printf( "Compiled with Python version %.5s.\n", Py_GetVersion() );
 
 	//Initialize the TOP-LEVEL modules
 	PyImport_ExtendInittab(BPy_Inittab_Modules);
