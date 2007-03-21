@@ -94,6 +94,7 @@ void sort_faces(void);
 
 #include "BLI_editVert.h"
 #include "BLI_threads.h"
+#include "BLI_rand.h" /* for randome face sorting */
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -444,41 +445,14 @@ static void permutate(void *list, int num, int size, int *index)
 	MEM_freeN(buf);
 }
 
-static MVert *mvertbase;
-static MFace *mfacebase;
-
-static int verg_mface(const void *v1, const void *v2)
-{
-	MFace *x1, *x2;
-
-	MVert *ve1, *ve2;
-	int i1, i2;
-
-	i1 = ((int *) v1)[0];
-	i2 = ((int *) v2)[0];
-	
-	x1 = mfacebase + i1;
-	x2 = mfacebase + i2;
-
-	ve1= mvertbase+x1->v1;
-	ve2= mvertbase+x2->v1;
-	
-	if( ve1->co[2] > ve2->co[2] ) return 1;
-	else if( ve1->co[2] < ve2->co[2]) return -1;
-	return 0;
-}
-
 /* sort faces on view axis */
 static float *face_sort_floats;
-static int vert_mface_floats(const void *v1, const void *v2)
+static int float_sort(const void *v1, const void *v2)
 {
 	float x1, x2;
-	int i1, i2;
-
-	i1 = ((int *) v1)[0];
-	i2 = ((int *) v2)[0];
-	x1 = face_sort_floats[i1];
-	x2 = face_sort_floats[i2];
+	
+	x1 = face_sort_floats[((int *) v1)[0]];
+	x2 = face_sort_floats[((int *) v2)[0]];
 	
 	if( x1 > x2 ) return 1;
 	else if( x1 < x2 ) return -1;
@@ -497,7 +471,7 @@ void sort_faces(void)
 	if(G.obedit) return;
 	if(ob->type!=OB_MESH) return;
 	
-	event = pupmenu("Sort Faces by%t|View Axis (back to front)%x1|View Axis (front to back)%x2|Cursor Distance (near to far)%x3|Cursor Distance (far to near)%x4|Z Axis%x5");
+	event = pupmenu("Sort Faces by%t|View Axis (back to front)%x1|View Axis (front to back)%x2|Cursor Distance (near to far)%x3|Cursor Distance (far to near)%x4|Randomize%x5");
 	if (event==-1) return;
 	
 	me= ob->data;
@@ -508,13 +482,17 @@ void sort_faces(void)
 	for (i = 0; i < me->totface; i++) {
 		index[i] = i;
 	}
-	mvertbase= me->mvert;
-	mfacebase = me->mface;
-
+	
+	face_sort_floats = (float *) MEM_mallocN(sizeof(float) * me->totface, "sort faces float");
+	
 /* sort index list instead of faces itself 
    and apply this permutation to all face layers */
 	if (event == 5) {
-		qsort(index, me->totface, sizeof(int), verg_mface);
+		/* Random */
+		for(i=0; i<me->totface; i++) {
+			face_sort_floats[i] = BLI_frand();
+		}
+		qsort(index, me->totface, sizeof(int), float_sort);
 	} else { /* event is 1 or 2*/
 		MFace *mf;
 		float vec[3];
@@ -534,8 +512,6 @@ void sort_faces(void)
 			Mat4Invert(mat, OBACT->obmat);
 			Mat4MulVecfl(mat, cur);
 		}
-		
-		face_sort_floats = (float *) MEM_mallocN(sizeof(float) * me->totface, "sort faces float");
 		
 		mf= me->mface;
 		for(i=0; i<me->totface; i++, mf++) {
@@ -563,9 +539,10 @@ void sort_faces(void)
 					face_sort_floats[i] = -VecLenf(cur, vec); /* front to back*/
 			}
 		}
-		qsort(index, me->totface, sizeof(int), vert_mface_floats);
-		MEM_freeN(face_sort_floats);
+		qsort(index, me->totface, sizeof(int), float_sort);
 	}
+	
+	MEM_freeN(face_sort_floats);
 	
 	for(i = 0; i < me->fdata.totlayer; i++) {
 		layer = &me->fdata.layers[i];
