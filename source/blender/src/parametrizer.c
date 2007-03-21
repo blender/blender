@@ -5,6 +5,7 @@
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
 #include "BLI_heap.h"
+#include "BLI_boxpack2d.h"
 
 #include "BKE_utildefines.h"
 
@@ -209,23 +210,6 @@ static float p_face_uv_area_signed(PFace *f)
 
 	return 0.5f*(((v2->uv[0] - v1->uv[0])*(v3->uv[1] - v1->uv[1])) - 
 	            ((v3->uv[0] - v1->uv[0])*(v2->uv[1] - v1->uv[1])));
-}
-
-static float p_face_uv_area(PFace *f)
-{
-	return fabs(p_face_uv_area_signed(f));
-}
-
-static void p_chart_area(PChart *chart, float *uv_area, float *area)
-{
-	PFace *f;
-
-	*uv_area = *area = 0.0f;
-
-	for (f=chart->faces; f; f=f->nextlink) {
-		*uv_area += p_face_uv_area(f);
-		*area += p_face_area(f);
-	}
 }
 
 static float p_edge_length(PEdge *e)
@@ -3104,144 +3088,6 @@ static void p_chart_stretch_minimize(PChart *chart, RNG *rng)
 	}
 }
 
-/* Packing */
-
-static int p_compare_chart_area(const void *a, const void *b)
-{
-	PChart *ca = *((PChart**)a);
-	PChart *cb = *((PChart**)b);
-
-    if (ca->u.pack.area > cb->u.pack.area)
-		return -1;
-	else if (ca->u.pack.area == cb->u.pack.area)
-		return 0;
-	else
-		return 1;
-}
-
-static PBool p_pack_try(PHandle *handle, float side)
-{
-	PChart *chart;
-	float packx, packy, rowh, groupw, w, h;
-	int i;
-
-	packx= packy= 0.0;
-	rowh= 0.0;
-	groupw= 1.0/sqrt(handle->ncharts);
-
-	for (i = 0; i < handle->ncharts; i++) {
-		chart = handle->charts[i];
-
-		if (chart->flag & PCHART_NOPACK)
-			continue;
-
-		w = chart->u.pack.size[0];
-		h = chart->u.pack.size[1];
-
-		if(w <= (side-packx)) {
-			chart->u.pack.trans[0] = packx;
-			chart->u.pack.trans[1] = packy;
-
-			packx += w;
-			rowh= MAX2(rowh, h);
-		}
-		else {
-			packy += rowh;
-			packx = w;
-			rowh = h;
-
-			chart->u.pack.trans[0] = 0.0;
-			chart->u.pack.trans[1] = packy;
-		}
-
-		if (packy+rowh > side)
-			return P_FALSE;
-	}
-
-	return P_TRUE;
-}
-
-#define PACK_SEARCH_DEPTH 15
-
-void p_charts_pack(PHandle *handle)
-{
-	PChart *chart;
-	float uv_area, area, trans[2], minside, maxside, totarea, side;
-	int i;
-
-	/* very simple rectangle packing */
-
-	if (handle->ncharts == 0)
-		return;
-
-	totarea = 0.0f;
-	maxside = 0.0f;
-
-	for (i = 0; i < handle->ncharts; i++) {
-		chart = handle->charts[i];
-
-		if (chart->flag & PCHART_NOPACK) {
-			chart->u.pack.area = 0.0f;
-			continue;
-		}
-
-		p_chart_area(chart, &uv_area, &area);
-		p_chart_uv_bbox(chart, trans, chart->u.pack.size);
-
-		/* translate to origin and make area equal to 3d area */
-		chart->u.pack.rescale = (uv_area > 0.0f)? sqrt(area)/sqrt(uv_area): 0.0f;
-		chart->u.pack.area = area;
-		totarea += area;
-
-		trans[0] = -trans[0];
-		trans[1] = -trans[1];
-		p_chart_uv_translate(chart, trans);
-		p_chart_uv_scale(chart, chart->u.pack.rescale);
-
-		/* compute new dimensions for packing */
-		chart->u.pack.size[0] += trans[0];
-		chart->u.pack.size[1] += trans[1];
-		chart->u.pack.size[0] *= chart->u.pack.rescale;
-		chart->u.pack.size[1] *= chart->u.pack.rescale;
-
-		maxside = MAX3(maxside, chart->u.pack.size[0], chart->u.pack.size[1]);
-	}
-
-	/* sort by chart area, largest first */
-	qsort(handle->charts, handle->ncharts, sizeof(PChart*), p_compare_chart_area);
-
-	/* binary search over pack region size */
-	minside = MAX2(sqrt(totarea), maxside);
-	maxside = (((int)sqrt(handle->ncharts-1))+1)*maxside;
-
-	if (minside < maxside) { /* should always be true */
-
-		for (i = 0; i < PACK_SEARCH_DEPTH; i++) {
-			if (p_pack_try(handle, (minside+maxside)*0.5f + 1e-5))
-				maxside = (minside+maxside)*0.5f;
-			else
-				minside = (minside+maxside)*0.5f;
-		}
-	}
-
-	/* do the actual packing */
-	side = maxside + 1e-5;
-	if (!p_pack_try(handle, side))
-		param_warning("packing failed.\n");
-
-	for (i = 0; i < handle->ncharts; i++) {
-		chart = handle->charts[i];
-
-		if (chart->flag & PCHART_NOPACK)
-			continue;
-
-		p_chart_uv_scale(chart, 1.0f/side);
-		trans[0] = chart->u.pack.trans[0]/side;
-		trans[1] = chart->u.pack.trans[1]/side;
-		p_chart_uv_translate(chart, trans);
-	}
-}
-
 /* Minimum area enclosing rectangle for packing */
 
 static int p_compare_geometric_uv(const void *a, const void *b)
@@ -4242,10 +4088,66 @@ void param_smooth_area(ParamHandle *handle)
 		p_smooth(chart);
 	}
 }
-
+ 
 void param_pack(ParamHandle *handle)
 {
-	p_charts_pack((PHandle*)handle);
+	/* box packing variables */
+	boxPack *boxarray, *box;
+	float tot_width, tot_height, scale;
+	 
+	PChart *chart;
+	int i, unpacked=0;
+	float trans[2];
+	
+	PHandle *phandle = (PHandle*)handle;
+	
+	
+	if (phandle->ncharts == 0)
+		return;
+	
+	/* we may not use all these boxes */
+	boxarray = MEM_mallocN( phandle->ncharts*sizeof(boxPack), "boxPack box");
+	
+	for (i = 0; i < phandle->ncharts; i++) {
+		chart = phandle->charts[i];
+		
+		
+		if (chart->flag & PCHART_NOPACK) {
+			unpacked++;
+			continue;
+		}
+		
+		box = boxarray+(i-unpacked);
+		
+		p_chart_uv_bbox(chart, trans, chart->u.pack.size);
+		
+		trans[0] = -trans[0];
+		trans[1] = -trans[1];
+		
+		p_chart_uv_translate(chart, trans);
+		
+		box->w =  chart->u.pack.size[0] + trans[0];
+		box->h =  chart->u.pack.size[1] + trans[1];
+		box->index = i; /* warning this index skips PCHART_NOPACK boxes */
+	}
+	
+	boxPack2D(boxarray, phandle->ncharts-unpacked, &tot_width, &tot_height);
+	
+	if (tot_height>tot_width)
+		scale = 1.0/tot_height;
+	else
+		scale = 1.0/tot_height;
+	
+	for (i = 0; i < phandle->ncharts-unpacked; i++) {
+		box = boxarray+i;
+		trans[0] = box->x;
+		trans[1] = box->y;
+		
+		chart = phandle->charts[box->index];
+		p_chart_uv_translate(chart, trans);
+		p_chart_uv_scale(chart, scale);
+	}
+	MEM_freeN(boxarray);
 }
 
 void param_flush(ParamHandle *handle)

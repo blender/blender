@@ -1,5 +1,5 @@
-/* 
- * $Id$
+/**
+ * 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -18,25 +18,52 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * This is a new part of Blender.
+ * The Original Code is: all of this file.
  *
- * Contributor(s): Joseph Gilbert
+ * Contributor(s): Campbell Barton
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
-*/
-/*Include this file for access to vector, quat, matrix, euler, etc...*/
+ *
+ * The old math stuff from Ton. These will slowly phase out in favour
+ * of MTC calls. (or even MoTO :) )
+ * */
 
-#ifndef EXPP_Geometry_H
-#define EXPP_Geometry_H
+/* Box Packer */
 
-#include <Python.h>
-#include "vector.h"
+/* verts, internal use only */
+typedef struct boxVert {
+	float x;
+	float y;
+	short free;
+	
+	struct boxPack *trb; /* top right box */
+	struct boxPack *blb; /* bottom left box */
+	struct boxPack *brb; /* bottom right box */
+	struct boxPack *tlb; /* top left box */
+	
+	/* Store last intersecting boxes here
+	 * speedup intersection testing */
+	struct boxPack *isect_cache[4];
+	
+	int index;
+} boxVert;
 
-PyObject *Geometry_Init( void );
+typedef struct boxPack {
+	float x;
+	float y;
+	float w;
+	float h;
+	int index;
+	
+	/* Verts this box uses
+	 * (BL,TR,TL,BR) / 0,1,2,3 */
+	boxVert *v[4];
+} boxPack;
 
-#endif				/* EXPP_Geometry_H */
+void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height); 
+
