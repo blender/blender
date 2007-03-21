@@ -74,6 +74,7 @@ struct ID; /*keep me up here */
 #include "Key.h"
 #include "Lamp.h"
 #include "Lattice.h"
+#include "Library.h"
 #include "Mathutils.h"
 #include "Geometry.h"
 #include "Mesh.h"

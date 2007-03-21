@@ -70,6 +70,8 @@ extern PyTypeObject LibraryData_Type;
 /* Module Blender.Library - public functions	 */
 /*****************************************************************************/
 PyObject *Library_Init( void );
+PyObject *oldLibrary_Init( void );
+
 PyObject *LibraryData_importLibData( BPy_LibraryData *self, char *name,
 		int mode, Scene *scene );
 
