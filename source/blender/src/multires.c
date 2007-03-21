@@ -944,26 +944,28 @@ void multires_add_level(void *ob, void *me_v)
 		multi_apply(lvl->verts[f->mid].co, &data, 3, catmullclark_smooth_face);
 	}
 
-	for(i=0; i<lvl->prev->totedge; ++i) {
-		const MultiresEdge *e= &lvl->prev->edges[i];
-		data.boundary= multires_edge_is_boundary(lvl->prev,i);
-		edge_face_neighbor_midpoints_accum(&data,lvl->prev,lvl->verts,sizeof(MVert),e);
-		data.endpoint1= lvl->prev->verts[e->v[0]].co;
-		data.endpoint2= lvl->prev->verts[e->v[1]].co;
-		multi_apply(lvl->verts[e->mid].co, &data, 3, catmullclark_smooth_edge);
-	}
-	
-	for(i=0; i<lvl->prev->totvert; ++i) {
-		data.boundary= multires_vert_is_boundary(lvl->prev,i);
-		data.original= lvl->verts[i].co;
-		data.edge_count= BLI_countlist(&lvl->prev->vert_edge_map[i]);
-		if(data.boundary)
-			boundary_edges_average(&data,lvl->prev,lvl->prev->verts,sizeof(MVert),i);
-		else {
-			vert_face_neighbor_midpoints_average(&data,lvl->prev,lvl->verts,sizeof(MVert),i);
-			vert_edge_neighbor_midpoints_average(&data,lvl->prev,lvl->prev->verts,sizeof(MVert),i);
+	if(G.scene->toolsettings->multires_subdiv_type == 0) {
+		for(i=0; i<lvl->prev->totedge; ++i) {
+			const MultiresEdge *e= &lvl->prev->edges[i];
+			data.boundary= multires_edge_is_boundary(lvl->prev,i);
+			edge_face_neighbor_midpoints_accum(&data,lvl->prev,lvl->verts,sizeof(MVert),e);
+			data.endpoint1= lvl->prev->verts[e->v[0]].co;
+			data.endpoint2= lvl->prev->verts[e->v[1]].co;
+			multi_apply(lvl->verts[e->mid].co, &data, 3, catmullclark_smooth_edge);
 		}
-		multi_apply(lvl->verts[i].co, &data, 3, catmullclark_smooth_vert);
+		
+		for(i=0; i<lvl->prev->totvert; ++i) {
+			data.boundary= multires_vert_is_boundary(lvl->prev,i);
+			data.original= lvl->verts[i].co;
+			data.edge_count= BLI_countlist(&lvl->prev->vert_edge_map[i]);
+			if(data.boundary)
+				boundary_edges_average(&data,lvl->prev,lvl->prev->verts,sizeof(MVert),i);
+			else {
+				vert_face_neighbor_midpoints_average(&data,lvl->prev,lvl->verts,sizeof(MVert),i);
+				vert_edge_neighbor_midpoints_average(&data,lvl->prev,lvl->prev->verts,sizeof(MVert),i);
+			}
+			multi_apply(lvl->verts[i].co, &data, 3, catmullclark_smooth_vert);
+		}
 	}
 
 	/* Vertex Colors

@@ -5255,30 +5255,33 @@ void editing_panel_mesh_multires()
 	if(uiNewPanel(curarea, block, "Multires", "Editing", 500, 0, 318, 204)==0) return;
 
 	if(!me->mr) {
-		but= uiDefBut(block,BUT,B_NOP,"Add Multires", cx,cy,120,19,0,0,0,0,0,"");
+		but= uiDefBut(block,BUT,B_NOP,"Add Multires", cx,cy,268,19,0,0,0,0,0,"");
 		uiButSetFunc(but,multires_make,ob,me);
 	} else {
-		but= uiDefBut(block,BUT,B_NOP,"Apply Multires", cx,cy,120,19,0,0,0,0,0,"Apply current multires level to mesh and the delete other levels");
+		char subsurfmenu[]= "Subsurf Type%t|Catmull-Clark%x0|Simple Subdiv.%x1";
+
+		but= uiDefBut(block,BUT,B_NOP,"Apply Multires", cx,cy,268,19,0,0,0,0,0,"Apply current multires level to mesh and the delete other levels");
 		uiButSetFunc(but,multires_delete,ob,me);
 		cy-= 24;
 
 		uiBlockBeginAlign(block);
-		but= uiDefBut(block,BUT,B_NOP,"Add Level", cx,cy,200,19,0,0,0,0,0,"Add a new level of subdivision at the end of the chain");
+		but= uiDefBut(block,BUT,B_NOP,"Add Level", cx,cy,134,19,0,0,0,0,0,"Add a new level of subdivision at the end of the chain");
 		uiButSetFunc(but,multires_add_level,ob,me);
+		uiDefButC(block, MENU, B_NOP, subsurfmenu, cx + 134, cy, 134, 19, &G.scene->toolsettings->multires_subdiv_type, 0, 0, 0, 0, "Selects type of subdivision algorithm.");
 		cy-= 20;
 
 		if(me->mr->level_count>1) {
-			but= uiDefBut(block,BUT,B_NOP,"Del Lower", cx,cy,100,19,0,0,0,0,0,"Remove all levels of subdivision below the current one");
+			but= uiDefBut(block,BUT,B_NOP,"Del Lower", cx,cy,134,19,0,0,0,0,0,"Remove all levels of subdivision below the current one");
 			uiButSetFunc(but,multires_del_lower,ob,me);
-			but= uiDefBut(block,BUT,B_NOP,"Del Higher", cx+100,cy,100,19,0,0,0,0,0,"Remove all levels of subdivision above the current one");
+			but= uiDefBut(block,BUT,B_NOP,"Del Higher", cx+134,cy,134,19,0,0,0,0,0,"Remove all levels of subdivision above the current one");
 			uiButSetFunc(but,multires_del_higher,ob,me);
 			cy-= 20;
 		
-			but= uiDefButC(block,NUM,B_NOP,"Level: ",cx,cy,200,19,(char *)&me->mr->newlvl,1.0,me->mr->level_count,0,0,"");
+			but= uiDefButC(block,NUM,B_NOP,"Level: ",cx,cy,268,19,(char *)&me->mr->newlvl,1.0,me->mr->level_count,0,0,"");
 			uiButSetFunc(but,multires_set_level_cb, ob, me);
 			cy-= 20;
 
-			but= uiDefButC(block,NUM,B_NOP,"Edges: ",cx,cy,200,19,(char *)&me->mr->edgelvl,1.0,me->mr->level_count,0,0,"Set level of edges to display");
+			but= uiDefButC(block,NUM,B_NOP,"Edges: ",cx,cy,268,19,(char *)&me->mr->edgelvl,1.0,me->mr->level_count,0,0,"Set level of edges to display");
 			uiButSetFunc(but,multires_edge_level_update,ob,me);
 			cy-= 20;
 			uiBlockEndAlign(block);
@@ -5288,10 +5291,10 @@ void editing_panel_mesh_multires()
 			cy-= 20;
 
 			uiBlockBeginAlign(block);
-			uiDefButC(block,NUM,B_NOP,"Pin: ",cx,cy,200,19,(char *)&me->mr->pinlvl,1.0,me->mr->level_count,0,0,"Set level to apply modifiers to during render");
+			uiDefButC(block,NUM,B_NOP,"Pin: ",cx,cy,268,19,(char *)&me->mr->pinlvl,1.0,me->mr->level_count,0,0,"Set level to apply modifiers to during render");
 			cy-= 20;
 
-			uiDefButC(block,NUM,B_NOP,"Render: ",cx,cy,200,19,(char *)&me->mr->renderlvl,1.0,me->mr->level_count,0,0,"Set level to render");
+			uiDefButC(block,NUM,B_NOP,"Render: ",cx,cy,268,19,(char *)&me->mr->renderlvl,1.0,me->mr->level_count,0,0,"Set level to render");
 			cy-= 20;
 			
 			if(multires_modifier_warning()) {

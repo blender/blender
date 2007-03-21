@@ -348,8 +348,11 @@ typedef struct ToolSettings {
 	char retopo_mode;
 	char retopo_paint_tool;
 	char line_div, ellipse_div, retopo_hotspot;
+
+	/* Multires */
+	char multires_subdiv_type;
 	
-	char  pad4[3];
+	char  pad4[2];
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set
