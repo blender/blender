@@ -174,6 +174,7 @@ void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height)
 	/* This sets all the vertex locations */
 	SET_BOXLEFT(box, 0.0);
 	SET_BOXBOTTOM(box, 0.0);
+	box->x = box->y = 0.0;
 	
 	for (i=0; i<3; i++)
 		vertex_pack_indicies[i] = box->v[i+1]->index; 
