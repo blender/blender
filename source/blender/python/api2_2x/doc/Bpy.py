@@ -130,6 +130,8 @@ Example::
 @type armatures: L{dataIterator}
 @var actions: iterator for L{action<NLA.Action>} data
 @type actions: L{dataIterator}
+@var libraries: L{New library<LibData>} submodule
+@type libraries: L{New library<LibData>}
 
 """
 

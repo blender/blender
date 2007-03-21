@@ -11,7 +11,9 @@ can append from Blender files to the current scene, like the File->Append
 menu entry in Blender does.  It allows programmers to use .blend files as
 data files for their scripts.
 
-@warn: This is a new, still experimental module.
+@warn: This module is being considered for deprecation.  Users should
+consider using the L{new Library<LibData>} module and stay tuned to see
+which module is supported in the end.
 
 Example::
   import Blender

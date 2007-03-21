@@ -788,7 +788,7 @@ static void sort_alpha_id(ListBase *lb, ID *id)
 	
 }
 
-int new_id(ListBase *lb, ID *id, const char *tname)
+int dup_id(ListBase *lb, ID *id, const char *tname)
 /* only for local blocks: external en indirect blocks already have a unique ID */
 /* return 1: created a new name */
 {
@@ -876,10 +876,19 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 		/* this format specifier is from hell... */
 		sprintf(id->name+2, "%s.%.3d", left, nr);
 	}
-	
-	sort_alpha_id(lb, id);	
-
 	return 1;
+}
+
+int new_id(ListBase *lb, ID *id, const char *tname)
+/* only for local blocks: external en indirect blocks already have a unique ID */
+/* return 1: created a new name */
+{
+	int result = dup_id( lb, id, tname );
+
+	if( result )
+		sort_alpha_id(lb, id);	
+
+	return result;
 }
 
 // next to indirect usage in read/writefile also in editobject.c scene.c

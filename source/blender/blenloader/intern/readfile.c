@@ -7282,7 +7282,7 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 
 /* common routine to append/link something from a library */
 
-static void library_append( SpaceFile *sfile, char *dir, int idcode,
+static void library_append( Scene *scene, SpaceFile *sfile, char *dir, int idcode,
 		int totsel, FileData *fd)
 {
 	Main *mainl;
@@ -7299,13 +7299,13 @@ static void library_append( SpaceFile *sfile, char *dir, int idcode,
 	curlib= mainl->curlib;
 	
 	if(totsel==0) {
-		append_named_part(fd, mainl, G.scene, sfile->file, idcode, sfile->flag);
+		append_named_part(fd, mainl, scene, sfile->file, idcode, sfile->flag);
 	}
 	else {
 		int a;
 		for(a=0; a<sfile->totfile; a++) {
 			if(sfile->filelist[a].flags & ACTIVE) {
-				append_named_part(fd, mainl, G.scene, sfile->filelist[a].relname, idcode, sfile->flag);
+				append_named_part(fd, mainl, scene, sfile->filelist[a].relname, idcode, sfile->flag);
 			}
 		}
 	}
@@ -7333,9 +7333,9 @@ static void library_append( SpaceFile *sfile, char *dir, int idcode,
 
 	/* give a base to loose objects. If group append, do it for objects too */
 	if(idcode==ID_GR)
-		give_base_to_objects(G.scene, &(G.main->object), (sfile->flag & FILE_LINK)?NULL:curlib);
+		give_base_to_objects(scene, &(G.main->object), (sfile->flag & FILE_LINK)?NULL:curlib);
 	else
-		give_base_to_objects(G.scene, &(G.main->object), NULL);
+		give_base_to_objects(scene, &(G.main->object), NULL);
 	
 	/* has been removed... erm, why? s..ton) */
 	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */
@@ -7353,7 +7353,8 @@ static void library_append( SpaceFile *sfile, char *dir, int idcode,
 /* append to G.scene */
 /* this should probably be moved into the Python code anyway */
 
-void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcode, short flag)
+void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, 
+		int idcode, short flag, Scene *scene )
 {
 	SpaceFile sfile;
 
@@ -7364,7 +7365,7 @@ void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcod
 
 	/* try to append the requested object */
 
-	library_append( &sfile, dir, idcode, 0, (FileData *)bh );
+	library_append( scene, &sfile, dir, idcode, 0, (FileData *)bh );
 
 	/* do we need to do this? */
 	DAG_scene_sort(G.scene);
@@ -7407,7 +7408,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	
 	if(sfile->flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
 
-	library_append( sfile, dir, idcode, totsel, fd );
+	library_append( G.scene, sfile, dir, idcode, totsel, fd );
 
 	/* when not linking (appending)... */
 	if((sfile->flag & FILE_LINK)==0) {

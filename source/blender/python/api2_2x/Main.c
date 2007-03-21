@@ -105,7 +105,7 @@
 #include "NLA.h"
 #include "Main.h"
 #include "Scene.h"
-
+#include "Library.h"
 
 #include "Config.h" /* config pydata */
 
@@ -746,6 +746,8 @@ static char M_Main_doc[] = "The Blender.Main submodule";
 PyObject *Main_Init( void )
 {
 	PyObject *submodule;
+	PyObject *dict;
+
 
 	if( PyType_Ready( &MainSeq_Type ) < 0 )
 		return NULL;
@@ -753,6 +755,10 @@ PyObject *Main_Init( void )
 		return NULL;	
 	
 	submodule = Py_InitModule3( "Blender.Main", NULL, M_Main_doc );
+	dict = PyModule_GetDict( submodule );
+
+	PyDict_SetItemString( dict, "libraries", Library_Init(  ) );
+
 	
 	/* Python Data Types */
 	PyModule_AddObject( submodule, "scenes", MainSeq_CreatePyObject(NULL, ID_SCE) );

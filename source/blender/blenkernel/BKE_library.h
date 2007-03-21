@@ -47,6 +47,7 @@ void *copy_libblock(void *rt);
 void id_lib_extern(struct ID *id);
 void id_us_plus(struct ID *id);
 
+int dup_id(struct ListBase *lb, struct ID *id, const char *name);
 int new_id(struct ListBase *lb, struct ID *id, const char *name);
 
 struct ListBase *wich_libbase(struct Main *mainlib, short type);

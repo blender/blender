@@ -72,6 +72,7 @@ struct View3D;
 #include "Metaball.h"
 #include "IDProp.h"
 #include "Text3d.h"
+#include "Library.h"
 
 #include "gen_utils.h"
 #include "gen_library.h"
@@ -1419,6 +1420,13 @@ static PyObject *SceneObSeq_link( BPy_SceneObSeq * self, PyObject *pyobj )
 					      "Cannot modify scene objects while iterating" );
 	*/
 	
+	if( PyTuple_Size(pyobj) == 1 ) {
+		BPy_LibraryData *seq = ( BPy_LibraryData * )PyTuple_GET_ITEM( pyobj, 0 );
+		if( BPy_LibraryData_Check( seq ) )
+			return LibraryData_importLibData( seq, seq->name,
+					( seq->kind == OBJECT_IS_LINK ? FILE_LINK : 0 ),
+					self->bpyscene->scene );
+	}
 	return Scene_link(self->bpyscene, pyobj);
 }
 
