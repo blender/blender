@@ -1901,6 +1901,11 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 					}
 				}
 				
+				if (G.qual & LR_SHIFTKEY) {
+					if(tselem->id->lib && tselem->type==0) {
+						notice(tselem->id->lib->name);
+					}
+				}
 				/* always makes active object */
 				tree_element_active_object(soops, te);
 				
