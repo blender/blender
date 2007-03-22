@@ -398,6 +398,27 @@ void minimize_stretch_tface_uv(void)
 	allqueue(REDRAWIMAGE, 0);
 }
 
+void pack_charts_tface_uv(void)
+{
+	Mesh *me;
+	ParamHandle *handle;
+	
+	me = get_mesh(OBACT);
+	if(me==0 || me->mtface==0) return;
+
+	handle = construct_param_handle(me, 1, 0, 1);
+	param_pack(handle);
+	param_flush(handle);
+	param_delete(handle);
+
+	BIF_undo_push("UV pack charts");
+
+	object_uvs_changed(OBACT);
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
+}
+
 /* LSCM live mode */
 
 static ParamHandle *liveHandle = NULL;

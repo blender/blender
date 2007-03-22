@@ -4745,7 +4745,9 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case PKEY:
 				if(G.f & G_FACESELECT) {
-					if(G.qual==LR_SHIFTKEY)
+					if(G.qual==LR_CTRLKEY)
+						pack_charts_tface_uv();
+					else if(G.qual==LR_SHIFTKEY)
 						select_pinned_tface_uv();
 					else if(G.qual==LR_ALTKEY)
 						pin_tface_uv(0);

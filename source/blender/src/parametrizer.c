@@ -4136,7 +4136,7 @@ void param_pack(ParamHandle *handle)
 	if (tot_height>tot_width)
 		scale = 1.0/tot_height;
 	else
-		scale = 1.0/tot_height;
+		scale = 1.0/tot_width;
 	
 	for (i = 0; i < phandle->ncharts-unpacked; i++) {
 		box = boxarray+i;
