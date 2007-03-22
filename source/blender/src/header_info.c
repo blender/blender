@@ -1656,56 +1656,70 @@ static uiBlock *info_render_bakemenu(void *arg_unused)
 
 static void do_info_rendermenu(void *arg, int event)
 {
-
+	ScrArea *sa;
 	extern void playback_anim();
 
-	switch(event) {
-		
-	case 0:
-		BIF_do_render(0);
-		break;
-	case 1:
-		BIF_do_render(1);
-		break;
-
-		/* note: dont use select_area() for setting active areas for opengl render */
-		/* its hackish and instable... code here was removed */
-	
-	case 4:
-		BIF_toggle_render_display();
-		break;
-	case 5:
-		playback_anim();
-		break;
-	case 6:
-		/* dodgy hack turning on SHIFT key to do a proper render border select
-		set_render_border(); only works when 3d window active
-		
-		This code copied from toolbox.c, only works when 3d window is cameraview */
-
-		if(select_area(SPACE_VIEW3D)) {
-			mainqenter(LEFTSHIFTKEY, 1);
-			mainqenter(BKEY, 1);
-			mainqenter(BKEY, 0);
-			mainqenter(EXECUTE, 1);
-			mainqenter(LEFTSHIFTKEY, 0);
+	/* events >=10 are registered bpython scripts */
+	if (event >= 10) {
+		if(curarea->spacetype==SPACE_INFO) {
+			sa= find_biggest_area_of_type(SPACE_SCRIPT);
+			if (!sa) sa= closest_bigger_area();
+			areawinset(sa->win);
 		}
 
-		break;
+		BPY_menu_do_python(PYMENU_RENDER, event - 10);
+		BIF_undo_push("Rendering Script");
+	}
+	else {
+	switch(event) {
+			
+		case 0:
+			BIF_do_render(0);
+			break;
+		case 1:
+			BIF_do_render(1);
+			break;
 
-	case 7:
-		extern_set_butspace(F10KEY, 0);
-		break;
+			/* note: dont use select_area() for setting active areas for opengl render */
+			/* its hackish and instable... code here was removed */
+		
+		case 4:
+			BIF_toggle_render_display();
+			break;
+		case 5:
+			playback_anim();
+			break;
+		case 6:
+			/* dodgy hack turning on SHIFT key to do a proper render border select
+			set_render_border(); only works when 3d window active
+			
+			This code copied from toolbox.c, only works when 3d window is cameraview */
+
+			if(select_area(SPACE_VIEW3D)) {
+				mainqenter(LEFTSHIFTKEY, 1);
+				mainqenter(BKEY, 1);
+				mainqenter(BKEY, 0);
+				mainqenter(EXECUTE, 1);
+				mainqenter(LEFTSHIFTKEY, 0);
+			}
+
+			break;
+
+		case 7:
+			extern_set_butspace(F10KEY, 0);
+			break;
+		}
 	}
 	allqueue(REDRAWINFO, 0);
 }
 
 static uiBlock *info_rendermenu(void *arg_unused)
 {
-/*		static short tog=0; */
 	uiBlock *block;
+	BPyMenu *pym;
 	short yco= 0;
 	short menuwidth=120;
+	int i=0;
 	
 	block= uiNewBlock(&curarea->uiblocks, "rendermenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_info_rendermenu, NULL);
@@ -1729,6 +1743,12 @@ static uiBlock *info_rendermenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Render Settings|F10",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	for (pym = BPyMenuTable[PYMENU_RENDER]; pym; pym = pym->next, i++) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, i+10, pym->tooltip?pym->tooltip:pym->filename);
+	}
 
 	uiBlockSetDirection(block, UI_DOWN);
 	uiTextBoundsBlock(block, 80);
