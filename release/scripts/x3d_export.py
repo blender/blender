@@ -66,7 +66,7 @@ import math
 # Global Variables
 ####################################
 
-scene = Blender.Scene.getCurrent()
+scene = Blender.Scene.GetCurrent()
 world = Blender.World.GetCurrent() 
 worldmat = Blender.Texture.Get()
 filename = Blender.Get('filename')
