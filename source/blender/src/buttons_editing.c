@@ -2969,10 +2969,40 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 
 /* *************************** CAMERA ******************************** */
 
+/* callback to handle angle to lens conversion */
+static void do_angletolensconversion_cb(void *lens1, void *angle1) 
+{
+	float *lens= (float *)lens1;
+	float *angle= (float *)angle1;
+	float anglevalue= *angle;
+	
+	if(lens) {
+		*lens= 16.0f / tan(M_PI*anglevalue/360.0f);
+	} 
+
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+/* callback to handle lens to angle conversion */
+static void do_lenstoangleconversion_cb(void *lens1, void *angle1) 
+{
+	float *lens= (float *)lens1;
+	float *angle= (float *)angle1;
+	float lensvalue= *lens;
+	
+	if(lens) {
+		*angle= 360.0f * atan(16.0f/lensvalue) / M_PI;
+		printf("cam angle %f lens %f\n", *angle, *lens);
+
+	} 
+
+	allqueue(REDRAWVIEW3D, 0);
+}
 
 static void editing_panel_camera_type(Object *ob, Camera *cam)
 {
 	uiBlock *block;
+	uiBut *but;
 	float grid=0.0;
 
 	if(G.vd) grid= G.vd->grid;
@@ -2987,8 +3017,19 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 		uiDefButF(block, NUM,REDRAWVIEW3D, "Scale:",
 				  10, 160, 150, 20, &cam->ortho_scale, 0.01, 1000.0, 50, 0, "Specify the ortho scaling of the used camera");
 	} else {
-		uiDefButF(block, NUM,REDRAWVIEW3D, "Lens:",
-				  10, 160, 150, 20, &cam->lens, 1.0, 250.0, 100, 0, "Specify the lens of the camera");
+		if(cam->flag & CAM_ANGLETOGGLE) {
+			but= uiDefButF(block, NUM,REDRAWVIEW3D, "Lens:",
+					  10, 160, 130, 20, &cam->angle, 1.0, 250.0, 100, 0, "Specify the lens of the camera in degrees");		
+			uiButSetFunc(but,do_angletolensconversion_cb, &cam->lens, &cam->angle);
+		}
+		else {
+			but= uiDefButF(block, NUM,REDRAWVIEW3D, "Lens:",
+					  10, 160, 130, 20, &cam->lens, 1.0, 250.0, 100, 0, "Specify the lens of the camera");
+			uiButSetFunc(but,do_lenstoangleconversion_cb, &cam->lens, &cam->angle);
+		}
+		
+		uiDefButS(block, TOG|BIT|5, B_REDR, "D",
+			140, 160, 20, 20, &cam->flag, 0, 0, 0, 0, "Use degree as the unit of the camera lens");
 	}
 
 /* qdn: focal dist. param. from yafray now enabled for Blender as well, to use with defocus composit node */

@@ -6368,6 +6368,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	if(main->versionfile <= 243) {
+		Camera *cam = main->camera.first;
+		
+		for(; cam; cam= cam->id.next) {
+			cam->angle= 360.0f * atan(16.0f/cam->lens) / M_PI;
+			printf("cam angle %f lens %f\n", cam->angle, cam->lens);
+		}
+	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

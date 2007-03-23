@@ -496,6 +496,7 @@ void *add_camera(char *name)
 	cam=  alloc_libblock(&G.main->camera, ID_CA, name);
 
 	cam->lens= 35.0f;
+	cam->angle= 49.14f;
 	cam->clipsta= 0.1f;
 	cam->clipend= 100.0f;
 	cam->drawsize= 0.5f;
@@ -2059,5 +2060,3 @@ void object_handle_update(Object *ob)
 		// printf("set proxy pointer for later group stuff %s\n", ob->id.name);
 	}
 }
-
-

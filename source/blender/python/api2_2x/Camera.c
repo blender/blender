@@ -925,7 +925,11 @@ static PyGetSetDef BPy_Camera_getseters[] = {
 	 (getter)getFlagAttr, (setter)setFlagAttr,
 	 "toggle the passPartOut display flag",
 	 (void *)CAM_SHOWPASSEPARTOUT},
-	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+	{"angleToggle",
+	 (getter)getFlagAttr, (setter)setFlagAttr,
+	 "toggle the camera input unit flag",
+	 (void *)CAM_ANGLETOGGLE},
+	{NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
 

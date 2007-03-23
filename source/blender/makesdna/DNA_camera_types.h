@@ -47,7 +47,7 @@ typedef struct Camera {
 	ID id;
 	
 	short type, flag;
-	float passepartalpha, pad1;
+	float passepartalpha, angle;
 	float clipsta, clipend;
 	float lens, ortho_scale, drawsize;
 	float shiftx, shifty;
@@ -76,6 +76,7 @@ typedef struct Camera {
 #define CAM_SHOWPASSEPARTOUT	4
 #define CAM_SHOWTITLESAFE	8
 #define CAM_SHOWNAME		16
+#define CAM_ANGLETOGGLE		32
 
 /* yafray: dof sampling switch */
 #define CAM_YF_NO_QMC	512
@@ -86,4 +87,3 @@ typedef struct Camera {
 #endif
 
 #endif
-
