@@ -37,6 +37,9 @@
 
 #include "SCA_IActuator.h"
 #include "SCA_IObject.h"
+#include "MT_Matrix3x3.h"
+#include "KX_GameObject.h"
+
 
 class KX_TrackToActuator : public SCA_IActuator
 {
@@ -50,7 +53,11 @@ class KX_TrackToActuator : public SCA_IActuator
 	int	m_trackTime;
 	int	m_trackflag;
 	int m_upflag;
- public:
+	
+	MT_Matrix3x3 m_parentlocalmat;
+	KX_GameObject* m_parentobj;
+
+  public:
 	KX_TrackToActuator(SCA_IObject* gameobj, SCA_IObject *ob, int time,
 				       bool threedee,int trackflag,int upflag, PyTypeObject* T=&Type);
 	virtual ~KX_TrackToActuator();

@@ -70,6 +70,17 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
     m_object = ob;
 	m_trackflag = trackflag;
 	m_upflag = upflag;
+	m_parentobj = 0;
+	
+	if (m_object){
+		KX_GameObject* curobj = (KX_GameObject*) GetParent();
+
+		m_parentobj = curobj->GetParent(); // check if the object is parented 
+		if (m_parentobj) {  // if so, store the initial local rotation
+			m_parentlocalmat = m_parentobj->GetSGNode()->GetLocalOrientation();
+		}
+	}
+
 } /* End of constructor */
 
 
@@ -325,8 +336,29 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 		/* erwin should rewrite this! */
 		mat= matrix3x3_interpol(oldmat, mat, m_time);
 		
-		curobj->NodeSetLocalOrientation(mat);
-		
+
+		if(m_parentobj){ // check if the model is parented and calculate the child transform
+				
+			MT_Point3 localpos;
+			localpos = curobj->GetSGNode()->GetLocalPosition();
+			// Get the inverse of the parent matrix
+			MT_Matrix3x3 parentmatinv;
+			parentmatinv = m_parentobj->NodeGetWorldOrientation ().inverse ();				
+			// transform the local coordinate system into the parents system
+			mat = parentmatinv * mat;
+			// append the initial parent local rotation matrix
+			mat = m_parentlocalmat * mat;
+
+			// set the models tranformation properties
+			curobj->NodeSetLocalOrientation(mat);
+			curobj->NodeSetLocalPosition(localpos);
+			curobj->UpdateTransform();
+		}
+		else
+		{
+			curobj->NodeSetLocalOrientation(mat);
+		}
+
 		result = true;
 	}
 
