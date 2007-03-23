@@ -101,6 +101,8 @@
 
 #include "BPY_extern.h" /* for BPY_button_eval */
 
+#include "GHOST_Types.h" /* for tablet data */
+
 #include "mydevice.h"
 #include "interface.h"
 #include "blendef.h"
@@ -2096,6 +2098,8 @@ static int ui_act_as_text_but(uiBut *but)
 
 static int ui_do_but_NUM(uiBut *but)
 {
+	const GHOST_TabletData *td;
+	float pressure;
 	double value;
 	float deler, fstart, f, tempf;
 	int lvalue, temp, orig_x; /*  , firsttime=1; */
@@ -2131,19 +2135,25 @@ static int ui_do_but_NUM(uiBut *but)
 		sx = mval[0]; /* ignore mouse movement within drag-lock */
 
 		while (get_mbut() & L_MOUSE) {
+			td= get_tablet_data();
+			pressure= (td)? td->Pressure: 1.0f;
+
 			qual= get_qual();
 			
 			uiGetMouse(mywinget(), mval);
 			
 			deler= 500;
 			if( but->pointype!=FLO ) {
-	
+
 				if( (but->max-but->min)<100 ) deler= 200.0;
 				if( (but->max-but->min)<25 ) deler= 50.0;
 			}
 			
 			if(qual & LR_SHIFTKEY) deler*= 10.0;
 			if(qual & LR_ALTKEY) deler*= 20.0;
+
+			/* de-sensitise based on tablet pressure */
+			if (G.rt == 0) deler /= pressure;
 			
 			if(mval[0] != sx) {
 				if( but->pointype==FLO && but->max-but->min > 11) {
