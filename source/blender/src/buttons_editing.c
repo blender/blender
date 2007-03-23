@@ -3871,7 +3871,7 @@ static void copy_linked_vgroup_channels(Object *ob)
 	
 	for(base=FIRSTBASE; base; base= base->next) {
 		if(base->object->type==ob->type) {
-			if(base->object!=ob) {
+			if(base->object!=ob && base->object->data==ob->data) {
 				BLI_freelistN(&base->object->defbase);
 				duplicatelist(&base->object->defbase, &ob->defbase);
 				base->object->actdef= ob->actdef;
