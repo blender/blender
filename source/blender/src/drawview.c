@@ -1348,7 +1348,7 @@ static void draw_selected_name(Object *ob)
 		KeyBlock *kb = NULL;
 		char shapes[75];
 		
-		shapes[0] = NULL;
+		shapes[0] = 0;
 		key = ob_get_key(ob);
 		if(key){
 			kb = BLI_findlink(&key->block, ob->shapenr-1);
