@@ -167,3 +167,4 @@ BF_INSTALLDIR='../install/linux2'
 
 #Link against pthread
 PLATFORM_LINKFLAGS = ['-pthread']
+
