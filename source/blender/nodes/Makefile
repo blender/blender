@@ -29,25 +29,9 @@
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 #
-#
+# Bounces make to subdirectories.
 
-include nan_definitions.mk
-
-DIRS = blenloader readblenfile
-DIRS += avi imbuf render radiosity blenlib blenkernel blenpluginapi
-DIRS += makesdna src yafray
-DIRS += python nodes
-
-ifeq ($(INTERNATIONAL), true)
-	DIRS += ftfont
-endif
-
-ifeq ($(WITH_QUICKTIME), true)
-	DIRS += quicktime
-endif
-
-DIR = $(OCGDIR)/blender
-SOURCEDIR = source/blender
-TESTDIRS = deflate streamglue
+SOURCEDIR = source/blender/nodes
+DIRS = intern 
 
 include nan_subdirs.mk
