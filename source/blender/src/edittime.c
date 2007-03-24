@@ -107,15 +107,18 @@ void add_marker(int frame)
 void remove_marker(void)
 {
 	TimeMarker *marker, *nmarker;
+	short changed= 0;
 		
 	for(marker= G.scene->markers.first; marker; marker= nmarker) {
 		nmarker= marker->next;
-		if(marker->flag & SELECT){
+		if(marker->flag & SELECT) {
 			BLI_freelinkN(&(G.scene->markers), marker);
+			changed= 1;
 		}
 	}
 	
-	BIF_undo_push("Remove Marker");
+	if (changed)
+		BIF_undo_push("Remove Marker");
 }
 
 /* rename first selected TimeMarker */
