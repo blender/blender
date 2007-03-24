@@ -928,9 +928,10 @@ bActionChannel *get_hilighted_action_channel(bAction *action)
 		return NULL;
 
 	for (achan= action->chanbase.first; achan; achan= achan->next) {
-		if(VISIBLE_ACHAN(achan))
+		if(VISIBLE_ACHAN(achan)) {
 			if (SEL_ACHAN(achan) && achan->flag & ACHAN_HILIGHTED)
 				return achan;
+		}
 	}
 
 	return NULL;
@@ -1562,20 +1563,22 @@ void deselect_actionchannels (bAction *act, int test)
 
 	/* See if we should be selecting or deselecting */
 	if (test) {
-		for (achan=act->chanbase.first; achan; achan= achan->next){
+		for (achan=act->chanbase.first; achan; achan= achan->next) {
 			if (VISIBLE_ACHAN(achan)) {
 				if (!sel)
 					break;
 				
-				if (SEL_ACHAN(achan)) {
+				if (achan->flag & ACHAN_SELECTED) {
 					sel= 0;
 					break;
 				}
-				if (sel && EXPANDED_ACHAN(achan)) {
-					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next){
-						if (SEL_CONCHAN(conchan)) {
-							sel= 0;
-							break;
+				if (sel) {
+					if (EXPANDED_ACHAN(achan)) {
+						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+							if (SEL_CONCHAN(conchan)) {
+								sel= 0;
+								break;
+							}
 						}
 					}
 				}
@@ -1584,7 +1587,7 @@ void deselect_actionchannels (bAction *act, int test)
 	}
 	else
 		sel= 0;
-
+	
 	/* Now set the flags */
 	for (achan=act->chanbase.first; achan; achan= achan->next) {
 		if (VISIBLE_ACHAN(achan)) {
