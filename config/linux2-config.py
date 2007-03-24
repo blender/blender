@@ -5,13 +5,13 @@ WITH_BF_VERSE = 'false'
 BF_VERSE_INCLUDE = "#extern/verse/dist"
 
 BF_PYTHON = '/usr'
-BF_PYTHON_VERSION = '2.4'
+BF_PYTHON_VERSION = '2.5'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
 BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}' #BF_PYTHON+'/lib/python'+BF_PYTHON_VERSION+'/config/libpython'+BF_PYTHON_VERSION+'.a'
 BF_PYTHON_LINKFLAGS = ['-Xlinker', '-export-dynamic']
 
-WITH_BF_OPENAL = 'false'
+WITH_BF_OPENAL = 'true'
 BF_OPENAL = '/usr'
 BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'openal'
@@ -128,8 +128,8 @@ BF_OPENGL_LIBPATH = '/usr/X11R6/lib'
 BF_OPENGL_LIB_STATIC = '${BF_OPENGL}/libGL.a ${BF_OPENGL}/libGLU.a ${BF_OPENGL}/libXxf86vm.a ${BF_OPENGL}/libX11.a ${BF_OPENGL}/libXi.a ${BF_OPENGL}/libXext.a ${BF_OPENGL}/libXxf86vm.a'
 
 ##
-CC = 'gcc -march=athlon -m3dnow -mmmx -msse -msse2'
-CXX = 'g++ -march=athlon -m3dnow -mmmx -msse -msse2'
+CC = 'gcc'
+CXX = 'g++'
 ##ifeq ($CPU),alpha)
 ##   CFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing -mieee
 
