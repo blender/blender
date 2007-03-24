@@ -1343,7 +1343,7 @@ static void draw_selected_name(Object *ob)
 		else
 			sprintf(info, "(%d) %s", CFRA, ob->id.name+2);
 	}
-	if(ob->type==OB_MESH) {
+	else if(ob->type==OB_MESH) {
 		Key *key= NULL;
 		KeyBlock *kb = NULL;
 		char shapes[75];
