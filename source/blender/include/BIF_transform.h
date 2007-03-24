@@ -67,8 +67,11 @@ void initTransform(int mode, int context);
 void Transform(void);
 void Mirror(short mode);
 
-/* Standalone call to get the transformation center corresponding to the current situation */
-void calculateTransformCenter(int centerMode, float *vec);
+/* Standalone call to get the transformation center corresponding to the current situation
+ * returns 1 if successful, 0 otherwise (usually means there's no selection)
+ * (if 0 is returns, *vec is unmodified) 
+ * */
+int calculateTransformCenter(int centerMode, float *vec);
 
 struct TransInfo;
 struct ScrArea;

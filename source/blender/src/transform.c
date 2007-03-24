@@ -756,8 +756,9 @@ static void transformEvent(unsigned short event, short val) {
 	}
 }
 
-void calculateTransformCenter(int centerMode, float *vec)
+int calculateTransformCenter(int centerMode, float *vec)
 {
+	int success = 1;
 	checkFirstTime();
 
 	Trans.state = TRANS_RUNNING;
@@ -772,15 +773,24 @@ void calculateTransformCenter(int centerMode, float *vec)
 
 	Trans.around = centerMode; 			// override userdefined mode
 
-	calculateCenter(&Trans);
-
-	// Copy center from constraint center. Transform center can be local	
-	VECCOPY(vec, Trans.con.center);
+	if (Trans.total == 0) {
+		success = 0;
+	}
+	else {
+		success = 1;
+		
+		calculateCenter(&Trans);
 	
+		// Copy center from constraint center. Transform center can be local	
+		VECCOPY(vec, Trans.con.center);
+	}
+
 	postTrans(&Trans);
 
 	/* aftertrans does insert ipos and action channels, and clears base flags, doesnt read transdata */
 	special_aftertrans_update(&Trans);
+	
+	return success;
 }
 
 void initTransform(int mode, int context) {

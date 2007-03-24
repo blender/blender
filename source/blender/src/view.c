@@ -578,6 +578,7 @@ void viewmove(int mode)
 		
 		VECCOPY(ofs, G.vd->ofs);
 		
+		/* If there's no selection, obofs is unmodified, so <0,0,0> */
 		calculateTransformCenter(V3D_CENTROID, obofs);
 		VecMulf(obofs, -1.0f);
 	}
