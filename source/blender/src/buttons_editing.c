@@ -2992,8 +2992,7 @@ static void do_lenstoangleconversion_cb(void *lens1, void *angle1)
 	
 	if(lens) {
 		*angle= 360.0f * atan(16.0f/lensvalue) / M_PI;
-		printf("cam angle %f lens %f\n", *angle, *lens);
-
+		//printf("cam angle %f lens %f\n", *angle, *lens);
 	} 
 
 	allqueue(REDRAWVIEW3D, 0);
