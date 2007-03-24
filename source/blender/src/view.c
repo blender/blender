@@ -534,7 +534,7 @@ void viewmove(int mode)
 	Object *ob = OBACT;
 	float firstvec[3], newvec[3], dvec[3];
 	float reverse, oldquat[4], q1[4], si, phi, dist0;
-	float ofs[3], obofs[3];
+	float ofs[3], obofs[3]= {0.0f, 0.0f, 0.0f};
 	int firsttime=1;
 	short mvalball[2], mval[2], mvalo[2];
 	short use_sel = 0;

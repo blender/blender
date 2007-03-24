@@ -3261,7 +3261,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButBitI(block, TOG, USER_ORBIT_SELECTION, B_DRAWINFO, "Around Selection",
 			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y2,(mpref/2),buth,
 			&(U.uiflag), 0, 0, 0, 0,
-			"Keep the center of selection in place when orbiting the views");
+			"Use selection as the orbiting center");
 		uiBlockEndAlign(block);
 		
 

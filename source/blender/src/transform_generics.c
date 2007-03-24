@@ -482,6 +482,10 @@ void initTrans (TransInfo *t)
 		t->vec[1]		=
 		t->vec[2]		= 0.0f;
 	
+	t->center[0]		=
+		t->center[1]	=
+		t->center[2]	= 0.0f;
+	
 	Mat3One(t->mat);
 	
 	t->spacetype = curarea->spacetype;
@@ -678,6 +682,7 @@ void calculateCenterMedian(TransInfo *t)
 {
 	float partial[3] = {0.0f, 0.0f, 0.0f};
 	int i;
+	
 	for(i = 0; i < t->total; i++) {
 		if (t->data[i].flag & TD_SELECTED) {
 			VecAddf(partial, partial, t->data[i].center);
@@ -690,7 +695,8 @@ void calculateCenterMedian(TransInfo *t)
 			break;
 		}
 	}
-	VecMulf(partial, 1.0f / i);
+	if(i)
+		VecMulf(partial, 1.0f / i);
 	VECCOPY(t->center, partial);
 
 	calculateCenter2D(t);
