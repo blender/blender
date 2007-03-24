@@ -40,6 +40,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_meshdata_types.h" // Temporary, for snapping to other unselected meshes
 #include "DNA_space_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
@@ -58,8 +59,12 @@
 
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
+#include "BKE_DerivedMesh.h"
+#include "BKE_object.h"
 
 #include "BSE_view.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "transform.h"
 #include "mydevice.h"		/* for KEY defines	*/
@@ -481,7 +486,7 @@ int findNearestVertFromObjects(int *dist, float *loc) {
 	short mval[2];
 	
 	getmouseco_areawin(mval);
-
+	
 	base= FIRSTBASE;
 	for ( base = FIRSTBASE; base != NULL; base = base->next ) {
 		if ( TESTBASE(base) && base != BASACT ) {
@@ -489,27 +494,85 @@ int findNearestVertFromObjects(int *dist, float *loc) {
 			
 			if (ob->type == OB_MESH) {
 				Mesh *me = ob->data;
-				int i;
 				
-				for( i = 0; i < me->totvert; i++) {
-					MVert vert = me->mvert[i];
-					float gloc[3];
-					int sloc[2];
-					int curdist;
+				if (me->totvert > 0) {
+					int test = 1;
+					int i;
 					
-					VECCOPY(gloc, vert.co);
-					Mat4MulVecfl(ob->obmat, gloc);
-					project_int(gloc, sloc);
+					/* If number of vert is more than an arbitrary limit,
+					 * test against boundbox first
+					 * */
+					if (me->totvert > 16) {
+						struct BoundBox *bb = object_get_boundbox(ob);
+						
+						int minx = 0, miny = 0, maxx = 0, maxy = 0;
+						int i;
+						
+						for (i = 0; i < 8; i++) {
+							float gloc[3];
+							int sloc[2];
+							
+							VECCOPY(gloc, bb->vec[i]);
+							Mat4MulVecfl(ob->obmat, gloc);
+							project_int(gloc, sloc);
+							
+							if (i == 0) {
+								minx = maxx = sloc[0];
+								miny = maxy = sloc[1];
+							}
+							else {
+								if (minx > sloc[0]) minx = sloc[0];
+								else if (maxx < sloc[0]) maxx = sloc[0];
+								
+								if (miny > sloc[1]) miny = sloc[1];
+								else if (maxy < sloc[1]) maxy = sloc[1];
+							}
+						}
+						
+						/* Pad with distance */
+	
+						minx -= *dist;
+						miny -= *dist;
+						maxx += *dist;
+						maxy += *dist;
+						
+						if (mval[0] > maxx || mval[0] < minx ||
+							mval[1] > maxy || mval[1] < miny) {
+							
+							test = 0;
+						}
+					}
 					
-					sloc[0] -= mval[0];
-					sloc[1] -= mval[1];
-					
-					curdist = abs(sloc[0]) + abs(sloc[1]);
-					
-					if (curdist < *dist) {
-						*dist = curdist;
-						retval = 1;
-						VECCOPY(loc, gloc);
+					if (test == 1) {
+						float *verts = mesh_get_mapped_verts_nors(ob);
+						
+						if (verts != NULL) {
+							float *fp;
+							
+							fp = verts;
+							for( i = 0; i < me->totvert; i++, fp += 6) {
+								float gloc[3];
+								int sloc[2];
+								int curdist;
+								
+								VECCOPY(gloc, fp);
+								Mat4MulVecfl(ob->obmat, gloc);
+								project_int(gloc, sloc);
+								
+								sloc[0] -= mval[0];
+								sloc[1] -= mval[1];
+								
+								curdist = abs(sloc[0]) + abs(sloc[1]);
+								
+								if (curdist < *dist) {
+									*dist = curdist;
+									retval = 1;
+									VECCOPY(loc, gloc);
+								}
+							}
+						}
+
+						MEM_freeN(verts);
 					}
 				}
 			}
