@@ -1614,12 +1614,31 @@ static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
 			if(data->tar && data->subtarget[0]) {
 				bPoseChannel *pchant= get_pose_channel(data->tar->pose, data->subtarget);
 				if(pchant) {
+					float loc[3];
+					
+					/* copy location of tip of bone? */
+					if (data->flag & LOCLIKE_TIP) {
+						float mat[4][4], tmat[4][4];
+						
+						Mat4One(tmat);
+						VECCOPY(tmat[3], pchant->pose_tail);
+						
+						armature_mat_pose_to_delta(mat, tmat, pchant->bone->arm_mat);
+						VECCOPY(loc, mat[3]);
+					}
+					else
+						VECCOPY(loc, pchant->loc);
+					
+					/* do offsets? */
+					if (data->flag & LOCLIKE_OFFSET)
+						VecAddf(loc, loc, pchan->loc);
+					
 					if (data->flag & LOCLIKE_X)
-						pchan->loc[0]= FloatLerpf(pchant->loc[0], pchan->loc[0], fac);
+						pchan->loc[0]= FloatLerpf(loc[0], pchan->loc[0], fac);
 					if (data->flag & LOCLIKE_Y)
-						pchan->loc[1]= FloatLerpf(pchant->loc[1], pchan->loc[1], fac);
+						pchan->loc[1]= FloatLerpf(loc[1], pchan->loc[1], fac);
 					if (data->flag & LOCLIKE_Z)
-						pchan->loc[2]= FloatLerpf(pchant->loc[2], pchan->loc[2], fac);
+						pchan->loc[2]= FloatLerpf(loc[2], pchan->loc[2], fac);
 					if (data->flag & LOCLIKE_X_INVERT)
 						pchan->loc[0]= FloatLerpf(pchant->loc[0], pchan->loc[0], -fac);
 					if (data->flag & LOCLIKE_Y_INVERT)
@@ -1637,17 +1656,20 @@ static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
 				bPoseChannel *pchant= get_pose_channel(data->tar->pose, data->subtarget);
 				if(pchant) {
 					if(data->flag != (ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z)) {
-						float eul[3], eult[3], euln[3], fac= con->enforce;
+						float eul[3], eult[3], euln[3];
+						float fac= con->enforce;
 						
 						QuatToEul(pchan->quat, eul);
 						QuatToEul(pchant->quat, eult);
 						VECCOPY(euln, eul);
+						
 						if(data->flag & ROTLIKE_X) euln[0]= FloatLerpf(eult[0], eul[0], fac); 
 						if(data->flag & ROTLIKE_Y) euln[1]= FloatLerpf(eult[1], eul[1], fac);
 						if(data->flag & ROTLIKE_Z) euln[2]= FloatLerpf(eult[2], eul[2], fac);
 						if(data->flag & ROTLIKE_X_INVERT) euln[0]= FloatLerpf(eult[0], eul[0], -fac); 
 						if(data->flag & ROTLIKE_Y_INVERT) euln[1]= FloatLerpf(eult[1], eul[1], -fac);
 						if(data->flag & ROTLIKE_Z_INVERT) euln[2]= FloatLerpf(eult[2], eul[2], -fac);
+						
 						compatible_eul(eul, euln);
 						EulToQuat(euln, pchan->quat);
 					}
@@ -1800,7 +1822,9 @@ static void do_strip_modifiers(Object *armob, Bone *bone, bPoseChannel *pchan)
 				continue;
 			
 			for(amod= strip->modifiers.first; amod; amod= amod->next) {
-				if(amod->type==ACTSTRIP_MOD_DEFORM) {
+				switch (amod->type) {
+				case ACTSTRIP_MOD_DEFORM:
+				{
 					/* validate first */
 					if(amod->ob && amod->ob->type==OB_CURVE && amod->channel[0]) {
 						
@@ -1813,6 +1837,13 @@ static void do_strip_modifiers(Object *armob, Bone *bone, bPoseChannel *pchan)
 							
 						}
 					}
+				}
+					break;
+				case ACTSTRIP_MOD_NOISE:	
+				{
+					
+				}
+					break;
 				}
 			}
 		}

@@ -1063,9 +1063,32 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 	case CONSTRAINT_TYPE_LOCLIKE:
 		{
 			bLocateLikeConstraint *data = (bLocateLikeConstraint*)con->data;
-
-			if (data->tar){
-				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
+			Object *ob= data->tar;
+			
+			if (data->tar) {
+				if (strlen(data->subtarget)) {
+					bPoseChannel *pchan;
+					float tmat[4][4];
+					float bsize[3]={1, 1, 1};
+					
+					pchan = get_pose_channel(ob->pose, data->subtarget);
+					if (pchan) {
+						Mat4CpyMat4(tmat, pchan->pose_mat);
+						
+						if (data->flag & LOCLIKE_TIP) 
+							VECCOPY(tmat[3], pchan->pose_tail);
+							
+						Mat4MulMat4 (mat, tmat, ob->obmat);
+					}
+					else 
+						Mat4CpyMat4 (mat, ob->obmat);
+					
+					VECCOPY(size, bsize); // what's this hack for? 
+				}
+				else {
+					Mat4CpyMat4 (mat, ob->obmat);
+					VECCOPY(size, data->tar->size); // what's this hack for? 
+				}
 				valid=1;
 			}
 			else
@@ -1273,23 +1296,32 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 	case CONSTRAINT_TYPE_LOCLIKE:
 		{
 			bLocateLikeConstraint *data;
+			float offset[3] = {0.0f, 0.0f, 0.0f};
 
 			data = constraint->data;
+			
+			if (data->flag & LOCLIKE_OFFSET) {
+				// for now...
+				VECCOPY(offset, ob->obmat[3]);
+			}
 			
 			if (data->flag & LOCLIKE_X) {
 				ob->obmat[3][0] = targetmat[3][0];
 				
-				if(data->flag & LOCLIKE_X_INVERT) ob->obmat[3][0] *= -1;	
+				if(data->flag & LOCLIKE_X_INVERT) ob->obmat[3][0] *= -1;
+				ob->obmat[3][0] += offset[0];
 			}
 			if (data->flag & LOCLIKE_Y) {
 				ob->obmat[3][1] = targetmat[3][1];
 				
 				if(data->flag & LOCLIKE_Y_INVERT) ob->obmat[3][1] *= -1;
+				ob->obmat[3][1] += offset[1];
 			}
 			if (data->flag & LOCLIKE_Z) {
 				ob->obmat[3][2] = targetmat[3][2];
 				
 				if(data->flag & LOCLIKE_Z_INVERT) ob->obmat[3][2] *= -1;
+				ob->obmat[3][2] += offset[2];
 			}
 		}
 		break;
@@ -1307,7 +1339,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			
 			Mat4ToEul(targetmat, eul);
 			Mat4ToEul(ob->obmat, obeul);
-			
+				
 			if(data->flag != (ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z)) {
 				if(!(data->flag & ROTLIKE_X)) {
 					eul[0]= obeul[0];
@@ -1320,14 +1352,14 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 				}
 				compatible_eul(eul, obeul);
 			}
-						
+			
 			if((data->flag & ROTLIKE_X) && (data->flag & ROTLIKE_X_INVERT))
 				eul[0]*=-1;
 			if((data->flag & ROTLIKE_Y) && (data->flag & ROTLIKE_Y_INVERT))
 				eul[1]*=-1;
 			if((data->flag & ROTLIKE_Z) && (data->flag & ROTLIKE_Z_INVERT))
 				eul[2]*=-1;
-							
+			
 			LocEulSizeToMat4(ob->obmat, loc, eul, size);
 		}
 		break;

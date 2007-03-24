@@ -253,27 +253,29 @@ typedef struct bRigidBodyJointConstraint{
 #define CONSTRAINT_CHANNEL_PROTECTED 	0x02
 
 /* bRotateLikeConstraint.flag */
-#define ROTLIKE_X			0x01
-#define ROTLIKE_Y			0x02
-#define ROTLIKE_Z			0x04
+#define ROTLIKE_X		0x01
+#define ROTLIKE_Y		0x02
+#define ROTLIKE_Z		0x04
 #define ROTLIKE_X_INVERT	0x08
 #define ROTLIKE_Y_INVERT	0x10
 #define ROTLIKE_Z_INVERT	0x20
+#define ROTLIKE_OFFSET	0x40
 
 /* bLocateLikeConstraint.flag */
 #define LOCLIKE_X			0x01
 #define LOCLIKE_Y			0x02
 #define LOCLIKE_Z			0x04
-#define LOCSPACE			0x08
+#define LOCLIKE_TIP			0x08
 #define LOCLIKE_X_INVERT	0x10
 #define LOCLIKE_Y_INVERT	0x20
 #define LOCLIKE_Z_INVERT	0x40
+#define LOCLIKE_OFFSET		0x80
  
 /* bSizeLikeConstraint.flag */
 #define SIZELIKE_X		0x01
 #define SIZELIKE_Y		0x02
 #define SIZELIKE_Z		0x04
-#define SIZESPACE		0x08
+#define SIZELIKE_OFFSET 0x08
 
 /* Axis flags */
 #define LOCK_X		0x00
