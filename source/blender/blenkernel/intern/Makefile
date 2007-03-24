@@ -75,6 +75,9 @@ CPPFLAGS += -I$(NAN_ELBEEM)/include
 # path to zlib
 CPPFLAGS += -I$(NAN_ZLIB)/include
 
+#path to nodes
+CPPFLAGS += -I../../nodes
+
 # path to our own external headerfiles
 CPPFLAGS += -I..
 
