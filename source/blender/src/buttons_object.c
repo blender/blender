@@ -672,7 +672,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			{
 				bLocateLikeConstraint *data = con->data;
 				
-				height = 66;
+				height = 91;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -693,9 +693,6 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
-				if (is_armature_target)
-					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco+((width/2)-98), *yco-64, 50, 18, &con->flag, 0, 24, 0, 0, "Work on a Pose's local transform");
-					
 				but=uiDefButBitI(block, TOG, LOCLIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
 				but=uiDefButBitI(block, TOG, LOCLIKE_X_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert X component");
 				but=uiDefButBitI(block, TOG, LOCLIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
@@ -703,13 +700,20 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				but=uiDefButBitI(block, TOG, LOCLIKE_Z, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+96), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
 				but=uiDefButBitI(block, TOG, LOCLIKE_Z_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+128), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Z component");
 				uiBlockEndAlign(block);
+				
+				/* Draw options */
+				uiDefButBitI(block, TOG, LOCLIKE_OFFSET, B_CONSTRAINT_TEST, "Offset", *xco+(width/3), *yco-89, (width/3), 18, &data->flag, 0, 24, 0, 0, "Add original location onto copied location");
+				if (is_armature_target) {
+					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco, *yco-89, (width/3), 18, &con->flag, 0, 24, 0, 0, "Work on a Pose's local transform");
+					uiDefButBitI(block, TOG, LOCLIKE_TIP, B_CONSTRAINT_TEST, "Target Bone Tip", *xco+(width/3*2), *yco-89, (width/3), 18, &data->flag, 0, 24, 0, 0, "Copy Location of Target Bone's Tip");
+				}
 			}
 			break;
 		case CONSTRAINT_TYPE_ROTLIKE:
 			{
 				bRotateLikeConstraint *data = con->data;
 				
-				height = 66;
+				height = 91;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -730,9 +734,6 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
-				if (is_armature_target)
-					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco+((width/2)-98), *yco-64, 50, 18, &con->flag, 0, 24, 0, 0, "Work on a Pose's local transform");
-					
 				but=uiDefButBitI(block, TOG, ROTLIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
 				but=uiDefButBitI(block, TOG, ROTLIKE_X_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert X component");
 				but=uiDefButBitI(block, TOG, ROTLIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
@@ -740,12 +741,20 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				but=uiDefButBitI(block, TOG, ROTLIKE_Z, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+96), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
 				but=uiDefButBitI(block, TOG, ROTLIKE_Z_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+128), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Z component");
 				uiBlockEndAlign(block);
+				
+				/* Draw options */
+				if (is_armature_target) {
+					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco, *yco-89, (width/2), 18, &con->flag, 0, 24, 0, 0, "Work on a Pose's local transform");
+					uiDefButBitI(block, TOG, ROTLIKE_OFFSET, B_CONSTRAINT_TEST, "Offset", *xco+(width/2), *yco-89, (width/2), 18, &data->flag, 0, 24, 0, 0, "Add original rotation onto copied rotation");
+				}
+				else
+					uiDefButBitI(block, TOG, ROTLIKE_OFFSET, B_CONSTRAINT_TEST, "Offset", *xco+(width/4), *yco-89, (width/2), 18, &data->flag, 0, 24, 0, 0, "Add original rotation onto copied rotation");
 			}
 			break;
 		case CONSTRAINT_TYPE_SIZELIKE:
 			{
 				bSizeLikeConstraint *data = con->data;
-				height = 66;
+				height = 91;
 			
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 
@@ -767,12 +776,17 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
-				if (is_armature_target)
-					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco+((width/2)-98), *yco-64, 50, 18, &con->flag, 0, 24, 0, 0, "Work on a Pose's local transform");
-				but=uiDefButI(block, TOG|BIT|0, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
-				but=uiDefButI(block, TOG|BIT|1, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
-				but=uiDefButI(block, TOG|BIT|2, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
+				but=uiDefButBitI(block, TOG, SIZELIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
+				but=uiDefButBitI(block, TOG, SIZELIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
+				but=uiDefButBitI(block, TOG, SIZELIKE_Z, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
 				uiBlockEndAlign(block);
+				
+				if (is_armature_target) {
+					uiDefButBitS(block, TOG, CONSTRAINT_LOCAL, B_CONSTRAINT_TEST, "Local", *xco, *yco-89, (width/2), 18, &con->flag, 0, 24, 0, 0, "Work on a Pose's local transform");
+					uiDefButBitI(block, TOG, SIZELIKE_OFFSET, B_CONSTRAINT_TEST, "Offset", *xco+(width/2), *yco-89, (width/2), 18, &data->flag, 0, 24, 0, 0, "Add original scaling onto copied scale");
+				}
+				else
+					uiDefButBitI(block, TOG, SIZELIKE_OFFSET, B_CONSTRAINT_TEST, "Offset", *xco+(width/4), *yco-89, (width/2), 18, &data->flag, 0, 24, 0, 0, "Add original scaling onto copied scale");
 			}
  			break;
 		case CONSTRAINT_TYPE_KINEMATIC:

@@ -6373,7 +6373,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		for(; cam; cam= cam->id.next) {
 			cam->angle= 360.0f * atan(16.0f/cam->lens) / M_PI;
-			printf("cam angle %f lens %f\n", cam->angle, cam->lens);
 		}
 	}
 
