@@ -661,3 +661,5 @@ bNodeType cmp_node_blur= {
    /* butfunc     */ node_composit_buts_blur,
                      node_composit_init_blur
 };
+
+

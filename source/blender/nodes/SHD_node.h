@@ -40,7 +40,6 @@
 #define SH_NODE_MAT_SPEC   2
 #define SH_NODE_MAT_NEG    4
 
-
 /* the type definitions array */
 /* ****************** types array for all shaders ****************** */
 
@@ -62,8 +61,8 @@ extern bNodeType sh_node_math;
 extern bNodeType sh_node_vect_math;
 extern bNodeType sh_node_squeeze;
 
-static bNodeType *node_all_shaders[]= {
-   &node_group_typeinfo,
+static bNodeType* node_all_shaders[]= {
+      &node_group_typeinfo,
       &sh_node_output,
       &sh_node_material,
       &sh_node_camera,
@@ -83,4 +82,9 @@ static bNodeType *node_all_shaders[]= {
       &sh_node_squeeze,
       NULL
 };
+
+
+
 #endif
+
+

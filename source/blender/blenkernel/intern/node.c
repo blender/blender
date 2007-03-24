@@ -56,6 +56,13 @@
 #include "MEM_guardedalloc.h"
 #include "IMB_imbuf.h"
 
+#include "RE_pipeline.h"
+#include "RE_shader_ext.h"		/* <- TexResult */
+#include "RE_render_ext.h"		/* <- ibuf_sample() */
+
+#include "CMP_node.h"
+#include "SHD_node.h"
+
 /* not very important, but the stack solver likes to know a maximum */
 #define MAX_SOCKET	64
 
@@ -774,132 +781,9 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
 	}
 	
 	/* need init handler later? */
-	if(ntree->type==NTREE_SHADER) {
-		if(type==SH_NODE_MATERIAL)
-			node->custom1= SH_NODE_MAT_DIFF|SH_NODE_MAT_SPEC;
-		else if(type==SH_NODE_VALTORGB)
-			node->storage= add_colorband(1);
-		else if(type==SH_NODE_MAPPING)
-			node->storage= add_mapping();
-		else if(type==SH_NODE_CURVE_VEC)
-			node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
-		else if(type==SH_NODE_CURVE_RGB)
-			node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
-		else if(type==SH_NODE_GEOMETRY)
-			node->storage= MEM_callocN(sizeof(NodeGeometry), "NodeGeometry");
-	}
-	else if(ntree->type==NTREE_COMPOSIT) {
-		if(type==CMP_NODE_VALTORGB)
-			node->storage= add_colorband(1);
-		else if(type==CMP_NODE_CURVE_VEC)
-			node->storage= curvemapping_add(3, -1.0f, -1.0f, 1.0f, 1.0f);
-		else if(type==CMP_NODE_CURVE_RGB)
-			node->storage= curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
-		else if(type==CMP_NODE_TIME) {
-			node->custom1= G.scene->r.sfra;
-			node->custom2= G.scene->r.efra;
-			node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		}
-		else if(type==CMP_NODE_MAP_VALUE)
-			node->storage= add_mapping();
-		else if(type==CMP_NODE_BLUR)
-			node->storage= MEM_callocN(sizeof(NodeBlurData), "node blur data");
-		else if(type==CMP_NODE_DEFOCUS) {
-			/* qdn: defocus node */
-			NodeDefocus *nbd = MEM_callocN(sizeof(NodeDefocus), "node defocus data");
-			nbd->bktype = 0;
-			nbd->rotation = 0.f;
-			nbd->preview = 1;
-			nbd->gamco = 0;
-			nbd->samples = 16;
-			nbd->fstop = 128.f;
-			nbd->maxblur = 0;
-			nbd->bthresh = 1.f;
-			nbd->scale = 1.f;
-			nbd->no_zbuf = 1;
-			node->storage = nbd;
-		}
-		else if(type==CMP_NODE_VECBLUR) {
-			NodeBlurData *nbd= MEM_callocN(sizeof(NodeBlurData), "node blur data");
-			node->storage= nbd;
-			nbd->samples= 32;
-			nbd->fac= 1.0f;
-		}
-		else if(ELEM3(type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
-			ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
-			node->storage= iuser;
-			iuser->sfra= 1;
-			iuser->fie_ima= 2;
-			iuser->ok= 1;
-			
-			if(type==CMP_NODE_SPLITVIEWER){
-				node->custom1= 50;	/* default 50% split */
-			}
-		}
-		else if(type==CMP_NODE_HUE_SAT) {
-			NodeHueSat *nhs= MEM_callocN(sizeof(NodeHueSat), "node hue sat");
-			node->storage= nhs;
-			nhs->hue= 0.5f;
-			nhs->sat= 1.0f;
-			nhs->val= 1.0f;
-		}
-		else if(type==CMP_NODE_OUTPUT_FILE) {
-			NodeImageFile *nif= MEM_callocN(sizeof(NodeImageFile), "node image file");
-			node->storage= nif;
-			BLI_strncpy(nif->name, G.scene->r.pic, sizeof(nif->name));
-			nif->imtype= G.scene->r.imtype;
-			nif->subimtype= G.scene->r.subimtype;
-			nif->quality= G.scene->r.quality;
-			nif->sfra= G.scene->r.sfra;
-			nif->efra= G.scene->r.efra;
-		}
-		else if(type==CMP_NODE_DIFF_MATTE){
-			NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
-			node->storage= c;
-			c->t1= 0.01f;
-			c->t2= 0.01f;
-			c->t3= 0.01f;
-			c->fsize= 0.0f;
-			c->fstrength= 0.0f;
-			node->custom1= 1; /* RGB */
-		}
-		else if(type==CMP_NODE_COLOR_SPILL){
-			NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
-			node->storage=c;
-			c->t1= 0.0f;
-			c->t2= 0.0f;
-			c->t3= 0.0f;
-			c->fsize= 0.0f;
-			c->fstrength= 0.0f;
-			node->custom1= 2; /* green channel */
-		}
-		else if(type==CMP_NODE_CHROMA){
-			NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
-			node->storage= c;
-			c->t1= 30.0f;
-			c->t2= 10.0f;
-			c->t3= 0.0f;
-			c->fsize= 0.0f;
-			c->fstrength= 1.0f;
-		}
-      else if(type==CMP_NODE_CHANNEL_MATTE){
-         NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
-         node->storage=c;
-         c->t1= 0.0f;
-         c->t2= 0.0f;
-         c->t3= 0.0f;
-         c->fsize= 0.0f;
-         c->fstrength= 0.0f;
-         node->custom1= 1; /* RGB channel */
-         node->custom2= 2; /* Green Channel */
-      }
-      else if(type==CMP_NODE_LUMA_MATTE){
-         NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
-         node->storage=c;
-         c->t1= 0.0f;
-         c->t2= 0.0f;
-      }
-	}
+   /* got it-bob*/
+   if(ntype->initfunc!=NULL)
+      ntype->initfunc(node);
 	
 	return node;
 }
@@ -2265,4 +2149,150 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	
 }
 
+
+/* **************** call to switch lamploop for material node ************ */
+
+void set_node_shader_lamp_loop(void (*lamp_loop_func)(ShadeInput *, ShadeResult *))
+{
+   node_shader_lamp_loop= lamp_loop_func;
+}
+
+/* clumsy checking... should do dynamic outputs once */
+static void force_hidden_passes(bNode *node, int passflag)
+{
+   bNodeSocket *sock;
+
+   for(sock= node->outputs.first; sock; sock= sock->next)
+      sock->flag &= ~SOCK_UNAVAIL;
+
+   sock= BLI_findlink(&node->outputs, RRES_OUT_Z);
+   if(!(passflag & SCE_PASS_Z)) sock->flag |= SOCK_UNAVAIL;
+   sock= BLI_findlink(&node->outputs, RRES_OUT_NORMAL);
+   if(!(passflag & SCE_PASS_NORMAL)) sock->flag |= SOCK_UNAVAIL;
+   sock= BLI_findlink(&node->outputs, RRES_OUT_VEC);
+   if(!(passflag & SCE_PASS_VECTOR)) sock->flag |= SOCK_UNAVAIL;
+   sock= BLI_findlink(&node->outputs, RRES_OUT_UV);
+   if(!(passflag & SCE_PASS_UV)) sock->flag |= SOCK_UNAVAIL;
+   sock= BLI_findlink(&node->outputs, RRES_OUT_RGBA);
+   if(!(passflag & SCE_PASS_RGBA)) sock->flag |= SOCK_UNAVAIL;
+   sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF);
+   if(!(passflag & SCE_PASS_DIFFUSE)) sock->flag |= SOCK_UNAVAIL;
+   sock= BLI_findlink(&node->outputs, RRES_OUT_SPEC);
+   if(!(passflag & SCE_PASS_SPEC)) sock->flag |= SOCK_UNAVAIL;
+   sock= BLI_findlink(&node->outputs, RRES_OUT_SHADOW);
+   if(!(passflag & SCE_PASS_SHADOW)) sock->flag |= SOCK_UNAVAIL;
+   sock= BLI_findlink(&node->outputs, RRES_OUT_AO);
+   if(!(passflag & SCE_PASS_AO)) sock->flag |= SOCK_UNAVAIL;
+   sock= BLI_findlink(&node->outputs, RRES_OUT_REFLECT);
+   if(!(passflag & SCE_PASS_REFLECT)) sock->flag |= SOCK_UNAVAIL;
+   sock= BLI_findlink(&node->outputs, RRES_OUT_REFRACT);
+   if(!(passflag & SCE_PASS_REFRACT)) sock->flag |= SOCK_UNAVAIL;
+   sock= BLI_findlink(&node->outputs, RRES_OUT_RADIO);
+   if(!(passflag & SCE_PASS_RADIO)) sock->flag |= SOCK_UNAVAIL;
+   sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXOB);
+   if(!(passflag & SCE_PASS_INDEXOB)) sock->flag |= SOCK_UNAVAIL;
+
+}
+
+/* based on rules, force sockets hidden always */
+void ntreeCompositForceHidden(bNodeTree *ntree)
+{
+   bNode *node;
+
+   if(ntree==NULL) return;
+
+   for(node= ntree->nodes.first; node; node= node->next) {
+      if( node->type==CMP_NODE_R_LAYERS) {
+         Scene *sce= node->id?(Scene *)node->id:G.scene; /* G.scene is WEAK! */
+         SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
+         if(srl)
+            force_hidden_passes(node, srl->passflag);
+      }
+      else if( node->type==CMP_NODE_IMAGE) {
+         Image *ima= (Image *)node->id;
+         if(ima) {
+            if(ima->rr) {
+               ImageUser *iuser= node->storage;
+               RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
+               if(rl)
+                  force_hidden_passes(node, rl->passflag);
+               else
+                  force_hidden_passes(node, 0);
+            }
+            else if(ima->type!=IMA_TYPE_MULTILAYER) {	/* if ->rr not yet read we keep inputs */
+               force_hidden_passes(node, RRES_OUT_Z);
+            }
+         }
+         else
+            force_hidden_passes(node, 0);
+      }
+   }
+
+}
+
+/* called from render pipeline, to tag render input and output */
+/* need to do all scenes, to prevent errors when you re-render 1 scene */
+void ntreeCompositTagRender(Scene *curscene)
+{
+   Scene *sce;
+
+   for(sce= G.main->scene.first; sce; sce= sce->id.next) {
+      if(sce->nodetree) {
+         bNode *node;
+
+         for(node= sce->nodetree->nodes.first; node; node= node->next) {
+            if(node->id==(ID *)curscene || node->type==CMP_NODE_COMPOSITE)
+               NodeTagChanged(sce->nodetree, node);
+         }
+      }
+   }
+}
+
+/* tags nodes that have animation capabilities */
+int ntreeCompositTagAnimated(bNodeTree *ntree)
+{
+   bNode *node;
+   int tagged= 0;
+
+   if(ntree==NULL) return 0;
+
+   for(node= ntree->nodes.first; node; node= node->next) {
+      if(node->type==CMP_NODE_IMAGE) {
+         Image *ima= (Image *)node->id;
+         if(ima && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+            NodeTagChanged(ntree, node);
+            tagged= 1;
+         }
+      }
+      else if(node->type==CMP_NODE_TIME) {
+         NodeTagChanged(ntree, node);
+         tagged= 1;
+      }
+      else if(node->type==CMP_NODE_R_LAYERS) {
+         NodeTagChanged(ntree, node);
+         tagged= 1;
+      }
+      else if(node->type==NODE_GROUP) {
+         if( ntreeCompositTagAnimated((bNodeTree *)node->id) ) {
+            NodeTagChanged(ntree, node);
+         }
+      }
+   }
+
+   return tagged;
+}
+
+
+/* called from image window preview */
+void ntreeCompositTagGenerators(bNodeTree *ntree)
+{
+   bNode *node;
+
+   if(ntree==NULL) return;
+
+   for(node= ntree->nodes.first; node; node= node->next) {
+      if( ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE))
+         NodeTagChanged(ntree, node);
+   }
+}
 

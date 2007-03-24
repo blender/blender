@@ -104,7 +104,7 @@ extern bNodeType cmp_node_flip;
 extern bNodeType cmp_node_displace;
 extern bNodeType cmp_node_mapuv; 
 
-static bNodeType *node_all_composit[]= {
+static bNodeType* node_all_composit[]= {
    &node_group_typeinfo,
 
       &cmp_node_rlayers,

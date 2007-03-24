@@ -33,6 +33,8 @@
 #ifndef BKE_NODE_H
 #define BKE_NODE_H
 
+
+
 struct ID;
 struct bNodeTree;
 struct bNode;
@@ -78,17 +80,19 @@ typedef struct bNodeType {
 	/* after this line is set on startup of blender */
 	int (*butfunc)(struct uiBlock *, struct bNodeTree *, struct bNode *, struct rctf *);
 
+   void (*initfunc)(struct bNode *);
+
 } bNodeType;
 
 /* nodetype->nclass, for add-menu and themes */
 #define NODE_CLASS_INPUT		0
 #define NODE_CLASS_OUTPUT		1
 #define NODE_CLASS_OP_COLOR		3
-#define NODE_CLASS_OP_VECTOR	4
-#define NODE_CLASS_OP_FILTER	5
+#define NODE_CLASS_OP_VECTOR		4
+#define NODE_CLASS_OP_FILTER		5
 #define NODE_CLASS_GROUP		6
 #define NODE_CLASS_FILE			7
-#define NODE_CLASS_CONVERTOR	8
+#define NODE_CLASS_CONVERTOR		8
 #define NODE_CLASS_MATTE		9
 #define NODE_CLASS_DISTORT		10
 
@@ -151,7 +155,7 @@ void			nodeGroupSocketUseFlags(struct bNodeTree *ngroup);
 
 /* ************** COMMON NODES *************** */
 
-#define NODE_GROUP			2
+#define NODE_GROUP		2
 #define NODE_GROUP_MENU		1000
 
 extern bNodeType node_group_typeinfo;
@@ -169,7 +173,7 @@ struct ShadeResult;
 #define SH_NODE_OUTPUT		1
 
 #define SH_NODE_MATERIAL	100
-#define SH_NODE_RGB			101
+#define SH_NODE_RGB		101
 #define SH_NODE_VALUE		102
 #define SH_NODE_MIX_RGB		103
 #define SH_NODE_VALTORGB	104
@@ -183,14 +187,13 @@ struct ShadeResult;
 #define SH_NODE_CAMERA		114
 #define SH_NODE_MATH		115
 #define SH_NODE_VECT_MATH	116
-#define SH_NODE_SQUEEZE	    117
-/* custom defines: options for Material node */
-#define SH_NODE_MAT_DIFF	1
-#define SH_NODE_MAT_SPEC	2
-#define SH_NODE_MAT_NEG		4
+#define SH_NODE_SQUEEZE		117
+
+
+
 
 /* the type definitions array */
-extern bNodeType *node_all_shaders[];
+static bNodeType *node_all_shaders[];
 
 /* API */
 
@@ -199,9 +202,28 @@ void			ntreeShaderGetTexcoMode(struct bNodeTree *ntree, int osa, short *texco, i
 void			nodeShaderSynchronizeID(struct bNode *node, int copyto);
 
 				/* switch material render loop */
+void (*node_shader_lamp_loop)(struct ShadeInput *, struct ShadeResult *);
 void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, struct ShadeResult *));
 
+
 /* ************** COMPOSITE NODES *************** */
+
+/* output socket defines */
+#define RRES_OUT_IMAGE	0
+#define RRES_OUT_ALPHA	1
+#define RRES_OUT_Z	2
+#define RRES_OUT_NORMAL	3
+#define RRES_OUT_UV	4
+#define RRES_OUT_VEC	5
+#define RRES_OUT_RGBA	6
+#define RRES_OUT_DIFF	7
+#define RRES_OUT_SPEC	8
+#define RRES_OUT_SHADOW	9
+#define RRES_OUT_AO	10
+#define RRES_OUT_REFLECT 11
+#define RRES_OUT_REFRACT 12
+#define RRES_OUT_RADIO	 13
+#define RRES_OUT_INDEXOB 14
 
 /* note: types are needed to restore callbacks, don't change values */
 #define CMP_NODE_VIEWER		201
@@ -223,56 +245,39 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_SEPHSVA	217
 #define CMP_NODE_SETALPHA	218
 #define CMP_NODE_HUE_SAT	219
-#define CMP_NODE_IMAGE			220
-#define CMP_NODE_R_LAYERS		221
-#define CMP_NODE_COMPOSITE		222
+#define CMP_NODE_IMAGE		220
+#define CMP_NODE_R_LAYERS	221
+#define CMP_NODE_COMPOSITE	222
 #define CMP_NODE_OUTPUT_FILE	223
-#define CMP_NODE_TEXTURE		224
-#define CMP_NODE_TRANSLATE		225
-#define CMP_NODE_ZCOMBINE		226
-#define CMP_NODE_COMBRGBA		227
+#define CMP_NODE_TEXTURE	224
+#define CMP_NODE_TRANSLATE	225
+#define CMP_NODE_ZCOMBINE	226
+#define CMP_NODE_COMBRGBA	227
 #define CMP_NODE_DILATEERODE	228
-#define CMP_NODE_ROTATE			229
-#define CMP_NODE_SCALE			230
-#define CMP_NODE_SEPYCCA		231
-#define CMP_NODE_COMBYCCA		232
-#define CMP_NODE_SEPYUVA		233
-#define CMP_NODE_COMBYUVA		234
-#define CMP_NODE_DIFF_MATTE		235
+#define CMP_NODE_ROTATE		229
+#define CMP_NODE_SCALE		230
+#define CMP_NODE_SEPYCCA	231
+#define CMP_NODE_COMBYCCA	232
+#define CMP_NODE_SEPYUVA	233
+#define CMP_NODE_COMBYUVA	234
+#define CMP_NODE_DIFF_MATTE	235
 #define CMP_NODE_COLOR_SPILL	236
-#define CMP_NODE_CHROMA			237
+#define CMP_NODE_CHROMA		237
 #define CMP_NODE_CHANNEL_MATTE	238
-#define CMP_NODE_FLIP			239
+#define CMP_NODE_FLIP		239
 #define CMP_NODE_SPLITVIEWER	240
-#define CMP_NODE_INDEX_MASK		241
-#define CMP_NODE_MAP_UV			242
-#define CMP_NODE_ID_MASK		243
-#define CMP_NODE_DEFOCUS		244
-#define CMP_NODE_DISPLACE		245
-#define CMP_NODE_COMBHSVA		246
-#define CMP_NODE_MATH			247
-#define CMP_NODE_LUMA_MATTE		248
+#define CMP_NODE_INDEX_MASK	241
+#define CMP_NODE_MAP_UV		242
+#define CMP_NODE_ID_MASK	243
+#define CMP_NODE_DEFOCUS	244
+#define CMP_NODE_DISPLACE	245
+#define CMP_NODE_COMBHSVA	246
+#define CMP_NODE_MATH		247
+#define CMP_NODE_LUMA_MATTE	248
 
-
-/* filter types */
-
-
-/* filter types, in custom1 */
-
-#define CMP_FILT_SOFT		0
-#define CMP_FILT_SHARP		1
-#define CMP_FILT_LAPLACE	2
-#define CMP_FILT_SOBEL		3
-#define CMP_FILT_PREWITT	4
-#define CMP_FILT_KIRSCH		5
-#define CMP_FILT_SHADOW		6
-
-/* scale node type, in custom1 */
-#define CMP_SCALE_RELATIVE	0
-#define CMP_SCALE_ABSOLUTE	1
 
 /* the type definitions array */
-extern bNodeType *node_all_composit[];
+static bNodeType* node_all_composit[];
 
 /* API */
 struct CompBuf;

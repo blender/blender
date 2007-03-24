@@ -28,7 +28,7 @@
  */
 
 
-#include "..\SHD_util.h"
+#include "../SHD_util.h"
 
 
 /* **************** VECTOR MATH ******************** */ 

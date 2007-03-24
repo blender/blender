@@ -59,8 +59,9 @@
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_library.h"
 
-#include "..\CMP_node.h"
+#include "../CMP_node.h"
 
 
 #include "BIF_gl.h"
@@ -88,6 +89,7 @@
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
+#include "RE_render_ext.h"
 
 #include "butspace.h"
 #include "blendef.h"

@@ -110,3 +110,5 @@ bNodeType cmp_node_flip= {
 	/* execfunc    */	node_composit_exec_flip,
    /* butfunc     */ node_composit_buts_flip
 };
+
+

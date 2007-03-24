@@ -328,10 +328,8 @@ processEvents(
 }
 
 	void
-GHOST_SystemX11::
-processEvent(
-	XEvent *xe
-){
+GHOST_SystemX11::processEvent(XEvent *xe)
+{
 	GHOST_WindowX11 * window = findGhostWindow(xe->xany.window);	
 	GHOST_Event * g_event = NULL;
 
@@ -507,17 +505,22 @@ processEvent(
 		case ReparentNotify:
 			break;
 
-      	        default: {
-			if(xe->type == window->GetXTablet().MotionEvent) {
+      	default: {
+			if(xe->type == window->GetXTablet().MotionEvent) 
+			{
 				XDeviceMotionEvent* data = (XDeviceMotionEvent*)xe;
-				window->GetXTablet().CommonData.Pressure= data->axis_data[2]/((float)window->GetXTablet().PressureLevels);
-				
-				/* the (short) cast and the &0xffff is bizarre and unexplained anywhere,
-				 * but I got garbage data without it. Found it in the xidump.c source --matt */
-				window->GetXTablet().CommonData.Xtilt= (short)(data->axis_data[3]&0xffff)/((float)window->GetXTablet().XtiltLevels);
-				window->GetXTablet().CommonData.Ytilt= (short)(data->axis_data[4]&0xffff)/((float)window->GetXTablet().YtiltLevels);
+				window->GetXTablet().CommonData.Pressure= 
+					data->axis_data[2]/((float)window->GetXTablet().PressureLevels);
+			
+			/* the (short) cast and the &0xffff is bizarre and unexplained anywhere,
+			 * but I got garbage data without it. Found it in the xidump.c source --matt */
+				window->GetXTablet().CommonData.Xtilt= 
+					(short)(data->axis_data[3]&0xffff)/((float)window->GetXTablet().XtiltLevels);
+				window->GetXTablet().CommonData.Ytilt= 
+					(short)(data->axis_data[4]&0xffff)/((float)window->GetXTablet().YtiltLevels);
 			}
-			else if(xe->type == window->GetXTablet().ProxInEvent) {
+			else if(xe->type == window->GetXTablet().ProxInEvent) 
+			{
 				XProximityNotifyEvent* data = (XProximityNotifyEvent*)xe;
 				if(data->deviceid == window->GetXTablet().StylusID)
 					window->GetXTablet().CommonData.Active= 1;

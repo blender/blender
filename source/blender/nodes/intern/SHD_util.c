@@ -30,6 +30,9 @@
 #include "SHD_util.h"
 
 
+
+
+
 /* ****** */
 
 void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)

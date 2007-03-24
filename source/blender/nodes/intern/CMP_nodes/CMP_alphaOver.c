@@ -131,3 +131,5 @@ bNodeType cmp_node_alphaover= {
    /* butfunc     */ node_composit_buts_alphaover
 	
 };
+
+

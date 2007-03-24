@@ -214,3 +214,5 @@ bNodeType cmp_node_chroma={
    /* butfunc     */       node_composit_buts_chroma_matte,
                            node_composit_init_chroma_matte
 };
+
+

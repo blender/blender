@@ -29,6 +29,9 @@
 
 #include "CMP_util.h"
 
+
+
+
 CompBuf *alloc_compbuf(int sizex, int sizey, int type, int alloc)
 {
 	CompBuf *cbuf= MEM_callocN(sizeof(CompBuf), "compbuf");

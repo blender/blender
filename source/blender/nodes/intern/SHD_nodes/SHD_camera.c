@@ -27,7 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "..\SHD_util.h"
+#include "../SHD_util.h"
 
 /* **************** CAMERA INFO  ******************** */
 static bNodeSocketType sh_node_camera_out[]= {

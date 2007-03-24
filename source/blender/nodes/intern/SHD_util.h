@@ -30,6 +30,9 @@
 #ifndef SHD_NODE_UTIL_H_
 #define SHD_NODE_UTIL_H_
 
+#include <math.h>
+#include <string.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
@@ -54,8 +57,9 @@
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_library.h"
 
-#include "..\SHD_node.h"
+#include "../SHD_node.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -112,6 +116,6 @@ typedef struct ShaderCallData {
 
 
 extern void node_ID_title_cb(void *node_v, void *unused_v);
-
+void nodestack_get_vec(float *in, short type_in, bNodeStack *ns);
 
 #endif
