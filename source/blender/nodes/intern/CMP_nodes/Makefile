@@ -31,7 +31,7 @@
 #
 #
 
-LIBNAME = nodes
+LIBNAME = nodes_cmp
 DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
