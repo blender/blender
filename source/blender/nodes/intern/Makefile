@@ -31,8 +31,8 @@
 #
 #
 
-LIBNAME = nodes 
-DIR = $(OCGDIR)/blender/$(LIBNAME)
+LIBNAME = nodes
+SOURCEDIR = $(OCGDIR)/blender/nodes/
 
 include nan_compile.mk
 
@@ -42,66 +42,18 @@ endif
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
-# OpenGL and Python
-CPPFLAGS += -I$(OPENGL_HEADERS)
-CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
-
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
-# Reference to the types in makesdna and imbuf
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../imbuf
-# This mod uses the BLI and BLO module
+CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
-CPPFLAGS += -I../../blenloader
-CPPFLAGS += -I../../python
-# also avi is used
-CPPFLAGS += -I../../avi
-CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
-# we still refer to /include a bit...
-CPPFLAGS += -I../../include
 
 # to include the render stuff:
 CPPFLAGS += -I../../render/extern/include
-
-# for sound
-#CPPFLAGS += -I../../../kernel/gen_system
-CPPFLAGS +=  $(NAN_SDLCFLAGS)
-
-CPPFLAGS += -I$(NAN_IKSOLVER)/include
-CPPFLAGS += -I$(NAN_DECIMATION)/include
-CPPFLAGS += -I$(NAN_ELBEEM)/include
-
-# path to zlib
-CPPFLAGS += -I$(NAN_ZLIB)/include
 
 #path to nodes
 CPPFLAGS += -I../
 
 # path to our own external headerfiles
 CPPFLAGS += -I..
-
-ifeq ($(WITH_FREETYPE2), true)
-    CPPFLAGS += -DWITH_FREETYPE2
-    CPPFLAGS += -I$(NAN_FREETYPE)/include
-    CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
-endif
-
-ifeq ($(WITH_VERSE), true)
-    CPPFLAGS += -DWITH_VERSE
-    CPPFLAGS += -I$(NAN_VERSE)/include
-endif
-
-ifeq ($(WITH_FFMPEG),true)
-    CPPFLAGS += -DWITH_FFMPEG
-    CPPFLAGS += $(NAN_FFMPEGCFLAGS)
-endif
-
-ifeq ($(WITH_OPENEXR), true)
-    CPPFLAGS += -DWITH_OPENEXR
-endif
-
-ifeq ($(WITH_QUICKTIME), true)
-	CPPFLAGS += -I../../quicktime
-	CPPFLAGS += -DWITH_QUICKTIME
-endif
