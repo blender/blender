@@ -193,7 +193,14 @@ class prettyface(object):
 		return self.width, self.height
 
 
-def lightmap_uvpack(me, BOX_DIV = 8, MARGIN_DIV = 512):
+def lightmap_uvpack(	meshes,\
+PREF_SEL_ONLY=			True,\
+PREF_NEW_UVLAYER=		False,\
+PREF_PACK_IN_ONE=		False,\
+PREF_APPLY_IMAGE=		False,\
+PREF_IMG_PX_SIZE=		512,\
+PREF_BOX_DIV= 			8,\
+PREF_MARGIN_DIV=		512):
 	'''
 	BOX_DIV if the maximum division of the UV map that
 	a box may be consolidated into.
@@ -201,291 +208,353 @@ def lightmap_uvpack(me, BOX_DIV = 8, MARGIN_DIV = 512):
 	and a higher value will have more clumpy boxes but more waisted space
 	'''
 	
-
+	if not meshes:
+		return
 	
-	print "\nStarting unwrap"
 	t = sys.time()
+	
+	if PREF_PACK_IN_ONE:
+		if PREF_APPLY_IMAGE:
+			image = Image.New('lightmap', PREF_IMG_PX_SIZE, PREF_IMG_PX_SIZE, 24)
+		face_groups = [[]]
+	else:
+		face_groups = []
+	
+	
 	SEL_FLAG = Mesh.FaceFlags.SELECT
-	face_sel = [f for f in me.faces if f.flag & SEL_FLAG]
+	
+	for me in meshes:			
+		if PREF_SEL_ONLY:
+			faces = [f for f in me.faces if f.flag & SEL_FLAG]
+		else:
+			faces = list(me.faces)
+		
+		if PREF_PACK_IN_ONE:
+			face_groups[0].extend(faces)
+		else:
+			face_groups.append(faces)
+		
+		if PREF_NEW_UVLAYER:
+			me.addUVLayer('lightmap')
+			me.activeUVLayer = 'lightmap'
+	
 	del SEL_FLAG
 	
-	
-	if len(face_sel) <4:
-		Draw.PupMenu('Error%t|less then 4 faces selected')
-	
-	pretty_faces = [prettyface(f) for f in face_sel if len(f) == 4]
-	
-	
-	# Do we have any tri's
-	if len(pretty_faces) != len(face_sel):
+	for face_sel in face_groups:
+		print "\nStarting unwrap"
 		
-		# Now add tri's, not so simple because we need to pair them up.
-		def trylens(f):
-			# f must be a tri
-			cos = [v.co for v in f]
-			lens = [(cos[0] - cos[1]).length, (cos[1] - cos[2]).length, (cos[2] - cos[0]).length]
+		if len(face_sel) <4:
+			print '\tWarning, less then 4 faces, skipping'
+			continue
+		
+		pretty_faces = [prettyface(f) for f in face_sel if len(f) == 4]
+		
+		
+		# Do we have any tri's
+		if len(pretty_faces) != len(face_sel):
 			
-			lens_min = lens.index(min(lens))
-			lens_max = lens.index(max(lens))
-			for i in xrange(3):
-				if i != lens_min and i!= lens_max:
-					lens_mid = i
-					break
-			lens_order = lens_min, lens_mid, lens_max
-			
-			return f, lens, lens_order
-			
-		tri_lengths = [trylens(f) for f in face_sel if len(f) == 3]
-		del trylens
-		
-		def trilensdiff(t1,t2):
-			return\
-			abs(t1[1][t1[2][0]]-t2[1][t2[2][0]])+\
-			abs(t1[1][t1[2][1]]-t2[1][t2[2][1]])+\
-			abs(t1[1][t1[2][2]]-t2[1][t2[2][2]])
-		
-		while tri_lengths:
-			tri1 = tri_lengths.pop()
-			
-			if not tri_lengths:
-				pretty_faces.append(prettyface((tri1, None)))
-				break
-			
-			best_tri_index = -1
-			best_tri_diff  = 100000000.0
-			
-			for i, tri2 in enumerate(tri_lengths):
-				diff = trilensdiff(tri1, tri2)
-				if diff < best_tri_diff:
-					best_tri_index = i
-					best_tri_diff = diff
-			
-			pretty_faces.append(prettyface((tri1, tri_lengths.pop(best_tri_index))))
-	
-	
-	# Get the min, max and total areas
-	max_area = 0.0
-	min_area = 100000000.0
-	tot_area = 0
-	for f in face_sel:
-		area = f.area
-		if area > max_area:		max_area = area
-		if area < min_area:		min_area = area
-		tot_area += area
-		
-	max_len = sqrt(max_area)
-	min_len = sqrt(min_area)
-	side_len = sqrt(tot_area) 
-	
-	# Build widths
-	
-	curr_len = max_len
-	
-	print 'Generating lengths...',
-	
-	lengths = []
-	while curr_len > min_len:
-		lengths.append(curr_len) 
-		curr_len = curr_len/2
-		
-		# Dont allow boxes smaller then the margin
-		# since we contract on the margin, boxes that are smaller will create errors
-		# print curr_len, side_len/MARGIN_DIV
-		if curr_len/4 < side_len/MARGIN_DIV:
-			break
-	
-	# convert into ints
-	lengths_to_ints = {}
-	
-	l_int = 1
-	for l in reversed(lengths):
-		lengths_to_ints[l] = l_int
-		l_int*=2
-	
-	lengths_to_ints = lengths_to_ints.items()
-	lengths_to_ints.sort()
-	print 'done'
-	
-	# apply quantized values.
-	
-	for pf in pretty_faces:
-		w = pf.width
-		h = pf.height
-		bestw_diff = 1000000000.0
-		besth_diff = 1000000000.0
-		new_w = 0.0
-		new_h = 0.0
-		for l, i in lengths_to_ints:
-			d = abs(l - w)
-			if d < bestw_diff:
-				bestw_diff = d
-				new_w = i # assign the int version
-			
-			d = abs(l - h)
-			if d < besth_diff:
-				besth_diff = d
-				new_h = i # ditto
-		
-		pf.width = new_w
-		pf.height = new_h
-		
-		if new_w > new_h:
-			pf.spin()
-		
-	print '...done'
-	
-	
-	# Since the boxes are sized in powers of 2, we can neatly group them into bigger squares
-	# this is done hierarchily, so that we may avoid running the pack function
-	# on many thousands of boxes, (under 1k is best) because it would get slow.
-	# Using an off and even dict us usefull because they are packed differently
-	# where w/h are the same, their packed in groups of 4
-	# where they are different they are packed in pairs
-	#
-	# After this is done an external pack func is done that packs the whole group.
-	
-	print 'consolidating boxes...',
-	even_dict = {} # w/h are the same, the key is an int (w)
-	odd_dict = {} # w/h are different, the key is the (w,h)
-	
-	for pf in pretty_faces:
-		w,h = pf.width, pf.height
-		if w==h:	even_dict.setdefault(w, []).append( pf )
-		else:		odd_dict.setdefault((w,h), []).append( pf )
-	
-	# Count the number of boxes consolidated, only used for stats.
-	c = 0
-	
-	# This is tricky. the total area of all packed boxes, then squt that to get an estimated size
-	# this is used then converted into out INT space so we can compare it with 
-	# the ints assigned to the boxes size
-	# and divided by BOX_DIV, basicly if BOX_DIV is 8
-	# ...then the maximum box consolidataion (recursive grouping) will have a max width & height
-	# ...1/8th of the UV size.
-	# ...limiting this is needed or you end up with bug unused texture spaces
-	# ...however if its too high, boxpacking is way too slow for high poly meshes.
-	float_to_int_factor = lengths_to_ints[0][0]
-	max_int_dimension = int(((side_len / float_to_int_factor)) / BOX_DIV)
-	
-	
-	# RECURSIVE prettyface grouping
-	ok = True
-	while ok:
-		ok = False
-		
-		# Tall boxes in groups of 2
-		for d, boxes in odd_dict.items():
-			if d[1] < max_int_dimension:
-				#\boxes.sort(key = lambda a: len(a.children))
-				while len(boxes) >= 2:
-					# print "foo", len(boxes)
-					ok = True
-					c += 1
-					pf_parent = prettyface([boxes.pop(), boxes.pop()])
-					pretty_faces.append(pf_parent)
-					
-					w,h = pf_parent.width, pf_parent.height
-					
-					if w>h: raise "error"
-					
-					if w==h:
-						even_dict.setdefault(w, []).append(pf_parent)
-					else:
-						odd_dict.setdefault((w,h), []).append(pf_parent)
+			# Now add tri's, not so simple because we need to pair them up.
+			def trylens(f):
+				# f must be a tri
+				cos = [v.co for v in f]
+				lens = [(cos[0] - cos[1]).length, (cos[1] - cos[2]).length, (cos[2] - cos[0]).length]
 				
-		# Even boxes in groups of 4
-		for d, boxes in even_dict.items():	
-			if d < max_int_dimension:
-				boxes.sort(key = lambda a: len(a.children))
-				while len(boxes) >= 4:
-					# print "bar", len(boxes)
-					ok = True
-					c += 1
-					
-					pf_parent = prettyface([boxes.pop(), boxes.pop(), boxes.pop(), boxes.pop()])
-					pretty_faces.append(pf_parent)
-					w = pf_parent.width # width and weight are the same 
-					even_dict.setdefault(w, []).append(pf_parent)
-	
-	del even_dict
-	del odd_dict
-	
-	orig = len(pretty_faces)
-	
-	pretty_faces = [pf for pf in pretty_faces if not pf.has_parent]
-	
-	# spin every second prettyface
-	# if there all vertical you get less efficiently used texture space
-	i = len(pretty_faces)
-	d = 0
-	while i:
-		i -=1
-		pf = pretty_faces[i]
-		if pf.width != pf.height:
-			d += 1
-			if d % 2: # only pack every second
+				lens_min = lens.index(min(lens))
+				lens_max = lens.index(max(lens))
+				for i in xrange(3):
+					if i != lens_min and i!= lens_max:
+						lens_mid = i
+						break
+				lens_order = lens_min, lens_mid, lens_max
+				
+				return f, lens, lens_order
+				
+			tri_lengths = [trylens(f) for f in face_sel if len(f) == 3]
+			del trylens
+			
+			def trilensdiff(t1,t2):
+				return\
+				abs(t1[1][t1[2][0]]-t2[1][t2[2][0]])+\
+				abs(t1[1][t1[2][1]]-t2[1][t2[2][1]])+\
+				abs(t1[1][t1[2][2]]-t2[1][t2[2][2]])
+			
+			while tri_lengths:
+				tri1 = tri_lengths.pop()
+				
+				if not tri_lengths:
+					pretty_faces.append(prettyface((tri1, None)))
+					break
+				
+				best_tri_index = -1
+				best_tri_diff  = 100000000.0
+				
+				for i, tri2 in enumerate(tri_lengths):
+					diff = trilensdiff(tri1, tri2)
+					if diff < best_tri_diff:
+						best_tri_index = i
+						best_tri_diff = diff
+				
+				pretty_faces.append(prettyface((tri1, tri_lengths.pop(best_tri_index))))
+		
+		
+		# Get the min, max and total areas
+		max_area = 0.0
+		min_area = 100000000.0
+		tot_area = 0
+		for f in face_sel:
+			area = f.area
+			if area > max_area:		max_area = area
+			if area < min_area:		min_area = area
+			tot_area += area
+			
+		max_len = sqrt(max_area)
+		min_len = sqrt(min_area)
+		side_len = sqrt(tot_area) 
+		
+		# Build widths
+		
+		curr_len = max_len
+		
+		print '\tGenerating lengths...',
+		
+		lengths = []
+		while curr_len > min_len:
+			lengths.append(curr_len) 
+			curr_len = curr_len/2
+			
+			# Dont allow boxes smaller then the margin
+			# since we contract on the margin, boxes that are smaller will create errors
+			# print curr_len, side_len/MARGIN_DIV
+			if curr_len/4 < side_len/PREF_MARGIN_DIV:
+				break
+		
+		# convert into ints
+		lengths_to_ints = {}
+		
+		l_int = 1
+		for l in reversed(lengths):
+			lengths_to_ints[l] = l_int
+			l_int*=2
+		
+		lengths_to_ints = lengths_to_ints.items()
+		lengths_to_ints.sort()
+		print 'done'
+		
+		# apply quantized values.
+		
+		for pf in pretty_faces:
+			w = pf.width
+			h = pf.height
+			bestw_diff = 1000000000.0
+			besth_diff = 1000000000.0
+			new_w = 0.0
+			new_h = 0.0
+			for l, i in lengths_to_ints:
+				d = abs(l - w)
+				if d < bestw_diff:
+					bestw_diff = d
+					new_w = i # assign the int version
+				
+				d = abs(l - h)
+				if d < besth_diff:
+					besth_diff = d
+					new_h = i # ditto
+			
+			pf.width = new_w
+			pf.height = new_h
+			
+			if new_w > new_h:
 				pf.spin()
-				# pass
+			
+		print '...done'
+		
+		
+		# Since the boxes are sized in powers of 2, we can neatly group them into bigger squares
+		# this is done hierarchily, so that we may avoid running the pack function
+		# on many thousands of boxes, (under 1k is best) because it would get slow.
+		# Using an off and even dict us usefull because they are packed differently
+		# where w/h are the same, their packed in groups of 4
+		# where they are different they are packed in pairs
+		#
+		# After this is done an external pack func is done that packs the whole group.
+		
+		print '\tConsolidating Boxes...',
+		even_dict = {} # w/h are the same, the key is an int (w)
+		odd_dict = {} # w/h are different, the key is the (w,h)
+		
+		for pf in pretty_faces:
+			w,h = pf.width, pf.height
+			if w==h:	even_dict.setdefault(w, []).append( pf )
+			else:		odd_dict.setdefault((w,h), []).append( pf )
+		
+		# Count the number of boxes consolidated, only used for stats.
+		c = 0
+		
+		# This is tricky. the total area of all packed boxes, then squt that to get an estimated size
+		# this is used then converted into out INT space so we can compare it with 
+		# the ints assigned to the boxes size
+		# and divided by BOX_DIV, basicly if BOX_DIV is 8
+		# ...then the maximum box consolidataion (recursive grouping) will have a max width & height
+		# ...1/8th of the UV size.
+		# ...limiting this is needed or you end up with bug unused texture spaces
+		# ...however if its too high, boxpacking is way too slow for high poly meshes.
+		float_to_int_factor = lengths_to_ints[0][0]
+		max_int_dimension = int(((side_len / float_to_int_factor)) / PREF_BOX_DIV)
+		
+		
+		# RECURSIVE prettyface grouping
+		ok = True
+		while ok:
+			ok = False
+			
+			# Tall boxes in groups of 2
+			for d, boxes in odd_dict.items():
+				if d[1] < max_int_dimension:
+					#\boxes.sort(key = lambda a: len(a.children))
+					while len(boxes) >= 2:
+						# print "foo", len(boxes)
+						ok = True
+						c += 1
+						pf_parent = prettyface([boxes.pop(), boxes.pop()])
+						pretty_faces.append(pf_parent)
+						
+						w,h = pf_parent.width, pf_parent.height
+						
+						if w>h: raise "error"
+						
+						if w==h:
+							even_dict.setdefault(w, []).append(pf_parent)
+						else:
+							odd_dict.setdefault((w,h), []).append(pf_parent)
+					
+			# Even boxes in groups of 4
+			for d, boxes in even_dict.items():	
+				if d < max_int_dimension:
+					boxes.sort(key = lambda a: len(a.children))
+					while len(boxes) >= 4:
+						# print "bar", len(boxes)
+						ok = True
+						c += 1
+						
+						pf_parent = prettyface([boxes.pop(), boxes.pop(), boxes.pop(), boxes.pop()])
+						pretty_faces.append(pf_parent)
+						w = pf_parent.width # width and weight are the same 
+						even_dict.setdefault(w, []).append(pf_parent)
+		
+		del even_dict
+		del odd_dict
+		
+		orig = len(pretty_faces)
+		
+		pretty_faces = [pf for pf in pretty_faces if not pf.has_parent]
+		
+		# spin every second prettyface
+		# if there all vertical you get less efficiently used texture space
+		i = len(pretty_faces)
+		d = 0
+		while i:
+			i -=1
+			pf = pretty_faces[i]
+			if pf.width != pf.height:
+				d += 1
+				if d % 2: # only pack every second
+					pf.spin()
+					# pass
+		
+		print 'Consolidated', c, 'boxes, done'
+		# print 'done', orig, len(pretty_faces)
+		
+		
+		# boxes2Pack.append([islandIdx, w,h])
+		print '\tPacking Boxes', len(pretty_faces), '...',
+		boxes2Pack = [ [0.0, 0.0, pf.width, pf.height, i] for i, pf in enumerate(pretty_faces)]
+		packWidth, packHeight = Geometry.BoxPack2D(boxes2Pack)
+		
+		# print packWidth, packHeight
+		
+		packWidth = float(packWidth)
+		packHeight = float(packHeight)
+		
+		margin_w = ((packWidth) / PREF_MARGIN_DIV)/ packWidth
+		margin_h = ((packHeight) / PREF_MARGIN_DIV) / packHeight
+		
+		# print margin_w, margin_h
+		print 'done'
+		
+		# Apply the boxes back to the UV coords.
+		print '\twriting back UVs',
+		for i, box in enumerate(boxes2Pack):
+			pretty_faces[i].place(box[0], box[1], packWidth, packHeight, margin_w, margin_h)
+			# pf.place(box[1][1], box[1][2], packWidth, packHeight, margin_w, margin_h)
+		print 'done'
+		
+		
+		if PREF_APPLY_IMAGE:
+			if not PREF_PACK_IN_ONE:
+				image = Image.New('lightmap', PREF_IMG_PX_SIZE, PREF_IMG_PX_SIZE, 24)
+				
+			for f in face_sel:
+				f.image = image
+		
+	for me in meshes:
+		me.update()
 	
-	print 'done'
-	print 'consolidated', c, 'boxes'
-	# print 'done', orig, len(pretty_faces)
+	print 'finished all %.2f ' % (sys.time() - t)
 	
-	
-	# boxes2Pack.append([islandIdx, w,h])
-	print 'packing boxes', len(pretty_faces), '...',
-	boxes2Pack = [ [0.0, 0.0, pf.width, pf.height, i] for i, pf in enumerate(pretty_faces)]
-	packWidth, packHeight = Geometry.BoxPack2D(boxes2Pack)
-	
-	# print packWidth, packHeight
-	
-	packWidth = float(packWidth)
-	packHeight = float(packHeight)
-	
-	margin_w = ((packWidth) / MARGIN_DIV)/ packWidth
-	margin_h = ((packHeight) / MARGIN_DIV) / packHeight
-	
-	# print margin_w, margin_h
-	print 'done'
-	
-	
-	# Apply the boxes back to the UV coords.
-	print 'writing back UVs',
-	for i, box in enumerate(boxes2Pack):
-		pretty_faces[i].place(box[0], box[1], packWidth, packHeight, margin_w, margin_h)
-		# pf.place(box[1][1], box[1][2], packWidth, packHeight, margin_w, margin_h)
-	
-	print 'done'
-	Window.WaitCursor(1)
-	print  sys.time() - t
-	me.update()
 	Window.RedrawAll()
-	Window.WaitCursor(0)
-
 
 def main():
-	scn = Main.scenes.active
-	ob = scn.objects.active
+	scn = Main.scenes.activ
 	
-	# print ob, ob.type
-	if ob == None or ob.type != 'Mesh':
-		Draw.PupMenu('Error%t|No mesh object.')
-		return
-	me = ob.getData(mesh=1)
-
-	BOX_DIV = Draw.Create(12)
-	MARGIN_DIV = Draw.Create(0.1)
-	
+	PREF_ACT_ONLY = Draw.Create(1)
+	PREF_SEL_ONLY = Draw.Create(1)
+	PREF_NEW_UVLAYER = Draw.Create(0)
+	PREF_PACK_IN_ONE = Draw.Create(0)
+	PREF_APPLY_IMAGE = Draw.Create(0)
+	PREF_IMG_PX_SIZE = Draw.Create(512)
+	PREF_BOX_DIV = Draw.Create(12)
+	PREF_MARGIN_DIV = Draw.Create(0.1)
 	
 	if not Draw.PupBlock('Lightmap Pack', [\
-	('Pack Quality: ', BOX_DIV, 1, 48, 'Pre Packing before the complex boxpack'),\
-	('Margin: ', MARGIN_DIV, 0.001, 1.0, 'Size of the margin as a division of the UV')\
+	'Context...',
+	('Active Object', PREF_ACT_ONLY, 'If disabled, use all objects for packing the lightmap.'),\
+	('Selected Faces', PREF_SEL_ONLY, 'Use only selected faces from all selected meshes.'),\
+	'Image & UVs...',
+	('Share Tex Space', PREF_PACK_IN_ONE, 'Objects Share texture space, map all objects into 1 uvmap'),\
+	('New UV Layer', PREF_NEW_UVLAYER, 'Create a new UV layer for every mesh packed'),\
+	('New Image', PREF_APPLY_IMAGE, 'Assign new images for every mesh (only one if shared tex space enabled)'),\
+	('Image Size', PREF_IMG_PX_SIZE, 64, 5000, 'Width and Height for the new image'),\
+	'UV Packing...',
+	('Pack Quality: ', PREF_BOX_DIV, 1, 48, 'Pre Packing before the complex boxpack'),\
+	('Margin: ', PREF_MARGIN_DIV, 0.001, 1.0, 'Size of the margin as a division of the UV')\
 	]):
 		return
+	
+	
+	if PREF_ACT_ONLY.val:
+		ob = scn.objects.active
+		if ob == None or ob.type != 'Mesh':
+			Draw.PupMenu('Error%t|No mesh object.')
+			return
+		meshes = [ ob.getData(mesh=1) ]
+	else:
+		meshes = dict([ (me.name, me) for ob in scn.objects.context for me in (ob.getData(mesh=1),) if not me.lib])
+		meshes = meshes.values()
+		if not meshes:
+			Draw.PupMenu('Error%t|No mesh objects selected.')
+			return
+	
 	Window.WaitCursor(1)
-	lightmap_uvpack(me, BOX_DIV.val, int(1/(MARGIN_DIV.val/100)))
+	lightmap_uvpack(meshes,\
+			PREF_SEL_ONLY.val,\
+			PREF_NEW_UVLAYER.val,\
+			PREF_PACK_IN_ONE.val,\
+			PREF_APPLY_IMAGE.val,\
+			PREF_IMG_PX_SIZE.val,\
+			PREF_BOX_DIV.val,\
+			int(1/(PREF_MARGIN_DIV.val/100)))
+	
 	Window.WaitCursor(0)
 
 if __name__ == '__main__':
 	main()
-	
