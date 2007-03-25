@@ -99,17 +99,6 @@ static void node_shader_exec_vect_math(void *data, bNode *node, bNodeStack **in,
 	
 }
 
-static int node_shader_buts_vect_math(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr) 
-{ 
-   if(block) { 
-      uiBut *bt; 
-
-      bt=uiDefButS(block, MENU, B_NODE_EXEC,  "Add %x0|Subtract %x1|Average %x2|Dot Product %x3 |Cross Product %x4|Normalize %x5", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, &node->custom1, 0, 0, 0, 0, ""); 
-      uiButSetFunc(bt, node_but_title_cb, node, bt); 
-   } 
-   return 20; 
-}
-
 bNodeType sh_node_vect_math= { 
 	/* type code   */ SH_NODE_VECT_MATH, 
 	/* name        */ "Vector Math", 
@@ -119,7 +108,7 @@ bNodeType sh_node_vect_math= {
 	/* output sock */ sh_node_vect_math_out, 
 	/* storage     */ "node_vect_math", 
 	/* execfunc    */ node_shader_exec_vect_math,
-   /* butfunc     */ node_shader_buts_vect_math,
-                     NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 };
 

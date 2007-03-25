@@ -86,7 +86,8 @@ bNodeType cmp_node_normal= {
 	/* output sock */	cmp_node_normal_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_normal,
-   /* butfunc     */ node_buts_normal
+	/* butfunc     */ 	NULL,
+	/* initfunc    */	NULL
 	
 };
 

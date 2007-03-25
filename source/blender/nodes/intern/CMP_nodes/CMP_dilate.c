@@ -143,16 +143,6 @@ static void node_composit_exec_dilateerode(void *data, bNode *node, bNodeStack *
 	}
 }
 
-static int node_composit_buts_dilateerode(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Distance:",
-         butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-         &node->custom2, -100, 100, 0, 0, "Distance to grow/shrink (number of iterations)");
-   }
-   return 20;
-}
-
 bNodeType cmp_node_dilateerode= {
 	/* type code   */	CMP_NODE_DILATEERODE,
 	/* name        */	"Dilate/Erode",
@@ -162,7 +152,8 @@ bNodeType cmp_node_dilateerode= {
 	/* output sock */	cmp_node_dilateerode_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_dilateerode,
-   /* butfunc     */ node_composit_buts_dilateerode
+    /* butfunc     */   NULL,
+	/* initfunc	   */   NULL
 };
 
 

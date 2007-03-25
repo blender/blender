@@ -105,7 +105,8 @@ bNodeType cmp_node_sepyuva= {
 	/* output sock */ cmp_node_sepyuva_out,
 	/* storage     */ "",
 	/* execfunc    */ node_composit_exec_sepyuva,
-   /* butfunc     */ NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 };
 
 
@@ -175,6 +176,7 @@ bNodeType cmp_node_combyuva= {
 	/* output sock */	cmp_node_combyuva_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_combyuva,
-   /* butfunc     */ NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 };
 

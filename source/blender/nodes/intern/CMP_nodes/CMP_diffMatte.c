@@ -185,50 +185,6 @@ static void node_composit_exec_diff_matte(void *data, bNode *node, bNodeStack **
 		free_compbuf(inbuf);
 }
 
-static int node_composit_buts_diff_matte(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      short sx= (butr->xmax-butr->xmin)/4;
-      short dx= (butr->xmax-butr->xmin)/3;
-      NodeChroma *c= node->storage;
-
-      uiBlockBeginAlign(block);
-      /*color space selectors*/
-      uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"RGB",
-         butr->xmin,butr->ymin+60,sx,20,
-         &node->custom1,1,1, 0, 0, "RGB Color Space");
-      uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"HSV",
-         butr->xmin+sx,butr->ymin+60,sx,20,
-         &node->custom1,1,2, 0, 0, "HSV Color Space");
-      uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"YUV",
-         butr->xmin+2*sx,butr->ymin+60,sx,20,
-         &node->custom1,1,3, 0, 0, "YUV Color Space");
-      uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"YCC",
-         butr->xmin+3*sx,butr->ymin+60,sx,20,
-         &node->custom1,1,4, 0, 0, "YCbCr Color Space");
-      /*channel tolorences*/
-      uiDefButF(block, NUM, B_NODE_EXEC+node->nr, " ",
-         butr->xmin, butr->ymin+40, dx, 20,
-         &c->t1, 0.0f, 1.0f, 100, 0, "Channel 1 Tolerance");
-      uiDefButF(block, NUM, B_NODE_EXEC+node->nr, " ",
-         butr->xmin+dx, butr->ymin+40, dx, 20,
-         &c->t2, 0.0f, 1.0f, 100, 0, "Channel 2 Tolorence");
-      uiDefButF(block, NUM, B_NODE_EXEC+node->nr, " ",
-         butr->xmin+2*dx, butr->ymin+40, dx, 20,
-         &c->t3, 0.0f, 1.0f, 100, 0, "Channel 3 Tolorence");
-      /*falloff parameters*/
-      /*
-      uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Falloff Size ",
-      butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
-      &c->fsize, 0.0f, 1.0f, 100, 0, "");
-      */
-      uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Falloff: ",
-         butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20,
-         &c->fstrength, 0.0f, 1.0f, 100, 0, "");
-   }
-   return 80;
-}
-
 static void node_composit_init_diff_matte(bNode *node)
 {
    NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
@@ -250,8 +206,8 @@ bNodeType cmp_node_diff_matte={
 	/* output sock */       cmp_node_diff_matte_out,
 	/* storage     */       "NodeChroma",
 	/* execfunc    */       node_composit_exec_diff_matte,
-   /* butfunc     */       node_composit_buts_diff_matte,
-                           node_composit_init_diff_matte
+    /* butfunc     */       NULL,
+    /* initfunc    */       node_composit_init_diff_matte
 };
 
 

@@ -160,36 +160,6 @@ static void node_composit_exec_chroma_matte(void *data, bNode *node, bNodeStack 
 		free_compbuf(cbuf);
 };
 
-static int node_composit_buts_chroma_matte(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      short dx=(butr->xmax-butr->xmin)/2;
-      NodeChroma *c= node->storage;
-      uiBlockBeginAlign(block);
-
-      uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Acceptance ",
-         butr->xmin, butr->ymin+60, butr->xmax-butr->xmin, 20,
-         &c->t1, 1.0f, 80.0f, 100, 0, "Tolerance for colors to be considered a keying color");
-      uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Cutoff ",
-         butr->xmin, butr->ymin+40, butr->xmax-butr->xmin, 20,
-         &c->t2, 0.0f, 30.0f, 100, 0, "Colors below this will be considered as exact matches for keying color");
-
-      uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Lift ",
-         butr->xmin, butr->ymin+20, dx, 20,
-         &c->fsize, 0.0f, 1.0f, 100, 0, "Alpha Lift");
-      uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Gain ",
-         butr->xmin+dx, butr->ymin+20, dx, 20,
-         &c->fstrength, 0.0f, 1.0f, 100, 0, "Alpha Gain");
-
-      uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Shadow Adjust ",
-         butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
-         &c->t3, 0.0f, 1.0f, 100, 0, "Adjusts the brightness of any shadows captured");
-
-      if(c->t2 > c->t1)
-         c->t2=c->t1;
-   }
-   return 80;
-}
 
 static void node_composit_init_chroma_matte(bNode *node)
 {
@@ -211,7 +181,7 @@ bNodeType cmp_node_chroma={
    /* output sock */       cmp_node_chroma_out,
    /* storage     */       "NodeChroma",
    /* execfunc    */       node_composit_exec_chroma_matte,
-   /* butfunc     */       node_composit_buts_chroma_matte,
+   /* butfunc     */       NULL,
                            node_composit_init_chroma_matte
 };
 

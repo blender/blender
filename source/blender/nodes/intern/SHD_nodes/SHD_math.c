@@ -187,7 +187,7 @@ bNodeType sh_node_math= {
 	/* output sock */ sh_node_math_out, 
 	/* storage     */ "node_math", 
 	/* execfunc    */ node_shader_exec_math,
-   /* butfunc     */ node_buts_math,
-                     NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 };
 

@@ -125,6 +125,6 @@ bNodeType cmp_node_vecblur= {
 	/* output sock */	cmp_node_vecblur_out,
 	/* storage     */	"NodeBlurData",
    /* execfunc    */	node_composit_exec_vecblur,
-   /* butfunc     */ node_composit_buts_vecblur,
-                     node_composit_init_vecblur	
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   node_composit_init_vecblur	
 };

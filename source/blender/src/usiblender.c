@@ -859,7 +859,7 @@ void BIF_init(void)
 	initbuttons();
 	InitCursorData();
 	sound_init_listener();
-	/*init_node_butfuncs();*/ /*removed because nodes now take care of themselves */
+	init_node_butfuncs();
 	
 	BIF_preview_init_dbase();
 	BIF_read_homefile(0);

@@ -119,8 +119,8 @@ bNodeType sh_node_texture= {
 	/* output sock */	sh_node_texture_out,
 	/* storage     */	"",
 	/* execfunc    */	node_shader_exec_texture,
-   /* butfunc     */ node_buts_texture,
-                     NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 	
 };
 

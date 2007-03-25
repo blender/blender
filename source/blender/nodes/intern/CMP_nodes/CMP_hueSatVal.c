@@ -92,25 +92,6 @@ static void node_composit_exec_hue_sat(void *data, bNode *node, bNodeStack **in,
 	}
 }
 
-static int node_composit_buts_hue_sat(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      NodeHueSat *nhs= node->storage;
-
-      uiBlockBeginAlign(block);
-      uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Hue: ",
-         butr->xmin, butr->ymin+40.0f, butr->xmax-butr->xmin, 20, 
-         &nhs->hue, 0.0f, 1.0f, 100, 0, "");
-      uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Sat: ",
-         butr->xmin, butr->ymin+20.0f, butr->xmax-butr->xmin, 20, 
-         &nhs->sat, 0.0f, 2.0f, 100, 0, "");
-      uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Val: ",
-         butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-         &nhs->val, 0.0f, 2.0f, 100, 0, "");
-   }
-   return 60;
-}
-
 static void node_composit_init_hue_sat(bNode* node)
 {
    NodeHueSat *nhs= MEM_callocN(sizeof(NodeHueSat), "node hue sat");
@@ -129,8 +110,8 @@ bNodeType cmp_node_hue_sat= {
 	/* output sock */	cmp_node_hue_sat_out,
 	/* storage     */	"NodeHueSat", 
 	/* execfunc    */	node_composit_exec_hue_sat,
-   /* butfunc     */ node_composit_buts_hue_sat,
-                     node_composit_init_hue_sat
+	/* butfunc     */   NULL,
+	/* initfunc    */   node_composit_init_hue_sat
 	
 };
 

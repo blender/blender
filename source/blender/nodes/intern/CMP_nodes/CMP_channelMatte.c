@@ -176,63 +176,6 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 
 }
 
-static int node_composit_buts_channel_matte(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      short sx= (butr->xmax-butr->xmin)/4;
-      short cx= (butr->xmax-butr->xmin)/3;
-      NodeChroma *c=node->storage;
-      char *c1, *c2, *c3;
-
-      /*color space selectors*/
-      uiBlockBeginAlign(block);
-      uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"RGB",
-         butr->xmin,butr->ymin+60,sx,20,&node->custom1,1,1, 0, 0, "RGB Color Space");
-      uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"HSV",
-         butr->xmin+sx,butr->ymin+60,sx,20,&node->custom1,1,2, 0, 0, "HSV Color Space");
-      uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"YUV",
-         butr->xmin+2*sx,butr->ymin+60,sx,20,&node->custom1,1,3, 0, 0, "YUV Color Space");
-      uiDefButS(block, ROW,B_NODE_EXEC+node->nr,"YCC",
-         butr->xmin+3*sx,butr->ymin+60,sx,20,&node->custom1,1,4, 0, 0, "YCbCr Color Space");
-
-      if (node->custom1==1) {
-         c1="R"; c2="G"; c3="B";
-      }
-      else if(node->custom1==2){
-         c1="H"; c2="S"; c3="V";
-      }
-      else if(node->custom1==3){
-         c1="Y"; c2="U"; c3="V";
-      }
-      else { // if(node->custom1==4){
-         c1="Y"; c2="Cb"; c3="Cr";
-      }
-
-      /*channel selector */
-      uiDefButS(block, ROW, B_NODE_EXEC+node->nr, c1,
-         butr->xmin,butr->ymin+40,cx,20,&node->custom2,1, 1, 0, 0, "Channel 1");
-      uiDefButS(block, ROW, B_NODE_EXEC+node->nr, c2,
-         butr->xmin+cx,butr->ymin+40,cx,20,&node->custom2,1, 2, 0, 0, "Channel 2");
-      uiDefButS(block, ROW, B_NODE_EXEC+node->nr, c3,
-         butr->xmin+cx+cx,butr->ymin+40,cx,20,&node->custom2, 1, 3, 0, 0, "Channel 3");
-
-      /*tolerance sliders */
-      uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "High ", 
-         butr->xmin, butr->ymin+20.0, butr->xmax-butr->xmin, 20,
-         &c->t1, 0.0f, 1.0f, 100, 0, "Values higher than this setting are 100% opaque");
-      uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Low ", 
-         butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
-         &c->t2, 0.0f, 1.0f, 100, 0, "Values lower than this setting are 100% keyed");
-      uiBlockEndAlign(block);
-
-      /*keep t2 (low) less than t1 (high) */
-      if(c->t2 > c->t1) {
-         c->t2=c->t1;
-      }
-   }
-   return 80;
-}
-
 static void node_composit_init_channel_matte(bNode *node)
 {
    NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
@@ -255,6 +198,6 @@ bNodeType cmp_node_channel_matte={
    /* output sock */       cmp_node_channel_matte_out,
    /* storage     */       "NodeChroma",
    /* execfunc    */       node_composit_exec_channel_matte,
-   /* butfunc     */       node_composit_buts_channel_matte,
+   /* butfunc     */       NULL,
                            node_composit_init_channel_matte
 };

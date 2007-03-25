@@ -108,18 +108,6 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNod
 	}
 }
 
-static int node_shader_buts_geometry(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      NodeGeometry *ngeo= (NodeGeometry*)node->storage;
-
-      uiDefBut(block, TEX, B_NODE_EXEC+node->nr, "UV:", butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20, ngeo->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
-      uiDefBut(block, TEX, B_NODE_EXEC+node->nr, "Col:", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, ngeo->colname, 0, 31, 0, 0, "Set name of vertex color layer to use, default is active vertex color layer");
-   }
-
-   return 40;
-}
-
 static void node_shader_init_geometry(bNode *node)
 {
    node->storage= MEM_callocN(sizeof(NodeGeometry), "NodeGeometry");
@@ -135,7 +123,7 @@ bNodeType sh_node_geom= {
 	/* output sock */	sh_node_geom_out,
 	/* storage     */	"NodeGeometry",
 	/* execfunc    */	node_shader_exec_geom,
-   /* butfunc     */ node_shader_buts_geometry,
-   /* initfunc    */ node_shader_init_geometry
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   node_shader_init_geometry
 	
 };

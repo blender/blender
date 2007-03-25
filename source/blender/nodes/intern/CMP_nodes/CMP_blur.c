@@ -611,39 +611,6 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 		free_compbuf(img);
 }
 
-static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      NodeBlurData *nbd= node->storage;
-      uiBut *bt;
-      short dy= butr->ymin+38;
-      short dx= (butr->xmax-butr->xmin)/2;
-      char str[256];
-
-      uiBlockBeginAlign(block);
-      sprintf(str, "Filter Type%%t|Flat %%x%d|Tent %%x%d|Quad %%x%d|Cubic %%x%d|Gauss %%x%d|CatRom %%x%d|Mitch %%x%d", R_FILTER_BOX, R_FILTER_TENT, R_FILTER_QUAD, R_FILTER_CUBIC, R_FILTER_GAUSS, R_FILTER_CATROM, R_FILTER_MITCH);
-      uiDefButS(block, MENU, B_NODE_EXEC+node->nr,str,		
-         butr->xmin, dy, dx*2, 19, 
-         &nbd->filtertype, 0, 0, 0, 0, "Set sampling filter for blur");
-      dy-=19;		  
-      uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Bokeh",		
-         butr->xmin, dy, dx, 19, 
-         &nbd->bokeh, 0, 0, 0, 0, "Uses circular filter, warning it's slow!");
-      uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Gamma",		
-         butr->xmin+dx, dy, dx, 19, 
-         &nbd->gamma, 0, 0, 0, 0, "Applies filter on gamma corrected values");
-
-      dy-=19;
-      bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X:",
-         butr->xmin, dy, dx, 19, 
-         &nbd->sizex, 0, 256, 0, 0, "");
-      bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y:",
-         butr->xmin+dx, dy, dx, 19, 
-         &nbd->sizey, 0, 256, 0, 0, "");
-   }
-   return 57;
-}
-
 static void node_composit_init_blur(bNode* node)
 {
    node->storage= MEM_callocN(sizeof(NodeBlurData), "node blur data");
@@ -658,8 +625,8 @@ bNodeType cmp_node_blur= {
    /* output sock */	cmp_node_blur_out,
    /* storage     */	"NodeBlurData",
    /* execfunc    */	node_composit_exec_blur,
-   /* butfunc     */ node_composit_buts_blur,
-                     node_composit_init_blur
+   /* butfunc     */	NULL,
+	/*initfunc    */    node_composit_init_blur
 };
 
 

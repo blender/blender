@@ -71,8 +71,8 @@ bNodeType sh_node_output= {
 	/* output sock */	NULL,
 	/* storage     */	"",
 	/* execfunc    */	node_shader_exec_output,
-   /* butfunc     */ NULL,
-                     NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 	
 };
 

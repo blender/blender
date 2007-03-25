@@ -96,5 +96,6 @@ bNodeType cmp_node_composite= {
 	/* output sock */	NULL,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_composite,
-   /* butfunc     */ NULL
+    /* butfunc     */ 	NULL,
+	/*initfunc	  */    NULL
 };

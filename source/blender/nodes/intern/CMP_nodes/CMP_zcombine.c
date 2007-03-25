@@ -145,6 +145,7 @@ bNodeType cmp_node_zcombine= {
 	/* output sock */	cmp_node_zcombine_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_zcombine,
-   /* butfunc     */ NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 	
 };

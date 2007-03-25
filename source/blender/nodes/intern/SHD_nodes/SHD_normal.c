@@ -66,7 +66,7 @@ bNodeType sh_node_normal= {
 	/* output sock */	sh_node_normal_out,
 	/* storage     */	"",
 	/* execfunc    */	node_shader_exec_normal,
-	/* butfunc     */ node_buts_normal,
-                     NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 };
 

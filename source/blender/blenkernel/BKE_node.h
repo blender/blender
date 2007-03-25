@@ -190,7 +190,10 @@ struct ShadeResult;
 #define SH_NODE_SQUEEZE		117
 
 
-
+/* custom defines options for Material node */
+#define SH_NODE_MAT_DIFF   1
+#define SH_NODE_MAT_SPEC   2
+#define SH_NODE_MAT_NEG    4
 
 /* the type definitions array */
 static bNodeType *node_all_shaders[];
@@ -274,6 +277,19 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_COMBHSVA	246
 #define CMP_NODE_MATH		247
 #define CMP_NODE_LUMA_MATTE	248
+
+/* filter types */
+#define CMP_FILT_SOFT		0
+#define CMP_FILT_SHARP		1
+#define CMP_FILT_LAPLACE	2
+#define CMP_FILT_SOBEL		3
+#define CMP_FILT_PREWITT	4
+#define CMP_FILT_KIRSCH		5
+#define CMP_FILT_SHADOW		6
+
+/* scale node type, in custom1 */
+#define CMP_SCALE_RELATIVE	0
+#define CMP_SCALE_ABSOLUTE	1
 
 
 /* the type definitions array */

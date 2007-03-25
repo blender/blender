@@ -101,35 +101,6 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 	}
 };
 
-static void node_scale_cb(void *node_v, void *unused_v)
-{
-   bNode *node= node_v;
-   bNodeSocket *nsock;
-
-   /* check the 2 inputs, and set them to reasonable values */
-   for(nsock= node->inputs.first; nsock; nsock= nsock->next) {
-      if(node->custom1==CMP_SCALE_RELATIVE)
-         nsock->ns.vec[0]= 1.0;
-      else {
-         if(nsock->next==NULL)
-            nsock->ns.vec[0]= (float)G.scene->r.ysch;
-         else
-            nsock->ns.vec[0]= (float)G.scene->r.xsch;
-      }
-   }	
-}
-
-static int node_composit_buts_scale(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      uiBut *bt= uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "Absolute",
-         butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-         &node->custom1, 0, 0, 0, 0, "");
-      uiButSetFunc(bt, node_scale_cb, node, NULL);
-   }
-   return 20;
-};
-
 bNodeType cmp_node_scale= {
 	/* type code   */	CMP_NODE_SCALE,
 	/* name        */	"Scale",
@@ -139,7 +110,8 @@ bNodeType cmp_node_scale= {
 	/* output sock */	cmp_node_scale_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_scale,
-   /* butfunc     */ node_composit_buts_scale
+	/* butfunc     */ 	NULL,
+	/* initfunc	   */   NULL
 };
 
 

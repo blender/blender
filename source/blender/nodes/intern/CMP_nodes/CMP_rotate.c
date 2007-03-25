@@ -141,5 +141,6 @@ bNodeType cmp_node_rotate= {
 	/* output sock */	cmp_node_rotate_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_rotate,
-   /* butfunc     */ NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */	NULL
 };

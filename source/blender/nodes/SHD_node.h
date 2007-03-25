@@ -35,10 +35,6 @@
 
 #include "BKE_node.h"
 
-/* custom defines options for Material node */
-#define SH_NODE_MAT_DIFF   1
-#define SH_NODE_MAT_SPEC   2
-#define SH_NODE_MAT_NEG    4
 
 /* the type definitions array */
 /* ****************** types array for all shaders ****************** */

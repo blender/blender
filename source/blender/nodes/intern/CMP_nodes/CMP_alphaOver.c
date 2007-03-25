@@ -107,18 +107,6 @@ static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **i
 	}
 }
 
-static int node_composit_buts_alphaover(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-
-      /* alpha type */
-      uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "ConvertPremul",
-         butr->xmin, butr->ymin, butr->xmax-butr->xmin, 19, 
-         &node->custom1, 0, 0, 0, 0, "");
-   }
-   return 19;
-}
-
 bNodeType cmp_node_alphaover= {
 	/* type code   */	CMP_NODE_ALPHAOVER,
 	/* name        */	"AlphaOver",
@@ -128,7 +116,8 @@ bNodeType cmp_node_alphaover= {
 	/* output sock */	cmp_node_alphaover_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_alphaover,
-   /* butfunc     */ node_composit_buts_alphaover
+	/* butfunc     */ 	NULL,
+	/*initfunc     */   NULL
 	
 };
 

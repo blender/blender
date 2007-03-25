@@ -79,72 +79,6 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 	}
 }
 
-
-
-/* allocate sufficient! */
-static void node_imagetype_string(char *str)
-{
-   str += sprintf(str, "Save Image as: %%t|");
-   str += sprintf(str, "Targa %%x%d|", R_TARGA);
-   str += sprintf(str, "Targa Raw %%x%d|", R_RAWTGA);
-   str += sprintf(str, "PNG %%x%d|", R_PNG);
-   str += sprintf(str, "BMP %%x%d|", R_BMP);
-   str += sprintf(str, "Jpeg %%x%d|", R_JPEG90);
-   str += sprintf(str, "Iris %%x%d|", R_IRIS);
-   str += sprintf(str, "Radiance HDR %%x%d|", R_RADHDR);
-   str += sprintf(str, "Cineon %%x%d|", R_CINEON);
-   str += sprintf(str, "DPX %%x%d|", R_DPX);
-   str += sprintf(str, "OpenEXR %%x%d", R_OPENEXR);
-}
-
-static int node_composit_buts_output_file(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      NodeImageFile *nif= node->storage;
-      short x= (short)butr->xmin;
-      short y= (short)butr->ymin;
-      short w= (short)butr->xmax-butr->xmin;
-      char str[320];
-
-      node_imagetype_string(str);
-
-      uiBlockBeginAlign(block);
-
-      uiDefBut(block, TEX, B_NOP, "",
-         x, y+60, w, 20, 
-         nif->name, 0.0f, 240.0f, 0, 0, "");
-
-      uiDefButS(block, MENU, B_NOP, str,
-         x, y+40, w, 20, 
-         &nif->imtype, 0.0f, 1.0f, 0, 0, "");
-
-      if(nif->imtype==R_OPENEXR) {
-         uiDefButBitS(block, TOG, R_OPENEXR_HALF, B_REDR, "Half",	
-            x, y+20, w/2, 20, 
-            &nif->subimtype, 0, 0, 0, 0, "");
-
-         uiDefButS(block, MENU,B_NOP, "Codec %t|None %x0|Pxr24 (lossy) %x1|ZIP (lossless) %x2|PIZ (lossless) %x3|RLE (lossless) %x4",  
-            x+w/2, y+20, w/2, 20, 
-            &nif->codec, 0, 0, 0, 0, "");
-      }
-      else {
-         uiDefButS(block, NUM, B_NOP, "Quality: ",
-            x, y+20, w, 20, 
-            &nif->quality, 10.0f, 100.0f, 10, 0, "");
-      }
-
-      /* start frame, end frame */
-      uiDefButI(block, NUM, B_NODE_EXEC+node->nr, "SFra: ", 
-         x, y, w/2, 20, 
-         &nif->sfra, 1, MAXFRAMEF, 10, 0, "");
-      uiDefButI(block, NUM, B_NODE_EXEC+node->nr, "EFra: ", 
-         x+w/2, y, w/2, 20, 
-         &nif->efra, 1, MAXFRAMEF, 10, 0, "");
-
-   }
-   return 80;
-}
-
 static void node_composit_init_output_file(bNode *node)
 {
    NodeImageFile *nif= MEM_callocN(sizeof(NodeImageFile), "node image file");
@@ -166,8 +100,8 @@ bNodeType cmp_node_output_file= {
 	/* output sock */	NULL,
 	/* storage     */	"NodeImageFile",
 	/* execfunc    */	node_composit_exec_output_file,
-   /* butfunc     */ node_composit_buts_output_file,
-                     node_composit_init_output_file
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_output_file
 	
 };
 

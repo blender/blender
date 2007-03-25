@@ -35,17 +35,6 @@
 
 #include "BKE_node.h"
 
-#define CMP_FILT_SOFT		0
-#define CMP_FILT_SHARP		1
-#define CMP_FILT_LAPLACE	2
-#define CMP_FILT_SOBEL		3
-#define CMP_FILT_PREWITT	4
-#define CMP_FILT_KIRSCH		5
-#define CMP_FILT_SHADOW		6
-
-/* scale node type, in custom1 */
-#define CMP_SCALE_RELATIVE	0
-#define CMP_SCALE_ABSOLUTE	1
 
 /* ****************** types array for all composite nodes ****************** */
 

@@ -98,9 +98,9 @@ void node_draw_link(struct SpaceNode *snode, struct bNodeLink *link);
 void init_node_butfuncs(void);
 
 /* exported to CMP and SHD nodes */
-void node_ID_title_cb(void *node_v, void *unused_v);
-void node_but_title_cb(void *node_v, void *but_v);
-void node_texmap_cb(void *texmap_v, void *unused_v);
+//void node_ID_title_cb(void *node_v, void *unused_v);
+//void node_but_title_cb(void *node_v, void *but_v);
+//void node_texmap_cb(void *texmap_v, void *unused_v);
 //void node_new_mat_cb(void *ntree_v, void *node_v);
 //void node_browse_mat_cb(void *ntree_v, void *node_v);
 //void node_mat_alone_cb(void *node_v, void *unused);
@@ -117,16 +117,16 @@ void node_texmap_cb(void *texmap_v, void *unused_v);
 //void node_browse_scene_cb(void *ntree_v, void *node_v);
 
 
-int node_buts_curvevec(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
-int node_buts_curvecol(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
-int node_buts_rgb(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
-int node_buts_texture(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
-int node_buts_valtorgb(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
-int node_buts_value(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
-int node_buts_mix_rgb(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
-int node_buts_group(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
-int node_buts_normal(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
-int node_buts_math(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr) ;
+//int node_buts_curvevec(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
+//int node_buts_curvecol(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
+//int node_buts_rgb(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
+//int node_buts_texture(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
+//int node_buts_valtorgb(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
+//int node_buts_value(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
+//int node_buts_mix_rgb(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
+//int node_buts_group(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
+//int node_buts_normal(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr);
+//int node_buts_math(struct uiBlock *block, struct bNodeTree *ntree, struct bNode *node, struct rctf *butr) ;
 
 
 /* ************* Shader nodes ***************** */

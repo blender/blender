@@ -51,35 +51,6 @@ static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack *
 }
 
 
-static int node_composit_buts_curves_time(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      CurveMapping *cumap= node->storage;
-      short dx= (butr->xmax-butr->xmin)/2;
-      rctf *curvebutr;
-
-      memcpy(&curvebutr, &butr, sizeof(rctf));
-      curvebutr->ymin += 26;
-
-      curvemap_buttons(block, node->storage, 's', B_NODE_EXEC+node->nr, B_REDR, curvebutr);
-
-      cumap->flag |= CUMA_DRAW_CFRA;
-      if(node->custom1<node->custom2)
-         cumap->black[0]= (float)(CFRA - node->custom1)/(float)(node->custom2-node->custom1);
-
-      uiBlockBeginAlign(block);
-      uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Sta:",
-         butr->xmin, butr->ymin-22, dx, 19, 
-         &node->custom1, 1.0, 20000.0, 0, 0, "Start frame");
-      uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "End:",
-         butr->xmin+dx, butr->ymin-22, dx, 19, 
-         &node->custom2, 1.0, 20000.0, 0, 0, "End frame");
-
-   }
-
-   return node->width-NODE_DY;
-};
-
 static void node_composit_init_curves_time(bNode* node)
 {
    node->custom1= G.scene->r.sfra;
@@ -96,8 +67,8 @@ bNodeType cmp_node_curve_time= {
 	/* output sock */	cmp_node_time_out,
 	/* storage     */	"CurveMapping",
 	/* execfunc    */	node_composit_exec_curves_time,
-   /* butfunc     */ node_composit_buts_curves_time,
-                     node_composit_init_curves_time
+	/* butfunc     */ 	NULL,
+	/* initfunc    */	node_composit_init_curves_time
 };
 
 
@@ -135,8 +106,8 @@ bNodeType cmp_node_curve_vec= {
 	/* output sock */	cmp_node_curve_vec_out,
 	/* storage     */	"CurveMapping",
 	/* execfunc    */	node_composit_exec_curve_vec,
-   /* butfunc     */ node_buts_curvevec,
-                     node_composit_init_curve_vec
+	/* butfunc     */ 	NULL,
+	/* initfunc    */	node_composit_init_curve_vec
 	
 };
 
@@ -217,7 +188,7 @@ bNodeType cmp_node_curve_rgb= {
 	/* output sock */	cmp_node_curve_rgb_out,
 	/* storage     */	"CurveMapping",
 	/* execfunc    */	node_composit_exec_curve_rgb,
-   /* butfunc     */ node_buts_curvecol,
-                     node_composit_init_curve_rgb	
+	/* butfunc     */ 	NULL,
+	/* initfunc    */  	node_composit_init_curve_rgb	
 };
 

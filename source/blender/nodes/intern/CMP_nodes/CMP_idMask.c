@@ -84,16 +84,6 @@ static void node_composit_exec_idmask(void *data, bNode *node, bNodeStack **in, 
 }
 
 
-static int node_composit_buts_id_mask(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "ID:",
-         butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-         &node->custom1, 0, 10000, 0, 0, "Pass Index number to convert to Alpha");
-   }
-   return 20;
-}
-
 bNodeType cmp_node_idmask= {
 	/* type code   */	CMP_NODE_ID_MASK,
 	/* name        */	"ID Mask",
@@ -103,7 +93,8 @@ bNodeType cmp_node_idmask= {
 	/* output sock */	cmp_node_idmask_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_idmask,
-   /* butfunc     */ node_composit_buts_id_mask
+	/* butfunc     */   NULL,
+	/* initfunc	   */   NULL
 };
 
 

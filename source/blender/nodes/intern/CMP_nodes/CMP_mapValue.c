@@ -73,28 +73,6 @@ static void node_composit_exec_map_value(void *data, bNode *node, bNodeStack **i
 	}
 }
 
-static int node_composit_buts_map_value(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      TexMapping *texmap= node->storage;
-      short xstart= (short)butr->xmin;
-      short dy= (short)(butr->ymax-19.0f);
-      short dx= (short)(butr->xmax-butr->xmin)/2;
-
-      uiBlockBeginAlign(block);
-      uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Offs:", xstart, dy, 2*dx, 19, texmap->loc, -1000.0f, 1000.0f, 10, 2, "");
-      dy-= 19;
-      uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Size:", xstart, dy, 2*dx, 19, texmap->size, -1000.0f, 1000.0f, 10, 3, "");
-      dy-= 23;
-      uiBlockBeginAlign(block);
-      uiDefButBitI(block, TOG, TEXMAP_CLIP_MIN, B_NODE_EXEC+node->nr, "Min", xstart, dy, dx, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
-      uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", xstart+dx, dy, dx, 19, texmap->min, -1000.0f, 1000.0f, 10, 2, "");
-      dy-= 19;
-      uiDefButBitI(block, TOG, TEXMAP_CLIP_MAX, B_NODE_EXEC+node->nr, "Max", xstart, dy, dx, 19, &texmap->flag, 0.0f, 0.0f, 0, 0, "");
-      uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "", xstart+dx, dy, dx, 19, texmap->max, -1000.0f, 1000.0f, 10, 2, "");
-   }
-   return 80;
-};
 
 static void node_composit_init_map_value(bNode* node)
 {
@@ -110,8 +88,8 @@ bNodeType cmp_node_map_value= {
 	/* output sock */	cmp_node_map_value_out,
 	/* storage     */	"TexMapping",
 	/* execfunc    */	node_composit_exec_map_value,
-   /* butfunc     */ node_composit_buts_map_value,
-                     node_composit_init_map_value
+    /* butfunc     */	NULL,
+	/* initfunc	   */	node_composit_init_map_value
 	
 };
 

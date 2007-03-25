@@ -85,20 +85,6 @@ static void node_composit_exec_flip(void *data, bNode *node, bNodeStack **in, bN
 	}
 }
 
-static int node_composit_buts_flip(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr) 
-{
-   if(block) {
-      uiBut *bt;
-
-      /* flip x\y */
-      bt=uiDefButS(block, MENU, B_NODE_EXEC+node->nr, "Flip X %x0|Flip Y %x1|Flip X & Y %x2",
-         butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-         &node->custom1, 0, 0, 0, 0, "");
-      uiButSetFunc(bt, node_but_title_cb, node, bt);
-   }
-   return 20;	
-}
-
 bNodeType cmp_node_flip= {
 	/* type code   */	CMP_NODE_FLIP,
 	/* name        */	"Flip",
@@ -108,7 +94,8 @@ bNodeType cmp_node_flip= {
 	/* output sock */	cmp_node_flip_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_flip,
-   /* butfunc     */ node_composit_buts_flip
+	/* butfunc     */   NULL,
+	/* initfunc	   */   NULL
 };
 
 

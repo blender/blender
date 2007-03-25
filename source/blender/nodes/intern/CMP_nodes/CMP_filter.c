@@ -213,19 +213,6 @@ static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, 
 	}
 }
 
-static int node_composit_buts_filter(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      uiBut *bt;
-
-      /* blend type */
-      bt=uiDefButS(block, MENU, B_NODE_EXEC+node->nr, "Soften %x0|Sharpen %x1|Laplace %x2|Sobel %x3|Prewitt %x4|Kirsch %x5|Shadow %x6",
-         butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-         &node->custom1, 0, 0, 0, 0, "");
-      uiButSetFunc(bt, node_but_title_cb, node, bt);
-   }
-   return 20;
-}
 
 bNodeType cmp_node_filter= {
 	/* type code   */	CMP_NODE_FILTER,
@@ -236,7 +223,8 @@ bNodeType cmp_node_filter= {
 	/* output sock */	cmp_node_filter_out,
 	/* storage     */	"", 
 	/* execfunc    */	node_composit_exec_filter,
-   /* butfunc     */ node_composit_buts_filter
+	/* butfunc     */   NULL,
+	/* initfunc	   */   NULL
 	
 };
 

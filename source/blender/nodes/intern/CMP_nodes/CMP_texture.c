@@ -126,7 +126,8 @@ bNodeType cmp_node_texture= {
 	/* output sock */	cmp_node_texture_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_texture,
-   /* butfunc     */ node_buts_texture
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 	
 };
 

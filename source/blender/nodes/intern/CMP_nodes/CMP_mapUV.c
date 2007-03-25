@@ -129,16 +129,6 @@ static void node_composit_exec_mapuv(void *data, bNode *node, bNodeStack **in, b
 	}
 }
 
-static int node_composit_buts_map_uv(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Alpha:",
-         butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-         &node->custom1, 0, 100, 0, 0, "Conversion percentage of UV differences to Alpha");
-   }
-   return 20;
-}
-
 bNodeType cmp_node_mapuv= {
 	/* type code   */	CMP_NODE_MAP_UV,
 	/* name        */	"Map UV",
@@ -148,7 +138,8 @@ bNodeType cmp_node_mapuv= {
 	/* output sock */	cmp_node_mapuv_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_mapuv,
-   /* butfunc     */ node_composit_buts_map_uv
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL
 };
 
 

@@ -95,28 +95,6 @@ static void node_composit_exec_luma_matte(void *data, bNode *node, bNodeStack **
 		free_compbuf(cbuf);
 }
 
-static int node_composit_buts_luma_matte(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      NodeChroma *c=node->storage;
-
-      /*tolerance sliders */
-      uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "High ", 
-         butr->xmin, butr->ymin+20.0, butr->xmax-butr->xmin, 20,
-         &c->t1, 0.0f, 1.0f, 100, 0, "Values higher than this setting are 100% opaque");
-      uiDefButF(block, NUMSLI, B_NODE_EXEC+node->nr, "Low ", 
-         butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20,
-         &c->t2, 0.0f, 1.0f, 100, 0, "Values lower than this setting are 100% keyed");
-      uiBlockEndAlign(block);
-
-      /*keep t2 (low) less than t1 (high) */
-      if(c->t2 > c->t1) {
-         c->t2=c->t1;
-      }
-   }
-   return 40;
-}
-
 static void node_composit_init_luma_matte(bNode *node)
 {
    NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
@@ -134,7 +112,7 @@ bNodeType cmp_node_luma_matte={
 	/* output sock */       cmp_node_luma_matte_out,
 	/* storage     */       "NodeChroma",
 	/* execfunc    */       node_composit_exec_luma_matte,
-   /* butfunc     */       node_composit_buts_luma_matte,
-                           node_composit_init_luma_matte
+	/* butfunc     */       NULL,
+	/* initfunc    */		node_composit_init_luma_matte
 };
 

@@ -52,7 +52,8 @@ bNodeType cmp_node_rgb= {
 	/* output sock */	cmp_node_rgb_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_rgb,
-   /* butfunc     */ node_buts_rgb
+	/* butfunc     */	NULL,
+	/* initfunc	   */	NULL
 	
 };
 

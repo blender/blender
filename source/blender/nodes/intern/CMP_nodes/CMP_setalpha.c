@@ -79,6 +79,7 @@ bNodeType cmp_node_setalpha= {
 	/* output sock */	cmp_node_setalpha_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_setalpha,
-   /* butfunc     */ NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 	
 };

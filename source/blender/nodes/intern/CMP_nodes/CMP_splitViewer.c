@@ -132,24 +132,6 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 	}
 }
 
-static int node_composit_buts_splitviewer(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {	
-      uiBlockBeginAlign(block);
-
-      uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "X",
-         butr->xmin, butr->ymin+19, (butr->xmax-butr->xmin)/2, 20, 
-         &node->custom2, 0.0, 0.0, 0, 0, "");
-      uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "Y",
-         butr->xmin+(butr->xmax-butr->xmin)/2, butr->ymin+19, (butr->xmax-butr->xmin)/2, 20, 
-         &node->custom2, 0.0, 1.0, 0, 0, "");
-
-      uiDefButS(block, NUMSLI, B_NODE_EXEC+node->nr, "Split %: ",
-         butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, &node->custom1, 0, 100, 10, 0, "");
-   }
-   return 40;
-}
-
 static void node_composit_init_splitviewer(bNode* node)
 {
    ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
@@ -169,8 +151,8 @@ bNodeType cmp_node_splitviewer= {
 	/* output sock */	NULL,
 	/* storage     */	"ImageUser",
 	/* execfunc    */	node_composit_exec_splitviewer,
-   /* butfunc     */ node_composit_buts_splitviewer,
-                     node_composit_init_splitviewer
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   node_composit_init_splitviewer
 };
 
 

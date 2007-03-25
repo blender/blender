@@ -113,30 +113,6 @@ static void node_composit_exec_color_spill(void *data, bNode *node, bNodeStack *
 		free_compbuf(cbuf);
 }
 
-static int node_composit_buts_color_spill(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      short dx= (butr->xmax-butr->xmin)/3;
-
-      NodeChroma *c=node->storage;
-      uiBlockBeginAlign(block);
-      uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Enhance: ", 
-         butr->xmin, butr->ymin+20.0, butr->xmax-butr->xmin, 20,
-         &c->t1, 0.0f, 0.5f, 100, 2, "Adjusts how much selected channel is affected by color spill algorithm");
-      uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "R",
-         butr->xmin,butr->ymin,dx,20,
-         &node->custom1,1,1, 0, 0, "Red Spill Suppression");
-      uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "G",
-         butr->xmin+dx,butr->ymin,dx,20,
-         &node->custom1,1,2, 0, 0, "Green Spill Suppression");
-      uiDefButS(block, ROW, B_NODE_EXEC+node->nr, "B",
-         butr->xmin+2*dx,butr->ymin,dx,20,
-         &node->custom1, 1, 3, 0, 0, "Blue Spill Suppression");
-      uiBlockEndAlign(block);
-   }
-   return 60;
-}
-
 static void node_composit_init_color_spill(bNode *node)
 {
    NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
@@ -158,7 +134,7 @@ bNodeType cmp_node_color_spill={
    /* output sock */       cmp_node_color_spill_out,
    /* storage     */       "NodeChroma",
    /* execfunc    */       node_composit_exec_color_spill,
-   /* butfunc     */       node_composit_buts_color_spill,
+   /* butfunc     */       NULL,
                            node_composit_init_color_spill
 };
 

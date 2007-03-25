@@ -105,7 +105,8 @@ bNodeType cmp_node_sephsva= {
 	/* output sock */	cmp_node_sephsva_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_sephsva,
-   /* butfunc     */ NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 	
 };
 
@@ -175,7 +176,8 @@ bNodeType cmp_node_combhsva= {
    /* output sock */	cmp_node_combhsva_out,
    /* storage     */	"",
    /* execfunc    */	node_composit_exec_combhsva,
-   /* butfunc     */ NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 };
 
 

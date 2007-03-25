@@ -784,8 +784,8 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup)
    /* got it-bob*/
    if(ntype->initfunc!=NULL)
       ntype->initfunc(node);
-	
-	return node;
+
+   return node;
 }
 
 /* keep socket listorder identical, for copying links */

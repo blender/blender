@@ -128,142 +128,6 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 	}
 }
 
-static void node_mat_alone_cb(void *node_v, void *unused)
-{
-   bNode *node= node_v;
-
-   node->id= (ID *)copy_material((Material *)node->id);
-
-   BIF_undo_push("Single user material");
-   allqueue(REDRAWBUTSSHADING, 0);
-   allqueue(REDRAWNODE, 0);
-   allqueue(REDRAWOOPS, 0);
-}
-
-static void node_browse_mat_cb(void *ntree_v, void *node_v)
-{
-   bNodeTree *ntree= ntree_v;
-   bNode *node= node_v;
-
-   if(node->menunr<1) return;
-
-   if(node->menunr==32767) {	/* code for Add New */
-      if(node->id) {
-         /* make copy, but make sure it doesnt have the node tag nor nodes */
-         Material *ma= (Material *)node->id;
-         ma->id.us--;
-         ma= copy_material(ma);
-         ma->use_nodes= 0;
-         if(ma->nodetree) {
-            ntreeFreeTree(ma->nodetree);
-            MEM_freeN(ma->nodetree);
-         }
-         ma->nodetree= NULL;
-         node->id= (ID *)ma;
-      }
-      else node->id= (ID *)add_material("MatNode");
-   }
-   else {
-      if(node->id) node->id->us--;
-      node->id= BLI_findlink(&G.main->mat, node->menunr-1);
-      id_us_plus(node->id);
-   }
-   BLI_strncpy(node->name, node->id->name+2, 21);
-
-   nodeSetActive(ntree, node);
-
-   allqueue(REDRAWBUTSSHADING, 0);
-   allqueue(REDRAWNODE, 0);
-   BIF_preview_changed(ID_MA);
-
-   node->menunr= 0;
-}
-
-static void node_new_mat_cb(void *ntree_v, void *node_v)
-{
-   bNodeTree *ntree= ntree_v;
-   bNode *node= node_v;
-
-   node->id= (ID *)add_material("MatNode");
-   BLI_strncpy(node->name, node->id->name+2, 21);
-
-   nodeSetActive(ntree, node);
-
-   allqueue(REDRAWBUTSSHADING, 0);
-   allqueue(REDRAWNODE, 0);
-   BIF_preview_changed(ID_MA);
-
-}
-static int node_shader_buts_material(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      uiBut *bt;
-      short dx= (short)((butr->xmax-butr->xmin)/3.0f), has_us= (node->id && node->id->us>1);
-      short dy= (short)butr->ymin;
-      char *strp;
-
-      /* WATCH IT: we use this callback in material buttons, but then only want first row */
-      if(butr->ymax-butr->ymin > 21.0f) dy+= 19;
-
-      uiBlockBeginAlign(block);
-      if(node->id==NULL) uiBlockSetCol(block, TH_REDALERT);
-      else if(has_us) uiBlockSetCol(block, TH_BUT_SETTING1);
-      else uiBlockSetCol(block, TH_BUT_SETTING2);
-
-      /* browse button */
-      IDnames_to_pupstring(&strp, NULL, "ADD NEW %x32767", &(G.main->mat), NULL, NULL);
-      node->menunr= 0;
-      bt= uiDefButS(block, MENU, B_NOP, strp, 
-         butr->xmin, dy, 19, 19, 
-         &node->menunr, 0, 0, 0, 0, "Browses existing choices or adds NEW");
-      uiButSetFunc(bt, node_browse_mat_cb, ntree, node);
-      if(strp) MEM_freeN(strp);
-
-      /* Add New button */
-      if(node->id==NULL) {
-         bt= uiDefBut(block, BUT, B_NOP, "Add New",
-            butr->xmin+19, dy, (short)(butr->xmax-butr->xmin-19.0f), 19, 
-            NULL, 0.0, 0.0, 0, 0, "Add new Material");
-         uiButSetFunc(bt, node_new_mat_cb, ntree, node);
-         uiBlockSetCol(block, TH_AUTO);
-      }
-      else {
-         /* name button */
-         short width= (short)(butr->xmax-butr->xmin-19.0f - (has_us?19.0f:0.0f));
-         bt= uiDefBut(block, TEX, B_NOP, "MA:",
-            butr->xmin+19, dy, width, 19, 
-            node->id->name+2, 0.0, 19.0, 0, 0, "Material name");
-         uiButSetFunc(bt, node_ID_title_cb, node, NULL);
-
-         /* user amount */
-         if(has_us) {
-            char str1[32];
-            sprintf(str1, "%d", node->id->us);
-            bt= uiDefBut(block, BUT, B_NOP, str1, 
-               butr->xmax-19, dy, 19, 19, 
-               NULL, 0, 0, 0, 0, "Displays number of users. Click to make a single-user copy.");
-            uiButSetFunc(bt, node_mat_alone_cb, node, NULL);
-         }
-
-         /* WATCH IT: we use this callback in material buttons, but then only want first row */
-         if(butr->ymax-butr->ymin > 21.0f) {
-            /* node options */
-            uiBlockSetCol(block, TH_AUTO);
-            uiDefButBitS(block, TOG, SH_NODE_MAT_DIFF, B_NODE_EXEC+node->nr, "Diff",
-               butr->xmin, butr->ymin, dx, 19, 
-               &node->custom1, 0, 0, 0, 0, "Material Node outputs Diffuse");
-            uiDefButBitS(block, TOG, SH_NODE_MAT_SPEC, B_NODE_EXEC+node->nr, "Spec",
-               butr->xmin+dx, butr->ymin, dx, 19, 
-               &node->custom1, 0, 0, 0, 0, "Material Node outputs Specular");
-            uiDefButBitS(block, TOG, SH_NODE_MAT_NEG, B_NODE_EXEC+node->nr, "Neg Normal",
-               butr->xmax-dx, butr->ymin, dx, 19,
-               &node->custom1, 0, 0, 0, 0, "Material Node uses inverted Normal");
-         }
-      }
-      uiBlockEndAlign(block);
-   }	
-   return 38;
-}
 
 static void node_shader_init_material(bNode* node)
 {
@@ -280,8 +144,8 @@ bNodeType sh_node_material= {
 	/* output sock */	sh_node_material_out,
 	/* storage     */	"",
 	/* execfunc    */	node_shader_exec_material,
-   /* butfunc     */ node_shader_buts_material,
-   /* initfunc    */ node_shader_init_material
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   node_shader_init_material
 	
 };
 

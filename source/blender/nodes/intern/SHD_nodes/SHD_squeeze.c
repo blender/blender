@@ -63,7 +63,7 @@ bNodeType sh_node_squeeze= {
 	/* output sock */ sh_node_squeeze_out, 
 	/* storage     */ "node_squeeze", 
 	/* execfunc    */ node_shader_exec_squeeze,
-   /* butfunc     */ NULL,
-                     NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 };
 

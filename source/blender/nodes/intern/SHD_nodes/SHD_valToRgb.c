@@ -68,8 +68,8 @@ bNodeType sh_node_valtorgb= {
 	/* output sock */	sh_node_valtorgb_out,
 	/* storage     */	"ColorBand",
 	/* execfunc    */	node_shader_exec_valtorgb,
-   /* butfunc     */ node_buts_valtorgb,
-   /* initfunc    */ node_shader_init_valtorgb
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   node_shader_init_valtorgb
 	
 };
 
@@ -101,8 +101,8 @@ bNodeType sh_node_rgbtobw= {
    /* output sock */	sh_node_rgbtobw_out,
    /* storage     */	"",
    /* execfunc    */	node_shader_exec_rgbtobw,
-   /* butfunc     */ NULL,
-   /* initfunc    */ NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 
 };
 

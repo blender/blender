@@ -152,7 +152,8 @@ bNodeType cmp_node_displace= {
 	/* input sock  */	cmp_node_displace_in,
 	/* output sock */	cmp_node_displace_out,
 	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_displace,
-   /* butfunc     */ NULL
+	/* execfunc    */	node_composit_exec_displace, 
+	/* butfunc     */ 	NULL,
+	/* initfunc    */	NULL
 };
 

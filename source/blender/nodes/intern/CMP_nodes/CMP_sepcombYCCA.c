@@ -104,7 +104,8 @@ bNodeType cmp_node_sepycca= {
 	/* output sock */ cmp_node_sepycca_out,
 	/* storage     */ "",
 	/* execfunc    */ node_composit_exec_sepycca,
-   /* butfunc     */ NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 };
 
 
@@ -181,7 +182,8 @@ bNodeType cmp_node_combycca= {
 	/* output sock */	cmp_node_combycca_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_combycca,
-   /* butfunc     */ NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 };
 
 

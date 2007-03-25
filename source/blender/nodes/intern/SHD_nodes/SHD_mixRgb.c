@@ -69,7 +69,7 @@ bNodeType sh_node_mix_rgb= {
 	/* output sock */	sh_node_mix_rgb_out,
 	/* storage     */	"", 
 	/* execfunc    */	node_shader_exec_mix_rgb,
-   /* butfunc     */ node_buts_mix_rgb,
-                     NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 	
 };

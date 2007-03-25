@@ -89,8 +89,8 @@ bNodeType cmp_node_valtorgb= {
 	/* output sock */	cmp_node_valtorgb_out,
 	/* storage     */	"ColorBand",
 	/* execfunc    */	node_composit_exec_valtorgb,
-   /* butfunc     */ node_buts_valtorgb,
-                     node_composit_init_valtorgb
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   node_composit_init_valtorgb
 	
 };
 
@@ -142,8 +142,8 @@ bNodeType cmp_node_rgbtobw= {
 	/* output sock */	cmp_node_rgbtobw_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_rgbtobw,
-   /* butfunc     */ NULL,
-                     NULL
+	/* butfunc     */ 	NULL,
+	/* initfunc    */   NULL
 	
 };
 
