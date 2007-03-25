@@ -2823,7 +2823,11 @@ static void free_speed_effect(Sequence *seq)
 
 static void copy_speed_effect(Sequence *dst, Sequence *src)
 {
+	SpeedControlVars * v;
 	dst->effectdata = MEM_dupallocN(src->effectdata);
+	v = (SpeedControlVars *)dst->effectdata;
+	v->frameMap = 0;
+	v->length = 0;
 }
 
 static int early_out_speed(struct Sequence *seq,
