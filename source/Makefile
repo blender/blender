@@ -99,6 +99,7 @@ PYPLAYERLIB ?= $(PYLIB)
     COMLIB += $(OCGDIR)/blender/blenloader/$(DEBUG_DIR)libblenloader.a
     COMLIB += $(OCGDIR)/blender/blenpluginapi/$(DEBUG_DIR)libblenpluginapi.a
     COMLIB += $(OCGDIR)/blender/imbuf/$(DEBUG_DIR)libimbuf.a
+    COMLIB += $(OCGDIR)/blender/nodes/$(DEBUG_DIR)libnodes.a
     COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
     COMLIB += $(OCGDIR)/blender/avi/$(DEBUG_DIR)libavi.a
     COMLIB += $(NAN_JPEG)/lib/libjpeg.a
