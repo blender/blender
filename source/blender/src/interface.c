@@ -2153,7 +2153,7 @@ static int ui_do_but_NUM(uiBut *but)
 			if(qual & LR_ALTKEY) deler*= 20.0;
 
 			/* de-sensitise based on tablet pressure */
-			if (G.rt == 0) deler /= pressure;
+			/* if (G.rt == 0) deler /= pressure; */
 			
 			if(mval[0] != sx) {
 				if( but->pointype==FLO && but->max-but->min > 11) {
