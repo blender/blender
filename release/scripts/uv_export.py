@@ -8,8 +8,8 @@ Tooltip: 'Export the UV face layout of the selected object to a .TGA or .SVG fil
 """ 
 
 __author__ = "Martin 'theeth' Poirier"
-__url__ = ("http://www.blender.org", "http://www.elysiun.com")
-__version__ = "2.1"
+__url__ = ("http://www.blender.org", "http://blenderartists.org/")
+__version__ = "2.3"
 
 __bpydoc__ = """\
 This script exports the UV face layout of the selected mesh object to
@@ -94,6 +94,9 @@ Notes:<br>
 # Cleanup code
 # Filename handling enhancement and bug fixes
 # --------------------------
+#	Version 2.3
+# Added check for excentric UVs (only affects TGA)
+# --------------------------
 
 FullPython = False
 
@@ -106,7 +109,6 @@ except:
 	pass
 
 from math import *
-
 
 def ExportConfig():
 	conf = {}
@@ -323,6 +325,8 @@ def write_tgafile(loc2,bitmap,width,height,profondeur):
 	
 	
 def UV_Export_TGA(vList, size, wsize, wrap, file):
+	extreme_warning = False
+	
 	minx = 0
 	miny = 0
 	scale = 1.0
@@ -366,25 +370,30 @@ def UV_Export_TGA(vList, size, wsize, wrap, file):
 
 			step = int(ceil(size*sqrt((co1[0]-co2[0])**2+(co1[1]-co2[1])**2)))
 			if step:
-				for t in range(step):
-					x = int(floor((co1[0] + t*(co2[0]-co1[0])/step) * size))
-					y = int(floor((co1[1] + t*(co2[1]-co1[1])/step) * size))
-
-					if wrap:
-						x = x % wrapSize
-						y = y % wrapSize
-					else:
-						x = int ((x - minx) * scale)
-						y = int ((y - miny) * scale)
-						
-					co = x * 1 + y * 1 * size;
-					
-					img[co] = 0
-					if wsize > 1:
-						for x in range(-1*wsize + 1,wsize):
-							for y in range(-1*wsize,wsize):
-								img[co + 1 * x + y * 1 * size] = 0
-	
+				try:
+					for t in xrange(step):
+							x = int(floor((co1[0] + t*(co2[0]-co1[0])/step) * size))
+							y = int(floor((co1[1] + t*(co2[1]-co1[1])/step) * size))
+		
+							if wrap:
+								x = x % wrapSize
+								y = y % wrapSize
+							else:
+								x = int ((x - minx) * scale)
+								y = int ((y - miny) * scale)
+								
+							co = x * 1 + y * 1 * size;
+							
+							img[co] = 0
+							if wsize > 1:
+								for x in range(-1*wsize + 1,wsize):
+									for y in range(-1*wsize,wsize):
+										img[co + 1 * x + y * 1 * size] = 0
+				except OverflowError:
+					if not extreme_warning:
+						print "Skipping extremely long UV edges, check your layout for excentric values"
+						extreme_warning = True
+		
 		for v in f:
 			x = int(v[0] * size)
 			y = int(v[1] * size)
