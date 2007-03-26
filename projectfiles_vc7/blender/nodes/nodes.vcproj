@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="nodes"
+	Name="BL_nodes"
 	ProjectGUID="{4C3AB78A-52CA-4276-A041-39776E52D8C8}"
 	Keyword="Win32Proj">
 	<Platforms>
@@ -11,16 +11,16 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\nodes\debug"
-			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\nodes\debug"
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="D:\source\blender\blender\source\blender\nodes;..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\elbeem\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_7\extern\verse\include"
-				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_FREETYPE2;WITH_OPENEXR"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\elbeem\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_7\extern\verse\include"
+				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_FREETYPE2"
 				MinimalRebuild="FALSE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -32,12 +32,13 @@
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\nodes\debug\"
 				WarningLevel="2"
 				Detect64BitPortabilityProblems="FALSE"
-				DebugInformationFormat="3"/>
+				DebugInformationFormat="3"
+				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\build\msvc_7\libs\debug\libNodes.lib"/>
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BL_nodes.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -58,31 +59,126 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\nodes"
-			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\nodes"
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="D:\source\blender\blender\source\blender\nodes;..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\elbeem\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_7\extern\verse\include"
-				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_FREETYPE2;WITH_OPENEXR"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\elbeem\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_7\extern\verse\include"
+				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_FREETYPE2"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="0"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\render\nodes.pch"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\nodes\nodes.pch"
 				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\nodes\"
 				ObjectFile="..\..\..\..\build\msvc_7\source\blender\nodes\"
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\nodes\"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				DebugInformationFormat="3"
+				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\build\msvc_7\libs\libNodes.lib"/>
+				OutputFile="..\..\..\..\build\msvc_7\libs\BL_nodes.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\nodes\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\nodes\debug"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\elbeem\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_7\extern\verse\include"
+				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_FREETYPE2;WITH_OPENEXR"
+				MinimalRebuild="FALSE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\nodes\debug\nodes.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\nodes\debug\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\nodes\debug\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\nodes\debug\"
+				WarningLevel="2"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\debug\BL_nodes.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\source\blender\imbuf"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\source\blender\imbuf"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\zlib\include;..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\intern\decimation\include;..\..\..\..\build\msvc_7\intern\elbeem\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\nodes;..\..\..\source\blender\blenloader;..\..\..\source\kernel\gen_system;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_7\extern\verse\include"
+				PreprocessorDefinitions="_DEBUG;WIN32;_LIB;WITH_FREETYPE2, WITH_OPENEXR"
+				BasicRuntimeChecks="0"
+				RuntimeLibrary="0"
+				DefaultCharIsUnsigned="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\nodes\nodes.pch"
+				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\nodes\"
+				ObjectFile="..\..\..\..\build\msvc_7\source\blender\nodes\"
+				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\nodes\"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\build\msvc_7\libs\BL_nodes.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
