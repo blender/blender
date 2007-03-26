@@ -340,7 +340,13 @@ void handle_view3d_around()
 
 void handle_view3d_lock()
 {
-	if (G.vd != NULL) {
+	
+	//if (G.vd) printf("1\n");
+	//if (G.vd->scenelock) printf("2\n");
+	//if (curarea->spacetype) printf("3\n");
+	//if (curarea->spacetype) printf("4\n");
+	
+	if (G.vd != NULL && curarea != NULL ) {
 		if(G.vd->localview==0 && G.vd->scenelock && curarea->spacetype==SPACE_VIEW3D) {
 
 			/* copy to scene */
