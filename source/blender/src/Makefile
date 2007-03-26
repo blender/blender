@@ -66,6 +66,7 @@ CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include $(NAN_SDLCFLAGS)
 CPPFLAGS += -I../render/extern/include
 CPPFLAGS += -I../blenkernel
 CPPFLAGS += -I../blenlib
+CPPFLAGS += -I../nodes
 CPPFLAGS += -I../python
 CPPFLAGS += -I../makesdna
 CPPFLAGS += -I../imbuf
