@@ -17,6 +17,7 @@ Optionaly you can skin between the original and new faces to make a watertight s
 
 
 from Blender import *
+import bpy
 import BPyMesh
 # reload(BPyMesh)
 import BPyMessages
@@ -100,7 +101,7 @@ def lengthFromAngle(angle):
 
 
 def main():
-	scn = Main.scenes.active
+	scn = bpy.scenes.active
 	ob = scn.objects.active
 	
 	if not ob or ob.type != 'Mesh':

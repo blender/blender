@@ -50,6 +50,7 @@ A pop-up will provide further options, if the results of a method are not adequa
 # Made by Ideasman/Campbell 2005/06/15 - cbarton@metavr.com
 
 import Blender
+import bpy
 from Blender import Window
 from Blender.Mathutils import MidpointVecs, Vector, CrossVecs
 from Blender.Mathutils import AngleBetweenVecs as _AngleBetweenVecs_
@@ -520,7 +521,7 @@ def main():
 	
 	is_editmode = Window.EditMode()
 	if is_editmode: Window.EditMode(0)
-	ob = Blender.Main.scenes.active.objects.active
+	ob = bpy.scenes.active.objects.active
 	if ob == None or ob.type != 'Mesh':
 		BPyMessages.Error_NoMeshActive()
 		return

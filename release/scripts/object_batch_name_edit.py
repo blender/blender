@@ -43,10 +43,11 @@ menu of the 3d View.
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 from Blender import *
+import bpy
 
 global renameCount
 renameCount = 0
-obsel = Main.scenes.active.objects.context
+obsel = bpy.scenes.active.objects.context
 
 def setDataNameWrapper(ob, newname):
 	if ob.getData(name_only=1) == newname:

@@ -19,6 +19,7 @@
 
 
 import Blender
+import bpy
 import BPyMesh_redux # seperated because of its size.
 # reload(BPyMesh_redux)
 redux= BPyMesh_redux.redux
@@ -384,13 +385,12 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 	'''
 	
 	if not scn:
-		scn= Blender.Main.scenes.active
+		scn= bpy.scenes.active
 	if not container_mesh:
-		mesh = Blender.Mesh.New()	
+		mesh = bpy.meshes.new(ob.name)	
 	else:
 		mesh= container_mesh
 		mesh.verts= None
-	
 	
 	ob_type = ob.type
 	dataname = ob.getData(1)

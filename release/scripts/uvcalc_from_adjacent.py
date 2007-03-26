@@ -38,7 +38,7 @@ Use this script in face select mode for texturing between textured faces.
 
 
 from Blender import *
-
+import bpy
 
 def mostUsedImage(imageList): # Returns the image most used in the list.
 	if not imageList:
@@ -70,7 +70,7 @@ def mostUsedImage(imageList): # Returns the image most used in the list.
 
 
 def main():
-	scn = Main.scenes.active
+	scn = bpy.scenes.active
 	ob = scn.objects.active
 	if ob == None or ob.type != 'Mesh':
 		Draw.PupMenu('ERROR: No mesh object in face select mode.')

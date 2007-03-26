@@ -40,6 +40,7 @@ http://mediawiki.blender.org/index.php/Scripts/Manual/UV_Calculate/Click_project
 # -------------------------------------------------------------------------- 
 
 import Blender
+import bpy
 import BPyMesh
 import BPyWindow
 
@@ -74,7 +75,7 @@ def mousedown_wait():
 
 def main():
 	
-	scn = Blender.Main.scenes.active
+	scn = bpy.scenes.active
 	ob = scn.objects.active
 	if not ob or ob.type!='Mesh':
 		return

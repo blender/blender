@@ -66,6 +66,7 @@ The widget is added and you are returned to the first screen for adding another 
 ###################################################################
 
 import Blender
+import bpy
 from Blender import Mesh,Object,Material,Window,IpoCurve,Ipo,Text3d
 from Blender.BGL import *
 from Blender.Draw import *
@@ -103,7 +104,7 @@ def delCurve(ipo):
 def verifyIpocurve(ky,index):
 	ipo = ky.ipo
 	if ipo == None:
-		nip = Ipo.New("Key","keyipo")
+		nip = bpy.ipos.new("keyipo", "Key")
 		ky.ipo = nip
 	ipo = ky.ipo
 	if index == 0:
@@ -342,8 +343,8 @@ def setupDrivers(ob,ctrl,type):
 		ipo.driverObject = ctrl
 		ipo.driverChannel = IpoCurve.LOC_Z
 		delCurve(ipo)
-		ipo.v((0,0))
-		ipo.v((1,1))	
+		ipo.append((0,0))
+		ipo.append((1,1))	
 		ipo.recalc()
 			
 		ipo2 = verifyIpocurve(ky,shapes[1].val)
@@ -351,8 +352,8 @@ def setupDrivers(ob,ctrl,type):
 		ipo2.driverObject = ctrl
 		ipo2.driverChannel = IpoCurve.LOC_X
 		delCurve(ipo2)
-		ipo2.v((0,0))
-		ipo2.v((1,1))
+		ipo2.append((0,0))
+		ipo2.append((1,1))
 		ipo2.recalc()
 		
 		ipo3 = verifyIpocurve(ky,shapes[2].val)
@@ -360,7 +361,7 @@ def setupDrivers(ob,ctrl,type):
 		ipo3.driverObject = ctrl
 		ipo3.driverChannel = IpoCurve.LOC_X
 		delCurve(ipo3)
-		ipo3.v((-1,1))
+		ipo3.append((-1,1))
 		ipo3.append((0,0))
 		ipo3.recalc()
 			
@@ -388,13 +389,9 @@ def build(type):
 		return
 	
 	loc = Window.GetCursorPos() 
-	range	   = makeRange(type,rangename.val)
-	controller = makeController(rangename.val)
-	text       = makeText(rangename.val)
-
-	sce.link(range)
-	sce.link(controller)
-	sce.link(text)
+	range	   = makeRange(sce, type,rangename.val)
+	controller = makeController(sce, rangename.val)
+	text       = makeText(sce, rangename.val)
 	
 	range.restrictRender = True
 	controller.restrictRender = True
@@ -413,179 +410,158 @@ def build(type):
 	
 #Create the text
 
-def makeText(name):
-	ob = Object.New("Text",name+".name")
+def makeText(sce, name):
 	txt = Text3d.New(name+".name") 
+	
 	txt.setDrawMode(Text3d.DRAW3D)
 	txt.setAlignment(Text3d.MIDDLE)
 	txt.setText(name)
-	ob.link(txt)
+	ob = sce.objects.new(txt)
 	ob.setEuler((3.14159/2,0,0))
 	return ob
 	
 
 #Create the mesh controller
 
-def makeController(name):
-	ob = Object.New("Mesh",name+".ctrl")
-	me = Mesh.New(name+".ctrl")
-
-	me.verts.extend(-0.15,0,    0)
-	me.verts.extend(    0,0, 0.15)
-	me.verts.extend( 0.15,0,    0)
-	me.verts.extend(    0,0,-0.15)
-	v = me.verts
-	c = [(v[0],v[1],v[2],v[3])]
-	me.edges.extend(c)
-	ob.link(me)
+def makeController(sce, name):
+	me = bpy.meshes.new(name+".ctrl")
+	ob = sce.objects.new(me)
+	me.verts.extend([\
+		(-0.15,0,    0),\
+		(    0,0, 0.15),\
+		( 0.15,0,    0),\
+		(    0,0,-0.15)])
+	
+	me.edges.extend([(0,1,2,3)])
 	return ob	
 
 #Create the mesh range
 
-def makeRange(type,name):
-	ob = Object.New("Mesh",name)
+def makeRange(sce,type,name):
 	#ob.setDrawMode(8)  # Draw Name
-	me = Mesh.New(name)	
-	
-	l=[]
+	me = bpy.meshes.new(name)	
+	ob = sce.objects.new(me)
 
 	if type == SHAPE1_ONE_ZERO:
-		me.verts.extend(-0.15,0,0)
-		me.verts.extend( 0.15,0,0)
-		me.verts.extend(-0.15,0,1)
-		me.verts.extend( 0.15,0,1)
-		me.verts.extend(-0.25,0,.1)
-		me.verts.extend(-0.25,0,-.10)
-		me.verts.extend(0.25,0,.1)
-		me.verts.extend(0.25,0,-0.10)
-		v = me.verts
-		l = [(v[0],v[1],v[3],v[2]),(v[4],v[5],v[0]),(v[6],v[7],v[1])]
-		me.edges.extend(l)
-		ob.link(me)
+		me.verts.extend([\
+			(-0.15,0,0),\
+			( 0.15,0,0),\
+			(-0.15,0,1),\
+			( 0.15,0,1),\
+			(-0.25,0,.1),\
+			(-0.25,0,-.10),\
+			(0.25,0,.1),\
+			(0.25,0,-0.10)])
+		
+		me.edges.extend([(0,1,3,2),(4,5,0),(6,7,1)])
 
 	elif type == SHAPE1_TOGGLE:
-		me.verts.extend(-0.15,0,-0.5)
-		me.verts.extend( 0.15,0,-0.5)
-		me.verts.extend( 0.15,0, 0.5)
-		me.verts.extend(-0.15,0, 0.5)
-		me.verts.extend(-0.15,0, 1.5)
-		me.verts.extend( 0.15,0, 1.5)
-		v = me.verts
-		l = [(v[0],v[1],v[2],v[3]),(v[3],v[4],v[5],v[2])]
-		me.edges.extend(l)
-		ob.link(me)
+		me.verts.extend([\
+			(-0.15,0,-0.5),\
+			( 0.15,0,-0.5),\
+			( 0.15,0, 0.5),\
+			(-0.15,0, 0.5),\
+			(-0.15,0, 1.5),\
+			( 0.15,0, 1.5)])
+		
+		me.edges.extend([(0,1,2,3),(3,4,5,2)])
 		
 	elif type == SHAPE1_ZERO_MONE:
-		me.verts.extend(-0.15,0,0)
-		me.verts.extend( 0.15,0,0)
-		me.verts.extend(-0.15,0,-1)
-		me.verts.extend( 0.15,0,-1)
-		me.verts.extend(-0.25,0,.1)
-		me.verts.extend(-0.25,0,-.10)
-		me.verts.extend(0.25,0,.1)
-		me.verts.extend(0.25,0,-0.10)
-		v = me.verts
-		l = [(v[0],v[1],v[3],v[2]),(v[4],v[5],v[0]),(v[6],v[7],v[1])]
-		me.edges.extend(l)
-		ob.link(me)
+		me.verts.extend([\
+			(-0.15,0,0),\
+			( 0.15,0,0),\
+			(-0.15,0,-1),\
+			( 0.15,0,-1),\
+			(-0.25,0,.1),\
+			(-0.25,0,-.10),\
+			(0.25,0,.1),\
+			(0.25,0,-0.10)])
+		
+		me.edges.extend([(0,1,3,2),(4,5,0),(6,7,1)])
 		
 	elif type in [SHAPE1_ONE_MONE,SHAPE2_EXCLUSIVE]:
-		me.verts.extend(-0.15,0,-1)
-		me.verts.extend( 0.15,0,-1)
-		me.verts.extend(-0.15,0,1)
-		me.verts.extend( 0.15,0,1)
-		me.verts.extend(-0.25,0,.1)
-		me.verts.extend(-0.25,0,-.10)
-		me.verts.extend(0.25,0,.1)
-		me.verts.extend(0.25,0,-0.10)
-		me.verts.extend(-0.15,0,0)
-		me.verts.extend( 0.15,0,0)	
+		me.verts.extend([\
+			(-0.15,0,-1),\
+			( 0.15,0,-1),\
+			(-0.15,0,1),\
+			( 0.15,0,1),\
+			(-0.25,0,.1),\
+			(-0.25,0,-.10),\
+			(0.25,0,.1),\
+			(0.25,0,-0.10),\
+			(-0.15,0,0),\
+			( 0.15,0,0)])
 		
-		v = me.verts
-		l = [(v[0],v[1],v[3],v[2]),(v[4],v[5],v[8]),(v[6],v[7],v[9])]
+		l = [(0,1,3,2),(4,5,8),(6,7,9)]
 		me.edges.extend(l)
-		ob.link(me)
 
 	elif type == SHAPE2_T:
-		me.verts.extend(-1,0,0)
-		me.verts.extend( 1,0,0)
-		me.verts.extend( 1,0,-1)
-		me.verts.extend(-1,0,-1)
+		me.verts.extend([\
+			(-1,0,0),\
+			( 1,0,0),\
+			( 1,0,-1),\
+			(-1,0,-1)])
 		
-		v = me.verts
-		l = [(v[0],v[1],v[2],v[3])]
-		me.edges.extend(l)
-		ob.link(me)	
+		me.edges.extend([(0,1,2,3)])
 
 	elif type == SHAPE2_INVT:
-		me.verts.extend(-1,0,0)
-		me.verts.extend( 1,0,0)
-		me.verts.extend( 1,0,1)
-		me.verts.extend(-1,0,1)
+		me.verts.extend([\
+			(-1,0,0),\
+			( 1,0,0),\
+			( 1,0,1),\
+			(-1,0,1)])
 		
-		v = me.verts
-		l = [(v[0],v[1],v[2],v[3])]
-		me.edges.extend(l)
-		ob.link(me)		
+		me.edges.extend([(0,1,2,3)])
 
 	elif type == SHAPE2_PLUS:
-		me.verts.extend(-1,0,-1)
-		me.verts.extend( 1,0,-1)
-		me.verts.extend( 1,0,1)
-		me.verts.extend(-1,0,1)
+		me.verts.extend([\
+			(-1,0,-1),\
+			( 1,0,-1),\
+			( 1,0,1),\
+			(-1,0,1)])
+		me.edges.extend([(0,1,2,3)])
 		
-		v = me.verts
-		l = [(v[0],v[1],v[2],v[3])]
-		me.edges.extend(l)
-		ob.link(me)	
-				
 	elif type == SHAPE2_V:
-		me.verts.extend(0,0,0)	
-		me.verts.extend(1,0,0)
-		me.verts.extend(1,0,1)	
-		me.verts.extend(0,0,1)	
-		v = me.verts
-		l = [(v[0],v[1],v[2],v[3])]
-		me.edges.extend(l)
-		ob.link(me)
+		me.verts.extend([\
+			(0,0,0),\
+			(1,0,0),\
+			(1,0,1),\
+			(0,0,1)])
+		
+		me.edges.extend([(0,1,2,3)])
 		ob.setEuler((0,-0.78539,0))
 
 	elif type == SHAPE3_INVT:
-		me.verts.extend(-1,0,0)
-		me.verts.extend( 1,0,0)
-		me.verts.extend( 1,0,1)
-		me.verts.extend(-1,0,1)
+		me.verts.extend([\
+			(-1,0,0),\
+			( 1,0,0),\
+			( 1,0,1),\
+			(-1,0,1)])
 		
-		v = me.verts
-		l = [(v[0],v[1],v[2],v[3])]
-		me.edges.extend(l)
-		ob.link(me)
+		me.edges.extend([(0,1,2,3)])
 		
 	elif type == SHAPE3_T:
-		me.verts.extend(-1,0,0)
-		me.verts.extend( 1,0,0)
-		me.verts.extend( 1,0,-1)
-		me.verts.extend(-1,0,-1)
+		me.verts.extend([\
+			(-1,0,0),\
+			( 1,0,0),\
+			( 1,0,-1),\
+			(-1,0,-1)])
 		
-		v = me.verts
-		l = [(v[0],v[1],v[2],v[3])]
-		me.edges.extend(l)
-		ob.link(me)
+		me.edges.extend([(0,1,2,3)])
 
-				
+	
 	elif type == SHAPE4_X:
-		me.verts.extend(0,0,-1)
-		me.verts.extend(1,0,-1)
-		me.verts.extend(1,0,0)
-		me.verts.extend(1,0,1)
-		me.verts.extend(0,0,1)
-		me.verts.extend(-1,0,1)
-		me.verts.extend(-1,0,0)	
-		me.verts.extend(-1,0,-1)	
-		v = me.verts
-		l = [(v[0],v[1]),(v[1],v[2]),(v[2],v[3]),(v[3],v[4]),(v[4],v[5]),(v[5],v[6]),(v[6],v[7]),(v[7],v[0])]
-		me.edges.extend(l)
-		ob.link(me)	
+		me.verts.extend([\
+			(0,0,-1),\
+			(1,0,-1),\
+			(1,0,0),\
+			(1,0,1),\
+			(0,0,1),\
+			(-1,0,1),\
+			(-1,0,0),\
+			(-1,0,-1)])
+		
+		me.edges.extend([(0,1),(1,2),(2,3),(3,4),(4,5),(5,6),(6,7),(7,0)])
 		ob.setEuler((0,-0.78539,0))
 	
 	return ob
@@ -606,7 +582,7 @@ EVENT_BACK 			= 103
 #get the list of shapes from the selected object
 
 def shapeMenuText():
-	ob = Blender.Scene.GetCurrent().objects.active
+	ob = bpy.scenes.active.objects.active
 	if not ob:
 		return ""
 	

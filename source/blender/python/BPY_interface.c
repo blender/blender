@@ -65,7 +65,7 @@
 #include "api2_2x/Camera.h"
 #include "api2_2x/Draw.h"
 #include "api2_2x/Registry.h"
-#include "api2_2x/Main.h" /* for the "bpy" default module */
+#include "api2_2x/BPyModule.h" /* for the "bpy" default module */
 
 /* for scriptlinks */
 #include "DNA_lamp_types.h"
@@ -116,6 +116,7 @@ int setup_armature_weakrefs()
 *support for packages here e.g. import `package.module` */
 static struct _inittab BPy_Inittab_Modules[] = {
 	{"Blender", M_Blender_Init},
+	{"bpy", M_BPy_Init},
 	{NULL, NULL}
 };
 
@@ -1972,8 +1973,9 @@ void init_ourImport( void )
 	m = PyImport_AddModule( "__builtin__" );
 	d = PyModule_GetDict( m );
 	
-	/* add in "bpy" as a default module */
-	PyDict_SetItemString(d, "bpy", Main_Init() );
+	/* add in "bpy" as a default module 
+	 * This has been disabled, import like Blender*/
+	/*PyDict_SetItemString(d, "bpy", M_BPy_Init() );*/
 
 	EXPP_dict_set_item_str( d, "__import__", import );
 }

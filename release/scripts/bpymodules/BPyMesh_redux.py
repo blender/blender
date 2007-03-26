@@ -22,6 +22,7 @@
 # --------------------------------------------------------------------------
 
 import Blender
+import bpy
 Vector= Blender.Mathutils.Vector
 Ang= Blender.Mathutils.AngleBetweenVecs
 CrossVecs= Blender.Mathutils.CrossVecs
@@ -642,7 +643,7 @@ def redux(ob, REDUX=0.5, BOUNDRY_WEIGHT=2.0, REMOVE_DOUBLES=False, FACE_AREA_WEI
 # Example usage
 def main():
 	Blender.Window.EditMode(0)
-	scn= Blender.Main.scenes.active
+	scn= bpy.scenes.active
 	active_ob= scn.objects.active
 	t= Blender.sys.time()
 	redux(active_ob, 0.5)

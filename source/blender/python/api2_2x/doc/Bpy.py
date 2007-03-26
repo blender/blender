@@ -60,10 +60,10 @@ Example::
 	import os
 	sound_dir = '/home/me/soundfiles/'
 	sounds_new = []
-	for filename in os.listdir(sound_dir):
-		if filename.lower().endswith('.wav'):
+	for fname in os.listdir(sound_dir):
+		if fname.lower().endswith('.wav'):
 			try:
-				snd = bpy.sounds.load(sound_dir + filename)
+				snd = bpy.sounds.new(filename = sound_dir + fname)
 			except:
 				snd = None
 			
@@ -93,50 +93,50 @@ Example::
 	Window.RedrawAll()
 
 @var scenes: iterator for L{scene<Scene.Scene>} data
-@type scenes: L{dataIterator}
+@type scenes: L{LibBlockSeq}
 @var objects: iterator for L{object<Object.Object>} data
-@type objects: L{dataIterator}
+@type objects: L{LibBlockSeq}
 @var meshes: iterator for L{mesh<Mesh.Mesh>} data
-@type meshes: L{dataIterator}
+@type meshes: L{LibBlockSeq}
 @var curves: iterator for L{curve<Curve.Curve>} data
-@type curves: L{dataIterator}
+@type curves: L{LibBlockSeq}
 @var metaballs: iterator for L{metaball<Metaball.Metaball>} data
-@type metaballs: L{dataIterator}
+@type metaballs: L{LibBlockSeq}
 @var materials: iterator for L{material<Material.Material>} data
-@type materials: L{dataIterator}
+@type materials: L{LibBlockSeq}
 @var textures: iterator for L{texture<Texture.Texture>} data
-@type textures: L{dataIterator}
+@type textures: L{LibBlockSeq}
 @var images: iterator for L{image<Image.Image>} data
-@type images: L{dataIterator}
+@type images: L{LibBlockSeq}
 @var lattices: iterator for L{lattice<Lattice.Lattice>} data
-@type lattices: L{dataIterator}
+@type lattices: L{LibBlockSeq}
 @var lamps: iterator for L{lamp<Lamp.Lamp>} data
-@type lamps: L{dataIterator}
+@type lamps: L{LibBlockSeq}
 @var cameras: iterator for L{camera<Camera.Camera>} data
-@type cameras: L{dataIterator}
+@type cameras: L{LibBlockSeq}
 @var ipos: iterator for L{ipo<Ipo.Ipo>} data
-@type ipos: L{dataIterator}
+@type ipos: L{LibBlockSeq}
 @var worlds: iterator for L{world<World.World>} data
-@type worlds: L{dataIterator}
+@type worlds: L{LibBlockSeq}
 @var fonts: iterator for L{font<Font.Font>} data
-@type fonts: L{dataIterator}
+@type fonts: L{LibBlockSeq}
 @var texts: iterator for L{text<Text.Text>} data
-@type texts: L{dataIterator}
+@type texts: L{LibBlockSeq}
 @var sounds: iterator for L{sound<Sound.Sound>} data
-@type sounds: L{dataIterator}
+@type sounds: L{LibBlockSeq}
 @var groups: iterator for L{group<Group.Group>} data
-@type groups: L{dataIterator}
+@type groups: L{LibBlockSeq}
 @var armatures: iterator for L{armature<Armature.Armature>} data
-@type armatures: L{dataIterator}
+@type armatures: L{LibBlockSeq}
 @var actions: iterator for L{action<NLA.Action>} data
-@type actions: L{dataIterator}
-@var libraries: L{New library<LibData>} submodule
-@type libraries: L{New library<LibData>}
+@type actions: L{LibBlockSeq}
+@var libraries: L{librarySeq<LibData>} submodule
+@type libraries: L{librarySeq<LibData>}
 
 """
 
 
-class dataIterator:
+class LibBlockSeq:
 	"""
 	Generic Data Access
 	===================
@@ -208,21 +208,28 @@ class dataIterator:
 			- L{texts}
 		This can also be used to set the active data.
 		
-		>>> bpy.images.active = bpy.images.load('/home/me/someimage.jpg')
+		>>> bpy.images.active = bpy.images.new(filename = '/home/me/someimage.jpg')
 		
 	"""
 
-	def new(name):
+	def new(name="", filename=""):
 		"""
-		This function returns a new datablock
+		This function returns a new datablock containing no data or loaded from a file.
 		
 		Exceptions
 		==========
-
-		Images optionally accept 2 extra arguments: bpy.images.new(name, width=256, height=256)
+		
+		Use the filename keyword string values to load data from a file, this works with L{images}, L{texts}, L{sounds}, L{fonts} only.
+		
+		>>> sound = bpy.sounds.new('newsound', '~/mysound.wav') # uses the first string given for the name.
+		
+		>>> sound = bpy.sounds.new(filename = '~/mysound.wav') # will use the filename to make the name.
+		
+		
+		Images optionally accept 3 arguments: bpy.images.new(name, width=256, height=256)
 		The width and height must br between 4 and 5000 if no args are given they will be 256.
 		
-		Ipos need 2 arguments: bpy.ipos.new(name, type) type must be a string can be 
+		Ipos need 2 arguments: bpy.ipos.new(name, type) type must be a string (use in place of filename) can be...
 			- 'Camera'
 			- 'World'
 			- 'Material'
@@ -241,17 +248,6 @@ class dataIterator:
 		>>> scn = bpy.scenes.active
 		... ob = scn.objects.new(bpy.meshes.new('mymesh'))
 			
-		@rtype: datablock
-		"""
-
-	def load(filename):
-		"""
-		This function loads a new datablock from a file.
-		applies to:
-			- L{fonts}
-			- L{sounds}
-			- L{images}
-		Other types will raise an error.
 		@rtype: datablock
 		"""
 	

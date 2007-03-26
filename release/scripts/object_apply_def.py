@@ -63,6 +63,7 @@ This script will work with object types: Mesh, Metaballs, Text3d, Curves and Nur
 
 
 import Blender
+import bpy
 import BPyMesh
 
 def copy_vgroups(source_ob, target_ob):
@@ -85,7 +86,7 @@ def copy_vgroups(source_ob, target_ob):
 
 
 def apply_deform():
-	scn= Blender.Main.scenes.active
+	scn= bpy.scenes.active
 	#Blender.Window.EditMode(0)
 	
 	NAME_LENGTH = 19

@@ -35,6 +35,7 @@ __bpydoc__ = """\
 
 
 from Blender import *
+import bpy
 import BPyMesh
 # reload(BPyMesh)
 
@@ -504,7 +505,7 @@ PREF_MARGIN_DIV=		512):
 	Window.RedrawAll()
 
 def main():
-	scn = Main.scenes.active
+	scn = bpy.scenes.active
 	
 	PREF_ACT_ONLY = Draw.Create(1)
 	PREF_SEL_ONLY = Draw.Create(1)

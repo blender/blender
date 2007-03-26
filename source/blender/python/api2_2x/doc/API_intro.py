@@ -12,7 +12,7 @@ The Blender Python API Reference
 	-----------
 
 		- L{Blender}
-		- L{bpy<Bpy>} (automatically imported)
+		- L{bpy<Bpy>}
 
 	Submodules:
 	-----------

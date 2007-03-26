@@ -34,7 +34,7 @@
 #include "MEM_guardedalloc.h"	/* for MEM_callocN */
 #include "DNA_space_types.h"	/* SPACE_VIEW3D, SPACE_SEQ */
 #include "DNA_scene_types.h"
-#include "DNA_object_types.h" /* MainSeq_new */
+#include "DNA_object_types.h" /* LibBlockSeq_new */
 #include "DNA_texture_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
@@ -103,7 +103,7 @@
 #include "Text.h"
 #include "Sound.h"
 #include "NLA.h"
-#include "Main.h"
+#include "BPyModule.h"
 #include "Scene.h"
 #include "Library.h"
 
@@ -115,22 +115,22 @@
 #include "DNA_screen_types.h"
 
 
-static PyObject *MainSeq_CreatePyObject( Link *iter, int type )
+static PyObject *LibBlockSeq_CreatePyObject( Link *iter, int type )
 {
-	BPy_MainSeq *seq = PyObject_NEW( BPy_MainSeq, &MainSeq_Type);
+	BPy_LibBlockSeq *seq = PyObject_NEW( BPy_LibBlockSeq, &LibBlockSeq_Type);
 	seq->iter = iter;
 	seq->type = type;
 	return (PyObject *)seq;
 }
 
 
-static int MainSeq_len( BPy_MainSeq * self )
+static int LibBlockSeq_len( BPy_LibBlockSeq * self )
 {
 	ListBase *lb = wich_libbase(G.main, self->type);
 	return BLI_countlist( lb );
 }
 
-static PyObject * MainSeq_subscript(BPy_MainSeq * self, PyObject *key)
+static PyObject * LibBlockSeq_subscript(BPy_LibBlockSeq * self, PyObject *key)
 {
 	char *name;
 	char *lib= NULL;
@@ -188,16 +188,16 @@ static PyObject * MainSeq_subscript(BPy_MainSeq * self, PyObject *key)
 				 ( PyExc_KeyError, "Requested data does not exist") );
 }
 
-static PyMappingMethods MainSeq_as_mapping = {
-	( inquiry ) MainSeq_len,	/* mp_length */
-	( binaryfunc ) MainSeq_subscript,	/* mp_subscript */
+static PyMappingMethods LibBlockSeq_as_mapping = {
+	( inquiry ) LibBlockSeq_len,	/* mp_length */
+	( binaryfunc ) LibBlockSeq_subscript,	/* mp_subscript */
 	( objobjargproc ) 0,	/* mp_ass_subscript */
 };
 
 
 /************************************************************************
  *
- * Python MainSeq_Type iterator (iterates over GroupObjects)
+ * Python LibBlockSeq_Type iterator (iterates over GroupObjects)
  *
  ************************************************************************/
 
@@ -205,7 +205,7 @@ static PyMappingMethods MainSeq_as_mapping = {
  * Initialize the interator index
  */
 
-static PyObject *MainSeq_getIter( BPy_MainSeq * self )
+static PyObject *LibBlockSeq_getIter( BPy_LibBlockSeq * self )
 {
 	/* we need to get the first base, but for selected context we may need to advance
 	to the first selected or first conext base */
@@ -221,15 +221,15 @@ static PyObject *MainSeq_getIter( BPy_MainSeq * self )
 		self->iter = link;
 		return EXPP_incr_ret ( (PyObject *) self );
 	} else {
-		return MainSeq_CreatePyObject(link, self->type);
+		return LibBlockSeq_CreatePyObject(link, self->type);
 	}
 }
 
 /*
- * Return next MainOb.
+ * Return next LibBlockSeq iter.
  */
 
-static PyObject *MainSeq_nextIter( BPy_MainSeq * self )
+static PyObject *LibBlockSeq_nextIter( BPy_LibBlockSeq * self )
 {
 	PyObject *object;
 	Link *link;
@@ -246,7 +246,7 @@ static PyObject *MainSeq_nextIter( BPy_MainSeq * self )
 	return object;
 }
 
-PyObject *MainSeq_getActive(BPy_MainSeq *self)
+PyObject *LibBlockSeq_getActive(BPy_LibBlockSeq *self)
 {
 	switch (self->type) {
 	case ID_SCE:
@@ -280,7 +280,7 @@ PyObject *MainSeq_getActive(BPy_MainSeq *self)
 			"Only Scene and Image types have the active attribute" );
 }
 
-static int MainSeq_setActive(BPy_MainSeq *self, PyObject *value)
+static int LibBlockSeq_setActive(BPy_LibBlockSeq *self, PyObject *value)
 {
 	switch (self->type) {
 	case ID_SCE:
@@ -350,7 +350,7 @@ static int MainSeq_setActive(BPy_MainSeq *self, PyObject *value)
 			"Only Scene and Image types have the active attribute" );
 }
 
-static int MainSeq_setTag(BPy_MainSeq *self, PyObject *value)
+static int LibBlockSeq_setTag(BPy_LibBlockSeq *self, PyObject *value)
 {
 	int param = PyObject_IsTrue( value );
 	ID *id;
@@ -390,7 +390,7 @@ Mesh *add_mesh__internal(char *name)
 }
 
 /* used for new and load */
-PyObject *MainSeq_new(BPy_MainSeq *self, PyObject * args, PyObject *kwd)
+PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 {
 	ID *id = NULL;
 	char *name=NULL, *filename=NULL, *ipo_type;
@@ -581,7 +581,7 @@ PyObject *MainSeq_new(BPy_MainSeq *self, PyObject * args, PyObject *kwd)
 }
 
 
-PyObject *MainSeq_unlink(BPy_MainSeq *self, PyObject * args)
+PyObject *LibBlockSeq_unlink(BPy_LibBlockSeq *self, PyObject * args)
 {
 	PyObject *pyobj;
 	
@@ -660,7 +660,7 @@ PyObject *MainSeq_unlink(BPy_MainSeq *self, PyObject * args)
 				      "Only types Scene, Group and Text can unlink" );	
 }
 
-static int MainSeq_compare( BPy_MainSeq * a, BPy_MainSeq * b )
+static int LibBlockSeq_compare( BPy_LibBlockSeq * a, BPy_LibBlockSeq * b )
 {
 	return ( a->type == b->type) ? 0 : -1;	
 }
@@ -669,40 +669,40 @@ static int MainSeq_compare( BPy_MainSeq * a, BPy_MainSeq * b )
  * repr function
  * callback functions building meaninful string to representations
  */
-static PyObject *MainSeq_repr( BPy_MainSeq * self )
+static PyObject *LibBlockSeq_repr( BPy_LibBlockSeq * self )
 {
-	return PyString_FromFormat( "[Main Iterator]");
+	return PyString_FromFormat( "[LibBlockSeq Iterator]");
 }
 
-static PyGetSetDef MainSeq_getseters[] = {
+static PyGetSetDef LibBlockSeq_getseters[] = {
 	{"active",
-	 (getter)MainSeq_getActive, (setter)MainSeq_setActive,
+	 (getter)LibBlockSeq_getActive, (setter)LibBlockSeq_setActive,
 	 "active object",
 	 NULL},
 	{"tag",
-	 (getter)NULL, (setter)MainSeq_setTag,
+	 (getter)NULL, (setter)LibBlockSeq_setTag,
 	 "tag all data in True or False (write only)",
 	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
-static struct PyMethodDef BPy_MainSeq_methods[] = {
-	{"new", (PyCFunction)MainSeq_new, METH_VARARGS | METH_KEYWORDS,
+static struct PyMethodDef BPy_LibBlockSeq_methods[] = {
+	{"new", (PyCFunction)LibBlockSeq_new, METH_VARARGS | METH_KEYWORDS,
 		"(name) - Create a new object in this scene from the obdata given and return a new object"},
-	{"unlink", (PyCFunction)MainSeq_unlink, METH_VARARGS,
+	{"unlink", (PyCFunction)LibBlockSeq_unlink, METH_VARARGS,
 		"unlinks the object from the scene"},
 	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/
-/* Python MainSeq_Type structure definition:                               */
+/* Python LibBlockSeq_Type structure definition:                               */
 /*****************************************************************************/
-PyTypeObject MainSeq_Type = {
+PyTypeObject LibBlockSeq_Type = {
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                          /* ob_size */
 	/*  For printing, in format "<module>.<name>" */
-	"Blender MainSeq",           /* char *tp_name; */
-	sizeof( BPy_MainSeq ),       /* int tp_basicsize; */
+	"Blender LibBlockSeq",           /* char *tp_name; */
+	sizeof( BPy_LibBlockSeq ),       /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
 	/* Methods to implement standard operations */
@@ -711,14 +711,14 @@ PyTypeObject MainSeq_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-	( cmpfunc ) MainSeq_compare, /* cmpfunc tp_compare; */
-	( reprfunc ) MainSeq_repr,   /* reprfunc tp_repr; */
+	( cmpfunc ) LibBlockSeq_compare, /* cmpfunc tp_compare; */
+	( reprfunc ) LibBlockSeq_repr,   /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */
 
 	NULL,                       /* PyNumberMethods *tp_as_number; */
 	NULL,	    /* PySequenceMethods *tp_as_sequence; */
-	&MainSeq_as_mapping,                       /* PyMappingMethods *tp_as_mapping; */
+	&LibBlockSeq_as_mapping,                       /* PyMappingMethods *tp_as_mapping; */
 
 	/* More standard operations (here for binary compatibility) */
 
@@ -751,13 +751,13 @@ PyTypeObject MainSeq_Type = {
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
-	( getiterfunc) MainSeq_getIter, /* getiterfunc tp_iter; */
-	( iternextfunc ) MainSeq_nextIter, /* iternextfunc tp_iternext; */
+	( getiterfunc) LibBlockSeq_getIter, /* getiterfunc tp_iter; */
+	( iternextfunc ) LibBlockSeq_nextIter, /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	BPy_MainSeq_methods,       /* struct PyMethodDef *tp_methods; */
+	BPy_LibBlockSeq_methods,       /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	MainSeq_getseters,       /* struct PyGetSetDef *tp_getset; */
+	LibBlockSeq_getseters,       /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
@@ -780,50 +780,46 @@ PyTypeObject MainSeq_Type = {
 };
 
 
-/*-----------------------Main module Init())-----------------------------*/
+/*-----------------------------BPy module Init())-----------------------------*/
 
-static char M_Main_doc[] = "The Blender.Main submodule";
+static char M_BPy_Init_doc[] = "The bpy module";
 
-PyObject *Main_Init( void )
+void M_BPy_Init( void )
 {
-	PyObject *submodule;
+	PyObject *module;
 	PyObject *dict;
-
-
-	if( PyType_Ready( &MainSeq_Type ) < 0 )
-		return NULL;
-	if( PyType_Ready( &Config_Type ) < 0 ) /* see Config.c */
-		return NULL;	
 	
-	submodule = Py_InitModule3( "Blender.Main", NULL, M_Main_doc );
-	dict = PyModule_GetDict( submodule );
+	
+	PyType_Ready( &LibBlockSeq_Type );
+	PyType_Ready( &Config_Type );
+	
+	/*submodule = Py_InitModule3( "Blender.Main", NULL, M_Main_doc );*/
+	module = Py_InitModule3( "bpy", NULL, M_BPy_Init_doc );
+	dict = PyModule_GetDict( module );
 
 	PyDict_SetItemString( dict, "libraries", Library_Init(  ) );
-
 	
 	/* Python Data Types */
-	PyModule_AddObject( submodule, "scenes", MainSeq_CreatePyObject(NULL, ID_SCE) );
-	PyModule_AddObject( submodule, "objects", MainSeq_CreatePyObject(NULL, ID_OB) );
-	PyModule_AddObject( submodule, "meshes", MainSeq_CreatePyObject(NULL, ID_ME) );
-	PyModule_AddObject( submodule, "curves", MainSeq_CreatePyObject(NULL, ID_CU) );
-	PyModule_AddObject( submodule, "metaballs", MainSeq_CreatePyObject(NULL, ID_MB) );
-	PyModule_AddObject( submodule, "materials", MainSeq_CreatePyObject(NULL, ID_MA) );
-	PyModule_AddObject( submodule, "textures", MainSeq_CreatePyObject(NULL, ID_TE) );
-	PyModule_AddObject( submodule, "images", MainSeq_CreatePyObject(NULL, ID_IM) );
-	PyModule_AddObject( submodule, "lattices", MainSeq_CreatePyObject(NULL, ID_LT) );
-	PyModule_AddObject( submodule, "lamps", MainSeq_CreatePyObject(NULL, ID_LA) );
-	PyModule_AddObject( submodule, "cameras", MainSeq_CreatePyObject(NULL, ID_CA) );
-	PyModule_AddObject( submodule, "ipos", MainSeq_CreatePyObject(NULL, ID_IP) );
-	PyModule_AddObject( submodule, "worlds", MainSeq_CreatePyObject(NULL, ID_WO) );
-	PyModule_AddObject( submodule, "fonts", MainSeq_CreatePyObject(NULL, ID_VF) );
-	PyModule_AddObject( submodule, "texts", MainSeq_CreatePyObject(NULL, ID_TXT) );
-	PyModule_AddObject( submodule, "sounds", MainSeq_CreatePyObject(NULL, ID_SO) );
-	PyModule_AddObject( submodule, "groups", MainSeq_CreatePyObject(NULL, ID_GR) );
-	PyModule_AddObject( submodule, "armatures", MainSeq_CreatePyObject(NULL, ID_AR) );
-	PyModule_AddObject( submodule, "actions", MainSeq_CreatePyObject(NULL, ID_AC) );
+	PyModule_AddObject( module, "scenes", LibBlockSeq_CreatePyObject(NULL, ID_SCE) );
+	PyModule_AddObject( module, "objects", LibBlockSeq_CreatePyObject(NULL, ID_OB) );
+	PyModule_AddObject( module, "meshes", LibBlockSeq_CreatePyObject(NULL, ID_ME) );
+	PyModule_AddObject( module, "curves", LibBlockSeq_CreatePyObject(NULL, ID_CU) );
+	PyModule_AddObject( module, "metaballs", LibBlockSeq_CreatePyObject(NULL, ID_MB) );
+	PyModule_AddObject( module, "materials", LibBlockSeq_CreatePyObject(NULL, ID_MA) );
+	PyModule_AddObject( module, "textures", LibBlockSeq_CreatePyObject(NULL, ID_TE) );
+	PyModule_AddObject( module, "images", LibBlockSeq_CreatePyObject(NULL, ID_IM) );
+	PyModule_AddObject( module, "lattices", LibBlockSeq_CreatePyObject(NULL, ID_LT) );
+	PyModule_AddObject( module, "lamps", LibBlockSeq_CreatePyObject(NULL, ID_LA) );
+	PyModule_AddObject( module, "cameras", LibBlockSeq_CreatePyObject(NULL, ID_CA) );
+	PyModule_AddObject( module, "ipos", LibBlockSeq_CreatePyObject(NULL, ID_IP) );
+	PyModule_AddObject( module, "worlds", LibBlockSeq_CreatePyObject(NULL, ID_WO) );
+	PyModule_AddObject( module, "fonts", LibBlockSeq_CreatePyObject(NULL, ID_VF) );
+	PyModule_AddObject( module, "texts", LibBlockSeq_CreatePyObject(NULL, ID_TXT) );
+	PyModule_AddObject( module, "sounds", LibBlockSeq_CreatePyObject(NULL, ID_SO) );
+	PyModule_AddObject( module, "groups", LibBlockSeq_CreatePyObject(NULL, ID_GR) );
+	PyModule_AddObject( module, "armatures", LibBlockSeq_CreatePyObject(NULL, ID_AR) );
+	PyModule_AddObject( module, "actions", LibBlockSeq_CreatePyObject(NULL, ID_AC) );
 	
 	/* Other Types */
-	PyModule_AddObject( submodule, "config", Config_CreatePyObject() );
-	
-	return submodule;
+	PyModule_AddObject( module, "config", Config_CreatePyObject() );
 }

@@ -39,11 +39,11 @@ http://mediawiki.blender.org/index.php/Scripts/Manual/UV_Calculate/Follow_active
 
 
 from Blender import *
+import bpy
 import BPyMesh
-reload(BPyMesh)
 
 def extend():
-	scn = Main.scenes.active
+	scn = bpy.scenes.active
 	ob = scn.objects.active
 	
 	# print ob, ob.type

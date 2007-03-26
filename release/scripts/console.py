@@ -812,4 +812,5 @@ cmdBuffer.append(cmdLine(' ', 0, 0))
 def main():
 	Draw.Register(draw_gui, handle_event, handle_button_event)
 
-main()
+if __name__ == '__main__':
+	main()

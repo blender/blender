@@ -47,6 +47,7 @@ from the lib3ds project (http://lib3ds.sourceforge.net/) sourcecode.
 ######################################################
 
 import Blender
+import bpy
 from Blender import Object, Material
 
 import BPyMesh
@@ -877,7 +878,7 @@ def save_3ds(filename):
 	
 	time1= Blender.sys.time()
 	Blender.Window.WaitCursor(1)
-	scn= Blender.Main.scenes.active
+	scn= bpy.scenes.active
 	
 	# Initialize the main chunk (primary):
 	primary = _3ds_chunk(PRIMARY)

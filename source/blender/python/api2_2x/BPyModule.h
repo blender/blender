@@ -1,5 +1,4 @@
 /* 
- * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -30,16 +29,16 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_MAIN_H
-#define EXPP_MAIN_H
+#ifndef EXPP_BPYMODULE_H
+#define EXPP_BPYMODULE_H
 
 #include <Python.h>
 
 /* The Main PyType Object defined in Main.c */
-extern PyTypeObject MainSeq_Type;
+extern PyTypeObject LibBlockSeq_Type;
 
-#define BPy_MainSeq_Check(v) \
-    ((v)->ob_type == &MainSeq_Type)
+#define BPy_LibBlockSeq_Check(v) \
+    ((v)->ob_type == &LibBlockSeq_Type)
 
 /* Main sequence, iterate on the libdatas listbase*/
 typedef struct {
@@ -47,9 +46,9 @@ typedef struct {
 	Link *iter; /* so we can iterate over the listbase */
 	
 	short type; /* store the ID type such as ID_ME */
-} BPy_MainSeq;
+} BPy_LibBlockSeq;
 
 
-PyObject *Main_Init( void );
+void M_BPy_Init( void );
 
 #endif				/* EXPP_MAIN_H */

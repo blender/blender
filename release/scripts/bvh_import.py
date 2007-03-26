@@ -39,6 +39,7 @@ as empties or armatures.
 # -------------------------------------------------------------------------- 
 
 import Blender
+import bpy
 import BPyMessages
 Vector= Blender.Mathutils.Vector
 Euler= Blender.Mathutils.Euler
@@ -310,7 +311,7 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 	if IMPORT_START_FRAME<1:
 		IMPORT_START_FRAME= 1
 		
-	scn= Blender.Main.scenes.active
+	scn= bpy.scenes.active
 	scn.objects.selected = []
 	
 	objects= []
@@ -442,7 +443,7 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False)
 	
 	
 	
-	scn= Blender.Main.scenes.active
+	scn= bpy.scenes.active
 	
 	scn.objects.selected = []
 	
@@ -749,7 +750,7 @@ def main():
 if __name__ == '__main__':
 	main()
 	'''
-	scn = Blender.Main.scenes.active
+	scn = bpy.scenes.active
 	for ob in list(scn.objects): scn.objects.unlink(ob)
 	load_bvh_ui('/test.bvh', False)
 	'''

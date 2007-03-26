@@ -93,7 +93,6 @@ struct ID; /*keep me up here */
 #include "Window.h"
 #include "World.h"
 #include "Types.h"
-#include "Main.h"
 
 /**********************************************************/
 /* Python API function prototypes for the Blender module.	*/
@@ -987,6 +986,5 @@ void M_Blender_Init(void)
 	PyDict_SetItemString(dict, "Texture", Texture_Init());
 	PyDict_SetItemString(dict, "Window", Window_Init());
 	PyDict_SetItemString(dict, "World", World_Init());
-	PyDict_SetItemString(dict, "Main", Main_Init());
 
 }

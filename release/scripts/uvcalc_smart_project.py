@@ -827,19 +827,17 @@ def main():
 	global USER_STRETCH_ASPECT
 	global USER_ISLAND_MARGIN
 	
-	objects= Main.scenes.active.objects
+	objects= bpy.scenes.active.objects
 	
-	# Use datanames as kesy so as not to unwrap a mesh more then once.
-	obList =  dict([(ob.getData(name_only=1), ob) for ob in objects.context if ob.type == 'Mesh'])
+	# we can will tag them later.
+	obList =  [ob for ob in objects.context if ob.type == 'Mesh']
 	
 	# Face select object may not be selected.
 	ob = objects.active
 	if ob and ob.sel == 0 and ob.type == 'Mesh':
 		# Add to the list
-		obList[ob.getData(name_only=1)] = ob
+		obList =[ob]
 	del objects
-	
-	obList = obList.values() # turn from a dict to a list.
 	
 	if not obList:
 		Draw.PupMenu('error, no selected mesh objects')
@@ -913,30 +911,34 @@ def main():
 	# Assume face select mode! an annoying hack to toggle face select mode because Mesh dosent like faceSelectMode.
 	
 	if USER_SHARE_SPACE:
-		# Sort by data name so we get consistand results
+		# Sort by data name so we get consistant results
 		try:	obList.sort(key = lambda ob: ob.getData(name_only=1))
 		except:	obList.sort(lambda ob1, ob2: cmp( ob1.getData(name_only=1), ob2.getData(name_only=1) ))
 		
 		collected_islandList= []
 	
 	Window.WaitCursor(1)
-
+	
 	time1 = sys.time()
+	
+	# Tag as False se we dont operate on teh same mesh twice.
+	bpy.meshes.tag = False 
+	
 	for ob in obList:
 		me = ob.getData(mesh=1)
+		
+		if me.tag or me.lib:
+			continue
+		
+		# Tag as used
+		me.tag = True
 		
 		if not me.faceUV: # Mesh has no UV Coords, dont bother.
 			me.faceUV= True
 		
 		if USER_ONLY_SELECTED_FACES:
 			SELECT_FLAG = Mesh.FaceFlags.SELECT
-			HIDE_FLAG = Mesh.FaceFlags.HIDE
-			def use_face(f_flag):
-				if f_flag & HIDE_FLAG:		return False
-				elif f_flag & SELECT_FLAG:	return True
-				else:						return False
-				
-			meshFaces = [thickface(f) for f in me.faces if use_face(f.flag)]
+			meshFaces = [thickface(f) for f in me.faces if f.flag & SELECT_FLAG]
 		else:
 			meshFaces = map(thickface, me.faces)
 		
@@ -945,7 +947,6 @@ def main():
 		
 		Window.DrawProgressBar(0.1, 'SmartProj UV Unwrapper, mapping "%s", %i faces.' % (me.name, len(meshFaces)))
 		
-
 		# =======
 		# Generate a projection list from face normals, this is ment to be smart :)
 		
