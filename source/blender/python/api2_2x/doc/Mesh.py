@@ -768,12 +768,14 @@ class Mesh:
 	@type texMesh: Mesh or None
 	@ivar key: The L{Key<Key.Key>} object containing the keyframes for this mesh, if any.
 	@type key: Key or None
-
 	@ivar activeUVLayer: The mesh's active UV/Image layer. None if there is no UV/Image layers.
+
+		B{Note}: After setting this value, call L{update} so the result can be seen the the 3d view.
 	@type activeUVLayer: string
 	@ivar activeColorLayer: The mesh's active Vertex Color layer. None if there is no UV/Image layers.
-	@type activeColorLayer: string
 
+		B{Note}: After setting this value, call L{update} so the result can be seen the the 3d view.
+	@type activeColorLayer: string
 	@ivar multires: The mesh has multires data, set True to add multires data.
 		Will throw an exception if the mesh has shape keys; use L{key} to test.
 	@type multires: bool
@@ -1085,7 +1087,7 @@ class Mesh:
 
 	def renameUVLayer(name, newname):
 		"""
-		Removes the active UV/Image layer.
+		Renames the UV layer called name to newname.
 		@type name: string
 		@param name: The UV layer to rename.
 		@type newname: string
@@ -1094,7 +1096,7 @@ class Mesh:
 
 	def renameColorLayer(name, newname):
 		"""
-		Removes the active Vertex Color layer.
+		Renames the color layer called name to newname.
 		@type name: string
 		@param name: The Color layer to rename.
 		@type newname: string
