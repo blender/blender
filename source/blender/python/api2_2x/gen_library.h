@@ -59,8 +59,11 @@
 	{"properties",\
 	 (getter)GenericLib_getProperties, (setter)NULL,\
 	 "properties",\
+	 NULL},\
+	{"tag",\
+	 (getter)GenericLib_getTag, (setter)GenericLib_setTag,\
+	 "temproary tag",\
 	 NULL}
-
 
 /* Dummy struct for getting the ID from a libdata BPyObject */
 typedef struct {
@@ -72,6 +75,8 @@ int GenericLib_setName( void *self, PyObject *value );
 PyObject *GenericLib_getName( void *self );
 PyObject *GenericLib_getFakeUser( void *self );
 int GenericLib_setFakeUser( void *self, PyObject *value );
+PyObject *GenericLib_getTag( void *self );
+int GenericLib_setTag( void *self, PyObject *value );
 PyObject *GenericLib_getLib( void *self );
 PyObject *GenericLib_getUsers( void *self );
 PyObject *GenericLib_getProperties( void *self );
@@ -85,5 +90,5 @@ short GenericLib_getType(PyObject * pydata);
 /* Other ID functions */
 ID			*GetIdFromList( ListBase * list, char *name );
 PyObject	*GetPyObjectFromID( ID * id );
-
+long GenericLib_hash(PyObject * pydata);
 #endif				/* EXPP_gen_library_h */

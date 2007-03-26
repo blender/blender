@@ -18,6 +18,9 @@ attributes = """
 	@ivar fakeUser: When set to True, this datablock wont be removed, even if nothing is using it.
 		All data has this disabled by default except for Actions.	
 	@type fakeUser: bool
+	@ivar tag: A temporary tag that to flag data as being used within a loop.
+		always set all tags to True or False before using since blender uses this flag for its own internal operations.
+	@type tag: bool
 	@ivar users: The number of users this datablock has. (readonly)
 		Zero user datablocks are de-allocated after reloading and saving.
 	@type users: int

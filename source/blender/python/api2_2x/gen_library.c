@@ -91,6 +91,35 @@ int GenericLib_setFakeUser( void *self, PyObject *value )
 	return 0;
 }
 
+PyObject *GenericLib_getTag( void *self )
+{	
+	ID *id = ((BPy_GenericLib *)self)->id;
+	if (!id) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "data has been removed" ) );
+	if (id->flag & LIB_DOIT)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+int GenericLib_setTag( void *self, PyObject *value )
+{
+	int param;
+	ID *id = ((BPy_GenericLib *)self)->id;
+	if (!id) return ( EXPP_ReturnIntError( PyExc_RuntimeError, "data has been removed" ) );
+	
+	param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument in range [0,1]" );
+	
+	if (param)
+		id->flag |= LIB_DOIT;
+	else
+		id->flag &= ~LIB_DOIT;
+	return 0;
+}
+
+
 /* read only */
 PyObject *GenericLib_getLib( void *self )
 {	
@@ -304,5 +333,16 @@ PyObject *GetPyObjectFromID( ID * id )
 		break;
 	}
 	Py_RETURN_NONE;
+}
+
+/* return a unique tuple for this libdata*/
+long GenericLib_hash(PyObject * pydata)
+{
+	ID *id = ((BPy_GenericLib *)pydata)->id;
+	PyObject *pyhash = PyTuple_New( 2 );
+	PyTuple_SetItem( pyhash, 0, PyString_FromString(id->name) );
+	if (id->lib) PyTuple_SetItem( pyhash, 0, PyString_FromString(id->lib->name) );
+	else		PyTuple_SetItem( pyhash, 1, Py_None );
+	return PyObject_Hash(pyhash);
 }
 

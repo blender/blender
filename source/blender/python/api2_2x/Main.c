@@ -350,6 +350,31 @@ static int MainSeq_setActive(BPy_MainSeq *self, PyObject *value)
 			"Only Scene and Image types have the active attribute" );
 }
 
+static int MainSeq_setTag(BPy_MainSeq *self, PyObject *value)
+{
+	int param = PyObject_IsTrue( value );
+	ID *id;
+	
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument in range [0,1]" );
+	
+	id = (ID *)wich_libbase(G.main, self->type)->first;
+	
+	if (param) {
+		for (; id; id = id->next) {
+			id->flag |= LIB_DOIT;
+		}
+	} else {
+		for (; id; id = id->next) {
+			id->flag &= ~LIB_DOIT;
+		}
+	}
+	
+	return 0;	
+}
+
+
 /* New Data, internal functions */
 Mesh *add_mesh__internal(char *name)
 {
@@ -639,6 +664,10 @@ static PyGetSetDef MainSeq_getseters[] = {
 	{"active",
 	 (getter)MainSeq_getActive, (setter)MainSeq_setActive,
 	 "active object",
+	 NULL},
+	{"tag",
+	 (getter)NULL, (setter)MainSeq_setTag,
+	 "tag all data in True or False (write only)",
 	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };

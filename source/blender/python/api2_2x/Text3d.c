@@ -31,7 +31,7 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
- 
+
 #include "Text3d.h" /*This must come first*/
  
 #include "DNA_object_types.h"
@@ -372,7 +372,7 @@ PyTypeObject Text3d_Type = {
 
 	/* More standard operations (here for binary compatibility) */
 
-	NULL,                       /* hashfunc tp_hash; */
+	( hashfunc ) GenericLib_hash,	/* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */

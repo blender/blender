@@ -188,6 +188,17 @@ class dataIterator:
 		
 		>>> ipo_list = list(bpy.ipos)
 		
+	@type tag: Bool
+	@ivar tag: A fast way to set the tag value of every member of the sequence to True or False
+	
+		For example
+		
+		>>> bpy.meshes.tag = True
+		
+		Is the same as...
+		
+		>>> for me in bpy.meshes: me.tag = True
+	
 	@type active: Datablock or None
 	@ivar active: The active member of the datatype
 	
