@@ -4,7 +4,7 @@ Name: 'Unfold'
 Blender: 243
 Group: 'Mesh'
 Tip: 'Unfold meshes to create nets'
-Version:  v2.2.3
+Version:  v2.2.4
 Author: Matthew Chadwick
 """
 import Blender
@@ -27,7 +27,7 @@ except:
 	traceback.print_exc(file=sys.stdout)
 	
 __author__ = 'Matthew Chadwick'
-__version__ = '2.2.3 07032007'
+__version__ = '2.2.4 24032007'
 __url__ = ["http://celeriac.net/unfolder/", "blender", "blenderartist"]
 __email__ = ["post at cele[remove this text]riac.net", "scripts"]
 __bpydoc__ = """\
@@ -49,8 +49,8 @@ or later, currently at http://www.gnu.org/copyleft/gpl.html
 The idea came while I was riding a bike.
 
 """	
-	
 
+# Face lookup
 class FacesAndEdges:
 	def __init__(self, mesh):
 		self.nfaces = 0
@@ -89,10 +89,7 @@ class FacesAndEdges:
 	def takeFace(self, bface):
 		if(bface!=None):
 			bface.sel= True
-			self.nfaces+=1		
-	def minz(mesh):
-		return min([v.co.z for v in mesh.verts]) 
-	minz = staticmethod(minz)
+			self.nfaces+=1
 	
 	
 class IntersectionResult:
@@ -172,7 +169,7 @@ class FaceOverlapTest:
 
 		
 	
-# A fold
+# A fold between two faces with a common edge
 class Fold:
 	ids = -1
 	def __init__(self, parent, refPoly, poly, edge, angle=None):
@@ -254,7 +251,7 @@ class Fold:
 class Cut(Fold):
 	pass
 			
-# Builds folds
+# Trees build folds by traversing the mesh according to a local measure
 class Tree:
 	def __init__(self, net, parent,fold,otherConstructor=None):
 		self.net = net
@@ -330,7 +327,7 @@ class Tree:
 		if(self.net.diffuse==False):
 			fold.tree.grow()
 
-# Nets
+# A Net is the result of the traversal of the mesh by Trees
 class Net:
 	def __init__(self, src, des):
 		self.src = src
@@ -379,10 +376,10 @@ class Net:
 		else:
 			print "Using user-selected seed face ", self.firstFaceIndex
 		self.firstFace = self.src.faces[self.firstFaceIndex]
-		z = FacesAndEdges.minz(self.src)-0.1
+		z = min([v.co.z for v in self.src.verts])-0.1
 		ff = Poly.fromBlenderFace(self.firstFace)
 		if(len(ff.v)<3):
-			raise Exception("This mesh contains an isolated edge - it must consist of only faces")
+			raise Exception("This mesh contains an isolated edge - it must consist only of faces")
 		testFace = Poly.fromVectors( [ Vector([0.0,0.0,0.0]), Vector([0.0,1.0,0.0]), Vector([1.0,1.0,0.0])  ] )
 		# hmmm
 		u=0
@@ -392,6 +389,7 @@ class Net:
 			u=1
 			v=2
 			w=0
+		# here we make a couple of folds, not part of the net, which serve to get the net into the xy plane
 		xyFace = Poly.fromList( [ [ff.v[u].x,ff.v[u].y, z] , [ff.v[v].x,ff.v[v].y, z] , [ff.v[w].x+0.1,ff.v[w].y+0.1, z] ] )
 		refFace = Poly.fromVectors([ ff.v[u], ff.v[v], xyFace.v[1], xyFace.v[0] ] )
 		xyFold =  Fold(None,   xyFace, refFace, Edge(xyFace.v[0], xyFace.v[1] ))
@@ -403,7 +401,6 @@ class Net:
 		self.facesAndEdges.takeFace(self.firstFace)
 		self.myFacesVisited+=1
 		self.refFold.unfold()
-		# All of his geese are swans
 		self.refFold.tree = trunk
 		self.refFold.desFace = self.addFace(self.refFold.unfoldedFace(), self.refFold.srcFace)
 		self.folds.append(self.refFold)
@@ -422,13 +419,11 @@ class Net:
 					i = 0
 				else:
 					i = (i + 1) % len(self.branches)
-		try:
+		if self.src.faceUV:
 			for face in self.src.faces:
-				face.flag = 0	
+				face.sel = False
 			for face in selectedFaces:
-				face.flag = Mesh.FaceFlags.SELECT
-		except:
-			pass
+				face.sel = True
 		self.src.update()
 		Window.RedrawAll()
 	def assignUVs(self):
@@ -694,7 +689,7 @@ class Net:
 	def getSourceMesh(self):
 		return self.src
 		
-		
+# determines the order in which to visit faces according to a local measure		
 class EdgeIterator:
 	def __init__(self, branch, otherConstructor=None):
 		self.branch = branch
@@ -759,16 +754,18 @@ class Brightest(EdgeIterator):
 			f = self.net.facesAndEdges.findAdjacentFace(self.bface, edge)
 			if(f!=None):
 				b = 0
-				for c in f.col:
-					b+=(c.g+c.r+c.b)
+				if self.net.src.vertexColors:
+					for c in f.col:
+						b+=(c.g+c.r+c.b)
 				rc = float(random.randint(0, self.net.srcSize())) / float(self.net.srcSize()) / 100.0
 				b+=rc
 				edge.setGoodness(b)
 		self.edges.sort(lambda e1, e2: e1.compare(e2))
 	def computeGoodness(self):
 		g = 0
-		for c in self.bface.col:
-			g+=(c.g+c.r+c.b)
+		if self.net.src.vertexColors:
+			for c in self.bface.col:
+				g+=(c.g+c.r+c.b)
 		self.gooodness = g
 		
 class OddEven(EdgeIterator):
@@ -778,7 +775,6 @@ class OddEven(EdgeIterator):
 		if(OddEven.i):
 			self.edges.reverse()
 		
-# local curvature
 class Curvature(EdgeIterator):
 	def sequenceEdges(self):
 		p1 = Poly.fromBlenderFace(self.bface)
@@ -814,7 +810,7 @@ class Curvature(EdgeIterator):
 class Edge:
 	def __init__(self, v1=None, v2=None, mEdge=None, i=-1):
 		self.idx = i
-		if v1 and v2: # Neither are None
+		if v1 and v2:
 			self.v1 = v1.copy()
 			self.v2 = v2.copy()
 		else:
@@ -854,7 +850,6 @@ class Edge:
 		return e
 	edgesOfBlenderFace=staticmethod(edgesOfBlenderFace)
 	def isBlenderSeam(self):
-		# Better and flutter must and man can beam. Now think of seams.
 		return (self.bmEdge.flag & Mesh.EdgeFlags.SEAM)
 	def isInFGon(self):
 		return (self.bmEdge.flag & Mesh.EdgeFlags.FGON)
@@ -1212,7 +1207,7 @@ class SVGExporter:
 		for vv in face.v:
 			if(not(first)):
 				points+=','
-			first = (2==3)
+			first = False
 			points+=str(vv[0])
 			points+=' '
 			points+=str(vv[1])
@@ -1336,10 +1331,7 @@ class NetHandler(xml.sax.handler.ContentHandler):
 			traceback.print_exc(file=sys.stdout)
 	fileSelected = staticmethod(fileSelected)		
 
-	
-	
-#____________Blender GUI__________________
-	
+
 class GUI:
 	def __init__(self):
 		self.overlaps = Draw.Create(0)
@@ -1598,4 +1590,4 @@ try:
 	gui.makeStandardGUI()
 	#gui.makePopupGUI()
 except:
-	pass
+	traceback.print_exc(file=sys.stdout)
