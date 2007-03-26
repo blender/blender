@@ -126,7 +126,7 @@ int join_mesh(void)
 	MFace *mface = NULL, *mfacemain;
 	float imat[4][4], cmat[4][4];
 	int a, b, totcol, totedge=0, totvert=0, totface=0, ok=0, vertofs, map[MAXMAT];
-	int	i, j, index, haskey=0, edgeofs, faceofs;
+	int	i, j, index, haskey=0, hasmulti=0, edgeofs, faceofs;
 	bDeformGroup *dg, *odg;
 	MDeformVert *dvert;
 	CustomData vdata, edata, fdata;
@@ -157,7 +157,7 @@ int join_mesh(void)
 	}
 #endif
 
-	/* count */
+	/* count & check */
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASELIB(base) {
@@ -172,6 +172,10 @@ int join_mesh(void)
 					haskey= 1;
 					break;
 				}
+				if(me->mr) {
+					hasmulti= 1;
+					break;
+				}
 			}
 		}
 		base= base->next;
@@ -181,12 +185,14 @@ int join_mesh(void)
 		error("Can't join meshes with vertex keys");
 		return 0;
 	}
+	if(hasmulti) {
+		error("Can't join meshes with Multires");
+		return 0;
+	}
 	/* that way the active object is always selected */ 
 	if(ok==0) return 0;
 	
 	if(totvert==0 || totvert>MESH_MAX_VERTS) return 0;
-	
-
 
 	/* if needed add edges to other meshes */
 	for(base= FIRSTBASE; base; base= base->next) {
