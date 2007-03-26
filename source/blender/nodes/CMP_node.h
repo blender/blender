@@ -91,67 +91,8 @@ extern bNodeType cmp_node_rotate;
 extern bNodeType cmp_node_scale;
 extern bNodeType cmp_node_flip;
 extern bNodeType cmp_node_displace;
-extern bNodeType cmp_node_mapuv; 
-
-static bNodeType* node_all_composit[]= {
-   &node_group_typeinfo,
-
-      &cmp_node_rlayers,
-      &cmp_node_image,
-      &cmp_node_texture,
-      &cmp_node_value,
-      &cmp_node_rgb,
-      &cmp_node_curve_time,
-
-      &cmp_node_composite,
-      &cmp_node_viewer,
-      &cmp_node_splitviewer,
-      &cmp_node_output_file,
-
-      &cmp_node_curve_rgb,
-      &cmp_node_mix_rgb,
-      &cmp_node_hue_sat,
-      &cmp_node_alphaover,
-      &cmp_node_zcombine,
-
-      &cmp_node_normal,
-      &cmp_node_curve_vec,
-      &cmp_node_map_value,
-
-      &cmp_node_filter,
-      &cmp_node_blur,
-      &cmp_node_vecblur,
-      &cmp_node_dilateerode,
-      &cmp_node_defocus,
-
-      &cmp_node_valtorgb,
-      &cmp_node_rgbtobw,	
-      &cmp_node_setalpha,
-      &cmp_node_idmask,
-      &cmp_node_math,
-      &cmp_node_seprgba,
-      &cmp_node_combrgba,
-      &cmp_node_sephsva,
-      &cmp_node_combhsva,
-      &cmp_node_sepyuva,
-      &cmp_node_combyuva,
-      &cmp_node_sepycca,
-      &cmp_node_combycca,
-
-      &cmp_node_diff_matte,
-      &cmp_node_chroma,
-      &cmp_node_channel_matte,
-      &cmp_node_color_spill,
-      &cmp_node_luma_matte,
-
-      &cmp_node_translate,
-      &cmp_node_rotate,
-      &cmp_node_scale,
-      &cmp_node_flip,
-      &cmp_node_displace,
-      &cmp_node_mapuv,
-
-      NULL
-};
+extern bNodeType cmp_node_mapuv;
 
 #endif
+
+

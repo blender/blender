@@ -57,30 +57,6 @@ extern bNodeType sh_node_math;
 extern bNodeType sh_node_vect_math;
 extern bNodeType sh_node_squeeze;
 
-static bNodeType* node_all_shaders[]= {
-      &node_group_typeinfo,
-      &sh_node_output,
-      &sh_node_material,
-      &sh_node_camera,
-      &sh_node_value,
-      &sh_node_rgb,
-      &sh_node_mix_rgb,
-      &sh_node_valtorgb,
-      &sh_node_rgbtobw,
-      &sh_node_texture,
-      &sh_node_normal,
-      &sh_node_geom,
-      &sh_node_mapping,
-      &sh_node_curve_vec,
-      &sh_node_curve_rgb,
-      &sh_node_math,
-      &sh_node_vect_math,
-      &sh_node_squeeze,
-      NULL
-};
-
-
-
 #endif
 
 

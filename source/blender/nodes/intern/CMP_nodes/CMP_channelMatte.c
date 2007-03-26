@@ -190,6 +190,7 @@ static void node_composit_init_channel_matte(bNode *node)
 }
 
 bNodeType cmp_node_channel_matte={
+	/* *next,*prev */	NULL, NULL,
    /* type code   */       CMP_NODE_CHANNEL_MATTE,
    /* name        */       "Channel Key",
    /* width+range */       200, 80, 250,

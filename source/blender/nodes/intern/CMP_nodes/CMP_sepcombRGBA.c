@@ -75,6 +75,7 @@ static void node_composit_exec_seprgba(void *data, bNode *node, bNodeStack **in,
 }
 
 bNodeType cmp_node_seprgba= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_SEPRGBA,
 	/* name        */	"Separate RGBA",
 	/* width+range */	80, 40, 140,
@@ -144,6 +145,7 @@ static void node_composit_exec_combrgba(void *data, bNode *node, bNodeStack **in
 }
 
 bNodeType cmp_node_combrgba= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_COMBRGBA,
 	/* name        */	"Combine RGBA",
 	/* width+range */	80, 40, 140,

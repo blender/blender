@@ -57,6 +57,7 @@ static void node_shader_init_curve_vec(bNode* node)
 }
 
 bNodeType sh_node_curve_vec= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_CURVE_VEC,
 	/* name        */	"Vector Curves",
 	/* width+range */	200, 140, 320,
@@ -97,6 +98,7 @@ static void node_shader_init_curve_rgb(bNode *node)
 }
 
 bNodeType sh_node_curve_rgb= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_CURVE_RGB,
 	/* name        */	"RGB Curves",
 	/* width+range */	200, 140, 320,

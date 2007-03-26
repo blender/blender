@@ -102,6 +102,7 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 };
 
 bNodeType cmp_node_scale= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_SCALE,
 	/* name        */	"Scale",
 	/* width+range */	140, 100, 320,

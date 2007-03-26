@@ -108,6 +108,7 @@ static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **i
 }
 
 bNodeType cmp_node_alphaover= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_ALPHAOVER,
 	/* name        */	"AlphaOver",
 	/* width+range */	80, 40, 120,

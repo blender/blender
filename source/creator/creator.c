@@ -57,6 +57,7 @@
 #include "BKE_material.h"
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
+#include "BKE_node.h"
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -312,6 +313,8 @@ int main(int argc, char **argv)
 		 * see blenpluginapi:pluginapi.c
 		 */
 	pluginapi_force_ref();
+	
+	init_nodesystem();
 	
 	initglobals();	/* blender.c */
 

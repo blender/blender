@@ -78,6 +78,7 @@ static void node_composit_exec_normal(void *data, bNode *node, bNodeStack **in, 
 }
 
 bNodeType cmp_node_normal= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_NORMAL,
 	/* name        */	"Normal",
 	/* width+range */	100, 60, 200,

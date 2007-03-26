@@ -71,6 +71,7 @@ static void node_composit_exec_setalpha(void *data, bNode *node, bNodeStack **in
 }
 
 bNodeType cmp_node_setalpha= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_SETALPHA,
 	/* name        */	"Set Alpha",
 	/* width+range */	120, 40, 140,

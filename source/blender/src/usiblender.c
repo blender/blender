@@ -79,6 +79,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
+#include "BKE_node.h"
 #include "BKE_packedFile.h"
 #include "BKE_utildefines.h"
 
@@ -967,7 +968,9 @@ void exit_usiblender(void)
 	
 	BLI_freelistN(&U.themes);
 	BIF_preview_free_dbase();
-		
+	
+	free_nodesystem();
+	
 	if(totblock!=0) {
 		printf("Error Totblock: %d\n",totblock);
 		MEM_printmemlist();
@@ -986,6 +989,6 @@ void exit_usiblender(void)
 
 
 	SYS_DeleteSystem(SYS_GetSystem());
-
+	
 	exit(G.afbreek==1);
 }

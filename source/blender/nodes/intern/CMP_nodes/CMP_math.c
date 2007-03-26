@@ -159,6 +159,7 @@ static void node_composit_exec_math(void *data, bNode *node, bNodeStack **in, bN
 }
 
 bNodeType cmp_node_math= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_MATH,
 	/* name        */	"Math",
 	/* width+range */	120, 110, 160,

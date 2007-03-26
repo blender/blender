@@ -57,6 +57,7 @@ static void node_composit_exec_translate(void *data, bNode *node, bNodeStack **i
 }
 
 bNodeType cmp_node_translate= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_TRANSLATE,
 	/* name        */	"Translate",
 	/* width+range */	140, 100, 320,

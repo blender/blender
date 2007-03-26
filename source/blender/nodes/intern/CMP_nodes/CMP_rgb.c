@@ -44,6 +44,7 @@ static void node_composit_exec_rgb(void *data, bNode *node, bNodeStack **in, bNo
 }
 
 bNodeType cmp_node_rgb= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_RGB,
 	/* name        */	"RGB",
 	/* width+range */	100, 60, 140,

@@ -100,6 +100,7 @@ static void node_shader_exec_vect_math(void *data, bNode *node, bNodeStack **in,
 }
 
 bNodeType sh_node_vect_math= { 
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */ SH_NODE_VECT_MATH, 
 	/* name        */ "Vector Math", 
 	/* width+range */ 80, 75, 140, 

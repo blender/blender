@@ -143,6 +143,7 @@ static void node_composit_init_splitviewer(bNode* node)
 }
 
 bNodeType cmp_node_splitviewer= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_SPLITVIEWER,
 	/* name        */	"SplitViewer",
 	/* width+range */	140, 100, 320,

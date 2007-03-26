@@ -58,6 +58,7 @@ static void node_shader_exec_normal(void *data, bNode *node, bNodeStack **in, bN
 }
 
 bNodeType sh_node_normal= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_NORMAL,
 	/* name        */	"Normal",
 	/* width+range */	100, 60, 200,

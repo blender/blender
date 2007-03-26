@@ -63,6 +63,7 @@ static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bN
 }
 
 bNodeType sh_node_output= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_OUTPUT,
 	/* name        */	"Output",
 	/* width+range */	80, 60, 200,

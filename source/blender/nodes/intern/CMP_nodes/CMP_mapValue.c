@@ -80,6 +80,7 @@ static void node_composit_init_map_value(bNode* node)
 }
 
 bNodeType cmp_node_map_value= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_MAP_VALUE,
 	/* name        */	"Map Value",
 	/* width+range */	100, 60, 150,

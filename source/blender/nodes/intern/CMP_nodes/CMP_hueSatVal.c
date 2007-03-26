@@ -102,6 +102,7 @@ static void node_composit_init_hue_sat(bNode* node)
 }
 
 bNodeType cmp_node_hue_sat= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_HUE_SAT,
 	/* name        */	"Hue Saturation Value",
 	/* width+range */	150, 80, 250,

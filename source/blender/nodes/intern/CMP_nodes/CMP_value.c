@@ -43,6 +43,7 @@ static void node_composit_exec_value(void *data, bNode *node, bNodeStack **in, b
 }
 
 bNodeType cmp_node_value= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_VALUE,
 	/* name        */	"Value",
 	/* width+range */	80, 40, 120,

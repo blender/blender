@@ -198,6 +198,7 @@ static void node_composit_init_diff_matte(bNode *node)
 }
 
 bNodeType cmp_node_diff_matte={
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */       CMP_NODE_DIFF_MATTE,
 	/* name        */       "Difference Key",
 	/* width+range */       200, 80, 250,

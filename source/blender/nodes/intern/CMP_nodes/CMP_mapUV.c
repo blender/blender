@@ -130,6 +130,7 @@ static void node_composit_exec_mapuv(void *data, bNode *node, bNodeStack **in, b
 }
 
 bNodeType cmp_node_mapuv= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_MAP_UV,
 	/* name        */	"Map UV",
 	/* width+range */	140, 100, 320,

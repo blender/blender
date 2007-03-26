@@ -111,6 +111,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 }
 
 bNodeType sh_node_texture= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_TEXTURE,
 	/* name        */	"Texture",
 	/* width+range */	120, 80, 240,

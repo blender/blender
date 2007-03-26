@@ -137,6 +137,7 @@ static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in
 }
 
 bNodeType cmp_node_zcombine= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_ZCOMBINE,
 	/* name        */	"Z Combine",
 	/* width+range */	80, 40, 120,

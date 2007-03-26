@@ -88,6 +88,7 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 }
 
 bNodeType cmp_node_composite= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_COMPOSITE,
 	/* name        */	"Composite",
 	/* width+range */	80, 60, 200,

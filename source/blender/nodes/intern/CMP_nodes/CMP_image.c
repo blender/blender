@@ -211,6 +211,7 @@ static void node_composit_init_image(bNode* node)
 }
 
 bNodeType cmp_node_image= {
+	/* *next,*prev */	NULL, NULL,
    /* type code   */	CMP_NODE_IMAGE,
    /* name        */	"Image",
    /* width+range */	120, 80, 300,
@@ -328,6 +329,7 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in,
 
 
 bNodeType cmp_node_rlayers= {
+	/* *next,*prev */	NULL, NULL,
    /* type code   */	CMP_NODE_R_LAYERS,
    /* name        */	"Render Layers",
    /* width+range */	150, 100, 300,

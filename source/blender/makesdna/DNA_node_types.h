@@ -34,7 +34,7 @@
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
 
-
+struct ListBase;
 struct SpaceNode;
 struct bNodeLink;
 struct bNodeType;
@@ -162,10 +162,11 @@ typedef struct bNodeTree {
 	
 	int type, init;					/* set init on fileread */
 	int stacksize;					/* amount of elements in stack */
-	int cur_index;					/* sockets in groups have unique identifiers, adding new sockets always will increase this counter */
-	struct bNodeType **alltypes;	/* type definitions, set on fileread, no read/write */
+	int cur_index;					/* sockets in groups have unique identifiers, adding new sockets always 
+									   will increase this counter */
+	ListBase alltypes;				/* type definitions */
 	struct bNodeType *owntype;		/* for groups or dynamic trees, no read/write */
-	
+
 	/* callbacks */
 	void (*timecursor)(int nr);
 	void (*stats_draw)(char *str);

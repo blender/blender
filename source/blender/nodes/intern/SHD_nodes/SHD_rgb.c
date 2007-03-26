@@ -43,6 +43,7 @@ static void node_shader_exec_rgb(void *data, bNode *node, bNodeStack **in, bNode
 }
 
 bNodeType sh_node_rgb= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_RGB,
 	/* name        */	"RGB",
 	/* width+range */	100, 60, 140,

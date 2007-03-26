@@ -806,6 +806,7 @@ static void node_composit_init_defocus(bNode* node)
 };
 
 bNodeType cmp_node_defocus = {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_DEFOCUS,
 	/* name        */	"Defocus",
 	/* width+range */	150, 120, 200,

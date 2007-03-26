@@ -60,6 +60,7 @@ static void node_shader_init_valtorgb(bNode *node)
 }
 
 bNodeType sh_node_valtorgb= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_VALTORGB,
 	/* name        */	"ColorRamp",
 	/* width+range */	240, 200, 300,
@@ -93,6 +94,7 @@ static void node_shader_exec_rgbtobw(void *data, bNode *node, bNodeStack **in, b
 }
 
 bNodeType sh_node_rgbtobw= {
+	/* *next,*prev */	NULL, NULL,
    /* type code   */	SH_NODE_RGBTOBW,
    /* name        */	"RGB to BW",
    /* width+range */	80, 40, 120,

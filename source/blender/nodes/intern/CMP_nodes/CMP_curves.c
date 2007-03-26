@@ -59,6 +59,7 @@ static void node_composit_init_curves_time(bNode* node)
 }
 
 bNodeType cmp_node_curve_time= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_TIME,
 	/* name        */	"Time",
 	/* width+range */	140, 100, 320,
@@ -98,6 +99,7 @@ static void node_composit_init_curve_vec(bNode* node)
 };
 
 bNodeType cmp_node_curve_vec= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_CURVE_VEC,
 	/* name        */	"Vector Curves",
 	/* width+range */	200, 140, 320,
@@ -180,6 +182,7 @@ static void node_composit_init_curve_rgb(bNode* node)
 };
 
 bNodeType cmp_node_curve_rgb= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_CURVE_RGB,
 	/* name        */	"RGB Curves",
 	/* width+range */	200, 140, 320,

@@ -97,6 +97,7 @@ static void node_composit_exec_sepyuva(void *data, bNode *node, bNodeStack **in,
 }
 
 bNodeType cmp_node_sepyuva= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */ CMP_NODE_SEPYUVA,
 	/* name        */ "Separate YUVA",
 	/* width+range */ 80, 40, 140,
@@ -168,6 +169,7 @@ static void node_composit_exec_combyuva(void *data, bNode *node, bNodeStack **in
 }
 
 bNodeType cmp_node_combyuva= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_COMBYUVA,
 	/* name        */	"Combine YUVA",
 	/* width+range */	80, 40, 140,

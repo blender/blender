@@ -1576,7 +1576,6 @@ static TBitem *node_add_sublevel(ListBase *storage, bNodeTree *ntree, int nodecl
 {
 	static TBitem _addmenu[]= { {	0, " ", 	0, NULL}, {  -1, "", 			0, NULL}};
 	Link *link;
-	bNodeType **typedefs;
 	TBitem *addmenu;
 	int tot= 0, a;
 	
@@ -1588,9 +1587,13 @@ static TBitem *node_add_sublevel(ListBase *storage, bNodeTree *ntree, int nodecl
 					tot++;
 		}
 		else {
-			for(typedefs= ntree->alltypes; *typedefs; typedefs++)
-				if( (*typedefs)->nclass == nodeclass )
+			bNodeType *ntype = ntree->alltypes.first;
+			while(ntype) {
+				if(ntype->nclass == nodeclass) {
 					tot++;
+				}
+				ntype= ntype->next;
+			}
 		}
 	}	
 	if(tot==0) {
@@ -1612,15 +1615,16 @@ static TBitem *node_add_sublevel(ListBase *storage, bNodeTree *ntree, int nodecl
 		}
 	}
 	else {
-		for(a=0, typedefs= ntree->alltypes; *typedefs; typedefs++) {
-			if( (*typedefs)->nclass == nodeclass ) {
-				addmenu[a].name= (*typedefs)->name;
-				addmenu[a].retval= (*typedefs)->type;
+		bNodeType *ntype= ntree->alltypes.first;
+		for(a=0; ntype; ntype= ntype->next) {
+			if( ntype->nclass == nodeclass ) {
+				addmenu[a].name= ntype->name;
+				addmenu[a].retval= ntype->type;
 				a++;
 			}
 		}
 	}
-
+	
 	addmenu[a].icon= -1;	/* end signal */
 	addmenu[a].name= "";
 	addmenu[a].retval= a;

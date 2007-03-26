@@ -104,6 +104,7 @@ static void node_composit_init_luma_matte(bNode *node)
 };
 
 bNodeType cmp_node_luma_matte={
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */       CMP_NODE_LUMA_MATTE,
 	/* name        */       "Luminance Key",
 	/* width+range */       200, 80, 250,

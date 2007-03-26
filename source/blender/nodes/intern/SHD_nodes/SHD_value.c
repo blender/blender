@@ -45,6 +45,7 @@ static void node_shader_exec_value(void *data, bNode *node, bNodeStack **in, bNo
 
 
 bNodeType sh_node_value= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_VALUE,
 	/* name        */	"Value",
 	/* width+range */	80, 50, 120,

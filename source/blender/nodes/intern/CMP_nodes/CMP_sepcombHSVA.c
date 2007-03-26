@@ -97,6 +97,7 @@ static void node_composit_exec_sephsva(void *data, bNode *node, bNodeStack **in,
 }
 
 bNodeType cmp_node_sephsva= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_SEPHSVA,
 	/* name        */	"Separate HSVA",
 	/* width+range */	80, 40, 140,
@@ -168,6 +169,7 @@ static void node_composit_exec_combhsva(void *data, bNode *node, bNodeStack **in
 }
 
 bNodeType cmp_node_combhsva= {
+	/* *next,*prev */	NULL, NULL,
    /* type code   */	CMP_NODE_COMBHSVA,
    /* name        */	"Combine HSVA",
    /* width+range */	80, 40, 140,

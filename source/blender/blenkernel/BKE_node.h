@@ -66,6 +66,7 @@ typedef struct bNodeSocketType {
 } bNodeSocketType;
 
 typedef struct bNodeType {
+	void *next,*prev;
 	int type;
 	char *name;
 	float width, minwidth, maxwidth;
@@ -102,6 +103,7 @@ void			ntreeVerifyTypes(struct bNodeTree *ntree);
 
 struct bNodeTree *ntreeAddTree(int type);
 void			ntreeInitTypes(struct bNodeTree *ntree);
+
 void			ntreeMakeOwnType(struct bNodeTree *ntree);
 void			ntreeFreeTree(struct bNodeTree *ntree);
 struct bNodeTree *ntreeCopyTree(struct bNodeTree *ntree, int internal_select);
@@ -196,7 +198,7 @@ struct ShadeResult;
 #define SH_NODE_MAT_NEG    4
 
 /* the type definitions array */
-static bNodeType *node_all_shaders[];
+extern struct ListBase node_all_shaders;
 
 /* API */
 
@@ -293,7 +295,7 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 
 
 /* the type definitions array */
-static bNodeType* node_all_composit[];
+extern struct ListBase node_all_composit;
 
 /* API */
 struct CompBuf;
@@ -303,5 +305,8 @@ void ntreeCompositTagGenerators(struct bNodeTree *ntree);
 void ntreeCompositForceHidden(struct bNodeTree *ntree);
 
 void free_compbuf(struct CompBuf *cbuf); /* internal...*/
+
+void init_nodesystem(void);
+void free_nodesystem(void);
 
 #endif

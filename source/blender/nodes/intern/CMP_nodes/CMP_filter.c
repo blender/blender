@@ -215,6 +215,7 @@ static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, 
 
 
 bNodeType cmp_node_filter= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_FILTER,
 	/* name        */	"Filter",
 	/* width+range */	80, 40, 120,

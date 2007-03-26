@@ -66,6 +66,10 @@
 /* not very important, but the stack solver likes to know a maximum */
 #define MAX_SOCKET	64
 
+static ListBase empty_list = {NULL, NULL};
+ListBase node_all_composit = {NULL, NULL};
+ListBase node_all_shaders = {NULL, NULL};
+
 /* ************** Type stuff **********  */
 
 static bNodeType *node_get_type(bNodeTree *ntree, int type, bNodeTree *ngroup)
@@ -77,12 +81,12 @@ static bNodeType *node_get_type(bNodeTree *ntree, int type, bNodeTree *ngroup)
 		return NULL;
 	}
 	else {
-		bNodeType **typedefs= ntree->alltypes;
+		bNodeType *ntype = ntree->alltypes.first;
+		for(; ntype; ntype= ntype->next)
+			if(ntype->type==type)
+				return ntype;
 		
-		while( *typedefs && (*typedefs)->type!=type)
-			typedefs++;
-		
-		return *typedefs;
+		return NULL;
 	}
 }
 
@@ -95,7 +99,7 @@ void ntreeInitTypes(bNodeTree *ntree)
 	else if(ntree->type==NTREE_COMPOSIT)
 		ntree->alltypes= node_all_composit;
 	else {
-		ntree->alltypes= NULL;
+		ntree->alltypes= empty_list;
 		printf("Error: no type definitions for nodes\n");
 	}
 	
@@ -223,10 +227,9 @@ void ntreeVerifyTypes(bNodeTree *ntree)
 {
 	bNode *node;
 	
-	/* commented out, in linux a 2nd initialize on a Scene ntree from a lib crashes... */
-/*	if((ntree->init & NTREE_TYPE_INIT)==0) */
-		ntreeInitTypes(ntree);
-	
+	/* if((ntree->init & NTREE_TYPE_INIT)==0) */
+	ntreeInitTypes(ntree);
+
 	/* check inputs and outputs, and remove or insert them */
 	for(node= ntree->nodes.first; node; node= node->next)
 		nodeVerifyType(ntree, node);
@@ -236,6 +239,7 @@ void ntreeVerifyTypes(bNodeTree *ntree)
 /* ************** Group stuff ********** */
 
 bNodeType node_group_typeinfo= {
+	/* next,prev   */   NULL, NULL,
 	/* type code   */	NODE_GROUP,
 	/* name        */	"Group",
 	/* width+range */	120, 60, 200,
@@ -244,7 +248,8 @@ bNodeType node_group_typeinfo= {
 	/* output sock */	NULL,
 	/* storage     */	"",
 	/* execfunc    */	NULL,
-	
+	/* butfunc	   */   NULL,
+	/* initfunc    */   NULL
 };
 
 /* tag internal sockets */
@@ -345,7 +350,7 @@ void ntreeMakeOwnType(bNodeTree *ngroup)
 	
 	/* make own type struct */
 	ngroup->owntype= MEM_mallocN(sizeof(bNodeType), "group type");
-	*ngroup->owntype= node_group_typeinfo;
+	*ngroup->owntype= node_group_typeinfo; /* copy data, for init */
 	
 	/* input type arrays */
 	if(totin) {
@@ -863,6 +868,8 @@ bNodeTree *ntreeAddTree(int type)
 {
 	bNodeTree *ntree= MEM_callocN(sizeof(bNodeTree), "new node tree");
 	ntree->type= type;
+	ntree->alltypes.first = NULL;
+	ntree->alltypes.last = NULL;
 	
 	ntreeInitTypes(ntree);
 	return ntree;
@@ -2295,4 +2302,123 @@ void ntreeCompositTagGenerators(bNodeTree *ntree)
          NodeTagChanged(ntree, node);
    }
 }
+
+/* ************* node definition init ********** */
+
+static bNodeType *is_nodetype_registered(ListBase *typelist, int type) 
+{
+	bNodeType *ntype= typelist->first;
+	
+	for(;ntype; ntype= ntype->next )
+		if(ntype->type==type)
+			return ntype;
+	
+	return NULL;
+}
+
+/* type can be from a static array, we make copy for duplicate types (like group) */
+void nodeRegisterType(ListBase *typelist, const bNodeType *ntype) 
+{
+	bNodeType *found= is_nodetype_registered(typelist, ntype->type);
+	
+	if(found==NULL) {
+		bNodeType *ntypen= MEM_mallocN(sizeof(bNodeType), "node type");
+		*ntypen= *ntype;
+		BLI_addtail(typelist, ntypen);
+ 	}
+}
+
+static void registerCompositNodes(ListBase *ntypelist)
+{
+	nodeRegisterType(ntypelist, &node_group_typeinfo);
+	nodeRegisterType(ntypelist, &cmp_node_rlayers);
+	nodeRegisterType(ntypelist, &cmp_node_image);
+	nodeRegisterType(ntypelist, &cmp_node_texture);
+	nodeRegisterType(ntypelist, &cmp_node_value);
+	nodeRegisterType(ntypelist, &cmp_node_rgb);
+	nodeRegisterType(ntypelist, &cmp_node_curve_time);
+	
+	nodeRegisterType(ntypelist, &cmp_node_composite);
+	nodeRegisterType(ntypelist, &cmp_node_viewer);
+	nodeRegisterType(ntypelist, &cmp_node_splitviewer);
+	nodeRegisterType(ntypelist, &cmp_node_output_file);
+	
+	nodeRegisterType(ntypelist, &cmp_node_curve_rgb);
+	nodeRegisterType(ntypelist, &cmp_node_mix_rgb);
+	nodeRegisterType(ntypelist, &cmp_node_hue_sat);
+	nodeRegisterType(ntypelist, &cmp_node_alphaover);
+	nodeRegisterType(ntypelist, &cmp_node_zcombine);
+	
+	nodeRegisterType(ntypelist, &cmp_node_normal);
+	nodeRegisterType(ntypelist, &cmp_node_curve_vec);
+	nodeRegisterType(ntypelist, &cmp_node_map_value);
+
+	nodeRegisterType(ntypelist, &cmp_node_filter);
+	nodeRegisterType(ntypelist, &cmp_node_blur);
+	nodeRegisterType(ntypelist, &cmp_node_vecblur);
+	nodeRegisterType(ntypelist, &cmp_node_dilateerode);
+	nodeRegisterType(ntypelist, &cmp_node_defocus);
+
+	nodeRegisterType(ntypelist, &cmp_node_valtorgb);
+	nodeRegisterType(ntypelist, &cmp_node_rgbtobw);
+	nodeRegisterType(ntypelist, &cmp_node_setalpha);
+	nodeRegisterType(ntypelist, &cmp_node_idmask);
+	nodeRegisterType(ntypelist, &cmp_node_math);
+	nodeRegisterType(ntypelist, &cmp_node_seprgba);
+	nodeRegisterType(ntypelist, &cmp_node_combrgba);
+	nodeRegisterType(ntypelist, &cmp_node_sephsva);
+	nodeRegisterType(ntypelist, &cmp_node_combhsva);
+	nodeRegisterType(ntypelist, &cmp_node_sepyuva);
+	nodeRegisterType(ntypelist, &cmp_node_combyuva);
+	nodeRegisterType(ntypelist, &cmp_node_sepycca);
+	nodeRegisterType(ntypelist, &cmp_node_combycca);
+		
+	nodeRegisterType(ntypelist, &cmp_node_diff_matte);
+	nodeRegisterType(ntypelist, &cmp_node_chroma);
+	nodeRegisterType(ntypelist, &cmp_node_channel_matte);
+	nodeRegisterType(ntypelist, &cmp_node_color_spill);
+	nodeRegisterType(ntypelist, &cmp_node_luma_matte);
+	
+	nodeRegisterType(ntypelist, &cmp_node_translate);
+	nodeRegisterType(ntypelist, &cmp_node_rotate);
+	nodeRegisterType(ntypelist, &cmp_node_scale);
+	nodeRegisterType(ntypelist, &cmp_node_flip);
+	nodeRegisterType(ntypelist, &cmp_node_displace);
+	nodeRegisterType(ntypelist, &cmp_node_mapuv);
+}
+
+static void registerShaderNodes(ListBase *ntypelist) 
+{
+	nodeRegisterType(ntypelist, &node_group_typeinfo);
+	nodeRegisterType(ntypelist, &sh_node_output);
+	nodeRegisterType(ntypelist, &sh_node_mix_rgb);
+	nodeRegisterType(ntypelist, &sh_node_valtorgb);
+	nodeRegisterType(ntypelist, &sh_node_rgbtobw);
+	nodeRegisterType(ntypelist, &sh_node_normal);
+	nodeRegisterType(ntypelist, &sh_node_geom);
+	nodeRegisterType(ntypelist, &sh_node_mapping);
+	nodeRegisterType(ntypelist, &sh_node_curve_vec);
+	nodeRegisterType(ntypelist, &sh_node_curve_rgb);
+	nodeRegisterType(ntypelist, &sh_node_math);
+	nodeRegisterType(ntypelist, &sh_node_vect_math);
+	nodeRegisterType(ntypelist, &sh_node_squeeze);
+	nodeRegisterType(ntypelist, &sh_node_camera);
+	nodeRegisterType(ntypelist, &sh_node_material);
+	nodeRegisterType(ntypelist, &sh_node_value);
+	nodeRegisterType(ntypelist, &sh_node_rgb);
+	nodeRegisterType(ntypelist, &sh_node_texture);
+}
+
+void init_nodesystem(void) 
+{
+	registerCompositNodes(&node_all_composit);
+	registerShaderNodes(&node_all_shaders);
+}
+
+void free_nodesystem(void) 
+{
+	BLI_freelistN(&node_all_composit);
+	BLI_freelistN(&node_all_shaders);
+}
+
 

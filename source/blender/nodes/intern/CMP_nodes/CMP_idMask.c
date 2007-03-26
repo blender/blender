@@ -85,6 +85,7 @@ static void node_composit_exec_idmask(void *data, bNode *node, bNodeStack **in, 
 
 
 bNodeType cmp_node_idmask= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_ID_MASK,
 	/* name        */	"ID Mask",
 	/* width+range */	140, 100, 320,

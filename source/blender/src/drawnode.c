@@ -1621,19 +1621,19 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 
 void init_node_butfuncs(void)
 {
-	bNodeType **typedefs;
+	bNodeType *ntype;
 	
 	/* shader nodes */
-	typedefs= node_all_shaders;		/* BKE_node.h */
-	while( *typedefs) {
-		node_shader_set_butfunc(*typedefs);
-		typedefs++;
+	ntype= node_all_shaders.first;
+	while(ntype) {
+		node_shader_set_butfunc(ntype);
+		ntype= ntype->next;
 	}
 	/* composit nodes */
-	typedefs= node_all_composit;		/* BKE_node.h */
-	while( *typedefs) {
-		node_composit_set_butfunc(*typedefs);
-		typedefs++;
+	ntype= node_all_composit.first;
+	while(ntype) {
+		node_composit_set_butfunc(ntype);
+		ntype= ntype->next;
 	}
 }
 

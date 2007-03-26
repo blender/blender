@@ -145,6 +145,7 @@ static void node_composit_exec_displace(void *data, bNode *node, bNodeStack **in
 }
 
 bNodeType cmp_node_displace= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_DISPLACE,
 	/* name        */	"Displace",
 	/* width+range */	140, 100, 320,

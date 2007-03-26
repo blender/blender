@@ -617,6 +617,7 @@ static void node_composit_init_blur(bNode* node)
 }
 
 bNodeType cmp_node_blur= {
+	/* *next,*prev */	NULL, NULL,
    /* type code   */	CMP_NODE_BLUR,
    /* name        */	"Blur",
    /* width+range */	120, 80, 200,

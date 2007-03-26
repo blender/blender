@@ -126,6 +126,7 @@ static void node_composit_init_color_spill(bNode *node)
 };
 
 bNodeType cmp_node_color_spill={
+	/* *next,*prev */	NULL, NULL,
    /* type code   */       CMP_NODE_COLOR_SPILL,
    /* name        */       "Color Spill",
    /* width+range */       140, 80, 200,

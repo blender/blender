@@ -96,6 +96,7 @@ static void node_composit_exec_sepycca(void *data, bNode *node, bNodeStack **in,
 }
 
 bNodeType cmp_node_sepycca= {
+	/* *next,*prev */ NULL, NULL,
 	/* type code   */ CMP_NODE_SEPYCCA,
 	/* name        */ "Separate YCbCrA",
 	/* width+range */ 80, 40, 140,
@@ -174,6 +175,7 @@ static void node_composit_exec_combycca(void *data, bNode *node, bNodeStack **in
 }
 
 bNodeType cmp_node_combycca= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_COMBYCCA,
 	/* name        */	"Combine YCbCrA",
 	/* width+range */	80, 40, 140,

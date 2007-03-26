@@ -133,6 +133,7 @@ static void node_composit_exec_rotate(void *data, bNode *node, bNodeStack **in, 
 }
 
 bNodeType cmp_node_rotate= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_ROTATE,
 	/* name        */	"Rotate",
 	/* width+range */	140, 100, 320,

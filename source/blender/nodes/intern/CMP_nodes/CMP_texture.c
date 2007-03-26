@@ -118,6 +118,7 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 }
 
 bNodeType cmp_node_texture= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_TEXTURE,
 	/* name        */	"Texture",
 	/* width+range */	120, 80, 240,

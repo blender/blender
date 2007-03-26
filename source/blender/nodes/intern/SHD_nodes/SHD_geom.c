@@ -115,6 +115,7 @@ static void node_shader_init_geometry(bNode *node)
 
 /* node type definition */
 bNodeType sh_node_geom= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_GEOMETRY,
 	/* name        */	"Geometry",
 	/* width+range */	120, 80, 160,

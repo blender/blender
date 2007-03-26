@@ -117,6 +117,7 @@ static void node_composit_init_vecblur(bNode* node)
 
 /* custom1: itterations, custom2: maxspeed (0 = nolimit) */
 bNodeType cmp_node_vecblur= {
+	/* next, prev  */	NULL, NULL,
 	/* type code   */	CMP_NODE_VECBLUR,
 	/* name        */	"Vector Blur",
 	/* width+range */	120, 80, 200,

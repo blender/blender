@@ -86,6 +86,7 @@ static void node_composit_exec_flip(void *data, bNode *node, bNodeStack **in, bN
 }
 
 bNodeType cmp_node_flip= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_FLIP,
 	/* name        */	"Flip",
 	/* width+range */	140, 100, 320,

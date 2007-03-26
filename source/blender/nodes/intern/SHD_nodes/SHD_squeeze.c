@@ -55,6 +55,7 @@ bNodeStack **out)
 }
 
 bNodeType sh_node_squeeze= { 
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */ SH_NODE_SQUEEZE, 
 	/* name        */ "Squeeze Value", 
 	/* width+range */ 120, 110, 160, 

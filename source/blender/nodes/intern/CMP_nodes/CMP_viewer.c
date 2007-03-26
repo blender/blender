@@ -125,6 +125,7 @@ static void node_composit_init_viewer(bNode* node)
 }
 
 bNodeType cmp_node_viewer= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_VIEWER,
 	/* name        */	"Viewer",
 	/* width+range */	80, 60, 200,

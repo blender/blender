@@ -144,6 +144,7 @@ static void node_composit_exec_dilateerode(void *data, bNode *node, bNodeStack *
 }
 
 bNodeType cmp_node_dilateerode= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_DILATEERODE,
 	/* name        */	"Dilate/Erode",
 	/* width+range */	130, 100, 320,

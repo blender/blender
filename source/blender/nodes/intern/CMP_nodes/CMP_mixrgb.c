@@ -78,6 +78,7 @@ static void node_composit_exec_mix_rgb(void *data, bNode *node, bNodeStack **in,
 
 /* custom1 = mix type */
 bNodeType cmp_node_mix_rgb= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_MIX_RGB,
 	/* name        */	"Mix",
 	/* width+range */	80, 60, 120,

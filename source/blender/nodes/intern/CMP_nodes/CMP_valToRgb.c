@@ -81,6 +81,7 @@ static void node_composit_init_valtorgb(bNode* node)
 }
 
 bNodeType cmp_node_valtorgb= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_VALTORGB,
 	/* name        */	"ColorRamp",
 	/* width+range */	240, 200, 300,
@@ -134,6 +135,7 @@ static void node_composit_exec_rgbtobw(void *data, bNode *node, bNodeStack **in,
 }
 
 bNodeType cmp_node_rgbtobw= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_RGBTOBW,
 	/* name        */	"RGB to BW",
 	/* width+range */	80, 40, 120,

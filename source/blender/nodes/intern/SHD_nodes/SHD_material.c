@@ -136,6 +136,7 @@ static void node_shader_init_material(bNode* node)
 
 
 bNodeType sh_node_material= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_MATERIAL,
 	/* name        */	"Material",
 	/* width+range */	120, 80, 240,

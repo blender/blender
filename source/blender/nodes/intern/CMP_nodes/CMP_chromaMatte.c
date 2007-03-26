@@ -173,6 +173,7 @@ static void node_composit_init_chroma_matte(bNode *node)
 };
 
 bNodeType cmp_node_chroma={
+	/* *next,*prev */	NULL, NULL,
    /* type code   */       CMP_NODE_CHROMA,
    /* name        */       "Chroma Key",
    /* width+range */       200, 80, 300,

@@ -92,6 +92,7 @@ static void node_composit_init_output_file(bNode *node)
 };
 
 bNodeType cmp_node_output_file= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_OUTPUT_FILE,
 	/* name        */	"File Output",
 	/* width+range */	140, 80, 300,

@@ -70,6 +70,7 @@ static void node_shader_init_mapping(bNode *node)
 }
 
 bNodeType sh_node_mapping= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_MAPPING,
 	/* name        */	"Mapping",
 	/* width+range */	240, 160, 320,

@@ -50,6 +50,7 @@ static void node_shader_exec_camera(void *data, bNode *node, bNodeStack **in, bN
 	}
 
 bNodeType sh_node_camera= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_CAMERA,
 	/* name        */	"Camera Data",
 	/* width+range */	95, 95, 120,

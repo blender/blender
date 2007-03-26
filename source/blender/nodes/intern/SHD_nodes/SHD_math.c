@@ -178,7 +178,8 @@ bNodeStack **out)
 	} 
 }
 
-bNodeType sh_node_math= { 
+bNodeType sh_node_math= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */ SH_NODE_MATH, 
 	/* name        */ "Math", 
 	/* width+range */ 120, 110, 160, 

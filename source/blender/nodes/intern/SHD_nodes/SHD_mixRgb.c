@@ -61,6 +61,7 @@ static void node_shader_exec_mix_rgb(void *data, bNode *node, bNodeStack **in, b
 }
 
 bNodeType sh_node_mix_rgb= {
+	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_MIX_RGB,
 	/* name        */	"Mix",
 	/* width+range */	100, 60, 150,
