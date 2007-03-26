@@ -646,6 +646,7 @@ static void addps(ListBase *lb, long *rd, int facenr, int z, unsigned short mask
 	ps->facenr= facenr;
 	ps->z= z;
 	ps->mask = mask;
+	ps->shadfac= 0;
 }
 
 static void make_pixelstructs(RenderPart *pa, ListBase *lb)
