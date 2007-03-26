@@ -811,7 +811,7 @@ int dup_id(ListBase *lb, ID *id, const char *tname)
 		if( strlen(name) > 21 ) name[21]= 0;
 	}
 
-	if(lb==0) lb= wich_libbase(G.main, GS(id->name));
+	if(lb==NULL) lb= wich_libbase(G.main, GS(id->name));
 
 	/* phase 1: id already exists? */
 	idtest= lb->first;
@@ -883,8 +883,11 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 /* only for local blocks: external en indirect blocks already have a unique ID */
 /* return 1: created a new name */
 {
-	int result = dup_id( lb, id, tname );
-
+	int result;
+	
+	if(lb==NULL) lb= wich_libbase(G.main, GS(id->name));
+	
+	result = dup_id( lb, id, tname );
 	if( result )
 		sort_alpha_id(lb, id);	
 
