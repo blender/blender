@@ -83,9 +83,11 @@ PyParentObject KX_SCA_ReplaceMeshActuator::Parents[] = {
 
 
 PyMethodDef KX_SCA_ReplaceMeshActuator::Methods[] = {
-  {"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_VARARGS, SetMesh_doc},
-  KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, getMesh),
-  {NULL,NULL} //Sentinel
+	{"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_VARARGS, SetMesh_doc},
+	
+	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, instantReplaceMesh),
+   	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, getMesh),
+	{NULL,NULL} //Sentinel
 };
 
 
@@ -133,6 +135,14 @@ KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, getMesh,
 		Py_Return;
 
 	return PyString_FromString(const_cast<char *>(m_mesh->GetName().ReadPtr()));
+}
+
+
+KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, instantReplaceMesh,
+"instantReplaceMesh() : immediately replace mesh without delay\n")
+{
+	InstantReplaceMesh();
+	Py_Return;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -190,5 +200,10 @@ CValue* KX_SCA_ReplaceMeshActuator::GetReplica()
 
 	return replica;
 };
+
+void KX_SCA_ReplaceMeshActuator::InstantReplaceMesh()
+{
+	if (m_mesh) m_scene->ReplaceMesh(GetParent(),m_mesh);
+}
 
 /* eof */
