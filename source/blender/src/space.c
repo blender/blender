@@ -171,7 +171,7 @@
 
 /* maybe we need this defined somewhere else */
 extern void StartKetsjiShell(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);
-extern void StartKetsjiShellSimulation(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);//rcruiz
+extern void StartKetsjiShellSimulation(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);/*rcruiz*/
 
 /**
  * When the mipmap setting changes, we want to redraw the view right
@@ -339,13 +339,7 @@ void handle_view3d_around()
 }
 
 void handle_view3d_lock()
-{
-	
-	//if (G.vd) printf("1\n");
-	//if (G.vd->scenelock) printf("2\n");
-	//if (curarea->spacetype) printf("3\n");
-	//if (curarea->spacetype) printf("4\n");
-	
+{	
 	if (G.vd != NULL && curarea != NULL ) {
 		if(G.vd->localview==0 && G.vd->scenelock && curarea->spacetype==SPACE_VIEW3D) {
 
@@ -1468,10 +1462,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 				
 			case TABKEY:
-				// Shift-Tabe handling (other cases are in toets)
+				/* Shift-Tabe handling (other cases are in toets) */
 				if (G.qual == LR_SHIFTKEY)
 				{
-					// Snap toggle (only edit mesh right now)
+					/* Snap toggle (only edit mesh right now) */
 					if (G.obedit && G.obedit->type==OB_MESH)
 					{
 						G.vd->flag2 ^= V3D_TRANSFORM_SNAP;

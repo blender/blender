@@ -389,14 +389,71 @@ Mesh *add_mesh__internal(char *name)
 	return mesh;
 }
 
-PyObject *MainSeq_new(BPy_MainSeq *self, PyObject * args)
+/* used for new and load */
+PyObject *MainSeq_new(BPy_MainSeq *self, PyObject * args, PyObject *kwd)
 {
 	ID *id = NULL;
-	char *name, *ipo_type;
+	char *name=NULL, *filename=NULL, *ipo_type;
 	int img_width=256, img_height=256;
 	short ipo_code = 0;
 	int user_count = 0;
 	
+	/* Load from file */
+	if ( (	self->type==ID_IM || self->type==ID_VF 		||
+			self->type==ID_SO || self->type==ID_TXT) 	&&
+				( PyTuple_Size( args ) < 3		))
+	{
+		static char *kwlist[] = {"name", "filename", NULL};
+		
+		if(PyArg_ParseTupleAndKeywords(args, kwd, "|ss", kwlist, &name, &filename) && filename ) {
+			PyObject *ret;
+			
+			if (strlen(filename) > FILE_MAXDIR + FILE_MAXFILE - 1)
+					return ( EXPP_ReturnPyObjError( PyExc_IOError,
+								"filename too long" ) );
+			
+			if (self->type == ID_IM) {
+				Image *img = BKE_add_image_file( filename );
+				if (!img)
+					return ( EXPP_ReturnPyObjError( PyExc_IOError,
+								"couldn't load image" ) );
+				ret = Image_CreatePyObject( img );
+				
+			} else if (self->type == ID_VF) {
+				VFont *vf = load_vfont (filename);
+				if (!vf)
+					return EXPP_ReturnPyObjError( PyExc_IOError,
+								"couldn't load font" );
+				ret = Font_CreatePyObject(vf);
+				
+			} else if (self->type == ID_SO) {
+				bSound  *snd = sound_new_sound( filename );
+				if (!snd)
+					return EXPP_ReturnPyObjError( PyExc_IOError,
+								"couldn't load sound" );
+				ret = Sound_CreatePyObject(snd);
+				
+			} else if (self->type == ID_TXT) {
+				Text *txt = NULL;
+				txt = add_text( filename );
+				if( !txt )
+					return EXPP_ReturnPyObjError( PyExc_IOError,
+						      "couldn't load text" );
+				ret = Text_CreatePyObject(txt);
+			}
+			
+			if (!ret)
+					return EXPP_ReturnPyObjError( PyExc_IOError,
+						      "couldn't create pyobject on load, unknown error" );
+			if (name) {
+				ID *id = ((BPy_GenericLib *)ret)->id;
+				rename_id( id, name );
+			}
+			return ret;
+		}
+	}
+	
+	/* New Data */
 	if (self->type == ID_IM) {
 		/* Image, accepts width and height*/
 		if( !PyArg_ParseTuple( args, "s|ii", &name, &img_width, &img_height ) )
@@ -523,49 +580,6 @@ PyObject *MainSeq_new(BPy_MainSeq *self, PyObject * args)
 	return GetPyObjectFromID(id);
 }
 
-PyObject *MainSeq_load(BPy_MainSeq *self, PyObject * args)
-{
-	
-	char *filename;
-	
-	if( !PyArg_ParseTuple( args, "s", &filename ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"expected a filename" );
-	
-	switch (self->type) {
-	case ID_IM:
-	{
-		Image *img = BKE_add_image_file( filename );
-		if (!img)
-			return ( EXPP_ReturnPyObjError( PyExc_IOError,
-						"couldn't load image" ) );
-
-		return Image_CreatePyObject( img );
-	}
-	case ID_VF:
-	{
-		VFont *vf = load_vfont (filename);
-		if (!vf)
-			return EXPP_ReturnPyObjError( PyExc_IOError,
-						"couldn't load font" );
-
-		return Font_CreatePyObject(vf);
-	}
-	case ID_SO:
-	{
-		bSound  *snd = sound_new_sound( filename );
-		if (!snd)
-			return EXPP_ReturnPyObjError( PyExc_IOError,
-						"couldn't load sound" );
-
-		return Sound_CreatePyObject(snd);
-	}
-	default:
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"Can only load image, sound and font types");
-	}
-}
-
 
 PyObject *MainSeq_unlink(BPy_MainSeq *self, PyObject * args)
 {
@@ -673,10 +687,8 @@ static PyGetSetDef MainSeq_getseters[] = {
 };
 
 static struct PyMethodDef BPy_MainSeq_methods[] = {
-	{"new", (PyCFunction)MainSeq_new, METH_VARARGS,
+	{"new", (PyCFunction)MainSeq_new, METH_VARARGS | METH_KEYWORDS,
 		"(name) - Create a new object in this scene from the obdata given and return a new object"},
-	{"load", (PyCFunction)MainSeq_load, METH_VARARGS,
-		"(filename) - loads the given filename for image, font and sound types"},
 	{"unlink", (PyCFunction)MainSeq_unlink, METH_VARARGS,
 		"unlinks the object from the scene"},
 	{NULL, NULL, 0, NULL}
