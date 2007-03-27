@@ -1288,7 +1288,8 @@ static void facecopy(EditFace *source, EditFace *target)
 
 	target->mat_nr = source->mat_nr;
 	target->flag   = source->flag;	
-
+	target->h	   = source->h;
+	
 	InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v1->co, w[0]);
 	InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v2->co, w[1]);
 	InterpWeightsQ3Dfl(v1, v2, v3, v4, target->v3->co, w[2]);
@@ -1361,7 +1362,7 @@ static void fill_quad_single(EditFace *efa, struct GHash *gh, int numcuts, int s
 	}else{
 		hold = addfacelist(verts[(vertsize-1)/2],v[left],v[right],NULL, NULL,NULL);  
 		hold->e1->f2 |= EDGEINNER;
-		hold->e3->f2 |= EDGEINNER;		  
+		hold->e3->f2 |= EDGEINNER;
 	}
 	facecopy(efa,hold);
 
@@ -2661,6 +2662,26 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 			}
 		}	
 	}
+	
+	//fix hide flags for edges. First pass, hide edges of hidden faces
+	for(ef=em->faces.first; ef; ef=ef->next){
+		if(ef->h){
+			ef->e1->h |= 1;
+			ef->e2->h |= 1;
+			ef->e3->h |= 1;
+			if(ef->e4) ef->e4->h |= 1;
+		}
+	}
+	//second pass: unhide edges of visible faces adjacent to hidden faces
+	for(ef=em->faces.first; ef; ef=ef->next){
+		if(ef->h == 0){
+			ef->e1->h &= ~1;
+			ef->e2->h &= ~1;
+			ef->e3->h &= ~1;
+			if(ef->e4) ef->e4->h &= ~1;
+		}
+	}
+	
 	// Free the ghash and call MEM_freeN on all the value entries to return 
 	// that memory
 	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);   
