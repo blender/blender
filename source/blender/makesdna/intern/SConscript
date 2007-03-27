@@ -7,7 +7,7 @@ cflags = ''
 defines = []
 root_build_dir=env['BF_BUILDDIR']
 
-source_files = ['makesdna.c', '#intern/guardedalloc/intern/mallocn.c']
+source_files = ['makesdna.c']
 
 makesdna_tool = env.Copy()
 dna = env.Copy()
@@ -27,9 +27,9 @@ makesdna_tool.Append (CPPDEFINES = defines)
 makesdna_tool.Append (LIBPATH = '#'+root_build_dir+'/lib')
 
 if env['OURPLATFORM'] == 'linux2' and root_build_dir[0]==os.sep:
-    makesdna = makesdna_tool.Program (target = root_build_dir+'/makesdna', source = source_files)
+    makesdna = makesdna_tool.Program (target = root_build_dir+'/makesdna', source = source_files, LIBS=['bf_guardedalloc'])
 else:
-    makesdna = makesdna_tool.Program (target = '#'+root_build_dir+'/makesdna', source = source_files)
+    makesdna = makesdna_tool.Program (target = '#'+root_build_dir+'/makesdna', source = source_files, LIBS=['bf_guardedalloc'])
 
 dna_dict = dna.Dictionary()
 dna.Depends ('dna.c', makesdna)
