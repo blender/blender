@@ -143,7 +143,7 @@ BOUNDS_3DS= []
 #which shold be more useful.
 
 def createBlenderTexture(material, name, image):
-	texture= Texture.New(name)
+	texture= bpy.textures.new(name)
 	texture.setType('Image')
 	texture.image= image
 	material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL)
@@ -365,8 +365,8 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			vertsToUse = [i for i in xrange(len(myContextMesh_vertls)) if faceVertUsers[i]]
 			myVertMapping = dict( [ (ii, i) for i, ii in enumerate(vertsToUse) ] )
 			
-			##bmesh = Mesh.New(contextMesh.name)
-			bmesh = Mesh.New()
+			tempName= '%s_%s' % (contextObName, matName) # matName may be None.
+			bmesh = bpy.meshes.new(tempName)
 			
 			if matName == None:
 				img= None
@@ -398,12 +398,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 						if img:
 							targetFace.image= img
 			
-			tempName= '%s_%s' % (contextObName, matName) # matName may be None.
-			bmesh.name= tempName
-			
 			# bmesh.transform(contextMatrix)
-			# ob = Object.New('Mesh', tempName)
-			# ob.link(bmesh)
 			ob = SCN_OBJECTS.new(bmesh, tempName)
 			'''
 			if contextMatrix_tx:
@@ -466,7 +461,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 		#is it a material chunk?
 		elif (new_chunk.ID==MATERIAL):
 			#print 'elif (new_chunk.ID==MATERIAL):'
-			contextMaterial= Material.New()
+			contextMaterial= bpy.materials.new('Material')
 		
 		elif (new_chunk.ID==MAT_NAME):
 			#print 'elif (new_chunk.ID==MAT_NAME):'
@@ -525,7 +520,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			
 		elif (new_chunk.ID==MAT_TEXTURE_MAP):
 			#print 'elif (new_chunk.ID==MAT_TEXTURE_MAP):'
-			new_texture= Blender.Texture.New('Diffuse')
+			new_texture= bpy.textures.new('Diffuse')
 			new_texture.setType('Image')
 			img = None
 			while (new_chunk.bytes_read<new_chunk.length):
@@ -549,7 +544,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			
 		elif (new_chunk.ID==MAT_SPECULAR_MAP):
 			#print 'elif (new_chunk.ID==MAT_SPECULAR_MAP):'
-			new_texture= Blender.Texture.New('Specular')
+			new_texture= bpy.textures.new('Specular')
 			new_texture.setType('Image')
 			img = None
 			while (new_chunk.bytes_read<new_chunk.length):
@@ -571,7 +566,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 	
 		elif (new_chunk.ID==MAT_OPACITY_MAP):
 			#print 'new_texture=Blender.Texture.New('Opacity')'
-			new_texture= Blender.Texture.New('Opacity')
+			new_texture= bpy.textures.new('Opacity')
 			new_texture.setType('Image')
 			img = None
 			while (new_chunk.bytes_read<new_chunk.length):
@@ -592,7 +587,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
 		elif (new_chunk.ID==MAT_BUMP_MAP):
 			#print 'elif (new_chunk.ID==MAT_BUMP_MAP):'
-			new_texture= Blender.Texture.New('Bump')
+			new_texture= bpy.textures.new('Bump')
 			new_texture.setType('Image')
 			img = None
 			while (new_chunk.bytes_read<new_chunk.length):
@@ -624,19 +619,16 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
 		elif (new_chunk.ID==OBJECT_LAMP): # Basic lamp support.
 			
-			#print 'LAMP!!!!!!!!!'
 			temp_data=file.read(STRUCT_SIZE_3FLOAT)
 			
 			x,y,z=unpack('<3f', temp_data)
 			new_chunk.bytes_read+=STRUCT_SIZE_3FLOAT
 			
-			contextLamp[0]= Object.New('Lamp')
-			contextLamp[1]= Lamp.New()
+			contextLamp[1]= bpy.lamps.new()
+			contextLamp[0]= SCN_OBJECTS.link(contextLamp[1])
 			contextLamp[0].link(contextLamp[1])
 			##scn.link(contextLamp[0])
 			importedObjects.append(contextLamp[0])
-			
-			
 			
 			#print 'number of faces: ', num_faces
 			#print x,y,z

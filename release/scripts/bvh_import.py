@@ -358,10 +358,9 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 	
 	scn.update(1)
 	return objects
-	
 
 
-#TODO, armature loading
+
 def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 	
 	if IMPORT_START_FRAME<1:
@@ -369,10 +368,13 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False)
 		
 	
 	# Add the new armature, 
-	arm_ob= Blender.Object.New('Armature')
-	arm_data= Blender.Armature.Armature('myArmature')
-	arm_ob.link(arm_data)
+	scn = bpy.scenes.active
+	scn.objects.selected = []
 	
+	arm_data= bpy.armatures.new()
+	arm_ob = scn.objects.new(arm_data)
+	scn.objects.context = [arm_ob]
+	scn.objects.active = arm_ob
 	
 	# Put us into editmode
 	arm_data.makeEditable()
@@ -440,15 +442,6 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False)
 		bvh_node.temp= bvh_node.temp.name
 	
 	arm_data.update()
-	
-	
-	
-	scn= bpy.scenes.active
-	
-	scn.objects.selected = []
-	
-	scn.link(arm_ob)
-	scn.objects.context = [arm_ob]
 	
 	# Now Apply the animation to the armature
 	

@@ -132,7 +132,6 @@ Example::
 @type actions: L{libBlockSeq}
 @var libraries: L{librarySeq<LibData>} submodule
 @type libraries: L{librarySeq<LibData>}
-
 """
 
 
@@ -217,6 +216,10 @@ class libBlockSeq:
 		This function returns a new datablock containing no data or loaded from a file.
 		
 		Most datatypes accept a name for their argument except for L{sounds}, L{fonts}, L{ipos} and L{curves} that need an additional argument.
+		
+		The name argument is optional if not given a default name will be assigned.
+		
+		The name given may be modified by blender to make it unique.
 		
 		Loading From File
 		=================

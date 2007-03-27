@@ -26,7 +26,7 @@
 # Comprehensive image loader, will search and find the image                #
 # Will return a blender image or a new image if the image is missing        #
 #===========================================================================#
-import Blender
+import bpy
 from Blender import sys
 try:
 	import os
@@ -101,7 +101,7 @@ def comprehensiveImageLoad(imagePath, filePath, PLACE_HOLDER= True, RECURSIVE=Tr
 		#if path.endswith('\\') or path.endswith('/'):
 		#	raise 'INVALID PATH'
 		try:
-			img = Blender.Image.Load(path)
+			img = bpy.images.new(filename=path)
 			if VERBOSE: print '\t\tImage loaded "%s"' % path
 			return img
 		except:
@@ -109,7 +109,7 @@ def comprehensiveImageLoad(imagePath, filePath, PLACE_HOLDER= True, RECURSIVE=Tr
 				if sys.exists(path): print '\t\tImage failed loading "%s", mabe its not a format blender can read.' % (path)
 				else: print '\t\tImage not found, making a place holder "%s"' % (path)
 			if PLACE_HOLDER:
-				img= Blender.Image.New(stripPath(path),1,1,24)
+				img= bpy.images.new(stripPath(path),4,4)
 				img.filename= path
 				return img #blank image
 			else:
@@ -123,7 +123,7 @@ def comprehensiveImageLoad(imagePath, filePath, PLACE_HOLDER= True, RECURSIVE=Tr
 	imageFileName_lower =  imageFileName.lower() # image path only
 	
 	if VERBOSE: print '\tSearchingExisting Images for "%s"' % imagePath
-	for i in Blender.Image.Get():
+	for i in bpy.images:
 		if stripPath(i.filename.lower()) == imageFileName_lower:
 			if VERBOSE: print '\t\tUsing existing image.'
 			return i
@@ -188,7 +188,7 @@ def comprehensiveImageLoad(imagePath, filePath, PLACE_HOLDER= True, RECURSIVE=Tr
 	else:
 		if VERBOSE: print '\tNo Path: "%s"' % tmpPath
 
-	tmpPath = addSlash(Blender.Get('texturesdir'))
+	tmpPath = addSlash(bpy.config.textureDir)
 	if tmpPath and sys.exists(tmpPath):
 		if VERBOSE: print '\t\tSearching in %s' % tmpPath
 		paths[tmpPath] = [os.listdir(tmpPath)] # Orig name for loading 

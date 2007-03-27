@@ -41,6 +41,7 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 # --------------------------------------------------------------------------
 
 from Blender import *
+import bpy
 import BPyMesh
 import BPyImage
 import BPyMessages
@@ -117,7 +118,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 	#==================================================================================#
 	def load_material_image(blender_material, context_material_name, imagepath, type):
 		
-		texture= Texture.New(type)
+		texture= bpy.textures.new(type)
 		texture.setType('Image')
 		
 		# Absolute path - c:\.. etc would work here
@@ -167,7 +168,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 	
 	#Create new materials
 	for name in unique_materials.iterkeys():
-		unique_materials[name]= Material.New(name)
+		unique_materials[name]= bpy.materials.new(name)
 		
 		unique_material_images[name]= None, False # assign None to all material images to start with, add to later.
 		
@@ -426,7 +427,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 	for name, index in material_mapping.iteritems():
 		materials[index]= unique_materials[name]
 	
-	me= Mesh.New(dataname)
+	me= bpy.meshes.new(dataname)
 	
 	me.materials= materials[0:16] # make sure the list isnt too big.
 	#me.verts.extend([(0,0,0)]) # dummy vert
@@ -796,7 +797,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 			return
 		
 		for f in files:
-			scn= Scene.New( stripExt(f) )
+			scn= bpy.scenes.new( stripExt(f) )
 			scn.makeCurrent()
 			
 			load_obj(sys.join(filepath, f),\
@@ -861,7 +862,7 @@ else:
 			_obj= _obj[:-1]
 			print 'Importing', _obj, '\nNUMBER', i, 'of', len(lines)
 			_obj_file= _obj.split('/')[-1].split('\\')[-1]
-			newScn= Scene.New(_obj_file)
+			newScn= bpy.scenes.new(_obj_file)
 			newScn.makeCurrent()
 			load_obj(_obj, False)
 

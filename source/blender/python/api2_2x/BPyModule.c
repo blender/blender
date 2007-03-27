@@ -457,7 +457,7 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 	/* New Data */
 	if (self->type == ID_IM) {
 		/* Image, accepts width and height*/
-		if( !PyArg_ParseTuple( args, "s|ii", &name, &img_width, &img_height ) )
+		if( !PyArg_ParseTuple( args, "|sii", &name, &img_width, &img_height ) )
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"one string and two ints expected as arguments" );
 		CLAMP(img_width,  4, 5000);
@@ -497,7 +497,7 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 		
 	} else {
 		/* Other types only need the name */
-		if( !PyArg_ParseTuple( args, "s", &name ) )
+		if( !PyArg_ParseTuple( args, "|s", &name ) )
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"new(name) - name must be a string argument" );
 	}
