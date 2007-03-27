@@ -1,4 +1,3 @@
-# $Id$
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -27,14 +26,14 @@
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 
-FILE(GLOB SRC intern/*.c)
+FILE(GLOB SRC intern/*.c intern/CMP_nodes/*.c intern/SHD_nodes/*.c)
 
 SET(INC 
   . ../../../intern/guardedalloc ../include ../blenlib ../makesdna
   ../python ../render/extern/include ../../../intern/decimation/extern
   ../imbuf ../avi ../../../intern/elbeem/extern
   ../../../intern/iksolver/extern ../blenloader ../quicktime
-  ../nodes
+  ../blenkernel
   ${SDL_INC}
   ${ZLIB_INC}
 )
@@ -64,10 +63,10 @@ ENDIF(WITH_PLAYER)
 
 ADD_DEFINITIONS(-DWITH_CCGSUBSURF)
 
-BLENDERLIB(bf_blenkernel "${SRC}" "${INC}")
+BLENDERLIB(bf_nodes "${SRC}" "${INC}")
 
 IF(WITH_VERSE)
-  ADD_DEPENDENCIES(bf_blenkernel mkprot verse)
+  ADD_DEPENDENCIES(bf_nodes mkprot verse)
 ENDIF(WITH_VERSE)
 
 IF(WITH_INTERNATIONAL)

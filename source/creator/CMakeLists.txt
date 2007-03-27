@@ -31,6 +31,7 @@ SETUP_LIBDIRS()
 
 INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../blender/blenlib
+  ../blender/nodes
   ../blender/blenkernel
   ../blender/include
   ../blender/blenloader
@@ -188,7 +189,7 @@ ADD_DEPENDENCIES(blender makesdna)
 
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
-SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} src blender_python blender_render blender_radiosity blender_IK bf_elbeem)
+SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} src blender_python blender_render blender_radiosity blender_IK bf_elbeem)
 
 IF(UNIX)
   # Sort libraries
@@ -203,6 +204,7 @@ IF(UNIX)
     blender_radiosity 
     blender_ONL 
     blender_python 
+    bf_nodes
     bf_blenkernel 
     bf_blenloader 
     bf_blenpluginapi 
