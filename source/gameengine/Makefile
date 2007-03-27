@@ -40,7 +40,7 @@ DIRS += Converter
 DIRS += Expressions GameLogic Ketsji Rasterizer SceneGraph
 DIRS += Network Physics
 
-ifneq ($(NAN_JUST_BLENDERDYNAMIC),true)
+ifeq ($(WITH_BF_BLENDERGAMEENGINE),true)
   DIRS += GamePlayer
 endif
 

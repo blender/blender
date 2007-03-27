@@ -59,6 +59,13 @@ all debug::
     # Object Config_Guess DIRectory
     export OCGDIR = $(NAN_OBJDIR)/$(CONFIG_GUESS)
 
+    # Determines what targets are built
+    export WITH_BF_DYNAMICOPENGL ?= true
+    export WITH_BF_STATICOPENGL ?= false
+    export WITH_BF_GAMEENGINE ?= true
+    export WITH_BF_GAMEPLAYER ?= true
+    export WITH_BF_WEBPLUGIN ?= false
+
     export NAN_MOTO ?= $(LCGDIR)/moto
 ifeq ($(FREE_WINDOWS), true)
     export NAN_SOLID ?= $(LCGDIR)/gcc/solid
@@ -111,28 +118,28 @@ endif
       ifeq ($(FREE_WINDOWS), true)
         export NAN_PTHREADS ?= $(LCGDIR)/pthreads
         export NAN_OPENEXR ?= $(LCGDIR)/gcc/openexr
-        export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+        export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libIlmThread.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
         export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
       else
         export NAN_OPENEXR ?= $(LCGDIR)/openexr
-        export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/IlmImf.lib $(NAN_OPENEXR)/lib/Half.lib $(NAN_OPENEXR)/lib/Iex.lib
+        export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/IlmImf.lib $(NAN_OPENEXR)/lib/libIlmThread.lib $(NAN_OPENEXR)/lib/Half.lib $(NAN_OPENEXR)/lib/Iex.lib
         export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/IlmImf -I$(NAN_OPENEXR)/include/Imath -I$(NAN_OPENEXR)/include/Iex
       endif
     else
       ifeq ($(OS),darwin)
           export NAN_OPENEXR ?= $(LCGDIR)/openexr
 	  ifeq ($(CPU),powerpc)
-	      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+	      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENERX)/lib/libIlmThread.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
 	  else
-	      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
+	      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENERX)/lib/libIlmThread.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
 	  endif
       else
         ifeq ($(OS),linux)
           export NAN_OPENEXR ?= /usr
-	  export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+	  export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libIlmThread.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
         else
           export NAN_OPENEXR ?= /usr/local
-	  export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+	  export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENERX)/lib/libIlmThread.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
         endif
       endif
       export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
@@ -394,6 +401,7 @@ endif
     ifndef NAN_NO_FFMPEG
 	  export WITH_FFMPEG ?= true
     endif
+
   else
   ifeq ($(OS),openbsd)
 
@@ -575,6 +583,7 @@ endif
 
     # enable freetype2 support for text objects
     #export WITH_FREETYPE2 ?= true
+
   endif
 
 endif
