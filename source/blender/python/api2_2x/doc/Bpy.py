@@ -92,51 +92,51 @@ Example::
 	
 	Window.RedrawAll()
 
-@var scenes: iterator for L{scene<Scene.Scene>} data
-@type scenes: L{LibBlockSeq}
-@var objects: iterator for L{object<Object.Object>} data
-@type objects: L{LibBlockSeq}
-@var meshes: iterator for L{mesh<Mesh.Mesh>} data
-@type meshes: L{LibBlockSeq}
-@var curves: iterator for L{curve<Curve.Curve>} data
-@type curves: L{LibBlockSeq}
-@var metaballs: iterator for L{metaball<Metaball.Metaball>} data
-@type metaballs: L{LibBlockSeq}
-@var materials: iterator for L{material<Material.Material>} data
-@type materials: L{LibBlockSeq}
-@var textures: iterator for L{texture<Texture.Texture>} data
-@type textures: L{LibBlockSeq}
-@var images: iterator for L{image<Image.Image>} data
-@type images: L{LibBlockSeq}
-@var lattices: iterator for L{lattice<Lattice.Lattice>} data
-@type lattices: L{LibBlockSeq}
-@var lamps: iterator for L{lamp<Lamp.Lamp>} data
-@type lamps: L{LibBlockSeq}
-@var cameras: iterator for L{camera<Camera.Camera>} data
-@type cameras: L{LibBlockSeq}
-@var ipos: iterator for L{ipo<Ipo.Ipo>} data
-@type ipos: L{LibBlockSeq}
-@var worlds: iterator for L{world<World.World>} data
-@type worlds: L{LibBlockSeq}
-@var fonts: iterator for L{font<Font.Font>} data
-@type fonts: L{LibBlockSeq}
-@var texts: iterator for L{text<Text.Text>} data
-@type texts: L{LibBlockSeq}
-@var sounds: iterator for L{sound<Sound.Sound>} data
-@type sounds: L{LibBlockSeq}
-@var groups: iterator for L{group<Group.Group>} data
-@type groups: L{LibBlockSeq}
-@var armatures: iterator for L{armature<Armature.Armature>} data
-@type armatures: L{LibBlockSeq}
-@var actions: iterator for L{action<NLA.Action>} data
-@type actions: L{LibBlockSeq}
+@var scenes: sequence for L{scene<Scene.Scene>} data
+@type scenes: L{libBlockSeq}
+@var objects: sequence for L{object<Object.Object>} data
+@type objects: L{libBlockSeq}
+@var meshes: sequence for L{mesh<Mesh.Mesh>} data
+@type meshes: L{libBlockSeq}
+@var curves: sequence for L{curve<Curve.Curve>} data, used to store Curve, Surface and Text3d data.
+@type curves: L{libBlockSeq}
+@var metaballs: sequence for L{metaball<Metaball.Metaball>} data
+@type metaballs: L{libBlockSeq}
+@var materials: sequence for L{material<Material.Material>} data
+@type materials: L{libBlockSeq}
+@var textures: sequence for L{texture<Texture.Texture>} data
+@type textures: L{libBlockSeq}
+@var images: sequence for L{image<Image.Image>} data
+@type images: L{libBlockSeq}
+@var lattices: sequence for L{lattice<Lattice.Lattice>} data
+@type lattices: L{libBlockSeq}
+@var lamps: sequence for L{lamp<Lamp.Lamp>} data
+@type lamps: L{libBlockSeq}
+@var cameras: sequence for L{camera<Camera.Camera>} data
+@type cameras: L{libBlockSeq}
+@var ipos: sequence for L{ipo<Ipo.Ipo>} data
+@type ipos: L{libBlockSeq}
+@var worlds: sequence for L{world<World.World>} data
+@type worlds: L{libBlockSeq}
+@var fonts: sequence for L{font<Font.Font>} data
+@type fonts: L{libBlockSeq}
+@var texts: sequence for L{text<Text.Text>} data
+@type texts: L{libBlockSeq}
+@var sounds: sequence for L{sound<Sound.Sound>} data
+@type sounds: L{libBlockSeq}
+@var groups: sequence for L{group<Group.Group>} data
+@type groups: L{libBlockSeq}
+@var armatures: sequence for L{armature<Armature.Armature>} data
+@type armatures: L{libBlockSeq}
+@var actions: sequence for L{action<NLA.Action>} data
+@type actions: L{libBlockSeq}
 @var libraries: L{librarySeq<LibData>} submodule
 @type libraries: L{librarySeq<LibData>}
 
 """
 
 
-class LibBlockSeq:
+class libBlockSeq:
 	"""
 	Generic Data Access
 	===================
@@ -156,8 +156,8 @@ class LibBlockSeq:
 		
 		B{Library distinctions}
 		
-		Blender doesn't allow naming collisions within its own pool of data, but it's
-		possible to run into naming collisions when you have data linked from an external file.
+		Blender doesn't allow naming collisions within its own data, but it's
+		possible to run into naming collisions when you have data linked from an external blend file.
 		
 		You can specify where the data is from by using a (name, library) pair as the key.
 		
@@ -167,11 +167,11 @@ class LibBlockSeq:
 		
 		>>> group = bpy.groups['mygroup', None] # always returns local data
 	
-	Iterator
+	Sequence
 	========
 		generic_datablock's are not lists; however they can be used like lists.
 		
-		An iterator allows you to loop through data, without wasting resources on a large list.
+		An sequence allows you to loop through data, without wasting resources on a large list.
 
 		>>> for me in bpy.meshes:
 		... 	print me.name
@@ -212,24 +212,41 @@ class LibBlockSeq:
 		
 	"""
 
-	def new(name="", filename=""):
+	def new(name):
 		"""
 		This function returns a new datablock containing no data or loaded from a file.
 		
-		Exceptions
-		==========
+		Most datatypes accept a name for their argument except for L{sounds}, L{fonts}, L{ipos} and L{curves} that need an additional argument.
 		
-		Use the filename keyword string values to load data from a file, this works with L{images}, L{texts}, L{sounds}, L{fonts} only.
+		Loading From File
+		=================
+		For L{images}, L{texts}, L{sounds}, L{fonts} types you can use the filename keyword to make a new datablock from a file.
+		
+		New L{sounds}, L{fonts} can only be made with the a filename given.
+		
+		The filename can a keyword or the second argument, use the keyword only for the datablocks new name to be set by the filename.
 		
 		>>> sound = bpy.sounds.new('newsound', '~/mysound.wav') # uses the first string given for the name.
 		
 		>>> sound = bpy.sounds.new(filename = '~/mysound.wav') # will use the filename to make the name.
 		
+		Images
+		======
+		Images optionally accept extra 2 arguments for width and height, values between 4 and 5000 if no args are given they will be 256.
 		
-		Images optionally accept 3 arguments: bpy.images.new(name, width=256, height=256)
-		The width and height must br between 4 and 5000 if no args are given they will be 256.
+		>>> img = bpy.images.new(name, 512, 512)
 		
-		Ipos need 2 arguments: bpy.ipos.new(name, type) type must be a string (use in place of filename) can be...
+		Curves
+		======
+		Curves need 2 arguments: bpy.curves.new(name, type) type must be one of the following...
+			- 'Curve'
+			- 'Text3d'
+		
+		>>> text3d = bpy.curves.new('MyCurve', 'Text3d')
+		
+		Ipos
+		====
+		Ipos need 2 arguments: bpy.ipos.new(name, type) type must be one of the following...
 			- 'Camera'
 			- 'World'
 			- 'Material'
@@ -247,7 +264,7 @@ class LibBlockSeq:
 		
 		>>> scn = bpy.scenes.active
 		... ob = scn.objects.new(bpy.meshes.new('mymesh'))
-			
+		
 		@rtype: datablock
 		"""
 	

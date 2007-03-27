@@ -226,28 +226,24 @@ void make_local_curve(Curve *cu)
 	}
 }
 
-
-void test_curve_type(Object *ob)
+short curve_type(Curve *cu)
 {
 	Nurb *nu;
-	Curve *cu;
-	
-	cu= ob->data;
 	if(cu->vfont) {
-		ob->type= OB_FONT;
-		return;
+		return OB_FONT;
 	}
-	else {
-		nu= cu->nurb.first;
-		while(nu) {
-			if(nu->pntsv>1) {
-				ob->type= OB_SURF;
-				return;
-			}
-			nu= nu->next;
+	for (nu= cu->nurb.first; nu; nu= nu->next) {
+		if(nu->pntsv>1) {
+			return OB_SURF;
 		}
 	}
-	ob->type= OB_CURVE;
+	
+	return OB_CURVE;
+}
+
+void test_curve_type(Object *ob)
+{	
+	ob->type = curve_type(ob->data);
 }
 
 void tex_space_curve(Curve *cu)

@@ -114,6 +114,7 @@
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 
+extern VFont *get_builtin_font(void);
 
 static PyObject *LibBlockSeq_CreatePyObject( Link *iter, int type )
 {
@@ -393,9 +394,9 @@ Mesh *add_mesh__internal(char *name)
 PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 {
 	ID *id = NULL;
-	char *name=NULL, *filename=NULL, *ipo_type;
+	char *name=NULL, *filename=NULL, *data_type=NULL;
 	int img_width=256, img_height=256;
-	short ipo_code = 0;
+	short data_code = 0;
 	int user_count = 0;
 	
 	/* Load from file */
@@ -461,37 +462,37 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 				"one string and two ints expected as arguments" );
 		CLAMP(img_width,  4, 5000);
 		CLAMP(img_height, 4, 5000);
-		
-	} else if (self->type == ID_IP) {
-		/* IPO, needs name and type strings */
-		if( !PyArg_ParseTuple( args, "ss", &name, &ipo_type ) )
+	
+	} else if (self->type == ID_CU) {
+		/* Curve, needs name and type strings */
+		if( !PyArg_ParseTuple( args, "ss", &name, &data_type ) )
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"two strings expected as arguments" );
 		
-		if( !strcmp( ipo_type, "Object" ) )
-			ipo_code = ID_OB;
-		else if( !strcmp( ipo_type, "Camera" ) )
-			ipo_code = ID_CA;
-		else if( !strcmp( ipo_type, "World" ) )
-			ipo_code = ID_WO;
-		else if( !strcmp( ipo_type, "Material" ) )
-			ipo_code = ID_MA;
-		else if( !strcmp( ipo_type, "Texture" ) )
-			ipo_code = ID_TE;
-		else if( !strcmp( ipo_type, "Lamp" ) )
-			ipo_code = ID_LA;
-		else if( !strcmp( ipo_type, "Action" ) )
-			ipo_code = ID_PO;
-		else if( !strcmp( ipo_type, "Constraint" ) )
-			ipo_code = ID_CO;
-		else if( !strcmp( ipo_type, "Sequence" ) )
-			ipo_code = ID_SEQ;
-		else if( !strcmp( ipo_type, "Curve" ) )
-			ipo_code = ID_CU;
-		else if( !strcmp( ipo_type, "Key" ) )
-			ipo_code = ID_KE;
-		else 
+		if(      !strcmp( data_type, "Curve" ) )		data_code = OB_CURVE;
+		else if( !strcmp( data_type, "Text3d" ) )			data_code = OB_FONT;/*
+		else if( !strcmp( data_type, "Surf" ) )			data_code = OB_SURF;*/
+		else return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"Second argument for Curve type incorrect\t\nmust be a string in (Curve or Text - Surf is not supported yet)" );
+	
+	} else if (self->type == ID_IP) {
+		/* IPO, needs name and type strings */
+		if( !PyArg_ParseTuple( args, "ss", &name, &data_type ) )
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"two strings expected as arguments" );
+		
+		if(      !strcmp( data_type, "Object" ) )		data_code = ID_OB;
+		else if( !strcmp( data_type, "Camera" ) )		data_code = ID_CA;
+		else if( !strcmp( data_type, "World" ) )		data_code = ID_WO;
+		else if( !strcmp( data_type, "Material" ) )		data_code = ID_MA;
+		else if( !strcmp( data_type, "Texture" ) )		data_code = ID_TE;
+		else if( !strcmp( data_type, "Lamp" ) )			data_code = ID_LA;
+		else if( !strcmp( data_type, "Action" ) )		data_code = ID_PO;
+		else if( !strcmp( data_type, "Constraint" ) )	data_code = ID_CO;
+		else if( !strcmp( data_type, "Sequence" ) )		data_code = ID_SEQ;
+		else if( !strcmp( data_type, "Curve" ) )		data_code = ID_CU;
+		else if( !strcmp( data_type, "Key" ) )			data_code = ID_KE;
+		else return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"Second argument for IPO type incorrect\t\nmust be a string in (Object, Camera, World, Material, Texture, Lamp, Action, Sequence, Curve, Key)" );
 		
 	} else {
@@ -513,7 +514,18 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 		id = (ID *)add_mesh__internal( name );
 		break;
 	case ID_CU:
-		id = (ID *)add_curve( name, OB_CURVE );
+		id = (ID *)add_curve( name, data_code );
+		if (data_code==OB_FONT) {
+			Text3d *text3d = (Text3d *)id;
+			text3d->vfont= get_builtin_font();
+			text3d->vfont->id.us++;
+			text3d->str= MEM_mallocN(sizeof(wchar_t), "str");
+			text3d->str[0] = '\0';
+			text3d->totbox= text3d->actbox= 1;
+			text3d->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "textbox");
+			text3d->tb[0].w = text3d->tb[0].h = 0.0;
+		
+		} /*else { CURVE - Dont need to do anything } */
 		break;
 	case ID_MB:
 		id = (ID *)add_mball( name );
@@ -543,7 +555,7 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 		id = (ID *)add_camera( name );
 		break;
 	case ID_IP:
-		id = (ID *)add_ipo( name, ipo_code );
+		id = (ID *)add_ipo( name, data_code );
 		break;
 	case ID_WO:
 		id = (ID *)add_world( name );

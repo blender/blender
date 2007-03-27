@@ -741,6 +741,16 @@ def Text(string, fontsize = 'normal'):
   @note: For drawing text in the 3d view see the workaround in L{BGL.glRasterPos}
   """
 
+def Label(string, x, y, w, h):
+  """
+  Draw a text lable on the screen.
+  
+  @type string: string
+  @param string: The text string to draw.
+  @rtype: None
+  @return: None
+  """
+
 def Image(image, x, y, zoomx=1.0, zoomy=1.0, clipx=0, clipy=0, clipw=-1, cliph=-1):
   """
   Draw an image on the screen.

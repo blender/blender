@@ -378,8 +378,7 @@ def setupDrivers(ob,ctrl,type):
 		
 def build(type):
 	global shapes,widmenu,rangename
-	sce = Blender.Scene.GetCurrent()
-	
+	sce = bpy.scenes.active
 	ob = sce.objects.active
 	
 	try:
@@ -411,7 +410,7 @@ def build(type):
 #Create the text
 
 def makeText(sce, name):
-	txt = Text3d.New(name+".name") 
+	txt = bpy.curves.new(name+'.name', 'Text3d') 
 	
 	txt.setDrawMode(Text3d.DRAW3D)
 	txt.setAlignment(Text3d.MIDDLE)
@@ -603,6 +602,7 @@ def shapeMenuText():
 #draw the widget for the gui
 
 def drawWidget(type):
+	glColor3f(0.0,0.0,0.0)
 	global shapes
 	if type == SHAPE1_ONE_MONE:# 1 to -1 Single Shape
 		glBegin(GL_LINE_STRIP)
@@ -855,8 +855,10 @@ def drawWidget(type):
 
 def draw():
 	global widmenu,numshapes,stage,type, shapes,rangename
-	glRasterPos2d(5,200) 
-	Text("Shape Widget Wizard","large")
+	#glRasterPos2d(5,200) 
+	#Text("Shape Widget Wizard","large")
+	Label("Shape Widget Wizard", 5,200, 200, 12)
+	
 	PushButton("Quit", EVENT_EXIT, 5, 5, 50, 18) 
 
 	if stage == 1:

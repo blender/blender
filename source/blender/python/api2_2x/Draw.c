@@ -110,6 +110,7 @@ static PyObject *Method_Number( PyObject * self, PyObject * args );
 static PyObject *Method_String( PyObject * self, PyObject * args );
 static PyObject *Method_GetStringWidth( PyObject * self, PyObject * args );
 static PyObject *Method_Text( PyObject * self, PyObject * args );
+static PyObject *Method_Label( PyObject * self, PyObject * args );
 static PyObject *Method_PupMenu( PyObject * self, PyObject * args );
 /* next Five by Campbell: */
 static PyObject *Method_PupIntInput( PyObject * self, PyObject * args );
@@ -273,6 +274,11 @@ static char Method_Text_doc[] =
 (font) The font size: 'normal' (default), 'small' or 'tiny'.\n\n\
 This function returns the width of the drawn string.";
 
+static char Method_Label_doc[] =
+	"(text, x, y) - Draw a text label onscreen\n\n\
+(text) The text to draw\n\
+(x, y) The lower left coordinate of the lable";
+
 static char Method_PupMenu_doc[] =
 	"(string, maxrow = None) - Display a pop-up menu at the screen.\n\
 The contents of the pop-up are specified through the 'string' argument,\n\
@@ -359,6 +365,7 @@ static struct PyMethodDef Draw_methods[] = {
 	MethodDef( String ),
 	MethodDef( GetStringWidth ),
 	MethodDef( Text ),
+	MethodDef( Label ),
 	MethodDef( PupMenu ),
 	MethodDef( PupIntInput ),
 	MethodDef( PupFloatInput ),
@@ -1458,6 +1465,23 @@ static PyObject *Method_Text( PyObject * self, PyObject * args )
 
 	return PyInt_FromLong( BMF_GetStringWidth( font, text ) );
 }
+
+static PyObject *Method_Label( PyObject * self, PyObject * args )
+{
+	uiBlock *block;
+	char *text;
+	int x, y, w, h;
+
+	if( !PyArg_ParseTuple( args, "siiii", &text, &x, &y, &w, &h ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"expected a string and four ints" );
+
+	block = Get_uiBlock(  );
+	uiDefBut(block, LABEL, 0, text, x, y, w, h, 0, 0, 0, 0, 0, "");
+	
+	Py_RETURN_NONE;
+}
+
 
 static PyObject *Method_PupMenu( PyObject * self, PyObject * args )
 {

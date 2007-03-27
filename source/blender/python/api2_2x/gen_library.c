@@ -8,6 +8,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
+#include "BKE_curve.h"
 
 /* GenericLib */
 #include "World.h"
@@ -20,6 +21,7 @@
 #include "Armature.h"
 #include "Lamp.h"
 #include "Text.h"
+#include "Text3d.h"
 #include "Sound.h"
 #include "Scene.h"
 #include "Mesh.h"
@@ -29,7 +31,6 @@
 #include "Ipo.h"
 #include "DNA_object_types.h"
 #include "DNA_ipo_types.h"
-
 
 
 /* Generic get/set attrs */
@@ -276,61 +277,47 @@ PyObject *GetPyObjectFromID( ID * id )
 	switch ( MAKE_ID2( id->name[0], id->name[1] ) ) {
 	case ID_SCE:
 		return Scene_CreatePyObject( ( Scene *) id );
-		break;
 	case ID_OB:
 		return Object_CreatePyObject( (Object *) id );
-		break;
 	case ID_ME:
 		return Mesh_CreatePyObject( (Mesh *)id, NULL );
-		break;
-	case ID_CU: /*todo, support curnurbs?*/
-		return Curve_CreatePyObject((Curve *)id);
-		break;
+	case ID_CU:
+		switch (curve_type((Curve *)id)) {
+		case OB_FONT:
+			return Text3d_CreatePyObject( (Text3d *)id );
+		default:
+			return Curve_CreatePyObject( (Curve *)id );
+		}
 	case ID_MB:
 		return Metaball_CreatePyObject((MetaBall *)id);
-		break;
 	case ID_MA:
 		return Material_CreatePyObject((Material *)id);
-		break;
 	case ID_TE:
 		return Texture_CreatePyObject((Tex *)id);
-		break;
 	case ID_IM:
 		return Image_CreatePyObject((Image *)id);
-		break;
 	case ID_LT:
 		return Lattice_CreatePyObject((Lattice *)id);
-		break;
 	case ID_LA:
 		return Lamp_CreatePyObject((Lamp *)id);
-		break;
 	case ID_CA:
 		return Camera_CreatePyObject((Camera *)id);
-		break;
 	case ID_IP:
 		return Ipo_CreatePyObject((Ipo *)id);
-		break;
 	case ID_WO:
 		return World_CreatePyObject((World *)id);
-		break;
 	case ID_VF:
 		return Font_CreatePyObject((VFont *)id);
-		break;
 	case ID_TXT:
 		return Text_CreatePyObject((Text *)id);
-		break;
 	case ID_SO:
 		return Sound_CreatePyObject((bSound *)id);
-		break;
 	case ID_GR:
 		return Group_CreatePyObject((Group *)id);
-		break;
 	case ID_AR:
 		return Armature_CreatePyObject((bArmature *)id);
-		break;
 	case ID_AC:
 		return Action_CreatePyObject((bAction *)id);
-		break;
 	}
 	Py_RETURN_NONE;
 }
