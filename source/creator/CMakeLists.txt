@@ -31,8 +31,8 @@ SETUP_LIBDIRS()
 
 INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../blender/blenlib
-  ../blender/nodes
   ../blender/blenkernel
+  ../blender/nodes
   ../blender/include
   ../blender/blenloader
   ../blender/imbuf
@@ -204,8 +204,8 @@ IF(UNIX)
     blender_radiosity 
     blender_ONL 
     blender_python 
-    bf_nodes
     bf_blenkernel 
+    bf_nodes
     bf_blenloader 
     bf_blenpluginapi 
     bf_imbuf 
