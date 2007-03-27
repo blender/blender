@@ -138,6 +138,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Bone.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\BPyModule.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Camera.c">
 			</File>
 			<File
@@ -184,9 +187,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Library.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\Main.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Material.c">
@@ -347,6 +347,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Bone.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\BPyModule.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Camera.h">
 			</File>
 			<File
@@ -384,9 +387,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Lattice.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\Main.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Material.h">
