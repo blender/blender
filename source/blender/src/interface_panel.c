@@ -525,7 +525,6 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 	block->handler= pnl_handler;
 	pa->active= 1;
 	pa->control= pnl_control;
-	pa->drawname[0]= 0;
 	
 	/* global control over this feature; UI_PNL_TO_MOUSE only called for hotkey panels */
 	if(U.uiflag & USER_PANELPINNED);
@@ -554,6 +553,9 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 	if(block->panel->paneltab) return 0;
 	if(block->panel->flag & PNL_CLOSED) return 0;
 
+	/* the 'return 0' above makes this to be in end. otherwise closes panels show wrong title */
+	pa->drawname[0]= 0;
+	
 	return 1;
 }
 
