@@ -873,9 +873,9 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 	
 	try
 	{
-		Mem_IStream membuf(mem, size); 
+		Mem_IStream *membuf = new Mem_IStream(mem, size); 
 		int is_multi;
-		file = new InputFile(membuf);
+		file = new InputFile(*membuf);
 		
 		Box2i dw = file->header().dataWindow();
 		int width  = dw.max.x - dw.min.x + 1;
@@ -946,8 +946,8 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 				}
 			}
 			
-			delete file;
 		}
+		delete file;
 		
 		return(ibuf);
 				
@@ -956,6 +956,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, int size, int flags)
 	{
 		std::cerr << exc.what() << std::endl;
 		if (ibuf) IMB_freeImBuf(ibuf);
+		delete file;
 		
 		return (0);
 	}
