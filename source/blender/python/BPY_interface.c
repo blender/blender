@@ -111,9 +111,10 @@ int setup_armature_weakrefs()
 	return 1;
 }
 
-/*Declares the modules and their initialization functions
-*These are TOP-LEVEL modules e.g. import `module` - there is no
-*support for packages here e.g. import `package.module` */
+/* Declares the modules and their initialization functions
+ * These are TOP-LEVEL modules e.g. import `module` - there is no
+ * support for packages here e.g. import `package.module` */
+
 static struct _inittab BPy_Inittab_Modules[] = {
 	{"Blender", M_Blender_Init},
 	{"bpy", M_BPy_Init},
@@ -124,6 +125,7 @@ static struct _inittab BPy_Inittab_Modules[] = {
 * Structure definitions	
 **************************************************************************/
 #define FILENAME_LENGTH 24
+
 typedef struct _ScriptError {
 	char filename[FILENAME_LENGTH];
 	int lineno;
@@ -179,8 +181,21 @@ void BPY_start_python( int argc, char **argv )
 	 * print an error if not found.  See init_syspath() for the
 	 * rest of our init msgs.
 	 */
-	// Py_GetVersion() returns a ptr to astatic string
-	printf( "Compiled with Python version %.5s.\n", Py_GetVersion() );
+
+	/* print Python version
+	 * Py_GetVersion() returns a ptr to a static string "9.9.9 (aaaa..." 
+	 */
+	{
+		int count = 3;  /* a nice default for major.minor.  example 2.5 */
+		const char *version = Py_GetVersion();
+		/* we know a blank is there somewhere! */
+		char *blank_ptr = strchr( version, ' '); 
+		if(blank_ptr)
+			count = blank_ptr - version;
+		
+		printf( "Compiled with Python version %.*s.\n", count, version );
+	}
+
 
 	//Initialize the TOP-LEVEL modules
 	PyImport_ExtendInittab(BPy_Inittab_Modules);
@@ -1170,7 +1185,6 @@ float BPY_pydriver_eval(IpoDriver *driver)
 		}
 	}
 
-/* sds*/
 	if( !setup_armature_weakrefs()){
 		fprintf( stderr, "Oops - weakref dict setup\n");
 		return result;
@@ -1246,7 +1260,7 @@ int BPY_button_eval(char *expr, double *value)
 		}
 	}
 
-/* sds*/
+
 	if( !setup_armature_weakrefs()){
 		fprintf(stderr, "Oops - weakref dict\n");
 		return -1;
@@ -1973,10 +1987,6 @@ void init_ourImport( void )
 	m = PyImport_AddModule( "__builtin__" );
 	d = PyModule_GetDict( m );
 	
-	/* add in "bpy" as a default module 
-	 * This has been disabled, import like Blender*/
-	/*PyDict_SetItemString(d, "bpy", M_BPy_Init() );*/
-
 	EXPP_dict_set_item_str( d, "__import__", import );
 }
 
