@@ -207,7 +207,7 @@ void			ntreeShaderGetTexcoMode(struct bNodeTree *ntree, int osa, short *texco, i
 void			nodeShaderSynchronizeID(struct bNode *node, int copyto);
 
 				/* switch material render loop */
-void (*node_shader_lamp_loop)(struct ShadeInput *, struct ShadeResult *);
+extern void (*node_shader_lamp_loop)(struct ShadeInput *, struct ShadeResult *);
 void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, struct ShadeResult *));
 
 
