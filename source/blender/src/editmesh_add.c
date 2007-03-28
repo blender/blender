@@ -853,8 +853,8 @@ int confirm_objectExists( Mesh **me, float mat[][3] )
 	return newob;
 }
 
-void make_prim(int type, float imat[3][3], short tot, short seg,
-		short subdiv, float dia, float d, short ext, short fill,
+void make_prim(int type, float imat[3][3], int tot, int seg,
+		int subdiv, float dia, float d, int ext, int fill,
         float cent[3])
 {
 	EditMesh *em = G.editMesh;
@@ -1138,8 +1138,8 @@ void add_primitiveMesh(int type)
 	Mesh *me;
 	float *curs, d, dia, phi, phid, cent[3], imat[3][3], mat[3][3];
 	float cmat[3][3];
-	static short tot=32, seg=32, subdiv=2;
-	short ext=0, fill=0, totoud, newob=0;
+	static int tot=32, seg=32, subdiv=2;
+	int ext=0, fill=0, totoud, newob=0;
 	char *undostr="Add Primitive";
 	char *name=NULL;
 	
@@ -1160,7 +1160,6 @@ void add_primitiveMesh(int type)
 	totoud= tot; /* store, and restore when cube/plane */
 	
 	/* ext==extrudeflag, tot==amount of vertices in basis */
-
 	switch(type) {
 	case 0:		/* plane */
 		tot= 4;
@@ -1179,7 +1178,8 @@ void add_primitiveMesh(int type)
 		undostr="Add Cube";
 		break;
 	case 4:		/* circle  */
-		if(button(&tot,3,100,"Vertices:")==0) return;
+		add_numbut(0, NUM|INT, "Vertices:", 3, 500, &tot, NULL);
+		if (!(do_clever_numbuts("Circle Resolution", 1, REDRAW))) return;
 		ext= 0;
 		fill= 0;
 		newob = confirm_objectExists( &me, mat );
@@ -1187,7 +1187,8 @@ void add_primitiveMesh(int type)
 		undostr="Add Circle";
 		break;
 	case 5:		/* cylinder  */
-		if(button(&tot,3,100,"Vertices:")==0) return;
+		add_numbut(0, NUM|INT, "Vertices:", 2, 500, &tot, NULL);
+		if (!(do_clever_numbuts("Cylinder Resolution", 1, REDRAW))) return;
 		ext= 1;
 		fill= 1;
 		newob = confirm_objectExists( &me, mat );
@@ -1195,7 +1196,8 @@ void add_primitiveMesh(int type)
 		undostr="Add Cylinder";
 		break;
 	case 6:		/* tube  */
-		if(button(&tot,3,100,"Vertices:")==0) return;
+		add_numbut(0, NUM|INT, "Vertices:", 2, 500, &tot, NULL);
+		if (!(do_clever_numbuts("Tube Resolution", 1, REDRAW))) return;
 		ext= 1;
 		fill= 0;
 		newob = confirm_objectExists( &me, mat );
@@ -1203,7 +1205,8 @@ void add_primitiveMesh(int type)
 		undostr="Add Tube";
 		break;
 	case 7:		/* cone  */
-		if(button(&tot,3,100,"Vertices:")==0) return;
+		add_numbut(0, NUM|INT, "Vertices:", 2, 500, &tot, NULL);
+		if (!(do_clever_numbuts("Cone Resolution", 1, REDRAW))) return;
 		ext= 0;
 		fill= 1;
 		newob = confirm_objectExists( &me, mat );
@@ -1211,21 +1214,26 @@ void add_primitiveMesh(int type)
 		undostr="Add Cone";
 		break;
 	case 10:	/* grid */
-		if(button(&tot,2,100,"X res:")==0) return;
-		if(button(&seg,2,100,"Y res:")==0) return;
+		add_numbut(0, NUM|INT, "X res:", 3, 1000, &tot, NULL);
+		add_numbut(1, NUM|INT, "Y res:", 3, 1000, &seg, NULL);
+		if (!(do_clever_numbuts("Grid Size", 2, REDRAW))) return; 
 		newob = confirm_objectExists( &me, mat );
 		if(newob) name = "Grid";
 		undostr="Add Grid";
 		break;
 	case 11:	/* UVsphere */
-		if(button(&seg,3,100,"Segments:")==0) return;
-		if(button(&tot,3,100,"Rings:")==0) return;
+		add_numbut(0, NUM|INT, "Segments:", 3, 500, &seg, NULL);
+		add_numbut(1, NUM|INT, "Rings:", 3, 500, &tot, NULL);
+		if (!(do_clever_numbuts("UV Sphere", 2, REDRAW))) return;
+		
 		newob = confirm_objectExists( &me, mat );
 		if(newob) name = "Sphere";
 		undostr="Add UV Sphere";
 		break;
 	case 12:	/* Icosphere */
-		if(button(&subdiv,1,5,"Subdivision:")==0) return;
+		add_numbut(1, NUM|INT, "Subdivision:", 3, 500, &subdiv, NULL);
+		if (!(do_clever_numbuts("Ico Sphere", 2, REDRAW))) return;
+		
 		newob = confirm_objectExists( &me, mat );
 		if(newob) name = "Sphere";
 		undostr="Add Ico Sphere";
