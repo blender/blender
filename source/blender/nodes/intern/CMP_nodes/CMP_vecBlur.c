@@ -82,30 +82,6 @@ static void node_composit_exec_vecblur(void *data, bNode *node, bNodeStack **in,
 		free_compbuf(img);
 }
 
-static int node_composit_buts_vecblur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-   if(block) {
-      NodeBlurData *nbd= node->storage;
-      short dy= butr->ymin;
-      short dx= (butr->xmax-butr->xmin);
-
-      uiBlockBeginAlign(block);
-      uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Samples:",
-         butr->xmin, dy+57, dx, 19, 
-         &nbd->samples, 1, 256, 0, 0, "Amount of samples");
-      uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "MinSpeed:",
-         butr->xmin, dy+38, dx, 19, 
-         &nbd->minspeed, 0, 1024, 0, 0, "Minimum speed for a pixel to be blurred, used to separate background from foreground");
-      uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "MaxSpeed:",
-         butr->xmin, dy+19, dx, 19, 
-         &nbd->maxspeed, 0, 1024, 0, 0, "If not zero, maximum speed in pixels");
-      uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "BlurFac:",
-         butr->xmin, dy, dx, 19, 
-         &nbd->fac, 0.0f, 2.0f, 10, 2, "Scaling factor for motion vectors, actually 'shutter speed' in frames");
-   }
-   return 76;
-}
-
 static void node_composit_init_vecblur(bNode* node)
 {
    NodeBlurData *nbd= MEM_callocN(sizeof(NodeBlurData), "node blur data");
@@ -129,3 +105,4 @@ bNodeType cmp_node_vecblur= {
 	/* butfunc     */ 	NULL,
 	/* initfunc    */   node_composit_init_vecblur	
 };
+
