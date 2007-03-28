@@ -564,10 +564,12 @@ void new_material_to_objectdata(Object *ob)
 	if(ob->totcol>=MAXMAT) return;
 	
 	ma= give_current_material(ob, ob->actcol);
-	if(ma==0) {
+	if(ma==NULL)
 		ma= add_material("Material");
-		ma->id.us= 0;
-	}
+	else
+		ma= copy_material(ma);
+	
+	ma->id.us= 0; /* eeh... */
 	
 	if(ob->actcol) {
 		if( BTST(ob->colbits, ob->actcol-1) ) {
