@@ -83,8 +83,9 @@ static float *make_bloomtab(int rad)
 }
 
 /* both input images of same type, either 4 or 1 channel */
-static void blur_single_image(CompBuf *new, CompBuf *img, float scale, NodeBlurData *nbd)
+static void blur_single_image(bNode *node, CompBuf *new, CompBuf *img, float scale)
 {
+	NodeBlurData *nbd= node->storage;
 	CompBuf *work;
 	register float sum, val;
 	float rval, gval, bval, aval;
@@ -137,6 +138,8 @@ static void blur_single_image(CompBuf *new, CompBuf *img, float scale, NodeBlurD
 				*dest++ = aval*sum;
 			}
 		}
+		if(node->exec & NODE_BREAK)
+			break;
 	}
 	
 	/* vertical */
@@ -184,6 +187,8 @@ static void blur_single_image(CompBuf *new, CompBuf *img, float scale, NodeBlurD
 			}
 			dest+= bigstep;
 		}
+		if(node->exec & NODE_BREAK)
+			break;
 	}
 	
 	free_compbuf(work);
@@ -327,8 +332,9 @@ static float hexagon_filter(float fi, float fj)
 
 /* uses full filter, no horizontal/vertical optimize possible */
 /* both images same type, either 1 or 4 channels */
-static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurData *nbd)
+static void bokeh_single_image(bNode *node, CompBuf *new, CompBuf *img, float fac)
 {
+	NodeBlurData *nbd= node->storage;
 	register float val;
 	float radxf, radyf;
 	float *gausstab, *dgauss;
@@ -415,6 +421,8 @@ static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurDa
 				}
 			}
 		}
+		if(node->exec & NODE_BREAK)
+			break;
 	}
 	
 	MEM_freeN(gausstab);
@@ -422,8 +430,9 @@ static void bokeh_single_image(CompBuf *new, CompBuf *img, float fac, NodeBlurDa
 
 
 /* reference has to be mapped 0-1, and equal in size */
-static void blur_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, NodeBlurData *nbd)
+static void blur_with_reference(bNode *node, CompBuf *new, CompBuf *img, CompBuf *ref)
 {
+	NodeBlurData *nbd= node->storage;
 	CompBuf *blurbuf, *ref_use;
 	register float sum, val;
 	float rval, gval, bval, aval, radxf, radyf;
@@ -450,7 +459,7 @@ static void blur_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, NodeBl
 		else blurd[0]= refd[0];
 	}
 	
-	blur_single_image(blurbuf, blurbuf, 1.0f, nbd);
+	blur_single_image(node, blurbuf, blurbuf, 1.0f);
 	
 	/* horizontal */
 	radx = (float)nbd->sizex;
@@ -531,6 +540,8 @@ static void blur_with_reference(CompBuf *new, CompBuf *img, CompBuf *ref, NodeBl
 				}
 			}
 		}
+		if(node->exec & NODE_BREAK)
+			break;
 	}
 	
 	free_compbuf(blurbuf);
@@ -567,7 +578,7 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 		new->xof = img->xof;
 		new->yof = img->yof;
 		
-		blur_with_reference(new, img, in[1]->data, node->storage);
+		blur_with_reference(node, new, img, in[1]->data);
 		
 		out[0]->data= new;
 	}
@@ -594,9 +605,9 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 			else gammabuf= img;
 			
 			if(nbd->bokeh)
-				bokeh_single_image(new, gammabuf, in[1]->vec[0], nbd);
+				bokeh_single_image(node, new, gammabuf, in[1]->vec[0]);
 			else if(1)
-				blur_single_image(new, gammabuf, in[1]->vec[0], nbd);
+				blur_single_image(node, new, gammabuf, in[1]->vec[0]);
 			else	/* bloom experimental... */
 				bloom_with_reference(new, gammabuf, NULL, in[1]->vec[0], nbd);
 			

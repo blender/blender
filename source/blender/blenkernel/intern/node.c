@@ -1863,11 +1863,6 @@ void ntreeExecTree(bNodeTree *ntree, void *callerdata, int thread)
 
 /* ***************************** threaded version for execute composite nodes ************* */
 
-#define NODE_PROCESSING	1
-#define NODE_READY		2
-#define NODE_FINISHED	4
-#define NODE_FREEBUFS	8
-
 /* not changing info, for thread callback */
 typedef struct ThreadData {
 	bNodeStack *stack;
@@ -2137,7 +2132,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 		for(node= ntree->nodes.first; node; node= node->next) {
 			if(node->exec & NODE_READY) {
 				if((node->exec & NODE_FINISHED)==0) {
-					BLI_remove_thread(&threads, node);
+					BLI_remove_thread(&threads, node); /* this waits for running thread to finish btw */
 					node->exec |= NODE_FINISHED;
 					
 					/* freeing unused buffers */
@@ -2153,7 +2148,6 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	BLI_end_threads(&threads);
 	
 	ntreeEndExecTree(ntree);
-	
 }
 
 

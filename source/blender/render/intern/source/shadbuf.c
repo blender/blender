@@ -1721,7 +1721,8 @@ static void isb_make_buffer(RenderPart *pa, LampRen *lar)
 				ISBShadfacA **isbsa= isbdata->shadfaca= MEM_callocN(pa->rectx*pa->recty*sizeof(void *), "isb shadfacs");
 				
 				isbdata->memarena = BLI_memarena_new(0x8000 * sizeof(ISBSampleA));
-				
+				BLI_memarena_use_calloc(isbdata->memarena);
+
 				for(rd= pa->rectdaps, x=pa->rectx*pa->recty; x>0; x--, rd++, isbsa++) {
 					
 					if(*rd) {

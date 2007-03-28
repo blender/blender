@@ -234,10 +234,11 @@ static void IIR_gauss(CompBuf* buf, float sigma)
 #undef YVV
 }
 
-static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval, NodeDefocus* nqd)
+static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf, float inpval)
 {
-	CompBuf *wts;	// weights buffer
-	CompBuf *crad;	// CoC radius buffer
+	NodeDefocus *nqd = node->storage;
+	CompBuf *wts;		// weights buffer
+	CompBuf *crad;		// CoC radius buffer
 	BokehCoeffs BKH[8];	// bokeh shape data, here never > 8 pts.
 	float bkh_b[4] = {0};	// shape 2D bound
 	unsigned int p, px, p4, zp, cp, cp4;
@@ -249,6 +250,7 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 	int minsz;
 	
 	// get some required params from the current scene camera
+	// (ton) this is wrong, needs fixed
 	Object* camob = G.scene->camera;
 	if (camob && camob->type==OB_CAMERA) {
 		Camera* cam = (Camera*)camob->data;
@@ -343,8 +345,10 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 				// clear weights for next part
 				wts->rect[px] = 0.f;
 			}
+			// esc set by main calling process
+			if(node->exec & NODE_BREAK)
+				break;
 		}
-		
 	}
 
 	//------------------------------------------------------------------
@@ -356,6 +360,10 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 			printf("\rdefocus: Processing Line %d of %d ... ", y+1, img->y);
 			fflush(stdout);
 		}
+		// esc set by main calling process
+		if(node->exec & NODE_BREAK)
+			break;
+
 		zp = y * img->x;
 		for (x=0; x<img->x; x++) {
 			cp = zp + x;
@@ -744,7 +752,7 @@ static void defocus_blur(CompBuf* new, CompBuf* img, CompBuf* zbuf, float inpval
 static void node_composit_exec_defocus(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	CompBuf *new, *old, *zbuf_use = NULL, *img = in[0]->data, *zbuf = in[1]->data;
-	NodeDefocus* nqd = node->storage;
+	NodeDefocus *nqd = node->storage;
 	
 	if ((img==NULL) || (out[0]->hasoutput==0)) return;
 	
@@ -777,7 +785,7 @@ static void node_composit_exec_defocus(void *data, bNode *node, bNodeStack **in,
 	}
 	
 	new = alloc_compbuf(old->x, old->y, old->type, 1);
-	defocus_blur(new, old, zbuf_use, in[1]->vec[0]*nqd->scale, node->storage);
+	defocus_blur(node, new, old, zbuf_use, in[1]->vec[0]*nqd->scale);
 	
 	if (nqd->gamco) {
 		gamma_correct_compbuf(new, 1);

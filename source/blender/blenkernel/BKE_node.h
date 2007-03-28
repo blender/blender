@@ -85,6 +85,13 @@ typedef struct bNodeType {
 
 } bNodeType;
 
+/* node->exec, now in use for composites (#define for break is same as ready yes) */
+#define NODE_PROCESSING	1
+#define NODE_READY		2
+#define NODE_BREAK		2
+#define NODE_FINISHED	4
+#define NODE_FREEBUFS	8
+
 /* nodetype->nclass, for add-menu and themes */
 #define NODE_CLASS_INPUT		0
 #define NODE_CLASS_OUTPUT		1
