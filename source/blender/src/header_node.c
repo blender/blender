@@ -232,7 +232,6 @@ void do_node_addmenu(void *arg, int event)
 static void node_make_addmenu(SpaceNode *snode, int nodeclass, uiBlock *block)
 {
 	bNodeTree *ntree;
-	bNodeType **typedefs;
 	int tot= 0, a;
 	short yco= 0, menuwidth=120;
 	
