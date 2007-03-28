@@ -1033,10 +1033,6 @@ void do_info_add_meshmenu(void *arg, int event)
 			/* Cylinder */
 			add_primitiveMesh(5);
 			break;
-		case 6:
-			/* Tube */
-			add_primitiveMesh(6);
-			break;
 		case 7:
 			/* Cone */
 			add_primitiveMesh(7);
@@ -1070,7 +1066,6 @@ static uiBlock *info_add_meshmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "UVsphere",			0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "IcoSphere|",			0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cylinder|",			0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Tube|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cone|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, SEPR, 0, ICON_BLANK1, "",					0, yco-=6,	160, 6,  NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grid|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 8, "");

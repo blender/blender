@@ -1159,6 +1159,9 @@ void add_primitiveMesh(int type)
 
 	totoud= tot; /* store, and restore when cube/plane */
 	
+	dia= G.vd->grid;
+	d= G.vd->grid;
+	
 	/* ext==extrudeflag, tot==amount of vertices in basis */
 	switch(type) {
 	case 0:		/* plane */
@@ -1178,37 +1181,41 @@ void add_primitiveMesh(int type)
 		undostr="Add Cube";
 		break;
 	case 4:		/* circle  */
-		add_numbut(0, NUM|INT, "Vertices:", 3, 500, &tot, NULL);
-		if (!(do_clever_numbuts("Circle Resolution", 1, REDRAW))) return;
-		ext= 0;
 		fill= 0;
+		add_numbut(0, NUM|INT, "Vertices:", 3, 500, &tot, NULL);
+		add_numbut(1, NUM|FLO, "Radius:", 0.001*G.vd->grid, 100*G.vd->grid, &dia, NULL);
+		add_numbut(2, TOG|INT, "Fill", 0, 0, &(fill), NULL);
+		if (!(do_clever_numbuts("Add Circle", 3, REDRAW))) return;
+		ext= 0;
+		
 		newob = confirm_objectExists( &me, mat );
 		if(newob) name = "Circle";
 		undostr="Add Circle";
 		break;
 	case 5:		/* cylinder  */
-		add_numbut(0, NUM|INT, "Vertices:", 2, 500, &tot, NULL);
-		if (!(do_clever_numbuts("Cylinder Resolution", 1, REDRAW))) return;
-		ext= 1;
 		fill= 1;
+		d*=2;
+		add_numbut(0, NUM|INT, "Vertices:", 2, 500, &tot, NULL);
+		add_numbut(1, NUM|FLO, "Radius:", 0.001*G.vd->grid, 100*G.vd->grid, &dia, NULL);
+		add_numbut(2, NUM|FLO, "Depth:", 0.001*G.vd->grid, 100*G.vd->grid, &d, NULL);
+		add_numbut(3, TOG|INT, "Cap Ends", 0, 0, &(fill), NULL);
+		if (!(do_clever_numbuts("Add Cylinder", 4, REDRAW))) return;
+		ext= 1;
+		d/=2;
 		newob = confirm_objectExists( &me, mat );
 		if(newob) name = "Cylinder";
 		undostr="Add Cylinder";
 		break;
-	case 6:		/* tube  */
-		add_numbut(0, NUM|INT, "Vertices:", 2, 500, &tot, NULL);
-		if (!(do_clever_numbuts("Tube Resolution", 1, REDRAW))) return;
-		ext= 1;
-		fill= 0;
-		newob = confirm_objectExists( &me, mat );
-		if(newob) name = "Tube";
-		undostr="Add Tube";
-		break;
 	case 7:		/* cone  */
-		add_numbut(0, NUM|INT, "Vertices:", 2, 500, &tot, NULL);
-		if (!(do_clever_numbuts("Cone Resolution", 1, REDRAW))) return;
-		ext= 0;
 		fill= 1;
+		d*=2;
+		add_numbut(0, NUM|INT, "Vertices:", 2, 500, &tot, NULL);
+		add_numbut(1, NUM|FLO, "Radius:", 0.001*G.vd->grid, 100*G.vd->grid, &dia, NULL);
+		add_numbut(2, NUM|FLO, "Depth:", 0.001*G.vd->grid, 100*G.vd->grid, &d, NULL);
+		add_numbut(3, TOG|INT, "Cap Ends", 0, 0, &(fill), NULL);
+		if (!(do_clever_numbuts("Add Cone", 4, REDRAW))) return;
+		d/=2;
+		ext= 0;
 		newob = confirm_objectExists( &me, mat );
 		if(newob) name = "Cone";
 		undostr="Add Cone";
@@ -1216,7 +1223,7 @@ void add_primitiveMesh(int type)
 	case 10:	/* grid */
 		add_numbut(0, NUM|INT, "X res:", 3, 1000, &tot, NULL);
 		add_numbut(1, NUM|INT, "Y res:", 3, 1000, &seg, NULL);
-		if (!(do_clever_numbuts("Grid Size", 2, REDRAW))) return; 
+		if (!(do_clever_numbuts("Add Grid", 2, REDRAW))) return; 
 		newob = confirm_objectExists( &me, mat );
 		if(newob) name = "Grid";
 		undostr="Add Grid";
@@ -1224,15 +1231,18 @@ void add_primitiveMesh(int type)
 	case 11:	/* UVsphere */
 		add_numbut(0, NUM|INT, "Segments:", 3, 500, &seg, NULL);
 		add_numbut(1, NUM|INT, "Rings:", 3, 500, &tot, NULL);
-		if (!(do_clever_numbuts("UV Sphere", 2, REDRAW))) return;
+		add_numbut(2, NUM|FLO, "Radius:", 0.001*G.vd->grid, 100*G.vd->grid, &dia, NULL);
+		
+		if (!(do_clever_numbuts("Add UV Sphere", 3, REDRAW))) return;
 		
 		newob = confirm_objectExists( &me, mat );
 		if(newob) name = "Sphere";
 		undostr="Add UV Sphere";
 		break;
 	case 12:	/* Icosphere */
-		add_numbut(1, NUM|INT, "Subdivision:", 3, 500, &subdiv, NULL);
-		if (!(do_clever_numbuts("Ico Sphere", 2, REDRAW))) return;
+		add_numbut(0, NUM|INT, "Subdivision:", 3, 500, &subdiv, NULL);
+		add_numbut(1, NUM|FLO, "Radius:", 0.001*G.vd->grid, 100*G.vd->grid, &dia, NULL);
+		if (!(do_clever_numbuts("Add Ico Sphere", 2, REDRAW))) return;
 		
 		newob = confirm_objectExists( &me, mat );
 		if(newob) name = "Sphere";
@@ -1252,7 +1262,8 @@ void add_primitiveMesh(int type)
 		rename_id((ID *)G.obedit, name );
 		rename_id((ID *)me, name );
 	}
-
+	
+	d = -d;
 	curs= give_cursor();
 	VECCOPY(cent, curs);
 	cent[0]-= G.obedit->obmat[3][0];
@@ -1263,12 +1274,11 @@ void add_primitiveMesh(int type)
 	Mat3MulVecfl(imat, cent);
 	Mat3MulMat3(cmat, imat, mat);
 	Mat3Inv(imat,cmat);
-
-	dia= G.vd->grid;
+	
+	
 	if(type == 0 || type == 1) /* plane, cube (diameter of 1.41 makes it unit size) */
 		dia *= sqrt(2.0);
 
-	d= -G.vd->grid;
 	phid= 2*M_PI/tot;
 	phi= .25*M_PI;
 

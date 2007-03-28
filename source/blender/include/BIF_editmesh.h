@@ -69,7 +69,7 @@ extern void separate_material(void);
 /* ******************* editmesh_add.c */
 extern void make_prim(int type, float imat[3][3], int tot, int seg,
 		int subdiv, float dia, float d, int ext, int fill,
-        float cent[3]);
+        float cent[3] );
 extern void add_primitiveMesh(int type);
 extern void adduplicate_mesh(void);
 extern void add_click_mesh(void);

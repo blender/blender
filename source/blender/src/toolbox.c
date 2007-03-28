@@ -1417,7 +1417,6 @@ static TBitem addmenu_mesh[]= {
 {	0, "UVsphere", 	3, NULL},
 {	0, "Icosphere", 4, NULL},
 {	0, "Cylinder", 	5, NULL},
-{	0, "Tube", 		6, NULL},
 {	0, "Cone", 		7, NULL},
 {	0, "SEPR",		0, NULL},
 {	0, "Grid", 		8, NULL},
