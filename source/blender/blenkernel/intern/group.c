@@ -231,6 +231,8 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 
 /* puts all group members in local timing system, after this call
 you can draw everything, leaves tags in objects to signal it needs further updating */
+
+/* note: does not work for derivedmesh and render... it recreates all again in convertblender.c */
 void group_handle_recalc_and_update(Object *parent, Group *group)
 {
 	GroupObject *go;

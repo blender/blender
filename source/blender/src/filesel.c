@@ -1681,8 +1681,8 @@ static void filesel_execute(SpaceFile *sfile)
 			strcat(name, sfile->file);
 			
 			if(sfile->flag & FILE_STRINGCODE) {
-				/* still weak, but we don't want saving .blends to make relative paths */
-				if(sfile->returnfunc!=BIF_write_file)
+				/* still weak, but we don't want saving files to make relative paths */
+				if(strncmp(sfile->title, "Save", 4))
 					BLI_makestringcode(G.sce, name);
 			}
 			if(sfile->returnfunc)
