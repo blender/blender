@@ -1548,7 +1548,8 @@ def write_scene(file):
 	
 	i = 0
 	for matname, mat in materials:
-		material_mapping[matname] = i
+		if mat: mat = mat.name
+		material_mapping[mat] = i
 		i+=1
 	
 
@@ -1712,11 +1713,18 @@ Objects:  {''')
 					i+=1
 					ii+=1
 			
-			
 			file.write('\n			UVIndex: ')
-			for i in xrange(ii):
-				if i == 0:	file.write('%i'  % i)
-				else:		file.write(',%i' % i)
+			i = -1
+			for j in xrange(len(me.faces)):
+				if i == -1:
+					file.write('%i'  % j)
+					i=0
+				else:
+					if i==55:
+						file.write('\n			 ')
+						i=0
+					file.write(',%i' % j)
+				i+=1
 			
 			file.write('\n		}')
 		
@@ -1742,13 +1750,23 @@ Objects:  {''')
 			if not material_mapping_local:
 				material_mapping_local[0] = 0
 			
+			len_material_mapping_local = len(material_mapping_local)
+			
 			i=-1
 			for f in me.faces:
 				if i==-1:
 					i=0
-					file.write( '%s' % material_mapping_local[f.mat])
+					f_mat = f.mat
+					if f_mat >= len_material_mapping_local:
+						f_mat = 0
+					
+					file.write( '%s' % material_mapping_local[f_mat])
 				else:
-					file.write(',%s' % material_mapping_local[f.mat])
+					if i==55:
+						file.write('\n			 ')
+						i=0
+					
+					file.write(',%s' % material_mapping_local[f_mat])
 				i+=1
 			
 			file.write('\n		}')
@@ -1774,6 +1792,10 @@ Objects:  {''')
 						i=0
 						file.write( '%s' % texture_mapping_local[img_key])
 					else:
+						if i==55:
+							file.write('\n			 ')
+							i=0
+						
 						file.write(',%s' % texture_mapping_local[img_key])
 					i+=1
 			else:
@@ -1922,6 +1944,11 @@ Connections:  {
 			file.write('	Connect: "OO", "Video::%s", "Texture::%s"\n' % (texname, texname))
 	
 	file.write('}\n')
+	
+	
+	# Clear mesh data
+	for obname, ob, me in objects:
+		me.verts = None
 
 
 def write_footer(file):
