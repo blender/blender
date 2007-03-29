@@ -2081,7 +2081,9 @@ static int ui_act_as_text_but(uiBut *but)
 		/* Uncomment this if you want to see an error message (and annoy users) */
 		/* error("Invalid Python expression, check console");*/
 		value = 0.0f; /* Zero out value on error */
-		retval = 0;  /* invalidate return value if eval failed */
+		
+		if(str[0]) 
+			retval = 0;  /* invalidate return value if eval failed, except when string was null */
 	}
 	
 	if(but->pointype!=FLO) value= (int)value;
