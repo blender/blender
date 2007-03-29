@@ -570,12 +570,12 @@ PyObject *LibraryData_importLibData( BPy_LibraryData *self, char *name,
 		int mode, Scene *scene )
 {
 	char longFilename[FILE_MAX];
-	char *finalName;
 	BlendHandle *openlib;
 	Library *lib;
 	LinkNode *names, *ptr;
 	ID idtest, *id;
 	ListBase *lb;
+	char newName[32];
 
 	/* try to open the library */
 	openlib = open_library( self->filename, longFilename );
@@ -603,16 +603,11 @@ PyObject *LibraryData_importLibData( BPy_LibraryData *self, char *name,
 	 * be renamed to.
 	 */
 
-	if( mode == FILE_LINK )
-		finalName =  name;
-	else { /* for appends, build a fake ID block, then try to dup it */
-		strncpy( idtest.name+2, name, strlen(name)+1 );
-		*((short *)&idtest.name) = self->type;
-		idtest.newid = NULL;
-		idtest.lib = NULL;
-		dup_id( NULL, &idtest, self->name );
-		finalName = idtest.name+2;
-	}
+	strncpy( newName, name, strlen(name)+1 );
+
+	   	/* for appends, see what new block will be called */
+	if( mode != FILE_LINK )
+		check_for_dupid( wich_libbase(G.main, self->type), NULL, newName );
 
 	/* import from the libary */
 	BLO_script_library_append( openlib, longFilename, name, self->type, mode,
@@ -642,8 +637,8 @@ PyObject *LibraryData_importLibData( BPy_LibraryData *self, char *name,
 	 * otherwise it's NULL. 
 	 */
 	for( id = lb->first; id; id = id->next ) {
-		if( id->lib == lib && id->name[2]==finalName[0] &&
-				strcmp(id->name+2, finalName)==0 )
+		if( id->lib == lib && id->name[2]==newName[0] &&
+				strcmp(id->name+2, newName)==0 )
 			return GetPyObjectFromID( id );
 	}
 

@@ -788,106 +788,122 @@ static void sort_alpha_id(ListBase *lb, ID *id)
 	
 }
 
-int dup_id(ListBase *lb, ID *id, const char *tname)
-/* only for local blocks: external en indirect blocks already have a unique ID */
-/* return 1: created a new name */
+/* 
+ * Check to see if an ID name is already used, and find a new one if so.
+ * Return 1 if created a new name (returned in name).
+ *
+ * Normally the ID that's being check is already in the ListBase, so ID *id
+ * points at the new entry.  The Python Library module needs to know what
+ * the name of a datablock will be before it is appended; in this case ID *id
+ * id is NULL;
+ */
+
+int check_for_dupid(ListBase *lb, ID *id, char *name)
 {
 	ID *idtest;
-	int nr= 0, nrtest, maxtest=32, a;
-	char aname[32], *name, left[32], leftest[32], in_use[32];
+	int nr= 0, nrtest, a;
+	const int maxtest=32;
+	char left[32], leftest[32], in_use[32];
 	
-	/* - split name
-	 * - search
-	 */
+	/* make sure input name is terminated properly */
+	if( strlen(name) > 21 ) name[21]= 0;
 
-	if(id->lib) return 0;
+	while (1) {
 
-	if(tname==0) name= id->name+2;
-	else {
-		/* tname can be const */
-		strncpy(aname, tname, 21);
-		name= aname;
-		
-		if( strlen(name) > 21 ) name[21]= 0;
-	}
-
-	if(lb==NULL) lb= wich_libbase(G.main, GS(id->name));
-
-	/* phase 1: id already exists? */
-	idtest= lb->first;
-	while(idtest) {
-	
-		if(id!=idtest && idtest->lib==0) {
-			
-			/* do not test alphabetic! */
-			/* optimized */
-			if( idtest->name[2] == name[0] ) {
-				if(strcmp(name, idtest->name+2)==0) break;
+		/* phase 1: id already exists? */
+		for( idtest = lb->first; idtest; idtest = idtest->next ) {
+				/* if idtest is not a lib */ 
+			if( id != idtest && idtest->lib == NULL ) {
+				/* do not test alphabetic! */
+				/* optimized */
+				if( idtest->name[2] == name[0] ) {
+					if(strcmp(name, idtest->name+2)==0) break;
+				}
 			}
 		}
-		
-		idtest= idtest->next;
-	}	
 
-	/* if there is no double return */
-	if(idtest==0) {
-		strncpy(id->name+2, name, 21);
-		return 0;
-	}
-	
-	memset(in_use, 0, maxtest);
+		/* if there is no double, done */
+		if( idtest == NULL ) return 0;
 
-	splitIDname(name, left, &nr);
-	if(nr>999 && strlen(left)>16) left[16]= 0;
-	else if(strlen(left)>17) left[17]= 0;
+		/* we have a dup; need to make a new name */
+		/* quick check so we can reuse one of first 32 ids if vacant */
+		memset(in_use, 0, maxtest);
 
+		/* get name portion, number portion ("name.number") */
+		splitIDname( name, left, &nr);
 
-	idtest= lb->first;
-	while(idtest) {
-	
-		if(id!=idtest && idtest->lib==0) {
-			
-			splitIDname(idtest->name+2, leftest, &nrtest);
-			if(strcmp(left, leftest)==0) {
-				
-				if(nrtest<maxtest) in_use[nrtest]= 1;
-				if(nr <= nrtest) nr= nrtest+1;
+		/* if new name will be too long, truncate it */
+		if(nr>999 && strlen(left)>16) left[16]= 0;
+		else if(strlen(left)>17) left[17]= 0;
+
+		for( idtest = lb->first; idtest; idtest = idtest->next ) {
+			if( id != idtest && idtest->lib == NULL ) {
+				splitIDname(idtest->name+2, leftest, &nrtest);
+				/* if base names match... */
+				/* optimized */
+				if( idtest->name[2] == name[0] &&
+						strcmp(left, leftest)==0 ) {
+					if(nrtest < maxtest)
+						in_use[nrtest]= 1;	/* mark as used */
+					if(nr <= nrtest)
+						nr= nrtest+1;		/* track largest unused */
+				}
 			}
 		}
-		
-		idtest= idtest->next;
-	}
-	
-	for(a=0; a<maxtest; a++) {
-		if(a>=nr) break;
-		if( in_use[a]==0 ) {
-			nr= a;
-			break;
+
+		/* decide which value of nr to use */
+		for(a=0; a<maxtest; a++) {
+			if(a>=nr) break;	/* stop when we've check up to biggest */
+			if( in_use[a]==0 ) { /* found an unused value */
+				nr = a;
+				break;
+			}
 		}
-	}
-	
-	if(nr==0) strncpy(id->name+2, left, 21);
-	else {
-		if (nr >= 1000 && strlen(left) > 16) {
-			// this would overflow name buffer
-			left[16]= 0;
-			return (new_id(lb, id, left));
+
+		/* if non-numbered name was not in use, reuse it */
+		if(nr==0) strcpy( name, left );
+		else {
+			if(nr > 999 && strlen(left) > 16) {
+				/* this would overflow name buffer */
+				left[16] = 0;
+				strcpy( name, left );
+				continue;
+			}
+			/* this format specifier is from hell... */
+			sprintf(name, "%s.%.3d", left, nr);
 		}
-		/* this format specifier is from hell... */
-		sprintf(id->name+2, "%s.%.3d", left, nr);
+		return 1;
 	}
-	return 1;
 }
 
+/*
+ * Only for local blocks: external en indirect blocks already have a
+ * unique ID.
+ *
+ * return 1: created a new name
+ */
+
 int new_id(ListBase *lb, ID *id, const char *tname)
-/* only for local blocks: external en indirect blocks already have a unique ID */
-/* return 1: created a new name */
 {
 	int result;
+	char name[22];
 	
+	/* if library, don't rename */
+	if(id->lib) return 0;
+
+	/* if no libdata given, look up based on ID */
 	if(lb==NULL) lb= wich_libbase(G.main, GS(id->name));
-	
-	result = dup_id( lb, id, tname );
+
+	if(tname==0) 	/* if no name given, use name of current ID */
+		strncpy(name, id->name+2, 21);
+	else /* else make a copy (tname args can be const) */
+		strncpy(name, tname, 21);
+
+	if( strlen(name) > 21 ) name[21]= 0;
+
+	result = check_for_dupid( lb, id, name );
+	strcpy( id->name+2, name );
+
 	if( result )
 		sort_alpha_id(lb, id);	
 
