@@ -242,7 +242,13 @@ void toggle_blockhandler(ScrArea *sa, short eventcode, short val)
 			addnew= 0;
 		}
 	}
-	if(addnew) add_blockhandler(sa, eventcode, val);
+	if(addnew) {
+		add_blockhandler(sa, eventcode, val);
+		
+		/* specific add new calls */
+		if(eventcode==IMAGE_HANDLER_PREVIEW)
+			image_preview_event(1);
+	}
 }
 
 

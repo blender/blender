@@ -1120,6 +1120,9 @@ static int image_curves_active(ScrArea *sa)
 	return 0;
 }
 
+/* 0: disable preview 
+   otherwise refresh preview
+*/
 void image_preview_event(int event)
 {
 	int exec= 0;
@@ -1129,24 +1132,31 @@ void image_preview_event(int event)
 		G.scene->r.scemode &= ~R_COMP_CROP;
 		exec= 1;
 	}
-	else if(event==2 || (G.scene->r.scemode & R_COMP_CROP)==0) {
-		if(image_preview_active(curarea, NULL, NULL)) {
-			G.scene->r.scemode |= R_COMP_CROP;
-			exec= 1;
-		}
+	else {
+		G.scene->r.scemode |= R_COMP_CROP;
+		exec= 1;
 	}
 	
-	if(exec) {
-		ScrArea *sa;
+	if(exec && G.scene->nodetree) {
+		/* should work when no node editor in screen..., so we execute right away */
 		
 		ntreeCompositTagGenerators(G.scene->nodetree);
-	
-		for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
-			if(sa->spacetype==SPACE_NODE) {
-				addqueue(sa->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
-				break;
-			}
-		}
+
+		G.afbreek= 0;
+		G.scene->nodetree->timecursor= set_timecursor;
+		G.scene->nodetree->test_break= blender_test_break;
+		
+		BIF_store_spare();
+		
+		ntreeCompositExecTree(G.scene->nodetree, &G.scene->r, 1);	/* 1 is do_previews */
+		
+		G.scene->nodetree->timecursor= NULL;
+		G.scene->nodetree->test_break= NULL;
+		
+		scrarea_do_windraw(curarea);
+		waitcursor(0);
+		
+		allqueue(REDRAWNODE, 1);
 	}	
 }
 
@@ -1165,11 +1175,7 @@ static void preview_cb(struct ScrArea *sa, struct uiBlock *block)
 		winy*= (G.scene->r.border.ymax - G.scene->r.border.ymin);
 	}
 	
-	/* while dragging we don't update the rects */
-	if(block->panel->flag & PNL_SELECT)
-		return;
-	if(get_mbut() & M_MOUSE)
-		return;
+	/* while dragging we need to update the rects, otherwise it doesn't end with correct one */
 
 	BLI_init_rctf(&dispf, 15.0f, (block->maxx - block->minx)-15.0f, 15.0f, (block->maxy - block->miny)-15.0f);
 	ui_graphics_to_window_rct(sa->win, &dispf, disprect);
@@ -1196,8 +1202,7 @@ static void preview_cb(struct ScrArea *sa, struct uiBlock *block)
 	CLAMP(disprect->ymin, 0, winy);
 	CLAMP(disprect->ymax, 0, winy);
 //	printf("drawrct %d %d %d %d\n", disprect->xmin, disprect->ymin,disprect->xmax, disprect->ymax);
-	
-	image_preview_event(1);
+
 }
 
 static int is_preview_allowed(ScrArea *cur)
