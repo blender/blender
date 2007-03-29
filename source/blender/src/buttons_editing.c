@@ -1076,16 +1076,19 @@ static void modifier_testMeshObj(char *name, ID **idpp)
 	ID *id;
 
 	for (id= G.main->object.first; id; id= id->next) {
-		if( strcmp(name, id->name+2)==0 ) {
-			if (((Object *)id)->type != OB_MESH) {
-				error ("Boolean modifier object must be a mesh");
-				break;
-			} 
-			*idpp= id;
-			return;
+		/* no boolean on its own object */
+		if(id != (ID *)OBACT) {
+			if( strcmp(name, id->name+2)==0 ) {
+				if (((Object *)id)->type != OB_MESH) {
+					error ("Boolean modifier object must be a mesh");
+					break;
+				} 
+				*idpp= id;
+				return;
+			}
 		}
 	}
-	*idpp= 0;
+	*idpp= NULL;
 }
 
 static void modifier_testArmatureObj(char *name, ID **idpp)
