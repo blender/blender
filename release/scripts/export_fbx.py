@@ -43,6 +43,7 @@ will be exported as mesh data.
 
 import Blender
 import BPyMesh
+import BPyMessages
 import time
 
 # Used to add the scene name into the filename without using odd chars
@@ -1363,9 +1364,9 @@ def write_scene(file):
 ''')
 		if ob:
 			# Only mesh objects have color 
-			file.write('			Property: "Color", "Color", "A",0.8,0.8,0.8\n')
+			file.write('\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8\n')
 		
-		file.write('		}\n')
+		file.write('\t\t}\n')
 	
 	
 	
@@ -1399,14 +1400,14 @@ def write_scene(file):
 			Property: "EmissiveColor", "ColorRGB", "",0,0,0
 			Property: "EmissiveFactor", "double", "",1
 ''')
-		file.write('			Property: "AmbientColor", "ColorRGB", "",%.1f,%.1f,%.1f\n' % mat_amb)
-		file.write('			Property: "AmbientFactor", "double", "",1\n')
-		file.write('			Property: "DiffuseColor", "ColorRGB", "",%.1f,%.1f,%.1f\n' % mat_cold)
-		file.write('			Property: "DiffuseFactor", "double", "",1\n')
-		file.write('			Property: "Bump", "Vector3D", "",0,0,0\n')
-		file.write('			Property: "TransparentColor", "ColorRGB", "",1,1,1\n')
-		file.write('			Property: "TransparencyFactor", "double", "",0\n')
-		file.write('			Property: "SpecularColor", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_cols)
+		file.write('\t\t\tProperty: "AmbientColor", "ColorRGB", "",%.1f,%.1f,%.1f\n' % mat_amb)
+		file.write('\t\t\tProperty: "AmbientFactor", "double", "",1\n')
+		file.write('\t\t\tProperty: "DiffuseColor", "ColorRGB", "",%.1f,%.1f,%.1f\n' % mat_cold)
+		file.write('\t\t\tProperty: "DiffuseFactor", "double", "",1\n')
+		file.write('\t\t\tProperty: "Bump", "Vector3D", "",0,0,0\n')
+		file.write('\t\t\tProperty: "TransparentColor", "ColorRGB", "",1,1,1\n')
+		file.write('\t\t\tProperty: "TransparencyFactor", "double", "",0\n')
+		file.write('\t\t\tProperty: "SpecularColor", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_cols)
 		
 		file.write('''
 			Property: "SpecularFactor", "double", "",1
@@ -1426,7 +1427,7 @@ def write_scene(file):
 	
 	def write_video(texname, tex):
 		# Same as texture really!
-		file.write('\n	Video: "Video::%s", "Clip" {' % texname)
+		file.write('\n\tVideo: "Video::%s", "Clip" {' % texname)
 		
 		file.write('''
 		Type: "Clip"
@@ -1441,7 +1442,7 @@ def write_scene(file):
 		else:
 			fname = fname_strip = ''
 		
-		file.write('\n			Property: "Path", "charptr", "", "%s"' % fname_strip)
+		file.write('\n\t\t\tProperty: "Path", "charptr", "", "%s"' % fname_strip)
 		
 		
 		file.write('''
@@ -1456,26 +1457,26 @@ def write_scene(file):
 		}
 		UseMipMap: 0''')
 		
-		file.write('\n		Filename: "%s"' % fname_strip)
+		file.write('\n\t\tFilename: "%s"' % fname_strip)
 		if fname_strip: fname_strip = '/' + fname_strip
-		file.write('\n		RelativeFilename: "fbx%s"' % fname_strip) # make relative
-		file.write('\n	}')
+		file.write('\n\t\tRelativeFilename: "fbx%s"' % fname_strip) # make relative
+		file.write('\n\t}')
 
 	
 	def write_texture(texname, tex, num):
 		# if tex == None then this is a dummy tex
-		file.write('\n	Texture: "Texture::%s", "TextureVideoClip" {' % texname)
-		file.write('\n		Type: "TextureVideoClip"')
-		file.write('\n		Version: 202')
+		file.write('\n\tTexture: "Texture::%s", "TextureVideoClip" {' % texname)
+		file.write('\n\t\tType: "TextureVideoClip"')
+		file.write('\n\t\tVersion: 202')
 		# TODO, rare case _empty_ exists as a name.
-		file.write('\n		TextureName: "Texture::%s"' % texname)
+		file.write('\n\t\tTextureName: "Texture::%s"' % texname)
 		
 		file.write('''
 		Properties60:  {
 			Property: "Translation", "Vector", "A+",0,0,0
 			Property: "Rotation", "Vector", "A+",0,0,0
 			Property: "Scaling", "Vector", "A+",1,1,1''')
-		file.write('\n			Property: "Texture alpha", "Number", "A+",%i' % num)
+		file.write('\n\t\t\tProperty: "Texture alpha", "Number", "A+",%i' % num)
 		file.write('''
 			Property: "TextureTypeUse", "enum", "",0
 			Property: "CurrentTextureBlendMode", "enum", "",1
@@ -1490,14 +1491,14 @@ def write_scene(file):
 			Property: "VideoProperty", "object", ""
 		}''')
 		
-		file.write('\n		Media: "Video::%s"' % texname)
+		file.write('\n\t\tMedia: "Video::%s"' % texname)
 		if tex:
 			fname = tex.filename
-			file.write('\n		FileName: "%s"' % strip_path(fname))
-			file.write('\n		RelativeFilename: "fbx/%s"' % strip_path(fname)) # need some make relative command
+			file.write('\n\t\tFileName: "%s"' % strip_path(fname))
+			file.write('\n\t\tRelativeFilename: "fbx/%s"' % strip_path(fname)) # need some make relative command
 		else:
-			file.write('\n		FileName: ""')
-			file.write('\n		RelativeFilename: "fbx"')
+			file.write('\n\t\tFileName: ""')
+			file.write('\n\t\tRelativeFilename: "fbx"')
 		
 		file.write('''
 		ModelUVTranslation: 0,0
@@ -1520,12 +1521,18 @@ def write_scene(file):
 				if mat: materials[mat.name] = mat
 			
 			if me.faceUV:
-				for f in me.faces:
-					img = f.image
-					if img: textures[img.name] = img
+				uvlayer_orig = me.activeUVLayer
+				for uvlayer in me.getUVLayerNames():
+					me.activeUVLayer = uvlayer
+					for f in me.faces:
+						img = f.image
+						if img: textures[img.name] = img
+					
+					me.activeUVLayer = uvlayer_orig
 			
 			me.transform(ob.matrixWorld)
-			BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
+			#### High Quality, not realy needed for now.
+			#BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
 			objects.append( (sane_obname(ob.name), ob, me) )
 	
 	materials = [(sane_matname(mat.name), mat) for mat in materials.itervalues()]
@@ -1621,17 +1628,17 @@ Objects:  {''')
 
 	
 	for obname, ob, me in objects:
-		file.write('\n	Model: "Model::%s", "Mesh" {\n' % sane_obname(ob.name))
-		file.write('		Version: 232') # newline is added in write_object_props
+		file.write('\n\tModel: "Model::%s", "Mesh" {\n' % sane_obname(ob.name))
+		file.write('\t\tVersion: 232') # newline is added in write_object_props
 		write_object_props(ob)
 		
-		file.write('		MultiLayer: 0\n')
-		file.write('		MultiTake: 1\n')
-		file.write('		Shading: Y\n')
-		file.write('		Culling: "CullingOff"')
+		file.write('\t\tMultiLayer: 0\n')
+		file.write('\t\tMultiTake: 1\n')
+		file.write('\t\tShading: Y\n')
+		file.write('\t\tCulling: "CullingOff"')
 		
 		# Write the Real Mesh data here
-		file.write('\n		Vertices: ')
+		file.write('\n\t\tVertices: ')
 		i=-1
 		for v in me.verts:
 			if i==-1:
@@ -1643,7 +1650,7 @@ Objects:  {''')
 					i=0
 				file.write(',%.6f,%.6f,%.6f'% tuple(v.co))
 			i+=1
-		file.write('\n		PolygonVertexIndex: ')
+		file.write('\n\t\tPolygonVertexIndex: ')
 		i=-1
 		for f in me.faces:
 			fi = [v.index for v in f]
@@ -1663,10 +1670,9 @@ Objects:  {''')
 				else:				file.write(',%i,%i,%i,%i' % fi )
 			i+=1
 		
-		file.write('\n		GeometryVersion: 124')
+		file.write('\n\t\tGeometryVersion: 124')
 		
-		file.write(\
-'''
+		file.write('''
 		LayerElementNormal: 0 {
 			Version: 101
 			Name: ""
@@ -1685,50 +1691,96 @@ Objects:  {''')
 					i=0
 				file.write(',%.15f,%.15f,%.15f' % tuple(v.no))
 			i+=1
-		file.write('\n		}')
+		file.write('\n\t\t}')
 		
 		
+		# Write UV and texture layers.
 		if me.faceUV:
-			file.write('''
-		LayerElementUV: 0 {
-			Version: 101
-			Name: ""
+			uvlayers = me.getUVLayerNames()
+			uvlayer_orig = me.activeUVLayer
+			for uvindex, uvlayer in enumerate(uvlayers):
+				me.activeUVLayer = uvlayer
+				file.write('\n\t\tLayerElementUV: %i {' % uvindex)
+				file.write('\n\t\t\tVersion: 101')
+				file.write('\n\t\t\tName: "%s"' % uvlayer)
+				
+				file.write('''
 			MappingInformationType: "ByPolygonVertex"
 			ReferenceInformationType: "IndexToDirect"
 			UV: ''')
 			
-			i = -1
-			ii = 0 # Count how many UVs we write
-			for f in me.faces:
-				for uv in f.uv:
-					
-					if i==-1:
-						file.write('%.6f,%.6f' % tuple(uv))
+				i = -1
+				ii = 0 # Count how many UVs we write
+				
+				for f in me.faces:
+					for uv in f.uv:
+						if i==-1:
+							file.write('%.6f,%.6f' % tuple(uv))
+							i=0
+						else:
+							if i==7:
+								file.write('\n			 ')
+								i=0
+							file.write(',%.6f,%.6f' % tuple(uv))
+						i+=1
+						ii+=1 # One more UV
+				
+				file.write('\n			UVIndex: ')
+				i = -1
+				for j in xrange(ii):
+					if i == -1:
+						file.write('%i'  % j)
 						i=0
 					else:
-						if i==7:
+						if i==55:
 							file.write('\n			 ')
 							i=0
-						file.write(',%.6f,%.6f' % tuple(uv))
+						file.write(',%i' % j)
 					i+=1
-					ii+=1 # One more UV
-			
-			file.write('\n			UVIndex: ')
-			i = -1
-			for j in xrange(ii):
-				if i == -1:
-					file.write('%i'  % j)
-					i=0
+				
+				file.write('\n		}')
+				
+				if textures:
+					file.write('\n\t\tLayerElementTexture: %i {' % uvindex)
+					file.write('\n\t\t\tVersion: 101')
+					file.write('\n\t\t\tName: "%s"' % uvlayer)
+					
+					file.write('''
+			MappingInformationType: "ByPolygon"
+			ReferenceInformationType: "IndexToDirect"
+			BlendMode: "Translucent"
+			TextureAlpha: 1
+			TextureId: ''')
+					i=-1
+					for f in me.faces:
+						img_key = f.image
+						if img_key: img_key = img_key.name
+						
+						if i==-1:
+							i=0
+							file.write( '%s' % texture_mapping_local[img_key])
+						else:
+							if i==55:
+								file.write('\n			 ')
+								i=0
+							
+							file.write(',%s' % texture_mapping_local[img_key])
+						i+=1
 				else:
-					if i==55:
-						file.write('\n			 ')
-						i=0
-					file.write(',%i' % j)
-				i+=1
+					file.write('''
+		LayerElementTexture: 0 {
+			Version: 101
+			Name: ""
+			MappingInformationType: "NoMappingInformation"
+			ReferenceInformationType: "IndexToDirect"
+			BlendMode: "Translucent"
+			TextureAlpha: 1
+			TextureId: ''')
+				file.write('\n\t\t}')
 			
-			file.write('\n		}')
-		
-		
+			me.activeUVLayer = uvlayer_orig
+			
+		# Done with UV/textures.
 		
 		if materials:
 			file.write('''
@@ -1772,44 +1824,6 @@ Objects:  {''')
 			file.write('\n		}')
 		
 		
-		if textures:
-			if me.faceUV:
-				file.write('''
-		LayerElementTexture: 0 {
-			Version: 101
-			Name: ""
-			MappingInformationType: "ByPolygon"
-			ReferenceInformationType: "IndexToDirect"
-			BlendMode: "Translucent"
-			TextureAlpha: 1
-			TextureId: ''')
-				i=-1
-				for f in me.faces:
-					img_key = f.image
-					if img_key: img_key = img_key.name
-					
-					if i==-1:
-						i=0
-						file.write( '%s' % texture_mapping_local[img_key])
-					else:
-						if i==55:
-							file.write('\n			 ')
-							i=0
-						
-						file.write(',%s' % texture_mapping_local[img_key])
-					i+=1
-			else:
-				file.write('''
-		LayerElementTexture: 0 {
-			Version: 101
-			Name: ""
-			MappingInformationType: "NoMappingInformation"
-			ReferenceInformationType: "IndexToDirect"
-			BlendMode: "Translucent"
-			TextureAlpha: 1
-			TextureId: ''')
-			file.write('\n		}')
-		
 		
 		file.write('''
 		Layer: 0 {
@@ -1840,9 +1854,39 @@ Objects:  {''')
 				Type: "LayerElementUV"
 				TypedIndex: 0
 			}''')
-		file.write('\n		}')
-		file.write('\n	}')
-	
+		
+		
+		file.write('\n\t\t}')
+		
+		if me.faceUV and len(uvlayers) > 1:
+			for i in xrange(1, len(uvlayers)):
+				
+				file.write('\n\t\tLayer: %i {' % i)
+				file.write('\n\t\t\tVersion: 100')
+				
+				file.write('''
+			LayerElement:  {
+				Type: "LayerElementUV"''')
+				
+				file.write('\n\t\t\t\tTypedIndex: %i' % i)
+				file.write('\n\t\t\t}')
+				
+				if textures:
+					
+					file.write('''
+			LayerElement:  {
+				Type: "LayerElementTexture"''')
+					
+					file.write('\n\t\t\t\tTypedIndex: %i' % i)
+					file.write('\n\t\t\t}')
+				
+				file.write('\n\t\t}')
+				
+		
+		file.write('\n\t}')	
+			
+			
+		
 	write_cameras()
 	
 	for matname, mat in materials:
@@ -1882,10 +1926,10 @@ Objects:  {''')
 Relations:  {
 ''')
 
-	file.write('	Model: "Model::blend_root", "Null" {\n	}\n')
+	file.write('\tModel: "Model::blend_root", "Null" {\n\t}\n')
 	
 	for obname, ob, me in objects:
-		file.write('	Model: "Model::%s", "Mesh" {\n	}\n' % obname)
+		file.write('\tModel: "Model::%s", "Mesh" {\n\t}\n' % obname)
 	
 	file.write('''	Model: "Model::Producer Perspective", "Camera" {
 	}
@@ -1906,14 +1950,14 @@ Relations:  {
 ''')
 	
 	for matname, mat in materials:
-		file.write('	Material: "Material::%s", "" {\n	}\n' % matname)
+		file.write('\tMaterial: "Material::%s", "" {\n\t}\n' % matname)
 
 
 	if textures:
 		for texname, tex in textures:
-			file.write('	Texture: "Texture::%s", "TextureVideoClip" {\n	}\n' % texname)
+			file.write('\tTexture: "Texture::%s", "TextureVideoClip" {\n\t}\n' % texname)
 		for texname, tex in textures:
-			file.write('	Video: "Video::%s", "Clip" {\n	}\n' % texname)		
+			file.write('\tVideo: "Video::%s", "Clip" {\n\t}\n' % texname)		
 
 	file.write('}\n')
 	file.write(\
@@ -1925,10 +1969,10 @@ Connections:  {
 ''')
 
 	# write the fake root node
-	file.write('	Connect: "OO", "Model::blend_root", "Model::Scene"\n')
+	file.write('\tConnect: "OO", "Model::blend_root", "Model::Scene"\n')
 	
 	for obname, ob, me in objects:
-		file.write('	Connect: "OO", "Model::%s", "Model::blend_root"\n' % obname)
+		file.write('\tConnect: "OO", "Model::%s", "Model::blend_root"\n' % obname)
 	
 	for obname, ob, me in objects:
 		# Connect all materials to all objects, not good form but ok for now.
@@ -1938,10 +1982,10 @@ Connections:  {
 	if textures:
 		for obname, ob, me in objects:
 			for texname, tex in textures:
-				file.write('	Connect: "OO", "Texture::%s", "Model::%s"\n' % (texname, obname))
+				file.write('\tConnect: "OO", "Texture::%s", "Model::%s"\n' % (texname, obname))
 		
 		for texname, tex in textures:
-			file.write('	Connect: "OO", "Video::%s", "Texture::%s"\n' % (texname, texname))
+			file.write('\tConnect: "OO", "Video::%s", "Texture::%s"\n' % (texname, texname))
 	
 	file.write('}\n')
 	
@@ -1992,6 +2036,9 @@ Version5:  {
 
 
 def write_ui(filename):
+	if not BPyMessages.Warning_SaveOver(filename):
+		return
+	
 	Blender.Window.WaitCursor(1)
 	file = open(filename, 'w')
 	write_header(file)
