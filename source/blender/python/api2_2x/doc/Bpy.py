@@ -6,9 +6,13 @@ The bpy module.
 bpy
 ===
 
-This module is imported automatically and eventually should provide all the functionality as the Blender module does now.
+ATTENTION:  This module is EXPERIMENTAL.
+Features documented here are subject to change.
 
-This only modifies the way data is accessed, added and removed.  The objects, groups, meshes, etc., are unchanged.
+The bpy module is intended as a replacement for the Blender module.
+It will eventually provide the same features and functionality.
+
+This module uses a different model for the way data is accessed, added and removed.  The various types such as groups, meshes, etc., are unchanged.
 
 At the moment it provides an alternative way to access data from python.
 
@@ -168,22 +172,22 @@ class libBlockSeq:
 	
 	Sequence
 	========
-		generic_datablock's are not lists; however they can be used like lists.
-		
-		An sequence allows you to loop through data, without wasting resources on a large list.
+		These generic datablocks are sequence datatypes.  They are not lists.  They support the dictionary and iterator protocols.  This implies the following
+
+				- A B{for} statement allows you to loop through data using the iterator protocol without wasting resources on creating a large list.
 
 		>>> for me in bpy.meshes:
 		... 	print me.name
 
-		You can also use len() to see how many datablocks exist.
+				- You can also use len() to see how many datablocks exist.
 		
 		>>> print len(bpy.scenes)
 		
-		You cannot use indexing to retrieve an item.
+				- Because the sequences are not lists and the [] operator is used to get items by name, you cannot use indexing to retrieve an item.
 		
 		>>> ob = bpy.objects[-1] # will raise an error
 		
-		If you want to access data as a list simply use the list() function.
+				- If you want to access the entire sequence as a list simply use the list() constructor.
 		
 		>>> ipo_list = list(bpy.ipos)
 		
@@ -213,6 +217,7 @@ class libBlockSeq:
 
 	def new(name):
 		"""
+		fixme: need description for parameters.
 		This function returns a new datablock containing no data or loaded from a file.
 		
 		Most datatypes accept a name for their argument except for L{sounds}, L{fonts}, L{ipos} and L{curves} that need an additional argument.
