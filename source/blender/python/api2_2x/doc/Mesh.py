@@ -198,6 +198,7 @@ class MVert:
 				v.no= no
 	@type no: vector
 	@ivar uvco: The vertex texture "sticky" coordinates (x, y),
+		B{Note}: These are not seen in the UV editor and they are not a part of UV a UVLayer. Use face UV's for that.
 		if present. Available for MVerts only. 
 		Use L{Mesh.vertexUV} to test for presence before trying to access;
 		otherwise an exception will may be thrown.

@@ -1615,7 +1615,7 @@ Objects:  {''')
 '''		MultiLayer: 0
 		MultiTake: 1
 		Shading: Y
-		Culling: "CullingOff"hr
+		Culling: "CullingOff"
 		TypeFlags: "Null"
 	}''')
 
@@ -1698,7 +1698,7 @@ Objects:  {''')
 			UV: ''')
 			
 			i = -1
-			ii = 0
+			ii = 0 # Count how many UVs we write
 			for f in me.faces:
 				for uv in f.uv:
 					
@@ -1711,11 +1711,11 @@ Objects:  {''')
 							i=0
 						file.write(',%.6f,%.6f' % tuple(uv))
 					i+=1
-					ii+=1
+					ii+=1 # One more UV
 			
 			file.write('\n			UVIndex: ')
 			i = -1
-			for j in xrange(len(me.faces)):
+			for j in xrange(ii):
 				if i == -1:
 					file.write('%i'  % j)
 					i=0

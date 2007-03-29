@@ -1225,7 +1225,7 @@ void add_primitiveMesh(int type)
 		add_numbut(0, NUM|INT, "Vertices:", 2, 500, &tot, NULL);
 		add_numbut(1, NUM|FLO, "Radius:", 0.001*G.vd->grid, 100*G.vd->grid, &dia, NULL);
 		add_numbut(2, NUM|FLO, "Depth:", 0.001*G.vd->grid, 100*G.vd->grid, &d, NULL);
-		add_numbut(3, TOG|INT, "Cap Ends", 0, 0, &(fill), NULL);
+		add_numbut(3, TOG|INT, "Cap End", 0, 0, &(fill), NULL);
 		if (!(do_clever_numbuts("Add Cone", 4, REDRAW))) return;
 		d/=2;
 		ext= 0;

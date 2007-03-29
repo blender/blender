@@ -209,23 +209,29 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 						context_material.setAlpha(float(line_split[1]))
 					elif line_lower.startswith('map_ka'):
 						img_filepath= line_value(line.split())
-						load_material_image(context_material, context_material_name, img_filepath, 'Ka')
+						if img_filepath:
+							load_material_image(context_material, context_material_name, img_filepath, 'Ka')
 					elif line_lower.startswith('map_ks'):
 						img_filepath= line_value(line.split())
-						load_material_image(context_material, context_material_name, img_filepath, 'Ks')
+						if img_filepath:
+							load_material_image(context_material, context_material_name, img_filepath, 'Ks')
 					elif line_lower.startswith('map_kd'):
 						img_filepath= line_value(line.split())
-						load_material_image(context_material, context_material_name, img_filepath, 'Kd')
+						if img_filepath:
+							load_material_image(context_material, context_material_name, img_filepath, 'Kd')
 					elif line_lower.startswith('map_bump'):
 						img_filepath= line_value(line.split())
-						load_material_image(context_material, context_material_name, img_filepath, 'Bump')
+						if img_filepath:
+							load_material_image(context_material, context_material_name, img_filepath, 'Bump')
 					elif line_lower.startswith('map_d') or line_lower.startswith('map_tr'): # Alpha map - Dissolve
 						img_filepath= line_value(line.split())
-						load_material_image(context_material, context_material_name, img_filepath, 'D')
+						if img_filepath:
+							load_material_image(context_material, context_material_name, img_filepath, 'D')
 					
 					elif line_lower.startswith('refl'): # Reflectionmap
 						img_filepath= line_value(line.split())
-						load_material_image(context_material, context_material_name, img_filepath, 'refl')
+						if img_filepath:
+							load_material_image(context_material, context_material_name, img_filepath, 'refl')
 			mtl.close()
 
 
