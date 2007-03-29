@@ -31,6 +31,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include "Key.h" /*This must come first*/
+
 #include "DNA_scene_types.h"
 
 #include <BLI_blenlib.h>
@@ -41,7 +43,6 @@
 #include "BIF_space.h"
 
 #include "Ipocurve.h"
-#include "Key.h"
 #include "NMesh.h" /* we create NMesh.NMVert objects */
 #include "Ipo.h"
 #include "BezTriple.h"

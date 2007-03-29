@@ -33,6 +33,7 @@
 #define EXPP_BPYMODULE_H
 
 #include <Python.h>
+#include "DNA_listBase.h"
 
 /* The Main PyType Object defined in Main.c */
 extern PyTypeObject LibBlockSeq_Type;

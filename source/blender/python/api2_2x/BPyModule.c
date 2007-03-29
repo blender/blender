@@ -30,6 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+#include "BPyModule.h"
 
 #include "MEM_guardedalloc.h"	/* for MEM_callocN */
 #include "DNA_space_types.h"	/* SPACE_VIEW3D, SPACE_SEQ */
@@ -103,7 +104,6 @@
 #include "Text.h"
 #include "Sound.h"
 #include "NLA.h"
-#include "BPyModule.h"
 #include "Scene.h"
 #include "Library.h"
 
