@@ -857,6 +857,15 @@ void make_prim(int type, float imat[3][3], int tot, int seg,
 		int subdiv, float dia, float d, int ext, int fill,
         float cent[3])
 {
+	/*
+	 * type - for the type of shape
+	 * dia - the radius for cone,sphere cylinder etc.
+	 * d - depth for the cone
+	 * ext - ?
+	 * fill - end capping, and option to fill in circle
+	 * cent[3] - center of the data. 
+	 * */
+	
 	EditMesh *em = G.editMesh;
 	EditVert *eve, *v1=NULL, *v2, *v3, *v4=NULL, *vtop, *vdown;
 	float phi, phid, vec[3];
@@ -1053,12 +1062,14 @@ void make_prim(int type, float imat[3][3], int tot, int seg,
 			d= -d;
 		}
 		/* centre vertices */
-		if(fill && type>1) {
+		/* type 7, a cone can only have 1 one side filled
+		 * if the cone has no capping, dont add vtop */
+		if((fill && type>1) || type == 7) {
 			VECCOPY(vec,cent);
 			vec[2]-= -d;
 			Mat3MulVecfl(imat,vec);
 			vdown= addvertlist(vec, NULL);
-			if(ext || type==7) {
+			if((ext || type==7) && fill) {
 				VECCOPY(vec,cent);
 				vec[2]-= d;
 				Mat3MulVecfl(imat,vec);
@@ -1072,7 +1083,7 @@ void make_prim(int type, float imat[3][3], int tot, int seg,
 		if(vdown) vdown->f= SELECT;
 	
 		/* top and bottom face */
-		if(fill) {
+		if(fill || type==7) {
 			if(tot==4 && (type==0 || type==1)) {
 				v3= v1->next->next;
 				if(ext) v4= v2->next->next;
@@ -1087,7 +1098,7 @@ void make_prim(int type, float imat[3][3], int tot, int seg,
 				for(a=1; a<tot; a++) {
 					addfacelist(vdown, v3, v3->next, 0, NULL, NULL);
 					v3= v3->next;
-					if(ext) {
+					if(ext && fill) {
 						addfacelist(vtop, v4, v4->next, 0, NULL, NULL);
 						v4= v4->next;
 					}
@@ -1117,7 +1128,9 @@ void make_prim(int type, float imat[3][3], int tot, int seg,
 			}
 			addfacelist(v3, v1, v2, v4, NULL, NULL);
 		}
-		else if(type==7) { /* cone */
+		else if(type==7 && fill) {
+			/* add the bottom flat area of the cone
+			 * if capping is disabled dont bother */
 			v3= v1;
 			for(a=1; a<tot; a++) {
 				addfacelist(vtop, v3->next, v3, 0, NULL, NULL);
