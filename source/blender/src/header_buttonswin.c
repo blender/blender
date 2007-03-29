@@ -670,7 +670,7 @@ void buts_buttons(void)
 	uiBlockBeginAlign(block);
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_GAME,			xco, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_LOGIC, 0, 0, "Logic (F4) ");
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCRIPT,		xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCRIPT, 0, 0, "Script ");
-	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MATERIAL_DEHLT,xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SHADING, 0, 0, "Shading (F5) ");
+	uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL_DEHLT,xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SHADING, 0, 0, "Shading (F5) ");
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT,		xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_OBJECT, 0, 0, "Object (F7) ");
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_EDIT,			xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_EDITING, 0, 0, "Editing (F9) ");
 	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE_DEHLT,	xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCENE, 0, 0, "Scene (F10) ");
