@@ -506,7 +506,20 @@ if env['WITH_BF_PLAYER']:
 
 #------------ INSTALL
 
-blenderinstall = env.Install(dir=env['BF_INSTALLDIR'], source=B.program_list)
+#-- binaries
+blenderinstall = []
+if  env['OURPLATFORM']=='darwin':
+    for prg in B.program_list:
+        bundle = '%s.app' % prg[0]
+        bundledir = os.path.dirname(bundle)
+        for dp, dn, df in os.walk(bundle):
+            if 'CVS' in dn:
+                dn.remove('CVS')
+            dir=env['BF_INSTALLDIR']+dp[len(bundledir):]
+            source=[dp+os.sep+f for f in df]
+            blenderinstall.append(env.Install(dir=dir,source=source))
+else:
+    blenderinstall = env.Install(dir=env['BF_INSTALLDIR'], source=B.program_list)
 
 #-- .blender
 dotblendlist = []
