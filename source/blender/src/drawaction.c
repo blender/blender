@@ -856,16 +856,52 @@ void draw_action_channel(gla2DDrawInfo *di, bAction *act, float ypos)
 	BLI_freelistN(&keys);
 }
 
-static void add_bezt_to_keyblockslist(BezTriple *bezt, BezTriple *prev, ListBase *blocks)
+static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index)
 {
 	/* The equivilant of add_to_cfra_elem except this version 
 	 * makes ActKeyBlocks - one of the two datatypes required
 	 * for action editor drawing.
 	 */
 	ActKeyBlock *ab, *abn;
+	BezTriple *beztn=NULL, *prev=NULL;
+	BezTriple *bezt;
+	int v;
 	
-	/* check if block needed */
-	if (bezt->vec[1][1] != prev->vec[1][1])
+	/* get beztriples */
+	beztn= (icu->bezt + index);
+	/* The following search for previous beztriple doesn't work
+	 * that great on actions with a large amount of keys. There
+	 * are a few commented out shortcuts for these cases, which will
+	 * remain so until the definitive point where slowdown starts to
+	 * bite is determined.
+	 */
+	//if (icu->totvert > 3500) {
+	//	if (index >= 1) 
+	//		prev= (icu->bezt + (index - 1));
+	//}
+	//else {
+		for (v=0, bezt=icu->bezt; v<icu->totvert; v++, bezt++) {
+			/* skip if beztriple is current */
+			if (v != index) {
+				/* check if beztriple is immediately before */
+				if (beztn->vec[1][0] > bezt->vec[1][0]) {
+					/* check if closer than previous was */
+					if (prev) {
+						if (prev->vec[1][0] < bezt->vec[1][0])
+							prev= bezt;
+					}
+					else {
+						prev= bezt;
+					}
+				}
+			}
+		}
+	//}
+	
+	/* check if block needed - same value? */
+	if ((!prev) || (!beztn))
+		return;
+	if (beztn->vec[1][1] != prev->vec[1][1])
 		return;
 	
 	/* try to find a keyblock that starts on the previous beztriple */
@@ -873,7 +909,7 @@ static void add_bezt_to_keyblockslist(BezTriple *bezt, BezTriple *prev, ListBase
 		/* check if alter existing block or add new block */
 		if (ab->start == prev->vec[1][0]) {			
 			/* set selection status and 'touched' status */
-			if (BEZSELECTED(bezt)) ab->sel = SELECT;
+			if (BEZSELECTED(beztn)) ab->sel = SELECT;
 			ab->modified += 1;
 			
 			return;
@@ -887,10 +923,10 @@ static void add_bezt_to_keyblockslist(BezTriple *bezt, BezTriple *prev, ListBase
 	else BLI_addtail(blocks, abn);
 	
 	abn->start= prev->vec[1][0];
-	abn->end= bezt->vec[1][0];
-	abn->val= bezt->vec[1][1];
+	abn->end= beztn->vec[1][0];
+	abn->val= beztn->vec[1][1];
 	
-	if (BEZSELECTED(prev) || BEZSELECTED(bezt))
+	if (BEZSELECTED(prev) || BEZSELECTED(beztn))
 		abn->sel = SELECT;
 	else
 		abn->sel = 0;
@@ -924,20 +960,17 @@ int ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks)
 
 void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks)
 {
-	BezTriple *bezt, *prev;
+	BezTriple *bezt;
 	ActKeyBlock *ab, *abn;
 	int v;
 	
-	if (icu && icu->totvert){
+	if (icu && icu->totvert) {
 		/* loop through beztriples, making ActKeys and ActKeyBlocks */
 		bezt= icu->bezt;
-		prev= NULL;
 		
 		for (v=0; v<icu->totvert; v++, bezt++) {
 			add_to_cfra_elem(keys, bezt);
-			if (blocks && v) add_bezt_to_keyblockslist(bezt, prev, blocks);
-			
-			prev= bezt;
+			if (blocks) add_bezt_to_keyblockslist(blocks, icu, v);
 		}
 		
 		/* update the number of curves the blocks have appeared in */
