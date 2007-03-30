@@ -64,6 +64,7 @@
 #include "api2_2x/Blender.h"
 #include "api2_2x/Camera.h"
 #include "api2_2x/Draw.h"
+#include "api2_2x/Object.h"
 #include "api2_2x/Registry.h"
 #include "api2_2x/BPyModule.h" /* for the "bpy" default module */
 
@@ -1070,8 +1071,10 @@ static int bpy_pydriver_create_dict(void)
 	if (mod) {
 		PyObject *fcn = PyObject_GetAttrString(mod, "Get");
 		Py_DECREF(mod);
-		if (fcn)
+		if (fcn) {
 			PyDict_SetItemString(d, "ob", fcn);
+			Py_DECREF(fcn);
+		}
 	}
 
 	/* me(meshname) == Blender.Mesh.Get(meshname) */
@@ -1079,8 +1082,10 @@ static int bpy_pydriver_create_dict(void)
 	if (mod) {
 		PyObject *fcn = PyObject_GetAttrString(mod, "Get");
 		Py_DECREF(mod);
-		if (fcn)
+		if (fcn) {
 			PyDict_SetItemString(d, "me", fcn);
+			Py_DECREF(fcn);
+		}
 	}
 
 	/* ma(matname) == Blender.Material.Get(matname) */
@@ -1088,8 +1093,10 @@ static int bpy_pydriver_create_dict(void)
 	if (mod) {
 		PyObject *fcn = PyObject_GetAttrString(mod, "Get");
 		Py_DECREF(mod);
-		if (fcn)
+		if (fcn) {
 			PyDict_SetItemString(d, "ma", fcn);
+			Py_DECREF(fcn);
+		}
 	}
 
 	return 0;
@@ -1170,8 +1177,9 @@ struct Object **BPY_pydriver_get_objects(IpoDriver *driver)
 float BPY_pydriver_eval(IpoDriver *driver)
 {
 	char *expr = NULL;
-	PyObject *retval, *floatval;
+	PyObject *retval, *floatval, *bpy_ob = NULL;
 	float result = 0.0f; /* default return */
+	int setitem_retval;
 
 	if (!driver) return result;
 
@@ -1185,6 +1193,18 @@ float BPY_pydriver_eval(IpoDriver *driver)
 		}
 	}
 
+	if (driver->ob)
+		bpy_ob = Object_CreatePyObject(driver->ob);
+
+	if (!bpy_ob) {
+		Py_INCREF(Py_None);
+		bpy_ob = Py_None;
+	}
+
+	setitem_retval = EXPP_dict_set_item_str(bpy_pydriver_Dict, "self", bpy_ob);
+
+/* sds*/
+
 	if( !setup_armature_weakrefs()){
 		fprintf( stderr, "Oops - weakref dict setup\n");
 		return result;
@@ -1196,17 +1216,18 @@ float BPY_pydriver_eval(IpoDriver *driver)
 	if (retval == NULL) {
 		return pydriver_error(driver);
 	}
-	else {
-		floatval = PyNumber_Float(retval);
-		Py_DECREF(retval);
-	}
+
+	floatval = PyNumber_Float(retval);
+	Py_DECREF(retval);
 
 	if (floatval == NULL) 
 		return pydriver_error(driver);
-	else {
-		result = (float)PyFloat_AsDouble(floatval);
-		Py_DECREF(floatval);
-	}
+
+	result = (float)PyFloat_AsDouble(floatval);
+	Py_DECREF(floatval);
+
+	/* remove 'self', since this dict is also used by py buttons */
+	if (setitem_retval == 0) PyDict_DelItemString(bpy_pydriver_Dict, "self");
 
 	/* all fine, make sure the "invalid expression" flag is cleared */
 	driver->flag &= ~IPO_DRIVER_FLAG_INVALID;
