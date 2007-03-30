@@ -573,7 +573,7 @@ PyObject *LibraryData_importLibData( BPy_LibraryData *self, char *name,
 	BlendHandle *openlib;
 	Library *lib;
 	LinkNode *names, *ptr;
-	ID idtest, *id;
+	ID *id;
 	ListBase *lb;
 	char newName[32];
 
