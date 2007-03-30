@@ -86,7 +86,7 @@ CompBuf *pass_on_compbuf(CompBuf *cbuf)
 		dupbuf->malloc= 0;
 		
 		/* get last buffer in list, and append dupbuf */
-		for(lastbuf= dupbuf; lastbuf; lastbuf= lastbuf->next)
+		for(lastbuf= cbuf; lastbuf; lastbuf= lastbuf->next)
 			if(lastbuf->next==NULL)
 				break;
 		lastbuf->next= dupbuf;
