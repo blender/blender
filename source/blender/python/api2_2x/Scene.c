@@ -1543,6 +1543,10 @@ typeError:
 	/* make sure data and object materials are consistent */
 	test_object_materials( (ID *)object->data );
 	
+	/* so we can deal with vertex groups */
+	if (type == OB_MESH)
+		((BPy_Mesh *)py_data)->object = object;
+	
 	return Object_CreatePyObject( object );
 
 }
