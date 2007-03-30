@@ -640,19 +640,20 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 		for(i = 0; i < vec->size; i++) {
 			vec->vec[i] *=	scalar;
 		}
+		
 		Py_INCREF( v1 );
 		return v1;
 		
 	} else if (MatrixObject_Check(v2)) {
 		float vecCopy[4];
-		int x,y, size= vec->size;
+		int x,y, size = vec->size;
 		MatrixObject *mat= (MatrixObject*)v2;
-			
-		if(mat->colSize != vec->size){
+		
+		if(mat->colSize != size){
 			if(mat->rowSize == 4 && vec->size != 3){
 				return EXPP_ReturnPyObjError(PyExc_AttributeError, 
 					"vector * matrix: matrix column size and the vector size must be the same");
-			}else{
+			} else {
 				vecCopy[3] = 1.0f;
 			}
 		}
@@ -661,13 +662,15 @@ static PyObject *Vector_imul(PyObject * v1, PyObject * v2)
 			vecCopy[i] = vec->vec[i];
 		}
 		
+		size = MIN2(size, mat->colSize);
+		
 		/*muliplication*/
-		for(x = 0, i = 0; x < mat->colSize; x++) {
+		for(x = 0, i = 0; x < size; x++, i++) {
 			double dot = 0.0f;
 			for(y = 0; y < mat->rowSize; y++) {
 				dot += mat->matrix[y][x] * vecCopy[y];
 			}
-			vec->vec[i++] = (float)dot;
+			vec->vec[i] = (float)dot;
 		}
 		Py_INCREF( v1 );
 		return v1;
