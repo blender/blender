@@ -386,8 +386,11 @@ static EditFace *addface_from_edges(void)
 			else if(eedar[1]==NULL) eedar[1]= eed;
 			else if(eedar[2]==NULL) eedar[2]= eed;
 			else eedar[3]= eed;
+			
 		}
 	}
+	
+	
 	if(eedar[3]) {
 		/* first 2 points */
 		v1= eedar[0]->v1;
@@ -747,30 +750,45 @@ void addedgeface_mesh(void)
 		
 			if(tria==2) join_triangles();
 			else if(exist_face_overlaps(neweve[0], neweve[1], neweve[2], neweve[3])==0) {
+				 /* If there are 4 Verts, But more selected edges, we need to call addfaces_from_edgenet */
+					EditEdge *eedcheck;
+					int count;
+					count = 0;
+					for(eedcheck= em->edges.first; eedcheck; eedcheck= eedcheck->next) {
+						if(eedcheck->f & SELECT) {
+							count++;
+						}
+					}	
+				
+				if(count++ > 4){
+					addfaces_from_edgenet();
+					return;
+				} else {
 				/* if 4 edges exist, we just create the face, convex or not */
-				efa= addface_from_edges();
-				if(efa==NULL) {
-					/* the order of vertices can be anything, 6 cases to check */
-					if( convex(neweve[0]->co, neweve[1]->co, neweve[2]->co, neweve[3]->co) ) {
-						efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], NULL, NULL);
+					efa= addface_from_edges();
+					if(efa==NULL) {
+						/* the order of vertices can be anything, 6 cases to check */
+						if( convex(neweve[0]->co, neweve[1]->co, neweve[2]->co, neweve[3]->co) ) {
+							efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], NULL, NULL);
+						}
+						else if( convex(neweve[0]->co, neweve[2]->co, neweve[3]->co, neweve[1]->co) ) {
+							efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], NULL, NULL);
+						}
+						else if( convex(neweve[0]->co, neweve[2]->co, neweve[1]->co, neweve[3]->co) ) {
+							efa= addfacelist(neweve[0], neweve[2], neweve[1], neweve[3], NULL, NULL);
+						}
+						
+						else if( convex(neweve[1]->co, neweve[2]->co, neweve[3]->co, neweve[0]->co) ) {
+							efa= addfacelist(neweve[1], neweve[2], neweve[3], neweve[0], NULL, NULL);
+						}
+						else if( convex(neweve[1]->co, neweve[3]->co, neweve[0]->co, neweve[2]->co) ) {
+							efa= addfacelist(neweve[1], neweve[3], neweve[0], neweve[2], NULL, NULL);
+						}
+						else if( convex(neweve[1]->co, neweve[3]->co, neweve[2]->co, neweve[0]->co) ) {
+							efa= addfacelist(neweve[1], neweve[3], neweve[2], neweve[0], NULL, NULL);
+						}
+						else error("The selected vertices form a concave quad");
 					}
-					else if( convex(neweve[0]->co, neweve[2]->co, neweve[3]->co, neweve[1]->co) ) {
-						efa= addfacelist(neweve[0], neweve[2], neweve[3], neweve[1], NULL, NULL);
-					}
-					else if( convex(neweve[0]->co, neweve[2]->co, neweve[1]->co, neweve[3]->co) ) {
-						efa= addfacelist(neweve[0], neweve[2], neweve[1], neweve[3], NULL, NULL);
-					}
-					
-					else if( convex(neweve[1]->co, neweve[2]->co, neweve[3]->co, neweve[0]->co) ) {
-						efa= addfacelist(neweve[1], neweve[2], neweve[3], neweve[0], NULL, NULL);
-					}
-					else if( convex(neweve[1]->co, neweve[3]->co, neweve[0]->co, neweve[2]->co) ) {
-						efa= addfacelist(neweve[1], neweve[3], neweve[0], neweve[2], NULL, NULL);
-					}
-					else if( convex(neweve[1]->co, neweve[3]->co, neweve[2]->co, neweve[0]->co) ) {
-						efa= addfacelist(neweve[1], neweve[3], neweve[2], neweve[0], NULL, NULL);
-					}
-					else error("The selected vertices form a concave quad");
 				}
 			}
 			else error("The selected vertices already form a face");
