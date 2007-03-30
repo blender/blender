@@ -74,6 +74,8 @@ static PyObject *M_Window_GetCursorPos( PyObject * self );
 static PyObject *M_Window_SetCursorPos( PyObject * self, PyObject * args );
 static PyObject *M_Window_WaitCursor( PyObject * self, PyObject * args );
 static PyObject *M_Window_GetViewVector( PyObject * self );
+static PyObject *M_Window_GetActiveLayer( PyObject * self );
+static PyObject *M_Window_SetActiveLayer( PyObject * self, PyObject * args );
 static PyObject *M_Window_GetViewQuat( PyObject * self );
 static PyObject *M_Window_SetViewQuat( PyObject * self, PyObject * args );
 static PyObject *M_Window_GetViewOffset( PyObject * self );
@@ -157,6 +159,12 @@ static char M_Window_WaitCursor_doc[] =
 
 static char M_Window_GetViewVector_doc[] =
 	"() - Get the current 3d view vector as a list of three floats [x,y,z].";
+
+static char M_Window_GetActiveLayer_doc[] =
+	"() - Get the current 3d views active layer where new objects are created.";
+
+static char M_Window_SetActiveLayer_doc[] =
+	"(int) - Set the current 3d views active layer where new objects are created.";
 
 static char M_Window_GetViewMatrix_doc[] =
 	"() - Get the current 3d view matrix.";
@@ -296,6 +304,10 @@ struct PyMethodDef M_Window_methods[] = {
 	 M_Window_WaitCursor_doc},
 	{"GetViewVector", ( PyCFunction ) M_Window_GetViewVector, METH_NOARGS,
 	 M_Window_GetViewVector_doc},
+	{"GetActiveLayer", ( PyCFunction ) M_Window_GetActiveLayer, METH_NOARGS,
+	 M_Window_GetActiveLayer_doc},
+	{"SetActiveLayer", ( PyCFunction ) M_Window_SetActiveLayer, METH_VARARGS,
+	 M_Window_SetActiveLayer_doc},
 	{"GetViewQuat", ( PyCFunction ) M_Window_GetViewQuat, METH_NOARGS,
 	 M_Window_GetViewQuat_doc},
 	{"SetViewQuat", ( PyCFunction ) M_Window_SetViewQuat, METH_VARARGS,
@@ -402,8 +414,7 @@ PyObject *M_Window_Redraw( PyObject * self, PyObject * args )
 		}
 	}
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*****************************************************************************/
@@ -422,9 +433,7 @@ static PyObject *M_Window_RedrawAll( PyObject * self, PyObject * args )
 static PyObject *M_Window_QRedrawAll( PyObject * self, PyObject * args )
 {
 	EXPP_allqueue( REDRAWALL, 0 );
-
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*****************************************************************************/
@@ -539,8 +548,7 @@ static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
 
 	activate_fileselect( FILE_BLENDER, title, filename, getSelectedFile );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *M_Window_ImageSelector( PyObject * self, PyObject * args )
@@ -604,8 +612,7 @@ static PyObject *M_Window_ImageSelector( PyObject * self, PyObject * args )
 
 	activate_imageselect( FILE_BLENDER, title, filename, getSelectedFile );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*****************************************************************************/
@@ -687,8 +694,7 @@ static PyObject *M_Window_SetCursorPos( PyObject * self, PyObject * args )
 		G.scene->cursor[2] = val[2];
 	}
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *M_Window_WaitCursor( PyObject * self, PyObject * args )
@@ -701,7 +707,7 @@ static PyObject *M_Window_WaitCursor( PyObject * self, PyObject * args )
 
 	waitcursor( bool );	/* nonzero bool sets, zero unsets */
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 /*****************************************************************************/
@@ -713,10 +719,8 @@ static PyObject *M_Window_GetViewVector( PyObject * self )
 	float *vec = NULL;
 	PyObject *pylist;
 
-	if( !G.vd ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( !G.vd )
+		Py_RETURN_NONE;
 
 	vec = G.vd->viewinv[2];
 
@@ -729,15 +733,58 @@ static PyObject *M_Window_GetViewVector( PyObject * self )
 	return pylist;
 }
 
+/*****************************************************************************/
+/* Function:	M_Window_GetActiveLayer					*/
+/* Python equivalent:	Blender.Window.GetActiveLayer			*/
+/*****************************************************************************/
+static PyObject *M_Window_GetActiveLayer( PyObject * self )
+{
+	if (!G.vd) {
+		return PyInt_FromLong(0);
+	} else {
+		return PyInt_FromLong( G.vd->layact );
+	}
+}
+
+static PyObject *M_Window_SetActiveLayer( PyObject * self, PyObject * args )
+{
+	int layer, bit=1;
+	if( !PyArg_ParseTuple( args, "i", &layer ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected an int" ) );
+	
+	if (!G.vd)
+		Py_RETURN_FALSE;
+	
+	bit= 0;
+	while(bit<32) {
+		if(layer & (1<<bit)) {
+			G.vd->layact= 1<<bit;
+			G.vd->lay |= G.vd->layact;
+			
+			if (G.vd->scenelock) {
+				G.scene->lay |= G.vd->layact; 
+			}
+			bit = -1; /* no error */
+			break;
+		}
+		bit++;
+	}
+	
+	if (bit != -1)
+		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+					"The flag could not be used for the active layer" ) );
+	
+	Py_RETURN_NONE;
+}
+
 static PyObject *M_Window_GetViewQuat( PyObject * self )
 {
 	float *vec = NULL;
 	PyObject *pylist;
 
-	if( !G.vd ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( !G.vd )
+		Py_RETURN_NONE;
 
 	vec = G.vd->viewquat;
 
@@ -755,10 +802,8 @@ static PyObject *M_Window_SetViewQuat( PyObject * self, PyObject * args )
 	int ok = 0;
 	float val[4];
 
-	if( !G.vd ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( !G.vd )
+		Py_RETURN_NONE;
 
 	if( PyObject_Length( args ) == 4 )
 		ok = PyArg_ParseTuple( args, "ffff", &val[0], &val[1], &val[2],
@@ -776,7 +821,7 @@ static PyObject *M_Window_SetViewQuat( PyObject * self, PyObject * args )
 	G.vd->viewquat[2] = val[2];
 	G.vd->viewquat[3] = val[3];
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *M_Window_GetViewOffset( PyObject * self )
@@ -784,10 +829,8 @@ static PyObject *M_Window_GetViewOffset( PyObject * self )
 	float *vec = NULL;
 	PyObject *pylist;
 
-	if( !G.vd ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( !G.vd )
+		Py_RETURN_NONE;
 
 	vec = G.vd->ofs;
 
@@ -805,10 +848,8 @@ static PyObject *M_Window_SetViewOffset( PyObject * self, PyObject * args )
 	int ok = 0;
 	float val[3];
 
-	if( !G.vd ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( !G.vd )
+		Py_RETURN_NONE;
 
 	if( PyObject_Length( args ) == 3 )
 		ok = PyArg_ParseTuple( args, "fff", &val[0], &val[1],
@@ -825,7 +866,7 @@ static PyObject *M_Window_SetViewOffset( PyObject * self, PyObject * args )
 	G.vd->ofs[1] = val[1];
 	G.vd->ofs[2] = val[2];
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 
@@ -837,10 +878,8 @@ static PyObject *M_Window_GetViewMatrix( PyObject * self )
 {
 	PyObject *viewmat;
 
-	if( !G.vd ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( !G.vd )
+		Py_RETURN_NONE;
 
 	viewmat =
 		( PyObject * ) newMatrixObject( ( float * ) G.vd->viewmat, 4,
@@ -861,10 +900,8 @@ static PyObject *M_Window_GetPerspMatrix( PyObject * self )
 {
 	PyObject *perspmat;
 
-	if( !G.vd ) {
-		Py_INCREF( Py_None );
-		return Py_None;
-	}
+	if( !G.vd )
+		Py_RETURN_NONE;
 
 	perspmat =
 		( PyObject * ) newMatrixObject( ( float * ) G.vd->persmat, 4,
@@ -1051,7 +1088,7 @@ static PyObject *M_Window_CameraView( PyObject * self, PyObject * args )
 	if( camtov3d )
 		setcameratoview3d(  );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *M_Window_QTest( PyObject * self )
@@ -1097,7 +1134,7 @@ static PyObject *M_Window_QAdd( PyObject * self, PyObject * args )
 	else
 		addqueue( win, evt, val );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *M_Window_QHandle( PyObject * self, PyObject * args )
@@ -1147,7 +1184,7 @@ static PyObject *M_Window_QHandle( PyObject * self, PyObject * args )
 		set_g_activearea( oldsa );
 	}
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *M_Window_GetMouseCoords( PyObject * self )
@@ -1181,7 +1218,7 @@ static PyObject *M_Window_SetMouseCoords( PyObject * self, PyObject * args )
 
 	warp_pointer( x, y );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *M_Window_GetMouseButtons( PyObject * self )
@@ -1220,7 +1257,7 @@ static PyObject *M_Window_GetAreaSize( PyObject * self )
 	ScrArea *sa = curarea;
 
 	if( !sa )
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 
 	return Py_BuildValue( "hh", sa->winx, sa->winy );
 }
@@ -1230,7 +1267,7 @@ static PyObject *M_Window_GetAreaID( PyObject * self )
 	ScrArea *sa = curarea;
 
 	if( !sa )
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 
 	return Py_BuildValue( "h", sa->win );
 }
@@ -1240,7 +1277,7 @@ static PyObject *M_Window_GetScreenSize( PyObject * self )
 	bScreen *scr = G.curscreen;
 
 	if( !scr )
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 
 	return Py_BuildValue( "hh", scr->sizex, scr->sizey );
 }
@@ -1267,7 +1304,7 @@ static PyObject *M_Window_SetScreen( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "no such screen, check Window.GetScreens() for valid names" );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *M_Window_GetScreens( PyObject * self )

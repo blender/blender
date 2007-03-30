@@ -180,20 +180,35 @@ def DrawProgressBar (done, text):
   """
 
 def GetCursorPos ():
-  """
-  Get the current 3d cursor position.
-  @rtype: list of three floats
-  @return: the current position: [x, y, z].
-  """
+	"""
+	Get the current 3d cursor position.
+	@rtype: list of three floats
+	@return: the current position: [x, y, z].
+	"""
+
+def GetActiveLayer ():
+	"""
+	Get the bitmask for the active layer.
+	@note: if there is no 3d view it will return zero.
+	@rtype: int
+	@return: layer bitmask
+	"""
+
+def SetActiveLayer(layermask):
+	"""
+	Set the bitmask for the active layer.
+	@type layermask: int
+	@param layermask: An integer bitmask, to use humanly readable values do (1<<0) for the first layer, (1<<19) for the last layer.
+	"""
 
 def SetCursorPos (coords):
-  """
-  Change the 3d cursor position.
-  @type coords: 3 floats or a list of 3 floats
-  @param coords: The new x, y, z coordinates.
-  @note: if visible, the 3d View must be redrawn to display the change.  This
-      can be done with L{Redraw}.
-  """
+	"""
+	Change the 3d cursor position.
+	@type coords: 3 floats or a list of 3 floats
+	@param coords: The new x, y, z coordinates.
+	@note: if visible, the 3d View must be redrawn to display the change.  This
+		can be done with L{Redraw}.
+	"""
 
 def WaitCursor (bool):
   """

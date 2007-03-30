@@ -1522,7 +1522,18 @@ typeError:
 						  "couldn't allocate new Base for object" );
 
 	base->object = object;	/* link object to the new base */
-	base->lay= object->lay = scene->lay & ((1<<20)-1);	/* Layer, by default visible*/
+	
+	if (scene == G.scene && G.vd) {
+		if (G.vd->localview) {
+			object->lay= G.vd->layact + G.vd->lay;
+		} else {
+			object->lay= G.vd->layact;
+		}
+	} else {
+		base->lay= object->lay = scene->lay & ((1<<20)-1);	/* Layer, by default visible*/	
+	}
+	
+	base->lay= object->lay;
 	
 	base->flag = SELECT;
 	object->id.us = 1; /* we will exist once in this scene */
