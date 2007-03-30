@@ -1203,8 +1203,6 @@ float BPY_pydriver_eval(IpoDriver *driver)
 
 	setitem_retval = EXPP_dict_set_item_str(bpy_pydriver_Dict, "self", bpy_ob);
 
-/* sds*/
-
 	if( !setup_armature_weakrefs()){
 		fprintf( stderr, "Oops - weakref dict setup\n");
 		return result;
