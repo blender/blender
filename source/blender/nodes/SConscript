@@ -21,15 +21,15 @@ incs += ' ' + env['BF_SDL_INC']
 defs = ''
 
 if env['WITH_BF_INTERNATIONAL']:
-	defs += 'WITH_FREETYPE2'
+    defs += 'WITH_FREETYPE2'
 
 if env['WITH_BF_VERSE']:
-	defs += ' WITH_VERSE'
-	incs += ' ' + env['BF_VERSE_INCLUDE']
+    defs += ' WITH_VERSE'
+    incs += ' ' + env['BF_VERSE_INCLUDE']
 
 if env['WITH_BF_VERSE']:
-	defs += ' WITH_VERSE'
-	
+    defs += ' WITH_VERSE'
+
 if env['WITH_BF_OPENEXR'] == 1:
     defs += ' WITH_OPENEXR'
 
