@@ -5,7 +5,7 @@ Blender: 243
 Group: 'Export'
 Tooltip: 'Selection to an ASCII Autodesk FBX '
 """
-__author__ = "Campbell Barton, Jiri Hnidek"
+__author__ = "Campbell Barton"
 __url__ = ['www.blender.org', 'blenderartists.org']
 __version__ = "1.1"
 
@@ -1694,7 +1694,62 @@ Objects:  {''')
 		file.write('\n\t\t}')
 		
 		
+
+		
+		# Write VertexColor Layers
+		collayers = []
+		if me.vertexColors:
+			collayers = me.getColorLayerNames()
+			collayer_orig = me.activeColorLayer
+			for colindex, collayer in enumerate(collayers):
+				me.activeColorLayer = collayer
+				file.write('\n\t\tLayerElementColor: %i {' % colindex)
+				file.write('\n\t\t\tVersion: 101')
+				file.write('\n\t\t\tName: "%s"' % collayer)
+				
+				file.write('''
+			MappingInformationType: "ByPolygonVertex"
+			ReferenceInformationType: "IndexToDirect"
+			Colors: ''')
+			
+				i = -1
+				ii = 0 # Count how many Colors we write
+				
+				for f in me.faces:
+					for col in f.col:
+						if i==-1:
+							file.write('%i,%i,%i' % (col[0], col[1], col[2]))
+							i=0
+						else:
+							if i==7:
+								file.write('\n			 ')
+								i=0
+							file.write(',%i,%i,%i' % (col[0], col[1], col[2]))
+						i+=1
+						ii+=1 # One more Color
+				
+				file.write('\n\t\t\tColorIndex: ')
+				i = -1
+				for j in xrange(ii):
+					if i == -1:
+						file.write('%i' % j)
+						i=0
+					else:
+						if i==55:
+							file.write('\n			 ')
+							i=0
+						file.write(',%i' % j)
+					i+=1
+				
+				file.write('\n\t\t}')
+		
+		
+		
+		
+		
+		
 		# Write UV and texture layers.
+		uvlayers = []
 		if me.faceUV:
 			uvlayers = me.getUVLayerNames()
 			uvlayer_orig = me.activeUVLayer
@@ -1725,7 +1780,7 @@ Objects:  {''')
 						i+=1
 						ii+=1 # One more UV
 				
-				file.write('\n			UVIndex: ')
+				file.write('\n\t\t\tUVIndex: ')
 				i = -1
 				for j in xrange(ii):
 					if i == -1:
@@ -1733,12 +1788,12 @@ Objects:  {''')
 						i=0
 					else:
 						if i==55:
-							file.write('\n			 ')
+							file.write('\n\t\t\t\t')
 							i=0
 						file.write(',%i' % j)
 					i+=1
 				
-				file.write('\n		}')
+				file.write('\n\t\t}')
 				
 				if textures:
 					file.write('\n\t\tLayerElementTexture: %i {' % uvindex)
@@ -1847,7 +1902,14 @@ Objects:  {''')
 				Type: "LayerElementTexture"
 				TypedIndex: 0
 			}''')
-			
+		
+		if me.vertexColors:
+			file.write('''
+			LayerElement:  {
+				Type: "LayerElementColor"
+				TypedIndex: 0
+			}''')
+		
 		if me.faceUV:
 			file.write('''
 			LayerElement:  {
@@ -1858,7 +1920,7 @@ Objects:  {''')
 		
 		file.write('\n\t\t}')
 		
-		if me.faceUV and len(uvlayers) > 1:
+		if len(uvlayers) > 1:
 			for i in xrange(1, len(uvlayers)):
 				
 				file.write('\n\t\tLayer: %i {' % i)
@@ -1881,8 +1943,23 @@ Objects:  {''')
 					file.write('\n\t\t\t}')
 				
 				file.write('\n\t\t}')
-				
 		
+		if len(collayers) > 1:
+			# Take into account any UV layers
+			layer_offset = 0
+			if uvlayers: layer_offset = len(uvlayers)-1
+			
+			for i in xrange(layer_offset, len(collayers)+layer_offset):
+				file.write('\n\t\tLayer: %i {' % i)
+				file.write('\n\t\t\tVersion: 100')
+				
+				file.write('''
+			LayerElement:  {
+				Type: "LayerElementColor"''')
+				
+				file.write('\n\t\t\t\tTypedIndex: %i' % i)
+				file.write('\n\t\t\t}')
+				file.write('\n\t\t}')
 		file.write('\n\t}')	
 			
 			
