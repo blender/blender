@@ -66,7 +66,8 @@ def alpha_mat(image):
 	
 	tex= B.Texture.New()
 	tex.type= B.Texture.Types.IMAGE
-	tex.setImageFlags('InterPol', 'UseAlpha', 'Anti')
+	image.antialias = True
+	tex.setImageFlags('InterPol', 'UseAlpha')
 	tex.setExtend('Clip')
 	tex.image= image
 	
