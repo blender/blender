@@ -689,7 +689,13 @@ static PyObject *Image_pack( BPy_Image * self )
 
 static PyObject *Image_makeCurrent( BPy_Image * self )
 {
-	printf("deprecated! use Blender.Main.images.active = image  instead\n");
+#if 0	/* add back in when bpy becomes "official" */
+	static char warning = 1;
+	if( warning ) {
+		printf("image.makeCurrent() deprecated!\n\t use 'bpy.images.active = image instead'\n");
+		--warning;
+	}
+#endif
 	
 	if (!G.sima)
 		Py_RETURN_FALSE;

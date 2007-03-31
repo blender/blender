@@ -1,4 +1,5 @@
 /* 
+ *
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -696,9 +697,15 @@ static PyObject *M_Scene_GetCurrent( PyObject * self )
 {
 	return Scene_CreatePyObject( ( Scene * ) G.scene );
 }
+
 static PyObject *M_Scene_getCurrent_deprecated( PyObject * self )
 {
-	printf("Blender.Scene.getCurrent() is deprecated,\n\tuse Blender.Scene.GetCurrent() instead.\n");
+	static char warning = 1;
+	if( warning ) {
+		printf("Blender.Scene.getCurrent() is deprecated,\n\tuse Blender.Scene.GetCurrent() instead.\n");
+		--warning;
+	}
+
 	return Scene_CreatePyObject( ( Scene * ) G.scene );
 }
 
@@ -759,10 +766,15 @@ static PyObject *Scene_copy( BPy_Scene * self, PyObject * args )
 static PyObject *Scene_makeCurrent( BPy_Scene * self )
 {
 	Scene *scene = self->scene;
-	
+#if 0	/* add back in when bpy becomes "official" */
+	static char warning = 1;
+	if( warning ) {
+		printf("scene.makeCurrent() deprecated!\n\tuse bpy.scenes.active = scene instead\n");
+		--warning;
+	}
+#endif
+
 	SCENE_DEL_CHECK_PY(self);
-	
-	printf("scene.makeCurrent() deprecated!\n\tuse Blender.Main.scenes.active = scene instead\n");
 	
 	if( scene && scene != G.scene) {
 		set_scene( scene );
@@ -808,10 +820,14 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 	Scene *scene = self->scene;
 	BPy_Object *bpy_obj;
 	Object *object = NULL;
+	static char warning = 1;
+
+	if( warning ) {
+		printf("scene.link(ob) deprecated!\n\tuse scene.objects.link(ob) instead\n");
+		--warning;
+	}
 
 	SCENE_DEL_CHECK_PY(self);
-
-	printf("scene.link(ob) deprecated!\n\tuse scene.objects.link(ob) instead\n");
 	
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &bpy_obj ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -880,10 +896,14 @@ static PyObject *Scene_unlink( BPy_Scene * self, PyObject * args )
 	BPy_Object *bpy_obj = NULL;
 	Scene *scene = self->scene;
 	Base *base;
+	static char warning = 1;
+
+	if( warning ) {
+		printf("scene.unlink(ob) deprecated!\n\tuse scene.objects.unlink(ob) instead\n");
+		--warning;
+	}
 
 	SCENE_DEL_CHECK_PY(self);
-
-	printf("scene.unlink(ob) deprecated!\n\tuse scene.objects.unlink(ob) instead\n");
 	
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &bpy_obj ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -911,10 +931,15 @@ static PyObject *Scene_getChildren( BPy_Scene * self )
 	PyObject *bpy_obj;
 	Object *object;
 	Base *base;
+	static char warning = 1;
+
+	if( warning ) {
+		printf("scene.getChildren() deprecated!\n\tuse scene.objects instead\n");
+		--warning;
+	}
 
 	SCENE_DEL_CHECK_PY(self);
 
-	printf("scene.getChildren() deprecated!\n\tuse scene.objects instead\n");
 
 	base = scene->base.first;
 
@@ -942,10 +967,14 @@ static PyObject *Scene_getActiveObject(BPy_Scene *self)
 	Scene *scene = self->scene;
 	PyObject *pyob;
 	Object *ob;
+	static char warning = 1;
+
+	if( warning ) {
+		printf("scene.getActiveObject() deprecated!\n\tuse scene.objects.active instead\n");
+		--warning;
+	}
 
 	SCENE_DEL_CHECK_PY(self);
-
-	printf("scene.getActiveObject() deprecated!\n\tuse scene.objects.active instead\n");
 	
 	ob = ((scene->basact) ? (scene->basact->object) : 0);
 
@@ -968,10 +997,14 @@ static PyObject *Scene_getCurrentCamera( BPy_Scene * self )
 	Object *cam_obj;
 	PyObject *pyob;
 	Scene *scene = self->scene;
+	static char warning = 1;
 	
+	if( warning ) {
+		printf("scene.getCurrentCamera() deprecated!\n\tuse scene.objects.camera instead\n");
+		--warning;
+	}
+
 	SCENE_DEL_CHECK_PY(self);
-	
-	printf("scene.getCurrentCamera() deprecated!\n\tGet scene.objects.camera instead\n");
 
 	cam_obj = scene->camera;
 
@@ -992,10 +1025,14 @@ static PyObject *Scene_setCurrentCamera( BPy_Scene * self, PyObject * args )
 	Object *object;
 	BPy_Object *cam_obj;
 	Scene *scene = self->scene;
+	static char warning = 1;
+
+	if( warning ) {
+		printf("scene.setCurrentCamera(ob) deprecated!\n\tSet scene.objects.camera = ob instead\n");
+		--warning;
+	}
 
 	SCENE_DEL_CHECK_PY(self);
-
-	printf("scene.setCurrentCamera(ob) deprecated!\n\tSet scene.objects.camera = ob instead\n");
 	
 	if( !PyArg_ParseTuple( args, "O!", &Object_Type, &cam_obj ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,

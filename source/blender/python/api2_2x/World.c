@@ -450,9 +450,14 @@ static PyObject *M_World_Get( PyObject * self, PyObject * args )
 static PyObject *M_World_GetCurrent( PyObject * self )
 {
 	BPy_World *w = NULL;
-	
-	printf("Blender.World.GetCurrent() deprecated!\n\tuse Blender.Main.scenes.world instead\n");
-	
+#if 0	/* add back in when bpy becomes "official" */
+	static char warning = 1;
+	if( warning ) {
+		printf("Blender.World.GetCurrent() deprecated!\n\tuse bpy.scenes.world instead\n");
+		--warning;
+	}
+#endif
+
 	if( !G.scene->world )
 		Py_RETURN_NONE;
 	
@@ -890,8 +895,15 @@ static PyObject *World_getScriptLinks( BPy_World * self, PyObject * args )
 static PyObject *World_setCurrent( BPy_World * self )
 {
 	World *world = self->world;
+#if 0	/* add back in when bpy becomes "official" */
+	static char warning = 1;
+	if( warning ) {
+		printf("world.setCurrent() deprecated!\n\tuse bpy.scenes.world=world instead\n");
+		--warning;
+	}
+#endif
+
 	/* If there is a world then it now has one less user */
-	printf("world.setCurrent() deprecated!\n\tuse Blender.Main.scenes.world=world instead\n");
 	if( G.scene->world )
 		G.scene->world->id.us--;
 	world->id.us++;

@@ -1672,8 +1672,13 @@ PyObject *M_Mathutils_TriangleArea( PyObject * self, PyObject * args )
 PyObject *M_Mathutils_CopyMat(PyObject * self, PyObject * args)
 {
 	PyObject *matrix = NULL;
+	static char warning = 1;
 
-	printf("Mathutils.CopyMat(): Deprecated :use Mathutils.Matrix() to copy matrices\n");
+	if( warning ) {
+		printf("Mathutils.CopyMat(): deprecated :use Mathutils.Matrix() to copy matrices\n");
+		--warning;
+	}
+
 	matrix = M_Mathutils_Matrix(self, args);
 	if(matrix == NULL)
 		return NULL; //error string already set if we get here
@@ -1685,8 +1690,13 @@ PyObject *M_Mathutils_CopyMat(PyObject * self, PyObject * args)
 PyObject *M_Mathutils_CopyVec(PyObject * self, PyObject * args)
 {
 	PyObject *vec = NULL;
+	static char warning = 1;
 
-	printf("Mathutils.CopyVec(): Deprecated: use Mathutils.Vector() to copy vectors\n");
+	if( warning ) {
+		printf("Mathutils.CopyVec(): Deprecated: use Mathutils.Vector() to copy vectors\n");
+		--warning;
+	}
+
 	vec = M_Mathutils_Vector(self, args);
 	if(vec == NULL)
 		return NULL; //error string already set if we get here
@@ -1698,8 +1708,13 @@ PyObject *M_Mathutils_CopyVec(PyObject * self, PyObject * args)
 PyObject *M_Mathutils_CopyQuat(PyObject * self, PyObject * args)
 {
 	PyObject *quat = NULL;
+	static char warning = 1;
 
-	printf("Mathutils.CopyQuat(): Deprecated:use Mathutils.Quaternion() to copy vectors\n");
+	if( warning ) {
+		printf("Mathutils.CopyQuat(): Deprecated: use Mathutils.Quaternion() to copy vectors\n");
+		--warning;
+	}
+
 	quat = M_Mathutils_Quaternion(self, args);
 	if(quat == NULL)
 		return NULL; //error string already set if we get here
@@ -1711,8 +1726,13 @@ PyObject *M_Mathutils_CopyQuat(PyObject * self, PyObject * args)
 PyObject *M_Mathutils_CopyEuler(PyObject * self, PyObject * args)
 {
 	PyObject *eul = NULL;
+	static char warning = 1;
 
-	printf("Mathutils.CopyEuler(): Deprecated:use Mathutils.Euler() to copy vectors\n");
+	if( warning ) {
+		printf("Mathutils.CopyEuler(): deprecated:use Mathutils.Euler() to copy vectors\n");
+		--warning;
+	}
+
 	eul = M_Mathutils_Euler(self, args);
 	if(eul == NULL)
 		return NULL; //error string already set if we get here
@@ -1727,12 +1747,17 @@ PyObject *M_Mathutils_RotateEuler(PyObject * self, PyObject * args)
 	EulerObject *Eul = NULL;
 	float angle;
 	char *axis;
+	static char warning = 1;
+
+	if( warning ) {
+		printf("Mathutils.RotateEuler(): Deprecated:use Euler.rotate() to rotate a euler\n");
+		--warning;
+	}
 
 	if(!PyArg_ParseTuple(args, "O!fs", &euler_Type, &Eul, &angle, &axis))
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
 			   "Mathutils.RotateEuler(): expected euler type & float & string");
 
-	printf("Mathutils.RotateEuler(): Deprecated:use Euler.rotate() to rotate a euler\n");
 	Euler_Rotate(Eul, Py_BuildValue("fs", angle, axis));
 	return EXPP_incr_ret(Py_None);
 }
@@ -1742,13 +1767,18 @@ PyObject *M_Mathutils_MatMultVec(PyObject * self, PyObject * args)
 {
 	MatrixObject *mat = NULL;
 	VectorObject *vec = NULL;
+	static char warning = 1;
+
+	if( warning ) {
+		printf("Mathutils.MatMultVec(): Deprecated: use matrix * vec to perform column vector multiplication\n");
+		--warning;
+	}
 
 	//get pyObjects
 	if(!PyArg_ParseTuple(args, "O!O!", &matrix_Type, &mat, &vector_Type, &vec))
 		return EXPP_ReturnPyObjError(PyExc_TypeError, 
 			"Mathutils.MatMultVec(): MatMultVec() expects a matrix and a vector object - in that order\n");
 
-	printf("Mathutils.MatMultVec(): Deprecated: use matrix * vec to perform column vector multiplication\n");
 	return column_vector_multiplication(mat, vec);
 }
 //----------------------------------Mathutils.VecMultMat() ---------------
@@ -1757,13 +1787,18 @@ PyObject *M_Mathutils_VecMultMat(PyObject * self, PyObject * args)
 {
 	MatrixObject *mat = NULL;
 	VectorObject *vec = NULL;
+	static char warning = 1;
+
+	if( warning ) {
+		printf("Mathutils.VecMultMat(): Deprecated: use vec * matrix to perform row vector multiplication\n");
+		--warning;
+	}
 
 	//get pyObjects
 	if(!PyArg_ParseTuple(args, "O!O!", &vector_Type, &vec, &matrix_Type, &mat))
 		return EXPP_ReturnPyObjError(PyExc_TypeError, 
 			"Mathutils.VecMultMat(): VecMultMat() expects a vector and matrix object - in that order\n");
 
-	printf("Mathutils.VecMultMat(): Deprecated: use vec * matrix to perform row vector multiplication\n");
 	return row_vector_multiplication(vec, mat);
 }
 //#######################################################################
