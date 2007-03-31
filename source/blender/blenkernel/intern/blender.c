@@ -71,6 +71,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_sound.h"
@@ -175,6 +176,7 @@ void free_blender(void)
 
 	IMB_freeImBufdata();		/* imbuf lib */
 	
+	free_nodesystem();	
 }
 
 void duplicatelist(ListBase *list1, ListBase *list2)  /* copy from 2 to 1 */

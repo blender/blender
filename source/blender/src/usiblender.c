@@ -969,8 +969,6 @@ void exit_usiblender(void)
 	BLI_freelistN(&U.themes);
 	BIF_preview_free_dbase();
 	
-	free_nodesystem();
-	
 	if(totblock!=0) {
 		printf("Error Totblock: %d\n",totblock);
 		MEM_printmemlist();
