@@ -1133,8 +1133,12 @@ void image_preview_event(int event)
 		exec= 1;
 	}
 	else {
-		G.scene->r.scemode |= R_COMP_CROP;
-		exec= 1;
+		if(image_preview_active(curarea, NULL, NULL)) {
+			G.scene->r.scemode |= R_COMP_CROP;
+			exec= 1;
+		}
+		else
+			G.scene->r.scemode &= ~R_COMP_CROP;
 	}
 	
 	if(exec && G.scene->nodetree) {
