@@ -1015,7 +1015,7 @@ void multires_add_level(void *ob, void *me_v)
 
 void multires_set_level_cb(void *ob, void *me)
 {
-	multires_set_level(ob, me, 1);
+	multires_set_level(ob, me, 0);
 }
 
 void multires_set_level(struct Object *ob, struct Mesh *me, const int render)
