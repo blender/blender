@@ -7289,7 +7289,7 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 
 /* common routine to append/link something from a library */
 
-static void library_append( Scene *scene, SpaceFile *sfile, char *dir, int idcode,
+static Library* library_append( Scene *scene, SpaceFile *sfile, char *dir, int idcode,
 		int totsel, FileData *fd)
 {
 	Main *mainl;
@@ -7352,7 +7352,9 @@ static void library_append( Scene *scene, SpaceFile *sfile, char *dir, int idcod
 	if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 		blo_freefiledata( fd );
 		sfile->libfiledata= 0;
-	}	
+	}
+
+	return curlib;
 }
 
 /* this is a version of BLO_library_append needed by the BPython API, so
@@ -7415,7 +7417,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	
 	if(sfile->flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
 
-	library_append( G.scene, sfile, dir, idcode, totsel, fd );
+	curlib = library_append( G.scene, sfile, dir, idcode, totsel, fd );
 
 	/* when not linking (appending)... */
 	if((sfile->flag & FILE_LINK)==0) {
