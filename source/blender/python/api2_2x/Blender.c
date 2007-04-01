@@ -71,6 +71,7 @@ struct ID; /*keep me up here */
 #include "Effect.h"
 #include "Ipo.h"
 #include "Ipocurve.h"
+#include "IDProp.h"
 #include "Key.h"
 #include "Lamp.h"
 #include "Lattice.h"
@@ -893,9 +894,6 @@ static PyObject *Blender_UnpackModesDict( void )
 /*****************************************************************************/
 /* Function:		initBlender		 */
 /*****************************************************************************/
-extern PyTypeObject IDArray_Type;
-extern PyTypeObject IDGroup_Type;
-extern PyTypeObject IDGroup_Iter_Type;
 
 void M_Blender_Init(void)
 {
