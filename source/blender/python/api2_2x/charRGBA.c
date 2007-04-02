@@ -77,6 +77,11 @@ static PySequenceMethods charRGBAAsSequence = {
 	( intintobjargproc ) charRGBAAssSlice,	/* sq_ass_slice       */
 };
 
+static void charRGBA_dealloc( BPy_charRGBA * self )
+{
+	PyObject_DEL( self );
+}
+
 /*****************************************************************************/
 /* Python charRGBA_Type structure definition:				*/
 /*****************************************************************************/
@@ -87,7 +92,7 @@ PyTypeObject charRGBA_Type = {
 	sizeof( BPy_charRGBA ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	NULL,		/* tp_dealloc */
+	( destructor ) charRGBA_dealloc,		/* tp_dealloc */
 	0,			/* tp_print */
 	( getattrfunc ) charRGBA_getAttr,	/* tp_getattr */
 	( setattrfunc ) charRGBA_setAttr,	/* tp_setattr */

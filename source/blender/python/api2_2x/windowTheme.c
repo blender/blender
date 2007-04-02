@@ -94,6 +94,7 @@ struct PyMethodDef M_Theme_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+static void ThemeSpace_dealloc( BPy_ThemeSpace * self );
 static int ThemeSpace_compare( BPy_ThemeSpace * a, BPy_ThemeSpace * b );
 static PyObject *ThemeSpace_repr( BPy_ThemeSpace * self );
 static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name );
@@ -110,7 +111,7 @@ PyTypeObject ThemeSpace_Type = {
 	sizeof( BPy_ThemeSpace ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	0,			/* tp_dealloc */
+	( destructor ) ThemeSpace_dealloc,	/* tp_dealloc */
 	0,			/* tp_print */
 	( getattrfunc ) ThemeSpace_getAttr,	/* tp_getattr */
 	( setattrfunc ) ThemeSpace_setAttr,	/* tp_setattr */
@@ -127,6 +128,11 @@ PyTypeObject ThemeSpace_Type = {
 	0,			/* tp_members */
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
+
+static void ThemeSpace_dealloc( BPy_ThemeSpace * self )
+{
+	PyObject_DEL( self );
+}
 
 #define ELSEIF_TSP_RGBA(attr)\
 	else if (!strcmp(name, #attr))\
@@ -330,6 +336,7 @@ static PyObject *ThemeSpace_repr( BPy_ThemeSpace * self )
 				    self->theme->name );
 }
 
+static void ThemeUI_dealloc( BPy_ThemeUI * self );
 static int ThemeUI_compare( BPy_ThemeUI * a, BPy_ThemeUI * b );
 static PyObject *ThemeUI_repr( BPy_ThemeUI * self );
 static PyObject *ThemeUI_getAttr( BPy_ThemeUI * self, char *name );
@@ -345,7 +352,7 @@ PyTypeObject ThemeUI_Type = {
 	sizeof( BPy_ThemeUI ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	0,			/* tp_dealloc */
+	( destructor ) ThemeUI_dealloc,	/* tp_dealloc */
 	0,			/* tp_print */
 	( getattrfunc ) ThemeUI_getAttr,	/* tp_getattr */
 	( setattrfunc ) ThemeUI_setAttr,	/* tp_setattr */
@@ -362,6 +369,11 @@ PyTypeObject ThemeUI_Type = {
 	0,			/* tp_members */
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
+
+static void ThemeUI_dealloc( BPy_ThemeUI * self )
+{
+	PyObject_DEL( self );
+}
 
 #define ELSEIF_TUI_RGBA(attr)\
 	else if (!strcmp(name, #attr))\
@@ -500,6 +512,7 @@ static PyObject *ThemeUI_repr( BPy_ThemeUI * self )
 				    self->theme->name );
 }
 
+static void Theme_dealloc( BPy_Theme * self );
 static int Theme_compare( BPy_Theme * a, BPy_Theme * b );
 static PyObject *Theme_getAttr( BPy_Theme * self, char *name );
 static PyObject *Theme_repr( BPy_Theme * self );
@@ -529,7 +542,7 @@ PyTypeObject Theme_Type = {
 	sizeof( BPy_Theme ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	0,			/* tp_dealloc */
+	( destructor ) Theme_dealloc,	/* tp_dealloc */
 	0,			/* tp_print */
 	( getattrfunc ) Theme_getAttr,	/* tp_getattr */
 	0,			//(setattrfunc) Theme_setAttr,        /* tp_setattr */
@@ -785,6 +798,11 @@ PyObject *Theme_Init( void )
 				    M_Theme_methods, M_Theme_doc );
 
 	return submodule;
+}
+
+static void Theme_dealloc( BPy_Theme * self )
+{
+	PyObject_DEL( self );
 }
 
 static PyObject *Theme_getAttr( BPy_Theme * self, char *name )
