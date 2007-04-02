@@ -111,6 +111,8 @@ static int bpymenu_group_atoi( char *str )
 		return PYMENU_SCRIPTTEMPLATE;
 	else if( !strcmp( str, "MeshFaceKey" ) )
 		return PYMENU_MESHFACEKEY;
+	else if( !strcmp( str, "AddMesh" ) )
+		return PYMENU_ADDMESH;
 	/* "Misc" or an inexistent group name: use misc */
 	else
 		return PYMENU_MISC;
@@ -187,6 +189,9 @@ char *BPyMenu_group_itoa( short menugroup )
 		break;
 	case PYMENU_MESHFACEKEY:
 		return "MeshFaceKey";
+		break;
+	case PYMENU_ADDMESH:
+		return "AddMesh";
 		break;
 	case PYMENU_MISC:
 		return "Misc";

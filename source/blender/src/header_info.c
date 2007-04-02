@@ -1007,46 +1007,49 @@ static uiBlock *info_filemenu(void *arg_unused)
 
 void do_info_add_meshmenu(void *arg, int event)
 {
-
-	switch(event) {		
-		case 0:
-			/* Plane */
-			add_primitiveMesh(0);
-			break;
-		case 1:
-			/* Cube */
-			add_primitiveMesh(1);
-			break;
-		case 2:
-			/* Circle */
-			add_primitiveMesh(4);
-			break;
-		case 3:
-			/* UVsphere */
-			add_primitiveMesh(11);
-			break;
-		case 4:
-			/* IcoSphere */
-			add_primitiveMesh(12);
-			break;
-		case 5:
-			/* Cylinder */
-			add_primitiveMesh(5);
-			break;
-		case 7:
-			/* Cone */
-			add_primitiveMesh(7);
-			break;
-		case 8:
-			/* Grid */
-			add_primitiveMesh(10);
-			break;
-		case 9:
-			/* Monkey */
-			add_primitiveMesh(13);
-			break;
-		default:
-			break;
+	if (event>=20) {
+		BPY_menu_do_python(PYMENU_ADDMESH, event - 20);
+	} else {
+		switch(event) {		
+			case 0:
+				/* Plane */
+				add_primitiveMesh(0);
+				break;
+			case 1:
+				/* Cube */
+				add_primitiveMesh(1);
+				break;
+			case 2:
+				/* Circle */
+				add_primitiveMesh(4);
+				break;
+			case 3:
+				/* UVsphere */
+				add_primitiveMesh(11);
+				break;
+			case 4:
+				/* IcoSphere */
+				add_primitiveMesh(12);
+				break;
+			case 5:
+				/* Cylinder */
+				add_primitiveMesh(5);
+				break;
+			case 7:
+				/* Cone */
+				add_primitiveMesh(7);
+				break;
+			case 8:
+				/* Grid */
+				add_primitiveMesh(10);
+				break;
+			case 9:
+				/* Monkey */
+				add_primitiveMesh(13);
+				break;
+			default:
+				break;
+		}
 	}
 	allqueue(REDRAWINFO, 0);
 }
@@ -1056,6 +1059,10 @@ static uiBlock *info_add_meshmenu(void *arg_unused)
 /*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0;
+	
+	/* Python Menu */
+	BPyMenu *pym;
+	int i=0;
 	
 	block= uiNewBlock(&curarea->uiblocks, "add_meshmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_add_meshmenu, NULL);
@@ -1071,6 +1078,16 @@ static uiBlock *info_add_meshmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grid|",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Monkey|",			0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 9, "");
 
+
+	pym = BPyMenuTable[PYMENU_ADDMESH];
+	if (pym) {
+		uiDefIconTextBut(block, SEPR, 0, ICON_BLANK1, "",					0, yco-=6,	160, 6,  NULL, 0.0, 0.0, 0, 0, "");
+		
+		for (; pym; pym = pym->next, i++) {
+			uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, i+20, pym->tooltip?pym->tooltip:pym->filename);
+		}
+	}
+		
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
 		

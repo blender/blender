@@ -122,6 +122,10 @@
 #include "butspace.h"
 #include "mydevice.h"
 
+/* bpymenu */
+#include "BPY_extern.h"
+#include "BPY_menus.h"
+
 void asciitoraw(int ch, unsigned short *event, unsigned short *qual)
 {
 	if( isalpha(ch)==0 ) return;
@@ -1410,19 +1414,6 @@ static TBitem tb_transform_editmode2[]= {
 
 /* *************ADD ********** */
 
-static TBitem addmenu_mesh[]= {
-{	0, "Plane", 	0, NULL},
-{	0, "Cube", 		1, NULL},
-{	0, "Circle", 	2, NULL},
-{	0, "UVsphere", 	3, NULL},
-{	0, "Icosphere", 4, NULL},
-{	0, "Cylinder", 	5, NULL},
-{	0, "Cone", 		7, NULL},
-{	0, "SEPR",		0, NULL},
-{	0, "Grid", 		8, NULL},
-{	0, "Monkey", 	9, NULL},
-{  -1, "", 			0, do_info_add_meshmenu}};
-
 static TBitem addmenu_curve[]= {
 {	0, "Bezier Curve", 	0, NULL},
 {	0, "Bezier Circle", 1, NULL},
@@ -1471,11 +1462,12 @@ static TBitem addmenu_armature[]= {
 {  -1, "", 			0, do_info_addmenu}};
 
 /* dynamic items */
+#define TB_ADD_MESH		0
 #define TB_ADD_GROUP	7
 #define TB_ADD_LAMP		10
 
 static TBitem tb_add[]= {
-{	0, "Mesh", 		0, addmenu_mesh},
+{	0, "Mesh", 		0, NULL},
 {	0, "Curve", 	1, addmenu_curve},
 {	0, "Surface", 	2, addmenu_surf},
 {	0, "Meta", 	3, addmenu_meta},
@@ -1878,6 +1870,55 @@ static TBitem *create_group_all_sublevels(ListBase *storage)
 	return groupmenu;
 }
 
+static TBitem *create_mesh_sublevel(ListBase *storage)
+{
+	Link *link;
+	TBitem *meshmenu, *mm;
+	int totmenu= 10, totpymenu=0, a=0;
+	
+	/* Python Menu */
+	BPyMenu *pym;
+	
+	/* count the python menu items*/
+	for (pym = BPyMenuTable[PYMENU_ADDMESH]; pym; pym = pym->next, totpymenu++) {}
+	if (totpymenu) totmenu += totpymenu+1; /* add 1 for the seperator */
+	
+	link= MEM_callocN(sizeof(Link) + sizeof(TBitem)*(totmenu+1), "mesh menu");
+	BLI_addtail(storage, link);
+	mm= meshmenu= (TBitem *)(link+1);
+	
+	mm->icon = 0; mm->retval= a; mm->name = "Plane"; 		mm++; a++;
+	mm->icon = 0; mm->retval= a; mm->name = "Cube"; 		mm++; a++;
+	mm->icon = 0; mm->retval= a; mm->name = "Circle"; 		mm++; a++;
+	mm->icon = 0; mm->retval= a; mm->name = "UVsphere"; 	mm++; a++;
+	mm->icon = 0; mm->retval= a; mm->name = "Icosphere"; 	mm++; a++;
+	mm->icon = 0; mm->retval= a; mm->name = "Cylinder"; 	mm++; a++; a++;
+	mm->icon = 0; mm->retval= a; mm->name = "Cone"; 		mm++; a++; 
+	mm->icon = 0; mm->retval= 0; mm->name = "SEPR"; 		mm++;
+	mm->icon = 0; mm->retval= a; mm->name = "Grid"; 		mm++; a++;
+	mm->icon = 0; mm->retval= a; mm->name = "Monkey"; 		mm++; a++;
+	/* a == 10 */
+	
+	if (totpymenu) {
+		int i=0;
+		mm->icon = 0; mm->retval= 0; mm->name = "SEPR"; 	mm++;
+		
+		/* note that we account for the 10 previous entries with i+4: */
+		for (pym = BPyMenuTable[PYMENU_ADDMESH]; pym; pym = pym->next, i++) {
+			mm->icon = 0;
+			mm->retval= i+20;
+			mm->name = pym->name;	
+			mm++; a++;
+		}
+	}
+	
+	/* terminate the menu */
+	mm->icon= -1; mm->retval= a; mm->name= ""; mm->poin= do_info_add_meshmenu;
+	
+	return meshmenu;
+}
+
+
 
 void toolbox_n(void)
 {
@@ -1913,6 +1954,7 @@ void toolbox_n(void)
 
 		/* dynamic menu entries */
 		tb_add[TB_ADD_GROUP].poin= create_group_all_sublevels(&storage);
+		tb_add[TB_ADD_MESH].poin= create_mesh_sublevel(&storage);
 		
 		/* static */
 		if (G.scene->r.renderer==R_YAFRAY)
@@ -1948,7 +1990,7 @@ void toolbox_n(void)
 			if(U.uiflag & USER_PLAINMENUS) {
 				switch(G.obedit->type){
 				case OB_MESH:
-					menu1= addmenu_mesh;
+					menu1= create_mesh_sublevel(&storage);
 					menu2= tb_mesh_edit;
 					menu3= tb_mesh_select;
 					menu4= tb_transform_editmode1;
@@ -1993,7 +2035,7 @@ void toolbox_n(void)
 			} else {
 				if(G.obedit->type==OB_MESH) {
 					menu1= tb_mesh; str1= "Mesh";
-					menu2= addmenu_mesh; 
+					menu2= create_mesh_sublevel(&storage); 
 					menu3= tb_mesh_select;
 					menu4= tb_mesh_edit; 
 					menu5= tb_transform_editmode1;
