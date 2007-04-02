@@ -2427,6 +2427,18 @@ static void lib_link_mtface(FileData *fd, Mesh *me, MTFace *mtface, int totface)
 	}
 }
 
+static void lib_link_customdata_mtface(FileData *fd, Mesh *me, CustomData *fdata, int totface)
+{
+	int i;	
+	for(i=0; i<fdata->totlayer; i++) {
+		CustomDataLayer *layer = &fdata->layers[i];
+		
+		if(layer->type == CD_MTFACE)
+			lib_link_mtface(fd, me, layer->data, totface);
+	}
+
+}
+
 static void lib_link_mesh(FileData *fd, Main *main)
 {
 	Mesh *me;
@@ -2452,12 +2464,11 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			me->key= newlibadr_us(fd, me->id.lib, me->key);
 			me->texcomesh= newlibadr_us(fd, me->id.lib, me->texcomesh);
 
-			for(i=0; i<me->fdata.totlayer; i++) {
-				CustomDataLayer *layer = &me->fdata.layers[i];
+			lib_link_customdata_mtface(fd, me, &me->fdata, me->totface);
+			if(me->mr && me->mr->levels.first)
+				lib_link_customdata_mtface(fd, me, &me->mr->fdata,
+							   ((MultiresLevel*)me->mr->levels.first)->totface);
 
-				if(layer->type == CD_MTFACE)
-					lib_link_mtface(fd, me, layer->data, me->totface);
-			}
 			me->id.flag -= LIB_NEEDLINK;
 		}
 		me= me->id.next;
