@@ -1169,7 +1169,10 @@ void add_primitiveMesh(int type)
 	Mesh *me;
 	float *curs, d, dia, phi, phid, cent[3], imat[3][3], mat[3][3];
 	float cmat[3][3];
-	static int tot=32, seg=32, subdiv=2;
+	static int tot=32, seg=32, subdiv=2,
+		/* so each type remembers its fill setting */
+		fill_circle=0, fill_cone=1, fill_cylinder=1;
+	
 	int ext=0, fill=0, totoud, newob=0;
 	char *undostr="Add Primitive";
 	char *name=NULL;
@@ -1212,41 +1215,43 @@ void add_primitiveMesh(int type)
 		undostr="Add Cube";
 		break;
 	case 4:		/* circle  */
-		fill= 0;
 		add_numbut(0, NUM|INT, "Vertices:", 3, 500, &tot, NULL);
 		add_numbut(1, NUM|FLO, "Radius:", 0.001*G.vd->grid, 100*G.vd->grid, &dia, NULL);
-		add_numbut(2, TOG|INT, "Fill", 0, 0, &(fill), NULL);
+		add_numbut(2, TOG|INT, "Fill", 0, 0, &(fill_circle), NULL);
 		if (!(do_clever_numbuts("Add Circle", 3, REDRAW))) return;
 		ext= 0;
-		
+		fill = fill_circle;
 		newob = confirm_objectExists( &me, mat );
 		if(newob) name = "Circle";
 		undostr="Add Circle";
 		break;
 	case 5:		/* cylinder  */
-		fill= 1;
 		d*=2;
 		add_numbut(0, NUM|INT, "Vertices:", 2, 500, &tot, NULL);
 		add_numbut(1, NUM|FLO, "Radius:", 0.001*G.vd->grid, 100*G.vd->grid, &dia, NULL);
 		add_numbut(2, NUM|FLO, "Depth:", 0.001*G.vd->grid, 100*G.vd->grid, &d, NULL);
-		add_numbut(3, TOG|INT, "Cap Ends", 0, 0, &(fill), NULL);
+		add_numbut(3, TOG|INT, "Cap Ends", 0, 0, &(fill_cylinder), NULL);
 		if (!(do_clever_numbuts("Add Cylinder", 4, REDRAW))) return;
 		ext= 1;
+		fill = fill_cylinder;
 		d/=2;
 		newob = confirm_objectExists( &me, mat );
-		if(newob) name = "Cylinder";
+		if(newob) {
+			if (fill)	name = "Cylinder";
+			else		name = "Tube";
+		}
 		undostr="Add Cylinder";
 		break;
 	case 7:		/* cone  */
-		fill= 1;
 		d*=2;
 		add_numbut(0, NUM|INT, "Vertices:", 2, 500, &tot, NULL);
 		add_numbut(1, NUM|FLO, "Radius:", 0.001*G.vd->grid, 100*G.vd->grid, &dia, NULL);
 		add_numbut(2, NUM|FLO, "Depth:", 0.001*G.vd->grid, 100*G.vd->grid, &d, NULL);
-		add_numbut(3, TOG|INT, "Cap End", 0, 0, &(fill), NULL);
+		add_numbut(3, TOG|INT, "Cap End", 0, 0, &(fill_cone), NULL);
 		if (!(do_clever_numbuts("Add Cone", 4, REDRAW))) return;
 		d/=2;
 		ext= 0;
+		fill = fill_cone;
 		newob = confirm_objectExists( &me, mat );
 		if(newob) name = "Cone";
 		undostr="Add Cone";
@@ -1271,7 +1276,7 @@ void add_primitiveMesh(int type)
 		undostr="Add UV Sphere";
 		break;
 	case 12:	/* Icosphere */
-		add_numbut(0, NUM|INT, "Subdivision:", 3, 500, &subdiv, NULL);
+		add_numbut(0, NUM|INT, "Subdivision:", 1, 500, &subdiv, NULL);
 		add_numbut(1, NUM|FLO, "Radius:", 0.001*G.vd->grid, 100*G.vd->grid, &dia, NULL);
 		if (!(do_clever_numbuts("Add Ico Sphere", 2, REDRAW))) return;
 		
@@ -1318,10 +1323,10 @@ void add_primitiveMesh(int type)
 
 	if(type<2) tot = totoud;
 
-	// simple selection flush OK, based on fact it's a single model
+	/* simple selection flush OK, based on fact it's a single model */
 	EM_select_flush(); // flushes vertex -> edge -> face selection
 	
-	if(type!=0 && type!=13) righthandfaces(1);	// otherwise monkey has eyes in wrong direction...
+	if(type!=0 && type!=13) righthandfaces(1);	/* otherwise monkey has eyes in wrong direction... */
 	countall();
 
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */	

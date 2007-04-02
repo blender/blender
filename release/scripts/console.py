@@ -23,8 +23,8 @@ Usage:<br>
   - Shift + Backspace: Backspace whole word;<br>
   - Shift + Arrow keys: jump words;<br>
   - Ctrl + (+/- or mousewheel): Zoom text size;<br>
-  - Ctrl + Tab: auto compleate based on variable names and modules loaded -- multiple choices popup a menu;<br>
-  - Ctrl + Enter: multiline functions -- delays executing code until only Enter is pressed.
+  - Ctrl + Enter: auto compleate based on variable names and modules loaded -- multiple choices popup a menu;<br>
+  - Shift + Enter: multiline functions -- delays executing code until only Enter is pressed.
 """
 __author__ = "Campbell Barton AKA Ideasman"
 __url__ = ["http://members.iinet.net.au/~cpbarton/ideasman/", "blender", "elysiun"]
@@ -50,6 +50,7 @@ __url__ = ["http://members.iinet.net.au/~cpbarton/ideasman/", "blender", "elysiu
 # -------------------------------------------------------------------------- 
 
 import Blender
+import bpy
 from Blender import *
 import sys as python_sys
 import StringIO
@@ -173,11 +174,12 @@ def writeCmdData(cmdLineList, type):
 	Draw.PupMenu('%s written' % newText.name)
 
 def insertCmdData(cmdBuffer):
-	textNames = [tex.name for tex in Text.Get()]
+	texts = list(bpy.texts)
+	textNames = [tex.name for tex in texts]
 	if textNames:
 		choice = Draw.PupMenu('|'.join(textNames))
 		if choice != -1:
-			text = Text.Get()[choice-1]
+			text = texts[choice-1]
 			
 			# Add the text!
 			for l in text.asLines():
@@ -357,6 +359,11 @@ def handle_event(evt, val):
 					break
 			return whiteSpace
 		
+		# Autocomplete
+		if Window.GetKeyQualifiers() & Window.Qual.CTRL:
+			actionAutoCompleate()
+			return
+		
 		# Are we in the middle of a multiline part or not?
 		# try be smart about it
 		if cmdBuffer[-1].cmd.split('#')[0].rstrip().endswith(':'):
@@ -369,7 +376,7 @@ def handle_event(evt, val):
 			cmdBuffer.append(cmdLine('%s ' % getIndent(cmdBuffer[-1].cmd), 0, 0))
 			print 'white space at the start means he havnt finished the multiline.'
 		
-		elif Window.GetKeyQualifiers() & Window.Qual.CTRL:
+		elif Window.GetKeyQualifiers() & Window.Qual.SHIFT:
 			# Crtl forces multiline
 			cmdBuffer.append(cmdLine('%s ' % getIndent(cmdBuffer[-1].cmd), 0, 0))
 			print 'Crtl forces multiline'			
@@ -615,10 +622,7 @@ def handle_event(evt, val):
 		cursor = -1
 	
 	elif (evt == Draw.TABKEY and val):
-		if Window.GetKeyQualifiers() & Window.Qual.CTRL:
-			actionAutoCompleate()
-		else:
-			insCh('\t')	
+		insCh('\t')	
 	
 	elif (evt == Draw.BACKSPACEKEY and val):
 		if Window.GetKeyQualifiers() & Window.Qual.SHIFT:
@@ -636,8 +640,10 @@ def handle_event(evt, val):
 	elif (evt == Draw.DELKEY and val) and cursor < -1:
 		cmdBuffer[-1].cmd = cmdBuffer[-1].cmd[:cursor] + cmdBuffer[-1].cmd[cursor+1:]
 		cursor +=1
-		
-	elif ((evt == Draw.RETKEY or evt == Draw.PADENTER) and val): actionEnterKey()
+	
+	elif ((evt == Draw.RETKEY or evt == Draw.PADENTER) and val):
+		actionEnterKey()
+			
 	elif (evt == Draw.RIGHTMOUSE and not val): actionRightMouse(); return
 	
 	elif (evt == Draw.PADPLUSKEY or evt == Draw.EQUALKEY or evt == Draw.WHEELUPMOUSE) and val and Window.GetKeyQualifiers() & Window.Qual.CTRL:
@@ -793,10 +799,13 @@ def include_console(includeFile):
 	exec(include(includeFile))
 	
 	# Write local to global __CONSOLE_VAR_DICT__ for reuse,
-	for __TMP_VAR_NAME__ in dir() + dir(Blender):
-		# Execute the local > global coversion.
-		exec('%s%s' % ('__CONSOLE_VAR_DICT__[__TMP_VAR_NAME__]=', __TMP_VAR_NAME__))
-		
+	for ls in (dir(), dir(Blender)):
+		for __TMP_VAR_NAME__ in ls:
+			# Execute the local > global coversion.
+			exec('%s%s' % ('__CONSOLE_VAR_DICT__[__TMP_VAR_NAME__]=', __TMP_VAR_NAME__))
+	
+	exec('%s%s' % ('__CONSOLE_VAR_DICT__["bpy"]=', 'bpy'))
+	
 if scriptDir:
 	include_console(console_autoexec) # pass the blender module
 
