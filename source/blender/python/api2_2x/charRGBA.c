@@ -39,8 +39,6 @@
 /*****************************************************************************/
 /* Python charRGBA_Type callback function prototypes:			  */
 /*****************************************************************************/
-static PyObject *charRGBA_getAttr( BPy_charRGBA * self, char *name );
-static int charRGBA_setAttr( BPy_charRGBA * self, char *name, PyObject * v );
 static PyObject *charRGBA_repr( BPy_charRGBA * self );
 
 static int charRGBALength( BPy_charRGBA * self );
@@ -54,6 +52,8 @@ static int charRGBAAssItem( BPy_charRGBA * self, int i, PyObject * ob );
 static PyObject *charRGBASlice( BPy_charRGBA * self, int begin, int end );
 static int charRGBAAssSlice( BPy_charRGBA * self, int begin, int end,
 			     PyObject * seq );
+static PyObject *charRGBA_getColor( BPy_charRGBA * self, void * type);
+static int charRGBA_setColor( BPy_charRGBA * self, PyObject * value, void * type);
 
 /*****************************************************************************/
 /* Python charRGBA_Type Mapping Methods table:			*/
@@ -77,36 +77,125 @@ static PySequenceMethods charRGBAAsSequence = {
 	( intintobjargproc ) charRGBAAssSlice,	/* sq_ass_slice       */
 };
 
-static void charRGBA_dealloc( BPy_charRGBA * self )
-{
-	PyObject_DEL( self );
-}
+static PyGetSetDef charRGBA_getseters[] = {
+	{"R",
+	 (getter)charRGBA_getColor, (setter)charRGBA_setColor,
+	 "the red component",
+	 (void *) 0},
+	{"r",
+	 (getter)charRGBA_getColor, (setter)charRGBA_setColor,
+	 "the red component",
+	 (void *) 0},
+	{"G",
+	 (getter)charRGBA_getColor, (setter)charRGBA_setColor,
+	 "the green component",
+	 (void *) 1},
+	{"g",
+	 (getter)charRGBA_getColor, (setter)charRGBA_setColor,
+	 "the green component",
+	 (void *) 1},
+	{"B",
+	 (getter)charRGBA_getColor, (setter)charRGBA_setColor,
+	 "the blue component",
+	 (void *) 2},
+	{"b",
+	 (getter)charRGBA_getColor, (setter)charRGBA_setColor,
+	 "the blue component",
+	 (void *) 2},
+	{"A",
+	 (getter)charRGBA_getColor, (setter)charRGBA_setColor,
+	 "the alpha component",
+	 (void *) 3},
+	{"a",
+	 (getter)charRGBA_getColor, (setter)charRGBA_setColor,
+	 "the alpha component",
+	 (void *) 3},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
 
 /*****************************************************************************/
 /* Python charRGBA_Type structure definition:				*/
 /*****************************************************************************/
 PyTypeObject charRGBA_Type = {
-	PyObject_HEAD_INIT( NULL ) 
-	0,	/* ob_size */
-	"charRGBA",		/* tp_name */
-	sizeof( BPy_charRGBA ),	/* tp_basicsize */
-	0,			/* tp_itemsize */
-	/* methods */
-	( destructor ) charRGBA_dealloc,		/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) charRGBA_getAttr,	/* tp_getattr */
-	( setattrfunc ) charRGBA_setAttr,	/* tp_setattr */
-	0,			/* tp_compare */
-	( reprfunc ) charRGBA_repr,	/* tp_repr */
-	0,			/* tp_as_number */
-	&charRGBAAsSequence,	/* tp_as_sequence */
-	&charRGBAAsMapping,	/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_doc */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_methods */
-	0,			/* tp_members */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+	/*  For printing, in format "<module>.<name>" */
+	"charRGBA",                 /* tp_name */
+	sizeof( BPy_charRGBA ),     /* tp_basicsize */
+	0,                          /* tp_itemsize;  For allocation */
+
+	/* Methods to implement standard operations */
+
+	NULL,			            /* destructor tp_dealloc; */
+	NULL,                       /* printfunc tp_print; */
+	NULL,                       /* getattrfunc tp_getattr; */
+	NULL,                       /* setattrfunc tp_setattr; */
+	NULL,                       /* cmpfunc tp_compare; */
+	( reprfunc ) charRGBA_repr,	/* reprfunc tp_repr; */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	&charRGBAAsSequence,	    /* PySequenceMethods *tp_as_sequence; */
+	&charRGBAAsMapping,	        /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	NULL,                       /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	charRGBA_getseters,         /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
 };
 
 /*****************************************************************************/
@@ -114,13 +203,18 @@ PyTypeObject charRGBA_Type = {
 /*****************************************************************************/
 PyObject *charRGBA_New( char *rgba )
 {
-	BPy_charRGBA *charRGBA;
+	BPy_charRGBA *charRGBA = NULL;
 
-	charRGBA_Type.ob_type = &PyType_Type;
+	/*
+	 * When called the first time, charRGBA_Type.tp_dealloc will be NULL.
+	 * If that's the case, initialize the PyTypeObject.  If the
+	 * initialization succeeds, then create a new object.
+	 */
 
-	charRGBA =
-		( BPy_charRGBA * ) PyObject_NEW( BPy_charRGBA,
-						 &charRGBA_Type );
+	if( charRGBA_Type.tp_dealloc || PyType_Ready( &charRGBA_Type ) >= 0 ) {
+		charRGBA = ( BPy_charRGBA * ) PyObject_NEW( BPy_charRGBA,
+				&charRGBA_Type );
+	}
 
 	if( charRGBA == NULL )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
@@ -180,65 +274,31 @@ PyObject *charRGBA_setCol( BPy_charRGBA * self, PyObject * args )
 	return EXPP_incr_ret( Py_None );
 }
 
-/*****************************************************************************/
-/* Function:	charRGBA_getAttr					 */
-/* Description: This is a callback function for the BPy_charRGBA type. It is */
-/*		the function that accesses BPy_charRGBA member variables and */
-/*		methods.						 */
-/*****************************************************************************/
-static PyObject *charRGBA_getAttr( BPy_charRGBA * self, char *name )
+/* return color value for one of the components */
+
+static PyObject *charRGBA_getColor( BPy_charRGBA * self, void * type)
 {
-	int i;
-
-	if( strcmp( name, "__members__" ) == 0 )
-		return Py_BuildValue( "[s,s,s,s]", "R", "G", "B", "A" );
-
-	else if( !strcmp( name, "R" ) || !strcmp( name, "r" ) )
-		i = 0;
-	else if( !strcmp( name, "G" ) || !strcmp( name, "g" ) )
-		i = 1;
-	else if( !strcmp( name, "B" ) || !strcmp( name, "b" ) )
-		i = 2;
-	else if( !strcmp( name, "A" ) || !strcmp( name, "a" ) )
-		i = 3;
-	else
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"attribute not found" ) );
-
-	return Py_BuildValue( "b", *( self->rgba[i] ) );
+	int index = ((long)type) & 3; 
+	return PyInt_FromLong ( *self->rgba[index] );
 }
 
-/*****************************************************************************/
-/* Function:	charRGBA_setAttr					 */
-/* Description: This is a callback function for the BPy_charRGBA type. It is */
-/*		the function that changes BPy_charRGBA member variables.   */
-/*****************************************************************************/
-static int charRGBA_setAttr( BPy_charRGBA * self, char *name, PyObject * v )
+/* sets the color value of one of the components */
+
+static int charRGBA_setColor( BPy_charRGBA * self, PyObject * value,
+		void * type)
 {
-	char value;
+	int index = ((long)type) & 3; 
+	PyObject *num = PyNumber_Int( value );
 
-	if( !PyArg_Parse( v, "b", &value ) )
+	/* argument must be a number */
+	if( !num )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-					    "expected char argument" );
+				"expected char argument" );
 
-	value = (char)EXPP_ClampInt( value, 0, 255 );
-
-	if( !strcmp( name, "R" ) || !strcmp( name, "r" ) )
-		*( self->rgba[0] ) = value;
-
-	else if( !strcmp( name, "G" ) || !strcmp( name, "g" ) )
-		*( self->rgba[1] ) = value;
-
-	else if( !strcmp( name, "B" ) || !strcmp( name, "b" ) )
-		*( self->rgba[2] ) = value;
-
-	else if( !strcmp( name, "A" ) || !strcmp( name, "a" ) )
-		*( self->rgba[3] ) = value;
-
-	else
-		return ( EXPP_ReturnIntError( PyExc_AttributeError,
-					      "attribute not found" ) );
-
+	/* clamp valut to 0..255 then assign */
+	*self->rgba[index] = (char)EXPP_ClampInt( (int)PyInt_AS_LONG(value),
+			0, 255 );
+	Py_DECREF( num );
 	return 0;
 }
 
