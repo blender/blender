@@ -171,6 +171,8 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &NMFace_Type );
 	PyDict_SetItemString( dict, "NMVertType",
 			      ( PyObject * ) &NMVert_Type );
+	PyDict_SetItemString( dict, "NMEdgeType",
+			      ( PyObject * ) &NMEdge_Type );
 	PyDict_SetItemString( dict, "NMColType", ( PyObject * ) &NMCol_Type );
 
 	PyDict_SetItemString( dict, "MeshType", ( PyObject * ) &Mesh_Type );
