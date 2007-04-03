@@ -27,7 +27,7 @@ def add_torus(PREF_MAJOR_RAD, PREF_MINOR_RAD, PREF_MAJOR_SEG, PREF_MINOR_SEG):
 				i2 = (major_index)*PREF_MINOR_SEG
 				i3 = i1 + PREF_MINOR_SEG
 				i4 = i2 + PREF_MINOR_SEG
-				print i1,i2,i3,i4
+				
 			else:
 				i2 = i1 + 1
 				i3 = i1 + PREF_MINOR_SEG

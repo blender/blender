@@ -1182,7 +1182,7 @@ static TBitem tb_view_dt[]= {
 {  -1, "", 			0, tb_do_view_dt}};
 
 static TBitem tb_view_alignview[]= {
-{	0, "Centre View to Cursor|C", 		'c', NULL},
+{	0, "Center View to Cursor|C", 		'c', NULL},
 {	0, "Align Active Camera to View|Ctrl Alt NumPad 0",
 TB_CTRL|TB_ALT|TB_PAD|'0', NULL}, 
 {	0, "Align View to Selected|NumPad *", 		TB_PAD|'*', NULL},

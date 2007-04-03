@@ -1975,6 +1975,9 @@ void docentre(int centremode)
 					}
 			
 					if(G.obedit) {
+						if (centremode==0) {
+							DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+						}
 						break;
 					}
 	
@@ -2018,7 +2021,7 @@ void docentre(int centremode)
 
 	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	allqueue(REDRAWVIEW3D, 0);
-	BIF_undo_push("Do Centre");	
+	BIF_undo_push("Do Center");	
 }
 
 void docentre_new(void)

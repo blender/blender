@@ -2395,7 +2395,7 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 
 	uiDefBut(block, LABEL, 1, "View Locking:",				160, 50, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "Object:", 160, 30, 140, 19, &vd->ob_centre, "Lock view to centre always on this Object"); 
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "Object:", 160, 30, 140, 19, &vd->ob_centre, "Lock view to center always on this Object"); 
 	uiDefBut(block, TEX, REDRAWVIEW3D, "Bone:",						160, 10, 140, 19, vd->ob_centre_bone, 1, 31, 0, 0, "If view locked to Object, use this Bone to lock to view to");
 
 }

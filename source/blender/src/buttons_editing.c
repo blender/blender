@@ -824,9 +824,9 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	}
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					10, 80, 65, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
-	uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			75, 80, 105, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
-	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		10, 60, 170, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
+	uiDefBut(block, BUT,B_DOCENTRE, "Center",					10, 80, 65, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
+	uiDefBut(block, BUT,B_DOCENTRENEW, "Center New",			75, 80, 105, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
+	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Center Cursor",		10, 60, 170, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
@@ -2589,9 +2589,9 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 	MEM_freeN(strp);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,B_MAKEFONT, "Left",		480,135,47,20, &cu->spacemode, 0.0,0.0, 0, 0, "Left align the text from the object centre");
-	uiDefButS(block, ROW,B_MAKEFONT, "Center",		527,135,47,20, &cu->spacemode, 0.0,1.0, 0, 0, "Middle align the text from the object centre");
-	uiDefButS(block, ROW,B_MAKEFONT, "Right",		574,135,47,20, &cu->spacemode, 0.0,2.0, 0, 0, "Right align the text from the object centre");
+	uiDefButS(block, ROW,B_MAKEFONT, "Left",		480,135,47,20, &cu->spacemode, 0.0,0.0, 0, 0, "Left align the text from the object center");
+	uiDefButS(block, ROW,B_MAKEFONT, "Center",		527,135,47,20, &cu->spacemode, 0.0,1.0, 0, 0, "Middle align the text from the object center");
+	uiDefButS(block, ROW,B_MAKEFONT, "Right",		574,135,47,20, &cu->spacemode, 0.0,2.0, 0, 0, "Right align the text from the object center");
 	uiDefButS(block, ROW,B_MAKEFONT, "Justify",		621,135,47,20, &cu->spacemode, 0.0,3.0, 0, 0, "Fill completed lines to maximum textframe width by expanding whitespace");
 	uiDefButS(block, ROW,B_MAKEFONT, "Flush",		668,135,47,20, &cu->spacemode, 0.0,4.0, 0, 0, "Fill every line to maximum textframe width, distributing space among all characters");	
 	uiDefBut(block, BUT, B_TOUPPER, "ToUpper",		715,135,78,20, 0, 0, 0, 0, 0, "Toggle between upper and lower case in editmode");
@@ -2606,10 +2606,10 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 	uiDefButF(block, NUM,B_MAKEFONT, "Linedist:",	640,56,155,20, &cu->linedist, 0.0,10.0, 10, 0, "Distance between text lines");
 	uiDefButF(block, NUM,B_MAKEFONT, "Word spacing:",	795,56,155,20, &cu->wordspace, 0.0,10.0, 10, 0, "Distance factor between words");		
 	uiDefButF(block, NUM,B_MAKEFONT, "Spacing:",	480,34,155,20, &cu->spacing, 0.0,10.0, 10, 0, "Spacing of individual characters");
-	uiDefButF(block, NUM,B_MAKEFONT, "X offset:",	640,34,155,20, &cu->xof, -50.0,50.0, 10, 0, "Horizontal position from object centre");
+	uiDefButF(block, NUM,B_MAKEFONT, "X offset:",	640,34,155,20, &cu->xof, -50.0,50.0, 10, 0, "Horizontal position from object center");
 	uiDefButF(block, NUM,B_MAKEFONT, "UL position:",	795,34,155,20, &cu->ulpos, -0.2,0.8, 10, 0, "Vertical position of underline");			
 	uiDefButF(block, NUM,B_MAKEFONT, "Shear:",		480,12,155,20, &cu->shear, -1.0,1.0, 10, 0, "Italic angle of the characters");
-	uiDefButF(block, NUM,B_MAKEFONT, "Y offset:",	640,12,155,20, &cu->yof, -50.0,50.0, 10, 0, "Vertical position from object centre");
+	uiDefButF(block, NUM,B_MAKEFONT, "Y offset:",	640,12,155,20, &cu->yof, -50.0,50.0, 10, 0, "Vertical position from object center");
 	uiDefButF(block, NUM,B_MAKEFONT, "UL height:",	795,12,155,20, &cu->ulheight, 0.01,0.5, 10, 0, "Thickness of underline");				
 	uiBlockEndAlign(block);	
 	
@@ -2918,9 +2918,9 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		uiDefButBitS(block, TOG, CU_NOPUNOFLIP, REDRAWVIEW3D, "No Puno Flip",	600,140,150,19, &cu->flag, 0, 0, 0, 0, "Don't flip vertex normals while render");
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					600, 115, 55, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
-	uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			655, 115, 95, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
-	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		600, 95, 150, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
+	uiDefBut(block, BUT,B_DOCENTRE, "Center",					600, 115, 55, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
+	uiDefBut(block, BUT,B_DOCENTRENEW, "Center New",			655, 115, 95, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
+	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Center Cursor",		600, 95, 150, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
 	uiBlockEndAlign(block);
 
 	if(cu->key) {
