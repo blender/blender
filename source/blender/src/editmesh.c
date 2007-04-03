@@ -1419,6 +1419,15 @@ void separate_mesh(void)
 		return;
 	}
 	
+	/* blender crashes in derivedmesh drawing if I don't do this... but why? 
+		Anyhoo, this function is horrible anyway (ton) 
+		the fluidsimFlag also has to be reset btw. (n_t) */
+	if(G.obedit->fluidsimSettings) {
+		fluidsimSettingsFree(G.obedit->fluidsimSettings);
+		G.obedit->fluidsimSettings = NULL;
+		G.obedit->fluidsimFlag = 0;
+	}
+	
 	if(em->selected.first) BLI_freelistN(&(em->selected)); /* clear the selection order */
 		
 	EM_selectmode_set();	// enforce full consistant selection flags 
@@ -1524,13 +1533,6 @@ void separate_mesh(void)
 	
 	G.obedit= BASACT->object;	/* basact was set in adduplicate()  */
 	
-	/* blender crashes in derivedmesh drawing if I don't do this... but why? 
-		Anyhoo, this function is horrible anyway (ton) */
-	if(G.obedit->fluidsimSettings) {
-		fluidsimSettingsFree(G.obedit->fluidsimSettings);
-		G.obedit->fluidsimSettings= NULL;
-	}
-	
 	men= copy_mesh(me);
 	set_mesh(G.obedit, men);
 	/* because new mesh is a copy: reduce user count */
@@ -1599,6 +1601,13 @@ void separate_mesh_loose(void)
 		return;
 	}
 	
+	/* same problem as in separate_mesh above (n_t) */
+	if(G.obedit->fluidsimSettings) {
+		fluidsimSettingsFree(G.obedit->fluidsimSettings);
+		G.obedit->fluidsimSettings = NULL;
+		G.obedit->fluidsimFlag = 0;
+	}
+
 	TEST_EDITMESH
 	if(multires_test()) return;
 	waitcursor(1);	
