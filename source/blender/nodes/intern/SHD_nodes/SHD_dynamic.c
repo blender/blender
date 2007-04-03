@@ -36,155 +36,31 @@
 #include "BKE_text.h"
 
 #include "api2_2x/Node.h"
+#include "api2_2x/gen_utils.h"
 #include "BPY_extern.h"
 
 #include "../SHD_util.h"
 
-/* This code is modelled after pyTexture by Timothy Wakeham.
- */
 static PyObject *init_dynamicdict(void) {
-	PyObject *newscriptdict;
-	newscriptdict = PyDict_New();
+	PyObject *newscriptdict= PyDict_New();
 	PyDict_SetItemString(newscriptdict, "__builtins__", PyEval_GetBuiltins());
-	PyDict_SetItemString(newscriptdict, "__name__", PyString_FromString( "__main__" ));
-	Py_INCREF(newscriptdict);
+	EXPP_dict_set_item_str(newscriptdict, "__name__", PyString_FromString("__main__"));
 	return newscriptdict;
 }
 
 static void free_dynamicdict(PyObject *dict) {
-	Py_XDECREF(dict);
-	dict = NULL;
-}
-
-static void node_dynamic_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out) {
-	BPy_Node *mynode = NULL;
-	BPy_ShadeInput *myshi = NULL;
-	NodeScriptDict *nsd = NULL;
-	BPy_SockInMap *inputs= NULL;
-	BPy_SockOutMap *outputs= NULL;
-	PyObject *pyresult = NULL;
-	PyObject *args = NULL;
-	ShadeInput *shi= ((ShaderCallData *)data)->shi;
-
-	if(node->custom1==SH_NODE_DYNAMIC_READY) {
-		nsd = (NodeScriptDict *)node->storage;
-
-		mynode = (BPy_Node *)(nsd->node);
-		myshi = (BPy_ShadeInput *)(nsd->shi);
-		if(mynode && PyCallable_Check((PyObject *)mynode)) {
-			mynode->node= node;
-			inputs= Node_getInputs(mynode);
-			inputs->inputs= in;
-			outputs= Node_getOutputs(mynode);
-			outputs->outputs= out;
-			if(myshi) myshi->shi= shi;
-			else printf("no shi ");
-			/*printf("%f %f %f ", shi->lo[0], shi->lo[1], shi->lo[2]);*/
-			args=Py_BuildValue("(NOO)",
-						(PyObject *)myshi,
-						(PyObject *)inputs,
-						(PyObject *)outputs);
-			pyresult= PyObject_Call((PyObject *)mynode, args, NULL);
-			if(!pyresult) {
-				PyErr_Print();
-			}
-			Py_XDECREF(pyresult);
-			Py_DECREF(args);
-			PyObject_Del(inputs);
-			PyObject_Del(outputs);
-			/*printf(".");*/
-		}
-	}
-}
-
-void nodeDynamicParse(struct bNode *node)
-{
-	BPy_Node *pynode= NULL;
-	BPy_ShadeInput *myshi = NULL;
-	PyObject *outputdef= NULL;
-	PyObject *inputdef= NULL;
-	PyObject *key= NULL;
-	PyObject *value= NULL;
-	PyObject *testinst= NULL;
-	PyObject *args= NULL;
-	int pos = 0;
-	NodeScriptDict *nsd;
-	PyObject *pyresult = NULL;
-	Text *txt = 0;
-	char *buf;
-
-	if(! node->id) {
-		return;
-	}
-
-	if(node->custom1!=SH_NODE_DYNAMIC_READY) {
-		txt = (Text *)node->id;
-		nsd = (NodeScriptDict *)node->storage;
-
-		buf = txt_to_buf( txt );
-		
-		printf("nsd %p, nsd->dict %p, buf %p\n", nsd, nsd->dict, buf);
-		printf("Running script...");
-		pyresult = PyRun_String(buf, Py_file_input, (PyObject *)(nsd->dict), (PyObject *)(nsd->dict));
-		printf(" done\n");
-
-		MEM_freeN(buf);
-
-		if(!pyresult) {
-			if(PyErr_Occurred()) {
-				PyErr_Print();
-			}
-			Py_XDECREF(pyresult);
-			return;
-		}
-
-		Py_DECREF(pyresult);
-		/*PyObject_Del(pyresult);*/
-
-		myshi=(BPy_ShadeInput *)ShadeInput_CreatePyObject(NULL);
-		nsd->shi= myshi;
-		while(PyDict_Next( (PyObject *)(nsd->dict), &pos, &key, &value) ) {
-			if(PyObject_TypeCheck(value, &PyType_Type)) {
-				pynode = (BPy_Node *)Node_CreatePyObject(node);
-				outputdef= Node_CreateOutputDefMap(pynode);
-				inputdef= Node_CreateInputDefMap(pynode);
-				args= Py_BuildValue("(OO)", inputdef, outputdef);
-				testinst= PyObject_Call(value, args, NULL);
-				if(testinst && PyObject_TypeCheck(testinst, &Node_Type)==1) {
-					nsd->node= testinst;
-					node->typeinfo->execfunc= node_dynamic_exec;
-					if(node->custom1== SH_NODE_DYNAMIC_NEW) {
-						node->typeinfo->pynode= testinst;
-						node->typeinfo->id= node->id;
-						nodeRegisterType(&node_all_shaders, node->typeinfo);
-						node->custom1= SH_NODE_DYNAMIC_CREATED;
-					} else if(node->custom1== SH_NODE_DYNAMIC_REPARSE) {
-						node->typeinfo->pynode= testinst;
-						node->typeinfo->id= node->id;
-						/*ntreeUpdateType(ntree, node->typeinfo);*/
-						/* NEED TO UPDATE ALL TREES WITH NEW TYPEINFO */
-						node->custom1= SH_NODE_DYNAMIC_UPDATED;
-					} else if(node->custom1== SH_NODE_DYNAMIC_LOADED) {
-						node->typeinfo->pynode= testinst;
-						node->typeinfo->id= node->id;
-						nodeRegisterType(&node_all_shaders, node->typeinfo);
-						node->custom1= SH_NODE_DYNAMIC_READY;
-					} else if(node->custom1== SH_NODE_DYNAMIC_ADDEXIST) {
-						node->custom1= SH_NODE_DYNAMIC_READY;
-					}
-					break;
-				}
-			}
-		}
+	if(dict!=NULL) {
+		PyDict_Clear(dict);
+		Py_DECREF(dict);
+		dict = NULL;
 	}
 }
 
 static void node_dynamic_init(bNode* node) {
-	NodeScriptDict *nsd = MEM_callocN(sizeof(NodeScriptDict), "node script dictionary");
-	int type = node->custom2;
+	NodeScriptDict *nsd= MEM_callocN(sizeof(NodeScriptDict), "node script dictionary");
+	int type= node->custom2;
 	node->custom2= 0;
-	node->storage = nsd;
-	nsd->dict = init_dynamicdict(); /* each node has own dict */
+	node->storage= nsd;
 	if(type>=NODE_DYNAMIC_MENU) {
 		if(type==NODE_DYNAMIC_MENU) {
 			nodeMakeDynamicType(node);
@@ -195,16 +71,149 @@ static void node_dynamic_init(bNode* node) {
 		node->id= node->typeinfo->id;
 		nodeDynamicParse(node);
 	} else {
-		node->custom1= SH_NODE_DYNAMIC_NEW;
+		if(node->custom1== SH_NODE_DYNAMIC_LOADED) {
+			nodeMakeDynamicType(node);
+			nodeDynamicParse(node);
+		} else if(node->custom1== SH_NODE_DYNAMIC_ADDEXIST)
+			nodeDynamicParse(node);
 	}
 }
 
 static void node_dynamic_free(bNode *node)
 {
-	NodeScriptDict *nsd = (NodeScriptDict *)(node->storage);
+	NodeScriptDict *nsd= (NodeScriptDict *)(node->storage);
+	BPy_Node *pynode= nsd->node;
+	Py_XDECREF(pynode);
 	free_dynamicdict((PyObject *)(nsd->dict));
 	MEM_freeN(node->storage);
 }
+
+static void node_dynamic_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out) {
+	BPy_Node *mynode = NULL;
+	NodeScriptDict *nsd = NULL;
+	PyObject *pyresult = NULL;
+	PyObject *args = NULL;
+	ShadeInput *shi= ((ShaderCallData *)data)->shi;
+
+	if(node->custom1==SH_NODE_DYNAMIC_NEW) {
+		nodeDynamicParse(node);
+		return;
+	}
+
+	if(node->custom2<0)
+		return;
+
+	if(node->custom1==SH_NODE_DYNAMIC_READY || node->custom1==SH_NODE_DYNAMIC_UPDATED) {
+		if(node->custom1== SH_NODE_DYNAMIC_UPDATED)
+			node->custom1= SH_NODE_DYNAMIC_READY;
+
+		nsd = (NodeScriptDict *)node->storage;
+
+		mynode = (BPy_Node *)(nsd->node);
+		if(mynode && PyCallable_Check((PyObject *)mynode)) {
+			mynode->node= node;
+			Node_SetStack(mynode, in, NODE_INPUTSTACK);
+			Node_SetStack(mynode, out, NODE_OUTPUTSTACK);
+			Node_SetShi(mynode, shi);
+			args=Py_BuildValue("()");
+			pyresult= PyObject_Call((PyObject *)mynode, args, NULL);
+			if(!pyresult) {
+				if(PyErr_Occurred()) {
+					PyErr_Print();
+					node->custom2= -1;
+				} else {
+					printf("PyObject_Call __call__ failed\n");
+				}
+			}
+			Py_XDECREF(pyresult);
+			Py_DECREF(args);
+		}
+	}
+}
+
+void nodeDynamicParse(struct bNode *node)
+{
+	BPy_Node *pynode= NULL;
+	PyObject *dict= NULL;
+	PyObject *key= NULL;
+	PyObject *value= NULL;
+	PyObject *testinst= NULL;
+	PyObject *args= NULL;
+	int pos = 0;
+	NodeScriptDict *nsd= NULL;
+	PyObject *pyresult = NULL;
+	PyObject *pycompiled = NULL;
+	Text *txt = NULL;
+	char *buf= NULL;
+
+	if(! node->id) {
+		return;
+	}
+
+	if(node->custom1!=SH_NODE_DYNAMIC_READY) {
+		txt = (Text *)node->id;
+		nsd = (NodeScriptDict *)node->storage;
+
+		if(nsd->dict==NULL && (node->custom1==SH_NODE_DYNAMIC_NEW||node->custom1==SH_NODE_DYNAMIC_LOADED)) {
+			nsd->dict= init_dynamicdict();
+		} else if(nsd->dict==NULL && node->custom1==SH_NODE_DYNAMIC_ADDEXIST) {
+			nsd->dict= node->typeinfo->pydict;
+			nsd->node= node->typeinfo->pynode;
+			node->custom1= SH_NODE_DYNAMIC_READY;
+			return;
+		}
+		dict= (PyObject *)(nsd->dict);
+
+		if(node->custom1!=SH_NODE_DYNAMIC_ADDEXIST) {
+			buf = txt_to_buf( txt );
+			printf("nsd %p, nsd->dict %p, buf %p\n", nsd, dict, buf);
+			printf("Running script (%s, %d)...", node->name, node->custom1);
+			pyresult = PyRun_String(buf, Py_file_input, dict, dict);
+			printf(" done\n");
+
+			MEM_freeN(buf);
+
+			if(!pyresult) {
+				if(PyErr_Occurred()) {
+					PyErr_Print();
+				}
+				Py_XDECREF(pyresult);
+				return;
+			}
+
+			Py_DECREF(pyresult);
+
+			while(PyDict_Next( (PyObject *)(nsd->dict), &pos, &key, &value) ) {
+				if(PyObject_TypeCheck(value, &PyType_Type)==1) {
+					BPy_DefinitionMap *outputdef= Node_CreateOutputDefMap(node);
+					BPy_DefinitionMap *inputdef= Node_CreateInputDefMap(node);
+
+					args= Py_BuildValue("(OO)", inputdef, outputdef);
+					testinst= PyObject_Call(value, args, NULL);
+
+					Py_DECREF(outputdef);
+					Py_DECREF(inputdef);
+					if(testinst && PyObject_TypeCheck(testinst, &Node_Type)==1) {
+						InitNode((BPy_Node *)(testinst), node);
+						nsd->node= testinst;
+						node->typeinfo->execfunc= node_dynamic_exec;
+						if(node->custom1== SH_NODE_DYNAMIC_NEW || node->custom1== SH_NODE_DYNAMIC_LOADED) {
+							node->typeinfo->pynode= testinst;
+							node->typeinfo->pydict= nsd->dict;
+							node->typeinfo->id= node->id;
+							nodeAddSockets(node, node->typeinfo);
+							nodeRegisterType(&node_all_shaders, node->typeinfo);
+							node->custom1= SH_NODE_DYNAMIC_READY;
+						}
+						break;
+					}
+					Py_DECREF(args);
+				}
+			}
+		}
+	}
+}
+
 
 bNodeType sh_node_dynamic = {
 	/* next, prev  */	NULL, NULL,
@@ -216,8 +225,8 @@ bNodeType sh_node_dynamic = {
 	/* output sock */	NULL,
 	/* storage     */	"NodeScriptDict",
 	/* execfunc    */	node_dynamic_exec,
-	/* butfunc     */   NULL,
-	/* initfunc    */   node_dynamic_init,
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_dynamic_init,
 	/* freefunc    */	node_dynamic_free,
 	/* id          */	NULL
 };

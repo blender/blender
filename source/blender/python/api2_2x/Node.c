@@ -30,6 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+#ifdef USE_PYNODES /* note: won't work without patch */
 #include "Node.h"
 
 #include "BKE_global.h"
@@ -48,12 +49,16 @@ static int Node_compare(BPy_Node *a, BPy_Node *b);
 static PyObject *ShadeInput_repr( BPy_ShadeInput * self );
 static int ShadeInput_compare(BPy_ShadeInput *a, BPy_ShadeInput *b);
 
+/**
+ * Take the descriptions from dict and create sockets for those in socks
+ * socks is a socketstack from a bNodeTypeInfo
+ */
 static int dict_socks_to_typeinfo(PyObject *dict, bNodeSocketType **socks, int len, int stage) {
 	int a = 0, pos = 0;
 	PyObject *key = NULL, *value = NULL;
 	bNodeSocketType *newsocks = NULL;
 
-	if(stage!=SH_NODE_SCRIPT_READY) {
+	if(stage!=SH_NODE_DYNAMIC_READY && stage!=SH_NODE_DYNAMIC_ADDEXIST) {
 		newsocks = MEM_callocN(sizeof(bNodeSocketType)*(len+1), "bNodeSocketType");
 
 		if (dict) {
@@ -90,7 +95,9 @@ static int dict_socks_to_typeinfo(PyObject *dict, bNodeSocketType **socks, int l
 	return 0;
 }
 
-/* get number of complying entries in a dict */
+/* Get number of complying entries in a dict.
+ *
+ */
 static int num_dict_sockets(PyObject *dict) {
 	int a = 0, pos = 0;
 	PyObject *key = NULL, *value = NULL;
@@ -105,26 +112,20 @@ static int Map_socketdef(PyObject *self, PyObject *args, void *closure)
 {
 	int newincnt = 0, newoutcnt = 0;
 	bNode *node = NULL;
-	BPy_OutputDefMap *out= NULL;
-	BPy_InputDefMap *in= NULL;
+	BPy_DefinitionMap *defs= NULL;
 
-	switch((int)closure) {
-		case 'I':
-			in= (BPy_InputDefMap *)self;
-			node= in->node;
-			break;
-		case 'O':
-			out= (BPy_OutputDefMap *)self;
-			node= out->node;
-			break;
-	}
+	Py_INCREF(args);
+	Py_INCREF(self);
+
+	defs= (BPy_DefinitionMap *)self;
+	node= defs->node;
 
 	if(!node) {
 		fprintf(stderr,"! no bNode in BPy_Node (Map_socketdef)\n");
 		return 0;
 	}
 
-	if(node->custom1==SH_NODE_SCRIPT_READY && node->custom1==SH_NODE_SCRIPT_ADDEXIST)
+	if(node->custom1==SH_NODE_DYNAMIC_READY && node->custom1==SH_NODE_DYNAMIC_ADDEXIST)
 		return 0;
 
 	switch((int)closure) {
@@ -134,6 +135,8 @@ static int Map_socketdef(PyObject *self, PyObject *args, void *closure)
 					newincnt = num_dict_sockets(args);
 					dict_socks_to_typeinfo(args, &(node->typeinfo->inputs), newincnt, node->custom1);
 				} else {
+					Py_DECREF(self);
+					Py_DECREF(args);
 					return(EXPP_ReturnIntError( PyExc_AttributeError, "INPUT must be a dict"));
 				}
 			}
@@ -144,6 +147,8 @@ static int Map_socketdef(PyObject *self, PyObject *args, void *closure)
 					newoutcnt = num_dict_sockets(args);
 					dict_socks_to_typeinfo(args, &(node->typeinfo->outputs), newoutcnt, node->custom1);
 				} else {
+					Py_DECREF(self);
+					Py_DECREF(args);
 					return(EXPP_ReturnIntError( PyExc_AttributeError, "OUTPUT must be a dict"));
 				}
 			}
@@ -152,12 +157,11 @@ static int Map_socketdef(PyObject *self, PyObject *args, void *closure)
 			fprintf(stderr, "Hrm, why we got no dict? Todo: figure out proper complaint to scripter\n");
 			break;
 	}
+	Py_DECREF(self);
+	Py_DECREF(args);
 	return 0;
 }
 
-static void InputDefMap_dealloc( BPy_InputDefMap *self ) {
-	PyObject_DEL(self);
-}
 static PyGetSetDef InputDefMap_getseters[] = {
 	{"definitions", (getter)NULL, (setter)Map_socketdef,
 		"Set the inputs definition (dictionary)",
@@ -170,12 +174,12 @@ PyTypeObject InputDefMap_Type = {
 	0,                          /* ob_size */
 	/*  For printing, in format "<module>.<name>" */
 	"Blender.Node.InputDefinitions",           /* char *tp_name; */
-	sizeof( BPy_InputDefMap ),       /* int tp_basicsize; */
+	sizeof( BPy_DefinitionMap ),       /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
 	/* Methods to implement standard operations */
 
-	( destructor ) InputDefMap_dealloc,/* destructor tp_dealloc; */
+	NULL,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -247,16 +251,13 @@ PyTypeObject InputDefMap_Type = {
 	NULL
 };
 
-PyObject *Node_CreateInputDefMap(BPy_Node *self) {
-	BPy_InputDefMap *map = PyObject_NEW(BPy_InputDefMap, &InputDefMap_Type);
-	map->node = self->node;
-	return (PyObject *)map;
+BPy_DefinitionMap *Node_CreateInputDefMap(bNode *node) {
+	BPy_DefinitionMap *map = PyObject_NEW(BPy_DefinitionMap, &InputDefMap_Type);
+	map->node = node;
+	return map;
 }
-/***************************************/
 
-static void OutputDefMap_dealloc( BPy_OutputDefMap *self ) {
-	PyObject_DEL(self);
-}
+/***************************************/
 
 static PyGetSetDef OutputDefMap_getseters[] = {
 	{"definitions", (getter)NULL, (setter)Map_socketdef,
@@ -270,12 +271,12 @@ PyTypeObject OutputDefMap_Type = {
 	0,                          /* ob_size */
 	/*  For printing, in format "<module>.<name>" */
 	"Blender.Node.OutputDefinitions",           /* char *tp_name; */
-	sizeof( BPy_OutputDefMap ),       /* int tp_basicsize; */
+	sizeof( BPy_DefinitionMap ),       /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
 	/* Methods to implement standard operations */
 
-	( destructor ) OutputDefMap_dealloc,/* destructor tp_dealloc; */
+	NULL,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -347,17 +348,16 @@ PyTypeObject OutputDefMap_Type = {
 	NULL
 };
 
-PyObject *Node_CreateOutputDefMap(BPy_Node *self) {
-	BPy_OutputDefMap *map = PyObject_NEW(BPy_OutputDefMap, &OutputDefMap_Type);
-	map->node = self->node;
-	return (PyObject *)map;
+BPy_DefinitionMap *Node_CreateOutputDefMap(bNode *node) {
+	BPy_DefinitionMap *map = PyObject_NEW(BPy_DefinitionMap, &OutputDefMap_Type);
+	map->node = node;
+	return map;
 }
+
 /***************************************/
 
-static int sockinmap_len ( BPy_SockInMap * self) {
+static int sockinmap_len ( BPy_SockMap * self) {
 	int a = 0;
-/*	if(self->node->custom1==0)
-		return a;*/
 	if(self->typeinfo) {
 		while(self->typeinfo->inputs[a].type!=-1)
 			a++;
@@ -365,7 +365,7 @@ static int sockinmap_len ( BPy_SockInMap * self) {
 	return a;
 }
 
-static int sockinmap_has_key( BPy_SockInMap *self, PyObject *key) {
+static int sockinmap_has_key( BPy_SockMap *self, PyObject *key) {
 	int a = 0;
 	char *strkey = PyString_AsString(key);
 
@@ -380,33 +380,35 @@ static int sockinmap_has_key( BPy_SockInMap *self, PyObject *key) {
 	return -1;
 }
 
-PyObject *sockinmap_subscript(BPy_SockInMap *self, PyObject *idx) {
+PyObject *sockinmap_subscript(BPy_SockMap *self, PyObject *idx) {
 	int a, _idx;
-	/*if(self->node->custom1!=SH_NODE_SCRIPT_READY)
-		Py_RETURN_NONE;*/
 	a = sockinmap_len(self);
-	if(PyInt_Check(idx)) {
-		_idx = (int)PyInt_AsLong(idx);
-	}
-	else if (PyString_Check(idx)) {
+
+	if (PyString_Check(idx)) {
 		_idx = sockinmap_has_key( self, idx);
 	}
-	else if (PySlice_Check(idx)) {
-		PyErr_SetString(PyExc_ValueError, "slices not implemented, yet");
-		Py_RETURN_NONE;
-	} else {
-		PyErr_SetString(PyExc_IndexError, "Index must be int or string");
+	else if(PyInt_Check(idx)) {
+		PyErr_SetString(PyExc_ValueError, "int index not implemented");
 		Py_RETURN_NONE;
 	}
+	else if (PySlice_Check(idx)) {
+		PyErr_SetString(PyExc_ValueError, "slices not implemented");
+		Py_RETURN_NONE;
+	} else {
+		PyErr_SetString(PyExc_IndexError, "Index must be string");
+		Py_RETURN_NONE;
+	}
+
+	
 	switch(self->typeinfo->inputs[_idx].type) {
 		case SOCK_VALUE:
-			return Py_BuildValue("f", self->inputs[_idx]->vec[0]);
+			return Py_BuildValue("f", self->stack[_idx]->vec[0]);
 			break;
 		case SOCK_VECTOR:
-			return Py_BuildValue("(fff)", self->inputs[_idx]->vec[0], self->inputs[_idx]->vec[1], self->inputs[_idx]->vec[2]);
+			return Py_BuildValue("(fff)", self->stack[_idx]->vec[0], self->stack[_idx]->vec[1], self->stack[_idx]->vec[2]);
 			break;
 		case SOCK_RGBA:
-			return Py_BuildValue("(ffff)", self->inputs[_idx]->vec[0], self->inputs[_idx]->vec[1], self->inputs[_idx]->vec[2], self->inputs[_idx]->vec[3]);
+			return Py_BuildValue("(ffff)", self->stack[_idx]->vec[0], self->stack[_idx]->vec[1], self->stack[_idx]->vec[2], self->stack[_idx]->vec[3]);
 			break;
 		default:
 			break;
@@ -421,21 +423,17 @@ static PyMappingMethods sockinmap_as_mapping = {
 	( objobjargproc ) 0 /* mp_ass_subscript */
 };
 
-static void SockInMap_dealloc( BPy_SockInMap *self ) {
-	PyObject_DEL(self);
-}
-
 PyTypeObject SockInMap_Type = {
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                          /* ob_size */
 	/*  For printing, in format "<module>.<name>" */
 	"Blender.Node.InputSockets",           /* char *tp_name; */
-	sizeof( BPy_SockInMap ),       /* int tp_basicsize; */
+	sizeof( BPy_SockMap ),       /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
 	/* Methods to implement standard operations */
 
-	( destructor ) SockInMap_dealloc,/* destructor tp_dealloc; */
+	NULL,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -507,7 +505,7 @@ PyTypeObject SockInMap_Type = {
 	NULL
 };
 
-static int sockoutmap_len ( BPy_SockOutMap * self) {
+static int sockoutmap_len ( BPy_SockMap * self) {
 	int a = 0;
 	if(self->typeinfo) {
 		while(self->typeinfo->outputs[a].type!=-1)
@@ -516,24 +514,23 @@ static int sockoutmap_len ( BPy_SockOutMap * self) {
 	return a;
 }
 
-static int sockoutmap_has_key( BPy_SockOutMap *self, PyObject *key) {
+static int sockoutmap_has_key( BPy_SockMap *self, PyObject *key) {
 	int a = 0;
 	char *strkey = PyString_AsString(key);
 
 	if(self->typeinfo){
 		while(self->typeinfo->outputs[a].type!=-1) {
-			if(BLI_strcaseeq(self->typeinfo->outputs[a].name, strkey))
+			if(BLI_strcaseeq(self->typeinfo->outputs[a].name, strkey)) {
 				return a;
+			}
 			a++;
 		}
 	}
 	return -1;
 }
 
-static int sockoutmap_assign_subscript(BPy_SockOutMap *self, PyObject *idx, PyObject *value) {
+static int sockoutmap_assign_subscript(BPy_SockMap *self, PyObject *idx, PyObject *value) {
 	int a, _idx;
-/*	if(self->node->custom1!=0)
-		return 0;*/
 	a = sockoutmap_len(self);
 	if(PyInt_Check(idx)) {
 		_idx = (int)PyInt_AsLong(idx);
@@ -552,23 +549,23 @@ static int sockoutmap_assign_subscript(BPy_SockOutMap *self, PyObject *idx, PyOb
 		switch(self->typeinfo->outputs[_idx].type) {
 			case SOCK_VALUE:
 				if(PyTuple_Size(value)==1)
-					self->outputs[_idx]->vec[0] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 0));
+					self->stack[_idx]->vec[0] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 0));
 				return 0;
 				break;
 			case SOCK_VECTOR:
 				if(PyTuple_Size(value)==3) {
-					self->outputs[_idx]->vec[0] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 0));
-					self->outputs[_idx]->vec[1] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 1));
-					self->outputs[_idx]->vec[2] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 2));
+					self->stack[_idx]->vec[0] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 0));
+					self->stack[_idx]->vec[1] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 1));
+					self->stack[_idx]->vec[2] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 2));
 				}
 				return 0;
 				break;
 			case SOCK_RGBA:
 				if(PyTuple_Size(value)==4) {
-					self->outputs[_idx]->vec[0] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 0));
-					self->outputs[_idx]->vec[1] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 1));
-					self->outputs[_idx]->vec[2] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 2));
-					self->outputs[_idx]->vec[3] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 3));
+					self->stack[_idx]->vec[0] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 0));
+					self->stack[_idx]->vec[1] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 1));
+					self->stack[_idx]->vec[2] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 2));
+					self->stack[_idx]->vec[3] = (float)PyFloat_AsDouble(PyTuple_GetItem(value, 3));
 				}
 				return 0;
 				break;
@@ -582,25 +579,21 @@ static int sockoutmap_assign_subscript(BPy_SockOutMap *self, PyObject *idx, PyOb
 /* write only */
 static PyMappingMethods sockoutmap_as_mapping = {
 	( inquiry ) sockoutmap_len,  /* mp_length */
-	( binaryfunc ) 0, //sockoutmap_subscript, /* mp_subscript */
+	( binaryfunc ) 0, /* mp_subscript */
 	( objobjargproc ) sockoutmap_assign_subscript /* mp_ass_subscript */
 };
-
-static void SockOutMap_dealloc( BPy_SockOutMap *self ) {
-	PyObject_DEL(self);
-}
 
 PyTypeObject SockOutMap_Type = {
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                          /* ob_size */
 	/*  For printing, in format "<module>.<name>" */
 	"Blender.Node.OutputSockets",           /* char *tp_name; */
-	sizeof( BPy_SockOutMap ),       /* int tp_basicsize; */
+	sizeof( BPy_SockMap ),       /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
 	/* Methods to implement standard operations */
 
-	( destructor ) SockOutMap_dealloc,/* destructor tp_dealloc; */
+	NULL,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -673,11 +666,16 @@ PyTypeObject SockOutMap_Type = {
 };
 
 
-BPy_SockInMap *Node_getInputs(BPy_Node *self) {
-	BPy_SockInMap *map = PyObject_NEW(BPy_SockInMap, &SockInMap_Type);
-	map->typeinfo= self->node->typeinfo;
-	map->inputs = self->inputs;
+static BPy_SockMap *Node_CreateInputMap(bNode *node, bNodeStack **stack) {
+	BPy_SockMap *map= PyObject_NEW(BPy_SockMap, &SockInMap_Type);
+	map->typeinfo= node->typeinfo;
+	map->stack= stack;
 	return map;
+}
+
+static PyObject *Node_GetInputMap(BPy_Node *self) {
+	BPy_SockMap *inmap= Node_CreateInputMap(self->node, self->in);
+	return (PyObject *)(inmap);
 }
 
 static PyObject *ShadeInput_getSurfaceViewVector(BPy_ShadeInput *self) {
@@ -691,23 +689,24 @@ static PyObject *ShadeInput_getSurfaceViewVector(BPy_ShadeInput *self) {
 }
 
 static PyObject *ShadeInput_getViewNormal(BPy_ShadeInput *self) {
+	PyObject *viewnorm;
 	if(self->shi) {
-		PyObject *viewnorm;
 		viewnorm = Py_BuildValue("(fff)", self->shi->vn[0], self->shi->vn[1], self->shi->vn[2]);
-		return viewnorm;
+	} else {
+		viewnorm = Py_BuildValue("(fff)", 0.0, 0.0, 0.0);
 	}
+	return viewnorm;
 
-	Py_RETURN_NONE;
 }
 
 static PyObject *ShadeInput_getSurfaceNormal(BPy_ShadeInput *self) {
+	PyObject *surfnorm;
 	if(self->shi) {
-		PyObject *surfnorm;
 		surfnorm = Py_BuildValue("(fff)", self->shi->facenor[0], self->shi->facenor[1], self->shi->facenor[2]);
-		return surfnorm;
+	} else {
+		surfnorm = Py_BuildValue("(fff)", 0.0, 0.0, 0.0);
 	}
-
-	Py_RETURN_NONE;
+	return surfnorm;
 }
 
 
@@ -731,11 +730,31 @@ static PyObject *ShadeInput_getTexCoord(BPy_ShadeInput *self) {
 	Py_RETURN_NONE;
 }
 
-BPy_SockOutMap *Node_getOutputs(BPy_Node *self) {
-	BPy_SockOutMap *map = PyObject_NEW(BPy_SockOutMap, &SockOutMap_Type);
-	map->typeinfo = self->node->typeinfo;
-	map->outputs = self->outputs;
+static PyObject *ShadeInput_getPixel(BPy_ShadeInput *self) {
+	if(self->shi) {
+		PyObject *pixel;
+		pixel = Py_BuildValue("(ii)", self->shi->xs, self->shi->ys);
+		return pixel;
+	}
+	Py_RETURN_NONE;
+}
+
+static BPy_SockMap *Node_CreateOutputMap(bNode *node, bNodeStack **stack) {
+	BPy_SockMap *map = PyObject_NEW(BPy_SockMap, &SockOutMap_Type);
+	map->typeinfo= node->typeinfo;
+	map->stack= stack;
 	return map;
+}
+
+static PyObject *Node_GetOutputMap(BPy_Node *self) {
+	BPy_SockMap *outmap= Node_CreateOutputMap(self->node, self->out);
+	return (PyObject *)outmap;
+}
+
+static PyObject *Node_GetShi(BPy_Node *self) {
+	BPy_ShadeInput *shi= ShadeInput_CreatePyObject(self->shi);
+	return (PyObject *)shi;
+
 }
 
 static PyObject *node_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
@@ -752,6 +771,18 @@ static int node_init(BPy_Node *self, PyObject *args, PyObject *kwds)
 }
 
 static PyGetSetDef BPy_Node_getseters[] = {
+	{"ins",
+		(getter)Node_GetInputMap, (setter)NULL,
+		"Get the ShadeInput mapping (dictionary)",
+		NULL},
+	{"outs",
+		(getter)Node_GetOutputMap, (setter)NULL,
+		"Get the ShadeInput mapping (dictionary)",
+		NULL},
+	{"shi",
+		(getter)Node_GetShi, (setter)NULL,
+		"Get the ShadeInput (ShadeInput)",
+		NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -776,6 +807,10 @@ static PyGetSetDef BPy_ShadeInput_getseters[] = {
 	  (getter)ShadeInput_getSurfaceViewVector, (setter)NULL,
 	  "Get the vector pointing to the viewpoint from the point being shaded (tuple)",
 	  NULL},
+	{"pixel",
+	  (getter)ShadeInput_getPixel, (setter)NULL,
+	  "Get the x-coordinate for the pixel rendered",
+	  NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -789,7 +824,7 @@ PyTypeObject Node_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) Node_dealloc,/* destructor tp_dealloc; */
+	NULL,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL /*( getattrfunc ) PyObject_GenericGetAttr*/,                       /* getattrfunc tp_getattr; */
 	NULL /*( setattrfunc ) PyObject_GenericSetAttr*/,                       /* setattrfunc tp_setattr; */
@@ -871,7 +906,7 @@ PyTypeObject ShadeInput_Type = {
 
 	/* Methods to implement standard operations */
 
-	( destructor ) ShadeInput_dealloc,/* destructor tp_dealloc; */
+	NULL,/* destructor tp_dealloc; */
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
@@ -944,16 +979,13 @@ PyTypeObject ShadeInput_Type = {
 };
 
 
+/* Initialise Node module */
 PyObject *Node_Init(void)
 {
 	PyObject *submodule;
 
 	if( PyType_Ready( &Node_Type ) < 0 )
 		return NULL;
-	Node_Type.tp_alloc= PyType_GenericAlloc;
-	Node_Type.tp_getattr= ( getattrfunc ) PyObject_GenericGetAttr;
-	Node_Type.tp_setattr= ( setattrfunc ) PyObject_GenericSetAttr;
-
 	if( PyType_Ready( &ShadeInput_Type ) < 0 )
 		return NULL;
 	if( PyType_Ready( &OutputDefMap_Type ) < 0 )
@@ -972,22 +1004,9 @@ PyObject *Node_Init(void)
 
 	Py_INCREF(&Node_Type);
 	PyModule_AddObject(submodule, "node", (PyObject *)&Node_Type);
-	Py_INCREF(&ShadeInput_Type);
-	PyModule_AddObject(submodule, "ShadeInput", (PyObject *)&ShadeInput_Type);
 
 	return submodule;
 
-}
-
-void Node_dealloc(BPy_Node *self)
-{
-	if(self) {
-		self->inputs = NULL;
-		self->outputs = NULL;
-		self->node = NULL;
-
-		PyObject_DEL(self);
-	}
 }
 
 static int Node_compare(BPy_Node *a, BPy_Node *b)
@@ -1012,11 +1031,13 @@ BPy_Node *Node_CreatePyObject(bNode *node)
 		return (BPy_Node *)(EXPP_ReturnPyObjError(PyExc_MemoryError, "couldn't create BPy_Node object"));
 	}
 
-	pynode->node = node;
-	pynode->inputs = NULL;
-	pynode->outputs = NULL;
+	pynode->node= node;
 
 	return pynode;
+}
+
+void InitNode(BPy_Node *self, bNode *node) {
+	self->node= node;
 }
 
 bNode *Node_FromPyObject(PyObject *pyobj)
@@ -1024,16 +1045,21 @@ bNode *Node_FromPyObject(PyObject *pyobj)
 	return ((BPy_Node *)pyobj)->node;
 }
 
-/*********************/
-
-void ShadeInput_dealloc(BPy_ShadeInput *self)
+void Node_SetStack(BPy_Node *self, bNodeStack **stack, int type)
 {
-	if(self) {
-		self->shi = NULL;
-
-		PyObject_DEL(self);
+	if(type==NODE_INPUTSTACK) {
+		self->in= stack;
+	} else if(type==NODE_OUTPUTSTACK) {
+		self->out= stack;
 	}
 }
+
+void Node_SetShi(BPy_Node *self, ShadeInput *shi)
+{
+	self->shi= shi;
+}
+
+/*********************/
 
 static int ShadeInput_compare(BPy_ShadeInput *a, BPy_ShadeInput *b)
 {
@@ -1060,8 +1086,5 @@ BPy_ShadeInput *ShadeInput_CreatePyObject(ShadeInput *shi)
 
 	return pyshi;
 }
+#endif
 
-ShadeInput *ShadeInput_FromPyObject(PyObject *pyobj)
-{
-	return ((BPy_ShadeInput *)pyobj)->shi;
-}

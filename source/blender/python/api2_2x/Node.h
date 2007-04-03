@@ -30,6 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+#ifdef USE_PYNODES /* note: won't work without patch */
 #ifndef __NODE_H__
 #define __NODE_H__
 
@@ -38,16 +39,6 @@
 #include "BKE_node.h"
 
 #include "RE_shader_ext.h"		/* <- ShadeInput Shaderesult TexResult */
-
-#ifndef SH_NODE_SCRIPT_READY
-#define SH_NODE_SCRIPT_READY	0
-#define SH_NODE_SCRIPT_LOADED	1
-#define SH_NODE_SCRIPT_REPARSE	2
-#define SH_NODE_SCRIPT_NEW	3
-#define SH_NODE_SCRIPT_CREATED	4
-#define SH_NODE_SCRIPT_UPDATED	5
-#define SH_NODE_SCRIPT_ADDEXIST	6
-#endif
 
 extern PyTypeObject Node_Type;
 extern PyTypeObject ShadeInput_Type;
@@ -58,51 +49,43 @@ extern PyTypeObject ShadeInput_Type;
 #define BPy_ShadeInput_Check(v) \
     ((v)->ob_type == &ShadeInput_Type)
 
-typedef struct BPy_Node {
-	PyObject_HEAD
-	bNode *node;
-	bNodeStack **inputs;
-	bNodeStack **outputs;
-	int altered;
-} BPy_Node;
-
 typedef struct BPy_ShadeInput {
 	PyObject_HEAD
 	ShadeInput *shi;
 } BPy_ShadeInput;
 
 typedef struct {
-	PyObject_VAR_HEAD /* required python macro */
+	PyObject_VAR_HEAD
 	bNodeType *typeinfo;
-	bNodeStack **inputs;
-} BPy_SockInMap;
+	bNodeStack **stack;
+} BPy_SockMap;
 
 typedef struct {
-	PyObject_VAR_HEAD /* required python macro */
-	bNodeType *typeinfo;
-	bNodeStack **outputs;
-} BPy_SockOutMap;
-
-typedef struct {
-	PyObject_HEAD /* required python macro */
+	PyObject_HEAD
 	bNode *node;
-	bNodeStack **outputs;
-} BPy_OutputDefMap;
+} BPy_DefinitionMap;
 
-typedef struct {
-	PyObject_HEAD /* required python macro */
+typedef struct BPy_Node {
+	PyObject_HEAD
 	bNode *node;
-	bNodeStack **outputs;
-} BPy_InputDefMap;
+	bNodeStack **in;
+	bNodeStack **out;
+	ShadeInput *shi;
+} BPy_Node;
 
 extern PyObject *Node_Init(void);
+extern void InitNode(BPy_Node *self, bNode *node);
 extern BPy_Node *Node_CreatePyObject(bNode *node);
-extern PyObject *Node_CreateOutputDefMap(BPy_Node *self);
-extern PyObject *Node_CreateInputDefMap(BPy_Node *self);
+extern BPy_DefinitionMap *Node_CreateOutputDefMap(bNode *node);
+extern BPy_DefinitionMap *Node_CreateInputDefMap(bNode *node);
+extern void Node_SetStack(BPy_Node *self, bNodeStack **stack, int type);
+extern void Node_SetShi(BPy_Node *self, ShadeInput *shi);
 extern BPy_ShadeInput *ShadeInput_CreatePyObject(ShadeInput *shi);
-extern BPy_SockInMap *Node_getInputs(BPy_Node *self);
-extern BPy_SockOutMap *Node_getOutputs(BPy_Node *self);
 extern void Node_dealloc(BPy_Node *self);
 extern void ShadeInput_dealloc(BPy_ShadeInput *self);
 
+#define NODE_INPUTSTACK		0
+#define NODE_OUTPUTSTACK	1
+
 #endif /* __NODE_H__*/
+#endif /* USE_PYNODES */
