@@ -50,9 +50,7 @@ static PyObject *init_dynamicdict(void) {
 
 static void free_dynamicdict(PyObject *dict) {
 	if(dict!=NULL) {
-		PyDict_Clear(dict);
 		Py_DECREF(dict);
-		dict = NULL;
 	}
 }
 
@@ -86,6 +84,16 @@ static void node_dynamic_free(bNode *node)
 	Py_XDECREF(pynode);
 	free_dynamicdict((PyObject *)(nsd->dict));
 	MEM_freeN(node->storage);
+}
+
+static void node_dynamic_copy(bNode *orig_node, bNode *new_node)
+{
+	NodeScriptDict *nsd= (NodeScriptDict *)(orig_node->storage);
+	new_node->storage= MEM_dupallocN(orig_node->storage);
+	if(nsd->node)
+		Py_INCREF((PyObject *)(nsd->node));
+	if(nsd->dict)
+		Py_INCREF((PyObject *)(nsd->dict));
 }
 
 static void node_dynamic_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out) {
@@ -159,6 +167,8 @@ void nodeDynamicParse(struct bNode *node)
 		} else if(nsd->dict==NULL && node->custom1==SH_NODE_DYNAMIC_ADDEXIST) {
 			nsd->dict= node->typeinfo->pydict;
 			nsd->node= node->typeinfo->pynode;
+			Py_INCREF((PyObject *)(nsd->dict));
+			Py_INCREF((PyObject *)(nsd->node));
 			node->custom1= SH_NODE_DYNAMIC_READY;
 			return;
 		}
@@ -166,10 +176,9 @@ void nodeDynamicParse(struct bNode *node)
 
 		if(node->custom1!=SH_NODE_DYNAMIC_ADDEXIST) {
 			buf = txt_to_buf( txt );
-			printf("nsd %p, nsd->dict %p, buf %p\n", nsd, dict, buf);
-			printf("Running script (%s, %d)...", node->name, node->custom1);
+			/*printf("Running script (%s, %d)...", node->name, node->custom1);*/
 			pyresult = PyRun_String(buf, Py_file_input, dict, dict);
-			printf(" done\n");
+			/*printf(" done\n");*/
 
 			MEM_freeN(buf);
 
@@ -194,6 +203,8 @@ void nodeDynamicParse(struct bNode *node)
 					Py_DECREF(outputdef);
 					Py_DECREF(inputdef);
 					if(testinst && PyObject_TypeCheck(testinst, &Node_Type)==1) {
+						Py_INCREF(testinst);
+						Py_INCREF(dict);
 						InitNode((BPy_Node *)(testinst), node);
 						nsd->node= testinst;
 						node->typeinfo->execfunc= node_dynamic_exec;
@@ -228,6 +239,7 @@ bNodeType sh_node_dynamic = {
 	/* butfunc     */	NULL,
 	/* initfunc    */	node_dynamic_init,
 	/* freefunc    */	node_dynamic_free,
+	/* copyfunc    */	node_dynamic_copy,
 	/* id          */	NULL
 };
 

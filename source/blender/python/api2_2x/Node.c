@@ -678,65 +678,116 @@ static PyObject *Node_GetInputMap(BPy_Node *self) {
 	return (PyObject *)(inmap);
 }
 
-static PyObject *ShadeInput_getSurfaceViewVector(BPy_ShadeInput *self) {
+#define SURFACEVIEWVECTOR	0
+#define VIEWNORMAL			1
+#define SURFACENORMAL		2
+#define GLOBALTEXTURE		3
+#define TEXTURE				4
+#define PIXEL				5
+#define COLOR				6
+#define SPECULAR			7
+#define MIRROR				8
+#define AMBIENT				9
+#define AMBIENTFACTOR		10
+#define EMITFACTOR			11
+#define DISPLACE			12
+#define STRAND				13
+#define STRESS				14
+#define TANGENT				15
+#define SURFACE_D			30
+#define TEXTURE_D			31
+#define GLOBALTEXTURE_D		32
+#define REFLECTION_D		33
+#define NORMAL_D			34
+#define STICKY_D			35
+#define REFRACT_D			36
+#define STRAND_D			37
+
+static PyObject *ShadeInput_getAttribute(BPy_ShadeInput *self, void *type) {
+	PyObject *obj= NULL;
 	if(self->shi) {
-		PyObject *surfviewvec;
-		surfviewvec= Py_BuildValue("(fff)", self->shi->view[0], self->shi->view[1], self->shi->view[2]);
-		return surfviewvec;
+		switch((int)type) {
+			case SURFACEVIEWVECTOR:
+				obj= Py_BuildValue("(fff)", self->shi->view[0], self->shi->view[1], self->shi->view[2]);
+				break;
+			case VIEWNORMAL:
+				obj= Py_BuildValue("(fff)", self->shi->vn[0], self->shi->vn[1], self->shi->vn[2]);
+				break;
+			case SURFACENORMAL:
+				obj= Py_BuildValue("(fff)", self->shi->facenor[0], self->shi->facenor[1], self->shi->facenor[2]);
+				break;
+			case GLOBALTEXTURE:
+				obj= Py_BuildValue("(fff)", self->shi->gl[0], self->shi->gl[1], self->shi->gl[2]);
+				break;
+			case TEXTURE:
+				obj= Py_BuildValue("(fff)", self->shi->lo[0], self->shi->lo[1], self->shi->lo[2]);
+				break;
+			case PIXEL:
+				obj= Py_BuildValue("(ii)", self->shi->xs, self->shi->ys);
+				break;
+			case COLOR:
+				obj= Py_BuildValue("(fff)", self->shi->r, self->shi->g, self->shi->b);
+				break;
+			case SPECULAR:
+				obj= Py_BuildValue("(fff)", self->shi->specr, self->shi->specg, self->shi->specb);
+				break;
+			case MIRROR:
+				obj= Py_BuildValue("(fff)", self->shi->mirr, self->shi->mirg, self->shi->mirb);
+				break;
+			case AMBIENT:
+				obj= Py_BuildValue("(fff)", self->shi->ambr, self->shi->ambg, self->shi->ambb);
+				break;
+			case AMBIENTFACTOR:
+				obj= PyFloat_FromDouble((double)(self->shi->amb));
+				break;
+			case EMITFACTOR:
+				obj= PyFloat_FromDouble((double)(self->shi->emit));
+				break;
+			case DISPLACE:
+				obj= Py_BuildValue("(fff)", self->shi->displace[0], self->shi->displace[1], self->shi->displace[2]);
+				break;
+			case STRAND:
+				obj= PyFloat_FromDouble((double)(self->shi->strand));
+				break;
+			case STRESS:
+				obj= PyFloat_FromDouble((double)(self->shi->stress));
+				break;
+			case TANGENT:
+				obj= Py_BuildValue("(fff)", self->shi->tang[0], self->shi->tang[1], self->shi->tang[2]);
+				break;
+			case SURFACE_D:
+				obj= Py_BuildValue("(fff)(fff)", self->shi->dxco[0], self->shi->dxco[1], self->shi->dxco[2], self->shi->dyco[0], self->shi->dyco[1], self->shi->dyco[2]);
+				break;
+			case TEXTURE_D:
+				obj= Py_BuildValue("(fff)(fff)", self->shi->dxlo[0], self->shi->dxlo[1], self->shi->dxlo[2], self->shi->dylo[0], self->shi->dylo[1], self->shi->dylo[2]);
+				break;
+			case GLOBALTEXTURE_D:
+				obj= Py_BuildValue("(fff)(fff)", self->shi->dxgl[0], self->shi->dxgl[1], self->shi->dxgl[2], self->shi->dygl[0], self->shi->dygl[1], self->shi->dygl[2]);
+				break;
+			case REFLECTION_D:
+				obj= Py_BuildValue("(fff)(fff)", self->shi->dxref[0], self->shi->dxref[1], self->shi->dxref[2], self->shi->dyref[0], self->shi->dyref[1], self->shi->dyref[2]);
+				break;
+			case NORMAL_D:
+				obj= Py_BuildValue("(fff)(fff)", self->shi->dxno[0], self->shi->dxno[1], self->shi->dxno[2], self->shi->dyno[0], self->shi->dyno[1], self->shi->dyno[2]);
+				break;
+			case STICKY_D:
+				obj= Py_BuildValue("(fff)(fff)", self->shi->dxsticky[0], self->shi->dxsticky[1], self->shi->dxsticky[2], self->shi->dysticky[0], self->shi->dysticky[1], self->shi->dysticky[2]);
+				break;
+			case REFRACT_D:
+				obj= Py_BuildValue("(fff)(fff)", self->shi->dxrefract[0], self->shi->dxrefract[1], self->shi->dxrefract[2], self->shi->dyrefract[0], self->shi->dyrefract[1], self->shi->dyrefract[2]);
+				break;
+			case STRAND_D:
+				obj= Py_BuildValue("(ff)", self->shi->dxstrand, self->shi->dystrand);
+				break;
+			default:
+				break;
+		}
 	}
 
-	Py_RETURN_NONE;
-}
-
-static PyObject *ShadeInput_getViewNormal(BPy_ShadeInput *self) {
-	PyObject *viewnorm;
-	if(self->shi) {
-		viewnorm = Py_BuildValue("(fff)", self->shi->vn[0], self->shi->vn[1], self->shi->vn[2]);
-	} else {
-		viewnorm = Py_BuildValue("(fff)", 0.0, 0.0, 0.0);
+	if(!obj) {
+		Py_RETURN_NONE;
 	}
-	return viewnorm;
-
-}
-
-static PyObject *ShadeInput_getSurfaceNormal(BPy_ShadeInput *self) {
-	PyObject *surfnorm;
-	if(self->shi) {
-		surfnorm = Py_BuildValue("(fff)", self->shi->facenor[0], self->shi->facenor[1], self->shi->facenor[2]);
-	} else {
-		surfnorm = Py_BuildValue("(fff)", 0.0, 0.0, 0.0);
-	}
-	return surfnorm;
-}
-
-
-static PyObject *ShadeInput_getGlobalTexCoord(BPy_ShadeInput *self) {
-	if(self->shi) {
-		PyObject *texvec;
-		texvec = Py_BuildValue("(fff)", self->shi->gl[0], self->shi->gl[1], self->shi->gl[2]);
-		return texvec;
-	}
-
-	Py_RETURN_NONE;
-}
-
-static PyObject *ShadeInput_getTexCoord(BPy_ShadeInput *self) {
-	if(self->shi) {
-		PyObject *texvec;
-		texvec = Py_BuildValue("(fff)", self->shi->lo[0], self->shi->lo[1], self->shi->lo[2]);
-		return texvec;
-	}
-
-	Py_RETURN_NONE;
-}
-
-static PyObject *ShadeInput_getPixel(BPy_ShadeInput *self) {
-	if(self->shi) {
-		PyObject *pixel;
-		pixel = Py_BuildValue("(ii)", self->shi->xs, self->shi->ys);
-		return pixel;
-	}
-	Py_RETURN_NONE;
+	return obj;
 }
 
 static BPy_SockMap *Node_CreateOutputMap(bNode *node, bNodeStack **stack) {
@@ -787,30 +838,102 @@ static PyGetSetDef BPy_Node_getseters[] = {
 };
 
 static PyGetSetDef BPy_ShadeInput_getseters[] = {
-	{"tex_coord",
-	  (getter)ShadeInput_getTexCoord, (setter)NULL,
+	{"texture",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
 	  "Get the current texture coordinate (tuple)",
-	  NULL},
-	{"global_tex_coord",
-	  (getter)ShadeInput_getGlobalTexCoord, (setter)NULL,
+	  (void*)TEXTURE},
+	{"texture_global",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
 	  "Get the current global texture coordinate (tuple)",
-	  NULL},
+	  (void*)GLOBALTEXTURE},
 	{"surface_normal",
-	  (getter)ShadeInput_getSurfaceNormal, (setter)NULL,
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
 	  "Get the current surface normal (tuple)",
-	  NULL},
+	  (void*)SURFACENORMAL},
 	{"view_normal",
-	  (getter)ShadeInput_getViewNormal, (setter)NULL,
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
 	  "Get the current view normal (tuple)",
-	  NULL},
+	  (void*)VIEWNORMAL},
 	{"surface_view_vec",
-	  (getter)ShadeInput_getSurfaceViewVector, (setter)NULL,
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
 	  "Get the vector pointing to the viewpoint from the point being shaded (tuple)",
-	  NULL},
+	  (void*)SURFACEVIEWVECTOR},
 	{"pixel",
-	  (getter)ShadeInput_getPixel, (setter)NULL,
-	  "Get the x-coordinate for the pixel rendered",
-	  NULL},
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the x,y-coordinate for the pixel rendered (tuple)",
+	  (void*)PIXEL},
+	{"color",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the color for the point being shaded (tuple)",
+	  (void*)COLOR},
+	{"specular",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the specular color for the point being shaded (tuple)",
+	  (void*)SPECULAR},
+	{"mirror",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the mirror color for the point being shaded (tuple)",
+	  (void*)MIRROR},
+	{"ambient",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the ambient color for the point being shaded (tuple)",
+	  (void*)AMBIENT},
+	{"ambient_factor",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the ambient factor for the point being shaded (float)",
+	  (void*)AMBIENTFACTOR},
+	{"emit_factor",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the emit factor for the point being shaded (float)",
+	  (void*)EMITFACTOR},
+	{"displace",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the displace vector for the point being shaded (tuple)",
+	  (void*)DISPLACE},
+	{"strand",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the strand factor(float)",
+	  (void*)STRAND},
+	{"stress",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the stress factor(float)",
+	  (void*)STRESS},
+	{"tangent",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the tangent vector (tuple)",
+	  (void*)TANGENT},
+	{"surface_d",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the surface d (tuple of tuples)",
+	  (void*)SURFACE_D},
+	{"texture_d",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the texture d (tuple of tuples)",
+	  (void*)TEXTURE_D},
+	{"texture_global_d",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the global texture d (tuple of tuples)",
+	  (void*)GLOBALTEXTURE_D},
+	{"reflection_d",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the reflection d (tuple of tuples)",
+	  (void*)REFLECTION_D},
+	{"normal_d",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the normal d (tuple of tuples)",
+	  (void*)NORMAL_D},
+	{"sticky_d",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the sticky d (tuple of tuples)",
+	  (void*)STICKY_D},
+	{"refract_d",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the refract d (tuple of tuples)",
+	  (void*)REFRACT_D},
+	{"strand_d",
+	  (getter)ShadeInput_getAttribute, (setter)NULL,
+	  "Get the strand d (tuple)",
+	  (void*)REFRACT_D},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
