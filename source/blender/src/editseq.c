@@ -588,7 +588,9 @@ static Sequence *sfile_to_sequence(SpaceFile *sfile, int cfra, int machine, int 
 	return seq;
 }
 
-static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
+
+static int sfile_to_mv_sequence_load(SpaceFile *sfile, int cfra, 
+				     int machine, int index )
 {
 	Sequence *seq;
 	struct anim *anim;
@@ -601,14 +603,17 @@ static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
 	totframe= 0;
 
 	strncpy(str, sfile->dir, FILE_MAXDIR-1);
-	strncat(str, sfile->file, FILE_MAXDIR-1);
+	if(index<0)
+		strncat(str, sfile->file, FILE_MAXDIR-1);
+	else
+		strncat(str, sfile->filelist[index].relname, FILE_MAXDIR-1);
 
 	/* is it a movie? */
 	anim = openanim(str, IB_rect);
 	if(anim==0) {
 		error("The selected file is not a movie or "
 		      "FFMPEG-support not compiled in!");
-		return;
+		return(cfra);
 	}
 	
 	totframe= IMB_anim_get_duration(anim);
@@ -638,7 +643,10 @@ static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
 	strip->stripdata= se= MEM_callocN(totframe*sizeof(StripElem), "stripelem");
 
 	/* name movie in first strip */
-	strncpy(se->name, sfile->file, FILE_MAXFILE-1);
+	if(index<0)
+		strncpy(se->name, sfile->file, FILE_MAXFILE-1);
+	else
+		strncpy(se->name, sfile->filelist[index].relname, FILE_MAXFILE-1);
 
 	for(a=1; a<=totframe; a++, se++) {
 		se->ok= 1;
@@ -647,6 +655,38 @@ static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
 
 	/* last active name */
 	strncpy(last_imagename, seq->strip->dir, FILE_MAXDIR-1);
+	return(cfra+totframe);
+}
+
+static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
+{
+	int a, totsel;
+
+	totsel= 0;
+	for(a= 0; a<sfile->totfile; a++) {
+		if(sfile->filelist[a].flags & ACTIVE) {
+			if ((sfile->filelist[a].type & S_IFDIR)==0) {
+				totsel++;
+			}
+		}
+	}
+
+	if((totsel==0) && (sfile->file[0])) {
+		cfra= sfile_to_mv_sequence_load(sfile, cfra, machine, -1);
+		return;
+	}
+
+	if(totsel==0) return;
+
+	/* ok. check all the select file, and load it. */
+	for(a= 0; a<sfile->totfile; a++) {
+		if(sfile->filelist[a].flags & ACTIVE) {
+			if ((sfile->filelist[a].type & S_IFDIR)==0) {
+				/* load and update current frame. */
+				cfra= sfile_to_mv_sequence_load(sfile, cfra, machine, a);
+			}
+		}
+	}
 }
 
 static Sequence *sfile_to_ramsnd_sequence(SpaceFile *sfile, 
@@ -719,7 +759,8 @@ static Sequence *sfile_to_ramsnd_sequence(SpaceFile *sfile,
 	return seq;
 }
 
-static void sfile_to_hdsnd_sequence(SpaceFile *sfile, int cfra, int machine)
+static int sfile_to_hdsnd_sequence_load(SpaceFile *sfile, int cfra, 
+					int machine, int index)
 {
 	Sequence *seq;
 	struct hdaudio *hdaudio;
@@ -732,14 +773,17 @@ static void sfile_to_hdsnd_sequence(SpaceFile *sfile, int cfra, int machine)
 	totframe= 0;
 
 	strncpy(str, sfile->dir, FILE_MAXDIR-1);
-	strncat(str, sfile->file, FILE_MAXDIR-1);
+	if(index<0)
+		strncat(str, sfile->file, FILE_MAXDIR-1);
+	else
+		strncat(str, sfile->filelist[index].relname, FILE_MAXDIR-1);
 
 	/* is it a sound file? */
 	hdaudio = sound_open_hdaudio(str);
 	if(hdaudio==0) {
 		error("The selected file is not a sound file or "
 		      "FFMPEG-support not compiled in!");
-		return;
+		return(cfra);
 	}
 
 	totframe= sound_hdaudio_get_duration(hdaudio, G.scene->r.frs_sec);
@@ -768,7 +812,10 @@ static void sfile_to_hdsnd_sequence(SpaceFile *sfile, int cfra, int machine)
 	strip->stripdata= se= MEM_callocN(totframe*sizeof(StripElem), "stripelem");
 
 	/* name movie in first strip */
-	strncpy(se->name, sfile->file, FILE_MAXFILE-1);
+	if(index<0)
+		strncpy(se->name, sfile->file, FILE_MAXFILE-1);
+	else
+		strncpy(se->name, sfile->filelist[index].relname, FILE_MAXFILE-1);
 
 	for(a=1; a<=totframe; a++, se++) {
 		se->ok= 2;
@@ -778,6 +825,38 @@ static void sfile_to_hdsnd_sequence(SpaceFile *sfile, int cfra, int machine)
 
 	/* last active name */
 	strncpy(last_sounddir, seq->strip->dir, FILE_MAXDIR-1);
+	return(cfra+totframe);
+}
+
+static void sfile_to_hdsnd_sequence(SpaceFile *sfile, int cfra, int machine)
+{
+	int totsel, a;
+
+	totsel= 0;
+	for(a= 0; a<sfile->totfile; a++) {
+		if(sfile->filelist[a].flags & ACTIVE) {
+			if((sfile->filelist[a].type & S_IFDIR)==0) {
+				totsel++;
+			}
+		}
+	}
+
+	if((totsel==0) && (sfile->file[0])) {
+		cfra= sfile_to_hdsnd_sequence_load(sfile, cfra, machine, -1);
+		return;
+	}
+
+	if(totsel==0) return;
+
+	/* ok, check all the select file, and load it. */
+	for(a= 0; a<sfile->totfile; a++) {
+		if(sfile->filelist[a].flags & ACTIVE) {
+			if((sfile->filelist[a].type & S_IFDIR)==0) {
+				/* load and update current frame. */
+				cfra= sfile_to_hdsnd_sequence_load(sfile, cfra, machine, a);
+			}
+		}
+	}
 }
 
 
