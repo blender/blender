@@ -1409,11 +1409,13 @@ void mouse_select(void)
 			if(has_bones && basact) {
 				if( do_pose_selectbuffer(basact, buffer, hits) ) {	/* then bone is found */
 				
+					/* we make the armature selected: 
+					   not-selected active object in posemode won't work well for tools */
+					basact->flag|= SELECT;
+					basact->object->flag= basact->flag;
+					
 					/* in weightpaint, we use selected bone to select vertexgroup, so no switch to new active object */
 					if(G.f & G_WEIGHTPAINT) {
-						/* we make the armature selected */
-						basact->flag|= SELECT;
-						basact->object->flag= basact->flag;
 						/* prevent activating */
 						basact= NULL;
 					}

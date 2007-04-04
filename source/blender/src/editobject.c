@@ -999,7 +999,7 @@ void clear_object(char mode)
 		if TESTBASELIB(base) {
 			ob= base->object;
 			
-			if(ob->flag & OB_POSEMODE) {
+			if( (ob->flag & OB_POSEMODE) && ob==OBACT) {
 				clear_armature(ob, mode);
 				armature_clear= 1;	/* silly system to prevent another dag update, so no action applied */
 			}
