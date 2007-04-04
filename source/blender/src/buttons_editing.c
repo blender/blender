@@ -3400,6 +3400,7 @@ static void parnr_to_editbone_cb(void *bonev, void *arg2_unused)
 	parnr_to_editbone(curBone);
 }
 
+/* only used for showing parent of editbones */
 static void build_bonestring (char *string, EditBone *bone)
 {
 	bArmature *arm= G.obedit->data;
@@ -3434,8 +3435,11 @@ static void build_bonestring (char *string, EditBone *bone)
 					break;
 				}
 			}
+			/* no browsing for bones in invisible layers */
 			if ((arm->layer & curBone->layer) == 0) {
-				skip= 1;
+				/* but ensure the current parent at least shows */
+				if(bone->parent!=curBone)
+					skip= 1;
 			}
 
 			if (skip)
