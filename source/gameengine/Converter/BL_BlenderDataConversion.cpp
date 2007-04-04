@@ -190,7 +190,7 @@ static unsigned int KX_rgbaint2uint_new(unsigned int icol)
 	{
 		unsigned int integer;
 		unsigned char cp[4];
-	} color, in_color;
+	} out_color, in_color;
 	
 	in_color.integer = icol;
 	out_color.cp[0] = in_color.cp[3]; // red
