@@ -124,7 +124,10 @@ bNodeType sh_node_geom= {
 	/* output sock */	sh_node_geom_out,
 	/* storage     */	"NodeGeometry",
 	/* execfunc    */	node_shader_exec_geom,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   node_shader_init_geometry
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_shader_init_geometry,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 	
 };

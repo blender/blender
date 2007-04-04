@@ -174,16 +174,19 @@ static void node_composit_init_chroma_matte(bNode *node)
 
 bNodeType cmp_node_chroma={
 	/* *next,*prev */	NULL, NULL,
-   /* type code   */       CMP_NODE_CHROMA,
-   /* name        */       "Chroma Key",
-   /* width+range */       200, 80, 300,
-   /* class+opts  */       NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
-   /* input sock  */       cmp_node_chroma_in,
-   /* output sock */       cmp_node_chroma_out,
-   /* storage     */       "NodeChroma",
-   /* execfunc    */       node_composit_exec_chroma_matte,
-   /* butfunc     */       NULL,
-                           node_composit_init_chroma_matte
+	/* type code   */	CMP_NODE_CHROMA,
+	/* name        */	"Chroma Key",
+	/* width+range */	200, 80, 300,
+	/* class+opts  */	NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
+	/* input sock  */	cmp_node_chroma_in,
+	/* output sock */	cmp_node_chroma_out,
+	/* storage     */	"NodeChroma",
+	/* execfunc    */	node_composit_exec_chroma_matte,
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_chroma_matte,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 };
 
 

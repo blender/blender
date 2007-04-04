@@ -69,8 +69,11 @@ bNodeType sh_node_valtorgb= {
 	/* output sock */	sh_node_valtorgb_out,
 	/* storage     */	"ColorBand",
 	/* execfunc    */	node_shader_exec_valtorgb,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   node_shader_init_valtorgb
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_shader_init_valtorgb,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 	
 };
 
@@ -95,16 +98,19 @@ static void node_shader_exec_rgbtobw(void *data, bNode *node, bNodeStack **in, b
 
 bNodeType sh_node_rgbtobw= {
 	/* *next,*prev */	NULL, NULL,
-   /* type code   */	SH_NODE_RGBTOBW,
-   /* name        */	"RGB to BW",
-   /* width+range */	80, 40, 120,
-   /* class+opts  */	NODE_CLASS_CONVERTOR, 0,
-   /* input sock  */	sh_node_rgbtobw_in,
-   /* output sock */	sh_node_rgbtobw_out,
-   /* storage     */	"",
-   /* execfunc    */	node_shader_exec_rgbtobw,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* type code   */	SH_NODE_RGBTOBW,
+	/* name        */	"RGB to BW",
+	/* width+range */	80, 40, 120,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, 0,
+	/* input sock  */	sh_node_rgbtobw_in,
+	/* output sock */	sh_node_rgbtobw_out,
+	/* storage     */	"",
+	/* execfunc    */	node_shader_exec_rgbtobw,
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 
 };
 

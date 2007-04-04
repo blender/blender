@@ -191,14 +191,17 @@ static void node_composit_init_channel_matte(bNode *node)
 
 bNodeType cmp_node_channel_matte={
 	/* *next,*prev */	NULL, NULL,
-   /* type code   */       CMP_NODE_CHANNEL_MATTE,
-   /* name        */       "Channel Key",
-   /* width+range */       200, 80, 250,
-   /* class+opts  */       NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
-   /* input sock  */       cmp_node_channel_matte_in,
-   /* output sock */       cmp_node_channel_matte_out,
-   /* storage     */       "NodeChroma",
-   /* execfunc    */       node_composit_exec_channel_matte,
-   /* butfunc     */       NULL,
-                           node_composit_init_channel_matte
+	/* type code   */	CMP_NODE_CHANNEL_MATTE,
+	/* name        */	"Channel Key",
+	/* width+range */	200, 80, 250,
+	/* class+opts  */	NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
+	/* input sock  */	cmp_node_channel_matte_in,
+	/* output sock */	cmp_node_channel_matte_out,
+	/* storage     */	"NodeChroma",
+	/* execfunc    */	node_composit_exec_channel_matte,
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_channel_matte,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 };

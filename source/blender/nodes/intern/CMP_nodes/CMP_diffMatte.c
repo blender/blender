@@ -199,16 +199,19 @@ static void node_composit_init_diff_matte(bNode *node)
 
 bNodeType cmp_node_diff_matte={
 	/* *next,*prev */	NULL, NULL,
-	/* type code   */       CMP_NODE_DIFF_MATTE,
-	/* name        */       "Difference Key",
-	/* width+range */       200, 80, 250,
-	/* class+opts  */       NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */       cmp_node_diff_matte_in,
-	/* output sock */       cmp_node_diff_matte_out,
-	/* storage     */       "NodeChroma",
-	/* execfunc    */       node_composit_exec_diff_matte,
-    /* butfunc     */       NULL,
-    /* initfunc    */       node_composit_init_diff_matte
+	/* type code   */	CMP_NODE_DIFF_MATTE,
+	/* name        */	"Difference Key",
+	/* width+range */	200, 80, 250,
+	/* class+opts  */	NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
+	/* input sock  */	cmp_node_diff_matte_in,
+	/* output sock */	cmp_node_diff_matte_out,
+	/* storage     */	"NodeChroma",
+	/* execfunc    */	node_composit_exec_diff_matte,
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_diff_matte,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 };
 
 

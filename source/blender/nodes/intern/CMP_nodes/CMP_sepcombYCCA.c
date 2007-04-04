@@ -96,17 +96,20 @@ static void node_composit_exec_sepycca(void *data, bNode *node, bNodeStack **in,
 }
 
 bNodeType cmp_node_sepycca= {
-	/* *next,*prev */ NULL, NULL,
-	/* type code   */ CMP_NODE_SEPYCCA,
-	/* name        */ "Separate YCbCrA",
-	/* width+range */ 80, 40, 140,
-	/* class+opts  */ NODE_CLASS_CONVERTOR, 0,
-	/* input sock  */ cmp_node_sepycca_in,
-	/* output sock */ cmp_node_sepycca_out,
-	/* storage     */ "",
-	/* execfunc    */ node_composit_exec_sepycca,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* *next,*prev */	NULL, NULL,
+	/* type code   */	CMP_NODE_SEPYCCA,
+	/* name        */	"Separate YCbCrA",
+	/* width+range */	80, 40, 140,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, 0,
+	/* input sock  */	cmp_node_sepycca_in,
+	/* output sock */	cmp_node_sepycca_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_sepycca,
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 
 
@@ -184,8 +187,11 @@ bNodeType cmp_node_combycca= {
 	/* output sock */	cmp_node_combycca_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_combycca,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 
 

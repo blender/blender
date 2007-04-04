@@ -629,16 +629,19 @@ static void node_composit_init_blur(bNode* node)
 
 bNodeType cmp_node_blur= {
 	/* *next,*prev */	NULL, NULL,
-   /* type code   */	CMP_NODE_BLUR,
-   /* name        */	"Blur",
-   /* width+range */	120, 80, 200,
-   /* class+opts  */	NODE_CLASS_OP_FILTER, NODE_OPTIONS,
-   /* input sock  */	cmp_node_blur_in,
-   /* output sock */	cmp_node_blur_out,
-   /* storage     */	"NodeBlurData",
-   /* execfunc    */	node_composit_exec_blur,
-   /* butfunc     */	NULL,
-	/*initfunc    */    node_composit_init_blur
+	/* type code   */	CMP_NODE_BLUR,
+	/* name        */	"Blur",
+	/* width+range */	120, 80, 200,
+	/* class+opts  */	NODE_CLASS_OP_FILTER, NODE_OPTIONS,
+	/* input sock  */	cmp_node_blur_in,
+	/* output sock */	cmp_node_blur_out,
+	/* storage     */	"NodeBlurData",
+	/* execfunc    */	node_composit_exec_blur,
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_blur,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 };
 
 

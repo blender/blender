@@ -102,7 +102,10 @@ bNodeType cmp_node_output_file= {
 	/* storage     */	"NodeImageFile",
 	/* execfunc    */	node_composit_exec_output_file,
 	/* butfunc     */	NULL,
-	/* initfunc    */	node_composit_init_output_file
+	/* initfunc    */	node_composit_init_output_file,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 	
 };
 

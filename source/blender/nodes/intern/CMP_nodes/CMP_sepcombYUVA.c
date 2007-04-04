@@ -98,16 +98,19 @@ static void node_composit_exec_sepyuva(void *data, bNode *node, bNodeStack **in,
 
 bNodeType cmp_node_sepyuva= {
 	/* *next,*prev */	NULL, NULL,
-	/* type code   */ CMP_NODE_SEPYUVA,
-	/* name        */ "Separate YUVA",
-	/* width+range */ 80, 40, 140,
-	/* class+opts  */ NODE_CLASS_CONVERTOR, 0,
-	/* input sock  */ cmp_node_sepyuva_in,
-	/* output sock */ cmp_node_sepyuva_out,
-	/* storage     */ "",
-	/* execfunc    */ node_composit_exec_sepyuva,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* type code   */	CMP_NODE_SEPYUVA,
+	/* name        */	"Separate YUVA",
+	/* width+range */	80, 40, 140,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, 0,
+	/* input sock  */	cmp_node_sepyuva_in,
+	/* output sock */	cmp_node_sepyuva_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_sepyuva,
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 
 
@@ -178,7 +181,10 @@ bNodeType cmp_node_combyuva= {
 	/* output sock */	cmp_node_combyuva_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_combyuva,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 

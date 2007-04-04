@@ -66,8 +66,11 @@ bNodeType sh_node_curve_vec= {
 	/* output sock */	sh_node_curve_vec_out,
 	/* storage     */	"CurveMapping",
 	/* execfunc    */	node_shader_exec_curve_vec,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   node_shader_init_curve_vec
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_shader_init_curve_vec,
+	/* freestoragefunc    */	node_free_curves,
+	/* copystoragefunc    */	node_copy_curves,
+	/* id          */	NULL
 	
 };
 
@@ -108,6 +111,9 @@ bNodeType sh_node_curve_rgb= {
 	/* storage     */	"CurveMapping",
 	/* execfunc    */	node_shader_exec_curve_rgb,
 	/* butfunc     */ 	NULL,
-	/* initfunc    */   node_shader_init_curve_rgb
+	/* initfunc    */   node_shader_init_curve_rgb,
+	/* freestoragefunc    */	node_free_curves,
+	/* copystoragefunc    */	node_copy_curves,
+	/* id          */	NULL
 };
 

@@ -59,7 +59,10 @@ bNodeType sh_node_camera= {
 	/* output sock */	sh_node_camera_out,
 	/* storage     */	"node_camera",
 	/* execfunc    */	node_shader_exec_camera,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 

@@ -78,10 +78,17 @@ typedef struct bNodeType {
 	
 	void (*execfunc)(void *data, struct bNode *, struct bNodeStack **, struct bNodeStack **);
 	
-	/* after this line is set on startup of blender */
+	/* this line is set on startup of blender */
 	int (*butfunc)(struct uiBlock *, struct bNodeTree *, struct bNode *, struct rctf *);
 
-   void (*initfunc)(struct bNode *);
+	void (*initfunc)(struct bNode *);
+	void (*freestoragefunc)(struct bNode *);
+	void (*copystoragefunc)(struct bNode *, struct bNode *);
+	
+	/* for use with dynamic typedefs */
+	ID *id;
+	void *script; /* holds pointer to python script */
+	void *dict; /* holds pointer to python script dictionary (scope)*/
 
 } bNodeType;
 

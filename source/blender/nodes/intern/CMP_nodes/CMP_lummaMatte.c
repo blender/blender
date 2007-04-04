@@ -105,15 +105,18 @@ static void node_composit_init_luma_matte(bNode *node)
 
 bNodeType cmp_node_luma_matte={
 	/* *next,*prev */	NULL, NULL,
-	/* type code   */       CMP_NODE_LUMA_MATTE,
-	/* name        */       "Luminance Key",
-	/* width+range */       200, 80, 250,
-	/* class+opts  */       NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
-	/* input sock  */       cmp_node_luma_matte_in,
-	/* output sock */       cmp_node_luma_matte_out,
-	/* storage     */       "NodeChroma",
-	/* execfunc    */       node_composit_exec_luma_matte,
-	/* butfunc     */       NULL,
-	/* initfunc    */		node_composit_init_luma_matte
+	/* type code   */	CMP_NODE_LUMA_MATTE,
+	/* name        */	"Luminance Key",
+	/* width+range */	200, 80, 250,
+	/* class+opts  */	NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS,
+	/* input sock  */	cmp_node_luma_matte_in,
+	/* output sock */	cmp_node_luma_matte_out,
+	/* storage     */	"NodeChroma",
+	/* execfunc    */	node_composit_exec_luma_matte,
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_luma_matte,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 };
 

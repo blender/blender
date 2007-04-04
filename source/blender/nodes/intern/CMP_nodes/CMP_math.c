@@ -168,8 +168,11 @@ bNodeType cmp_node_math= {
 	/* output sock */	cmp_node_math_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_math,
-	/* butfunc     */ 	NULL,
-	/* initfunc	   */	NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 
 

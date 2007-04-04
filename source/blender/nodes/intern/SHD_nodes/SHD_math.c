@@ -180,15 +180,18 @@ bNodeStack **out)
 
 bNodeType sh_node_math= {
 	/* *next,*prev */	NULL, NULL,
-	/* type code   */ SH_NODE_MATH, 
-	/* name        */ "Math", 
-	/* width+range */ 120, 110, 160, 
-	/* class+opts  */ NODE_CLASS_CONVERTOR, NODE_OPTIONS, 
-	/* input sock  */ sh_node_math_in, 
-	/* output sock */ sh_node_math_out, 
-	/* storage     */ "node_math", 
-	/* execfunc    */ node_shader_exec_math,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* type code   */	SH_NODE_MATH, 
+	/* name        */	"Math", 
+	/* width+range */	120, 110, 160, 
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS, 
+	/* input sock  */	sh_node_math_in, 
+	/* output sock */	sh_node_math_out, 
+	/* storage     */	"node_math", 
+	/* execfunc    */	node_shader_exec_math,
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 

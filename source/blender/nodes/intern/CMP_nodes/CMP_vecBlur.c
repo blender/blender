@@ -90,7 +90,6 @@ static void node_composit_init_vecblur(bNode* node)
    nbd->fac= 1.0f;
 };
 
-
 /* custom1: itterations, custom2: maxspeed (0 = nolimit) */
 bNodeType cmp_node_vecblur= {
 	/* next, prev  */	NULL, NULL,
@@ -101,8 +100,11 @@ bNodeType cmp_node_vecblur= {
 	/* input sock  */	cmp_node_vecblur_in,
 	/* output sock */	cmp_node_vecblur_out,
 	/* storage     */	"NodeBlurData",
-   /* execfunc    */	node_composit_exec_vecblur,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   node_composit_init_vecblur	
+	/* execfunc    */	node_composit_exec_vecblur,
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_vecblur,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 };
 

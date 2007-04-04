@@ -123,19 +123,22 @@ static void node_composit_init_color_spill(bNode *node)
    c->fsize= 0.0f;
    c->fstrength= 0.0f;
    node->custom1= 2; /* green channel */
-};
+}
 
 bNodeType cmp_node_color_spill={
 	/* *next,*prev */	NULL, NULL,
-   /* type code   */       CMP_NODE_COLOR_SPILL,
-   /* name        */       "Color Spill",
-   /* width+range */       140, 80, 200,
-   /* class+opts  */       NODE_CLASS_MATTE, NODE_OPTIONS,
-   /* input sock  */       cmp_node_color_spill_in,
-   /* output sock */       cmp_node_color_spill_out,
-   /* storage     */       "NodeChroma",
-   /* execfunc    */       node_composit_exec_color_spill,
-   /* butfunc     */       NULL,
-                           node_composit_init_color_spill
+	/* type code   */	CMP_NODE_COLOR_SPILL,
+	/* name        */	"Color Spill",
+	/* width+range */	140, 80, 200,
+	/* class+opts  */	NODE_CLASS_MATTE, NODE_OPTIONS,
+	/* input sock  */	cmp_node_color_spill_in,
+	/* output sock */	cmp_node_color_spill_out,
+	/* storage     */	"NodeChroma",
+	/* execfunc    */	node_composit_exec_color_spill,
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_color_spill,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 };
 

@@ -109,7 +109,10 @@ bNodeType sh_node_vect_math= {
 	/* output sock */ sh_node_vect_math_out, 
 	/* storage     */ "node_vect_math", 
 	/* execfunc    */ node_shader_exec_vect_math,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 

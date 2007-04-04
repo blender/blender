@@ -94,8 +94,11 @@ bNodeType cmp_node_idmask= {
 	/* output sock */	cmp_node_idmask_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_idmask,
-	/* butfunc     */   NULL,
-	/* initfunc	   */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 
 

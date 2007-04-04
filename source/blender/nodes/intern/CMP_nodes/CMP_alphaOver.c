@@ -117,8 +117,11 @@ bNodeType cmp_node_alphaover= {
 	/* output sock */	cmp_node_alphaover_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_alphaover,
-	/* butfunc     */ 	NULL,
-	/*initfunc     */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 	
 };
 

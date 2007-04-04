@@ -52,7 +52,10 @@ bNodeType sh_node_rgb= {
 	/* output sock */	sh_node_rgb_out,
 	/* storage     */	"",
 	/* execfunc    */	node_shader_exec_rgb,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 	
 };

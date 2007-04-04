@@ -152,8 +152,11 @@ bNodeType cmp_node_splitviewer= {
 	/* output sock */	NULL,
 	/* storage     */	"ImageUser",
 	/* execfunc    */	node_composit_exec_splitviewer,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   node_composit_init_splitviewer
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_splitviewer,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 };
 
 

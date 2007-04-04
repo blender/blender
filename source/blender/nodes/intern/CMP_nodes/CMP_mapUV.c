@@ -140,7 +140,10 @@ bNodeType cmp_node_mapuv= {
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_mapuv,
 	/* butfunc     */	NULL,
-	/* initfunc    */	NULL
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 
 

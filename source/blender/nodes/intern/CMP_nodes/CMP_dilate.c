@@ -153,8 +153,11 @@ bNodeType cmp_node_dilateerode= {
 	/* output sock */	cmp_node_dilateerode_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_dilateerode,
-    /* butfunc     */   NULL,
-	/* initfunc	   */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 
 

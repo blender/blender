@@ -212,16 +212,19 @@ static void node_composit_init_image(bNode* node)
 
 bNodeType cmp_node_image= {
 	/* *next,*prev */	NULL, NULL,
-   /* type code   */	CMP_NODE_IMAGE,
-   /* name        */	"Image",
-   /* width+range */	120, 80, 300,
-   /* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
-   /* input sock  */	NULL,
-   /* output sock */	cmp_node_rlayers_out,
-   /* storage     */	"ImageUser",
-   /* execfunc    */	node_composit_exec_image,
-   /* butfunc     */    NULL,
-	/* initfunc   */    node_composit_init_image
+	/* type code   */	CMP_NODE_IMAGE,
+	/* name        */	"Image",
+	/* width+range */	120, 80, 300,
+	/* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
+	/* input sock  */	NULL,
+	/* output sock */	cmp_node_rlayers_out,
+	/* storage     */	"ImageUser",
+	/* execfunc    */	node_composit_exec_image,
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_image,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 };
 
 /* **************** RENDER RESULT ******************** */
@@ -330,16 +333,19 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in,
 
 bNodeType cmp_node_rlayers= {
 	/* *next,*prev */	NULL, NULL,
-   /* type code   */	CMP_NODE_R_LAYERS,
-   /* name        */	"Render Layers",
-   /* width+range */	150, 100, 300,
-   /* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
-   /* input sock  */	NULL,
-   /* output sock */	cmp_node_rlayers_out,
-   /* storage     */	"",
-   /* execfunc    */	node_composit_exec_rlayers,
-   /* butfunc     */    NULL,
-	/* initfunc   */	NULL
+	/* type code   */	CMP_NODE_R_LAYERS,
+	/* name        */	"Render Layers",
+	/* width+range */	150, 100, 300,
+	/* class+opts  */	NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS,
+	/* input sock  */	NULL,
+	/* output sock */	cmp_node_rlayers_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_rlayers,
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 
 };
 

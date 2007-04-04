@@ -68,8 +68,11 @@ bNodeType cmp_node_curve_time= {
 	/* output sock */	cmp_node_time_out,
 	/* storage     */	"CurveMapping",
 	/* execfunc    */	node_composit_exec_curves_time,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */	node_composit_init_curves_time
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_curves_time,
+	/* freestoragefunc    */	node_free_curves,
+	/* copystoragefunc    */	node_copy_curves,
+	/* id          */	NULL
 };
 
 
@@ -108,8 +111,11 @@ bNodeType cmp_node_curve_vec= {
 	/* output sock */	cmp_node_curve_vec_out,
 	/* storage     */	"CurveMapping",
 	/* execfunc    */	node_composit_exec_curve_vec,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */	node_composit_init_curve_vec
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_curve_vec,
+	/* freestoragefunc    */	node_free_curves,
+	/* copystoragefunc    */	node_copy_curves,
+	/* id          */	NULL
 	
 };
 
@@ -191,7 +197,10 @@ bNodeType cmp_node_curve_rgb= {
 	/* output sock */	cmp_node_curve_rgb_out,
 	/* storage     */	"CurveMapping",
 	/* execfunc    */	node_composit_exec_curve_rgb,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */  	node_composit_init_curve_rgb	
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_curve_rgb,
+	/* freestoragefunc    */	node_free_curves,
+	/* copystoragefunc    */	node_copy_curves,
+	/* id          */	NULL
 };
 

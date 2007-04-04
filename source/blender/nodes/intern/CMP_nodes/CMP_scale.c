@@ -111,8 +111,11 @@ bNodeType cmp_node_scale= {
 	/* output sock */	cmp_node_scale_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_scale,
-	/* butfunc     */ 	NULL,
-	/* initfunc	   */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 
 

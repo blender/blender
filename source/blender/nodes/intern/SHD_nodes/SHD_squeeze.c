@@ -56,15 +56,18 @@ bNodeStack **out)
 
 bNodeType sh_node_squeeze= { 
 	/* *next,*prev */	NULL, NULL,
-	/* type code   */ SH_NODE_SQUEEZE, 
-	/* name        */ "Squeeze Value", 
-	/* width+range */ 120, 110, 160, 
-	/* class+opts  */ NODE_CLASS_CONVERTOR, NODE_OPTIONS, 
-	/* input sock  */ sh_node_squeeze_in, 
-	/* output sock */ sh_node_squeeze_out, 
-	/* storage     */ "node_squeeze", 
-	/* execfunc    */ node_shader_exec_squeeze,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* type code   */	SH_NODE_SQUEEZE, 
+	/* name        */	"Squeeze Value", 
+	/* width+range */	120, 110, 160, 
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS, 
+	/* input sock  */	sh_node_squeeze_in, 
+	/* output sock */	sh_node_squeeze_out, 
+	/* storage     */	"node_squeeze", 
+	/* execfunc    */	node_shader_exec_squeeze,
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 

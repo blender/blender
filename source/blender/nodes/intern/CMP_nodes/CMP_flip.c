@@ -95,8 +95,11 @@ bNodeType cmp_node_flip= {
 	/* output sock */	cmp_node_flip_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_flip,
-	/* butfunc     */   NULL,
-	/* initfunc	   */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 
 

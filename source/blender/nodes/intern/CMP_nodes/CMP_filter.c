@@ -224,8 +224,11 @@ bNodeType cmp_node_filter= {
 	/* output sock */	cmp_node_filter_out,
 	/* storage     */	"", 
 	/* execfunc    */	node_composit_exec_filter,
-	/* butfunc     */   NULL,
-	/* initfunc	   */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 	
 };
 

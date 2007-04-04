@@ -54,8 +54,11 @@ bNodeType sh_node_value= {
 	/* output sock */	sh_node_value_out,
 	/* storage     */	"", 
 	/* execfunc    */	node_shader_exec_value,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 	
 };
 

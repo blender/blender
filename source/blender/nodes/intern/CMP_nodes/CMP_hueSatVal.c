@@ -111,8 +111,11 @@ bNodeType cmp_node_hue_sat= {
 	/* output sock */	cmp_node_hue_sat_out,
 	/* storage     */	"NodeHueSat", 
 	/* execfunc    */	node_composit_exec_hue_sat,
-	/* butfunc     */   NULL,
-	/* initfunc    */   node_composit_init_hue_sat
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_hue_sat,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 	
 };
 

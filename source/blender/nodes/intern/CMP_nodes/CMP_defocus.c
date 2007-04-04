@@ -811,7 +811,7 @@ static void node_composit_init_defocus(bNode* node)
    nbd->scale = 1.f;
    nbd->no_zbuf = 1;
    node->storage = nbd;
-};
+}
 
 bNodeType cmp_node_defocus = {
 	/* *next,*prev */	NULL, NULL,
@@ -823,8 +823,11 @@ bNodeType cmp_node_defocus = {
 	/* output sock */	cmp_node_defocus_out,
 	/* storage     */	"NodeDefocus",
 	/* execfunc    */	node_composit_exec_defocus,
-	/* butfunc     */   	NULL,
-	/* initfunc    */ 	node_composit_init_defocus
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_defocus,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 };
 
 

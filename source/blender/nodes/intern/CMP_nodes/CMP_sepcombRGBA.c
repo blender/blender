@@ -84,8 +84,11 @@ bNodeType cmp_node_seprgba= {
 	/* output sock */	cmp_node_seprgba_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_seprgba,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 	
 };
 
@@ -154,8 +157,11 @@ bNodeType cmp_node_combrgba= {
 	/* output sock */	cmp_node_combrgba_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_combrgba,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 	
 };
 

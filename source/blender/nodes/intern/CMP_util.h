@@ -62,7 +62,7 @@
 #include "BKE_library.h"
 
 #include "../CMP_node.h"
-
+#include "node_util.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"

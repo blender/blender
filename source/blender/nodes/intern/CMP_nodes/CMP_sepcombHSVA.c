@@ -106,8 +106,11 @@ bNodeType cmp_node_sephsva= {
 	/* output sock */	cmp_node_sephsva_out,
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_sephsva,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 	
 };
 
@@ -170,16 +173,19 @@ static void node_composit_exec_combhsva(void *data, bNode *node, bNodeStack **in
 
 bNodeType cmp_node_combhsva= {
 	/* *next,*prev */	NULL, NULL,
-   /* type code   */	CMP_NODE_COMBHSVA,
-   /* name        */	"Combine HSVA",
-   /* width+range */	80, 40, 140,
-   /* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
-   /* input sock  */	cmp_node_combhsva_in,
-   /* output sock */	cmp_node_combhsva_out,
-   /* storage     */	"",
-   /* execfunc    */	node_composit_exec_combhsva,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   NULL
+	/* type code   */	CMP_NODE_COMBHSVA,
+	/* name        */	"Combine HSVA",
+	/* width+range */	80, 40, 140,
+	/* class+opts  */	NODE_CLASS_CONVERTOR, NODE_OPTIONS,
+	/* input sock  */	cmp_node_combhsva_in,
+	/* output sock */	cmp_node_combhsva_out,
+	/* storage     */	"",
+	/* execfunc    */	node_composit_exec_combhsva,
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 
 

@@ -54,7 +54,10 @@ bNodeType cmp_node_rgb= {
 	/* storage     */	"",
 	/* execfunc    */	node_composit_exec_rgb,
 	/* butfunc     */	NULL,
-	/* initfunc	   */	NULL
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 	
 };
 

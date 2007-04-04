@@ -79,8 +79,11 @@ bNodeType sh_node_mapping= {
 	/* output sock */	sh_node_mapping_out,
 	/* storage     */	"TexMapping",
 	/* execfunc    */	node_shader_exec_mapping,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   node_shader_init_mapping
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_shader_init_mapping,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 	
 };
 

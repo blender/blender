@@ -239,7 +239,7 @@ void ntreeVerifyTypes(bNodeTree *ntree)
 /* ************** Group stuff ********** */
 
 bNodeType node_group_typeinfo= {
-	/* next,prev   */   NULL, NULL,
+	/* next,prev   */	NULL, NULL,
 	/* type code   */	NODE_GROUP,
 	/* name        */	"Group",
 	/* width+range */	120, 60, 200,
@@ -248,8 +248,11 @@ bNodeType node_group_typeinfo= {
 	/* output sock */	NULL,
 	/* storage     */	"",
 	/* execfunc    */	NULL,
-	/* butfunc	   */   NULL,
-	/* initfunc    */   NULL
+	/* butfunc     */	NULL,
+	/* initfunc    */	NULL,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 };
 
 /* tag internal sockets */
@@ -349,13 +352,13 @@ void ntreeMakeOwnType(bNodeTree *ngroup)
 	}
 	
 	/* make own type struct */
-	ngroup->owntype= MEM_mallocN(sizeof(bNodeType), "group type");
+	ngroup->owntype= MEM_callocN(sizeof(bNodeType), "group type");
 	*ngroup->owntype= node_group_typeinfo; /* copy data, for init */
 	
 	/* input type arrays */
 	if(totin) {
 		bNodeSocketType *stype;
-		bNodeSocketType *inputs= MEM_mallocN(sizeof(bNodeSocketType)*(totin+1), "bNodeSocketType");
+		bNodeSocketType *inputs= MEM_callocN(sizeof(bNodeSocketType)*(totin+1), "bNodeSocketType");
 		a= 0;
 		
 		for(node= ngroup->nodes.first; node; node= node->next) {
@@ -380,7 +383,7 @@ void ntreeMakeOwnType(bNodeTree *ngroup)
 	/* output type arrays */
 	if(totout) {
 		bNodeSocketType *stype;
-		bNodeSocketType *outputs= MEM_mallocN(sizeof(bNodeSocketType)*(totout+1), "bNodeSocketType");
+		bNodeSocketType *outputs= MEM_callocN(sizeof(bNodeSocketType)*(totout+1), "bNodeSocketType");
 		a= 0;
 		
 		for(node= ngroup->nodes.first; node; node= node->next) {
@@ -817,23 +820,8 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 	if(nnode->id)
 		nnode->id->us++;
 	
-	if(nnode->storage) {
-		/* another candidate for handlerizing! */
-		if(ntree->type==NTREE_SHADER) {
-			if(node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB)
-				nnode->storage= curvemapping_copy(node->storage);
-			else 
-				nnode->storage= MEM_dupallocN(nnode->storage);
-		}
-		else if(ntree->type==NTREE_COMPOSIT) {
-			if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB))
-				nnode->storage= curvemapping_copy(node->storage);
-			else 
-				nnode->storage= MEM_dupallocN(nnode->storage);
-		}
-		else 
-			nnode->storage= MEM_dupallocN(nnode->storage);
-	}
+	if(node->typeinfo->copystoragefunc)
+		node->typeinfo->copystoragefunc(node, nnode);
 	
 	node->new_node= nnode;
 	nnode->new_node= NULL;
@@ -1012,22 +1000,8 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 			MEM_freeN(node->preview->rect);
 		MEM_freeN(node->preview);
 	}
-	if(node->storage) {
-		/* could be handlerized at some point, now only 1 exception still */
-		if(ntree->type==NTREE_SHADER) {
-			if(node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB)
-				curvemapping_free(node->storage);
-			else 
-				MEM_freeN(node->storage);
-		}
-		else if(ntree->type==NTREE_COMPOSIT) {
-			if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB))
-				curvemapping_free(node->storage);
-			else 
-				MEM_freeN(node->storage);
-		}
-		else 
-			MEM_freeN(node->storage);
+	if(node->typeinfo && node->typeinfo->freestoragefunc) {
+		node->typeinfo->freestoragefunc(node);
 	}
 	MEM_freeN(node);
 }

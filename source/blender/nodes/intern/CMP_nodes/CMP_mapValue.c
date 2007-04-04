@@ -89,8 +89,11 @@ bNodeType cmp_node_map_value= {
 	/* output sock */	cmp_node_map_value_out,
 	/* storage     */	"TexMapping",
 	/* execfunc    */	node_composit_exec_map_value,
-    /* butfunc     */	NULL,
-	/* initfunc	   */	node_composit_init_map_value
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_composit_init_map_value,
+	/* freestoragefunc    */	node_free_standard_storage,
+	/* copystoragefunc    */	node_copy_standard_storage,
+	/* id          */	NULL
 	
 };
 

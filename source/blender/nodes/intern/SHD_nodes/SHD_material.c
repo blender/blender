@@ -145,8 +145,11 @@ bNodeType sh_node_material= {
 	/* output sock */	sh_node_material_out,
 	/* storage     */	"",
 	/* execfunc    */	node_shader_exec_material,
-	/* butfunc     */ 	NULL,
-	/* initfunc    */   node_shader_init_material
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_shader_init_material,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
 	
 };
 
