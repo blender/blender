@@ -48,10 +48,10 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 					KX_GameObject(sgReplicationInfo,callbacks,T),
 					m_camdata(camdata),
 					m_dirty(true),
-					m_normalised(false),
+					m_normalized(false),
 					m_frustum_culling(frustum_culling && camdata.m_perspective),
 					m_set_projection_matrix(false),
-					m_set_frustum_centre(false)
+					m_set_frustum_center(false)
 {
 	// setting a name would be nice...
 	m_name = "cam";
@@ -120,7 +120,7 @@ void KX_Camera::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 	m_projection_matrix = mat;
 	m_dirty = true;
 	m_set_projection_matrix = true;
-	m_set_frustum_centre = false;
+	m_set_frustum_center = false;
 }
 
 
@@ -132,7 +132,7 @@ void KX_Camera::SetModelviewMatrix(const MT_Matrix4x4 & mat)
 {
 	m_modelview_matrix = mat;
 	m_dirty = true;
-	m_set_frustum_centre = false;
+	m_set_frustum_center = false;
 }
 
 
@@ -216,12 +216,12 @@ void KX_Camera::ExtractClipPlanes()
 	m_planes[5] = m[3] - m[2];
 	
 	m_dirty = false;
-	m_normalised = false;
+	m_normalized = false;
 }
 
-void KX_Camera::NormaliseClipPlanes()
+void KX_Camera::NormalizeClipPlanes()
 {
-	if (m_normalised)
+	if (m_normalized)
 		return;
 	
 	for (unsigned int p = 0; p < 6; p++)
@@ -231,15 +231,15 @@ void KX_Camera::NormaliseClipPlanes()
 			m_planes[p] /= factor;
 	}
 	
-	m_normalised = true;
+	m_normalized = true;
 }
 
 void KX_Camera::ExtractFrustumSphere()
 {
-	if (m_set_frustum_centre)
+	if (m_set_frustum_center)
 		return;
 
-	// The most extreme points on the near and far plane. (normalised device coords)
+	// The most extreme points on the near and far plane. (normalized device coords)
 	MT_Vector4 hnear(1., 1., 0., 1.), hfar(1., 1., 1., 1.);
 	MT_Matrix4x4 clip_camcs_matrix = m_projection_matrix;
 	clip_camcs_matrix.invert();
@@ -252,16 +252,16 @@ void KX_Camera::ExtractFrustumSphere()
 	MT_Point3 nearpoint(hnear[0]/hnear[3], hnear[1]/hnear[3], hnear[2]/hnear[3]);
 	MT_Point3 farpoint(hfar[0]/hfar[3], hfar[1]/hfar[3], hfar[2]/hfar[3]);
 	
-	// Compute centre
-	m_frustum_centre = MT_Point3(0., 0.,
+	// Compute center
+	m_frustum_center = MT_Point3(0., 0.,
 		(nearpoint.dot(nearpoint) - farpoint.dot(farpoint))/(2.0*(m_camdata.m_clipend - m_camdata.m_clipstart)));
-	m_frustum_radius = m_frustum_centre.distance(farpoint);
+	m_frustum_radius = m_frustum_center.distance(farpoint);
 	
 	// Transform to world space.
-	m_frustum_centre = GetCameraToWorld()(m_frustum_centre);
+	m_frustum_center = GetCameraToWorld()(m_frustum_center);
 	m_frustum_radius /= fabs(NodeGetWorldScaling()[NodeGetWorldScaling().closestAxis()]);
 	
-	m_set_frustum_centre = true;
+	m_set_frustum_center = true;
 }
 
 bool KX_Camera::PointInsideFrustum(const MT_Point3& x)
@@ -308,15 +308,15 @@ int KX_Camera::BoxInsideFrustum(const MT_Point3 *box)
 	return INTERSECT;
 }
 
-int KX_Camera::SphereInsideFrustum(const MT_Point3& centre, const MT_Scalar &radius)
+int KX_Camera::SphereInsideFrustum(const MT_Point3& center, const MT_Scalar &radius)
 {
 	ExtractFrustumSphere();
-	if (centre.distance2(m_frustum_centre) > (radius + m_frustum_radius)*(radius + m_frustum_radius))
+	if (center.distance2(m_frustum_center) > (radius + m_frustum_radius)*(radius + m_frustum_radius))
 		return OUTSIDE;
 
 	unsigned int p;
 	ExtractClipPlanes();
-	NormaliseClipPlanes();
+	NormalizeClipPlanes();
 		
 	MT_Scalar distance;
 	int intersect = INSIDE;
@@ -324,7 +324,7 @@ int KX_Camera::SphereInsideFrustum(const MT_Point3& centre, const MT_Scalar &rad
 	//                                -radius                                      radius
 	for (p = 0; p < 6; p++)
 	{
-		distance = m_planes[p][0]*centre[0] + m_planes[p][1]*centre[1] + m_planes[p][2]*centre[2] + m_planes[p][3];
+		distance = m_planes[p][0]*center[0] + m_planes[p][1]*center[1] + m_planes[p][2]*center[2] + m_planes[p][3];
 		if (fabs(distance) <= radius)
 			intersect = INTERSECT;
 		else if (distance < -radius)
@@ -537,10 +537,10 @@ int KX_Camera::_setattr(const STR_String &attr, PyObject *pyvalue)
 }
 
 KX_PYMETHODDEF_DOC(KX_Camera, sphereInsideFrustum,
-"sphereInsideFrustum(centre, radius) -> Integer\n"
+"sphereInsideFrustum(center, radius) -> Integer\n"
 "\treturns INSIDE, OUTSIDE or INTERSECT if the given sphere is\n"
 "\tinside/outside/intersects this camera's viewing frustum.\n\n"
-"\tcentre = the centre of the sphere (in world coordinates.)\n"
+"\tcenter = the center of the sphere (in world coordinates.)\n"
 "\tradius = the radius of the sphere\n\n"
 "\tExample:\n"
 "\timport GameLogic\n\n"
@@ -554,18 +554,18 @@ KX_PYMETHODDEF_DOC(KX_Camera, sphereInsideFrustum,
 "\t\t# Sphere is outside frustum\n"
 )
 {
-	PyObject *pycentre;
+	PyObject *pycenter;
 	float radius;
-	if (PyArg_ParseTuple(args, "Of", &pycentre, &radius))
+	if (PyArg_ParseTuple(args, "Of", &pycenter, &radius))
 	{
-		MT_Point3 centre;
-		if (PyVecTo(pycentre, centre))
+		MT_Point3 center;
+		if (PyVecTo(pycenter, center))
 		{
-			return PyInt_FromLong(SphereInsideFrustum(centre, radius)); /* new ref */
+			return PyInt_FromLong(SphereInsideFrustum(center, radius)); /* new ref */
 		}
 	}
 
-	PyErr_SetString(PyExc_TypeError, "sphereInsideFrustum: Expected arguments: (centre, radius)");
+	PyErr_SetString(PyExc_TypeError, "sphereInsideFrustum: Expected arguments: (center, radius)");
 	
 	Py_Return;
 }

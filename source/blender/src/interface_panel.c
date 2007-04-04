@@ -602,7 +602,7 @@ static void ui_scale_panel_block(uiBlock *block)
 {
 	uiBut *but;
 	float facx= 1.0, facy= 1.0;
-	int centrex= 0, topy=0, tabsy=0;
+	int centerx= 0, topy=0, tabsy=0;
 	
 	if(block->panel==NULL) return;
 
@@ -613,7 +613,7 @@ static void ui_scale_panel_block(uiBlock *block)
 	if( block->maxx-block->minx > block->panel->sizex - 2*PNL_SAFETY ) {
 		facx= (block->panel->sizex - (2*PNL_SAFETY))/( block->maxx-block->minx );
 	}
-	else centrex= (block->panel->sizex-( block->maxx-block->minx ) - 2*PNL_SAFETY)/2;
+	else centerx= (block->panel->sizex-( block->maxx-block->minx ) - 2*PNL_SAFETY)/2;
 	
 	// tabsy= PNL_HEADER*panel_has_tabs(block->panel);
 	if( (block->maxy-block->miny) > block->panel->sizey - 2*PNL_SAFETY - tabsy) {
@@ -623,9 +623,9 @@ static void ui_scale_panel_block(uiBlock *block)
 
 	but= block->buttons.first;
 	while(but) {
-		but->x1= PNL_SAFETY+centrex+ facx*(but->x1-block->minx);
+		but->x1= PNL_SAFETY+centerx+ facx*(but->x1-block->minx);
 		but->y1= PNL_SAFETY+topy   + facy*(but->y1-block->miny);
-		but->x2= PNL_SAFETY+centrex+ facx*(but->x2-block->minx);
+		but->x2= PNL_SAFETY+centerx+ facx*(but->x2-block->minx);
 		but->y2= PNL_SAFETY+topy   + facy*(but->y2-block->miny);
 		if(facx!=1.0) ui_check_but(but);	/* for strlen */
 		but= but->next;

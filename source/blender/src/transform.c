@@ -1269,7 +1269,7 @@ int Warp(TransInfo *t, short mval[2])
 		if (td->flag & TD_NOACTION)
 			break;
 
-		/* translate point to centre, rotate in such a way that outline==distance */
+		/* translate point to center, rotate in such a way that outline==distance */
 		
 		VECCOPY(vec, td->iloc);
 		Mat3MulVecfl(td->mtx, vec);
@@ -1452,11 +1452,11 @@ static void TransMat3ToSize( float mat[][3], float smat[][3], float *size)
 	float vec[3];
 	
 	VecCopyf(vec, mat[0]);
-	size[0]= Normalise(vec);
+	size[0]= Normalize(vec);
 	VecCopyf(vec, mat[1]);
-	size[1]= Normalise(vec);
+	size[1]= Normalize(vec);
 	VecCopyf(vec, mat[2]);
-	size[2]= Normalise(vec);
+	size[2]= Normalize(vec);
 	
 	/* first tried with dotproduct... but the sign flip is crucial */
 	if( VECSIGNFLIP(mat[0], smat[0]) ) size[0]= -size[0]; 
@@ -1718,7 +1718,7 @@ int ToSphere(TransInfo *t, short mval[2])
 
 		VecSubf(vec, td->iloc, t->center);
 
-		radius = Normalise(vec);
+		radius = Normalize(vec);
 
 		tratio = ratio * td->factor;
 
@@ -1980,7 +1980,7 @@ int Rotation(TransInfo *t, short mval[2])
 
 	VECCOPY(axis, t->viewinv[2]);
 	VecMulf(axis, -1.0f);
-	Normalise(axis);
+	Normalize(axis);
 
 	dphi = saacos((float)deler);
 	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
@@ -2105,8 +2105,8 @@ int Trackball(TransInfo *t, short mval[2])
 	
 	VECCOPY(axis1, t->persinv[0]);
 	VECCOPY(axis2, t->persinv[1]);
-	Normalise(axis1);
-	Normalise(axis2);
+	Normalize(axis1);
+	Normalize(axis2);
 	
 	/* factore has to become setting or so */
 	phi[0]= 0.01f*(float)( t->imval[1] - mval[1] );
@@ -2607,7 +2607,7 @@ int PushPull(TransInfo *t, short mval[2])
 				Projf(vec, vec, axis);
 			}
 		}
-		Normalise(vec);
+		Normalize(vec);
 		VecMulf(vec, distance);
 		VecMulf(vec, td->factor);
 

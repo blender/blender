@@ -183,7 +183,7 @@ static void uv_calc_center_vector(float *result, Object *ob, Mesh *me)
 
 	switch (G.vd->around) 
 	{
-	case V3D_CENTRE: /* bounding box center */
+	case V3D_CENTER: /* bounding box center */
 		min[0]= min[1]= min[2]= 1e20f;
 		max[0]= max[1]= max[2]= -1e20f; 
 

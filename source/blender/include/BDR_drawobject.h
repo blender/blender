@@ -61,7 +61,7 @@ void lattice_foreachScreenVert(void (*func)(void *userData, struct BPoint *bp, i
 void nurbs_foreachScreenVert(void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
 
 void drawcircball(int mode, float *cent, float rad, float tmat[][4]);
-void get_local_bounds(struct Object *ob, float *centre, float *size);
+void get_local_bounds(struct Object *ob, float *center, float *size);
 
 /* drawing flags: */
 #define DRAW_PICKING	1

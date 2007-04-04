@@ -1268,7 +1268,7 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 			quat= vectoquat(dir, ob->trackflag, ob->upflag);
 			
 			/* the tilt */
-			Normalise(dir);
+			Normalize(dir);
 			q[0]= (float)cos(0.5*vec[3]);
 			x1= (float)sin(0.5*vec[3]);
 			q[1]= -x1*dir[0];

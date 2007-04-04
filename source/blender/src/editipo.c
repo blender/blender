@@ -2553,7 +2553,7 @@ void common_insertkey(void)
 				id= G.buts->lockpoin;
 				te= G.buts->lockpoin;
 				if(id) {
-					event= pupmenu("Insert Key %t|Cloud%x0|Marble%x1|Stucci%x2|Wood%x3|Magic%x4|Blend%x5|Musgrave%x6|Voronoi%x7|Distnoise%x8|ColourFilter%x9");
+					event= pupmenu("Insert Key %t|Cloud%x0|Marble%x1|Stucci%x2|Wood%x3|Magic%x4|Blend%x5|Musgrave%x6|Voronoi%x7|Distnoise%x8|ColorFilter%x9");
 					if(event== -1) return;
 
 					if(event==0) {
@@ -3942,8 +3942,8 @@ void set_speed_editipo(float speed)
 						vec1[2]= (beztar[2]->vec[1][1] - beztar[2]->vec[0][1]) / (beztar[2]->vec[1][0] - beztar[2]->vec[0][0]) ;
 						vec2[2]= (beztar[2]->vec[1][1] - beztar[2]->vec[2][1]) / (beztar[2]->vec[2][0] - beztar[2]->vec[1][0]) ;
 						
-						Normalise(vec1);
-						Normalise(vec2);
+						Normalize(vec1);
+						Normalize(vec2);
 						
 						VecMulf(vec1, speed);
 						VecMulf(vec2, speed);

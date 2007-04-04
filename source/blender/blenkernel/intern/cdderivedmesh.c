@@ -1002,9 +1002,9 @@ void CDDM_calc_normals(DerivedMesh *dm)
 	for(i = 0; i < numVerts; i++, mv++) {
 		float *no = temp_nors[i];
 		
-		if (Normalise(no) == 0.0) {
+		if (Normalize(no) == 0.0) {
 			VECCOPY(no, mv->co);
-			Normalise(no);
+			Normalize(no);
 		}
 
 		mv->no[0] = (short)(no[0] * 32767.0);

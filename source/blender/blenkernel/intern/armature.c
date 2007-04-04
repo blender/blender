@@ -438,7 +438,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 		Mat4MulVecfl(imat, h1);
 		/* if previous bone is B-bone too, use average handle direction */
 		if(prev->bone->segments>1) h1[1]-= length;
-		Normalise(h1);
+		Normalize(h1);
 		VecMulf(h1, -hlength1);
 	}
 	else {
@@ -466,7 +466,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 		roll= atan2(mat3[2][0], mat3[2][2]);
 		
 		/* and only now negate handle */
-		Normalise(h2);
+		Normalize(h2);
 		VecMulf(h2, -hlength2);
 		
 	}
@@ -548,7 +548,7 @@ float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, fl
 	float hsqr, a, l, rad;
 	
 	VecSubf (bdelta, b2, b1);
-	l = Normalise (bdelta);
+	l = Normalize (bdelta);
 	
 	VecSubf (pdelta, vec, b1);
 	
@@ -964,14 +964,14 @@ void vec_roll_to_mat3(float *vec, float roll, float mat[][3])
 	float	rMatrix[3][3], bMatrix[3][3];
 	
 	VECCOPY (nor, vec);
-	Normalise (nor);
+	Normalize (nor);
 	
 	/*	Find Axis & Amount for bone matrix*/
 	Crossf (axis,target,nor);
 
 	if (Inpf(axis,axis) > 0.0000000000001) {
 		/* if nor is *not* a multiple of target ... */
-		Normalise (axis);
+		Normalize (axis);
 		
 		theta= NormalizedVecAngle2(target, nor);
 		

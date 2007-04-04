@@ -629,7 +629,7 @@ static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2)
 	BMF_DrawString(G.font, strp);
 }
 
-/* draws a shaded strip, made from gradient + flat colour + gradient */
+/* draws a shaded strip, made from gradient + flat color + gradient */
 static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float x2, float y2)
 {
 	float ymid1, ymid2;
@@ -697,7 +697,7 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 	y2= seq->machine+SEQ_STRIP_OFSTOP;
 	
 	
-	/* get the correct colour per strip type*/
+	/* get the correct color per strip type*/
 	get_seq_color3ubv(seq, col);
 	
 	/* draw the main strip body */

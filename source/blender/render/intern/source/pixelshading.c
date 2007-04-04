@@ -379,7 +379,7 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 	ringf*= dist;
 	linef*= alpha;
 	
-	/* The colour is either the rgb spec-ed by the user, or extracted from   */
+	/* The color is either the rgb spec-ed by the user, or extracted from   */
 	/* the texture                                                           */
 	if(har->tex) {
 		col[0]= har->r; 
@@ -483,7 +483,7 @@ void shadeSkyView(float *colf, float *rco, float *view, float *dxyview)
 	zen[0]= R.wrld.zenr; zen[1]= R.wrld.zeng; zen[2]= R.wrld.zenb;
 	
 	/* Careful: SKYTEX and SKYBLEND are NOT mutually exclusive! If           */
-	/* SKYBLEND is active, the texture and colour blend are added.           */
+	/* SKYBLEND is active, the texture and color blend are added.           */
 	if(R.wrld.skytype & WO_SKYTEX) {
 		VECCOPY(lo, view);
 		if(R.wrld.skytype & WO_SKYREAL) {
@@ -513,7 +513,7 @@ void shadeSkyView(float *colf, float *rco, float *view, float *dxyview)
 }
 
 /*
-  Stuff the sky colour into the collector.
+  Stuff the sky color into the collector.
  */
 void shadeSkyPixel(float *collector, float fx, float fy) 
 {
@@ -522,7 +522,7 @@ void shadeSkyPixel(float *collector, float fx, float fy)
 	/*
 	  The rules for sky:
 	  1. Draw an image, if a background image was provided. Stop
-	  2. get texture and colour blend, and combine these.
+	  2. get texture and color blend, and combine these.
 	*/
 
 	float fac;
@@ -553,7 +553,7 @@ void shadeSkyPixel(float *collector, float fx, float fy)
 		}
 		else {
 			calc_view_vector(view, fx, fy);
-			fac= Normalise(view);
+			fac= Normalize(view);
 			
 			if(R.wrld.skytype & WO_SKYTEX) {
 				dxyview[0]= -R.viewdx/fac;
@@ -561,7 +561,7 @@ void shadeSkyPixel(float *collector, float fx, float fy)
 			}
 		}
 		
-		/* get sky colour in the collector */
+		/* get sky color in the collector */
 		shadeSkyView(collector, NULL, view, dxyview);
 		collector[3] = 0.0f;
 	}

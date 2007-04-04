@@ -141,12 +141,12 @@ void  MTC_diff3DFF(double v1[3], float v2[3], float v3[3])
 }
 
 /* ------------------------------------------------------------------------- */
-float MTC_normalise3DF(float n[3])
+float MTC_normalize3DF(float n[3])
 {
 	float d;
 	
 	d= n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
-	/* FLT_EPSILON is too large! A larger value causes normalise errors in   */
+	/* FLT_EPSILON is too large! A larger value causes normalize errors in   */
 	/* a scaled down utah teapot                                             */
 	if(d>0.0000000000001) {
 

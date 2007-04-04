@@ -943,7 +943,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 
 			Mat3CpyMat4(cmat, cu->textoncurve->obmat);
 			Mat3MulMat3(cmat, cmat, imat3);
-			sizefac= Normalise(cmat[0])/cu->fsize;
+			sizefac= Normalize(cmat[0])/cu->fsize;
 			
 			minx=miny= 1.0e20f;
 			maxx=maxy= -1.0e20f;
@@ -983,7 +983,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 			ct= chartransdata;
 			for (i=0; i<=slen; i++, ct++) {
 				
-				/* rotate around centre character */
+				/* rotate around center character */
 				ascii = mem[i];
 				
 				// Find the character

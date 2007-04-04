@@ -240,7 +240,7 @@ void addnormalsDispList(Object *ob, ListBase *lb)
 				a= dl->parts*dl->nr;
 				v1= ndata;
 				while(a--) {
-					Normalise(v1);
+					Normalize(v1);
 					v1+= 3;
 				}
 			}
@@ -525,7 +525,7 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 		vn[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
 		vn[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 		vn[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-		Normalise(vn);
+		Normalize(vn);
 	}		
 
 	for (i=0; i<totface; i++) {
@@ -555,7 +555,7 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 		n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
 		n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
 		n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
-		Normalise(n1);
+		Normalize(n1);
 
 		for (j=0; j<nverts; j++) {
 			MVert *mv= &mvert[vidx[j]];
@@ -666,7 +666,7 @@ void shadeDispList(Base *base)
 						n1[0]= imat[0][0]*dl->nors[0]+imat[0][1]*dl->nors[1]+imat[0][2]*dl->nors[2];
 						n1[1]= imat[1][0]*dl->nors[0]+imat[1][1]*dl->nors[1]+imat[1][2]*dl->nors[2];
 						n1[2]= imat[2][0]*dl->nors[0]+imat[2][1]*dl->nors[1]+imat[2][2]*dl->nors[2];
-						Normalise(n1);
+						Normalize(n1);
 						
 						fp= dl->verts;
 						
@@ -694,7 +694,7 @@ void shadeDispList(Base *base)
 							n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
 							n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
 							n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
-							Normalise(n1);
+							Normalize(n1);
 				
 							fastshade(vec, n1, fp, ma, (char *)col1, NULL);
 							
@@ -732,7 +732,7 @@ void shadeDispList(Base *base)
 							n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
 							n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
 							n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
-							Normalise(n1);
+							Normalize(n1);
 						
 							fastshade(vec, n1, fp, ma, (char *)col1, NULL);
 							

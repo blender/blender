@@ -1652,11 +1652,11 @@ void do_material_tex(ShadeInput *shi)
 					// rotate to global coords
 					if(mtex->texco==TEXCO_ORCO || mtex->texco==TEXCO_UV) {
 						if(shi->vlr && shi->vlr->ob) {
-							float len= Normalise(texres.nor);
+							float len= Normalize(texres.nor);
 							// can be optimized... (ton)
 							Mat4Mul3Vecfl(shi->vlr->ob->obmat, texres.nor);
 							Mat4Mul3Vecfl(R.viewmat, texres.nor);
-							Normalise(texres.nor);
+							Normalize(texres.nor);
 							VecMulf(texres.nor, len);
 						}
 					}
@@ -1762,7 +1762,7 @@ void do_material_tex(ShadeInput *shi)
 							shi->vn[2]+= dot*nor[2];
 						}
 					}					
-					Normalise(shi->vn);
+					Normalize(shi->vn);
 					
 					/* this makes sure the bump is passed on to the next texture */
 					shi->orn[0]= -shi->vn[0];
@@ -2157,7 +2157,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 				else texres.tin*= stencilTin;
 			}
 			
-			/* colour mapping */
+			/* color mapping */
 			if(mtex->mapto & (WOMAP_HORIZ+WOMAP_ZENUP+WOMAP_ZENDOWN)) {
 				float tcol[3];
 				

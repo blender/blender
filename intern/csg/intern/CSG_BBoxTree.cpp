@@ -87,7 +87,7 @@ RecursiveTreeBuild(
 		}
 	}
 	
-	// all of the nodes were on one side of the box centre
+	// all of the nodes were on one side of the box center
 	// I'm not sure if this case ever gets reached?	
 	if (mid == 0 || mid == n) 
 	{

@@ -466,7 +466,7 @@ void calctrackballvecfirst(rcti *area, short *mval, float *vec)
 	
 	radius= TRACKBALLSIZE;
 	
-	/* normalise x and y */
+	/* normalize x and y */
 	x= (area->xmax + area->xmin)/2 -mval[0];
 	x/= (float)((area->xmax - area->xmin)/2);
 	y= (area->ymax + area->ymin)/2 -mval[1];
@@ -508,7 +508,7 @@ void calctrackballvec(rcti *area, short *mval, float *vec)
 	
 	radius= TRACKBALLSIZE;
 	
-	/* x en y normaliseren */
+	/* x en y normalizeren */
 	x= (area->xmax + area->xmin)/2 -mval[0];
 	x/= (float)((area->xmax - area->xmin)/4);
 	y= (area->ymax + area->ymin)/2 -mval[1];
@@ -626,7 +626,7 @@ void viewmove(int mode)
 				if (U.flag & USER_TRACKBALL) {
 					Crossf(q1+1, firstvec, newvec);
 	
-					Normalise(q1+1);
+					Normalize(q1+1);
 	
 					/* Allow for rotation beyond the interval
 					 * [-pi, pi] */
@@ -1266,7 +1266,7 @@ void initlocalview()
 	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 }
 
-void centreview()	/* like a localview without local! */
+void centerview()	/* like a localview without local! */
 {
 	Object *ob= OBACT;
 	float size, min[3], max[3], afm[3];
@@ -1428,13 +1428,13 @@ void endlocalview(ScrArea *sa)
 	}
 }
 
-void view3d_home(int centre)
+void view3d_home(int center)
 {
 	Base *base;
 	float size, min[3], max[3], afm[3];
 	int ok= 1, onedone=0;
 
-	if(centre) {
+	if(center) {
 		min[0]= min[1]= min[2]= 0.0;
 		max[0]= max[1]= max[2]= 0.0;
 	}
@@ -1490,7 +1490,7 @@ void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
 	alignaxis[axisidx]= 1.0;
 
 	norm[0]= vec[0], norm[1]= vec[1], norm[2]= vec[2];
-	Normalise(norm);
+	Normalize(norm);
 
 	angle= acos(Inpf(alignaxis, norm));
 	Crossf(axis, alignaxis, norm);

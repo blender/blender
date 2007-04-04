@@ -2463,7 +2463,7 @@ static void spin_nurb(float *dvec, short mode)
 	Mat3CpyMat4(persmat, G.vd->viewmat);
 	Mat3Inv(persinv, persmat);
 
-	/* imat and centre and size */
+	/* imat and center and size */
 	Mat3CpyMat4(bmat, G.obedit->obmat);
 	Mat3Inv(imat, bmat);
 
@@ -2479,7 +2479,7 @@ static void spin_nurb(float *dvec, short mode)
 		n[0]= G.vd->viewinv[2][0];
 		n[1]= G.vd->viewinv[2][1];
 		n[2]= G.vd->viewinv[2][2];
-		Normalise(n);
+		Normalize(n);
 	}
 
 	phi= M_PI/8.0;
@@ -3743,7 +3743,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 	if (G.vd)	grid = G.vd->grid;
 	else		grid = 1.0;
 	
-	/* imat and centre and size */
+	/* imat and center and size */
 	if(G.obedit) {
 		
 		Mat3CpyMat4(mat, G.obedit->obmat);

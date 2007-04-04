@@ -1971,7 +1971,7 @@ static void info_text(int x, int y)
 
 	if	(g_progress_bar) {
 		hsize = 4 + (138.0 * g_done);
-		fac1 = 0.5 * g_done; // do some rainbow colours on progress
+		fac1 = 0.5 * g_done; /* do some rainbow colors on progress */
 		fac2 = 1.0;
 		fac3 = 0.9;
 	} else {

@@ -119,9 +119,9 @@ void SG_BBox::translate(const MT_Vector3& dx)
 
 void SG_BBox::scale(const MT_Vector3& size, const MT_Point3& point)
 {
-	MT_Vector3 centre = (m_max - m_min)/2. + point;
-	m_max = (m_max - centre)*size;
-	m_min = (m_min - centre)*size;
+	MT_Vector3 center = (m_max - m_min)/2. + point;
+	m_max = (m_max - center)*size;
+	m_min = (m_min - center)*size;
 }
 #endif
 

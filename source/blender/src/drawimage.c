@@ -1972,7 +1972,7 @@ void image_home(void)
 	scrarea_queue_winredraw(curarea);
 }
 
-void image_viewcentre(void)
+void image_viewcenter(void)
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
 	float size, min[2], max[2], d[2], xim=256.0f, yim=256.0f;

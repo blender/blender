@@ -891,7 +891,7 @@ static void vectomat(float *vec, float *target_up, short axis, short upflag, sho
 	int right_index;
 
 	VecCopyf(n, vec);
-	if(Normalise(n) == 0.0) { 
+	if(Normalize(n) == 0.0) { 
 		n[0] = 0.0;
 		n[1] = 0.0;
 		n[2] = 1.0;
@@ -919,15 +919,15 @@ static void vectomat(float *vec, float *target_up, short axis, short upflag, sho
 	VecSubf(proj, u, proj); /* then onto the plane */
 	/* proj specifies the transformation of the up axis */
 
-	if(Normalise(proj) == 0.0) { /* degenerate projection */
+	if(Normalize(proj) == 0.0) { /* degenerate projection */
 		proj[0] = 0.0;
 		proj[1] = 1.0;
 		proj[2] = 0.0;
 	}
 
-	/* normalised cross product of n and proj specifies transformation of the right axis */
+	/* Normalized cross product of n and proj specifies transformation of the right axis */
 	Crossf(right, proj, n);
-	Normalise(right);
+	Normalize(right);
 
 	if(axis != upflag) {
 		right_index = 3 - axis - upflag;
@@ -1220,7 +1220,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 						if(data->followflag){
 							quat= vectoquat(dir, (short) data->trackflag, (short) data->upflag);
 
-							Normalise(dir);
+							Normalize(dir);
 							q[0]= (float)cos(0.5*vec[3]);
 							x1= (float)sin(0.5*vec[3]);
 							q[1]= -x1*dir[0];
@@ -1528,13 +1528,13 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 						/* Projection of Vector on the plane */
 						Projf(vec2, vec, ob->obmat[0]);
 						VecSubf(totmat[1], vec, vec2);
-						Normalise(totmat[1]);
+						Normalize(totmat[1]);
 
 						/* the x axis is fixed*/
 						totmat[0][0] = ob->obmat[0][0];
 						totmat[0][1] = ob->obmat[0][1];
 						totmat[0][2] = ob->obmat[0][2];
-						Normalise(totmat[0]);
+						Normalize(totmat[0]);
 				
 						/* the z axis gets mapped onto
 						a third orthogonal vector */
@@ -1546,13 +1546,13 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 						/* Projection of Vector on the plane */
 						Projf(vec2, vec, ob->obmat[0]);
 						VecSubf(totmat[2], vec, vec2);
-						Normalise(totmat[2]);
+						Normalize(totmat[2]);
 
 						/* the x axis is fixed*/
 						totmat[0][0] = ob->obmat[0][0];
 						totmat[0][1] = ob->obmat[0][1];
 						totmat[0][2] = ob->obmat[0][2];
-						Normalise(totmat[0]);
+						Normalize(totmat[0]);
 				
 						/* the z axis gets mapped onto
 						a third orthogonal vector */
@@ -1564,14 +1564,14 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 						/* Projection of Vector on the plane */
 						Projf(vec2, vec, ob->obmat[0]);
 						VecSubf(totmat[1], vec, vec2);
-						Normalise(totmat[1]);
+						Normalize(totmat[1]);
 						VecMulf(totmat[1],-1);
 
 						/* the x axis is fixed*/
 						totmat[0][0] = ob->obmat[0][0];
 						totmat[0][1] = ob->obmat[0][1];
 						totmat[0][2] = ob->obmat[0][2];
-						Normalise(totmat[0]);
+						Normalize(totmat[0]);
 				
 						/* the z axis gets mapped onto
 						a third orthogonal vector */
@@ -1583,14 +1583,14 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 						/* Projection of Vector on the plane */
 						Projf(vec2, vec, ob->obmat[0]);
 						VecSubf(totmat[2], vec, vec2);
-						Normalise(totmat[2]);
+						Normalize(totmat[2]);
 						VecMulf(totmat[2],-1);
 
 						/* the x axis is fixed*/
 						totmat[0][0] = ob->obmat[0][0];
 						totmat[0][1] = ob->obmat[0][1];
 						totmat[0][2] = ob->obmat[0][2];
-						Normalise(totmat[0]);
+						Normalize(totmat[0]);
 				
 						/* the z axis gets mapped onto
 						a third orthogonal vector */
@@ -1615,13 +1615,13 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 						/* Projection of Vector on the plane */
 						Projf(vec2, vec, ob->obmat[1]);
 						VecSubf(totmat[0], vec, vec2);
-						Normalise(totmat[0]);
+						Normalize(totmat[0]);
 
 						/* the y axis is fixed*/
 						totmat[1][0] = ob->obmat[1][0];
 						totmat[1][1] = ob->obmat[1][1];
 						totmat[1][2] = ob->obmat[1][2];
-						Normalise(totmat[1]);
+						Normalize(totmat[1]);
 						
 						/* the z axis gets mapped onto
 						a third orthogonal vector */
@@ -1633,13 +1633,13 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 						/* Projection of Vector on the plane */
 						Projf(vec2, vec, ob->obmat[1]);
 						VecSubf(totmat[2], vec, vec2);
-						Normalise(totmat[2]);
+						Normalize(totmat[2]);
 
 						/* the y axis is fixed*/
 						totmat[1][0] = ob->obmat[1][0];
 						totmat[1][1] = ob->obmat[1][1];
 						totmat[1][2] = ob->obmat[1][2];
-						Normalise(totmat[1]);
+						Normalize(totmat[1]);
 						
 						/* the z axis gets mapped onto
 						a third orthogonal vector */
@@ -1651,14 +1651,14 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 						/* Projection of Vector on the plane */
 						Projf(vec2, vec, ob->obmat[1]);
 						VecSubf(totmat[0], vec, vec2);
-						Normalise(totmat[0]);
+						Normalize(totmat[0]);
 						VecMulf(totmat[0],-1);
 
 						/* the y axis is fixed*/
 						totmat[1][0] = ob->obmat[1][0];
 						totmat[1][1] = ob->obmat[1][1];
 						totmat[1][2] = ob->obmat[1][2];
-						Normalise(totmat[1]);
+						Normalize(totmat[1]);
 						
 						/* the z axis gets mapped onto
 						a third orthogonal vector */
@@ -1670,14 +1670,14 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 						/* Projection of Vector on the plane */
 						Projf(vec2, vec, ob->obmat[1]);
 						VecSubf(totmat[2], vec, vec2);
-						Normalise(totmat[2]);
+						Normalize(totmat[2]);
 						VecMulf(totmat[2],-1);
 
 						/* the y axis is fixed*/
 						totmat[1][0] = ob->obmat[1][0];
 						totmat[1][1] = ob->obmat[1][1];
 						totmat[1][2] = ob->obmat[1][2];
-						Normalise(totmat[1]);
+						Normalize(totmat[1]);
 						
 						/* the z axis gets mapped onto
 						a third orthogonal vector */
@@ -1702,13 +1702,13 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 						/* Projection of Vector on the plane */
 						Projf(vec2, vec, ob->obmat[2]);
 						VecSubf(totmat[0], vec, vec2);
-						Normalise(totmat[0]);
+						Normalize(totmat[0]);
 
 						/* the z axis is fixed*/
 						totmat[2][0] = ob->obmat[2][0];
 						totmat[2][1] = ob->obmat[2][1];
 						totmat[2][2] = ob->obmat[2][2];
-						Normalise(totmat[2]);
+						Normalize(totmat[2]);
 						
 						/* the x axis gets mapped onto
 						a third orthogonal vector */
@@ -1720,13 +1720,13 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 						/* Projection of Vector on the plane */
 						Projf(vec2, vec, ob->obmat[2]);
 						VecSubf(totmat[1], vec, vec2);
-						Normalise(totmat[1]);
+						Normalize(totmat[1]);
 
 						/* the z axis is fixed*/
 						totmat[2][0] = ob->obmat[2][0];
 						totmat[2][1] = ob->obmat[2][1];
 						totmat[2][2] = ob->obmat[2][2];
-						Normalise(totmat[2]);
+						Normalize(totmat[2]);
 						
 						/* the x axis gets mapped onto
 						a third orthogonal vector */
@@ -1738,14 +1738,14 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 						/* Projection of Vector on the plane */
 						Projf(vec2, vec, ob->obmat[2]);
 						VecSubf(totmat[0], vec, vec2);
-						Normalise(totmat[0]);
+						Normalize(totmat[0]);
 						VecMulf(totmat[0],-1);
 
 						/* the z axis is fixed*/
 						totmat[2][0] = ob->obmat[2][0];
 						totmat[2][1] = ob->obmat[2][1];
 						totmat[2][2] = ob->obmat[2][2];
-						Normalise(totmat[2]);
+						Normalize(totmat[2]);
 						
 						/* the x axis gets mapped onto
 						a third orthogonal vector */
@@ -1757,14 +1757,14 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 						/* Projection of Vector on the plane */
 						Projf(vec2, vec, ob->obmat[2]);
 						VecSubf(totmat[1], vec, vec2);
-						Normalise(totmat[1]);
+						Normalize(totmat[1]);
 						VecMulf(totmat[1],-1);
 
 						/* the z axis is fixed*/
 						totmat[2][0] = ob->obmat[2][0];
 						totmat[2][1] = ob->obmat[2][1];
 						totmat[2][2] = ob->obmat[2][2];
-						Normalise(totmat[2]);
+						Normalize(totmat[2]);
 						
 						/* the x axis gets mapped onto
 						a third orthogonal vector */
@@ -1793,9 +1793,9 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 				tmpmat[0][0] = ob->obmat[0][0];tmpmat[0][1] = ob->obmat[0][1];tmpmat[0][2] = ob->obmat[0][2];
 				tmpmat[1][0] = ob->obmat[1][0];tmpmat[1][1] = ob->obmat[1][1];tmpmat[1][2] = ob->obmat[1][2];
 				tmpmat[2][0] = ob->obmat[2][0];tmpmat[2][1] = ob->obmat[2][1];tmpmat[2][2] = ob->obmat[2][2];
-				Normalise(tmpmat[0]);
-				Normalise(tmpmat[1]);
-				Normalise(tmpmat[2]);
+				Normalize(tmpmat[0]);
+				Normalize(tmpmat[1]);
+				Normalize(tmpmat[2]);
 				Mat3Inv(invmat,tmpmat);
 				Mat3MulMat3(tmpmat,totmat,invmat);
 				totmat[0][0] = tmpmat[0][0];totmat[0][1] = tmpmat[0][1];totmat[0][2] = tmpmat[0][2];
@@ -1865,20 +1865,20 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
                 xx[0] = ob->obmat[0][0];
                 xx[1] = ob->obmat[0][1];
                 xx[2] = ob->obmat[0][2];
-                Normalise(xx);
+                Normalize(xx);
 
                 /* store Z orientation before destroying obmat */
                 zz[0] = ob->obmat[2][0];
                 zz[1] = ob->obmat[2][1];
                 zz[2] = ob->obmat[2][2];
-                Normalise(zz);
+                Normalize(zz);
 
 				VecSubf(vec, ob->obmat[3], targetmat[3]);
 				vec[0] /= size[0];
 				vec[1] /= size[1];
 				vec[2] /= size[2];
 
-				dist = Normalise(vec);
+				dist = Normalize(vec);
                 //dist = VecLenf( ob->obmat[3], targetmat[3]);
 
                 if (data->orglength == 0)  data->orglength = dist;
@@ -1920,7 +1920,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
                 ob->obmat[2][2]=size[2]*scale[2];
                 
                 VecSubf(vec, ob->obmat[3], targetmat[3]);
-                Normalise(vec);
+                Normalize(vec);
                 /* new Y aligns  object target connection*/
                 totmat[1][0] = -vec[0];
                 totmat[1][1] = -vec[1];
@@ -1930,7 +1930,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
                     /* build new Z vector */
                     /* othogonal to "new Y" "old X! plane */
                     Crossf(orth, vec, xx);
-                    Normalise(orth);
+                    Normalize(orth);
                     
                     /* new Z*/
                     totmat[2][0] = orth[0];
@@ -1939,7 +1939,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
                     
                     /* we decided to keep X plane*/
                     Crossf(xx,orth, vec);
-                    Normalise(xx);
+                    Normalize(xx);
                     totmat[0][0] = xx[0];
                     totmat[0][1] = xx[1];
                     totmat[0][2] = xx[2];
@@ -1948,7 +1948,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
                     /* build new X vector */
                     /* othogonal to "new Y" "old Z! plane */
                     Crossf(orth, vec, zz);
-                    Normalise(orth);
+                    Normalize(orth);
                     
                     /* new X*/
                     totmat[0][0] = -orth[0];
@@ -1957,7 +1957,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
                     
                     /* we decided to keep Z */
                     Crossf(zz,orth, vec);
-                    Normalise(zz);
+                    Normalize(zz);
                     totmat[2][0] = zz[0];
                     totmat[2][1] = zz[1];
                     totmat[2][2] = zz[2];

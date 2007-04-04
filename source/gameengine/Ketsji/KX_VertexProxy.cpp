@@ -93,9 +93,9 @@ KX_VertexProxy::_getattr(const STR_String& attr)
   if (attr == "colour" || attr == "color")
   {
   	const unsigned char *colp = m_vertex->getRGBA();
-	MT_Vector4 colour(colp[0], colp[1], colp[2], colp[3]);
-	colour /= 255.0;
-  	return PyObjectFrom(colour);
+	MT_Vector4 color(colp[0], colp[1], colp[2], colp[3]);
+	color /= 255.0;
+  	return PyObjectFrom(color);
   }
   
   if (attr == "normal")

@@ -85,10 +85,10 @@ void setviewmatrixview3d(void);
 float *give_cursor(void);
 unsigned int free_localbit(void);
 void initlocalview(void);
-void centreview(void);
+void centerview(void);
 void restore_localviewdata(struct View3D *vd);
 void endlocalview(struct ScrArea *sa);
-void view3d_home(int centre);
+void view3d_home(int center);
 short view3d_opengl_select(unsigned int *buffer, unsigned int buffsize, short x1, short y1, short x2, short y2);
 void view3d_align_axis_to_vector(struct View3D *v3d, int axisidx, float vec[3]);
 

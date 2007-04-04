@@ -447,7 +447,7 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], int boneflag
 	/* move vector back */
 	Mat4Mul3Vecfl(imat, dirvec);
 	
-	if(0.0f != Normalise(dirvec)) {
+	if(0.0f != Normalize(dirvec)) {
 		float norvec[3], vec1[3], vec2[3], vec[3];
 		int a;
 		
@@ -591,7 +591,7 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag,
 	/* move vector back */
 	Mat4Mul3Vecfl(imat, dirvec);
 	
-	if(0.0f != Normalise(dirvec)) {
+	if(0.0f != Normalize(dirvec)) {
 		float norvech[3], norvect[3], vec[3];
 		
 		VECCOPY(vec, dirvec);

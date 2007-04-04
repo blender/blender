@@ -89,12 +89,12 @@ GetReplica(
 
 /* three functions copied from blender arith... don't know if there's an equivalent */
 
-static float Kx_Normalise(float *n)
+static float Kx_Normalize(float *n)
 {
 	float d;
 	
 	d= n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
-	/* FLT_EPSILON is too large! A larger value causes normalise errors in a scaled down utah teapot */
+	/* FLT_EPSILON is too large! A larger value causes normalize errors in a scaled down utah teapot */
 	if(d>0.0000000000001) {
 		d= sqrt(d);
 
@@ -158,14 +158,14 @@ static void Kx_VecUpMat3(float *vec, float mat[][3], short axis)
 	mat[coz][0]= vec[0];
 	mat[coz][1]= vec[1];
 	mat[coz][2]= vec[2];
-	Kx_Normalise((float *)mat[coz]);
+	Kx_Normalize((float *)mat[coz]);
 	
 	inp= mat[coz][2];
 	mat[coy][0]= - inp*mat[coz][0];
 	mat[coy][1]= - inp*mat[coz][1];
 	mat[coy][2]= 1.0 - inp*mat[coz][2];
 
-	Kx_Normalise((float *)mat[coy]);
+	Kx_Normalize((float *)mat[coy]);
 	
 	Kx_Crossf(mat[cox], mat[coy], mat[coz]);
 	

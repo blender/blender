@@ -195,7 +195,7 @@ static PyObject *Quaternion_getattr(QuaternionObject * self, char *name)
 		for(x = 0; x < 3; x++) {
 			vec[x] = (float)(self->quat[x + 1] / mag);
 		}
-		Normalise(vec);
+		Normalize(vec);
 		//If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations
 		if( EXPP_FloatsAreEqual(vec[0], 0.0f, 10) &&
 			EXPP_FloatsAreEqual(vec[1], 0.0f, 10) &&

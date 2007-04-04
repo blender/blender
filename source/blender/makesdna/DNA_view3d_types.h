@@ -99,7 +99,7 @@ typedef struct View3D {
 	struct RetopoViewData *retopo_view_data;
 	struct ViewDepths *depths;
 	
-	char ob_centre_bone[32];		/* optional string for armature bone to define centre */
+	char ob_centre_bone[32];		/* optional string for armature bone to define center */
 	
 	/**
 	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,
@@ -176,7 +176,7 @@ typedef struct View3D {
 
 
 /* View3D->around */
-#define V3D_CENTRE		 0
+#define V3D_CENTER		 0
 #define V3D_CENTROID	 3
 #define V3D_CURSOR		 1
 #define V3D_LOCAL		 2

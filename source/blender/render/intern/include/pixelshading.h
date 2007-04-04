@@ -27,7 +27,7 @@
 
 /* pixelshading.h
 *
-* These functions determine what actual colour a pixel will have.
+* These functions determine what actual color a pixel will have.
 */
 
 

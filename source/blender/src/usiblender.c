@@ -306,7 +306,7 @@ static void init_userdef_file(void)
 				SETCOL(btheme->tnode.syntaxv, 142, 138, 145, 255);	/* generator */
 				SETCOL(btheme->tnode.syntaxc, 120, 145, 120, 255);	/* group */
 			}
-			/* Group theme colours */
+			/* Group theme colors */
 			if(btheme->tv3d.group[3]==0) {
 				SETCOL(btheme->tv3d.group, 0x10, 0x40, 0x10, 255);
 				SETCOL(btheme->tv3d.group_active, 0x66, 0xFF, 0x66, 255);
@@ -340,7 +340,7 @@ static void init_userdef_file(void)
 		bTheme *btheme;
 		
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* long keyframe colour */
+			/* long keyframe color */
 			/* check for alpha==0 is safe, then color was never set */
 			if(btheme->tact.strip[3]==0) {
 				SETCOL(btheme->tv3d.edge_sharp, 255, 32, 32, 255);

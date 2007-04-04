@@ -382,7 +382,7 @@ void headerbox(ScrArea *area)
 	if(active) BIF_ThemeColor(TH_HEADER);
 	else BIF_ThemeColor(TH_HEADERDESEL);
 
-	/* weird values here... is because of window matrix that centres buttons */
+	/* weird values here... is because of window matrix that centers buttons */
 	if(area->headertype==HEADERTOP) {
 		uiSetRoundBox(3);
 		uiRoundBoxEmboss(-0.5+area->headbutofs, -10.0, width-1.5+area->headbutofs, HEADERY-2.0, SCR_ROUND, active);
@@ -2065,7 +2065,7 @@ ScrArea *closest_bigger_area(void)
 				
 				len= MIN4(len, len1, len2, len3);
 				
-				/* plus centre */
+				/* plus center */
 				vec[0]= (sa->v2->vec.x+sa->v3->vec.x)/2;
 				vec[1]= (sa->v1->vec.y+sa->v2->vec.y)/2;
 

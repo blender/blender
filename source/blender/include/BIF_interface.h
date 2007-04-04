@@ -52,7 +52,7 @@ struct ScrArea;
 #define UI_LEFT		4
 #define UI_RIGHT	8
 #define UI_DIRECTION	15
-#define UI_CENTRE		16
+#define UI_CENTER		16
 #define UI_SHIFT_FLIPPED	32
 
 /* uiBlock->autofill */

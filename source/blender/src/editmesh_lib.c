@@ -190,7 +190,7 @@ void EM_editselection_normal(float *normal, EditSelection *ese)
 		we need the plane for this */
 		Crossf(vec, normal, plane);
 		Crossf(normal, plane, vec); 
-		Normalise(normal);
+		Normalize(normal);
 		
 	} else if (ese->type==EDITFACE) {
 		EditFace *efa= ese->data;
@@ -263,7 +263,7 @@ void EM_editselection_plane(float *plane, EditSelection *ese)
 				VecCopyf(plane, vec);
 		}
 	}
-	Normalise(plane);
+	Normalize(plane);
 }
 
 
@@ -1013,7 +1013,7 @@ short extrudeflag_edges_indiv(short flag, float *nor)
 			}
 		}
 	}
-	Normalise(nor);
+	Normalize(nor);
 	
 	/* set correct selection */
 	EM_clear_flag_all(SELECT);
@@ -1279,7 +1279,7 @@ static short extrudeflag_edge(short flag, float *nor)
 		}
 	}
 	
-	Normalise(nor);	// translation normal grab
+	Normalize(nor);	// translation normal grab
 	
 	/* step 7: redo selection */
 	EM_clear_flag_all(SELECT);
@@ -1540,7 +1540,7 @@ short extrudeflag_vert(short flag, float *nor)
 		efa= nextvl;
 	}
 	
-	Normalise(nor);	// for grab
+	Normalize(nor);	// for grab
 	
 	/* for all vertices with eve->tmp.v!=0 
 		if eve->f1==1: make edge
@@ -1853,9 +1853,9 @@ void recalc_editnormals(void)
 
 	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
 	for(eve= em->verts.first; eve; eve=eve->next) {
-		if (Normalise(eve->no)==0.0) {
+		if (Normalize(eve->no)==0.0) {
 			VECCOPY(eve->no, eve->co);
-			Normalise(eve->no);
+			Normalize(eve->no);
 		}
 	}
 }

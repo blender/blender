@@ -142,7 +142,7 @@ Material defmaterial;
 void load_editMesh(void){}
 void make_editMesh(void){}
 void free_editMesh(struct EditMesh *em){}
-void docentre_new(void){}
+void docenter_new(void){}
 int saveover(char *str){ return 0;}
 
 /* image.c */

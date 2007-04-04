@@ -335,7 +335,7 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 				/* since vec is rotated in lampspace, this is how to get the cosine of angle */
 				/* precision is set 20% larger */
 				vec[2]*= 1.2f;
-				Normalise(vec);
+				Normalize(vec);
 				inpr= - vec[2];
 
 				if(inpr>=lar->spotsi) {

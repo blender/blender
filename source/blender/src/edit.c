@@ -373,7 +373,7 @@ int get_border(rcti *rect, short flag)
 			rect->ymax= mval[1];
 			retval= event;
 
-			/* normalise */
+			/* normalize */
 			if(rect->xmin>rect->xmax) SWAP(int, rect->xmin, rect->xmax);
 			if(rect->ymin>rect->ymax) SWAP(int, rect->ymin, rect->ymax);
 			
@@ -883,7 +883,7 @@ static void make_trans_verts(float *min, float *max, int mode)
 	MetaElem *ml;
 	EditVert *eve;
 	EditBone	*ebo;
-	float total, centre[3], centroid[3];
+	float total, center[3], centroid[3];
 	int a;
 
 	tottrans= 0; // global!
@@ -1111,9 +1111,9 @@ static void make_trans_verts(float *min, float *max, int mode)
 		centroid[2]/= total;
 	}
 
-	centre[0]= (min[0]+max[0])/2.0;
-	centre[1]= (min[1]+max[1])/2.0;
-	centre[2]= (min[2]+max[2])/2.0;
+	center[0]= (min[0]+max[0])/2.0;
+	center[1]= (min[1]+max[1])/2.0;
+	center[2]= (min[2]+max[2])/2.0;
 	
 }
 

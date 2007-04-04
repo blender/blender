@@ -370,7 +370,7 @@ void renderspothalo(ShadeInput *shi, float *col, float alpha)
 
 /* ---------------- shaders ----------------------- */
 
-static double Normalise_d(double *n)
+static double Normalize_d(double *n)
 {
 	double d;
 	
@@ -427,10 +427,10 @@ static float area_lamp_energy(float *co, float *vn, LampRen *lar)
 	VECSUB(vec[2], co, lar->area[2]);
 	VECSUB(vec[3], co, lar->area[3]);
 	
-	Normalise_d(vec[0]);
-	Normalise_d(vec[1]);
-	Normalise_d(vec[2]);
-	Normalise_d(vec[3]);
+	Normalize_d(vec[0]);
+	Normalize_d(vec[1]);
+	Normalize_d(vec[2]);
+	Normalize_d(vec[3]);
 
 	/* cross product */
 	CROSS(cross[0], vec[0], vec[1]);
@@ -438,10 +438,10 @@ static float area_lamp_energy(float *co, float *vn, LampRen *lar)
 	CROSS(cross[2], vec[2], vec[3]);
 	CROSS(cross[3], vec[3], vec[0]);
 
-	Normalise_d(cross[0]);
-	Normalise_d(cross[1]);
-	Normalise_d(cross[2]);
-	Normalise_d(cross[3]);
+	Normalize_d(cross[0]);
+	Normalize_d(cross[1]);
+	Normalize_d(cross[2]);
+	Normalize_d(cross[3]);
 
 	/* angles */
 	rad[0]= vec[0][0]*vec[1][0]+ vec[0][1]*vec[1][1]+ vec[0][2]*vec[1][2];
@@ -512,7 +512,7 @@ static float Phong_Spec( float *n, float *l, float *v, int hard, int tangent )
 	h[0] = l[0] + v[0];
 	h[1] = l[1] + v[1];
 	h[2] = l[2] + v[2];
-	Normalise(h);
+	Normalize(h);
 	
 	rslt = h[0]*n[0] + h[1]*n[1] + h[2]*n[2];
 	if(tangent) rslt= sasqrt(1.0f - rslt*rslt);
@@ -532,7 +532,7 @@ static float CookTorr_Spec(float *n, float *l, float *v, int hard, int tangent)
 	h[0]= v[0]+l[0];
 	h[1]= v[1]+l[1];
 	h[2]= v[2]+l[2];
-	Normalise(h);
+	Normalize(h);
 
 	nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2];
 	if(tangent) nh= sasqrt(1.0f - nh*nh);
@@ -565,7 +565,7 @@ static float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_p
 	h[0]= v[0]+l[0];
 	h[1]= v[1]+l[1];
 	h[2]= v[2]+l[2];
-	Normalise(h);
+	Normalize(h);
 
 	nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; /* Dot product between surface normal and half-way vector */
 	if(tangent) nh= sasqrt(1.0f - nh*nh);
@@ -612,7 +612,7 @@ static float Toon_Spec( float *n, float *l, float *v, float size, float smooth, 
 	h[0] = l[0] + v[0];
 	h[1] = l[1] + v[1];
 	h[2] = l[2] + v[2];
-	Normalise(h);
+	Normalize(h);
 	
 	rslt = h[0]*n[0] + h[1]*n[1] + h[2]*n[2];
 	if(tangent) rslt = sasqrt(1.0f - rslt*rslt);
@@ -636,7 +636,7 @@ static float WardIso_Spec( float *n, float *l, float *v, float rms, int tangent)
 	h[0] = l[0] + v[0];
 	h[1] = l[1] + v[1];
 	h[2] = l[2] + v[2];
-	Normalise(h);
+	Normalize(h);
 
 	nh = n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; /* Dot product between surface normal and half-way vector */
 	if(tangent) nh = sasqrt(1.0f - nh*nh);
@@ -687,7 +687,7 @@ static float OrenNayar_Diff(float nl, float *n, float *l, float *v, float rough 
 	h[0]= v[0]+l[0];
 	h[1]= v[1]+l[1];
 	h[2]= v[2]+l[2];
-	Normalise(h);
+	Normalize(h);
 	
 	nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; /* Dot product between surface normal and half-way vector */
 	if(nh<0.0f) nh = 0.0f;
@@ -708,12 +708,12 @@ static float OrenNayar_Diff(float nl, float *n, float *l, float *v, float rough 
 	Lit_B[0] = l[0] - (realnl * n[0]);
 	Lit_B[1] = l[1] - (realnl * n[1]);
 	Lit_B[2] = l[2] - (realnl * n[2]);
-	Normalise( Lit_B );
+	Normalize( Lit_B );
 	
 	View_B[0] = v[0] - (nv * n[0]);
 	View_B[1] = v[1] - (nv * n[1]);
 	View_B[2] = v[2] - (nv * n[2]);
-	Normalise( View_B );
+	Normalize( View_B );
 	
 	t = Lit_B[0]*View_B[0] + Lit_B[1]*View_B[1] + Lit_B[2]*View_B[2];
 	if( t < 0 ) t = 0;
@@ -1290,7 +1290,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 				lv[1]+= view[1];
 				lv[2]+= view[2];
 				
-				Normalise(lv);
+				Normalize(lv);
 				
 				t= vn[0]*lv[0]+vn[1]*lv[1]+vn[2]*lv[2];
 				

@@ -76,7 +76,7 @@ void	adduplicate_armature(void);
 void	addvert_armature(void);
 void	add_primitiveArmature(int type);
 void	apply_rot_armature (struct Object *ob, float mat[3][3]);
-void 	docentre_armature (struct Object *ob, int centremode);
+void 	docenter_armature (struct Object *ob, int centermode);
 
 void	clear_armature(struct Object *ob, char mode);
 

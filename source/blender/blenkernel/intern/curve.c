@@ -1778,7 +1778,7 @@ void makeBevelList(Object *ob)
 				
 				quat= vectoquat(vec, 5, 1);
 				
-				Normalise(vec);
+				Normalize(vec);
 				q[0]= (float)cos(0.5*bevp1->alfa);
 				x1= (float)sin(0.5*bevp1->alfa);
 				q[1]= x1*vec[0];
@@ -1808,7 +1808,7 @@ void makeBevelList(Object *ob)
 					vec[1]= bevp2->y - bevp0->y;
 					vec[2]= bevp2->z - bevp0->z;
 					
-					Normalise(vec);
+					Normalize(vec);
 
 					quat= vectoquat(vec, 5, 1);
 					
@@ -2107,8 +2107,8 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 				
 				VecSubf(h1, p2-3, p2);
 				VecSubf(h2, p2, p2+3);
-				len1= Normalise(h1);
-				len2= Normalise(h2);
+				len1= Normalize(h1);
+				len2= Normalize(h2);
 				
 				vz= INPR(h1, h2);
 				

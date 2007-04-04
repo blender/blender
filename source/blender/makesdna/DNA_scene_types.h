@@ -171,7 +171,7 @@ typedef struct RenderData {
 	float ctime;			/* use for calcutions */
 	float framelen, blurfac;
 
-	/** For UR edge rendering: give the edges this colour */
+	/** For UR edge rendering: give the edges this color */
 	float edgeR, edgeG, edgeB;
 	
 	short fullscreen, xplay, yplay, freqplay;	/* standalone player */

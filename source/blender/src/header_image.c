@@ -438,7 +438,7 @@ static void do_image_viewmenu(void *arg, int event)
 		add_blockhandler(curarea, IMAGE_HANDLER_PAINT, UI_PNL_UNSTOW);
 		break;
 	case 9:
-		image_viewcentre();
+		image_viewcenter();
 	case 10: /* Display Normalized Coordinates */
 		G.sima->flag ^= SI_COORDFLOATS;
 		allqueue(REDRAWIMAGE, 0);

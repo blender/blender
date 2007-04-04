@@ -1740,7 +1740,7 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag)
 		zspan.zofsx= -pa->disprect.xmin;
 		zspan.zofsy= -pa->disprect.ymin;
 	}
-	/* to centre the sample position */
+	/* to center the sample position */
 	zspan.zofsx -= 0.5f;
 	zspan.zofsy -= 0.5f;
 	
@@ -2579,7 +2579,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, un
 			zspan.zofsx= -pa->disprect.xmin;
 			zspan.zofsy= -pa->disprect.ymin;
 		}
-		/* to centre the sample position */
+		/* to center the sample position */
 		zspan.zofsx -= 0.5f;
 		zspan.zofsy -= 0.5f;
 		

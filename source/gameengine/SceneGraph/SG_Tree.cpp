@@ -56,7 +56,7 @@ SG_Tree::SG_Tree(SG_Tree* left, SG_Tree* right) :
 		m_bbox += m_right->m_bbox;
 		m_right->m_parent = this;
 	}
-	m_centre = (m_bbox.m_min + m_bbox.m_max)/2.0;
+	m_center = (m_bbox.m_min + m_bbox.m_max)/2.0;
 	m_radius = (m_bbox.m_max - m_bbox.m_min).length();
 }
 	
@@ -66,7 +66,7 @@ SG_Tree::SG_Tree(SG_Node* client) :
 		m_client_object(client)
 {
 	m_bbox = SG_BBox(client->BBox(), client->GetWorldTransform());
-	m_centre = (m_bbox.m_min + m_bbox.m_max)/2.0;
+	m_center = (m_bbox.m_min + m_bbox.m_max)/2.0;
 	m_radius = (m_bbox.m_max - m_bbox.m_min).length();
 }
 
@@ -155,7 +155,7 @@ void SG_Tree::SetLeft(SG_Tree *left)
 {
 	m_left = left;
 	m_bbox += left->m_bbox;
-	m_centre = (m_bbox.m_min + m_bbox.m_max)/2.0;
+	m_center = (m_bbox.m_min + m_bbox.m_max)/2.0;
 	m_radius = (m_bbox.m_max - m_bbox.m_min).length();
 }
 
@@ -163,7 +163,7 @@ void SG_Tree::SetRight(SG_Tree *right)
 {
 	m_right = right;
 	m_bbox += right->m_bbox;
-	m_centre = (m_bbox.m_min + m_bbox.m_max)/2.0;
+	m_center = (m_bbox.m_min + m_bbox.m_max)/2.0;
 	m_radius = (m_bbox.m_max - m_bbox.m_min).length();
 }
 

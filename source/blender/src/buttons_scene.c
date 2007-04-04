@@ -858,16 +858,16 @@ static uiBlock *edge_render_menu(void *arg_unused)
 	uiDefButS(block, NUM, 0,"Eint:",  	45,75,175,19,  &G.scene->r.edgeint, 0.0, 255.0, 0, 0,
 		  "Sets edge intensity for Toon shading");
 
-	/* colour settings for the toon shading */
+	/* color settings for the toon shading */
 	uiDefButF(block, COL, 0, "", 		10, 10,30,60,  &(G.scene->r.edgeR), 0, 0, 0, B_EDGECOLSLI, "");
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, 0, "R ",   45, 50, 175,19,   &G.scene->r.edgeR, 0.0, 1.0, B_EDGECOLSLI, 0,
-		  "Colour for edges in toon shading mode.");
+		  "Color for edges in toon shading mode.");
 	uiDefButF(block, NUMSLI, 0, "G ",  	45, 30, 175,19,  &G.scene->r.edgeG, 0.0, 1.0, B_EDGECOLSLI, 0,
-		  "Colour for edges in toon shading mode.");
+		  "Color for edges in toon shading mode.");
 	uiDefButF(block, NUMSLI, 0, "B ",  	45, 10, 175,19,  &G.scene->r.edgeB, 0.0, 1.0, B_EDGECOLSLI, 0,
-		  "Colour for edges in toon shading mode.");
+		  "Color for edges in toon shading mode.");
 
 	
 	uiBlockSetDirection(block, UI_TOP);
@@ -1289,7 +1289,7 @@ static void render_panel_render(void)
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW,800,"Sky",		369,13,35,20,&G.scene->r.alphamode,3.0,0.0, 0, 0, "Fill background with sky");
 	uiDefButS(block, ROW,800,"Premul",	405,13,50,20,&G.scene->r.alphamode,3.0,1.0, 0, 0, "Multiply alpha in advance");
-	uiDefButS(block, ROW,800,"Key",		456,13,35,20,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and colour values remain unchanged");
+	uiDefButS(block, ROW,800,"Key",		456,13,35,20,&G.scene->r.alphamode,3.0,2.0, 0, 0, "Alpha and color values remain unchanged");
 	uiBlockEndAlign(block);
 
 	if(G.scene->r.mode & R_RAYTRACE)

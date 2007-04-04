@@ -405,7 +405,7 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, short uvtestgrid)
 			}
 		}
 		
-		/* 2nd pass, coloured + */
+		/* 2nd pass, colored + */
 		rect= (unsigned char*)ibuf->rect;
 		
 		for(y=0; y<ibuf->y; y++) {

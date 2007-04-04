@@ -780,7 +780,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 		/* setup starting time, direction vector and accumulated time */
 		starttime= painter->accumtime;
 		Vec2Subf(dmousepos, pos, painter->lastmousepos);
-		len= Normalise2(dmousepos);
+		len= Normalize2(dmousepos);
 		painter->accumtime += curtime - painter->lasttime;
 
 		/* do paint op over unpainted time distance */
@@ -815,7 +815,7 @@ int brush_painter_paint(BrushPainter *painter, BrushFunc func, float *pos, doubl
 		/* setup starting distance, direction vector and accumulated distance */
 		startdistance= painter->accumdistance;
 		Vec2Subf(dmousepos, pos, painter->lastmousepos);
-		len= Normalise2(dmousepos);
+		len= Normalize2(dmousepos);
 		painter->accumdistance += len;
 
 		/* do paint op over unpainted distance */

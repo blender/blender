@@ -285,8 +285,8 @@ float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 		Projf(tmp, start, axis);
 		VecSubf(start, start, tmp);
 		
-		Normalise(end);
-		Normalise(start);
+		Normalize(end);
+		Normalize(start);
 		
 		Crossf(tmp, start, end);
 		

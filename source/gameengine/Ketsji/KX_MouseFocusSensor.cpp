@@ -164,7 +164,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	 * -> wcs_camcs_trafo ->
 	 * camCS - camera coordinates
 	 * -> camcs_clip_trafo ->
-	 * clipCS - normalised device coordinates?
+	 * clipCS - normalized device coordinates?
 	 * -> normview_win_trafo
 	 * winCS - window coordinates
 	 *
@@ -172,7 +172,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	 * the projection matrix. These are passed to the rasterizer, and
 	 * we store them in the camera for easy access.
 	 *
-	 * For normalised device coords (xn = x/w, yn = y/w/zw) the
+	 * For normalized device coords (xn = x/w, yn = y/w/zw) the
 	 * windows coords become (lb = left bottom)
 	 *
 	 * xwin = [(xn + 1.0) * width]/2 + x_lb
@@ -215,7 +215,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	float nearclip = 0.0;
 	float farclip = 1.0;
 
-	/*	build the from and to point in normalised device coordinates 
+	/*	build the from and to point in normalized device coordinates 
 	 *	Looks like normailized device coordinates are [-1,1] in x [-1,1] in y
 	 *	[0,-1] in z 
 	 *	

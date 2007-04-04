@@ -2292,7 +2292,7 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	 METH_NOARGS,
 	 "() - enable premultiply alpha"},
 	{"enableKey", ( PyCFunction ) RenderData_EnableKey, METH_NOARGS,
-	 "() - enable alpha and colour values remain unchanged"},
+	 "() - enable alpha and color values remain unchanged"},
 	{"enableShadow", ( PyCFunction ) RenderData_EnableShadow, METH_VARARGS,
 	 "(bool) - enable/disable shadow calculation"},
 	{"enablePanorama", ( PyCFunction ) RenderData_EnablePanorama,

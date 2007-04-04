@@ -317,7 +317,7 @@ void drawsquare(float *cent, float size, short cox, short coy)
 
 void drawlimits()
 {
-	/* centre around cent */
+	/* center around cent */
 	short cox=0, coy=1;
 	
 	if((RG.flag & 3)==2) coy= 2;

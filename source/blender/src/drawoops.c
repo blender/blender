@@ -308,7 +308,7 @@ void calc_oopstext(char *str, float *v1)
 	
 	flen= BMF_GetStringWidth(font, str);
 	
-	/* calc centred location for icon and text,
+	/* calc centerd location for icon and text,
 	else if were zoomed too far out, just push text to the left of the oops block. */
 	if (oopscalex>1.1) { 
 		mval[0]= (f1+f2-flen+1)/2;
@@ -454,7 +454,7 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 		/* Draw a page about the oops */
 		BIF_GetThemeColor3fv(TH_BACK, col);
 		glColor3fv(col);
-		glRectf(G.v2d->tot.xmin-2, G.v2d->tot.ymin-2,  G.v2d->tot.xmax+2, G.v2d->tot.ymax+2); /* light square in the centre */
+		glRectf(G.v2d->tot.xmin-2, G.v2d->tot.ymin-2,  G.v2d->tot.xmax+2, G.v2d->tot.ymax+2); /* light square in the center */
 		BIF_ThemeColorShade(TH_BACK, -96); /* drop shadow color */
 		glRectf(G.v2d->tot.xmin-1, G.v2d->tot.ymin-2,  G.v2d->tot.xmax+3, G.v2d->tot.ymin-3); /* bottom dropshadow */
 		glRectf(G.v2d->tot.xmax+2, G.v2d->tot.ymin-2,  G.v2d->tot.xmax+3, G.v2d->tot.ymax+1); /* right hand dropshadow */

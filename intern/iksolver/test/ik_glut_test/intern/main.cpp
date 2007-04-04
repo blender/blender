@@ -107,9 +107,9 @@ init(MT_Vector3 min,MT_Vector3 max)
   /* Setup the view of the cube. */
   glMatrixMode(GL_PROJECTION);
 
-	// centre of the box + 3* depth of box
+	// center of the box + 3* depth of box
 
-  MT_Vector3 centre = (min + max) * 0.5;
+  MT_Vector3 center = (min + max) * 0.5;
   MT_Vector3 diag = max - min;
 
 	float depth = diag.length();
@@ -125,8 +125,8 @@ init(MT_Vector3 min,MT_Vector3 max)
 
 
   gluLookAt(
-	centre.x(), centre.y(), centre.z() + distance*depth,  /* eye is at (0,0,5) */
-    centre.x(), centre.y(), centre.z(),      /* center is at (0,0,0) */
+	center.x(), center.y(), center.z() + distance*depth,  /* eye is at (0,0,5) */
+    center.x(), center.y(), center.z(),      /* center is at (0,0,0) */
     0.0, 1.0, 0.);      /* up is in positive Y direction */
 
   glPushMatrix();	

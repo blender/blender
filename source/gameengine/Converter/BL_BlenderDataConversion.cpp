@@ -190,15 +190,15 @@ static unsigned int KX_rgbaint2uint_new(unsigned int icol)
 	{
 		unsigned int integer;
 		unsigned char cp[4];
-	} out_colour, in_colour;
+	} color, in_color;
 	
-	in_colour.integer = icol;
-	out_colour.cp[0] = in_colour.cp[3]; // red
-	out_colour.cp[1] = in_colour.cp[2]; // green
-	out_colour.cp[2] = in_colour.cp[1]; // blue
-	out_colour.cp[3] = in_colour.cp[0]; // alpha
+	in_color.integer = icol;
+	out_color.cp[0] = in_color.cp[3]; // red
+	out_color.cp[1] = in_color.cp[2]; // green
+	out_color.cp[2] = in_color.cp[1]; // blue
+	out_color.cp[3] = in_color.cp[0]; // alpha
 	
-	return out_colour.integer;
+	return out_color.integer;
 }
 
 /* Now the real converting starts... */
@@ -210,15 +210,15 @@ static unsigned int KX_Mcol2uint_new(MCol col)
 		MCol col;
 		unsigned int integer;
 		unsigned char cp[4];
-	} out_colour, in_colour;
+	} out_color, in_color;
 
-	in_colour.col = col;
-	out_colour.cp[0] = in_colour.cp[3]; // red
-	out_colour.cp[1] = in_colour.cp[2]; // green
-	out_colour.cp[2] = in_colour.cp[1]; // blue
-	out_colour.cp[3] = in_colour.cp[0]; // alpha
+	in_color.col = col;
+	out_color.cp[0] = in_color.cp[3]; // red
+	out_color.cp[1] = in_color.cp[2]; // green
+	out_color.cp[2] = in_color.cp[1]; // blue
+	out_color.cp[3] = in_color.cp[0]; // alpha
 	
-	return out_colour.integer;
+	return out_color.integer;
 }
 
 static void SetDefaultFaceType(Scene* scene)
@@ -247,7 +247,7 @@ static void GetRGB(short type,
 	unsigned int &c2, 
 	unsigned int &c3)
 {
-	unsigned int colour = 0xFFFFFFFFL;
+	unsigned int color = 0xFFFFFFFFL;
 	switch(type)
 	{
 		case 0:	// vertex colors
@@ -260,11 +260,11 @@ static void GetRGB(short type,
 					c3 = KX_Mcol2uint_new(mmcol[3]);
 			}else // backup white
 			{
-				c0 = KX_rgbaint2uint_new(colour);
-				c1 = KX_rgbaint2uint_new(colour);
-				c2 = KX_rgbaint2uint_new(colour);	
+				c0 = KX_rgbaint2uint_new(color);
+				c1 = KX_rgbaint2uint_new(color);
+				c2 = KX_rgbaint2uint_new(color);	
 				if (mface->v4)
-					c3 = KX_rgbaint2uint_new( colour );
+					c3 = KX_rgbaint2uint_new( color );
 			}
 		} break;
 		
@@ -280,22 +280,22 @@ static void GetRGB(short type,
 				col_converter.cp[2] = (unsigned char) (mat->g*255.0);
 				col_converter.cp[1] = (unsigned char) (mat->b*255.0);
 				col_converter.cp[0] = (unsigned char) (mat->alpha*255.0);
-				colour = col_converter.integer;
+				color = col_converter.integer;
 			}
-			c0 = KX_rgbaint2uint_new(colour);
-			c1 = KX_rgbaint2uint_new(colour);
-			c2 = KX_rgbaint2uint_new(colour);	
+			c0 = KX_rgbaint2uint_new(color);
+			c1 = KX_rgbaint2uint_new(color);
+			c2 = KX_rgbaint2uint_new(color);	
 			if (mface->v4)
-				c3 = KX_rgbaint2uint_new(colour);
+				c3 = KX_rgbaint2uint_new(color);
 		} break;
 		
 		default: // white
 		{
-			c0 = KX_rgbaint2uint_new(colour);
-			c1 = KX_rgbaint2uint_new(colour);
-			c2 = KX_rgbaint2uint_new(colour);	
+			c0 = KX_rgbaint2uint_new(color);
+			c1 = KX_rgbaint2uint_new(color);
+			c2 = KX_rgbaint2uint_new(color);	
 			if (mface->v4)
-				c3 = KX_rgbaint2uint_new(colour);
+				c3 = KX_rgbaint2uint_new(color);
 		} break;
 	}
 }
@@ -974,7 +974,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 
 					if (mmcol)
 					{
-						// Use vertex colours
+						// Use vertex colors
 						rgb0 = KX_Mcol2uint_new(mmcol[0]);
 						rgb1 = KX_Mcol2uint_new(mmcol[1]);
 						rgb2 = KX_Mcol2uint_new(mmcol[2]);
@@ -985,7 +985,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					else {
 						// no vertex colors: take from material if we have one,
 						// otherwise set to white
-						unsigned int colour = 0xFFFFFFFFL;
+						unsigned int color = 0xFFFFFFFFL;
 
 						if (ma)
 						{
@@ -1000,15 +1000,15 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 							col_converter.cp[1] = (unsigned char) (ma->b*255.0);
 							col_converter.cp[0] = (unsigned char) (ma->alpha*255.0);
 							
-							colour = col_converter.integer;
+							color = col_converter.integer;
 						}
 	
-						rgb0 = KX_rgbaint2uint_new(colour);
-						rgb1 = KX_rgbaint2uint_new(colour);
-						rgb2 = KX_rgbaint2uint_new(colour);	
+						rgb0 = KX_rgbaint2uint_new(color);
+						rgb1 = KX_rgbaint2uint_new(color);
+						rgb2 = KX_rgbaint2uint_new(color);	
 						
 						if (mface->v4)
-							rgb3 = KX_rgbaint2uint_new(colour);
+							rgb3 = KX_rgbaint2uint_new(color);
 					}
 					
 					bool istriangle = (mface->v4==0);
@@ -1304,7 +1304,7 @@ static void my_tex_space_mesh(Mesh *me)
 	
 }
 
-static void my_get_local_bounds(Object *ob, float *centre, float *size)
+static void my_get_local_bounds(Object *ob, float *center, float *size)
 {
 	BoundBox *bb= NULL;
 	/* uses boundbox, function used by Ketsji */
@@ -1321,7 +1321,7 @@ static void my_get_local_bounds(Object *ob, float *centre, float *size)
 		case OB_CURVE:
 		case OB_SURF:
 		case OB_FONT:
-			centre[0]= centre[1]= centre[2]= 0.0;
+			center[0]= center[1]= center[2]= 0.0;
 			size[0]  = size[1]=size[2]=0.0;
 			break;
 		case OB_MBALL:
@@ -1331,7 +1331,7 @@ static void my_get_local_bounds(Object *ob, float *centre, float *size)
 	
 	if(bb==NULL) 
 	{
-		centre[0]= centre[1]= centre[2]= 0.0;
+		center[0]= center[1]= center[2]= 0.0;
 		size[0] = size[1]=size[2]=1.0;
 	}
 	else 
@@ -1340,9 +1340,9 @@ static void my_get_local_bounds(Object *ob, float *centre, float *size)
 		size[1]= 0.5*fabs(bb->vec[0][1] - bb->vec[2][1]);
 		size[2]= 0.5*fabs(bb->vec[0][2] - bb->vec[1][2]);
 					
-		centre[0]= 0.5*(bb->vec[0][0] + bb->vec[4][0]);
-		centre[1]= 0.5*(bb->vec[0][1] + bb->vec[2][1]);
-		centre[2]= 0.5*(bb->vec[0][2] + bb->vec[1][2]);
+		center[0]= 0.5*(bb->vec[0][0] + bb->vec[4][0]);
+		center[1]= 0.5*(bb->vec[0][1] + bb->vec[2][1]);
+		center[2]= 0.5*(bb->vec[0][2] + bb->vec[1][2]);
 	}
 }
 	
@@ -1609,8 +1609,8 @@ static KX_GameObject *gameobject_from_blenderobject(
 	{
 		Mesh* mesh = static_cast<Mesh*>(ob->data);
 		RAS_MeshObject* meshobj = converter->FindGameMesh(mesh, ob->lay);
-		float centre[3], extents[3];
-		float radius = my_boundbox_mesh((Mesh*) ob->data, centre, extents);
+		float center[3], extents[3];
+		float radius = my_boundbox_mesh((Mesh*) ob->data, center, extents);
 		
 		if (!meshobj) {
 			meshobj = BL_ConvertMesh(mesh,ob,rendertools,kxscene,converter);
@@ -1641,8 +1641,8 @@ static KX_GameObject *gameobject_from_blenderobject(
 			((BL_DeformableGameObject*)gameobj)->m_pDeformer = dcont;
 		}
 		
-		MT_Point3 min = MT_Point3(centre) - MT_Vector3(extents);
-		MT_Point3 max = MT_Point3(centre) + MT_Vector3(extents);
+		MT_Point3 min = MT_Point3(center) - MT_Vector3(extents);
+		MT_Point3 max = MT_Point3(center) + MT_Vector3(extents);
 		SG_BBox bbox = SG_BBox(min, max);
 		gameobj->GetSGNode()->SetBBox(bbox);
 		gameobj->GetSGNode()->SetRadius(radius);

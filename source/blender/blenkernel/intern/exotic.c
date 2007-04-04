@@ -2250,7 +2250,7 @@ static void displist_to_objects(ListBase *lbase)
 	/* irst this: is still active */
 	if(ivsurf) {
 		where_is_object(ivsurf);
-		docentre_new();
+		docenter_new();
 	}
 
 	dl= lbase->first;
@@ -3944,7 +3944,7 @@ static void dxf_read_ellipse(int noob)
 	x = a * sin(phi);
 	y = b * cos(phi);	
 
-#ifndef DEBUG_CENTRE
+#ifndef DEBUG_CENTER
 	epoint[0] = center[0] + x*cos(theta) - y*sin(theta);
 	epoint[1] = center[1] + x*sin(theta) + y*cos(theta);
 	epoint[2] = center[2];

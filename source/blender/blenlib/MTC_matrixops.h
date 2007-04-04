@@ -81,7 +81,7 @@ int MTC_Mat4Invert(float inverse[][4], float mat[][4]);
 
 /**
  * Make the set of mat orthonormal (mat should already be orthogonal)?
- * (doesn't appear to normalise properly?)
+ * (doesn't appear to normalize properly?)
  */
 void MTC_Mat4Ortho(float mat[][4]);
 

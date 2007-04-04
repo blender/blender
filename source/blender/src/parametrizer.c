@@ -145,8 +145,8 @@ static float p_vec_angle_cos(float *v1, float *v2, float *v3)
 	d2[1] = v3[1] - v2[1];
 	d2[2] = v3[2] - v2[2];
 
-	Normalise(d1);
-	Normalise(d2);
+	Normalize(d1);
+	Normalize(d2);
 
 	return d1[0]*d2[0] + d1[1]*d2[1] + d1[2]*d2[2];
 }

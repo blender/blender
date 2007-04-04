@@ -3324,7 +3324,7 @@ void vertices_to_sphere(void)
 	Mat3CpyMat4(bmat, ob->obmat);
 	Mat3Inv(imat, bmat);
 
-	/* centre */
+	/* center */
 	curs= give_cursor();
 	cent[0]= curs[0]-ob->obmat[3][0];
 	cent[1]= curs[1]-ob->obmat[3][1];
@@ -3352,7 +3352,7 @@ void vertices_to_sphere(void)
 			vec[1]= eve->co[1]-cent[1];
 			vec[2]= eve->co[2]-cent[2];
 			
-			Normalise(vec);
+			Normalize(vec);
 			
 			eve->co[0]= fac*(cent[0]+vec[0]*len) + facm*eve->co[0];
 			eve->co[1]= fac*(cent[1]+vec[1]*len) + facm*eve->co[1];

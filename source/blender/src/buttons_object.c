@@ -1727,7 +1727,7 @@ void do_object_panels(unsigned short event)
 			do_ob_ipo(ob);
 			where_is_object(ob);
 			VecSubf(vec, vec, ob->obmat[3]);
-			prspeed= Normalise(vec);
+			prspeed= Normalize(vec);
 			scrarea_queue_winredraw(curarea);
 		}
 		break;

@@ -186,9 +186,9 @@ void add_click_mesh(void)
 				done= 1;
 			}
 		}
-		if(done) Normalise(nor);
+		if(done) Normalize(nor);
 		
-		/* centre */
+		/* center */
 		VecAddf(cent, min, max);
 		VecMulf(cent, 0.5f);
 		VECCOPY(min, cent);
@@ -206,14 +206,14 @@ void add_click_mesh(void)
 			float dot;
 			
 			VECCOPY(vec, min);
-			Normalise(vec);
+			Normalize(vec);
 			dot= INPR(vec, nor);
 
 			if( fabs(dot)<0.999) {
 				float cross[3], si, q1[4];
 				
 				Crossf(cross, nor, vec);
-				Normalise(cross);
+				Normalize(cross);
 				dot= 0.5f*saacos(dot);
 				si= (float)sin(dot);
 				q1[0]= (float)cos(dot);
@@ -865,7 +865,7 @@ int confirm_objectExists( Mesh **me, float mat[][3] )
 	}
 	*me = G.obedit->data;
 	
-	/* imat and centre and size */
+	/* imat and center and size */
 	Mat3CpyMat4(mat, G.obedit->obmat);
 	
 	return newob;
@@ -1079,7 +1079,7 @@ void make_prim(int type, float imat[3][3], int tot, int seg,
 			}
 			d= -d;
 		}
-		/* centre vertices */
+		/* center vertices */
 		/* type 7, a cone can only have 1 one side filled
 		 * if the cone has no capping, dont add vtop */
 		if((fill && type>1) || type == 7) {

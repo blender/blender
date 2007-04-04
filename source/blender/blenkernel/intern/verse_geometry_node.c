@@ -118,10 +118,10 @@ static void recalculate_verseface_normals(VNode *vnode)
 		vface = vface->next;
 	}
 
-	/* we have to normalise all vertex normals */
+	/* we have to normalize all vertex normals */
 	vvert = vert_layer->dl.lb.first;
 	while(vvert) {
-		Normalise(vvert->no);
+		Normalize(vvert->no);
 		vvert = vvert->next;
 	}
 }

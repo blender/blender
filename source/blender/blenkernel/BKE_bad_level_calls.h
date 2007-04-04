@@ -96,7 +96,7 @@ void make_editMesh(void);
 struct EditMesh;
 void free_editMesh(struct EditMesh *);
 void free_editArmature(void);
-void docentre_new(void);
+void docenter_new(void);
 int saveover(char *str);
 
 /* image.c */

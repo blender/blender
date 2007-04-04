@@ -52,7 +52,7 @@ class SG_Tree
 	SG_Tree* m_right;
 	SG_Tree* m_parent;
 	SG_BBox  m_bbox;
-	MT_Point3 m_centre;
+	MT_Point3 m_center;
 	MT_Scalar m_radius;
 	SG_Node* m_client_object;
 public:
@@ -101,7 +101,7 @@ public:
 	void SetLeft(SG_Tree *left);
 	void SetRight(SG_Tree *right);
 
-	MT_Point3 Centre() const { return m_centre; }
+	MT_Point3 Center() const { return m_center; }
 	MT_Scalar Radius() { return m_radius; }
 	
 	//friend class SG_TreeFactory;

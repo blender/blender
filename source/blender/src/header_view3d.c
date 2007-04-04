@@ -552,7 +552,7 @@ static void do_view3d_viewmenu(void *arg, int event)
 		view3d_home(0);
 		break;
 	case 11: /* View Selected */
-		centreview();
+		centerview();
 		break;
 	case 13: /* Play Back Animation */
 		play_anim(0);
@@ -1681,13 +1681,13 @@ static void do_view3d_transformmenu(void *arg, int event)
 		} else error("Only meshes can be shrinked/fattened");
 		break;
 	case 10:
-		docentre(0);
+		docenter(0);
 		break;
 	case 11:
-		docentre_new();
+		docenter_new();
 		break;
 	case 12:
-		docentre_cursor();
+		docenter_cursor();
 		break;
 	case 13:
 		initTransform(TFM_TILT, CTX_NONE);

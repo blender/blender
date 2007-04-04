@@ -1389,7 +1389,7 @@ PyObject *M_Mathutils_Intersect( PyObject * self, PyObject * args )
 	VECCOPY(v3, vec3->vec);
 
 	VECCOPY(dir, ray->vec);
-	Normalise(dir);
+	Normalize(dir);
 
 	VECCOPY(orig, ray_off->vec);
 
@@ -1485,9 +1485,9 @@ PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
 		VecSubf(b, v4, v3);
 
 		VECCOPY(dir1, a);
-		Normalise(dir1);
+		Normalize(dir1);
 		VECCOPY(dir2, b);
-		Normalise(dir2);
+		Normalize(dir2);
 		d = Inpf(dir1, dir2);
 		if (d == 1.0f || d == -1.0f) {
 			/* colinear */
@@ -1577,18 +1577,18 @@ PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args )
 	VecSubf(e2, v3, v2);
 
 	Crossf(n1, e2, e1);
-	Normalise(n1);
+	Normalize(n1);
 
 	/* find vectors for two edges sharing v4 */
 	VecSubf(e1, v3, v4);
 	VecSubf(e2, v1, v4);
 
 	Crossf(n2, e2, e1);
-	Normalise(n2);
+	Normalize(n2);
 
 	/* adding and averaging the normals of both triangles */
 	VecAddf(n1, n2, n1);
-	Normalise(n1);
+	Normalize(n1);
 
 	return newVectorObject(n1, 3, Py_NEW);
 }
@@ -1620,7 +1620,7 @@ PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args )
 	VecSubf(e2, v3, v2);
 
 	Crossf(n, e2, e1);
-	Normalise(n);
+	Normalize(n);
 
 	return newVectorObject(n, 3, Py_NEW);
 }

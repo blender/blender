@@ -475,13 +475,13 @@ vec3f calc_area_normal(const vec3f *outdir, const ListBase* active_verts)
 		area_normal.z+= me->mvert[node->Index].no[2];
 		node= node->next;
 	}
-	Normalise(&area_normal.x);
+	Normalize(&area_normal.x);
 	if(outdir) {
 		area_normal.x= outdir->x * view + area_normal.x * (10-view);
 		area_normal.y= outdir->y * view + area_normal.y * (10-view);
 		area_normal.z= outdir->z * view + area_normal.z * (10-view);
 	}
-	Normalise(&area_normal.x);
+	Normalize(&area_normal.x);
 	return area_normal;
 }
 void do_draw_brush(const EditData *e, const ListBase* active_verts)
@@ -1059,7 +1059,7 @@ void update_damaged_vert(Mesh *me, ListBase *lb)
 			add_face_normal(&norm,&me->mface[face->Index]);
 			face= face->next;
 		}
-		Normalise(&norm.x);
+		Normalize(&norm.x);
 		
 		me->mvert[vert->Index].no[0]=norm.x*32767;
 		me->mvert[vert->Index].no[1]=norm.y*32767;
@@ -1169,9 +1169,9 @@ void init_editdata(SculptData *sd, EditData *e, short *mouse, short *pr_mouse, c
 	VecSubf(&e->up.x, &e->up.x, &zero_loc.x);
 	VecSubf(&e->right.x, &e->right.x, &zero_loc.x);
 	VecSubf(&e->out.x, &e->out.x, &zero_loc.x);
-	Normalise(&e->up.x);
-	Normalise(&e->right.x);
-	Normalise(&e->out.x);
+	Normalize(&e->up.x);
+	Normalize(&e->right.x);
+	Normalize(&e->out.x);
 	
 	/* Initialize mirror modifier clipping */
 	for(i=0; i<3; ++i) {

@@ -1373,7 +1373,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	
 	/* set up view vector */
 	VECCOPY(shi->view, shi->co);
-	Normalise(shi->view);
+	Normalize(shi->view);
 	
 	/* no face normal flip */
 	shi->puno= 0;

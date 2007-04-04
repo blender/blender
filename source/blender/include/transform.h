@@ -82,7 +82,7 @@ typedef struct TransCon {
     float mtx[3][3];     /* Matrix of the Constraint space                                            */
     float imtx[3][3];    /* Inverse Matrix of the Constraint space                                    */
     float pmtx[3][3];    /* Projection Constraint Matrix (same as imtx with some axis == 0)           */
-    float center[3];     /* transformation centre to define where to draw the view widget             
+    float center[3];     /* transformation center to define where to draw the view widget             
                             ALWAYS in global space. Unlike the transformation center                  */
 	short imval[2];	     /* initial mouse value for visual calculation                                */
 	                     /* the one in TransInfo is not garanty to stay the same (Rotates change it)  */

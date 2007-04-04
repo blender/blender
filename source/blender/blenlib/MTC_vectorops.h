@@ -54,7 +54,7 @@ void  MTC_swapInt(int *i1, int *i2);
 
 void  MTC_diff3DFF(double v1[3], float v2[3], float v3[3]);
 void  MTC_cross3Double(double v1[3], double v2[3], double v3[3]);
-float MTC_normalise3DF(float n[3]);
+float MTC_normalize3DF(float n[3]);
 
 /* ------------------------------------------------------------------------- */
 #endif /* VECTOROPS_H */

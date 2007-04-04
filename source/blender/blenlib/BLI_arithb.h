@@ -478,7 +478,7 @@ FloatLerpf(
 	float fac
 );
 	float 
-Normalise(
+Normalize(
 	float *n
 );
 	float 
@@ -944,7 +944,7 @@ Inp2f(
 	float *v2
 );
 	float 
-Normalise2(
+Normalize2(
 	float *n
 );
 

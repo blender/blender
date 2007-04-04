@@ -1072,9 +1072,9 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 		MVert *mv= &mverts[i];
 		float *no= tnorms[i];
 		
-		if (Normalise(no)==0.0) {
+		if (Normalize(no)==0.0) {
 			VECCOPY(no, mv->co);
-			Normalise(no);
+			Normalize(no);
 		}
 
 		mv->no[0]= (short)(no[0]*32767.0);

@@ -95,12 +95,12 @@ float sasqrt(float fac)
 	return (float)sqrt(fac);
 }
 
-float Normalise(float *n)
+float Normalize(float *n)
 {
 	float d;
 	
 	d= n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
-	/* A larger value causes normalise errors in a scaled down models with camera xtreme close */
+	/* A larger value causes normalize errors in a scaled down models with camera xtreme close */
 	if(d>1.0e-35F) {
 		d= (float)sqrt(d);
 
@@ -1220,7 +1220,7 @@ void Mat3ToQuat_is_ok( float wmat[][3], float *q)
 	nor[0] = mat[2][1];		/* cross product with (0,0,1) */
 	nor[1] =  -mat[2][0];
 	nor[2] = 0.0;
-	Normalise(nor);
+	Normalize(nor);
 	
 	co= mat[2][2];
 	angle= 0.5f*saacos(co);
@@ -1341,7 +1341,7 @@ float *vectoquat( float *vec, short axis, short upflag)
 	}
 	co/= len1;
 
-	Normalise(nor);
+	Normalize(nor);
 	
 	angle= 0.5f*saacos(co);
 	si= (float)sin(angle);
@@ -1414,14 +1414,14 @@ void VecUpMat3old( float *vec, float mat[][3], short axis)
 	mat[coz][0]= vec[0];
 	mat[coz][1]= vec[1];
 	mat[coz][2]= vec[2];
-	Normalise((float *)mat[coz]);
+	Normalize((float *)mat[coz]);
 	
 	inp= mat[coz][0]*up[0] + mat[coz][1]*up[1] + mat[coz][2]*up[2];
 	mat[coy][0]= up[0] - inp*mat[coz][0];
 	mat[coy][1]= up[1] - inp*mat[coz][1];
 	mat[coy][2]= up[2] - inp*mat[coz][2];
 
-	Normalise((float *)mat[coy]);
+	Normalize((float *)mat[coy]);
 	
 	Crossf(mat[cox], mat[coy], mat[coz]);
 	
@@ -1460,14 +1460,14 @@ void VecUpMat3(float *vec, float mat[][3], short axis)
 	mat[coz][0]= vec[0];
 	mat[coz][1]= vec[1];
 	mat[coz][2]= vec[2];
-	Normalise((float *)mat[coz]);
+	Normalize((float *)mat[coz]);
 	
 	inp= mat[coz][2];
 	mat[coy][0]= - inp*mat[coz][0];
 	mat[coy][1]= - inp*mat[coz][1];
 	mat[coy][2]= 1.0f - inp*mat[coz][2];
 
-	Normalise((float *)mat[coy]);
+	Normalize((float *)mat[coy]);
 	
 	Crossf(mat[cox], mat[coy], mat[coz]);
 	
@@ -1751,20 +1751,20 @@ void i_lookat(float vx, float vy, float vz, float px, float py, float pz, float 
 
 void Mat3Ortho(float mat[][3])
 {	
-	Normalise(mat[0]);
-	Normalise(mat[1]);
-	Normalise(mat[2]);
+	Normalize(mat[0]);
+	Normalize(mat[1]);
+	Normalize(mat[2]);
 }
 
 void Mat4Ortho(float mat[][4])
 {
 	float len;
 	
-	len= Normalise(mat[0]);
+	len= Normalize(mat[0]);
 	if(len!=0.0) mat[0][3]/= len;
-	len= Normalise(mat[1]);
+	len= Normalize(mat[1]);
 	if(len!=0.0) mat[1][3]/= len;
-	len= Normalise(mat[2]);
+	len= Normalize(mat[2]);
 	if(len!=0.0) mat[2][3]/= len;
 }
 
@@ -1876,7 +1876,7 @@ void CalcNormShort( short *v1, short *v2, short *v3, float *n) /* is also cross 
 	n[0]= n1[1]*n2[2]-n1[2]*n2[1];
 	n[1]= n1[2]*n2[0]-n1[0]*n2[2];
 	n[2]= n1[0]*n2[1]-n1[1]*n2[0];
-	Normalise(n);
+	Normalize(n);
 }
 
 void CalcNormLong( int* v1, int*v2, int*v3, float *n)
@@ -1892,7 +1892,7 @@ void CalcNormLong( int* v1, int*v2, int*v3, float *n)
 	n[0]= n1[1]*n2[2]-n1[2]*n2[1];
 	n[1]= n1[2]*n2[0]-n1[0]*n2[2];
 	n[2]= n1[0]*n2[1]-n1[1]*n2[0];
-	Normalise(n);
+	Normalize(n);
 }
 
 float CalcNormFloat( float *v1, float *v2, float *v3, float *n)
@@ -1908,7 +1908,7 @@ float CalcNormFloat( float *v1, float *v2, float *v3, float *n)
 	n[0]= n1[1]*n2[2]-n1[2]*n2[1];
 	n[1]= n1[2]*n2[0]-n1[0]*n2[2];
 	n[2]= n1[0]*n2[1]-n1[1]*n2[0];
-	return Normalise(n);
+	return Normalize(n);
 }
 
 float CalcNormFloat4( float *v1, float *v2, float *v3, float *v4, float *n)
@@ -1928,7 +1928,7 @@ float CalcNormFloat4( float *v1, float *v2, float *v3, float *v4, float *n)
 	n[1]= n1[2]*n2[0]-n1[0]*n2[2];
 	n[2]= n1[0]*n2[1]-n1[1]*n2[0];
 
-	return Normalise(n);
+	return Normalize(n);
 }
 
 
@@ -2022,12 +2022,12 @@ float AreaQ3Dfl( float *v1, float *v2, float *v3,  float *v4)  /* only convex Qu
 	VecSubf(vec1, v2, v1);
 	VecSubf(vec2, v4, v1);
 	Crossf(n, vec1, vec2);
-	len= Normalise(n);
+	len= Normalize(n);
 
 	VecSubf(vec1, v4, v3);
 	VecSubf(vec2, v2, v3);
 	Crossf(n, vec1, vec2);
-	len+= Normalise(n);
+	len+= Normalize(n);
 
 	return (len/2.0f);
 }
@@ -2039,7 +2039,7 @@ float AreaT3Dfl( float *v1, float *v2, float *v3)  /* Triangles */
 	VecSubf(vec1, v3, v2);
 	VecSubf(vec2, v1, v2);
 	Crossf(n, vec1, vec2);
-	len= Normalise(n);
+	len= Normalize(n);
 
 	return (len/2.0f);
 }
@@ -2403,7 +2403,7 @@ void VecRotToQuat( float *vec, float phi, float *quat)
 	quat[2]= vec[1];
 	quat[3]= vec[2];
 													   
-	if( Normalise(quat+1) == 0.0) {
+	if( Normalize(quat+1) == 0.0) {
 		QuatOne(quat);
 	}
 	else {
@@ -2424,8 +2424,8 @@ float VecAngle3(float *v1, float *v2, float *v3)
 
 	VecSubf(vec1, v2, v1);
 	VecSubf(vec2, v2, v3);
-	Normalise(vec1);
-	Normalise(vec2);
+	Normalize(vec1);
+	Normalize(vec2);
 
 	return NormalizedVecAngle2(vec1, vec2) * 180.0/M_PI;
 }
@@ -2437,8 +2437,8 @@ float VecAngle2(float *v1, float *v2)
 
 	VecCopyf(vec1, v1);
 	VecCopyf(vec2, v2);
-	Normalise(vec1);
-	Normalise(vec2);
+	Normalize(vec1);
+	Normalize(vec2);
 
 	return NormalizedVecAngle2(vec1, vec2)* 180.0/M_PI;
 }
@@ -2585,11 +2585,11 @@ void Mat3ToSize( float mat[][3], float *size)
 	float vec[3];
 
 	VecCopyf(vec, mat[0]);
-	size[0]= Normalise(vec);
+	size[0]= Normalize(vec);
 	VecCopyf(vec, mat[1]);
-	size[1]= Normalise(vec);
+	size[1]= Normalize(vec);
 	VecCopyf(vec, mat[2]);
-	size[2]= Normalise(vec);
+	size[2]= Normalize(vec);
 
 }
 
@@ -2599,11 +2599,11 @@ void Mat4ToSize( float mat[][4], float *size)
 	
 
 	VecCopyf(vec, mat[0]);
-	size[0]= Normalise(vec);
+	size[0]= Normalize(vec);
 	VecCopyf(vec, mat[1]);
-	size[1]= Normalise(vec);
+	size[1]= Normalize(vec);
 	VecCopyf(vec, mat[2]);
-	size[2]= Normalise(vec);
+	size[2]= Normalize(vec);
 }
 
 /* ************* SPECIALS ******************* */
@@ -2619,7 +2619,7 @@ void triatoquat( float *v1,  float *v2,  float *v3, float *quat)
 	n[0]= vec[1];
 	n[1]= -vec[0];
 	n[2]= 0.0;
-	Normalise(n);
+	Normalize(n);
 	
 	if(n[0]==0.0 && n[1]==0.0) n[0]= 1.0;
 	
@@ -2639,7 +2639,7 @@ void triatoquat( float *v1,  float *v2,  float *v3, float *quat)
 
 	/* what angle has this line with x-axis? */
 	vec[2]= 0.0;
-	Normalise(vec);
+	Normalize(vec);
 
 	angle= (float)(0.5*atan2(vec[1], vec[0]));
 	co= (float)cos(angle);
@@ -2700,7 +2700,7 @@ float Inp2f(float *v1, float *v2)
 	return v1[0]*v2[0]+v1[1]*v2[1];
 }
 
-float Normalise2(float *n)
+float Normalize2(float *n)
 {
 	float d;
 	

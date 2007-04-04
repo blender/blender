@@ -701,7 +701,7 @@ void extrude_repeat_mesh(int steps, float offs)
 	dvec[0]= G.vd->persinv[2][0];
 	dvec[1]= G.vd->persinv[2][1];
 	dvec[2]= G.vd->persinv[2][2];
-	Normalise(dvec);
+	Normalize(dvec);
 	dvec[0]*= offs;
 	dvec[1]*= offs;
 	dvec[2]*= offs;
@@ -740,7 +740,7 @@ void spin_mesh(int steps, float degr, float *dvec, int mode)
 	TEST_EDITMESH
 	if(multires_test()) return;
 	
-	/* imat and centre and size */
+	/* imat and center and size */
 	Mat3CpyMat4(bmat, G.obedit->obmat);
 	Mat3Inv(imat,bmat);
 
@@ -762,7 +762,7 @@ void spin_mesh(int steps, float degr, float *dvec, int mode)
 		n[0]= G.vd->viewinv[2][0];
 		n[1]= G.vd->viewinv[2][1];
 		n[2]= G.vd->viewinv[2][2];
-		Normalise(n);
+		Normalize(n);
 	}
 
 	q[0]= (float)cos(phi);
@@ -1191,7 +1191,7 @@ static void alter_co(float *co, EditEdge *edge, float rad, int beauty, float per
 		float len, fac, nor[3], nor1[3], nor2[3];
 		
 		VecSubf(nor, edge->v1->co, edge->v2->co);
-		len= 0.5f*Normalise(nor);
+		len= 0.5f*Normalize(nor);
 	
 		VECCOPY(nor1, edge->v1->no);
 		VECCOPY(nor2, edge->v2->no);
@@ -1220,7 +1220,7 @@ static void alter_co(float *co, EditEdge *edge, float rad, int beauty, float per
 	}
 	else {
 		if(rad > 0.0) {   /* subdivide sphere */
-			Normalise(co);
+			Normalize(co);
 			co[0]*= rad;
 			co[1]*= rad;
 			co[2]*= rad;
@@ -1260,7 +1260,7 @@ static EditVert *subdivide_edge_addvert(EditEdge *edge, float rad, int beauty, f
 	ev->no[0] = (edge->v2->no[0]-edge->v1->no[0])*percent + edge->v1->no[0];
 	ev->no[1] = (edge->v2->no[1]-edge->v1->no[1])*percent + edge->v1->no[1];
 	ev->no[2] = (edge->v2->no[2]-edge->v1->no[2])*percent + edge->v1->no[2];
-	Normalise(ev->no);
+	Normalize(ev->no);
 	
 	return ev;
 }
@@ -3733,12 +3733,12 @@ static void bevel_displace_vec(float *midvec, float *v1, float *v2, float *v3, f
 	VecSubf(c, v3, v2);
 
 	Crossf(n_a, a, no);
-	Normalise(n_a);
+	Normalize(n_a);
 	Crossf(n_c, no, c);
-	Normalise(n_c);
+	Normalize(n_c);
 
-	Normalise(a);
-	Normalise(c);
+	Normalize(a);
+	Normalize(c);
 	ac = Inpf(a, c);
 
 	if (ac == 1 || ac == -1) {
@@ -3748,7 +3748,7 @@ static void bevel_displace_vec(float *midvec, float *v1, float *v2, float *v3, f
 	ac2 = ac * ac;
 	fac = (float)sqrt((ac2 + 2*ac + 1)/(1 - ac2) + 1);
 	VecAddf(mid, n_c, n_a);
-	Normalise(mid);
+	Normalize(mid);
 	VecMulf(mid, d * fac);
 	VecAddf(mid, mid, v2);
 	VecCopyf(midvec, mid);
@@ -3763,11 +3763,11 @@ static void fix_bevel_wrap(float *midvec, float *v1, float *v2, float *v3, float
 	float a[3], b[3], c[3], l_a, l_b, l_c, s_a, s_b, s_c, Pos1[3], Pos2[3], Dir[3];
 
 	VecSubf(a, v3, v2);
-	l_a = Normalise(a);
+	l_a = Normalize(a);
 	VecSubf(b, v4, v3);
-	Normalise(b);
+	Normalize(b);
 	VecSubf(c, v1, v2);
-	Normalise(c);
+	Normalize(c);
 
 	s_b = Inpf(a, c);
 	s_b = (float)sqrt(1 - (s_b * s_b));
@@ -3905,7 +3905,7 @@ static void bevel_shrink_faces(float d, int flag)
 	EditFace *efa;
 	float vec[3], no[3], v1[3], v2[3], v3[3], v4[3];
 
-	/* move edges of all faces with efa->f1 & flag closer towards their centres */
+	/* move edges of all faces with efa->f1 & flag closer towards their centers */
 	efa= em->faces.first;
 	while (efa) {
 		if (efa->f1 & flag) {
@@ -3946,7 +3946,7 @@ static void bevel_shrink_draw(float d, int flag)
 	EditFace *efa;
 	float vec[3], no[3], v1[3], v2[3], v3[3], v4[3], fv1[3], fv2[3], fv3[3], fv4[3];
 
-	/* move edges of all faces with efa->f1 & flag closer towards their centres */
+	/* move edges of all faces with efa->f1 & flag closer towards their centers */
 	efa= em->faces.first;
 	while (efa) {
 		VECCOPY(v1, efa->v1->co);
@@ -4409,7 +4409,7 @@ void bevel_menu()
 {
 	char Finished = 0, Canceled = 0, str[100], Recalc = 0;
 	short mval[2], oval[2], curval[2], event = 0, recurs = 1, nr;
-	float vec[3], d, drawd=0.0, centre[3], fac = 1;
+	float vec[3], d, drawd=0.0, center[3], fac = 1;
 
 	getmouseco_areawin(mval);
 	oval[0] = mval[0]; oval[1] = mval[1];
@@ -4420,7 +4420,7 @@ void bevel_menu()
 
 	// Init grabz for window to vec conversions
 	initgrabz(-G.vd->ofs[0], -G.vd->ofs[1], -G.vd->ofs[2]);
-	window_to_3d(centre, mval[0], mval[1]);
+	window_to_3d(center, mval[0], mval[1]);
 
 	if(button(&recurs, 1, 4, "Recursion:")==0) return;
 
@@ -4442,7 +4442,7 @@ void bevel_menu()
 			curval[1] = mval[1];
 			
 			window_to_3d(vec, mval[0]-oval[0], mval[1]-oval[1]);
-			d = Normalise(vec) / 10;
+			d = Normalize(vec) / 10;
 
 
 			drawd = d * fac;

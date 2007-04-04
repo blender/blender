@@ -635,7 +635,7 @@ static char interpret_move(short mcord[][2], int count)
 	
 	/* new method:
 	 * 
-	 * starting from end points, calculate centre with maximum distance
+	 * starting from end points, calculate center with maximum distance
 	 * dependant at the angle s / g / r is defined
 	 */
 	
@@ -1278,7 +1278,7 @@ void mouse_select(void)
 
 	getmouseco_areawin(mval);
 	
-	/* This block uses the control key to make the object selected by its centre point rather then its contents */
+	/* This block uses the control key to make the object selected by its center point rather then its contents */
 	if(G.obedit==0 && (G.qual & LR_CTRLKEY)) {
 		
 		/* note; shift+alt goes to group-flush-selecting */
@@ -2203,7 +2203,7 @@ void fly(void)
 	/* the dist defines a vector that is infront of the offset
 	to rotate the view about.
 	this is no good for fly mode because we
-	want to rotate about the viewers centre.
+	want to rotate about the viewers center.
 	but to correct the dist removal we must
 	alter offset so the view dosent jump. */
 	

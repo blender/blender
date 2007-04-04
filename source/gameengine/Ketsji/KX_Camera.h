@@ -83,9 +83,9 @@ protected:
 	 */
 	bool         m_dirty;
 	/**
-	 * true if the frustum planes have been normalised.
+	 * true if the frustum planes have been normalized.
 	 */
-	bool         m_normalised;
+	bool         m_normalized;
 	
 	/**
 	 * View Frustum clip planes.
@@ -104,11 +104,11 @@ protected:
 	bool         m_set_projection_matrix;
 	
 	/**
-	 * The centre point of the frustum.
+	 * The center point of the frustum.
 	 */
-	MT_Point3    m_frustum_centre;
+	MT_Point3    m_frustum_center;
 	MT_Scalar    m_frustum_radius;
-	bool         m_set_frustum_centre;
+	bool         m_set_frustum_center;
 
 	/**
 	 * Python module doc string.
@@ -120,9 +120,9 @@ protected:
 	 */
 	void ExtractClipPlanes();
 	/**
-	 * Normalise the camera clip frames.
+	 * Normalize the camera clip frames.
 	 */
-	void NormaliseClipPlanes();
+	void NormalizeClipPlanes();
 	/**
 	 * Extracts the bound sphere of the view frustum.
 	 */
@@ -181,11 +181,11 @@ public:
 	/**
 	 * Tests if the given sphere is inside this camera's view frustum.
 	 *
-	 * @param centre The centre of the sphere, in world coordinates.
+	 * @param center The center of the sphere, in world coordinates.
 	 * @param radius The radius of the sphere.
 	 * @return INSIDE, INTERSECT, or OUTSIDE depending on the sphere's relation to the frustum.
 	 */
-	int SphereInsideFrustum(const MT_Point3& centre, const MT_Scalar &radius);
+	int SphereInsideFrustum(const MT_Point3& center, const MT_Scalar &radius);
 	/**
 	 * Tests the given eight corners of a box with the view frustum.
 	 *

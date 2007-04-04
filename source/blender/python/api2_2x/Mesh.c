@@ -1018,7 +1018,7 @@ static int MVert_setNormal( BPy_MVert * self, VectorObject * value )
 	for( i=0; i<3 ; ++i)
 		normal[i] = value->vec[i];
 	
-	Normalise(normal);
+	Normalize(normal);
 	
 	for( i=0; i<3 ; ++i)
 		v->no[i] = (short)(normal[i]*32767.0);
@@ -5857,7 +5857,7 @@ static PyObject *Mesh_transform( BPy_Mesh *self, PyObject *args )
 			vec[0] = nx*invmat[0][0] + ny*invmat[0][1] + nz*invmat[0][2];
 			vec[1] = nx*invmat[1][0] + ny*invmat[1][1] + nz*invmat[1][2]; 
 			vec[2] = nx*invmat[2][0] + ny*invmat[2][1] + nz*invmat[2][2];
-			Normalise( vec );
+			Normalize( vec );
 			mv->no[0] = (short)(vec[0] * 32767.0);
 			mv->no[1] = (short)(vec[1] * 32767.0);
 			mv->no[2] = (short)(vec[2] * 32767.0);

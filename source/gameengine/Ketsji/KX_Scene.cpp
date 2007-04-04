@@ -919,9 +919,9 @@ void KX_Scene::MarkVisible(SG_Tree *node, RAS_IRasterizer* rasty, KX_Camera* cam
 	if (dotest && !node->inside( cam->NodeGetWorldPosition()))
 	{
 		MT_Scalar radius = node->Radius();
-		MT_Point3 centre = node->Centre();
+		MT_Point3 center = node->Center();
 		
-		intersect =  cam->SphereInsideFrustum(centre, radius); 
+		intersect =  cam->SphereInsideFrustum(center, radius); 
 		
 		if (intersect == KX_Camera::INTERSECT)
 		{

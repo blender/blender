@@ -267,11 +267,11 @@ void MTC_Mat4Ortho(float mat[][4])
 {
 	float len;
 	
-	len= MTC_normalise3DF(mat[0]);
+	len= MTC_normalize3DF(mat[0]);
 	if(len!=0.0) mat[0][3]/= len;
-	len= MTC_normalise3DF(mat[1]);
+	len= MTC_normalize3DF(mat[1]);
 	if(len!=0.0) mat[1][3]/= len;
-	len= MTC_normalise3DF(mat[2]);
+	len= MTC_normalize3DF(mat[2]);
 	if(len!=0.0) mat[2][3]/= len;
 }
 

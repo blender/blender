@@ -2355,7 +2355,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				} else if(G.qual==LR_SHIFTKEY) {
 					G.vd->around= V3D_CENTROID;
 				} else if(G.qual==0) {
-					G.vd->around= V3D_CENTRE;
+					G.vd->around= V3D_CENTER;
 				}
 				handle_view3d_around();
 				
@@ -2410,7 +2410,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case PADPERIOD:	/* '.' */
 				if(G.qual==0)
-					centreview();
+					centerview();
 				break;
 			
 			case PAGEUPKEY:
@@ -3087,7 +3087,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	y6label = y6-2;
 
 
-	/* set the colour to blue and draw the main 'tab' controls */
+	/* set the color to blue and draw the main 'tab' controls */
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
@@ -4792,7 +4792,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case PADPERIOD:
 				if(G.qual==0)
-					image_viewcentre();
+					image_viewcenter();
 				break;
 		}
 	}	

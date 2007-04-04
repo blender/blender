@@ -131,7 +131,7 @@ void getViewVector(float coord[3], float vec[3])
 	else {
 		VECCOPY(vec, t->viewinv[2]);
 	}
-	Normalise(vec);
+	Normalize(vec);
 }
 
 /* ************************** GENERICS **************************** */
@@ -494,7 +494,7 @@ void initTrans (TransInfo *t)
 		t->around = G.vd->around;
 	}
 	else
-		t->around = V3D_CENTRE;
+		t->around = V3D_CENTER;
 
 	setTransformViewMatrices(t);
 }
@@ -734,7 +734,7 @@ void calculateCenterBound(TransInfo *t)
 void calculateCenter(TransInfo *t) 
 {
 	switch(t->around) {
-	case V3D_CENTRE:
+	case V3D_CENTER:
 		calculateCenterBound(t);
 		break;
 	case V3D_CENTROID:
@@ -780,7 +780,7 @@ void calculateCenter(TransInfo *t)
 			float axis[3];
 			/* persinv is nasty, use viewinv instead, always right */
 			VECCOPY(axis, t->viewinv[2]);
-			Normalise(axis);
+			Normalize(axis);
 
 			/* 6.0 = 6 grid units */
 			axis[0]= t->center[0]- 6.0f*axis[0];

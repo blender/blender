@@ -57,9 +57,9 @@ static float gamma_range_table[RE_GAMMA_TABLE_SIZE + 1];
 static float gamfactor_table[RE_GAMMA_TABLE_SIZE];
 static float inv_gamma_range_table[RE_GAMMA_TABLE_SIZE + 1];
 static float inv_gamfactor_table[RE_GAMMA_TABLE_SIZE];
-static float colour_domain_table[RE_GAMMA_TABLE_SIZE + 1];
-static float colour_step;
-static float inv_colour_step;
+static float color_domain_table[RE_GAMMA_TABLE_SIZE + 1];
+static float color_step;
+static float inv_color_step;
 static float valid_gamma;
 static float valid_inv_gamma;
 
@@ -70,15 +70,15 @@ float gammaCorrect(float c)
 	int i;
 	float res = 0.0;
 	
-	i = floor(c * inv_colour_step);
+	i = floor(c * inv_color_step);
 	/* Clip to range [0,1]: outside, just do the complete calculation.       */
 	/* We may have some performance problems here. Stretching up the LUT     */
 	/* may help solve that, by exchanging LUT size for the interpolation.    */
-	/* Negative colours are explicitly handled.                              */
+	/* Negative colors are explicitly handled.                              */
 	if (i < 0) res = -pow(abs(c), valid_gamma);
 	else if (i >= RE_GAMMA_TABLE_SIZE ) res = pow(c, valid_gamma);
 	else res = gamma_range_table[i] + 
-  			 ( (c - colour_domain_table[i]) * gamfactor_table[i]); 
+  			 ( (c - color_domain_table[i]) * gamfactor_table[i]); 
 	
 	return res;
 } /* end of float gammaCorrect(float col) */
@@ -90,12 +90,12 @@ float invGammaCorrect(float col)
 	int i;
 	float res = 0.0;
 
-	i = floor(col*inv_colour_step);
-	/* Negative colours are explicitly handled.                              */
+	i = floor(col*inv_color_step);
+	/* Negative colors are explicitly handled.                              */
 	if (i < 0) res = -pow(abs(col), valid_inv_gamma);
 	else if (i >= RE_GAMMA_TABLE_SIZE) res = pow(col, valid_inv_gamma);
 	else res = inv_gamma_range_table[i] + 
-  			 ( (col - colour_domain_table[i]) * inv_gamfactor_table[i]);
+  			 ( (col - color_domain_table[i]) * inv_gamfactor_table[i]);
 			   
 	return res;
 } /* end of float invGammaCorrect(float col) */
@@ -110,15 +110,15 @@ void makeGammaTables(float gamma)
 
 	valid_gamma        = gamma;
 	valid_inv_gamma    = 1.0 / gamma;
-	colour_step        = 1.0 / RE_GAMMA_TABLE_SIZE;
-	inv_colour_step    = (float) RE_GAMMA_TABLE_SIZE; 
+	color_step        = 1.0 / RE_GAMMA_TABLE_SIZE;
+	inv_color_step    = (float) RE_GAMMA_TABLE_SIZE; 
 
 	/* We could squeeze out the two range tables to gain some memory.        */	
 	for (i = 0; i < RE_GAMMA_TABLE_SIZE; i++) {
-		colour_domain_table[i]   = i * colour_step;
-		gamma_range_table[i]     = pow(colour_domain_table[i],
+		color_domain_table[i]   = i * color_step;
+		gamma_range_table[i]     = pow(color_domain_table[i],
 										valid_gamma);
-		inv_gamma_range_table[i] = pow(colour_domain_table[i],
+		inv_gamma_range_table[i] = pow(color_domain_table[i],
 										valid_inv_gamma);
 	}
 
@@ -126,16 +126,16 @@ void makeGammaTables(float gamma)
 	/* rounding errors, we just set this explicitly. The last segment may    */
 	/* have a different lenght than the other segments, but our              */
 	/* interpolation is insensitive to that.                                 */
-	colour_domain_table[RE_GAMMA_TABLE_SIZE]   = 1.0;
+	color_domain_table[RE_GAMMA_TABLE_SIZE]   = 1.0;
 	gamma_range_table[RE_GAMMA_TABLE_SIZE]     = 1.0;
 	inv_gamma_range_table[RE_GAMMA_TABLE_SIZE] = 1.0;
 
 	/* To speed up calculations, we make these calc factor tables. They are  */
 	/* multiplication factors used in scaling the interpolation.             */
 	for (i = 0; i < RE_GAMMA_TABLE_SIZE; i++ ) {
-		gamfactor_table[i] = inv_colour_step
+		gamfactor_table[i] = inv_color_step
 			* (gamma_range_table[i + 1] - gamma_range_table[i]) ;
-		inv_gamfactor_table[i] = inv_colour_step
+		inv_gamfactor_table[i] = inv_color_step
 			* (inv_gamma_range_table[i + 1] - inv_gamma_range_table[i]) ;
 	}
 

@@ -46,9 +46,9 @@ struct MTex;
 
 
 /**
- * World defines general modelling data such as a background fill,
- * gravity, colour model, stars, etc. It mixes game-data, rendering
- * data and modelling data. */
+ * World defines general modeling data such as a background fill,
+ * gravity, color model, stars, etc. It mixes game-data, rendering
+ * data and modeling data. */
 typedef struct World {
 	ID id;
 	

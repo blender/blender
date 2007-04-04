@@ -512,7 +512,7 @@ static void drawshadbuflimits(Lamp *la, float mat[][4])
 	lavec[0]= -mat[2][0];
 	lavec[1]= -mat[2][1];
 	lavec[2]= -mat[2][2];
-	Normalise(lavec);
+	Normalize(lavec);
 
 	sta[0]= mat[3][0]+ la->clipsta*lavec[0];
 	sta[1]= mat[3][1]+ la->clipsta*lavec[1];
@@ -543,13 +543,13 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	/* camera is at 0,0,0 */
 	float temp[3],plane[3],mat1[3][3],mat2[3][3],mat3[3][3],mat4[3][3],q[4],co,si,angle;
 
-	Normalise(lvec);
-	Normalise(vvec);				/* is this the correct vector ? */
+	Normalize(lvec);
+	Normalize(vvec);				/* is this the correct vector ? */
 
 	Crossf(temp,vvec,lvec);		/* equation for a plane through vvec en lvec */
 	Crossf(plane,lvec,temp);		/* a plane perpendicular to this, parrallel with lvec */
 
-	Normalise(plane);
+	Normalize(plane);
 
 	/* now we've got two equations: one of a cone and one of a plane, but we have
 	three unknowns. We remove one unkown by rotating the plane to z=0 (the plane normal) */
@@ -562,7 +562,7 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	q[1] = plane[1] ; 
 	q[2] = -plane[0] ; 
 	q[3] = 0 ;
-	Normalise(&q[1]);
+	Normalize(&q[1]);
 
 	angle = saacos(plane[2])/2.0;
 	co = cos(angle);
@@ -626,8 +626,8 @@ static void drawlamp(Object *ob)
 
 	/* and view aligned matrix: */
 	Mat4CpyMat4(imat, G.vd->viewinv);
-	Normalise(imat[0]);
-	Normalise(imat[1]);
+	Normalize(imat[0]);
+	Normalize(imat[1]);
 	
 	/* for AA effects */
 	glGetFloatv(GL_CURRENT_COLOR, curcol);
@@ -1661,7 +1661,7 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 	float fvec[3];
 	char val[32]; /* Stores the measurement display text here */
 	char conv_float[5]; /* Use a float conversion matching the grid size */
-	float area, col[3]; /* area of the face,  colour of the text to draw */
+	float area, col[3]; /* area of the face,  color of the text to draw */
 	
 	/* make the precission of the pronted value proportionate to the gridsize */
 	if ((G.vd->grid) < 0.01)
@@ -3272,8 +3272,8 @@ static int drawmball(Base *base, int dt)
 
 	mygetmatrix(tmat);
 	Mat4Invert(imat, tmat);
-	Normalise(imat[0]);
-	Normalise(imat[1]);
+	Normalize(imat[0]);
+	Normalize(imat[1]);
 	
 	while(ml) {
 	
@@ -3327,8 +3327,8 @@ static void draw_forcefield(Object *ob)
 	/* calculus here, is reused in PFIELD_FORCE */
 	mygetmatrix(tmat);
 	Mat4Invert(imat, tmat);
-//	Normalise(imat[0]);		// we don't do this because field doesnt scale either... apart from wind!
-//	Normalise(imat[1]);
+//	Normalize(imat[0]);		// we don't do this because field doesnt scale either... apart from wind!
+//	Normalize(imat[1]);
 	
 	if (pd->forcefield == PFIELD_WIND) {
 		float force_val;
@@ -3440,12 +3440,12 @@ static void draw_box(float vec[8][3])
 }
 
 /* uses boundbox, function used by Ketsji */
-void get_local_bounds(Object *ob, float *centre, float *size)
+void get_local_bounds(Object *ob, float *center, float *size)
 {
 	BoundBox *bb= object_get_boundbox(ob);
 	
 	if(bb==NULL) {
-		centre[0]= centre[1]= centre[2]= 0.0;
+		center[0]= center[1]= center[2]= 0.0;
 		VECCOPY(size, ob->size);
 	}
 	else {
@@ -3453,9 +3453,9 @@ void get_local_bounds(Object *ob, float *centre, float *size)
 		size[1]= 0.5*fabs(bb->vec[0][1] - bb->vec[2][1]);
 		size[2]= 0.5*fabs(bb->vec[0][2] - bb->vec[1][2]);
 		
-		centre[0]= (bb->vec[0][0] + bb->vec[4][0])/2.0;
-		centre[1]= (bb->vec[0][1] + bb->vec[2][1])/2.0;
-		centre[2]= (bb->vec[0][2] + bb->vec[1][2])/2.0;
+		center[0]= (bb->vec[0][0] + bb->vec[4][0])/2.0;
+		center[1]= (bb->vec[0][1] + bb->vec[2][1])/2.0;
+		center[2]= (bb->vec[0][2] + bb->vec[1][2])/2.0;
 	}
 }
 

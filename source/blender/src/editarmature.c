@@ -102,7 +102,7 @@
 #include "blendef.h"
 #include "nla.h"
 
-extern	float centre[3], centroid[3];	/* Originally defined in editobject.c */
+extern	float center[3], centroid[3];	/* Originally defined in editobject.c */
 
 /*	Macros	*/
 #define TEST_EDITARMATURE {if(G.obedit==0) return; if( (G.vd->lay & G.obedit->lay)==0 ) return;}
@@ -367,8 +367,8 @@ void apply_rot_armature (Object *ob, float mat[3][3])
 	}
 }
 
-/* 0 == do centre, 1 == centre new, 2 == centre cursor */
-void docentre_armature (Object *ob, int centremode)
+/* 0 == do center, 1 == center new, 2 == center cursor */
+void docenter_armature (Object *ob, int centermode)
 {
 	ListBase	list;
 	EditBone *ebone;
@@ -384,8 +384,8 @@ void docentre_armature (Object *ob, int centremode)
 	list.first= list.last = NULL;
 	make_boneList(&list, &arm->bonebase, NULL);
 
-	/* Find the centrepoint */
-	if (centremode == 2) {
+	/* Find the centerpoint */
+	if (centermode == 2) {
 		VECCOPY(cent, give_cursor());
 		Mat4Invert(ob->imat, ob->obmat);
 		Mat4MulVecfl(ob->imat, cent);
@@ -417,8 +417,8 @@ void docentre_armature (Object *ob, int centremode)
 		BLI_freelistN(&list);
 	}
 	
-	/* Adjust object location for new centrepoint */
-	if(centremode && G.obedit==0) {
+	/* Adjust object location for new centerpoint */
+	if(centermode && G.obedit==0) {
 		Mat3CpyMat4(omat, ob->obmat);
 		
 		Mat3MulVecfl(omat, cent);

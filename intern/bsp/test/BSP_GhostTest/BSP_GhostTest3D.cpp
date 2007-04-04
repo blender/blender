@@ -389,9 +389,9 @@ processEvent(
 			}
 			if (m_translation_settings[m_current_object].m_moving) {
 
-				// project current objects bounding box centre into screen space.
+				// project current objects bounding box center into screen space.
 				// unproject mouse point into object space using z-value from 
-				// projected bounding box centre.
+				// projected bounding box center.
 
 				GHOST_Rect bounds;
 				m_window->getClientBounds(bounds);
@@ -612,9 +612,9 @@ InitOpenGl(
 
 	glMatrixMode(GL_PROJECTION);
 
-	// centre of the box + 3* depth of box
+	// center of the box + 3* depth of box
 
-	MT_Vector3 centre = (min + max) * 0.5;
+	MT_Vector3 center = (min + max) * 0.5;
 	MT_Vector3 diag = max - min;
 
 	float depth = diag.length();
@@ -629,8 +629,8 @@ InitOpenGl(
 	glMatrixMode(GL_MODELVIEW);	
 
 	gluLookAt(
-		centre.x(), centre.y(), centre.z() + distance*depth, //eye  
-		centre.x(), centre.y(), centre.z(), //centre      
+		center.x(), center.y(), center.z() + distance*depth, //eye  
+		center.x(), center.y(), center.z(), //center      
 		0.0, 1.0, 0.
 	);      /* up is in positive Y direction */
 

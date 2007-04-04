@@ -234,8 +234,8 @@ static char NMesh_hasFaceUV_doc[] =
 The optional argument sets the textured faces flag";
 
 static char NMesh_hasVertexColours_doc[] =
-	"(flag = None) - returns 1 if Mesh has vertex colours.\n\
-The optional argument sets the vertex colour flag";
+	"(flag = None) - returns 1 if Mesh has vertex colors.\n\
+The optional argument sets the vertex color flag";
 
 static char NMesh_getVertexInfluences_doc[] =
 	"Return a list of the influences of bones in the vertex \n\
@@ -4171,7 +4171,7 @@ static PyObject *NMesh_transform (PyObject *self, PyObject *args)
 			mv->no[0] = vx*invmat[0][0] + vy*invmat[0][1] + vz*invmat[0][2];
 			mv->no[1] = vx*invmat[1][0] + vy*invmat[1][1] + vz*invmat[1][2]; 
 			mv->no[2] = vx*invmat[2][0] + vy*invmat[2][1] + vz*invmat[2][2];
-			Normalise(mv->no);
+			Normalize(mv->no);
 			Py_DECREF(mv);
 		}
 	}

@@ -183,7 +183,7 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 		else factor*= factor;
 		
 		VECCOPY(out, axis);
-		Normalise(out);
+		Normalize(out);
 		VecMulf(out, -factor);	/* -factor makes move down going backwards */
 	}
 	else {
@@ -878,10 +878,10 @@ void setNearestAxis(TransInfo *t)
 		axis[1] = (float)(icoord[1] - t->center2d[1]);
 		axis[2] = 0.0f;
 
- 		if (Normalise(axis) != 0.0f) {
+ 		if (Normalize(axis) != 0.0f) {
 			Projf(proj, mvec, axis);
 			VecSubf(axis, mvec, proj);
-			len[i] = Normalise(axis);
+			len[i] = Normalize(axis);
 		}
 		else {
 			len[i] = 10000000000.0f;

@@ -1414,7 +1414,7 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	shi->co[1]= is->start[1]+is->labda*(shi->view[1]);
 	shi->co[2]= is->start[2]+is->labda*(shi->view[2]);
 	
-	Normalise(shi->view);
+	Normalize(shi->view);
 
 	shi->vlr= vlr;
 	shi->mat= vlr->mat;
@@ -1714,7 +1714,7 @@ static void traceray(ShadeInput *origshi, short depth, float *start, float *vec,
 	}
 	else {	/* sky */
 		VECCOPY(shi.view, vec);
-		Normalise(shi.view);
+		Normalize(shi.view);
 		
 		shadeSkyView(col, isec.start, shi.view, NULL);
 	}
@@ -2078,7 +2078,7 @@ static void DS_energy(float *sphere, int tot, float *vec)
 
 	VecMulf(res, 0.5);
 	VecAddf(vec, vec, res);
-	Normalise(vec);
+	Normalize(vec);
 	
 }
 
@@ -2257,7 +2257,7 @@ void ray_ao(ShadeInput *shi, float *shadfac)
 				view[0]= -vec[0];
 				view[1]= -vec[1];
 				view[2]= -vec[2];
-				Normalise(view);
+				Normalize(view);
 				
 				if(aocolor==WO_AOSKYCOL) {
 					fac= 0.5*(1.0f+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);

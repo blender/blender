@@ -240,7 +240,7 @@ static void set_prop_dist(TransInfo *t, short with_dist)
 				if(td->flag & TD_SELECTED) {
 					VecSubf(vec, tob->center, td->center);
 					Mat3MulVecfl(tob->mtx, vec);
-					dist = Normalise(vec);
+					dist = Normalize(vec);
 					if (tob->rdist == -1.0f) {
 						tob->rdist = dist;
 					}

@@ -301,7 +301,7 @@ void SM_Object::dynamicCollision(const MT_Point3 &local2,
 			applyImpulse(local2 + getNextFrame().getPosition(), impulse * normal);
 		} else {
 			/**
-			 * Apply impulse through object centre. (no rotation.)
+			 * Apply impulse through object center. (no rotation.)
 			 */
 			impulse /= invMass;
 			applyCenterImpulse( impulse * normal ); 

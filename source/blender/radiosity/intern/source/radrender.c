@@ -177,7 +177,7 @@ static void makeformfactors_rr(Render *re, VlakRen *shoot)
 	
 	VecSubf(vec, shoot->v1->co, shoot->radface->cent);
 	Crossf(up, shoot->radface->norm, vec);
-	len= Normalise(up);
+	len= Normalize(up);
 	
 	VECCOPY(hemitop.up, up);
 	VECCOPY(hemiside.up, shoot->radface->norm);

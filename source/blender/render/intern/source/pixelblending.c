@@ -51,8 +51,8 @@ extern struct Render R;
 
 /* ------------------------------------------------------------------------- */
 /* Debug/behaviour defines                                                   */
-/* if defined: alpha blending with floats clips colour, as with shorts       */
-/* #define RE_FLOAT_COLOUR_CLIPPING  */
+/* if defined: alpha blending with floats clips color, as with shorts       */
+/* #define RE_FLOAT_COLOR_CLIPPING  */
 /* if defined: alpha values are clipped                                      */
 /* For now, we just keep alpha clipping. We run into thresholding and        */
 /* blending difficulties otherwise. Be careful here.                         */
@@ -62,11 +62,11 @@ extern struct Render R;
 
 /* Threshold for a 'full' pixel: pixels with alpha above this level are      */
 /* considered opaque This is the decimal value for 0xFFF0 / 0xFFFF           */
-#define RE_FULL_COLOUR_FLOAT 0.9998
+#define RE_FULL_COLOR_FLOAT 0.9998
 /* Threshold for an 'empty' pixel: pixels with alpha above this level are    */
 /* considered completely transparent. This is the decimal value              */
 /* for 0x000F / 0xFFFF                                                       */
-#define RE_EMPTY_COLOUR_FLOAT 0.0002
+#define RE_EMPTY_COLOR_FLOAT 0.0002
 
 
 /* ------------------------------------------------------------------------- */
@@ -92,8 +92,8 @@ void addAlphaUnderFloat(float *dest, float *source)
 {
     float mul;
     
-    if( (-RE_EMPTY_COLOUR_FLOAT < dest[3])
-        && (dest[3] <  RE_EMPTY_COLOUR_FLOAT) ) {	
+    if( (-RE_EMPTY_COLOR_FLOAT < dest[3])
+        && (dest[3] <  RE_EMPTY_COLOR_FLOAT) ) {	
         dest[0] = source[0];
         dest[1] = source[1];
         dest[2] = source[2];
@@ -114,37 +114,37 @@ void addAlphaUnderFloat(float *dest, float *source)
 void addalphaAddfacFloat(float *dest, float *source, char addfac)
 {
     float m; /* weiging factor of destination */
-    float c; /* intermediate colour           */
+    float c; /* intermediate color           */
 
     /* Addfac is a number between 0 and 1: rescale */
     /* final target is to diminish the influence of dest when addfac rises */
     m = 1.0 - ( source[3] * ((255.0 - addfac) / 255.0));
 
-    /* blend colours*/
+    /* blend colors*/
     c= (m * dest[0]) + source[0];
-#ifdef RE_FLOAT_COLOUR_CLIPPING
-    if(c >= RE_FULL_COLOUR_FLOAT) dest[0] = RE_FULL_COLOUR_FLOAT; 
+#ifdef RE_FLOAT_COLOR_CLIPPING
+    if(c >= RE_FULL_COLOR_FLOAT) dest[0] = RE_FULL_COLOR_FLOAT; 
     else 
 #endif
         dest[0]= c;
    
     c= (m * dest[1]) + source[1];
-#ifdef RE_FLOAT_COLOUR_CLIPPING
-    if(c >= RE_FULL_COLOUR_FLOAT) dest[1] = RE_FULL_COLOUR_FLOAT; 
+#ifdef RE_FLOAT_COLOR_CLIPPING
+    if(c >= RE_FULL_COLOR_FLOAT) dest[1] = RE_FULL_COLOR_FLOAT; 
     else 
 #endif
         dest[1]= c;
     
     c= (m * dest[2]) + source[2];
-#ifdef RE_FLOAT_COLOUR_CLIPPING
-    if(c >= RE_FULL_COLOUR_FLOAT) dest[2] = RE_FULL_COLOUR_FLOAT; 
+#ifdef RE_FLOAT_COLOR_CLIPPING
+    if(c >= RE_FULL_COLOR_FLOAT) dest[2] = RE_FULL_COLOR_FLOAT; 
     else 
 #endif
         dest[2]= c;
 
 	c= (m * dest[3]) + source[3];
 #ifdef RE_ALPHA_CLIPPING
-	if(c >= RE_FULL_COLOUR_FLOAT) dest[3] = RE_FULL_COLOUR_FLOAT; 
+	if(c >= RE_FULL_COLOR_FLOAT) dest[3] = RE_FULL_COLOR_FLOAT; 
 	else 
 #endif
        dest[3]= c;
@@ -263,7 +263,7 @@ void addalphaAddFloat(float *dest, float *source)
 {
 
 	/* Makes me wonder whether this is required... */
-	if( dest[3] < RE_EMPTY_COLOUR_FLOAT) {
+	if( dest[3] < RE_EMPTY_COLOR_FLOAT) {
 		dest[0] = source[0];
 		dest[1] = source[1];
 		dest[2] = source[2];

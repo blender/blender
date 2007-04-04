@@ -650,7 +650,7 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 	uiBut *bt;
 	rctf butrct;
 	float aspect;
-	int xsize, ysize, xof=0, yof=0, centre;
+	int xsize, ysize, xof=0, yof=0, center;
 	short dir1= 0, dir2=0;
 	
 	/* first transform to screen coords, assuming matrix is stil OK */
@@ -699,13 +699,13 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 	if(but) {
 		short left=0, right=0, top=0, down=0;
 
-		if(block->direction & UI_CENTRE) centre= ysize/2;
-		else centre= 0;
+		if(block->direction & UI_CENTER) center= ysize/2;
+		else center= 0;
 
 		if( butrct.xmin-xsize > 0.0) left= 1;
 		if( butrct.xmax+xsize < G.curscreen->sizex) right= 1;
-		if( butrct.ymin-ysize+centre > 0.0) down= 1;
-		if( butrct.ymax+ysize-centre < G.curscreen->sizey) top= 1;
+		if( butrct.ymin-ysize+center > 0.0) down= 1;
+		if( butrct.ymax+ysize-center < G.curscreen->sizey) top= 1;
 		
 		dir1= block->direction & UI_DIRECTION;
 
@@ -736,13 +736,13 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 		
 		if(dir1==UI_LEFT) {
 			xof= butrct.xmin - block->maxx;
-			if(dir2==UI_TOP) yof= butrct.ymin - block->miny-centre;
-			else yof= butrct.ymax - block->maxy+centre;
+			if(dir2==UI_TOP) yof= butrct.ymin - block->miny-center;
+			else yof= butrct.ymax - block->maxy+center;
 		}
 		else if(dir1==UI_RIGHT) {
 			xof= butrct.xmax - block->minx;
-			if(dir2==UI_TOP) yof= butrct.ymin - block->miny-centre;
-			else yof= butrct.ymax - block->maxy+centre;
+			if(dir2==UI_TOP) yof= butrct.ymin - block->miny-center;
+			else yof= butrct.ymax - block->maxy+center;
 		}
 		else if(dir1==UI_TOP) {
 			yof= butrct.ymax - block->miny;
@@ -3160,12 +3160,12 @@ static void do_palette_sample_cb(void *bt1, void *col1)	/* frontbuf */
 	
 	if(x<0 || y<0) return;
 	
-	/* if we've got a glick, use OpenGL to sample the colour under the mouse pointer */
+	/* if we've got a glick, use OpenGL to sample the color under the mouse pointer */
 	glReadBuffer(GL_FRONT);
 	glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, tempcol);
 	glReadBuffer(GL_BACK);
 	
-	/* and send that colour back to the picker */
+	/* and send that color back to the picker */
 	rgb_to_hsv(tempcol[0], tempcol[1], tempcol[2], hsv, hsv+1, hsv+2);
 	update_picker_buts_hsv(but1->block, hsv, but1->poin);
 	update_picker_hex(but1->block, tempcol);
@@ -3228,7 +3228,7 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	uiButSetFunc(bt, do_palette_sample_cb, bt, col);
 	uiButSetFlag(bt, UI_TEXT_LEFT);
 	
-	bt= uiDefBut(block, TEX, retval, "Hex: ", offs, 140, 140, 20, hexcol, 0, 8, 0, 0, "Hex triplet for colour (#RRGGBB)");
+	bt= uiDefBut(block, TEX, retval, "Hex: ", offs, 140, 140, 20, hexcol, 0, 8, 0, 0, "Hex triplet for color (#RRGGBB)");
 	uiButSetFunc(bt, do_palette_hex_cb, bt, hexcol);
 
 	uiBlockBeginAlign(block);
@@ -3565,7 +3565,7 @@ static int ui_do_but_NORMAL(uiBut *but)
 					fp[2]= -sqrt( radsq-dx*dx-dy*dy );
 				}
 			}
-			Normalise(fp);
+			Normalize(fp);
 				
 			ui_draw_but(but);
 			ui_block_flush_back(but->block);

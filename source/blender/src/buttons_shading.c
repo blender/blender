@@ -1238,7 +1238,7 @@ static void texture_panel_image_map(Tex *tex)
 	/* crop extend clip */
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXREDR_PRV, "Extend",			10,90,63,19, &tex->extend, 4.0, 1.0, 0, 0, "Extends the colour of the edge pixels");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "Extend",			10,90,63,19, &tex->extend, 4.0, 1.0, 0, 0, "Extends the color of the edge pixels");
 	uiDefButS(block, ROW, B_TEXREDR_PRV, "Clip",			73,90,48,19, &tex->extend, 4.0, 2.0, 0, 0, "Sets alpha 0.0 outside Image edges");
 	uiDefButS(block, ROW, B_TEXREDR_PRV, "ClipCube",		121,90,63,19, &tex->extend, 4.0, 4.0, 0, 0, "Sets alpha to 0.0 outside cubeshaped area around Image");
 	uiDefButS(block, ROW, B_TEXREDR_PRV, "Repeat",			184,90,63,19, &tex->extend, 4.0, 3.0, 0, 0, "Causes Image to repeat horizontally and vertically");
@@ -1431,9 +1431,9 @@ static void draw_colorband_buts(uiBlock *block, ColorBand *coba, int xoffs, int 
 	
 	if(coba==NULL) return;
 	
-	bt= uiDefBut(block, BUT, redraw,	"Add",		80+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Adds a new colour position to the colorband");
+	bt= uiDefBut(block, BUT, redraw,	"Add",		80+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Adds a new color position to the colorband");
 	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
-	uiDefButS(block, NUM, redraw,		"Cur:",		117+xoffs,95+yoffs,81,20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Displays the active colour from the colorband");
+	uiDefButS(block, NUM, redraw,		"Cur:",		117+xoffs,95+yoffs,81,20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Displays the active color from the colorband");
 	bt= uiDefBut(block, BUT, redraw,		"Del",		199+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Deletes the active position");
 	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
 	uiDefButS(block, ROW, redraw,		 "E",		236+xoffs,95+yoffs,16,20, &coba->ipotype, 5.0, 1.0, 0, 0, "Sets interpolation type 'Ease' (quadratic) ");
@@ -1446,15 +1446,15 @@ static void draw_colorband_buts(uiBlock *block, ColorBand *coba, int xoffs, int 
 	cbd= coba->data + coba->cur;
 	
 	uiBlockBeginAlign(block);
-	bt= uiDefButF(block, NUM, redraw, "Pos",		xoffs,40+yoffs,110,20, &cbd->pos, 0.0, 1.0, 10, 0, "Sets the position of the active colour");
+	bt= uiDefButF(block, NUM, redraw, "Pos",		xoffs,40+yoffs,110,20, &cbd->pos, 0.0, 1.0, 10, 0, "Sets the position of the active color");
 	uiButSetFunc(bt, colorband_pos_cb, coba, NULL);
 	uiDefButF(block, COL, redraw,		"",		xoffs,20+yoffs,110,20, &(cbd->r), 0, 0, 0, B_BANDCOL, "");
 	uiDefButF(block, NUMSLI, redraw,	"A ",	xoffs,yoffs,110,20, &cbd->a, 0.0, 1.0, 10, 0, "Sets the alpha value for this position");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, redraw,	"R ",	115+xoffs,40+yoffs,185,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Sets the red value for the active colour");
-	uiDefButF(block, NUMSLI, redraw,	"G ",	115+xoffs,20+yoffs,185,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Sets the green value for the active colour");
-	uiDefButF(block, NUMSLI, redraw,	"B ",	115+xoffs,yoffs,185,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Sets the blue value for the active colour");
+	uiDefButF(block, NUMSLI, redraw,	"R ",	115+xoffs,40+yoffs,185,20, &cbd->r, 0.0, 1.0, B_BANDCOL, 0, "Sets the red value for the active color");
+	uiDefButF(block, NUMSLI, redraw,	"G ",	115+xoffs,20+yoffs,185,20, &cbd->g, 0.0, 1.0, B_BANDCOL, 0, "Sets the green value for the active color");
+	uiDefButF(block, NUMSLI, redraw,	"B ",	115+xoffs,yoffs,185,20, &cbd->b, 0.0, 1.0, B_BANDCOL, 0, "Sets the blue value for the active color");
 	uiBlockEndAlign(block);
 }
 
@@ -1470,7 +1470,7 @@ void draw_colorband_buts_small(uiBlock *block, ColorBand *coba, rctf *butr, int 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, COL, event,		"",			xs,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, B_BANDCOL, "");
 	uiDefButF(block, NUM, event,		"A:",		xs+2.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "");
-	bt= uiDefBut(block, BUT, event,	"Add",		xs+6.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Adds a new colour position to the colorband");
+	bt= uiDefBut(block, BUT, event,	"Add",		xs+6.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Adds a new color position to the colorband");
 	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
 	bt= uiDefBut(block, BUT, event,	"Del",		xs+8.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Deletes the active position");
 	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
@@ -1510,8 +1510,8 @@ static void texture_panel_colors(Tex *tex)
 	}
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_TEXPRV, "Bright",		10,10,150,20, &tex->bright, 0.0, 2.0, 0, 0, "Changes the brightness of the colour or intensity of a texture");
-	uiDefButF(block, NUMSLI, B_TEXPRV, "Contr",			160,10,150,20, &tex->contrast, 0.01, 5.0, 0, 0, "Changes the contrast of the colour or intensity of a texture");
+	uiDefButF(block, NUMSLI, B_TEXPRV, "Bright",		10,10,150,20, &tex->bright, 0.0, 2.0, 0, 0, "Changes the brightness of the color or intensity of a texture");
+	uiDefButF(block, NUMSLI, B_TEXPRV, "Contr",			160,10,150,20, &tex->contrast, 0.01, 5.0, 0, 0, "Changes the contrast of the color or intensity of a texture");
 }
 
 
@@ -1825,8 +1825,8 @@ static void radio_panel_tool(Radio *rad, int flag)
 
 	if(flag & RAD_PHASE_FACES) uiBlockSetCol(block, TH_AUTO);
 	else uiBlockSetCol(block, TH_BUT_NEUTRAL);
-	uiDefBut(block,  BUT, B_RAD_REPLACE, "Replace Meshes",	1, 0, 10, 12, NULL, 0, 0, 0, 0, "Converts meshes to Mesh objects with vertex colours, changing input-meshes");
-	uiDefBut(block,  BUT, B_RAD_ADDMESH, "Add new Meshes",	1, 0, 10, 12, NULL, 0, 0, 0, 0, "Converts meshes to Mesh objects with vertex colours, unchanging input-meshes");
+	uiDefBut(block,  BUT, B_RAD_REPLACE, "Replace Meshes",	1, 0, 10, 12, NULL, 0, 0, 0, 0, "Converts meshes to Mesh objects with vertex colors, changing input-meshes");
+	uiDefBut(block,  BUT, B_RAD_ADDMESH, "Add new Meshes",	1, 0, 10, 12, NULL, 0, 0, 0, 0, "Converts meshes to Mesh objects with vertex colors, unchanging input-meshes");
 
 	uiBlockSetCol(block, TH_AUTO);
 	uiDefButS(block,  ROW, B_RAD_DRAW, "Wire",			2, 0, 10, 10, &rad->drawtype, 0.0, 0.0, 0, 0, "Enables wireframe drawmode");
@@ -1957,10 +1957,10 @@ static void world_panel_mapto(World *wrld)
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, WOMAP_BLEND, B_WORLDPRV, "Blend",	10,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour progression of the background");
-	uiDefButBitS(block, TOG, WOMAP_HORIZ, B_WORLDPRV, "Hori",		85,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the horizon");
-	uiDefButBitS(block, TOG, WOMAP_ZENUP, B_WORLDPRV, "ZenUp",	160,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith above");
-	uiDefButBitS(block, TOG, WOMAP_ZENDOWN, B_WORLDPRV, "ZenDo",	235,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith below");
+	uiDefButBitS(block, TOG, WOMAP_BLEND, B_WORLDPRV, "Blend",	10,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the color progression of the background");
+	uiDefButBitS(block, TOG, WOMAP_HORIZ, B_WORLDPRV, "Hori",		85,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the color of the horizon");
+	uiDefButBitS(block, TOG, WOMAP_ZENUP, B_WORLDPRV, "ZenUp",	160,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the color of the zenith above");
+	uiDefButBitS(block, TOG, WOMAP_ZENDOWN, B_WORLDPRV, "ZenDo",	235,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the color of the zenith below");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
@@ -1968,7 +1968,7 @@ static void world_panel_mapto(World *wrld)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_WORLDPRV, "Col  ",		155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
+	uiDefButF(block, NUMSLI, B_WORLDPRV, "Col  ",		155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects color values");
 	uiDefButF(block, NUMSLI, B_WORLDPRV, "Nor  ",		155,80,155,19, &(mtex->norfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects normal values");
 	uiDefButF(block, NUMSLI, B_WORLDPRV, "Var  ",		155,60,155,19, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
 	
@@ -2105,7 +2105,7 @@ static void world_panel_mistaph(World *wrld)
 	uiDefButF(block, NUM,B_DIFF,"StarDist:",	160,70,140,19, &(wrld->stardist), 2.0, 1000.0, 100, 0, "Specifies the average distance between any two stars");
 	uiDefButF(block, NUM,B_DIFF,"MinDist:",		160,50,140,19, &(wrld->starmindist), 0.0, 1000.0, 100, 0, "Specifies the minimum distance to the camera for stars");
 	uiDefButF(block, NUMSLI,B_DIFF,"Size:",		160,30,140,19, &(wrld->starsize), 0.0, 10.0, 10, 0, "Specifies the average screen dimension of stars");
-	uiDefButF(block, NUMSLI,B_DIFF,"Colnoise:",	160,10,140,19, &(wrld->starcolnoise), 0.0, 1.0, 100, 0, "Randomizes starcolour");
+	uiDefButF(block, NUMSLI,B_DIFF,"Colnoise:",	160,10,140,19, &(wrld->starcolnoise), 0.0, 1.0, 100, 0, "Randomizes star color");
 	uiBlockEndAlign(block);
 
 }
@@ -2177,19 +2177,19 @@ static void world_panel_world(World *wrld)
 	uiDefButF(block, COL, B_WORLDPRV, "",			160,150,145,19, &wrld->zenr, 0, 0, 0, B_COLZEN, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoR ",	10,130,145,19,	&(wrld->horr), 0.0, 1.0, B_COLHOR,0, "Sets the amount of red colour at the horizon");
-	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoG ",	10,110,145,19,	&(wrld->horg), 0.0, 1.0, B_COLHOR,0, "Sets the amount of green colour at the horizon");
-	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoB ",	10,90,145,19,	&(wrld->horb), 0.0, 1.0, B_COLHOR,0, "Sets the amount of blue colour at the horizon");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoR ",	10,130,145,19,	&(wrld->horr), 0.0, 1.0, B_COLHOR,0, "Sets the amount of red color at the horizon");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoG ",	10,110,145,19,	&(wrld->horg), 0.0, 1.0, B_COLHOR,0, "Sets the amount of green color at the horizon");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoB ",	10,90,145,19,	&(wrld->horb), 0.0, 1.0, B_COLHOR,0, "Sets the amount of blue color at the horizon");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeR ",	160,130,145,19,	&(wrld->zenr), 0.0, 1.0, B_COLZEN,0, "Sets the amount of red colour at the zenith");
-	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeG ",	160,110,145,19,	&(wrld->zeng), 0.0, 1.0, B_COLZEN,0, "Sets the amount of green colour at the zenith");
-	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeB ",	160,90,145,19,	&(wrld->zenb), 0.0, 1.0, B_COLZEN,0, "Sets the amount of blue colour at the zenith");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeR ",	160,130,145,19,	&(wrld->zenr), 0.0, 1.0, B_COLZEN,0, "Sets the amount of red color at the zenith");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeG ",	160,110,145,19,	&(wrld->zeng), 0.0, 1.0, B_COLZEN,0, "Sets the amount of green color at the zenith");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeB ",	160,90,145,19,	&(wrld->zenb), 0.0, 1.0, B_COLZEN,0, "Sets the amount of blue color at the zenith");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbR ",	10,50,145,19,	&(wrld->ambr), 0.0, 1.0 ,0,0, "Sets the amount of red ambient colour");
-	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbG ",	10,30,145,19,	&(wrld->ambg), 0.0, 1.0 ,0,0, "Sets the amount of green ambient colour");
-	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbB ",	10,10,145,19,	&(wrld->ambb), 0.0, 1.0 ,0,0, "Sets the amount of blue ambient colour");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbR ",	10,50,145,19,	&(wrld->ambr), 0.0, 1.0 ,0,0, "Sets the amount of red ambient color");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbG ",	10,30,145,19,	&(wrld->ambg), 0.0, 1.0 ,0,0, "Sets the amount of green ambient color");
+	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbB ",	10,10,145,19,	&(wrld->ambb), 0.0, 1.0 ,0,0, "Sets the amount of blue ambient color");
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
@@ -2341,13 +2341,13 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 	uiDefButF(block, NUMSLI, B_LAMPPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the textures uses to mix with");
 	
 	/* MAP TO */
-	uiDefButBitS(block, TOG, MAP_COL, B_LAMPPRV, "Col",		10,180,135,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the basic colour of the lamp");
+	uiDefButBitS(block, TOG, MAP_COL, B_LAMPPRV, "Col",		10,180,135,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the basic color of the lamp");
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, MENU, B_LAMPPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
 	uiBlockEndAlign(block);
 
-	uiDefButF(block, NUMSLI, B_LAMPPRV, "Col  ",			155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
+	uiDefButF(block, NUMSLI, B_LAMPPRV, "Col  ",			155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects color values");
 
 }
 
@@ -2983,10 +2983,10 @@ static void material_panel_map_to(Material *ma)
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic colour of the material");
+	uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic color of the material");
 	uiDefButBitS(block, TOG3, MAP_NORM, B_MATPRV, "Nor",		50,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the rendered normal");
-	uiDefButBitS(block, TOG, MAP_COLSPEC, B_MATPRV, "Csp",		90,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity colour");
-	uiDefButBitS(block, TOG, MAP_COLMIR, B_MATPRV, "Cmir",		130,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the mirror colour");
+	uiDefButBitS(block, TOG, MAP_COLSPEC, B_MATPRV, "Csp",		90,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity color");
+	uiDefButBitS(block, TOG, MAP_COLMIR, B_MATPRV, "Cmir",		130,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the mirror color");
 	uiDefButBitS(block, TOG3, MAP_REF, B_MATPRV, "Ref",		180,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of the materials reflectivity");
 	uiDefButBitS(block, TOG3, MAP_SPEC, B_MATPRV, "Spec",		220,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of specularity");
 	uiDefButBitS(block, TOG3, MAP_AMB, B_MATPRV, "Amb",		270,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of ambient");
@@ -3004,7 +3004,7 @@ static void material_panel_map_to(Material *ma)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "Col ",			155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects colour values");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Col ",			155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects color values");
 	/* newnoise: increased range to 25, the constant offset for bumpmapping quite often needs a higher nor setting */
 	uiDefButF(block, NUMSLI, B_MATPRV, "Nor ",			155,80,155,19, &(mtex->norfac), 0.0, 25.0, 0, 0, "Sets the amount the texture affects normal values");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Var ",			155,60,155,19, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
@@ -3459,8 +3459,8 @@ static void material_panel_material(Material *ma)
 		if(!(ma->mode & MA_HALO)) {
 			uiBlockBeginAlign(block);
 			uiBlockSetCol(block, TH_BUT_SETTING1);
-			uiDefButBitI(block, TOG, MA_VERTEXCOL, B_MAT_VCOL_LIGHT,	"VCol Light",	8,166,74,20, &(ma->mode), 0, 0, 0, 0, "Adds vertex colours as extra light");
-			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_MAT_VCOL_PAINT, "VCol Paint",	82,166,74,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
+			uiDefButBitI(block, TOG, MA_VERTEXCOL, B_MAT_VCOL_LIGHT,	"VCol Light",	8,166,74,20, &(ma->mode), 0, 0, 0, 0, "Adds vertex colors as extra light");
+			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_MAT_VCOL_PAINT, "VCol Paint",	82,166,74,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colors with vertex colors");
 			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,166,74,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
 			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	230,166,73,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
 			
@@ -3476,14 +3476,14 @@ static void material_panel_material(Material *ma)
 	
 		uiBlockBeginAlign(block);
 		if(ma->mode & MA_HALO) {
-			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Halo",		83,97,40,20, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Sets the colour of the halo with the RGB sliders");
-			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Line",		83,77,40,20, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Sets the colour of the lines with the RGB sliders");
-			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Ring",		83,57,40,20, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Sets the colour of the rings with the RGB sliders");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Halo",		83,97,40,20, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Sets the color of the halo with the RGB sliders");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Line",		83,77,40,20, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Sets the color of the lines with the RGB sliders");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Ring",		83,57,40,20, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Sets the color of the rings with the RGB sliders");
 		}
 		else {
-			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Col",			83,97,40,20, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Sets the diffuse colour of the material");
-			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Spe",			83,77,40,20, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Sets the specular colour of the material");
-			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Mir",			83,57,40,20, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Sets the mirror colour of the material");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Col",			83,97,40,20, &(ma->rgbsel), 2.0, 0.0, 0, 0, "Sets the diffuse color of the material");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Spe",			83,77,40,20, &(ma->rgbsel), 2.0, 1.0, 0, 0, "Sets the specular color of the material");
+			uiDefButC(block, ROW, REDRAWBUTSSHADING, "Mir",			83,57,40,20, &(ma->rgbsel), 2.0, 2.0, 0, 0, "Sets the mirror color of the material");
 		}
 		
 		if(ma->rgbsel==0) {colpoin= &(ma->r); rgbsel= B_MATCOL;}
@@ -3510,8 +3510,8 @@ static void material_panel_material(Material *ma)
 		
 	}
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, REDRAWBUTSSHADING, "RGB",			8,30,38,19, &(ma->colormodel), 1.0, (float)MA_RGB, 0, 0, "Creates colour using red, green and blue");
-	uiDefButS(block, ROW, REDRAWBUTSSHADING, "HSV",			46,30,38,19, &(ma->colormodel), 1.0, (float)MA_HSV, 0, 0, "Creates colour using hue, saturation and value");
+	uiDefButS(block, ROW, REDRAWBUTSSHADING, "RGB",			8,30,38,19, &(ma->colormodel), 1.0, (float)MA_RGB, 0, 0, "Creates color using red, green and blue");
+	uiDefButS(block, ROW, REDRAWBUTSSHADING, "HSV",			46,30,38,19, &(ma->colormodel), 1.0, (float)MA_HSV, 0, 0, "Creates color using hue, saturation and value");
 	uiDefButBitS(block, TOG, MA_DRAW_DYNABUTS, REDRAWBUTSSHADING, "DYN",	84,30,39,19, &(ma->dynamode), 0.0, 0.0, 0, 0, "Adjusts parameters for dynamics options");
 
 }

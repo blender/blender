@@ -79,7 +79,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		/* retrieve normal */
 		if(in[MAT_IN_NORMAL]->hasinput) {
 			nodestack_get_vec(shi->vn, SOCK_VECTOR, in[MAT_IN_NORMAL]);
-			Normalise(shi->vn);
+			Normalize(shi->vn);
 		}
 		else
 			VECCOPY(shi->vn, shi->vno);

@@ -1322,13 +1322,13 @@ static void tb_do_transform(void *arg, int event)
 			else G.scene->proportional= 1;
 			break;
 		case 10:
-			docentre(0);
+			docenter(0);
 			break;
 		case 11:
-			docentre_new();
+			docenter_new();
 			break;
 		case 12:
-			docentre_cursor();
+			docenter_cursor();
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1706,7 +1706,7 @@ static uiBlock *tb_makemenu(void *arg)
 	if(U.uiflag & USER_PLAINMENUS)
 		uiBlockSetDirection(block, UI_RIGHT);
 	else
-		uiBlockSetDirection(block, UI_RIGHT|UI_CENTRE);
+		uiBlockSetDirection(block, UI_RIGHT|UI_CENTER);
 
 	return block;
 }

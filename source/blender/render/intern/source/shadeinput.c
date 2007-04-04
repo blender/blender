@@ -391,8 +391,8 @@ void shade_input_set_viewco(ShadeInput *shi, float x, float y, float z)
 		}
 	}
 	
-	/* cannot normalise earlier, code above needs it at viewplane level */
-	Normalise(shi->view);
+	/* cannot normalize earlier, code above needs it at viewplane level */
+	Normalize(shi->view);
 }
 
 /* calculate U and V, for scanline (silly render face u and v are in range -1 to 0) */
@@ -496,7 +496,7 @@ void shade_input_set_normals(ShadeInput *shi)
 		shi->vn[1]= l*n3[1]-u*n1[1]-v*n2[1];
 		shi->vn[2]= l*n3[2]-u*n1[2]-v*n2[2];
 		
-		Normalise(shi->vn);
+		Normalize(shi->vn);
 	}
 	else {
 		VECCOPY(shi->vn, shi->facenor);
@@ -544,7 +544,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				shi->tang[1]= (l*s3[1] - u*s1[1] - v*s2[1]);
 				shi->tang[2]= (l*s3[2] - u*s1[2] - v*s2[2]);
 				/* qdn: normalize just in case */
-				Normalise(shi->tang);
+				Normalize(shi->tang);
 			}
 			else shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
 		}
@@ -561,7 +561,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				shi->tang[0] = (s1[0] + s2[0] + s3[0]);
 				shi->tang[1] = (s1[1] + s2[1] + s3[1]);
 				shi->tang[2] = (s1[2] + s2[2] + s3[2]);
-				Normalise(shi->tang);
+				Normalize(shi->tang);
 			}
 		}
 	}
@@ -765,7 +765,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		}
 		
 		if(texco & TEXCO_REFL) {
-			/* mirror reflection colour textures (and envmap) */
+			/* mirror reflection color textures (and envmap) */
 			calc_R_ref(shi);	/* wrong location for normal maps! XXXXXXXXXXXXXX */
 		}
 		

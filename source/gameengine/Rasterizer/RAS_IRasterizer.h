@@ -207,7 +207,7 @@ public:
 	 *              2 quads
 	 * @param polymat (reserved)
 	 * @param useObjectColor will render the object using @param rgbacolor instead of 
-	 *  vertex colours.
+	 *  vertex colors.
 	 */
 	virtual void	IndexPrimitives( const vecVertexArray& vertexarrays,
 							const vecIndexArrays & indexarrays,
@@ -351,7 +351,7 @@ public:
 		bool perspective = true
 	)=0;
 	/**
-	 * Sets the specular colour component of the lighting equation.
+	 * Sets the specular color component of the lighting equation.
 	 */
 	virtual void	SetSpecularity(float specX,
 								   float specY,
@@ -363,14 +363,14 @@ public:
 	 */
 	virtual void	SetShinyness(float shiny)=0;
 	/**
-	 * Sets the diffuse colour component of the lighting equation.
+	 * Sets the diffuse color component of the lighting equation.
 	 */
 	virtual void	SetDiffuse(float difX,
 							   float difY,
 							   float difZ,
 							   float diffuse)=0;
 	/**
-	 * Sets the emissive colour component of the lighting equation.
+	 * Sets the emissive color component of the lighting equation.
 	 */ 
 	virtual void	SetEmissive(float eX,
 								float eY,

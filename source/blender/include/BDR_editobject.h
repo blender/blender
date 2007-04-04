@@ -65,9 +65,9 @@ void exit_editmode(int flag);
 void check_editmode(int type);
 void enter_editmode(int wc);
 
-void docentre(int centremode);
-void docentre_new(void);
-void docentre_cursor(void);
+void docenter(int centermode);
+void docenter_new(void);
+void docenter_cursor(void);
 void movetolayer(void);
 void special_editmenu(void);
 void convertmenu(void);

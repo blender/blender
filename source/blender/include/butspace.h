@@ -358,9 +358,9 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SETSMOOTH		2012
 #define B_SETSOLID		2013
 #define B_AUTOTEX		2014
-#define B_DOCENTRE		2015
-#define B_DOCENTRENEW		2016
-#define B_DOCENTRECURSOR	2017
+#define B_DOCENTER		2015
+#define B_DOCENTERNEW		2016
+#define B_DOCENTERCURSOR	2017
 
 	/* 20 values! */
 #define B_OBLAY			2019

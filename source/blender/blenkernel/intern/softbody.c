@@ -1201,7 +1201,7 @@ int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_
 					VECSUB(edge1, nv1, nv2);
 					VECSUB(edge2, nv3, nv2);
 					Crossf(d_nvect, edge2, edge1);
-					Normalise(d_nvect);
+					Normalize(d_nvect);
 					if ( 
 						LineIntersectsTriangle(nv1, nv2, face_v1, face_v2, face_v3, &t) ||
 						LineIntersectsTriangle(nv2, nv3, face_v1, face_v2, face_v3, &t) ||
@@ -1215,7 +1215,7 @@ int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],float face_
 						VECSUB(edge1, nv3, nv4);
 						VECSUB(edge2, nv1, nv4);					
 						Crossf(d_nvect, edge2, edge1);
-						Normalise(d_nvect);	
+						Normalize(d_nvect);	
 						if ( 
 							LineIntersectsTriangle(nv1, nv3, face_v1, face_v2, face_v3, &t) ||
 							LineIntersectsTriangle(nv3, nv4, face_v1, face_v2, face_v3, &t) ||
@@ -1401,7 +1401,7 @@ int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp
 					VECSUB(edge2, nv3, nv2);
 
 					Crossf(d_nvect, edge2, edge1);
-					Normalise(d_nvect);
+					Normalize(d_nvect);
 					if ( LineIntersectsTriangle(edge_v1, edge_v2, nv1, nv2, nv3, &t)){
 						float v1[3],v2[3];
 						float intrusiondepth,i1,i2;
@@ -1420,7 +1420,7 @@ int sb_detect_edge_collisionCached(float edge_v1[3],float edge_v2[3],float *damp
 						VECSUB(edge2, nv1, nv4);
 
 						Crossf(d_nvect, edge2, edge1);
-						Normalise(d_nvect);						
+						Normalize(d_nvect);						
 						if (LineIntersectsTriangle( edge_v1, edge_v2,nv1, nv3, nv4, &t)){
 							float v1[3],v2[3];
 							float intrusiondepth,i1,i2;
@@ -1496,7 +1496,7 @@ void scan_for_ext_spring_forces(Object *ob,float timenow)
 					else{
 						VECADD(vel, sb->bpoint[bs->v1].vec , sb->bpoint[bs->v2].vec);
 					}
-					f = Normalise(vel);
+					f = Normalize(vel);
 					f = -0.0001f*f*f*sb->aeroedge;
 					/* todo add a nice angle dependant function */
 					/* look up one at bergman scheafer */
@@ -1504,7 +1504,7 @@ void scan_for_ext_spring_forces(Object *ob,float timenow)
 					VECSUB(sp, sb->bpoint[bs->v1].pos , sb->bpoint[bs->v2].pos);
 					Projf(pr,vel,sp);
 					VECSUB(vel,vel,pr);
-					Normalise(vel);
+					Normalize(vel);
 					Vec3PlusStVec(bs->ext_force,f,vel);
 				}
 				/* --- springs seeing wind */
@@ -1673,7 +1673,7 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 					VECSUB(dv1,opco,nv2); /* abuse dv1 to have vertex in question at *origin* of triangle */
 
 					Crossf(d_nvect, edge2, edge1);
-					n_mag = Normalise(d_nvect);
+					n_mag = Normalize(d_nvect);
 					facedist = Inpf(dv1,d_nvect);
 
 					if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){		
@@ -1703,7 +1703,7 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 						VECSUB(dv1,opco,nv4); /* abuse dv1 to have vertex in question at *origin* of triangle */
 
 						Crossf(d_nvect, edge2, edge1);
-						n_mag = Normalise(d_nvect);
+						n_mag = Normalize(d_nvect);
 						facedist = Inpf(dv1,d_nvect);
 
 						if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){
@@ -1741,7 +1741,7 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 	if (ci) *intrusion /= ci;
 	if (deflected){ 
 		VECCOPY(facenormal,force);
-		Normalise(facenormal);
+		Normalize(facenormal);
 	}
 	return deflected;	
 }
@@ -1882,7 +1882,7 @@ int sb_detect_vertex_collisionCachedEx(float opco[3], float facenormal[3], float
 					VECSUB(dv1,opco,nv2); /* abuse dv1 to have vertex in question at *origin* of triangle */
 
 					Crossf(d_nvect, edge2, edge1);
-					n_mag = Normalise(d_nvect);
+					n_mag = Normalize(d_nvect);
 					facedist = Inpf(dv1,d_nvect);
 
 					if ((facedist > closestinside) && (facedist < outerfacethickness)){		
@@ -1926,7 +1926,7 @@ int sb_detect_vertex_collisionCachedEx(float opco[3], float facenormal[3], float
 						VECSUB(dv1,opco,nv4); /* abuse dv1 to have vertex in question at *origin* of triangle */
 
 						Crossf(d_nvect, edge2, edge1);
-						n_mag = Normalise(d_nvect);
+						n_mag = Normalize(d_nvect);
 						facedist = Inpf(dv1,d_nvect);
 
 						if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){
@@ -1983,7 +1983,7 @@ int sb_detect_vertex_collisionCachedEx(float opco[3], float facenormal[3], float
 	*/
 	if (deflected ==1){ 
 		VECCOPY(facenormal,force);
-		Normalise(facenormal);
+		Normalize(facenormal);
 	} 
 	else{
 		facenormal[0] = facenormal[1] = facenormal[2] = 0.0f;
@@ -2075,7 +2075,7 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 					/* mathematically it is completly nuts, but performace is pretty much (3) times faster */
 					if ((ABS(def[0]) > compare) || (ABS(def[1]) > compare) || (ABS(def[2]) > compare)) continue;
 
-                    distance = Normalise(def);
+                    distance = Normalize(def);
 					if (distance < compare ){
 						/* exclude body points attached with a spring */
 						attached = 0;
@@ -2219,12 +2219,12 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 						if (( (sb->totpoint-a) == bs->v1) ){ 
 							actspringlen= VecLenf( (bproot+bs->v2)->pos, bp->pos);
 							VecSubf(sd,(bproot+bs->v2)->pos, bp->pos);
-							Normalise(sd);
+							Normalize(sd);
 							
 							/* friction stuff V1 */
 							VecSubf(velgoal,bp->vec,(bproot+bs->v2)->vec);
 							kd = sb->infrict * sb_fric_force_scale(ob);
-							absvel  = Normalise(velgoal);
+							absvel  = Normalize(velgoal);
 							projvel = ABS(Inpf(sd,velgoal));
 							kd *= absvel * projvel;
 							Vec3PlusStVec(bp->force,-kd,velgoal);
@@ -2242,12 +2242,12 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 						if (( (sb->totpoint-a) == bs->v2) ){ 
 							actspringlen= VecLenf( (bproot+bs->v1)->pos, bp->pos);
 							VecSubf(sd,bp->pos,(bproot+bs->v1)->pos);
-							Normalise(sd);
+							Normalize(sd);
 							
 							/* friction stuff V2 */
 							VecSubf(velgoal,bp->vec,(bproot+bs->v1)->vec);
 							kd = sb->infrict * sb_fric_force_scale(ob);
-							absvel  = Normalise(velgoal);
+							absvel  = Normalize(velgoal);
 							projvel = ABS(Inpf(sd,velgoal));
 							kd *= absvel * projvel;
 							Vec3PlusStVec(bp->force,-kd,velgoal);

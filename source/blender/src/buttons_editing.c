@@ -549,14 +549,14 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 			if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) tex_space_curve(ob->data);
 		}
 		break;
-	case B_DOCENTRE:
-		docentre(0);
+	case B_DOCENTER:
+		docenter(0);
 		break;
-	case B_DOCENTRENEW:
-		docentre_new();
+	case B_DOCENTERNEW:
+		docenter_new();
 		break;
-	case B_DOCENTRECURSOR:
-		docentre_cursor();
+	case B_DOCENTERCURSOR:
+		docenter_cursor();
 		break;
 	case B_SETSMOOTH:
 	case B_SETSOLID:
@@ -824,9 +824,9 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	}
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_DOCENTRE, "Center",					10, 80, 65, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
-	uiDefBut(block, BUT,B_DOCENTRENEW, "Center New",			75, 80, 105, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
-	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Center Cursor",		10, 60, 170, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
+	uiDefBut(block, BUT,B_DOCENTER, "Center",					10, 80, 65, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
+	uiDefBut(block, BUT,B_DOCENTERNEW, "Center New",			75, 80, 105, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
+	uiDefBut(block, BUT,B_DOCENTERCURSOR, "Center Cursor",		10, 60, 170, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
@@ -2918,9 +2918,9 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		uiDefButBitS(block, TOG, CU_NOPUNOFLIP, REDRAWVIEW3D, "No Puno Flip",	600,140,150,19, &cu->flag, 0, 0, 0, 0, "Don't flip vertex normals while render");
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_DOCENTRE, "Center",					600, 115, 55, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
-	uiDefBut(block, BUT,B_DOCENTRENEW, "Center New",			655, 115, 95, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
-	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Center Cursor",		600, 95, 150, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
+	uiDefBut(block, BUT,B_DOCENTER, "Center",					600, 115, 55, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
+	uiDefBut(block, BUT,B_DOCENTERNEW, "Center New",			655, 115, 95, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
+	uiDefBut(block, BUT,B_DOCENTERCURSOR, "Center Cursor",		600, 95, 150, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
 	uiBlockEndAlign(block);
 
 	if(cu->key) {

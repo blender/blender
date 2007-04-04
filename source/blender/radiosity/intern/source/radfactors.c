@@ -82,20 +82,20 @@ float calcStokefactor(RPatch *shoot, RPatch *rp, RNode *rn, float *area)
 		VecSubf(vec[2], shoot->cent, rn->v3);
 		VecSubf(vec[3], shoot->cent, rn->v4);
 
-		Normalise(vec[0]);
-		Normalise(vec[1]);
-		Normalise(vec[2]);
-		Normalise(vec[3]);
+		Normalize(vec[0]);
+		Normalize(vec[1]);
+		Normalize(vec[2]);
+		Normalize(vec[3]);
 
 		/* cross product */
 		Crossf(cross[0], vec[0], vec[1]);
 		Crossf(cross[1], vec[1], vec[2]);
 		Crossf(cross[2], vec[2], vec[3]);
 		Crossf(cross[3], vec[3], vec[0]);
-		Normalise(cross[0]);
-		Normalise(cross[1]);
-		Normalise(cross[2]);
-		Normalise(cross[3]);
+		Normalize(cross[0]);
+		Normalize(cross[1]);
+		Normalize(cross[2]);
+		Normalize(cross[3]);
 
 		/* angles */
 		rad[0]= vec[0][0]*vec[1][0]+ vec[0][1]*vec[1][1]+ vec[0][2]*vec[1][2];
@@ -126,17 +126,17 @@ float calcStokefactor(RPatch *shoot, RPatch *rp, RNode *rn, float *area)
 		VecSubf(vec[1], shoot->cent, rn->v2);
 		VecSubf(vec[2], shoot->cent, rn->v3);
 
-		Normalise(vec[0]);
-		Normalise(vec[1]);
-		Normalise(vec[2]);
+		Normalize(vec[0]);
+		Normalize(vec[1]);
+		Normalize(vec[2]);
 
 		/* cross product */
 		Crossf(cross[0], vec[0], vec[1]);
 		Crossf(cross[1], vec[1], vec[2]);
 		Crossf(cross[2], vec[2], vec[0]);
-		Normalise(cross[0]);
-		Normalise(cross[1]);
-		Normalise(cross[2]);
+		Normalize(cross[0]);
+		Normalize(cross[1]);
+		Normalize(cross[2]);
 
 		/* angles */
 		rad[0]= vec[0][0]*vec[1][0]+ vec[0][1]*vec[1][1]+ vec[0][2]*vec[1][2];
@@ -322,7 +322,7 @@ int makeformfactors(RPatch *shoot)
 		vec[1]= (float)BLI_drand();
 		vec[2]= (float)BLI_drand();
 		Crossf(up, shoot->norm, vec);
-		len= Normalise(up);
+		len= Normalize(up);
 		/* this safety for input normals that are zero or illegal sized */
 		if(a>3) return 0;
 	} while(len==0.0 || len>1.0);

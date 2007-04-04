@@ -206,7 +206,7 @@ public:
 	void applyImpulse(const MT_Point3& attach, const MT_Vector3& impulse) ;
 	
 	/**
-	 * Applies an impulse through the centre of this object. (ie the angular
+	 * Applies an impulse through the center of this object. (ie the angular
 	 * velocity will not change.
 	 */
 	void applyCenterImpulse(const MT_Vector3& impulse);

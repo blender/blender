@@ -2680,9 +2680,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		float len1, len2, vec[3];
 
 		VECCOPY(vec, v3d->persinv[0]);
-		len1= Normalise(vec);
+		len1= Normalize(vec);
 		VECCOPY(vec, v3d->persinv[1]);
-		len2= Normalise(vec);
+		len2= Normalize(vec);
 		
 		v3d->pixsize= 2.0f*(len1>len2?len1:len2);
 		

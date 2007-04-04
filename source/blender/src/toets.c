@@ -320,7 +320,7 @@ void persptoetsen(unsigned short event)
 				/* horizontal axis */
 				VECCOPY(q1+1, G.vd->viewinv[0]);
 				
-				Normalise(q1+1);
+				Normalize(q1+1);
 				phi= (float)(M_PI/360.0)*U.pad_rot_angle;
 				if(event==PAD2) phi= -phi;
 				si= (float)sin(phi);

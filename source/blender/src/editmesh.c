@@ -660,7 +660,7 @@ static void edge_normal_compare(EditEdge *eed, EditFace *efa1)
 	else CalcCent3f(cent2, efa2->v1->co, efa2->v2->co, efa2->v3->co);
 	
 	VecSubf(cent1, cent2, cent1);
-	Normalise(cent1);
+	Normalize(cent1);
 	inp= cent1[0]*efa1->n[0] + cent1[1]*efa1->n[1] + cent1[2]*efa1->n[2]; 
 
 	if(inp < -0.001 ) eed->f1= 1;

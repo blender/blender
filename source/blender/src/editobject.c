@@ -1767,9 +1767,9 @@ void check_editmode(int type)
 	exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); /* freedata, and undo */
 }
 
-/* 0 == do centre, 1 == centre new, 2 == centre cursor */
+/* 0 == do center, 1 == center new, 2 == center cursor */
 
-void docentre(int centremode)
+void docenter(int centermode)
 {
 	EditMesh *em = G.editMesh;
 	Base *base;
@@ -1849,7 +1849,7 @@ void docentre(int centremode)
 						return;
 					}
 					
-					if(centremode==2) {
+					if(centermode==2) {
 						VECCOPY(cent, give_cursor());
 						Mat4Invert(base->object->imat, base->object->obmat);
 						Mat4MulVecfl(base->object->imat, cent);
@@ -1871,7 +1871,7 @@ void docentre(int centremode)
 					}
 					me->flag |= ME_ISDONE;
 					
-					if(centremode) {
+					if(centermode) {
 						Mat3CpyMat4(omat, base->object->obmat);
 						
 						VECCOPY(centn, cent);
@@ -1925,7 +1925,7 @@ void docentre(int centremode)
 						nu1= cu->nurb.first;
 					}
 					
-					if(centremode==2) {
+					if(centermode==2) {
 						VECCOPY(cent, give_cursor());
 						Mat4Invert(base->object->imat, base->object->obmat);
 						Mat4MulVecfl(base->object->imat, cent);
@@ -1965,7 +1965,7 @@ void docentre(int centremode)
 						nu= nu->next;
 					}
 			
-					if(centremode && G.obedit==0) {
+					if(centermode && G.obedit==0) {
 						Mat3CpyMat4(omat, base->object->obmat);
 						
 						Mat3MulVecfl(omat, cent);
@@ -1975,7 +1975,7 @@ void docentre(int centremode)
 					}
 			
 					if(G.obedit) {
-						if (centremode==0) {
+						if (centermode==0) {
 							DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 						}
 						break;
@@ -2008,7 +2008,7 @@ void docentre(int centremode)
 					/* Function to recenter armatures in editarmature.c 
 					 * Bone + object locations are handled there.
 					 */
-					docentre_armature(base->object, centremode);
+					docenter_armature(base->object, centermode);
 					
 					if(G.obedit) 
 						break;
@@ -2024,7 +2024,7 @@ void docentre(int centremode)
 	BIF_undo_push("Do Center");	
 }
 
-void docentre_new(void)
+void docenter_new(void)
 {
 	if(G.scene->id.lib) return;
 
@@ -2032,11 +2032,11 @@ void docentre_new(void)
 		error("Unable to center new in Edit Mode");
 	}
 	else {
-		docentre(1);
+		docenter(1);
 	}
 }
 
-void docentre_cursor(void)
+void docenter_cursor(void)
 {
 	if(G.scene->id.lib) return;
 
@@ -2044,7 +2044,7 @@ void docentre_cursor(void)
 		error("Unable to center cursor in Edit Mode");
 	}
 	else {
-		docentre(2);
+		docenter(2);
 	}
 }
 
@@ -3821,10 +3821,10 @@ int cylinder_intersect_test(void)
 	VecSubf(rc, oldloc, base);
 	
 	/* the axis */
-	len2= Normalise(axis);
+	len2= Normalize(axis);
 	
 	Crossf(n, speed, axis);
-	len= Normalise(n);
+	len= Normalize(n);
 	if(len==0.0) return 0;
 	
 	dist= fabs( rc[0]*n[0] + rc[1]*n[1] + rc[2]*n[2] );
@@ -3880,7 +3880,7 @@ int sphere_intersect_test(void)
 	
 	v1= v1->next;
 	VecSubf(speed, v1->co, oldloc);
-	len= Normalise(speed);
+	len= Normalize(speed);
 	if(len==0.0) return 0;
 	
 	VecSubf(rc, oldloc, base);

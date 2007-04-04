@@ -549,12 +549,12 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 				vlr->flag |= R_NOPUNOFLIP;
 			
 			VecSubf(n1, v2->co, v1->co);
-			Normalise(n1);
+			Normalize(n1);
 			VecSubf(n2, v3->co, v2->co);
-			Normalise(n2);
+			Normalize(n2);
 			if(v4==NULL) {
 				VecSubf(n3, v1->co, v3->co);
-				Normalise(n3);
+				Normalize(n3);
 
 				fac1= saacos(-n1[0]*n3[0]-n1[1]*n3[1]-n1[2]*n3[2]);
 				fac2= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
@@ -562,9 +562,9 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 			}
 			else {
 				VecSubf(n3, v4->co, v3->co);
-				Normalise(n3);
+				Normalize(n3);
 				VecSubf(n4, v1->co, v4->co);
-				Normalise(n4);
+				Normalize(n4);
 
 				fac1= saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2]);
 				fac2= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
@@ -623,10 +623,10 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 		}
 	}
 	
-		/* normalise vertex normals */
+		/* normalize vertex normals */
 	for(a=startvert; a<re->totvert; a++) {
 		VertRen *ver= RE_findOrAddVert(re, a);
-		Normalise(ver->n);
+		Normalize(ver->n);
 		if(do_tangent) {
 			float *tav= RE_vertren_get_tangent(re, ver, 0);
 			if (tav) {
@@ -635,7 +635,7 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 				tav[0] -= ver->n[0]*tdn;
 				tav[1] -= ver->n[1]*tdn;
 				tav[2] -= ver->n[2]*tdn;
-				Normalise(tav);
+				Normalize(tav);
 			}
 		}
 	}
@@ -685,21 +685,21 @@ static void calc_fluidsimnormals(Render *re, int startvert, int startvlak, int d
 				vlr->flag |= R_NOPUNOFLIP;
 			
 			VecSubf(n1, v2->co, v1->co);
-			Normalise(n1);
+			Normalize(n1);
 			VecSubf(n2, v3->co, v2->co);
-			Normalise(n2);
+			Normalize(n2);
 			if(v4==NULL) {
 				VecSubf(n3, v1->co, v3->co);
-				Normalise(n3);
+				Normalize(n3);
 				fac1= saacos(-n1[0]*n3[0]-n1[1]*n3[1]-n1[2]*n3[2]);
 				fac2= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
 				fac3= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
 			}
 			else {
 				VecSubf(n3, v4->co, v3->co);
-				Normalise(n3);
+				Normalize(n3);
 				VecSubf(n4, v1->co, v4->co);
-				Normalise(n4);
+				Normalize(n4);
 
 				fac1= saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2]);
 				fac2= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
@@ -738,13 +738,13 @@ static void calc_fluidsimnormals(Render *re, int startvert, int startvlak, int d
 		}
 	}
 	
-	/* normalise vertex normals */
+	/* normalize vertex normals */
 	for(a=startvert; a<re->totvert; a++) {
 		VertRen *ver= RE_findOrAddVert(re, a);
-		Normalise(ver->n);
+		Normalize(ver->n);
 		if(do_tangent) {
 			float *tav= RE_vertren_get_tangent(re, ver, 0);
-			if(tav) Normalise(tav);
+			if(tav) Normalize(tav);
 		}
 	}
 
@@ -1025,10 +1025,10 @@ static void make_render_halos(Render *re, Object *ob, Mesh *me, int totvert, MVe
 				nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
 				nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 				nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-				Normalise(nor);
+				Normalize(nor);
 
 				VECCOPY(view, vec);
-				Normalise(view);
+				Normalize(view);
 
 				zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
 				if(zn>=0.0) hasize= 0.0;
@@ -1180,10 +1180,10 @@ static void render_particle_system(Render *re, Object *ob, Object *par, PartEff 
 			nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
 			nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 			nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-			Normalise(nor);
+			Normalize(nor);
 
 			VECCOPY(view, vec);
-			Normalise(view);
+			Normalize(view);
 
 			zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
 			if(zn>=0.0) hasize= 0.0;
@@ -1195,7 +1195,7 @@ static void render_particle_system(Render *re, Object *ob, Object *par, PartEff 
 			har= RE_inithalo(re, ma, vec, NULL, pa->co, hasize, 0.0, seed);
 			if(har && ma->mode & MA_HALO_SHADE) {
 				VecSubf(har->no, vec, vec1);
-				Normalise(har->no);
+				Normalize(har->no);
 			}
 		}
 		if(har) har->lay= ob->lay;
@@ -1227,7 +1227,7 @@ static void static_particle_strand(Render *re, Object *ob, Material *ma, float *
 	int flag;
 	
 	VecSubf(nor, vec, vec1);
-	Normalise(nor);		// nor needed as tangent 
+	Normalize(nor);		// nor needed as tangent 
 	Crossf(cross, vec, nor);
 	
 	/* turn cross in pixelsize */
@@ -1405,7 +1405,7 @@ static void render_static_particle_system(Render *re, Object *ob, PartEff *paf)
 					VECCOPY(v1->co, vec);
 					
 					VecSubf(vlr->n, vec, vec1);
-					Normalise(vlr->n);
+					Normalize(vlr->n);
 					VECCOPY(v1->n, vlr->n);
 					
 					vlr->mat= ma;
@@ -1433,10 +1433,10 @@ static void render_static_particle_system(Render *re, Object *ob, PartEff *paf)
 						nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
 						nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 						nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-						Normalise(nor);
+						Normalize(nor);
 
 						VECCOPY(view, vec);
-						Normalise(view);
+						Normalize(view);
 
 						zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
 						if(zn>=0.0) hasize= 0.0;
@@ -1448,7 +1448,7 @@ static void render_static_particle_system(Render *re, Object *ob, PartEff *paf)
 						har= RE_inithalo(re, ma, vec, NULL, pa->co, hasize, 0.0, seed);
 						if(har && (ma->mode & MA_HALO_SHADE)) {
 							VecSubf(har->no, vec, vec1);
-							Normalise(har->no);
+							Normalize(har->no);
 							har->lay= ob->lay;
 						}
 					}
@@ -1583,7 +1583,7 @@ static void init_render_mball(Render *re, Object *ob)
 		ver->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
 		ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 		ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-		Normalise(ver->n);
+		Normalize(ver->n);
 		//if(ob->transflag & OB_NEG_SCALE) VecMulf(ver->n. -1.0);
 		
 		if(need_orco) ver->orco= data;
@@ -2045,7 +2045,7 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 						vlr->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
 						vlr->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 						vlr->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-						Normalise(vlr->n);
+						Normalize(vlr->n);
 						
 						vlr->mat= ma;
 						vlr->flag= 0;
@@ -2222,7 +2222,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	lar->vec[0]= -mat[2][0];
 	lar->vec[1]= -mat[2][1];
 	lar->vec[2]= -mat[2][2];
-	Normalise(lar->vec);
+	Normalize(lar->vec);
 	lar->co[0]= mat[3][0];
 	lar->co[1]= mat[3][1];
 	lar->co[2]= mat[3][2];
@@ -2304,9 +2304,9 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 
 	if(lar->type==LA_SPOT) {
 
-		Normalise(lar->imat[0]);
-		Normalise(lar->imat[1]);
-		Normalise(lar->imat[2]);
+		Normalize(lar->imat[0]);
+		Normalize(lar->imat[1]);
+		Normalize(lar->imat[2]);
 
 		xn= saacos(lar->spotsi);
 		xn= sin(xn)/cos(xn);
@@ -2556,7 +2556,7 @@ static int dl_surf_to_renderdata(Render *re, Object *ob, DispList *dl, Material 
 	}
 	for(a = startvert; a < re->totvert; a++) {
 		ver= RE_findOrAddVert(re, a);
-		Normalise(ver->n);
+		Normalize(ver->n);
 	}
 	
 	
@@ -2663,7 +2663,7 @@ static void init_render_curve(Render *re, Object *ob, int only_verts)
 			n[0]= ob->imat[0][2];
 			n[1]= ob->imat[1][2];
 			n[2]= ob->imat[2][2];
-			Normalise(n);
+			Normalize(n);
 
 			for(a=0; a<dl->nr; a++, data+=3) {
 				ver= RE_findOrAddVert(re, re->totvert++);
@@ -2804,7 +2804,7 @@ static void init_render_curve(Render *re, Object *ob, int only_verts)
 					}
 					for(a=startvert; a<re->totvert; a++) {
 						ver= RE_findOrAddVert(re, a);
-						len= Normalise(ver->n);
+						len= Normalize(ver->n);
 						if(len==0.0) ver->flag= 1;	/* flag abuse, its only used in zbuf now  */
 						else ver->flag= 0;
 					}
@@ -3207,7 +3207,7 @@ void init_render_world(Render *re)
 		cp[3]= 1;
 		
 		VECCOPY(re->grvec, re->viewmat[2]);
-		Normalise(re->grvec);
+		Normalize(re->grvec);
 		Mat3CpyMat4(re->imat, re->viewinv);
 		
 		for(a=0; a<MAX_MTEX; a++) 

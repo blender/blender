@@ -389,16 +389,16 @@ void IMB_rect_from_float(struct ImBuf *ibuf);
 void IMB_float_from_rect(struct ImBuf *ibuf);
 
 /**
- * Change the ordering of the colour bytes pointed to by rect from
- * rgba to abgr. size * 4 colour bytes are reordered.
+ * Change the ordering of the color bytes pointed to by rect from
+ * rgba to abgr. size * 4 color bytes are reordered.
  *
  * @attention Defined in imageprocess.c
  */
 void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf);
 
 /**
- * Change the ordering of the colour bytes pointed to by rect from
- * rgba to abgr. size * 4 colour bytes are reordered.
+ * Change the ordering of the color bytes pointed to by rect from
+ * rgba to abgr. size * 4 color bytes are reordered.
  *
  * @attention Defined in imageprocess.c
  */
@@ -492,14 +492,14 @@ void IMB_dit0(struct ImBuf * ibuf, short ofs, short bits);
 
 /**
  * boolean toggle that tells whether or not to
- * scale the colour map in the y-direction.
+ * scale the color map in the y-direction.
  *
  * @attention declared in hamx.c
  */
 extern int scalecmapY;
 
 /**
- * This 'matrix' defines the transformation from rgb to bw colour
+ * This 'matrix' defines the transformation from rgb to bw color
  * maps. You need to do a sort of dot-product for that. It is a matrix
  * with fixed coefficients, extracted from some book.
  *

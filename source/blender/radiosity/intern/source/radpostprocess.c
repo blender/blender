@@ -124,9 +124,9 @@ void triaweight(Face *face, int *w1, int *w2, int *w3)
 	n3[0]= face->v1[0]-face->v3[0];
 	n3[1]= face->v1[1]-face->v3[1];
 	n3[2]= face->v1[2]-face->v3[2];
-	Normalise(n1);
-	Normalise(n2);
-	Normalise(n3);
+	Normalize(n1);
+	Normalize(n2);
+	Normalize(n3);
 	temp= 32.0/(PI);
 	*w1= 0.5+temp*acos(-n1[0]*n3[0]-n1[1]*n3[1]-n1[2]*n3[2]);
 	*w2= 0.5+temp*acos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
@@ -785,7 +785,7 @@ void rad_addmesh(void)
 
 	BLI_ghash_free(verthash, NULL, NULL);
 
-	/* boundbox and centre new */
+	/* boundbox and center new */
 	INIT_MINMAX(min, max);
 
 	mvert= me->mvert;

@@ -571,7 +571,7 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 			distance = VecLength(vect_to_vert);
 
 			Crossf(force_vec, ob->obmat[2], vect_to_vert);
-			Normalise(force_vec);
+			Normalize(force_vec);
 
 			/* Limit minimum distance to vertex so that */
 			/* the force is not too big */
@@ -867,7 +867,7 @@ static int pdDoDeflection(RNG *rng, float opco[3], float npco[3], float opno[3],
     	VECSUB(edge1, dv1, dv2);
 		VECSUB(edge2, dv3, dv2);
 		Crossf(d_nvect, edge2, edge1);
-		n_mag = Normalise(d_nvect);
+		n_mag = Normalize(d_nvect);
 		dk_plane = INPR(d_nvect, nv1);
 		dk_point1 = INPR(d_nvect,opco);
 
@@ -880,11 +880,11 @@ static int pdDoDeflection(RNG *rng, float opco[3], float npco[3], float opno[3],
 		d_i_co_above[0] = (d_intersect_co[0] + (0.001f * d_nvect[0]));
 		d_i_co_above[1] = (d_intersect_co[1] + (0.001f * d_nvect[1]));
 		d_i_co_above[2] = (d_intersect_co[2] + (0.001f * d_nvect[2]));
-		mag_iv = Normalise(d_intersect_vect);
+		mag_iv = Normalize(d_intersect_vect);
 		VECCOPY(npco, d_intersect_co);
 		
 		VECSUB(vect_to_int, opco, d_intersect_co);
-		first_dist = Normalise(vect_to_int);
+		first_dist = Normalize(vect_to_int);
 
 		/* Work out the lengths of time before and after collision*/
 		time_before = (life*(first_dist / (mag_iv)));
@@ -2045,7 +2045,7 @@ void build_particle_system(Object *ob)
 				VECCOPY(vec, no);
 				Mat3MulVecfl(mcnow->imat, vec);
 			
-				Normalise(vec);
+				Normalize(vec);
 				VecMulf(vec, paf->normfac);
 				VECADD(pa->no, pa->no, vec);
 			}
@@ -2053,7 +2053,7 @@ void build_particle_system(Object *ob)
 		else {
 			if(paf->normfac!=0.0) {
 				VECCOPY(pa->no, no);
-				Normalise(pa->no);
+				Normalize(pa->no);
 				VecMulf(pa->no, paf->normfac);
 			}
 		}

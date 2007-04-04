@@ -585,7 +585,7 @@ static float *calc_curve_deform(Object *par, float *co, short axis, CurveDeform 
 		
 		/* the tilt */
 		if(loc[3]!=0.0) {
-			Normalise(dir);
+			Normalize(dir);
 			q[0]= (float)cos(0.5*loc[3]);
 			fac= (float)sin(0.5*loc[3]);
 			q[1]= -fac*dir[0];

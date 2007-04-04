@@ -660,7 +660,7 @@ HaloRen *RE_inithalo(Render *re, Material *ma,   float *vec,   float *vec1,
 		har->hasize= vectsize*zn + (1.0-vectsize)*hasize;
 		
 		VecSubf(har->no, vec, vec1);
-		Normalise(har->no);
+		Normalize(har->no);
 	}
 
 	if(ma->mode & MA_HALO_XALPHA) har->type |= HA_XALPHA;

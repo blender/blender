@@ -157,7 +157,7 @@ void add_primitiveMball(int dummy_argument)
 		ml= ml->next;
 	}
 	
-	/* imat and centre and size */
+	/* imat and center and size */
 	Mat3CpyMat4(mat, G.obedit->obmat);
 
 	curs= give_cursor();

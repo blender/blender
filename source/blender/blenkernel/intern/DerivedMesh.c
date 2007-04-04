@@ -1001,9 +1001,9 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 			float *no = emdm->vertexNos[i];
 			/* following Mesh convention; we use vertex coordinate itself
 			 * for normal in this case */
-			if (Normalise(no)==0.0) {
+			if (Normalize(no)==0.0) {
 				VECCOPY(no, vertexCos[i]);
-				Normalise(no);
+				Normalize(no);
 			}
 		}
 	}
@@ -2498,7 +2498,7 @@ void writeBobjgz(char *filename, struct Object *ob, int useGlobalCoords, int app
 	EulToMat3(ob->rot, rotmat);
 	for(i=0; i<wri;i++) {
 		VECCOPY(vec, mvert[i].no);
-		Normalise(vec);
+		Normalize(vec);
 		if(useGlobalCoords) { Mat3MulVecfl(rotmat, vec); }
 		for(j=0; j<3; j++) {
 			wrf = vec[j];

@@ -474,8 +474,8 @@ int calc_manipulator_stats(ScrArea *sa)
 					Mat3MulVecfl(mat, normal);
 					Mat3MulVecfl(mat, plane);
 
-					Normalise(normal);
-					if(0.0==Normalise(plane)) VECCOPY(plane, mat[1]);
+					Normalize(normal);
+					if(0.0==Normalize(plane)) VECCOPY(plane, mat[1]);
 					
 					VECCOPY(mat[2], normal);
 					Crossf(mat[0], normal, plane);
@@ -517,7 +517,7 @@ static float screen_aligned(float mat[][4])
 	float vec[3], size;
 	
 	VECCOPY(vec, mat[0]);
-	size= Normalise(vec);
+	size= Normalize(vec);
 	
 	glTranslatef(mat[3][0], mat[3][1], mat[3][2]);
 	
@@ -722,7 +722,7 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 		vec[0]= (float)(Trans.con.imval[0] - Trans.center2d[0]);
 		vec[1]= (float)(Trans.con.imval[1] - Trans.center2d[1]);
 		vec[2]= 0.0f;
-		Normalise(vec);
+		Normalize(vec);
 		
 		startphi= saacos( vec[1] );
 		if(vec[0]<0.0) startphi= -startphi;
@@ -750,7 +750,7 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 		Mat3MulMat3(tmat, imat, ivmat);
 		
 		Mat3MulVecfl(tmat, svec);	// tmat is used further on
-		Normalise(svec);
+		Normalize(svec);
 	}	
 	
 	mymultmatrix(mat);	// aligns with original widget
@@ -761,15 +761,15 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 			/* correct for squeezed arc */
 			svec[0]+= tmat[2][0];
 			svec[1]+= tmat[2][1];
-			Normalise(svec);
+			Normalize(svec);
 			
 			startphi= (float)atan2(svec[0], svec[1]);
 		}
 		else startphi= 0.5f*(float)M_PI;
 		
 		VECCOPY(vec, mat[0]);	// use x axis to detect rotation
-		Normalise(vec);
-		Normalise(matt[0]);
+		Normalize(vec);
+		Normalize(matt[0]);
 		phi= saacos( Inpf(vec, matt[0]) );
 		if(phi!=0.0) {
 			Crossf(cross, vec, matt[0]);	// results in z vector
@@ -783,15 +783,15 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 			/* correct for squeezed arc */
 			svec[1]+= tmat[2][1];
 			svec[2]+= tmat[2][2];
-			Normalise(svec);
+			Normalize(svec);
 			
 			startphi= (float)(M_PI + atan2(svec[2], -svec[1]));
 		}
 		else startphi= 0.0f;
 		
 		VECCOPY(vec, mat[1]);	// use y axis to detect rotation
-		Normalise(vec);
-		Normalise(matt[1]);
+		Normalize(vec);
+		Normalize(matt[1]);
 		phi= saacos( Inpf(vec, matt[1]) );
 		if(phi!=0.0) {
 			Crossf(cross, vec, matt[1]);	// results in x vector
@@ -807,15 +807,15 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 			/* correct for squeezed arc */
 			svec[0]+= tmat[2][0];
 			svec[2]+= tmat[2][2];
-			Normalise(svec);
+			Normalize(svec);
 			
 			startphi= (float)(M_PI + atan2(-svec[0], svec[2]));
 		}
 		else startphi= (float)M_PI;
 		
 		VECCOPY(vec, mat[2]);	// use z axis to detect rotation
-		Normalise(vec);
-		Normalise(matt[2]);
+		Normalize(vec);
+		Normalize(matt[2]);
 		phi= saacos( Inpf(vec, matt[2]) );
 		if(phi!=0.0) {
 			Crossf(cross, vec, matt[2]);	// results in y vector
@@ -853,7 +853,7 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 	
 	/* prepare for screen aligned draw */
 	VECCOPY(vec, mat[0]);
-	size= Normalise(vec);
+	size= Normalize(vec);
 	glPushMatrix();
 	glTranslatef(mat[3][0], mat[3][1], mat[3][2]);
 	
@@ -884,7 +884,7 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 			vec[0]= (float)(Trans.imval[0] - Trans.center2d[0]);
 			vec[1]= (float)(Trans.imval[1] - Trans.center2d[1]);
 			vec[2]= 0.0f;
-			Normalise(vec);
+			Normalize(vec);
 			VecMulf(vec, 1.2f*size);
 			glBegin(GL_LINES);
 			glVertex3f(0.0f, 0.0f, 0.0f);
@@ -1255,7 +1255,7 @@ static void draw_manipulator_rotate_cyl(float mat[][4], int moving, int drawflag
 			vec[0]= (float)(Trans.imval[0] - Trans.center2d[0]);
 			vec[1]= (float)(Trans.imval[1] - Trans.center2d[1]);
 			vec[2]= 0.0f;
-			Normalise(vec);
+			Normalize(vec);
 			VecMulf(vec, 1.2f*size);
 			glBegin(GL_LINES);
 			glVertex3f(0.0, 0.0, 0.0);
@@ -1337,9 +1337,9 @@ float get_drawsize(View3D *v3d)
 	size= v3d->persmat[0][3]*v3d->twmat[3][0]+ v3d->persmat[1][3]*v3d->twmat[3][1]+ v3d->persmat[2][3]*v3d->twmat[3][2]+ v3d->persmat[3][3];
 	
 	VECCOPY(vec, v3d->persinv[0]);
-	len1= Normalise(vec);
+	len1= Normalize(vec);
 	VECCOPY(vec, v3d->persinv[1]);
-	len2= Normalise(vec);
+	len2= Normalize(vec);
 	
 	size*= 0.01f*(len1>len2?len1:len2);
 
@@ -1431,9 +1431,9 @@ void BIF_draw_manipulator(ScrArea *sa)
 
 		v3d->twflag |= V3D_DRAW_MANIPULATOR;
 
-		/* now we can define centre */
+		/* now we can define center */
 		switch(v3d->around) {
-		case V3D_CENTRE:
+		case V3D_CENTER:
 		case V3D_ACTIVE:
 			v3d->twmat[3][0]= (G.scene->twmin[0] + G.scene->twmax[0])/2.0f;
 			v3d->twmat[3][1]= (G.scene->twmin[1] + G.scene->twmax[1])/2.0f;
