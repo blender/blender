@@ -45,7 +45,7 @@ import Blender
 import BPyMesh
 import BPyMessages
 import time
-
+from math import degrees
 # Used to add the scene name into the filename without using odd chars
 sane_name_mapping_ob = {}
 sane_name_mapping_mat = {}
@@ -1290,14 +1290,22 @@ def write_scene(file):
 	def write_object_props(ob):
 		# if the type is 0 its an empty otherwise its a mesh
 		# only difference at the moment is one has a color
-		file.write(\
-'''
+		file.write('''
 		Properties60:  {
 			Property: "QuaternionInterpolate", "bool", "",0
-			Property: "Visibility", "Visibility", "A+",1
+			Property: "Visibility", "Visibility", "A+",1''')
+		
+		if ob:
+			file.write('\n\t\t\tProperty: "Lcl Translation", "Lcl Translation", "A+",%.15f,%.15f,%.15f' % tuple(ob.getLocation('worldspace')))
+			file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % tuple([degrees(a) for a in ob.getEuler('worldspace')]))
+			file.write('\n\t\t\tProperty: "Lcl Scaling", "Lcl Scaling", "A+",%.15f,%.15f,%.15f' % tuple(ob.getSize('worldspace')))
+		else:
+			file.write('''
 			Property: "Lcl Translation", "Lcl Translation", "A+",0,0,0
 			Property: "Lcl Rotation", "Lcl Rotation", "A+",0,0,0
-			Property: "Lcl Scaling", "Lcl Scaling", "A+",1,1,1
+			Property: "Lcl Scaling", "Lcl Scaling", "A+",1,1,1''')
+		
+		file.write('''
 			Property: "RotationOffset", "Vector3D", "",0,0,0
 			Property: "RotationPivot", "Vector3D", "",0,0,0
 			Property: "ScalingOffset", "Vector3D", "",0,0,0
@@ -1360,13 +1368,14 @@ def write_scene(file):
 			Property: "UpVectorProperty", "object", ""
 			Property: "Show", "bool", "",1
 			Property: "NegativePercentShapeSupport", "bool", "",1
-			Property: "DefaultAttributeIndex", "int", "",0
-''')
+			Property: "DefaultAttributeIndex", "int", "",0''')
 		if ob:
 			# Only mesh objects have color 
-			file.write('\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8\n')
+			file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8')
+			file.write('\n\t\t\tProperty: "Size", "double", "",100')
+			file.write('\n\t\t\tProperty: "Look", "enum", "",1')
 		
-		file.write('\t\t}\n')
+		file.write('\n\t\t}\n')
 	
 	
 	
@@ -1530,7 +1539,7 @@ def write_scene(file):
 					
 					me.activeUVLayer = uvlayer_orig
 			
-			me.transform(ob.matrixWorld)
+			#### me.transform(ob.matrixWorld) # Export real ob coords.
 			#### High Quality, not realy needed for now.
 			#BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
 			objects.append( (sane_obname(ob.name), ob, me) )
