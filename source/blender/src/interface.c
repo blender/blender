@@ -2101,7 +2101,7 @@ static int ui_act_as_text_but(uiBut *but)
 static int ui_do_but_NUM(uiBut *but)
 {
 	double value;
-	float deler, fstart, f, tempf;
+	float deler, fstart, f, tempf, pressure;
 	int lvalue, temp, orig_x; /*  , firsttime=1; */
 	short retval=0, qual, sx, mval[2], pos=0;
 
@@ -2136,6 +2136,7 @@ static int ui_do_but_NUM(uiBut *but)
 
 		while (get_mbut() & L_MOUSE) {
 			qual= get_qual();
+			pressure = get_pressure();
 			
 			uiGetMouse(mywinget(), mval);
 			
@@ -2150,7 +2151,9 @@ static int ui_do_but_NUM(uiBut *but)
 			if(qual & LR_ALTKEY) deler*= 20.0;
 
 			/* de-sensitise based on tablet pressure */
-			/* if (G.rt == 0) deler /= pressure; */
+			if (G.rt == 5) {
+			 if (ELEM(get_activedevice(), DEV_STYLUS, DEV_ERASER)) deler /= pressure;
+			}
 			
 			if(mval[0] != sx) {
 				if( but->pointype==FLO && but->max-but->min > 11) {
