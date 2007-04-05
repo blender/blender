@@ -1899,36 +1899,37 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 					else {
 						tselem->flag |= TSE_TEXTBUT;
 					}
-				}
-				
-				if (G.qual & LR_SHIFTKEY) {
-					if(tselem->id->lib && tselem->type==0) {
-						notice(tselem->id->lib->name);
-					}
-				}
-				/* always makes active object */
-				tree_element_active_object(soops, te);
-				
-				if(tselem->type==0) { // the lib blocks
-					/* editmode? */
-					if(te->idcode==ID_SCE) {
-						if(G.scene!=(Scene *)tselem->id) {
-							if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
-							set_scene((Scene *)tselem->id);
-						}
-					}
-					else if(ELEM5(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR)) {
-						if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
-						else {
-							enter_editmode(EM_WAITCURSOR);
-							extern_set_butspace(F9KEY, 0);
-						}
-					} else {	// rest of types
-						tree_element_active(soops, te, 1);
-					}
+				} else {
 					
+					if (G.qual & LR_SHIFTKEY) {
+						if(tselem->id->lib && tselem->type==0) {
+							notice(tselem->id->lib->name);
+						}
+					}
+					/* always makes active object */
+					tree_element_active_object(soops, te);
+					
+					if(tselem->type==0) { // the lib blocks
+						/* editmode? */
+						if(te->idcode==ID_SCE) {
+							if(G.scene!=(Scene *)tselem->id) {
+								if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+								set_scene((Scene *)tselem->id);
+							}
+						}
+						else if(ELEM5(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR)) {
+							if(G.obedit) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
+							else {
+								enter_editmode(EM_WAITCURSOR);
+								extern_set_butspace(F9KEY, 0);
+							}
+						} else {	// rest of types
+							tree_element_active(soops, te, 1);
+						}
+						
+					}
+					else tree_element_type_active(soops, te, tselem, 1);
 				}
-				else tree_element_type_active(soops, te, tselem, 1);
 			}
 			else if(event==RIGHTMOUSE) {
 #ifdef WITH_VERSE
