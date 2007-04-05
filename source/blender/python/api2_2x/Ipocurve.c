@@ -533,7 +533,9 @@ static PyObject *IpoCurve_append( C_IpoCurve * self, PyObject * args )
 				"expected tuple of floats" );
 
 		x = (float)PyFloat_AsDouble( xobj );
+		Py_DECREF( xobj );
 		y = (float)PyFloat_AsDouble( yobj );
+		Py_DECREF( yobj );
 		insert_vert_ipo( icu, x, y);
 	}
 
