@@ -210,6 +210,9 @@
 				RelativePath="..\..\..\source\blender\nodes\intern\CMP_util.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\nodes\intern\node_util.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\nodes\intern\SHD_util.c">
 			</File>
 			<Filter
@@ -391,14 +394,21 @@
 				RelativePath="..\..\..\source\blender\nodes\CMP_node.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\nodes\intern\CMP_util.h">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\nodes\SHD_node.h">
 			</File>
-			<File
-				RelativePath="..\..\..\source\blender\nodes\intern\SHD_util.h">
-			</File>
+			<Filter
+				Name="intern"
+				Filter="">
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\CMP_util.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\node_util.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\SHD_util.h">
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>
