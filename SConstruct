@@ -582,9 +582,9 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
                         '${LCGDIR}/zlib/lib/zlib.dll',
                         '${LCGDIR}/tiff/lib/libtiff.dll']
     if env['BF_DEBUG']:
-        dllsources.append('${LCGDIR}/python/lib/python25_d.dll')
+        dllsources.append('${LCGDIR}/python/lib/${BF_PYTHON_LIB}_d.dll')
     else:
-        dllsources.append('${LCGDIR}/python/lib/python25.dll')
+        dllsources.append('${LCGDIR}/python/lib/${BF_PYTHON_LIB}.dll')
     if env['OURPLATFORM'] == 'win32-mingw':
         dllsources += ['${LCGDIR}/pthreads/lib/pthreadGC2.dll']
     else:
