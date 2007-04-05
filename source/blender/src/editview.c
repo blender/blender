@@ -115,7 +115,7 @@ extern ListBase editNurb; /* originally from exports.h, memory from editcurve.c*
 /* editmball.c */
 extern ListBase editelems;
 
-/* fly mode ises this */
+/* fly mode uses this */
 extern void setcameratoview3d(void);
 
 /* local prototypes */
@@ -2141,7 +2141,6 @@ void fly(void)
 	int cfra = -1; /*so the first frame always has a key added */
 	char *actname="";
 	
-	
 	if(curarea->spacetype!=SPACE_VIEW3D) return;
 		
 	if(G.vd->persp==2 && G.vd->camera->id.lib) {
@@ -2457,6 +2456,16 @@ void fly(void)
 			dvec[0] = dvec_tmp[0]*(1-dvec_lag) + dvec_old[0]*dvec_lag;
 			dvec[1] = dvec_tmp[1]*(1-dvec_lag) + dvec_old[1]*dvec_lag;
 			dvec[2] = dvec_tmp[2]*(1-dvec_lag) + dvec_old[2]*dvec_lag;
+			
+			
+			if (G.vd->persp==2) {
+				if (G.vd->camera->protectflag & OB_LOCK_LOCX)
+					dvec[0] = 0.0;
+				if (G.vd->camera->protectflag & OB_LOCK_LOCY)
+					dvec[1] = 0.0;
+				if (G.vd->camera->protectflag & OB_LOCK_LOCZ)
+					dvec[2] = 0.0;
+			}
 			
 			VecAddf(G.vd->ofs, G.vd->ofs, dvec);
 			if (zlock && xlock)
