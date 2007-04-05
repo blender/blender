@@ -142,7 +142,7 @@ def setup_syslibs(lenv):
         lenv['BF_PNG_LIB'],
         lenv['BF_ZLIB_LIB']
         ]
-    if lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
+    if lenv['BF_DEBUG']==1 and lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
         syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
     else:
         syslibs.append(lenv['BF_PYTHON_LIB'])

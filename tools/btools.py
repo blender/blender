@@ -44,7 +44,9 @@ def validate_arguments(args, bc):
             'C_WARN', 'CC_WARN', 'LLIBS', 'PLATFORM_LINKFLAGS',
             'BF_PROFILE_FLAGS', 'LCGDIR', 'WITH_BF_VERSE', 
             'BF_VERSE_INCLUDE',
-            'VERSE_BUILD_BINARY', 'VERSE_BUILD_DIR', 'VERSE_REGEN_PROTO']
+            'VERSE_BUILD_BINARY', 'VERSE_BUILD_DIR', 'VERSE_REGEN_PROTO',
+            'BF_TWEAK_MODE'
+            ]
 
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
             'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
@@ -287,7 +289,9 @@ def read_opts(cfg, args):
         ('CC', 'C compiler to use', ''),
         ('CXX', 'C++ compiler to use', ''),
 
-        (BoolOption('BF_BUILDINFO', 'Buildtime in splash if true', 'true'))
+        (BoolOption('BF_BUILDINFO', 'Buildtime in splash if true', 'true')),
+
+        (BoolOption('BF_TWEAK_MODE', 'Enable tweak mode if true', 'false')),
 
     ) # end of opts.AddOptions()
 

@@ -9,7 +9,7 @@ maxobj = 30
 
 numlibs = numobj / maxobj
 if (numobj % maxobj):
-	numlibs = numlibs + 1
+    numlibs = numlibs + 1
 subsources = []
 
 if (env['OURPLATFORM'] == 'win32-mingw'):
@@ -32,6 +32,9 @@ incs += ' ' + env['BF_SDL_INC']
 incs += ' ' + env['BF_OPENGL_INC']
 
 defs = []
+
+if env['BF_TWEAK_MODE'] == 1:
+    defs.append('TWEAK_MODE')
 
 if env['WITH_BF_YAFRAY'] == 0:
     defs.append('DISABLE_YAFRAY')
