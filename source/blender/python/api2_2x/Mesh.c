@@ -1777,7 +1777,8 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 
 	/* add the coordinate to the new list */
 		memcpy( tmpvert->co, co, sizeof(co) );
-
+		
+		tmpvert->flag |= SELECT;
 	/* TODO: anything else which needs to be done when we add a vert? */
 	/* probably not: NMesh's newvert() doesn't */
 		++tmpvert;
@@ -2928,7 +2929,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 					tmpedge->v1 = tmppair->v[1];
 					tmpedge->v2 = tmppair->v[0];
 				}
-				tmpedge->flag = ME_EDGEDRAW | ME_EDGERENDER;
+				tmpedge->flag = ME_EDGEDRAW | ME_EDGERENDER | SELECT;
 				mesh->totedge++;
 				--good_edges;
 				++tmpedge;
@@ -4969,7 +4970,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 				tmpface->v3 = tmppair->v[index[2]];
 				tmpface->v4 = tmppair->v[index[3]];
 
-				tmpface->flag = 0;
+				tmpface->flag = ME_FACE_SEL;
 
 				if( return_list )
 					PyList_Append( return_list, 
@@ -5807,30 +5808,51 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
  * WARNING: unlike NMesh, this method ALWAYS changes the original mesh
  */
 
-static PyObject *Mesh_transform( BPy_Mesh *self, PyObject *args )
+static PyObject *Mesh_transform( BPy_Mesh *self, PyObject *args, PyObject *kwd )
 {
 	Mesh *mesh = self->mesh;
-	MVert *mv;
-	PyObject *ob1 = NULL;
-	MatrixObject *mat;
-	int i, recalc_normals = 0;
+	MVert *mvert;
+	/*PyObject *pymat = NULL;*/
+	MatrixObject *bpymat=NULL;
+	int i, recalc_normals = 0, selected_only = 0;
 
-	if( !PyArg_ParseTuple( args, "O!|i", &matrix_Type, &ob1, &recalc_normals ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected matrix and optionally an int as arguments" ) );
+	static char *kwlist[] = {"matrix", "recalc_normals", "selected_only", NULL};
+	
+	if( !PyArg_ParseTupleAndKeywords(args, kwd, "|O!ii", kwlist,
+				 &matrix_Type, &bpymat, &recalc_normals, &selected_only) ) {
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"matrix must be a 4x4 transformation matrix\n"
+				"for example as returned by object.matrixWorld\n"
+				"and optionaly keyword bools, recalc_normals and selected_only\n");
+	}
+	
+	if (!bpymat)
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"the first argument must be a matrix or\n"
+				"matrix passed as a keyword argument\n");
+	
+	
+	/*bpymat = ( MatrixObject * ) pymat;*/
 
-	mat = ( MatrixObject * ) ob1;
-
-	if( mat->colSize != 4 || mat->rowSize != 4 )
+	if( bpymat->colSize != 4 || bpymat->rowSize != 4 )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 				"matrix must be a 4x4 transformation matrix\n"
 				"for example as returned by object.getMatrix()" );
 	
 	/* loop through all the verts and transform by the supplied matrix */
-	mv = mesh->mvert;
-	for( i = 0; i < mesh->totvert; i++, mv++ )
-		Mat4MulVecfl( (float(*)[4])*mat->matrix, mv->co );
-
+	mvert = mesh->mvert;
+	if (selected_only) {
+		for( i = 0; i < mesh->totvert; i++, mvert++ ) {
+			if (mvert->flag & SELECT) { 
+				Mat4MulVecfl( (float(*)[4])*bpymat->matrix, mvert->co );
+			}
+		}
+	} else {
+		for( i = 0; i < mesh->totvert; i++, mvert++ ) {
+			Mat4MulVecfl( (float(*)[4])*bpymat->matrix, mvert->co );
+		}
+	}
+	
 	if( recalc_normals ) {
 		/* loop through all the verts and transform normals by the inverse
 		 * of the transpose of the supplied matrix */
@@ -5841,7 +5863,7 @@ static PyObject *Mesh_transform( BPy_Mesh *self, PyObject *args )
 		 * affine vectors is 0, but Mat4Invert reports non invertible matrices
 		 */
 
-		if (!Mat4Invert((float(*)[4])*invmat, (float(*)[4])*mat->matrix))
+		if (!Mat4Invert((float(*)[4])*invmat, (float(*)[4])*bpymat->matrix))
 			return EXPP_ReturnPyObjError (PyExc_AttributeError,
 				"given matrix is not invertible");
 
@@ -5849,18 +5871,18 @@ static PyObject *Mesh_transform( BPy_Mesh *self, PyObject *args )
 		 * since normal is stored as shorts, convert to float 
 		 */
 
-		mv = mesh->mvert;
-		for( i = 0; i < mesh->totvert; i++, mv++ ) {
-			nx= vec[0] = (float)(mv->no[0] / 32767.0);
-			ny= vec[1] = (float)(mv->no[1] / 32767.0);
-			nz= vec[2] = (float)(mv->no[2] / 32767.0);
+		mvert = mesh->mvert;
+		for( i = 0; i < mesh->totvert; i++, mvert++ ) {
+			nx= vec[0] = (float)(mvert->no[0] / 32767.0);
+			ny= vec[1] = (float)(mvert->no[1] / 32767.0);
+			nz= vec[2] = (float)(mvert->no[2] / 32767.0);
 			vec[0] = nx*invmat[0][0] + ny*invmat[0][1] + nz*invmat[0][2];
 			vec[1] = nx*invmat[1][0] + ny*invmat[1][1] + nz*invmat[1][2]; 
 			vec[2] = nx*invmat[2][0] + ny*invmat[2][1] + nz*invmat[2][2];
 			Normalize( vec );
-			mv->no[0] = (short)(vec[0] * 32767.0);
-			mv->no[1] = (short)(vec[1] * 32767.0);
-			mv->no[2] = (short)(vec[2] * 32767.0);
+			mvert->no[0] = (short)(vec[0] * 32767.0);
+			mvert->no[1] = (short)(vec[1] * 32767.0);
+			mvert->no[2] = (short)(vec[2] * 32767.0);
 		}
 	}
 
@@ -6953,7 +6975,7 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Get a mesh by name"},
 	{"update", (PyCFunction)Mesh_Update, METH_NOARGS,
 		"Update display lists after changes to mesh"},
-	{"transform", (PyCFunction)Mesh_transform, METH_VARARGS,
+	{"transform", (PyCFunction)Mesh_transform, METH_VARARGS | METH_KEYWORDS,
 		"Applies a transformation matrix to mesh's vertices"},
 	{"addVertGroup", (PyCFunction)Mesh_addVertGroup, METH_VARARGS,
 		"Assign vertex group name to the object linked to the mesh"},

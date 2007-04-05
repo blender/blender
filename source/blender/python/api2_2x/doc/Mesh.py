@@ -301,6 +301,7 @@ class MVertSeq:
 		Append zero or more vertices to the mesh.  Unlike L{MEdgeSeq.extend()} and
 		L{MFaceSeq.extend()} no attempt is made to check for duplicate vertices in
 		the parameter list, or for vertices already in the mesh.
+		@note: Since Blender 2.44 all new verts are selected.
 
 		Example::
 			import Blender
@@ -405,6 +406,7 @@ class MEdgeSeq:
 		mesh or with both vertices the same are ignored.  If three or four verts
 		are specified in any sequence, an edge is also created between the first
 		and last vertices (this is useful when adding faces).  
+		@note: Since Blender 2.44 all new edges are selected.
 
 		Example::
 			import Blender
@@ -638,6 +640,7 @@ class MFaceSeq:
 		in the mesh, or faces which contain the same vertex multiple times are
 		ignored.  Sequences of two vertices are accepted, but no face will be
 		created.
+		@note: Since Blender 2.44 all new faces are selected.
 
 		Example::
 			import Blender
@@ -824,7 +827,7 @@ class Mesh:
 		@note: Only returns a valid result for mesh data that has no holes.
 		"""
 	
-	def transform(matrix, recalc_normals = False):
+	def transform(matrix, recalc_normals = False, selected_only=False):
 		"""
 		Transforms the mesh by the specified 4x4 matrix (such as returned by
 		L{Object.Object.getMatrix}).  The matrix should be invertible.
@@ -853,6 +856,8 @@ class Mesh:
 		@param matrix: 4x4 Matrix which can contain location, scale and rotation. 
 		@type recalc_normals: int
 		@param recalc_normals: if True or 1, also transform vertex normals.
+		@type selected_only: int
+		@param selected_only: if True or 1, only the selected verts will be transformed.
 		@warn: unlike L{NMesh.transform()<NMesh.NMesh.transform>}, this method
 		I{will immediately modify the mesh data} when it is used.  If you
 		transform the mesh using the object's matrix to get the vertices'

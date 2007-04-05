@@ -48,11 +48,11 @@ def add_mesh_simple(name, verts, edges, faces):
 		
 		txmat = txmat * ob_act.matrixWorld.copy().invert()
 		
-		# Transform the verts by the cursor and view rotation
-		for v in verts:
-			v *= txmat
 		
 		me.verts.extend(verts)
+		# Transform the verts by the cursor and view rotation
+		me.transform(txmat, selected_only=True)
+		
 		if vert_offset:
 			me.edges.extend([[i+vert_offset for i in e] for e in edges])
 			me.faces.extend([[i+vert_offset for i in f] for f in faces])
@@ -60,19 +60,6 @@ def add_mesh_simple(name, verts, edges, faces):
 			# Mesh with no data, unlikely
 			me.edges.extend(edges)
 			me.faces.extend(faces)
-		
-		
-		me_data = me.verts
-		for i in xrange(vert_offset, len(me_data)):
-			me_data[i].sel = True
-		
-		me_data = me.edges
-		for i in xrange(edge_offset, len(me_data)):
-			me_data[i].sel = True
-		
-		me_data = me.faces
-		for i in xrange(face_offset, len(me_data)):
-			me_data[i].sel = True
 		
 		EditMode(1)
 		
