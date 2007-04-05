@@ -75,22 +75,36 @@ void getMacAvailableBounds(short *, short *, short *, short *);
 struct _Window {
 	GHOST_WindowHandle	ghostwin;
 	
-		/* Handler and private data for handler */
+	/* Handler and private data for handler */
 	WindowHandlerFP		handler;
 	void				*user_data;
 	
-		/* Window state */
+	/* Window state */
 	int		size[2], position[2];
 	int		active, visible;
 	
-		/* Last known mouse/button/qualifier state */
+	/* Last known mouse/button/qualifier state */
 	int		lmouse[2];
 	int		lqual;		/* (LR_SHFTKEY, LR_CTRLKEY, LR_ALTKEY, LR_COMMANDKEY) */
 	int		lmbut;		/* (L_MOUSE, M_MOUSE, R_MOUSE) */
 
-		/* Tracks the faked mouse button, if non-zero it is
-		 * the event number of the last faked button.
-		 */
+	/* xtilt and ytilt represent how much the pen is tilted away from 
+	 * vertically upright in either the X or Y direction, with X and Y the
+	 * axes of the tablet surface.
+	 * In other words, Xtilt and Ytilt are components of a vector created by projecting
+	 * the pen's angle in 3D space vertically downwards on to the XY plane
+	 * --Matt
+	 */
+	float pressure;			/* tablet pressure - 0.0 (no pressure) to 1.0 (full pressure) */
+							/* mouse clicks and non-contacting stylus buttons generate pressure of 0.0. */
+	float xtilt, ytilt;		/* tablet tilt value - x and y components of 3D angle 
+							 * ranging from 0.0 (pen upright) to 1.0 (pen fully leaning over) */
+	short activedevice;		/* Active input device currently in use (DEV_MOUSE, DEV_STYLUS, DEV_ERASER) */
+	
+	
+	/* Tracks the faked mouse button, if non-zero it is
+	 * the event number of the last faked button.
+	 */
 	int		faked_mbut;
 
 	GHOST_TimerTaskHandle	timer;
@@ -488,6 +502,24 @@ static int change_bit(int val, int bit, int to_on) {
 	return to_on?(val|bit):(val&~bit);
 }
 
+static void update_tablet_data(Window *win, Window *ghostwin) {
+	const GHOST_TabletData *td= GHOST_GetTabletData(ghostwin);
+	
+	/* if there's tablet data from an active tablet device then use it,
+	 * otherwise set all tablet related data to default */
+	if ((td != NULL) && ELEM(td->Active, DEV_STYLUS, DEV_ERASER)) {
+		win->activedevice = (short)td->Active;
+		win->pressure = td->Pressure;
+		win->xtilt = td->Xtilt;
+		win->ytilt = td->Ytilt;
+	} else {
+		win->activedevice = DEV_MOUSE;
+		win->pressure = 0.0;
+		win->xtilt = win->ytilt = 0.0;
+	}
+}
+
+
 static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private) 
 {
 	GHOST_TEventType type= GHOST_GetEventType(evt);
@@ -517,12 +549,14 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 		case GHOST_kEventCursorMove: {
 			if(win->active == 1) {
 				GHOST_TEventCursorData *cd= data;
+				
 				int cx, cy;
 				
 				GHOST_ScreenToClient(win->ghostwin, cd->x, cd->y, &cx, &cy);
 				win->lmouse[0]= cx;
 				win->lmouse[1]= (win->size[1]-1) - cy;
 				
+				update_tablet_data(win, ghostwin);			
 				window_handle(win, MOUSEX, win->lmouse[0]);
 				window_handle(win, MOUSEY, win->lmouse[1]);
 			}
@@ -557,6 +591,8 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 			} else {
 				win->lmbut= change_bit(win->lmbut, R_MOUSE, val);
 			}
+			
+			update_tablet_data(win, ghostwin);
 			window_handle(win, bbut, val);
 			
 			break;
@@ -709,14 +745,22 @@ void window_get_mouse(Window *win, short *mval) {
 	mval[1]= win->lmouse[1];
 }
 
+float window_get_pressure(Window *win) {
+	return win->pressure;
+}
+
+void window_get_tilt(Window *win, float *xtilt, float *ytilt) {
+	*xtilt= win->xtilt;
+	*ytilt= win->ytilt;
+}
+
+short window_get_activedevice(Window *win) {
+	return win->activedevice;
+}
+
 void window_get_position(Window *win, int *posx_r, int *posy_r) {
 	*posx_r= win->position[0];
 	*posy_r= win->position[1];
-}
-
-const GHOST_TabletData* window_get_tablet_data(Window *win)
-{
-	return GHOST_GetTabletData(win->ghostwin);
 }
 
 void window_get_size(Window *win, int *width_r, int *height_r) {

@@ -2100,8 +2100,6 @@ static int ui_act_as_text_but(uiBut *but)
 
 static int ui_do_but_NUM(uiBut *but)
 {
-	const GHOST_TabletData *td;
-	float pressure;
 	double value;
 	float deler, fstart, f, tempf;
 	int lvalue, temp, orig_x; /*  , firsttime=1; */
@@ -2137,9 +2135,6 @@ static int ui_do_but_NUM(uiBut *but)
 		sx = mval[0]; /* ignore mouse movement within drag-lock */
 
 		while (get_mbut() & L_MOUSE) {
-			td= get_tablet_data();
-			pressure= (td)? td->Pressure: 1.0f;
-
 			qual= get_qual();
 			
 			uiGetMouse(mywinget(), mval);

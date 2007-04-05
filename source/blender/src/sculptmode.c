@@ -395,13 +395,14 @@ char brush_size()
 {
 	const BrushData *b= sculptmode_brush();
 	float size= b->size;
-	const GHOST_TabletData *td= get_tablet_data();
+	float pressure= get_pressure();
+	short activedevice= get_activedevice();
 	
-	if(td && sculpt_data()->brush_type!=GRAB_BRUSH) {
+	if(sculpt_data()->brush_type!=GRAB_BRUSH) {
 		const float size_factor= G.scene->sculptdata.tablet_size / 10.0f;
-		if(td->Active==1 || td->Active==2)
+		if(ELEM(activedevice, DEV_STYLUS, DEV_ERASER))
 			size*= G.scene->sculptdata.tablet_size==0?1:
-			       (1-size_factor) + td->Pressure*size_factor;
+			       (1-size_factor) + pressure*size_factor;
 	}
 	
 	return size;
@@ -415,19 +416,17 @@ float brush_strength(EditData *e)
 	const BrushData* b= sculptmode_brush();
 	float dir= b->dir==1 ? 1 : -1;
 	float pressure= 1;
-	const GHOST_TabletData *td= get_tablet_data();
+	short activedevice= get_activedevice();
 	float flip= e->flip ? -1:1;
 
-	if(td) {
-		const float strength_factor= G.scene->sculptdata.tablet_strength / 10.0f;
-		if(td->Active==1 || td->Active==2)
-			pressure= G.scene->sculptdata.tablet_strength==0?1:
-			          (1-strength_factor) + td->Pressure*strength_factor;
-		
-		/* Flip direction for eraser */
-		if(td->Active==2)
-			dir= -dir;
-	}
+	const float strength_factor= G.scene->sculptdata.tablet_strength / 10.0f;
+	if(ELEM(activedevice, DEV_STYLUS, DEV_ERASER))
+		pressure= G.scene->sculptdata.tablet_strength==0?1:
+				  (1-strength_factor) + get_pressure()*strength_factor;
+	
+	/* Flip direction for eraser */
+	if(activedevice==DEV_ERASER)
+		dir= -dir;
 
 	switch(G.scene->sculptdata.brush_type){
 	case DRAW_BRUSH:

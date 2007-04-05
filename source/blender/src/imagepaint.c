@@ -657,7 +657,6 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	short prevmval[2], mval[2];
 	double time;
 	float pressure;
-	const GHOST_TabletData *td;
 
 	if(!settings->imapaint.brush)
 		return;
@@ -697,27 +696,27 @@ void imagepaint_paint(short mousebutton, short texpaint)
 	painter= brush_painter_new(s.brush);
 
 	getmouseco_areawin(mval);
-	td= get_tablet_data();
-	pressure= (td)? td->Pressure: 1.0f;
+
+	pressure = get_pressure();
+	s.blend = (get_activedevice() == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
+	
 	time= PIL_check_seconds_timer();
 	prevmval[0]= mval[0];
 	prevmval[1]= mval[1];
-	s.blend = (td && td->Active == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
 
 	/* special exception here for too high pressure values on first touch in
 	   windows for some tablets */
     if (!((s.brush->flag & (BRUSH_ALPHA_PRESSURE|BRUSH_SIZE_PRESSURE|
-		BRUSH_SPACING_PRESSURE|BRUSH_RAD_PRESSURE)) && td && pressure >= 0.99f))
+		BRUSH_SPACING_PRESSURE|BRUSH_RAD_PRESSURE)) && (get_activedevice() != 0) && (pressure >= 0.99f)))
 		imapaint_paint_stroke(&s, painter, texpaint, prevmval, mval, time, pressure);
 
 	/* paint loop */
 	do {
 		getmouseco_areawin(mval);
-		if(td) {
-			td= get_tablet_data();
-			pressure= (td)? td->Pressure: 1.0f;
-			s.blend = (td && td->Active == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
-		}
+
+		pressure = get_pressure();
+		s.blend = (get_activedevice() == 2)? BRUSH_BLEND_ERASE_ALPHA: s.brush->blend;
+			
 		time= PIL_check_seconds_timer();
 
 		if((mval[0] != prevmval[0]) || (mval[1] != prevmval[1])) {

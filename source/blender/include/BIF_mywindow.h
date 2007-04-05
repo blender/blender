@@ -122,7 +122,13 @@ void BIF_wait_for_statechange(void);
 short get_mbut(void);
 short get_qual(void);
 void getmouse(short *mval);
-const struct GHOST_TabletData* get_tablet_data();
+
+float get_pressure(void);
+void get_tilt(float *xtilt, float *ytilt);
+#define DEV_MOUSE	0
+#define DEV_STYLUS	1
+#define DEV_ERASER	2
+short get_activedevice(void);
 
 void warp_pointer(int x, int y);
 

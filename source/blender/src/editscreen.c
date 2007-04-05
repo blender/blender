@@ -2119,10 +2119,23 @@ short get_mbut(void)
 	winlay_process_events(0);
 	return window_get_mbut(mainwin);
 }
-const GHOST_TabletData* get_tablet_data()
+
+/* return values of tablet data related functions are documented 
+ * in the Window struct, ghostwinlay.c */
+float get_pressure(void)
 {
 	winlay_process_events(0);
-	return window_get_tablet_data(mainwin);
+	return window_get_pressure(mainwin);
+}
+void get_tilt(float *xtilt, float *ytilt)
+{
+	winlay_process_events(0);
+	window_get_tilt(mainwin, xtilt, ytilt);
+}
+short get_activedevice(void)
+{
+	winlay_process_events(0);
+	return window_get_activedevice(mainwin);
 }
 
 void add_to_mainqueue(Window *win, void *user_data, short evt, short val, char ascii)

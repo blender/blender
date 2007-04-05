@@ -57,7 +57,10 @@ void	window_lower		(Window *win);
 short	window_get_qual		(Window *win);
 short	window_get_mbut		(Window *win);
 void	window_get_mouse	(Window *win, short *mval);
-const struct GHOST_TabletData* window_get_tablet_data(Window *win);
+
+float window_get_pressure(Window *win);
+void window_get_tilt(Window *win, float *xtilt, float *ytilt);
+short window_get_activedevice(Window *win);
 
 void	window_get_position	(Window *win, int *posx_r, int *poxy_r);
 
