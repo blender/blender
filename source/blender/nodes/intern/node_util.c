@@ -30,7 +30,7 @@
 #include "CMP_util.h"
 #include "SHD_util.h"
 
-void node_free_curves(bNode* node)
+void node_free_curves(bNode *node)
 {
 	curvemapping_free(node->storage);
 }
@@ -40,7 +40,7 @@ void node_free_standard_storage(bNode *node)
 	MEM_freeN(node->storage);
 }
 
-void node_copy_curves(bNode* orig_node, bNode* new_node)
+void node_copy_curves(bNode *orig_node, bNode *new_node)
 {
 	new_node->storage= curvemapping_copy(orig_node->storage);
 }

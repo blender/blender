@@ -54,7 +54,7 @@ static void free_dynamicdict(PyObject *dict) {
 	}
 }
 
-static void node_dynamic_init(bNode* node) {
+static void node_dynamic_init(bNode *node) {
 	NodeScriptDict *nsd= MEM_callocN(sizeof(NodeScriptDict), "node script dictionary");
 	int type= node->custom2;
 	node->custom2= 0;

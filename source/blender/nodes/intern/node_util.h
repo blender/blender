@@ -32,10 +32,10 @@
 
 #include "MEM_guardedalloc.h"
 
-extern void node_free_curves(struct bNode* node);
+extern void node_free_curves(struct bNode *node);
 extern void node_free_standard_storage(struct bNode *node);
 
-extern void node_copy_curves(struct bNode* orig_node, struct bNode* new_node);
+extern void node_copy_curves(struct bNode *orig_node, struct bNode *new_node);
 extern void node_copy_standard_storage(struct bNode *orig_node, struct bNode *new_node);
 
 #endif
