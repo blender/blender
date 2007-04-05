@@ -42,6 +42,7 @@
 #include "BKE_modifier.h"
 #include "BKE_library.h"
 #include "BLI_blenlib.h"
+#include "BLI_arithb.h"
 #include "MEM_guardedalloc.h"
 #include "butspace.h"
 #include "blendef.h"
@@ -138,6 +139,7 @@ enum mod_constants {
 static PyObject *Modifier_getName( BPy_Modifier * self );
 static int Modifier_setName( BPy_Modifier * self, PyObject *arg );
 static PyObject *Modifier_getType( BPy_Modifier * self );
+static PyObject *Modifier_reset( BPy_Modifier * self );
 
 static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key );
 static int Modifier_setData( BPy_Modifier * self, PyObject * key, 
@@ -148,6 +150,8 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 /*****************************************************************************/
 static PyMethodDef BPy_Modifier_methods[] = {
 	/* name, method, flags, doc */
+	{"reset", (PyCFunction)Modifier_reset, METH_NOARGS,
+		"resets a hook modifier location"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -973,6 +977,26 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 	}
 	return EXPP_ReturnIntError( PyExc_RuntimeError,
 			"unsupported modifier setting" );
+}
+
+
+static PyObject *Modifier_reset( BPy_Modifier * self )
+{
+	Object *ob = self->object;
+	ModifierData *md = self->md;
+	HookModifierData *hmd = (HookModifierData*) md;
+	
+	MODIFIER_DEL_CHECK_PY(self);
+	
+	if (md->type != eModifierType_Hook)
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"can only reset hooks" );
+	
+	if (hmd->object) {
+		Mat4Invert(hmd->object->imat, hmd->object->obmat);
+		Mat4MulSerie(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+	}
+	Py_RETURN_NONE;
 }
 
 /*****************************************************************************/
