@@ -341,7 +341,7 @@ static ID *alloc_libblock_notest(short type)
 	return id;
 }
 
-// used everywhere in blenkernel and text.c
+/* used everywhere in blenkernel and text.c */
 void *alloc_libblock(ListBase *lb, short type, const char *name)
 {
 	ID *id= NULL;
@@ -365,7 +365,7 @@ void *alloc_libblock(ListBase *lb, short type, const char *name)
 /* from blendef: */
 #define GS(a)	(*((short *)(a)))
 
-// used everywhere in blenkernel and text.c
+/* used everywhere in blenkernel and text.c */
 void *copy_libblock(void *rt)
 {
 	ID *idn, *id;
@@ -396,7 +396,7 @@ static void free_library(Library *lib)
     /* no freeing needed for libraries yet */
 }
 
-// used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c
+/* used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c */
 void free_libblock(ListBase *lb, void *idv)
 {
 	ID *id= idv;
@@ -672,8 +672,8 @@ static void IPOnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, sho
 	}
 }
 
-// used by headerbuttons.c buttons.c editobject.c editseq.c
-// if nr==NULL no MAX_IDPUP, this for non-header browsing
+/* used by headerbuttons.c buttons.c editobject.c editseq.c */
+/* if nr==NULL no MAX_IDPUP, this for non-header browsing */
 void IDnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb, ID *link, short *nr)
 {
 	DynStr *pupds= BLI_dynstr_new();
@@ -718,7 +718,7 @@ void IMAnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb
 }
 
 
-// only used by headerbuttons.c
+/* only used by headerbuttons.c */
 void IPOnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb, ID *link, short *nr, int blocktype)
 {
 	DynStr *pupds= BLI_dynstr_new();
@@ -740,7 +740,7 @@ void IPOnames_to_pupstring(char **str, char *title, char *extraops, ListBase *lb
 	BLI_dynstr_free(pupds);
 }
 
-// used by buttons.c library.c mball.c
+/* used by buttons.c library.c mball.c */
 void splitIDname(char *name, char *left, int *nr)
 {
 	int a;
@@ -904,13 +904,19 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 	result = check_for_dupid( lb, id, name );
 	strcpy( id->name+2, name );
 
-	if( result )
-		sort_alpha_id(lb, id);	
-
+	/* This was in 2.43 and previous releases
+	 * however all data in blender should be sorted, not just duplicate names
+	 * sorting should not hurt, but noting just incause it alters the way other
+	 * functions work, so sort every time */
+	/* if( result )
+		sort_alpha_id(lb, id);*/
+	
+	sort_alpha_id(lb, id);
+	
 	return result;
 }
 
-// next to indirect usage in read/writefile also in editobject.c scene.c
+/* next to indirect usage in read/writefile also in editobject.c scene.c */
 void clear_id_newpoins()
 {
 	ListBase *lbarray[MAX_LIBARRAY];
