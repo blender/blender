@@ -397,11 +397,11 @@ static bKinematicConstraint *has_targetless_ik(bPoseChannel *pchan)
 	return NULL;
 }
 
-static void apply_targetless_ik(Object *ob)
+static short apply_targetless_ik(Object *ob)
 {
 	bPoseChannel *pchan, *parchan, *chanlist[256];
 	bKinematicConstraint *data;
-	int segcount;
+	int segcount, apply= 0;
 	
 	/* now we got a difficult situation... we have to find the
 	   target-less IK pchans, and apply transformation to the all 
@@ -499,10 +499,12 @@ static void apply_targetless_ik(Object *ob)
 				
 			}
 			
+			apply= 1;
 			data->flag &= ~CONSTRAINT_IK_AUTO;
 		}
 	}		
 	
+	return apply;
 }
 
 static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, TransData *td)
@@ -2197,6 +2199,7 @@ void special_aftertrans_update(TransInfo *t)
 		bAction	*act;
 		bPose	*pose;
 		bPoseChannel *pchan;
+		short targetless_ik= 0;
 
 		ob= t->poseobj;
 		arm= ob->data;
@@ -2207,7 +2210,7 @@ void special_aftertrans_update(TransInfo *t)
 
 		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
 		if(!cancelled && t->mode==TFM_TRANSLATION)
-			apply_targetless_ik(ob);
+			targetless_ik= apply_targetless_ik(ob);
 		else {
 			/* not forget to clear the auto flag */
 			for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
@@ -2247,18 +2250,22 @@ void special_aftertrans_update(TransInfo *t)
 						}
 					}
 					else if (U.uiflag & USER_KEYINSERTNEED) {
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
-
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+						if ((t->mode==TFM_TRANSLATION) && (targetless_ik==0)) {
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+						}
+						if ((t->mode==TFM_ROTATION) || ((t->mode==TFM_TRANSLATION) && targetless_ik)) {
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+						}
+						if (t->mode==TFM_RESIZE) {
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+						}
 					}
 					else {
 						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
