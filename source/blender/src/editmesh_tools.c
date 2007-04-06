@@ -5177,8 +5177,13 @@ void mesh_rip(void)
 	EditEdge *eed, *seed= NULL;
 	EditFace *efa, *sefa= NULL;
 	float projectMat[4][4], viewMat[4][4], vec[3], dist, mindist;
-	short doit= 1, mval[2];
-
+	short doit= 1, mval[2],propmode,prop;
+	
+	propmode = G.scene->prop_mode;
+	G.scene->prop_mode = 0;
+	prop = G.scene->proportional;
+	G.scene->proportional = 0;
+	
 	/* select flush... vertices are important */
 	EM_selectmode_set();
 	
@@ -5373,6 +5378,9 @@ void mesh_rip(void)
 	BIF_TransformSetUndo("Rip");
 	initTransform(TFM_TRANSLATION, 0);
 	Transform();
+	
+	G.scene->prop_mode = propmode;
+	G.scene->proportional = prop;
 }
 
 void shape_propagate(){
