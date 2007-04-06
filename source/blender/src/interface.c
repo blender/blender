@@ -2151,10 +2151,8 @@ static int ui_do_but_NUM(uiBut *but)
 			if(qual & LR_ALTKEY) deler*= 20.0;
 
 			/* de-sensitise based on tablet pressure */
-			if (G.rt == 5) {
-			 if (ELEM(get_activedevice(), DEV_STYLUS, DEV_ERASER)) deler /= pressure;
-			}
-			
+			if (ELEM(get_activedevice(), DEV_STYLUS, DEV_ERASER)) deler /= pressure;
+						
 			if(mval[0] != sx) {
 				if( but->pointype==FLO && but->max-but->min > 11) {
 					/* non linear change in mouse input- good for high precicsion */
