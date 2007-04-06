@@ -3063,6 +3063,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			allqueue(REDRAWBUTSALL, 0);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWIPO, 0);
 			break;
 			
 		case SKEY: 

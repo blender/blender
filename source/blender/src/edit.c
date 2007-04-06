@@ -288,12 +288,24 @@ int get_border(rcti *rect, short flag)
 					areamouseco_to_ipoco(&sipo->v2d, mval, dvec, dvec+1);
 					areamouseco_to_ipoco(&sipo->v2d, mvalo+2, dvec+2, dvec+3);
 
-					sprintf(str, "Time: %.4f  Y %.4f", dvec[0]-dvec[2], dvec[1]-dvec[3]);
-					glRasterPos2i(30,  30);
+					if (flag == 5) {
+						/* setting preview range */
+						if (dvec[0] < dvec[2])
+							sprintf(str, "Preview Range: %d to %d", (int)dvec[0], (int)dvec[2]);
+						else
+							sprintf(str, "Preview Range: %d to %d", (int)dvec[2], (int)dvec[0]);
+					}
+					else
+						sprintf(str, "Time: %.4f  Y %.4f", dvec[0]-dvec[2], dvec[1]-dvec[3]);
+					
+					BIF_ThemeColor(TH_BACK);
+					glRecti(14, 24, 165, 38);
+					
 					glColor3f(0.0, 0.0, 0.0); 
+					glRasterPos2i(15,  27);
 					BMF_DrawString(G.fonts, str);
-					glRasterPos2i(31,  31);
-					glColor3f(0.9, 0.9, 0.9); 
+					glColor3f(0.8, 0.8, 0.8); 
+					glRasterPos2i(16,  28);
 					BMF_DrawString(G.fonts, str);
 				}
 				else if ((ELEM3(curarea->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_TIME)) && flag==5) {

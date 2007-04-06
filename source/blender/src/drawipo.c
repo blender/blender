@@ -2162,6 +2162,9 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		draw_ipohandles(1);
 		draw_ipovertices(1);
 		
+		/* Draw 'curtains' for preview */
+		draw_anim_preview_timespace();
+		
 		/* draw markers */
 		draw_markers_timespace();
 		

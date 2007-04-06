@@ -2753,6 +2753,17 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			else
 				clean_ipo();
 			break;
+		case PKEY:
+			if (G.qual & LR_CTRLKEY) /* set preview range */
+				anim_previewrange_set();
+			else if (G.qual & LR_ALTKEY) /* clear preview range */
+				anim_previewrange_clear();
+			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWBUTSALL, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWIPO, 0);
+			break;
 		case RKEY:
 			if (G.qual==0)
 				ipo_record();

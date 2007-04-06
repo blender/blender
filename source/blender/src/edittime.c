@@ -606,6 +606,7 @@ void anim_previewrange_set()
 		allqueue(REDRAWTIME, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWBUTSALL, 0);
 	}
 }
