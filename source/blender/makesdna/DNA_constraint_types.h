@@ -252,14 +252,19 @@ typedef struct bRigidBodyJointConstraint{
 #define CONSTRAINT_CHANNEL_SELECT		0x01
 #define CONSTRAINT_CHANNEL_PROTECTED 	0x02
 
+/**
+ * The flags for ROTLIKE, LOCLIKE and SIZELIKE should be kept identical
+ * (that is, same effect, different name). It simplifies the Python API access a lot.
+ */
+
 /* bRotateLikeConstraint.flag */
 #define ROTLIKE_X		0x01
 #define ROTLIKE_Y		0x02
 #define ROTLIKE_Z		0x04
-#define ROTLIKE_X_INVERT	0x08
-#define ROTLIKE_Y_INVERT	0x10
-#define ROTLIKE_Z_INVERT	0x20
-#define ROTLIKE_OFFSET	0x40
+#define ROTLIKE_X_INVERT	0x10
+#define ROTLIKE_Y_INVERT	0x20
+#define ROTLIKE_Z_INVERT	0x40
+#define ROTLIKE_OFFSET	0x80
 
 /* bLocateLikeConstraint.flag */
 #define LOCLIKE_X			0x01
@@ -275,7 +280,7 @@ typedef struct bRigidBodyJointConstraint{
 #define SIZELIKE_X		0x01
 #define SIZELIKE_Y		0x02
 #define SIZELIKE_Z		0x04
-#define SIZELIKE_OFFSET 0x08
+#define SIZELIKE_OFFSET 0x80
 
 /* Axis flags */
 #define LOCK_X		0x00

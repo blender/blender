@@ -876,7 +876,7 @@ static int locatelike_setter( BPy_Constraint *self, int type, PyObject *value )
 		}
 	case EXPP_CONSTR_COPY:
 		return EXPP_setIValueRange( value, &con->flag,
-				0, LOCLIKE_X | LOCLIKE_Y | LOCLIKE_Z, 'i' );
+				0, LOCLIKE_X | LOCLIKE_Y | LOCLIKE_Z | LOCLIKE_X_INVERT | LOCLIKE_Y_INVERT | LOCLIKE_Z_INVERT, 'i' );
 	case EXPP_CONSTR_LOCAL:
 		if( !get_armature( con->tar ) )
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -934,7 +934,7 @@ static int rotatelike_setter( BPy_Constraint *self, int type, PyObject *value )
 		}
 	case EXPP_CONSTR_COPY:
 		return EXPP_setIValueRange( value, &con->flag,
-				0, LOCLIKE_X | LOCLIKE_Y | LOCLIKE_Z, 'i' );
+				0, LOCLIKE_X | LOCLIKE_Y | LOCLIKE_Z | LOCLIKE_X_INVERT | LOCLIKE_Y_INVERT | LOCLIKE_Z_INVERT, 'i' );
 	case EXPP_CONSTR_LOCAL:
 		if( !get_armature( con->tar ) )
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -994,7 +994,7 @@ static int sizelike_setter( BPy_Constraint *self, int type, PyObject *value )
 		}
 	case EXPP_CONSTR_COPY:
 		return EXPP_setIValueRange( value, &con->flag,
-				0, LOCLIKE_X | LOCLIKE_Y | LOCLIKE_Z, 'i' );
+				0, LOCLIKE_X | LOCLIKE_Y | LOCLIKE_Z | LOCLIKE_X_INVERT | LOCLIKE_Y_INVERT | LOCLIKE_Z_INVERT, 'i' );
 #if 0
 	case EXPP_CONSTR_LOCAL:
 		if( !get_armature( con->tar ) )
@@ -1957,6 +1957,12 @@ static PyObject *M_Constraint_SettingsDict( void )
 				PyInt_FromLong( LOCLIKE_Y ) );
 		PyConstant_Insert( d, "COPYZ",
 				PyInt_FromLong( LOCLIKE_Z ) );
+		PyConstant_Insert( d, "COPYXINVERT",
+				PyInt_FromLong( LOCLIKE_X_INVERT ) );
+		PyConstant_Insert( d, "COPYYINVERT",
+				PyInt_FromLong( LOCLIKE_Y_INVERT ) );
+		PyConstant_Insert( d, "COPYZINVERT",
+				PyInt_FromLong( LOCLIKE_Z_INVERT ) );
 
 		PyConstant_Insert( d, "TARGET",
 				PyInt_FromLong( EXPP_CONSTR_TARGET ) );

@@ -82,7 +82,7 @@ Or to print all the constraints attached to each bone in a pose::
 		- OFFSET (float): clamped to [-100.0,100.0]
 		- STICKY (bool)
 	- Used by Copy Location (COPYLOC) and Copy Rotation (COPYROT)
-		- COPY (bitfield): any combination of COPYX, COPYY and COPYZ
+		- COPY (bitfield): any combination of COPYX, COPYY and COPYZ with possible addition of COPYXINVERT, COPYYINVERT and COPYZINVERT to invert that particular input (if on).
 		- LOCAL (bool): Only for constraints which Armature targets.
 	- Used by Copy Size (COPYSIZE) constraint:
 		- COPY (bitfield): any combination of COPYX, COPYY and COPYZ
