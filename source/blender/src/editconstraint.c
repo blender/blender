@@ -760,7 +760,7 @@ void add_constraint(int only_IK)
 		else if(nr==17) {
 			Curve *cu= obsel->data;
 			cu->flag |= CU_PATH;
-			con = add_new_constraint(CONSTRAINT_TYPE_CLAMPTO)
+			con = add_new_constraint(CONSTRAINT_TYPE_CLAMPTO);
 		}
 		
 		if(con==NULL) return;	/* paranoia */
