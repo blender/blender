@@ -1151,6 +1151,23 @@ def pointInsideMesh(ob, pt):
 	return len([None for f in me.faces if ptInFaceXYBounds(f, obSpacePt) if faceIntersect(f)]) % 2
 
 
+def faceAngles(f):
+	Ang= Blender.Mathutils.AngleBetweenVecs
+	if len(f) == 3:
+		v1,v2,v3 = [v.co for v in f]
+		a1= Ang(v2-v1,v3-v1)
+		a2= Ang(v1-v2,v3-v2)
+		a3 = 180 - (a1+a2) # a3= Mathutils.AngleBetweenVecs(v2-v3,v1-v3)
+		return a1,a2,a3
+	
+	else:
+		v1,v2,v3,v4 = [v.co for v in f]
+		a1= Ang(v2-v1,v4-v1)
+		a2= Ang(v1-v2,v3-v2)
+		a3= Ang(v2-v3,v4-v3)
+		a4= Ang(v3-v4,v1-v4)
+		return a1,a2,a3,a4
+
 # NMesh wrapper
 Vector= Blender.Mathutils.Vector
 class NMesh(object):

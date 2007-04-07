@@ -215,6 +215,8 @@ typedef struct Library {
 #define LIB_FAKEUSER	512
 /* free test flag */
 #define LIB_DOIT		1024
+/*  */
+#define LIB_APPEND_TAG	2048 
 
 #ifdef __cplusplus
 }

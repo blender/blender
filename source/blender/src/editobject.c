@@ -4449,7 +4449,7 @@ void make_local(int mode)
 	if(G.scene->id.lib) return;
 	
 	if(mode==3) {
-		all_local(NULL);	/* NULL is all libs */
+		all_local(NULL, 0);	/* NULL is all libs */
 		allqueue(REDRAWALL, 0);
 		return;
 	}

@@ -7480,7 +7480,6 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 			}
 		}
 	}
-	DAG_scene_sort(G.scene);
 }
 
 /* ************* READ LIBRARY ************** */

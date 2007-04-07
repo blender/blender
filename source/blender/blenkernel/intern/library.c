@@ -983,7 +983,7 @@ static void lib_indirect_test_id(ID *id)
 
 
 /* if lib!=NULL, only all from lib local */
-void all_local(Library *lib)
+void all_local(Library *lib, int untagged_only)
 {
 	ListBase *lbarray[MAX_LIBARRAY], tempbase={0, 0};
 	ID *id, *idn;
@@ -997,7 +997,14 @@ void all_local(Library *lib)
 			id->newid= NULL;
 			idn= id->next;		/* id is possibly being inserted again */
 			
-			if(id->flag & (LIB_EXTERN|LIB_INDIRECT|LIB_NEW)) {
+			/* The check on the second line (LIB_APPEND_TAG) is done so its
+			 * possible to tag data you dont want to be made local, used for
+			 * appending data, so any libdata alredy linked wont become local
+			 * (very nasty to discover all your links are lost after appending)  
+			 * */
+			if(id->flag & (LIB_EXTERN|LIB_INDIRECT|LIB_NEW) &&
+			  (untagged_only==0 || !(id->flag & LIB_APPEND_TAG)))
+			{
 				if(lib==NULL || id->lib==lib) {
 					id->flag &= ~(LIB_EXTERN|LIB_INDIRECT|LIB_NEW);
 

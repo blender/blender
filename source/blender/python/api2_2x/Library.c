@@ -416,7 +416,7 @@ static PyObject *M_Library_Update( PyObject * self )
 				break;
 			lib = lib->id.next;
 		}
-		all_local( lib );
+		all_local( lib, 0 );
 	}
 
 	Py_INCREF( Py_None );
@@ -620,7 +620,7 @@ PyObject *LibraryData_importLibData( BPy_LibraryData *self, char *name,
 	for( lib = G.main->library.first; lib; lib = lib->id.next )
 		if( strcmp( longFilename, lib->name ) == 0 ) {
 			if( mode != FILE_LINK ) {
-				all_local( lib );
+				all_local( lib, 0 );
 				lib = NULL;
 			}
 			break;

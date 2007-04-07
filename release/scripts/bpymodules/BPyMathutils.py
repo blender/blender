@@ -210,3 +210,30 @@ def plane2mat(plane, normalize= False):
 	mat.resize4x4()
 	tmat= Blender.Mathutils.TranslationMatrix(cent)
 	return mat * tmat
+
+
+# Used for mesh_solidify.py and mesh_wire.py
+
+# returns a length from an angle
+# Imaging a 2d space.
+# there is a hoz line at Y1 going to inf on both X ends, never moves (LINEA)
+# down at Y0 is a unit length line point up at (angle) from X0,Y0 (LINEB)
+# This function returns the length of LINEB at the point it would intersect LINEA
+# - Use this for working out how long to make the vector - differencing it from surrounding faces,
+# import math
+from math import pi, sin, cos, sqrt
+
+def angleToLength(angle):
+	# Alredy accounted for
+	if angle < 0.000001:
+		return 1.0
+	
+	angle = 2*pi*angle/360
+	x,y = cos(angle), sin(angle)
+	# print "YX", x,y
+	# 0 d is hoz to the right.
+	# 90d is vert upward.
+	fac=1/x
+	x=x*fac
+	y=y*fac
+	return sqrt((x*x)+(y*y))

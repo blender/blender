@@ -2395,8 +2395,20 @@ static void do_library_append(SpaceFile *sfile)
 		Object *ob;
 		int idcode = groupname_to_code(group);
 		
+		if((sfile->flag & FILE_LINK)==0) {
+			/* tag everything, all untagged data can be made local */
+			ID *id;
+			ListBase *lbarray[MAX_LIBARRAY];
+			int a;
+			
+			a= set_listbasepointers(G.main, lbarray);
+			while(a--) {
+				for(id= lbarray[a]->first; id; id= id->next) id->flag |= LIB_APPEND_TAG;
+			}
+		}
+		
 		BLO_library_append(sfile, dir, idcode);
-
+		
 		/* DISPLISTS? */
 		ob= G.main->object.first;
 		while(ob) {
@@ -2413,14 +2425,15 @@ static void do_library_append(SpaceFile *sfile)
 			lib= lib->id.next;
 		}
 		
-		if(lib) {
-			if((sfile->flag & FILE_LINK)==0) 
-				all_local(lib);
+		/* make local */
+		if(lib && (sfile->flag & FILE_LINK)==0) {
+			all_local(lib, 1);
 		}
+		
+		DAG_scene_sort(G.scene);
 		
 		/* in sfile->dir is the whole lib name */
 		BLI_strncpy(G.lib, sfile->dir, sizeof(G.lib) );
-		
 	}
 }
 

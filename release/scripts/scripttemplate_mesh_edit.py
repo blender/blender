@@ -6,10 +6,11 @@ Group: 'ScriptTemplate'
 Tooltip: 'Add a new text for editing a mesh'
 """
 
-from Blender import Text, Window
+from Blender import Window
+import bpy
 
-script_data = '''
-#!BPY
+script_data = \
+'''#!BPY
 """
 Name: 'My Mesh Script'
 Blender: 243
@@ -21,6 +22,7 @@ Tooltip: 'Put some useful info here'
 
 from Blender import Scene, Mesh, Window, sys
 import BPyMessages
+import bpy
 
 def my_mesh_util(me):
 	# This function runs out of editmode with a mesh
@@ -53,7 +55,7 @@ def my_mesh_util(me):
 def main():
 	
 	# Gets the current scene, there can be many scenes in 1 blend file.
-	sce = Scene.GetCurrent()
+	sce = bpy.scenes.active
 	
 	# Get the active object, there can only ever be 1
 	# and the active object is always the editmode object.
@@ -71,7 +73,7 @@ def main():
 	if is_editmode: Window.EditMode(1)
 	
 	Window.WaitCursor(1)
-	me = ob_act.getData(mesh=1)
+	me = ob_act.getData(mesh=1) # old NMesh api is default
 	t = sys.time()
 	
 	# Run the mesh editing function
