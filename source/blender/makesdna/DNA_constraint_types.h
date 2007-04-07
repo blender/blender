@@ -219,7 +219,7 @@ typedef struct bRigidBodyJointConstraint{
 /* ClampTo Constraint */
 typedef struct bClampToConstraint {
 	Object 		*tar;			/* 'target' must be a curve */
-	int			flag;			/* which plane to find object on */
+	int			flag;			/* which axis/plane to compare owner's location on  */
 	int			pad;
 } bClampToConstraint;
 

@@ -103,6 +103,7 @@ enum constraint_constants {
 
 	EXPP_CONSTR_COPY,
 	EXPP_CONSTR_LIMIT,
+	EXPP_CONSTR_CLAMP,
 	
 	EXPP_CONSTR_LIMXMIN = LIMIT_XMIN,
 	EXPP_CONSTR_LIMXMAX = LIMIT_XMAX,
@@ -723,6 +724,40 @@ static int followpath_setter( BPy_Constraint *self, int type, PyObject *value )
 	}
 }
 
+static PyObject *clampto_getter( BPy_Constraint * self, int type )
+{
+	bClampToConstraint *con = (bClampToConstraint *)(self->con->data);
+
+	switch( type ) {
+	case EXPP_CONSTR_TARGET:
+		return Object_CreatePyObject( con->tar );
+	case EXPP_CONSTR_CLAMP:
+		return PyInt_FromLong( (long)con->flag );
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static int clampto_setter( BPy_Constraint *self, int type, PyObject *value )
+{
+	bClampToConstraint *con = (bClampToConstraint *)(self->con->data);
+
+	switch( type ) {
+	case EXPP_CONSTR_TARGET: {
+		Object *obj = (( BPy_Object * )value)->object;
+		if( !BPy_Object_Check( value ) )
+			return EXPP_ReturnIntError( PyExc_TypeError, 
+					"expected BPy object argument" );
+		con->tar = obj;
+		return 0;
+		}
+	case EXPP_CONSTR_CLAMP:
+		return EXPP_setIValueRange( value, &con->flag,
+				CLAMPTO_AUTO, CLAMPTO_Z, 'i' );
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
 static PyObject *locktrack_getter( BPy_Constraint * self, int type )
 {
 	bLockTrackConstraint *con = (bLockTrackConstraint *)(self->con->data);
@@ -1340,6 +1375,8 @@ static PyObject *Constraint_getData( BPy_Constraint * self, PyObject * key )
 			return sizelimit_getter( self, setting );
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			return rigidbody_getter( self, setting );
+		case CONSTRAINT_TYPE_CLAMPTO:
+			return clampto_getter( self, setting );
 		case CONSTRAINT_TYPE_CHILDOF:	/* Unimplemented */
 		case CONSTRAINT_TYPE_PYTHON:
 		default:
@@ -1403,6 +1440,9 @@ static int Constraint_setData( BPy_Constraint * self, PyObject * key,
 		break;
 	case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 		result = rigidbody_setter( self, key_int, arg);
+		break;
+	case CONSTRAINT_TYPE_CLAMPTO:
+		result = clampto_setter( self, key_int, arg);
 		break;
 	case CONSTRAINT_TYPE_NULL:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
@@ -1878,6 +1918,8 @@ static PyObject *M_Constraint_TypeDict( void )
 				PyInt_FromLong( CONSTRAINT_TYPE_SIZELIMIT ) );
 		PyConstant_Insert( d, "RIGIDBODYJOINT", 
 				PyInt_FromLong( CONSTRAINT_TYPE_RIGIDBODYJOINT ) );
+		PyConstant_Insert( d, "CLAMPTO", 
+				PyInt_FromLong( CONSTRAINT_TYPE_CLAMPTO ) );
 	}
 	return S;
 }
@@ -1963,6 +2005,15 @@ static PyObject *M_Constraint_SettingsDict( void )
 				PyInt_FromLong( LOCLIKE_Y_INVERT ) );
 		PyConstant_Insert( d, "COPYZINVERT",
 				PyInt_FromLong( LOCLIKE_Z_INVERT ) );
+				
+		PyConstant_Insert( d, "CLAMPAUTO",
+				PyInt_FromLong( CLAMPTO_AUTO ) );
+		PyConstant_Insert( d, "CLAMPX",
+				PyInt_FromLong( CLAMPTO_X ) );
+		PyConstant_Insert( d, "CLAMPY",
+				PyInt_FromLong( CLAMPTO_Y ) );
+		PyConstant_Insert( d, "CLAMPZ",
+				PyInt_FromLong( CLAMPTO_Z ) );
 
 		PyConstant_Insert( d, "TARGET",
 				PyInt_FromLong( EXPP_CONSTR_TARGET ) );
@@ -2026,6 +2077,8 @@ static PyObject *M_Constraint_SettingsDict( void )
 				PyInt_FromLong( EXPP_CONSTR_COPY ) );
 		PyConstant_Insert( d, "LIMIT",
 				PyInt_FromLong( EXPP_CONSTR_LIMIT ) );
+		PyConstant_Insert( d, "CLAMP",
+				PyInt_FromLong( EXPP_CONSTR_CLAMP ) );
 		
 		PyConstant_Insert( d, "LIMIT_XMIN",
 				PyInt_FromLong( EXPP_CONSTR_LIMXMIN ) );

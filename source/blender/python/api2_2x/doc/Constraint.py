@@ -31,7 +31,8 @@ Or to print all the constraints attached to each bone in a pose::
 @var Type: Constant Constraint dict used by L{Constraints.append()} and 
 	for comparison with L{Constraint.type}.  Values are
 	TRACKTO, IKSOLVER, FOLLOWPATH, COPYROT, COPYLOC, COPYSIZE, ACTION,
-	LOCKTRACK, STRETCHTO, FLOOR, LIMITLOC, LIMITROT, LIMITSIZE, NULL
+	LOCKTRACK, STRETCHTO, FLOOR, LIMITLOC, LIMITROT, LIMITSIZE, CLAMPTO, 
+	NULL
 
 @type Settings: readonly dictionary
 @var Settings: Constant dict used for changing constraint settings.
@@ -40,7 +41,7 @@ Or to print all the constraints attached to each bone in a pose::
 			Limit Rotation (LIMITROT), Limit Scale (LIMITSIZE))
 		- BONE (string): name of Bone sub-target (for armature targets) (Note: not
 			used by Stretch To (STRETCHTO), Limit Location (LIMITLOC), Limit Rotation 
-			(LIMITROT), Limit Scale (LIMITSIZE))
+			(LIMITROT), Limit Scale (LIMITSIZE), Follow Path (FOLLOWPATH), Clamp To (CLAMPTO))
 	- Used by IK Solver (IKSOLVER) constraint:
 		- TOLERANCE (float): clamped to [0.0001:1.0]
 		- ITERATIONS (int): clamped to [1,10000]
@@ -77,6 +78,8 @@ Or to print all the constraints attached to each bone in a pose::
 		- TRACK (int): values are TRACKX, TRACKY, TRACKZ, TRACKNEGX,
 			TRACKNEGY, TRACKNEGZ
 		- LOCK (int): values are LOCKX, LOCKY, LOCKZ
+	- Used by Clamp To (CLAMPTO) constraint:
+		- CLAMP (int): values are CLAMPAUTO, CLAMPX, CLAMPY, CLAMPZ
 	- Used by Floor (FLOOR) constraint:
 		- MINMAX (int): values are MINX, MINY, MINZ, MAXX, MAXY, MAXZ
 		- OFFSET (float): clamped to [-100.0,100.0]
