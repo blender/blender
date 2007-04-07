@@ -216,6 +216,13 @@ typedef struct bRigidBodyJointConstraint{
 	short		pad2;
 } bRigidBodyJointConstraint;
 
+/* ClampTo Constraint */
+typedef struct bClampToConstraint {
+	Object 		*tar;			/* 'target' must be a curve */
+	int			flag;			/* which plane to find object on */
+	int			pad;
+} bClampToConstraint;
+
 /* bConstraint.type */
 #define CONSTRAINT_TYPE_NULL		0
 #define CONSTRAINT_TYPE_CHILDOF		1	/* Unimplemented */
@@ -235,6 +242,7 @@ typedef struct bRigidBodyJointConstraint{
 #define CONSTRAINT_TYPE_STRETCHTO	15  /* claiming this to be mine :) is in tuhopuu bjornmose */ 
 #define CONSTRAINT_TYPE_MINMAX      16  /* floor constraint */
 #define CONSTRAINT_TYPE_RIGIDBODYJOINT 17 /* rigidbody constraint */
+#define CONSTRAINT_TYPE_CLAMPTO		18  /* clampto constraint */		
 
 /* bConstraint.flag */
 		/* expand for UI */
@@ -309,6 +317,11 @@ typedef struct bRigidBodyJointConstraint{
 #define PLANE_X		0x00
 #define PLANE_Y		0x01
 #define PLANE_Z		0x02
+
+#define CLAMPTO_AUTO	0
+#define CLAMPTO_X		1
+#define	CLAMPTO_Y		2
+#define CLAMPTO_Z		3
 
 /* bKinematicConstraint->flag */
 #define CONSTRAINT_IK_TIP		1

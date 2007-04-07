@@ -209,6 +209,14 @@ void relink_constraints (struct ListBase *list)
 				ID_NEW(data->tar);
 			}
 				break;
+			case CONSTRAINT_TYPE_CLAMPTO:
+			{	
+				bClampToConstraint *data;
+				data = con->data;
+				
+				ID_NEW(data->tar);
+			}
+				break;
 		}
 	}
 }
@@ -333,6 +341,13 @@ char constraint_has_target (bConstraint *con)
 				return 1;
 		}
 		break;
+	case CONSTRAINT_TYPE_CLAMPTO:
+		{
+			bClampToConstraint *data = con->data;
+			if (data->tar)
+				return 1;
+		}
+			break;
 	}
 	// Unknown types or CONSTRAINT_TYPE_NULL or no target
 	return 0;
@@ -418,6 +433,13 @@ Object *get_constraint_target(bConstraint *con, char **subtarget)
 	case CONSTRAINT_TYPE_RIGIDBODYJOINT: 
 		{
 			bRigidBodyJointConstraint *data = con->data;
+			*subtarget= NULL;
+			return data->tar;
+		}
+		break;
+	case CONSTRAINT_TYPE_CLAMPTO:
+		{
+			bClampToConstraint *data = con->data;
 			*subtarget= NULL;
 			return data->tar;
 		}
@@ -509,6 +531,12 @@ void set_constraint_target(bConstraint *con, Object *ob, char *subtarget)
 			bMinMaxConstraint *data = (bMinMaxConstraint*)con->data;
 			data->tar= ob;
 			if(subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
+		}
+			break;
+		case CONSTRAINT_TYPE_CLAMPTO: 
+		{
+			bClampToConstraint *data = con->data;
+			data->tar= ob;
 		}
 			break;
 	}
@@ -736,6 +764,13 @@ void *new_constraint_data (short type)
 				data->maxLimit[i]=0.0;
 			}
             data->extraFz=0.0;
+			result = data;
+		}
+		break;
+	case CONSTRAINT_TYPE_CLAMPTO:
+		{
+			bClampToConstraint *data;
+			data = MEM_callocN(sizeof(bClampToConstraint), "ClampToConstraint");
 			result = data;
 		}
 		break;
@@ -1255,6 +1290,24 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				Mat4One (mat);
 		}
 		break;
+	case CONSTRAINT_TYPE_CLAMPTO:
+		{
+			bClampToConstraint *data;
+			data = (bClampToConstraint*)con->data;
+
+			if (data->tar) {
+				Curve *cu= data->tar->data;
+				
+				/* note; when creating constraints that follow path, the curve gets the CU_PATH set now,
+					currently for paths to work it needs to go through the bevlist/displist system (ton) */
+				
+				if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
+					makeDispListCurveTypes(data->tar, 0);
+			}
+			
+			Mat4One (mat);
+		}
+		break;
 
 	default:
 		Mat4One(mat);
@@ -1277,7 +1330,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 
 	Mat4One (M_identity);
 	
-	switch (constraint->type){
+	switch (constraint->type) {
 	case CONSTRAINT_TYPE_NULL:
 	case CONSTRAINT_TYPE_KINEMATIC: /* removed */
 		break;
@@ -1300,10 +1353,8 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 
 			data = constraint->data;
 			
-			if (data->flag & LOCLIKE_OFFSET) {
-				// for now...
+			if (data->flag & LOCLIKE_OFFSET)
 				VECCOPY(offset, ob->obmat[3]);
-			}
 			
 			if (data->flag & LOCLIKE_X) {
 				ob->obmat[3][0] = targetmat[3][0];
@@ -2181,7 +2232,77 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 
 
         }
-        break;		
+        break;	
+	case CONSTRAINT_TYPE_CLAMPTO:
+		{
+			bClampToConstraint *data;
+			Curve *cu;
+			float obmat[4][4], targetMatrix[4][4], ownLoc[3];
+			float curveMin[3], curveMax[3];
+			
+			data = constraint->data;
+			
+			/* prevent crash if user deletes curve */
+			if ((data->tar == NULL) || (data->tar->type != OB_CURVE) ) 
+				return;
+			else
+				cu= data->tar->data;
+			
+			Mat4CpyMat4(obmat, ob->obmat);
+			Mat4One(targetMatrix);
+			VECCOPY(ownLoc, obmat[3]);
+			
+			INIT_MINMAX(curveMin, curveMax)
+			minmax_object(data->tar, curveMin, curveMax);
+			
+			/* get targetmatrix */
+			if(cu->path && cu->path->data) {
+				float vec[4], dir[3], totmat[4][4];
+				float curvetime;
+				short clamp_axis;
+				
+				/* find best position on curve */
+				/* 1. determine which axis to sample on? */
+				if (data->flag==CLAMPTO_AUTO) {
+					float size[3];
+					VecSubf(size, curveMax, curveMin);
+					
+					/* find axis along which the bounding box has the greatest
+					 * extent. Otherwise, default to the x-axis, as that is quite
+					 * frequently used.
+					 */
+					if ((size[2]>size[0]) && (size[2]>size[1]))
+						clamp_axis= CLAMPTO_Z;
+					else if ((size[1]>size[0]) && (size[1]>size[2]))
+						clamp_axis= CLAMPTO_Y;
+					else
+						clamp_axis = CLAMPTO_X;
+				}
+				else 
+					clamp_axis= data->flag;
+					
+				/* 2. determine position relative to curve on a 0-1 scale */
+				if (clamp_axis > 0) clamp_axis--;
+				if (ownLoc[clamp_axis] <= curveMin[clamp_axis])
+					curvetime = 0.0;
+				else if (ownLoc[clamp_axis] >= curveMax[clamp_axis])
+					curvetime = 1.0;
+				else
+					curvetime = (ownLoc[clamp_axis] - curveMin[clamp_axis]) / (curveMax[clamp_axis] - curveMin[clamp_axis]); // umm
+				
+				/* 3. position on curve */
+				if(where_on_path(data->tar, curvetime, vec, dir) ) {
+					Mat4One(totmat);
+					VECCOPY(totmat[3], vec);
+					
+					Mat4MulSerie(targetMatrix, data->tar->obmat, totmat, NULL, NULL, NULL, NULL, NULL, NULL);
+				}
+			}
+			
+			/* obtain final object position */
+			VECCOPY(ob->obmat[3], targetMatrix[3]);
+		}
+		break;
 	default:
 		printf ("Error: Unknown constraint type\n");
 		break;

@@ -313,6 +313,12 @@ char *get_con_subtarget_name(bConstraint *con, Object *target)
 			return NULL;
 		}
 		break;
+		case CONSTRAINT_TYPE_CLAMPTO:
+		{
+			/* cannot have subtarget. if followpath is removed from here, remove this too... */
+			return NULL; 
+		}
+		break;
 	}
 	
 	return NULL;  
@@ -571,6 +577,29 @@ static void test_constraints (Object *owner, const char* substring)
 					}
 				}
 					break;
+				case CONSTRAINT_TYPE_CLAMPTO:
+				{
+					bClampToConstraint *data = curcon->data;
+					
+					if (!exist_object(data->tar)){
+						data->tar = NULL;
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+					
+					if (data->tar->type != OB_CURVE){
+						data->tar = NULL;
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+					else {
+						Curve *cu= data->tar->data;
+						
+						/* auto-set 'Path' setting on curve so this works  */
+						cu->flag |= CU_PATH;
+					}					
+				}
+					break;
 			}
 		}
 	}
@@ -661,7 +690,7 @@ void add_constraint(int only_IK)
 			if(pchansel)
 				nr= pupmenu("Add Constraint to Active Bone%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|Action%x16");
 			else if(obsel && obsel->type==OB_CURVE)
-				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Stretch To%x7|Action%x16");
+				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17|Stretch To%x7|Action%x16");
 			else if(obsel)
 				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|Action%x16");
 			else
@@ -669,7 +698,7 @@ void add_constraint(int only_IK)
 		}
 		else {
 			if(obsel && obsel->type==OB_CURVE)
-				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6");
+				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17");
 			else if(obsel)
 				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Track To%x3|Floor%x4|Locked Track%x5");
 			else
@@ -728,6 +757,11 @@ void add_constraint(int only_IK)
 		else if(nr==14) con = add_new_constraint(CONSTRAINT_TYPE_ROTLIMIT);
 		else if(nr==15) con = add_new_constraint(CONSTRAINT_TYPE_SIZELIMIT);
 		else if(nr==16) con = add_new_constraint(CONSTRAINT_TYPE_ACTION);
+		else if(nr==17) {
+			Curve *cu= obsel->data;
+			cu->flag |= CU_PATH;
+			con = add_new_constraint(CONSTRAINT_TYPE_CLAMPTO)
+		}
 		
 		if(con==NULL) return;	/* paranoia */
 		

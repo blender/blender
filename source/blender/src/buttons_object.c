@@ -371,6 +371,9 @@ void get_constraint_typestring (char *str, void *con_v)
 	case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 		strcpy (str, "Rigid Body");
 		return;
+	case CONSTRAINT_TYPE_CLAMPTO:
+		strcpy (str, "Clamp To");
+		return;
 	default:
 		strcpy (str, "Unknown");
 		return;
@@ -1268,6 +1271,28 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				}
 			}
 			break;
+		case CONSTRAINT_TYPE_CLAMPTO:
+			{
+				bClampToConstraint *data = con->data;
+				
+				height = 66;
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
+				/* Draw target parameters */
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+				
+				/* Draw XYZ toggles */
+				uiBlockBeginAlign(block);
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Main Axis:", *xco, *yco-64, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButI(block, ROW, B_CONSTRAINT_TEST, "Auto", *xco+100, *yco-64, 50, 18, &data->flag, 12.0, CLAMPTO_AUTO, 0, 0, "Automatically determine main-axis of movement");
+				uiDefButI(block, ROW, B_CONSTRAINT_TEST, "X", *xco+150, *yco-64, 32, 18, &data->flag, 12.0, CLAMPTO_X, 0, 0, "Main axis of movement is x-axis");
+				uiDefButI(block, ROW, B_CONSTRAINT_TEST, "Y", *xco+182, *yco-64, 32, 18, &data->flag, 12.0, CLAMPTO_Y, 0, 0, "Main axis of movement is y-axis");
+				uiDefButI(block, ROW, B_CONSTRAINT_TEST, "Z", *xco+214, *yco-64, 32, 18, &data->flag, 12.0, CLAMPTO_Z, 0, 0, "Main axis of movement is z-axis");
+				uiBlockEndAlign(block);
+			}
+			break;
 		case CONSTRAINT_TYPE_NULL:
 			{
 				height = 17;
@@ -1327,6 +1352,7 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_MINMAX,"Floor",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCKTRACK,"Locked Track",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_FOLLOWPATH,"Follow Path",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_CLAMPTO,"Clamp To",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -1510,6 +1536,15 @@ void do_constraintbuts(unsigned short event)
 		{
 			bConstraint *con;
 			con = add_new_constraint(CONSTRAINT_TYPE_RIGIDBODYJOINT);
+			add_constraint_to_active(ob, con);
+
+			BIF_undo_push("Add constraint");
+		}
+		break;
+	case B_CONSTRAINT_ADD_CLAMPTO:
+		{
+			bConstraint *con;
+			con = add_new_constraint(CONSTRAINT_TYPE_CLAMPTO);
 			add_constraint_to_active(ob, con);
 
 			BIF_undo_push("Add constraint");
