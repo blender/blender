@@ -70,7 +70,6 @@ def main():
 	# editmode if its enabled, we cant make
 	# changes to the mesh data while in editmode.
 	is_editmode = Window.EditMode()
-	if is_editmode: Window.EditMode(1)
 	
 	Window.WaitCursor(1)
 	me = ob_act.getData(mesh=1) # old NMesh api is default
@@ -78,6 +77,9 @@ def main():
 	
 	# Run the mesh editing function
 	my_mesh_util(me)
+	
+	# Restore editmode if it was enabled
+	if is_editmode: Window.EditMode(1)
 	
 	# Timing the script is a good way to be aware on any speed hits when scripting
 	print 'My Script finished in %.2f seconds' % (sys.time()-t)

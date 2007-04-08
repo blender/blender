@@ -1152,16 +1152,26 @@ def pointInsideMesh(ob, pt):
 
 
 def faceAngles(f):
-	Ang= Blender.Mathutils.AngleBetweenVecs
+	'''
+	Returns the angle between all corners in a tri or a quad
+	
+	'''
+	AngleBetweenVecs = Blender.Mathutils.AngleBetweenVecs
+	def Ang(a1,a2):
+		try:		return AngleBetweenVecs(a1,a2)
+		except:		return 180
+	
 	if len(f) == 3:
-		v1,v2,v3 = [v.co for v in f]
+		if type(f) in (tuple, list):	v1,v2,v3 = f
+		else:							v1,v2,v3 = [v.co for v in f]
 		a1= Ang(v2-v1,v3-v1)
 		a2= Ang(v1-v2,v3-v2)
 		a3 = 180 - (a1+a2) # a3= Mathutils.AngleBetweenVecs(v2-v3,v1-v3)
 		return a1,a2,a3
 	
 	else:
-		v1,v2,v3,v4 = [v.co for v in f]
+		if type(f) in (tuple, list):	v1,v2,v3,v4 = f
+		else:							v1,v2,v3,v4 = [v.co for v in f]
 		a1= Ang(v2-v1,v4-v1)
 		a2= Ang(v1-v2,v3-v2)
 		a3= Ang(v2-v3,v4-v3)

@@ -15,6 +15,27 @@ This script makes a skin from the selected faces.
 Optionaly you can skin between the original and new faces to make a watertight solid object
 """
 
+# -------------------------------------------------------------------------- 
+# Solidify Selection 1.0 by Campbell Barton (AKA Ideasman42) 
+# -------------------------------------------------------------------------- 
+# ***** BEGIN GPL LICENSE BLOCK ***** 
+# 
+# This program is free software; you can redistribute it and/or 
+# modify it under the terms of the GNU General Public License 
+# as published by the Free Software Foundation; either version 2 
+# of the License, or (at your option) any later version. 
+# 
+# This program is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details. 
+# 
+# You should have received a copy of the GNU General Public License 
+# along with this program; if not, write to the Free Software Foundation, 
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA. 
+# 
+# ***** END GPL LICENCE BLOCK ***** 
+# -------------------------------------------------------------------------- 
 
 from Blender import *
 import bpy
@@ -76,44 +97,9 @@ def copy_facedata_multilayer(me, from_faces, to_faces):
 Ang= Mathutils.AngleBetweenVecs
 SMALL_NUM=0.00001
 
-def main():
-	scn = bpy.scenes.active
-	ob = scn.objects.active
-	
-	if not ob or ob.type != 'Mesh':
-		BPyMessages.Error_NoMeshActive()
-		return
-	
-	me = ob.getData(mesh=1)
-	if me.multires:
-		BPyMessages.Error_NoMeshMultiresEdit()
-		return
-	
-	# Create the variables.
-	PREF_THICK = Draw.Create(-0.1)
-	PREF_SKIN_SIDES= Draw.Create(1)
-	PREF_REM_ORIG= Draw.Create(0)
-	
-	pup_block = [\
-	('Thick:', PREF_THICK, -10, 10, 'Skin thickness in mesh space.'),\
-	('Skin Sides', PREF_SKIN_SIDES, 'Skin between the original and new faces.'),\
-	('Remove Original', PREF_REM_ORIG, 'Remove the selected faces after skinning.'),\
-	]
-	
-	if not Draw.PupBlock('Solid Skin Selection', pup_block):
-		return
-	
-	PREF_THICK= PREF_THICK.val
-	PREF_SKIN_SIDES= PREF_SKIN_SIDES.val
-	PREF_REM_ORIG= PREF_REM_ORIG.val
-	
-	Window.WaitCursor(1)
-	
-	is_editmode = Window.EditMode() 
-	if is_editmode: Window.EditMode(0)
+def solidify(me, PREF_THICK, PREF_SKIN_SIDES=True, PREF_REM_ORIG=False):
 	
 	# Main code function
-	me = ob.getData(mesh=1)
 	me_faces = me.faces
 	faces_sel= [f for f in me_faces if f.sel]
 	
@@ -289,6 +275,44 @@ def main():
 	
 	if PREF_REM_ORIG:
 		me_faces.delete(0, faces_sel)
+
+
+
+
+def main():
+	scn = bpy.scenes.active
+	ob = scn.objects.active
+	
+	if not ob or ob.type != 'Mesh':
+		BPyMessages.Error_NoMeshActive()
+		return
+	
+	me = ob.getData(mesh=1)
+	if me.multires:
+		BPyMessages.Error_NoMeshMultiresEdit()
+		return
+	
+	# Create the variables.
+	PREF_THICK = Draw.Create(-0.1)
+	PREF_SKIN_SIDES= Draw.Create(1)
+	PREF_REM_ORIG= Draw.Create(0)
+	
+	pup_block = [\
+	('Thick:', PREF_THICK, -10, 10, 'Skin thickness in mesh space.'),\
+	('Skin Sides', PREF_SKIN_SIDES, 'Skin between the original and new faces.'),\
+	('Remove Original', PREF_REM_ORIG, 'Remove the selected faces after skinning.'),\
+	]
+	
+	if not Draw.PupBlock('Solid Skin Selection', pup_block):
+		return
+	
+	is_editmode = Window.EditMode() 
+	if is_editmode: Window.EditMode(0)
+	
+	Window.WaitCursor(1)
+	
+	me = ob.getData(mesh=1)
+	solidify(me, PREF_THICK.val, PREF_SKIN_SIDES.val, PREF_REM_ORIG.val)
 	
 	
 	Window.WaitCursor(0)
