@@ -547,8 +547,9 @@ endif
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
+ifeq ($(OS), darwin)
 	@$(MAKE) -C darwin/ APPLICATION=blenderstatic
-
+endif
 
 $(DIR)/$(DEBUG_DIR)bin/blender$(EXT): $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB)
 	@echo "****> Link $@"
@@ -560,8 +561,9 @@ endif
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
+ifeq ($(OS), darwin)
 	@$(MAKE) -C darwin/ APPLICATION=blender
-
+endif
 
 $(DIR)/$(DEBUG_DIR)bin/blenderplayer$(EXT): $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB)
 	@echo "****> Link $@"
@@ -573,7 +575,9 @@ endif
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
+ifeq ($(OS), darwin)
 	@$(MAKE) -C darwin/ APPLICATION=blenderplayer
+endif
 
 $(DIR)/$(DEBUG_DIR)bin/blenderdynplayer$(EXT): $(OBJS) $(COMLIB) $(SPLIB)
 	@echo "****> Link $@"
@@ -585,7 +589,9 @@ endif
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
+ifeq ($(OS), darwin)
 	@$(MAKE) -C darwin/ APPLICATION=blenderplayer
+endif
 
 $(DIR)/$(DEBUG_DIR)bin/Blender3DPlugin$(SOEXT): $(PLUGAPPLIB_XPLINK)
 	@echo "****> Link $@"
