@@ -1444,6 +1444,33 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					waitcursor(0);
 				}
 				break;
+			/* Layers */
+			case ONEKEY:
+				do_layer_buttons(0); break;
+			case TWOKEY:
+				do_layer_buttons(1); break;
+			case THREEKEY:
+				do_layer_buttons(2); break;
+			case FOURKEY:
+				do_layer_buttons(3); break;
+			case FIVEKEY:
+				do_layer_buttons(4); break;
+			case SIXKEY:
+				do_layer_buttons(5); break;
+			case SEVENKEY:
+				do_layer_buttons(6); break;
+			case EIGHTKEY:
+				do_layer_buttons(7); break;
+			case NINEKEY:
+				do_layer_buttons(8); break;
+			case ZEROKEY:
+				do_layer_buttons(9); break;
+			case MINUSKEY:
+				do_layer_buttons(10); break;
+			case EQUALKEY:
+				do_layer_buttons(11); break;
+			case ACCENTGRAVEKEY:
+				do_layer_buttons(-1); break;
 			}
 			
 			/* Redraw buttons window as well as view 3d (for floating panel) */
