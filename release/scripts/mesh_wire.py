@@ -29,11 +29,11 @@ Tooltip: 'Make a solid wireframe copy of this mesh'
 # --------------------------------------------------------------------------
 import Blender
 from Blender import Scene, Mesh, Window, sys
-from Blender.Mathutils import AngleBetweenVecs
-#from BPyMesh import faceAngles # get angles for face cornders
-import BPyMesh
-reload(BPyMesh)
-faceAngles = BPyMesh.faceAngles
+from Blender.Mathutils import AngleBetweenVecs, TriangleNormal
+from BPyMesh import faceAngles # get angles for face cornders
+#import BPyMesh
+#reload(BPyMesh)
+#faceAngles = BPyMesh.faceAngles
 
 # works out the distanbce to inset the corners based on angles
 from BPyMathutils import angleToLength
@@ -47,8 +47,7 @@ import BPyMessages
 import bpy
 
 
-
-def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS):
+def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS, PREF_SOLID, PREF_DOUBLE_STRIPS):
 	# This function runs out of editmode with a mesh
 	# error cases are alredy checked for
 	
@@ -61,6 +60,7 @@ def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS):
 	sce.objects.selected = []
 	sce.objects.link(ob)
 	ob.sel = True
+	sce.objects.active = ob
 	
 	# Modify the object
 	
@@ -72,6 +72,18 @@ def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS):
 		if len(f) == 3:
 			new_vert_count -= 1
 	
+	if PREF_DOUBLE_STRIPS == 0:
+		new_faces_edge= {}
+		
+		def add_edge(i1,i2, ni1, ni2):
+			
+			if i1>i2:
+				i1,i2 = i2,i1
+				flip = True
+			else:
+				flip = False
+			new_faces_edge.setdefault((i1,i2), []).append((ni1, ni2, flip))
+		
 	
 	new_verts = []
 	new_faces = []
@@ -105,35 +117,97 @@ def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS):
 			
 			d.length = vert_inset
 			return co+d
-			# return co+((cent-co)*inset)
 		
 		new_verts.extend([new_vert(i) for i in xrange(len(f_v_co))])
 		
 		if len(f_v_idx) == 4:
-			new_faces.extend([\
+			faces = [\
 			(f_v_idx[1], f_v_idx[0], vert_index, vert_index+1),\
 			(f_v_idx[2], f_v_idx[1], vert_index+1, vert_index+2),\
 			(f_v_idx[3], f_v_idx[2], vert_index+2, vert_index+3),\
 			(f_v_idx[0], f_v_idx[3], vert_index+3, vert_index),\
-			])
-		
-		
-		if len(f_v_idx) == 3:
-			new_faces.extend([\
+			]
+		else:
+			faces = [\
 			(f_v_idx[1], f_v_idx[0], vert_index, vert_index+1),\
 			(f_v_idx[2], f_v_idx[1], vert_index+1, vert_index+2),\
 			(f_v_idx[0], f_v_idx[2], vert_index+2, vert_index),\
-			])
+			]
 		
+		
+		if PREF_DOUBLE_STRIPS == 1:
+			new_faces.extend(faces)
+		
+		elif PREF_DOUBLE_STRIPS == 0:
+			for nf in faces:
+				add_edge(*nf)
+			
 		vert_index += len(f_v_co)
+	
+	me.verts.extend(new_verts)
+	
+	if PREF_DOUBLE_STRIPS == 0:
+		def add_tri_flipped(i1,i2,i3):
+			if AngleBetweenVecs(me.verts[i1].no, TriangleNormal(me.verts[i1].co, me.verts[i2].co, me.verts[i3].co)) < 90:
+				return i3,i2,i1
+			else:
+				return i1,i2,i3
+		
+		# This stores new verts that use this vert
+		# used for re-averaging this verts location
+		# based on surrounding verts. looks better but not needed.
+		vert_users = [set() for i in xrange(vert_index)]
+		
+		for (i1,i2), nf in new_faces_edge.iteritems():
+			
+			if len(nf) == 2:
+				# Add the main face
+				new_faces.append((nf[0][0], nf[0][1], nf[1][0], nf[1][1]))
+				
+				
+				if nf[0][2]:	key1 = nf[0][1],nf[0][0]
+				else:			key1 = nf[0][0],nf[0][1]
+				if nf[1][2]:	key2 = nf[1][1],nf[1][0]
+				else:			key2 = nf[1][0],nf[1][1]
+				
+				# CRAP, cont work out which way to flip so make it oppisite the verts normal.
+				
+				###new_faces.append((i2, key1[0], key2[0])) # NO FLIPPING, WORKS THOUGH
+				###new_faces.append((i1, key1[1], key2[1]))
+				
+				new_faces.append(add_tri_flipped(i2, key1[0], key2[0]))
+				new_faces.append(add_tri_flipped(i1, key1[1], key2[1]))
+				
+				# Average vert loction so its not tooo pointy
+				# not realy needed but looks better
+				vert_users[i2].update((key1[0], key2[0]))
+				vert_users[i1].update((key1[1], key2[1]))
+			
+			if len(nf) == 1:
+				if nf[0][2]:	new_faces.append((nf[0][0], nf[0][1], i2, i1)) # flipped
+				else:			new_faces.append((i1,i2, nf[0][0], nf[0][1]))
+				
+		
+		# average points now.
+		for i, vusers in enumerate(vert_users):
+			if vusers:
+				co = me.verts[i].co
+				co.zero()
+				
+				for ii in vusers:
+					co += me.verts[ii].co
+				co /= len(vusers)
+		
+		
 		
 	me.faces.delete(1, range(len(me.faces)))
-	me.verts.extend(new_verts)
+	
 	me.faces.extend(new_faces)
 
 	# External function, solidify
 	me.sel = True
-	mesh_solidify.solidify(me, -inset_half*2)
+	if PREF_SOLID:
+		mesh_solidify.solidify(me, -inset_half*2)
 
 
 def main():
@@ -150,10 +224,14 @@ def main():
 		return 
 	
 	# Create the variables.
-	PREF_THICK = Blender.Draw.Create(0.1)
+	PREF_THICK = Blender.Draw.Create(0.005)
+	PREF_SOLID = Blender.Draw.Create(1)
+	PREF_DOUBLE_STRIPS = Blender.Draw.Create(1)
 	
 	pup_block = [\
 	('Thick:', PREF_THICK, 0.0001, 2.0, 'Skin thickness in mesh space.'),\
+	('Solid Wire', PREF_SOLID, 'If Disabled, will use 6 sided wire segments'),\
+	('Double Strips', PREF_DOUBLE_STRIPS, 'Use 2 strips for each wire segment before making solid'),\
 	]
 	
 	if not Blender.Draw.PupBlock('Solid Wireframe', pup_block):
@@ -169,7 +247,7 @@ def main():
 	t = sys.time()
 	
 	# Run the mesh editing function
-	solid_wire(ob_act, me, sce, PREF_THICK.val)
+	solid_wire(ob_act, me, sce, PREF_THICK.val, PREF_SOLID.val, PREF_DOUBLE_STRIPS.val)
 	
 	# Timing the script is a good way to be aware on any speed hits when scripting
 	print 'Solid Wireframe finished in %.2f seconds' % (sys.time()-t)

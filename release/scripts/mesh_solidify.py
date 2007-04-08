@@ -103,7 +103,6 @@ def solidify(me, PREF_THICK, PREF_SKIN_SIDES=True, PREF_REM_ORIG=False):
 	me_faces = me.faces
 	faces_sel= [f for f in me_faces if f.sel]
 	
-	
 	BPyMesh.meshCalcNormals(me)
 	normals= [v.no for v in me.verts]
 	vertFaces= [[] for i in xrange(len(me.verts))]
