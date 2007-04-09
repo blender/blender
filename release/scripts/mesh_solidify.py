@@ -97,7 +97,7 @@ def copy_facedata_multilayer(me, from_faces, to_faces):
 Ang= Mathutils.AngleBetweenVecs
 SMALL_NUM=0.00001
 
-def solidify(me, PREF_THICK, PREF_SKIN_SIDES=True, PREF_REM_ORIG=False):
+def solidify(me, PREF_THICK, PREF_SKIN_SIDES=True, PREF_REM_ORIG=False, PREF_COLLAPSE_SIDES=False):
 	
 	# Main code function
 	me_faces = me.faces
@@ -178,7 +178,7 @@ def solidify(me, PREF_THICK, PREF_SKIN_SIDES=True, PREF_REM_ORIG=False):
 	"""
 	copy_facedata_multilayer(me, faces_sel, [me_faces[len_faces + i] for i in xrange(len(faces_sel))])
 	
-	if PREF_SKIN_SIDES:
+	if PREF_SKIN_SIDES or PREF_COLLAPSE_SIDES:
 		skin_side_faces= []
 		skin_side_faces_orig= []
 		# Get edges of faces that only have 1 user - so we can make walls
@@ -200,77 +200,97 @@ def solidify(me, PREF_THICK, PREF_SKIN_SIDES=True, PREF_REM_ORIG=False):
 						edges[edgekey] = f, f_v, i, ROT_QUAD_INDEX[i+1]
 		del ROT_QUAD_INDEX, ROT_TRI_INDEX
 		
+		# So we can remove doubles with edges only.
+		if PREF_COLLAPSE_SIDES:
+			me.sel = False
 		
 		# Edges are done. extrude the single user edges.
 		for edge_face_data in edges.itervalues():
 			if edge_face_data: # != None
 				f, f_v, i1, i2 = edge_face_data
 				v1i,v2i= f_v[i1].index, f_v[i2].index
-				# Now make a new Face
-				# skin_side_faces.append( (v1i, v2i, vert_mapping[v2i], vert_mapping[v1i]) )
-				skin_side_faces.append( (v2i, v1i, vert_mapping[v1i], vert_mapping[v2i]) )
-				skin_side_faces_orig.append((f, len(me_faces) + len(skin_side_faces_orig), i1, i2))
+				
+				if PREF_COLLAPSE_SIDES:
+					# Collapse
+					cv1 = me.verts[v1i]
+					cv2 = me.verts[vert_mapping[v1i]]
+					
+					cv3 = me.verts[v2i]
+					cv4 = me.verts[vert_mapping[v2i]]
+					
+					cv1.co = cv2.co = (cv1.co+cv2.co)/2
+					cv3.co = cv4.co = (cv3.co+cv4.co)/2
+					
+					cv1.sel=cv2.sel=cv3.sel=cv4.sel=True
+					
+					
+					
+				else:
+					# Now make a new Face
+					# skin_side_faces.append( (v1i, v2i, vert_mapping[v2i], vert_mapping[v1i]) )
+					skin_side_faces.append( (v2i, v1i, vert_mapping[v1i], vert_mapping[v2i]) )
+					skin_side_faces_orig.append((f, len(me_faces) + len(skin_side_faces_orig), i1, i2))
 		
-		me_faces.extend(skin_side_faces)
-		
-		
-		
-		# Now assign properties.
-		"""
-		# Before MultiUVs
-		for i, origfData in enumerate(skin_side_faces_orig):
-			orig_f, new_f_idx, i1, i2 = origfData
-			new_f= me_faces[new_f_idx]
+		if PREF_COLLAPSE_SIDES:
+			me.remDoubles(0.0001)
+		else:
+			me_faces.extend(skin_side_faces)
+			# Now assign properties.
+			"""
+			# Before MultiUVs
+			for i, origfData in enumerate(skin_side_faces_orig):
+				orig_f, new_f_idx, i1, i2 = origfData
+				new_f= me_faces[new_f_idx]
+				
+				new_f.mat= orig_f.mat
+				new_f.smooth= orig_f.smooth
+				if has_uv:
+					new_f.mode= orig_f.mode
+					new_f.flag= orig_f.flag
+					if orig_f.image:
+						new_f.image= orig_f.image
+					
+					uv1= orig_f.uv[i1]
+					uv2= orig_f.uv[i2]
+					new_f.uv= (uv1, uv2, uv2, uv1)
+				
+				if has_vcol:
+					col1= orig_f.col[i1]
+					col2= orig_f.col[i2]
+					new_f.col= (col1, col2, col2, col1)
+			"""
 			
-			new_f.mat= orig_f.mat
-			new_f.smooth= orig_f.smooth
-			if has_uv:
-				new_f.mode= orig_f.mode
-				new_f.flag= orig_f.flag
-				if orig_f.image:
+			for i, origfData in enumerate(skin_side_faces_orig):
+				orig_f, new_f_idx, i2, i1 = origfData
+				new_f= me_faces[new_f_idx]
+				
+				new_f.mat= orig_f.mat
+				new_f.smooth= orig_f.smooth
+			
+			for uvlayer in me.getUVLayerNames():
+				me.activeUVLayer = uvlayer
+				for i, origfData in enumerate(skin_side_faces_orig):
+					orig_f, new_f_idx, i2, i1 = origfData
+					new_f= me_faces[new_f_idx]
+					
+					new_f.mode= orig_f.mode
+					new_f.flag= orig_f.flag
 					new_f.image= orig_f.image
-				
-				uv1= orig_f.uv[i1]
-				uv2= orig_f.uv[i2]
-				new_f.uv= (uv1, uv2, uv2, uv1)
+					
+					uv1= orig_f.uv[i1]
+					uv2= orig_f.uv[i2]
+					new_f.uv= (uv1, uv2, uv2, uv1)
 			
-			if has_vcol:
-				col1= orig_f.col[i1]
-				col2= orig_f.col[i2]
-				new_f.col= (col1, col2, col2, col1)
-		"""
+			for collayer in me.getColorLayerNames():
+				me.activeColorLayer = collayer
+				for i, origfData in enumerate(skin_side_faces_orig):
+					orig_f, new_f_idx, i2, i1 = origfData
+					new_f= me_faces[new_f_idx]
+					
+					col1= orig_f.col[i1]
+					col2= orig_f.col[i2]
+					new_f.col= (col1, col2, col2, col1)
 		
-		for i, origfData in enumerate(skin_side_faces_orig):
-			orig_f, new_f_idx, i2, i1 = origfData
-			new_f= me_faces[new_f_idx]
-			
-			new_f.mat= orig_f.mat
-			new_f.smooth= orig_f.smooth
-		
-		for uvlayer in me.getUVLayerNames():
-			me.activeUVLayer = uvlayer
-			for i, origfData in enumerate(skin_side_faces_orig):
-				orig_f, new_f_idx, i2, i1 = origfData
-				new_f= me_faces[new_f_idx]
-				
-				new_f.mode= orig_f.mode
-				new_f.flag= orig_f.flag
-				new_f.image= orig_f.image
-				
-				uv1= orig_f.uv[i1]
-				uv2= orig_f.uv[i2]
-				new_f.uv= (uv1, uv2, uv2, uv1)
-		
-		for collayer in me.getColorLayerNames():
-			me.activeColorLayer = collayer
-			for i, origfData in enumerate(skin_side_faces_orig):
-				orig_f, new_f_idx, i2, i1 = origfData
-				new_f= me_faces[new_f_idx]
-				
-				col1= orig_f.col[i1]
-				col2= orig_f.col[i2]
-				new_f.col= (col1, col2, col2, col1)
-	
 	
 	if PREF_REM_ORIG:
 		me_faces.delete(0, faces_sel)
@@ -294,11 +314,13 @@ def main():
 	# Create the variables.
 	PREF_THICK = Draw.Create(-0.1)
 	PREF_SKIN_SIDES= Draw.Create(1)
+	PREF_COLLAPSE_SIDES= Draw.Create(0)
 	PREF_REM_ORIG= Draw.Create(0)
 	
 	pup_block = [\
 	('Thick:', PREF_THICK, -10, 10, 'Skin thickness in mesh space.'),\
 	('Skin Sides', PREF_SKIN_SIDES, 'Skin between the original and new faces.'),\
+	('Collapse Sides', PREF_COLLAPSE_SIDES, 'Skin between the original and new faces.'),\
 	('Remove Original', PREF_REM_ORIG, 'Remove the selected faces after skinning.'),\
 	]
 	
@@ -311,7 +333,7 @@ def main():
 	Window.WaitCursor(1)
 	
 	me = ob.getData(mesh=1)
-	solidify(me, PREF_THICK.val, PREF_SKIN_SIDES.val, PREF_REM_ORIG.val)
+	solidify(me, PREF_THICK.val, PREF_SKIN_SIDES.val, PREF_REM_ORIG.val, PREF_COLLAPSE_SIDES.val)
 	
 	
 	Window.WaitCursor(0)

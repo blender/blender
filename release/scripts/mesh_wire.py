@@ -47,7 +47,10 @@ import BPyMessages
 import bpy
 
 
-def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS, PREF_SOLID, PREF_DOUBLE_STRIPS):
+def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS, PREF_SOLID, PREF_SHARP, PREF_XSHARP):
+	if not PREF_SHARP and PREF_XSHARP:
+		PREF_XSHARP = False
+	
 	# This function runs out of editmode with a mesh
 	# error cases are alredy checked for
 	
@@ -62,7 +65,13 @@ def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS, PREF_SOLID, PREF_DOUBLE_ST
 	ob.sel = True
 	sce.objects.active = ob
 	
-	# Modify the object
+	# Modify the object, should be a set
+	FGON= Mesh.EdgeFlags.FGON
+	edges_fgon = dict([(ed.key,None) for ed in me.edges if ed.flag & FGON])
+	# edges_fgon.fromkeys([ed.key for ed in me.edges if ed.flag & FGON])
+	
+	del FGON
+
 	
 	
 	# each face needs its own verts
@@ -72,7 +81,7 @@ def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS, PREF_SOLID, PREF_DOUBLE_ST
 		if len(f) == 3:
 			new_vert_count -= 1
 	
-	if PREF_DOUBLE_STRIPS == 0:
+	if PREF_SHARP == 0:
 		new_faces_edge= {}
 		
 		def add_edge(i1,i2, ni1, ni2):
@@ -135,10 +144,20 @@ def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS, PREF_SOLID, PREF_DOUBLE_ST
 			]
 		
 		
-		if PREF_DOUBLE_STRIPS == 1:
-			new_faces.extend(faces)
+		if PREF_SHARP == 1:
+			if not edges_fgon:
+				new_faces.extend(faces)
+			else:
+				for nf in faces:
+					i1,i2 = nf[0], nf[1]
+					if i1>i2: i1,i2 = i2,i1
+					
+					if edges_fgon and (i1,i2) not in edges_fgon:
+						new_faces.append(nf)
+			
+			
 		
-		elif PREF_DOUBLE_STRIPS == 0:
+		elif PREF_SHARP == 0:
 			for nf in faces:
 				add_edge(*nf)
 			
@@ -146,7 +165,7 @@ def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS, PREF_SOLID, PREF_DOUBLE_ST
 	
 	me.verts.extend(new_verts)
 	
-	if PREF_DOUBLE_STRIPS == 0:
+	if PREF_SHARP == 0:
 		def add_tri_flipped(i1,i2,i3):
 			if AngleBetweenVecs(me.verts[i1].no, TriangleNormal(me.verts[i1].co, me.verts[i2].co, me.verts[i3].co)) < 90:
 				return i3,i2,i1
@@ -162,7 +181,8 @@ def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS, PREF_SOLID, PREF_DOUBLE_ST
 			
 			if len(nf) == 2:
 				# Add the main face
-				new_faces.append((nf[0][0], nf[0][1], nf[1][0], nf[1][1]))
+				if edges_fgon and (i1,i2) not in edges_fgon:
+					new_faces.append((nf[0][0], nf[0][1], nf[1][0], nf[1][1]))
 				
 				
 				if nf[0][2]:	key1 = nf[0][1],nf[0][0]
@@ -174,7 +194,6 @@ def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS, PREF_SOLID, PREF_DOUBLE_ST
 				
 				###new_faces.append((i2, key1[0], key2[0])) # NO FLIPPING, WORKS THOUGH
 				###new_faces.append((i1, key1[1], key2[1]))
-				
 				new_faces.append(add_tri_flipped(i2, key1[0], key2[0]))
 				new_faces.append(add_tri_flipped(i1, key1[1], key2[1]))
 				
@@ -207,7 +226,7 @@ def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS, PREF_SOLID, PREF_DOUBLE_ST
 	# External function, solidify
 	me.sel = True
 	if PREF_SOLID:
-		mesh_solidify.solidify(me, -inset_half*2)
+		mesh_solidify.solidify(me, -inset_half*2, True, False, PREF_XSHARP)
 
 
 def main():
@@ -226,12 +245,14 @@ def main():
 	# Create the variables.
 	PREF_THICK = Blender.Draw.Create(0.005)
 	PREF_SOLID = Blender.Draw.Create(1)
-	PREF_DOUBLE_STRIPS = Blender.Draw.Create(1)
+	PREF_SHARP = Blender.Draw.Create(1)
+	PREF_XSHARP = Blender.Draw.Create(0)
 	
 	pup_block = [\
 	('Thick:', PREF_THICK, 0.0001, 2.0, 'Skin thickness in mesh space.'),\
 	('Solid Wire', PREF_SOLID, 'If Disabled, will use 6 sided wire segments'),\
-	('Double Strips', PREF_DOUBLE_STRIPS, 'Use 2 strips for each wire segment before making solid'),\
+	('Sharp Wire', PREF_SHARP, 'Use the original mesh topology for more accurate sharp wire.'),\
+	('Extra Sharp', PREF_XSHARP, 'Use less geometry to create a sharper looking wire'),\
 	]
 	
 	if not Blender.Draw.PupBlock('Solid Wireframe', pup_block):
@@ -241,13 +262,14 @@ def main():
 	# editmode if its enabled, we cant make
 	# changes to the mesh data while in editmode.
 	is_editmode = Window.EditMode()
+	Window.EditMode(0)
 	
 	Window.WaitCursor(1)
 	me = ob_act.getData(mesh=1) # old NMesh api is default
 	t = sys.time()
 	
 	# Run the mesh editing function
-	solid_wire(ob_act, me, sce, PREF_THICK.val, PREF_SOLID.val, PREF_DOUBLE_STRIPS.val)
+	solid_wire(ob_act, me, sce, PREF_THICK.val, PREF_SOLID.val, PREF_SHARP.val, PREF_XSHARP.val)
 	
 	# Timing the script is a good way to be aware on any speed hits when scripting
 	print 'Solid Wireframe finished in %.2f seconds' % (sys.time()-t)
