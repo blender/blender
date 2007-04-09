@@ -92,6 +92,7 @@
 /* internals */
 void buttons_enji(uiBlock *, Object *);
 void buttons_ketsji(uiBlock *, Object *);
+void buttons_bullet(uiBlock *, Object *);
 
 /****/
 
@@ -2389,10 +2390,10 @@ void buttons_ketsji(uiBlock *block, Object *ob)
 				  "Motion defined by laws of physics");
 	
 		if(ob->gameflag & OB_DYNAMIC) {
-			uiDefButBitI(block, TOG, OB_RIGID_BODY, B_REDR, "Rigid Body", 180,205,70,19, 
+			uiDefButBitI(block, TOG, OB_RIGID_BODY, B_REDR, "Rigid Body", 190,205,80,19, 
 					  &ob->gameflag, 0, 0, 0, 0, 
 					  "Enable rolling physics");
-			uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, B_REDR, "No sleeping", 250,205,100,19, 
+			uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, B_REDR, "No sleeping", 270,205,80,19, 
 					  &ob->gameflag, 0, 0, 0, 0, 
 					  "Disable auto (de)activation");
 
@@ -2437,16 +2438,13 @@ void buttons_ketsji(uiBlock *block, Object *ob)
 		}
 	}
 
-	//if (!(ob->gameflag & OB_GHOST)) 
-	//Ghost can be any bound type in Bullet
-	{
+	if (!(ob->gameflag & OB_GHOST)) {
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, OB_BOUNDS, B_REDR, "Bounds", 10, 125, 75, 19,
 				&ob->gameflag, 0, 0,0, 0,
 				"Specify a bounds object for physics");
 		if (ob->gameflag & OB_BOUNDS) {
 			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull Polytope%x5|Static TriangleMesh %x4",
-			//almost ready to enable this one:			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull Polytope%x5|Static TriangleMesh %x4|Dynamic Mesh %x5|",
 				85, 125, 160, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
 			uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 250,125,100,19, 
 					  &ob->gameflag, 0, 0, 0, 0, 
@@ -2454,6 +2452,60 @@ void buttons_ketsji(uiBlock *block, Object *ob)
 		}
 		uiBlockEndAlign(block);
 	}
+}
+
+void buttons_bullet(uiBlock *block, Object *ob)
+{
+	uiBlockBeginAlign(block);
+	uiDefButBitI(block, TOG, OB_ACTOR, B_REDR, "Actor",
+			  10,205,55,19, &ob->gameflag, 0, 0, 0, 0,
+			  "Objects that are evaluated by the engine ");
+	if(ob->gameflag & OB_ACTOR) {	
+		uiDefButBitI(block, TOG, OB_GHOST, B_REDR, "Ghost", 65,205,55,19, 
+				  &ob->gameflag, 0, 0, 0, 0, 
+				  "Objects that don't restitute collisions (like a ghost)");
+		uiDefButBitI(block, TOG, OB_DYNAMIC, B_REDR, "Dynamic", 120,205,70,19, 
+				  &ob->gameflag, 0, 0, 0, 0, 
+				  "Motion defined by laws of physics");
+	
+		if(ob->gameflag & OB_DYNAMIC) {
+			uiDefButBitI(block, TOG, OB_RIGID_BODY, B_REDR, "Rigid Body", 190,205,80,19, 
+					  &ob->gameflag, 0, 0, 0, 0, 
+					  "Enable rolling physics");
+			uiDefButBitI(block, TOG, OB_COLLISION_RESPONSE, B_REDR, "No sleeping", 270,205,80,19, 
+					  &ob->gameflag, 0, 0, 0, 0, 
+					  "Disable auto (de)activation");
+
+			uiDefButF(block, NUM, B_DIFF, "Mass:", 10, 185, 170, 19, 
+					  &ob->mass, 0.01, 10000.0, 10, 2, 
+					  "The mass of the Object");
+			uiDefButF(block, NUM, REDRAWVIEW3D, "Radius:", 180, 185, 170, 19, 
+					  &ob->inertia, 0.01, 10.0, 10, 2, 
+					  "Bounding sphere radius");
+
+			uiDefButF(block, NUMSLI, B_DIFF, "Damp ", 10, 165, 150, 19, 
+					  &ob->damping, 0.0, 1.0, 10, 0, 
+					  "General movement damping");
+			uiDefButF(block, NUMSLI, B_DIFF, "RotDamp ", 160, 165, 190, 19, 
+					  &ob->rdamping, 0.0, 1.0, 10, 0, 
+					  "General rotation damping");
+		}
+	}
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+	uiDefButBitI(block, TOG, OB_BOUNDS, B_REDR, "Bounds", 10, 125, 75, 19,
+		     &ob->gameflag, 0, 0,0, 0,
+		     "Specify a bounds object for physics");
+	if (ob->gameflag & OB_BOUNDS) {
+		uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull Polytope%x5|Static TriangleMesh %x4",
+		  //almost ready to enable this one:			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Convex Hull Polytope%x5|Static TriangleMesh %x4|Dynamic Mesh %x5|",
+			  85, 125, 160, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
+		uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 250,125,100,19, 
+			     &ob->gameflag, 0, 0, 0, 0, 
+			     "Add Children");
+	}
+	uiBlockEndAlign(block);
 }
 
 /* never used, see CVS 1.134 for the code */
@@ -2492,14 +2544,22 @@ void logic_buts(void)
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 
 	if(wrld) {
-		if 
-			(wrld->physicsEngine == 1) buttons_enji(block, ob);
-		else
+		switch(wrld->physicsEngine) {
+		case WOPHY_ENJI:
+			buttons_enji(block, ob);
+			break;
+		case WOPHY_BULLET:
+			buttons_bullet(block, ob);
+			break;
+		default:
 			buttons_ketsji(block, ob);
+			break;
+		}
 	}
 	else buttons_ketsji(block, ob);
 	
 	uiBlockSetCol(block, TH_AUTO);
+	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT, B_ADD_PROP, "Add Property",		10, 90, 340, 24,
 			 NULL, 0.0, 100.0, 100, 0,
 			 "");
@@ -2508,13 +2568,11 @@ void logic_buts(void)
 	
 	a= 0;
 	prop= ob->prop.first;
-//	uiBlockBeginAlign(block);
 	while(prop) {
-		uiBlockBeginAlign(block);
-		but= uiDefBut(block, BUT, 1, "Del",		10, (short)(70-20*a), 40, 19, NULL, 0.0, 0.0, 1, (float)a, "");
+		but= uiDefBut(block, BUT, 1, "Del",		10, (short)(70-20*a), 40, 20, NULL, 0.0, 0.0, 1, (float)a, "");
 		uiButSetFunc(but, del_property, prop, NULL);
-		uiDefButS(block, MENU, B_CHANGE_PROP, pupstr,		50, (short)(70-20*a), 60, 19, &prop->type, 0, 0, 0, 0, "");
-		but= uiDefBut(block, TEX, 1, "Name:",					110, (short)(70-20*a), 105, 19, prop->name, 0, 31, 0, 0, "");
+		uiDefButS(block, MENU, B_CHANGE_PROP, pupstr,		50, (short)(70-20*a), 60, 20, &prop->type, 0, 0, 0, 0, "");
+		but= uiDefBut(block, TEX, 1, "Name:",					110, (short)(70-20*a), 110, 20, prop->name, 0, 31, 0, 0, "");
 		uiButSetFunc(but, make_unique_prop_names_cb, prop->name, (void*) 1);
 		
 		if (strcmp(prop->name, "Text") == 0) {
@@ -2524,27 +2582,26 @@ void logic_buts(void)
 		}
 
 		if(prop->type==PROP_BOOL) {
-			uiDefButBitI(block, TOG, 1, B_REDR, "True",		215, (short)(70-20*a), 55, 19, &prop->data, 0, 0, 0, 0, "");
-			uiDefButBitI(block, TOGN, 1, B_REDR, "False",	270, (short)(70-20*a), 55, 19, &prop->data, 0, 0, 0, 0, "");
+			uiDefButBitI(block, TOG, 1, B_REDR, "True",		220, (short)(70-20*a), 55, 20, &prop->data, 0, 0, 0, 0, "");
+			uiDefButBitI(block, TOGN, 1, B_REDR, "False",	270, (short)(70-20*a), 55, 20, &prop->data, 0, 0, 0, 0, "");
 		}
 		else if(prop->type==PROP_INT) 
-			uiDefButI(block, NUM, butreturn, "",			215, (short)(70-20*a), 110, 19, &prop->data, -10000, 10000, 0, 0, "");
+			uiDefButI(block, NUM, butreturn, "",			220, (short)(70-20*a), 110, 20, &prop->data, -10000, 10000, 0, 0, "");
 		else if(prop->type==PROP_FLOAT) 
-			uiDefButF(block, NUM, butreturn, "",			215, (short)(70-20*a), 110, 19, (float*) &prop->data, -10000, 10000, 100, 3, "");
+			uiDefButF(block, NUM, butreturn, "",			220, (short)(70-20*a), 110, 20, (float*) &prop->data, -10000, 10000, 100, 3, "");
 		else if(prop->type==PROP_STRING) 
-			uiDefBut(block, TEX, butreturn, "",				215, (short)(70-20*a), 110, 19, prop->poin, 0, 127, 0, 0, "");
+			uiDefBut(block, TEX, butreturn, "",				220, (short)(70-20*a), 110, 20, prop->poin, 0, 127, 0, 0, "");
 		else if(prop->type==PROP_TIME) 
-			uiDefButF(block, NUM, butreturn, "",			215, (short)(70-20*a), 110, 19, (float*) &prop->data, -10000, 10000, 0, 0, "");
+			uiDefButF(block, NUM, butreturn, "",			220, (short)(70-20*a), 110, 20, (float*) &prop->data, -10000, 10000, 0, 0, "");
 		
-		uiDefButBitS(block, TOG, PROP_DEBUG, 0, "D",		325, (short)(70-20*a), 20, 19, &prop->flag, 0, 0, 0, 0, "Print Debug info");
-		uiBlockEndAlign(block);
+		uiDefButBitS(block, TOG, PROP_DEBUG, 0, "D",		330, (short)(70-20*a), 20, 20, &prop->flag, 0, 0, 0, 0, "Print Debug info");
 		
 		a++;
 		prop= prop->next;
 		
 	}
-//	uiBlockEndAlign(block);
-//  Note: something is wrong with alignment... it attempts to align the next buttons now? will check later...
+	uiBlockEndAlign(block);
+
 	uiClearButLock();
 
 	idar= get_selected_and_linked_obs(&count, G.buts->scaflag);
