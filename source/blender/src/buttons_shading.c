@@ -2939,8 +2939,8 @@ void do_matbuts(unsigned short event)
 }
 
 
-
-static void material_panel_map_to(Material *ma)
+/* if from nodes, hide options that are not available */
+static void material_panel_map_to(Material *ma, int from_nodes)
 {
 	uiBlock *block;
 	MTex *mtex;
@@ -2996,7 +2996,8 @@ static void material_panel_map_to(Material *ma)
 	uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Alpha",		110,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
 	uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		160,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
 	uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		205,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the layer blending value");
-	uiDefButBitS(block, TOG3, MAP_DISPLACE, B_MATPRV, "Disp",		265,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
+	if(from_nodes==0)
+		uiDefButBitS(block, TOG3, MAP_DISPLACE, B_MATPRV, "Disp",		265,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
@@ -3689,6 +3690,8 @@ void material_panels()
 	
 	// type numbers are ordered
 	if((ob->type<OB_LAMP) && ob->type) {
+		int from_nodes= 0;
+		
 		ma= give_current_material(ob, ob->actcol);
 
 		// always draw first 2 panels
@@ -3697,6 +3700,7 @@ void material_panels()
 		
 		if(ma && ma->use_nodes) {
 			material_panel_nodes(ma);
+			from_nodes= 1;
 		}
 		
 		ma= editnode_get_active_material(ma);
@@ -3720,7 +3724,7 @@ void material_panels()
 			mtex= ma->mtex[ ma->texact ];
 			if(mtex && mtex->tex) {
 				material_panel_map_input(ob, ma);
-				material_panel_map_to(ma);
+				material_panel_map_to(ma, from_nodes);
 			}
 		}
 	}
