@@ -127,6 +127,8 @@ void persptoetsen(unsigned short event)
 	static int perspo=1;
 	int preview3d_event= 1;
 	
+	float new_quat[4], new_dist;
+	
 	if(event==PADENTER) {
 		if (G.qual == LR_SHIFTKEY) {
 			view3d_set_1_to_1_viewborder(G.vd);
@@ -134,7 +136,8 @@ void persptoetsen(unsigned short event)
 			if (G.vd->persp==2) {
 				G.vd->camzoom= 0;
 			} else {
-				G.vd->dist= 10.0;
+				new_dist = 10.0;
+				smooth_view(G.vd, NULL, NULL, &new_dist);
 			}
 		}
 	}
@@ -149,28 +152,35 @@ void persptoetsen(unsigned short event)
 			/* G.vd->persp= 3; */
 		}
 		else if(event==PAD7) {
-			G.vd->viewquat[0]= 0.0;
-			G.vd->viewquat[1]= -1.0;
-			G.vd->viewquat[2]= 0.0;
-			G.vd->viewquat[3]= 0.0;
+			new_quat[0]=0.0;
+			new_quat[1]=-1.0;
+			new_quat[2]=0.0;
+			new_quat[3]=0.0;
+			G.vd->view= 0;
+			smooth_view(G.vd, NULL, new_quat, NULL);
 			G.vd->view= 7;
+			
 			if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 0; 
 			else if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PAD1) {
-			G.vd->viewquat[0]= 0.0;
-			G.vd->viewquat[1]= 0.0;
-			G.vd->viewquat[2]= (float)-cos(M_PI/4.0);
-			G.vd->viewquat[3]= (float)-cos(M_PI/4.0);
+			new_quat[0]=0.0;
+			new_quat[1]=0.0;
+			new_quat[2]=(float)-cos(M_PI/4.0);
+			new_quat[3]=(float)-cos(M_PI/4.0);
+			G.vd->view=0;
+			smooth_view(G.vd, NULL, new_quat, NULL);
 			G.vd->view=1;
 			if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 0;
 			else if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PAD3) {
-			G.vd->viewquat[0]= 0.5;
-			G.vd->viewquat[1]= -0.5;
-			G.vd->viewquat[2]= 0.5;
-			G.vd->viewquat[3]= 0.5;
+			new_quat[0]= 0.5;
+			new_quat[1]=-0.5;
+			new_quat[2]= 0.5;
+			new_quat[3]= 0.5;
+			G.vd->view=0;
+			smooth_view(G.vd, NULL, new_quat, NULL);
 			G.vd->view=3;
 			if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 0;
 			else if(G.vd->persp>=2) G.vd->persp= perspo;
@@ -211,28 +221,34 @@ void persptoetsen(unsigned short event)
 		
 
 		if(event==PAD7) {
-			G.vd->viewquat[0]= 1.0;
-			G.vd->viewquat[1]= 0.0;
-			G.vd->viewquat[2]= 0.0;
-			G.vd->viewquat[3]= 0.0;
+			new_quat[0]=1.0;
+			new_quat[1]=0.0;
+			new_quat[2]=0.0;
+			new_quat[3]=0.0;
+			G.vd->view=0;
+			smooth_view(G.vd, NULL, new_quat, NULL);
 			G.vd->view=7;
 			if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 0;
 			else if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PAD1) {
-			G.vd->viewquat[0]= (float)cos(M_PI/4.0);
-			G.vd->viewquat[1]= (float)-sin(M_PI/4.0);
-			G.vd->viewquat[2]= 0.0;
-			G.vd->viewquat[3]= 0.0;
+			new_quat[0]= (float)cos(M_PI/4.0);
+			new_quat[1]= (float)-sin(M_PI/4.0);
+			new_quat[2]= 0.0;
+			new_quat[3]= 0.0;
+			G.vd->view=0;
+			smooth_view(G.vd, NULL, new_quat, NULL);
 			G.vd->view=1;
 			if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 0;
 			else if(G.vd->persp>=2) G.vd->persp= perspo;
 		}
 		else if(event==PAD3) {
-			G.vd->viewquat[0]= 0.5;
-			G.vd->viewquat[1]= -0.5;
-			G.vd->viewquat[2]= -0.5;
-			G.vd->viewquat[3]= -0.5;
+			new_quat[0]= 0.5;
+			new_quat[1]= -0.5;
+			new_quat[2]= -0.5;
+			new_quat[3]= -0.5;
+			G.vd->view=0;
+			smooth_view(G.vd, NULL, new_quat, NULL);
 			G.vd->view=3;
 			if (U.uiflag & USER_AUTOPERSP) G.vd->persp= 0;
 			else if(G.vd->persp>=2) G.vd->persp= perspo;

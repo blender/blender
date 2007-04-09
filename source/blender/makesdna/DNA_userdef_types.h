@@ -179,6 +179,8 @@ typedef struct UserDef {
 	char versemaster[160];
 	char verseuser[160];
 	short recent_files;		/* maximum number of recently used files to remember  */
+	short smooth_viewtx;	/* miliseconds to spend spinning the view */
+	char pad[6];
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */

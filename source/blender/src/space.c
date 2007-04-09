@@ -1331,10 +1331,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						G.vd->camdx= G.vd->camdy= 0.0;
 					else {
 						/*non camera center*/
+						float new_ofs[3];
 						curs= give_cursor();
-						G.vd->ofs[0]= -curs[0];
-						G.vd->ofs[1]= -curs[1];
-						G.vd->ofs[2]= -curs[2];
+						new_ofs[0]= -curs[0];
+						new_ofs[1]= -curs[1];
+						new_ofs[2]= -curs[2];
+						smooth_view(G.vd, new_ofs, NULL, NULL);
 					}
 				}
 				doredraw= 1;
@@ -1734,10 +1736,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						G.vd->camdx= G.vd->camdy= 0.0;
 					else {
 						/*non camera center*/
+						float new_ofs[3];
 						curs= give_cursor();
-						G.vd->ofs[0]= -curs[0];
-						G.vd->ofs[1]= -curs[1];
-						G.vd->ofs[2]= -curs[2];
+						new_ofs[0]= -curs[0];
+						new_ofs[1]= -curs[1];
+						new_ofs[2]= -curs[2];
+						smooth_view(G.vd, new_ofs, NULL, NULL);
 					}
 					scrarea_queue_winredraw(curarea);
 				}
@@ -3328,7 +3332,12 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(3*mpref)+(4*midsp)),y1,(mpref),buth,
 			&U.pad_rot_angle, 0, 90, 0, 0,
 			"The rotation step for numerical pad keys (2 4 6 8)");
-
+		
+        uiDefButS(block, NUM, B_DRAWINFO, "Smooth View:",
+			(xpos+edgsp+(4*mpref)+(5*midsp)),y1,(mpref),buth,
+			&U.smooth_viewtx, 0, 1000, 0, 0,
+			"The time to animate the view in miliseconds, zero to disable");
+		
 		uiDefBut(block, LABEL,0,"Select with:",
 			(xpos+(2*edgsp)+(3*mpref)+(3*midsp)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");

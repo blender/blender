@@ -2058,6 +2058,10 @@ void view3d_border_zoom(void)
 	short val;
 	float dvec[3], vb[2], xscale, yscale, scale;
 	
+	/* SMOOTHVIEW */
+	float new_dist;
+	float new_ofs[3];
+	
 	/* doesn't work fine for perspective */
 	if(G.vd->persp==1)
 		return;
@@ -2069,12 +2073,18 @@ void view3d_border_zoom(void)
 		vb[0] = G.vd->area->winx;
 		vb[1] = G.vd->area->winy;
 		
+		new_dist = G.vd->dist;
+		new_ofs[0] = G.vd->ofs[0];
+		new_ofs[1] = G.vd->ofs[1];
+		new_ofs[2] = G.vd->ofs[2];
+		
 		/* convert the drawn rectangle into 3d space */
-		initgrabz(-G.vd->ofs[0], -G.vd->ofs[1], -G.vd->ofs[2]);
+		initgrabz(-new_ofs[0], -new_ofs[1], -new_ofs[2]);
+		
 		window_to_3d(dvec, (rect.xmin+rect.xmax-vb[0])/2, (rect.ymin+rect.ymax-vb[1])/2);
 		
 		/* center the view to the center of the rectangle */
-		VecSubf(G.vd->ofs, G.vd->ofs, dvec);
+		VecSubf(new_ofs, new_ofs, dvec);
 		
 		/* work out the ratios, so that everything selected fits when we zoom */
 		xscale = ((rect.xmax-rect.xmin)/vb[0]);
@@ -2082,7 +2092,10 @@ void view3d_border_zoom(void)
 		scale = (xscale >= yscale)?xscale:yscale;
 		
 		/* zoom in as required, or as far as we can go */
-		G.vd->dist = ((G.vd->dist*scale) >= 0.001*G.vd->grid)? G.vd->dist*scale:0.001*G.vd->grid;
+		new_dist = ((new_dist*scale) >= 0.001*G.vd->grid)? new_dist*scale:0.001*G.vd->grid;
+		
+		smooth_view(G.vd, new_ofs, NULL, &new_dist);
+		
 	}
 }
 

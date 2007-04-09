@@ -87,6 +87,8 @@
 #include "mydevice.h"
 #include "blendef.h"
 
+#include "PIL_time.h" /* smoothview */
+
 #define TRACKBALLSIZE  (1.1)
 #define BL_NEAR_CLIP 0.001
 
@@ -1248,7 +1250,7 @@ void initlocalview()
 		scrarea_queue_winredraw(curarea);
 	}
 	else {
-		/* clear flags */
+		/* clear flags */ 
 		base= FIRSTBASE;
 		while(base) {
 			if( base->lay & locallay ) {
@@ -1271,7 +1273,12 @@ void centerview()	/* like a localview without local! */
 	Object *ob= OBACT;
 	float size, min[3], max[3], afm[3];
 	int ok=0;
-
+	
+	/* SMOOTHVIEW */
+	float new_ofs[3];
+	float new_dist;
+	
+	
 	min[0]= min[1]= min[2]= 1.0e10;
 	max[0]= max[1]= max[2]= -1.0e10;
 
@@ -1340,27 +1347,29 @@ void centerview()	/* like a localview without local! */
 	
 	if(size<=0.01) size= 0.01;
 	
-	G.vd->ofs[0]= -(min[0]+max[0])/2.0;
-	G.vd->ofs[1]= -(min[1]+max[1])/2.0;
-	G.vd->ofs[2]= -(min[2]+max[2])/2.0;
-
-	G.vd->dist= size;
+	new_ofs[0]= -(min[0]+max[0])/2.0;
+	new_ofs[1]= -(min[1]+max[1])/2.0;
+	new_ofs[2]= -(min[2]+max[2])/2.0;
+	
+	new_dist = size;
 
 	// correction for window aspect ratio
 	if(curarea->winy>2 && curarea->winx>2) {
 		size= (float)curarea->winx/(float)curarea->winy;
 		if(size<1.0) size= 1.0/size;
-		G.vd->dist*= size;
+		new_dist*= size;
 	}
 	
 	if(G.vd->persp>1) {
 		G.vd->persp= 1;
 	}
-
-	G.vd->cursor[0]= -G.vd->ofs[0];
-	G.vd->cursor[1]= -G.vd->ofs[1];
-	G.vd->cursor[2]= -G.vd->ofs[2];
-
+	
+	G.vd->cursor[0]= -new_ofs[0];
+	G.vd->cursor[1]= -new_ofs[1];
+	G.vd->cursor[2]= -new_ofs[2];
+	
+	smooth_view(G.vd, new_ofs, NULL, &new_dist);
+	
 	scrarea_queue_winredraw(curarea);
 	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 
@@ -1425,7 +1434,7 @@ void endlocalview(ScrArea *sa)
 		allqueue(REDRAWVIEW3D, 0);	/* because of select */
 		allqueue(REDRAWOOPS, 0);	/* because of select */
 		BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
-	}
+	} 
 }
 
 void view3d_home(int center)
@@ -1458,21 +1467,24 @@ void view3d_home(int center)
 	if(size==0.0) ok= 0;
 		
 	if(ok) {
-
-		G.vd->ofs[0]= -(min[0]+max[0])/2.0;
-		G.vd->ofs[1]= -(min[1]+max[1])/2.0;
-		G.vd->ofs[2]= -(min[2]+max[2])/2.0;
-
-		G.vd->dist= size;
+		float new_dist;
+		float new_ofs[3];
+		
+		new_dist = size;
+		new_ofs[0]= -(min[0]+max[0])/2.0;
+		new_ofs[1]= -(min[1]+max[1])/2.0;
+		new_ofs[2]= -(min[2]+max[2])/2.0;
 		
 		// correction for window aspect ratio
 		if(curarea->winy>2 && curarea->winx>2) {
 			size= (float)curarea->winx/(float)curarea->winy;
 			if(size<1.0) size= 1.0/size;
-			G.vd->dist*= size;
+			new_dist*= size;
 		}
 		
 		if(G.vd->persp==2) G.vd->persp= 1;
+		 
+		smooth_view(G.vd, new_ofs, NULL, &new_dist);
 		
 		scrarea_queue_winredraw(curarea);
 	}
@@ -1498,5 +1510,110 @@ void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
 
 	v3d->view= 0;
 	if (v3d->persp>=2) v3d->persp= 0; /* switch out of camera mode */
+}
+
+
+
+/* SMOOTHVIEW */
+void smooth_view(View3D *v3d, float *ofs, float *quat, float *dist)
+{
+	/* View Animation enabled */
+	if (U.smooth_viewtx) {
+		int i;
+		char changed = 0;
+		float step = 0.0, step_inv;
+		float orig_dist;
+		float orig_quat[4];
+		float orig_ofs[3];
+		
+		double time_allowed, time_current, time_start;
+		
+		/* if there is no difference, return */
+		changed = 0; /* zero means no difference */
+		if (dist) {
+			if ((*dist) != v3d->dist)
+				changed = 1;
+		}
+		
+		if (!changed && ofs) {
+			if ((ofs[0]!=v3d->ofs[0]) ||
+				(ofs[1]!=v3d->ofs[1]) ||
+				(ofs[2]!=v3d->ofs[2]) )
+				changed = 1;
+		}
+		
+		if (!changed && quat ) {
+			if ((quat[0]!=v3d->viewquat[0]) ||
+				(quat[1]!=v3d->viewquat[1]) ||
+				(quat[2]!=v3d->viewquat[2]) ||
+				(quat[3]!=v3d->viewquat[3]) )
+				changed = 1;
+		}
+		
+		/* The new view is different from teh old one
+		 * so animate the view */
+		if (changed) {
+			
+			/* store original values */
+			VECCOPY(orig_ofs,	v3d->ofs);
+			QUATCOPY(orig_quat,	v3d->viewquat);
+			orig_dist =			v3d->dist;
+			
+			time_allowed= (float)U.smooth_viewtx / 1000.0;
+			time_current = time_start = PIL_check_seconds_timer();
+			
+			/* if this is view rotation only
+			 * we can decrease the time allowed by
+			 * the angle between quats 
+			 * this means small rotations wont lag */
+			 if (quat && !ofs && !dist) {
+			 	float vec1[3], vec2[3];
+			 	VECCOPY(vec1, quat);
+			 	VECCOPY(vec2, v3d->viewquat);
+			 	Normalize(vec1);
+			 	Normalize(vec2);
+			 	/* scale the time allowed by the rotation */
+			 	time_allowed *= NormalizedVecAngle2(vec1, vec2)/(M_PI/2); 
+			 }
+			
+			while (time_start + time_allowed > time_current) {
+				
+				step =  (float)((time_current-time_start) / time_allowed);
+				
+				/* ease in/out */
+				if (step < 0.5)	step = pow(step*2, 2)/2;
+				else			step = 1-(pow(2*(1-step) ,2)/2);
+				
+				step_inv = 1-step;
+				
+				if (ofs)
+					for (i=0; i<3; i++)
+						v3d->ofs[i] = ofs[i]*step + orig_ofs[i]*step_inv;
+				
+				if (quat)
+					QuatInterpol(v3d->viewquat, orig_quat, quat, step);
+					
+				if (dist) {
+					v3d->dist = ((*dist)*step) + (orig_dist*step_inv);
+				}
+				
+				/*redraw the view*/
+				scrarea_do_windraw(curarea);
+				screen_swapbuffers();
+				
+				time_current= PIL_check_seconds_timer();
+			}
+		}
+	}
+	
+	/* set these values even if animation is enabled because flaot
+	 * error will make then not quite accurate */
+	if (ofs)
+		VECCOPY(v3d->ofs, ofs);
+	if (quat)
+		QUATCOPY(v3d->viewquat, quat);
+	if (dist)
+		v3d->dist = *dist;
+	
 }
 

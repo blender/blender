@@ -78,5 +78,8 @@ int play_anim(int mode);
 
 void make_axis_color(char *col, char *col2, char axis);
 
+/* SMOOTHVIEW */
+void smooth_view(struct View3D *v3d, float *ofs, float *quat, float *dist);
+
 #endif /* BSE_DRAWVIEW_H */
 
