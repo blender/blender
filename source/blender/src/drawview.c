@@ -1977,25 +1977,26 @@ void do_viewbuts(unsigned short event)
 
 	case B_OBJECTPANELSCALE:
 		if(ob) {
-			float ratio, tmp, max = 0.0;
-			int axis;
 
-			/* figure out which axis changed */
-			axis = 0;
-			max = fabs(tfp->ob_scale[0] - ob->size[0]);
-			tmp = fabs(tfp->ob_scale[1] - ob->size[1]);
-			if (tmp > max) {
-				axis = 1;
-				max = tmp;
-			}
-			tmp = fabs(tfp->ob_scale[2] - ob->size[2]);
-			if (tmp > max) {
-				axis = 2;
-				max = tmp;
-			}
-		
-			if (ob->size[axis] != tfp->ob_scale[axis]) {
-				if (tfp->link_scale) {
+			/* link scale; figure out which axis changed */
+			if (tfp->link_scale) {
+				float ratio, tmp, max = 0.0;
+				int axis;
+				
+				axis = 0;
+				max = fabs(tfp->ob_scale[0] - ob->size[0]);
+				tmp = fabs(tfp->ob_scale[1] - ob->size[1]);
+				if (tmp > max) {
+					axis = 1;
+					max = tmp;
+				}
+				tmp = fabs(tfp->ob_scale[2] - ob->size[2]);
+				if (tmp > max) {
+					axis = 2;
+					max = tmp;
+				}
+			
+				if (ob->size[axis] != tfp->ob_scale[axis]) {
 					if (fabs(ob->size[axis]) > FLT_EPSILON) {
 						ratio = tfp->ob_scale[axis] / ob->size[axis];
 						ob->size[0] *= ratio;
@@ -2003,11 +2004,13 @@ void do_viewbuts(unsigned short event)
 						ob->size[2] *= ratio;
 					}
 				}
-				ob->size[axis] = tfp->ob_scale[axis];
-
-				DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
-				allqueue(REDRAWVIEW3D, 1);
 			}
+			else {
+				VECCOPY(ob->size, tfp->ob_scale);
+				
+			}
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+			allqueue(REDRAWVIEW3D, 1);
 		}
 		break;
 
