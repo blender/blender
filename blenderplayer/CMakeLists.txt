@@ -66,8 +66,6 @@ IF(UNIX)
     bf_decimation 
     bf_blenloader 
     bf_blenpluginapi 
-    bf_imbuf 
-    bf_avi 
     bf_blroutines 
     bf_converter 
     bf_sumo 
@@ -85,6 +83,9 @@ IF(UNIX)
     bf_moto 
     bf_soundsystem 
     bf_kernel 
+    bf_nodes
+    bf_imbuf
+    bf_avi 
     kx_network 
     bf_ngnetwork 
     bf_loopbacknetwork 
