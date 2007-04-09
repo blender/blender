@@ -80,7 +80,7 @@ void viewmove(int mode);
 int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend);
 void setwinmatrixview3d(int winx, int winy, struct rctf *rect);
 
-void obmat_to_viewmat(struct Object *ob);
+void obmat_to_viewmat(struct Object *ob, short smooth);
 void setviewmatrixview3d(void);
 float *give_cursor(void);
 unsigned int free_localbit(void);

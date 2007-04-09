@@ -2432,7 +2432,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							}
 						}
 						else
-							obmat_to_viewmat(ob);
+							obmat_to_viewmat(ob, 1);
 						
 						if(G.vd->persp==2) G.vd->persp= 1;
 						scrarea_queue_winredraw(curarea);

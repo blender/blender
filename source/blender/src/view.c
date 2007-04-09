@@ -942,7 +942,7 @@ void setwinmatrixview3d(int winx, int winy, rctf *rect)		/* rect: for picking */
 	glMatrixMode(GL_MODELVIEW);
 }
 
-void obmat_to_viewmat(Object *ob)
+void obmat_to_viewmat(Object *ob, short smooth)
 {
 	float bmat[4][4];
 	float tmat[3][3];
@@ -953,7 +953,13 @@ void obmat_to_viewmat(Object *ob)
 	
 	/* view quat calculation, needed for add object */
 	Mat3CpyMat4(tmat, G.vd->viewmat);
-	Mat3ToQuat(tmat, G.vd->viewquat);
+	if (smooth) {
+		float new_quat[4];
+		Mat3ToQuat(tmat, new_quat);
+		smooth_view(G.vd, NULL, new_quat, NULL);
+	} else {
+		Mat3ToQuat(tmat, G.vd->viewquat);
+	}
 }
 
 /* dont set windows active in in here, is used by renderwin too */
@@ -965,7 +971,7 @@ void setviewmatrixview3d()
 		if(G.vd->camera) {
 			
 			where_is_object(G.vd->camera);	
-			obmat_to_viewmat(G.vd->camera);
+			obmat_to_viewmat(G.vd->camera, 0);
 			
 			if(G.vd->camera->type==OB_CAMERA) {
 				cam= G.vd->camera->data;
@@ -1496,7 +1502,7 @@ void view3d_home(int center)
 void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
 {
 	float alignaxis[3];
-	float norm[3], axis[3], angle;
+	float norm[3], axis[3], angle, new_quat[4];
 
 	alignaxis[0]= alignaxis[1]= alignaxis[2]= 0.0;
 	alignaxis[axisidx]= 1.0;
@@ -1506,10 +1512,12 @@ void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
 
 	angle= acos(Inpf(alignaxis, norm));
 	Crossf(axis, alignaxis, norm);
-	VecRotToQuat(axis, -angle, v3d->viewquat);
+	VecRotToQuat(axis, -angle, new_quat);
 
 	v3d->view= 0;
 	if (v3d->persp>=2) v3d->persp= 0; /* switch out of camera mode */
+	
+	smooth_view(v3d, NULL, new_quat, NULL);
 }
 
 
