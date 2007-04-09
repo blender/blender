@@ -1658,9 +1658,15 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	if(block) {	// buttons
 	
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
-		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",		230, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
-		
+		if((ob->parent) && (ob->partype == PARBONE)) {
+			uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, 135, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
+			uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",		230, 135, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
+		}
+		else {
+			uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
+			uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",		230, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
+		}
+
 		memcpy(tfp->ve_median, median, sizeof(tfp->ve_median));
 		
 		uiBlockBeginAlign(block);
@@ -1841,8 +1847,11 @@ static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 			break;
 	}
 	if (!pchan || !bone) return;
-	
-	but= uiDefBut(block, TEX, B_DIFF, "Bone:",				160, 140, 140, 19, bone->name, 1, 31, 0, 0, "");
+
+	if((ob->parent) && (ob->partype == PARBONE))
+		but= uiDefBut (block, TEX, B_DIFF, "Bone:",				160, 130, 140, 19, bone->name, 1, 31, 0, 0, "");
+	else
+		but= uiDefBut(block, TEX, B_DIFF, "Bone:",				160, 140, 140, 19, bone->name, 1, 31, 0, 0, "");
 	uiButSetFunc(but, validate_bonebutton_cb, bone, NULL);
 	
 	QuatToEul(pchan->quat, tfp->ob_eul);
@@ -1893,7 +1902,10 @@ static void v3d_editarmature_buts(uiBlock *block, Object *ob, float lim)
 	if (!ebone)
 		return;
 	
-	but= uiDefBut(block, TEX, B_DIFF, "Bone:",			160, 150, 140, 19, ebone->name, 1, 31, 0, 0, "");
+	if((ob->parent) && (ob->partype == PARBONE))
+		but= uiDefBut(block, TEX, B_DIFF, "Bone:", 160, 130, 140, 19, ebone->name, 1, 31, 0, 0, "");
+	else
+		but= uiDefBut(block, TEX, B_DIFF, "Bone:",			160, 150, 140, 19, ebone->name, 1, 31, 0, 0, "");
 	uiButSetFunc(but, validate_editbonebutton_cb, ebone, NULL);
 
 	uiBlockBeginAlign(block);
@@ -2068,6 +2080,8 @@ void do_viewbuts(unsigned short event)
 			allqueue(REDRAWVIEW3D, 1);
 		}
 		break;
+		
+		/* note; this case also used for parbone */
 	case B_OBJECTPANELPARENT:
 		if(ob) {
 			if(ob->id.lib || test_parent_loop(ob->parent, ob) ) 
@@ -2202,6 +2216,12 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 
 
 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
+		if((ob->parent) && (ob->partype == PARBONE)) {
+			if (G.f & G_SCULPTMODE)
+				uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 310, 180, 140, 20, ob->parsubstr, 0.0, 32.0, 0, 0, "");
+			else
+				uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0.0, 32.0, 0, 0, "");
+		}
 	}
 
 	lim= 10000.0f*MAX2(1.0, G.vd->grid);
@@ -2251,12 +2271,23 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		tfp->ob_eul[2]= 180.0*ob->rot[2]/M_PI;
 		
 		uiBlockBeginAlign(block);
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, REDRAWVIEW3D, ICON_UNLOCKED,	160,150,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotX:",	180, 150, 120, 19, &(tfp->ob_eul[0]), -lim, lim, 1000, 3, "");
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, REDRAWVIEW3D, ICON_UNLOCKED,	160,130,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	180, 130, 120, 19, &(tfp->ob_eul[1]), -lim, lim, 1000, 3, "");
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, REDRAWVIEW3D, ICON_UNLOCKED,	160,110,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	180, 110, 120, 19, &(tfp->ob_eul[2]), -lim, lim, 1000, 3, "");
+		if ((ob->parent) && (ob->partype == PARBONE)) {
+			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, REDRAWVIEW3D, ICON_UNLOCKED,	160,130,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "RotX:",	180, 130, 120, 19, &(tfp->ob_eul[0]), -lim, lim, 1000, 3, "");
+			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, REDRAWVIEW3D, ICON_UNLOCKED,	160,110,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	180, 110, 120, 19, &(tfp->ob_eul[1]), -lim, lim, 1000, 3, "");
+			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, REDRAWVIEW3D, ICON_UNLOCKED,	160,90,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	180, 90, 120, 19, &(tfp->ob_eul[2]), -lim, lim, 1000, 3, "");
+
+		}
+		else {
+			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, REDRAWVIEW3D, ICON_UNLOCKED,	160,150,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "RotX:",	180, 150, 120, 19, &(tfp->ob_eul[0]), -lim, lim, 1000, 3, "");
+			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, REDRAWVIEW3D, ICON_UNLOCKED,	160,130,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	180, 130, 120, 19, &(tfp->ob_eul[1]), -lim, lim, 1000, 3, "");
+			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, REDRAWVIEW3D, ICON_UNLOCKED,	160,110,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	180, 110, 120, 19, &(tfp->ob_eul[2]), -lim, lim, 1000, 3, "");
+		}
 
 		tfp->ob_scale[0]= ob->size[0];
 		tfp->ob_scale[1]= ob->size[1];
@@ -2284,9 +2315,17 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 			tfp->ob_dims[2] = fabs(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
 
 			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimX:",		160, 80, 140, 19, &(tfp->ob_dims[0]), 0.0, lim, 10, 3, "Manipulate bounding box size");
-			uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimY:",		160, 60, 140, 19, &(tfp->ob_dims[1]), 0.0, lim, 10, 3, "Manipulate bounding box size");
-			uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimZ:",		160, 40, 140, 19, &(tfp->ob_dims[2]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+			if ((ob->parent) && (ob->partype == PARBONE)) {
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimX:",		160, 60, 140, 19, &(tfp->ob_dims[0]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimY:",		160, 40, 140, 19, &(tfp->ob_dims[1]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimZ:",		160, 20, 140, 19, &(tfp->ob_dims[2]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+
+			}
+			else {
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimX:",		160, 80, 140, 19, &(tfp->ob_dims[0]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimY:",		160, 60, 140, 19, &(tfp->ob_dims[1]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimZ:",		160, 40, 140, 19, &(tfp->ob_dims[2]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+			}
 
 			uiBlockEndAlign(block);
 		}
