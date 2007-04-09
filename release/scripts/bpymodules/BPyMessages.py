@@ -12,7 +12,6 @@ def Error_NoMeshUvActive():
 def Error_NoMeshMultiresEdit():
 	Draw.PupMenu('Error%t|Unable to complete action with multires enabled')
 
-
 # File I/O messages
 def Error_NoFile(path):
 	'''True if file missing, False if files there
@@ -36,6 +35,18 @@ def Error_NoDir(path):
 		return True
 	return False
 
+
+def Warning_MeshDistroyLayers(mesh):
+	'''Returns true if we can continue to edit the mesh, warn when using NMesh'''
+	if len(mesh.getUVLayerNames()) >1 and len(mesh.getColorLayerNames()) >1:
+		return True
+	
+	ret = Draw.PupMenu('Warning%t|This script will distroy inactive UV and Color layers, OK?')
+	if ret == -1:
+		return False
+	
+	return True
+
 def Warning_SaveOver(path):
 	'''Returns - True to save, False dont save'''
 	if sys.exists(sys.expandpath(path)):
@@ -44,3 +55,5 @@ def Warning_SaveOver(path):
 			return False
 	
 	return True
+
+

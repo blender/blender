@@ -215,9 +215,11 @@ def collecte_edge(listf2v,me,thegood):
 
 OBJECT=Blender.Scene.GetCurrent().getActiveObject()
 
-if OBJECT and OBJECT.getType()=='Mesh':
+if OBJECT and OBJECT.type=='Mesh':
 	if OBJECT.getData(mesh=1).multires:
 		BPyMessages.Error_NoMeshMultiresEdit()
+	elif not BPyMessages.Warning_MeshDistroyLayers(OBJECT.getData(mesh=1)):
+		pass
 	else:
 		EDITMODE=Blender.Window.EditMode()
 		Blender.Window.EditMode(0)

@@ -3,12 +3,14 @@
 """
 The Blender.NMesh submodule.
 
-B{New}:
- - edges class (L{NMEdge}) and nmesh methods (L{NMesh.NMesh.addEdge}, etc.);
- - new optional arguments to L{NMesh.NMesh.update};
- - L{NMesh.NMesh.transform};
- - L{GetNames};
- - L{GetRawFromObject} supports Surface/Curve/Text/Meta objects
+B{Deprecated}:
+This module is now maintained but not actively developed.
+
+Access to data such as properties, library, UVLayers and ColorLayers is not available
+further more, a mesh modified with NMesh will destroy inactive UV and Color layers
+so writing tools that use NMesh is discouraged.
+
+Use L{Mesh} instead.
 
 Mesh Data
 =========
