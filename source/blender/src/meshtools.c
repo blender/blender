@@ -477,7 +477,7 @@ void sort_faces(void)
 	if(G.obedit) return;
 	if(ob->type!=OB_MESH) return;
 	
-	event = pupmenu("Sort Faces by%t|View Axis (back to front)%x1|View Axis (front to back)%x2|Cursor Distance (near to far)%x3|Cursor Distance (far to near)%x4|Randomize%x5");
+	event = pupmenu("Sort Faces by%t|View Axis (back to front)%x1|View Axis (front to back)%x2|Cursor Distance (near to far)%x3|Cursor Distance (far to near)%x4|Selected First%x5|Selected Last%x6|Randomize%x7");
 	if (event==-1) return;
 	
 	me= ob->data;
@@ -493,12 +493,12 @@ void sort_faces(void)
 	
 /* sort index list instead of faces itself 
    and apply this permutation to all face layers */
-	if (event == 5) {
+	if (event == 7) {
 		/* Random */
 		for(i=0; i<me->totface; i++) {
 			face_sort_floats[i] = BLI_frand();
 		}
-		qsort(index, me->totface, sizeof(int), float_sort);
+		qsort(index, me->totface, sizeof(int), float_sort);		
 	} else { /* event is 1 or 2*/
 		MFace *mf;
 		float vec[3];
@@ -521,28 +521,39 @@ void sort_faces(void)
 		
 		mf= me->mface;
 		for(i=0; i<me->totface; i++, mf++) {
-			/* find the faces center */
-			VECADD(vec, (me->mvert+mf->v1)->co, (me->mvert+mf->v2)->co);
-			if (mf->v4) {
-				VECADD(vec, vec, (me->mvert+mf->v3)->co);
-				VECADD(vec, vec, (me->mvert+mf->v4)->co);
-				VECMUL(vec, 0.25f);
-			} else {
-				VECADD(vec, vec, (me->mvert+mf->v3)->co);
-				VECMUL(vec, 1.0f/3.0f);
-			} /* done */
 			
-			if (event == 1 || event == 2) { /* sort on view axis */
-				Mat4MulVecfl(mat, vec);
-				if (event==2)
-					face_sort_floats[i] = -vec[2]; /* front to back */
-				else
-					face_sort_floats[i] = vec[2]; /* back to front */
-			} else { /* distance from cursor*/
-				if (event==3)
-					face_sort_floats[i] = VecLenf(cur, vec); /* back to front */
-				else if (event==4)
-					face_sort_floats[i] = -VecLenf(cur, vec); /* front to back*/
+			if (event==5) {
+				/*selected first*/
+				if (mf->flag & ME_FACE_SEL)	face_sort_floats[i] = 0.0;
+				else						face_sort_floats[i] = 1.0;
+			} else if (event==6) {	
+				/*selected last*/
+				if (mf->flag & ME_FACE_SEL)	face_sort_floats[i] = 1.0;
+				else						face_sort_floats[i] = 0.0;
+			} else {
+				/* find the faces center */
+				VECADD(vec, (me->mvert+mf->v1)->co, (me->mvert+mf->v2)->co);
+				if (mf->v4) {
+					VECADD(vec, vec, (me->mvert+mf->v3)->co);
+					VECADD(vec, vec, (me->mvert+mf->v4)->co);
+					VECMUL(vec, 0.25f);
+				} else {
+					VECADD(vec, vec, (me->mvert+mf->v3)->co);
+					VECMUL(vec, 1.0f/3.0f);
+				} /* done */
+				
+				if (event == 1 || event == 2) { /* sort on view axis */
+					Mat4MulVecfl(mat, vec);
+					if (event==2)
+						face_sort_floats[i] = -vec[2]; /* front to back */
+					else
+						face_sort_floats[i] = vec[2]; /* back to front */
+				} else { /* distance from cursor*/
+					if (event==3)
+						face_sort_floats[i] = VecLenf(cur, vec); /* back to front */
+					else if (event==4)
+						face_sort_floats[i] = -VecLenf(cur, vec); /* front to back*/
+				}
 			}
 		}
 		qsort(index, me->totface, sizeof(int), float_sort);

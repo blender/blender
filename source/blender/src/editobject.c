@@ -4938,6 +4938,8 @@ void make_duplilist_real()
 	
 	if(okee("Make dupli objects real")==0) return;
 	
+	clear_id_newpoins();
+	
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASELIB(base) {

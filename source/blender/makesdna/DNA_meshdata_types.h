@@ -57,7 +57,7 @@ typedef struct MDeformWeight {
 typedef struct MDeformVert {
 	struct MDeformWeight *dw;
 	int totweight;
-	int flag;	// flag only in use for weightpaint now
+	int flag;	/* flag only in use for weightpaint now */
 } MDeformVert;
 
 typedef struct MVert {
@@ -150,7 +150,7 @@ typedef struct PartialVisibility {
 #define ME_EDGEDRAW			(1<<1)
 #define ME_SEAM				(1<<2)
 #define ME_FGON				(1<<3)
-						// reserve 16 for ME_HIDE
+						/* reserve 16 for ME_HIDE */
 #define ME_EDGERENDER		(1<<5)
 #define ME_LOOSEEDGE		(1<<7)
 #define ME_SEAM_LAST		(1<<8)
