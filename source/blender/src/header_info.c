@@ -467,8 +467,8 @@ void do_info_buttons(unsigned short event)
 			else sce= copy_scene(G.scene, nr-2);
 
 			set_scene(sce);
-			countall();
 		}
+		countall();
 		BIF_preview_changed(ID_TE);
 
 		break;
