@@ -636,11 +636,13 @@ static void changeview3dspace(ScrArea *sa, void *spacedata)
 	 */
 static void align_view_to_selected(View3D *v3d)
 {
-	int nr= pupmenu("Align View%t|To Selected (top)%x2|To Selected (front)%x1|To Selected (side)%x0");
-
+	int nr= pupmenu("Align View (Ctrl flips)%t|To Selected (top)%x3|To Selected (front)%x2|To Selected (side)%x1");
 	if (nr!=-1) {
 		int axis= nr;
-
+		
+		/* opposite axis in case ctrl is pressed */
+		if(G.qual==LR_CTRLKEY) axis= -axis;
+		
 		if ((G.obedit) && (G.obedit->type == OB_MESH)) {
 			editmesh_align_view_to_selected(v3d, axis);
 			addqueue(v3d->area->win, REDRAW, 1);

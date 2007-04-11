@@ -167,9 +167,12 @@ def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS, PREF_SOLID, PREF_SHARP, PR
 	
 	if PREF_SHARP == 0:
 		def add_tri_flipped(i1,i2,i3):
-			if AngleBetweenVecs(me.verts[i1].no, TriangleNormal(me.verts[i1].co, me.verts[i2].co, me.verts[i3].co)) < 90:
-				return i3,i2,i1
-			else:
+			try:
+				if AngleBetweenVecs(me.verts[i1].no, TriangleNormal(me.verts[i1].co, me.verts[i2].co, me.verts[i3].co)) < 90:
+					return i3,i2,i1
+				else:
+					return i1,i2,i3
+			except:
 				return i1,i2,i3
 		
 		# This stores new verts that use this vert

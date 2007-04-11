@@ -1505,7 +1505,9 @@ void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
 	float norm[3], axis[3], angle, new_quat[4];
 
 	alignaxis[0]= alignaxis[1]= alignaxis[2]= 0.0;
-	alignaxis[axisidx]= 1.0;
+
+	if(axisidx > 0) alignaxis[axisidx-1]= 1.0;
+	else alignaxis[-axisidx-1]= -1.0;
 
 	norm[0]= vec[0], norm[1]= vec[1], norm[2]= vec[2];
 	Normalize(norm);
