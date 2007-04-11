@@ -1101,7 +1101,7 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 	 if(ima) {
 		 int drawpack= (ima->source!=IMA_SRC_SEQUENCE && ima->source!=IMA_SRC_MOVIE && ima->ok);
 
-		 but= uiDefBut(block, TEX, B_IDNAME, "IM:",		33, 155, 177, 20, ima->id.name+2, 0.0, 19.0, 0, 0, "Current Image Datablock name.");
+		 but= uiDefBut(block, TEX, B_IDNAME, "IM:",		33, 155, 177, 20, ima->id.name+2, 0.0, 21.0, 0, 0, "Current Image Datablock name.");
 		 uiButSetFunc(but, test_idbutton_cb, ima->id.name, NULL);
 		 but= uiDefBut(block, BUT, imagechanged, "Reload",		210, 155, 60, 20, NULL, 0, 0, 0, 0, "Reloads Image or Movie");
 		 uiButSetFunc(but, image_reload_cb, ima, iuser);
@@ -2014,7 +2014,7 @@ static void world_panel_texture(World *wrld)
 	MEM_freeN(strp);
 	
 	if(id) {
-		uiDefBut(block, TEX, B_IDNAME, "TE:",	100,160,200,19, id->name+2, 0.0, 18.0, 0, 0, "Displays name of the texture block: click to change");
+		uiDefBut(block, TEX, B_IDNAME, "TE:",	100,160,200,19, id->name+2, 0.0, 21.0, 0, 0, "Displays name of the texture block: click to change");
 		sprintf(str, "%d", id->us);
 		uiDefBut(block, BUT, 0, str,			196,140,21,19, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
 		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 220,140,21,19, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
@@ -2394,7 +2394,7 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 	MEM_freeN(strp);
 	
 	if(id) {
-		uiDefBut(block, TEX, B_IDNAME, "TE:",	100,160,200,19, id->name+2, 0.0, 18.0, 0, 0, "Displays name of the texture block: click to change");
+		uiDefBut(block, TEX, B_IDNAME, "TE:",	100,160,200,19, id->name+2, 0.0, 21.0, 0, 0, "Displays name of the texture block: click to change");
 		sprintf(str, "%d", id->us);
 		uiDefBut(block, BUT, 0, str,			196,140,21,19, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
 		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 221,140,21,19, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
@@ -3148,7 +3148,7 @@ static void material_panel_texture(Material *ma)
 	MEM_freeN(strp);
 
 	if(id) {
-		uiDefBut(block, TEX, B_IDNAME, "TE:",	100,150,163,20, id->name+2, 0.0, 18.0, 0, 0, "Displays name of the texture block: click to change");
+		uiDefBut(block, TEX, B_IDNAME, "TE:",	100,150,163,20, id->name+2, 0.0, 21.0, 0, 0, "Displays name of the texture block: click to change");
 		sprintf(str, "%d", id->us);
 		uiDefBut(block, BUT, 0, str,				196,130,21,20, 0, 0, 0, 0, 0, "Displays number of users of texture");
 		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 241,130,21,20, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
@@ -3589,7 +3589,7 @@ static void material_panel_links(Object *ob, Material *ma)
 
 		strncpy(str, id->name, 2);
 		str[2]= ':'; str[3]= 0;
-		but= uiDefBut(block, TEX, B_IDNAME, str,		10,135,115,20, id->name+2, 0.0, 18.0, 0, 0, "Shows the block the material is linked to");
+		but= uiDefBut(block, TEX, B_IDNAME, str,		10,135,115,20, id->name+2, 0.0, 21.0, 0, 0, "Shows the block the material is linked to");
 		uiButSetFunc(but, test_idbutton_cb, id->name, NULL);
 	}
 	

@@ -1682,7 +1682,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 
 				if(sa->sound) {
 					char dummy_str[] = "Sound mode %t|Play Stop %x0|Play End %x1|Loop Stop %x2|Loop End %x3|Loop Ping Pong Stop %x5|Loop Ping Pong %x4";
-					uiDefBut(block, TEX, B_IDNAME, "SO:",xco+30,yco-22,width-40,19, sa->sound->id.name+2,    0.0, 18.0, 0, 0, "");
+					uiDefBut(block, TEX, B_IDNAME, "SO:",xco+30,yco-22,width-40,19, sa->sound->id.name+2,    0.0, 21.0, 0, 0, "");
 					uiDefButS(block, MENU, 1, dummy_str,xco+10,yco-44,width-20, 19, &sa->type, 0.0, 0.0, 0, 0, "");
 					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-66,wval, 19, &sa->sound->volume, 0.0,  1.0, 0, 0, "Sets the volume of this sound");
 					uiDefButF(block, NUM, 0, "Pitch:",xco+wval+10,yco-66,wval, 19, &sa->sound->pitch,-12.0, 12.0, 0, 0, "Sets the pitch of this sound");

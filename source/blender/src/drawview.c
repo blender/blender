@@ -2206,7 +2206,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw
 	}
 	else {
-		bt= uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 19.0, 0, 0, "");
+		bt= uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 21.0, 0, 0, "");
 #ifdef WITH_VERSE
 		if(ob->vnode) uiButSetFunc(bt, test_and_send_idbutton_cb, ob, ob->id.name);
 		else uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);

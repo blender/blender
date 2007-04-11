@@ -1971,7 +1971,7 @@ static void object_panel_object(Object *ob)
 			xco= 160;
 			
 			uiBlockBeginAlign(block);
-			but = uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 150, 20, group->id.name+2, 0.0, 19.0, 0, 0, "Displays Group name. Click to change.");
+			but = uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-yco, 150, 20, group->id.name+2, 0.0, 21.0, 0, 0, "Displays Group name. Click to change.");
 			uiButSetFunc(but, test_idbutton_cb, group->id.name, NULL);
 			
 			if(group->id.lib) {

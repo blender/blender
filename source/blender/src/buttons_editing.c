@@ -4424,7 +4424,7 @@ static void editing_panel_links(Object *ob)
 		uiBlockSetCol(block, TH_AUTO);
 	}
 	if(ob) {
-		but = uiDefBut(block, TEX, B_IDNAME, "OB:",	xco, 180, 454-xco, YIC, ob->id.name+2, 0.0, 19.0, 0, 0, "Displays Active Object name. Click to change.");
+		but = uiDefBut(block, TEX, B_IDNAME, "OB:",	xco, 180, 454-xco, YIC, ob->id.name+2, 0.0, 21.0, 0, 0, "Active Object name.");
 #ifdef WITH_VERSE
 		if(ob->vnode) uiButSetFunc(but, test_and_send_idbutton_cb, ob, ob->id.name);
 		else uiButSetFunc(but, test_idbutton_cb, ob->id.name, NULL);
@@ -4676,7 +4676,7 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 		IDnames_to_pupstring(&strp, NULL, "ADD NEW %x 32767", &G.main->tex, id, &G.buts->texnr);
 
 		if(mtex && mtex->tex) {		
-			uiDefBut(block, TEX, B_IDNAME, "TE:",cx,cy,115,19, mtex->tex->id.name+2, 0.0, 18.0, 0, 0, "Texture name");
+			uiDefBut(block, TEX, B_IDNAME, "TE:",cx,cy,115,19, mtex->tex->id.name+2, 0.0, 21.0, 0, 0, "Texture name");
 			cy-= 20;
 			
 			uiDefButS(block,MENU,B_SCULPT_TEXBROWSE, strp, cx,cy,20,19, &G.buts->texnr, 0,0,0,0, "Selects an existing texture or creates new");

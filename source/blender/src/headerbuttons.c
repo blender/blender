@@ -328,7 +328,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 		else if(yco) len= 140;	// comes from button panel
 		else len= 120;
 		
-		but= uiDefBut(block, TEX, B_IDNAME, str1,xco, yco, (short)len, YIC, id->name+2, 0.0, 19.0, 0, 0, "Displays current Datablock name. Click to change.");
+		but= uiDefBut(block, TEX, B_IDNAME, str1,xco, yco, (short)len, YIC, id->name+2, 0.0, 21.0, 0, 0, "Displays current Datablock name. Click to change.");
 		uiButSetFunc(but, test_idbutton_cb, id->name, NULL);
 
 		uiClearButLock();
