@@ -267,7 +267,7 @@ static void group_tag_internal_sockets(bNodeTree *ngroup)
 		for(sock= node->inputs.first; sock; sock= sock->next)
 			sock->intern= sock->flag & SOCK_HIDDEN;
 		for(sock= node->outputs.first; sock; sock= sock->next)
-			sock->intern= sock->flag & SOCK_HIDDEN;
+			sock->intern= sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL);
 	}
 	/* set tag */
 	for(link= ngroup->links.first; link; link= link->next) {
@@ -2131,79 +2131,81 @@ void (*node_shader_lamp_loop)(struct ShadeInput *, struct ShadeResult *);
 
 void set_node_shader_lamp_loop(void (*lamp_loop_func)(ShadeInput *, ShadeResult *))
 {
-   node_shader_lamp_loop= lamp_loop_func;
+	node_shader_lamp_loop= lamp_loop_func;
 }
 
 /* clumsy checking... should do dynamic outputs once */
 static void force_hidden_passes(bNode *node, int passflag)
 {
-   bNodeSocket *sock;
-
-   for(sock= node->outputs.first; sock; sock= sock->next)
-      sock->flag &= ~SOCK_UNAVAIL;
-
-   sock= BLI_findlink(&node->outputs, RRES_OUT_Z);
-   if(!(passflag & SCE_PASS_Z)) sock->flag |= SOCK_UNAVAIL;
-   sock= BLI_findlink(&node->outputs, RRES_OUT_NORMAL);
-   if(!(passflag & SCE_PASS_NORMAL)) sock->flag |= SOCK_UNAVAIL;
-   sock= BLI_findlink(&node->outputs, RRES_OUT_VEC);
-   if(!(passflag & SCE_PASS_VECTOR)) sock->flag |= SOCK_UNAVAIL;
-   sock= BLI_findlink(&node->outputs, RRES_OUT_UV);
-   if(!(passflag & SCE_PASS_UV)) sock->flag |= SOCK_UNAVAIL;
-   sock= BLI_findlink(&node->outputs, RRES_OUT_RGBA);
-   if(!(passflag & SCE_PASS_RGBA)) sock->flag |= SOCK_UNAVAIL;
-   sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF);
-   if(!(passflag & SCE_PASS_DIFFUSE)) sock->flag |= SOCK_UNAVAIL;
-   sock= BLI_findlink(&node->outputs, RRES_OUT_SPEC);
-   if(!(passflag & SCE_PASS_SPEC)) sock->flag |= SOCK_UNAVAIL;
-   sock= BLI_findlink(&node->outputs, RRES_OUT_SHADOW);
-   if(!(passflag & SCE_PASS_SHADOW)) sock->flag |= SOCK_UNAVAIL;
-   sock= BLI_findlink(&node->outputs, RRES_OUT_AO);
-   if(!(passflag & SCE_PASS_AO)) sock->flag |= SOCK_UNAVAIL;
-   sock= BLI_findlink(&node->outputs, RRES_OUT_REFLECT);
-   if(!(passflag & SCE_PASS_REFLECT)) sock->flag |= SOCK_UNAVAIL;
-   sock= BLI_findlink(&node->outputs, RRES_OUT_REFRACT);
-   if(!(passflag & SCE_PASS_REFRACT)) sock->flag |= SOCK_UNAVAIL;
-   sock= BLI_findlink(&node->outputs, RRES_OUT_RADIO);
-   if(!(passflag & SCE_PASS_RADIO)) sock->flag |= SOCK_UNAVAIL;
-   sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXOB);
-   if(!(passflag & SCE_PASS_INDEXOB)) sock->flag |= SOCK_UNAVAIL;
-
+	bNodeSocket *sock;
+	
+	for(sock= node->outputs.first; sock; sock= sock->next)
+		sock->flag &= ~SOCK_UNAVAIL;
+	
+	sock= BLI_findlink(&node->outputs, RRES_OUT_Z);
+	if(!(passflag & SCE_PASS_Z)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_NORMAL);
+	if(!(passflag & SCE_PASS_NORMAL)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_VEC);
+	if(!(passflag & SCE_PASS_VECTOR)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_UV);
+	if(!(passflag & SCE_PASS_UV)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_RGBA);
+	if(!(passflag & SCE_PASS_RGBA)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF);
+	if(!(passflag & SCE_PASS_DIFFUSE)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_SPEC);
+	if(!(passflag & SCE_PASS_SPEC)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_SHADOW);
+	if(!(passflag & SCE_PASS_SHADOW)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_AO);
+	if(!(passflag & SCE_PASS_AO)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_REFLECT);
+	if(!(passflag & SCE_PASS_REFLECT)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_REFRACT);
+	if(!(passflag & SCE_PASS_REFRACT)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_RADIO);
+	if(!(passflag & SCE_PASS_RADIO)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXOB);
+	if(!(passflag & SCE_PASS_INDEXOB)) sock->flag |= SOCK_UNAVAIL;
+	
 }
 
 /* based on rules, force sockets hidden always */
 void ntreeCompositForceHidden(bNodeTree *ntree)
 {
-   bNode *node;
-
-   if(ntree==NULL) return;
-
-   for(node= ntree->nodes.first; node; node= node->next) {
-      if( node->type==CMP_NODE_R_LAYERS) {
-         Scene *sce= node->id?(Scene *)node->id:G.scene; /* G.scene is WEAK! */
-         SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
-         if(srl)
-            force_hidden_passes(node, srl->passflag);
-      }
-      else if( node->type==CMP_NODE_IMAGE) {
-         Image *ima= (Image *)node->id;
-         if(ima) {
-            if(ima->rr) {
-               ImageUser *iuser= node->storage;
-               RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
-               if(rl)
-                  force_hidden_passes(node, rl->passflag);
-               else
-                  force_hidden_passes(node, 0);
-            }
-            else if(ima->type!=IMA_TYPE_MULTILAYER) {	/* if ->rr not yet read we keep inputs */
-               force_hidden_passes(node, RRES_OUT_Z);
-            }
-         }
-         else
-            force_hidden_passes(node, 0);
-      }
-   }
+	bNode *node;
+	
+	if(ntree==NULL) return;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if( node->type==CMP_NODE_R_LAYERS) {
+			Scene *sce= node->id?(Scene *)node->id:G.scene; /* G.scene is WEAK! */
+			SceneRenderLayer *srl= BLI_findlink(&sce->r.layers, node->custom1);
+			if(srl)
+				force_hidden_passes(node, srl->passflag);
+		}
+		else if( node->type==CMP_NODE_IMAGE) {
+			Image *ima= (Image *)node->id;
+			if(ima) {
+				if(ima->rr) {
+					ImageUser *iuser= node->storage;
+					RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
+					if(rl)
+						force_hidden_passes(node, rl->passflag);
+					else
+						force_hidden_passes(node, 0);
+				}
+				else if(ima->type!=IMA_TYPE_MULTILAYER) {	/* if ->rr not yet read we keep inputs */
+					force_hidden_passes(node, RRES_OUT_Z);
+				}
+				else
+					force_hidden_passes(node, 0);
+			}
+			else
+				force_hidden_passes(node, 0);
+		}
+	}
 
 }
 
@@ -2211,66 +2213,66 @@ void ntreeCompositForceHidden(bNodeTree *ntree)
 /* need to do all scenes, to prevent errors when you re-render 1 scene */
 void ntreeCompositTagRender(Scene *curscene)
 {
-   Scene *sce;
-
-   for(sce= G.main->scene.first; sce; sce= sce->id.next) {
-      if(sce->nodetree) {
-         bNode *node;
-
-         for(node= sce->nodetree->nodes.first; node; node= node->next) {
-            if(node->id==(ID *)curscene || node->type==CMP_NODE_COMPOSITE)
-               NodeTagChanged(sce->nodetree, node);
-         }
-      }
-   }
+	Scene *sce;
+	
+	for(sce= G.main->scene.first; sce; sce= sce->id.next) {
+		if(sce->nodetree) {
+			bNode *node;
+			
+			for(node= sce->nodetree->nodes.first; node; node= node->next) {
+				if(node->id==(ID *)curscene || node->type==CMP_NODE_COMPOSITE)
+					NodeTagChanged(sce->nodetree, node);
+			}
+		}
+	}
 }
 
 /* tags nodes that have animation capabilities */
 int ntreeCompositTagAnimated(bNodeTree *ntree)
 {
-   bNode *node;
-   int tagged= 0;
-
-   if(ntree==NULL) return 0;
-
-   for(node= ntree->nodes.first; node; node= node->next) {
-      if(node->type==CMP_NODE_IMAGE) {
-         Image *ima= (Image *)node->id;
-         if(ima && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-            NodeTagChanged(ntree, node);
-            tagged= 1;
-         }
-      }
-      else if(node->type==CMP_NODE_TIME) {
-         NodeTagChanged(ntree, node);
-         tagged= 1;
-      }
-      else if(node->type==CMP_NODE_R_LAYERS) {
-         NodeTagChanged(ntree, node);
-         tagged= 1;
-      }
-      else if(node->type==NODE_GROUP) {
-         if( ntreeCompositTagAnimated((bNodeTree *)node->id) ) {
-            NodeTagChanged(ntree, node);
-         }
-      }
-   }
-
-   return tagged;
+	bNode *node;
+	int tagged= 0;
+	
+	if(ntree==NULL) return 0;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if(node->type==CMP_NODE_IMAGE) {
+			Image *ima= (Image *)node->id;
+			if(ima && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+				NodeTagChanged(ntree, node);
+				tagged= 1;
+			}
+		}
+		else if(node->type==CMP_NODE_TIME) {
+			NodeTagChanged(ntree, node);
+			tagged= 1;
+		}
+		else if(node->type==CMP_NODE_R_LAYERS) {
+			NodeTagChanged(ntree, node);
+			tagged= 1;
+		}
+		else if(node->type==NODE_GROUP) {
+			if( ntreeCompositTagAnimated((bNodeTree *)node->id) ) {
+				NodeTagChanged(ntree, node);
+			}
+		}
+	}
+	
+	return tagged;
 }
 
 
 /* called from image window preview */
 void ntreeCompositTagGenerators(bNodeTree *ntree)
 {
-   bNode *node;
-
-   if(ntree==NULL) return;
-
-   for(node= ntree->nodes.first; node; node= node->next) {
-      if( ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE))
-         NodeTagChanged(ntree, node);
-   }
+	bNode *node;
+	
+	if(ntree==NULL) return;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if( ELEM(node->type, CMP_NODE_R_LAYERS, CMP_NODE_IMAGE))
+			NodeTagChanged(ntree, node);
+	}
 }
 
 /* ************* node definition init ********** */
@@ -2322,13 +2324,13 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_normal);
 	nodeRegisterType(ntypelist, &cmp_node_curve_vec);
 	nodeRegisterType(ntypelist, &cmp_node_map_value);
-
+	
 	nodeRegisterType(ntypelist, &cmp_node_filter);
 	nodeRegisterType(ntypelist, &cmp_node_blur);
 	nodeRegisterType(ntypelist, &cmp_node_vecblur);
 	nodeRegisterType(ntypelist, &cmp_node_dilateerode);
 	nodeRegisterType(ntypelist, &cmp_node_defocus);
-
+	
 	nodeRegisterType(ntypelist, &cmp_node_valtorgb);
 	nodeRegisterType(ntypelist, &cmp_node_rgbtobw);
 	nodeRegisterType(ntypelist, &cmp_node_setalpha);
@@ -2342,7 +2344,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_combyuva);
 	nodeRegisterType(ntypelist, &cmp_node_sepycca);
 	nodeRegisterType(ntypelist, &cmp_node_combycca);
-		
+	
 	nodeRegisterType(ntypelist, &cmp_node_diff_matte);
 	nodeRegisterType(ntypelist, &cmp_node_chroma);
 	nodeRegisterType(ntypelist, &cmp_node_channel_matte);
