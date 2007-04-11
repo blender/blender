@@ -2030,7 +2030,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			data = constraint->data;
 			
 			/* limit location relative to origin or parent   */
-			if (data->flag2 & LIMIT_NOPARENT) {
+			if ((data->flag2 & LIMIT_NOPARENT) && ob->parent) {
 				/* limiting relative to parent */
 				float parmat[4][4]; /* matrix of parent */
 				float objLoc[3], parLoc[3]; /* location of object, and location of parent */
