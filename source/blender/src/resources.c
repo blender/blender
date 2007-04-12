@@ -446,6 +446,8 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tact.shade1,  172, 172, 172, 255);		// sliders
 	SETCOL(btheme->tact.shade2,  84, 44, 31, 100);	// bar
 	SETCOL(btheme->tact.hilite,  17, 27, 60, 100);	// bar
+	SETCOL(btheme->tact.strip_select, 	0xff, 0xff, 0xaa, 255);
+	SETCOL(btheme->tact.strip, 0xe4, 0x9c, 0xc6, 255);
 
 	/* space nla */
 	btheme->tnla= btheme->tv3d;
