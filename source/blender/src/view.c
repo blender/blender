@@ -1351,7 +1351,7 @@ void centerview()	/* like a localview without local! */
 	afm[2]= (max[2]-min[2]);
 	size= 0.7*MAX3(afm[0], afm[1], afm[2]);
 	
-	if(size<=0.01) size= 0.01;
+	if(size <= G.vd->near*1.5) size= G.vd->near*1.5;
 	
 	new_ofs[0]= -(min[0]+max[0])/2.0;
 	new_ofs[1]= -(min[1]+max[1])/2.0;
