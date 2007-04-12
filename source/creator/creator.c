@@ -195,10 +195,8 @@ static void print_help(void)
 	printf ("    -m\t\tRead from disk (Don't buffer)\n");
 				
 	printf ("\nWindow options:\n");
-	printf ("  -w\t\tForce opening with borders\n");
-#ifdef WIN32
+	printf ("  -w\t\tForce opening with borders (default)\n");
 	printf ("  -W\t\tForce opening without borders\n");
-#endif
 	printf ("  -p <sx> <sy> <w> <h>\tOpen with lower left corner at <sx>, <sy>\n");
 	printf ("                      \tand width and height <w>, <h>\n");
 	printf ("\nGame Engine specific options:\n");
@@ -391,7 +389,7 @@ int main(int argc, char **argv)
 	/* for all platforms, even windos has it! */
 	if(G.background) signal(SIGINT, blender_esc);	/* ctrl c out bg render */
 
-		/* background render uses this font too */
+	/* background render uses this font too */
 	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
 	
 	init_def_material();
@@ -437,20 +435,15 @@ int main(int argc, char **argv)
 					 */ 
 					winlay_get_screensize(&sizx, &sizy);
 					setprefsize(0, 0, sizx, sizy);
-#if 0
-//#ifdef _WIN32	// FULLSCREEN
 					G.windowstate = G_WINDOWSTATE_BORDER;
-#endif
 					break;
 				case 'W':
-						/* XXX, fixme zr, borderless on win32 */
-#if 0
-//#ifdef _WIN32	// FULLSCREEN
+					/* XXX, fixme zr, borderless on win32 */
+					/* now on all platforms as of 20070411 - DJC */
 					G.windowstate = G_WINDOWSTATE_FULLSCREEN;
-#endif
 					break;
 				case 'R':
-				/* Registering filetypes only makes sense on windows...      */
+					/* Registering filetypes only makes sense on windows...      */
 #ifdef WIN32
 					RegisterBlendExtension(argv[0]);
 #endif
@@ -461,7 +454,7 @@ int main(int argc, char **argv)
 						/**
 						 	notify the gameengine that no audio is wanted, even if the user didn't give
 						   	the flag -g noaudio.
-					*/
+						*/
 
 						SYS_WriteCommandLineInt(syshandle,"noaudio",1);
 						audio = 0;

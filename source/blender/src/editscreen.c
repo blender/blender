@@ -2191,15 +2191,10 @@ static bScreen *addscreen(char *name)		/* use setprefsize() if you want somethin
 	sc->scene= G.scene;
 	
   	if (!mainwin) {
-#if 0
-//#ifdef _WIN32	// FULLSCREEN
 		if (G.windowstate == G_WINDOWSTATE_FULLSCREEN)
 			mainwin= window_open("Blender", sc->startx, sc->starty, sc->sizex, sc->sizey, G_WINDOWSTATE_FULLSCREEN);
 		else
 			mainwin= window_open("Blender", sc->startx, sc->starty, sc->sizex, sc->sizey, start_maximized);
-#else
-		mainwin= window_open("Blender", sc->startx, sc->starty, sc->sizex, sc->sizey, start_maximized);
-#endif
 		
 		if (!mainwin) {
 			printf("ERROR: Unable to open Blender window\n");
