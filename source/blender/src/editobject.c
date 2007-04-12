@@ -3282,6 +3282,9 @@ void copy_attr(short event)
 							cu1->flag &= ~CU_UV_ORCO;
 					}		
 				}
+				else if(event==29) { /* protected bits */
+					base->object->protectflag= ob->protectflag;
+				}
 			}
 		}
 		base= base->next;
@@ -3360,7 +3363,7 @@ void copy_attr_menu()
 		
 		char str[512];
 		
-		strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Drawtype%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|%l");
+		strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Drawtype%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
 		
 		strcat (str, "|Object Constraints%x22");
 		strcat (str, "|NLA Strips%x26");
@@ -3377,7 +3380,7 @@ void copy_attr_menu()
 		}
 
 		if(ob->type==OB_MESH){
-			strcat(str, "|Subdiv%x21|AutoSmooth%x27");
+			strcat(str, "|Subsurf Settings%x21|AutoSmooth%x27");
 		}
 
 		if( give_parteff(ob) ) strcat(str, "|Particle Settings%x20");
