@@ -1685,24 +1685,6 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->tar = newlibadr(fd, id->lib, data->tar);
 			};
 			break;
-		case CONSTRAINT_TYPE_LOCLIMIT:
-			{
-				bLocLimitConstraint *data;
-				data= ((bLocLimitConstraint*)con->data);
-			};
-			break;
-		case CONSTRAINT_TYPE_ROTLIMIT:
-			{
-				bRotLimitConstraint *data;
-				data= ((bRotLimitConstraint*)con->data);
-			};
-			break;
-		case CONSTRAINT_TYPE_SIZELIMIT:
-			{
-				bSizeLimitConstraint *data;
-				data= ((bSizeLimitConstraint*)con->data);
-			};
-			break;
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			{
 				bRigidBodyJointConstraint *data;
