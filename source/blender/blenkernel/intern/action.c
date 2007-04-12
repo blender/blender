@@ -735,6 +735,11 @@ void copy_pose_result(bPose *to, bPose *from)
 		if(pchanto) {
 			Mat4CpyMat4(pchanto->pose_mat, pchanfrom->pose_mat);
 			Mat4CpyMat4(pchanto->chan_mat, pchanfrom->chan_mat);
+			/* used for local constraints */
+			VECCOPY(pchanto->loc, pchanfrom->loc);
+			QUATCOPY(pchanto->quat, pchanfrom->quat);
+			VECCOPY(pchanto->size, pchanfrom->size);
+			
 			VECCOPY(pchanto->pose_head, pchanfrom->pose_head);
 			VECCOPY(pchanto->pose_tail, pchanfrom->pose_tail);
 			pchanto->flag= pchanfrom->flag;
