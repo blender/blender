@@ -146,7 +146,7 @@ REL_CCFLAGS = ['-O2']
 ##ARFLAGS = ruv
 ##ARFLAGSQUIET = ru
 ##
-C_WARN = '-Wall -Wno-char-subscripts'
+C_WARN = '-Wall -Wno-char-subscripts -Wdeclaration-after-statement'
 
 CC_WARN = '-Wall'
 

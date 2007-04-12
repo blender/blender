@@ -143,7 +143,7 @@ REL_CCFLAGS = ['-O2']
 ##
 CC = 'gcc'
 CXX = 'g++'
-C_WARN = ' -Wall  -Wno-long-double'
+C_WARN = ' -Wall  -Wno-long-double -Wdeclaration-after-statement '
 
 CC_WARN = ' -Wall  -Wno-long-double'
 

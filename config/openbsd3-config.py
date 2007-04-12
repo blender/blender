@@ -138,7 +138,7 @@ REL_CCFLAGS = ['-O2']
 ##
 CC = 'gcc'
 CXX = 'g++'
-C_WARN = '-Wall'
+C_WARN = '-Wall -Wdeclaration-after-statement'
 
 CC_WARN = '-Wall'
 
