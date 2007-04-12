@@ -521,26 +521,26 @@ void pose_copy_menu(void)
 				(pchan!=pchanact)
 			) {
 				switch (nr) {
-					case 1:
+					case 1: /* Local Location */
 						VECCOPY(pchan->loc, pchanact->loc);
 						break;
-					case 2:
+					case 2: /* Local Rotation */
 						QUATCOPY(pchan->quat, pchanact->quat);
 						break;
-					case 3:
+					case 3: /* Local Size */
 						VECCOPY(pchan->size, pchanact->size);
 						break;
-					case 4:
+					case 4: /* All Constraints */
 					{
 						free_constraints(&pchan->constraints);
 						copy_constraints(&pchan->constraints, &pchanact->constraints);
 						pchan->constflag = pchanact->constflag;
 					}
 						break;
-					case 6:
+					case 6: /* Transform Locks */
 						pchan->protectflag = pchanact->protectflag;
 						break;
-					case 7:
+					case 7: /* IK (DOF) settings */
 					{
 						pchan->ikflag = pchanact->ikflag;
 						VECCOPY(pchan->limitmin, pchanact->limitmin);
@@ -549,13 +549,13 @@ void pose_copy_menu(void)
 						pchan->ikstretch= pchanact->ikstretch;
 					}
 						break;
-					case 8:
+					case 8: /* Custom Bone Shape */
 						pchan->custom = pchanact->custom;
 						break;
-					case 9:
+					case 9: /* Visual Location */
 						armature_loc_pose_to_bone(pchan, pchanact->pose_mat[3], pchan->loc);
 						break;
-					case 10:
+					case 10: /* Visual Rotation */
 					{
 						float delta_mat[4][4], quat[4];
 						
@@ -564,7 +564,7 @@ void pose_copy_menu(void)
 						QUATCOPY(pchan->quat, quat);
 					}
 						break;
-					case 11:
+					case 11: /* Visual Size */
 					{
 						float delta_mat[4][4], size[4];
 						
