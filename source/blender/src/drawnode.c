@@ -619,9 +619,8 @@ static int node_shader_buts_geometry(uiBlock *block, bNodeTree *ntree, bNode *no
 static void node_shader_set_butfunc(bNodeType *ntype)
 {
 	switch(ntype->type) {
-		case NODE_GROUP:	/* note, generic type, but put here because we call this function anyway */
-			ntype->butfunc= node_buts_group;
-			break;
+		/* case NODE_GROUP:	 note, typeinfo for group is generated... see "XXX ugly hack" */
+
 		case SH_NODE_MATERIAL:
 			ntype->butfunc= node_shader_buts_material;
 			break;
@@ -1513,9 +1512,8 @@ static int node_composit_buts_scale(uiBlock *block, bNodeTree *ntree, bNode *nod
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
 	switch(ntype->type) {
-		case NODE_GROUP:	/* note, generic type, but put here because we call this function anyway */
-			ntype->butfunc= node_buts_group;
-			break;
+		/* case NODE_GROUP:	 note, typeinfo for group is generated... see "XXX ugly hack" */
+
 		case CMP_NODE_IMAGE:
 			ntype->butfunc= node_composit_buts_image;
 			break;
@@ -2103,6 +2101,9 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 		glDisable(GL_BLEND);
 	}
 	if(node->type == NODE_GROUP) {
+		/* XXX ugly hack */
+		node->typeinfo->butfunc= node_buts_group;
+		
 		iconofs-= 18.0f;
 		glEnable(GL_BLEND);
 		if(node->id->lib) {
