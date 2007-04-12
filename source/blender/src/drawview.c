@@ -2570,22 +2570,22 @@ static void view3d_draw_transp(View3D *v3d, int flag)
 
 /* *********************** */
 
-static void draw_dupli_objects(View3D *v3d, Base *base)
-{
+/*
+	In most cases call draw_dupli_objects,
+	draw_dupli_objects_color was added because when drawing set dupli's
+	we need to force the color
+*/
+static void draw_dupli_objects_color(View3D *v3d, Base *base, int color)
+{	
 	ListBase *lb;
 	DupliObject *dob;
 	Base tbase;
 	BoundBox *bb= NULL;
 	GLuint displist=0;
-	int color= (base->flag & SELECT)?TH_SELECT:TH_WIRE;
 	short transflag, use_displist= -1;	/* -1 is initialize */
 	char dt, dtx;
 	
 	if (base->object->restrictflag & OB_RESTRICT_VIEW) return;
-	
-	/* debug */
-	if(base->object->dup_group && base->object->dup_group->id.us<1)
-		color= TH_REDALERT;
 	
 	/* test if we can do a displist */
 	if(base->object->transflag & OB_DUPLIGROUP)
@@ -2661,6 +2661,19 @@ static void draw_dupli_objects(View3D *v3d, Base *base)
 	
 	if(use_displist)
 		glDeleteLists(displist, 1);
+}
+
+static void draw_dupli_objects(View3D *v3d, Base *base)
+{
+	/* define the color here so draw_dupli_objects_color can be called
+	 * from the set loop */
+	
+	int color= (base->flag & SELECT)?TH_SELECT:TH_WIRE;
+	/* debug */
+	if(base->object->dup_group && base->object->dup_group->id.us<1)
+		color= TH_REDALERT;
+	
+	draw_dupli_objects_color(v3d, base, color);
 }
 
 void view3d_update_depths(View3D *v3d)
@@ -2800,7 +2813,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				draw_object(base, DRAW_CONSTCOLOR);
 
 				if(base->object->transflag & OB_DUPLI) {
-					draw_dupli_objects(v3d, base);
+					draw_dupli_objects_color(v3d, base, TH_WIRE);
 				}
 			}
 		}
