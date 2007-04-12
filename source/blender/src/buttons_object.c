@@ -1737,6 +1737,8 @@ void do_object_panels(unsigned short event)
 		break;
 	case B_DUPLI_VERTS:
 		ob->transflag &= ~(OB_DUPLIFRAMES|OB_DUPLIFACES|OB_DUPLIGROUP);
+		DAG_scene_sort(G.scene);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
