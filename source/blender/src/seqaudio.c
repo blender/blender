@@ -1,4 +1,6 @@
-/**
+/*
+ *  $Id$
+ *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -33,7 +35,9 @@
 #include <string.h>
 
 #ifndef WIN32
+#define __USE_XOPEN /* Needed for swab on linux */
 #include <unistd.h>
+#undef __USE_XOPEN
 #else
 #include <io.h>
 #endif   
