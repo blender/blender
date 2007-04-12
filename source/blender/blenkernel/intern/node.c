@@ -1623,6 +1623,10 @@ static void composit_begin_exec(bNodeTree *ntree, int is_group)
 	bNodeSocket *sock;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
+		
+		/* initialize needed for groups */
+		node->exec= 0;	
+		
 		if(is_group==0) {
 			for(sock= node->outputs.first; sock; sock= sock->next) {
 				bNodeStack *ns= ntree->stack[0] + sock->stack_index;
