@@ -93,6 +93,8 @@ extern bNodeType cmp_node_flip;
 extern bNodeType cmp_node_displace;
 extern bNodeType cmp_node_mapuv;
 
+extern bNodeType cmp_node_brightcontrast;
+
 #endif
 
 
