@@ -2949,6 +2949,8 @@ static void material_panel_map_to(Material *ma, int from_nodes)
 	uiNewPanelTabbed("Texture", "Material");
 	if(uiNewPanel(curarea, block, "Map To", "Material", 1600, 0, 318, 204)==0) return;
 
+	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	
 	mtex= ma->mtex[ ma->texact ];
 	if(mtex==NULL) {
 		mtex= &emptytex;
@@ -3026,6 +3028,8 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_map_input", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Texture", "Material");
 	if(uiNewPanel(curarea, block, "Map Input", "Material", 1280, 0, 318, 204)==0) return;
+
+	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
 
 	mtex= ma->mtex[ ma->texact ];
 	if(mtex==NULL) {
@@ -3177,6 +3181,8 @@ static void material_panel_tramir(Material *ma)
 	uiNewPanelTabbed("Shaders", "Material");
 	if(uiNewPanel(curarea, block, "Mirror Transp", "Material", 640, 0, 318, 204)==0) return;
 
+	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	
 	uiDefButBitI(block, TOG, MA_RAYMIRROR, B_MATPRV,"Ray Mirror",210,180,100,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
 
 	uiBlockBeginAlign(block);
@@ -3224,6 +3230,8 @@ static void material_panel_tramir_yafray(Material *ma)
 	uiNewPanelTabbed("Shaders", "Material");
 	if(uiNewPanel(curarea, block, "Mirror Transp", "Material", 640, 0, 318, 204)==0) return;
 
+	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	
 	/* material preset menu */
 	uiDefBut(block, LABEL, 0, "Mat.Preset", 20, 182, 100, 20, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButI(block, MENU, B_MAT_YF_PRESET, mstr, 110, 182, 200, 20, &ma->YF_preset, 0.0, 0.0, 0, 0, "Basic material presets to start with");
@@ -3267,7 +3275,9 @@ static void material_panel_shading(Material *ma)
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_shading", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Shaders", "Material", 640, 0, 318, 204)==0) return;
-
+	
+	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	
 	if(ma->mode & MA_HALO) {
 		uiDefButF(block, NUM, B_MATPRV, "HaloSize: ",		10,155,190,18, &(ma->hasize), 0.0, 100.0, 10, 3, "Sets the dimension of the halo");
 		uiDefButS(block, NUMSLI, B_MATPRV, "Hard ",			10,135,190,18, &(ma->har), 1.0, 127.0, 0, 0, "Sets the hardness of the halo");
@@ -3372,7 +3382,9 @@ static void material_panel_ramps(Material *ma)
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_ramps", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Material", "Material");
 	if(uiNewPanel(curarea, block, "Ramps", "Material", 640, 0, 318, 204)==0) return;
-
+	
+	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButS(block, ROW, B_REDR, "Show Col Ramp",10,180,150,20, &ma->ramp_show, 0, 0, 0, 0, "Show ramp buttons for material diffuse color");

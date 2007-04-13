@@ -1782,6 +1782,9 @@ void docenter(int centermode)
 	EditVert *eve;
 	float cent[3], centn[3], min[3], max[3], omat[3][3];
 	int a, total= 0;
+	
+	/* keep track of what is changed */
+	int tot_change=0, tot_lib_error=0, tot_key_error=0, tot_multiuser_arm_error=0;
 	MVert *mvert;
 
 	if(G.scene->id.lib || G.vd==NULL) return;
@@ -1817,21 +1820,18 @@ void docenter(int centermode)
 			}
 			
 			recalc_editnormals();
+			tot_change++;
 		}
 	}
 	
 	/* reset flags */
-	base= FIRSTBASE;
-	while(base) {
-		if TESTBASELIB(base) {
+	for (base=FIRSTBASE; base; base= base->next) {
+		if TESTBASELIB(base)
 			base->object->flag &= ~OB_DONE;
-		}
-		base= base->next;
 	}
-	me= G.main->mesh.first;
-	while(me) {
+	
+	for (me= G.main->mesh.first; me; me= me->id.next) {
 		me->flag &= ~ME_ISDONE;
-		me= me->id.next;
 	}
 	
 	base= FIRSTBASE;
@@ -1839,77 +1839,83 @@ void docenter(int centermode)
 		
 		if TESTBASELIB(base) {
 			if((base->object->flag & OB_DONE)==0) {
-				
 				base->object->flag |= OB_DONE;
 				
-				if(G.obedit==0 && (me=get_mesh(base->object)) ) {
+				if(base->object->id.lib) {
+					tot_lib_error++;
+				}
+				else if(G.obedit==0 && (me=get_mesh(base->object)) ) {
 					
 					if(me->key) {
-						error("Can't change the center of a mesh with vertex keys");
-						return;
-					}
-					
-					if(centermode==2) {
-						VECCOPY(cent, give_cursor());
-						Mat4Invert(base->object->imat, base->object->obmat);
-						Mat4MulVecfl(base->object->imat, cent);
+						/*error("Can't change the center of a mesh with vertex keys");
+						return;*/
+						tot_key_error++;
+					} else if (me->id.lib) {
+						tot_lib_error++;
 					} else {
-						INIT_MINMAX(min, max);
+						if(centermode==2) {
+							VECCOPY(cent, give_cursor());
+							Mat4Invert(base->object->imat, base->object->obmat);
+							Mat4MulVecfl(base->object->imat, cent);
+						} else {
+							INIT_MINMAX(min, max);
+							mvert= me->mvert;
+							for(a=0; a<me->totvert; a++, mvert++) {
+								DO_MINMAX(mvert->co, min, max);
+							}
+					
+							cent[0]= (min[0]+max[0])/2.0f;
+							cent[1]= (min[1]+max[1])/2.0f;
+							cent[2]= (min[2]+max[2])/2.0f;
+						}
+
 						mvert= me->mvert;
 						for(a=0; a<me->totvert; a++, mvert++) {
-							DO_MINMAX(mvert->co, min, max);
+							VecSubf(mvert->co, mvert->co, cent);
 						}
-				
-						cent[0]= (min[0]+max[0])/2.0f;
-						cent[1]= (min[1]+max[1])/2.0f;
-						cent[2]= (min[2]+max[2])/2.0f;
-					}
-
-					mvert= me->mvert;
-					for(a=0; a<me->totvert; a++, mvert++) {
-						VecSubf(mvert->co, mvert->co, cent);
-					}
-					me->flag |= ME_ISDONE;
-					
-					if(centermode) {
-						Mat3CpyMat4(omat, base->object->obmat);
+						me->flag |= ME_ISDONE;
 						
-						VECCOPY(centn, cent);
-						Mat3MulVecfl(omat, centn);
-						base->object->loc[0]+= centn[0];
-						base->object->loc[1]+= centn[1];
-						base->object->loc[2]+= centn[2];
-						
-						/* other users? */
-						ob= G.main->object.first;
-						while(ob) {
-							if((ob->flag & OB_DONE)==0) {
-								tme= get_mesh(ob);
-								
-								if(tme==me) {
+						if(centermode) {
+							Mat3CpyMat4(omat, base->object->obmat);
+							
+							VECCOPY(centn, cent);
+							Mat3MulVecfl(omat, centn);
+							base->object->loc[0]+= centn[0];
+							base->object->loc[1]+= centn[1];
+							base->object->loc[2]+= centn[2];
+							
+							/* other users? */
+							ob= G.main->object.first;
+							while(ob) {
+								if((ob->flag & OB_DONE)==0) {
+									tme= get_mesh(ob);
 									
-									ob->flag |= OB_DONE;
-									ob->recalc= OB_RECALC_OB|OB_RECALC_DATA;
+									if(tme==me) {
+										
+										ob->flag |= OB_DONE;
+										ob->recalc= OB_RECALC_OB|OB_RECALC_DATA;
 
-									Mat3CpyMat4(omat, ob->obmat);
-									VECCOPY(centn, cent);
-									Mat3MulVecfl(omat, centn);
-									ob->loc[0]+= centn[0];
-									ob->loc[1]+= centn[1];
-									ob->loc[2]+= centn[2];
-									
-									if(tme && (tme->flag & ME_ISDONE)==0) {
-										mvert= tme->mvert;
-										for(a=0; a<tme->totvert; a++, mvert++) {
-											VecSubf(mvert->co, mvert->co, cent);
+										Mat3CpyMat4(omat, ob->obmat);
+										VECCOPY(centn, cent);
+										Mat3MulVecfl(omat, centn);
+										ob->loc[0]+= centn[0];
+										ob->loc[1]+= centn[1];
+										ob->loc[2]+= centn[2];
+										
+										if(tme && (tme->flag & ME_ISDONE)==0) {
+											mvert= tme->mvert;
+											for(a=0; a<tme->totvert; a++, mvert++) {
+												VecSubf(mvert->co, mvert->co, cent);
+											}
+											tme->flag |= ME_ISDONE;
 										}
-										tme->flag |= ME_ISDONE;
 									}
 								}
+								
+								ob= ob->id.next;
 							}
-							
-							ob= ob->id.next;
 						}
+						tot_change++;
 					}
 				}
 				else if ELEM(base->object->type, OB_CURVE, OB_SURF) {
@@ -1925,103 +1931,132 @@ void docenter(int centermode)
 						nu1= cu->nurb.first;
 					}
 					
-					if(centermode==2) {
-						VECCOPY(cent, give_cursor());
-						Mat4Invert(base->object->imat, base->object->obmat);
-						Mat4MulVecfl(base->object->imat, cent);
-
-						/* don't allow Z change if curve is 2D */
-						if( !( cu->flag & CU_3D ) )
-							cent[2] = 0.0;
+					if (cu->id.lib) {
+						tot_lib_error++;
 					} else {
-						INIT_MINMAX(min, max);
-	
+						if(centermode==2) {
+							VECCOPY(cent, give_cursor());
+							Mat4Invert(base->object->imat, base->object->obmat);
+							Mat4MulVecfl(base->object->imat, cent);
+
+							/* don't allow Z change if curve is 2D */
+							if( !( cu->flag & CU_3D ) )
+								cent[2] = 0.0;
+						} else {
+							INIT_MINMAX(min, max);
+		
+							nu= nu1;
+							while(nu) {
+								minmaxNurb(nu, min, max);
+								nu= nu->next;
+							}
+							
+							cent[0]= (min[0]+max[0])/2.0f;
+							cent[1]= (min[1]+max[1])/2.0f;
+							cent[2]= (min[2]+max[2])/2.0f;
+						}
+						
 						nu= nu1;
 						while(nu) {
-							minmaxNurb(nu, min, max);
+							if( (nu->type & 7)==1) {
+								a= nu->pntsu;
+								while (a--) {
+									VecSubf(nu->bezt[a].vec[0], nu->bezt[a].vec[0], cent);
+									VecSubf(nu->bezt[a].vec[1], nu->bezt[a].vec[1], cent);
+									VecSubf(nu->bezt[a].vec[2], nu->bezt[a].vec[2], cent);
+								}
+							}
+							else {
+								a= nu->pntsu*nu->pntsv;
+								while (a--)
+									VecSubf(nu->bp[a].vec, nu->bp[a].vec, cent);
+							}
 							nu= nu->next;
 						}
+				
+						if(centermode && G.obedit==0) {
+							Mat3CpyMat4(omat, base->object->obmat);
+							
+							Mat3MulVecfl(omat, cent);
+							base->object->loc[0]+= cent[0];
+							base->object->loc[1]+= cent[1];
+							base->object->loc[2]+= cent[2];
+						}
 						
-						cent[0]= (min[0]+max[0])/2.0f;
-						cent[1]= (min[1]+max[1])/2.0f;
-						cent[2]= (min[2]+max[2])/2.0f;
-					}
-					
-					nu= nu1;
-					while(nu) {
-						if( (nu->type & 7)==1) {
-							a= nu->pntsu;
-							while (a--) {
-								VecSubf(nu->bezt[a].vec[0], nu->bezt[a].vec[0], cent);
-								VecSubf(nu->bezt[a].vec[1], nu->bezt[a].vec[1], cent);
-								VecSubf(nu->bezt[a].vec[2], nu->bezt[a].vec[2], cent);
+						tot_change++;
+						if(G.obedit) {
+							if (centermode==0) {
+								DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 							}
+							break;
 						}
-						else {
-							a= nu->pntsu*nu->pntsv;
-							while (a--)
-								VecSubf(nu->bp[a].vec, nu->bp[a].vec, cent);
-						}
-						nu= nu->next;
 					}
-			
-					if(centermode && G.obedit==0) {
-						Mat3CpyMat4(omat, base->object->obmat);
-						
-						Mat3MulVecfl(omat, cent);
-						base->object->loc[0]+= cent[0];
-						base->object->loc[1]+= cent[1];
-						base->object->loc[2]+= cent[2];
-					}
-			
-					if(G.obedit) {
-						if (centermode==0) {
-							DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-						}
-						break;
-					}
-	
 				}
 				else if(base->object->type==OB_FONT) {
 					/* get from bb */
 					
 					cu= base->object->data;
-					if(cu->bb==0) return;
 					
-					cu->xof= -0.5f*( cu->bb->vec[4][0] - cu->bb->vec[0][0]);
-					cu->yof= -0.5f -0.5f*( cu->bb->vec[0][1] - cu->bb->vec[2][1]);	/* extra 0.5 is the height of above line */
-					
-					/* not really ok, do this better once! */
-					cu->xof /= cu->fsize;
-					cu->yof /= cu->fsize;
+					if(cu->bb==0) {
+						/* do nothing*/
+					} else if (cu->id.lib) {
+						tot_lib_error++;
+					} else {
+						cu->xof= -0.5f*( cu->bb->vec[4][0] - cu->bb->vec[0][0]);
+						cu->yof= -0.5f -0.5f*( cu->bb->vec[0][1] - cu->bb->vec[2][1]);	/* extra 0.5 is the height of above line */
+						
+						/* not really ok, do this better once! */
+						cu->xof /= cu->fsize;
+						cu->yof /= cu->fsize;
 
-					allqueue(REDRAWBUTSEDIT, 0);
+						allqueue(REDRAWBUTSEDIT, 0);
+						tot_change++;
+					}
 				}
 				else if(base->object->type==OB_ARMATURE) {
 					bArmature *arm = base->object->data;
 					
-					if(arm->id.us>1) {
-						error("Can't apply to a multi user armature");
-						return;
+					if (arm->id.lib) {
+						tot_lib_error++;
+					} else if(arm->id.us>1) {
+						/*error("Can't apply to a multi user armature");
+						return;*/
+						tot_multiuser_arm_error++;
+					} else {
+						/* Function to recenter armatures in editarmature.c 
+						 * Bone + object locations are handled there.
+						 */
+						docenter_armature(base->object, centermode);
+						tot_change++;
+						if(G.obedit) 
+							break;
 					}
-					
-					/* Function to recenter armatures in editarmature.c 
-					 * Bone + object locations are handled there.
-					 */
-					docenter_armature(base->object, centermode);
-					
-					if(G.obedit) 
-						break;
 				}
 				base->object->recalc= OB_RECALC_OB|OB_RECALC_DATA;
 			}
 		}
 		base= base->next;
 	}
-
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
-	allqueue(REDRAWVIEW3D, 0);
-	BIF_undo_push("Do Center");	
+	if (tot_change) {
+		DAG_scene_flush_update(G.scene, screen_view3d_layers());
+		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Do Center");	
+	}
+	
+	/* Warn if any errors occured */
+	if (tot_lib_error+tot_key_error+tot_multiuser_arm_error) {
+		char err[512];
+		sprintf(err, "Warning %i Object(s) Not Centered, %i Changed%%t", tot_lib_error+tot_key_error+tot_multiuser_arm_error, tot_change);
+		
+		if (tot_lib_error)
+			sprintf(err+strlen(err), "|%i linked library objects", tot_lib_error);
+		if (tot_key_error)
+			sprintf(err+strlen(err), "|%i mesh key object(s)", tot_key_error);
+		if (tot_multiuser_arm_error)
+			sprintf(err+strlen(err), "|%i multiuser armature object(s)", tot_multiuser_arm_error);
+		
+		pupmenu(err);
+	}
 }
 
 void docenter_new(void)
