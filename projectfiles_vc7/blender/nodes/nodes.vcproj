@@ -225,6 +225,9 @@
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_blur.c">
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_brightness.c">
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_channelMatte.c">
 				</File>
 				<File
@@ -256,6 +259,9 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_flip.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_gamma.c">
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_hueSatVal.c">
