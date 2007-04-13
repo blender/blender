@@ -94,6 +94,7 @@ extern bNodeType cmp_node_displace;
 extern bNodeType cmp_node_mapuv;
 
 extern bNodeType cmp_node_brightcontrast;
+extern bNodeType cmp_node_gamma;
 
 #endif
 

@@ -33,13 +33,13 @@
 
 /* **************** Brigh and contrsast  ******************** */
 
-static bNodeSocketType cmp_node_brightcontrsast_in[]= {
+static bNodeSocketType cmp_node_brightcontrast_in[]= {
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "bright",		0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f},
 	{	SOCK_VALUE, 1, "contrast",		0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f},
 	{	-1, 0, ""	}
 };
-static bNodeSocketType cmp_node_brightcontrsast_out[]= {
+static bNodeSocketType cmp_node_brightcontrast_out[]= {
 	{	SOCK_RGBA, 0, "Image",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
@@ -77,7 +77,7 @@ static void do_brightnesscontrast(bNode *node, float *out, float *in)
 	}
 }
 
-static void node_composit_exec_brightcontrsast(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void node_composit_exec_brightcontrast(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if(out[0]->hasoutput==0)
 		return;
@@ -94,16 +94,16 @@ static void node_composit_exec_brightcontrsast(void *data, bNode *node, bNodeSta
 	}
 }
 
-bNodeType cmp_node_brighcontrast= {
+bNodeType cmp_node_brightcontrast= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	CMP_NODE_BRIGHTCONTRAST,
 	/* name        */	"Bright/Contrast",
 	/* width+range */	140, 100, 320,
 	/* class+opts  */	NODE_CLASS_OP_COLOR, NODE_OPTIONS,
-	/* input sock  */	cmp_node_brightcontrsast_in,
-	/* output sock */	cmp_node_brightcontrsast_out,
+	/* input sock  */	cmp_node_brightcontrast_in,
+	/* output sock */	cmp_node_brightcontrast_out,
 	/* storage     */	"",
-	/* execfunc    */	node_composit_exec_brightcontrsast,
+	/* execfunc    */	node_composit_exec_brightcontrast,
 	/* butfunc     */	NULL, 
 	/* initfunc    */	NULL, 
 	/* freestoragefunc	*/ NULL, 

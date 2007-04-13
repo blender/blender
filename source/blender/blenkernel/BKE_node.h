@@ -295,6 +295,7 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_LUMA_MATTE	248
 
 #define CMP_NODE_BRIGHTCONTRAST 249
+#define CMP_NODE_GAMMA		250
 
 /* filter types */
 #define CMP_FILT_SOFT		0

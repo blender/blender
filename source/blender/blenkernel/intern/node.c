@@ -2363,6 +2363,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_mapuv);
 
 	nodeRegisterType(ntypelist, &cmp_node_brightcontrast);
+	nodeRegisterType(ntypelist, &cmp_node_gamma);
 }
 
 static void registerShaderNodes(ListBase *ntypelist) 
